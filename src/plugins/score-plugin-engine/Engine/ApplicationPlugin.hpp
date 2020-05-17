@@ -5,7 +5,6 @@
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 
-
 #include <Execution/ContextMenu/PlayContextMenu.hpp>
 #include <score_plugin_engine_export.h>
 
@@ -38,11 +37,10 @@ class audio_engine;
 class QLabel;
 namespace Engine
 {
-using exec_setup_fun = std::function<
-    void(const Execution::Context&, Execution::BaseScenarioElement&)>;
-class SCORE_PLUGIN_ENGINE_EXPORT ApplicationPlugin final
-    : public QObject,
-      public score::GUIApplicationPlugin
+using exec_setup_fun
+    = std::function<void(const Execution::Context&, Execution::BaseScenarioElement&)>;
+class SCORE_PLUGIN_ENGINE_EXPORT ApplicationPlugin final : public QObject,
+                                                           public score::GUIApplicationPlugin
 {
 public:
   ApplicationPlugin(const score::GUIApplicationContext& app);
@@ -54,8 +52,7 @@ public:
   void on_initDocument(score::Document& doc) override;
   void on_createdDocument(score::Document& doc) override;
 
-  void on_documentChanged(score::Document* olddoc, score::Document* newdoc)
-      override;
+  void on_documentChanged(score::Document* olddoc, score::Document* newdoc) override;
 
   void prepareNewDocument() override;
 
@@ -73,7 +70,6 @@ public:
   bool paused() const { return m_paused; }
 
   void on_stop();
-
 
 private:
   void on_init();

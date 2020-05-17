@@ -41,16 +41,12 @@ ProcessModel::ProcessModel(
     const Id<Process::ProcessModel>& id,
     const score::DocumentContext& ctx,
     QObject* parent)
-    : Process::ProcessModel{duration,
-                            id,
-                            Metadata<ObjectKey_k, ProcessModel>::get(),
-                            parent}
+    : Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , Scenario::BaseScenarioContainer{ctx, this}
     , inlet{Process::make_audio_inlet(Id<Process::Port>(0), this)}
     , outlet{Process::make_audio_outlet(Id<Process::Port>(0), this)}
 {
-  Scenario::IntervalDurations::Algorithms::changeAllDurations(
-      interval(), duration);
+  Scenario::IntervalDurations::Algorithms::changeAllDurations(interval(), duration);
   endEvent().setDate(duration);
   endTimeSync().setDate(duration);
 
@@ -77,13 +73,9 @@ ProcessModel::~ProcessModel()
   identified_object_destroying(this);
 }
 
-void ProcessModel::startExecution()
-{
-}
+void ProcessModel::startExecution() { }
 
-void ProcessModel::stopExecution()
-{
-}
+void ProcessModel::stopExecution() { }
 
 void ProcessModel::reset()
 {
@@ -120,9 +112,8 @@ void ProcessModel::setSelection(const Selection& s) const noexcept
   });
 }
 
-const QVector<Id<Scenario::IntervalModel>> intervalsBeforeTimeSync(
-    const ProcessModel& scen,
-    const Id<Scenario::TimeSyncModel>& timeSyncId)
+const QVector<Id<Scenario::IntervalModel>>
+intervalsBeforeTimeSync(const ProcessModel& scen, const Id<Scenario::TimeSyncModel>& timeSyncId)
 {
   if (timeSyncId == scen.endTimeSync().id())
   {
@@ -131,8 +122,7 @@ const QVector<Id<Scenario::IntervalModel>> intervalsBeforeTimeSync(
   return {};
 }
 
-bool LoopIntervalResizer::matches(
-    const Scenario::IntervalModel& interval) const noexcept
+bool LoopIntervalResizer::matches(const Scenario::IntervalModel& interval) const noexcept
 {
   return dynamic_cast<Loop::ProcessModel*>(interval.parent());
 }
@@ -148,12 +138,7 @@ score::Command* LoopIntervalResizer::make(
     return nullptr;
 
   return new Scenario::Command::MoveBaseEvent<Loop::ProcessModel>{
-      *scenar,
-      scenar->endEvent().id(),
-      new_duration,
-      interval.heightPercentage(),
-      e,
-      l};
+      *scenar, scenar->endEvent().id(), new_duration, interval.heightPercentage(), e, l};
 }
 
 void LoopIntervalResizer::update(
@@ -163,19 +148,12 @@ void LoopIntervalResizer::update(
     ExpandMode e,
     LockMode l) const noexcept
 {
-  auto c = dynamic_cast<Scenario::Command::MoveBaseEvent<Loop::ProcessModel>*>(
-      &cmd);
+  auto c = dynamic_cast<Scenario::Command::MoveBaseEvent<Loop::ProcessModel>*>(&cmd);
   if (c)
   {
     auto scenar = dynamic_cast<Loop::ProcessModel*>(interval.parent());
     auto& ev = Scenario::endState(interval, *scenar).eventId();
-    c->update(
-        *scenar,
-        ev,
-        interval.date() + new_duration,
-        interval.heightPercentage(),
-        e,
-        l);
+    c->update(*scenar, ev, interval.date() + new_duration, interval.heightPercentage(), e, l);
   }
 }
 

@@ -12,7 +12,7 @@ namespace score
 class Version
 {
 public:
-  explicit Version(int32_t v) : m_impl{v} {}
+  explicit Version(int32_t v) : m_impl{v} { }
   Version(const Version&) = default;
   Version(Version&&) = default;
   Version& operator=(const Version&) = default;

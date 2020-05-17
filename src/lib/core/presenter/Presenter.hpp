@@ -59,10 +59,7 @@ public:
   void setupGUI();
 
   auto& documentManager() { return m_docManager; }
-  const ApplicationComponents& applicationComponents()
-  {
-    return m_components_readonly;
-  }
+  const ApplicationComponents& applicationComponents() { return m_components_readonly; }
   const GUIApplicationContext& applicationContext() { return m_context; }
 
   auto& components() { return m_components; }

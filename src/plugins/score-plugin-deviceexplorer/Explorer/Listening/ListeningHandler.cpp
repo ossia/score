@@ -6,5 +6,5 @@
 W_OBJECT_IMPL(Explorer::ListeningHandler)
 namespace Explorer
 {
-ListeningHandler::~ListeningHandler() {}
+ListeningHandler::~ListeningHandler() { }
 }

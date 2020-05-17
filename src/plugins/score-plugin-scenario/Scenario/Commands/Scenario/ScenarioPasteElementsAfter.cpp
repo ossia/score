@@ -10,7 +10,6 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
-
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <score/document/DocumentContext.hpp>
@@ -30,7 +29,6 @@
 #include <core/document/DocumentModel.hpp>
 
 #include <ossia/detail/algorithms.hpp>
-
 
 #include <cstddef>
 #include <limits>
@@ -102,8 +100,7 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
       auto timesync = *it;
       for (EventModel* event : events)
       {
-        if (event->timeSync() == timesync->id()
-            && !ossia::contains(event_in_start, event))
+        if (event->timeSync() == timesync->id() && !ossia::contains(event_in_start, event))
         {
           event->changeTimeSync(timesync_ids[i]);
         }
@@ -117,10 +114,9 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
     for (EventModel* event : events)
     {
       {
-        auto it = std::find_if(
-            timesyncs.begin(), timesyncs.end(), [&](TimeSyncModel* tn) {
-              return tn->id() == event->timeSync();
-            });
+        auto it = std::find_if(timesyncs.begin(), timesyncs.end(), [&](TimeSyncModel* tn) {
+          return tn->id() == event->timeSync();
+        });
         if (it != timesyncs.end())
         {
           auto timesync = *it;
@@ -152,10 +148,9 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
     for (StateModel* state : states)
     {
       {
-        auto it = std::find_if(
-            events.begin(), events.end(), [&](EventModel* event) {
-              return event->id() == state->eventId();
-            });
+        auto it = std::find_if(events.begin(), events.end(), [&](EventModel* event) {
+          return event->id() == state->eventId();
+        });
         SCORE_ASSERT(it != events.end());
         auto event = *it;
         event->removeState(state->id());
@@ -187,10 +182,8 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
       }
     }
 
-    auto& doc
-        = score::IDocument::modelDelegate<ScenarioDocumentModel>(ctx.document);
-    auto cable_ids
-        = getStrongIdRange<Process::Cable>(cables.size(), doc.cables);
+    auto& doc = score::IDocument::modelDelegate<ScenarioDocumentModel>(ctx.document);
+    auto cable_ids = getStrongIdRange<Process::Cable>(cables.size(), doc.cables);
 
     int i = 0;
     Path<Process::ProcessModel> p{scenario};
@@ -209,19 +202,12 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
         if (id == sink_itv_id)
           sink_itv_id = id_map.at(interval->id()).val();
       }
-      source_vec.front()
-          = ObjectIdentifier{source_vec.front().objectName(), source_itv_id};
-      sink_vec.front()
-          = ObjectIdentifier{sink_vec.front().objectName(), sink_itv_id};
+      source_vec.front() = ObjectIdentifier{source_vec.front().objectName(), source_itv_id};
+      sink_vec.front() = ObjectIdentifier{sink_vec.front().objectName(), sink_itv_id};
 
       source_vec.insert(
-          source_vec.begin(),
-          p.unsafePath().vec().begin(),
-          p.unsafePath().vec().end());
-      sink_vec.insert(
-          sink_vec.begin(),
-          p.unsafePath().vec().begin(),
-          p.unsafePath().vec().end());
+          source_vec.begin(), p.unsafePath().vec().begin(), p.unsafePath().vec().end());
+      sink_vec.insert(sink_vec.begin(), p.unsafePath().vec().begin(), p.unsafePath().vec().end());
 
       m_cables.insert(cable_ids[i], std::move(cd));
       i++;
@@ -243,16 +229,14 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
 
       interval->setId(interval_ids[i]);
       {
-        auto start_state_id = ossia::find_if(states, [&](auto state) {
-          return state->id() == interval->startState();
-        });
+        auto start_state_id = ossia::find_if(
+            states, [&](auto state) { return state->id() == interval->startState(); });
         if (start_state_id != states.end())
           SetNextInterval(**start_state_id, *interval);
       }
       {
-        auto end_state_id = ossia::find_if(states, [&](auto state) {
-          return state->id() == interval->endState();
-        });
+        auto end_state_id = ossia::find_if(
+            states, [&](auto state) { return state->id() == interval->endState(); });
         if (end_state_id != states.end())
           SetPreviousInterval(**end_state_id, *interval);
       }
@@ -276,8 +260,7 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
 
   if (!intervals.empty() || !timesyncs.empty()) // Should always be the case.
   {
-    auto earliestTime = !intervals.empty() ? intervals.front()->date()
-                                           : timesyncs.front()->date();
+    auto earliestTime = !intervals.empty() ? intervals.front()->date() : timesyncs.front()->date();
     for (const IntervalModel* interval : intervals)
     {
       const auto& t = interval->date();
@@ -314,12 +297,12 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
 
   // Same for y.
   qreal delta_y = 0;
-  for(auto& ev : attach_sync.events())
+  for (auto& ev : attach_sync.events())
   {
-    for(auto& state : scenario.events.at(ev).states())
+    for (auto& state : scenario.events.at(ev).states())
     {
       auto h = scenario.states.at(state).heightPercentage();
-      if(h > delta_y)
+      if (h > delta_y)
         delta_y = h;
     }
   }
@@ -327,13 +310,11 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
   delta_y *= 1.1;
   for (IntervalModel* cst : intervals)
   {
-    cst->setHeightPercentage(
-        clamp(delta_y, 0., 1.));
+    cst->setHeightPercentage(clamp(delta_y, 0., 1.));
   }
   for (StateModel* state : states)
   {
-    state->setHeightPercentage(
-        clamp(delta_y, 0., 1.));
+    state->setHeightPercentage(clamp(delta_y, 0., 1.));
   }
 
   // We reserialize here in order to not have dangling pointers and bad cache
@@ -470,16 +451,16 @@ void ScenarioPasteElementsAfter::redo(const score::DocumentContext& ctx) const
 
 void ScenarioPasteElementsAfter::serializeImpl(DataStreamInput& s) const
 {
-  s << m_ts << m_attachSync << m_eventsToAttach << m_ids_timesyncs
-    << m_ids_events << m_ids_states << m_ids_intervals << m_json_timesyncs
-    << m_json_events << m_json_states << m_json_intervals << m_cables;
+  s << m_ts << m_attachSync << m_eventsToAttach << m_ids_timesyncs << m_ids_events << m_ids_states
+    << m_ids_intervals << m_json_timesyncs << m_json_events << m_json_states << m_json_intervals
+    << m_cables;
 }
 
 void ScenarioPasteElementsAfter::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_ts >> m_attachSync >> m_eventsToAttach >> m_ids_timesyncs
-      >> m_ids_events >> m_ids_states >> m_ids_intervals >> m_json_timesyncs
-      >> m_json_events >> m_json_states >> m_json_intervals >> m_cables;
+  s >> m_ts >> m_attachSync >> m_eventsToAttach >> m_ids_timesyncs >> m_ids_events >> m_ids_states
+      >> m_ids_intervals >> m_json_timesyncs >> m_json_events >> m_json_states >> m_json_intervals
+      >> m_cables;
 }
 }
 }

@@ -48,10 +48,8 @@ public:
       QObject* parent);
   IntervalRawPtrComponentBase(const IntervalRawPtrComponentBase&) = delete;
   IntervalRawPtrComponentBase(IntervalRawPtrComponentBase&&) = delete;
-  IntervalRawPtrComponentBase& operator=(const IntervalRawPtrComponentBase&)
-      = delete;
-  IntervalRawPtrComponentBase& operator=(IntervalRawPtrComponentBase&&)
-      = delete;
+  IntervalRawPtrComponentBase& operator=(const IntervalRawPtrComponentBase&) = delete;
+  IntervalRawPtrComponentBase& operator=(IntervalRawPtrComponentBase&&) = delete;
 
   //! To be called from the GUI thread
   interval_duration_data makeDurations() const;
@@ -72,13 +70,11 @@ public:
       const Id<score::Component>& id,
       ProcessComponentFactory& factory,
       Process::ProcessModel& process);
-  ProcessComponent*
-  make(const Id<score::Component>& id, Process::ProcessModel& process)
+  ProcessComponent* make(const Id<score::Component>& id, Process::ProcessModel& process)
   {
     return nullptr;
   }
-  std::function<void()>
-  removing(const Process::ProcessModel& e, ProcessComponent& c);
+  std::function<void()> removing(const Process::ProcessModel& e, ProcessComponent& c);
 
   template <typename... Args>
   void added(Args&&...)
@@ -97,21 +93,18 @@ protected:
   void on_processAdded(Process::ProcessModel& score_proc);
 
   ossia::time_interval* m_ossia_interval{};
-  score::hash_map<Id<Process::ProcessModel>, std::shared_ptr<ProcessComponent>>
-      m_processes;
+  score::hash_map<Id<Process::ProcessModel>, std::shared_ptr<ProcessComponent>> m_processes;
 };
 
 class SCORE_PLUGIN_SCENARIO_EXPORT IntervalRawPtrComponent final
-    : public score::
-          PolymorphicComponentHierarchy<IntervalRawPtrComponentBase, false>
+    : public score::PolymorphicComponentHierarchy<IntervalRawPtrComponentBase, false>
 {
   W_OBJECT(IntervalRawPtrComponent)
 
 public:
   template <typename... Args>
   IntervalRawPtrComponent(Args&&... args)
-      : PolymorphicComponentHierarchyManager{score::lazy_init_t{},
-                                             std::forward<Args>(args)...}
+      : PolymorphicComponentHierarchyManager{score::lazy_init_t{}, std::forward<Args>(args)...}
   {
   }
 

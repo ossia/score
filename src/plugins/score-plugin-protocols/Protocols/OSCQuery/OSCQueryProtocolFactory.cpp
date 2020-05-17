@@ -49,8 +49,7 @@ Device::ProtocolSettingsWidget* OSCQueryProtocolFactory::makeSettingsWidget()
   return new OSCQueryProtocolSettingsWidget;
 }
 
-QVariant OSCQueryProtocolFactory::makeProtocolSpecificSettings(
-    const VisitorVariant& visitor) const
+QVariant OSCQueryProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
 {
   return makeProtocolSpecificSettings_T<OSCQuerySpecificSettings>(visitor);
 }

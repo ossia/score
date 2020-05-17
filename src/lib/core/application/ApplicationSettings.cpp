@@ -21,15 +21,13 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
   opengl = false;
 #endif
   QCommandLineParser parser;
-  parser.setApplicationDescription(QObject::tr(
-      "score - An interactive sequencer for the intermedia arts."));
+  parser.setApplicationDescription(
+      QObject::tr("score - An interactive sequencer for the intermedia arts."));
   parser.addHelpOption();
   parser.addVersionOption();
-  parser.addPositionalArgument(
-      "file", QCoreApplication::translate("main", "Scenario to load."));
+  parser.addPositionalArgument("file", QCoreApplication::translate("main", "Scenario to load."));
 
-  QCommandLineOption noGUI(
-      "no-gui", QCoreApplication::translate("main", "Disable GUI"));
+  QCommandLineOption noGUI("no-gui", QCoreApplication::translate("main", "Disable GUI"));
   parser.addOption(noGUI);
 
   QCommandLineOption noGL(
@@ -37,19 +35,16 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
   parser.addOption(noGL);
 
   QCommandLineOption noRestore(
-      "no-restore",
-      QCoreApplication::translate("main", "Disable auto-restore"));
+      "no-restore", QCoreApplication::translate("main", "Disable auto-restore"));
   parser.addOption(noRestore);
 
   QCommandLineOption autoplayOpt(
-      "autoplay",
-      QCoreApplication::translate("main", "Auto-play the loaded scenario"));
+      "autoplay", QCoreApplication::translate("main", "Auto-play the loaded scenario"));
   parser.addOption(autoplayOpt);
 
   QCommandLineOption waitLoadOpt(
       "wait",
-      QCoreApplication::translate(
-          "main", "Wait N seconds after loading, before playing."),
+      QCoreApplication::translate("main", "Wait N seconds after loading, before playing."),
       "N",
       "0");
   parser.addOption(waitLoadOpt);

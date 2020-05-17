@@ -1,15 +1,17 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "LayerPresenter.hpp"
+
 #include "LayerView.hpp"
+
+#include <Process/Commands/LoadPreset.hpp>
+#include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/Preset.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
-#include <Process/Focus/FocusDispatcher.hpp>
-#include <Process/Commands/LoadPreset.hpp>
-
-#include <wobjectimpl.h>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+
+#include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Process::LayerPresenter)
 W_OBJECT_IMPL(FocusDispatcher)
@@ -18,29 +20,26 @@ namespace Process
 LayerPresenter::~LayerPresenter() = default;
 
 LayerPresenter::LayerPresenter(
-      const ProcessModel& model,
-      const LayerView* view,
-      const Context& ctx,
-      QObject* parent)
-  : QObject{parent}
-  , m_context{ctx, *this}
-  , m_process{model}
+    const ProcessModel& model,
+    const LayerView* view,
+    const Context& ctx,
+    QObject* parent)
+    : QObject{parent}, m_context{ctx, *this}, m_process{model}
 {
-  connect(view, &LayerView::presetDropReceived,
-          this, &LayerPresenter::handlePresetDrop);
+  connect(view, &LayerView::presetDropReceived, this, &LayerPresenter::handlePresetDrop);
 }
 
 void LayerPresenter::handlePresetDrop(const QPointF&, const QMimeData& mime)
 {
   auto data = mime.data(score::mime::processpreset());
   auto& procs = m_context.context.app.interfaces<Process::ProcessFactoryList>();
-  if(auto preset = Process::Preset::fromJson(procs, data))
+  if (auto preset = Process::Preset::fromJson(procs, data))
   {
     // TODO effect
-    if(preset->key.key == m_process.concreteKey())
+    if (preset->key.key == m_process.concreteKey())
     {
-      CommandDispatcher<>{m_context.context.commandStack}
-        .submit<Process::LoadPreset>(m_process, *preset);
+      CommandDispatcher<>{m_context.context.commandStack}.submit<Process::LoadPreset>(
+          m_process, *preset);
     }
   }
 }
@@ -55,9 +54,9 @@ void LayerPresenter::setFocus(bool focus)
   on_focusChanged();
 }
 
-void LayerPresenter::on_focusChanged() {}
+void LayerPresenter::on_focusChanged() { }
 
-void LayerPresenter::setFullView() {}
+void LayerPresenter::setFullView() { }
 
 const ProcessModel& LayerPresenter::model() const noexcept
 {
@@ -82,7 +81,7 @@ GraphicsShapeItem* LayerPresenter::makeSlotHeaderDelegate()
   return nullptr;
 }
 
-GraphicsShapeItem::~GraphicsShapeItem() {}
+GraphicsShapeItem::~GraphicsShapeItem() { }
 
 void GraphicsShapeItem::setSize(QSizeF sz)
 {

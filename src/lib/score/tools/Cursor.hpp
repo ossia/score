@@ -4,11 +4,12 @@
 #if defined(__APPLE__)
 #include <ApplicationServices/ApplicationServices.h>
 #else
-#include <QGuiApplication>
 #include <QCursor>
+#include <QGuiApplication>
 #endif
 
 #include <QPointF>
+
 #include <score_lib_base_export.h>
 namespace score
 {
@@ -31,7 +32,8 @@ inline void moveCursorPos(QPointF pos) noexcept
 #if defined(__APPLE__)
   static int i = 0;
   i++;
-  if (i%2) {
+  if (i % 2)
+  {
     // Moving a cursor is visibly an expensive operation on macos
     // even on 3.2ghz i7 CPUs so we cull it a bit
     return;
@@ -47,7 +49,6 @@ inline void moveCursorPos(QPointF pos) noexcept
   QCursor::setPos(pos.toPoint());
 #endif
 }
-
 
 #if defined(__APPLE__)
 SCORE_LIB_BASE_EXPORT

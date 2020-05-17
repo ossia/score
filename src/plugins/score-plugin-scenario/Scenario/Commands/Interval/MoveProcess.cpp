@@ -70,8 +70,7 @@ static void moveProcess(
 
     EraseProcess(src, proc.id());
 
-    for (auto it = slots_to_remove.rbegin(); it != slots_to_remove.rend();
-         ++it)
+    for (auto it = slots_to_remove.rbegin(); it != slots_to_remove.rend(); ++it)
       src.removeSlot(*it);
   }
 
@@ -111,9 +110,7 @@ void MoveProcess::redo(const score::DocumentContext& ctx) const
 
   if (m_addedSlot)
   {
-    auto h = score::AppContext()
-                 .settings<Scenario::Settings::Model>()
-                 .getSlotHeight();
+    auto h = score::AppContext().settings<Scenario::Settings::Model>().getSlotHeight();
     tgt.addSlot(Slot{{m_newId}, m_newId, h});
     tgt.setSmallViewVisible(true);
   }
@@ -121,13 +118,11 @@ void MoveProcess::redo(const score::DocumentContext& ctx) const
 
 void MoveProcess::serializeImpl(DataStreamInput& s) const
 {
-  s << m_src << m_tgt << m_oldId << m_newId << m_oldSmall << m_oldFull
-    << m_oldPos << m_addedSlot;
+  s << m_src << m_tgt << m_oldId << m_newId << m_oldSmall << m_oldFull << m_oldPos << m_addedSlot;
 }
 
 void MoveProcess::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_src >> m_tgt >> m_oldId >> m_newId >> m_oldSmall >> m_oldFull
-      >> m_oldPos >> m_addedSlot;
+  s >> m_src >> m_tgt >> m_oldId >> m_newId >> m_oldSmall >> m_oldFull >> m_oldPos >> m_addedSlot;
 }
 }

@@ -5,8 +5,7 @@
 #include <score/model/Skin.hpp>
 namespace Process
 {
-Style::Style(score::Skin& s) noexcept
-    : skin{s}
+Style::Style(score::Skin& s) noexcept : skin{s}
 {
   update(s);
   QObject::connect(&s, &score::Skin::changed, [&] { this->update(s); });
@@ -34,13 +33,7 @@ Style::Style() noexcept : skin{score::Skin::instance()}
   update(skin);
 }
 
-Style::~Style()
-{
+Style::~Style() { }
 
-}
-
-void Style::update(const score::Skin&)
-{
-
-}
+void Style::update(const score::Skin&) { }
 }

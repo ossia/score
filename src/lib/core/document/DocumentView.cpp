@@ -12,13 +12,8 @@
 W_OBJECT_IMPL(score::DocumentView)
 namespace score
 {
-DocumentView::DocumentView(
-    DocumentDelegateFactory& fact,
-    const Document& doc,
-    QObject* parent)
-    : QObject{parent}
-    , m_document{doc}
-    , m_view{fact.makeView(doc.context(), this)}
+DocumentView::DocumentView(DocumentDelegateFactory& fact, const Document& doc, QObject* parent)
+    : QObject{parent}, m_document{doc}, m_view{fact.makeView(doc.context(), this)}
 {
 }
 }

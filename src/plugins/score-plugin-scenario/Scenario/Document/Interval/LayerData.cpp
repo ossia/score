@@ -1,19 +1,20 @@
-#include <Process/Process.hpp>
-#include <Scenario/Document/Interval/LayerData.hpp>
-#include <score/graphics/RectItem.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
-#include <QPainter>
+#include <Process/Process.hpp>
+#include <Scenario/Document/Interval/LayerData.hpp>
 
+#include <score/graphics/RectItem.hpp>
 #include <score/tools/Debug.hpp>
+
+#include <QPainter>
 
 namespace Scenario
 {
-LayerData::LayerData(const Process::ProcessModel* m) : m_model(m) {}
+LayerData::LayerData(const Process::ProcessModel* m) : m_model(m) { }
 
 void LayerData::cleanup()
 {
-  for(const auto& layer : m_layers)
+  for (const auto& layer : m_layers)
   {
     // QPointer<Process::LayerView> v{view.view[i]};
     delete layer.presenter;
@@ -69,7 +70,7 @@ Process::LayerView* LayerData::mainView() const noexcept
 bool LayerData::focused() const
 {
   // TODO is this correct
-  if(auto p = mainPresenter())
+  if (auto p = mainPresenter())
     return p->focused();
   return false;
 }
@@ -136,7 +137,6 @@ void LayerData::on_zoomRatioChanged(
   }
 }
 
-
 void LayerData::setupView(
     LayerData::Layer& layer,
     int idx,
@@ -168,37 +168,39 @@ void LayerData::updateLoops(
   {
     const auto view_width = m_model->loopDuration().toPixels(r);
 
-    // TODO here it should be different between fullview and temporal (parent_width vs default_width)
-    const auto num_views = (view_width < 4) ? 0 : std::max((int)1, (int)std::ceil(parent_width / view_width));
+    // TODO here it should be different between fullview and temporal
+    // (parent_width vs default_width)
+    const auto num_views
+        = (view_width < 4) ? 0 : std::max((int)1, (int)std::ceil(parent_width / view_width));
     if ((int)m_layers.size() < num_views)
     {
       int missing = num_views - m_layers.size();
 
       auto f = ctx.processList.findDefaultFactory(m_model->concreteKey());
       SCORE_ASSERT(f);
-      for(int i = 0; i < missing; i++)
+      for (int i = 0; i < missing; i++)
       {
         addView(*f, r, ctx, parentItem, parent);
       }
     }
     else
     {
-      for(int i = int(m_layers.size()) - 1; i >= num_views; i--)
+      for (int i = int(m_layers.size()) - 1; i >= num_views; i--)
         removeView(i);
     }
 
     // Update sizes for everyone
-    for(int i = 0; i <int(m_layers.size()); i++)
+    for (int i = 0; i < int(m_layers.size()); i++)
     {
       setupView(m_layers[i], i, parent_width, parent_default_width, view_width, slot_height);
     }
 
-    if(!m_layers.empty())
+    if (!m_layers.empty())
       m_layers.front().container->setFlag(QGraphicsItem::ItemHasNoContents, false);
   }
   else
   {
-    if(m_layers.empty())
+    if (m_layers.empty())
     {
       // Initial case
       auto f = ctx.processList.findDefaultFactory(m_model->concreteKey());
@@ -208,22 +210,22 @@ void LayerData::updateLoops(
     }
     else
     {
-      for(int i =  int(m_layers.size()) - 1; i > 0; i--)
+      for (int i = int(m_layers.size()) - 1; i > 0; i--)
         removeView(i);
     }
 
     // Update sizes for first layer
     setupView(m_layers.front(), 0, parent_width, parent_default_width, parent_width, slot_height);
 
-    if(!m_layers.empty())
+    if (!m_layers.empty())
       m_layers.front().container->setFlag(QGraphicsItem::ItemHasNoContents, true);
   }
 
-  if(!m_layers.empty())
+  if (!m_layers.empty())
   {
     auto& last = m_layers.back();
     auto w = parent_width - last.container->x();
-    if(w > 0)
+    if (w > 0)
     {
       last.container->setWidth(w);
     }
@@ -242,13 +244,13 @@ void LayerData::fillContextMenu(
     QPointF scenepos,
     const Process::LayerContextMenuManager& mgr) const
 {
-  if(auto p = mainPresenter())
+  if (auto p = mainPresenter())
     return p->fillContextMenu(m, pos, scenepos, mgr);
 }
 
 Process::GraphicsShapeItem* LayerData::makeSlotHeaderDelegate() const
 {
-  if(auto p = mainPresenter())
+  if (auto p = mainPresenter())
     return p->makeSlotHeaderDelegate();
   return nullptr;
 }
@@ -319,45 +321,48 @@ void LayerData::setZValue(qreal z) const
 
 QPixmap LayerData::pixmap() const noexcept
 {
-  if(auto v = mainView())
+  if (auto v = mainView())
     return v->pixmap();
   return {};
 }
 
-LayerRectItem::LayerRectItem(QGraphicsItem* parent)
-  : score::ResizeableItem{parent}
+LayerRectItem::LayerRectItem(QGraphicsItem* parent) : score::ResizeableItem{parent}
 {
-  //this->setFlag(ItemHasNoContents, true);
+  // this->setFlag(ItemHasNoContents, true);
 }
 
 void LayerRectItem::setSize(const QSizeF& r)
 {
-  if(r != m_size)
+  if (r != m_size)
   {
     prepareGeometryChange();
     m_size = r;
     sizeChanged(m_size);
 
-    if(r.width() <= 2 && isVisible()) setVisible(false);
-    else if(r.width() > 2 && !isVisible()) setVisible(true);
+    if (r.width() <= 2 && isVisible())
+      setVisible(false);
+    else if (r.width() > 2 && !isVisible())
+      setVisible(true);
   }
 }
 
 void LayerRectItem::setWidth(qreal w)
 {
-  if(w != m_size.width())
+  if (w != m_size.width())
   {
     prepareGeometryChange();
     m_size.setWidth(w);
     sizeChanged(m_size);
 
-    if(w <= 2 && isVisible()) setVisible(false);
-    else if(w > 2 && !isVisible()) setVisible(true);
+    if (w <= 2 && isVisible())
+      setVisible(false);
+    else if (w > 2 && !isVisible())
+      setVisible(true);
   }
 }
 void LayerRectItem::setHeight(qreal h)
 {
-  if(h != m_size.height())
+  if (h != m_size.height())
   {
     prepareGeometryChange();
     m_size.setHeight(h);
@@ -365,18 +370,24 @@ void LayerRectItem::setHeight(qreal h)
   }
 }
 
-QSizeF LayerRectItem::size() const noexcept { return m_size; }
+QSizeF LayerRectItem::size() const noexcept
+{
+  return m_size;
+}
 
 QRectF LayerRectItem::boundingRect() const
 {
   return {0., 0., m_size.width(), m_size.height()};
 }
 
-void LayerRectItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void LayerRectItem::paint(
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
-  //painter->setPen(Qt::blue);
-  //painter->setBrush(Qt::NoBrush);
-  //painter->drawRect(m_rect);
+  // painter->setPen(Qt::blue);
+  // painter->setBrush(Qt::NoBrush);
+  // painter->drawRect(m_rect);
   painter->setPen(score::Skin::instance().DarkGray.main.pen_cosmetic);
   painter->drawLine(m_size.width(), 0., m_size.width(), m_size.height());
 }

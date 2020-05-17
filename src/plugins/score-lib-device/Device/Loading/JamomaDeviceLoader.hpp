@@ -11,8 +11,7 @@ namespace Device
  *
  * The node has to be the device node.
  */
-SCORE_LIB_DEVICE_EXPORT bool
-loadDeviceFromXML(const QString& filePath, Device::Node& node);
+SCORE_LIB_DEVICE_EXPORT bool loadDeviceFromXML(const QString& filePath, Device::Node& node);
 
 /**
  * @brief loadDeviceFromJamomaJSON Will load a device in a Jamoma-format JSON
@@ -20,6 +19,5 @@ loadDeviceFromXML(const QString& filePath, Device::Node& node);
  *
  * The node has to be the device node.
  */
-SCORE_LIB_DEVICE_EXPORT bool
-loadDeviceFromJamomaJSON(const QString& filePath, Device::Node& node);
+SCORE_LIB_DEVICE_EXPORT bool loadDeviceFromJamomaJSON(const QString& filePath, Device::Node& node);
 }

@@ -6,6 +6,7 @@
 #include <QList>
 
 #include <score_plugin_deviceexplorer_export.h>
+
 #include <verdigris>
 
 class QComboBox;
@@ -19,15 +20,12 @@ class ProtocolSettingsWidget;
 }
 namespace Explorer
 {
-class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceEditDialog final
-    : public QDialog
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceEditDialog final : public QDialog
 {
   W_OBJECT(DeviceEditDialog)
 
 public:
-  explicit DeviceEditDialog(
-      const Device::ProtocolFactoryList& pl,
-      QWidget* parent);
+  explicit DeviceEditDialog(const Device::ProtocolFactoryList& pl, QWidget* parent);
   ~DeviceEditDialog();
 
   Device::DeviceSettings getSettings() const;

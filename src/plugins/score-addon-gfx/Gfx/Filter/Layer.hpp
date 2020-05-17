@@ -1,10 +1,10 @@
 #pragma once
 #include <Process/GenericProcessFactory.hpp>
-#include <Effect/EffectFactory.hpp>
-
-#include <Gfx/Filter/Process.hpp>
 #include <Process/Script/ScriptEditor.hpp>
+
 #include <Control/DefaultEffectItem.hpp>
+#include <Effect/EffectFactory.hpp>
+#include <Gfx/Filter/Process.hpp>
 
 namespace Gfx::Filter
 {

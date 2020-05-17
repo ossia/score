@@ -48,8 +48,7 @@ struct YUV420Node : NodeModel
   })_";
 
   const TexturedTriangle& m_mesh = TexturedTriangle::instance();
-  YUV420Node(std::shared_ptr<video_decoder> dec)
-      : decoder{std::move(dec)}
+  YUV420Node(std::shared_ptr<video_decoder> dec) : decoder{std::move(dec)}
   {
     setShaders(m_mesh.defaultVertexShader(), filter);
 
@@ -81,8 +80,7 @@ struct YUV420Node : NodeModel
 
       // Y
       {
-        auto tex
-            = rhi.newTexture(QRhiTexture::R8, {w, h}, 1, QRhiTexture::Flag{});
+        auto tex = rhi.newTexture(QRhiTexture::R8, {w, h}, 1, QRhiTexture::Flag{});
         tex->build();
 
         auto sampler = rhi.newSampler(
@@ -97,8 +95,7 @@ struct YUV420Node : NodeModel
 
       // U
       {
-        auto tex = rhi.newTexture(
-            QRhiTexture::R8, {w / 2, h / 2}, 1, QRhiTexture::Flag{});
+        auto tex = rhi.newTexture(QRhiTexture::R8, {w / 2, h / 2}, 1, QRhiTexture::Flag{});
         tex->build();
 
         auto sampler = rhi.newSampler(
@@ -113,8 +110,7 @@ struct YUV420Node : NodeModel
 
       // V
       {
-        auto tex = rhi.newTexture(
-            QRhiTexture::R8, {w / 2, h / 2}, 1, QRhiTexture::Flag{});
+        auto tex = rhi.newTexture(QRhiTexture::R8, {w / 2, h / 2}, 1, QRhiTexture::Flag{});
         tex->build();
 
         auto sampler = rhi.newSampler(
@@ -128,15 +124,14 @@ struct YUV420Node : NodeModel
       }
     }
 
-    void
-    customUpdate(Renderer& renderer, QRhiResourceUpdateBatch& res) override
+    void customUpdate(Renderer& renderer, QRhiResourceUpdateBatch& res) override
     {
-      for(auto frame : framesToFree)
+      for (auto frame : framesToFree)
         av_frame_free(&frame);
       framesToFree.clear();
 
       auto& decoder = *static_cast<const YUV420Node&>(node).decoder;
-      if(!t.isValid() || t.elapsed() > (1000. / decoder.fps()))
+      if (!t.isValid() || t.elapsed() > (1000. / decoder.fps()))
       {
         if (auto frame = decoder.dequeue_frame())
         {
@@ -152,14 +147,11 @@ struct YUV420Node : NodeModel
 
     void customRelease(Renderer&) override
     {
-      for(auto [sampler, tex] : m_samplers)
+      for (auto [sampler, tex] : m_samplers)
         tex->releaseAndDestroyLater();
     }
 
-    void setYPixels(
-        QRhiResourceUpdateBatch& res,
-        uint8_t* pixels,
-        int stride) const noexcept
+    void setYPixels(QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept
     {
       auto& decoder = *static_cast<const YUV420Node&>(node).decoder;
       // TODO glPixelStorei(GL_UNPACK_ROW_LENGTH, stride);
@@ -172,10 +164,7 @@ struct YUV420Node : NodeModel
       res.uploadTexture(y_tex, desc);
     }
 
-    void setUPixels(
-        QRhiResourceUpdateBatch& res,
-        uint8_t* pixels,
-        int stride) const noexcept
+    void setUPixels(QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept
     {
       auto& decoder = *static_cast<const YUV420Node&>(node).decoder;
       const auto w = decoder.width(), h = decoder.height();
@@ -188,10 +177,7 @@ struct YUV420Node : NodeModel
       res.uploadTexture(u_tex, desc);
     }
 
-    void setVPixels(
-        QRhiResourceUpdateBatch& res,
-        uint8_t* pixels,
-        int stride) const noexcept
+    void setVPixels(QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept
     {
       auto& decoder = *static_cast<const YUV420Node&>(node).decoder;
       const auto w = decoder.width(), h = decoder.height();
@@ -204,12 +190,9 @@ struct YUV420Node : NodeModel
     }
   };
 
-  virtual ~YUV420Node() {}
+  virtual ~YUV420Node() { }
 
-  RenderedNode* createRenderer() const noexcept override
-  {
-    return new Rendered{*this};
-  }
+  RenderedNode* createRenderer() const noexcept override { return new Rendered{*this}; }
 };
 
 struct RGB0Node : NodeModel
@@ -255,8 +238,7 @@ struct RGB0Node : NodeModel
       auto& rhi = *renderer.state.rhi;
 
       {
-        auto tex = rhi.newTexture(
-            QRhiTexture::RGBA8, QSize{w, h}, 1, QRhiTexture::Flag{});
+        auto tex = rhi.newTexture(QRhiTexture::RGBA8, QSize{w, h}, 1, QRhiTexture::Flag{});
         tex->build();
 
         auto sampler = rhi.newSampler(
@@ -270,15 +252,14 @@ struct RGB0Node : NodeModel
       }
     }
 
-    void
-    customUpdate(Renderer& renderer, QRhiResourceUpdateBatch& res) override
+    void customUpdate(Renderer& renderer, QRhiResourceUpdateBatch& res) override
     {
-      for(auto frame : framesToFree)
+      for (auto frame : framesToFree)
         av_frame_free(&frame);
       framesToFree.clear();
 
       auto& decoder = *static_cast<const RGB0Node&>(node).decoder;
-      if(!t.isValid() || t.elapsed() > (1000. / decoder.fps()))
+      if (!t.isValid() || t.elapsed() > (1000. / decoder.fps()))
       {
         if (auto frame = decoder.dequeue_frame())
         {
@@ -292,14 +273,11 @@ struct RGB0Node : NodeModel
 
     void customRelease(Renderer&) override
     {
-      for(auto [sampler, tex] : m_samplers)
+      for (auto [sampler, tex] : m_samplers)
         tex->releaseAndDestroyLater();
     }
 
-    void setPixels(
-        QRhiResourceUpdateBatch& res,
-        uint8_t* pixels,
-        int stride) const noexcept
+    void setPixels(QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept
     {
       auto& decoder = *static_cast<const RGB0Node&>(node).decoder;
       const auto w = decoder.width(), h = decoder.height();
@@ -310,29 +288,24 @@ struct RGB0Node : NodeModel
       QRhiTextureUploadDescription desc{entry};
       res.uploadTexture(y_tex, desc);
     }
-/*
-    std::optional<QSize> renderTargetSize() const noexcept override
-    {
-      auto& decoder = *static_cast<const RGB0Node&>(node).decoder;
-      const auto w = decoder.width(), h = decoder.height();
-      return QSize{w, h};
-    }*/
+    /*
+        std::optional<QSize> renderTargetSize() const noexcept override
+        {
+          auto& decoder = *static_cast<const RGB0Node&>(node).decoder;
+          const auto w = decoder.width(), h = decoder.height();
+          return QSize{w, h};
+        }*/
   };
 
   const TexturedTriangle& m_mesh = TexturedTriangle::instance();
-  RGB0Node(std::shared_ptr<video_decoder> dec)
-      : decoder{std::move(dec)}
+  RGB0Node(std::shared_ptr<video_decoder> dec) : decoder{std::move(dec)}
   {
     setShaders(m_mesh.defaultVertexShader(), filter);
     output.push_back(new Port{this, {}, Types::Image, {}});
   }
 
-  virtual ~RGB0Node() {}
+  virtual ~RGB0Node() { }
 
   const Mesh& mesh() const noexcept override { return this->m_mesh; }
-  RenderedNode* createRenderer() const noexcept override
-  {
-    return new Rendered{*this};
-  }
-
+  RenderedNode* createRenderer() const noexcept override { return new Rendered{*this}; }
 };

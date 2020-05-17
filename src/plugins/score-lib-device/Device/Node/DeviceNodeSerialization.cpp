@@ -7,26 +7,23 @@
 #include <score/serialization/VariantSerialization.hpp>
 
 template <>
-SCORE_LIB_DEVICE_EXPORT void
-DataStreamReader::read(const Device::DeviceExplorerNode& n)
+SCORE_LIB_DEVICE_EXPORT void DataStreamReader::read(const Device::DeviceExplorerNode& n)
 {
   readFrom(n.m_data);
   insertDelimiter();
 }
 
 template <>
-SCORE_LIB_DEVICE_EXPORT void
-DataStreamWriter::write(Device::DeviceExplorerNode& n)
+SCORE_LIB_DEVICE_EXPORT void DataStreamWriter::write(Device::DeviceExplorerNode& n)
 {
   writeTo(n.m_data);
   checkDelimiter();
 }
 
 template <>
-SCORE_LIB_DEVICE_EXPORT void
-JSONReader::read(const Device::DeviceExplorerNode& n)
+SCORE_LIB_DEVICE_EXPORT void JSONReader::read(const Device::DeviceExplorerNode& n)
 {
-  switch(n.m_data.which())
+  switch (n.m_data.which())
   {
     case 0:
       // invisible root node
@@ -43,15 +40,16 @@ JSONReader::read(const Device::DeviceExplorerNode& n)
 }
 
 template <>
-SCORE_LIB_DEVICE_EXPORT void
-JSONWriter::write(Device::DeviceExplorerNode& n)
+SCORE_LIB_DEVICE_EXPORT void JSONWriter::write(Device::DeviceExplorerNode& n)
 {
-  if(auto it = obj.tryGet(strings.Device)) {
+  if (auto it = obj.tryGet(strings.Device))
+  {
     Device::DeviceSettings res;
     res <<= it.value();
     n = std::move(res);
   }
-  else if(auto it = obj.tryGet(strings.Address)) {
+  else if (auto it = obj.tryGet(strings.Address))
+  {
     Device::AddressSettings res;
     res <<= it.value();
     n = std::move(res);

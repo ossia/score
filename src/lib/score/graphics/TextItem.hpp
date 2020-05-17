@@ -18,20 +18,18 @@ public:
 public:
   void focusOut() E_SIGNAL(SCORE_LIB_BASE_EXPORT, focusOut)
 
-      protected : void focusOutEvent(QFocusEvent* event) override;
+protected:
+  void focusOutEvent(QFocusEvent* event) override;
 };
 
-class SCORE_LIB_BASE_EXPORT SimpleTextItem : public QObject,
-                                             public QGraphicsItem
+class SCORE_LIB_BASE_EXPORT SimpleTextItem : public QObject, public QGraphicsItem
 {
 public:
   SimpleTextItem(const score::BrushSet& col, QGraphicsItem*);
 
   QRectF boundingRect() const final override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) final override;
+  void
+  paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) final override;
 
   void setFont(QFont f);
   void setText(QString s);
@@ -62,8 +60,8 @@ public:
 public:
   void pressed() E_SIGNAL(SCORE_LIB_BASE_EXPORT, pressed)
 
-      protected
-      : void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+protected:
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 };

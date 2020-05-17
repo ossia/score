@@ -4,18 +4,17 @@
 #include "mesh.hpp"
 #include "renderer.hpp"
 
-NodeModel::NodeModel() {}
+NodeModel::NodeModel() { }
 
 void RenderedNode::createRenderTarget(const RenderState& state)
 {
   auto sz = state.swapChain->surfacePixelSize();
-  if(auto true_sz = renderTargetSize())
+  if (auto true_sz = renderTargetSize())
   {
     sz = *true_sz;
   }
 
-  m_texture = state.rhi->newTexture(
-      QRhiTexture::RGBA8, sz, 1, QRhiTexture::RenderTarget);
+  m_texture = state.rhi->newTexture(QRhiTexture::RGBA8, sz, 1, QRhiTexture::RenderTarget);
   m_texture->build();
 
   QRhiColorAttachment color0{m_texture};
@@ -40,7 +39,7 @@ std::optional<QSize> RenderedNode::renderTargetSize() const noexcept
   return {};
 }
 
-void RenderedNode::customInit(Renderer& renderer) {}
+void RenderedNode::customInit(Renderer& renderer) { }
 
 void NodeModel::setShaders(QString vert, QString frag)
 {
@@ -52,10 +51,8 @@ void NodeModel::setShaders(QString vert, QString frag)
       {QShader::HlslShader, QShaderVersion(50)},
       {QShader::MslShader, QShaderVersion(12)},
   });
-  b.setGeneratedShaderVariants({QShader::Variant{},
-                                QShader::Variant{},
-                                QShader::Variant{},
-                                QShader::Variant{}});
+  b.setGeneratedShaderVariants(
+      {QShader::Variant{}, QShader::Variant{}, QShader::Variant{}, QShader::Variant{}});
 
   b.setSourceString(vert.toLatin1(), QShader::VertexStage);
   m_vertexS = b.bake();
@@ -64,14 +61,14 @@ void NodeModel::setShaders(QString vert, QString frag)
   b.setSourceString(frag.toLatin1(), QShader::FragmentStage);
   m_fragmentS = b.bake();
   qDebug() << b.errorMessage();
-  if(!b.errorMessage().isEmpty())
+  if (!b.errorMessage().isEmpty())
   {
     qDebug() << frag.toStdString().data();
   }
 
-  if(!m_vertexS.isValid())
+  if (!m_vertexS.isValid())
     throw std::runtime_error("invalid vertex shader");
-  if(!m_fragmentS.isValid())
+  if (!m_fragmentS.isValid())
     throw std::runtime_error("invalid fragment shader");
 }
 
@@ -84,13 +81,12 @@ void RenderedNode::init(Renderer& renderer)
   const auto& mesh = node.mesh();
   if (!m_meshBuffer)
   {
-    auto [mbuffer,ibuffer] = renderer.initMeshBuffer(mesh);
+    auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh);
     m_meshBuffer = mbuffer;
     m_idxBuffer = ibuffer;
   }
 
-  m_processUBO = rhi.newBuffer(
-      QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(ProcessUBO));
+  m_processUBO = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(ProcessUBO));
   m_processUBO->build();
 
   // Set up shader inputs
@@ -108,17 +104,19 @@ void RenderedNode::init(Renderer& renderer)
           break;
         case Types::Vec2:
           m_materialSize += 8;
-          if(m_materialSize % 8 != 0)
+          if (m_materialSize % 8 != 0)
             m_materialSize += 4;
           break;
         case Types::Vec3:
-          while(m_materialSize % 16 != 0) {
+          while (m_materialSize % 16 != 0)
+          {
             m_materialSize += 4;
           }
           m_materialSize += 12;
           break;
         case Types::Vec4:
-          while(m_materialSize % 16 != 0) {
+          while (m_materialSize % 16 != 0)
+          {
             m_materialSize += 4;
           }
           m_materialSize += 16;
@@ -153,8 +151,8 @@ void RenderedNode::init(Renderer& renderer)
 
     if (m_materialSize > 0)
     {
-      m_materialUBO = rhi.newBuffer(
-          QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, m_materialSize);
+      m_materialUBO
+          = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, m_materialSize);
       ensure(m_materialUBO->build());
     }
   }
@@ -176,12 +174,14 @@ void RenderedNode::init(Renderer& renderer)
     // m_ps->setCullMode(QRhiGraphicsPipeline::CullMode::Back);
     // m_ps->setFrontFace(QRhiGraphicsPipeline::FrontFace::CCW);
 
-    m_ps->setShaderStages({{QRhiShaderStage::Vertex, node.m_vertexS},
-                           {QRhiShaderStage::Fragment, node.m_fragmentS}});
+    m_ps->setShaderStages(
+        {{QRhiShaderStage::Vertex, node.m_vertexS},
+         {QRhiShaderStage::Fragment, node.m_fragmentS}});
 
     QRhiVertexInputLayout inputLayout;
     inputLayout.setBindings(mesh.vertexInputBindings.begin(), mesh.vertexInputBindings.end());
-    inputLayout.setAttributes(mesh.vertexAttributeBindings.begin(), mesh.vertexAttributeBindings.end());
+    inputLayout.setAttributes(
+        mesh.vertexAttributeBindings.begin(), mesh.vertexAttributeBindings.end());
     m_ps->setVertexInputLayout(inputLayout);
 
     // Shader resource bindings
@@ -190,27 +190,26 @@ void RenderedNode::init(Renderer& renderer)
 
     QVector<QRhiShaderResourceBinding> bindings;
 
-    const auto bindingStages = QRhiShaderResourceBinding::VertexStage
-                               | QRhiShaderResourceBinding::FragmentStage;
+    const auto bindingStages
+        = QRhiShaderResourceBinding::VertexStage | QRhiShaderResourceBinding::FragmentStage;
 
     {
-      const auto rendererBinding = QRhiShaderResourceBinding::uniformBuffer(
-          0, bindingStages, renderer.m_rendererUBO);
+      const auto rendererBinding
+          = QRhiShaderResourceBinding::uniformBuffer(0, bindingStages, renderer.m_rendererUBO);
       bindings.push_back(rendererBinding);
     }
 
     {
       const auto standardUniformBinding
-          = QRhiShaderResourceBinding::uniformBuffer(
-              1, bindingStages, m_processUBO);
+          = QRhiShaderResourceBinding::uniformBuffer(1, bindingStages, m_processUBO);
       bindings.push_back(standardUniformBinding);
     }
 
     // Bind materials
     if (m_materialUBO)
     {
-      const auto materialBinding = QRhiShaderResourceBinding::uniformBuffer(
-          2, bindingStages, m_materialUBO);
+      const auto materialBinding
+          = QRhiShaderResourceBinding::uniformBuffer(2, bindingStages, m_materialUBO);
       bindings.push_back(materialBinding);
     }
 
@@ -238,16 +237,11 @@ void RenderedNode::init(Renderer& renderer)
   }
 }
 
-void RenderedNode::customUpdate(
-    Renderer& renderer,
-    QRhiResourceUpdateBatch& res)
-{
-}
+void RenderedNode::customUpdate(Renderer& renderer, QRhiResourceUpdateBatch& res) { }
 
 void RenderedNode::update(Renderer& renderer, QRhiResourceUpdateBatch& res)
 {
-  res.updateDynamicBuffer(
-      m_processUBO, 0, sizeof(ProcessUBO), &this->node.standardUBO);
+  res.updateDynamicBuffer(m_processUBO, 0, sizeof(ProcessUBO), &this->node.standardUBO);
 
   if (m_materialSize > 0 && materialChangedIndex != node.materialChanged)
   {
@@ -259,7 +253,7 @@ void RenderedNode::update(Renderer& renderer, QRhiResourceUpdateBatch& res)
   customUpdate(renderer, res);
 }
 
-void RenderedNode::customRelease(Renderer&) {}
+void RenderedNode::customRelease(Renderer&) { }
 
 void RenderedNode::releaseWithoutRenderTarget(Renderer& r)
 {
@@ -288,7 +282,10 @@ void RenderedNode::releaseWithoutRenderTarget(Renderer& r)
   m_meshBuffer = nullptr;
 }
 
-void RenderedNode::runPass(Renderer& renderer, QRhiCommandBuffer& cb, QRhiResourceUpdateBatch& updateBatch)
+void RenderedNode::runPass(
+    Renderer& renderer,
+    QRhiCommandBuffer& cb,
+    QRhiResourceUpdateBatch& updateBatch)
 {
   update(renderer, updateBatch);
 
@@ -313,12 +310,12 @@ void RenderedNode::replaceTexture(QRhiSampler* sampler, QRhiTexture* newTexture)
 {
   std::vector<QRhiShaderResourceBinding> tmp;
   tmp.assign(m_srb->cbeginBindings(), m_srb->cendBindings());
-  for(QRhiShaderResourceBinding& b : tmp)
+  for (QRhiShaderResourceBinding& b : tmp)
   {
-    if(b.data()->type == QRhiShaderResourceBinding::Type::SampledTexture)
+    if (b.data()->type == QRhiShaderResourceBinding::Type::SampledTexture)
     {
       SCORE_ASSERT(b.data()->u.stex.count >= 1);
-      if(b.data()->u.stex.texSamplers[0].sampler == sampler)
+      if (b.data()->u.stex.texSamplers[0].sampler == sampler)
       {
         b.data()->u.stex.texSamplers[0].tex = newTexture;
       }

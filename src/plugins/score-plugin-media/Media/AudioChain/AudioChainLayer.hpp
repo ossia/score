@@ -14,8 +14,7 @@ class View final : public Process::LayerView
 public:
   explicit View(QGraphicsItem* parent);
 
-  void
-  setup(const Media::ChainProcess& object, const Process::LayerContext& ctx);
+  void setup(const Media::ChainProcess& object, const Process::LayerContext& ctx);
 
   int findDropPosition(QPointF pos) const;
   void setInvalid(bool b);

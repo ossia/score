@@ -22,12 +22,10 @@ private:
 };
 
 template <typename Component_T>
-using ProcessComponent
-    = ProcessComponentBase<Process::ProcessModel, Component_T>;
+using ProcessComponent = ProcessComponentBase<Process::ProcessModel, Component_T>;
 
 template <typename System_T>
-using GenericProcessComponent
-    = Process::ProcessComponent<score::GenericComponent<System_T>>;
+using GenericProcessComponent = Process::ProcessComponent<score::GenericComponent<System_T>>;
 
 template <typename ProcessComponentBase_T, typename Process_T>
 class GenericProcessComponent_T : public ProcessComponentBase_T
@@ -36,9 +34,6 @@ public:
   using model_type = Process_T;
   using ProcessComponentBase_T::ProcessComponentBase_T;
 
-  Process_T& process() const
-  {
-    return static_cast<Process_T&>(ProcessComponentBase_T::process());
-  }
+  Process_T& process() const { return static_cast<Process_T&>(ProcessComponentBase_T::process()); }
 };
 }

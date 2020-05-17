@@ -12,8 +12,7 @@ InspectorWidget::InspectorWidget(
     const Gfx::Video::Model& object,
     const score::DocumentContext& context,
     QWidget* parent)
-    : InspectorWidgetDelegate_T{object, parent}
-    , m_dispatcher{context.commandStack}
+    : InspectorWidgetDelegate_T{object, parent}, m_dispatcher{context.commandStack}
 {
   auto lay = new QFormLayout{this};
   auto edit = new QLineEdit{object.path(), this};
@@ -24,5 +23,5 @@ InspectorWidget::InspectorWidget(
   });
 }
 
-InspectorWidget::~InspectorWidget() {}
+InspectorWidget::~InspectorWidget() { }
 }

@@ -13,7 +13,6 @@
 #include <Automation/Inspector/AutomationStateInspectorFactory.hpp>
 #include <Automation/Inspector/CurvePointInspectorFactory.hpp>
 #include <Automation/LocalTree.hpp>
-
 #include <Curve/Process/CurveProcessFactory.hpp>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Process/GenericProcessFactory.hpp>
@@ -50,7 +49,10 @@ class MinMaxHeaderDelegate final : public Process::DefaultHeaderDelegate
 {
 public:
   using model_t = std::remove_reference_t<decltype(std::declval<Layer_T>().model())>;
-  MinMaxHeaderDelegate(const Process::ProcessModel& m, const Process::Context& doc, const Layer_T* layer)
+  MinMaxHeaderDelegate(
+      const Process::ProcessModel& m,
+      const Process::Context& doc,
+      const Layer_T* layer)
       : Process::DefaultHeaderDelegate{m, doc, layer}
   {
     const auto& model = static_cast<model_t&>(m_model);
@@ -87,17 +89,15 @@ using AutomationLayerFactory = Curve::CurveLayerFactory_T<
 namespace Gradient
 {
 using GradientFactory = Process::ProcessFactory_T<Gradient::ProcessModel>;
-using GradientLayerFactory = Process::LayerFactory_T<
-    Gradient::ProcessModel,
-    Gradient::Presenter,
-    Gradient::View>;
+using GradientLayerFactory
+    = Process::LayerFactory_T<Gradient::ProcessModel, Gradient::Presenter, Gradient::View>;
 }
 
 namespace Spline
 {
 using SplineFactory = Process::ProcessFactory_T<Spline::ProcessModel>;
-using SplineLayerFactory = Process::
-    LayerFactory_T<Spline::ProcessModel, Spline::Presenter, Spline::View>;
+using SplineLayerFactory
+    = Process::LayerFactory_T<Spline::ProcessModel, Spline::Presenter, Spline::View>;
 }
 
 namespace Metronome
@@ -114,8 +114,7 @@ using MetronomeLayerFactory = Curve::CurveLayerFactory_T<
 score_plugin_automation::score_plugin_automation() = default;
 score_plugin_automation::~score_plugin_automation() = default;
 
-std::vector<std::unique_ptr<score::InterfaceBase>>
-score_plugin_automation::factories(
+std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_automation::factories(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& key) const
 {
@@ -139,8 +138,7 @@ score_plugin_automation::factories(
          Spline::InspectorFactory,
          Metronome::InspectorFactory>,
 
-      FW<LocalTree::ProcessComponentFactory,
-         LocalTree::AutomationComponentFactory>,
+      FW<LocalTree::ProcessComponentFactory, LocalTree::AutomationComponentFactory>,
 
       FW<Execution::ProcessComponentFactory,
          //, Interpolation::Executor::ComponentFactory,
@@ -151,8 +149,7 @@ score_plugin_automation::factories(
          Metronome::RecreateOnPlay::ComponentFactory>>(ctx, key);
 }
 
-std::pair<const CommandGroupKey, CommandGeneratorMap>
-score_plugin_automation::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_automation::make_commands()
 {
   using namespace Automation;
   using namespace Gradient;

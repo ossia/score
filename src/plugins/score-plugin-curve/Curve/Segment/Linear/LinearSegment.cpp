@@ -11,7 +11,6 @@
 
 #include <ossia/editor/curve/curve_segment/linear.hpp>
 
-
 #include <vector>
 
 namespace Curve
@@ -47,9 +46,7 @@ void LinearSegment::updateData(int numInterp) const
 
 double LinearSegment::valueAt(double x) const
 {
-  return start().y()
-         + (end().y() - start().y()) * (x - start().x())
-               / (end().x() - start().x());
+  return start().y() + (end().y() - start().y()) * (x - start().x()) / (end().x() - start().x());
 }
 
 QVariant LinearSegment::toSegmentSpecificData() const

@@ -28,8 +28,7 @@ public:
   using base_type::removeAll;
   using base_type::size;
 
-  static Selection
-  fromList(const QList<const IdentifiedObjectAbstract*>& other)
+  static Selection fromList(const QList<const IdentifiedObjectAbstract*>& other)
   {
     Selection s;
     for (auto elt : other)
@@ -117,10 +116,8 @@ Selection filterSelections(T* pressedModel, Selection sel, bool cumulation)
  * For instance if multiples rectangles are drawn with the mouse
  * with ctrl pressed.
  */
-inline Selection filterSelections(
-    Selection& newSelection,
-    const Selection& currentSelection,
-    bool cumulation)
+inline Selection
+filterSelections(Selection& newSelection, const Selection& currentSelection, bool cumulation)
 {
   if (cumulation)
   {

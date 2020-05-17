@@ -1,14 +1,14 @@
 #pragma once
 #include <Media/AudioArray.hpp>
 #include <Process/TimeValue.hpp>
+
 #include <ossia/detail/optional.hpp>
 
 #include <QThread>
 
-#include <verdigris>
-
 #include <atomic>
 #include <vector>
+#include <verdigris>
 struct AVFrame;
 struct SwrContext;
 
@@ -23,7 +23,8 @@ struct AudioInfo
   double tempo{120.};
 
   // Duration
-  TimeVal duration() const noexcept {
+  TimeVal duration() const noexcept
+  {
     return TimeVal::fromMsecs(1000. * (double(length) / double(rate)) * (tempo / 120.));
   }
 };
@@ -51,8 +52,7 @@ public:
   void newData() W_SIGNAL(newData);
   void finishedDecoding(audio_handle hdl) W_SIGNAL(finishedDecoding, hdl);
 
-  void startDecode(QString str, audio_handle hdl)
-      W_SIGNAL(startDecode, str, hdl);
+  void startDecode(QString str, audio_handle hdl) W_SIGNAL(startDecode, str, hdl);
 
 public:
   void on_startDecode(QString, audio_handle hdl);
@@ -74,4 +74,3 @@ private:
   void initResample();
 };
 }
-

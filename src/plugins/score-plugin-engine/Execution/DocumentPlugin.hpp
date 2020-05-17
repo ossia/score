@@ -14,9 +14,8 @@
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/local/local.hpp>
 
-#include <verdigris>
-
 #include <memory>
+#include <verdigris>
 
 namespace ossia
 {
@@ -42,15 +41,11 @@ class AudioDevice;
 }
 namespace Execution
 {
-class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final
-    : public score::DocumentPlugin
+class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final : public score::DocumentPlugin
 {
   W_OBJECT(DocumentPlugin)
 public:
-  DocumentPlugin(
-      const score::DocumentContext& ctx,
-      Id<score::DocumentPlugin>,
-      QObject* parent);
+  DocumentPlugin(const score::DocumentContext& ctx, Id<score::DocumentPlugin>, QObject* parent);
 
   ~DocumentPlugin() override;
   void reload(Scenario::IntervalModel& doc);

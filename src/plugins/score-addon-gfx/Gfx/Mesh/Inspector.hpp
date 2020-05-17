@@ -8,8 +8,7 @@
 
 namespace Gfx::Mesh
 {
-class InspectorWidget final
-    : public Process::InspectorWidgetDelegate_T<Gfx::Mesh::Model>
+class InspectorWidget final : public Process::InspectorWidgetDelegate_T<Gfx::Mesh::Model>
 {
 public:
   explicit InspectorWidget(

@@ -4,13 +4,14 @@
 
 #include <ossia/editor/scenario/time_value.hpp>
 
+#include <QMainWindow>
 #include <QToolBar>
 
 #include <Execution/Clock/ClockFactory.hpp>
 #include <Execution/Clock/DefaultClock.hpp>
 #include <Execution/DocumentPlugin.hpp>
+
 #include <verdigris>
-#include <QMainWindow>
 
 namespace Execution
 {
@@ -42,16 +43,12 @@ public:
   void advance(int arg_1) W_SIGNAL(advance, arg_1);
 };
 
-class Clock final : public QObject,
-                    public Execution::Clock,
-                    public Nano::Observer
+class Clock final : public QObject, public Execution::Clock, public Nano::Observer
 {
 public:
-  Clock(const Execution::Context& ctx) : Execution::Clock{ctx}, m_default{ctx}
-  {
-  }
+  Clock(const Execution::Context& ctx) : Execution::Clock{ctx}, m_default{ctx} { }
 
-  ~Clock() override {}
+  ~Clock() override { }
 
 private:
   TimeWidget* m_widg{};
@@ -63,8 +60,7 @@ private:
     m_widg = new TimeWidget;
     if (context.doc.app.mainWindow)
     {
-      context.doc.app.mainWindow->addToolBar(
-          Qt::ToolBarArea::BottomToolBarArea, m_widg);
+      context.doc.app.mainWindow->addToolBar(Qt::ToolBarArea::BottomToolBarArea, m_widg);
     }
     QObject::connect(m_widg, &TimeWidget::advance, this, [=](int val) {
       using namespace ossia;
@@ -79,8 +75,8 @@ private:
 
     resume_impl(bs);
   }
-  void pause_impl(Execution::BaseScenarioElement&) override {}
-  void resume_impl(Execution::BaseScenarioElement&) override {}
+  void pause_impl(Execution::BaseScenarioElement&) override { }
+  void resume_impl(Execution::BaseScenarioElement&) override { }
   void stop_impl(Execution::BaseScenarioElement&) override
   {
     delete m_widg;

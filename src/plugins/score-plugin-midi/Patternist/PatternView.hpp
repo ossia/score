@@ -20,16 +20,15 @@ class View final : public Process::LayerView
 {
   W_OBJECT(View)
 public:
-  explicit View(
-             const Patternist::ProcessModel& model,
-             QGraphicsItem* parent);
+  explicit View(const Patternist::ProcessModel& model, QGraphicsItem* parent);
   ~View() override;
 
   void toggled(int lane, int index) W_SIGNAL(toggled, lane, index);
   void noteChanged(int lane, int note) W_SIGNAL(noteChanged, lane, note);
   void noteChangeFinished() W_SIGNAL(noteChangeFinished);
+
 private:
-  void updateLanes() ;
+  void updateLanes();
   void paint_impl(QPainter*) const override;
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;

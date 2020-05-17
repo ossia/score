@@ -10,8 +10,7 @@ namespace score
 
 //! Will also look where the save file is located.
 //! TODO in the future also look in a "common" library folder.
-inline QString
-locateFilePath(const QString& filename, const score::DocumentContext& ctx)
+inline QString locateFilePath(const QString& filename, const score::DocumentContext& ctx)
 {
   QFileInfo info(filename);
   QString path = filename;

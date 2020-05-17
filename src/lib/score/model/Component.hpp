@@ -21,8 +21,7 @@ struct lazy_init_t
  *
  * \todo Document more.
  */
-class SCORE_LIB_BASE_EXPORT Component
-    : public IdentifiedObject<score::Component>
+class SCORE_LIB_BASE_EXPORT Component : public IdentifiedObject<score::Component>
 {
   W_OBJECT(Component)
 public:
@@ -64,10 +63,8 @@ private:
 
 #if defined(SCORE_SERIALIZABLE_COMPONENTS)
 class SerializableComponent;
-using DataStreamComponents
-    = score::hash_map<UuidKey<score::SerializableComponent>, QByteArray>;
-using JSONComponents
-    = score::hash_map<UuidKey<score::SerializableComponent>, QJsonObject>;
+using DataStreamComponents = score::hash_map<UuidKey<score::SerializableComponent>, QByteArray>;
+using JSONComponents = score::hash_map<UuidKey<score::SerializableComponent>, QJsonObject>;
 #endif
 }
 
@@ -83,58 +80,47 @@ extern template class SCORE_LIB_BASE_EXPORT
 /**
  * \macro ABSTRACT_COMPONENT_METADATA
  */
-#define ABSTRACT_COMPONENT_METADATA(Type, Uuid)                        \
-public:                                                                \
-  using base_component_type = Type;                                    \
-                                                                       \
-  static MSVC_BUGGY_CONSTEXPR Component::Key static_key() noexcept \
-  {                                                                    \
-    return_uuid(Uuid);                                                 \
-  }                                                                    \
-                                                                       \
-  static MSVC_BUGGY_CONSTEXPR bool base_key_match(                 \
-      Component::Key other) noexcept                                   \
-  {                                                                    \
-    return static_key() == other;                                      \
-  }                                                                    \
-                                                                       \
+#define ABSTRACT_COMPONENT_METADATA(Type, Uuid)                                           \
+public:                                                                                   \
+  using base_component_type = Type;                                                       \
+                                                                                          \
+  static MSVC_BUGGY_CONSTEXPR Component::Key static_key() noexcept { return_uuid(Uuid); } \
+                                                                                          \
+  static MSVC_BUGGY_CONSTEXPR bool base_key_match(Component::Key other) noexcept          \
+  {                                                                                       \
+    return static_key() == other;                                                         \
+  }                                                                                       \
+                                                                                          \
 private:
 
 /**
  * \macro COMPONENT_METADATA
  */
-#define COMPONENT_METADATA(Uuid)                                              \
-public:                                                                       \
-  static MSVC_BUGGY_CONSTEXPR Component::Key static_key() noexcept        \
-  {                                                                           \
-    return_uuid(Uuid);                                                        \
-  }                                                                           \
-                                                                              \
-  Component::Key key() const noexcept final override { return static_key(); } \
-                                                                              \
-  bool key_match(Component::Key other) const noexcept final override          \
-  {                                                                           \
-    return static_key() == other                                              \
-           || base_component_type::base_key_match(other);                     \
-  }                                                                           \
-                                                                              \
+#define COMPONENT_METADATA(Uuid)                                                          \
+public:                                                                                   \
+  static MSVC_BUGGY_CONSTEXPR Component::Key static_key() noexcept { return_uuid(Uuid); } \
+                                                                                          \
+  Component::Key key() const noexcept final override { return static_key(); }             \
+                                                                                          \
+  bool key_match(Component::Key other) const noexcept final override                      \
+  {                                                                                       \
+    return static_key() == other || base_component_type::base_key_match(other);           \
+  }                                                                                       \
+                                                                                          \
 private:
 
 /**
  * \macro COMMON_COMPONENT_METADATA
  */
-#define COMMON_COMPONENT_METADATA(Uuid)                                       \
-public:                                                                       \
-  static MSVC_BUGGY_CONSTEXPR Component::Key static_key() noexcept        \
-  {                                                                           \
-    return_uuid(Uuid);                                                        \
-  }                                                                           \
-                                                                              \
-  Component::Key key() const noexcept final override { return static_key(); } \
-                                                                              \
-  bool key_match(Component::Key other) const noexcept final override          \
-  {                                                                           \
-    return static_key() == other;                                             \
-  }                                                                           \
-                                                                              \
+#define COMMON_COMPONENT_METADATA(Uuid)                                                   \
+public:                                                                                   \
+  static MSVC_BUGGY_CONSTEXPR Component::Key static_key() noexcept { return_uuid(Uuid); } \
+                                                                                          \
+  Component::Key key() const noexcept final override { return static_key(); }             \
+                                                                                          \
+  bool key_match(Component::Key other) const noexcept final override                      \
+  {                                                                                       \
+    return static_key() == other;                                                         \
+  }                                                                                       \
+                                                                                          \
 private:

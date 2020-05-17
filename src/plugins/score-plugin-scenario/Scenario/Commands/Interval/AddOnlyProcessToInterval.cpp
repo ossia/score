@@ -16,13 +16,13 @@
 #include <score/document/ChangeId.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/EntityMap.hpp>
+#include <score/model/EntitySerialization.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/plugins/InterfaceList.hpp>
+#include <score/plugins/SerializableHelpers.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/plugins/StringFactoryKeySerialization.hpp>
-#include <score/model/EntitySerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
-#include <score/plugins/SerializableHelpers.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
 #include <vector>
@@ -52,7 +52,7 @@ AddOnlyProcessToInterval::AddOnlyProcessToInterval(
     , m_graphpos{pos}
     , m_createdProcessId{std::move(processId)}
 {
-  if(m_graphpos == QPointF{})
+  if (m_graphpos == QPointF{})
   {
     m_graphpos = newProcessPosition(cst);
   }
@@ -73,13 +73,11 @@ void AddOnlyProcessToInterval::undo(IntervalModel& interval) const
   RemoveProcess(interval, m_createdProcessId);
 }
 
-Process::ProcessModel& AddOnlyProcessToInterval::redo(
-    IntervalModel& interval,
-    const score::DocumentContext& ctx) const
+Process::ProcessModel&
+AddOnlyProcessToInterval::redo(IntervalModel& interval, const score::DocumentContext& ctx) const
 {
   // Create process model
-  auto fac
-      = ctx.app.interfaces<Process::ProcessFactoryList>().get(m_processName);
+  auto fac = ctx.app.interfaces<Process::ProcessFactoryList>().get(m_processName);
   SCORE_ASSERT(fac);
   auto proc = fac->make(
       interval.duration.defaultDuration(), // TODO should maybe be max ?
@@ -126,9 +124,8 @@ void LoadOnlyProcessInInterval::undo(IntervalModel& interval) const
   RemoveProcess(interval, m_createdProcessId);
 }
 
-Process::ProcessModel& LoadOnlyProcessInInterval::redo(
-    IntervalModel& interval,
-    const score::DocumentContext& ctx) const
+Process::ProcessModel&
+LoadOnlyProcessInInterval::redo(IntervalModel& interval, const score::DocumentContext& ctx) const
 {
   // Create process model
   JSONWriter r{m_data};
@@ -181,14 +178,12 @@ DuplicateOnlyProcessToInterval::DuplicateOnlyProcessToInterval(
 {
 }
 
-void DuplicateOnlyProcessToInterval::undo(
-    const score::DocumentContext& ctx) const
+void DuplicateOnlyProcessToInterval::undo(const score::DocumentContext& ctx) const
 {
   undo(m_path.find(ctx));
 }
 
-void DuplicateOnlyProcessToInterval::redo(
-    const score::DocumentContext& ctx) const
+void DuplicateOnlyProcessToInterval::redo(const score::DocumentContext& ctx) const
 {
   redo(m_path.find(ctx), ctx);
 }
@@ -204,8 +199,8 @@ Process::ProcessModel& DuplicateOnlyProcessToInterval::redo(
 {
   // Create process model
   auto& pl = ctx.app.interfaces<Process::ProcessFactoryList>();
-  Process::ProcessModel* proc = deserialize_interface(
-      pl, DataStream::Deserializer{m_processData}, ctx, &interval);
+  Process::ProcessModel* proc
+      = deserialize_interface(pl, DataStream::Deserializer{m_processData}, ctx, &interval);
   score::IDocument::changeObjectId(*proc, m_createdProcessId);
 
   AddProcess(interval, proc);

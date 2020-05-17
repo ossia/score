@@ -40,12 +40,7 @@ CreateAutomationFromStates::CreateAutomationFromStates(
     State::AddressAccessor address,
     const Curve::CurveDomain& dom,
     bool tween)
-    : CreateProcessAndLayers{interval,
-                             slotList,
-                             std::move(curveId),
-                             Metadata<
-                                 ConcreteKey_k,
-                                 Automation::ProcessModel>::get()}
+    : CreateProcessAndLayers{interval, slotList, std::move(curveId), Metadata<ConcreteKey_k, Automation::ProcessModel>::get()}
     , m_address{std::move(address)}
     , m_dom{dom}
     , m_tween(tween)
@@ -56,16 +51,15 @@ void CreateAutomationFromStates::redo(const score::DocumentContext& ctx) const
 {
   m_addProcessCmd.redo(ctx);
   auto& cstr = m_addProcessCmd.intervalPath().find(ctx);
-  auto& autom = safe_cast<Automation::ProcessModel&>(
-      cstr.processes.at(m_addProcessCmd.processId()));
+  auto& autom
+      = safe_cast<Automation::ProcessModel&>(cstr.processes.at(m_addProcessCmd.processId()));
   autom.setAddress(m_address);
   autom.curve().clear();
   autom.setTween(m_tween);
 
   // Add a segment
   auto segment = new Curve::DefaultCurveSegmentModel{
-      Id<Curve::SegmentModel>{score::id_generator::getFirstId()},
-      &autom.curve()};
+      Id<Curve::SegmentModel>{score::id_generator::getFirstId()}, &autom.curve()};
 
   double fact = 1. / (m_dom.max - m_dom.min);
   segment->setStart({0., (m_dom.start - m_dom.min) * fact});
@@ -102,11 +96,7 @@ CreateGradient::CreateGradient(
     QColor start,
     QColor end,
     bool tween)
-    : CreateProcessAndLayers{interval,
-                             slotList,
-                             std::move(curveId),
-                             Metadata<ConcreteKey_k, Gradient::ProcessModel>::
-                                 get()}
+    : CreateProcessAndLayers{interval, slotList, std::move(curveId), Metadata<ConcreteKey_k, Gradient::ProcessModel>::get()}
     , m_address{std::move(address)}
     , m_start{start}
     , m_end{end}
@@ -118,8 +108,7 @@ void CreateGradient::redo(const score::DocumentContext& ctx) const
 {
   m_addProcessCmd.redo(ctx);
   auto& cstr = m_addProcessCmd.intervalPath().find(ctx);
-  auto& autom = safe_cast<Gradient::ProcessModel&>(
-      cstr.processes.at(m_addProcessCmd.processId()));
+  auto& autom = safe_cast<Gradient::ProcessModel&>(cstr.processes.at(m_addProcessCmd.processId()));
   autom.outlet->setAddress(m_address);
   autom.setTween(m_tween);
 
@@ -152,12 +141,7 @@ CreateInterpolationFromStates::CreateInterpolationFromStates(
     ossia::value start,
     ossia::value end,
     bool tween)
-    : CreateProcessAndLayers{interval,
-                             slotList,
-                             std::move(curveId),
-                             Metadata<
-                                 ConcreteKey_k,
-                                 Automation::ProcessModel>::get()}
+    : CreateProcessAndLayers{interval, slotList, std::move(curveId), Metadata<ConcreteKey_k, Automation::ProcessModel>::get()}
     , m_address{std::move(address)}
     , m_start{std::move(start)}
     , m_end{std::move(end)}
@@ -165,14 +149,13 @@ CreateInterpolationFromStates::CreateInterpolationFromStates(
 {
 }
 
-void CreateInterpolationFromStates::redo(
-    const score::DocumentContext& ctx) const
+void CreateInterpolationFromStates::redo(const score::DocumentContext& ctx) const
 {
   m_addProcessCmd.redo(ctx);
 
   auto& cstr = m_addProcessCmd.intervalPath().find(ctx);
-  auto& autom = safe_cast<Interpolation::ProcessModel&>(
-      cstr.processes.at(m_addProcessCmd.processId()));
+  auto& autom
+      = safe_cast<Interpolation::ProcessModel&>(cstr.processes.at(m_addProcessCmd.processId()));
   autom.setAddress(m_address);
   autom.setStart(m_start);
   autom.setEnd(m_end);
@@ -198,11 +181,7 @@ CreateProcessAndLayers::CreateProcessAndLayers(
     const std::vector<SlotPath>& slotList,
     Id<Process::ProcessModel> procId,
     UuidKey<Process::ProcessModel> key)
-    : m_addProcessCmd{std::move(interval),
-                      std::move(procId),
-                      std::move(key),
-                      QString{},
-                      QPointF{}}
+    : m_addProcessCmd{std::move(interval), std::move(procId), std::move(key), QString{}, QPointF{}}
 {
   m_slotsCmd.reserve(slotList.size());
   for (const auto& elt : slotList)

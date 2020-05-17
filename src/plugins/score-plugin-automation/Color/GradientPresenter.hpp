@@ -8,21 +8,14 @@
 
 #include <Color/GradientModel.hpp>
 
-
-
 namespace Gradient
 {
 
 class ChangeGradient final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      Automation::CommandFactoryName(),
-      ChangeGradient,
-      "ChangeGradient")
+  SCORE_COMMAND_DECL(Automation::CommandFactoryName(), ChangeGradient, "ChangeGradient")
 public:
-  ChangeGradient(
-      const ProcessModel& autom,
-      const ProcessModel::gradient_colors& newval)
+  ChangeGradient(const ProcessModel& autom, const ProcessModel::gradient_colors& newval)
       : m_path{autom}, m_old{autom.gradient()}, m_new{newval}
   {
   }
@@ -38,14 +31,8 @@ public:
   }
 
 protected:
-  void serializeImpl(DataStreamInput& s) const override
-  {
-    s << m_path << m_old << m_new;
-  }
-  void deserializeImpl(DataStreamOutput& s) override
-  {
-    s >> m_path >> m_old >> m_new;
-  }
+  void serializeImpl(DataStreamInput& s) const override { s << m_path << m_old << m_new; }
+  void deserializeImpl(DataStreamOutput& s) override { s >> m_path >> m_old >> m_new; }
 
 private:
   Path<ProcessModel> m_path;

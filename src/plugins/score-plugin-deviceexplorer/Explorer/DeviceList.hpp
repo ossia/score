@@ -5,10 +5,10 @@
 #include <QString>
 
 #include <score_plugin_deviceexplorer_export.h>
-#include <verdigris>
 
 #include <functional>
 #include <vector>
+#include <verdigris>
 
 namespace Device
 {

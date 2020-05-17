@@ -8,6 +8,7 @@
 #include <QPoint>
 
 #include <score_plugin_scenario_export.h>
+
 #include <verdigris>
 
 class QGraphicsItem;

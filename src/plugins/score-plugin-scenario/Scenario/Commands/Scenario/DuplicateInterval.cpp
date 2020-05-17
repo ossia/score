@@ -4,9 +4,9 @@
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 
 #include <score/document/ChangeId.hpp>
+#include <score/model/EntitySerialization.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
-#include <score/model/EntitySerialization.hpp>
 namespace Scenario::Command
 {
 
@@ -26,7 +26,7 @@ DuplicateInterval::DuplicateInterval(
 {
 }
 
-DuplicateInterval::~DuplicateInterval() {}
+DuplicateInterval::~DuplicateInterval() { }
 
 void DuplicateInterval::undo(const score::DocumentContext& ctx) const
 {
@@ -48,8 +48,7 @@ void DuplicateInterval::redo(const score::DocumentContext& ctx) const
   auto scenar = safe_cast<Scenario::ProcessModel*>(root.parent());
 
   auto obj = score::marshall<DataStream>(root);
-  auto interval
-      = new Scenario::IntervalModel{DataStream::Deserializer{obj}, ctx, scenar};
+  auto interval = new Scenario::IntervalModel{DataStream::Deserializer{obj}, ctx, scenar};
   score::IDocument::changeObjectId(*interval, m_createdId);
 
   interval->setStartState(m_cmdStart.createdState());

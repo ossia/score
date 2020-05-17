@@ -14,7 +14,7 @@ class SelectionStack;
 class SCORE_LIB_BASE_EXPORT SelectionDispatcher
 {
 public:
-  explicit SelectionDispatcher(SelectionStack& s) : m_stack{s} {}
+  explicit SelectionDispatcher(SelectionStack& s) : m_stack{s} { }
 
   void setAndCommit(const Selection&);
 

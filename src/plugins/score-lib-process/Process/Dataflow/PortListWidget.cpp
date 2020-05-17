@@ -1,3 +1,4 @@
+#include <Device/ItemModels/NodeBasedItemModel.hpp>
 #include <Device/Widgets/AddressAccessorEditWidget.hpp>
 #include <Device/Widgets/DeviceModelProvider.hpp>
 #include <Inspector/InspectorLayout.hpp>
@@ -9,13 +10,12 @@
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/tools/Bind.hpp>
 #include <score/widgets/ArrowButton.hpp>
 #include <score/widgets/ClearLayout.hpp>
 #include <score/widgets/MarginLess.hpp>
-#include <score/widgets/TextLabel.hpp>
 #include <score/widgets/SetIcons.hpp>
-#include <score/tools/Bind.hpp>
-#include <Device/ItemModels/NodeBasedItemModel.hpp>
+#include <score/widgets/TextLabel.hpp>
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -32,9 +32,7 @@ PortListWidget::PortListWidget(
   reload();
 
   con(proc, &Process::ProcessModel::inletsChanged, this, [this] { reload(); });
-  con(proc, &Process::ProcessModel::outletsChanged, this, [this] {
-    reload();
-  });
+  con(proc, &Process::ProcessModel::outletsChanged, this, [this] { reload(); });
 }
 
 void PortListWidget::reload()
@@ -139,16 +137,12 @@ QWidget* PortWidgetSetup::makeAddressWidget(
   auto edit = new AddressAccessorEditWidget{ctx, parent};
   edit->setAddress(port.address());
 
-  QObject::connect(
-      &port,
-      &Port::addressChanged,
-      edit,
-      [edit](const State::AddressAccessor& addr) {
-        if (addr != edit->address().address)
-        {
-          edit->setAddress(addr);
-        }
-      });
+  QObject::connect(&port, &Port::addressChanged, edit, [edit](const State::AddressAccessor& addr) {
+    if (addr != edit->address().address)
+    {
+      edit->setAddress(addr);
+    }
+  });
 
   QObject::connect(
       edit,
@@ -165,7 +159,6 @@ QWidget* PortWidgetSetup::makeAddressWidget(
   return edit;
 }
 
-
 void PortWidgetSetup::setupImpl(
     const QString& txt,
     const Port& port,
@@ -177,7 +170,7 @@ void PortWidgetSetup::setupImpl(
   auto hl = new score::MarginLess<QHBoxLayout>{widg};
 
   auto advBtn = new QToolButton{widg};
-  advBtn->setIconSize(QSize{16,16});
+  advBtn->setIconSize(QSize{16, 16});
   hl->addWidget(advBtn);
 
   auto lab = new TextLabel{txt, widg};

@@ -18,15 +18,13 @@ namespace Automation
 LayerView::LayerView(QGraphicsItem* parent) : Process::LayerView{parent}
 {
   setZValue(1);
-  setFlags(
-      ItemClipsToShape | ItemClipsChildrenToShape | ItemIsSelectable
-      | ItemIsFocusable);
+  setFlags(ItemClipsToShape | ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
   setAcceptDrops(true);
 }
 
-LayerView::~LayerView() {}
+LayerView::~LayerView() { }
 
-void LayerView::paint_impl(QPainter* painter) const {}
+void LayerView::paint_impl(QPainter* painter) const { }
 
 void LayerView::dropEvent(QGraphicsSceneDragDropEvent* event)
 {

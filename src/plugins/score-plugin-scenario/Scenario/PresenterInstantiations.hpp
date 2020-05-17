@@ -3,9 +3,9 @@
 #include <Scenario/Document/CommentBlock/CommentBlockPresenter.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
+#include <Scenario/Document/Interval/Graph/GraphIntervalPresenter.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
-#include <Scenario/Document/Interval/Graph/GraphIntervalPresenter.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>

@@ -7,7 +7,6 @@
 #include <score/model/path/Path.hpp>
 #include <score/tools/std/Optional.hpp>
 
-
 namespace Scenario
 {
 namespace Command
@@ -19,10 +18,7 @@ namespace Command
  */
 class RemoveSlotFromRack final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      RemoveSlotFromRack,
-      "Remove a slot")
+  SCORE_COMMAND_DECL(CommandFactoryName(), RemoveSlotFromRack, "Remove a slot")
 public:
   RemoveSlotFromRack(SlotPath slotPath, Slot slt);
 

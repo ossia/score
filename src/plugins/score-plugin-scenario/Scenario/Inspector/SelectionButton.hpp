@@ -21,19 +21,14 @@ public:
       QWidget* parent);
 
   template <typename Obj>
-  static SelectionButton*
-  make(Obj&& obj, score::SelectionDispatcher& disp, QWidget* parent)
+  static SelectionButton* make(Obj&& obj, score::SelectionDispatcher& disp, QWidget* parent)
   {
-    return new SelectionButton{
-        QString::number(*obj->id().val()), Selection{obj}, disp, parent};
+    return new SelectionButton{QString::number(*obj->id().val()), Selection{obj}, disp, parent};
   }
 
   template <typename Obj>
-  static SelectionButton* make(
-      const QString& text,
-      Obj&& obj,
-      score::SelectionDispatcher& disp,
-      QWidget* parent)
+  static SelectionButton*
+  make(const QString& text, Obj&& obj, score::SelectionDispatcher& disp, QWidget* parent)
   {
     auto but = new SelectionButton{text, Selection{obj}, disp, parent};
 

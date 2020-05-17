@@ -18,7 +18,6 @@
 #include <ossia/network/domain/domain.hpp>
 #include <ossia/network/value/value_conversion.hpp>
 
-
 namespace Mapping
 {
 ChangeSourceAddress::ChangeSourceAddress(

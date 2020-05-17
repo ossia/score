@@ -20,8 +20,8 @@ private:
   void removeFirstIntervalTest()
   {
     // create scenar and 1 event
-    Scenario::ProcessModel* scenar = new ScenarioModel(
-        std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
+    Scenario::ProcessModel* scenar
+        = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
 
     EventData data{};
     data.dDate.setMSecs(10);
@@ -69,8 +69,8 @@ private:
   void removeAnyIntervalTest()
   {
     // create scenar and 2 events
-    Scenario::ProcessModel* scenar = new ScenarioModel(
-        std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
+    Scenario::ProcessModel* scenar
+        = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
 
     EventData data{};
     data.dDate.setMSecs(10);

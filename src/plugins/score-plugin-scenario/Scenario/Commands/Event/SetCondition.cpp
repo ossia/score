@@ -11,15 +11,12 @@
 #include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
-
 namespace Scenario
 {
 namespace Command
 {
 SetCondition::SetCondition(const EventModel& event, State::Expression&& cond)
-    : m_path{event}
-    , m_condition(std::move(cond))
-    , m_previousCondition{event.condition()}
+    : m_path{event}, m_condition(std::move(cond)), m_previousCondition{event.condition()}
 {
 }
 
@@ -45,12 +42,8 @@ void SetCondition::deserializeImpl(DataStreamOutput& s)
   s >> m_path >> m_condition >> m_previousCondition;
 }
 
-SetOffsetBehavior::SetOffsetBehavior(
-    const EventModel& event,
-    OffsetBehavior newval)
-    : score::PropertyCommand{event,
-                             "offsetBehavior",
-                             QVariant::fromValue(newval)}
+SetOffsetBehavior::SetOffsetBehavior(const EventModel& event, OffsetBehavior newval)
+    : score::PropertyCommand{event, "offsetBehavior", QVariant::fromValue(newval)}
 {
 }
 }

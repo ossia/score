@@ -1,14 +1,15 @@
 #include "GfxDevice.hpp"
 
+#include <State/MessageListSerialization.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
-#include <ossia-qt/name_utils.hpp>
 #include <score/serialization/MimeVisitor.hpp>
-#include <State/MessageListSerialization.hpp>
+
+#include <ossia-qt/name_utils.hpp>
 
 #include <QFormLayout>
-#include <QMimeData>
 #include <QMenu>
+#include <QMimeData>
 
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <wobjectimpl.h>
@@ -17,9 +18,7 @@ W_OBJECT_IMPL(Gfx::GfxDevice)
 namespace Gfx
 {
 
-GfxDevice::GfxDevice(
-    const Device::DeviceSettings& settings,
-    const score::DocumentContext& ctx)
+GfxDevice::GfxDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
     : DeviceInterface{settings}, m_ctx{ctx}
 {
   m_capas.canAddNode = false;
@@ -33,7 +32,7 @@ GfxDevice::GfxDevice(
   m_capas.canSerialize = true;
 }
 
-GfxDevice::~GfxDevice() {}
+GfxDevice::~GfxDevice() { }
 
 QMimeData* GfxDevice::mimeData() const
 {
@@ -49,29 +48,25 @@ QMimeData* GfxDevice::mimeData() const
 
 void GfxDevice::setupContextMenu(QMenu& menu) const
 {
-  if(m_dev)
+  if (m_dev)
   {
     auto p = m_dev.get()->get_root_node().get_parameter();
-    if(p)
+    if (p)
     {
-      if(auto s = p->screen)
+      if (auto s = p->screen)
       {
-        if(auto w = s->window)
+        if (auto w = s->window)
         {
           auto showhide = new QAction;
-          if(!w->isVisible())
+          if (!w->isVisible())
           {
             showhide->setText(tr("Show"));
-            connect(showhide, &QAction::triggered, w.get(), [w] {
-              w->show();
-            });
+            connect(showhide, &QAction::triggered, w.get(), [w] { w->show(); });
           }
           else
           {
             showhide->setText(tr("Hide"));
-            connect(showhide, &QAction::triggered, w.get(), [w] {
-              w->hide();
-            });
+            connect(showhide, &QAction::triggered, w.get(), [w] { w->hide(); });
           }
           menu.addAction(showhide);
         }
@@ -86,8 +81,7 @@ void GfxDevice::addAddress(const Device::FullAddressSettings& settings)
   if (auto dev = getDevice())
   {
     // Create the node. It is added into the device.
-    ossia::net::node_base* node
-        = Device::createNodeFromPath(settings.address.path, *dev);
+    ossia::net::node_base* node = Device::createNodeFromPath(settings.address.path, *dev);
     SCORE_ASSERT(node);
     setupNode(*node, settings.extendedAttributes);
   }
@@ -156,9 +150,7 @@ void GfxDevice::recreate(const Device::Node& n)
   }
 }
 
-void GfxDevice::setupNode(
-    ossia::net::node_base& node,
-    const ossia::extended_attributes& attr)
+void GfxDevice::setupNode(ossia::net::node_base& node, const ossia::extended_attributes& attr)
 {
   // TODO
 }
@@ -213,8 +205,7 @@ Device::ProtocolSettingsWidget* GfxProtocolFactory::makeSettingsWidget()
   return new GfxSettingsWidget;
 }
 
-QVariant GfxProtocolFactory::makeProtocolSpecificSettings(
-    const VisitorVariant& visitor) const
+QVariant GfxProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
 {
   return {};
 }
@@ -232,8 +223,7 @@ bool GfxProtocolFactory::checkCompatibility(
   return a.name != b.name;
 }
 
-GfxSettingsWidget::GfxSettingsWidget(QWidget* parent)
-    : ProtocolSettingsWidget(parent)
+GfxSettingsWidget::GfxSettingsWidget(QWidget* parent) : ProtocolSettingsWidget(parent)
 {
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
 

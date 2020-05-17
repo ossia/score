@@ -39,10 +39,7 @@
 template <typename T>
 struct VariantDataStreamSerializer
 {
-  VariantDataStreamSerializer(DataStream::Serializer& s_p, const T& var_p)
-      : s{s_p}, var{var_p}
-  {
-  }
+  VariantDataStreamSerializer(DataStream::Serializer& s_p, const T& var_p) : s{s_p}, var{var_p} { }
 
   DataStream::Serializer& s;
   const T& var;
@@ -71,10 +68,7 @@ void VariantDataStreamSerializer<T>::operator()()
 template <typename T>
 struct VariantDataStreamDeserializer
 {
-  VariantDataStreamDeserializer(
-      DataStream::Deserializer& s_p,
-      quint64 which_p,
-      T& var_p)
+  VariantDataStreamDeserializer(DataStream::Deserializer& s_p, quint64 which_p, T& var_p)
       : s{s_p}, which{which_p}, var{var_p}
   {
   }
@@ -112,8 +106,7 @@ struct TSerializer<DataStream, eggs::variant<Args...>>
     // TODO this should be an assert.
     if ((quint64)var.which() != (quint64)var.npos)
     {
-      ossia::for_each_type<Args...>(
-          VariantDataStreamSerializer<var_t>{s, var});
+      ossia::for_each_type<Args...>(VariantDataStreamSerializer<var_t>{s, var});
     }
 
     s.insertDelimiter();
@@ -126,8 +119,7 @@ struct TSerializer<DataStream, eggs::variant<Args...>>
 
     if (which != (quint64)var.npos)
     {
-      ossia::for_each_type<Args...>(
-          VariantDataStreamDeserializer<var_t>{s, which, var});
+      ossia::for_each_type<Args...>(VariantDataStreamDeserializer<var_t>{s, which, var});
     }
     s.checkDelimiter();
   }
@@ -152,10 +144,7 @@ struct TSerializer<DataStream, eggs::variant<Args...>>
 template <typename T>
 struct VariantJSONSerializer
 {
-  VariantJSONSerializer(JSONObject::Serializer& s_p, const T& var_p)
-      : s{s_p}, var{var_p}
-  {
-  }
+  VariantJSONSerializer(JSONObject::Serializer& s_p, const T& var_p) : s{s_p}, var{var_p} { }
   JSONObject::Serializer& s;
   const T& var;
 
@@ -182,10 +171,7 @@ void VariantJSONSerializer<T>::operator()()
 template <typename T>
 struct VariantJSONDeserializer
 {
-  VariantJSONDeserializer(JSONObject::Deserializer& s_p, T& var_p)
-      : s{s_p}, var{var_p}
-  {
-  }
+  VariantJSONDeserializer(JSONObject::Deserializer& s_p, T& var_p) : s{s_p}, var{var_p} { }
   JSONObject::Deserializer& s;
   T& var;
 
@@ -227,7 +213,7 @@ struct TSerializer<JSONObject, eggs::variant<Args...>>
 
   static void writeTo(JSONObject::Deserializer& s, var_t& var)
   {
-    if(s.base.MemberCount() == 0)
+    if (s.base.MemberCount() == 0)
       return;
     ossia::for_each_type<Args...>(VariantJSONDeserializer<var_t>{s, var});
   }

@@ -20,7 +20,6 @@ using list_t = std::vector<ossia::value>;
 using Value = ossia::value;
 using OptionalValue = optional<ossia::value>;
 
-SCORE_LIB_STATE_EXPORT optional<ossia::value>
-parseValue(const std::string& str);
+SCORE_LIB_STATE_EXPORT optional<ossia::value> parseValue(const std::string& str);
 SCORE_LIB_STATE_EXPORT QDebug& operator<<(QDebug& s, const Value& m);
 }

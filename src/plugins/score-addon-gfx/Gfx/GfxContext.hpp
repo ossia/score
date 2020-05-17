@@ -63,35 +63,27 @@ struct gfx_view_node
     struct vec_visitor
     {
       const std::vector<ossia::value>& v;
-      void operator()(std::monostate) const noexcept {}
+      void operator()(std::monostate) const noexcept { }
       void operator()(float& val) const noexcept
       {
         if (!v.empty())
           val = ossia::convert<float>(v[0]);
       }
-      void operator()(ossia::vec2f& val) const noexcept
-      {
-        val = ossia::convert<ossia::vec2f>(v);
-      }
-      void operator()(ossia::vec3f& val) const noexcept
-      {
-        val = ossia::convert<ossia::vec3f>(v);
-      }
-      void operator()(ossia::vec4f& val) const noexcept
-      {
-        val = ossia::convert<ossia::vec4f>(v);
-      }
-      void operator()(image& val) const noexcept {}
+      void operator()(ossia::vec2f& val) const noexcept { val = ossia::convert<ossia::vec2f>(v); }
+      void operator()(ossia::vec3f& val) const noexcept { val = ossia::convert<ossia::vec3f>(v); }
+      void operator()(ossia::vec4f& val) const noexcept { val = ossia::convert<ossia::vec4f>(v); }
+      void operator()(image& val) const noexcept { }
     };
 
     struct value_visitor
     {
       Types type{};
       void* value{};
-      void operator()() const noexcept {}
-      void operator()(ossia::impulse) const noexcept {}
-      void operator()(int v) const noexcept {
-        switch(type)
+      void operator()() const noexcept { }
+      void operator()(ossia::impulse) const noexcept { }
+      void operator()(int v) const noexcept
+      {
+        switch (type)
         {
           case Types::Int:
             memcpy(value, &v, 4);
@@ -106,8 +98,9 @@ struct gfx_view_node
             break;
         }
       }
-      void operator()(float v) const noexcept {
-        switch(type)
+      void operator()(float v) const noexcept
+      {
+        switch (type)
         {
           case Types::Int:
           {
@@ -124,8 +117,9 @@ struct gfx_view_node
             break;
         }
       }
-      void operator()(bool v) const noexcept {
-        switch(type)
+      void operator()(bool v) const noexcept
+      {
+        switch (type)
         {
           case Types::Int:
           {
@@ -141,8 +135,9 @@ struct gfx_view_node
           }
         }
       }
-      void operator()(char v) const noexcept {
-        switch(type)
+      void operator()(char v) const noexcept
+      {
+        switch (type)
         {
           case Types::Int:
           {
@@ -160,15 +155,21 @@ struct gfx_view_node
             break;
         }
       }
-      void operator()(const std::string& v) const noexcept {}
-      void operator()(ossia::vec2f v) const noexcept {
-        assert(type == Types::Vec2); memcpy(value, v.data(), 8);
+      void operator()(const std::string& v) const noexcept { }
+      void operator()(ossia::vec2f v) const noexcept
+      {
+        assert(type == Types::Vec2);
+        memcpy(value, v.data(), 8);
       }
-      void operator()(ossia::vec3f v) const noexcept {
-        assert(type == Types::Vec3); memcpy(value, v.data(), 12);
+      void operator()(ossia::vec3f v) const noexcept
+      {
+        assert(type == Types::Vec3);
+        memcpy(value, v.data(), 12);
       }
-      void operator()(ossia::vec4f v) const noexcept {
-        assert(type == Types::Vec4); memcpy(value, v.data(), 16);
+      void operator()(ossia::vec4f v) const noexcept
+      {
+        assert(type == Types::Vec4);
+        memcpy(value, v.data(), 16);
       }
       void operator()(const std::vector<ossia::value>& v) const noexcept
       {
@@ -185,29 +186,28 @@ struct gfx_view_node
 
   void process(int32_t port, const ossia::audio_vector& v)
   {
-    if(v.empty() || v[0].empty())
+    if (v.empty() || v[0].empty())
       return;
 
     assert(int(impl->input.size()) > port);
     auto& in = impl->input[port];
     assert(in->type == Types::Audio);
-    AudioTexture& tex = *(AudioTexture*) in->value;
+    AudioTexture& tex = *(AudioTexture*)in->value;
 
     tex.channels = v.size();
     tex.data.clear();
-    //if(tex.fixedSize)
+    // if(tex.fixedSize)
     {
-      // TODO
+        // TODO
 
-    }
-    // else
+    } // else
     {
       tex.data.resize(v.size() * v[0].size());
 
       float* sample = tex.data.data();
-      for(auto& chan : v)
+      for (auto& chan : v)
       {
-        for(float in : chan)
+        for (float in : chan)
         {
           (*sample) = 0.5f + in / 2.f;
           sample++;
@@ -247,20 +247,20 @@ public:
 
     m_graph = new Graph;
 
-    if(m_api == Vulkan)
+    if (m_api == Vulkan)
     {
       //:startTimer(16);
       moveToThread(&m_thread);
       m_thread.start();
     }
 
-    QMetaObject::invokeMethod(this, [this] { startTimer(16); },
-    Qt::QueuedConnection);
+    QMetaObject::invokeMethod(
+        this, [this] { startTimer(16); }, Qt::QueuedConnection);
   }
 
   ~gfx_window_context()
   {
-    if(m_thread.isRunning())
+    if (m_thread.isRunning())
       m_thread.exit(0);
     m_thread.wait();
   }
@@ -345,10 +345,7 @@ public:
       gfx_view_node& node;
       port_index sink{};
 
-      void operator()(ossia::value&& v) const noexcept
-      {
-        node.process(sink.port, std::move(v));
-      }
+      void operator()(ossia::value&& v) const noexcept { node.process(sink.port, std::move(v)); }
 
       void operator()(ossia::audio_vector&& v) const noexcept
       {

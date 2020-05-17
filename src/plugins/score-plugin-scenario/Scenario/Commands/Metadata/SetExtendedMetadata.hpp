@@ -14,28 +14,22 @@ class SetExtendedMetadata final : public score::Command
 {
   // No SCORE_COMMAND here since it's a template.
 public:
-  const CommandGroupKey& parentKey() const noexcept override
-  {
-    return CommandFactoryName();
-  }
+  const CommandGroupKey& parentKey() const noexcept override { return CommandFactoryName(); }
   static const CommandKey& static_key() noexcept
   {
-    QString name = QString("ChangeElementExtendedMetadata_")
-                + Metadata<ObjectKey_k, T>::get();
+    QString name = QString("ChangeElementExtendedMetadata_") + Metadata<ObjectKey_k, T>::get();
     static const CommandKey kagi{std::move(name)};
     return kagi;
   }
   const CommandKey& key() const noexcept override { return static_key(); }
   QString description() const override
   {
-    return QObject::tr("Change %1 metadata")
-        .arg(Metadata<Description_k, T>::get());
+    return QObject::tr("Change %1 metadata").arg(Metadata<Description_k, T>::get());
   }
 
   SetExtendedMetadata() = default;
 
-  SetExtendedMetadata(const T& obj, QVariantMap newM)
-      : m_path{obj}, m_newMeta{std::move(newM)}
+  SetExtendedMetadata(const T& obj, QVariantMap newM) : m_path{obj}, m_newMeta{std::move(newM)}
   {
     m_oldMeta = obj.metadata().getExtendedMetadata();
   }
@@ -53,15 +47,9 @@ public:
   }
 
 protected:
-  void serializeImpl(DataStreamInput& s) const override
-  {
-    s << m_path << m_oldMeta << m_newMeta;
-  }
+  void serializeImpl(DataStreamInput& s) const override { s << m_path << m_oldMeta << m_newMeta; }
 
-  void deserializeImpl(DataStreamOutput& s) override
-  {
-    s >> m_path >> m_oldMeta >> m_newMeta;
-  }
+  void deserializeImpl(DataStreamOutput& s) override { s >> m_path >> m_oldMeta >> m_newMeta; }
 
 private:
   Path<T> m_path;

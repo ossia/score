@@ -1,6 +1,5 @@
 #pragma once
 #include <Media/Commands/MediaCommandFactory.hpp>
-
 #include <Media/MediaFileHandle.hpp>
 #include <Media/Sound/SoundModel.hpp>
 
@@ -13,10 +12,7 @@ namespace Media
 
 class ChangeAudioFile final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      Media::CommandFactoryName(),
-      ChangeAudioFile,
-      "Change audio file")
+  SCORE_COMMAND_DECL(Media::CommandFactoryName(), ChangeAudioFile, "Change audio file")
 public:
   ChangeAudioFile(const Sound::ProcessModel&, const QString& text);
 
@@ -36,11 +32,7 @@ private:
 };
 }
 
-PROPERTY_COMMAND_T(
-    Media,
-    ChangeStart,
-    Sound::ProcessModel::p_startChannel,
-    "Change start channel")
+PROPERTY_COMMAND_T(Media, ChangeStart, Sound::ProcessModel::p_startChannel, "Change start channel")
 PROPERTY_COMMAND_T(
     Media,
     ChangeUpmix,
@@ -51,11 +43,7 @@ PROPERTY_COMMAND_T(
     ChangeStretchMode,
     Sound::ProcessModel::p_stretchMode,
     "Change stretch mode")
-PROPERTY_COMMAND_T(
-    Media,
-    ChangeTempo,
-    Sound::ProcessModel::p_nativeTempo,
-    "Change file tempo")
+PROPERTY_COMMAND_T(Media, ChangeTempo, Sound::ProcessModel::p_nativeTempo, "Change file tempo")
 SCORE_COMMAND_DECL_T(Media::ChangeStart)
 SCORE_COMMAND_DECL_T(Media::ChangeUpmix)
 SCORE_COMMAND_DECL_T(Media::ChangeTempo)

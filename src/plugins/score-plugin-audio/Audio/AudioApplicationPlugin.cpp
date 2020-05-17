@@ -1,27 +1,27 @@
 #include "AudioApplicationPlugin.hpp"
-#include <Audio/AudioInterface.hpp>
-#include <Audio/Settings/Model.hpp>
+
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Process/ExecutionAction.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
-#include <ossia/audio/audio_protocol.hpp>
-#include <score/tools/Bind.hpp>
-#include <score/widgets/ControlWidgets.hpp>
-#include <score/widgets/SetIcons.hpp>
-#include <score/widgets/MessageBox.hpp>
 
 #include <score/actions/ActionManager.hpp>
+#include <score/tools/Bind.hpp>
+#include <score/widgets/ControlWidgets.hpp>
+#include <score/widgets/MessageBox.hpp>
+#include <score/widgets/SetIcons.hpp>
+
 #include <core/application/ApplicationSettings.hpp>
 #include <core/presenter/DocumentManager.hpp>
-#include <Audio/AudioPreviewExecutor.hpp>
+
+#include <ossia/audio/audio_protocol.hpp>
+
 #include <QToolBar>
 
-#include <Process/ExecutionAction.hpp>
+#include <Audio/AudioInterface.hpp>
+#include <Audio/AudioPreviewExecutor.hpp>
+#include <Audio/Settings/Model.hpp>
 
-SCORE_DECLARE_ACTION(
-    RestartAudio,
-    "Restart Audio",
-    Common,
-    QKeySequence::UnknownKey)
+SCORE_DECLARE_ACTION(RestartAudio, "Restart Audio", Common, QKeySequence::UnknownKey)
 namespace Audio
 {
 namespace
@@ -29,19 +29,21 @@ namespace
 static auto makeDefaultTick(const score::ApplicationContext& app)
 {
   std::vector<Execution::ExecutionAction*> actions;
-  for (Execution::ExecutionAction& act: app.interfaces<Execution::ExecutionActionList>())
+  for (Execution::ExecutionAction& act : app.interfaces<Execution::ExecutionActionList>())
   {
     actions.push_back(&act);
   }
 
-  return [actions = std::move(actions)] (unsigned long samples, double sec) {
-    for(auto act : actions) act->startTick(samples, sec);
-    for(auto act : actions) act->endTick(samples, sec);
+  return [actions = std::move(actions)](unsigned long samples, double sec) {
+    for (auto act : actions)
+      act->startTick(samples, sec);
+    for (auto act : actions)
+      act->endTick(samples, sec);
   };
 }
 }
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
-  : score::GUIApplicationPlugin{ctx}
+    : score::GUIApplicationPlugin{ctx}
 {
 }
 
@@ -59,17 +61,15 @@ void ApplicationPlugin::initialize()
   {
     auto& stop_action = context.actions.action<Actions::Stop>();
     connect(
-          stop_action.action(),
-          &QAction::triggered,
-          this,
-          &ApplicationPlugin::on_stop,
-          Qt::QueuedConnection);
+        stop_action.action(),
+        &QAction::triggered,
+        this,
+        &ApplicationPlugin::on_stop,
+        Qt::QueuedConnection);
   }
 }
 
-ApplicationPlugin::~ApplicationPlugin()
-{
-}
+ApplicationPlugin::~ApplicationPlugin() { }
 
 void ApplicationPlugin::on_stop()
 {
@@ -82,9 +82,7 @@ void ApplicationPlugin::on_stop()
   }
 }
 
-void ApplicationPlugin::on_documentChanged(
-            score::Document *olddoc,
-            score::Document *newdoc)
+void ApplicationPlugin::on_documentChanged(score::Document* olddoc, score::Document* newdoc)
 {
   restart_engine();
 }
@@ -103,11 +101,11 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
   m_audioEngineAct->setStatusTip("Restart the audio engine");
 
   setIcons(
-        m_audioEngineAct,
-        QStringLiteral(":/icons/engine_on.png"),
-        QStringLiteral(":/icons/engine_off.png"),
-        QStringLiteral(":/icons/engine_disabled.png"),
-        false);
+      m_audioEngineAct,
+      QStringLiteral(":/icons/engine_on.png"),
+      QStringLiteral(":/icons/engine_off.png"),
+      QStringLiteral(":/icons/engine_disabled.png"),
+      false);
   {
     auto bar = new QToolBar(tr("Volume"));
     auto sl = new score::VolumeSlider{bar};
@@ -117,15 +115,14 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     bar->addWidget(sl);
     bar->addAction(m_audioEngineAct);
     connect(sl, &score::VolumeSlider::valueChanged, this, [=](double v) {
-      if(!this->audio)
+      if (!this->audio)
         return;
-      if(!this->audio->protocol)
+      if (!this->audio->protocol)
         return;
       ossia::audio_protocol* p = this->audio->protocol;
       auto& dev = p->get_device();
 
-      auto root
-          = ossia::net::find_node(dev.get_root_node(), "/out/main");
+      auto root = ossia::net::find_node(dev.get_root_node(), "/out/main");
       if (root)
       {
         if (auto p = root->get_parameter())
@@ -136,15 +133,13 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
       }
     });
 
-    toolbars.emplace_back(
-          bar, StringKey<score::Toolbar>("Audio"), Qt::BottomToolBarArea, 400);
+    toolbars.emplace_back(bar, StringKey<score::Toolbar>("Audio"), Qt::BottomToolBarArea, 400);
   }
 
   e.actions.container.reserve(2);
   e.actions.add<Actions::RestartAudio>(m_audioEngineAct);
 
-  connect(m_audioEngineAct, &QAction::triggered,
-          this, &ApplicationPlugin::restart_engine);
+  connect(m_audioEngineAct, &QAction::triggered, this, &ApplicationPlugin::restart_engine);
 
   return e;
 }
@@ -159,10 +154,7 @@ try
 
   if (auto doc = this->currentDocument())
   {
-    auto dev = doc->context()
-        .plugin<Explorer::DeviceDocumentPlugin>()
-        .list()
-        .audioDevice();
+    auto dev = doc->context().plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice();
     if (!dev)
       return;
     if (audio)
@@ -178,7 +170,7 @@ try
     auto& preview = AudioPreviewExecutor::instance();
     preview.audio = nullptr;
     dev->reconnect();
-    if(audio)
+    if (audio)
     {
       preview.audio = audio->protocol;
       audio->set_tick(makeDefaultTick(this->context));
@@ -189,13 +181,14 @@ try
     }
   }
 }
-catch(...)
+catch (...)
 {
-  score::warning(context.documentTabWidget,
-                 tr("Audio Error"),
-                 tr("Warning: audio engine stuck. "
-                    "Operation aborted. "
-                    "Check the audio settings."));
+  score::warning(
+      context.documentTabWidget,
+      tr("Audio Error"),
+      tr("Warning: audio engine stuck. "
+         "Operation aborted. "
+         "Check the audio settings."));
 }
 
 void ApplicationPlugin::setup_engine()
@@ -211,7 +204,7 @@ void ApplicationPlugin::setup_engine()
     try
     {
       audio = dev->make_engine(set, this->context);
-      if(!audio)
+      if (!audio)
         throw std::runtime_error{""};
 
       m_updating_audio = true;
@@ -225,16 +218,16 @@ void ApplicationPlugin::setup_engine()
     catch (...)
     {
       score::warning(
-            nullptr,
-            tr("Audio error"),
-            tr("The desired audio settings could not be applied.\nPlease change "
-               "them."));
+          nullptr,
+          tr("Audio error"),
+          tr("The desired audio settings could not be applied.\nPlease change "
+             "them."));
     }
   }
 
   if (m_audioEngineAct)
     m_audioEngineAct->setChecked(bool(audio));
-  if(audio)
+  if (audio)
   {
     preview.audio = audio->protocol;
   }

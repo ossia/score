@@ -1,14 +1,15 @@
 #pragma once
 #include <score/application/ApplicationComponents.hpp>
-#include <score/model/EntityMap.hpp>
 #include <score/model/EntityList.hpp>
-#include <score/serialization/JSONVisitor.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/model/EntityMap.hpp>
 #include <score/plugins/SerializableHelpers.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
 
-struct EntityMapSerializer {
+struct EntityMapSerializer
+{
 
-  template<typename T>
+  template <typename T>
   static void readFrom(DataStream::Serializer& s, const T& obj)
   {
     s.m_stream << (int32_t)obj.size();
@@ -16,13 +17,14 @@ struct EntityMapSerializer {
       s.readFrom(child);
   }
 
-  template<typename List, typename T>
-  static void writeTo(DataStream::Deserializer& s, T& obj, const score::DocumentContext& ctx, QObject* parent)
+  template <typename List, typename T>
+  static void
+  writeTo(DataStream::Deserializer& s, T& obj, const score::DocumentContext& ctx, QObject* parent)
   {
     int32_t sz;
     s.m_stream >> sz;
     auto& pl = s.components.template interfaces<List>();
-    for (; sz --> 0;)
+    for (; sz-- > 0;)
     {
       auto proc = deserialize_interface(pl, s, ctx, parent);
       if (proc)
@@ -32,15 +34,17 @@ struct EntityMapSerializer {
     }
   }
 
-  template<typename T>
-  static void readFrom(JSONObject::Serializer& s, const T& vec) {
+  template <typename T>
+  static void readFrom(JSONObject::Serializer& s, const T& vec)
+  {
     s.stream.StartArray();
-    for(const auto& elt : vec)
+    for (const auto& elt : vec)
       s.readFrom(elt);
     s.stream.EndArray();
   }
-  template<typename List, typename T>
-  static void writeTo(JSONObject::Deserializer&& s, T& obj, const score::DocumentContext& ctx, QObject* parent)
+  template <typename List, typename T>
+  static void
+  writeTo(JSONObject::Deserializer&& s, T& obj, const score::DocumentContext& ctx, QObject* parent)
   {
     auto& pl = s.components.interfaces<List>();
 

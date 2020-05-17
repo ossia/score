@@ -21,9 +21,7 @@ W_OBJECT_IMPL(Scenario::AddressBarItem)
 
 namespace Scenario
 {
-AddressBarItem::AddressBarItem(
-    const score::DocumentContext& ctx,
-    QGraphicsItem* parent)
+AddressBarItem::AddressBarItem(const score::DocumentContext& ctx, QGraphicsItem* parent)
     : QGraphicsItem{parent}, m_ctx{ctx}
 {
   this->setFlag(QGraphicsItem::ItemHasNoContents, true);
@@ -54,14 +52,10 @@ void AddressBarItem::setTargetObject(ObjectPath&& path)
     QString txt = thisObj.metadata().getName();
 
     auto lab = new ClickableLabelItem{
-        thisObj.metadata(),
-        [&](ClickableLabelItem*) { intervalSelected(thisObj); },
-        txt,
-        this};
+        thisObj.metadata(), [&](ClickableLabelItem*) { intervalSelected(thisObj); }, txt, this};
 
     lab->setIndex(i);
-    connect(
-        lab, &ClickableLabelItem::textChanged, this, &AddressBarItem::redraw);
+    connect(lab, &ClickableLabelItem::textChanged, this, &AddressBarItem::redraw);
 
     m_items.append(lab);
     lab->setPos(currentWidth, -4.);

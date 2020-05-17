@@ -1,8 +1,8 @@
 #pragma once
 #include <Process/LayerView.hpp>
 
-
 #include <score_lib_process_export.h>
+
 #include <verdigris>
 
 class QGraphicsItem;

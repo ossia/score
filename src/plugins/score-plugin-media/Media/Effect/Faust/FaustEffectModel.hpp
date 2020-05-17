@@ -2,10 +2,10 @@
 #if defined(HAS_FAUST)
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/GenericProcessFactory.hpp>
-
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 #include <Process/Process.hpp>
+#include <Process/Script/ScriptEditor.hpp>
 
 #include <ossia/dataflow/node_process.hpp>
 
@@ -13,7 +13,7 @@
 
 #include <Control/DefaultEffectItem.hpp>
 #include <Effect/EffectFactory.hpp>
-#include <Process/Script/ScriptEditor.hpp>
+
 #include <verdigris>
 
 #include <faust/dsp/poly-llvm-dsp.h>
@@ -58,8 +58,7 @@ public:
   ~FaustEffectModel();
 
   template <typename Impl>
-  FaustEffectModel(Impl& vis, QObject* parent)
-      : Process::ProcessModel{vis, parent}
+  FaustEffectModel(Impl& vis, QObject* parent) : Process::ProcessModel{vis, parent}
   {
     vis.writeTo(*this);
     init();
@@ -81,13 +80,10 @@ public:
   dsp_poly_factory* faust_poly_factory{};
   dsp_poly* faust_poly_object{};
 
-  void changed()
-  W_SIGNAL(changed);
-  void textChanged(const QString& str)
-  W_SIGNAL(textChanged, str);
+  void changed() W_SIGNAL(changed);
+  void textChanged(const QString& str) W_SIGNAL(textChanged, str);
 
-  void errorMessage(int line, const QString& e)
-  W_SIGNAL(errorMessage, line, e);
+  void errorMessage(int line, const QString& e) W_SIGNAL(errorMessage, line, e);
 
   PROPERTY(QString, text READ text WRITE setText NOTIFY textChanged)
 private:
@@ -103,15 +99,12 @@ private:
 namespace Process
 {
 template <>
-QString EffectProcessFactory_T<
-    Media::Faust::FaustEffectModel>::customConstructionData() const;
+QString EffectProcessFactory_T<Media::Faust::FaustEffectModel>::customConstructionData() const;
 
 template <>
 Process::Descriptor
-EffectProcessFactory_T<Media::Faust::FaustEffectModel>::descriptor(
-    QString d) const;
+EffectProcessFactory_T<Media::Faust::FaustEffectModel>::descriptor(QString d) const;
 }
-
 
 namespace Media::Faust
 {
@@ -119,15 +112,13 @@ using FaustEffectFactory = Process::EffectProcessFactory_T<FaustEffectModel>;
 using LayerFactory = Process::EffectLayerFactory_T<
     FaustEffectModel,
     Process::DefaultEffectItem,
-    Process::ProcessScriptEditDialog<FaustEffectModel, FaustEffectModel::p_text>
->;
+    Process::ProcessScriptEditDialog<FaustEffectModel, FaustEffectModel::p_text>>;
 }
 
 namespace Execution
 {
-class FaustEffectComponent final : public Execution::ProcessComponent_T<
-                                       Media::Faust::FaustEffectModel,
-                                       ossia::node_process>
+class FaustEffectComponent final
+    : public Execution::ProcessComponent_T<Media::Faust::FaustEffectModel, ossia::node_process>
 {
   W_OBJECT(FaustEffectComponent)
   COMPONENT_METADATA("eb4f83af-5ddc-4f2f-9426-6f8a599a1e96")
@@ -144,10 +135,9 @@ public:
 private:
   void reloadSynth();
   void reloadFx();
-  template<typename T>
+  template <typename T>
   void reload();
 };
-using FaustEffectComponentFactory
-    = Execution::ProcessComponentFactory_T<FaustEffectComponent>;
+using FaustEffectComponentFactory = Execution::ProcessComponentFactory_T<FaustEffectComponent>;
 }
 #endif

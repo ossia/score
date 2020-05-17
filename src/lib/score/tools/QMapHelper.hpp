@@ -13,7 +13,7 @@ template <typename T>
 struct QMapKeyAdaptor
 {
   QList<typename T::key_type> keys;
-  QMapKeyAdaptor(const T& map) : keys{map.keys()} {}
+  QMapKeyAdaptor(const T& map) : keys{map.keys()} { }
 
   auto begin() const { return keys.begin(); }
 

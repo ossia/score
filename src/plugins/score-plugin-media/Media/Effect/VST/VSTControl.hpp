@@ -1,10 +1,9 @@
 #pragma once
 #if defined(HAS_VST2)
+#include <Dataflow/PortItem.hpp>
 #include <Media/Effect/VST/VSTEffectModel.hpp>
 
 #include <verdigris>
-
-#include <Dataflow/PortItem.hpp>
 
 namespace Process
 {
@@ -19,34 +18,29 @@ class VSTControlInlet final : public Process::Inlet
   SCORE_SERIALIZE_FRIENDS
 public:
   MODEL_METADATA_IMPL(VSTControlInlet)
-  VSTControlInlet(Id<Process::Port> c, QObject* parent)
-    : Inlet{std::move(c), parent}
-  {
-  }
+  VSTControlInlet(Id<Process::Port> c, QObject* parent) : Inlet{std::move(c), parent} { }
 
-
-  VSTControlInlet(DataStream::Deserializer& vis, QObject* parent)
-      : Inlet{vis, parent}
+  VSTControlInlet(DataStream::Deserializer& vis, QObject* parent) : Inlet{vis, parent}
   {
     vis.writeTo(*this);
   }
-  VSTControlInlet(JSONObject::Deserializer& vis, QObject* parent)
-      : Inlet{vis, parent}
+  VSTControlInlet(JSONObject::Deserializer& vis, QObject* parent) : Inlet{vis, parent}
   {
     vis.writeTo(*this);
   }
-  VSTControlInlet(DataStream::Deserializer&& vis, QObject* parent)
-      : Inlet{vis, parent}
+  VSTControlInlet(DataStream::Deserializer&& vis, QObject* parent) : Inlet{vis, parent}
   {
     vis.writeTo(*this);
   }
-  VSTControlInlet(JSONObject::Deserializer&& vis, QObject* parent)
-      : Inlet{vis, parent}
+  VSTControlInlet(JSONObject::Deserializer&& vis, QObject* parent) : Inlet{vis, parent}
   {
     vis.writeTo(*this);
   }
 
-  VIRTUAL_CONSTEXPR Process::PortType type() const noexcept override { return Process::PortType::Message; }
+  VIRTUAL_CONSTEXPR Process::PortType type() const noexcept override
+  {
+    return Process::PortType::Message;
+  }
 
   int fxNum{};
 

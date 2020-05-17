@@ -8,12 +8,12 @@
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 
 #include <QByteArray>
+#include <QDebug>
 #include <QFile>
 #include <QFileInfo>
 #include <QMimeData>
-#include <QUrl>
-#include <QDebug>
 #include <QSet>
+#include <QUrl>
 
 #include <rtmidi17/reader.hpp>
 
@@ -37,27 +37,29 @@ std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::dropData(
   std::vector<Process::ProcessDropHandler::ProcessDrop> vec;
   {
     std::vector<MidiTrack::MidiSong> songs;
-    for (const auto& [filename, file]: data)
+    for (const auto& [filename, file] : data)
     {
-      try {
-      if (auto song = MidiTrack::parse(file, ctx); !song.tracks.empty())
+      try
       {
-        for (MidiTrack& t : song.tracks)
+        if (auto song = MidiTrack::parse(file, ctx); !song.tracks.empty())
         {
-          Process::ProcessDropHandler::ProcessDrop p;
-          p.creation.key = Metadata<ConcreteKey_k, Midi::ProcessModel>::get();
-          p.creation.prettyName = QFileInfo{filename}.baseName();
-          p.duration = TimeVal::fromMsecs(song.durationInMs);
-          p.setup = [track = std::move(t), song_t = *p.duration](
-                        Process::ProcessModel& m, score::Dispatcher& disp) {
-            auto& midi = static_cast<Midi::ProcessModel&>(m);
-            disp.submit(new Midi::ReplaceNotes{
-                midi, track.notes, track.min, track.max, song_t});
-          };
-          vec.push_back(std::move(p));
+          for (MidiTrack& t : song.tracks)
+          {
+            Process::ProcessDropHandler::ProcessDrop p;
+            p.creation.key = Metadata<ConcreteKey_k, Midi::ProcessModel>::get();
+            p.creation.prettyName = QFileInfo{filename}.baseName();
+            p.duration = TimeVal::fromMsecs(song.durationInMs);
+            p.setup = [track = std::move(t),
+                       song_t = *p.duration](Process::ProcessModel& m, score::Dispatcher& disp) {
+              auto& midi = static_cast<Midi::ProcessModel&>(m);
+              disp.submit(new Midi::ReplaceNotes{midi, track.notes, track.min, track.max, song_t});
+            };
+            vec.push_back(std::move(p));
+          }
         }
       }
-      } catch(std::exception& e) {
+      catch (std::exception& e)
+      {
         qDebug() << e.what();
       }
     }
@@ -102,8 +104,7 @@ MidiTrack::parse(const QMimeData& mime, const score::DocumentContext& ctx)
   return {};
 }
 
-MidiTrack::MidiSong
-MidiTrack::parse(const QByteArray& dat, const score::DocumentContext& ctx)
+MidiTrack::MidiSong MidiTrack::parse(const QByteArray& dat, const score::DocumentContext& ctx)
 {
   MidiSong m;
 

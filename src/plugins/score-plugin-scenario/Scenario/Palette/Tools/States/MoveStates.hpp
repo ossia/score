@@ -1,5 +1,15 @@
 #pragma once
 #include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
+#include <Scenario/Commands/Scenario/Merge/MergeEvents.hpp>
+#include <Scenario/Document/Event/EventPresenter.hpp>
+#include <Scenario/Document/Event/EventView.hpp>
+#include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
+#include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
+#include <Scenario/Document/State/StatePresenter.hpp>
+#include <Scenario/Document/State/StateView.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncView.hpp>
+#include <Scenario/Document/TimeSync/TriggerView.hpp>
 #include <Scenario/Palette/ScenarioPaletteBaseStates.hpp>
 #include <Scenario/Palette/Tools/ScenarioRollbackStrategy.hpp>
 #include <Scenario/Palette/Transitions/AnythingTransitions.hpp>
@@ -9,19 +19,9 @@
 #include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 
-#include <Scenario/Document/Event/EventView.hpp>
-#include <Scenario/Document/Event/EventPresenter.hpp>
-#include <Scenario/Document/State/StateView.hpp>
-#include <Scenario/Document/State/StatePresenter.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncView.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
-#include <Scenario/Document/TimeSync/TriggerView.hpp>
 #include <score/command/Dispatchers/MultiOngoingCommandDispatcher.hpp>
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <score/locking/ObjectLocker.hpp>
-#include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
-#include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
-#include <Scenario/Commands/Scenario/Merge/MergeEvents.hpp>
 
 #include <QApplication>
 #include <QFinalState>
@@ -56,13 +56,10 @@ public:
       mainState->setInitialState(pressed);
       released->addTransition(finalState);
 
-      score::make_transition<MoveOnAnything_Transition<Scenario_T>>(
-          pressed, moving, *this);
-      score::make_transition<ReleaseOnAnything_Transition>(
-          pressed, finalState);
+      score::make_transition<MoveOnAnything_Transition<Scenario_T>>(pressed, moving, *this);
+      score::make_transition<ReleaseOnAnything_Transition>(pressed, finalState);
 
-      score::make_transition<MoveOnAnything_Transition<Scenario_T>>(
-          moving, moving, *this);
+      score::make_transition<MoveOnAnything_Transition<Scenario_T>>(moving, moving, *this);
       score::make_transition<ReleaseOnAnything_Transition>(moving, released);
 
       QObject::connect(pressed, &QState::entered, [&]() {
@@ -72,11 +69,10 @@ public:
           auto& scenar = stateMachine.model();
           auto& cstr = scenar.interval(*this->clickedInterval);
           this->m_initialDuration
-              = ((cstr.duration)
-                 .*MoveBraceCommand_T::corresponding_member)(); // = interval
-                                                                // MinDuration
-                                                                // or
-                                                                // maxDuration
+              = ((cstr.duration).*MoveBraceCommand_T::corresponding_member)(); // = interval
+                                                                               // MinDuration
+                                                                               // or
+                                                                               // maxDuration
         }
       });
 
@@ -85,8 +81,7 @@ public:
         {
           auto& scenar = stateMachine.model();
           auto& cstr = scenar.interval(*this->clickedInterval);
-          auto date
-              = this->currentPoint.date - *m_initialDate + *m_initialDuration;
+          auto date = this->currentPoint.date - *m_initialDate + *m_initialDuration;
 
           date = stateMachine.magnetic().getPosition(&stateMachine.model(), date);
 
@@ -94,15 +89,13 @@ public:
         }
       });
 
-      QObject::connect(
-          released, &QState::entered, [&]() { this->m_dispatcher.commit(); });
+      QObject::connect(released, &QState::entered, [&]() { this->m_dispatcher.commit(); });
     }
 
     auto rollbackState = new QState{this};
     score::make_transition<score::Cancel_Transition>(mainState, rollbackState);
     rollbackState->addTransition(finalState);
-    QObject::connect(
-        rollbackState, &QState::entered, [&]() { m_dispatcher.rollback(); });
+    QObject::connect(rollbackState, &QState::entered, [&]() { m_dispatcher.rollback(); });
 
     this->setInitialState(mainState);
   }
@@ -142,12 +135,9 @@ public:
       mainState->setInitialState(pressed);
       released->addTransition(finalState);
 
-      score::make_transition<MoveOnAnything_Transition<Scenario_T>>(
-          pressed, moving, *this);
-      score::make_transition<ReleaseOnAnything_Transition>(
-          pressed, finalState);
-      score::make_transition<MoveOnAnything_Transition<Scenario_T>>(
-          moving, moving, *this);
+      score::make_transition<MoveOnAnything_Transition<Scenario_T>>(pressed, moving, *this);
+      score::make_transition<ReleaseOnAnything_Transition>(pressed, finalState);
+      score::make_transition<MoveOnAnything_Transition<Scenario_T>>(moving, moving, *this);
       score::make_transition<ReleaseOnAnything_Transition>(moving, released);
 
       // What happens in each state.
@@ -157,8 +147,8 @@ public:
 
         auto& scenar = stateMachine.model();
 
-        auto prev_csts = previousNonGraphIntervals(
-            scenar.timeSync(*this->clickedTimeSync), scenar);
+        auto prev_csts
+            = previousNonGraphIntervals(scenar.timeSync(*this->clickedTimeSync), scenar);
         if (!prev_csts.empty())
         {
           // We find the one that starts the latest.
@@ -210,8 +200,7 @@ public:
             stateMachine.editionSettings().lockMode());
       });
 
-      QObject::connect(
-          released, &QState::entered, [&]() {
+      QObject::connect(released, &QState::entered, [&]() {
         m_dispatcher.commit();
         m_pressedPrevious = {};
       });
@@ -220,8 +209,7 @@ public:
     auto rollbackState = new QState{this};
     score::make_transition<score::Cancel_Transition>(mainState, rollbackState);
     rollbackState->addTransition(finalState);
-    QObject::connect(
-        rollbackState, &QState::entered, [&]() { m_dispatcher.rollback(); });
+    QObject::connect(rollbackState, &QState::entered, [&]() { m_dispatcher.rollback(); });
 
     this->setInitialState(mainState);
   }

@@ -16,9 +16,7 @@
 #include <cmath>
 namespace Scenario
 {
-CommentBlockView::CommentBlockView(
-    CommentBlockPresenter& presenter,
-    QGraphicsItem* parent)
+CommentBlockView::CommentBlockView(CommentBlockPresenter& presenter, QGraphicsItem* parent)
     : QGraphicsItem{parent}, m_presenter{presenter}
 {
   this->setParentItem(parent);
@@ -27,15 +25,10 @@ CommentBlockView::CommentBlockView(
 
   m_textItem = new score::TextItem{"", this};
 
-  connect(
-      m_textItem->document(), &QTextDocument::contentsChanged, this, [&]() {
-        this->prepareGeometryChange();
-      });
-  connect(
-      m_textItem,
-      &score::TextItem::focusOut,
-      this,
-      &CommentBlockView::focusOut);
+  connect(m_textItem->document(), &QTextDocument::contentsChanged, this, [&]() {
+    this->prepareGeometryChange();
+  });
+  connect(m_textItem, &score::TextItem::focusOut, this, &CommentBlockView::focusOut);
   focusOut();
 }
 
@@ -46,7 +39,7 @@ void CommentBlockView::paint(
 {
   auto& skin = Process::Style::instance();
 
-  if(!m_selected)
+  if (!m_selected)
     painter->setPen(skin.CommentBlockPen());
   else
     painter->setPen(skin.CommentBlockSelectedPen());
@@ -75,7 +68,8 @@ void CommentBlockView::setHtmlContent(QString htmlText)
 
 void CommentBlockView::setSelected(bool b)
 {
-  if (b != m_selected) {
+  if (b != m_selected)
+  {
     m_selected = b;
     update();
   }

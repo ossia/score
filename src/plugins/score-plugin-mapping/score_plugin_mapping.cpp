@@ -6,13 +6,13 @@
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Mapping/Commands/MappingCommandFactory.hpp>
 #include <Mapping/Inspector/MappingInspectorFactory.hpp>
+#include <Mapping/LocalTree.hpp>
 #include <Mapping/MappingColors.hpp>
 #include <Mapping/MappingExecution.hpp>
 #include <Mapping/MappingModel.hpp>
 #include <Mapping/MappingPresenter.hpp>
 #include <Mapping/MappingProcessMetadata.hpp>
 #include <Mapping/MappingView.hpp>
-#include <Mapping/LocalTree.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/HeaderDelegate.hpp>
 #include <Process/ProcessFactory.hpp>
@@ -40,8 +40,7 @@ using MappingLayerFactory = Curve::CurveLayerFactory_T<
 score_plugin_mapping::score_plugin_mapping() = default;
 score_plugin_mapping::~score_plugin_mapping() = default;
 
-std::vector<std::unique_ptr<score::InterfaceBase>>
-score_plugin_mapping::factories(
+std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_mapping::factories(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& key) const
 {
@@ -52,12 +51,10 @@ score_plugin_mapping::factories(
       FW<Process::LayerFactory, Mapping::MappingLayerFactory>,
       FW<Inspector::InspectorWidgetFactory, MappingInspectorFactory>,
       FW<LocalTree::ProcessComponentFactory, LocalTree::MappingComponentFactory>,
-      FW<Execution::ProcessComponentFactory,
-         Mapping::RecreateOnPlay::ComponentFactory>>(ctx, key);
+      FW<Execution::ProcessComponentFactory, Mapping::RecreateOnPlay::ComponentFactory>>(ctx, key);
 }
 
-std::pair<const CommandGroupKey, CommandGeneratorMap>
-score_plugin_mapping::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_mapping::make_commands()
 {
   using namespace Mapping;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{

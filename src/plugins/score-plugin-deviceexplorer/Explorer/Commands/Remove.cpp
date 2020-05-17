@@ -14,7 +14,6 @@
 
 #include <QByteArray>
 
-
 namespace Explorer
 {
 class DeviceDocumentPlugin;

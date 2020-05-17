@@ -10,19 +10,16 @@
 
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
-
-bool LoopTriggerCommandFactory::matches(
-    const Scenario::TimeSyncModel& tn) const
+bool LoopTriggerCommandFactory::matches(const Scenario::TimeSyncModel& tn) const
 {
   return dynamic_cast<Loop::ProcessModel*>(tn.parent());
 }
 
-score::Command* LoopTriggerCommandFactory::make_addTriggerCommand(
-    const Scenario::TimeSyncModel& tn) const
+score::Command*
+LoopTriggerCommandFactory::make_addTriggerCommand(const Scenario::TimeSyncModel& tn) const
 {
   if (dynamic_cast<Loop::ProcessModel*>(tn.parent()))
   {
@@ -31,8 +28,8 @@ score::Command* LoopTriggerCommandFactory::make_addTriggerCommand(
   return nullptr;
 }
 
-score::Command* LoopTriggerCommandFactory::make_removeTriggerCommand(
-    const Scenario::TimeSyncModel& tn) const
+score::Command*
+LoopTriggerCommandFactory::make_removeTriggerCommand(const Scenario::TimeSyncModel& tn) const
 {
   if (dynamic_cast<Loop::ProcessModel*>(tn.parent()))
   {

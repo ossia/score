@@ -52,7 +52,6 @@ struct any_serializer_t final : public any_serializer
     val = std::move(t);
   }
 
-
   void apply(JSONObject::Serializer& s, const std::string& key, const ossia::any& val) override
   {
     try
@@ -72,15 +71,13 @@ struct any_serializer_t final : public any_serializer
   }
 };
 
-using any_serializer_map
-    = score::hash_map<std::string, std::unique_ptr<any_serializer>>;
+using any_serializer_map = score::hash_map<std::string, std::unique_ptr<any_serializer>>;
 
 //! The serializers for types that go in ossia::any should fit in here.
 SCORE_LIB_BASE_EXPORT any_serializer_map& anySerializers();
 }
 
-inline
-void apply(DataStreamReader& s, const std::string& key, const ossia::any& v)
+inline void apply(DataStreamReader& s, const std::string& key, const ossia::any& v)
 {
   auto& ser = score::anySerializers();
   auto it = ser.find(key);
@@ -93,8 +90,7 @@ void apply(DataStreamReader& s, const std::string& key, const ossia::any& v)
     SCORE_TODO;
   }
 }
-inline
-void apply(DataStreamWriter& s, const std::string& key, ossia::any& v)
+inline void apply(DataStreamWriter& s, const std::string& key, ossia::any& v)
 {
   auto& ser = score::anySerializers();
   auto it = ser.find(key);
@@ -107,8 +103,7 @@ void apply(DataStreamWriter& s, const std::string& key, ossia::any& v)
     SCORE_TODO;
   }
 }
-inline
-void apply(JSONReader& s, const std::string& key, const ossia::any& v)
+inline void apply(JSONReader& s, const std::string& key, const ossia::any& v)
 {
   auto& ser = score::anySerializers();
   auto it = ser.find(key);
@@ -121,8 +116,7 @@ void apply(JSONReader& s, const std::string& key, const ossia::any& v)
     SCORE_TODO;
   }
 }
-inline
-void apply(JSONWriter& s, const std::string& key, ossia::any& v)
+inline void apply(JSONWriter& s, const std::string& key, ossia::any& v)
 {
   auto& ser = score::anySerializers();
   auto it = ser.find(key);
@@ -182,7 +176,8 @@ struct SCORE_LIB_BASE_EXPORT TSerializer<JSONObject, score::any_map>
 
   static void writeTo(JSONObject::Deserializer& s, score::any_map& obj)
   {
-    for(const auto& m : s.base.GetObject()) {
+    for (const auto& m : s.base.GetObject())
+    {
       const std::string str(m.name.GetString(), m.name.GetStringLength());
       apply(s, str, obj[str]);
     }

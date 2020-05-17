@@ -14,9 +14,7 @@ namespace Recording
 RecordProvider::~RecordProvider() = default;
 RecorderFactory::~RecorderFactory() = default;
 
-RecordContext::RecordContext(
-    Scenario::ProcessModel& scenar,
-    Scenario::Point pt)
+RecordContext::RecordContext(Scenario::ProcessModel& scenar, Scenario::Point pt)
     : context{score::IDocument::documentContext(scenar)}
     , scenario{scenar}
     , explorer{Explorer::deviceExplorerFromContext(context)}
@@ -25,10 +23,6 @@ RecordContext::RecordContext(
 
 {
   connect(
-      this,
-      &RecordContext::startTimer,
-      this,
-      &RecordContext::on_startTimer,
-      Qt::QueuedConnection);
+      this, &RecordContext::startTimer, this, &RecordContext::on_startTimer, Qt::QueuedConnection);
 }
 }

@@ -7,8 +7,7 @@ namespace Gfx::Filter
 {
 class Model;
 class ProcessExecutorComponent final
-    : public Execution::
-          ProcessComponent_T<Gfx::Filter::Model, ossia::node_process>
+    : public Execution::ProcessComponent_T<Gfx::Filter::Model, ossia::node_process>
 {
   COMPONENT_METADATA("71a1d1bb-6363-48a7-8495-087a8a0e9436")
 public:

@@ -53,9 +53,8 @@ public:
   virtual void optimize() noexcept = 0;
 };
 
-SCORE_LIB_BASE_EXPORT void debug_types(
-    const score::InterfaceBase* orig,
-    const score::InterfaceBase* repl) noexcept;
+SCORE_LIB_BASE_EXPORT void
+debug_types(const score::InterfaceBase* orig, const score::InterfaceBase* repl) noexcept;
 /**
  * @brief InterfaceList Default implementation of InterfaceListBase
  *
@@ -122,16 +121,10 @@ public:
   }
 
   auto begin() noexcept { return make_indirect_iterator(vec.begin()); }
-  auto begin() const noexcept
-  {
-    return make_indirect_iterator(vec.begin());
-  }
+  auto begin() const noexcept { return make_indirect_iterator(vec.begin()); }
 
   auto cbegin() noexcept { return make_indirect_iterator(vec.cbegin()); }
-  auto cbegin() const noexcept
-  {
-    return make_indirect_iterator(vec.cbegin());
-  }
+  auto cbegin() const noexcept { return make_indirect_iterator(vec.cbegin()); }
 
   auto end() noexcept { return make_indirect_iterator(vec.end()); }
   auto end() const noexcept { return make_indirect_iterator(vec.end()); }
@@ -144,10 +137,7 @@ public:
   auto size() const noexcept { return vec.size(); }
 
 protected:
-  ossia::fast_hash_map<
-      typename FactoryType::ConcreteKey,
-      std::unique_ptr<FactoryType>>
-      map;
+  ossia::fast_hash_map<typename FactoryType::ConcreteKey, std::unique_ptr<FactoryType>> map;
 
   std::vector<FactoryType*> vec;
 

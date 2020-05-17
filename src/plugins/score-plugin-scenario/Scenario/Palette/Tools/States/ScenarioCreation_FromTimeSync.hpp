@@ -18,8 +18,7 @@
 namespace Scenario
 {
 template <typename Scenario_T, typename ToolPalette_T>
-class Creation_FromTimeSync final
-    : public CreationState<Scenario_T, ToolPalette_T>
+class Creation_FromTimeSync final : public CreationState<Scenario_T, ToolPalette_T>
 {
 public:
   Creation_FromTimeSync(
@@ -27,15 +26,15 @@ public:
       const Scenario_T& scenarioPath,
       const score::CommandStackFacade& stack,
       QState* parent)
-      : CreationState<Scenario_T, ToolPalette_T>{stateMachine,
-                                                 stack,
-                                                 std::move(scenarioPath),
-                                                 parent}
+      : CreationState<Scenario_T, ToolPalette_T>{
+          stateMachine,
+          stack,
+          std::move(scenarioPath),
+          parent}
   {
     using namespace Scenario::Command;
     auto finalState = new QFinalState{this};
-    QObject::connect(
-        finalState, &QState::entered, [&]() { this->clearCreatedIds(); });
+    QObject::connect(finalState, &QState::entered, [&]() { this->clearCreatedIds(); });
 
     auto mainState = new QState{this};
     {
@@ -51,19 +50,16 @@ public:
       released->addTransition(finalState);
 
       // Release
-      score::make_transition<ReleaseOnAnything_Transition>(
-          mainState, released);
+      score::make_transition<ReleaseOnAnything_Transition>(mainState, released);
 
       // Pressed -> ...
-      auto t_pressed_moving_nothing
-          = score::make_transition<MoveOnNothing_Transition<Scenario_T>>(
-              pressed, move_nothing, *this);
+      auto t_pressed_moving_nothing = score::make_transition<MoveOnNothing_Transition<Scenario_T>>(
+          pressed, move_nothing, *this);
 
-      QObject::connect(
-          t_pressed_moving_nothing, &QAbstractTransition::triggered, [&]() {
-            this->rollback();
-            createToNothing();
-          });
+      QObject::connect(t_pressed_moving_nothing, &QAbstractTransition::triggered, [&]() {
+        this->rollback();
+        createToNothing();
+      });
 
       /// MoveOnNothing -> ...
       // MoveOnNothing -> MoveOnNothing.
@@ -78,8 +74,7 @@ public:
 
       // MoveOnNothing -> MoveOnEvent.
       this->add_transition(move_nothing, move_event, [&]() {
-        if (this->hoveredEvent
-            && this->createdEvents.contains(*this->hoveredEvent))
+        if (this->hoveredEvent && this->createdEvents.contains(*this->hoveredEvent))
         {
           return;
         }
@@ -90,8 +85,7 @@ public:
 
       // MoveOnNothing -> MoveOnTimeSync
       this->add_transition(move_nothing, move_timesync, [&]() {
-        if (this->hoveredTimeSync
-            && this->createdTimeSyncs.contains(*this->hoveredTimeSync))
+        if (this->hoveredTimeSync && this->createdTimeSyncs.contains(*this->hoveredTimeSync))
         {
           return;
         }
@@ -135,13 +129,11 @@ public:
       });
 
       // MoveOnEvent -> MoveOnEvent
-      score::make_transition<MoveOnEvent_Transition<Scenario_T>>(
-          move_event, move_event, *this);
+      score::make_transition<MoveOnEvent_Transition<Scenario_T>>(move_event, move_event, *this);
 
       // MoveOnEvent -> MoveOnTimeSync
       this->add_transition(move_event, move_timesync, [&]() {
-        if (this->hoveredTimeSync
-            && this->createdTimeSyncs.contains(*this->hoveredTimeSync))
+        if (this->hoveredTimeSync && this->createdTimeSyncs.contains(*this->hoveredTimeSync))
         {
           return;
         }
@@ -164,8 +156,7 @@ public:
 
       // MoveOnTimeSync -> MoveOnEvent
       this->add_transition(move_timesync, move_event, [&]() {
-        if (this->hoveredEvent
-            && this->createdEvents.contains(*this->hoveredEvent))
+        if (this->hoveredEvent && this->createdEvents.contains(*this->hoveredEvent))
         {
           this->rollback();
           return;
@@ -191,12 +182,12 @@ public:
           return;
         }
 
-        this->currentPoint.date = stateMachine.magnetic().getPosition(&stateMachine.model(), this->currentPoint.date);
+        this->currentPoint.date
+            = stateMachine.magnetic().getPosition(&stateMachine.model(), this->currentPoint.date);
 
         if (this->currentPoint.date <= this->m_clickedPoint.date)
         {
-          this->currentPoint.date
-              = this->m_clickedPoint.date + TimeVal::fromMsecs(10);
+          this->currentPoint.date = this->m_clickedPoint.date + TimeVal::fromMsecs(10);
           ;
         }
 
@@ -231,18 +222,13 @@ public:
             LockMode::Free);
       });
 
-      QObject::connect(
-          released, &QState::entered, this, &Creation_FromTimeSync::commit);
+      QObject::connect(released, &QState::entered, this, &Creation_FromTimeSync::commit);
     }
 
     auto rollbackState = new QState{this};
     score::make_transition<score::Cancel_Transition>(mainState, rollbackState);
     rollbackState->addTransition(finalState);
-    QObject::connect(
-        rollbackState,
-        &QState::entered,
-        this,
-        &Creation_FromTimeSync::rollback);
+    QObject::connect(rollbackState, &QState::entered, this, &Creation_FromTimeSync::rollback);
 
     this->setInitialState(mainState);
   }

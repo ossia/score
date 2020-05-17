@@ -24,8 +24,7 @@ SerialProtocolSettingsWidget::SerialProtocolSettingsWidget(QWidget* parent)
   m_port = new QComboBox;
 
   m_codeEdit = new JSEdit(this);
-  m_codeEdit->setSizePolicy(
-      QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+  m_codeEdit->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
   m_codeEdit->setMinimumHeight(300);
 
   for (auto port : QSerialPortInfo::availablePorts())
@@ -72,8 +71,7 @@ Device::DeviceSettings SerialProtocolSettingsWidget::getSettings() const
   return s;
 }
 
-void SerialProtocolSettingsWidget::setSettings(
-    const Device::DeviceSettings& settings)
+void SerialProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
   m_name->setText(settings.name);
   SerialSpecificSettings specific;

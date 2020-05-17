@@ -31,11 +31,9 @@ class SettingsCommand : public SettingsCommandBase
 public:
   using model_t = typename T::model_type;
   using parameter_t = T;
-  using parameter_pass_t =
-      typename boost::call_traits<typename T::param_type>::param_type;
+  using parameter_pass_t = typename boost::call_traits<typename T::param_type>::param_type;
   SettingsCommand() = delete;
-  SettingsCommand(model_t& obj, parameter_pass_t newval)
-      : m_model{obj}, m_new{newval}
+  SettingsCommand(model_t& obj, parameter_pass_t newval) : m_model{obj}, m_new{newval}
   {
     m_old = (m_model.*T::get)();
   }

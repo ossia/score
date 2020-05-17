@@ -17,7 +17,7 @@ class WidgetWrapper final : public QWidget
 public:
   explicit WidgetWrapper(QWidget* parent) : QWidget{parent}
   {
-    setContentsMargins(0,0,0,0);
+    setContentsMargins(0, 0, 0, 0);
     m_lay = new score::MarginLess<QGridLayout>{this};
   }
 

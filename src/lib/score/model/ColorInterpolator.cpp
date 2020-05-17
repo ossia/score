@@ -1,12 +1,15 @@
 #include "ColorInterpolator.hpp"
-#include <QPen>
-#include <array>
 
 #include <score/tools/Debug.hpp>
+
 #include <ossia/detail/flat_map.hpp>
 #include <ossia/editor/curve/curve_segment/easing.hpp>
 #include <ossia/network/dataspace/color.hpp>
 #include <ossia/network/dataspace/value_with_unit.hpp>
+
+#include <QPen>
+
+#include <array>
 namespace score
 {
 namespace
@@ -20,7 +23,7 @@ struct ColorInterpolator
   {
     ossia::hunter_lab col1 = ossia::rgb(c1.redF(), c1.greenF(), c1.blueF());
     ossia::hunter_lab col2 = ossia::rgb(c2.redF(), c2.greenF(), c2.blueF());
-    for(int i = 0; i < 60; i++)
+    for (int i = 0; i < 60; i++)
     {
       const float t = float(i + 1) / 60.f;
       const float L = ossia::easing::ease{}(col1.dataspace_value[0], col2.dataspace_value[0], t);
@@ -29,16 +32,18 @@ struct ColorInterpolator
 
       ossia::rgb rgb{ossia::hunter_lab{L, a, b}};
       pens[i] = sourcePen;
-      pens[i].setColor(QColor::fromRgbF(rgb.dataspace_value[0], rgb.dataspace_value[1], rgb.dataspace_value[2]));
+      pens[i].setColor(QColor::fromRgbF(
+          rgb.dataspace_value[0], rgb.dataspace_value[1], rgb.dataspace_value[2]));
     }
   }
 };
 
-static inline ossia::flat_map<std::tuple<QRgb, QRgb, double, Qt::PenStyle>, ColorInterpolator> interpolators;
+static inline ossia::flat_map<std::tuple<QRgb, QRgb, double, Qt::PenStyle>, ColorInterpolator>
+    interpolators;
 static const ColorInterpolator& getInterpolator(QColor c1, QColor c2, const QPen& sp) noexcept
 {
   auto k = std::make_tuple(c1.rgb(), c2.rgb(), sp.widthF(), sp.style());
-  if(auto it = interpolators.find(k); it != interpolators.end())
+  if (auto it = interpolators.find(k); it != interpolators.end())
     return it->second;
 
   auto& interp = interpolators[k];

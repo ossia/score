@@ -38,16 +38,13 @@ public:
 
   QRectF boundingRect() const override { return {0, 0, m_width, m_height}; }
 
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
   QRectF computeRect() const noexcept;
   QPointF closestPos(QPointF note) const noexcept;
 
-  // TODO we should frankly not emit signals and just call the presenter directly...
-  // 5 signals * 1000 notes = a lot of wasted memory
+  // TODO we should frankly not emit signals and just call the presenter
+  // directly... 5 signals * 1000 notes = a lot of wasted memory
   void noteChanged(int arg_1, double arg_2)
       W_SIGNAL(noteChanged, arg_1, arg_2); // pitch, scaled between [0; 1]
   void noteChangeFinished() W_SIGNAL(noteChangeFinished);
@@ -58,8 +55,7 @@ public:
 
 private:
   bool canEdit() const;
-  QVariant
-  itemChange(GraphicsItemChange change, const QVariant& value) override;
+  QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
   void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;

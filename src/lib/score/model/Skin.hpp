@@ -195,7 +195,8 @@ public:
 public:
   void changed() E_SIGNAL(SCORE_LIB_BASE_EXPORT, changed)
 
-      private : void timerEvent(QTimerEvent* event) override;
+private:
+  void timerEvent(QTimerEvent* event) override;
   Skin() noexcept;
 
   struct color_map;

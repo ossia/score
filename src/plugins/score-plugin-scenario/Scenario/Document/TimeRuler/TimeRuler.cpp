@@ -3,12 +3,12 @@
 
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Process/TimeValue.hpp>
-#include <Scenario/Document/TimeRuler/TimeRuler.hpp>
 #include <Scenario/Document/ScenarioDocument/MusicalGrid.hpp>
+#include <Scenario/Document/TimeRuler/TimeRuler.hpp>
 
+#include <score/graphics/PainterPath.hpp>
 #include <score/graphics/YPos.hpp>
 #include <score/model/Skin.hpp>
-#include <score/graphics/PainterPath.hpp>
 
 #include <ossia/detail/config.hpp>
 
@@ -31,42 +31,36 @@ static const constexpr qreal graduationHeight = -15.;
 static const constexpr qreal timeRulerHeight = 30.;
 static const constexpr qreal textPosition = SCORE_YPOS(-22.75, -27.75);
 
-static const constexpr std::
-    array<std::pair<double, ossia::time_value>, 22>
-        musical_graduations{{
-                     {0.0,      ossia::time_value{32 * ossia::quarter_duration<int64_t>}},
-                     {0.0125,   ossia::time_value{16 * ossia::quarter_duration<int64_t>}},
-                     {0.025,    ossia::time_value{8 * ossia::quarter_duration<int64_t>}},
-                     {0.05,     ossia::time_value{4 * ossia::quarter_duration<int64_t>}},
-                     {0.1,      ossia::time_value{2 * ossia::quarter_duration<int64_t>}},
-                     {0.2,      ossia::time_value{1 * ossia::quarter_duration<int64_t>}},
-                     {0.5,      ossia::time_value{ossia::quarter_duration<int64_t> / 2}},
+static const constexpr std::array<std::pair<double, ossia::time_value>, 22> musical_graduations{
+    {{0.0, ossia::time_value{32 * ossia::quarter_duration<int64_t>}},
+     {0.0125, ossia::time_value{16 * ossia::quarter_duration<int64_t>}},
+     {0.025, ossia::time_value{8 * ossia::quarter_duration<int64_t>}},
+     {0.05, ossia::time_value{4 * ossia::quarter_duration<int64_t>}},
+     {0.1, ossia::time_value{2 * ossia::quarter_duration<int64_t>}},
+     {0.2, ossia::time_value{1 * ossia::quarter_duration<int64_t>}},
+     {0.5, ossia::time_value{ossia::quarter_duration<int64_t> / 2}},
 
-                     {1,        ossia::time_value{ossia::quarter_duration<int64_t> / 4}},
-                     {2,        ossia::time_value{ossia::quarter_duration<int64_t> / 8}},
-                     {5,        ossia::time_value{ossia::quarter_duration<int64_t> / 16}},
+     {1, ossia::time_value{ossia::quarter_duration<int64_t> / 4}},
+     {2, ossia::time_value{ossia::quarter_duration<int64_t> / 8}},
+     {5, ossia::time_value{ossia::quarter_duration<int64_t> / 16}},
 
-                     {10,       ossia::time_value{ossia::quarter_duration<int64_t> / 32}},
-                     {20,       ossia::time_value{ossia::quarter_duration<int64_t> / 64}},
-                     {40,       ossia::time_value{ossia::quarter_duration<int64_t> / 128}},
-                     {80,       ossia::time_value{ossia::quarter_duration<int64_t> / 256}},
+     {10, ossia::time_value{ossia::quarter_duration<int64_t> / 32}},
+     {20, ossia::time_value{ossia::quarter_duration<int64_t> / 64}},
+     {40, ossia::time_value{ossia::quarter_duration<int64_t> / 128}},
+     {80, ossia::time_value{ossia::quarter_duration<int64_t> / 256}},
 
-                     {100,      ossia::time_value{ossia::quarter_duration<int64_t> / 512}},
-                     {200,      ossia::time_value{ossia::quarter_duration<int64_t> / 1024}},
-                     {500,      ossia::time_value{ossia::quarter_duration<int64_t> / 2048}},
+     {100, ossia::time_value{ossia::quarter_duration<int64_t> / 512}},
+     {200, ossia::time_value{ossia::quarter_duration<int64_t> / 1024}},
+     {500, ossia::time_value{ossia::quarter_duration<int64_t> / 2048}},
 
-                     {1000,     ossia::time_value{ossia::quarter_duration<int64_t> / 4096}},
-                     {2000,     ossia::time_value{ossia::quarter_duration<int64_t> / 8192}},
-                     {5000,     ossia::time_value{ossia::quarter_duration<int64_t> / 16384}},
+     {1000, ossia::time_value{ossia::quarter_duration<int64_t> / 4096}},
+     {2000, ossia::time_value{ossia::quarter_duration<int64_t> / 8192}},
+     {5000, ossia::time_value{ossia::quarter_duration<int64_t> / 16384}},
 
-                     {10000,    ossia::time_value{ossia::quarter_duration<int64_t> / 32768}},
-                     {20000,    ossia::time_value{ossia::quarter_duration<int64_t> / 65536}}
-                    }
-};
+     {10000, ossia::time_value{ossia::quarter_duration<int64_t> / 32768}},
+     {20000, ossia::time_value{ossia::quarter_duration<int64_t> / 65536}}}};
 
-
-MusicalRuler::MusicalRuler(QGraphicsView* v)
-    : m_viewport{v}
+MusicalRuler::MusicalRuler(QGraphicsView* v) : m_viewport{v}
 {
   m_width = 800;
   setY(-28.5);
@@ -81,10 +75,7 @@ MusicalRuler::MusicalRuler(QGraphicsView* v)
   this->setX(0);
 }
 
-void MusicalRuler::paint(
-    QPainter* p,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+void MusicalRuler::paint(QPainter* p, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   if (m_width > 0. && m_grid && !m_grid->mainPositions.empty())
   {
@@ -96,12 +87,12 @@ void MusicalRuler::paint(
 
     double last_pos = m_grid->mainPositions.front().pos_x;
 
-    for(auto& [pos_x, timings, increment] : m_grid->mainPositions)
+    for (auto& [pos_x, timings, increment] : m_grid->mainPositions)
     {
       const auto& glyphs = getGlyphs(timings, increment);
       const auto w = glyphs.boundingRect().width();
 
-      if(w < (pos_x - last_pos) || pos_x == last_pos)
+      if (w < (pos_x - last_pos) || pos_x == last_pos)
       {
         painter.drawGlyphRun(QPointF{pos_x, textPosition}, glyphs);
         last_pos = pos_x;
@@ -109,7 +100,6 @@ void MusicalRuler::paint(
     }
   }
 }
-
 
 void MusicalRuler::setZoomRatio(double factor)
 {
@@ -127,34 +117,28 @@ void MusicalRuler::createRulerPath()
   m_viewport->viewport()->update();
 }
 
-
 void layoutTimeText(ossia::bar_time timings, ossia::bar_time increment, QTextLayout& layout)
 {
   QString txt;
 
-  if(increment.bars > 0)
+  if (increment.bars > 0)
   {
-    layout.setText(
-          QString::fromStdString(
-            fmt::format("{0}", timings.bars + 1)));
+    layout.setText(QString::fromStdString(fmt::format("{0}", timings.bars + 1)));
   }
-  else if(increment.quarters > 0)
+  else if (increment.quarters > 0)
   {
     layout.setText(
-          QString::fromStdString(
-            fmt::format("{0}.{1}", timings.bars + 1, timings.quarters + 1)));
+        QString::fromStdString(fmt::format("{0}.{1}", timings.bars + 1, timings.quarters + 1)));
   }
-  else if(increment.semiquavers > 0)
+  else if (increment.semiquavers > 0)
   {
-    layout.setText(
-          QString::fromStdString(
-            fmt::format("{0}.{1}.{2}", timings.bars + 1, timings.quarters + 1, timings.semiquavers + 1)));
+    layout.setText(QString::fromStdString(fmt::format(
+        "{0}.{1}.{2}", timings.bars + 1, timings.quarters + 1, timings.semiquavers + 1)));
   }
-  else if(increment.cents > 0)
+  else if (increment.cents > 0)
   {
-    layout.setText(
-          QString::fromStdString(
-            fmt::format("{0}.{1}.{2}", timings.bars + 1, timings.quarters + 1, timings.semiquavers + 1)));
+    layout.setText(QString::fromStdString(fmt::format(
+        "{0}.{1}.{2}", timings.bars + 1, timings.quarters + 1, timings.semiquavers + 1)));
 
 /*
     layout.setText(
@@ -163,14 +147,12 @@ void layoutTimeText(ossia::bar_time timings, ossia::bar_time increment, QTextLay
 */  }
 }
 
-
-
 QGlyphRun MusicalRuler::getGlyphs(ossia::bar_time timings, ossia::bar_time increments)
 {
-  auto it
-      = ossia::find_if(m_stringCache, [&](std::tuple<ossia::bar_time, ossia::bar_time, QGlyphRun>& v) {
-      return std::get<0>(v) == timings && std::get<1>(v) == increments;
-});
+  auto it = ossia::find_if(
+      m_stringCache, [&](std::tuple<ossia::bar_time, ossia::bar_time, QGlyphRun>& v) {
+        return std::get<0>(v) == timings && std::get<1>(v) == increments;
+      });
   if (it != m_stringCache.end())
   {
     return std::get<2>(*it);
@@ -203,65 +185,51 @@ QGlyphRun MusicalRuler::getGlyphs(ossia::bar_time timings, ossia::bar_time incre
 void MusicalRuler::setGrid(MusicalGrid& grid)
 {
   m_grid = &grid;
-  connect(m_grid, &MusicalGrid::changed,
-          this, [this] { update(); });
+  connect(m_grid, &MusicalGrid::changed, this, [this] { update(); });
 }
 
+static const constexpr std::array<std::pair<double, std::chrono::nanoseconds>, 32> graduations{{
+    {0.0, std::chrono::seconds(1920)},
+    {0.0125, std::chrono::seconds(960)},
+    {0.025, std::chrono::seconds(480)},
+    {0.05, std::chrono::seconds(240)},
+    {0.1, std::chrono::seconds(120)},
+    {0.2, std::chrono::seconds(60)},
+    {0.5, std::chrono::seconds(30)},
 
+    {1, std::chrono::seconds(10)},
+    {2, std::chrono::seconds(5)},
+    {5, std::chrono::seconds(2)},
 
+    {10, std::chrono::milliseconds(1000)},
+    {20, std::chrono::milliseconds(500)},
+    {40, std::chrono::milliseconds(250)},
+    {80, std::chrono::milliseconds(150)},
 
+    {100, std::chrono::milliseconds(100)},
+    {200, std::chrono::milliseconds(50)},
+    {500, std::chrono::milliseconds(20)},
 
+    {1000, std::chrono::milliseconds(10)},
+    {2000, std::chrono::milliseconds(5)},
+    {5000, std::chrono::milliseconds(2)},
 
+    {10000, std::chrono::microseconds(1000)},
+    {20000, std::chrono::microseconds(500)},
+    {50000, std::chrono::microseconds(200)},
 
-static const constexpr std::
-    array<std::pair<double, std::chrono::nanoseconds>, 32>
-        graduations{{
-                     {0.0, std::chrono::seconds(1920)},
-                     {0.0125, std::chrono::seconds(960)},
-                     {0.025, std::chrono::seconds(480)},
-                     {0.05, std::chrono::seconds(240)},
-                     {0.1, std::chrono::seconds(120)},
-                     {0.2, std::chrono::seconds(60)},
-                     {0.5, std::chrono::seconds(30)},
+    {100000, std::chrono::microseconds(100)},
+    {200000, std::chrono::microseconds(50)},
+    {500000, std::chrono::microseconds(20)},
 
-                     {1, std::chrono::seconds(10)},
-                     {2, std::chrono::seconds(5)},
-                     {5, std::chrono::seconds(2)},
+    {1000000, std::chrono::nanoseconds(1000)},
+    {2000000, std::chrono::nanoseconds(500)},
+    {5000000, std::chrono::nanoseconds(200)},
 
-                     {10, std::chrono::milliseconds(1000)},
-                     {20, std::chrono::milliseconds(500)},
-                     {40, std::chrono::milliseconds(250)},
-                     {80, std::chrono::milliseconds(150)},
-
-                     {100, std::chrono::milliseconds(100)},
-                     {200, std::chrono::milliseconds(50)},
-                     {500, std::chrono::milliseconds(20)},
-
-                     {1000, std::chrono::milliseconds(10)},
-                     {2000, std::chrono::milliseconds(5)},
-                     {5000, std::chrono::milliseconds(2)},
-
-                     {10000, std::chrono::microseconds(1000)},
-                     {20000, std::chrono::microseconds(500)},
-                     {50000, std::chrono::microseconds(200)},
-
-                     {100000, std::chrono::microseconds(100)},
-                     {200000, std::chrono::microseconds(50)},
-                     {500000, std::chrono::microseconds(20)},
-
-                     {1000000, std::chrono::nanoseconds(1000)},
-                     {2000000, std::chrono::nanoseconds(500)},
-                     {5000000, std::chrono::nanoseconds(200)},
-
-                     {10000000, std::chrono::nanoseconds(100)},
-                     {20000000, std::chrono::nanoseconds(50)},
-                     {50000000, std::chrono::nanoseconds(20)},
-                    }
-};
-
-
-
-
+    {10000000, std::chrono::nanoseconds(100)},
+    {20000000, std::chrono::nanoseconds(50)},
+    {50000000, std::chrono::nanoseconds(20)},
+}};
 
 void TimeRulerBase::setWidth(qreal newWidth)
 {
@@ -284,10 +252,7 @@ void TimeRulerBase::setStartPoint(ossia::time_value dur)
   }
 }
 
-void TimeRulerBase::setGrid(MusicalGrid& grid)
-{
-
-}
+void TimeRulerBase::setGrid(MusicalGrid& grid) { }
 
 void TimeRulerBase::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {
@@ -311,13 +276,8 @@ void TimeRulerBase::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
   ev->accept();
 }
 
-
-
 TimeRuler::TimeRuler(QGraphicsView* v)
-    : m_graduationsSpacing{10}
-    , m_graduationDelta{10}
-    , m_intervalsBetweenMark{1}
-    , m_viewport{v}
+    : m_graduationsSpacing{10}, m_graduationDelta{10}, m_intervalsBetweenMark{1}, m_viewport{v}
 {
   m_width = 800;
   setY(-28.5);
@@ -332,10 +292,7 @@ TimeRuler::TimeRuler(QGraphicsView* v)
   this->setX(10);
 }
 
-void TimeRuler::paint(
-    QPainter* p,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+void TimeRuler::paint(QPainter* p, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   if (m_width > 0.)
   {
@@ -354,7 +311,6 @@ void TimeRuler::paint(
     }
   }
 }
-
 
 void TimeRuler::setZoomRatio(double factor)
 {
@@ -378,8 +334,7 @@ void TimeRuler::computeGraduationSpacing()
   const constexpr int n = graduations.size();
   for (i = 0; i < n - 1; i++)
   {
-    if (pixPerSec > graduations[i].first
-        && pixPerSec < graduations[i + 1].first)
+    if (pixPerSec > graduations[i].first && pixPerSec < graduations[i + 1].first)
     {
       m_graduationDelta = graduations[i].second.count() / double(1e6);
       m_graduationsSpacing = pixPerSec * graduations[i].second.count() / double(1e9);
@@ -430,8 +385,7 @@ void TimeRuler::createRulerPath()
   int64_t start_nsec = m_startPoint.impl / (ossia::flicks_per_second<double> / 1e9);
 
   double big_delta = m_graduationDelta * 5. * 2. * 1e6;
-  double prev_big_grad_nsec
-      = std::floor(start_nsec / big_delta) * big_delta;
+  double prev_big_grad_nsec = std::floor(start_nsec / big_delta) * big_delta;
 
   double startTime = start_nsec - prev_big_grad_nsec;
   std::chrono::nanoseconds time{(int64_t)(prev_big_grad_nsec)};
@@ -462,37 +416,30 @@ std::tuple<Durations...> break_down_durations(DurationIn d)
 {
   std::tuple<Durations...> retval;
   using discard = int[];
-  (void)discard{0,
-                (void(
-                     ((std::get<Durations>(retval)
-                       = std::chrono::duration_cast<Durations>(d)),
-                      (d -= std::chrono::duration_cast<DurationIn>(
-                           std::get<Durations>(retval))))),
-                 0)...};
+  (void)discard{
+      0,
+      (void(
+           ((std::get<Durations>(retval) = std::chrono::duration_cast<Durations>(d)),
+            (d -= std::chrono::duration_cast<DurationIn>(std::get<Durations>(retval))))),
+       0)...};
   return retval;
 }
-
 
 void layoutTimeText(TimeRuler::Format format, QTextLayout& layout, std::chrono::nanoseconds t)
 {
 
-  switch(format)
+  switch (format)
   {
     case TimeRuler::Format::Hours:
     {
-      auto clean_duration
-          = break_down_durations<std::chrono::minutes>(
-            t);
-      layout.setText(QString::fromStdString(fmt::format(
-                                              "{0}:00",
-                                              std::get<0>(clean_duration).count())));
+      auto clean_duration = break_down_durations<std::chrono::minutes>(t);
+      layout.setText(
+          QString::fromStdString(fmt::format("{0}:00", std::get<0>(clean_duration).count())));
       break;
     }
     case TimeRuler::Format::Seconds:
     {
-      auto clean_duration
-          = break_down_durations<std::chrono::minutes, std::chrono::seconds>(
-              t);
+      auto clean_duration = break_down_durations<std::chrono::minutes, std::chrono::seconds>(t);
       layout.setText(QString::fromStdString(fmt::format(
           "{0}:{1:02}",
           std::get<0>(clean_duration).count(),
@@ -505,37 +452,27 @@ void layoutTimeText(TimeRuler::Format format, QTextLayout& layout, std::chrono::
           std::chrono::minutes,
           std::chrono::seconds,
           std::chrono::milliseconds>(t);
-      layout.setText(QString::fromStdString(fmt::format(
-          "{0}:{1:02}.{2:03}",
-          m.count(),
-          s.count(),
-          milli.count())));
-    break;
+      layout.setText(QString::fromStdString(
+          fmt::format("{0}:{1:02}.{2:03}", m.count(), s.count(), milli.count())));
+      break;
     }
     case TimeRuler::Format::Microseconds:
     {
-        auto [m, s, milli, micro] = break_down_durations<
+      auto [m, s, milli, micro] = break_down_durations<
           std::chrono::minutes,
           std::chrono::seconds,
           std::chrono::milliseconds,
           std::chrono::microseconds>(t);
       layout.setText(QString::fromStdString(fmt::format(
-          "{0}:{1:02}.{2:03}{3:03}",
-            m.count(),
-            s.count(),
-            milli.count(),
-            micro.count())));
-    break;
+          "{0}:{1:02}.{2:03}{3:03}", m.count(), s.count(), milli.count(), micro.count())));
+      break;
     }
-    }
+  }
 }
-
-
 
 QGlyphRun TimeRuler::getGlyphs(std::chrono::nanoseconds t)
 {
-  auto it
-      = ossia::find_if(m_stringCache, [&](auto& v) { return v.first == t; });
+  auto it = ossia::find_if(m_stringCache, [&](auto& v) { return v.first == t; });
   if (it != m_stringCache.end())
   {
     return it->second;
@@ -563,6 +500,5 @@ QGlyphRun TimeRuler::getGlyphs(std::chrono::nanoseconds t)
     return gr;
   }
 }
-
 
 }

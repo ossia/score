@@ -28,27 +28,23 @@
 #endif
 
 #include <Process/ProcessList.hpp>
-#include <Effect/EffectLayer.hpp>
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
+
+#include <Effect/EffectLayer.hpp>
 namespace Media::SynthChain
 {
 InspectorWidget::InspectorWidget(
     const SynthChain::ProcessModel& object,
     const score::DocumentContext& doc,
     QWidget* parent)
-    : InspectorWidgetDelegate_T{object, parent}
-    , m_dispatcher{doc.commandStack}
-    , m_ctx{doc}
+    : InspectorWidgetDelegate_T{object, parent}, m_dispatcher{doc.commandStack}, m_ctx{doc}
 {
   setObjectName("EffectInspectorWidget");
 
   auto lay = new QVBoxLayout;
   m_list = new QListWidget;
   lay->addWidget(m_list);
-  con(process(),
-      &SynthChain::ProcessModel::effectsChanged,
-      this,
-      &InspectorWidget::recreate);
+  con(process(), &SynthChain::ProcessModel::effectsChanged, this, &InspectorWidget::recreate);
 
   connect(
       m_list,
@@ -56,8 +52,7 @@ InspectorWidget::InspectorWidget(
       &object,
       [&](QListWidgetItem* item) {
         Process::setupExternalUI(
-            object.effects().at(
-                item->data(Qt::UserRole).value<Id<Process::ProcessModel>>()),
+            object.effects().at(item->data(Qt::UserRole).value<Id<Process::ProcessModel>>()),
             doc,
             true);
       },
@@ -69,7 +64,7 @@ InspectorWidget::InspectorWidget(
   this->setLayout(lay);
 }
 
-void InspectorWidget::addRequested(int pos) {}
+void InspectorWidget::addRequested(int pos) { }
 
 int InspectorWidget::cur_pos()
 {
@@ -91,10 +86,9 @@ void InspectorWidget::recreate()
   {
     auto item = new ListWidgetItem(fx.prettyName(), m_list);
 
-    con(fx.metadata(),
-        &score::ModelMetadata::LabelChanged,
-        item,
-        [=](const auto& txt) { item->setText(txt); });
+    con(fx.metadata(), &score::ModelMetadata::LabelChanged, item, [=](const auto& txt) {
+      item->setText(txt);
+    });
     item->setData(Qt::UserRole, QVariant::fromValue(fx.id()));
     m_list->addItem(item);
   }

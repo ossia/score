@@ -21,17 +21,13 @@
 #include <ossia/network/domain/domain.hpp>
 #include <ossia/network/value/value_conversion.hpp>
 
-
 #include <Color/GradientModel.hpp>
 #include <Metronome/MetronomeModel.hpp>
 #include <Spline/SplineModel.hpp>
 
-
 namespace Automation
 {
-ChangeAddress::ChangeAddress(
-    const ProcessModel& autom,
-    const State::AddressAccessor& newval)
+ChangeAddress::ChangeAddress(const ProcessModel& autom, const State::AddressAccessor& newval)
     : m_path{autom}
     , m_old{autom.address(), autom.min(), autom.max()}
     , m_new(Explorer::makeFullAddressAccessorSettings(
@@ -44,20 +40,14 @@ ChangeAddress::ChangeAddress(
   m_new.domain.get() = ossia::make_domain(c.min, c.max);
 }
 
-ChangeAddress::ChangeAddress(
-    const ProcessModel& autom,
-    Device::FullAddressAccessorSettings newval)
-    : m_path{autom}
-    , m_old{autom.address(), autom.min(), autom.max()}
-    , m_new{std::move(newval)}
+ChangeAddress::ChangeAddress(const ProcessModel& autom, Device::FullAddressAccessorSettings newval)
+    : m_path{autom}, m_old{autom.address(), autom.min(), autom.max()}, m_new{std::move(newval)}
 {
   Curve::CurveDomain c(m_new.domain.get(), m_new.value);
   m_new.domain.get() = ossia::make_domain(c.min, c.max);
 }
 
-ChangeAddress::ChangeAddress(
-    const ProcessModel& autom,
-    const Device::FullAddressSettings& newval)
+ChangeAddress::ChangeAddress(const ProcessModel& autom, const Device::FullAddressSettings& newval)
     : m_path{autom}
 {
   m_new.address = newval.address;

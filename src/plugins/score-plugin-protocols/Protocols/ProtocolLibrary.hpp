@@ -1,6 +1,6 @@
 #pragma once
-#include <Device/Loading/ScoreDeviceLoader.hpp>
 #include <Device/Loading/JamomaDeviceLoader.hpp>
+#include <Device/Loading/ScoreDeviceLoader.hpp>
 #include <Device/Protocol/ProtocolList.hpp>
 #include <Explorer/Commands/Add/AddDevice.hpp>
 #include <Explorer/Commands/Add/LoadDevice.hpp>
@@ -53,20 +53,14 @@ class OSCLibraryHandler final : public Library::LibraryInterface
 {
   SCORE_CONCRETE("8d4c06e2-851b-4d5f-82f2-68056a50c370")
 
-  QSet<QString> acceptedFiles() const noexcept override
-  {
-    return {"json", "xml", "device"};
-  }
+  QSet<QString> acceptedFiles() const noexcept override { return {"json", "xml", "device"}; }
 
-  bool onDoubleClick(const QString& path, const score::DocumentContext& ctx)
-      override
+  bool onDoubleClick(const QString& path, const score::DocumentContext& ctx) override
   {
     Device::Node n{Device::DeviceSettings{}, nullptr};
-    bool ok
-        = (path.endsWith(".json") && Device::loadDeviceFromScoreJSON(path, n))
-          || (path.endsWith(".xml") && Device::loadDeviceFromXML(path, n))
-          || (path.endsWith(".device")
-              && Device::loadDeviceFromJamomaJSON(path, n));
+    bool ok = (path.endsWith(".json") && Device::loadDeviceFromScoreJSON(path, n))
+              || (path.endsWith(".xml") && Device::loadDeviceFromXML(path, n))
+              || (path.endsWith(".device") && Device::loadDeviceFromJamomaJSON(path, n));
     if (!ok)
       return false;
 
@@ -117,8 +111,7 @@ class QMLLibraryHandler final : public Library::LibraryInterface
 
   QSet<QString> acceptedFiles() const noexcept override { return {"qml"}; }
 
-  bool onDoubleClick(const QString& path, const score::DocumentContext& ctx)
-      override
+  bool onDoubleClick(const QString& path, const score::DocumentContext& ctx) override
   {
     QFile f(path);
     if (!f.open(QIODevice::ReadOnly))
@@ -141,16 +134,15 @@ class QMLLibraryHandler final : public Library::LibraryInterface
     {
       fact.insert(std::make_unique<Protocols::MapperProtocolFactory>());
       set.protocol = Protocols::MapperProtocolFactory::static_concreteKey();
-      set.deviceSpecificSettings
-          = QVariant::fromValue(Protocols::MapperSpecificSettings{content});
+      set.deviceSpecificSettings = QVariant::fromValue(Protocols::MapperSpecificSettings{content});
     }
 #if defined(OSSIA_PROTOCOL_SERIAL)
     else if (dynamic_cast<ossia::net::Serial*>(obj.get()))
     {
       fact.insert(std::make_unique<Protocols::SerialProtocolFactory>());
       set.protocol = Protocols::SerialProtocolFactory::static_concreteKey();
-      set.deviceSpecificSettings = QVariant::fromValue(
-          Protocols::SerialSpecificSettings{{}, content});
+      set.deviceSpecificSettings
+          = QVariant::fromValue(Protocols::SerialSpecificSettings{{}, content});
     }
 #endif
 #if defined(OSSIA_PROTOCOL_HTTP)
@@ -158,8 +150,7 @@ class QMLLibraryHandler final : public Library::LibraryInterface
     {
       fact.insert(std::make_unique<Protocols::HTTPProtocolFactory>());
       set.protocol = Protocols::HTTPProtocolFactory::static_concreteKey();
-      set.deviceSpecificSettings
-          = QVariant::fromValue(Protocols::HTTPSpecificSettings{content});
+      set.deviceSpecificSettings = QVariant::fromValue(Protocols::HTTPSpecificSettings{content});
     }
 #endif
 #if defined(OSSIA_PROTOCOL_WEBSOCKETS)
@@ -167,9 +158,8 @@ class QMLLibraryHandler final : public Library::LibraryInterface
     {
       fact.insert(std::make_unique<Protocols::WSProtocolFactory>());
       set.protocol = Protocols::WSProtocolFactory::static_concreteKey();
-      set.deviceSpecificSettings
-          = QVariant::fromValue(Protocols::WSSpecificSettings{
-              QQmlProperty(obj.get(), "host").read().toString(), content});
+      set.deviceSpecificSettings = QVariant::fromValue(Protocols::WSSpecificSettings{
+          QQmlProperty(obj.get(), "host").read().toString(), content});
     }
 #endif
 

@@ -1,6 +1,6 @@
 #pragma once
-#include <Audio/PortAudioInterface.hpp>
 #include <Audio/AudioInterface.hpp>
+#include <Audio/PortAudioInterface.hpp>
 namespace Audio
 {
 #if __has_include(<pa_win_wasapi.h>)
@@ -12,15 +12,14 @@ public:
 
   WASAPIFactory() { rescan(); }
 
-  ~WASAPIFactory() override {}
+  ~WASAPIFactory() override { }
 
   void rescan()
   {
     devices.clear();
     PortAudioScope portaudio;
 
-    devices.push_back(
-        PortAudioCard{{}, {}, QObject::tr("No device"), -1, 0, 0, {}});
+    devices.push_back(PortAudioCard{{}, {}, QObject::tr("No device"), -1, 0, 0, {}});
     for (int i = 0; i < Pa_GetHostApiCount(); i++)
     {
       auto hostapi = Pa_GetHostApiInfo(i);
@@ -32,22 +31,22 @@ public:
           auto dev = Pa_GetDeviceInfo(dev_idx);
           auto raw_name = QString::fromUtf8(Pa_GetDeviceInfo(dev_idx)->name);
 
-          devices.push_back(PortAudioCard{"WASAPI",
-                                          raw_name,
-                                          raw_name,
-                                          dev_idx,
-                                          dev->maxInputChannels,
-                                          dev->maxOutputChannels,
-                                          hostapi->type});
+          devices.push_back(PortAudioCard{
+              "WASAPI",
+              raw_name,
+              raw_name,
+              dev_idx,
+              dev->maxInputChannels,
+              dev->maxOutputChannels,
+              hostapi->type});
         }
       }
     }
   }
 
   QString prettyName() const override { return QObject::tr("WASAPI"); }
-  std::unique_ptr<ossia::audio_engine> make_engine(
-      const Audio::Settings::Model& set,
-      const score::ApplicationContext& ctx) override
+  std::unique_ptr<ossia::audio_engine>
+  make_engine(const Audio::Settings::Model& set, const score::ApplicationContext& ctx) override
   {
     return std::make_unique<ossia::portaudio_engine>(
         "ossia score",
@@ -61,8 +60,8 @@ public:
 
   void setCard(QComboBox* combo, QString val)
   {
-    auto dev_it = ossia::find_if(
-        devices, [&](const PortAudioCard& d) { return d.raw_name == val; });
+    auto dev_it
+        = ossia::find_if(devices, [&](const PortAudioCard& d) { return d.raw_name == val; });
     if (dev_it != devices.end())
     {
       combo->setCurrentIndex(dev_it->out_index);
@@ -100,22 +99,15 @@ public:
       auto update_dev = [=, &m, &m_disp](const PortAudioCard& dev) {
         if (dev.raw_name != m.getCardOut())
         {
-          m_disp.submitDeferredCommand<Audio::Settings::SetModelCardIn>(
-              m, dev.raw_name);
-          m_disp.submitDeferredCommand<Audio::Settings::SetModelCardOut>(
-              m, dev.raw_name);
-          m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultIn>(
-              m, dev.inputChan);
-          m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultOut>(
-              m, dev.outputChan);
+          m_disp.submitDeferredCommand<Audio::Settings::SetModelCardIn>(m, dev.raw_name);
+          m_disp.submitDeferredCommand<Audio::Settings::SetModelCardOut>(m, dev.raw_name);
+          m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultIn>(m, dev.inputChan);
+          m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultOut>(m, dev.outputChan);
         }
       };
 
       QObject::connect(
-          card_list,
-          SignalUtils::QComboBox_currentIndexChanged_int(),
-          &v,
-          [=](int i) {
+          card_list, SignalUtils::QComboBox_currentIndexChanged_int(), &v, [=](int i) {
             auto& device = devices[card_list->itemData(i).toInt()];
             update_dev(device);
           });
@@ -136,9 +128,7 @@ public:
     addBufferSizeWidget(*w, m, v);
     addSampleRateWidget(*w, m, v);
 
-    con(m, &Model::changed, w, [=, &m] {
-      setCard(card_list, m.getCardOut());
-    });
+    con(m, &Model::changed, w, [=, &m] { setCard(card_list, m.getCardOut()); });
     return w;
   }
 };

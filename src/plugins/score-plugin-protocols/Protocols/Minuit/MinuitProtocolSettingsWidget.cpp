@@ -43,8 +43,7 @@ MinuitProtocolSettingsWidget::MinuitProtocolSettingsWidget(QWidget* parent)
 #if defined(OSSIA_DNSSD)
   m_browser = new ZeroconfBrowser{"_minuit._tcp", this};
   auto pb = new QPushButton{tr("Find devices..."), this};
-  connect(
-      pb, &QPushButton::clicked, m_browser->makeAction(), &QAction::trigger);
+  connect(pb, &QPushButton::clicked, m_browser->makeAction(), &QAction::trigger);
   connect(
       m_browser,
       &ZeroconfBrowser::sessionSelected,
@@ -102,8 +101,7 @@ Device::DeviceSettings MinuitProtocolSettingsWidget::getSettings() const
   return s;
 }
 
-void MinuitProtocolSettingsWidget::setSettings(
-    const Device::DeviceSettings& settings)
+void MinuitProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
   m_deviceNameEdit->setText(settings.name);
   MinuitSpecificSettings minuit;

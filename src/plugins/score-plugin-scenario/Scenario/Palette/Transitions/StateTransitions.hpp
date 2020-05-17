@@ -25,8 +25,7 @@ template <typename Scenario_T>
 using ClickOnState_Transition = Transition_T<Scenario_T, ClickOnState>;
 
 template <typename Scenario_T>
-class ClickOnEndState_Transition final
-    : public MatchedTransition<Scenario_T, ClickOnState_Event>
+class ClickOnEndState_Transition final : public MatchedTransition<Scenario_T, ClickOnState_Event>
 {
 public:
   using MatchedTransition<Scenario_T, ClickOnState_Event>::MatchedTransition;
@@ -34,8 +33,7 @@ public:
 protected:
   bool eventTest(QEvent* e) override
   {
-    if (e->type()
-        == QEvent::Type(QEvent::User + ClickOnState_Event::user_type))
+    if (e->type() == QEvent::Type(QEvent::User + ClickOnState_Event::user_type))
     {
       auto qev = static_cast<ClickOnState_Event*>(e);
       return qev->id == Scenario::endId<StateModel>();

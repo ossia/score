@@ -22,8 +22,7 @@
 namespace Scenario
 {
 template <typename Scenario_T, typename ToolPalette_T>
-class Creation_FromState final
-    : public CreationState<Scenario_T, ToolPalette_T>
+class Creation_FromState final : public CreationState<Scenario_T, ToolPalette_T>
 {
 public:
   Creation_FromState(
@@ -31,15 +30,15 @@ public:
       const Scenario_T& scenarioPath,
       const score::CommandStackFacade& stack,
       QState* parent)
-      : CreationState<Scenario_T, ToolPalette_T>{stateMachine,
-                                                 stack,
-                                                 std::move(scenarioPath),
-                                                 parent}
+      : CreationState<Scenario_T, ToolPalette_T>{
+          stateMachine,
+          stack,
+          std::move(scenarioPath),
+          parent}
   {
     using namespace Scenario::Command;
     auto finalState = new QFinalState{this};
-    QObject::connect(
-        finalState, &QState::entered, [&]() { this->clearCreatedIds(); });
+    QObject::connect(finalState, &QState::entered, [&]() { this->clearCreatedIds(); });
 
     auto mainState = new QState{this};
     {
@@ -55,14 +54,11 @@ public:
       released->addTransition(finalState);
 
       // Release
-      score::make_transition<ReleaseOnAnything_Transition>(
-          mainState, released);
+      score::make_transition<ReleaseOnAnything_Transition>(mainState, released);
 
       // Pressed -> ...
-      score::make_transition<MoveOnNothing_Transition<Scenario_T>>(
-          pressed, move_state, *this);
-      score::make_transition<MoveOnNothing_Transition<Scenario_T>>(
-          pressed, move_nothing, *this);
+      score::make_transition<MoveOnNothing_Transition<Scenario_T>>(pressed, move_state, *this);
+      score::make_transition<MoveOnNothing_Transition<Scenario_T>>(pressed, move_nothing, *this);
 
       /// MoveOnNothing -> ...
       // MoveOnNothing -> MoveOnNothing.
@@ -130,8 +126,7 @@ public:
       });
 
       // MoveOnEvent -> MoveOnEvent
-      score::make_transition<MoveOnEvent_Transition<Scenario_T>>(
-          move_event, move_event, *this);
+      score::make_transition<MoveOnEvent_Transition<Scenario_T>>(move_event, move_event, *this);
 
       // MoveOnEvent -> MoveOnTimeSync
       this->add_transition(move_event, move_timesync, [&]() {
@@ -175,8 +170,7 @@ public:
           return;
         }
 
-        Scenario::EditionSettings& settings
-            = this->m_parentSM.editionSettings();
+        Scenario::EditionSettings& settings = this->m_parentSM.editionSettings();
         if (settings.tool() == Scenario::Tool::CreateGraph)
         {
           this->m_dispatcher.template submit<MoveNewEvent>(
@@ -189,12 +183,12 @@ public:
           return;
         }
 
-        this->currentPoint.date = stateMachine.magnetic().getPosition(&stateMachine.model(), this->currentPoint.date);
+        this->currentPoint.date
+            = stateMachine.magnetic().getPosition(&stateMachine.model(), this->currentPoint.date);
 
         if (this->currentPoint.date <= this->m_clickedPoint.date)
         {
-          this->currentPoint.date
-              = this->m_clickedPoint.date + TimeVal::fromMsecs(10);
+          this->currentPoint.date = this->m_clickedPoint.date + TimeVal::fromMsecs(10);
           ;
         }
 
@@ -208,13 +202,12 @@ public:
         {
           double h = stateMachine.presenter().view().height();
           auto sequence = settings.sequence();
-          auto magnetism_distance = h
-                                        * std::abs(
-                                              this->currentPoint.y
-                                              - this->m_parentSM.model()
-                                                    .state(*this->clickedState)
-                                                    .heightPercentage())
-                                    < 10.;
+          auto magnetism_distance
+              = h
+                    * std::abs(
+                        this->currentPoint.y
+                        - this->m_parentSM.model().state(*this->clickedState).heightPercentage())
+                < 10.;
           if (!sequence && magnetism_distance)
           {
             settings.setSequence(true);
@@ -236,8 +229,7 @@ public:
         {
           if (this->clickedState)
           {
-            const auto& st
-                = this->m_parentSM.model().state(*this->clickedState);
+            const auto& st = this->m_parentSM.model().state(*this->clickedState);
             this->currentPoint.y = st.heightPercentage();
           }
         }
@@ -264,9 +256,7 @@ public:
         }
 
         this->m_dispatcher.template submit<MoveNewState>(
-            this->m_scenario,
-            this->createdStates.last(),
-            this->currentPoint.y);
+            this->m_scenario, this->createdStates.last(), this->currentPoint.y);
       });
 
       QObject::connect(move_timesync, &QState::entered, [&]() {
@@ -282,21 +272,17 @@ public:
         }
 
         this->m_dispatcher.template submit<MoveNewState>(
-            this->m_scenario,
-            this->createdStates.last(),
-            this->currentPoint.y);
+            this->m_scenario, this->createdStates.last(), this->currentPoint.y);
       });
 
-      QObject::connect(
-          released, &QState::entered, this, &Creation_FromState::commit);
+      QObject::connect(released, &QState::entered, this, &Creation_FromState::commit);
     }
 
     auto rollbackState = new QState{this};
     score::make_transition<score::Cancel_Transition>(mainState, rollbackState);
     rollbackState->addTransition(finalState);
 
-    QObject::connect(
-        rollbackState, &QState::entered, this, &Creation_FromState::rollback);
+    QObject::connect(rollbackState, &QState::entered, this, &Creation_FromState::rollback);
     this->setInitialState(mainState);
   }
 
@@ -314,8 +300,8 @@ private:
     {
       // Create new event on the timesync
       auto tn = Scenario::parentEvent(st, scenar).timeSync();
-      auto cmd = new Scenario::Command::CreateEvent_State{
-          this->m_scenario, tn, this->currentPoint.y};
+      auto cmd
+          = new Scenario::Command::CreateEvent_State{this->m_scenario, tn, this->currentPoint.y};
       this->m_dispatcher.submit(cmd);
 
       this->createdEvents.append(cmd->createdEvent());
@@ -359,29 +345,25 @@ private:
   // Note : clickedEvent is set at startEvent if clicking in the background.
   void createToNothing()
   {
-    creationCheck(
-        [&](const Id<StateModel>& id) { this->createToNothing_base(id); });
+    creationCheck([&](const Id<StateModel>& id) { this->createToNothing_base(id); });
   }
 
   void createToTimeSync()
   {
-    creationCheck(
-        [&](const Id<StateModel>& id) { this->createToTimeSync_base(id); });
+    creationCheck([&](const Id<StateModel>& id) { this->createToTimeSync_base(id); });
   }
 
   void createToEvent()
   {
     if (this->clickedState)
     {
-      if (this->hoveredEvent
-          == this->m_parentSM.model().state(*this->clickedState).eventId())
+      if (this->hoveredEvent == this->m_parentSM.model().state(*this->clickedState).eventId())
       {
         creationCheck([&](const Id<StateModel>& id) {});
       }
       else
       {
-        creationCheck(
-            [&](const Id<StateModel>& id) { this->createToEvent_base(id); });
+        creationCheck([&](const Id<StateModel>& id) { this->createToEvent_base(id); });
       }
     }
   }
@@ -395,16 +377,14 @@ private:
       {
         // No previous interval -> we create a new interval and link it to
         // this state
-        creationCheck(
-            [&](const Id<StateModel>& id) { this->createToState_base(id); });
+        creationCheck([&](const Id<StateModel>& id) { this->createToState_base(id); });
       }
       else
       {
         // Previous interval -> we add a new state to the event and link to
         // it.
         this->hoveredEvent = st.eventId();
-        creationCheck(
-            [&](const Id<StateModel>& id) { this->createToEvent_base(id); });
+        creationCheck([&](const Id<StateModel>& id) { this->createToEvent_base(id); });
       }
     }
   }

@@ -5,11 +5,11 @@
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 
+#include <QCursor>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 #include <QPoint>
 #include <QSize>
-#include <QCursor>
 #include <QVector>
 #include <qnamespace.h>
 
@@ -25,16 +25,14 @@ static const QPainterPath conditionTrianglePath{[] {
   s.setJoinStyle(Qt::RoundJoin);
   s.setWidth(2);
 
-  p.addPolygon(
-      QVector<QPointF>{QPointF(25, 5), QPointF(25, 21), QPointF(32, 14)});
+  p.addPolygon(QVector<QPointF>{QPointF(25, 5), QPointF(25, 21), QPointF(32, 14)});
   p.closeSubpath();
 
   return (p + s.createStroke(p)).simplified();
 }()};
 
 ConditionView::ConditionView(const EventModel& model, QGraphicsItem* parent)
-    : QGraphicsItem{parent}
-    , m_model{model}
+    : QGraphicsItem{parent}, m_model{model}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   setFlag(ItemStacksBehindParent, true);
@@ -57,9 +55,9 @@ void ConditionView::paint(
   auto& style = Process::Style::instance();
   painter->setRenderHint(QPainter::Antialiasing, true);
 
-  const score::Brush& col = !m_selected
-      ? ExecutionStatusProperty{m_model.status()}.conditionStatusColor(style)
-      : style.IntervalSelected();
+  const score::Brush& col
+      = !m_selected ? ExecutionStatusProperty{m_model.status()}.conditionStatusColor(style)
+                    : style.IntervalSelected();
 
   painter->setPen(style.ConditionPen(col));
   painter->setBrush(style.NoBrush());
@@ -77,7 +75,7 @@ void ConditionView::paint(
 
 void ConditionView::changeHeight(qreal newH)
 {
-  if(qFuzzyCompare(m_height, newH))
+  if (qFuzzyCompare(m_height, newH))
     return;
   setHeight(newH);
 }
@@ -99,10 +97,7 @@ void ConditionView::setHeight(qreal newH)
   const auto brect = boundingRect();
   QRectF rect(brect.topLeft(), conditionCSize);
   QRectF bottomRect(
-        QPointF(
-          brect.bottomLeft().x(),
-          brect.bottomLeft().y() - ConditionCHeight),
-        conditionCSize);
+      QPointF(brect.bottomLeft().x(), brect.bottomLeft().y() - ConditionCHeight), conditionCSize);
 
   m_Cpath.moveTo(brect.width() / 2., 2.);
   m_Cpath.arcTo(rect, 60., 120.);
@@ -137,7 +132,8 @@ QPainterPath Scenario::ConditionView::shape() const
 
 bool Scenario::ConditionView::contains(const QPointF& point) const
 {
-  return m_Cpath.contains(point) || m_strokedCpath.contains(point) || conditionTrianglePath.contains(point);
+  return m_Cpath.contains(point) || m_strokedCpath.contains(point)
+         || conditionTrianglePath.contains(point);
 }
 
 QPainterPath Scenario::ConditionView::opaqueArea() const

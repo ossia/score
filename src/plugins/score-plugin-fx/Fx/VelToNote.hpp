@@ -4,7 +4,6 @@
 #include <ossia/detail/math.hpp>
 
 #include <Engine/Node/PdNode.hpp>
-
 #include <rnd/random.hpp>
 namespace Nodes
 {
@@ -30,15 +29,20 @@ struct Node
           "output will be the relevant note.";
 
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const uuid_constexpr auto uuid
-        = make_uuid("2c6493c3-5449-4e52-ae04-9aee3be5fb6a");
+    static const uuid_constexpr auto uuid = make_uuid("2c6493c3-5449-4e52-ae04-9aee3be5fb6a");
 
     static const constexpr value_in value_ins[]{{"in", true}};
     static const constexpr midi_out midi_outs[]{"out"};
     static const constexpr auto controls = std::make_tuple(
-        Control::ComboBox<float, std::size(Control::Widgets::notes)>("Start quant.", 2, Control::Widgets::notes),
+        Control::ComboBox<float, std::size(Control::Widgets::notes)>(
+            "Start quant.",
+            2,
+            Control::Widgets::notes),
         Control::FloatSlider{"Tightness", 0.f, 1.f, 0.8f},
-        Control::ComboBox<float, std::size(Control::Widgets::notes)>("End quant.", 2, Control::Widgets::notes),
+        Control::ComboBox<float, std::size(Control::Widgets::notes)>(
+            "End quant.",
+            2,
+            Control::Widgets::notes),
         Control::Widgets::MidiSpinbox("Default pitch"),
         Control::Widgets::MidiSpinbox("Default vel."),
         Control::Widgets::OctaveSlider("Pitch shift", -5, 5),
@@ -75,14 +79,8 @@ struct Node
     Note operator()(float note) { return {(uint8_t)note, base_vel}; }
     Note operator()(char note) { return {(uint8_t)note, base_vel}; }
     Note operator()(int note) { return {(uint8_t)note, base_vel}; }
-    Note operator()(int note, int vel)
-    {
-      return {(uint8_t)note, (uint8_t)vel};
-    }
-    Note operator()(int note, float vel)
-    {
-      return {(uint8_t)note, (uint8_t)(vel * 127.f)};
-    }
+    Note operator()(int note, int vel) { return {(uint8_t)note, (uint8_t)vel}; }
+    Note operator()(int note, float vel) { return {(uint8_t)note, (uint8_t)(vel * 127.f)}; }
     Note operator()(const std::vector<ossia::value>& v)
     {
       switch (v.size())
@@ -105,8 +103,7 @@ struct Node
           }
         }
         default:
-          return operator()(
-              ossia::convert<int>(v[0]), ossia::convert<int>(v[1]));
+          return operator()(ossia::convert<int>(v[0]), ossia::convert<int>(v[1]));
       }
     }
     template <std::size_t N>
@@ -117,10 +114,7 @@ struct Node
     }
   };
 
-  static constexpr uint8_t midi_clamp(int num)
-  {
-    return (uint8_t)ossia::clamp(num, 0, 127);
-  }
+  static constexpr uint8_t midi_clamp(int num) { return (uint8_t)ossia::clamp(num, 0, 127); }
   static void
   run(const ossia::value_port& p1,
       const ossia::safe_nodes::timed_vec<float>& startq,
@@ -167,8 +161,7 @@ struct Node
       auto note = in.value.apply(val_visitor{self, base_note, base_vel});
 
       if (rand_note != 0)
-        note.pitch
-            += rnd::rand(-rand_note, rand_note);
+        note.pitch += rnd::rand(-rand_note, rand_note);
       if (rand_vel != 0)
         note.vel += rnd::rand(-rand_vel, rand_vel);
 
@@ -183,7 +176,8 @@ struct Node
           no.timestamp = in.timestamp;
           if (end > 0.f)
           {
-            self.running_notes.push_back({note, tk.from_physical_time_in_tick(in.timestamp, sampleRatio)});
+            self.running_notes.push_back(
+                {note, tk.from_physical_time_in_tick(in.timestamp, sampleRatio)});
           }
           else if (end == 0.f)
           {
@@ -205,21 +199,28 @@ struct Node
       }
     }
 
-    if(start != 0.f)
+    if (start != 0.f)
     {
-      if(auto date = tk.get_quantification_date(1. / start))
+      if (auto date = tk.get_quantification_date(1. / start))
       {
-        start_all_notes(*date, tk.to_physical_time_in_tick(*date, sampleRatio), chan, end, p2, self);
+        start_all_notes(
+            *date, tk.to_physical_time_in_tick(*date, sampleRatio), chan, end, p2, self);
       }
     }
     else
     {
-      start_all_notes(tk.prev_date, tk.to_physical_time_in_tick(tk.prev_date, sampleRatio), chan, end, p2, self);
+      start_all_notes(
+          tk.prev_date,
+          tk.to_physical_time_in_tick(tk.prev_date, sampleRatio),
+          chan,
+          end,
+          p2,
+          self);
     }
 
-    if(end != 0.f)
+    if (end != 0.f)
     {
-      if(auto date = tk.get_quantification_date(1. / end))
+      if (auto date = tk.get_quantification_date(1. / end))
       {
         stop_notes(tk.to_physical_time_in_tick(*date, sampleRatio), chan, p2, self);
       }
@@ -255,52 +256,52 @@ struct Node
     self.to_start.clear();
   }
 
-  static void stop_notes(
-      ossia::physical_time date_phys,
-      int chan,
-      ossia::midi_port& p2,
-      State& self)
+  static void
+  stop_notes(ossia::physical_time date_phys, int chan, ossia::midi_port& p2, State& self)
   {
-    for(auto& note : self.running_notes)
+    for (auto& note : self.running_notes)
     {
       p2.note_off(chan, note.note.pitch, note.note.vel).timestamp = date_phys;
     }
     self.running_notes.clear();
-/*
-    for (auto it = self.running_notes.begin(); it != self.running_notes.end();)
-    {
-      auto& note = *it;
-      // note.date is the date at which the note was started.
+    /*
+        for (auto it = self.running_notes.begin(); it !=
+       self.running_notes.end();)
+        {
+          auto& note = *it;
+          // note.date is the date at which the note was started.
 
-      if (note.date.impl > tk.date.impl)
-      {
-        // Note was started "in the future", stop it right now as it means we went back in time
-        p2.note_off(chan, note.note.pitch, note.note.vel).timestamp = tk.to_physical_time_in_tick(tk.prev_date, sampleRatio);
-        it = self.running_notes.erase(it);
-      }
-      else if(note.date.impl < tk.prev_date.impl)
-      {
-        // if we're
-        it = self.running_notes.erase(it);
-      }
-      else
-      {
-        ++it;
-      }
+          if (note.date.impl > tk.date.impl)
+          {
+            // Note was started "in the future", stop it right now as it means
+       we went back in time p2.note_off(chan, note.note.pitch,
+       note.note.vel).timestamp = tk.to_physical_time_in_tick(tk.prev_date,
+       sampleRatio); it = self.running_notes.erase(it);
+          }
+          else if(note.date.impl < tk.prev_date.impl)
+          {
+            // if we're
+            it = self.running_notes.erase(it);
+          }
+          else
+          {
+            ++it;
+          }
 
-      if (note.date > tk.prev_date && note.date.impl < tk.date.impl)
-      {
-        p2.note_off(chan, note.note.pitch, note.note.vel)
-          .timestamp = (note.date - tk.prev_date).impl * st.modelToSamples();
+          if (note.date > tk.prev_date && note.date.impl < tk.date.impl)
+          {
+            p2.note_off(chan, note.note.pitch, note.note.vel)
+              .timestamp = (note.date - tk.prev_date).impl *
+       st.modelToSamples();
 
-        it = self.running_notes.erase(it);
-      }
-      else
-      {
-        ++it;
-      }
-    }
-*/
+            it = self.running_notes.erase(it);
+          }
+          else
+          {
+            ++it;
+          }
+        }
+    */
   }
 };
 }

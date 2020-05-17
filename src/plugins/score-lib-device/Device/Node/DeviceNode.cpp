@@ -12,10 +12,10 @@
 
 #include <ossia/editor/state/destination_qualifiers.hpp>
 
+#include <QDebug>
 
 #include <eggs/variant/variant.hpp>
 
-#include <QDebug>
 #include <vector>
 
 #if !defined(SCORE_ALL_UNITY)
@@ -33,15 +33,9 @@ const QString& DeviceExplorerNode::displayName() const
   {
   public:
     using return_type = const QString&;
-    return_type operator()(const Device::DeviceSettings& dev) const
-    {
-      return dev.name;
-    }
+    return_type operator()(const Device::DeviceSettings& dev) const { return dev.name; }
 
-    return_type operator()(const Device::AddressSettings& addr) const
-    {
-      return addr.name;
-    }
+    return_type operator()(const Device::AddressSettings& addr) const { return addr.name; }
 
     return_type operator()(InvisibleRootNode) const
     {
@@ -60,8 +54,7 @@ bool DeviceExplorerNode::isSelectable() const
 
 bool DeviceExplorerNode::isEditable() const
 {
-  return is<Device::AddressSettings>()
-         && hasOutput(get<Device::AddressSettings>().ioType);
+  return is<Device::AddressSettings>() && hasOutput(get<Device::AddressSettings>().ioType);
 }
 
 Device::Node* getNodeFromString(Device::Node& n, const QStringList& parts)
@@ -156,10 +149,9 @@ void merge(Device::Node& base, const State::Message& message)
   Node* node = &base;
   for (int i = 0; i < path.size(); i++)
   {
-    auto it
-        = std::find_if(node->begin(), node->end(), [&](const auto& cur_node) {
-            return cur_node.displayName() == path[i];
-          });
+    auto it = std::find_if(node->begin(), node->end(), [&](const auto& cur_node) {
+      return cur_node.displayName() == path[i];
+    });
 
     if (it == node->end())
     {
@@ -239,8 +231,7 @@ Device::Node merge(Device::Node base, const State::MessageList& other)
 
 void dumpTree(const Node& node, QString rec)
 {
-  qDebug() << rec.toUtf8().constData()
-           << node.displayName().toUtf8().constData();
+  qDebug() << rec.toUtf8().constData() << node.displayName().toUtf8().constData();
   rec += " ";
   for (const auto& child : node)
   {

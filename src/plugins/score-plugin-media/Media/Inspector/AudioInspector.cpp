@@ -23,32 +23,26 @@ InspectorWidget::InspectorWidget(
 {
   m_start.setRange(0, 512);
   m_upmix.setRange(0, 512);
-  m_mode.addItems({
-                    tr("Raw"),
-                    tr("Timestretch"),
-                    tr("Timestretch (percussive)"),
-                    tr("Repitch")
-                  });
-
+  m_mode.addItems({tr("Raw"), tr("Timestretch"), tr("Timestretch (percussive)"), tr("Repitch")});
 
   setObjectName("SoundInspectorWidget");
 
   auto lay = new QFormLayout;
 
   ::bind(process(), Sound::ProcessModel::p_startChannel{}, this, [&](int v) {
-    if(m_start.value() != v)
+    if (m_start.value() != v)
       m_start.setValue(v);
   });
   ::bind(process(), Sound::ProcessModel::p_upmixChannels{}, this, [&](int v) {
-    if(m_upmix.value() != v)
+    if (m_upmix.value() != v)
       m_upmix.setValue(v);
   });
   ::bind(process(), Sound::ProcessModel::p_stretchMode{}, this, [&](ossia::audio_stretch_mode v) {
-    if(m_mode.currentIndex() != (int) v)
-      m_mode.setCurrentIndex((int) v);
+    if (m_mode.currentIndex() != (int)v)
+      m_mode.setCurrentIndex((int)v);
   });
   ::bind(process(), Sound::ProcessModel::p_nativeTempo{}, this, [&](double t) {
-    if(m_tempo.value() != t)
+    if (m_tempo.value() != t)
       m_tempo.setValue(t);
   });
 
@@ -60,19 +54,19 @@ InspectorWidget::InspectorWidget(
     m_dispatcher.submit(new ChangeAudioFile(object, m_edit.text()));
   });
   con(m_start, &QSpinBox::editingFinished, this, [&]() {
-    if(m_start.value() != process().startChannel())
-    m_dispatcher.submit(new ChangeStart(object, m_start.value()));
+    if (m_start.value() != process().startChannel())
+      m_dispatcher.submit(new ChangeStart(object, m_start.value()));
   });
   con(m_upmix, &QSpinBox::editingFinished, this, [&]() {
-    if(m_upmix.value() != process().upmixChannels())
+    if (m_upmix.value() != process().upmixChannels())
       m_dispatcher.submit(new ChangeUpmix(object, m_upmix.value()));
   });
   con(m_mode, qOverload<int>(&QComboBox::currentIndexChanged), this, [&](int idx) {
-    if(idx != (int) process().stretchMode())
+    if (idx != (int)process().stretchMode())
       m_dispatcher.submit(new ChangeStretchMode(object, (ossia::audio_stretch_mode)idx));
   });
   con(m_tempo, &score::SpinBox<double>::editingFinished, this, [&]() {
-    if(m_tempo.value() != process().nativeTempo())
+    if (m_tempo.value() != process().nativeTempo())
       m_dispatcher.submit(new ChangeTempo(object, m_tempo.value()));
   });
 

@@ -8,9 +8,10 @@
 #include <score/selection/Selection.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <rapidjson/document.h>
 #include <QMap>
 #include <QVector>
+
+#include <rapidjson/document.h>
 namespace Scenario
 {
 struct Point;
@@ -20,13 +21,9 @@ class TimeSyncModel;
 class IntervalModel;
 namespace Command
 {
-class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioPasteElementsAfter final
-    : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioPasteElementsAfter final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      ScenarioPasteElementsAfter,
-      "Paste elements after sync")
+  SCORE_COMMAND_DECL(CommandFactoryName(), ScenarioPasteElementsAfter, "Paste elements after sync")
 public:
   ScenarioPasteElementsAfter(
       const Scenario::ProcessModel& path,

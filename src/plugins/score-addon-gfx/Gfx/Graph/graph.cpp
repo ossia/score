@@ -28,8 +28,7 @@ void Graph::setupOutputs(GraphicsApi graphicsApi)
   {
 #if !defined(NDEBUG)
 #ifndef Q_OS_ANDROID
-    vulkanInstance.setLayers(
-        QByteArrayList() << "VK_LAYER_LUNARG_standard_validation");
+    vulkanInstance.setLayers(QByteArrayList() << "VK_LAYER_LUNARG_standard_validation");
 #else
     vulkanInstance.setLayers(
         QByteArrayList() << "VK_LAYER_GOOGLE_threading"
@@ -41,8 +40,7 @@ void Graph::setupOutputs(GraphicsApi graphicsApi)
                          << "VK_LAYER_GOOGLE_unique_objects");
 #endif
 #endif
-    vulkanInstance.setExtensions(
-        QByteArrayList() << "VK_KHR_get_physical_device_properties2");
+    vulkanInstance.setExtensions(QByteArrayList() << "VK_KHR_get_physical_device_properties2");
     if (!vulkanInstance.create())
     {
       qWarning("Failed to create Vulkan instance, switching to OpenGL");
@@ -53,10 +51,10 @@ void Graph::setupOutputs(GraphicsApi graphicsApi)
 #endif
 
 #if __APPLE__
-      graphicsApi = Metal;
+  graphicsApi = Metal;
 #endif
 #ifdef Q_OS_WIN
-      graphicsApi = D3D11;
+  graphicsApi = D3D11;
 #endif
 
   for (auto output : outputs)
@@ -102,16 +100,15 @@ void Graph::setupOutputs(GraphicsApi graphicsApi)
         output->window->setVulkanInstance(&vulkanInstance);
 #endif
       output->window->onWindowReady = [=] {
-        output->window->state
-            = RenderState::create(*output->window, graphicsApi);
+        output->window->state = RenderState::create(*output->window, graphicsApi);
 
         renderers.push_back(createRenderer(output, output->window->state));
       };
       output->window->onResize = [=] {
-        for(auto it = this->renderers.begin(); it != this->renderers.end(); ++it)
+        for (auto it = this->renderers.begin(); it != this->renderers.end(); ++it)
         {
           auto& renderer = **it;
-          if(renderer.state.window == output->window.get())
+          if (renderer.state.window == output->window.get())
           {
             renderer.release();
           }
@@ -129,7 +126,7 @@ void Graph::setupOutputs(GraphicsApi graphicsApi)
     }
 
     output->window->onRender = [=] {
-      if(auto r = output->window->state.renderer)
+      if (auto r = output->window->state.renderer)
         r->render();
     };
 

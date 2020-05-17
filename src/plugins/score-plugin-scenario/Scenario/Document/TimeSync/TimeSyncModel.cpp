@@ -12,17 +12,12 @@
 #include <score/model/Identifier.hpp>
 #include <score/model/ModelMetadata.hpp>
 
-
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::TimeSyncModel)
 namespace Scenario
 {
-TimeSyncModel::TimeSyncModel(
-    const Id<TimeSyncModel>& id,
-    const TimeVal& date,
-    QObject* parent)
-    : Entity{id, Metadata<ObjectKey_k, TimeSyncModel>::get(), parent}
-    , m_date{date}
+TimeSyncModel::TimeSyncModel(const Id<TimeSyncModel>& id, const TimeVal& date, QObject* parent)
+    : Entity{id, Metadata<ObjectKey_k, TimeSyncModel>::get(), parent}, m_date{date}
 {
   m_expression = State::defaultFalseExpression();
   metadata().setInstanceName(*this);
@@ -120,7 +115,6 @@ void TimeSyncModel::setAutotrigger(bool a)
   autotriggerChanged(a);
 }
 
-
 bool TimeSyncModel::isStartPoint() const noexcept
 {
   return m_startPoint;
@@ -140,7 +134,7 @@ Control::musical_sync TimeSyncModel::musicalSync() const noexcept
 
 void TimeSyncModel::setMusicalSync(Control::musical_sync s)
 {
-  if(m_musicalSync != s)
+  if (m_musicalSync != s)
   {
     m_musicalSync = s;
     musicalSyncChanged(s);

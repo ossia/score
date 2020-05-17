@@ -14,8 +14,8 @@
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/selection/Selection.hpp>
-#include <score/serialization/VisitorInterface.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+#include <score/serialization/VisitorInterface.hpp>
 #include <score/tools/std/Optional.hpp>
 
 #include <QList>
@@ -30,9 +30,8 @@ struct TimenodeGraph;
 /**
  * @brief The core hierarchical and temporal process of score
  */
-class SCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final
-    : public Process::ProcessModel,
-      public ScenarioInterface
+class SCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final : public Process::ProcessModel,
+                                                        public ScenarioInterface
 {
   W_OBJECT(ProcessModel)
 
@@ -51,8 +50,7 @@ public:
       QObject* parent);
   template <typename Impl>
   ProcessModel(Impl& vis, const score::DocumentContext& ctx, QObject* parent)
-    : Process::ProcessModel{vis, parent}
-    , m_context{ctx}
+      : Process::ProcessModel{vis, parent}, m_context{ctx}
   {
     vis.writeTo(*this);
     init();
@@ -104,8 +102,7 @@ public:
     return ossia::ptr_find(states, id);
   }
 
-  IntervalModel&
-  interval(const Id<IntervalModel>& intervalId) const final override
+  IntervalModel& interval(const Id<IntervalModel>& intervalId) const final override
   {
     return intervals.at(intervalId);
   }
@@ -113,24 +110,17 @@ public:
   {
     return events.at(eventId);
   }
-  TimeSyncModel&
-  timeSync(const Id<TimeSyncModel>& timeSyncId) const final override
+  TimeSyncModel& timeSync(const Id<TimeSyncModel>& timeSyncId) const final override
   {
     return timeSyncs.at(timeSyncId);
   }
-  StateModel& state(const Id<StateModel>& stId) const final override
-  {
-    return states.at(stId);
-  }
+  StateModel& state(const Id<StateModel>& stId) const final override { return states.at(stId); }
   CommentBlockModel& comment(const Id<CommentBlockModel>& cmtId) const
   {
     return comments.at(cmtId);
   }
 
-  TimeSyncModel& startTimeSync() const
-  {
-    return timeSyncs.at(m_startTimeSyncId);
-  }
+  TimeSyncModel& startTimeSync() const { return timeSyncs.at(m_startTimeSyncId); }
 
   EventModel& startEvent() const { return events.at(m_startEventId); }
 
@@ -230,10 +220,7 @@ std::vector<const T*> filterSelectionByType(const Container& sel)
 namespace Scenario
 {
 SCORE_PLUGIN_SCENARIO_EXPORT const QVector<Id<IntervalModel>>
-intervalsBeforeTimeSync(
-    const Scenario::ProcessModel&,
-    const Id<TimeSyncModel>& timeSyncId);
-
+intervalsBeforeTimeSync(const Scenario::ProcessModel&, const Id<TimeSyncModel>& timeSyncId);
 
 inline auto& intervals(const Scenario::ProcessModel& scenar)
 {
@@ -255,34 +242,33 @@ inline auto& states(const Scenario::ProcessModel& scenar)
 template <>
 struct ElementTraits<Scenario::ProcessModel, IntervalModel>
 {
-  static const constexpr auto accessor = static_cast<const score::EntityMap<
-      IntervalModel>& (*)(const Scenario::ProcessModel&)>(&intervals);
+  static const constexpr auto accessor
+      = static_cast<const score::EntityMap<IntervalModel>& (*)(const Scenario::ProcessModel&)>(
+          &intervals);
 };
 template <>
 struct ElementTraits<Scenario::ProcessModel, EventModel>
 {
-  static const constexpr auto accessor = static_cast<
-      const score::EntityMap<EventModel>& (*)(const Scenario::ProcessModel&)>(
-      &events);
+  static const constexpr auto accessor
+      = static_cast<const score::EntityMap<EventModel>& (*)(const Scenario::ProcessModel&)>(
+          &events);
 };
 template <>
 struct ElementTraits<Scenario::ProcessModel, TimeSyncModel>
 {
-  static const constexpr auto accessor = static_cast<const score::EntityMap<
-      TimeSyncModel>& (*)(const Scenario::ProcessModel&)>(&timeSyncs);
+  static const constexpr auto accessor
+      = static_cast<const score::EntityMap<TimeSyncModel>& (*)(const Scenario::ProcessModel&)>(
+          &timeSyncs);
 };
 template <>
 struct ElementTraits<Scenario::ProcessModel, StateModel>
 {
-  static const constexpr auto accessor = static_cast<
-      const score::EntityMap<StateModel>& (*)(const Scenario::ProcessModel&)>(
-      &states);
+  static const constexpr auto accessor
+      = static_cast<const score::EntityMap<StateModel>& (*)(const Scenario::ProcessModel&)>(
+          &states);
 };
 }
-DESCRIPTION_METADATA(
-    SCORE_PLUGIN_SCENARIO_EXPORT,
-    Scenario::ProcessModel,
-    "Scenario")
+DESCRIPTION_METADATA(SCORE_PLUGIN_SCENARIO_EXPORT, Scenario::ProcessModel, "Scenario")
 
 W_REGISTER_ARGTYPE(const Scenario::ProcessModel&)
 W_REGISTER_ARGTYPE(Scenario::ProcessModel&)

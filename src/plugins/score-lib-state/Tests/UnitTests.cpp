@@ -8,7 +8,6 @@
 
 #include <ossia/network/dataspace/dataspace.hpp>
 
-
 class UnitTests : public QObject
 {
   Q_OBJECT

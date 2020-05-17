@@ -26,11 +26,7 @@ InspectorPanelWidget::InspectorPanelWidget(
     QVBoxLayout* lay,
     QWidget* parent,
     QObject* parentObj)
-    : QObject{parentObj}
-    , m_parent{parent}
-    , m_layout{lay}
-    , m_list{list}
-    , m_selectionDispatcher{s}
+    : QObject{parentObj}, m_parent{parent}, m_layout{lay}, m_list{list}, m_selectionDispatcher{s}
 {
   // m_layout->setContentsMargins(0, 0, 0, 0);
   // m_layout->setSpacing(0);
@@ -71,13 +67,12 @@ void InspectorPanelWidget::newItemsInspected(const Selection& objects)
     {
       QString name = "Inspector";
       auto obj = selectedObj.first();
-      if (auto meta = obj->findChild<score::ModelMetadata*>(
-              QString{}, Qt::FindDirectChildrenOnly))
+      if (auto meta = obj->findChild<score::ModelMetadata*>(QString{}, Qt::FindDirectChildrenOnly))
       {
         name = meta->getName();
       }
-      m_currentInspector = new Inspector::InspectorWidgetBase{
-          *selectedObj.first(), doc, m_parent, name};
+      m_currentInspector
+          = new Inspector::InspectorWidgetBase{*selectedObj.first(), doc, m_parent, name};
       m_layout->addWidget(m_currentInspector);
     }
   }

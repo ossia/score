@@ -1,15 +1,15 @@
 #pragma once
-#include <ossia/dataflow/graph_node.hpp>
-#include <ossia/dataflow/graph_edge.hpp>
-#include <ossia/dataflow/graph/graph_interface.hpp>
-#include <ossia/dataflow/node_chain_process.hpp>
-#include <ossia/dataflow/node_process.hpp>
-#include <fmt/format.h>
 #include <Media/SynthChain/SynthChainModel.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
+
+#include <ossia/dataflow/graph/graph_interface.hpp>
+#include <ossia/dataflow/graph_edge.hpp>
+#include <ossia/dataflow/graph_node.hpp>
+#include <ossia/dataflow/node_chain_process.hpp>
+#include <ossia/dataflow/node_process.hpp>
 #include <ossia/dataflow/nodes/dummy.hpp>
 
-
+#include <fmt/format.h>
 
 namespace ossia
 {
@@ -25,16 +25,14 @@ public:
     m_outlets.push_back(&audio_out);
   }
 
-  void
-  run(const ossia::token_request& , ossia::exec_state_facade st) noexcept override
+  void run(const ossia::token_request&, ossia::exec_state_facade st) noexcept override
   {
     *audio_out = *audio_in;
   }
 
   // graph_node interface
 public:
-  std::string label() const noexcept override
-  { return "empty_audio_mapper"; }
+  std::string label() const noexcept override { return "empty_audio_mapper"; }
 };
 
 }
@@ -73,12 +71,10 @@ struct formatter<ossia::graph_edge>
         "{}[{}] -> {}[{}]",
         *e.out_node,
         std::distance(
-            ossia::find(e.out_node->root_outputs(), e.out),
-            e.out_node->root_outputs().begin()),
+            ossia::find(e.out_node->root_outputs(), e.out), e.out_node->root_outputs().begin()),
         *e.in_node,
         std::distance(
-            ossia::find(e.in_node->root_inputs(), e.in),
-            e.in_node->root_inputs().begin()));
+            ossia::find(e.in_node->root_inputs(), e.in), e.in_node->root_inputs().begin()));
   }
 };
 }
@@ -86,9 +82,8 @@ struct formatter<ossia::graph_edge>
 namespace Media
 {
 
-static void check_exec_validity(
-    const ossia::graph_interface& g,
-    const ossia::node_chain_process& proc)
+static void
+check_exec_validity(const ossia::graph_interface& g, const ossia::node_chain_process& proc)
 {
   for (auto& node : proc.nodes)
   {
@@ -116,15 +111,13 @@ static void check_exec_validity(
   }
 }
 
-static void check_exec_order(
-    const std::vector<ossia::node_ptr>& g,
-    const ossia::node_chain_process& proc)
+static void
+check_exec_order(const std::vector<ossia::node_ptr>& g, const ossia::node_chain_process& proc)
 {
   SCORE_ASSERT(proc.nodes == g);
 }
-static void check_last_validity(
-    const ossia::graph_interface& g,
-    const ossia::node_chain_process& proc)
+static void
+check_last_validity(const ossia::graph_interface& g, const ossia::node_chain_process& proc)
 {
   if (!proc.nodes.empty())
     SCORE_ASSERT(proc.node == proc.nodes.back());
@@ -158,7 +151,7 @@ static auto move_edges(
   }
 }
 
-template<typename RegisteredEffect_T>
+template <typename RegisteredEffect_T>
 static std::vector<ossia::node_ptr>
 get_nodes(const std::vector<std::pair<Id<Process::ProcessModel>, RegisteredEffect_T>>& fx)
 {
@@ -171,8 +164,6 @@ get_nodes(const std::vector<std::pair<Id<Process::ProcessModel>, RegisteredEffec
   return v;
 }
 
-
-
 class DummyProcessComponent : public Execution::ProcessComponent
 {
   COMPONENT_METADATA("2875d036-b9d0-4b43-aa9d-926bb2902edc")
@@ -182,24 +173,24 @@ public:
       const Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent)
-    : Execution::ProcessComponent{element, ctx, id, "Dummy", parent}
+      : Execution::ProcessComponent{element, ctx, id, "Dummy", parent}
   {
     auto N_i = element.inlets().size();
     auto N_o = element.outlets().size();
-    if(N_i == 0 || N_o == 0)
+    if (N_i == 0 || N_o == 0)
       return;
 
     auto& i = element.inlets().front();
     auto& o = element.outlets().front();
     std::size_t index_i = 0;
     std::size_t index_o = 0;
-    if(i->type() != o->type())
+    if (i->type() != o->type())
     {
       this->node = std::make_shared<ossia::nodes::dummy_node>();
     }
     else
     {
-      switch(i->type())
+      switch (i->type())
       {
         case Process::PortType::Audio:
           this->node = std::make_shared<ossia::nodes::dummy_audio_node>();
@@ -215,9 +206,9 @@ public:
       index_o = 1;
     }
 
-    for(; index_i < N_i; index_i++)
+    for (; index_i < N_i; index_i++)
     {
-      switch(element.inlets()[index_i]->type())
+      switch (element.inlets()[index_i]->type())
       {
         case Process::PortType::Audio:
           this->node->root_inputs().push_back(new ossia::audio_inlet);
@@ -230,9 +221,9 @@ public:
           break;
       }
     }
-    for(; index_o < N_o; index_o++)
+    for (; index_o < N_o; index_o++)
     {
-      switch(element.inlets()[index_o]->type())
+      switch (element.inlets()[index_o]->type())
       {
         case Process::PortType::Audio:
           this->node->root_outputs().push_back(new ossia::audio_outlet);
@@ -248,7 +239,6 @@ public:
 
     m_ossia_process = std::make_shared<ossia::node_process>(node);
   }
-
 };
 
 }

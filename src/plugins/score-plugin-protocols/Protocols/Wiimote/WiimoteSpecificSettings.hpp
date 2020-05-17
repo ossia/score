@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <verdigris>
 
 namespace Protocols

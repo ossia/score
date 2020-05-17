@@ -2,9 +2,7 @@
 #include <score/plugins/SerializableHelpers.hpp>
 
 template <typename T, typename... Args>
-auto deserialize_known_interface(
-    DataStream::Deserializer& des,
-    Args&&... args) -> T*
+auto deserialize_known_interface(DataStream::Deserializer& des, Args&&... args) -> T*
 {
   QByteArray b;
   des.stream() >> b;
@@ -31,9 +29,7 @@ auto deserialize_known_interface(
 }
 
 template <typename T, typename... Args>
-auto deserialize_known_interface(
-    DataStream::Deserializer&& des,
-    Args&&... args) -> T*
+auto deserialize_known_interface(DataStream::Deserializer&& des, Args&&... args) -> T*
 {
   QByteArray b;
   des.stream() >> b;
@@ -60,17 +56,13 @@ auto deserialize_known_interface(
 }
 
 template <typename T, typename... Args>
-auto deserialize_known_interface(
-    JSONObject::Deserializer& des,
-    Args&&... args) -> T*
+auto deserialize_known_interface(JSONObject::Deserializer& des, Args&&... args) -> T*
 {
   return new T{des, std::forward<Args>(args)...};
 }
 
 template <typename T, typename... Args>
-auto deserialize_known_interface(
-    JSONObject::Deserializer&& des,
-    Args&&... args) -> T*
+auto deserialize_known_interface(JSONObject::Deserializer&& des, Args&&... args) -> T*
 {
   return new T{des, std::forward<Args>(args)...};
 }

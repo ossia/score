@@ -10,18 +10,14 @@ class PortItem;
 }
 namespace Process
 {
-class SCORE_LIB_PROCESS_EXPORT HeaderDelegate
-    : public QObject,
-      public Process::GraphicsShapeItem
+class SCORE_LIB_PROCESS_EXPORT HeaderDelegate : public QObject, public Process::GraphicsShapeItem
 {
 public:
   HeaderDelegate(
       const Process::ProcessModel& m,
       const Process::Context& doc,
       const Process::LayerPresenter* p)
-      : m_model{m}
-      , m_context{doc}
-      , m_presenter{const_cast<Process::LayerPresenter*>(p)}
+      : m_model{m}, m_context{doc}, m_presenter{const_cast<Process::LayerPresenter*>(p)}
   {
   }
 
@@ -34,8 +30,7 @@ public:
   QPointer<Process::LayerPresenter> m_presenter;
 };
 
-class SCORE_LIB_PROCESS_EXPORT DefaultHeaderDelegate
-    : public Process::HeaderDelegate
+class SCORE_LIB_PROCESS_EXPORT DefaultHeaderDelegate : public Process::HeaderDelegate
 {
 public:
   DefaultHeaderDelegate(
@@ -53,10 +48,7 @@ public:
 
 protected:
   void updatePorts();
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
   QPixmap m_line, m_bench;
   QGraphicsItem* m_ui{};
@@ -68,10 +60,7 @@ protected:
   const QPen* m_lastPen{};
 };
 
-
-class SCORE_LIB_PROCESS_EXPORT FooterDelegate
-    : public QObject,
-      public QGraphicsItem
+class SCORE_LIB_PROCESS_EXPORT FooterDelegate : public QObject, public QGraphicsItem
 {
 public:
   FooterDelegate(const Process::ProcessModel& m, const Process::Context& doc);
@@ -93,25 +82,21 @@ protected:
   int type() const override;
 };
 
-class SCORE_LIB_PROCESS_EXPORT DefaultFooterDelegate
-    : public Process::FooterDelegate
+class SCORE_LIB_PROCESS_EXPORT DefaultFooterDelegate : public Process::FooterDelegate
 {
 public:
   DefaultFooterDelegate(const Process::ProcessModel& m, const Process::Context& doc);
   ~DefaultFooterDelegate() override;
 
   void setSize(QSizeF sz) final override;
+
 protected:
   void updatePorts();
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
   ossia::small_vector<Dataflow::PortItem*, 3> m_outPorts;
   double m_portEndX{};
 };
-
 
 SCORE_LIB_PROCESS_EXPORT
 QPixmap makeGlyphs(const QString& glyph, const QPen& pen);

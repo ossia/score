@@ -5,9 +5,8 @@
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 
-#include <verdigris>
-
 #include <vector>
+#include <verdigris>
 
 class DataStream;
 class JSONObject;
@@ -67,12 +66,13 @@ public:
 
 public:
   void segmentAdded(const SegmentModel& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, segmentAdded, arg_1) void segmentRemoved(const Id<SegmentModel>& arg_1) E_SIGNAL(
+      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, segmentAdded, arg_1)
+  void segmentRemoved(const Id<SegmentModel>& arg_1) E_SIGNAL(
       SCORE_PLUGIN_CURVE_EXPORT,
       segmentRemoved,
       arg_1) // dangerous if async
-  void pointAdded(const PointModel& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, pointAdded, arg_1) void pointRemoved(const Id<PointModel>& arg_1) E_SIGNAL(
+  void pointAdded(const PointModel& arg_1) E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, pointAdded, arg_1)
+  void pointRemoved(const Id<PointModel>& arg_1) E_SIGNAL(
       SCORE_PLUGIN_CURVE_EXPORT,
       pointRemoved,
       arg_1) // dangerous if async
@@ -108,10 +108,7 @@ struct SCORE_PLUGIN_CURVE_EXPORT CurveDomain
   CurveDomain(const ossia::domain& dom, const ossia::value&);
   CurveDomain(const ossia::domain& dom, double start, double end);
   CurveDomain(double start, double end)
-      : min{std::min(start, end)}
-      , max{std::max(start, end)}
-      , start{start}
-      , end{end}
+      : min{std::min(start, end)}, max{std::max(start, end)}, start{start}, end{end}
   {
   }
 

@@ -5,7 +5,7 @@
 #include "DefaultListeningHandlerFactory.hpp"
 namespace Explorer
 {
-ListeningHandlerFactoryList::~ListeningHandlerFactoryList() {}
+ListeningHandlerFactoryList::~ListeningHandlerFactoryList() { }
 
 std::unique_ptr<Explorer::ListeningHandler> ListeningHandlerFactoryList::make(
     const Explorer::DeviceDocumentPlugin& plug,

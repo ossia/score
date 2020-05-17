@@ -8,8 +8,7 @@ namespace Execution
 {
 
 class MetroComponent final
-    : public ::Execution::
-          ProcessComponent_T<Media::Metro::Model, ossia::node_process>
+    : public ::Execution::ProcessComponent_T<Media::Metro::Model, ossia::node_process>
 {
   COMPONENT_METADATA("f36a8077-b60a-42f2-8250-b581d335fd17")
 public:
@@ -26,6 +25,5 @@ public:
 private:
 };
 
-using MetroComponentFactory
-    = ::Execution::ProcessComponentFactory_T<MetroComponent>;
+using MetroComponentFactory = ::Execution::ProcessComponentFactory_T<MetroComponent>;
 }

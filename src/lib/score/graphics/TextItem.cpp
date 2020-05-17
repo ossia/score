@@ -15,8 +15,7 @@ W_OBJECT_IMPL(score::QGraphicsTextButton)
 namespace score
 {
 
-TextItem::TextItem(QString text, QGraphicsItem* parent)
-    : QGraphicsTextItem{text, parent}
+TextItem::TextItem(QString text, QGraphicsItem* parent) : QGraphicsTextItem{text, parent}
 {
   this->setFlag(QGraphicsItem::ItemIsFocusable);
   this->setDefaultTextColor(Qt::white);
@@ -99,9 +98,7 @@ void SimpleTextItem::updateImpl()
       if (auto v = getView(*this))
         ratio = v->devicePixelRatioF();
       m_line = QImage(
-          m_rect.width() * ratio,
-          m_rect.height() * ratio,
-          QImage::Format_ARGB32_Premultiplied);
+          m_rect.width() * ratio, m_rect.height() * ratio, QImage::Format_ARGB32_Premultiplied);
       m_line.setDevicePixelRatio(ratio);
       m_line.fill(Qt::transparent);
 

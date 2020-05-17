@@ -1,11 +1,14 @@
 #pragma once
 #include <score/widgets/DoubleSpinBox.hpp>
-#include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/Pixmap.hpp>
+#include <score/widgets/SignalUtils.hpp>
+
+#include <ossia-qt/value_metatypes.hpp>
+
 #include <QGraphicsPixmapItem>
 #include <QGraphicsProxyWidget>
 #include <QPointer>
-#include <ossia-qt/value_metatypes.hpp>
+
 #include <cmath>
 #include <score_lib_base_export.h>
 
@@ -19,31 +22,26 @@ static const constexpr QRectF defaultKnobSize{0., 0., 35., 35.};
 struct DoubleSpinboxWithEnter;
 struct DefaultGraphicsSliderImpl;
 
-class SCORE_LIB_BASE_EXPORT QGraphicsPixmapButton final
-    : public QObject,
-      public QGraphicsPixmapItem
+class SCORE_LIB_BASE_EXPORT QGraphicsPixmapButton final : public QObject,
+                                                          public QGraphicsPixmapItem
 {
   W_OBJECT(QGraphicsPixmapButton)
   const QPixmap m_pressed, m_released;
 
 public:
-  QGraphicsPixmapButton(
-      QPixmap pressed,
-      QPixmap released,
-      QGraphicsItem* parent);
+  QGraphicsPixmapButton(QPixmap pressed, QPixmap released, QGraphicsItem* parent);
 
 public:
   void clicked() E_SIGNAL(SCORE_LIB_BASE_EXPORT, clicked)
 
-      protected
-      : void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+protected:
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 };
 
-class SCORE_LIB_BASE_EXPORT QGraphicsSelectablePixmapToggle final
-    : public QObject,
-      public QGraphicsPixmapItem
+class SCORE_LIB_BASE_EXPORT QGraphicsSelectablePixmapToggle final : public QObject,
+                                                                    public QGraphicsPixmapItem
 {
   W_OBJECT(QGraphicsSelectablePixmapToggle)
   Q_INTERFACES(QGraphicsItem)
@@ -67,15 +65,14 @@ public:
 public:
   void toggled(bool arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, toggled, arg_1)
 
-      protected
-      : void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+protected:
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 };
 
-class SCORE_LIB_BASE_EXPORT QGraphicsPixmapToggle final
-    : public QObject,
-      public QGraphicsPixmapItem
+class SCORE_LIB_BASE_EXPORT QGraphicsPixmapToggle final : public QObject,
+                                                          public QGraphicsPixmapItem
 {
   W_OBJECT(QGraphicsPixmapToggle)
   Q_INTERFACES(QGraphicsItem)
@@ -84,10 +81,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsPixmapToggle final
   bool m_toggled{};
 
 public:
-  QGraphicsPixmapToggle(
-      QPixmap pressed,
-      QPixmap released,
-      QGraphicsItem* parent);
+  QGraphicsPixmapToggle(QPixmap pressed, QPixmap released, QGraphicsItem* parent);
 
   void toggle();
   void setState(bool toggled);
@@ -95,8 +89,8 @@ public:
 public:
   void toggled(bool arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, toggled, arg_1)
 
-      protected
-      : void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+protected:
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 };
@@ -120,9 +114,8 @@ struct SCORE_LIB_BASE_EXPORT QGraphicsSliderBase : public QGraphicsItem
   QPointer<QGraphicsProxyWidget> spinboxProxy{};
 };
 
-class SCORE_LIB_BASE_EXPORT QGraphicsSlider final
-    : public QObject,
-      public QGraphicsSliderBase<QGraphicsSlider>
+class SCORE_LIB_BASE_EXPORT QGraphicsSlider final : public QObject,
+                                                    public QGraphicsSliderBase<QGraphicsSlider>
 {
   W_OBJECT(QGraphicsSlider)
   friend struct DefaultGraphicsSliderImpl;
@@ -148,26 +141,21 @@ public:
   bool moving = false;
 
 public:
-  void valueChanged(double arg_1)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1) void sliderMoved()
-          E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved) void sliderReleased()
-              E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
+  void valueChanged(double arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1)
+  void sliderMoved() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved)
+  void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 
-                  private
-      : void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+private:
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
 
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 };
 
-class SCORE_LIB_BASE_EXPORT QGraphicsKnob final : public QObject,
-                                                  public QGraphicsItem
+class SCORE_LIB_BASE_EXPORT QGraphicsKnob final : public QObject, public QGraphicsItem
 {
   W_OBJECT(QGraphicsKnob)
   Q_INTERFACES(QGraphicsItem)
@@ -196,26 +184,21 @@ public:
   bool moving = false;
 
 public:
-  void valueChanged(double arg_1)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1) void sliderMoved()
-          E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved) void sliderReleased()
-              E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
+  void valueChanged(double arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1)
+  void sliderMoved() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved)
+  void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 
-                  private
-      : void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+private:
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
 
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 };
 
-class SCORE_LIB_BASE_EXPORT QGraphicsLogKnob final : public QObject,
-                                                     public QGraphicsItem
+class SCORE_LIB_BASE_EXPORT QGraphicsLogKnob final : public QObject, public QGraphicsItem
 {
   W_OBJECT(QGraphicsLogKnob)
   Q_INTERFACES(QGraphicsItem)
@@ -244,22 +227,18 @@ public:
   bool moving = false;
 
 public:
-  void valueChanged(double arg_1)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1) void sliderMoved()
-          E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved) void sliderReleased()
-              E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
+  void valueChanged(double arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1)
+  void sliderMoved() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved)
+  void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 
-                  private
-      : void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+private:
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
 
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 };
 
 class SCORE_LIB_BASE_EXPORT QGraphicsLogSlider final
@@ -291,21 +270,17 @@ public:
   bool moving = false;
 
 public:
-  void valueChanged(double arg_1)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1) void sliderMoved()
-          E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved) void sliderReleased()
-              E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
+  void valueChanged(double arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1)
+  void sliderMoved() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved)
+  void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 
-                  private
-      : void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+private:
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 };
 
 class SCORE_LIB_BASE_EXPORT QGraphicsIntSlider final
@@ -329,24 +304,19 @@ public:
   bool moving = false;
 
 public:
-  void valueChanged(int arg_1)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1) void sliderMoved()
-          E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved) void sliderReleased()
-              E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
+  void valueChanged(int arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1)
+  void sliderMoved() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved)
+  void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 
-                  private
-      : void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+private:
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
   double getHandleX() const;
 };
 
-class SCORE_LIB_BASE_EXPORT QGraphicsCombo final : public QObject,
-                                                   public QGraphicsItem
+class SCORE_LIB_BASE_EXPORT QGraphicsCombo final : public QObject, public QGraphicsItem
 {
   W_OBJECT(QGraphicsCombo)
   Q_INTERFACES(QGraphicsItem)
@@ -370,8 +340,7 @@ public:
       array.push_back(str);
   }
 
-  QGraphicsCombo(QStringList arr, QGraphicsItem* parent)
-      : QGraphicsCombo{parent}
+  QGraphicsCombo(QStringList arr, QGraphicsItem* parent) : QGraphicsCombo{parent}
   {
     array = std::move(arr);
   }
@@ -385,24 +354,19 @@ public:
   bool moving = false;
 
 public:
-  void valueChanged(int arg_1)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1) void sliderMoved()
-          E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved) void sliderReleased()
-              E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
+  void valueChanged(int arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1)
+  void sliderMoved() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved)
+  void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 
-                  private
-      : void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+private:
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   QRectF boundingRect() const override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 };
 
-class SCORE_LIB_BASE_EXPORT QGraphicsEnum : public QObject,
-                                            public QGraphicsItem
+class SCORE_LIB_BASE_EXPORT QGraphicsEnum : public QObject, public QGraphicsItem
 {
   W_OBJECT(QGraphicsEnum)
   Q_INTERFACES(QGraphicsItem)
@@ -438,56 +402,53 @@ public:
   QRectF boundingRect() const override;
 
 public:
-  void currentIndexChanged(int arg_1)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, currentIndexChanged, arg_1)
+  void currentIndexChanged(int arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, currentIndexChanged, arg_1)
 
-          private
-      : void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+private:
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 };
 
-class SCORE_LIB_BASE_EXPORT QGraphicsPixmapEnum final
-    : public QGraphicsEnum
+class SCORE_LIB_BASE_EXPORT QGraphicsPixmapEnum final : public QGraphicsEnum
 {
 public:
   std::vector<QPixmap> on_images;
   std::vector<QPixmap> off_images;
 
   template <std::size_t N>
-  QGraphicsPixmapEnum(const std::array<const char*, N>& arr,
-                      const std::array<const char*, 2 * N>& pixmaps,
-                      QGraphicsItem* parent)
-    : QGraphicsPixmapEnum{parent}
+  QGraphicsPixmapEnum(
+      const std::array<const char*, N>& arr,
+      const std::array<const char*, 2 * N>& pixmaps,
+      QGraphicsItem* parent)
+      : QGraphicsPixmapEnum{parent}
   {
     array.reserve(N);
     for (auto str : arr)
       array.push_back(str);
 
-    for(std::size_t i = 0; i < pixmaps.size(); i++)
+    for (std::size_t i = 0; i < pixmaps.size(); i++)
     {
-      if (i%2)
+      if (i % 2)
         off_images.emplace_back(score::get_pixmap(pixmaps[i]));
       else
         on_images.emplace_back(score::get_pixmap(pixmaps[i]));
     }
   }
 
-  QGraphicsPixmapEnum(std::vector<QString> arr,
-                      const std::vector<QString>& pixmaps,
-                      QGraphicsItem* parent)
-    : QGraphicsPixmapEnum{parent}
+  QGraphicsPixmapEnum(
+      std::vector<QString> arr,
+      const std::vector<QString>& pixmaps,
+      QGraphicsItem* parent)
+      : QGraphicsPixmapEnum{parent}
   {
     array = std::move(arr);
 
-    for(std::size_t i = 0; i < pixmaps.size(); i++)
+    for (std::size_t i = 0; i < pixmaps.size(); i++)
     {
-      if (i%2)
+      if (i % 2)
         off_images.emplace_back(score::get_pixmap(pixmaps[i]));
       else
         on_images.emplace_back(score::get_pixmap(pixmaps[i]));
@@ -496,15 +457,10 @@ public:
 
   QGraphicsPixmapEnum(QGraphicsItem* parent);
 
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 };
 
-
-class SCORE_LIB_BASE_EXPORT QGraphicsHSVChooser final : public QObject,
-                                                   public QGraphicsItem
+class SCORE_LIB_BASE_EXPORT QGraphicsHSVChooser final : public QObject, public QGraphicsItem
 {
   W_OBJECT(QGraphicsHSVChooser)
   Q_INTERFACES(QGraphicsItem)
@@ -525,27 +481,19 @@ public:
   bool moving = false;
 
 public:
-  void valueChanged(ossia::vec4f arg_1)
-  E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1)
-  void sliderMoved()
-  E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved)
-  void sliderReleased()
-  E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
+  void valueChanged(ossia::vec4f arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1)
+  void sliderMoved() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved)
+  void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 
 private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   QRectF boundingRect() const override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 };
 
-class SCORE_LIB_BASE_EXPORT QGraphicsXYChooser final
-    : public QObject
-    , public QGraphicsItem
+class SCORE_LIB_BASE_EXPORT QGraphicsXYChooser final : public QObject, public QGraphicsItem
 {
   W_OBJECT(QGraphicsXYChooser)
   Q_INTERFACES(QGraphicsItem)
@@ -565,22 +513,16 @@ public:
   bool moving = false;
 
 public:
-  void valueChanged(ossia::vec2f arg_1)
-  E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1)
-  void sliderMoved()
-  E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved)
-  void sliderReleased()
-  E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
+  void valueChanged(ossia::vec2f arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1)
+  void sliderMoved() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved)
+  void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 
 private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   QRectF boundingRect() const override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 };
 
 }

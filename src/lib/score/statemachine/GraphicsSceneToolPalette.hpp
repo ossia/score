@@ -9,10 +9,7 @@ class QGraphicsScene;
 class SCORE_LIB_BASE_EXPORT GraphicsSceneToolPalette : public QObject
 {
 public:
-  explicit GraphicsSceneToolPalette(const QGraphicsScene& scene)
-      : m_scene{scene}
-  {
-  }
+  explicit GraphicsSceneToolPalette(const QGraphicsScene& scene) : m_scene{scene} { }
   virtual ~GraphicsSceneToolPalette();
 
   QPointF scenePoint;

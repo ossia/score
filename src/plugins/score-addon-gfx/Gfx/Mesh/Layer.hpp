@@ -7,8 +7,6 @@
 
 namespace Gfx::Mesh
 {
-using LayerFactory = Process::LayerFactory_T<
-    Gfx::Mesh::Model,
-    Gfx::Mesh::Presenter,
-    Gfx::Mesh::View>;
+using LayerFactory
+    = Process::LayerFactory_T<Gfx::Mesh::Model, Gfx::Mesh::Presenter, Gfx::Mesh::View>;
 }

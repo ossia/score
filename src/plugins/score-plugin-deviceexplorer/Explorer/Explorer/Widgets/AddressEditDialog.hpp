@@ -4,8 +4,8 @@
 
 #include <score/widgets/WidgetWrapper.hpp>
 
-
 #include <score_plugin_deviceexplorer_export.h>
+
 #include <verdigris>
 class QComboBox;
 class QFormLayout;
@@ -16,8 +16,7 @@ namespace Explorer
 {
 
 class AddressSettingsWidget;
-class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddressEditDialog final
-    : public Device::AddressDialog
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddressEditDialog final : public Device::AddressDialog
 {
   W_OBJECT(AddressEditDialog)
 
@@ -26,9 +25,7 @@ public:
   explicit AddressEditDialog(QWidget* parent);
 
   // Edition of an address
-  explicit AddressEditDialog(
-      const Device::AddressSettings& addr,
-      QWidget* parent);
+  explicit AddressEditDialog(const Device::AddressSettings& addr, QWidget* parent);
   ~AddressEditDialog();
 
   Device::AddressSettings getSettings() const override;

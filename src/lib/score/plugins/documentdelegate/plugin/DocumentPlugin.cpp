@@ -20,13 +20,13 @@ DocumentPlugin::DocumentPlugin(
 {
 }
 
-void DocumentPlugin::on_documentClosing() {}
+void DocumentPlugin::on_documentClosing() { }
 
 DocumentPlugin::~DocumentPlugin() = default;
 SerializableDocumentPlugin::~SerializableDocumentPlugin() = default;
 DocumentPluginFactory::~DocumentPluginFactory() = default;
 
-DocumentPluginFactoryList::~DocumentPluginFactoryList() {}
+DocumentPluginFactoryList::~DocumentPluginFactoryList() { }
 
 DocumentPluginFactoryList::object_type* DocumentPluginFactoryList::loadMissing(
     const VisitorVariant& vis,

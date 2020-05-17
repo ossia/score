@@ -1,7 +1,9 @@
 #pragma once
-#include <score/plugins/Interface.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
+
+#include <score/plugins/Interface.hpp>
+
 #include <QComboBox>
 
 namespace Process
@@ -15,10 +17,7 @@ class CableWidget final : public Inspector::InspectorWidgetBase
   QComboBox m_cabletype;
 
 public:
-  CableWidget(
-      const Process::Cable& cable,
-      const score::DocumentContext& ctx,
-      QWidget* parent);
+  CableWidget(const Process::Cable& cable, const score::DocumentContext& ctx, QWidget* parent);
 };
 
 class CableInspectorFactory final : public Inspector::InspectorWidgetFactory

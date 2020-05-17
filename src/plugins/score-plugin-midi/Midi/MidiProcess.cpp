@@ -2,7 +2,9 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Midi/MidiProcess.hpp>
 #include <Process/Dataflow/Port.hpp>
+
 #include <score/model/EntityMapSerialization.hpp>
+
 #include <cmath>
 #include <wobjectimpl.h>
 
@@ -14,10 +16,7 @@ ProcessModel::ProcessModel(
     const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : Process::ProcessModel{duration,
-                            id,
-                            Metadata<ObjectKey_k, ProcessModel>::get(),
-                            parent}
+    : Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , outlet{Process::make_midi_outlet(Id<Process::Port>(0), this)}
 {
   m_range = {60, 71};
@@ -26,14 +25,17 @@ ProcessModel::ProcessModel(
   init();
 }
 
-void ProcessModel::init() { m_outlets.push_back(outlet.get()); }
+void ProcessModel::init()
+{
+  m_outlets.push_back(outlet.get());
+}
 
-ProcessModel::~ProcessModel() {}
+ProcessModel::~ProcessModel() { }
 
 void ProcessModel::setChannel(int n)
 {
   n = std::clamp(n, 1, 16);
-  if(n != m_channel)
+  if (n != m_channel)
   {
     m_channel = n;
     channelChanged(n);
@@ -197,8 +199,7 @@ void JSONWriter::write(Midi::Note& n)
 template <>
 void DataStreamReader::read(const Midi::ProcessModel& proc)
 {
-  m_stream << *proc.outlet << proc.channel() << proc.m_range.first
-           << proc.m_range.second;
+  m_stream << *proc.outlet << proc.channel() << proc.m_range.first << proc.m_range.second;
 
   const auto& notes = proc.notes;
 
@@ -245,8 +246,7 @@ void JSONWriter::write(Midi::ProcessModel& proc)
 
   for (const auto& json_vref : obj["Notes"].toArray())
   {
-    auto note = new Midi::Note{JSONObject::Deserializer{json_vref},
-                               &proc};
+    auto note = new Midi::Note{JSONObject::Deserializer{json_vref}, &proc};
     proc.notes.add(note);
   }
 

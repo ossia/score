@@ -13,9 +13,9 @@
 #include <QApplication>
 #include <QCursor>
 #include <QDrag>
+#include <QGraphicsScene>
 #include <QGraphicsSceneHoverEvent>
 #include <QMenu>
-#include <QGraphicsScene>
 #include <QMimeData>
 #include <QPainter>
 
@@ -58,18 +58,19 @@ struct Ellipses
     const qreal dpi = qApp->devicePixelRatio();
     const qreal sz = dpi * 13.;
 
-#define DRAW_ELLIPSE(Image, Pen, Brush, Ellipse) \
-  do { \
-  QImage temp(sz, sz, QImage::Format_ARGB32_Premultiplied); \
-  temp.fill(Qt::transparent); \
-  temp.setDevicePixelRatio(dpi); \
-  QPainter p(&temp); \
-  p.setRenderHint(QPainter::Antialiasing, true); \
-  p.setPen(Pen); \
-  p.setBrush(Brush); \
-  p.drawEllipse(Ellipse); \
-  Image = QPixmap::fromImage(temp); \
-  } while(0)
+#define DRAW_ELLIPSE(Image, Pen, Brush, Ellipse)              \
+  do                                                          \
+  {                                                           \
+    QImage temp(sz, sz, QImage::Format_ARGB32_Premultiplied); \
+    temp.fill(Qt::transparent);                               \
+    temp.setDevicePixelRatio(dpi);                            \
+    QPainter p(&temp);                                        \
+    p.setRenderHint(QPainter::Antialiasing, true);            \
+    p.setPen(Pen);                                            \
+    p.setBrush(Brush);                                        \
+    p.drawEllipse(Ellipse);                                   \
+    Image = QPixmap::fromImage(temp);                         \
+  } while (0)
 
     const auto& audiopen = skin.AudioPortPen();
     const auto& datapen = skin.DataPortPen();
@@ -128,23 +129,35 @@ struct Ellipses
   }
 };
 }
-const QPixmap& PortItem::portImage(Process::PortType t, bool inlet, bool small, bool light) noexcept
+const QPixmap&
+PortItem::portImage(Process::PortType t, bool inlet, bool small, bool light) noexcept
 {
   static const Ellipses ellipses;
   int n;
-  switch(t) {
-    case Process::PortType::Audio: n = 0; break;
-    case Process::PortType::Message: n = 1; break;
-    case Process::PortType::Midi: n = 2; break;
-    case Process::PortType::Texture: n = 3; break;
-    default: n = 1; break;
+  switch (t)
+  {
+    case Process::PortType::Audio:
+      n = 0;
+      break;
+    case Process::PortType::Message:
+      n = 1;
+      break;
+    case Process::PortType::Midi:
+      n = 2;
+      break;
+    case Process::PortType::Texture:
+      n = 3;
+      break;
+    default:
+      n = 1;
+      break;
   };
 
-  if(Q_UNLIKELY(light))
+  if (Q_UNLIKELY(light))
   {
-    if(inlet)
+    if (inlet)
     {
-      if(small)
+      if (small)
       {
         return ellipses.SmallEllipsesInLight[n];
       }
@@ -155,7 +168,7 @@ const QPixmap& PortItem::portImage(Process::PortType t, bool inlet, bool small, 
     }
     else
     {
-      if(small)
+      if (small)
       {
         return ellipses.SmallEllipsesOutLight[n];
       }
@@ -167,9 +180,9 @@ const QPixmap& PortItem::portImage(Process::PortType t, bool inlet, bool small, 
   }
   else
   {
-    if(inlet)
+    if (inlet)
     {
-      if(small)
+      if (small)
       {
         return ellipses.SmallEllipsesIn[n];
       }
@@ -180,7 +193,7 @@ const QPixmap& PortItem::portImage(Process::PortType t, bool inlet, bool small, 
     }
     else
     {
-      if(small)
+      if (small)
       {
         return ellipses.SmallEllipsesOut[n];
       }
@@ -192,18 +205,14 @@ const QPixmap& PortItem::portImage(Process::PortType t, bool inlet, bool small, 
   }
 }
 
-
 PortItem* PortItem::clickedPort;
-PortItem::PortItem(
-    const Process::Port& p,
-    const Process::Context& ctx,
-    QGraphicsItem* parent)
-  : QGraphicsItem{parent}
-  , m_context{ctx}
-  , m_port{p}
-  , m_diam{8.}
-  , m_inlet{bool(qobject_cast<const Process::Inlet*>(&p))}
-  , m_highlight{false}
+PortItem::PortItem(const Process::Port& p, const Process::Context& ctx, QGraphicsItem* parent)
+    : QGraphicsItem{parent}
+    , m_context{ctx}
+    , m_port{p}
+    , m_diam{8.}
+    , m_inlet{bool(qobject_cast<const Process::Inlet*>(&p))}
+    , m_highlight{false}
 {
   auto& skin = score::Skin::instance();
   this->setCursor(skin.CursorPointingHand);
@@ -212,15 +221,14 @@ PortItem::PortItem(
   this->setFlag(QGraphicsItem::ItemSendsScenePositionChanges, true);
   this->setToolTip(p.customData());
 
-  connect(&p, &QObject::destroyed,
-          this, [] {
+  connect(&p, &QObject::destroyed, this, [] {
     qDebug("Port destroyed before its item");
     SCORE_ASSERT(false);
   });
 
-  con(p.selection, &Selectable::changed,
-      this, [this] (bool b) {
-    for(const auto& cable : cables) {
+  con(p.selection, &Selectable::changed, this, [this](bool b) {
+    for (const auto& cable : cables)
+    {
       cable->setZValue(b || cable->model().selection.get() ? 999999 : -1);
     }
   });
@@ -230,7 +238,7 @@ PortItem::PortItem(
     // If a port already exists it becomes zombie-like.
 
     auto it = plug.ports().find(&p);
-    if(it != plug.ports().end())
+    if (it != plug.ports().end())
     {
       setVisible(false);
       setEnabled(false);
@@ -244,7 +252,7 @@ PortItem::PortItem(
     {
       if (c.first->source().unsafePath() == path.unsafePath())
       {
-        if(c.second)
+        if (c.second)
         {
           c.second->setSource(this);
           cables.push_back(c.second);
@@ -252,13 +260,13 @@ PortItem::PortItem(
         else
         {
           auto it = new Dataflow::CableItem{*c.first, m_context, nullptr};
-          if(!it->parentItem() && scene())
+          if (!it->parentItem() && scene())
             scene()->addItem(it);
         }
       }
       else if (c.first->sink().unsafePath() == path.unsafePath())
       {
-        if(c.second)
+        if (c.second)
         {
           c.second->setTarget(this);
           cables.push_back(c.second);
@@ -266,17 +274,14 @@ PortItem::PortItem(
         else
         {
           auto it = new Dataflow::CableItem{*c.first, m_context, nullptr};
-          if(!it->parentItem() && scene())
+          if (!it->parentItem() && scene())
             scene()->addItem(it);
         }
       }
     }
 
     QObject::connect(
-        this,
-        &Dataflow::PortItem::contextMenuRequested,
-        this,
-        [&](QPointF sp, QPoint p) {
+        this, &Dataflow::PortItem::contextMenuRequested, this, [&](QPointF sp, QPoint p) {
           auto menu = new QMenu{};
           setupMenu(*menu, ctx);
           menu->exec(p);
@@ -288,7 +293,7 @@ PortItem::PortItem(
 
 PortItem::~PortItem()
 {
-  if(this == magneticDropPort)
+  if (this == magneticDropPort)
     magneticDropPort = nullptr;
 
   for (auto cable : cables)
@@ -305,7 +310,7 @@ PortItem::~PortItem()
     p.erase(it);
 }
 
-void PortItem::setupMenu(QMenu&, const score::DocumentContext& ctx) {}
+void PortItem::setupMenu(QMenu&, const score::DocumentContext& ctx) { }
 
 void PortItem::setPortVisible(bool b)
 {
@@ -330,10 +335,7 @@ QRectF PortItem::boundingRect() const
   constexpr auto max_diam = 13.;
   return {0., 0., max_diam, max_diam};
 }
-void PortItem::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+void PortItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   const QPixmap& img = portImage(m_port.type(), m_inlet, m_diam == 8., m_highlight);
   painter->drawPixmap(0, 0, img);
@@ -358,7 +360,7 @@ void PortItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 static void updateDragLineCoords(QGraphicsScene& scene, QPointF pt)
 {
-  if(magneticDropPort)
+  if (magneticDropPort)
   {
     magneticDropPort->m_diam = 8;
     magneticDropPort->update();
@@ -367,24 +369,24 @@ static void updateDragLineCoords(QGraphicsScene& scene, QPointF pt)
   auto items = scene.items({pt.x() - 8, pt.y() - 8, 16, 16});
   PortItem** closePorts = (PortItem**)alloca(items.size() * sizeof(PortItem*));
   int count = 0;
-  for(auto item : items)
+  for (auto item : items)
   {
-    if(item->type() == QGraphicsItem::UserType + 700)
+    if (item->type() == QGraphicsItem::UserType + 700)
     {
       closePorts[count++] = safe_cast<PortItem*>(item);
     }
   }
 
-  if(count > 0)
+  if (count > 0)
   {
     QPointF cur_center{};
     double cur_length = 1000.;
     PortItem* cur_port{};
-    for(int i = 0; i < count; i++)
+    for (int i = 0; i < count; i++)
     {
       auto port = closePorts[i];
       auto port_center = port->mapToScene(((QGraphicsItem*)port)->boundingRect().center());
-      if(double length = QLineF{port_center, pt}.length(); length < cur_length)
+      if (double length = QLineF{port_center, pt}.length(); length < cur_length)
       {
         cur_length = length;
         cur_port = port;
@@ -394,7 +396,7 @@ static void updateDragLineCoords(QGraphicsScene& scene, QPointF pt)
 
     portDragLineCoords.setP2(cur_center);
     magneticDropPort = cur_port;
-    if(magneticDropPort)
+    if (magneticDropPort)
     {
       magneticDropPort->m_diam = 12;
       magneticDropPort->update();
@@ -407,11 +409,14 @@ static void updateDragLineCoords(QGraphicsScene& scene, QPointF pt)
 struct DragLine : QGraphicsLineItem
 {
 public:
-  DragLine(QLineF f)
-    : QGraphicsLineItem{f}
+  DragLine(QLineF f) : QGraphicsLineItem{f}
   {
-    setPen(QPen(QBrush{qRgb(200, 200, 210)}, 2, Qt::PenStyle::SolidLine, Qt::PenCapStyle::RoundCap,
-                Qt::PenJoinStyle::RoundJoin));
+    setPen(QPen(
+        QBrush{qRgb(200, 200, 210)},
+        2,
+        Qt::PenStyle::SolidLine,
+        Qt::PenCapStyle::RoundCap,
+        Qt::PenJoinStyle::RoundJoin));
 
     setAcceptHoverEvents(true);
   }
@@ -431,7 +436,8 @@ public:
     setLine(portDragLineCoords);
   }
 
-  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr)
+      override
   {
     painter->setRenderHint(QPainter::Antialiasing, true);
     QGraphicsLineItem::paint(painter, option, widget);
@@ -445,23 +451,28 @@ struct DragMoveFilter : QObject
 public:
   bool eventFilter(QObject* watched, QEvent* event) override
   {
-    if (event->type() == QEvent::GraphicsSceneDragMove) {
-        auto ev = static_cast<QGraphicsSceneDragDropEvent *>(event);
-        updateDragLineCoords(*portDragLine->scene(), ev->scenePos());
-        portDragLine->setLine(portDragLineCoords);
-        return false;
-    } else if (event->type() == QEvent::GraphicsSceneDrop) {
-        auto ev = static_cast<QGraphicsSceneDragDropEvent *>(event);
-        updateDragLineCoords(*portDragLine->scene(), ev->scenePos());
+    if (event->type() == QEvent::GraphicsSceneDragMove)
+    {
+      auto ev = static_cast<QGraphicsSceneDragDropEvent*>(event);
+      updateDragLineCoords(*portDragLine->scene(), ev->scenePos());
+      portDragLine->setLine(portDragLineCoords);
+      return false;
+    }
+    else if (event->type() == QEvent::GraphicsSceneDrop)
+    {
+      auto ev = static_cast<QGraphicsSceneDragDropEvent*>(event);
+      updateDragLineCoords(*portDragLine->scene(), ev->scenePos());
 
-        if(magneticDropPort)
-        {
-          magneticDropPort->dropEvent(ev);
-          magneticDropPort->m_diam = 8;
-          magneticDropPort->update();
-        }
-        return true;
-    } else {
+      if (magneticDropPort)
+      {
+        magneticDropPort->dropEvent(ev);
+        magneticDropPort->m_diam = 8;
+        magneticDropPort->update();
+      }
+      return true;
+    }
+    else
+    {
       return QObject::eventFilter(watched, event);
     }
   }
@@ -502,8 +513,7 @@ void PortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     switch (event->button())
     {
       case Qt::LeftButton:
-        score::SelectionDispatcher{
-            score::IDocument::documentContext(m_port).selectionStack}
+        score::SelectionDispatcher{score::IDocument::documentContext(m_port).selectionStack}
             .setAndCommit({&m_port});
         break;
       default:
@@ -554,9 +564,7 @@ void PortItem::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
   event->accept();
 }
 
-QVariant PortItem::itemChange(
-    QGraphicsItem::GraphicsItemChange change,
-    const QVariant& value)
+QVariant PortItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value)
 {
   switch (change)
   {
@@ -586,12 +594,16 @@ namespace Process
 const score::Brush& portBrush(Process::PortType type)
 {
   const auto& skin = score::Skin::instance();
-  switch(type)
+  switch (type)
   {
-  case Process::PortType::Audio: return skin.Port1;
-  case Process::PortType::Message: return skin.Port2;
-  case Process::PortType::Midi: return skin.Port3;
-  default: return skin.Warn1;
+    case Process::PortType::Audio:
+      return skin.Port1;
+    case Process::PortType::Message:
+      return skin.Port2;
+    case Process::PortType::Midi:
+      return skin.Port3;
+    default:
+      return skin.Warn1;
   }
 }
 

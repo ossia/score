@@ -1,6 +1,8 @@
 #pragma once
 #include <score/model/IdentifiedObject.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/selection/Selection.hpp>
+
 #include <ossia/detail/json.hpp>
 
 #include <QByteArray>
@@ -8,7 +10,6 @@
 
 #include <vector>
 #include <verdigris>
-#include <score/model/Identifier.hpp>
 
 namespace score
 {
@@ -24,19 +25,18 @@ struct ApplicationContext;
  * Drawbridge between the application and a model given by a plugin.
  * Contains all the "saveable" data.
  */
-class SCORE_LIB_BASE_EXPORT DocumentModel final
-    : public IdentifiedObject<DocumentModel>
+class SCORE_LIB_BASE_EXPORT DocumentModel final : public IdentifiedObject<DocumentModel>
 {
   W_OBJECT(DocumentModel)
   friend class Document;
+
 public:
   DocumentModel(
       const Id<DocumentModel>& id,
       const score::DocumentContext& ctx,
       DocumentDelegateFactory& fact,
       QObject* parent);
-  DocumentModel(
-      QObject* parent);
+  DocumentModel(QObject* parent);
   ~DocumentModel();
 
   DocumentDelegateModel& modelDelegate() const { return *m_model; }
@@ -45,10 +45,9 @@ public:
   void addPluginModel(DocumentPlugin* m);
   const std::vector<DocumentPlugin*>& pluginModels() { return m_pluginModels; }
 
-  void pluginModelsChanged()
-  E_SIGNAL(SCORE_LIB_BASE_EXPORT, pluginModelsChanged)
+  void pluginModelsChanged() E_SIGNAL(SCORE_LIB_BASE_EXPORT, pluginModelsChanged)
 
-  private :
+private:
   void loadDocumentAsJson(
       score::DocumentContext& ctx,
       const rapidjson::Value&,
@@ -59,7 +58,6 @@ public:
       DocumentDelegateFactory& fact);
 
   std::vector<DocumentPlugin*> m_pluginModels;
-  DocumentDelegateModel*
-      m_model{}; // note : this *has* to be last due to init order
+  DocumentDelegateModel* m_model{}; // note : this *has* to be last due to init order
 };
 }

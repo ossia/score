@@ -41,9 +41,8 @@ struct SCORE_LIB_PROCESS_EXPORT StateNodeValues
   std::vector<ProcessStateData> followingProcessValues;
   State::OptionalValue userValue;
 
-  std::array<PriorityPolicy, 3> priorities{{PriorityPolicy::Previous,
-                                            PriorityPolicy::Following,
-                                            PriorityPolicy::User}};
+  std::array<PriorityPolicy, 3> priorities{
+      {PriorityPolicy::Previous, PriorityPolicy::Following, PriorityPolicy::User}};
 
   bool hasValue() const;
 
@@ -68,32 +67,24 @@ struct SCORE_LIB_PROCESS_EXPORT StateNodeData
   State::OptionalValue value() const;
 };
 
-SCORE_LIB_PROCESS_EXPORT QDebug
-operator<<(QDebug d, const ProcessStateData& mess);
-SCORE_LIB_PROCESS_EXPORT QDebug
-operator<<(QDebug d, const StateNodeData& mess);
+SCORE_LIB_PROCESS_EXPORT QDebug operator<<(QDebug d, const ProcessStateData& mess);
+SCORE_LIB_PROCESS_EXPORT QDebug operator<<(QDebug d, const StateNodeData& mess);
 
 using MessageNode = TreeNode<StateNodeData>;
 using MessageNodePath = TreePath<MessageNode>;
 
-SCORE_LIB_PROCESS_EXPORT State::AddressAccessor
-address(const MessageNode& treeNode);
+SCORE_LIB_PROCESS_EXPORT State::AddressAccessor address(const MessageNode& treeNode);
 SCORE_LIB_PROCESS_EXPORT State::Message message(const MessageNode& node);
 SCORE_LIB_PROCESS_EXPORT State::Message userMessage(const MessageNode& node);
 
-SCORE_LIB_PROCESS_EXPORT Process::MessageNode* try_getNodeFromAddress(
-    Process::MessageNode& root,
-    const State::AddressAccessor& addr);
+SCORE_LIB_PROCESS_EXPORT Process::MessageNode*
+try_getNodeFromAddress(Process::MessageNode& root, const State::AddressAccessor& addr);
 SCORE_LIB_PROCESS_EXPORT std::vector<Process::MessageNode*>
-try_getNodesFromAddress(
-    Process::MessageNode& root,
-    const State::AddressAccessor& addr);
+try_getNodesFromAddress(Process::MessageNode& root, const State::AddressAccessor& addr);
 SCORE_LIB_PROCESS_EXPORT State::MessageList flatten(const MessageNode&);
-SCORE_LIB_PROCESS_EXPORT State::MessageList
-getUserMessages(const MessageNode&);
+SCORE_LIB_PROCESS_EXPORT State::MessageList getUserMessages(const MessageNode&);
 }
 
 #if !defined(SCORE_ALL_UNITY) && !defined(__MINGW32__)
-extern template class SCORE_LIB_PROCESS_EXPORT
-    TreeNode<Process::StateNodeData>;
+extern template class SCORE_LIB_PROCESS_EXPORT TreeNode<Process::StateNodeData>;
 #endif

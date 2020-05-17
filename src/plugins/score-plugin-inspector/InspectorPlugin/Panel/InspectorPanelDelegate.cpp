@@ -15,12 +15,10 @@
 namespace InspectorPanel
 {
 
-template<int w, int h>
+template <int w, int h>
 class SizedWidget : public QWidget
 {
-  QSize sizeHint() const final override {
-    return QSize{w, h};
-  }
+  QSize sizeHint() const final override { return QSize{w, h}; }
 };
 
 PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
@@ -31,7 +29,8 @@ PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
   m_widget->setMinimumHeight(400);
   m_widget->setMinimumWidth(200);
 
-  m_widget->setStatusTip(QObject::tr("The inspector show information on the currently selected items."));
+  m_widget->setStatusTip(
+      QObject::tr("The inspector show information on the currently selected items."));
 }
 
 QWidget* PanelDelegate::widget()
@@ -41,19 +40,19 @@ QWidget* PanelDelegate::widget()
 
 const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
 {
-  static const score::PanelStatus status{true, false,
-                                         Qt::RightDockWidgetArea,
-                                         10,
-                                         QObject::tr("Inspector"),
-                                         "inspector",
-                                         QObject::tr("Ctrl+Shift+I")};
+  static const score::PanelStatus status{
+      true,
+      false,
+      Qt::RightDockWidgetArea,
+      10,
+      QObject::tr("Inspector"),
+      "inspector",
+      QObject::tr("Ctrl+Shift+I")};
 
   return status;
 }
 
-void PanelDelegate::on_modelChanged(
-    score::MaybeDocument oldm,
-    score::MaybeDocument newm)
+void PanelDelegate::on_modelChanged(score::MaybeDocument oldm, score::MaybeDocument newm)
 {
   using namespace score;
   delete m_inspectorPanel;
@@ -66,10 +65,8 @@ void PanelDelegate::on_modelChanged(
     SelectionStack& stack = newm->selectionStack;
 
     auto& fact = newm->app.interfaces<Inspector::InspectorWidgetList>();
-    m_inspectorPanel
-        = new InspectorPanelWidget{fact, stack, lay, m_widget, m_widget};
-    m_widget->setSizePolicy(
-        QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
+    m_inspectorPanel = new InspectorPanelWidget{fact, stack, lay, m_widget, m_widget};
+    m_widget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
   }
 }
 

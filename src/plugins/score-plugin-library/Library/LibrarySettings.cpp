@@ -4,21 +4,21 @@
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/SettingsCommand.hpp>
 #include <score/tools/Bind.hpp>
-
 #include <score/widgets/MessageBox.hpp>
 #include <score/widgets/SetIcons.hpp>
 
 #include <QApplication>
 #include <QDir>
-#include <QLineEdit>
 #include <QFormLayout>
-#include <QStandardPaths>
-#include <QStyle>
+#include <QLineEdit>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
-#include <zipdownloader.hpp>
-#include <wobjectimpl.h>
+#include <QStandardPaths>
+#include <QStyle>
 #include <QTimer>
+
+#include <wobjectimpl.h>
+#include <zipdownloader.hpp>
 
 W_OBJECT_IMPL(Library::Settings::View)
 W_OBJECT_IMPL(Library::Settings::Model)
@@ -28,7 +28,7 @@ namespace Library::Settings
 
 namespace Parameters
 {
-SETTINGS_PARAMETER_IMPL(Path){QStringLiteral("Library/Path"), [] () -> QString {
+SETTINGS_PARAMETER_IMPL(Path){QStringLiteral("Library/Path"), []() -> QString {
                                 auto paths = QStandardPaths::standardLocations(
                                     QStandardPaths::DocumentsLocation);
                                 return paths[0] + "/ossia score library";
@@ -63,17 +63,21 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
     {
       initSystemLibrary(dir);
 
-      auto dl = score::question(qApp->activeWindow(),
-                                tr("Download the user library ?"),
-                                tr("The user library has not been found. \n"
-                                   "Do you want to download it from the internet ? \n\n"
-                                   "Note: you can always download it later from : \n"
-                                   "https://github.com/OSSIA/score-user-library"));
-      if(dl)
+      auto dl = score::question(
+          qApp->activeWindow(),
+          tr("Download the user library ?"),
+          tr("The user library has not been found. \n"
+             "Do you want to download it from the internet ? \n\n"
+             "Note: you can always download it later from : \n"
+             "https://github.com/OSSIA/score-user-library"));
+      if (dl)
       {
         zdl::download_and_extract(
-              QUrl{"https://github.com/OSSIA/score-user-library/archive/master.zip"},
-              dir.absolutePath(), [] (const auto&) { }, [] { });
+            QUrl{"https://github.com/OSSIA/score-user-library/archive/"
+                 "master.zip"},
+            dir.absolutePath(),
+            [](const auto&) {},
+            [] {});
       }
     }
   });
@@ -94,10 +98,10 @@ QString Presenter::settingsName()
 
 QIcon Presenter::settingsIcon()
 {
-  return makeIcons(QStringLiteral(":/icons/settings_library_on.png")
-                   , QStringLiteral(":/icons/settings_library_off.png")
-                   , QStringLiteral(":/icons/settings_library_off.png"));
-
+  return makeIcons(
+      QStringLiteral(":/icons/settings_library_on.png"),
+      QStringLiteral(":/icons/settings_library_off.png"),
+      QStringLiteral(":/icons/settings_library_off.png"));
 }
 
 View::View() : m_widg{new QWidget}

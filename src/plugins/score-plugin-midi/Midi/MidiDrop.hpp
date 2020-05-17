@@ -33,7 +33,6 @@ struct MidiTrack
   };
   static std::vector<MidiTrack::MidiSong>
   parse(const QMimeData& dat, const score::DocumentContext& ctx);
-  static MidiSong
-  parse(const QByteArray& dat, const score::DocumentContext& ctx);
+  static MidiSong parse(const QByteArray& dat, const score::DocumentContext& ctx);
 };
 }

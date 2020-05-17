@@ -37,8 +37,7 @@ void CreateTimeSync_Event_State::undo(const score::DocumentContext& ctx) const
 {
   m_command.undo(ctx);
 
-  ScenarioCreate<TimeSyncModel>::undo(
-      m_newTimeSync, m_command.scenarioPath().find(ctx));
+  ScenarioCreate<TimeSyncModel>::undo(m_newTimeSync, m_command.scenarioPath().find(ctx));
 }
 
 void CreateTimeSync_Event_State::redo(const score::DocumentContext& ctx) const
@@ -46,8 +45,7 @@ void CreateTimeSync_Event_State::redo(const score::DocumentContext& ctx) const
   auto& scenar = m_command.scenarioPath().find(ctx);
 
   // Create the node
-  ScenarioCreate<TimeSyncModel>::redo(
-      m_newTimeSync,  m_date, scenar);
+  ScenarioCreate<TimeSyncModel>::redo(m_newTimeSync, m_date, scenar);
 
   // And the event
   m_command.redo(ctx);

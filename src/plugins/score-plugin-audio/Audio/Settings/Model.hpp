@@ -4,6 +4,7 @@
 
 #include <Audio/AudioInterface.hpp>
 #include <score_plugin_audio_export.h>
+
 #include <verdigris>
 
 namespace Audio::Settings

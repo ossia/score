@@ -7,6 +7,7 @@
 #include <QGraphicsItem>
 
 #include <score_lib_process_export.h>
+
 #include <verdigris>
 class QMenu;
 class QPoint;
@@ -34,7 +35,11 @@ class SCORE_LIB_PROCESS_EXPORT LayerPresenter : public QObject
   W_OBJECT(LayerPresenter)
 
 public:
-  LayerPresenter(const ProcessModel& model, const LayerView* view, const Context& ctx, QObject* parent);
+  LayerPresenter(
+      const ProcessModel& model,
+      const LayerView* view,
+      const Context& ctx,
+      QObject* parent);
   ~LayerPresenter() override;
 
   const Process::LayerContext& context() const { return m_context; }
@@ -57,11 +62,8 @@ public:
   const ProcessModel& model() const noexcept;
   const Id<ProcessModel>& modelId() const noexcept;
 
-  virtual void fillContextMenu(
-      QMenu&,
-      QPoint pos,
-      QPointF scenepos,
-      const LayerContextMenuManager&);
+  virtual void
+  fillContextMenu(QMenu&, QPoint pos, QPointF scenepos, const LayerContextMenuManager&);
 
   virtual GraphicsShapeItem* makeSlotHeaderDelegate();
 

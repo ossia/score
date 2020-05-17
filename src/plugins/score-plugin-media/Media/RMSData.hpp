@@ -1,9 +1,11 @@
 #pragma once
-#include <gsl/span>
-#include <Process/TimeValue.hpp>
 #include <Media/AudioArray.hpp>
-#include <QFile>
+#include <Process/TimeValue.hpp>
+
 #include <QBuffer>
+#include <QFile>
+
+#include <gsl/span>
 
 namespace Media
 {
@@ -28,7 +30,7 @@ public:
 
   // deinterleaved
   void decode(const std::vector<gsl::span<const ossia::audio_sample>>& audio);
-  void decodeLast(const std::vector<gsl::span<const ossia::audio_sample> >& audio);
+  void decodeLast(const std::vector<gsl::span<const ossia::audio_sample>>& audio);
 
   // interleaved
   void decode(ossia::drwav_handle& audio);
@@ -46,9 +48,13 @@ public:
   void finishedDecoding() W_SIGNAL(finishedDecoding);
 
 private:
-  rms_sample_t computeChannelRMS(gsl::span<const ossia::audio_sample> chan, int64_t start_idx, int64_t buffer_size);
+  rms_sample_t computeChannelRMS(
+      gsl::span<const ossia::audio_sample> chan,
+      int64_t start_idx,
+      int64_t buffer_size);
   void computeRMS(const std::vector<gsl::span<const ossia::audio_sample>>& audio, int buffer_size);
-  void computeLastRMS(const std::vector<gsl::span<const ossia::audio_sample> >& audio, int buffer_size);
+  void
+  computeLastRMS(const std::vector<gsl::span<const ossia::audio_sample>>& audio, int buffer_size);
   void computeChannelRMS(ossia::drwav_handle& wav, rms_sample_t* bytes, int64_t buffer_size);
 
   QFile m_file;
@@ -59,7 +65,6 @@ private:
 
   QByteArray m_ramData;
   QBuffer m_ramBuffer;
-
 };
 
 }

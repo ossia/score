@@ -1,8 +1,10 @@
 #pragma once
-#include <Audio/PortAudioInterface.hpp>
-#include <Audio/AudioInterface.hpp>
 #include <ossia/audio/pulseaudio_protocol.hpp>
+
 #include <QObject>
+
+#include <Audio/AudioInterface.hpp>
+#include <Audio/PortAudioInterface.hpp>
 class QComboBox;
 namespace Audio
 {
@@ -19,9 +21,8 @@ public:
   void rescan();
 
   QString prettyName() const override;
-  std::unique_ptr<ossia::audio_engine> make_engine(
-      const Audio::Settings::Model& set,
-      const score::ApplicationContext& ctx) override;
+  std::unique_ptr<ossia::audio_engine>
+  make_engine(const Audio::Settings::Model& set, const score::ApplicationContext& ctx) override;
 
   void setCard(QComboBox* combo, QString val);
 
@@ -45,9 +46,8 @@ public:
   ~PulseAudioFactory() override;
 
   QString prettyName() const override;
-  std::unique_ptr<ossia::audio_engine> make_engine(
-      const Audio::Settings::Model& set,
-      const score::ApplicationContext& ctx) override;
+  std::unique_ptr<ossia::audio_engine>
+  make_engine(const Audio::Settings::Model& set, const score::ApplicationContext& ctx) override;
 
   QWidget* make_settings(
       Audio::Settings::Model& m,

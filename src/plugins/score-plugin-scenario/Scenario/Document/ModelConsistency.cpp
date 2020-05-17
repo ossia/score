@@ -6,10 +6,7 @@
 W_OBJECT_IMPL(Scenario::ModelConsistency)
 namespace Scenario
 {
-ModelConsistency::ModelConsistency(QObject* parent)
-    : QObject(parent), m_valid(true)
-{
-}
+ModelConsistency::ModelConsistency(QObject* parent) : QObject(parent), m_valid(true) { }
 
 ModelConsistency::ModelConsistency(const ModelConsistency& other) : QObject{}
 {

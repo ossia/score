@@ -10,26 +10,22 @@ SETTINGS_PARAMETER_IMPL(Driver)
 #if defined(_WIN32)
       Audio::AudioFactory::ConcreteKey
   {
-    score::uuids::string_generator::compute(
-        "d98fca36-4e50-4802-a825-2fa213f95265")
+    score::uuids::string_generator::compute("d98fca36-4e50-4802-a825-2fa213f95265")
   } // WASAPI
 #elif defined(__APPLE__)
       Audio::AudioFactory::ConcreteKey
   {
-    score::uuids::string_generator::compute(
-        "e7543875-3b22-457c-bf41-75504637686f")
+    score::uuids::string_generator::compute("e7543875-3b22-457c-bf41-75504637686f")
   }
 #elif defined(__linux__)
       Audio::AudioFactory::ConcreteKey
   {
-    score::uuids::string_generator::compute(
-        "3533ee88-9a8d-486c-b20b-6c966cf4eaa0")
+    score::uuids::string_generator::compute("3533ee88-9a8d-486c-b20b-6c966cf4eaa0")
   } // ALSA
 #else
       Audio::AudioFactory::ConcreteKey
   {
-    score::uuids::string_generator::compute(
-        "e7543875-3b22-457c-bf41-75504637686f")
+    score::uuids::string_generator::compute("e7543875-3b22-457c-bf41-75504637686f")
   }
 #endif
 };
@@ -43,8 +39,7 @@ SETTINGS_PARAMETER_IMPL(AutoStereo){QStringLiteral("Audio/AutoStereo"), true};
 
 static auto list()
 {
-  return std::tie(
-      Driver, Rate, CardIn, CardOut, BufferSize, DefaultIn, DefaultOut, AutoStereo);
+  return std::tie(Driver, Rate, CardIn, CardOut, BufferSize, DefaultIn, DefaultOut, AutoStereo);
 }
 }
 
@@ -75,7 +70,9 @@ void Model::setDriver(Audio::AudioFactory::ConcreteKey val)
   QSettings s;
   s.setValue(Parameters::Driver.key, QVariant::fromValue(m_Driver));
   // Special case for dummy driver: set reasonable values
-  if(m_Driver == Audio::AudioFactory::ConcreteKey{score::uuids::string_generator::compute("13dabcc3-9cda-422f-a8c7-5fef5c220677")})
+  if (m_Driver
+      == Audio::AudioFactory::ConcreteKey{
+          score::uuids::string_generator::compute("13dabcc3-9cda-422f-a8c7-5fef5c220677")})
   {
     m_Rate = 44100;
     s.setValue(Parameters::Rate.key, QVariant::fromValue(m_Rate));
@@ -88,7 +85,10 @@ void Model::setDriver(Audio::AudioFactory::ConcreteKey val)
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, CardIn)
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, CardOut)
 
-int Model::getRate() const { return m_Rate; }
+int Model::getRate() const
+{
+  return m_Rate;
+}
 
 void Model::setRate(int val)
 {
@@ -104,7 +104,10 @@ void Model::setRate(int val)
   RateChanged(val);
 }
 
-int Model::getBufferSize() const { return m_BufferSize; }
+int Model::getBufferSize() const
+{
+  return m_BufferSize;
+}
 
 void Model::setBufferSize(int val)
 {
@@ -119,7 +122,6 @@ void Model::setBufferSize(int val)
   s.setValue(Parameters::BufferSize.key, QVariant::fromValue(m_BufferSize));
   BufferSizeChanged(val);
 }
-
 
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, DefaultIn)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, DefaultOut)

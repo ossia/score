@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/ExpandMode.hpp>
+#include <Process/Preset.hpp>
 #include <Process/ProcessFlags.hpp>
 #include <Process/TimeValue.hpp>
 
@@ -18,14 +19,15 @@
 #include <QIcon>
 #include <QString>
 
-#include <smallfun.hpp>
 #include <score_lib_process_export.h>
-#include <verdigris>
-#include <Process/Preset.hpp>
+#include <smallfun.hpp>
+
 #include <vector>
+#include <verdigris>
 
 class ProcessStateDataInterface;
-namespace ossia {
+namespace ossia
+{
 class value;
 }
 namespace Process
@@ -49,19 +51,14 @@ using Outlets = ossia::small_vector<Process::Outlet*, 4>;
  *
  * Interface to implement to make a process.
  */
-class SCORE_LIB_PROCESS_EXPORT ProcessModel
-    : public score::Entity<ProcessModel>,
-      public score::SerializableInterface<ProcessModel>
+class SCORE_LIB_PROCESS_EXPORT ProcessModel : public score::Entity<ProcessModel>,
+                                              public score::SerializableInterface<ProcessModel>
 {
   W_OBJECT(ProcessModel)
   SCORE_SERIALIZE_FRIENDS
 public:
   Selectable selection;
-  ProcessModel(
-      TimeVal duration,
-      const Id<ProcessModel>& id,
-      const QString& name,
-      QObject* parent);
+  ProcessModel(TimeVal duration, const Id<ProcessModel>& id, const QString& name, QObject* parent);
 
   ProcessModel(DataStream::Deserializer& vis, QObject* parent);
   ProcessModel(JSONObject::Deserializer& vis, QObject* parent);
@@ -91,10 +88,8 @@ public:
   void setPosition(const QPointF& v);
   void setSize(const QSizeF& v);
 
-  void positionChanged(QPointF p)
-    E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, positionChanged, p)
-  void sizeChanged(QSizeF p)
-    E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, sizeChanged, p)
+  void positionChanged(QPointF p) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, positionChanged, p)
+  void sizeChanged(QSizeF p) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, sizeChanged, p)
 
   PROPERTY(QPointF, position READ position WRITE setPosition NOTIFY positionChanged)
   PROPERTY(QSizeF, size READ size WRITE setSize NOTIFY sizeChanged)
@@ -125,46 +120,39 @@ public:
   virtual void loadPreset(const Preset& preset);
   virtual Preset savePreset() const noexcept;
 
-  virtual void forEachControl(smallfun::function<void(Process::Inlet&, const ossia::value&)>) const;
+  virtual void
+      forEachControl(smallfun::function<void(Process::Inlet&, const ossia::value&)>) const;
 
   // Clip duration things
-  bool loops() const noexcept
-  { return m_loops; }
+  bool loops() const noexcept { return m_loops; }
   void setLoops(bool b);
-  void loopsChanged(bool b)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, loopsChanged, b)
+  void loopsChanged(bool b) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, loopsChanged, b)
   PROPERTY(bool, loops READ loops WRITE setLoops NOTIFY loopsChanged)
 
-  TimeVal startOffset() const noexcept
-  { return m_startOffset; }
+  TimeVal startOffset() const noexcept { return m_startOffset; }
   void setStartOffset(TimeVal b);
-  void startOffsetChanged(TimeVal b)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, startOffsetChanged, b)
+  void startOffsetChanged(TimeVal b) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, startOffsetChanged, b)
   PROPERTY(TimeVal, startOffset READ startOffset WRITE setStartOffset NOTIFY startOffsetChanged)
 
-  TimeVal loopDuration() const noexcept
-  { return m_loopDuration; }
+  TimeVal loopDuration() const noexcept { return m_loopDuration; }
   void setLoopDuration(TimeVal b);
-  void loopDurationChanged(TimeVal b)
-  E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, loopDurationChanged, b)
-  PROPERTY(TimeVal, loopDuration READ loopDuration WRITE setLoopDuration NOTIFY loopDurationChanged)
-
+  void loopDurationChanged(TimeVal b) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, loopDurationChanged, b)
+  PROPERTY(
+      TimeVal,
+      loopDuration READ loopDuration WRITE setLoopDuration NOTIFY loopDurationChanged)
 
   // FIXME ugh
   QWidget* externalUI{};
 
   // True if the execution is running.
-  void execution(bool arg_1)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, execution, arg_1)
+  void execution(bool arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, execution, arg_1)
   void durationChanged(const TimeVal& arg_1)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, durationChanged, arg_1)
   void useParentDurationChanged(bool arg_1)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, useParentDurationChanged, arg_1)
 
-  void slotHeightChanged(double arg_1)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, slotHeightChanged, arg_1)
-  void prettyNameChanged()
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, prettyNameChanged)
+  void slotHeightChanged(double arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, slotHeightChanged, arg_1)
+  void prettyNameChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, prettyNameChanged)
 
   void inletsChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, inletsChanged)
   void outletsChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, outletsChanged)
@@ -178,10 +166,8 @@ public:
   void controlOutletRemoved(const Process::Port& arg_1)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, controlOutletRemoved, arg_1)
 
-  void benchmark(double arg_1)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, benchmark, arg_1)
-  void externalUIVisible(bool v) const
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, externalUIVisible, v)
+  void benchmark(double arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, benchmark, arg_1)
+  void externalUIVisible(bool v) const E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, externalUIVisible, v)
 
 protected:
   // Used to scale the process.

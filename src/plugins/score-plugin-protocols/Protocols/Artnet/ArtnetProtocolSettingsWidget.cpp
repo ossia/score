@@ -1,7 +1,6 @@
 #include <ossia/detail/config.hpp>
 #if defined(OSSIA_PROTOCOL_ARTNET)
 #include "ArtnetProtocolSettingsWidget.hpp"
-
 #include "ArtnetSpecificSettings.hpp"
 
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
@@ -28,7 +27,7 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   setLayout(layout);
 }
 
-ArtnetProtocolSettingsWidget::~ArtnetProtocolSettingsWidget() {}
+ArtnetProtocolSettingsWidget::~ArtnetProtocolSettingsWidget() { }
 
 Device::DeviceSettings ArtnetProtocolSettingsWidget::getSettings() const
 {
@@ -41,8 +40,7 @@ Device::DeviceSettings ArtnetProtocolSettingsWidget::getSettings() const
   return s;
 }
 
-void ArtnetProtocolSettingsWidget::setSettings(
-    const Device::DeviceSettings& settings)
+void ArtnetProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
   m_deviceNameEdit->setText(settings.name);
 }

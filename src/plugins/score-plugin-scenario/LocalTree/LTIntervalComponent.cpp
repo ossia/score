@@ -14,8 +14,7 @@ State::AddressAccessor value(const ossia::value& val)
 {
   if (val.get_type() == ossia::val_type::STRING)
   {
-    if (auto res = State::parseAddressAccessor(
-            QString::fromStdString(*val.target<std::string>())))
+    if (auto res = State::parseAddressAccessor(QString::fromStdString(*val.target<std::string>())))
       return *res;
   }
   return {};
@@ -46,10 +45,7 @@ struct qt_property_converter<State::AddressAccessor>
   {
     return t.toString().toStdString();
   }
-  static std::string convert(State::AddressAccessor&& t)
-  {
-    return t.toString().toStdString();
-  }
+  static std::string convert(State::AddressAccessor&& t) { return t.toString().toStdString(); }
 };
 
 template <>
@@ -92,7 +88,8 @@ public:
       QObject* parent)
       : ProcessComponent{node, proc, doc, id, "ProcessComponent", parent}
   {
-    try {
+    try
+    {
 
       for (Process::Inlet* inlet : proc.inlets())
       {
@@ -101,9 +98,8 @@ public:
         auto& port_node = m_properties.back()->addr.get_node();
         if (auto control = dynamic_cast<Process::ControlInlet*>(inlet))
         {
-          m_properties.push_back(
-              add_value_property<Process::ControlInlet::p_value>(
-                  port_node, *control, "value", this));
+          m_properties.push_back(add_value_property<Process::ControlInlet::p_value>(
+              port_node, *control, "value", this));
         }
       }
 
@@ -114,14 +110,14 @@ public:
         auto& port_node = m_properties.back()->addr.get_node();
         if (auto control = dynamic_cast<Process::ControlOutlet*>(outlet))
         {
-          m_properties.push_back(
-              add_value_property<Process::ControlOutlet::p_value>(
-                  port_node, *control, "value", this));
+          m_properties.push_back(add_value_property<Process::ControlOutlet::p_value>(
+              port_node, *control, "value", this));
         }
-
       }
-    } catch (... ) {
-  }
+    }
+    catch (...)
+    {
+    }
   }
 };
 
@@ -131,13 +127,7 @@ IntervalBase::IntervalBase(
     Scenario::IntervalModel& interval,
     const score::DocumentContext& doc,
     QObject* parent_comp)
-    : parent_t{parent,
-               interval.metadata(),
-               interval,
-               doc,
-               id,
-               "IntervalComponent",
-               parent_comp}
+    : parent_t{parent, interval.metadata(), interval, doc, id, "IntervalComponent", parent_comp}
     , m_processesNode{*node().create_child("processes")}
 {
   using namespace Scenario;
@@ -158,25 +148,17 @@ ProcessComponent* IntervalBase::make(
   return factory.make(id, m_processesNode, process, system(), this);
 }
 
-ProcessComponent* IntervalBase::make(
-    const Id<score::Component>& id,
-    Process::ProcessModel& process)
+ProcessComponent*
+IntervalBase::make(const Id<score::Component>& id, Process::ProcessModel& process)
 {
-  return new DefaultProcessComponent{
-      m_processesNode, process, system(), id, this};
+  return new DefaultProcessComponent{m_processesNode, process, system(), id, this};
 }
 
-bool IntervalBase::removing(
-    const Process::ProcessModel& cst,
-    const ProcessComponent& comp)
+bool IntervalBase::removing(const Process::ProcessModel& cst, const ProcessComponent& comp)
 {
   return true;
 }
 
-
-Interval::~Interval()
-{
-
-}
+Interval::~Interval() { }
 
 }

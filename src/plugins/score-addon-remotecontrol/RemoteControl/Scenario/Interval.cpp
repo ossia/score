@@ -18,9 +18,7 @@ ProcessComponent* IntervalBase::make(
   return factory.make(process, system(), id, this);
 }
 
-bool IntervalBase::removing(
-    const Process::ProcessModel& cst,
-    const ProcessComponent& comp)
+bool IntervalBase::removing(const Process::ProcessModel& cst, const ProcessComponent& comp)
 {
   return true;
 }

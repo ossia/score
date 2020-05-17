@@ -36,11 +36,9 @@ class ClockFactory final : public Execution::ClockFactory
 
 public:
   QString prettyName() const override;
-  std::unique_ptr<Execution::Clock>
-  make(const Execution::Context& ctx) override;
+  std::unique_ptr<Execution::Clock> make(const Execution::Context& ctx) override;
 
-  Execution::time_function
-  makeTimeFunction(const score::DocumentContext& ctx) const override;
+  Execution::time_function makeTimeFunction(const score::DocumentContext& ctx) const override;
   Execution::reverse_time_function
   makeReverseTimeFunction(const score::DocumentContext& ctx) const override;
 };

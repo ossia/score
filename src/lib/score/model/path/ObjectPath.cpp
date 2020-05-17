@@ -26,8 +26,8 @@
 namespace std
 {
 
-SCORE_LIB_BASE_EXPORT std::size_t hash<ObjectIdentifier>::
-operator()(const ObjectIdentifier& path) const
+SCORE_LIB_BASE_EXPORT std::size_t
+hash<ObjectIdentifier>::operator()(const ObjectIdentifier& path) const
 {
   uint32_t seed = 0;
   ossia::murmur::murmur3_x86_32(
@@ -35,8 +35,7 @@ operator()(const ObjectIdentifier& path) const
   ossia::hash_combine(seed, path.id());
   return seed;
 }
-SCORE_LIB_BASE_EXPORT std::size_t hash<ObjectPath>::
-operator()(const ObjectPath& path) const
+SCORE_LIB_BASE_EXPORT std::size_t hash<ObjectPath>::operator()(const ObjectPath& path) const
 {
   std::size_t seed = 0;
   for (const auto& v : path.vec())
@@ -47,15 +46,12 @@ operator()(const ObjectPath& path) const
 }
 }
 
-
 template <typename Container>
-typename Container::value_type
-findById_weak_safe(const Container& c, int32_t id)
+typename Container::value_type findById_weak_safe(const Container& c, int32_t id)
 {
-  auto it = std::find_if(
-      std::begin(c), std::end(c), [&id](typename Container::value_type model) {
-        return model->id_val() == id;
-      });
+  auto it = std::find_if(std::begin(c), std::end(c), [&id](typename Container::value_type model) {
+    return model->id_val() == id;
+  });
 
   if (it != std::end(c))
   {
@@ -63,22 +59,19 @@ findById_weak_safe(const Container& c, int32_t id)
   }
 
   SCORE_BREAKPOINT;
-  throw std::runtime_error(
-      QString("findById : id %1 not found in vector of %2")
-          .arg(id)
-          .arg(typeid(c).name())
-          .toUtf8()
-          .constData());
+  throw std::runtime_error(QString("findById : id %1 not found in vector of %2")
+                               .arg(id)
+                               .arg(typeid(c).name())
+                               .toUtf8()
+                               .constData());
 }
 
 template <typename Container>
-typename Container::value_type
-findById_weak_unsafe(const Container& c, int32_t id) noexcept
+typename Container::value_type findById_weak_unsafe(const Container& c, int32_t id) noexcept
 {
-  auto it = std::find_if(
-      std::begin(c), std::end(c), [&id](typename Container::value_type model) {
-        return model->id_val() == id;
-      });
+  auto it = std::find_if(std::begin(c), std::end(c), [&id](typename Container::value_type model) {
+    return model->id_val() == id;
+  });
 
   if (it != std::end(c))
   {
@@ -88,11 +81,8 @@ findById_weak_unsafe(const Container& c, int32_t id) noexcept
   return nullptr;
 }
 
-
-
-ObjectPath ObjectPath::pathBetweenObjects(
-    const QObject* const parent_obj,
-    const QObject* target_object)
+ObjectPath
+ObjectPath::pathBetweenObjects(const QObject* const parent_obj, const QObject* target_object)
 {
   std::vector<ObjectIdentifier> v;
 
@@ -167,7 +157,7 @@ QObject* ObjectPath::find_impl(const score::DocumentContext& ctx) const
 
   for (const auto& currentObjIdentifier : m_objectIdentifiers)
   {
-    const QObjectList &children = obj->children();
+    const QObjectList& children = obj->children();
     QObject* found = nullptr;
 
     for (int i = 0; i < children.size(); ++i)
@@ -177,7 +167,7 @@ QObject* ObjectPath::find_impl(const score::DocumentContext& ctx) const
       if (obj->objectName() == currentObjIdentifier.objectName())
       {
         auto itf = safe_cast<IdentifiedObjectAbstract*>(obj);
-        if(itf->id_val() == currentObjIdentifier.id())
+        if (itf->id_val() == currentObjIdentifier.id())
         {
           found = itf;
           break;
@@ -185,7 +175,7 @@ QObject* ObjectPath::find_impl(const score::DocumentContext& ctx) const
       }
     }
 
-    if(found)
+    if (found)
     {
       obj = found;
       SCORE_ASSERT(obj);
@@ -193,19 +183,17 @@ QObject* ObjectPath::find_impl(const score::DocumentContext& ctx) const
     else
     {
       SCORE_BREAKPOINT;
-      throw std::runtime_error(
-          QString("findById : id %1 not found")
-              .arg(currentObjIdentifier.id())
-              .toUtf8()
-              .constData());
+      throw std::runtime_error(QString("findById : id %1 not found")
+                                   .arg(currentObjIdentifier.id())
+                                   .toUtf8()
+                                   .constData());
     }
   }
 
   return obj;
 }
 
-QObject* ObjectPath::find_impl_unsafe(const score::DocumentContext& ctx) const
-    noexcept
+QObject* ObjectPath::find_impl_unsafe(const score::DocumentContext& ctx) const noexcept
 {
   using namespace score;
   QObject* obj = &ctx.document.model();
@@ -213,7 +201,7 @@ QObject* ObjectPath::find_impl_unsafe(const score::DocumentContext& ctx) const
 
   for (const auto& currentObjIdentifier : m_objectIdentifiers)
   {
-    const QObjectList &children = obj->children();
+    const QObjectList& children = obj->children();
     QObject* found = nullptr;
 
     for (int i = 0; i < children.size(); ++i)
@@ -222,7 +210,7 @@ QObject* ObjectPath::find_impl_unsafe(const score::DocumentContext& ctx) const
       if (obj->objectName() == currentObjIdentifier.objectName())
       {
         auto itf = safe_cast<IdentifiedObjectAbstract*>(obj);
-        if(itf->id_val() == currentObjIdentifier.id())
+        if (itf->id_val() == currentObjIdentifier.id())
         {
           found = itf;
           break;
@@ -230,7 +218,7 @@ QObject* ObjectPath::find_impl_unsafe(const score::DocumentContext& ctx) const
       }
     }
 
-    if(found)
+    if (found)
     {
       obj = found;
     }
@@ -243,10 +231,7 @@ QObject* ObjectPath::find_impl_unsafe(const score::DocumentContext& ctx) const
   return obj;
 }
 
-void replacePathPart(
-    const ObjectPath& src,
-    const ObjectPath& target,
-    ObjectPath& toChange)
+void replacePathPart(const ObjectPath& src, const ObjectPath& target, ObjectPath& toChange)
 {
   auto& src_v = src.vec();
   auto& tgt_v = target.vec();

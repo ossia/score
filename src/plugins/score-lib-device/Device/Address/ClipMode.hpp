@@ -12,8 +12,6 @@ class QMap;
 namespace Device
 {
 
-SCORE_LIB_DEVICE_EXPORT const QMap<ossia::bounding_mode, QString>&
-ClipModeStringMap();
-SCORE_LIB_DEVICE_EXPORT const QMap<ossia::bounding_mode, QString>&
-ClipModePrettyStringMap();
+SCORE_LIB_DEVICE_EXPORT const QMap<ossia::bounding_mode, QString>& ClipModeStringMap();
+SCORE_LIB_DEVICE_EXPORT const QMap<ossia::bounding_mode, QString>& ClipModePrettyStringMap();
 }

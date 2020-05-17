@@ -8,7 +8,6 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
-
 #include <Scenario/Process/ScenarioInterface.hpp>
 
 #include <score/document/DocumentContext.hpp>
@@ -21,39 +20,29 @@ BaseScenarioContainer::BaseScenarioContainer(
     no_init,
     const score::DocumentContext& ctx,
     QObject* parentObject)
-    : m_context{ctx}
-    , m_parent{parentObject}
+    : m_context{ctx}, m_parent{parentObject}
 {
 }
 
 BaseScenarioContainer::BaseScenarioContainer(
     const score::DocumentContext& ctx,
     QObject* parentObject)
-  : m_context{ctx}
-  , m_parent{parentObject}
+    : m_context{ctx}, m_parent{parentObject}
 {
-  m_startNode = new TimeSyncModel{Scenario::startId<TimeSyncModel>(),
-                                  TimeVal::zero(),
-                                  m_parent};
+  m_startNode = new TimeSyncModel{Scenario::startId<TimeSyncModel>(), TimeVal::zero(), m_parent};
   m_startNode->metadata().setName("Sync.start");
-  m_endNode = new TimeSyncModel{
-      Scenario::endId<TimeSyncModel>(), TimeVal::zero(), m_parent};
+  m_endNode = new TimeSyncModel{Scenario::endId<TimeSyncModel>(), TimeVal::zero(), m_parent};
   m_endNode->metadata().setName("Sync.end");
-  m_startEvent = new EventModel{Scenario::startId<EventModel>(),
-                                m_startNode->id(),
-                                TimeVal::zero(),
-                                m_parent};
+  m_startEvent = new EventModel{
+      Scenario::startId<EventModel>(), m_startNode->id(), TimeVal::zero(), m_parent};
   m_startEvent->metadata().setName("Event.start");
-  m_endEvent = new EventModel{Scenario::endId<EventModel>(),
-                              m_endNode->id(),
-                              TimeVal::zero(),
-                              m_parent};
+  m_endEvent
+      = new EventModel{Scenario::endId<EventModel>(), m_endNode->id(), TimeVal::zero(), m_parent};
   m_endEvent->metadata().setName("Event.end");
-  m_startState = new StateModel{
-      Scenario::startId<StateModel>(), m_startEvent->id(), 0, ctx, m_parent};
+  m_startState
+      = new StateModel{Scenario::startId<StateModel>(), m_startEvent->id(), 0, ctx, m_parent};
   m_startState->metadata().setName("State.start");
-  m_endState = new StateModel{
-      Scenario::endId<StateModel>(), m_endEvent->id(), 0, ctx, m_parent};
+  m_endState = new StateModel{Scenario::endId<StateModel>(), m_endEvent->id(), 0, ctx, m_parent};
   m_endState->metadata().setName("State.end");
   m_interval = new IntervalModel{Id<IntervalModel>{0}, 0, ctx, m_parent};
 
@@ -91,8 +80,7 @@ BaseScenarioContainer::~BaseScenarioContainer()
   m_endNode = nullptr;
 }
 
-IntervalModel*
-BaseScenarioContainer::findInterval(const Id<IntervalModel>& id) const
+IntervalModel* BaseScenarioContainer::findInterval(const Id<IntervalModel>& id) const
 {
   if (id == m_interval->id())
     return m_interval;
@@ -115,8 +103,7 @@ EventModel* BaseScenarioContainer::findEvent(const Id<EventModel>& id) const
   }
 }
 
-TimeSyncModel*
-BaseScenarioContainer::findTimeSync(const Id<TimeSyncModel>& id) const
+TimeSyncModel* BaseScenarioContainer::findTimeSync(const Id<TimeSyncModel>& id) const
 {
   if (id == m_startNode->id())
   {
@@ -148,8 +135,7 @@ StateModel* BaseScenarioContainer::findState(const Id<StateModel>& id) const
   }
 }
 
-IntervalModel&
-BaseScenarioContainer::interval(const Id<IntervalModel>& id) const
+IntervalModel& BaseScenarioContainer::interval(const Id<IntervalModel>& id) const
 {
   SCORE_ASSERT(id == m_interval->id());
   return *m_interval;
@@ -161,8 +147,7 @@ EventModel& BaseScenarioContainer::event(const Id<EventModel>& id) const
   return id == m_startEvent->id() ? *m_startEvent : *m_endEvent;
 }
 
-TimeSyncModel&
-BaseScenarioContainer::timeSync(const Id<TimeSyncModel>& id) const
+TimeSyncModel& BaseScenarioContainer::timeSync(const Id<TimeSyncModel>& id) const
 {
   SCORE_ASSERT(id == m_startNode->id() || id == m_endNode->id());
   return id == m_startNode->id() ? *m_startNode : *m_endNode;

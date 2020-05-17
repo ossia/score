@@ -18,6 +18,5 @@ private:
   std::vector<std::unique_ptr<score::InterfaceBase>> guiFactories(
       const score::GUIApplicationContext&,
       const score::InterfaceKey& factoryName) const override;
-  std::vector<std::unique_ptr<score::InterfaceListBase>>
-  factoryFamilies() override;
+  std::vector<std::unique_ptr<score::InterfaceListBase>> factoryFamilies() override;
 };

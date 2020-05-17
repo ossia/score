@@ -22,8 +22,7 @@ namespace score
 {
 SelectionStack::SelectionStack()
 {
-  connect(
-      this, &SelectionStack::pushNewSelection, this, &SelectionStack::push);
+  connect(this, &SelectionStack::pushNewSelection, this, &SelectionStack::push);
   m_unselectable.push(Selection{});
 }
 

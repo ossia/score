@@ -1,17 +1,18 @@
 #pragma once
-#include <Patternist/Commands/PatternProperties.hpp>
-#include <Patternist/PatternModel.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 
 #include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/tools/Bind.hpp>
 #include <score/widgets/DoubleSlider.hpp>
 #include <score/widgets/SignalUtils.hpp>
-#include <score/tools/Bind.hpp>
 
 #include <QFormLayout>
 #include <QSpinBox>
+
+#include <Patternist/Commands/PatternProperties.hpp>
+#include <Patternist/PatternModel.hpp>
 
 namespace Patternist
 {
@@ -44,12 +45,12 @@ public:
 
     auto lay = new QFormLayout{this};
 
-    con(process(), &ProcessModel::channelChanged, this, [&] (int c) {
-      if(c != m_channel.value())
+    con(process(), &ProcessModel::channelChanged, this, [&](int c) {
+      if (c != m_channel.value())
         m_channel.setValue(c);
     });
-    con(process(), &ProcessModel::currentPatternChanged, this, [&] (int c) {
-      if(c == m_currentPattern.value())
+    con(process(), &ProcessModel::currentPatternChanged, this, [&](int c) {
+      if (c == m_currentPattern.value())
         return;
 
       m_currentPattern.setValue(c);
@@ -66,59 +67,48 @@ public:
       m_rate.setValue(pat.division);
     });
 
-
-
     con(m_channel, qOverload<int>(&QSpinBox::valueChanged), this, [&]() {
       m_dispatcher.submit<SetPatternChannel>(obj, m_channel.value());
     });
-    con(m_channel, &QSpinBox::editingFinished, this, [&]() {
-      m_dispatcher.commit();
-    });
-
+    con(m_channel, &QSpinBox::editingFinished, this, [&]() { m_dispatcher.commit(); });
 
     con(m_lanes, qOverload<int>(&QSpinBox::valueChanged), this, [&]() {
       int n = m_lanes.value();
-      if(n <= 0)
+      if (n <= 0)
         return;
 
       auto p = obj.patterns()[obj.currentPattern()];
-      if(n < p.lanes.size())
+      if (n < p.lanes.size())
       {
         p.lanes.resize(n);
       }
       else
       {
         auto last_lane = p.lanes.back();
-        while(p.lanes.size() < n)
+        while (p.lanes.size() < n)
           p.lanes.push_back(last_lane);
       }
 
       m_dispatcher.submit<UpdatePattern>(obj, obj.currentPattern(), p);
     });
 
-    con(m_lanes, &QSpinBox::editingFinished, this, [&]() {
-      m_dispatcher.commit();
-    });
-
+    con(m_lanes, &QSpinBox::editingFinished, this, [&]() { m_dispatcher.commit(); });
 
     con(m_currentPattern, qOverload<int>(&QSpinBox::valueChanged), this, [&]() {
       m_dispatcher.submit<SetCurrentPattern>(obj, m_currentPattern.value());
     });
-    con(m_currentPattern, &QSpinBox::editingFinished, this, [&]() {
-      m_dispatcher.commit();
-    });
-
+    con(m_currentPattern, &QSpinBox::editingFinished, this, [&]() { m_dispatcher.commit(); });
 
     con(m_duration, qOverload<int>(&QSpinBox::valueChanged), this, [&]() {
       int n = m_duration.value();
-      if(n <= 0)
+      if (n <= 0)
         return;
 
       auto p = obj.patterns()[obj.currentPattern()];
       p.length = n;
-      if(p.length > p.lanes[0].pattern.size())
+      if (p.length > p.lanes[0].pattern.size())
       {
-        for(auto& lane : p.lanes)
+        for (auto& lane : p.lanes)
         {
           lane.pattern.resize(n);
         }
@@ -126,10 +116,7 @@ public:
 
       m_dispatcher.submit<UpdatePattern>(obj, obj.currentPattern(), p);
     });
-    con(m_duration, &QSpinBox::editingFinished, this, [&]() {
-      m_dispatcher.commit();
-    });
-
+    con(m_duration, &QSpinBox::editingFinished, this, [&]() { m_dispatcher.commit(); });
 
     con(m_rate, &QDoubleSpinBox::editingFinished, this, [&]() {
       auto p = obj.patterns()[obj.currentPattern()];

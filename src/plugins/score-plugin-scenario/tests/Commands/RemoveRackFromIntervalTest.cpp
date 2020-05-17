@@ -5,7 +5,6 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/Rack/RackModel.hpp>
 
-
 using namespace score;
 using namespace Scenario::Command;
 
@@ -16,8 +15,8 @@ public:
 private:
   void test()
   {
-    IntervalModel* interval = new IntervalModel{
-        Id<IntervalModel>{0}, Id<IntervalViewModel>{0}, qApp};
+    IntervalModel* interval
+        = new IntervalModel{Id<IntervalModel>{0}, Id<IntervalViewModel>{0}, qApp};
 
     AddRackToInterval cmd{ObjectPath{{"IntervalModel", {}}}};
 

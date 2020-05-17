@@ -1,12 +1,12 @@
 #pragma once
 #include <score/serialization/VisitorInterface.hpp>
 
+#include <QLatin1String>
+
 #include <score_lib_state_export.h>
-#include <verdigris>
 
 #include <memory>
-
-#include <QLatin1String>
+#include <verdigris>
 namespace ossia
 {
 struct unit_t;
@@ -27,8 +27,8 @@ public:
   Unit(const ossia::unit_t&) noexcept;
   Unit& operator=(const ossia::unit_t&) noexcept;
 
-  operator const ossia::unit_t&() const noexcept;
-  operator ossia::unit_t&() noexcept;
+  operator const ossia::unit_t &() const noexcept;
+  operator ossia::unit_t &() noexcept;
 
   bool operator==(const State::Unit& other) const noexcept;
   bool operator!=(const State::Unit& other) const noexcept;

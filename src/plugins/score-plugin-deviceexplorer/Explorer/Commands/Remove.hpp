@@ -16,10 +16,7 @@ namespace Command
 // TODO split this command.
 class Remove final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      DeviceExplorerCommandFactoryName(),
-      Remove,
-      "Remove an Explorer node")
+  SCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), Remove, "Remove an Explorer node")
 public:
   // For addresses
   Remove(const DeviceDocumentPlugin& devplug, Device::NodePath&& path);

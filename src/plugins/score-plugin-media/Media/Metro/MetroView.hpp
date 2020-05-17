@@ -5,9 +5,9 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 
-#include <verdigris>
-
 #include <wobjectimpl.h>
+
+#include <verdigris>
 namespace Media::Metro
 {
 
@@ -23,7 +23,7 @@ public:
 private:
   void paint_impl(QPainter* p) const override
   {
-  // TODO paint the current time
+    // TODO paint the current time
   }
 };
 }

@@ -5,6 +5,7 @@
 #include <QPointer>
 
 #include <score_plugin_scenario_export.h>
+
 #include <verdigris>
 namespace score
 {
@@ -45,15 +46,11 @@ public:
   void focusNothing();
 
 public:
-  void sig_focusedPresenter(LayerPresenter* arg_1)
-      W_SIGNAL(sig_focusedPresenter, arg_1);
-  void sig_defocusedPresenter(LayerPresenter* arg_1)
-      W_SIGNAL(sig_defocusedPresenter, arg_1);
+  void sig_focusedPresenter(LayerPresenter* arg_1) W_SIGNAL(sig_focusedPresenter, arg_1);
+  void sig_defocusedPresenter(LayerPresenter* arg_1) W_SIGNAL(sig_defocusedPresenter, arg_1);
 
-  void sig_defocusedViewModel(const ProcessModel* arg_1)
-      W_SIGNAL(sig_defocusedViewModel, arg_1);
-  void sig_focusedViewModel(const ProcessModel* arg_1)
-      W_SIGNAL(sig_focusedViewModel, arg_1);
+  void sig_defocusedViewModel(const ProcessModel* arg_1) W_SIGNAL(sig_defocusedViewModel, arg_1);
+  void sig_focusedViewModel(const ProcessModel* arg_1) W_SIGNAL(sig_focusedViewModel, arg_1);
 
   void sig_focusedRoot() W_SIGNAL(sig_focusedRoot);
 

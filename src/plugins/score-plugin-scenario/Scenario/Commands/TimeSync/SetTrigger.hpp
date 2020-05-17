@@ -15,10 +15,7 @@ namespace Command
 {
 class SCORE_PLUGIN_SCENARIO_EXPORT SetTrigger final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      SetTrigger,
-      "Change a trigger")
+  SCORE_COMMAND_DECL(CommandFactoryName(), SetTrigger, "Change a trigger")
 public:
   SetTrigger(const TimeSyncModel& tn, State::Expression trigger);
 

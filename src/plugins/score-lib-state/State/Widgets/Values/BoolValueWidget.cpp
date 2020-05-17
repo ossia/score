@@ -11,8 +11,7 @@
 
 namespace State
 {
-BoolValueWidget::BoolValueWidget(bool value, QWidget* parent)
-    : ValueWidget{parent}
+BoolValueWidget::BoolValueWidget(bool value, QWidget* parent) : ValueWidget{parent}
 {
   auto lay = new score::MarginLess<QGridLayout>{this};
   m_value = new QComboBox;

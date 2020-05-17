@@ -1,4 +1,5 @@
 #include "MergeEvents.hpp"
+
 #include <score/model/EntitySerialization.hpp>
 
 namespace Scenario
@@ -15,17 +16,17 @@ MergeEvents::MergeEvents(
   // Find the earliest.
   const auto& cev = scenario.events.at(clickedEv);
   const auto& hev = scenario.events.at(hoveredEv);
-  if(&cev == &scenario.startEvent())
+  if (&cev == &scenario.startEvent())
   {
     m_movingEventId = std::move(hoveredEv);
     m_destinationEventId = std::move(clickedEv);
   }
-  else if(&hev == &scenario.startEvent())
+  else if (&hev == &scenario.startEvent())
   {
     m_movingEventId = std::move(clickedEv);
     m_destinationEventId = std::move(hoveredEv);
   }
-  else if(cev.date() <= hev.date())
+  else if (cev.date() <= hev.date())
   {
     m_movingEventId = std::move(hoveredEv);
     m_destinationEventId = std::move(clickedEv);
@@ -44,10 +45,10 @@ MergeEvents::MergeEvents(
   s.readFrom(mergedEvent);
   m_serializedEvent = arr;
 
-  if(m_movingEventId != m_destinationEventId)
+  if (m_movingEventId != m_destinationEventId)
   {
-    m_mergeTimeSyncsCommand = new MergeTimeSyncs{
-        scenario, mergedEvent.timeSync(), destEvent.timeSync()};
+    m_mergeTimeSyncsCommand
+        = new MergeTimeSyncs{scenario, mergedEvent.timeSync(), destEvent.timeSync()};
   }
 }
 
@@ -117,18 +118,13 @@ void MergeEvents::redo(const score::DocumentContext& ctx) const
   scenar.events.remove(m_movingEventId);
 }
 
-void MergeEvents::update(
-    unused_t,
-    const Id<EventModel>&,
-    const Id<EventModel>&)
-{
-}
+void MergeEvents::update(unused_t, const Id<EventModel>&, const Id<EventModel>&) { }
 
 void MergeEvents::serializeImpl(DataStreamInput& s) const
 {
-  s << m_scenarioPath << m_movingEventId << m_destinationEventId
-    << m_serializedEvent << bool(m_mergeTimeSyncsCommand);
-  if(m_mergeTimeSyncsCommand)
+  s << m_scenarioPath << m_movingEventId << m_destinationEventId << m_serializedEvent
+    << bool(m_mergeTimeSyncsCommand);
+  if (m_mergeTimeSyncsCommand)
     s << m_mergeTimeSyncsCommand->serialize();
 }
 
@@ -136,10 +132,9 @@ void MergeEvents::deserializeImpl(DataStreamOutput& s)
 {
   bool hasCmd{};
 
-  s >> m_scenarioPath >> m_movingEventId >> m_destinationEventId
-      >> m_serializedEvent >> hasCmd;
+  s >> m_scenarioPath >> m_movingEventId >> m_destinationEventId >> m_serializedEvent >> hasCmd;
 
-  if(hasCmd)
+  if (hasCmd)
   {
     QByteArray cmd;
     s >> cmd;

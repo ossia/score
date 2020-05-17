@@ -1,6 +1,6 @@
 #pragma once
-#include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/DocumentPlugin.hpp>
+#include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/ProcessContext.hpp>
 #include <Process/ZoomHelper.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
@@ -15,9 +15,8 @@
 #include <QPoint>
 #include <QRect>
 
-#include <verdigris>
-
 #include <memory>
+#include <verdigris>
 
 class ObjectPath;
 class QSize;
@@ -96,12 +95,9 @@ public:
   bool isNodal() const noexcept;
 
 public:
-  void pressed(QPointF arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1)
-  void moved(QPointF arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1)
-  void released(QPointF arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, released, arg_1)
+  void pressed(QPointF arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1)
+  void moved(QPointF arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1)
+  void released(QPointF arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, released, arg_1)
   void escPressed() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, escPressed)
 
   void setFocusedPresenter(QPointer<Process::LayerPresenter> arg_1)
@@ -127,7 +123,7 @@ private:
   ZoomRatio computeZoom(double l, double r);
 
   void updateMinimap();
-  //double displayedDuration() const;
+  // double displayedDuration() const;
 
   Process::DataflowManager m_dataflow;
   DisplayedElementsPresenter m_scenarioPresenter;

@@ -33,9 +33,7 @@ AddressEditDialog::AddressEditDialog(QWidget* parent)
 {
 }
 
-AddressEditDialog::AddressEditDialog(
-    const Device::AddressSettings& addr,
-    QWidget* parent)
+AddressEditDialog::AddressEditDialog(const Device::AddressSettings& addr, QWidget* parent)
     : Device::AddressDialog{parent}, m_originalSettings{addr}
 {
   this->setMinimumWidth(500);
@@ -77,7 +75,7 @@ AddressEditDialog::AddressEditDialog(
   m_layout->addWidget(buttonBox);
 }
 
-AddressEditDialog::~AddressEditDialog() {}
+AddressEditDialog::~AddressEditDialog() { }
 
 void AddressEditDialog::updateType(ossia::val_type valueType)
 {
@@ -149,8 +147,8 @@ void AddressEditDialog::setNodeSettings()
 
 void AddressEditDialog::setValueSettings()
 {
-  const int index = m_valueTypeCBox->findText(
-      State::convert::prettyType(m_originalSettings.value));
+  const int index
+      = m_valueTypeCBox->findText(State::convert::prettyType(m_originalSettings.value));
   SCORE_ASSERT(index != -1);
   SCORE_ASSERT(index < m_valueTypeCBox->count());
   if (m_valueTypeCBox->currentIndex() == index)
@@ -159,8 +157,7 @@ void AddressEditDialog::setValueSettings()
   }
   else
   {
-    m_valueTypeCBox->setCurrentIndex(
-        index); // will emit currentIndexChanged(int) & call slot
+    m_valueTypeCBox->setCurrentIndex(index); // will emit currentIndexChanged(int) & call slot
   }
 }
 }

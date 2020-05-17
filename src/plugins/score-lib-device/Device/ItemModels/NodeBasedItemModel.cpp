@@ -21,12 +21,10 @@ Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
 
   // First try to find if there is a matching address
   // in the device explorer
-  auto new_n
-      = Device::try_getNodeFromString(deviceexplorer.rootNode(), newpath);
+  auto new_n = Device::try_getNodeFromString(deviceexplorer.rootNode(), newpath);
   if (new_n && new_n->is<Device::AddressSettings>())
   {
-    return Device::FullAddressAccessorSettings{
-        addr, new_n->get<Device::AddressSettings>()};
+    return Device::FullAddressAccessorSettings{addr, new_n->get<Device::AddressSettings>()};
   }
   else
   {
@@ -41,8 +39,7 @@ Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
   return s;
 }
 
-Device::FullAddressAccessorSettings
-makeFullAddressAccessorSettings(const Device::Node& mess)
+Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(const Device::Node& mess)
 {
   if (auto as_ptr = mess.target<Device::AddressSettings>())
   {

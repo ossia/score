@@ -2,22 +2,22 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ProcessInspectorWidgetDelegateFactory.hpp"
 
+#include <Process/Commands/Properties.hpp>
 #include <Process/Dataflow/PortListWidget.hpp>
 #include <Process/Process.hpp>
-#include <Process/Commands/Properties.hpp>
-#include <score/widgets/TextLabel.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/widgets/MarginLess.hpp>
-#include <score/widgets/SpinBoxes.hpp>
 #include <score/widgets/SetIcons.hpp>
+#include <score/widgets/SpinBoxes.hpp>
+#include <score/widgets/TextLabel.hpp>
 
 #include <QCheckBox>
 #include <QFormLayout>
-#include <QToolButton>
-
 #include <QScrollArea>
+#include <QToolButton>
 #include <QVBoxLayout>
 #include <QWidget>
 namespace Process
@@ -40,8 +40,7 @@ QWidget* InspectorWidgetDelegateFactory::make(
   return nullptr;
 }
 
-bool InspectorWidgetDelegateFactory::matches(
-    const InspectedObjects& objects) const
+bool InspectorWidgetDelegateFactory::matches(const InspectedObjects& objects) const
 {
   if (objects.empty())
     return false;
@@ -54,12 +53,15 @@ bool InspectorWidgetDelegateFactory::matches(
   return false;
 }
 
-class InspectorWidget
-    : public QWidget
+class InspectorWidget : public QWidget
 {
 public:
-  InspectorWidget(const ProcessModel& process, const score::DocumentContext& doc, QWidget* w, QWidget* parent)
-    : QWidget{parent}
+  InspectorWidget(
+      const ProcessModel& process,
+      const score::DocumentContext& doc,
+      QWidget* w,
+      QWidget* parent)
+      : QWidget{parent}
   {
     auto lay = new QVBoxLayout{this};
 
@@ -69,36 +71,35 @@ public:
     f.setPixelSize(18);
     label->setFont(f);
     lay->addWidget(label);
-    if(!(process.flags() & ProcessFlags::TimeIndependent))
+    if (!(process.flags() & ProcessFlags::TimeIndependent))
     {
       auto loop_w = new QWidget;
       auto loop_lay = new QFormLayout(loop_w);
-      loop_lay->setContentsMargins(1,1,1,1);
+      loop_lay->setContentsMargins(1, 1, 1, 1);
       loop_lay->setSpacing(2);
       lay->addWidget(loop_w);
 
       // Loops
       {
         auto loop_btn = new QToolButton;
-        loop_btn->setIcon(makeIcons(QStringLiteral(":/icons/loop_on.png")
-                                      , QStringLiteral(":/icons/loop_off.png")
-                                      , QStringLiteral(":/icons/loop_off.png")));
+        loop_btn->setIcon(makeIcons(
+            QStringLiteral(":/icons/loop_on.png"),
+            QStringLiteral(":/icons/loop_off.png"),
+            QStringLiteral(":/icons/loop_off.png")));
         loop_btn->setToolTip(tr("Loop"));
 
         loop_btn->setAutoRaise(true);
-        loop_btn->setIconSize(QSize{32,32});
+        loop_btn->setIconSize(QSize{32, 32});
         loop_btn->setCheckable(true);
         loop_btn->setChecked(process.loops());
-        connect(loop_btn, &QToolButton::toggled,
-                this, [&] (bool b) {
-            if(b != process.loops())
-              CommandDispatcher<>{doc.commandStack}.submit<SetLoop>(process, b);
-          });
-        con(process, &ProcessModel::loopsChanged,
-                this, [loop_btn] (bool b) {
-            if(b != loop_btn->isChecked())
-              loop_btn->setChecked(b);
-          });
+        connect(loop_btn, &QToolButton::toggled, this, [&](bool b) {
+          if (b != process.loops())
+            CommandDispatcher<>{doc.commandStack}.submit<SetLoop>(process, b);
+        });
+        con(process, &ProcessModel::loopsChanged, this, [loop_btn](bool b) {
+          if (b != loop_btn->isChecked())
+            loop_btn->setChecked(b);
+        });
         loop_lay->addRow(loop_btn);
       }
 
@@ -107,14 +108,12 @@ public:
         auto so = new score::TimeSpinBox;
         so->setMinimumTime({});
         so->setTime(process.startOffset());
-        connect(so, &score::TimeSpinBox::timeChanged,
-                this, [&] (const ossia::time_value& t) {
-          if(t != process.startOffset())
+        connect(so, &score::TimeSpinBox::timeChanged, this, [&](const ossia::time_value& t) {
+          if (t != process.startOffset())
             CommandDispatcher<>{doc.commandStack}.submit<SetStartOffset>(process, t);
         });
-        con(process, &ProcessModel::startOffsetChanged,
-            this, [so] (TimeVal t) {
-          if(t != so->time())
+        con(process, &ProcessModel::startOffsetChanged, this, [so](TimeVal t) {
+          if (t != so->time())
             so->setTime(t);
         });
         loop_lay->addRow(tr("Start offset"), so);
@@ -125,21 +124,19 @@ public:
         auto so = new score::TimeSpinBox;
         so->setMinimumTime(TimeVal::fromMsecs(10));
         so->setTime(process.loopDuration());
-        connect(so, &score::TimeSpinBox::timeChanged,
-                this, [&] (const ossia::time_value& t) {
-          if(t != process.loopDuration())
+        connect(so, &score::TimeSpinBox::timeChanged, this, [&](const ossia::time_value& t) {
+          if (t != process.loopDuration())
             CommandDispatcher<>{doc.commandStack}.submit<SetLoopDuration>(process, t);
         });
-        con(process, &ProcessModel::loopDurationChanged,
-            this, [so] (TimeVal t) {
-          if(t != so->time())
+        con(process, &ProcessModel::loopDurationChanged, this, [so](TimeVal t) {
+          if (t != so->time())
             so->setTime(t);
         });
         loop_lay->addRow(tr("Loop duration"), so);
       }
     }
 
-    if(w)
+    if (w)
     {
       lay->addWidget(w);
     }
@@ -147,7 +144,7 @@ public:
     {
       auto scroll = new QScrollArea;
       scroll->setFrameShape(QFrame::NoFrame);
-      scroll->setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding);
+      scroll->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
       scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
       scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
       scroll->setWidgetResizable(true);

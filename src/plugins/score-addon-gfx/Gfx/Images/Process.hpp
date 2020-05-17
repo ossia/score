@@ -7,8 +7,8 @@
 #include <score/command/PropertyCommand.hpp>
 
 #include <Gfx/CommandFactory.hpp>
-#include <Gfx/Images/Metadata.hpp>
 #include <Gfx/Graph/imagenode.hpp>
+#include <Gfx/Images/Metadata.hpp>
 namespace Gfx::Images
 {
 class Model final : public Process::ProcessModel
@@ -18,10 +18,7 @@ class Model final : public Process::ProcessModel
   W_OBJECT(Model)
 
 public:
-  Model(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
+  Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
 
   template <typename Impl>
   Model(Impl& vis, QObject* parent) : Process::ProcessModel{vis, parent}

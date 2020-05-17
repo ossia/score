@@ -11,12 +11,7 @@ LoopComponentBase::LoopComponentBase(
     Loop::ProcessModel& loop,
     const score::DocumentContext& ctx,
     QObject* parent_obj)
-    : ProcessComponent_T<Loop::ProcessModel>{parent,
-                                             loop,
-                                             ctx,
-                                             id,
-                                             "LoopComponent",
-                                             parent_obj}
+    : ProcessComponent_T<Loop::ProcessModel>{parent, loop, ctx, id, "LoopComponent", parent_obj}
     , m_intervalsNode{*node().create_child("intervals")}
     , m_eventsNode{*node().create_child("events")}
     , m_timeSyncsNode{*node().create_child("syncs")}

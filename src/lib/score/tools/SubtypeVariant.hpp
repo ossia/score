@@ -64,8 +64,7 @@ class SubtypeVariant
   ptr_list m_impl;
 
 public:
-  SubtypeVariant(const Base& b)
-      : m_impl(detail::make_subtype_variant<ptr_list, Base, Args...>(b))
+  SubtypeVariant(const Base& b) : m_impl(detail::make_subtype_variant<ptr_list, Base, Args...>(b))
   {
   }
 

@@ -29,14 +29,13 @@ public:
   static auto make(const ToolPalette_T& palette, QState* waitState, QState& sm)
   {
     /// Event
-    auto moveEvent = new Scenario::MoveEventState<
-        Command::MoveBaseEvent<Scenario_T>,
-        Scenario_T,
-        ToolPalette_T>{palette,
-                       palette.model(),
-                       palette.context().context.commandStack,
-                       palette.context().context.objectLocker,
-                       &sm};
+    auto moveEvent = new Scenario::
+        MoveEventState<Command::MoveBaseEvent<Scenario_T>, Scenario_T, ToolPalette_T>{
+            palette,
+            palette.model(),
+            palette.context().context.commandStack,
+            palette.context().context.objectLocker,
+            &sm};
 
     score::make_transition<Scenario::ClickOnEndState_Transition<Scenario_T>>(
         waitState, moveEvent, *moveEvent);
@@ -55,17 +54,15 @@ public:
   static auto make(const ToolPalette_T& palette, QState* waitState, QState& sm)
   {
     /// TimeSync
-    auto moveTimeSync = new Scenario::MoveTimeSyncState<
-        Command::MoveBaseEvent<Scenario_T>,
-        Scenario_T,
-        ToolPalette_T>{palette,
-                       palette.model(),
-                       palette.context().context.commandStack,
-                       palette.context().context.objectLocker,
-                       &sm};
+    auto moveTimeSync = new Scenario::
+        MoveTimeSyncState<Command::MoveBaseEvent<Scenario_T>, Scenario_T, ToolPalette_T>{
+            palette,
+            palette.model(),
+            palette.context().context.commandStack,
+            palette.context().context.objectLocker,
+            &sm};
 
-    score::make_transition<
-        Scenario::ClickOnEndTimeSync_Transition<Scenario_T>>(
+    score::make_transition<Scenario::ClickOnEndTimeSync_Transition<Scenario_T>>(
         waitState, moveTimeSync, *moveTimeSync);
     moveTimeSync->addTransition(moveTimeSync, finishedState(), waitState);
     return moveTimeSync;

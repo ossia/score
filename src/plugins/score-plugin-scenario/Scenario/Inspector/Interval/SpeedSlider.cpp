@@ -1,11 +1,11 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Inspector/Interval/SpeedSlider.hpp>
 
+#include <score/tools/Bind.hpp>
 #include <score/widgets/ControlWidgets.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/StyleSheets.hpp>
 #include <score/widgets/TextLabel.hpp>
-#include <score/tools/Bind.hpp>
 
 #include <QGridLayout>
 #include <QPushButton>
@@ -15,11 +15,7 @@
 namespace Scenario
 {
 
-SpeedWidget::SpeedWidget(
-    bool withButtons,
-    bool showText,
-    QWidget* parent)
-    : QWidget{parent}
+SpeedWidget::SpeedWidget(bool withButtons, bool showText, QWidget* parent) : QWidget{parent}
 {
   setObjectName("SpeedSlider");
 
@@ -28,7 +24,7 @@ SpeedWidget::SpeedWidget(
   lay->setVerticalSpacing(1);
 
   auto setSpeedFun = [=](double) {
-    if(m_model)
+    if (m_model)
     {
       auto& dur = ((IntervalModel&)(*m_model)).duration;
       auto s = m_slider->speed();
@@ -53,9 +49,9 @@ SpeedWidget::SpeedWidget(
 
 #ifndef QT_NO_STYLE_STYLESHEET
       pb->setStyleSheet(
-          "QPushButton { margin: 0px; padding: 0px; border:  1px solid #252930; "
-          + score::ValueStylesheet + "}"
-          + "QPushButton:hover { border: 1px solid #aaa;} ");
+          "QPushButton { margin: 0px; padding: 0px; border:  1px solid "
+          "#252930; "
+          + score::ValueStylesheet + "}" + "QPushButton:hover { border: 1px solid #aaa;} ");
 #endif
 
       connect(pb, &QPushButton::clicked, this, [=] { m_slider->setSpeed(factor); });
@@ -67,7 +63,7 @@ SpeedWidget::SpeedWidget(
   m_slider = new score::SpeedSlider{this};
   m_slider->showText = showText;
 
-  if(withButtons)
+  if (withButtons)
   {
     lay->addWidget(m_slider, 0, 0, 1, 5);
 
@@ -82,11 +78,11 @@ SpeedWidget::SpeedWidget(
   connect(m_slider, &score::SpeedSlider::valueChanged, this, setSpeedFun);
 }
 
-SpeedWidget::~SpeedWidget() {}
+SpeedWidget::~SpeedWidget() { }
 
 void SpeedWidget::setInterval(const IntervalModel& m)
 {
-  if(m_model)
+  if (m_model)
   {
     QObject::disconnect(&m_model->duration, nullptr, this, nullptr);
   }
@@ -99,16 +95,15 @@ void SpeedWidget::setInterval(const IntervalModel& m)
       m_slider->setSpeed(s);
   });
 
-  ::bind(m, IntervalModel::p_timeSignature{},
-      this, [=] (bool t) {
-      m_slider->tempo = t;
-      m_slider->update();
+  ::bind(m, IntervalModel::p_timeSignature{}, this, [=](bool t) {
+    m_slider->tempo = t;
+    m_slider->update();
   });
 }
 
 void SpeedWidget::unsetInterval()
 {
-  if(m_model)
+  if (m_model)
   {
     QObject::disconnect(&m_model->duration, nullptr, this, nullptr);
   }
@@ -123,5 +118,3 @@ QSize SpeedWidget::sizeHint() const
   return sz;
 }
 }
-
-

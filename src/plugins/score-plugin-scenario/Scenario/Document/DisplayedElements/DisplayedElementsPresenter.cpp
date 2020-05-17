@@ -27,18 +27,19 @@
 #include <Scenario/Document/TimeSync/TimeSyncView.hpp>
 #include <Scenario/Document/TimeSync/TriggerView.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Magnetism/MagnetismAdjuster.hpp>
 
 #include <score/graphics/GraphicsProxyObject.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
-#include <score/tools/std/Optional.hpp>
 #include <score/tools/Bind.hpp>
+#include <score/tools/std/Optional.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 
 #include <QGuiApplication>
+
+#include <Magnetism/MagnetismAdjuster.hpp>
 #include <wobjectimpl.h>
 
 #include <tuple>
@@ -49,8 +50,7 @@ namespace Scenario
 {
 class DisplayedElementsModel;
 
-DisplayedElementsPresenter::DisplayedElementsPresenter(
-    ScenarioDocumentPresenter& parent)
+DisplayedElementsPresenter::DisplayedElementsPresenter(ScenarioDocumentPresenter& parent)
     : QObject{&parent}
     , BaseScenarioPresenter<
           DisplayedElementsModel,
@@ -82,8 +82,7 @@ BaseGraphicsObject& DisplayedElementsPresenter::view() const
   return m_model.view().baseItem();
 }
 
-void DisplayedElementsPresenter::on_displayedIntervalChanged(
-    const IntervalModel& m)
+void DisplayedElementsPresenter::on_displayedIntervalChanged(const IntervalModel& m)
 {
   remove();
 
@@ -91,11 +90,7 @@ void DisplayedElementsPresenter::on_displayedIntervalChanged(
   auto& ctx = m_model.context();
   auto& provider = ctx.app.interfaces<DisplayedElementsProviderList>();
   DisplayedElementsPresenterContainer elts = provider.make(
-      &DisplayedElementsProvider::make_presenters,
-      m,
-      ctx,
-      &m_model.view().baseItem(),
-      this);
+      &DisplayedElementsProvider::make_presenters, m, ctx, &m_model.view().baseItem(), this);
   m_intervalPresenter = elts.interval;
   m_startStatePresenter = elts.startState;
   m_endStatePresenter = elts.endState;
@@ -110,21 +105,13 @@ void DisplayedElementsPresenter::on_displayedIntervalChanged(
           this,
           &DisplayedElementsPresenter::on_displayedIntervalDurationChanged));
   m_connections.push_back(
-      con(m_intervalPresenter->model(),
-          &IntervalModel::heightFinishedChanging,
-          this,
-          [&]() {
-            on_displayedIntervalHeightChanged(
-                m_intervalPresenter->view()->height());
-          }));
+      con(m_intervalPresenter->model(), &IntervalModel::heightFinishedChanging, this, [&]() {
+        on_displayedIntervalHeightChanged(m_intervalPresenter->view()->height());
+      }));
 
-  m_connections.push_back(connect(
-      m_intervalPresenter,
-      &FullViewIntervalPresenter::heightChanged,
-      this,
-      [&]() {
-        on_displayedIntervalHeightChanged(
-            m_intervalPresenter->view()->height());
+  m_connections.push_back(
+      connect(m_intervalPresenter, &FullViewIntervalPresenter::heightChanged, this, [&]() {
+        on_displayedIntervalHeightChanged(m_intervalPresenter->view()->height());
       }));
 
   auto elements = std::make_tuple(
@@ -138,21 +125,19 @@ void DisplayedElementsPresenter::on_displayedIntervalChanged(
 
   ossia::for_each_in_tuple(elements, [&](auto elt) {
     using elt_t = std::remove_reference_t<decltype(*elt)>;
-    m_connections.push_back(connect(
-        elt, &elt_t::pressed, &m_model, &ScenarioDocumentPresenter::pressed));
-    m_connections.push_back(connect(
-        elt, &elt_t::moved, &m_model, &ScenarioDocumentPresenter::moved));
-    m_connections.push_back(connect(
-        elt,
-        &elt_t::released,
-        &m_model,
-        &ScenarioDocumentPresenter::released));
+    m_connections.push_back(
+        connect(elt, &elt_t::pressed, &m_model, &ScenarioDocumentPresenter::pressed));
+    m_connections.push_back(
+        connect(elt, &elt_t::moved, &m_model, &ScenarioDocumentPresenter::moved));
+    m_connections.push_back(
+        connect(elt, &elt_t::released, &m_model, &ScenarioDocumentPresenter::released));
   });
 
   elts.startState->view()->disableOverlay();
   elts.endState->view()->disableOverlay();
 
-  auto& magnetismHandler = (Process::MagnetismAdjuster&)m_model.context().app.interfaces<Process::MagnetismAdjuster>();
+  auto& magnetismHandler = (Process::MagnetismAdjuster&)m_model.context()
+                               .app.interfaces<Process::MagnetismAdjuster>();
   magnetismHandler.registerHandler(*m_intervalPresenter);
 
   showInterval();
@@ -184,8 +169,7 @@ void DisplayedElementsPresenter::on_zoomRatioChanged(ZoomRatio r)
 {
   if (!m_intervalPresenter)
     return;
-  updateLength(
-      m_intervalPresenter->model().duration.defaultDuration().toPixels(r));
+  updateLength(m_intervalPresenter->model().duration.defaultDuration().toPixels(r));
 
   m_intervalPresenter->on_zoomRatioChanged(r);
 }
@@ -200,11 +184,12 @@ const double deltaY = 45.;
 void DisplayedElementsPresenter::on_displayedIntervalHeightChanged(double size)
 {
   auto cur_rect = m_model.view().view().sceneRect();
-  QRectF new_rect{qreal(ScenarioLeftSpace),
-                  0.,
-                  m_intervalPresenter->model().duration.guiDuration().toPixels(
-                      m_intervalPresenter->zoomRatio()),
-                  size + 40};
+  QRectF new_rect{
+      qreal(ScenarioLeftSpace),
+      0.,
+      m_intervalPresenter->model().duration.guiDuration().toPixels(
+          m_intervalPresenter->zoomRatio()),
+      size + 40};
 
   if (qApp->mouseButtons() & Qt::MouseButton::LeftButton)
     new_rect.setHeight(std::max(new_rect.height(), cur_rect.height()));
@@ -257,7 +242,8 @@ void DisplayedElementsPresenter::setVisible(bool b)
 
 void DisplayedElementsPresenter::remove()
 {
-  auto& magnetismHandler = (Process::MagnetismAdjuster&)m_model.context().app.interfaces<Process::MagnetismAdjuster>();
+  auto& magnetismHandler = (Process::MagnetismAdjuster&)m_model.context()
+                               .app.interfaces<Process::MagnetismAdjuster>();
   magnetismHandler.unregisterHandler(m_intervalPresenter);
 
   disconnect(

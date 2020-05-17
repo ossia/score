@@ -58,8 +58,7 @@ struct color_converter
   {
     auto rgba = ossia::rgba{ossia::strong_value<Color>{value}};
     auto& col = rgba.dataspace_value;
-    return QColor::fromRgbF(
-        (qreal)col[0], (qreal)col[1], (qreal)col[2], (qreal)col[3]);
+    return QColor::fromRgbF((qreal)col[0], (qreal)col[1], (qreal)col[2], (qreal)col[3]);
   }
 
   template <typename... Args>
@@ -71,29 +70,25 @@ struct color_converter
 CreateSequenceProcesses::CreateSequenceProcesses(
     const Scenario::ProcessModel& scenario,
     const Scenario::IntervalModel& interval)
-    : m_scenario{scenario}
-    , m_endState{Scenario::endState(interval, scenario).id()}
+    : m_scenario{scenario}, m_endState{Scenario::endState(interval, scenario).id()}
 {
   // TESTME
 
-  if (!score::AppContext()
-           .settings<Scenario::Settings::Model>()
-           .getAutoSequence())
+  if (!score::AppContext().settings<Scenario::Settings::Model>().getAutoSequence())
     return;
 
   // We get the device explorer, and we fetch the new states.
-  const auto& startMessages = Process::flatten(
-      Scenario::startState(interval, scenario).messages().rootNode());
+  const auto& startMessages
+      = Process::flatten(Scenario::startState(interval, scenario).messages().rootNode());
 
   std::vector<Device::FullAddressSettings> endAddresses;
   endAddresses.reserve(startMessages.size());
-  ossia::transform(
-      startMessages, std::back_inserter(endAddresses), [](const auto& mess) {
-        return Device::FullAddressSettings::make(mess);
-      });
+  ossia::transform(startMessages, std::back_inserter(endAddresses), [](const auto& mess) {
+    return Device::FullAddressSettings::make(mess);
+  });
 
-  auto& devPlugin = score::IDocument::documentContext(scenario)
-                        .plugin<Explorer::DeviceDocumentPlugin>();
+  auto& devPlugin
+      = score::IDocument::documentContext(scenario).plugin<Explorer::DeviceDocumentPlugin>();
   auto& rootNode = devPlugin.rootNode();
 
   for (auto it = endAddresses.begin(); it != endAddresses.end();)
@@ -119,33 +114,26 @@ CreateSequenceProcesses::CreateSequenceProcesses(
 
   QList<State::Message> endMessages;
   endMessages.reserve(endAddresses.size());
-  ossia::transform(
-      endAddresses, std::back_inserter(endMessages), [](const auto& addr) {
-        auto m
-            = State::Message{State::AddressAccessor{addr.address}, addr.value};
-        m.address.qualifiers.get().unit = addr.unit;
-        return m;
-      });
+  ossia::transform(endAddresses, std::back_inserter(endMessages), [](const auto& addr) {
+    auto m = State::Message{State::AddressAccessor{addr.address}, addr.value};
+    m.address.qualifiers.get().unit = addr.unit;
+    return m;
+  });
 
   updateTreeWithMessageList(m_stateData, endMessages);
 
   // We also create relevant curves.
-  std::vector<std::pair<State::Message, Device::FullAddressSettings>>
-      matchingNumericMessages;
-  std::vector<std::pair<State::Message, Device::FullAddressSettings>>
-      matchingListMessages;
-  std::vector<std::pair<State::Message, Device::FullAddressSettings>>
-      matchingColorMessages;
+  std::vector<std::pair<State::Message, Device::FullAddressSettings>> matchingNumericMessages;
+  std::vector<std::pair<State::Message, Device::FullAddressSettings>> matchingListMessages;
+  std::vector<std::pair<State::Message, Device::FullAddressSettings>> matchingColorMessages;
   // First we filter the messages
   for (auto& message : startMessages)
   {
     if (ossia::is_numeric(message.value))
     {
-      auto addr_it = ossia::find_if(
-          endAddresses, [&](const Device::FullAddressSettings& arg) {
-            return message.address.address == arg.address
-                   && message.value != arg.value;
-          });
+      auto addr_it = ossia::find_if(endAddresses, [&](const Device::FullAddressSettings& arg) {
+        return message.address.address == arg.address && message.value != arg.value;
+      });
 
       if (addr_it != std::end(endAddresses))
       {
@@ -154,11 +142,9 @@ CreateSequenceProcesses::CreateSequenceProcesses(
     }
     else if (ossia::is_array(message.value))
     {
-      auto addr_it = ossia::find_if(
-          endAddresses, [&](const Device::FullAddressSettings& arg) {
-            return message.address.address == arg.address
-                   && message.value != arg.value;
-          });
+      auto addr_it = ossia::find_if(endAddresses, [&](const Device::FullAddressSettings& arg) {
+        return message.address.address == arg.address && message.value != arg.value;
+      });
 
       if (addr_it != std::end(endAddresses))
       {
@@ -186,8 +172,7 @@ CreateSequenceProcesses::CreateSequenceProcesses(
   }
 
   // Then, if there are correct messages we can actually do our interpolation.
-  m_addedProcessCount = matchingNumericMessages.size()
-                        + matchingListMessages.size()
+  m_addedProcessCount = matchingNumericMessages.size() + matchingListMessages.size()
                         + matchingColorMessages.size();
   if (m_addedProcessCount == 0)
     return;
@@ -199,8 +184,7 @@ CreateSequenceProcesses::CreateSequenceProcesses(
   }
 
   // Generate brand new ids for the processes
-  auto process_ids
-      = getStrongIdRange<Process::ProcessModel>(m_addedProcessCount);
+  auto process_ids = getStrongIdRange<Process::ProcessModel>(m_addedProcessCount);
 
   int cur_proc = 0;
   // Here we know that there is nothing yet, so we can just assign
@@ -210,11 +194,8 @@ CreateSequenceProcesses::CreateSequenceProcesses(
     auto start = State::convert::value<double>(elt.first.value);
     auto end = State::convert::value<double>(elt.second.value);
     Curve::CurveDomain d{elt.second.domain.get(), start, end};
-    auto cmd = new CreateAutomationFromStates{interval,
-                                              m_interpolations.slotsToUse,
-                                              process_ids[cur_proc],
-                                              elt.first.address,
-                                              d};
+    auto cmd = new CreateAutomationFromStates{
+        interval, m_interpolations.slotsToUse, process_ids[cur_proc], elt.first.address, d};
     m_interpolations.addCommand(cmd);
     cur_proc++;
   }
@@ -223,16 +204,10 @@ CreateSequenceProcesses::CreateSequenceProcesses(
   {
     const auto& idx = elt.first.address.qualifiers.get().accessors;
     Curve::CurveDomain d = ossia::apply(
-        get_curve_domain{elt.first.address, idx, rootNode},
-        elt.first.value.v,
-        elt.second.value.v);
+        get_curve_domain{elt.first.address, idx, rootNode}, elt.first.value.v, elt.second.value.v);
 
-    m_interpolations.addCommand(
-        new CreateAutomationFromStates{interval,
-                                       m_interpolations.slotsToUse,
-                                       process_ids[cur_proc],
-                                       elt.first.address,
-                                       d});
+    m_interpolations.addCommand(new CreateAutomationFromStates{
+        interval, m_interpolations.slotsToUse, process_ids[cur_proc], elt.first.address, d});
     cur_proc++;
   }
 
@@ -246,17 +221,16 @@ CreateSequenceProcesses::CreateSequenceProcesses(
     if (!end_color)
       continue;
 
-    QColor start
-        = ossia::apply(color_converter{}, elt.first.value.v, *start_color);
-    QColor end
-        = ossia::apply(color_converter{}, elt.second.value.v, *end_color);
+    QColor start = ossia::apply(color_converter{}, elt.first.value.v, *start_color);
+    QColor end = ossia::apply(color_converter{}, elt.second.value.v, *end_color);
 
-    m_interpolations.addCommand(new CreateGradient{interval,
-                                                   m_interpolations.slotsToUse,
-                                                   process_ids[cur_proc],
-                                                   elt.first.address,
-                                                   start,
-                                                   end});
+    m_interpolations.addCommand(new CreateGradient{
+        interval,
+        m_interpolations.slotsToUse,
+        process_ids[cur_proc],
+        elt.first.address,
+        start,
+        end});
     cur_proc++;
   }
 }
@@ -287,8 +261,7 @@ void CreateSequenceProcesses::serializeImpl(DataStreamInput& s) const
 void CreateSequenceProcesses::deserializeImpl(DataStreamOutput& s)
 {
   QByteArray interp;
-  s >> m_scenario >> interp >> m_stateData >> m_endState
-      >> m_addedProcessCount;
+  s >> m_scenario >> interp >> m_stateData >> m_endState >> m_addedProcessCount;
   m_interpolations.deserialize(interp);
 }
 
@@ -301,8 +274,8 @@ CreateSequence* CreateSequence::make(
 {
   auto cmd = new CreateSequence;
 
-  auto create_command = new CreateInterval_State_Event_TimeSync{
-      scenario, start, date, endStateY, false};
+  auto create_command
+      = new CreateInterval_State_Event_TimeSync{scenario, start, date, endStateY, false};
   cmd->m_newInterval = create_command->createdInterval();
   cmd->m_newState = create_command->createdState();
   cmd->m_newEvent = create_command->createdEvent();
@@ -319,8 +292,7 @@ CreateSequence* CreateSequence::make(
     proc_command->redo(ctx);
     cmd->addCommand(proc_command);
 
-    auto show_rack
-        = new ShowRack{scenario.interval(create_command->createdInterval())};
+    auto show_rack = new ShowRack{scenario.interval(create_command->createdInterval())};
     show_rack->redo(ctx);
     cmd->addCommand(show_rack);
   }

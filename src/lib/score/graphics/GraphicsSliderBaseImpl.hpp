@@ -5,8 +5,7 @@ namespace score
 {
 
 template <typename T>
-QGraphicsSliderBase<T>::QGraphicsSliderBase(QGraphicsItem* parent)
-    : QGraphicsItem{parent}
+QGraphicsSliderBase<T>::QGraphicsSliderBase(QGraphicsItem* parent) : QGraphicsItem{parent}
 {
   this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }

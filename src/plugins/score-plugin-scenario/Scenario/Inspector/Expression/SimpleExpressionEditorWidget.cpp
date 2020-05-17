@@ -8,12 +8,12 @@
 #include <State/Expression.hpp>
 #include <State/Relation.hpp>
 
+#include <score/model/Skin.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SetIcons.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/TextLabel.hpp>
-#include <score/model/Skin.hpp>
 
 #include <ossia/detail/hash_map.hpp>
 
@@ -46,8 +46,7 @@ static const auto& ExpressionEditorComparators()
 class SimpleComboBox : public QComboBox
 {
 public:
-  SimpleComboBox(QWidget* parent)
-    : QComboBox{parent}
+  SimpleComboBox(QWidget* parent) : QComboBox{parent}
   {
     setMinimumSize(20, 16);
     setMaximumSize(40, 16);
@@ -55,18 +54,18 @@ public:
 
     setFrame(false);
   }
-  void paintEvent (QPaintEvent *ev)
+  void paintEvent(QPaintEvent* ev)
   {
-      QPainter p;
-      p.begin (this);
-      QStyleOptionComboBox opt;
-      opt.initFrom (this);
-      //style()->drawPrimitive (QStyle::PE_PanelButtonBevel, &opt, &p, this);
-      //style()->drawPrimitive (QStyle::PE_FrameLineEdit, &opt, &p, this);
-      //style()->drawPrimitive (QStyle::PE_, &opt, &p, this);
-      style()->drawPrimitive (QStyle::PE_PanelButtonCommand, &opt, &p, this);
-      style()->drawItemText (&p, rect(), Qt::AlignCenter, palette(), isEnabled(), currentText());
-      p.end();
+    QPainter p;
+    p.begin(this);
+    QStyleOptionComboBox opt;
+    opt.initFrom(this);
+    // style()->drawPrimitive (QStyle::PE_PanelButtonBevel, &opt, &p, this);
+    // style()->drawPrimitive (QStyle::PE_FrameLineEdit, &opt, &p, this);
+    // style()->drawPrimitive (QStyle::PE_, &opt, &p, this);
+    style()->drawPrimitive(QStyle::PE_PanelButtonCommand, &opt, &p, this);
+    style()->drawItemText(&p, rect(), Qt::AlignCenter, palette(), isEnabled(), currentText());
+    p.end();
   }
 };
 
@@ -115,14 +114,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
   m_menuBtn = new Inspector::MenuButton{btnWidg};
   m_menuBtn->setObjectName(QStringLiteral("SettingsMenu"));
   m_menuBtn->setMaximumSize(30, 30);
-  connect(
-      m_menuBtn,
-      &QToolButton::clicked,
-      menu,
-      [menu]()
-  {
-      menu->popup(QCursor::pos());
-  });
+  connect(m_menuBtn, &QToolButton::clicked, menu, [menu]() { menu->popup(QCursor::pos()); });
 
   QSizePolicy sp = m_menuBtn->sizePolicy();
   sp.setRetainSizeWhenHidden(true);
@@ -149,22 +141,13 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
   connect(m_addBtn, &QToolButton::clicked, this, [=]() { addTerm(); });
 
   /// EDIT FINSHED
-  connect(
-      m_address,
-      &Device::AddressAccessorEditWidget::addressChanged,
-      this,
-      [&]() { on_editFinished(); });
-  connect(m_comparator, &QComboBox::currentTextChanged, this, [&] {
+  connect(m_address, &Device::AddressAccessorEditWidget::addressChanged, this, [&]() {
     on_editFinished();
   });
+  connect(m_comparator, &QComboBox::currentTextChanged, this, [&] { on_editFinished(); });
   connect(
-      m_value,
-      &QLineEdit::editingFinished,
-      this,
-      &SimpleExpressionEditorWidget::on_editFinished);
-  connect(m_binOperator, &QComboBox::currentTextChanged, this, [&] {
-    on_editFinished();
-  });
+      m_value, &QLineEdit::editingFinished, this, &SimpleExpressionEditorWidget::on_editFinished);
+  connect(m_binOperator, &QComboBox::currentTextChanged, this, [&] { on_editFinished(); });
 
   // enable value field
   connect(
@@ -287,8 +270,7 @@ void SimpleExpressionEditorWidget::setRelation(const State::Relation& r)
     m_relation = State::toString(r);
 
     int i;
-    m_ok->setVisible(
-        m_validator.validate(m_relation, i) != QValidator::State::Acceptable);
+    m_ok->setVisible(m_validator.validate(m_relation, i) != QValidator::State::Acceptable);
   }
 }
 
@@ -301,8 +283,7 @@ void SimpleExpressionEditorWidget::setPulse(const State::Pulse& p)
   m_relation = State::toString(p);
 
   int i;
-  m_ok->setVisible(
-      m_validator.validate(m_relation, i) != QValidator::State::Acceptable);
+  m_ok->setVisible(m_validator.validate(m_relation, i) != QValidator::State::Acceptable);
 }
 
 void SimpleExpressionEditorWidget::setOperator(State::BinaryOperator o)

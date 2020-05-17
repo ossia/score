@@ -4,18 +4,16 @@
 
 MeshBuffers Renderer::initMeshBuffer(const Mesh& mesh)
 {
-  if(auto it = m_vertexBuffers.find(&mesh); it != m_vertexBuffers.end())
+  if (auto it = m_vertexBuffers.find(&mesh); it != m_vertexBuffers.end())
     return it->second;
 
   auto& rhi = *state.rhi;
   auto mesh_buf = rhi.newBuffer(
-      QRhiBuffer::Immutable,
-      QRhiBuffer::VertexBuffer,
-      mesh.vertexArray.size() * sizeof(float));
+      QRhiBuffer::Immutable, QRhiBuffer::VertexBuffer, mesh.vertexArray.size() * sizeof(float));
   mesh_buf->build();
 
   QRhiBuffer* idx_buf{};
-  if(!mesh.indexArray.empty())
+  if (!mesh.indexArray.empty())
   {
     idx_buf = rhi.newBuffer(
         QRhiBuffer::Immutable,
@@ -36,16 +34,16 @@ void Renderer::init()
   ready = false;
 
   m_rendererUBO = rhi.newBuffer(
-      #if defined(_WIN32)
+#if defined(_WIN32)
       QRhiBuffer::Dynamic,
-      #else
-        QRhiBuffer::Immutable,
-      #endif
-        QRhiBuffer::UniformBuffer, sizeof(ScreenUBO));
+#else
+      QRhiBuffer::Immutable,
+#endif
+      QRhiBuffer::UniformBuffer,
+      sizeof(ScreenUBO));
   m_rendererUBO->build();
 
-  m_emptyTexture = rhi.newTexture(
-      QRhiTexture::RGBA8, QSize{1, 1}, 1, QRhiTexture::Flag{});
+  m_emptyTexture = rhi.newTexture(QRhiTexture::RGBA8, QSize{1, 1}, 1, QRhiTexture::Flag{});
   m_emptyTexture->build();
 }
 
@@ -150,12 +148,12 @@ void Renderer::update(QRhiResourceUpdateBatch& res)
 #endif
   }
 
-  if(Q_UNLIKELY(!buffersToUpload.empty()))
+  if (Q_UNLIKELY(!buffersToUpload.empty()))
   {
-    for(auto [mesh, buf]: buffersToUpload)
+    for (auto [mesh, buf] : buffersToUpload)
     {
       res.uploadStaticBuffer(buf.mesh, 0, buf.mesh->size(), mesh->vertexArray.data());
-      if(buf.index)
+      if (buf.index)
         res.uploadStaticBuffer(buf.index, 0, buf.index->size(), mesh->indexArray.data());
     }
 

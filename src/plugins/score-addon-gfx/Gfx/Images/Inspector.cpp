@@ -12,8 +12,7 @@ InspectorWidget::InspectorWidget(
     const Gfx::Images::Model& object,
     const score::DocumentContext& context,
     QWidget* parent)
-    : InspectorWidgetDelegate_T{object, parent}
-    , m_dispatcher{context.commandStack}
+    : InspectorWidgetDelegate_T{object, parent}, m_dispatcher{context.commandStack}
 {
   auto lay = new QFormLayout{this};
   /*
@@ -25,5 +24,5 @@ InspectorWidget::InspectorWidget(
   });*/
 }
 
-InspectorWidget::~InspectorWidget() {}
+InspectorWidget::~InspectorWidget() { }
 }

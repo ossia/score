@@ -4,14 +4,14 @@
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 
 #include <score_plugin_scenario_export.h>
+
 #include <verdigris>
 
 namespace Scenario
 {
 namespace Settings
 {
-class SCORE_PLUGIN_SCENARIO_EXPORT Model final
-    : public score::SettingsDelegateModel
+class SCORE_PLUGIN_SCENARIO_EXPORT Model final : public score::SettingsDelegateModel
 {
   W_OBJECT(Model)
   QString m_Skin;
@@ -31,38 +31,19 @@ public:
   QString getSkin() const;
   void setSkin(const QString&);
 
-  SCORE_SETTINGS_PARAMETER_HPP(
-      SCORE_PLUGIN_SCENARIO_EXPORT,
-      QString,
-      DefaultEditor)
-  SCORE_SETTINGS_PARAMETER_HPP(
-      SCORE_PLUGIN_SCENARIO_EXPORT,
-      double,
-      GraphicZoom)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, QString, DefaultEditor)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, double, GraphicZoom)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, qreal, SlotHeight)
-  SCORE_SETTINGS_PARAMETER_HPP(
-      SCORE_PLUGIN_SCENARIO_EXPORT,
-      TimeVal,
-      DefaultDuration)
-  SCORE_SETTINGS_PARAMETER_HPP(
-      SCORE_PLUGIN_SCENARIO_EXPORT,
-      bool,
-      SnapshotOnCreate)
-  SCORE_SETTINGS_PARAMETER_HPP(
-      SCORE_PLUGIN_SCENARIO_EXPORT,
-      bool,
-      AutoSequence)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, TimeVal, DefaultDuration)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, bool, SnapshotOnCreate)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, bool, AutoSequence)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, bool, TimeBar)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, bool, MeasureBars)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, bool, MagneticMeasures)
 
 public:
-  void SkinChanged(const QString& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, SkinChanged, arg_1)
-  PROPERTY(
-      QString,
-      Skin READ getSkin WRITE setSkin NOTIFY SkinChanged,
-      W_Final)
+  void SkinChanged(const QString& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, SkinChanged, arg_1)
+  PROPERTY(QString, Skin READ getSkin WRITE setSkin NOTIFY SkinChanged, W_Final)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, DefaultEditor)

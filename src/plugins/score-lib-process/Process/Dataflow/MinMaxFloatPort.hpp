@@ -18,7 +18,7 @@ class SCORE_LIB_PROCESS_EXPORT MinMaxFloatOutlet : public ValueOutlet
 {
   W_OBJECT(MinMaxFloatOutlet)
 
-SCORE_SERIALIZE_FRIENDS
+  SCORE_SERIALIZE_FRIENDS
 public:
   MODEL_METADATA_IMPL_HPP(MinMaxFloatOutlet)
   MinMaxFloatOutlet() = delete;
@@ -31,11 +31,11 @@ public:
   MinMaxFloatOutlet(DataStream::Deserializer&& vis, QObject* parent);
   MinMaxFloatOutlet(JSONObject::Deserializer&& vis, QObject* parent);
 
-  void forChildInlets(const smallfun::function<void (Inlet&)>& f) const noexcept override;
-  void mapExecution(ossia::outlet& e, const smallfun::function<void (Inlet&, ossia::inlet&)>& f) const noexcept override;
+  void forChildInlets(const smallfun::function<void(Inlet&)>& f) const noexcept override;
+  void mapExecution(ossia::outlet& e, const smallfun::function<void(Inlet&, ossia::inlet&)>& f)
+      const noexcept override;
 
-  VIRTUAL_CONSTEXPR PortType type() const noexcept override
-  { return Process::PortType::Message; }
+  VIRTUAL_CONSTEXPR PortType type() const noexcept override { return Process::PortType::Message; }
 
   std::unique_ptr<Process::FloatSlider> minInlet;
   std::unique_ptr<Process::FloatSlider> maxInlet;

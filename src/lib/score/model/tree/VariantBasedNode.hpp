@@ -26,7 +26,7 @@ public:
   VariantBasedNode(VariantBasedNode&& t) noexcept = default;
   VariantBasedNode& operator=(const VariantBasedNode& t) = default;
 
-  VariantBasedNode() : m_data{InvisibleRootNode{}} {}
+  VariantBasedNode() : m_data{InvisibleRootNode{}} { }
 
   template <typename T>
   VariantBasedNode(const T& t) : m_data{t}
@@ -80,10 +80,7 @@ public:
 
   auto& impl() { return m_data; }
 
-  bool operator==(const VariantBasedNode& other) const
-  {
-    return m_data == other.m_data;
-  }
+  bool operator==(const VariantBasedNode& other) const { return m_data == other.m_data; }
 
 protected:
   eggs::variant<InvisibleRootNode, Args...> m_data;

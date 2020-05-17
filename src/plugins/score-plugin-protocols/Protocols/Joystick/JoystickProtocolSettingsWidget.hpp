@@ -10,8 +10,7 @@ class QComboBox;
 namespace Protocols
 {
 
-class JoystickProtocolSettingsWidget final
-    : public Device::ProtocolSettingsWidget
+class JoystickProtocolSettingsWidget final : public Device::ProtocolSettingsWidget
 {
   W_OBJECT(JoystickProtocolSettingsWidget)
 

@@ -20,15 +20,9 @@ namespace Command
 {
 class SCORE_PLUGIN_SCENARIO_EXPORT CreateState final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      CreateState,
-      "Create a state")
+  SCORE_COMMAND_DECL(CommandFactoryName(), CreateState, "Create a state")
 public:
-  CreateState(
-      const Scenario::ProcessModel& scenario,
-      Id<EventModel> event,
-      double stateY);
+  CreateState(const Scenario::ProcessModel& scenario, Id<EventModel> event, double stateY);
   CreateState(
       const Scenario::ProcessModel& scenario,
       Id<StateModel> newId,

@@ -11,14 +11,15 @@ LocalTreeProcessComponent::LocalTreeProcessComponent(
     Gfx::Images::Model& proc,
     const score::DocumentContext& sys,
     QObject* parent_obj)
-    : LocalTree::ProcessComponent_T<Gfx::Images::Model>{parent,
-                                                       proc,
-                                                       sys,
-                                                       id,
-                                                       "gfxComponent",
-                                                       parent_obj}
+    : LocalTree::ProcessComponent_T<Gfx::Images::Model>{
+        parent,
+        proc,
+        sys,
+        id,
+        "gfxComponent",
+        parent_obj}
 {
 }
 
-LocalTreeProcessComponent::~LocalTreeProcessComponent() {}
+LocalTreeProcessComponent::~LocalTreeProcessComponent() { }
 }

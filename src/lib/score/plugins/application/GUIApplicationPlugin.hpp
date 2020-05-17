@@ -168,8 +168,7 @@ public:
    * If newdoc isn't null, it means that it is currently being
    * focused by score.
    */
-  virtual void
-  on_documentChanged(score::Document* olddoc, score::Document* newdoc);
+  virtual void on_documentChanged(score::Document* olddoc, score::Document* newdoc);
 
   /**
    * @brief on_activeWindowChanged

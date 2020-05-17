@@ -2,8 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <score/widgets/SignalUtils.hpp>
 
-#include <QComboBox>
 #include <QCheckBox>
+#include <QComboBox>
 #include <QFormLayout>
 #include <QLabel>
 
@@ -11,16 +11,13 @@
 #include <Audio/Settings/View.hpp>
 namespace Audio::Settings
 {
-View::View()
-  : m_widg{new QWidget}
+View::View() : m_widg{new QWidget}
 {
   auto lay = new QFormLayout{m_widg};
   lay->setSpacing(10);
 
   // General settings
-  SETTINGS_UI_TOGGLE_SETUP(
-        "Auto-Stereo",
-        AutoStereo);
+  SETTINGS_UI_TOGGLE_SETUP("Auto-Stereo", AutoStereo);
 
   // Driver combo-box
   m_Driver = new QComboBox{m_widg};
@@ -31,22 +28,16 @@ View::View()
     m_Driver->addItem(drv.prettyName(), QVariant::fromValue(drv.concreteKey()));
   }
 
-  connect(
-      m_Driver,
-      SignalUtils::QComboBox_currentIndexChanged_int(),
-      this,
-      [this](int i) {
+  connect(m_Driver, SignalUtils::QComboBox_currentIndexChanged_int(), this, [this](int i) {
     const auto key = m_Driver->itemData(i).value<AudioFactory::ConcreteKey>();
     DriverChanged(key);
   });
-
 
   // Driver-specific things
   m_sw = new QWidget;
   m_sw->setLayout(new QHBoxLayout);
   lay->addWidget(m_sw);
 }
-
 
 QWidget* View::getWidget()
 {
@@ -67,15 +58,15 @@ void View::setDriverWidget(QWidget* w)
   delete m_curDriver;
   m_curDriver = w;
 
-  if(w)
+  if (w)
     m_sw->layout()->addWidget(m_curDriver);
 }
 
 void View::setRate(int val)
 {
-  if(m_curDriver)
+  if (m_curDriver)
   {
-    if(auto cb = m_curDriver->findChild<QComboBox*>("Rate"))
+    if (auto cb = m_curDriver->findChild<QComboBox*>("Rate"))
     {
       int idx = cb->findData(QVariant::fromValue(val));
       if (idx != -1 && idx != cb->currentIndex())
@@ -87,7 +78,7 @@ void View::setRate(int val)
           cb->setCurrentIndex(idx);
       }
     }
-    else if(auto label = m_curDriver->findChild<QLabel*>("Rate"))
+    else if (auto label = m_curDriver->findChild<QLabel*>("Rate"))
     {
       label->setText(QString::number(val));
     }
@@ -96,9 +87,9 @@ void View::setRate(int val)
 
 void View::setBufferSize(int val)
 {
-  if(m_curDriver)
+  if (m_curDriver)
   {
-    if(auto cb = m_curDriver->findChild<QComboBox*>("BufferSize"))
+    if (auto cb = m_curDriver->findChild<QComboBox*>("BufferSize"))
     {
       int idx = cb->findData(QVariant::fromValue(val));
       if (idx != -1 && idx != cb->currentIndex())
@@ -110,7 +101,7 @@ void View::setBufferSize(int val)
           cb->setCurrentIndex(idx);
       }
     }
-    else if(auto label = m_curDriver->findChild<QLabel*>("BufferSize"))
+    else if (auto label = m_curDriver->findChild<QLabel*>("BufferSize"))
     {
       label->setText(QString::number(val));
     }

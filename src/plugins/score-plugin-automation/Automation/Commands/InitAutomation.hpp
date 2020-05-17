@@ -17,8 +17,7 @@ namespace Automation
 {
 class ProcessModel;
 
-class SCORE_PLUGIN_AUTOMATION_EXPORT InitAutomation final
-    : public score::Command
+class SCORE_PLUGIN_AUTOMATION_EXPORT InitAutomation final : public score::Command
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), InitAutomation, "InitAutomation")
 public:

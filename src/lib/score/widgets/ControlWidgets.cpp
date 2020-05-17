@@ -2,6 +2,7 @@
 #include <score/widgets/ControlWidgets.hpp>
 #include <score/widgets/SearchLineEdit.hpp>
 
+#include <ossia/detail/flicks.hpp>
 #include <ossia/network/dataspace/gain.hpp>
 
 #include <QAction>
@@ -11,7 +12,7 @@
 #include <QStyle>
 #include <QStyleOptionButton>
 #include <QTimer>
-#include <ossia/detail/flicks.hpp>
+
 #include <cmath>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::SearchLineEdit)
@@ -30,7 +31,7 @@ SearchLineEdit::SearchLineEdit(QWidget* parent) : QLineEdit{parent}
   connect(act, &QAction::triggered, [&]() { search(); });
 }
 
-SearchLineEdit::~SearchLineEdit() {}
+SearchLineEdit::~SearchLineEdit() { }
 
 SCORE_LIB_BASE_EXPORT
 const QPalette& transparentPalette()
@@ -107,9 +108,7 @@ constexpr double speedFromValue(double value)
   return value * 6. - 1.;
 }
 
-SpeedSlider::SpeedSlider(QWidget* parent) : DoubleSlider{parent}
-{
-}
+SpeedSlider::SpeedSlider(QWidget* parent) : DoubleSlider{parent} { }
 
 double SpeedSlider::speed() const noexcept
 {
@@ -130,12 +129,10 @@ void SpeedSlider::paintEvent(QPaintEvent*)
 {
   QString text;
   text.reserve(16);
-  text += (tempo)
-        ? ""
-        : (showText) ? "speed: × " : "× ";
+  text += (tempo) ? "" : (showText) ? "speed: × " : "× ";
 
   double v = speed();
-  if(tempo)
+  if (tempo)
   {
     v *= ossia::root_tempo;
     text += QString::number(v, 'f', 1);
@@ -163,19 +160,16 @@ void SpeedSlider::mousePressEvent(QMouseEvent* ev)
       auto w = new score::DoubleSpinboxWithEnter;
       w->setWindowFlag(Qt::Tool);
       w->setWindowFlag(Qt::FramelessWindowHint);
-      if(tempo)
+      if (tempo)
       {
         w->setRange(20., 500.);
         w->setDecimals(1);
         w->setValue(speed() * ossia::root_tempo);
 
         QObject::connect(
-            w,
-            SignalUtils::QDoubleSpinBox_valueChanged_double(),
-            &self,
-            [=, &self](double v) {
-          self.setValue(valueFromSpeed(v / ossia::root_tempo));
-        });
+            w, SignalUtils::QDoubleSpinBox_valueChanged_double(), &self, [=, &self](double v) {
+              self.setValue(valueFromSpeed(v / ossia::root_tempo));
+            });
       }
       else
       {
@@ -184,20 +178,15 @@ void SpeedSlider::mousePressEvent(QMouseEvent* ev)
         w->setValue(speed());
 
         QObject::connect(
-            w,
-            SignalUtils::QDoubleSpinBox_valueChanged_double(),
-            &self,
-            [=, &self](double v) { self.setValue(valueFromSpeed(v)); });
+            w, SignalUtils::QDoubleSpinBox_valueChanged_double(), &self, [=, &self](double v) {
+              self.setValue(valueFromSpeed(v));
+            });
       }
 
       w->show();
       w->move(pos.x(), pos.y());
       QTimer::singleShot(5, w, [w] { w->setFocus(); });
-      QObject::connect(
-          w,
-          &DoubleSpinboxWithEnter::editingFinished,
-          w,
-          &QObject::deleteLater);
+      QObject::connect(w, &DoubleSpinboxWithEnter::editingFinished, w, &QObject::deleteLater);
     });
   }
   ev->ignore();
@@ -206,9 +195,7 @@ void SpeedSlider::mousePressEvent(QMouseEvent* ev)
 void VolumeSlider::paintEvent(QPaintEvent*)
 {
   paintWithText(
-      "vol: "
-      + QString::number(ossia::detail::LinearGainToDecibels(value()), 'f', 1)
-      + " dB");
+      "vol: " + QString::number(ossia::detail::LinearGainToDecibels(value()), 'f', 1) + " dB");
 }
 
 void ValueDoubleSlider::paintEvent(QPaintEvent* event)
@@ -218,8 +205,7 @@ void ValueDoubleSlider::paintEvent(QPaintEvent* event)
 
 void ValueLogDoubleSlider::paintEvent(QPaintEvent* event)
 {
-  paintWithText(QString::number(
-      ossia::normalized_to_log(min, max - min, value()), 'f', 3));
+  paintWithText(QString::number(ossia::normalized_to_log(min, max - min, value()), 'f', 3));
 }
 
 ComboSlider::ComboSlider(const QStringList& arr, QWidget* parent)

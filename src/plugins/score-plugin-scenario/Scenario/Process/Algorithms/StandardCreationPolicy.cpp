@@ -39,9 +39,7 @@ CommentBlockModel& ScenarioCreate<CommentBlockModel>::redo(
   return *comment;
 }
 
-void ScenarioCreate<TimeSyncModel>::undo(
-    const Id<TimeSyncModel>& id,
-    Scenario::ProcessModel& s)
+void ScenarioCreate<TimeSyncModel>::undo(const Id<TimeSyncModel>& id, Scenario::ProcessModel& s)
 {
   s.timeSyncs.remove(id);
 }
@@ -57,9 +55,7 @@ TimeSyncModel& ScenarioCreate<TimeSyncModel>::redo(
   return *timeSync;
 }
 
-void ScenarioCreate<EventModel>::undo(
-    const Id<EventModel>& id,
-    Scenario::ProcessModel& s)
+void ScenarioCreate<EventModel>::undo(const Id<EventModel>& id, Scenario::ProcessModel& s)
 {
   auto& ev = s.event(id);
   s.timeSync(ev.timeSync()).removeEvent(id);
@@ -79,9 +75,7 @@ EventModel& ScenarioCreate<EventModel>::redo(
   return *ev;
 }
 
-void ScenarioCreate<StateModel>::undo(
-    const Id<StateModel>& id,
-    Scenario::ProcessModel& s)
+void ScenarioCreate<StateModel>::undo(const Id<StateModel>& id, Scenario::ProcessModel& s)
 {
   auto& state = s.state(id);
   auto& ev = s.event(state.eventId());
@@ -105,9 +99,7 @@ StateModel& ScenarioCreate<StateModel>::redo(
   return *state;
 }
 
-void ScenarioCreate<IntervalModel>::undo(
-    const Id<IntervalModel>& id,
-    Scenario::ProcessModel& s)
+void ScenarioCreate<IntervalModel>::undo(const Id<IntervalModel>& id, Scenario::ProcessModel& s)
 {
   auto& cst = s.intervals.at(id);
 
@@ -139,15 +131,13 @@ IntervalModel& ScenarioCreate<IntervalModel>::redo(
   const auto& eev = s.event(est.eventId());
   const auto& tn = s.timeSync(eev.timeSync());
 
-  if(graphal)
+  if (graphal)
   {
-    IntervalDurations::Algorithms::fixAllDurations(
-          *interval, TimeVal::zero());
+    IntervalDurations::Algorithms::fixAllDurations(*interval, TimeVal::zero());
   }
   else
   {
-    IntervalDurations::Algorithms::fixAllDurations(
-          *interval, eev.date() - sev.date());
+    IntervalDurations::Algorithms::fixAllDurations(*interval, eev.date() - sev.date());
   }
   interval->setStartDate(sev.date());
 

@@ -1,20 +1,19 @@
 #pragma once
 #include <Process/Process.hpp>
-#include <Effect/EffectLayer.hpp>
 
 #include <score/graphics/TextItem.hpp>
 #include <score/model/Skin.hpp>
 #include <score/tools/Bind.hpp>
 
 #include <QGraphicsItem>
-#include <QPainter>
 #include <QObject>
+#include <QPainter>
+
+#include <Effect/EffectLayer.hpp>
 
 namespace Effect
 {
-struct ItemBase
-    : public QObject
-    , public QGraphicsItem
+struct ItemBase : public QObject, public QGraphicsItem
 {
 public:
   static const constexpr qreal TitleHeight = 15.;
@@ -30,8 +29,11 @@ public:
   QSizeF size() const noexcept { return m_contentSize; }
 
 protected:
-  ItemBase(const Process::ProcessModel& process, const score::DocumentContext& ctx, QGraphicsItem* parent)
-    : QGraphicsItem{parent}
+  ItemBase(
+      const Process::ProcessModel& process,
+      const score::DocumentContext& ctx,
+      QGraphicsItem* parent)
+      : QGraphicsItem{parent}
   {
     setAcceptedMouseButtons(Qt::LeftButton);
     setAcceptHoverEvents(true);
@@ -44,31 +46,31 @@ protected:
     auto& skin = score::Skin::instance();
     m_label = new score::SimpleTextItem{skin.Light.main, this};
 
-    if(const auto& label = process.metadata().getLabel(); !label.isEmpty())
+    if (const auto& label = process.metadata().getLabel(); !label.isEmpty())
       m_label->setText(label);
     else
       m_label->setText(process.prettyShortName());
 
-    con(process.metadata(), &score::ModelMetadata::LabelChanged,
-        this, [&] (const QString& label) {
-      if(!label.isEmpty()) m_label->setText(label);
-      else m_label->setText(process.prettyShortName());
+    con(process.metadata(), &score::ModelMetadata::LabelChanged, this, [&](const QString& label) {
+      if (!label.isEmpty())
+        m_label->setText(label);
+      else
+        m_label->setText(process.prettyShortName());
     });
 
     m_label->setFont(skin.Bold10Pt);
     m_label->setPos({12., 0});
 
     // Selection
-    con(process.selection, &Selectable::changed,
-        this, &ItemBase::setSelected);
+    con(process.selection, &Selectable::changed, this, &ItemBase::setSelected);
   }
 
   void setSelected(bool s)
   {
-    if(m_selected != s)
+    if (m_selected != s)
     {
       m_selected = s;
-      if(s)
+      if (s)
         setFocus();
 
       update();
@@ -88,9 +90,7 @@ protected:
 
     const auto& bset = skin.Emphasis5;
     const auto& fillbrush = skin.Emphasis5;
-    const auto& brush = selected ? skin.Base2.darker
-                                 : hovered ? bset.lighter
-                                           : bset.main;
+    const auto& brush = selected ? skin.Base2.darker : hovered ? bset.lighter : bset.main;
     const auto& pen = brush.pen2_solid_round_round;
 
     painter->setRenderHint(QPainter::Antialiasing, true);
@@ -111,25 +111,21 @@ protected:
 
     // Footer
     painter->fillRect(QRectF{1., h - FooterHeight, w - 2., FooterHeight}, brush.brush);
-    //painter->setPen(Qt::green);
-    //painter->setBrush(Qt::transparent);
-    //painter->drawRect(rect);
+    // painter->setPen(Qt::green);
+    // painter->setBrush(Qt::transparent);
+    // painter->drawRect(rect);
   }
 
-
-  void hoverEnterEvent(QGraphicsSceneHoverEvent *event) override
+  void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override
   {
     m_hover = true;
     update();
     event->accept();
   }
 
-  void hoverMoveEvent(QGraphicsSceneHoverEvent *event) override
-  {
-    event->accept();
-  }
+  void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override { event->accept(); }
 
-  void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) override
+  void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override
   {
     m_hover = false;
     update();
@@ -143,6 +139,5 @@ protected:
   QSizeF m_contentSize{};
   bool m_hover{false};
   bool m_selected{false};
-
 };
 }

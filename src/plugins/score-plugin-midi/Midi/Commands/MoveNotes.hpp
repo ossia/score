@@ -36,8 +36,8 @@ private:
 class ChangeNotesVelocity final : public score::Command
 {
   SCORE_COMMAND_DECL(Midi::CommandFactoryName(), ChangeNotesVelocity, "Change velocity")
-  public:
-    ChangeNotesVelocity(
+public:
+  ChangeNotesVelocity(
       const ProcessModel& model,
       const std::vector<Id<Note>>& to_update,
       double vel_delta);

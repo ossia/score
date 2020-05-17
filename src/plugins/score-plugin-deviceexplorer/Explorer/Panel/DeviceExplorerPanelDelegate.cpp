@@ -12,12 +12,12 @@ namespace Explorer
 {
 PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
     : score::PanelDelegate{ctx}
-    , m_widget{new DeviceExplorerWidget{
-          ctx.interfaces<Device::ProtocolFactoryList>(),
-          nullptr}}
+    , m_widget{new DeviceExplorerWidget{ctx.interfaces<Device::ProtocolFactoryList>(), nullptr}}
 
 {
-  m_widget->setStatusTip(QObject::tr("The device explorer displays and controls network devices and hardware peripherals."));
+  m_widget->setStatusTip(
+      QObject::tr("The device explorer displays and controls network devices "
+                  "and hardware peripherals."));
 }
 
 QWidget* PanelDelegate::widget()
@@ -27,19 +27,19 @@ QWidget* PanelDelegate::widget()
 
 const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
 {
-  static const score::PanelStatus status{true, false,
-                                         Qt::LeftDockWidgetArea,
-                                         100,
-                                         QObject::tr("Device Explorer"),
-                                         "device_explorer",
-                                         QObject::tr("Ctrl+Shift+D")};
+  static const score::PanelStatus status{
+      true,
+      false,
+      Qt::LeftDockWidgetArea,
+      100,
+      QObject::tr("Device Explorer"),
+      "device_explorer",
+      QObject::tr("Ctrl+Shift+D")};
 
   return status;
 }
 
-void PanelDelegate::on_modelChanged(
-    score::MaybeDocument oldm,
-    score::MaybeDocument newm)
+void PanelDelegate::on_modelChanged(score::MaybeDocument oldm, score::MaybeDocument newm)
 {
 #if !defined(__EMSCRIPTEN__)
   // DeviceExplorerModel ownership goes to document plugin

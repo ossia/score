@@ -20,7 +20,7 @@ DocumentPlugin::DocumentPlugin(
   exec_plug.registerAction(exec);
 }
 
-DocumentPlugin::~DocumentPlugin() {}
+DocumentPlugin::~DocumentPlugin() { }
 
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& app)
     : GUIApplicationPlugin{app}
@@ -29,8 +29,8 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& app)
 
 void ApplicationPlugin::on_createdDocument(score::Document& doc)
 {
-  doc.model().addPluginModel(new DocumentPlugin{
-      doc.context(), getStrongId(doc.model().pluginModels()), &doc.model()});
+  doc.model().addPluginModel(
+      new DocumentPlugin{doc.context(), getStrongId(doc.model().pluginModels()), &doc.model()});
 }
 
 }

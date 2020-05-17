@@ -129,24 +129,18 @@ template <>
 struct TSerializer<JSONObject, ossia::domain_base<ossia::impulse>>
 {
   using domain_t = ossia::domain_base<ossia::impulse>;
-  static void readFrom(JSONObject::Serializer& s, const domain_t& domain)
-  {
-    s.stream.Null();
-  }
+  static void readFrom(JSONObject::Serializer& s, const domain_t& domain) { s.stream.Null(); }
 
-  static void writeTo(JSONObject::Deserializer& s, domain_t& domain) {}
+  static void writeTo(JSONObject::Deserializer& s, domain_t& domain) { }
 };
 
 template <>
 struct TSerializer<JSONObject, ossia::domain_base<bool>>
 {
   using domain_t = ossia::domain_base<bool>;
-  static void readFrom(JSONObject::Serializer& s, const domain_t& domain)
-  {
-    s.stream.Null();
-  }
+  static void readFrom(JSONObject::Serializer& s, const domain_t& domain) { s.stream.Null(); }
 
-  static void writeTo(JSONObject::Deserializer& s, domain_t& domain) {}
+  static void writeTo(JSONObject::Deserializer& s, domain_t& domain) { }
 };
 
 template <>
@@ -290,18 +284,18 @@ template <>
 struct TSerializer<DataStream, ossia::domain_base<ossia::impulse>>
 {
   using domain_t = ossia::domain_base<ossia::impulse>;
-  static void readFrom(DataStream::Serializer& s, const domain_t& domain) {}
+  static void readFrom(DataStream::Serializer& s, const domain_t& domain) { }
 
-  static void writeTo(DataStream::Deserializer& s, domain_t& domain) {}
+  static void writeTo(DataStream::Deserializer& s, domain_t& domain) { }
 };
 
 template <>
 struct TSerializer<DataStream, ossia::domain_base<bool>>
 {
   using domain_t = ossia::domain_base<bool>;
-  static void readFrom(DataStream::Serializer& s, const domain_t& domain) {}
+  static void readFrom(DataStream::Serializer& s, const domain_t& domain) { }
 
-  static void writeTo(DataStream::Deserializer& s, domain_t& domain) {}
+  static void writeTo(DataStream::Deserializer& s, domain_t& domain) { }
 };
 
 template <typename Functor>
@@ -350,7 +344,7 @@ struct TSerializer<DataStream, ossia::domain_base_variant>
 
     if (var)
     {
-      ossia::apply_nonnull([&] (const auto& v) { s.stream() << v; }, var);
+      ossia::apply_nonnull([&](const auto& v) { s.stream() << v; }, var);
     }
 
     s.insertDelimiter();
@@ -385,11 +379,12 @@ struct TSerializer<JSONObject, ossia::domain_base_variant>
     s.stream.StartObject();
     if (var)
     {
-      ossia::apply_nonnull([&] (const auto& domain) {
-        using type = std::remove_const_t<std::remove_reference_t<decltype(domain)>>;
-        s.obj[Metadata<Json_k, type>::get()] = domain;
-
-      }, var);
+      ossia::apply_nonnull(
+          [&](const auto& domain) {
+            using type = std::remove_const_t<std::remove_reference_t<decltype(domain)>>;
+            s.obj[Metadata<Json_k, type>::get()] = domain;
+          },
+          var);
     }
     s.stream.EndObject();
   }
@@ -426,7 +421,7 @@ struct TSerializer<JSONObject, ossia::domain_base_variant>
 
   static void writeTo(JSONObject::Deserializer& s, var_t& var)
   {
-    if(!s.base.IsObject() || s.base.MemberCount() == 0)
+    if (!s.base.IsObject() || s.base.MemberCount() == 0)
       return;
     const auto& keys = keys_list();
     for (std::size_t i = 0; i < keys.size(); i++)
@@ -434,12 +429,7 @@ struct TSerializer<JSONObject, ossia::domain_base_variant>
       auto it = s.obj.constFind(keys[i]);
       if (it != s.obj.constEnd())
       {
-        apply_typeonly(
-            [&](auto type, var_t& var) {
-              var <<= *it;
-            },
-            (var_t::Type)i,
-            var);
+        apply_typeonly([&](auto type, var_t& var) { var <<= *it; }, (var_t::Type)i, var);
         return;
       }
     }

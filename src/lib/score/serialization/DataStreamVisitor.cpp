@@ -8,22 +8,20 @@
 
 #include <stdexcept>
 
-DataStreamReader::DataStreamReader() : components{score::AppComponents()} {}
+DataStreamReader::DataStreamReader() : components{score::AppComponents()} { }
 
 DataStreamReader::DataStreamReader(QByteArray* array)
-    : m_stream_impl{array, QIODevice::WriteOnly}
-    , components{score::AppComponents()}
+    : m_stream_impl{array, QIODevice::WriteOnly}, components{score::AppComponents()}
 {
   m_stream_impl.setVersion(QDataStream::Qt_DefaultCompiledVersion);
 }
 
 DataStreamReader::DataStreamReader(QIODevice* dev)
-    : m_stream_impl{dev}
-    , components{score::AppComponents()}
+    : m_stream_impl{dev}, components{score::AppComponents()}
 {
 }
 
-DataStreamWriter::DataStreamWriter() : components{score::AppComponents()} {}
+DataStreamWriter::DataStreamWriter() : components{score::AppComponents()} { }
 
 DataStreamWriter::DataStreamWriter(const QByteArray& array)
     : components{score::AppComponents()}, m_stream_impl{array}

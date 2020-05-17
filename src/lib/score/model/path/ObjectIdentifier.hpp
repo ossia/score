@@ -19,24 +19,19 @@
  */
 class ObjectIdentifier
 {
-  friend bool
-  operator==(const ObjectIdentifier& lhs, const ObjectIdentifier& rhs)
+  friend bool operator==(const ObjectIdentifier& lhs, const ObjectIdentifier& rhs)
   {
     return (lhs.m_objectName == rhs.m_objectName) && (lhs.m_id == rhs.m_id);
   }
 
 public:
   ObjectIdentifier() = default;
-  explicit ObjectIdentifier(const char* name) : m_objectName{name} {}
+  explicit ObjectIdentifier(const char* name) : m_objectName{name} { }
 
-  ObjectIdentifier(QString name, int32_t id)
-      : m_objectName{std::move(name)}, m_id{id}
-  {
-  }
+  ObjectIdentifier(QString name, int32_t id) : m_objectName{std::move(name)}, m_id{id} { }
 
   template <typename T>
-  ObjectIdentifier(QString name, Id<T> id)
-      : m_objectName{std::move(name)}, m_id{id.val()}
+  ObjectIdentifier(QString name, Id<T> id) : m_objectName{std::move(name)}, m_id{id.val()}
   {
   }
 

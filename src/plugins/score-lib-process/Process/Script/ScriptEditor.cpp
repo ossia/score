@@ -1,21 +1,18 @@
 #include "ScriptEditor.hpp"
 
+#include <QCXXHighlighter>
 #include <QCodeEditor>
 #include <QDialogButtonBox>
 #include <QFile>
 #include <QPlainTextEdit>
+#include <QPushButton>
 #include <QSyntaxStyle>
 #include <QVBoxLayout>
-#include <QPushButton>
-#include <QCXXHighlighter>
 namespace Process
 {
 
-ScriptDialog::ScriptDialog(
-    const score::DocumentContext& ctx,
-    QWidget* parent)
-    : QDialog{parent}
-    , m_context{ctx}
+ScriptDialog::ScriptDialog(const score::DocumentContext& ctx, QWidget* parent)
+    : QDialog{parent}, m_context{ctx}
 {
   this->setBaseSize(800, 300);
   this->setWindowFlag(Qt::WindowCloseButtonHint, false);
@@ -27,14 +24,16 @@ ScriptDialog::ScriptDialog(
   {
     QFile fl(":/drakula.xml");
 
-    if (!fl.open(QIODevice::ReadOnly)) {
+    if (!fl.open(QIODevice::ReadOnly))
+    {
       return;
     }
 
     auto style = new QSyntaxStyle(this);
-    if (!style->load(fl.readAll())) {
-        delete style;
-        return;
+    if (!style->load(fl.readAll()))
+    {
+      delete style;
+      return;
     }
     m_textedit->setSyntaxStyle(style);
   }
@@ -49,14 +48,12 @@ ScriptDialog::ScriptDialog(
   lay->setStretch(0, 3);
   lay->setStretch(1, 1);
   auto bbox = new QDialogButtonBox{
-      QDialogButtonBox::Ok | QDialogButtonBox::Reset | QDialogButtonBox::Close,
-      this};
+      QDialogButtonBox::Ok | QDialogButtonBox::Reset | QDialogButtonBox::Close, this};
   bbox->button(QDialogButtonBox::Ok)->setText(tr("Compile"));
   bbox->button(QDialogButtonBox::Reset)->setText(tr("Clear log"));
-  connect(
-      bbox->button(QDialogButtonBox::Reset), &QPushButton::clicked, this, [=] {
-        m_error->clear();
-      });
+  connect(bbox->button(QDialogButtonBox::Reset), &QPushButton::clicked, this, [=] {
+    m_error->clear();
+  });
   lay->addWidget(bbox);
 
   connect(bbox, &QDialogButtonBox::accepted, this, &ScriptDialog::on_accepted);
@@ -70,7 +67,7 @@ QString ScriptDialog::text() const noexcept
 
 void ScriptDialog::setText(const QString& str)
 {
-  if(str != text())
+  if (str != text())
   {
     m_textedit->setPlainText(str);
   }

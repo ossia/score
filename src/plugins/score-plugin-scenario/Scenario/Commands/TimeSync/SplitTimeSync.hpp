@@ -20,14 +20,9 @@ namespace Command
 {
 class SplitTimeSync final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      SplitTimeSync,
-      "Desynchronize")
+  SCORE_COMMAND_DECL(CommandFactoryName(), SplitTimeSync, "Desynchronize")
 public:
-  SplitTimeSync(
-      const TimeSyncModel& path,
-      QVector<Id<EventModel>> eventsInNewTimeSync);
+  SplitTimeSync(const TimeSyncModel& path, QVector<Id<EventModel>> eventsInNewTimeSync);
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 
@@ -45,15 +40,10 @@ private:
 
 class SCORE_PLUGIN_SCENARIO_EXPORT SplitWholeSync final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      SplitWholeSync,
-      "Desynchronize")
+  SCORE_COMMAND_DECL(CommandFactoryName(), SplitWholeSync, "Desynchronize")
 public:
   SplitWholeSync(const TimeSyncModel& path);
-  SplitWholeSync(
-      const TimeSyncModel& path,
-      std::vector<Id<TimeSyncModel>> new_ids);
+  SplitWholeSync(const TimeSyncModel& path, std::vector<Id<TimeSyncModel>> new_ids);
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 

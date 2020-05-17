@@ -24,16 +24,12 @@ class Model final : public Process::ProcessModel
   W_OBJECT(Model)
 
 public:
-  explicit Model(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
+  explicit Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
 
   ~Model() override;
 
   template <typename Impl>
-  explicit Model(Impl& vis, QObject* parent)
-      : Process::ProcessModel{vis, parent}
+  explicit Model(Impl& vis, QObject* parent) : Process::ProcessModel{vis, parent}
   {
     vis.writeTo(*this);
     init();
@@ -78,14 +74,9 @@ private:
 
   W_PROPERTY(double, min READ min WRITE setMin NOTIFY minChanged)
 
-  W_PROPERTY(
-      int,
-      stepDuration READ stepDuration WRITE setStepDuration NOTIFY
-          stepDurationChanged)
+  W_PROPERTY(int, stepDuration READ stepDuration WRITE setStepDuration NOTIFY stepDurationChanged)
 
-  W_PROPERTY(
-      int,
-      stepCount READ stepCount WRITE setStepCount NOTIFY stepCountChanged)
+  W_PROPERTY(int, stepCount READ stepCount WRITE setStepCount NOTIFY stepCountChanged)
 };
 }
 }

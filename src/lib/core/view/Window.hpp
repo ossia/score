@@ -1,22 +1,21 @@
 #pragma once
 
 #include <score/model/Identifier.hpp>
+#include <score/widgets/MarginLess.hpp>
 
 #include <core/document/Document.hpp>
 
 #include <QActionGroup>
 #include <QMainWindow>
 #include <QPair>
+#include <QStackedWidget>
 #include <QString>
 #include <QVBoxLayout>
 
 #include <score_lib_base_export.h>
 
-#include <QStackedWidget>
 #include <vector>
 #include <verdigris>
-
-#include <score/widgets/MarginLess.hpp>
 
 class QCloseEvent;
 class QDockWidget;
@@ -56,26 +55,26 @@ public:
   void allPanelsAdded();
 
 public:
-  void activeDocumentChanged(const Id<DocumentModel>& arg_1) E_SIGNAL(
-      SCORE_LIB_BASE_EXPORT,
-      activeDocumentChanged,
-      arg_1) void closeRequested(const Id<DocumentModel>& arg_1)
+  void activeDocumentChanged(const Id<DocumentModel>& arg_1)
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, activeDocumentChanged, arg_1)
+  void closeRequested(const Id<DocumentModel>& arg_1)
       E_SIGNAL(SCORE_LIB_BASE_EXPORT, closeRequested, arg_1)
 
-          void ready() E_SIGNAL(SCORE_LIB_BASE_EXPORT, ready) void sizeChanged(
-              QSize arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, sizeChanged, arg_1)
+  void ready() E_SIGNAL(SCORE_LIB_BASE_EXPORT, ready)
+  void sizeChanged(QSize arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, sizeChanged, arg_1)
 
-              public
-      : void on_fileNameChanged(DocumentView* d, const QString& newName);
+public:
+  void on_fileNameChanged(DocumentView* d, const QString& newName);
   W_SLOT(on_fileNameChanged);
 
   QWidget* centralDocumentWidget{};
   QSplitter* rightSplitter{};
   FixedTabWidget* leftTabs{};
-  //QTabWidget* rightTabs{};
+  // QTabWidget* rightTabs{};
   FixedTabWidget* bottomTabs{};
   QTabWidget* centralTabs{};
   QWidget* transportBar{};
+
 private:
   bool event(QEvent* event) override;
   void changeEvent(QEvent*) override;

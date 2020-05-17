@@ -45,7 +45,7 @@ JoystickProtocolSettingsWidget::JoystickProtocolSettingsWidget(QWidget* parent)
   update_device_list();
 }
 
-JoystickProtocolSettingsWidget::~JoystickProtocolSettingsWidget() {}
+JoystickProtocolSettingsWidget::~JoystickProtocolSettingsWidget() { }
 
 Device::DeviceSettings JoystickProtocolSettingsWidget::getSettings() const
 {
@@ -60,8 +60,7 @@ Device::DeviceSettings JoystickProtocolSettingsWidget::getSettings() const
   return s;
 }
 
-void JoystickProtocolSettingsWidget::setSettings(
-    const Device::DeviceSettings& settings)
+void JoystickProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
   m_deviceNameEdit->setText(settings.name);
 }
@@ -70,8 +69,7 @@ void JoystickProtocolSettingsWidget::update_device_list()
 {
   m_deviceChoice->clear();
 
-  const unsigned int joystick_count
-      = ossia::net::joystick_protocol::get_joystick_count();
+  const unsigned int joystick_count = ossia::net::joystick_protocol::get_joystick_count();
 
   for (unsigned int i = 0; i < joystick_count; ++i)
   {

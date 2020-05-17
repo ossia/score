@@ -42,8 +42,7 @@ getSelectedAddresses(const score::DocumentContext& doc)
     const auto& node = device_explorer.nodeFromModelIndex(index);
     if (node.is<Device::AddressSettings>())
     {
-      const Device::AddressSettings& addr
-          = node.get<Device::AddressSettings>();
+      const Device::AddressSettings& addr = node.get<Device::AddressSettings>();
       if (ossia::is_numeric(addr.value) || ossia::is_array(addr.value))
       {
         Device::FullAddressSettings as;
@@ -81,67 +80,41 @@ struct CategorizedAddress
   explicit CategorizedAddress(const Device::FullAddressAccessorSettings& addr)
   {
     if (addr.value.v)
-      ossia::apply_nonnull(
-          [&](const auto& v) { (*this)(v, addr); }, addr.value.v);
+      ossia::apply_nonnull([&](const auto& v) { (*this)(v, addr); }, addr.value.v);
   }
 
-  void
-  operator()(ossia::impulse, const Device::FullAddressAccessorSettings& addr)
+  void operator()(ossia::impulse, const Device::FullAddressAccessorSettings& addr) { count += 1; }
+  void operator()(bool, const Device::FullAddressAccessorSettings& addr) { count += 1; }
+  void operator()(int, const Device::FullAddressAccessorSettings& addr) { count += 1; }
+  void operator()(float, const Device::FullAddressAccessorSettings& addr) { count += 1; }
+  void operator()(char, const Device::FullAddressAccessorSettings& addr) { count += 1; }
+  void operator()(const std::string&, const Device::FullAddressAccessorSettings& addr)
   {
     count += 1;
   }
-  void operator()(bool, const Device::FullAddressAccessorSettings& addr)
-  {
-    count += 1;
-  }
-  void operator()(int, const Device::FullAddressAccessorSettings& addr)
-  {
-    count += 1;
-  }
-  void operator()(float, const Device::FullAddressAccessorSettings& addr)
-  {
-    count += 1;
-  }
-  void operator()(char, const Device::FullAddressAccessorSettings& addr)
-  {
-    count += 1;
-  }
-  void operator()(
-      const std::string&,
-      const Device::FullAddressAccessorSettings& addr)
-  {
-    count += 1;
-  }
-  void operator()(
-      const ossia::vec2f&,
-      const Device::FullAddressAccessorSettings& addr)
+  void operator()(const ossia::vec2f&, const Device::FullAddressAccessorSettings& addr)
   {
     if (addr.address.qualifiers.get().accessors.empty())
       count += 2;
     else
       count += 1;
   }
-  void operator()(
-      const ossia::vec3f&,
-      const Device::FullAddressAccessorSettings& addr)
+  void operator()(const ossia::vec3f&, const Device::FullAddressAccessorSettings& addr)
   {
     if (addr.address.qualifiers.get().accessors.empty())
       count += 3;
     else
       count += 1;
   }
-  void operator()(
-      const ossia::vec4f&,
-      const Device::FullAddressAccessorSettings& addr)
+  void operator()(const ossia::vec4f&, const Device::FullAddressAccessorSettings& addr)
   {
     if (addr.address.qualifiers.get().accessors.empty())
       count += 4;
     else
       count += 1;
   }
-  void operator()(
-      const std::vector<ossia::value>& v,
-      const Device::FullAddressAccessorSettings& addr)
+  void
+  operator()(const std::vector<ossia::value>& v, const Device::FullAddressAccessorSettings& addr)
   {
     if (addr.address.qualifiers.get().accessors.empty())
       count += v.size();
@@ -165,9 +138,9 @@ struct AddressAccessorCurveCreator
   const std::vector<SlotPath>& slotsToUse;
   std::vector<Process::ProcessModel*>& created;
 
-  void operator()(ossia::impulse) {}
+  void operator()(ossia::impulse) { }
 
-  void operator()(bool b) {}
+  void operator()(bool b) { }
 
   void operator()(int v)
   {
@@ -178,8 +151,8 @@ struct AddressAccessorCurveCreator
     bool tween = false;
 
     // start value / end value
-    Process::MessageNode* s_node = Device::try_getNodeFromString(
-        ss.messages().rootNode(), stringList(addr.address));
+    Process::MessageNode* s_node
+        = Device::try_getNodeFromString(ss.messages().rootNode(), stringList(addr.address));
     if (s_node)
     {
       if (auto val = s_node->value())
@@ -194,8 +167,8 @@ struct AddressAccessorCurveCreator
       tween = true;
     }
 
-    Process::MessageNode* e_node = Device::try_getNodeFromString(
-        es.messages().rootNode(), stringList(addr.address));
+    Process::MessageNode* e_node
+        = Device::try_getNodeFromString(es.messages().rootNode(), stringList(addr.address));
     if (e_node)
     {
       if (auto val = e_node->value())
@@ -207,8 +180,7 @@ struct AddressAccessorCurveCreator
     }
 
     // Send the command.
-    auto& p = macro.automate(
-        interval, slotsToUse, process_ids[created.size()], addr, dom, tween);
+    auto& p = macro.automate(interval, slotsToUse, process_ids[created.size()], addr, dom, tween);
     created.push_back(&p);
   }
 
@@ -221,8 +193,8 @@ struct AddressAccessorCurveCreator
     bool tween = false;
 
     // start value / end value
-    Process::MessageNode* s_node = Device::try_getNodeFromString(
-        ss.messages().rootNode(), stringList(addr.address));
+    Process::MessageNode* s_node
+        = Device::try_getNodeFromString(ss.messages().rootNode(), stringList(addr.address));
     if (s_node)
     {
       if (auto val = s_node->value())
@@ -237,8 +209,8 @@ struct AddressAccessorCurveCreator
       tween = true;
     }
 
-    Process::MessageNode* e_node = Device::try_getNodeFromString(
-        es.messages().rootNode(), stringList(addr.address));
+    Process::MessageNode* e_node
+        = Device::try_getNodeFromString(es.messages().rootNode(), stringList(addr.address));
     if (e_node)
     {
       if (auto val = e_node->value())
@@ -250,14 +222,13 @@ struct AddressAccessorCurveCreator
     }
 
     // Send the command.
-    auto& p = macro.automate(
-        interval, slotsToUse, process_ids[created.size()], addr, dom, tween);
+    auto& p = macro.automate(interval, slotsToUse, process_ids[created.size()], addr, dom, tween);
     created.push_back(&p);
   }
 
-  void operator()(char v) {}
+  void operator()(char v) { }
 
-  void operator()(const std::string& v) {}
+  void operator()(const std::string& v) { }
 
   template <std::size_t N>
   void operator()(const std::array<float, N>& v)
@@ -279,12 +250,7 @@ struct AddressAccessorCurveCreator
           acc[0] = (int)c;
           // Send the command.
           auto& p = macro.automate(
-              interval,
-              slotsToUse,
-              process_ids[created.size()],
-              addr,
-              dom,
-              tween);
+              interval, slotsToUse, process_ids[created.size()], addr, dom, tween);
           created.push_back(&p);
         }
         break;
@@ -292,13 +258,8 @@ struct AddressAccessorCurveCreator
       case 1:
       default:
       {
-        auto& p = macro.automate(
-            interval,
-            slotsToUse,
-            process_ids[created.size()],
-            addr,
-            dom,
-            tween);
+        auto& p
+            = macro.automate(interval, slotsToUse, process_ids[created.size()], addr, dom, tween);
         created.push_back(&p);
         break;
       }
@@ -327,25 +288,20 @@ struct AddressAccessorCurveCreator
           acc[0] = (int)c;
           // Send the command.
           auto& p = macro.automate(
-              interval,
-              slotsToUse,
-              process_ids[created.size()],
-              addr,
-              dom,
-              tween);
+              interval, slotsToUse, process_ids[created.size()], addr, dom, tween);
           created.push_back(&p);
         }
       }
     }
     else
     {
-      auto& p = macro.automate(
-          interval, slotsToUse, process_ids[created.size()], addr, dom, tween);
+      auto& p
+          = macro.automate(interval, slotsToUse, process_ids[created.size()], addr, dom, tween);
       created.push_back(&p);
     }
   }
 
-  void operator()() {}
+  void operator()() { }
 };
 
 std::vector<Process::ProcessModel*> CreateCurvesFromAddress(
@@ -360,8 +316,7 @@ std::vector<Process::ProcessModel*> CreateCurvesFromAddress(
   const auto N = addresses.automCount();
 
   // Generate brand new ids for the processes
-  auto process_ids
-      = getStrongIdRange<Process::ProcessModel>(N, interval.processes);
+  auto process_ids = getStrongIdRange<Process::ProcessModel>(N, interval.processes);
 
   if (interval.smallView().empty())
   {
@@ -375,8 +330,8 @@ std::vector<Process::ProcessModel*> CreateCurvesFromAddress(
   const auto& es = endState(interval, *scenar);
 
   // TODO check existing automations
-  as.value.apply(AddressAccessorCurveCreator{
-      as, ss, es, interval, process_ids, m, slotsToUse, created});
+  as.value.apply(
+      AddressAccessorCurveCreator{as, ss, es, interval, process_ids, m, slotsToUse, created});
 
   if (created.size() > 0)
   {
@@ -392,14 +347,12 @@ std::vector<Process::ProcessModel*> CreateCurvesFromAddress(
 
 struct CategorizedAddresses
 {
-  explicit CategorizedAddresses(
-      const std::vector<Device::FullAddressSettings>& addrs)
+  explicit CategorizedAddresses(const std::vector<Device::FullAddressSettings>& addrs)
   {
     for (auto& addr : addrs)
     {
       if (addr.value.v)
-        ossia::apply_nonnull(
-            [&](const auto& v) { (*this)(v, addr); }, addr.value.v);
+        ossia::apply_nonnull([&](const auto& v) { (*this)(v, addr); }, addr.value.v);
     }
   }
 
@@ -407,22 +360,10 @@ struct CategorizedAddresses
   {
     impulse_addr.push_back(addr);
   }
-  void operator()(bool, const Device::FullAddressSettings& addr)
-  {
-    bool_addr.push_back(addr);
-  }
-  void operator()(int, const Device::FullAddressSettings& addr)
-  {
-    int_addr.push_back(addr);
-  }
-  void operator()(float, const Device::FullAddressSettings& addr)
-  {
-    float_addr.push_back(addr);
-  }
-  void operator()(char, const Device::FullAddressSettings& addr)
-  {
-    char_addr.push_back(addr);
-  }
+  void operator()(bool, const Device::FullAddressSettings& addr) { bool_addr.push_back(addr); }
+  void operator()(int, const Device::FullAddressSettings& addr) { int_addr.push_back(addr); }
+  void operator()(float, const Device::FullAddressSettings& addr) { float_addr.push_back(addr); }
+  void operator()(char, const Device::FullAddressSettings& addr) { char_addr.push_back(addr); }
   void operator()(const std::string&, const Device::FullAddressSettings& addr)
   {
     string_addr.push_back(addr);
@@ -439,9 +380,7 @@ struct CategorizedAddresses
   {
     vec4f_addr.push_back(addr);
   }
-  void operator()(
-      const std::vector<ossia::value>& v,
-      const Device::FullAddressSettings& addr)
+  void operator()(const std::vector<ossia::value>& v, const Device::FullAddressSettings& addr)
   {
     if (!v.empty())
     {
@@ -494,9 +433,9 @@ struct CurveCreator
   const std::vector<SlotPath>& slotsToUse;
   std::vector<Process::ProcessModel*>& created;
 
-  void operator()(ossia::impulse) {}
+  void operator()(ossia::impulse) { }
 
-  void operator()(bool b) {}
+  void operator()(bool b) { }
 
   void operator()(int v)
   {
@@ -507,8 +446,8 @@ struct CurveCreator
     bool tween = false;
 
     // start value / end value
-    Process::MessageNode* s_node = Device::try_getNodeFromString(
-        ss.messages().rootNode(), stringList(as.address));
+    Process::MessageNode* s_node
+        = Device::try_getNodeFromString(ss.messages().rootNode(), stringList(as.address));
     if (s_node)
     {
       if (auto val = s_node->value())
@@ -523,8 +462,8 @@ struct CurveCreator
       tween = true;
     }
 
-    Process::MessageNode* e_node = Device::try_getNodeFromString(
-        es.messages().rootNode(), stringList(as.address));
+    Process::MessageNode* e_node
+        = Device::try_getNodeFromString(es.messages().rootNode(), stringList(as.address));
     if (e_node)
     {
       if (auto val = e_node->value())
@@ -536,8 +475,7 @@ struct CurveCreator
     }
 
     // Send the command.
-    auto& p = macro.automate(
-        interval, slotsToUse, process_ids[created.size()], addr, dom, tween);
+    auto& p = macro.automate(interval, slotsToUse, process_ids[created.size()], addr, dom, tween);
     created.push_back(&p);
   }
 
@@ -550,8 +488,8 @@ struct CurveCreator
     bool tween = false;
 
     // start value / end value
-    Process::MessageNode* s_node = Device::try_getNodeFromString(
-        ss.messages().rootNode(), stringList(as.address));
+    Process::MessageNode* s_node
+        = Device::try_getNodeFromString(ss.messages().rootNode(), stringList(as.address));
     if (s_node)
     {
       if (auto val = s_node->value())
@@ -566,8 +504,8 @@ struct CurveCreator
       tween = true;
     }
 
-    Process::MessageNode* e_node = Device::try_getNodeFromString(
-        es.messages().rootNode(), stringList(as.address));
+    Process::MessageNode* e_node
+        = Device::try_getNodeFromString(es.messages().rootNode(), stringList(as.address));
     if (e_node)
     {
       if (auto val = e_node->value())
@@ -579,14 +517,13 @@ struct CurveCreator
     }
 
     // Send the command.
-    auto& p = macro.automate(
-        interval, slotsToUse, process_ids[created.size()], addr, dom, tween);
+    auto& p = macro.automate(interval, slotsToUse, process_ids[created.size()], addr, dom, tween);
     created.push_back(&p);
   }
 
-  void operator()(char v) {}
+  void operator()(char v) { }
 
-  void operator()(const std::string& v) {}
+  void operator()(const std::string& v) { }
 
   template <std::size_t N>
   void operator()(const std::array<float, N>& v)
@@ -603,8 +540,8 @@ struct CurveCreator
     {
       acc[0] = (int)c;
       // Send the command.
-      auto& p = macro.automate(
-          interval, slotsToUse, process_ids[created.size()], addr, dom, tween);
+      auto& p
+          = macro.automate(interval, slotsToUse, process_ids[created.size()], addr, dom, tween);
       created.push_back(&p);
     }
   }
@@ -628,19 +565,14 @@ struct CurveCreator
       {
         acc[0] = (int)c;
         // Send the command.
-        auto& p = macro.automate(
-            interval,
-            slotsToUse,
-            process_ids[created.size()],
-            addr,
-            dom,
-            tween);
+        auto& p
+            = macro.automate(interval, slotsToUse, process_ids[created.size()], addr, dom, tween);
         created.push_back(&p);
       }
     }
   }
 
-  void operator()() {}
+  void operator()() { }
 };
 
 int CreateCurvesFromAddresses(
@@ -652,8 +584,7 @@ int CreateCurvesFromAddresses(
     std::vector<Process::ProcessModel*>& created)
 {
   // Generate brand new ids for the processes
-  auto process_ids
-      = getStrongIdRange<Process::ProcessModel>(N, interval.processes);
+  auto process_ids = getStrongIdRange<Process::ProcessModel>(N, interval.processes);
   auto macro = Scenario::Command::makeAddProcessMacro(interval, N);
 
   auto slots = macro->slotsToUse;
@@ -673,8 +604,7 @@ int CreateCurvesFromAddresses(
 
   for (const Device::FullAddressSettings& as : addresses.float_addr)
   {
-    CurveCreator{as, ss, es, interval, process_ids, m, slots, created}(
-        float{});
+    CurveCreator{as, ss, es, interval, process_ids, m, slots, created}(float{});
   }
   for (const Device::FullAddressSettings& as : addresses.int_addr)
   {
@@ -682,18 +612,15 @@ int CreateCurvesFromAddresses(
   }
   for (const Device::FullAddressSettings& as : addresses.vec2f_addr)
   {
-    CurveCreator{as, ss, es, interval, process_ids, m, slots, created}(
-        ossia::vec2f{});
+    CurveCreator{as, ss, es, interval, process_ids, m, slots, created}(ossia::vec2f{});
   }
   for (const Device::FullAddressSettings& as : addresses.vec3f_addr)
   {
-    CurveCreator{as, ss, es, interval, process_ids, m, slots, created}(
-        ossia::vec3f{});
+    CurveCreator{as, ss, es, interval, process_ids, m, slots, created}(ossia::vec3f{});
   }
   for (const Device::FullAddressSettings& as : addresses.vec4f_addr)
   {
-    CurveCreator{as, ss, es, interval, process_ids, m, slots, created}(
-        ossia::vec4f{});
+    CurveCreator{as, ss, es, interval, process_ids, m, slots, created}(ossia::vec4f{});
   }
   for (const Device::FullAddressSettings& as : addresses.list_addr)
   {
@@ -714,8 +641,7 @@ std::vector<Process::ProcessModel*> CreateCurvesFromAddresses(
   CategorizedAddresses addresses{a};
   const auto N = addresses.automCount();
 
-  int count
-      = CreateCurvesFromAddresses(interval, *scenar, addresses, N, m, created);
+  int count = CreateCurvesFromAddresses(interval, *scenar, addresses, N, m, created);
   if (count > 0)
   {
     m.commit();
@@ -737,8 +663,7 @@ std::vector<Process::ProcessModel*> CreateCurvesFromAddresses(
   // They should all be in the same scenario so we can select the first.
   // FIXME check that the other "cohesion" methods also use ScenarioInterface
   // and not Scenario::ProcessModel
-  auto scenar = dynamic_cast<Scenario::ScenarioInterface*>(
-      selected_intervals.front()->parent());
+  auto scenar = dynamic_cast<Scenario::ScenarioInterface*>(selected_intervals.front()->parent());
 
   bool added_processes = false;
   CategorizedAddresses addresses{a};
@@ -746,8 +671,7 @@ std::vector<Process::ProcessModel*> CreateCurvesFromAddresses(
 
   for (const auto& interval_ptr : selected_intervals)
   {
-    int count = CreateCurvesFromAddresses(
-        *interval_ptr, *scenar, addresses, N, m, created);
+    int count = CreateCurvesFromAddresses(*interval_ptr, *scenar, addresses, N, m, created);
     if (count > 0)
       added_processes = true;
   }
@@ -766,8 +690,7 @@ void CreateCurvesFromAddresses(
     const score::CommandStackFacade& stack)
 {
   Scenario::Command::Macro big_macro{
-      new Scenario::Command::AddMultipleProcessesToMultipleIntervalsMacro,
-      stack.context()};
+      new Scenario::Command::AddMultipleProcessesToMultipleIntervalsMacro, stack.context()};
 
   CreateCurvesFromAddresses(selected_intervals, a, big_macro);
 }

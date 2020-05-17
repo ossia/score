@@ -31,15 +31,12 @@ void RefreshStates(const score::DocumentContext& doc)
   // Fetch the selected intervals
 
   // TODO this method can also be used in ScoreCohesion's other algorithms.
-  auto selected_states = filterSelectionByType<StateModel>(
-      doc.selectionStack.currentSelection());
+  auto selected_states = filterSelectionByType<StateModel>(doc.selectionStack.currentSelection());
 
   RefreshStates(selected_states, doc);
 }
 
-void RefreshStates(
-    const std::vector<const StateModel*>& states,
-    const score::DocumentContext& doc)
+void RefreshStates(const std::vector<const StateModel*>& states, const score::DocumentContext& doc)
 {
   if (states.empty())
     return;

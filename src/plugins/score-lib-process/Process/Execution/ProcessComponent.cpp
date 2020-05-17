@@ -14,7 +14,7 @@ ProcessComponent::~ProcessComponent() = default;
 ProcessComponentFactory::~ProcessComponentFactory() = default;
 ProcessComponentFactoryList::~ProcessComponentFactoryList() = default;
 
-void ProcessComponent::lazy_init() {}
+void ProcessComponent::lazy_init() { }
 
 ProcessComponent::ProcessComponent(
     Process::ProcessModel& proc,
@@ -22,11 +22,7 @@ ProcessComponent::ProcessComponent(
     const Id<score::Component>& id,
     const QString& name,
     QObject* parent)
-    : Process::GenericProcessComponent<const Context>{proc,
-                                                      ctx,
-                                                      id,
-                                                      name,
-                                                      parent}
+    : Process::GenericProcessComponent<const Context>{proc, ctx, id, name, parent}
 {
 }
 

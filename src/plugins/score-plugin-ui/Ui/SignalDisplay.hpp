@@ -1,7 +1,9 @@
 #pragma once
-#include <Engine/Node/PdNode.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+
 #include <QPainter>
+
+#include <Engine/Node/PdNode.hpp>
 namespace Ui
 {
 
@@ -18,8 +20,7 @@ struct Node
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::Analyzer;
     static const constexpr auto description = "Visualize an input signal";
-    static const uuid_constexpr auto uuid
-        = make_uuid("9906e563-ddeb-4ecd-908c-952baee2a0a5");
+    static const uuid_constexpr auto uuid = make_uuid("9906e563-ddeb-4ecd-908c-952baee2a0a5");
 
     static const constexpr value_in value_ins[]{"in"};
     static const constexpr auto control_outs = std::make_tuple(Control::OutControl{"value"});
@@ -33,57 +34,51 @@ struct Node
       ossia::token_request tk,
       ossia::exec_state_facade st)
   {
-    if(!in.get_data().empty())
+    if (!in.get_data().empty())
     {
       const auto& v = in.get_data().back();
-      out_value[0] = std::vector<ossia::value>{double(tk.prev_date.impl) / tk.parent_duration.impl, ossia::convert<float>(v.value)};
+      out_value[0] = std::vector<ossia::value>{
+          double(tk.prev_date.impl) / tk.parent_duration.impl, ossia::convert<float>(v.value)};
     }
   }
 
-  struct Layer : public Process::EffectLayerView {
+  struct Layer : public Process::EffectLayerView
+  {
   public:
     Scenario::IntervalModel* m_interval{};
     std::vector<std::pair<double, float>> m_values;
     float min = 0;
-    float max= 1;
+    float max = 1;
 
-    Layer(
-        const Process::ProcessModel& process,
-        const Process::Context& doc,
-        QGraphicsItem* parent
-        )
-      : Process::EffectLayerView{parent}
-      , m_interval{}
+    Layer(const Process::ProcessModel& process, const Process::Context& doc, QGraphicsItem* parent)
+        : Process::EffectLayerView{parent}, m_interval{}
     {
-      if(auto obj = process.parent())
+      if (auto obj = process.parent())
       {
         do
         {
           m_interval = qobject_cast<Scenario::IntervalModel*>(obj);
-          if(m_interval)
+          if (m_interval)
             break;
           obj = obj->parent();
-        } while(obj);
+        } while (obj);
       }
 
-      if(m_interval)
+      if (m_interval)
       {
-        connect(m_interval, &Scenario::IntervalModel::executionStarted,
-                this, &Layer::reset);
-        connect(m_interval, &Scenario::IntervalModel::executionStopped,
-                this, &Layer::reset);
+        connect(m_interval, &Scenario::IntervalModel::executionStarted, this, &Layer::reset);
+        connect(m_interval, &Scenario::IntervalModel::executionStopped, this, &Layer::reset);
 
         auto out = static_cast<Process::ControlOutlet*>(process.outlets().front());
 
-        connect(out, &Process::ControlOutlet::valueChanged,
-            this, [this] (const ossia::value& v) {
+        connect(out, &Process::ControlOutlet::valueChanged, this, [this](const ossia::value& v) {
           auto& val = *v.target<std::vector<ossia::value>>();
           float float_time = *val[0].target<float>();
           float float_val = *val[1].target<float>();
 
           m_values.emplace_back(float_time, float_val);
 
-          if(float_val < min)
+          if (float_val < min)
             min = float_val;
           else if (float_val > max)
             max = float_val;
@@ -95,15 +90,15 @@ struct Node
 
     void reset()
     {
-       min = 0.;
-       max = 1.;
-       m_values.clear();
-       update();
+      min = 0.;
+      max = 1.;
+      m_values.clear();
+      update();
     }
 
     void paint_impl(QPainter* p) const override
     {
-      if(m_values.size() < 2)
+      if (m_values.size() < 2)
         return;
 
       p->setRenderHint(QPainter::Antialiasing, true);
@@ -112,14 +107,14 @@ struct Node
       const auto w = width();
       const auto h = height();
 
-      const auto to_01 = [&] (float v) { return 1. - (v - min) / (max - min); };
+      const auto to_01 = [&](float v) { return 1. - (v - min) / (max - min); };
       QPointF p0 = {m_values[0].first * w, to_01(m_values[0].second) * h};
-      for(std::size_t i = 1; i < m_values.size(); i++)
+      for (std::size_t i = 1; i < m_values.size(); i++)
       {
         const auto& value = m_values[i];
         QPointF p1 = {value.first * w, to_01(value.second) * h};
 
-        if(QLineF l{p0, p1}; l.length() > 2)
+        if (QLineF l{p0, p1}; l.length() > 2)
         {
           p->drawLine(l);
           p0 = p1;

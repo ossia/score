@@ -1,15 +1,19 @@
 #include "ChainItem.hpp"
-#include <score/tools/std/Optional.hpp>
+
+#include <Media/AudioChain/AudioChainLayer.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/PortItem.hpp>
-#include <Control/DefaultEffectItem.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
+
+#include <score/model/path/PathSerialization.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
+#include <score/tools/std/Optional.hpp>
+
 #include <QApplication>
 #include <QDrag>
-#include <Media/AudioChain/AudioChainLayer.hpp>
-#include <score/selection/SelectionDispatcher.hpp>
-#include <score/model/path/PathSerialization.hpp>
+
+#include <Control/DefaultEffectItem.hpp>
 namespace Media
 {
 EffectItem::EffectItem(
@@ -18,10 +22,10 @@ EffectItem::EffectItem(
     const Process::LayerContext& ctx,
     const Process::LayerFactoryList& fact,
     QGraphicsItem* parent)
-  : ::Effect::ItemBase{effect, ctx.context, parent}
-  , m_view{view}
-  , m_model{effect}
-  , m_context{ctx}
+    : ::Effect::ItemBase{effect, ctx.context, parent}
+    , m_view{view}
+    , m_model{effect}
+    , m_context{ctx}
 {
   // Main item
   if (auto factory = fact.findDefaultFactory(effect))
@@ -39,17 +43,13 @@ EffectItem::EffectItem(
 
   /// Rects
   // TODO bind
-  connect(m_fx, &score::ResizeableItem::sizeChanged,
-          this, &EffectItem::updateSize);
+  connect(m_fx, &score::ResizeableItem::sizeChanged, this, &EffectItem::updateSize);
 
   // In & out ports
   resetInlets();
   resetOutlets();
-  con(effect, &Process::ProcessModel::inletsChanged,
-      this, &EffectItem::resetInlets);
-  con(effect,
-      &Process::ProcessModel::outletsChanged,
-      this, &EffectItem::resetOutlets);
+  con(effect, &Process::ProcessModel::inletsChanged, this, &EffectItem::resetInlets);
+  con(effect, &Process::ProcessModel::outletsChanged, this, &EffectItem::resetOutlets);
 
   updateSize();
 }
@@ -61,24 +61,24 @@ void EffectItem::updateSize()
 
 void EffectItem::setSize(QSizeF sz)
 {
-  if(sz != m_contentSize)
+  if (sz != m_contentSize)
   {
     prepareGeometryChange();
     m_contentSize = QSizeF{std::max(100., sz.width()), std::max(10., sz.height())};
-    if(m_ui)
+    if (m_ui)
     {
       m_ui->setParentItem(nullptr);
     }
 
     const auto r = boundingRect();
 
-    for(auto& outlet : m_outlets)
+    for (auto& outlet : m_outlets)
     {
       outlet->setPos(outlet->pos().x(), r.height() + OutletY0);
     }
     m_view.recomputeItemPositions();
 
-    if(m_ui)
+    if (m_ui)
     {
       m_ui->setParentItem(this);
       m_ui->setPos({m_contentSize.width() + TopButtonX0, TopButtonY0});
@@ -92,8 +92,7 @@ void EffectItem::resetInlets()
   qDeleteAll(m_inlets);
   m_inlets.clear();
   qreal x = InletX0;
-  auto& portFactory
-      = score::AppContext().interfaces<Process::PortFactoryList>();
+  auto& portFactory = score::AppContext().interfaces<Process::PortFactoryList>();
   for (Process::Inlet* port : m_model.inlets())
   {
     if (port->hidden)
@@ -116,8 +115,7 @@ void EffectItem::resetOutlets()
   m_outlets.clear();
   qreal x = OutletX0;
   const qreal h = boundingRect().height() + OutletY0;
-  auto& portFactory
-      = score::AppContext().interfaces<Process::PortFactoryList>();
+  auto& portFactory = score::AppContext().interfaces<Process::PortFactoryList>();
   for (Process::Outlet* port : m_model.outlets())
   {
     if (port->hidden)
@@ -147,9 +145,8 @@ void EffectItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 void EffectItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   auto min_dist
-      = (event->screenPos() - event->buttonDownScreenPos(Qt::LeftButton))
-      .manhattanLength()
-      >= QApplication::startDragDistance();
+      = (event->screenPos() - event->buttonDownScreenPos(Qt::LeftButton)).manhattanLength()
+        >= QApplication::startDragDistance();
   if (min_dist)
   {
     auto drag = new QDrag{this};

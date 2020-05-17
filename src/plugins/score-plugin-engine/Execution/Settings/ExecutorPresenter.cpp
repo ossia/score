@@ -61,9 +61,10 @@ QString Presenter::settingsName()
 
 QIcon Presenter::settingsIcon()
 {
-  return makeIcons(QStringLiteral(":/icons/settings_play_on.png")
-                   , QStringLiteral(":/icons/settings_play_off.png")
-                   , QStringLiteral(":/icons/settings_play_off.png"));
+  return makeIcons(
+      QStringLiteral(":/icons/settings_play_on.png"),
+      QStringLiteral(":/icons/settings_play_off.png"),
+      QStringLiteral(":/icons/settings_play_off.png"));
 }
 }
 }

@@ -11,8 +11,8 @@ struct indirect_iterator
   using self_type = indirect_iterator;
   using iterator = self_type;
   using const_iterator = self_type;
-  using value_type = std::remove_reference_t<decltype(
-      *std::declval<typename base_iterator_t::value_type>())>;
+  using value_type
+      = std::remove_reference_t<decltype(*std::declval<typename base_iterator_t::value_type>())>;
   using reference = value_type&;
   using pointer = value_type*;
   using iterator_category = std::forward_iterator_tag;
@@ -51,8 +51,7 @@ struct indirect_ptr_iterator
   using self_type = indirect_ptr_iterator;
   using iterator = self_type;
   using const_iterator = self_type;
-  using value_type
-      = std::remove_reference_t<decltype(*std::declval<base_iterator_t>())>;
+  using value_type = std::remove_reference_t<decltype(*std::declval<base_iterator_t>())>;
   using reference = value_type&;
   using pointer = value_type*;
   using iterator_category = std::forward_iterator_tag;
@@ -73,7 +72,7 @@ struct indirect_ptr_iterator
   }
 
   auto& operator*() { return **it; }
-  auto operator-> () { return it; }
+  auto operator->() { return it; }
   bool operator==(const self_type& rhs) const { return it == rhs.it; }
   bool operator!=(const self_type& rhs) const { return it != rhs.it; }
   bool operator<(const self_type& rhs) const { return it < rhs.it; }
@@ -113,7 +112,7 @@ struct indirect_map_iterator
   }
 
   auto& operator*() { return *it->second; }
-  auto operator-> () { return it->second.get(); }
+  auto operator->() { return it->second.get(); }
   bool operator==(const self_type& rhs) const { return it == rhs.it; }
   bool operator!=(const self_type& rhs) const { return it != rhs.it; }
   bool operator<(const self_type& rhs) const { return it < rhs.it; }
@@ -227,7 +226,7 @@ class IndirectUnorderedMap
 
 public:
   using value_type = typename base_iterator_t::value_type;
-  IndirectUnorderedMap() {}
+  IndirectUnorderedMap() { }
 
   auto begin() { return make_indirect_map_iterator(map.begin()); }
   auto begin() const { return make_indirect_map_iterator(map.begin()); }

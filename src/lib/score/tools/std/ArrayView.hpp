@@ -19,7 +19,7 @@ private:
 
 public:
   using value_type = T;
-  dynarray_impl(T* t, std::size_t size) : m_ptr{t}, m_size{size} {}
+  dynarray_impl(T* t, std::size_t size) : m_ptr{t}, m_size{size} { }
 
   dynarray_impl(const dynarray_impl& other) = default;
   dynarray_impl(dynarray_impl&& other) = default;
@@ -55,9 +55,7 @@ public:
   using iterator = T*;
   using const_iterator = T*;
 
-  dynvector_impl(T* t, std::size_t capacity) : m_ptr{t}, m_capacity{capacity}
-  {
-  }
+  dynvector_impl(T* t, std::size_t capacity) : m_ptr{t}, m_capacity{capacity} { }
 
   dynvector_impl(const dynvector_impl& other) = default;
   dynvector_impl(dynvector_impl&& other) = default;

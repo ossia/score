@@ -15,8 +15,7 @@ namespace score
  * Used only when reloading, because components have to be instantiated after
  * their entity.
  */
-class SCORE_LIB_BASE_EXPORT DataStreamSerializedComponents
-    : public score::Component
+class SCORE_LIB_BASE_EXPORT DataStreamSerializedComponents : public score::Component
 {
   COMMON_COMPONENT_METADATA("a0c8de61-c18f-4aca-8b21-cf71451f4970")
 public:
@@ -40,10 +39,7 @@ class SCORE_LIB_BASE_EXPORT JSONSerializedComponents : public score::Component
   COMMON_COMPONENT_METADATA("37939615-7165-4bb0-9cdd-e7426153d222")
 public:
   static const constexpr bool is_unique = true;
-  JSONSerializedComponents(
-      const Id<score::Component>& id,
-      JSONComponents obj,
-      QObject* parent);
+  JSONSerializedComponents(const Id<score::Component>& id, JSONComponents obj, QObject* parent);
 
   virtual ~JSONSerializedComponents();
 
@@ -63,32 +59,24 @@ public:
   using score::Component::Component;
 
   template <typename Vis>
-  SerializableComponent(Vis& vis, QObject* parent)
-      : score::Component{vis, parent}
+  SerializableComponent(Vis& vis, QObject* parent) : score::Component{vis, parent}
   {
   }
 
   virtual InterfaceKey interfaceKey() const = 0;
 };
 
-struct SCORE_LIB_BASE_EXPORT SerializableComponentFactory
-    : public score::InterfaceBase
+struct SCORE_LIB_BASE_EXPORT SerializableComponentFactory : public score::InterfaceBase
 {
-  SCORE_INTERFACE(
-      SerializableComponentFactory,
-      "ffafadc2-0ce7-45d8-b673-d9238c37d018")
+  SCORE_INTERFACE(SerializableComponentFactory, "ffafadc2-0ce7-45d8-b673-d9238c37d018")
 public:
   ~SerializableComponentFactory() override;
-  virtual score::SerializableComponent* make(
-      const Id<score::Component>& id,
-      const score::DocumentContext& ctx,
-      QObject* parent)
+  virtual score::SerializableComponent*
+  make(const Id<score::Component>& id, const score::DocumentContext& ctx, QObject* parent)
       = 0;
 
-  virtual score::SerializableComponent* load(
-      const VisitorVariant& vis,
-      const score::DocumentContext& ctx,
-      QObject* parent)
+  virtual score::SerializableComponent*
+  load(const VisitorVariant& vis, const score::DocumentContext& ctx, QObject* parent)
       = 0;
 };
 
@@ -97,10 +85,8 @@ struct SCORE_LIB_BASE_EXPORT SerializableComponentFactoryList
 {
   using object_type = score::SerializableComponent;
   ~SerializableComponentFactoryList();
-  score::SerializableComponent* loadMissing(
-      const VisitorVariant& vis,
-      const score::DocumentContext& ctx,
-      QObject* parent) const;
+  score::SerializableComponent*
+  loadMissing(const VisitorVariant& vis, const score::DocumentContext& ctx, QObject* parent) const;
 };
 
 template <typename System_T>
@@ -109,8 +95,7 @@ class GenericSerializableComponent : public score::SerializableComponent
 public:
   template <typename... Args>
   GenericSerializableComponent(System_T& sys, Args&&... args)
-      : score::SerializableComponent{std::forward<Args>(args)...}
-      , m_system{sys}
+      : score::SerializableComponent{std::forward<Args>(args)...}, m_system{sys}
   {
   }
 
@@ -146,8 +131,7 @@ struct is_component_serializable<
 template <typename Component_T, typename Fun>
 auto deserialize_component(score::Components& comps, Fun f)
 {
-  if (auto datastream_ser
-      = findComponent<DataStreamSerializedComponents>(comps))
+  if (auto datastream_ser = findComponent<DataStreamSerializedComponents>(comps))
   {
     auto& data = datastream_ser->data;
     auto it = data.find(Component_T::static_key());

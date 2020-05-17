@@ -7,13 +7,13 @@
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
 
+#include <score/tools/Bind.hpp>
+
+#include <ossia/dataflow/execution_state.hpp>
 #include <ossia/detail/logger.hpp>
 #include <ossia/editor/expression/expression.hpp>
 #include <ossia/editor/scenario/time_sync.hpp>
 #include <ossia/editor/state/state.hpp>
-#include <score/tools/Bind.hpp>
-#include <ossia/dataflow/execution_state.hpp>
-
 
 #include <exception>
 
@@ -24,26 +24,15 @@ TimeSyncComponent::TimeSyncComponent(
     const Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
-    : Execution::Component{ctx, id, "Executor::TimeSync", nullptr}
-    , m_score_node{&element}
+    : Execution::Component{ctx, id, "Executor::TimeSync", nullptr}, m_score_node{&element}
 {
-  con(element,
-      &Scenario::TimeSyncModel::triggeredByGui,
-      this,
-      &TimeSyncComponent::on_GUITrigger);
+  con(element, &Scenario::TimeSyncModel::triggeredByGui, this, &TimeSyncComponent::on_GUITrigger);
 
-  con(element,
-      &Scenario::TimeSyncModel::activeChanged,
-      this,
-      &TimeSyncComponent::updateTrigger);
-  con(element,
-      &Scenario::TimeSyncModel::autotriggerChanged,
-      this,
-      [=] (bool b) { in_exec([ts = m_ossia_node,b] { ts->set_autotrigger(b); }); });
-  con(element,
-      &Scenario::TimeSyncModel::triggerChanged,
-      this,
-      &TimeSyncComponent::updateTrigger);
+  con(element, &Scenario::TimeSyncModel::activeChanged, this, &TimeSyncComponent::updateTrigger);
+  con(element, &Scenario::TimeSyncModel::autotriggerChanged, this, [=](bool b) {
+    in_exec([ts = m_ossia_node, b] { ts->set_autotrigger(b); });
+  });
+  con(element, &Scenario::TimeSyncModel::triggerChanged, this, &TimeSyncComponent::updateTrigger);
 
   con(element,
       &Scenario::TimeSyncModel::musicalSyncChanged,
@@ -78,9 +67,7 @@ ossia::expression_ptr TimeSyncComponent::makeTrigger() const
   return ossia::expressions::make_expression_true();
 }
 
-void TimeSyncComponent::onSetup(
-    std::shared_ptr<ossia::time_sync> ptr,
-    ossia::expression_ptr exp)
+void TimeSyncComponent::onSetup(std::shared_ptr<ossia::time_sync> ptr, ossia::expression_ptr exp)
 {
   m_ossia_node = ptr;
   m_ossia_node->set_expression(std::move(exp));
@@ -91,26 +78,27 @@ void TimeSyncComponent::onSetup(
     m_ossia_node->set_start(m_score_node->isStartPoint());
 
     using namespace ossia;
-    auto startWait = [&edit = system().editionQueue, score_node = m_score_node] (ossia::time_value = 0_tv) {
-      edit.enqueue([score_node] {
-        if(score_node)
-        {
-          auto v = const_cast<Scenario::TimeSyncModel*>(score_node.data());
-          v->setWaiting(true);
-        }
-      });
-    };
+    auto startWait
+        = [&edit = system().editionQueue, score_node = m_score_node](ossia::time_value = 0_tv) {
+            edit.enqueue([score_node] {
+              if (score_node)
+              {
+                auto v = const_cast<Scenario::TimeSyncModel*>(score_node.data());
+                v->setWaiting(true);
+              }
+            });
+          };
 
-    auto endWait = [&edit = system().editionQueue, score_node = m_score_node] (bool = false) {
+    auto endWait = [&edit = system().editionQueue, score_node = m_score_node](bool = false) {
       edit.enqueue([score_node] {
-        if(score_node)
+        if (score_node)
         {
           auto v = const_cast<Scenario::TimeSyncModel*>(score_node.data());
           v->setWaiting(false);
         }
       });
     };
-    //m_ossia_node->entered_evaluation.add_callback([] { });
+    // m_ossia_node->entered_evaluation.add_callback([] { });
     m_ossia_node->entered_triggering.add_callback(startWait);
     m_ossia_node->trigger_date_fixed.add_callback(startWait);
 
@@ -149,7 +137,8 @@ void TimeSyncComponent::updateTrigger()
 void TimeSyncComponent::updateTriggerTime()
 {
   const auto sync = m_score_node->musicalSync();
-  this->in_exec([e = m_ossia_node, sync] { e->set_sync_rate(sync, ossia::quarter_duration<double>); });
+  this->in_exec(
+      [e = m_ossia_node, sync] { e->set_sync_rate(sync, ossia::quarter_duration<double>); });
 }
 
 void TimeSyncComponent::on_GUITrigger()

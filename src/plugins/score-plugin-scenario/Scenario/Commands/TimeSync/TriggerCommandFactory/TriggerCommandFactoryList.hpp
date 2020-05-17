@@ -9,8 +9,7 @@ namespace Scenario
 {
 namespace Command
 {
-class TriggerCommandFactoryList final
-    : public score::MatchingFactory<TriggerCommandFactory>
+class TriggerCommandFactoryList final : public score::MatchingFactory<TriggerCommandFactory>
 {
 };
 }

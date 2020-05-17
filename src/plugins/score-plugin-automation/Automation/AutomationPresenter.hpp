@@ -12,8 +12,7 @@
 
 namespace Automation
 {
-class LayerPresenter final
-    : public Curve::CurveProcessPresenter<ProcessModel, LayerView>
+class LayerPresenter final : public Curve::CurveProcessPresenter<ProcessModel, LayerView>
 {
   W_OBJECT(LayerPresenter)
 public:
@@ -26,21 +25,12 @@ public:
       : CurveProcessPresenter{style, layer, view, context, parent}
   {
     // TODO instead have a prettyNameChanged signal.
-    con(layer,
-        &ProcessModel::tweenChanged,
-        this,
-        &LayerPresenter::on_tweenChanges);
+    con(layer, &ProcessModel::tweenChanged, this, &LayerPresenter::on_tweenChanges);
 
-    connect(
-        m_view,
-        &LayerView::dropReceived,
-        this,
-        &LayerPresenter::on_dropReceived);
+    connect(m_view, &LayerView::dropReceived, this, &LayerPresenter::on_dropReceived);
 
     on_tweenChanges(layer.tween());
-    con(layer.curve(), &Curve::Model::curveReset, this, [&] {
-      on_tweenChanges(layer.tween());
-    });
+    con(layer.curve(), &Curve::Model::curveReset, this, [&] { on_tweenChanges(layer.tween()); });
   }
 
 private:
@@ -63,12 +53,12 @@ private:
 
   void on_dropReceived(const QPointF& pos, const QMimeData& mime)
   {
-    if(auto addr = State::onUpdatableAddress(model().address(), mime))
+    if (auto addr = State::onUpdatableAddress(model().address(), mime))
     {
-      CommandDispatcher<>{context().context.commandStack}
-        .submit(new ChangeAddress{model(), *addr});
+      CommandDispatcher<>{context().context.commandStack}.submit(
+          new ChangeAddress{model(), *addr});
     }
-    else if(mime.formats().contains(score::mime::processpreset()))
+    else if (mime.formats().contains(score::mime::processpreset()))
     {
       handlePresetDrop(pos, mime);
     }

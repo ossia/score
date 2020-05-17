@@ -1,6 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "InspectorSectionWidget.hpp"
+
 #include <score/tools/Bind.hpp>
 #include <score/widgets/SetIcons.hpp>
 
@@ -12,15 +13,14 @@
 W_OBJECT_IMPL(Inspector::InspectorSectionWidget)
 namespace Inspector
 {
-MenuButton::MenuButton(QWidget* parent)
-    : QToolButton{parent}
+MenuButton::MenuButton(QWidget* parent) : QToolButton{parent}
 {
   setAutoRaise(true);
   setObjectName(QStringLiteral("SettingsMenu"));
   setIcon(makeIcons(
-            QStringLiteral(":/icons/gear_on.png"),
-            QStringLiteral(":/icons/gear_off.png"),
-            QStringLiteral(":/icons/gear_disabled.png")));
+      QStringLiteral(":/icons/gear_on.png"),
+      QStringLiteral(":/icons/gear_off.png"),
+      QStringLiteral(":/icons/gear_disabled.png")));
   setIconSize(QSize(16, 16));
 }
 
@@ -55,14 +55,7 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent)
   m_menuBtn.setHidden(true);
 
   m_menu = new QMenu{&m_menuBtn};
-  connect(
-      &m_menuBtn,
-      &QToolButton::clicked,
-      this,
-      [this]()
-  {
-      m_menu->popup(QCursor::pos());
-  });
+  connect(&m_menuBtn, &QToolButton::clicked, this, [this]() { m_menu->popup(QCursor::pos()); });
 
   m_titleLayout.addWidget(&m_unfoldBtn);
   m_titleLayout.addWidget(&m_sectionTitle);
@@ -73,22 +66,15 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent)
   // GENERAL
   m_generalLayout.addWidget(&m_title);
 
-  con(m_unfoldBtn, &QAbstractButton::released, this, [&] {
-    this->expand(!m_isUnfolded);
-  });
-  con(m_buttonTitle, &QAbstractButton::clicked, this, [&] {
-    this->expand(!m_isUnfolded);
-  });
+  con(m_unfoldBtn, &QAbstractButton::released, this, [&] { this->expand(!m_isUnfolded); });
+  con(m_buttonTitle, &QAbstractButton::clicked, this, [&] { this->expand(!m_isUnfolded); });
 
   // INIT
   m_isUnfolded = true;
   renameSection(QStringLiteral("Section Name"));
 }
 
-InspectorSectionWidget::InspectorSectionWidget(
-    QString name,
-    bool editable,
-    QWidget* parent)
+InspectorSectionWidget::InspectorSectionWidget(QString name, bool editable, QWidget* parent)
     : InspectorSectionWidget(editable, parent)
 {
   renameSection(name);

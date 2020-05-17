@@ -14,14 +14,8 @@ struct SyncInfo
 {
   QJsonValue path;
   QString prettyName;
-  friend bool operator==(const SyncInfo& tn, const QJsonValue& rhs)
-  {
-    return tn.path == rhs;
-  }
-  friend bool operator!=(const SyncInfo& tn, const QJsonValue& rhs)
-  {
-    return tn.path != rhs;
-  }
+  friend bool operator==(const SyncInfo& tn, const QJsonValue& rhs) { return tn.path == rhs; }
+  friend bool operator!=(const SyncInfo& tn, const QJsonValue& rhs) { return tn.path != rhs; }
 };
 
 class TriggerList : public QAbstractListModel
@@ -68,48 +62,39 @@ private:
 public:
   WebSocketHandler()
   {
-    m_answers.insert(
-        std::make_pair("TriggerAdded", [this](const QJsonObject& obj) {
-          qDebug() << obj;
-          auto json_it = obj.find("Path");
-          if (json_it == obj.end())
-            return;
+    m_answers.insert(std::make_pair("TriggerAdded", [this](const QJsonObject& obj) {
+      qDebug() << obj;
+      auto json_it = obj.find("Path");
+      if (json_it == obj.end())
+        return;
 
-          auto it = std::find(
-              m_activeSyncs.timeSyncs.begin(),
-              m_activeSyncs.timeSyncs.end(),
-              *json_it);
-          if (it == m_activeSyncs.timeSyncs.end())
-          {
-            m_activeSyncs.apply([=]() {
-              m_activeSyncs.timeSyncs.emplace_back(SyncInfo{
-                  *json_it, obj[score::StringConstant().Name].toString()});
-            });
-          }
-        }));
+      auto it
+          = std::find(m_activeSyncs.timeSyncs.begin(), m_activeSyncs.timeSyncs.end(), *json_it);
+      if (it == m_activeSyncs.timeSyncs.end())
+      {
+        m_activeSyncs.apply([=]() {
+          m_activeSyncs.timeSyncs.emplace_back(
+              SyncInfo{*json_it, obj[score::StringConstant().Name].toString()});
+        });
+      }
+    }));
 
-    m_answers.insert(
-        std::make_pair("TriggerRemoved", [this](const QJsonObject& obj) {
-          qDebug() << obj;
-          auto json_it = obj.find("Path");
-          if (json_it == obj.end())
-            return;
+    m_answers.insert(std::make_pair("TriggerRemoved", [this](const QJsonObject& obj) {
+      qDebug() << obj;
+      auto json_it = obj.find("Path");
+      if (json_it == obj.end())
+        return;
 
-          auto it = std::find(
-              m_activeSyncs.timeSyncs.begin(),
-              m_activeSyncs.timeSyncs.end(),
-              *json_it);
-          if (it != m_activeSyncs.timeSyncs.end())
-          {
-            m_activeSyncs.apply([=]() { m_activeSyncs.timeSyncs.erase(it); });
-          }
-        }));
+      auto it
+          = std::find(m_activeSyncs.timeSyncs.begin(), m_activeSyncs.timeSyncs.end(), *json_it);
+      if (it != m_activeSyncs.timeSyncs.end())
+      {
+        m_activeSyncs.apply([=]() { m_activeSyncs.timeSyncs.erase(it); });
+      }
+    }));
 
     connect(
-        &m_server,
-        &QWebSocket::textMessageReceived,
-        this,
-        &WebSocketHandler::processTextMessage);
+        &m_server, &QWebSocket::textMessageReceived, this, &WebSocketHandler::processTextMessage);
     connect(
         &m_server,
         &QWebSocket::binaryMessageReceived,
@@ -118,22 +103,16 @@ public:
     connect(&m_server, &QWebSocket::connected, this, [] { qDebug("yolooo"); });
     connect(
         &m_server,
-        static_cast<void (QWebSocket::*)(QAbstractSocket::SocketError)>(
-            &QWebSocket::error),
+        static_cast<void (QWebSocket::*)(QAbstractSocket::SocketError)>(&QWebSocket::error),
         this,
-        [=](QAbstractSocket::SocketError) {
-          qDebug() << m_server.errorString();
-        });
+        [=](QAbstractSocket::SocketError) { qDebug() << m_server.errorString(); });
 
     m_server.open(QUrl("ws://147.210.128.72:10212"));
   }
 
   ~WebSocketHandler() { m_server.close(); }
 
-  void processTextMessage(const QString& message)
-  {
-    processBinaryMessage(message.toLatin1());
-  }
+  void processTextMessage(const QString& message) { processBinaryMessage(message.toLatin1()); }
 
   void processBinaryMessage(QByteArray message)
   {

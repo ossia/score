@@ -28,8 +28,9 @@
 #endif
 
 #include <Process/ProcessList.hpp>
-#include <Effect/EffectLayer.hpp>
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
+
+#include <Effect/EffectLayer.hpp>
 
 namespace Media::AudioChain
 {
@@ -37,19 +38,14 @@ InspectorWidget::InspectorWidget(
     const AudioChain::ProcessModel& object,
     const score::DocumentContext& doc,
     QWidget* parent)
-    : InspectorWidgetDelegate_T{object, parent}
-    , m_dispatcher{doc.commandStack}
-    , m_ctx{doc}
+    : InspectorWidgetDelegate_T{object, parent}, m_dispatcher{doc.commandStack}, m_ctx{doc}
 {
   setObjectName("EffectInspectorWidget");
 
   auto lay = new QVBoxLayout;
   m_list = new QListWidget;
   lay->addWidget(m_list);
-  con(process(),
-      &AudioChain::ProcessModel::effectsChanged,
-      this,
-      &InspectorWidget::recreate);
+  con(process(), &AudioChain::ProcessModel::effectsChanged, this, &InspectorWidget::recreate);
 
   connect(
       m_list,
@@ -57,8 +53,7 @@ InspectorWidget::InspectorWidget(
       &object,
       [&](QListWidgetItem* item) {
         Process::setupExternalUI(
-            object.effects().at(
-                item->data(Qt::UserRole).value<Id<Process::ProcessModel>>()),
+            object.effects().at(item->data(Qt::UserRole).value<Id<Process::ProcessModel>>()),
             doc,
             true);
       },
@@ -111,8 +106,8 @@ InspectorWidget::InspectorWidget(
 void InspectorWidget::add_score(std::size_t pos)
 {
   auto& base_fxs = m_ctx.app.interfaces<Process::ProcessFactoryList>();
-  auto dialog = new Scenario::AddProcessDialog(
-      base_fxs, Process::ProcessFlags::SupportsEffectChain, this);
+  auto dialog
+      = new Scenario::AddProcessDialog(base_fxs, Process::ProcessFlags::SupportsEffectChain, this);
 
   dialog->on_okPressed = [&](const auto& proc, const QString&) {
     m_dispatcher.submit(new InsertEffect{process(), proc, {}, pos});
@@ -127,16 +122,15 @@ void InspectorWidget::add_lv2(std::size_t pos)
   auto txt = LV2::LV2EffectFactory{}.customConstructionData();
   if (!txt.isEmpty())
   {
-    m_dispatcher.submit(
-        new InsertGenericEffect<LV2::LV2EffectModel>{process(), txt, pos});
+    m_dispatcher.submit(new InsertGenericEffect<LV2::LV2EffectModel>{process(), txt, pos});
   }
 #endif
 }
 void InspectorWidget::add_faust(std::size_t pos)
 {
 #if defined(HAS_FAUST)
-  m_dispatcher.submit(new InsertGenericEffect<Faust::FaustEffectModel>{
-      process(), "process = _;", pos});
+  m_dispatcher.submit(
+      new InsertGenericEffect<Faust::FaustEffectModel>{process(), "process = _;", pos});
 #endif
 }
 
@@ -147,13 +141,12 @@ void InspectorWidget::add_vst2(std::size_t pos)
 
   if (!res.isEmpty())
   {
-    m_dispatcher.submit(
-        new InsertGenericEffect<VST::VSTEffectModel>{process(), res, pos});
+    m_dispatcher.submit(new InsertGenericEffect<VST::VSTEffectModel>{process(), res, pos});
   }
 #endif
 }
 
-void InspectorWidget::addRequested(int pos) {}
+void InspectorWidget::addRequested(int pos) { }
 
 int InspectorWidget::cur_pos()
 {
@@ -175,10 +168,9 @@ void InspectorWidget::recreate()
   {
     auto item = new ListWidgetItem(fx.prettyName(), m_list);
 
-    con(fx.metadata(),
-        &score::ModelMetadata::LabelChanged,
-        item,
-        [=](const auto& txt) { item->setText(txt); });
+    con(fx.metadata(), &score::ModelMetadata::LabelChanged, item, [=](const auto& txt) {
+      item->setText(txt);
+    });
     item->setData(Qt::UserRole, QVariant::fromValue(fx.id()));
     m_list->addItem(item);
   }

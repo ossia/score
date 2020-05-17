@@ -9,19 +9,20 @@
 #include <Scenario/Execution/score2OSSIA.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioPresenter.hpp>
-#include <Scenario/Process/ScenarioView.hpp>
 #include <Scenario/Process/ScenarioSelection.hpp>
+#include <Scenario/Process/ScenarioView.hpp>
 
-#include <core/presenter/DocumentManager.hpp>
 #include <score/tools/ObjectMatches.hpp>
 
+#include <core/presenter/DocumentManager.hpp>
+
 #include <ossia/editor/state/state_element.hpp>
+
+#include <QMenu>
 
 #include <Engine/ApplicationPlugin.hpp>
 #include <Execution/ContextMenu/PlayFromIntervalInScenario.hpp>
 #include <Execution/DocumentPlugin.hpp>
-
-#include <QMenu>
 namespace Execution
 {
 
@@ -31,8 +32,7 @@ PlayContextMenu::PlayContextMenu(
     : m_ctx{ctx}
 {
   auto& exec_signals
-      = m_ctx.guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>()
-            .execution();
+      = m_ctx.guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>().execution();
 
   using namespace Scenario;
 
@@ -89,8 +89,7 @@ PlayContextMenu::PlayContextMenu(
   con(exec_signals,
       &Scenario::ScenarioExecution::playState,
       this,
-      [=](const Scenario::ScenarioInterface& scenar,
-          const Id<StateModel>& id) {
+      [=](const Scenario::ScenarioInterface& scenar, const Id<StateModel>& id) {
         const auto& ctx = m_ctx.documents.currentDocument()->context();
         auto& r_ctx = ctx.plugin<Execution::DocumentPlugin>().context();
 
@@ -99,42 +98,44 @@ PlayContextMenu::PlayContextMenu(
         // Make the state blink
         auto old_status = score_state.status();
         Scenario::ExecutionStatus new_status{};
-        switch(old_status) {
-        case Scenario::ExecutionStatus::Editing:
-        case Scenario::ExecutionStatus::Waiting:
+        switch (old_status)
+        {
+          case Scenario::ExecutionStatus::Editing:
+          case Scenario::ExecutionStatus::Waiting:
             new_status = Scenario::ExecutionStatus::Happened;
             break;
-        case Scenario::ExecutionStatus::Pending:
-        case Scenario::ExecutionStatus::Happened:
-        case Scenario::ExecutionStatus::Disposed:
+          case Scenario::ExecutionStatus::Pending:
+          case Scenario::ExecutionStatus::Happened:
+          case Scenario::ExecutionStatus::Disposed:
             new_status = Scenario::ExecutionStatus::Waiting;
             break;
         }
 
-        // If the status changes again in the meantime we don't want to revert back to the old status
+        // If the status changes again in the meantime we don't want to revert
+        // back to the old status
         auto has_changed = std::make_shared<bool>(false);
         score_state.setStatus(new_status);
-        auto con = connect(&score_state, &Scenario::StateModel::statusChanged, this, [has_changed] {
-            *has_changed = true;
-        });
+        auto con
+            = connect(&score_state, &Scenario::StateModel::statusChanged, this, [has_changed] {
+                *has_changed = true;
+              });
 
         // Send our state
         auto ossia_state = Engine::score_to_ossia::state(score_state, r_ctx);
         ossia_state.launch();
 
         // Revert the ui color
-        QTimer::singleShot(250, &score_state, [&score_state,old_status,con,has_changed] {
-            if(!(*has_changed))
-                score_state.setStatus(old_status);
-            QObject::disconnect(con);
+        QTimer::singleShot(250, &score_state, [&score_state, old_status, con, has_changed] {
+          if (!(*has_changed))
+            score_state.setStatus(old_status);
+          QObject::disconnect(con);
         });
       });
 
   con(exec_signals,
       &Scenario::ScenarioExecution::playInterval,
       this,
-      [&](const Scenario::ScenarioInterface& scenar,
-          const Id<IntervalModel>& id) {
+      [&](const Scenario::ScenarioInterface& scenar, const Id<IntervalModel>& id) {
         plug.on_play(scenar.interval(id), true);
       });
 
@@ -151,32 +152,28 @@ PlayContextMenu::PlayContextMenu(
         // this is what needs executing.
         auto parent = dynamic_cast<const QObject*>(&scenar)->parent();
         IntervalModel* parentItv{};
-        while(parent)
+        while (parent)
         {
-          if((parentItv = qobject_cast<Scenario::IntervalModel*>(parent)))
+          if ((parentItv = qobject_cast<Scenario::IntervalModel*>(parent)))
             break;
           else
             parent = parent->parent();
         }
 
-        if(parentItv)
+        if (parentItv)
         {
           // We start playing the parent scenario.
           // TODO: this also plays the other processes of the interval? Maybe
           // remove them, too ?
           plug.on_play(
-                *parentItv,
-                true,
-                PlayFromIntervalScenarioPruner{scenar, cst_to_play, t},
-                t);
+              *parentItv, true, PlayFromIntervalScenarioPruner{scenar, cst_to_play, t}, t);
         }
       });
 
   /// Record signals ///
   m_recordAutomations = new QAction{tr("Record automations from here"), this};
   connect(m_recordAutomations, &QAction::triggered, [=, &exec_signals]() {
-    const auto& recdata
-        = m_recordAutomations->data().value<ScenarioRecordInitData>();
+    const auto& recdata = m_recordAutomations->data().value<ScenarioRecordInitData>();
     if (!recdata.presenter)
       return;
 
@@ -196,8 +193,7 @@ PlayContextMenu::PlayContextMenu(
 
   m_recordMessages = new QAction{tr("Record messages from here"), this};
   connect(m_recordMessages, &QAction::triggered, [=, &exec_signals]() {
-    const auto& recdata
-        = m_recordMessages->data().value<ScenarioRecordInitData>();
+    const auto& recdata = m_recordMessages->data().value<ScenarioRecordInitData>();
     if (!recdata.presenter)
       return;
 
@@ -215,8 +211,7 @@ PlayContextMenu::PlayContextMenu(
     m_recordAutomations->setData({});
   });
 
-  auto& exec_ctx
-      = m_ctx.guiApplicationPlugin<ScenarioApplicationPlugin>().execution();
+  auto& exec_ctx = m_ctx.guiApplicationPlugin<ScenarioApplicationPlugin>().execution();
   m_playFromHere = new QAction{tr("Play from here"), this};
   connect(m_playFromHere, &QAction::triggered, this, [&]() {
     exec_ctx.playAtDate(m_playFromHere->data().value<::TimeVal>());
@@ -226,12 +221,9 @@ PlayContextMenu::PlayContextMenu(
 void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager& ctxm)
 {
   using namespace Process;
-  Process::LayerContextMenu& scenario_cm
-      = ctxm.menu<ContextMenus::ScenarioModelContextMenu>();
-  Process::LayerContextMenu& state_cm
-      = ctxm.menu<ContextMenus::StateContextMenu>();
-  Process::LayerContextMenu& cst_cm
-      = ctxm.menu<ContextMenus::IntervalContextMenu>();
+  Process::LayerContextMenu& scenario_cm = ctxm.menu<ContextMenus::ScenarioModelContextMenu>();
+  Process::LayerContextMenu& state_cm = ctxm.menu<ContextMenus::StateContextMenu>();
+  Process::LayerContextMenu& cst_cm = ctxm.menu<ContextMenus::IntervalContextMenu>();
 
   cst_cm.functions.push_back(
       [this](QMenu& menu, QPoint, QPointF, const Process::LayerContext& ctx) {
@@ -264,29 +256,25 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager& ctxm)
         }
       });
 
-  scenario_cm.functions.push_back([this](
-                                      QMenu& menu,
-                                      QPoint,
-                                      QPointF scenept,
-                                      const Process::LayerContext& ctx) {
-    auto& pres = safe_cast<Scenario::ScenarioPresenter&>(ctx.presenter);
-    auto scenPoint = Scenario::ConvertToScenarioPoint(
-        scenept, pres.zoomRatio(), pres.view().height());
-    m_playFromHere->setData(QVariant::fromValue(scenPoint.date));
-    menu.addAction(m_playFromHere);
+  scenario_cm.functions.push_back(
+      [this](QMenu& menu, QPoint, QPointF scenept, const Process::LayerContext& ctx) {
+        auto& pres = safe_cast<Scenario::ScenarioPresenter&>(ctx.presenter);
+        auto scenPoint
+            = Scenario::ConvertToScenarioPoint(scenept, pres.zoomRatio(), pres.view().height());
+        m_playFromHere->setData(QVariant::fromValue(scenPoint.date));
+        menu.addAction(m_playFromHere);
 
-    auto sel = ctx.context.selectionStack.currentSelection();
+        auto sel = ctx.context.selectionStack.currentSelection();
 
-    if (!Scenario::selectionHasScenarioElements(sel))
-    {
-      menu.addAction(m_recordAutomations);
-      menu.addAction(m_recordMessages);
+        if (!Scenario::selectionHasScenarioElements(sel))
+        {
+          menu.addAction(m_recordAutomations);
+          menu.addAction(m_recordMessages);
 
-      auto data = QVariant::fromValue(
-          Scenario::ScenarioRecordInitData{&pres, scenept});
-      m_recordAutomations->setData(data);
-      m_recordMessages->setData(data);
-    }
-  });
+          auto data = QVariant::fromValue(Scenario::ScenarioRecordInitData{&pres, scenept});
+          m_recordAutomations->setData(data);
+          m_recordMessages->setData(data);
+        }
+      });
 }
 }

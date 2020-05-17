@@ -3,12 +3,12 @@
 #include <Scenario/Commands/Interval/SetRigidity.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
 #include <State/Expression.hpp>
 
 #include <score/command/Command.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/path/Path.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
 
 namespace Scenario
 {
@@ -27,8 +27,8 @@ public:
   QString description() const override { return QObject::tr("Add a trigger"); }
   static const CommandKey& static_key() noexcept
   {
-    static const CommandKey kagi{QString("AddTrigger_")
-                                 + Metadata<ObjectKey_k, Scenario_T>::get()};
+    static const CommandKey kagi{
+        QString("AddTrigger_") + Metadata<ObjectKey_k, Scenario_T>::get()};
     return kagi;
   }
 

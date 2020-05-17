@@ -25,9 +25,7 @@ UpdateDeviceSettings::UpdateDeviceSettings(
     : m_newParameters(parameters)
 {
   auto it = std::find_if(
-      devplug.rootNode().begin(),
-      devplug.rootNode().end(),
-      [&](const Device::Node& n) {
+      devplug.rootNode().begin(), devplug.rootNode().end(), [&](const Device::Node& n) {
         return n.get<Device::DeviceSettings>().name == name;
       });
 

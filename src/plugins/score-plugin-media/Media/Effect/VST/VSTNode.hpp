@@ -16,8 +16,7 @@ namespace VST
 class vst_node_base : public ossia::graph_node
 {
 protected:
-  explicit vst_node_base(std::shared_ptr<AEffectWrapper>&& ptr)
-    : fx{std::move(ptr)}
+  explicit vst_node_base(std::shared_ptr<AEffectWrapper>&& ptr) : fx{std::move(ptr)}
   {
     m_inlets.reserve(10);
     controls.reserve(10);
@@ -62,7 +61,7 @@ public:
   auto& prepareInput(std::size_t samples)
   {
     auto& ip = m_inlets[0]->template target<ossia::audio_port>()->samples;
-    switch(ip.size())
+    switch (ip.size())
     {
       case 0:
       {
@@ -80,7 +79,7 @@ public:
       }
       default:
       {
-        for(auto& i : ip)
+        for (auto& i : ip)
           i.resize(samples);
         break;
       }
@@ -91,8 +90,7 @@ public:
 
   auto& prepareOutput(std::size_t samples)
   {
-    auto& op
-        = m_outlets[0]->template target<ossia::audio_port>()->samples;
+    auto& op = m_outlets[0]->template target<ossia::audio_port>()->samples;
     op.resize(2);
     for (auto& chan : op)
       chan.resize(samples);
@@ -117,8 +115,8 @@ public:
     time_info.smpteOffset = 0;
     time_info.smpteFrameRate = 0;
     time_info.samplesToNextClock = 0;
-    time_info.flags = kVstTransportPlaying | kVstNanosValid | kVstPpqPosValid
-                      | kVstTempoValid | kVstBarsValid | kVstTimeSigValid | kVstClockValid;
+    time_info.flags = kVstTransportPlaying | kVstNanosValid | kVstPpqPosValid | kVstTempoValid
+                      | kVstBarsValid | kVstTimeSigValid | kVstClockValid;
   }
 };
 
@@ -126,8 +124,7 @@ template <bool UseDouble, bool IsSynth>
 class vst_node final : public vst_node_base
 {
 public:
-  vst_node(std::shared_ptr<AEffectWrapper> dat, int sampleRate)
-      : vst_node_base{std::move(dat)}
+  vst_node(std::shared_ptr<AEffectWrapper> dat, int sampleRate) : vst_node_base{std::move(dat)}
   {
     // Midi or audio input
     if constexpr (IsSynth)
@@ -141,9 +138,7 @@ public:
     dispatch(effSetSampleRate, 0, sampleRate, nullptr, sampleRate);
     dispatch(effSetBlockSize, 0, 4096, nullptr, 4096); // Generalize what's in pd
     dispatch(
-        effSetProcessPrecision,
-        0,
-        UseDouble ? kVstProcessPrecision64 : kVstProcessPrecision32);
+        effSetProcessPrecision, 0, UseDouble ? kVstProcessPrecision64 : kVstProcessPrecision32);
     dispatch(effMainsChanged, 0, 1);
     dispatch(effStartProcess);
 
@@ -194,8 +189,7 @@ public:
       for (auto& vec : float_v)
         vec.resize(samples);
 
-      float** output = (float**)alloca(
-          sizeof(float*) * std::max(2, this->fx->fx->numOutputs));
+      float** output = (float**)alloca(sizeof(float*) * std::max(2, this->fx->fx->numOutputs));
       output[0] = float_v[0].data();
       output[1] = float_v[1].data();
       for (int i = 2; i < this->fx->fx->numOutputs; i++)
@@ -240,7 +234,8 @@ public:
       e.flags = kVstMidiEventIsRealtime;
 
       std::memcpy(e.midiData, mess.bytes.data(), std::min(mess.bytes.size(), (std::size_t)4));
-      // for (std::size_t k = 0, N = std::min(mess.bytes.size(), (std::size_t)4); k < N; k++)
+      // for (std::size_t k = 0, N = std::min(mess.bytes.size(),
+      // (std::size_t)4); k < N; k++)
       //   e.midiData[k] = mess.bytes[k];
 
       events->events[i] = reinterpret_cast<VstEvent*>(&e);
@@ -250,9 +245,7 @@ public:
     f();
   }
 
-
-  void
-  run(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept override
+  void run(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept override
   {
     if (!muted() && tk.date > tk.prev_date)
     {
@@ -266,10 +259,8 @@ public:
         {
           dispatchMidi([=] {
             auto& op = prepareOutput(samples);
-            const auto max_io
-                = std::max(this->fx->fx->numOutputs, this->fx->fx->numInputs);
-            double** output
-                = (double**)alloca(sizeof(double*) * std::max(2, max_io));
+            const auto max_io = std::max(this->fx->fx->numOutputs, this->fx->fx->numInputs);
+            double** output = (double**)alloca(sizeof(double*) * std::max(2, max_io));
             output[0] = op[0].data();
             output[1] = op[1].data();
             double* dummy = (double*)alloca(sizeof(double) * samples);
@@ -285,16 +276,16 @@ public:
           double* dummy = (double*)alloca(sizeof(double) * samples);
 
           auto& ip = prepareInput(samples);
-          double** input = (double**)alloca(
-              sizeof(double*) * std::max(2, this->fx->fx->numInputs));
+          double** input
+              = (double**)alloca(sizeof(double*) * std::max(2, this->fx->fx->numInputs));
           input[0] = ip[0].data();
           input[1] = ip[1].data();
           for (int i = 2; i < this->fx->fx->numInputs; i++)
             input[i] = dummy;
 
           auto& op = prepareOutput(samples);
-          double** output = (double**)alloca(
-              sizeof(double*) * std::max(2, this->fx->fx->numOutputs));
+          double** output
+              = (double**)alloca(sizeof(double*) * std::max(2, this->fx->fx->numOutputs));
           output[0] = op[0].data();
           output[1] = op[1].data();
 
@@ -314,10 +305,8 @@ public:
             for (auto& vec : float_v)
               vec.resize(samples);
 
-            const auto max_io
-                = std::max(this->fx->fx->numOutputs, this->fx->fx->numInputs);
-            float** output
-                = (float**)alloca(sizeof(float*) * std::max(2, max_io));
+            const auto max_io = std::max(this->fx->fx->numOutputs, this->fx->fx->numInputs);
+            float** output = (float**)alloca(sizeof(float*) * std::max(2, max_io));
             output[0] = float_v[0].data();
             output[1] = float_v[1].data();
             for (int i = 2; i < max_io; i++)
@@ -346,10 +335,8 @@ public:
 
           float* dummy = (float*)alloca(sizeof(float) * samples);
 
-          const auto max_io
-              = std::max(this->fx->fx->numOutputs, this->fx->fx->numInputs);
-          float** output
-              = (float**)alloca(sizeof(float*) * std::max(2, max_io));
+          const auto max_io = std::max(this->fx->fx->numOutputs, this->fx->fx->numInputs);
+          float** output = (float**)alloca(sizeof(float*) * std::max(2, max_io));
           output[0] = float_v[0].data();
           output[1] = float_v[1].data();
           for (int i = 2; i < max_io; i++)
@@ -366,7 +353,7 @@ public:
       }
 
       // upmix mono VSTs to stereo
-      if(this->fx->fx->numOutputs == 1)
+      if (this->fx->fx->numOutputs == 1)
       {
         auto& op = m_outlets[0]->template target<ossia::audio_port>()->samples;
         op[1].assign(op[0].begin(), op[0].end());

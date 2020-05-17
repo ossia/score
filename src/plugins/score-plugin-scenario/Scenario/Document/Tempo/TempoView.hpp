@@ -1,9 +1,9 @@
 #pragma once
-#include <Scenario/Document/Tempo/TempoProcess.hpp>
+#include <Curve/CurveView.hpp>
+#include <Curve/Process/CurveProcessPresenter.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/LayerPresenter.hpp>
-#include <Curve/Process/CurveProcessPresenter.hpp>
-#include <Curve/CurveView.hpp>
+#include <Scenario/Document/Tempo/TempoProcess.hpp>
 
 namespace Scenario
 {
@@ -11,13 +11,10 @@ namespace Scenario
 class TempoView final : public Process::LayerView
 {
 public:
-  explicit TempoView(QGraphicsItem* parent):
-    Process::LayerView{parent}
+  explicit TempoView(QGraphicsItem* parent) : Process::LayerView{parent}
   {
     setZValue(1);
-    setFlags(
-          ItemClipsToShape | ItemClipsChildrenToShape | ItemIsSelectable
-          | ItemIsFocusable);
+    setFlags(ItemClipsToShape | ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
     setAcceptDrops(true);
   }
 
@@ -25,7 +22,8 @@ public:
   ~TempoView() override { }
 
 private:
-  QPixmap pixmap() noexcept override   {
+  QPixmap pixmap() noexcept override
+  {
     if (m_curveView)
       return m_curveView->pixmap();
     else
@@ -33,7 +31,8 @@ private:
   }
 
   void paint_impl(QPainter* painter) const override { }
-  void dropEvent(QGraphicsSceneDragDropEvent* event) override   {
+  void dropEvent(QGraphicsSceneDragDropEvent* event) override
+  {
     if (event->mimeData())
       dropReceived(event->pos(), *event->mimeData());
   }
@@ -41,8 +40,7 @@ private:
   Curve::View* m_curveView{};
 };
 
-class TempoPresenter final
-    : public Curve::CurveProcessPresenter<TempoProcess, TempoView>
+class TempoPresenter final : public Curve::CurveProcessPresenter<TempoProcess, TempoView>
 {
 public:
   explicit TempoPresenter(
@@ -53,7 +51,6 @@ public:
       QObject* parent)
       : CurveProcessPresenter{style, layer, view, context, parent}
   {
-
   }
 
   void setFullView() override { m_curve.setBoundedMove(false); }

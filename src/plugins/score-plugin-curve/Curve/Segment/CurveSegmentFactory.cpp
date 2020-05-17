@@ -5,9 +5,9 @@
 #include "CurveSegmentList.hpp"
 namespace Curve
 {
-SegmentFactory::~SegmentFactory() {}
+SegmentFactory::~SegmentFactory() { }
 
-SegmentList::~SegmentList() {}
+SegmentList::~SegmentList() { }
 
 SegmentList::object_type*
 SegmentList::loadMissing(const VisitorVariant& vis, QObject* parent) const

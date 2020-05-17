@@ -34,22 +34,16 @@ QString RandomNameProvider::generateRandomName()
 {
   static WordList words;
 
-  return words.at(std::abs(
-             score::random_id_generator::getRandomId() % (words.size() - 1)))
-         + QString::number(
-             std::abs(score::random_id_generator::getRandomId() % 99))
-         + words.at(std::abs(
-             score::random_id_generator::getRandomId() % (words.size() - 1)))
-         + QString::number(
-             std::abs(score::random_id_generator::getRandomId() % 99));
+  return words.at(std::abs(score::random_id_generator::getRandomId() % (words.size() - 1)))
+         + QString::number(std::abs(score::random_id_generator::getRandomId() % 99))
+         + words.at(std::abs(score::random_id_generator::getRandomId() % (words.size() - 1)))
+         + QString::number(std::abs(score::random_id_generator::getRandomId() % 99));
 }
 
 QString RandomNameProvider::generateShortRandomName()
 {
   static WordList words;
 
-  return words.at(std::abs(
-             score::random_id_generator::getRandomId() % (words.size() - 1)))
-         + QString::number(
-             std::abs(score::random_id_generator::getRandomId() % 99));
+  return words.at(std::abs(score::random_id_generator::getRandomId() % (words.size() - 1)))
+         + QString::number(std::abs(score::random_id_generator::getRandomId() % 99));
 }

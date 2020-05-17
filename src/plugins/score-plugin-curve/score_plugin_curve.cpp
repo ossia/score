@@ -8,7 +8,6 @@
 #include <Curve/Segment/CurveSegmentList.hpp>
 #include <Curve/Segment/EasingSegment.hpp>
 #include <Curve/Segment/Linear/LinearSegment.hpp>
-
 #include <Curve/Segment/PointArray/PointArraySegment.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
 #include <Curve/Settings/CurveSettingsFactory.hpp>
@@ -27,8 +26,7 @@ score_plugin_curve::score_plugin_curve()
 
 score_plugin_curve::~score_plugin_curve() = default;
 
-std::vector<std::unique_ptr<score::InterfaceBase>>
-score_plugin_curve::factories(
+std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_curve::factories(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& factoryName) const
 {
@@ -73,20 +71,18 @@ score_plugin_curve::factories(
       FW<score::SettingsDelegateFactory, Settings::Factory>>(ctx, factoryName);
 }
 
-std::vector<std::unique_ptr<score::InterfaceListBase>>
-score_plugin_curve::factoryFamilies()
+std::vector<std::unique_ptr<score::InterfaceListBase>> score_plugin_curve::factoryFamilies()
 {
   return make_ptr_vector<score::InterfaceListBase, Curve::SegmentList>();
 }
 
-score::GUIApplicationPlugin* score_plugin_curve::make_guiApplicationPlugin(
-    const score::GUIApplicationContext& ctx)
+score::GUIApplicationPlugin*
+score_plugin_curve::make_guiApplicationPlugin(const score::GUIApplicationContext& ctx)
 {
   return new Curve::ApplicationPlugin{ctx};
 }
 
-std::pair<const CommandGroupKey, CommandGeneratorMap>
-score_plugin_curve::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_curve::make_commands()
 {
   using namespace Curve;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{

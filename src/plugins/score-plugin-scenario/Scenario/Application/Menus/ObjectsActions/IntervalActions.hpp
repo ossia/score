@@ -1,11 +1,11 @@
 #pragma once
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/plugins/UuidKey.hpp>
 
 #include <QObject>
-#include <score_plugin_scenario_export.h>
 
-#include <score/plugins/UuidKey.hpp>
+#include <score_plugin_scenario_export.h>
 class QAction;
 namespace score
 {
@@ -32,9 +32,7 @@ public:
   void setupContextMenu(Process::LayerContextMenuManager& ctxm);
 
 private:
-  void addProcessInInterval(
-      const UuidKey<Process::ProcessModel>&,
-      const QString& data);
+  void addProcessInInterval(const UuidKey<Process::ProcessModel>&, const QString& data);
 
   void on_showRacks();
   void on_hideRacks();

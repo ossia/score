@@ -25,11 +25,9 @@ bool ScenarioDisplayedElementsProvider::matches(const IntervalModel& cst) const
   return dynamic_cast<Scenario::ProcessModel*>(cst.parent());
 }
 
-DisplayedElementsContainer
-ScenarioDisplayedElementsProvider::make(IntervalModel& cst) const
+DisplayedElementsContainer ScenarioDisplayedElementsProvider::make(IntervalModel& cst) const
 {
-  if (auto parent_scenario
-      = dynamic_cast<Scenario::ProcessModel*>(cst.parent()))
+  if (auto parent_scenario = dynamic_cast<Scenario::ProcessModel*>(cst.parent()))
   {
     const auto& sst = parent_scenario->states.at(cst.startState());
     const auto& est = parent_scenario->states.at(cst.endState());
@@ -48,8 +46,7 @@ ScenarioDisplayedElementsProvider::make(IntervalModel& cst) const
   return {};
 }
 
-DisplayedElementsPresenterContainer
-ScenarioDisplayedElementsProvider::make_presenters(
+DisplayedElementsPresenterContainer ScenarioDisplayedElementsProvider::make_presenters(
     const IntervalModel& m,
     const Process::Context& ctx,
     QGraphicsItem* view_parent,
@@ -80,31 +77,28 @@ bool DefaultDisplayedElementsProvider::matches(const IntervalModel& cst) const
   return dynamic_cast<Scenario::ScenarioInterface*>(cst.parent());
 }
 
-DisplayedElementsContainer
-DefaultDisplayedElementsProvider::make(IntervalModel& cst) const
+DisplayedElementsContainer DefaultDisplayedElementsProvider::make(IntervalModel& cst) const
 {
-  if (auto parent_scenario
-      = dynamic_cast<Scenario::ScenarioInterface*>(cst.parent()))
+  if (auto parent_scenario = dynamic_cast<Scenario::ScenarioInterface*>(cst.parent()))
   {
     const auto& sst = parent_scenario->state(cst.startState());
     const auto& est = parent_scenario->state(cst.endState());
     const auto& sev = parent_scenario->event(sst.eventId());
     const auto& eev = parent_scenario->event(est.eventId());
     return DisplayedElementsContainer{
-      cst,
-          sst,
-          est,
-          sev,
-          eev,
-          parent_scenario->timeSync(sev.timeSync()),
-          parent_scenario->timeSync(eev.timeSync())};
+        cst,
+        sst,
+        est,
+        sev,
+        eev,
+        parent_scenario->timeSync(sev.timeSync()),
+        parent_scenario->timeSync(eev.timeSync())};
   }
 
   return {};
 }
 
-DisplayedElementsPresenterContainer
-DefaultDisplayedElementsProvider::make_presenters(
+DisplayedElementsPresenterContainer DefaultDisplayedElementsProvider::make_presenters(
     const IntervalModel& m,
     const Process::Context& ctx,
     QGraphicsItem* view_parent,
@@ -119,13 +113,13 @@ DefaultDisplayedElementsProvider::make_presenters(
     const auto& startNode = sm->timeSync(startEvent.timeSync());
     const auto& endNode = sm->timeSync(endEvent.timeSync());
     return DisplayedElementsPresenterContainer{
-      new FullViewIntervalPresenter{m, ctx, view_parent, parent},
-      new StatePresenter{startState, ctx, view_parent, parent},
-      new StatePresenter{endState, ctx, view_parent, parent},
-      new EventPresenter{startEvent, view_parent, parent},
-      new EventPresenter{endEvent, view_parent, parent},
-      new TimeSyncPresenter{startNode, view_parent, parent},
-      new TimeSyncPresenter{endNode, view_parent, parent}};
+        new FullViewIntervalPresenter{m, ctx, view_parent, parent},
+        new StatePresenter{startState, ctx, view_parent, parent},
+        new StatePresenter{endState, ctx, view_parent, parent},
+        new EventPresenter{startEvent, view_parent, parent},
+        new EventPresenter{endEvent, view_parent, parent},
+        new TimeSyncPresenter{startNode, view_parent, parent},
+        new TimeSyncPresenter{endNode, view_parent, parent}};
   }
   return {};
 }

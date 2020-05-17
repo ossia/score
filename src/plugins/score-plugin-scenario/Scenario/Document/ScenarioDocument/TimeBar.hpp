@@ -15,10 +15,7 @@ public:
   IntervalModel* interval() const { return m_interval; }
   void setInterval(IntervalModel* itv) { m_interval = itv; }
 
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
   bool playing = false;
 };

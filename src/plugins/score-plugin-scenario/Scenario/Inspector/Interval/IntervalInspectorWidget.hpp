@@ -5,7 +5,6 @@
 #include <score/model/Identifier.hpp>
 #include <score/tools/std/HashMap.hpp>
 
-
 #include <nano_signal_slot.hpp>
 #include <score_plugin_scenario_export.h>
 

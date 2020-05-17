@@ -16,8 +16,7 @@
 
 namespace score
 {
-class MinimalApplication final : public QObject,
-                                 public score::GUIApplicationInterface
+class MinimalApplication final : public QObject, public score::GUIApplicationInterface
 {
 public:
   MinimalApplication(int& argc, char** argv)
@@ -30,8 +29,7 @@ public:
     m_instance = this;
     this->setParent(m_app);
 
-    m_presenter = new score::Presenter{
-        m_applicationSettings, m_settings, m_pset, nullptr, this};
+    m_presenter = new score::Presenter{m_applicationSettings, m_settings, m_pset, nullptr, this};
 
     GUIApplicationInterface::loadPluginData(m_settings, *m_presenter);
   }
@@ -50,15 +48,9 @@ public:
     return m_presenter->applicationContext();
   }
 
-  const score::ApplicationComponents& components() const override
-  {
-    return context().components;
-  }
+  const score::ApplicationComponents& components() const override { return context().components; }
 
-  score::ApplicationComponentsData& componentsData()
-  {
-    return m_presenter->components();
-  }
+  score::ApplicationComponentsData& componentsData() { return m_presenter->components(); }
 
   int exec() { return m_app->exec(); }
 
@@ -69,8 +61,7 @@ public:
   score::ApplicationSettings m_applicationSettings;
 };
 
-class MinimalGUIApplication final : public QObject,
-                                    public score::GUIApplicationInterface
+class MinimalGUIApplication final : public QObject, public score::GUIApplicationInterface
 {
 public:
   MinimalGUIApplication(int& argc, char** argv)
@@ -84,8 +75,7 @@ public:
     this->setParent(m_app);
 
     m_view = new score::View{nullptr};
-    m_presenter = new score::Presenter{
-        m_applicationSettings, m_settings, m_pset, m_view, this};
+    m_presenter = new score::Presenter{m_applicationSettings, m_settings, m_pset, m_view, this};
 
     GUIApplicationInterface::loadPluginData(m_settings, *m_presenter);
 
@@ -106,15 +96,9 @@ public:
     return m_presenter->applicationContext();
   }
 
-  const score::ApplicationComponents& components() const override
-  {
-    return context().components;
-  }
+  const score::ApplicationComponents& components() const override { return context().components; }
 
-  score::ApplicationComponentsData& componentsData()
-  {
-    return m_presenter->components();
-  }
+  score::ApplicationComponentsData& componentsData() { return m_presenter->components(); }
 
   score::View& view() const { return *m_view; }
 

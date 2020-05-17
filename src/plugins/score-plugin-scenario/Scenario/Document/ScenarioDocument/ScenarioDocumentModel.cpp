@@ -2,18 +2,21 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
 #include "ScenarioDocumentModel.hpp"
+
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Settings/ScenarioSettingsModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-#include <score/selection/SelectionDispatcher.hpp>
-#include <score/model/IdentifierDebug.hpp>
-#include <QFileInfo>
-#include <QDebug>
-#include <wobjectimpl.h>
 #include <Scenario/Document/Tempo/TempoProcess.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
+#include <score/model/IdentifierDebug.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+
+#include <QDebug>
+#include <QFileInfo>
+
+#include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Scenario::ScenarioDocumentModel)
 namespace Process
@@ -38,26 +41,19 @@ ScenarioDocumentModel::ScenarioDocumentModel(
 
   itv.duration.setRigid(false);
 
-  IntervalDurations::Algorithms::changeAllDurations(
-      itv, dur);
+  IntervalDurations::Algorithms::changeAllDurations(itv, dur);
   itv.duration.setMaxInfinite(true);
-  m_baseScenario->endEvent().setDate(
-      itv.duration.defaultDuration());
-  m_baseScenario->endTimeSync().setDate(
-      itv.duration.defaultDuration());
+  m_baseScenario->endEvent().setDate(itv.duration.defaultDuration());
+  m_baseScenario->endTimeSync().setDate(itv.duration.defaultDuration());
 
-  auto& doc_metadata
-      = score::IDocument::documentContext(*parent).document.metadata();
+  auto& doc_metadata = score::IDocument::documentContext(*parent).document.metadata();
   itv.metadata().setName(doc_metadata.fileName());
 
-  itv.addSignature(TimeVal::zero(), {4,4});
+  itv.addSignature(TimeVal::zero(), {4, 4});
   itv.setHasTimeSignature(true);
 
   connect(
-      &doc_metadata,
-      &score::DocumentMetadata::fileNameChanged,
-      this,
-      [&](const QString& newName) {
+      &doc_metadata, &score::DocumentMetadata::fileNameChanged, this, [&](const QString& newName) {
         QFileInfo info(newName);
         itv.metadata().setName(info.baseName());
       });
@@ -65,16 +61,13 @@ ScenarioDocumentModel::ScenarioDocumentModel(
   using namespace Scenario::Command;
 
   AddOnlyProcessToInterval cmd1{
-      itv,
-      Metadata<ConcreteKey_k, Scenario::ProcessModel>::get(),
-          QString{}, QPointF{}};
+      itv, Metadata<ConcreteKey_k, Scenario::ProcessModel>::get(), QString{}, QPointF{}};
   cmd1.redo(ctx);
   itv.processes.begin()->setSlotHeight(1500);
 
   // Select the first state
   score::SelectionDispatcher d{ctx.selectionStack};
-  auto scenar = qobject_cast<Scenario::ProcessModel*>(
-      &*itv.processes.begin());
+  auto scenar = qobject_cast<Scenario::ProcessModel*>(&*itv.processes.begin());
   if (scenar)
     d.setAndCommit({&scenar->startEvent()});
 }
@@ -84,8 +77,7 @@ void ScenarioDocumentModel::finishLoading()
   // Load cables
   for (const auto& bytearray : qAsConst(m_savedCables))
   {
-    auto cbl = new Process::Cable{
-        DataStream::Deserializer{bytearray}, this};
+    auto cbl = new Process::Cable{DataStream::Deserializer{bytearray}, this};
     auto src = cbl->source().try_find(m_context);
     auto snk = cbl->sink().try_find(m_context);
     if (src && snk)
@@ -97,14 +89,13 @@ void ScenarioDocumentModel::finishLoading()
     }
     else
     {
-      qWarning() << "Could not find either source or sink for cable "
-                 << cbl->id() << src << snk;
+      qWarning() << "Could not find either source or sink for cable " << cbl->id() << src << snk;
       delete cbl;
     }
   }
   m_savedCables.clear();
 
-  if(m_savedCablesJson.IsArray())
+  if (m_savedCablesJson.IsArray())
   {
     for (const auto& json : m_savedCablesJson.GetArray())
     {
@@ -120,8 +111,7 @@ void ScenarioDocumentModel::finishLoading()
       }
       else
       {
-        qWarning() << "Could not find either source or sink for cable "
-                   << cbl->id() << src << snk;
+        qWarning() << "Could not find either source or sink for cable " << cbl->id() << src << snk;
         delete cbl;
       }
     }
@@ -129,17 +119,16 @@ void ScenarioDocumentModel::finishLoading()
   }
 
   // Load buses
-  for(auto itv : this->busIntervals)
+  for (auto itv : this->busIntervals)
   {
     const_cast<IntervalModel*>(itv)->busChanged(true);
-    connect(itv, &Scenario::IntervalModel::identified_object_destroying,
-        this, [=] {
+    connect(itv, &Scenario::IntervalModel::identified_object_destroying, this, [=] {
       removeBus(itv);
     });
   }
 }
 
-ScenarioDocumentModel::~ScenarioDocumentModel() {}
+ScenarioDocumentModel::~ScenarioDocumentModel() { }
 
 IntervalModel& ScenarioDocumentModel::baseInterval() const
 {
@@ -148,12 +137,11 @@ IntervalModel& ScenarioDocumentModel::baseInterval() const
 
 void ScenarioDocumentModel::addBus(const Scenario::IntervalModel* itv)
 {
-  if(!ossia::contains(busIntervals, itv))
+  if (!ossia::contains(busIntervals, itv))
   {
     busIntervals.push_back(itv);
     const_cast<IntervalModel*>(itv)->busChanged(true);
-    connect(itv, &Scenario::IntervalModel::identified_object_destroying,
-        this, [=] {
+    connect(itv, &Scenario::IntervalModel::identified_object_destroying, this, [=] {
       removeBus(itv);
     });
     busesChanged();
@@ -162,7 +150,7 @@ void ScenarioDocumentModel::addBus(const Scenario::IntervalModel* itv)
 
 void ScenarioDocumentModel::removeBus(const Scenario::IntervalModel* itv)
 {
-  if(ossia::contains(busIntervals, itv))
+  if (ossia::contains(busIntervals, itv))
   {
     ossia::remove_erase(busIntervals, itv);
     const_cast<IntervalModel*>(itv)->busChanged(false);

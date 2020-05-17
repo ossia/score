@@ -30,35 +30,30 @@ OSCQueryProtocolSettingsWidget::OSCQueryProtocolSettingsWidget(QWidget* parent)
   m_localHostEdit = new QLineEdit(this);
   m_rate = new RateWidget{this};
 
-  connect(
-      &m_http_client,
-      &QNetworkAccessManager::finished,
-      this,
-      [&](QNetworkReply* ret) {
-        if (ret != m_cur_reply)
-        {
-          ret->deleteLater();
-          return;
-        }
+  connect(&m_http_client, &QNetworkAccessManager::finished, this, [&](QNetworkReply* ret) {
+    if (ret != m_cur_reply)
+    {
+      ret->deleteLater();
+      return;
+    }
 
-        auto doc = QJsonDocument::fromJson(ret->readAll());
-        if (doc.object().contains("NAME"))
-        {
-          auto str = doc.object()["NAME"].toString();
-          if (!str.isEmpty())
-            m_deviceNameEdit->setText(str);
-        }
-        ret->deleteLater();
-        m_cur_reply = nullptr;
-      });
+    auto doc = QJsonDocument::fromJson(ret->readAll());
+    if (doc.object().contains("NAME"))
+    {
+      auto str = doc.object()["NAME"].toString();
+      if (!str.isEmpty())
+        m_deviceNameEdit->setText(str);
+    }
+    ret->deleteLater();
+    m_cur_reply = nullptr;
+  });
 
   QFormLayout* layout = new QFormLayout;
 
 #if defined(OSSIA_DNSSD)
   m_browser = new ZeroconfBrowser{"_oscjson._tcp", this};
   auto pb = new QPushButton{tr("Find devices..."), this};
-  connect(
-      pb, &QPushButton::clicked, m_browser->makeAction(), &QAction::trigger);
+  connect(pb, &QPushButton::clicked, m_browser->makeAction(), &QAction::trigger);
   connect(
       m_browser,
       &ZeroconfBrowser::sessionSelected,
@@ -66,9 +61,8 @@ OSCQueryProtocolSettingsWidget::OSCQueryProtocolSettingsWidget(QWidget* parent)
       [=](QString name, QString ip, int port, QMap<QString, QByteArray> txt) {
         m_deviceNameEdit->setText(name);
 
-        if (auto ret = m_http_client.get(QNetworkRequest(QUrl(
-                "http://" + ip + ":" + QString::number(port)
-                + "/?HOST_INFO"))))
+        if (auto ret = m_http_client.get(QNetworkRequest(
+                QUrl("http://" + ip + ":" + QString::number(port) + "/?HOST_INFO"))))
         {
           m_cur_reply = ret;
         }
@@ -76,8 +70,7 @@ OSCQueryProtocolSettingsWidget::OSCQueryProtocolSettingsWidget(QWidget* parent)
         if (txt.contains("WebSockets") && txt["WebSockets"] == "true")
           m_localHostEdit->setText("ws://" + ip + ":" + QString::number(port));
         else
-          m_localHostEdit->setText(
-              "http://" + ip + ":" + QString::number(port));
+          m_localHostEdit->setText("http://" + ip + ":" + QString::number(port));
       });
   layout->addWidget(pb);
 #endif
@@ -117,15 +110,13 @@ Device::DeviceSettings OSCQueryProtocolSettingsWidget::getSettings() const
   return s;
 }
 
-void OSCQueryProtocolSettingsWidget::setSettings(
-    const Device::DeviceSettings& settings)
+void OSCQueryProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
   m_deviceNameEdit->setText(settings.name);
   OSCQuerySpecificSettings OSCQuery;
   if (settings.deviceSpecificSettings.canConvert<OSCQuerySpecificSettings>())
   {
-    OSCQuery
-        = settings.deviceSpecificSettings.value<OSCQuerySpecificSettings>();
+    OSCQuery = settings.deviceSpecificSettings.value<OSCQuerySpecificSettings>();
     m_localHostEdit->setText(OSCQuery.host);
     m_rate->setRate(OSCQuery.rate);
   }

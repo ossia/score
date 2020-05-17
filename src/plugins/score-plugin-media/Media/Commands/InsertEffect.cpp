@@ -1,8 +1,8 @@
 #include "InsertEffect.hpp"
 
-#include <score/plugins/SerializableHelpers.hpp>
-#include <score/model/EntitySerialization.hpp>
 #include <score/document/ChangeId.hpp>
+#include <score/model/EntitySerialization.hpp>
+#include <score/plugins/SerializableHelpers.hpp>
 namespace Media
 {
 InsertEffect::InsertEffect(
@@ -56,10 +56,7 @@ LoadEffect::LoadEffect(
     const Media::ChainProcess& model,
     const rapidjson::Document& data,
     std::size_t effectPos)
-    : m_path{model}
-    , m_id{getStrongId(model.effects())}
-    , m_data{clone(data)}
-    , m_pos{effectPos}
+    : m_path{model}, m_id{getStrongId(model.effects())}, m_data{clone(data)}, m_pos{effectPos}
 {
 }
 
@@ -107,15 +104,10 @@ void LoadEffect::deserializeImpl(DataStreamOutput& s)
   s >> m_path >> m_id >> m_data >> m_pos;
 }
 
-RemoveEffect::RemoveEffect(
-    const Media::ChainProcess& model,
-    const Process::ProcessModel& effect)
-    : m_model{model}
-    , m_id{effect.id()}
-    , m_savedEffect{score::marshall<DataStream>(effect)}
+RemoveEffect::RemoveEffect(const Media::ChainProcess& model, const Process::ProcessModel& effect)
+    : m_model{model}, m_id{effect.id()}, m_savedEffect{score::marshall<DataStream>(effect)}
 {
-  m_cables = Dataflow::saveCables(
-      {(QObject*)&effect}, score::IDocument::documentContext(model));
+  m_cables = Dataflow::saveCables({(QObject*)&effect}, score::IDocument::documentContext(model));
   m_pos = model.effectPosition(effect.id());
 }
 

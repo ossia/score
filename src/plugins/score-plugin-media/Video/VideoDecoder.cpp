@@ -5,33 +5,29 @@ extern "C"
 #include <libavutil/pixdesc.h>
 #include <libswscale/swscale.h>
 }
-#include <QElapsedTimer>
-#include <ossia/detail/flicks.hpp>
-#include <QDebug>
-#include <functional>
 #include "VideoDecoder.hpp"
+
+#include <ossia/detail/flicks.hpp>
+
+#include <QDebug>
+#include <QElapsedTimer>
+
+#include <functional>
 namespace Video
 {
 
-VideoDecoder::VideoDecoder() noexcept
-{
-
-}
+VideoDecoder::VideoDecoder() noexcept { }
 
 VideoDecoder::~VideoDecoder() noexcept
 {
   close_file();
 }
 
-bool VideoDecoder::load(
-    const std::string& inputFile,
-    double fps_unused) noexcept
+bool VideoDecoder::load(const std::string& inputFile, double fps_unused) noexcept
 {
   close_file();
 
-  if (avformat_open_input(
-          &m_formatContext, inputFile.c_str(), nullptr, nullptr)
-      != 0)
+  if (avformat_open_input(&m_formatContext, inputFile.c_str(), nullptr, nullptr) != 0)
   {
     close_file();
     return false;

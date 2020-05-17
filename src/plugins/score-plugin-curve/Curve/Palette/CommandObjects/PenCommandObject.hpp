@@ -13,8 +13,7 @@ namespace Curve
 class Model;
 class Presenter;
 class StateBase;
-class SCORE_PLUGIN_CURVE_EXPORT PenCommandObject final
-    : public CommandObjectBase
+class SCORE_PLUGIN_CURVE_EXPORT PenCommandObject final : public CommandObjectBase
 {
 public:
   PenCommandObject(Presenter* presenter, const score::CommandStackFacade&);
@@ -30,10 +29,8 @@ public:
   void cancel();
 
 private:
-  using seg_tuple = std::tuple<
-      optional<SegmentData>,
-      optional<SegmentData>,
-      std::vector<SegmentData>>;
+  using seg_tuple
+      = std::tuple<optional<SegmentData>, optional<SegmentData>, std::vector<SegmentData>>;
   void release_n(seg_tuple&&);
   seg_tuple filterSegments();
   PointArraySegment m_segment;

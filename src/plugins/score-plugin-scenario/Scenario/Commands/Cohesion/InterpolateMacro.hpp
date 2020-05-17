@@ -15,8 +15,7 @@ namespace Command
 {
 // RENAMEME
 // One InterpolateMacro per interval
-class AddMultipleProcessesToMultipleIntervalsMacro final
-    : public score::AggregateCommand
+class AddMultipleProcessesToMultipleIntervalsMacro final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
       CommandFactoryName(),
@@ -24,8 +23,7 @@ class AddMultipleProcessesToMultipleIntervalsMacro final
       "Add processes to intervals")
 };
 
-class AddMultipleProcessesToIntervalMacro final
-    : public score::AggregateCommand
+class AddMultipleProcessesToIntervalMacro final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
       CommandFactoryName(),

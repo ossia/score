@@ -12,7 +12,7 @@
 namespace State
 {
 
-Domain::Domain() noexcept : domain{std::make_unique<ossia::domain>()} {}
+Domain::Domain() noexcept : domain{std::make_unique<ossia::domain>()} { }
 
 Domain::Domain(const Domain& other) noexcept
     : domain{std::make_unique<ossia::domain>(*other.domain)}
@@ -36,7 +36,7 @@ Domain& Domain::operator=(Domain&& other) noexcept
   return *this;
 }
 
-Domain::~Domain() {}
+Domain::~Domain() { }
 
 Domain::Domain(const ossia::domain& other) noexcept
     : domain{std::make_unique<ossia::domain>(other)}
@@ -69,12 +69,12 @@ ossia::domain& Domain::get() noexcept
   return *domain;
 }
 
-Domain::operator const ossia::domain&() const noexcept
+Domain::operator const ossia::domain &() const noexcept
 {
   return *domain;
 }
 
-Domain::operator ossia::domain&() noexcept
+Domain::operator ossia::domain &() noexcept
 {
   return *domain;
 }

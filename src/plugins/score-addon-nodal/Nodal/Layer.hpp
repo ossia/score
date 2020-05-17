@@ -7,6 +7,5 @@
 
 namespace Nodal
 {
-using LayerFactory = Process::LayerFactory_T<
-    Nodal::Model, Nodal::Presenter, Nodal::View>;
+using LayerFactory = Process::LayerFactory_T<Nodal::Model, Nodal::Presenter, Nodal::View>;
 }

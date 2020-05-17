@@ -3,27 +3,26 @@
 
 #include "IntervalModel.hpp"
 
+#include <Curve/CurveModel.hpp>
+#include <Curve/Segment/Linear/LinearSegment.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Process/TimeValue.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Document/Tempo/TempoProcess.hpp>
 
-#include <Curve/CurveModel.hpp>
-#include <Curve/Segment/Linear/LinearSegment.hpp>
-
-#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
-#include <score/model/ModelMetadata.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
 #include <score/model/EntitySerialization.hpp>
+#include <score/model/ModelMetadata.hpp>
 #include <score/tools/Bind.hpp>
-#include <Scenario/Document/Tempo/TempoProcess.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
 
 #include <core/document/Document.hpp>
 #include <core/document/DocumentPresenter.hpp>
@@ -67,10 +66,7 @@ IntervalModel::IntervalModel(
 IntervalModel::~IntervalModel()
 {
   static_assert(
-      std::is_same<
-          serialization_tag<IntervalModel>::type,
-          visitor_entity_tag>::value,
-      "");
+      std::is_same<serialization_tag<IntervalModel>::type, visitor_entity_tag>::value, "");
   processes.clear();
   identified_object_destroying(this);
 }
@@ -80,7 +76,10 @@ void IntervalModel::initConnections()
   processes.removing.connect<&IntervalModel::on_removingProcess>(this);
 }
 
-IntervalModel::IntervalModel(DataStream::Deserializer& vis, const score::DocumentContext& ctx, QObject* parent)
+IntervalModel::IntervalModel(
+    DataStream::Deserializer& vis,
+    const score::DocumentContext& ctx,
+    QObject* parent)
     : Entity{vis, parent}
     , m_context{ctx}
     , m_executionState{}
@@ -95,7 +94,10 @@ IntervalModel::IntervalModel(DataStream::Deserializer& vis, const score::Documen
   vis.writeTo(*this);
 }
 
-IntervalModel::IntervalModel(JSONObject::Deserializer& vis, const score::DocumentContext& ctx, QObject* parent)
+IntervalModel::IntervalModel(
+    JSONObject::Deserializer& vis,
+    const score::DocumentContext& ctx,
+    QObject* parent)
     : Entity{vis, parent}
     , m_context{ctx}
     , m_executionState{}
@@ -110,7 +112,10 @@ IntervalModel::IntervalModel(JSONObject::Deserializer& vis, const score::Documen
   vis.writeTo(*this);
 }
 
-IntervalModel::IntervalModel(DataStream::Deserializer&& vis, const score::DocumentContext& ctx, QObject* parent)
+IntervalModel::IntervalModel(
+    DataStream::Deserializer&& vis,
+    const score::DocumentContext& ctx,
+    QObject* parent)
     : Entity{vis, parent}
     , m_context{ctx}
     , m_executionState{}
@@ -125,7 +130,10 @@ IntervalModel::IntervalModel(DataStream::Deserializer&& vis, const score::Docume
   vis.writeTo(*this);
 }
 
-IntervalModel::IntervalModel(JSONObject::Deserializer&& vis, const score::DocumentContext& ctx, QObject* parent)
+IntervalModel::IntervalModel(
+    JSONObject::Deserializer&& vis,
+    const score::DocumentContext& ctx,
+    QObject* parent)
     : Entity{vis, parent}
     , m_context{ctx}
     , m_executionState{}
@@ -142,11 +150,12 @@ IntervalModel::IntervalModel(JSONObject::Deserializer&& vis, const score::Docume
 
 void IntervalModel::setHasTimeSignature(bool b)
 {
-  if(b != m_hasSignature)
+  if (b != m_hasSignature)
   {
     m_hasSignature = b;
-    if(b && m_signatures.empty()) {
-      m_signatures[TimeVal::zero()] = {4,4};
+    if (b && m_signatures.empty())
+    {
+      m_signatures[TimeVal::zero()] = {4, 4};
     }
     hasTimeSignatureChanged(b);
   }
@@ -155,8 +164,7 @@ void IntervalModel::setHasTimeSignature(bool b)
 TimeVal IntervalModel::contentDuration() const noexcept
 {
   TimeVal min_time
-      = (duration.isMaxInfinite() ? duration.defaultDuration()
-                                  : duration.maxDuration());
+      = (duration.isMaxInfinite() ? duration.defaultDuration() : duration.maxDuration());
 
   for (Process::ProcessModel& proc : processes)
   {
@@ -172,16 +180,15 @@ TimeVal IntervalModel::contentDuration() const noexcept
 
 TempoProcess* IntervalModel::tempoCurve() const noexcept
 {
-  for(auto& proc : processes)
+  for (auto& proc : processes)
   {
-    if(auto tempo = qobject_cast<TempoProcess*>(&proc))
+    if (auto tempo = qobject_cast<TempoProcess*>(&proc))
     {
       return tempo;
     }
   }
   return nullptr;
 }
-
 
 void IntervalModel::addSignature(TimeVal t, Control::time_signature sig)
 {
@@ -200,12 +207,11 @@ void IntervalModel::setTimeSignatureMap(const TimeSignatureMap& map)
   // qDebug() << "New map";
   // for(auto& [a,b]: map)
   //   qDebug() << a.msec() << b.upper << "/" << b.lower;
-  if(map != m_signatures)
+  if (map != m_signatures)
   {
     m_signatures = map;
     timeSignaturesChanged(map);
   }
-
 }
 
 const Id<StateModel>& IntervalModel::startState() const
@@ -261,7 +267,7 @@ void IntervalModel::startExecution()
 }
 void IntervalModel::stopExecution()
 {
-  if(!m_hasSignature)
+  if (!m_hasSignature)
     duration.setSpeed(1.0);
 
   for (Process::ProcessModel& proc : processes)
@@ -274,7 +280,7 @@ void IntervalModel::reset()
 {
   duration.setPlayPercentage(0);
 
-  if(!m_hasSignature)
+  if (!m_hasSignature)
     duration.setSpeed(1.0);
 
   for (Process::ProcessModel& proc : processes)
@@ -306,7 +312,7 @@ void IntervalModel::setExecutionState(IntervalExecutionState s)
 
 IntervalExecutionState IntervalModel::executionState() const
 {
-  switch(m_executionState)
+  switch (m_executionState)
   {
     case IntervalExecutionState::Enabled:
       return m_muted ? IntervalExecutionState::Muted : IntervalExecutionState::Enabled;
@@ -322,7 +328,7 @@ IntervalModel::ViewMode IntervalModel::viewMode() const noexcept
 
 void IntervalModel::setViewMode(IntervalModel::ViewMode v)
 {
-  if(v != m_viewMode)
+  if (v != m_viewMode)
   {
     m_viewMode = v;
     viewModeChanged(v);
@@ -510,8 +516,10 @@ void IntervalModel::setExecuting(bool m)
   {
     m_executing = m;
     executingChanged(m);
-    if(m_executing) startExecution();
-    else stopExecution();
+    if (m_executing)
+      startExecution();
+    else
+      stopExecution();
   }
 }
 
@@ -525,10 +533,11 @@ double IntervalModel::getSlotHeight(const SlotId& slot) const
 
 double IntervalModel::getSlotHeightForProcess(const Id<Process::ProcessModel>& p) const
 {
-  for(auto& slt : m_smallView)
+  for (auto& slt : m_smallView)
   {
-    for(auto& proc : slt.processes) {
-      if(proc == p)
+    for (auto& proc : slt.processes)
+    {
+      if (proc == p)
         return slt.height;
     }
   }
@@ -549,7 +558,7 @@ void IntervalModel::setSlotHeight(const SlotId& slot, double height)
 double IntervalModel::getHeight() const noexcept
 {
   double h = 0.;
-  for(const auto& slot : m_smallView)
+  for (const auto& slot : m_smallView)
   {
     h += slot.height + SlotHeader::headerHeight() + SlotFooter::footerHeight();
   }
@@ -607,7 +616,8 @@ void IntervalModel::swapSlots(int pos1, int pos2, Slot::RackView v)
     if (pos1 < N && pos2 < N)
     {
       if (pos1 < pos2)
-      { auto val = *(v.begin() + pos1);
+      {
+        auto val = *(v.begin() + pos1);
 
         v.insert(v.begin() + pos2, val);
         v.erase(v.begin() + pos1);
@@ -639,8 +649,10 @@ void IntervalModel::on_addProcess(Process::ProcessModel& p)
 {
   m_fullView.push_back(FullSlot{p.id()});
   slotAdded({m_fullView.size() - 1, Slot::FullView});
-  con(metadata(), &score::ModelMetadata::ColorChanged,
-      &p.metadata(), &score::ModelMetadata::setColor);
+  con(metadata(),
+      &score::ModelMetadata::ColorChanged,
+      &p.metadata(),
+      &score::ModelMetadata::setColor);
   p.metadata().setColor(metadata().getColor());
 }
 
@@ -652,8 +664,7 @@ void IntervalModel::on_removingProcess(const Process::ProcessModel& p)
     removeLayer(i, pid);
   }
 
-  auto it = ossia::find_if(
-      m_fullView, [&](const FullSlot& slot) { return slot.process == pid; });
+  auto it = ossia::find_if(m_fullView, [&](const FullSlot& slot) { return slot.process == pid; });
   if (it != m_fullView.end())
   {
     int N = std::distance(m_fullView.begin(), it);
@@ -664,14 +675,13 @@ void IntervalModel::on_removingProcess(const Process::ProcessModel& p)
 
 bool isInFullView(const IntervalModel& cstr) noexcept
 {
-  if(qobject_cast<BaseScenario*>(cstr.parent()))
+  if (qobject_cast<BaseScenario*>(cstr.parent()))
     return true;
 
   auto& doc = score::IDocument::documentContext(cstr);
   if (auto pres = doc.document.presenter())
   {
-    auto sub = qobject_cast<Scenario::ScenarioDocumentPresenter*>(
-        pres->presenterDelegate());
+    auto sub = qobject_cast<Scenario::ScenarioDocumentPresenter*>(pres->presenterDelegate());
     if (sub)
       return &sub->displayedElements.interval() == &cstr;
     return false;
@@ -689,8 +699,7 @@ const Scenario::Slot& SlotPath::find(const score::DocumentContext& ctx) const
   return interval.find(ctx).getSmallViewSlot(index);
 }
 
-const Scenario::Slot*
-SlotPath::try_find(const score::DocumentContext& ctx) const
+const Scenario::Slot* SlotPath::try_find(const score::DocumentContext& ctx) const
 {
   if (auto cst = interval.try_find(ctx))
     return cst->findSmallViewSlot(index);
@@ -700,14 +709,14 @@ SlotPath::try_find(const score::DocumentContext& ctx) const
 
 bool isBus(const IntervalModel& model, const score::DocumentContext& ctx) noexcept
 {
-   auto& buses = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document).busIntervals;
-   return ossia::contains(buses, &model);
+  auto& buses = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document).busIntervals;
+  return ossia::contains(buses, &model);
 }
 
 ParentTimeInfo closestParentWithMusicalMetrics(const IntervalModel* self)
 {
   TimeVal delta = TimeVal::zero();
-  if(self->hasTimeSignature())
+  if (self->hasTimeSignature())
     return {self, delta};
 
   delta += self->date();
@@ -717,24 +726,24 @@ ParentTimeInfo closestParentWithMusicalMetrics(const IntervalModel* self)
     p = p->parent();
   }
 
-  while(p)
+  while (p)
   {
-    if(auto pi = qobject_cast<const IntervalModel*>(p))
+    if (auto pi = qobject_cast<const IntervalModel*>(p))
     {
-      if(pi->hasTimeSignature())
+      if (pi->hasTimeSignature())
       {
         return {pi, delta};
       }
       else
       {
         delta += pi->date();
-        if((p = p->parent()))
+        if ((p = p->parent()))
           p = p->parent();
       }
     }
     else
     {
-      if((p = p->parent()))
+      if ((p = p->parent()))
         p = p->parent();
     }
   }
@@ -745,10 +754,10 @@ QPointF newProcessPosition(const IntervalModel& cst) noexcept
 {
   // Find a good position for the process in the nodal graph
   qreal min_y = 0;
-  for(const Process::ProcessModel& proc : cst.processes)
+  for (const Process::ProcessModel& proc : cst.processes)
   {
     qreal bottom_y = proc.position().y() + proc.size().height() + 60;
-    if(bottom_y > min_y)
+    if (bottom_y > min_y)
       min_y = bottom_y;
   }
 

@@ -11,8 +11,7 @@ namespace Settings
 
 namespace Parameters
 {
-SETTINGS_PARAMETER_IMPL(Enabled){QStringLiteral("RemoteControl/Enabled"),
-                                 false};
+SETTINGS_PARAMETER_IMPL(Enabled){QStringLiteral("RemoteControl/Enabled"), false};
 static auto list()
 {
   return std::tie(Enabled);

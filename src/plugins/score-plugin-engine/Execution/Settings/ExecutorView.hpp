@@ -2,6 +2,7 @@
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
 
 #include <Execution/Settings/ExecutorModel.hpp>
+
 #include <verdigris>
 class QSpinBox;
 class QComboBox;

@@ -1,11 +1,11 @@
 #pragma once
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
+#include <State/Message.hpp>
+
+#include <ossia/detail/hash_map.hpp>
 
 #include <ControlSurface/Metadata.hpp>
-
-#include <State/Message.hpp>
-#include <ossia/detail/hash_map.hpp>
 
 namespace Device
 {
@@ -25,10 +25,8 @@ class Model final : public Process::ProcessModel
   W_OBJECT(Model)
 
 public:
-    using address_map = ossia::fast_hash_map<Id<Process::Port>, State::AddressAccessor>;
-  Model(
-      const TimeVal& duration, const Id<Process::ProcessModel>& id,
-      QObject* parent);
+  using address_map = ossia::fast_hash_map<Id<Process::Port>, State::AddressAccessor>;
+  Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
 
   template <typename Impl>
   Model(Impl& vis, QObject* parent) : Process::ProcessModel{vis, parent}
@@ -49,8 +47,8 @@ public:
   void setupControl(Process::ControlInlet* ctl, const State::AddressAccessor& addr);
   void removeControl(const Id<Process::Port>& id);
 
-  const address_map& outputAddresses() const noexcept
-  { return m_outputAddresses; }
+  const address_map& outputAddresses() const noexcept { return m_outputAddresses; }
+
 private:
   QString prettyName() const noexcept override;
   void startExecution() override;

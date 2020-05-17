@@ -40,10 +40,7 @@ struct NoteComparator
   {
     return lhs.m_start < rhs.m_start;
   }
-  bool operator()(const NoteData& lhs, double rhs) const
-  {
-    return lhs.m_start < rhs;
-  }
+  bool operator()(const NoteData& lhs, double rhs) const { return lhs.m_start < rhs; }
 };
 
 /**
@@ -66,11 +63,8 @@ public:
   Note(const Id<Note>& id, QObject* parent);
   Note(const Id<Note>& id, NoteData n, QObject* parent);
 
-  template <
-      typename DeserializerVisitor,
-      enable_if_deserializer<DeserializerVisitor>* = nullptr>
-  Note(DeserializerVisitor&& vis, QObject* parent)
-      : IdentifiedObject<Note>{vis, parent}
+  template <typename DeserializerVisitor, enable_if_deserializer<DeserializerVisitor>* = nullptr>
+  Note(DeserializerVisitor&& vis, QObject* parent) : IdentifiedObject<Note>{vis, parent}
   {
     vis.writeTo(*this);
   }

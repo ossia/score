@@ -5,7 +5,6 @@
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
 
-
 struct DataStreamInput;
 struct DataStreamOutput;
 
@@ -17,10 +16,7 @@ namespace Command
 {
 class RemoveMessageNodes final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      RemoveMessageNodes,
-      "Remove user messages")
+  SCORE_COMMAND_DECL(CommandFactoryName(), RemoveMessageNodes, "Remove user messages")
 
 public:
   RemoveMessageNodes(

@@ -20,7 +20,8 @@ struct
 #pragma pack()
 #endif
 
-struct MeshBuffers {
+struct MeshBuffers
+{
   QRhiBuffer* mesh{};
   QRhiBuffer* index{};
 };

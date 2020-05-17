@@ -33,19 +33,19 @@ struct VisitorVariant
  * is a deserializer.
  */
 template <typename DeserializerVisitor>
-using enable_if_deserializer = typename std::enable_if_t<
-    std::decay<DeserializerVisitor>::type::is_visitor_tag::value>;
+using enable_if_deserializer =
+    typename std::enable_if_t<std::decay<DeserializerVisitor>::type::is_visitor_tag::value>;
 
 // Declaration of common friends for classes that serialize themselves
 #define SCORE_SERIALIZE_FRIENDS    \
   friend class ::DataStreamReader; \
   friend class ::DataStreamWriter; \
-  friend class ::JSONReader; \
+  friend class ::JSONReader;       \
   friend class ::JSONWriter;
 
 class DataStream;
 class JSONObject;
-//class JSONValue;
+// class JSONValue;
 class DataStreamReader;
 class DataStreamWriter;
 class JSONReader;

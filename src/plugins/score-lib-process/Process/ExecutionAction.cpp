@@ -3,23 +3,11 @@
 namespace Execution
 {
 
-ExecutionAction::~ExecutionAction()
-{
+ExecutionAction::~ExecutionAction() { }
 
-}
+void ExecutionAction::startTick(unsigned long frameCount, double seconds) { }
 
-void ExecutionAction::startTick(unsigned long frameCount, double seconds)
-{
-
-}
-
-void ExecutionAction::endTick(unsigned long frameCount, double seconds)
-{
-
-}
-Execution::ExecutionActionList::~ExecutionActionList()
-{
-
-}
+void ExecutionAction::endTick(unsigned long frameCount, double seconds) { }
+Execution::ExecutionActionList::~ExecutionActionList() { }
 
 }

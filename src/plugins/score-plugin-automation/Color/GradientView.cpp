@@ -10,8 +10,7 @@ namespace Gradient
 {
 View::View(QGraphicsItem* parent) : LayerView{parent}
 {
-  this->setFlags(
-      QGraphicsItem::ItemIsFocusable | QGraphicsItem::ItemClipsToShape);
+  this->setFlags(QGraphicsItem::ItemIsFocusable | QGraphicsItem::ItemClipsToShape);
 }
 
 void View::setGradient(const View::gradient_colors& c)

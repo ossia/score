@@ -1,6 +1,6 @@
 #pragma once
-#include <score/widgets/MarginLess.hpp>
 #include <score/widgets/ArrowButton.hpp>
+#include <score/widgets/MarginLess.hpp>
 
 #include <QLineEdit>
 #include <QPushButton>
@@ -10,6 +10,7 @@
 #include <QWidget>
 
 #include <score_lib_inspector_export.h>
+
 #include <verdigris>
 class QMenu;
 
@@ -32,13 +33,8 @@ class SCORE_LIB_INSPECTOR_EXPORT InspectorSectionWidget : public QWidget
 {
   W_OBJECT(InspectorSectionWidget)
 public:
-  explicit InspectorSectionWidget(
-      bool editable = false,
-      QWidget* parent = nullptr);
-  InspectorSectionWidget(
-      QString name,
-      bool nameEditable = false,
-      QWidget* parent = nullptr);
+  explicit InspectorSectionWidget(bool editable = false, QWidget* parent = nullptr);
+  InspectorSectionWidget(QString name, bool nameEditable = false, QWidget* parent = nullptr);
   virtual ~InspectorSectionWidget();
 
   QMenu* menu() const { return m_menu; }
@@ -61,8 +57,7 @@ public:
   void showMenu(bool b);
 
 public:
-  void nameChanged(QString newName)
-      E_SIGNAL(SCORE_LIB_INSPECTOR_EXPORT, nameChanged, newName)
+  void nameChanged(QString newName) E_SIGNAL(SCORE_LIB_INSPECTOR_EXPORT, nameChanged, newName)
 
 private:
   score::MarginLess<QVBoxLayout> m_generalLayout; /*!< main layout */

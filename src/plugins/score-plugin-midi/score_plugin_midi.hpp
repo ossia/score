@@ -21,6 +21,5 @@ private:
       const score::InterfaceKey& factoryName) const override;
 
   // CommandFactory_QtInterface interface
-  std::pair<const CommandGroupKey, CommandGeneratorMap>
-  make_commands() override;
+  std::pair<const CommandGroupKey, CommandGeneratorMap> make_commands() override;
 };

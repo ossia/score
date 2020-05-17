@@ -12,7 +12,5 @@ class SCORE_PLUGIN_LOOP_EXPORT PutInLoop final : public score::AggregateCommand
   SCORE_COMMAND_DECL(LoopCommandFactoryName(), PutInLoop, "Put in loop")
 };
 
-void EncapsulateInLoop(
-    const Scenario::ProcessModel& loop,
-    const score::CommandStackFacade& stack);
+void EncapsulateInLoop(const Scenario::ProcessModel& loop, const score::CommandStackFacade& stack);
 }

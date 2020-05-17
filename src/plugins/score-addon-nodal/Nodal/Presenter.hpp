@@ -1,24 +1,20 @@
 #pragma once
-#include <Nodal/Process.hpp>
 #include <Process/Dataflow/NodeItem.hpp>
-
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/ZoomHelper.hpp>
 
 #include <score/model/Identifier.hpp>
+
+#include <Nodal/Process.hpp>
 namespace Nodal
 {
 class Model;
 class View;
-class Presenter final
-    : public Process::LayerPresenter
-    , public Nano::Observer
+class Presenter final : public Process::LayerPresenter, public Nano::Observer
 {
 public:
-  explicit Presenter(
-      const Model& model, View* view,
-      const Process::Context& ctx, QObject* parent);
+  explicit Presenter(const Model& model, View* view, const Process::Context& ctx, QObject* parent);
   ~Presenter();
 
   void setWidth(qreal width, qreal defaultWidth) override;

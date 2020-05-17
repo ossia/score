@@ -1,5 +1,6 @@
 #include <Device/Node/DeviceNode.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <JS/ConsolePanel.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 
 #include <score/actions/Action.hpp>
@@ -8,17 +9,16 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
-#include <score/tools/Bind.hpp>
 
 #include <QBuffer>
 
 #include <RemoteControl/DocumentPlugin.hpp>
 #include <RemoteControl/Scenario/Scenario.hpp>
 #include <RemoteControl/Settings/Model.hpp>
-#include <JS/ConsolePanel.hpp>
 namespace RemoteControl
 {
 using namespace std::literals;
@@ -26,10 +26,7 @@ DocumentPlugin::DocumentPlugin(
     const score::DocumentContext& doc,
     Id<score::DocumentPlugin> id,
     QObject* parent)
-    : score::DocumentPlugin{doc,
-                            std::move(id),
-                            "RemoteControl::DocumentPlugin",
-                            parent}
+    : score::DocumentPlugin{doc, std::move(id), "RemoteControl::DocumentPlugin", parent}
     , receiver{doc, 10212}
 {
   auto& set = m_context.app.settings<Settings::Model>();
@@ -38,7 +35,8 @@ DocumentPlugin::DocumentPlugin(
     create();
   }
 
-  con(set,
+  con(
+      set,
       &Settings::Model::EnabledChanged,
       this,
       [=](bool b) {
@@ -50,7 +48,7 @@ DocumentPlugin::DocumentPlugin(
       Qt::QueuedConnection);
 }
 
-DocumentPlugin::~DocumentPlugin() {}
+DocumentPlugin::~DocumentPlugin() { }
 
 void DocumentPlugin::on_documentClosing()
 {
@@ -89,53 +87,42 @@ Receiver::Receiver(const score::DocumentContext& doc, quint16 port)
 {
   if (m_server.listen(QHostAddress::Any, port))
   {
-    connect(
-        &m_server,
-        &QWebSocketServer::newConnection,
-        this,
-        &Receiver::onNewConnection);
+    connect(&m_server, &QWebSocketServer::newConnection, this, &Receiver::onNewConnection);
   }
 
-  m_answers.insert(
-      std::make_pair("Trigger", [&](const rapidjson::Value& obj, const WSClient&) {
-        auto it = obj.FindMember("Path");
-        if (it == obj.MemberEnd())
-          return;
+  m_answers.insert(std::make_pair("Trigger", [&](const rapidjson::Value& obj, const WSClient&) {
+    auto it = obj.FindMember("Path");
+    if (it == obj.MemberEnd())
+      return;
 
-        auto path = score::unmarshall<Path<Scenario::TimeSyncModel>>(it->value);
-        if (!path.valid())
-          return;
+    auto path = score::unmarshall<Path<Scenario::TimeSyncModel>>(it->value);
+    if (!path.valid())
+      return;
 
-        Scenario::TimeSyncModel& tn = path.find(doc);
-        tn.triggeredByGui();
-      }));
+    Scenario::TimeSyncModel& tn = path.find(doc);
+    tn.triggeredByGui();
+  }));
 
-  m_answers.insert(
-        std::make_pair("Message", [this](const rapidjson::Value& obj, const WSClient&) {
-        // The message is stored at the "root" level of the json.
-        auto it = obj.FindMember(score::StringConstant().Address);
-        if (it == obj.MemberEnd())
-          return;
+  m_answers.insert(std::make_pair("Message", [this](const rapidjson::Value& obj, const WSClient&) {
+    // The message is stored at the "root" level of the json.
+    auto it = obj.FindMember(score::StringConstant().Address);
+    if (it == obj.MemberEnd())
+      return;
 
-        auto message = score::unmarshall<::State::Message>(obj);
-        m_dev.updateProxy.updateRemoteValue(
-            message.address.address, message.value);
-      }));
+    auto message = score::unmarshall<::State::Message>(obj);
+    m_dev.updateProxy.updateRemoteValue(message.address.address, message.value);
+  }));
 
-  m_answers.insert(
-      std::make_pair("Play", [&](const rapidjson::Value&, const WSClient&) {
-        doc.app.actions.action<Actions::Play>().action()->trigger();
-      }));
-  m_answers.insert(
-      std::make_pair("Pause", [&](const rapidjson::Value&, const WSClient&) {
-        doc.app.actions.action<Actions::Play>().action()->trigger();
-      }));
-  m_answers.insert(
-      std::make_pair("Stop", [&](const rapidjson::Value&, const WSClient&) {
-        doc.app.actions.action<Actions::Stop>().action()->trigger();
-      }));
-  m_answers.insert(
-        std::make_pair("Console", [&](const rapidjson::Value& obj, const WSClient&) {
+  m_answers.insert(std::make_pair("Play", [&](const rapidjson::Value&, const WSClient&) {
+    doc.app.actions.action<Actions::Play>().action()->trigger();
+  }));
+  m_answers.insert(std::make_pair("Pause", [&](const rapidjson::Value&, const WSClient&) {
+    doc.app.actions.action<Actions::Play>().action()->trigger();
+  }));
+  m_answers.insert(std::make_pair("Stop", [&](const rapidjson::Value&, const WSClient&) {
+    doc.app.actions.action<Actions::Stop>().action()->trigger();
+  }));
+  m_answers.insert(std::make_pair("Console", [&](const rapidjson::Value& obj, const WSClient&) {
     auto it = obj.FindMember("Code");
     if (it == obj.MemberEnd())
       return;
@@ -143,8 +130,8 @@ Receiver::Receiver(const score::DocumentContext& doc, quint16 port)
     auto& console = doc.app.panel<JS::PanelDelegate>();
     console.engine().evaluate(str);
   }));
-  m_answers.insert(std::make_pair(
-      "EnableListening", [&](const rapidjson::Value& obj, const WSClient& c) {
+  m_answers.insert(
+      std::make_pair("EnableListening", [&](const rapidjson::Value& obj, const WSClient& c) {
         auto it = obj.FindMember(score::StringConstant().Address);
         if (it == obj.MemberEnd())
           return;
@@ -159,8 +146,8 @@ Receiver::Receiver(const score::DocumentContext& doc, quint16 port)
           m_listenedAddresses.insert(std::make_pair(addr, c));
         }
       }));
-  m_answers.insert(std::make_pair(
-      "DisableListening", [&](const rapidjson::Value& obj, const WSClient&) {
+  m_answers.insert(
+      std::make_pair("DisableListening", [&](const rapidjson::Value& obj, const WSClient&) {
         auto it = obj.FindMember(score::StringConstant().Address);
         if (it == obj.MemberEnd())
           return;
@@ -226,21 +213,13 @@ void Receiver::onNewConnection()
 {
   WSClient client{m_server.nextPendingConnection()};
 
-  connect(
-      client.socket,
-      &QWebSocket::textMessageReceived,
-      this,
-      [=](const auto& b) { this->processTextMessage(b, client); });
-  connect(
-      client.socket,
-      &QWebSocket::binaryMessageReceived,
-      this,
-      [=](const auto& b) { this->processBinaryMessage(b, client); });
-  connect(
-      client.socket,
-      &QWebSocket::disconnected,
-      this,
-      &Receiver::socketDisconnected);
+  connect(client.socket, &QWebSocket::textMessageReceived, this, [=](const auto& b) {
+    this->processTextMessage(b, client);
+  });
+  connect(client.socket, &QWebSocket::binaryMessageReceived, this, [=](const auto& b) {
+    this->processBinaryMessage(b, client);
+  });
+  connect(client.socket, &QWebSocket::disconnected, this, &Receiver::socketDisconnected);
 
   {
     JSONReader r;
@@ -256,8 +235,7 @@ void Receiver::onNewConnection()
       JSONReader r;
       r.obj[score::StringConstant().Message] = "TriggerAdded"sv;
       r.obj[score::StringConstant().Path] = path;
-      r.obj[score::StringConstant().Name]
-          = path.find(m_dev.context()).metadata().getName();
+      r.obj[score::StringConstant().Name] = path.find(m_dev.context()).metadata().getName();
 
       client.socket->sendTextMessage(r.toString());
     }
@@ -276,7 +254,8 @@ void Receiver::processBinaryMessage(QByteArray message, const WSClient& w)
   auto doc = readJson(message);
   JSONWriter wr{doc};
 
-  if(doc.HasParseError()) {
+  if (doc.HasParseError())
+  {
     return;
   }
 
@@ -311,9 +290,7 @@ void Receiver::socketDisconnected()
   }
 }
 
-void Receiver::on_valueUpdated(
-    const ::State::Address& addr,
-    const ossia::value& v)
+void Receiver::on_valueUpdated(const ::State::Address& addr, const ossia::value& v)
 {
   auto it = m_listenedAddresses.find(addr);
   if (it != m_listenedAddresses.end())

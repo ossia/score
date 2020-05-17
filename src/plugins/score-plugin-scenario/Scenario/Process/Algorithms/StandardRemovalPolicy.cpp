@@ -9,7 +9,6 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
-
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <score/model/EntityMap.hpp>
@@ -21,9 +20,8 @@
 
 namespace Scenario
 {
-static void removeEventFromTimeSync(
-    Scenario::ProcessModel& scenario,
-    const Id<EventModel>& eventId)
+static void
+removeEventFromTimeSync(Scenario::ProcessModel& scenario, const Id<EventModel>& eventId)
 {
   // We have to make a copy else the iterator explodes.
   auto timesyncs = shallow_copy(scenario.timeSyncs.map());
@@ -64,9 +62,7 @@ void StandardRemovalPolicy::removeInterval(
   }
 }
 
-void StandardRemovalPolicy::removeState(
-    Scenario::ProcessModel& scenario,
-    StateModel& state)
+void StandardRemovalPolicy::removeState(Scenario::ProcessModel& scenario, StateModel& state)
 {
   if (!state.previousInterval() && !state.nextInterval())
   {
@@ -94,9 +90,7 @@ void StandardRemovalPolicy::removeEventStatesAndIntervals(
   removeEventFromTimeSync(scenario, eventId);
 }
 
-void StandardRemovalPolicy::removeComment(
-    Scenario::ProcessModel& scenario,
-    CommentBlockModel& cmt)
+void StandardRemovalPolicy::removeComment(Scenario::ProcessModel& scenario, CommentBlockModel& cmt)
 {
   scenario.comments.remove(&cmt);
 }

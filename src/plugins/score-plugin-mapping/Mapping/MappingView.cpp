@@ -17,12 +17,10 @@ namespace Mapping
 LayerView::LayerView(QGraphicsItem* parent) : Process::LayerView{parent}
 {
   setZValue(1);
-  this->setFlags(
-      ItemClipsToShape | ItemClipsChildrenToShape | ItemIsSelectable
-      | ItemIsFocusable);
+  this->setFlags(ItemClipsToShape | ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
 }
 
-void LayerView::paint_impl(QPainter* painter) const {}
+void LayerView::paint_impl(QPainter* painter) const { }
 
 QPixmap LayerView::pixmap() noexcept
 {

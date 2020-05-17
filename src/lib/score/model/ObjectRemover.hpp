@@ -13,12 +13,10 @@ struct SCORE_LIB_BASE_EXPORT ObjectRemover : public score::InterfaceBase
 public:
   virtual ~ObjectRemover() override;
 
-  virtual bool remove(const Selection& s, const score::DocumentContext& ctx)
-      = 0;
+  virtual bool remove(const Selection& s, const score::DocumentContext& ctx) = 0;
 };
 
-class SCORE_LIB_BASE_EXPORT ObjectRemoverList final
-    : public score::InterfaceList<ObjectRemover>
+class SCORE_LIB_BASE_EXPORT ObjectRemoverList final : public score::InterfaceList<ObjectRemover>
 {
 public:
   virtual ~ObjectRemoverList() override;

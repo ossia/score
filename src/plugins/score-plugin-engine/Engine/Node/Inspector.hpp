@@ -62,11 +62,10 @@ void visit_ports(Vis&& visitor, const ControlProcess<Info>& proc)
     {
       auto start = ossia::safe_nodes::info_functions<Info>::control_start;
       std::size_t i = 0;
-      ossia::for_each_in_tuple(
-          Info::Metadata::controls, [&](const auto& ctrl) {
-            visitor(start + i, ctrl);
-            i++;
-          });
+      ossia::for_each_in_tuple(Info::Metadata::controls, [&](const auto& ctrl) {
+        visitor(start + i, ctrl);
+        i++;
+      });
     }
   }
 }
@@ -104,11 +103,7 @@ struct inlet_visitor
   {
     auto& inlet = *static_cast<Process::ControlInlet*>(object.inlets()[i]);
     Process::PortWidgetSetup::setupControl(
-        inlet,
-        ctrl.make_widget(ctrl, inlet, doc, self, self),
-        doc,
-        vlay,
-        self);
+        inlet, ctrl.make_widget(ctrl, inlet, doc, self, self), doc, vlay, self);
   }
 
   void operator()(std::size_t i, const ossia::safe_nodes::audio_out& out)

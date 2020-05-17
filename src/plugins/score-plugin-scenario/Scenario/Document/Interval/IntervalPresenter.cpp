@@ -7,9 +7,9 @@
 
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
-#include <Scenario/Document/Interval/LayerData.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/LayerData.hpp>
 #include <Scenario/Document/Interval/Temporal/Braces/LeftBrace.hpp>
 #include <Scenario/Document/ModelConsistency.hpp>
 
@@ -32,11 +32,7 @@ IntervalPresenter::IntervalPresenter(
     IntervalHeader* header,
     const Process::Context& ctx,
     QObject* parent)
-    : QObject{parent}
-    , m_model{model}
-    , m_view{view}
-    , m_header{header}
-    , m_context{ctx}
+    : QObject{parent}, m_model{model}, m_view{view}, m_header{header}, m_context{ctx}
 {
   auto& interval = m_model;
   m_header->setParentItem(m_view);
@@ -44,41 +40,28 @@ IntervalPresenter::IntervalPresenter(
   // m_header->hide();
   // m_header->setPos(0, -m_header->headerHeight());
 
-  con(interval.duration,
-      &IntervalDurations::minNullChanged,
-      this,
-      [&](bool b) { updateBraces(); });
-  con(interval.duration,
-      &IntervalDurations::minDurationChanged,
-      this,
-      [&](const TimeVal& val) {
-        on_minDurationChanged(val);
-        updateChildren();
-      });
-  con(interval.duration,
-      &IntervalDurations::maxDurationChanged,
-      this,
-      [&](const TimeVal& val) {
-        on_maxDurationChanged(val);
-        updateChildren();
-      });
+  con(interval.duration, &IntervalDurations::minNullChanged, this, [&](bool b) {
+    updateBraces();
+  });
+  con(interval.duration, &IntervalDurations::minDurationChanged, this, [&](const TimeVal& val) {
+    on_minDurationChanged(val);
+    updateChildren();
+  });
+  con(interval.duration, &IntervalDurations::maxDurationChanged, this, [&](const TimeVal& val) {
+    on_maxDurationChanged(val);
+    updateChildren();
+  });
 
   con(interval,
       &IntervalModel::heightPercentageChanged,
       this,
       &IntervalPresenter::heightPercentageChanged);
 
-  con(interval.consistency,
-      &ModelConsistency::validChanged,
-      m_view,
-      &IntervalView::setValid);
-  con(interval.consistency,
-      &ModelConsistency::warningChanged,
-      m_view,
-      &IntervalView::setWarning);
+  con(interval.consistency, &ModelConsistency::validChanged, m_view, &IntervalView::setValid);
+  con(interval.consistency, &ModelConsistency::warningChanged, m_view, &IntervalView::setWarning);
 }
 
-IntervalPresenter::~IntervalPresenter() {}
+IntervalPresenter::~IntervalPresenter() { }
 
 void IntervalPresenter::updateScaling()
 {

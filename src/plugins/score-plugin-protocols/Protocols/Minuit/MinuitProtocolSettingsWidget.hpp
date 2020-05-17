@@ -11,8 +11,7 @@ class QWidget;
 namespace Protocols
 {
 class RateWidget;
-class MinuitProtocolSettingsWidget final
-    : public Device::ProtocolSettingsWidget
+class MinuitProtocolSettingsWidget final : public Device::ProtocolSettingsWidget
 {
 public:
   MinuitProtocolSettingsWidget(QWidget* parent = nullptr);

@@ -25,8 +25,7 @@ PutProcessBefore::PutProcessBefore(
   auto it2_hash = hash.find(proc2);
   SCORE_ASSERT(it2_hash != hash.end());
 
-  std::list<Process::ProcessModel*>::const_iterator it2_order
-      = it2_hash.value().second;
+  std::list<Process::ProcessModel*>::const_iterator it2_order = it2_hash.value().second;
   auto next = it2_order++;
   if (next != seq.end())
   {
@@ -113,8 +112,7 @@ PutStateProcessBefore::PutStateProcessBefore(
   auto it2_hash = hash.find(proc2);
   SCORE_ASSERT(it2_hash != hash.end());
 
-  std::list<Process::ProcessModel*>::const_iterator it2_order
-      = it2_hash.value().second;
+  std::list<Process::ProcessModel*>::const_iterator it2_order = it2_hash.value().second;
   auto next = it2_order++;
   if (next != seq.end())
   {

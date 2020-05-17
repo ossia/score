@@ -16,10 +16,7 @@ namespace Scenario::Command
 {
 class MoveProcess final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      MoveProcess,
-      "Move a process")
+  SCORE_COMMAND_DECL(CommandFactoryName(), MoveProcess, "Move a process")
 public:
   MoveProcess(
       const IntervalModel& src,

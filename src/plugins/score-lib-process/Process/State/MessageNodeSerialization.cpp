@@ -48,15 +48,15 @@ void JSONWriter::write(Process::ProcessStateData& val)
 template <>
 void DataStreamReader::read(const Process::StateNodeValues& val)
 {
-  m_stream << val.previousProcessValues << val.followingProcessValues
-           << val.userValue << val.priorities;
+  m_stream << val.previousProcessValues << val.followingProcessValues << val.userValue
+           << val.priorities;
 }
 
 template <>
 void DataStreamWriter::write(Process::StateNodeValues& val)
 {
-  m_stream >> val.previousProcessValues >> val.followingProcessValues
-      >> val.userValue >> val.priorities;
+  m_stream >> val.previousProcessValues >> val.followingProcessValues >> val.userValue
+      >> val.priorities;
 }
 
 template <>
@@ -78,32 +78,28 @@ void JSONWriter::write(Process::StateNodeValues& val)
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read(const Process::StateNodeData& node)
+SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(const Process::StateNodeData& node)
 {
   m_stream << node.name << node.values;
   insertDelimiter();
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write(Process::StateNodeData& node)
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::StateNodeData& node)
 {
   m_stream >> node.name >> node.values;
   checkDelimiter();
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read(const Process::StateNodeData& node)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::StateNodeData& node)
 {
   readFrom(node.name);
   readFrom(node.values);
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write(Process::StateNodeData& node)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::StateNodeData& node)
 {
   writeTo(node.name);
   writeTo(node.values);

@@ -2,7 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CurveEditionSettings.hpp"
 
-
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Curve::EditionSettings)
 namespace Curve
@@ -55,8 +54,7 @@ void EditionSettings::setStretchBothBounds(bool stretchBothBounds)
   stretchBothBoundsChanged(stretchBothBounds);
 }
 
-void EditionSettings::setAddPointBehaviour(
-    Curve::AddPointBehaviour AddPointBehaviour)
+void EditionSettings::setAddPointBehaviour(Curve::AddPointBehaviour AddPointBehaviour)
 {
   if (m_addPointBehaviour == AddPointBehaviour)
     return;
@@ -79,8 +77,7 @@ RemovePointBehaviour EditionSettings::removePointBehaviour() const
   return m_removePointBehaviour;
 }
 
-void EditionSettings::setRemovePointBehaviour(
-    RemovePointBehaviour removePointBehaviour)
+void EditionSettings::setRemovePointBehaviour(RemovePointBehaviour removePointBehaviour)
 {
   if (m_removePointBehaviour == removePointBehaviour)
     return;

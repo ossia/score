@@ -56,15 +56,13 @@ PointInspectorWidget::PointInspectorWidget(
 
   connect(
       m_XBox,
-      static_cast<void (QDoubleSpinBox::*)(double)>(
-          &QDoubleSpinBox::valueChanged),
+      static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
       this,
       &PointInspectorWidget::on_pointChanged);
 
   connect(
       m_XBox,
-      static_cast<void (QDoubleSpinBox::*)(double)>(
-          &QDoubleSpinBox::valueChanged),
+      static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
       this,
       &PointInspectorWidget::on_editFinished);
 
@@ -120,8 +118,7 @@ PointInspectorWidget::PointInspectorWidget(
 
 void PointInspectorWidget::on_pointChanged(double d)
 {
-  Curve::Point pos{m_XBox->value() / m_xFactor,
-                   (m_YBox->value() - m_Ymin) / m_yFactor};
+  Curve::Point pos{m_XBox->value() / m_xFactor, (m_YBox->value() - m_Ymin) / m_yFactor};
   m_dispatcher.submit<Curve::MovePoint>(
       *safe_cast<Curve::Model*>(m_model.parent()), m_model.id(), pos);
 }

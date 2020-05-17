@@ -33,8 +33,7 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
   using namespace Scenario;
   // Since we have declared the dependency, we can assume
   // that ScenarioApplicationPlugin is instantiated already.
-  auto& scenario_plugin
-      = ctx.guiApplicationPlugin<ScenarioApplicationPlugin>();
+  auto& scenario_plugin = ctx.guiApplicationPlugin<ScenarioApplicationPlugin>();
   connect(
       &scenario_plugin.execution(),
       &ScenarioExecution::startRecording,
@@ -61,9 +60,7 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
   }
 }
 
-void ApplicationPlugin::record(
-    Scenario::ProcessModel& scenar,
-    Scenario::Point pt)
+void ApplicationPlugin::record(Scenario::ProcessModel& scenar, Scenario::Point pt)
 {
   if (m_currentContext)
     return;
@@ -72,8 +69,7 @@ void ApplicationPlugin::record(
   QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
   m_currentContext = std::make_unique<Recording::RecordContext>(scenar, pt);
-  m_recManager = std::make_unique<SingleRecorder<AutomationRecorder>>(
-      *m_currentContext);
+  m_recManager = std::make_unique<SingleRecorder<AutomationRecorder>>(*m_currentContext);
 
   if (context.settings<Curve::Settings::Model>().getPlayWhileRecording())
   {
@@ -93,9 +89,7 @@ void ApplicationPlugin::record(
   }
 }
 
-void ApplicationPlugin::recordMessages(
-    Scenario::ProcessModel& scenar,
-    Scenario::Point pt)
+void ApplicationPlugin::recordMessages(Scenario::ProcessModel& scenar, Scenario::Point pt)
 {
   if (m_currentContext)
     return;
@@ -104,8 +98,7 @@ void ApplicationPlugin::recordMessages(
   QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
   m_currentContext = std::make_unique<Recording::RecordContext>(scenar, pt);
-  m_recMessagesManager
-      = std::make_unique<SingleRecorder<MessageRecorder>>(*m_currentContext);
+  m_recMessagesManager = std::make_unique<SingleRecorder<MessageRecorder>>(*m_currentContext);
 
   if (context.settings<Curve::Settings::Model>().getPlayWhileRecording())
   {

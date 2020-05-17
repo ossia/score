@@ -17,9 +17,7 @@ class RateWidget final : public QWidget
 
 public:
   RateWidget(QWidget* parent = nullptr) noexcept
-      : QWidget{parent}
-      , m_check{new QCheckBox{this}}
-      , m_spin{new QSpinBox{this}}
+      : QWidget{parent}, m_check{new QCheckBox{this}}, m_spin{new QSpinBox{this}}
   {
     auto lay = new score::MarginLess<QHBoxLayout>;
 

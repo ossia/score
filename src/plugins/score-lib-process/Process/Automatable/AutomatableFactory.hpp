@@ -40,15 +40,13 @@ public:
 
   //! Get the factory used
   virtual Process::ProcessModelFactory*
-  get(const score::ApplicationContext& ctx) const noexcept
-      = 0;
+  get(const score::ApplicationContext& ctx) const noexcept = 0;
 
   //! Number of processes that should be created
   virtual int count(
       const State::AddressAccessor& address,
       const ossia::value& start,
-      const ossia::value& end) const noexcept
-      = 0;
+      const ossia::value& end) const noexcept = 0;
 
   //! Instantiate the actual processes
   virtual std::vector<Process::ProcessModel*> make(
@@ -59,18 +57,15 @@ public:
       const ossia::value& end,
       const TimeVal& duration,
       const std::vector<Id<ProcessModel>>& id,
-      QObject* parent) const noexcept
-      = 0;
+      QObject* parent) const noexcept = 0;
 
   // TODO also have an interface that allows recording / piecewise construction
 };
 
-struct SCORE_LIB_PROCESS_EXPORT AutomatableFactoryList
-    : score::InterfaceList<AutomatableFactory>
+struct SCORE_LIB_PROCESS_EXPORT AutomatableFactoryList : score::InterfaceList<AutomatableFactory>
 {
   Process::ProcessModelFactory*
-  get(const score::ApplicationContext& ctx, const ossia::complex_type& t) const
-      noexcept
+  get(const score::ApplicationContext& ctx, const ossia::complex_type& t) const noexcept
   {
     for (auto& fact : *this)
     {

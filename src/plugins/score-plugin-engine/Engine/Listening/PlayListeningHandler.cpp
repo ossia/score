@@ -8,8 +8,7 @@
 
 namespace Execution
 {
-PlayListeningHandler::PlayListeningHandler(
-    const Execution::DocumentPlugin& docpl)
+PlayListeningHandler::PlayListeningHandler(const Execution::DocumentPlugin& docpl)
     : m_executor{docpl}
 {
 }

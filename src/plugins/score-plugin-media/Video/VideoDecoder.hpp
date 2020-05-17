@@ -4,13 +4,15 @@ extern "C"
 #include <libavformat/avformat.h>
 }
 
-#include <string>
-#include <atomic>
-#include <mutex>
-#include <thread>
-#include <condition_variable>
 #include <readerwriterqueue.h>
 #include <score_plugin_media_export.h>
+
+#include <atomic>
+#include <mutex>
+#include <string>
+#include <thread>
+
+#include <condition_variable>
 namespace Video
 {
 
@@ -56,7 +58,7 @@ private:
   std::thread m_thread;
 
   moodycamel::ReaderWriterQueue<AVFrame*> m_frames;
-  //std::mutex m_framesMutex;
+  // std::mutex m_framesMutex;
 
   AVFormatContext* m_formatContext{};
   AVCodecContext* m_codecContext{};

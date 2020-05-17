@@ -12,8 +12,7 @@ class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT ListeningHandlerFactoryList final
 public:
   virtual ~ListeningHandlerFactoryList();
 
-  std::unique_ptr<Explorer::ListeningHandler> make(
-      const Explorer::DeviceDocumentPlugin& plug,
-      const score::DocumentContext& ctx) const;
+  std::unique_ptr<Explorer::ListeningHandler>
+  make(const Explorer::DeviceDocumentPlugin& plug, const score::DocumentContext& ctx) const;
 };
 }

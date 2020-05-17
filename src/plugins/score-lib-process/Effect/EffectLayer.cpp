@@ -13,14 +13,11 @@ W_OBJECT_IMPL(Process::EffectLayerPresenter)
 namespace Process
 {
 
-EffectLayerView::EffectLayerView(QGraphicsItem* parent)
-    : Process::LayerView{parent}
-{
-}
+EffectLayerView::EffectLayerView(QGraphicsItem* parent) : Process::LayerView{parent} { }
 
-EffectLayerView::~EffectLayerView() {}
+EffectLayerView::~EffectLayerView() { }
 
-void EffectLayerView::paint_impl(QPainter*) const {}
+void EffectLayerView::paint_impl(QPainter*) const { }
 
 void EffectLayerView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {
@@ -68,7 +65,7 @@ EffectLayerPresenter::EffectLayerPresenter(
       this,
       &Process::LayerPresenter::contextMenuRequested);
 }
-EffectLayerPresenter::~EffectLayerPresenter() {}
+EffectLayerPresenter::~EffectLayerPresenter() { }
 
 void EffectLayerPresenter::setWidth(qreal val, qreal defaultWidth)
 {
@@ -90,9 +87,9 @@ void EffectLayerPresenter::putBehind()
   m_view->setVisible(false);
 }
 
-void EffectLayerPresenter::on_zoomRatioChanged(ZoomRatio) {}
+void EffectLayerPresenter::on_zoomRatioChanged(ZoomRatio) { }
 
-void EffectLayerPresenter::parentGeometryChanged() {}
+void EffectLayerPresenter::parentGeometryChanged() { }
 
 void EffectLayerPresenter::fillContextMenu(
     QMenu& menu,
@@ -155,23 +152,17 @@ QGraphicsItem* makeExternalUIButton(
   auto fact = facts.findDefaultFactory(effect);
   if (fact && fact->hasExternalUI(effect, context))
   {
-    auto ui_btn = new score::QGraphicsPixmapToggle{
-        pixmaps.show_ui_on, pixmaps.show_ui_off, root};
+    auto ui_btn = new score::QGraphicsPixmapToggle{pixmaps.show_ui_on, pixmaps.show_ui_off, root};
     QObject::connect(
-        ui_btn,
-        &score::QGraphicsPixmapToggle::toggled,
-        self,
-        [=, &effect, &context](bool b) {
+        ui_btn, &score::QGraphicsPixmapToggle::toggled, self, [=, &effect, &context](bool b) {
           Process::setupExternalUI(effect, *fact, context, b);
         });
 
     if (effect.externalUI)
       ui_btn->setState(true);
-    QObject::connect(
-        &effect,
-        &Process::ProcessModel::externalUIVisible,
-        ui_btn,
-        [=](bool v) { ui_btn->setState(v); });
+    QObject::connect(&effect, &Process::ProcessModel::externalUIVisible, ui_btn, [=](bool v) {
+      ui_btn->setState(v);
+    });
     return ui_btn;
   }
   return nullptr;

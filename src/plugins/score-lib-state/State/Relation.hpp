@@ -11,18 +11,14 @@
 
 namespace State
 {
-using RelationMember
-    = eggs::variant<State::Address, State::AddressAccessor, ossia::value>;
+using RelationMember = eggs::variant<State::Address, State::AddressAccessor, ossia::value>;
 
 SCORE_LIB_STATE_EXPORT QString toString(const RelationMember&);
 
 struct SCORE_LIB_STATE_EXPORT Relation
 {
   Relation() noexcept = default;
-  Relation(const Relation& other) noexcept
-      : lhs{other.lhs}, op{other.op}, rhs{other.rhs}
-  {
-  }
+  Relation(const Relation& other) noexcept : lhs{other.lhs}, op{other.op}, rhs{other.rhs} { }
 
   Relation(Relation&& other) noexcept
       : lhs{std::move(other.lhs)}, op{other.op}, rhs{std::move(other.rhs)}
@@ -44,10 +40,7 @@ struct SCORE_LIB_STATE_EXPORT Relation
     return *this;
   }
 
-  Relation(
-      RelationMember l,
-      ossia::expressions::comparator o,
-      RelationMember r)
+  Relation(RelationMember l, ossia::expressions::comparator o, RelationMember r)
       : lhs{std::move(l)}, op{o}, rhs{std::move(r)}
   {
   }
@@ -58,8 +51,7 @@ struct SCORE_LIB_STATE_EXPORT Relation
 
   friend bool operator==(const Relation& eq_lhs, const Relation& eq_rhs)
   {
-    return eq_lhs.lhs == eq_rhs.lhs && eq_lhs.rhs == eq_rhs.rhs
-           && eq_lhs.op == eq_rhs.op;
+    return eq_lhs.lhs == eq_rhs.lhs && eq_lhs.rhs == eq_rhs.rhs && eq_lhs.op == eq_rhs.op;
   }
 };
 
@@ -69,12 +61,8 @@ struct SCORE_LIB_STATE_EXPORT Pulse
 {
   State::Address address;
 
-  friend bool operator==(const Pulse& lhs, const Pulse& rhs)
-  {
-    return lhs.address == rhs.address;
-  }
+  friend bool operator==(const Pulse& lhs, const Pulse& rhs) { return lhs.address == rhs.address; }
 };
 SCORE_LIB_STATE_EXPORT QString toString(const Pulse&);
-SCORE_LIB_STATE_EXPORT const QMap<ossia::expressions::comparator, QString>
-opToString();
+SCORE_LIB_STATE_EXPORT const QMap<ossia::expressions::comparator, QString> opToString();
 }

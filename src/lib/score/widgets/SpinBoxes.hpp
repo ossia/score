@@ -1,11 +1,14 @@
 #pragma once
 
+#include <ossia-qt/time.hpp>
+
 #include <QDoubleSpinBox>
 #include <QSpinBox>
 #include <QWheelEvent>
-#include <type_traits>
-#include <ossia-qt/time.hpp>
+
 #include <score_lib_base_export.h>
+
+#include <type_traits>
 class QStyleOptionFrame;
 namespace score
 {
@@ -25,7 +28,8 @@ public:
   TimeSpinBox(QWidget* parent = nullptr);
   ~TimeSpinBox();
 
-  enum TimeMode {
+  enum TimeMode
+  {
     Bars,
     Seconds,
     Flicks
@@ -45,7 +49,7 @@ public:
   void mouseDoubleClickEvent(QMouseEvent* event) override;
   void mouseMoveEvent(QMouseEvent* event) override;
   void paintEvent(QPaintEvent* event) override;
-  void initStyleOption(QStyleOptionFrame *option) const noexcept;
+  void initStyleOption(QStyleOptionFrame* option) const noexcept;
   QSize sizeHint() const override;
   QSize minimumSizeHint() const override;
 
@@ -63,8 +67,13 @@ private:
 
   ossia::bar_time m_barTime{};
 
-  enum GrabbedHandle {
-    None, Bar, Quarter, Semiquaver, Cent
+  enum GrabbedHandle
+  {
+    None,
+    Bar,
+    Quarter,
+    Semiquaver,
+    Cent
   } m_grab{None};
 
   TimeMode m_mode{Bars};
@@ -73,7 +82,6 @@ private:
   friend struct SecondSpinBox;
   friend struct FlicksSpinBox;
 };
-
 
 template <typename T>
 /**
@@ -112,11 +120,9 @@ class MaxRangeSpinBox : public SpinBox::spinbox_type
 {
 public:
   template <typename... Args>
-  MaxRangeSpinBox(Args&&... args)
-      : SpinBox::spinbox_type{std::forward<Args>(args)...}
+  MaxRangeSpinBox(Args&&... args) : SpinBox::spinbox_type{std::forward<Args>(args)...}
   {
-    this->setMinimum(
-        std::numeric_limits<typename SpinBox::value_type>::lowest());
+    this->setMinimum(std::numeric_limits<typename SpinBox::value_type>::lowest());
     this->setMaximum(std::numeric_limits<typename SpinBox::value_type>::max());
     this->setAlignment(Qt::AlignRight);
   }

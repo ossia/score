@@ -7,7 +7,6 @@
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
-
 namespace Scenario
 {
 class BaseScenarioContainer;

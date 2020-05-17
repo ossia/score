@@ -1,8 +1,10 @@
 #pragma once
-#include <score_lib_base_export.h>
 #include <QGraphicsItem>
-#include <vector>
 #include <QPainterPath>
+
+#include <score_lib_base_export.h>
+
+#include <vector>
 
 namespace score
 {

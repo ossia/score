@@ -20,8 +20,7 @@ public:
     else
     {
       m_currentExp = ::State::parseExpression(str);
-      return m_currentExp ? QValidator::State::Acceptable
-                          : QValidator::State::Intermediate;
+      return m_currentExp ? QValidator::State::Acceptable : QValidator::State::Intermediate;
     }
   }
 

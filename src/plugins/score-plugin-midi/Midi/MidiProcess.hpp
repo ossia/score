@@ -10,8 +10,7 @@
 namespace Midi
 {
 
-class SCORE_PLUGIN_MIDI_EXPORT ProcessModel final
-    : public Process::ProcessModel
+class SCORE_PLUGIN_MIDI_EXPORT ProcessModel final : public Process::ProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
   W_OBJECT(ProcessModel)
@@ -24,8 +23,7 @@ public:
       QObject* parent);
 
   template <typename Impl>
-  explicit ProcessModel(Impl& vis, QObject* parent)
-      : Process::ProcessModel{vis, parent}
+  explicit ProcessModel(Impl& vis, QObject* parent) : Process::ProcessModel{vis, parent}
   {
     vis.writeTo(*this);
     init();

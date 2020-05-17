@@ -16,8 +16,7 @@ namespace Metronome
 namespace RecreateOnPlay
 {
 class Component final
-    : public ::Execution::
-          ProcessComponent_T<Metronome::ProcessModel, ossia::node_process>
+    : public ::Execution::ProcessComponent_T<Metronome::ProcessModel, ossia::node_process>
 {
   COMPONENT_METADATA("37ff95e2-8450-4a08-b7ec-9bb0c724ce4c")
 public:

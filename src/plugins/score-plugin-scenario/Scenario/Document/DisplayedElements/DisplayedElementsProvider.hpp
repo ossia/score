@@ -12,12 +12,9 @@ namespace Scenario
 {
 class IntervalModel;
 
-class SCORE_PLUGIN_SCENARIO_EXPORT DisplayedElementsProvider
-    : public score::InterfaceBase
+class SCORE_PLUGIN_SCENARIO_EXPORT DisplayedElementsProvider : public score::InterfaceBase
 {
-  SCORE_INTERFACE(
-      DisplayedElementsProvider,
-      "4bfcf0ee-6c47-405a-a15d-9da73436e273")
+  SCORE_INTERFACE(DisplayedElementsProvider, "4bfcf0ee-6c47-405a-a15d-9da73436e273")
 public:
   virtual ~DisplayedElementsProvider();
   virtual bool matches(const IntervalModel& cst) const = 0;

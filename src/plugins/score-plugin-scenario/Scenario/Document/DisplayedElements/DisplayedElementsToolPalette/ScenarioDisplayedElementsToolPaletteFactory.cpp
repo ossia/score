@@ -10,11 +10,9 @@
 #include <score/document/DocumentInterface.hpp>
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
 
-
 namespace Scenario
 {
-std::unique_ptr<GraphicsSceneToolPalette>
-ScenarioDisplayedElementsToolPaletteFactory::make(
+std::unique_ptr<GraphicsSceneToolPalette> ScenarioDisplayedElementsToolPaletteFactory::make(
     ScenarioDocumentPresenter& pres,
     const IntervalModel& interval,
     QGraphicsItem* parent)
@@ -23,8 +21,7 @@ ScenarioDisplayedElementsToolPaletteFactory::make(
       pres.displayedElements, pres, parent);
 }
 
-bool ScenarioDisplayedElementsToolPaletteFactory::matches(
-    const IntervalModel& interval) const
+bool ScenarioDisplayedElementsToolPaletteFactory::matches(const IntervalModel& interval) const
 {
   return dynamic_cast<Scenario::ProcessModel*>(interval.parent());
 }

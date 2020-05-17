@@ -11,12 +11,10 @@
 
 namespace Scenario
 {
-LeftBraceView::~LeftBraceView() {}
+LeftBraceView::~LeftBraceView() { }
 
-RightBraceView::~RightBraceView() {}
-IntervalBrace::IntervalBrace(
-    const IntervalView& parentCstr,
-    QGraphicsItem* parent)
+RightBraceView::~RightBraceView() { }
+IntervalBrace::IntervalBrace(const IntervalView& parentCstr, QGraphicsItem* parent)
     : QGraphicsItem(), m_parent{parentCstr}
 {
   this->setCacheMode(QGraphicsItem::NoCache);

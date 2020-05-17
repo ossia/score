@@ -13,8 +13,6 @@
 
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 
-
-
 template <>
 void DataStreamReader::read(const Automation::ProcessModel& autom)
 {

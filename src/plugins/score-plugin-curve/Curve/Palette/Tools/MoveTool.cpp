@@ -18,14 +18,9 @@
 
 namespace Curve
 {
-EditionToolForCreate::EditionToolForCreate(Curve::ToolPalette& sm)
-    : CurveTool{sm}
-{
-}
+EditionToolForCreate::EditionToolForCreate(Curve::ToolPalette& sm) : CurveTool{sm} { }
 
-void EditionToolForCreate::on_pressed(
-    QPointF scenePoint,
-    Curve::Point curvePoint)
+void EditionToolForCreate::on_pressed(QPointF scenePoint, Curve::Point curvePoint)
 {
   mapTopItem(
       scenePoint,
@@ -39,20 +34,15 @@ void EditionToolForCreate::on_pressed(
       },
       [&](const SegmentView* segment) {
         if (m_parentSM.editionSettings().tool() != Tool::SetSegment)
-          select(
-              segment->model(), m_parentSM.model().selectedChildren(), true);
+          select(segment->model(), m_parentSM.model().selectedChildren(), true);
         else
           select(segment->model(), m_parentSM.model().selectedChildren());
         localSM().postEvent(new ClickOnSegment_Event(curvePoint, segment));
       },
-      [&]() {
-        localSM().postEvent(new ClickOnNothing_Event(curvePoint, nullptr));
-      });
+      [&]() { localSM().postEvent(new ClickOnNothing_Event(curvePoint, nullptr)); });
 }
 
-void EditionToolForCreate::on_moved(
-    QPointF scenePoint,
-    Curve::Point curvePoint)
+void EditionToolForCreate::on_moved(QPointF scenePoint, Curve::Point curvePoint)
 {
   mapTopItem(
       scenePoint,
@@ -63,14 +53,10 @@ void EditionToolForCreate::on_moved(
       [&](const SegmentView* segment) {
         localSM().postEvent(new MoveOnSegment_Event(curvePoint, segment));
       },
-      [&]() {
-        localSM().postEvent(new MoveOnNothing_Event(curvePoint, nullptr));
-      });
+      [&]() { localSM().postEvent(new MoveOnNothing_Event(curvePoint, nullptr)); });
 }
 
-void EditionToolForCreate::on_released(
-    QPointF scenePoint,
-    Curve::Point curvePoint)
+void EditionToolForCreate::on_released(QPointF scenePoint, Curve::Point curvePoint)
 {
   mapTopItem(
       scenePoint,
@@ -81,14 +67,10 @@ void EditionToolForCreate::on_released(
       [&](const SegmentView* segment) {
         localSM().postEvent(new ReleaseOnSegment_Event(curvePoint, segment));
       },
-      [&]() {
-        localSM().postEvent(new ReleaseOnNothing_Event(curvePoint, nullptr));
-      });
+      [&]() { localSM().postEvent(new ReleaseOnNothing_Event(curvePoint, nullptr)); });
 }
 
-SetSegmentTool::SetSegmentTool(
-    Curve::ToolPalette& sm,
-    const score::DocumentContext& context)
+SetSegmentTool::SetSegmentTool(Curve::ToolPalette& sm, const score::DocumentContext& context)
     : EditionToolForCreate{sm}, m_co{sm.model(), context.commandStack}
 {
   QState* waitState = new QState{&localSM()};
@@ -103,9 +85,7 @@ SetSegmentTool::SetSegmentTool(
   localSM().start();
 }
 
-CreateTool::CreateTool(
-    Curve::ToolPalette& sm,
-    const score::DocumentContext& context)
+CreateTool::CreateTool(Curve::ToolPalette& sm, const score::DocumentContext& context)
     : EditionToolForCreate{sm}, m_co{&sm.presenter(), context.commandStack}
 {
   localSM().setObjectName("CreateToolLocalSM");
@@ -123,9 +103,7 @@ CreateTool::CreateTool(
   localSM().start();
 }
 
-CreatePenTool::CreatePenTool(
-    Curve::ToolPalette& sm,
-    const score::DocumentContext& context)
+CreatePenTool::CreatePenTool(Curve::ToolPalette& sm, const score::DocumentContext& context)
     : EditionToolForCreate{sm}, m_co{&sm.presenter(), context.commandStack}
 {
   localSM().setObjectName("CreatePenToolLocalSM");

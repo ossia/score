@@ -11,9 +11,9 @@
 
 #include <score/model/ModelMetadata.hpp>
 
+#include <QCursor>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
-#include <QCursor>
 #include <qnamespace.h>
 
 #include <wobjectimpl.h>
@@ -23,9 +23,7 @@ W_OBJECT_IMPL(Scenario::EventView)
 namespace Scenario
 {
 EventView::EventView(EventPresenter& presenter, QGraphicsItem* parent)
-    : QGraphicsItem{parent}
-    , m_presenter{presenter}
-    , m_conditionItem{presenter.model(), this}
+    : QGraphicsItem{parent}, m_presenter{presenter}, m_conditionItem{presenter.model(), this}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   setAcceptDrops(true);
@@ -33,11 +31,7 @@ EventView::EventView(EventPresenter& presenter, QGraphicsItem* parent)
   m_conditionItem.setVisible(false);
   m_conditionItem.setPos(-13.5, -13.5);
 
-  connect(
-      &m_conditionItem,
-      &ConditionView::pressed,
-      &m_presenter,
-      &EventPresenter::pressed);
+  connect(&m_conditionItem, &ConditionView::pressed, &m_presenter, &EventPresenter::pressed);
 
   this->setParentItem(parent);
   auto& skin = score::Skin::instance();
@@ -47,11 +41,11 @@ EventView::EventView(EventPresenter& presenter, QGraphicsItem* parent)
   this->setAcceptHoverEvents(true);
 }
 
-EventView::~EventView() {}
+EventView::~EventView() { }
 
 void EventView::setStatus(ExecutionStatus status)
 {
-  if(status == ExecutionStatus::Happened)
+  if (status == ExecutionStatus::Happened)
   {
     m_execPing.start();
   }
@@ -77,10 +71,7 @@ bool EventView::hasCondition() const
   return !m_condition.isEmpty();
 }
 
-void EventView::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+void EventView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   auto& skin = Process::Style::instance();
   painter->setRenderHint(QPainter::Antialiasing, false);
@@ -92,12 +83,12 @@ void EventView::paint(
   }
   else
   {
-    if(Q_UNLIKELY(m_execPing.running()))
+    if (Q_UNLIKELY(m_execPing.running()))
     {
       const auto& nextPen = m_execPing.getNextPen(
-            m_presenter.model().color(skin).color(),
-            skin.EventHappened().color(),
-            skin.StateDot().main.pen_cosmetic);
+          m_presenter.model().color(skin).color(),
+          skin.EventHappened().color(),
+          skin.StateDot().main.pen_cosmetic);
       painter->fillRect(rect, nextPen.brush());
       update();
     }
@@ -137,8 +128,8 @@ void EventView::setSelected(bool selected)
 {
   m_selected = selected;
   m_conditionItem.setSelected(selected);
-  setZValue(m_selected ? ZPos::SelectedEvent: ZPos::Event);
-  m_conditionItem.setZValue(m_selected ? ZPos::SelectedEvent: ZPos::Event);
+  setZValue(m_selected ? ZPos::SelectedEvent : ZPos::Event);
+  m_conditionItem.setZValue(m_selected ? ZPos::SelectedEvent : ZPos::Event);
   update();
 }
 

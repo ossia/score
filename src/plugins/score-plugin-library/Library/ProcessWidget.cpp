@@ -1,19 +1,18 @@
 #include "ProcessWidget.hpp"
-#include <Library/ProcessesItemModel.hpp>
-#include <Library/PresetItemModel.hpp>
-#include <Library/RecursiveFilterProxy.hpp>
+
 #include <Library/ItemModelFilterLineEdit.hpp>
 #include <Library/LibraryWidget.hpp>
-
+#include <Library/PresetItemModel.hpp>
+#include <Library/ProcessesItemModel.hpp>
+#include <Library/RecursiveFilterProxy.hpp>
 #include <Process/ProcessList.hpp>
 
-#include <score/widgets/MarginLess.hpp>
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/widgets/MarginLess.hpp>
 
 #include <QLabel>
 #include <QScrollArea>
 #include <QVBoxLayout>
-
 
 namespace Library
 {
@@ -47,26 +46,24 @@ public:
 
     if (d)
     {
-      if (auto f = score::GUIAppContext()
-                       .interfaces<Process::ProcessFactoryList>()
-                       .get(d->key))
+      if (auto f = score::GUIAppContext().interfaces<Process::ProcessFactoryList>().get(d->key))
       {
         setVisible(true);
         auto desc = f->descriptor(QString{/*TODO pass customdata ?*/});
 
-        if(!d->prettyName.isEmpty())
+        if (!d->prettyName.isEmpty())
           m_name.setText(d->prettyName);
         else
           m_name.setText(desc.prettyName);
 
-        if(!d->author.isEmpty())
+        if (!d->author.isEmpty())
           m_author.setText(tr("Provided by ") + d->author);
-        else if(!desc.author.isEmpty())
+        else if (!desc.author.isEmpty())
           m_author.setText(tr("Provided by ") + desc.author);
 
-        if(!d->description.isEmpty())
+        if (!d->description.isEmpty())
           m_description.setText(d->description);
-        else if(!desc.description.isEmpty())
+        else if (!desc.description.isEmpty())
           m_description.setText(desc.description);
 
         QString io;
@@ -103,9 +100,7 @@ public:
   QLabel m_tags;
 };
 
-ProcessWidget::ProcessWidget(
-    const score::GUIApplicationContext& ctx,
-    QWidget* parent)
+ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* parent)
     : QWidget{parent}
     , m_processModel{new ProcessesItemModel{ctx, this}}
     , m_presetModel{new PresetItemModel{ctx, this}}
@@ -113,9 +108,10 @@ ProcessWidget::ProcessWidget(
   auto slay = new score::MarginLess<QVBoxLayout>{this};
   setLayout(slay);
 
-  setStatusTip(QObject::tr("This panel shows the available processes.\n"
-                           "They can be drag'n'dropped in the score, in intervals, "
-                           "and sometimes in effect chains."));
+  setStatusTip(
+      QObject::tr("This panel shows the available processes.\n"
+                  "They can be drag'n'dropped in the score, in intervals, "
+                  "and sometimes in effect chains."));
 
   {
     auto processFilterProxy = new RecursiveFilterProxy{this};
@@ -139,12 +135,11 @@ ProcessWidget::ProcessWidget(
 
   auto infoWidg = new InfoWidget{this};
   infoWidg->setStatusTip(statusTip());
-  slay->addWidget(infoWidg,1);
+  slay->addWidget(infoWidg, 1);
 
   connect(&m_tv, &ProcessTreeView::selected, this, [=](const auto& pdata) {
-
     infoWidg->setData(pdata);
-    if(pdata)
+    if (pdata)
       presetFilterProxy->currentFilter = pdata->key;
     else
       presetFilterProxy->currentFilter = {};
@@ -154,9 +149,6 @@ ProcessWidget::ProcessWidget(
   m_lv.setMinimumHeight(100);
 }
 
-ProcessWidget::~ProcessWidget()
-{
-
-}
+ProcessWidget::~ProcessWidget() { }
 
 }

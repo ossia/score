@@ -3,6 +3,6 @@
 namespace Process
 {
 
-AutomatableFactory::~AutomatableFactory() {}
+AutomatableFactory::~AutomatableFactory() { }
 
 }

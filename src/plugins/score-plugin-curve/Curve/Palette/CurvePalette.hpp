@@ -73,7 +73,6 @@ struct ToolPalette_T final : public ToolPalette
   {
   }
 
-  ToolPaletteInputDispatcher<Curve::Tool, ToolPalette, Context_T, View>
-      m_inputDisp;
+  ToolPaletteInputDispatcher<Curve::Tool, ToolPalette, Context_T, View> m_inputDisp;
 };
 }

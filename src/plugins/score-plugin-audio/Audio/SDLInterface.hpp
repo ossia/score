@@ -15,12 +15,11 @@ class SDLFactory final : public AudioFactory
 {
   SCORE_CONCRETE("28b88e91-c5f0-4f13-834f-aa333d14aa81")
 public:
-  ~SDLFactory() override {}
+  ~SDLFactory() override { }
 
   QString prettyName() const override { return QObject::tr("SDL"); };
-  std::unique_ptr<ossia::audio_engine> make_engine(
-      const Audio::Settings::Model& set,
-      const score::ApplicationContext& ctx) override
+  std::unique_ptr<ossia::audio_engine>
+  make_engine(const Audio::Settings::Model& set, const score::ApplicationContext& ctx) override
   {
     int rate = set.getRate();
     int bs = set.getBufferSize();

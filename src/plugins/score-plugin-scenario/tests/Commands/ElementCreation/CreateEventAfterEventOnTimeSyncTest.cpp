@@ -7,7 +7,6 @@
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
-
 using namespace score;
 using namespace Scenario::Command;
 
@@ -17,8 +16,8 @@ class CreateEventAfterEventOnTimeSyncTest : public QObject
 private:
   void CreateTest()
   {
-    Scenario::ProcessModel* scenar = new ScenarioModel(
-        std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
+    Scenario::ProcessModel* scenar
+        = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
 
     EventData data{};
     data.dDate.setMSecs(10);

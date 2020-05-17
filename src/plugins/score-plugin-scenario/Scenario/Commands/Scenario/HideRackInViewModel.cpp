@@ -8,15 +8,11 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
-
 namespace Scenario
 {
 namespace Command
 {
-HideRack::HideRack(const Scenario::IntervalModel& interval_vm)
-    : m_path{interval_vm}
-{
-}
+HideRack::HideRack(const Scenario::IntervalModel& interval_vm) : m_path{interval_vm} { }
 
 void HideRack::undo(const score::DocumentContext& ctx) const
 {

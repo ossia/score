@@ -11,20 +11,15 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
-
-
 namespace Curve
 {
-SetSegmentParameters::SetSegmentParameters(
-    const Model& curve,
-    SegmentParameterMap&& parameters)
+SetSegmentParameters::SetSegmentParameters(const Model& curve, SegmentParameterMap&& parameters)
     : m_model{curve}, m_new{std::move(parameters)}
 {
   for (auto it = m_new.cbegin(); it != m_new.cend(); ++it)
   {
     const auto& seg = curve.segments().at(it.key());
-    m_old.insert(
-        it.key(), {seg.verticalParameter(), seg.horizontalParameter()});
+    m_old.insert(it.key(), {seg.verticalParameter(), seg.horizontalParameter()});
   }
 }
 

@@ -13,7 +13,6 @@
 #include <ossia/network/dataspace/dataspace.hpp>
 #include <ossia/network/domain/domain.hpp>
 
-
 #include <score_lib_state_export.h>
 JSON_METADATA(ossia::impulse, "Impulse")
 JSON_METADATA(int32_t, "Int")

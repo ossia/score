@@ -11,7 +11,6 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 
-
 namespace Scenario
 {
 namespace Command

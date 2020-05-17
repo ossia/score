@@ -4,6 +4,7 @@
 #include <ossia/editor/automation/tinysplinecpp.h>
 
 #include <Spline/SplineModel.hpp>
+
 #include <verdigris>
 namespace Spline
 {

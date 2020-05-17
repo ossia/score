@@ -21,12 +21,12 @@ struct Mime
 struct MimeDataReader
 {
   QMimeData& m_mime;
-  MimeDataReader(QMimeData& p) : m_mime{p} {}
+  MimeDataReader(QMimeData& p) : m_mime{p} { }
 };
 
 // Writes from a QMimeData to an object.
 struct MimeDataWriter
 {
   const QMimeData& m_mime;
-  MimeDataWriter(const QMimeData& p) : m_mime{p} {}
+  MimeDataWriter(const QMimeData& p) : m_mime{p} { }
 };

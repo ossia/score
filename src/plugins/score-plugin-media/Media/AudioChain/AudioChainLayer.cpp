@@ -1,30 +1,31 @@
 #include "AudioChainLayer.hpp"
+
 #include <Media/ChainItem.hpp>
+#include <Media/Commands/InsertEffect.hpp>
+#include <Process/Drop/ProcessDropHandler.hpp>
+#include <Process/Focus/FocusDispatcher.hpp>
+#include <Process/ProcessMimeSerialization.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <score/command/Dispatchers/RuntimeDispatcher.hpp>
+
+#include <core/document/Document.hpp>
+
+#include <ossia/detail/thread.hpp>
 
 #include <QFile>
 #include <QFileInfo>
 #include <QTimer>
 #include <QUrl>
-
-#include <Media/Commands/InsertEffect.hpp>
-
-#include <Process/ProcessMimeSerialization.hpp>
-#include <Process/Focus/FocusDispatcher.hpp>
-
-#include <core/document/Document.hpp>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
-#include <score/command/Dispatchers/RuntimeDispatcher.hpp>
-
-#include <Process/Drop/ProcessDropHandler.hpp>
-#include <ossia/detail/thread.hpp>
-namespace {
+namespace
+{
 static optional<int> m_lit{};
 }
 namespace Media
 {
-View::View(QGraphicsItem* parent) : Process::LayerView{parent} {}
+View::View(QGraphicsItem* parent) : Process::LayerView{parent} { }
 
 void View::setup(const ChainProcess& object, const Process::LayerContext& ctx)
 {
@@ -64,7 +65,7 @@ void View::setInvalid(bool b)
   update();
 }
 
-const std::vector<std::shared_ptr<EffectItem> >& View::effects() const
+const std::vector<std::shared_ptr<EffectItem>>& View::effects() const
 {
   return m_effects;
 }
@@ -94,7 +95,7 @@ void View::paint_impl(QPainter* p) const
   {
     int idx = *m_lit;
     double w = 2.5;
-    for(int i = 0; i < idx; i++)
+    for (int i = 0; i < idx; i++)
     {
       w += 10 + m_effects[i]->size().width();
     }
@@ -102,8 +103,7 @@ void View::paint_impl(QPainter* p) const
     p->setRenderHint(QPainter::Antialiasing, true);
     p->setPen(Process::Style::instance().TransparentPen());
     p->setBrush(Process::Style::instance().StateDot());
-    p->drawRoundedRect(
-          QRectF(w + 1., 2., 3., EffectItem::litHeight), 2., 2.);
+    p->drawRoundedRect(QRectF(w + 1., 2., 3., EffectItem::litHeight), 2., 2.);
     p->setRenderHint(QPainter::Antialiasing, false);
   }
 }
@@ -121,7 +121,10 @@ void View::mousePressEvent(QGraphicsSceneMouseEvent* ev)
   ev->accept();
 }
 
-void View::mouseMoveEvent(QGraphicsSceneMouseEvent* ev) { ev->accept(); }
+void View::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
+{
+  ev->accept();
+}
 
 void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
 {
@@ -137,7 +140,7 @@ void View::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
 void View::dragEnterEvent(QGraphicsSceneDragDropEvent* ev)
 {
   dragMoveEvent(ev);
-  for(auto& item : m_effects)
+  for (auto& item : m_effects)
   {
     item->setZValue(-1);
   }
@@ -156,7 +159,7 @@ void View::dragLeaveEvent(QGraphicsSceneDragDropEvent* ev)
   ev->accept();
   update();
 
-  for(auto& item : m_effects)
+  for (auto& item : m_effects)
   {
     item->setZValue(1);
   }
@@ -166,35 +169,31 @@ void View::dropEvent(QGraphicsSceneDragDropEvent* ev)
 {
   dropReceived(ev->pos(), *ev->mimeData());
   m_lit = {};
-  for(auto& item : m_effects)
+  for (auto& item : m_effects)
   {
     item->setZValue(1);
   }
 }
 
-Presenter::Presenter(const ChainProcess& model, View* view, const Process::Context& ctx, QObject* parent)
-  : LayerPresenter{model, view, ctx, parent}, m_view{view}
+Presenter::Presenter(
+    const ChainProcess& model,
+    View* view,
+    const Process::Context& ctx,
+    QObject* parent)
+    : LayerPresenter{model, view, ctx, parent}, m_view{view}
 {
   putToFront();
-  connect(view, &View::pressed, this, [&] {
-    m_context.context.focusDispatcher.focus(this);
-  });
+  connect(view, &View::pressed, this, [&] { m_context.context.focusDispatcher.focus(this); });
 
-  connect(
-        m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
-  connect(
-        m_view,
-        &View::dropReceived,
-        this,
-        [=](const QPointF& pos, const QMimeData& m) {
+  connect(m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
+  connect(m_view, &View::dropReceived, this, [=](const QPointF& pos, const QMimeData& m) {
     int idx = view->findDropPosition(pos);
     on_drop(m, idx);
   });
 
   auto& m = static_cast<const AudioChain::ProcessModel&>(model);
   con(m, &AudioChain::ProcessModel::effectsChanged, this, [&] {
-    m_view->setup(
-          static_cast<const AudioChain::ProcessModel&>(model), m_context);
+    m_view->setup(static_cast<const AudioChain::ProcessModel&>(model), m_context);
   });
   con(m, &AudioChain::ProcessModel::badChainingChanged, this, [&](bool b) {
     m_view->setInvalid(b);
@@ -203,17 +202,29 @@ Presenter::Presenter(const ChainProcess& model, View* view, const Process::Conte
   m_view->setup(static_cast<const AudioChain::ProcessModel&>(model), m_context);
 }
 
-void Presenter::setWidth(qreal width, qreal defaultWidth) { m_view->setWidth(width); }
+void Presenter::setWidth(qreal width, qreal defaultWidth)
+{
+  m_view->setWidth(width);
+}
 
-void Presenter::setHeight(qreal val) { m_view->setHeight(val); }
+void Presenter::setHeight(qreal val)
+{
+  m_view->setHeight(val);
+}
 
-void Presenter::putToFront() { m_view->setVisible(true); }
+void Presenter::putToFront()
+{
+  m_view->setVisible(true);
+}
 
-void Presenter::putBehind() { m_view->setVisible(false); }
+void Presenter::putBehind()
+{
+  m_view->setVisible(false);
+}
 
-void Presenter::on_zoomRatioChanged(ZoomRatio) {}
+void Presenter::on_zoomRatioChanged(ZoomRatio) { }
 
-void Presenter::parentGeometryChanged() {}
+void Presenter::parentGeometryChanged() { }
 
 void Presenter::on_drop(const QMimeData& mime, int pos)
 {
@@ -234,8 +245,7 @@ void Presenter::on_drop(const QMimeData& mime, int pos)
     auto json = readJson(mime.data(score::mime::effect()));
     const auto pid = ossia::get_pid();
     const bool same_doc
-        = (pid == json["PID"].GetInt())
-        && (ctx.document.id().val() == json["Document"].GetInt());
+        = (pid == json["PID"].GetInt()) && (ctx.document.id().val() == json["Document"].GetInt());
 
     if (same_doc)
     {
@@ -245,8 +255,7 @@ void Presenter::on_drop(const QMimeData& mime, int pos)
         if (obj->parent() == &model)
         {
           QTimer::singleShot(0, [&model, &ctx, id = obj->id(), pos] {
-            CommandDispatcher<>{ctx.commandStack}.submit(
-                  new MoveEffect(model, id, pos));
+            CommandDispatcher<>{ctx.commandStack}.submit(new MoveEffect(model, id, pos));
           });
           return;
         }
@@ -260,9 +269,10 @@ void Presenter::on_drop(const QMimeData& mime, int pos)
   }
   else if (mime.hasFormat(score::mime::layerdata()))
   {
-  auto json = readJson(mime.data(score::mime::layerdata()));
+    auto json = readJson(mime.data(score::mime::layerdata()));
 
-    if ((json.IsArray() && json.GetArray().Empty()) || (json.IsObject() && json.MemberCount() == 0))
+    if ((json.IsArray() && json.GetArray().Empty())
+        || (json.IsObject() && json.MemberCount() == 0))
       return;
     auto cmd = new LoadEffect(model, json, pos);
     CommandDispatcher<> d{ctx.commandStack};
@@ -270,9 +280,8 @@ void Presenter::on_drop(const QMimeData& mime, int pos)
   }
   else if (mime.hasUrls())
   {
-    bool all_layers = ossia::all_of(mime.urls(), [](const QUrl& u) {
-      return QFileInfo{u.toLocalFile()}.suffix() == "layer";
-    });
+    bool all_layers = ossia::all_of(
+        mime.urls(), [](const QUrl& u) { return QFileInfo{u.toLocalFile()}.suffix() == "layer"; });
     if (all_layers)
     {
       auto path = mime.urls().first().toLocalFile();
@@ -289,8 +298,7 @@ void Presenter::on_drop(const QMimeData& mime, int pos)
     }
     else
     {
-      const auto& handlers
-          = ctx.app.interfaces<Process::ProcessDropHandlerList>();
+      const auto& handlers = ctx.app.interfaces<Process::ProcessDropHandlerList>();
 
       if (auto res = handlers.getDrop(mime, ctx); !res.empty())
       {

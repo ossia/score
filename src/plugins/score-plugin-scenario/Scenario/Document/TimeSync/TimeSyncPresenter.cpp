@@ -35,7 +35,7 @@ TimeSyncPresenter::TimeSyncPresenter(
     m_triggerView->setSelected(b);
   });
   con(m_model, &TimeSyncModel::waitingChanged, this, [=](bool b) {
-    if(b)
+    if (b)
       m_triggerView->onWaitStart();
     else
       m_triggerView->onWaitEnd();
@@ -45,10 +45,9 @@ TimeSyncPresenter::TimeSyncPresenter(
       &score::ModelMetadata::ColorChanged,
       this,
       [=](const score::ColorRef& c) { m_view->changeColor(c.getBrush()); });
-  con(m_model.metadata(),
-      &score::ModelMetadata::LabelChanged,
-      this,
-      [=](const auto& t) { m_view->setLabel(t); });
+  con(m_model.metadata(), &score::ModelMetadata::LabelChanged, this, [=](const auto& t) {
+    m_view->setLabel(t);
+  });
   con(m_model, &TimeSyncModel::activeChanged, this, [=] {
     m_view->setTriggerActive(m_model.active());
     m_triggerView->setVisible(m_model.active());
@@ -65,27 +64,19 @@ TimeSyncPresenter::TimeSyncPresenter(
   m_triggerView->setPos(-10., -25.);
 
   m_triggerView->setToolTip(m_model.expression().toString());
-  con(m_model,
-      &TimeSyncModel::triggerChanged,
-      this,
-      [&](const State::Expression& t) {
-        m_triggerView->setToolTip(t.toString());
-      });
+  con(m_model, &TimeSyncModel::triggerChanged, this, [&](const State::Expression& t) {
+    m_triggerView->setToolTip(t.toString());
+  });
 
   connect(m_triggerView, &TriggerView::pressed, &m_model, [=](QPointF sp) {
     m_model.triggeredByGui();
     pressed(sp);
   });
 
-  connect(
-      m_triggerView,
-      &TriggerView::dropReceived,
-      this,
-      &TimeSyncPresenter::handleDrop);
+  connect(m_triggerView, &TriggerView::dropReceived, this, &TimeSyncPresenter::handleDrop);
 }
 
-TimeSyncPresenter::~TimeSyncPresenter() {}
-
+TimeSyncPresenter::~TimeSyncPresenter() { }
 
 const VerticalExtent& TimeSyncPresenter::extent() const noexcept
 {
@@ -109,8 +100,8 @@ void TimeSyncPresenter::addEvent(EventPresenter* ev)
 void TimeSyncPresenter::removeEvent(EventPresenter* ev)
 {
   auto it = ossia::find(m_events, ev);
-  if(it != m_events.end())
-     m_events.erase(it);
+  if (it != m_events.end())
+    m_events.erase(it);
 }
 
 const Id<TimeSyncModel>& TimeSyncPresenter::id() const
@@ -148,8 +139,7 @@ void TimeSyncPresenter::handleDrop(const QPointF& pos, const QMimeData& mime)
 
       if (trig)
       {
-        CommandDispatcher<> dispatcher{
-            score::IDocument::documentContext(m_model).commandStack};
+        CommandDispatcher<> dispatcher{score::IDocument::documentContext(m_model).commandStack};
         auto cmd = new Command::SetTrigger{m_model, std::move(*trig)};
         dispatcher.submit(cmd);
       }

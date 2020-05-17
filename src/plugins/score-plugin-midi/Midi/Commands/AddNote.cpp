@@ -87,13 +87,13 @@ void ReplaceNotes::redo(const score::DocumentContext& ctx) const
 
 void ReplaceNotes::serializeImpl(DataStreamInput& s) const
 {
-  s << m_model << m_old << m_new << m_oldmin << m_oldmax << m_newmin
-    << m_newmax << m_olddur << m_newdur;
+  s << m_model << m_old << m_new << m_oldmin << m_oldmax << m_newmin << m_newmax << m_olddur
+    << m_newdur;
 }
 
 void ReplaceNotes::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_model >> m_old >> m_new >> m_oldmin >> m_oldmax >> m_newmin
-      >> m_newmax >> m_olddur >> m_newdur;
+  s >> m_model >> m_old >> m_new >> m_oldmin >> m_oldmax >> m_newmin >> m_newmax >> m_olddur
+      >> m_newdur;
 }
 }

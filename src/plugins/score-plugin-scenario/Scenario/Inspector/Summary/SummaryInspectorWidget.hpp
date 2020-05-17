@@ -1,11 +1,10 @@
 #pragma once
 #include <Inspector/InspectorWidgetBase.hpp>
 
-#include <verdigris>
-
 #include <list>
 #include <set>
 #include <vector>
+#include <verdigris>
 
 namespace Inspector
 {

@@ -49,17 +49,13 @@ private:
   {
     static_cast<Parent_T*>(parent())->dragEnterEvent(ev);
   }
-  void dropEvent(QDropEvent* ev) override
-  {
-    static_cast<Parent_T*>(parent())->dropEvent(ev);
-  }
+  void dropEvent(QDropEvent* ev) override { static_cast<Parent_T*>(parent())->dropEvent(ev); }
 
   Validator_T m_validator;
 };
 
 template <typename Parent_T>
-class AddressLineEdit final
-    : public AddressLineEditBase<AddressValidator, Parent_T>
+class AddressLineEdit final : public AddressLineEditBase<AddressValidator, Parent_T>
 {
 public:
   using AddressLineEditBase<AddressValidator, Parent_T>::AddressLineEditBase;
@@ -70,7 +66,6 @@ class AddressAccessorLineEdit final
     : public AddressLineEditBase<AddressAccessorValidator, Parent_T>
 {
 public:
-  using AddressLineEditBase<AddressAccessorValidator, Parent_T>::
-      AddressLineEditBase;
+  using AddressLineEditBase<AddressAccessorValidator, Parent_T>::AddressLineEditBase;
 };
 }

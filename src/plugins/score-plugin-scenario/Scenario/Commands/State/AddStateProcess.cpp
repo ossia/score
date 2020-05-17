@@ -25,9 +25,7 @@ AddStateProcessToState::AddStateProcessToState(
     const Scenario::StateModel& state,
     Id<Process::ProcessModel> processId,
     UuidKey<Process::ProcessModel> process)
-    : m_path{state}
-    , m_processName{process}
-    , m_createdProcessId{std::move(processId)}
+    : m_path{state}, m_processName{process}, m_createdProcessId{std::move(processId)}
 {
 }
 

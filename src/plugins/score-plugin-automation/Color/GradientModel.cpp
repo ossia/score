@@ -3,6 +3,7 @@
 #include <Process/Dataflow/Port.hpp>
 
 #include <score/tools/Bind.hpp>
+
 #include <ossia/editor/state/destination_qualifiers.hpp>
 
 #include <QColor>
@@ -17,10 +18,7 @@ ProcessModel::ProcessModel(
     const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : Process::ProcessModel{duration,
-                            id,
-                            Metadata<ObjectKey_k, ProcessModel>::get(),
-                            parent}
+    : Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , outlet{Process::make_value_outlet(Id<Process::Port>(0), this)}
 {
   m_colors.insert(std::make_pair(0.2, QColor(Qt::black)));
@@ -30,14 +28,13 @@ ProcessModel::ProcessModel(
   init();
 }
 
-ProcessModel::~ProcessModel() {}
+ProcessModel::~ProcessModel() { }
 
 void ProcessModel::init()
 {
   outlet->setCustomData("Out");
   auto update_invalid_address = [=](const State::AddressAccessor& addr) {
-    if (addr.qualifiers.get()
-        != ossia::destination_qualifiers{{}, ossia::argb_u{}})
+    if (addr.qualifiers.get() != ossia::destination_qualifiers{{}, ossia::argb_u{}})
     {
       State::AddressAccessor copy = addr;
       copy.qualifiers = ossia::destination_qualifiers{{}, ossia::argb_u{}};

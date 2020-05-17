@@ -4,7 +4,6 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/MimeVisitor.hpp>
 
-
 namespace score
 {
 namespace mime

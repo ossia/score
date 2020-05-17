@@ -2,6 +2,7 @@
 #include <score/plugins/InterfaceList.hpp>
 
 #include <score_plugin_audio_export.h>
+
 #include <verdigris>
 
 namespace ossia
@@ -29,10 +30,8 @@ public:
   ~AudioFactory() override;
 
   virtual QString prettyName() const = 0;
-  virtual std::unique_ptr<ossia::audio_engine> make_engine(
-      const Audio::Settings::Model& settings,
-      const score::ApplicationContext& ctx)
-      = 0;
+  virtual std::unique_ptr<ossia::audio_engine>
+  make_engine(const Audio::Settings::Model& settings, const score::ApplicationContext& ctx) = 0;
   virtual QWidget* make_settings(
       Audio::Settings::Model& m,
       Audio::Settings::View& v,
@@ -40,8 +39,10 @@ public:
       QWidget* parent)
       = 0;
 
-  static void addBufferSizeWidget(QWidget& widg, Audio::Settings::Model& m, Audio::Settings::View& v);
-  static void addSampleRateWidget(QWidget& widg, Audio::Settings::Model& m, Audio::Settings::View& v);
+  static void
+  addBufferSizeWidget(QWidget& widg, Audio::Settings::Model& m, Audio::Settings::View& v);
+  static void
+  addSampleRateWidget(QWidget& widg, Audio::Settings::Model& m, Audio::Settings::View& v);
 };
 
 class AudioFactoryList final : public score::InterfaceList<AudioFactory>

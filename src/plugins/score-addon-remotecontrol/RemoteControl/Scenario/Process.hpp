@@ -29,14 +29,11 @@ public:
 };
 
 template <typename Process_T>
-using ProcessComponent_T
-    = Process::GenericProcessComponent_T<ProcessComponent, Process_T>;
+using ProcessComponent_T = Process::GenericProcessComponent_T<ProcessComponent, Process_T>;
 
 class SCORE_ADDON_REMOTECONTROL_EXPORT ProcessComponentFactory
-    : public score::GenericComponentFactory<
-          Process::ProcessModel,
-          DocumentPlugin,
-          ProcessComponentFactory>
+    : public score::
+          GenericComponentFactory<Process::ProcessModel, DocumentPlugin, ProcessComponentFactory>
 {
   SCORE_ABSTRACT_COMPONENT_FACTORY(RemoteControl::ProcessComponent)
 public:
@@ -49,9 +46,8 @@ public:
 };
 
 template <typename ProcessComponent_T>
-class ProcessComponentFactory_T : public score::GenericComponentFactoryImpl<
-                                      ProcessComponent_T,
-                                      ProcessComponentFactory>
+class ProcessComponentFactory_T
+    : public score::GenericComponentFactoryImpl<ProcessComponent_T, ProcessComponentFactory>
 {
 public:
   using model_type = typename ProcessComponent_T::model_type;
@@ -61,13 +57,10 @@ public:
       const Id<score::Component>& id,
       QObject* paren_objt) const final override
   {
-    return new ProcessComponent_T{
-        static_cast<model_type&>(proc), doc, id, paren_objt};
+    return new ProcessComponent_T{static_cast<model_type&>(proc), doc, id, paren_objt};
   }
 };
 
-using ProcessComponentFactoryList = score::GenericComponentFactoryList<
-    Process::ProcessModel,
-    DocumentPlugin,
-    ProcessComponentFactory>;
+using ProcessComponentFactoryList = score::
+    GenericComponentFactoryList<Process::ProcessModel, DocumentPlugin, ProcessComponentFactory>;
 }

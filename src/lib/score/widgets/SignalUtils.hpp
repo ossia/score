@@ -10,13 +10,11 @@ struct SignalUtils
   }
   static constexpr auto QDoubleSpinBox_valueChanged_double()
   {
-    return static_cast<void (QDoubleSpinBox::*)(double)>(
-        &QDoubleSpinBox::valueChanged);
+    return static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged);
   }
   static constexpr auto QComboBox_currentIndexChanged_int()
   {
-    return static_cast<void (QComboBox::*)(int)>(
-        &QComboBox::currentIndexChanged);
+    return static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged);
   }
   static constexpr auto QComboBox_activated_int()
   {

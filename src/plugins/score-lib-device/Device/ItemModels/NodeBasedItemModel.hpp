@@ -7,15 +7,13 @@
 #include <score/model/tree/TreeNode.hpp>
 #include <score/model/tree/TreeNodeItemModel.hpp>
 
-
 #include <score_lib_device_export.h>
 
 #include <vector>
 
 namespace Device
 {
-class SCORE_LIB_DEVICE_EXPORT NodeBasedItemModel
-    : public TreeNodeBasedItemModel<Device::Node>
+class SCORE_LIB_DEVICE_EXPORT NodeBasedItemModel : public TreeNodeBasedItemModel<Device::Node>
 {
 public:
   using TreeNodeBasedItemModel<Device::Node>::TreeNodeBasedItemModel;
@@ -89,8 +87,7 @@ public:
   }
 };
 
-SCORE_LIB_DEVICE_EXPORT Device::FullAddressAccessorSettings
-makeFullAddressAccessorSettings(
+SCORE_LIB_DEVICE_EXPORT Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
     const State::AddressAccessor& mess,
     const Device::NodeBasedItemModel& ctx,
     ossia::value min,

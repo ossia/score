@@ -2,10 +2,12 @@
 #include <Effect/EffectPainting.hpp>
 
 class QGraphicsSceneMouseEvent;
-namespace Dataflow {
+namespace Dataflow
+{
 class PortItem;
 }
-namespace Process {
+namespace Process
+{
 class ProcessModel;
 struct LayerContext;
 class LayerFactoryList;
@@ -14,12 +16,12 @@ namespace Media
 {
 
 class View;
-class EffectItem final
-    : public ::Effect::ItemBase
+class EffectItem final : public ::Effect::ItemBase
 {
   const View& m_view;
   const Process::ProcessModel& m_model;
   const Process::LayerContext& m_context;
+
 public:
   EffectItem(
       const View& view,
@@ -29,16 +31,14 @@ public:
       QGraphicsItem* parent);
 
   static inline qreal litHeight{};
+
 private:
   void updateSize();
   void setSize(QSizeF sz);
   void resetInlets();
   void resetOutlets();
 
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;

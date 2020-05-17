@@ -4,14 +4,13 @@
 #include <Media/AudioChain/AudioChainExecutor.hpp>
 #include <Media/AudioChain/AudioChainFactory.hpp>
 #include <Media/AudioChain/Inspector/AudioChainInspector.hpp>
-#include <Media/SynthChain/SynthChainExecutor.hpp>
-#include <Media/SynthChain/SynthChainFactory.hpp>
-#include <Media/SynthChain/Inspector/SynthChainInspector.hpp>
 #include <Media/Effect/Settings/Factory.hpp>
 #include <Media/Inspector/Factory.hpp>
 #include <Media/Merger/Executor.hpp>
 #include <Media/Merger/Factory.hpp>
 #include <Media/Merger/Inspector.hpp>
+#include <Media/Metro/MetroExecutor.hpp>
+#include <Media/Metro/MetroFactory.hpp>
 #include <Media/Sound/Drop/SoundDrop.hpp>
 #include <Media/Sound/SoundComponent.hpp>
 #include <Media/Sound/SoundFactory.hpp>
@@ -19,12 +18,12 @@
 #include <Media/Step/Executor.hpp>
 #include <Media/Step/Factory.hpp>
 #include <Media/Step/Inspector.hpp>
-#include <Media/Metro/MetroExecutor.hpp>
-#include <Media/Metro/MetroFactory.hpp>
+#include <Media/SynthChain/Inspector/SynthChainInspector.hpp>
+#include <Media/SynthChain/SynthChainExecutor.hpp>
+#include <Media/SynthChain/SynthChainFactory.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+
 #include <Mixer/MixerPanel.hpp>
-
-
 #include <wobjectimpl.h>
 #if defined(HAS_LV2)
 #include <Media/Effect/LV2/LV2EffectModel.hpp>
@@ -43,6 +42,7 @@
 #include <Media/Effect/Faust/FaustLibrary.hpp>
 #endif
 #include <Library/LibraryInterface.hpp>
+
 #include <score/plugins/FactorySetup.hpp>
 #include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
@@ -67,8 +67,8 @@ extern "C"
 score_plugin_media::score_plugin_media()
 {
 #if SCORE_HAS_LIBAV
-    av_register_all();
-    avcodec_register_all();
+  av_register_all();
+  avcodec_register_all();
 #endif
 
   qRegisterMetaType<Media::Sound::ComputedWaveform>();
@@ -78,10 +78,9 @@ score_plugin_media::score_plugin_media()
   qRegisterMetaTypeStreamOperators<ossia::audio_stretch_mode>();
 }
 
-score_plugin_media::~score_plugin_media() {}
+score_plugin_media::~score_plugin_media() { }
 
-std::pair<const CommandGroupKey, CommandGeneratorMap>
-score_plugin_media::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_media::make_commands()
 {
   using namespace Media;
 #if defined(HAS_VST2)
@@ -100,20 +99,19 @@ score_plugin_media::make_commands()
   return cmds;
 }
 
-score::ApplicationPlugin* score_plugin_media::make_applicationPlugin(
-    const score::ApplicationContext& app)
+score::ApplicationPlugin*
+score_plugin_media::make_applicationPlugin(const score::ApplicationContext& app)
 {
   return new Media::ApplicationPlugin{app};
 }
 
-score::GUIApplicationPlugin* score_plugin_media::make_guiApplicationPlugin(
-    const score::GUIApplicationContext& app)
+score::GUIApplicationPlugin*
+score_plugin_media::make_guiApplicationPlugin(const score::GUIApplicationContext& app)
 {
   return new Media::GUIApplicationPlugin{app};
 }
 
-std::vector<std::unique_ptr<score::InterfaceBase>>
-score_plugin_media::factories(
+std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& key) const
 {
@@ -142,10 +140,11 @@ score_plugin_media::factories(
       FW<Inspector::InspectorWidgetFactory,
          Media::Sound::InspectorFactory,
          Media::AudioChain::InspectorFactory,
-         Media::SynthChain::InspectorFactory
-       , Media::Step::InspectorFactory
-       // , Media::Metro::InspectorFactory
-       , Media::Merger::InspectorFactory>,
+         Media::SynthChain::InspectorFactory,
+         Media::Step::InspectorFactory
+         // , Media::Metro::InspectorFactory
+         ,
+         Media::Merger::InspectorFactory>,
       FW<Process::LayerFactory,
          Media::Sound::LayerFactory,
          Media::AudioChain::LayerFactory,
@@ -179,8 +178,8 @@ score_plugin_media::factories(
          ,
          Media::Faust::LibraryHandler
 #endif
-         , Media::Sound::LibraryHandler
-         >,
+         ,
+         Media::Sound::LibraryHandler>,
 
 #if defined(HAS_VST2)
       FW<Process::PortFactory, Media::VST::VSTControlPortFactory>,

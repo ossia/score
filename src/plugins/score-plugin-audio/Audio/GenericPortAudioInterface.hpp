@@ -1,8 +1,10 @@
 #pragma once
+#include <score/command/Dispatchers/SettingsCommandDispatcher.hpp>
+
 #include <ossia/audio/portaudio_protocol.hpp>
+
 #include <Audio/AudioInterface.hpp>
 #include <Audio/PortAudioInterface.hpp>
-#include <score/command/Dispatchers/SettingsCommandDispatcher.hpp>
 class QComboBox;
 namespace Audio
 {
@@ -21,17 +23,13 @@ public:
   void rescan();
 
   QString prettyName() const override;
-  std::unique_ptr<ossia::audio_engine> make_engine(
-      const Audio::Settings::Model& set,
-      const score::ApplicationContext& ctx) override;
+  std::unique_ptr<ossia::audio_engine>
+  make_engine(const Audio::Settings::Model& set, const score::ApplicationContext& ctx) override;
 
   void setCardIn(QComboBox* combo, QString val);
   void setCardOut(QComboBox* combo, QString val);
 
-  void updateSampleRates(
-      QComboBox* rate,
-      const PortAudioCard& input,
-      const PortAudioCard& output);
+  void updateSampleRates(QComboBox* rate, const PortAudioCard& input, const PortAudioCard& output);
 
   QWidget* make_settings(
       Audio::Settings::Model& m,

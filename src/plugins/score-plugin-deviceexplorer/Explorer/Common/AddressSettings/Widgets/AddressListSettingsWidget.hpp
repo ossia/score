@@ -5,7 +5,6 @@
 #include <State/Widgets/Values/NumericValueWidget.hpp>
 #include <State/Widgets/Values/VecWidgets.hpp>
 
-
 namespace Explorer
 {
 class AddressListSettingsWidget final : public AddressSettingsWidget

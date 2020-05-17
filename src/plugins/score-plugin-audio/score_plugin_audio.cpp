@@ -7,51 +7,45 @@
 #include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
 
-
-#include <Audio/DummyInterface.hpp>
-#include <Audio/JackInterface.hpp>
-#include <Audio/PortAudioInterface.hpp>
 #include <Audio/ALSAPortAudioInterface.hpp>
 #include <Audio/ASIOPortAudioInterface.hpp>
-#include <Audio/CoreAudioPortAudioInterface.hpp>
-#include <Audio/GenericPortAudioInterface.hpp>
-#include <Audio/MMEPortAudioInterface.hpp>
-#include <Audio/WASAPIPortAudioInterface.hpp>
-#include <Audio/WDMKSPortAudioInterface.hpp>
-#include <Audio/SDLInterface.hpp>
-#include <Audio/Settings/Factory.hpp>
 #include <Audio/AudioApplicationPlugin.hpp>
 #include <Audio/AudioDevice.hpp>
 #include <Audio/AudioPreviewExecutor.hpp>
+#include <Audio/CoreAudioPortAudioInterface.hpp>
+#include <Audio/DummyInterface.hpp>
+#include <Audio/GenericPortAudioInterface.hpp>
+#include <Audio/JackInterface.hpp>
+#include <Audio/MMEPortAudioInterface.hpp>
+#include <Audio/PortAudioInterface.hpp>
+#include <Audio/SDLInterface.hpp>
+#include <Audio/Settings/Factory.hpp>
+#include <Audio/WASAPIPortAudioInterface.hpp>
+#include <Audio/WDMKSPortAudioInterface.hpp>
+#include <wobjectimpl.h>
 
 #include <ossia-config.hpp>
-#include <wobjectimpl.h>
 
 score_plugin_audio::score_plugin_audio()
 {
   qRegisterMetaType<Audio::AudioFactory::ConcreteKey>("AudioKey");
-  qRegisterMetaTypeStreamOperators<Audio::AudioFactory::ConcreteKey>(
-      "AudioKey");
+  qRegisterMetaTypeStreamOperators<Audio::AudioFactory::ConcreteKey>("AudioKey");
 }
 
-score_plugin_audio::~score_plugin_audio() {}
+score_plugin_audio::~score_plugin_audio() { }
 
-score::GUIApplicationPlugin* score_plugin_audio::make_guiApplicationPlugin(
-    const score::GUIApplicationContext& app)
+score::GUIApplicationPlugin*
+score_plugin_audio::make_guiApplicationPlugin(const score::GUIApplicationContext& app)
 {
   return new Audio::ApplicationPlugin{app};
 }
 
-std::vector<std::unique_ptr<score::InterfaceListBase>>
-score_plugin_audio::factoryFamilies()
+std::vector<std::unique_ptr<score::InterfaceListBase>> score_plugin_audio::factoryFamilies()
 {
-  return make_ptr_vector<
-          score::InterfaceListBase,
-          Audio::AudioFactoryList>();
+  return make_ptr_vector<score::InterfaceListBase, Audio::AudioFactoryList>();
 }
 
-std::vector<std::unique_ptr<score::InterfaceBase>>
-score_plugin_audio::factories(
+std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_audio::factories(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& key) const
 {
@@ -110,17 +104,13 @@ score_plugin_audio::factories(
          >,
 
       FW<Device::ProtocolFactory
-        #if defined(OSSIA_PROTOCOL_AUDIO)
-                 , Dataflow::AudioProtocolFactory
-        #endif
-      >,
-      FW<score::SettingsDelegateFactory,
-         Audio::Settings::Factory
-      >,
-      FW<Execution::ExecutionAction,
-        Audio::AudioPreviewExecutor
-      >
-      >(ctx, key);
+#if defined(OSSIA_PROTOCOL_AUDIO)
+         ,
+         Dataflow::AudioProtocolFactory
+#endif
+         >,
+      FW<score::SettingsDelegateFactory, Audio::Settings::Factory>,
+      FW<Execution::ExecutionAction, Audio::AudioPreviewExecutor>>(ctx, key);
 }
 
 auto score_plugin_audio::required() const -> std::vector<score::PluginKey>

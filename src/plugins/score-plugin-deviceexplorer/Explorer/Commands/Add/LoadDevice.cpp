@@ -13,14 +13,11 @@
 #include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
-
 namespace Explorer
 {
 namespace Command
 {
-LoadDevice::LoadDevice(
-    const DeviceDocumentPlugin& devplug,
-    Device::Node&& node)
+LoadDevice::LoadDevice(const DeviceDocumentPlugin& devplug, Device::Node&& node)
     : m_deviceNode(std::move(node))
 {
 }

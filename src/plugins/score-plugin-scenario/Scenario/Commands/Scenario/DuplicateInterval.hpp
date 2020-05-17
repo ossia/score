@@ -16,17 +16,11 @@ class IntervalModel;
 namespace Scenario::Command
 {
 
-class SCORE_PLUGIN_SCENARIO_EXPORT DuplicateInterval final
-    : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT DuplicateInterval final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      DuplicateInterval,
-      "Duplicate an interval")
+  SCORE_COMMAND_DECL(CommandFactoryName(), DuplicateInterval, "Duplicate an interval")
 public:
-  DuplicateInterval(
-      const Scenario::ProcessModel& parent,
-      const IntervalModel& cst);
+  DuplicateInterval(const Scenario::ProcessModel& parent, const IntervalModel& cst);
   ~DuplicateInterval();
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

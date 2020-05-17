@@ -7,14 +7,14 @@
 #include <score/tools/std/Optional.hpp>
 
 #include <score_plugin_curve_export.h>
+
 #include <verdigris>
 
 class QObject;
 namespace Curve
 {
 class SegmentModel;
-class SCORE_PLUGIN_CURVE_EXPORT PointModel final
-    : public IdentifiedObject<PointModel>
+class SCORE_PLUGIN_CURVE_EXPORT PointModel final : public IdentifiedObject<PointModel>
 {
   W_OBJECT(PointModel)
 public:

@@ -52,7 +52,7 @@ public:
   void resizeSwapChain()
   {
     state.hasSwapChain = state.swapChain->buildOrResize(); // also handles m_ds
-    if(onResize)
+    if (onResize)
       onResize();
   }
 
@@ -73,8 +73,7 @@ public:
       return;
     }
 
-    if (state.swapChain->currentPixelSize()
-            != state.swapChain->surfacePixelSize()
+    if (state.swapChain->currentPixelSize() != state.swapChain->surfacePixelSize()
         || m_newlyExposed)
     {
       resizeSwapChain();
@@ -83,7 +82,7 @@ public:
       m_newlyExposed = false;
     }
 
-    if(canRender)
+    if (canRender)
     {
       QRhi::FrameOpResult r = state.rhi->beginFrame(state.swapChain, {});
       if (r == QRhi::FrameOpSwapChainOutOfDate)
@@ -144,11 +143,9 @@ public:
       resizeSwapChain();
     }
 
-    const QSize surfaceSize
-        = state.hasSwapChain ? state.swapChain->surfacePixelSize() : QSize();
+    const QSize surfaceSize = state.hasSwapChain ? state.swapChain->surfacePixelSize() : QSize();
 
-    if ((!isExposed() || (state.hasSwapChain && surfaceSize.isEmpty()))
-        && m_running)
+    if ((!isExposed() || (state.hasSwapChain && surfaceSize.isEmpty())) && m_running)
       m_notExposed = true;
 
     if (isExposed() && m_running && m_notExposed && !surfaceSize.isEmpty())

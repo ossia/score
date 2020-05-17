@@ -70,8 +70,7 @@ Device::DeviceSettings OSCProtocolSettingsWidget::getSettings() const
   return s;
 }
 
-void OSCProtocolSettingsWidget::setSettings(
-    const Device::DeviceSettings& settings)
+void OSCProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
   m_deviceNameEdit->setText(settings.name);
   OSCSpecificSettings osc;

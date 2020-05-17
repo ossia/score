@@ -14,19 +14,15 @@ namespace Parameters
 SETTINGS_PARAMETER_IMPL(SimplificationRatio){
     QStringLiteral("score_plugin_curve/SimplificationRatio"),
     10};
-SETTINGS_PARAMETER_IMPL(Simplify){
-    QStringLiteral("score_plugin_curve/Simplify"),
-    true};
-SETTINGS_PARAMETER_IMPL(CurveMode){QStringLiteral("score_plugin_curve/Mode"),
-                                   Mode::Parameter};
+SETTINGS_PARAMETER_IMPL(Simplify){QStringLiteral("score_plugin_curve/Simplify"), true};
+SETTINGS_PARAMETER_IMPL(CurveMode){QStringLiteral("score_plugin_curve/Mode"), Mode::Parameter};
 SETTINGS_PARAMETER_IMPL(PlayWhileRecording){
     QStringLiteral("score_plugin_curve/PlayWhileRecording"),
     true};
 
 static auto list()
 {
-  return std::tie(
-      SimplificationRatio, Simplify, CurveMode, PlayWhileRecording);
+  return std::tie(SimplificationRatio, Simplify, CurveMode, PlayWhileRecording);
 }
 }
 

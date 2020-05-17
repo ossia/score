@@ -20,12 +20,12 @@
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/ModelMetadata.hpp>
+#include <score/plugins/SerializableHelpers.hpp>
 #include <score/tools/MapCopy.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <score/plugins/SerializableHelpers.hpp>
-#include <ossia/editor/state/destination_qualifiers.hpp>
+
 #include <ossia/dataflow/port.hpp>
-#include <wobjectimpl.h>
+#include <ossia/editor/state/destination_qualifiers.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Automation::ProcessModel)
@@ -38,32 +38,20 @@ void ProcessModel::init()
   outlet->setCustomData("Out");
   m_outlets.push_back(outlet.get());
   connect(
-      outlet.get(),
-      &Process::Port::addressChanged,
-      this,
-      [=](const State::AddressAccessor& arg) {
+      outlet.get(), &Process::Port::addressChanged, this, [=](const State::AddressAccessor& arg) {
         addressChanged(arg);
         prettyNameChanged();
         unitChanged(arg.qualifiers.get().unit);
         m_curve->changed();
       });
-  connect(
-        outlet.get(),
-        &Process::Port::cablesChanged,
-        this,
-        [=] {
-    prettyNameChanged();
-  });
+  connect(outlet.get(), &Process::Port::cablesChanged, this, [=] { prettyNameChanged(); });
 }
 
 ProcessModel::ProcessModel(
     const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : CurveProcessModel{duration,
-                        id,
-                        Metadata<ObjectKey_k, ProcessModel>::get(),
-                        parent}
+    : CurveProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , outlet{std::make_unique<Process::MinMaxFloatOutlet>(Id<Process::Port>(0), this)}
     , m_startState{new ProcessState{*this, 0., this}}
     , m_endState{new ProcessState{*this, 1., this}}
@@ -71,8 +59,7 @@ ProcessModel::ProcessModel(
   // Named shall be enough ?
   setCurve(new Curve::Model{Id<Curve::Model>(45345), this});
 
-  auto s1 = new Curve::DefaultCurveSegmentModel(
-      Id<Curve::SegmentModel>(1), m_curve);
+  auto s1 = new Curve::DefaultCurveSegmentModel(Id<Curve::SegmentModel>(1), m_curve);
   s1->setStart({0., 0.0});
   s1->setEnd({1., 1.});
 
@@ -83,7 +70,7 @@ ProcessModel::ProcessModel(
   init();
 }
 
-ProcessModel::~ProcessModel() {}
+ProcessModel::~ProcessModel() { }
 
 ProcessModel::ProcessModel(JSONObject::Deserializer& vis, QObject* parent)
     : CurveProcessModel{vis, parent}
@@ -105,17 +92,17 @@ ProcessModel::ProcessModel(DataStream::Deserializer& vis, QObject* parent)
 
 QString ProcessModel::prettyName() const noexcept
 {
-  if(const auto& cables = outlet->cables(); !cables.empty())
+  if (const auto& cables = outlet->cables(); !cables.empty())
   {
     auto& doc = score::IDocument::documentContext(*this);
-    if(Process::Cable* cbl = cables.front().try_find(doc))
-      if(Process::Port* inlet = cbl->sink().try_find(doc))
+    if (Process::Cable* cbl = cables.front().try_find(doc))
+      if (Process::Port* inlet = cbl->sink().try_find(doc))
       {
         QString name = inlet->customData();
         auto process = qobject_cast<Process::ProcessModel*>(inlet->parent());
-        if(process)
+        if (process)
         {
-           name += " (" + process->prettyName() + ")";
+          name += " (" + process->prettyName() + ")";
         }
         return name;
       }
@@ -289,7 +276,10 @@ void ProcessModel::setUnit(const State::Unit& u)
   }
 }
 
-bool ProcessModel::tween() const { return m_tween; }
+bool ProcessModel::tween() const
+{
+  return m_tween;
+}
 
 void ProcessModel::setTween(bool tween)
 {
@@ -299,7 +289,6 @@ void ProcessModel::setTween(bool tween)
   m_tween = tween;
   tweenChanged(tween);
 }
-
 
 void ProcessModel::loadPreset(const Process::Preset& preset)
 {

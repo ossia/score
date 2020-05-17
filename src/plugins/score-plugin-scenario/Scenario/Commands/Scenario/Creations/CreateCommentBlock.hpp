@@ -16,15 +16,9 @@ namespace Command
 {
 class CreateCommentBlock final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      CreateCommentBlock,
-      "Create a comment block")
+  SCORE_COMMAND_DECL(CommandFactoryName(), CreateCommentBlock, "Create a comment block")
 public:
-  CreateCommentBlock(
-      const Scenario::ProcessModel& scenarioPath,
-      TimeVal date,
-      double yPosition);
+  CreateCommentBlock(const Scenario::ProcessModel& scenarioPath, TimeVal date, double yPosition);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
@@ -42,15 +36,9 @@ private:
 };
 class RemoveCommentBlock final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      RemoveCommentBlock,
-      "Remove a comment block")
+  SCORE_COMMAND_DECL(CommandFactoryName(), RemoveCommentBlock, "Remove a comment block")
 public:
-  RemoveCommentBlock(
-      const Scenario::ProcessModel& sc,
-      const Scenario::CommentBlockModel& cb
-      );
+  RemoveCommentBlock(const Scenario::ProcessModel& sc, const Scenario::CommentBlockModel& cb);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

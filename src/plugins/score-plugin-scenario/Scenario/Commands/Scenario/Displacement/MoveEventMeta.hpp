@@ -19,13 +19,9 @@ class StateModel;
 namespace Command
 {
 
-class SCORE_PLUGIN_SCENARIO_EXPORT MoveEventMeta final
-    : public SerializableMoveEvent
+class SCORE_PLUGIN_SCENARIO_EXPORT MoveEventMeta final : public SerializableMoveEvent
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      MoveEventMeta,
-      "Move an event")
+  SCORE_COMMAND_DECL(CommandFactoryName(), MoveEventMeta, "Move an event")
 
 public:
   MoveEventMeta(
@@ -82,13 +78,9 @@ private:
   std::unique_ptr<SerializableMoveEvent> m_moveEventImplementation{};
 };
 
-class SCORE_PLUGIN_SCENARIO_EXPORT MoveTopEventMeta final
-    : public SerializableMoveEvent
+class SCORE_PLUGIN_SCENARIO_EXPORT MoveTopEventMeta final : public SerializableMoveEvent
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      MoveTopEventMeta,
-      "Move an event")
+  SCORE_COMMAND_DECL(CommandFactoryName(), MoveTopEventMeta, "Move an event")
 
 public:
   MoveTopEventMeta(
@@ -147,18 +139,12 @@ private:
 
 class MoveIntervalMacro final : public score::AggregateCommand
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      MoveIntervalMacro,
-      "Move an interval")
+  SCORE_COMMAND_DECL(CommandFactoryName(), MoveIntervalMacro, "Move an interval")
 };
 
 class MoveStateMacro final : public score::AggregateCommand
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      MoveStateMacro,
-      "Move a state")
+  SCORE_COMMAND_DECL(CommandFactoryName(), MoveStateMacro, "Move a state")
 };
 }
 }

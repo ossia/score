@@ -63,14 +63,14 @@ void SetRigidity::redo(const score::DocumentContext& ctx) const
 
 void SetRigidity::serializeImpl(DataStreamInput& s) const
 {
-  s << m_path << m_oldMinDuration << m_oldMaxDuration << m_rigidity
-    << m_oldRigidity << m_oldIsNull << m_oldIsInfinite;
+  s << m_path << m_oldMinDuration << m_oldMaxDuration << m_rigidity << m_oldRigidity << m_oldIsNull
+    << m_oldIsInfinite;
 }
 
 void SetRigidity::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_path >> m_oldMinDuration >> m_oldMaxDuration >> m_rigidity
-      >> m_oldRigidity >> m_oldIsNull >> m_oldIsInfinite;
+  s >> m_path >> m_oldMinDuration >> m_oldMaxDuration >> m_rigidity >> m_oldRigidity >> m_oldIsNull
+      >> m_oldIsInfinite;
 }
 }
 }

@@ -1,31 +1,32 @@
 #include "score_addon_nodal.hpp"
 
+#include <Process/DocumentPlugin.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+
+#include <score/graphics/RectItem.hpp>
+#include <score/model/EntitySerialization.hpp>
+#include <score/model/Skin.hpp>
 #include <score/plugins/FactorySetup.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
+#include <score/plugins/panel/PanelDelegate.hpp>
+#include <score/plugins/panel/PanelDelegateFactory.hpp>
+#include <score/widgets/MarginLess.hpp>
+
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+
+#include <QGraphicsScene>
+#include <QGraphicsView>
+#include <QHBoxLayout>
 
 #include <Nodal/CommandFactory.hpp>
 #include <Nodal/Executor.hpp>
 #include <Nodal/Layer.hpp>
 #include <Nodal/LocalTree.hpp>
 #include <Nodal/Process.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <score/plugins/panel/PanelDelegate.hpp>
-#include <score/plugins/panel/PanelDelegateFactory.hpp>
-#include <score/widgets/MarginLess.hpp>
 #include <score_addon_nodal_commands_files.hpp>
-
-#include <Process/Style/ScenarioStyle.hpp>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
-#include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
-#include <score/graphics/RectItem.hpp>
-#include <score/model/Skin.hpp>
-#include <Process/DocumentPlugin.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-
-#include <score/model/EntitySerialization.hpp>
-#include <QGraphicsView>
-#include <QGraphicsScene>
-#include <QHBoxLayout>
 /*
 namespace Nodal
 {
@@ -67,13 +68,14 @@ public:
     setScene(&m_scene);
 
 
-    auto& cables = safe_cast<Scenario::ScenarioDocumentModel&>(ctx.document.model().modelDelegate()).cables;
+    auto& cables =
+safe_cast<Scenario::ScenarioDocumentModel&>(ctx.document.model().modelDelegate()).cables;
     cables.mutable_added.connect<&Panel::on_cableAdded>(*this);
     cables.removing.connect<&Panel::on_cableRemoving>(*this);
 
-    auto focus = reinterpret_cast<const score::FocusManager*const *>(&ctx.focus);
-    connect(*focus, &score::FocusManager::changed,
-            this, &Panel::on_focusChanged);
+    auto focus = reinterpret_cast<const score::FocusManager*const
+*>(&ctx.focus); connect(*focus, &score::FocusManager::changed, this,
+&Panel::on_focusChanged);
   }
 
   void on_focusChanged()
@@ -182,24 +184,19 @@ class PanelDelegateFactory final : public score::PanelDelegateFactory
 }
 
 */
-score_addon_nodal::score_addon_nodal()
-{
-}
+score_addon_nodal::score_addon_nodal() { }
 
-score_addon_nodal::~score_addon_nodal()
-{
-}
+score_addon_nodal::~score_addon_nodal() { }
 
-std::vector<std::unique_ptr<score::InterfaceBase>>
-score_addon_nodal::factories(
-    const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
+std::vector<std::unique_ptr<score::InterfaceBase>> score_addon_nodal::factories(
+    const score::ApplicationContext& ctx,
+    const score::InterfaceKey& key) const
 {
   return instantiate_factories<
       score::ApplicationContext,
       FW<Process::ProcessModelFactory, Nodal::ProcessFactory>,
       FW<Process::LayerFactory, Nodal::LayerFactory>,
-      FW<Execution::ProcessComponentFactory,
-         Nodal::ProcessExecutorComponentFactory>,
+      FW<Execution::ProcessComponentFactory, Nodal::ProcessExecutorComponentFactory>,
       FW<score::ObjectRemover, Nodal::NodeRemover>
       //, FW<score::PanelDelegateFactory, Nodal::PanelDelegateFactory>
       //, FW<LocalTree::ProcessComponentFactory,
@@ -207,8 +204,7 @@ score_addon_nodal::factories(
       >(ctx, key);
 }
 
-std::pair<const CommandGroupKey, CommandGeneratorMap>
-score_addon_nodal::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap> score_addon_nodal::make_commands()
 {
   using namespace Nodal;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{

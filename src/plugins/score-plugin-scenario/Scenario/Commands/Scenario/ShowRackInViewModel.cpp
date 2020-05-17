@@ -8,13 +8,11 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
-
 namespace Scenario
 {
 namespace Command
 {
-ShowRack::ShowRack(const IntervalModel& vm)
-    : m_intervalViewPath{vm}, m_old{vm.smallViewVisible()}
+ShowRack::ShowRack(const IntervalModel& vm) : m_intervalViewPath{vm}, m_old{vm.smallViewVisible()}
 {
 }
 

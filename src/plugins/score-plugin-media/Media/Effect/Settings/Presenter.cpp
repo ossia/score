@@ -30,9 +30,9 @@ QString Presenter::settingsName()
 
 QIcon Presenter::settingsIcon()
 {
-  return makeIcons(QStringLiteral(":/icons/settings_effect_on.png")
-                   , QStringLiteral(":/icons/settings_effect_off.png")
-                   , QStringLiteral(":/icons/settings_effect_off.png"));
-
+  return makeIcons(
+      QStringLiteral(":/icons/settings_effect_on.png"),
+      QStringLiteral(":/icons/settings_effect_off.png"),
+      QStringLiteral(":/icons/settings_effect_off.png"));
 }
 }

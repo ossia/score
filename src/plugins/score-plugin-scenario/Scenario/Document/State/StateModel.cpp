@@ -51,26 +51,14 @@ StateModel::~StateModel()
 
 void StateModel::init()
 {
-  con(*m_messageItemModel,
-      &QAbstractItemModel::modelReset,
-      this,
-      &StateModel::statesUpdated_slt);
-  con(*m_messageItemModel,
-      &QAbstractItemModel::dataChanged,
-      this,
-      &StateModel::statesUpdated_slt);
+  con(*m_messageItemModel, &QAbstractItemModel::modelReset, this, &StateModel::statesUpdated_slt);
+  con(*m_messageItemModel, &QAbstractItemModel::dataChanged, this, &StateModel::statesUpdated_slt);
   con(*m_messageItemModel,
       &QAbstractItemModel::rowsInserted,
       this,
       &StateModel::statesUpdated_slt);
-  con(*m_messageItemModel,
-      &QAbstractItemModel::rowsMoved,
-      this,
-      &StateModel::statesUpdated_slt);
-  con(*m_messageItemModel,
-      &QAbstractItemModel::rowsRemoved,
-      this,
-      &StateModel::statesUpdated_slt);
+  con(*m_messageItemModel, &QAbstractItemModel::rowsMoved, this, &StateModel::statesUpdated_slt);
+  con(*m_messageItemModel, &QAbstractItemModel::rowsRemoved, this, &StateModel::statesUpdated_slt);
 }
 
 double StateModel::heightPercentage() const
@@ -98,7 +86,7 @@ const Id<EventModel>& StateModel::eventId() const
 
 void StateModel::setEventId(const Id<EventModel>& id)
 {
-  if(id != m_eventId)
+  if (id != m_eventId)
   {
     auto old = m_eventId;
     m_eventId = id;
@@ -145,5 +133,5 @@ void StateModel::setStatus(ExecutionStatus status)
   statusChanged(status);
 }
 
-ProcessStateWrapper::~ProcessStateWrapper() {}
+ProcessStateWrapper::~ProcessStateWrapper() { }
 }

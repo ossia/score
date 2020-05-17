@@ -16,8 +16,7 @@ template <
     typename LayerView_T,
     typename CurveColors_T,
     typename HeaderDelegate_T>
-class CurveLayerFactory_T final : public Process::LayerFactory,
-                                  public StyleInterface
+class CurveLayerFactory_T final : public Process::LayerFactory, public StyleInterface
 {
 public:
   virtual ~CurveLayerFactory_T() = default;
@@ -36,11 +35,12 @@ public:
       const Process::Context& context,
       QObject* parent) const final override
   {
-    return new LayerPresenter_T{m_colors.style(),
-                                safe_cast<const Model_T&>(lm),
-                                safe_cast<LayerView_T*>(v),
-                                context,
-                                parent};
+    return new LayerPresenter_T{
+        m_colors.style(),
+        safe_cast<const Model_T&>(lm),
+        safe_cast<LayerView_T*>(v),
+        context,
+        parent};
   }
 
   UuidKey<Process::ProcessModel> concreteKey() const noexcept override
@@ -55,14 +55,13 @@ public:
 
   const Curve::Style& style() const override { return m_colors.style(); }
 
-  Process::HeaderDelegate*
-  makeHeaderDelegate(
+  Process::HeaderDelegate* makeHeaderDelegate(
       const Process::ProcessModel& model,
       const Process::Context& ctx,
       const Process::LayerPresenter* pres) const override
   {
     const LayerPresenter_T* p{};
-    if(pres)
+    if (pres)
       p = safe_cast<const LayerPresenter_T*>(pres);
     return new HeaderDelegate_T{model, ctx, p};
   }

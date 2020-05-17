@@ -2,9 +2,10 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "UndoPanelDelegate.hpp"
 
+#include <score/widgets/MarginLess.hpp>
+
 #include <core/document/Document.hpp>
 #include <core/undo/Panel/Widgets/UndoListWidget.hpp>
-#include <score/widgets/MarginLess.hpp>
 
 #include <QVBoxLayout>
 
@@ -17,7 +18,7 @@ UndoPanelDelegate::UndoPanelDelegate(const GUIApplicationContext& ctx)
   m_widget->setObjectName("HistoryExplorer");
 }
 
-UndoPanelDelegate::~UndoPanelDelegate() {}
+UndoPanelDelegate::~UndoPanelDelegate() { }
 
 QWidget* UndoPanelDelegate::widget()
 {

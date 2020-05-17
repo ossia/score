@@ -67,8 +67,7 @@ Device::AddressDialog* MIDIProtocolFactory::makeEditAddressDialog(
   return nullptr;
 }
 
-QVariant MIDIProtocolFactory::makeProtocolSpecificSettings(
-    const VisitorVariant& visitor) const
+QVariant MIDIProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
 {
   return makeProtocolSpecificSettings_T<MIDISpecificSettings>(visitor);
 }

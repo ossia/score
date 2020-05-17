@@ -12,8 +12,7 @@
 W_OBJECT_IMPL(Scenario::EventShortCut)
 namespace Scenario
 {
-EventShortCut::EventShortCut(QString eventId, QWidget* parent)
-    : QWidget{parent}
+EventShortCut::EventShortCut(QString eventId, QWidget* parent) : QWidget{parent}
 {
   auto groupLay = new score::MarginLess<QHBoxLayout>{this};
 

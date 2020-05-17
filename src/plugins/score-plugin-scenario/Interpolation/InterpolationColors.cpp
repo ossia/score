@@ -6,8 +6,7 @@
 
 namespace Interpolation
 {
-Colors::Colors(const score::Skin& s)
-    : m_style{s.Tender3, s.Smooth3, s.Tender3, s.Smooth3, s.Gray}
+Colors::Colors(const score::Skin& s) : m_style{s.Tender3, s.Smooth3, s.Tender3, s.Smooth3, s.Gray}
 {
   m_style.init(s);
 }

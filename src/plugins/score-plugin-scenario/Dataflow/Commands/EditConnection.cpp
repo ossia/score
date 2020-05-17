@@ -55,9 +55,7 @@ void CreateCable::deserializeImpl(DataStreamOutput& s)
   s >> m_model >> m_cable >> m_dat;
 }
 
-UpdateCable::UpdateCable(
-    const Process::Cable& cable,
-    Process::CableType newDat)
+UpdateCable::UpdateCable(const Process::Cable& cable, Process::CableType newDat)
     : m_model{cable}, m_new{newDat}
 {
   m_old = cable.type();
@@ -83,9 +81,7 @@ void UpdateCable::deserializeImpl(DataStreamOutput& s)
   s >> m_model >> m_old >> m_new;
 }
 
-RemoveCable::RemoveCable(
-    const Scenario::ScenarioDocumentModel& dp,
-    const Process::Cable& c)
+RemoveCable::RemoveCable(const Scenario::ScenarioDocumentModel& dp, const Process::Cable& c)
     : m_model{dp}, m_cable{c.id()}
 {
   m_data.type = c.type();

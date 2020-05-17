@@ -1,8 +1,9 @@
 #include <Media/Sound/SoundModel.hpp>
+
 #include <QRegularExpression>
 
-#include <wobjectimpl.h>
 #include <Audio/Settings/Model.hpp>
+#include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::Sound::ProcessModel)
 namespace Media
 {
@@ -12,21 +13,23 @@ optional<double> estimateTempo(const AudioFile& file)
   if (auto file = handle.target<AudioFile::mmap_ptr>())
   {
     const auto tempo = file->wav.acid().tempo;
-    if(tempo != 0.f) {
-     return tempo;
+    if (tempo != 0.f)
+    {
+      return tempo;
     }
   }
-  else if(auto file = handle.target<AudioFile::libav_ptr>())
+  else if (auto file = handle.target<AudioFile::libav_ptr>())
   {
-    if((*file)->tempo != 0.f) {
-     return (*file)->tempo;
+    if ((*file)->tempo != 0.f)
+    {
+      return (*file)->tempo;
     }
   }
 
   auto path = file.absoluteFileName();
   static const QRegularExpression e{"([0-9]+) ?(bpm|BPM|Bpm)"};
   const auto res = e.match(path);
-  if(res.hasMatch())
+  if (res.hasMatch())
   {
     return res.captured(1).toInt();
   }
@@ -41,10 +44,7 @@ ProcessModel::ProcessModel(
     const QString& data,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : Process::ProcessModel{duration,
-                            id,
-                            Metadata<ObjectKey_k, ProcessModel>::get(),
-                            parent}
+    : Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , outlet{Process::make_audio_outlet(Id<Process::Port>(0), this)}
     , m_file{std::make_shared<AudioFile>()}
 {
@@ -54,8 +54,7 @@ ProcessModel::ProcessModel(
   setFile(data);
 }
 
-ProcessModel::~ProcessModel() {}
-
+ProcessModel::~ProcessModel() { }
 
 void ProcessModel::setFile(const QString& file)
 {
@@ -67,7 +66,7 @@ void ProcessModel::setFile(const QString& file)
 
     m_file->on_mediaChanged.connect<&ProcessModel::on_mediaChanged>(*this);
 
-    if(auto tempo = estimateTempo(*m_file))
+    if (auto tempo = estimateTempo(*m_file))
     {
       setNativeTempo(*tempo);
       setStretchMode(ossia::audio_stretch_mode::RubberBandPercussive);
@@ -93,8 +92,7 @@ const std::shared_ptr<AudioFile>& ProcessModel::file() const
 
 QString ProcessModel::prettyName() const noexcept
 {
-  return m_file->empty() ? Process::ProcessModel::prettyName()
-                         : m_file->fileName();
+  return m_file->empty() ? Process::ProcessModel::prettyName() : m_file->fileName();
 }
 
 int ProcessModel::upmixChannels() const noexcept
@@ -137,7 +135,7 @@ void ProcessModel::setStartChannel(int startChannel)
 
 void ProcessModel::setNativeTempo(double t)
 {
-  if(t != m_nativeTempo)
+  if (t != m_nativeTempo)
   {
     m_nativeTempo = t;
     nativeTempoChanged(t);
@@ -146,7 +144,7 @@ void ProcessModel::setNativeTempo(double t)
 
 void ProcessModel::setStretchMode(ossia::audio_stretch_mode t)
 {
-  if(t != m_mode)
+  if (t != m_mode)
   {
     m_mode = t;
     stretchModeChanged(t);
@@ -214,7 +212,6 @@ void JSONWriter::write(Media::Sound::ProcessModel& proc)
   proc.m_mode = (ossia::audio_stretch_mode)obj["Mode"].toInt();
   proc.m_nativeTempo = obj["Tempo"].toDouble();
 
-  if(int off = obj["StartOffset"].toInt(); off != 0)
+  if (int off = obj["StartOffset"].toInt(); off != 0)
     proc.m_startOffset = TimeVal::fromMsecs(1000. * off / proc.file()->sampleRate());
-
 }

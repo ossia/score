@@ -2,9 +2,11 @@
 
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Process/TimeValue.hpp>
+
 #include <score/widgets/MarginLess.hpp>
 
 #include <QHBoxLayout>
+
 #include <vector>
 
 namespace Inspector

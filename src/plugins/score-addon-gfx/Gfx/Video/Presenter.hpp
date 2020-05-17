@@ -17,11 +17,7 @@ class View;
 class Presenter final : public Process::LayerPresenter
 {
 public:
-  explicit Presenter(
-      const Model& model,
-      View* view,
-      const Process::Context& ctx,
-      QObject* parent);
+  explicit Presenter(const Model& model, View* view, const Process::Context& ctx, QObject* parent);
 
   void setWidth(qreal width, qreal defaultWidth) override;
   void setHeight(qreal height) override;
@@ -32,7 +28,6 @@ public:
   void on_zoomRatioChanged(ZoomRatio) override;
 
   void parentGeometryChanged() override;
-
 
 private:
   const Model& m_model;

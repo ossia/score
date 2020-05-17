@@ -1,14 +1,18 @@
 #pragma once
-#include <QGraphicsItem>
 #include <Process/ZoomHelper.hpp>
+
 #include <score/model/Identifier.hpp>
+
+#include <QGraphicsItem>
+
 #include <Effect/EffectPainting.hpp>
 namespace score
 {
 struct DocumentContext;
 class SimpleTextItem;
 }
-namespace Dataflow {
+namespace Dataflow
+{
 class PortItem;
 }
 namespace Process
@@ -34,6 +38,7 @@ public:
   qreal width() const noexcept { return m_contentSize.width(); }
 
   const Process::ProcessModel& model() const noexcept { return m_model; }
+
 private:
   void updateSize();
   void setSize(QSizeF sz);
@@ -54,7 +59,7 @@ private:
 
   const Process::ProcessModel& m_model;
 
-  //Body
+  // Body
   QGraphicsItem* m_fx{};
   Process::LayerPresenter* m_presenter{};
 

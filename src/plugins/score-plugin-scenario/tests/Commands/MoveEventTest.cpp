@@ -6,7 +6,6 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
-
 using namespace score;
 using namespace Scenario::Command;
 
@@ -17,8 +16,8 @@ public:
 private:
   void MoveCommandTest()
   {
-    Scenario::ProcessModel* scenar = new ScenarioModel(
-        std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
+    Scenario::ProcessModel* scenar
+        = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
     // 1. Create a new event (the first one cannot move since it does not have
     // predecessors ?)
 

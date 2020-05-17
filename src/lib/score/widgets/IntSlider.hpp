@@ -7,30 +7,31 @@
 
 namespace score
 {
-class SCORE_LIB_BASE_EXPORT IntSlider: public QWidget
+class SCORE_LIB_BASE_EXPORT IntSlider : public QWidget
 {
-    W_OBJECT(IntSlider)
+  W_OBJECT(IntSlider)
 public:
   IntSlider(Qt::Orientation ort, QWidget* widg);
   IntSlider(QWidget* widg);
   ~IntSlider() override;
 
   void setValue(int val);
-  void setMinimum(int min) {m_min = min;}
-  void setMaximum(int max) {m_max = max;}
-  void setRange(int min, double max){m_min = min; m_max = max;}
-  void setOrientation(Qt::Orientation ort) {m_orientation = ort;}
+  void setMinimum(int min) { m_min = min; }
+  void setMaximum(int max) { m_max = max; }
+  void setRange(int min, double max)
+  {
+    m_min = min;
+    m_max = max;
+  }
+  void setOrientation(Qt::Orientation ort) { m_orientation = ort; }
 
-  int value() const {return m_value;}
-  int minimum() const {return m_min;}
-  int maximum() const {return m_max;}
+  int value() const { return m_value; }
+  int minimum() const { return m_min; }
+  int maximum() const { return m_max; }
 
-  void valueChanged(int arg_1)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1)
-  void sliderMoved(int arg_1)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved, arg_1)
-  void sliderReleased()
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
+  void valueChanged(int arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1)
+  void sliderMoved(int arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved, arg_1)
+  void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 
   void mousePressEvent(QMouseEvent* event) override;
   void mouseMoveEvent(QMouseEvent* event) override;

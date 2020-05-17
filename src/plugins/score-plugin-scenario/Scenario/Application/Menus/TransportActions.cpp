@@ -5,8 +5,8 @@
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-
 #include <Scenario/Inspector/Interval/SpeedSlider.hpp>
+
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/Menu.hpp>
 #include <score/actions/MenuManager.hpp>
@@ -15,13 +15,13 @@
 #include <core/application/ApplicationSettings.hpp>
 
 #include <QAction>
+#include <QDebug>
+#include <QLabel>
+#include <QMainWindow>
+#include <QMenu>
 #include <QString>
 #include <QToolBar>
-#include <QMainWindow>
-#include <QDebug>
-#include <QMenu>
 #include <qnamespace.h>
-#include <QLabel>
 class QMenu;
 
 namespace Scenario
@@ -107,10 +107,8 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
 
     setIcons(
         m_play,
-        b ? QStringLiteral(":/icons/play_on.png")
-          : QStringLiteral(":/icons/play_on.png"),
-        b ? QStringLiteral(":/icons/play_off.png")
-          : QStringLiteral(":/icons/play_off.png"),
+        b ? QStringLiteral(":/icons/play_on.png") : QStringLiteral(":/icons/play_on.png"),
+        b ? QStringLiteral(":/icons/play_off.png") : QStringLiteral(":/icons/play_off.png"),
         b ? QStringLiteral(":/icons/play_disabled.png")
           : QStringLiteral(":/icons/play_disabled.png"));
 
@@ -199,14 +197,12 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
   }
 }
 
-TransportActions::~TransportActions()
-{
-}
+TransportActions::~TransportActions() { }
 
 void TransportActions::makeGUIElements(score::GUIElements& ref)
 {
-  auto& cond = m_context.actions.condition<
-      score::EnableWhenDocumentIs<Scenario::ScenarioDocumentModel>>();
+  auto& cond = m_context.actions
+                   .condition<score::EnableWhenDocumentIs<Scenario::ScenarioDocumentModel>>();
 
   // Put m_play m_stop and m_stopAndInit only for now in their own toolbar,
   // plus everything in the play menu
@@ -231,10 +227,7 @@ void TransportActions::makeGUIElements(score::GUIElements& ref)
     qDebug() << bar->children();
 
     ref.toolbars.emplace_back(
-        bar,
-        StringKey<score::Toolbar>("Transport"),
-        Qt::BottomToolBarArea,
-        200);
+        bar, StringKey<score::Toolbar>("Transport"), Qt::BottomToolBarArea, 200);
   }
 
   {

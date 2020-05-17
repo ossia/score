@@ -23,17 +23,16 @@
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
 #include <score/tools/std/Optional.hpp>
 
-
 namespace Scenario
 {
 class EditionSettings;
 
-Scenario::Point
-ScenarioDisplayedElementsToolPalette::ScenePointToScenarioPoint(QPointF point)
+Scenario::Point ScenarioDisplayedElementsToolPalette::ScenePointToScenarioPoint(QPointF point)
 {
-  return {TimeVal::fromPixels(point.x(), m_presenter.zoomRatio())
-              + m_presenter.presenters().startTimeSync().date(),
-          0};
+  return {
+      TimeVal::fromPixels(point.x(), m_presenter.zoomRatio())
+          + m_presenter.presenters().startTimeSync().date(),
+      0};
 }
 
 ScenarioDisplayedElementsToolPalette::ScenarioDisplayedElementsToolPalette(
@@ -42,14 +41,13 @@ ScenarioDisplayedElementsToolPalette::ScenarioDisplayedElementsToolPalette(
     QGraphicsItem* view)
     : GraphicsSceneToolPalette{*view->scene()}
     , m_model{model}
-    , m_scenarioModel{*safe_cast<Scenario::ProcessModel*>(
-          m_model.interval().parent())}
+    , m_scenarioModel{*safe_cast<Scenario::ProcessModel*>(m_model.interval().parent())}
     , m_presenter{pres}
     , m_context{pres.context(), m_presenter}
-    , m_magnetic{(Process::MagnetismAdjuster&)m_context.context.app.interfaces<Process::MagnetismAdjuster>()}
+    , m_magnetic{(Process::MagnetismAdjuster&)
+                     m_context.context.app.interfaces<Process::MagnetismAdjuster>()}
     , m_view{*view}
-    , m_editionSettings{m_context.context.app
-                            .guiApplicationPlugin<ScenarioApplicationPlugin>()
+    , m_editionSettings{m_context.context.app.guiApplicationPlugin<ScenarioApplicationPlugin>()
                             .editionSettings()}
     , m_state{*this}
     , m_inputDisp{m_presenter, *this, m_context}
@@ -61,14 +59,12 @@ QGraphicsItem& ScenarioDisplayedElementsToolPalette::view() const
   return m_view;
 }
 
-const DisplayedElementsPresenter&
-ScenarioDisplayedElementsToolPalette::presenter() const
+const DisplayedElementsPresenter& ScenarioDisplayedElementsToolPalette::presenter() const
 {
   return m_presenter.presenters();
 }
 
-const Scenario::ProcessModel&
-ScenarioDisplayedElementsToolPalette::model() const
+const Scenario::ProcessModel& ScenarioDisplayedElementsToolPalette::model() const
 {
   return m_scenarioModel;
 }
@@ -78,35 +74,31 @@ const BaseElementContext& ScenarioDisplayedElementsToolPalette::context() const
   return m_context;
 }
 
-const Scenario::EditionSettings&
-ScenarioDisplayedElementsToolPalette::editionSettings() const
+const Scenario::EditionSettings& ScenarioDisplayedElementsToolPalette::editionSettings() const
 {
   return m_editionSettings;
 }
 
-void ScenarioDisplayedElementsToolPalette::activate(Scenario::Tool) {}
+void ScenarioDisplayedElementsToolPalette::activate(Scenario::Tool) { }
 
-void ScenarioDisplayedElementsToolPalette::desactivate(Scenario::Tool) {}
+void ScenarioDisplayedElementsToolPalette::desactivate(Scenario::Tool) { }
 
 void ScenarioDisplayedElementsToolPalette::on_pressed(QPointF point)
 {
   scenePoint = point;
-  m_state.on_pressed(
-      point, ScenePointToScenarioPoint(m_view.mapFromScene(point)));
+  m_state.on_pressed(point, ScenePointToScenarioPoint(m_view.mapFromScene(point)));
 }
 
 void ScenarioDisplayedElementsToolPalette::on_moved(QPointF point)
 {
   scenePoint = point;
-  m_state.on_moved(
-      point, ScenePointToScenarioPoint(m_view.mapFromScene(point)));
+  m_state.on_moved(point, ScenePointToScenarioPoint(m_view.mapFromScene(point)));
 }
 
 void ScenarioDisplayedElementsToolPalette::on_released(QPointF point)
 {
   scenePoint = point;
-  m_state.on_released(
-      point, ScenePointToScenarioPoint(m_view.mapFromScene(point)));
+  m_state.on_released(point, ScenePointToScenarioPoint(m_view.mapFromScene(point)));
 }
 
 void ScenarioDisplayedElementsToolPalette::on_cancel()

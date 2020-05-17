@@ -37,8 +37,7 @@ auto deserialize_interface(
     if (auto concrete_factory = factories.get(k))
     {
       // Create the object
-      auto obj = concrete_factory->load(
-          sub.toVariant(), std::forward<Args>(args)...);
+      auto obj = concrete_factory->load(sub.toVariant(), std::forward<Args>(args)...);
 
       SCORE_DEBUG_CHECK_DELIMITER2(sub);
 
@@ -76,8 +75,7 @@ auto deserialize_interface(
     if (auto concrete_factory = factories.get(k))
     {
       // Create the object
-      auto obj = concrete_factory->load(
-          sub.toVariant(), std::forward<Args>(args)...);
+      auto obj = concrete_factory->load(sub.toVariant(), std::forward<Args>(args)...);
 
       SCORE_DEBUG_CHECK_DELIMITER2(sub);
 
@@ -110,8 +108,7 @@ auto deserialize_interface(
     if (auto concrete_factory = factories.get(k))
     {
       // Create the object
-      return concrete_factory->load(
-          des.toVariant(), std::forward<Args>(args)...);
+      return concrete_factory->load(des.toVariant(), std::forward<Args>(args)...);
     }
   }
   catch (...)
@@ -140,8 +137,7 @@ auto deserialize_interface(
     if (auto concrete_factory = factories.get(k))
     {
       // Create the object
-      return concrete_factory->load(
-          des.toVariant(), std::forward<Args>(args)...);
+      return concrete_factory->load(des.toVariant(), std::forward<Args>(args)...);
     }
   }
   catch (...)

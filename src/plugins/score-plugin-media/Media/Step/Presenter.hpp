@@ -5,10 +5,11 @@
 #include <Process/LayerPresenter.hpp>
 
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
-#include <Audio/Settings/Model.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <ossia/detail/math.hpp>
-#include <score/tools/Bind.hpp>
+
+#include <Audio/Settings/Model.hpp>
 namespace Media
 {
 namespace Step
@@ -29,9 +30,7 @@ public:
     putToFront();
     auto& m = static_cast<const Step::Model&>(model);
 
-    connect(view, &View::pressed, this, [&] {
-      m_context.context.focusDispatcher.focus(this);
-    });
+    connect(view, &View::pressed, this, [&] { m_context.context.focusDispatcher.focus(this); });
 
     connect(view, &View::change, this, [&](std::size_t num, float v) {
       auto vec = m.steps();
@@ -47,18 +46,14 @@ public:
 
     connect(view, &View::released, this, [&] { m_disp.commit(); });
 
-    connect(
-        m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
+    connect(m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
 
     con(m, &Step::Model::stepsChanged, this, [&] { m_view->update(); });
     con(m, &Step::Model::stepCountChanged, this, [&] { m_view->update(); });
-    con(m, &Step::Model::stepDurationChanged, this, [&] {
-      on_zoomRatioChanged(m_ratio);
-    });
+    con(m, &Step::Model::stepDurationChanged, this, [&] { on_zoomRatioChanged(m_ratio); });
 
     auto& audio_settings = context().context.app.settings<Audio::Settings::Model>();
-    con(audio_settings, &Audio::Settings::Model::RateChanged,
-        this, [&] {
+    con(audio_settings, &Audio::Settings::Model::RateChanged, this, [&] {
       on_zoomRatioChanged(m_ratio);
     });
 
@@ -81,8 +76,7 @@ public:
     m_view->setBarWidth(v);
   }
 
-  void parentGeometryChanged() override {}
-
+  void parentGeometryChanged() override { }
 
 private:
   View* m_view{};

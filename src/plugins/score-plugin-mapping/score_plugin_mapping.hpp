@@ -7,11 +7,9 @@
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
-
-#include <verdigris>
-
 #include <utility>
 #include <vector>
+#include <verdigris>
 
 class score_plugin_mapping : public score::Plugin_QtInterface,
                              public score::FactoryInterface_QtInterface,
@@ -30,6 +28,5 @@ private:
       const score::InterfaceKey& factoryName) const override;
 
   // CommandFactory_QtInterface interface
-  std::pair<const CommandGroupKey, CommandGeneratorMap>
-  make_commands() override;
+  std::pair<const CommandGroupKey, CommandGeneratorMap> make_commands() override;
 };

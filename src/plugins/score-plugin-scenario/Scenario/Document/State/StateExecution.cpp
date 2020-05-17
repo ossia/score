@@ -10,6 +10,7 @@
 #include <ossia/dataflow/nodes/state.hpp>
 #include <ossia/detail/pod_vector.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
+
 #include <QDebug>
 
 namespace Execution
@@ -17,20 +18,22 @@ namespace Execution
 namespace
 {
 
-std::vector<ossia::control_message> toOssiaControls(const SetupContext& ctx, const Scenario::StateModel& state)
+std::vector<ossia::control_message>
+toOssiaControls(const SetupContext& ctx, const Scenario::StateModel& state)
 {
   const auto& msgs = state.controlMessages().messages();
   std::vector<ossia::control_message> ossia_msgs;
   ossia_msgs.reserve(msgs.size());
-  for(const Process::ControlMessage& msg : msgs)
+  for (const Process::ControlMessage& msg : msgs)
   {
     auto port = msg.port.try_find(ctx.context.doc);
-    if(port)
+    if (port)
     {
       auto it = ctx.inlets.find(port);
-      if(it != ctx.inlets.end()) {
+      if (it != ctx.inlets.end())
+      {
         ossia::inlet& inlet = *it->second.second;
-        if(ossia::value_port* port = inlet.target<ossia::value_port>())
+        if (ossia::value_port* port = inlet.target<ossia::value_port>())
           ossia_msgs.push_back(ossia::control_message{port, msg.value});
       }
     }
@@ -48,30 +51,28 @@ StateComponentBase::StateComponentBase(
     , m_node{std::make_shared<ossia::nodes::state_writer>(
           Engine::score_to_ossia::state(element, ctx))}
 {
-  connect(
-      &element, &Scenario::StateModel::sig_statesUpdated, this, [this, &ctx] {
-        in_exec([n = m_node,
-                 x = Engine::score_to_ossia::state(*m_model, ctx)]() mutable {
-          n->data = std::move(x);
-        });
-      });
+  connect(&element, &Scenario::StateModel::sig_statesUpdated, this, [this, &ctx] {
+    in_exec([n = m_node, x = Engine::score_to_ossia::state(*m_model, ctx)]() mutable {
+      n->data = std::move(x);
+    });
+  });
 
   connect(
-        &element, &Scenario::StateModel::sig_controlMessagesUpdated,
-        this, &StateComponentBase::updateControls);
-  // Note : they aren't updated in the constructor, but in DocumentPlugin::reload
-  // as the ports to which we're talking may not exist yet at this time
+      &element,
+      &Scenario::StateModel::sig_controlMessagesUpdated,
+      this,
+      &StateComponentBase::updateControls);
+  // Note : they aren't updated in the constructor, but in
+  // DocumentPlugin::reload as the ports to which we're talking may not exist
+  // yet at this time
 }
 
 void StateComponentBase::updateControls()
 {
   auto ossia_msgs = toOssiaControls(this->system().setup, state());
-  if(!ossia_msgs.empty())
+  if (!ossia_msgs.empty())
   {
-    in_exec([n = m_node,
-             x = std::move(ossia_msgs)] () mutable {
-      n->controls = std::move(x);
-    });
+    in_exec([n = m_node, x = std::move(ossia_msgs)]() mutable { n->controls = std::move(x); });
   }
 }
 
@@ -90,7 +91,6 @@ void StateComponentBase::onDelete() const
     });
   }
 }
-
 
 ProcessComponent* StateComponentBase::make(
     const Id<score::Component>& id,
@@ -112,10 +112,7 @@ ProcessComponent* StateComponentBase::make(
       auto cst = m_ev;
 
       QObject::connect(
-          &proc.selection,
-          &Selectable::changed,
-          plug.get(),
-          [this, n = oproc->node](bool ok) {
+          &proc.selection, &Selectable::changed, plug.get(), [this, n = oproc->node](bool ok) {
             in_exec([=] {
               if (n)
                 n->set_logging(ok);
@@ -149,17 +146,14 @@ ProcessComponent* StateComponentBase::make(
   return nullptr;
 }
 
-std::function<void()> StateComponentBase::removing(
-    const Process::ProcessModel& e,
-    ProcessComponent& c)
+std::function<void()>
+StateComponentBase::removing(const Process::ProcessModel& e, ProcessComponent& c)
 {
   auto it = m_processes.find(e.id());
   if (it != m_processes.end())
   {
     auto c_ptr = c.shared_from_this();
-    in_exec([cstr = m_ev, c_ptr] {
-      cstr->remove_time_process(c_ptr->OSSIAProcessPtr().get());
-    });
+    in_exec([cstr = m_ev, c_ptr] { cstr->remove_time_process(c_ptr->OSSIAProcessPtr().get()); });
     c.cleanup();
 
     return [=] { m_processes.erase(it); };
@@ -168,7 +162,7 @@ std::function<void()> StateComponentBase::removing(
   return {};
 }
 
-StateComponent::~StateComponent() {}
+StateComponent::~StateComponent() { }
 
 void StateComponent::onSetup(const std::shared_ptr<ossia::time_event>& root)
 {

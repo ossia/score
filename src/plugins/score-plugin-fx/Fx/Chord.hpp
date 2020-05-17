@@ -17,10 +17,8 @@ struct Node
     static const constexpr auto author = "ossia score";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::Mapping;
-    static const constexpr auto description
-        = "Generate a chord from a single note";
-    static const uuid_constexpr auto uuid
-        = make_uuid("F0904279-EA26-48DB-B0DF-F68FE3091DA1");
+    static const constexpr auto description = "Generate a chord from a single note";
+    static const uuid_constexpr auto uuid = make_uuid("F0904279-EA26-48DB-B0DF-F68FE3091DA1");
 
     static const constexpr midi_in midi_ins[]{"in"};
     static const constexpr midi_out midi_outs[]{"out"};
@@ -29,13 +27,7 @@ struct Node
         Control::make_enum(
             "Chord",
             0U,
-            ossia::make_array(
-                "Major",
-                "Minor",
-                "Sus2",
-                "Sus4",
-                "Dim",
-                "Aug")));
+            ossia::make_array("Major", "Minor", "Sus2", "Sus4", "Dim", "Aug")));
   };
 
   struct State
@@ -70,11 +62,8 @@ struct Node
   static const constexpr std::array<int, 5> aug{0, 3, 7, 9, 12};
 
   template <typename T>
-  static void startChord(
-      const T& chord,
-      const rtmidi::message& m,
-      const std::size_t num,
-      ossia::midi_port& op)
+  static void
+  startChord(const T& chord, const rtmidi::message& m, const std::size_t num, ossia::midi_port& op)
   {
     for (std::size_t i = 0; i < std::min(num, chord.size()); i++)
     {
@@ -82,19 +71,15 @@ struct Node
       if (new_note > 127)
         break;
 
-      auto non
-          = rtmidi::message::note_on(m.get_channel(), new_note, m.bytes[2]);
+      auto non = rtmidi::message::note_on(m.get_channel(), new_note, m.bytes[2]);
       non.timestamp = m.timestamp;
       op.messages.push_back(non);
     }
   }
 
   template <typename T>
-  static void stopChord(
-      const T& chord,
-      const rtmidi::message& m,
-      const std::size_t num,
-      ossia::midi_port& op)
+  static void
+  stopChord(const T& chord, const rtmidi::message& m, const std::size_t num, ossia::midi_port& op)
   {
     for (std::size_t i = 0; i < std::min(num, chord.size()); i++)
     {
@@ -102,8 +87,7 @@ struct Node
       if (new_note > 127)
         break;
 
-      auto noff
-          = rtmidi::message::note_off(m.get_channel(), new_note, m.bytes[2]);
+      auto noff = rtmidi::message::note_off(m.get_channel(), new_note, m.bytes[2]);
       noff.timestamp = m.timestamp;
       op.messages.push_back(noff);
     }
@@ -146,9 +130,7 @@ struct Node
       {
         auto cur = m.bytes[1];
         self.chords[cur].push_back({lastCh, lastNum});
-        dispatchChord(lastCh, m, lastNum, op, [](auto&&... args) {
-          startChord(args...);
-        });
+        dispatchChord(lastCh, m, lastNum, op, [](auto&&... args) { startChord(args...); });
       }
       else if (m.get_message_type() == rtmidi::message_type::NOTE_OFF)
       {
@@ -157,9 +139,8 @@ struct Node
         {
           for (const State::chord& chord : it->second)
           {
-            dispatchChord(chord.ch, m, chord.notes, op, [](auto&&... args) {
-              stopChord(args...);
-            });
+            dispatchChord(
+                chord.ch, m, chord.notes, op, [](auto&&... args) { stopChord(args...); });
           }
           const_cast<std::vector<State::chord>&>(it->second).clear();
         }

@@ -5,25 +5,20 @@
 #include <Process/LayerPresenter.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessList.hpp>
-#include <Magnetism/MagnetismAdjuster.hpp>
 
-#include <LocalTree/ProcessComponent.hpp>
 #include <score/plugins/FactorySetup.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
 
+#include <LocalTree/ProcessComponent.hpp>
+#include <Magnetism/MagnetismAdjuster.hpp>
 #include <score_lib_process.hpp>
 #include <score_lib_process_commands_files.hpp>
 namespace Process
 {
-DataflowManager::DataflowManager()
-{
-}
+DataflowManager::DataflowManager() { }
 
-DataflowManager::~DataflowManager()
-{
-
-}
+DataflowManager::~DataflowManager() { }
 }
 score_lib_process::score_lib_process()
 {
@@ -32,8 +27,7 @@ score_lib_process::score_lib_process()
 }
 score_lib_process::~score_lib_process() = default;
 
-std::vector<std::unique_ptr<score::InterfaceListBase>>
-score_lib_process::factoryFamilies()
+std::vector<std::unique_ptr<score::InterfaceListBase>> score_lib_process::factoryFamilies()
 {
   return make_ptr_vector<
       score::InterfaceListBase,
@@ -44,12 +38,10 @@ score_lib_process::factoryFamilies()
       Process::ProcessDropHandlerList,
       Process::MagnetismAdjuster,
       Execution::ExecutionActionList,
-      LocalTree::ProcessComponentFactoryList
-      >();
+      LocalTree::ProcessComponentFactoryList>();
 }
 
-std::pair<const CommandGroupKey, CommandGeneratorMap>
-score_lib_process::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap> score_lib_process::make_commands()
 {
   using namespace Process;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{

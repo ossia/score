@@ -23,24 +23,18 @@ class VSTEffectItem final : public score::EmptyRectItem
 {
   QGraphicsItem* rootItem{};
   std::vector<std::pair<VSTControlInlet*, score::EmptyRectItem*>> controlItems;
-public:
-   VSTEffectItem(
-      const VSTEffectModel& effect,
-      const Process::Context& doc,
-      QGraphicsItem* root);
 
-  void setupInlet(
-      const VSTEffectModel& fx,
-      VSTControlInlet& inlet,
-      const Process::Context& doc);
+public:
+  VSTEffectItem(const VSTEffectModel& effect, const Process::Context& doc, QGraphicsItem* root);
+
+  void setupInlet(const VSTEffectModel& fx, VSTControlInlet& inlet, const Process::Context& doc);
 
 private:
   void updateRect();
 };
 
-class VSTGraphicsSlider final
-    : public QObject
-    , public score::QGraphicsSliderBase<VSTGraphicsSlider>
+class VSTGraphicsSlider final : public QObject,
+                                public score::QGraphicsSliderBase<VSTGraphicsSlider>
 {
   W_OBJECT(VSTGraphicsSlider)
   Q_INTERFACES(QGraphicsItem)
@@ -77,10 +71,7 @@ private:
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 };
 
 struct VSTFloatSlider : ossia::safe_nodes::control_in
@@ -106,10 +97,7 @@ public:
   static ERect getRect(AEffect& e);
   static bool hasUI(AEffect& e);
 
-  VSTWindow(
-      const VSTEffectModel& e,
-      const score::DocumentContext& ctx,
-      QWidget* parent);
+  VSTWindow(const VSTEffectModel& e, const score::DocumentContext& ctx, QWidget* parent);
 
   ~VSTWindow() override;
   void resize(int w, int h);
@@ -130,8 +118,7 @@ private:
   const VSTEffectModel& m_model;
 };
 
-using LayerFactory
-    = Process::EffectLayerFactory_T<VSTEffectModel, VSTEffectItem, VSTWindow>;
+using LayerFactory = Process::EffectLayerFactory_T<VSTEffectModel, VSTEffectItem, VSTWindow>;
 
 }
 #endif

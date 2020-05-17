@@ -14,7 +14,6 @@ class SCORE_LIB_BASE_EXPORT FactoryList_QtInterface
 {
 public:
   virtual ~FactoryList_QtInterface();
-  virtual std::vector<std::unique_ptr<InterfaceListBase>> factoryFamilies()
-      = 0;
+  virtual std::vector<std::unique_ptr<InterfaceListBase>> factoryFamilies() = 0;
 };
 }

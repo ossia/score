@@ -8,8 +8,9 @@
 #ifdef __APPLE__
 #endif
 
-#include <score_lib_base_export.h>
 #include <score/widgets/MessageBox.hpp>
+
+#include <score_lib_base_export.h>
 
 /**
  * @brief C++ abstraction over fopen/fclose.
@@ -20,7 +21,7 @@
 class SCORE_LIB_BASE_EXPORT LogFile
 {
 public:
-  LogFile() : fd{fopen("score.log", "a")} {}
+  LogFile() : fd{fopen("score.log", "a")} { }
 
   FILE* desc() const { return fd; }
   ~LogFile() { fclose(fd); }
@@ -48,17 +49,10 @@ public:
   }
 
   ~SafeQApplication();
-  static void DebugOutput(
-      QtMsgType type,
-      const QMessageLogContext& context,
-      const QString& msg);
+  static void DebugOutput(QtMsgType type, const QMessageLogContext& context, const QString& msg);
 
 #if !defined(SCORE_DEBUG)
-  void inform(const QString& str)
-  {
-    score::information(
-        QApplication::activeWindow(), "", str);
-  }
+  void inform(const QString& str) { score::information(QApplication::activeWindow(), "", str); }
 
   bool notify(QObject* receiver, QEvent* event) override
   {
@@ -81,6 +75,5 @@ public:
 
   bool event(QEvent* ev) override;
 
-  void fileOpened(const QString& opened)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, fileOpened, opened)
+  void fileOpened(const QString& opened) E_SIGNAL(SCORE_LIB_BASE_EXPORT, fileOpened, opened)
 };

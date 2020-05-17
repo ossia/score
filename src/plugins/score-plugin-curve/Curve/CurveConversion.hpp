@@ -31,12 +31,7 @@ struct CurveTraits<double>
   static const constexpr auto fun = &Curve::SegmentModel::makeDoubleFunction;
 };
 
-template <
-    typename X_T,
-    typename Y_T,
-    typename XScaleFun,
-    typename YScaleFun,
-    typename Segments>
+template <typename X_T, typename Y_T, typename XScaleFun, typename YScaleFun, typename Segments>
 std::shared_ptr<ossia::curve<X_T, Y_T>> curve(
     XScaleFun scale_x,
     YScaleFun scale_y,
@@ -56,9 +51,7 @@ std::shared_ptr<ossia::curve<X_T, Y_T>> curve(
   {
     auto end = score_segment->end();
     curve->add_point(
-        (score_segment->*CurveTraits<Y_T>::fun)(),
-        scale_x(end.x()),
-        scale_y(end.y()));
+        (score_segment->*CurveTraits<Y_T>::fun)(), scale_x(end.x()), scale_y(end.y()));
   }
 
   if (tween)
@@ -71,9 +64,8 @@ std::shared_ptr<ossia::curve<X_T, Y_T>> curve(
 
 // Simpler curve, between [0; 1]
 template <typename Segments>
-ossia::curve<double, float> floatCurve(
-    const Segments& segments,
-    const optional<ossia::destination>& tween)
+ossia::curve<double, float>
+floatCurve(const Segments& segments, const optional<ossia::destination>& tween)
 {
   ossia::curve<double, float> curve;
 
@@ -87,10 +79,7 @@ ossia::curve<double, float> floatCurve(
   for (const auto& score_segment : segments)
   {
     auto end = score_segment->end();
-    curve.add_point(
-        (score_segment->*CurveTraits<float>::fun)(),
-        end.x(),
-        end.y());
+    curve.add_point((score_segment->*CurveTraits<float>::fun)(), end.x(), end.y());
   }
 
   if (tween)

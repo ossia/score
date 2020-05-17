@@ -1,6 +1,6 @@
 #include "phongnode.hpp"
 
-const char* frag= R"_(#version 450
+const char* frag = R"_(#version 450
     vec4 lightPosition = vec4(100, 10, 10, 0.);             // should be in the eye space
     vec4 lightAmbient = vec4(0.1, 0.1, 0.1, 1);              // light ambient color
     vec4 lightDiffuse = vec4(0.0, 0.2, 0.7, 1);              // light diffuse color
@@ -57,13 +57,14 @@ const char* frag= R"_(#version 450
         // set frag color
         fragColor = vec4(color, materialDiffuse.a);
     })_";
-PhongNode::PhongNode(const Mesh* mesh)
-  : m_mesh{mesh}
+PhongNode::PhongNode(const Mesh* mesh) : m_mesh{mesh}
 {
   QMatrix4x4 model;
-  QMatrix4x4 projection; projection.perspective(90, 16./9., 0.001, 100.);
-  QMatrix4x4 view; view.lookAt(QVector3D{0, 0, 1}, QVector3D{0, 0, 0}, QVector3D{0, 1, 0});
-  QMatrix4x4 mv = view * model ;
+  QMatrix4x4 projection;
+  projection.perspective(90, 16. / 9., 0.001, 100.);
+  QMatrix4x4 view;
+  view.lookAt(QVector3D{0, 0, 1}, QVector3D{0, 0, 0}, QVector3D{0, 1, 0});
+  QMatrix4x4 mv = view * model;
   QMatrix4x4 mvp = projection * mv;
   QMatrix3x3 norm = model.normalMatrix();
 
@@ -86,40 +87,26 @@ PhongNode::PhongNode(const Mesh* mesh)
   output.push_back(new Port{this, {}, Types::Image, {}});
 }
 
-PhongNode::~PhongNode()
-{
-
-}
+PhongNode::~PhongNode() { }
 
 const Mesh& PhongNode::mesh() const noexcept
 {
   return *this->m_mesh;
 }
 
-
 struct RenderedPhongNode : RenderedNode
 {
   using RenderedNode::RenderedNode;
 
-  void customInit(Renderer& renderer) override
-  {
-  }
+  void customInit(Renderer& renderer) override { }
 
-  void
-  customUpdate(Renderer& renderer, QRhiResourceUpdateBatch& res) override
-  {
-  }
+  void customUpdate(Renderer& renderer, QRhiResourceUpdateBatch& res) override { }
 
-  void customRelease(Renderer& renderer) override
-  {
-  }
-
+  void customRelease(Renderer& renderer) override { }
 };
-
 
 RenderedNode* PhongNode::createRenderer() const noexcept
 {
   return NodeModel::createRenderer();
-  //return new RenderedPhongNode{*this};
+  // return new RenderedPhongNode{*this};
 }
-

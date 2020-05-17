@@ -6,9 +6,7 @@
 namespace score
 {
 
-Menu::Menu(QMenu* menu, StringKey<Menu> m) : m_impl{menu}, m_key{std::move(m)}
-{
-}
+Menu::Menu(QMenu* menu, StringKey<Menu> m) : m_impl{menu}, m_key{std::move(m)} { }
 
 Menu::Menu(QMenu* menu, StringKey<Menu> m, Menu::is_toplevel, int column)
     : m_impl{menu}, m_key{std::move(m)}, m_col{column}, m_toplevel{true}
@@ -82,14 +80,14 @@ StringKey<Menu> Menus::About()
 
 MenuManager::~MenuManager()
 {
-  for(auto& menu : m_container)
+  for (auto& menu : m_container)
   {
-    if(QMenu* m = menu.second.menu()) {
+    if (QMenu* m = menu.second.menu())
+    {
       delete m;
     }
   }
   m_container.clear();
-
 }
 
 void MenuManager::insert(Menu val)

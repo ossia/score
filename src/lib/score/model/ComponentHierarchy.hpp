@@ -22,26 +22,21 @@ namespace score
  * \todo If the number of such hierarchies grows, it may be interesting instead
  * to store them in a single hierarchy manager part of the original element.
  */
-template <
-    typename ParentComponent_T,
-    typename ChildModel_T,
-    typename ChildComponent_T>
-class ComponentHierarchyManager : public ParentComponent_T,
-                                  public Nano::Observer
+template <typename ParentComponent_T, typename ChildModel_T, typename ChildComponent_T>
+class ComponentHierarchyManager : public ParentComponent_T, public Nano::Observer
 {
 public:
   using hierarchy_t = ComponentHierarchyManager;
 
   struct ChildPair
   {
-    ChildPair(ChildModel_T* m, ChildComponent_T* c) : model{m}, component{c} {}
+    ChildPair(ChildModel_T* m, ChildComponent_T* c) : model{m}, component{c} { }
     ChildModel_T* model{};
     ChildComponent_T* component{};
   };
 
   template <typename... Args>
-  ComponentHierarchyManager(Args&&... args)
-      : ParentComponent_T{std::forward<Args>(args)...}
+  ComponentHierarchyManager(Args&&... args) : ParentComponent_T{std::forward<Args>(args)...}
   {
     init();
   }
@@ -70,8 +65,7 @@ public:
 #if defined(SCORE_SERIALIZABLE_COMPONENTS)
   void add(ChildModel_T& element)
   {
-    add(element,
-        typename score::is_component_serializable<ChildComponent_T>::type{});
+    add(element, typename score::is_component_serializable<ChildComponent_T>::type{});
   }
 
   void add(ChildModel_T& element, score::serializable_tag)
@@ -80,8 +74,7 @@ public:
     // we can deserialize it.
     auto comp = score::deserialize_component<ChildComponent_T>(
         element.components(), [&](auto&& deserializer) {
-          ParentComponent_T::template load<ChildComponent_T>(
-              deserializer, element);
+          ParentComponent_T::template load<ChildComponent_T>(deserializer, element);
         });
 
     // Maybe we could not deserialize it
@@ -105,8 +98,7 @@ public:
   {
     // The subclass should provide this function to construct
     // the correct component relative to this process.
-    auto proc_comp
-        = ParentComponent_T::make(getStrongId(model.components()), model);
+    auto proc_comp = ParentComponent_T::make(getStrongId(model.components()), model);
     if (proc_comp)
     {
       model.components().add(proc_comp);
@@ -116,8 +108,7 @@ public:
 
   void remove(const ChildModel_T& model)
   {
-    auto it = ossia::find_if(
-        m_children, [&](auto pair) { return pair.model == &model; });
+    auto it = ossia::find_if(m_children, [&](auto pair) { return pair.model == &model; });
 
     if (it != m_children.end())
     {
@@ -163,15 +154,14 @@ template <
     typename ChildComponent_T,
     typename ChildComponentFactoryList_T,
     bool HasOwnership = true>
-class PolymorphicComponentHierarchyManager : public ParentComponent_T,
-                                             public Nano::Observer
+class PolymorphicComponentHierarchyManager : public ParentComponent_T, public Nano::Observer
 {
 public:
   using hierarchy_t = PolymorphicComponentHierarchyManager;
 
   struct ChildPair
   {
-    ChildPair(ChildModel_T* m, ChildComponent_T* c) : model{m}, component{c} {}
+    ChildPair(ChildModel_T* m, ChildComponent_T* c) : model{m}, component{c} { }
     ChildModel_T* model{};
     ChildComponent_T* component{};
   };
@@ -180,8 +170,7 @@ public:
   PolymorphicComponentHierarchyManager(Args&&... args)
       : ParentComponent_T{std::forward<Args>(args)...}
       , m_componentFactory{
-            score::AppComponents()
-                .template interfaces<ChildComponentFactoryList_T>()}
+            score::AppComponents().template interfaces<ChildComponentFactoryList_T>()}
   {
     init_hierarchy();
   }
@@ -190,8 +179,7 @@ public:
   PolymorphicComponentHierarchyManager(lazy_init_t, Args&&... args)
       : ParentComponent_T{std::forward<Args>(args)...}
       , m_componentFactory{
-            score::AppComponents()
-                .template interfaces<ChildComponentFactoryList_T>()}
+            score::AppComponents().template interfaces<ChildComponentFactoryList_T>()}
   {
   }
 
@@ -212,17 +200,14 @@ public:
   void add(ChildModel_T& element)
   {
 #if defined(SCORE_SERIALIZABLE_COMPONENTS)
-    add_impl(
-        element,
-        typename score::is_component_serializable<ChildComponent_T>::type{});
+    add_impl(element, typename score::is_component_serializable<ChildComponent_T>::type{});
 #else
     add_impl(element);
 #endif
   }
   void remove(const ChildModel_T& model)
   {
-    auto it = ossia::find_if(
-        m_children, [&](auto pair) { return pair.model == &model; });
+    auto it = ossia::find_if(m_children, [&](auto pair) { return pair.model == &model; });
 
     if (it != m_children.end())
     {
@@ -255,8 +240,7 @@ private:
       // we can deserialize it.
       ChildComponent_T* comp = score::deserialize_component<ChildComponent_T>(
           model.components(), [&](auto&& deserializer) {
-            ParentComponent_T::template load<ChildComponent_T>(
-                deserializer, *factory, model);
+            ParentComponent_T::template load<ChildComponent_T>(deserializer, *factory, model);
           });
 
       // Maybe we could not deserialize it

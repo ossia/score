@@ -22,66 +22,55 @@
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
-
 #include <vector>
 
 #if !defined(SCORE_ALL_UNITY)
 // template class SCORE_PLUGIN_CURVE_EXPORT IdContainer<Curve::SegmentModel>;
-template class SCORE_PLUGIN_CURVE_EXPORT
-    IdContainer<Curve::PointView, Curve::PointModel>;
-template class SCORE_PLUGIN_CURVE_EXPORT
-    IdContainer<Curve::SegmentView, Curve::SegmentModel>;
+template class SCORE_PLUGIN_CURVE_EXPORT IdContainer<Curve::PointView, Curve::PointModel>;
+template class SCORE_PLUGIN_CURVE_EXPORT IdContainer<Curve::SegmentView, Curve::SegmentModel>;
 #endif
 
 template <>
-SCORE_PLUGIN_CURVE_EXPORT void
-DataStreamReader::read(const Curve::SegmentData& segmt)
+SCORE_PLUGIN_CURVE_EXPORT void DataStreamReader::read(const Curve::SegmentData& segmt)
 {
-  m_stream << segmt.id << segmt.start << segmt.end << segmt.previous
-           << segmt.following << segmt.type;
+  m_stream << segmt.id << segmt.start << segmt.end << segmt.previous << segmt.following
+           << segmt.type;
 
   auto& csl = components.interfaces<Curve::SegmentList>();
   auto segmt_fact = csl.get(segmt.type);
 
   SCORE_ASSERT(segmt_fact);
-  segmt_fact->serializeCurveSegmentData(
-      segmt.specificSegmentData, this->toVariant());
+  segmt_fact->serializeCurveSegmentData(segmt.specificSegmentData, this->toVariant());
 
   insertDelimiter();
 }
 
 template <>
-SCORE_PLUGIN_CURVE_EXPORT void
-DataStreamWriter::write(Curve::SegmentData& segmt)
+SCORE_PLUGIN_CURVE_EXPORT void DataStreamWriter::write(Curve::SegmentData& segmt)
 {
-  m_stream >> segmt.id >> segmt.start >> segmt.end >> segmt.previous
-      >> segmt.following >> segmt.type;
+  m_stream >> segmt.id >> segmt.start >> segmt.end >> segmt.previous >> segmt.following
+      >> segmt.type;
 
   auto& csl = components.interfaces<Curve::SegmentList>();
   auto segmt_fact = csl.get(segmt.type);
   SCORE_ASSERT(segmt_fact);
-  segmt.specificSegmentData
-      = segmt_fact->makeCurveSegmentData(this->toVariant());
+  segmt.specificSegmentData = segmt_fact->makeCurveSegmentData(this->toVariant());
 
   checkDelimiter();
 }
 
 template <>
-SCORE_PLUGIN_CURVE_EXPORT void
-DataStreamReader::read(const Curve::SegmentModel& segmt)
+SCORE_PLUGIN_CURVE_EXPORT void DataStreamReader::read(const Curve::SegmentModel& segmt)
 {
   // Save this class (this will be loaded by writeTo(*this) in
   // CurveSegmentModel ctor
-  m_stream << segmt.previous() << segmt.following() << segmt.start()
-           << segmt.end();
+  m_stream << segmt.previous() << segmt.following() << segmt.start() << segmt.end();
 }
 
 template <>
-SCORE_PLUGIN_CURVE_EXPORT void
-DataStreamWriter::write(Curve::SegmentModel& segmt)
+SCORE_PLUGIN_CURVE_EXPORT void DataStreamWriter::write(Curve::SegmentModel& segmt)
 {
-  m_stream >> segmt.m_previous >> segmt.m_following >> segmt.m_start
-      >> segmt.m_end;
+  m_stream >> segmt.m_previous >> segmt.m_following >> segmt.m_start >> segmt.m_end;
 
   // Note : don't call setStart/setEnd here since they
   // call virtual methods and this may be called from
@@ -89,8 +78,7 @@ DataStreamWriter::write(Curve::SegmentModel& segmt)
 }
 
 template <>
-SCORE_PLUGIN_CURVE_EXPORT void
-JSONReader::read(const Curve::SegmentModel& segmt)
+SCORE_PLUGIN_CURVE_EXPORT void JSONReader::read(const Curve::SegmentModel& segmt)
 {
   using namespace Curve;
 
@@ -103,8 +91,7 @@ JSONReader::read(const Curve::SegmentModel& segmt)
 }
 
 template <>
-SCORE_PLUGIN_CURVE_EXPORT void
-JSONWriter::write(Curve::SegmentModel& segmt)
+SCORE_PLUGIN_CURVE_EXPORT void JSONWriter::write(Curve::SegmentModel& segmt)
 {
   using namespace Curve;
   segmt.m_previous <<= obj[strings.Previous];
@@ -115,10 +102,8 @@ JSONWriter::write(Curve::SegmentModel& segmt)
 
 namespace Curve
 {
-Curve::SegmentModel* createCurveSegment(
-    const Curve::SegmentList& csl,
-    const Curve::SegmentData& dat,
-    QObject* parent)
+Curve::SegmentModel*
+createCurveSegment(const Curve::SegmentList& csl, const Curve::SegmentData& dat, QObject* parent)
 {
   auto fact = csl.get(dat.type);
   auto model = fact->load(dat, parent);

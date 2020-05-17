@@ -1,7 +1,6 @@
 #pragma once
 #include <QSortFilterProxyModel>
 
-
 namespace Library
 {
 class RecursiveFilterProxy final : public QSortFilterProxyModel
@@ -10,8 +9,7 @@ public:
   using QSortFilterProxyModel::QSortFilterProxyModel;
 
 private:
-  bool
-  filterAcceptsRow(int srcRow, const QModelIndex& srcParent) const override
+  bool filterAcceptsRow(int srcRow, const QModelIndex& srcParent) const override
   {
     if (filterAcceptsRowItself(srcRow, srcParent))
     {
@@ -19,8 +17,7 @@ private:
     }
 
     // Accept if any of the parents is accepted on its own
-    for (QModelIndex parent = srcParent; parent.isValid();
-         parent = parent.parent())
+    for (QModelIndex parent = srcParent; parent.isValid(); parent = parent.parent())
       if (filterAcceptsRowItself(parent.row(), parent.parent()))
       {
         return true;

@@ -6,6 +6,7 @@
 #include <ossia/network/common/path.hpp>
 
 #include <QObject>
+
 #include <verdigris>
 namespace ossia
 {
@@ -27,8 +28,7 @@ public:
   W_SLOT(read);
   void write(const QString& address, const QVariant& value);
   W_SLOT(write);
-  void exec(const QString& code)
-  W_SIGNAL(exec, code);
+  void exec(const QString& code) W_SIGNAL(exec, code);
 
 private:
   ossia::execution_state& devices;

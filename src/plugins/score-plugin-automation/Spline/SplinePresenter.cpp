@@ -19,12 +19,10 @@ Presenter::Presenter(
     View* view,
     const Process::Context& ctx,
     QObject* parent)
-    : LayerPresenter{layer, view, ctx, parent},  m_view{view}
+    : LayerPresenter{layer, view, ctx, parent}, m_view{view}
 {
   putToFront();
-  connect(&layer, &ProcessModel::splineChanged, this, [&] {
-    m_view->setSpline(layer.spline());
-  });
+  connect(&layer, &ProcessModel::splineChanged, this, [&] { m_view->setSpline(layer.spline()); });
 
   m_view->setSpline(layer.spline());
   connect(m_view, &View::changed, this, [&] {
@@ -32,11 +30,8 @@ Presenter::Presenter(
         layer, m_view->spline());
   });
 
-  connect(m_view, &View::pressed, this, [&] {
-    m_context.context.focusDispatcher.focus(this);
-  });
-  connect(
-      m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
+  connect(m_view, &View::pressed, this, [&] { m_context.context.focusDispatcher.focus(this); });
+  connect(m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
 }
 
 void Presenter::setWidth(qreal val, qreal defaultWidth)
@@ -65,7 +60,6 @@ void Presenter::on_zoomRatioChanged(ZoomRatio r)
   parentGeometryChanged();
 }
 
-void Presenter::parentGeometryChanged() {}
-
+void Presenter::parentGeometryChanged() { }
 
 }

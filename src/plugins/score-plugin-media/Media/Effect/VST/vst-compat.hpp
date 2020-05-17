@@ -28,10 +28,8 @@ extern "C"
     static const constexpr auto canDoSendVstMidiEvent = "sendVstMidiEvent";
     static const constexpr auto canDoSendVstTimeInfo = "sendVstTimeInfo";
     static const constexpr auto canDoReceiveVstEvents = "receiveVstEvents";
-    static const constexpr auto canDoReceiveVstMidiEvent
-        = "receiveVstMidiEvent";
-    static const constexpr auto canDoReportConnectionChanges
-        = "reportConnectionChanges";
+    static const constexpr auto canDoReceiveVstMidiEvent = "receiveVstMidiEvent";
+    static const constexpr auto canDoReportConnectionChanges = "reportConnectionChanges";
     static const constexpr auto canDoAcceptIOChanges = "acceptIOChanges";
     static const constexpr auto canDoSizeWindow = "sizeWindow";
     static const constexpr auto canDoOffline = "offline";
@@ -41,8 +39,7 @@ extern "C"
     static const constexpr auto canDoShellCategory = "shellCategory";
     static const constexpr auto canDoSendVstMidiEventFlagIsRealtime
         = "sendVstMidiEventFlagIsRealtime";
-    static const constexpr auto canDoHasCockosViewAsConfig
-        = "hasCockosViewAsConfig";
+    static const constexpr auto canDoHasCockosViewAsConfig = "hasCockosViewAsConfig";
   };
 
   enum VstAEffectFlags
@@ -853,7 +850,8 @@ extern "C"
     int32_t numParams;
     char prgName[28];
 
-    union {
+    union
+    {
       float params[1];
       struct
       {
@@ -875,7 +873,8 @@ extern "C"
     int32_t currentProgram;
     char future[124];
 
-    union {
+    union
+    {
       fxProgram programs[1];
       struct
       {
@@ -901,18 +900,11 @@ extern "C"
       intptr_t value,
       void* ptr,
       float opt);
-  using AEffectProcessProc = void (*)(
-      AEffect* effect,
-      float** inputs,
-      float** outputs,
-      int32_t sampleFrames);
-  using AEffectProcessDoubleProc = void (*)(
-      AEffect* effect,
-      double** inputs,
-      double** outputs,
-      int32_t sampleFrames);
-  using AEffectSetParameterProc
-      = void (*)(AEffect* effect, int32_t index, float parameter);
+  using AEffectProcessProc
+      = void (*)(AEffect* effect, float** inputs, float** outputs, int32_t sampleFrames);
+  using AEffectProcessDoubleProc
+      = void (*)(AEffect* effect, double** inputs, double** outputs, int32_t sampleFrames);
+  using AEffectSetParameterProc = void (*)(AEffect* effect, int32_t index, float parameter);
   using AEffectGetParameterProc = float (*)(AEffect* effect, int32_t index);
 
   struct AEffect

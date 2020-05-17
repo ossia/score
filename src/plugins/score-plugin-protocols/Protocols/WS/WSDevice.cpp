@@ -11,13 +11,11 @@
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>
 
-
 #include <memory>
 
 namespace Protocols
 {
-WSDevice::WSDevice(const Device::DeviceSettings& settings)
-    : OwningDeviceInterface{settings}
+WSDevice::WSDevice(const Device::DeviceSettings& settings) : OwningDeviceInterface{settings}
 {
   m_capas.canRefreshTree = true;
   m_capas.canAddNode = false;

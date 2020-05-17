@@ -39,10 +39,7 @@ public:
   static bool multiSelection() noexcept;
 
 protected:
-  CommonSelectionState(
-      score::SelectionStack& stack,
-      QObject* process_view,
-      QState* parent);
+  CommonSelectionState(score::SelectionStack& stack, QObject* process_view, QState* parent);
 
 private:
   QState* m_waitState{};

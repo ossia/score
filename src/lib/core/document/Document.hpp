@@ -8,6 +8,7 @@
 #include <core/document/DocumentMetadata.hpp>
 
 #include <ossia/detail/json.hpp>
+
 #include <QByteArray>
 #include <QString>
 #include <QTimer>
@@ -75,10 +76,10 @@ public:
 
   DocumentView* view() const { return m_view; }
 
-  void saveDocumentModelAsJson(JSONObject::Serializer & writer);
+  void saveDocumentModelAsJson(JSONObject::Serializer& writer);
   QByteArray saveDocumentModelAsByteArray();
 
-  void saveAsJson(JSONObject::Serializer & writer);
+  void saveAsJson(JSONObject::Serializer& writer);
   QByteArray saveAsByteArray();
 
   DocumentBackupManager* backupManager() const { return m_backupMgr; }
@@ -93,10 +94,7 @@ public:
   }
 
   // Load without creating presenter and view
-  Document(
-      const QString& name,
-      DocumentDelegateFactory& type,
-      QObject* parent);
+  Document(const QString& name, DocumentDelegateFactory& type, QObject* parent);
 
 private:
   // These are to be constructed by DocumentBuilder.

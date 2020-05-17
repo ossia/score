@@ -17,17 +17,13 @@ public:
       View* view,
       const Process::Context& ctx,
       QObject* parent)
-      : LayerPresenter{model, view, ctx, parent}
-      , m_view{view}
+      : LayerPresenter{model, view, ctx, parent}, m_view{view}
   {
     putToFront();
 
-    connect(view, &View::pressed, this, [&] {
-      m_context.context.focusDispatcher.focus(this);
-    });
+    connect(view, &View::pressed, this, [&] { m_context.context.focusDispatcher.focus(this); });
 
-    connect(
-        m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
+    connect(m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
   }
 
   void setWidth(qreal width, qreal defaultWidth) override { m_view->setWidth(width); }
@@ -39,7 +35,7 @@ public:
 
   void on_zoomRatioChanged(ZoomRatio r) override { }
 
-  void parentGeometryChanged() override {}
+  void parentGeometryChanged() override { }
 
 private:
   View* m_view{};

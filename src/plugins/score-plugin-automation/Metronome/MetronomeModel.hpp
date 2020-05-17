@@ -4,20 +4,20 @@
 #include <State/Address.hpp>
 
 #include <score/model/Identifier.hpp>
+#include <score/serialization/VisitorCommon.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 
 #include <QObject>
 #include <QString>
 
-#include <score/serialization/VisitorCommon.hpp>
 #include <Metronome/MetronomeProcessMetadata.hpp>
 #include <score_plugin_automation_export.h>
+
 #include <verdigris>
 
 namespace Metronome
 {
-class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
-    : public Curve::CurveProcessModel
+class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurveProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Metronome::ProcessModel)
@@ -27,10 +27,7 @@ class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
   // Min and max to scale the curve with at execution
 
 public:
-  ProcessModel(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
+  ProcessModel(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
   ~ProcessModel() override;
 
   template <typename Impl>
@@ -59,10 +56,8 @@ public:
 public:
   void addressChanged(const State::Address& arg_1)
       E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, addressChanged, arg_1);
-  void minChanged(double arg_1)
-      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, minChanged, arg_1);
-  void maxChanged(double arg_1)
-      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, maxChanged, arg_1);
+  void minChanged(double arg_1) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, minChanged, arg_1);
+  void maxChanged(double arg_1) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, maxChanged, arg_1);
 
 private:
   //// ProcessModel ////
@@ -79,8 +74,6 @@ private:
 
   W_PROPERTY(double, min READ min WRITE setMin NOTIFY minChanged)
 
-  W_PROPERTY(
-      State::Address,
-      address READ address WRITE setAddress NOTIFY addressChanged)
+  W_PROPERTY(State::Address, address READ address WRITE setAddress NOTIFY addressChanged)
 };
 }

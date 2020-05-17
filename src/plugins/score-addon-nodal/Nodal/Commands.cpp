@@ -1,9 +1,11 @@
-#include <Nodal/Commands.hpp>
+#include <Process/ProcessList.hpp>
+
+#include <score/document/DocumentContext.hpp>
+#include <score/model/EntitySerialization.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
-#include <score/document/DocumentContext.hpp>
-#include <Process/ProcessList.hpp>
-#include <score/model/EntitySerialization.hpp>
+
+#include <Nodal/Commands.hpp>
 
 namespace Nodal
 {
@@ -30,15 +32,9 @@ void CreateNode::undo(const score::DocumentContext& ctx) const
 void CreateNode::redo(const score::DocumentContext& ctx) const
 {
   auto& nodal = m_path.find(ctx);
-  auto fac
-      = ctx.app.interfaces<Process::ProcessFactoryList>().get(m_uuid);
+  auto fac = ctx.app.interfaces<Process::ProcessFactoryList>().get(m_uuid);
   SCORE_ASSERT(fac);
-  auto proc = fac->make(
-        nodal.duration(),
-        m_data,
-        m_createdNodeId,
-        ctx,
-        &nodal);
+  auto proc = fac->make(nodal.duration(), m_data, m_createdNodeId, ctx, &nodal);
 
   SCORE_ASSERT(proc);
   // todo handle these asserts
@@ -56,6 +52,5 @@ void CreateNode::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_path >> m_pos >> m_uuid >> m_data >> m_createdNodeId;
 }
-
 
 }

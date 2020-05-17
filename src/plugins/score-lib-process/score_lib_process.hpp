@@ -68,9 +68,7 @@ public:
   ~score_lib_process() override;
 
 private:
-  std::vector<std::unique_ptr<score::InterfaceListBase>>
-  factoryFamilies() override;
+  std::vector<std::unique_ptr<score::InterfaceListBase>> factoryFamilies() override;
 
-  std::pair<const CommandGroupKey, CommandGeneratorMap>
-  make_commands() override;
+  std::pair<const CommandGroupKey, CommandGeneratorMap> make_commands() override;
 };

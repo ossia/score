@@ -4,6 +4,7 @@
 #include <score/tools/std/Optional.hpp>
 
 #include <QTreeView>
+
 #include <verdigris>
 
 namespace Library
@@ -15,9 +16,7 @@ public:
   using QTreeView::QTreeView;
   void selected(optional<Library::ProcessData> p) W_SIGNAL(selected, p);
 
-  void selectionChanged(
-      const QItemSelection& selected,
-      const QItemSelection& deselected) override;
+  void selectionChanged(const QItemSelection& selected, const QItemSelection& deselected) override;
 
 private:
   QModelIndexList selectedDraggableIndexes() const;

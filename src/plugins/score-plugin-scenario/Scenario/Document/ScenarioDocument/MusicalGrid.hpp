@@ -12,18 +12,13 @@ class MusicalGrid : public QObject
 {
   W_OBJECT(MusicalGrid)
 public:
-  MusicalGrid(Timebars& timebars)
-    : timebars{timebars}
-  {
-  }
+  MusicalGrid(Timebars& timebars) : timebars{timebars} { }
 
   Timebars& timebars;
-  void setMeasures(const TimeSignatureMap& m)
-  {
-    m_measures = &m;
-  }
+  void setMeasures(const TimeSignatureMap& m) { m_measures = &m; }
 
-  struct timings {
+  struct timings
+  {
     double pos_x{};
     ossia::bar_time timings;
     ossia::bar_time increment;
@@ -34,11 +29,7 @@ public:
 
   void changed() W_SIGNAL(changed);
 
-  void compute(
-        TimeVal timeDelta
-      , ZoomRatio m_zoomRatio
-      , QRectF sceneRect
-      , TimeVal x0_time);
+  void compute(TimeVal timeDelta, ZoomRatio m_zoomRatio, QRectF sceneRect, TimeVal x0_time);
 
   const TimeSignatureMap* m_measures{};
 };

@@ -20,18 +20,13 @@ InspectorWidget::InspectorWidget(
 
   edit->setPlainText(object.fragment());
   connect(edit, &JSEdit::textChanged, this, [&object, &context, edit] {
-    context.dispatcher.submit<ChangeMeshFragmentShader>(
-        object, edit->toPlainText());
+    context.dispatcher.submit<ChangeMeshFragmentShader>(object, edit->toPlainText());
   });
-  connect(
-      edit,
-      &JSEdit::editingFinished,
-      this,
-      [&object, &context](const QString& txt) {
-        context.dispatcher.submit<ChangeMeshFragmentShader>(object, txt);
-        context.dispatcher.commit();
-      });
+  connect(edit, &JSEdit::editingFinished, this, [&object, &context](const QString& txt) {
+    context.dispatcher.submit<ChangeMeshFragmentShader>(object, txt);
+    context.dispatcher.commit();
+  });
 }
 
-InspectorWidget::~InspectorWidget() {}
+InspectorWidget::~InspectorWidget() { }
 }

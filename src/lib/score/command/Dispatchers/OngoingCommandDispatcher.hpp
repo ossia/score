@@ -25,10 +25,7 @@
 class OngoingCommandDispatcher final : public ICommandDispatcher
 {
 public:
-  OngoingCommandDispatcher(const score::CommandStackFacade& stack)
-      : ICommandDispatcher{stack}
-  {
-  }
+  OngoingCommandDispatcher(const score::CommandStackFacade& stack) : ICommandDispatcher{stack} { }
 
   //! Call this repeatedly to make the command, for instance on click and when
   //! the mouse moves.

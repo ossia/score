@@ -4,11 +4,11 @@
 
 #include <Process/Style/ScenarioStyle.hpp>
 
+#include <QGraphicsSceneMouseEvent>
 #include <QKeyEvent>
 #include <QPainter>
 #include <qnamespace.h>
 
-#include <QGraphicsSceneMouseEvent>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Curve::View)
 namespace Curve
@@ -30,12 +30,9 @@ View::View(QGraphicsItem* parent) noexcept : QGraphicsItem{parent}
   this->setZValue(1);
 }
 
-View::~View() {}
+View::~View() { }
 
-void View::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+void View::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   if (m_selectArea != QRectF{})
   {
@@ -123,8 +120,8 @@ void View::setValueTooltip(QPointF pos, const QString& s) noexcept
     // Compute position
     auto textrect = getTextRect(m_tooltip);
 
-    QPointF pos = QPointF{m_tooltipPos.x() * m_defaultW,
-                          (1. - m_tooltipPos.y()) * m_rect.height()};
+    QPointF pos
+        = QPointF{m_tooltipPos.x() * m_defaultW, (1. - m_tooltipPos.y()) * m_rect.height()};
     pos += {10., 10.};
     if (pos.x() + textrect.width() > 0.95 * m_defaultW)
     {

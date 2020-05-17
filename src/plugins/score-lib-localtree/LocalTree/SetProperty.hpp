@@ -1,11 +1,11 @@
 #pragma once
+#include <Process/TypeConversion.hpp>
+
 #include <score/tools/std/Invoke.hpp>
 
 #include <ossia/network/base/node.hpp>
 
-
 #include <LocalTree/BaseCallbackWrapper.hpp>
-#include <Process/TypeConversion.hpp>
 
 namespace LocalTree
 {
@@ -17,8 +17,8 @@ struct SetPropertyWrapper final : public BaseCallbackWrapper
   SetPropertyWrapper(ossia::net::parameter_base& param_addr, SetFun prop)
       : BaseCallbackWrapper{param_addr}, setFun{prop}
   {
-    callbackIt = addr.add_callback(
-        [=](const ossia::value& v) { score::invoke([=] { setFun(v); }); });
+    callbackIt
+        = addr.add_callback([=](const ossia::value& v) { score::invoke([=] { setFun(v); }); });
 
     // addr.set_value(typename ossia::qt_property_converter<T>::type{});
   }
@@ -31,10 +31,7 @@ auto make_setProperty(ossia::net::parameter_base& addr, Callback prop)
 }
 
 template <typename T, typename Callback>
-auto add_setProperty(
-    ossia::net::node_base& n,
-    const std::string& name,
-    Callback cb)
+auto add_setProperty(ossia::net::node_base& n, const std::string& name, Callback cb)
 {
   constexpr const auto t = ossia::qt_property_converter<T>::val;
   auto node = n.create_child(name);

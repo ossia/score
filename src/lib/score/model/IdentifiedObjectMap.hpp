@@ -39,16 +39,13 @@ class IdContainer<
 public:
   using model_type = Model;
   using order_t = std::list<Element*>;
-  using map_t = tsl::hopscotch_map<
-      Id<Model>,
-      std::pair<Element*, typename order_t::iterator>>;
+  using map_t = tsl::hopscotch_map<Id<Model>, std::pair<Element*, typename order_t::iterator>>;
   map_t m_map;
   order_t m_order;
 
   using value_type = Element;
   using iterator = score::indirect_iterator<typename order_t::iterator>;
-  using const_iterator
-      = score::indirect_iterator<typename order_t::const_iterator>;
+  using const_iterator = score::indirect_iterator<typename order_t::const_iterator>;
   using const_reverse_iterator
       = score::indirect_iterator<typename order_t::const_reverse_iterator>;
 
@@ -152,8 +149,7 @@ public:
     auto it = this->m_map.find(id);
     if (it != this->m_map.end())
     {
-      return score::make_indirect_iterator(
-          (typename order_t::const_iterator)it->second.second);
+      return score::make_indirect_iterator((typename order_t::const_iterator)it->second.second);
     }
     else
     {
@@ -165,8 +161,7 @@ public:
   {
     if (id.m_ptr)
     {
-      SCORE_ASSERT(
-          id.m_ptr->parent() == this->m_map.find(id)->second.first->parent());
+      SCORE_ASSERT(id.m_ptr->parent() == this->m_map.find(id)->second.first->parent());
       return safe_cast<Element&>(*id.m_ptr);
     }
     auto item = this->m_map.find(id);
@@ -184,8 +179,7 @@ template <typename Element, typename Model>
 class IdContainer<
     Element,
     Model,
-    std::enable_if_t<
-        !std::is_base_of<IdentifiedObject<Model>, Element>::value>>
+    std::enable_if_t<!std::is_base_of<IdentifiedObject<Model>, Element>::value>>
 {
 public:
   using model_type = Model;
@@ -215,18 +209,9 @@ public:
   {
     return score::make_indirect_map_iterator(this->m_map.cbegin());
   }
-  auto end() const INLINE_EXPORT
-  {
-    return score::make_indirect_map_iterator(this->m_map.end());
-  }
-  auto rend() const INLINE_EXPORT
-  {
-    return score::make_indirect_map_iterator(this->m_map.end());
-  }
-  auto cend() const INLINE_EXPORT
-  {
-    return score::make_indirect_map_iterator(this->m_map.cend());
-  }
+  auto end() const INLINE_EXPORT { return score::make_indirect_map_iterator(this->m_map.end()); }
+  auto rend() const INLINE_EXPORT { return score::make_indirect_map_iterator(this->m_map.end()); }
+  auto cend() const INLINE_EXPORT { return score::make_indirect_map_iterator(this->m_map.cend()); }
 
   auto find(const Id<Model>& id) const INLINE_EXPORT
   {

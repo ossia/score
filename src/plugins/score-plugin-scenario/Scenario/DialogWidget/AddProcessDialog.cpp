@@ -36,10 +36,7 @@ AddProcessDialog::AddProcessDialog(
   lay->addWidget(buttonBox);
 
   connect(
-      m_categories,
-      &QListWidget::currentTextChanged,
-      this,
-      &AddProcessDialog::updateProcesses);
+      m_categories, &QListWidget::currentTextChanged, this, &AddProcessDialog::updateProcesses);
 
   auto accept_item = [&](auto item) {
     if (item && on_okPressed)
@@ -60,9 +57,7 @@ AddProcessDialog::AddProcessDialog(
     }
   };
   connect(m_processes, &QListWidget::itemDoubleClicked, this, accept_item);
-  connect(add, &QPushButton::clicked, [=] {
-    accept_item(m_processes->currentItem());
-  });
+  connect(add, &QPushButton::clicked, [=] { accept_item(m_processes->currentItem()); });
 
   connect(buttonBox, &QDialogButtonBox::accepted, this, [=] {
     accept_item(m_processes->currentItem());
@@ -74,7 +69,7 @@ AddProcessDialog::AddProcessDialog(
   hide();
 }
 
-AddProcessDialog::~AddProcessDialog() {}
+AddProcessDialog::~AddProcessDialog() { }
 
 void AddProcessDialog::launchWindow()
 {

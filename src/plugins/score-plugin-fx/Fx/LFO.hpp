@@ -1,8 +1,9 @@
 #pragma once
-#include <ossia/detail/math.hpp>
 #include <ossia/detail/flicks.hpp>
+#include <ossia/detail/math.hpp>
 
 #include <Engine/Node/PdNode.hpp>
+#include <rnd/random.hpp>
 
 #include <array>
 #include <bitset>
@@ -10,8 +11,6 @@
 #include <random>
 #include <tuple>
 #include <utility>
-
-#include <rnd/random.hpp>
 /*
 template<typename Node>
 struct Spec
@@ -32,7 +31,8 @@ struct Spec
   template<std::size_t N, typename T, typename M>
   ossia::value_port& get(typename T::ValueOuts)
   {
-    return *node.outputs()[N + info::audio_out_count + info::midi_out_count]->data.template target<ossia::value_port>();
+    return *node.outputs()[N + info::audio_out_count +
+info::midi_out_count]->data.template target<ossia::value_port>();
   }
   template<std::size_t N, typename T, typename M>
   const ossia::audio_port& get(typename T::AudioIns)
@@ -56,7 +56,8 @@ struct Spec
   }
 };
 
-#define _get(Kind, Member) spec.get<offsetof(Metadata::Kind, Member), Metadata, decltype(std::declval<Metadata::Kind>().Member)>(Metadata::Kind{})
+#define _get(Kind, Member) spec.get<offsetof(Metadata::Kind, Member), Metadata,
+decltype(std::declval<Metadata::Kind>().Member)>(Metadata::Kind{})
 */
 /* UB:  :'(
 template<std::size_t M, typename T>
@@ -98,8 +99,7 @@ struct Node
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::Generator;
     static const constexpr auto description = "Low-frequency oscillator";
-    static const uuid_constexpr auto uuid
-        = make_uuid("0697b807-f588-49b5-926c-f97701edd0d8");
+    static const uuid_constexpr auto uuid = make_uuid("0697b807-f588-49b5-926c-f97701edd0d8");
 
     static const constexpr value_out value_outs[]{"out"};
 
@@ -112,8 +112,7 @@ struct Node
         Control::FloatKnob{"Jitter", 0., 1., 0.},
         Control::FloatKnob{"Phase", -1., 1., 0.},
         Control::Widgets::WaveformChooser(),
-        Control::Widgets::QuantificationChooser()
-          );
+        Control::Widgets::QuantificationChooser());
   };
 
   // Idea: save internal state for rewind... ? -> require Copyable
@@ -126,8 +125,7 @@ struct Node
   using control_policy = ossia::safe_nodes::precise_tick;
 
   static void
-  run(
-      float freq,
+  run(float freq,
       float ampl,
       float ampl_fine,
       float offset,
@@ -145,10 +143,10 @@ struct Node
     const auto& waveform_map = Control::Widgets::waveformMap();
     const auto elapsed = tk.logical_read_duration().impl;
 
-    if(quantif)
+    if (quantif)
     {
       // Determine the frequency with the quantification
-      if(tk.unexpected_bar_change())
+      if (tk.unexpected_bar_change())
       {
         s.phase = 0;
       }
@@ -177,9 +175,8 @@ struct Node
 
       using namespace Control::Widgets;
 
-      const auto add_val = [&](auto new_val) {
-        out.write_value(ampl * new_val + offset, st.physical_start(tk));
-      };
+      const auto add_val
+          = [&](auto new_val) { out.write_value(ampl * new_val + offset, st.physical_start(tk)); };
       switch (it->second)
       {
         case Sin:
@@ -250,14 +247,17 @@ struct Node
     auto c2_bg = new score::BackgroundItem{&parent};
     c2_bg->setRect({270., 0., 60., 130.});
 
-    auto freq_item = makeControl(std::get<0>(Metadata::controls), freq, parent, context, doc, portFactory);
+    auto freq_item
+        = makeControl(std::get<0>(Metadata::controls), freq, parent, context, doc, portFactory);
     freq_item.root.setPos(c0, 0);
 
-    auto quant_item = makeControlNoText(std::get<8>(Metadata::controls), quantif, parent, context, doc, portFactory);
+    auto quant_item = makeControlNoText(
+        std::get<8>(Metadata::controls), quantif, parent, context, doc, portFactory);
     quant_item.root.setPos(90, 25);
     quant_item.port.setPos(-10, 2);
 
-    auto type_item = makeControlNoText(std::get<7>(Metadata::controls), type, parent, context, doc, portFactory);
+    auto type_item = makeControlNoText(
+        std::get<7>(Metadata::controls), type, parent, context, doc, portFactory);
     type_item.root.setPos(c0, h);
     type_item.control.rows = 2;
     type_item.control.columns = 4;
@@ -265,26 +265,33 @@ struct Node
     type_item.control.setPos(10, 0);
     type_item.port.setPos(0, 17);
 
-    auto ampl_item = makeControl(std::get<1>(Metadata::controls), ampl, parent, context, doc, portFactory);
+    auto ampl_item
+        = makeControl(std::get<1>(Metadata::controls), ampl, parent, context, doc, portFactory);
     ampl_item.root.setPos(c1, 0);
 
-    auto ampl_fine_item = makeControl(std::get<2>(Metadata::controls), ampl_fine, parent, context, doc, portFactory);
+    auto ampl_fine_item = makeControl(
+        std::get<2>(Metadata::controls), ampl_fine, parent, context, doc, portFactory);
     ampl_fine_item.root.setPos(c1 + w, 0);
 
-    auto offset_item = makeControl(std::get<3>(Metadata::controls), offset, parent, context, doc, portFactory);
+    auto offset_item
+        = makeControl(std::get<3>(Metadata::controls), offset, parent, context, doc, portFactory);
     offset_item.root.setPos(c1, h);
 
-    auto offset_fine_item = makeControl(std::get<4>(Metadata::controls), offset_fine, parent, context, doc, portFactory);
+    auto offset_fine_item = makeControl(
+        std::get<4>(Metadata::controls), offset_fine, parent, context, doc, portFactory);
     offset_fine_item.root.setPos(c1 + w, h);
 
-    auto jitter_item = makeControl(std::get<5>(Metadata::controls), jitter, parent, context, doc, portFactory);
+    auto jitter_item
+        = makeControl(std::get<5>(Metadata::controls), jitter, parent, context, doc, portFactory);
     jitter_item.root.setPos(c2 + w, 0);
 
-    auto phase_item = makeControl(std::get<6>(Metadata::controls), phase, parent, context, doc, portFactory);
+    auto phase_item
+        = makeControl(std::get<6>(Metadata::controls), phase, parent, context, doc, portFactory);
     phase_item.root.setPos(c2 + w, h);
   }
 
-  // With metaclasses, we should instead create structs with named members but where types are either controls, ports, items, inlets...
+  // With metaclasses, we should instead create structs with named members but
+  // where types are either controls, ports, items, inlets...
 };
 }
 }

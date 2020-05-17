@@ -1,14 +1,16 @@
+#include <score/command/Dispatchers/SettingsCommandDispatcher.hpp>
+#include <score/tools/Bind.hpp>
+#include <score/widgets/SignalUtils.hpp>
+
+#include <QComboBox>
+#include <QFormLayout>
+#include <QLabel>
+#include <QPushButton>
+#include <QTimer>
+
 #include <Audio/ALSAPortAudioInterface.hpp>
 #include <Audio/Settings/Model.hpp>
 #include <Audio/Settings/View.hpp>
-#include <score/widgets/SignalUtils.hpp>
-#include <score/tools/Bind.hpp>
-#include <score/command/Dispatchers/SettingsCommandDispatcher.hpp>
-#include <QComboBox>
-#include <QLabel>
-#include <QTimer>
-#include <QPushButton>
-#include <QFormLayout>
 
 namespace Audio
 {
@@ -36,16 +38,11 @@ class ALSAWidget : public QWidget
     auto& m = m_model;
     if (dev.raw_name != m.getCardOut())
     {
-      m_disp.submitDeferredCommand<Audio::Settings::SetModelCardIn>(
-          m, dev.raw_name);
-      m_disp.submitDeferredCommand<Audio::Settings::SetModelCardOut>(
-          m, dev.raw_name);
-      m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultIn>(
-          m, dev.inputChan);
-      m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultOut>(
-          m, dev.outputChan);
-      m_disp.submitDeferredCommand<Audio::Settings::SetModelRate>(
-          m, dev.rate);
+      m_disp.submitDeferredCommand<Audio::Settings::SetModelCardIn>(m, dev.raw_name);
+      m_disp.submitDeferredCommand<Audio::Settings::SetModelCardOut>(m, dev.raw_name);
+      m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultIn>(m, dev.inputChan);
+      m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultOut>(m, dev.outputChan);
+      m_disp.submitDeferredCommand<Audio::Settings::SetModelRate>(m, dev.rate);
 
       setInfos(dev);
     }
@@ -77,10 +74,7 @@ public:
       Audio::Settings::View& v,
       score::SettingsCommandDispatcher& m_disp,
       QWidget* parent = nullptr)
-    : QWidget{parent}
-    , m_factory{fact}
-    , m_model{m}
-    , m_disp{m_disp}
+      : QWidget{parent}, m_factory{fact}, m_model{m}, m_disp{m_disp}
   {
     auto& devices = fact.devices;
     auto lay = new QFormLayout{this};
@@ -93,14 +87,11 @@ public:
     // Disabled case
 
     QString res = qgetenv("SCORE_DISABLE_ALSA");
-    if(res.isEmpty())
+    if (res.isEmpty())
     {
-      QTimer::singleShot(1000, [this] {
-        rescanUI();
-      });
+      QTimer::singleShot(1000, [this] { rescanUI(); });
     }
-    connect(rescan, &QPushButton::clicked,
-            this, &ALSAWidget::rescanUI);
+    connect(rescan, &QPushButton::clicked, this, &ALSAWidget::rescanUI);
 
     fact.addBufferSizeWidget(*this, m, v);
     fact.addSampleRateWidget(*this, m, v);
@@ -111,12 +102,12 @@ public:
       lay->addRow(QObject::tr("Device"), card_list);
       lay->addRow(rescan);
 
-      QObject::connect(card_list, SignalUtils::QComboBox_currentIndexChanged_int(),
-                       &v, [this](int i) {
-        auto& devices = m_factory.devices;
-        auto& device = devices[card_list->itemData(i).toInt()];
-        updateDevice(device);
-      });
+      QObject::connect(
+          card_list, SignalUtils::QComboBox_currentIndexChanged_int(), &v, [this](int i) {
+            auto& devices = m_factory.devices;
+            auto& device = devices[card_list->itemData(i).toInt()];
+            updateDevice(device);
+          });
 
       if (m.getCardOut().isEmpty())
       {
@@ -134,15 +125,12 @@ public:
     {
       lay->addWidget(informations);
       std::size_t dev_idx = card_list->itemData(card_list->currentIndex()).toInt();
-      if(dev_idx < devices.size())
+      if (dev_idx < devices.size())
       {
         setInfos(devices[dev_idx]);
       }
     }
-    con(m, &Model::changed, this, [=, &m] {
-      setCard(card_list, m.getCardOut());
-    });
-
+    con(m, &Model::changed, this, [=, &m] { setCard(card_list, m.getCardOut()); });
   }
   void setCard(QComboBox* combo, QString val)
   {
@@ -155,22 +143,16 @@ public:
   }
 };
 
-ALSAFactory::ALSAFactory()
-{
-}
+ALSAFactory::ALSAFactory() { }
 
-ALSAFactory::~ALSAFactory()
-{
-
-}
+ALSAFactory::~ALSAFactory() { }
 
 void ALSAFactory::rescan()
 {
   devices.clear();
   PortAudioScope portaudio;
 
-  devices.push_back(
-      PortAudioCard{{}, {}, QObject::tr("No device"), -1, 0, 0, {}});
+  devices.push_back(PortAudioCard{{}, {}, QObject::tr("No device"), -1, 0, 0, {}});
   for (int i = 0; i < Pa_GetHostApiCount(); i++)
   {
     auto hostapi = Pa_GetHostApiInfo(i);
@@ -191,14 +173,15 @@ void ALSAFactory::rescan()
           pretty_name = tr("(Input) ") + pretty_name;
         }
 
-        devices.push_back(PortAudioCard{"ALSA",
-                                        raw_name,
-                                        pretty_name,
-                                        dev_idx,
-                                        dev->maxInputChannels,
-                                        dev->maxOutputChannels,
-                                        hostapi->type,
-                                        dev->defaultSampleRate});
+        devices.push_back(PortAudioCard{
+            "ALSA",
+            raw_name,
+            pretty_name,
+            dev_idx,
+            dev->maxInputChannels,
+            dev->maxOutputChannels,
+            hostapi->type,
+            dev->defaultSampleRate});
       }
     }
   }
@@ -209,9 +192,8 @@ QString ALSAFactory::prettyName() const
   return QObject::tr("ALSA");
 }
 
-std::unique_ptr<ossia::audio_engine> ALSAFactory::make_engine(
-    const Audio::Settings::Model& set,
-    const score::ApplicationContext& ctx)
+std::unique_ptr<ossia::audio_engine>
+ALSAFactory::make_engine(const Audio::Settings::Model& set, const score::ApplicationContext& ctx)
 {
   return std::make_unique<ossia::portaudio_engine>(
       "ossia score",
@@ -236,24 +218,13 @@ QWidget* ALSAFactory::make_settings(
 
 }
 
-
-
-
-
-
-
 namespace Audio
 {
 
 #if defined(OSSIA_AUDIO_PULSEAUDIO)
-PulseAudioFactory::PulseAudioFactory()
-{
-}
+PulseAudioFactory::PulseAudioFactory() { }
 
-PulseAudioFactory::~PulseAudioFactory()
-{
-
-}
+PulseAudioFactory::~PulseAudioFactory() { }
 
 QString PulseAudioFactory::prettyName() const
 {

@@ -23,17 +23,15 @@
 #include <Scenario/Document/TimeSync/TimeSyncView.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 
-
 namespace Loop
 {
-ViewUpdater::ViewUpdater(LayerPresenter& presenter) : m_presenter{presenter} {}
+ViewUpdater::ViewUpdater(LayerPresenter& presenter) : m_presenter{presenter} { }
 
 void ViewUpdater::updateEvent(const Scenario::EventPresenter& event)
 {
   event.view()->setExtent(extent());
 
-  event.view()->setPos({event.model().date().toPixels(m_presenter.m_zoomRatio),
-                        extent().top()});
+  event.view()->setPos({event.model().date().toPixels(m_presenter.m_zoomRatio), extent().top()});
 
   // We also have to move all the relevant states
   if (&event == m_presenter.m_startEventPresenter)
@@ -48,8 +46,7 @@ void ViewUpdater::updateEvent(const Scenario::EventPresenter& event)
   m_presenter.m_view->update();
 }
 
-void ViewUpdater::updateInterval(
-    const Scenario::TemporalIntervalPresenter& pres)
+void ViewUpdater::updateInterval(const Scenario::TemporalIntervalPresenter& pres)
 {
   auto msPerPixel = m_presenter.m_zoomRatio;
 
@@ -69,10 +66,8 @@ void ViewUpdater::updateInterval(
     cstr_view.setY(extent().top());
   }
 
-  cstr_view.setDefaultWidth(
-      cstr_model.duration.defaultDuration().toPixels(msPerPixel));
-  cstr_view.setMinWidth(
-      cstr_model.duration.minDuration().toPixels(msPerPixel));
+  cstr_view.setDefaultWidth(cstr_model.duration.defaultDuration().toPixels(msPerPixel));
+  cstr_view.setMinWidth(cstr_model.duration.minDuration().toPixels(msPerPixel));
   cstr_view.setMaxWidth(
       cstr_model.duration.isMaxInfinite(),
       cstr_model.duration.isMaxInfinite()
@@ -87,8 +82,7 @@ void ViewUpdater::updateTimeSync(const Scenario::TimeSyncPresenter& timesync)
   timesync.view()->setExtent(2. * extent());
 
   timesync.view()->setPos(
-      {timesync.model().date().toPixels(m_presenter.m_zoomRatio),
-       extent().top()});
+      {timesync.model().date().toPixels(m_presenter.m_zoomRatio), extent().top()});
 
   m_presenter.m_view->update();
 }
@@ -98,14 +92,12 @@ void ViewUpdater::updateState(const Scenario::StatePresenter& state)
   if (&state == m_presenter.m_startStatePresenter)
   {
     const auto& ev = m_presenter.model().startEvent();
-    state.view()->setPos(
-        {ev.date().toPixels(m_presenter.m_zoomRatio), extent().top()});
+    state.view()->setPos({ev.date().toPixels(m_presenter.m_zoomRatio), extent().top()});
   }
   else if (&state == m_presenter.m_endStatePresenter)
   {
     const auto& ev = m_presenter.model().endEvent();
-    state.view()->setPos(
-        {ev.date().toPixels(m_presenter.m_zoomRatio), extent().top()});
+    state.view()->setPos({ev.date().toPixels(m_presenter.m_zoomRatio), extent().top()});
   }
 
   m_presenter.m_view->update();

@@ -29,15 +29,13 @@ DataStreamSerializedComponents::DataStreamSerializedComponents(
     const Id<Component>& id,
     DataStreamComponents obj,
     QObject* parent)
-    : score::Component{id, "SerializedComponents", parent}
-    , data(std::move(obj))
+    : score::Component{id, "SerializedComponents", parent}, data(std::move(obj))
 {
   static_assert(is_identified_object<SerializableComponent>::value, "");
   static_assert(is_abstract_base<SerializableComponent>::value, "");
   static_assert(
-      std::is_same<
-          serialization_tag<SerializableComponent>::type,
-          visitor_abstract_object_tag>::value,
+      std::is_same<serialization_tag<SerializableComponent>::type, visitor_abstract_object_tag>::
+          value,
       "");
 }
 
@@ -45,18 +43,14 @@ JSONSerializedComponents::JSONSerializedComponents(
     const Id<Component>& id,
     JSONComponents obj,
     QObject* parent)
-    : score::Component{id, "SerializedComponents", parent}
-    , data(std::move(obj))
+    : score::Component{id, "SerializedComponents", parent}, data(std::move(obj))
 {
 }
 
-bool JSONSerializedComponents::deserializeRemaining(
-    Components& comps,
-    QObject* entity)
+bool JSONSerializedComponents::deserializeRemaining(Components& comps, QObject* entity)
 {
   auto& ctx = score::IDocument::documentContext(*entity);
-  auto& comp_factory
-      = ctx.app.interfaces<score::SerializableComponentFactoryList>();
+  auto& comp_factory = ctx.app.interfaces<score::SerializableComponentFactoryList>();
   for (auto it = data.begin(); it != data.end();)
   {
     JSONObject::Deserializer s{it->second};
@@ -75,13 +69,10 @@ bool JSONSerializedComponents::deserializeRemaining(
   return data.empty();
 }
 
-bool DataStreamSerializedComponents::deserializeRemaining(
-    Components& components,
-    QObject* entity)
+bool DataStreamSerializedComponents::deserializeRemaining(Components& components, QObject* entity)
 {
   auto& ctx = score::IDocument::documentContext(*entity);
-  auto& comp_factory
-      = ctx.app.interfaces<score::SerializableComponentFactoryList>();
+  auto& comp_factory = ctx.app.interfaces<score::SerializableComponentFactoryList>();
   for (auto it = data.begin(); it != data.end();)
   {
     DataStream::Deserializer s{it->second};
@@ -99,9 +90,9 @@ bool DataStreamSerializedComponents::deserializeRemaining(
   return data.empty();
 }
 
-SerializableComponentFactory::~SerializableComponentFactory() {}
+SerializableComponentFactory::~SerializableComponentFactory() { }
 
-SerializableComponentFactoryList::~SerializableComponentFactoryList() {}
+SerializableComponentFactoryList::~SerializableComponentFactoryList() { }
 
 score::SerializableComponent* SerializableComponentFactoryList::loadMissing(
     const VisitorVariant& vis,
@@ -140,14 +131,12 @@ void deserializeRemainingComponents(score::Components& comps, QObject* obj)
 #if defined(SCORE_SERIALIZABLE_COMPONENTS)
 template <>
 SCORE_LIB_BASE_EXPORT void
-DataStreamReader::read<score::SerializableComponent>(
-    const score::SerializableComponent&)
+DataStreamReader::read<score::SerializableComponent>(const score::SerializableComponent&)
 {
 }
 template <>
 SCORE_LIB_BASE_EXPORT void
-JSONReader::read<score::SerializableComponent>(
-    const score::SerializableComponent&)
+JSONReader::read<score::SerializableComponent>(const score::SerializableComponent&)
 {
 }
 #endif

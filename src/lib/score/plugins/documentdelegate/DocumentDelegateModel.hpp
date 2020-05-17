@@ -6,8 +6,7 @@ struct VisitorVariant;
 
 namespace score
 {
-class SCORE_LIB_BASE_EXPORT DocumentDelegateModel
-    : public IdentifiedObject<DocumentDelegateModel>
+class SCORE_LIB_BASE_EXPORT DocumentDelegateModel : public IdentifiedObject<DocumentDelegateModel>
 {
   W_OBJECT(DocumentDelegateModel)
 public:

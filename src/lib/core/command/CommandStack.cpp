@@ -205,7 +205,7 @@ void CommandStack::setSavedIndex(int index)
   }
 }
 
-CommandStackFacade::CommandStackFacade(CommandStack& stack) : m_stack{stack} {}
+CommandStackFacade::CommandStackFacade(CommandStack& stack) : m_stack{stack} { }
 
 const DocumentContext& CommandStackFacade::context() const
 {

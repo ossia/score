@@ -7,16 +7,16 @@
 #include <Explorer/DeviceLogging.hpp>
 #include <Protocols/OSCQuery/OSCQuerySpecificSettings.hpp>
 
-#include <ossia/network/local/local.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>
+#include <ossia/network/local/local.hpp>
 #include <ossia/network/oscquery/oscquery_mirror.hpp>
 #include <ossia/network/rate_limiting_protocol.hpp>
 
 #include <boost/algorithm/string.hpp>
 
-
 #include <QDebug>
+
 #include <asio/io_service.hpp>
 #include <asio/ip/basic_resolver.hpp>
 #include <asio/ip/tcp.hpp>
@@ -112,8 +112,7 @@ void OSCQueryDevice::disconnect()
 bool OSCQueryDevice::reconnect()
 {
   const auto& cur_settings = settings();
-  const auto& stgs
-      = cur_settings.deviceSpecificSettings.value<OSCQuerySpecificSettings>();
+  const auto& stgs = cur_settings.deviceSpecificSettings.value<OSCQuerySpecificSettings>();
 
   if (m_dev && m_mirror && m_oldSettings == cur_settings)
   {
@@ -175,17 +174,14 @@ void OSCQueryDevice::slot_command()
 void OSCQueryDevice::slot_createDevice()
 {
   const auto& cur_settings = settings();
-  const auto& stgs
-      = cur_settings.deviceSpecificSettings.value<OSCQuerySpecificSettings>();
+  const auto& stgs = cur_settings.deviceSpecificSettings.value<OSCQuerySpecificSettings>();
 
   try
   {
     std::unique_ptr<ossia::net::protocol_base> ossia_settings
-        = std::make_unique<ossia::oscquery::oscquery_mirror_protocol>(
-            stgs.host.toStdString());
+        = std::make_unique<ossia::oscquery::oscquery_mirror_protocol>(stgs.host.toStdString());
 
-    auto& p = static_cast<ossia::oscquery::oscquery_mirror_protocol&>(
-        *ossia_settings);
+    auto& p = static_cast<ossia::oscquery::oscquery_mirror_protocol&>(*ossia_settings);
     m_mirror = &p;
 
     if (stgs.rate)

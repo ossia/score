@@ -1,15 +1,15 @@
-#include <Audio/GenericPortAudioInterface.hpp>
+#include <score/tools/Bind.hpp>
 #include <score/widgets/SignalUtils.hpp>
+
 #include <QComboBox>
+#include <QDebug>
 #include <QFormLayout>
 #include <QWidget>
 
 #include <Audio/AudioInterface.hpp>
+#include <Audio/GenericPortAudioInterface.hpp>
 #include <Audio/Settings/Model.hpp>
 #include <Audio/Settings/View.hpp>
-#include <score/tools/Bind.hpp>
-#include <QDebug>
-
 
 namespace Audio
 {
@@ -24,9 +24,7 @@ PortAudioFactory::PortAudioFactory()
   rescan();
 }
 
-
-PortAudioFactory::~PortAudioFactory() {}
-
+PortAudioFactory::~PortAudioFactory() { }
 
 void PortAudioFactory::rescan()
 {
@@ -40,110 +38,109 @@ void PortAudioFactory::rescan()
     QString api_text;
     switch (hostapi->type)
     {
-    case PaHostApiTypeId::paInDevelopment:
-      continue;
-    case PaHostApiTypeId::paDirectSound:
-      api_text = "DirectSound";
-      break;
-    case PaHostApiTypeId::paMME:
-      api_text = "MME";
-      break;
-    case PaHostApiTypeId::paASIO:
-      api_text = "ASIO";
-      break;
-    case PaHostApiTypeId::paSoundManager:
-      api_text = "SoundManager";
-      break;
-    case PaHostApiTypeId::paCoreAudio:
-      api_text = "CoreAudio";
-      break;
-    case PaHostApiTypeId::paOSS:
-      api_text = "OSS";
-      break;
-    case PaHostApiTypeId::paALSA:
-      api_text = "ALSA";
-      break;
-    case PaHostApiTypeId::paAL:
-      api_text = "OpenAL";
-      break;
-    case PaHostApiTypeId::paBeOS:
-      api_text = "BeOS";
-      break;
-    case PaHostApiTypeId::paWDMKS:
-      api_text = "WDMKS";
-      break;
-    case PaHostApiTypeId::paJACK:
-      api_text = "Jack";
-      break;
-    case PaHostApiTypeId::paWASAPI:
-      api_text = "WASAPI";
-      break;
-    case PaHostApiTypeId::paAudioScienceHPI:
-      api_text = "HPI";
-      break;
+      case PaHostApiTypeId::paInDevelopment:
+        continue;
+      case PaHostApiTypeId::paDirectSound:
+        api_text = "DirectSound";
+        break;
+      case PaHostApiTypeId::paMME:
+        api_text = "MME";
+        break;
+      case PaHostApiTypeId::paASIO:
+        api_text = "ASIO";
+        break;
+      case PaHostApiTypeId::paSoundManager:
+        api_text = "SoundManager";
+        break;
+      case PaHostApiTypeId::paCoreAudio:
+        api_text = "CoreAudio";
+        break;
+      case PaHostApiTypeId::paOSS:
+        api_text = "OSS";
+        break;
+      case PaHostApiTypeId::paALSA:
+        api_text = "ALSA";
+        break;
+      case PaHostApiTypeId::paAL:
+        api_text = "OpenAL";
+        break;
+      case PaHostApiTypeId::paBeOS:
+        api_text = "BeOS";
+        break;
+      case PaHostApiTypeId::paWDMKS:
+        api_text = "WDMKS";
+        break;
+      case PaHostApiTypeId::paJACK:
+        api_text = "Jack";
+        break;
+      case PaHostApiTypeId::paWASAPI:
+        api_text = "WASAPI";
+        break;
+      case PaHostApiTypeId::paAudioScienceHPI:
+        api_text = "HPI";
+        break;
     }
 
-    devices.push_back(
-          PortAudioCard{{}, {}, QObject::tr("Disabled"), -1, 0, 0, {}});
+    devices.push_back(PortAudioCard{{}, {}, QObject::tr("Disabled"), -1, 0, 0, {}});
     for (int card = 0; card < hostapi->deviceCount; card++)
     {
       auto dev_idx = Pa_HostApiDeviceIndexToDeviceIndex(i, card);
       auto dev = Pa_GetDeviceInfo(dev_idx);
-      auto raw_name
-          = QString::fromLocal8Bit(Pa_GetDeviceInfo(dev_idx)->name);
+      auto raw_name = QString::fromLocal8Bit(Pa_GetDeviceInfo(dev_idx)->name);
 
-      devices.push_back(PortAudioCard{api_text,
-                                      raw_name,
-                                      "(" + api_text + ") " + raw_name,
-                                      dev_idx,
-                                      dev->maxInputChannels,
-                                      dev->maxOutputChannels,
-                                      hostapi->type,
-                                      dev->defaultSampleRate});
+      devices.push_back(PortAudioCard{
+          api_text,
+          raw_name,
+          "(" + api_text + ") " + raw_name,
+          dev_idx,
+          dev->maxInputChannels,
+          dev->maxOutputChannels,
+          hostapi->type,
+          dev->defaultSampleRate});
     }
   }
 }
 
-
-QString PortAudioFactory::prettyName() const { return QObject::tr("PortAudio"); }
-
-
-std::unique_ptr<ossia::audio_engine> PortAudioFactory::make_engine(const Settings::Model& set, const score::ApplicationContext& ctx)
+QString PortAudioFactory::prettyName() const
 {
-  return std::make_unique<ossia::portaudio_engine>(
-        "ossia score",
-        set.getCardIn().toStdString(),
-        set.getCardOut().toStdString(),
-        set.getDefaultIn(),
-        set.getDefaultOut(),
-        set.getRate(),
-        set.getBufferSize());
+  return QObject::tr("PortAudio");
 }
 
+std::unique_ptr<ossia::audio_engine>
+PortAudioFactory::make_engine(const Settings::Model& set, const score::ApplicationContext& ctx)
+{
+  return std::make_unique<ossia::portaudio_engine>(
+      "ossia score",
+      set.getCardIn().toStdString(),
+      set.getCardOut().toStdString(),
+      set.getDefaultIn(),
+      set.getDefaultOut(),
+      set.getRate(),
+      set.getBufferSize());
+}
 
 void PortAudioFactory::setCardIn(QComboBox* combo, QString val)
 {
-  auto dev_it = ossia::find_if(
-        devices, [&](const PortAudioCard& d) { return d.raw_name == val; });
+  auto dev_it = ossia::find_if(devices, [&](const PortAudioCard& d) { return d.raw_name == val; });
   if (dev_it != devices.end())
   {
     combo->setCurrentIndex(dev_it->in_index);
   }
 }
 
-
 void PortAudioFactory::setCardOut(QComboBox* combo, QString val)
 {
-  auto dev_it = ossia::find_if(
-        devices, [&](const PortAudioCard& d) { return d.raw_name == val; });
+  auto dev_it = ossia::find_if(devices, [&](const PortAudioCard& d) { return d.raw_name == val; });
   if (dev_it != devices.end())
   {
     combo->setCurrentIndex(dev_it->out_index);
   }
 }
 
-
-void PortAudioFactory::updateSampleRates(QComboBox* rate, const PortAudioCard& input, const PortAudioCard& output)
+void PortAudioFactory::updateSampleRates(
+    QComboBox* rate,
+    const PortAudioCard& input,
+    const PortAudioCard& output)
 {
   PortAudioScope scope;
   rate->clear();
@@ -162,8 +159,7 @@ void PortAudioFactory::updateSampleRates(QComboBox* rate, const PortAudioCard& i
     oParams.sampleFormat = paFloat32;
     oParams.suggestedLatency = 0.02;
 
-    if (auto err
-        = Pa_IsFormatSupported(nullptr, /*&iParams, */ &oParams, sr);
+    if (auto err = Pa_IsFormatSupported(nullptr, /*&iParams, */ &oParams, sr);
         err == paFormatIsSupported)
     {
       rate->addItem(QString::number(sr));
@@ -175,8 +171,11 @@ void PortAudioFactory::updateSampleRates(QComboBox* rate, const PortAudioCard& i
   }
 }
 
-
-QWidget* PortAudioFactory::make_settings(Settings::Model& m, Settings::View& v, score::SettingsCommandDispatcher& m_disp, QWidget* parent)
+QWidget* PortAudioFactory::make_settings(
+    Settings::Model& m,
+    Settings::View& v,
+    score::SettingsCommandDispatcher& m_disp,
+    QWidget* parent)
 {
   auto w = new QWidget{parent};
   auto lay = new QFormLayout{w};
@@ -190,8 +189,8 @@ QWidget* PortAudioFactory::make_settings(Settings::Model& m, Settings::View& v, 
 
   auto updateRates = [=] {
     updateSampleRates(
-          rate,
-          devices[card_in->itemData(card_in->currentIndex()).toInt()],
+        rate,
+        devices[card_in->itemData(card_in->currentIndex()).toInt()],
         devices[card_out->itemData(card_in->currentIndex()).toInt()]);
   };
 
@@ -225,24 +224,17 @@ QWidget* PortAudioFactory::make_settings(Settings::Model& m, Settings::View& v, 
     auto update_dev = [=, &m, &m_disp](const PortAudioCard& dev) {
       if (dev.raw_name != m.getCardIn())
       {
-        m_disp.submitDeferredCommand<Audio::Settings::SetModelCardIn>(
-              m, dev.raw_name);
-        m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultIn>(
-              m, dev.inputChan);
+        m_disp.submitDeferredCommand<Audio::Settings::SetModelCardIn>(m, dev.raw_name);
+        m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultIn>(m, dev.inputChan);
         if (dev.hostapi != PaHostApiTypeId::paMME)
         {
-          if (dev.out_index != -1
-              && dev.out_index != card_out->currentIndex())
+          if (dev.out_index != -1 && dev.out_index != card_out->currentIndex())
             card_out->setCurrentIndex(dev.out_index);
         }
       }
     };
 
-    QObject::connect(
-          card_in,
-          SignalUtils::QComboBox_currentIndexChanged_int(),
-          &v,
-          [=](int i) {
+    QObject::connect(card_in, SignalUtils::QComboBox_currentIndexChanged_int(), &v, [=](int i) {
       update_dev(devices[card_in->itemData(i).toInt()]);
       updateRates();
     });
@@ -274,10 +266,8 @@ QWidget* PortAudioFactory::make_settings(Settings::Model& m, Settings::View& v, 
     auto update_dev = [=, &m, &m_disp](const PortAudioCard& dev) {
       if (dev.raw_name != m.getCardOut())
       {
-        m_disp.submitDeferredCommand<Audio::Settings::SetModelCardOut>(
-              m, dev.raw_name);
-        m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultOut>(
-              m, dev.outputChan);
+        m_disp.submitDeferredCommand<Audio::Settings::SetModelCardOut>(m, dev.raw_name);
+        m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultOut>(m, dev.outputChan);
         if (dev.hostapi != PaHostApiTypeId::paMME)
         {
           if (dev.in_index != -1 && dev.in_index != card_in->currentIndex())
@@ -286,11 +276,7 @@ QWidget* PortAudioFactory::make_settings(Settings::Model& m, Settings::View& v, 
       }
     };
 
-    QObject::connect(
-          card_out,
-          SignalUtils::QComboBox_currentIndexChanged_int(),
-          &v,
-          [=](int i) {
+    QObject::connect(card_out, SignalUtils::QComboBox_currentIndexChanged_int(), &v, [=](int i) {
       update_dev(devices[card_out->itemData(i).toInt()]);
       updateRates();
     });

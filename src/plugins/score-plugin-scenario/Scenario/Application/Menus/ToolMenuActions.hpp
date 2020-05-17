@@ -4,7 +4,6 @@
 #include <score/actions/Menu.hpp>
 #include <score/selection/Selection.hpp>
 
-
 namespace score
 {
 struct GUIElements;

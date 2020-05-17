@@ -9,11 +9,9 @@
 #include <score/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
-
-#include <verdigris>
-
 #include <utility>
 #include <vector>
+#include <verdigris>
 /**
  * \namespace Curve
  * \brief Utilities and base classes for 1D curves.
@@ -49,11 +47,9 @@ private:
       const score::ApplicationContext& ctx,
       const score::InterfaceKey& factoryName) const override;
 
-  std::vector<std::unique_ptr<score::InterfaceListBase>>
-  factoryFamilies() override;
+  std::vector<std::unique_ptr<score::InterfaceListBase>> factoryFamilies() override;
 
-  std::pair<const CommandGroupKey, CommandGeneratorMap>
-  make_commands() override;
+  std::pair<const CommandGroupKey, CommandGeneratorMap> make_commands() override;
 
   score::GUIApplicationPlugin*
   make_guiApplicationPlugin(const score::GUIApplicationContext& app) override;

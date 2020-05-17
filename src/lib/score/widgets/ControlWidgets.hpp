@@ -45,6 +45,7 @@ public:
   double speed() const noexcept;
   void setSpeed(double);
   void setTempo(double);
+
 protected:
   using score::DoubleSlider::setValue;
   using score::DoubleSlider::value;
@@ -93,8 +94,7 @@ struct SCORE_LIB_BASE_EXPORT ComboSlider : public score::IntSlider
 
 public:
   template <std::size_t N>
-  ComboSlider(const std::array<const char*, N>& arr, QWidget* parent)
-      : score::IntSlider{parent}
+  ComboSlider(const std::array<const char*, N>& arr, QWidget* parent) : score::IntSlider{parent}
   {
     array.reserve(N);
     for (auto str : arr)

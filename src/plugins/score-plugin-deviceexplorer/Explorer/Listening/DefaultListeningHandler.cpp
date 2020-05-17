@@ -6,7 +6,7 @@
 
 namespace Explorer
 {
-DefaultListeningHandler::DefaultListeningHandler() {}
+DefaultListeningHandler::DefaultListeningHandler() { }
 
 void DefaultListeningHandler::setListening(
     Device::DeviceInterface& dev,

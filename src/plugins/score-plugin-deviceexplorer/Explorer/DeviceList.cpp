@@ -15,11 +15,9 @@ W_OBJECT_IMPL(Device::DeviceList)
 namespace Device
 {
 template <typename TheList>
-static auto
-get_device_iterator_by_name(const QString& name, const TheList& devlist)
+static auto get_device_iterator_by_name(const QString& name, const TheList& devlist)
 {
-  return ossia::find_if(
-      devlist, [&](DeviceInterface* d) { return d->settings().name == name; });
+  return ossia::find_if(devlist, [&](DeviceInterface* d) { return d->settings().name == name; });
 }
 
 DeviceInterface& DeviceList::device(const QString& name) const
@@ -63,8 +61,7 @@ void DeviceList::addDevice(DeviceInterface* dev)
   else if (
       dev->settings().protocol
       == UuidKey<Device::ProtocolFactory>{
-             score::uuids::string_generator::compute(
-                 "2835e6da-9b55-4029-9802-e1c817acbdc1")})
+          score::uuids::string_generator::compute("2835e6da-9b55-4029-9802-e1c817acbdc1")})
   {
     // FIXME
     // TODO dirty hack

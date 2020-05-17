@@ -14,11 +14,11 @@ MergerComponent::MergerComponent(
     const Id<score::Component>& id,
     QObject* parent)
     : Execution::ProcessComponent_T<Media::Merger::Model, ossia::node_process>{
-          element,
-          ctx,
-          id,
-          "Executor::MergerComponent",
-          parent}
+        element,
+        ctx,
+        id,
+        "Executor::MergerComponent",
+        parent}
 {
   auto node = std::make_shared<ossia::nodes::merger>(element.inCount());
   this->node = node;
@@ -27,7 +27,7 @@ MergerComponent::MergerComponent(
   // TODO change num of ins dynamically
 }
 
-void MergerComponent::recompute() {}
+void MergerComponent::recompute() { }
 
-MergerComponent::~MergerComponent() {}
+MergerComponent::~MergerComponent() { }
 }

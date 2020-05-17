@@ -45,12 +45,8 @@ class MessageListProxy final : public QAbstractProxyModel
 
 public:
   using QAbstractProxyModel::QAbstractProxyModel;
-  MessageItemModel* source() const
-  {
-    return static_cast<MessageItemModel*>(sourceModel());
-  }
-  QModelIndex
-  index(int row, int column, const QModelIndex& parent) const override
+  MessageItemModel* source() const { return static_cast<MessageItemModel*>(sourceModel()); }
+  QModelIndex index(int row, int column, const QModelIndex& parent) const override
   {
     if (parent == QModelIndex{})
     {
@@ -71,8 +67,7 @@ public:
 
   QModelIndex parent(const QModelIndex& child) const override { return {}; }
 
-  QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole)
-      const override
+  QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const override
   {
     auto ptr = proxyIndex.internalPointer();
     if (!ptr)
@@ -136,8 +131,7 @@ public:
     return createIndex(row, sourceIndex.column(), idx);
   }
 
-  QVariant
-  headerData(int section, Qt::Orientation orientation, int role) const override
+  QVariant headerData(int section, Qt::Orientation orientation, int role) const override
   {
     if (orientation == Qt::Vertical)
       return {};
@@ -153,11 +147,8 @@ StateInspectorWidget::StateInspectorWidget(
     const StateModel& object,
     const score::DocumentContext& doc,
     QWidget* parent)
-    : Inspector::InspectorWidgetBase{object,
-                                     doc,
-                                     parent,
-                                     tr("State (%1)")
-                                         .arg(object.metadata().getName())}
+    : Inspector::
+        InspectorWidgetBase{object, doc, parent, tr("State (%1)").arg(object.metadata().getName())}
     , m_model{object}
     , m_context{doc}
     , m_commandDispatcher{m_context.commandStack}
@@ -165,8 +156,7 @@ StateInspectorWidget::StateInspectorWidget(
   setObjectName("StateInspectorWidget");
   setParent(parent);
 
-  auto metadata = new MetadataWidget{
-      m_model.metadata(), m_context.commandStack, &m_model, this};
+  auto metadata = new MetadataWidget{m_model.metadata(), m_context.commandStack, &m_model, this};
   metadata->setupConnections(m_model);
   addHeader(metadata);
 
@@ -177,49 +167,43 @@ StateInspectorWidget::StateInspectorWidget(
   // State setup
   {
     auto splitEvent = new QToolButton;
-    splitEvent->setIcon(makeIcons(QStringLiteral(":/icons/split_condition_on.png")
-                                  , QStringLiteral(":/icons/split_condition_off.png")
-                                  , QStringLiteral(":/icons/split_condition_off.png")));
+    splitEvent->setIcon(makeIcons(
+        QStringLiteral(":/icons/split_condition_on.png"),
+        QStringLiteral(":/icons/split_condition_off.png"),
+        QStringLiteral(":/icons/split_condition_off.png")));
     splitEvent->setToolTip(tr("Split condition"));
     splitEvent->setStatusTip(tr("Split condition"));
 
     splitEvent->setAutoRaise(true);
-    splitEvent->setIconSize(QSize{32,32});
+    splitEvent->setIconSize(QSize{32, 32});
     m_btnLayout.addWidget(splitEvent);
-    connect(
-        splitEvent,
-        &QPushButton::clicked,
-        this,
-        &StateInspectorWidget::splitFromEvent);
+    connect(splitEvent, &QPushButton::clicked, this, &StateInspectorWidget::splitFromEvent);
   }
 
   {
     auto desynchronize = new QToolButton;
-    desynchronize->setIcon(makeIcons(QStringLiteral(":/icons/desynchronize_on.png")
-                                     , QStringLiteral(":/icons/desynchronize_off.png")
-                                     , QStringLiteral(":/icons/desynchronize_off.png")));
+    desynchronize->setIcon(makeIcons(
+        QStringLiteral(":/icons/desynchronize_on.png"),
+        QStringLiteral(":/icons/desynchronize_off.png"),
+        QStringLiteral(":/icons/desynchronize_off.png")));
     desynchronize->setToolTip(tr("Desynchronize"));
     desynchronize->setStatusTip(tr("Desynchronize"));
 
     desynchronize->setAutoRaise(true);
-    desynchronize->setIconSize(QSize{32,32});
+    desynchronize->setIconSize(QSize{32, 32});
 
     m_btnLayout.addWidget(desynchronize);
 
-    connect(
-        desynchronize,
-        &QPushButton::clicked,
-        this,
-        &StateInspectorWidget::splitFromNode);
+    connect(desynchronize, &QPushButton::clicked, this, &StateInspectorWidget::splitFromNode);
   }
   {
-    QWidget *spacerWidget = new QWidget(this);
-    spacerWidget->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
+    QWidget* spacerWidget = new QWidget(this);
+    spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     spacerWidget->setVisible(true);
     m_btnLayout.addWidget(spacerWidget);
   }
 
-  m_btnLayout.layout()->setContentsMargins(0,0,0,0);
+  m_btnLayout.layout()->setContentsMargins(0, 0, 0, 0);
 
   auto btns = new QWidget(this);
   btns->setLayout(&m_btnLayout);
@@ -232,8 +216,7 @@ StateInspectorWidget::StateInspectorWidget(
     auto lv = new QTableView{this};
     lv->verticalHeader()->hide();
     lv->horizontalHeader()->setCascadingSectionResizes(true);
-    lv->horizontalHeader()->setSectionResizeMode(
-        QHeaderView::ResizeToContents);
+    lv->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     lv->horizontalHeader()->setStretchLastSection(true);
     lv->setAlternatingRowColors(true);
     lv->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
@@ -266,8 +249,7 @@ StateInspectorWidget::StateInspectorWidget(
     auto lv = new QTableView;
     lv->verticalHeader()->hide();
     lv->horizontalHeader()->setCascadingSectionResizes(true);
-    lv->horizontalHeader()->setSectionResizeMode(
-        QHeaderView::ResizeToContents);
+    lv->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     lv->horizontalHeader()->setStretchLastSection(true);
     lv->setAlternatingRowColors(true);
     lv->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
@@ -288,8 +270,7 @@ void StateInspectorWidget::splitFromEvent()
     auto& parentEvent = scenar->events.at(m_model.eventId());
     if (parentEvent.states().size() > 1)
     {
-      auto cmd = new Scenario::Command::SplitEvent{
-          *scenar, m_model.eventId(), {m_model.id()}};
+      auto cmd = new Scenario::Command::SplitEvent{*scenar, m_model.eventId(), {m_model.id()}};
 
       m_commandDispatcher.submit(cmd);
     }
@@ -305,11 +286,9 @@ void StateInspectorWidget::splitFromNode()
     auto& tn = Scenario::parentTimeSync(m_model, *scenar);
     if (ev.states().size() > 1)
     {
-      MacroCommandDispatcher<Command::SplitStateMacro> disp{
-          m_commandDispatcher.stack()};
+      MacroCommandDispatcher<Command::SplitStateMacro> disp{m_commandDispatcher.stack()};
 
-      auto cmd = new Scenario::Command::SplitEvent{
-          *scenar, m_model.eventId(), {m_model.id()}};
+      auto cmd = new Scenario::Command::SplitEvent{*scenar, m_model.eventId(), {m_model.id()}};
       disp.submit(cmd);
       auto cmd2 = new Scenario::Command::SplitTimeSync{tn, {cmd->newEvent()}};
       disp.submit(cmd2);
@@ -319,8 +298,7 @@ void StateInspectorWidget::splitFromNode()
     {
       if (tn.events().size() > 1)
       {
-        auto cmd
-            = new Scenario::Command::SplitTimeSync{tn, {m_model.eventId()}};
+        auto cmd = new Scenario::Command::SplitTimeSync{tn, {m_model.eventId()}};
         m_commandDispatcher.submit(cmd);
       }
     }

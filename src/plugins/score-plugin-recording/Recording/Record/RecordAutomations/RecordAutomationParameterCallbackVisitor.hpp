@@ -15,17 +15,12 @@ namespace Recording
  */
 struct ParameterPolicy
 {
-  void operator()(
-      const RecordData& proc,
-      const TimeVal& msecs,
-      double msec,
-      float val)
+  void operator()(const RecordData& proc, const TimeVal& msecs, double msec, float val)
   {
     auto last = proc.segment.points().rbegin();
     proc.segment.addPoint(msec - 1, last->second);
     proc.segment.addPoint(msec, val);
-    static_cast<Automation::ProcessModel*>(proc.curveModel.parent())
-        ->setDuration(msecs);
+    static_cast<Automation::ProcessModel*>(proc.curveModel.parent())->setDuration(msecs);
   }
 };
 
@@ -39,15 +34,10 @@ struct ParameterPolicy
  */
 struct MessagePolicy
 {
-  void operator()(
-      const RecordData& proc,
-      const TimeVal& msecs,
-      double msec,
-      float val)
+  void operator()(const RecordData& proc, const TimeVal& msecs, double msec, float val)
   {
     proc.segment.addPoint(msec, val);
-    static_cast<Automation::ProcessModel*>(proc.curveModel.parent())
-        ->setDuration(msecs);
+    static_cast<Automation::ProcessModel*>(proc.curveModel.parent())->setDuration(msecs);
   }
 };
 

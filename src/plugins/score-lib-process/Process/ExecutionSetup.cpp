@@ -8,8 +8,8 @@
 
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
-#include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/graph_edge.hpp>
+#include <ossia/dataflow/graph_node.hpp>
 #include <ossia/editor/state/destination_qualifiers.hpp>
 
 namespace Execution
@@ -17,35 +17,26 @@ namespace Execution
 
 static auto enqueue_in_context(SetupContext& self) noexcept
 {
-  return [&self](auto&& f) {
-    self.context.executionQueue.enqueue(std::move(f));
-  };
+  return [&self](auto&& f) { self.context.executionQueue.enqueue(std::move(f)); };
 }
 
 static auto enqueue_in_vector(Transaction& vec) noexcept
 {
-  return [&vec](auto&& f) {
-    vec.push_back(std::move(f));
-  };
+  return [&vec](auto&& f) { vec.push_back(std::move(f)); };
 }
 
-ossia::net::node_base*
-findNode(const ossia::execution_state& st, const State::Address& addr)
+ossia::net::node_base* findNode(const ossia::execution_state& st, const State::Address& addr)
 {
   auto& devs = st.edit_devices();
-  auto dev_p
-      = ossia::find_if(devs, [d = addr.device.toStdString()](auto& dev) {
-          return dev->get_name() == d;
-        });
+  auto dev_p = ossia::find_if(
+      devs, [d = addr.device.toStdString()](auto& dev) { return dev->get_name() == d; });
   if (dev_p == devs.end())
     return nullptr;
-  return ossia::net::find_node(
-      (*dev_p)->get_root_node(), addr.path.join("/").toStdString());
+  return ossia::net::find_node((*dev_p)->get_root_node(), addr.path.join("/").toStdString());
 }
 
-optional<ossia::destination> makeDestination(
-    const ossia::execution_state& devices,
-    const State::AddressAccessor& addr)
+optional<ossia::destination>
+makeDestination(const ossia::execution_state& devices, const State::AddressAccessor& addr)
 {
   auto n = findNode(devices, addr.address);
   if (!n)
@@ -72,9 +63,7 @@ void SetupContext::on_cableRemoved(const Process::Cable& c)
   if (it != m_cables.end())
   {
     context.executionQueue.enqueue(
-        [cable = it->second, graph = context.execGraph] {
-          graph->disconnect(cable);
-        });
+        [cable = it->second, graph = context.execGraph] { graph->disconnect(cable); });
   }
 }
 
@@ -152,9 +141,8 @@ void SetupContext::connectCable(Process::Cable& cable)
     }
 
     m_cables[cable.id()] = edge;
-    context.executionQueue.enqueue([edge, graph = context.execGraph] () mutable {
-      graph->connect(std::move(edge));
-    });
+    context.executionQueue.enqueue(
+        [edge, graph = context.execGraph]() mutable { graph->connect(std::move(edge)); });
   }
 }
 
@@ -172,12 +160,12 @@ void SetupContext::register_inlet_impl(
   auto& con = runtime_connection[proc_port.id()];
   QObject::disconnect(con);
   con = connect(
-          &proc_port,
-          &Process::Port::addressChanged,
-          this,
-          [this, ossia_port](const State::AddressAccessor& address) {
-    set_destination(address, ossia_port);
-  });
+      &proc_port,
+      &Process::Port::addressChanged,
+      this,
+      [this, ossia_port](const State::AddressAccessor& address) {
+        set_destination(address, ossia_port);
+      });
   set_destination_impl(context, proc_port.address(), ossia_port, impl);
 
   inlets.insert({&proc_port, std::make_pair(node, ossia_port)});
@@ -227,7 +215,6 @@ void SetupContext::register_node_impl(
   }
 }
 
-
 void SetupContext::register_node(
     const Process::ProcessModel& proc,
     const std::shared_ptr<ossia::graph_node>& node)
@@ -271,13 +258,13 @@ void set_destination_impl(
 {
   auto& s = plug.execState;
   auto& g = plug.execGraph;
-  if(!g)
+  if (!g)
     return;
 
   if (address.address.device.isEmpty())
   {
     append([=] {
-      if(port->address)
+      if (port->address)
       {
         s->unregister_port(*port);
         port->address = {};
@@ -321,8 +308,8 @@ void set_destination_impl(
       });
     }
   }
-  else if(auto ad = address.address.toString_unsafe().toStdString();
-          ossia::traversal::is_pattern(ad))
+  else if (auto ad = address.address.toString_unsafe().toStdString();
+           ossia::traversal::is_pattern(ad))
   {
     // OPTIMIZEME
     auto path = ossia::traversal::make_path(ad);
@@ -331,8 +318,7 @@ void set_destination_impl(
       append([=, p = *path]() mutable {
         s->unregister_port(*port);
         port->address = std::move(p);
-        if (ossia::value_port* dat
-            = port->template target<ossia::value_port>())
+        if (ossia::value_port* dat = port->template target<ossia::value_port>())
         {
           dat->type = {};
           dat->index.clear();
@@ -346,8 +332,7 @@ void set_destination_impl(
       append([=] {
         s->unregister_port(*port);
         port->address = {};
-        if (ossia::value_port* dat
-            = port->template target<ossia::value_port>())
+        if (ossia::value_port* dat = port->template target<ossia::value_port>())
         {
           dat->type = {};
           dat->index.clear();
@@ -435,17 +420,17 @@ void SetupContext::register_outlet_impl(
   auto& con = runtime_connection[proc_port.id()];
   QObject::disconnect(con);
   con = connect(
-          &proc_port,
-          &Process::Port::addressChanged,
-          this,
-          [this, ossia_port](const State::AddressAccessor& address) {
-    set_destination(address, ossia_port);
-  });
+      &proc_port,
+      &Process::Port::addressChanged,
+      this,
+      [this, ossia_port](const State::AddressAccessor& address) {
+        set_destination(address, ossia_port);
+      });
   set_destination_impl(context, proc_port.address(), ossia_port, impl);
 
   outlets.insert({&proc_port, std::make_pair(node, ossia_port)});
 
-  proc_port.mapExecution(*ossia_port, [&] (Process::Inlet& model_inl, ossia::inlet& ossia_inl) {
+  proc_port.mapExecution(*ossia_port, [&](Process::Inlet& model_inl, ossia::inlet& ossia_inl) {
     register_inlet_impl(model_inl, &ossia_inl, node, impl);
   });
 
@@ -467,17 +452,17 @@ void SetupContext::unregister_inlet(
   {
     auto& runtime_connection = runtime_connections[node];
     auto it = runtime_connection.find(proc_port.id());
-    if(it != runtime_connection.end())
+    if (it != runtime_connection.end())
     {
       QObject::disconnect(it->second);
       runtime_connection.erase(it);
     }
 
     auto ossia_port_it = inlets.find(const_cast<Process::Inlet*>(&proc_port));
-    if(ossia_port_it != inlets.end())
+    if (ossia_port_it != inlets.end())
     {
       std::weak_ptr<ossia::execution_state> ws = context.execState;
-      context.executionQueue.enqueue([ws, ossia_port=ossia_port_it.value().second] {
+      context.executionQueue.enqueue([ws, ossia_port = ossia_port_it.value().second] {
         if (auto state = ws.lock())
           state->unregister_port(*ossia_port);
       });
@@ -499,15 +484,14 @@ void SetupContext::unregister_outlet(
   {
     auto& runtime_connection = runtime_connections[node];
     auto it = runtime_connection.find(proc_port.id());
-    if(it != runtime_connection.end())
+    if (it != runtime_connection.end())
     {
       QObject::disconnect(it->second);
       runtime_connection.erase(it);
     }
 
-    proc_port.forChildInlets([&] (Process::Inlet& model_inl) {
-      unregister_inlet(model_inl, node);
-    });
+    proc_port.forChildInlets(
+        [&](Process::Inlet& model_inl) { unregister_inlet(model_inl, node); });
   }
 
   outlets.erase(const_cast<Process::Outlet*>(&proc_port));
@@ -522,17 +506,17 @@ void SetupContext::unregister_inlet(
   {
     auto& runtime_connection = runtime_connections[node];
     auto it = runtime_connection.find(proc_port.id());
-    if(it != runtime_connection.end())
+    if (it != runtime_connection.end())
     {
       QObject::disconnect(it->second);
       runtime_connection.erase(it);
     }
 
     auto ossia_port_it = inlets.find(const_cast<Process::Inlet*>(&proc_port));
-    if(ossia_port_it != inlets.end())
+    if (ossia_port_it != inlets.end())
     {
       std::weak_ptr<ossia::execution_state> ws = context.execState;
-      commands.push_back([ws, ossia_port=ossia_port_it.value().second] {
+      commands.push_back([ws, ossia_port = ossia_port_it.value().second] {
         if (auto state = ws.lock())
           state->unregister_port(*ossia_port);
       });
@@ -555,15 +539,14 @@ void SetupContext::unregister_outlet(
   {
     auto& runtime_connection = runtime_connections[node];
     auto it = runtime_connection.find(proc_port.id());
-    if(it != runtime_connection.end())
+    if (it != runtime_connection.end())
     {
       QObject::disconnect(it->second);
       runtime_connection.erase(it);
     }
 
-    proc_port.forChildInlets([&] (Process::Inlet& model_inl) {
-      unregister_inlet(model_inl, node);
-    });
+    proc_port.forChildInlets(
+        [&](Process::Inlet& model_inl) { unregister_inlet(model_inl, node); });
   }
 
   outlets.erase(const_cast<Process::Outlet*>(&proc_port));

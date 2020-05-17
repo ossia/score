@@ -7,26 +7,24 @@
 #include <Media/Commands/VSTCommands.hpp>
 #include <Media/Effect/VST/VSTControl.hpp>
 #include <Media/Effect/VST/VSTWidgets.hpp>
+#include <Process/Dataflow/PortListWidget.hpp>
 #include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <score/widgets/MarginLess.hpp>
-#include <score/widgets/TextLabel.hpp>
-#include <Process/Dataflow/PortListWidget.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/widgets/MarginLess.hpp>
+#include <score/widgets/TextLabel.hpp>
 
 #include <QMenu>
-
 #include <QToolButton>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::VST::VSTControlInlet)
 namespace Media::VST
 {
 
-void VSTControlPortItem::setupMenu(
-    QMenu& menu,
-    const score::DocumentContext& ctx)
+void VSTControlPortItem::setupMenu(QMenu& menu, const score::DocumentContext& ctx)
 {
   auto rm_act = menu.addAction(QObject::tr("Remove port"));
   connect(rm_act, &QAction::triggered, this, [this, &ctx] {
@@ -46,12 +44,10 @@ bool VSTControlPortItem::on_createAutomation(
       cst, Metadata<ConcreteKey_k, Automation::ProcessModel>::get(), {}, {}};
   macro(make_cmd);
 
-  auto lay_cmd
-      = new Scenario::Command::AddLayerInNewSlot{cst, make_cmd->processId()};
+  auto lay_cmd = new Scenario::Command::AddLayerInNewSlot{cst, make_cmd->processId()};
   macro(lay_cmd);
 
-  auto& autom = safe_cast<Automation::ProcessModel&>(
-      cst.processes.at(make_cmd->processId()));
+  auto& autom = safe_cast<Automation::ProcessModel&>(cst.processes.at(make_cmd->processId()));
   macro(new Automation::SetMin{autom, 0.});
   macro(new Automation::SetMax{autom, 1.});
 
@@ -61,20 +57,18 @@ bool VSTControlPortItem::on_createAutomation(
   cd.source = *autom.outlet;
   cd.sink = port();
 
-  macro(new Dataflow::CreateCable{
-      plug, getStrongId(plug.cables), std::move(cd)});
+  macro(new Dataflow::CreateCable{plug, getStrongId(plug.cables), std::move(cd)});
   return true;
 }
 
-VSTControlPortFactory::~VSTControlPortFactory() {}
+VSTControlPortFactory::~VSTControlPortFactory() { }
 
 UuidKey<Process::Port> VSTControlPortFactory::concreteKey() const noexcept
 {
   return Metadata<ConcreteKey_k, VSTControlInlet>::get();
 }
 
-Process::Port*
-VSTControlPortFactory::load(const VisitorVariant& vis, QObject* parent)
+Process::Port* VSTControlPortFactory::load(const VisitorVariant& vis, QObject* parent)
 {
   return score::deserialize_dyn(vis, [&](auto&& deserializer) {
     return new VSTControlInlet{deserializer, parent};
@@ -102,11 +96,11 @@ Dataflow::PortItem* VSTControlPortFactory::makeItem(
 }
 
 static void setupVSTControl(
-      const VSTControlInlet& inlet,
-      QWidget* inlet_widget,
-      const score::DocumentContext& ctx,
-      Inspector::Layout& vlay,
-      QWidget* parent)
+    const VSTControlInlet& inlet,
+    QWidget* inlet_widget,
+    const score::DocumentContext& ctx,
+    Inspector::Layout& vlay,
+    QWidget* parent)
 {
   // TODO refactor with PortWidgetSetup::setupControl
   auto widg = new QWidget;
@@ -126,9 +120,7 @@ static void setupVSTControl(
   Process::PortWidgetSetup::setupInLayout(inlet, ctx, *lay, sw);
   hl2->addLayout(lay);
 
-  QObject::connect(advBtn, &QToolButton::clicked, sw, [=] {
-    sw->setVisible(!sw->isVisible());
-  });
+  QObject::connect(advBtn, &QToolButton::clicked, sw, [=] { sw->setVisible(!sw->isVisible()); });
   sw->setVisible(false);
 
   vlay.addRow(widg, inlet_widget);
@@ -136,11 +128,11 @@ static void setupVSTControl(
 }
 
 void VSTControlPortFactory::setupInletInspector(
-      Process::Inlet& port,
-      const score::DocumentContext& ctx,
-      QWidget* parent,
-      Inspector::Layout& lay,
-      QObject* context)
+    Process::Inlet& port,
+    const score::DocumentContext& ctx,
+    QWidget* parent,
+    Inspector::Layout& lay,
+    QObject* context)
 {
   auto& inl = safe_cast<VSTControlInlet&>(port);
   auto proc = safe_cast<VSTEffectModel*>(port.parent());

@@ -10,14 +10,12 @@
 
 namespace Explorer
 {
-Device::DeviceInterface&
-ListeningManager::deviceFromProxyModelIndex(const QModelIndex& idx)
+Device::DeviceInterface& ListeningManager::deviceFromProxyModelIndex(const QModelIndex& idx)
 {
   return deviceFromNode(nodeFromProxyModelIndex(idx));
 }
 
-Device::DeviceInterface&
-ListeningManager::deviceFromModelIndex(const QModelIndex& idx)
+Device::DeviceInterface& ListeningManager::deviceFromModelIndex(const QModelIndex& idx)
 {
   return deviceFromNode(m_model.nodeFromModelIndex(idx));
 }
@@ -32,23 +30,12 @@ Device::Node& ListeningManager::nodeFromModelIndex(const QModelIndex& idx)
   return m_model.nodeFromModelIndex(idx);
 }
 
-ListeningManager::ListeningManager(
-    DeviceExplorerModel& model,
-    const DeviceExplorerWidget& widg)
-    : m_model{model}
-    , m_widget{widg}
-    , m_handler{m_model.deviceModel().listening()}
+ListeningManager::ListeningManager(DeviceExplorerModel& model, const DeviceExplorerWidget& widg)
+    : m_model{model}, m_widget{widg}, m_handler{m_model.deviceModel().listening()}
 {
+  connect(&m_handler, &ListeningHandler::stop, this, &ListeningManager::stopListening);
   connect(
-      &m_handler,
-      &ListeningHandler::stop,
-      this,
-      &ListeningManager::stopListening);
-  connect(
-      &m_handler,
-      &ListeningHandler::restore,
-      this,
-      &ListeningManager::setDeviceWidgetListening);
+      &m_handler, &ListeningHandler::restore, this, &ListeningManager::setDeviceWidgetListening);
 }
 
 void ListeningManager::enableListening(Device::Node& node)
@@ -103,8 +90,7 @@ void ListeningManager::enableListening_rec(
   }
 }
 
-Device::DeviceInterface&
-ListeningManager::deviceFromNode(const Device::Node& node)
+Device::DeviceInterface& ListeningManager::deviceFromNode(const Device::Node& node)
 {
   auto& list = m_model.deviceModel().list();
   if (node.is<Device::AddressSettings>())

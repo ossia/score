@@ -1,7 +1,8 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Patternist/PatternModel.hpp>
 #include <Process/Dataflow/Port.hpp>
+
+#include <Patternist/PatternModel.hpp>
 #include <cmath>
 #include <wobjectimpl.h>
 
@@ -13,35 +14,29 @@ ProcessModel::ProcessModel(
     const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : Process::ProcessModel{duration,
-                            id,
-                            Metadata<ObjectKey_k, ProcessModel>::get(),
-                            parent}
+    : Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , outlet{Process::make_midi_outlet(Id<Process::Port>(0), this)}
 {
   Pattern pattern;
   pattern.length = 4;
-  pattern.lanes.push_back(Lane{
-                            {1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0},
-                            64
-                          });
-  pattern.lanes.push_back(Lane{
-                            {0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0},
-                            32
-                          });
+  pattern.lanes.push_back(Lane{{1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0}, 64});
+  pattern.lanes.push_back(Lane{{0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0}, 32});
   m_patterns.push_back(pattern);
   metadata().setInstanceName(*this);
   init();
 }
 
-void ProcessModel::init() { m_outlets.push_back(outlet.get()); }
+void ProcessModel::init()
+{
+  m_outlets.push_back(outlet.get());
+}
 
-ProcessModel::~ProcessModel() {}
+ProcessModel::~ProcessModel() { }
 
 void ProcessModel::setChannel(int n)
 {
   n = std::clamp(n, 1, 16);
-  if(n != m_channel)
+  if (n != m_channel)
   {
     m_channel = n;
     channelChanged(n);
@@ -56,7 +51,7 @@ int ProcessModel::channel() const noexcept
 void ProcessModel::setCurrentPattern(int n)
 {
   n = std::clamp(n, 0, (int)m_patterns.size());
-  if(n != m_currentPattern)
+  if (n != m_currentPattern)
   {
     m_currentPattern = n;
     currentPatternChanged(n);
@@ -74,10 +69,9 @@ void ProcessModel::setPattern(int n, Pattern p)
   patternsChanged();
 }
 
-
 void ProcessModel::setPatterns(const std::vector<Pattern>& n)
 {
-  if(n != m_patterns)
+  if (n != m_patterns)
   {
     m_patterns = n;
     patternsChanged();
@@ -88,7 +82,6 @@ const std::vector<Pattern>& ProcessModel::patterns() const noexcept
 {
   return m_patterns;
 }
-
 
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration) noexcept
 {
@@ -125,8 +118,8 @@ void JSONReader::read(const Patternist::Lane& proc)
 
   std::string str;
   str.reserve(proc.pattern.size());
-  for(bool b: proc.pattern)
-    str.push_back(b? 'X' : '.');
+  for (bool b : proc.pattern)
+    str.push_back(b ? 'X' : '.');
 
   obj["Pattern"] = str;
 }
@@ -135,11 +128,9 @@ template <>
 void JSONWriter::write(Patternist::Lane& proc)
 {
   proc.note = obj["Note"].toInt();
-  for(char c: obj["Pattern"].toStdString())
+  for (char c : obj["Pattern"].toStdString())
     proc.pattern.push_back(c == 'X');
 }
-
-
 
 template <>
 void DataStreamReader::read(const Patternist::Pattern& proc)
@@ -169,12 +160,10 @@ void JSONWriter::write(Patternist::Pattern& proc)
   proc.lanes <<= obj["Lanes"];
 }
 
-
 template <>
 void DataStreamReader::read(const Patternist::ProcessModel& proc)
 {
-  m_stream << *proc.outlet
-           << proc.m_channel << proc.m_currentPattern << proc.m_patterns;
+  m_stream << *proc.outlet << proc.m_channel << proc.m_currentPattern << proc.m_patterns;
 
   insertDelimiter();
 }

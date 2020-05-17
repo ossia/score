@@ -20,10 +20,7 @@ public:
   auto end() { return score::make_indirect_iterator(ctnr_t::end()); }
   auto begin() const { return score::make_indirect_iterator(ctnr_t::begin()); }
   auto end() const { return score::make_indirect_iterator(ctnr_t::end()); }
-  auto cbegin() const
-  {
-    return score::make_indirect_iterator(ctnr_t::cbegin());
-  }
+  auto cbegin() const { return score::make_indirect_iterator(ctnr_t::cbegin()); }
   auto cend() const { return score::make_indirect_iterator(ctnr_t::cend()); }
 };
 

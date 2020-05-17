@@ -1,7 +1,8 @@
 #include <Process/ControlMessage.hpp>
 #include <Process/Process.hpp>
-#include <State/ValueSerialization.hpp>
 #include <State/ValueConversion.hpp>
+#include <State/ValueSerialization.hpp>
+
 #include <score/model/path/PathSerialization.hpp>
 
 namespace Process
@@ -10,10 +11,10 @@ namespace Process
 QString ControlMessage::name(const score::DocumentContext& ctx) const noexcept
 {
   auto port = this->port.try_find(ctx);
-  if(port)
+  if (port)
   {
     auto parent = qobject_cast<Process::ProcessModel*>(port->parent());
-    if(parent)
+    if (parent)
       return parent->metadata().getName() + " (" + port->customData() + ")";
     else
       return port->customData();

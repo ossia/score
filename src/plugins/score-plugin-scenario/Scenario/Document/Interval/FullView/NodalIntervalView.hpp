@@ -1,29 +1,29 @@
 #pragma once
-#include <score/graphics/RectItem.hpp>
-#include <nano_observer.hpp>
-#include <Scenario/Document/Interval/IntervalPresenter.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Process/Dataflow/NodeItem.hpp>
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/IntervalPresenter.hpp>
+
+#include <score/graphics/RectItem.hpp>
+
 #include <ossia/detail/math.hpp>
 
-namespace Scenario {
+#include <nano_observer.hpp>
 
-class NodalIntervalView
-    : public score::EmptyRectItem
-    , public Nano::Observer
+namespace Scenario
+{
+
+class NodalIntervalView : public score::EmptyRectItem, public Nano::Observer
 {
 public:
   NodalIntervalView(const IntervalModel& model, const Process::Context& ctx, QGraphicsItem* parent)
-    : score::EmptyRectItem{parent}
-    , m_model{model}
-    , m_context{ctx}
+      : score::EmptyRectItem{parent}, m_model{model}, m_context{ctx}
   {
-    //setAcceptDrops(false);
-    //setFlag(ItemHasNoContents, true);
-    //setRect(QRectF{0, 0, 1000, 1000});
+    // setAcceptDrops(false);
+    // setFlag(ItemHasNoContents, true);
+    // setRect(QRectF{0, 0, 1000, 1000});
     const qreal r = m_model.duration.defaultDuration().impl;
-    for(auto& proc : m_model.processes)
+    for (auto& proc : m_model.processes)
     {
       auto item = new Process::NodeItem{proc, m_context, this};
       m_nodeItems.push_back(item);
@@ -32,7 +32,8 @@ public:
     m_model.processes.added.connect<&NodalIntervalView::on_processAdded>(*this);
     m_model.processes.removing.connect<&NodalIntervalView::on_processRemoving>(*this);
 
-    con(model,
+    con(
+        model,
         &IntervalModel::executionFinished,
         this,
         [=] { on_playPercentageChanged(0.); },
@@ -48,7 +49,7 @@ public:
   void on_playPercentageChanged(double t)
   {
     t = ossia::clamp(t, 0., 1.);
-    for(Process::NodeItem* node : m_nodeItems)
+    for (Process::NodeItem* node : m_nodeItems)
     {
       node->setPlayPercentage(t);
     }
@@ -65,9 +66,9 @@ public:
 
   void on_processRemoving(const Process::ProcessModel& model)
   {
-    for(auto it = m_nodeItems.begin(); it != m_nodeItems.end(); ++it)
+    for (auto it = m_nodeItems.begin(); it != m_nodeItems.end(); ++it)
     {
-      if(&(*it)->model() == &model)
+      if (&(*it)->model() == &model)
       {
         delete (*it);
         m_nodeItems.erase(it);
@@ -80,7 +81,7 @@ public:
   {
     // TODO should be "on model duration changed"
     const qreal r = m_model.duration.defaultDuration().impl;
-    for(Process::NodeItem* node : m_nodeItems)
+    for (Process::NodeItem* node : m_nodeItems)
     {
       node->setZoomRatio(r);
     }
@@ -88,18 +89,23 @@ public:
 
   QRectF enclosingRect() const noexcept
   {
-    if(m_nodeItems.empty())
+    if (m_nodeItems.empty())
       return {};
-    double x0{std::numeric_limits<double>::max()}, y0{x0}, x1{std::numeric_limits<double>::lowest()}, y1{x1};
+    double x0{std::numeric_limits<double>::max()}, y0{x0},
+        x1{std::numeric_limits<double>::lowest()}, y1{x1};
 
-    for(QGraphicsItem* item : m_nodeItems)
+    for (QGraphicsItem* item : m_nodeItems)
     {
       const auto pos = item->pos();
       const auto r = item->boundingRect();
-      if(x0 > pos.x()) x0 = pos.x();
-      if(y0 > pos.y()) y0 = pos.y();
-      if(x1 < pos.x() + r.width()) x1 = pos.x() + r.width();
-      if(y1 < pos.y() + r.height()) y1 = pos.y() + r.height();
+      if (x0 > pos.x())
+        x0 = pos.x();
+      if (y0 > pos.y())
+        y0 = pos.y();
+      if (x1 < pos.x() + r.width())
+        x1 = pos.x() + r.width();
+      if (y1 < pos.y() + r.height())
+        y1 = pos.y() + r.height();
     }
 
     x0 -= (0.1 * (x1 - x0));
@@ -107,11 +113,12 @@ public:
     const double w = 1.1 * (x1 - x0);
     const double h = 1.1 * (y1 - y0);
 
-    return {x0,y0,w,h};
+    return {x0, y0, w, h};
   }
 
   /*
-  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override
+  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget
+  *widget) override
   {
     painter->fillRect(m_rect, Qt::blue);
   }

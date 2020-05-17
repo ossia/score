@@ -21,7 +21,7 @@ JoystickDevice::JoystickDevice(const Device::DeviceSettings& settings)
   m_capas.canSerialize = false;
 }
 
-JoystickDevice::~JoystickDevice() {}
+JoystickDevice::~JoystickDevice() { }
 
 bool JoystickDevice::reconnect()
 {
@@ -29,12 +29,10 @@ bool JoystickDevice::reconnect()
 
   try
   {
-    auto stgs
-        = settings().deviceSpecificSettings.value<JoystickSpecificSettings>();
+    auto stgs = settings().deviceSpecificSettings.value<JoystickSpecificSettings>();
 
     m_dev = std::make_unique<ossia::net::generic_device>(
-        std::make_unique<ossia::net::joystick_protocol>(
-            stgs.joystick_id, stgs.joystick_index),
+        std::make_unique<ossia::net::joystick_protocol>(stgs.joystick_id, stgs.joystick_index),
         settings().name.toStdString());
     deviceChanged(nullptr, m_dev.get());
   }

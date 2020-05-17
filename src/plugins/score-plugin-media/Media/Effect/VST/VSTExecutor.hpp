@@ -10,8 +10,7 @@
 namespace Execution
 {
 class VSTEffectComponent final
-    : public Execution::
-          ProcessComponent_T<Media::VST::VSTEffectModel, ossia::node_process>
+    : public Execution::ProcessComponent_T<Media::VST::VSTEffectModel, ossia::node_process>
 {
   W_OBJECT(VSTEffectComponent)
   COMPONENT_METADATA("84bb8af9-bfb9-4819-8427-79787de716f3")
@@ -26,11 +25,9 @@ public:
       QObject* parent);
 
 private:
-  template<typename Node_T>
+  template <typename Node_T>
   void setupNode(Node_T& node);
-
 };
-using VSTEffectComponentFactory
-    = Execution::ProcessComponentFactory_T<VSTEffectComponent>;
+using VSTEffectComponentFactory = Execution::ProcessComponentFactory_T<VSTEffectComponent>;
 }
 #endif

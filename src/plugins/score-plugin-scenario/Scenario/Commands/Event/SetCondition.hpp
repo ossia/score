@@ -17,10 +17,7 @@ namespace Command
 {
 class SCORE_PLUGIN_SCENARIO_EXPORT SetCondition final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      SetCondition,
-      "Set an Event's condition")
+  SCORE_COMMAND_DECL(CommandFactoryName(), SetCondition, "Set an Event's condition")
 public:
   SetCondition(const EventModel& event, State::Expression&& condition);
   void undo(const score::DocumentContext& ctx) const override;
@@ -38,10 +35,7 @@ private:
 
 class SetOffsetBehavior final : public score::PropertyCommand
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      SetOffsetBehavior,
-      "Set offset behavior")
+  SCORE_COMMAND_DECL(CommandFactoryName(), SetOffsetBehavior, "Set offset behavior")
 public:
   SetOffsetBehavior(const EventModel& event, OffsetBehavior newval);
 };

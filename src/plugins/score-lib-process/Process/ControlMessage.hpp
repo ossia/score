@@ -1,8 +1,10 @@
 #pragma once
 
-#include <QPointer>
 #include <Process/Dataflow/Port.hpp>
+
 #include <ossia/network/value/value.hpp>
+
+#include <QPointer>
 
 namespace Process
 {

@@ -37,26 +37,17 @@ struct SCORE_LIB_STATE_EXPORT ExprData
   ExprData(ExprData&&) = default;
   ExprData& operator=(const ExprData&) = default;
   ExprData& operator=(ExprData&&) = default;
-  ExprData(Relation data) : VariantBasedNode{std::move(data)}
-  {
-  }
+  ExprData(Relation data) : VariantBasedNode{std::move(data)} { }
 
-  ExprData(Pulse data) : VariantBasedNode{std::move(data)}
-  {
-  }
+  ExprData(Pulse data) : VariantBasedNode{std::move(data)} { }
 
-  ExprData(BinaryOperator data) : VariantBasedNode{std::move(data)}
-  {
-  }
+  ExprData(BinaryOperator data) : VariantBasedNode{std::move(data)} { }
 
-  ExprData(UnaryOperator data) : VariantBasedNode{std::move(data)}
-  {
-  }
+  ExprData(UnaryOperator data) : VariantBasedNode{std::move(data)} { }
 
   ExprData(score::VariantBasedNode<Relation, Pulse, BinaryOperator, UnaryOperator> data)
-    : VariantBasedNode{std::move(data)}
+      : VariantBasedNode{std::move(data)}
   {
-
   }
 
   friend bool operator==(const ExprData& lhs, const ExprData& rhs)
@@ -78,21 +69,18 @@ struct SCORE_LIB_STATE_EXPORT ExprData
  * TODO enforce the invariant of children.size <= 2 (since it's a binary tree)
  */
 template <>
-class SCORE_LIB_STATE_EXPORT TreeNode<State::ExprData> final
-    : public State::ExprData
+class SCORE_LIB_STATE_EXPORT TreeNode<State::ExprData> final : public State::ExprData
 {
   //  friend struct TSerializer<DataStream, TreeNode<State::ExprData>>;
   //  friend struct TSerializer<JSONObject, void, TreeNode<State::ExprData>>;
 
   SCORE_LIB_STATE_EXPORT
-  friend bool operator!=(
-      const TreeNode<State::ExprData>& lhs,
-      const TreeNode<State::ExprData>& rhs);
+  friend bool
+  operator!=(const TreeNode<State::ExprData>& lhs, const TreeNode<State::ExprData>& rhs);
 
   SCORE_LIB_STATE_EXPORT
-  friend bool operator==(
-      const TreeNode<State::ExprData>& lhs,
-      const TreeNode<State::ExprData>& rhs);
+  friend bool
+  operator==(const TreeNode<State::ExprData>& lhs, const TreeNode<State::ExprData>& rhs);
 
 public:
   QString toString() const;
@@ -116,12 +104,10 @@ public:
   // The parent has to be set afterwards.
   TreeNode(const TreeNode<State::ExprData>& other);
   TreeNode(TreeNode<State::ExprData>&& other);
-  TreeNode<State::ExprData>&
-  operator=(const TreeNode<State::ExprData>& source);
+  TreeNode<State::ExprData>& operator=(const TreeNode<State::ExprData>& source);
   TreeNode<State::ExprData>& operator=(TreeNode<State::ExprData>&& source);
 
-  TreeNode(State::ExprData data, TreeNode* parent)
-      : State::ExprData(std::move(data))
+  TreeNode(State::ExprData data, TreeNode* parent) : State::ExprData(std::move(data))
   {
     setParent(parent);
   }
@@ -177,10 +163,8 @@ namespace State
 {
 using Expression = TreeNode<ExprData>;
 
-SCORE_LIB_STATE_EXPORT optional<State::Expression>
-parseExpression(const QString& str);
-SCORE_LIB_STATE_EXPORT optional<State::Expression>
-parseExpression(const std::string& str);
+SCORE_LIB_STATE_EXPORT optional<State::Expression> parseExpression(const QString& str);
+SCORE_LIB_STATE_EXPORT optional<State::Expression> parseExpression(const std::string& str);
 SCORE_LIB_STATE_EXPORT State::Expression defaultTrueExpression();
 SCORE_LIB_STATE_EXPORT State::Expression defaultFalseExpression();
 

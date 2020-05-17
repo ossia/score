@@ -19,20 +19,18 @@ PanelStatus::PanelStatus(
     , priority{prio}
     , prettyName{std::move(name)}
     , icon{[&icon] {
-        QIcon ico;
-        ico.addFile(":/icons/" + icon + "_on.png", {}, QIcon::Mode::Active);
-        ico.addFile(":/icons/" + icon + "_on.png", {}, QIcon::Mode::Normal, QIcon::State::On);
-        ico.addFile(":/icons/" + icon + "_off.png", {}, QIcon::Mode::Normal, QIcon::State::Off);
-        ico.addFile(":/icons/" + icon + "_on.png", {}, QIcon::Mode::Selected);
-        return ico;
-      }()}
+      QIcon ico;
+      ico.addFile(":/icons/" + icon + "_on.png", {}, QIcon::Mode::Active);
+      ico.addFile(":/icons/" + icon + "_on.png", {}, QIcon::Mode::Normal, QIcon::State::On);
+      ico.addFile(":/icons/" + icon + "_off.png", {}, QIcon::Mode::Normal, QIcon::State::Off);
+      ico.addFile(":/icons/" + icon + "_on.png", {}, QIcon::Mode::Selected);
+      return ico;
+    }()}
     , shortcut(sc)
 {
 }
 
-PanelDelegate::PanelDelegate(const GUIApplicationContext& ctx) : m_context{ctx}
-{
-}
+PanelDelegate::PanelDelegate(const GUIApplicationContext& ctx) : m_context{ctx} { }
 
 PanelDelegate::~PanelDelegate() = default;
 
@@ -60,7 +58,7 @@ const GUIApplicationContext& PanelDelegate::context() const
   return m_context;
 }
 
-void PanelDelegate::setNewSelection(const Selection& s) {}
+void PanelDelegate::setNewSelection(const Selection& s) { }
 
-void PanelDelegate::on_modelChanged(MaybeDocument oldm, MaybeDocument newm) {}
+void PanelDelegate::on_modelChanged(MaybeDocument oldm, MaybeDocument newm) { }
 }

@@ -22,16 +22,11 @@ class EntityMapInserter<score::Entity<T>>
 
     std::vector<QString> bros_names;
     bros_names.reserve(map.size());
-    std::transform(
-        map.begin(),
-        map.end(),
-        std::back_inserter(bros_names),
-        [&](const auto& res) {
-          bros_names.push_back(res.metadata().getName());
-        });
+    std::transform(map.begin(), map.end(), std::back_inserter(bros_names), [&](const auto& res) {
+      bros_names.push_back(res.metadata().getName());
+    });
 
-    auto new_name
-        = ossia::net::sanitize_name(obj->metadata().getName(), bros_names);
+    auto new_name = ossia::net::sanitize_name(obj->metadata().getName(), bros_names);
     obj->metadata().setName(new_name);
 
     map.unsafe_map().insert(obj);

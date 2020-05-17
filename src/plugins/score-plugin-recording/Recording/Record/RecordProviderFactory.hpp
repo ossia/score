@@ -10,6 +10,7 @@
 #include <score/tools/ObjectMatches.hpp>
 
 #include <score_plugin_recording_export.h>
+
 #include <verdigris>
 
 namespace Scenario
@@ -39,17 +40,11 @@ public:
     startTimer();
   }
 
-  bool started() const
-  {
-    return firstValueTime.time_since_epoch() != clock::duration::zero();
-  }
+  bool started() const { return firstValueTime.time_since_epoch() != clock::duration::zero(); }
 
   TimeVal time() const { return GetTimeDifference(firstValueTime); }
 
-  double timeInDouble() const
-  {
-    return GetTimeDifferenceInDouble(firstValueTime);
-  }
+  double timeInDouble() const { return GetTimeDifferenceInDouble(firstValueTime); }
 
   const score::DocumentContext& context;
   Scenario::ProcessModel& scenario;
@@ -94,7 +89,7 @@ public:
 
   bool setup() { return false; }
 
-  void stop() {}
+  void stop() { }
 
 private:
   // RecordContext& m_context;
@@ -108,7 +103,7 @@ class SingleRecorder final : public QObject
 public:
   T recorder;
 
-  SingleRecorder(RecordContext& ctx) : recorder{ctx} {}
+  SingleRecorder(RecordContext& ctx) : recorder{ctx} { }
 
   bool setup()
   {
@@ -134,8 +129,7 @@ public:
     //// Start the record timer ////
     ctx.timer.stop();
     ctx.timer.setTimerType(Qt::PreciseTimer);
-    ctx.timer.setInterval(
-        16.66 * 4); // TODO ReasonableUpdateInterval(curve_count));
+    ctx.timer.setInterval(16.66 * 4); // TODO ReasonableUpdateInterval(curve_count));
     QObject::connect(&ctx.timer, &QTimer::timeout, this, [&, box]() {
       // Move end event by the current duration.
       box.moveCommand.update(
@@ -152,10 +146,9 @@ public:
     // In case where the software is exited
     // during recording.
     QObject::connect(
-        &ctx.scenario,
-        &IdentifiedObjectAbstract::identified_object_destroyed,
-        this,
-        [&]() { ctx.timer.stop(); });
+        &ctx.scenario, &IdentifiedObjectAbstract::identified_object_destroyed, this, [&]() {
+          ctx.timer.stop();
+        });
 
     return true;
   }
@@ -174,16 +167,13 @@ public:
 private:
 };
 
-class SCORE_PLUGIN_RECORDING_EXPORT RecorderFactory
-    : public score::InterfaceBase
+class SCORE_PLUGIN_RECORDING_EXPORT RecorderFactory : public score::InterfaceBase
 {
   SCORE_INTERFACE(RecorderFactory, "64999184-a705-4686-b967-14e8f79692f1")
 public:
   virtual ~RecorderFactory();
 
-  virtual Priority
-  matches(const Device::Node&, const score::DocumentContext& ctx)
-      = 0;
+  virtual Priority matches(const Device::Node&, const score::DocumentContext& ctx) = 0;
 
   virtual std::unique_ptr<RecordProvider>
   make(const Device::NodeList&, const score::DocumentContext& ctx) = 0;

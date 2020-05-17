@@ -99,8 +99,7 @@ public:
     lay->addWidget(m_max);
   }
 
-  static std::array<optional<float>, N>
-  toOptional(const std::array<float, N>& f)
+  static std::array<optional<float>, N> toOptional(const std::array<float, N>& f)
   {
     std::array<optional<float>, N> res;
     for (std::size_t i = 0; i < N; i++)
@@ -110,8 +109,7 @@ public:
     return res;
   }
 
-  static std::array<float, N>
-  fromOptional(const std::array<optional<float>, N>& f)
+  static std::array<float, N> fromOptional(const std::array<optional<float>, N>& f)
   {
     std::array<float, N> res;
     for (std::size_t i = 0; i < N; i++)

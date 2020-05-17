@@ -16,8 +16,7 @@
 #include <QDebug>
 
 template <>
-SCORE_LIB_DEVICE_EXPORT void
-DataStreamReader::read(const Device::DeviceSettings& n)
+SCORE_LIB_DEVICE_EXPORT void DataStreamReader::read(const Device::DeviceSettings& n)
 {
   m_stream << n.name << n.protocol;
 
@@ -28,8 +27,7 @@ DataStreamReader::read(const Device::DeviceSettings& n)
   auto prot = pl.get(n.protocol);
   if (prot)
   {
-    prot->serializeProtocolSpecificSettings(
-        n.deviceSpecificSettings, this->toVariant());
+    prot->serializeProtocolSpecificSettings(n.deviceSpecificSettings, this->toVariant());
   }
   else
   {
@@ -48,8 +46,7 @@ SCORE_LIB_DEVICE_EXPORT void DataStreamWriter::write(Device::DeviceSettings& n)
   auto prot = pl.get(n.protocol);
   if (prot)
   {
-    n.deviceSpecificSettings
-        = prot->makeProtocolSpecificSettings(this->toVariant());
+    n.deviceSpecificSettings = prot->makeProtocolSpecificSettings(this->toVariant());
   }
   else
   {
@@ -60,8 +57,7 @@ SCORE_LIB_DEVICE_EXPORT void DataStreamWriter::write(Device::DeviceSettings& n)
 }
 
 template <>
-SCORE_LIB_DEVICE_EXPORT void
-JSONReader::read(const Device::DeviceSettings& n)
+SCORE_LIB_DEVICE_EXPORT void JSONReader::read(const Device::DeviceSettings& n)
 {
   stream.StartObject();
   obj[strings.Name] = n.name;
@@ -71,8 +67,7 @@ JSONReader::read(const Device::DeviceSettings& n)
   auto prot = pl.get(n.protocol);
   if (prot)
   {
-    prot->serializeProtocolSpecificSettings(
-        n.deviceSpecificSettings, this->toVariant());
+    prot->serializeProtocolSpecificSettings(n.deviceSpecificSettings, this->toVariant());
   }
   else
   {
@@ -92,8 +87,7 @@ SCORE_LIB_DEVICE_EXPORT void JSONWriter::write(Device::DeviceSettings& n)
   {
     if (auto prot = pl->get(n.protocol))
     {
-      n.deviceSpecificSettings
-          = prot->makeProtocolSpecificSettings(this->toVariant());
+      n.deviceSpecificSettings = prot->makeProtocolSpecificSettings(this->toVariant());
     }
     else
     {

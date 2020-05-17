@@ -1,37 +1,34 @@
 #pragma once
-#include <score/command/AggregateCommand.hpp>
-#include <ControlSurface/Process.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-#include <score/model/path/PathSerialization.hpp>
-#include <ControlSurface/CommandFactory.hpp>
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+
+#include <score/command/AggregateCommand.hpp>
 #include <score/document/DocumentContext.hpp>
-#include <score/plugins/SerializableInterface.hpp>
+#include <score/model/path/PathSerialization.hpp>
 #include <score/plugins/SerializableHelpers.hpp>
+#include <score/plugins/SerializableInterface.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+
+#include <ControlSurface/CommandFactory.hpp>
+#include <ControlSurface/Process.hpp>
 
 namespace ControlSurface
 {
 
 class AddControlMacro final : public score::AggregateCommand
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      AddControlMacro,
-      "Add controls")
+  SCORE_COMMAND_DECL(CommandFactoryName(), AddControlMacro, "Add controls")
 };
 
-class AddControl : public score::Command {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      AddControl,
-      "Add a control")
+class AddControl : public score::Command
+{
+  SCORE_COMMAND_DECL(CommandFactoryName(), AddControl, "Add a control")
 public:
   AddControl(const score::DocumentContext& ctx, const Model& proc, const State::Message& p)
-    : m_model{proc}
-    , m_id{getStrongId(proc.inlets())}
-    , m_addr{Explorer::makeFullAddressAccessorSettings(p.address, ctx, 0., 1.)}
+      : m_model{proc}
+      , m_id{getStrongId(proc.inlets())}
+      , m_addr{Explorer::makeFullAddressAccessorSettings(p.address, ctx, 0., 1.)}
   {
     m_addr.value = p.value;
   }
@@ -49,34 +46,25 @@ public:
   }
 
 private:
-  void serializeImpl(DataStreamInput& s) const override
-  {
-    s << m_model << m_id << m_addr;
-  }
+  void serializeImpl(DataStreamInput& s) const override { s << m_model << m_id << m_addr; }
 
-  void deserializeImpl(DataStreamOutput& s) override
-  {
-    s >> m_model >> m_id >> m_addr;
-  }
+  void deserializeImpl(DataStreamOutput& s) override { s >> m_model >> m_id >> m_addr; }
 
   Path<Model> m_model;
   Id<Process::Port> m_id;
   Device::FullAddressAccessorSettings m_addr;
 };
 
-class RemoveControl : public score::Command {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      RemoveControl,
-      "Remove a control")
+class RemoveControl : public score::Command
+{
+  SCORE_COMMAND_DECL(CommandFactoryName(), RemoveControl, "Remove a control")
 public:
   RemoveControl(const Model& proc, const Process::Port& p)
-    : m_model{proc}
-    , m_id{p.id()}
-    , m_addr{proc.outputAddresses().at(p.id())}
-    , m_data{DataStreamReader::marshall(p)}
+      : m_model{proc}
+      , m_id{p.id()}
+      , m_addr{proc.outputAddresses().at(p.id())}
+      , m_data{DataStreamReader::marshall(p)}
   {
-
   }
 
   void undo(const score::DocumentContext& ctx) const override
@@ -96,15 +84,9 @@ public:
   }
 
 private:
-  void serializeImpl(DataStreamInput& s) const override
-  {
-    s << m_model << m_id << m_data;
-  }
+  void serializeImpl(DataStreamInput& s) const override { s << m_model << m_id << m_data; }
 
-  void deserializeImpl(DataStreamOutput& s) override
-  {
-    s >> m_model >> m_id >> m_data;
-  }
+  void deserializeImpl(DataStreamOutput& s) override { s >> m_model >> m_id >> m_data; }
 
   Path<Model> m_model;
   Id<Process::Port> m_id;

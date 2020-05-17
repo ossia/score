@@ -35,7 +35,7 @@ void updateTimeSyncExtent(TimeSyncPresenter& tn)
       max = ev->extent().bottom();
   }
 
-  if(max - min > 3.)
+  if (max - min > 3.)
   {
     min += 1.;
     max -= 1.;
@@ -44,19 +44,16 @@ void updateTimeSyncExtent(TimeSyncPresenter& tn)
   tn.setExtent({min, max});
 }
 
-void updateEventExtent(
-    ScenarioPresenter& pres,
-    EventPresenter& ev,
-    double view_height)
+void updateEventExtent(ScenarioPresenter& pres, EventPresenter& ev, double view_height)
 {
-  if(view_height <= 2.)
+  if (view_height <= 2.)
     return;
 
   auto& s = pres.model();
   double min = std::numeric_limits<double>::max();
   double max = std::numeric_limits<double>::lowest();
 
-  for (StatePresenter* stp: ev.states())
+  for (StatePresenter* stp : ev.states())
   {
     auto& st = stp->model();
 
@@ -68,11 +65,11 @@ void updateEventExtent(
     if (const auto& itv_id = st.previousInterval())
     {
       auto itv = s.intervals.find(*itv_id);
-      if(itv == s.intervals.end())
+      if (itv == s.intervals.end())
         return;
 
       const double h = (1. + itv->getHeight()) / view_height;
-      if(itv->smallViewVisible() && st.heightPercentage() + h > max)
+      if (itv->smallViewVisible() && st.heightPercentage() + h > max)
       {
         max = st.heightPercentage() + h;
       }
@@ -80,17 +77,17 @@ void updateEventExtent(
     if (const auto& itv_id = st.nextInterval())
     {
       auto itv = s.intervals.find(*itv_id);
-      if(itv == s.intervals.end())
+      if (itv == s.intervals.end())
         return;
       const double h = (1. + itv->getHeight()) / view_height;
-      if(itv->smallViewVisible() && st.heightPercentage() + h > max)
+      if (itv->smallViewVisible() && st.heightPercentage() + h > max)
       {
         max = st.heightPercentage() + h;
       }
     }
   }
 
-  if(Q_UNLIKELY(ev.states().empty()))
+  if (Q_UNLIKELY(ev.states().empty()))
   {
     min = 0.;
     max = 0.;
@@ -109,7 +106,7 @@ void updateIntervalVerticalPos(
     double view_height)
 {
   // TODO why isn't this a command
-  if(view_height <= 2.)
+  if (view_height <= 2.)
     return;
 
   auto& s = pres.model();
@@ -117,7 +114,7 @@ void updateIntervalVerticalPos(
   static ossia::flat_set<IntervalModel*> intervalsToUpdate;
   static ossia::flat_set<StateModel*> statesToUpdate;
 
-  if(Q_LIKELY(!itv.graphal()))
+  if (Q_LIKELY(!itv.graphal()))
   {
     intervalsToUpdate.insert(&itv);
   }
@@ -127,7 +124,7 @@ void updateIntervalVerticalPos(
   while (auto prev_itv = rec_state->previousInterval())
   {
     IntervalModel* rec_cst = &s.intervals.at(*prev_itv);
-    if(rec_cst->graphal())
+    if (rec_cst->graphal())
       break;
     intervalsToUpdate.insert(rec_cst);
     statesToUpdate.insert(rec_state);
@@ -137,10 +134,10 @@ void updateIntervalVerticalPos(
 
   rec_state = &s.state(itv.endState());
   statesToUpdate.insert(rec_state);
-  while (auto next_itv =rec_state->nextInterval())
+  while (auto next_itv = rec_state->nextInterval())
   {
     IntervalModel* rec_cst = &s.intervals.at(*next_itv);
-    if(rec_cst->graphal())
+    if (rec_cst->graphal())
       break;
     intervalsToUpdate.insert(rec_cst);
     statesToUpdate.insert(rec_state);

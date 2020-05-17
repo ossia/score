@@ -10,9 +10,8 @@
 
 #include <QObject>
 
-#include <verdigris>
-
 #include <memory>
+#include <verdigris>
 
 namespace Process
 {
@@ -107,13 +106,11 @@ public:
       const Id<score::Component>& id,
       ProcessComponentFactory& factory,
       Process::ProcessModel& process);
-  ProcessComponent*
-  make(const Id<score::Component>& id, Process::ProcessModel& process)
+  ProcessComponent* make(const Id<score::Component>& id, Process::ProcessModel& process)
   {
     return nullptr;
   }
-  std::function<void()>
-  removing(const Process::ProcessModel& e, ProcessComponent& c);
+  std::function<void()> removing(const Process::ProcessModel& e, ProcessComponent& c);
 
   template <typename... Args>
   void added(Args&&...)
@@ -133,8 +130,7 @@ protected:
   void recomputePropagate(const Process::ProcessModel& process, const Process::Port& port);
 
   std::shared_ptr<ossia::time_interval> m_ossia_interval;
-  score::hash_map<Id<Process::ProcessModel>, std::shared_ptr<ProcessComponent>>
-      m_processes;
+  score::hash_map<Id<Process::ProcessModel>, std::shared_ptr<ProcessComponent>> m_processes;
 };
 
 class SCORE_PLUGIN_SCENARIO_EXPORT IntervalComponent final
@@ -145,8 +141,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT IntervalComponent final
 public:
   template <typename... Args>
   IntervalComponent(Args&&... args)
-      : PolymorphicComponentHierarchyManager{score::lazy_init_t{},
-                                             std::forward<Args>(args)...}
+      : PolymorphicComponentHierarchyManager{score::lazy_init_t{}, std::forward<Args>(args)...}
   {
   }
 

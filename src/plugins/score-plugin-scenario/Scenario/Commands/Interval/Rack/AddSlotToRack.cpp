@@ -22,11 +22,10 @@ namespace Command
 
 AddSlotToRack::AddSlotToRack(const Path<IntervalModel>& rackPath)
     : m_path{rackPath}
-    , m_slot{{},
-             Id<Process::ProcessModel>{},
-             score::AppContext()
-                 .settings<Scenario::Settings::Model>()
-                 .getSlotHeight()}
+    , m_slot{
+          {},
+          Id<Process::ProcessModel>{},
+          score::AppContext().settings<Scenario::Settings::Model>().getSlotHeight()}
 {
 }
 

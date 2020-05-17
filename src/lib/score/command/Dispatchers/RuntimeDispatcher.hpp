@@ -12,7 +12,7 @@ struct SCORE_LIB_BASE_EXPORT Dispatcher
 template <typename T>
 struct Dispatcher_T final : Dispatcher
 {
-  explicit Dispatcher_T(T& t) : impl{t} {}
+  explicit Dispatcher_T(T& t) : impl{t} { }
   T& impl;
   void submit(score::Command* c) override { impl.submit(c); }
 };

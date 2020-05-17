@@ -1,6 +1,7 @@
 #pragma once
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
+
 #include <QSet>
 namespace score
 {
@@ -17,14 +18,10 @@ class ProcessDataDropHandler final : public Process::ProcessDropHandler
 {
   SCORE_CONCRETE("c2829c8c-e1e7-4f90-b67a-d75d77d297f2")
 public:
-  QSet<QString> mimeTypes() const noexcept override
-  {
-    return {score::mime::processdata()};
-  }
+  QSet<QString> mimeTypes() const noexcept override { return {score::mime::processdata()}; }
 
   std::vector<ProcessDrop>
-  drop(const QMimeData& mime, const score::DocumentContext& ctx) const
-      noexcept override
+  drop(const QMimeData& mime, const score::DocumentContext& ctx) const noexcept override
   try
   {
     Mime<Process::ProcessData>::Deserializer des{mime};
@@ -33,7 +30,7 @@ public:
     p.creation = des.deserialize();
     return {p};
   }
-  catch(...)
+  catch (...)
   {
     return {};
   }
@@ -55,11 +52,9 @@ class DropProcessInScenario final : public GhostIntervalDropHandler
 public:
   DropProcessInScenario();
   void init();
+
 private:
-  bool drop(
-      const Scenario::ScenarioPresenter&,
-      QPointF pos,
-      const QMimeData& mime) override;
+  bool drop(const Scenario::ScenarioPresenter&, QPointF pos, const QMimeData& mime) override;
 };
 
 class DropLayerInScenario final : public GhostIntervalDropHandler
@@ -68,11 +63,9 @@ class DropLayerInScenario final : public GhostIntervalDropHandler
 
 public:
   DropLayerInScenario();
+
 private:
-  bool drop(
-      const Scenario::ScenarioPresenter&,
-      QPointF pos,
-      const QMimeData& mime) override;
+  bool drop(const Scenario::ScenarioPresenter&, QPointF pos, const QMimeData& mime) override;
 };
 
 class DropScenario final : public GhostIntervalDropHandler
@@ -81,11 +74,9 @@ class DropScenario final : public GhostIntervalDropHandler
 
 public:
   DropScenario();
+
 private:
-  bool drop(
-      const Scenario::ScenarioPresenter&,
-      QPointF pos,
-      const QMimeData& mime) override;
+  bool drop(const Scenario::ScenarioPresenter&, QPointF pos, const QMimeData& mime) override;
 };
 
 class DropScore final : public GhostIntervalDropHandler
@@ -95,10 +86,7 @@ public:
   DropScore();
 
 private:
-  bool drop(
-      const Scenario::ScenarioPresenter&,
-      QPointF pos,
-      const QMimeData& mime) override;
+  bool drop(const Scenario::ScenarioPresenter&, QPointF pos, const QMimeData& mime) override;
 };
 class DropLayerInInterval final : public IntervalDropHandler
 {

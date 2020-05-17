@@ -50,11 +50,8 @@ QString::number(prev->following->val()) : QString("none"))
   }
 }
 */
-PenCommandObject::PenCommandObject(
-    Presenter* presenter,
-    const score::CommandStackFacade& stack)
-    : CommandObjectBase{presenter, stack}
-    , m_segment{Id<SegmentModel>{}, nullptr}
+PenCommandObject::PenCommandObject(Presenter* presenter, const score::CommandStackFacade& stack)
+    : CommandObjectBase{presenter, stack}, m_segment{Id<SegmentModel>{}, nullptr}
 {
 }
 
@@ -101,8 +98,7 @@ void PenCommandObject::move()
   segts.push_back(dat_base);
   SegmentData& dat = segts.back();
 
-  if (middle_begin_p && middle_end_p
-      && segts[*middle_begin_p].id == segts[*middle_end_p].id)
+  if (middle_begin_p && middle_end_p && segts[*middle_begin_p].id == segts[*middle_end_p].id)
   {
     segts[*middle_end_p].id = getSegmentId(segts);
     for (auto& seg : segts)
@@ -214,8 +210,7 @@ void PenCommandObject::release_n(seg_tuple&& segts_tpl)
 
   // Handle the case of the whole drawn curve being
   // contained in a single original segment
-  if (middle_begin_p && middle_end_p
-      && segts[*middle_begin_p].id == segts[*middle_end_p].id)
+  if (middle_begin_p && middle_end_p && segts[*middle_begin_p].id == segts[*middle_end_p].id)
   {
     auto& mb = segts[*middle_begin_p];
     auto& me = segts[*middle_end_p];
@@ -255,10 +250,7 @@ void PenCommandObject::release_n(seg_tuple&& segts_tpl)
   m_segment.reset();
 }
 
-std::tuple<
-    optional<SegmentData>,
-    optional<SegmentData>,
-    std::vector<SegmentData>>
+std::tuple<optional<SegmentData>, optional<SegmentData>, std::vector<SegmentData>>
 PenCommandObject::filterSegments()
 {
   auto x = m_state->currentPoint.x();

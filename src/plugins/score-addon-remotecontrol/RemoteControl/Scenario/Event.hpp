@@ -14,6 +14,5 @@ public:
       Scenario::EventModel& event,
       DocumentPlugin& doc,
       QObject* parent_comp);
-
 };
 }

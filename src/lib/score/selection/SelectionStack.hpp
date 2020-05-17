@@ -45,19 +45,12 @@ public:
 
   Selection currentSelection() const;
 
-  void pushNewSelection(const Selection& s)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, pushNewSelection, s)
+  void pushNewSelection(const Selection& s) E_SIGNAL(SCORE_LIB_BASE_EXPORT, pushNewSelection, s)
 
-          void currentSelectionChanged(
-              const Selection& old,
-              const Selection& current)
-              E_SIGNAL(
-                  SCORE_LIB_BASE_EXPORT,
-                  currentSelectionChanged,
-                  old,
-                  current)
+  void currentSelectionChanged(const Selection& old, const Selection& current)
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, currentSelectionChanged, old, current)
 
-                  void prune(IdentifiedObjectAbstract* p);
+  void prune(IdentifiedObjectAbstract* p);
   W_INVOKABLE(prune)
 
 private:
@@ -69,7 +62,6 @@ private:
   QStack<Selection> m_unselectable;
   QStack<Selection> m_reselectable;
 
-  tsl::hopscotch_map<const IdentifiedObjectAbstract*, QMetaObject::Connection>
-      m_connections;
+  tsl::hopscotch_map<const IdentifiedObjectAbstract*, QMetaObject::Connection> m_connections;
 };
 }

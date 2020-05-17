@@ -10,5 +10,4 @@ namespace Loop
 class ProcessModel;
 }
 template <>
-SCORE_PLUGIN_LOOP_EXPORT const CommandGroupKey&
-CommandFactoryName<Loop::ProcessModel>();
+SCORE_PLUGIN_LOOP_EXPORT const CommandGroupKey& CommandFactoryName<Loop::ProcessModel>();

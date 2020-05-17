@@ -33,13 +33,9 @@ namespace Command
  *
  * Tries to remove what is selected in a scenario.
  */
-class SCORE_PLUGIN_SCENARIO_EXPORT RemoveSelection final
-    : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT RemoveSelection final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      RemoveSelection,
-      "Remove selected elements")
+  SCORE_COMMAND_DECL(CommandFactoryName(), RemoveSelection, "Remove selected elements")
 public:
   RemoveSelection(const Scenario::ProcessModel&, Selection sel);
 

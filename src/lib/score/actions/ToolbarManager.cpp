@@ -6,11 +6,7 @@
 namespace score
 {
 
-Toolbar::Toolbar(
-    QToolBar* tb,
-    StringKey<Toolbar> key,
-    int defaultRow,
-    int defaultCol)
+Toolbar::Toolbar(QToolBar* tb, StringKey<Toolbar> key, int defaultRow, int defaultCol)
     : m_impl{tb}, m_key{std::move(key)}, m_row{defaultRow}, m_col{defaultCol}
 {
 }

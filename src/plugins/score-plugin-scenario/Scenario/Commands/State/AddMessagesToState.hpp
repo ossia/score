@@ -22,17 +22,11 @@ namespace Scenario
 class StateModel;
 namespace Command
 {
-class SCORE_PLUGIN_SCENARIO_EXPORT AddMessagesToState final
-    : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT AddMessagesToState final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      AddMessagesToState,
-      "Add messages to state")
+  SCORE_COMMAND_DECL(CommandFactoryName(), AddMessagesToState, "Add messages to state")
 public:
-  AddMessagesToState(
-      const Scenario::StateModel& state,
-      const State::MessageList& messages);
+  AddMessagesToState(const Scenario::StateModel& state, const State::MessageList& messages);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
@@ -50,8 +44,7 @@ private:
   QMap<Id<Process::ProcessModel>, State::MessageList> m_followingBackup;
 };
 
-class SCORE_PLUGIN_SCENARIO_EXPORT AddControlMessagesToState final
-    : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT AddControlMessagesToState final : public score::Command
 {
   SCORE_COMMAND_DECL(
       CommandFactoryName(),

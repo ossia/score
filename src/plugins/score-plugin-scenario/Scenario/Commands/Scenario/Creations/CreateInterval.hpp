@@ -31,10 +31,7 @@ namespace Command
  */
 class SCORE_PLUGIN_SCENARIO_EXPORT CreateInterval final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      CreateInterval,
-      "Create an interval")
+  SCORE_COMMAND_DECL(CommandFactoryName(), CreateInterval, "Create an interval")
 public:
   CreateInterval(
       const Scenario::ProcessModel& scenarioPath,
@@ -48,10 +45,7 @@ public:
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 
-  const Id<IntervalModel>& createdInterval() const
-  {
-    return m_createdIntervalId;
-  }
+  const Id<IntervalModel>& createdInterval() const { return m_createdIntervalId; }
 
   const Id<StateModel>& startState() const { return m_startStateId; }
 

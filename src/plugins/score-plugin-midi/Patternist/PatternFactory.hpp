@@ -1,8 +1,9 @@
 #pragma once
-#include <Patternist/PatternPresenter.hpp>
-#include <Patternist/PatternModel.hpp>
-#include <Patternist/PatternView.hpp>
 #include <Process/GenericProcessFactory.hpp>
+
+#include <Patternist/PatternModel.hpp>
+#include <Patternist/PatternPresenter.hpp>
+#include <Patternist/PatternView.hpp>
 
 namespace Patternist
 {

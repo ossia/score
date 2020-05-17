@@ -18,9 +18,9 @@
 #include <Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalHeader.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
-#include <Scenario/Document/Interval/IntervalHeader.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
@@ -60,26 +60,21 @@ LayerPresenter::LayerPresenter(
     const Process::Context& ctx,
     QObject* parent)
     : Process::LayerPresenter{layer, view, ctx, parent}
-    , BaseScenarioPresenter<
-          Loop::ProcessModel,
-          Scenario::TemporalIntervalPresenter>{layer}
+    , BaseScenarioPresenter<Loop::ProcessModel, Scenario::TemporalIntervalPresenter>{layer}
     , m_view{view}
     , m_viewUpdater{*this}
     , m_palette{layer, *this, m_context, *m_view}
 {
   using namespace Scenario;
-  m_intervalPresenter = new TemporalIntervalPresenter{
-      layer.interval(), ctx, false, view, this};
-  m_startStatePresenter = new StatePresenter{
-      layer.BaseScenarioContainer::startState(), ctx, m_view, this};
-  m_endStatePresenter = new StatePresenter{
-      layer.BaseScenarioContainer::endState(), ctx, m_view, this};
+  m_intervalPresenter = new TemporalIntervalPresenter{layer.interval(), ctx, false, view, this};
+  m_startStatePresenter
+      = new StatePresenter{layer.BaseScenarioContainer::startState(), ctx, m_view, this};
+  m_endStatePresenter
+      = new StatePresenter{layer.BaseScenarioContainer::endState(), ctx, m_view, this};
   m_startEventPresenter = new EventPresenter{layer.startEvent(), m_view, this};
   m_endEventPresenter = new EventPresenter{layer.endEvent(), m_view, this};
-  m_startNodePresenter
-      = new TimeSyncPresenter{layer.startTimeSync(), m_view, this};
-  m_endNodePresenter
-      = new TimeSyncPresenter{layer.endTimeSync(), m_view, this};
+  m_startNodePresenter = new TimeSyncPresenter{layer.startTimeSync(), m_view, this};
+  m_endNodePresenter = new TimeSyncPresenter{layer.endTimeSync(), m_view, this};
 
   auto elements = std::make_tuple(
       m_intervalPresenter,
@@ -97,60 +92,38 @@ LayerPresenter::LayerPresenter(
     connect(elt, &elt_t::released, this, &LayerPresenter::released);
   });
 
-  con(*m_endEventPresenter,
-      &EventPresenter::extentChanged,
-      this,
-      [=](const VerticalExtent&) {
-        m_viewUpdater.updateEvent(*m_endEventPresenter);
-      });
-  con(m_endEventPresenter->model(),
-      &EventModel::dateChanged,
-      this,
-      [=](const TimeVal&) {
-        m_viewUpdater.updateEvent(*m_endEventPresenter);
-      });
-  con(*m_endNodePresenter,
-      &TimeSyncPresenter::extentChanged,
-      this,
-      [=](const VerticalExtent&) {
-        m_viewUpdater.updateTimeSync(*m_endNodePresenter);
-      });
-  con(m_endNodePresenter->model(),
-      &TimeSyncModel::dateChanged,
-      this,
-      [=](const TimeVal&) {
-        m_viewUpdater.updateTimeSync(*m_endNodePresenter);
-      });
-
-  m_model.interval().processes.added.connect<&LayerPresenter::on_addProcess>(
-      *this);
-  m_model.interval()
-      .processes.removed.connect<&LayerPresenter::on_removeProcess>(*this);
-  connect(
-      m_view,
-      &LayerView::askContextMenu,
-      this,
-      &LayerPresenter::contextMenuRequested);
-  connect(m_view, &LayerView::pressed, this, [&]() {
-    m_context.context.focusDispatcher.focus(this);
+  con(*m_endEventPresenter, &EventPresenter::extentChanged, this, [=](const VerticalExtent&) {
+    m_viewUpdater.updateEvent(*m_endEventPresenter);
+  });
+  con(m_endEventPresenter->model(), &EventModel::dateChanged, this, [=](const TimeVal&) {
+    m_viewUpdater.updateEvent(*m_endEventPresenter);
+  });
+  con(*m_endNodePresenter, &TimeSyncPresenter::extentChanged, this, [=](const VerticalExtent&) {
+    m_viewUpdater.updateTimeSync(*m_endNodePresenter);
+  });
+  con(m_endNodePresenter->model(), &TimeSyncModel::dateChanged, this, [=](const TimeVal&) {
+    m_viewUpdater.updateTimeSync(*m_endNodePresenter);
   });
 
-  con(ctx.execTimer,
-      &QTimer::timeout,
-      this,
-      &LayerPresenter::on_intervalExecutionTimer);
+  m_model.interval().processes.added.connect<&LayerPresenter::on_addProcess>(*this);
+  m_model.interval().processes.removed.connect<&LayerPresenter::on_removeProcess>(*this);
+  connect(m_view, &LayerView::askContextMenu, this, &LayerPresenter::contextMenuRequested);
+  connect(
+      m_view, &LayerView::pressed, this, [&]() { m_context.context.focusDispatcher.focus(this); });
+
+  con(ctx.execTimer, &QTimer::timeout, this, &LayerPresenter::on_intervalExecutionTimer);
 
   m_startStatePresenter->view()->disableOverlay();
   m_endStatePresenter->view()->disableOverlay();
 
   m_intervalPresenter->view()->unsetCursor();
 
-
-
-  con(layer.startEvent(), &EventModel::statusChanged, m_intervalPresenter,
-      [this] { m_intervalPresenter->view()->update(); });
-  con(layer.endEvent(), &EventModel::statusChanged, m_intervalPresenter,
-      [this] { m_intervalPresenter->view()->update(); });
+  con(layer.startEvent(), &EventModel::statusChanged, m_intervalPresenter, [this] {
+    m_intervalPresenter->view()->update();
+  });
+  con(layer.endEvent(), &EventModel::statusChanged, m_intervalPresenter, [this] {
+    m_intervalPresenter->view()->update();
+  });
 }
 
 void LayerPresenter::on_addProcess(const Process::ProcessModel& p)
@@ -197,31 +170,30 @@ void LayerPresenter::setHeight(qreal height)
   auto max_height = height - 22.;
   const auto N = c.smallView().size();
 
-  if(N > 0)
+  if (N > 0)
   {
     const double totalSlotHeight = max_height / double(N);
-    const double slotContentHeight = totalSlotHeight - Scenario::SlotHeader::headerHeight() - Scenario::SlotFooter::footerHeight();
+    const double slotContentHeight = totalSlotHeight - Scenario::SlotHeader::headerHeight()
+                                     - Scenario::SlotFooter::footerHeight();
     const double slotHeight = std::max(20., slotContentHeight);
 
     auto& itv = const_cast<Scenario::IntervalModel&>(c);
     for (std::size_t i = 0U; i < N; i++)
     {
-      itv.setSlotHeight(
-          Scenario::SlotId{i, Scenario::Slot::SmallView}, slotHeight);
+      itv.setSlotHeight(Scenario::SlotId{i, Scenario::Slot::SmallView}, slotHeight);
     }
-
   }
 }
 
 void LayerPresenter::putToFront()
 {
-  //m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, false);
+  // m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, false);
   m_view->setOpacity(1);
 }
 
 void LayerPresenter::putBehind()
 {
-  //m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
+  // m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
   m_view->setOpacity(0.1);
 }
 

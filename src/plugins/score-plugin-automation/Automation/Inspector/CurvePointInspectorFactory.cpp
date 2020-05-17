@@ -14,9 +14,7 @@ QWidget* PointInspectorFactory::make(
     QWidget* parent) const
 {
   return new PointInspectorWidget{
-      safe_cast<const Curve::PointModel&>(*sourceElements.first()),
-      doc,
-      parent};
+      safe_cast<const Curve::PointModel&>(*sourceElements.first()), doc, parent};
 }
 
 bool PointInspectorFactory::matches(const InspectedObjects& objects) const

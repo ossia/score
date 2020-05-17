@@ -4,8 +4,8 @@
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
-#include <score/tools/std/Optional.hpp>
 #include <score/tools/Unused.hpp>
+#include <score/tools/std/Optional.hpp>
 
 #include <QMap>
 #include <QPair>
@@ -20,23 +20,16 @@ namespace Curve
 class Model;
 class SegmentModel;
 using SegmentParameterMap = QMap<Id<SegmentModel>, QPair<double, double>>;
-class SCORE_PLUGIN_CURVE_EXPORT SetSegmentParameters final
-    : public score::Command
+class SCORE_PLUGIN_CURVE_EXPORT SetSegmentParameters final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      SetSegmentParameters,
-      "Set segment parameters")
+  SCORE_COMMAND_DECL(CommandFactoryName(), SetSegmentParameters, "Set segment parameters")
 public:
   SetSegmentParameters(const Model& model, SegmentParameterMap&& parameters);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 
-  void update(unused_t, SegmentParameterMap&& segments)
-  {
-    m_new = std::move(segments);
-  }
+  void update(unused_t, SegmentParameterMap&& segments) { m_new = std::move(segments); }
 
 protected:
   void serializeImpl(DataStreamInput& s) const override;

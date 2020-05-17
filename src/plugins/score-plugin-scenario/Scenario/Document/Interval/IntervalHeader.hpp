@@ -30,7 +30,7 @@ public:
   virtual void setState(State s) = 0;
   State state() const noexcept { return m_state; }
 
-  virtual void on_textChanged() {}
+  virtual void on_textChanged() { }
 
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;

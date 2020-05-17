@@ -13,7 +13,7 @@ class QWidget;
 
 namespace Inspector
 {
-InspectorWidgetList::~InspectorWidgetList() {}
+InspectorWidgetList::~InspectorWidgetList() { }
 
 bool InspectorWidgetList::update(
     QWidget* cur,

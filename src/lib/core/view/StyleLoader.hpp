@@ -1,11 +1,12 @@
 #pragma once
-#include <QFile>
-#include <QDir>
-#include <QFileSystemWatcher>
-#include <QObject>
 #include <QApplication>
 #include <QDebug>
+#include <QDir>
+#include <QFile>
+#include <QFileSystemWatcher>
+#include <QObject>
 #include <QTimer>
+
 #include <vector>
 
 namespace score
@@ -23,18 +24,18 @@ struct StyleLoader : public QObject
   {
 #if defined(SCORE_SOURCE_DIR)
     QString prefix = QString(SCORE_SOURCE_DIR) + "/src/lib/resources";
-    if(!QDir::root().exists(prefix))
+    if (!QDir::root().exists(prefix))
       prefix = ":";
 #else
     QString prefix = ":";
 #endif
-  #if defined(_WIN32)
+#if defined(_WIN32)
     addFile(prefix + "/style/windows.qss");
-  #elif defined(__APPLE__)
+#elif defined(__APPLE__)
     addFile(prefix + "/style/macos.qss");
-  #else
+#else
     addFile(prefix + "/style/linux.qss");
-  #endif
+#endif
     addFile(prefix + "/qsimpledarkstyle.qss");
     addFile(prefix + "/style/spinbox.qss");
     addFile(prefix + "/style/scrollbars.qss");
@@ -47,8 +48,7 @@ struct StyleLoader : public QObject
 #if defined(SCORE_SOURCE_DIR)
     watchers.push_back(new QFileSystemWatcher{this});
     auto w = watchers.back();
-    connect(w, &QFileSystemWatcher::fileChanged,
-            this, [=] {
+    connect(w, &QFileSystemWatcher::fileChanged, this, [=] {
       QTimer::singleShot(100, [=] {
         on_styleChanged();
         w->addPath(str);
@@ -62,10 +62,10 @@ struct StyleLoader : public QObject
   {
     QByteArray ss;
 
-    auto readFile = [] (QString s) {
+    auto readFile = [](QString s) {
       QFile f{s};
 
-      if(!f.open(QFile::ReadOnly))
+      if (!f.open(QFile::ReadOnly))
       {
         qDebug() << "Warning : could not read style file: " << s;
         return QByteArray{};
@@ -74,7 +74,7 @@ struct StyleLoader : public QObject
       return f.readAll();
     };
 
-    for(const auto& path : filesToRead)
+    for (const auto& path : filesToRead)
     {
       ss += readFile(path);
     }
@@ -84,10 +84,9 @@ struct StyleLoader : public QObject
   void on_styleChanged()
   {
 #ifndef QT_NO_STYLE_STYLESHEET
-  //  qApp->setStyleSheet(readStyleSheet());
+    //  qApp->setStyleSheet(readStyleSheet());
 #endif
   }
 };
-
 
 }

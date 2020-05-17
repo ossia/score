@@ -19,7 +19,12 @@ namespace Sound
 class LayerView;
 struct ComputedWaveform
 {
-  enum Mode { RMS, Mean, Sample } mode{};
+  enum Mode
+  {
+    RMS,
+    Mean,
+    Sample
+  } mode{};
   double zoom{};
 
   int x0{};
@@ -30,7 +35,7 @@ struct WaveformComputer : public QObject
 {
   W_OBJECT(WaveformComputer)
 public:
-    WaveformComputer(LayerView& layer);
+  WaveformComputer(LayerView& layer);
 
   LayerView& m_layer;
   QGraphicsView& m_view;
@@ -39,11 +44,9 @@ public:
   void stop();
 
 public:
-  void recompute(const std::shared_ptr<AudioFile> &arg_1, double arg_2, bool cols)
+  void recompute(const std::shared_ptr<AudioFile>& arg_1, double arg_2, bool cols)
       W_SIGNAL(recompute, arg_1, arg_2, cols);
-  void
-  ready(QVector<QImage*> img, ComputedWaveform wf)
-      W_SIGNAL(ready, img, wf);
+  void ready(QVector<QImage*> img, ComputedWaveform wf) W_SIGNAL(ready, img, wf);
 
 private:
   void on_recompute(std::shared_ptr<AudioFile> data, double ratio, bool cols, int64_t n);
@@ -64,9 +67,7 @@ private:
   void timerEvent(QTimerEvent* event) override;
 };
 
-class LayerView final
-    : public Process::LayerView
-    , public Nano::Observer
+class LayerView final : public Process::LayerView, public Nano::Observer
 {
   W_OBJECT(LayerView)
 
@@ -79,6 +80,7 @@ public:
   void recompute(ZoomRatio ratio);
 
   void on_finishedDecoding();
+
 private:
   void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
   void paint_impl(QPainter*) const override;
@@ -103,7 +105,7 @@ private:
   void printAction(long);
 
   QVector<QImage*> m_images;
-  //std::vector<QPixmap> m_pixmap;
+  // std::vector<QPixmap> m_pixmap;
   WaveformComputer* m_cpt{};
 
   ComputedWaveform m_wf{};

@@ -70,8 +70,8 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
 
   if (!processesToSave.empty())
   {
-    elementsProperties.cables = Dataflow::saveCables(
-        processesToSave, score::IDocument::documentContext(scenario));
+    elementsProperties.cables
+        = Dataflow::saveCables(processesToSave, score::IDocument::documentContext(scenario));
   }
 
   // 2. Rescale deltaTime

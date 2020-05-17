@@ -3,6 +3,7 @@
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 
 #include <score_plugin_media_export.h>
+
 #include <verdigris>
 namespace Media::Settings
 {
@@ -16,10 +17,7 @@ class SCORE_PLUGIN_MEDIA_EXPORT Model : public score::SettingsDelegateModel
 public:
   Model(QSettings& set, const score::ApplicationContext& ctx);
 
-  SCORE_SETTINGS_PARAMETER_HPP(
-      SCORE_PLUGIN_MEDIA_EXPORT,
-      QStringList,
-      VstPaths)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_MEDIA_EXPORT, QStringList, VstPaths)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_MEDIA_EXPORT, bool, VstAlwaysOnTop)
 };
 

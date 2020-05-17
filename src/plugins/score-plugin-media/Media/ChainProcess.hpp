@@ -1,37 +1,35 @@
 #pragma once
 #include <Process/Process.hpp>
+
 #include <score/model/EntityList.hpp>
 #include <score/model/ObjectRemover.hpp>
+
 #include <score_plugin_media_export.h>
+
 #include <verdigris>
 
 namespace Media
 {
-class SCORE_PLUGIN_MEDIA_EXPORT ChainProcess
-    : public ::Process::ProcessModel
+class SCORE_PLUGIN_MEDIA_EXPORT ChainProcess : public ::Process::ProcessModel
 {
   W_OBJECT(ChainProcess)
-  public:
-    explicit ChainProcess(
-               const TimeVal& duration,
-               const Id<Process::ProcessModel>& id,
-               const QString& name,
-               const score::DocumentContext& ctx,
-               QObject* parent);
+public:
+  explicit ChainProcess(
+      const TimeVal& duration,
+      const Id<Process::ProcessModel>& id,
+      const QString& name,
+      const score::DocumentContext& ctx,
+      QObject* parent);
 
   ~ChainProcess() override;
 
   template <typename Impl>
   explicit ChainProcess(Impl& vis, const score::DocumentContext& ctx, QObject* parent)
-    : ::Process::ProcessModel{vis, parent}
-    , m_context{ctx}
+      : ::Process::ProcessModel{vis, parent}, m_context{ctx}
   {
   }
 
-  const score::EntityList<Process::ProcessModel>& effects() const
-  {
-    return m_effects;
-  }
+  const score::EntityList<Process::ProcessModel>& effects() const { return m_effects; }
 
   const score::DocumentContext& context() const noexcept { return m_context; }
 
@@ -54,11 +52,9 @@ class SCORE_PLUGIN_MEDIA_EXPORT ChainProcess
   };
   W_SLOT(setBadChaining)
 
-  void effectsChanged()
-  W_SIGNAL(effectsChanged);
+  void effectsChanged() W_SIGNAL(effectsChanged);
 
-  void badChainingChanged(bool badChaining)
-  W_SIGNAL(badChainingChanged, badChaining);
+  void badChainingChanged(bool badChaining) W_SIGNAL(badChainingChanged, badChaining);
 
 protected:
   Selection selectableChildren() const noexcept override;

@@ -5,7 +5,6 @@
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/GoodOldDisplacementPolicy.hpp>
 #include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
-
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <State/Expression.hpp>
 
@@ -25,10 +24,7 @@ namespace Command
 {
 class SCORE_PLUGIN_SCENARIO_EXPORT MergeTimeSyncs final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      MergeTimeSyncs,
-      "Synchronize")
+  SCORE_COMMAND_DECL(CommandFactoryName(), MergeTimeSyncs, "Synchronize")
 public:
   MergeTimeSyncs(
       const ProcessModel& scenario,
@@ -39,10 +35,8 @@ public:
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 
-  void update(
-      unused_t scenar,
-      const Id<TimeSyncModel>& clickedTn,
-      const Id<TimeSyncModel>& hoveredTn);
+  void
+  update(unused_t scenar, const Id<TimeSyncModel>& clickedTn, const Id<TimeSyncModel>& hoveredTn);
 
 protected:
   void serializeImpl(DataStreamInput& s) const override;

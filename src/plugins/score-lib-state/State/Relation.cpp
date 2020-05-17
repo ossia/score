@@ -59,10 +59,11 @@ QString State::toString(const Relation& rel)
 
 const QMap<ossia::expressions::comparator, QString> State::opToString()
 {
-  return {{ossia::expressions::comparator::LOWER_EQUAL, "<="},
-          {ossia::expressions::comparator::GREATER_EQUAL, ">="},
-          {ossia::expressions::comparator::LOWER, "<"},
-          {ossia::expressions::comparator::GREATER, ">"},
-          {ossia::expressions::comparator::DIFFERENT, "!="},
-          {ossia::expressions::comparator::EQUAL, "=="}};
+  return {
+      {ossia::expressions::comparator::LOWER_EQUAL, "<="},
+      {ossia::expressions::comparator::GREATER_EQUAL, ">="},
+      {ossia::expressions::comparator::LOWER, "<"},
+      {ossia::expressions::comparator::GREATER, ">"},
+      {ossia::expressions::comparator::DIFFERENT, "!="},
+      {ossia::expressions::comparator::EQUAL, "=="}};
 }

@@ -3,8 +3,8 @@
 #include <Process/LayerPresenter.hpp>
 #include <Process/ProcessContext.hpp>
 #include <Process/ZoomHelper.hpp>
-#include <Scenario/PresenterInstantiations.hpp>
 #include <Scenario/Palette/ScenarioPalette.hpp>
+#include <Scenario/PresenterInstantiations.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioViewInterface.hpp>
 
@@ -22,9 +22,8 @@ namespace Scenario
 class EditionSettings;
 class ScenarioView;
 
-class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioPresenter final
-    : public Process::LayerPresenter,
-      public Nano::Observer
+class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioPresenter final : public Process::LayerPresenter,
+                                                             public Nano::Observer
 {
   W_OBJECT(ScenarioPresenter)
 
@@ -64,10 +63,7 @@ public:
   TimeSyncPresenter& timeSync(const Id<TimeSyncModel>& id) const;
   IntervalPresenter& interval(const Id<IntervalModel>& id) const;
   StatePresenter& state(const Id<StateModel>& id) const;
-  const auto& comment(const Id<CommentBlockModel>& id) const
-  {
-    return m_comments.at(id);
-  }
+  const auto& comment(const Id<CommentBlockModel>& id) const { return m_comments.at(id); }
   const auto& getEvents() const { return m_events; }
   const auto& getTimeSyncs() const { return m_timeSyncs; }
   const auto& getIntervals() const { return m_intervals; }
@@ -79,16 +75,11 @@ public:
   const ZoomRatio& zoomRatio() const { return m_zoomRatio; }
 
   Scenario::ToolPalette& stateMachine() { return m_sm; }
-  Scenario::EditionSettings& editionSettings() const
-  {
-    return m_editionSettings;
-  }
+  Scenario::EditionSettings& editionSettings() const { return m_editionSettings; }
 
-  void fillContextMenu(
-      QMenu&,
-      QPoint pos,
-      QPointF scenepos,
-      const Process::LayerContextMenuManager&) override;
+  void
+  fillContextMenu(QMenu&, QPoint pos, QPointF scenepos, const Process::LayerContextMenuManager&)
+      override;
 
   bool event(QEvent* e) override { return QObject::event(e); }
 
@@ -96,16 +87,11 @@ public:
   void stopDrawDragLine() const;
 
 public:
-  void linesExtremityScaled(int arg_1, int arg_2) E_SIGNAL(
-      SCORE_PLUGIN_SCENARIO_EXPORT,
-      linesExtremityScaled,
-      arg_1,
-      arg_2)
+  void linesExtremityScaled(int arg_1, int arg_2)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, linesExtremityScaled, arg_1, arg_2)
 
-  void keyPressed(int arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyPressed, arg_1)
-  void keyReleased(int arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyReleased, arg_1)
+  void keyPressed(int arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyPressed, arg_1)
+  void keyReleased(int arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyReleased, arg_1)
 
 public:
   // Model -> view
@@ -129,7 +115,6 @@ public:
   void on_intervalExecutionTimer();
 
 private:
-
   void selectLeft();
   void selectRight();
   void selectUp();
@@ -169,15 +154,12 @@ private:
   QMetaObject::Connection m_con;
 };
 
-const StateModel*
-furthestSelectedState(const Scenario::ProcessModel& scenario);
-const EventModel*
-furthestSelectedEvent(const Scenario::ScenarioPresenter& scenario);
-const TimeSyncModel*
-furthestSelectedSync(const Scenario::ScenarioPresenter& scenario);
+const StateModel* furthestSelectedState(const Scenario::ProcessModel& scenario);
+const EventModel* furthestSelectedEvent(const Scenario::ScenarioPresenter& scenario);
+const TimeSyncModel* furthestSelectedSync(const Scenario::ScenarioPresenter& scenario);
 
-const StateModel* furthestSelectedStateWithoutFollowingInterval(
-    const Scenario::ProcessModel& scenario);
+const StateModel*
+furthestSelectedStateWithoutFollowingInterval(const Scenario::ProcessModel& scenario);
 
 // furthest selected state or event are taken into account
 const TimeSyncModel*

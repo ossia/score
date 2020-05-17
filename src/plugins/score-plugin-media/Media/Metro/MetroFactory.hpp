@@ -10,7 +10,6 @@ namespace Media
 namespace Metro
 {
 using ProcessFactory = Process::ProcessFactory_T<Metro::Model>;
-using LayerFactory
-    = Process::LayerFactory_T<Metro::Model, Metro::Presenter, Metro::View>;
+using LayerFactory = Process::LayerFactory_T<Metro::Model, Metro::Presenter, Metro::View>;
 }
 }

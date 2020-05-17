@@ -36,8 +36,7 @@ void CreateEvent_State::undo(const score::DocumentContext& ctx) const
 {
   m_command.undo(ctx);
 
-  ScenarioCreate<EventModel>::undo(
-      m_newEvent, m_command.scenarioPath().find(ctx));
+  ScenarioCreate<EventModel>::undo(m_newEvent, m_command.scenarioPath().find(ctx));
 }
 
 void CreateEvent_State::redo(const score::DocumentContext& ctx) const
@@ -45,10 +44,7 @@ void CreateEvent_State::redo(const score::DocumentContext& ctx) const
   auto& scenar = m_command.scenarioPath().find(ctx);
 
   // Create the event
-  ScenarioCreate<EventModel>::redo(
-      m_newEvent,
-      scenar.timeSync(m_timeSync),
-      scenar);
+  ScenarioCreate<EventModel>::redo(m_newEvent, scenar.timeSync(m_timeSync), scenar);
 
   scenar.events.at(m_newEvent).metadata().setName(m_createdName);
   // scenar.events.at(m_newEvent).setCondition(State::defaultFalseExpression());

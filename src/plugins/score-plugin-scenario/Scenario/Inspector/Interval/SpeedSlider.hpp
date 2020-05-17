@@ -1,6 +1,6 @@
 #pragma once
-#include <QWidget>
 #include <QPointer>
+#include <QWidget>
 
 #include <score_plugin_scenario_export.h>
 namespace score
@@ -15,10 +15,7 @@ class IntervalModel;
 class SCORE_PLUGIN_SCENARIO_EXPORT SpeedWidget final : public QWidget
 {
 public:
-  SpeedWidget(
-      bool withButtons,
-      bool showText,
-      QWidget* parent);
+  SpeedWidget(bool withButtons, bool showText, QWidget* parent);
   ~SpeedWidget() override;
 
   void setInterval(const IntervalModel&);

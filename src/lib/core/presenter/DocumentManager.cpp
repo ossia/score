@@ -11,8 +11,8 @@
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <score/widgets/Pixmap.hpp>
 #include <score/widgets/MessageBox.hpp>
+#include <score/widgets/Pixmap.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
 #include <core/command/CommandStack.hpp>
@@ -73,8 +73,7 @@ namespace std
 template <>
 struct hash<score::LoadedPluginVersions>
 {
-  std::size_t operator()(const score::LoadedPluginVersions& kagi) const
-      noexcept
+  std::size_t operator()(const score::LoadedPluginVersions& kagi) const noexcept
   {
     return std::hash<UuidKey<score::Plugin>>{}(kagi.plugin);
   }
@@ -98,35 +97,27 @@ void DocumentManager::init(const score::GUIApplicationContext& ctx)
         this,
         [&](const Id<DocumentModel>& doc) {
           prepareNewDocument(ctx);
-          auto it = ossia::find_if(m_documents, [&](auto other) {
-            return other->model().id() == doc;
-          });
+          auto it = ossia::find_if(
+              m_documents, [&](auto other) { return other->model().id() == doc; });
           setCurrentDocument(ctx, it != m_documents.end() ? *it : nullptr);
         },
         Qt::QueuedConnection);
 
-    connect(
-        m_view,
-        &View::closeRequested,
-        this,
-        [&](const Id<DocumentModel>& doc) {
-          auto it = ossia::find_if(m_documents, [&](auto other) {
-            return other->model().id() == doc;
-          });
-          SCORE_ASSERT(it != m_documents.end());
-          closeDocument(ctx, **it);
-        });
+    connect(m_view, &View::closeRequested, this, [&](const Id<DocumentModel>& doc) {
+      auto it
+          = ossia::find_if(m_documents, [&](auto other) { return other->model().id() == doc; });
+      SCORE_ASSERT(it != m_documents.end());
+      closeDocument(ctx, **it);
+    });
 
     m_recentFiles = new QRecentFilesMenu{tr("Recent files"), nullptr};
 
 #if !defined(__EMSCRIPTEN__)
     QSettings settings("OSSIA", "score");
     m_recentFiles->restoreState(settings.value("RecentFiles").toByteArray());
-    connect(
-        m_recentFiles,
-        &QRecentFilesMenu::recentFileTriggered,
-        this,
-        [&](const QString& f) { loadFile(ctx, f); });
+    connect(m_recentFiles, &QRecentFilesMenu::recentFileTriggered, this, [&](const QString& f) {
+      loadFile(ctx, f);
+    });
 #endif
   }
 }
@@ -149,9 +140,7 @@ DocumentManager::~DocumentManager()
     delete m_recentFiles;
 }
 
-Document* DocumentManager::setupDocument(
-    const score::GUIApplicationContext& ctx,
-    Document* doc)
+Document* DocumentManager::setupDocument(const score::GUIApplicationContext& ctx, Document* doc)
 {
   if (doc)
   {
@@ -162,28 +151,21 @@ Document* DocumentManager::setupDocument(
     if (m_view)
     {
       m_view->addDocumentView(doc->view());
-      connect(
-          &doc->metadata(),
-          &DocumentMetadata::fileNameChanged,
-          this,
-          [=](const QString& s) {
-            m_view->on_fileNameChanged(doc->view(), s);
-          });
+      connect(&doc->metadata(), &DocumentMetadata::fileNameChanged, this, [=](const QString& s) {
+        m_view->on_fileNameChanged(doc->view(), s);
+      });
     }
     setCurrentDocument(ctx, doc);
   }
   else
   {
-    setCurrentDocument(
-        ctx, m_documents.empty() ? nullptr : m_documents.front());
+    setCurrentDocument(ctx, m_documents.empty() ? nullptr : m_documents.front());
   }
 
   return doc;
 }
 
-void DocumentManager::setCurrentDocument(
-    const score::GUIApplicationContext& ctx,
-    Document* doc)
+void DocumentManager::setCurrentDocument(const score::GUIApplicationContext& ctx, Document* doc)
 {
   if (doc == m_currentDocument)
     return;
@@ -213,9 +195,7 @@ void DocumentManager::setCurrentDocument(
   documentChanged(m_currentDocument);
 }
 
-bool DocumentManager::closeDocument(
-    const score::GUIApplicationContext& ctx,
-    Document& doc)
+bool DocumentManager::closeDocument(const score::GUIApplicationContext& ctx, Document& doc)
 {
   // Warn the user if he might loose data
   if (!doc.commandStack().isAtSavedIndex())
@@ -225,8 +205,7 @@ bool DocumentManager::closeDocument(
     msgBox.setInformativeText(tr("Do you want to save your changes?"));
     msgBox.setIconPixmap(score::get_pixmap(QStringLiteral(":/icons/message_question.png")));
 
-    msgBox.setStandardButtons(
-        QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+    msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::Save);
     int ret = msgBox.exec();
     switch (ret)
@@ -252,9 +231,7 @@ bool DocumentManager::closeDocument(
   return true;
 }
 
-void DocumentManager::forceCloseDocument(
-    const score::GUIApplicationContext& ctx,
-    Document& doc)
+void DocumentManager::forceCloseDocument(const score::GUIApplicationContext& ctx, Document& doc)
 {
   for (auto plug : doc.model().pluginModels())
   {
@@ -288,7 +265,7 @@ bool DocumentManager::saveDocument(Document& doc)
     else
     {
       JSONReader w;
-      w.buffer.Reserve(1024*1024*16);
+      w.buffer.Reserve(1024 * 1024 * 16);
       doc.saveAsJson(w);
 
       f.write(w.buffer.GetString(), w.buffer.GetSize());
@@ -344,7 +321,7 @@ bool DocumentManager::saveDocumentAs(Document& doc)
       else
       {
         JSONReader w;
-        w.buffer.Reserve(1024*1024*16);
+        w.buffer.Reserve(1024 * 1024 * 16);
         doc.saveAsJson(w);
 
         f.write(w.buffer.GetString(), w.buffer.GetSize());
@@ -397,8 +374,7 @@ Document* DocumentManager::loadStack(const score::GUIApplicationContext& ctx)
   if (!m_view)
     return nullptr;
 
-  QString loadname = QFileDialog::getOpenFileName(
-      m_view, tr("Open Stack"), QString(), "*.stack");
+  QString loadname = QFileDialog::getOpenFileName(m_view, tr("Open Stack"), QString(), "*.stack");
   if (!loadname.isEmpty() && (loadname.indexOf(".stack") != -1))
   {
     return loadStack(ctx, loadname);
@@ -407,9 +383,8 @@ Document* DocumentManager::loadStack(const score::GUIApplicationContext& ctx)
   return nullptr;
 }
 
-Document* DocumentManager::loadStack(
-    const score::GUIApplicationContext& ctx,
-    const QString& loadname)
+Document*
+DocumentManager::loadStack(const score::GUIApplicationContext& ctx, const QString& loadname)
 {
   QFile cmdF{loadname};
 
@@ -424,14 +399,12 @@ Document* DocumentManager::loadStack(
     writer.writeTo(id);
 
     prepareNewDocument(ctx);
-    auto doc = m_builder.newDocument(
-        ctx, id, *ctx.interfaces<DocumentDelegateList>().begin());
+    auto doc = m_builder.newDocument(ctx, id, *ctx.interfaces<DocumentDelegateList>().begin());
     setupDocument(ctx, doc);
 
-    loadCommandStack(
-        ctx.components, writer, doc->commandStack(), [doc](auto cmd) {
-          cmd->redo(doc->context());
-        });
+    loadCommandStack(ctx.components, writer, doc->commandStack(), [doc](auto cmd) {
+      cmd->redo(doc->context());
+    });
     return doc;
   }
 
@@ -452,23 +425,18 @@ Document* DocumentManager::loadFile(const score::GUIApplicationContext& ctx)
     return nullptr;
 
   QString loadname = QFileDialog::getOpenFileName(
-      m_view,
-      tr("Open"),
-      lastOpenFileName(),
-      "Scores (*.scorebin *.score *.scorejson)");
+      m_view, tr("Open"), lastOpenFileName(), "Scores (*.scorebin *.score *.scorejson)");
   QSettings s;
   s.setValue("score/last_open_doc", QFileInfo(loadname).absoluteDir().path());
   return loadFile(ctx, loadname);
 }
 
-Document* DocumentManager::loadFile(
-    const score::GUIApplicationContext& ctx,
-    const QString& fileName)
+Document*
+DocumentManager::loadFile(const score::GUIApplicationContext& ctx, const QString& fileName)
 {
   Document* doc{};
   if (!fileName.isEmpty()
-      && (fileName.indexOf(".scorebin") != -1
-          || fileName.indexOf(".scorejson") != -1
+      && (fileName.indexOf(".scorebin") != -1 || fileName.indexOf(".scorejson") != -1
           || fileName.indexOf(".score") != 1))
   {
 
@@ -483,17 +451,11 @@ Document* DocumentManager::loadFile(
 
       if (fileName.indexOf(".scorebin") != -1)
       {
-        doc = loadDocument(
-            ctx,
-            fileName,
-            *ctx.interfaces<DocumentDelegateList>().begin());
+        doc = loadDocument(ctx, fileName, *ctx.interfaces<DocumentDelegateList>().begin());
       }
       else if (fileName.indexOf(".score") != -1)
       {
-        doc = loadDocument(
-            ctx,
-            fileName,
-            *ctx.interfaces<DocumentDelegateList>().begin());
+        doc = loadDocument(ctx, fileName, *ctx.interfaces<DocumentDelegateList>().begin());
       }
     }
   }
@@ -501,8 +463,7 @@ Document* DocumentManager::loadFile(
   return doc;
 }
 
-void DocumentManager::prepareNewDocument(
-    const score::GUIApplicationContext& ctx)
+void DocumentManager::prepareNewDocument(const score::GUIApplicationContext& ctx)
 {
   m_preparingNewDocument = true;
   for (GUIApplicationPlugin* appPlugin : ctx.guiApplicationPlugins())
@@ -512,8 +473,7 @@ void DocumentManager::prepareNewDocument(
   m_preparingNewDocument = false;
 }
 
-bool DocumentManager::closeAllDocuments(
-    const score::GUIApplicationContext& ctx)
+bool DocumentManager::closeAllDocuments(const score::GUIApplicationContext& ctx)
 {
   while (!m_documents.empty())
   {
@@ -560,10 +520,8 @@ bool DocumentManager::checkAndUpdateJson(
       if (plugin_key_it == plugin_obj.MemberEnd())
         continue;
       QByteArray key_arr = QByteArray::fromRawData(
-            plugin_key_it->value.GetString(),
-            plugin_key_it->value.GetStringLength());
-      auto plugin_key
-          = UuidKey<score::Plugin>::fromString(key_arr);
+          plugin_key_it->value.GetString(), plugin_key_it->value.GetStringLength());
+      auto plugin_key = UuidKey<score::Plugin>::fromString(key_arr);
 
       Version plugin_version{0};
       auto plugin_ver_it = plugin_obj.FindMember("Version");
@@ -587,8 +545,7 @@ bool DocumentManager::checkAndUpdateJson(
   else if (loaded_version < ctx.applicationSettings.saveFormatVersion)
   {
     // TODO update main
-    auto res = updateJson(
-        obj, loaded_version, ctx.applicationSettings.saveFormatVersion);
+    auto res = updateJson(obj, loaded_version, ctx.applicationSettings.saveFormatVersion);
     if (!res)
     {
       return false;
@@ -616,8 +573,7 @@ bool DocumentManager::checkAndUpdateJson(
       }
       else if (plug.version < current_local_plugin->version())
       {
-        current_local_plugin->updateSaveFile(
-            obj, plug.version, current_local_plugin->version());
+        current_local_plugin->updateSaveFile(obj, plug.version, current_local_plugin->version());
       }
     }
   }
@@ -625,14 +581,9 @@ bool DocumentManager::checkAndUpdateJson(
   return mainLoadable && pluginsAvailable && pluginsLoadable;
 }
 
-bool DocumentManager::updateJson(
-    rapidjson::Value& object,
-    Version json_ver,
-    Version score_ver)
+bool DocumentManager::updateJson(rapidjson::Value& object, Version json_ver, Version score_ver)
 {
-  score::
-      hash_map<Version, std::pair<Version, std::function<void(QJsonObject&)>>>
-          conversions;
+  score::hash_map<Version, std::pair<Version, std::function<void(QJsonObject&)>>> conversions;
   /*
     conversions.insert(
       {Version{2}, {Version{3}, [] (const QJsonObject& obj)
@@ -668,8 +619,7 @@ void DocumentManager::saveRecentFilesState()
 
 void DocumentManager::restoreDocuments(const score::GUIApplicationContext& ctx)
 {
-  for (const RestorableDocument& backup :
-       DocumentBackups::restorableDocuments())
+  for (const RestorableDocument& backup : DocumentBackups::restorableDocuments())
   {
     restoreDocument(
         ctx,
@@ -685,22 +635,17 @@ Id<score::DocumentModel> getStrongId(const std::vector<score::Document*>& v)
   using namespace std;
   vector<int32_t> ids(v.size()); // Map reduce
 
-  transform(v.begin(), v.end(), ids.begin(), [](const auto elt) {
-    return elt->id().val();
-  });
+  transform(v.begin(), v.end(), ids.begin(), [](const auto elt) { return elt->id().val(); });
 
   return Id<score::DocumentModel>{score::random_id_generator::getNextId(ids)};
 }
 
-Id<score::DocumentPlugin>
-getStrongId(const std::vector<score::DocumentPlugin*>& v)
+Id<score::DocumentPlugin> getStrongId(const std::vector<score::DocumentPlugin*>& v)
 {
   using namespace std;
   vector<int32_t> ids(v.size()); // Map reduce
 
-  transform(v.begin(), v.end(), ids.begin(), [](const auto elt) {
-    return elt->id().val();
-  });
+  transform(v.begin(), v.end(), ids.begin(), [](const auto elt) { return elt->id().val(); });
 
   return Id<score::DocumentPlugin>{score::random_id_generator::getNextId(ids)};
 }

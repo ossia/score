@@ -1,13 +1,15 @@
 #pragma once
-#include <Nodal/CommandFactory.hpp>
-#include <Nodal/Process.hpp>
-#include <score/command/AggregateCommand.hpp>
-#include <score/command/PropertyCommand.hpp>
 #include <Dataflow/Commands/CableHelpers.hpp>
 #include <Process/ProcessList.hpp>
+
 #include <score/application/ApplicationContext.hpp>
-#include <score/plugins/SerializableHelpers.hpp>
+#include <score/command/AggregateCommand.hpp>
+#include <score/command/PropertyCommand.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/plugins/SerializableHelpers.hpp>
+
+#include <Nodal/CommandFactory.hpp>
+#include <Nodal/Process.hpp>
 
 namespace Nodal
 {
@@ -15,18 +17,12 @@ class Model;
 
 class DropNodesMacro final : public score::AggregateCommand
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      DropNodesMacro,
-      "Drop nodes")
+  SCORE_COMMAND_DECL(CommandFactoryName(), DropNodesMacro, "Drop nodes")
 };
 
 class CreateNode final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      CreateNode,
-      "Create a node")
+  SCORE_COMMAND_DECL(CommandFactoryName(), CreateNode, "Create a node")
 public:
   CreateNode(
       const Nodal::Model& process,
@@ -38,6 +34,7 @@ public:
   void redo(const score::DocumentContext& ctx) const override;
 
   const Id<Process::ProcessModel>& nodeId() const noexcept { return m_createdNodeId; }
+
 protected:
   void serializeImpl(DataStreamInput&) const override;
   void deserializeImpl(DataStreamOutput&) override;
@@ -51,28 +48,18 @@ private:
   Id<Process::ProcessModel> m_createdNodeId;
 };
 
-
-
-
 class RemoveNode final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      RemoveNode,
-      "Remove a node")
+  SCORE_COMMAND_DECL(CommandFactoryName(), RemoveNode, "Remove a node")
 public:
-  RemoveNode(
-      const Nodal::Model& p,
-      const Process::ProcessModel& n
-      )
-  : m_path{p}
-  , m_id{n.id()}
+  RemoveNode(const Nodal::Model& p, const Process::ProcessModel& n) : m_path{p}, m_id{n.id()}
   {
     // Save the node
     DataStream::Serializer s1{&m_block};
     s1.readFrom(n);
 
-    m_cables = Dataflow::saveCables({const_cast<Process::ProcessModel*>(&n)}, score::IDocument::documentContext(p));
+    m_cables = Dataflow::saveCables(
+        {const_cast<Process::ProcessModel*>(&n)}, score::IDocument::documentContext(p));
   }
 
 private:
@@ -112,6 +99,5 @@ private:
   QByteArray m_block;
   Dataflow::SerializedCables m_cables;
 };
-
 
 }

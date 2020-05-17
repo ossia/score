@@ -13,7 +13,6 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
-
 namespace Scenario
 {
 namespace Command
@@ -23,8 +22,8 @@ bool BaseScenarioTriggerCommandFactory::matches(const TimeSyncModel& tn) const
   return dynamic_cast<BaseScenario*>(tn.parent());
 }
 
-score::Command* BaseScenarioTriggerCommandFactory::make_addTriggerCommand(
-    const TimeSyncModel& tn) const
+score::Command*
+BaseScenarioTriggerCommandFactory::make_addTriggerCommand(const TimeSyncModel& tn) const
 {
   if (dynamic_cast<BaseScenario*>(tn.parent()))
   {
@@ -33,8 +32,8 @@ score::Command* BaseScenarioTriggerCommandFactory::make_addTriggerCommand(
   return nullptr;
 }
 
-score::Command* BaseScenarioTriggerCommandFactory::make_removeTriggerCommand(
-    const TimeSyncModel& tn) const
+score::Command*
+BaseScenarioTriggerCommandFactory::make_removeTriggerCommand(const TimeSyncModel& tn) const
 {
   if (dynamic_cast<BaseScenario*>(tn.parent()))
   {

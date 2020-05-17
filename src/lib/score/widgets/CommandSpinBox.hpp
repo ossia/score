@@ -13,24 +13,19 @@ template <typename Property, typename Command, typename SpinBox>
 struct CommandSpinbox : public QObject
 {
   using model_type = typename Property::model_type;
-  CommandSpinbox(
-      const model_type& model,
-      const score::CommandStackFacade& stck,
-      QWidget* parent)
+  CommandSpinbox(const model_type& model, const score::CommandStackFacade& stck, QWidget* parent)
       : m_sb{new SpinBox{parent}}, m_slotDisp{stck}
   {
     m_sb->setMinimum(20);
     m_sb->setMaximum(20000);
 
-    connect(
-        m_sb, SignalUtils::SpinBox_valueChanged<SpinBox>(), this, [&](int h) {
-          if (h != (model.*Property::get())())
-          {
-            m_slotDisp.submit(model, h);
-          }
-        });
-    connect(
-        m_sb, &SpinBox::editingFinished, this, [=] { m_slotDisp.commit(); });
+    connect(m_sb, SignalUtils::SpinBox_valueChanged<SpinBox>(), this, [&](int h) {
+      if (h != (model.*Property::get())())
+      {
+        m_slotDisp.submit(model, h);
+      }
+    });
+    connect(m_sb, &SpinBox::editingFinished, this, [=] { m_slotDisp.commit(); });
 
     con(model, Property::notify(), this, [=](auto val) {
       if (val != m_sb->value())

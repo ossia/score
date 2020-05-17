@@ -5,13 +5,14 @@
 
 #include <ossia/network/domain/domain.hpp>
 
+#include <QJSValue>
 #include <QObject>
+#include <QQmlListProperty>
 #include <QVariant>
 #include <QVector>
-#include <QJSValue>
-#include <QQmlListProperty>
 
 #include <rtmidi17/message.hpp>
+
 #include <verdigris>
 namespace JS
 {
@@ -114,8 +115,8 @@ public:
   }
 
   W_INLINE_PROPERTY_VALUE(qreal, init, {0.5}, init, setInit, initChanged)
-  W_INLINE_PROPERTY_VALUE(qreal, min,  {0.}, getMin, setMin, minChanged)
-  W_INLINE_PROPERTY_VALUE(qreal, max,  {1.}, getMax, setMax, maxChanged)
+  W_INLINE_PROPERTY_VALUE(qreal, min, {0.}, getMin, setMin, minChanged)
+  W_INLINE_PROPERTY_VALUE(qreal, max, {1.}, getMax, setMax, maxChanged)
 };
 
 class IntSlider : public ValueInlet
@@ -129,13 +130,12 @@ public:
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    return new Process::IntSlider{
-        m_min, m_max, m_init, objectName(), id, parent};
+    return new Process::IntSlider{m_min, m_max, m_init, objectName(), id, parent};
   }
 
   W_INLINE_PROPERTY_VALUE(int, init, {0}, init, setInit, initChanged)
-  W_INLINE_PROPERTY_VALUE(int, min,  {0}, getMin, setMin, minChanged)
-  W_INLINE_PROPERTY_VALUE(int, max,  {127}, getMax, setMax, maxChanged)
+  W_INLINE_PROPERTY_VALUE(int, min, {0}, getMin, setMin, minChanged)
+  W_INLINE_PROPERTY_VALUE(int, max, {127}, getMax, setMax, maxChanged)
 };
 
 class Enum : public ValueInlet
@@ -164,7 +164,7 @@ public:
   }
 
   W_INLINE_PROPERTY_VALUE(int, index, {}, index, setIndex, indexChanged)
-  W_INLINE_PROPERTY_CREF(QStringList, choices, {}, choices, setChoices,choicesChanged)
+  W_INLINE_PROPERTY_CREF(QStringList, choices, {}, choices, setChoices, choicesChanged)
 };
 
 class Toggle : public ValueInlet
@@ -380,36 +380,16 @@ public:
 #endif
   }
 
-  QJSValue& tick() /*Qt6: const*/ noexcept {
-    return m_tick;
-  }
-  void setTick(const QJSValue& v) {
-    m_tick = v;
-  }
-  QJSValue& start() /*Qt6: const*/ noexcept {
-    return m_start;
-  }
-  void setStart(const QJSValue& v) {
-    m_start = v;
-  }
-  QJSValue& stop() /*Qt6: const*/ noexcept {
-    return m_stop;
-  }
-  void setStop(const QJSValue& v) {
-    m_stop = v;
-  }
-  QJSValue& pause() /*Qt6: const*/ noexcept {
-    return m_pause;
-  }
-  void setPause(const QJSValue& v) {
-    m_pause = v;
-  }
-  QJSValue& resume() /*Qt6: const*/ noexcept {
-    return m_resume;
-  }
-  void setResume(const QJSValue& v) {
-    m_resume = v;
-  }
+  QJSValue& tick() /*Qt6: const*/ noexcept { return m_tick; }
+  void setTick(const QJSValue& v) { m_tick = v; }
+  QJSValue& start() /*Qt6: const*/ noexcept { return m_start; }
+  void setStart(const QJSValue& v) { m_start = v; }
+  QJSValue& stop() /*Qt6: const*/ noexcept { return m_stop; }
+  void setStop(const QJSValue& v) { m_stop = v; }
+  QJSValue& pause() /*Qt6: const*/ noexcept { return m_pause; }
+  void setPause(const QJSValue& v) { m_pause = v; }
+  QJSValue& resume() /*Qt6: const*/ noexcept { return m_resume; }
+  void setResume(const QJSValue& v) { m_resume = v; }
   W_PROPERTY(QJSValue, tick READ tick WRITE setTick CONSTANT)
   W_PROPERTY(QJSValue, start READ start WRITE setStart CONSTANT)
   W_PROPERTY(QJSValue, stop READ stop WRITE setStop CONSTANT)

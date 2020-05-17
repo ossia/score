@@ -16,20 +16,20 @@
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
-#include <score/tools/Bind.hpp>
 
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/math.hpp>
 
 #include <boost/range/adaptor/filtered.hpp>
 #include <boost/range/adaptor/transformed.hpp>
 #include <boost/range/algorithm/copy.hpp>
 
-#include <ossia/detail/algorithms.hpp>
-#include <QApplication>
 #include <QAction>
+#include <QApplication>
 #include <QInputDialog>
 #include <QMenu>
 
@@ -83,8 +83,8 @@ Presenter::Presenter(
 
   connect(m_view, &View::pressed, this, [&]() {
     m_context.context.focusDispatcher.focus(this);
-    for(NoteView* n : m_notes)
-        n->setSelected(false);
+    for (NoteView* n : m_notes)
+      n->setSelected(false);
   });
   connect(m_view, &View::dropReceived, this, &Presenter::on_drop);
 
@@ -93,8 +93,7 @@ Presenter::Presenter(
         new RemoveNotes{this->model(), selectedNotes()});
   });
 
-  connect(
-      m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
+  connect(m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
 
   for (auto& note : model.notes)
   {
@@ -152,8 +151,7 @@ void Presenter::fillContextMenu(
     if (!ok)
       return;
 
-    MacroCommandDispatcher<RescaleAllMidi> disp{
-        context().context.commandStack};
+    MacroCommandDispatcher<RescaleAllMidi> disp{context().context.commandStack};
     auto& doc = context().context.document.model();
     auto midi = doc.findChildren<Midi::ProcessModel*>();
     for (auto ptr : midi)
@@ -197,7 +195,7 @@ void Presenter::on_zoomRatioChanged(ZoomRatio zr)
     updateNote(*note);
 }
 
-void Presenter::parentGeometryChanged() {}
+void Presenter::parentGeometryChanged() { }
 
 const Midi::ProcessModel& Presenter::model() const noexcept
 {
@@ -209,8 +207,8 @@ void Presenter::setupNote(NoteView& v)
   con(v.note, &Note::noteChanged, &v, [&] { updateNote(v); });
 
   con(v, &NoteView::deselectOtherNotes, this, [&] {
-      for(NoteView* n : m_notes)
-          n->setSelected(false);
+    for (NoteView* n : m_notes)
+      n->setSelected(false);
   });
   con(v, &NoteView::noteChangeFinished, this, [&] {
     const auto [min, max] = this->model().range();
@@ -250,8 +248,7 @@ void Presenter::setupNote(NoteView& v)
     }
 
     auto dt = newScale - v.note.duration();
-    CommandDispatcher<>{context().context.commandStack}.submit(
-        new ScaleNotes{model(), notes, dt});
+    CommandDispatcher<>{context().context.commandStack}.submit(new ScaleNotes{model(), notes, dt});
   });
 
   con(v, &NoteView::requestVelocityChange, this, [&](double velocityDelta) {
@@ -265,9 +262,7 @@ void Presenter::setupNote(NoteView& v)
     m_velocityDispatcher.submit(model(), notes, velocityDelta / 5.);
   });
 
-  con(v, &NoteView::velocityChangeFinished, this, [&] {
-    m_velocityDispatcher.commit();
-  });
+  con(v, &NoteView::velocityChangeFinished, this, [&] { m_velocityDispatcher.commit(); });
 }
 
 void Presenter::updateNote(NoteView& v)
@@ -291,8 +286,7 @@ void Presenter::on_noteAdded(const Note& n)
 
 void Presenter::on_noteRemoving(const Note& n)
 {
-  auto it = ossia::find_if(
-      m_notes, [&](const auto& other) { return &other->note == &n; });
+  auto it = ossia::find_if(m_notes, [&](const auto& other) { return &other->note == &n; });
   if (it != m_notes.end())
   {
     delete *it;
@@ -316,13 +310,10 @@ void Presenter::on_drop(const QPointF& pos, const QMimeData& md)
   // duration & constraint duration
   for (auto& note : track.notes)
   {
-    note.setStart(
-        song.durationInMs * note.start() / model().duration().msec());
-    note.setDuration(
-        song.durationInMs * note.duration() / model().duration().msec());
+    note.setStart(song.durationInMs * note.start() / model().duration().msec());
+    note.setDuration(song.durationInMs * note.duration() / model().duration().msec());
   }
-  disp.submit<Midi::ReplaceNotes>(
-      model(), track.notes, track.min, track.max, model().duration());
+  disp.submit<Midi::ReplaceNotes>(model(), track.notes, track.min, track.max, model().duration());
 }
 
 std::vector<Id<Note>> Presenter::selectedNotes() const

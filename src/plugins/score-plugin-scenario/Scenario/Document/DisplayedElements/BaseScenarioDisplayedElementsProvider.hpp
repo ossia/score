@@ -6,8 +6,7 @@ namespace Scenario
 {
 class IntervalModel;
 
-class BaseScenarioDisplayedElementsProvider final
-    : public DisplayedElementsProvider
+class BaseScenarioDisplayedElementsProvider final : public DisplayedElementsProvider
 {
   SCORE_CONCRETE("a1db53d5-0dcb-412f-9425-8ffcebca023c")
 public:

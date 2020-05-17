@@ -11,8 +11,7 @@ namespace score
 template <>
 struct PositionedEvent<Scenario::Point> : public QEvent
 {
-  PositionedEvent(const Scenario::Point& pt, QEvent::Type type)
-      : QEvent{type}, point(pt)
+  PositionedEvent(const Scenario::Point& pt, QEvent::Type type) : QEvent{type}, point(pt)
   {
     // Here we artificially prevent to move over the header of the rack
     // so that the elements won't disappear in the void.
@@ -48,9 +47,7 @@ struct PositionedScenarioEvent : public score::PositionedEvent<Scenario::Point>
 template <typename Element, int N>
 struct PositionedWithId_ScenarioEvent final : public PositionedScenarioEvent<N>
 {
-  PositionedWithId_ScenarioEvent(
-      const Id<Element>& tn_id,
-      const Scenario::Point& sp)
+  PositionedWithId_ScenarioEvent(const Id<Element>& tn_id, const Scenario::Point& sp)
       : PositionedScenarioEvent<N>{sp}, id{tn_id}
   {
   }
@@ -97,12 +94,10 @@ static const constexpr int MoveOnNothing
     = ScenarioElement::Nothing + score::Modifier::Move_tag::value;
 static const constexpr int MoveOnTimeSync
     = ScenarioElement::TimeSync + score::Modifier::Move_tag::value;
-static const constexpr int MoveOnEvent
-    = ScenarioElement::Event + score::Modifier::Move_tag::value;
+static const constexpr int MoveOnEvent = ScenarioElement::Event + score::Modifier::Move_tag::value;
 static const constexpr int MoveOnInterval
     = ScenarioElement::Interval + score::Modifier::Move_tag::value;
-static const constexpr int MoveOnState
-    = ScenarioElement::State + score::Modifier::Move_tag::value;
+static const constexpr int MoveOnState = ScenarioElement::State + score::Modifier::Move_tag::value;
 static const constexpr int MoveOnSlotHandle
     = ScenarioElement::SlotHandle_e + score::Modifier::Move_tag::value;
 static const constexpr int MoveOnTrigger
@@ -133,52 +128,32 @@ static const constexpr int ReleaseOnRightBrace
 
 /* click */
 using ClickOnNothing_Event = PositionedScenarioEvent<ClickOnNothing>;
-using ClickOnTimeSync_Event
-    = PositionedWithId_ScenarioEvent<TimeSyncModel, ClickOnTimeSync>;
-using ClickOnEvent_Event
-    = PositionedWithId_ScenarioEvent<EventModel, ClickOnEvent>;
-using ClickOnInterval_Event
-    = PositionedWithId_ScenarioEvent<IntervalModel, ClickOnInterval>;
-using ClickOnState_Event
-    = PositionedWithId_ScenarioEvent<StateModel, ClickOnState>;
-using ClickOnTrigger_Event
-    = score::NumberedWithPath_Event<TriggerModel, ClickOnTrigger>;
-using ClickOnLeftBrace_Event
-    = PositionedWithId_ScenarioEvent<IntervalModel, ClickOnLeftBrace>;
-using ClickOnRightBrace_Event
-    = PositionedWithId_ScenarioEvent<IntervalModel, ClickOnRightBrace>;
+using ClickOnTimeSync_Event = PositionedWithId_ScenarioEvent<TimeSyncModel, ClickOnTimeSync>;
+using ClickOnEvent_Event = PositionedWithId_ScenarioEvent<EventModel, ClickOnEvent>;
+using ClickOnInterval_Event = PositionedWithId_ScenarioEvent<IntervalModel, ClickOnInterval>;
+using ClickOnState_Event = PositionedWithId_ScenarioEvent<StateModel, ClickOnState>;
+using ClickOnTrigger_Event = score::NumberedWithPath_Event<TriggerModel, ClickOnTrigger>;
+using ClickOnLeftBrace_Event = PositionedWithId_ScenarioEvent<IntervalModel, ClickOnLeftBrace>;
+using ClickOnRightBrace_Event = PositionedWithId_ScenarioEvent<IntervalModel, ClickOnRightBrace>;
 
 /* move on */
 using MoveOnNothing_Event = PositionedScenarioEvent<MoveOnNothing>;
-using MoveOnTimeSync_Event
-    = PositionedWithId_ScenarioEvent<TimeSyncModel, MoveOnTimeSync>;
-using MoveOnEvent_Event
-    = PositionedWithId_ScenarioEvent<EventModel, MoveOnEvent>;
-using MoveOnInterval_Event
-    = PositionedWithId_ScenarioEvent<IntervalModel, MoveOnInterval>;
-using MoveOnState_Event
-    = PositionedWithId_ScenarioEvent<StateModel, MoveOnState>;
-using MoveOnTrigger_Event
-    = score::NumberedWithPath_Event<TriggerModel, MoveOnTrigger>;
-using MoveOnLeftBrace_Event
-    = PositionedWithId_ScenarioEvent<IntervalModel, MoveOnLeftBrace>;
-using MoveOnRightBrace_Event
-    = PositionedWithId_ScenarioEvent<IntervalModel, MoveOnRightBrace>;
+using MoveOnTimeSync_Event = PositionedWithId_ScenarioEvent<TimeSyncModel, MoveOnTimeSync>;
+using MoveOnEvent_Event = PositionedWithId_ScenarioEvent<EventModel, MoveOnEvent>;
+using MoveOnInterval_Event = PositionedWithId_ScenarioEvent<IntervalModel, MoveOnInterval>;
+using MoveOnState_Event = PositionedWithId_ScenarioEvent<StateModel, MoveOnState>;
+using MoveOnTrigger_Event = score::NumberedWithPath_Event<TriggerModel, MoveOnTrigger>;
+using MoveOnLeftBrace_Event = PositionedWithId_ScenarioEvent<IntervalModel, MoveOnLeftBrace>;
+using MoveOnRightBrace_Event = PositionedWithId_ScenarioEvent<IntervalModel, MoveOnRightBrace>;
 
 /* release on */
 using ReleaseOnNothing_Event = PositionedScenarioEvent<ReleaseOnNothing>;
-using ReleaseOnTimeSync_Event
-    = PositionedWithId_ScenarioEvent<TimeSyncModel, ReleaseOnTimeSync>;
-using ReleaseOnEvent_Event
-    = PositionedWithId_ScenarioEvent<EventModel, ReleaseOnEvent>;
-using ReleaseOnInterval_Event
-    = PositionedWithId_ScenarioEvent<IntervalModel, ReleaseOnInterval>;
-using ReleaseOnState_Event
-    = PositionedWithId_ScenarioEvent<StateModel, ReleaseOnState>;
-using ReleaseOnTrigger_Event
-    = score::NumberedWithPath_Event<TriggerModel, ReleaseOnTrigger>;
-using ReleaseOnLeftBrace_Event
-    = PositionedWithId_ScenarioEvent<IntervalModel, ReleaseOnLeftBrace>;
+using ReleaseOnTimeSync_Event = PositionedWithId_ScenarioEvent<TimeSyncModel, ReleaseOnTimeSync>;
+using ReleaseOnEvent_Event = PositionedWithId_ScenarioEvent<EventModel, ReleaseOnEvent>;
+using ReleaseOnInterval_Event = PositionedWithId_ScenarioEvent<IntervalModel, ReleaseOnInterval>;
+using ReleaseOnState_Event = PositionedWithId_ScenarioEvent<StateModel, ReleaseOnState>;
+using ReleaseOnTrigger_Event = score::NumberedWithPath_Event<TriggerModel, ReleaseOnTrigger>;
+using ReleaseOnLeftBrace_Event = PositionedWithId_ScenarioEvent<IntervalModel, ReleaseOnLeftBrace>;
 using ReleaseOnRightBrace_Event
     = PositionedWithId_ScenarioEvent<IntervalModel, ReleaseOnRightBrace>;
 
@@ -190,8 +165,7 @@ using ReleaseOnRightBrace_Event
 //     = score::NumberedWithPath_Event<IntervalModel, ClickOnSlotHandle>;
 struct ClickOnSlotHandle_Event : public score::NumberedEvent<ClickOnSlotHandle>
 {
-  explicit ClickOnSlotHandle_Event(const SlotPath& p)
-      : NumberedEvent<ClickOnSlotHandle>(), path(p)
+  explicit ClickOnSlotHandle_Event(const SlotPath& p) : NumberedEvent<ClickOnSlotHandle>(), path(p)
   {
   }
 
@@ -205,8 +179,7 @@ struct ClickOnSlotHandle_Event : public score::NumberedEvent<ClickOnSlotHandle>
 
 struct MoveOnSlotHandle_Event : public score::NumberedEvent<MoveOnSlotHandle>
 {
-  explicit MoveOnSlotHandle_Event(const SlotPath& p)
-      : NumberedEvent<MoveOnSlotHandle>(), path(p)
+  explicit MoveOnSlotHandle_Event(const SlotPath& p) : NumberedEvent<MoveOnSlotHandle>(), path(p)
   {
   }
 
@@ -220,8 +193,7 @@ struct MoveOnSlotHandle_Event : public score::NumberedEvent<MoveOnSlotHandle>
 
 // using ReleaseOnSlotHandle_Event
 //     = score::NumberedWithPath_Event<IntervalModel, ReleaseOnSlotHandle>;
-struct ReleaseOnSlotHandle_Event
-    : public score::NumberedEvent<ReleaseOnSlotHandle>
+struct ReleaseOnSlotHandle_Event : public score::NumberedEvent<ReleaseOnSlotHandle>
 {
   explicit ReleaseOnSlotHandle_Event(const SlotPath& p)
       : NumberedEvent<ReleaseOnSlotHandle>(), path(p)
@@ -242,8 +214,7 @@ QString debug_StateMachineIDs()
   QString txt;
 
   auto object = static_cast<ScenarioElement>(N % 10);
-  auto modifier
-      = static_cast<score::Modifier_tagme>((N - object) % 1000 / 100);
+  auto modifier = static_cast<score::Modifier_tagme>((N - object) % 1000 / 100);
   switch (modifier)
   {
     case score::Modifier_tagme::Click:

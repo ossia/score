@@ -1,5 +1,7 @@
 #include "AudioPreviewExecutor.hpp"
+
 #include <score/tools/Debug.hpp>
+
 #include <ossia/audio/audio_protocol.hpp>
 namespace Audio
 {
@@ -10,8 +12,7 @@ AudioPreviewExecutor& AudioPreviewExecutor::instance()
   return *m_instance;
 }
 
-AudioPreviewExecutor::AudioPreviewExecutor()
-  : audio{}
+AudioPreviewExecutor::AudioPreviewExecutor() : audio{}
 {
   m_instance = this;
 }
@@ -19,15 +20,15 @@ AudioPreviewExecutor::AudioPreviewExecutor()
 void AudioPreviewExecutor::endTick(unsigned long frameCount, double seconds)
 {
   bool received = false;
-  while(queue.try_dequeue(current_sound))
+  while (queue.try_dequeue(current_sound))
   {
     received = true;
     continue;
   }
 
-  if(received)
+  if (received)
   {
-    if(current_sound.handle)
+    if (current_sound.handle)
     {
       currentPos = 0;
       playing = true;
@@ -38,67 +39,66 @@ void AudioPreviewExecutor::endTick(unsigned long frameCount, double seconds)
     }
   }
 
-  if(!audio)
+  if (!audio)
     return;
 
   auto& outs = this->audio->audio_outs;
-  if(playing && current_sound.handle && outs.size() >= 2)
+  if (playing && current_sound.handle && outs.size() >= 2)
   {
     auto out_l = outs[0]->audio[0];
     auto out_r = outs[1]->audio[0];
 
-    switch(current_sound.handle->data.size())
+    switch (current_sound.handle->data.size())
     {
-    case 0:
-    {
-      return;
-    }
-    case 1:
-    {
-      int64_t max_n = current_sound.handle->data.front().size();
-      float* in_mono = current_sound.handle->data.front().data();
-
-      int64_t& i = currentPos;
-      unsigned long out_i = 0;
-      for(; i < max_n && out_i < frameCount; i++, out_i++)
+      case 0:
       {
-        out_l[out_i] += 0.6f * in_mono[i];
-        out_r[out_i] += 0.6f * in_mono[i];
+        return;
       }
-
-      if(i == max_n)
+      case 1:
       {
-        playing = false;
-        currentPos = 0;
+        int64_t max_n = current_sound.handle->data.front().size();
+        float* in_mono = current_sound.handle->data.front().data();
+
+        int64_t& i = currentPos;
+        unsigned long out_i = 0;
+        for (; i < max_n && out_i < frameCount; i++, out_i++)
+        {
+          out_l[out_i] += 0.6f * in_mono[i];
+          out_r[out_i] += 0.6f * in_mono[i];
+        }
+
+        if (i == max_n)
+        {
+          playing = false;
+          currentPos = 0;
+        }
+
+        break;
       }
-
-      break;
-    }
-    case 2:
-    {
-      int64_t max_n = current_sound.handle->data.front().size();
-      float* in_l = current_sound.handle->data[0].data();
-      float* in_r = current_sound.handle->data[1].data();
-
-      int64_t& i = currentPos;
-      unsigned long out_i = 0;
-      for(; i < max_n && out_i < frameCount; i++, out_i++)
+      case 2:
       {
-        out_l[out_i] += 0.6f * in_l[i];
-        out_r[out_i] += 0.6f * in_r[i];
-      }
+        int64_t max_n = current_sound.handle->data.front().size();
+        float* in_l = current_sound.handle->data[0].data();
+        float* in_r = current_sound.handle->data[1].data();
 
-      if(i == max_n)
-      {
-        playing = false;
-        currentPos = 0;
-      }
+        int64_t& i = currentPos;
+        unsigned long out_i = 0;
+        for (; i < max_n && out_i < frameCount; i++, out_i++)
+        {
+          out_l[out_i] += 0.6f * in_l[i];
+          out_r[out_i] += 0.6f * in_r[i];
+        }
 
-      break;
-    }
+        if (i == max_n)
+        {
+          playing = false;
+          currentPos = 0;
+        }
+
+        break;
+      }
     }
   }
 }
-
 
 }

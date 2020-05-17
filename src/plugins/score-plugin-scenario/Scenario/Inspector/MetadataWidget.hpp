@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Inspector/InspectorLayout.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementColor.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementComments.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementLabel.hpp>
@@ -12,7 +13,6 @@
 #include <score/model/IdentifiedObject.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/TextLabel.hpp>
-#include <Inspector/InspectorLayout.hpp>
 
 #include <QLineEdit>
 #include <QPixmap>
@@ -68,21 +68,15 @@ public:
         m_commandDispatcher.submit(new ChangeElementLabel<T>{model, newLabel});
     });
 
-    connect(
-        this,
-        &MetadataWidget::commentsChanged,
-        [&](const QString& newComments) {
-          if (newComments != model.metadata().getComment())
-            m_commandDispatcher.submit(
-                new ChangeElementComments<T>{model, newComments});
-        });
+    connect(this, &MetadataWidget::commentsChanged, [&](const QString& newComments) {
+      if (newComments != model.metadata().getComment())
+        m_commandDispatcher.submit(new ChangeElementComments<T>{model, newComments});
+    });
 
-    connect(
-        this, &MetadataWidget::colorChanged, [&](score::ColorRef newColor) {
-          if (newColor != model.metadata().getColor())
-            m_commandDispatcher.submit(
-                new ChangeElementColor<T>{model, newColor});
-        });
+    connect(this, &MetadataWidget::colorChanged, [&](score::ColorRef newColor) {
+      if (newColor != model.metadata().getColor())
+        m_commandDispatcher.submit(new ChangeElementColor<T>{model, newColor});
+    });
 
     /*
     connect(
@@ -101,8 +95,7 @@ public:
   void labelChanged(QString arg) W_SIGNAL(labelChanged, arg);
   void commentsChanged(QString arg) W_SIGNAL(commentsChanged, arg);
   void colorChanged(score::ColorRef arg) W_SIGNAL(colorChanged, arg);
-  void extendedMetadataChanged(const QVariantMap& arg)
-      W_SIGNAL(extendedMetadataChanged, arg);
+  void extendedMetadataChanged(const QVariantMap& arg) W_SIGNAL(extendedMetadataChanged, arg);
 
 private:
   static const constexpr int m_colorIconSize{21};
@@ -114,7 +107,6 @@ private:
   QLineEdit m_labelLine;
   CommentEdit m_comments;
   color_widgets::Swatch* m_palette_widget;
-  QPixmap m_colorButtonPixmap{4 * m_colorIconSize / 3,
-                              4 * m_colorIconSize / 3};
+  QPixmap m_colorButtonPixmap{4 * m_colorIconSize / 3, 4 * m_colorIconSize / 3};
 };
 }

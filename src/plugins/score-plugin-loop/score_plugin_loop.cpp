@@ -4,13 +4,12 @@
 
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Loop/Commands/LoopCommandFactory.hpp>
-
 #include <Loop/Inspector/LoopTriggerCommandFactory.hpp>
+#include <Loop/LocalTree/LoopComponent.hpp>
 #include <Loop/LoopDisplayedElements.hpp>
 #include <Loop/LoopExecution.hpp>
 #include <Loop/LoopProcessFactory.hpp>
 #include <Loop/Palette/LoopToolPalette.hpp>
-#include <Loop/LocalTree/LoopComponent.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
@@ -30,17 +29,12 @@
 #include <score_plugin_loop_commands_files.hpp>
 #include <string.h>
 
-SCORE_DECLARE_ACTION(
-    PutInLoop,
-    "&Put in Loop",
-    Loop,
-    Qt::SHIFT + Qt::CTRL + Qt::Key_L)
+SCORE_DECLARE_ACTION(PutInLoop, "&Put in Loop", Loop, Qt::SHIFT + Qt::CTRL + Qt::Key_L)
 
 namespace Loop
 {
 // TODO put in its own file
-class ApplicationPlugin final : public QObject,
-                                public score::GUIApplicationPlugin
+class ApplicationPlugin final : public QObject, public score::GUIApplicationPlugin
 {
 public:
   ApplicationPlugin(const score::GUIApplicationContext& ctx);
@@ -53,7 +47,7 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
 {
 }
 
-ApplicationPlugin::~ApplicationPlugin() {}
+ApplicationPlugin::~ApplicationPlugin() { }
 
 score::GUIElements ApplicationPlugin::makeGUIElements()
 {
@@ -72,8 +66,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
 
   actions.add<Actions::PutInLoop>(putInLoop);
 
-  auto& scenariomodel_cond
-      = context.actions.condition<Scenario::EnableWhenScenarioModelObject>();
+  auto& scenariomodel_cond = context.actions.condition<Scenario::EnableWhenScenarioModelObject>();
   scenariomodel_cond.add<Actions::PutInLoop>();
 
   auto& object = base_menus.at(score::Menus::Object());
@@ -85,14 +78,13 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
 score_plugin_loop::score_plugin_loop() = default;
 score_plugin_loop::~score_plugin_loop() = default;
 
-score::GUIApplicationPlugin* score_plugin_loop::make_guiApplicationPlugin(
-    const score::GUIApplicationContext& app)
+score::GUIApplicationPlugin*
+score_plugin_loop::make_guiApplicationPlugin(const score::GUIApplicationContext& app)
 {
   return new Loop::ApplicationPlugin{app};
 }
 
-std::vector<std::unique_ptr<score::InterfaceBase>>
-score_plugin_loop::factories(
+std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_loop::factories(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& key) const
 {
@@ -100,20 +92,17 @@ score_plugin_loop::factories(
   using namespace Scenario::Command;
   return instantiate_factories<
       score::ApplicationContext,
-      FW<Execution::ProcessComponentFactory,
-         Loop::RecreateOnPlay::ComponentFactory>,
+      FW<Execution::ProcessComponentFactory, Loop::RecreateOnPlay::ComponentFactory>,
       FW<Process::ProcessModelFactory, Loop::ProcessFactory>,
       FW<Process::LayerFactory, Loop::LayerFactory>,
       FW<TriggerCommandFactory, LoopTriggerCommandFactory>,
       FW<LocalTree::ProcessComponentFactory, LocalTree::LoopComponentFactory>,
-      FW<Scenario::DisplayedElementsToolPaletteFactory,
-         Loop::DisplayedElementsToolPaletteFactory>,
+      FW<Scenario::DisplayedElementsToolPaletteFactory, Loop::DisplayedElementsToolPaletteFactory>,
       FW<Scenario::DisplayedElementsProvider, Loop::DisplayedElementsProvider>,
       FW<Scenario::IntervalResizer, Loop::LoopIntervalResizer>>(ctx, key);
 }
 
-std::pair<const CommandGroupKey, CommandGeneratorMap>
-score_plugin_loop::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_loop::make_commands()
 {
   using namespace Loop;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{

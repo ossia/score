@@ -1,8 +1,12 @@
 #include "PatternPresenter.hpp"
+
 #include "PatternView.hpp"
-#include <Patternist/Commands/PatternProperties.hpp>
+
 #include <Process/Focus/FocusDispatcher.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+
+#include <Patternist/Commands/PatternProperties.hpp>
 namespace Patternist
 {
 
@@ -11,14 +15,11 @@ Presenter::Presenter(
     View* view,
     const Process::Context& ctx,
     QObject* parent)
-    : LayerPresenter{layer, view, ctx, parent}
-    , m_view{view}
+    : LayerPresenter{layer, view, ctx, parent}, m_view{view}
 {
   putToFront();
 
-  connect(m_view, &View::pressed, this, [&]() {
-    m_context.context.focusDispatcher.focus(this);
-  });
+  connect(m_view, &View::pressed, this, [&]() { m_context.context.focusDispatcher.focus(this); });
   connect(m_view, &View::toggled, this, [&](int lane, int index) {
     auto cur = layer.patterns()[layer.currentPattern()];
     bool b = cur.lanes[lane].pattern[index];
@@ -35,15 +36,13 @@ Presenter::Presenter(
     auto& disp = m_context.context.dispatcher;
     disp.submit<UpdatePattern>(layer, layer.currentPattern(), cur);
   });
-  connect(m_view, &View::noteChangeFinished, this, [&]{
+  connect(m_view, &View::noteChangeFinished, this, [&] {
     auto& disp = m_context.context.dispatcher;
     disp.commit();
   });
 }
 
-Presenter::~Presenter()
-{
-}
+Presenter::~Presenter() { }
 void Presenter::setWidth(qreal val, qreal defaultWidth)
 {
   m_view->setWidth(val);
@@ -64,10 +63,8 @@ void Presenter::putBehind()
   m_view->setEnabled(false);
 }
 
-void Presenter::on_zoomRatioChanged(ZoomRatio zr)
-{
-}
+void Presenter::on_zoomRatioChanged(ZoomRatio zr) { }
 
-void Presenter::parentGeometryChanged() {}
+void Presenter::parentGeometryChanged() { }
 
 }

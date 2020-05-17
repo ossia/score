@@ -35,12 +35,11 @@ public:
     this->localSM().setInitialState(m_waitState);
 
     //// Create from nothing ////
-    m_createFromNothingState
-        = new Creation_FromNothing<Scenario_T, ToolPalette_T>{
-            this->m_palette,
-            this->m_palette.model(),
-            this->m_palette.context().context.commandStack,
-            nullptr};
+    m_createFromNothingState = new Creation_FromNothing<Scenario_T, ToolPalette_T>{
+        this->m_palette,
+        this->m_palette.model(),
+        this->m_palette.context().context.commandStack,
+        nullptr};
 
     score::make_transition<ClickOnNothing_Transition<Scenario_T>>(
         m_waitState, m_createFromNothingState, *m_createFromNothingState);
@@ -58,18 +57,16 @@ public:
 
     score::make_transition<ClickOnEvent_Transition<Scenario_T>>(
         m_waitState, m_createFromEventState, *m_createFromEventState);
-    m_createFromEventState->addTransition(
-        m_createFromEventState, finishedState(), m_waitState);
+    m_createFromEventState->addTransition(m_createFromEventState, finishedState(), m_waitState);
 
     this->localSM().addState(m_createFromEventState);
 
     //// Create from a timesync ////
-    m_createFromTimeSyncState
-        = new Creation_FromTimeSync<Scenario_T, ToolPalette_T>{
-            this->m_palette,
-            this->m_palette.model(),
-            this->m_palette.context().context.commandStack,
-            nullptr};
+    m_createFromTimeSyncState = new Creation_FromTimeSync<Scenario_T, ToolPalette_T>{
+        this->m_palette,
+        this->m_palette.model(),
+        this->m_palette.context().context.commandStack,
+        nullptr};
 
     score::make_transition<ClickOnTimeSync_Transition<Scenario_T>>(
         m_waitState, m_createFromTimeSyncState, *m_createFromTimeSyncState);
@@ -88,8 +85,7 @@ public:
     score::make_transition<ClickOnState_Transition<Scenario_T>>(
         m_waitState, m_createFromStateState, *m_createFromStateState);
 
-    m_createFromStateState->addTransition(
-        m_createFromStateState, finishedState(), m_waitState);
+    m_createFromStateState->addTransition(m_createFromStateState, finishedState(), m_waitState);
 
     this->localSM().addState(m_createFromStateState);
 
@@ -132,11 +128,9 @@ public:
           // where we instead choose the latest state if selected
           if (auto state = furthestSelectedState(this->m_palette.model()))
           {
-            if (this->m_palette.model().events.at(state->eventId()).date()
-                < sp.date)
+            if (this->m_palette.model().events.at(state->eventId()).date() < sp.date)
             {
-              this->localSM().postEvent(
-                  new ClickOnState_Event{state->id(), sp});
+              this->localSM().postEvent(new ClickOnState_Event{state->id(), sp});
               return;
             }
           }
@@ -190,26 +184,20 @@ public:
 private:
   // Return the colliding elements that were not created in the current
   // commands
-  QList<Id<StateModel>> getCollidingStates(
-      QPointF point,
-      const QVector<Id<StateModel>>& createdStates)
+  QList<Id<StateModel>>
+  getCollidingStates(QPointF point, const QVector<Id<StateModel>>& createdStates)
   {
-    return getCollidingModels(
-        this->m_palette.presenter().getStates(), createdStates, point);
+    return getCollidingModels(this->m_palette.presenter().getStates(), createdStates, point);
   }
-  QList<Id<EventModel>> getCollidingEvents(
-      QPointF point,
-      const QVector<Id<EventModel>>& createdEvents)
+  QList<Id<EventModel>>
+  getCollidingEvents(QPointF point, const QVector<Id<EventModel>>& createdEvents)
   {
-    return getCollidingModels(
-        this->m_palette.presenter().getEvents(), createdEvents, point);
+    return getCollidingModels(this->m_palette.presenter().getEvents(), createdEvents, point);
   }
-  QList<Id<TimeSyncModel>> getCollidingTimeSyncs(
-      QPointF point,
-      const QVector<Id<TimeSyncModel>>& createdTimeSyncs)
+  QList<Id<TimeSyncModel>>
+  getCollidingTimeSyncs(QPointF point, const QVector<Id<TimeSyncModel>>& createdTimeSyncs)
   {
-    return getCollidingModels(
-        this->m_palette.presenter().getTimeSyncs(), createdTimeSyncs, point);
+    return getCollidingModels(this->m_palette.presenter().getTimeSyncs(), createdTimeSyncs, point);
   }
 
   CreationState<Scenario_T, ToolPalette_T>* currentState() const
@@ -226,11 +214,7 @@ private:
       return nullptr;
   }
 
-  template <
-      typename StateFun,
-      typename EventFun,
-      typename TimeSyncFun,
-      typename NothingFun>
+  template <typename StateFun, typename EventFun, typename TimeSyncFun, typename NothingFun>
   void mapWithCollision(
       QPointF point,
       StateFun st_fun,
@@ -267,8 +251,7 @@ private:
 
   Creation_FromNothing<Scenario_T, ToolPalette_T>* m_createFromNothingState{};
   Creation_FromEvent<Scenario_T, ToolPalette_T>* m_createFromEventState{};
-  Creation_FromTimeSync<Scenario_T, ToolPalette_T>*
-      m_createFromTimeSyncState{};
+  Creation_FromTimeSync<Scenario_T, ToolPalette_T>* m_createFromTimeSyncState{};
   Creation_FromState<Scenario_T, ToolPalette_T>* m_createFromStateState{};
   QState* m_waitState{};
 };

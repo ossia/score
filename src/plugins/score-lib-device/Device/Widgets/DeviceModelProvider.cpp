@@ -2,12 +2,12 @@
 
 namespace Device
 {
-DeviceModelProvider::~DeviceModelProvider() {}
+DeviceModelProvider::~DeviceModelProvider() { }
 
-DeviceModelProviderList::~DeviceModelProviderList() {}
+DeviceModelProviderList::~DeviceModelProviderList() { }
 
-DeviceModelProvider* DeviceModelProviderList::getBestProvider(
-    const score::DocumentContext& ctx) const noexcept
+DeviceModelProvider*
+DeviceModelProviderList::getBestProvider(const score::DocumentContext& ctx) const noexcept
 {
   if (!empty())
     return &*begin();

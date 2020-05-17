@@ -1,11 +1,14 @@
 #include "ArrowDialog.hpp"
-#include <QPainter>
-#include <QEvent>
-#include <QMouseEvent>
-#include <QGraphicsView>
-#include <QPointer>
-#include <ossia/detail/algorithms.hpp>
+
 #include <score/model/Skin.hpp>
+
+#include <ossia/detail/algorithms.hpp>
+
+#include <QEvent>
+#include <QGraphicsView>
+#include <QMouseEvent>
+#include <QPainter>
+#include <QPointer>
 namespace score
 {
 
@@ -27,8 +30,8 @@ void ArrowDialog::paint(QPainter* painter, const QStyleOptionGraphicsItem* optio
 
 const QPainterPath& ArrowDialog::getPath(QSizeF sz)
 {
-  auto it = ossia::find_if(paths, [=] (const auto& pair) { return pair.first == sz; });
-  if(it == paths.end())
+  auto it = ossia::find_if(paths, [=](const auto& pair) { return pair.first == sz; });
+  if (it == paths.end())
   {
     return paths.emplace_back(sz, createPath(sz)).second;
   }
@@ -45,7 +48,7 @@ QPainterPath ArrowDialog::createPath(QSizeF sz)
   p.moveTo({0, sz.height()});
   p.lineTo({0 + 6, sz.height() + 6});
   p.lineTo({0 + 2 * 6, sz.height()});
-  //p.lineTo({3, sz.height()});
+  // p.lineTo({3, sz.height()});
   p.closeSubpath();
   return p.simplified();
 }

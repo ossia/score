@@ -6,7 +6,6 @@
 #include <ossia/editor/expression/expression.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
 
-
 #include <score_plugin_scenario_export.h>
 
 #include <memory>
@@ -34,14 +33,11 @@ void state(
     const Execution::Context& ctx);
 
 SCORE_PLUGIN_SCENARIO_EXPORT
-ossia::state
-state(const Scenario::StateModel& score_state, const Execution::Context& ctx);
+ossia::state state(const Scenario::StateModel& score_state, const Execution::Context& ctx);
 
-ossia::expression_ptr condition_expression(
-    const State::Expression& expr,
-    const ossia::execution_state&);
-ossia::expression_ptr trigger_expression(
-    const State::Expression& expr,
-    const ossia::execution_state&);
+ossia::expression_ptr
+condition_expression(const State::Expression& expr, const ossia::execution_state&);
+ossia::expression_ptr
+trigger_expression(const State::Expression& expr, const ossia::execution_state&);
 }
 }

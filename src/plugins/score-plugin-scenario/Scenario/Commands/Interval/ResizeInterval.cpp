@@ -9,9 +9,8 @@
 namespace Scenario
 {
 
-static bool intervalHasNoFollowers(
-    const Scenario::ProcessModel& scenar,
-    const Scenario::IntervalModel& cst)
+static bool
+intervalHasNoFollowers(const Scenario::ProcessModel& scenar, const Scenario::IntervalModel& cst)
 {
   auto& tn = Scenario::endTimeSync(cst, scenar);
   for (auto& event_id : tn.events())
@@ -27,8 +26,7 @@ static bool intervalHasNoFollowers(
   return true;
 }
 
-bool ScenarioIntervalResizer::matches(const IntervalModel& interval) const
-    noexcept
+bool ScenarioIntervalResizer::matches(const IntervalModel& interval) const noexcept
 {
   return dynamic_cast<Scenario::ProcessModel*>(interval.parent());
 }
@@ -45,18 +43,13 @@ score::Command* ScenarioIntervalResizer::make(
 
   // First check that the end time sync has nothing afterwards :
   // all its states must not have next intervals
-  if(Scenario::isInFullView(interval))
-    if(!intervalHasNoFollowers(*scenar, interval))
+  if (Scenario::isInFullView(interval))
+    if (!intervalHasNoFollowers(*scenar, interval))
       return nullptr;
 
   auto& ev = Scenario::endState(interval, *scenar).eventId();
-  auto resize_cmd
-      = new Scenario::Command::MoveEventMeta{*scenar,
-                                             ev,
-                                             interval.date() + new_duration,
-                                             interval.heightPercentage(),
-                                             e,
-                                             l};
+  auto resize_cmd = new Scenario::Command::MoveEventMeta{
+      *scenar, ev, interval.date() + new_duration, interval.heightPercentage(), e, l};
   return resize_cmd;
 }
 
@@ -72,18 +65,11 @@ void ScenarioIntervalResizer::update(
   {
     auto scenar = dynamic_cast<Scenario::ProcessModel*>(interval.parent());
     auto& ev = Scenario::endState(interval, *scenar).eventId();
-    c->update(
-        *scenar,
-        ev,
-        interval.date() + new_duration,
-        interval.heightPercentage(),
-        e,
-        l);
+    c->update(*scenar, ev, interval.date() + new_duration, interval.heightPercentage(), e, l);
   }
 }
 
-bool BaseScenarioIntervalResizer::matches(const IntervalModel& interval) const
-    noexcept
+bool BaseScenarioIntervalResizer::matches(const IntervalModel& interval) const noexcept
 {
   return dynamic_cast<Scenario::BaseScenario*>(interval.parent());
 }
@@ -99,12 +85,7 @@ score::Command* BaseScenarioIntervalResizer::make(
     return nullptr;
 
   return new Scenario::Command::MoveBaseEvent<Scenario::BaseScenario>{
-      *scenar,
-      scenar->endEvent().id(),
-      new_duration,
-      interval.heightPercentage(),
-      e,
-      l};
+      *scenar, scenar->endEvent().id(), new_duration, interval.heightPercentage(), e, l};
 }
 
 void BaseScenarioIntervalResizer::update(
@@ -114,22 +95,15 @@ void BaseScenarioIntervalResizer::update(
     ExpandMode e,
     LockMode l) const noexcept
 {
-  auto c = dynamic_cast<
-      Scenario::Command::MoveBaseEvent<Scenario::BaseScenario>*>(&cmd);
+  auto c = dynamic_cast<Scenario::Command::MoveBaseEvent<Scenario::BaseScenario>*>(&cmd);
   if (c)
   {
     auto scenar = dynamic_cast<Scenario::BaseScenario*>(interval.parent());
     auto& ev = Scenario::endState(interval, *scenar).eventId();
-    c->update(
-        *scenar,
-        ev,
-        interval.date() + new_duration,
-        interval.heightPercentage(),
-        e,
-        l);
+    c->update(*scenar, ev, interval.date() + new_duration, interval.heightPercentage(), e, l);
   }
 }
 
-IntervalResizerList::~IntervalResizerList() {}
+IntervalResizerList::~IntervalResizerList() { }
 
 }

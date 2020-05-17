@@ -1,10 +1,9 @@
 #pragma once
 #include <QWidget>
 
-#include <verdigris>
-
 #include <utility>
 #include <vector>
+#include <verdigris>
 class QFormLayout;
 class QLabel;
 class QLineEdit;
@@ -27,8 +26,7 @@ public:
   void dataChanged() W_SIGNAL(dataChanged);
 
 private:
-  std::pair<QLabel*, QLineEdit*>
-  makeRow(const QString& l, const QString& r, int row);
+  std::pair<QLabel*, QLineEdit*> makeRow(const QString& l, const QString& r, int row);
 
   void insertRow(const QString& label, int row);
 

@@ -6,18 +6,16 @@
 namespace score
 {
 
-ValidityChecker::~ValidityChecker() {}
+ValidityChecker::~ValidityChecker() { }
 
-ValidityCheckerList::~ValidityCheckerList() {}
+ValidityCheckerList::~ValidityCheckerList() { }
 
 DocumentValidator ValidityCheckerList::make(const Document& ctx)
 {
   return DocumentValidator{*this, ctx};
 }
 
-DocumentValidator::DocumentValidator(
-    const ValidityCheckerList& l,
-    const Document& doc)
+DocumentValidator::DocumentValidator(const ValidityCheckerList& l, const Document& doc)
     : m_list{l}, m_doc{doc}
 {
 }

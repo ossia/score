@@ -13,8 +13,6 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 
-
-
 namespace Scenario
 {
 namespace Command
@@ -36,9 +34,7 @@ InsertContentInState::InsertContentInState(
   m_oldNode = state.messages().rootNode();
   m_newNode = m_oldNode;
   updateTreeWithMessageList(
-      m_newNode,
-      Process::flatten(score::unmarshall<Process::MessageNode>(
-          stateData["Messages"])));
+      m_newNode, Process::flatten(score::unmarshall<Process::MessageNode>(stateData["Messages"])));
 }
 
 void InsertContentInState::undo(const score::DocumentContext& ctx) const

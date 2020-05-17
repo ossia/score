@@ -12,6 +12,7 @@
 #include <QVector>
 
 #include <score_plugin_loop_export.h>
+
 #include <verdigris>
 
 class DataStream;
@@ -25,9 +26,8 @@ class IntervalModel;
 
 namespace Loop
 {
-class SCORE_PLUGIN_LOOP_EXPORT ProcessModel final
-    : public Process::ProcessModel,
-      public Scenario::BaseScenarioContainer
+class SCORE_PLUGIN_LOOP_EXPORT ProcessModel final : public Process::ProcessModel,
+                                                    public Scenario::BaseScenarioContainer
 {
   W_OBJECT(ProcessModel)
   SCORE_SERIALIZE_FRIENDS
@@ -44,7 +44,7 @@ public:
       QObject* parentObject);
 
   template <typename Impl>
-  explicit ProcessModel(Impl& vis, const score::DocumentContext& ctx,  QObject* parent)
+  explicit ProcessModel(Impl& vis, const score::DocumentContext& ctx, QObject* parent)
       : Process::ProcessModel{vis, parent}
       , BaseScenarioContainer{BaseScenarioContainer::no_init{}, ctx, this}
   {
@@ -69,8 +69,7 @@ public:
   ~ProcessModel() override;
 };
 
-SCORE_PLUGIN_LOOP_EXPORT const QVector<Id<Scenario::IntervalModel>>
-intervalsBeforeTimeSync(
+SCORE_PLUGIN_LOOP_EXPORT const QVector<Id<Scenario::IntervalModel>> intervalsBeforeTimeSync(
     const Loop::ProcessModel& scen,
     const Id<Scenario::TimeSyncModel>& timeSyncId);
 
@@ -79,11 +78,9 @@ class LoopIntervalResizer final : public Scenario::IntervalResizer
   SCORE_CONCRETE("e4144527-970f-447a-9d6c-fb05c7aebca8")
 
   bool matches(const Scenario::IntervalModel& m) const noexcept override;
-  score::Command* make(
-      const Scenario::IntervalModel& itv,
-      TimeVal new_duration,
-      ExpandMode,
-      LockMode) const noexcept override;
+  score::Command*
+  make(const Scenario::IntervalModel& itv, TimeVal new_duration, ExpandMode, LockMode)
+      const noexcept override;
   void update(
       score::Command& cmd,
       const Scenario::IntervalModel& interval,

@@ -80,11 +80,7 @@ private:
       Scenario::MoveTimeSyncInBaseScenario_StateWrapper>
       m_state;
 
-  ToolPaletteInputDispatcher<
-      Scenario::Tool,
-      ToolPalette,
-      Process::LayerContext,
-      LayerPresenter>
+  ToolPaletteInputDispatcher<Scenario::Tool, ToolPalette, Process::LayerContext, LayerPresenter>
       m_inputDisp;
 };
 

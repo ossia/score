@@ -37,7 +37,7 @@ private:
 
 public:
   TreePath() = default;
-  TreePath(const impl_type& other) : impl_type(other) {}
+  TreePath(const impl_type& other) : impl_type(other) { }
 
   TreePath(QModelIndex index)
   {

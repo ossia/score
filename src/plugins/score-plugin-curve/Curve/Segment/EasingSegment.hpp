@@ -19,15 +19,11 @@ public:
     return Metadata<ConcreteKey_k, EasingSegment>::get();
   }
 
-  void serialize_impl(const VisitorVariant& vis) const override {}
+  void serialize_impl(const VisitorVariant& vis) const override { }
 
   using data_type = EasingData;
-  EasingSegment(const Id<SegmentModel>& id, QObject* parent)
-      : Curve::SegmentModel{id, parent}
-  {
-  }
-  EasingSegment(const Curve::SegmentData& dat, QObject* parent)
-      : Curve::SegmentModel{dat, parent}
+  EasingSegment(const Id<SegmentModel>& id, QObject* parent) : Curve::SegmentModel{id, parent} { }
+  EasingSegment(const Curve::SegmentData& dat, QObject* parent) : Curve::SegmentModel{dat, parent}
   {
   }
 
@@ -39,12 +35,10 @@ public:
   {
   }
 
-  EasingSegment(DataStream::Deserializer& vis, QObject* parent)
-      : Curve::SegmentModel{vis, parent}
+  EasingSegment(DataStream::Deserializer& vis, QObject* parent) : Curve::SegmentModel{vis, parent}
   {
   }
-  EasingSegment(JSONObject::Deserializer& vis, QObject* parent)
-      : Curve::SegmentModel{vis, parent}
+  EasingSegment(JSONObject::Deserializer& vis, QObject* parent) : Curve::SegmentModel{vis, parent}
   {
   }
 
@@ -68,8 +62,7 @@ public:
       {
         QPointF& pt = m_data[j];
         pt.setX(start_x + (double(j) / numInterp) * (end_x - start_x));
-        pt.setY(
-            start_y + (end_y - start_y) * Easing_T{}(double(j) / numInterp));
+        pt.setY(start_y + (end_y - start_y) * Easing_T{}(double(j) / numInterp));
       }
     }
   }
@@ -77,19 +70,15 @@ public:
   double valueAt(double x) const override
   {
     return start().y()
-           + (end().y() - start().y()) * (Easing_T{}(x)-start().x())
-                 / (end().x() - start().x());
+           + (end().y() - start().y()) * (Easing_T{}(x)-start().x()) / (end().x() - start().x());
   }
 
   optional<double> verticalParameter() const override { return {}; }
   optional<double> horizontalParameter() const override { return {}; }
-  void setVerticalParameter(double p) override {}
-  void setHorizontalParameter(double p) override {}
+  void setVerticalParameter(double p) override { }
+  void setHorizontalParameter(double p) override { }
 
-  QVariant toSegmentSpecificData() const override
-  {
-    return QVariant::fromValue(EasingData{});
-  }
+  QVariant toSegmentSpecificData() const override { return QVariant::fromValue(EasingData{}); }
 
   template <typename Y>
   ossia::curve_segment<Y> makeFunction() const
@@ -100,14 +89,8 @@ public:
   {
     return makeFunction<double>();
   }
-  ossia::curve_segment<float> makeFloatFunction() const override
-  {
-    return makeFunction<float>();
-  }
-  ossia::curve_segment<int> makeIntFunction() const override
-  {
-    return makeFunction<int>();
-  }
+  ossia::curve_segment<float> makeFloatFunction() const override { return makeFunction<float>(); }
+  ossia::curve_segment<int> makeIntFunction() const override { return makeFunction<int>(); }
 };
 using Segment_backIn = EasingSegment<ossia::easing::backIn>;
 using Segment_backOut = EasingSegment<ossia::easing::backOut>;
@@ -135,8 +118,7 @@ using Segment_circularOut = EasingSegment<ossia::easing::circularOut>;
 using Segment_circularInOut = EasingSegment<ossia::easing::circularInOut>;
 using Segment_exponentialIn = EasingSegment<ossia::easing::exponentialIn>;
 using Segment_exponentialOut = EasingSegment<ossia::easing::exponentialOut>;
-using Segment_exponentialInOut
-    = EasingSegment<ossia::easing::exponentialInOut>;
+using Segment_exponentialInOut = EasingSegment<ossia::easing::exponentialInOut>;
 using Segment_elasticIn = EasingSegment<ossia::easing::elasticIn>;
 using Segment_elasticOut = EasingSegment<ossia::easing::elasticOut>;
 using Segment_elasticInOut = EasingSegment<ossia::easing::elasticInOut>;

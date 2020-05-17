@@ -78,8 +78,7 @@ void PointArraySegment::updateData(int numInterp) const
     for (const auto& elt : m_points)
     {
       m_data.push_back(
-          {(m_end.x() - m_start.x()) * (elt.first - min_x) / length
-               + m_start.x(),
+          {(m_end.x() - m_start.x()) * (elt.first - min_x) / length + m_start.x(),
            (elt.second - min_y) / amplitude});
     }
   }

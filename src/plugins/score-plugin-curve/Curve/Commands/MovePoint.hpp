@@ -19,18 +19,12 @@ class SCORE_PLUGIN_CURVE_EXPORT MovePoint final : public score::Command
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), MovePoint, "Move a point")
 public:
-  MovePoint(
-      const Model& curve,
-      const Id<PointModel>& pointId,
-      Curve::Point newPoint);
+  MovePoint(const Model& curve, const Id<PointModel>& pointId, Curve::Point newPoint);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 
-  void update(
-      const Model& obj,
-      const Id<PointModel>& pointId,
-      const Curve::Point& newPoint);
+  void update(const Model& obj, const Id<PointModel>& pointId, const Curve::Point& newPoint);
 
 protected:
   void serializeImpl(DataStreamInput& s) const override;

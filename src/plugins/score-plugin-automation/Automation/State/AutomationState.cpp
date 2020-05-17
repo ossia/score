@@ -21,10 +21,7 @@
 class QObject;
 namespace Automation
 {
-ProcessState::ProcessState(
-    ProcessModel& model,
-    double watchedPoint,
-    QObject* parent)
+ProcessState::ProcessState(ProcessModel& model, double watchedPoint, QObject* parent)
     : ProcessStateDataInterface{model, parent}, m_point{watchedPoint}
 {
   SCORE_ASSERT(0 <= watchedPoint && watchedPoint <= 1);
@@ -58,8 +55,7 @@ ProcessState::ProcessState(
   auto tree = ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
   if (tree)
   {
-    auto node
-        = Device::try_getNodeFromAddress(tree->rootNode(), m.address.address);
+    auto node = Device::try_getNodeFromAddress(tree->rootNode(), m.address.address);
     if (node && node->is<Device::AddressSettings>())
     {
       treeValue = node->get<Device::AddressSettings>().value;
@@ -73,9 +69,8 @@ ProcessState::ProcessState(
     // to make this fast (just checking for the first and the last).
     if (seg.start().x() <= m_point && seg.end().x() >= m_point)
     {
-      m.value = float(
-          seg.valueAt(m_point) * (process().max() - process().min())
-          + process().min());
+      m.value
+          = float(seg.valueAt(m_point) * (process().max() - process().min()) + process().min());
 
       return m;
     }
@@ -115,9 +110,8 @@ std::vector<State::AddressAccessor> ProcessState::matchingAddresses()
 }
 
 // TESTME
-::State::MessageList ProcessState::setMessages(
-    const ::State::MessageList& received,
-    const Process::MessageNode&)
+::State::MessageList
+ProcessState::setMessages(const ::State::MessageList& received, const Process::MessageNode&)
 {
   if (m_point != 0. && m_point != 1.)
     return messages();
@@ -141,10 +135,9 @@ std::vector<State::AddressAccessor> ProcessState::matchingAddresses()
       {
         // Find first segment
         // TODO ordering would help, here.
-        auto seg_it = std::find_if(
-            segs.begin(), segs.end(), [](Curve::SegmentModel& segt) {
-              return segt.start().x() == 0.;
-            });
+        auto seg_it = std::find_if(segs.begin(), segs.end(), [](Curve::SegmentModel& segt) {
+          return segt.start().x() == 0.;
+        });
         if (seg_it != segs.end())
         {
           if (val != seg_it->start().y())
@@ -156,10 +149,9 @@ std::vector<State::AddressAccessor> ProcessState::matchingAddresses()
       else if (m_point == 1)
       {
         // Find last segment
-        auto seg_it = std::find_if(
-            segs.begin(), segs.end(), [](Curve::SegmentModel& segt) {
-              return segt.end().x() == 1;
-            });
+        auto seg_it = std::find_if(segs.begin(), segs.end(), [](Curve::SegmentModel& segt) {
+          return segt.end().x() == 1;
+        });
         if (seg_it != segs.end())
         {
           if (val != seg_it->end().y())

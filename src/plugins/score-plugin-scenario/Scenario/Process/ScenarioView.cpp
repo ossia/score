@@ -21,11 +21,9 @@
 
 namespace Scenario
 {
-ScenarioView::ScenarioView(QGraphicsItem* parent)
-    : LayerView{parent}
+ScenarioView::ScenarioView(QGraphicsItem* parent) : LayerView{parent}
 {
-  this->setFlags(
-      ItemIsSelectable | ItemIsFocusable | ItemClipsChildrenToShape);
+  this->setFlags(ItemIsSelectable | ItemIsFocusable | ItemClipsChildrenToShape);
   setAcceptDrops(true);
 
   this->setZValue(1);
@@ -45,12 +43,10 @@ void ScenarioView::paint_impl(QPainter* painter) const
   if (m_selectArea != QRectF{})
   {
     painter->setCompositionMode(QPainter::CompositionMode_Xor);
-    painter->setPen(QPen{
-        QColor{0, 0, 0, 127}, 2, Qt::DashLine, Qt::SquareCap, Qt::BevelJoin});
+    painter->setPen(QPen{QColor{0, 0, 0, 127}, 2, Qt::DashLine, Qt::SquareCap, Qt::BevelJoin});
     painter->setBrush(Qt::transparent);
     painter->drawRect(m_selectArea);
-    painter->setCompositionMode(
-        QPainter::CompositionMode::CompositionMode_SourceOver);
+    painter->setCompositionMode(QPainter::CompositionMode::CompositionMode_SourceOver);
   }
 
   if (m_dragLine)
@@ -119,8 +115,7 @@ void ScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   else
   {
     if (m_moving
-        || (event->buttonDownScreenPos(Qt::LeftButton) - event->screenPos())
-                   .manhattanLength()
+        || (event->buttonDownScreenPos(Qt::LeftButton) - event->screenPos()).manhattanLength()
                > QApplication::startDragDistance())
     {
       m_moving = true;
@@ -162,20 +157,20 @@ void ScenarioView::keyPressEvent(QKeyEvent* event)
 {
   QGraphicsItem::keyPressEvent(event);
 
-  switch(event->key())
+  switch (event->key())
   {
-  case Qt::Key_Escape:
+    case Qt::Key_Escape:
       escPressed();
       break;
-  case Qt::Key_Shift:
-  case Qt::Key_Control:
-  case Qt::Key_Alt:
-  case Qt::Key_Up:
-  case Qt::Key_Down:
-  case Qt::Key_Left:
-  case Qt::Key_Right:
+    case Qt::Key_Shift:
+    case Qt::Key_Control:
+    case Qt::Key_Alt:
+    case Qt::Key_Up:
+    case Qt::Key_Down:
+    case Qt::Key_Left:
+    case Qt::Key_Right:
       keyPressed(event->key());
-  default:
+    default:
       break;
   }
 
@@ -186,17 +181,17 @@ void ScenarioView::keyReleaseEvent(QKeyEvent* event)
 {
   QGraphicsItem::keyReleaseEvent(event);
 
-  switch(event->key())
+  switch (event->key())
   {
-  case Qt::Key_Shift:
-  case Qt::Key_Control:
-  case Qt::Key_Alt:
-  case Qt::Key_Up:
-  case Qt::Key_Down:
-  case Qt::Key_Left:
-  case Qt::Key_Right:
+    case Qt::Key_Shift:
+    case Qt::Key_Control:
+    case Qt::Key_Alt:
+    case Qt::Key_Up:
+    case Qt::Key_Down:
+    case Qt::Key_Left:
+    case Qt::Key_Right:
       keyReleased(event->key());
-  default:
+    default:
       break;
   }
   event->accept();

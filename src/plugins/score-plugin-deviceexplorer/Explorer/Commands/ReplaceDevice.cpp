@@ -13,7 +13,6 @@
 #include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
-
 #include <vector>
 
 namespace Explorer
@@ -30,8 +29,7 @@ ReplaceDevice::ReplaceDevice(
     : m_deviceIndex(deviceIndex), m_deviceNode{std::move(rootNode)}
 {
   auto& explorer = device_tree.explorer();
-  m_savedNode = explorer.nodeFromModelIndex(
-      explorer.index(m_deviceIndex, 0, QModelIndex()));
+  m_savedNode = explorer.nodeFromModelIndex(explorer.index(m_deviceIndex, 0, QModelIndex()));
 }
 
 ReplaceDevice::ReplaceDevice(
@@ -45,8 +43,7 @@ ReplaceDevice::ReplaceDevice(
 {
 }
 
-static void
-replaceDevice(const Device::Node& new_d, const score::DocumentContext& ctx)
+static void replaceDevice(const Device::Node& new_d, const score::DocumentContext& ctx)
 {
   auto& explorer = ctx.plugin<DeviceDocumentPlugin>().explorer();
 

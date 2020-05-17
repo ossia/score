@@ -12,15 +12,15 @@
 W_OBJECT_IMPL(Loop::LayerView)
 namespace Loop
 {
-LayerView::LayerView(QGraphicsItem* parent) : Process::LayerView{parent} {}
+LayerView::LayerView(QGraphicsItem* parent) : Process::LayerView{parent} { }
 
-LayerView::~LayerView() {}
+LayerView::~LayerView() { }
 
-void LayerView::setSelectionArea(QRectF) {}
+void LayerView::setSelectionArea(QRectF) { }
 
 void LayerView::paint_impl(QPainter* p) const
 {
-  //QColor(85, 75, 0, 200)
+  // QColor(85, 75, 0, 200)
   auto& style = Process::Style::instance();
   p->fillRect(boundingRect(), style.LoopBrush());
 }

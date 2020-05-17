@@ -23,15 +23,15 @@
 #include <score/model/tree/VariantBasedNode.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
-#include <score/serialization/IsTemplate.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/IsTemplate.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/std/Optional.hpp>
 
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/small_vector.hpp>
 #include <ossia/detail/string_map.hpp>
-#include <ossia/detail/algorithms.hpp>
 
 #include <QGraphicsItem>
 #include <QWidget>

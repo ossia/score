@@ -7,10 +7,8 @@
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <JS/ConsolePanel.hpp>
 #include <JS/Executor/Component.hpp>
-
 #include <JS/JSProcessFactory.hpp>
 #include <JS/Qml/QmlObjects.hpp>
-#include <QQmlListProperty>
 #include <Library/LibraryInterface.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/ProcessFactory.hpp>
@@ -20,10 +18,11 @@
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/tools/std/HashMap.hpp>
 
+#include <QFileInfo>
+#include <QQmlListProperty>
+
 #include <Execution/DocumentPlugin.hpp>
 #include <score_plugin_js_commands_files.hpp>
-
-#include <QFileInfo>
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(JS::EditJsContext)
@@ -34,20 +33,14 @@ class LibraryHandler final : public Library::LibraryInterface
 {
   SCORE_CONCRETE("5231ea8b-da66-4c6f-9e34-d9a79cbc494a")
 
-  QSet<QString> acceptedFiles() const noexcept override
-  {
-    return {"js", "qml"};
-  }
+  QSet<QString> acceptedFiles() const noexcept override { return {"js", "qml"}; }
 };
 
 class DropHandler final : public Process::ProcessDropHandler
 {
   SCORE_CONCRETE("ad3a575a-f4a8-4a89-bb7e-bfd85f3430fe")
 
-  QSet<QString> fileExtensions() const noexcept override
-  {
-    return {"js", "qml"};
-  }
+  QSet<QString> fileExtensions() const noexcept override { return {"js", "qml"}; }
 
   std::vector<Process::ProcessDropHandler::ProcessDrop> dropData(
       const std::vector<DroppedFile>& data,
@@ -104,12 +97,10 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_js::factories(
       FW<score::PanelDelegateFactory, JS::PanelDelegateFactory>,
       FW<Library::LibraryInterface, JS::LibraryHandler>,
       FW<Process::ProcessDropHandler, JS::DropHandler>,
-      FW<Execution::ProcessComponentFactory, JS::Executor::ComponentFactory>>(
-      ctx, key);
+      FW<Execution::ProcessComponentFactory, JS::Executor::ComponentFactory>>(ctx, key);
 }
 
-std::pair<const CommandGroupKey, CommandGeneratorMap>
-score_plugin_js::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_js::make_commands()
 {
   using namespace JS;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{

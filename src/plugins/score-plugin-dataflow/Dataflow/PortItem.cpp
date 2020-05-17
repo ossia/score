@@ -1,23 +1,18 @@
 #include "PortItem.hpp"
 
 #include <Automation/Commands/SetAutomationMax.hpp>
-
-#include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
-#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
-
 #include <Dataflow/Commands/CreateModulation.hpp>
 #include <Dataflow/Commands/EditConnection.hpp>
-
-#include <State/MessageListSerialization.hpp>
-
-#include <Process/Commands/EditPort.hpp>
-
 #include <Device/Node/NodeListMimeSerialization.hpp>
+#include <Process/Commands/EditPort.hpp>
+#include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
+#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
+#include <State/MessageListSerialization.hpp>
 
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 
-#include <ossia/network/domain/domain.hpp>
 #include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/network/domain/domain.hpp>
 
 #include <QGraphicsSceneDragDropEvent>
 #include <QMenu>
@@ -85,11 +80,9 @@ void onCreateCable(
   disp.submit<Dataflow::CreateCable>(plug, getStrongId(plug.cables), cd);
 }
 
-AutomatablePortItem::~AutomatablePortItem() {}
+AutomatablePortItem::~AutomatablePortItem() { }
 
-void AutomatablePortItem::setupMenu(
-    QMenu& menu,
-    const score::DocumentContext& ctx)
+void AutomatablePortItem::setupMenu(QMenu& menu, const score::DocumentContext& ctx)
 {
   auto act = menu.addAction(QObject::tr("Create automation"));
   QObject::connect(
@@ -100,8 +93,7 @@ void AutomatablePortItem::setupMenu(
       Qt::QueuedConnection);
 }
 
-void AutomatablePortItem::on_createAutomation(
-    const score::DocumentContext& ctx)
+void AutomatablePortItem::on_createAutomation(const score::DocumentContext& ctx)
 {
   const QObject* obj = &m_port;
   while (obj)
@@ -109,9 +101,9 @@ void AutomatablePortItem::on_createAutomation(
     auto parent = obj->parent();
     if (auto cst = qobject_cast<Scenario::IntervalModel*>(parent))
     {
-      RedoMacroCommandDispatcher<Dataflow::CreateModulation> macro{
-          ctx.commandStack};
-      on_createAutomation(*cst, [&](auto cmd) { macro.submit(cmd); }, ctx);
+      RedoMacroCommandDispatcher<Dataflow::CreateModulation> macro{ctx.commandStack};
+      on_createAutomation(
+          *cst, [&](auto cmd) { macro.submit(cmd); }, ctx);
       macro.commit();
       return;
     }
@@ -134,13 +126,10 @@ bool AutomatablePortItem::on_createAutomation(
     return false;
 
   auto make_cmd = new Scenario::Command::AddOnlyProcessToInterval{
-      cst,
-      Metadata<ConcreteKey_k, Automation::ProcessModel>::get(),
-      QString{}, {}};
+      cst, Metadata<ConcreteKey_k, Automation::ProcessModel>::get(), QString{}, {}};
   macro(make_cmd);
 
-  auto lay_cmd
-      = new Scenario::Command::AddLayerInNewSlot{cst, make_cmd->processId()};
+  auto lay_cmd = new Scenario::Command::AddLayerInNewSlot{cst, make_cmd->processId()};
   macro(lay_cmd);
 
   auto dom = ctrl->domain();
@@ -148,8 +137,7 @@ bool AutomatablePortItem::on_createAutomation(
   auto max = dom.get().convert_max<float>();
 
   State::Unit unit = ctrl->address().qualifiers.get().unit;
-  auto& autom = safe_cast<Automation::ProcessModel&>(
-      cst.processes.at(make_cmd->processId()));
+  auto& autom = safe_cast<Automation::ProcessModel&>(cst.processes.at(make_cmd->processId()));
   macro(new Automation::SetUnit{autom, unit});
   macro(new Automation::SetMin{autom, min});
   macro(new Automation::SetMax{autom, max});
@@ -160,8 +148,7 @@ bool AutomatablePortItem::on_createAutomation(
   cd.source = *autom.outlet;
   cd.sink = m_port;
 
-  macro(new Dataflow::CreateCable{
-      plug, getStrongId(plug.cables), std::move(cd)});
+  macro(new Dataflow::CreateCable{plug, getStrongId(plug.cables), std::move(cd)});
   return true;
 }
 
@@ -219,8 +206,5 @@ PortItem* AutomatablePortFactory::makeItem(
 {
   return new Dataflow::AutomatablePortItem{port, ctx, parent};
 }
-
-
-
 
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Process/ExecutionContext.hpp>
+#include <State/ValueConversion.hpp>
 
 #include <ossia/dataflow/graph_edge.hpp>
 #include <ossia/dataflow/graph_node.hpp>
@@ -8,15 +9,11 @@
 #include <Gfx/GfxContext.hpp>
 #include <Gfx/GfxDevice.hpp>
 #include <Gfx/GfxExecContext.hpp>
-
-#include <State/ValueConversion.hpp>
 namespace Gfx
 {
 
 template <typename Vector>
-int64_t index_of(
-    Vector&& v,
-    const typename std::remove_reference_t<Vector>::value_type& t)
+int64_t index_of(Vector&& v, const typename std::remove_reference_t<Vector>::value_type& t)
 {
   if (auto it = ossia::find(v, t); it != v.end())
   {
@@ -28,15 +25,15 @@ int64_t index_of(
 class gfx_exec_node : public ossia::nonowning_graph_node
 {
 public:
-  struct control {
+  struct control
+  {
     ossia::value* value{};
     ossia::value_port* port{};
     bool changed{};
   };
   std::vector<control> controls;
   GfxExecutionAction* exec_context{};
-  gfx_exec_node(GfxExecutionAction& e_ctx) : exec_context{&e_ctx} {}
-
+  gfx_exec_node(GfxExecutionAction& e_ctx) : exec_context{&e_ctx} { }
 
   control& add_control()
   {
@@ -60,14 +57,12 @@ public:
 
   ~gfx_exec_node()
   {
-    for(auto ctl : controls)
+    for (auto ctl : controls)
       delete ctl.value;
   }
 
   int32_t id{-1};
-  void
-  run(const ossia::token_request& tk,
-      ossia::exec_state_facade) noexcept override
+  void run(const ossia::token_request& tk, ossia::exec_state_facade) noexcept override
   {
     {
       // Copy all the UI controls
@@ -77,8 +72,7 @@ public:
         auto& ctl = controls[i];
         if (ctl.changed)
         {
-          ctl.port->write_value(
-              std::move(*ctl.value), 0);
+          ctl.port->write_value(std::move(*ctl.value), 0);
           ctl.changed = false;
         }
       }
@@ -101,8 +95,7 @@ public:
             assert(port_idx != -1);
             {
               exec_context->setEdge(
-                  port_index{src_gfx->id, port_idx},
-                  port_index{this->id, inlet_i});
+                  port_index{src_gfx->id, port_idx}, port_index{this->id, inlet_i});
             }
           }
         }
@@ -130,8 +123,7 @@ public:
       inlet_i++;
     }
 
-    auto out
-        = this->m_outlets[0]->address.target<ossia::net::parameter_base*>();
+    auto out = this->m_outlets[0]->address.target<ossia::net::parameter_base*>();
     if (out)
     {
       if (auto p = dynamic_cast<gfx_parameter*>(*out))

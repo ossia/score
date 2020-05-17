@@ -47,10 +47,7 @@ void ChangeInterpolationAddress(
 // MOVEME && should apply to both Interpolation and Automation
 class SetTween final : public score::PropertyCommand
 {
-  SCORE_COMMAND_DECL(
-      Scenario::Command::CommandFactoryName(),
-      SetTween,
-      "Set interpolation tween")
+  SCORE_COMMAND_DECL(Scenario::Command::CommandFactoryName(), SetTween, "Set interpolation tween")
 public:
   SetTween(const ProcessModel& path, bool newval)
       : score::PropertyCommand{std::move(path), "tween", newval}

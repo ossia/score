@@ -118,13 +118,10 @@ class Json_k;
 
 #define DESCRIPTION_METADATA(Export, Model, Text) \
   TR_TEXT_METADATA(Export, Model, Description_k, Text)
-#define CATEGORY_METADATA(Export, Model, Text) \
-  TR_TEXT_METADATA(Export, Model, Category_k, Text)
-#define TAGS_METADATA(Export, Model, Text) \
-  TYPED_METADATA(Export, Model, Tags_k, QStringList, Text)
+#define CATEGORY_METADATA(Export, Model, Text) TR_TEXT_METADATA(Export, Model, Category_k, Text)
+#define TAGS_METADATA(Export, Model, Text) TYPED_METADATA(Export, Model, Tags_k, QStringList, Text)
 
-#define UNDO_NAME_METADATA(Export, Model, Text) \
-  TR_TEXT_METADATA(Export, Model, UndoName_k, Text)
+#define UNDO_NAME_METADATA(Export, Model, Text) TR_TEXT_METADATA(Export, Model, UndoName_k, Text)
 
 #define DEFAULT_MODEL_METADATA(Model, Description) \
   OBJECTKEY_METADATA(EMPTY_MACRO, Model, #Model)   \

@@ -36,7 +36,7 @@ public:
   QStateMachine& localSM() { return m_localSM; }
 
 protected:
-  GraphicsSceneTool(const QGraphicsScene& scene) : m_scene{scene} {}
+  GraphicsSceneTool(const QGraphicsScene& scene) : m_scene{scene} { }
 
   QGraphicsItem* itemUnderMouse(const QPointF& point) const
   {

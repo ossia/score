@@ -22,16 +22,12 @@ class Model final : public Process::ProcessModel
   W_OBJECT(Model)
 
 public:
-  explicit Model(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
+  explicit Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
 
   ~Model() override;
 
   template <typename Impl>
-  explicit Model(Impl& vis, QObject* parent)
-      : Process::ProcessModel{vis, parent}
+  explicit Model(Impl& vis, QObject* parent) : Process::ProcessModel{vis, parent}
   {
     vis.writeTo(*this);
     init();

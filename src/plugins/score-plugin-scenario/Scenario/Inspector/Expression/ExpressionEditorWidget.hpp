@@ -31,9 +31,7 @@ class ExpressionEditorWidget : public QWidget
 {
   W_OBJECT(ExpressionEditorWidget)
 public:
-  explicit ExpressionEditorWidget(
-      const score::DocumentContext& doc,
-      QWidget* parent = nullptr);
+  explicit ExpressionEditorWidget(const score::DocumentContext& doc, QWidget* parent = nullptr);
 
   State::Expression expression();
   void setExpression(State::Expression e);

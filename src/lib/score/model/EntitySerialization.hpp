@@ -94,27 +94,33 @@ struct TSerializer<JSONObject, score::Entity<T>>
       }
       // TODO we use id -1, there should be a better way... for now it will
       // work since id's begin at 1.
-      auto comp = new score::JSONSerializedComponents{
-          Id<score::Component>{-1}, std::move(vec), &obj};
+      auto comp
+          = new score::JSONSerializedComponents{Id<score::Component>{-1}, std::move(vec), &obj};
       obj.components().add(comp);
     }
 #endif
   }
 };
 
-
 struct ArrayEntitySerializer
 {
   /// Arrays of pointed-to objects
   template <typename T>
-  static void readFrom(DataStream::Serializer& s, const T& vec) {
+  static void readFrom(DataStream::Serializer& s, const T& vec)
+  {
     s.m_stream << (int32_t)vec.size();
     for (auto* v : vec)
       s.readFrom(*v);
   }
 
-  template<typename List, typename OnSucces, typename OnFailure>
-  static void writeTo(DataStream::Deserializer& s, const List& lst, QObject* parent, const OnSucces& success, const OnFailure& fail) {
+  template <typename List, typename OnSucces, typename OnFailure>
+  static void writeTo(
+      DataStream::Deserializer& s,
+      const List& lst,
+      QObject* parent,
+      const OnSucces& success,
+      const OnFailure& fail)
+  {
     int32_t count;
     s.m_stream >> count;
     for (; count-- > 0;)
@@ -132,19 +138,25 @@ struct ArrayEntitySerializer
   }
 
   template <typename T>
-  static void readFrom(JSONObject::Serializer& s, const T& vec) {
+  static void readFrom(JSONObject::Serializer& s, const T& vec)
+  {
     s.stream.StartArray();
-    for(const auto* elt : vec)
+    for (const auto* elt : vec)
       s.readFrom(*elt);
     s.stream.EndArray();
   }
 
-  template<typename List, typename OnSucces, typename OnFailure>
-  static void writeTo(const JSONObject::Deserializer& s, const List& lst, QObject* parent, const OnSucces& success, const OnFailure& fail) {
+  template <typename List, typename OnSucces, typename OnFailure>
+  static void writeTo(
+      const JSONObject::Deserializer& s,
+      const List& lst,
+      QObject* parent,
+      const OnSucces& success,
+      const OnFailure& fail)
+  {
     for (const auto& json_vref : s.base.GetArray())
     {
-      auto proc = deserialize_interface(
-          lst, JSONObject::Deserializer{json_vref}, parent);
+      auto proc = deserialize_interface(lst, JSONObject::Deserializer{json_vref}, parent);
       if (proc)
       {
         success(proc);
@@ -158,11 +170,19 @@ struct ArrayEntitySerializer
 };
 
 template <typename T, typename Alloc>
-struct TSerializer<DataStream, std::vector<T*, Alloc>>: ArrayEntitySerializer { };
+struct TSerializer<DataStream, std::vector<T*, Alloc>> : ArrayEntitySerializer
+{
+};
 template <typename T, typename Alloc>
-struct TSerializer<JSONObject, std::vector<T*, Alloc>>: ArrayEntitySerializer { };
+struct TSerializer<JSONObject, std::vector<T*, Alloc>> : ArrayEntitySerializer
+{
+};
 
 template <typename T, std::size_t N>
-struct TSerializer<DataStream, boost::container::small_vector<T*, N>>: ArrayEntitySerializer { };
+struct TSerializer<DataStream, boost::container::small_vector<T*, N>> : ArrayEntitySerializer
+{
+};
 template <typename T, std::size_t N>
-struct TSerializer<JSONObject, boost::container::small_vector<T*, N>>: ArrayEntitySerializer { };
+struct TSerializer<JSONObject, boost::container::small_vector<T*, N>> : ArrayEntitySerializer
+{
+};

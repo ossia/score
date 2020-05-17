@@ -1,31 +1,26 @@
 #include "Process.hpp"
 
-#include <wobjectimpl.h>
-
+#include <Curve/CurveModel.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
-
-#include <Curve/CurveModel.hpp>
 
 #include <ossia/network/base/node_attributes.hpp>
+
+#include <wobjectimpl.h>
 
 W_OBJECT_IMPL(ControlSurface::Model)
 namespace ControlSurface
 {
 
-Model::Model(
-    const TimeVal& duration, const Id<Process::ProcessModel>& id,
-    QObject* parent)
+Model::Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
     : Process::ProcessModel{duration, id, "ControlSurfaceProcess", parent}
 {
   metadata().setInstanceName(*this);
 }
 
-Model::~Model()
-{
-}
+Model::~Model() { }
 
 // template<typename T>
 // struct SliderWithOutputAddress final : public T
@@ -74,15 +69,17 @@ Model::~Model()
 // };
 //
 // W_OBJECT_IMPL(SliderWithOutputAddress<T>, template<typename T>)
-//UUID_METADATA(, WidgetInletFactory<SliderWithOutputAddress<IntSlider>>, SliderWithOutputAddress<Process::IntSlider>, "a8e60bde-5e81-4b37-ba58-a9047da6a850");
+// UUID_METADATA(, WidgetInletFactory<SliderWithOutputAddress<IntSlider>>,
+// SliderWithOutputAddress<Process::IntSlider>,
+// "a8e60bde-5e81-4b37-ba58-a9047da6a850");
 Process::ControlInlet* makeControlFromType(
-      const Id<Process::Port>& id,
-      const Device::FullAddressAccessorSettings& addr,
-      QObject* parent)
+    const Id<Process::Port>& id,
+    const Device::FullAddressAccessorSettings& addr,
+    QObject* parent)
 {
- //SliderWithOutputAddress<Process::IntSlider>();
+  // SliderWithOutputAddress<Process::IntSlider>();
   // TODO make better widgets if we have more information.
-  switch(addr.value.get_type())
+  switch (addr.value.get_type())
   {
     case ossia::val_type::INT:
       return new Process::IntSlider{id, parent};
@@ -97,8 +94,7 @@ Process::ControlInlet* makeControlFromType(
   }
 }
 
-void Model::setupControl(
-      Process::ControlInlet* ctl, const State::AddressAccessor& addr)
+void Model::setupControl(Process::ControlInlet* ctl, const State::AddressAccessor& addr)
 {
   m_outputAddresses[ctl->id()] = addr;
   ctl->hidden = true;
@@ -107,22 +103,20 @@ void Model::setupControl(
   controlAdded(ctl->id());
 }
 
-void Model::addControl(
-      const Id<Process::Port>& id,
-      const Device::FullAddressAccessorSettings & msg)
+void Model::addControl(const Id<Process::Port>& id, const Device::FullAddressAccessorSettings& msg)
 {
   auto ctl = makeControlFromType(id, msg, this);
-  //ctl->setAddress(msg.address);
+  // ctl->setAddress(msg.address);
   ctl->setValue(msg.value);
   ctl->setDomain(msg.domain);
-  if(auto desc = ossia::net::get_description(msg.extendedAttributes))
+  if (auto desc = ossia::net::get_description(msg.extendedAttributes))
   {
     ctl->setDescription(QString::fromStdString(*desc));
   }
 
-  auto setName = [ctl] (const State::AddressAccessor& addr) {
+  auto setName = [ctl](const State::AddressAccessor& addr) {
     int length_limit = 20;
-    if(addr.address.path.isEmpty())
+    if (addr.address.path.isEmpty())
     {
       ctl->setCustomData("-");
     }
@@ -134,13 +128,14 @@ void Model::addControl(
       QString str;
 
       auto it = addr.address.path.rbegin();
-      while(it != addr.address.path.rend()) {
+      while (it != addr.address.path.rend())
+      {
         QString new_str = str;
 
         new_str.prepend("/" + *it);
 
         ++it;
-        if(new_str.length() <= length_limit)
+        if (new_str.length() <= length_limit)
         {
           str = new_str;
         }
@@ -151,7 +146,7 @@ void Model::addControl(
       }
 
       // Remove the first / if it's not a whole address
-      if(it != addr.address.path.rend())
+      if (it != addr.address.path.rend())
         str.remove(0, 1);
 
       ctl->setCustomData(str + quals);
@@ -162,15 +157,15 @@ void Model::addControl(
 
   setupControl(ctl, msg.address);
 
-//  QObject::connect(ctl, &Process::ControlInlet::addressChanged,
-//                   ctl, setName);
+  //  QObject::connect(ctl, &Process::ControlInlet::addressChanged,
+  //                   ctl, setName);
 }
 
 void Model::removeControl(const Id<Process::Port>& m_id)
 {
   m_outputAddresses.erase(m_id);
 
-  auto it = ossia::find_if(inlets(), [&] (const auto& inlet) { return inlet->id() == m_id; });
+  auto it = ossia::find_if(inlets(), [&](const auto& inlet) { return inlet->id() == m_id; });
   SCORE_ASSERT(it != inlets().end());
   controlRemoved(**it);
   auto ptr = *it;
@@ -183,29 +178,17 @@ QString Model::prettyName() const noexcept
   return tr("Control surface");
 }
 
-void Model::startExecution()
-{
-}
+void Model::startExecution() { }
 
-void Model::stopExecution()
-{
-}
+void Model::stopExecution() { }
 
-void Model::reset()
-{
-}
+void Model::reset() { }
 
-void Model::setDurationAndScale(const TimeVal& newDuration) noexcept
-{
-}
+void Model::setDurationAndScale(const TimeVal& newDuration) noexcept { }
 
-void Model::setDurationAndGrow(const TimeVal& newDuration) noexcept
-{
-}
+void Model::setDurationAndGrow(const TimeVal& newDuration) noexcept { }
 
-void Model::setDurationAndShrink(const TimeVal& newDuration) noexcept
-{
-}
+void Model::setDurationAndShrink(const TimeVal& newDuration) noexcept { }
 }
 template <>
 void DataStreamReader::read(const ControlSurface::Model& proc)

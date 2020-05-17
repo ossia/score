@@ -4,23 +4,24 @@
 
 #include "DeviceExplorerFilterProxyModel.hpp"
 #include "DeviceExplorerModel.hpp"
+
 #include <score/model/Skin.hpp>
 #include <score/widgets/Pixmap.hpp>
 
 #include <QAbstractItemView>
 #include <QAbstractProxyModel>
 #include <QAction>
+#include <QDebug>
 #include <QDrag>
 #include <QFile>
+#include <QHeaderView>
+#include <QKeyEvent>
 #include <QMenu>
 #include <QPainter>
 #include <QSettings>
 #include <QString>
-#include <QHeaderView>
-#include <QKeyEvent>
 #include <qnamespace.h>
 #include <qtypetraits.h>
-#include <QDebug>
 
 W_REGISTER_ARGTYPE(QItemSelection)
 
@@ -34,14 +35,12 @@ const QString HeaderViewSetting("DeviceExplorerView/HeaderView");
 
 namespace Explorer
 {
-DeviceExplorerView::DeviceExplorerView(QWidget* parent)
-    : QTreeView(parent), m_hasProxy(false)
+DeviceExplorerView::DeviceExplorerView(QWidget* parent) : QTreeView(parent), m_hasProxy(false)
 {
   setAllColumnsShowFocus(true);
 
   setSelectionBehavior(QAbstractItemView::SelectRows);
   setSelectionMode(QAbstractItemView::ExtendedSelection);
-
 
   header()->setContextMenuPolicy(Qt::CustomContextMenu);
   connect(
@@ -73,12 +72,9 @@ QModelIndexList DeviceExplorerView::selectedDraggableIndexes() const
 {
   QModelIndexList indexes = selectedIndexes();
   auto m = QTreeView::model();
-  auto isNotDragEnabled = [m](const QModelIndex& index) {
-    return !(m->flags(index) & Qt::ItemIsDragEnabled);
-  };
-  indexes.erase(
-      std::remove_if(indexes.begin(), indexes.end(), isNotDragEnabled),
-      indexes.end());
+  auto isNotDragEnabled
+      = [m](const QModelIndex& index) { return !(m->flags(index) & Qt::ItemIsDragEnabled); };
+  indexes.erase(std::remove_if(indexes.begin(), indexes.end(), isNotDragEnabled), indexes.end());
   return indexes;
 }
 
@@ -93,16 +89,17 @@ void DeviceExplorerView::startDrag(Qt::DropActions)
 
     QDrag* drag = new QDrag(this);
     drag->setMimeData(data);
-/*
-    auto p = score::get_pixmap(QStringLiteral(":/icons/cursor_drag_device.png"));
-    drag->setPixmap(QPixmap());
-    drag->setDragCursor(p, Qt::CopyAction);
-    drag->setDragCursor(p, Qt::MoveAction);
-    drag->setDragCursor(p, Qt::LinkAction);
-    drag->setDragCursor(p, Qt::ActionMask);
-    drag->setDragCursor(p, Qt::IgnoreAction);
-    drag->setDragCursor(p, Qt::TargetMoveAction);
-    */
+    /*
+        auto p =
+       score::get_pixmap(QStringLiteral(":/icons/cursor_drag_device.png"));
+        drag->setPixmap(QPixmap());
+        drag->setDragCursor(p, Qt::CopyAction);
+        drag->setDragCursor(p, Qt::MoveAction);
+        drag->setDragCursor(p, Qt::LinkAction);
+        drag->setDragCursor(p, Qt::ActionMask);
+        drag->setDragCursor(p, Qt::IgnoreAction);
+        drag->setDragCursor(p, Qt::TargetMoveAction);
+        */
     drag->exec();
   }
 }
@@ -196,18 +193,13 @@ void DeviceExplorerView::initActions()
 
   for (int i = 0; i < n; ++i)
   {
-    QAction* a = new QAction(
-        model()->headerData(i, Qt::Horizontal, Qt::DisplayRole).toString(),
-        this);
+    QAction* a
+        = new QAction(model()->headerData(i, Qt::Horizontal, Qt::DisplayRole).toString(), this);
     a->setCheckable(true);
 
     a->setChecked(!isColumnHidden(i));
 
-    connect(
-        a,
-        &QAction::toggled,
-        this,
-        &DeviceExplorerView::columnVisibilityChanged);
+    connect(a, &QAction::toggled, this, &DeviceExplorerView::columnVisibilityChanged);
     m_actions.append(a);
   }
 }
@@ -238,10 +230,7 @@ void DeviceExplorerView::keyPressEvent(QKeyEvent* k)
   }
 }
 
-void DeviceExplorerView::rowsInserted(
-    const QModelIndex& parent,
-    int start,
-    int end)
+void DeviceExplorerView::rowsInserted(const QModelIndex& parent, int start, int end)
 {
   QTreeView::rowsInserted(parent, start, end);
   created(parent, start, end);
@@ -324,8 +313,7 @@ void DeviceExplorerView::setSelectedIndex(const QModelIndex& index)
   else
   {
     return setCurrentIndex(
-        static_cast<const QAbstractProxyModel*>(QTreeView::model())
-            ->mapFromSource(index));
+        static_cast<const QAbstractProxyModel*>(QTreeView::model())->mapFromSource(index));
   }
 }
 void DeviceExplorerView::paintEvent(QPaintEvent* event)
@@ -347,4 +335,3 @@ void DeviceExplorerView::paintEvent(QPaintEvent* event)
   p.drawText(rect(), Qt::AlignCenter, "Right-click\nto add a device");
 }
 }
-

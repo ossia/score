@@ -5,7 +5,6 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
-
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <score/model/EntityMap.hpp>
@@ -58,8 +57,7 @@ void CreateState::redo(const score::DocumentContext& ctx) const
   auto& event = scenar.events.at(m_event);
 
   // Create the end state
-  ScenarioCreate<StateModel>::redo(
-      m_newState, event, m_stateY, scenar);
+  ScenarioCreate<StateModel>::redo(m_newState, event, m_stateY, scenar);
 
   scenar.states.at(m_newState).metadata().setName(m_createdName);
 }

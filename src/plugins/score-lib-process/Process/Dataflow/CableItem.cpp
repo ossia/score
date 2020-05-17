@@ -5,17 +5,17 @@
 #include <Process/DocumentPlugin.hpp>
 #include <Process/ProcessContext.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
-#include <score/graphics/PainterPath.hpp>
-#include <score/tools/Bind.hpp>
-
 
 #include <score/document/DocumentContext.hpp>
+#include <score/graphics/PainterPath.hpp>
 #include <score/selection/SelectionStack.hpp>
+#include <score/tools/Bind.hpp>
+
 #include <ossia/detail/algorithms.hpp>
 
-#include <QPainter>
 #include <QCursor>
 #include <QGraphicsSceneMouseEvent>
+#include <QPainter>
 
 #include <tsl/hopscotch_map.h>
 #include <wobjectimpl.h>
@@ -29,26 +29,20 @@ static bool canCreateCable(const Process::Cable& c, Process::DataflowManager& pl
   auto it = plug.cables().find(&c);
   return it == plug.cables().end() || it->second == nullptr;
 }
-CableItem::CableItem(
-    const Process::Cable& c,
-    const Process::Context& ctx,
-    QGraphicsItem* parent)
-    : QGraphicsItem{parent}
-    , m_cable{c}
-    , m_context{ctx}
+CableItem::CableItem(const Process::Cable& c, const Process::Context& ctx, QGraphicsItem* parent)
+    : QGraphicsItem{parent}, m_cable{c}, m_context{ctx}
 {
   auto& plug = ctx.dataflow;
   this->setCursor(Qt::CrossCursor);
   this->setFlag(QGraphicsItem::ItemClipsToShape);
 
-
   SCORE_ASSERT(canCreateCable(c, plug));
   plug.cables().insert({&c, this});
 
   con(c.selection, &Selectable::changed, this, [=](bool b) {
-    if(m_p1 && m_p2)
+    if (m_p1 && m_p2)
     {
-      if(b)
+      if (b)
       {
         setZValue(999999);
         m_p1->setHighlight(true);
@@ -105,14 +99,15 @@ CableItem::~CableItem()
     it.value() = nullptr;
 }
 
-static const QPainterPathStroker& cableStroker() {
+static const QPainterPathStroker& cableStroker()
+{
   static const QPainterPathStroker cable_stroker{[] {
-      QPen pen;
-      pen.setCapStyle(Qt::PenCapStyle::RoundCap);
-      pen.setJoinStyle(Qt::PenJoinStyle::RoundJoin);
-      pen.setWidthF(7.);
-      return pen;
-                                                 }()};
+    QPen pen;
+    pen.setCapStyle(Qt::PenCapStyle::RoundCap);
+    pen.setJoinStyle(Qt::PenJoinStyle::RoundJoin);
+    pen.setWidthF(7.);
+    return pen;
+  }()};
   return cable_stroker;
 }
 QRectF CableItem::boundingRect() const
@@ -123,13 +118,10 @@ QRectF CableItem::boundingRect() const
 bool CableItem::contains(const QPointF& point) const
 {
   return cableStroker().createStroke(m_path).contains(point);
-  //return m_path.contains(point);
+  // return m_path.contains(point);
 }
 
-void CableItem::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+void CableItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   if (m_p1 && m_p2)
   {
@@ -214,8 +206,7 @@ void CableItem::resize()
 
 void CableItem::check()
 {
-  if (g_cables_enabled && m_p1 && m_p2 && m_p1->isVisible()
-      && m_p2->isVisible())
+  if (g_cables_enabled && m_p1 && m_p2 && m_p1->isVisible() && m_p2->isVisible())
   {
     if (!isEnabled())
     {

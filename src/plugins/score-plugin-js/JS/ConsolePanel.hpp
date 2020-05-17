@@ -4,17 +4,19 @@
 #include <Explorer/Commands/Add/AddDevice.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <JS/Commands/ScriptMacro.hpp>
+#include <Loop/LoopProcessModel.hpp>
 #include <Protocols/OSC/OSCProtocolFactory.hpp>
 #include <Protocols/OSC/OSCSpecificSettings.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <score/tools/MapCopy.hpp>
+
 #include <score/actions/ActionManager.hpp>
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/plugins/panel/PanelDelegate.hpp>
 #include <score/plugins/panel/PanelDelegateFactory.hpp>
+#include <score/tools/MapCopy.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
 #include <core/command/CommandStack.hpp>
@@ -27,11 +29,10 @@
 #include <QJSEngine>
 #include <QLineEdit>
 #include <QPlainTextEdit>
-#include <QVBoxLayout>
 #include <QScrollBar>
+#include <QVBoxLayout>
 
 #include <Engine/ApplicationPlugin.hpp>
-#include <Loop/LoopProcessModel.hpp>
 #include <wobjectimpl.h>
 namespace JS
 {
@@ -40,7 +41,7 @@ class EditJsContext : public QObject
 {
   W_OBJECT(EditJsContext)
 public:
-  EditJsContext() {}
+  EditJsContext() { }
 
   const score::DocumentContext& ctx()
   {
@@ -74,8 +75,7 @@ public:
     Device::FullAddressSettings set;
     set.address = *a;
 
-    const ossia::net::parameter_data* t
-        = ossia::default_parameter_for_type(type.toStdString());
+    const ossia::net::parameter_data* t = ossia::default_parameter_for_type(type.toStdString());
     if (t)
     {
       set.unit = t->unit;
@@ -149,10 +149,7 @@ public:
   }
   W_SLOT(find)
 
-  QObject* document()
-  {
-    return score::GUIAppContext().documents.currentDocument();
-  }
+  QObject* document() { return score::GUIAppContext().documents.currentDocument(); }
   W_SLOT(document)
 
   /// Execution ///
@@ -160,20 +157,17 @@ public:
   void play(QObject* obj)
   {
     auto plug
-        = score::GUIAppContext()
-              .findGuiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
+        = score::GUIAppContext().findGuiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
     if (!plug)
       return;
 
     if (auto itv = qobject_cast<Scenario::IntervalModel*>(obj))
     {
-      plug->execution().playInterval(
-          Scenario::parentScenario(*itv), itv->id());
+      plug->execution().playInterval(Scenario::parentScenario(*itv), itv->id());
     }
     else if (auto state = qobject_cast<Scenario::StateModel*>(obj))
     {
-      plug->execution().playState(
-          Scenario::parentScenario(*state), state->id());
+      plug->execution().playState(Scenario::parentScenario(*state), state->id());
     }
   }
   W_SLOT(play)
@@ -200,8 +194,7 @@ public:
   PanelDelegate(const score::GUIApplicationContext& ctx)
       : score::PanelDelegate{ctx}, m_widget{new QWidget}
   {
-    m_engine.globalObject().setProperty(
-        "Score", m_engine.newQObject(new EditJsContext));
+    m_engine.globalObject().setProperty("Score", m_engine.newQObject(new EditJsContext));
     auto lay = new QVBoxLayout;
     m_widget->setLayout(lay);
     m_edit = new QPlainTextEdit{m_widget};
@@ -244,12 +237,14 @@ private:
 
   const score::PanelStatus& defaultPanelStatus() const override
   {
-    static const score::PanelStatus status{false, false,
-                                           Qt::BottomDockWidgetArea,
-                                           0,
-                                           QObject::tr("Console"),
-                                           "console",
-                                           QObject::tr("Ctrl+Shift+C")};
+    static const score::PanelStatus status{
+        false,
+        false,
+        Qt::BottomDockWidgetArea,
+        0,
+        QObject::tr("Console"),
+        "console",
+        QObject::tr("Ctrl+Shift+C")};
 
     return status;
   }
@@ -264,8 +259,7 @@ class PanelDelegateFactory final : public score::PanelDelegateFactory
 {
   SCORE_CONCRETE("6060a63c-26b1-4ec6-a468-27e72530ac69")
 
-  std::unique_ptr<score::PanelDelegate>
-  make(const score::GUIApplicationContext& ctx) override
+  std::unique_ptr<score::PanelDelegate> make(const score::GUIApplicationContext& ctx) override
   {
     return std::make_unique<PanelDelegate>(ctx);
   }

@@ -18,8 +18,7 @@ class SCORE_LIB_DEVICE_EXPORT DeviceModelProvider : public score::InterfaceBase
 public:
   ~DeviceModelProvider() override;
   virtual Device::NodeBasedItemModel*
-  getNodeModel(const score::DocumentContext& ctx) const noexcept
-      = 0;
+  getNodeModel(const score::DocumentContext& ctx) const noexcept = 0;
 };
 
 class SCORE_LIB_DEVICE_EXPORT DeviceModelProviderList final
@@ -27,7 +26,6 @@ class SCORE_LIB_DEVICE_EXPORT DeviceModelProviderList final
 {
 public:
   ~DeviceModelProviderList() override;
-  DeviceModelProvider* getBestProvider(const score::DocumentContext& ctx) const
-      noexcept;
+  DeviceModelProvider* getBestProvider(const score::DocumentContext& ctx) const noexcept;
 };
 }

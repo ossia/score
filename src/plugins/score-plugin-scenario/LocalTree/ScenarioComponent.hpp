@@ -8,7 +8,8 @@
 
 namespace LocalTree
 {
-class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioComponentBase : public ProcessComponent_T<Scenario::ProcessModel>
+class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioComponentBase
+    : public ProcessComponent_T<Scenario::ProcessModel>
 {
   COMPONENT_METADATA("57c37324-f5a5-494e-8b45-206750d9fa77")
 
@@ -48,6 +49,5 @@ using ScenarioComponent = HierarchicalScenarioComponent<
     TimeSync,
     State>;
 
-using ScenarioComponentFactory
-    = LocalTree::ProcessComponentFactory_T<ScenarioComponent>;
+using ScenarioComponentFactory = LocalTree::ProcessComponentFactory_T<ScenarioComponent>;
 }

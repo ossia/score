@@ -7,9 +7,9 @@
 namespace Gfx::Video
 {
 
-View::View(QGraphicsItem* parent) : LayerView{parent} {}
+View::View(QGraphicsItem* parent) : LayerView{parent} { }
 
-View::~View() {}
+View::~View() { }
 
-void View::paint_impl(QPainter* painter) const {}
+void View::paint_impl(QPainter* painter) const { }
 }

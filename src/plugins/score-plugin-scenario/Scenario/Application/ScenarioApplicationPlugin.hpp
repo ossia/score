@@ -9,11 +9,10 @@
 
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 
-
 #include <score_plugin_scenario_export.h>
-#include <verdigris>
 
 #include <vector>
+#include <verdigris>
 
 namespace Process
 {
@@ -57,10 +56,7 @@ public:
   Scenario::EditionSettings& editionSettings() { return m_editionSettings; }
 
   Process::ProcessFocusManager* processFocusManager() const;
-  Process::LayerContextMenuManager& layerContextMenuRegistrar()
-  {
-    return m_layerCtxMenuManager;
-  }
+  Process::LayerContextMenuManager& layerContextMenuRegistrar() { return m_layerCtxMenuManager; }
   const Process::LayerContextMenuManager& layerContextMenuRegistrar() const
   {
     return m_layerCtxMenuManager;
@@ -69,26 +65,22 @@ public:
   Scenario::ScenarioExecution& execution() { return m_execution; }
 
 public:
-  void keyPressed(int arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyPressed, arg_1)
-  void keyReleased(int arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyReleased, arg_1)
+  void keyPressed(int arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyPressed, arg_1)
+  void keyReleased(int arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyReleased, arg_1)
 
 private:
   void prepareNewDocument() override;
   void on_initDocument(score::Document& doc) override;
   void on_createdDocument(score::Document& doc) override;
 
-  void on_documentChanged(score::Document* olddoc, score::Document* newdoc)
-      override;
+  void on_documentChanged(score::Document* olddoc, score::Document* newdoc) override;
 
   void on_activeWindowChanged() override;
 
   void on_presenterFocused(Process::LayerPresenter* lm);
   void on_presenterDefocused(Process::LayerPresenter* lm);
 
-  QMetaObject::Connection m_focusConnection, m_defocusConnection,
-      m_contextMenuConnection;
+  QMetaObject::Connection m_focusConnection, m_defocusConnection, m_contextMenuConnection;
   Scenario::EditionSettings m_editionSettings;
   Process::LayerContextMenuManager m_layerCtxMenuManager;
   ScenarioExecution m_execution;

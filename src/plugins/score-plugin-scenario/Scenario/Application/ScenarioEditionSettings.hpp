@@ -5,6 +5,7 @@
 #include <QObject>
 
 #include <score_plugin_scenario_export.h>
+
 #include <verdigris>
 namespace Scenario
 {
@@ -41,26 +42,19 @@ public:
 public:
   void expandModeChanged(ExpandMode expandMode)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, expandModeChanged, expandMode)
-  void toolChanged(Scenario::Tool tool)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, toolChanged, tool)
+  void toolChanged(Scenario::Tool tool) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, toolChanged, tool)
   void sequenceChanged(bool sequence)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sequenceChanged, sequence)
 
   void lockModeChanged(LockMode lockMode)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, lockModeChanged, lockMode)
 
-  W_PROPERTY(
-      bool,
-      sequence READ sequence WRITE setSequence NOTIFY sequenceChanged)
+  W_PROPERTY(bool, sequence READ sequence WRITE setSequence NOTIFY sequenceChanged)
 
   W_PROPERTY(Scenario::Tool, tool READ tool WRITE setTool NOTIFY toolChanged)
 
-  W_PROPERTY(
-      LockMode,
-      lockMode READ lockMode WRITE setLockMode NOTIFY lockModeChanged)
+  W_PROPERTY(LockMode, lockMode READ lockMode WRITE setLockMode NOTIFY lockModeChanged)
 
-  W_PROPERTY(
-      ExpandMode,
-      expandMode READ expandMode WRITE setExpandMode NOTIFY expandModeChanged)
+  W_PROPERTY(ExpandMode, expandMode READ expandMode WRITE setExpandMode NOTIFY expandModeChanged)
 };
 }

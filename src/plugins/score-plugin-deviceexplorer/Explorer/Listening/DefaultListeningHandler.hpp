@@ -12,18 +12,10 @@ public:
   DefaultListeningHandler();
 
 private:
-  void setListening(
-      Device::DeviceInterface& dev,
-      const State::Address& addr,
-      bool b) override;
+  void setListening(Device::DeviceInterface& dev, const State::Address& addr, bool b) override;
 
-  void setListening(
-      Device::DeviceInterface& dev,
-      const Device::Node& addr,
-      bool b) override;
+  void setListening(Device::DeviceInterface& dev, const Device::Node& addr, bool b) override;
 
-  void addToListening(
-      Device::DeviceInterface& dev,
-      const std::vector<State::Address>& v) override;
+  void addToListening(Device::DeviceInterface& dev, const std::vector<State::Address>& v) override;
 };
 }

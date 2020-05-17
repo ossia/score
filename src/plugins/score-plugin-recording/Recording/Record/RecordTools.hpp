@@ -10,7 +10,6 @@
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/tools/std/HashMap.hpp>
 
-
 #include <chrono>
 #include <memory>
 #include <vector>
@@ -73,17 +72,14 @@ RecordListening GetAddressesToRecord(
         Explorer::DeviceExplorerModel& m_explorer);
 */
 // The selected addresses and all their children
-RecordListening
-GetAddressesToRecordRecursive(Explorer::DeviceExplorerModel& explorer);
+RecordListening GetAddressesToRecordRecursive(Explorer::DeviceExplorerModel& explorer);
 
 Box CreateBox(RecordContext&);
 
-inline double
-GetTimeDifferenceInDouble(std::chrono::steady_clock::time_point start)
+inline double GetTimeDifferenceInDouble(std::chrono::steady_clock::time_point start)
 {
   using namespace std::chrono;
-  return duration_cast<microseconds>(steady_clock::now() - start).count()
-         / 1000.;
+  return duration_cast<microseconds>(steady_clock::now() - start).count() / 1000.;
 }
 inline TimeVal GetTimeDifference(std::chrono::steady_clock::time_point start)
 {
@@ -100,9 +96,8 @@ constexpr int ReasonableUpdateInterval(int numberOfCurves)
 {
   return numberOfCurves < 10
              ? 8
-             : numberOfCurves < 50 ? 16
-                                   : numberOfCurves < 100
-                                         ? 100
-                                         : numberOfCurves < 1000 ? 1000 : 5000;
+             : numberOfCurves < 50
+                   ? 16
+                   : numberOfCurves < 100 ? 100 : numberOfCurves < 1000 ? 1000 : 5000;
 }
 }

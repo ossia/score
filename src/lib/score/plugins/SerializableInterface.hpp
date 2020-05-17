@@ -27,7 +27,7 @@ public:
   virtual ~SerializableInterface() = default;
   virtual UuidKey<T> concreteKey() const noexcept = 0;
 
-  virtual void serialize_impl(const VisitorVariant& vis) const {}
+  virtual void serialize_impl(const VisitorVariant& vis) const { }
 };
 }
 
@@ -35,18 +35,15 @@ public:
  * @macro MODEL_METADATA_IMPL Provides default implementations of methods of
  * SerializableInterface.
  */
-#define MODEL_METADATA_IMPL(Model_T)                                     \
-  static key_type static_concreteKey() noexcept                          \
-  {                                                                      \
-    return Metadata<ConcreteKey_k, Model_T>::get();                      \
-  }                                                                      \
-  key_type concreteKey() const noexcept override                         \
-  {                                                                      \
-    return static_concreteKey();                                         \
-  }                                                                      \
-  void serialize_impl(const VisitorVariant& vis) const noexcept override \
-  {                                                                      \
-    score::serialize_dyn(vis, *this);                                    \
+#define MODEL_METADATA_IMPL(Model_T)                                              \
+  static key_type static_concreteKey() noexcept                                   \
+  {                                                                               \
+    return Metadata<ConcreteKey_k, Model_T>::get();                               \
+  }                                                                               \
+  key_type concreteKey() const noexcept override { return static_concreteKey(); } \
+  void serialize_impl(const VisitorVariant& vis) const noexcept override          \
+  {                                                                               \
+    score::serialize_dyn(vis, *this);                                             \
   }
 
 #define MODEL_METADATA_IMPL_HPP(Model_T)          \
@@ -54,16 +51,13 @@ public:
   key_type concreteKey() const noexcept override; \
   void serialize_impl(const VisitorVariant& vis) const noexcept override;
 
-#define MODEL_METADATA_IMPL_CPP(Model_T)                                 \
-  Model_T::key_type Model_T::static_concreteKey() noexcept               \
-  {                                                                      \
-    return Metadata<ConcreteKey_k, Model_T>::get();                      \
-  }                                                                      \
-  Model_T::key_type Model_T::concreteKey() const noexcept                \
-  {                                                                      \
-    return static_concreteKey();                                         \
-  }                                                                      \
-  void Model_T::serialize_impl(const VisitorVariant& vis) const noexcept \
-  {                                                                      \
-    score::serialize_dyn(vis, *this);                                    \
+#define MODEL_METADATA_IMPL_CPP(Model_T)                                                   \
+  Model_T::key_type Model_T::static_concreteKey() noexcept                                 \
+  {                                                                                        \
+    return Metadata<ConcreteKey_k, Model_T>::get();                                        \
+  }                                                                                        \
+  Model_T::key_type Model_T::concreteKey() const noexcept { return static_concreteKey(); } \
+  void Model_T::serialize_impl(const VisitorVariant& vis) const noexcept                   \
+  {                                                                                        \
+    score::serialize_dyn(vis, *this);                                                      \
   }

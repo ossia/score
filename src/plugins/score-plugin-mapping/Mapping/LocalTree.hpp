@@ -16,12 +16,13 @@ public:
       Mapping::ProcessModel& proc,
       const score::DocumentContext& ctx,
       QObject* parent_obj)
-      : ProcessComponent_T<Mapping::ProcessModel>{parent,
-                                                  proc,
-                                                  ctx,
-                                                  id,
-                                                  "MappingComponent",
-                                                  parent_obj}
+      : ProcessComponent_T<Mapping::ProcessModel>{
+          parent,
+          proc,
+          ctx,
+          id,
+          "MappingComponent",
+          parent_obj}
   {
     add<Mapping::ProcessModel::p_sourceMin>(proc);
     add<Mapping::ProcessModel::p_sourceMax>(proc);

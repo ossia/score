@@ -10,10 +10,7 @@ class LayerPresenter;
 
 struct Context : public score::DocumentContext
 {
-  Context(
-      const score::DocumentContext& doc,
-      DataflowManager& dfm,
-      FocusDispatcher& d)
+  Context(const score::DocumentContext& doc, DataflowManager& dfm, FocusDispatcher& d)
       : score::DocumentContext{doc}
       , dataflow{dfm}
       , focusDispatcher{d}

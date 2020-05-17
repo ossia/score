@@ -1,18 +1,20 @@
 #pragma once
 #include <Process/ZoomHelper.hpp>
-#include <ossia/editor/scenario/time_value.hpp>
+
 #include <score/serialization/IsTemplate.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <ossia/detail/flicks.hpp>
+
 #include <ossia-qt/time.hpp>
+#include <ossia/detail/flicks.hpp>
+#include <ossia/editor/scenario/time_value.hpp>
+
+#include <QStringBuilder>
+#include <QTime>
+
 #include <flicks.h>
 
-#include <QTime>
-#include <QStringBuilder>
-
-#include <verdigris>
-
 #include <chrono>
+#include <verdigris>
 struct TimeVal : ossia::time_value
 {
   using ossia::time_value::time_value;
@@ -30,12 +32,7 @@ struct TimeVal : ossia::time_value
     return time;
   }
 
-
-  constexpr TimeVal() noexcept
-    : time_value{0}
-  {
-
-  }
+  constexpr TimeVal() noexcept : time_value{0} { }
 
   ~TimeVal() = default;
   constexpr TimeVal(const TimeVal&) = default;
@@ -43,28 +40,22 @@ struct TimeVal : ossia::time_value
   constexpr TimeVal& operator=(const TimeVal&) = default;
   constexpr TimeVal& operator=(TimeVal&&) noexcept = default;
 
-  constexpr TimeVal(ossia::time_value v) noexcept: time_value{v} { }
-  explicit constexpr TimeVal(int64_t v) noexcept: time_value{v} { }
+  constexpr TimeVal(ossia::time_value v) noexcept : time_value{v} { }
+  explicit constexpr TimeVal(int64_t v) noexcept : time_value{v} { }
 
-  static constexpr TimeVal zero() noexcept
-  {
-    return TimeVal{time_value{}};
-  }
+  static constexpr TimeVal zero() noexcept { return TimeVal{time_value{}}; }
 
   TimeVal(QTime t) noexcept
-      : time_value{int64_t(ossia::flicks_per_millisecond<double> *
-            (t.msec() + 1000. * t.second() + 60000. * t.minute()
-              + 3600000. * t.hour()))}
+      : time_value{int64_t(
+          ossia::flicks_per_millisecond<
+              double> * (t.msec() + 1000. * t.second() + 60000. * t.minute() + 3600000. * t.hour()))}
   {
   }
-
 
   template <
       typename Duration,
-      std::enable_if_t<
-          std::is_class<typename Duration::period>::value>* = nullptr>
-  constexpr TimeVal(Duration&& dur) noexcept
-      : time_value{util::flicks_cast(dur).count()}
+      std::enable_if_t<std::is_class<typename Duration::period>::value>* = nullptr>
+  constexpr TimeVal(Duration&& dur) noexcept : time_value{util::flicks_cast(dur).count()}
   {
   }
 
@@ -82,7 +73,6 @@ struct TimeVal : ossia::time_value
 
     return TimeVal{impl + t.impl};
   }
-
 
   constexpr TimeVal& operator=(bool d) noexcept = delete;
   constexpr TimeVal& operator=(double d) noexcept = delete;
@@ -108,10 +98,7 @@ struct TimeVal : ossia::time_value
     return *this;
   }
 
-  constexpr time_value operator*(time_value d) const noexcept
-  {
-    return time_value{impl * d.impl};
-  }
+  constexpr time_value operator*(time_value d) const noexcept { return time_value{impl * d.impl}; }
 
   constexpr time_value operator*(double d) const noexcept
   {
@@ -119,11 +106,7 @@ struct TimeVal : ossia::time_value
     res.impl *= d;
     return res;
   }
-  constexpr time_value operator*(int64_t d) const noexcept
-  {
-    return time_value{impl * d};
-  }
-
+  constexpr time_value operator*(int64_t d) const noexcept { return time_value{impl * d}; }
 
   operator bool() const noexcept = delete;
 
@@ -144,9 +127,7 @@ struct TimeVal : ossia::time_value
 
   constexpr double toPixels(ZoomRatio ratio) const noexcept
   {
-    return (ratio > 0 && !infinite())
-        ? impl / ratio
-        : 0;
+    return (ratio > 0 && !infinite()) ? impl / ratio : 0;
   }
 
   QTime toQTime() const noexcept
@@ -162,76 +143,40 @@ struct TimeVal : ossia::time_value
     auto qT = this->toQTime();
     return QString("%1%2%3 s %4 ms")
         .arg(
-            qT.hour() != 0 ? QString::number(qT.hour()) % QStringLiteral(" h ")
-                           : QString(),
-            qT.minute() != 0
-                ? QString::number(qT.minute()) % QStringLiteral(" min ")
-                : QString(),
+            qT.hour() != 0 ? QString::number(qT.hour()) % QStringLiteral(" h ") : QString(),
+            qT.minute() != 0 ? QString::number(qT.minute()) % QStringLiteral(" min ") : QString(),
             QString::number(qT.second()),
             QString::number(qT.msec()));
   }
 
-  constexpr void setMSecs(double msecs) noexcept { impl = msecs * ossia::flicks_per_millisecond<double>; }
-
-  constexpr bool operator==(TimeVal other) const noexcept
+  constexpr void setMSecs(double msecs) noexcept
   {
-    return impl == other.impl;
+    impl = msecs * ossia::flicks_per_millisecond<double>;
   }
 
-  constexpr bool operator!=(TimeVal other) const noexcept
-  {
-    return impl != other.impl;
-  }
+  constexpr bool operator==(TimeVal other) const noexcept { return impl == other.impl; }
 
-  constexpr bool operator>(TimeVal other) const noexcept
-  {
-    return impl > other.impl;
-  }
+  constexpr bool operator!=(TimeVal other) const noexcept { return impl != other.impl; }
 
-  constexpr bool operator>=(TimeVal other) const noexcept
-  {
-    return impl >= other.impl;
-  }
+  constexpr bool operator>(TimeVal other) const noexcept { return impl > other.impl; }
 
-  constexpr bool operator<(TimeVal other) const noexcept
-  {
-    return impl < other.impl;
-  }
+  constexpr bool operator>=(TimeVal other) const noexcept { return impl >= other.impl; }
 
-  constexpr bool operator<=(TimeVal other) const noexcept
-  {
-    return impl <= other.impl;
-  }
+  constexpr bool operator<(TimeVal other) const noexcept { return impl < other.impl; }
 
-  constexpr bool operator==(time_value other) const noexcept
-  {
-    return impl == other.impl;
-  }
+  constexpr bool operator<=(TimeVal other) const noexcept { return impl <= other.impl; }
 
-  constexpr bool operator!=(time_value other) const noexcept
-  {
-    return impl != other.impl;
-  }
+  constexpr bool operator==(time_value other) const noexcept { return impl == other.impl; }
 
-  constexpr bool operator>(time_value other) const noexcept
-  {
-    return impl > other.impl;
-  }
+  constexpr bool operator!=(time_value other) const noexcept { return impl != other.impl; }
 
-  constexpr bool operator>=(time_value other) const noexcept
-  {
-    return impl >= other.impl;
-  }
+  constexpr bool operator>(time_value other) const noexcept { return impl > other.impl; }
 
-  constexpr bool operator<(time_value other) const noexcept
-  {
-    return impl < other.impl;
-  }
+  constexpr bool operator>=(time_value other) const noexcept { return impl >= other.impl; }
 
-  constexpr bool operator<=(time_value other) const noexcept
-  {
-    return impl <= other.impl;
-  }
+  constexpr bool operator<(time_value other) const noexcept { return impl < other.impl; }
+
+  constexpr bool operator<=(time_value other) const noexcept { return impl <= other.impl; }
 };
 
 inline const TimeVal& max(const TimeVal& lhs, const TimeVal& rhs) noexcept

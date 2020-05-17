@@ -1,8 +1,8 @@
 #pragma once
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
+#include <Scenario/Commands/Event/SetCondition.hpp>
 #include <Scenario/Commands/Scenario/Deletions/RemoveSelection.hpp>
 #include <Scenario/Commands/TimeSync/RemoveTrigger.hpp>
-#include <Scenario/Commands/Event/SetCondition.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
@@ -12,10 +12,7 @@ namespace Scenario
 namespace Command
 {
 template <typename T>
-void setupRemoveMacro(
-    const Scenario::ProcessModel& scenar,
-    Selection sel,
-    T& macro)
+void setupRemoveMacro(const Scenario::ProcessModel& scenar, Selection sel, T& macro)
 {
   switch (sel.size())
   {
@@ -26,7 +23,7 @@ void setupRemoveMacro(
       auto obj = sel.at(0);
       if (auto ts = dynamic_cast<const Scenario::TimeSyncModel*>(obj.data()))
       {
-        if(ts->active())
+        if (ts->active())
         {
           macro.submit(new RemoveTrigger<Scenario::ProcessModel>{*ts});
         }
@@ -48,7 +45,7 @@ void setupRemoveMacro(
       }
       else if (auto ev = dynamic_cast<const Scenario::EventModel*>(obj.data()))
       {
-        if(ev->condition().childCount() > 0)
+        if (ev->condition().childCount() > 0)
         {
           macro.submit(new SetCondition{*ev, State::Expression{}});
         }

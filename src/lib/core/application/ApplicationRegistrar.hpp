@@ -40,13 +40,10 @@ public:
   void registerAddons(std::vector<score::Addon> vec);
   void registerApplicationPlugin(ApplicationPlugin*);
 
-  void registerCommands(
-      score::hash_map<CommandGroupKey, CommandGeneratorMap>&& cmds);
-  void
-  registerCommands(std::pair<CommandGroupKey, CommandGeneratorMap>&& cmds);
-  void registerFactories(score::hash_map<
-                         score::InterfaceKey,
-                         std::unique_ptr<InterfaceListBase>>&& cmds);
+  void registerCommands(score::hash_map<CommandGroupKey, CommandGeneratorMap>&& cmds);
+  void registerCommands(std::pair<CommandGroupKey, CommandGeneratorMap>&& cmds);
+  void registerFactories(
+      score::hash_map<score::InterfaceKey, std::unique_ptr<InterfaceListBase>>&& cmds);
   void registerFactory(std::unique_ptr<InterfaceListBase> cmds);
 
   ApplicationComponentsData& components() const { return m_components; }
@@ -55,8 +52,7 @@ protected:
   ApplicationComponentsData& m_components;
 };
 
-class SCORE_LIB_BASE_EXPORT GUIApplicationRegistrar
-    : public ApplicationRegistrar
+class SCORE_LIB_BASE_EXPORT GUIApplicationRegistrar : public ApplicationRegistrar
 {
 public:
   GUIApplicationRegistrar(

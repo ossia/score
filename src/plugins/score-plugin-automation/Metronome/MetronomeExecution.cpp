@@ -4,6 +4,7 @@
 
 #include <Curve/CurveConversion.hpp>
 #include <Process/ExecutionContext.hpp>
+
 #include <score/tools/Bind.hpp>
 
 #include <ossia/dataflow/nodes/metronome.hpp>
@@ -17,32 +18,29 @@ Component::Component(
     const ::Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
-    : ::Execution::
-          ProcessComponent_T<Metronome::ProcessModel, ossia::node_process>{
-              element,
-              ctx,
-              id,
-              "Executor::MetronomeComponent",
-              parent}
+    : ::Execution::ProcessComponent_T<Metronome::ProcessModel, ossia::node_process>{
+        element,
+        ctx,
+        id,
+        "Executor::MetronomeComponent",
+        parent}
 {
   auto node = std::make_shared<metronome>();
   this->node = node;
   m_ossia_process = std::make_shared<ossia::nodes::metronome_process>(node);
 
-  con(element, &Metronome::ProcessModel::curveChanged, this, [this] {
-    this->recompute();
-  });
+  con(element, &Metronome::ProcessModel::curveChanged, this, [this] { this->recompute(); });
 
   recompute();
 }
 
-Component::~Component() {}
+Component::~Component() { }
 
 std::shared_ptr<ossia::curve<double, float>> Component::on_curveChanged()
 {
   using namespace ossia;
 
-  const double min = 0;    // process().min();
+  const double min = 0;  // process().min();
   const double max = 30; // process().max();
 
   auto scale_x = [](double val) -> double { return val; };
@@ -51,8 +49,7 @@ std::shared_ptr<ossia::curve<double, float>> Component::on_curveChanged()
   auto segt_data = process().curve().sortedSegments();
   if (segt_data.size() != 0)
   {
-    return Engine::score_to_ossia::curve<double, float>(
-        scale_x, scale_y, segt_data, {});
+    return Engine::score_to_ossia::curve<double, float>(scale_x, scale_y, segt_data, {});
   }
   else
   {
@@ -66,9 +63,9 @@ void Component::recompute()
   if (curve)
   {
     system().executionQueue.enqueue(
-        [proc = std::dynamic_pointer_cast<ossia::nodes::metronome>(
-             OSSIAProcess().node),
-         curve] { proc->set_curve(curve); });
+        [proc = std::dynamic_pointer_cast<ossia::nodes::metronome>(OSSIAProcess().node), curve] {
+          proc->set_curve(curve);
+        });
     return;
   }
 }

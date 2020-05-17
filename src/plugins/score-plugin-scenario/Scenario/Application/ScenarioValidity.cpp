@@ -1,12 +1,13 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioValidity.hpp"
+
 #include <Process/TimeValueSerialization.hpp>
 
 namespace Scenario
 {
 
-ScenarioValidityChecker::~ScenarioValidityChecker() {}
+ScenarioValidityChecker::~ScenarioValidityChecker() { }
 
 bool ScenarioValidityChecker::validate(const score::DocumentContext& ctx)
 {
@@ -41,10 +42,9 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
     SCORE_ASSERT(dur.minDuration() <= dur.maxDuration());
     SCORE_ASSERT(
         (qFuzzyCompare(dur.defaultDuration().msec(), dur.maxDuration().msec()))
-          || dur.defaultDuration() < dur.maxDuration()
-          || dur.isMaxInfinite());
+        || dur.defaultDuration() < dur.maxDuration() || dur.isMaxInfinite());
 
-    for(auto& slot : interval.smallView())
+    for (auto& slot : interval.smallView())
     {
       SCORE_ASSERT(slot.frontProcess);
       SCORE_ASSERT(interval.processes.find(*slot.frontProcess) != interval.processes.end());
@@ -87,9 +87,8 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
       SCORE_ASSERT(cst->startState() == state.id());
     }
 
-    auto num = ossia::count_if(scenar.events, [&](auto& ev) {
-      return ossia::contains(ev.states(), state.id());
-    });
+    auto num = ossia::count_if(
+        scenar.events, [&](auto& ev) { return ossia::contains(ev.states(), state.id()); });
     SCORE_ASSERT(num == 1);
   }
 
@@ -112,9 +111,8 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
       SCORE_ASSERT(st->eventId() == event.id());
     }
 
-    auto num = ossia::count_if(scenar.timeSyncs, [&](auto& ev) {
-      return ossia::contains(ev.events(), event.id());
-    });
+    auto num = ossia::count_if(
+        scenar.timeSyncs, [&](auto& ev) { return ossia::contains(ev.events(), event.id()); });
     SCORE_ASSERT(num == 1);
   }
 

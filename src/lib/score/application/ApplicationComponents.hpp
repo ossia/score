@@ -29,16 +29,14 @@ struct SCORE_LIB_BASE_EXPORT ApplicationComponentsData
   ~ApplicationComponentsData();
   ApplicationComponentsData(const ApplicationComponentsData&) = delete;
   ApplicationComponentsData(ApplicationComponentsData&&) = delete;
-  ApplicationComponentsData& operator=(const ApplicationComponentsData&)
-      = delete;
+  ApplicationComponentsData& operator=(const ApplicationComponentsData&) = delete;
   ApplicationComponentsData& operator=(ApplicationComponentsData&&) = delete;
 
   std::vector<score::Addon> addons;
   std::vector<ApplicationPlugin*> appPlugins;
   std::vector<GUIApplicationPlugin*> guiAppPlugins;
 
-  score::hash_map<score::InterfaceKey, std::unique_ptr<InterfaceListBase>>
-      factories;
+  score::hash_map<score::InterfaceKey, std::unique_ptr<InterfaceListBase>> factories;
   score::hash_map<CommandGroupKey, CommandGeneratorMap> commands;
   std::vector<std::unique_ptr<PanelDelegate>> panels;
 };
@@ -46,9 +44,7 @@ struct SCORE_LIB_BASE_EXPORT ApplicationComponentsData
 class SCORE_LIB_BASE_EXPORT ApplicationComponents
 {
 public:
-  ApplicationComponents(const score::ApplicationComponentsData& d) : m_data(d)
-  {
-  }
+  ApplicationComponents(const score::ApplicationComponentsData& d) : m_data(d) { }
 
   // Getters for plugin-registered things
   const auto& applicationPlugins() const { return m_data.appPlugins; }
@@ -147,9 +143,7 @@ public:
   template <typename T>
   const T* findInterfaces() const
   {
-    static_assert(
-        T::factory_list_tag,
-        "This needs to be called with a factory list class");
+    static_assert(T::factory_list_tag, "This needs to be called with a factory list class");
     auto it = m_data.factories.find(T::static_interfaceKey());
     if (it != m_data.factories.end())
     {
@@ -162,9 +156,7 @@ public:
   template <typename T>
   const T& interfaces() const
   {
-    static_assert(
-        T::factory_list_tag,
-        "This needs to be called with a factory list class");
+    static_assert(T::factory_list_tag, "This needs to be called with a factory list class");
     auto it = m_data.factories.find(T::static_interfaceKey());
     if (it != m_data.factories.end())
     {

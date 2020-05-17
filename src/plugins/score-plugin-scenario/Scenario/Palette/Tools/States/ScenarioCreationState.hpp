@@ -10,11 +10,11 @@
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
 #include <Scenario/Palette/ScenarioPaletteBaseStates.hpp>
 #include <Scenario/Palette/ScenarioPaletteBaseTransitions.hpp>
+#include <Scenario/Palette/Tool.hpp>
 #include <Scenario/Palette/Tools/ScenarioRollbackStrategy.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <Scenario/Tools/elementFindingHelper.hpp>
-#include <Scenario/Palette/Tool.hpp>
-#include <Scenario/Process/Algorithms/Accessors.hpp>
 
 #include <score/command/Dispatchers/MultiOngoingCommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
@@ -67,9 +67,7 @@ public:
       const score::CommandStackFacade& stack,
       const Scenario_T& scenarioPath,
       QState* parent)
-      : CreationStateBase<Scenario_T>{scenarioPath, parent}
-      , m_parentSM{sm}
-      , m_dispatcher{stack}
+      : CreationStateBase<Scenario_T>{scenarioPath, parent}, m_parentSM{sm}, m_dispatcher{stack}
   {
   }
 
@@ -79,9 +77,11 @@ protected:
     if (this->hoveredState)
     {
       const bool graphal = isCreatingGraph();
-      const bool differentParents = Scenario::parentEvent(originalState, m_parentSM.model()).timeSync() != Scenario::parentEvent(*this->hoveredState, m_parentSM.model()).timeSync();
+      const bool differentParents
+          = Scenario::parentEvent(originalState, m_parentSM.model()).timeSync()
+            != Scenario::parentEvent(*this->hoveredState, m_parentSM.model()).timeSync();
 
-      if(graphal && differentParents)
+      if (graphal && differentParents)
       {
         auto cmd = new Scenario::Command::CreateInterval{
             this->m_scenario, originalState, *this->hoveredState, true};
@@ -92,8 +92,8 @@ protected:
       }
       else
       {
-        // make sure the hovered corresponding timesync dont have a date prior to
-        // original state date
+        // make sure the hovered corresponding timesync dont have a date prior
+        // to original state date
         if (getDate(m_parentSM.model(), originalState)
             < getDate(m_parentSM.model(), *this->hoveredState))
         {
@@ -113,18 +113,17 @@ protected:
     if (this->hoveredEvent)
     {
       const bool graphal = isCreatingGraph();
-      const bool differentParents = Scenario::parentEvent(originalState, m_parentSM.model()).timeSync() != m_parentSM.model().event(*this->hoveredEvent).timeSync();
-      const bool timeIsInOrder = getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), *this->hoveredEvent);
+      const bool differentParents
+          = Scenario::parentEvent(originalState, m_parentSM.model()).timeSync()
+            != m_parentSM.model().event(*this->hoveredEvent).timeSync();
+      const bool timeIsInOrder = getDate(m_parentSM.model(), originalState)
+                                 < getDate(m_parentSM.model(), *this->hoveredEvent);
       // make sure the hovered corresponding timesync dont have a date prior to
       // original state date
       if ((graphal || timeIsInOrder) && differentParents)
       {
         auto cmd = new Scenario::Command::CreateInterval_State{
-            this->m_scenario,
-            originalState,
-            *this->hoveredEvent,
-            this->currentPoint.y,
-            graphal};
+            this->m_scenario, originalState, *this->hoveredEvent, this->currentPoint.y, graphal};
 
         m_dispatcher.submit(cmd);
 
@@ -139,8 +138,11 @@ protected:
     if (this->hoveredTimeSync)
     {
       const bool graphal = isCreatingGraph();
-      const bool differentParents = Scenario::parentEvent(originalState, m_parentSM.model()).timeSync() != *this->hoveredTimeSync;
-      const bool timeIsInOrder = getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), *this->hoveredTimeSync);
+      const bool differentParents
+          = Scenario::parentEvent(originalState, m_parentSM.model()).timeSync()
+            != *this->hoveredTimeSync;
+      const bool timeIsInOrder = getDate(m_parentSM.model(), originalState)
+                                 < getDate(m_parentSM.model(), *this->hoveredTimeSync);
       // make sure the hovered corresponding timesync dont have a date prior to
       // original state date
       if ((graphal || timeIsInOrder) && differentParents)
@@ -214,8 +216,7 @@ protected:
 
     if (!this->createdIntervals.empty())
     {
-      const auto& cst
-          = m_parentSM.model().intervals.at(this->createdIntervals.last());
+      const auto& cst = m_parentSM.model().intervals.at(this->createdIntervals.last());
       if (!cst.processes.empty())
       {
         // In case of the presence of a sequence, we
@@ -225,8 +226,7 @@ protected:
       }
     }
 
-    auto& device_explorer
-        = ctx.template plugin<Explorer::DeviceDocumentPlugin>().explorer();
+    auto& device_explorer = ctx.template plugin<Explorer::DeviceDocumentPlugin>().explorer();
 
     State::MessageList messages = getSelectionSnapshot(device_explorer);
     if (messages.empty())
@@ -239,8 +239,7 @@ protected:
   template <typename DestinationState, typename Function>
   void add_transition(QState* from, DestinationState* to, Function&& fun)
   {
-    using transition_type
-        = Transition_T<Scenario_T, DestinationState::value()>;
+    using transition_type = Transition_T<Scenario_T, DestinationState::value()>;
     auto trans = score::make_transition<transition_type>(from, to, *this);
     trans->setObjectName(QString::number(DestinationState::value()));
     QObject::connect(trans, &transition_type::triggered, this, fun);
@@ -249,8 +248,7 @@ protected:
   void commit()
   {
     this->makeSnapshot();
-    this->m_dispatcher
-        .template commit<Scenario::Command::CreationMetaCommand>();
+    this->m_dispatcher.template commit<Scenario::Command::CreationMetaCommand>();
 
     // Select all the created elements
     Selection sel;
@@ -258,7 +256,7 @@ protected:
     {
       auto& s = this->createdStates.back();
       auto sp = m_parentSM.model().states.find(s);
-      if(sp == m_parentSM.model().states.end())
+      if (sp == m_parentSM.model().states.end())
       {
         qDebug() << "Error: tried to select state but it did not exist";
       }
@@ -272,7 +270,7 @@ protected:
     {
       auto& i = this->createdIntervals.back();
       auto ip = m_parentSM.model().intervals.find(i);
-      if(ip == m_parentSM.model().intervals.end())
+      if (ip == m_parentSM.model().intervals.end())
       {
         qDebug() << "Error: tried to select interval but it did not exist";
       }
@@ -282,8 +280,7 @@ protected:
       }
     }
 
-    score::SelectionDispatcher d{
-        this->m_parentSM.context().context.selectionStack};
+    score::SelectionDispatcher d{this->m_parentSM.context().context.selectionStack};
     d.setAndCommit(sel);
     this->clearCreatedIds();
     this->m_parentSM.editionSettings().setSequence(false);

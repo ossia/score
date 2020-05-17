@@ -41,6 +41,5 @@ protected:
 };
 
 template <typename System_T>
-using GenericIntervalComponent
-    = Scenario::IntervalComponent<score::GenericComponent<System_T>>;
+using GenericIntervalComponent = Scenario::IntervalComponent<score::GenericComponent<System_T>>;
 }

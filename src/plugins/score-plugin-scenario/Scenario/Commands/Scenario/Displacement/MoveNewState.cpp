@@ -3,7 +3,6 @@
 #include "MoveNewState.hpp"
 
 #include <Scenario/Document/State/StateModel.hpp>
-
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <score/model/Identifier.hpp>
@@ -11,15 +10,11 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
-
 namespace Scenario
 {
 namespace Command
 {
-MoveNewState::MoveNewState(
-    const Scenario::ProcessModel& scenar,
-    Id<StateModel> stateId,
-    double y)
+MoveNewState::MoveNewState(const Scenario::ProcessModel& scenar, Id<StateModel> stateId, double y)
     : m_path(scenar), m_stateId{std::move(stateId)}, m_y{y}
 {
   m_oldy = scenar.state(m_stateId).heightPercentage();

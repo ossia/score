@@ -1,7 +1,9 @@
 #include "TempoProcess.hpp"
-#include <Process/Dataflow/Port.hpp>
+
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/Linear/LinearSegment.hpp>
+#include <Process/Dataflow/Port.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::TempoProcess)
 namespace Scenario
@@ -11,16 +13,12 @@ TempoProcess::TempoProcess(
     const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
-  : CurveProcessModel{duration,
-                      id,
-                      Metadata<ObjectKey_k, ProcessModel>::get(),
-                      parent}
-  , inlet{Process::make_value_inlet(Id<Process::Port>(0), this)}
+    : CurveProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    , inlet{Process::make_value_inlet(Id<Process::Port>(0), this)}
 {
   setCurve(new Curve::Model{Id<Curve::Model>(45345), this});
 
-  auto s1 = new Curve::LinearSegment(
-        Id<Curve::SegmentModel>(1), m_curve);
+  auto s1 = new Curve::LinearSegment(Id<Curve::SegmentModel>(1), m_curve);
 
   s1->setStart({0., (120. - this->min) / (this->max - this->min)});
   s1->setEnd({1., (120. - this->min) / (this->max - this->min)});
@@ -31,14 +29,15 @@ TempoProcess::TempoProcess(
   init();
 }
 
-TempoProcess::~TempoProcess() {}
+TempoProcess::~TempoProcess() { }
 
 void TempoProcess::init()
 {
   m_inlets.push_back(inlet.get());
 }
 
-QString TempoProcess::prettyName() const noexcept {
+QString TempoProcess::prettyName() const noexcept
+{
   return tr("Tempo");
 }
 
@@ -109,8 +108,6 @@ void TempoProcess::setDurationAndShrink(const TimeVal& newDuration) noexcept
 void TempoProcess::setCurve_impl() { }
 
 }
-
-
 
 template <>
 void DataStreamReader::read(const Scenario::TempoProcess& autom)

@@ -5,7 +5,6 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
-
 template <>
 void DataStreamReader::read(const Protocols::OSCSpecificSettings& n)
 {

@@ -7,7 +7,6 @@
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SetIcons.hpp>
 
-
 SelectionButton::SelectionButton(
     const QString& text,
     Selection target,
@@ -33,7 +32,5 @@ SelectionButton::SelectionButton(
 #endif
   setFlat(true);
 
-  connect(this, &QPushButton::clicked, this, [=]() {
-    m_dispatcher.setAndCommit(target);
-  });
+  connect(this, &QPushButton::clicked, this, [=]() { m_dispatcher.setAndCommit(target); });
 }

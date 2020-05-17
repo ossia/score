@@ -39,7 +39,7 @@ struct graphics_item_ptr
   graphics_item_ptr& operator=(const graphics_item_ptr&) = default;
   graphics_item_ptr& operator=(graphics_item_ptr&&) = default;
 
-  graphics_item_ptr(T* p) : impl{p} {}
+  graphics_item_ptr(T* p) : impl{p} { }
 
   ~graphics_item_ptr() { deleteGraphicsItem(impl); }
 

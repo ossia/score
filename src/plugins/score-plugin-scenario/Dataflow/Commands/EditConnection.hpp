@@ -9,10 +9,7 @@ namespace Dataflow
 {
 class SCORE_PLUGIN_SCENARIO_EXPORT CreateCable final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      Scenario::Command::CommandFactoryName(),
-      CreateCable,
-      "Create cable")
+  SCORE_COMMAND_DECL(Scenario::Command::CommandFactoryName(), CreateCable, "Create cable")
 
 public:
   CreateCable(
@@ -39,10 +36,7 @@ private:
 
 class SCORE_PLUGIN_SCENARIO_EXPORT UpdateCable final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      Scenario::Command::CommandFactoryName(),
-      UpdateCable,
-      "Update cable")
+  SCORE_COMMAND_DECL(Scenario::Command::CommandFactoryName(), UpdateCable, "Update cable")
 
 public:
   UpdateCable(const Process::Cable& theCable, Process::CableType newDat);
@@ -61,15 +55,10 @@ private:
 
 class SCORE_PLUGIN_SCENARIO_EXPORT RemoveCable final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      Scenario::Command::CommandFactoryName(),
-      RemoveCable,
-      "Remove cable")
+  SCORE_COMMAND_DECL(Scenario::Command::CommandFactoryName(), RemoveCable, "Remove cable")
 
 public:
-  RemoveCable(
-      const Scenario::ScenarioDocumentModel& dp,
-      const Process::Cable& theCable);
+  RemoveCable(const Scenario::ScenarioDocumentModel& dp, const Process::Cable& theCable);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

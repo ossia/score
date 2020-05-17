@@ -1,7 +1,7 @@
 #pragma once
 #include <State/Address.hpp>
-#include <State/ValueParser.hpp>
 #include <State/Relation.hpp>
+#include <State/ValueParser.hpp>
 BOOST_FUSION_ADAPT_STRUCT(State::Address, (QString, device)(QStringList, path))
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -28,8 +28,7 @@ struct Address_parser : qi::grammar<Iterator, State::Address()>
     using qi::alnum;
     // OPTIMIZEME
     dev = +qi::char_(std::string(ossia::net::device_characters()));
-    member_elt
-        = +qi::char_(std::string(ossia::net::pattern_match_characters()));
+    member_elt = +qi::char_(std::string(ossia::net::pattern_match_characters()));
     path %= (+("/" >> member_elt) | "/");
     start %= dev >> ":" >> path;
   }
@@ -59,8 +58,7 @@ struct AccessorList_parser : qi::grammar<Iterator, ossia::destination_index()>
 };
 
 template <typename Iterator>
-struct AddressQualifiers_parser
-    : qi::grammar<Iterator, ossia::destination_qualifiers()>
+struct AddressQualifiers_parser : qi::grammar<Iterator, ossia::destination_qualifiers()>
 {
   AddressQualifiers_parser() : AddressQualifiers_parser::base_type(start)
   {
@@ -70,8 +68,7 @@ struct AddressQualifiers_parser
     using qi::alnum;
 
     unit %= boost::spirit::eoi;
-    start %= "@" >> ((accessors >> -unit)
-                     | ("[" >> ossia::get_unit_parser() >> "]"));
+    start %= "@" >> ((accessors >> -unit) | ("[" >> ossia::get_unit_parser() >> "]"));
   }
 
   qi::rule<Iterator, ossia::destination_qualifiers()> start;

@@ -69,15 +69,11 @@ void ApplicationPlugin::on_keyPressEvent(QKeyEvent& event)
   {
     m_shiftact->setChecked(true);
   }
-  else if (
-      key == Qt::Key_Control
-      && editionSettings().tool() != Curve::Tool::SetSegment)
+  else if (key == Qt::Key_Control && editionSettings().tool() != Curve::Tool::SetSegment)
   {
     m_ctrlact->setChecked(true);
   }
-  else if (
-      key == Qt::Key_Alt
-      && editionSettings().tool() != Curve::Tool::SetSegment)
+  else if (key == Qt::Key_Alt && editionSettings().tool() != Curve::Tool::SetSegment)
   {
     m_altact->setChecked(!m_altact->isChecked());
   }
@@ -90,20 +86,16 @@ void ApplicationPlugin::on_keyReleaseEvent(QKeyEvent& event)
   {
     m_shiftact->setChecked(false);
   }
-  else if (
-      key == Qt::Key_Control
-      && editionSettings().tool() != Curve::Tool::SetSegment)
+  else if (key == Qt::Key_Control && editionSettings().tool() != Curve::Tool::SetSegment)
   {
     m_ctrlact->setChecked(false);
   }
-  else if (
-      key == Qt::Key_Alt
-      && editionSettings().tool() != Curve::Tool::SetSegment)
+  else if (key == Qt::Key_Alt && editionSettings().tool() != Curve::Tool::SetSegment)
   {
     m_altact->setChecked(!m_altact->isChecked());
   }
 }
 
-ApplicationPlugin::~ApplicationPlugin() {}
+ApplicationPlugin::~ApplicationPlugin() { }
 
 }

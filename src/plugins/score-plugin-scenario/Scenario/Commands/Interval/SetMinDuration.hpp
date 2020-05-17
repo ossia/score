@@ -21,13 +21,9 @@ namespace Command
  */
 class SetMinDuration final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      SetMinDuration,
-      "Set interval minimum")
+  SCORE_COMMAND_DECL(CommandFactoryName(), SetMinDuration, "Set interval minimum")
 public:
-  static const constexpr auto corresponding_member
-      = &IntervalDurations::minDuration;
+  static const constexpr auto corresponding_member = &IntervalDurations::minDuration;
 
   SetMinDuration(const IntervalModel& cst, TimeVal newval, bool isMinNull)
       : m_path{cst}

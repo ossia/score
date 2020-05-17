@@ -2,9 +2,9 @@
 #include <Scenario/Palette/Tools/ScenarioToolState.hpp>
 #include <Scenario/Palette/Tools/States/ResizeSlotState.hpp>
 #include <Scenario/Palette/Tools/States/ScenarioSelectionState.hpp>
+#include <Scenario/Palette/Transitions/IntervalTransitions.hpp>
 #include <Scenario/Palette/Transitions/SlotTransitions.hpp>
 #include <Scenario/Palette/Transitions/StateTransitions.hpp>
-#include <Scenario/Palette/Transitions/IntervalTransitions.hpp>
 #include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
 
 #include <score/selection/SelectionDispatcher.hpp>
@@ -48,43 +48,32 @@ public:
 
       auto mov_i = MoveIntervalWrapper_T::template make<Scenario_T, ToolPalette_T>(
           this->m_palette, waitState, *actionsState);
-      auto mov_lb =MoveLeftBraceWrapper_T::template make<Scenario_T, ToolPalette_T>(
+      auto mov_lb = MoveLeftBraceWrapper_T::template make<Scenario_T, ToolPalette_T>(
           this->m_palette, waitState, *actionsState);
-      auto mov_rb =MoveRightBraceWrapper_T::template make<Scenario_T, ToolPalette_T>(
+      auto mov_rb = MoveRightBraceWrapper_T::template make<Scenario_T, ToolPalette_T>(
           this->m_palette, waitState, *actionsState);
       auto mov_e = MoveEventWrapper_T::template make<Scenario_T, ToolPalette_T>(
           this->m_palette, waitState, *actionsState);
-      auto mov_ts =MoveTimeSyncWrapper_T::template make<Scenario_T, ToolPalette_T>(
+      auto mov_ts = MoveTimeSyncWrapper_T::template make<Scenario_T, ToolPalette_T>(
           this->m_palette, waitState, *actionsState);
 
-      if constexpr(!std::is_same_v<decltype(mov_i), std::nullptr_t>)
+      if constexpr (!std::is_same_v<decltype(mov_i), std::nullptr_t>)
       {
-      score::make_transition<ClickOnState_Transition<Scenario_T>>(
-          mov_i, mov_e, *mov_e);
-      score::make_transition<ClickOnState_Transition<Scenario_T>>(
-            mov_ts, mov_e, *mov_e);
-      score::make_transition<ClickOnState_Transition<Scenario_T>>(
-            mov_lb, mov_e, *mov_e);
-      score::make_transition<ClickOnState_Transition<Scenario_T>>(
-            mov_rb, mov_e, *mov_e);
+        score::make_transition<ClickOnState_Transition<Scenario_T>>(mov_i, mov_e, *mov_e);
+        score::make_transition<ClickOnState_Transition<Scenario_T>>(mov_ts, mov_e, *mov_e);
+        score::make_transition<ClickOnState_Transition<Scenario_T>>(mov_lb, mov_e, *mov_e);
+        score::make_transition<ClickOnState_Transition<Scenario_T>>(mov_rb, mov_e, *mov_e);
 
-      score::make_transition<ClickOnInterval_Transition<Scenario_T>>(
-            mov_ts, mov_i, *mov_i);
-      score::make_transition<ClickOnInterval_Transition<Scenario_T>>(
-            mov_e, mov_i, *mov_i);
-      score::make_transition<ClickOnInterval_Transition<Scenario_T>>(
-            mov_lb, mov_i, *mov_i);
-      score::make_transition<ClickOnInterval_Transition<Scenario_T>>(
-            mov_rb, mov_i, *mov_i);
+        score::make_transition<ClickOnInterval_Transition<Scenario_T>>(mov_ts, mov_i, *mov_i);
+        score::make_transition<ClickOnInterval_Transition<Scenario_T>>(mov_e, mov_i, *mov_i);
+        score::make_transition<ClickOnInterval_Transition<Scenario_T>>(mov_lb, mov_i, *mov_i);
+        score::make_transition<ClickOnInterval_Transition<Scenario_T>>(mov_rb, mov_i, *mov_i);
       }
       /// Slot resize
       auto resizeSlot = new ResizeSlotState<Scenario_T, ToolPalette_T>{
-          this->m_palette.context().context.commandStack,
-          this->m_palette,
-          actionsState};
+          this->m_palette.context().context.commandStack, this->m_palette, actionsState};
 
-      score::make_transition<ClickOnSlotHandle_Transition>(
-          waitState, resizeSlot, *resizeSlot);
+      score::make_transition<ClickOnSlotHandle_Transition>(waitState, resizeSlot, *resizeSlot);
 
       resizeSlot->addTransition(resizeSlot, finishedState(), waitState);
     }
@@ -140,9 +129,7 @@ public:
           if (!model.selection.get())
           {
             m_state->dispatcher.setAndCommit(filterSelections(
-                &model,
-                this->m_palette.model().selectedChildren(),
-                m_state->multiSelection()));
+                &model, this->m_palette.model().selectedChildren(), m_state->multiSelection()));
           }
           this->localSM().postEvent(new ClickOnInterval_Event{id, sp});
           m_nothingPressed = false;
@@ -272,8 +259,7 @@ public:
         [&](const SlotPath& slot) // Slot handle
         { this->localSM().postEvent(new ReleaseOnSlotHandle_Event{slot}); },
         [&]() {
-          this->localSM().postEvent(
-              new ReleaseOnNothing_Event{sp}); // end of move
+          this->localSM().postEvent(new ReleaseOnNothing_Event{sp}); // end of move
         });
   }
 

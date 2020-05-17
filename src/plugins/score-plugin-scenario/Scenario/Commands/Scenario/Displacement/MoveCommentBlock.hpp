@@ -6,8 +6,8 @@
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
-#include <score/tools/std/Optional.hpp>
 #include <score/tools/Unused.hpp>
+#include <score/tools/std/Optional.hpp>
 
 namespace Scenario
 {
@@ -16,10 +16,7 @@ namespace Command
 {
 class MoveCommentBlock final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      MoveCommentBlock,
-      "Move a comment block")
+  SCORE_COMMAND_DECL(CommandFactoryName(), MoveCommentBlock, "Move a comment block")
 public:
   MoveCommentBlock(
       const ProcessModel& scenarPath,

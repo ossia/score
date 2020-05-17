@@ -7,10 +7,10 @@
 
 #include <ossia/dataflow/node_process.hpp>
 
-
 #include <Control/DefaultEffectItem.hpp>
 #include <Effect/EffectFactory.hpp>
 #include <lilv/lilvmm.hpp>
+
 #include <verdigris>
 
 namespace Media::LV2
@@ -70,8 +70,7 @@ public:
   mutable moodycamel::ReaderWriterQueue<Message> ui_events;     // from ui
   mutable moodycamel::ReaderWriterQueue<Message> plugin_events; // from plug-in
 
-  ossia::fast_hash_map<uint32_t, std::pair<Process::ControlInlet*, bool>>
-      control_map;
+  ossia::fast_hash_map<uint32_t, std::pair<Process::ControlInlet*, bool>> control_map;
   ossia::fast_hash_map<uint32_t, Process::ControlOutlet*> control_out_map;
 
 private:
@@ -81,8 +80,7 @@ private:
 };
 
 class LV2EffectComponent final
-    : public Execution::
-          ProcessComponent_T<Media::LV2::LV2EffectModel, ossia::node_process>
+    : public Execution::ProcessComponent_T<Media::LV2::LV2EffectModel, ossia::node_process>
 {
   W_OBJECT(LV2EffectComponent)
   COMPONENT_METADATA("57f50003-a179-424a-80b1-b9394d73a84a")
@@ -98,27 +96,20 @@ public:
 
   void lazy_init() override;
 
-  void writeAtomToUi(
-      uint32_t port_index,
-      uint32_t type,
-      uint32_t size,
-      const void* body);
+  void writeAtomToUi(uint32_t port_index, uint32_t type, uint32_t size, const void* body);
 };
 }
 
 namespace Process
 {
 template <>
-QString
-EffectProcessFactory_T<Media::LV2::LV2EffectModel>::customConstructionData()
-    const;
+QString EffectProcessFactory_T<Media::LV2::LV2EffectModel>::customConstructionData() const;
 }
 
 namespace Media::LV2
 {
 using LV2EffectFactory = Process::EffectProcessFactory_T<LV2EffectModel>;
-using LV2EffectComponentFactory
-    = Execution::ProcessComponentFactory_T<LV2EffectComponent>;
+using LV2EffectComponentFactory = Execution::ProcessComponentFactory_T<LV2EffectComponent>;
 }
 
 #endif

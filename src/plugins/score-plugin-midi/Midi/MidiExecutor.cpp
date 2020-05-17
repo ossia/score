@@ -17,11 +17,11 @@ Component::Component(
     const Id<score::Component>& id,
     QObject* parent)
     : ::Execution::ProcessComponent_T<Midi::ProcessModel, ossia::node_process>{
-          element,
-          ctx,
-          id,
-          "MidiComponent",
-          parent}
+        element,
+        ctx,
+        id,
+        "MidiComponent",
+        parent}
 {
   auto midi = std::make_shared<midi_node>();
   this->node = midi;
@@ -42,9 +42,7 @@ Component::Component(
       notes.insert(to_note(data));
     }
 
-    in_exec([n = std::move(notes), midi]() mutable {
-      midi->set_notes(std::move(n));
-    });
+    in_exec([n = std::move(notes), midi]() mutable { midi->set_notes(std::move(n)); });
   };
   set_notes();
 
@@ -54,35 +52,27 @@ Component::Component(
   for (auto& note : element.notes)
   {
     QObject::connect(
-        &note,
-        &Note::noteChanged,
-        this,
-        [&, midi, cur = to_note(note.noteData())]() mutable {
+        &note, &Note::noteChanged, this, [&, midi, cur = to_note(note.noteData())]() mutable {
           auto old = cur;
           cur = to_note(note.noteData());
           in_exec([old, cur, midi] { midi->update_note(old, cur); });
         });
   }
-  QObject::connect(
-      &element, &Midi::ProcessModel::notesChanged, this, set_notes);
+  QObject::connect(&element, &Midi::ProcessModel::notesChanged, this, set_notes);
 }
 
-Component::~Component() {}
+Component::~Component() { }
 
 void Component::on_noteAdded(const Note& n)
 {
   auto midi = std::dynamic_pointer_cast<midi_node>(node);
   in_exec([nd = to_note(n.noteData()), midi] { midi->add_note(nd); });
 
-  QObject::connect(
-      &n,
-      &Note::noteChanged,
-      this,
-      [&, midi, cur = to_note(n.noteData())]() mutable {
-        auto old = cur;
-        cur = to_note(n.noteData());
-        in_exec([old, cur, midi] { midi->update_note(old, cur); });
-      });
+  QObject::connect(&n, &Note::noteChanged, this, [&, midi, cur = to_note(n.noteData())]() mutable {
+    auto old = cur;
+    cur = to_note(n.noteData());
+    in_exec([old, cur, midi] { midi->update_note(old, cur); });
+  });
 }
 
 void Component::on_noteRemoved(const Note& n)
@@ -94,10 +84,11 @@ void Component::on_noteRemoved(const Note& n)
 ossia::nodes::note_data Component::to_note(const NoteData& n)
 {
   auto& cv_time = system().time;
-  return {cv_time(process().duration() * n.start()),
-          cv_time(process().duration() * n.duration()),
-          n.pitch(),
-          n.velocity()};
+  return {
+      cv_time(process().duration() * n.start()),
+      cv_time(process().duration() * n.duration()),
+      n.pitch(),
+      n.velocity()};
 }
 }
 }

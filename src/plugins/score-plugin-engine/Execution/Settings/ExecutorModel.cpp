@@ -6,7 +6,6 @@
 
 #include <score/application/ApplicationContext.hpp>
 
-
 #include <Execution/Clock/DataflowClock.hpp>
 #include <Execution/Clock/DefaultClock.hpp>
 
@@ -17,8 +16,9 @@ namespace Settings
 
 namespace Parameters
 {
-SETTINGS_PARAMETER_IMPL(Clock){QStringLiteral("score_plugin_engine/Clock"),
-                               Dataflow::ClockFactory::static_concreteKey()};
+SETTINGS_PARAMETER_IMPL(Clock){
+    QStringLiteral("score_plugin_engine/Clock"),
+    Dataflow::ClockFactory::static_concreteKey()};
 SETTINGS_PARAMETER_IMPL(Rate){QStringLiteral("score_plugin_engine/Rate"), 50};
 SETTINGS_PARAMETER_IMPL(Scheduling){
     QStringLiteral("score_plugin_engine/Scheduling"),
@@ -26,25 +26,20 @@ SETTINGS_PARAMETER_IMPL(Scheduling){
 SETTINGS_PARAMETER_IMPL(Ordering){
     QStringLiteral("score_plugin_engine/Ordering"),
     OrderingPolicies{}.CreationOrder};
-SETTINGS_PARAMETER_IMPL(Merging){QStringLiteral("score_plugin_engine/Merging"),
-                                 MergingPolicies{}.Merge};
-SETTINGS_PARAMETER_IMPL(Commit){QStringLiteral("score_plugin_engine/Commit"),
-                                CommitPolicies{}.Merged};
-SETTINGS_PARAMETER_IMPL(Tick){QStringLiteral("score_plugin_engine/Tick"),
-                              TickPolicies{}.Buffer};
-SETTINGS_PARAMETER_IMPL(Parallel){
-    QStringLiteral("score_plugin_engine/Parallel"),
-    true};
+SETTINGS_PARAMETER_IMPL(Merging){
+    QStringLiteral("score_plugin_engine/Merging"),
+    MergingPolicies{}.Merge};
+SETTINGS_PARAMETER_IMPL(Commit){
+    QStringLiteral("score_plugin_engine/Commit"),
+    CommitPolicies{}.Merged};
+SETTINGS_PARAMETER_IMPL(Tick){QStringLiteral("score_plugin_engine/Tick"), TickPolicies{}.Buffer};
+SETTINGS_PARAMETER_IMPL(Parallel){QStringLiteral("score_plugin_engine/Parallel"), true};
 SETTINGS_PARAMETER_IMPL(ExecutionListening){
     QStringLiteral("score_plugin_engine/ExecListening"),
     true};
-SETTINGS_PARAMETER_IMPL(Logging){QStringLiteral("score_plugin_engine/Logging"),
-                                 true};
-SETTINGS_PARAMETER_IMPL(Bench){QStringLiteral("score_plugin_engine/Bench"),
-                               true};
-SETTINGS_PARAMETER_IMPL(ScoreOrder){
-    QStringLiteral("score_plugin_engine/ScoreOrder"),
-    false};
+SETTINGS_PARAMETER_IMPL(Logging){QStringLiteral("score_plugin_engine/Logging"), true};
+SETTINGS_PARAMETER_IMPL(Bench){QStringLiteral("score_plugin_engine/Bench"), true};
+SETTINGS_PARAMETER_IMPL(ScoreOrder){QStringLiteral("score_plugin_engine/ScoreOrder"), false};
 SETTINGS_PARAMETER_IMPL(ValueCompilation){
     QStringLiteral("score_plugin_engine/ValueCompilation"),
     true};
@@ -90,19 +85,16 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
 std::unique_ptr<Clock> Model::makeClock(const Execution::Context& ctx) const
 {
   auto it = m_clockFactories.get(m_Clock);
-  return it ? it->make(ctx)
-            : std::make_unique<Dataflow::Clock>(ctx);
+  return it ? it->make(ctx) : std::make_unique<Dataflow::Clock>(ctx);
 }
 
 time_function Model::makeTimeFunction(const score::DocumentContext& ctx) const
 {
   auto it = m_clockFactories.get(m_Clock);
-  return it  ? it->makeTimeFunction(ctx)
-             : Dataflow::ClockFactory{}.makeTimeFunction(ctx);
+  return it ? it->makeTimeFunction(ctx) : Dataflow::ClockFactory{}.makeTimeFunction(ctx);
 }
 
-reverse_time_function
-Model::makeReverseTimeFunction(const score::DocumentContext& ctx) const
+reverse_time_function Model::makeReverseTimeFunction(const score::DocumentContext& ctx) const
 {
   auto it = m_clockFactories.get(m_Clock);
   return it ? it->makeReverseTimeFunction(ctx)

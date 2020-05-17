@@ -7,15 +7,16 @@
 #include <ControlSurface/Process.hpp>
 namespace ControlSurface
 {
-//class node final : public ossia::nonowning_graph_node
+// class node final : public ossia::nonowning_graph_node
 //{
-//public:
+// public:
 //  node()
 //  {
 //  }
 //
 //  void
-//  run(const ossia::token_request& tk, ossia::exec_state_facade s) noexcept override
+//  run(const ossia::token_request& tk, ossia::exec_state_facade s) noexcept
+//  override
 //  {
 //  }
 //
@@ -24,14 +25,15 @@ namespace ControlSurface
 //    return "controlsurface";
 //  }
 //
-//private:
+// private:
 //};
 //
 //
-//ProcessExecutorComponent::ProcessExecutorComponent(
+// ProcessExecutorComponent::ProcessExecutorComponent(
 //    ControlSurface::Model& element, const Execution::Context& ctx,
 //    const Id<score::Component>& id, QObject* parent)
-//    : ProcessComponent_T{element, ctx, id, "ControlSurfaceExecutorComponent", parent}
+//    : ProcessComponent_T{element, ctx, id, "ControlSurfaceExecutorComponent",
+//    parent}
 //{
 //  auto n = std::make_shared<ControlSurface::node>();
 //  this->node = n;
@@ -43,7 +45,9 @@ namespace ControlSurface
 //   * connect(&element.metadata(), &score::ModelMetadata::ColorChanged,
 //   *         this, [=] (const QColor& c) {
 //   *
-//   *   in_exec([c,n=std::dynamic_pointer_cast<ControlSurface::node>(this->node)] {
+//   *
+//   in_exec([c,n=std::dynamic_pointer_cast<ControlSurface::node>(this->node)]
+//   {
 //   *     n->set_color(c);
 //   *   });
 //   *

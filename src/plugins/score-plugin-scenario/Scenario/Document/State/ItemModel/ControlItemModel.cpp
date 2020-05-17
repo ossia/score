@@ -1,13 +1,15 @@
 #include "ControlItemModel.hpp"
+
 #include <Process/ControlMessage.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 #include <State/ValueConversion.hpp>
+
+#include <score/document/DocumentContext.hpp>
+
 #include <ossia/network/value/value_traits.hpp>
 
 #include <QMimeData>
-
-#include <Scenario/Document/State/StateModel.hpp>
-#include <score/document/DocumentContext.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
 namespace Scenario
 {
@@ -35,18 +37,17 @@ QVariant valueColumnData(const Process::ControlMessage& ctrl, int role)
 }
 
 ControlItemModel::ControlItemModel(Scenario::StateModel& ctx, QObject* parent)
-  : QAbstractItemModel{parent}
-  , m_state{ctx}
+    : QAbstractItemModel{parent}, m_state{ctx}
 {
 }
 
 ControlItemModel::~ControlItemModel()
 {
-  if(!m_msgs.empty())
+  if (!m_msgs.empty())
   {
     auto& sm = m_state.context().model<ScenarioDocumentModel>();
     auto it = ossia::find(sm.statesWithControls, &m_state);
-    if(it != sm.statesWithControls.end())
+    if (it != sm.statesWithControls.end())
       sm.statesWithControls.erase(it);
   }
 }
@@ -61,16 +62,16 @@ void ControlItemModel::replaceWith(const std::vector<Process::ControlMessage>& c
 
   m_state.sig_controlMessagesUpdated();
 
-  if(wasEmpty && !isEmpty)
+  if (wasEmpty && !isEmpty)
   {
     auto& sm = m_state.context().model<ScenarioDocumentModel>();
     sm.statesWithControls.push_back(&m_state);
   }
-  else if(!wasEmpty && isEmpty)
+  else if (!wasEmpty && isEmpty)
   {
     auto& sm = m_state.context().model<ScenarioDocumentModel>();
     auto it = ossia::find(sm.statesWithControls, &m_state);
-    if(it != sm.statesWithControls.end())
+    if (it != sm.statesWithControls.end())
       sm.statesWithControls.erase(it);
   }
 }
@@ -79,8 +80,9 @@ void ControlItemModel::addMessages(
     std::vector<Process::ControlMessage>& cur,
     std::vector<Process::ControlMessage>&& vec)
 {
-  for(auto&& item : std::move(vec)) {
-    auto it = ossia::find_if(cur, [&] (auto& ctl) { return ctl.port == item.port; });
+  for (auto&& item : std::move(vec))
+  {
+    auto it = ossia::find_if(cur, [&](auto& ctl) { return ctl.port == item.port; });
     if (it == cur.end())
     {
       cur.push_back(std::move(item));
@@ -118,12 +120,14 @@ QVariant ControlItemModel::data(const QModelIndex& index, int role) const
   {
     switch (role)
     {
-    case Qt::DisplayRole:
-      switch(index.column())
-      {
-        case 0: return m_msgs[index.row()].name(m_state.context());
-        case 1: return valueColumnData(m_msgs[index.row()], role);
-      }
+      case Qt::DisplayRole:
+        switch (index.column())
+        {
+          case 0:
+            return m_msgs[index.row()].name(m_state.context());
+          case 1:
+            return valueColumnData(m_msgs[index.row()], role);
+        }
     }
   }
 

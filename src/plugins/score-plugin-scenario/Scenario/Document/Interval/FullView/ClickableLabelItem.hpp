@@ -4,9 +4,8 @@
 #include <QGraphicsItem>
 #include <QString>
 
-#include <verdigris>
-
 #include <functional>
+#include <verdigris>
 
 namespace score
 {
@@ -25,15 +24,11 @@ public:
   // QGraphicsItem interface
 public:
   QRectF boundingRect() const override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 };
 
-class ClickableLabelItem final
-    : // public QObject,
-    public score::SimpleTextItem
+class ClickableLabelItem final : // public QObject,
+                                 public score::SimpleTextItem
 {
   W_OBJECT(ClickableLabelItem)
 public:

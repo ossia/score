@@ -9,20 +9,15 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/widgets/TextLabel.hpp>
 
-
 namespace Scenario
 {
 TimeSyncSummaryWidget::TimeSyncSummaryWidget(
     const TimeSyncModel& object,
     const score::DocumentContext& doc,
     QWidget* parent)
-    : QWidget(parent)
-    , sync{object}
-    , m_selectionDispatcher{doc.selectionStack}
-    , m_lay{this}
+    : QWidget(parent), sync{object}, m_selectionDispatcher{doc.selectionStack}, m_lay{this}
 {
-  auto eventBtn
-      = SelectionButton::make("", &object, m_selectionDispatcher, this);
+  auto eventBtn = SelectionButton::make("", &object, m_selectionDispatcher, this);
 
   m_lay.addWidget(new TextLabel{object.metadata().getName()}, 0, 0, 1, 3);
   m_lay.addWidget(new TextLabel{object.date().toString()}, 0, 3, 1, 3);
@@ -36,5 +31,5 @@ TimeSyncSummaryWidget::TimeSyncSummaryWidget(
   }
 }
 
-TimeSyncSummaryWidget::~TimeSyncSummaryWidget() {}
+TimeSyncSummaryWidget::~TimeSyncSummaryWidget() { }
 }

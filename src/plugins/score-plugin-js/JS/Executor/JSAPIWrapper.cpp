@@ -7,20 +7,21 @@
 #include <Scenario/Execution/score2OSSIA.hpp>
 
 #include <ossia-qt/js_utilities.hpp>
-#include <ossia/dataflow/dataflow.hpp>
 #include <ossia/dataflow/audio_port.hpp>
-#include <ossia/dataflow/value_port.hpp>
-#include <ossia/dataflow/midi_port.hpp>
+#include <ossia/dataflow/dataflow.hpp>
 #include <ossia/dataflow/execution_state.hpp>
+#include <ossia/dataflow/midi_port.hpp>
 #include <ossia/dataflow/typed_value.hpp>
+#include <ossia/dataflow/value_port.hpp>
 #include <ossia/detail/apply.hpp>
 #include <ossia/network/value/value.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(JS::ExecStateWrapper)
 namespace JS
 {
 
-ExecStateWrapper::~ExecStateWrapper() {}
+ExecStateWrapper::~ExecStateWrapper() { }
 
 const ossia::destination_t& ExecStateWrapper::find_address(const QString& str)
 {
@@ -50,8 +51,7 @@ const ossia::destination_t& ExecStateWrapper::find_address(const QString& str)
 
   // Split in devices
   auto dev = ossia::find_if(
-      devices.exec_devices(),
-      [devname = str.mid(0, d).toStdString()](const auto& dev) {
+      devices.exec_devices(), [devname = str.mid(0, d).toStdString()](const auto& dev) {
         return dev->get_name() == devname;
       });
 
@@ -66,8 +66,7 @@ const ossia::destination_t& ExecStateWrapper::find_address(const QString& str)
       }
     }
 
-    auto node = ossia::net::find_node(
-        (*dev)->get_root_node(), str.mid(d + 1).toStdString());
+    auto node = ossia::net::find_node((*dev)->get_root_node(), str.mid(d + 1).toStdString());
     if (node)
     {
       if (auto addr = node->get_parameter())
@@ -108,7 +107,8 @@ QVariant ExecStateWrapper::read(const QString& address)
             mv[QString::fromStdString(addr->get_node().osc_address())]
                 = addr->value().apply(ossia::qt::ossia_to_qvariant{});
           }
-        }, ossia::do_nothing_for_nodes{});
+        },
+        ossia::do_nothing_for_nodes{});
     if (unique)
       return var;
     else
@@ -128,7 +128,8 @@ void ExecStateWrapper::write(const QString& address, const QVariant& value)
         devices.exec_devices(),
         [&](ossia::net::parameter_base* addr, bool unique) {
           devices.insert(*addr, ossia::typed_value{val});
-        }, ossia::do_nothing_for_nodes{});
+        },
+        ossia::do_nothing_for_nodes{});
   }
 }
 

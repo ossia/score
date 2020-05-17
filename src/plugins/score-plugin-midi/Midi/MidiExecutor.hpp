@@ -21,8 +21,7 @@ class ProcessModel;
 namespace Executor
 {
 class Component final
-    : public ::Execution::
-          ProcessComponent_T<Midi::ProcessModel, ossia::node_process>,
+    : public ::Execution::ProcessComponent_T<Midi::ProcessModel, ossia::node_process>,
       public Nano::Observer
 {
   COMPONENT_METADATA("6d5334a5-7b8c-45df-9805-11d1b4472cdf")

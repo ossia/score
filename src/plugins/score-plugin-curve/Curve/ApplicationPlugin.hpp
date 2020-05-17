@@ -6,8 +6,7 @@
 namespace Curve
 {
 
-class ApplicationPlugin final : public QObject,
-                                public score::GUIApplicationPlugin
+class ApplicationPlugin final : public QObject, public score::GUIApplicationPlugin
 {
 public:
   ApplicationPlugin(const score::GUIApplicationContext& ctx);

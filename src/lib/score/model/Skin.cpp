@@ -2,13 +2,15 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Skin.hpp"
 
-#include <boost/assign/list_of.hpp>
-#include <ossia/detail/flat_map.hpp>
 #include <score/widgets/Pixmap.hpp>
 
+#include <ossia/detail/flat_map.hpp>
+
+#include <boost/assign/list_of.hpp>
+
+#include <QGuiApplication>
 #include <QJsonArray>
 #include <QJsonObject>
-#include <QGuiApplication>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::Skin)
@@ -18,18 +20,17 @@ W_OBJECT_IMPL(score::Skin)
 #Col, &Col                  \
   }
 
-#define SCORE_INSERT_COLOR_CUSTOM(Hex, Name) \
-  qMakePair(QStringLiteral(Name), QColor(Hex))
+#define SCORE_INSERT_COLOR_CUSTOM(Hex, Name) qMakePair(QStringLiteral(Name), QColor(Hex))
 
 namespace score
 {
 struct Skin::color_map
 {
-  color_map(
-      std::initializer_list<std::pair<QString, Brush*>> list)
+  color_map(std::initializer_list<std::pair<QString, Brush*>> list)
       : left(list.begin(), list.end())
   {
-    for(auto& pair : list) {
+    for (auto& pair : list)
+    {
       right.insert({pair.second, pair.first});
     }
   }
@@ -44,65 +45,63 @@ Skin::~Skin()
 Skin::Skin() noexcept
     : SansFont{"Ubuntu"}
     , MonoFont{"APCCourier-Bold", int(10 * 96. / 72.), QFont::Black}
-    , MonoFontSmall
-{
-  "APCCourier-Bold", int(7 * 96. / 72.), QFont::Normal
-}
-, SansFontSmall
-{
-  "Ubuntu", int(7 * 96. / 72.)
-}
-, TransparentPen{Qt::transparent}, TransparentBrush{Qt::transparent},
-    NoPen{Qt::NoPen}, NoBrush{Qt::NoBrush}, TextBrush{QColor("#1f2a30")},
-    m_colorMap(new color_map{
-        SCORE_INSERT_COLOR(Dark),           SCORE_INSERT_COLOR(HalfDark),
-        SCORE_INSERT_COLOR(DarkGray),       SCORE_INSERT_COLOR(Gray),
-        SCORE_INSERT_COLOR(LightGray),      SCORE_INSERT_COLOR(HalfLight),
-        SCORE_INSERT_COLOR(Light),          SCORE_INSERT_COLOR(Emphasis1),
-        SCORE_INSERT_COLOR(Emphasis2),      SCORE_INSERT_COLOR(Emphasis3),
-        SCORE_INSERT_COLOR(Emphasis4),      SCORE_INSERT_COLOR(Emphasis5),
-        SCORE_INSERT_COLOR(Base1),          SCORE_INSERT_COLOR(Base2),
-        SCORE_INSERT_COLOR(Base3),          SCORE_INSERT_COLOR(Base4),
-        SCORE_INSERT_COLOR(Base5),          SCORE_INSERT_COLOR(Warn1),
-        SCORE_INSERT_COLOR(Warn2),          SCORE_INSERT_COLOR(Warn3),
-        SCORE_INSERT_COLOR(Background1),    SCORE_INSERT_COLOR(Background2),
-        SCORE_INSERT_COLOR(Transparent1),   SCORE_INSERT_COLOR(Transparent2),
-        SCORE_INSERT_COLOR(Transparent3),   SCORE_INSERT_COLOR(Smooth1),
-        SCORE_INSERT_COLOR(Smooth2),        SCORE_INSERT_COLOR(Smooth3),
-        SCORE_INSERT_COLOR(Tender1),        SCORE_INSERT_COLOR(Tender2),
-        SCORE_INSERT_COLOR(Tender3),        SCORE_INSERT_COLOR(Cable1),
-        SCORE_INSERT_COLOR(Cable2),         SCORE_INSERT_COLOR(Cable3),
-        SCORE_INSERT_COLOR(SelectedCable1), SCORE_INSERT_COLOR(SelectedCable2),
-        SCORE_INSERT_COLOR(SelectedCable3), SCORE_INSERT_COLOR(Port1),
-        SCORE_INSERT_COLOR(Port2),          SCORE_INSERT_COLOR(Port3),
-        SCORE_INSERT_COLOR(Pulse1),         SCORE_INSERT_COLOR(Pulse2)}),
-    m_defaultPalette{SCORE_INSERT_COLOR_CUSTOM("#3F51B5", "Indigo"),
-                     SCORE_INSERT_COLOR_CUSTOM("#2196F3", "Blue"),
-                     SCORE_INSERT_COLOR_CUSTOM("#03A9F4", "LightBlue"),
-                     SCORE_INSERT_COLOR_CUSTOM("#00BCD4", "Cyan"),
-                     SCORE_INSERT_COLOR_CUSTOM("#009688", "Teal"),
-                     SCORE_INSERT_COLOR_CUSTOM("#4CAF50", "Green"),
-                     SCORE_INSERT_COLOR_CUSTOM("#8BC34A", "LightGreen"),
-                     SCORE_INSERT_COLOR_CUSTOM("#CDDC39", "Lime"),
-                     SCORE_INSERT_COLOR_CUSTOM("#FFEB3B", "Yellow"),
-                     SCORE_INSERT_COLOR_CUSTOM("#FFC107", "Amber"),
-                     SCORE_INSERT_COLOR_CUSTOM("#FF9800", "Orange"),
-                     SCORE_INSERT_COLOR_CUSTOM("#FF5722", "DeepOrange"),
-                     SCORE_INSERT_COLOR_CUSTOM("#F44336", "Red"),
-                     SCORE_INSERT_COLOR_CUSTOM("#E91E63", "Pink"),
-                     SCORE_INSERT_COLOR_CUSTOM("#9C27B0", "Purple"),
-                     SCORE_INSERT_COLOR_CUSTOM("#673AB7", "DeepPurple"),
-                     SCORE_INSERT_COLOR_CUSTOM("#455A64", "BlueGrey"),
-                     SCORE_INSERT_COLOR_CUSTOM("#9E9E9E", "Grey"),
-                     SCORE_INSERT_COLOR_CUSTOM("#FFFFFF", "White"),
-                     SCORE_INSERT_COLOR_CUSTOM("#000000", "Black")}
+    , MonoFontSmall{"APCCourier-Bold", int(7 * 96. / 72.), QFont::Normal}
+    , SansFontSmall{"Ubuntu", int(7 * 96. / 72.)}
+    , TransparentPen{Qt::transparent}
+    , TransparentBrush{Qt::transparent}
+    , NoPen{Qt::NoPen}
+    , NoBrush{Qt::NoBrush}
+    , TextBrush{QColor("#1f2a30")}
+    , m_colorMap(
+          new color_map{SCORE_INSERT_COLOR(Dark),           SCORE_INSERT_COLOR(HalfDark),
+                        SCORE_INSERT_COLOR(DarkGray),       SCORE_INSERT_COLOR(Gray),
+                        SCORE_INSERT_COLOR(LightGray),      SCORE_INSERT_COLOR(HalfLight),
+                        SCORE_INSERT_COLOR(Light),          SCORE_INSERT_COLOR(Emphasis1),
+                        SCORE_INSERT_COLOR(Emphasis2),      SCORE_INSERT_COLOR(Emphasis3),
+                        SCORE_INSERT_COLOR(Emphasis4),      SCORE_INSERT_COLOR(Emphasis5),
+                        SCORE_INSERT_COLOR(Base1),          SCORE_INSERT_COLOR(Base2),
+                        SCORE_INSERT_COLOR(Base3),          SCORE_INSERT_COLOR(Base4),
+                        SCORE_INSERT_COLOR(Base5),          SCORE_INSERT_COLOR(Warn1),
+                        SCORE_INSERT_COLOR(Warn2),          SCORE_INSERT_COLOR(Warn3),
+                        SCORE_INSERT_COLOR(Background1),    SCORE_INSERT_COLOR(Background2),
+                        SCORE_INSERT_COLOR(Transparent1),   SCORE_INSERT_COLOR(Transparent2),
+                        SCORE_INSERT_COLOR(Transparent3),   SCORE_INSERT_COLOR(Smooth1),
+                        SCORE_INSERT_COLOR(Smooth2),        SCORE_INSERT_COLOR(Smooth3),
+                        SCORE_INSERT_COLOR(Tender1),        SCORE_INSERT_COLOR(Tender2),
+                        SCORE_INSERT_COLOR(Tender3),        SCORE_INSERT_COLOR(Cable1),
+                        SCORE_INSERT_COLOR(Cable2),         SCORE_INSERT_COLOR(Cable3),
+                        SCORE_INSERT_COLOR(SelectedCable1), SCORE_INSERT_COLOR(SelectedCable2),
+                        SCORE_INSERT_COLOR(SelectedCable3), SCORE_INSERT_COLOR(Port1),
+                        SCORE_INSERT_COLOR(Port2),          SCORE_INSERT_COLOR(Port3),
+                        SCORE_INSERT_COLOR(Pulse1),         SCORE_INSERT_COLOR(Pulse2)})
+    , m_defaultPalette{
+          SCORE_INSERT_COLOR_CUSTOM("#3F51B5", "Indigo"),
+          SCORE_INSERT_COLOR_CUSTOM("#2196F3", "Blue"),
+          SCORE_INSERT_COLOR_CUSTOM("#03A9F4", "LightBlue"),
+          SCORE_INSERT_COLOR_CUSTOM("#00BCD4", "Cyan"),
+          SCORE_INSERT_COLOR_CUSTOM("#009688", "Teal"),
+          SCORE_INSERT_COLOR_CUSTOM("#4CAF50", "Green"),
+          SCORE_INSERT_COLOR_CUSTOM("#8BC34A", "LightGreen"),
+          SCORE_INSERT_COLOR_CUSTOM("#CDDC39", "Lime"),
+          SCORE_INSERT_COLOR_CUSTOM("#FFEB3B", "Yellow"),
+          SCORE_INSERT_COLOR_CUSTOM("#FFC107", "Amber"),
+          SCORE_INSERT_COLOR_CUSTOM("#FF9800", "Orange"),
+          SCORE_INSERT_COLOR_CUSTOM("#FF5722", "DeepOrange"),
+          SCORE_INSERT_COLOR_CUSTOM("#F44336", "Red"),
+          SCORE_INSERT_COLOR_CUSTOM("#E91E63", "Pink"),
+          SCORE_INSERT_COLOR_CUSTOM("#9C27B0", "Purple"),
+          SCORE_INSERT_COLOR_CUSTOM("#673AB7", "DeepPurple"),
+          SCORE_INSERT_COLOR_CUSTOM("#455A64", "BlueGrey"),
+          SCORE_INSERT_COLOR_CUSTOM("#9E9E9E", "Grey"),
+          SCORE_INSERT_COLOR_CUSTOM("#FFFFFF", "White"),
+          SCORE_INSERT_COLOR_CUSTOM("#000000", "Black")}
 {
 #if QT_VERSION >= QT_VERSION_CHECK(5, 13, 0)
   MonoFont.setFamilies({"APCCourier-Bold"});
   MonoFontSmall.setFamilies({"Ubuntu"});
 #endif
 
-  for(QFont* font : {&SansFont, &SansFontSmall, &MonoFont, &MonoFontSmall})
+  for (QFont* font : {&SansFont, &SansFontSmall, &MonoFont, &MonoFontSmall})
   {
     font->setStyleStrategy(QFont::ForceOutline);
     font->setHintingPreference(QFont::PreferVerticalHinting);
@@ -124,23 +123,23 @@ Skin::Skin() noexcept
   this->startTimer(32, Qt::CoarseTimer);
 
   Bold10Pt = SansFont;
-  Bold10Pt.setPixelSize(10 * 96./ 72.);
+  Bold10Pt.setPixelSize(10 * 96. / 72.);
   Bold10Pt.setBold(true);
 
   Bold12Pt = Bold10Pt;
-  Bold12Pt.setPixelSize(12 * 96./ 72.);
+  Bold12Pt.setPixelSize(12 * 96. / 72.);
 
   Medium7Pt = SansFont;
-  Medium7Pt.setPixelSize(7 * 96./ 72.);
+  Medium7Pt.setPixelSize(7 * 96. / 72.);
 
   Medium8Pt = SansFont;
-  Medium8Pt.setPixelSize(8 * 96./ 72.);
+  Medium8Pt.setPixelSize(8 * 96. / 72.);
 
   Medium10Pt = SansFont;
-  Medium10Pt.setPixelSize(10 * 96./ 72.);
+  Medium10Pt.setPixelSize(10 * 96. / 72.);
 
   Medium12Pt = SansFont;
-  Medium12Pt.setPixelSize(12 * 96./ 72.);
+  Medium12Pt.setPixelSize(12 * 96. / 72.);
 
   SliderBrush = QColor{"#161514"};
   SliderPen = QPen{QColor{"#62400a"}, 1};
@@ -148,7 +147,7 @@ Skin::Skin() noexcept
   SliderLine = QPen{QColor{"#c58014"}, 1, Qt::SolidLine, Qt::FlatCap};
   SliderTextPen = QColor{"#d0d0d0"};
   SliderFont = SansFont;
-  SliderFont.setPixelSize(10 * 96./ 72.);
+  SliderFont.setPixelSize(10 * 96. / 72.);
   SliderFont.setWeight(QFont::DemiBold);
 
   int hotspotX = 12 * qApp->devicePixelRatio();
@@ -156,45 +155,53 @@ Skin::Skin() noexcept
   CursorPointer = QCursor{score::get_pixmap(":/icons/cursor_pointer.png"), hotspotX, hotspotY};
 
   int centerHotspot = 16 * qApp->devicePixelRatio();
-  CursorOpenHand = QCursor{score::get_pixmap(":/icons/cursor_open_hand.png"), centerHotspot, centerHotspot};
-  CursorClosedHand = QCursor{score::get_pixmap(":/icons/cursor_closed_hand.png"), centerHotspot, centerHotspot};
-  CursorPointingHand = QCursor{score::get_pixmap(":/icons/cursor_pointing_hand.png"), centerHotspot, centerHotspot};
+  CursorOpenHand
+      = QCursor{score::get_pixmap(":/icons/cursor_open_hand.png"), centerHotspot, centerHotspot};
+  CursorClosedHand
+      = QCursor{score::get_pixmap(":/icons/cursor_closed_hand.png"), centerHotspot, centerHotspot};
+  CursorPointingHand = QCursor{
+      score::get_pixmap(":/icons/cursor_pointing_hand.png"), centerHotspot, centerHotspot};
 
   int hotspot = 15 * qApp->devicePixelRatio();
   CursorMagnifier = QCursor{score::get_pixmap(":/icons/cursor_magnifier.png"), hotspot, hotspot};
   CursorMove = QCursor{score::get_pixmap(":/icons/cursor_move.png"), hotspot, hotspot};
 
-  CursorScaleH = QCursor{score::get_pixmap(":/icons/cursor_scale_h.png"), centerHotspot, centerHotspot};
-  CursorScaleV = QCursor{score::get_pixmap(":/icons/cursor_scale_v.png"), centerHotspot, centerHotspot};
-  CursorScaleFDiag = QCursor{score::get_pixmap(":/icons/cursor_scale_fdiag.png"), centerHotspot, centerHotspot};
+  CursorScaleH
+      = QCursor{score::get_pixmap(":/icons/cursor_scale_h.png"), centerHotspot, centerHotspot};
+  CursorScaleV
+      = QCursor{score::get_pixmap(":/icons/cursor_scale_v.png"), centerHotspot, centerHotspot};
+  CursorScaleFDiag
+      = QCursor{score::get_pixmap(":/icons/cursor_scale_fdiag.png"), centerHotspot, centerHotspot};
 
   hotspotX = 12 * qApp->devicePixelRatio();
   hotspotY = 10 * qApp->devicePixelRatio();
-  CursorPlayFromHere = QCursor{score::get_pixmap(":/icons/cursor_play_from_here.png"), hotspotX, hotspotY};
-  CursorCreationMode = QCursor{score::get_pixmap(":/icons/cursor_creation_mode.png"), hotspotY, hotspotX};
+  CursorPlayFromHere
+      = QCursor{score::get_pixmap(":/icons/cursor_play_from_here.png"), hotspotX, hotspotY};
+  CursorCreationMode
+      = QCursor{score::get_pixmap(":/icons/cursor_creation_mode.png"), hotspotY, hotspotX};
 
-  std::initializer_list<QFont*> mono_fonts = {
-     &MonoFont, &MonoFontSmall
-  };
-  std::initializer_list<QFont*> fonts = {
-    &SansFont, &MonoFont, &MonoFontSmall, &SansFontSmall,
-    &Bold10Pt, &Bold12Pt, &Medium7Pt, &Medium8Pt, &Medium10Pt, &Medium12Pt,
-    &SliderFont
-  };
-  for(QFont* font : fonts)
+  std::initializer_list<QFont*> mono_fonts = {&MonoFont, &MonoFontSmall};
+  std::initializer_list<QFont*> fonts
+      = {&SansFont,
+         &MonoFont,
+         &MonoFontSmall,
+         &SansFontSmall,
+         &Bold10Pt,
+         &Bold12Pt,
+         &Medium7Pt,
+         &Medium8Pt,
+         &Medium10Pt,
+         &Medium12Pt,
+         &SliderFont};
+  for (QFont* font : fonts)
   {
     font->setHintingPreference(QFont::HintingPreference::PreferVerticalHinting);
     font->setStyleHint(QFont::StyleHint::SansSerif);
-    font->setStyleStrategy(
-          QFont::StyleStrategy(
-            QFont::StyleStrategy::OpenGLCompatible |
-            QFont::StyleStrategy::PreferQuality |
-            QFont::StyleStrategy::PreferMatch |
-            QFont::StyleStrategy::NoFontMerging
-            )
-          );
+    font->setStyleStrategy(QFont::StyleStrategy(
+        QFont::StyleStrategy::OpenGLCompatible | QFont::StyleStrategy::PreferQuality
+        | QFont::StyleStrategy::PreferMatch | QFont::StyleStrategy::NoFontMerging));
   }
-  for(QFont* font : mono_fonts)
+  for (QFont* font : mono_fonts)
   {
     font->setStyleHint(QFont::StyleHint::Monospace);
   }
@@ -218,8 +225,7 @@ void Skin::load(const QJsonObject& obj)
     if (arr.size() == 3)
       col = QColor(arr[0].toInt(), arr[1].toInt(), arr[2].toInt());
     else if (arr.size() == 4)
-      col = QColor(
-          arr[0].toInt(), arr[1].toInt(), arr[2].toInt(), arr[3].toInt());
+      col = QColor(arr[0].toInt(), arr[1].toInt(), arr[2].toInt(), arr[3].toInt());
   };
 
   SCORE_CONVERT_COLOR(Dark);
@@ -284,8 +290,7 @@ void Skin::load(const QJsonObject& obj)
   changed();
 }
 
-#define SCORE_MAKE_PAIR_COLOR(Col) \
-  vec.push_back(qMakePair(Col.color(), QStringLiteral(#Col)));
+#define SCORE_MAKE_PAIR_COLOR(Col) vec.push_back(qMakePair(Col.color(), QStringLiteral(#Col)));
 QVector<QPair<QColor, QString>> Skin::getColors() const
 {
   QVector<QPair<QColor, QString>> vec;
@@ -412,7 +417,7 @@ void Brush::reload(QColor color) noexcept
   *this = Brush{QBrush{color}};
 }
 
-Brush::Brush() noexcept {}
+Brush::Brush() noexcept { }
 Brush::Brush(const Brush& other) noexcept
     : main{other.main}
     , darker{other.darker}
@@ -469,7 +474,7 @@ Brush& Brush::operator=(const QBrush& b) noexcept
   return *this;
 }
 
-BrushSet::BrushSet() noexcept {}
+BrushSet::BrushSet() noexcept { }
 
 BrushSet::BrushSet(const BrushSet& other) noexcept
     : brush{other.brush}
@@ -553,7 +558,7 @@ BrushSet& BrushSet::operator=(BrushSet&& other) noexcept
   return *this;
 }
 
-BrushSet::~BrushSet() {}
+BrushSet::~BrushSet() { }
 
 BrushSet::BrushSet(const QBrush& b) noexcept : brush{b}
 {

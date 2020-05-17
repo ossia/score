@@ -47,8 +47,7 @@ private:
       static QBrush br(score::Skin::instance().Smooth2.color().lighter());
       static QPen pen2(score::Skin::instance().Smooth2.color().lighter());
       pen.setWidth(2.);
-      static QBrush br2(
-          score::Skin::instance().Smooth2.color().lighter().lighter());
+      static QBrush br2(score::Skin::instance().Smooth2.color().lighter().lighter());
       p->setPen(pen);
 
       const auto h = boundingRect().height();
@@ -63,8 +62,7 @@ private:
         auto idx = i % steps.size();
         auto step = steps[idx];
         p->fillRect(QRectF{cur_pos, step * h, (float)bar_w, h - step * h}, br);
-        p->drawLine(
-            QPointF{cur_pos, step * h}, QPointF{cur_pos + bar_w, step * h});
+        p->drawLine(QPointF{cur_pos, step * h}, QPointF{cur_pos + bar_w, step * h});
 
         cur_pos += bar_w;
         i++;
@@ -80,10 +78,8 @@ private:
       {
         auto idx = i % steps.size();
         auto step = steps[idx];
-        p->fillRect(
-            QRectF{cur_pos, step * h, (float)bar_w, h - step * h}, br2);
-        p->drawLine(
-            QPointF{cur_pos, step * h}, QPointF{cur_pos + bar_w, step * h});
+        p->fillRect(QRectF{cur_pos, step * h, (float)bar_w, h - step * h}, br2);
+        p->drawLine(QPointF{cur_pos, step * h}, QPointF{cur_pos + bar_w, step * h});
 
         cur_pos += bar_w;
         i++;
@@ -93,8 +89,7 @@ private:
     }
     else
     {
-      p->drawText(
-          boundingRect(), Qt::AlignCenter, tr("Zoom in to edit steps"));
+      p->drawText(boundingRect(), Qt::AlignCenter, tr("Zoom in to edit steps"));
     }
   }
 
@@ -105,8 +100,7 @@ private:
 
     ev->accept();
     pressed(ev->pos());
-    std::size_t pos
-        = std::size_t(ev->pos().x() / m_barWidth) % m_model->steps().size();
+    std::size_t pos = std::size_t(ev->pos().x() / m_barWidth) % m_model->steps().size();
     if (pos < m_model->steps().size())
     {
       change(pos, ev->pos().y() / boundingRect().height());
@@ -120,8 +114,7 @@ private:
 
     ev->accept();
 
-    std::size_t pos
-        = std::size_t(ev->pos().x() / m_barWidth) % m_model->steps().size();
+    std::size_t pos = std::size_t(ev->pos().x() / m_barWidth) % m_model->steps().size();
     if (pos < m_model->steps().size())
     {
       change(pos, ev->pos().y() / boundingRect().height());

@@ -13,6 +13,7 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/EntityMapSerialization.hpp>
+#include <score/model/EntitySerialization.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
@@ -21,11 +22,8 @@
 #include <score/serialization/VisitorCommon.hpp>
 #include <score/tools/MapCopy.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <score/model/EntitySerialization.hpp>
-
 
 #include <sys/types.h>
-
 
 template <>
 void DataStreamReader::read(const Scenario::ProcessModel& scenario)
@@ -148,10 +146,8 @@ void DataStreamWriter::write(Scenario::ProcessModel& scenario)
   // Finally, we re-set the intervals before and after the states
   for (const Scenario::IntervalModel& interval : scenario.intervals)
   {
-    Scenario::SetPreviousInterval(
-        scenario.states.at(interval.endState()), interval);
-    Scenario::SetNextInterval(
-        scenario.states.at(interval.startState()), interval);
+    Scenario::SetPreviousInterval(scenario.states.at(interval.endState()), interval);
+    Scenario::SetNextInterval(scenario.states.at(interval.startState()), interval);
   }
 
   // Scenario::ScenarioValidityChecker::checkValidity(scenario);
@@ -201,8 +197,7 @@ void JSONWriter::write(Scenario::ProcessModel& scenario)
   const auto& timesyncs = obj["TimeNodes"].toArray();
   for (const auto& json_vref : timesyncs)
   {
-    auto tnmodel = new Scenario::TimeSyncModel{
-        JSONObject::Deserializer{json_vref}, &scenario};
+    auto tnmodel = new Scenario::TimeSyncModel{JSONObject::Deserializer{json_vref}, &scenario};
 
     scenario.timeSyncs.add(tnmodel);
   }
@@ -210,8 +205,7 @@ void JSONWriter::write(Scenario::ProcessModel& scenario)
   const auto& events = obj["Events"].toArray();
   for (const auto& json_vref : events)
   {
-    auto evmodel = new Scenario::EventModel{
-        JSONObject::Deserializer{json_vref}, &scenario};
+    auto evmodel = new Scenario::EventModel{JSONObject::Deserializer{json_vref}, &scenario};
     if (!evmodel->states().empty())
     {
       scenario.events.add(evmodel);
@@ -232,8 +226,8 @@ void JSONWriter::write(Scenario::ProcessModel& scenario)
   const auto& comments = obj["Comments"].toArray();
   for (const auto& json_vref : comments)
   {
-    auto cmtmodel = new Scenario::CommentBlockModel{
-        JSONObject::Deserializer{json_vref}, &scenario};
+    auto cmtmodel
+        = new Scenario::CommentBlockModel{JSONObject::Deserializer{json_vref}, &scenario};
 
     scenario.comments.add(cmtmodel);
   }
@@ -250,12 +244,9 @@ void JSONWriter::write(Scenario::ProcessModel& scenario)
   // Finally, we re-set the intervals before and after the states
   for (const Scenario::IntervalModel& interval : scenario.intervals)
   {
-    Scenario::SetPreviousInterval(
-        scenario.states.at(interval.endState()), interval);
-    Scenario::SetNextInterval(
-        scenario.states.at(interval.startState()), interval);
+    Scenario::SetPreviousInterval(scenario.states.at(interval.endState()), interval);
+    Scenario::SetNextInterval(scenario.states.at(interval.startState()), interval);
   }
 
   Scenario::ScenarioValidityChecker::checkValidity(scenario);
-
 }

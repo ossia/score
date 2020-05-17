@@ -2,22 +2,21 @@
 #include "isfnode.hpp"
 #include "window.hpp"
 
-NodeModel::~NodeModel() {}
+NodeModel::~NodeModel() { }
 
 RenderedNode* NodeModel::createRenderer() const noexcept
 {
   return new RenderedNode{*this};
 }
 
-ColorNode::~ColorNode() {}
+ColorNode::~ColorNode() { }
 
-ScreenNode::~ScreenNode() {}
+ScreenNode::~ScreenNode() { }
 
-ProductNode::~ProductNode() {}
+ProductNode::~ProductNode() { }
 
-NoiseNode::~NoiseNode() {}
+NoiseNode::~NoiseNode() { }
 
-FilterNode::~FilterNode() {}
+FilterNode::~FilterNode() { }
 
-ISFNode::~ISFNode() {}
-
+ISFNode::~ISFNode() { }

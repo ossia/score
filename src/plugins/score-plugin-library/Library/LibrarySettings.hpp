@@ -9,6 +9,7 @@
 #include <score/widgets/SpinBoxes.hpp>
 
 #include <score_plugin_library_export.h>
+
 #include <verdigris>
 
 #define SETTINGS_UI_PATH_HPP(Control)                                 \
@@ -39,8 +40,7 @@ class QSpinBox;
 class QCheckBox;
 namespace Library::Settings
 {
-class SCORE_PLUGIN_LIBRARY_EXPORT Model final
-    : public score::SettingsDelegateModel
+class SCORE_PLUGIN_LIBRARY_EXPORT Model final : public score::SettingsDelegateModel
 {
   W_OBJECT(Model)
   QString m_Path;

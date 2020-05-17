@@ -11,15 +11,15 @@
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
 
+#include <QDebug>
 
 #include <Execution/BaseScenarioComponent.hpp>
 #include <Execution/Settings/ExecutorModel.hpp>
-#include <QDebug>
 
 namespace Execution
 {
 DefaultClock::~DefaultClock() = default;
-DefaultClock::DefaultClock(const Context& ctx) : Clock{ctx} {}
+DefaultClock::DefaultClock(const Context& ctx) : Clock{ctx} { }
 
 void DefaultClock::prepareExecution(const TimeVal& t, BaseScenarioElement& bs)
 {
@@ -73,12 +73,10 @@ void DefaultClock::stop_impl(BaseScenarioElement& bs)
 ControlClockFactory::~ControlClockFactory() = default;
 
 ControlClock::ControlClock(const Execution::Context& ctx)
-    : Clock{ctx}
-    , m_default{ctx}
-    , m_clock{*scenario.baseInterval().OSSIAInterval(), 1.}
+    : Clock{ctx}, m_default{ctx}, m_clock{*scenario.baseInterval().OSSIAInterval(), 1.}
 {
-  m_clock.set_granularity(std::chrono::microseconds(
-      context.doc.app.settings<Settings::Model>().getRate() * 1000));
+  m_clock.set_granularity(
+      std::chrono::microseconds(context.doc.app.settings<Settings::Model>().getRate() * 1000));
 
   // TODO this should be the case also with other clocks
   m_clock.set_exec_status_callback([=](ossia::clock::exec_status c) {
@@ -93,9 +91,7 @@ ControlClock::ControlClock(const Execution::Context& ctx)
   });
 }
 
-void ControlClock::play_impl(
-    const TimeVal& t,
-    Execution::BaseScenarioElement& bs)
+void ControlClock::play_impl(const TimeVal& t, Execution::BaseScenarioElement& bs)
 {
   m_default.prepareExecution(t, bs);
   try
@@ -147,14 +143,14 @@ ControlClockFactory::makeTimeFunction(const score::DocumentContext& ctx) const
 {
   SCORE_ABORT;
   return {};
-  //return &Engine::score_to_ossia::defaultTime;
+  // return &Engine::score_to_ossia::defaultTime;
 }
 
-Execution::reverse_time_function ControlClockFactory::makeReverseTimeFunction(
-    const score::DocumentContext& ctx) const
+Execution::reverse_time_function
+ControlClockFactory::makeReverseTimeFunction(const score::DocumentContext& ctx) const
 {
   SCORE_ABORT;
   return {};
-  //return &Engine::ossia_to_score::defaultTime;
+  // return &Engine::ossia_to_score::defaultTime;
 }
 }

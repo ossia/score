@@ -2,9 +2,9 @@
 #include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/math.hpp>
 
-#include <Engine/Node/PdNode.hpp>
-
 #include <QDebug>
+
+#include <Engine/Node/PdNode.hpp>
 #include <rnd/random.hpp>
 #if !defined(NDEBUG) && !defined(_MSC_VER) && !defined(__clang__)
 #include <debug/vector>
@@ -33,10 +33,7 @@ public:
     return impl[i];
   }
 
-  const T& operator[](int i_) const
-  {
-    return (*this)[static_cast<std::size_t>(i_)];
-  }
+  const T& operator[](int i_) const { return (*this)[static_cast<std::size_t>(i_)]; }
   const T& operator[](std::size_t i_) const
   {
     auto i = static_cast<std::size_t>(i_);
@@ -72,9 +69,7 @@ class FactorOracle
 public:
   int cur_alphabet_size = 0;
   debug_vector_t<std::pair<int, ossia::value>> value_map;
-  FactorOracle(int sz = 0)
-      : m_forwardLink(sz + 1, debug_vector_t<int>{-1})
-      , m_rand_engine{}
+  FactorOracle(int sz = 0) : m_forwardLink(sz + 1, debug_vector_t<int>{-1}), m_rand_engine{}
   {
     m_sp.impl.resize(1000);
     m_lrs.impl.resize(1000);
@@ -99,8 +94,7 @@ public:
     if (n < (int)m_forwardLink.size() - 1)
     {
       m_sequence.push_back(std::move(c));
-      auto it = ossia::find_if(
-          value_map, [&](const auto& pair) { return pair.second == c; });
+      auto it = ossia::find_if(value_map, [&](const auto& pair) { return pair.second == c; });
       if (it != value_map.end())
       {
         add_state(it->first);
@@ -140,18 +134,14 @@ public:
     m_lrs[n] = (m_sp_n == 0 ? 0 : LCS(p1, m_sp_n - 1) + 1);
   }
 
-  debug_vector_t<ossia::value>
-  make_rand_sequence(float continuity, int seqSize) const
+  debug_vector_t<ossia::value> make_rand_sequence(float continuity, int seqSize) const
   {
-    auto start = std::uniform_int_distribution<std::size_t>{
-        0, m_sequence.size()}(m_rand_engine);
+    auto start = std::uniform_int_distribution<std::size_t>{0, m_sequence.size()}(m_rand_engine);
     return make_sequence(continuity, start, seqSize);
   }
 
-  debug_vector_t<ossia::value> make_sequence(
-      float continuity,
-      std::size_t curState,
-      std::size_t seqSize) const
+  debug_vector_t<ossia::value>
+  make_sequence(float continuity, std::size_t curState, std::size_t seqSize) const
   {
     if (curState > m_sequence.size())
     {
@@ -180,8 +170,7 @@ public:
             links += m_forwardLink[curState].size();
           }
 
-          auto linkToFollow = std::uniform_int_distribution<int>{0, links - 1}(
-              m_rand_engine);
+          auto linkToFollow = std::uniform_int_distribution<int>{0, links - 1}(m_rand_engine);
           if (linkToFollow == links - 1)
           {
             if (curState != 0)
@@ -222,11 +211,9 @@ struct Node
     static const constexpr auto author
         = "Shlomo Dubnov, Ge Wang, Éric Meaux, Jean-Michaël Celerier";
     static const constexpr auto kind = Process::ProcessCategory::Mapping;
-    static const constexpr auto description
-        = "Factor Oracle algorithm ."; // TODO cite
+    static const constexpr auto description = "Factor Oracle algorithm ."; // TODO cite
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const uuid_constexpr auto uuid
-        = make_uuid("d90284c0-4196-47e0-802d-7e07342029ec");
+    static const uuid_constexpr auto uuid = make_uuid("d90284c0-4196-47e0-802d-7e07342029ec");
 
     static const constexpr auto controls
         = std::make_tuple(Control::IntSlider{"Sequence length", 1, 64, 8});

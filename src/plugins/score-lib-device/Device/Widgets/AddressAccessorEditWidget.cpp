@@ -4,7 +4,6 @@
 
 #include <Device/ItemModels/NodeBasedItemModel.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
-#include <QMenuView/qmenuview.h>
 #include <Device/Widgets/DeviceCompleter.hpp>
 #include <Device/Widgets/DeviceModelProvider.hpp>
 #include <State/Widgets/AddressLineEdit.hpp>
@@ -18,8 +17,9 @@
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/value/value.hpp>
 
-
+#include <QMenuView/qmenuview.h>
 #include <QVBoxLayout>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Device::AddressAccessorEditWidget)
 namespace Device
@@ -31,8 +31,7 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
 {
   setAcceptDrops(true);
   auto lay = new score::MarginLess<QVBoxLayout>{this};
-  m_lineEdit
-      = new State::AddressAccessorLineEdit<AddressAccessorEditWidget>{this};
+  m_lineEdit = new State::AddressAccessorLineEdit<AddressAccessorEditWidget>{this};
 
   m_qualifiers = new State::DestinationQualifierWidget{this};
   connect(
@@ -47,7 +46,7 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
           addressChanged(m_address);
         }
         const auto ad = m_address.address.toString_unsafe();
-        if(m_lineEdit->text() != ad)
+        if (m_lineEdit->text() != ad)
         {
           m_lineEdit->blockSignals(true);
           m_lineEdit->setText(ad);
@@ -57,17 +56,15 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
 
   auto act = new QAction{tr("Show Unit selector"), this};
   act->setStatusTip(tr("Show the unit selector"));
-  setIcons(act
-           , QStringLiteral(":/icons/port_address_unit_on.png")
-           , QStringLiteral(":/icons/port_address_unit.png")
-           , QStringLiteral(":/icons/port_address_unit.png")
-           );
+  setIcons(
+      act,
+      QStringLiteral(":/icons/port_address_unit_on.png"),
+      QStringLiteral(":/icons/port_address_unit.png"),
+      QStringLiteral(":/icons/port_address_unit.png"));
 
   m_lineEdit->addAction(act, QLineEdit::TrailingPosition);
 
-  connect(act, &QAction::triggered, [=]() {
-    m_qualifiers->chooseQualifier();
-  });
+  connect(act, &QAction::triggered, [=]() { m_qualifiers->chooseQualifier(); });
 
   {
     auto& plist = ctx.app.interfaces<DeviceModelProviderList>();
@@ -90,8 +87,7 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
 
     if (m_model && res)
     {
-      m_address
-          = Device::makeFullAddressAccessorSettings(*res, *m_model, 0., 1.);
+      m_address = Device::makeFullAddressAccessorSettings(*res, *m_model, 0., 1.);
     }
     else if (res)
     {
@@ -124,17 +120,14 @@ void AddressAccessorEditWidget::setAddress(const State::AddressAccessor& addr)
   m_address = Device::FullAddressAccessorSettings{};
   m_address.address = addr;
   m_lineEdit->setText(m_address.address.toString_unsafe());
-
 }
-void AddressAccessorEditWidget::setFullAddress(
-    Device::FullAddressAccessorSettings&& addr)
+void AddressAccessorEditWidget::setFullAddress(Device::FullAddressAccessorSettings&& addr)
 {
   m_address = std::move(addr);
   m_lineEdit->setText(m_address.address.toString_unsafe());
 }
 
-const Device::FullAddressAccessorSettings&
-AddressAccessorEditWidget::address() const
+const Device::FullAddressAccessorSettings& AddressAccessorEditWidget::address() const
 {
   return m_address;
 }
@@ -159,13 +152,11 @@ void AddressAccessorEditWidget::customContextMenuEvent(const QPoint& p)
   {
     auto device_menu = new QMenuView{m_lineEdit};
     device_menu->setModel(m_model);
-    connect(
-        device_menu, &QMenuView::triggered, this, [&](const QModelIndex& m) {
-          setFullAddress(
-              makeFullAddressAccessorSettings(m_model->nodeFromModelIndex(m)));
+    connect(device_menu, &QMenuView::triggered, this, [&](const QModelIndex& m) {
+      setFullAddress(makeFullAddressAccessorSettings(m_model->nodeFromModelIndex(m)));
 
-          addressChanged(m_address);
-        });
+      addressChanged(m_address);
+    });
 
     device_menu->exec(m_lineEdit->mapToGlobal(p));
     delete device_menu;
@@ -189,8 +180,7 @@ void AddressAccessorEditWidget::dropEvent(QDropEvent* ev)
     // TODO refactor with CreateCurves and AutomationDropHandle
     if (node.is<Device::AddressSettings>())
     {
-      const Device::AddressSettings& addr
-          = node.get<Device::AddressSettings>();
+      const Device::AddressSettings& addr = node.get<Device::AddressSettings>();
       Device::FullAddressSettings as;
       static_cast<Device::AddressSettingsCommon&>(as) = addr;
       as.address = nl.front().first;

@@ -16,8 +16,7 @@ namespace Curve
 {
 
 PowerSegment::PowerSegment(const SegmentData& dat, QObject* parent)
-    : SegmentModel{dat, parent}
-    , gamma{dat.specificSegmentData.value<PowerSegmentData>().gamma}
+    : SegmentModel{dat, parent}, gamma{dat.specificSegmentData.value<PowerSegmentData>().gamma}
 {
 }
 
@@ -45,8 +44,7 @@ void PowerSegment::updateData(int numInterp) const
     m_valid = false;
   if (!m_valid)
   {
-    if (gamma == PowerSegmentData::linearGamma || start() == end()
-        || numInterp == 2)
+    if (gamma == PowerSegmentData::linearGamma || start() == end() || numInterp == 2)
     {
       if (m_data.size() != 2)
         m_data.resize(2);
@@ -89,9 +87,7 @@ double PowerSegment::valueAt(double x) const
 {
   if (gamma == PowerSegmentData::linearGamma)
   {
-    return start().y()
-           + (end().y() - start().y()) * (x - start().x())
-                 / (end().x() - start().x());
+    return start().y() + (end().y() - start().y()) * (x - start().x()) / (end().x() - start().x());
   }
   else
   {
@@ -126,14 +122,16 @@ ossia::curve_segment<Y> PowerSegment::makeFunction() const
   }
   else
   {
-    if(gamma < 1.) {
-      return [gamma=gamma](double ratio, Y start, Y end) {
+    if (gamma < 1.)
+    {
+      return [gamma = gamma](double ratio, Y start, Y end) {
         return ossia::easing::ease{}(start, end, std::pow(ratio, gamma));
       };
     }
-    else {
-      return [gamma=gamma](double ratio, Y start, Y end) {
-        return ossia::easing::ease{}(start, end,  std::pow(ratio, gamma));
+    else
+    {
+      return [gamma = gamma](double ratio, Y start, Y end) {
+        return ossia::easing::ease{}(start, end, std::pow(ratio, gamma));
       };
     }
   }

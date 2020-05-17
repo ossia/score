@@ -6,9 +6,7 @@
 #include <Recording/Commands/RecordingCommandFactory.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
-
 #include <score/tools/std/HashMap.hpp>
-
 
 #include <score_plugin_engine.hpp>
 #include <score_plugin_recording_commands_files.hpp>
@@ -17,20 +15,18 @@
 score_plugin_recording::score_plugin_recording() = default;
 score_plugin_recording::~score_plugin_recording() = default;
 
-score::GUIApplicationPlugin* score_plugin_recording::make_guiApplicationPlugin(
-    const score::GUIApplicationContext& app)
+score::GUIApplicationPlugin*
+score_plugin_recording::make_guiApplicationPlugin(const score::GUIApplicationContext& app)
 {
   return new Recording::ApplicationPlugin{app};
 }
 
 auto score_plugin_recording::required() const -> std::vector<score::PluginKey>
 {
-  return {score_plugin_scenario::static_key(),
-          score_plugin_engine::static_key()};
+  return {score_plugin_scenario::static_key(), score_plugin_engine::static_key()};
 }
 
-std::pair<const CommandGroupKey, CommandGeneratorMap>
-score_plugin_recording::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_recording::make_commands()
 {
   using namespace Recording;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{

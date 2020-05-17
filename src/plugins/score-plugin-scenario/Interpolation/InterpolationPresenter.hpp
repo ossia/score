@@ -7,6 +7,7 @@
 #include <Interpolation/Commands/ChangeAddress.hpp>
 #include <Interpolation/InterpolationProcess.hpp>
 #include <Interpolation/InterpolationView.hpp>
+
 #include <verdigris>
 
 namespace Interpolation
@@ -23,16 +24,11 @@ public:
       QObject* parent)
       : CurveProcessPresenter{style, layer, view, context, parent}
   {
-    con(layer,
-        &ProcessModel::tweenChanged,
-        this,
-        &Presenter::on_tweenChanges);
+    con(layer, &ProcessModel::tweenChanged, this, &Presenter::on_tweenChanges);
     connect(m_view, &View::dropReceived, this, &Presenter::on_dropReceived);
 
     on_tweenChanges(layer.tween());
-    con(layer.curve(), &Curve::Model::curveReset, this, [&] {
-      on_tweenChanges(layer.tween());
-    });
+    con(layer.curve(), &Curve::Model::curveReset, this, [&] { on_tweenChanges(layer.tween()); });
   }
 
 private:
@@ -55,7 +51,7 @@ private:
 
   void on_dropReceived(const QPointF&, const QMimeData& mime)
   {
-    if(auto newAddr = State::onUpdatableAddress(model().address(), mime))
+    if (auto newAddr = State::onUpdatableAddress(model().address(), mime))
     {
       CommandDispatcher<> disp{context().context.commandStack};
       ChangeInterpolationAddress(model(), std::move(*newAddr), disp);

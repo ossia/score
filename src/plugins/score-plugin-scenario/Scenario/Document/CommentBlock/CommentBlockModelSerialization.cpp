@@ -12,8 +12,6 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/std/Optional.hpp>
 
-
-
 template <typename T>
 class Reader;
 template <typename T>

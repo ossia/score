@@ -41,8 +41,7 @@ StringValueSetDialog::StringValueSetDialog(QWidget* parent) : QDialog{parent}
   connect(addbutton, &QPushButton::pressed, this, [=] { addRow(""); });
   lay->addWidget(addbutton);
 
-  auto buttonBox
-      = new QDialogButtonBox{QDialogButtonBox::Ok | QDialogButtonBox::Cancel};
+  auto buttonBox = new QDialogButtonBox{QDialogButtonBox::Ok | QDialogButtonBox::Cancel};
 
   lay->addWidget(buttonBox);
 
@@ -82,9 +81,7 @@ void StringValueSetDialog::addRow(const std::string& c)
   auto minus_b = new QPushButton{tr("-"), this};
   sub_lay->addWidget(minus_b);
 
-  connect(minus_b, &QPushButton::clicked, this, [this, i = m_rows.size()] {
-    removeRow(i);
-  });
+  connect(minus_b, &QPushButton::clicked, this, [this, i = m_rows.size()] { removeRow(i); });
 
   auto widg = new StringValueWidget{c, this};
   sub_lay->addWidget(widg);

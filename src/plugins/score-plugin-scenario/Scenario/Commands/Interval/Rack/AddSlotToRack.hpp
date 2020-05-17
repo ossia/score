@@ -24,10 +24,7 @@ namespace Command
  */
 class SCORE_PLUGIN_SCENARIO_EXPORT AddSlotToRack final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      AddSlotToRack,
-      "Create a slot")
+  SCORE_COMMAND_DECL(CommandFactoryName(), AddSlotToRack, "Create a slot")
 public:
   AddSlotToRack(const Path<IntervalModel>& rackPath);
   AddSlotToRack(const Path<IntervalModel>& rackPath, Slot&& slot);

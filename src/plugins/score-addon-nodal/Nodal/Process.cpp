@@ -1,24 +1,24 @@
 #include "Process.hpp"
 
-#include <wobjectimpl.h>
-
 #include <Process/ProcessList.hpp>
-#include <Nodal/Commands.hpp>
+
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/model/EntityMapSerialization.hpp>
+#include <score/model/EntitySerialization.hpp>
 #include <score/tools/std/Invoke.hpp>
 
-#include <score/model/EntitySerialization.hpp>
-#include <score/model/EntityMapSerialization.hpp>
-#include <score/document/DocumentContext.hpp>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <Nodal/Commands.hpp>
+#include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Nodal::Model)
 namespace Nodal
 {
 
-
 Model::Model(
-    const TimeVal& duration, const Id<Process::ProcessModel>& id,
-      const score::DocumentContext& ctx,
+    const TimeVal& duration,
+    const Id<Process::ProcessModel>& id,
+    const score::DocumentContext& ctx,
     QObject* parent)
     : Process::ProcessModel{duration, id, "NodalProcess", parent}
     , inlet{Process::make_audio_inlet(Id<Process::Port>(0), this)}
@@ -30,9 +30,7 @@ Model::Model(
   init();
 }
 
-Model::~Model()
-{
-}
+Model::~Model() { }
 
 QString Model::prettyName() const noexcept
 {
@@ -41,25 +39,23 @@ QString Model::prettyName() const noexcept
 
 void Model::setDurationAndScale(const TimeVal& newDuration) noexcept
 {
-  for(Process::ProcessModel& n : this->nodes)
+  for (Process::ProcessModel& n : this->nodes)
     n.setParentDuration(ExpandMode::Scale, newDuration);
 }
 
 void Model::setDurationAndGrow(const TimeVal& newDuration) noexcept
 {
-  for(Process::ProcessModel& n : this->nodes)
+  for (Process::ProcessModel& n : this->nodes)
     n.setParentDuration(ExpandMode::GrowShrink, newDuration);
 }
 
 void Model::setDurationAndShrink(const TimeVal& newDuration) noexcept
 {
-  for(Process::ProcessModel& n : this->nodes)
+  for (Process::ProcessModel& n : this->nodes)
     n.setParentDuration(ExpandMode::GrowShrink, newDuration);
 }
 
-void Model::startExecution()
-{
-}
+void Model::startExecution() { }
 
 void Model::stopExecution()
 {
@@ -81,8 +77,7 @@ bool NodeRemover::remove(const Selection& s, const score::DocumentContext& ctx)
       if (auto parent = qobject_cast<Model*>(model->parent()))
       {
         auto f = [&ctx, parent, model] {
-          CommandDispatcher<>{ctx.commandStack}.submit<RemoveNode>(
-                *parent, *model);
+          CommandDispatcher<>{ctx.commandStack}.submit<RemoveNode>(*parent, *model);
         };
         score::invoke(f);
         return true;
@@ -101,8 +96,8 @@ void DataStreamReader::read(const Nodal::Model& proc)
   m_stream << *proc.inlet << *proc.outlet;
 
   // Nodes
-  m_stream << (int32_t) proc.nodes.size();
-  for(const auto& node : proc.nodes)
+  m_stream << (int32_t)proc.nodes.size();
+  for (const auto& node : proc.nodes)
     readFrom(node);
 
   insertDelimiter();

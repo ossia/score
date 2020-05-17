@@ -8,10 +8,10 @@
 #include <qnamespace.h>
 
 #include <score_lib_inspector_export.h>
-#include <verdigris>
 
 #include <list>
 #include <memory>
+#include <verdigris>
 
 class IdentifiedObjectAbstract;
 class QVBoxLayout;
@@ -51,9 +51,7 @@ public:
 
   const score::DocumentContext& context() const { return m_context; }
 
-  void updateSectionsView(
-      QVBoxLayout* layout,
-      const std::vector<QWidget*>& contents);
+  void updateSectionsView(QVBoxLayout* layout, const std::vector<QWidget*>& contents);
   void updateAreaLayout(const std::vector<QWidget*>& contents);
   void updateAreaLayout(std::initializer_list<QWidget*> contents);
 
@@ -61,18 +59,12 @@ public:
 
   // Manage Values
   const IdentifiedObjectAbstract& inspectedObject() const;
-  const IdentifiedObjectAbstract* inspectedObject_addr() const
-  {
-    return &inspectedObject();
-  }
+  const IdentifiedObjectAbstract* inspectedObject_addr() const { return &inspectedObject(); }
 
   // getters
   QVBoxLayout* areaLayout() { return m_scrollAreaLayout; }
 
-  CommandDispatcher<>* commandDispatcher() const
-  {
-    return m_commandDispatcher;
-  }
+  CommandDispatcher<>* commandDispatcher() const { return m_commandDispatcher; }
 
 private:
   const IdentifiedObjectAbstract& m_inspectedObject;

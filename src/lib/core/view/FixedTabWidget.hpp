@@ -1,12 +1,13 @@
 #pragma once
 #include <score/plugins/panel/PanelDelegate.hpp>
 #include <score/widgets/MarginLess.hpp>
+
 #include <QMenuView/qmenuview.h>
+#include <QStackedWidget>
+#include <QVBoxLayout>
+#include <QWidget>
 
 #include <verdigris>
-#include <QWidget>
-#include <QVBoxLayout>
-#include <QStackedWidget>
 
 class QToolBar;
 class QActionGroup;
@@ -38,4 +39,3 @@ private:
   QActionGroup* m_actGrp{};
 };
 }
-

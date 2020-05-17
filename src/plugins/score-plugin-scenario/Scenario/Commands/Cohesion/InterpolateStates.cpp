@@ -31,7 +31,6 @@
 
 #include <ossia/editor/state/destination_qualifiers.hpp>
 
-
 #include <utility>
 #include <vector>
 
@@ -41,15 +40,11 @@ namespace Command
 {
 struct MessagePairs
 {
-  MessagePairs(
-      const Scenario::IntervalModel& interval,
-      const Scenario::ScenarioInterface& scenar)
+  MessagePairs(const Scenario::IntervalModel& interval, const Scenario::ScenarioInterface& scenar)
       : MessagePairs{
-            Process::flatten(
-                Scenario::startState(interval, scenar).messages().rootNode()),
-            Process::flatten(
-                Scenario::endState(interval, scenar).messages().rootNode()),
-            interval}
+          Process::flatten(Scenario::startState(interval, scenar).messages().rootNode()),
+          Process::flatten(Scenario::endState(interval, scenar).messages().rootNode()),
+          interval}
   {
   }
 
@@ -72,12 +67,11 @@ struct MessagePairs
         if (it != endMessages.end())
         {
           // Check that there isn't already an automation with this address
-          auto has_existing_curve = ossia::any_of(
-              interval.processes, [&](const Process::ProcessModel& proc) {
-                auto ptr
-                    = dynamic_cast<const Automation::ProcessModel*>(&proc);
-                return ptr && ptr->address() == message.address;
-              });
+          auto has_existing_curve
+              = ossia::any_of(interval.processes, [&](const Process::ProcessModel& proc) {
+                  auto ptr = dynamic_cast<const Automation::ProcessModel*>(&proc);
+                  return ptr && ptr->address() == message.address;
+                });
 
           if (has_existing_curve)
             continue;
@@ -89,8 +83,7 @@ struct MessagePairs
       else if (ossia::is_array(message.value))
       {
         auto it = ossia::find_if(endMessages, [&](const State::Message& arg) {
-          return message.address == arg.address
-                 && arg.value.v.which() == message.value.v.which()
+          return message.address == arg.address && arg.value.v.which() == message.value.v.which()
                  && message.value != arg.value;
         });
 
@@ -99,12 +92,10 @@ struct MessagePairs
           // Check that there isn't already an interpolation with this address
           auto has_existing_curve = ossia::any_of(
               interval.processes, [&](const Process::ProcessModel& proc) {
-                auto ptr
-                    = dynamic_cast<const Automation::ProcessModel*>(&proc);
+                auto ptr = dynamic_cast<const Automation::ProcessModel*>(&proc);
                 return ptr
-                       && ptr->address().address
-                              == message.address.address; // check for the pure
-                                                          // "address" part
+                       && ptr->address().address == message.address.address; // check for the pure
+                                                                             // "address" part
               });
 
           if (has_existing_curve)
@@ -128,8 +119,7 @@ struct MessagePairs
     }
   }
 
-  using messages_pairs
-      = std::vector<std::pair<State::Message, State::Message>>;
+  using messages_pairs = std::vector<std::pair<State::Message, State::Message>>;
   messages_pairs numericMessages;
   messages_pairs listMessages;
 };
@@ -144,18 +134,15 @@ void InterpolateStates(
     return;
 
   // They should all be in the same scenario so we can select the first.
-  auto scenar = dynamic_cast<Scenario::ScenarioInterface*>(
-      selected_intervals.front()->parent());
+  auto scenar = dynamic_cast<Scenario::ScenarioInterface*>(selected_intervals.front()->parent());
   if (!scenar)
     return;
 
-  auto& devPlugin
-      = score::IDocument::documentContext(*selected_intervals.front())
-            .plugin<Explorer::DeviceDocumentPlugin>();
+  auto& devPlugin = score::IDocument::documentContext(*selected_intervals.front())
+                        .plugin<Explorer::DeviceDocumentPlugin>();
   auto& rootNode = devPlugin.rootNode();
 
-  auto big_macro = std::make_unique<
-      Command::AddMultipleProcessesToMultipleIntervalsMacro>();
+  auto big_macro = std::make_unique<Command::AddMultipleProcessesToMultipleIntervalsMacro>();
   for (auto& interval_ptr : selected_intervals)
   {
     auto& interval = *interval_ptr;
@@ -167,8 +154,7 @@ void InterpolateStates(
       continue;
 
     // Generate brand new ids for the processes, as well as layers, etc.
-    auto process_ids = getStrongIdRange<Process::ProcessModel>(
-        total_procs, interval.processes);
+    auto process_ids = getStrongIdRange<Process::ProcessModel>(total_procs, interval.processes);
 
     // Note : a *lot* of thins happen in makeAddProcessMacro.
     auto macro = Command::makeAddProcessMacro(interval, total_procs);
@@ -182,11 +168,8 @@ void InterpolateStates(
           elt.first.value.v,
           elt.second.value.v);
 
-      macro->addCommand(new CreateAutomationFromStates{interval,
-                                                       macro->slotsToUse,
-                                                       process_ids[cur_proc],
-                                                       elt.first.address,
-                                                       d});
+      macro->addCommand(new CreateAutomationFromStates{
+          interval, macro->slotsToUse, process_ids[cur_proc], elt.first.address, d});
 
       cur_proc++;
     }
@@ -195,17 +178,13 @@ void InterpolateStates(
     for (const auto& elt : pairs.listMessages)
     {
       Curve::CurveDomain d = ossia::apply(
-          get_curve_domain{elt.first.address,
-                           elt.first.address.qualifiers.get().accessors,
-                           rootNode},
+          get_curve_domain{
+              elt.first.address, elt.first.address.qualifiers.get().accessors, rootNode},
           elt.first.value.v,
           elt.second.value.v);
 
-      macro->addCommand(new CreateAutomationFromStates{interval,
-                                                       macro->slotsToUse,
-                                                       process_ids[cur_proc],
-                                                       elt.first.address,
-                                                       d});
+      macro->addCommand(new CreateAutomationFromStates{
+          interval, macro->slotsToUse, process_ids[cur_proc], elt.first.address, d});
       cur_proc++;
     }
 

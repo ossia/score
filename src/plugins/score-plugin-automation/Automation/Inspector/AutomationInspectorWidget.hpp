@@ -4,7 +4,6 @@
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 
-
 #include <Color/GradientModel.hpp>
 #include <Metronome/MetronomeModel.hpp>
 #include <Spline/SplineModel.hpp>
@@ -36,8 +35,7 @@ class QDoubleSpinBox;
 namespace Automation
 {
 class ProcessModel;
-class InspectorWidget final
-    : public Process::InspectorWidgetDelegate_T<Automation::ProcessModel>
+class InspectorWidget final : public Process::InspectorWidgetDelegate_T<Automation::ProcessModel>
 {
 public:
   explicit InspectorWidget(
@@ -62,8 +60,7 @@ private:
 namespace Gradient
 {
 class ProcessModel;
-class InspectorWidget final
-    : public Process::InspectorWidgetDelegate_T<Gradient::ProcessModel>
+class InspectorWidget final : public Process::InspectorWidgetDelegate_T<Gradient::ProcessModel>
 {
 public:
   explicit InspectorWidget(
@@ -83,8 +80,7 @@ private:
 namespace Spline
 {
 class ProcessModel;
-class InspectorWidget final
-    : public Process::InspectorWidgetDelegate_T<Spline::ProcessModel>
+class InspectorWidget final : public Process::InspectorWidgetDelegate_T<Spline::ProcessModel>
 {
 public:
   explicit InspectorWidget(
@@ -106,8 +102,7 @@ private:
 namespace Metronome
 {
 class ProcessModel;
-class InspectorWidget final
-    : public Process::InspectorWidgetDelegate_T<Metronome::ProcessModel>
+class InspectorWidget final : public Process::InspectorWidgetDelegate_T<Metronome::ProcessModel>
 {
 public:
   explicit InspectorWidget(

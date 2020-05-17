@@ -37,16 +37,16 @@ class ZPos
 public:
   enum ItemZPos
   {
-    Comment = 1
-    , TimeSync
-    , Event
-    , Interval
-    , State
-    , IntervalWithRack
-    , SelectedInterval
-    , SelectedTimeSync
-    , SelectedEvent
-    , SelectedState
+    Comment = 1,
+    TimeSync,
+    Event,
+    Interval,
+    State,
+    IntervalWithRack,
+    SelectedInterval,
+    SelectedTimeSync,
+    SelectedEvent,
+    SelectedState
   };
   enum IntervalItemZPos
   {

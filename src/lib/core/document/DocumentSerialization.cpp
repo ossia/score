@@ -26,18 +26,20 @@
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>
 #include <core/presenter/DocumentManager.hpp>
-#include <fmt/format.h>
+
+#include <QApplication>
 #include <QByteArray>
 #include <QCryptographicHash>
 #include <QDataStream>
-#include <QIODevice>
 #include <QFile>
+#include <QIODevice>
 #include <QMetaType>
 #include <QPair>
 #include <QString>
 #include <QVariant>
 #include <QVector>
-#include <QApplication>
+
+#include <fmt/format.h>
 
 #include <stdexcept>
 #include <vector>
@@ -57,7 +59,7 @@ QByteArray Document::saveDocumentModelAsByteArray()
   return arr;
 }
 
-void Document::saveDocumentModelAsJson(JSONObject::Serializer & writer)
+void Document::saveDocumentModelAsJson(JSONObject::Serializer& writer)
 {
   writer.stream.StartObject();
 
@@ -68,7 +70,7 @@ void Document::saveDocumentModelAsJson(JSONObject::Serializer & writer)
   writer.stream.EndObject();
 }
 
-void Document::saveAsJson(JSONObject::Serializer & writer)
+void Document::saveAsJson(JSONObject::Serializer& writer)
 {
   using namespace std;
   writer.stream.StartObject();
@@ -81,8 +83,7 @@ void Document::saveAsJson(JSONObject::Serializer & writer)
   writer.stream.StartArray();
   for (const auto& plugin : model().pluginModels())
   {
-    if (auto serializable_plugin
-        = qobject_cast<SerializableDocumentPlugin*>(plugin))
+    if (auto serializable_plugin = qobject_cast<SerializableDocumentPlugin*>(plugin))
     {
       writer.readFrom(*serializable_plugin);
     }
@@ -111,11 +112,9 @@ QByteArray Document::saveAsByteArray()
 
   for (const auto& plugin : model().pluginModels())
   {
-    if (auto serializable_plugin
-        = qobject_cast<SerializableDocumentPlugin*>(plugin))
+    if (auto serializable_plugin = qobject_cast<SerializableDocumentPlugin*>(plugin))
     {
-      static_assert(
-          is_identified_object<SerializableDocumentPlugin>::value, "");
+      static_assert(is_identified_object<SerializableDocumentPlugin>::value, "");
       static_assert(
           std::is_same<
               serialization_tag<SerializableDocumentPlugin>::type,
@@ -124,15 +123,13 @@ QByteArray Document::saveAsByteArray()
       QByteArray arr_before, arr_after;
       DataStream::Serializer s_before{&arr_before};
       s_before.readFrom(*serializable_plugin);
-      documentPluginModels.push_back(
-          {std::move(arr_before), std::move(arr_after)});
+      documentPluginModels.push_back({std::move(arr_before), std::move(arr_after)});
     }
   }
 
   writer << docByteArray << documentPluginModels;
 
-  auto hash = QCryptographicHash::hash(
-      global, QCryptographicHash::Algorithm::Sha512);
+  auto hash = QCryptographicHash::hash(global, QCryptographicHash::Algorithm::Sha512);
   writer << hash;
 
   // Indicate in the stack that the current position is saved
@@ -157,8 +154,7 @@ Document::Document(
   if (parentview)
   {
     m_view = new DocumentView{factory, *this, parentview};
-    m_presenter
-        = new DocumentPresenter{m_context, factory, *m_model, *m_view, this};
+    m_presenter = new DocumentPresenter{m_context, factory, *m_model, *m_view, this};
   }
   init();
 }
@@ -170,19 +166,18 @@ Document::Document(
     DocumentDelegateFactory& factory,
     QWidget* parentview,
     QObject* parent)
-  : QObject{parent}
-  , m_metadata{fileName}
-  , m_commandStack{*this}
-  , m_objectLocker{this}
-  , m_context{*this}
+    : QObject{parent}
+    , m_metadata{fileName}
+    , m_commandStack{*this}
+    , m_objectLocker{this}
+    , m_context{*this}
 {
   restoreModel(data, factory);
 
   if (parentview)
   {
     m_view = new DocumentView{factory, *this, parentview};
-    m_presenter
-        = new DocumentPresenter{m_context, factory, *m_model, *m_view, this};
+    m_presenter = new DocumentPresenter{m_context, factory, *m_model, *m_view, this};
   }
   init();
 }
@@ -233,9 +228,9 @@ void Document::loadModel(const QString& fileName, DocumentDelegateFactory& facto
     if (!ok)
     {
       score::warning(
-            qApp->activeWindow(),
-            tr("Warning"),
-            tr("There is probably something wrong with the loaded file."));
+          qApp->activeWindow(),
+          tr("Warning"),
+          tr("There is probably something wrong with the loaded file."));
     }
     m_model->loadDocumentAsJson(m_context, doc, factory);
   }
@@ -246,10 +241,7 @@ void Document::loadModel(const QString& fileName, DocumentDelegateFactory& facto
   }
 }
 
-Document::Document(
-    const QString& fileName,
-    DocumentDelegateFactory& factory,
-    QObject* parent)
+Document::Document(const QString& fileName, DocumentDelegateFactory& factory, QObject* parent)
     : QObject{parent}
     , m_metadata{fileName}
     , m_commandStack{*this}
@@ -276,9 +268,7 @@ void DocumentModel::loadDocumentAsByteArray(
   QByteArray verif_arr;
   QDataStream writer(&verif_arr, QIODevice::WriteOnly);
   writer << doc << documentPluginModels;
-  if (QCryptographicHash::hash(
-          verif_arr, QCryptographicHash::Algorithm::Sha512)
-      != hash)
+  if (QCryptographicHash::hash(verif_arr, QCryptographicHash::Algorithm::Sha512) != hash)
   {
     throw std::runtime_error("Invalid file.");
   }
@@ -304,8 +294,7 @@ void DocumentModel::loadDocumentAsByteArray(
     const auto& plugin_raw = documentPluginModels[i];
 
     DataStream::Deserializer plug_writer{plugin_raw.first};
-    auto plug
-        = deserialize_interface(plugin_factories, plug_writer, ctx, this);
+    auto plug = deserialize_interface(plugin_factories, plug_writer, ctx, this);
 
     docs[i] = plug;
     if (plug)
@@ -320,7 +309,6 @@ void DocumentModel::loadDocumentAsByteArray(
 
   // Load the document model
   fact.load(doc_writer.toVariant(), ctx, m_model, this);
-
 }
 
 void DocumentModel::loadDocumentAsJson(
@@ -338,11 +326,10 @@ void DocumentModel::loadDocumentAsJson(
   // Load the plug-in models
   auto json_plugins = json["Plugins"].GetArray();
   auto& plugin_factories = ctx.app.interfaces<DocumentPluginFactoryList>();
-  for(const auto& plugin : json_plugins)
+  for (const auto& plugin : json_plugins)
   {
     JSONObject::Deserializer plug_writer{plugin};
-    auto plug
-        = deserialize_interface(plugin_factories, plug_writer, ctx, this);
+    auto plug = deserialize_interface(plugin_factories, plug_writer, ctx, this);
 
     if (plug)
     {
@@ -360,11 +347,11 @@ void DocumentModel::loadDocumentAsJson(
 }
 
 // Load document model
-DocumentModel::DocumentModel(
-    QObject* parent)
-    : IdentifiedObject{Id<DocumentModel>(score::id_generator::getFirstId()),
-                       "DocumentModel",
-                       parent}
+DocumentModel::DocumentModel(QObject* parent)
+    : IdentifiedObject{
+        Id<DocumentModel>(score::id_generator::getFirstId()),
+        "DocumentModel",
+        parent}
 {
 }
 

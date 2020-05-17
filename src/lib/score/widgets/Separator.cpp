@@ -38,4 +38,4 @@ VSeparator::VSeparator(QWidget* parent) : QWidget{parent}
 
 VSeparator::~VSeparator() = default;
 }
-TextLabel::~TextLabel() {}
+TextLabel::~TextLabel() { }

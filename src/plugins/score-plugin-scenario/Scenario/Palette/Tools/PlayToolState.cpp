@@ -14,22 +14,18 @@ namespace Scenario
 {
 PlayToolState::PlayToolState(const Scenario::ToolPalette& sm)
     : m_sm{sm}
-    , m_exec{m_sm.context()
-                 .context.app.guiApplicationPlugin<ScenarioApplicationPlugin>()
-                 .execution()}
+    , m_exec{
+          m_sm.context().context.app.guiApplicationPlugin<ScenarioApplicationPlugin>().execution()}
 {
 }
 
-void PlayToolState::on_pressed(
-    QPointF scenePoint,
-    Scenario::Point scenarioPoint)
+void PlayToolState::on_pressed(QPointF scenePoint, Scenario::Point scenarioPoint)
 {
   auto item = m_sm.scene().itemAt(scenePoint, QTransform());
   if (!item)
     return;
 
-  auto root = score::IDocument::get<ScenarioDocumentPresenter>(
-      m_sm.context().context.document);
+  auto root = score::IDocument::get<ScenarioDocumentPresenter>(m_sm.context().context.document);
   SCORE_ASSERT(root);
   auto root_itv = root->presenters().intervalPresenter();
   auto itv_pt = root_itv->view()->mapFromScene(scenePoint);
@@ -39,24 +35,18 @@ void PlayToolState::on_pressed(
   {
     case StateView::Type:
     {
-      const auto& state
-          = safe_cast<const StateView*>(item)->presenter().model();
+      const auto& state = safe_cast<const StateView*>(item)->presenter().model();
 
-      auto id = state.parent() == &this->m_sm.model()
-                    ? state.id()
-                    : OptionalId<StateModel>{};
+      auto id = state.parent() == &this->m_sm.model() ? state.id() : OptionalId<StateModel>{};
       if (id)
         m_exec.playState(m_sm.model(), *id);
       break;
     }
     case IntervalView::Type:
     {
-      const auto& cst
-          = safe_cast<const IntervalView*>(item)->presenter().model();
+      const auto& cst = safe_cast<const IntervalView*>(item)->presenter().model();
 
-      auto id = cst.parent() == &this->m_sm.model()
-                    ? cst.id()
-                    : OptionalId<IntervalModel>{};
+      auto id = cst.parent() == &this->m_sm.model() ? cst.id() : OptionalId<IntervalModel>{};
       if (id)
       {
         if (QApplication::keyboardModifiers() & Qt::AltModifier)
@@ -77,7 +67,7 @@ void PlayToolState::on_pressed(
   }
 }
 
-void PlayToolState::on_moved() {}
+void PlayToolState::on_moved() { }
 
-void PlayToolState::on_released() {}
+void PlayToolState::on_released() { }
 }

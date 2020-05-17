@@ -26,9 +26,9 @@ auto disregard_me_2 = &JS::MidiMessage::staticMetaObject;
 namespace JS
 {
 
-ValueInlet::ValueInlet(QObject* parent) : Inlet{parent} {}
+ValueInlet::ValueInlet(QObject* parent) : Inlet{parent} { }
 
-ValueInlet::~ValueInlet() {}
+ValueInlet::~ValueInlet() { }
 
 QVariant ValueInlet::value() const
 {
@@ -43,9 +43,9 @@ void ValueInlet::setValue(QVariant value)
   m_value = value;
 }
 
-ControlInlet::ControlInlet(QObject* parent) : Inlet{parent} {}
+ControlInlet::ControlInlet(QObject* parent) : Inlet{parent} { }
 
-ControlInlet::~ControlInlet() {}
+ControlInlet::~ControlInlet() { }
 
 QVariant ControlInlet::value() const
 {
@@ -60,9 +60,9 @@ void ControlInlet::setValue(QVariant value)
   m_value = value;
 }
 
-ValueOutlet::ValueOutlet(QObject* parent) : Outlet{parent} {}
+ValueOutlet::ValueOutlet(QObject* parent) : Outlet{parent} { }
 
-ValueOutlet::~ValueOutlet() {}
+ValueOutlet::~ValueOutlet() { }
 
 QVariant ValueOutlet::value() const
 {
@@ -82,9 +82,9 @@ void ValueOutlet::addValue(qreal timestamp, QVariant t)
   values.push_back({timestamp, std::move(t)});
 }
 
-AudioInlet::AudioInlet(QObject* parent) : Inlet{parent} {}
+AudioInlet::AudioInlet(QObject* parent) : Inlet{parent} { }
 
-AudioInlet::~AudioInlet() {}
+AudioInlet::~AudioInlet() { }
 
 const QVector<QVector<double>>& AudioInlet::audio() const
 {
@@ -96,22 +96,22 @@ void AudioInlet::setAudio(const QVector<QVector<double>>& audio)
   m_audio = audio;
 }
 
-AudioOutlet::AudioOutlet(QObject* parent) : Outlet{parent} {}
+AudioOutlet::AudioOutlet(QObject* parent) : Outlet{parent} { }
 
-AudioOutlet::~AudioOutlet() {}
+AudioOutlet::~AudioOutlet() { }
 
 const QVector<QVector<double>>& AudioOutlet::audio() const
 {
   return m_audio;
 }
 
-MidiInlet::MidiInlet(QObject* parent) : Inlet{parent} {}
+MidiInlet::MidiInlet(QObject* parent) : Inlet{parent} { }
 
-MidiInlet::~MidiInlet() {}
+MidiInlet::~MidiInlet() { }
 
-MidiOutlet::MidiOutlet(QObject* parent) : Outlet{parent} {}
+MidiOutlet::MidiOutlet(QObject* parent) : Outlet{parent} { }
 
-MidiOutlet::~MidiOutlet() {}
+MidiOutlet::~MidiOutlet() { }
 
 void MidiOutlet::clear()
 {
@@ -123,9 +123,9 @@ const QVector<QVector<int>>& MidiOutlet::midi() const
   return m_midi;
 }
 
-Inlet::~Inlet() {}
+Inlet::~Inlet() { }
 
-Outlet::~Outlet() {}
+Outlet::~Outlet() { }
 
 FloatSlider::~FloatSlider() = default;
 IntSlider::~IntSlider() = default;

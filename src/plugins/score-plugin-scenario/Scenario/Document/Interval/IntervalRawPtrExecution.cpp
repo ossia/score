@@ -5,8 +5,8 @@
 #include <Process/ExecutionSetup.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
-#include <Scenario/Document/Interval/IntervalExecutionHelpers.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
+#include <Scenario/Document/Interval/IntervalExecutionHelpers.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/IntervalRawPtrExecution.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
@@ -14,19 +14,21 @@
 
 #include <score/document/DocumentContext.hpp>
 #include <score/model/Identifier.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/Bind.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+
 #include <core/application/ApplicationSettings.hpp>
 
+#include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph_edge.hpp>
-#include <ossia/dataflow/execution_state.hpp>
+#include <ossia/dataflow/nodes/forward_node.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
-#include <ossia/dataflow/nodes/forward_node.hpp>
+
+#include <QDebug>
 
 #include <wobjectimpl.h>
-#include <QDebug>
 
 #include <utility>
 W_OBJECT_IMPL(Execution::IntervalRawPtrComponent)
@@ -38,28 +40,24 @@ IntervalRawPtrComponentBase::IntervalRawPtrComponentBase(
     const Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
-    : Scenario::GenericIntervalComponent<const Context>{score_cst,
-                                                        ctx,
-                                                        id,
-                                                        "Executor::Interval",
-                                                        nullptr}
+    : Scenario::GenericIntervalComponent<const Context>{
+        score_cst,
+        ctx,
+        id,
+        "Executor::Interval",
+        nullptr}
 {
-  con(interval().duration,
-      &Scenario::IntervalDurations::speedChanged,
-      this,
-      [&](double sp) {
-        if (m_ossia_interval)
-          in_exec([sp, cst = m_ossia_interval] { cst->set_speed(sp); });
-      });
+  con(interval().duration, &Scenario::IntervalDurations::speedChanged, this, [&](double sp) {
+    if (m_ossia_interval)
+      in_exec([sp, cst = m_ossia_interval] { cst->set_speed(sp); });
+  });
 
   con(interval().duration,
       &Scenario::IntervalDurations::defaultDurationChanged,
       this,
       [&](TimeVal sp) {
         if (m_ossia_interval)
-          in_exec([t = ctx.time(sp), cst = m_ossia_interval] {
-            cst->set_nominal_duration(t);
-          });
+          in_exec([t = ctx.time(sp), cst = m_ossia_interval] { cst->set_nominal_duration(t); });
       });
 
   con(interval().duration,
@@ -67,9 +65,7 @@ IntervalRawPtrComponentBase::IntervalRawPtrComponentBase(
       this,
       [&](TimeVal sp) {
         if (m_ossia_interval)
-          in_exec([t = ctx.time(sp), cst = m_ossia_interval] {
-            cst->set_min_duration(t);
-          });
+          in_exec([t = ctx.time(sp), cst = m_ossia_interval] { cst->set_min_duration(t); });
       });
 
   con(interval().duration,
@@ -77,27 +73,23 @@ IntervalRawPtrComponentBase::IntervalRawPtrComponentBase(
       this,
       [&](TimeVal sp) {
         if (m_ossia_interval)
-          in_exec([t = ctx.time(sp), cst = m_ossia_interval] {
-            cst->set_max_duration(t);
-          });
+          in_exec([t = ctx.time(sp), cst = m_ossia_interval] { cst->set_max_duration(t); });
       });
 
   con(interval(), &Scenario::IntervalModel::mutedChanged, this, [&](bool b) {
-    if(m_ossia_interval)
-      in_exec([b, itv = m_ossia_interval] {
-        itv->mute(b);
-      });
+    if (m_ossia_interval)
+      in_exec([b, itv = m_ossia_interval] { itv->mute(b); });
   });
 
   con(interval(), &Scenario::IntervalModel::busChanged, this, [&](bool b) {
-    if(m_ossia_interval)
+    if (m_ossia_interval)
       in_exec([b, itv = m_ossia_interval] {
         auto& audio_out = static_cast<ossia::nodes::interval*>(itv->node.get())->audio_out;
         audio_out.has_gain = b;
       });
   });
   con(*interval().outlet, &Process::AudioOutlet::gainChanged, this, [&](double g) {
-    if(m_ossia_interval)
+    if (m_ossia_interval)
       in_exec([g, itv = m_ossia_interval] {
         auto& audio_out = static_cast<ossia::nodes::interval*>(itv->node.get())->audio_out;
         audio_out.gain = g;
@@ -107,7 +99,7 @@ IntervalRawPtrComponentBase::IntervalRawPtrComponentBase(
   // TODO tempo, etc
 }
 
-IntervalRawPtrComponent::~IntervalRawPtrComponent() {}
+IntervalRawPtrComponent::~IntervalRawPtrComponent() { }
 
 void IntervalRawPtrComponent::init()
 {
@@ -161,8 +153,7 @@ void IntervalRawPtrComponent::init()
   }
 }
 
-void IntervalRawPtrComponent::cleanup(
-    const std::shared_ptr<IntervalRawPtrComponent>& self)
+void IntervalRawPtrComponent::cleanup(const std::shared_ptr<IntervalRawPtrComponent>& self)
 {
   if (m_ossia_interval)
   {
@@ -172,9 +163,7 @@ void IntervalRawPtrComponent::cleanup(
       itv->cleanup();
     });
     system().setup.unregister_node(
-        {interval().inlet.get()},
-        {interval().outlet.get()},
-        m_ossia_interval->node);
+        {interval().inlet.get()}, {interval().outlet.get()}, m_ossia_interval->node);
   }
   for (auto& proc : m_processes)
     proc.second->cleanup();
@@ -188,10 +177,11 @@ void IntervalRawPtrComponent::cleanup(
 
 interval_duration_data IntervalRawPtrComponentBase::makeDurations() const
 {
-  return {context().time(interval().duration.defaultDuration()),
-          context().time(interval().duration.minDuration()),
-          context().time(interval().duration.maxDuration()),
-          interval().duration.speed()};
+  return {
+      context().time(interval().duration.defaultDuration()),
+      context().time(interval().duration.minDuration()),
+      context().time(interval().duration.maxDuration()),
+      interval().duration.speed()};
 }
 
 void IntervalRawPtrComponent::onSetup(
@@ -214,45 +204,41 @@ void IntervalRawPtrComponent::onSetup(
   tempo_proc = tdata.second;
   m_ossia_interval->set_tempo_curve(std::move(tdata).first);
   m_ossia_interval->set_time_signature_map(timeSignatureMap(interval(), context()));
-  m_ossia_interval->set_quarter_duration(ossia::quarter_duration<double>); // In our ideal musical world, a "quarter" is half a logical second
+  m_ossia_interval->set_quarter_duration(
+      ossia::quarter_duration<double>); // In our ideal musical world, a
+                                        // "quarter" is half a logical second
 
-  if(context().doc.app.applicationSettings.gui)
+  if (context().doc.app.applicationSettings.gui)
   {
     std::weak_ptr<IntervalRawPtrComponent> weak_self = self;
     in_exec([weak_self, ossia_cst, &edit = system().editionQueue] {
-      ossia_cst->set_stateless_callback(
-          smallfun::function<void(bool, ossia::time_value), 32>{
-              [weak_self, &edit](bool running, ossia::time_value date) {
-                edit.enqueue([weak_self, running, date] {
-                  if (auto self = weak_self.lock())
-                    self->slot_callback(running, date);
-                });
-              }});
+      ossia_cst->set_stateless_callback(smallfun::function<void(bool, ossia::time_value), 32>{
+          [weak_self, &edit](bool running, ossia::time_value date) {
+            edit.enqueue([weak_self, running, date] {
+              if (auto self = weak_self.lock())
+                self->slot_callback(running, date);
+            });
+          }});
     });
   }
 
   // set-up the interval ports
   Process::Inlets toRegister;
   toRegister.push_back(interval().inlet.get());
-  if(tempo_proc)
+  if (tempo_proc)
   {
     toRegister.push_back(tempo_proc->inlet.get());
   }
-  system().setup.register_node(
-      toRegister,
-      {interval().outlet.get()},
-      m_ossia_interval->node);
+  system().setup.register_node(toRegister, {interval().outlet.get()}, m_ossia_interval->node);
 
   init();
 }
 
-void IntervalRawPtrComponent::slot_callback(
-    bool running,
-    ossia::time_value date)
+void IntervalRawPtrComponent::slot_callback(bool running, ossia::time_value date)
 {
   if (m_ossia_interval)
   {
-    if(running)
+    if (running)
     {
       auto& cstdur = interval().duration;
       const auto& maxdur = cstdur.maxDuration();
@@ -260,12 +246,12 @@ void IntervalRawPtrComponent::slot_callback(
       auto currentTime = this->context().reverseTime(date);
       if (!maxdur.infinite())
       {
-        if(maxdur > TimeVal::zero())
+        if (maxdur > TimeVal::zero())
           cstdur.setPlayPercentage(currentTime / cstdur.maxDuration());
       }
       else
       {
-        if(cstdur.defaultDuration() > TimeVal::zero())
+        if (cstdur.defaultDuration() > TimeVal::zero())
           cstdur.setPlayPercentage(currentTime / cstdur.defaultDuration());
       }
     }
@@ -348,10 +334,7 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
 
       // Selection
       QObject::connect(
-          &proc.selection,
-          &Selectable::changed,
-          plug.get(),
-          [this, n = oproc->node](bool ok) {
+          &proc.selection, &Selectable::changed, plug.get(), [this, n = oproc->node](bool ok) {
             in_exec([=] {
               if (n)
                 n->set_logging(ok);
@@ -360,38 +343,43 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
 
       // Looping
       oproc->set_loops(proc.loops());
-      con(proc, &Process::ProcessModel::loopsChanged,
-          this, [this, p=oproc] (bool b) {
+      con(proc, &Process::ProcessModel::loopsChanged, this, [this, p = oproc](bool b) {
         in_exec([=] { p->set_loops(b); });
       });
 
       oproc->set_loop_duration(system().time(proc.loopDuration()));
-      con(proc, &Process::ProcessModel::loopDurationChanged,
-          this, [this, p=oproc] (TimeVal t) {
-        in_exec([p, t=system().time(t)] { p->set_loop_duration(t); });
+      con(proc, &Process::ProcessModel::loopDurationChanged, this, [this, p = oproc](TimeVal t) {
+        in_exec([p, t = system().time(t)] { p->set_loop_duration(t); });
       });
 
       oproc->set_start_offset(system().time(proc.startOffset()));
-      con(proc, &Process::ProcessModel::startOffsetChanged,
-          this, [this, p=oproc] (TimeVal t) {
-        in_exec([p, t=system().time(t)] { p->set_start_offset(t); });
+      con(proc, &Process::ProcessModel::startOffsetChanged, this, [this, p = oproc](TimeVal t) {
+        in_exec([p, t = system().time(t)] { p->set_start_offset(t); });
       });
 
       // Audio propagation
-      auto reconnectOutlets = ReconnectOutlets<IntervalRawPtrComponentBase>{*this, this->OSSIAInterval()->node, proc, oproc, system().execGraph};
+      auto reconnectOutlets = ReconnectOutlets<IntervalRawPtrComponentBase>{
+          *this, this->OSSIAInterval()->node, proc, oproc, system().execGraph};
 
-      connect(& proc, &Process::ProcessModel::outletsChanged,
-              this, reconnectOutlets);
+      connect(&proc, &Process::ProcessModel::outletsChanged, this, reconnectOutlets);
       reconnectOutlets();
 
       // Logging
       if (oproc->node)
         oproc->node->set_logging(proc.selection.get());
 
-      in_exec(AddProcess{{}, m_ossia_interval, oproc, plug->system().execGraph, propagatedOutlets(proc.outlets())});
+      in_exec(AddProcess{
+          {},
+          m_ossia_interval,
+          oproc,
+          plug->system().execGraph,
+          propagatedOutlets(proc.outlets())});
 
-      connect(plug.get(), &ProcessComponent::nodeChanged,
-              this, HandleNodeChange{m_ossia_interval->node, oproc, plug->system().execGraph, proc});
+      connect(
+          plug.get(),
+          &ProcessComponent::nodeChanged,
+          this,
+          HandleNodeChange{m_ossia_interval->node, oproc, plug->system().execGraph, proc});
       return plug.get();
     }
   }
@@ -408,9 +396,8 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
   return nullptr;
 }
 
-std::function<void()> IntervalRawPtrComponentBase::removing(
-    const Process::ProcessModel& e,
-    ProcessComponent& c)
+std::function<void()>
+IntervalRawPtrComponentBase::removing(const Process::ProcessModel& e, ProcessComponent& c)
 {
   auto it = m_processes.find(e.id());
   if (it != m_processes.end())

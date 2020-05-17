@@ -1,7 +1,9 @@
 #pragma once
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
-#include <memory>
+
 #include <score_plugin_audio_export.h>
+
+#include <memory>
 
 namespace ossia
 {
@@ -11,9 +13,8 @@ class audio_engine;
 namespace Audio
 {
 class AudioPreviewExecutor;
-class SCORE_PLUGIN_AUDIO_EXPORT ApplicationPlugin final
-    : public QObject,
-      public score::GUIApplicationPlugin
+class SCORE_PLUGIN_AUDIO_EXPORT ApplicationPlugin final : public QObject,
+                                                          public score::GUIApplicationPlugin
 {
 public:
   ApplicationPlugin(const score::GUIApplicationContext& app);
@@ -32,10 +33,7 @@ private:
   void initialize() override;
   void on_stop();
 
-  void on_documentChanged(
-      score::Document* olddoc,
-      score::Document* newdoc) override;
+  void on_documentChanged(score::Document* olddoc, score::Document* newdoc) override;
 };
-
 
 }

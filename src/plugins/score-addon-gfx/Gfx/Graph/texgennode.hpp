@@ -49,9 +49,11 @@ struct TexgenNode : NodeModel
   }
   )_";
 
-  struct ubo {
-  int currentImageIndex{}; float pad;
-  float position[2];
+  struct ubo
+  {
+    int currentImageIndex{};
+    float pad;
+    float position[2];
   } ubo;
 
   struct Rendered : RenderedNode
@@ -59,9 +61,7 @@ struct TexgenNode : NodeModel
     using RenderedNode::RenderedNode;
 
     bool m_uploaded = false;
-    ~Rendered()
-    {
-    }
+    ~Rendered() { }
 
     QRhiTexture* texture{};
     void customInit(Renderer& renderer) override
@@ -69,8 +69,7 @@ struct TexgenNode : NodeModel
       auto& n = static_cast<const TexgenNode&>(this->node);
       auto& rhi = *renderer.state.rhi;
       {
-        texture = rhi.newTexture(
-            QRhiTexture::RGBA8, n.image.size(), 1, QRhiTexture::Flag{});
+        texture = rhi.newTexture(QRhiTexture::RGBA8, n.image.size(), 1, QRhiTexture::Flag{});
 
         texture->build();
       }
@@ -88,11 +87,10 @@ struct TexgenNode : NodeModel
       }
     }
 
-    void
-    customUpdate(Renderer& renderer, QRhiResourceUpdateBatch& res) override
+    void customUpdate(Renderer& renderer, QRhiResourceUpdateBatch& res) override
     {
       auto& n = static_cast<const TexgenNode&>(this->node);
-      if(func_t f = n.function.load())
+      if (func_t f = n.function.load())
       {
         f(const_cast<uchar*>(n.image.bits()), n.image.width(), n.image.height(), t++);
         res.uploadTexture(texture, n.image);
@@ -126,12 +124,9 @@ struct TexgenNode : NodeModel
   }
   virtual ~TexgenNode() { m_materialData.release(); }
 
-  using func_t = void(*)(unsigned char* rgb, int width, int height, int t);
+  using func_t = void (*)(unsigned char* rgb, int width, int height, int t);
   std::atomic<func_t> function{};
 
   const Mesh& mesh() const noexcept override { return this->m_mesh; }
-  RenderedNode* createRenderer() const noexcept override
-  {
-    return new Rendered{*this};
-  }
+  RenderedNode* createRenderer() const noexcept override { return new Rendered{*this}; }
 };

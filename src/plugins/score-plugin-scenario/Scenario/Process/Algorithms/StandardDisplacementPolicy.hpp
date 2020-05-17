@@ -8,7 +8,6 @@
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
-
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Tools/dataStructures.hpp>
 
@@ -33,9 +32,7 @@ public:
       const ElementsProperties& propsToUpdate)
   {
     // update each affected timesyncs
-    for (auto it = propsToUpdate.timesyncs.cbegin();
-         it != propsToUpdate.timesyncs.cend();
-         ++it)
+    for (auto it = propsToUpdate.timesyncs.cbegin(); it != propsToUpdate.timesyncs.cend(); ++it)
     {
       auto& curTimenodeToUpdate = scenario.timeSync(it.key());
       auto& curTimenodePropertiesToUpdate = it.value();
@@ -54,21 +51,14 @@ public:
     {
       auto curIntervalPropertiesToUpdate_id = e.first;
 
-      auto& curIntervalToUpdate
-          = scenario.intervals.at(curIntervalPropertiesToUpdate_id);
+      auto& curIntervalToUpdate = scenario.intervals.at(curIntervalPropertiesToUpdate_id);
       auto& curIntervalPropertiesToUpdate = e.second;
 
       // compute default duration here
       const auto& date
-          = scenario
-                .event(
-                    scenario.state(curIntervalToUpdate.startState()).eventId())
-                .date();
+          = scenario.event(scenario.state(curIntervalToUpdate.startState()).eventId()).date();
       const auto& endDate
-          = scenario
-                .event(
-                    scenario.state(curIntervalToUpdate.endState()).eventId())
-                .date();
+          = scenario.event(scenario.state(curIntervalToUpdate.endState()).eventId()).date();
 
       TimeVal defaultDuration = endDate - date;
 
@@ -80,10 +70,8 @@ public:
       }
       curIntervalToUpdate.duration.setDefaultDuration(defaultDuration);
 
-      curIntervalToUpdate.duration.setMinDuration(
-          curIntervalPropertiesToUpdate.newMin);
-      curIntervalToUpdate.duration.setMaxDuration(
-          curIntervalPropertiesToUpdate.newMax);
+      curIntervalToUpdate.duration.setMinDuration(curIntervalPropertiesToUpdate.newMin);
+      curIntervalToUpdate.duration.setMaxDuration(curIntervalPropertiesToUpdate.newMax);
 
       for (auto& process : curIntervalToUpdate.processes)
       {
@@ -102,9 +90,7 @@ public:
       const ElementsProperties& propsToUpdate)
   {
     // update each affected timesyncs with old values
-    for (auto it = propsToUpdate.timesyncs.cbegin();
-         it != propsToUpdate.timesyncs.cend();
-         ++it)
+    for (auto it = propsToUpdate.timesyncs.cbegin(); it != propsToUpdate.timesyncs.cend(); ++it)
     {
       auto& curTimenodeToUpdate = scenario.timeSync(it.key());
       auto& curTimenodePropertiesToUpdate = it.value();
@@ -123,21 +109,14 @@ public:
     {
       auto curIntervalPropertiesToUpdate_id = e.first;
 
-      auto& curIntervalToUpdate
-          = scenario.intervals.at(curIntervalPropertiesToUpdate_id);
+      auto& curIntervalToUpdate = scenario.intervals.at(curIntervalPropertiesToUpdate_id);
       const IntervalProperties& curIntervalPropertiesToUpdate = e.second;
 
       // compute default duration here
       const auto& date
-          = scenario
-                .event(
-                    scenario.state(curIntervalToUpdate.startState()).eventId())
-                .date();
+          = scenario.event(scenario.state(curIntervalToUpdate.startState()).eventId()).date();
       const auto& endDate
-          = scenario
-                .event(
-                    scenario.state(curIntervalToUpdate.endState()).eventId())
-                .date();
+          = scenario.event(scenario.state(curIntervalToUpdate.endState()).eventId()).date();
 
       TimeVal defaultDuration = endDate - date;
 
@@ -150,10 +129,8 @@ public:
       curIntervalToUpdate.duration.setDefaultDuration(defaultDuration);
 
       // set durations
-      curIntervalToUpdate.duration.setMinDuration(
-          curIntervalPropertiesToUpdate.oldMin);
-      curIntervalToUpdate.duration.setMaxDuration(
-          curIntervalPropertiesToUpdate.oldMax);
+      curIntervalToUpdate.duration.setMinDuration(curIntervalPropertiesToUpdate.oldMin);
+      curIntervalToUpdate.duration.setMaxDuration(curIntervalPropertiesToUpdate.oldMax);
 
       // Now we have to restore the state of each interval that might have
       // been modified

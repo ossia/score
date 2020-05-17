@@ -6,8 +6,7 @@ class QComboBox;
 class QSpinBox;
 namespace Midi
 {
-class InspectorWidget final
-    : public Process::InspectorWidgetDelegate_T<Midi::ProcessModel>
+class InspectorWidget final : public Process::InspectorWidgetDelegate_T<Midi::ProcessModel>
 {
 public:
   explicit InspectorWidget(
@@ -24,8 +23,7 @@ private:
   QSpinBox* m_max{};
 };
 class InspectorFactory final
-    : public Process::
-          InspectorWidgetDelegateFactory_T<ProcessModel, InspectorWidget>
+    : public Process::InspectorWidgetDelegateFactory_T<ProcessModel, InspectorWidget>
 {
   SCORE_CONCRETE("78f380ff-a405-47b6-9d3b-7022af996199")
 };

@@ -9,7 +9,6 @@
 
 #include <score/document/DocumentInterface.hpp>
 
-
 using namespace score;
 using namespace Scenario::Command;
 
@@ -20,8 +19,8 @@ private:
   void mergeTest()
   {
     // A scenario, 2 events at same date
-    Scenario::ProcessModel* scenar = new ScenarioModel(
-        std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
+    Scenario::ProcessModel* scenar
+        = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
 
     EventData data{};
     data.dDate.setMSecs(10);

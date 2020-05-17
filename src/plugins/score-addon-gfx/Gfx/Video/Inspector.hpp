@@ -8,8 +8,7 @@
 
 namespace Gfx::Video
 {
-class InspectorWidget final
-    : public Process::InspectorWidgetDelegate_T<Gfx::Video::Model>
+class InspectorWidget final : public Process::InspectorWidgetDelegate_T<Gfx::Video::Model>
 {
 public:
   explicit InspectorWidget(

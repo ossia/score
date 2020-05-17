@@ -3,7 +3,6 @@
 
 #include <score/plugins/UuidKey.hpp>
 
-
 #include <score_plugin_loop_export.h>
 
 namespace Loop
@@ -25,6 +24,5 @@ PROCESS_METADATA(
     {},
     {},
     {},
-    Process::ProcessFlags::SupportsTemporal
-        | Process::ProcessFlags::PutInNewSlot)
+    Process::ProcessFlags::SupportsTemporal | Process::ProcessFlags::PutInNewSlot)
 UNDO_NAME_METADATA(EMPTY_MACRO, Loop::ProcessModel, "Loop")

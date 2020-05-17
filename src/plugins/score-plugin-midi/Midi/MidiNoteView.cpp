@@ -5,18 +5,17 @@
 #include <Midi/MidiStyle.hpp>
 #include <Midi/MidiView.hpp>
 
+#include <QCursor>
 #include <QGraphicsSceneMouseEvent>
 #include <QGuiApplication>
 #include <QPainter>
-#include <QCursor>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Midi::NoteView)
 namespace Midi
 {
 
-NoteView::NoteView(const Note& n, View* parent)
-    : QGraphicsItem{parent}, note{n}
+NoteView::NoteView(const Note& n, View* parent) : QGraphicsItem{parent}, note{n}
 {
   this->setFlag(QGraphicsItem::ItemIsSelectable, true);
   this->setFlag(QGraphicsItem::ItemIsMovable, true);
@@ -24,17 +23,13 @@ NoteView::NoteView(const Note& n, View* parent)
   this->setAcceptHoverEvents(true);
 }
 
-void NoteView::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+void NoteView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   static const MidiStyle s;
 
   painter->setRenderHint(QPainter::Antialiasing, false);
 
-  painter->setBrush(
-      this->isSelected() ? s.noteSelectedBaseBrush : s.noteBaseBrush);
+  painter->setBrush(this->isSelected() ? s.noteSelectedBaseBrush : s.noteBaseBrush);
   painter->setPen(s.noteBasePen);
   if (m_width <= 1.2)
   {
@@ -47,8 +42,7 @@ void NoteView::paint(
     if (m_height > 8 && m_width > 4)
     {
       painter->setPen(s.paintedNotePen[note.velocity()]);
-      painter->drawLine(
-          QPointF{2., m_height / 2.}, QPointF{m_width - 2., m_height / 2.});
+      painter->drawLine(QPointF{2., m_height / 2.}, QPointF{m_width - 2., m_height / 2.});
     }
   }
 }
@@ -64,9 +58,7 @@ QPointF NoteView::closestPos(QPointF newPos) const noexcept
 
   newPos.setX(qMin(rect.right(), qMax(newPos.x(), rect.left())));
   // Snap to grid : we round y to the closest multiple of 127
-  auto bounded
-      = (qBound(rect.top(), newPos.y() - note_height * 0.45, rect.bottom()))
-        / height;
+  auto bounded = (qBound(rect.top(), newPos.y() - note_height * 0.45, rect.bottom())) / height;
   int note = qBound(min, int(max - bounded * count), max);
 
   newPos.setY(height - (note - min + 1) * note_height);
@@ -80,17 +72,16 @@ QRectF NoteView::computeRect() const noexcept
   const auto w = view.defaultWidth();
   const auto [min, max] = view.range();
   const auto note_height = h / view.visibleCount();
-  const QRectF rect{note.start() * w,
-                    h - std::ceil((note.pitch() - min + 1) * note_height),
-                    note.duration() * w,
-                    note_height};
+  const QRectF rect{
+      note.start() * w,
+      h - std::ceil((note.pitch() - min + 1) * note_height),
+      note.duration() * w,
+      note_height};
 
   return rect;
 }
 
-QVariant NoteView::itemChange(
-    QGraphicsItem::GraphicsItemChange change,
-    const QVariant& value)
+QVariant NoteView::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value)
 {
   switch (change)
   {
@@ -151,8 +142,8 @@ bool NoteView::canEdit() const
 static QPointF noteview_origpoint;
 void NoteView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(!(QGuiApplication::keyboardModifiers() & Qt::CTRL) && !isSelected())
-      deselectOtherNotes();
+  if (!(QGuiApplication::keyboardModifiers() & Qt::CTRL) && !isSelected())
+    deselectOtherNotes();
   setSelected(true);
 
   m_velocityChange = false;
@@ -164,7 +155,7 @@ void NoteView::mousePressEvent(QGraphicsSceneMouseEvent* event)
     {
       m_scaling = true;
     }
-    else if(qApp->keyboardModifiers() & Qt::ShiftModifier)
+    else if (qApp->keyboardModifiers() & Qt::ShiftModifier)
     {
       m_velocityChange = true;
     }
@@ -193,8 +184,7 @@ void NoteView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     else
     {
       this->setPos(closestPos(
-          noteview_origpoint + event->scenePos()
-          - event->buttonDownScenePos(Qt::LeftButton)));
+          noteview_origpoint + event->scenePos() - event->buttonDownScenePos(Qt::LeftButton)));
     }
     event->accept();
   }
@@ -218,8 +208,7 @@ void NoteView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     else
     {
       this->setPos(closestPos(
-          noteview_origpoint + event->scenePos()
-          - event->buttonDownScenePos(Qt::LeftButton)));
+          noteview_origpoint + event->scenePos() - event->buttonDownScenePos(Qt::LeftButton)));
       noteChangeFinished();
     }
   }

@@ -104,8 +104,7 @@ void QGraphicsSelectablePixmapToggle::setState(bool toggled)
   }
 }
 
-void QGraphicsSelectablePixmapToggle::mousePressEvent(
-    QGraphicsSceneMouseEvent* event)
+void QGraphicsSelectablePixmapToggle::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   m_toggled = !m_toggled;
   setPixmap(
@@ -115,14 +114,12 @@ void QGraphicsSelectablePixmapToggle::mousePressEvent(
   event->accept();
 }
 
-void QGraphicsSelectablePixmapToggle::mouseMoveEvent(
-    QGraphicsSceneMouseEvent* event)
+void QGraphicsSelectablePixmapToggle::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   event->accept();
 }
 
-void QGraphicsSelectablePixmapToggle::mouseReleaseEvent(
-    QGraphicsSceneMouseEvent* event)
+void QGraphicsSelectablePixmapToggle::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   event->accept();
 }
@@ -174,15 +171,10 @@ void QGraphicsPixmapToggle::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 }
 
 template void QGraphicsSliderBase<QGraphicsSlider>::setRect(const QRectF& r);
-template void
-QGraphicsSliderBase<QGraphicsLogSlider>::setRect(const QRectF& r);
-template void
-QGraphicsSliderBase<QGraphicsIntSlider>::setRect(const QRectF& r);
+template void QGraphicsSliderBase<QGraphicsLogSlider>::setRect(const QRectF& r);
+template void QGraphicsSliderBase<QGraphicsIntSlider>::setRect(const QRectF& r);
 
-QGraphicsSlider::QGraphicsSlider(QGraphicsItem* parent)
-    : QGraphicsSliderBase{parent}
-{
-}
+QGraphicsSlider::QGraphicsSlider(QGraphicsItem* parent) : QGraphicsSliderBase{parent} { }
 
 void QGraphicsSlider::setValue(double v)
 {
@@ -298,8 +290,7 @@ void QGraphicsKnob::paint(
       widget);
 }
 
-QGraphicsLogSlider::QGraphicsLogSlider(QGraphicsItem* parent)
-    : QGraphicsSliderBase{parent}
+QGraphicsLogSlider::QGraphicsLogSlider(QGraphicsItem* parent) : QGraphicsSliderBase{parent}
 {
   this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
@@ -340,8 +331,7 @@ void QGraphicsLogSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   DefaultGraphicsSliderImpl::mouseReleaseEvent(*this, event);
 }
 
-void QGraphicsLogSlider::contextMenuEvent(
-    QGraphicsSceneContextMenuEvent* event)
+void QGraphicsLogSlider::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
   event->accept();
 }
@@ -359,14 +349,12 @@ void QGraphicsLogSlider::paint(
   DefaultGraphicsSliderImpl::paint(
       *this,
       score::Skin::instance(),
-      QString::number(
-          ossia::normalized_to_log(min, max - min, value()), 'f', 3),
+      QString::number(ossia::normalized_to_log(min, max - min, value()), 'f', 3),
       painter,
       widget);
 }
 
-QGraphicsLogKnob::QGraphicsLogKnob(QGraphicsItem* parent)
-    : QGraphicsItem{parent}
+QGraphicsLogKnob::QGraphicsLogKnob(QGraphicsItem* parent) : QGraphicsItem{parent}
 {
   this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
@@ -436,14 +424,12 @@ void QGraphicsLogKnob::paint(
   DefaultGraphicsKnobImpl::paint(
       *this,
       score::Skin::instance(),
-      QString::number(
-          ossia::normalized_to_log(min, max - min, value()), 'f', 3),
+      QString::number(ossia::normalized_to_log(min, max - min, value()), 'f', 3),
       painter,
       widget);
 }
 
-QGraphicsIntSlider::QGraphicsIntSlider(QGraphicsItem* parent)
-    : QGraphicsSliderBase{parent}
+QGraphicsIntSlider::QGraphicsIntSlider(QGraphicsItem* parent) : QGraphicsSliderBase{parent}
 {
   this->setAcceptedMouseButtons(Qt::LeftButton);
 }
@@ -474,8 +460,7 @@ void QGraphicsIntSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
   }
 
   const auto srect = sliderRect();
-  double curPos
-      = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
+  double curPos = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
   int res = std::floor(m_min + curPos * (m_max - m_min));
   if (res != m_value)
   {
@@ -493,8 +478,7 @@ void QGraphicsIntSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   if (m_grab)
   {
     const auto srect = sliderRect();
-    double curPos
-        = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
+    double curPos = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
     int res = std::floor(m_min + curPos * (m_max - m_min));
     if (res != m_value)
     {
@@ -511,8 +495,7 @@ void QGraphicsIntSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   if (m_grab)
   {
-    double curPos
-        = ossia::clamp(event->pos().x() / sliderRect().width(), 0., 1.);
+    double curPos = ossia::clamp(event->pos().x() / sliderRect().width(), 0., 1.);
     int res = std::floor(m_min + curPos * (m_max - m_min));
     if (res != m_value)
     {
@@ -532,11 +515,7 @@ void QGraphicsIntSlider::paint(
     QWidget* widget)
 {
   DefaultGraphicsSliderImpl::paint(
-      *this,
-      score::Skin::instance(),
-      QString::number(value()),
-      painter,
-      widget);
+      *this, score::Skin::instance(), QString::number(value()), painter, widget);
 }
 
 double QGraphicsIntSlider::getHandleX() const
@@ -549,11 +528,12 @@ struct SCORE_LIB_BASE_EXPORT ComboBoxWithEnter final : public QComboBox
   W_OBJECT(ComboBoxWithEnter)
 
 public:
-  ComboBoxWithEnter(QWidget* parent = nullptr) : QComboBox{parent} {}
+  ComboBoxWithEnter(QWidget* parent = nullptr) : QComboBox{parent} { }
 
   void editingFinished() W_SIGNAL(editingFinished)
 
-      private : bool eventFilter(QObject* watched, QEvent* event) override
+private:
+  bool eventFilter(QObject* watched, QEvent* event) override
   {
     if (event->type() == QEvent::FocusOut)
     {
@@ -582,10 +562,7 @@ public:
     return res;
   }
 
-  void focusInEvent(QFocusEvent* event) override
-  {
-    QComboBox::focusInEvent(event);
-  }
+  void focusInEvent(QFocusEvent* event) override { QComboBox::focusInEvent(event); }
 
   void focusOutEvent(QFocusEvent* event) override
   {
@@ -615,8 +592,7 @@ struct DefaultComboImpl
   static inline double currentDelta{};
   static inline QRectF currentGeometry{};
 
-  static void
-  mousePressEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
+  static void mousePressEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
   {
     currentDelta = 0.;
     if (event->button() == Qt::LeftButton)
@@ -630,8 +606,7 @@ struct DefaultComboImpl
     event->accept();
   }
 
-  static void
-  mouseMoveEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
+  static void mouseMoveEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
   {
     if ((event->buttons() & Qt::LeftButton) && self.m_grab)
     {
@@ -673,8 +648,7 @@ struct DefaultComboImpl
     event->accept();
   }
 
-  static void
-  mouseReleaseEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
+  static void mouseReleaseEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
   {
     if (event->button() == Qt::LeftButton)
     {
@@ -707,38 +681,30 @@ struct DefaultComboImpl
         w->addItems(self.array);
         w->setCurrentIndex(self.m_value);
 
-        auto obj = self.scene()->addWidget(
-            w, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
+        auto obj = self.scene()->addWidget(w, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
         obj->setPos(pos);
 
         QTimer::singleShot(0, w, [w] { w->setFocus(); });
 
         QObject::connect(
-            w,
-            SignalUtils::QComboBox_currentIndexChanged_int(),
-            &self,
-            [=, &self](int v) {
+            w, SignalUtils::QComboBox_currentIndexChanged_int(), &self, [=, &self](int v) {
               self.m_value = v;
               self.valueChanged(self.m_value);
               self.sliderMoved();
               self.update();
             });
 
-        QObject::connect(
-            w,
-            &ComboBoxWithEnter::editingFinished,
-            &self,
-            [obj, &self]() mutable {
-              if (obj != nullptr)
-              {
-                self.sliderReleased();
-                QTimer::singleShot(0, obj, [scene = self.scene(), obj] {
-                  scene->removeItem(obj);
-                  delete obj;
-                });
-              }
-              obj = nullptr;
+        QObject::connect(w, &ComboBoxWithEnter::editingFinished, &self, [obj, &self]() mutable {
+          if (obj != nullptr)
+          {
+            self.sliderReleased();
+            QTimer::singleShot(0, obj, [scene = self.scene(), obj] {
+              scene->removeItem(obj);
+              delete obj;
             });
+          }
+          obj = nullptr;
+        });
       });
     }
     event->accept();
@@ -939,9 +905,7 @@ void QGraphicsEnum::paint(
   }
 }
 
-QGraphicsPixmapEnum::QGraphicsPixmapEnum(QGraphicsItem* parent) : QGraphicsEnum{parent}
-{
-}
+QGraphicsPixmapEnum::QGraphicsPixmapEnum(QGraphicsItem* parent) : QGraphicsEnum{parent} { }
 
 void QGraphicsPixmapEnum::paint(
     QPainter* painter,
@@ -962,7 +926,7 @@ void QGraphicsPixmapEnum::paint(
 
   painter->setBrush(bg);
   int i = 0;
-  for(std::size_t img = 0; img < off_images.size(); img++)
+  for (std::size_t img = 0; img < off_images.size(); img++)
   {
     QRectF rect{4. + col * w, 4. + row * h, w - 3., h - 3.};
     if (i != m_clicking)
@@ -983,15 +947,7 @@ void QGraphicsPixmapEnum::paint(
   }
 }
 
-
-
-
-
-
-QGraphicsHSVChooser::QGraphicsHSVChooser(QGraphicsItem* parent)
-{
-
-}
+QGraphicsHSVChooser::QGraphicsHSVChooser(QGraphicsItem* parent) { }
 
 void QGraphicsHSVChooser::setRect(const QRectF& r)
 {
@@ -1003,16 +959,16 @@ namespace
 static QRgb hsvColors[100][100];
 static QRgb valueColors[100];
 static auto initHsvColors = [] {
-  for(int j = 0; j < 100; j++)
+  for (int j = 0; j < 100; j++)
   {
-    for(int i = 0; i < 100; i++)
+    for (int i = 0; i < 100; i++)
     {
       const QRgb col = QColor::fromHsvF(double(i) / 100., double(j) / 100., 1.).rgba();
       hsvColors[i][j] = col;
     }
   }
 
-  for(int j = 0; j < 100; j++)
+  for (int j = 0; j < 100; j++)
   {
     const QRgb col = QColor::fromHsvF(-1., 1., double(j) / 100.).rgba();
     valueColors[j] = col;
@@ -1020,14 +976,17 @@ static auto initHsvColors = [] {
   return 0;
 }();
 }
-void QGraphicsHSVChooser::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void QGraphicsHSVChooser::paint(
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   static QImage hs_zone{100, 100, QImage::Format_ARGB32};
   {
     auto img_data = hs_zone.bits();
-    for(int j = 0; j < 100; j++)
+    for (int j = 0; j < 100; j++)
     {
-      for(int i = 0; i < 100; i++)
+      for (int i = 0; i < 100; i++)
       {
         const QRgb col = hsvColors[i][j];
         img_data[0] = qBlue(col) * this->v;
@@ -1042,10 +1001,10 @@ void QGraphicsHSVChooser::paint(QPainter* painter, const QStyleOptionGraphicsIte
   static QImage v_zone{20, 100, QImage::Format_ARGB32};
   {
     auto img_data = v_zone.bits();
-    for(int j = 0; j < 100; j++)
+    for (int j = 0; j < 100; j++)
     {
       const QRgb col = valueColors[j];
-      for(int i = 0; i < 20; i++)
+      for (int i = 0; i < 20; i++)
       {
         img_data[0] = qBlue(col);
         img_data[1] = qGreen(col);
@@ -1090,13 +1049,13 @@ void QGraphicsHSVChooser::setValue(std::array<float, 4> v)
 void QGraphicsHSVChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   const auto p = event->pos();
-  if(p.x() < 100.)
+  if (p.x() < 100.)
   {
     h = qBound(0., p.x() / 100., 1.);
     s = qBound(0., p.y() / 100., 1.);
     m_grab = true;
   }
-  else if(p.x() >= 110 && p.x() < 130)
+  else if (p.x() >= 110 && p.x() < 130)
   {
     v = qBound(0., p.y() / 100., 1.);
     m_grab = true;
@@ -1109,7 +1068,7 @@ void QGraphicsHSVChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)
   g = rgba.greenF();
   b = rgba.blueF();
   a = 1.;
-  if(new_v != m_value)
+  if (new_v != m_value)
   {
     m_value = new_v;
     valueChanged(m_value);
@@ -1122,14 +1081,14 @@ void QGraphicsHSVChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)
 void QGraphicsHSVChooser::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   const auto p = event->pos();
-  if(m_grab)
+  if (m_grab)
   {
-    if(p.x() < 100.)
+    if (p.x() < 100.)
     {
       h = qBound(0., p.x() / 100., 1.);
       s = qBound(0., p.y() / 100., 1.);
     }
-    else if(p.x() >= 110 && p.x() < 130)
+    else if (p.x() >= 110 && p.x() < 130)
     {
       v = qBound(0., p.y() / 100., 1.);
     }
@@ -1141,7 +1100,7 @@ void QGraphicsHSVChooser::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     g = rgba.greenF();
     b = rgba.blueF();
     a = 1.;
-    if(new_v != m_value)
+    if (new_v != m_value)
     {
       m_value = new_v;
       valueChanged(m_value);
@@ -1154,15 +1113,15 @@ void QGraphicsHSVChooser::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
 void QGraphicsHSVChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(m_grab)
+  if (m_grab)
   {
     const auto p = event->pos();
-    if(p.x() < 100.)
+    if (p.x() < 100.)
     {
       h = qBound(0., p.x() / 100., 1.);
       s = qBound(0., p.y() / 100., 1.);
     }
-    else if(p.x() >= 110 && p.x() < 130)
+    else if (p.x() >= 110 && p.x() < 130)
     {
       v = qBound(0., p.y() / 100., 1.);
     }
@@ -1173,7 +1132,7 @@ void QGraphicsHSVChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     g = rgba.greenF();
     b = rgba.blueF();
     a = 1.;
-    if(new_v != m_value)
+    if (new_v != m_value)
     {
       m_value = new_v;
       valueChanged(m_value);
@@ -1183,7 +1142,6 @@ void QGraphicsHSVChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     m_grab = false;
   }
   event->accept();
-
 }
 
 QRectF QGraphicsHSVChooser::boundingRect() const
@@ -1191,27 +1149,19 @@ QRectF QGraphicsHSVChooser::boundingRect() const
   return QRectF{0, 0, 140, 100};
 }
 
-
-
-
-
-
-
-
-
-QGraphicsXYChooser::QGraphicsXYChooser(QGraphicsItem* parent)
-{
-
-}
+QGraphicsXYChooser::QGraphicsXYChooser(QGraphicsItem* parent) { }
 
 void QGraphicsXYChooser::setPoint(const QPointF& r)
 {
   SCORE_TODO;
 }
 
-void QGraphicsXYChooser::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void QGraphicsXYChooser::paint(
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
-  painter->fillRect(QRectF{0, 0, 100, 100},  score::Skin::instance().Dark.main.brush);
+  painter->fillRect(QRectF{0, 0, 100, 100}, score::Skin::instance().Dark.main.brush);
 
   auto x = m_value[0] * 100.;
   auto y = m_value[1] * 100.;
@@ -1240,7 +1190,7 @@ void QGraphicsXYChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)
   m_grab = true;
 
   ossia::vec2f newValue{newX, newY};
-  if(m_value != newValue)
+  if (m_value != newValue)
   {
     m_value = newValue;
     valueChanged(m_value);
@@ -1252,7 +1202,7 @@ void QGraphicsXYChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void QGraphicsXYChooser::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(m_grab)
+  if (m_grab)
   {
     const auto p = event->pos();
     float newX = qBound(0., p.x() / 100., 1.);
@@ -1260,7 +1210,7 @@ void QGraphicsXYChooser::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     m_grab = true;
 
     ossia::vec2f newValue{newX, newY};
-    if(m_value != newValue)
+    if (m_value != newValue)
     {
       m_value = newValue;
       valueChanged(m_value);
@@ -1273,7 +1223,7 @@ void QGraphicsXYChooser::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
 void QGraphicsXYChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(m_grab)
+  if (m_grab)
   {
     const auto p = event->pos();
     float newX = qBound(0., p.x() / 100., 1.);
@@ -1281,7 +1231,7 @@ void QGraphicsXYChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     m_grab = true;
 
     ossia::vec2f newValue{newX, newY};
-    if(m_value != newValue)
+    if (m_value != newValue)
     {
       m_value = newValue;
       valueChanged(m_value);
@@ -1291,7 +1241,6 @@ void QGraphicsXYChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     m_grab = false;
   }
   event->accept();
-
 }
 
 QRectF QGraphicsXYChooser::boundingRect() const

@@ -22,10 +22,11 @@ bool score::DocumentBackups::canRestoreDocuments()
   // Try to reload if there was a crash
   if (OpenDocumentsFile::exists())
   {
-    if (score::question(qApp->activeWindow(),
-                        QObject::tr("Reload?"),
-                        QObject::tr("It seems that score previously crashed. Do you "
-                                                             "wish to reload your work?"))
+    if (score::question(
+            qApp->activeWindow(),
+            QObject::tr("Reload?"),
+            QObject::tr("It seems that score previously crashed. Do you "
+                        "wish to reload your work?"))
         == QMessageBox::Yes)
     {
       return true;
@@ -53,8 +54,7 @@ static void loadRestorableDocumentData(
     data_file.open(QFile::ReadOnly);
     command_file.open(QFile::ReadOnly);
 
-    arr.push_back(
-        {command_filename.first, data_file.readAll(), command_file.readAll()});
+    arr.push_back({command_filename.first, data_file.readAll(), command_file.readAll()});
 
     data_file.close();
     data_file.remove(); // Note: maybe we don't want to remove them that early?
@@ -64,8 +64,7 @@ static void loadRestorableDocumentData(
   }
 }
 
-std::vector<score::RestorableDocument>
-score::DocumentBackups::restorableDocuments()
+std::vector<score::RestorableDocument> score::DocumentBackups::restorableDocuments()
 {
   std::vector<score::RestorableDocument> arr;
 
@@ -80,8 +79,7 @@ score::DocumentBackups::restorableDocuments()
     if (file1.isEmpty())
       continue;
 
-    loadRestorableDocumentData(
-        file1, existing_files[file1].value<QPair<QString, QString>>(), arr);
+    loadRestorableDocumentData(file1, existing_files[file1].value<QPair<QString, QString>>(), arr);
   }
 
   s.setValue("score/docs", QMap<QString, QVariant>{});

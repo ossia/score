@@ -23,8 +23,7 @@ class MoveEventInBaseScenario_StateWrapper;
 class MoveTimeSyncInBaseScenario_StateWrapper;
 class ScenarioDocumentPresenter;
 
-class BaseScenarioDisplayedElementsToolPalette final
-    : public GraphicsSceneToolPalette
+class BaseScenarioDisplayedElementsToolPalette final : public GraphicsSceneToolPalette
 {
 public:
   BaseScenarioDisplayedElementsToolPalette(ScenarioDocumentPresenter& pres);

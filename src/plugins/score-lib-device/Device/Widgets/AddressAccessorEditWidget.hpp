@@ -4,6 +4,7 @@
 #include <QWidget>
 
 #include <score_lib_device_export.h>
+
 #include <verdigris>
 
 class QLineEdit;
@@ -25,9 +26,7 @@ class SCORE_LIB_DEVICE_EXPORT AddressAccessorEditWidget final : public QWidget
 {
   W_OBJECT(AddressAccessorEditWidget)
 public:
-  AddressAccessorEditWidget(
-      const score::DocumentContext& ctx,
-      QWidget* parent);
+  AddressAccessorEditWidget(const score::DocumentContext& ctx, QWidget* parent);
 
   void setAddress(const State::AddressAccessor& addr);
   void setFullAddress(Device::FullAddressAccessorSettings&& addr);

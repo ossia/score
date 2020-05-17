@@ -29,10 +29,7 @@ QRectF RectItem::boundingRect() const
   return m_rect;
 }
 
-void RectItem::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+void RectItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   const auto& skin = score::Skin::instance();
 
@@ -72,11 +69,9 @@ void RectItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
-ResizeableItem::ResizeableItem(QGraphicsItem* parent) : QGraphicsItem{parent}
-{
-}
+ResizeableItem::ResizeableItem(QGraphicsItem* parent) : QGraphicsItem{parent} { }
 
-ResizeableItem::~ResizeableItem() {}
+ResizeableItem::~ResizeableItem() { }
 
 EmptyRectItem::EmptyRectItem(QGraphicsItem* parent) : ResizeableItem{parent}
 {
@@ -180,10 +175,7 @@ QRectF EmptyItem::boundingRect() const
   return {};
 }
 
-void EmptyItem::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+void EmptyItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
 }
 

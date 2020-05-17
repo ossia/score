@@ -15,9 +15,9 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <score/document/DocumentContext.hpp>
-#include <score/model/EntitySerialization.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/EntityMapSerialization.hpp>
+#include <score/model/EntitySerialization.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 #include <score/tools/std/Optional.hpp>
@@ -50,15 +50,12 @@ bool verifyAndUpdateIfChildOf(ObjectPath& path, const ObjectPath& parent)
 }
 
 template <typename T>
-bool verifyAndUpdateIfChildOf(
-    Process::CableData& path,
-    const std::vector<Path<T>>& vec)
+bool verifyAndUpdateIfChildOf(Process::CableData& path, const std::vector<Path<T>>& vec)
 {
   bool source_ok = false;
   for (const auto& parent : vec)
   {
-    if (verifyAndUpdateIfChildOf(
-            path.source.unsafePath(), parent.unsafePath()))
+    if (verifyAndUpdateIfChildOf(path.source.unsafePath(), parent.unsafePath()))
     {
       source_ok = true;
       break;
@@ -115,25 +112,22 @@ Dataflow::SerializedCables cablesToCopy(
 }
 
 template <typename Scenario_T>
-void
-copySelected(JSONReader& r, const Scenario_T& sm, CategorisedScenario& cs, QObject* parent)
+void copySelected(JSONReader& r, const Scenario_T& sm, CategorisedScenario& cs, QObject* parent)
 {
   std::vector<Path<Scenario::IntervalModel>> itv_paths;
   for (const IntervalModel* interval : cs.selectedIntervals)
   {
-    auto start_it
-        = ossia::find_if(cs.selectedStates, [&](const StateModel* state) {
-            return state->id() == interval->startState();
-          });
+    auto start_it = ossia::find_if(cs.selectedStates, [&](const StateModel* state) {
+      return state->id() == interval->startState();
+    });
     if (start_it == cs.selectedStates.end())
     {
       cs.selectedStates.push_back(&sm.state(interval->startState()));
     }
 
-    auto end_it
-        = ossia::find_if(cs.selectedStates, [&](const StateModel* state) {
-            return state->id() == interval->endState();
-          });
+    auto end_it = ossia::find_if(cs.selectedStates, [&](const StateModel* state) {
+      return state->id() == interval->endState();
+    });
     if (end_it == cs.selectedStates.end())
     {
       cs.selectedStates.push_back(&sm.state(interval->endState()));
@@ -144,10 +138,9 @@ copySelected(JSONReader& r, const Scenario_T& sm, CategorisedScenario& cs, QObje
 
   for (const StateModel* state : cs.selectedStates)
   {
-    auto ev_it
-        = ossia::find_if(cs.selectedEvents, [&](const EventModel* event) {
-            return state->eventId() == event->id();
-          });
+    auto ev_it = ossia::find_if(cs.selectedEvents, [&](const EventModel* event) {
+      return state->eventId() == event->id();
+    });
     if (ev_it == cs.selectedEvents.end())
     {
       cs.selectedEvents.push_back(&sm.event(state->eventId()));
@@ -158,10 +151,9 @@ copySelected(JSONReader& r, const Scenario_T& sm, CategorisedScenario& cs, QObje
   }
   for (const EventModel* event : cs.selectedEvents)
   {
-    auto tn_it
-        = ossia::find_if(cs.selectedTimeSyncs, [&](const TimeSyncModel* tn) {
-            return tn->id() == event->timeSync();
-          });
+    auto tn_it = ossia::find_if(cs.selectedTimeSyncs, [&](const TimeSyncModel* tn) {
+      return tn->id() == event->timeSync();
+    });
     if (tn_it == cs.selectedTimeSyncs.end())
     {
       cs.selectedTimeSyncs.push_back(&sm.timeSync(event->timeSync()));
@@ -174,15 +166,12 @@ copySelected(JSONReader& r, const Scenario_T& sm, CategorisedScenario& cs, QObje
   copiedTimeSyncs.reserve(cs.selectedTimeSyncs.size());
   for (const auto& tn : cs.selectedTimeSyncs)
   {
-    auto clone_tn = new TimeSyncModel(
-        DataStreamWriter{score::marshall<DataStream>(*tn)}, nullptr);
+    auto clone_tn = new TimeSyncModel(DataStreamWriter{score::marshall<DataStream>(*tn)}, nullptr);
     auto events = clone_tn->events();
     for (const auto& event : events)
     {
-      auto absent
-          = ossia::none_of(cs.selectedEvents, [&](const EventModel* ev) {
-              return ev->id() == event;
-            });
+      auto absent = ossia::none_of(
+          cs.selectedEvents, [&](const EventModel* ev) { return ev->id() == event; });
       if (absent)
         clone_tn->removeEvent(event);
     }
@@ -194,15 +183,12 @@ copySelected(JSONReader& r, const Scenario_T& sm, CategorisedScenario& cs, QObje
   copiedEvents.reserve(cs.selectedEvents.size());
   for (const auto& ev : cs.selectedEvents)
   {
-    auto clone_ev = new EventModel(
-        DataStreamWriter{score::marshall<DataStream>(*ev)}, nullptr);
+    auto clone_ev = new EventModel(DataStreamWriter{score::marshall<DataStream>(*ev)}, nullptr);
     auto states = clone_ev->states();
     for (const auto& state : states)
     {
-      auto absent
-          = ossia::none_of(cs.selectedStates, [&](const StateModel* st) {
-              return st->id() == state;
-            });
+      auto absent = ossia::none_of(
+          cs.selectedStates, [&](const StateModel* st) { return st->id() == state; });
       if (absent)
         clone_ev->removeState(state);
     }
@@ -215,8 +201,8 @@ copySelected(JSONReader& r, const Scenario_T& sm, CategorisedScenario& cs, QObje
   copiedStates.reserve(cs.selectedStates.size());
   for (const StateModel* st : cs.selectedStates)
   {
-    auto clone_st = new StateModel(
-        DataStreamWriter{score::marshall<DataStream>(*st)}, ctx, parent);
+    auto clone_st
+        = new StateModel(DataStreamWriter{score::marshall<DataStream>(*st)}, ctx, parent);
 
     // NOTE : we must not serialize the state with their previous / next
     // interval
@@ -229,7 +215,6 @@ copySelected(JSONReader& r, const Scenario_T& sm, CategorisedScenario& cs, QObje
 
     copiedStates.push_back(clone_st);
   }
-
 
   r.obj["Intervals"] = cs.selectedIntervals;
   r.obj["Events"] = copiedEvents;
@@ -271,8 +256,7 @@ void copySelectedScenarioElements(
   r.stream.EndObject();
 }
 
-void copyWholeScenario(JSONReader& r,
-                       const Scenario::ProcessModel& sm)
+void copyWholeScenario(JSONReader& r, const Scenario::ProcessModel& sm)
 {
   const auto& ctx = score::IDocument::documentContext(sm);
 
@@ -294,28 +278,22 @@ void copyWholeScenario(JSONReader& r,
   r.stream.EndObject();
 }
 
-void copySelectedScenarioElements(
-    JSONReader& r,
-    const Scenario::ProcessModel& sm)
+void copySelectedScenarioElements(JSONReader& r, const Scenario::ProcessModel& sm)
 {
   CategorisedScenario cat{sm};
   return copySelectedScenarioElements(r, sm, cat);
 }
 
-void
-copySelectedScenarioElements(
-    JSONReader& r,
-    const BaseScenarioContainer& sm, QObject* parent)
+void copySelectedScenarioElements(JSONReader& r, const BaseScenarioContainer& sm, QObject* parent)
 {
   CategorisedScenario cat{sm};
   return copySelected(r, sm, cat, parent);
 }
 
-CategorisedScenario::CategorisedScenario() {}
+CategorisedScenario::CategorisedScenario() { }
 
 template <typename Vector>
-std::vector<const typename Vector::value_type*>
-selectedElementsVec(const Vector& in)
+std::vector<const typename Vector::value_type*> selectedElementsVec(const Vector& in)
 {
   std::vector<const typename Vector::value_type*> out;
   for (const auto& elt : in)
@@ -345,17 +323,17 @@ CategorisedScenario::CategorisedScenario(const BaseScenarioContainer& sm)
 
 CategorisedScenario::CategorisedScenario(const ScenarioInterface& sm)
 {
-  for(auto& itv : sm.getIntervals())
-    if(itv.selection.get())
+  for (auto& itv : sm.getIntervals())
+    if (itv.selection.get())
       selectedIntervals.push_back(&itv);
-  for(auto& itv : sm.getEvents())
-    if(itv.selection.get())
+  for (auto& itv : sm.getEvents())
+    if (itv.selection.get())
       selectedEvents.push_back(&itv);
-  for(auto& itv : sm.getStates())
-    if(itv.selection.get())
+  for (auto& itv : sm.getStates())
+    if (itv.selection.get())
       selectedStates.push_back(&itv);
-  for(auto& itv : sm.getTimeSyncs())
-    if(itv.selection.get())
+  for (auto& itv : sm.getTimeSyncs())
+    if (itv.selection.get())
       selectedTimeSyncs.push_back(&itv);
 }
 
@@ -365,13 +343,11 @@ CategorisedScenario::CategorisedScenario(const Selection& sm)
   {
     if (auto st = dynamic_cast<const Scenario::StateModel*>(elt.data()))
       selectedStates.push_back(st);
-    else if (
-        auto itv = dynamic_cast<const Scenario::IntervalModel*>(elt.data()))
+    else if (auto itv = dynamic_cast<const Scenario::IntervalModel*>(elt.data()))
       selectedIntervals.push_back(itv);
     else if (auto ev = dynamic_cast<const Scenario::EventModel*>(elt.data()))
       selectedEvents.push_back(ev);
-    else if (
-        auto ts = dynamic_cast<const Scenario::TimeSyncModel*>(elt.data()))
+    else if (auto ts = dynamic_cast<const Scenario::TimeSyncModel*>(elt.data()))
       selectedTimeSyncs.push_back(ts);
   }
 }
@@ -386,21 +362,17 @@ void copySelectedElementsToJson(
   {
     return copySelectedScenarioElements(r, *sm);
   }
-  else if (
-      auto bsm = dynamic_cast<const Scenario::BaseScenarioContainer*>(&si))
+  else if (auto bsm = dynamic_cast<const Scenario::BaseScenarioContainer*>(&si))
   {
     return copySelectedScenarioElements(r, *bsm, si_obj);
   }
   else
   {
     // Full-view copy
-    auto& bem
-        = score::IDocument::modelDelegate<Scenario::ScenarioDocumentModel>(
-            ctx.document);
+    auto& bem = score::IDocument::modelDelegate<Scenario::ScenarioDocumentModel>(ctx.document);
     if (!bem.baseScenario().selectedChildren().empty())
     {
-      return copySelectedScenarioElements(r,
-          bem.baseScenario(), &bem.baseScenario());
+      return copySelectedScenarioElements(r, bem.baseScenario(), &bem.baseScenario());
     }
   }
 }

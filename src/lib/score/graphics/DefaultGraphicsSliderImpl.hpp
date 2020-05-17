@@ -20,12 +20,8 @@ namespace score
 struct DefaultGraphicsSliderImpl
 {
   template <typename T>
-  static void paint(
-      T& self,
-      const score::Skin& skin,
-      const QString& text,
-      QPainter* painter,
-      QWidget* widget)
+  static void
+  paint(T& self, const score::Skin& skin, const QString& text, QPainter* painter, QWidget* widget)
   {
     painter->setRenderHint(QPainter::Antialiasing, false);
 
@@ -47,8 +43,7 @@ struct DefaultGraphicsSliderImpl
 #endif
     painter->setPen(skin.Base4.lighter180.pen1);
     painter->setFont(skin.Medium8Pt);
-    const auto textrect
-        = brect.adjusted(2, srect.height() + 3 + dpi_adjust, -2, -1);
+    const auto textrect = brect.adjusted(2, srect.height() + 3 + dpi_adjust, -2, -1);
     painter->drawText(textrect, text, QTextOption(Qt::AlignCenter));
 
     // Draw handle
@@ -74,8 +69,7 @@ struct DefaultGraphicsSliderImpl
       }
 
       const auto srect = self.sliderRect();
-      double curPos
-          = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
+      double curPos = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
       if (curPos != self.m_value)
       {
         self.m_value = curPos;
@@ -94,8 +88,7 @@ struct DefaultGraphicsSliderImpl
     if ((event->buttons() & Qt::LeftButton) && self.m_grab)
     {
       const auto srect = self.sliderRect();
-      double curPos
-          = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
+      double curPos = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
       if (curPos != self.m_value)
       {
         self.m_value = curPos;
@@ -115,8 +108,7 @@ struct DefaultGraphicsSliderImpl
       if (self.m_grab)
       {
         const auto srect = self.sliderRect();
-        double curPos = ossia::clamp(event->pos().x(), 0., srect.width())
-                        / srect.width();
+        double curPos = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
         if (curPos != self.m_value)
         {
           self.m_value = curPos;
@@ -144,40 +136,35 @@ struct DefaultGraphicsSliderImpl
 
       w->setDecimals(6);
       w->setValue(self.map(self.m_value));
-      auto obj = self.scene()->addWidget(
-          w, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
+      auto obj = self.scene()->addWidget(w, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
       obj->setPos(pos);
       self.spinboxProxy = obj;
 
       QTimer::singleShot(0, w, [w] { w->setFocus(); });
 
       auto con = QObject::connect(
-          w,
-          SignalUtils::QDoubleSpinBox_valueChanged_double(),
-          &self,
-          [&self](double v) {
+          w, SignalUtils::QDoubleSpinBox_valueChanged_double(), &self, [&self](double v) {
             self.m_value = self.unmap(v);
             self.valueChanged(self.m_value);
             self.sliderMoved();
             self.update();
           });
 
-      QObject::connect(
-          w, &DoubleSpinboxWithEnter::editingFinished, &self, [obj, con, self_p] {
-            if (self_p->spinbox)
-            {
-              self_p->sliderReleased();
-              QObject::disconnect(con);
-              QTimer::singleShot(0, self_p, [self_p, scene = self_p->scene(), obj] {
-                scene->removeItem(obj);
-                delete obj;
-                self_p->spinbox = nullptr;
-                self_p->spinboxProxy = nullptr;
-              });
-              self_p->spinbox = nullptr;
-              self_p->spinboxProxy = nullptr;
-            }
+      QObject::connect(w, &DoubleSpinboxWithEnter::editingFinished, &self, [obj, con, self_p] {
+        if (self_p->spinbox)
+        {
+          self_p->sliderReleased();
+          QObject::disconnect(con);
+          QTimer::singleShot(0, self_p, [self_p, scene = self_p->scene(), obj] {
+            scene->removeItem(obj);
+            delete obj;
+            self_p->spinbox = nullptr;
+            self_p->spinboxProxy = nullptr;
           });
+          self_p->spinbox = nullptr;
+          self_p->spinboxProxy = nullptr;
+        }
+      });
     });
   }
 

@@ -9,10 +9,7 @@ namespace Dataflow
 {
 class LoadCables final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      Scenario::Command::CommandFactoryName(),
-      LoadCables,
-      "Remove cable")
+  SCORE_COMMAND_DECL(Scenario::Command::CommandFactoryName(), LoadCables, "Remove cable")
 
 public:
   LoadCables(const ObjectPath& p, const SerializedCables& c) : m_cables{c}
@@ -20,13 +17,9 @@ public:
     for (auto& c : m_cables)
     {
       c.second.source.unsafePath().vec().insert(
-          c.second.source.unsafePath().vec().begin(),
-          p.vec().begin(),
-          p.vec().end());
+          c.second.source.unsafePath().vec().begin(), p.vec().begin(), p.vec().end());
       c.second.sink.unsafePath().vec().insert(
-          c.second.sink.unsafePath().vec().begin(),
-          p.vec().begin(),
-          p.vec().end());
+          c.second.sink.unsafePath().vec().begin(), p.vec().begin(), p.vec().end());
     }
   }
 

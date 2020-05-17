@@ -4,13 +4,11 @@
 
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
-
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <score/model/EntityMap.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
-
 
 namespace Scenario
 {
@@ -56,14 +54,12 @@ void MoveInterval::redo(const score::DocumentContext& ctx) const
 
 void MoveInterval::serializeImpl(DataStreamInput& s) const
 {
-  s << m_path << m_interval << m_oldHeight << m_newHeight
-    << m_selectedIntervals;
+  s << m_path << m_interval << m_oldHeight << m_newHeight << m_selectedIntervals;
 }
 
 void MoveInterval::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_path >> m_interval >> m_oldHeight >> m_newHeight
-      >> m_selectedIntervals;
+  s >> m_path >> m_interval >> m_oldHeight >> m_newHeight >> m_selectedIntervals;
 }
 }
 }

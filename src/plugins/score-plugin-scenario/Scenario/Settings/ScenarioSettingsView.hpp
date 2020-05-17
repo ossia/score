@@ -32,13 +32,11 @@ public:
 
 public:
   void SkinChanged(const QString& arg_1) W_SIGNAL(SkinChanged, arg_1);
-  void DefaultEditorChanged(QString arg_1)
-      W_SIGNAL(DefaultEditorChanged, arg_1);
+  void DefaultEditorChanged(QString arg_1) W_SIGNAL(DefaultEditorChanged, arg_1);
 
   void zoomChanged(int arg_1) W_SIGNAL(zoomChanged, arg_1);
   void SlotHeightChanged(int arg_1) W_SIGNAL(SlotHeightChanged, arg_1);
-  void DefaultDurationChanged(const TimeVal& t)
-      W_SIGNAL(DefaultDurationChanged, t);
+  void DefaultDurationChanged(const TimeVal& t) W_SIGNAL(DefaultDurationChanged, t);
 
   void AutoSequenceChanged(bool arg_1) W_SIGNAL(AutoSequenceChanged, arg_1);
 

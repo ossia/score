@@ -27,7 +27,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   v.setBufferSize(m.getBufferSize());
   v.setAutoStereo(m.getAutoStereo());
 
-  con(v, &View::DriverChanged, this, [this, &m] (auto val) {
+  con(v, &View::DriverChanged, this, [this, &m](auto val) {
     if (val != m.getDriver())
     {
       m_disp.submit<SetModelDriver>(m, val);
@@ -73,9 +73,10 @@ QString Presenter::settingsName()
 
 QIcon Presenter::settingsIcon()
 {
-  return makeIcons(QStringLiteral(":/icons/settings_audio_on.png")
-                   , QStringLiteral(":/icons/settings_audio_off.png")
-                   , QStringLiteral(":/icons/settings_audio_off.png"));
+  return makeIcons(
+      QStringLiteral(":/icons/settings_audio_on.png"),
+      QStringLiteral(":/icons/settings_audio_off.png"),
+      QStringLiteral(":/icons/settings_audio_off.png"));
 }
 
 void Presenter::loadDriver(const UuidKey<AudioFactory>& val)
@@ -85,12 +86,13 @@ void Presenter::loadDriver(const UuidKey<AudioFactory>& val)
   auto& m = this->model(this);
   auto& v = this->view(this);
 
-  if(factory)
+  if (factory)
   {
     auto widg = factory->make_settings(m, v, m_disp, nullptr);
     v.setDriverWidget(widg);
   }
-  else {
+  else
+  {
     v.setDriverWidget(nullptr);
   }
 }

@@ -6,7 +6,6 @@
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
-
 template <>
 void DataStreamReader::read(const Protocols::MIDISpecificSettings& n)
 {

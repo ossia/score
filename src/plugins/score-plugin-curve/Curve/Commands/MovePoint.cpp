@@ -12,14 +12,9 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
-
-
 namespace Curve
 {
-MovePoint::MovePoint(
-    const Model& curve,
-    const Id<PointModel>& pointId,
-    Curve::Point newPoint)
+MovePoint::MovePoint(const Model& curve, const Id<PointModel>& pointId, Curve::Point newPoint)
     : m_model{curve}, m_pointId{pointId}, m_newPoint{newPoint}
 {
   for (auto& p : curve.points())

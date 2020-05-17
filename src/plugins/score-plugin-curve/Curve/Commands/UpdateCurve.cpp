@@ -9,12 +9,9 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
-
 namespace Curve
 {
-UpdateCurve::UpdateCurve(
-    const Model& model,
-    std::vector<SegmentData>&& segments)
+UpdateCurve::UpdateCurve(const Model& model, std::vector<SegmentData>&& segments)
     : m_model{std::move(model)}
     , m_oldCurveData{model.toCurveData()}
     , m_newCurveData{std::move(segments)}

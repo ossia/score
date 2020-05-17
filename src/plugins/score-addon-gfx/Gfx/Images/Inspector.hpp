@@ -8,8 +8,7 @@
 
 namespace Gfx::Images
 {
-class InspectorWidget final
-    : public Process::InspectorWidgetDelegate_T<Gfx::Images::Model>
+class InspectorWidget final : public Process::InspectorWidgetDelegate_T<Gfx::Images::Model>
 {
 public:
   explicit InspectorWidget(

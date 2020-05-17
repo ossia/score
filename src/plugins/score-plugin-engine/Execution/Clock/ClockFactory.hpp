@@ -36,8 +36,7 @@ class BaseScenarioElement;
  */
 
 using time_function = smallfun::function<ossia::time_value(const TimeVal&)>;
-using reverse_time_function
-    = smallfun::function<TimeVal(const ossia::time_value&)>;
+using reverse_time_function = smallfun::function<TimeVal(const ossia::time_value&)>;
 class SCORE_PLUGIN_ENGINE_EXPORT Clock
 {
 public:
@@ -69,14 +68,12 @@ public:
   virtual QString prettyName() const = 0;
   virtual std::unique_ptr<Clock> make(const Execution::Context& ctx) = 0;
 
-  virtual time_function
-  makeTimeFunction(const score::DocumentContext& ctx) const = 0;
+  virtual time_function makeTimeFunction(const score::DocumentContext& ctx) const = 0;
   virtual reverse_time_function
   makeReverseTimeFunction(const score::DocumentContext& ctx) const = 0;
 };
 
-class SCORE_PLUGIN_ENGINE_EXPORT ClockFactoryList final
-    : public score::InterfaceList<ClockFactory>
+class SCORE_PLUGIN_ENGINE_EXPORT ClockFactoryList final : public score::InterfaceList<ClockFactory>
 {
 public:
   using object_type = Clock;

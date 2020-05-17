@@ -11,8 +11,7 @@ InterfaceListBase::~InterfaceListBase() = default;
 
 void debug_types(const InterfaceBase* orig, const InterfaceBase* repl) noexcept
 {
-  qDebug() << "Warning: replacing" << typeid(*orig).name() << "with"
-           << typeid(*repl).name();
+  qDebug() << "Warning: replacing" << typeid(*orig).name() << "with" << typeid(*repl).name();
 }
 
 }

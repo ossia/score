@@ -8,13 +8,8 @@ AddProcessToInterval::AddProcessToInterval(
     const Scenario::IntervalModel& interval,
     const UuidKey<Process::ProcessModel>& process,
     const QString& dat,
-    const QPointF& pos
-    )
-    : m_addProcessCommand{interval,
-                          getStrongId(interval.processes),
-                          process,
-                          dat,
-                          pos}
+    const QPointF& pos)
+    : m_addProcessCommand{interval, getStrongId(interval.processes), process, dat, pos}
     , m_addedSlot{interval.smallView().empty()}
 {
 }
@@ -41,9 +36,7 @@ void AddProcessToInterval::redo(const score::DocumentContext& ctx) const
   // Make it visible
   if (m_addedSlot)
   {
-    auto h = score::AppContext()
-                 .settings<Scenario::Settings::Model>()
-                 .getSlotHeight();
+    auto h = score::AppContext().settings<Scenario::Settings::Model>().getSlotHeight();
     interval.addSlot(Slot{{proc.id()}, proc.id(), h});
     interval.setSmallViewVisible(true);
   }
@@ -81,7 +74,7 @@ void AddProcessToInterval::deserializeImpl(DataStreamOutput& s)
   m_addProcessCommand.deserialize(b);
 }
 
-AddProcessToInterval::~AddProcessToInterval() {}
+AddProcessToInterval::~AddProcessToInterval() { }
 
 LoadProcessInInterval::LoadProcessInInterval(
     const Scenario::IntervalModel& interval,
@@ -113,9 +106,7 @@ void LoadProcessInInterval::redo(const score::DocumentContext& ctx) const
   // Make it visible
   if (m_addedSlot)
   {
-    auto h = score::AppContext()
-                 .settings<Scenario::Settings::Model>()
-                 .getSlotHeight();
+    auto h = score::AppContext().settings<Scenario::Settings::Model>().getSlotHeight();
     interval.addSlot(Slot{{proc.id()}, proc.id(), h});
     interval.setSmallViewVisible(true);
   }
@@ -125,8 +116,7 @@ void LoadProcessInInterval::redo(const score::DocumentContext& ctx) const
   }
 }
 
-const Path<Scenario::IntervalModel>&
-LoadProcessInInterval::intervalPath() const
+const Path<Scenario::IntervalModel>& LoadProcessInInterval::intervalPath() const
 {
   return m_addProcessCommand.intervalPath();
 }
@@ -149,8 +139,8 @@ void LoadProcessInInterval::deserializeImpl(DataStreamOutput& s)
   m_addProcessCommand.deserialize(b);
 }
 
-LoadProcessInInterval::~LoadProcessInInterval() {}
+LoadProcessInInterval::~LoadProcessInInterval() { }
 
-AddProcessInNewBoxMacro::~AddProcessInNewBoxMacro() {}
+AddProcessInNewBoxMacro::~AddProcessInNewBoxMacro() { }
 }
 }

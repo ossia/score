@@ -4,17 +4,18 @@
 #include <State/Address.hpp>
 #include <State/Unit.hpp>
 
+#include <score/serialization/VisitorCommon.hpp>
+
 #include <ossia/detail/flat_map.hpp>
 
-#include <score/serialization/VisitorCommon.hpp>
 #include <Color/GradientMetadata.hpp>
 #include <score_plugin_automation_export.h>
+
 #include <verdigris>
 
 namespace Gradient
 {
-class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
-    : public Process::ProcessModel
+class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Process::ProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Gradient::ProcessModel)
@@ -22,10 +23,7 @@ class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
   W_OBJECT(ProcessModel)
 
 public:
-  ProcessModel(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
+  ProcessModel(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
   ~ProcessModel() override;
 
   template <typename Impl>
@@ -51,10 +49,8 @@ public:
   std::unique_ptr<Process::Outlet> outlet;
 
 public:
-  void tweenChanged(bool tween)
-      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, tweenChanged, tween)
-  void gradientChanged()
-      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, gradientChanged)
+  void tweenChanged(bool tween) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, tweenChanged, tween)
+  void gradientChanged() E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, gradientChanged)
 
   PROPERTY(bool, tween READ tween WRITE setTween NOTIFY tweenChanged)
 private:

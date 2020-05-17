@@ -6,15 +6,11 @@
 
 #include <score/model/path/Path.hpp>
 
-
 class QEvent;
 
 namespace Scenario
 {
-ClickOnSlotHandle_Transition::ClickOnSlotHandle_Transition(SlotState& state)
-    : m_state{state}
-{
-}
+ClickOnSlotHandle_Transition::ClickOnSlotHandle_Transition(SlotState& state) : m_state{state} { }
 
 SlotState& ClickOnSlotHandle_Transition::state() const
 {
@@ -28,10 +24,7 @@ void ClickOnSlotHandle_Transition::onTransition(QEvent* ev)
   this->state().currentSlot = std::move(qev->path);
 }
 
-MoveOnSlotHandle_Transition::MoveOnSlotHandle_Transition(SlotState& state)
-    : m_state{state}
-{
-}
+MoveOnSlotHandle_Transition::MoveOnSlotHandle_Transition(SlotState& state) : m_state{state} { }
 
 SlotState& MoveOnSlotHandle_Transition::state() const
 {
@@ -45,9 +38,7 @@ void MoveOnSlotHandle_Transition::onTransition(QEvent* ev)
   this->state().currentSlot = std::move(qev->path);
 }
 
-ReleaseOnSlotHandle_Transition::ReleaseOnSlotHandle_Transition(
-    SlotState& state)
-    : m_state{state}
+ReleaseOnSlotHandle_Transition::ReleaseOnSlotHandle_Transition(SlotState& state) : m_state{state}
 {
 }
 

@@ -18,19 +18,16 @@ struct OutputNode : NodeModel
     }
     )_";
 
-  virtual ~OutputNode() {}
+  virtual ~OutputNode() { }
 
   std::shared_ptr<Window> window{};
 
   const TexturedTriangle& m_mesh = TexturedTriangle::instance();
+
 protected:
-  OutputNode()
-  {
-    setShaders(m_mesh.defaultVertexShader(), filter);
-  }
+  OutputNode() { setShaders(m_mesh.defaultVertexShader(), filter); }
   const Mesh& mesh() const noexcept override { return this->m_mesh; }
 };
-
 
 struct ColorNode : NodeModel
 {
@@ -54,7 +51,7 @@ struct ColorNode : NodeModel
   {
     setShaders(m_mesh.defaultVertexShader(), filter);
     input.push_back(new Port{this, {}, Types::Vec4, {}});
-    //input.back()->value = ossia::vec4f{0.6, 0.3, 0.78, 1.};
+    // input.back()->value = ossia::vec4f{0.6, 0.3, 0.78, 1.};
     output.push_back(new Port{this, {}, Types::Image, {}});
   }
 
@@ -115,10 +112,6 @@ struct ProductNode : NodeModel
 
 struct ScreenNode : OutputNode
 {
-  ScreenNode() : OutputNode{}
-  {
-    input.push_back(new Port{this, {}, Types::Image, {}});
-  }
+  ScreenNode() : OutputNode{} { input.push_back(new Port{this, {}, Types::Image, {}}); }
   virtual ~ScreenNode();
 };
-

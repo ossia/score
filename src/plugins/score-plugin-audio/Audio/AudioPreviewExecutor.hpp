@@ -1,6 +1,8 @@
 #pragma once
 #include <Process/ExecutionAction.hpp>
+
 #include <ossia/dataflow/nodes/media.hpp>
+
 #include <readerwriterqueue.h>
 #include <score_plugin_audio_export.h>
 
@@ -17,8 +19,7 @@ class SCORE_PLUGIN_AUDIO_EXPORT AudioPreviewExecutor : public Execution::Executi
 {
   static inline AudioPreviewExecutor* m_instance{};
   SCORE_CONCRETE("333d0fab-a399-40e4-beea-c98ea79c10fa")
-  public:
-
+public:
   static AudioPreviewExecutor& instance();
 
   explicit AudioPreviewExecutor();

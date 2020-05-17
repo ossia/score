@@ -9,8 +9,8 @@
 
 #include <core/document/Document.hpp>
 
-
 #include <score_plugin_scenario_export.h>
+
 #include <verdigris>
 
 #include <unordered_set>
@@ -38,10 +38,7 @@ public:
   ScenarioDocumentModel(const score::DocumentContext& ctx, QObject* parent);
 
   template <typename Impl>
-  ScenarioDocumentModel(
-      Impl& vis,
-      const score::DocumentContext& ctx,
-      QObject* parent)
+  ScenarioDocumentModel(Impl& vis, const score::DocumentContext& ctx, QObject* parent)
       : score::DocumentDelegateModel{vis, parent}, m_context{ctx}
   {
     vis.writeTo(*this);
@@ -57,7 +54,6 @@ public:
   void serialize(const VisitorVariant&) const override;
 
   score::EntityMap<Process::Cable> cables;
-
 
   void addBus(const IntervalModel*);
   void removeBus(const IntervalModel*);

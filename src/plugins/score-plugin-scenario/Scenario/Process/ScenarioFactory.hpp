@@ -36,9 +36,8 @@ public:
       const Process::Context& context,
       QGraphicsItem* parent) const override;
 
-  Process::MiniLayer* makeMiniLayer(
-      const Process::ProcessModel& view,
-      QGraphicsItem* parent) const override;
+  Process::MiniLayer*
+  makeMiniLayer(const Process::ProcessModel& view, QGraphicsItem* parent) const override;
 
   bool matches(const UuidKey<Process::ProcessModel>& p) const override;
   UuidKey<Process::ProcessModel> concreteKey() const noexcept override;

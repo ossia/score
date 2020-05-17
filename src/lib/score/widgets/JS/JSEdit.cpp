@@ -42,22 +42,23 @@
 #include <array>
 
 W_OBJECT_IMPL(JSEdit)
-const std::array<QColor, 16> colors{QColor{"#151515"},
-                                    QColor{"#202020"},
-                                    QColor{"#303030"},
-                                    QColor{"#F4F4F0"},
-                                    QColor{"#b0b0b0"},
-                                    QColor{"#d0d0d0"},
-                                    QColor{"#e0e0e0"},
-                                    QColor{"#f5f5f5"},
-                                    QColor{"#ac4142"},
-                                    QColor{"#d28445"},
-                                    QColor{"#f4bf75"},
-                                    QColor{"#90a959"},
-                                    QColor{"#75b5aa"},
-                                    QColor{"#6a9fb5"},
-                                    QColor{"#aa759f"},
-                                    QColor{"#8f5536"}};
+const std::array<QColor, 16> colors{
+    QColor{"#151515"},
+    QColor{"#202020"},
+    QColor{"#303030"},
+    QColor{"#F4F4F0"},
+    QColor{"#b0b0b0"},
+    QColor{"#d0d0d0"},
+    QColor{"#e0e0e0"},
+    QColor{"#f5f5f5"},
+    QColor{"#ac4142"},
+    QColor{"#d28445"},
+    QColor{"#f4bf75"},
+    QColor{"#90a959"},
+    QColor{"#75b5aa"},
+    QColor{"#6a9fb5"},
+    QColor{"#aa759f"},
+    QColor{"#8f5536"}};
 
 class JSBlockData final : public QTextBlockUserData
 {
@@ -101,193 +102,193 @@ JSHighlighter::JSHighlighter(QTextDocument* parent)
   m_colors[JSEdit::Marker] = colors[0x02];     // base16 - 02
 
   // https://developer.mozilla.org/en/JavaScript/Reference/Reserved_Words
-  m_keywords = {"break",
-                "case",
-                "catch",
-                "continue",
-                "default",
-                "delete",
-                "do",
-                "else",
-                "finally",
-                "for",
-                "function",
-                "if",
-                "in",
-                "instanceof",
-                "new",
-                "return",
-                "switch",
-                "this",
-                "throw",
-                "try",
-                "typeof",
-                "var",
-                "void",
-                "while",
-                "with"
+  m_keywords
+      = {"break",
+         "case",
+         "catch",
+         "continue",
+         "default",
+         "delete",
+         "do",
+         "else",
+         "finally",
+         "for",
+         "function",
+         "if",
+         "in",
+         "instanceof",
+         "new",
+         "return",
+         "switch",
+         "this",
+         "throw",
+         "try",
+         "typeof",
+         "var",
+         "void",
+         "while",
+         "with"
 
-                ,
-                "true",
-                "false",
-                "null"};
+         ,
+         "true",
+         "false",
+         "null"};
 
   // built-in and other popular objects + properties
-  m_knownIds = {"Object",
-                "prototype",
-                "create",
-                "defineProperty",
-                "defineProperties",
-                "getOwnPropertyDescriptor",
-                "keys",
-                "getOwnPropertyNames",
-                "constructor",
-                "__parent__",
-                "__proto__",
-                "__defineGetter__",
-                "__defineSetter__",
-                "eval",
-                "hasOwnProperty",
-                "isPrototypeOf",
-                "__lookupGetter__",
-                "__lookupSetter__",
-                "__noSuchMethod__",
-                "propertyIsEnumerable",
-                "toSource",
-                "toLocaleString",
-                "toString",
-                "unwatch",
-                "valueOf",
-                "watch"
+  m_knownIds
+      = {"Object",
+         "prototype",
+         "create",
+         "defineProperty",
+         "defineProperties",
+         "getOwnPropertyDescriptor",
+         "keys",
+         "getOwnPropertyNames",
+         "constructor",
+         "__parent__",
+         "__proto__",
+         "__defineGetter__",
+         "__defineSetter__",
+         "eval",
+         "hasOwnProperty",
+         "isPrototypeOf",
+         "__lookupGetter__",
+         "__lookupSetter__",
+         "__noSuchMethod__",
+         "propertyIsEnumerable",
+         "toSource",
+         "toLocaleString",
+         "toString",
+         "unwatch",
+         "valueOf",
+         "watch"
 
-                ,
-                "Function",
-                "arguments",
-                "arity",
-                "caller",
-                "constructor",
-                "length",
-                "name",
-                "apply",
-                "bind",
-                "call"
+         ,
+         "Function",
+         "arguments",
+         "arity",
+         "caller",
+         "constructor",
+         "length",
+         "name",
+         "apply",
+         "bind",
+         "call"
 
-                ,
-                "String",
-                "fromCharCode",
-                "length",
-                "charAt",
-                "charCodeAt",
-                "concat",
-                "indexOf",
-                "lastIndexOf",
-                "localCompare",
-                "match",
-                "quote",
-                "replace",
-                "search",
-                "slice",
-                "split",
-                "substr",
-                "substring",
-                "toLocaleLowerCase",
-                "toLocaleUpperCase",
-                "toLowerCase",
-                "toUpperCase",
-                "trim",
-                "trimLeft",
-                "trimRight"
+         ,
+         "String",
+         "fromCharCode",
+         "length",
+         "charAt",
+         "charCodeAt",
+         "concat",
+         "indexOf",
+         "lastIndexOf",
+         "localCompare",
+         "match",
+         "quote",
+         "replace",
+         "search",
+         "slice",
+         "split",
+         "substr",
+         "substring",
+         "toLocaleLowerCase",
+         "toLocaleUpperCase",
+         "toLowerCase",
+         "toUpperCase",
+         "trim",
+         "trimLeft",
+         "trimRight"
 
-                ,
-                "Array",
-                "isArray",
-                "index",
-                "input",
-                "pop",
-                "push",
-                "reverse",
-                "shift",
-                "sort",
-                "splice",
-                "unshift",
-                "concat",
-                "join",
-                "filter",
-                "forEach",
-                "every",
-                "map",
-                "some",
-                "reduce",
-                "reduceRight"
+         ,
+         "Array",
+         "isArray",
+         "index",
+         "input",
+         "pop",
+         "push",
+         "reverse",
+         "shift",
+         "sort",
+         "splice",
+         "unshift",
+         "concat",
+         "join",
+         "filter",
+         "forEach",
+         "every",
+         "map",
+         "some",
+         "reduce",
+         "reduceRight"
 
-                ,
-                "RegExp",
-                "global",
-                "ignoreCase",
-                "lastIndex",
-                "multiline",
-                "source",
-                "exec",
-                "test"
+         ,
+         "RegExp",
+         "global",
+         "ignoreCase",
+         "lastIndex",
+         "multiline",
+         "source",
+         "exec",
+         "test"
 
-                ,
-                "JSON",
-                "parse",
-                "stringify"
+         ,
+         "JSON",
+         "parse",
+         "stringify"
 
-                ,
-                "decodeURI",
-                "decodeURIComponent",
-                "encodeURI",
-                "encodeURIComponent",
-                "eval",
-                "isFinite",
-                "isNaN",
-                "parseFloat",
-                "parseInt",
-                "Infinity",
-                "NaN",
-                "undefined"
+         ,
+         "decodeURI",
+         "decodeURIComponent",
+         "encodeURI",
+         "encodeURIComponent",
+         "eval",
+         "isFinite",
+         "isNaN",
+         "parseFloat",
+         "parseInt",
+         "Infinity",
+         "NaN",
+         "undefined"
 
-                ,
-                "Math",
-                "E",
-                "LN2",
-                "LN10",
-                "LOG2E",
-                "LOG10E",
-                "PI",
-                "SQRT1_2",
-                "SQRT2",
-                "abs",
-                "acos",
-                "asin",
-                "atan",
-                "atan2",
-                "ceil",
-                "cos",
-                "exp",
-                "floor",
-                "log",
-                "max",
-                "min",
-                "pow",
-                "random",
-                "round",
-                "sin",
-                "sqrt",
-                "tan"
+         ,
+         "Math",
+         "E",
+         "LN2",
+         "LN10",
+         "LOG2E",
+         "LOG10E",
+         "PI",
+         "SQRT1_2",
+         "SQRT2",
+         "abs",
+         "acos",
+         "asin",
+         "atan",
+         "atan2",
+         "ceil",
+         "cos",
+         "exp",
+         "floor",
+         "log",
+         "max",
+         "min",
+         "pow",
+         "random",
+         "round",
+         "sin",
+         "sqrt",
+         "tan"
 
-                ,
-                "document",
-                "window",
-                "navigator",
-                "userAgent"};
+         ,
+         "document",
+         "window",
+         "navigator",
+         "userAgent"};
 }
 
-void JSHighlighter::setColor(
-    JSEdit::ColorComponent component,
-    const QColor& color)
+void JSHighlighter::setColor(JSEdit::ColorComponent component, const QColor& color)
 {
   m_colors[component] = color;
   rehighlight();
@@ -495,8 +496,7 @@ void JSHighlighter::highlightBlock(const QString& text)
 
   if (!bracketPositions.isEmpty())
   {
-    JSBlockData* blockData
-        = reinterpret_cast<JSBlockData*>(currentBlock().userData());
+    JSBlockData* blockData = reinterpret_cast<JSBlockData*>(currentBlock().userData());
     if (!blockData)
     {
       blockData = new JSBlockData;
@@ -509,9 +509,7 @@ void JSHighlighter::highlightBlock(const QString& text)
   setCurrentBlockState(blockState);
 }
 
-void JSHighlighter::mark(
-    const QString& str,
-    Qt::CaseSensitivity caseSensitivity)
+void JSHighlighter::mark(const QString& str, Qt::CaseSensitivity caseSensitivity)
 {
   m_markString = str;
   m_markCaseSensitivity = caseSensitivity;
@@ -560,8 +558,7 @@ protected:
   void paintEvent(QPaintEvent* event) override;
 };
 
-SidebarWidget::SidebarWidget(JSEdit* editor)
-    : QWidget(editor), foldIndicatorWidth(0)
+SidebarWidget::SidebarWidget(JSEdit* editor) : QWidget(editor), foldIndicatorWidth(0)
 {
   backgroundColor = Qt::lightGray;
   indicatorColor = Qt::white;
@@ -733,7 +730,7 @@ public:
   void forceUpdate();
 };
 
-JSDocLayout::JSDocLayout(QTextDocument* doc) : QPlainTextDocumentLayout(doc) {}
+JSDocLayout::JSDocLayout(QTextDocument* doc) : QPlainTextDocumentLayout(doc) { }
 
 void JSDocLayout::forceUpdate()
 {
@@ -758,8 +755,7 @@ public:
   bool codeFolding : 1;
 };
 
-JSEdit::JSEdit(QWidget* parent)
-    : QPlainTextEdit(parent), d_ptr(new JSEditPrivate)
+JSEdit::JSEdit(QWidget* parent) : QPlainTextEdit(parent), d_ptr(new JSEditPrivate)
 {
   d_ptr->editor = this;
   d_ptr->layout = new JSDocLayout(document());
@@ -775,18 +771,11 @@ JSEdit::JSEdit(QWidget* parent)
 
   document()->setDocumentLayout(d_ptr->layout);
 
-  connect(
-      this,
-      &QPlainTextEdit::cursorPositionChanged,
-      this,
-      &JSEdit::updateCursor);
-  connect(this, &QPlainTextEdit::blockCountChanged, this, [=] {
-    updateSidebar();
+  connect(this, &QPlainTextEdit::cursorPositionChanged, this, &JSEdit::updateCursor);
+  connect(this, &QPlainTextEdit::blockCountChanged, this, [=] { updateSidebar(); });
+  connect(this, &QPlainTextEdit::updateRequest, this, [=](const QRect& r, int d) {
+    do_updateSidebar(r, d);
   });
-  connect(
-      this, &QPlainTextEdit::updateRequest, this, [=](const QRect& r, int d) {
-        do_updateSidebar(r, d);
-      });
   this->setContextMenuPolicy(Qt::NoContextMenu);
 
 #if defined(Q_OS_MAC)
@@ -990,13 +979,11 @@ void JSEdit::fold(int line)
     block = block.next();
   }
 
-  document()->markContentsDirty(
-      startBlock.position(), endPos - startBlock.position() + 1);
+  document()->markContentsDirty(startBlock.position(), endPos - startBlock.position() + 1);
   updateSidebar();
   update();
 
-  JSDocLayout* layout
-      = reinterpret_cast<JSDocLayout*>(document()->documentLayout());
+  JSDocLayout* layout = reinterpret_cast<JSDocLayout*>(document()->documentLayout());
   layout->forceUpdate();
 }
 
@@ -1014,13 +1001,11 @@ void JSEdit::unfold(int line)
     block = block.next();
   }
 
-  document()->markContentsDirty(
-      startBlock.position(), endPos - startBlock.position() + 1);
+  document()->markContentsDirty(startBlock.position(), endPos - startBlock.position() + 1);
   updateSidebar();
   update();
 
-  JSDocLayout* layout
-      = reinterpret_cast<JSDocLayout*>(document()->documentLayout());
+  JSDocLayout* layout = reinterpret_cast<JSDocLayout*>(document()->documentLayout());
   layout->forceUpdate();
 }
 
@@ -1059,8 +1044,7 @@ void JSEdit::wheelEvent(QWheelEvent* e)
 void JSEdit::keyPressEvent(QKeyEvent* e)
 {
   QPlainTextEdit::keyPressEvent(e);
-  if (e->key() == Qt::Key_Space
-      && e->modifiers() & Qt::KeyboardModifier::ControlModifier)
+  if (e->key() == Qt::Key_Space && e->modifiers() & Qt::KeyboardModifier::ControlModifier)
     editingFinished(this->toPlainText());
 
   e->accept();
@@ -1186,7 +1170,7 @@ void JSEdit::updateSidebar()
     for (int number = 10; number < maxLines; number *= 10)
       ++digits;
 
-#if QT_VERSION < QT_VERSION_CHECK(5,11,0)
+#if QT_VERSION < QT_VERSION_CHECK(5, 11, 0)
     sw += fontMetrics().width('w') * digits;
 #else
     sw += fontMetrics().horizontalAdvance('w') * digits;
@@ -1195,7 +1179,7 @@ void JSEdit::updateSidebar()
   if (d->codeFolding)
   {
     int fh = fontMetrics().lineSpacing();
-#if QT_VERSION < QT_VERSION_CHECK(5,11,0)
+#if QT_VERSION < QT_VERSION_CHECK(5, 11, 0)
     int fw = fontMetrics().width('w');
 #else
     int fw = fontMetrics().horizontalAdvance('w');

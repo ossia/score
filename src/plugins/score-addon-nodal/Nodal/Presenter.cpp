@@ -1,30 +1,30 @@
+#include <Process/Drop/ProcessDropHandler.hpp>
+#include <Process/ProcessMimeSerialization.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <score/model/EntitySerialization.hpp>
+
+#include <ossia/detail/math.hpp>
+
+#include <QTimer>
+
 #include <Nodal/CommandFactory.hpp>
+#include <Nodal/Commands.hpp>
 #include <Nodal/Presenter.hpp>
 #include <Nodal/Process.hpp>
 #include <Nodal/View.hpp>
-#include <Nodal/Commands.hpp>
-#include <Process/Drop/ProcessDropHandler.hpp>
-#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
-#include <Process/ProcessMimeSerialization.hpp>
-#include <score/model/EntitySerialization.hpp>
-#include <QTimer>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <ossia/detail/math.hpp>
 
 namespace Nodal
 {
 
-
-Presenter::Presenter(
-    const Model& layer, View* view,
-    const Process::Context& ctx, QObject* parent)
+Presenter::Presenter(const Model& layer, View* view, const Process::Context& ctx, QObject* parent)
     : Process::LayerPresenter{layer, view, ctx, parent}, m_model{layer}, m_view{view}
 {
   bind(layer.nodes, *this);
 
-
-  connect(view, &View::dropReceived, this, [&] (const QPointF& pos, const QMimeData& mime) {
+  connect(view, &View::dropReceived, this, [&](const QPointF& pos, const QMimeData& mime) {
     const auto& ctx = context().context;
     if (mime.hasFormat(score::mime::processdata()))
     {
@@ -64,17 +64,16 @@ Presenter::Presenter(
     }
   });
 
-
   auto parentObj = m_model.parent();
-  while(parentObj && !qobject_cast<Scenario::IntervalModel*>(parentObj)){
+  while (parentObj && !qobject_cast<Scenario::IntervalModel*>(parentObj))
+  {
     parentObj = parentObj->parent();
   }
 
-  if(parentObj)
+  if (parentObj)
   {
     auto& dur = static_cast<Scenario::IntervalModel*>(parentObj)->duration;
-    m_con = con(ctx.execTimer, &QTimer::timeout,
-                this, [&] {
+    m_con = con(ctx.execTimer, &QTimer::timeout, this, [&] {
       {
         float p = ossia::clamp((float)dur.playPercentage(), 0.f, 1.f);
         for (Process::NodeItem& node : m_nodes)
@@ -85,8 +84,7 @@ Presenter::Presenter(
     });
   }
 
-  connect(&m_model, &Model::resetExecution,
-          this, [this] {
+  connect(&m_model, &Model::resetExecution, this, [this] {
     for (Process::NodeItem& node : m_nodes)
     {
       node.setPlayPercentage(0.f);
@@ -104,7 +102,7 @@ void Presenter::setWidth(qreal val, qreal defaultWidth)
   m_view->setWidth(val);
   m_defaultW = defaultWidth;
   const auto r = m_ratio * m_defaultW;
-  for(Process::NodeItem& node : m_nodes)
+  for (Process::NodeItem& node : m_nodes)
   {
     node.setZoomRatio(r);
   }
@@ -129,15 +127,13 @@ void Presenter::on_zoomRatioChanged(ZoomRatio ratio)
 {
   m_ratio = ratio;
   const auto r = m_ratio * m_defaultW;
-  for(Process::NodeItem& node : m_nodes)
+  for (Process::NodeItem& node : m_nodes)
   {
     node.setZoomRatio(r);
   }
 }
 
-void Presenter::parentGeometryChanged()
-{
-}
+void Presenter::parentGeometryChanged() { }
 
 void Presenter::on_created(Process::ProcessModel& n)
 {

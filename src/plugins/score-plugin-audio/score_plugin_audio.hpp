@@ -9,9 +9,9 @@
 
 #include <vector>
 class score_plugin_audio final : public score::ApplicationPlugin_QtInterface,
-                                  public score::FactoryList_QtInterface,
-                                  public score::FactoryInterface_QtInterface,
-                                  public score::Plugin_QtInterface
+                                 public score::FactoryList_QtInterface,
+                                 public score::FactoryInterface_QtInterface,
+                                 public score::Plugin_QtInterface
 {
   SCORE_PLUGIN_METADATA(1, "b29771b7-3f12-4255-af5d-4153b08e55cf")
 public:
@@ -22,8 +22,7 @@ private:
   score::GUIApplicationPlugin*
   make_guiApplicationPlugin(const score::GUIApplicationContext& app) override;
 
-  std::vector<std::unique_ptr<score::InterfaceListBase>>
-  factoryFamilies() override;
+  std::vector<std::unique_ptr<score::InterfaceListBase>> factoryFamilies() override;
 
   // Contains the OSC, MIDI, Minuit factories
   std::vector<std::unique_ptr<score::InterfaceBase>> factories(

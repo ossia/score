@@ -2,7 +2,9 @@
 #include "mesh.hpp"
 #include "node.hpp"
 #include "renderer.hpp"
+
 #include <isf.hpp>
+
 #include <list>
 
 struct ISFNode : NodeModel

@@ -1,14 +1,14 @@
 #pragma once
 #include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/TimeSignature.hpp>
 #include <Process/Instantiations.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
-#include <Process/Dataflow/TimeSignature.hpp>
 #include <Scenario/Document/Interval/ExecutionState.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
-#include <Scenario/Document/ModelConsistency.hpp>
 #include <Scenario/Document/Metatypes.hpp>
+#include <Scenario/Document/ModelConsistency.hpp>
 
 #include <score/model/Component.hpp>
 #include <score/model/EntityImpl.hpp>
@@ -18,11 +18,14 @@
 #include <score/selection/Selectable.hpp>
 #include <score/tools/Metadata.hpp>
 #include <score/tools/std/Optional.hpp>
+
 #include <ossia/detail/flat_map.hpp>
+
 #include <QObject>
 #include <QPointer>
 
 #include <nano_signal_slot.hpp>
+
 #include <verdigris>
 
 class DataStream;
@@ -38,9 +41,8 @@ class StateModel;
 class TempoProcess;
 
 using TimeSignatureMap = ossia::flat_map<TimeVal, Control::time_signature>;
-class SCORE_PLUGIN_SCENARIO_EXPORT IntervalModel final
-    : public score::Entity<IntervalModel>,
-      public Nano::Observer
+class SCORE_PLUGIN_SCENARIO_EXPORT IntervalModel final : public score::Entity<IntervalModel>,
+                                                         public Nano::Observer
 {
   W_OBJECT(IntervalModel)
 
@@ -60,15 +62,25 @@ public:
   IntervalDurations duration{*this};
 
   /** The class **/
-  IntervalModel(const Id<IntervalModel>&, double yPos, const score::DocumentContext& ctx, QObject* parent);
+  IntervalModel(
+      const Id<IntervalModel>&,
+      double yPos,
+      const score::DocumentContext& ctx,
+      QObject* parent);
 
   ~IntervalModel();
 
   // Serialization
   IntervalModel(DataStream::Deserializer& vis, const score::DocumentContext& ctx, QObject* parent);
   IntervalModel(JSONObject::Deserializer& vis, const score::DocumentContext& ctx, QObject* parent);
-  IntervalModel(DataStream::Deserializer&& vis, const score::DocumentContext& ctx, QObject* parent);
-  IntervalModel(JSONObject::Deserializer&& vis, const score::DocumentContext& ctx, QObject* parent);
+  IntervalModel(
+      DataStream::Deserializer&& vis,
+      const score::DocumentContext& ctx,
+      QObject* parent);
+  IntervalModel(
+      JSONObject::Deserializer&& vis,
+      const score::DocumentContext& ctx,
+      QObject* parent);
 
   const score::DocumentContext& context() const noexcept { return m_context; }
   const Id<StateModel>& startState() const;
@@ -101,8 +113,7 @@ public:
   };
   ViewMode viewMode() const noexcept;
   void setViewMode(ViewMode v);
-  void viewModeChanged(ViewMode v)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, viewModeChanged, v)
+  void viewModeChanged(ViewMode v) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, viewModeChanged, v)
 
   // Full view properties:
   ZoomRatio zoom() const;
@@ -177,43 +188,37 @@ public:
   void timeSignaturesChanged(const TimeSignatureMap& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, timeSignaturesChanged, arg_1)
 
-  PROPERTY(bool, timeSignature READ hasTimeSignature WRITE setHasTimeSignature NOTIFY hasTimeSignatureChanged)
+  PROPERTY(
+      bool,
+      timeSignature READ hasTimeSignature WRITE setHasTimeSignature NOTIFY hasTimeSignatureChanged)
 
 public:
-  void requestHeightChange(double y)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, requestHeightChange, y)
+  void requestHeightChange(double y) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, requestHeightChange, y)
   void heightPercentageChanged(double arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, heightPercentageChanged, arg_1)
 
-  void dateChanged(const TimeVal& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dateChanged, arg_1)
+  void dateChanged(const TimeVal& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dateChanged, arg_1)
 
-  void focusChanged(bool arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, focusChanged, arg_1)
+  void focusChanged(bool arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, focusChanged, arg_1)
   void executionStateChanged(Scenario::IntervalExecutionState arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executionStateChanged, arg_1)
-  void executionStarted()
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executionStarted)
-  void executionStopped()
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executionStopped)
-  void executionFinished()
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executionFinished)
+  void executionStarted() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executionStarted)
+  void executionStopped() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executionStopped)
+  void executionFinished() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executionFinished)
 
   void smallViewVisibleChanged(bool fv)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, smallViewVisibleChanged, fv)
 
   void rackChanged(Scenario::Slot::RackView fv)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, rackChanged, fv)
-  void slotAdded(Scenario::SlotId arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, slotAdded, arg_1)
+  void slotAdded(Scenario::SlotId arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, slotAdded, arg_1)
   void slotRemoved(Scenario::SlotId arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, slotRemoved, arg_1)
   void slotResized(Scenario::SlotId arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, slotResized, arg_1)
   void slotsSwapped(int slot1, int slot2, Slot::RackView fv)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, slotsSwapped, slot1, slot2, fv)
-  void heightFinishedChanging()
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, heightFinishedChanging)
+  void heightFinishedChanging() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, heightFinishedChanging)
 
   void layerAdded(Scenario::SlotId arg_1, Id<Process::ProcessModel> arg_2)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, layerAdded, arg_1, arg_2)
@@ -222,20 +227,19 @@ public:
   void frontLayerChanged(int arg_1, OptionalId<Process::ProcessModel> arg_2)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, frontLayerChanged, arg_1, arg_2)
 
-  void mutedChanged(bool arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, mutedChanged, arg_1)
-  void executingChanged(bool arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executingChanged, arg_1)
+  void mutedChanged(bool arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, mutedChanged, arg_1)
+  void executingChanged(bool arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executingChanged, arg_1)
 
-  void busChanged(bool arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, busChanged, arg_1)
+  void busChanged(bool arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, busChanged, arg_1)
 
-  void graphalChanged(bool arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, graphalChanged, arg_1)
+  void graphalChanged(bool arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, graphalChanged, arg_1)
 
   PROPERTY(bool, muted READ muted WRITE setMuted NOTIFY mutedChanged)
   PROPERTY(bool, graphal READ graphal WRITE setGraphal NOTIFY graphalChanged)
-  PROPERTY(double, heightPercentage READ heightPercentage WRITE setHeightPercentage NOTIFY heightPercentageChanged)
+  PROPERTY(
+      double,
+      heightPercentage READ heightPercentage WRITE setHeightPercentage NOTIFY
+          heightPercentageChanged)
 
 private:
   void on_addProcess(Process::ProcessModel&);
@@ -260,7 +264,7 @@ private:
   ZoomRatio m_zoom{-1};
   TimeVal m_center{};
   IntervalExecutionState m_executionState : 2;
-  ViewMode m_viewMode: 1;
+  ViewMode m_viewMode : 1;
   bool m_smallViewShown : 1;
   bool m_muted : 1;
   bool m_executing : 1;

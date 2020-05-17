@@ -16,7 +16,6 @@
 
 #include <QVariant>
 
-
 namespace score
 {
 class CommandStackFacade;
@@ -31,7 +30,7 @@ CreatePointCommandObject::CreatePointCommandObject(
 {
 }
 
-CreatePointCommandObject::~CreatePointCommandObject() {}
+CreatePointCommandObject::~CreatePointCommandObject() { }
 
 void CreatePointCommandObject::on_press()
 {
@@ -125,13 +124,14 @@ void CreatePointCommandObject::createPoint(std::vector<SegmentData>& segments)
   {
     // TODO refactor with MovePointState (line ~330)
     // The segment goes in the first half of "middle"
-    SegmentData newSegment{getSegmentId(segments),
-                           middle->start,
-                           m_state->currentPoint,
-                           middle->previous,
-                           middle->id,
-                           middle->type,
-                           middle->specificSegmentData};
+    SegmentData newSegment{
+        getSegmentId(segments),
+        middle->start,
+        m_state->currentPoint,
+        middle->previous,
+        middle->id,
+        middle->type,
+        middle->specificSegmentData};
 
     auto prev_it = find(segments, middle->previous);
     // TODO we shouldn't have to test for this, only test if middle->previous
@@ -186,8 +186,7 @@ void CreatePointCommandObject::createPoint(std::vector<SegmentData>& segments)
     }
     SegmentData& newLeftSegment = segments.back();
     newLeftSegment.type = Metadata<ConcreteKey_k, PowerSegment>::get();
-    newLeftSegment.specificSegmentData
-        = QVariant::fromValue(PowerSegmentData{0});
+    newLeftSegment.specificSegmentData = QVariant::fromValue(PowerSegmentData{0});
     newLeftSegment.start = {seg_closest_from_left_x, 0.};
     newLeftSegment.end = m_state->currentPoint;
 
@@ -210,8 +209,7 @@ void CreatePointCommandObject::createPoint(std::vector<SegmentData>& segments)
       }
       SegmentData& newRightSegment = segments.back();
       newRightSegment.type = Metadata<ConcreteKey_k, PowerSegment>::get();
-      newRightSegment.specificSegmentData
-          = QVariant::fromValue(PowerSegmentData{0});
+      newRightSegment.specificSegmentData = QVariant::fromValue(PowerSegmentData{0});
       newRightSegment.start = m_state->currentPoint;
       newRightSegment.end = {seg_closest_from_right_x, 0.};
 

@@ -1,6 +1,8 @@
 #pragma once
 #include <Process/Dataflow/ControlWidgets.hpp>
+
 #include <score/serialization/VisitorCommon.hpp>
+
 #include <ossia/network/domain/domain.hpp>
 
 namespace Process
@@ -199,11 +201,7 @@ struct SCORE_LIB_PROCESS_EXPORT LineEdit : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(LineEdit)
   using control_type = WidgetFactory::LineEdit;
-  LineEdit(
-      QString init,
-      const QString& name,
-      Id<Process::Port> id,
-      QObject* parent);
+  LineEdit(QString init, const QString& name, Id<Process::Port> id, QObject* parent);
   ~LineEdit();
 
   using Process::ControlInlet::ControlInlet;
@@ -286,16 +284,11 @@ struct SCORE_LIB_PROCESS_EXPORT Button : public Process::ControlInlet
   using Process::ControlInlet::ControlInlet;
 };
 
-
 struct SCORE_LIB_PROCESS_EXPORT HSVSlider : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(HSVSlider)
   using control_type = WidgetFactory::HSVSlider;
-  HSVSlider(
-      ossia::vec4f init,
-      const QString& name,
-      Id<Process::Port> id,
-      QObject* parent);
+  HSVSlider(ossia::vec4f init, const QString& name, Id<Process::Port> id, QObject* parent);
   ~HSVSlider();
 
   void setupExecution(ossia::inlet&) const noexcept override;
@@ -308,11 +301,7 @@ struct SCORE_LIB_PROCESS_EXPORT XYSlider : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(XYSlider)
   using control_type = WidgetFactory::XYSlider;
-  XYSlider(
-      ossia::vec2f init,
-      const QString& name,
-      Id<Process::Port> id,
-      QObject* parent);
+  XYSlider(ossia::vec2f init, const QString& name, Id<Process::Port> id, QObject* parent);
   ~XYSlider();
 
   auto getMin() const noexcept { return ossia::vec4f{0., 0.}; }

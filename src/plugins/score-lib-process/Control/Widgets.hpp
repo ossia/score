@@ -2,22 +2,22 @@
 #include <Process/Dataflow/WidgetInlets.hpp>
 
 #include <score/plugins/DeserializeKnownSubType.hpp>
-#include <ossia/dataflow/safe_nodes/port.hpp>
-#include <score_lib_process_export.h>
+
 #include <ossia/dataflow/port.hpp>
+#include <ossia/dataflow/safe_nodes/port.hpp>
+
+#include <score_lib_process_export.h>
 namespace Control
 {
 
-struct OutControl final
-    : ossia::safe_nodes::control_out
+struct OutControl final : ossia::safe_nodes::control_out
 {
   static const constexpr bool must_validate = false;
   using type = ossia::value;
   using port_type = Process::ControlOutlet;
 
   template <std::size_t N>
-  constexpr OutControl(const char (&name)[N])
-      : ossia::safe_nodes::control_out{name}
+  constexpr OutControl(const char (&name)[N]) : ossia::safe_nodes::control_out{name}
   {
   }
 
@@ -34,17 +34,12 @@ struct OutControl final
     return deserialize_known_interface<Process::ControlOutlet>(id, parent);
   }
 
-  const ossia::value& fromValue(const ossia::value& v) const
-  {
-    return v;
-  }
+  const ossia::value& fromValue(const ossia::value& v) const { return v; }
   const ossia::value& toValue(const ossia::value& v) const { return v; }
 };
 
-template<typename T>
-struct FloatControl final
-    : ossia::safe_nodes::control_in
-    , WidgetFactory::FloatControl<T>
+template <typename T>
+struct FloatControl final : ossia::safe_nodes::control_in, WidgetFactory::FloatControl<T>
 {
   static const constexpr bool must_validate = false;
   using type = float;
@@ -65,12 +60,7 @@ struct FloatControl final
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
     return new Process::FloatSlider{
-        min,
-        max,
-        init,
-        QString::fromUtf8(name.data(), name.size()),
-        id,
-        parent};
+        min, max, init, QString::fromUtf8(name.data(), name.size()), id, parent};
   }
   auto create_inlet(DataStream::Deserializer& id, QObject* parent) const
   {
@@ -86,17 +76,12 @@ struct FloatControl final
     v->domain = ossia::domain_base<float>(this->min, this->max);
   }
 
-  float fromValue(const ossia::value& v) const
-  {
-    return ossia::convert<float>(v);
-  }
+  float fromValue(const ossia::value& v) const { return ossia::convert<float>(v); }
   ossia::value toValue(float v) const { return v; }
 };
 
-template<typename T>
-struct LogFloatControl final
-    : ossia::safe_nodes::control_in
-    , WidgetFactory::LogFloatControl<T>
+template <typename T>
+struct LogFloatControl final : ossia::safe_nodes::control_in, WidgetFactory::LogFloatControl<T>
 {
   static const constexpr bool must_validate = false;
   using type = float;
@@ -117,12 +102,7 @@ struct LogFloatControl final
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
     return new Process::LogFloatSlider{
-        min,
-        max,
-        init,
-        QString::fromUtf8(name.data(), name.size()),
-        id,
-        parent};
+        min, max, init, QString::fromUtf8(name.data(), name.size()), id, parent};
   }
   auto create_inlet(DataStream::Deserializer& id, QObject* parent) const
   {
@@ -138,10 +118,7 @@ struct LogFloatControl final
     v->domain = ossia::domain_base<float>(this->min, this->max);
   }
 
-  float fromValue(const ossia::value& v) const
-  {
-    return ossia::convert<float>(v);
-  }
+  float fromValue(const ossia::value& v) const { return ossia::convert<float>(v); }
   ossia::value toValue(float v) const { return v; }
 };
 
@@ -150,8 +127,7 @@ using FloatKnob = FloatControl<score::QGraphicsKnob>;
 using LogFloatSlider = LogFloatControl<score::QGraphicsLogSlider>;
 using LogFloatKnob = LogFloatControl<score::QGraphicsLogKnob>;
 
-struct IntSlider final : ossia::safe_nodes::control_in,
-                         WidgetFactory::IntSlider
+struct IntSlider final : ossia::safe_nodes::control_in, WidgetFactory::IntSlider
 {
   using type = int;
   using port_type = Process::IntSlider;
@@ -174,12 +150,8 @@ struct IntSlider final : ossia::safe_nodes::control_in,
 
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
-    return new Process::IntSlider{min,
-                                  max,
-                                  init,
-                                  QString::fromUtf8(name.data(), name.size()),
-                                  id,
-                                  parent};
+    return new Process::IntSlider{
+        min, max, init, QString::fromUtf8(name.data(), name.size()), id, parent};
   }
   auto create_inlet(DataStream::Deserializer& id, QObject* parent) const
   {
@@ -196,8 +168,7 @@ struct IntSlider final : ossia::safe_nodes::control_in,
   }
 };
 
-struct IntSpinBox final : ossia::safe_nodes::control_in,
-                          WidgetFactory::IntSpinBox
+struct IntSpinBox final : ossia::safe_nodes::control_in, WidgetFactory::IntSpinBox
 {
   static const constexpr bool must_validate = false;
   using type = int;
@@ -220,12 +191,8 @@ struct IntSpinBox final : ossia::safe_nodes::control_in,
 
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
-    return new Process::IntSpinBox{min,
-                                   max,
-                                   init,
-                                   QString::fromUtf8(name.data(), name.size()),
-                                   id,
-                                   parent};
+    return new Process::IntSpinBox{
+        min, max, init, QString::fromUtf8(name.data(), name.size()), id, parent};
   }
   auto create_inlet(DataStream::Deserializer& id, QObject* parent) const
   {
@@ -244,8 +211,7 @@ struct Toggle final : ossia::safe_nodes::control_in, WidgetFactory::Toggle
 {
   static const constexpr bool must_validate = false;
   template <std::size_t N>
-  constexpr Toggle(const char (&name)[N], bool v1)
-      : ossia::safe_nodes::control_in{name}, init{v1}
+  constexpr Toggle(const char (&name)[N], bool v1) : ossia::safe_nodes::control_in{name}, init{v1}
   {
   }
 
@@ -254,8 +220,7 @@ struct Toggle final : ossia::safe_nodes::control_in, WidgetFactory::Toggle
   const bool init{};
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
-    return new Process::Toggle{
-        init, QString::fromUtf8(name.data(), name.size()), id, parent};
+    return new Process::Toggle{init, QString::fromUtf8(name.data(), name.size()), id, parent};
   }
   auto create_inlet(DataStream::Deserializer& id, QObject* parent) const
   {
@@ -266,27 +231,17 @@ struct Toggle final : ossia::safe_nodes::control_in, WidgetFactory::Toggle
     return deserialize_known_interface<Process::Toggle>(id, parent);
   }
 
-  bool fromValue(const ossia::value& v) const
-  {
-    return ossia::convert<bool>(v);
-  }
+  bool fromValue(const ossia::value& v) const { return ossia::convert<bool>(v); }
   ossia::value toValue(bool v) const { return v; }
 
-  void setup_exec(ossia::value_inlet& v) const
-  {
-    v->domain = ossia::domain_base<bool>();
-  }
+  void setup_exec(ossia::value_inlet& v) const { v->domain = ossia::domain_base<bool>(); }
 };
 
-struct ChooserToggle final : ossia::safe_nodes::control_in,
-                             WidgetFactory::ChooserToggle
+struct ChooserToggle final : ossia::safe_nodes::control_in, WidgetFactory::ChooserToggle
 {
   static const constexpr bool must_validate = false;
   template <std::size_t N>
-  constexpr ChooserToggle(
-      const char (&name)[N],
-      std::array<const char*, 2> alt,
-      bool v1)
+  constexpr ChooserToggle(const char (&name)[N], std::array<const char*, 2> alt, bool v1)
       : ossia::safe_nodes::control_in{name}, alternatives{alt}, init{v1}
   {
   }
@@ -295,10 +250,7 @@ struct ChooserToggle final : ossia::safe_nodes::control_in,
   std::array<const char*, 2> alternatives;
   const bool init{};
 
-  bool fromValue(const ossia::value& v) const
-  {
-    return ossia::convert<bool>(v);
-  }
+  bool fromValue(const ossia::value& v) const { return ossia::convert<bool>(v); }
   ossia::value toValue(bool v) const { return v; }
 
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
@@ -318,10 +270,7 @@ struct ChooserToggle final : ossia::safe_nodes::control_in,
   {
     return deserialize_known_interface<Process::ChooserToggle>(id, parent);
   }
-  void setup_exec(ossia::value_inlet& v) const
-  {
-    v->domain = ossia::domain_base<bool>();
-  }
+  void setup_exec(ossia::value_inlet& v) const { v->domain = ossia::domain_base<bool>(); }
 };
 struct LineEdit final : ossia::safe_nodes::control_in, WidgetFactory::LineEdit
 {
@@ -332,22 +281,15 @@ struct LineEdit final : ossia::safe_nodes::control_in, WidgetFactory::LineEdit
   {
   }
 
-  std::string fromValue(const ossia::value& v) const
-  {
-    return ossia::convert<std::string>(v);
-  }
-  ossia::value toValue(std::string v) const
-  {
-    return ossia::value{std::move(v)};
-  }
+  std::string fromValue(const ossia::value& v) const { return ossia::convert<std::string>(v); }
+  ossia::value toValue(std::string v) const { return ossia::value{std::move(v)}; }
 
   using type = std::string;
   using port_type = Process::LineEdit;
   const QLatin1String init{};
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
-    return new Process::LineEdit{
-        init, QString::fromUtf8(name.data(), name.size()), id, parent};
+    return new Process::LineEdit{init, QString::fromUtf8(name.data(), name.size()), id, parent};
   }
   auto create_inlet(DataStream::Deserializer& id, QObject* parent) const
   {
@@ -357,9 +299,7 @@ struct LineEdit final : ossia::safe_nodes::control_in, WidgetFactory::LineEdit
   {
     return deserialize_known_interface<Process::LineEdit>(id, parent);
   }
-  void setup_exec(ossia::value_inlet& v) const
-  {
-  }
+  void setup_exec(ossia::value_inlet& v) const { }
 };
 
 template <typename T, std::size_t N>
@@ -383,10 +323,11 @@ struct ComboBox final : ossia::safe_nodes::control_in, WidgetFactory::ComboBox
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
     std::vector<std::pair<QString, ossia::value>> vec;
-    for(auto& v : values)
+    for (auto& v : values)
       vec.emplace_back(v.first, v.second);
 
-    return new Process::ComboBox(vec, values[init].second, QString::fromUtf8(name.data(), name.size()), id, parent);
+    return new Process::ComboBox(
+        vec, values[init].second, QString::fromUtf8(name.data(), name.size()), id, parent);
   }
   auto create_inlet(DataStream::Deserializer& id, QObject* parent) const
   {
@@ -400,9 +341,7 @@ struct ComboBox final : ossia::safe_nodes::control_in, WidgetFactory::ComboBox
   T fromValue(const ossia::value& v) const { return ossia::convert<T>(v); }
   ossia::value toValue(T v) const { return ossia::value{std::move(v)}; }
 
-  void setup_exec(ossia::value_inlet& v) const
-  {
-  }
+  void setup_exec(ossia::value_inlet& v) const { }
 };
 
 template <typename ArrT>
@@ -412,37 +351,39 @@ struct EnumBase : ossia::safe_nodes::control_in, WidgetFactory::Enum
   using port_type = Process::Enum;
   const std::size_t init{};
   const ArrT values;
-  using Pixmaps_T = std::array<const char *, 2 * ArrT{}.size()>;
+  using Pixmaps_T = std::array<const char*, 2 * ArrT{}.size()>;
   Pixmaps_T pixmaps;
 
   const auto& getValues() const { return values; }
 
   template <std::size_t N1>
   constexpr EnumBase(const char (&name)[N1], std::size_t i, const ArrT& v)
-    : ossia::safe_nodes::control_in{name}, init{i}, values{v}, pixmaps{}
+      : ossia::safe_nodes::control_in{name}, init{i}, values{v}, pixmaps{}
   {
   }
 
   template <std::size_t N1>
-  constexpr EnumBase(const char (&name)[N1], std::size_t i, const ArrT& v, const Pixmaps_T& pixmaps)
-    : ossia::safe_nodes::control_in{name}, init{i}, values{v}, pixmaps{pixmaps}
+  constexpr EnumBase(
+      const char (&name)[N1],
+      std::size_t i,
+      const ArrT& v,
+      const Pixmaps_T& pixmaps)
+      : ossia::safe_nodes::control_in{name}, init{i}, values{v}, pixmaps{pixmaps}
   {
   }
 
-  ossia::value toValue(std::string v) const
-  {
-    return ossia::value{std::move(v)};
-  }
+  ossia::value toValue(std::string v) const { return ossia::value{std::move(v)}; }
 
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
     return new Process::Enum{
-      ossia::flat_set<std::string>(values.begin(), values.end()),
-      pixmaps[0] == nullptr ? std::vector<QString>{} : std::vector<QString>{pixmaps.begin(), pixmaps.end()},
-      values[init],
-      QString::fromUtf8(name.data(), name.size()),
-      id,
-      parent};
+        ossia::flat_set<std::string>(values.begin(), values.end()),
+        pixmaps[0] == nullptr ? std::vector<QString>{}
+                              : std::vector<QString>{pixmaps.begin(), pixmaps.end()},
+        values[init],
+        QString::fromUtf8(name.data(), name.size()),
+        id,
+        parent};
   }
   auto create_inlet(DataStream::Deserializer& id, QObject* parent) const
   {
@@ -453,9 +394,7 @@ struct EnumBase : ossia::safe_nodes::control_in, WidgetFactory::Enum
     return deserialize_known_interface<Process::Enum>(id, parent);
   }
 
-  void setup_exec(ossia::value_inlet& v) const
-  {
-  }
+  void setup_exec(ossia::value_inlet& v) const { }
 };
 
 template <typename ArrT>
@@ -535,9 +474,7 @@ struct TimeSignatureChooser final : ossia::safe_nodes::control_in,
   {
     return deserialize_known_interface<Process::TimeSignatureChooser>(id, parent);
   }
-  void setup_exec(ossia::value_inlet& v) const
-  {
-  }
+  void setup_exec(ossia::value_inlet& v) const { }
 };
 
 template <typename T1, typename T2>
@@ -567,9 +504,7 @@ struct RGBAEdit final : ossia::safe_nodes::control_in, WidgetFactory::RGBAEdit
   static const constexpr bool must_validate = false;
   using type = std::array<float, 4>;
   std::array<float, 4> init{};
-  void setup_exec(ossia::value_inlet& v) const
-  {
-  }
+  void setup_exec(ossia::value_inlet& v) const { }
 };
 
 // TODO XYZEdit
@@ -578,8 +513,6 @@ struct XYZEdit final : ossia::safe_nodes::control_in, WidgetFactory::XYZEdit
   static const constexpr bool must_validate = false;
   using type = std::array<float, 3>;
   std::array<float, 3> init{};
-  void setup_exec(ossia::value_inlet& v) const
-  {
-  }
+  void setup_exec(ossia::value_inlet& v) const { }
 };
 }

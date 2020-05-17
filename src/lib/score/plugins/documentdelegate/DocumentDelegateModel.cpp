@@ -6,5 +6,5 @@
 W_OBJECT_IMPL(score::DocumentDelegateModel)
 namespace score
 {
-DocumentDelegateModel::~DocumentDelegateModel() {}
+DocumentDelegateModel::~DocumentDelegateModel() { }
 }

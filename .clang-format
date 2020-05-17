@@ -34,7 +34,7 @@ BreakBeforeBinaryOperators: All
 BreakBeforeBraces: Allman
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializersBeforeComma: true
-ColumnLimit: 79
+ColumnLimit: 99
 CommentPragmas: '^ IWYU pragma:'
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
 ConstructorInitializerIndentWidth: 4
@@ -70,6 +70,7 @@ Standard: Cpp11
 TabWidth: 2
 UseTab: Never
 
+StatementMacros: ['E_SIGNAL', 'PROPERTY', 'W_SIGNAL', 'W_PROPERTY', 'W_SLOT']
 SortIncludes: true
 IncludeBlocks: Regroup
 IncludeCategories:

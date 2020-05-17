@@ -3,9 +3,10 @@
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 
-#include <score/plugins/SerializableHelpers.hpp>
-#include <score/model/EntitySerialization.hpp>
 #include <score/model/EntityMapSerialization.hpp>
+#include <score/model/EntitySerialization.hpp>
+#include <score/plugins/SerializableHelpers.hpp>
+
 #include <Effect/EffectFactory.hpp>
 #include <wobjectimpl.h>
 
@@ -16,7 +17,7 @@ namespace Media::SynthChain
 ProcessModel::ProcessModel(
     const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
-      const score::DocumentContext& ctx,
+    const score::DocumentContext& ctx,
     QObject* parent)
     : ChainProcess{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), ctx, parent}
     , inlet{Process::make_midi_inlet(Id<Process::Port>(0), this)}
@@ -28,12 +29,9 @@ ProcessModel::ProcessModel(
   init();
 }
 
-ProcessModel::~ProcessModel()
-{
-}
+ProcessModel::~ProcessModel() { }
 
 }
-
 
 template <>
 void DataStreamReader::read(const Media::SynthChain::ProcessModel& proc)
@@ -107,4 +105,3 @@ void JSONWriter::write(Media::SynthChain::ProcessModel& proc)
       SCORE_TODO;
   }
 }
-

@@ -1,10 +1,13 @@
 #pragma once
-#include <State/Address.hpp>
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Node/DeviceNode.hpp>
+#include <State/Address.hpp>
+
 #include <QComboBox>
-#include <verdigris>
+
 #include <score_lib_process_export.h>
+
+#include <verdigris>
 namespace Process
 {
 class Port;
@@ -12,10 +15,7 @@ class SCORE_LIB_PROCESS_EXPORT AudioPortComboBox final : public QComboBox
 {
   W_OBJECT(AudioPortComboBox)
 public:
-  AudioPortComboBox(
-          const State::Address& rootAddress,
-          const Device::Node& node,
-          QWidget* parent);
+  AudioPortComboBox(const State::Address& rootAddress, const Device::Node& node, QWidget* parent);
 
   void setAddress(const State::Address& addr);
 
@@ -40,10 +40,10 @@ QWidget* makeAddressCombo(
 
 SCORE_LIB_PROCESS_EXPORT
 QWidget* makeMidiCombo(
-        QStringList devices,
-        const Process::Port& port,
-        const score::DocumentContext& ctx,
-        QWidget* parent);
+    QStringList devices,
+    const Process::Port& port,
+    const score::DocumentContext& ctx,
+    QWidget* parent);
 /*
 class SCORE_LIB_PROCESS_EXPORT MidiPortComboBox final : public QComboBox
 {

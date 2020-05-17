@@ -15,8 +15,7 @@ void TSerializer<DataStream, ossia::unit_t>::readFrom(
 
   if (var)
   {
-    ossia::apply_nonnull(
-        [&](auto unit) { s.stream() << (quint64)unit.which(); }, var.v);
+    ossia::apply_nonnull([&](auto unit) { s.stream() << (quint64)unit.which(); }, var.v);
   }
 
   s.insertDelimiter();
@@ -113,32 +112,27 @@ SCORE_LIB_STATE_EXPORT void JSONWriter::write(ossia::domain& n)
 /// Instance bounds ///
 
 template <>
-SCORE_LIB_STATE_EXPORT void
-DataStreamReader::read(const ossia::net::instance_bounds& n)
+SCORE_LIB_STATE_EXPORT void DataStreamReader::read(const ossia::net::instance_bounds& n)
 {
   m_stream << n.min_instances << n.max_instances;
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void
-DataStreamWriter::write(ossia::net::instance_bounds& n)
+SCORE_LIB_STATE_EXPORT void DataStreamWriter::write(ossia::net::instance_bounds& n)
 {
   m_stream >> n.min_instances >> n.max_instances;
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void
-JSONReader::read(const ossia::net::instance_bounds& b)
+SCORE_LIB_STATE_EXPORT void JSONReader::read(const ossia::net::instance_bounds& b)
 {
   obj[strings.Min] = b.min_instances;
   obj[strings.Max] = b.max_instances;
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void
-JSONWriter::write(ossia::net::instance_bounds& n)
+SCORE_LIB_STATE_EXPORT void JSONWriter::write(ossia::net::instance_bounds& n)
 {
   n.min_instances = obj[strings.Min].toInt();
   n.max_instances = obj[strings.Max].toInt();
 }
-

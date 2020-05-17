@@ -7,9 +7,8 @@
 
 #include <QObject>
 
-#include <verdigris>
-
 #include <vector>
+#include <verdigris>
 
 class BaseGraphicsObject;
 namespace Scenario
@@ -21,18 +20,14 @@ class IntervalModel;
 // BaseScenarioModel)
 class SCORE_PLUGIN_SCENARIO_EXPORT DisplayedElementsPresenter final
     : public QObject,
-      public BaseScenarioPresenter<
-          DisplayedElementsModel,
-          FullViewIntervalPresenter>
+      public BaseScenarioPresenter<DisplayedElementsModel, FullViewIntervalPresenter>
 {
   W_OBJECT(DisplayedElementsPresenter)
 public:
   DisplayedElementsPresenter(ScenarioDocumentPresenter& parent);
   ~DisplayedElementsPresenter();
   using QObject::event;
-  using BaseScenarioPresenter<
-      DisplayedElementsModel,
-      FullViewIntervalPresenter>::event;
+  using BaseScenarioPresenter<DisplayedElementsModel, FullViewIntervalPresenter>::event;
 
   BaseGraphicsObject& view() const;
 
@@ -50,10 +45,8 @@ public:
   void remove();
 
 public:
-  void requestFocusedPresenterChange(Process::LayerPresenter* arg_1) E_SIGNAL(
-      SCORE_PLUGIN_SCENARIO_EXPORT,
-      requestFocusedPresenterChange,
-      arg_1)
+  void requestFocusedPresenterChange(Process::LayerPresenter* arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, requestFocusedPresenterChange, arg_1)
 
 private:
   void on_intervalExecutionTimer();

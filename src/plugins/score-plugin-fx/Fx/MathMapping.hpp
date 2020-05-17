@@ -15,11 +15,11 @@ struct Node
     static const constexpr auto kind = Process::ProcessCategory::Mapping;
     static const constexpr auto description
         = "Applies a math expression to an input.\n"
-          "Available variables: a,b,c, t (samples), dt (delta), pos (position in parent), x (value)\n"
+          "Available variables: a,b,c, t (samples), dt (delta), pos (position "
+          "in parent), x (value)\n"
           "See the documentation at http://www.partow.net/programming/exprtk";
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const uuid_constexpr auto uuid
-        = make_uuid("ae84e8b6-74ff-4259-aeeb-305d95cdfcab");
+    static const uuid_constexpr auto uuid = make_uuid("ae84e8b6-74ff-4259-aeeb-305d95cdfcab");
 
     static const constexpr value_in value_ins[]{"in"};
     static const constexpr value_out value_outs[]{"out"};
@@ -87,7 +87,7 @@ struct Node
     }
   }
 
-  template<typename... Args>
+  template <typename... Args>
   static void item(Args&&... args)
   {
     Nodes::mathItem(Metadata::controls, std::forward<Args>(args)...);
@@ -109,11 +109,11 @@ struct Node
     static const constexpr auto kind = Process::ProcessCategory::AudioEffect;
     static const constexpr auto description
         = "Applies a math expression to an audio input.\n"
-          "Available variables: a,b,c, t (samples), fs (sampling frequency), \n"
+          "Available variables: a,b,c, t (samples), fs (sampling frequency), "
+          "\n"
           "x (value), px (previous value)\n"
           "See the documentation at http://www.partow.net/programming/exprtk";
-    static const uuid_constexpr auto uuid
-        = make_uuid("13e1f4b0-1c2c-40e6-93ad-dfc91aac5335");
+    static const uuid_constexpr auto uuid = make_uuid("13e1f4b0-1c2c-40e6-93ad-dfc91aac5335");
 
     static const constexpr audio_in audio_ins[]{"in"};
     static const constexpr audio_out audio_outs[]{"out"};
@@ -197,7 +197,7 @@ struct Node
     }
   }
 
-  template<typename... Args>
+  template <typename... Args>
   static void item(Args&&... args)
   {
     Nodes::mathItem(Metadata::controls, std::forward<Args>(args)...);
@@ -206,13 +206,22 @@ struct Node
 }
 }
 
-namespace Control{
+namespace Control
+{
 template <>
-struct HasCustomUI<Nodes::MathAudioFilter::Node> : std::true_type { };
+struct HasCustomUI<Nodes::MathAudioFilter::Node> : std::true_type
+{
+};
 template <>
-struct HasCustomUI<Nodes::MathAudioGenerator::Node> : std::true_type { };
+struct HasCustomUI<Nodes::MathAudioGenerator::Node> : std::true_type
+{
+};
 template <>
-struct HasCustomUI<Nodes::MathMapping::Node> : std::true_type { };
+struct HasCustomUI<Nodes::MathMapping::Node> : std::true_type
+{
+};
 template <>
-struct HasCustomUI<Nodes::MathGenerator::Node> : std::true_type { };
+struct HasCustomUI<Nodes::MathGenerator::Node> : std::true_type
+{
+};
 }

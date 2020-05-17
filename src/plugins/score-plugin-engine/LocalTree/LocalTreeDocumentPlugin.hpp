@@ -1,9 +1,9 @@
 #pragma once
 
-#include <LocalTree/Device/LocalDevice.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score/tools/Metadata.hpp>
 
+#include <LocalTree/Device/LocalDevice.hpp>
 #include <score_plugin_engine_export.h>
 namespace score
 {
@@ -22,14 +22,10 @@ class StateModel;
 namespace LocalTree
 {
 class Interval;
-class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final
-    : public score::DocumentPlugin
+class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final : public score::DocumentPlugin
 {
 public:
-  DocumentPlugin(
-      const score::DocumentContext& doc,
-      Id<score::DocumentPlugin> id,
-      QObject* parent);
+  DocumentPlugin(const score::DocumentContext& doc, Id<score::DocumentPlugin> id, QObject* parent);
 
   ~DocumentPlugin();
 

@@ -6,10 +6,10 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/Settings/ExplorerModel.hpp>
+#include <Loop/LoopProcessModel.hpp>
 #include <Process/ExecutionContext.hpp>
-#include <Process/TimeValue.hpp>
 #include <Process/Style/Pixmaps.hpp>
-
+#include <Process/TimeValue.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
@@ -18,20 +18,21 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
 #include <Scenario/Inspector/Interval/SpeedSlider.hpp>
-#include <Loop/LoopProcessModel.hpp>
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
 #include <score/actions/ActionManager.hpp>
+#include <score/actions/ToolbarManager.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
+#include <score/tools/Bind.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/widgets/ControlWidgets.hpp>
 #include <score/widgets/DoubleSlider.hpp>
-#include <score/widgets/SetIcons.hpp>
 #include <score/widgets/MessageBox.hpp>
+#include <score/widgets/SetIcons.hpp>
 #include <score/widgets/SpinBoxes.hpp>
-#include <score/tools/Bind.hpp>
-#include <score/actions/ToolbarManager.hpp>
+
 #include <core/application/ApplicationInterface.hpp>
 #include <core/application/ApplicationSettings.hpp>
 #include <core/document/Document.hpp>
@@ -46,10 +47,11 @@
 
 #include <QAction>
 #include <QLabel>
+#include <QMainWindow>
 #include <QTabWidget>
 #include <QToolBar>
-#include <QMainWindow>
 
+#include <Audio/AudioApplicationPlugin.hpp>
 #include <Execution/BaseScenarioComponent.hpp>
 #include <Execution/Clock/ClockFactory.hpp>
 #include <Execution/ContextMenu/PlayContextMenu.hpp>
@@ -58,9 +60,6 @@
 #include <LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <wobjectimpl.h>
 
-#include <Audio/AudioApplicationPlugin.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <vector>
 
 namespace Engine
@@ -121,8 +120,7 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
         &ApplicationPlugin::on_init,
         Qt::QueuedConnection);
 
-    auto& ctrl
-        = ctx.guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
+    auto& ctrl = ctx.guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
     con(ctrl.execution(),
         &Scenario::ScenarioExecution::playAtDate,
         this,
@@ -155,9 +153,8 @@ bool ApplicationPlugin::handleStartup()
     if (context.applicationSettings.autoplay)
     {
       // TODO what happens if we load multiple documents ?
-        QTimer::singleShot(context.applicationSettings.waitAfterLoad * 1000, this, [=] {
-            on_play(true);
-        });
+      QTimer::singleShot(
+          context.applicationSettings.waitAfterLoad * 1000, this, [=] { on_play(true); });
       return true;
     }
   }
@@ -171,16 +168,16 @@ void ApplicationPlugin::initialize()
   // See TransportActions::makeGUIElements
   auto& toolbars = this->context.toolbars.get();
   auto transport_toolbar = toolbars.find(StringKey<score::Toolbar>("Transport"));
-  if(transport_toolbar != toolbars.end())
+  if (transport_toolbar != toolbars.end())
   {
     const auto& tb = transport_toolbar->second.toolbar();
-    if(tb)
+    if (tb)
     {
       auto cld = tb->children();
-      if(!cld.empty())
+      if (!cld.empty())
       {
         auto label = tb->findChild<QLabel*>("TimeLabel");
-        if(label)
+        if (label)
           setupTimingWidget(label);
 
         m_speedSlider = dynamic_cast<Scenario::SpeedWidget*>(cld.back());
@@ -206,7 +203,6 @@ QWidget* ApplicationPlugin::setupTimingWidget(QLabel* time_label) const
   });
   timer->start(1000 / 20);
   return time_label;
-
 }
 score::GUIElements ApplicationPlugin::makeGUIElements()
 {
@@ -220,21 +216,18 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
   {
     auto ui_toolbar = new QToolBar(tr("Interval"));
     toolbars.emplace_back(
-        ui_toolbar,
-        StringKey<score::Toolbar>("UISetup"),
-        Qt::BottomToolBarArea,
-        10);
+        ui_toolbar, StringKey<score::Toolbar>("UISetup"), Qt::BottomToolBarArea, 10);
 
     auto actgrp = new QActionGroup{ui_toolbar};
     {
       auto timeline_act = new QAction{tr("Timeline interval"), actgrp};
       timeline_act->setCheckable(true);
       timeline_act->setStatusTip(tr("Change between nodal and timeline mode"));
-      setIcons(timeline_act
-               , QStringLiteral(":/icons/timeline_on.png")
-               , QStringLiteral(":/icons/timeline_off.png")
-               , QStringLiteral(":/icons/timeline_disabled.png")
-               );
+      setIcons(
+          timeline_act,
+          QStringLiteral(":/icons/timeline_on.png"),
+          QStringLiteral(":/icons/timeline_off.png"),
+          QStringLiteral(":/icons/timeline_disabled.png"));
 
       ui_toolbar->addAction(timeline_act);
       actgrp->addAction(timeline_act);
@@ -244,11 +237,11 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
       auto nodal_act = new QAction{tr("Nodal interval"), actgrp};
       nodal_act->setCheckable(true);
       nodal_act->setStatusTip(tr("Change between nodal and timeline mode"));
-      setIcons(nodal_act
-               , QStringLiteral(":/icons/nodal_on.png")
-               , QStringLiteral(":/icons/nodal_off.png")
-               , QStringLiteral(":/icons/nodal_disabled.png")
-               );
+      setIcons(
+          nodal_act,
+          QStringLiteral(":/icons/nodal_on.png"),
+          QStringLiteral(":/icons/nodal_off.png"),
+          QStringLiteral(":/icons/nodal_disabled.png"));
 
       ui_toolbar->addAction(nodal_act);
       actgrp->addAction(nodal_act);
@@ -259,21 +252,19 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
       musical_act->setCheckable(true);
       musical_act->setChecked(true);
       musical_act->setStatusTip(tr("Enable musical mode"));
-      setIcons(musical_act
-               , QStringLiteral(":/icons/music_on.png")
-               , QStringLiteral(":/icons/music_off.png")
-               , QStringLiteral(":/icons/music_disabled.png")
-               );
-      connect(musical_act, &QAction::toggled, this, [this] (bool ok) {
+      setIcons(
+          musical_act,
+          QStringLiteral(":/icons/music_on.png"),
+          QStringLiteral(":/icons/music_off.png"),
+          QStringLiteral(":/icons/music_disabled.png"));
+      connect(musical_act, &QAction::toggled, this, [this](bool ok) {
         auto& settings = this->context.settings<Scenario::Settings::Model>();
         settings.setMeasureBars(ok);
         settings.setMagneticMeasures(ok);
         score::TimeSpinBox::setGlobalTimeMode(
-              ok
-              ? score::TimeSpinBox::TimeMode::Bars
-              : score::TimeSpinBox::TimeMode::Seconds);
+            ok ? score::TimeSpinBox::TimeMode::Bars : score::TimeSpinBox::TimeMode::Seconds);
 
-        if(auto doc = this->currentDocument())
+        if (auto doc = this->currentDocument())
         {
           auto& mod = doc->model().modelDelegate();
           auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(&mod);
@@ -293,7 +284,6 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     }
   }
 
-
   return e;
 }
 
@@ -306,8 +296,7 @@ void ApplicationPlugin::on_initDocument(score::Document& doc)
 
 void ApplicationPlugin::on_createdDocument(score::Document& doc)
 {
-  LocalTree::DocumentPlugin* lt
-      = doc.context().findPlugin<LocalTree::DocumentPlugin>();
+  LocalTree::DocumentPlugin* lt = doc.context().findPlugin<LocalTree::DocumentPlugin>();
   if (lt)
   {
     lt->init();
@@ -316,9 +305,7 @@ void ApplicationPlugin::on_createdDocument(score::Document& doc)
   score::addDocumentPlugin<Execution::DocumentPlugin>(doc);
 }
 
-void ApplicationPlugin::on_documentChanged(
-    score::Document* olddoc,
-    score::Document* newdoc)
+void ApplicationPlugin::on_documentChanged(score::Document* olddoc, score::Document* newdoc)
 {
   if (olddoc)
   {
@@ -344,8 +331,7 @@ void ApplicationPlugin::on_documentChanged(
     */
 
     // Setup speed toolbar
-    auto& root
-        = score::IDocument::get<Scenario::ScenarioDocumentModel>(*newdoc);
+    auto& root = score::IDocument::get<Scenario::ScenarioDocumentModel>(*newdoc);
 
     if (context.applicationSettings.gui)
     {
@@ -354,10 +340,8 @@ void ApplicationPlugin::on_documentChanged(
     }
 
     // Setup audio & devices
-    auto& doc_plugin
-        = newdoc->context().plugin<Explorer::DeviceDocumentPlugin>();
-    auto* set
-        = newdoc->context().findPlugin<Explorer::ProjectSettings::Model>();
+    auto& doc_plugin = newdoc->context().plugin<Explorer::DeviceDocumentPlugin>();
+    auto* set = newdoc->context().findPlugin<Explorer::ProjectSettings::Model>();
     if (set)
     {
       if (set->getReconnectOnStart())
@@ -410,8 +394,7 @@ void ApplicationPlugin::on_play(bool b, ::TimeVal t)
   {
     if (auto pres = doc->presenter())
     {
-      auto scenar = dynamic_cast<Scenario::ScenarioDocumentPresenter*>(
-          pres->presenterDelegate());
+      auto scenar = dynamic_cast<Scenario::ScenarioDocumentPresenter*>(pres->presenterDelegate());
       if (scenar)
         on_play(scenar->displayedElements.interval(), b, {}, t);
     }
@@ -441,16 +424,14 @@ void ApplicationPlugin::on_transport(TimeVal t)
   if (settings.getTransportValueCompilation())
   {
     auto execState = m_clock->context.execState;
-    ctx.executionQueue.enqueue(
-        [execState, itv, time = m_clock->context.time(t)] {
-          itv->offset(time);
-          execState->commit();
-        });
+    ctx.executionQueue.enqueue([execState, itv, time = m_clock->context.time(t)] {
+      itv->offset(time);
+      execState->commit();
+    });
   }
   else
   {
-    ctx.executionQueue.enqueue(
-        [itv, time = m_clock->context.time(t)] { itv->transport(time); });
+    ctx.executionQueue.enqueue([itv, time = m_clock->context.time(t)] { itv->transport(time); });
   }
 }
 
@@ -469,19 +450,22 @@ void ApplicationPlugin::on_play(
     return;
 
   auto& audio_engine = this->context.guiApplicationPlugin<Audio::ApplicationPlugin>();
-  if(!audio_engine.audio)
+  if (!audio_engine.audio)
   {
-    if(this->context.mainWindow)
+    if (this->context.mainWindow)
     {
-     score::warning(
-           this->context.mainWindow,
-           tr("Cannot play"),
-           tr("Cannot start playback. It looks like the audio engine is not running.\n"
-              "Check the audio settings in the software settings to ensure that a sound card "
-              "is correctly configured.\n\n"
-              "Check Settings > Audio > Device in particular. "
-              "The power-on icon at the bottom of the transport toolbar will light up when the engine is running."));
-     return;
+      score::warning(
+          this->context.mainWindow,
+          tr("Cannot play"),
+          tr("Cannot start playback. It looks like the audio engine is not "
+             "running.\n"
+             "Check the audio settings in the software settings to ensure "
+             "that a sound card "
+             "is correctly configured.\n\n"
+             "Check Settings > Audio > Device in particular. "
+             "The power-on icon at the bottom of the transport toolbar will "
+             "light up when the engine is running."));
+      return;
     }
     else
     {
@@ -507,9 +491,7 @@ void ApplicationPlugin::on_play(
       auto explorer = Explorer::try_deviceExplorerFromObject(*doc);
       // Disable listening for everything
       if (explorer
-          && !doc->context()
-                  .app.settings<Execution::Settings::Model>()
-                  .getExecutionListening())
+          && !doc->context().app.settings<Execution::Settings::Model>().getExecutionListening())
       {
         explorer->deviceModel().listening().stop();
       }
@@ -555,8 +537,7 @@ void ApplicationPlugin::on_record(::TimeVal t)
     auto plugmodel = doc->context().findPlugin<Execution::DocumentPlugin>();
     if (!plugmodel)
       return;
-    auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(
-        &doc->model().modelDelegate());
+    auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(&doc->model().modelDelegate());
     if (!scenar)
       return;
 
@@ -604,8 +585,8 @@ void ApplicationPlugin::on_stop()
 
     if (wasplaying)
     {
-      if (auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(
-              &doc->model().modelDelegate()))
+      if (auto scenar
+          = dynamic_cast<Scenario::ScenarioDocumentModel*>(&doc->model().modelDelegate()))
       {
         auto state = Engine::score_to_ossia::state(
             scenar->baseScenario().endState(), plugmodel->context());
@@ -614,12 +595,12 @@ void ApplicationPlugin::on_stop()
     }
 
     QTimer::singleShot(50, this, [this] {
-        // FIXME uuuugh have an event in scenario instead (or better, move this in process)
+      // FIXME uuuugh have an event in scenario instead (or better, move this
+      // in process)
       auto doc = currentDocument();
       if (!doc)
         return;
-      auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(
-          &doc->model().modelDelegate());
+      auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(&doc->model().modelDelegate());
       if (!scenar)
         return;
       scenar->baseInterval().reset();
@@ -666,21 +647,18 @@ void ApplicationPlugin::on_init()
     if (!plugmodel)
       return;
 
-    auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(
-        &doc->model().modelDelegate());
+    auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(&doc->model().modelDelegate());
     if (!scenar)
       return;
 
     auto explorer = Explorer::try_deviceExplorerFromObject(*doc);
     // Disable listening for everything
     if (explorer
-        && !doc->context()
-                .app.settings<Execution::Settings::Model>()
-                .getExecutionListening())
+        && !doc->context().app.settings<Execution::Settings::Model>().getExecutionListening())
       explorer->deviceModel().listening().stop();
 
-    auto state = Engine::score_to_ossia::state(
-        scenar->baseScenario().startState(), plugmodel->context());
+    auto state
+        = Engine::score_to_ossia::state(scenar->baseScenario().startState(), plugmodel->context());
     state.launch();
 
     // If we can we resume listening
@@ -707,20 +685,15 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     if (context.applicationSettings.gui)
     {
       auto& play_action = appplug.context.actions.action<Actions::Play>();
-      connect(play_action.action(), &QAction::triggered, &lt, [=] {
-        p->push_value(true);
-      });
+      connect(play_action.action(), &QAction::triggered, &lt, [=] { p->push_value(true); });
 
       auto& stop_action = context.actions.action<Actions::Stop>();
-      connect(stop_action.action(), &QAction::triggered, &lt, [=] {
-        p->push_value(false);
-      });
+      connect(stop_action.action(), &QAction::triggered, &lt, [=] { p->push_value(false); });
     }
   }
   {
     auto local_play_node = root.create_child("play");
-    auto local_play_address
-        = local_play_node->create_parameter(ossia::val_type::BOOL);
+    auto local_play_address = local_play_node->create_parameter(ossia::val_type::BOOL);
     local_play_address->set_value(bool{false});
     local_play_address->set_access(ossia::access_mode::SET);
     local_play_address->add_callback([&](const ossia::value& v) {
@@ -765,8 +738,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
 
   {
     auto local_play_node = root.create_child("global_play");
-    auto local_play_address
-        = local_play_node->create_parameter(ossia::val_type::BOOL);
+    auto local_play_address = local_play_node->create_parameter(ossia::val_type::BOOL);
     local_play_address->set_value(bool{false});
     local_play_address->set_access(ossia::access_mode::SET);
     local_play_address->add_callback([&](const ossia::value& v) {
@@ -778,8 +750,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
             // not playing, play requested
             if (context.applicationSettings.gui)
             {
-              auto& play_action
-                  = context.actions.action<Actions::PlayGlobal>();
+              auto& play_action = context.actions.action<Actions::PlayGlobal>();
               play_action.action()->trigger();
             }
             else
@@ -787,8 +758,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
               if (auto doc = currentDocument())
               {
                 auto& mod = doc->model().modelDelegate();
-                auto scenar
-                    = dynamic_cast<Scenario::ScenarioDocumentModel*>(&mod);
+                auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(&mod);
                 if (scenar)
                 {
                   on_play(scenar->baseInterval(), true, {}, TimeVal{});
@@ -805,8 +775,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
 
               if (context.applicationSettings.gui)
               {
-                auto& play_action
-                    = context.actions.action<Actions::PlayGlobal>();
+                auto& play_action = context.actions.action<Actions::PlayGlobal>();
                 play_action.action()->trigger();
               }
               else
@@ -814,8 +783,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
                 if (auto doc = currentDocument())
                 {
                   auto& mod = doc->model().modelDelegate();
-                  auto scenar
-                      = dynamic_cast<Scenario::ScenarioDocumentModel*>(&mod);
+                  auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(&mod);
                   if (scenar)
                   {
                     on_play(scenar->baseInterval(), true, {}, TimeVal{});
@@ -831,22 +799,19 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
 
   {
     auto local_transport_node = root.create_child("transport");
-    auto local_transport_address
-        = local_transport_node->create_parameter(ossia::val_type::FLOAT);
+    auto local_transport_address = local_transport_node->create_parameter(ossia::val_type::FLOAT);
     local_transport_address->set_value(bool{false});
     local_transport_address->set_access(ossia::access_mode::SET);
     local_transport_address->set_unit(ossia::millisecond_u{});
     local_transport_address->add_callback([&](const ossia::value& v) {
-      ossia::qt::run_async(this, [=] {
-        on_transport(TimeVal::fromMsecs(ossia::convert<float>(v)));
-      });
+      ossia::qt::run_async(
+          this, [=] { on_transport(TimeVal::fromMsecs(ossia::convert<float>(v))); });
     });
   }
 
   {
     auto local_stop_node = root.create_child("stop");
-    auto local_stop_address
-        = local_stop_node->create_parameter(ossia::val_type::IMPULSE);
+    auto local_stop_address = local_stop_node->create_parameter(ossia::val_type::IMPULSE);
     local_stop_address->set_value(ossia::impulse{});
     local_stop_address->set_access(ossia::access_mode::SET);
     local_stop_address->add_callback([&](const ossia::value&) {
@@ -866,8 +831,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
 
   {
     auto local_stop_node = root.create_child("reinit");
-    auto local_stop_address
-        = local_stop_node->create_parameter(ossia::val_type::IMPULSE);
+    auto local_stop_address = local_stop_node->create_parameter(ossia::val_type::IMPULSE);
     local_stop_address->set_value(ossia::impulse{});
     local_stop_address->set_access(ossia::access_mode::SET);
     local_stop_address->add_callback([&](const ossia::value&) {
@@ -901,9 +865,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
           this->on_stop();
         }
 
-        QTimer::singleShot(500, [] {
-          score::GUIApplicationInterface::instance().forceExit();
-        });
+        QTimer::singleShot(500, [] { score::GUIApplicationInterface::instance().forceExit(); });
       });
     });
   }
@@ -918,9 +880,8 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
       ossia::qt::run_async(this, [=] {
         if (context.applicationSettings.gui)
         {
-          QTabWidget* docs
-              = context.mainWindow->centralWidget()->findChild<QTabWidget*>(
-                  "Documents", Qt::FindDirectChildrenOnly);
+          QTabWidget* docs = context.mainWindow->centralWidget()->findChild<QTabWidget*>(
+              "Documents", Qt::FindDirectChildrenOnly);
           SCORE_ASSERT(docs);
           if (docs)
           {
@@ -940,7 +901,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
       auto val = QString::fromStdString(v.get<std::string>());
       ossia::qt::run_async(this, [=, device = std::move(val)] {
         auto doc = currentDocument();
-        if(!doc)
+        if (!doc)
           return;
 
         auto& plug = doc->context().plugin<Explorer::DeviceDocumentPlugin>();
@@ -950,8 +911,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
   }
 }
 
-std::unique_ptr<Execution::Clock>
-ApplicationPlugin::makeClock(const Execution::Context& ctx)
+std::unique_ptr<Execution::Clock> ApplicationPlugin::makeClock(const Execution::Context& ctx)
 {
   auto& s = context.settings<Execution::Settings::Model>();
   return s.makeClock(ctx);

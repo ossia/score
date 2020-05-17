@@ -2,8 +2,8 @@
 #include <Curve/Segment/CurveSegmentModel.hpp>
 
 #include <score/model/Identifier.hpp>
-#include <score/serialization/VisitorInterface.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+#include <score/serialization/VisitorInterface.hpp>
 #include <score/tools/std/Optional.hpp>
 
 #include <QVariant>
@@ -27,7 +27,7 @@ struct SegmentData;
 struct SCORE_PLUGIN_CURVE_EXPORT PowerSegmentData
 {
   PowerSegmentData() = default;
-  PowerSegmentData(double d) : gamma{d} {}
+  PowerSegmentData(double d) : gamma{d} { }
 
   // Value of gamma for which the pow will be == 1.
   static const constexpr double linearGamma = 1;
@@ -44,14 +44,12 @@ public:
 
   PowerSegment(const PowerSegment& other, const id_type& id, QObject* parent);
 
-  PowerSegment(DataStream::Deserializer& vis, QObject* parent)
-      : SegmentModel{vis, parent}
+  PowerSegment(DataStream::Deserializer& vis, QObject* parent) : SegmentModel{vis, parent}
   {
     vis.writeTo(*this);
   }
 
-  PowerSegment(JSONObject::Deserializer& vis, QObject* parent)
-      : SegmentModel{vis, parent}
+  PowerSegment(JSONObject::Deserializer& vis, QObject* parent) : SegmentModel{vis, parent}
   {
     vis.writeTo(*this);
   }

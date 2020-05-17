@@ -17,17 +17,11 @@ class StateModel;
 namespace Command
 {
 
-class SCORE_PLUGIN_SCENARIO_EXPORT RemoveStateProcess final
-    : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT RemoveStateProcess final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      RemoveStateProcess,
-      "Remove a state process")
+  SCORE_COMMAND_DECL(CommandFactoryName(), RemoveStateProcess, "Remove a state process")
 public:
-  RemoveStateProcess(
-      const Scenario::StateModel& state,
-      Id<Process::ProcessModel> processId);
+  RemoveStateProcess(const Scenario::StateModel& state, Id<Process::ProcessModel> processId);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

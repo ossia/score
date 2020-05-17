@@ -1,8 +1,8 @@
 #pragma once
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <Scenario/Palette/ScenarioPaletteBaseTransitions.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Palette/Tools/ObjectMapper.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 
 #include <score/model/Identifier.hpp>
 #include <score/statemachine/GraphicsSceneTool.hpp>
@@ -45,9 +45,7 @@ QList<Id<typename PresenterContainer::model_type>> getCollidingModels(
 namespace Scenario
 {
 template <typename ToolPalette_T>
-class ToolBase
-    : public GraphicsSceneTool<Scenario::Point>
-    , public ObjectMapper
+class ToolBase : public GraphicsSceneTool<Scenario::Point>, public ObjectMapper
 {
 public:
   ToolBase(const ToolPalette_T& palette)
@@ -56,7 +54,6 @@ public:
   }
 
 protected:
-
   template <
       typename EventFun,
       typename StateFun,

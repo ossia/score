@@ -23,14 +23,9 @@ namespace Command
 {
 class RemoveProcessFromInterval final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      RemoveProcessFromInterval,
-      "Remove a process")
+  SCORE_COMMAND_DECL(CommandFactoryName(), RemoveProcessFromInterval, "Remove a process")
 public:
-  RemoveProcessFromInterval(
-      const IntervalModel& cst,
-      Id<Process::ProcessModel> processId);
+  RemoveProcessFromInterval(const IntervalModel& cst, Id<Process::ProcessModel> processId);
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 

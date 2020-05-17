@@ -116,8 +116,7 @@ struct RenderState
     // state.swapChain->setDepthStencil(state.renderBuffer);
     state.swapChain->setSampleCount(1);
     state.swapChain->setFlags({});
-    state.renderPassDescriptor
-        = state.swapChain->newCompatibleRenderPassDescriptor();
+    state.renderPassDescriptor = state.swapChain->newCompatibleRenderPassDescriptor();
     state.swapChain->setRenderPassDescriptor(state.renderPassDescriptor);
 
     return state;
@@ -141,4 +140,3 @@ struct RenderState
     surface = nullptr;
   }
 };
-

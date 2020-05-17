@@ -20,8 +20,7 @@ struct SCORE_LIB_BASE_EXPORT Addon
 
   QString name;
   QString version;
-  QString
-      latestVersionAddress; // URL to a file containing the current version.
+  QString latestVersionAddress; // URL to a file containing the current version.
 
   QString shortDescription;
   QString longDescription;

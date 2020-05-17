@@ -32,8 +32,7 @@ void NodeItem::resetInlets()
   qDeleteAll(m_inlets);
   m_inlets.clear();
   qreal x = InletX0;
-  auto& portFactory
-      = score::GUIAppContext().interfaces<Process::PortFactoryList>();
+  auto& portFactory = score::GUIAppContext().interfaces<Process::PortFactoryList>();
   for (Process::Inlet* port : m_model.inlets())
   {
     if (port->hidden)
@@ -55,8 +54,7 @@ void NodeItem::resetOutlets()
   m_outlets.clear();
   qreal x = OutletX0;
   const qreal h = boundingRect().height() + OutletY0;
-  auto& portFactory
-      = score::AppContext().interfaces<Process::PortFactoryList>();
+  auto& portFactory = score::AppContext().interfaces<Process::PortFactoryList>();
   for (Process::Outlet* port : m_model.outlets())
   {
     if (port->hidden)
@@ -83,11 +81,7 @@ NodeItem::NodeItem(
     if (auto fx = factory->makeItem(model, ctx, this))
     {
       m_fx = fx;
-      connect(
-          fx,
-          &score::ResizeableItem::sizeChanged,
-          this,
-          &NodeItem::updateSize);
+      connect(fx, &score::ResizeableItem::sizeChanged, this, &NodeItem::updateSize);
       updateSize();
     }
     else if (auto fx = factory->makeLayerView(model, ctx, this))
@@ -108,14 +102,13 @@ NodeItem::NodeItem(
     m_contentSize = m_fx->boundingRect().size();
   }
 
-  m_contentSize = QSizeF{std::max(100., m_contentSize.width()), std::max(10., m_contentSize.height())};
+  m_contentSize
+      = QSizeF{std::max(100., m_contentSize.width()), std::max(10., m_contentSize.height())};
 
   resetInlets();
   resetOutlets();
-  connect(&model, &Process::ProcessModel::inletsChanged,
-          this, &NodeItem::resetInlets);
-  connect(&model, &Process::ProcessModel::outletsChanged,
-          this, &NodeItem::resetOutlets);
+  connect(&model, &Process::ProcessModel::inletsChanged, this, &NodeItem::resetInlets);
+  connect(&model, &Process::ProcessModel::outletsChanged, this, &NodeItem::resetOutlets);
 
   if (m_ui)
   {
@@ -236,10 +229,7 @@ bool NodeItem::isInSelectionCorner(QPointF p, QRectF r) const
   return p.x() > r.width() - 10. && p.y() > r.height() - 10.;
 }
 
-void NodeItem::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+void NodeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   ItemBase::paintNode(painter, m_selected, m_hover, boundingRect());
 
@@ -258,8 +248,7 @@ void NodeItem::paint(
   {
     auto& style = Process::Style::instance();
     painter->setPen(style.IntervalPlayFill().main.pen1_solid_flat_miter);
-    painter->drawLine(
-        QPointF{0., 14.}, QPointF{width() * m_playPercentage, 14.});
+    painter->drawLine(QPointF{0., 14.}, QPointF{width() * m_playPercentage, 14.});
   }
 }
 
@@ -288,8 +277,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
   if (m_presenter)
     m_context.focusDispatcher.focus(m_presenter);
 
-  score::SelectionDispatcher{m_context.selectionStack}.setAndCommit(
-      {&m_model});
+  score::SelectionDispatcher{m_context.selectionStack}.setAndCommit({&m_model});
   event->accept();
 }
 
@@ -301,16 +289,13 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   {
     case Interaction::Resize:
     {
-      const auto sz
-          = origNodeSize + QSizeF{p.x() - origp.x(), p.y() - origp.y()};
-      m_context.dispatcher.submit<Process::ResizeNode>(
-          m_model, sz.expandedTo({10, 10}));
+      const auto sz = origNodeSize + QSizeF{p.x() - origp.x(), p.y() - origp.y()};
+      m_context.dispatcher.submit<Process::ResizeNode>(m_model, sz.expandedTo({10, 10}));
       break;
     }
     case Interaction::Move:
     {
-      m_context.dispatcher.submit<Process::MoveNode>(
-          m_model, m_model.position() + (p - origp));
+      m_context.dispatcher.submit<Process::MoveNode>(m_model, m_model.position() + (p - origp));
       break;
     }
   }

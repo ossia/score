@@ -11,10 +11,6 @@
 namespace InterpState
 {
 using InterpStateFactory = Process::ProcessFactory_T<ProcessModel>;
-using InterpStateLayerFactory = Curve::CurveLayerFactory_T<
-    ProcessModel,
-    Presenter,
-    View,
-    Colors,
-    Process::DefaultHeaderDelegate>;
+using InterpStateLayerFactory = Curve::
+    CurveLayerFactory_T<ProcessModel, Presenter, View, Colors, Process::DefaultHeaderDelegate>;
 }

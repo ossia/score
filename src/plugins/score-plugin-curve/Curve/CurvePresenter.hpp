@@ -16,6 +16,7 @@
 #include <QRect>
 
 #include <score_plugin_curve_export.h>
+
 #include <verdigris>
 
 class QActionGroup;
@@ -61,10 +62,7 @@ public:
   void enable();
   void disable();
 
-  Curve::EditionSettings& editionSettings() noexcept
-  {
-    return m_editionSettings;
-  }
+  Curve::EditionSettings& editionSettings() noexcept { return m_editionSettings; }
 
   void fillContextMenu(QMenu&, const QPoint&, const QPointF&);
 

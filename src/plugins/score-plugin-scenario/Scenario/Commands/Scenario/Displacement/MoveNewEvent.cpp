@@ -3,14 +3,12 @@
 #include "MoveNewEvent.hpp"
 
 #include <Scenario/Commands/Scenario/Displacement/MoveEventOnCreationMeta.hpp>
-
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
 #include <QByteArray>
-
 
 namespace Scenario
 {
@@ -25,10 +23,7 @@ MoveNewEvent::MoveNewEvent(
     bool yLocked)
     : m_path{scenarioPath}
     , m_intervalId{std::move(intervalId)}
-    , m_cmd{scenarioPath,
-            std::move(eventId),
-            std::move(date),
-            ExpandMode::Scale}
+    , m_cmd{scenarioPath, std::move(eventId), std::move(date), ExpandMode::Scale}
     , m_y{y}
     , m_yLocked{yLocked}
 {
@@ -64,7 +59,7 @@ void MoveNewEvent::redo(const score::DocumentContext& ctx) const
   {
     auto& scenar = m_cmd.path().find(ctx);
     auto& itv = scenar.intervals.at(m_intervalId);
-    if(itv.graphal())
+    if (itv.graphal())
     {
       scenar.states.at(itv.endState()).setHeightPercentage(m_y);
     }

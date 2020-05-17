@@ -8,6 +8,7 @@
 #include <Process/ExecutionSetup.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/tools/Bind.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/std/String.hpp>
 
@@ -19,7 +20,6 @@
 #include <QPlainTextEdit>
 #include <QTimer>
 #include <QVBoxLayout>
-#include <score/tools/Bind.hpp>
 
 #include <wobjectimpl.h>
 
@@ -29,16 +29,14 @@ namespace Process
 {
 
 template <>
-QString EffectProcessFactory_T<
-    Media::Faust::FaustEffectModel>::customConstructionData() const
+QString EffectProcessFactory_T<Media::Faust::FaustEffectModel>::customConstructionData() const
 {
   return "process = _;";
 }
 
 template <>
 Process::Descriptor
-EffectProcessFactory_T<Media::Faust::FaustEffectModel>::descriptor(
-    QString d) const
+EffectProcessFactory_T<Media::Faust::FaustEffectModel>::descriptor(QString d) const
 {
   Process::Descriptor desc;
   return desc;
@@ -68,11 +66,11 @@ FaustEffectModel::FaustEffectModel(
   setText(faustProgram);
 }
 
-FaustEffectModel::~FaustEffectModel() {}
+FaustEffectModel::~FaustEffectModel() { }
 
 void FaustEffectModel::setText(const QString& txt)
 {
-  if(txt != m_text)
+  if (txt != m_text)
   {
     m_text = txt;
     if (m_text.isEmpty())
@@ -82,7 +80,7 @@ void FaustEffectModel::setText(const QString& txt)
   }
 }
 
-void FaustEffectModel::init() {}
+void FaustEffectModel::init() { }
 
 QString FaustEffectModel::prettyName() const noexcept
 {
@@ -91,20 +89,23 @@ QString FaustEffectModel::prettyName() const noexcept
 
 static bool faustIsMidi(llvm_dsp& dsp)
 {
-  struct _ final : Meta {
+  struct _ final : Meta
+  {
     bool midi{};
     void declare(const char* key, const char* value) override
     {
-      if(key == std::string("options") && std::string(value).find("[midi:on]") != std::string::npos)
+      if (key == std::string("options")
+          && std::string(value).find("[midi:on]") != std::string::npos)
         midi = true;
     }
   } meta;
   dsp.metadata(&meta);
 
-  if(meta.midi)
+  if (meta.midi)
     return true;
 
-  struct _2 final : ::UI {
+  struct _2 final : ::UI
+  {
     bool gate{false};
     bool freq{false};
     bool gain{false};
@@ -116,23 +117,55 @@ static bool faustIsMidi(llvm_dsp& dsp)
 
     // -- active widgets
 
-    void addButton(const char* label, FAUSTFLOAT* zone) override { if(label == std::string("gate")) gate = true; }
-    void addCheckButton(const char* label, FAUSTFLOAT* zone) override { }
-    void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override
+    void addButton(const char* label, FAUSTFLOAT* zone) override
     {
-      if(label == std::string("freq"))
+      if (label == std::string("gate"))
+        gate = true;
+    }
+    void addCheckButton(const char* label, FAUSTFLOAT* zone) override { }
+    void addVerticalSlider(
+        const char* label,
+        FAUSTFLOAT* zone,
+        FAUSTFLOAT init,
+        FAUSTFLOAT min,
+        FAUSTFLOAT max,
+        FAUSTFLOAT step) override
+    {
+      if (label == std::string("freq"))
         freq = true;
-      if(label == std::string("gain"))
+      if (label == std::string("gain"))
         gain = true;
     }
-    void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override
-    { addVerticalSlider(label, zone, init, min, max, step);  }
-    void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override { }
+    void addHorizontalSlider(
+        const char* label,
+        FAUSTFLOAT* zone,
+        FAUSTFLOAT init,
+        FAUSTFLOAT min,
+        FAUSTFLOAT max,
+        FAUSTFLOAT step) override
+    {
+      addVerticalSlider(label, zone, init, min, max, step);
+    }
+    void addNumEntry(
+        const char* label,
+        FAUSTFLOAT* zone,
+        FAUSTFLOAT init,
+        FAUSTFLOAT min,
+        FAUSTFLOAT max,
+        FAUSTFLOAT step) override
+    {
+    }
 
     // -- passive widgets
 
-    void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) override { }
-    void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) override { }
+    void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+        override
+    {
+    }
+    void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+        override
+    {
+    }
 
     // -- soundfiles
 
@@ -171,9 +204,7 @@ void FaustEffectModel::reloadFx(llvm_dsp_factory* fac, llvm_dsp* obj)
     }
     m_inlets.resize(ui.i);
   }
-  else if (
-      !m_inlets.empty() && !m_outlets.empty() && !faust_factory
-      && !faust_object)
+  else if (!m_inlets.empty() && !m_outlets.empty() && !faust_factory && !faust_object)
   {
     // loading
     faust_factory = fac;
@@ -231,9 +262,7 @@ void FaustEffectModel::reloadMidi(dsp_poly_factory* fac, dsp_poly* obj)
     }
     m_inlets.resize(ui.i);
   }
-  else if (
-      !m_inlets.empty() && !m_outlets.empty() && !faust_poly_factory
-      && !faust_poly_object)
+  else if (!m_inlets.empty() && !m_outlets.empty() && !faust_poly_factory && !faust_poly_object)
   {
     // loading
     faust_poly_factory = fac;
@@ -287,8 +316,7 @@ void FaustEffectModel::reload()
 
   std::string err;
   err.resize(4097);
-  auto fac = createDSPFactoryFromString(
-      "score", str, argc, argv, triple, err, -1);
+  auto fac = createDSPFactoryFromString("score", str, argc, argv, triple, err, -1);
   dsp_factories.insert(fac);
 
   if (err[0] != 0)
@@ -306,11 +334,10 @@ void FaustEffectModel::reload()
   if (!obj)
     return;
 
-  if(faustIsMidi(*obj))
+  if (faustIsMidi(*obj))
   {
     delete obj;
-    auto fac = createPolyDSPFactoryFromString(
-          "score", str, argc, argv, triple, err, -1);
+    auto fac = createPolyDSPFactoryFromString("score", str, argc, argv, triple, err, -1);
     dsp_poly_factories.insert(fac);
 
     auto obj = fac->createPolyDSPInstance(64, false, true);
@@ -320,7 +347,6 @@ void FaustEffectModel::reload()
   {
     reloadFx(fac, obj);
   }
-
 
   auto lines = fx_text.split('\n');
   for (int i = 0; i < std::min(5, lines.size()); i++)
@@ -360,11 +386,7 @@ template <>
 void DataStreamWriter::write(Media::Faust::FaustEffectModel& eff)
 {
   writePorts(
-      *this,
-      components.interfaces<Process::PortFactoryList>(),
-      eff.m_inlets,
-      eff.m_outlets,
-      &eff);
+      *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets, eff.m_outlets, &eff);
 
   m_stream >> eff.m_text;
   eff.reload();
@@ -381,11 +403,7 @@ template <>
 void JSONWriter::write(Media::Faust::FaustEffectModel& eff)
 {
   writePorts(
-      *this,
-      components.interfaces<Process::PortFactoryList>(),
-      eff.m_inlets,
-      eff.m_outlets,
-      &eff);
+      *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets, eff.m_outlets, &eff);
   eff.m_text = obj["Text"].toString();
   eff.reload();
 }
@@ -406,24 +424,23 @@ FaustEffectComponent::FaustEffectComponent(
     {
       reloadFx();
     }
-    else if(proc.faust_poly_object)
+    else if (proc.faust_poly_object)
     {
       reloadSynth();
     }
   };
   do_reload();
-  connect(&proc, &Media::Faust::FaustEffectModel::changed,
-          this, [=] {
+  connect(&proc, &Media::Faust::FaustEffectModel::changed, this, [=] {
     auto& ctx = system();
     Execution::SetupContext& setup = ctx.setup;
     auto old_node = this->node;
 
-    if(old_node)
+    if (old_node)
     {
       setup.unregister_node(process(), this->node);
     }
     do_reload();
-    if(this->node)
+    if (this->node)
     {
       setup.register_node(process(), this->node);
       Execution::Transaction commands{ctx};
@@ -447,16 +464,11 @@ void FaustEffectComponent::reloadSynth()
     auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
     *node->controls[i - 1].second = ossia::convert<float>(inlet->value());
     auto inl = this->node->root_inputs()[i];
-    connect(
-        inlet,
-        &Process::ControlInlet::valueChanged,
-        this,
-        [this, inl](const ossia::value& v) {
-          system().executionQueue.enqueue([inl, val = v]() mutable {
-            inl->target<ossia::value_port>()->write_value(
-                std::move(val), 0);
-          });
-        });
+    connect(inlet, &Process::ControlInlet::valueChanged, this, [this, inl](const ossia::value& v) {
+      system().executionQueue.enqueue([inl, val = v]() mutable {
+        inl->target<ossia::value_port>()->write_value(std::move(val), 0);
+      });
+    });
   }
 
   std::weak_ptr<faust_type> weak_node = node;
@@ -485,16 +497,11 @@ void FaustEffectComponent::reloadFx()
     auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
     *node->controls[i - 1].second = ossia::convert<float>(inlet->value());
     auto inl = this->node->root_inputs()[i];
-    connect(
-        inlet,
-        &Process::ControlInlet::valueChanged,
-        this,
-        [this, inl](const ossia::value& v) {
-          system().executionQueue.enqueue([inl, val = v]() mutable {
-            inl->target<ossia::value_port>()->write_value(
-                std::move(val), 0);
-          });
-        });
+    connect(inlet, &Process::ControlInlet::valueChanged, this, [this, inl](const ossia::value& v) {
+      system().executionQueue.enqueue([inl, val = v]() mutable {
+        inl->target<ossia::value_port>()->write_value(std::move(val), 0);
+      });
+    });
   }
 
   std::weak_ptr<faust_type> weak_node = node;

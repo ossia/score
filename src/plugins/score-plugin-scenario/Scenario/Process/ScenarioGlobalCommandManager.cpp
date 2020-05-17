@@ -10,6 +10,8 @@
 #include <Scenario/Commands/Scenario/Deletions/RemoveSelection.hpp>
 #include <Scenario/Commands/Scenario/Merge/MergeEvents.hpp>
 #include <Scenario/Commands/Scenario/Merge/MergeTimeSyncs.hpp>
+#include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactory.hpp>
+#include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
@@ -18,8 +20,6 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
-#include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactory.hpp>
-#include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -31,7 +31,6 @@
 #include <score/tools/std/Optional.hpp>
 
 #include <QSet>
-
 
 namespace score
 {
@@ -50,7 +49,7 @@ void clearContentFromSelection(
   auto statesToRemove = selectedElements(si.getStates());
   auto intervalsToRemove = selectedElements(si.getIntervals());
 
-  if(!statesToRemove.empty() && !intervalsToRemove.empty())
+  if (!statesToRemove.empty() && !intervalsToRemove.empty())
   {
     MacroCommandDispatcher<ClearSelection> cleaner{ctx.commandStack};
 
@@ -75,7 +74,7 @@ void clearContentFromSelection(
   }
 
   auto syncsToRemove = selectedElements(si.getTimeSyncs());
-  if(!syncsToRemove.empty())
+  if (!syncsToRemove.empty())
   {
     MacroCommandDispatcher<ClearSelection> cleaner{ctx.commandStack};
     const auto& triggerCommands = ctx.app.interfaces<TriggerCommandFactoryList>();
@@ -84,7 +83,7 @@ void clearContentFromSelection(
       if (sync->active())
       {
         auto cmd = triggerCommands.make(&TriggerCommandFactory::make_removeTriggerCommand, *sync);
-        if(cmd)
+        if (cmd)
         {
           cleaner.submit(std::move(cmd));
         }
@@ -95,9 +94,7 @@ void clearContentFromSelection(
   }
 }
 
-void removeSelection(
-    const Scenario::ProcessModel& scenario,
-    const score::DocumentContext& ctx)
+void removeSelection(const Scenario::ProcessModel& scenario, const score::DocumentContext& ctx)
 {
   auto& stack = ctx.commandStack;
   RedoMacroCommandDispatcher<ClearSelection> cleaner{stack};
@@ -137,10 +134,9 @@ void removeSelection(
 
       if (remove_it)
       {
-        // TODO the qobject_cast is needed because some processes have non-interval parents
-        // (e.g in Nodal)
-        // How do we fix this generically ?
-        if(auto itv = qobject_cast<IntervalModel*>(proc->parent()))
+        // TODO the qobject_cast is needed because some processes have
+        // non-interval parents (e.g in Nodal) How do we fix this generically ?
+        if (auto itv = qobject_cast<IntervalModel*>(proc->parent()))
         {
           cleaner.submit(new Scenario::Command::RemoveProcessFromInterval(*itv, proc->id()));
         }
@@ -152,8 +148,7 @@ void removeSelection(
   s.setAndCommit({});
   ctx.selectionStack.clear();
   // We have to remove the first / last timesyncs / events from the selection.
-  ossia::erase_if(
-      sel, [&](auto&& elt) { return elt->id_val() == startId_val; });
+  ossia::erase_if(sel, [&](auto&& elt) { return elt->id_val() == startId_val; });
 
   if (!sel.empty())
   {
@@ -180,9 +175,7 @@ auto make_ordered(const Scenario::ProcessModel& scenario)
   return the_set;
 }
 
-void mergeTimeSyncs(
-    const Scenario::ProcessModel& scenario,
-    const score::CommandStackFacade& f)
+void mergeTimeSyncs(const Scenario::ProcessModel& scenario, const score::CommandStackFacade& f)
 {
   // We merge all the furthest timesyncs to the first one.
   auto timesyncs = make_ordered<TimeSyncModel>(scenario);
@@ -196,8 +189,7 @@ void mergeTimeSyncs(
       auto& first = Scenario::parentTimeSync(**it, scenario);
       auto& second = Scenario::parentTimeSync(**(++it), scenario);
 
-      auto cmd
-          = new Command::MergeTimeSyncs(scenario, second.id(), first.id());
+      auto cmd = new Command::MergeTimeSyncs(scenario, second.id(), first.id());
       f.redoAndPush(cmd);
     }
   }
@@ -213,9 +205,7 @@ void mergeTimeSyncs(
   }
 }
 
-void mergeEvents(
-    const Scenario::ProcessModel& scenario,
-    const score::CommandStackFacade& f)
+void mergeEvents(const Scenario::ProcessModel& scenario, const score::CommandStackFacade& f)
 {
   // We merge all the furthest events to the first one.
   const auto& states = selectedElements(scenario.getStates());
@@ -239,15 +229,16 @@ void mergeEvents(
     for (++it; it != sel.end();)
     {
       // Check if Events have the same TimeSync parent
-      //if (first_ev->timeSync() == (*it)->timeSync())
+      // if (first_ev->timeSync() == (*it)->timeSync())
       {
         auto cmd = new Command::MergeEvents(scenario, first_ev->id(), (*it)->id());
-        //auto cmd = new Command::MergeTimeSyncs(scenario, first_ev->timeSync(), (*it)->timeSync());
+        // auto cmd = new Command::MergeTimeSyncs(scenario,
+        // first_ev->timeSync(), (*it)->timeSync());
         // f.redoAndPush(cmd);
         merger.submit(cmd);
         it = sel.erase(it);
       }
-      //else
+      // else
       //  ++it;
     }
     ossia::remove_one(sel, first_ev);
@@ -255,8 +246,7 @@ void mergeEvents(
   merger.commit();
 }
 
-bool EndDateComparator::
-operator()(const IntervalModel* lhs, const IntervalModel* rhs) const
+bool EndDateComparator::operator()(const IntervalModel* lhs, const IntervalModel* rhs) const
 {
   return (Scenario::date(*lhs, *scenario) + lhs->duration.defaultDuration())
          < (Scenario::date(*rhs, *scenario) + rhs->duration.defaultDuration());

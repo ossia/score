@@ -15,7 +15,7 @@ public:
 
   void setArrowType(Qt::ArrowType type);
 
-  Qt::ArrowType arrowType () const {return m_arrowType;}
+  Qt::ArrowType arrowType() const { return m_arrowType; }
 
 private:
   Qt::ArrowType m_arrowType;

@@ -4,6 +4,8 @@
 
 #include "StateModel.hpp"
 
+#include <Process/ControlMessage.hpp>
+#include <Process/ProcessMimeSerialization.hpp>
 #include <Scenario/Application/Drops/AutomationDropHandler.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
@@ -13,8 +15,6 @@
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/ScenarioPresenter.hpp>
-#include <Process/ProcessMimeSerialization.hpp>
-#include <Process/ControlMessage.hpp>
 #include <State/Message.hpp>
 #include <State/MessageListSerialization.hpp>
 
@@ -42,39 +42,25 @@ StatePresenter::StatePresenter(
     const score::DocumentContext& ctx,
     QGraphicsItem* parentview,
     QObject* parent)
-    : QObject{parent}
-    , m_model{model}
-    , m_view{new StateView{*this, parentview}}
-    , m_ctx{ctx}
+    : QObject{parent}, m_model{model}, m_view{new StateView{*this, parentview}}, m_ctx{ctx}
 {
   // The scenario catches this :
-  con(m_model.selection,
-      &Selectable::changed,
-      m_view,
-      &StateView::setSelected);
+  con(m_model.selection, &Selectable::changed, m_view, &StateView::setSelected);
 
-  con(m_model,
-      &StateModel::sig_statesUpdated,
-      this,
-      &StatePresenter::updateStateView);
-  con(m_model,
-      &StateModel::sig_controlMessagesUpdated,
-      this,
-      &StatePresenter::updateStateView);
+  con(m_model, &StateModel::sig_statesUpdated, this, &StatePresenter::updateStateView);
+  con(m_model, &StateModel::sig_controlMessagesUpdated, this, &StatePresenter::updateStateView);
 
   con(m_model, &StateModel::statusChanged, m_view, &StateView::setStatus);
   m_view->setStatus(m_model.status());
 
   connect(m_view, &StateView::startCreateMode, this, [=] {
     auto& plug
-        = score::GUIAppContext()
-              .guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
+        = score::GUIAppContext().guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
     plug.editionSettings().setTool(Scenario::Tool::Create);
   });
   connect(m_view, &StateView::startCreateGraphalMode, this, [=] {
     auto& plug
-        = score::GUIAppContext()
-        .guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
+        = score::GUIAppContext().guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
     plug.editionSettings().setTool(Scenario::Tool::CreateGraph);
   });
   connect(m_view, &StateView::dropReceived, this, &StatePresenter::handleDrop);
@@ -82,7 +68,7 @@ StatePresenter::StatePresenter(
   updateStateView();
 }
 
-StatePresenter::~StatePresenter() {}
+StatePresenter::~StatePresenter() { }
 
 const Id<StateModel>& StatePresenter::id() const
 {
@@ -125,21 +111,20 @@ void StatePresenter::handleDrop(const QMimeData& mime)
   }
   else if (fmt.contains(score::mime::processcontrol()))
   {
-
   }
   else if (fmt.contains(score::mime::layerdata()))
   {
     const auto json = readJson(mime.data(score::mime::layerdata()));
     const auto& obj = JsonValue{json["Path"]}.to<Path<Process::ProcessModel>>();
 
-    if(auto proc = obj.try_find(m_ctx))
+    if (auto proc = obj.try_find(m_ctx))
     {
       std::vector<Process::ControlMessage> controls;
-      proc->forEachControl([&] (Process::Inlet& port, auto value) noexcept {
+      proc->forEachControl([&](Process::Inlet& port, auto value) noexcept {
         controls.push_back(Process::ControlMessage{port, std::move(value)});
       });
 
-      if(!controls.empty())
+      if (!controls.empty())
       {
         auto cmd = new Command::AddControlMessagesToState{m_model, std::move(controls)};
         CommandDispatcher<>{m_ctx.commandStack}.submit(cmd);
@@ -180,8 +165,7 @@ void StatePresenter::handleDrop(const QMimeData& mime)
       {
         const auto& ctx = scenario->context().context;
         auto json = readJson(f.readAll());
-        Scenario::Command::Macro m{
-            new Scenario::Command::AddProcessInNewBoxMacro, ctx};
+        Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, ctx};
 
         // Create a box.
         const Scenario::ProcessModel& scenar = scenario->model();
@@ -189,9 +173,7 @@ void StatePresenter::handleDrop(const QMimeData& mime)
         const TimeVal t = TimeVal::fromMsecs(json["Duration"].GetDouble());
 
         auto& interval = m.createIntervalAfter(
-            scenar,
-            m_model.id(),
-            Scenario::Point{t, m_model.heightPercentage()});
+            scenar, m_model.id(), Scenario::Point{t, m_model.heightPercentage()});
 
         DropLayerInInterval::perform(interval, ctx, m, json);
         m.commit();
@@ -200,7 +182,7 @@ void StatePresenter::handleDrop(const QMimeData& mime)
   }
   else
   {
-    if(auto scenar = qobject_cast<Scenario::ProcessModel*>(m_model.parent()))
+    if (auto scenar = qobject_cast<Scenario::ProcessModel*>(m_model.parent()))
     {
       DropProcessOnState{}.drop(this->m_model, *scenar, mime, m_ctx);
     }
@@ -209,7 +191,8 @@ void StatePresenter::handleDrop(const QMimeData& mime)
 
 void StatePresenter::updateStateView()
 {
-  m_view->setContainMessage(m_model.messages().rootNode().hasChildren()
-                        || !m_model.controlMessages().messages().empty());
+  m_view->setContainMessage(
+      m_model.messages().rootNode().hasChildren()
+      || !m_model.controlMessages().messages().empty());
 }
 }

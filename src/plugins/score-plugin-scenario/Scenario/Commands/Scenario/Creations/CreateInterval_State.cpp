@@ -6,7 +6,6 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
-
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <score/model/EntityMap.hpp>
@@ -41,8 +40,7 @@ void CreateInterval_State::undo(const score::DocumentContext& ctx) const
   auto& scenar = m_command.scenarioPath().find(ctx);
   m_command.undo(ctx);
 
-  ScenarioCreate<StateModel>::undo(
-      m_newState, scenar);
+  ScenarioCreate<StateModel>::undo(m_newState, scenar);
 }
 
 void CreateInterval_State::redo(const score::DocumentContext& ctx) const
@@ -51,8 +49,7 @@ void CreateInterval_State::redo(const score::DocumentContext& ctx) const
   auto& ev = scenar.events.at(m_endEvent);
 
   // Create the end state
-  ScenarioCreate<StateModel>::redo(
-      m_newState, ev, m_stateY, scenar);
+  ScenarioCreate<StateModel>::redo(m_newState, ev, m_stateY, scenar);
 
   scenar.states.at(m_newState).metadata().setName(m_createdName);
 
@@ -62,8 +59,7 @@ void CreateInterval_State::redo(const score::DocumentContext& ctx) const
 
 void CreateInterval_State::serializeImpl(DataStreamInput& s) const
 {
-  s << m_newState << m_createdName << m_command.serialize() << m_endEvent
-    << m_stateY;
+  s << m_newState << m_createdName << m_command.serialize() << m_endEvent << m_stateY;
 }
 
 void CreateInterval_State::deserializeImpl(DataStreamOutput& s)

@@ -7,8 +7,8 @@
 #include <State/Address.hpp>
 #include <State/Unit.hpp>
 
-#include <score/serialization/VisitorInterface.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+#include <score/serialization/VisitorInterface.hpp>
 
 #include <QString>
 
@@ -29,8 +29,7 @@ class QObject;
 
 namespace Automation
 {
-class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
-    : public Curve::CurveProcessModel
+class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurveProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Automation::ProcessModel)
@@ -40,10 +39,7 @@ class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
   // Min and max to scale the curve with at execution
 
 public:
-  ProcessModel(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
+  ProcessModel(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
   ~ProcessModel() override;
 
   ProcessModel(DataStream::Deserializer& vis, QObject* parent);
@@ -71,12 +67,9 @@ public:
 public:
   void addressChanged(const ::State::AddressAccessor& arg_1)
       E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, addressChanged, arg_1)
-  void minChanged(double arg_1)
-      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, minChanged, arg_1)
-  void maxChanged(double arg_1)
-      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, maxChanged, arg_1)
-  void tweenChanged(bool tween)
-      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, tweenChanged, tween)
+  void minChanged(double arg_1) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, minChanged, arg_1)
+  void maxChanged(double arg_1) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, maxChanged, arg_1)
+  void tweenChanged(bool tween) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, tweenChanged, tween)
   void unitChanged(const State::Unit& arg_1)
       E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, unitChanged, arg_1)
 
@@ -84,9 +77,7 @@ public:
   PROPERTY(bool, tween READ tween WRITE setTween NOTIFY tweenChanged)
   PROPERTY(double, max READ max WRITE setMax NOTIFY maxChanged)
   PROPERTY(double, min READ min WRITE setMin NOTIFY minChanged)
-  PROPERTY(
-      ::State::AddressAccessor,
-      address READ address WRITE setAddress NOTIFY addressChanged)
+  PROPERTY(::State::AddressAccessor, address READ address WRITE setAddress NOTIFY addressChanged)
 
 private:
   void init();

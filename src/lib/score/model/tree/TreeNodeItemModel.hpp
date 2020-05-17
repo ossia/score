@@ -52,8 +52,7 @@ public:
     return createIndex(rowParent, 0, parentNode);
   }
 
-  QModelIndex
-  index(int row, int column, const QModelIndex& parent) const final override
+  QModelIndex index(int row, int column, const QModelIndex& parent) const final override
   {
     if (!hasIndex(row, column, parent))
       return QModelIndex();

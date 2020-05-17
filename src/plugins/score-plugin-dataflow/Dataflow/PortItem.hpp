@@ -3,8 +3,10 @@
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/PortItem.hpp>
-#include <score/plugins/SerializableHelpers.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/plugins/SerializableHelpers.hpp>
+
 #include <score_plugin_dataflow_export.h>
 namespace Scenario
 {
@@ -69,4 +71,3 @@ private:
   }
 };
 }
-

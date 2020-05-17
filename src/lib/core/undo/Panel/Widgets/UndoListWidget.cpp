@@ -15,15 +15,8 @@ UndoListWidget::UndoListWidget(score::CommandStack& s) : m_stack{s}
 {
   on_stackChanged();
 
-  con(m_stack,
-      &score::CommandStack::stackChanged,
-      this,
-      &score::UndoListWidget::on_stackChanged);
-  connect(
-      this,
-      &QListWidget::currentRowChanged,
-      &m_stack,
-      &CommandStack::setIndex);
+  con(m_stack, &score::CommandStack::stackChanged, this, &score::UndoListWidget::on_stackChanged);
+  connect(this, &QListWidget::currentRowChanged, &m_stack, &CommandStack::setIndex);
 }
 
 UndoListWidget::~UndoListWidget() = default;
@@ -39,9 +32,7 @@ void UndoListWidget::on_stackChanged()
     addItem(cmd->description());
   }
 
-  this->setCurrentRow(
-      m_stack.currentIndex(),
-      QItemSelectionModel::SelectionFlag::ClearAndSelect);
+  this->setCurrentRow(m_stack.currentIndex(), QItemSelectionModel::SelectionFlag::ClearAndSelect);
 
   this->blockSignals(false);
 }

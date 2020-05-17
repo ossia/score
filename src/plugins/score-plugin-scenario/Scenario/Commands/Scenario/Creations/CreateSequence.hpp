@@ -26,10 +26,7 @@ namespace Command
 
 class CreateSequence final : public score::AggregateCommand
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      CreateSequence,
-      "CreateSequence")
+  SCORE_COMMAND_DECL(CommandFactoryName(), CreateSequence, "CreateSequence")
 
 public:
   static CreateSequence* make(
@@ -39,10 +36,7 @@ public:
       const TimeVal& date,
       double endStateY);
 
-  void undo(const score::DocumentContext& ctx) const override
-  {
-    m_cmds.front()->undo(ctx);
-  }
+  void undo(const score::DocumentContext& ctx) const override { m_cmds.front()->undo(ctx); }
 
   const Id<IntervalModel>& createdInterval() const { return m_newInterval; }
 
@@ -61,10 +55,7 @@ private:
 
 class CreateSequenceProcesses final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      CreateSequenceProcesses,
-      "CreateSequenceData")
+  SCORE_COMMAND_DECL(CommandFactoryName(), CreateSequenceProcesses, "CreateSequenceData")
 
 public:
   CreateSequenceProcesses(

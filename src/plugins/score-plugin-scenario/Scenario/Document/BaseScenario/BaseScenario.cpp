@@ -18,23 +18,23 @@
 
 #include <ossia/detail/algorithms.hpp>
 
-
 #include <wobjectimpl.h>
 
 #include <tuple>
 W_OBJECT_IMPL(Scenario::BaseScenario)
 namespace Scenario
 {
-BaseScenario::BaseScenario(const Id<BaseScenario>& id,
-                           const score::DocumentContext& ctx,
-                           QObject* parent)
+BaseScenario::BaseScenario(
+    const Id<BaseScenario>& id,
+    const score::DocumentContext& ctx,
+    QObject* parent)
     : IdentifiedObject<BaseScenario>{id, "Scenario::BaseScenario", parent}
     , BaseScenarioContainer{ctx, this}
 {
   m_endNode->setActive(true);
 }
 
-BaseScenario::~BaseScenario() {}
+BaseScenario::~BaseScenario() { }
 
 Selection BaseScenario::selectedChildren() const
 {
@@ -59,9 +59,8 @@ bool BaseScenario::focused() const
   return res;
 }
 
-const QVector<Id<IntervalModel>> intervalsBeforeTimeSync(
-    const BaseScenario& scen,
-    const Id<TimeSyncModel>& timeSyncId)
+const QVector<Id<IntervalModel>>
+intervalsBeforeTimeSync(const BaseScenario& scen, const Id<TimeSyncModel>& timeSyncId)
 {
   if (timeSyncId == scen.endTimeSync().id())
   {

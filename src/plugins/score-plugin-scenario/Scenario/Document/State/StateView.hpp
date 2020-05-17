@@ -1,12 +1,14 @@
 #pragma once
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+
 #include <score/model/ColorInterpolator.hpp>
 
 #include <QGraphicsItem>
 #include <QRect>
 
 #include <score_plugin_scenario_export.h>
+
 #include <verdigris>
 
 class QGraphicsSceneDragDropEvent;
@@ -22,8 +24,7 @@ class StatePlusOverlay;
 class StateGraphPlusOverlay;
 class StatePresenter;
 
-class SCORE_PLUGIN_SCENARIO_EXPORT StateView final : public QObject,
-                                                     public QGraphicsItem
+class SCORE_PLUGIN_SCENARIO_EXPORT StateView final : public QObject, public QGraphicsItem
 {
   W_OBJECT(StateView)
   Q_INTERFACES(QGraphicsItem)
@@ -43,10 +44,7 @@ public:
 
   QRectF boundingRect() const override;
 
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
   void setContainMessage(bool);
   void setSelected(bool arg);
@@ -56,10 +54,8 @@ public:
 public:
   void dropReceived(const QMimeData& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dropReceived, arg_1)
-  void startCreateMode()
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, startCreateMode)
-  void startCreateGraphalMode()
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, startCreateGraphalMode)
+  void startCreateMode() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, startCreateMode)
+  void startCreateGraphalMode() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, startCreateGraphalMode)
 
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;

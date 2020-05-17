@@ -11,7 +11,6 @@
 #include <score/model/tree/TreeNode.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
-
 namespace Explorer
 {
 namespace Command

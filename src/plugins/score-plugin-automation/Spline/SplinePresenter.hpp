@@ -11,14 +11,9 @@ namespace Spline
 {
 class ChangeSpline final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      Automation::CommandFactoryName(),
-      ChangeSpline,
-      "ChangeSpline")
+  SCORE_COMMAND_DECL(Automation::CommandFactoryName(), ChangeSpline, "ChangeSpline")
 public:
-  ChangeSpline(
-      const ProcessModel& autom,
-      const ossia::nodes::spline_data& newval)
+  ChangeSpline(const ProcessModel& autom, const ossia::nodes::spline_data& newval)
       : m_path{autom}, m_old{autom.spline()}, m_new{newval}
   {
   }
@@ -34,14 +29,8 @@ public:
   }
 
 protected:
-  void serializeImpl(DataStreamInput& s) const override
-  {
-    s << m_path << m_old << m_new;
-  }
-  void deserializeImpl(DataStreamOutput& s) override
-  {
-    s >> m_path >> m_old >> m_new;
-  }
+  void serializeImpl(DataStreamInput& s) const override { s << m_path << m_old << m_new; }
+  void deserializeImpl(DataStreamOutput& s) override { s >> m_path >> m_old >> m_new; }
 
 private:
   Path<ProcessModel> m_path;
@@ -67,6 +56,7 @@ public:
   void on_zoomRatioChanged(ZoomRatio) override;
 
   void parentGeometryChanged() override;
+
 private:
   View* m_view{};
   ZoomRatio m_zoomRatio{};

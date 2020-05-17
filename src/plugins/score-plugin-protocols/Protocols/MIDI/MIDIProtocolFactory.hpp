@@ -24,9 +24,8 @@ class MIDIProtocolFactory final : public Device::ProtocolFactory
   // Implement with OSSIA::Device
   QString prettyName() const override;
 
-  Device::DeviceInterface* makeDevice(
-      const Device::DeviceSettings& settings,
-      const score::DocumentContext& ctx) override;
+  Device::DeviceInterface*
+  makeDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx) override;
 
   const Device::DeviceSettings& defaultSettings() const override;
 
@@ -41,15 +40,12 @@ class MIDIProtocolFactory final : public Device::ProtocolFactory
       const Device::DeviceInterface& dev,
       const score::DocumentContext& ctx,
       QWidget*) override;
-  QVariant
-  makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
+  QVariant makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
 
-  void serializeProtocolSpecificSettings(
-      const QVariant& data,
-      const VisitorVariant& visitor) const override;
+  void serializeProtocolSpecificSettings(const QVariant& data, const VisitorVariant& visitor)
+      const override;
 
-  bool checkCompatibility(
-      const Device::DeviceSettings& a,
-      const Device::DeviceSettings& b) const override;
+  bool checkCompatibility(const Device::DeviceSettings& a, const Device::DeviceSettings& b)
+      const override;
 };
 }

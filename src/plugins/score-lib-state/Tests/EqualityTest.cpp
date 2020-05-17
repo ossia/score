@@ -2,7 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <State/Message.hpp>
 
-
 #include <QMetaType>
 #include <QObject>
 class EqualityTest : public QObject

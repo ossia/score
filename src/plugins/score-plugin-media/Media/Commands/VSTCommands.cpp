@@ -12,7 +12,7 @@ SetVSTControl::SetVSTControl(const VSTControlInlet& obj, float newval)
 {
 }
 
-SetVSTControl::~SetVSTControl() {}
+SetVSTControl::~SetVSTControl() { }
 
 void SetVSTControl::undo(const score::DocumentContext& ctx) const
 {
@@ -39,15 +39,12 @@ void SetVSTControl::deserializeImpl(DataStreamOutput& stream)
   stream >> m_path >> m_old >> m_new;
 }
 
-CreateVSTControl::CreateVSTControl(
-    const VSTEffectModel& obj,
-    int fxNum,
-    float value)
+CreateVSTControl::CreateVSTControl(const VSTEffectModel& obj, int fxNum, float value)
     : m_path{obj}, m_fxNum{fxNum}, m_val{value}
 {
 }
 
-CreateVSTControl::~CreateVSTControl() {}
+CreateVSTControl::~CreateVSTControl() { }
 
 void CreateVSTControl::undo(const score::DocumentContext& ctx) const
 {
@@ -69,26 +66,23 @@ void CreateVSTControl::deserializeImpl(DataStreamOutput& stream)
   stream >> m_path >> m_fxNum >> m_val;
 }
 
-RemoveVSTControl::RemoveVSTControl(
-    const VSTEffectModel& obj,
-    Id<Process::Port> id)
+RemoveVSTControl::RemoveVSTControl(const VSTEffectModel& obj, Id<Process::Port> id)
     : m_path{obj}, m_id{std::move(id)}
 {
   auto& inlet = *obj.inlet(m_id);
   m_control = score::marshall<DataStream>(inlet);
-  m_cables
-      = Dataflow::saveCables({&inlet}, score::IDocument::documentContext(obj));
+  m_cables = Dataflow::saveCables({&inlet}, score::IDocument::documentContext(obj));
 }
 
-RemoveVSTControl::~RemoveVSTControl() {}
+RemoveVSTControl::~RemoveVSTControl() { }
 
 void RemoveVSTControl::undo(const score::DocumentContext& ctx) const
 {
   auto& vst = m_path.find(ctx);
   DataStreamWriter wr{m_control};
 
-  vst.on_addControl_impl(qobject_cast<Media::VST::VSTControlInlet*>(
-      Process::load_value_inlet(wr, &vst).release()));
+  vst.on_addControl_impl(
+      qobject_cast<Media::VST::VSTControlInlet*>(Process::load_value_inlet(wr, &vst).release()));
 
   Dataflow::restoreCables(m_cables, ctx);
 }

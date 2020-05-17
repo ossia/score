@@ -1,5 +1,6 @@
 #pragma once
 #include <Curve/CurveStyle.hpp>
+
 #include <score_plugin_automation_export.h>
 
 namespace Automation

@@ -18,9 +18,8 @@ static const QColor dark2 = dark1.darker(); // almost darker than black
 static const QColor dark3 = QColor(Qt::darkRed).darker();
 static const QColor dark4 = QColor(Qt::darkBlue).darker();
 }
-class SCORE_LIB_BASE_EXPORT MessagesPanelDelegate final
-    : public QObject,
-      public score::PanelDelegate
+class SCORE_LIB_BASE_EXPORT MessagesPanelDelegate final : public QObject,
+                                                          public score::PanelDelegate
 {
   friend class err_sink;
   W_OBJECT(MessagesPanelDelegate)
@@ -46,7 +45,6 @@ class MessagesPanelDelegateFactory final : public score::PanelDelegateFactory
 {
   SCORE_CONCRETE("84a66cbe-aee3-496a-b7f4-0ea0d699deac")
 
-  std::unique_ptr<score::PanelDelegate>
-  make(const score::GUIApplicationContext& ctx) override;
+  std::unique_ptr<score::PanelDelegate> make(const score::GUIApplicationContext& ctx) override;
 };
 }

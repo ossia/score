@@ -1,5 +1,6 @@
 #pragma once
 #include <QListView>
+
 #include <verdigris>
 
 namespace Library

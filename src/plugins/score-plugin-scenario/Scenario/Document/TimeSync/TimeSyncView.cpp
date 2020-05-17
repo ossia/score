@@ -11,12 +11,11 @@
 #include <score/model/ModelMetadata.hpp>
 
 #include <QBrush>
+#include <QCursor>
 #include <QGraphicsScene>
 #include <QPainter>
 #include <QPen>
-#include <QCursor>
 #include <qnamespace.h>
-
 
 class QStyleOptionGraphicsItem;
 class QWidget;
@@ -38,7 +37,7 @@ TimeSyncView::TimeSyncView(TimeSyncPresenter& presenter, QGraphicsItem* parent)
   m_text.setFont(score::Skin::instance().Bold10Pt);
 }
 
-TimeSyncView::~TimeSyncView() {}
+TimeSyncView::~TimeSyncView() { }
 
 void TimeSyncView::paint(
     QPainter* painter,
@@ -117,7 +116,7 @@ void TimeSyncView::setTriggerActive(bool b)
 void TimeSyncView::setSelected(bool selected)
 {
   m_selected = selected;
-  setZValue(m_selected ? ZPos::SelectedTimeSync: ZPos::TimeSync);
+  setZValue(m_selected ? ZPos::SelectedTimeSync : ZPos::TimeSync);
   update();
 }
 

@@ -41,9 +41,8 @@ struct SCORE_LIB_BASE_EXPORT DocumentContext
   {
     using namespace std;
     const auto& pms = this->pluginModels();
-    auto it = find_if(begin(pms), end(pms), [&](DocumentPlugin* pm) {
-      return dynamic_cast<T*>(pm);
-    });
+    auto it
+        = find_if(begin(pms), end(pms), [&](DocumentPlugin* pm) { return dynamic_cast<T*>(pm); });
 
     SCORE_ASSERT(it != end(pms));
     return *safe_cast<T*>(*it);
@@ -54,9 +53,8 @@ struct SCORE_LIB_BASE_EXPORT DocumentContext
   {
     using namespace std;
     const auto& pms = this->pluginModels();
-    auto it = find_if(begin(pms), end(pms), [&](DocumentPlugin* pm) {
-      return dynamic_cast<T*>(pm);
-    });
+    auto it
+        = find_if(begin(pms), end(pms), [&](DocumentPlugin* pm) { return dynamic_cast<T*>(pm); });
 
     if (it != end(pms))
       return safe_cast<T*>(*it);

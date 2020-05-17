@@ -9,10 +9,7 @@
  */
 struct SCORE_LIB_BASE_EXPORT InvisibleRootNode
 {
-  friend bool operator==(const InvisibleRootNode&, const InvisibleRootNode&)
-  {
-    return true;
-  }
+  friend bool operator==(const InvisibleRootNode&, const InvisibleRootNode&) { return true; }
 };
 
 JSON_METADATA(InvisibleRootNode, "RootNode")

@@ -44,9 +44,10 @@ QString Presenter::settingsName()
 
 QIcon Presenter::settingsIcon()
 {
-  return makeIcons(QStringLiteral(":/icons/settings_device_explorer_on.png")
-                   , QStringLiteral(":/icons/settings_device_explorer_off.png")
-                   , QStringLiteral(":/icons/settings_device_explorer_off.png"));
+  return makeIcons(
+      QStringLiteral(":/icons/settings_device_explorer_on.png"),
+      QStringLiteral(":/icons/settings_device_explorer_off.png"),
+      QStringLiteral(":/icons/settings_device_explorer_off.png"));
 }
 }
 
@@ -67,8 +68,9 @@ QString Presenter::settingsName()
 
 QIcon Presenter::settingsIcon()
 {
-  return makeIcons(QStringLiteral(":/icons/settings_device_explorer_on.png")
-                   , QStringLiteral(":/icons/settings_device_explorer_off.png")
-                   , QStringLiteral(":/icons/settings_device_explorer_off.png"));
+  return makeIcons(
+      QStringLiteral(":/icons/settings_device_explorer_on.png"),
+      QStringLiteral(":/icons/settings_device_explorer_off.png"),
+      QStringLiteral(":/icons/settings_device_explorer_off.png"));
 }
 }

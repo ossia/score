@@ -6,7 +6,6 @@ namespace Media::AudioChain
 class ProcessModel;
 }
 
-
 PROCESS_METADATA(
     ,
     Media::AudioChain::ProcessModel,
@@ -20,8 +19,7 @@ PROCESS_METADATA(
     {},
     {},
     {},
-    Process::ProcessFlags::SupportsTemporal
-        | Process::ProcessFlags::PutInNewSlot
+    Process::ProcessFlags::SupportsTemporal | Process::ProcessFlags::PutInNewSlot
         | Process::ProcessFlags::TimeIndependent)
 
 UNDO_NAME_METADATA(EMPTY_MACRO, Media::AudioChain::ProcessModel, "Effects")

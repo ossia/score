@@ -10,12 +10,7 @@ Event::Event(
     Scenario::EventModel& event,
     const score::DocumentContext& doc,
     QObject* parent_comp)
-    : CommonComponent{parent,
-                      event.metadata(),
-                      doc,
-                      id,
-                      "EventComponent",
-                      parent_comp}
+    : CommonComponent{parent, event.metadata(), doc, id, "EventComponent", parent_comp}
 {
   auto exp_n = node().create_child("expression");
   auto exp_a = exp_n->create_parameter(ossia::val_type::STRING);
@@ -68,8 +63,5 @@ Event::Event(
   exp_a->set_value(event.condition().toString().toStdString());
 }
 
-Event::~Event()
-{
-
-}
+Event::~Event() { }
 }

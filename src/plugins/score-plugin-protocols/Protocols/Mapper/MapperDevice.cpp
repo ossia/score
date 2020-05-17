@@ -7,9 +7,9 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Protocols/Mapper/MapperDevice.hpp>
 
+#include <score/tools/Bind.hpp>
 #include <score/widgets/JS/JSEdit.hpp>
 #include <score/widgets/Layout.hpp>
-#include <score/tools/Bind.hpp>
 
 #include <ossia/detail/config.hpp>
 
@@ -23,15 +23,15 @@
 #include <QLineEdit>
 #include <QObject>
 #include <QQmlComponent>
-#include <QQmlEngine>
 #include <QQmlContext>
+#include <QQmlEngine>
 #include <QThread>
 
-#include <verdigris>
 #include <wobjectimpl.h>
 
 #include <iomanip>
 #include <sstream>
+#include <verdigris>
 
 namespace ossia::net
 {
@@ -42,10 +42,7 @@ public:
   observable_device_roots(Device::DeviceList& devices)
   {
     devices.apply([this](auto& dev) { on_deviceAdded(dev); });
-    con(devices,
-        &Device::DeviceList::deviceAdded,
-        this,
-        &observable_device_roots::on_deviceAdded);
+    con(devices, &Device::DeviceList::deviceAdded, this, &observable_device_roots::on_deviceAdded);
 
     con(devices,
         &Device::DeviceList::deviceRemoved,
@@ -55,15 +52,12 @@ public:
 
   void on_deviceAdded(const Device::DeviceInterface& d)
   {
-    con(d,
-        &Device::DeviceInterface::deviceChanged,
-        this,
-        [this](auto oldd, auto newd) {
-          ossia::remove_erase(m_devices, oldd);
-          if (newd)
-            m_devices.push_back(newd);
-          rootsChanged(roots());
-        });
+    con(d, &Device::DeviceInterface::deviceChanged, this, [this](auto oldd, auto newd) {
+      ossia::remove_erase(m_devices, oldd);
+      if (newd)
+        m_devices.push_back(newd);
+      rootsChanged(roots());
+    });
     if (auto dev = d.getDevice())
       m_devices.push_back(dev);
 
@@ -76,8 +70,7 @@ public:
     rootsChanged(roots());
   }
 
-  void rootsChanged(std::vector<ossia::net::node_base*> a)
-      W_SIGNAL(rootsChanged, a);
+  void rootsChanged(std::vector<ossia::net::node_base*> a) W_SIGNAL(rootsChanged, a);
 
   std::vector<ossia::net::node_base*> roots() const noexcept
   {
@@ -109,10 +102,9 @@ ossia::net::parameter_base* find_parameter(
   }
 
   // Split in devices
-  auto dev = ossia::find_if(
-      roots, [devname = str.mid(0, d).toStdString()](const auto& dev) {
-        return dev && dev->get_name() == devname;
-      });
+  auto dev = ossia::find_if(roots, [devname = str.mid(0, d).toStdString()](const auto& dev) {
+    return dev && dev->get_name() == devname;
+  });
 
   if (dev != roots.end())
   {
@@ -202,15 +194,11 @@ struct mapper_parameter_data_base
   mapper_parameter_data_base() = default;
   mapper_parameter_data_base(const mapper_parameter_data_base&) = delete;
   mapper_parameter_data_base(mapper_parameter_data_base&& other) = default;
-  mapper_parameter_data_base& operator=(const mapper_parameter_data_base&)
-      = delete;
-  mapper_parameter_data_base& operator=(mapper_parameter_data_base&&)
-      = default;
+  mapper_parameter_data_base& operator=(const mapper_parameter_data_base&) = delete;
+  mapper_parameter_data_base& operator=(mapper_parameter_data_base&&) = default;
 
   mapper_parameter_data_base(const QJSValue& val)
-      : bind{val.property("bind")}
-      , read{val.property("read")}
-      , write{val.property("write")}
+      : bind{val.property("bind")}, read{val.property("read")}, write{val.property("write")}
   {
   }
 
@@ -221,8 +209,7 @@ struct mapper_parameter_data_base
   std::unique_ptr<std::mutex> source_lock{std::make_unique<std::mutex>()};
 };
 
-struct mapper_parameter_data final : public parameter_data,
-                                     public mapper_parameter_data_base
+struct mapper_parameter_data final : public parameter_data, public mapper_parameter_data_base
 {
   using base_data_type = mapper_parameter_data_base;
   mapper_parameter_data() = default;
@@ -231,19 +218,17 @@ struct mapper_parameter_data final : public parameter_data,
   mapper_parameter_data& operator=(const mapper_parameter_data&) = delete;
   mapper_parameter_data& operator=(mapper_parameter_data&&) = default;
 
-  mapper_parameter_data(const std::string& name) : parameter_data{name} {}
+  mapper_parameter_data(const std::string& name) : parameter_data{name} { }
 
   mapper_parameter_data(const QJSValue& val)
-      : parameter_data{ossia::qt::make_parameter_data(val)}
-      , mapper_parameter_data_base{val}
+      : parameter_data{ossia::qt::make_parameter_data(val)}, mapper_parameter_data_base{val}
   {
   }
   bool valid() const noexcept { return !bind.isNull() || !write.isNull(); }
 };
 
 class mapper_protocol;
-struct mapper_parameter final : wrapped_parameter<mapper_parameter_data>,
-                                Nano::Observer
+struct mapper_parameter final : wrapped_parameter<mapper_parameter_data>, Nano::Observer
 {
 public:
   using wrapped_parameter<mapper_parameter_data>::wrapped_parameter;
@@ -251,8 +236,7 @@ public:
   {
     for (auto& n : callbacks)
     {
-      n.first->about_to_be_deleted
-          .disconnect<&mapper_parameter::on_sourceRemoved>(*this);
+      n.first->about_to_be_deleted.disconnect<&mapper_parameter::on_sourceRemoved>(*this);
       if (auto p = n.first->get_parameter())
         p->remove_callback(n.second);
     }
@@ -272,22 +256,16 @@ public:
   struct callback_stopper
   {
     mapper_parameter& self;
-    callback_stopper(mapper_parameter& self) : self{self}
-    {
-      self.m_stop_callbacks = true;
-    }
+    callback_stopper(mapper_parameter& self) : self{self} { self.m_stop_callbacks = true; }
     ~callback_stopper() { self.m_stop_callbacks = false; }
   };
 
   callback_stopper stop_callbacks() { return *this; }
   std::atomic_bool m_stop_callbacks = false;
-  ossia::fast_hash_map<
-      const ossia::net::node_base*,
-      ossia::net::parameter_base::iterator>
+  ossia::fast_hash_map<const ossia::net::node_base*, ossia::net::parameter_base::iterator>
       callbacks;
 };
-using mapper_node
-    = ossia::net::wrapped_node<mapper_parameter_data, mapper_parameter>;
+using mapper_node = ossia::net::wrapped_node<mapper_parameter_data, mapper_parameter>;
 
 class mapper_protocol final : public QObject, public ossia::net::protocol_base
 {
@@ -301,10 +279,8 @@ public:
     m_engine = new QQmlEngine{this};
     m_component = new QQmlComponent{m_engine};
 
-    connect(
-        this, &mapper_protocol::sig_push, this, &mapper_protocol::slot_push);
-    connect(
-        this, &mapper_protocol::sig_recv, this, &mapper_protocol::slot_recv);
+    connect(this, &mapper_protocol::sig_push, this, &mapper_protocol::slot_push);
+    connect(this, &mapper_protocol::sig_recv, this, &mapper_protocol::slot_recv);
     con(m_devices,
         &observable_device_roots::rootsChanged,
         this,
@@ -313,41 +289,34 @@ public:
           reset_tree();
         });
 
-    connect(
-        m_component,
-        &QQmlComponent::statusChanged,
-        this,
-        [=](QQmlComponent::Status status) {
-          qDebug() << status;
+    connect(m_component, &QQmlComponent::statusChanged, this, [=](QQmlComponent::Status status) {
+      qDebug() << status;
+      qDebug() << m_component->errorString();
+      if (!m_device)
+        return;
+
+      switch (status)
+      {
+        case QQmlComponent::Status::Ready:
+        {
+          m_object = m_component->create();
+          m_object->setParent(m_engine->rootContext());
+
+          QVariant ret;
+          QMetaObject::invokeMethod(m_object, "createTree", Q_RETURN_ARG(QVariant, ret));
+          qt::create_device<ossia::net::device_base, mapper_node, mapper_protocol>(
+              *m_device, ret.value<QJSValue>());
+          reset_tree();
+          return;
+        }
+        case QQmlComponent::Status::Loading:
+          return;
+        case QQmlComponent::Status::Null:
+        case QQmlComponent::Status::Error:
           qDebug() << m_component->errorString();
-          if (!m_device)
-            return;
-
-          switch (status)
-          {
-            case QQmlComponent::Status::Ready:
-            {
-              m_object = m_component->create();
-              m_object->setParent(m_engine->rootContext());
-
-              QVariant ret;
-              QMetaObject::invokeMethod(
-                  m_object, "createTree", Q_RETURN_ARG(QVariant, ret));
-              qt::create_device<
-                  ossia::net::device_base,
-                  mapper_node,
-                  mapper_protocol>(*m_device, ret.value<QJSValue>());
-              reset_tree();
-              return;
-            }
-            case QQmlComponent::Status::Loading:
-              return;
-            case QQmlComponent::Status::Null:
-            case QQmlComponent::Status::Error:
-              qDebug() << m_component->errorString();
-              return;
-          }
-        });
+          return;
+      }
+    });
   }
 
   ~mapper_protocol() override
@@ -356,12 +325,9 @@ public:
     m_thread.wait();
   }
 
-  void sig_push(mapper_parameter* p, const ossia::value& v)
-      W_SIGNAL(sig_push, p, v);
-  void sig_recv(
-      mapper_parameter* p,
-      ossia::net::parameter_base* s,
-      const ossia::value& v) W_SIGNAL(sig_recv, p, s, v);
+  void sig_push(mapper_parameter* p, const ossia::value& v) W_SIGNAL(sig_push, p, v);
+  void sig_recv(mapper_parameter* p, ossia::net::parameter_base* s, const ossia::value& v)
+      W_SIGNAL(sig_recv, p, s, v);
 
   void slot_push(mapper_parameter* param, const ossia::value& v)
   {
@@ -425,10 +391,7 @@ public:
     }
   }
 
-  void slot_recv(
-      mapper_parameter* p,
-      ossia::net::parameter_base* s,
-      const ossia::value& v)
+  void slot_recv(mapper_parameter* p, ossia::net::parameter_base* s, const ossia::value& v)
   {
     if (!p->data().read.isCallable())
     {
@@ -454,22 +417,20 @@ private:
 
     m_device->get_root_node().clear_children();
     std::lock_guard l{m_rootLock};
-    ossia::net::visit_parameters(
-        m_device->get_root_node(), [&](auto& root, auto& param) {
-          mapper_parameter& p = (mapper_parameter&)param;
+    ossia::net::visit_parameters(m_device->get_root_node(), [&](auto& root, auto& param) {
+      mapper_parameter& p = (mapper_parameter&)param;
 
-          std::lock_guard g{*p.data().source_lock};
-          p.data().source = setup_sources(
-              p.data().bind, m_device->get_root_node(), m_roots);
+      std::lock_guard g{*p.data().source_lock};
+      p.data().source = setup_sources(p.data().bind, m_device->get_root_node(), m_roots);
 
-          for (auto s : p.data().source)
-          {
-            if (s)
-            {
-              p.connect(*s, *this);
-            }
-          }
-        });
+      for (auto s : p.data().source)
+      {
+        if (s)
+        {
+          p.connect(*s, *this);
+        }
+      }
+    });
   }
 
   bool pull(ossia::net::parameter_base&) override
@@ -478,18 +439,13 @@ private:
     return false;
   }
 
-  bool push(
-      const ossia::net::parameter_base& parameter_base,
-      const ossia::value& v) override
+  bool push(const ossia::net::parameter_base& parameter_base, const ossia::value& v) override
   {
     sig_push((mapper_parameter*)&parameter_base, v);
     return true;
   }
 
-  bool push_raw(const full_parameter_data& parameter_base) override
-  {
-    return false;
-  }
+  bool push_raw(const full_parameter_data& parameter_base) override { return false; }
 
   bool observe(ossia::net::parameter_base&, bool b) override { return false; }
 
@@ -521,14 +477,12 @@ using mapper_device = ossia::net::wrapped_device<mapper_node, mapper_protocol>;
 void mapper_parameter::connect(parameter_base& s, mapper_protocol& proto)
 {
   set_value(s.value());
-  s.get_node()
-      .about_to_be_deleted.connect<&mapper_parameter::on_sourceRemoved>(*this);
+  s.get_node().about_to_be_deleted.connect<&mapper_parameter::on_sourceRemoved>(*this);
   // TODO handle parameter removal from device -> some hash_map
-  callbacks[&s.get_node()]
-      = s.add_callback([this, param = &s, &proto](const ossia::value& v) {
-          if (!this->m_stop_callbacks)
-            proto.sig_recv(this, param, v);
-        });
+  callbacks[&s.get_node()] = s.add_callback([this, param = &s, &proto](const ossia::value& v) {
+    if (!this->m_stop_callbacks)
+      proto.sig_recv(this, param, v);
+  });
 }
 
 }
@@ -541,9 +495,7 @@ class MapperDevice final : public Device::OwningDeviceInterface
   W_OBJECT(MapperDevice)
 
 public:
-  MapperDevice(
-      const Device::DeviceSettings& settings,
-      const score::DocumentContext& ctx)
+  MapperDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
       : OwningDeviceInterface{settings}, context{ctx}, m_list{}
   {
     m_capas.canRefreshTree = true;
@@ -564,12 +516,10 @@ public:
 
     try
     {
-      const auto& stgs
-          = settings().deviceSpecificSettings.value<MapperSpecificSettings>();
+      const auto& stgs = settings().deviceSpecificSettings.value<MapperSpecificSettings>();
 
       m_dev = std::make_unique<ossia::net::mapper_device>(
-          std::make_unique<ossia::net::mapper_protocol>(
-              stgs.text.toUtf8(), *devlist),
+          std::make_unique<ossia::net::mapper_protocol>(stgs.text.toUtf8(), *devlist),
           settings().name.toStdString());
 
       deviceChanged(nullptr, m_dev.get());
@@ -590,7 +540,7 @@ public:
     return connected();
   }
 
-  ~MapperDevice() override {}
+  ~MapperDevice() override { }
 
 private:
   Device::DeviceList* devices()
@@ -608,8 +558,7 @@ private:
   Device::DeviceList* m_list{};
 };
 
-MapperProtocolFactory::~MapperProtocolFactory() {
-}
+MapperProtocolFactory::~MapperProtocolFactory() { }
 QString MapperProtocolFactory::prettyName() const
 {
   return QObject::tr("Mapper");
@@ -640,8 +589,7 @@ Device::ProtocolSettingsWidget* MapperProtocolFactory::makeSettingsWidget()
   return new MapperProtocolSettingsWidget;
 }
 
-QVariant MapperProtocolFactory::makeProtocolSpecificSettings(
-    const VisitorVariant& visitor) const
+QVariant MapperProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
 {
   return makeProtocolSpecificSettings_T<MapperSpecificSettings>(visitor);
 }
@@ -666,8 +614,7 @@ MapperProtocolSettingsWidget::MapperProtocolSettingsWidget(QWidget* parent)
   m_name = new QLineEdit;
 
   m_codeEdit = new JSEdit(this);
-  m_codeEdit->setSizePolicy(
-      QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+  m_codeEdit->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
   m_codeEdit->setMinimumHeight(300);
   m_codeEdit->setMaximumHeight(16777215);
 
@@ -698,8 +645,7 @@ Device::DeviceSettings MapperProtocolSettingsWidget::getSettings() const
   return s;
 }
 
-void MapperProtocolSettingsWidget::setSettings(
-    const Device::DeviceSettings& settings)
+void MapperProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
   m_name->setText(settings.name);
   MapperSpecificSettings specific;

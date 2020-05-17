@@ -36,25 +36,19 @@ CreateInterval_State_Event_TimeSync::CreateInterval_State_Event_TimeSync(
 {
 }
 
-void CreateInterval_State_Event_TimeSync::undo(
-    const score::DocumentContext& ctx) const
+void CreateInterval_State_Event_TimeSync::undo(const score::DocumentContext& ctx) const
 {
   m_command.undo(ctx);
 
-  ScenarioCreate<TimeSyncModel>::undo(
-      m_newTimeSync, m_command.scenarioPath().find(ctx));
+  ScenarioCreate<TimeSyncModel>::undo(m_newTimeSync, m_command.scenarioPath().find(ctx));
 }
 
-void CreateInterval_State_Event_TimeSync::redo(
-    const score::DocumentContext& ctx) const
+void CreateInterval_State_Event_TimeSync::redo(const score::DocumentContext& ctx) const
 {
   auto& scenar = m_command.scenarioPath().find(ctx);
 
   // Create the end timesync
-  ScenarioCreate<TimeSyncModel>::redo(
-      m_newTimeSync,
-      m_date,
-      scenar);
+  ScenarioCreate<TimeSyncModel>::redo(m_newTimeSync, m_date, scenar);
 
   scenar.timeSync(m_newTimeSync).metadata().setName(m_createdName);
 
@@ -62,8 +56,7 @@ void CreateInterval_State_Event_TimeSync::redo(
   m_command.redo(ctx);
 }
 
-void CreateInterval_State_Event_TimeSync::serializeImpl(
-    DataStreamInput& s) const
+void CreateInterval_State_Event_TimeSync::serializeImpl(DataStreamInput& s) const
 {
   s << m_newTimeSync << m_createdName << m_command.serialize() << m_date;
 }

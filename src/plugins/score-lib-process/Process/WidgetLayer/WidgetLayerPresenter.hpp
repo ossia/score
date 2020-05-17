@@ -10,7 +10,6 @@
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/Identifier.hpp>
 
-
 #include <score_lib_process_export.h>
 
 namespace WidgetLayer
@@ -27,15 +26,11 @@ public:
       : LayerPresenter{model, view, ctx, parent}, m_view{view}
   {
     putToFront();
-    connect(view, &View::pressed, this, [&]() {
-      m_context.context.focusDispatcher.focus(this);
-    });
+    connect(view, &View::pressed, this, [&]() { m_context.context.focusDispatcher.focus(this); });
 
-    connect(
-        m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
+    connect(m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
 
-    m_view->setWidget(
-        new Widget_T{static_cast<const Process_T&>(model), ctx, nullptr});
+    m_view->setWidget(new Widget_T{static_cast<const Process_T&>(model), ctx, nullptr});
   }
 
   void setWidth(qreal width, qreal defaultWidth) override { m_view->setWidth(width); }
@@ -45,10 +40,9 @@ public:
 
   void putBehind() override { m_view->setVisible(false); }
 
-  void on_zoomRatioChanged(ZoomRatio) override {}
+  void on_zoomRatioChanged(ZoomRatio) override { }
 
-  void parentGeometryChanged() override {}
-
+  void parentGeometryChanged() override { }
 
 private:
   View* m_view{};

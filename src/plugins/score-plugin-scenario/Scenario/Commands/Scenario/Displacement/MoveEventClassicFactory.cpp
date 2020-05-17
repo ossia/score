@@ -13,8 +13,6 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/std/Optional.hpp>
 
-
-
 namespace Scenario
 {
 class ProcessModel;
@@ -33,25 +31,16 @@ std::unique_ptr<SerializableMoveEvent> MoveEventClassicFactory::make(
   if (lck == LockMode::Free)
   {
     return std::make_unique<MoveEvent<GoodOldDisplacementPolicy>>(
-        std::move(scenarioPath),
-        std::move(eventId),
-        std::move(newDate),
-        mode,
-        lck);
+        std::move(scenarioPath), std::move(eventId), std::move(newDate), mode, lck);
   }
   else
   {
     return std::make_unique<MoveEvent<ConstrainedDisplacementPolicy>>(
-        std::move(scenarioPath),
-        std::move(eventId),
-        std::move(newDate),
-        mode,
-        lck);
+        std::move(scenarioPath), std::move(eventId), std::move(newDate), mode, lck);
   }
 }
 
-std::unique_ptr<SerializableMoveEvent>
-MoveEventClassicFactory::make(LockMode lck)
+std::unique_ptr<SerializableMoveEvent> MoveEventClassicFactory::make(LockMode lck)
 {
   if (lck == LockMode::Free)
   {

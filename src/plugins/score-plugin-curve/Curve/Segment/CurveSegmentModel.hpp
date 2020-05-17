@@ -17,38 +17,31 @@
 #include <QVariant>
 
 #include <score_plugin_curve_export.h>
-#include <verdigris>
 
 #include <functional>
 #include <vector>
+#include <verdigris>
 
 class QObject;
 namespace Curve
 {
 // Gives the data.
-class SCORE_PLUGIN_CURVE_EXPORT SegmentModel
-    : public IdentifiedObject<SegmentModel>,
-      public score::SerializableInterface<SegmentFactory>
+class SCORE_PLUGIN_CURVE_EXPORT SegmentModel : public IdentifiedObject<SegmentModel>,
+                                               public score::SerializableInterface<SegmentFactory>
 {
   W_OBJECT(SegmentModel)
 
   SCORE_SERIALIZE_FRIENDS
 public:
-  using data_vector = std::vector<
-      QPointF,
-      boost::alignment::
-          aligned_allocator_adaptor<std::allocator<QPointF>, 32>>;
+  using data_vector = std::
+      vector<QPointF, boost::alignment::aligned_allocator_adaptor<std::allocator<QPointF>, 32>>;
   Selectable selection;
   SegmentModel(const Id<SegmentModel>& id, QObject* parent);
   SegmentModel(const SegmentData& id, QObject* parent);
 
   // Used for cloning :
   // Previous and following shall be set afterwards by the cloner.
-  SegmentModel(
-      Curve::Point s,
-      Curve::Point e,
-      const Id<SegmentModel>& id,
-      QObject* parent);
+  SegmentModel(Curve::Point s, Curve::Point e, const Id<SegmentModel>& id, QObject* parent);
 
   SegmentModel(DataStream::Deserializer& vis, QObject* parent);
   SegmentModel(JSONObject::Deserializer& vis, QObject* parent);
@@ -84,20 +77,13 @@ public:
 
   SegmentData toSegmentData() const
   {
-    return {id(),
-            start(),
-            end(),
-            previous(),
-            following(),
-            concreteKey(),
-            toSegmentSpecificData()};
+    return {id(), start(), end(), previous(), following(), concreteKey(), toSegmentSpecificData()};
   }
 
 public:
   void dataChanged() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, dataChanged)
   void previousChanged() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, previousChanged)
-  void followingChanged()
-      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, followingChanged)
+  void followingChanged() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, followingChanged)
   void startChanged() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, startChanged)
   void endChanged() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, endChanged)
 
@@ -124,10 +110,7 @@ using DefaultCurveSegmentModel = PowerSegment;
 using DefaultCurveSegmentData = PowerSegmentData;
 }
 
-OBJECTKEY_METADATA(
-    SCORE_PLUGIN_CURVE_EXPORT,
-    Curve::SegmentModel,
-    "CurveSegmentModel")
+OBJECTKEY_METADATA(SCORE_PLUGIN_CURVE_EXPORT, Curve::SegmentModel, "CurveSegmentModel")
 
 // extern template class SCORE_PLUGIN_CURVE_EXPORT
 // IdContainer<Curve::SegmentModel>;

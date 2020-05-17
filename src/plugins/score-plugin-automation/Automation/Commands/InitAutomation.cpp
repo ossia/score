@@ -10,7 +10,6 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
-
 namespace Automation
 {
 InitAutomation::InitAutomation(
@@ -49,7 +48,7 @@ InitAutomation::InitAutomation(
     : InitAutomation(path, newaddr, newmin, newmax, {})
 {
 }
-void InitAutomation::undo(const score::DocumentContext& ctx) const {}
+void InitAutomation::undo(const score::DocumentContext& ctx) const { }
 
 void InitAutomation::redo(const score::DocumentContext& ctx) const
 {

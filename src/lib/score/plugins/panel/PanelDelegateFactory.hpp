@@ -14,8 +14,7 @@ public:
   virtual ~PanelDelegateFactory();
 
   //! Create an instance of a PanelDelegate. Will only be called once.
-  virtual std::unique_ptr<PanelDelegate>
-  make(const score::GUIApplicationContext& ctx) = 0;
+  virtual std::unique_ptr<PanelDelegate> make(const score::GUIApplicationContext& ctx) = 0;
 };
 
 //! All the panels are registerd in this interface list.

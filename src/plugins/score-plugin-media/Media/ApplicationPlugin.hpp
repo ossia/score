@@ -4,11 +4,13 @@
 #include <verdigris>
 #if defined(HAS_LV2)
 #include <Media/Effect/LV2/LV2Context.hpp>
+
 #include <lilv/lilvmm.hpp>
 #endif
 
 #if defined(HAS_VST2)
 #include <Media/Effect/VST/VSTLoader.hpp>
+
 #include <QElapsedTimer>
 #include <QWebSocketServer>
 #endif
@@ -16,6 +18,7 @@
 #include <ossia/detail/hash_map.hpp>
 
 #include <QProcess>
+
 #include <score_plugin_media_export.h>
 
 #include <thread>
@@ -26,9 +29,7 @@ namespace LV2
 struct HostContext;
 struct GlobalContext;
 }
-class SCORE_PLUGIN_MEDIA_EXPORT ApplicationPlugin
-    : public QObject,
-      public score::ApplicationPlugin
+class SCORE_PLUGIN_MEDIA_EXPORT ApplicationPlugin : public QObject, public score::ApplicationPlugin
 {
   W_OBJECT(ApplicationPlugin)
 public:
@@ -37,7 +38,7 @@ public:
   ~ApplicationPlugin() override;
 
 #if defined(HAS_LV2) // TODO instead add a proper preprocessor macro that
-                         // also works in static case
+                     // also works in static case
 public:
   Lilv::World lilv;
   std::unique_ptr<LV2::GlobalContext> lv2_context;
@@ -68,10 +69,10 @@ public:
 
   struct ScanningProcess
   {
-      QString path;
-      std::unique_ptr<QProcess> process;
-      bool scanning{};
-      QElapsedTimer timer;
+    QString path;
+    std::unique_ptr<QProcess> process;
+    bool scanning{};
+    QElapsedTimer timer;
   };
 
   std::vector<ScanningProcess> m_processes;

@@ -16,14 +16,14 @@ struct Node
     static const constexpr auto description = "Loop audio";
     static const uuid_constexpr auto uuid = make_uuid("a0ad4227-ac3d-448b-a19b-19581ed4e2c6");
 
-    static const constexpr auto controls
-        = std::make_tuple(Control::Widgets::LoopChooser(), Control::Widgets::QuantificationChooser());
+    static const constexpr auto controls = std::make_tuple(
+        Control::Widgets::LoopChooser(),
+        Control::Widgets::QuantificationChooser());
     static const constexpr audio_in audio_ins[]{"in"};
     static const constexpr audio_out audio_outs[]{"out"};
   };
 
   using control_policy = ossia::safe_nodes::last_tick;
-
 
   struct State
   {
@@ -44,9 +44,9 @@ struct Node
     const double modelRatio = st.modelToSamples();
 
     auto m = Control::Widgets::GetLoopMode(mode);
-    if(m != state.actualMode)
+    if (m != state.actualMode)
     {
-      if(auto time = tk.get_quantification_date(quantif))
+      if (auto time = tk.get_quantification_date(quantif))
       {
         // Finish what we were doing until the quantization date
         {
@@ -78,16 +78,17 @@ struct Node
     }
   }
 
-  static void action(const ossia::audio_port& p1,
-                     ossia::audio_port& p2,
-                     ossia::token_request tk,
-                     State& state,
-                     double modelRatio)
+  static void action(
+      const ossia::audio_port& p1,
+      ossia::audio_port& p2,
+      ossia::token_request tk,
+      State& state,
+      double modelRatio)
   {
-    switch(state.actualMode)
+    switch (state.actualMode)
     {
       case Control::Widgets::LoopMode::Play:
-        if(state.audio.size() == 0 || state.audio[0].size() == 0)
+        if (state.audio.size() == 0 || state.audio[0].size() == 0)
           stop(p1, p2, tk, state, modelRatio);
         else
           play(p1, p2, tk, state, modelRatio);
@@ -104,11 +105,12 @@ struct Node
     }
   }
 
-  static void play(const ossia::audio_port& p1,
-                   ossia::audio_port& p2,
-                   ossia::token_request tk,
-                   State& state,
-                   double modelRatio)
+  static void play(
+      const ossia::audio_port& p1,
+      ossia::audio_port& p2,
+      ossia::token_request tk,
+      State& state,
+      double modelRatio)
   {
     // Copy input to output, and append input to buffer
     const auto chans = p1.samples.size();
@@ -157,11 +159,12 @@ struct Node
   }
 
   // We just copy input to output
-  static void stop(const ossia::audio_port& p1,
-                   ossia::audio_port& p2,
-                   ossia::token_request tk,
-                   State& state,
-                   double modelRatio)
+  static void stop(
+      const ossia::audio_port& p1,
+      ossia::audio_port& p2,
+      ossia::token_request tk,
+      State& state,
+      double modelRatio)
   {
     const auto chans = p1.samples.size();
     p2.samples.resize(chans);
@@ -185,11 +188,12 @@ struct Node
     }
   }
 
-  static void record(const ossia::audio_port& p1,
-                   ossia::audio_port& p2,
-                   ossia::token_request tk,
-                   State& state,
-                   double modelRatio)
+  static void record(
+      const ossia::audio_port& p1,
+      ossia::audio_port& p2,
+      ossia::token_request tk,
+      State& state,
+      double modelRatio)
   {
     // Copy input to output, and append input to buffer
     const auto chans = p1.samples.size();
@@ -222,13 +226,15 @@ struct Node
     state.playbackPos += N;
   }
 
-  static void overdub(const ossia::audio_port& p1,
-                   ossia::audio_port& p2,
-                   ossia::token_request tk,
-                   State& state,
-                   double modelRatio)
+  static void overdub(
+      const ossia::audio_port& p1,
+      ossia::audio_port& p2,
+      ossia::token_request tk,
+      State& state,
+      double modelRatio)
   {
-    //! if we go past the end we have to start from the beginning ? or we keep extending ?
+    //! if we go past the end we have to start from the beginning ? or we keep
+    //! extending ?
 
     // Copy input to output, and append input to buffer
     const auto chans = p1.samples.size();
@@ -248,7 +254,7 @@ struct Node
       int64_t max = std::min(N, samples);
 
       out.resize(samples);
-      if(record.size() < state.playbackPos + samples)
+      if (record.size() < state.playbackPos + samples)
         record.resize(state.playbackPos + samples);
       int64_t k = state.playbackPos;
 

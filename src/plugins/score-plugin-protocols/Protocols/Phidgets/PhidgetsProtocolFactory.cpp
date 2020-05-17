@@ -46,8 +46,7 @@ Device::ProtocolSettingsWidget* PhidgetProtocolFactory::makeSettingsWidget()
   return new PhidgetProtocolSettingsWidget;
 }
 
-QVariant PhidgetProtocolFactory::makeProtocolSpecificSettings(
-    const VisitorVariant& visitor) const
+QVariant PhidgetProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
 {
   return makeProtocolSpecificSettings_T<PhidgetSpecificSettings>(visitor);
 }

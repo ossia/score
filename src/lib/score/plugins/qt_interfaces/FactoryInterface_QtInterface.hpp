@@ -19,11 +19,9 @@ class SCORE_LIB_BASE_EXPORT FactoryInterface_QtInterface
 {
 public:
   virtual ~FactoryInterface_QtInterface();
-  virtual std::vector<std::unique_ptr<InterfaceBase>> factories(
-      const score::ApplicationContext& ctx,
-      const score::InterfaceKey& key) const;
-  virtual std::vector<std::unique_ptr<InterfaceBase>> guiFactories(
-      const score::GUIApplicationContext& ctx,
-      const score::InterfaceKey& key) const;
+  virtual std::vector<std::unique_ptr<InterfaceBase>>
+  factories(const score::ApplicationContext& ctx, const score::InterfaceKey& key) const;
+  virtual std::vector<std::unique_ptr<InterfaceBase>>
+  guiFactories(const score::GUIApplicationContext& ctx, const score::InterfaceKey& key) const;
 };
 }

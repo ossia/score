@@ -10,12 +10,10 @@
 
 #include <core/document/DocumentModel.hpp>
 
-
 namespace Scenario
 {
-score::DocumentDelegateView* ScenarioDocumentFactory::makeView(
-    const score::DocumentContext& ctx,
-    QObject* parent)
+score::DocumentDelegateView*
+ScenarioDocumentFactory::makeView(const score::DocumentContext& ctx, QObject* parent)
 {
   return new ScenarioDocumentView{ctx, parent};
 }

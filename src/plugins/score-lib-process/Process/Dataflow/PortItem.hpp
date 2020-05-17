@@ -2,13 +2,14 @@
 #include <QGraphicsItem>
 #include <QObject>
 
-#include <verdigris>
 #include <functional>
+#include <verdigris>
 #if defined(_MSC_VER)
 #include <Process/Dataflow/Port.hpp>
 #endif
-#include <ossia/detail/ptr_set.hpp>
 #include <Process/Dataflow/PortType.hpp>
+
+#include <ossia/detail/ptr_set.hpp>
 
 #include <score_lib_process_export.h>
 namespace Process
@@ -38,10 +39,7 @@ class SCORE_LIB_PROCESS_EXPORT PortItem : public QObject, public QGraphicsItem
   W_OBJECT(PortItem)
   Q_INTERFACES(QGraphicsItem)
 public:
-  PortItem(
-      const Process::Port& p,
-      const Process::Context& ctx,
-      QGraphicsItem* parent);
+  PortItem(const Process::Port& p, const Process::Context& ctx, QGraphicsItem* parent);
   ~PortItem() override;
   const Process::Port& port() const { return m_port; }
 
@@ -64,10 +62,7 @@ public:
 
 protected:
   QRectF boundingRect() const override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
@@ -79,14 +74,15 @@ protected:
   void dragEnterEvent(QGraphicsSceneDragDropEvent* event) final override;
   void dragMoveEvent(QGraphicsSceneDragDropEvent* event) final override;
   void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) final override;
-  QVariant
-  itemChange(GraphicsItemChange change, const QVariant& value) override;
+  QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
 
   const Process::Context& m_context;
   std::vector<QPointer<CableItem>> cables;
   const Process::Port& m_port;
+
 public:
   double m_diam = 8.;
+
 protected:
   bool m_visible{true};
   bool m_inlet{true};
@@ -94,7 +90,8 @@ protected:
 
   friend class Dataflow::CableItem;
 
-  static const QPixmap& portImage(Process::PortType t, bool inlet, bool small, bool light) noexcept;
+  static const QPixmap&
+  portImage(Process::PortType t, bool inlet, bool small, bool light) noexcept;
 };
 
 }

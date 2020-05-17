@@ -13,7 +13,6 @@
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>
 
-
 #include <memory>
 
 namespace Protocols
@@ -35,12 +34,10 @@ bool SerialDevice::reconnect()
 
   try
   {
-    const auto& stgs
-        = settings().deviceSpecificSettings.value<SerialSpecificSettings>();
+    const auto& stgs = settings().deviceSpecificSettings.value<SerialSpecificSettings>();
 
     m_dev = std::make_unique<ossia::net::serial_device>(
-        std::make_unique<ossia::net::serial_protocol>(
-            stgs.text.toUtf8(), stgs.port),
+        std::make_unique<ossia::net::serial_protocol>(stgs.text.toUtf8(), stgs.port),
         settings().name.toStdString());
 
     deviceChanged(nullptr, m_dev.get());

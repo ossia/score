@@ -4,16 +4,17 @@
 #include <Process/HeaderDelegate.hpp>
 #include <Process/Process.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
-#include <score/tools/Bind.hpp>
 
 #include <score/graphics/YPos.hpp>
+#include <score/tools/Bind.hpp>
 
+#include <QCursor>
 #include <QDebug>
+#include <QGuiApplication>
 #include <QPainter>
 #include <QTextLayout>
-#include <QCursor>
 #include <QTextLine>
-#include <QGuiApplication>
+
 #include <Effect/EffectLayer.hpp>
 namespace Process
 {
@@ -34,10 +35,8 @@ QPixmap makeGlyphs(const QString& glyph, const QPen& pen)
   {
     auto rect = line.naturalTextRect();
     double ratio = qApp->devicePixelRatio();
-    path = QImage(
-        rect.width() * ratio,
-        rect.height() * ratio,
-        QImage::Format_ARGB32_Premultiplied);
+    path
+        = QImage(rect.width() * ratio, rect.height() * ratio, QImage::Format_ARGB32_Premultiplied);
     path.setDevicePixelRatio(ratio);
     path.fill(Qt::transparent);
 
@@ -74,15 +73,12 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(
     update();
   });
 
-  con(m_model, &Process::ProcessModel::inletsChanged, this, [=] {
-    updatePorts();
-  });
+  con(m_model, &Process::ProcessModel::inletsChanged, this, [=] { updatePorts(); });
   updatePorts();
 
-  con(m_model, &Process::ProcessModel::benchmark, this, [=](double d) {
-    updateBench(d);
-  });
-  con(m_model.selection,
+  con(m_model, &Process::ProcessModel::benchmark, this, [=](double d) { updateBench(d); });
+  con(
+      m_model.selection,
       &Selectable::changed,
       this,
       [=](bool b) {
@@ -93,11 +89,11 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(
       Qt::QueuedConnection);
 }
 
-DefaultHeaderDelegate::~DefaultHeaderDelegate() {}
+DefaultHeaderDelegate::~DefaultHeaderDelegate() { }
 
 void DefaultHeaderDelegate::updateBench(double d)
 {
-  if(d >= 0.)
+  if (d >= 0.)
   {
     const auto& style = Process::Style::instance();
     m_bench = makeGlyphs(
@@ -115,7 +111,7 @@ void DefaultHeaderDelegate::updateText()
 {
   auto& style = Process::Style::instance();
   const QPen& pen = m_sel ? style.IntervalHeaderTextPen() : textPen(style, m_model);
-  if(&pen != m_lastPen || m_model.prettyName() != m_lastText)
+  if (&pen != m_lastPen || m_model.prettyName() != m_lastText)
   {
     m_line = makeGlyphs(m_model.prettyName(), pen);
     m_lastPen = &pen;
@@ -124,11 +120,13 @@ void DefaultHeaderDelegate::updateText()
   }
 }
 
-const QPen& DefaultHeaderDelegate::textPen(Style& style, const Process::ProcessModel& model) const noexcept
+const QPen&
+DefaultHeaderDelegate::textPen(Style& style, const Process::ProcessModel& model) const noexcept
 {
-  score::ModelMetadata* parent_col = model.parent()->template findChild<score::ModelMetadata*>({}, Qt::FindDirectChildrenOnly);
+  score::ModelMetadata* parent_col
+      = model.parent()->template findChild<score::ModelMetadata*>({}, Qt::FindDirectChildrenOnly);
   auto& b = parent_col->getColor().getBrush();
-  if(&b == &style.IntervalDefaultBackground())
+  if (&b == &style.IntervalDefaultBackground())
     return style.skin.HalfLight.main.pen_cosmetic;
   else
     return b.lighter180.pen_cosmetic;
@@ -161,20 +159,19 @@ void DefaultHeaderDelegate::updatePorts()
   m_portEndX = m_ui ? 10. : 0.;
   const auto& inlets = m_model.inlets();
 
-  auto& portFactory
-      = score::AppContext().interfaces<Process::PortFactoryList>();
+  auto& portFactory = score::AppContext().interfaces<Process::PortFactoryList>();
   for (Process::Inlet* port : inlets)
   {
     if (port->hidden)
       continue;
-    if(auto fact = portFactory.get(port->concreteKey()))
+    if (auto fact = portFactory.get(port->concreteKey()))
     {
-     if (auto item = fact->makeItem(*port, m_context, this, this))
-     {
-       item->setPos(m_portEndX, portY());
-       m_inPorts.push_back(item);
-       m_portEndX += ((QGraphicsItem*)item)->boundingRect().width() - 2.;
-     }
+      if (auto item = fact->makeItem(*port, m_context, this, this))
+      {
+        item->setPos(m_portEndX, portY());
+        m_inPorts.push_back(item);
+        m_portEndX += ((QGraphicsItem*)item)->boundingRect().width() - 2.;
+      }
     }
     else
     {
@@ -188,7 +185,7 @@ void DefaultHeaderDelegate::paint(
     const QStyleOptionGraphicsItem* option,
     QWidget* widget)
 {
-  //painter->fillRect(boundingRect(), Qt::white);
+  // painter->fillRect(boundingRect(), Qt::white);
   const auto start = 3. + (m_ui ? 10. : 0.);
   const auto w = boundingRect().width();
   if (w > minPortWidth())
@@ -203,16 +200,10 @@ void DefaultHeaderDelegate::paint(
       painter->drawPixmap(QPointF{startText, SCORE_YPOS(2., -1.)}, m_line);
     }
 
-    if(!m_bench.isNull())
+    if (!m_bench.isNull())
       painter->drawPixmap(QPointF{w - 32., SCORE_YPOS(2., -1.)}, m_bench);
   }
 }
-
-
-
-
-
-
 
 DefaultFooterDelegate::DefaultFooterDelegate(
     const Process::ProcessModel& model,
@@ -222,17 +213,15 @@ DefaultFooterDelegate::DefaultFooterDelegate(
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorScaleV);
   setFlag(ItemHasNoContents, true);
-  con(model, &Process::ProcessModel::outletsChanged, this, [=] {
-    updatePorts();
-  });
+  con(model, &Process::ProcessModel::outletsChanged, this, [=] { updatePorts(); });
   updatePorts();
 }
 
-DefaultFooterDelegate::~DefaultFooterDelegate() {}
+DefaultFooterDelegate::~DefaultFooterDelegate() { }
 
 void DefaultFooterDelegate::setSize(QSizeF sz)
 {
-  if(sz != m_size)
+  if (sz != m_size)
   {
     prepareGeometryChange();
     m_size = sz;
@@ -259,15 +248,14 @@ void DefaultFooterDelegate::updatePorts()
   qDeleteAll(m_outPorts);
   m_outPorts.clear();
 
-  auto& portFactory
-      = score::AppContext().interfaces<Process::PortFactoryList>();
+  auto& portFactory = score::AppContext().interfaces<Process::PortFactoryList>();
 
   m_portEndX = 0.;
   for (Process::Outlet* port : m_model.outlets())
   {
     if (port->hidden)
       continue;
-    if(auto fact = portFactory.get(port->concreteKey()))
+    if (auto fact = portFactory.get(port->concreteKey()))
     {
       auto item = fact->makeItem(*port, m_context, this, this);
       item->setPos(m_portEndX, SCORE_YPOS(0., 0.));
@@ -286,30 +274,21 @@ void DefaultFooterDelegate::paint(
     const QStyleOptionGraphicsItem* option,
     QWidget* widget)
 {
-  //painter->fillRect(boundingRect(), Qt::white);
+  // painter->fillRect(boundingRect(), Qt::white);
 }
 
-
-FooterDelegate::FooterDelegate(
-    const Process::ProcessModel& model,
-    const Process::Context& context)
-  : m_model{model}
-  , m_context{context}
+FooterDelegate::FooterDelegate(const Process::ProcessModel& model, const Process::Context& context)
+    : m_model{model}, m_context{context}
 {
   setAcceptedMouseButtons(Qt::NoButton);
 }
 
-FooterDelegate::~FooterDelegate()
-{
-
-}
+FooterDelegate::~FooterDelegate() { }
 
 QRectF FooterDelegate::boundingRect() const
 {
   return {0., 0., m_size.width(), m_size.height()};
 }
-
-
 
 void FooterDelegate::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
@@ -331,4 +310,3 @@ int FooterDelegate::type() const
   return UserType + 10000; // See ScenarioDocumentViewConstants
 }
 }
-

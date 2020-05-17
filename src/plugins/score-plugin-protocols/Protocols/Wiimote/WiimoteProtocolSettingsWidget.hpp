@@ -10,8 +10,7 @@ class QComboBox;
 namespace Protocols
 {
 
-class WiimoteProtocolSettingsWidget final
-    : public Device::ProtocolSettingsWidget
+class WiimoteProtocolSettingsWidget final : public Device::ProtocolSettingsWidget
 {
   W_OBJECT(WiimoteProtocolSettingsWidget)
 

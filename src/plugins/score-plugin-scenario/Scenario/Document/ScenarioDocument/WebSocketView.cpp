@@ -2,7 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "WebSocketView.hpp"
 
-
 WebSocketView::WebSocketView(QGraphicsScene* s, quint16 port, QObject* parent)
     : QObject(parent)
     , m_pWebSocketServer(new QWebSocketServer(
@@ -20,11 +19,7 @@ WebSocketView::WebSocketView(QGraphicsScene* s, quint16 port, QObject* parent)
         &QWebSocketServer::newConnection,
         this,
         &WebSocketView::onNewConnection);
-    connect(
-        m_pWebSocketServer,
-        &QWebSocketServer::closed,
-        this,
-        &WebSocketView::closed);
+    connect(m_pWebSocketServer, &QWebSocketServer::closed, this, &WebSocketView::closed);
   }
 }
 
@@ -38,21 +33,9 @@ void WebSocketView::onNewConnection()
 {
   QWebSocket* pSocket = m_pWebSocketServer->nextPendingConnection();
 
-  connect(
-      pSocket,
-      &QWebSocket::textMessageReceived,
-      this,
-      &WebSocketView::processTextMessage);
-  connect(
-      pSocket,
-      &QWebSocket::binaryMessageReceived,
-      this,
-      &WebSocketView::processBinaryMessage);
-  connect(
-      pSocket,
-      &QWebSocket::disconnected,
-      this,
-      &WebSocketView::socketDisconnected);
+  connect(pSocket, &QWebSocket::textMessageReceived, this, &WebSocketView::processTextMessage);
+  connect(pSocket, &QWebSocket::binaryMessageReceived, this, &WebSocketView::processBinaryMessage);
+  connect(pSocket, &QWebSocket::disconnected, this, &WebSocketView::socketDisconnected);
 
   m_clients << pSocket;
 }
@@ -75,8 +58,7 @@ void WebSocketView::processTextMessage(QString message)
     p.setViewBox(QRect(0, 0, 1024, 768));
     QPainter painter;
     painter.begin(&p);
-    painter.setRenderHints(
-        QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+    painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
     m_scene->render(&painter);
     painter.end();
 

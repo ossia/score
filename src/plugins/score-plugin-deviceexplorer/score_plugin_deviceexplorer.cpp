@@ -74,7 +74,7 @@ score_plugin_deviceexplorer::score_plugin_deviceexplorer()
       });
 }
 
-score_plugin_deviceexplorer::~score_plugin_deviceexplorer() {}
+score_plugin_deviceexplorer::~score_plugin_deviceexplorer() { }
 
 std::vector<std::unique_ptr<score::InterfaceListBase>>
 score_plugin_deviceexplorer::factoryFamilies()
@@ -86,8 +86,7 @@ score_plugin_deviceexplorer::factoryFamilies()
       Explorer::ListeningHandlerFactoryList>();
 }
 
-std::vector<std::unique_ptr<score::InterfaceBase>>
-score_plugin_deviceexplorer::factories(
+std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_deviceexplorer::factories(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& key) const
 {
@@ -102,14 +101,12 @@ score_plugin_deviceexplorer::factories(
 }
 
 score::GUIApplicationPlugin*
-score_plugin_deviceexplorer::make_guiApplicationPlugin(
-    const score::GUIApplicationContext& app)
+score_plugin_deviceexplorer::make_guiApplicationPlugin(const score::GUIApplicationContext& app)
 {
   return new Explorer::ApplicationPlugin{app};
 }
 
-std::pair<const CommandGroupKey, CommandGeneratorMap>
-score_plugin_deviceexplorer::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_deviceexplorer::make_commands()
 {
   using namespace Explorer::Command;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{

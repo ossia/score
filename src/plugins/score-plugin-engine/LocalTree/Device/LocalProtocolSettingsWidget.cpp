@@ -47,8 +47,7 @@ Device::DeviceSettings LocalProtocolSettingsWidget::getSettings() const
   return s;
 }
 
-void LocalProtocolSettingsWidget::setSettings(
-    const Device::DeviceSettings& settings)
+void LocalProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
   if (settings.deviceSpecificSettings.canConvert<LocalSpecificSettings>())
   {

@@ -8,8 +8,9 @@
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 
-#include <memory>
 #include <score_plugin_scenario_export.h>
+
+#include <memory>
 struct DataStreamInput;
 struct DataStreamOutput;
 
@@ -20,13 +21,9 @@ class ProcessModel;
 namespace Command
 {
 
-class SCORE_PLUGIN_SCENARIO_EXPORT MoveEventOnCreationMeta final
-    : public SerializableMoveEvent
+class SCORE_PLUGIN_SCENARIO_EXPORT MoveEventOnCreationMeta final : public SerializableMoveEvent
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      MoveEventOnCreationMeta,
-      "Move an event on creation")
+  SCORE_COMMAND_DECL(CommandFactoryName(), MoveEventOnCreationMeta, "Move an event on creation")
 public:
   MoveEventOnCreationMeta(
       const Scenario::ProcessModel& scenarioPath,

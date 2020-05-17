@@ -35,22 +35,17 @@ void ApplicationPlugin::setupConnections(
       &devices,
       &Device::DeviceList::logInbound,
       &messages,
-      [&messages](const QString& str) {
-        messages.push(str, score::log::dark1);
-      },
+      [&messages](const QString& str) { messages.push(str, score::log::dark1); },
       Qt::QueuedConnection);
 
   m_outbound = QObject::connect(
       &devices,
       &Device::DeviceList::logOutbound,
       &messages,
-      [&messages](const QString& str) {
-        messages.push(str, score::log::dark2);
-      },
+      [&messages](const QString& str) { messages.push(str, score::log::dark2); },
       Qt::QueuedConnection);
 
-  auto qt_sink
-      = dynamic_cast<ossia::qt::log_sink*>(&*ossia::logger().sinks()[1]);
+  auto qt_sink = dynamic_cast<ossia::qt::log_sink*>(&*ossia::logger().sinks()[1]);
   if (qt_sink)
   {
     m_error = QObject::connect(
@@ -69,9 +64,7 @@ void ApplicationPlugin::on_newDocument(score::Document& doc)
   score::addDocumentPlugin<DeviceDocumentPlugin>(doc);
 }
 
-void ApplicationPlugin::on_documentChanged(
-    score::Document* olddoc,
-    score::Document* newdoc)
+void ApplicationPlugin::on_documentChanged(score::Document* olddoc, score::Document* newdoc)
 {
   disableConnections();
   QObject::disconnect(m_visible);
@@ -105,8 +98,7 @@ void ApplicationPlugin::on_documentChanged(
           devices.setLogging(visible);
         };
 
-        m_visible = QObject::connect(
-            qw, &QDockWidget::visibilityChanged, messages, func);
+        m_visible = QObject::connect(qw, &QDockWidget::visibilityChanged, messages, func);
 
         func(qw->isVisible());
       }

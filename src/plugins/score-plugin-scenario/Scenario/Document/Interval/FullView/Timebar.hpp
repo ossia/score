@@ -1,7 +1,9 @@
 #pragma once
 #include <score/model/Skin.hpp>
+
 #include <QGraphicsItem>
 #include <QPainter>
+
 #include <array>
 
 namespace Scenario
@@ -17,17 +19,13 @@ public:
     positions.resize(1);
   }
 
-  ~LightBars()
-  {
-
-  }
+  ~LightBars() { }
 
   QRectF boundingRect() const
   {
-    if(positions.empty())
+    if (positions.empty())
       return {};
-    return {positions.front().x1(), 0,
-            positions.back().x1() - positions.front().x1(), 10000};
+    return {positions.front().x1(), 0, positions.back().x1() - positions.front().x1(), 10000};
   }
 
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
@@ -39,14 +37,18 @@ public:
 
   QLineF& operator[](int i)
   {
-    if(i >= positions.size())
+    if (i >= positions.size())
     {
       positions.resize((i + 1) * 1.2);
     }
     return positions[i];
   }
 
-  void updateShapes() { prepareGeometryChange(); update(); }
+  void updateShapes()
+  {
+    prepareGeometryChange();
+    update();
+  }
 };
 
 class LighterBars : public QGraphicsItem
@@ -60,17 +62,13 @@ public:
     positions.resize(1);
   }
 
-  ~LighterBars()
-  {
-
-  }
+  ~LighterBars() { }
 
   QRectF boundingRect() const
   {
-    if(positions.empty())
+    if (positions.empty())
       return {};
-    return {positions.front().x1(), 0,
-            positions.back().x1() - positions.front().x1(), 10000};
+    return {positions.front().x1(), 0, positions.back().x1() - positions.front().x1(), 10000};
   }
 
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
@@ -82,14 +80,18 @@ public:
 
   QLineF& operator[](int i)
   {
-    if(i >= positions.size())
+    if (i >= positions.size())
     {
       positions.resize((i + 1) * 1.2);
     }
     return positions[i];
   }
 
-  void updateShapes() { prepareGeometryChange(); update();}
+  void updateShapes()
+  {
+    prepareGeometryChange();
+    update();
+  }
 };
 
 }

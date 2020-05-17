@@ -12,8 +12,7 @@ class QWidget;
 namespace Protocols
 {
 class RateWidget;
-class OSCQueryProtocolSettingsWidget final
-    : public Device::ProtocolSettingsWidget
+class OSCQueryProtocolSettingsWidget final : public Device::ProtocolSettingsWidget
 {
 public:
   OSCQueryProtocolSettingsWidget(QWidget* parent = nullptr);

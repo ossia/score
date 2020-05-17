@@ -6,13 +6,13 @@
 
 #include <score/graphics/GraphicsItem.hpp>
 
+#include <QApplication>
 #include <QGraphicsScene>
-#include <QGraphicsView>
 #include <QGraphicsSceneContextMenuEvent>
 #include <QGraphicsSceneMouseEvent>
+#include <QGraphicsView>
 #include <QKeyEvent>
 #include <QPainter>
-#include <QApplication>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Midi::View)
@@ -30,7 +30,7 @@ View::View(QGraphicsItem* parent) : Process::LayerView{parent}
   m_fragmentCache.reserve(20);
 }
 
-View::~View() {}
+View::~View() { }
 
 void View::heightChanged(qreal h)
 {
@@ -85,15 +85,11 @@ void View::heightChanged(qreal h)
       const qreal width = std::max(v->width(), 800) * 2;
 
       {
-        QRectF* white_rects
-            = (QRectF*)alloca((sizeof(QRectF) * visibleCount()));
+        QRectF* white_rects = (QRectF*)alloca((sizeof(QRectF) * visibleCount()));
         int max_white = 0;
         const auto draw_bg_white = [&](int i) {
           white_rects[max_white++]
-              = QRectF{0,
-                       rect.height() + note_height * (m_min - i - 1) - 1,
-                       width,
-                       note_height};
+              = QRectF{0, rect.height() + note_height * (m_min - i - 1) - 1, width, note_height};
         };
         for_white_notes(draw_bg_white);
         p->setBrush(style.lightBrush);
@@ -101,15 +97,11 @@ void View::heightChanged(qreal h)
       }
 
       {
-        QRectF* black_rects
-            = (QRectF*)alloca((sizeof(QRectF) * visibleCount()));
+        QRectF* black_rects = (QRectF*)alloca((sizeof(QRectF) * visibleCount()));
         int max_black = 0;
         const auto draw_bg_black = [&](int i) {
           black_rects[max_black++]
-              = QRectF{0,
-                       rect.height() + note_height * (m_min - i - 1) - 1,
-                       width,
-                       note_height};
+              = QRectF{0, rect.height() + note_height * (m_min - i - 1) - 1, width, note_height};
         };
         for_black_notes(draw_bg_black);
 
@@ -123,10 +115,7 @@ void View::heightChanged(qreal h)
             "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
         const auto draw_text = [&](int i) {
           p->drawText(
-              QRectF{2.,
-                     rect.height() + note_height * (m_min - i - 1) - 1,
-                     width,
-                     note_height},
+              QRectF{2., rect.height() + note_height * (m_min - i - 1) - 1, width, note_height},
               texts[i % 12],
               QTextOption{Qt::AlignVCenter});
         };
@@ -141,7 +130,7 @@ void View::heightChanged(qreal h)
   m_bgCache = bg;
 }
 
-void View::widthChanged(qreal w) {}
+void View::widthChanged(qreal w) { }
 
 void View::setDefaultWidth(double w)
 {
@@ -177,34 +166,34 @@ void View::paint_impl(QPainter* p) const
 
       double x = left + 50.;
       m_fragmentCache.clear();
-      m_fragmentCache.push_back(
-          QPainter::PixmapFragment{left + 50.,
-                                   m_bgCache.height() / 2.,
-                                   0.,
-                                   0.,
-                                   (double)m_bgCache.width(),
-                                   (double)m_bgCache.height(),
-                                   1.,
-                                   1.,
-                                   0.,
-                                   1.});
+      m_fragmentCache.push_back(QPainter::PixmapFragment{
+          left + 50.,
+          m_bgCache.height() / 2.,
+          0.,
+          0.,
+          (double)m_bgCache.width(),
+          (double)m_bgCache.height(),
+          1.,
+          1.,
+          0.,
+          1.});
       constexpr double text_w = 30.;
       const double next_w = m_bgCache.width() - text_w;
 
       x += m_bgCache.width() - text_w / 2.;
       for (int i = 0; i < 20; i++)
       {
-        m_fragmentCache.push_back(
-            QPainter::PixmapFragment{x,
-                                     m_bgCache.height() / 2.,
-                                     text_w,
-                                     0.,
-                                     next_w,
-                                     (double)m_bgCache.height(),
-                                     1.,
-                                     1.,
-                                     0.,
-                                     1.});
+        m_fragmentCache.push_back(QPainter::PixmapFragment{
+            x,
+            m_bgCache.height() / 2.,
+            text_w,
+            0.,
+            next_w,
+            (double)m_bgCache.height(),
+            1.,
+            1.,
+            0.,
+            1.});
         x += next_w;
       }
 
@@ -298,10 +287,10 @@ NoteData View::noteAtPos(QPointF point) const
   n.m_pitch = qBound(
       m_min,
       1
-          + int(m_max
-                - (qMin(rect.bottom(), qMax(point.y(), rect.top()))
-                   / rect.height())
-                      * visibleCount()),
+          + int(
+              m_max
+              - (qMin(rect.bottom(), qMax(point.y(), rect.top())) / rect.height())
+                    * visibleCount()),
       m_max);
 
   n.m_velocity = 127.;

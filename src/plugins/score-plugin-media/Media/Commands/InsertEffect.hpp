@@ -1,7 +1,7 @@
 #pragma once
 #include <Dataflow/Commands/CableHelpers.hpp>
-#include <Media/Commands/MediaCommandFactory.hpp>
 #include <Media/AudioChain/AudioChainModel.hpp>
+#include <Media/Commands/MediaCommandFactory.hpp>
 #include <Process/ProcessList.hpp>
 
 #include <score/application/ApplicationContext.hpp>
@@ -23,10 +23,7 @@ namespace Media
 
 class InsertEffect final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      Media::CommandFactoryName(),
-      InsertEffect,
-      "Insert effect")
+  SCORE_COMMAND_DECL(Media::CommandFactoryName(), InsertEffect, "Insert effect")
 public:
   InsertEffect(
       const Media::ChainProcess& model,
@@ -93,19 +90,12 @@ public:
   const CommandKey& key() const noexcept override { return static_key(); }
   QString description() const override
   {
-    return QObject::tr("Insert %1 effect")
-        .arg(Metadata<Description_k, T>::get());
+    return QObject::tr("Insert %1 effect").arg(Metadata<Description_k, T>::get());
   }
 
   InsertGenericEffect() = default;
-  InsertGenericEffect(
-      const Media::ChainProcess& model,
-      const QString& path,
-      std::size_t effectPos)
-      : m_model{model}
-      , m_id{getStrongId(model.effects())}
-      , m_effect{path}
-      , m_pos{effectPos}
+  InsertGenericEffect(const Media::ChainProcess& model, const QString& path, std::size_t effectPos)
+      : m_model{model}, m_id{getStrongId(model.effects())}, m_effect{path}, m_pos{effectPos}
   {
   }
 
@@ -129,10 +119,7 @@ protected:
     s << m_model << m_id << m_effect << m_pos;
   }
 
-  void deserializeImpl(DataStreamOutput& s) override
-  {
-    s >> m_model >> m_id >> m_effect >> m_pos;
-  }
+  void deserializeImpl(DataStreamOutput& s) override { s >> m_model >> m_id >> m_effect >> m_pos; }
 
 private:
   Path<Media::ChainProcess> m_model;
@@ -143,14 +130,9 @@ private:
 
 class RemoveEffect final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      Media::CommandFactoryName(),
-      RemoveEffect,
-      "Remove effect")
+  SCORE_COMMAND_DECL(Media::CommandFactoryName(), RemoveEffect, "Remove effect")
 public:
-  RemoveEffect(
-      const Media::ChainProcess& model,
-      const Process::ProcessModel& effect);
+  RemoveEffect(const Media::ChainProcess& model, const Process::ProcessModel& effect);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
@@ -171,10 +153,7 @@ class MoveEffect final : public score::Command
 {
   SCORE_COMMAND_DECL(Media::CommandFactoryName(), MoveEffect, "Move effect")
 public:
-  MoveEffect(
-      const Media::ChainProcess& model,
-      Id<Process::ProcessModel> id,
-      int new_pos);
+  MoveEffect(const Media::ChainProcess& model, Id<Process::ProcessModel> id, int new_pos);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
@@ -191,10 +170,7 @@ private:
 
 class DropEffectMacro final : public score::AggregateCommand
 {
-  SCORE_COMMAND_DECL(
-      Media::CommandFactoryName(),
-      DropEffectMacro,
-      "Drop an effect")
+  SCORE_COMMAND_DECL(Media::CommandFactoryName(), DropEffectMacro, "Drop an effect")
 };
 
 }

@@ -14,21 +14,18 @@ W_OBJECT_IMPL(score::CustomActionCondition)
 namespace score
 {
 
-EnableActionIfDocument::~EnableActionIfDocument() {}
+EnableActionIfDocument::~EnableActionIfDocument() { }
 
 void EnableActionIfDocument::action(ActionManager& mgr, MaybeDocument doc)
 {
   setEnabled(mgr, bool(doc));
 }
 
-ActionCondition::ActionCondition(StringKey<ActionCondition> k)
-    : m_key{std::move(k)}
-{
-}
+ActionCondition::ActionCondition(StringKey<ActionCondition> k) : m_key{std::move(k)} { }
 
-ActionCondition::~ActionCondition() {}
+ActionCondition::~ActionCondition() { }
 
-void ActionCondition::action(ActionManager& mgr, MaybeDocument) {}
+void ActionCondition::action(ActionManager& mgr, MaybeDocument) { }
 
 StringKey<ActionCondition> ActionCondition::key() const
 {
@@ -152,11 +149,11 @@ void Action::updateTexts()
     m_impl->setStatusTip(clearText);
 }
 
-DocumentActionCondition::~DocumentActionCondition() {}
+DocumentActionCondition::~DocumentActionCondition() { }
 
-FocusActionCondition::~FocusActionCondition() {}
+FocusActionCondition::~FocusActionCondition() { }
 
-SelectionActionCondition::~SelectionActionCondition() {}
+SelectionActionCondition::~SelectionActionCondition() { }
 
-CustomActionCondition::~CustomActionCondition() {}
+CustomActionCondition::~CustomActionCondition() { }
 }

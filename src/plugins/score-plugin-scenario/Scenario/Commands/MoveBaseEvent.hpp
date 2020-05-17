@@ -29,10 +29,8 @@ class MoveBaseEvent final : public score::Command
 {
 private:
   template <typename ScaleFun>
-  static void updateDuration(
-      SimpleScenario_T& scenar,
-      const TimeVal& newDuration,
-      ScaleFun&& scaleMethod)
+  static void
+  updateDuration(SimpleScenario_T& scenar, const TimeVal& newDuration, ScaleFun&& scaleMethod)
   {
     scenar.endEvent().setDate(newDuration);
     scenar.endTimeSync().setDate(newDuration);
@@ -53,14 +51,12 @@ public:
   const CommandKey& key() const noexcept override { return static_key(); }
   QString description() const override
   {
-    return QObject::tr("Move a %1 event")
-        .arg(Metadata<UndoName_k, SimpleScenario_T>::get());
+    return QObject::tr("Move a %1 event").arg(Metadata<UndoName_k, SimpleScenario_T>::get());
   }
   static const CommandKey& static_key() noexcept
   {
     static const CommandKey kagi{
-        QString("MoveBaseEvent_")
-        + Metadata<ObjectKey_k, SimpleScenario_T>::get()};
+        QString("MoveBaseEvent_") + Metadata<ObjectKey_k, SimpleScenario_T>::get()};
     return kagi;
   }
 
@@ -77,8 +73,7 @@ public:
   {
     const Scenario::IntervalModel& interval = scenar.interval();
     m_oldDate = interval.duration.defaultDuration();
-    m_saveData
-        = IntervalSaveData{interval, true}; // TODO fix the "clear" under this
+    m_saveData = IntervalSaveData{interval, true}; // TODO fix the "clear" under this
   }
 
   MoveBaseEvent(
@@ -97,10 +92,9 @@ public:
   {
     auto& scenar = m_path.find(ctx);
 
-    updateDuration(
-        scenar, m_oldDate, [&](Process::ProcessModel& p, const TimeVal& v) {
-          // Nothing is needed since the processes will be replaced anyway.
-        });
+    updateDuration(scenar, m_oldDate, [&](Process::ProcessModel& p, const TimeVal& v) {
+      // Nothing is needed since the processes will be replaced anyway.
+    });
 
     // TODO do this only if we shrink.
 
@@ -121,25 +115,16 @@ public:
   {
     auto& scenar = m_path.find(ctx);
 
-    updateDuration(
-        scenar, m_newDate, [&](Process::ProcessModel& p, const TimeVal& v) {
-          p.setParentDuration(m_mode, v);
-        });
+    updateDuration(scenar, m_newDate, [&](Process::ProcessModel& p, const TimeVal& v) {
+      p.setParentDuration(m_mode, v);
+    });
   }
 
-  void
-  update(unused_t, unused_t, const TimeVal& date, double, ExpandMode, LockMode)
+  void update(unused_t, unused_t, const TimeVal& date, double, ExpandMode, LockMode)
   {
     m_newDate = date;
   }
-  void update(
-      unused_t,
-      unused_t,
-      const TimeVal& date,
-      double,
-      ExpandMode,
-      LockMode,
-      unused_t)
+  void update(unused_t, unused_t, const TimeVal& date, double, ExpandMode, LockMode, unused_t)
   {
     m_newDate = date;
   }

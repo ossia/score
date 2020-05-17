@@ -11,10 +11,8 @@
 #include <score/model/path/PathSerialization.hpp>
 namespace Media
 {
-ChangeAudioFile::ChangeAudioFile(
-    const Sound::ProcessModel& model,
-    const QString& text)
-  : m_model{model}, m_new{text}
+ChangeAudioFile::ChangeAudioFile(const Sound::ProcessModel& model, const QString& text)
+    : m_model{model}, m_new{text}
 {
   m_old = model.file()->originalFile();
   m_oldloop = model.loopDuration();
@@ -32,16 +30,15 @@ ChangeAudioFile::ChangeAudioFile(
 
 void ChangeAudioFile::undo(const score::DocumentContext& ctx) const
 {
-  if(m_newdur != TimeVal::zero())
+  if (m_newdur != TimeVal::zero())
   {
     auto& snd = m_model.find(ctx);
     snd.setFile(m_old);
     if (auto itv = qobject_cast<Scenario::IntervalModel*>(snd.parent()))
     {
-      if(itv->processes.size() == 1)
+      if (itv->processes.size() == 1)
       {
-        if (auto fact
-            = ctx.app.interfaces<Scenario::IntervalResizerList>().find(*itv))
+        if (auto fact = ctx.app.interfaces<Scenario::IntervalResizerList>().find(*itv))
         {
           auto cmd = fact->make(*itv, m_olddur);
           cmd->redo(ctx);
@@ -55,16 +52,15 @@ void ChangeAudioFile::undo(const score::DocumentContext& ctx) const
 
 void ChangeAudioFile::redo(const score::DocumentContext& ctx) const
 {
-  if(m_newdur != TimeVal::zero())
+  if (m_newdur != TimeVal::zero())
   {
     auto& snd = m_model.find(ctx);
     snd.setFile(m_new);
     if (auto itv = qobject_cast<Scenario::IntervalModel*>(snd.parent()))
     {
-      if(itv->processes.size() == 1)
+      if (itv->processes.size() == 1)
       {
-        if (auto fact
-            = ctx.app.interfaces<Scenario::IntervalResizerList>().find(*itv))
+        if (auto fact = ctx.app.interfaces<Scenario::IntervalResizerList>().find(*itv))
         {
           auto cmd = fact->make(*itv, m_newdur);
           cmd->redo(ctx);

@@ -4,18 +4,17 @@
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/widgets/SpinBoxes.hpp>
 
+#include <QComboBox>
 #include <QLineEdit>
 #include <QSpinBox>
-#include <QComboBox>
-#include <score/widgets/SpinBoxes.hpp>
 
 namespace Media
 {
 namespace Sound
 {
-class InspectorWidget final
-    : public Process::InspectorWidgetDelegate_T<Sound::ProcessModel>
+class InspectorWidget final : public Process::InspectorWidgetDelegate_T<Sound::ProcessModel>
 {
 public:
   explicit InspectorWidget(

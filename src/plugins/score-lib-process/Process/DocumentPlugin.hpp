@@ -8,8 +8,7 @@
 
 namespace Process
 {
-class SCORE_LIB_PROCESS_EXPORT DataflowManager final
-    : public QObject
+class SCORE_LIB_PROCESS_EXPORT DataflowManager final : public QObject
 {
 public:
   DataflowManager();

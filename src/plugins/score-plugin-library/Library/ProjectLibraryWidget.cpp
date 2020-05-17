@@ -1,12 +1,14 @@
 #include "ProjectLibraryWidget.hpp"
+
 #include <Library/FileSystemModel.hpp>
 #include <Library/ItemModelFilterLineEdit.hpp>
-#include <Library/RecursiveFilterProxy.hpp>
 #include <Library/LibrarySettings.hpp>
 #include <Library/LibraryWidget.hpp>
+#include <Library/RecursiveFilterProxy.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/widgets/MarginLess.hpp>
+
 #include <core/presenter/DocumentManager.hpp>
 
 #include <QVBoxLayout>
@@ -22,8 +24,9 @@ ProjectLibraryWidget::ProjectLibraryWidget(
     , m_proxy{new RecursiveFilterProxy{this}}
 {
   auto lay = new score::MarginLess<QVBoxLayout>;
-  setStatusTip(QObject::tr("This panel shows the project library.\n"
-                           "It lists the files in the folder where the score is saved."));
+  setStatusTip(
+      QObject::tr("This panel shows the project library.\n"
+                  "It lists the files in the folder where the score is saved."));
 
   this->setLayout(lay);
 
@@ -48,7 +51,7 @@ ProjectLibraryWidget::ProjectLibraryWidget(
   m_tv.setAcceptDrops(true);
 }
 
-ProjectLibraryWidget::~ProjectLibraryWidget() {}
+ProjectLibraryWidget::~ProjectLibraryWidget() { }
 
 void ProjectLibraryWidget::unsetRoot()
 {
@@ -58,7 +61,7 @@ void ProjectLibraryWidget::unsetRoot()
 
 void ProjectLibraryWidget::setRoot(score::DocumentMetadata& meta)
 {
-  auto setFilename = [this] (const QString& path) {
+  auto setFilename = [this](const QString& path) {
     if (!path.isEmpty())
     {
       auto idx = m_model->setRootPath(path);
@@ -74,18 +77,22 @@ void ProjectLibraryWidget::setRoot(score::DocumentMetadata& meta)
     }
   };
   QObject::disconnect(m_con);
-  m_con = con(meta, &score::DocumentMetadata::fileNameChanged,
-              this, [=] (const QString& filename) {
-    auto fi = QFileInfo{filename};
-    if(fi.exists())
-    {
-      auto path = fi.absolutePath();
-      setFilename(path);
-    }
-  }, Qt::QueuedConnection);
+  m_con = con(
+      meta,
+      &score::DocumentMetadata::fileNameChanged,
+      this,
+      [=](const QString& filename) {
+        auto fi = QFileInfo{filename};
+        if (fi.exists())
+        {
+          auto path = fi.absolutePath();
+          setFilename(path);
+        }
+      },
+      Qt::QueuedConnection);
 
   auto fi = QFileInfo{meta.fileName()};
-  if(fi.exists())
+  if (fi.exists())
   {
     auto path = fi.absolutePath();
     setFilename(path);

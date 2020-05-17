@@ -2,21 +2,21 @@
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Scenario/Document/Components/ScenarioComponent.hpp>
 #include <Scenario/Document/Event/EventExecution.hpp>
+#include <Scenario/Document/Graph.hpp>
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateExecution.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncExecution.hpp>
 #include <Scenario/Tools/dataStructures.hpp>
-#include <Scenario/Document/Graph.hpp>
+
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/tools/std/Optional.hpp>
 
 #include <ossia/editor/scenario/time_event.hpp>
 
-#include <verdigris>
-
 #include <memory>
+#include <verdigris>
 
 Q_DECLARE_METATYPE(std::shared_ptr<Execution::EventComponent>)
 W_REGISTER_ARGTYPE(std::shared_ptr<Execution::EventComponent>)
@@ -76,9 +76,7 @@ public:
   ~ScenarioComponentBase() override;
 
   const auto& states() const { return m_ossia_states; }
-  const score::hash_map<
-      Id<Scenario::IntervalModel>,
-      std::shared_ptr<IntervalComponent>>&
+  const score::hash_map<Id<Scenario::IntervalModel>, std::shared_ptr<IntervalComponent>>&
   intervals() const
   {
     return m_ossia_intervals;
@@ -98,22 +96,16 @@ public:
       f();
   }
 
-  std::function<void()>
-  removing(const Scenario::IntervalModel& e, IntervalComponent& c);
+  std::function<void()> removing(const Scenario::IntervalModel& e, IntervalComponent& c);
 
-  std::function<void()>
-  removing(const Scenario::TimeSyncModel& e, TimeSyncComponent& c);
+  std::function<void()> removing(const Scenario::TimeSyncModel& e, TimeSyncComponent& c);
 
-  std::function<void()>
-  removing(const Scenario::EventModel& e, EventComponent& c);
+  std::function<void()> removing(const Scenario::EventModel& e, EventComponent& c);
 
-  std::function<void()>
-  removing(const Scenario::StateModel& e, StateComponent& c);
+  std::function<void()> removing(const Scenario::StateModel& e, StateComponent& c);
 
 public:
-  void sig_eventCallback(
-      std::shared_ptr<EventComponent> arg_1,
-      ossia::time_event::status st)
+  void sig_eventCallback(std::shared_ptr<EventComponent> arg_1, ossia::time_event::status st)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sig_eventCallback, arg_1, st)
 
 protected:
@@ -121,26 +113,18 @@ protected:
   void stopIntervalExecution(const Id<Scenario::IntervalModel>&);
   void disableIntervalExecution(const Id<Scenario::IntervalModel>& id);
 
-  void eventCallback(
-      std::shared_ptr<EventComponent> ev,
-      ossia::time_event::status newStatus);
+  void eventCallback(std::shared_ptr<EventComponent> ev, ossia::time_event::status newStatus);
 
-  void
-  timeSyncCallback(Execution::TimeSyncComponent* tn, ossia::time_value date);
+  void timeSyncCallback(Execution::TimeSyncComponent* tn, ossia::time_value date);
 
-  score::
-      hash_map<Id<Scenario::IntervalModel>, std::shared_ptr<IntervalComponent>>
-          m_ossia_intervals;
-  score::hash_map<Id<Scenario::StateModel>, std::shared_ptr<StateComponent>>
-      m_ossia_states;
-  score::
-      hash_map<Id<Scenario::TimeSyncModel>, std::shared_ptr<TimeSyncComponent>>
-          m_ossia_timesyncs;
-  score::hash_map<Id<Scenario::EventModel>, std::shared_ptr<EventComponent>>
-      m_ossia_timeevents;
+  score::hash_map<Id<Scenario::IntervalModel>, std::shared_ptr<IntervalComponent>>
+      m_ossia_intervals;
+  score::hash_map<Id<Scenario::StateModel>, std::shared_ptr<StateComponent>> m_ossia_states;
+  score::hash_map<Id<Scenario::TimeSyncModel>, std::shared_ptr<TimeSyncComponent>>
+      m_ossia_timesyncs;
+  score::hash_map<Id<Scenario::EventModel>, std::shared_ptr<EventComponent>> m_ossia_timeevents;
 
-  score::hash_map<Id<Scenario::IntervalModel>, Scenario::IntervalModel*>
-      m_executingIntervals;
+  score::hash_map<Id<Scenario::IntervalModel>, Scenario::IntervalModel*> m_executingIntervals;
 
   const Context& m_ctx;
 
@@ -169,8 +153,7 @@ using ScenarioComponentHierarchy = HierarchicalScenarioComponent<
     StateComponent,
     false>;
 
-struct SCORE_PLUGIN_SCENARIO_EXPORT ScenarioComponent final
-    : public ScenarioComponentHierarchy
+struct SCORE_PLUGIN_SCENARIO_EXPORT ScenarioComponent final : public ScenarioComponentHierarchy
 {
   ScenarioComponent(
       Scenario::ProcessModel& proc,
@@ -183,6 +166,5 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT ScenarioComponent final
   void cleanup() override;
 };
 
-using ScenarioComponentFactory
-    = Execution::ProcessComponentFactory_T<ScenarioComponent>;
+using ScenarioComponentFactory = Execution::ProcessComponentFactory_T<ScenarioComponent>;
 }

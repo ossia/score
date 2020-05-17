@@ -4,11 +4,11 @@
 
 #include <Midi/Commands/SetOutput.hpp>
 
-#include <score/document/DocumentContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/tools/Bind.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SignalUtils.hpp>
-#include <score/tools/Bind.hpp>
 
 #include <QFormLayout>
 
@@ -34,14 +34,13 @@ InspectorWidget::InspectorWidget(
       if (m_chan->value() != n)
         m_chan->setValue(n);
     });
-    connect(
-        m_chan, SignalUtils::QSpinBox_valueChanged_int(), this, [&](int n) {
-          if (model.channel() != n)
-          {
-            CommandDispatcher<> d{doc.commandStack};
-            d.submit(new SetChannel{model, n});
-          }
-        });
+    connect(m_chan, SignalUtils::QSpinBox_valueChanged_int(), this, [&](int n) {
+      if (model.channel() != n)
+      {
+        CommandDispatcher<> d{doc.commandStack};
+        d.submit(new SetChannel{model, n});
+      }
+    });
   }
 
   ///// RANGE /////

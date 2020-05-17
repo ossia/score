@@ -15,8 +15,7 @@ template <std::size_t N>
 class AddressVecSettingsWidget final : public AddressSettingsWidget
 {
 public:
-  explicit AddressVecSettingsWidget(QWidget* parent = nullptr)
-      : AddressSettingsWidget(parent)
+  explicit AddressVecSettingsWidget(QWidget* parent = nullptr) : AddressSettingsWidget(parent)
   {
     m_valueEdit = new State::VecWidget<N>{this};
     m_domainSelector = new QComboBox{this};
@@ -32,23 +31,18 @@ public:
     m_domainVecEdit->setHidden(true);
 
     m_layout->insertRow(0, makeLabel(tr("Value"), this), m_valueEdit);
-    m_layout->insertRow(
-        1, makeLabel(tr("Domain Type"), this), m_domainSelector);
+    m_layout->insertRow(1, makeLabel(tr("Domain Type"), this), m_domainSelector);
     m_layout->insertRow(2, makeLabel(tr("Domain"), this), m_domainFloatEdit);
 
-    connect(
-        m_unit,
-        &State::UnitWidget::unitChanged,
-        this,
-        [=](const State::Unit& u) {
-          auto dom = ossia::get_unit_default_domain(u.get());
+    connect(m_unit, &State::UnitWidget::unitChanged, this, [=](const State::Unit& u) {
+      auto dom = ossia::get_unit_default_domain(u.get());
 
-          if (auto p = dom.v.target<ossia::vecf_domain<N>>())
-          {
-            m_domainVecEdit->set_domain(dom);
-            m_domainSelector->setCurrentIndex(1);
-          }
-        });
+      if (auto p = dom.v.target<ossia::vecf_domain<N>>())
+      {
+        m_domainVecEdit->set_domain(dom);
+        m_domainSelector->setCurrentIndex(1);
+      }
+    });
 
     m_domainSelector->setCurrentIndex(0);
   }
@@ -67,8 +61,7 @@ public:
   void setSettings(const Device::AddressSettings& settings) override
   {
     setCommonSettings(settings);
-    m_valueEdit->setValue(
-        State::convert::value<std::array<float, N>>(settings.value));
+    m_valueEdit->setValue(State::convert::value<std::array<float, N>>(settings.value));
     if (settings.domain.get().v.target<ossia::domain_base<float>>())
     {
       m_domainFloatEdit->set_domain(settings.domain);
@@ -104,8 +97,7 @@ public:
       // Float
       case 0:
       {
-        m_layout->replaceWidget(
-            m_domainVecEdit, m_domainFloatEdit, Qt::FindDirectChildrenOnly);
+        m_layout->replaceWidget(m_domainVecEdit, m_domainFloatEdit, Qt::FindDirectChildrenOnly);
         m_domainVecEdit->setHidden(true);
         m_domainVecEdit->setDisabled(true);
         m_domainFloatEdit->setHidden(false);
@@ -115,8 +107,7 @@ public:
       // Vec
       case 1:
       {
-        m_layout->replaceWidget(
-            m_domainFloatEdit, m_domainVecEdit, Qt::FindDirectChildrenOnly);
+        m_layout->replaceWidget(m_domainFloatEdit, m_domainVecEdit, Qt::FindDirectChildrenOnly);
         m_domainVecEdit->setHidden(false);
         m_domainVecEdit->setDisabled(false);
         m_domainFloatEdit->setHidden(true);

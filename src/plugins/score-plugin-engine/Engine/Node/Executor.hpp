@@ -5,8 +5,9 @@
 #include <Process/ExecutionContext.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
 
-#include <ossia/dataflow/safe_nodes/executor.hpp>
 #include <score/tools/Bind.hpp>
+
+#include <ossia/dataflow/safe_nodes/executor.hpp>
 
 #include <QTimer>
 
@@ -34,15 +35,16 @@ struct setup_Impl0
       using namespace ossia::safe_nodes;
       constexpr auto idx = Idx_T::value;
 
-      using control_type = typename std::tuple_element<idx, decltype(Info_T::Metadata::controls)>::type;
+      using control_type =
+          typename std::tuple_element<idx, decltype(Info_T::Metadata::controls)>::type;
       using control_value_type = typename control_type::type;
 
       if (auto node = weak_node.lock())
       {
         constexpr const auto ctrl = std::get<idx>(Info_T::Metadata::controls);
         if (auto v = ctrl.fromValue(val))
-          ctx.executionQueue.enqueue(control_updater<control_value_type>{
-              std::get<idx>(node->controls), std::move(*v)});
+          ctx.executionQueue.enqueue(
+              control_updater<control_value_type>{std::get<idx>(node->controls), std::move(*v)});
       }
     }
   };
@@ -57,8 +59,8 @@ struct setup_Impl0
       using namespace ossia::safe_nodes;
       constexpr auto idx = Idx_T::value;
 
-      using control_type = typename std::
-          tuple_element<idx, decltype(Info_T::Metadata::controls)>::type;
+      using control_type =
+          typename std::tuple_element<idx, decltype(Info_T::Metadata::controls)>::type;
       using control_value_type = typename control_type::type;
 
       if (auto node = weak_node.lock())
@@ -79,10 +81,9 @@ struct setup_Impl0
 
     constexpr const auto ctrl = std::get<idx>(Info_T::Metadata::controls);
     constexpr const auto control_start = info_functions<Info>::control_start;
-    using control_type = typename std::
-        tuple_element<idx, decltype(Info_T::Metadata::controls)>::type;
-    auto inlet = static_cast<Process::ControlInlet*>(
-        element.inlets()[control_start + idx]);
+    using control_type =
+        typename std::tuple_element<idx, decltype(Info_T::Metadata::controls)>::type;
+    auto inlet = static_cast<Process::ControlInlet*>(element.inlets()[control_start + idx]);
 
     auto& node = *node_ptr;
     std::weak_ptr<Node_T> weak_node = node_ptr;
@@ -93,20 +94,14 @@ struct setup_Impl0
         std::get<idx>(node.controls) = *res;
 
       QObject::connect(
-          inlet,
-          &Process::ControlInlet::valueChanged,
-          parent,
-          con_validated<T>{ctx, weak_node});
+          inlet, &Process::ControlInlet::valueChanged, parent, con_validated<T>{ctx, weak_node});
     }
     else
     {
       std::get<idx>(node.controls) = ctrl.fromValue(element.control(idx));
 
       QObject::connect(
-          inlet,
-          &Process::ControlInlet::valueChanged,
-          parent,
-          con_unvalidated<T>{ctx, weak_node});
+          inlet, &Process::ControlInlet::valueChanged, parent, con_unvalidated<T>{ctx, weak_node});
     }
   }
 };
@@ -143,7 +138,7 @@ struct setup_Impl1_Out
   }
 };
 
-template<typename Info, typename Node_T, typename Element_T>
+template <typename Info, typename Node_T, typename Element_T>
 struct ExecutorGuiUpdate
 {
   std::weak_ptr<Node_T> weak_node;
@@ -162,11 +157,9 @@ struct ExecutorGuiUpdate
     }
     if (ok)
     {
-      constexpr const auto control_count
-          = info_functions<Info>::control_count;
+      constexpr const auto control_count = info_functions<Info>::control_count;
 
-      ossia::for_each_in_range<control_count>(
-          setup_Impl1<Info, Element_T, Node_T>{arr, element});
+      ossia::for_each_in_range<control_count>(setup_Impl1<Info, Element_T, Node_T>{arr, element});
     }
   }
 
@@ -183,11 +176,10 @@ struct ExecutorGuiUpdate
     }
     if (ok)
     {
-      constexpr const auto control_out_count
-          = info_functions<Info>::control_out_count;
+      constexpr const auto control_out_count = info_functions<Info>::control_out_count;
 
       ossia::for_each_in_range<control_out_count>(
-            setup_Impl1_Out<Info, Element_T, Node_T>{arr, element});
+          setup_Impl1_Out<Info, Element_T, Node_T>{arr, element});
     }
   }
 
@@ -196,11 +188,11 @@ struct ExecutorGuiUpdate
     using namespace ossia::safe_nodes;
     if (auto node = weak_node.lock())
     {
-      if constexpr(info_functions<Info>::control_count > 0)
-          handle_controls(*node);
+      if constexpr (info_functions<Info>::control_count > 0)
+        handle_controls(*node);
 
-      if constexpr(info_functions<Info>::control_out_count > 0)
-          handle_control_outs(*node);
+      if constexpr (info_functions<Info>::control_out_count > 0)
+        handle_control_outs(*node);
     }
   }
 };
@@ -224,8 +216,8 @@ void setup_node(
         setup_Impl0<Info, Node_T, Element_T>{element, ctx, node_ptr, parent});
   }
 
-  if constexpr (info_functions<Info>::control_count > 0 ||
-                info_functions<Info>::control_out_count > 0 )
+  if constexpr (
+      info_functions<Info>::control_count > 0 || info_functions<Info>::control_out_count > 0)
   {
     // Update the value in the UI
     std::weak_ptr<Node_T> weak_node = node_ptr;
@@ -239,8 +231,7 @@ void setup_node(
 
 template <typename Info>
 class Executor final
-    : public Execution::
-          ProcessComponent_T<ControlProcess<Info>, ossia::node_process>
+    : public Execution::ProcessComponent_T<ControlProcess<Info>, ossia::node_process>
 {
 public:
   static Q_DECL_RELAXED_CONSTEXPR score::Component::Key static_key() noexcept
@@ -248,15 +239,11 @@ public:
     return Info::Metadata::uuid;
   }
 
-  score::Component::Key key() const noexcept final override
-  {
-    return static_key();
-  }
+  score::Component::Key key() const noexcept final override { return static_key(); }
 
   bool key_match(score::Component::Key other) const noexcept final override
   {
-    return static_key() == other
-           || Execution::ProcessComponent::base_key_match(other);
+    return static_key() == other || Execution::ProcessComponent::base_key_match(other);
   }
 
   Executor(
@@ -264,13 +251,12 @@ public:
       const ::Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent)
-      : Execution::
-            ProcessComponent_T<ControlProcess<Info>, ossia::node_process>{
-                element,
-                ctx,
-                id,
-                "Executor::ControlProcess<Info>",
-                parent}
+      : Execution::ProcessComponent_T<ControlProcess<Info>, ossia::node_process>{
+          element,
+          ctx,
+          id,
+          "Executor::ControlProcess<Info>",
+          parent}
   {
     auto node = std::make_shared<ossia::safe_nodes::safe_node<Info>>();
     this->node = node;
@@ -279,7 +265,6 @@ public:
     setup_node<Info>(node, element, ctx, this);
   }
 
-  ~Executor() {
-  }
+  ~Executor() { }
 };
 }

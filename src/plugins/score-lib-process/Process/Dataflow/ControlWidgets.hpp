@@ -6,25 +6,27 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/GraphicsItem.hpp>
-#include <score/widgets/ControlWidgets.hpp>
 #include <score/tools/Unused.hpp>
+#include <score/widgets/ControlWidgets.hpp>
 
-#include <ossia/network/value/value_conversion.hpp>
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/math.hpp>
+#include <ossia/network/value/value_conversion.hpp>
+
+#include <QCheckBox>
 #include <QGraphicsItem>
 #include <QGraphicsProxyWidget>
 #include <QLineEdit>
-#include <QCheckBox>
-#include <QTextDocument>
 #include <QPalette>
-#include <ossia/detail/algorithms.hpp>
+#include <QTextDocument>
+
 #include <score_lib_process_export.h>
 
 namespace WidgetFactory
 {
 inline QGraphicsItem* wrapWidget(QWidget* widg)
 {
-  if(widg->maximumWidth() > 130 || widg->maximumWidth() == 0)
+  if (widg->maximumWidth() > 130 || widg->maximumWidth() == 0)
     widg->setMaximumWidth(130);
   widg->setContentsMargins(0, 0, 0, 0);
   widg->setPalette(score::transparentPalette());
@@ -35,15 +37,13 @@ inline QGraphicsItem* wrapWidget(QWidget* widg)
   wrap->setContentsMargins(0, 0, 0, 0);
   return wrap;
 }
-template<typename T>
-using SetControlValue =
-typename std::conditional<
-  std::is_base_of<Process::ControlInlet, T>::value,
-  Process::SetControlValue,
-  Process::SetControlOutletValue
->::type;
+template <typename T>
+using SetControlValue = typename std::conditional<
+    std::is_base_of<Process::ControlInlet, T>::value,
+    Process::SetControlValue,
+    Process::SetControlOutletValue>::type;
 
-template<typename ControlUI>
+template <typename ControlUI>
 struct FloatControl
 {
   template <typename T, typename Control_T>
@@ -65,35 +65,20 @@ struct FloatControl
     sl->max = max;
     sl->setValue((ossia::convert<double>(inlet.value()) - min) / (max - min));
 
-    QObject::connect(
-        sl,
-        &score::DoubleSlider::sliderMoved,
-        context,
-        [=, &inlet, &ctx](double v) {
-          sl->moving = true;
-          ctx.dispatcher.submit<SetControlValue<Control_T>>(
-              inlet,min + sl->value() * (max-min));
-        });
-    QObject::connect(
-        sl,
-        &score::DoubleSlider::sliderReleased,
-        context,
-        [=, &inlet, &ctx]() {
-          ctx.dispatcher.submit<SetControlValue<Control_T>>(
-              inlet,
-              min + sl->value() * (max-min));
-          ctx.dispatcher.commit();
-          sl->moving = false;
-        });
+    QObject::connect(sl, &score::DoubleSlider::sliderMoved, context, [=, &inlet, &ctx](double v) {
+      sl->moving = true;
+      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, min + sl->value() * (max - min));
+    });
+    QObject::connect(sl, &score::DoubleSlider::sliderReleased, context, [=, &inlet, &ctx]() {
+      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, min + sl->value() * (max - min));
+      ctx.dispatcher.commit();
+      sl->moving = false;
+    });
 
-    QObject::connect(
-        &inlet,
-        &Control_T::valueChanged,
-        sl,
-        [=](ossia::value val) {
-          if (!sl->moving)
-            sl->setValue((ossia::convert<double>(val) - min) / (max - min));
-        });
+    QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](ossia::value val) {
+      if (!sl->moving)
+        sl->setValue((ossia::convert<double>(val) - min) / (max - min));
+    });
 
     return sl;
   }
@@ -115,32 +100,25 @@ struct FloatControl
     sl->max = max;
     sl->setValue((ossia::convert<double>(inlet.value()) - min) / (max - min));
 
-    QObject::connect(
-        sl, &ControlUI::sliderMoved, context, [=, &inlet, &ctx] {
-          sl->moving = true;
-          ctx.dispatcher.submit<SetControlValue<Control_T>>(
-              inlet, min + sl->value() * (max - min));
-        });
-    QObject::connect(
-        sl, &ControlUI::sliderReleased, context, [&ctx, sl]() {
-          ctx.dispatcher.commit();
-          sl->moving = false;
-        });
+    QObject::connect(sl, &ControlUI::sliderMoved, context, [=, &inlet, &ctx] {
+      sl->moving = true;
+      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, min + sl->value() * (max - min));
+    });
+    QObject::connect(sl, &ControlUI::sliderReleased, context, [&ctx, sl]() {
+      ctx.dispatcher.commit();
+      sl->moving = false;
+    });
 
-    QObject::connect(
-        &inlet,
-        &Control_T::valueChanged,
-        sl,
-        [=](ossia::value val) {
-          if (!sl->moving)
-            sl->setValue((ossia::convert<double>(val) - min) / (max - min));
-        });
+    QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](ossia::value val) {
+      if (!sl->moving)
+        sl->setValue((ossia::convert<double>(val) - min) / (max - min));
+    });
 
     return sl;
   }
 };
 
-template<typename ControlUI>
+template <typename ControlUI>
 struct LogFloatControl
 {
   static_assert(std::numeric_limits<float>::is_iec559, "IEEE 754 required");
@@ -165,7 +143,7 @@ struct LogFloatControl
   {
     auto min = slider.getMin();
     auto max = slider.getMax();
-    if(max == min)
+    if (max == min)
       max += 1;
 
     auto range = max - min;
@@ -176,35 +154,20 @@ struct LogFloatControl
     sl->max = max;
     sl->setValue(to01(min, range, ossia::convert<double>(inlet.value())));
 
-    QObject::connect(
-        sl,
-        &score::DoubleSlider::sliderMoved,
-        context,
-        [=, &inlet, &ctx](double v) {
-          sl->moving = true;
-          ctx.dispatcher.submit<SetControlValue<Control_T>>(
-              inlet, from01(min, range, v));
-        });
-    QObject::connect(
-        sl, &score::DoubleSlider::sliderReleased, context, [=, &inlet, &ctx] {
-          ctx.dispatcher.submit<SetControlValue<Control_T>>(
-              inlet,
-              from01(
-                  min,
-                  range,
-                  sl->value()));
-          ctx.dispatcher.commit();
-          sl->moving = false;
-        });
+    QObject::connect(sl, &score::DoubleSlider::sliderMoved, context, [=, &inlet, &ctx](double v) {
+      sl->moving = true;
+      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, from01(min, range, v));
+    });
+    QObject::connect(sl, &score::DoubleSlider::sliderReleased, context, [=, &inlet, &ctx] {
+      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, from01(min, range, sl->value()));
+      ctx.dispatcher.commit();
+      sl->moving = false;
+    });
 
-    QObject::connect(
-        &inlet,
-        &Control_T::valueChanged,
-        sl,
-        [=](ossia::value val) {
-          if (!sl->moving)
-            sl->setValue(to01(min, max, ossia::convert<double>(val)));
-        });
+    QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](ossia::value val) {
+      if (!sl->moving)
+        sl->setValue(to01(min, max, ossia::convert<double>(val)));
+    });
 
     return sl;
   }
@@ -219,7 +182,7 @@ struct LogFloatControl
   {
     auto min = slider.getMin();
     auto max = slider.getMax();
-    if(max == min)
+    if (max == min)
       max += 1;
 
     auto range = max - min;
@@ -229,29 +192,19 @@ struct LogFloatControl
     sl->max = max;
     sl->setValue(to01(min, range, ossia::convert<double>(inlet.value())));
 
-    QObject::connect(
-        sl,
-        &ControlUI::sliderMoved,
-        context,
-        [=, &inlet, &ctx] {
-          sl->moving = true;
-          ctx.dispatcher.submit<SetControlValue<Control_T>>(
-              inlet, from01(min, range, sl->value()));
-        });
-    QObject::connect(
-        sl, &ControlUI::sliderReleased, context, [&ctx, sl]() {
-          ctx.dispatcher.commit();
-          sl->moving = false;
-        });
+    QObject::connect(sl, &ControlUI::sliderMoved, context, [=, &inlet, &ctx] {
+      sl->moving = true;
+      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, from01(min, range, sl->value()));
+    });
+    QObject::connect(sl, &ControlUI::sliderReleased, context, [&ctx, sl]() {
+      ctx.dispatcher.commit();
+      sl->moving = false;
+    });
 
-    QObject::connect(
-        &inlet,
-        &Control_T::valueChanged,
-        sl,
-        [=](ossia::value val) {
-          if (!sl->moving)
-            sl->setValue(to01(min, range, ossia::convert<double>(val)));
-        });
+    QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](ossia::value val) {
+      if (!sl->moving)
+        sl->setValue(to01(min, range, ossia::convert<double>(val)));
+    });
 
     return sl;
   }
@@ -278,26 +231,20 @@ struct IntSlider
     sl->setValue(ossia::convert<int>(inlet.value()));
     sl->setContentsMargins(0, 0, 0, 0);
 
-    QObject::connect(
-        sl, &score::IntSlider::sliderMoved, context, [sl, &inlet, &ctx](int p) {
-          sl->moving = true;
-          ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, p);
-        });
-    QObject::connect(
-        sl, &score::IntSlider::sliderReleased, context, [sl, &inlet, &ctx] {
-          ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
-          ctx.dispatcher.commit();
-          sl->moving = false;
-        });
+    QObject::connect(sl, &score::IntSlider::sliderMoved, context, [sl, &inlet, &ctx](int p) {
+      sl->moving = true;
+      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, p);
+    });
+    QObject::connect(sl, &score::IntSlider::sliderReleased, context, [sl, &inlet, &ctx] {
+      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
+      ctx.dispatcher.commit();
+      sl->moving = false;
+    });
 
-    QObject::connect(
-        &inlet,
-        &Control_T::valueChanged,
-        sl,
-        [sl](ossia::value val) {
-          if (!sl->moving)
-            sl->setValue(ossia::convert<int>(val));
-        });
+    QObject::connect(&inlet, &Control_T::valueChanged, sl, [sl](ossia::value val) {
+      if (!sl->moving)
+        sl->setValue(ossia::convert<int>(val));
+    });
 
     return sl;
   }
@@ -319,28 +266,19 @@ struct IntSlider
     sl->setRange(min, max);
     sl->setValue(ossia::convert<int>(inlet.value()));
 
-    QObject::connect(
-        sl,
-        &score::QGraphicsIntSlider::sliderMoved,
-        context,
-        [=, &inlet, &ctx] {
-          sl->moving = true;
-          ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
-        });
-    QObject::connect(
-        sl, &score::QGraphicsIntSlider::sliderReleased, context, [&ctx, sl]() {
-          ctx.dispatcher.commit();
-          sl->moving = false;
-        });
+    QObject::connect(sl, &score::QGraphicsIntSlider::sliderMoved, context, [=, &inlet, &ctx] {
+      sl->moving = true;
+      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
+    });
+    QObject::connect(sl, &score::QGraphicsIntSlider::sliderReleased, context, [&ctx, sl]() {
+      ctx.dispatcher.commit();
+      sl->moving = false;
+    });
 
-    QObject::connect(
-        &inlet,
-        &Control_T::valueChanged,
-        sl,
-        [=](ossia::value val) {
-          if (!sl->moving)
-            sl->setValue(ossia::convert<int>(val));
-        });
+    QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](ossia::value val) {
+      if (!sl->moving)
+        sl->setValue(ossia::convert<int>(val));
+    });
 
     return sl;
   }
@@ -368,19 +306,13 @@ struct IntSpinBox
     sl->setContentsMargins(0, 0, 0, 0);
 
     QObject::connect(
-        sl,
-        SignalUtils::QSpinBox_valueChanged_int(),
-        context,
-        [&inlet, &ctx](int val) {
-          CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
-              inlet, val);
+        sl, SignalUtils::QSpinBox_valueChanged_int(), context, [&inlet, &ctx](int val) {
+          CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(inlet, val);
         });
 
-    QObject::connect(
-        &inlet,
-        &Control_T::valueChanged,
-        sl,
-        [sl](ossia::value val) { sl->setValue(ossia::convert<int>(val)); });
+    QObject::connect(&inlet, &Control_T::valueChanged, sl, [sl](ossia::value val) {
+      sl->setValue(ossia::convert<int>(val));
+    });
 
     return sl;
   }
@@ -402,28 +334,19 @@ struct IntSpinBox
     sl->setRange(min, max);
     sl->setValue(ossia::convert<int>(inlet.value()));
 
-    QObject::connect(
-        sl,
-        &score::QGraphicsIntSlider::sliderMoved,
-        context,
-        [=, &inlet, &ctx] {
-          sl->moving = true;
-          ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
-        });
-    QObject::connect(
-        sl, &score::QGraphicsIntSlider::sliderReleased, context, [&ctx, sl]() {
-          ctx.dispatcher.commit();
-          sl->moving = false;
-        });
+    QObject::connect(sl, &score::QGraphicsIntSlider::sliderMoved, context, [=, &inlet, &ctx] {
+      sl->moving = true;
+      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
+    });
+    QObject::connect(sl, &score::QGraphicsIntSlider::sliderReleased, context, [&ctx, sl]() {
+      ctx.dispatcher.commit();
+      sl->moving = false;
+    });
 
-    QObject::connect(
-        &inlet,
-        &Control_T::valueChanged,
-        sl,
-        [=](ossia::value val) {
-          if (!sl->moving)
-            sl->setValue(ossia::convert<int>(val));
-        });
+    QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](ossia::value val) {
+      if (!sl->moving)
+        sl->setValue(ossia::convert<int>(val));
+    });
 
     return sl;
   }
@@ -450,17 +373,13 @@ struct Toggle
     sl->setContentsMargins(0, 0, 0, 0);
     sl->setMinimumWidth(18);
     sl->setPalette(palette);
-    QObject::connect(
-        sl, &QCheckBox::toggled, context, [&inlet, &ctx](bool val) {
-          CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
-              inlet, val);
-        });
+    QObject::connect(sl, &QCheckBox::toggled, context, [&inlet, &ctx](bool val) {
+      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(inlet, val);
+    });
 
-    QObject::connect(
-        &inlet,
-        &Control_T::valueChanged,
-        sl,
-        [sl](ossia::value val) { sl->setChecked(ossia::convert<bool>(val)); });
+    QObject::connect(&inlet, &Control_T::valueChanged, sl, [sl](ossia::value val) {
+      sl->setChecked(ossia::convert<bool>(val));
+    });
 
     return sl;
   }
@@ -491,12 +410,8 @@ struct Button
     sl->setText(inlet.customData().isEmpty() ? QObject::tr("Bang") : inlet.customData());
     sl->setContentsMargins(0, 0, 0, 0);
 
-    QObject::connect(sl, &QPushButton::pressed, context, [&inlet] {
-      inlet.setValue(true);
-    });
-    QObject::connect(sl, &QPushButton::released, context, [&inlet] {
-      inlet.setValue(false);
-    });
+    QObject::connect(sl, &QPushButton::pressed, context, [&inlet] { inlet.setValue(true); });
+    QObject::connect(sl, &QPushButton::released, context, [&inlet] { inlet.setValue(false); });
 
     return sl;
   }
@@ -514,17 +429,17 @@ struct Button
 };
 struct ChooserToggle
 {
-  template<typename T>
+  template <typename T>
   static constexpr auto getAlternatives(const T& t) -> decltype(auto)
   {
-      if constexpr(std::is_member_function_pointer_v<decltype(&T::alternatives)>)
-      {
-          return t.alternatives();
-      }
-      else
-      {
-          return t.alternatives;
-      }
+    if constexpr (std::is_member_function_pointer_v<decltype(&T::alternatives)>)
+    {
+      return t.alternatives();
+    }
+    else
+    {
+      return t.alternatives;
+    }
   }
   template <typename T, typename Control_T>
   static auto make_widget(
@@ -545,23 +460,17 @@ struct ChooserToggle
       sl->toggle();
     sl->setContentsMargins(0, 0, 0, 0);
 
-    QObject::connect(
-        sl, &QCheckBox::toggled, context, [&inlet, &ctx](bool val) {
-          CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
-              inlet, val);
-        });
+    QObject::connect(sl, &QCheckBox::toggled, context, [&inlet, &ctx](bool val) {
+      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(inlet, val);
+    });
 
-    QObject::connect(
-        &inlet,
-        &Control_T::valueChanged,
-        sl,
-        [sl](ossia::value val) {
-          bool b = ossia::convert<bool>(val);
-          if (b && !sl->isChecked())
-            sl->toggle();
-          else if (!b && sl->isChecked())
-            sl->toggle();
-        });
+    QObject::connect(&inlet, &Control_T::valueChanged, sl, [sl](ossia::value val) {
+      bool b = ossia::convert<bool>(val);
+      if (b && !sl->isChecked())
+        sl->toggle();
+      else if (!b && sl->isChecked())
+        sl->toggle();
+    });
 
     return sl;
   }
@@ -589,33 +498,24 @@ struct LineEdit
       QObject* context)
   {
     auto sl = new QLineEdit{parent};
-    sl->setText(
-        QString::fromStdString(ossia::convert<std::string>(inlet.value())));
+    sl->setText(QString::fromStdString(ossia::convert<std::string>(inlet.value())));
     sl->setContentsMargins(0, 0, 0, 0);
     sl->setMaximumWidth(70);
 
-    QObject::connect(
-        sl, &QLineEdit::editingFinished, context, [sl, &inlet, &ctx]() {
-          CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
-              inlet, sl->text().toStdString());
-        });
+    QObject::connect(sl, &QLineEdit::editingFinished, context, [sl, &inlet, &ctx]() {
+      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
+          inlet, sl->text().toStdString());
+    });
 
-    QObject::connect(
-        &inlet,
-        &Control_T::valueChanged,
-        sl,
-        [sl](ossia::value val) {
-          sl->setText(
-              QString::fromStdString(ossia::convert<std::string>(val)));
-        });
+    QObject::connect(&inlet, &Control_T::valueChanged, sl, [sl](ossia::value val) {
+      sl->setText(QString::fromStdString(ossia::convert<std::string>(val)));
+    });
 
     return sl;
   }
-  struct LineEditItem : public QGraphicsTextItem {
-      LineEditItem()
-      {
-        setTextInteractionFlags(Qt::TextEditorInteraction);
-      }
+  struct LineEditItem : public QGraphicsTextItem
+  {
+    LineEditItem() { setTextInteractionFlags(Qt::TextEditorInteraction); }
   };
   template <typename T, typename Control_T>
   static QGraphicsItem* make_item(
@@ -628,25 +528,17 @@ struct LineEdit
     auto sl = new LineEditItem{};
     sl->setTextWidth(280.);
 
-    sl->setPlainText(
-        QString::fromStdString(ossia::convert<std::string>(inlet.value())));
+    sl->setPlainText(QString::fromStdString(ossia::convert<std::string>(inlet.value())));
 
     auto doc = sl->document();
-    QObject::connect(
-        doc,
-        &QTextDocument::contentsChanged,
-        context,
-        [=, &inlet, &ctx] {
-          CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(inlet, doc->toPlainText().toStdString());
-        });
-    QObject::connect(
-        &inlet,
-        &Control_T::valueChanged,
-        sl,
-        [=](const ossia::value& val) {
-          auto str = QString::fromStdString(ossia::convert<std::string>(val));
-          if(str != doc->toPlainText())
-            doc->setPlainText(str);
+    QObject::connect(doc, &QTextDocument::contentsChanged, context, [=, &inlet, &ctx] {
+      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
+          inlet, doc->toPlainText().toStdString());
+    });
+    QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
+      auto str = QString::fromStdString(ossia::convert<std::string>(val));
+      if (str != doc->toPlainText())
+        doc->setPlainText(str);
     });
 
     return sl;
@@ -659,10 +551,7 @@ struct Enum
   static const auto& toStd(const std::string& s) { return s; }
   static auto toStd(const QString& s) { return s.toStdString(); }
 
-  static const auto& convert(const std::string& str, const char*)
-  {
-    return str;
-  }
+  static const auto& convert(const std::string& str, const char*) { return str; }
   static auto convert(const std::string& str, const QString&)
   {
     return QString::fromStdString(str);
@@ -704,10 +593,7 @@ struct Enum
         });
 
     QObject::connect(
-        &inlet,
-        &Control_T::valueChanged,
-        sl,
-        [=](const ossia::value& val) { set_index(val); });
+        &inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) { set_index(val); });
 
     return sl;
   }
@@ -724,8 +610,9 @@ struct Enum
     using val_t = std::remove_reference_t<decltype(values[0])>;
 
     auto sl = slider.pixmaps.empty() || slider.pixmaps[0] == nullptr
-        ? new score::QGraphicsEnum{values, nullptr}
-        : (score::QGraphicsEnum*)new score::QGraphicsPixmapEnum{values, slider.pixmaps, nullptr};
+                  ? new score::QGraphicsEnum{values, nullptr}
+                  : (score::QGraphicsEnum*)new score::QGraphicsPixmapEnum{
+                      values, slider.pixmaps, nullptr};
 
     auto set_index = [values, sl](const ossia::value& val) {
       auto v = ossia::convert<std::string>(val);
@@ -739,18 +626,13 @@ struct Enum
     set_index(inlet.value());
 
     QObject::connect(
-        sl, &score::QGraphicsEnum::currentIndexChanged, context, [sl, &inlet, &ctx] (int idx) {
+        sl, &score::QGraphicsEnum::currentIndexChanged, context, [sl, &inlet, &ctx](int idx) {
           ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, toStd(sl->array[idx]));
           ctx.dispatcher.commit();
         });
 
     QObject::connect(
-        &inlet,
-        &Control_T::valueChanged,
-        sl,
-        [=](const ossia::value& val) {
-          set_index(val);
-        });
+        &inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) { set_index(val); });
 
     return sl;
   }
@@ -775,8 +657,7 @@ struct ComboBox
     sl->setContentsMargins(0, 0, 0, 0);
 
     auto set_index = [values, sl](const ossia::value& val) {
-      auto it = ossia::find_if(
-          values, [&](const auto& pair) { return pair.second == val; });
+      auto it = ossia::find_if(values, [&](const auto& pair) { return pair.second == val; });
       if (it != values.end())
       {
         sl->setCurrentIndex(std::distance(values.begin(), it));
@@ -794,10 +675,7 @@ struct ComboBox
         });
 
     QObject::connect(
-        &inlet,
-        &Control_T::valueChanged,
-        sl,
-        [=](const ossia::value& val) { set_index(val); });
+        &inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) { set_index(val); });
 
     return sl;
   }
@@ -821,8 +699,7 @@ struct ComboBox
     auto sl = new score::QGraphicsCombo{arr, nullptr};
 
     auto set_index = [values, sl](const ossia::value& val) {
-      auto it = ossia::find_if(
-          values, [&](const auto& pair) { return pair.second == val; });
+      auto it = ossia::find_if(values, [&](const auto& pair) { return pair.second == val; });
       if (it != values.end())
       {
         sl->setValue(std::distance(values.begin(), it));
@@ -830,31 +707,21 @@ struct ComboBox
     };
     set_index(inlet.value());
 
-    QObject::connect(
-        sl,
-        &score::QGraphicsCombo::sliderMoved,
-        context,
-        [values, sl, &inlet, &ctx] {
-          sl->moving = true;
-          ctx.dispatcher.submit<SetControlValue<Control_T>>(
-              inlet, values[sl->value()].second);
-        });
-    QObject::connect(
-        sl, &score::QGraphicsCombo::sliderReleased, context, [sl, &ctx] {
-          ctx.dispatcher.commit();
-          sl->moving = false;
-        });
+    QObject::connect(sl, &score::QGraphicsCombo::sliderMoved, context, [values, sl, &inlet, &ctx] {
+      sl->moving = true;
+      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, values[sl->value()].second);
+    });
+    QObject::connect(sl, &score::QGraphicsCombo::sliderReleased, context, [sl, &ctx] {
+      ctx.dispatcher.commit();
+      sl->moving = false;
+    });
 
-    QObject::connect(
-        &inlet,
-        &Control_T::valueChanged,
-        sl,
-        [=](const ossia::value& val) {
-          if (sl->moving)
-            return;
+    QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
+      if (sl->moving)
+        return;
 
-          set_index(val);
-        });
+      set_index(val);
+    });
 
     return sl;
   }
@@ -875,7 +742,7 @@ struct TimeSignatureValidator final : public QValidator
 
 struct TimeSignatureChooser
 {
-  template<typename Control_T>
+  template <typename Control_T>
   static auto make_widget(
       const unused_t& slider,
       Control_T& inlet,
@@ -900,17 +767,13 @@ struct TimeSignatureChooser
     };
     set_text(inlet.value());
 
-    QObject::connect(
-        sl, &QLineEdit::editingFinished, context, [sl, &inlet, &ctx] {
-          CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
-              inlet, sl->text().toStdString());
-        });
+    QObject::connect(sl, &QLineEdit::editingFinished, context, [sl, &inlet, &ctx] {
+      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
+          inlet, sl->text().toStdString());
+    });
 
     QObject::connect(
-        &inlet,
-        &Control_T::valueChanged,
-        sl,
-        [=](const ossia::value& val) { set_text(val); });
+        &inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) { set_text(val); });
 
     return sl;
   }
@@ -961,28 +824,19 @@ struct HSVSlider
     auto sl = new score::QGraphicsHSVChooser{nullptr};
     sl->setValue(ossia::convert<ossia::vec4f>(inlet.value()));
 
-    QObject::connect(
-        sl,
-        &score::QGraphicsHSVChooser::sliderMoved,
-        context,
-        [=, &inlet, &ctx] {
-          sl->moving = true;
-          ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
-        });
-    QObject::connect(
-        sl, &score::QGraphicsHSVChooser::sliderReleased, context, [&ctx, sl]() {
-          ctx.dispatcher.commit();
-          sl->moving = false;
-        });
+    QObject::connect(sl, &score::QGraphicsHSVChooser::sliderMoved, context, [=, &inlet, &ctx] {
+      sl->moving = true;
+      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
+    });
+    QObject::connect(sl, &score::QGraphicsHSVChooser::sliderReleased, context, [&ctx, sl]() {
+      ctx.dispatcher.commit();
+      sl->moving = false;
+    });
 
-    QObject::connect(
-        &inlet,
-        &Control_T::valueChanged,
-        sl,
-        [=](ossia::value val) {
-          if (!sl->moving)
-            sl->setValue(ossia::convert<ossia::vec4f>(val));
-        });
+    QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](ossia::value val) {
+      if (!sl->moving)
+        sl->setValue(ossia::convert<ossia::vec4f>(val));
+    });
 
     return sl;
   }
@@ -1012,33 +866,23 @@ struct XYSlider
     auto sl = new score::QGraphicsXYChooser{nullptr};
     sl->setValue(ossia::convert<ossia::vec2f>(inlet.value()));
 
-    QObject::connect(
-        sl,
-        &score::QGraphicsXYChooser::sliderMoved,
-        context,
-        [=, &inlet, &ctx] {
-          sl->moving = true;
-          ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
-        });
-    QObject::connect(
-        sl, &score::QGraphicsXYChooser::sliderReleased, context, [&ctx, sl]() {
-          ctx.dispatcher.commit();
-          sl->moving = false;
-        });
+    QObject::connect(sl, &score::QGraphicsXYChooser::sliderMoved, context, [=, &inlet, &ctx] {
+      sl->moving = true;
+      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
+    });
+    QObject::connect(sl, &score::QGraphicsXYChooser::sliderReleased, context, [&ctx, sl]() {
+      ctx.dispatcher.commit();
+      sl->moving = false;
+    });
 
-    QObject::connect(
-        &inlet,
-        &Control_T::valueChanged,
-        sl,
-        [=](ossia::value val) {
-          if (!sl->moving)
-            sl->setValue(ossia::convert<ossia::vec2f>(val));
-        });
+    QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](ossia::value val) {
+      if (!sl->moving)
+        sl->setValue(ossia::convert<ossia::vec2f>(val));
+    });
 
     return sl;
   }
 };
-
 
 using FloatSlider = FloatControl<score::QGraphicsSlider>;
 using LogFloatSlider = LogFloatControl<score::QGraphicsLogSlider>;

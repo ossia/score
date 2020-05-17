@@ -16,10 +16,7 @@ namespace Command
  */
 class CreateStateMacro final : public score::AggregateCommand
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      CreateStateMacro,
-      "Drop a state")
+  SCORE_COMMAND_DECL(CommandFactoryName(), CreateStateMacro, "Drop a state")
 public:
 };
 }

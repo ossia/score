@@ -7,9 +7,9 @@
 #include <QString>
 
 #include <score_plugin_deviceexplorer_export.h>
-#include <verdigris>
 
 #include <memory>
+#include <verdigris>
 
 class QAction;
 class QDialog;
@@ -36,18 +36,8 @@ public:
 
 public:
   // ip, port, other data
-  void sessionSelected(
-      QString arg_1,
-      QString arg_2,
-      int arg_3,
-      QMap<QString, QByteArray> arg_4)
-      E_SIGNAL(
-          SCORE_PLUGIN_DEVICEEXPLORER_EXPORT,
-          sessionSelected,
-          arg_1,
-          arg_2,
-          arg_3,
-          arg_4)
+  void sessionSelected(QString arg_1, QString arg_2, int arg_3, QMap<QString, QByteArray> arg_4)
+      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, sessionSelected, arg_1, arg_2, arg_3, arg_4)
 
 public:
   void accept();

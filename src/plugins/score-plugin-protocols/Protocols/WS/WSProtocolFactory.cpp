@@ -52,8 +52,7 @@ Device::ProtocolSettingsWidget* WSProtocolFactory::makeSettingsWidget()
   return new WSProtocolSettingsWidget;
 }
 
-QVariant WSProtocolFactory::makeProtocolSpecificSettings(
-    const VisitorVariant& visitor) const
+QVariant WSProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
 {
   return makeProtocolSpecificSettings_T<WSSpecificSettings>(visitor);
 }

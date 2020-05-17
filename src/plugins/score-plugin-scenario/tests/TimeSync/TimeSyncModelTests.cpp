@@ -7,7 +7,6 @@
 
 #include <score/model/path/Path.hpp>
 
-
 #include <chrono>
 
 class TimeSyncModelTests : public QObject
@@ -18,10 +17,7 @@ public:
 private:
   void AddEventTest()
   {
-    TimeSyncModel model{Id<TimeSyncModel>(1),
-                        TimeValue{std::chrono::milliseconds(1)},
-                        0.5,
-                        this};
+    TimeSyncModel model{Id<TimeSyncModel>(1), TimeValue{std::chrono::milliseconds(1)}, 0.5, this};
   }
 };
 

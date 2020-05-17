@@ -15,6 +15,7 @@
 #include <ossia/network/dataspace/dataspace.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 #include <ossia/network/value/value.hpp>
+
 #include <QDebug>
 
 #include <wobjectimpl.h>
@@ -28,12 +29,9 @@ SCORE_LIB_STATE_EXPORT QDebug& operator<<(QDebug& s, const Value& m)
   return s;
 }
 
-Unit::Unit() noexcept : unit{std::make_unique<ossia::unit_t>()} {}
+Unit::Unit() noexcept : unit{std::make_unique<ossia::unit_t>()} { }
 
-Unit::Unit(const Unit& other) noexcept
-    : unit{std::make_unique<ossia::unit_t>(*other.unit)}
-{
-}
+Unit::Unit(const Unit& other) noexcept : unit{std::make_unique<ossia::unit_t>(*other.unit)} { }
 
 Unit::Unit(Unit&& other) noexcept : unit{std::move(other.unit)}
 {
@@ -52,12 +50,9 @@ Unit& Unit::operator=(Unit&& other) noexcept
   return *this;
 }
 
-Unit::~Unit() {}
+Unit::~Unit() { }
 
-Unit::Unit(const ossia::unit_t& other) noexcept
-    : unit{std::make_unique<ossia::unit_t>(other)}
-{
-}
+Unit::Unit(const ossia::unit_t& other) noexcept : unit{std::make_unique<ossia::unit_t>(other)} { }
 
 Unit& Unit::operator=(const ossia::unit_t& other) noexcept
 {
@@ -85,12 +80,12 @@ ossia::unit_t& Unit::get() noexcept
   return *unit;
 }
 
-Unit::operator const ossia::unit_t&() const noexcept
+Unit::operator const ossia::unit_t &() const noexcept
 {
   return *unit;
 }
 
-Unit::operator ossia::unit_t&() noexcept
+Unit::operator ossia::unit_t &() noexcept
 {
   return *unit;
 }

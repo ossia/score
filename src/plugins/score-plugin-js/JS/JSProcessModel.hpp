@@ -7,9 +7,9 @@
 #include <QQmlEngine>
 
 #include <score_plugin_js_export.h>
-#include <verdigris>
 
 #include <memory>
+#include <verdigris>
 namespace JS
 {
 class Script;
@@ -21,8 +21,10 @@ public:
   JS::Script* tryGet(const QByteArray& str, bool isFile) const noexcept;
   ComponentCache();
   ~ComponentCache();
+
 private:
-  struct Cache {
+  struct Cache
+  {
     QByteArray key;
     std::unique_ptr<QQmlComponent> component{};
     std::unique_ptr<JS::Script> object{};
@@ -45,8 +47,7 @@ public:
       QObject* parent);
 
   template <typename Impl>
-  explicit ProcessModel(Impl& vis, QObject* parent)
-      : Process::ProcessModel{vis, parent}
+  explicit ProcessModel(Impl& vis, QObject* parent) : Process::ProcessModel{vis, parent}
   {
     vis.writeTo(*this);
   }
@@ -61,13 +62,11 @@ public:
 
   ~ProcessModel() override;
 
-  void errorMessage(int arg_1, const QString& arg_2)
-      W_SIGNAL(errorMessage, arg_1, arg_2);
+  void errorMessage(int arg_1, const QString& arg_2) W_SIGNAL(errorMessage, arg_1, arg_2);
   void scriptOk() W_SIGNAL(scriptOk);
   void scriptChanged(const QString& arg_1) W_SIGNAL(scriptChanged, arg_1);
 
   void qmlDataChanged(const QString& arg_1) W_SIGNAL(qmlDataChanged, arg_1);
-
 
   PROPERTY(QString, script READ script WRITE setScript NOTIFY scriptChanged)
 private:

@@ -11,14 +11,12 @@ class StringKey : OpaqueString
   friend struct std::hash<this_type>;
   friend bool operator==(const this_type& lhs, const this_type& rhs)
   {
-    return static_cast<const OpaqueString&>(lhs)
-           == static_cast<const OpaqueString&>(rhs);
+    return static_cast<const OpaqueString&>(lhs) == static_cast<const OpaqueString&>(rhs);
   }
 
   friend bool operator<(const this_type& lhs, const this_type& rhs)
   {
-    return static_cast<const OpaqueString&>(lhs)
-           < static_cast<const OpaqueString&>(rhs);
+    return static_cast<const OpaqueString&>(lhs) < static_cast<const OpaqueString&>(rhs);
   }
 
 public:

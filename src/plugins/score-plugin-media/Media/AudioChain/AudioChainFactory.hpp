@@ -6,7 +6,6 @@ namespace Media::AudioChain
 {
 using ProcessFactory = Process::ProcessFactory_T<Media::AudioChain::ProcessModel>;
 
-using LayerFactory = Process::
-    LayerFactory_T<Media::AudioChain::ProcessModel, Media::Presenter, Media::View>;
+using LayerFactory
+    = Process::LayerFactory_T<Media::AudioChain::ProcessModel, Media::Presenter, Media::View>;
 }
-

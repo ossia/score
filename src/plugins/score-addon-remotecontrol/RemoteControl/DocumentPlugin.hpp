@@ -70,10 +70,7 @@ private:
 class DocumentPlugin : public score::DocumentPlugin
 {
 public:
-  DocumentPlugin(
-      const score::DocumentContext& doc,
-      Id<score::DocumentPlugin> id,
-      QObject* parent);
+  DocumentPlugin(const score::DocumentContext& doc, Id<score::DocumentPlugin> id, QObject* parent);
 
   ~DocumentPlugin();
 

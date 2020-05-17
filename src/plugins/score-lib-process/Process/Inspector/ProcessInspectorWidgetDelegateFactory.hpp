@@ -3,6 +3,7 @@
 
 #include <score/plugins/Interface.hpp>
 #include <score/tools/SafeCast.hpp>
+
 #include <score_lib_process_export.h>
 namespace Process
 {
@@ -50,8 +51,7 @@ protected:
 };
 
 template <typename Process_T, typename Widget_T>
-class InspectorWidgetDelegateFactory_T
-    : public Process::InspectorWidgetDelegateFactory
+class InspectorWidgetDelegateFactory_T : public Process::InspectorWidgetDelegateFactory
 {
 private:
   QWidget* make_process(
@@ -70,8 +70,7 @@ private:
   }
 };
 
-class DefaultInspectorWidgetDelegateFactory
-    : public Process::InspectorWidgetDelegateFactory
+class DefaultInspectorWidgetDelegateFactory : public Process::InspectorWidgetDelegateFactory
 {
   SCORE_CONCRETE("07c0f07b-f996-4aa9-88b9-664486ddbb00")
 private:
@@ -83,9 +82,6 @@ private:
     return wrap(process, doc, nullptr, parent);
   }
 
-  bool matches_process(const Process::ProcessModel& process) const override
-  {
-    return true;
-  }
+  bool matches_process(const Process::ProcessModel& process) const override { return true; }
 };
 }

@@ -3,8 +3,7 @@
 namespace Scenario
 {
 template <typename Scenario_T>
-class MoveOnAnything_Transition final
-    : public GenericTransition<Scenario_T, QAbstractTransition>
+class MoveOnAnything_Transition final : public GenericTransition<Scenario_T, QAbstractTransition>
 {
 public:
   using GenericTransition<Scenario_T, QAbstractTransition>::GenericTransition;
@@ -137,6 +136,6 @@ protected:
 
     return find(begin(types), end(types), e->type()) != end(types);
   }
-  void onTransition(QEvent* event) override {}
+  void onTransition(QEvent* event) override { }
 };
 }

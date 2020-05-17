@@ -6,15 +6,9 @@ namespace
 struct input_size_vis
 {
   int sz{};
-  void operator()(const isf::float_input&) noexcept
-  {
-    sz += 4;
-  }
+  void operator()(const isf::float_input&) noexcept { sz += 4; }
 
-  void operator()(const isf::long_input&) noexcept
-  {
-    sz += 4;
-  }
+  void operator()(const isf::long_input&) noexcept { sz += 4; }
 
   void operator()(const isf::event_input&) noexcept
   {
@@ -28,14 +22,15 @@ struct input_size_vis
 
   void operator()(const isf::point2d_input&) noexcept
   {
-    if(sz % 8 != 0)
+    if (sz % 8 != 0)
       sz += 4;
     sz += 2 * 4;
   }
 
   void operator()(const isf::point3d_input&) noexcept
   {
-    while(sz % 16 != 0) {
+    while (sz % 16 != 0)
+    {
       sz += 4;
     }
     sz += 3 * 4;
@@ -43,23 +38,18 @@ struct input_size_vis
 
   void operator()(const isf::color_input&) noexcept
   {
-    while(sz % 16 != 0) {
+    while (sz % 16 != 0)
+    {
       sz += 4;
     }
     sz += 4 * 4;
   }
 
-  void operator()(const isf::image_input&) noexcept
-  {
-  }
+  void operator()(const isf::image_input&) noexcept { }
 
-  void operator()(const isf::audio_input&) noexcept
-  {
-  }
+  void operator()(const isf::audio_input&) noexcept { }
 
-  void operator()(const isf::audioFFT_input&)noexcept
-  {
-  }
+  void operator()(const isf::audioFFT_input&) noexcept { }
 };
 
 struct input_port_vis
@@ -98,7 +88,8 @@ struct input_port_vis
 
   void operator()(const isf::point2d_input&) noexcept
   {
-    if(sz % 8 != 0) {
+    if (sz % 8 != 0)
+    {
       sz += 4;
       data += 4;
     }
@@ -109,7 +100,8 @@ struct input_port_vis
 
   void operator()(const isf::point3d_input&) noexcept
   {
-    while(sz % 16 != 0) {
+    while (sz % 16 != 0)
+    {
       sz += 4;
       data += 4;
     }
@@ -120,7 +112,8 @@ struct input_port_vis
 
   void operator()(const isf::color_input&) noexcept
   {
-    while(sz % 16 != 0) {
+    while (sz % 16 != 0)
+    {
       sz += 4;
       data += 4;
     }
@@ -142,28 +135,24 @@ struct input_port_vis
     self.input.push_back(new Port{&self, &data, Types::Audio, {}});
   }
 
-  void operator()(const isf::audioFFT_input&) noexcept
-  {
-  }
+  void operator()(const isf::audioFFT_input&) noexcept { }
 };
 
 }
 
-
 ISFNode::ISFNode(const isf::descriptor& desc, QString frag)
-  : ISFNode{desc, defaultVert, frag, &TexturedTriangle::instance()}
+    : ISFNode{desc, defaultVert, frag, &TexturedTriangle::instance()}
 {
 }
 
 ISFNode::ISFNode(const isf::descriptor& desc, QString vert, QString frag, const Mesh* mesh)
-  : m_mesh{mesh}
+    : m_mesh{mesh}
 {
   setShaders(vert, frag);
 
-
   int i = 0;
   input_size_vis sz_vis{};
-  for(const isf::input& input : desc.inputs)
+  for (const isf::input& input : desc.inputs)
   {
     std::visit(sz_vis, input.data);
     i++;
@@ -174,7 +163,7 @@ ISFNode::ISFNode(const isf::descriptor& desc, QString vert, QString frag, const 
   char* cur = m_materialData.get();
 
   input_port_vis visitor{*this, cur};
-  for(const isf::input& input : desc.inputs)
+  for (const isf::input& input : desc.inputs)
     std::visit(visitor, input.data);
 
   output.push_back(new Port{this, {}, Types::Image, {}});
@@ -185,7 +174,6 @@ const Mesh& ISFNode::mesh() const noexcept
   return *this->m_mesh;
 }
 
-
 struct RenderedISFNode : RenderedNode
 {
   using RenderedNode::RenderedNode;
@@ -194,46 +182,45 @@ struct RenderedISFNode : RenderedNode
   {
     QRhi& rhi = *renderer.state.rhi;
     auto& n = (ISFNode&)(node);
-    for(auto& texture : n.audio_textures)
+    for (auto& texture : n.audio_textures)
     {
-        auto sampler = rhi.newSampler(
-            QRhiSampler::Linear,
-            QRhiSampler::Linear,
-            QRhiSampler::None,
-            QRhiSampler::ClampToEdge,
-            QRhiSampler::ClampToEdge);
-        sampler->build();
+      auto sampler = rhi.newSampler(
+          QRhiSampler::Linear,
+          QRhiSampler::Linear,
+          QRhiSampler::None,
+          QRhiSampler::ClampToEdge,
+          QRhiSampler::ClampToEdge);
+      sampler->build();
 
-        m_samplers.push_back({sampler, renderer.m_emptyTexture});
-        texture.samplers[&renderer] = {sampler, nullptr};
+      m_samplers.push_back({sampler, renderer.m_emptyTexture});
+      texture.samplers[&renderer] = {sampler, nullptr};
     }
   }
 
-  void
-  customUpdate(Renderer& renderer, QRhiResourceUpdateBatch& res) override
+  void customUpdate(Renderer& renderer, QRhiResourceUpdateBatch& res) override
   {
     QRhi& rhi = *renderer.state.rhi;
     auto& n = (ISFNode&)node;
-    for(auto& audio : n.audio_textures)
+    for (auto& audio : n.audio_textures)
     {
       bool textureChanged = false;
       auto& [rhiSampler, rhiTexture] = audio.samplers[&renderer];
       const auto curSz = (rhiTexture) ? rhiTexture->pixelSize() : QSize{};
       int numSamples = curSz.width() * curSz.height();
-      if(numSamples != audio.data.size())
+      if (numSamples != audio.data.size())
       {
         delete rhiTexture;
         rhiTexture = nullptr;
         textureChanged = true;
       }
 
-      if(!rhiTexture)
+      if (!rhiTexture)
       {
         if (audio.channels > 0)
         {
           int samples = audio.data.size() / audio.channels;
           rhiTexture = rhi.newTexture(
-                QRhiTexture::D32F, {samples, audio.channels}, 1, QRhiTexture::Flag{});
+              QRhiTexture::D32F, {samples, audio.channels}, 1, QRhiTexture::Flag{});
           rhiTexture->build();
           textureChanged = true;
         }
@@ -244,12 +231,12 @@ struct RenderedISFNode : RenderedNode
         }
       }
 
-      if(textureChanged)
+      if (textureChanged)
       {
         replaceTexture(rhiSampler, rhiTexture ? rhiTexture : renderer.m_emptyTexture);
       }
 
-      if(rhiTexture)
+      if (rhiTexture)
       {
         QRhiTextureSubresourceUploadDescription subdesc(audio.data.data(), audio.data.size() * 4);
         QRhiTextureUploadEntry entry{0, 0, subdesc};
@@ -262,19 +249,16 @@ struct RenderedISFNode : RenderedNode
   void customRelease(Renderer& renderer) override
   {
     auto& n = (ISFNode&)(node);
-    for(auto& texture : n.audio_textures)
-      if(auto tex = texture.samplers[&renderer].second)
+    for (auto& texture : n.audio_textures)
+      if (auto tex = texture.samplers[&renderer].second)
       {
-        if(tex != renderer.m_emptyTexture)
+        if (tex != renderer.m_emptyTexture)
           tex->releaseAndDestroyLater();
       }
   }
 };
 
-
 RenderedNode* ISFNode::createRenderer() const noexcept
 {
   return new RenderedISFNode{*this};
 }
-
-

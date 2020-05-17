@@ -15,10 +15,7 @@ namespace Interpolation
 {
 ProcessModel::~ProcessModel() = default;
 
-ProcessState::ProcessState(
-    ProcessModel& model,
-    Point watchedPoint,
-    QObject* parent)
+ProcessState::ProcessState(ProcessModel& model, Point watchedPoint, QObject* parent)
     : ProcessStateDataInterface{model, parent}, m_point{watchedPoint}
 {
 }
@@ -77,16 +74,14 @@ QString ProcessModel::prettyValue(double x, double y) const noexcept
   return QString::number(y, 'f', 3);
 }
 
-State::MessageList ProcessState::setMessages(
-    const State::MessageList& received,
-    const Process::MessageNode&)
+State::MessageList
+ProcessState::setMessages(const State::MessageList& received, const Process::MessageNode&)
 {
   auto& proc = process();
   State::AddressAccessor cur_address = proc.address();
   auto it = ossia::find_if(received, [&](const auto& mess) {
     return mess.address.address == cur_address.address
-           && mess.address.qualifiers.get().accessors
-                  == cur_address.qualifiers.get().accessors;
+           && mess.address.qualifiers.get().accessors == cur_address.qualifiers.get().accessors;
     // The unit is handled later.
   });
   if (it != received.end())
@@ -108,18 +103,14 @@ ProcessModel::ProcessModel(
     const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : CurveProcessModel{duration,
-                        id,
-                        Metadata<ObjectKey_k, ProcessModel>::get(),
-                        parent}
+    : CurveProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , m_startState{new ProcessState{*this, ProcessState::Start, this}}
     , m_endState{new ProcessState{*this, ProcessState::End, this}}
 {
   // Named shall be enough ?
   setCurve(new Curve::Model{Id<Curve::Model>(45345), this});
 
-  auto s1 = new Curve::DefaultCurveSegmentModel(
-      Id<Curve::SegmentModel>(1), m_curve);
+  auto s1 = new Curve::DefaultCurveSegmentModel(Id<Curve::SegmentModel>(1), m_curve);
   s1->setStart({0., 0.0});
   s1->setEnd({1., 1.});
 
@@ -228,8 +219,8 @@ void DataStreamReader::read(const Interpolation::ProcessModel& interp)
 {
   readFrom(interp.curve());
 
-  m_stream << interp.address() << interp.sourceUnit() << interp.start()
-           << interp.end() << interp.tween();
+  m_stream << interp.address() << interp.sourceUnit() << interp.start() << interp.end()
+           << interp.tween();
 
   insertDelimiter();
 }

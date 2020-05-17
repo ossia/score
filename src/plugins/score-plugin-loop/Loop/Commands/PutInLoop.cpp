@@ -50,26 +50,22 @@ void EncapsulateInLoop(
 
     auto& loop_parent_itv = *e.interval;
 
-    auto& loop
-        = disp.createProcessInSlot<Loop::ProcessModel>(loop_parent_itv, {}, {});
+    auto& loop = disp.createProcessInSlot<Loop::ProcessModel>(loop_parent_itv, {}, {});
 
     auto& itv = loop.intervals()[0];
 
     {
       // Add a sub-scenario
-      auto& sub_scenar
-          = disp.createProcessInSlot<Scenario::ProcessModel>(itv, {}, {});
+      auto& sub_scenar = disp.createProcessInSlot<Scenario::ProcessModel>(itv, {}, {});
 
       disp.pasteElements(sub_scenar, toValue(r), Scenario::Point{{}, 0.1});
 
       // Merge inside
       for (TimeSyncModel& sync : sub_scenar.timeSyncs)
       {
-        if (&sync != &sub_scenar.startTimeSync()
-            && sync.date() == TimeVal::zero())
+        if (&sync != &sub_scenar.startTimeSync() && sync.date() == TimeVal::zero())
         {
-          disp.mergeTimeSyncs(
-              sub_scenar, sync.id(), sub_scenar.startTimeSync().id());
+          disp.mergeTimeSyncs(sub_scenar, sync.id(), sub_scenar.startTimeSync().id());
           break;
         }
       }

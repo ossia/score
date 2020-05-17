@@ -23,10 +23,7 @@ ProcessModel::ProcessModel(
     const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : Curve::CurveProcessModel{duration,
-                               id,
-                               Metadata<ObjectKey_k, ProcessModel>::get(),
-                               parent}
+    : Curve::CurveProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , inlet{Process::make_value_inlet(Id<Process::Port>(0), this)}
     , outlet{Process::make_value_outlet(Id<Process::Port>(0), this)}
     , m_sourceMin{0.}
@@ -36,8 +33,7 @@ ProcessModel::ProcessModel(
 {
   setCurve(new Curve::Model{Id<Curve::Model>(45345), this});
 
-  auto s1 = new Curve::DefaultCurveSegmentModel(
-      Id<Curve::SegmentModel>(1), m_curve);
+  auto s1 = new Curve::DefaultCurveSegmentModel(Id<Curve::SegmentModel>(1), m_curve);
   s1->setStart({0., 0.0});
   s1->setEnd({1., 1.});
 
@@ -62,7 +58,7 @@ ProcessModel::ProcessModel(DataStream::Deserializer& vis, QObject* parent)
   init();
 }
 
-ProcessModel::~ProcessModel() {}
+ProcessModel::~ProcessModel() { }
 
 void ProcessModel::init()
 {
@@ -72,19 +68,13 @@ void ProcessModel::init()
   m_outlets.push_back(outlet.get());
 
   connect(
-      inlet.get(),
-      &Process::Port::addressChanged,
-      this,
-      [=](const State::AddressAccessor& arg) {
+      inlet.get(), &Process::Port::addressChanged, this, [=](const State::AddressAccessor& arg) {
         sourceAddressChanged(arg);
         prettyNameChanged();
         m_curve->changed();
       });
   connect(
-      outlet.get(),
-      &Process::Port::addressChanged,
-      this,
-      [=](const State::AddressAccessor& arg) {
+      outlet.get(), &Process::Port::addressChanged, this, [=](const State::AddressAccessor& arg) {
         targetAddressChanged(arg);
         prettyNameChanged();
         m_curve->changed();
@@ -93,8 +83,7 @@ void ProcessModel::init()
 
 QString ProcessModel::prettyName() const noexcept
 {
-  QString str = sourceAddress().toString_unsafe() + " -> "
-             + targetAddress().toString_unsafe();
+  QString str = sourceAddress().toString_unsafe() + " -> " + targetAddress().toString_unsafe();
   if (str != " -> ")
     return str;
   return tr("Mapping");
@@ -102,11 +91,8 @@ QString ProcessModel::prettyName() const noexcept
 
 QString ProcessModel::prettyValue(double x, double y) const noexcept
 {
-  return QString::number(
-             (x * (sourceMax() - sourceMin()) - sourceMin()), 'f', 3)
-         + " -> "
-         + QString::number(
-               (y * (targetMax() - targetMin()) - targetMin()), 'f', 3);
+  return QString::number((x * (sourceMax() - sourceMin()) - sourceMin()), 'f', 3) + " -> "
+         + QString::number((y * (targetMax() - targetMin()) - targetMin()), 'f', 3);
 }
 
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration) noexcept

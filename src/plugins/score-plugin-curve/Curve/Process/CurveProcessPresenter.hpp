@@ -14,7 +14,6 @@
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/tools/Bind.hpp>
 
-
 #include <score_plugin_curve_export.h>
 
 class CurvePresenter;
@@ -39,29 +38,22 @@ public:
       , m_commandDispatcher{ctx.commandStack}
       , m_sm{m_context, m_curve}
   {
-    con(lm,
-        &CurveProcessModel::curveChanged,
-        this,
-        &CurveProcessPresenter::parentGeometryChanged);
+    con(lm, &CurveProcessModel::curveChanged, this, &CurveProcessPresenter::parentGeometryChanged);
 
     connect(m_view.impl, &Process::LayerView::pressed, this, [&]() {
       m_context.context.focusDispatcher.focus(this);
     });
 
-    con(m_curve,
-        &Presenter::contextMenuRequested,
-        this,
-        &LayerPresenter::contextMenuRequested);
+    con(m_curve, &Presenter::contextMenuRequested, this, &LayerPresenter::contextMenuRequested);
 
-    connect(&m_curve.view(), &View::doubleClick, this, [this](QPointF pt) {
-      m_sm.createPoint(pt);
-    });
+    connect(
+        &m_curve.view(), &View::doubleClick, this, [this](QPointF pt) { m_sm.createPoint(pt); });
 
     parentGeometryChanged();
     m_view->setCurveView(&m_curve.view());
   }
 
-  virtual ~CurveProcessPresenter() {}
+  virtual ~CurveProcessPresenter() { }
 
   void on_focusChanged() final override
   {
@@ -90,13 +82,13 @@ public:
 
   void putToFront() final override
   {
-    //m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, false);
+    // m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, false);
     m_curve.enable();
   }
 
   void putBehind() final override
   {
-    //m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
+    // m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
     m_curve.disable();
   }
 

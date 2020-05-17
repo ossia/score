@@ -7,8 +7,7 @@ namespace RemoteControl
 {
 namespace Settings
 {
-class SCORE_ADDON_REMOTECONTROL_EXPORT Model
-    : public score::SettingsDelegateModel
+class SCORE_ADDON_REMOTECONTROL_EXPORT Model : public score::SettingsDelegateModel
 {
   W_OBJECT(Model)
   bool m_Enabled = false;

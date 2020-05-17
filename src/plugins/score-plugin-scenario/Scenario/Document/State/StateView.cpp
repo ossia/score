@@ -84,10 +84,7 @@ QRectF StateView::boundingRect() const
   return {-radius, -radius, 2. * radius, 2. * radius};
 }
 
-void StateView::paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget)
+void StateView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   painter->setRenderHint(QPainter::Antialiasing, true);
   auto& skin = Process::Style::instance();
@@ -102,22 +99,19 @@ void StateView::paint(
       painter->drawPath(fullNonDilated);
   }
 
-  if(m_execPing.running())
+  if (m_execPing.running())
   {
     const auto& nextPen = m_execPing.getNextPen(
-          skin.StateDot().color(),
-          skin.EventHappened().color(),
-          skin.StateDot().main.pen_cosmetic);
+        skin.StateDot().color(), skin.EventHappened().color(), skin.StateDot().main.pen_cosmetic);
     painter->setPen(nextPen);
     painter->setBrush(nextPen.brush());
     update();
   }
   else
   {
-    auto& brush =
-        (m_status.get() != ExecutionStatus::Editing)
-        ? m_status.stateStatusColor(skin)
-        : (m_selected ? skin.StateSelected() : skin.StateDot());
+    auto& brush = (m_status.get() != ExecutionStatus::Editing)
+                      ? m_status.stateStatusColor(skin)
+                      : (m_selected ? skin.StateSelected() : skin.StateDot());
 
     painter->setPen(skin.StateTemporalPointPen(brush));
     painter->setBrush(brush);
@@ -156,7 +150,7 @@ void StateView::setStatus(ExecutionStatus status)
   if (m_status.get() == status)
     return;
   m_status.set(status);
-  if(status == ExecutionStatus::Happened)
+  if (status == ExecutionStatus::Happened)
   {
     m_execPing.start();
   }
@@ -184,11 +178,11 @@ void StateView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   if (event->buttons() & Qt::MiddleButton)
   {
-    if (auto si = dynamic_cast<Scenario::ScenarioInterface*>(
-            presenter().model().parent()))
+    if (auto si = dynamic_cast<Scenario::ScenarioInterface*>(presenter().model().parent()))
     {
       JSONReader r;
-      copySelectedElementsToJson(r,
+      copySelectedElementsToJson(
+          r,
           *const_cast<ScenarioInterface*>(si),
           score::IDocument::documentContext(*m_presenter.model().parent()));
 
@@ -196,16 +190,14 @@ void StateView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
       {
         QDrag d{this};
         auto m = new QMimeData;
-        m->setData(
-            score::mime::scenariodata(), r.toByteArray());
+        m->setData(score::mime::scenariodata(), r.toByteArray());
         d.setMimeData(m);
         d.exec();
       }
     }
   }
   if (m_moving
-      || (event->buttonDownScreenPos(Qt::LeftButton) - event->screenPos())
-                 .manhattanLength()
+      || (event->buttonDownScreenPos(Qt::LeftButton) - event->screenPos()).manhattanLength()
              > QApplication::startDragDistance())
   {
     m_moving = true;
@@ -264,7 +256,7 @@ void StateView::updateOverlay()
   {
     if (m_selected || m_hovered)
     {
-      if(m_overlay)
+      if (m_overlay)
         return;
 
       m_overlay = new StatePlusOverlay{this};

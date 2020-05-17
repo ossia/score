@@ -1,7 +1,8 @@
 #pragma once
-#include <Process/GenericProcessFactory.hpp>
 #include <Process/Dataflow/Port.hpp>
+#include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
+
 #include <score/model/ObjectRemover.hpp>
 
 #include <Nodal/Metadata.hpp>
@@ -27,8 +28,7 @@ public:
 
   template <typename Impl>
   Model(Impl& vis, const score::DocumentContext& ctx, QObject* parent)
-    : Process::ProcessModel{vis, parent}
-    , m_context{ctx}
+      : Process::ProcessModel{vis, parent}, m_context{ctx}
   {
     vis.writeTo(*this);
     init();
@@ -44,8 +44,7 @@ public:
 
   score::EntityMap<Process::ProcessModel> nodes;
 
-  void resetExecution()
-  W_SIGNAL(resetExecution)
+  void resetExecution() W_SIGNAL(resetExecution)
 
 private:
   QString prettyName() const noexcept override;

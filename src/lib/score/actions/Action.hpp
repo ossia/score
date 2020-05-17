@@ -237,10 +237,9 @@ struct SCORE_LIB_BASE_EXPORT DocumentActionCondition : public ActionCondition
  *
  * Enables its actions if there is an active document.
  */
-struct SCORE_LIB_BASE_EXPORT EnableActionIfDocument final
-    : public DocumentActionCondition
+struct SCORE_LIB_BASE_EXPORT EnableActionIfDocument final : public DocumentActionCondition
 {
-  EnableActionIfDocument() : DocumentActionCondition{static_key()} {}
+  EnableActionIfDocument() : DocumentActionCondition{static_key()} { }
 
   ~EnableActionIfDocument();
 
@@ -280,8 +279,7 @@ struct SCORE_LIB_BASE_EXPORT SelectionActionCondition : public ActionCondition
  * Will be checked when the \ref CustomActionCondition::changed signal is
  * emitted
  */
-struct SCORE_LIB_BASE_EXPORT CustomActionCondition : public QObject,
-                                                     public ActionCondition
+struct SCORE_LIB_BASE_EXPORT CustomActionCondition : public QObject, public ActionCondition
 {
   W_OBJECT(CustomActionCondition)
 
@@ -314,41 +312,36 @@ class EnableWhenDocumentIs;
  *
  * \warning This macro must be used outside of any namespace.
  */
-#define SCORE_DECLARE_SELECTED_OBJECT_CONDITION(Type)                         \
-  namespace score                                                             \
-  {                                                                           \
-  template <>                                                                 \
-  class EnableWhenSelectionContains<Type> final                               \
-      : public score::SelectionActionCondition                                \
-  {                                                                           \
-  public:                                                                     \
-    EnableWhenSelectionContains()                                             \
-        : score::SelectionActionCondition{static_key()}                       \
-    {                                                                         \
-    }                                                                         \
-                                                                              \
-    static score::ActionConditionKey static_key()                             \
-    {                                                                         \
-      return score::ActionConditionKey{"SelectedObjectIs" #Type};             \
-    }                                                                         \
-                                                                              \
-  private:                                                                    \
-    void action(score::ActionManager& mgr, score::MaybeDocument doc) override \
-    {                                                                         \
-      if (!doc)                                                               \
-      {                                                                       \
-        setEnabled(mgr, false);                                               \
-        return;                                                               \
-      }                                                                       \
-                                                                              \
-      const auto& sel = doc->selectionStack.currentSelection();               \
-      auto res = ossia::any_of(sel, [](auto obj) {                            \
-        return bool(dynamic_cast<const Type*>(obj.data()));                   \
-      });                                                                     \
-                                                                              \
-      setEnabled(mgr, res);                                                   \
-    }                                                                         \
-  };                                                                          \
+#define SCORE_DECLARE_SELECTED_OBJECT_CONDITION(Type)                                    \
+  namespace score                                                                        \
+  {                                                                                      \
+  template <>                                                                            \
+  class EnableWhenSelectionContains<Type> final : public score::SelectionActionCondition \
+  {                                                                                      \
+  public:                                                                                \
+    EnableWhenSelectionContains() : score::SelectionActionCondition{static_key()} { }    \
+                                                                                         \
+    static score::ActionConditionKey static_key()                                        \
+    {                                                                                    \
+      return score::ActionConditionKey{"SelectedObjectIs" #Type};                        \
+    }                                                                                    \
+                                                                                         \
+  private:                                                                               \
+    void action(score::ActionManager& mgr, score::MaybeDocument doc) override            \
+    {                                                                                    \
+      if (!doc)                                                                          \
+      {                                                                                  \
+        setEnabled(mgr, false);                                                          \
+        return;                                                                          \
+      }                                                                                  \
+                                                                                         \
+      const auto& sel = doc->selectionStack.currentSelection();                          \
+      auto res = ossia::any_of(                                                          \
+          sel, [](auto obj) { return bool(dynamic_cast<const Type*>(obj.data())); });    \
+                                                                                         \
+      setEnabled(mgr, res);                                                              \
+    }                                                                                    \
+  };                                                                                     \
   }
 
 /**
@@ -364,44 +357,42 @@ class EnableWhenDocumentIs;
  *
  * \warning This macro must be used outside of any namespace.
  */
-#define SCORE_DECLARE_FOCUSED_OBJECT_CONDITION(Type)                          \
-  namespace score                                                             \
-  {                                                                           \
-  template <>                                                                 \
-  class EnableWhenFocusedObjectIs<Type> final                                 \
-      : public score::FocusActionCondition                                    \
-  {                                                                           \
-  public:                                                                     \
-    static score::ActionConditionKey static_key()                             \
-    {                                                                         \
-      return score::ActionConditionKey{"FocusedObjectIs" #Type};              \
-    }                                                                         \
-                                                                              \
-    EnableWhenFocusedObjectIs()                                               \
-        : score::FocusActionCondition{static_key()} {}                        \
-                                                                              \
-  private:                                                                    \
-    void action(score::ActionManager& mgr, score::MaybeDocument doc) override \
-    {                                                                         \
-      if (!doc)                                                               \
-      {                                                                       \
-        setEnabled(mgr, false);                                               \
-        return;                                                               \
-      }                                                                       \
-                                                                              \
-      auto obj = doc->focus.get();                                            \
-      if (!obj)                                                               \
-      {                                                                       \
-        setEnabled(mgr, false);                                               \
-        return;                                                               \
-      }                                                                       \
-                                                                              \
-      if (dynamic_cast<const Type*>(obj))                                     \
-      {                                                                       \
-        setEnabled(mgr, true);                                                \
-      }                                                                       \
-    }                                                                         \
-  };                                                                          \
+#define SCORE_DECLARE_FOCUSED_OBJECT_CONDITION(Type)                               \
+  namespace score                                                                  \
+  {                                                                                \
+  template <>                                                                      \
+  class EnableWhenFocusedObjectIs<Type> final : public score::FocusActionCondition \
+  {                                                                                \
+  public:                                                                          \
+    static score::ActionConditionKey static_key()                                  \
+    {                                                                              \
+      return score::ActionConditionKey{"FocusedObjectIs" #Type};                   \
+    }                                                                              \
+                                                                                   \
+    EnableWhenFocusedObjectIs() : score::FocusActionCondition{static_key()} { }    \
+                                                                                   \
+  private:                                                                         \
+    void action(score::ActionManager& mgr, score::MaybeDocument doc) override      \
+    {                                                                              \
+      if (!doc)                                                                    \
+      {                                                                            \
+        setEnabled(mgr, false);                                                    \
+        return;                                                                    \
+      }                                                                            \
+                                                                                   \
+      auto obj = doc->focus.get();                                                 \
+      if (!obj)                                                                    \
+      {                                                                            \
+        setEnabled(mgr, false);                                                    \
+        return;                                                                    \
+      }                                                                            \
+                                                                                   \
+      if (dynamic_cast<const Type*>(obj))                                          \
+      {                                                                            \
+        setEnabled(mgr, true);                                                     \
+      }                                                                            \
+    }                                                                              \
+  };                                                                               \
   }
 
 /**
@@ -417,79 +408,70 @@ class EnableWhenDocumentIs;
  *
  * \warning This macro must be used outside of any namespace.
  */
-#define SCORE_DECLARE_DOCUMENT_CONDITION(Type)                                \
-  namespace score                                                             \
-  {                                                                           \
-  template <>                                                                 \
-  class EnableWhenDocumentIs<Type> final                                      \
-      : public score::DocumentActionCondition                                 \
-  {                                                                           \
-  public:                                                                     \
-    static score::ActionConditionKey static_key()                             \
-    {                                                                         \
-      return score::ActionConditionKey{"DocumentIs" #Type};                   \
-    }                                                                         \
-    EnableWhenDocumentIs() : score::DocumentActionCondition{static_key()} {}  \
-                                                                              \
-  private:                                                                    \
-    void action(score::ActionManager& mgr, score::MaybeDocument doc) override \
-    {                                                                         \
-      if (!doc)                                                               \
-      {                                                                       \
-        setEnabled(mgr, false);                                               \
-        return;                                                               \
-      }                                                                       \
-      auto model = score::IDocument::try_get<Type>(doc->document);            \
-      setEnabled(mgr, bool(model));                                           \
-    }                                                                         \
-  };                                                                          \
+#define SCORE_DECLARE_DOCUMENT_CONDITION(Type)                                   \
+  namespace score                                                                \
+  {                                                                              \
+  template <>                                                                    \
+  class EnableWhenDocumentIs<Type> final : public score::DocumentActionCondition \
+  {                                                                              \
+  public:                                                                        \
+    static score::ActionConditionKey static_key()                                \
+    {                                                                            \
+      return score::ActionConditionKey{"DocumentIs" #Type};                      \
+    }                                                                            \
+    EnableWhenDocumentIs() : score::DocumentActionCondition{static_key()} { }    \
+                                                                                 \
+  private:                                                                       \
+    void action(score::ActionManager& mgr, score::MaybeDocument doc) override    \
+    {                                                                            \
+      if (!doc)                                                                  \
+      {                                                                          \
+        setEnabled(mgr, false);                                                  \
+        return;                                                                  \
+      }                                                                          \
+      auto model = score::IDocument::try_get<Type>(doc->document);               \
+      setEnabled(mgr, bool(model));                                              \
+    }                                                                            \
+  };                                                                             \
   }
 }
 
-#define SCORE_DECLARE_ACTION(ActionName, Text, Group, Shortcut)             \
-  namespace Actions                                                         \
-  {                                                                         \
-  struct ActionName;                                                        \
-  }                                                                         \
-  namespace score                                                           \
-  {                                                                         \
-  template <>                                                               \
-  struct MetaAction<Actions::ActionName>                                    \
-  {                                                                         \
-    static score::Action make(QAction* ptr)                                 \
-    {                                                                       \
-      return score::Action{ptr,                                             \
-                           QObject::tr(Text),                               \
-                           key(),                                           \
-                           score::ActionGroupKey{#Group},                   \
-                           Shortcut};                                       \
-    }                                                                       \
-                                                                            \
-    static score::ActionKey key() { return score::ActionKey{#ActionName}; } \
-  };                                                                        \
+#define SCORE_DECLARE_ACTION(ActionName, Text, Group, Shortcut)                    \
+  namespace Actions                                                                \
+  {                                                                                \
+  struct ActionName;                                                               \
+  }                                                                                \
+  namespace score                                                                  \
+  {                                                                                \
+  template <>                                                                      \
+  struct MetaAction<Actions::ActionName>                                           \
+  {                                                                                \
+    static score::Action make(QAction* ptr)                                        \
+    {                                                                              \
+      return score::Action{                                                        \
+          ptr, QObject::tr(Text), key(), score::ActionGroupKey{#Group}, Shortcut}; \
+    }                                                                              \
+                                                                                   \
+    static score::ActionKey key() { return score::ActionKey{#ActionName}; }        \
+  };                                                                               \
   }
 
-#define SCORE_DECLARE_ACTION_2S(                                            \
-    ActionName, Text, Group, Shortcut1, Shortcut2)                          \
-  namespace Actions                                                         \
-  {                                                                         \
-  struct ActionName;                                                        \
-  }                                                                         \
-  namespace score                                                           \
-  {                                                                         \
-  template <>                                                               \
-  struct MetaAction<Actions::ActionName>                                    \
-  {                                                                         \
-    static score::Action make(QAction* ptr)                                 \
-    {                                                                       \
-      return score::Action{ptr,                                             \
-                           QObject::tr(Text),                               \
-                           key(),                                           \
-                           score::ActionGroupKey{#Group},                   \
-                           Shortcut1,                                       \
-                           Shortcut2};                                      \
-    }                                                                       \
-                                                                            \
-    static score::ActionKey key() { return score::ActionKey{#ActionName}; } \
-  };                                                                        \
+#define SCORE_DECLARE_ACTION_2S(ActionName, Text, Group, Shortcut1, Shortcut2)                 \
+  namespace Actions                                                                            \
+  {                                                                                            \
+  struct ActionName;                                                                           \
+  }                                                                                            \
+  namespace score                                                                              \
+  {                                                                                            \
+  template <>                                                                                  \
+  struct MetaAction<Actions::ActionName>                                                       \
+  {                                                                                            \
+    static score::Action make(QAction* ptr)                                                    \
+    {                                                                                          \
+      return score::Action{                                                                    \
+          ptr, QObject::tr(Text), key(), score::ActionGroupKey{#Group}, Shortcut1, Shortcut2}; \
+    }                                                                                          \
+                                                                                               \
+    static score::ActionKey key() { return score::ActionKey{#ActionName}; }                    \
+  };                                                                                           \
   }

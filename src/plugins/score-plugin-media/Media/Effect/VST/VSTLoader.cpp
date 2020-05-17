@@ -24,8 +24,7 @@ struct WinLoader
 
   static PluginEntryProc getMain(void* module)
   {
-    auto mainProc
-        = (PluginEntryProc)GetProcAddress((HMODULE)module, "VSTPluginMain");
+    auto mainProc = (PluginEntryProc)GetProcAddress((HMODULE)module, "VSTPluginMain");
     if (!mainProc)
       mainProc = (PluginEntryProc)GetProcAddress((HMODULE)module, "main");
     return mainProc;
@@ -37,12 +36,11 @@ struct AppleLoader
 {
   static void* load(const char* name)
   {
-    CFStringRef fileNameString
-        = CFStringCreateWithCString(nullptr, name, kCFStringEncodingUTF8);
+    CFStringRef fileNameString = CFStringCreateWithCString(nullptr, name, kCFStringEncodingUTF8);
     if (fileNameString == 0)
       throw std::runtime_error("Couldn't load plug-in" + std::string(name));
-    CFURLRef url = CFURLCreateWithFileSystemPath(
-        nullptr, fileNameString, kCFURLPOSIXPathStyle, false);
+    CFURLRef url
+        = CFURLCreateWithFileSystemPath(nullptr, fileNameString, kCFURLPOSIXPathStyle, false);
     CFRelease(fileNameString);
     if (url == 0)
       throw std::runtime_error("Couldn't load plug-in" + std::string(name));
@@ -79,8 +77,7 @@ struct LinuxLoader
     if (!module)
     {
       throw std::runtime_error(
-          "Couldn't load plug-in" + std::string(name) + ": "
-          + std::string(dlerror()));
+          "Couldn't load plug-in" + std::string(name) + ": " + std::string(dlerror()));
     }
     return module;
   }

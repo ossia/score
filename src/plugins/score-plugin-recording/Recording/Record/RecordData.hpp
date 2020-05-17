@@ -30,11 +30,7 @@ struct RecordData
       Curve::Model& cm,
       Curve::PointArraySegment& seg,
       const State::Unit& u)
-      : addProcCmd{cmd_proc}
-      , addLayCmd{cmd_lay}
-      , curveModel{cm}
-      , segment{seg}
-      , unit{u}
+      : addProcCmd{cmd_proc}, addLayCmd{cmd_lay}, curveModel{cm}, segment{seg}, unit{u}
   {
   }
 

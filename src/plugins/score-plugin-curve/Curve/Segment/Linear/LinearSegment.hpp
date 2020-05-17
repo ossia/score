@@ -1,5 +1,6 @@
 #pragma once
 #include <Curve/Segment/CurveSegmentModel.hpp>
+
 #include <score/serialization/VisitorCommon.hpp>
 
 namespace Curve
@@ -28,19 +29,14 @@ public:
   using data_type = LinearSegmentData;
   using SegmentModel::SegmentModel;
 
-  LinearSegment(
-      const LinearSegment& other,
-      const id_type& id,
-      QObject* parent);
+  LinearSegment(const LinearSegment& other, const id_type& id, QObject* parent);
 
-  LinearSegment(DataStream::Deserializer& vis, QObject* parent)
-      : SegmentModel{vis, parent}
+  LinearSegment(DataStream::Deserializer& vis, QObject* parent) : SegmentModel{vis, parent}
   {
     vis.writeTo(*this);
   }
 
-  LinearSegment(JSONObject::Deserializer& vis, QObject* parent)
-      : SegmentModel{vis, parent}
+  LinearSegment(JSONObject::Deserializer& vis, QObject* parent) : SegmentModel{vis, parent}
   {
     vis.writeTo(*this);
   }

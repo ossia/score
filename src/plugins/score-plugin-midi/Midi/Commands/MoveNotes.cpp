@@ -79,7 +79,7 @@ ChangeNotesVelocity::ChangeNotesVelocity(
     const ProcessModel& model,
     const std::vector<Id<Note>>& to_move,
     double vel_delta)
-  : m_model{model}
+    : m_model{model}
 {
   m_before.reserve(to_move.size());
   m_after.reserve(to_move.size());

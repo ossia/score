@@ -8,13 +8,10 @@ namespace Curve
 struct CurveSegmentMap;
 
 class Presenter;
-class SCORE_PLUGIN_CURVE_EXPORT MovePointCommandObject final
-    : public CommandObjectBase
+class SCORE_PLUGIN_CURVE_EXPORT MovePointCommandObject final : public CommandObjectBase
 {
 public:
-  MovePointCommandObject(
-      Presenter* presenter,
-      const score::CommandStackFacade& stack);
+  MovePointCommandObject(Presenter* presenter, const score::CommandStackFacade& stack);
   ~MovePointCommandObject();
 
   void on_press() override;

@@ -8,8 +8,8 @@
 
 #include <QCheckBox>
 #include <QComboBox>
-#include <QFormLayout>
 #include <QDebug>
+#include <QFormLayout>
 #include <QLineEdit>
 #include <QString>
 #include <QVariant>
@@ -74,8 +74,7 @@ Device::DeviceSettings MIDIProtocolSettingsWidget::getSettings() const
   MIDISpecificSettings midi;
   s.name = m_name->text();
 
-  midi.io = m_inButton->isChecked() ? MIDISpecificSettings::IO::In
-                                    : MIDISpecificSettings::IO::Out;
+  midi.io = m_inButton->isChecked() ? MIDISpecificSettings::IO::In : MIDISpecificSettings::IO::Out;
   midi.endpoint = m_deviceCBox->currentText();
   midi.port = m_deviceCBox->currentData().toInt();
   midi.createWholeTree = m_createWhole->isChecked();
@@ -85,8 +84,7 @@ Device::DeviceSettings MIDIProtocolSettingsWidget::getSettings() const
   return s;
 }
 
-void MIDIProtocolSettingsWidget::setSettings(
-    const Device::DeviceSettings& settings)
+void MIDIProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
   m_name->setText(settings.name);
   int index = m_deviceCBox->findText(settings.name);
@@ -98,8 +96,7 @@ void MIDIProtocolSettingsWidget::setSettings(
 
   if (settings.deviceSpecificSettings.canConvert<MIDISpecificSettings>())
   {
-    MIDISpecificSettings midi
-        = settings.deviceSpecificSettings.value<MIDISpecificSettings>();
+    MIDISpecificSettings midi = settings.deviceSpecificSettings.value<MIDISpecificSettings>();
     if (midi.io == MIDISpecificSettings::IO::In)
     {
       m_inButton->setChecked(true);
@@ -115,8 +112,7 @@ void MIDIProtocolSettingsWidget::setSettings(
   }
 }
 
-void MIDIProtocolSettingsWidget::updateDevices(
-    ossia::net::midi::midi_info::Type t)
+void MIDIProtocolSettingsWidget::updateDevices(ossia::net::midi::midi_info::Type t)
 {
   m_deviceCBox->clear();
 
@@ -129,8 +125,7 @@ void MIDIProtocolSettingsWidget::updateDevices(
     {
       if (elt.type == t)
       {
-        m_deviceCBox->addItem(
-            QString::fromStdString(elt.device), QVariant::fromValue(elt.port));
+        m_deviceCBox->addItem(QString::fromStdString(elt.device), QVariant::fromValue(elt.port));
       }
     }
     if (m_deviceCBox->count() > 0)

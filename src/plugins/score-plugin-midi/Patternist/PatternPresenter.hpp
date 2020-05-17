@@ -1,9 +1,9 @@
 #pragma once
-#include <Patternist/PatternModel.hpp>
 #include <Process/LayerPresenter.hpp>
 
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 
+#include <Patternist/PatternModel.hpp>
 #include <nano_observer.hpp>
 
 namespace Patternist
@@ -28,7 +28,6 @@ public:
   void on_zoomRatioChanged(ZoomRatio) override;
 
   void parentGeometryChanged() override;
-
 
 private:
   View* m_view{};

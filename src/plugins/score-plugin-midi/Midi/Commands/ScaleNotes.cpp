@@ -46,8 +46,7 @@ void ScaleNotes::deserializeImpl(DataStreamOutput& s)
   s >> m_model >> m_toScale >> m_delta;
 }
 
-RescaleMidi::RescaleMidi(const ProcessModel& model, double delta)
-    : m_model{model}, m_delta{delta}
+RescaleMidi::RescaleMidi(const ProcessModel& model, double delta) : m_model{model}, m_delta{delta}
 {
   m_old.reserve(model.notes.size());
   for (auto& note : model.notes)

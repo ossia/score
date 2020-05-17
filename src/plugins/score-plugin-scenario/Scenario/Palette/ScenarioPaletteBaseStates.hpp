@@ -58,7 +58,7 @@ protected:
 class SCORE_PLUGIN_SCENARIO_EXPORT SlotState : public QState
 {
 public:
-  SlotState(QState* parent) : QState{parent} {}
+  SlotState(QState* parent) : QState{parent} { }
   ~SlotState() override;
 
   SlotPath currentSlot;

@@ -4,20 +4,19 @@
 
 #include <string>
 #include <utility>
+#include <verdigris>
 
 #include <string_view>
-#include <verdigris>
 
 namespace Control
 {
 using musical_sync = double;
 using time_signature = ossia::time_signature;
-inline ossia::optional<time_signature>
-get_time_signature(const std::string_view& v)
+inline ossia::optional<time_signature> get_time_signature(const std::string_view& v)
 {
   constexpr const auto is_valid_denom = [](int denom) {
-    return denom == 1 || denom == 2 || denom == 4 || denom == 8 || denom == 16
-           || denom == 32 || denom == 64;
+    return denom == 1 || denom == 2 || denom == 4 || denom == 8 || denom == 16 || denom == 32
+           || denom == 64;
   };
 
   try

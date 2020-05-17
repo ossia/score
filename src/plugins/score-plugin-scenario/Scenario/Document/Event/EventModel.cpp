@@ -58,9 +58,7 @@ void EventModel::setDate(const TimeVal& date)
   }
 }
 
-void EventModel::setStatus(
-    ExecutionStatus status,
-    const ScenarioInterface& scenar)
+void EventModel::setStatus(ExecutionStatus status, const ScenarioInterface& scenar)
 {
   if (m_status.get() == status)
     return;

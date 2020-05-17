@@ -22,23 +22,17 @@ public:
     return ::CommandFactoryName<Scenario_T>();
   }
   const CommandKey& key() const noexcept override { return static_key(); }
-  QString description() const override
-  {
-    return QObject::tr("Remove a trigger");
-  }
+  QString description() const override { return QObject::tr("Remove a trigger"); }
   static const CommandKey& static_key()
   {
-    static const CommandKey kagi{QString("RemoveTrigger_")
-                                 + Metadata<ObjectKey_k, Scenario_T>::get()};
+    static const CommandKey kagi{
+        QString("RemoveTrigger_") + Metadata<ObjectKey_k, Scenario_T>::get()};
     return kagi;
   }
 
   RemoveTrigger() = default;
 
-  RemoveTrigger(Path<TimeSyncModel>&& timeSyncPath)
-      : m_path{std::move(timeSyncPath)}
-  {
-  }
+  RemoveTrigger(Path<TimeSyncModel>&& timeSyncPath) : m_path{std::move(timeSyncPath)} { }
 
   void undo(const score::DocumentContext& ctx) const override
   {

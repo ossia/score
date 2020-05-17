@@ -4,8 +4,7 @@ namespace score
 {
 
 template <typename T>
-[[nodiscard]]
-auto clearAndDeleteLater(T& container) noexcept
+[[nodiscard]] auto clearAndDeleteLater(T& container) noexcept
 {
   struct later
   {
@@ -19,7 +18,7 @@ auto clearAndDeleteLater(T& container) noexcept
   };
 
   auto tmp = std::move(container);
-  for(auto ptr : tmp)
+  for (auto ptr : tmp)
     ptr->setParent(nullptr);
 
   container.clear();

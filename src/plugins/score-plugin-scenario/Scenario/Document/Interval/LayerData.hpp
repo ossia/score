@@ -1,8 +1,11 @@
 #pragma once
 #include <Process/ZoomHelper.hpp>
+
+#include <score/graphics/RectItem.hpp>
+
 #include <QPoint>
 #include <QPointF>
-#include <score/graphics/RectItem.hpp>
+
 #include <vector>
 
 class QPixmap;
@@ -22,8 +25,7 @@ class GraphicsShapeItem;
 
 namespace Scenario
 {
-class LayerRectItem
-    : public score::ResizeableItem
+class LayerRectItem : public score::ResizeableItem
 {
 public:
   LayerRectItem(QGraphicsItem* parent);
@@ -36,10 +38,7 @@ public:
 private:
   QRectF boundingRect() const;
 
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget);
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event);
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event);
@@ -50,7 +49,6 @@ private:
 private:
   QSizeF m_size{};
 };
-
 
 class LayerData
 {
@@ -78,10 +76,13 @@ public:
       const Process::Context& context,
       QGraphicsItem* parentItem,
       QObject* parent);
-  void setupView(Layer& layer,
-                 int idx,
-                 qreal parentWidth, qreal parent_default_width,
-                 qreal w, qreal h);
+  void setupView(
+      Layer& layer,
+      int idx,
+      qreal parentWidth,
+      qreal parent_default_width,
+      qreal w,
+      qreal h);
 
   std::size_t count() const noexcept { return m_layers.size(); }
   void removeView(int i);
@@ -102,7 +103,8 @@ public:
   void on_zoomRatioChanged(
       const Process::Context& lst,
       ZoomRatio r,
-      qreal parentWidth, qreal parent_default_width,
+      qreal parentWidth,
+      qreal parent_default_width,
       qreal slot_height,
       QGraphicsItem* parentItem,
       QObject* parent);
@@ -110,7 +112,8 @@ public:
   void updateLoops(
       const Process::Context& lst,
       ZoomRatio r,
-      qreal parentWidth, qreal parent_default_width,
+      qreal parentWidth,
+      qreal parent_default_width,
       qreal slot_height,
       QGraphicsItem* parentItem,
       QObject* parent);
@@ -135,7 +138,6 @@ public:
 */
   void updateYPositions(qreal y);
 
-
   void updateContainerHeights(qreal h) const;
 
   void updateStartOffset(double x) const;
@@ -150,16 +152,15 @@ public:
 
   const std::vector<Layer>& layers() const noexcept { return m_layers; }
 
-
   static void disconnect(const Process::ProcessModel& proc, QObject& intervalPresenter)
   {
-    QObject::disconnect(&proc, &Process::ProcessModel::loopsChanged,
-                        &intervalPresenter, nullptr);
-    QObject::disconnect(&proc, &Process::ProcessModel::startOffsetChanged,
-                        &intervalPresenter, nullptr);
-    QObject::disconnect(&proc, &Process::ProcessModel::loopDurationChanged,
-                        &intervalPresenter, nullptr);
+    QObject::disconnect(&proc, &Process::ProcessModel::loopsChanged, &intervalPresenter, nullptr);
+    QObject::disconnect(
+        &proc, &Process::ProcessModel::startOffsetChanged, &intervalPresenter, nullptr);
+    QObject::disconnect(
+        &proc, &Process::ProcessModel::loopDurationChanged, &intervalPresenter, nullptr);
   }
+
 private:
   const Process::ProcessModel* m_model{};
 

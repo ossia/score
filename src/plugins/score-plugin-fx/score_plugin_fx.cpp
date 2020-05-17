@@ -22,6 +22,7 @@
 #include <Fx/FactorOracle.hpp>
 #include <Fx/Gain.hpp>
 #include <Fx/LFO.hpp>
+#include <Fx/Looper.hpp>
 #include <Fx/MathGenerator.hpp>
 #include <Fx/MathMapping.hpp>
 #include <Fx/Metro.hpp>
@@ -29,7 +30,7 @@
 #include <Fx/Quantifier.hpp>
 #include <Fx/TestNode.hpp>
 #include <Fx/VelToNote.hpp>
-#include <Fx/Looper.hpp>
+
 #include <score/plugins/FactorySetup.hpp>
 
 #include <score_plugin_engine.hpp>
@@ -46,9 +47,9 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_fx::factories(
     const score::InterfaceKey& key) const
 {
   return Control::instantiate_fx<
-    #if defined(SCORE_DEBUG)
+#if defined(SCORE_DEBUG)
       Nodes::Debug::Node,
-    #endif
+#endif
       Nodes::Arpeggiator::Node,
       Nodes::PulseToNote::Node,
       Nodes::ClassicalBeat::Node,
@@ -68,8 +69,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_fx::factories(
       Nodes::EmptyAudioMapping::Node,
       Nodes::FactorOracle::Node,
       Nodes::PitchToValue::Node,
-      Nodes::AudioLooper::Node
-      >(ctx, key);
+      Nodes::AudioLooper::Node>(ctx, key);
 }
 
 auto score_plugin_fx::required() const -> std::vector<score::PluginKey>

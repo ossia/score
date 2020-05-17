@@ -2,9 +2,10 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "SerializableInterface.hpp"
 
+#include <score/plugins/UuidKey.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
-#include <score/plugins/UuidKey.hpp>
+
 #include <boost/uuid/nil_generator.hpp>
 
 namespace score
@@ -47,31 +48,35 @@ QByteArray toByteArray(uuid const& u)
 }
 }
 
-
-void TSerializer<DataStream, score::uuid_t>::readFrom(DataStream::Serializer& s, const score::uuid_t& uid)
+void TSerializer<DataStream, score::uuid_t>::readFrom(
+    DataStream::Serializer& s,
+    const score::uuid_t& uid)
 {
   SCORE_DEBUG_INSERT_DELIMITER2(s);
-  s.stream().stream.writeRawData(
-      (const char*)uid.data, sizeof(uid.data));
+  s.stream().stream.writeRawData((const char*)uid.data, sizeof(uid.data));
   SCORE_DEBUG_INSERT_DELIMITER2(s);
 }
 
-void TSerializer<DataStream, score::uuid_t>::writeTo(DataStream::Deserializer& s, score::uuid_t& uid)
+void TSerializer<DataStream, score::uuid_t>::writeTo(
+    DataStream::Deserializer& s,
+    score::uuid_t& uid)
 {
   SCORE_DEBUG_CHECK_DELIMITER2(s);
-  s.stream().stream.readRawData(
-      (char*)uid.data, sizeof(uid.data));
+  s.stream().stream.readRawData((char*)uid.data, sizeof(uid.data));
   SCORE_DEBUG_CHECK_DELIMITER2(s);
 }
 
-void TSerializer<JSONObject, score::uuid_t>::readFrom(JSONObject::Serializer& s, const score::uuid_t& uid)
+void TSerializer<JSONObject, score::uuid_t>::readFrom(
+    JSONObject::Serializer& s,
+    const score::uuid_t& uid)
 {
   JSONReader::assigner{s} = score::uuids::toByteArray(uid);
 }
 
-void TSerializer<JSONObject, score::uuid_t>::writeTo(JSONObject::Deserializer& s, score::uuid_t& uid)
+void TSerializer<JSONObject, score::uuid_t>::writeTo(
+    JSONObject::Deserializer& s,
+    score::uuid_t& uid)
 {
   QByteArray str = JsonValue{s.base}.toByteArray();
   uid = score::uuids::string_generator::compute(str.begin(), str.end());
 }
-

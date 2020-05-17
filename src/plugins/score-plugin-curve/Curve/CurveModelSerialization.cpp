@@ -7,17 +7,15 @@
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
+#include <score/plugins/SerializableHelpers.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
-#include <score/plugins/SerializableHelpers.hpp>
-
 
 #include <sys/types.h>
 
 template <>
-SCORE_PLUGIN_CURVE_EXPORT void
-DataStreamReader::read(const Curve::CurveDomain& dom)
+SCORE_PLUGIN_CURVE_EXPORT void DataStreamReader::read(const Curve::CurveDomain& dom)
 {
   m_stream << dom.min << dom.max << dom.start << dom.end;
 }
@@ -29,8 +27,7 @@ SCORE_PLUGIN_CURVE_EXPORT void DataStreamWriter::write(Curve::CurveDomain& dom)
 }
 
 template <>
-SCORE_PLUGIN_CURVE_EXPORT void
-DataStreamReader::read(const Curve::Model& curve)
+SCORE_PLUGIN_CURVE_EXPORT void DataStreamReader::read(const Curve::Model& curve)
 {
   const auto& segments = curve.segments();
 
@@ -63,8 +60,7 @@ SCORE_PLUGIN_CURVE_EXPORT void DataStreamWriter::write(Curve::Model& curve)
 }
 
 template <>
-SCORE_PLUGIN_CURVE_EXPORT void
-JSONReader::read(const Curve::Model& curve)
+SCORE_PLUGIN_CURVE_EXPORT void JSONReader::read(const Curve::Model& curve)
 {
   obj[strings.Segments] = curve.segments();
 }

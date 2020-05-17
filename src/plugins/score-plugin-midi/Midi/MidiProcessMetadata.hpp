@@ -21,5 +21,4 @@ PROCESS_METADATA(
     {},
     {},
     {std::vector<Process::PortType>{Process::PortType::Midi}},
-    Process::ProcessFlags::SupportsTemporal
-        | Process::ProcessFlags::PutInNewSlot)
+    Process::ProcessFlags::SupportsTemporal | Process::ProcessFlags::PutInNewSlot)

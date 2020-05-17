@@ -14,14 +14,12 @@
 #include <ossia/network/osc/osc.hpp>
 #include <ossia/network/rate_limiting_protocol.hpp>
 
-
 #include <memory>
 
 namespace Protocols
 {
 
-OSCDevice::OSCDevice(const Device::DeviceSettings& settings)
-    : OwningDeviceInterface{settings}
+OSCDevice::OSCDevice(const Device::DeviceSettings& settings) : OwningDeviceInterface{settings}
 {
   using namespace ossia;
   m_capas.canLearn = true;
@@ -79,29 +77,19 @@ void OSCDevice::setLearning(bool b)
   auto& dev = *m_dev;
   if (b)
   {
-    dev.on_node_created.connect<&DeviceInterface::nodeCreated>(
-        (DeviceInterface*)this);
-    dev.on_node_removing.connect<&DeviceInterface::nodeRemoving>(
-        (DeviceInterface*)this);
-    dev.on_node_renamed.connect<&DeviceInterface::nodeRenamed>(
-        (DeviceInterface*)this);
-    dev.on_parameter_created.connect<&DeviceInterface::addressCreated>(
-        (DeviceInterface*)this);
-    dev.on_attribute_modified.connect<&DeviceInterface::addressUpdated>(
-        (DeviceInterface*)this);
+    dev.on_node_created.connect<&DeviceInterface::nodeCreated>((DeviceInterface*)this);
+    dev.on_node_removing.connect<&DeviceInterface::nodeRemoving>((DeviceInterface*)this);
+    dev.on_node_renamed.connect<&DeviceInterface::nodeRenamed>((DeviceInterface*)this);
+    dev.on_parameter_created.connect<&DeviceInterface::addressCreated>((DeviceInterface*)this);
+    dev.on_attribute_modified.connect<&DeviceInterface::addressUpdated>((DeviceInterface*)this);
   }
   else
   {
-    dev.on_node_created.disconnect<&DeviceInterface::nodeCreated>(
-        (DeviceInterface*)this);
-    dev.on_node_removing.disconnect<&DeviceInterface::nodeRemoving>(
-        (DeviceInterface*)this);
-    dev.on_node_renamed.disconnect<&DeviceInterface::nodeRenamed>(
-        (DeviceInterface*)this);
-    dev.on_parameter_created.disconnect<&DeviceInterface::addressCreated>(
-        (DeviceInterface*)this);
-    dev.on_attribute_modified.disconnect<&DeviceInterface::addressUpdated>(
-        (DeviceInterface*)this);
+    dev.on_node_created.disconnect<&DeviceInterface::nodeCreated>((DeviceInterface*)this);
+    dev.on_node_removing.disconnect<&DeviceInterface::nodeRemoving>((DeviceInterface*)this);
+    dev.on_node_renamed.disconnect<&DeviceInterface::nodeRenamed>((DeviceInterface*)this);
+    dev.on_parameter_created.disconnect<&DeviceInterface::addressCreated>((DeviceInterface*)this);
+    dev.on_attribute_modified.disconnect<&DeviceInterface::addressUpdated>((DeviceInterface*)this);
   }
 
   proto.set_learning(b);

@@ -26,11 +26,9 @@ namespace score
 {
 SCORE_LIB_BASE_EXPORT
 ApplicationRegistrar::ApplicationRegistrar(ApplicationComponentsData& comp)
-    : m_components{comp}
-{
-}
+    : m_components{comp} { }
 
-ApplicationRegistrar::~ApplicationRegistrar() {}
+ApplicationRegistrar::~ApplicationRegistrar() { }
 
 SCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerAddons(std::vector<score::Addon> vec)
@@ -51,26 +49,22 @@ void ApplicationRegistrar::registerCommands(
 }
 
 SCORE_LIB_BASE_EXPORT
-void ApplicationRegistrar::registerCommands(
-    std::pair<CommandGroupKey, CommandGeneratorMap>&& cmds)
+void ApplicationRegistrar::registerCommands(std::pair<CommandGroupKey, CommandGeneratorMap>&& cmds)
 {
   m_components.commands.insert(std::move(cmds));
 }
 
 SCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerFactories(
-    score::hash_map<score::InterfaceKey, std::unique_ptr<InterfaceListBase>>&&
-        facts)
+    score::hash_map<score::InterfaceKey, std::unique_ptr<InterfaceListBase>>&& facts)
 {
   m_components.factories = std::move(facts);
 }
 
 SCORE_LIB_BASE_EXPORT
-void ApplicationRegistrar::registerFactory(
-    std::unique_ptr<InterfaceListBase> cmds)
+void ApplicationRegistrar::registerFactory(std::unique_ptr<InterfaceListBase> cmds)
 {
-  m_components.factories.insert(
-      std::make_pair(cmds->interfaceKey(), std::move(cmds)));
+  m_components.factories.insert(std::make_pair(cmds->interfaceKey(), std::move(cmds)));
 }
 
 GUIApplicationRegistrar::GUIApplicationRegistrar(
@@ -87,11 +81,10 @@ GUIApplicationRegistrar::GUIApplicationRegistrar(
 {
 }
 
-GUIApplicationRegistrar::~GUIApplicationRegistrar() {}
+GUIApplicationRegistrar::~GUIApplicationRegistrar() { }
 
 SCORE_LIB_BASE_EXPORT
-void GUIApplicationRegistrar::registerGUIApplicationPlugin(
-    GUIApplicationPlugin* ctrl)
+void GUIApplicationRegistrar::registerGUIApplicationPlugin(GUIApplicationPlugin* ctrl)
 {
   if (m_context.applicationSettings.gui)
   {

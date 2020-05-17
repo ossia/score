@@ -26,22 +26,15 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
 {
   {
     // view -> model
-    con(v,
-        &View::simplificationRatioChanged,
-        this,
-        [&](auto simplificationRatio) {
-          if (simplificationRatio != m.getSimplificationRatio())
-          {
-            m_disp.submit<SetModelSimplificationRatio>(
-                this->model(this), simplificationRatio);
-          }
-        });
+    con(v, &View::simplificationRatioChanged, this, [&](auto simplificationRatio) {
+      if (simplificationRatio != m.getSimplificationRatio())
+      {
+        m_disp.submit<SetModelSimplificationRatio>(this->model(this), simplificationRatio);
+      }
+    });
 
     // model -> view
-    con(m,
-        &Model::SimplificationRatioChanged,
-        &v,
-        &View::setSimplificationRatio);
+    con(m, &Model::SimplificationRatioChanged, &v, &View::setSimplificationRatio);
 
     // initial value
     v.setSimplificationRatio(m.getSimplificationRatio());
@@ -89,10 +82,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
     });
 
     // model -> view
-    con(m,
-        &Model::PlayWhileRecordingChanged,
-        &v,
-        &View::setPlayWhileRecording);
+    con(m, &Model::PlayWhileRecordingChanged, &v, &View::setPlayWhileRecording);
 
     // initial value
     v.setPlayWhileRecording(m.getPlayWhileRecording());
@@ -106,10 +96,10 @@ QString Presenter::settingsName()
 
 QIcon Presenter::settingsIcon()
 {
-  return makeIcons(QStringLiteral(":/icons/settings_recording_on.png")
-                   , QStringLiteral(":/icons/settings_recording_off.png")
-                   , QStringLiteral(":/icons/settings_recording_off.png"));
-
+  return makeIcons(
+      QStringLiteral(":/icons/settings_recording_on.png"),
+      QStringLiteral(":/icons/settings_recording_off.png"),
+      QStringLiteral(":/icons/settings_recording_off.png"));
 }
 }
 }

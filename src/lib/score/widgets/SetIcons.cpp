@@ -16,10 +16,7 @@ namespace std
 template <>
 struct hash<std::pair<QString, QString>>
 {
-  std::size_t operator()(const std::pair<QString, QString>& p) const noexcept
-  {
-    return qHash(p);
-  }
+  std::size_t operator()(const std::pair<QString, QString>& p) const noexcept { return qHash(p); }
 };
 }
 static auto& iconMap()
@@ -60,17 +57,12 @@ void setIcons(
   }
 }
 
-
-QIcon makeIcon(
-    const QString& icon)
+QIcon makeIcon(const QString& icon)
 {
   return genIconFromPixmaps(icon, icon, icon);
 }
 
-QIcon makeIcons(
-    const QString& iconOn,
-    const QString& iconOff,
-    const QString& iconDisabled)
+QIcon makeIcons(const QString& iconOn, const QString& iconOff, const QString& iconDisabled)
 {
   return genIconFromPixmaps(iconOn, iconOff, iconDisabled);
 }

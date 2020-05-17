@@ -14,16 +14,15 @@ namespace Scenario
 namespace Command
 {
 
-SerializableMoveEvent::~SerializableMoveEvent() {}
+SerializableMoveEvent::~SerializableMoveEvent() { }
 
 MoveEventFactoryInterface& MoveEventList::get(
     const score::ApplicationContext& ctx,
     MoveEventFactoryInterface::Strategy s) const
 {
-  auto it
-      = std::max_element(begin(), end(), [&](const auto& e1, const auto& e2) {
-          return e1.priority(ctx, s) < e2.priority(ctx, s);
-        });
+  auto it = std::max_element(begin(), end(), [&](const auto& e1, const auto& e2) {
+    return e1.priority(ctx, s) < e2.priority(ctx, s);
+  });
   if (it != end())
     return *it;
 

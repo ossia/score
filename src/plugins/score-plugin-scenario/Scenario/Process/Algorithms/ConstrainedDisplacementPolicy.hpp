@@ -10,9 +10,8 @@ namespace Scenario
 class ConstrainedDisplacementPolicy
 {
 public:
-  static void init(
-      Scenario::ProcessModel& scenario,
-      const QVector<Id<TimeSyncModel>>& draggedElements);
+  static void
+  init(Scenario::ProcessModel& scenario, const QVector<Id<TimeSyncModel>>& draggedElements);
 
   static void computeDisplacement(
       Scenario::ProcessModel& scenario,

@@ -29,11 +29,9 @@
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
 
-
 namespace Scenario
 {
-ScenarioViewInterface::ScenarioViewInterface(
-    const ScenarioPresenter& presenter)
+ScenarioViewInterface::ScenarioViewInterface(const ScenarioPresenter& presenter)
     : m_presenter{presenter}
 {
 }
@@ -44,8 +42,7 @@ void ScenarioViewInterface::on_eventMoved(const EventPresenter& ev)
 
   ev.view()->setExtent(ev.extent() * h);
 
-  ev.view()->setPos({ev.model().date().toPixels(m_presenter.m_zoomRatio),
-                     ev.extent().top() * h});
+  ev.view()->setPos({ev.model().date().toPixels(m_presenter.m_zoomRatio), ev.extent().top() * h});
 
   // We also have to move all the relevant states
   for (const auto& state : ev.model().states())
@@ -59,8 +56,7 @@ void ScenarioViewInterface::on_eventMoved(const EventPresenter& ev)
   m_presenter.m_view->update();
 }
 
-void ScenarioViewInterface::on_intervalMoved(
-    const TemporalIntervalPresenter& pres)
+void ScenarioViewInterface::on_intervalMoved(const TemporalIntervalPresenter& pres)
 {
   auto rect = m_presenter.m_view->boundingRect();
   auto msPerPixel = m_presenter.m_zoomRatio;
@@ -83,10 +79,8 @@ void ScenarioViewInterface::on_intervalMoved(
     cstr_view.setY(qreal(rect.height() * cstr_model.heightPercentage()));
   }
 
-  cstr_view.setDefaultWidth(
-      cstr_model.duration.defaultDuration().toPixels(msPerPixel));
-  cstr_view.setMinWidth(
-      cstr_model.duration.minDuration().toPixels(msPerPixel));
+  cstr_view.setDefaultWidth(cstr_model.duration.defaultDuration().toPixels(msPerPixel));
+  cstr_view.setMinWidth(cstr_model.duration.minDuration().toPixels(msPerPixel));
   cstr_view.setMaxWidth(
       cstr_model.duration.isMaxInfinite(),
       cstr_model.duration.isMaxInfinite()
@@ -102,8 +96,7 @@ void ScenarioViewInterface::on_timeSyncMoved(const TimeSyncPresenter& timesync)
   timesync.view()->setExtent(timesync.extent() * h);
 
   timesync.view()->setPos(
-      {timesync.model().date().toPixels(m_presenter.m_zoomRatio),
-       timesync.extent().top() * h});
+      {timesync.model().date().toPixels(m_presenter.m_zoomRatio), timesync.extent().top() * h});
 
   m_presenter.m_view->update();
 }
@@ -113,19 +106,18 @@ void ScenarioViewInterface::on_stateMoved(const StatePresenter& state)
   auto rect = m_presenter.m_view->boundingRect();
   const auto& ev = m_presenter.model().event(state.model().eventId());
 
-  state.view()->setPos({ev.date().toPixels(m_presenter.m_zoomRatio),
-                        rect.height() * state.model().heightPercentage()});
+  state.view()->setPos(
+      {ev.date().toPixels(m_presenter.m_zoomRatio),
+       rect.height() * state.model().heightPercentage()});
 
   m_presenter.m_view->update();
 }
 
-void ScenarioViewInterface::on_commentMoved(
-    const CommentBlockPresenter& comment)
+void ScenarioViewInterface::on_commentMoved(const CommentBlockPresenter& comment)
 {
   auto h = m_presenter.m_view->boundingRect().height();
   comment.view()->setPos(
-      comment.date().toPixels(m_presenter.zoomRatio()),
-      comment.model().heightPercentage() * h);
+      comment.date().toPixels(m_presenter.zoomRatio()), comment.model().heightPercentage() * h);
   m_presenter.m_view->update();
 }
 

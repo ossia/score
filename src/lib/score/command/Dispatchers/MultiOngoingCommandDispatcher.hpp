@@ -8,9 +8,7 @@ namespace RollbackStrategy
 {
 struct Simple
 {
-  static void rollback(
-      const score::DocumentContext& ctx,
-      const std::vector<score::Command*>& cmds)
+  static void rollback(const score::DocumentContext& ctx, const std::vector<score::Command*>& cmds)
   {
     for (int i = cmds.size() - 1; i >= 0; --i)
     {
@@ -33,8 +31,7 @@ struct Simple
 class MultiOngoingCommandDispatcher final : public ICommandDispatcher
 {
 public:
-  MultiOngoingCommandDispatcher(const score::CommandStackFacade& stack)
-      : ICommandDispatcher{stack}
+  MultiOngoingCommandDispatcher(const score::CommandStackFacade& stack) : ICommandDispatcher{stack}
   {
   }
 
@@ -113,8 +110,7 @@ public:
 private:
   void cleanup()
   {
-    std::for_each(
-        m_cmds.rbegin(), m_cmds.rend(), [](auto cmd) { delete cmd; });
+    std::for_each(m_cmds.rbegin(), m_cmds.rend(), [](auto cmd) { delete cmd; });
   }
 
   std::vector<score::Command*> m_cmds;

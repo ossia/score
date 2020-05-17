@@ -52,8 +52,7 @@ Device::ProtocolSettingsWidget* HTTPProtocolFactory::makeSettingsWidget()
   return new HTTPProtocolSettingsWidget;
 }
 
-QVariant HTTPProtocolFactory::makeProtocolSpecificSettings(
-    const VisitorVariant& visitor) const
+QVariant HTTPProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
 {
   return makeProtocolSpecificSettings_T<HTTPSpecificSettings>(visitor);
 }

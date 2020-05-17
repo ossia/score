@@ -7,6 +7,6 @@
 
 namespace ControlSurface
 {
-using LayerFactory = Process::LayerFactory_T<
-    ControlSurface::Model, ControlSurface::Presenter, ControlSurface::View>;
+using LayerFactory = Process::
+    LayerFactory_T<ControlSurface::Model, ControlSurface::Presenter, ControlSurface::View>;
 }

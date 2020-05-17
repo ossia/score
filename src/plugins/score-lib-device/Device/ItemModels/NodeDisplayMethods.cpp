@@ -29,34 +29,16 @@ QVariant convert(const ossia::value& val)
   {
   public:
     using return_type = QVariant;
-    return_type operator()(const ossia::impulse& v) const
-    {
-      return QVariant::fromValue(v);
-    }
+    return_type operator()(const ossia::impulse& v) const { return QVariant::fromValue(v); }
     return_type operator()(int i) const { return QVariant::fromValue(i); }
     return_type operator()(float f) const { return QVariant::fromValue(f); }
     return_type operator()(bool b) const { return QVariant::fromValue(b); }
-    return_type operator()(const std::string& s) const
-    {
-      return QString::fromStdString(s);
-    }
-    return_type operator()(char c) const
-    {
-      return QVariant::fromValue(QChar(c));
-    }
+    return_type operator()(const std::string& s) const { return QString::fromStdString(s); }
+    return_type operator()(char c) const { return QVariant::fromValue(QChar(c)); }
 
-    return_type operator()(ossia::vec2f t) const
-    {
-      return QVector2D{t[0], t[1]};
-    }
-    return_type operator()(ossia::vec3f t) const
-    {
-      return QVector3D{t[0], t[1], t[2]};
-    }
-    return_type operator()(ossia::vec4f t) const
-    {
-      return QVector4D{t[0], t[1], t[2], t[3]};
-    }
+    return_type operator()(ossia::vec2f t) const { return QVector2D{t[0], t[1]}; }
+    return_type operator()(ossia::vec3f t) const { return QVector3D{t[0], t[1], t[2]}; }
+    return_type operator()(ossia::vec4f t) const { return QVector4D{t[0], t[1], t[2], t[3]}; }
     return_type operator()(const std::vector<ossia::value>& t) const
     {
       QVariantList arr;
@@ -95,8 +77,7 @@ QVariant nameColumnData(const Device::Node& node, int role)
       return node.displayName();
     case Qt::FontRole:
     {
-      if (ioType == ossia::access_mode::GET
-          || ioType == ossia::access_mode::SET)
+      if (ioType == ossia::access_mode::GET || ioType == ossia::access_mode::SET)
       {
         return italicFont;
       }
@@ -104,8 +85,7 @@ QVariant nameColumnData(const Device::Node& node, int role)
     }
     case Qt::ForegroundRole:
     {
-      if (ioType == ossia::access_mode::GET
-          || ioType == ossia::access_mode::SET)
+      if (ioType == ossia::access_mode::GET || ioType == ossia::access_mode::SET)
       {
         return QBrush(Qt::lightGray);
       }
@@ -116,8 +96,7 @@ QVariant nameColumnData(const Device::Node& node, int role)
   }
 }
 
-QVariant
-deviceNameColumnData(const Device::Node& node, bool connected, int role)
+QVariant deviceNameColumnData(const Device::Node& node, bool connected, int role)
 {
   static const QFont& italicFont{[]() {
     static QFont f;

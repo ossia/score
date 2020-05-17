@@ -7,6 +7,7 @@
 #include <QMimeData>
 
 #include <score_plugin_scenario_export.h>
+
 #include <verdigris>
 class QGraphicsSceneMouseEvent;
 class QPainter;
@@ -14,9 +15,7 @@ class QStyleOptionGraphicsItem;
 class QWidget;
 namespace Scenario
 {
-class SCORE_PLUGIN_SCENARIO_EXPORT TriggerView final
-    : public QObject
-    , public QGraphicsItem
+class SCORE_PLUGIN_SCENARIO_EXPORT TriggerView final : public QObject, public QGraphicsItem
 {
   W_OBJECT(TriggerView)
   Q_INTERFACES(QGraphicsItem)
@@ -34,13 +33,12 @@ public:
 public:
   void pressed(QPointF arg_1) W_SIGNAL(pressed, arg_1);
 
-  void dropReceived(const QPointF& pos, const QMimeData& arg_2)
-      W_SIGNAL(dropReceived, pos, arg_2);
+  void dropReceived(const QPointF& pos, const QMimeData& arg_2) W_SIGNAL(dropReceived, pos, arg_2);
 
   QRectF boundingRect() const override;
 
 private:
-  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
   bool contains(const QPointF& point) const override;
 
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
@@ -56,9 +54,8 @@ private:
   int m_currentFrame{};
   int m_frameDirection{};
 
-  bool m_selected: 1;
-  bool m_hovered: 1;
-  bool m_waiting: 1;
-
+  bool m_selected : 1;
+  bool m_hovered : 1;
+  bool m_waiting : 1;
 };
 }

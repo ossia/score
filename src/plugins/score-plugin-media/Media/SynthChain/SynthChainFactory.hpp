@@ -7,6 +7,6 @@ namespace Media::SynthChain
 {
 using ProcessFactory = Process::ProcessFactory_T<SynthChain::ProcessModel>;
 
-using LayerFactory = Process::
-    LayerFactory_T<SynthChain::ProcessModel, Media::Presenter, Media::View>;
+using LayerFactory
+    = Process::LayerFactory_T<SynthChain::ProcessModel, Media::Presenter, Media::View>;
 }

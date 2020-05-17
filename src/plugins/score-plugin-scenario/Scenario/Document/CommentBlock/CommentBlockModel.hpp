@@ -12,6 +12,7 @@
 #include <QObject>
 
 #include <score_plugin_scenario_export.h>
+
 #include <verdigris>
 class DataStream;
 class JSONObject;
@@ -36,8 +37,7 @@ public:
       QObject* parent);
 
   template <typename DeserializerVisitor>
-  CommentBlockModel(DeserializerVisitor&& vis, QObject* parent)
-      : IdentifiedObject{vis, parent}
+  CommentBlockModel(DeserializerVisitor&& vis, QObject* parent) : IdentifiedObject{vis, parent}
   {
     vis.writeTo(*this);
   }
@@ -53,8 +53,7 @@ public:
 
 public:
   void dateChanged(const TimeVal& arg_1) W_SIGNAL(dateChanged, arg_1);
-  void heightPercentageChanged(bool arg_1)
-      W_SIGNAL(heightPercentageChanged, arg_1);
+  void heightPercentageChanged(bool arg_1) W_SIGNAL(heightPercentageChanged, arg_1);
   void contentChanged(QString arg_1) W_SIGNAL(contentChanged, arg_1);
 
 private:

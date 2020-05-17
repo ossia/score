@@ -68,22 +68,21 @@ public:
  * An uuid should be passed in argument.
  * ConcreteKey ntifies an implementation of an interface uniquely
  */
-#define SCORE_INTERFACE(Type, Uuid)                                \
-public:                                                            \
-  static MSVC_BUGGY_CONSTEXPR score::InterfaceKey                  \
-  static_interfaceKey() noexcept                                   \
-  {                                                                \
-    return_uuid(Uuid);                                             \
-  }                                                                \
-                                                                   \
-  score::InterfaceKey interfaceKey() const noexcept final override \
-  {                                                                \
-    return static_interfaceKey();                                  \
-  }                                                                \
-                                                                   \
-  using ConcreteKey = UuidKey<Type>;                               \
-  virtual ConcreteKey concreteKey() const noexcept = 0;            \
-                                                                   \
+#define SCORE_INTERFACE(Type, Uuid)                                              \
+public:                                                                          \
+  static MSVC_BUGGY_CONSTEXPR score::InterfaceKey static_interfaceKey() noexcept \
+  {                                                                              \
+    return_uuid(Uuid);                                                           \
+  }                                                                              \
+                                                                                 \
+  score::InterfaceKey interfaceKey() const noexcept final override               \
+  {                                                                              \
+    return static_interfaceKey();                                                \
+  }                                                                              \
+                                                                                 \
+  using ConcreteKey = UuidKey<Type>;                                             \
+  virtual ConcreteKey concreteKey() const noexcept = 0;                          \
+                                                                                 \
 private:
 
 /**
@@ -93,16 +92,10 @@ private:
  * Use this macro in the class definition inheriting from
  * your interfaces.
  */
-#define SCORE_CONCRETE(Uuid)                                                \
-public:                                                                     \
-  static MSVC_BUGGY_CONSTEXPR ConcreteKey static_concreteKey() noexcept \
-  {                                                                         \
-    return_uuid(Uuid);                                                      \
-  }                                                                         \
-                                                                            \
-  ConcreteKey concreteKey() const noexcept final override                   \
-  {                                                                         \
-    return static_concreteKey();                                            \
-  }                                                                         \
-                                                                            \
+#define SCORE_CONCRETE(Uuid)                                                                   \
+public:                                                                                        \
+  static MSVC_BUGGY_CONSTEXPR ConcreteKey static_concreteKey() noexcept { return_uuid(Uuid); } \
+                                                                                               \
+  ConcreteKey concreteKey() const noexcept final override { return static_concreteKey(); }     \
+                                                                                               \
 private:

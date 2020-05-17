@@ -4,15 +4,15 @@
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Effect/EffectLayout.hpp>
 
 #include <score/graphics/RectItem.hpp>
 #include <score/graphics/TextItem.hpp>
 
-
 #include <Control/Widgets.hpp>
 #include <Effect/EffectLayer.hpp>
+#include <Effect/EffectLayout.hpp>
 #include <Engine/Node/Process.hpp>
+
 #include <type_traits>
 
 namespace Control
@@ -34,7 +34,7 @@ struct HasCustomLayer<T, std::void_t<typename T::Layer>> : std::true_type
 {
 };
 
-template<typename Info>
+template <typename Info>
 struct CustomUISetup
 {
   const Process::Inlets& inlets;
@@ -64,7 +64,7 @@ struct CustomUISetup
       QGraphicsItem& parent,
       QObject& context,
       const Process::Context& doc)
-    : inlets{inlets}, process{process}, parent{parent}, context{context}, doc{doc}
+      : inlets{inlets}, process{process}, parent{parent}, context{context}, doc{doc}
   {
     make(std::make_index_sequence<ossia::safe_nodes::info_functions<Info>::control_count>{});
   }
@@ -89,25 +89,26 @@ struct AutoUISetup
       QGraphicsItem& parent,
       QObject& context,
       const Process::Context& doc)
-    : inlets{inlets}, parent{parent}, context{context}, doc{doc}
+      : inlets{inlets}, parent{parent}, context{context}, doc{doc}
   {
     i = ossia::safe_nodes::info_functions<Info>::control_start;
     ossia::for_each_in_tuple(Info::Metadata::controls, *this);
   }
 
   // Create a single control
-  template<typename T>
+  template <typename T>
   void operator()(const T& ctrl)
   {
     auto inlet = static_cast<Process::ControlInlet*>(inlets[i]);
     auto csetup = Process::controlSetup(
-     [] (auto& factory, auto& inlet, const auto& doc, auto item, auto parent)
-     { return factory.makeItem(inlet, doc, item, parent); },
-     [&] (auto& factory, auto& inlet, const auto& doc, auto item, auto parent)
-     { return ctrl.make_item(ctrl, inlet, doc, item, parent); },
-     [&] (int j) { return controlRects[j].size(); },
-    [&] { return ctrl.name; }
-    );
+        [](auto& factory, auto& inlet, const auto& doc, auto item, auto parent) {
+          return factory.makeItem(inlet, doc, item, parent);
+        },
+        [&](auto& factory, auto& inlet, const auto& doc, auto item, auto parent) {
+          return ctrl.make_item(ctrl, inlet, doc, item, parent);
+        },
+        [&](int j) { return controlRects[j].size(); },
+        [&] { return ctrl.name; });
     auto res = Process::createControl(ctl_i, csetup, *inlet, portFactory, doc, &parent, &context);
     controlRects.push_back(res.itemRect);
     i++;
@@ -138,9 +139,9 @@ private:
       QGraphicsItem* parent) const final override
   {
     if constexpr (HasCustomLayer<Info>::value)
-        return new typename Info::Layer{proc, context, parent};
+      return new typename Info::Layer{proc, context, parent};
     else
-        return new Process::EffectLayerView{parent};
+      return new Process::EffectLayerView{parent};
   }
 
   Process::LayerPresenter* makeLayerPresenter(

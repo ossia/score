@@ -3,9 +3,10 @@
 
 #include <score/plugins/Interface.hpp>
 #include <score/plugins/InterfaceList.hpp>
-#include <score_lib_process_export.h>
 
 #include <QPointer>
+
+#include <score_lib_process_export.h>
 
 #include <utility>
 #include <vector>
@@ -26,10 +27,10 @@ public:
 
   // Shortcut for some classes : the API to implement must look like
   // Position magneticPosition(Position
-  template<typename T>
+  template <typename T>
   void registerHandler(T& context) noexcept
   {
-    registerHandler(&context, [&context] (const QObject* obj, TimeVal t) {
+    registerHandler(&context, [&context](const QObject* obj, TimeVal t) {
       return context.magneticPosition(obj, t);
     });
   }
@@ -38,6 +39,7 @@ public:
 
   static score::InterfaceKey static_interfaceKey() noexcept;
   score::InterfaceKey interfaceKey() const noexcept override;
+
 private:
   void insert(std::unique_ptr<score::InterfaceBase>) override;
   void optimize() noexcept override;

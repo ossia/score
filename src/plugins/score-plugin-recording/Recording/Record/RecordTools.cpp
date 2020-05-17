@@ -14,8 +14,7 @@
 namespace Recording
 {
 
-static void
-GetParametersRecursive(Device::Node* parent, std::vector<Device::Node*>& vec)
+static void GetParametersRecursive(Device::Node* parent, std::vector<Device::Node*>& vec)
 {
   vec.reserve(vec.size() + parent->childCount());
   for (auto& node : *parent)
@@ -24,8 +23,7 @@ GetParametersRecursive(Device::Node* parent, std::vector<Device::Node*>& vec)
     GetParametersRecursive(&node, vec);
   }
 }
-static std::vector<Device::Node*>
-GetParametersRecursive(const std::vector<Device::Node*>& parents)
+static std::vector<Device::Node*> GetParametersRecursive(const std::vector<Device::Node*>& parents)
 {
   std::vector<Device::Node*> res;
   for (auto node : parents)
@@ -58,14 +56,12 @@ GetParametersRecursive(const std::vector<Device::Node*>& parents)
   return res;
 }
 
-RecordListening
-GetAddressesToRecordRecursive(Explorer::DeviceExplorerModel& explorer)
+RecordListening GetAddressesToRecordRecursive(Explorer::DeviceExplorerModel& explorer)
 {
   RecordListening recordListening;
 
   auto nodes = explorer.uniqueSelectedNodes(explorer.selectedIndexes());
-  auto parameters = GetParametersRecursive(
-      nodes.parents.empty() ? nodes.messages : nodes.parents);
+  auto parameters = GetParametersRecursive(nodes.parents.empty() ? nodes.messages : nodes.parents);
 
   // First get the addresses to listen.
   for (auto node_ptr : parameters)
@@ -156,11 +152,7 @@ Box CreateBox(RecordContext& context)
   // TODO what happens if we go past the end of our scenario ? Stop recording
   // ??
   auto cmd_end = new Scenario::Command::CreateInterval_State_Event_TimeSync{
-      context.scenario,
-      cmd_start->createdState(),
-      default_end_date,
-      context.point.y,
-      false};
+      context.scenario, cmd_start->createdState(), default_end_date, context.point.y, false};
   cmd_end->redo(context.context);
   context.dispatcher.submit(cmd_end);
 

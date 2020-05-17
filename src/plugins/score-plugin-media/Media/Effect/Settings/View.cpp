@@ -5,8 +5,8 @@
 #include <Media/Effect/Settings/View.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
-#include <score/widgets/SignalUtils.hpp>
 #include <score/tools/Bind.hpp>
+#include <score/widgets/SignalUtils.hpp>
 
 #include <QFileDialog>
 #include <QFormLayout>
@@ -37,27 +37,23 @@ View::View() : m_widg{new QWidget}
   auto vst_bad = new QListWidget;
 
   m_VstPaths->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
-  connect(
-      m_VstPaths,
-      &QListWidget::customContextMenuRequested,
-      this,
-      [=](const QPoint& p) {
-        QMenu* m = new QMenu;
-        auto act = m->addAction("Remove");
-        connect(act, &QAction::triggered, this, [=] {
-          auto idx = m_VstPaths->currentRow();
+  connect(m_VstPaths, &QListWidget::customContextMenuRequested, this, [=](const QPoint& p) {
+    QMenu* m = new QMenu;
+    auto act = m->addAction("Remove");
+    connect(act, &QAction::triggered, this, [=] {
+      auto idx = m_VstPaths->currentRow();
 
-          if (idx >= 0 && idx < m_curitems.size())
-          {
-            m_VstPaths->takeItem(idx);
-            m_curitems.removeAt(idx);
-            VstPathsChanged(m_curitems);
-          }
-        });
+      if (idx >= 0 && idx < m_curitems.size())
+      {
+        m_VstPaths->takeItem(idx);
+        m_curitems.removeAt(idx);
+        VstPathsChanged(m_curitems);
+      }
+    });
 
-        m->exec(m_VstPaths->mapToGlobal(p));
-        m->deleteLater();
-      });
+    m->exec(m_VstPaths->mapToGlobal(p));
+    m->deleteLater();
+  });
 
   lay->addRow(tr("VST paths"), m_VstPaths);
   lay->addRow(button_lay);
@@ -71,12 +67,9 @@ View::View() : m_widg{new QWidget}
       VstPathsChanged(m_curitems);
     }
   });
-  auto& app_plug
-      = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
+  auto& app_plug = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
 
-  connect(rescan, &QPushButton::clicked, this, [&] {
-    app_plug.rescanVSTs(m_curitems);
-  });
+  connect(rescan, &QPushButton::clicked, this, [&] { app_plug.rescanVSTs(m_curitems); });
 
   auto reloadVSTs = [=, &app_plug] {
     vst_ok->clear();
@@ -85,17 +78,13 @@ View::View() : m_widg{new QWidget}
     {
       if (plug.isValid)
       {
-        vst_ok->addItem(QString{"%1 - %2\t(%3)"}
-                            .arg(plug.prettyName)
-                            .arg(plug.displayName)
-                            .arg(plug.path));
+        vst_ok->addItem(
+            QString{"%1 - %2\t(%3)"}.arg(plug.prettyName).arg(plug.displayName).arg(plug.path));
       }
       else
       {
-        vst_bad->addItem(QString{"%1 - %2\t(%3)"}
-                             .arg(plug.prettyName)
-                             .arg(plug.displayName)
-                             .arg(plug.path));
+        vst_bad->addItem(
+            QString{"%1 - %2\t(%3)"}.arg(plug.prettyName).arg(plug.displayName).arg(plug.path));
       }
     }
   };

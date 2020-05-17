@@ -12,9 +12,9 @@
 #include <ossia/network/minuit/minuit.hpp>
 #include <ossia/network/rate_limiting_protocol.hpp>
 
+#include <QDebug>
 
 #include <wobjectimpl.h>
-#include <QDebug>
 
 #include <memory>
 
@@ -35,8 +35,7 @@ bool MinuitDevice::reconnect()
 
   try
   {
-    auto stgs
-        = settings().deviceSpecificSettings.value<MinuitSpecificSettings>();
+    auto stgs = settings().deviceSpecificSettings.value<MinuitSpecificSettings>();
 
     std::unique_ptr<ossia::net::protocol_base> ossia_settings
         = std::make_unique<ossia::net::minuit_protocol>(

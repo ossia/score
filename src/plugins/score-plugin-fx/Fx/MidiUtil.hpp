@@ -72,8 +72,7 @@ constexpr scales_array make_scale(std::initializer_list<bool> notes)
   for (std::size_t octave = 1; octave < 12; octave++)
   {
     r[octave] = r[0];
-    constexpr_rotate(
-        r[octave].rbegin(), r[octave].rbegin() + octave, r[octave].rend());
+    constexpr_rotate(r[octave].rbegin(), r[octave].rbegin() + octave, r[octave].rend());
   }
   return r;
 }
@@ -133,30 +132,25 @@ constexpr int get_scale(std::string_view s)
 #else
 #define MSVC_CONSTEXPR constexpr
 #endif
-static MSVC_CONSTEXPR
-    frozen::unordered_map<int, scales_array, scale::SCALES_MAX - 1>
-        scales{
-            //                                C   D   E F   G   A   B
-            {scale::all, make_scale({1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1})},
-            {scale::ionian, make_scale({1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1})},
-            {scale::dorian, make_scale({1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0})},
-            {scale::phyrgian,
-             make_scale({1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0})},
-            {scale::lydian, make_scale({1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1})},
-            {scale::mixolydian,
-             make_scale({1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0})},
-            {scale::aeolian, make_scale({1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0})},
-            {scale::locrian, make_scale({1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0})},
-            {scale::I, make_scale({1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0})},
-            {scale::II, make_scale({0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0})},
-            {scale::III, make_scale({0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1})},
-            {scale::IV, make_scale({1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0})},
-            {scale::V, make_scale({0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1})},
-            {scale::VI, make_scale({1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0})},
-            {scale::VII, make_scale({0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1})}};
+static MSVC_CONSTEXPR frozen::unordered_map<int, scales_array, scale::SCALES_MAX - 1> scales{
+    //                                C   D   E F   G   A   B
+    {scale::all, make_scale({1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1})},
+    {scale::ionian, make_scale({1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1})},
+    {scale::dorian, make_scale({1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0})},
+    {scale::phyrgian, make_scale({1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0})},
+    {scale::lydian, make_scale({1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1})},
+    {scale::mixolydian, make_scale({1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0})},
+    {scale::aeolian, make_scale({1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0})},
+    {scale::locrian, make_scale({1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0})},
+    {scale::I, make_scale({1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0})},
+    {scale::II, make_scale({0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0})},
+    {scale::III, make_scale({0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1})},
+    {scale::IV, make_scale({1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0})},
+    {scale::V, make_scale({0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1})},
+    {scale::VI, make_scale({1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0})},
+    {scale::VII, make_scale({0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1})}};
 
-static optional<std::size_t>
-find_closest_index(const scale_array& arr, std::size_t i)
+static optional<std::size_t> find_closest_index(const scale_array& arr, std::size_t i)
 {
   if (arr[i] == 1)
     return i;
@@ -210,10 +204,8 @@ struct Node
     static const constexpr auto author = "ossia score";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::MidiEffect;
-    static const constexpr auto description
-        = "Maps a midi input to a given scale";
-    static const uuid_constexpr auto uuid
-        = make_uuid("06b33b83-bb67-4f7a-9980-f5d66e4266c5");
+    static const constexpr auto description = "Maps a midi input to a given scale";
+    static const uuid_constexpr auto uuid = make_uuid("06b33b83-bb67-4f7a-9980-f5d66e4266c5");
 
     static const constexpr midi_in midi_ins[]{"in"};
     static const constexpr midi_out midi_outs[]{"out"};
@@ -269,18 +261,15 @@ struct Node
             // transpose
             auto res = msg;
             res.bytes[1] = (uint8_t)ossia::clamp(int(*index + transp), 0, 127);
-            Note note{(uint8_t)res.bytes[1],
-                      (uint8_t)res.bytes[2],
-                      (uint8_t)res.get_channel()};
+            Note note{(uint8_t)res.bytes[1], (uint8_t)res.bytes[2], (uint8_t)res.get_channel()};
             auto it = self.map.find(msg.bytes[1]);
             if (it != self.map.end())
             {
-              midi_out.messages.push_back(rtmidi::message::note_off(
-                  res.get_channel(), it->second.pitch, res.bytes[2]));
+              midi_out.messages.push_back(
+                  rtmidi::message::note_off(res.get_channel(), it->second.pitch, res.bytes[2]));
               midi_out.messages.back().timestamp = offset;
               midi_out.messages.push_back(res);
-              midi_out.messages.back().timestamp
-                  = offset + 1;
+              midi_out.messages.back().timestamp = offset + 1;
               const_cast<Note&>(it->second) = note;
             }
             else
@@ -297,8 +286,8 @@ struct Node
           auto it = self.map.find(msg.bytes[1]);
           if (it != self.map.end())
           {
-            midi_out.messages.push_back(rtmidi::message::note_off(
-                msg.get_channel(), it->second.pitch, msg.bytes[2]));
+            midi_out.messages.push_back(
+                rtmidi::message::note_off(msg.get_channel(), it->second.pitch, msg.bytes[2]));
             midi_out.messages.back().timestamp = offset;
             self.map.erase(it);
           }
@@ -326,12 +315,10 @@ struct Node
       {
         if ((*index + transp) != note.pitch)
         {
-          midi_out.messages.push_back(
-              rtmidi::message::note_off(note.chan, note.pitch, note.vel));
+          midi_out.messages.push_back(rtmidi::message::note_off(note.chan, note.pitch, note.vel));
           note.pitch = *index + transp;
           midi_out.messages.back().timestamp = offset;
-          midi_out.messages.push_back(
-              rtmidi::message::note_on(note.chan, note.pitch, note.vel));
+          midi_out.messages.push_back(rtmidi::message::note_on(note.chan, note.pitch, note.vel));
           midi_out.messages.back().timestamp = offset + 1;
         }
       }
@@ -361,12 +348,7 @@ struct Node
     auto apply = [&](auto f) {
       if (new_scale_idx != scale::custom)
       {
-        f(midi_in,
-          scales.at(new_scale_idx)[new_base],
-          new_transpose,
-          midi_out,
-          tick_start,
-          self);
+        f(midi_in, scales.at(new_scale_idx)[new_base], new_transpose, midi_out, tick_start, self);
       }
       else
       {
@@ -383,8 +365,7 @@ struct Node
     };
 
     if (!self.map.empty()
-        && (new_scale != self.scale || new_base != self.base
-            || new_transpose != self.transpose))
+        && (new_scale != self.scale || new_base != self.base || new_transpose != self.transpose))
     {
       apply(update);
     }
@@ -412,8 +393,7 @@ struct Node
     static const constexpr auto kind = Process::ProcessCategory::MidiEffect;
     static const constexpr auto description = "Extract a MIDI pitch";
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const uuid_constexpr auto uuid
-        = make_uuid("29ce484f-cb56-4501-af79-88768fa261c3");
+    static const uuid_constexpr auto uuid = make_uuid("29ce484f-cb56-4501-af79-88768fa261c3");
 
     static const constexpr midi_in midi_ins[]{"in"};
     static const constexpr value_out value_outs[]{"out"};

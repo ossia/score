@@ -10,7 +10,6 @@
 #include <Scenario/Process/ScenarioFactory.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
-
 using namespace score;
 using namespace Scenario::Command;
 
@@ -25,8 +24,8 @@ private:
     ProcessList* plist = new ProcessList{obj};
     plist->registerProcess(new ScenarioFactory);
 
-    IntervalModel* cstrModel = new IntervalModel{
-        Id<IntervalModel>{1}, Id<IntervalViewModel>{0}, qApp};
+    IntervalModel* cstrModel
+        = new IntervalModel{Id<IntervalModel>{1}, Id<IntervalViewModel>{0}, qApp};
 
     AddRackToInterval rackCmd(ObjectPath{{"IntervalModel", {1}}});
     rackCmd.redo(ctx);

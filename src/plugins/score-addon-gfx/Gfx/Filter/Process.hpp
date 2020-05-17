@@ -23,10 +23,7 @@ class Model final : public Process::ProcessModel
 public:
   static constexpr bool hasExternalUI() noexcept { return true; }
 
-  Model(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
+  Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
 
   template <typename Impl>
   Model(Impl& vis, QObject* parent) : Process::ProcessModel{vis, parent}
@@ -41,14 +38,10 @@ public:
   void setFragment(QString f);
   void fragmentChanged(const QString& f) W_SIGNAL(fragmentChanged, f);
 
-  const isf::descriptor& isfDescriptor() const noexcept
-  { return m_isfDescriptor; }
-  void errorMessage(int arg_1, const QString& arg_2)
-      W_SIGNAL(errorMessage, arg_1, arg_2);
+  const isf::descriptor& isfDescriptor() const noexcept { return m_isfDescriptor; }
+  void errorMessage(int arg_1, const QString& arg_2) W_SIGNAL(errorMessage, arg_1, arg_2);
 
-  PROPERTY(
-      QString,
-      fragment READ fragment WRITE setFragment NOTIFY fragmentChanged)
+  PROPERTY(QString, fragment READ fragment WRITE setFragment NOTIFY fragmentChanged)
 private:
   void setupIsf(const isf::descriptor& d);
   void setupNormalShader();
@@ -92,24 +85,19 @@ class DropHandler final : public Process::ProcessDropHandler
 
 namespace Gfx
 {
-class ChangeFragmentShader
-    : public Scenario::EditScript<Filter::Model, Filter::Model::p_fragment>
+class ChangeFragmentShader : public Scenario::EditScript<Filter::Model, Filter::Model::p_fragment>
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      ChangeFragmentShader,
-      "Edit a script")
-  public:
-    using EditScript::EditScript;
+  SCORE_COMMAND_DECL(CommandFactoryName(), ChangeFragmentShader, "Edit a script")
+public:
+  using EditScript::EditScript;
 };
 }
 
 namespace score
 {
-template<>
+template <>
 struct StaticPropertyCommand<Gfx::Filter::Model::p_fragment> : Gfx::ChangeFragmentShader
 {
   using ChangeFragmentShader::ChangeFragmentShader;
 };
 }
-

@@ -23,24 +23,15 @@ inline QDebug operator<<(QDebug d, const TimeVal& tv)
 template <>
 struct TSerializer<DataStream, TimeVal>
 {
-  static void readFrom(DataStream::Serializer& s, const TimeVal& tv)
-  {
-    s.stream() << tv.impl;
-  }
+  static void readFrom(DataStream::Serializer& s, const TimeVal& tv) { s.stream() << tv.impl; }
 
-  static void writeTo(DataStream::Deserializer& s, TimeVal& tv)
-  {
-    s.stream() >> tv.impl;
-  }
+  static void writeTo(DataStream::Deserializer& s, TimeVal& tv) { s.stream() >> tv.impl; }
 };
 
 template <>
 struct TSerializer<JSONObject, TimeVal>
 {
-  static void readFrom(JSONObject::Serializer& s, const TimeVal& tv)
-  {
-    s.stream.Int64(tv.impl);
-  }
+  static void readFrom(JSONObject::Serializer& s, const TimeVal& tv) { s.stream.Int64(tv.impl); }
 
   static void writeTo(JSONObject::Deserializer& s, TimeVal& tv)
   {
@@ -49,4 +40,3 @@ struct TSerializer<JSONObject, TimeVal>
     tv.impl = s.base.GetInt64();
   }
 };
-

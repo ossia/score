@@ -24,7 +24,9 @@ bool updateExpr(State& self, const std::string& expr)
 }
 
 static void mathItem(
-    const std::tuple<Control::LineEdit, Control::FloatSlider,Control::FloatSlider,Control::FloatSlider>& controls,
+    const std::
+        tuple<Control::LineEdit, Control::FloatSlider, Control::FloatSlider, Control::FloatSlider>&
+            controls,
     Process::LineEdit& edit,
     Process::FloatSlider& a,
     Process::FloatSlider& b,
@@ -73,10 +75,10 @@ struct Node
     static const constexpr auto kind = Process::ProcessCategory::Generator;
     static const constexpr auto description
         = "Generate a signal from a math expression.\n"
-          "Available variables: a,b,c, t (samples), dt (delta), pos (position in parent)\n"
+          "Available variables: a,b,c, t (samples), dt (delta), pos (position "
+          "in parent)\n"
           "See the documentation at http://www.partow.net/programming/exprtk";
-    static const uuid_constexpr auto uuid
-        = make_uuid("d757bd0d-c0a1-4aec-bf72-945b722ab85b");
+    static const uuid_constexpr auto uuid = make_uuid("d757bd0d-c0a1-4aec-bf72-945b722ab85b");
 
     static const constexpr value_out value_outs[]{"out"};
 
@@ -136,7 +138,7 @@ struct Node
     output.write_value(res, st.physical_start(tk));
   }
 
-  template<typename... Args>
+  template <typename... Args>
   static void item(Args&&... args)
   {
     Nodes::mathItem(Metadata::controls, std::forward<Args>(args)...);
@@ -160,15 +162,12 @@ struct Node
         = "Generate an audio signal from a math expression.\n"
           "Available variables: a,b,c, t (samples), fs (sampling frequency)\n"
           "See the documentation at http://www.partow.net/programming/exprtk";
-    static const uuid_constexpr auto uuid
-        = make_uuid("eae294b3-afeb-4fba-bbe4-337998d3748a");
+    static const uuid_constexpr auto uuid = make_uuid("eae294b3-afeb-4fba-bbe4-337998d3748a");
 
     static const constexpr audio_out audio_outs[]{"out"};
 
     static const constexpr auto controls = std::make_tuple(
-        Control::LineEdit(
-            "Expression (ExprTK)",
-            "a * cos( 2 * pi * t * 440 * b / fs )"),
+        Control::LineEdit("Expression (ExprTK)", "a * cos( 2 * pi * t * 440 * b / fs )"),
         Control::FloatSlider("Param (a)", 0., 1., 0.5),
         Control::FloatSlider("Param (b)", 0., 1., 0.5),
         Control::FloatSlider("Param (c)", 0., 1., 0.5));
@@ -234,7 +233,7 @@ struct Node
     }
   }
 
-  template<typename... Args>
+  template <typename... Args>
   static void item(Args&&... args)
   {
     Nodes::mathItem(Metadata::controls, std::forward<Args>(args)...);

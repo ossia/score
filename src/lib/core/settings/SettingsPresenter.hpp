@@ -12,8 +12,7 @@ namespace score
 class SettingsDelegateModel;
 template <class Model>
 class SettingsDelegatePresenter;
-using GlobalSettingsPresenter
-    = SettingsDelegatePresenter<SettingsDelegateModel>;
+using GlobalSettingsPresenter = SettingsDelegatePresenter<SettingsDelegateModel>;
 } // namespace score
 
 namespace score
@@ -33,9 +32,7 @@ public:
 
   void addSettingsPresenter(SettingsDelegatePresenter<Model>* presenter)
   {
-    SCORE_ASSERT(
-        ossia::find(m_pluginPresenters, presenter)
-        == m_pluginPresenters.end());
+    SCORE_ASSERT(ossia::find(m_pluginPresenters, presenter) == m_pluginPresenters.end());
 
     m_pluginPresenters.push_back(presenter);
   }

@@ -38,10 +38,7 @@ private:
 
 class CreateVSTControl final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      CreateVSTControl,
-      "Create a control")
+  SCORE_COMMAND_DECL(CommandFactoryName(), CreateVSTControl, "Create a control")
 
 public:
   CreateVSTControl(const VSTEffectModel& obj, int fxNum, float value);
@@ -61,10 +58,7 @@ private:
 
 class RemoveVSTControl final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      RemoveVSTControl,
-      "Remove a control")
+  SCORE_COMMAND_DECL(CommandFactoryName(), RemoveVSTControl, "Remove a control")
 
 public:
   RemoveVSTControl(const VSTEffectModel& obj, Id<Process::Port> id);

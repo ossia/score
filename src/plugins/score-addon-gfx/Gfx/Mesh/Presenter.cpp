@@ -24,11 +24,7 @@ struct Presenter::Port
   Dataflow::PortItem* port;
   QRectF rect;
 };
-Presenter::Presenter(
-    const Model& layer,
-    View* view,
-    const Process::Context& ctx,
-    QObject* parent)
+Presenter::Presenter(const Model& layer, View* view, const Process::Context& ctx, QObject* parent)
     : Process::LayerPresenter{layer, view, ctx, parent}, m_model{layer}, m_view{view}
 {
   auto& portFactory = ctx.app.interfaces<Process::PortFactoryList>();
@@ -43,8 +39,7 @@ Presenter::Presenter(
       delete port.root;
     m_ports.clear();
 
-    auto& portFactory
-        = context().context.app.interfaces<Process::PortFactoryList>();
+    auto& portFactory = context().context.app.interfaces<Process::PortFactoryList>();
     for (auto& e : this->m_model.inlets())
     {
       if (auto inlet = qobject_cast<Process::ControlInlet*>(e))
@@ -73,9 +68,9 @@ void Presenter::putBehind()
   m_view->setOpacity(0.2);
 }
 
-void Presenter::on_zoomRatioChanged(ZoomRatio) {}
+void Presenter::on_zoomRatioChanged(ZoomRatio) { }
 
-void Presenter::parentGeometryChanged() {}
+void Presenter::parentGeometryChanged() { }
 
 void Presenter::setupInlet(
     Process::ControlInlet& port,
@@ -94,8 +89,8 @@ void Presenter::setupInlet(
       },
       [&](int j) { return m_ports[j].rect.size(); },
       [&] { return port.customData(); });
-  auto [item, portItem, widg, lab, itemRect] = Process::createControl(
-      i, csetup, port, portFactory, doc, m_view, this);
+  auto [item, portItem, widg, lab, itemRect]
+      = Process::createControl(i, csetup, port, portFactory, doc, m_view, this);
 
   m_ports.push_back(Port{item, portItem, itemRect});
   // TODO updateRect();

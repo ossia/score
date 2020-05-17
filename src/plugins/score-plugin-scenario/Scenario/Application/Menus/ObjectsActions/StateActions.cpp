@@ -12,20 +12,19 @@
 
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/MenuManager.hpp>
-#include <score/widgets/SetIcons.hpp>
 #include <score/tools/ObjectMatches.hpp>
+#include <score/widgets/SetIcons.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
 #include <core/document/Document.hpp>
 
 #include <QAction>
 #include <QMainWindow>
-#include <QToolBar>
 #include <QMenu>
+#include <QToolBar>
 namespace Scenario
 {
-StateActions::StateActions(ScenarioApplicationPlugin* parent)
-    : m_parent{parent}
+StateActions::StateActions(ScenarioApplicationPlugin* parent) : m_parent{parent}
 {
   if (!parent->context.applicationSettings.gui)
     return;
@@ -71,17 +70,16 @@ void StateActions::makeGUIElements(score::GUIElements& ref)
   object.menu()->addAction(m_snapshot);
   object.menu()->addAction(m_refreshStates);
 
-  Toolbar& tb = *ossia::find_if(ref.toolbars, [](auto& tb) {
-    return tb.key() == StringKey<score::Toolbar>("Interval");
-  });
+  Toolbar& tb = *ossia::find_if(
+      ref.toolbars, [](auto& tb) { return tb.key() == StringKey<score::Toolbar>("Interval"); });
   tb.toolbar()->addAction(m_snapshot);
   tb.toolbar()->addAction(m_refreshStates);
 
   ref.actions.add<Actions::Snapshot>(m_snapshot);
   ref.actions.add<Actions::RefreshStates>(m_refreshStates);
 
-  auto& cond = m_parent->context.actions.condition<
-      score::EnableWhenSelectionContains<Scenario::StateModel>>();
+  auto& cond = m_parent->context.actions
+                   .condition<score::EnableWhenSelectionContains<Scenario::StateModel>>();
   cond.add<Actions::RefreshStates>();
   cond.add<Actions::Snapshot>();
 }
@@ -89,34 +87,29 @@ void StateActions::makeGUIElements(score::GUIElements& ref)
 void StateActions::setupContextMenu(Process::LayerContextMenuManager& ctxm)
 {
   using namespace Process;
-  Process::LayerContextMenu cm
-      = MetaContextMenu<ContextMenus::StateContextMenu>::make();
+  Process::LayerContextMenu cm = MetaContextMenu<ContextMenus::StateContextMenu>::make();
 
-  cm.functions.push_back(
-      [this](QMenu& menu, QPoint, QPointF, const Process::LayerContext& ctx) {
-        using namespace score;
-        auto sel = ctx.context.selectionStack.currentSelection();
-        if (sel.empty())
-          return;
+  cm.functions.push_back([this](QMenu& menu, QPoint, QPointF, const Process::LayerContext& ctx) {
+    using namespace score;
+    auto sel = ctx.context.selectionStack.currentSelection();
+    if (sel.empty())
+      return;
 
-        if (ossia::any_of(
-                sel,
-                matches<Scenario::StateModel>{})) // TODO : event or timesync ?
-        {
-          auto stateSubmenu = menu.addMenu(tr("State"));
-          stateSubmenu->setObjectName("State");
-          stateSubmenu->addAction(m_snapshot);
-          stateSubmenu->addAction(m_refreshStates);
-        }
-      });
+    if (ossia::any_of(sel, matches<Scenario::StateModel>{})) // TODO : event or timesync ?
+    {
+      auto stateSubmenu = menu.addMenu(tr("State"));
+      stateSubmenu->setObjectName("State");
+      stateSubmenu->addAction(m_snapshot);
+      stateSubmenu->addAction(m_refreshStates);
+    }
+  });
 
   ctxm.insert(std::move(cm));
 }
 
 CommandDispatcher<> StateActions::dispatcher()
 {
-  CommandDispatcher<> disp{
-      m_parent->currentDocument()->context().commandStack};
+  CommandDispatcher<> disp{m_parent->currentDocument()->context().commandStack};
   return disp;
 }
 }

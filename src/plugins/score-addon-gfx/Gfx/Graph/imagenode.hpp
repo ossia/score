@@ -64,9 +64,11 @@ struct ImagesNode : NodeModel
   }
   )_";
 
-  struct ubo {
-  int currentImageIndex{}; float pad;
-  float position[2];
+  struct ubo
+  {
+    int currentImageIndex{};
+    float pad;
+    float position[2];
   } ubo;
 
   struct Rendered : RenderedNode
@@ -74,9 +76,7 @@ struct ImagesNode : NodeModel
     using RenderedNode::RenderedNode;
 
     bool m_uploaded = false;
-    ~Rendered()
-    {
-    }
+    ~Rendered() { }
 
     std::vector<QRhiTexture*> textures;
     void customInit(Renderer& renderer) override
@@ -84,7 +84,7 @@ struct ImagesNode : NodeModel
       prev_ubo.currentImageIndex = -1;
       auto& n = static_cast<const ImagesNode&>(this->node);
       auto& rhi = *renderer.state.rhi;
-      for(const Gfx::Image& img: n.images)
+      for (const Gfx::Image& img : n.images)
       {
         const QSize sz = img.image.size();
         auto tex = rhi.newTexture(
@@ -107,33 +107,31 @@ struct ImagesNode : NodeModel
       }
     }
 
-    void
-    customUpdate(Renderer& renderer, QRhiResourceUpdateBatch& res) override
+    void customUpdate(Renderer& renderer, QRhiResourceUpdateBatch& res) override
     {
-      if(textures.empty())
+      if (textures.empty())
         return;
 
       auto& n = static_cast<const ImagesNode&>(this->node);
-      if(!m_uploaded)
+      if (!m_uploaded)
       {
-        for(int i = 0; i < n.images.size(); i++)
+        for (int i = 0; i < n.images.size(); i++)
         {
           res.uploadTexture(textures[i], n.images[i].image);
         }
         m_uploaded = true;
       }
 
-      if(prev_ubo.currentImageIndex != n.ubo.currentImageIndex)
+      if (prev_ubo.currentImageIndex != n.ubo.currentImageIndex)
       {
         replaceTexture(m_samplers[0].sampler, textures[n.ubo.currentImageIndex]);
         prev_ubo.currentImageIndex = n.ubo.currentImageIndex;
       }
-
     }
 
     void customRelease(Renderer&) override
     {
-      for(auto tex : textures)
+      for (auto tex : textures)
         tex->releaseAndDestroyLater();
       textures.clear();
     }
@@ -150,8 +148,7 @@ struct ImagesNode : NodeModel
 
   const TexturedTriangle& m_mesh = TexturedTriangle::instance();
   std::vector<Gfx::Image> images;
-  ImagesNode(std::vector<Gfx::Image> dec)
-      : images{std::move(dec)}
+  ImagesNode(std::vector<Gfx::Image> dec) : images{std::move(dec)}
   {
     setShaders(vertex, filter);
     input.push_back(new Port{this, &ubo.currentImageIndex, Types::Int, {}});
@@ -163,8 +160,5 @@ struct ImagesNode : NodeModel
   virtual ~ImagesNode() { m_materialData.release(); }
 
   const Mesh& mesh() const noexcept override { return this->m_mesh; }
-  RenderedNode* createRenderer() const noexcept override
-  {
-    return new Rendered{*this};
-  }
+  RenderedNode* createRenderer() const noexcept override { return new Rendered{*this}; }
 };

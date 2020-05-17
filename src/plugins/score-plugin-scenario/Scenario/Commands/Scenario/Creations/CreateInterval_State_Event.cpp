@@ -38,8 +38,7 @@ void CreateInterval_State_Event::undo(const score::DocumentContext& ctx) const
 {
   m_command.undo(ctx);
 
-  ScenarioCreate<EventModel>::undo(
-      m_newEvent, m_command.scenarioPath().find(ctx));
+  ScenarioCreate<EventModel>::undo(m_newEvent, m_command.scenarioPath().find(ctx));
 }
 
 void CreateInterval_State_Event::redo(const score::DocumentContext& ctx) const
@@ -47,10 +46,7 @@ void CreateInterval_State_Event::redo(const score::DocumentContext& ctx) const
   auto& scenar = m_command.scenarioPath().find(ctx);
 
   // Create the end event
-  ScenarioCreate<EventModel>::redo(
-      m_newEvent,
-      scenar.timeSync(m_endTimeSync),
-      scenar);
+  ScenarioCreate<EventModel>::redo(m_newEvent, scenar.timeSync(m_endTimeSync), scenar);
 
   scenar.events.at(m_newEvent).metadata().setName(m_createdName);
 

@@ -180,8 +180,7 @@ SCORE_LIB_BASE_EXPORT void DataStreamWriter::write(score::ColorRef& md)
 }
 
 template <>
-SCORE_LIB_BASE_EXPORT void
-DataStreamReader::read(const score::ModelMetadata& md)
+SCORE_LIB_BASE_EXPORT void DataStreamReader::read(const score::ModelMetadata& md)
 {
   m_stream << md.m_scriptingName << md.m_comment << md.m_color << md.m_label
            << md.m_extendedMetadata << md.m_touchedName;
@@ -199,8 +198,7 @@ SCORE_LIB_BASE_EXPORT void DataStreamWriter::write(score::ModelMetadata& md)
 }
 
 template <>
-SCORE_LIB_BASE_EXPORT void
-JSONReader::read(const score::ModelMetadata& md)
+SCORE_LIB_BASE_EXPORT void JSONReader::read(const score::ModelMetadata& md)
 {
   stream.StartObject();
   obj[strings.ScriptingName] = md.m_scriptingName;

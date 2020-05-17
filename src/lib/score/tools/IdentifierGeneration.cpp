@@ -27,8 +27,7 @@ struct IdGen
   IdGen() noexcept
       : rd{}
       , gen{rd()}
-      , dist{std::numeric_limits<int32_t>::min(),
-             std::numeric_limits<int32_t>::max()}
+      , dist{std::numeric_limits<int32_t>::min(), std::numeric_limits<int32_t>::max()}
   {
   }
 

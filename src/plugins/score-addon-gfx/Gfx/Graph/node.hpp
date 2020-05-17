@@ -8,8 +8,9 @@
 #include <QShaderBaker>
 
 #include <algorithm>
-#include <vector>
 #include <optional>
+#include <vector>
+
 #include <unordered_map>
 
 class NodeModel;
@@ -46,8 +47,7 @@ struct Edge
     if (auto it = std::find(source->edges.begin(), source->edges.end(), this);
         it != source->edges.end())
       source->edges.erase(it);
-    if (auto it = std::find(sink->edges.begin(), sink->edges.end(), this);
-        it != sink->edges.end())
+    if (auto it = std::find(sink->edges.begin(), sink->edges.end(), this); it != sink->edges.end())
       sink->edges.erase(it);
   }
 
@@ -86,7 +86,6 @@ struct
 #if defined(_MSC_VER)
 #pragma pack()
 #endif
-
 
 #if defined(_MSC_VER)
 #pragma pack(push, 1)
@@ -138,6 +137,7 @@ protected:
   std::unique_ptr<char[]> m_materialData;
 
   friend class RenderedNode;
+
 public:
   int64_t materialChanged{0};
   bool addedToGraph{};
@@ -146,9 +146,9 @@ public:
 class RenderedNode
 {
 public:
-  RenderedNode(const NodeModel& node) noexcept : node{node} {}
+  RenderedNode(const NodeModel& node) noexcept : node{node} { }
 
-  virtual ~RenderedNode() {}
+  virtual ~RenderedNode() { }
   const NodeModel& node;
 
   QRhiTexture* m_texture{};

@@ -8,6 +8,7 @@
 #include <State/UpdateAddress.hpp>
 
 #include <score/tools/ForEach.hpp>
+
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/hash.hpp>
 #include <ossia/editor/state/destination_qualifiers.hpp>
@@ -27,10 +28,8 @@ DestinationQualifiers::DestinationQualifiers()
 {
 }
 
-DestinationQualifiers::DestinationQualifiers(
-    const DestinationQualifiers& other)
-    : qualifiers{
-          std::make_unique<ossia::destination_qualifiers>(*other.qualifiers)}
+DestinationQualifiers::DestinationQualifiers(const DestinationQualifiers& other)
+    : qualifiers{std::make_unique<ossia::destination_qualifiers>(*other.qualifiers)}
 {
 }
 
@@ -40,43 +39,37 @@ DestinationQualifiers::DestinationQualifiers(DestinationQualifiers&& other)
   other.qualifiers = std::make_unique<ossia::destination_qualifiers>();
 }
 
-DestinationQualifiers& DestinationQualifiers::
-operator=(const DestinationQualifiers& other)
+DestinationQualifiers& DestinationQualifiers::operator=(const DestinationQualifiers& other)
 {
   *qualifiers = *other.qualifiers;
   return *this;
 }
 
-DestinationQualifiers& DestinationQualifiers::
-operator=(DestinationQualifiers&& other)
+DestinationQualifiers& DestinationQualifiers::operator=(DestinationQualifiers&& other)
 {
   *qualifiers = std::move(*other.qualifiers);
   return *this;
 }
 
-DestinationQualifiers::~DestinationQualifiers() {}
+DestinationQualifiers::~DestinationQualifiers() { }
 
-DestinationQualifiers::DestinationQualifiers(
-    const ossia::destination_qualifiers& other)
+DestinationQualifiers::DestinationQualifiers(const ossia::destination_qualifiers& other)
     : qualifiers{std::make_unique<ossia::destination_qualifiers>(other)}
 {
 }
 
-DestinationQualifiers& DestinationQualifiers::
-operator=(const ossia::destination_qualifiers& other)
+DestinationQualifiers& DestinationQualifiers::operator=(const ossia::destination_qualifiers& other)
 {
   *qualifiers = other;
   return *this;
 }
 
-bool DestinationQualifiers::
-operator==(const DestinationQualifiers& other) const
+bool DestinationQualifiers::operator==(const DestinationQualifiers& other) const
 {
   return *qualifiers == *other.qualifiers;
 }
 
-bool DestinationQualifiers::
-operator!=(const DestinationQualifiers& other) const
+bool DestinationQualifiers::operator!=(const DestinationQualifiers& other) const
 {
   return *qualifiers != *other.qualifiers;
 }
@@ -91,12 +84,12 @@ ossia::destination_qualifiers& DestinationQualifiers::get()
   return *qualifiers;
 }
 
-DestinationQualifiers::operator const ossia::destination_qualifiers&() const
+DestinationQualifiers::operator const ossia::destination_qualifiers &() const
 {
   return *qualifiers;
 }
 
-DestinationQualifiers::operator ossia::destination_qualifiers&()
+DestinationQualifiers::operator ossia::destination_qualifiers &()
 {
   return *qualifiers;
 }
@@ -104,10 +97,7 @@ DestinationQualifiers::operator ossia::destination_qualifiers&()
 Address::Address() noexcept = default;
 Address::Address(Address&&) noexcept = default;
 
-Address::Address(const Address& other) noexcept
-    : device{other.device}, path{other.path}
-{
-}
+Address::Address(const Address& other) noexcept : device{other.device}, path{other.path} { }
 
 Address& Address::operator=(const Address& other) noexcept
 {
@@ -123,10 +113,7 @@ Address& Address::operator=(Address&& other) noexcept
   return *this;
 }
 
-Address::Address(QString d, QStringList p) noexcept
-    : device{std::move(d)}, path{std::move(p)}
-{
-}
+Address::Address(QString d, QStringList p) noexcept : device{std::move(d)}, path{std::move(p)} { }
 
 bool Address::validateString(const QString& str)
 {
@@ -141,9 +128,7 @@ bool Address::validateString(const QString& str)
 
   path.first().remove(":");
 
-  Foreach(path, [&](const auto& fragment) {
-    valid &= validateFragment(fragment);
-  });
+  Foreach(path, [&](const auto& fragment) { valid &= validateFragment(fragment); });
 
   return valid;
 }
@@ -201,7 +186,7 @@ bool Address::operator!=(const Address& a) const
   return !(*this == a);
 }
 
-AddressAccessor::AddressAccessor() noexcept {}
+AddressAccessor::AddressAccessor() noexcept { }
 
 AddressAccessor::AddressAccessor(const AddressAccessor& other) noexcept
     : address{other.address}, qualifiers{other.qualifiers}
@@ -209,13 +194,11 @@ AddressAccessor::AddressAccessor(const AddressAccessor& other) noexcept
 }
 
 AddressAccessor::AddressAccessor(AddressAccessor&& other) noexcept
-    : address{std::move(other.address)}
-    , qualifiers{std::move(other.qualifiers)}
+    : address{std::move(other.address)}, qualifiers{std::move(other.qualifiers)}
 {
 }
 
-AddressAccessor& AddressAccessor::
-operator=(const AddressAccessor& other) noexcept
+AddressAccessor& AddressAccessor::operator=(const AddressAccessor& other) noexcept
 {
   address = other.address;
   qualifiers = other.qualifiers;
@@ -229,7 +212,7 @@ AddressAccessor& AddressAccessor::operator=(AddressAccessor&& other) noexcept
   return *this;
 }
 
-AddressAccessor::AddressAccessor(Address a) noexcept : address{std::move(a)} {}
+AddressAccessor::AddressAccessor(Address a) noexcept : address{std::move(a)} { }
 
 AddressAccessor::AddressAccessor(Address a, const AccessorVector& v) noexcept
     : address{std::move(a)}, qualifiers{ossia::destination_qualifiers{v, {}}}
@@ -316,8 +299,7 @@ QDebug operator<<(QDebug d, const State::DestinationQualifiers& val)
   auto& a = val.get();
   d.noquote().nospace() << a.accessors;
   if (a.unit)
-    d << QString::fromStdString(
-        std::string(ossia::get_pretty_unit_text(a.unit)));
+    d << QString::fromStdString(std::string(ossia::get_pretty_unit_text(a.unit)));
 
   return d;
 }
@@ -352,8 +334,7 @@ QString toString(const ossia::destination_qualifiers& qualifiers)
     //  = QString::fromStdString(ossia::get_pretty_unit_text(qualifiers.unit));
     if (!qualifiers.accessors.empty())
     {
-      char c
-          = ossia::get_unit_accessor(qualifiers.unit, qualifiers.accessors[0]);
+      char c = ossia::get_unit_accessor(qualifiers.unit, qualifiers.accessors[0]);
       if (c != 0)
       {
         unit_text += '.';
@@ -377,10 +358,8 @@ QString toString(const ossia::destination_qualifiers& qualifiers)
   return str;
 }
 
-
-std::optional<State::AddressAccessor> onUpdatableAddress(
-    const State::AddressAccessor& current,
-    const QMimeData& mime)
+std::optional<State::AddressAccessor>
+onUpdatableAddress(const State::AddressAccessor& current, const QMimeData& mime)
 {
   if (mime.formats().contains(score::mime::messagelist()))
   {
@@ -402,9 +381,8 @@ std::optional<State::AddressAccessor> onUpdatableAddress(
   return {};
 }
 
-std::optional<State::Address> onUpdatableAddress(
-    const State::Address& current,
-    const QMimeData& mime)
+std::optional<State::Address>
+onUpdatableAddress(const State::Address& current, const QMimeData& mime)
 {
   if (mime.formats().contains(score::mime::messagelist()))
   {
@@ -428,8 +406,7 @@ std::optional<State::Address> onUpdatableAddress(
 
 }
 
-std::size_t std::hash<State::Address>::
-operator()(const State::Address& k) const
+std::size_t std::hash<State::Address>::operator()(const State::Address& k) const
 {
   using std::hash;
   using std::size_t;
@@ -439,9 +416,7 @@ operator()(const State::Address& k) const
 // second and third and combine them using XOR
 // and bit shifting:
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 5, 0))
-  return (
-      (qHash(k.device) ^ (qHashRange(k.path.begin(), k.path.end()) << 1))
-      >> 1);
+  return ((qHash(k.device) ^ (qHashRange(k.path.begin(), k.path.end()) << 1)) >> 1);
 #else
   auto h = qHash(k.device);
   for (const auto& elt : k.path)
@@ -463,16 +438,14 @@ struct hash<ossia::unit_variant>
     ossia::hash_combine(seed, k.which());
     if (k)
     {
-      ossia::apply_nonnull(
-          [&](const auto& ds) { ossia::hash_combine(seed, ds.which()); }, k);
+      ossia::apply_nonnull([&](const auto& ds) { ossia::hash_combine(seed, ds.which()); }, k);
     }
     return seed;
   }
 };
 }
 
-std::size_t std::hash<State::AddressAccessor>::
-operator()(const State::AddressAccessor& k) const
+std::size_t std::hash<State::AddressAccessor>::operator()(const State::AddressAccessor& k) const
 {
   std::size_t seed = 0;
   ossia::hash_combine(seed, k.address);
@@ -514,8 +487,7 @@ ossia::optional<State::Address> State::parseAddress(const QString& str)
   }
 }
 
-ossia::optional<State::AddressAccessor>
-State::parseAddressAccessor(const QString& str)
+ossia::optional<State::AddressAccessor> State::parseAddressAccessor(const QString& str)
 {
   auto input = str.toStdString();
   auto f(std::begin(input)), l(std::end(input));

@@ -46,8 +46,7 @@ Device::ProtocolSettingsWidget* SerialProtocolFactory::makeSettingsWidget()
   return new SerialProtocolSettingsWidget;
 }
 
-QVariant SerialProtocolFactory::makeProtocolSpecificSettings(
-    const VisitorVariant& visitor) const
+QVariant SerialProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
 {
   return makeProtocolSpecificSettings_T<SerialSpecificSettings>(visitor);
 }

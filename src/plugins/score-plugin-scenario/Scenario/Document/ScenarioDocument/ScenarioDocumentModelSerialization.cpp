@@ -6,11 +6,11 @@
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
 
+#include <score/model/EntityMapSerialization.hpp>
+#include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
-#include <score/model/EntityMapSerialization.hpp>
-#include <score/model/path/PathSerialization.hpp>
 
 template <>
 void DataStreamReader::read(const Scenario::ScenarioDocumentModel& model)
@@ -24,13 +24,13 @@ void DataStreamReader::read(const Scenario::ScenarioDocumentModel& model)
   else
   {
     std::vector<QByteArray> arr;
-    for(auto& cable : model.cables)
+    for (auto& cable : model.cables)
       arr.push_back(DataStreamReader::marshall(cable));
     m_stream << arr;
   }
 
   std::vector<Path<Scenario::IntervalModel>> buses;
-  for(auto& bus : model.busIntervals)
+  for (auto& bus : model.busIntervals)
     buses.emplace_back(*bus);
   m_stream << buses;
 
@@ -48,7 +48,7 @@ void DataStreamWriter::write(Scenario::ScenarioDocumentModel& model)
 
   std::vector<Path<Scenario::IntervalModel>> buses;
   m_stream >> buses;
-  for(auto& path : buses)
+  for (auto& path : buses)
   {
     model.busIntervals.push_back(&path.find(ctx));
   }
@@ -65,7 +65,7 @@ void JSONReader::read(const Scenario::ScenarioDocumentModel& model)
   stream.Key("BusIntervals");
   stream.StartArray();
 
-  for(auto& bus : model.busIntervals)
+  for (auto& bus : model.busIntervals)
   {
     readFrom(Path{*bus});
   }
@@ -83,15 +83,14 @@ void JSONWriter::write(Scenario::ScenarioDocumentModel& model)
   auto& ctx = safe_cast<score::Document*>(model.parent()->parent())->context();
 
   const auto& buses = obj["BusIntervals"].toArray();
-  for(const auto& bus : buses)
+  for (const auto& bus : buses)
   {
     auto path = JsonValue{bus}.to<Path<Scenario::IntervalModel>>();
     model.busIntervals.push_back(&path.find(ctx));
   }
 }
 
-void Scenario::ScenarioDocumentModel::serialize(
-    const VisitorVariant& vis) const
+void Scenario::ScenarioDocumentModel::serialize(const VisitorVariant& vis) const
 {
   serialize_dyn(vis, *this);
 }

@@ -1,11 +1,12 @@
 ﻿#pragma once
+#include <Process/Dataflow/Port.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
-#include <ControlSurface/Process.hpp>
+#include <Process/ExecutionSetup.hpp>
+
 #include <ossia/dataflow/node_process.hpp>
 #include <ossia/dataflow/safe_nodes/executor.hpp>
-#include <Process/Dataflow/Port.hpp>
 
-#include <Process/ExecutionSetup.hpp>
+#include <ControlSurface/Process.hpp>
 
 namespace ossia
 {
@@ -40,10 +41,10 @@ public:
   {
     // TODO take input port data into account.
     const int n = controls.size();
-    for(int i = 0; i < n; i++)
+    for (int i = 0; i < n; i++)
     {
       auto& ctl = controls[i];
-      if(ctl.second)
+      if (ctl.second)
       {
         m_outlets[i]->target<ossia::value_port>()->write_value(std::move(*ctl.first), 0);
         ctl.second = false;
@@ -51,10 +52,7 @@ public:
     }
   }
 
-  std::string label() const noexcept override
-  {
-    return "control surface";
-  }
+  std::string label() const noexcept override { return "control surface"; }
 };
 
 }
@@ -62,21 +60,20 @@ namespace ControlSurface
 {
 class Model;
 
-
-  struct con_unvalidated
+struct con_unvalidated
+{
+  const Execution::Context& ctx;
+  const int i;
+  std::weak_ptr<ossia::control_surface_node> weak_node;
+  void operator()(const ossia::value& val)
   {
-    const Execution::Context& ctx;
-    const int i;
-    std::weak_ptr<ossia::control_surface_node> weak_node;
-    void operator()(const ossia::value& val)
+    if (auto node = weak_node.lock())
     {
-      if (auto node = weak_node.lock())
-      {
-        ctx.executionQueue.enqueue(ossia::control_surface_node::control_updater{node->controls[i], val});
-      }
+      ctx.executionQueue.enqueue(
+          ossia::control_surface_node::control_updater{node->controls[i], val});
     }
-  };
-
+  }
+};
 
 class ProcessExecutorComponent final
     : public Execution::ProcessComponent_T<ControlSurface::Model, ossia::node_process>
@@ -88,15 +85,15 @@ public:
       const ::Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent)
-      : Execution::
-            ProcessComponent_T<ControlSurface::Model, ossia::node_process>{
-                element,
-                ctx,
-                id,
-                "ControlSurface",
-                parent}
+      : Execution::ProcessComponent_T<ControlSurface::Model, ossia::node_process>{
+          element,
+          ctx,
+          id,
+          "ControlSurface",
+          parent}
   {
-    std::shared_ptr<ossia::control_surface_node> node = std::make_shared<ossia::control_surface_node>();
+    std::shared_ptr<ossia::control_surface_node> node
+        = std::make_shared<ossia::control_surface_node>();
     this->node = node;
     this->m_ossia_process = std::make_shared<ossia::node_process>(this->node);
 
@@ -106,28 +103,24 @@ public:
     // TODO do it also when they change
     const auto& map = element.outputAddresses();
     int i = 0;
-    for(auto& ctl : element.inlets())
+    for (auto& ctl : element.inlets())
     {
       std::pair<ossia::value*, bool>& p = node->add_control();
       auto ctrl = safe_cast<Process::ControlInlet*>(ctl);
       *p.first = ctrl->value(); // TODO does this make sense ?
-      p.second = true; // we will send the first value
+      p.second = true;          // we will send the first value
 
       const State::AddressAccessor& addr = map.at(ctl->id());
       system().setup.set_destination(addr, node->root_outputs().back());
 
       std::weak_ptr<ossia::control_surface_node> weak_node = node;
       QObject::connect(
-            ctrl,
-            &Process::ControlInlet::valueChanged,
-            this,
-            con_unvalidated{ctx, i, weak_node});
+          ctrl, &Process::ControlInlet::valueChanged, this, con_unvalidated{ctx, i, weak_node});
       i++;
     }
   }
 
-  ~ProcessExecutorComponent() {
-  }
+  ~ProcessExecutorComponent() { }
 };
 using ProcessExecutorComponentFactory
     = Execution::ProcessComponentFactory_T<ProcessExecutorComponent>;

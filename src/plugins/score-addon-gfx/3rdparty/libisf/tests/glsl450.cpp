@@ -1,8 +1,9 @@
 #define CATCH_CONFIG_MAIN
 #include "/home/jcelerier/score/3rdparty/libossia/tests/catch/catch.hpp"
+
 #include <isf.hpp>
 
-TEST_CASE ("texture test", "texture test")
+TEST_CASE("texture test", "texture test")
 {
   const char* frag = R"_(/*
                      {
@@ -113,5 +114,4 @@ TEST_CASE ("texture test", "texture test")
   isf::parser p{{}, frag};
 
   std::cerr << p.fragment() << std::endl;
-
 }

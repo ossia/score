@@ -17,8 +17,8 @@ class CreateIntervalTest : public QObject
 private:
   void RemoveTest()
   {
-    Scenario::ProcessModel* scenar = new ScenarioModel(
-        std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
+    Scenario::ProcessModel* scenar
+        = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
 
     EventData data{};
     data.dDate.setMSecs(10);
@@ -67,10 +67,8 @@ private:
     QCOMPARE(firstEvent->nextIntervals().size(), 0);
     QCOMPARE(lastEvent->previousIntervals().size(), 1);
 
-    QCOMPARE(
-        lastEvent->previousIntervals().indexOf(cstrCmd.createdInterval()), -1);
-    QCOMPARE(
-        firstEvent->nextIntervals().indexOf(cstrCmd.createdInterval()), -1);
+    QCOMPARE(lastEvent->previousIntervals().indexOf(cstrCmd.createdInterval()), -1);
+    QCOMPARE(firstEvent->nextIntervals().indexOf(cstrCmd.createdInterval()), -1);
 
     try
     {

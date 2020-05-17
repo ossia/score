@@ -20,9 +20,7 @@ namespace Scenario
 namespace Command
 {
 
-AddLayerModelToSlot::AddLayerModelToSlot(
-    const SlotPath& slot,
-    Id<Process::ProcessModel> process)
+AddLayerModelToSlot::AddLayerModelToSlot(const SlotPath& slot, Id<Process::ProcessModel> process)
     : m_slot{slot}, m_processId{std::move(process)}
 {
 }

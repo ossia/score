@@ -26,7 +26,7 @@ WiimoteDevice::WiimoteDevice(const Device::DeviceSettings& settings)
   m_capas.canSerialize = false;
 }
 
-WiimoteDevice::~WiimoteDevice() {}
+WiimoteDevice::~WiimoteDevice() { }
 
 bool WiimoteDevice::reconnect()
 {
@@ -43,8 +43,7 @@ bool WiimoteDevice::reconnect()
     try
     {
       auto addr = std::make_unique<ossia::net::generic_device>(
-          std::make_unique<ossia::net::wiimote_protocol>(false),
-          settings().name.toStdString());
+          std::make_unique<ossia::net::wiimote_protocol>(false), settings().name.toStdString());
 
       m_dev = std::move(addr);
       deviceChanged(nullptr, m_dev.get());

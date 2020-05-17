@@ -5,7 +5,6 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
-
 using namespace score;
 using namespace Scenario::Command;
 
@@ -16,8 +15,8 @@ public:
 private:
   void CreateTest()
   {
-    Scenario::ProcessModel* scenar = new ScenarioModel(
-        std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
+    Scenario::ProcessModel* scenar
+        = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
 
     CreateEventAfterEvent cmd(
         {

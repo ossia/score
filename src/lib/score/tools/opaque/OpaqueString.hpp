@@ -1,5 +1,6 @@
 #pragma once
 #include <QString>
+
 #include <string>
 
 class OpaqueString
@@ -17,17 +18,12 @@ class OpaqueString
 public:
   OpaqueString() = default;
 
-  explicit OpaqueString(const char* str) noexcept : impl{str} {}
-  explicit OpaqueString(std::string str) noexcept : impl{std::move(str)} {}
-  explicit OpaqueString(const QString& str) noexcept : impl{str.toStdString()}
-  {
-  }
+  explicit OpaqueString(const char* str) noexcept : impl{str} { }
+  explicit OpaqueString(std::string str) noexcept : impl{std::move(str)} { }
+  explicit OpaqueString(const QString& str) noexcept : impl{str.toStdString()} { }
 
-  explicit OpaqueString(const OpaqueString& str) noexcept : impl{str.impl} {}
-  explicit OpaqueString(OpaqueString&& str) noexcept
-      : impl{std::move(str.impl)}
-  {
-  }
+  explicit OpaqueString(const OpaqueString& str) noexcept : impl{str.impl} { }
+  explicit OpaqueString(OpaqueString&& str) noexcept : impl{std::move(str.impl)} { }
 
   OpaqueString& operator=(const OpaqueString& str) noexcept
   {

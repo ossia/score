@@ -12,8 +12,6 @@
 
 #include <ossia/detail/algorithms.hpp>
 
-
-
 namespace Scenario
 {
 void DisplayedElementsModel::setSelection(const Selection& s)
@@ -23,8 +21,7 @@ void DisplayedElementsModel::setSelection(const Selection& s)
   });
 }
 
-void DisplayedElementsModel::setDisplayedElements(
-    DisplayedElementsContainer&& elts)
+void DisplayedElementsModel::setDisplayedElements(DisplayedElementsContainer&& elts)
 {
   m_elements = std::move(elts);
   m_initialized = true;

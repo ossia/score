@@ -2,8 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AddMessagesToState.hpp"
 
-#include <Process/Process.hpp>
 #include <Process/ControlMessage.hpp>
+#include <Process/Process.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
@@ -14,8 +14,6 @@
 #include <score/model/tree/TreeNode.hpp>
 #include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
-
-
 
 namespace Scenario
 {
@@ -51,8 +49,7 @@ AddMessagesToState::AddMessagesToState(
 
     auto lst = prevProc.process().setMessages(messages, m_oldState);
 
-    updateTreeWithMessageList(
-        m_newState, lst, processModel.id(), ProcessPosition::Previous);
+    updateTreeWithMessageList(m_newState, lst, processModel.id(), ProcessPosition::Previous);
   }
 
   for (const ProcessStateWrapper& nextProc : state.followingProcesses())
@@ -62,8 +59,7 @@ AddMessagesToState::AddMessagesToState(
 
     auto lst = nextProc.process().setMessages(messages, m_oldState);
 
-    updateTreeWithMessageList(
-        m_newState, lst, processModel.id(), ProcessPosition::Following);
+    updateTreeWithMessageList(m_newState, lst, processModel.id(), ProcessPosition::Following);
   }
 
   // TODO one day there will also be State functions that will perform
@@ -103,17 +99,13 @@ void AddMessagesToState::redo(const score::DocumentContext& ctx) const
 
 void AddMessagesToState::serializeImpl(DataStreamInput& d) const
 {
-  d << m_path << m_oldState << m_newState << m_previousBackup
-    << m_followingBackup;
+  d << m_path << m_oldState << m_newState << m_previousBackup << m_followingBackup;
 }
 
 void AddMessagesToState::deserializeImpl(DataStreamOutput& d)
 {
-  d >> m_path >> m_oldState >> m_newState >> m_previousBackup
-      >> m_followingBackup;
+  d >> m_path >> m_oldState >> m_newState >> m_previousBackup >> m_followingBackup;
 }
-
-
 
 AddControlMessagesToState::AddControlMessagesToState(
     const Scenario::StateModel& state,

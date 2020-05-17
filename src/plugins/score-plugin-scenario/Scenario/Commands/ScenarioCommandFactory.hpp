@@ -10,16 +10,13 @@ class ProcessModel;
 namespace Command
 {
 
-SCORE_PLUGIN_SCENARIO_EXPORT const CommandGroupKey&
-CommandFactoryName();
+SCORE_PLUGIN_SCENARIO_EXPORT const CommandGroupKey& CommandFactoryName();
 }
 
 } // namespace Scenario
 
 template <>
-SCORE_PLUGIN_SCENARIO_EXPORT const CommandGroupKey&
-CommandFactoryName<Scenario::ProcessModel>();
+SCORE_PLUGIN_SCENARIO_EXPORT const CommandGroupKey& CommandFactoryName<Scenario::ProcessModel>();
 
 template <>
-SCORE_PLUGIN_SCENARIO_EXPORT const CommandGroupKey&
-CommandFactoryName<Scenario::BaseScenario>();
+SCORE_PLUGIN_SCENARIO_EXPORT const CommandGroupKey& CommandFactoryName<Scenario::BaseScenario>();

@@ -17,9 +17,5 @@ SCORE_COMMAND_DECL_T(Automation::SetMax)
 SCORE_COMMAND_DECL_T(Automation::SetTween)
 SCORE_COMMAND_DECL_T(Automation::SetUnit)
 
-PROPERTY_COMMAND_T(
-    Gradient,
-    SetGradientTween,
-    ProcessModel::p_tween,
-    "Set tween")
+PROPERTY_COMMAND_T(Gradient, SetGradientTween, ProcessModel::p_tween, "Set tween")
 SCORE_COMMAND_DECL_T(Gradient::SetGradientTween)

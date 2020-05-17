@@ -21,19 +21,12 @@ public:
       QGraphicsItem* root);
   ~DefaultEffectItem();
 
-  void setupInlet(
-      Process::ControlInlet& inlet,
-      const Process::PortFactoryList& portFactory);
-  void setupOutlet(
-      Process::ControlOutlet& inlet,
-      const Process::PortFactoryList& portFactory);
-
+  void setupInlet(Process::ControlInlet& inlet, const Process::PortFactoryList& portFactory);
+  void setupOutlet(Process::ControlOutlet& inlet, const Process::PortFactoryList& portFactory);
 
 private:
-  template<typename T>
-  void setupPort(
-      T& port,
-      const Process::PortFactoryList& portFactory);
+  template <typename T>
+  void setupPort(T& port, const Process::PortFactoryList& portFactory);
 
   void on_controlAdded(const Id<Process::Port>& p);
   void on_controlRemoved(const Process::Port& p);

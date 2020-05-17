@@ -32,10 +32,7 @@ public:
     m_valueSBox->setValue(value);
   }
 
-  ossia::value value() const override
-  {
-    return ossia::value{m_valueSBox->value()};
-  }
+  ossia::value value() const override { return ossia::value{m_valueSBox->value()}; }
 
 private:
   score::SpinBox<T>* m_valueSBox{};
@@ -56,8 +53,7 @@ public:
     connect(addbutton, &QPushButton::pressed, this, [=] { addRow({}); });
     lay->addWidget(addbutton);
 
-    auto buttonBox = new QDialogButtonBox{QDialogButtonBox::Ok
-                                          | QDialogButtonBox::Cancel};
+    auto buttonBox = new QDialogButtonBox{QDialogButtonBox::Ok | QDialogButtonBox::Cancel};
 
     lay->addWidget(buttonBox);
 
@@ -98,9 +94,7 @@ private:
     auto minus_b = new QPushButton{tr("-"), this};
     sub_lay->addWidget(minus_b);
 
-    connect(minus_b, &QPushButton::clicked, this, [this, i = m_rows.size()] {
-      removeRow(i);
-    });
+    connect(minus_b, &QPushButton::clicked, this, [this, i = m_rows.size()] { removeRow(i); });
 
     auto widg = new NumericValueWidget<T>{c, this};
     sub_lay->addWidget(widg);
@@ -149,12 +143,8 @@ public:
     m_min->setEnabled(false);
     m_max->setEnabled(false);
 
-    connect(m_minCB, &QCheckBox::stateChanged, this, [=](int st) {
-      m_min->setEnabled(bool(st));
-    });
-    connect(m_maxCB, &QCheckBox::stateChanged, this, [=](int st) {
-      m_max->setEnabled(bool(st));
-    });
+    connect(m_minCB, &QCheckBox::stateChanged, this, [=](int st) { m_min->setEnabled(bool(st)); });
+    connect(m_maxCB, &QCheckBox::stateChanged, this, [=](int st) { m_max->setEnabled(bool(st)); });
     auto pb = new QPushButton{tr("Values"), this};
     lay->addWidget(pb);
 

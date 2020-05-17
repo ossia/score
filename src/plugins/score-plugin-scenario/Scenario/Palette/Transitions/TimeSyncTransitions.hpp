@@ -8,8 +8,7 @@ class Transition_T<Scenario_T, ClickOnTimeSync> final
     : public MatchedTransition<Scenario_T, ClickOnTimeSync_Event>
 {
 public:
-  using MatchedTransition<Scenario_T, ClickOnTimeSync_Event>::
-      MatchedTransition;
+  using MatchedTransition<Scenario_T, ClickOnTimeSync_Event>::MatchedTransition;
 
 protected:
   void onTransition(QEvent* ev) override
@@ -29,14 +28,12 @@ class ClickOnEndTimeSync_Transition final
     : public MatchedTransition<Scenario_T, ClickOnTimeSync_Event>
 {
 public:
-  using MatchedTransition<Scenario_T, ClickOnTimeSync_Event>::
-      MatchedTransition;
+  using MatchedTransition<Scenario_T, ClickOnTimeSync_Event>::MatchedTransition;
 
 protected:
   bool eventTest(QEvent* e) override
   {
-    if (e->type()
-        == QEvent::Type(QEvent::User + ClickOnTimeSync_Event::user_type))
+    if (e->type() == QEvent::Type(QEvent::User + ClickOnTimeSync_Event::user_type))
     {
       auto qev = static_cast<ClickOnTimeSync_Event*>(e);
       return qev->id == Scenario::endId<TimeSyncModel>();
@@ -78,8 +75,7 @@ class Transition_T<Scenario_T, ReleaseOnTimeSync> final
     : public MatchedTransition<Scenario_T, ReleaseOnTimeSync_Event>
 {
 public:
-  using MatchedTransition<Scenario_T, ReleaseOnTimeSync_Event>::
-      MatchedTransition;
+  using MatchedTransition<Scenario_T, ReleaseOnTimeSync_Event>::MatchedTransition;
 
 protected:
   void onTransition(QEvent* ev) override
@@ -91,6 +87,5 @@ protected:
   }
 };
 template <typename Scenario_T>
-using ReleaseOnTimeSync_Transition
-    = Transition_T<Scenario_T, ReleaseOnTimeSync>;
+using ReleaseOnTimeSync_Transition = Transition_T<Scenario_T, ReleaseOnTimeSync>;
 }

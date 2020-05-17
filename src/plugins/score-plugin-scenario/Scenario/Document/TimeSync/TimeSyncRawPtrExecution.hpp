@@ -17,8 +17,7 @@ class TimeSyncModel;
 namespace Execution
 {
 
-class SCORE_PLUGIN_SCENARIO_EXPORT TimeSyncRawPtrComponent final
-    : public Execution::Component
+class SCORE_PLUGIN_SCENARIO_EXPORT TimeSyncRawPtrComponent final : public Execution::Component
 {
   COMMON_COMPONENT_METADATA("0e2d2259-8cb7-4b05-b43a-746c4f5bc80c")
 public:

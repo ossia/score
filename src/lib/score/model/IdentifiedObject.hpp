@@ -30,8 +30,7 @@ public:
   }
 
   template <typename Visitor>
-  IdentifiedObject(Visitor&& v, QObject* parent) noexcept
-      : IdentifiedObjectAbstract{parent}
+  IdentifiedObject(Visitor&& v, QObject* parent) noexcept : IdentifiedObjectAbstract{parent}
   {
     using vis_type = typename std::remove_reference_t<Visitor>::type;
     TSerializer<vis_type, IdentifiedObject<model>>::writeTo(v, *this);
@@ -106,8 +105,7 @@ Path<T> path(const IdentifiedObject<T>& obj)
   if (obj.m_path_cache.valid())
     return obj.m_path_cache;
 
-  obj.m_path_cache = Path<T>{
-      score::IDocument::unsafe_path(safe_cast<const QObject&>(obj)), {}};
+  obj.m_path_cache = Path<T>{score::IDocument::unsafe_path(safe_cast<const QObject&>(obj)), {}};
   return obj.m_path_cache;
 }
 }

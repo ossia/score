@@ -3,6 +3,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
+
 #include <score/tools/Bind.hpp>
 
 #include <ossia/dataflow/nodes/step.hpp>
@@ -17,11 +18,11 @@ StepComponent::StepComponent(
     const Id<score::Component>& id,
     QObject* parent)
     : Execution::ProcessComponent_T<Media::Step::Model, ossia::node_process>{
-          element,
-          ctx,
-          id,
-          "Executor::StepComponent",
-          parent}
+        element,
+        ctx,
+        id,
+        "Executor::StepComponent",
+        parent}
 {
   auto node = std::make_shared<ossia::nodes::step>();
   this->node = node;
@@ -29,18 +30,9 @@ StepComponent::StepComponent(
   node->dur = ossia::time_value{int64_t(element.stepDuration())};
 
   recompute();
-  con(element,
-      &Media::Step::Model::stepsChanged,
-      this,
-      &StepComponent::recompute);
-  con(element,
-      &Media::Step::Model::minChanged,
-      this,
-      &StepComponent::recompute);
-  con(element,
-      &Media::Step::Model::maxChanged,
-      this,
-      &StepComponent::recompute);
+  con(element, &Media::Step::Model::stepsChanged, this, &StepComponent::recompute);
+  con(element, &Media::Step::Model::minChanged, this, &StepComponent::recompute);
+  con(element, &Media::Step::Model::maxChanged, this, &StepComponent::recompute);
   con(element, &Media::Step::Model::stepDurationChanged, this, [=] {
     in_exec([node, dur = process().stepDuration()]() mutable {
       node->dur = ossia::time_value{int64_t(dur)};
@@ -57,10 +49,9 @@ void StepComponent::recompute()
   {
     val = min + (1. - val) * (max - min);
   }
-  in_exec(
-      [n = std::dynamic_pointer_cast<ossia::nodes::step>(OSSIAProcess().node),
-       vec = std::move(v)]() mutable { n->values = std::move(vec); });
+  in_exec([n = std::dynamic_pointer_cast<ossia::nodes::step>(OSSIAProcess().node),
+           vec = std::move(v)]() mutable { n->values = std::move(vec); });
 }
 
-StepComponent::~StepComponent() {}
+StepComponent::~StepComponent() { }
 }

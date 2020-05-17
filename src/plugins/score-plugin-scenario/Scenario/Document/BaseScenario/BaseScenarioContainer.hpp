@@ -21,17 +21,14 @@ class IntervalModel;
 class EventModel;
 class StateModel;
 class TimeSyncModel;
-class SCORE_PLUGIN_SCENARIO_EXPORT BaseScenarioContainer
-    : public ScenarioInterface
+class SCORE_PLUGIN_SCENARIO_EXPORT BaseScenarioContainer : public ScenarioInterface
 {
   SCORE_SERIALIZE_FRIENDS
 public:
   struct no_init
   {
   };
-  explicit BaseScenarioContainer(
-      const score::DocumentContext& ctx,
-      QObject* parentObject);
+  explicit BaseScenarioContainer(const score::DocumentContext& ctx, QObject* parentObject);
   explicit BaseScenarioContainer(
       no_init,
       const score::DocumentContext& ctx,
@@ -59,13 +56,11 @@ public:
     return {m_startNode, m_endNode};
   }
 
-  IntervalModel*
-  findInterval(const Id<IntervalModel>& id) const final override;
+  IntervalModel* findInterval(const Id<IntervalModel>& id) const final override;
 
   EventModel* findEvent(const Id<EventModel>& id) const final override;
 
-  TimeSyncModel*
-  findTimeSync(const Id<TimeSyncModel>& id) const final override;
+  TimeSyncModel* findTimeSync(const Id<TimeSyncModel>& id) const final override;
 
   StateModel* findState(const Id<StateModel>& id) const final override;
 
@@ -88,22 +83,10 @@ public:
   StateModel& startState() const;
   StateModel& endState() const;
 
-  score::IndirectArray<IntervalModel, 1> intervals() const
-  {
-    return m_interval;
-  }
-  score::IndirectArray<EventModel, 2> events() const
-  {
-    return {m_startEvent, m_endEvent};
-  }
-  score::IndirectArray<StateModel, 2> states() const
-  {
-    return {m_startState, m_endState};
-  }
-  score::IndirectArray<TimeSyncModel, 2> timeSyncs() const
-  {
-    return {m_startNode, m_endNode};
-  }
+  score::IndirectArray<IntervalModel, 1> intervals() const { return m_interval; }
+  score::IndirectArray<EventModel, 2> events() const { return {m_startEvent, m_endEvent}; }
+  score::IndirectArray<StateModel, 2> states() const { return {m_startState, m_endState}; }
+  score::IndirectArray<TimeSyncModel, 2> timeSyncs() const { return {m_startNode, m_endNode}; }
 
 protected:
   const score::DocumentContext& m_context;
@@ -121,13 +104,7 @@ protected:
   auto elements() const
   {
     return std::make_tuple(
-        m_startNode,
-        m_endNode,
-        m_startEvent,
-        m_endEvent,
-        m_startState,
-        m_endState,
-        m_interval);
+        m_startNode, m_endNode, m_startEvent, m_endEvent, m_startState, m_endState, m_interval);
   }
 
 private:
@@ -156,28 +133,28 @@ template <>
 struct ElementTraits<BaseScenarioContainer, IntervalModel>
 {
   static const constexpr auto accessor
-      = static_cast<score::IndirectArray<IntervalModel, 1> (*)(
-          const BaseScenarioContainer&)>(&intervals);
+      = static_cast<score::IndirectArray<IntervalModel, 1> (*)(const BaseScenarioContainer&)>(
+          &intervals);
 };
 template <>
 struct ElementTraits<BaseScenarioContainer, EventModel>
 {
   static const constexpr auto accessor
-      = static_cast<score::IndirectArray<EventModel, 2> (*)(
-          const BaseScenarioContainer&)>(&events);
+      = static_cast<score::IndirectArray<EventModel, 2> (*)(const BaseScenarioContainer&)>(
+          &events);
 };
 template <>
 struct ElementTraits<BaseScenarioContainer, TimeSyncModel>
 {
   static const constexpr auto accessor
-      = static_cast<score::IndirectArray<TimeSyncModel, 2> (*)(
-          const BaseScenarioContainer&)>(&timeSyncs);
+      = static_cast<score::IndirectArray<TimeSyncModel, 2> (*)(const BaseScenarioContainer&)>(
+          &timeSyncs);
 };
 template <>
 struct ElementTraits<BaseScenarioContainer, StateModel>
 {
   static const constexpr auto accessor
-      = static_cast<score::IndirectArray<StateModel, 2> (*)(
-          const BaseScenarioContainer&)>(&states);
+      = static_cast<score::IndirectArray<StateModel, 2> (*)(const BaseScenarioContainer&)>(
+          &states);
 };
 }

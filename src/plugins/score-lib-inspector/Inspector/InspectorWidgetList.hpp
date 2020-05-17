@@ -6,7 +6,6 @@
 #include <score/tools/std/OwningVector.hpp>
 #include <score/tools/std/Pointer.hpp>
 
-
 #include <vector>
 class IdentifiedObjectAbstract;
 class QWidget;
@@ -19,9 +18,7 @@ class SCORE_LIB_INSPECTOR_EXPORT InspectorWidgetList final
 {
 public:
   ~InspectorWidgetList();
-  bool update(
-      QWidget* cur,
-      const QList<const IdentifiedObjectAbstract*>& models) const;
+  bool update(QWidget* cur, const QList<const IdentifiedObjectAbstract*>& models) const;
   QList<QWidget*> make(
       const score::DocumentContext& doc,
       const QList<const IdentifiedObjectAbstract*>& models,

@@ -54,11 +54,7 @@ struct LV2_Atom_Buffer
 
   uint32_t capacity;
   LV2_Atom_Sequence atoms;
-  LV2_Atom_Buffer(
-      uint32_t capacity,
-      uint32_t ct,
-      uint32_t seq_type,
-      bool input)
+  LV2_Atom_Buffer(uint32_t capacity, uint32_t ct, uint32_t seq_type, bool input)
       : capacity{capacity}
   {
     chunk_type = ct;
@@ -99,7 +95,7 @@ struct LV2_Atom_Buffer
 //
 struct Iterator
 {
-  Iterator(LV2_Atom_Buffer* b) : buf{b} {}
+  Iterator(LV2_Atom_Buffer* b) : buf{b} { }
 
   LV2_Atom_Buffer* buf{};
   uint32_t offset{};
@@ -155,8 +151,7 @@ struct Iterator
       return NULL;
 
     auto atoms = &buf->atoms;
-    auto ev
-        = (LV2_Atom_Event*)((char*)LV2_ATOM_CONTENTS(LV2_Atom_Sequence, atoms) + offset);
+    auto ev = (LV2_Atom_Event*)((char*)LV2_ATOM_CONTENTS(LV2_Atom_Sequence, atoms) + offset);
 
     *data = (uint8_t*)LV2_ATOM_BODY(&ev->body);
 
@@ -164,16 +159,11 @@ struct Iterator
   }
 
   // Write an event at a LV2 atom:Sequence buffer iterator.
-  bool write(
-      uint32_t frames,
-      uint32_t /*subframes*/,
-      uint32_t type,
-      uint32_t size,
-      const uint8_t* data)
+  bool
+  write(uint32_t frames, uint32_t /*subframes*/, uint32_t type, uint32_t size, const uint8_t* data)
   {
     LV2_Atom_Sequence* atoms = &buf->atoms;
-    if (buf->capacity - sizeof(LV2_Atom) - atoms->atom.size
-        < sizeof(LV2_Atom_Event) + size)
+    if (buf->capacity - sizeof(LV2_Atom) - atoms->atom.size < sizeof(LV2_Atom_Event) + size)
       return false;
 
     LV2_Atom_Event* ev
@@ -196,11 +186,7 @@ struct Iterator
 struct AtomBuffer
 {
   LV2_Atom_Buffer* buf{};
-  AtomBuffer(
-      uint32_t capacity,
-      uint32_t chunk_type,
-      uint32_t seq_type,
-      bool input)
+  AtomBuffer(uint32_t capacity, uint32_t chunk_type, uint32_t seq_type, bool input)
   {
     // Note : isn't the second sizeof redundant ?
     buf = (LV2_Atom_Buffer*)::operator new(

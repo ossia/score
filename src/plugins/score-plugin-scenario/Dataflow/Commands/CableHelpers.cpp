@@ -2,9 +2,11 @@
 
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
-#include <QDebug>
 #include <score/model/IdentifierDebug.hpp>
+
 #include <ossia/detail/ptr_set.hpp>
+
+#include <QDebug>
 
 namespace Dataflow
 {
@@ -40,8 +42,7 @@ getCablesInChildObjects(QObjectList objs, const score::DocumentContext& ctx)
 
   return cables;
 }
-SerializedCables
-saveCables(QObjectList objs, const score::DocumentContext& ctx)
+SerializedCables saveCables(QObjectList objs, const score::DocumentContext& ctx)
 {
   SerializedCables cables;
 
@@ -74,9 +75,7 @@ saveCables(QObjectList objs, const score::DocumentContext& ctx)
   return cables;
 }
 
-void removeCables(
-    const SerializedCables& cables,
-    const score::DocumentContext& ctx)
+void removeCables(const SerializedCables& cables, const score::DocumentContext& ctx)
 {
   Scenario::ScenarioDocumentModel& doc
       = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
@@ -112,9 +111,7 @@ static bool startsWith(const ObjectPath& object, const ObjectPath& parent)
   return true;
 }
 
-void restoreCables(
-    const SerializedCables& cables,
-    const score::DocumentContext& ctx)
+void restoreCables(const SerializedCables& cables, const score::DocumentContext& ctx)
 {
   Scenario::ScenarioDocumentModel& doc
       = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);

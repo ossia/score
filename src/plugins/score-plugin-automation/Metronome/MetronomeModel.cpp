@@ -24,7 +24,6 @@
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 
-
 #include <Metronome/MetronomeProcessMetadata.hpp>
 #include <wobjectimpl.h>
 
@@ -40,10 +39,7 @@ ProcessModel::ProcessModel(
     const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : CurveProcessModel{duration,
-                        id,
-                        Metadata<ObjectKey_k, ProcessModel>::get(),
-                        parent}
+    : CurveProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , outlet{Process::make_value_outlet(Id<Process::Port>(0), this)}
 {
   // Named shall be enough ?
@@ -51,8 +47,7 @@ ProcessModel::ProcessModel(
   m_min = 0.;
   m_max = 1.;
 
-  auto s1 = new Curve::DefaultCurveSegmentModel(
-      Id<Curve::SegmentModel>(1), m_curve);
+  auto s1 = new Curve::DefaultCurveSegmentModel(Id<Curve::SegmentModel>(1), m_curve);
   s1->setStart({0., 0.0});
   s1->setEnd({1., 1.});
 
@@ -62,7 +57,7 @@ ProcessModel::ProcessModel(
   metadata().setInstanceName(*this);
 }
 
-ProcessModel::~ProcessModel() {}
+ProcessModel::~ProcessModel() { }
 
 QString ProcessModel::prettyName() const noexcept
 {
@@ -79,10 +74,7 @@ void ProcessModel::init()
   outlet->setCustomData("Out");
   m_outlets.push_back(outlet.get());
   connect(
-      outlet.get(),
-      &Process::Port::addressChanged,
-      this,
-      [=](const State::AddressAccessor& arg) {
+      outlet.get(), &Process::Port::addressChanged, this, [=](const State::AddressAccessor& arg) {
         addressChanged(arg.address);
         prettyNameChanged();
         m_curve->changed();
@@ -167,7 +159,7 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
   m_curve->changed();
 }
 
-void ProcessModel::setCurve_impl() {}
+void ProcessModel::setCurve_impl() { }
 
 State::Address ProcessModel::address() const
 {

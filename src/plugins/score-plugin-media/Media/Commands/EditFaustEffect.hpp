@@ -1,27 +1,22 @@
 #pragma once
-#include <Media/Effect/Faust/FaustEffectModel.hpp>
 #include <Media/Commands/MediaCommandFactory.hpp>
+#include <Media/Effect/Faust/FaustEffectModel.hpp>
 #include <Scenario/Commands/ScriptEditCommand.hpp>
 namespace Media::Faust
 {
-class EditScript
-    : public Scenario::EditScript<FaustEffectModel, FaustEffectModel::p_text>
+class EditScript : public Scenario::EditScript<FaustEffectModel, FaustEffectModel::p_text>
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      EditScript,
-      "Edit a faust script")
-  public:
-    using Scenario::EditScript<FaustEffectModel, FaustEffectModel::p_text>::EditScript;
+  SCORE_COMMAND_DECL(CommandFactoryName(), EditScript, "Edit a faust script")
+public:
+  using Scenario::EditScript<FaustEffectModel, FaustEffectModel::p_text>::EditScript;
 };
 }
 
 namespace score
 {
-template<>
+template <>
 struct StaticPropertyCommand<Media::Faust::FaustEffectModel::p_text> : Media::Faust::EditScript
 {
   using Media::Faust::EditScript::EditScript;
 };
 }
-

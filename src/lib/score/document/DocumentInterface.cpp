@@ -27,9 +27,7 @@ score::Document* score::IDocument::documentFromObject(const QObject* obj)
   {
     qDebug("fail");
     throw std::runtime_error(
-        QStringLiteral("Object (name: %1) is not part of a Document!")
-            .arg(objName)
-            .toStdString());
+        QStringLiteral("Object (name: %1) is not part of a Document!").arg(objName).toStdString());
   }
 
   return safe_cast<Document*>(const_cast<QObject*>(obj));
@@ -42,8 +40,7 @@ score::Document* score::IDocument::documentFromObject(const QObject& obj)
 
 ObjectPath score::IDocument::unsafe_path(QObject const* const& obj)
 {
-  return ObjectPath::pathBetweenObjects(
-      &documentFromObject(obj)->model().modelDelegate(), obj);
+  return ObjectPath::pathBetweenObjects(&documentFromObject(obj)->model().modelDelegate(), obj);
 }
 
 ObjectPath score::IDocument::unsafe_path(const QObject& obj)
@@ -59,8 +56,7 @@ score::IDocument::presenterDelegate_generic(const score::Document& d)
   return nullptr;
 }
 
-score::DocumentDelegateModel&
-score::IDocument::modelDelegate_generic(const Document& d)
+score::DocumentDelegateModel& score::IDocument::modelDelegate_generic(const Document& d)
 {
   return d.model().modelDelegate();
 }

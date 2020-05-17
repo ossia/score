@@ -6,7 +6,6 @@
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 
-
 namespace Scenario
 {
 class CommentBlockModel;
@@ -15,10 +14,7 @@ namespace Command
 //! Changes the comment in a comment block
 class SetCommentText final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      SetCommentText,
-      "Set Text in comment block")
+  SCORE_COMMAND_DECL(CommandFactoryName(), SetCommentText, "Set Text in comment block")
 public:
   SetCommentText(const CommentBlockModel& model, QString newComment);
 

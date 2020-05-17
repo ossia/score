@@ -13,9 +13,7 @@ namespace Device
 class SCORE_LIB_DEVICE_EXPORT ProtocolSettingsWidget : public QWidget
 {
 public:
-  explicit ProtocolSettingsWidget(QWidget* parent = nullptr) : QWidget(parent)
-  {
-  }
+  explicit ProtocolSettingsWidget(QWidget* parent = nullptr) : QWidget(parent) { }
 
   virtual ~ProtocolSettingsWidget();
   virtual Device::DeviceSettings getSettings() const = 0;

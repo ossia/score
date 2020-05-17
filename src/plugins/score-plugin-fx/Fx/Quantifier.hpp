@@ -19,8 +19,7 @@ struct Node
     static const constexpr auto kind = Process::ProcessCategory::MidiEffect;
     static const constexpr auto description = "Quantifies a MIDI input";
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const uuid_constexpr auto uuid
-        = make_uuid("b8e2e5ad-17e4-43de-8d79-660a29d5c4f4");
+    static const uuid_constexpr auto uuid = make_uuid("b8e2e5ad-17e4-43de-8d79-660a29d5c4f4");
 
     static const constexpr midi_in midi_ins[]{"in"};
     static const constexpr midi_out midi_outs[]{"out"};
@@ -74,8 +73,7 @@ struct Node
 
       Note note{in[1], in[2], (uint8_t)in.get_channel()};
 
-      if (in.get_message_type() == rtmidi::message_type::NOTE_ON
-          && note.vel != 0)
+      if (in.get_message_type() == rtmidi::message_type::NOTE_ON && note.vel != 0)
       {
         if (start == 0.f) // No quantification, start directly
         {
@@ -85,15 +83,13 @@ struct Node
           p2.messages.push_back(no);
           if (duration > 0.f)
           {
-            auto end = tk.date + (int64_t)no.timestamp
-                       + (int64_t)(whole_samples * duration);
+            auto end = tk.date + (int64_t)no.timestamp + (int64_t)(whole_samples * duration);
             self.running_notes.push_back({note, end});
           }
           else if (duration == 0.f)
           {
             // Stop at the next sample
-            auto noff
-                = rtmidi::message::note_off(note.chan, note.pitch, note.vel);
+            auto noff = rtmidi::message::note_off(note.chan, note.pitch, note.vel);
             noff.timestamp = no.timestamp;
             p2.messages.push_back(noff);
           }
@@ -103,7 +99,8 @@ struct Node
         {
           // Find next time that matches the requested quantification
           const auto start_q = whole_samples * start;
-          auto perf_date = int64_t(start_q * int64_t(1 + tk.date.impl * st.modelToSamples() / start_q));
+          auto perf_date
+              = int64_t(start_q * int64_t(1 + tk.date.impl * st.modelToSamples() / start_q));
           int64_t actual_date
               = (1. - precision) * tk.date.impl * st.modelToSamples() + precision * perf_date;
           ossia::time_value next_date{actual_date};
@@ -126,8 +123,7 @@ struct Node
       auto& note = *it;
       if (note.date > tk.prev_date && note.date.impl < tk.date.impl)
       {
-        auto no = rtmidi::message::note_on(
-            note.note.chan, note.note.pitch, note.note.vel);
+        auto no = rtmidi::message::note_on(note.note.chan, note.note.pitch, note.note.vel);
         no.timestamp = tk.to_physical_time_in_tick(note.date, st.modelToSamples());
         p2.messages.push_back(no);
 
@@ -139,8 +135,7 @@ struct Node
         else if (duration == 0.f)
         {
           // Stop at the next sample
-          auto noff = rtmidi::message::note_off(
-              note.note.chan, note.note.pitch, note.note.vel);
+          auto noff = rtmidi::message::note_off(note.note.chan, note.note.pitch, note.note.vel);
           noff.timestamp = no.timestamp;
           p2.messages.push_back(noff);
         }
@@ -158,8 +153,7 @@ struct Node
       auto& note = *it;
       if (note.date > tk.prev_date && note.date.impl < tk.date.impl)
       {
-        auto noff = rtmidi::message::note_off(
-            note.note.chan, note.note.pitch, note.note.vel);
+        auto noff = rtmidi::message::note_off(note.note.chan, note.note.pitch, note.note.vel);
         noff.timestamp = tk.to_physical_time_in_tick(note.date, st.modelToSamples());
         p2.messages.push_back(noff);
         it = self.running_notes.erase(it);

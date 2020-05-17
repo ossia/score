@@ -1,10 +1,11 @@
 #pragma once
-#include <Library/ProcessTreeView.hpp>
 #include <Library/PresetListView.hpp>
+#include <Library/ProcessTreeView.hpp>
+
 #include <score/tools/std/Optional.hpp>
 
-#include <QTreeView>
 #include <QSplitter>
+#include <QTreeView>
 
 namespace score
 {

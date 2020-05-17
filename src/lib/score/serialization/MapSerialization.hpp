@@ -2,8 +2,9 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
-#include <ossia/detail/hash_map.hpp>
+
 #include <ossia/detail/flat_map.hpp>
+#include <ossia/detail/hash_map.hpp>
 
 template <typename T, typename U>
 struct TSerializer<DataStream, ossia::fast_hash_map<T, U>>
@@ -14,7 +15,7 @@ struct TSerializer<DataStream, ossia::fast_hash_map<T, U>>
   {
     std::size_t sz = obj.size();
     s.stream() << sz;
-    for(const auto& pair : obj)
+    for (const auto& pair : obj)
     {
       s.stream() << pair;
     }
@@ -22,8 +23,10 @@ struct TSerializer<DataStream, ossia::fast_hash_map<T, U>>
 
   static void writeTo(DataStream::Deserializer& s, type& obj)
   {
-    std::size_t sz; s.stream() >> sz;
-    for(std::size_t i = 0; i < sz; i++) {
+    std::size_t sz;
+    s.stream() >> sz;
+    for (std::size_t i = 0; i < sz; i++)
+    {
       pair_type v;
       s.stream() >> v;
       obj.insert(std::move(v));
@@ -40,7 +43,7 @@ struct TSerializer<DataStream, ossia::flat_map<T, U>>
   {
     std::size_t sz = obj.size();
     s.stream() << sz;
-    for(const auto& pair : obj)
+    for (const auto& pair : obj)
     {
       s.stream() << pair;
     }
@@ -48,15 +51,16 @@ struct TSerializer<DataStream, ossia::flat_map<T, U>>
 
   static void writeTo(DataStream::Deserializer& s, type& obj)
   {
-    std::size_t sz; s.stream() >> sz;
-    for(std::size_t i = 0; i < sz; i++) {
+    std::size_t sz;
+    s.stream() >> sz;
+    for (std::size_t i = 0; i < sz; i++)
+    {
       pair_type v;
       s.stream() >> v;
       obj.insert(std::move(v));
     }
   }
 };
-
 
 template <typename T, typename U>
 struct TSerializer<JSONObject, ossia::flat_map<T, U>>
@@ -72,4 +76,3 @@ struct TSerializer<JSONObject, ossia::flat_map<T, U>>
     ArraySerializer::writeTo(s, obj.container);
   }
 };
-

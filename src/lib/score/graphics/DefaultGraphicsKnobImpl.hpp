@@ -1,9 +1,9 @@
 #pragma once
 #include <score/model/Skin.hpp>
+#include <score/tools/Cursor.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
 #include <ossia/detail/math.hpp>
-#include <score/tools/Cursor.hpp>
 
 #include <QDoubleSpinBox>
 #include <QGraphicsSceneMouseEvent>
@@ -21,12 +21,8 @@ struct DefaultGraphicsKnobImpl
   static inline QRectF currentGeometry{};
 
   template <typename T>
-  static void paint(
-      T& self,
-      const score::Skin& skin,
-      const QString& text,
-      QPainter* painter,
-      QWidget* widget)
+  static void
+  paint(T& self, const score::Skin& skin, const QString& text, QPainter* painter, QWidget* widget)
   {
     painter->setRenderHint(QPainter::Antialiasing, true);
 
@@ -184,17 +180,13 @@ struct DefaultGraphicsKnobImpl
 
       w->setDecimals(6);
       w->setValue(self.map(self.m_value));
-      auto obj = self.scene()->addWidget(
-          w, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
+      auto obj = self.scene()->addWidget(w, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
       obj->setPos(pos);
 
       QTimer::singleShot(0, w, [w] { w->setFocus(); });
 
       auto con = QObject::connect(
-          w,
-          SignalUtils::QDoubleSpinBox_valueChanged_double(),
-          &self,
-          [&self](double v) {
+          w, SignalUtils::QDoubleSpinBox_valueChanged_double(), &self, [&self](double v) {
             self.m_value = self.unmap(v);
             self.valueChanged(self.m_value);
             self.sliderMoved();
@@ -202,10 +194,7 @@ struct DefaultGraphicsKnobImpl
           });
 
       QObject::connect(
-          w,
-          &DoubleSpinboxWithEnter::editingFinished,
-          &self,
-          [obj, con, self_p]() mutable {
+          w, &DoubleSpinboxWithEnter::editingFinished, &self, [obj, con, self_p]() mutable {
             if (obj != nullptr)
             {
               self_p->sliderReleased();

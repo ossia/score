@@ -33,8 +33,7 @@ InspectorWidget::InspectorWidget(
     const ProcessModel& automationModel,
     const score::DocumentContext& doc,
     QWidget* parent)
-    : InspectorWidgetDelegate_T{automationModel, parent}
-    , m_dispatcher{doc.commandStack}
+    : InspectorWidgetDelegate_T{automationModel, parent}, m_dispatcher{doc.commandStack}
 {
 
   using namespace Device;
@@ -68,8 +67,7 @@ InspectorWidget::InspectorWidget(
   vlay->addRow(m_tween);
   m_tween->setChecked(process().tween());
   con(process(), &ProcessModel::tweenChanged, m_tween, &QCheckBox::setChecked);
-  connect(
-      m_tween, &QCheckBox::toggled, this, &InspectorWidget::on_tweenChanged);
+  connect(m_tween, &QCheckBox::toggled, this, &InspectorWidget::on_tweenChanged);
 
   // Min / max
   m_minsb = new score::SpinBox<float>{this};
@@ -80,31 +78,16 @@ InspectorWidget::InspectorWidget(
   vlay->addRow(tr("Min"), m_minsb);
   vlay->addRow(tr("Max"), m_maxsb);
 
-  con(process(),
-      &ProcessModel::minChanged,
-      m_minsb,
-      &QDoubleSpinBox::setValue);
-  con(process(),
-      &ProcessModel::maxChanged,
-      m_maxsb,
-      &QDoubleSpinBox::setValue);
+  con(process(), &ProcessModel::minChanged, m_minsb, &QDoubleSpinBox::setValue);
+  con(process(), &ProcessModel::maxChanged, m_maxsb, &QDoubleSpinBox::setValue);
 
-  connect(
-      m_minsb,
-      &QAbstractSpinBox::editingFinished,
-      this,
-      &InspectorWidget::on_minValueChanged);
-  connect(
-      m_maxsb,
-      &QAbstractSpinBox::editingFinished,
-      this,
-      &InspectorWidget::on_maxValueChanged);
+  connect(m_minsb, &QAbstractSpinBox::editingFinished, this, &InspectorWidget::on_minValueChanged);
+  connect(m_maxsb, &QAbstractSpinBox::editingFinished, this, &InspectorWidget::on_maxValueChanged);
 
   this->setLayout(vlay);
 }
 
-void InspectorWidget::on_addressChange(
-    const Device::FullAddressAccessorSettings& newAddr)
+void InspectorWidget::on_addressChange(const Device::FullAddressAccessorSettings& newAddr)
 {
   // Various checks
   if (newAddr.address == process().address())
@@ -194,8 +177,7 @@ InspectorWidget::InspectorWidget(
   vlay->addRow(m_tween);
   m_tween->setChecked(process().tween());
   con(process(), &ProcessModel::tweenChanged, m_tween, &QCheckBox::setChecked);
-  connect(
-      m_tween, &QCheckBox::toggled, this, &InspectorWidget::on_tweenChanged);
+  connect(m_tween, &QCheckBox::toggled, this, &InspectorWidget::on_tweenChanged);
 
   this->setLayout(vlay);
 }
@@ -218,8 +200,7 @@ InspectorWidget::InspectorWidget(
     const ProcessModel& automationModel,
     const score::DocumentContext& doc,
     QWidget* parent)
-    : InspectorWidgetDelegate_T{automationModel, parent}
-    , m_dispatcher{doc.commandStack}
+    : InspectorWidgetDelegate_T{automationModel, parent}, m_dispatcher{doc.commandStack}
 {
   using namespace Device;
 
@@ -261,8 +242,7 @@ InspectorWidget::InspectorWidget(
   this->setLayout(vlay);
 }
 
-void InspectorWidget::on_addressChange(
-    const Device::FullAddressAccessorSettings& newAddr)
+void InspectorWidget::on_addressChange(const Device::FullAddressAccessorSettings& newAddr)
 {
   // Various checks
   if (newAddr.address == process().address())
@@ -294,8 +274,7 @@ InspectorWidget::InspectorWidget(
     const ProcessModel& automationModel,
     const score::DocumentContext& doc,
     QWidget* parent)
-    : InspectorWidgetDelegate_T{automationModel, parent}
-    , m_dispatcher{doc.commandStack}
+    : InspectorWidgetDelegate_T{automationModel, parent}, m_dispatcher{doc.commandStack}
 {
   using namespace Device;
 
@@ -311,12 +290,9 @@ InspectorWidget::InspectorWidget(
   m_lineEdit = new AddressAccessorEditWidget{doc, this};
 
   m_lineEdit->setAddress(State::AddressAccessor{process().address()});
-  con(process(),
-      &ProcessModel::addressChanged,
-      m_lineEdit,
-      [=](const State::Address& addr) {
-        m_lineEdit->setAddress(State::AddressAccessor{addr});
-      });
+  con(process(), &ProcessModel::addressChanged, m_lineEdit, [=](const State::Address& addr) {
+    m_lineEdit->setAddress(State::AddressAccessor{addr});
+  });
 
   connect(
       m_lineEdit,
@@ -329,8 +305,7 @@ InspectorWidget::InspectorWidget(
   this->setLayout(vlay);
 }
 
-void InspectorWidget::on_addressChange(
-    const Device::FullAddressAccessorSettings& newAddr)
+void InspectorWidget::on_addressChange(const Device::FullAddressAccessorSettings& newAddr)
 {
   // Various checks
   if (newAddr.address.address == process().address())

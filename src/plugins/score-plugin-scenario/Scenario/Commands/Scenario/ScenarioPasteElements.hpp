@@ -8,10 +8,11 @@
 #include <score/selection/Selection.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <rapidjson/document.h>
 #include <QJsonObject>
 #include <QMap>
 #include <QVector>
+
+#include <rapidjson/document.h>
 namespace Scenario
 {
 struct Point;
@@ -22,13 +23,9 @@ class IntervalModel;
 namespace Command
 {
 
-class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioPasteElements final
-    : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioPasteElements final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      ScenarioPasteElements,
-      "Paste elements in scenario")
+  SCORE_COMMAND_DECL(CommandFactoryName(), ScenarioPasteElements, "Paste elements in scenario")
 public:
   ScenarioPasteElements(
       const Scenario::ProcessModel& path,

@@ -7,8 +7,9 @@
 #include <score/plugins/Interface.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
 
-#include <memory>
 #include <score_plugin_scenario_export.h>
+
+#include <memory>
 
 namespace score
 {
@@ -25,12 +26,9 @@ namespace Command
 {
 class SerializableMoveEvent;
 
-class SCORE_PLUGIN_SCENARIO_EXPORT MoveEventFactoryInterface
-    : public score::InterfaceBase
+class SCORE_PLUGIN_SCENARIO_EXPORT MoveEventFactoryInterface : public score::InterfaceBase
 {
-  SCORE_INTERFACE(
-      MoveEventFactoryInterface,
-      "69dc1f79-5cb9-4a36-b382-8c099f7abf57")
+  SCORE_INTERFACE(MoveEventFactoryInterface, "69dc1f79-5cb9-4a36-b382-8c099f7abf57")
 
 public:
   enum Strategy
@@ -59,8 +57,7 @@ public:
    * the strategy for which we need a displacement policy;
    * @return
    */
-  virtual int
-  priority(const score::ApplicationContext& ctx, Strategy strategy) const = 0;
+  virtual int priority(const score::ApplicationContext& ctx, Strategy strategy) const = 0;
 };
 }
 }

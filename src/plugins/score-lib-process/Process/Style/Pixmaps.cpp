@@ -1,13 +1,14 @@
 #include <Process/Style/Pixmaps.hpp>
 
-#include <score/widgets/Pixmap.hpp>
 #include <score/model/Skin.hpp>
+#include <score/widgets/Pixmap.hpp>
+
 #include <QApplication>
 #include <QPainter>
 
 namespace Process
 {
-template<typename Fun>
+template <typename Fun>
 static QPixmap drawPath(Fun fun)
 {
   double dpr = qApp->devicePixelRatio();
@@ -53,24 +54,23 @@ Pixmaps::Pixmaps() noexcept
 
     , add{score::get_pixmap(":/icons/process_add_off.png")}
 
-    , metricHandle{drawPath([] (QPainterPath& path, double dpr) {
-                   path.lineTo(10 * dpr, 0);
-                   path.lineTo(0, 10 * dpr);
-                   path.lineTo(0, 0);
-                 })}
-    , portHandleClosed{drawPath([] (QPainterPath& path, double dpr) {
-                       path.lineTo(10 * dpr, 5 * dpr);
-                       path.lineTo(0, 10 * dpr);
-                     })}
-    , portHandleOpen{drawPath([] (QPainterPath& path, double dpr) {
-                     path.lineTo(5 * dpr, 10 * dpr);
-                     path.lineTo(10 * dpr, 0);
-                   })}
+    , metricHandle{drawPath([](QPainterPath& path, double dpr) {
+      path.lineTo(10 * dpr, 0);
+      path.lineTo(0, 10 * dpr);
+      path.lineTo(0, 0);
+    })}
+    , portHandleClosed{drawPath([](QPainterPath& path, double dpr) {
+      path.lineTo(10 * dpr, 5 * dpr);
+      path.lineTo(0, 10 * dpr);
+    })}
+    , portHandleOpen{drawPath([](QPainterPath& path, double dpr) {
+      path.lineTo(5 * dpr, 10 * dpr);
+      path.lineTo(10 * dpr, 0);
+    })}
 {
-
 }
 
-Pixmaps::~Pixmaps() {}
+Pixmaps::~Pixmaps() { }
 
 const Pixmaps& Pixmaps::instance() noexcept
 {

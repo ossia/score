@@ -11,8 +11,7 @@ class QPushButton;
 
 namespace Media::SynthChain
 {
-class InspectorWidget final
-    : public Process::InspectorWidgetDelegate_T<ProcessModel>
+class InspectorWidget final : public Process::InspectorWidgetDelegate_T<ProcessModel>
 {
 public:
   explicit InspectorWidget(
@@ -32,8 +31,7 @@ private:
 };
 
 class InspectorFactory final
-    : public Process::
-          InspectorWidgetDelegateFactory_T<ProcessModel, InspectorWidget>
+    : public Process::InspectorWidgetDelegateFactory_T<ProcessModel, InspectorWidget>
 {
   SCORE_CONCRETE("44da7af5-420f-4471-8f09-1ce545c46005")
 };

@@ -6,7 +6,7 @@
 namespace Curve
 {
 
-StyleInterface::~StyleInterface() {}
+StyleInterface::~StyleInterface() { }
 
 void Style::init(const score::Skin& s)
 {

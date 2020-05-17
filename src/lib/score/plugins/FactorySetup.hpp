@@ -1,6 +1,8 @@
 #pragma once
 #include <score/plugins/InterfaceList.hpp>
+
 #include <core/application/ApplicationSettings.hpp>
+
 #include <ossia/detail/for_each.hpp>
 
 #include <type_traits>
@@ -15,9 +17,8 @@ auto make_ptr_vector() noexcept
   std::vector<std::unique_ptr<Base_T>> vec;
 
   vec.reserve(sizeof...(Args));
-  ossia::for_each_type_tagged<Args...>([&](auto tag) {
-    vec.push_back(std::make_unique<typename decltype(tag)::type>());
-  });
+  ossia::for_each_type_tagged<Args...>(
+      [&](auto tag) { vec.push_back(std::make_unique<typename decltype(tag)::type>()); });
 
   return vec;
 }
@@ -41,23 +42,21 @@ struct FactoryBuilder // sorry padre for I have sinned
  * @brief Fills an existing vector with factories instantiations
  */
 template <typename Context_T, typename Base_T, typename... Args>
-void fill_ptr_vector(
-    const Context_T& context,
-    std::vector<std::unique_ptr<Base_T>>& vec) noexcept
+void fill_ptr_vector(const Context_T& context, std::vector<std::unique_ptr<Base_T>>& vec) noexcept
 {
   vec.reserve(sizeof...(Args));
   ossia::for_each_type_tagged<Args...>([&](auto tag) {
-    vec.push_back(
-        FactoryBuilder<Context_T, typename decltype(tag)::type>::make(
-            context));
+    vec.push_back(FactoryBuilder<Context_T, typename decltype(tag)::type>::make(context));
   });
 }
 
-
-template<typename T, typename Enable = void>
-struct has_ui : public std::false_type { };
-template<typename T>
-struct has_ui<T, std::enable_if_t<T::ui_interface>> {
+template <typename T, typename Enable = void>
+struct has_ui : public std::false_type
+{
+};
+template <typename T>
+struct has_ui<T, std::enable_if_t<T::ui_interface>>
+{
   static const constexpr bool value = T::ui_interface;
 };
 /**
@@ -79,9 +78,9 @@ struct FW_T
       const score::InterfaceKey& fact,
       std::vector<std::unique_ptr<score::InterfaceBase>>& vec) noexcept
   {
-    if constexpr(has_ui<Factory_T>::value)
+    if constexpr (has_ui<Factory_T>::value)
     {
-      if(!ctx.applicationSettings.gui)
+      if (!ctx.applicationSettings.gui)
       {
         return false;
       }
@@ -119,9 +118,7 @@ using FW = FW_T<Factory_T, Args...>;
  * \endcode
  */
 template <typename Context_T, typename... Args>
-auto instantiate_factories(
-    const Context_T& ctx,
-    const score::InterfaceKey& key) noexcept
+auto instantiate_factories(const Context_T& ctx, const score::InterfaceKey& key) noexcept
 {
   std::vector<std::unique_ptr<score::InterfaceBase>> vec;
 

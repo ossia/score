@@ -6,8 +6,7 @@
 #include <verdigris>
 namespace score
 {
-class SCORE_LIB_BASE_EXPORT ResizeableItem : public QObject,
-                                             public QGraphicsItem
+class SCORE_LIB_BASE_EXPORT ResizeableItem : public QObject, public QGraphicsItem
 {
   W_OBJECT(ResizeableItem)
 public:
@@ -27,14 +26,13 @@ public:
   void setRect(const QRectF& r);
   void setHighlight(bool);
   QRectF boundingRect() const final override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) final override;
+  void
+  paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) final override;
 
 public:
-  void clicked() E_SIGNAL(SCORE_LIB_BASE_EXPORT, clicked) private
-      : void hoverEnterEvent(QGraphicsSceneHoverEvent* event) final override;
+  void clicked() E_SIGNAL(SCORE_LIB_BASE_EXPORT, clicked)
+private:
+  void hoverEnterEvent(QGraphicsSceneHoverEvent* event) final override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) final override;
   void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final override;
@@ -52,16 +50,13 @@ public:
   EmptyRectItem(QGraphicsItem* parent);
   void setRect(const QRectF& r);
   QRectF boundingRect() const final override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 public:
   void clicked() E_SIGNAL(SCORE_LIB_BASE_EXPORT, clicked)
 
-      private
-      : void hoverEnterEvent(QGraphicsSceneHoverEvent* event) final override;
+private:
+  void hoverEnterEvent(QGraphicsSceneHoverEvent* event) final override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) final override;
   void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final override;
@@ -76,10 +71,7 @@ class SCORE_LIB_BASE_EXPORT BackgroundItem final : public QGraphicsItem
 public:
   using QGraphicsItem::QGraphicsItem;
 
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
   void setRect(const QRectF& r);
   QRectF boundingRect() const final override;
 
@@ -97,10 +89,7 @@ public:
 
 private:
   QRectF boundingRect() const override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 };
 
 }

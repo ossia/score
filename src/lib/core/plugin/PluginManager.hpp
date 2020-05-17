@@ -44,16 +44,13 @@ enum class PluginLoadingError
 QStringList addonsDir();
 QStringList pluginsDir();
 
-SCORE_LIB_BASE_EXPORT void loadPluginsInAllFolders(
-    std::vector<score::Addon>& availablePlugins,
-    QStringList additional = {});
-
 SCORE_LIB_BASE_EXPORT void
-loadAddonsInAllFolders(std::vector<score::Addon>& availablePlugins);
+loadPluginsInAllFolders(std::vector<score::Addon>& availablePlugins, QStringList additional = {});
 
-std::pair<score::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
-    const QString& fileName,
-    const std::vector<score::Addon>& availablePlugins);
+SCORE_LIB_BASE_EXPORT void loadAddonsInAllFolders(std::vector<score::Addon>& availablePlugins);
+
+std::pair<score::Plugin_QtInterface*, PluginLoadingError>
+loadPlugin(const QString& fileName, const std::vector<score::Addon>& availablePlugins);
 
 ossia::optional<score::Addon> makeAddon(
     const QString& addon_path,
@@ -69,30 +66,26 @@ void registerPluginsImpl(
   // Load what the plug-ins have to offer.
   for (const score::Addon& addon : availablePlugins)
   {
-    auto commands_plugin
-        = dynamic_cast<CommandFactory_QtInterface*>(addon.plugin);
+    auto commands_plugin = dynamic_cast<CommandFactory_QtInterface*>(addon.plugin);
     if (commands_plugin)
     {
       registrar.registerCommands(commands_plugin->make_commands());
     }
 
-    auto factories_plugin
-        = dynamic_cast<FactoryInterface_QtInterface*>(addon.plugin);
+    auto factories_plugin = dynamic_cast<FactoryInterface_QtInterface*>(addon.plugin);
     if (factories_plugin)
     {
       for (auto& factory_family : registrar.components().factories)
       {
         const score::ApplicationContext& base_ctx = context;
         // Register core factories
-        for (auto&& new_factory :
-             factories_plugin->factories(base_ctx, factory_family.first))
+        for (auto&& new_factory : factories_plugin->factories(base_ctx, factory_family.first))
         {
           factory_family.second->insert(std::move(new_factory));
         }
 
         // Register GUI factories
-        for (auto&& new_factory :
-             factories_plugin->guiFactories(context, factory_family.first))
+        for (auto&& new_factory : factories_plugin->guiFactories(context, factory_family.first))
         {
           factory_family.second->insert(std::move(new_factory));
         }
@@ -109,8 +102,7 @@ void registerPlugins(
 {
   for (const score::Addon& addon : availablePlugins)
   {
-    auto ctrl_plugin
-        = dynamic_cast<ApplicationPlugin_QtInterface*>(addon.plugin);
+    auto ctrl_plugin = dynamic_cast<ApplicationPlugin_QtInterface*>(addon.plugin);
     if (ctrl_plugin)
     {
       if (auto plug = ctrl_plugin->make_applicationPlugin(context))
@@ -158,8 +150,7 @@ void loadPlugins(Registrar_T& registrar, const Context_T& context)
   // Load all the factories.
   for (const score::Addon& addon : availablePlugins)
   {
-    auto facfam_interface
-        = dynamic_cast<FactoryList_QtInterface*>(addon.plugin);
+    auto facfam_interface = dynamic_cast<FactoryList_QtInterface*>(addon.plugin);
 
     if (facfam_interface)
     {

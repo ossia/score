@@ -1,6 +1,6 @@
 #pragma once
-#include "node.hpp"
 #include "mesh.hpp"
+#include "node.hpp"
 
 #include <QtShaderTools/QShaderBaker>
 struct FilterNode : NodeModel
@@ -32,7 +32,7 @@ struct FilterNode : NodeModel
           case QShaderDescription::Int2:
           case QShaderDescription::Vec2:
             sz += 8;
-            if(sz % 8 != 0)
+            if (sz % 8 != 0)
               sz += 4;
             break;
           case QShaderDescription::Int3:
@@ -71,7 +71,7 @@ struct FilterNode : NodeModel
           case QShaderDescription::Vec2:
             input.push_back(new Port{this, cur, Types::Vec2, {}});
             cur += 8;
-            if((cur-orig) % 8 != 0)
+            if ((cur - orig) % 8 != 0)
               cur += 4;
             break;
           case QShaderDescription::Int3:

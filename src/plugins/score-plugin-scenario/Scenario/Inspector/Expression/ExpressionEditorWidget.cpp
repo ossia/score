@@ -9,16 +9,15 @@
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SetIcons.hpp>
 
-#include <QVBoxLayout>
 #include <QDebug>
+#include <QVBoxLayout>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::ExpressionEditorWidget)
 W_OBJECT_IMPL(Scenario::ExpressionMenu)
 namespace Scenario
 {
-ExpressionEditorWidget::ExpressionEditorWidget(
-    const score::DocumentContext& doc,
-    QWidget* parent)
+ExpressionEditorWidget::ExpressionEditorWidget(const score::DocumentContext& doc, QWidget* parent)
     : QWidget(parent), m_context{doc}
 {
   this->setObjectName("ExpressionEditorWidget");
@@ -28,7 +27,7 @@ ExpressionEditorWidget::ExpressionEditorWidget(
 State::Expression ExpressionEditorWidget::expression()
 {
 
-  switch(m_relations.size())
+  switch (m_relations.size())
   {
     case 0:
       return {};
@@ -224,8 +223,8 @@ QString ExpressionEditorWidget::currentExpr()
 
 void ExpressionEditorWidget::addNewTerm()
 {
-  auto relationEditor = new SimpleExpressionEditorWidget{
-      m_context, (int)m_relations.size(), this, m_menu};
+  auto relationEditor
+      = new SimpleExpressionEditorWidget{m_context, (int)m_relations.size(), this, m_menu};
   m_relations.push_back(relationEditor);
 
   m_mainLayout->addWidget(relationEditor);

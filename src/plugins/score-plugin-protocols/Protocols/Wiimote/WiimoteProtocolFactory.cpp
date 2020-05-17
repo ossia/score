@@ -41,8 +41,7 @@ Device::ProtocolSettingsWidget* WiimoteProtocolFactory::makeSettingsWidget()
   return new WiimoteProtocolSettingsWidget;
 }
 
-QVariant WiimoteProtocolFactory::makeProtocolSpecificSettings(
-    const VisitorVariant& visitor) const
+QVariant WiimoteProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
 {
   return makeProtocolSpecificSettings_T<WiimoteSpecificSettings>(visitor);
 }

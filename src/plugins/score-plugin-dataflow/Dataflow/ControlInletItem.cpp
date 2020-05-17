@@ -1,6 +1,8 @@
 #include "ControlInletItem.hpp"
-#include <Process/Dataflow/PortListWidget.hpp>
+
 #include <Process/Dataflow/ControlWidgets.hpp>
+#include <Process/Dataflow/PortListWidget.hpp>
+
 #include <ossia/network/domain/domain.hpp>
 
 namespace Dataflow
@@ -21,7 +23,9 @@ struct control_visitor
   QWidget* parent{};
   QWidget* operator()(ossia::impulse) const noexcept
   {
-    struct t { } b;
+    struct t
+    {
+    } b;
     return WidgetFactory::Button::make_widget(b, inlet, ctx, parent, parent);
   }
   QWidget* operator()(bool b) const noexcept
@@ -34,14 +38,12 @@ struct control_visitor
   QWidget* operator()(int x) const noexcept
   {
     minmax<int> sl{inlet.domain().get()};
-    return WidgetFactory::IntSlider::make_widget(
-        sl, inlet, ctx, parent, parent);
+    return WidgetFactory::IntSlider::make_widget(sl, inlet, ctx, parent, parent);
   }
   QWidget* operator()(float x) const noexcept
   {
     minmax<float> sl{inlet.domain().get()};
-    return WidgetFactory::FloatSlider::make_widget(
-        sl, inlet, ctx, parent, parent);
+    return WidgetFactory::FloatSlider::make_widget(sl, inlet, ctx, parent, parent);
   }
   QWidget* operator()(const std::string& c) const noexcept
   {
@@ -62,7 +64,6 @@ struct control_visitor
     return nullptr;
   }
 };
-
 
 void ControlInletFactory::setupInletInspector(
     Process::Inlet& port,

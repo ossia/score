@@ -1,8 +1,7 @@
 #include <ossia/detail/config.hpp>
 #if defined(OSSIA_PROTOCOL_ARTNET)
-#include "ArtnetProtocolFactory.hpp"
-
 #include "ArtnetDevice.hpp"
+#include "ArtnetProtocolFactory.hpp"
 #include "ArtnetProtocolSettingsWidget.hpp"
 #include "ArtnetSpecificSettings.hpp"
 
@@ -42,8 +41,7 @@ Device::ProtocolSettingsWidget* ArtnetProtocolFactory::makeSettingsWidget()
   return new ArtnetProtocolSettingsWidget;
 }
 
-QVariant ArtnetProtocolFactory::makeProtocolSpecificSettings(
-    const VisitorVariant& visitor) const
+QVariant ArtnetProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
 {
   return makeProtocolSpecificSettings_T<ArtnetSpecificSettings>(visitor);
 }

@@ -31,9 +31,8 @@ class MoveEventClassicFactory final : public MoveEventFactoryInterface
 
   std::unique_ptr<SerializableMoveEvent> make(LockMode) override;
 
-  int priority(
-      const score::ApplicationContext& ctx,
-      MoveEventFactoryInterface::Strategy s) const override
+  int priority(const score::ApplicationContext& ctx, MoveEventFactoryInterface::Strategy s)
+      const override
   {
     if (s == MoveEventFactoryInterface::CREATION)
       return 1;

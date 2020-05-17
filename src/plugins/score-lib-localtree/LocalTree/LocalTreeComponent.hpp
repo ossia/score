@@ -1,9 +1,9 @@
 #pragma once
 #include <score/model/Component.hpp>
 
+#include <LocalTree/GetProperty.hpp>
 #include <LocalTree/NameProperty.hpp>
 #include <LocalTree/Property.hpp>
-#include <LocalTree/GetProperty.hpp>
 
 namespace LocalTree
 {

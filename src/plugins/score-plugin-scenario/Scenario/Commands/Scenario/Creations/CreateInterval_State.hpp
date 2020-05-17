@@ -22,13 +22,9 @@ class IntervalModel;
 
 namespace Command
 {
-class SCORE_PLUGIN_SCENARIO_EXPORT CreateInterval_State final
-    : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT CreateInterval_State final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      CreateInterval_State,
-      "Create an interval and a state")
+  SCORE_COMMAND_DECL(CommandFactoryName(), CreateInterval_State, "Create an interval and a state")
 public:
   CreateInterval_State(
       const Scenario::ProcessModel& scenario,
@@ -37,19 +33,13 @@ public:
       double endStateY,
       bool graphal);
 
-  const Path<Scenario::ProcessModel>& scenarioPath() const
-  {
-    return m_command.scenarioPath();
-  }
+  const Path<Scenario::ProcessModel>& scenarioPath() const { return m_command.scenarioPath(); }
 
   const double& endStateY() const { return m_stateY; }
 
   const Id<StateModel>& startState() const { return m_command.startState(); }
 
-  const Id<IntervalModel>& createdInterval() const
-  {
-    return m_command.createdInterval();
-  }
+  const Id<IntervalModel>& createdInterval() const { return m_command.createdInterval(); }
 
   const Id<StateModel>& createdState() const { return m_newState; }
 

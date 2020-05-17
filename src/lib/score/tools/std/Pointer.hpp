@@ -5,8 +5,7 @@
 
 #ifdef SCORE_DEBUG
 template <typename Derived, typename Base, typename Del>
-std::unique_ptr<Derived>
-dynamic_unique_ptr_cast(std::unique_ptr<Base, Del>&& p)
+std::unique_ptr<Derived> dynamic_unique_ptr_cast(std::unique_ptr<Base, Del>&& p)
 {
   if (Derived* result = dynamic_cast<Derived*>(p.get()))
   {

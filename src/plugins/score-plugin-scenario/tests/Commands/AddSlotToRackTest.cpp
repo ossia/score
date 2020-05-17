@@ -4,7 +4,6 @@
 #include <Scenario/Document/Interval/Rack/RackModel.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
 
-
 using namespace score;
 using namespace Scenario::Command;
 

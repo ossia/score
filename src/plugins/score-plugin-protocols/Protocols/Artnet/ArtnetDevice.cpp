@@ -1,8 +1,8 @@
 #include <ossia/detail/config.hpp>
+
 #include <QDebug>
 #if defined(OSSIA_PROTOCOL_ARTNET)
 #include "ArtnetDevice.hpp"
-
 #include "ArtnetSpecificSettings.hpp"
 
 #include <ossia/network/artnet/artnet_protocol.hpp>
@@ -25,7 +25,7 @@ ArtnetDevice::ArtnetDevice(const Device::DeviceSettings& settings)
   m_capas.canSerialize = false;
 }
 
-ArtnetDevice::~ArtnetDevice() {}
+ArtnetDevice::~ArtnetDevice() { }
 
 bool ArtnetDevice::reconnect()
 {

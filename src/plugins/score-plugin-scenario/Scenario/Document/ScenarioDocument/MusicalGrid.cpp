@@ -1,7 +1,10 @@
 #include "MusicalGrid.hpp"
+
 #include <Scenario/Document/Interval/FullView/TimeSignatureItem.hpp>
 #include <Scenario/Document/Interval/FullView/Timebar.hpp>
+
 #include <QLineF>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::MusicalGrid)
 
@@ -17,7 +20,7 @@ ossia::bar_time timeToMetrics(MusicalGrid& grid, TimeVal x0_time)
   ossia::bar_time start{};
   auto last_before = ossia::last_before(measures, x0_time);
 
-  if(last_before != measures.begin())
+  if (last_before != measures.begin())
   {
     int64_t prev_bar_date = 0;
     ossia::time_signature prev_sig = measures.begin()->second;
@@ -45,14 +48,19 @@ ossia::bar_time timeToMetrics(MusicalGrid& grid, TimeVal x0_time)
     int64_t bars = quarters / (4. * double(sig_upper) / sig_lower);
     start.bars += bars;
     start.quarters = quarters - bars * (4. * double(sig_upper) / sig_lower);
-    start.semiquavers = (flicks_since_last_signature - quarters * ossia::quarter_duration<int64_t>) / (ossia::quarter_duration<int64_t> / 4);
-    start.cents = (flicks_since_last_signature - quarters * ossia::quarter_duration<int64_t> - start.semiquavers * (ossia::quarter_duration<int64_t> / 4)) / (ossia::quarter_duration<int64_t> / 400);
+    start.semiquavers = (flicks_since_last_signature - quarters * ossia::quarter_duration<int64_t>)
+                        / (ossia::quarter_duration<int64_t> / 4);
+    start.cents = (flicks_since_last_signature
+                   - quarters
+                         * ossia::quarter_duration<
+                             int64_t> - start.semiquavers * (ossia::quarter_duration<int64_t> / 4))
+                  / (ossia::quarter_duration<int64_t> / 400);
   }
   return start;
 }
 
-
-struct Durations {
+struct Durations
+{
   double pow2;
   ossia::bar_time main_bar;
   int64_t main;
@@ -72,33 +80,33 @@ Durations computeDurations(ossia::time_signature sig, double zoom)
   ossia::bar_time b{};
   int64_t main_div_source = whole;
 
-  if(pow2 >= 1. && pow2 <= 3.) // between bars and 8th notes
+  if (pow2 >= 1. && pow2 <= 3.) // between bars and 8th notes
   {
     pow2 = 1.;
     b.bars = 1;
   }
-  else if(pow2 > 3 && pow2 <= 8) // between 16th and 32th notes
+  else if (pow2 > 3 && pow2 <= 8) // between 16th and 32th notes
   {
     pow2 = 4.;
     b.quarters = 1;
   }
-  else if(pow2 > 8 && pow2 < 12) // between 16th and ..th notes
+  else if (pow2 > 8 && pow2 < 12) // between 16th and ..th notes
   {
     pow2 = 10.;
     b.semiquavers = 1;
   }
-  else if(pow2 < 1.)
+  else if (pow2 < 1.)
   {
     b.bars = 1. / pow2;
   }
   else
   {
-    if(pow2 > 14) pow2 = 14;
+    if (pow2 > 14)
+      pow2 = 14;
     b.cents = 1;
   }
 
   pow2 /= (double(sig.upper) / sig.lower);
-
 
   return {pow2, b, int64_t(main_div_source / pow2)};
 }
@@ -131,7 +139,7 @@ void computeAll(
   const double y1 = rect.y() + rect.height();
 
   double division_px = division.impl / zoom;
-  if(division_px <= 1.)
+  if (division_px <= 1.)
     return;
 
   TimeVal current_time = last_delim;
@@ -141,13 +149,11 @@ void computeAll(
 
   ossia::time_signature prev_sig = last_sig_change_it->second;
 
-  //ossia::bar_time main_time = grid.start;
-  auto isVisible = [&] (double bar_x_pos) {
-    return (bar_x_pos - last_delim_px) < rect.width();
-  };
+  // ossia::bar_time main_time = grid.start;
+  auto isVisible = [&](double bar_x_pos) { return (bar_x_pos - last_delim_px) < rect.width(); };
   // This function adds a main vertical line, and adds
   // the sub-bars between the new main and the previous one.
-  auto addNewMain = [&] (double bar_x_pos, TimeVal cur_t) {
+  auto addNewMain = [&](double bar_x_pos, TimeVal cur_t) {
     bars.positions.push_back(QLineF(bar_x_pos, y0, bar_x_pos, y1));
     grid.mainPositions.push_back({bar_x_pos, timeToMetrics(grid, cur_t), increment});
     magneticTimings.push_back(cur_t);
@@ -155,7 +161,7 @@ void computeAll(
     ossia::bar_time sub_increment{};
     TimeVal sub_increment_t{};
     double sub_increment_px{};
-    if(increment.bars == 1)
+    if (increment.bars == 1)
     {
       // We display the quarter notes
       sub_increment.quarters = 1;
@@ -170,50 +176,50 @@ void computeAll(
     }
 
     // Only display sub bars if there is enough visual space.
-    if(sub_increment_px >= 5.)
+    if (sub_increment_px >= 5.)
     {
-      //auto sub_time = main_time;
-      //addBars(sub_time, sub_increment);
+      // auto sub_time = main_time;
+      // addBars(sub_time, sub_increment);
       int sub_k = 1;
       double pos = prev_bar_x_pos + sub_increment_px;
-      for(; pos < bar_x_pos; pos += sub_increment_px)
+      for (; pos < bar_x_pos; pos += sub_increment_px)
       {
         sub.positions.push_back(QLineF(pos, y0, pos, y1));
         magneticTimings.push_back(TimeVal(cur_t.impl + sub_increment_t.impl * (sub_k++)));
-        //grid.subPositions.push_back({pos, timeToMetrics(grid, cur_t), sub_increment});
-        //addBars(sub_time, sub_increment);
+        // grid.subPositions.push_back({pos, timeToMetrics(grid, cur_t),
+        // sub_increment}); addBars(sub_time, sub_increment);
       }
     }
 
     prev_sig = last_sig_change_it->second;
     prev_bar_x_pos = bar_x_pos;
-    //addBars(main_time, increment);
+    // addBars(main_time, increment);
   };
 
-  while(isVisible(bar_x_pos))
+  while (isVisible(bar_x_pos))
   {
     bar_x_pos = last_delim_px + k * division_px;
     current_time = last_delim.impl + division.impl * k;
     SCORE_ASSERT(last_sig_change_it != measures.end());
 
     auto next = last_sig_change_it + 1;
-    if(next == measures.end())
+    if (next == measures.end())
     {
       // We're displaying the bars that are after the last entry
       // in the time signature map - everything falls in this case
       // if there is e.g. only a default 4/4 at the beginning
       do
       {
-        addNewMain(bar_x_pos,current_time);
+        addNewMain(bar_x_pos, current_time);
 
         k++;
         bar_x_pos = last_delim_px + k * division_px;
         current_time = last_delim.impl + division.impl * k;
-      } while(isVisible(bar_x_pos));
+      } while (isVisible(bar_x_pos));
 
       return;
     }
-    else if(bar_x_pos >= (next->first - timeDelta).toPixels(zoom))
+    else if (bar_x_pos >= (next->first - timeDelta).toPixels(zoom))
     {
       // Time signature change
       last_sig_change_it = next;
@@ -240,7 +246,8 @@ void computeAll(
   }
 }
 /*
-ossia::bar_time computeStart(MusicalGrid& grid, TimeVal x0_time, TimeSignatureMap::const_iterator last_before)
+ossia::bar_time computeStart(MusicalGrid& grid, TimeVal x0_time,
+TimeSignatureMap::const_iterator last_before)
 {
   // Compute the amount of bars before so that we can index them
   ossia::bar_time start{};
@@ -255,8 +262,9 @@ ossia::bar_time computeStart(MusicalGrid& grid, TimeVal x0_time, TimeSignatureMa
       const auto sig_upper = prev_sig.upper;
       const auto sig_lower = prev_sig.lower;
       int64_t this_bar_date = it->first.impl;
-      int32_t quarters = (this_bar_date - prev_bar_date) / ossia::quarter_duration<int64_t>;
-      int32_t bars = quarters / (4. * double(sig_upper) / sig_lower);
+      int32_t quarters = (this_bar_date - prev_bar_date) /
+ossia::quarter_duration<int64_t>; int32_t bars = quarters / (4. *
+double(sig_upper) / sig_lower);
 
       start.bars += bars;
 
@@ -267,21 +275,17 @@ ossia::bar_time computeStart(MusicalGrid& grid, TimeVal x0_time, TimeSignatureMa
   {
     const auto sig_upper = last_before->second.upper;
     const auto sig_lower = last_before->second.lower;
-    int32_t quarters = (x0_time.impl - last_before->first.impl) / ossia::quarter_duration<int64_t>;
-    int32_t bars = quarters / (4. * double(sig_upper) / sig_lower);
-    start.bars += bars;
-    start.quarters = quarters - bars * (4. * double(sig_upper) / sig_lower);
+    int32_t quarters = (x0_time.impl - last_before->first.impl) /
+ossia::quarter_duration<int64_t>; int32_t bars = quarters / (4. *
+double(sig_upper) / sig_lower); start.bars += bars; start.quarters = quarters -
+bars * (4. * double(sig_upper) / sig_lower);
   }
   return start;
 }
 */
 }
 
-void MusicalGrid::compute(
-  TimeVal timeDelta,
-  ZoomRatio zoom,
-  QRectF sceneRect,
-  TimeVal x0_time)
+void MusicalGrid::compute(TimeVal timeDelta, ZoomRatio zoom, QRectF sceneRect, TimeVal x0_time)
 {
   SCORE_ASSERT(m_measures);
   auto& measures = *m_measures;
@@ -295,7 +299,7 @@ void MusicalGrid::compute(
 
   // Find the first measure we see
   auto last_signature_change = ossia::last_before(measures, x0_time);
-  if(last_signature_change == measures.end())
+  if (last_signature_change == measures.end())
     return;
 
   const auto [pow2, inc, main_div_source] = computeDurations(last_signature_change->second, zoom);
@@ -308,15 +312,24 @@ void MusicalGrid::compute(
   // Where we start counting from
   const TimeVal first_main_delim = TimeVal(first_main_delim_local - timeDelta.impl);
 
-  computeAll(*this, last_signature_change, first_main_delim, main_division, timeDelta, zoom, inc, sceneRect);
+  computeAll(
+      *this,
+      last_signature_change,
+      first_main_delim,
+      main_division,
+      timeDelta,
+      zoom,
+      inc,
+      sceneRect);
 
-  for(auto& [v, _1, _2] : mainPositions) v -= x0_time.toPixels(zoom) + 100;
-  for(auto& [v, _1, _2] : subPositions) v -= x0_time.toPixels(zoom) + 100;
+  for (auto& [v, _1, _2] : mainPositions)
+    v -= x0_time.toPixels(zoom) + 100;
+  for (auto& [v, _1, _2] : subPositions)
+    v -= x0_time.toPixels(zoom) + 100;
 
   this->timebars.lightBars.updateShapes();
   this->timebars.lighterBars.updateShapes();
   changed();
 }
-
 
 }

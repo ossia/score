@@ -29,7 +29,6 @@
 #include <ossia/editor/scenario/time_value.hpp>
 #include <ossia/editor/state/state.hpp>
 
-
 #include <wobjectimpl.h>
 
 #include <vector>
@@ -42,7 +41,7 @@ BaseScenarioElement::BaseScenarioElement(const Context& ctx, QObject* parent)
 {
 }
 
-BaseScenarioElement::~BaseScenarioElement() {}
+BaseScenarioElement::~BaseScenarioElement() { }
 
 void BaseScenarioElement::init(BaseScenarioRefContainer element)
 {
@@ -86,23 +85,19 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
   m_ossia_interval = std::make_shared<IntervalComponent>(
       element.interval(), m_ctx, newId(element.interval()), this);
 
-  m_ossia_startTimeSync->onSetup(
-      main_start_node, m_ossia_startTimeSync->makeTrigger());
-  m_ossia_endTimeSync->onSetup(
-      main_end_node, m_ossia_endTimeSync->makeTrigger());
+  m_ossia_startTimeSync->onSetup(main_start_node, m_ossia_startTimeSync->makeTrigger());
+  m_ossia_endTimeSync->onSetup(main_end_node, m_ossia_endTimeSync->makeTrigger());
   m_ossia_startEvent->onSetup(
       main_start_event,
       m_ossia_startEvent->makeExpression(),
-      (ossia::time_event::offset_behavior)element.startEvent()
-          .offsetBehavior());
+      (ossia::time_event::offset_behavior)element.startEvent().offsetBehavior());
   m_ossia_endEvent->onSetup(
       main_end_event,
       m_ossia_endEvent->makeExpression(),
       (ossia::time_event::offset_behavior)element.endEvent().offsetBehavior());
   m_ossia_startState->onSetup(main_start_event);
   m_ossia_endState->onSetup(main_end_event);
-  m_ossia_interval->onSetup(
-      m_ossia_interval, main_interval, m_ossia_interval->makeDurations());
+  m_ossia_interval->onSetup(m_ossia_interval, main_interval, m_ossia_interval->makeDurations());
 
   for (auto dev : m_ctx.execState->edit_devices())
   {
@@ -114,8 +109,7 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
         {
           auto node = main_interval->node;
           m_ctx.executionQueue.enqueue([=] {
-            static_cast<ossia::nodes::interval*>(node.get())->audio_out.address
-                = param;
+            static_cast<ossia::nodes::interval*>(node.get())->audio_out.address = param;
           });
           break;
         }

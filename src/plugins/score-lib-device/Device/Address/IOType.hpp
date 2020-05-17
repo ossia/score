@@ -11,8 +11,7 @@ class QMap;
 
 namespace Device
 {
-SCORE_LIB_DEVICE_EXPORT const QMap<ossia::access_mode, QString>&
-AccessModeText();
+SCORE_LIB_DEVICE_EXPORT const QMap<ossia::access_mode, QString>& AccessModeText();
 
 inline bool hasInput(const optional<ossia::access_mode>& t)
 {

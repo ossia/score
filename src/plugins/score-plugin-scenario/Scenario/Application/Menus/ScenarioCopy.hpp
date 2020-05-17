@@ -73,10 +73,9 @@ void copyProcess(JSONReader&, const Process::ProcessModel&);
 // QJsonObject copySelectedScenarioElements(
 //        const BaseScenario& sm,
 //        QObject* parent);
-void
-copySelectedScenarioElements(JSONReader&, const BaseScenarioContainer& sm, QObject* parent);
+void copySelectedScenarioElements(JSONReader&, const BaseScenarioContainer& sm, QObject* parent);
 
-void  copySelectedElementsToJson(
+void copySelectedElementsToJson(
     JSONReader&,
     ScenarioInterface& s,
     const score::DocumentContext& ctx);

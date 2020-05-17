@@ -21,7 +21,6 @@
 #define uuid_constexpr constexpr
 #endif
 
-
 namespace Control
 {
 using Meta_base = ossia::safe_nodes::base_metadata;
@@ -29,11 +28,9 @@ template <typename Node>
 using ProcessFactory = Process::ProcessFactory_T<ControlProcess<Node>>;
 
 template <typename Node>
-struct ExecutorFactory final
-    : public Execution::ProcessComponentFactory_T<Executor<Node>>
+struct ExecutorFactory final : public Execution::ProcessComponentFactory_T<Executor<Node>>
 {
-  using Execution::ProcessComponentFactory_T<
-      Executor<Node>>::ProcessComponentFactory_T;
+  using Execution::ProcessComponentFactory_T<Executor<Node>>::ProcessComponentFactory_T;
 };
 
 template <typename Node>
@@ -54,19 +51,16 @@ struct create_types
   }
 };
 template <typename... Nodes>
-std::vector<std::unique_ptr<score::InterfaceBase>> instantiate_fx(
-    const score::ApplicationContext& ctx,
-    const score::InterfaceKey& key)
+std::vector<std::unique_ptr<score::InterfaceBase>>
+instantiate_fx(const score::ApplicationContext& ctx, const score::InterfaceKey& key)
 {
   if (key == Execution::ProcessComponentFactory::static_interfaceKey())
   {
-    return create_types<Nodes...>{}
-        .template perform<Control::ExecutorFactory>();
+    return create_types<Nodes...>{}.template perform<Control::ExecutorFactory>();
   }
   else if (key == Process::ProcessModelFactory::static_interfaceKey())
   {
-    return create_types<Nodes...>{}
-        .template perform<Control::ProcessFactory>();
+    return create_types<Nodes...>{}.template perform<Control::ProcessFactory>();
   }
   else if (key == Process::LayerFactory::static_interfaceKey())
   {
@@ -86,10 +80,7 @@ template <typename T>
 struct score_generic_plugin final : public score::FactoryInterface_QtInterface,
                                     public score::Plugin_QtInterface
 {
-  static MSVC_BUGGY_CONSTEXPR score::PluginKey static_key()
-  {
-    return T::Metadata::uuid;
-  }
+  static MSVC_BUGGY_CONSTEXPR score::PluginKey static_key() { return T::Metadata::uuid; }
 
   score::PluginKey key() const final override { return static_key(); }
 
@@ -98,9 +89,8 @@ struct score_generic_plugin final : public score::FactoryInterface_QtInterface,
   score_generic_plugin() = default;
   ~score_generic_plugin() override = default;
 
-  std::vector<std::unique_ptr<score::InterfaceBase>> factories(
-      const score::ApplicationContext& ctx,
-      const score::InterfaceKey& key) const override
+  std::vector<std::unique_ptr<score::InterfaceBase>>
+  factories(const score::ApplicationContext& ctx, const score::InterfaceKey& key) const override
   {
     return Control::instantiate_fx<T>(ctx, key);
   }

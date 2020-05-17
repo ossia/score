@@ -48,15 +48,13 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT TimenodeGraphComponents
   const Scenario::ProcessModel& scenario;
   std::vector<TimenodeGraphConnectedComponent> comps;
 
-  const TimenodeGraphConnectedComponent&
-  component(const Scenario::TimeSyncModel& c) const;
+  const TimenodeGraphConnectedComponent& component(const Scenario::TimeSyncModel& c) const;
   bool isInMain(const Scenario::TimeSyncModel& c) const;
   bool isInMain(const Scenario::IntervalModel& c) const;
   bool isInMain(const Scenario::EventModel& c) const;
   bool isInMain(const Scenario::StateModel& c) const;
 };
-struct SCORE_PLUGIN_SCENARIO_EXPORT TimenodeGraph
-    : public Nano::Observer
+struct SCORE_PLUGIN_SCENARIO_EXPORT TimenodeGraph : public Nano::Observer
 {
   TimenodeGraph(const Scenario::ProcessModel& scenar);
 
@@ -79,9 +77,7 @@ private:
   Graph m_graph;
   bool m_cycles{};
 
-  score::hash_map<const Scenario::TimeSyncModel*, Graph::vertex_descriptor>
-      m_vertices;
-  score::hash_map<const Scenario::IntervalModel*, Graph::edge_descriptor>
-      m_edges;
+  score::hash_map<const Scenario::TimeSyncModel*, Graph::vertex_descriptor> m_vertices;
+  score::hash_map<const Scenario::IntervalModel*, Graph::edge_descriptor> m_edges;
 };
 }

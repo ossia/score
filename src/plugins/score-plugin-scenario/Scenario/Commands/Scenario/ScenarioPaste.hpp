@@ -22,9 +22,8 @@ struct ScenarioBeingCopied
       intervals.reserve(json_arr.Size());
       for (const auto& element : json_arr)
       {
-        intervals.emplace_back(
-            new IntervalModel{JSONObject::Deserializer{element}, scenario.context(),
-                              (QObject*)&scenario});
+        intervals.emplace_back(new IntervalModel{
+            JSONObject::Deserializer{element}, scenario.context(), (QObject*)&scenario});
       }
     }
     {
@@ -32,8 +31,7 @@ struct ScenarioBeingCopied
       timesyncs.reserve(json_arr.Size());
       for (const auto& element : json_arr)
       {
-        timesyncs.emplace_back(new TimeSyncModel{
-            JSONObject::Deserializer{element}, nullptr});
+        timesyncs.emplace_back(new TimeSyncModel{JSONObject::Deserializer{element}, nullptr});
       }
     }
     {
@@ -41,8 +39,7 @@ struct ScenarioBeingCopied
       events.reserve(json_arr.Size());
       for (const auto& element : json_arr)
       {
-        events.emplace_back(new EventModel{
-            JSONObject::Deserializer{element}, nullptr});
+        events.emplace_back(new EventModel{JSONObject::Deserializer{element}, nullptr});
       }
     }
     {
@@ -50,10 +47,8 @@ struct ScenarioBeingCopied
       states.reserve(json_arr.Size());
       for (const auto& element : json_arr)
       {
-        states.emplace_back(
-            new StateModel{JSONObject::Deserializer{element},
-                           scenario.context(),
-                           (QObject*)&scenario});
+        states.emplace_back(new StateModel{
+            JSONObject::Deserializer{element}, scenario.context(), (QObject*)&scenario});
       }
     }
     {
@@ -62,7 +57,7 @@ struct ScenarioBeingCopied
       for (const auto& element : json_arr)
       {
         Process::CableData cd;
-        if(element.HasMember("ObjectName"))
+        if (element.HasMember("ObjectName"))
         {
           cd <<= JsonValue{obj["Data"]};
           cables.emplace_back(std::move(cd));
@@ -76,14 +71,12 @@ struct ScenarioBeingCopied
     }
 
     // We generate identifiers for the forthcoming elements
-    interval_ids = getStrongIdRange2<IntervalModel>(
-        intervals.size(), scenario.intervals, intervals);
-    timesync_ids = getStrongIdRange2<TimeSyncModel>(
-        timesyncs.size(), scenario.timeSyncs, timesyncs);
-    event_ids = getStrongIdRange2<EventModel>(
-        events.size(), scenario.events, events);
-    state_ids = getStrongIdRange2<StateModel>(
-        states.size(), scenario.states, states);
+    interval_ids
+        = getStrongIdRange2<IntervalModel>(intervals.size(), scenario.intervals, intervals);
+    timesync_ids
+        = getStrongIdRange2<TimeSyncModel>(timesyncs.size(), scenario.timeSyncs, timesyncs);
+    event_ids = getStrongIdRange2<EventModel>(events.size(), scenario.events, events);
+    state_ids = getStrongIdRange2<StateModel>(states.size(), scenario.states, states);
   }
 
   std::vector<TimeSyncModel*> timesyncs;

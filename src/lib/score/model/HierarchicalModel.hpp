@@ -17,8 +17,7 @@ template <typename Model, typename... Args>
 struct HierarchicModel;
 
 template <typename Model, typename Arg, typename... Args>
-struct HierarchicModel<Model, Arg, Args...>
-    : public HierarchicModel<Model, Args...>
+struct HierarchicModel<Model, Arg, Args...> : public HierarchicModel<Model, Args...>
 {
 public:
   using HierarchicModel<Model, Args...>::HierarchicModel;
@@ -54,6 +53,5 @@ public:
 // Special case for the common components case :
 
 template <typename Model>
-using HierarchicalComponents
-    = HierarchicalMember<Model, score::Components, &Model::components>;
+using HierarchicalComponents = HierarchicalMember<Model, score::Components, &Model::components>;
 }

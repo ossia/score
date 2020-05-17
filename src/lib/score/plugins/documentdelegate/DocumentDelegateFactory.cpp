@@ -3,4 +3,4 @@
 #include "DocumentDelegateFactory.hpp"
 score::DocumentDelegateFactory::~DocumentDelegateFactory() = default;
 
-score::DocumentDelegateList::~DocumentDelegateList() {}
+score::DocumentDelegateList::~DocumentDelegateList() { }

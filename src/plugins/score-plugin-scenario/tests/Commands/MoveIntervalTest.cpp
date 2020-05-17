@@ -8,7 +8,6 @@
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
-
 using namespace score;
 using namespace Scenario::Command;
 
@@ -19,8 +18,8 @@ public:
 private:
   void MoveCommandTest()
   {
-    Scenario::ProcessModel* scenar = new ScenarioModel(
-        std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
+    Scenario::ProcessModel* scenar
+        = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
 
     auto int_0_id = getStrongId(scenar->intervals());
     auto ev_0_id = getStrongId(scenar->events());

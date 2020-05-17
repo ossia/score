@@ -30,8 +30,7 @@ class DisplayedElementsModel;
 class DisplayedElementsPresenter;
 class ScenarioDocumentPresenter;
 
-class ScenarioDisplayedElementsToolPalette final
-    : public GraphicsSceneToolPalette
+class ScenarioDisplayedElementsToolPalette final : public GraphicsSceneToolPalette
 {
 public:
   ScenarioDisplayedElementsToolPalette(

@@ -12,21 +12,22 @@
 
 #include <QPainter>
 #include <QTextOption>
+
 #include <wobjectimpl.h>
 namespace Process
 {
-ProcessModelFactory::~ProcessModelFactory() {}
+ProcessModelFactory::~ProcessModelFactory() { }
 
-LayerFactory::~LayerFactory() {}
+LayerFactory::~LayerFactory() { }
 
-ProcessFactoryList::~ProcessFactoryList() {}
+ProcessFactoryList::~ProcessFactoryList() { }
 
-LayerFactoryList::~LayerFactoryList() {}
+LayerFactoryList::~LayerFactoryList() { }
 
 class DefaultLayerView final : public LayerView
 {
 public:
-  DefaultLayerView(QGraphicsItem* parent) : LayerView(parent) {}
+  DefaultLayerView(QGraphicsItem* parent) : LayerView(parent) { }
   void paint_impl(QPainter* p) const override
   {
     QTextOption o;
@@ -51,17 +52,13 @@ public:
   {
     auto vi = dynamic_cast<DefaultLayerView*>(v);
     vi->m_txt = model.metadata().getName();
-    connect(
-        &model.metadata(),
-        &score::ModelMetadata::NameChanged,
-        this,
-        [=](auto t) {
-          vi->m_txt = t;
-          vi->update();
-        });
+    connect(&model.metadata(), &score::ModelMetadata::NameChanged, this, [=](auto t) {
+      vi->m_txt = t;
+      vi->update();
+    });
   }
 
-  ~DefaultLayerPresenter() override {}
+  ~DefaultLayerPresenter() override { }
 
   void setWidth(qreal width, qreal defaultWidth) override { m_view->setWidth(width); }
   void setHeight(qreal height) override { m_view->setHeight(height); }
@@ -69,8 +66,8 @@ public:
   void putToFront() override { m_view->setVisible(true); }
   void putBehind() override { m_view->setVisible(false); }
 
-  void on_zoomRatioChanged(ZoomRatio) override {}
-  void parentGeometryChanged() override {}
+  void on_zoomRatioChanged(ZoomRatio) override { }
+  void parentGeometryChanged() override { }
 };
 LayerPresenter* LayerFactory::makeLayerPresenter(
     const ProcessModel& m,
@@ -89,29 +86,27 @@ LayerView* LayerFactory::makeLayerView(
   return new DefaultLayerView{parent};
 }
 
-Process::MiniLayer* LayerFactory::makeMiniLayer(
-    const ProcessModel& view,
-    QGraphicsItem* parent) const
+Process::MiniLayer*
+LayerFactory::makeMiniLayer(const ProcessModel& view, QGraphicsItem* parent) const
 {
   return nullptr;
 }
 
-score::ResizeableItem* LayerFactory::makeItem(const ProcessModel&,
+score::ResizeableItem* LayerFactory::makeItem(
+    const ProcessModel&,
     const Process::Context& ctx,
     QGraphicsItem* parent) const
 {
   return nullptr;
 }
 
-bool LayerFactory::hasExternalUI(
-    const ProcessModel&,
-    const score::DocumentContext& ctx) const noexcept
+bool LayerFactory::hasExternalUI(const ProcessModel&, const score::DocumentContext& ctx)
+    const noexcept
 {
   return false;
 }
 
-HeaderDelegate*
-LayerFactory::makeHeaderDelegate(
+HeaderDelegate* LayerFactory::makeHeaderDelegate(
     const ProcessModel& model,
     const Process::Context& ctx,
     const LayerPresenter* pres) const
@@ -119,9 +114,7 @@ LayerFactory::makeHeaderDelegate(
   return new DefaultHeaderDelegate{model, ctx, pres};
 }
 FooterDelegate*
-LayerFactory::makeFooterDelegate(
-    const ProcessModel& model,
-    const Process::Context& ctx) const
+LayerFactory::makeFooterDelegate(const ProcessModel& model, const Process::Context& ctx) const
 {
   return new DefaultFooterDelegate{model, ctx};
 }
@@ -153,14 +146,12 @@ ProcessFactoryList::object_type* ProcessFactoryList::loadMissing(
   return nullptr;
 }
 
-LayerFactory*
-LayerFactoryList::findDefaultFactory(const ProcessModel& proc) const
+LayerFactory* LayerFactoryList::findDefaultFactory(const ProcessModel& proc) const
 {
   return findDefaultFactory(proc.concreteKey());
 }
 
-LayerFactory*
-LayerFactoryList::findDefaultFactory(const UuidKey<ProcessModel>& proc) const
+LayerFactory* LayerFactoryList::findDefaultFactory(const UuidKey<ProcessModel>& proc) const
 {
   for (auto& fac : *this)
   {

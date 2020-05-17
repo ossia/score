@@ -54,7 +54,9 @@ public:
   void activate(Scenario::Tool);
   void desactivate(Scenario::Tool);
 
-  QGraphicsItem* itemAt(const Scenario::Point&, const std::vector<QGraphicsItem*>& ignore) const noexcept;
+  QGraphicsItem*
+  itemAt(const Scenario::Point&, const std::vector<QGraphicsItem*>& ignore) const noexcept;
+
 private:
   Scenario::Point ScenePointToScenarioPoint(QPointF point);
 
@@ -82,6 +84,6 @@ private:
       ToolPalette,
       Process::LayerContext,
       Process::LayerView>
-  m_inputDisp;
+      m_inputDisp;
 };
 }

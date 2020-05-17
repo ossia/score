@@ -22,7 +22,6 @@ PROCESS_METADATA(
     {},
     {std::vector<Process::PortType>{Process::PortType::Audio}},
     {std::vector<Process::PortType>{Process::PortType::Audio}},
-    Process::ProcessFlags::SupportsTemporal
-        | Process::ProcessFlags::SupportsEffectChain)
+    Process::ProcessFlags::SupportsTemporal | Process::ProcessFlags::SupportsEffectChain)
 
 UNDO_NAME_METADATA(EMPTY_MACRO, Media::Merger::Model, "Stereo Merger")

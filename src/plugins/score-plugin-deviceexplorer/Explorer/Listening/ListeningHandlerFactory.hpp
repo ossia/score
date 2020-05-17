@@ -11,18 +11,14 @@ struct DocumentContext;
 namespace Explorer
 {
 class DeviceDocumentPlugin;
-class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT ListeningHandlerFactory
-    : public score::InterfaceBase
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT ListeningHandlerFactory : public score::InterfaceBase
 {
-  SCORE_INTERFACE(
-      ListeningHandlerFactory,
-      "42828393-b8de-45a6-b79f-811eea2e1a40")
+  SCORE_INTERFACE(ListeningHandlerFactory, "42828393-b8de-45a6-b79f-811eea2e1a40")
 
 public:
   virtual ~ListeningHandlerFactory();
 
   virtual std::unique_ptr<Explorer::ListeningHandler>
-  make(const DeviceDocumentPlugin& plug, const score::DocumentContext& ctx)
-      = 0;
+  make(const DeviceDocumentPlugin& plug, const score::DocumentContext& ctx) = 0;
 };
 }

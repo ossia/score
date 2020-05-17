@@ -13,10 +13,9 @@
 namespace Device
 {
 
-AddressSettingsCommon::AddressSettingsCommon() noexcept {}
+AddressSettingsCommon::AddressSettingsCommon() noexcept { }
 
-AddressSettingsCommon::AddressSettingsCommon(
-    const AddressSettingsCommon& other) noexcept
+AddressSettingsCommon::AddressSettingsCommon(const AddressSettingsCommon& other) noexcept
     : value{other.value}
     , domain{other.domain}
     , unit{other.unit}
@@ -27,8 +26,7 @@ AddressSettingsCommon::AddressSettingsCommon(
 {
 }
 
-AddressSettingsCommon::AddressSettingsCommon(
-    AddressSettingsCommon&& other) noexcept
+AddressSettingsCommon::AddressSettingsCommon(AddressSettingsCommon&& other) noexcept
     : value{std::move(other.value)}
     , domain{std::move(other.domain)}
     , unit{std::move(other.unit)}
@@ -39,8 +37,8 @@ AddressSettingsCommon::AddressSettingsCommon(
 {
 }
 
-AddressSettingsCommon& AddressSettingsCommon::
-operator=(const AddressSettingsCommon& other) noexcept
+AddressSettingsCommon&
+AddressSettingsCommon::operator=(const AddressSettingsCommon& other) noexcept
 {
   value = other.value;
   domain = other.domain;
@@ -52,8 +50,7 @@ operator=(const AddressSettingsCommon& other) noexcept
   return *this;
 }
 
-AddressSettingsCommon& AddressSettingsCommon::
-operator=(AddressSettingsCommon&& other) noexcept
+AddressSettingsCommon& AddressSettingsCommon::operator=(AddressSettingsCommon&& other) noexcept
 {
   value = std::move(other.value);
   domain = std::move(other.domain);
@@ -65,31 +62,23 @@ operator=(AddressSettingsCommon&& other) noexcept
   return *this;
 }
 
-AddressSettingsCommon::~AddressSettingsCommon() noexcept {}
+AddressSettingsCommon::~AddressSettingsCommon() noexcept { }
 
 AddressSettings::AddressSettings() noexcept = default;
 AddressSettings::AddressSettings(const AddressSettings&) noexcept = default;
 AddressSettings::AddressSettings(AddressSettings&&) noexcept = default;
-AddressSettings& AddressSettings::operator=(const AddressSettings&) noexcept
-    = default;
-AddressSettings& AddressSettings::operator=(AddressSettings&&) noexcept
-    = default;
+AddressSettings& AddressSettings::operator=(const AddressSettings&) noexcept = default;
+AddressSettings& AddressSettings::operator=(AddressSettings&&) noexcept = default;
 AddressSettings::~AddressSettings() noexcept = default;
 
 FullAddressSettings::FullAddressSettings() noexcept = default;
-FullAddressSettings::FullAddressSettings(const FullAddressSettings&) noexcept
-    = default;
-FullAddressSettings::FullAddressSettings(FullAddressSettings&&) noexcept
-    = default;
-FullAddressSettings& FullAddressSettings::
-operator=(const FullAddressSettings&) noexcept
-    = default;
-FullAddressSettings& FullAddressSettings::
-operator=(FullAddressSettings&&) noexcept
-    = default;
+FullAddressSettings::FullAddressSettings(const FullAddressSettings&) noexcept = default;
+FullAddressSettings::FullAddressSettings(FullAddressSettings&&) noexcept = default;
+FullAddressSettings& FullAddressSettings::operator=(const FullAddressSettings&) noexcept = default;
+FullAddressSettings& FullAddressSettings::operator=(FullAddressSettings&&) noexcept = default;
 FullAddressSettings::~FullAddressSettings() noexcept = default;
 
-FullAddressAccessorSettings::FullAddressAccessorSettings() noexcept {}
+FullAddressAccessorSettings::FullAddressAccessorSettings() noexcept { }
 
 FullAddressAccessorSettings::FullAddressAccessorSettings(
     const FullAddressAccessorSettings& other) noexcept
@@ -115,8 +104,8 @@ FullAddressAccessorSettings::FullAddressAccessorSettings(
 {
 }
 
-FullAddressAccessorSettings& FullAddressAccessorSettings::
-operator=(const FullAddressAccessorSettings& other) noexcept
+FullAddressAccessorSettings&
+FullAddressAccessorSettings::operator=(const FullAddressAccessorSettings& other) noexcept
 {
   value = other.value;
   domain = other.domain;
@@ -128,8 +117,8 @@ operator=(const FullAddressAccessorSettings& other) noexcept
   return *this;
 }
 
-FullAddressAccessorSettings& FullAddressAccessorSettings::
-operator=(FullAddressAccessorSettings&& other) noexcept
+FullAddressAccessorSettings&
+FullAddressAccessorSettings::operator=(FullAddressAccessorSettings&& other) noexcept
 {
   value = std::move(other.value);
   domain = std::move(other.domain);
@@ -141,7 +130,7 @@ operator=(FullAddressAccessorSettings&& other) noexcept
   return *this;
 }
 
-FullAddressAccessorSettings::~FullAddressAccessorSettings() noexcept {}
+FullAddressAccessorSettings::~FullAddressAccessorSettings() noexcept { }
 // Second argument should be the address of the parent.
 template <>
 SCORE_LIB_DEVICE_EXPORT FullAddressSettings
@@ -223,21 +212,17 @@ FullAddressAccessorSettings::FullAddressAccessorSettings(
     address.qualifiers.get().unit = f.unit;
 }
 
-FullAddressAccessorSettings::FullAddressAccessorSettings(
-    FullAddressSettings&& f) noexcept
+FullAddressAccessorSettings::FullAddressAccessorSettings(FullAddressSettings&& f) noexcept
     : FullAddressAccessorSettings{
-          State::AddressAccessor{std::move(f.address)},
-          std::move(static_cast<AddressSettingsCommon&&>(f))}
+        State::AddressAccessor{std::move(f.address)},
+        std::move(static_cast<AddressSettingsCommon&&>(f))}
 {
 }
 
-bool operator==(
-    const AddressSettingsCommon& lhs,
-    const AddressSettingsCommon& rhs) noexcept
+bool operator==(const AddressSettingsCommon& lhs, const AddressSettingsCommon& rhs) noexcept
 {
-  return lhs.value == rhs.value && lhs.domain == rhs.domain
-         && lhs.ioType == rhs.ioType && lhs.clipMode == rhs.clipMode
-         && lhs.unit == rhs.unit
+  return lhs.value == rhs.value && lhs.domain == rhs.domain && lhs.ioType == rhs.ioType
+         && lhs.clipMode == rhs.clipMode && lhs.unit == rhs.unit
          && lhs.repetitionFilter == rhs.repetitionFilter
       // TODO we cannot compare "any" values...   && lhs.extendedAttributes ==
       // rhs.extendedAttributes

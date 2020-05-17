@@ -5,8 +5,7 @@
 namespace score
 {
 template <typename T1, typename T2>
-using enable_if_base_of
-    = std::enable_if<std::is_base_of<T1, T2>::value, void*>;
+using enable_if_base_of = std::enable_if<std::is_base_of<T1, T2>::value, void*>;
 
 /**
  * @brief The ActionManager class
@@ -53,32 +52,28 @@ public:
 
   template <
       typename Condition_T,
-      typename enable_if_base_of<DocumentActionCondition, Condition_T>::type
-      = nullptr>
+      typename enable_if_base_of<DocumentActionCondition, Condition_T>::type = nullptr>
   auto& condition() const
   {
     return *m_docConditions.at(Condition_T::static_key());
   }
   template <
       typename Condition_T,
-      typename enable_if_base_of<FocusActionCondition, Condition_T>::type
-      = nullptr>
+      typename enable_if_base_of<FocusActionCondition, Condition_T>::type = nullptr>
   auto& condition() const
   {
     return *m_focusConditions.at(Condition_T::static_key());
   }
   template <
       typename Condition_T,
-      typename enable_if_base_of<SelectionActionCondition, Condition_T>::type
-      = nullptr>
+      typename enable_if_base_of<SelectionActionCondition, Condition_T>::type = nullptr>
   auto& condition() const
   {
     return *m_selectionConditions.at(Condition_T::static_key());
   }
   template <
       typename Condition_T,
-      typename enable_if_base_of<CustomActionCondition, Condition_T>::type
-      = nullptr>
+      typename enable_if_base_of<CustomActionCondition, Condition_T>::type = nullptr>
   auto& condition() const
   {
     return *m_customConditions.at(Condition_T::static_key());
@@ -108,16 +103,12 @@ private:
   score::hash_map<ActionKey, Action> m_container;
 
   // Conditions for the enablement of the actions
-  score::hash_map<StringKey<ActionCondition>, std::shared_ptr<ActionCondition>>
-      m_docConditions;
-  score::hash_map<StringKey<ActionCondition>, std::shared_ptr<ActionCondition>>
-      m_focusConditions;
+  score::hash_map<StringKey<ActionCondition>, std::shared_ptr<ActionCondition>> m_docConditions;
+  score::hash_map<StringKey<ActionCondition>, std::shared_ptr<ActionCondition>> m_focusConditions;
   score::hash_map<StringKey<ActionCondition>, std::shared_ptr<ActionCondition>>
       m_selectionConditions;
-  score::hash_map<StringKey<ActionCondition>, std::shared_ptr<ActionCondition>>
-      m_customConditions;
-  score::hash_map<StringKey<ActionCondition>, std::shared_ptr<ActionCondition>>
-      m_conditions;
+  score::hash_map<StringKey<ActionCondition>, std::shared_ptr<ActionCondition>> m_customConditions;
+  score::hash_map<StringKey<ActionCondition>, std::shared_ptr<ActionCondition>> m_conditions;
 
   QMetaObject::Connection focusConnection;
   QMetaObject::Connection selectionConnection;

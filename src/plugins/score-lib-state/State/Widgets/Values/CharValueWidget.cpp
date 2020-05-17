@@ -17,8 +17,7 @@
 
 namespace State
 {
-CharValueWidget::CharValueWidget(QChar value, QWidget* parent)
-    : ValueWidget{parent}
+CharValueWidget::CharValueWidget(QChar value, QWidget* parent) : ValueWidget{parent}
 {
   auto lay = new score::MarginLess<QGridLayout>{this};
   m_value = new QLineEdit;
@@ -51,8 +50,7 @@ CharValueSetDialog::CharValueSetDialog(QWidget* parent) : QDialog{parent}
   connect(addbutton, &QPushButton::pressed, this, [=] { addRow('a'); });
   lay->addWidget(addbutton);
 
-  auto buttonBox
-      = new QDialogButtonBox{QDialogButtonBox::Ok | QDialogButtonBox::Cancel};
+  auto buttonBox = new QDialogButtonBox{QDialogButtonBox::Ok | QDialogButtonBox::Cancel};
 
   lay->addWidget(buttonBox);
 
@@ -94,9 +92,7 @@ void CharValueSetDialog::addRow(char c)
   auto minus_b = new QPushButton{tr("-"), this};
   sub_lay->addWidget(minus_b);
 
-  connect(minus_b, &QPushButton::clicked, this, [this, i = m_rows.size()] {
-    removeRow(i);
-  });
+  connect(minus_b, &QPushButton::clicked, this, [this, i = m_rows.size()] { removeRow(i); });
 
   auto widg = new CharValueWidget{QChar(c), this};
   sub_lay->addWidget(widg);

@@ -10,6 +10,7 @@
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/TextLabel.hpp>
+
 #include <ossia/detail/algorithms.hpp>
 
 #include <QComboBox>
@@ -26,20 +27,15 @@
 W_OBJECT_IMPL(Explorer::DeviceEditDialog)
 namespace Explorer
 {
-DeviceEditDialog::DeviceEditDialog(
-    const Device::ProtocolFactoryList& pl,
-    QWidget* parent)
-    : QDialog(parent)
-    , m_protocolList{pl}
-    , m_protocolWidget{nullptr}
-    , m_index(-1)
+DeviceEditDialog::DeviceEditDialog(const Device::ProtocolFactoryList& pl, QWidget* parent)
+    : QDialog(parent), m_protocolList{pl}, m_protocolWidget{nullptr}, m_index(-1)
 {
   setModal(true);
   buildGUI();
   setMinimumWidth(400);
 }
 
-DeviceEditDialog::~DeviceEditDialog() {}
+DeviceEditDialog::~DeviceEditDialog() { }
 
 void DeviceEditDialog::buildGUI()
 {
@@ -87,16 +83,14 @@ void DeviceEditDialog::initAvailableProtocols()
     sorted.push_back(&elt);
   }
 
-  ossia::sort(
-      sorted, [](Device::ProtocolFactory* lhs, Device::ProtocolFactory* rhs) {
-        return lhs->visualPriority() > rhs->visualPriority();
-      });
+  ossia::sort(sorted, [](Device::ProtocolFactory* lhs, Device::ProtocolFactory* rhs) {
+    return lhs->visualPriority() > rhs->visualPriority();
+  });
 
   for (const auto& prot_pair : sorted)
   {
     auto& prot = *prot_pair;
-    m_protocolCBox->addItem(
-        prot.prettyName(), QVariant::fromValue(prot.concreteKey()));
+    m_protocolCBox->addItem(prot.prettyName(), QVariant::fromValue(prot.concreteKey()));
 
     m_previousSettings.append(prot.defaultSettings());
   }
@@ -120,20 +114,17 @@ void DeviceEditDialog::updateProtocolWidget()
 
   m_index = m_protocolCBox->currentIndex();
 
-  auto protocol = m_protocolCBox->currentData()
-                      .value<UuidKey<Device::ProtocolFactory>>();
+  auto protocol = m_protocolCBox->currentData().value<UuidKey<Device::ProtocolFactory>>();
   m_protocolWidget = m_protocolList.get(protocol)->makeSettingsWidget();
 
   if (m_protocolWidget)
   {
     m_layout->insertRow(2, m_protocolWidget);
-    QSizePolicy pol{QSizePolicy::MinimumExpanding,
-                    QSizePolicy::MinimumExpanding};
+    QSizePolicy pol{QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding};
     pol.setVerticalStretch(1);
     m_protocolWidget->setSizePolicy(pol);
     m_protocolWidget->setMinimumHeight(200);
-    this->setSizePolicy(
-        QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    this->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
     updateGeometry();
   }
 }
@@ -148,16 +139,14 @@ Device::DeviceSettings DeviceEditDialog::getSettings() const
   }
 
   // TODO after set the protocol in getSettings instead.
-  settings.protocol = m_protocolCBox->currentData()
-                          .value<UuidKey<Device::ProtocolFactory>>();
+  settings.protocol = m_protocolCBox->currentData().value<UuidKey<Device::ProtocolFactory>>();
 
   return settings;
 }
 
 void DeviceEditDialog::setSettings(const Device::DeviceSettings& settings)
 {
-  const int index
-      = m_protocolCBox->findData(QVariant::fromValue(settings.protocol));
+  const int index = m_protocolCBox->findData(QVariant::fromValue(settings.protocol));
   SCORE_ASSERT(index != -1);
   SCORE_ASSERT(index < m_protocolCBox->count());
 
@@ -174,8 +163,7 @@ void DeviceEditDialog::setEditingInvalidState(bool st)
     if (st)
     {
       auto item = m_layout->itemAt(0);
-      static_cast<QLabel*>(item->widget())
-          ->setText(tr("Warning : device requires editing."));
+      static_cast<QLabel*>(item->widget())->setText(tr("Warning : device requires editing."));
     }
     else
     {

@@ -8,13 +8,14 @@
 #if defined(HAS_VST2)
 #include <Media/Effect/VST/VSTEffectModel.hpp>
 #include <Media/Effect/VST/VSTLoader.hpp>
+
 #include <QWebSocket>
 #endif
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Audio/AudioDevice.hpp>
 
 #include <score/tools/Bind.hpp>
+
 #include <ossia/audio/audio_protocol.hpp>
 
 #include <QDirIterator>
@@ -23,6 +24,7 @@
 #include <QJsonObject>
 #include <QProcess>
 
+#include <Audio/AudioDevice.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::ApplicationPlugin)
 
@@ -33,16 +35,16 @@ template <>
 void DataStreamReader::read<Media::ApplicationPlugin::vst_info>(
     const Media::ApplicationPlugin::vst_info& p)
 {
-  m_stream << p.path << p.prettyName << p.displayName << p.author << p.uniqueID
-           << p.controls << p.isSynth << p.isValid;
+  m_stream << p.path << p.prettyName << p.displayName << p.author << p.uniqueID << p.controls
+           << p.isSynth << p.isValid;
 }
 template <>
 void DataStreamWriter::write<Media::ApplicationPlugin::vst_info>(
     Media::ApplicationPlugin::vst_info& p)
 {
   if (!vst_invalid_format)
-    m_stream >> p.path >> p.prettyName >> p.displayName >> p.author
-        >> p.uniqueID >> p.controls >> p.isSynth >> p.isValid;
+    m_stream >> p.path >> p.prettyName >> p.displayName >> p.author >> p.uniqueID >> p.controls
+        >> p.isSynth >> p.isValid;
   if (m_stream.stream.status() != QDataStream::Status::Ok)
   {
     vst_invalid_format = true;
@@ -90,14 +92,12 @@ void on_uiMessage(
 
 uint32_t port_index(SuilController controller, const char* symbol)
 {
-  auto& p
-      = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
+  auto& p = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
   LV2EffectModel& fx = (LV2EffectModel&)controller;
   auto n = lilv_new_uri(p.lilv.me, symbol);
   auto port = lilv_plugin_get_port_by_symbol(fx.plugin, n);
   lilv_node_free(n);
-  return port ? lilv_port_get_index(fx.plugin, port)
-              : LV2UI_INVALID_PORT_INDEX;
+  return port ? lilv_port_get_index(fx.plugin, port) : LV2UI_INVALID_PORT_INDEX;
 }
 }
 #endif
@@ -111,8 +111,7 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
   app
 }
 #if defined(HAS_LV2)
-, lv2_context{std::make_unique<LV2::GlobalContext>(64, lv2_host_context)},
-    lv2_host_context
+, lv2_context{std::make_unique<LV2::GlobalContext>(64, lv2_host_context)}, lv2_host_context
 {
   lv2_context.get(), nullptr, lv2_context->features(), lilv
 }
@@ -129,33 +128,33 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
   qRegisterMetaTypeStreamOperators<std::vector<vst_info>>();
 
   m_wsServer.listen({}, 37587);
-  con(m_wsServer, &QWebSocketServer::newConnection,
-      this, [this] {
+  con(m_wsServer, &QWebSocketServer::newConnection, this, [this] {
     QWebSocket* ws = m_wsServer.nextPendingConnection();
-    if(!ws)
+    if (!ws)
       return;
 
-    connect(ws, &QWebSocket::textMessageReceived,
-            this, [=] (const QString& txt) {
+    connect(ws, &QWebSocket::textMessageReceived, this, [=](const QString& txt) {
       QJsonDocument doc = QJsonDocument::fromJson(txt.toUtf8());
-      if(doc.isObject())
+      if (doc.isObject())
       {
         auto obj = doc.object();
         addVST(obj["Path"].toString(), obj);
         int id = obj["Request"].toInt();
 
-        if(m_processes[id].process)
+        if (m_processes[id].process)
         {
           m_processes[id].process->close();
-          if(m_processes[id].process->state() == QProcess::ProcessState::NotRunning)
+          if (m_processes[id].process->state() == QProcess::ProcessState::NotRunning)
           {
-              m_processes[id] = {};
+            m_processes[id] = {};
           }
           else
           {
-              connect(m_processes[id].process.get(), qOverload<int, QProcess::ExitStatus >(&QProcess::finished), this, [this, id] {
-                  m_processes[id] = {};
-              });
+            connect(
+                m_processes[id].process.get(),
+                qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
+                this,
+                [this, id] { m_processes[id] = {}; });
           }
         }
       }
@@ -165,16 +164,16 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
 #endif
 
 #if defined(HAS_LV2) // TODO instead add a proper preprocessor macro that
-                         // also works in static case
+                     // also works in static case
   static int argc{0};
   static char** argv{nullptr};
   suil_init(&argc, &argv, SUIL_ARG_NONE);
   QString res = qgetenv("SCORE_DISABLE_LV2");
-  if(res.isEmpty())
+  if (res.isEmpty())
     lv2_context->loadPlugins();
 
-  lv2_context->ui_host = suil_host_new(
-      Media::LV2::on_uiMessage, Media::LV2::port_index, nullptr, nullptr);
+  lv2_context->ui_host
+      = suil_host_new(Media::LV2::on_uiMessage, Media::LV2::port_index, nullptr, nullptr);
 #endif
 }
 
@@ -198,10 +197,7 @@ void ApplicationPlugin::initialize()
   vstChanged();
 
   auto& set = context.settings<Media::Settings::Model>();
-  con(set,
-      &Media::Settings::Model::VstPathsChanged,
-      this,
-      &ApplicationPlugin::rescanVSTs);
+  con(set, &Media::Settings::Model::VstPathsChanged, this, &ApplicationPlugin::rescanVSTs);
   rescanVSTs(set.getVstPaths());
 #endif
 }
@@ -219,8 +215,7 @@ void ApplicationPlugin::addInvalidVST(const QString& path)
   vst_infos.push_back(i);
 
   // write in the database
-  QSettings{}.setValue(
-      "Effect/KnownVST2", QVariant::fromValue(vst_infos));
+  QSettings{}.setValue("Effect/KnownVST2", QVariant::fromValue(vst_infos));
 
   vstChanged();
 }
@@ -244,8 +239,7 @@ void ApplicationPlugin::addVST(const QString& path, const QJsonObject& obj)
   vst_infos.push_back(std::move(i));
 
   // write in the database
-  QSettings{}.setValue(
-      "Effect/KnownVST2", QVariant::fromValue(vst_infos));
+  QSettings{}.setValue("Effect/KnownVST2", QVariant::fromValue(vst_infos));
 
   qDebug() << "Loaded VST " << path << "successfully";
   vstChanged();
@@ -269,11 +263,7 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
         newPlugins.insert(it.next());
     }
     {
-      QDirIterator it(
-          dir,
-          QStringList{"*.dylib"},
-          QDir::Files,
-          QDirIterator::Subdirectories);
+      QDirIterator it(dir, QStringList{"*.dylib"}, QDir::Files, QDirIterator::Subdirectories);
       while (it.hasNext())
       {
         auto path = it.next();
@@ -316,16 +306,16 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
   int i = 0;
   for (const QString& path : newPlugins)
   {
-    if(path.contains("linvst.so"))
+    if (path.contains("linvst.so"))
       continue;
 
     auto proc = std::make_unique<QProcess>();
     proc->setProgram(
-            #if defined(__APPLE__)
-                    qApp->applicationDirPath() + "/ossia-score-vstpuppet"
-            #else
-                    "ossia-score-vstpuppet"
-            #endif
+#if defined(__APPLE__)
+        qApp->applicationDirPath() + "/ossia-score-vstpuppet"
+#else
+        "ossia-score-vstpuppet"
+#endif
     );
     proc->setArguments({path, QString::number(i)});
     m_processes.push_back({path, std::move(proc), false, {}});
@@ -336,41 +326,41 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
 
 void ApplicationPlugin::scanVSTsEvent()
 {
-    constexpr int max_in_flight = 8;
-    int in_flight = 0;
+  constexpr int max_in_flight = 8;
+  int in_flight = 0;
 
-    for(auto& proc : m_processes)
+  for (auto& proc : m_processes)
+  {
+    // Already scanned processes
+    if (!proc.process)
+      continue;
+
+    if (!proc.scanning)
     {
-        // Already scanned processes
-        if(!proc.process)
-            continue;
-
-        if(!proc.scanning)
-        {
-            proc.process->start(QProcess::ReadOnly);
-            proc.scanning = true;
-            proc.timer.start();
-        }
-        else
-        {
-            if(proc.timer.elapsed() > 10000)
-            {
-                addInvalidVST(proc.path);
-                proc.process.reset();
-
-                in_flight--;
-                continue;
-            }
-        }
-
-        in_flight++;
-
-        if(in_flight == max_in_flight)
-        {
-            QTimer::singleShot(1000, this, &ApplicationPlugin::scanVSTsEvent);
-            return;
-        }
+      proc.process->start(QProcess::ReadOnly);
+      proc.scanning = true;
+      proc.timer.start();
     }
+    else
+    {
+      if (proc.timer.elapsed() > 10000)
+      {
+        addInvalidVST(proc.path);
+        proc.process.reset();
+
+        in_flight--;
+        continue;
+      }
+    }
+
+    in_flight++;
+
+    if (in_flight == max_in_flight)
+    {
+      QTimer::singleShot(1000, this, &ApplicationPlugin::scanVSTsEvent);
+      return;
+    }
+  }
 }
 #endif
 
@@ -388,11 +378,10 @@ ApplicationPlugin::~ApplicationPlugin()
 #endif
 }
 
-GUIApplicationPlugin::GUIApplicationPlugin(
-    const score::GUIApplicationContext& app)
+GUIApplicationPlugin::GUIApplicationPlugin(const score::GUIApplicationContext& app)
     : score::GUIApplicationPlugin{app}
 {
 }
 
-void GUIApplicationPlugin::initialize() {}
+void GUIApplicationPlugin::initialize() { }
 }

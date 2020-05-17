@@ -15,13 +15,7 @@ public:
   void addRow(QString&& text, QWidget* widg)
   {
     const auto nextRow = rowCount();
-    addWidget(
-        new QLabel{std::move(text)},
-        nextRow,
-        0,
-        1,
-        1,
-        Qt::AlignHCenter | Qt::AlignTop);
+    addWidget(new QLabel{std::move(text)}, nextRow, 0, 1, 1, Qt::AlignHCenter | Qt::AlignTop);
     addWidget(widg, nextRow, 1, 1, 1);
   }
 };
@@ -38,7 +32,7 @@ public:
     this->setContentsMargins(2, 2, 2, 2);
     this->setMargin(0);
     this->setSpacing(3);
-   // this->setLabelAlignment(Qt::AlignRight);
+    // this->setLabelAlignment(Qt::AlignRight);
   }
 };
 

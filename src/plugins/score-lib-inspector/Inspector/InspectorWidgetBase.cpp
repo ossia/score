@@ -2,13 +2,14 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "InspectorWidgetBase.hpp"
 
+#include <Inspector/InspectorLayout.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/IdentifiedObjectAbstract.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/TextLabel.hpp>
-#include <Inspector/InspectorLayout.hpp>
 
 #include <QScrollArea>
 
@@ -27,7 +28,7 @@ InspectorWidgetBase::InspectorWidgetBase(
     , m_commandDispatcher(new CommandDispatcher<>{ctx.commandStack})
 {
   m_layout = new VBoxLayout;
- // m_layout->setSpacing(5);
+  // m_layout->setSpacing(5);
 
   setLayout(m_layout);
 
@@ -42,11 +43,9 @@ InspectorWidgetBase::InspectorWidgetBase(
   auto scrollArea = new QScrollArea;
   scrollArea->setWidgetResizable(true);
   scrollArea->setSizeAdjustPolicy(QScrollArea::AdjustToContents);
-  scrollArea->setSizePolicy(
-      QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+  scrollArea->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
   auto scrollAreaContentWidget = new QWidget;
-  m_scrollAreaLayout
-      = new QVBoxLayout{scrollAreaContentWidget};
+  m_scrollAreaLayout = new QVBoxLayout{scrollAreaContentWidget};
   m_scrollAreaLayout->setSizeConstraint(QLayout::SetMinimumSize);
   scrollArea->setWidget(scrollAreaContentWidget);
 
@@ -79,8 +78,7 @@ void InspectorWidgetBase::updateSectionsView(
   }
 }
 
-void InspectorWidgetBase::updateAreaLayout(
-    std::initializer_list<QWidget*> contents)
+void InspectorWidgetBase::updateAreaLayout(std::initializer_list<QWidget*> contents)
 {
   while (!m_scrollAreaLayout->isEmpty())
   {
@@ -97,8 +95,7 @@ void InspectorWidgetBase::updateAreaLayout(
   m_scrollAreaLayout->addStretch(1);
 }
 
-void InspectorWidgetBase::updateAreaLayout(
-    const std::vector<QWidget*>& contents)
+void InspectorWidgetBase::updateAreaLayout(const std::vector<QWidget*>& contents)
 {
   while (!m_scrollAreaLayout->isEmpty())
   {

@@ -13,8 +13,6 @@ class StateModel;
 namespace Command
 {
 void RefreshStates(const score::DocumentContext& doc);
-void RefreshStates(
-    const std::vector<const StateModel*>&,
-    const score::DocumentContext&);
+void RefreshStates(const std::vector<const StateModel*>&, const score::DocumentContext&);
 }
 }

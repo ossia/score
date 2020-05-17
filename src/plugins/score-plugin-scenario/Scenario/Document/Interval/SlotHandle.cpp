@@ -2,13 +2,14 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "SlotPresenter.hpp"
 
-#include <Process/LayerView.hpp>
 #include <Process/LayerPresenter.hpp>
+#include <Process/LayerView.hpp>
 #include <Scenario/Document/Interval/LayerData.hpp>
+
 #include <score/graphics/GraphicsItem.hpp>
 
-#include <QPointer>
 #include <QGraphicsScene>
+#include <QPointer>
 
 namespace Scenario
 {
@@ -29,7 +30,7 @@ void SlotPresenter::cleanupHeaderFooter()
 
 void SlotPresenter::cleanup(QGraphicsScene* sc)
 {
-  if(sc)
+  if (sc)
   {
     if (header)
     {

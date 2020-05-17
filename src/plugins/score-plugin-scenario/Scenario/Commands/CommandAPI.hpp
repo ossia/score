@@ -27,19 +27,14 @@ public:
   Macro(score::AggregateCommand* cmd, const score::DocumentContext& ctx);
   ~Macro();
 
-  StateModel& createState(
-      const Scenario::ProcessModel& scenar,
-      const Id<EventModel>& ev,
-      double y);
+  StateModel&
+  createState(const Scenario::ProcessModel& scenar, const Id<EventModel>& ev, double y);
 
   std::tuple<TimeSyncModel&, EventModel&, StateModel&>
   createDot(const Scenario::ProcessModel& scenar, Scenario::Point pt);
 
-  IntervalModel& createBox(
-      const Scenario::ProcessModel& scenar,
-      TimeVal start,
-      TimeVal end,
-      double y);
+  IntervalModel&
+  createBox(const Scenario::ProcessModel& scenar, TimeVal start, TimeVal end, double y);
 
   IntervalModel& createIntervalAfter(
       const Scenario::ProcessModel& scenar,
@@ -63,8 +58,8 @@ public:
       const QString& data,
       const QPointF& pos)
   {
-    return *safe_cast<T*>(this->createProcess(
-        interval, Metadata<ConcreteKey_k, T>::get(), data, pos));
+    return *safe_cast<T*>(
+        this->createProcess(interval, Metadata<ConcreteKey_k, T>::get(), data, pos));
   }
 
   Process::ProcessModel* createProcessInSlot(
@@ -79,8 +74,8 @@ public:
       const QString& data,
       const QPointF& pos)
   {
-    return *safe_cast<T*>(this->createProcessInSlot(
-        interval, Metadata<ConcreteKey_k, T>::get(), data, pos));
+    return *safe_cast<T*>(
+        this->createProcessInSlot(interval, Metadata<ConcreteKey_k, T>::get(), data, pos));
   }
 
   Process::ProcessModel* createProcessInNewSlot(
@@ -90,17 +85,14 @@ public:
       const QPointF& pos);
 
   template <typename T>
-  T& createProcessInNewSlot(
-      const Scenario::IntervalModel& interval,
-      const QString& data)
+  T& createProcessInNewSlot(const Scenario::IntervalModel& interval, const QString& data)
   {
-    return *safe_cast<T*>(this->createProcessInNewSlot(
-                            interval, Metadata<ConcreteKey_k, T>::get(), data, {}));
+    return *safe_cast<T*>(
+        this->createProcessInNewSlot(interval, Metadata<ConcreteKey_k, T>::get(), data, {}));
   }
 
-  Process::ProcessModel* loadProcessInSlot(
-      const Scenario::IntervalModel& interval,
-      const rapidjson::Value& procdata);
+  Process::ProcessModel*
+  loadProcessInSlot(const Scenario::IntervalModel& interval, const rapidjson::Value& procdata);
 
   void clearInterval(const Scenario::IntervalModel&);
 
@@ -109,19 +101,11 @@ public:
       const IntervalModel& targetInterval,
       ExpandMode mode);
 
-  void resizeInterval(
-      const IntervalModel& itv,
-      const TimeVal& dur);
+  void resizeInterval(const IntervalModel& itv, const TimeVal& dur);
 
-  void setIntervalMin(
-      const IntervalModel& itv,
-      const TimeVal& dur,
-      bool noMin);
+  void setIntervalMin(const IntervalModel& itv, const TimeVal& dur, bool noMin);
 
-  void setIntervalMax(
-      const IntervalModel& itv,
-      const TimeVal& dur,
-      bool infinite);
+  void setIntervalMax(const IntervalModel& itv, const TimeVal& dur, bool infinite);
 
   void createSlot(const Scenario::IntervalModel& interval);
 
@@ -130,37 +114,26 @@ public:
       int slot_index,
       const Process::ProcessModel& proc);
 
-  void addLayerToLastSlot(
-      const Scenario::IntervalModel& interval,
-      const Process::ProcessModel& proc);
+  void
+  addLayerToLastSlot(const Scenario::IntervalModel& interval, const Process::ProcessModel& proc);
 
-  void addLayerInNewSlot(
-      const Scenario::IntervalModel& interval,
-      const Process::ProcessModel& proc);
+  void
+  addLayerInNewSlot(const Scenario::IntervalModel& interval, const Process::ProcessModel& proc);
 
-  void addLayer(
-      const Scenario::SlotPath& slotpath,
-      const Process::ProcessModel& proc);
+  void addLayer(const Scenario::SlotPath& slotpath, const Process::ProcessModel& proc);
 
   void showRack(const Scenario::IntervalModel& interval);
 
-  void resizeSlot(
-      const Scenario::IntervalModel& interval,
-      const SlotPath& slotPath,
-      double newSize);
+  void
+  resizeSlot(const Scenario::IntervalModel& interval, const SlotPath& slotPath, double newSize);
 
-  void resizeSlot(
-      const Scenario::IntervalModel& interval,
-      SlotPath&& slotPath,
-      double newSize);
+  void resizeSlot(const Scenario::IntervalModel& interval, SlotPath&& slotPath, double newSize);
 
-  IntervalModel& duplicate(
-      const Scenario::ProcessModel& scenario,
-      const Scenario::IntervalModel& itv);
+  IntervalModel&
+  duplicate(const Scenario::ProcessModel& scenario, const Scenario::IntervalModel& itv);
 
-  Process::ProcessModel& duplicateProcess(
-      const Scenario::IntervalModel& itv,
-      const Process::ProcessModel& process);
+  Process::ProcessModel&
+  duplicateProcess(const Scenario::IntervalModel& itv, const Process::ProcessModel& process);
 
   void pasteElements(
       const Scenario::ProcessModel& scenario,
@@ -183,27 +156,18 @@ public:
       const Scenario::IntervalModel& new_interval,
       const Id<Process::ProcessModel>& proc);
 
-  void moveSlot(
-      const IntervalModel& old_interval,
-      const IntervalModel& new_interval,
-      int slot_idx);
-
-  void removeProcess(
-      const Scenario::IntervalModel& interval,
-      const Id<Process::ProcessModel>& proc);
-
-  Process::Cable& createCable(
-      const Scenario::ScenarioDocumentModel& dp,
-      Process::CableData dat);
-
-  void removeCable(
-      const Scenario::ScenarioDocumentModel& dp,
-      Process::Cable& theCable);
+  void
+  moveSlot(const IntervalModel& old_interval, const IntervalModel& new_interval, int slot_idx);
 
   void
-  loadCables(const ObjectPath& parent, const Dataflow::SerializedCables& c);
-  void
-  removeElements(const Scenario::ProcessModel& scenario, const Selection& sel);
+  removeProcess(const Scenario::IntervalModel& interval, const Id<Process::ProcessModel>& proc);
+
+  Process::Cable& createCable(const Scenario::ScenarioDocumentModel& dp, Process::CableData dat);
+
+  void removeCable(const Scenario::ScenarioDocumentModel& dp, Process::Cable& theCable);
+
+  void loadCables(const ObjectPath& parent, const Dataflow::SerializedCables& c);
+  void removeElements(const Scenario::ProcessModel& scenario, const Selection& sel);
 
   void addMessages(const Scenario::StateModel& state, State::MessageList msgs);
 
@@ -221,8 +185,7 @@ public:
   template <typename Property, typename T, typename U>
   void setProperty(const T& object, U&& value)
   {
-    auto cmd = new score::PropertyCommand_T<Property>{object,
-                                                      std::forward<U>(value)};
+    auto cmd = new score::PropertyCommand_T<Property>{object, std::forward<U>(value)};
     m.submit(cmd);
   }
 

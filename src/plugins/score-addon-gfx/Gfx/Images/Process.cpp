@@ -14,10 +14,7 @@ W_OBJECT_IMPL(Gfx::Images::Model)
 namespace Gfx::Images
 {
 
-Model::Model(
-    const TimeVal& duration,
-    const Id<Process::ProcessModel>& id,
-    QObject* parent)
+Model::Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
     : Process::ProcessModel{duration, id, "gfxProcess", parent}
 {
   metadata().setInstanceName(*this);
@@ -28,13 +25,14 @@ Model::Model(
 
   m_outlets.push_back(new TextureOutlet{Id<Process::Port>(0), this});
 
-  m_images.push_back({"/home/jcelerier/Documents/ossia.png",
-                      QImage("/home/jcelerier/Documents/ossia.png")});
-  m_images.push_back({"/home/jcelerier/Documents/IMG_1929.JPG",
-                      QImage("/home/jcelerier/Documents/IMG_1929.JPG")});
+  m_images.push_back(
+      {"/home/jcelerier/Documents/ossia.png", QImage("/home/jcelerier/Documents/ossia.png")});
+  m_images.push_back(
+      {"/home/jcelerier/Documents/IMG_1929.JPG",
+       QImage("/home/jcelerier/Documents/IMG_1929.JPG")});
 }
 
-Model::~Model() {}
+Model::~Model() { }
 
 void Model::setImages(const std::vector<Image>& f)
 {
@@ -47,17 +45,17 @@ QString Model::prettyName() const noexcept
   return tr("Images");
 }
 
-void Model::startExecution() {}
+void Model::startExecution() { }
 
-void Model::stopExecution() {}
+void Model::stopExecution() { }
 
-void Model::reset() {}
+void Model::reset() { }
 
-void Model::setDurationAndScale(const TimeVal& newDuration) noexcept {}
+void Model::setDurationAndScale(const TimeVal& newDuration) noexcept { }
 
-void Model::setDurationAndGrow(const TimeVal& newDuration) noexcept {}
+void Model::setDurationAndGrow(const TimeVal& newDuration) noexcept { }
 
-void Model::setDurationAndShrink(const TimeVal& newDuration) noexcept {}
+void Model::setDurationAndShrink(const TimeVal& newDuration) noexcept { }
 
 QSet<QString> DropHandler::mimeTypes() const noexcept
 {
@@ -84,11 +82,10 @@ std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::dropData(
     {
       Process::ProcessDropHandler::ProcessDrop p;
       p.creation.key = Metadata<ConcreteKey_k, Gfx::Images::Model>::get();
-      p.setup =
-          [str = filename](Process::ProcessModel& m, score::Dispatcher& disp) {
-            auto& midi = static_cast<Gfx::Images::Model&>(m);
-            // TODO disp.submit(new ChangeImages{midi, str});
-          };
+      p.setup = [str = filename](Process::ProcessModel& m, score::Dispatcher& disp) {
+        auto& midi = static_cast<Gfx::Images::Model&>(m);
+        // TODO disp.submit(new ChangeImages{midi, str});
+      };
       vec.push_back(std::move(p));
     }
   }
@@ -150,7 +147,7 @@ template <>
 void JSONWriter::write(Gfx::Images::Model& proc)
 {
   writePorts(
-        *this,
+      *this,
       components.interfaces<Process::PortFactoryList>(),
       proc.m_inlets,
       proc.m_outlets,

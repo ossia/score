@@ -2,7 +2,6 @@
 
 #include <score/selection/Selection.hpp>
 
-
 namespace score
 {
 struct GUIApplicationContext;

@@ -15,6 +15,7 @@
 #include <QPointer>
 
 #include <score_plugin_scenario_export.h>
+
 #include <verdigris>
 
 class QGraphicsView;
@@ -56,8 +57,7 @@ public:
   QPointer<score::ArrowDialog> currentPopup{};
 
 public:
-  void sizeChanged(const QSize& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sizeChanged, arg_1)
+  void sizeChanged(const QSize& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sizeChanged, arg_1)
   void scrolled(int arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, scrolled, arg_1)
   void focusedOut() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, focusedOut)
   void horizontalZoom(QPointF pixDelta, QPointF pos)
@@ -65,10 +65,9 @@ public:
   void verticalZoom(QPointF pixDelta, QPointF pos)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, verticalZoom, pixDelta, pos)
 
-  void visibleRectChanged(QRectF r)
-  E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, visibleRectChanged, r)
+  void visibleRectChanged(QRectF r) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, visibleRectChanged, r)
   void dropRequested(QPoint pos, const QMimeData* mime)
-  E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dropRequested, pos, mime)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dropRequested, pos, mime)
 
 private:
   void resizeEvent(QResizeEvent* ev) override;
@@ -85,7 +84,7 @@ private:
   void dragMoveEvent(QDragMoveEvent* event) override;
   void dragLeaveEvent(QDragLeaveEvent* event) override;
   void dropEvent(QDropEvent* event) override;
-  //void drawBackground(QPainter* painter, const QRectF& rect) override;
+  // void drawBackground(QPainter* painter, const QRectF& rect) override;
 
   const score::GUIApplicationContext& m_app;
 
@@ -97,8 +96,7 @@ private:
   // QObject interface
 };
 
-class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentView final
-    : public score::DocumentDelegateView
+class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentView final : public score::DocumentDelegateView
 {
   W_OBJECT(ScenarioDocumentView)
 
@@ -130,8 +128,7 @@ public:
   void showRulers(bool);
 
 public:
-  void elementsScaleChanged(double arg_1)
-      W_SIGNAL(elementsScaleChanged, arg_1);
+  void elementsScaleChanged(double arg_1) W_SIGNAL(elementsScaleChanged, arg_1);
   void setLargeView() W_SIGNAL(setLargeView);
   void timeRulerChanged() W_SIGNAL(timeRulerChanged);
 

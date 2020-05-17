@@ -1,12 +1,16 @@
 #pragma once
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
+
 #include <score/model/tree/TreeNode.hpp>
 #include <score/model/tree/TreeNodeItemModel.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <verdigris>
+
 #include <QIcon>
+
 #include <score_plugin_library_export.h>
+
+#include <verdigris>
 
 namespace score
 {
@@ -41,8 +45,7 @@ public:
   int columnCount(const QModelIndex& parent) const override;
   QVariant data(const QModelIndex& index, int role) const override;
 
-  QVariant
-  headerData(int section, Qt::Orientation orientation, int role) const override;
+  QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
   Qt::ItemFlags flags(const QModelIndex& index) const override;
 
   // Drag, drop, etc.

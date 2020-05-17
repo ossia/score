@@ -23,10 +23,7 @@ class Model final : public Process::ProcessModel
   W_OBJECT(Model)
 
 public:
-  Model(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
+  Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
 
   template <typename Impl>
   Model(Impl& vis, QObject* parent) : Process::ProcessModel{vis, parent}
@@ -41,19 +38,14 @@ public:
   void setFragment(QString f);
   void fragmentChanged(const QString& f) W_SIGNAL(fragmentChanged, f);
 
-  const isf::descriptor& isfDescriptor() const noexcept
-  { return m_isfDescriptor; }
+  const isf::descriptor& isfDescriptor() const noexcept { return m_isfDescriptor; }
 
   void setMesh(QString f);
   QString mesh() const noexcept { return m_mesh; }
   void meshChanged(const QString& f) W_SIGNAL(meshChanged, f);
 
-  PROPERTY(
-      QString,
-      fragment READ fragment WRITE setFragment NOTIFY fragmentChanged)
-  PROPERTY(
-      QString,
-      mesh READ mesh WRITE setMesh NOTIFY meshChanged)
+  PROPERTY(QString, fragment READ fragment WRITE setFragment NOTIFY fragmentChanged)
+  PROPERTY(QString, mesh READ mesh WRITE setMesh NOTIFY meshChanged)
 private:
   void setupIsf(const isf::descriptor& d);
   void setupNormalShader();
@@ -95,7 +87,6 @@ class DropHandler final : public Process::ProcessDropHandler
 
 }
 
-
 PROPERTY_COMMAND_T(
     Gfx,
     ChangeMeshFragmentShader,
@@ -103,9 +94,5 @@ PROPERTY_COMMAND_T(
     "Change fragment shader")
 SCORE_COMMAND_DECL_T(Gfx::ChangeMeshFragmentShader)
 
-PROPERTY_COMMAND_T(
-    Gfx,
-    ChangeMesh,
-    Mesh::Model::p_mesh,
-    "Change model")
+PROPERTY_COMMAND_T(Gfx, ChangeMesh, Mesh::Model::p_mesh, "Change model")
 SCORE_COMMAND_DECL_T(Gfx::ChangeMesh)

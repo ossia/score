@@ -9,6 +9,7 @@
 
 #include <nano_signal_slot.hpp>
 #include <score_plugin_scenario_export.h>
+
 #include <verdigris>
 
 namespace Process
@@ -22,8 +23,7 @@ class IntervalHeader;
 class IntervalModel;
 class IntervalView;
 
-class SCORE_PLUGIN_SCENARIO_EXPORT IntervalPresenter : public QObject,
-                                                       public Nano::Observer
+class SCORE_PLUGIN_SCENARIO_EXPORT IntervalPresenter : public QObject, public Nano::Observer
 {
   W_OBJECT(IntervalPresenter)
 
@@ -65,17 +65,13 @@ public:
   virtual void requestSlotMenu(int slot, QPoint pos, QPointF sp) const = 0;
 
 public:
-  void pressed(QPointF arg_1) const
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1)
-  void moved(QPointF arg_1) const
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1)
-  void released(QPointF arg_1) const
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, released, arg_1)
+  void pressed(QPointF arg_1) const E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1)
+  void moved(QPointF arg_1) const E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1)
+  void released(QPointF arg_1) const E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, released, arg_1)
 
   void askUpdate() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, askUpdate)
-  void heightChanged() E_SIGNAL(
-      SCORE_PLUGIN_SCENARIO_EXPORT,
-      heightChanged) // The vertical size
+  void heightChanged() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT,
+                                heightChanged) // The vertical size
   void heightPercentageChanged() E_SIGNAL(
       SCORE_PLUGIN_SCENARIO_EXPORT,
       heightPercentageChanged) // The vertical position

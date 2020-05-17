@@ -44,7 +44,6 @@ void JSONReader::read(const Explorer::DeviceDocumentPlugin& plug)
     {
       this->readFrom(node.impl());
     }
-
   }
   this->stream.EndArray();
 }

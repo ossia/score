@@ -7,16 +7,8 @@ namespace Gfx
 class TextureInlet;
 class TextureOutlet;
 }
-UUID_METADATA(
-    ,
-    Process::Port,
-    Gfx::TextureInlet,
-    "5ac86198-2d03-4830-9e41-a6d529922d29")
-UUID_METADATA(
-    ,
-    Process::Port,
-    Gfx::TextureOutlet,
-    "f1c71046-b754-49a5-8e66-d01374773dfc")
+UUID_METADATA(, Process::Port, Gfx::TextureInlet, "5ac86198-2d03-4830-9e41-a6d529922d29")
+UUID_METADATA(, Process::Port, Gfx::TextureOutlet, "f1c71046-b754-49a5-8e66-d01374773dfc")
 namespace Gfx
 {
 
@@ -37,7 +29,10 @@ public:
   TextureInlet(DataStream::Deserializer&& vis, QObject* parent);
   TextureInlet(JSONObject::Deserializer&& vis, QObject* parent);
 
-  VIRTUAL_CONSTEXPR Process::PortType type() const noexcept override { return Process::PortType::Texture; }
+  VIRTUAL_CONSTEXPR Process::PortType type() const noexcept override
+  {
+    return Process::PortType::Texture;
+  }
 };
 
 class TextureOutlet : public Process::Outlet
@@ -57,7 +52,10 @@ public:
   TextureOutlet(DataStream::Deserializer&& vis, QObject* parent);
   TextureOutlet(JSONObject::Deserializer&& vis, QObject* parent);
 
-  VIRTUAL_CONSTEXPR Process::PortType type() const noexcept override { return Process::PortType::Texture; }
+  VIRTUAL_CONSTEXPR Process::PortType type() const noexcept override
+  {
+    return Process::PortType::Texture;
+  }
 };
 
 struct TextureInletFactory final : public Dataflow::AutomatablePortFactory

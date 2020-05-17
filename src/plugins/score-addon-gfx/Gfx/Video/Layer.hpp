@@ -7,6 +7,6 @@
 
 namespace Gfx::Video
 {
-using LayerFactory = Process::
-    LayerFactory_T<Gfx::Video::Model, Gfx::Video::Presenter, Gfx::Video::View>;
+using LayerFactory
+    = Process::LayerFactory_T<Gfx::Video::Model, Gfx::Video::Presenter, Gfx::Video::View>;
 }

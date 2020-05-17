@@ -1,10 +1,10 @@
 #include "MergeTimeSyncs.hpp"
 
 #include <Process/TimeValueSerialization.hpp>
-
-#include <score/model/tree/TreeNodeSerialization.hpp>
-#include <score/model/EntitySerialization.hpp>
 #include <Scenario/Application/ScenarioValidity.hpp>
+
+#include <score/model/EntitySerialization.hpp>
+#include <score/model/tree/TreeNodeSerialization.hpp>
 
 namespace Scenario
 {
@@ -27,12 +27,8 @@ MergeTimeSyncs::MergeTimeSyncs(
   s.readFrom(tn);
   m_serializedTimeSync = arr;
 
-  m_moveCommand
-      = new MoveEvent<GoodOldDisplacementPolicy>{scenario,
-                                                 tn.events().front(),
-                                                 destinantionTn.date(),
-                                                 ExpandMode::Scale,
-                                                 LockMode::Free};
+  m_moveCommand = new MoveEvent<GoodOldDisplacementPolicy>{
+      scenario, tn.events().front(), destinantionTn.date(), ExpandMode::Scale, LockMode::Free};
 
   m_targetTrigger = destinantionTn.expression();
   m_targetTriggerActive = destinantionTn.active();
@@ -106,18 +102,16 @@ void MergeTimeSyncs::update(
 
 void MergeTimeSyncs::serializeImpl(DataStreamInput& s) const
 {
-  s << m_scenarioPath << m_movingTnId << m_destinationTnId
-    << m_serializedTimeSync << m_moveCommand->serialize() << m_targetTrigger
-    << m_targetTriggerActive;
+  s << m_scenarioPath << m_movingTnId << m_destinationTnId << m_serializedTimeSync
+    << m_moveCommand->serialize() << m_targetTrigger << m_targetTriggerActive;
 }
 
 void MergeTimeSyncs::deserializeImpl(DataStreamOutput& s)
 {
   QByteArray cmd;
 
-  s >> m_scenarioPath >> m_movingTnId >> m_destinationTnId
-      >> m_serializedTimeSync >> cmd >> m_targetTrigger
-      >> m_targetTriggerActive;
+  s >> m_scenarioPath >> m_movingTnId >> m_destinationTnId >> m_serializedTimeSync >> cmd
+      >> m_targetTrigger >> m_targetTriggerActive;
 
   m_moveCommand = new MoveEvent<GoodOldDisplacementPolicy>{};
   m_moveCommand->deserialize(cmd);

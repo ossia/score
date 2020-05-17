@@ -6,10 +6,9 @@
 
 #include <score/selection/SelectionDispatcher.hpp>
 
-#include <verdigris>
-
 #include <list>
 #include <vector>
+#include <verdigris>
 
 class QLabel;
 class QComboBox;

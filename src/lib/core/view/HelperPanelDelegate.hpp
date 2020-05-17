@@ -10,8 +10,7 @@ namespace score
 class HelperPanelDelegate : public PanelDelegate
 {
 public:
-  HelperPanelDelegate(const score::GUIApplicationContext& ctx)
-      : PanelDelegate{ctx}
+  HelperPanelDelegate(const score::GUIApplicationContext& ctx) : PanelDelegate{ctx}
   {
     widg = new QWidget;
     widg->setContentsMargins(3, 2, 3, 2);
@@ -34,13 +33,8 @@ public:
 
   const PanelStatus& defaultPanelStatus() const override
   {
-    static const PanelStatus stat{true,
-                                  true,
-                                  Qt::RightDockWidgetArea,
-                                  -100000,
-                                  "Info",
-                                  "info",
-                                  QKeySequence::HelpContents};
+    static const PanelStatus stat{
+        true, true, Qt::RightDockWidgetArea, -100000, "Info", "info", QKeySequence::HelpContents};
     return stat;
   }
   QWidget* widg{};

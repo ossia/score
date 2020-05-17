@@ -3,10 +3,8 @@
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
-
-#include <verdigris>
-
 #include <vector>
+#include <verdigris>
 
 namespace score
 {
@@ -30,6 +28,5 @@ public:
       const score::InterfaceKey& factoryName) const override;
 
   // Factory for inspector widgets
-  std::vector<std::unique_ptr<score::InterfaceListBase>>
-  factoryFamilies() override;
+  std::vector<std::unique_ptr<score::InterfaceListBase>> factoryFamilies() override;
 };

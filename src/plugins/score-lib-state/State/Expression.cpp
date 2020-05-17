@@ -6,9 +6,9 @@
 #include <State/Relation.hpp>
 #include <State/ValueConversion.hpp>
 
-#include <QStringBuilder>
-#include <QMap>
 #include <QDebug>
+#include <QMap>
+#include <QStringBuilder>
 namespace State
 {
 QString Message::toString() const
@@ -47,23 +47,11 @@ QString State::ExprData::toString() const
   {
   public:
     using return_type = QString;
-    return_type operator()(const State::Relation& rel) const
-    {
-      return State::toString(rel);
-    }
-    return_type operator()(const State::Pulse& rel) const
-    {
-      return State::toString(rel);
-    }
+    return_type operator()(const State::Relation& rel) const { return State::toString(rel); }
+    return_type operator()(const State::Pulse& rel) const { return State::toString(rel); }
 
-    return_type operator()(const State::BinaryOperator rel) const
-    {
-      return binopMap[rel];
-    }
-    return_type operator()(const State::UnaryOperator rel) const
-    {
-      return unopMap[rel];
-    }
+    return_type operator()(const State::BinaryOperator rel) const { return binopMap[rel]; }
+    return_type operator()(const State::UnaryOperator rel) const { return unopMap[rel]; }
     return_type operator()(const InvisibleRootNode rel) const { return ""; }
   };
 
@@ -187,8 +175,7 @@ State::Expression State::defaultFalseExpression()
 
 bool State::isTrueExpression(const QString& cond)
 {
-  return cond.isEmpty() || cond == " { true == true } "
-         || cond == "true == true";
+  return cond.isEmpty() || cond == " { true == true } " || cond == "true == true";
 }
 
 bool State::isEmptyExpression(const QString& cond)
@@ -197,9 +184,7 @@ bool State::isEmptyExpression(const QString& cond)
 }
 
 SCORE_LIB_STATE_EXPORT
-bool operator==(
-    const TreeNode<State::ExprData>& lhs,
-    const TreeNode<State::ExprData>& rhs)
+bool operator==(const TreeNode<State::ExprData>& lhs, const TreeNode<State::ExprData>& rhs)
 {
   const auto& ltd = static_cast<const State::ExprData&>(lhs);
   const auto& rtd = static_cast<const State::ExprData&>(rhs);
@@ -223,9 +208,7 @@ bool operator==(
 }
 
 SCORE_LIB_STATE_EXPORT
-bool operator!=(
-    const TreeNode<State::ExprData>& lhs,
-    const TreeNode<State::ExprData>& rhs)
+bool operator!=(const TreeNode<State::ExprData>& lhs, const TreeNode<State::ExprData>& rhs)
 {
   return !(lhs == rhs);
 }
@@ -235,14 +218,12 @@ TreeNode<State::ExprData>::iterator TreeNode<State::ExprData>::begin()
   return m_children.begin();
 }
 
-TreeNode<State::ExprData>::const_iterator
-TreeNode<State::ExprData>::begin() const
+TreeNode<State::ExprData>::const_iterator TreeNode<State::ExprData>::begin() const
 {
   return m_children.cbegin();
 }
 
-TreeNode<State::ExprData>::const_iterator
-TreeNode<State::ExprData>::cbegin() const
+TreeNode<State::ExprData>::const_iterator TreeNode<State::ExprData>::cbegin() const
 {
   return m_children.cbegin();
 }
@@ -257,14 +238,12 @@ TreeNode<State::ExprData>::iterator TreeNode<State::ExprData>::end()
   return m_children.end();
 }
 
-TreeNode<State::ExprData>::const_iterator
-TreeNode<State::ExprData>::end() const
+TreeNode<State::ExprData>::const_iterator TreeNode<State::ExprData>::end() const
 {
   return m_children.cend();
 }
 
-TreeNode<State::ExprData>::const_iterator
-TreeNode<State::ExprData>::cend() const
+TreeNode<State::ExprData>::const_iterator TreeNode<State::ExprData>::cend() const
 {
   return m_children.cend();
 }
@@ -274,11 +253,10 @@ TreeNode<State::ExprData>& TreeNode<State::ExprData>::back()
   return m_children.back();
 }
 
-TreeNode<State::ExprData>::TreeNode() {}
+TreeNode<State::ExprData>::TreeNode() { }
 
 TreeNode<State::ExprData>::TreeNode(const TreeNode& other)
-    : State::ExprData{static_cast<const State::ExprData&>(other)}
-    , m_children(other.m_children)
+    : State::ExprData{static_cast<const State::ExprData&>(other)}, m_children(other.m_children)
 {
   setParent(other.m_parent);
   for (auto& child : m_children)
@@ -286,8 +264,7 @@ TreeNode<State::ExprData>::TreeNode(const TreeNode& other)
 }
 
 TreeNode<State::ExprData>::TreeNode(TreeNode&& other)
-    : State::ExprData{std::move(
-          static_cast<State::ExprData&&>(std::move(other)))}
+    : State::ExprData{std::move(static_cast<State::ExprData&&>(std::move(other)))}
     , m_children(std::move(other.m_children))
 {
   setParent(other.m_parent);
@@ -295,11 +272,9 @@ TreeNode<State::ExprData>::TreeNode(TreeNode&& other)
     child.setParent(this);
 }
 
-TreeNode<State::ExprData>& TreeNode<State::ExprData>::
-operator=(const TreeNode& source)
+TreeNode<State::ExprData>& TreeNode<State::ExprData>::operator=(const TreeNode& source)
 {
-  static_cast<State::ExprData&>(*this)
-      = static_cast<const State::ExprData&>(source);
+  static_cast<State::ExprData&>(*this) = static_cast<const State::ExprData&>(source);
   setParent(source.m_parent);
 
   m_children = source.m_children;
@@ -311,11 +286,9 @@ operator=(const TreeNode& source)
   return *this;
 }
 
-TreeNode<State::ExprData>& TreeNode<State::ExprData>::
-operator=(TreeNode<State::ExprData>&& source)
+TreeNode<State::ExprData>& TreeNode<State::ExprData>::operator=(TreeNode<State::ExprData>&& source)
 {
-  static_cast<State::ExprData&>(*this)
-      = static_cast<State::ExprData&&>(source);
+  static_cast<State::ExprData&>(*this) = static_cast<State::ExprData&&>(source);
   setParent(source.m_parent);
 
   m_children = std::move(source.m_children);
@@ -364,8 +337,7 @@ TreeNode<State::ExprData>& TreeNode<State::ExprData>::childAt(int index)
   return child_at(m_children, index);
 }
 
-const TreeNode<State::ExprData>&
-TreeNode<State::ExprData>::childAt(int index) const
+const TreeNode<State::ExprData>& TreeNode<State::ExprData>::childAt(int index) const
 {
   return child_at(m_children, index);
 }
@@ -390,8 +362,7 @@ std::list<TreeNode<State::ExprData>>& TreeNode<State::ExprData>::children()
   return m_children;
 }
 
-const std::list<TreeNode<State::ExprData>>&
-TreeNode<State::ExprData>::children() const
+const std::list<TreeNode<State::ExprData>>& TreeNode<State::ExprData>::children() const
 {
   return m_children;
 }

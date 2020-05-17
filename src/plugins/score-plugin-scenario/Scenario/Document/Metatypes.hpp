@@ -1,8 +1,10 @@
 #pragma once
 #include <score/model/Identifier.hpp>
-#include <verdigris>
-#include <QPointer>
 #include <score/model/path/Path.hpp>
+
+#include <QPointer>
+
+#include <verdigris>
 namespace Scenario
 {
 class EventModel;
@@ -19,7 +21,6 @@ W_REGISTER_ARGTYPE(Id<Scenario::EventModel>)
 W_REGISTER_ARGTYPE(Scenario::EventModel)
 W_REGISTER_ARGTYPE(const Scenario::EventModel&)
 W_REGISTER_ARGTYPE(Scenario::EventModel&)
-
 
 Q_DECLARE_METATYPE(Id<Scenario::StateModel>)
 W_REGISTER_ARGTYPE(Id<Scenario::StateModel>)

@@ -11,6 +11,7 @@
 #include <core/document/Document.hpp>
 
 #include <score_plugin_deviceexplorer_export.h>
+
 #include <verdigris>
 namespace Explorer
 {
@@ -30,10 +31,7 @@ public:
 
   virtual ~DeviceDocumentPlugin();
   template <typename Impl>
-  DeviceDocumentPlugin(
-      const score::DocumentContext& ctx,
-      Impl& vis,
-      QObject* parent)
+  DeviceDocumentPlugin(const score::DocumentContext& ctx, Impl& vis, QObject* parent)
       : score::SerializableDocumentPlugin{ctx, vis, parent}
   {
     vis.writeTo(*this);
@@ -75,9 +73,7 @@ private:
 
   mutable std::unique_ptr<Explorer::ListeningHandler> m_listening;
   DeviceExplorerModel* m_explorer{};
-  ossia::fast_hash_map<
-      Device::DeviceInterface*,
-      std::vector<QMetaObject::Connection>>
+  ossia::fast_hash_map<Device::DeviceInterface*, std::vector<QMetaObject::Connection>>
       m_connections;
 
   void asyncConnect(Device::DeviceInterface& newdev);

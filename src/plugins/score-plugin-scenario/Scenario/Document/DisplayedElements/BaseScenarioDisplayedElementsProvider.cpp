@@ -13,33 +13,31 @@
 
 namespace Scenario
 {
-bool BaseScenarioDisplayedElementsProvider::matches(
-    const IntervalModel& cst) const
+bool BaseScenarioDisplayedElementsProvider::matches(const IntervalModel& cst) const
 {
   return dynamic_cast<BaseScenario*>(cst.parent());
 }
 
-DisplayedElementsContainer
-BaseScenarioDisplayedElementsProvider::make(IntervalModel& cst) const
+DisplayedElementsContainer BaseScenarioDisplayedElementsProvider::make(IntervalModel& cst) const
 {
   if (auto parent_base = dynamic_cast<BaseScenario*>(cst.parent()))
   {
-    return DisplayedElementsContainer{cst,
-                                      parent_base->startState(),
-                                      parent_base->endState(),
+    return DisplayedElementsContainer{
+        cst,
+        parent_base->startState(),
+        parent_base->endState(),
 
-                                      parent_base->startEvent(),
-                                      parent_base->endEvent(),
+        parent_base->startEvent(),
+        parent_base->endEvent(),
 
-                                      parent_base->startTimeSync(),
-                                      parent_base->endTimeSync()};
+        parent_base->startTimeSync(),
+        parent_base->endTimeSync()};
   }
 
   return {};
 }
 
-DisplayedElementsPresenterContainer
-BaseScenarioDisplayedElementsProvider::make_presenters(
+DisplayedElementsPresenterContainer BaseScenarioDisplayedElementsProvider::make_presenters(
     const IntervalModel& m,
     const Process::Context& ctx,
     QGraphicsItem* view_parent,

@@ -6,8 +6,8 @@
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
 
-#include <QFormLayout>
 #include <QComboBox>
+#include <QFormLayout>
 
 class QWidget;
 
@@ -38,8 +38,7 @@ Device::AddressSettings AddressBoolSettingsWidget::getDefaultSettings() const
   return {};
 }
 
-void AddressBoolSettingsWidget::setSettings(
-    const Device::AddressSettings& settings)
+void AddressBoolSettingsWidget::setSettings(const Device::AddressSettings& settings)
 {
   setCommonSettings(settings);
   m_cb->setCurrentIndex(State::convert::value<bool>(settings.value));

@@ -69,6 +69,7 @@ public:
   void enableMenuButton(bool);
 
   void decreaseId();
+
 public:
   void editingFinished() W_SIGNAL(editingFinished);
   void addTerm() W_SIGNAL(addTerm);

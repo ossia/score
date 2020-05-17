@@ -18,8 +18,8 @@
 #include <QAbstractItemView>
 #include <QAction>
 #include <QContextMenuEvent>
-#include <QMenu>
 #include <QHeaderView>
+#include <QMenu>
 #include <QResizeEvent>
 #include <qnamespace.h>
 
@@ -34,8 +34,7 @@ MessageTreeView::MessageTreeView(const StateModel& model, QWidget* parent)
   setAllColumnsShowFocus(true);
   setSelectionBehavior(QAbstractItemView::SelectRows);
   setSelectionMode(QAbstractItemView::ExtendedSelection);
-  setEditTriggers(
-      QAbstractItemView::DoubleClicked | QAbstractItemView::AnyKeyPressed);
+  setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::AnyKeyPressed);
 
   setDragEnabled(true);
   setAcceptDrops(true);
@@ -51,24 +50,15 @@ MessageTreeView::MessageTreeView(const StateModel& model, QWidget* parent)
   m_removeNodesAction->setShortcut(Qt::Key_Backspace);
   m_removeNodesAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   m_removeNodesAction->setEnabled(true);
-  connect(
-      m_removeNodesAction,
-      &QAction::triggered,
-      this,
-      &MessageTreeView::removeNodes);
+  connect(m_removeNodesAction, &QAction::triggered, this, &MessageTreeView::removeNodes);
   addAction(m_removeNodesAction);
 
   expandAll();
-  con(m_model.messages(),
-      &MessageItemModel::modelReset,
-      this,
-      &QTreeView::expandAll);
+  con(m_model.messages(), &MessageItemModel::modelReset, this, &QTreeView::expandAll);
 
   header()->resizeSection(
-      (int)MessageItemModel::Column::Name,
-      (1 - m_valueColumnSize - 0.1) * this->width());
-  header()->resizeSection(
-      (int)MessageItemModel::Column::Value, m_valueColumnSize * this->width());
+      (int)MessageItemModel::Column::Name, (1 - m_valueColumnSize - 0.1) * this->width());
+  header()->resizeSection((int)MessageItemModel::Column::Value, m_valueColumnSize * this->width());
 
   this->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
   this->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
@@ -91,11 +81,9 @@ void MessageTreeView::removeNodes()
       nodes.push_back(&n);
   }
 
-  auto cmd = new Command::RemoveMessageNodes(
-      m_model, filterUniqueParents(nodes));
+  auto cmd = new Command::RemoveMessageNodes(m_model, filterUniqueParents(nodes));
 
-  CommandDispatcher<> dispatcher{
-      score::IDocument::documentContext(m_model).commandStack};
+  CommandDispatcher<> dispatcher{score::IDocument::documentContext(m_model).commandStack};
   dispatcher.submit(cmd);
 }
 
@@ -103,10 +91,8 @@ void MessageTreeView::resizeEvent(QResizeEvent* ev)
 {
   ev->ignore();
   header()->resizeSection(
-      (int)MessageItemModel::Column::Name,
-      (1 - m_valueColumnSize - 0.1) * this->width());
-  header()->resizeSection(
-      (int)MessageItemModel::Column::Value, m_valueColumnSize * this->width());
+      (int)MessageItemModel::Column::Name, (1 - m_valueColumnSize - 0.1) * this->width());
+  header()->resizeSection((int)MessageItemModel::Column::Value, m_valueColumnSize * this->width());
 }
 
 void MessageTreeView::contextMenuEvent(QContextMenuEvent* event)

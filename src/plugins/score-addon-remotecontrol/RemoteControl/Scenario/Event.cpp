@@ -13,10 +13,7 @@ Event::Event(
 {
   auto si = dynamic_cast<Scenario::ScenarioInterface*>(event.parent());
   connect(
-      &event,
-      &Scenario::EventModel::statusChanged,
-      this,
-      [&,si](Scenario::ExecutionStatus st) {
+      &event, &Scenario::EventModel::statusChanged, this, [&, si](Scenario::ExecutionStatus st) {
         auto& parent = Scenario::parentTimeSync(event, *si);
         switch (st)
         {

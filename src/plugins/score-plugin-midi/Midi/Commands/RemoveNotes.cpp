@@ -9,18 +9,14 @@
 namespace Midi
 {
 
-RemoveNotes::RemoveNotes(
-    const ProcessModel& model,
-    const std::vector<Id<Note>>& notes)
+RemoveNotes::RemoveNotes(const ProcessModel& model, const std::vector<Id<Note>>& notes)
     : m_model{model}
 {
   for (auto id : notes)
   {
     auto& note = model.notes.at(id);
-    m_notes.push_back(qMakePair(
-        id,
-        NoteData{
-            note.start(), note.duration(), note.pitch(), note.velocity()}));
+    m_notes.push_back(
+        qMakePair(id, NoteData{note.start(), note.duration(), note.pitch(), note.velocity()}));
   }
 }
 

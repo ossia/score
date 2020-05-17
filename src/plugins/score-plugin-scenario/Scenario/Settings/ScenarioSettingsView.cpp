@@ -5,8 +5,10 @@
 #include <score/model/Skin.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/widgets/SignalUtils.hpp>
+
 #include <core/view/StyleLoader.hpp>
 
+#include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDialog>
@@ -17,7 +19,6 @@
 #include <QPushButton>
 #include <QSpinBox>
 #include <QSyntaxHighlighter>
-#include <QApplication>
 #include <QTextEdit>
 #include <QtColorWidgets/ColorWheel>
 
@@ -56,10 +57,7 @@ private:
   };
 };
 
-CssHighlighter::CssHighlighter(QTextDocument* document)
-    : QSyntaxHighlighter(document)
-{
-}
+CssHighlighter::CssHighlighter(QTextDocument* document) : QSyntaxHighlighter(document) { }
 
 void CssHighlighter::highlightBlock(const QString& text)
 {
@@ -93,16 +91,8 @@ void CssHighlighter::highlightBlock(const QString& text)
        Property,
        Quote,
        MaybeComment,
-       Property}, // Property
-      {Value,
-       Property,
-       Selector,
-       Value,
-       Property,
-       Value,
-       Quote,
-       MaybeComment,
-       Value}, // Value
+       Property},                                                                      // Property
+      {Value, Property, Selector, Value, Property, Value, Quote, MaybeComment, Value}, // Value
       {Pseudo1,
        Property,
        Selector,
@@ -131,7 +121,7 @@ void CssHighlighter::highlightBlock(const QString& text)
        MaybeComment,
        Pseudo2},                                                    // Pseudo2
       {Quote, Quote, Quote, Quote, Quote, Quote, -1, Quote, Quote}, // Quote
-      {-1, -1, -1, -1, -1, -1, -1, -1, Comment}, // MaybeComment
+      {-1, -1, -1, -1, -1, -1, -1, -1, Comment},                    // MaybeComment
       {Comment,
        Comment,
        Comment,
@@ -166,10 +156,9 @@ void CssHighlighter::highlightBlock(const QString& text)
     // The initial state is based on the precense of a : and the absense of a
     // {. This is because Qt style sheets support both a full stylesheet as
     // well as an inline form with just properties.
-    state = save_state = (text.indexOf(QLatin1Char(':')) > -1
-                          && text.indexOf(QLatin1Char('{')) == -1)
-                             ? Property
-                             : Selector;
+    state = save_state
+        = (text.indexOf(QLatin1Char(':')) > -1 && text.indexOf(QLatin1Char('{')) == -1) ? Property
+                                                                                        : Selector;
   }
   else
   {
@@ -244,10 +233,8 @@ void CssHighlighter::highlightBlock(const QString& text)
 
     if (new_state != state)
     {
-      bool include_token
-          = new_state == MaybeCommentEnd
-            || (state == MaybeCommentEnd && new_state != Comment)
-            || state == Quote;
+      bool include_token = new_state == MaybeCommentEnd
+                           || (state == MaybeCommentEnd && new_state != Comment) || state == Quote;
       highlight(text, lastIndex, i - lastIndex + include_token, state);
 
       if (new_state == Comment)
@@ -279,11 +266,7 @@ void CssHighlighter::highlightBlock(const QString& text)
   setCurrentBlockState(state + (save_state << 16));
 }
 
-void CssHighlighter::highlight(
-    const QString& text,
-    int start,
-    int length,
-    int state)
+void CssHighlighter::highlight(const QString& text, int start, int length, int state)
 {
   if (start >= text.length() || length <= 0)
     return;
@@ -350,59 +333,47 @@ public:
       list.addItem(new QListWidgetItem(p, col.second));
     }
 
-    connect(
-        &list,
-        &QListWidget::currentItemChanged,
-        this,
-        [&](QListWidgetItem* cur, auto prev) {
-          if (cur)
-            wheel.setColor(s.fromString(cur->text())->color());
-        });
+    connect(&list, &QListWidget::currentItemChanged, this, [&](QListWidgetItem* cur, auto prev) {
+      if (cur)
+        wheel.setColor(s.fromString(cur->text())->color());
+    });
 
-    connect(
-        &wheel, &color_widgets::ColorWheel::colorChanged, this, [&](QColor c) {
-          if (list.currentItem())
-          {
-            if(auto brush = s.fromString(list.currentItem()->text()))
-              brush->reload(c);
-            QPixmap p{16, 16};
-            p.fill(c);
-            list.currentItem()->setIcon(p);
-            s.changed();
-            hexa.setText(c.name(QColor::HexRgb));
-            rgb.setText(QString("%1, %2, %3")
-                            .arg(c.red())
-                            .arg(c.green())
-                            .arg(c.blue()));
-          }
-        });
+    connect(&wheel, &color_widgets::ColorWheel::colorChanged, this, [&](QColor c) {
+      if (list.currentItem())
+      {
+        if (auto brush = s.fromString(list.currentItem()->text()))
+          brush->reload(c);
+        QPixmap p{16, 16};
+        p.fill(c);
+        list.currentItem()->setIcon(p);
+        s.changed();
+        hexa.setText(c.name(QColor::HexRgb));
+        rgb.setText(QString("%1, %2, %3").arg(c.red()).arg(c.green()).arg(c.blue()));
+      }
+    });
 
-    connect(&hexa, &QLineEdit::textChanged,
-            this, [this, &s] (const QString& txt) {
+    connect(&hexa, &QLineEdit::textChanged, this, [this, &s](const QString& txt) {
       auto item = list.currentItem();
-      if(!item)
+      if (!item)
         return;
-      if(!QColor::isValidColor(txt))
+      if (!QColor::isValidColor(txt))
         return;
       auto c = QColor(txt);
       auto brush = s.fromString(item->text());
-      if(brush->color() != c)
+      if (brush->color() != c)
       {
         QPixmap p{16, 16};
         p.fill(c);
         item->setIcon(p);
         brush->reload(c);
-        rgb.setText(QString("%1, %2, %3")
-                        .arg(c.red())
-                        .arg(c.green())
-                        .arg(c.blue()));
+        rgb.setText(QString("%1, %2, %3").arg(c.red()).arg(c.green()).arg(c.blue()));
         s.changed();
         wheel.setColor(c);
       }
     });
 
     connect(&save, &QPushButton::clicked, this, [] {
-      return ;
+      return;
       /*
       auto f = QFileDialog::getSaveFileName(
           nullptr, tr("Skin"), "", tr("*.json"));
@@ -493,11 +464,7 @@ View::View() : m_widg{new QWidget}
   m_zoomSpinBox->setMinimum(50);
   m_zoomSpinBox->setMaximum(300);
 
-  connect(
-      m_zoomSpinBox,
-      SignalUtils::QSpinBox_valueChanged_int(),
-      this,
-      &View::zoomChanged);
+  connect(m_zoomSpinBox, SignalUtils::QSpinBox_valueChanged_int(), this, &View::zoomChanged);
 
   m_zoomSpinBox->setSuffix(tr("%"));
 
@@ -518,11 +485,9 @@ View::View() : m_widg{new QWidget}
 
   // Default duration
   m_defaultDur = new score::TimeSpinBox;
-  connect(
-      m_defaultDur,
-      &score::TimeSpinBox::timeChanged,
-      this,
-      [=](const TimeVal& t) { DefaultDurationChanged(t); });
+  connect(m_defaultDur, &score::TimeSpinBox::timeChanged, this, [=](const TimeVal& t) {
+    DefaultDurationChanged(t);
+  });
   lay->addRow(tr("New score duration"), m_defaultDur);
 
   m_sequence = new QCheckBox{tr("Auto-Sequence"), m_widg};

@@ -13,7 +13,7 @@ namespace score
 
 //// Locking / unlocking ////
 
-ObjectLocker::ObjectLocker(QObject* parent) {}
+ObjectLocker::ObjectLocker(QObject* parent) { }
 
 void ObjectLocker::on_lock(QByteArray arr)
 {

@@ -2,7 +2,6 @@
 
 #include <Process/HeaderDelegate.hpp>
 #include <Process/LayerPresenter.hpp>
-
 #include <Scenario/Document/Interval/SlotHeader.hpp>
 
 namespace Scenario
@@ -31,10 +30,7 @@ struct SlotPresenter
     return headerDelegate->boundingRect().height();
   }
 
-  double footerHeight() const noexcept
-  {
-    return SlotFooter::footerHeight();
-  }
+  double footerHeight() const noexcept { return SlotFooter::footerHeight(); }
 };
 
 }

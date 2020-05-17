@@ -12,9 +12,9 @@
 namespace Media
 {
 
-class SynthChainComponentBase : public ::Execution::ProcessComponent_T<
-                                       Media::SynthChain::ProcessModel,
-                                       ossia::node_chain_process>
+class SynthChainComponentBase
+    : public ::Execution::
+          ProcessComponent_T<Media::SynthChain::ProcessModel, ossia::node_chain_process>
 
 {
   COMPONENT_METADATA("cf60e525-b452-48ee-af4e-48d50cb4ef5a")
@@ -43,8 +43,7 @@ public:
   }
   void added(::Execution::ProcessComponent& e);
 
-  std::function<void()>
-  removing(const Process::ProcessModel& e, ::Execution::ProcessComponent& c);
+  std::function<void()> removing(const Process::ProcessModel& e, ::Execution::ProcessComponent& c);
   template <typename Component_T, typename Element, typename Fun>
   void removed(const Element& elt, const Component_T& comp, Fun f)
   {
@@ -82,33 +81,22 @@ protected:
   std::vector<std::pair<Id<Process::ProcessModel>, RegisteredEffect>> m_fxes;
 
   void unreg(const RegisteredEffect& fx);
-  void
-  reg(const RegisteredEffect& fx, Execution::Transaction&);
+  void reg(const RegisteredEffect& fx, Execution::Transaction&);
   void unregister_old_first_node(
-      std::pair<
-          Id<Process::ProcessModel>,
-          SynthChainComponentBase::RegisteredEffect>& new_first,
+      std::pair<Id<Process::ProcessModel>, SynthChainComponentBase::RegisteredEffect>& new_first,
       Execution::Transaction& commands);
   void register_new_first_node(
-      std::pair<
-          Id<Process::ProcessModel>,
-          SynthChainComponentBase::RegisteredEffect>& new_first,
+      std::pair<Id<Process::ProcessModel>, SynthChainComponentBase::RegisteredEffect>& new_first,
       Execution::Transaction& commands);
   void unregister_old_last_node(
-      std::pair<
-          Id<Process::ProcessModel>,
-          SynthChainComponentBase::RegisteredEffect>& new_first,
+      std::pair<Id<Process::ProcessModel>, SynthChainComponentBase::RegisteredEffect>& new_first,
       Execution::Transaction& commands);
   void register_new_last_node(
-      std::pair<
-          Id<Process::ProcessModel>,
-          SynthChainComponentBase::RegisteredEffect>& new_first,
+      std::pair<Id<Process::ProcessModel>, SynthChainComponentBase::RegisteredEffect>& new_first,
       Execution::Transaction& commands);
 
   void register_node_again(
-      std::pair<
-          Id<Process::ProcessModel>,
-          SynthChainComponentBase::RegisteredEffect>& new_first,
+      std::pair<Id<Process::ProcessModel>, SynthChainComponentBase::RegisteredEffect>& new_first,
       Execution::Transaction& commands);
   void createPassthrough(Execution::Transaction&);
   void removePassthrough(Execution::Transaction&);
@@ -117,8 +105,7 @@ protected:
 };
 
 class SynthChainComponent final
-    : public score::
-          PolymorphicComponentHierarchy<SynthChainComponentBase, false>
+    : public score::PolymorphicComponentHierarchy<SynthChainComponentBase, false>
 {
 public:
   SynthChainComponent(
@@ -136,8 +123,7 @@ public:
   ~SynthChainComponent();
 };
 
-using SynthChainComponentFactory
-    = ::Execution::ProcessComponentFactory_T<SynthChainComponent>;
+using SynthChainComponentFactory = ::Execution::ProcessComponentFactory_T<SynthChainComponent>;
 }
 
 SCORE_CONCRETE_COMPONENT_FACTORY(

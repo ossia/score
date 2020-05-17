@@ -1,8 +1,12 @@
 #include "MinMaxFloatPort.hpp"
+
 #include <Process/Dataflow/PortFactory.hpp>
-#include <score/plugins/SerializableInterface.hpp>
+
 #include <score/plugins/SerializableHelpers.hpp>
+#include <score/plugins/SerializableInterface.hpp>
+
 #include <ossia/dataflow/nodes/automation.hpp>
+
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Process::MinMaxFloatOutlet)
@@ -18,7 +22,7 @@ MinMaxFloatOutlet::MinMaxFloatOutlet(Id<Process::Port> c, QObject* parent)
   minInlet->setValue(0.);
   maxInlet->setValue(1.);
 }
-MinMaxFloatOutlet::~MinMaxFloatOutlet() {}
+MinMaxFloatOutlet::~MinMaxFloatOutlet() { }
 
 MinMaxFloatOutlet::MinMaxFloatOutlet(DataStream::Deserializer& vis, QObject* parent)
     : ValueOutlet{vis, parent}
@@ -41,7 +45,7 @@ MinMaxFloatOutlet::MinMaxFloatOutlet(JSONObject::Deserializer&& vis, QObject* pa
   vis.writeTo(*this);
 }
 
-void MinMaxFloatOutlet::forChildInlets(const smallfun::function<void (Inlet&)>& f) const noexcept
+void MinMaxFloatOutlet::forChildInlets(const smallfun::function<void(Inlet&)>& f) const noexcept
 {
   /* TODO fix AutomationModel
   f(*minInlet);
@@ -49,7 +53,9 @@ void MinMaxFloatOutlet::forChildInlets(const smallfun::function<void (Inlet&)>& 
   */
 }
 
-void MinMaxFloatOutlet::mapExecution(ossia::outlet& e, const smallfun::function<void (Inlet&, ossia::inlet&)>& f) const noexcept
+void MinMaxFloatOutlet::mapExecution(
+    ossia::outlet& e,
+    const smallfun::function<void(Inlet&, ossia::inlet&)>& f) const noexcept
 {
   /* TODO fix AutomationModel
   auto exec = safe_cast<ossia::minmax_float_outlet*>(&e);
@@ -65,8 +71,7 @@ SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read<Process::MinMaxFloatOutlet>(const Process::MinMaxFloatOutlet& p)
 {
   // read((Process::Inlet&)p);
-  m_stream
-      << *p.minInlet << *p.maxInlet;
+  m_stream << *p.minInlet << *p.maxInlet;
 }
 
 template <>

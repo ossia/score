@@ -1,15 +1,15 @@
 #pragma once
-#include <Nodal/Process.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
+
 #include <score/model/ComponentHierarchy.hpp>
 
 #include <ossia/dataflow/node_process.hpp>
 #include <ossia/detail/hash_map.hpp>
+
+#include <Nodal/Process.hpp>
 namespace Nodal
 {
-class NodalExecutorBase
-    : public Execution::ProcessComponent_T<
-          Nodal::Model, ossia::node_process>
+class NodalExecutorBase : public Execution::ProcessComponent_T<Nodal::Model, ossia::node_process>
 {
   COMPONENT_METADATA("e85e0114-2a7e-4569-8a1d-f00c9fd22960")
 public:
@@ -19,8 +19,10 @@ public:
   using component_factory_list_t = Execution::ProcessComponentFactoryList;
 
   NodalExecutorBase(
-      Model& element, const Execution::Context& ctx,
-      const Id<score::Component>& id, QObject* parent);
+      Model& element,
+      const Execution::Context& ctx,
+      const Id<score::Component>& id,
+      QObject* parent);
 
   ~NodalExecutorBase();
 
@@ -43,8 +45,7 @@ public:
   }
   void added(::Execution::ProcessComponent& e);
 
-  std::function<void()>
-  removing(const Process::ProcessModel& e, ::Execution::ProcessComponent& c);
+  std::function<void()> removing(const Process::ProcessModel& e, ::Execution::ProcessComponent& c);
 
   template <typename Component_T, typename Element, typename Fun>
   void removed(const Element& elt, const Component_T& comp, Fun f)
@@ -62,16 +63,13 @@ public:
 
     return process().nodes;
   }
+
 private:
-  void reg(const RegisteredNode& fx,
-           Execution::Transaction& vec);
+  void reg(const RegisteredNode& fx, Execution::Transaction& vec);
   void unreg(const RegisteredNode& fx);
 };
 
-
-class HierarchyManager
-    : public NodalExecutorBase
-    , public Nano::Observer
+class HierarchyManager : public NodalExecutorBase, public Nano::Observer
 {
 public:
   using ParentComponent_T = NodalExecutorBase;
@@ -82,7 +80,7 @@ public:
 
   struct ChildPair
   {
-    ChildPair(ChildModel_T* m, ChildComponent_T* c) : model{m}, component{c} {}
+    ChildPair(ChildModel_T* m, ChildComponent_T* c) : model{m}, component{c} { }
     ChildModel_T* model{};
     ChildComponent_T* component{};
   };
@@ -141,8 +139,7 @@ public:
 
   void remove(const ChildModel_T& model)
   {
-    auto it = ossia::find_if(
-        m_children, [&](auto pair) { return pair.model == &model; });
+    auto it = ossia::find_if(m_children, [&](auto pair) { return pair.model == &model; });
 
     if (it != m_children.end())
     {
@@ -176,8 +173,7 @@ private:
                                      // of the component and of the process ?
 };
 
-class NodalExecutor final
-    : public HierarchyManager
+class NodalExecutor final : public HierarchyManager
 {
 public:
   NodalExecutor(
@@ -185,7 +181,7 @@ public:
       const ::Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent)
-    : HierarchyManager{element, ctx, id, parent}
+      : HierarchyManager{element, ctx, id, parent}
   {
     // TODO passthrough ?
   }
@@ -199,7 +195,5 @@ public:
   ~NodalExecutor();
 };
 
-
-using ProcessExecutorComponentFactory
-    = Execution::ProcessComponentFactory_T<NodalExecutor>;
+using ProcessExecutorComponentFactory = Execution::ProcessComponentFactory_T<NodalExecutor>;
 }

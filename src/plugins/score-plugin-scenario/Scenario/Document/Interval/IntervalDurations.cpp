@@ -17,7 +17,7 @@
 W_OBJECT_IMPL(Scenario::IntervalDurations)
 namespace Scenario
 {
-IntervalDurations::~IntervalDurations() {}
+IntervalDurations::~IntervalDurations() { }
 
 IntervalDurations& IntervalDurations::operator=(const IntervalDurations& other)
 {
@@ -43,10 +43,8 @@ void IntervalDurations::checkConsistency()
       || (isRigid() && minDuration() != maxDuration())); // a voir
 
   m_model.consistency.setValid(
-      minDuration() - TimeVal::fromMsecs(TIME_TOLERANCE_MSEC)
-          <= m_defaultDuration
-      && maxDuration() + TimeVal::fromMsecs(TIME_TOLERANCE_MSEC)
-             >= m_defaultDuration
+      minDuration() - TimeVal::fromMsecs(TIME_TOLERANCE_MSEC) <= m_defaultDuration
+      && maxDuration() + TimeVal::fromMsecs(TIME_TOLERANCE_MSEC) >= m_defaultDuration
       && m_defaultDuration.msec() + TIME_TOLERANCE_MSEC > 0);
 }
 
@@ -105,8 +103,7 @@ void IntervalDurations::setPlayPercentage(double arg)
 
   auto old = m_playPercentage;
 
-  if (m_defaultDuration * std::abs(arg - old)
-      > TimeVal{std::chrono::milliseconds(16)})
+  if (m_defaultDuration * std::abs(arg - old) > TimeVal{std::chrono::milliseconds(16)})
   {
     m_playPercentage = arg;
     playPercentageChanged(arg);
@@ -143,9 +140,7 @@ void IntervalDurations::setMaxInfinite(bool isMaxInfinite)
 }
 
 SCORE_PLUGIN_SCENARIO_EXPORT void
-IntervalDurations::Algorithms::setDurationInBounds(
-    IntervalModel& cstr,
-    const TimeVal& time)
+IntervalDurations::Algorithms::setDurationInBounds(IntervalModel& cstr, const TimeVal& time)
 {
   if (cstr.duration.defaultDuration() != time)
   {
@@ -167,14 +162,10 @@ IntervalDurations::Algorithms::setDurationInBounds(
 }
 
 SCORE_PLUGIN_SCENARIO_EXPORT void
-IntervalDurations::Algorithms::fixAllDurations(
-    IntervalModel& cstr,
-    const TimeVal& time)
+IntervalDurations::Algorithms::fixAllDurations(IntervalModel& cstr, const TimeVal& time)
 {
   auto& dur = cstr.duration;
-  if (dur.defaultDuration() != time
-      || dur.minDuration() != time
-      || dur.maxDuration() != time)
+  if (dur.defaultDuration() != time || dur.minDuration() != time || dur.maxDuration() != time)
   {
     dur.m_defaultDuration = time;
     dur.m_minDuration = time;
@@ -183,7 +174,7 @@ IntervalDurations::Algorithms::fixAllDurations(
     dur.defaultDurationChanged(time);
     dur.minDurationChanged(time);
     dur.maxDurationChanged(time);
-    if(!dur.m_rigidity)
+    if (!dur.m_rigidity)
     {
       dur.m_rigidity = true;
       dur.rigidityChanged(true);
@@ -192,9 +183,7 @@ IntervalDurations::Algorithms::fixAllDurations(
 }
 
 SCORE_PLUGIN_SCENARIO_EXPORT void
-IntervalDurations::Algorithms::changeAllDurations(
-    IntervalModel& cstr,
-    const TimeVal& time)
+IntervalDurations::Algorithms::changeAllDurations(IntervalModel& cstr, const TimeVal& time)
 {
   auto& d = cstr.duration;
   if (d.isRigid())
@@ -209,25 +198,28 @@ IntervalDurations::Algorithms::changeAllDurations(
     d.m_defaultDuration = time;
 
     // FIXME ! why is there m_isMaxInfinite and m_maxDuration.isInfinite() ?!
-    if(!d.m_isMinNull)
+    if (!d.m_isMinNull)
       d.m_minDuration += delta;
 
-    if(!d.m_isMaxInfinite)
+    if (!d.m_isMaxInfinite)
       d.m_maxDuration += delta;
 
-    if(d.m_minDuration < TimeVal::zero())
+    if (d.m_minDuration < TimeVal::zero())
       d.m_minDuration = TimeVal::zero();
 
-    if(d.m_maxDuration <= d.m_defaultDuration && !d.m_isMaxInfinite)
-//      d.m_maxDuration = TimeVal{std::nextafter(d.m_defaultDuration.msec(), d.m_defaultDuration.msec() * 2.)};
-      d.m_maxDuration = d.m_defaultDuration * 1.05; //TimeVal{std::nextafter(d.m_defaultDuration.msec(), d.m_defaultDuration.msec() * 2.)};
+    if (d.m_maxDuration <= d.m_defaultDuration && !d.m_isMaxInfinite)
+      //      d.m_maxDuration =
+      //      TimeVal{std::nextafter(d.m_defaultDuration.msec(),
+      //      d.m_defaultDuration.msec() * 2.)};
+      d.m_maxDuration
+          = d.m_defaultDuration * 1.05; // TimeVal{std::nextafter(d.m_defaultDuration.msec(),
+                                        // d.m_defaultDuration.msec() * 2.)};
 
     if (d.m_guiDuration < d.m_defaultDuration)
       d.m_guiDuration = time * 1.1;
 
     if (d.m_guiDuration < d.m_maxDuration && !d.m_isMaxInfinite)
       d.m_guiDuration = d.m_maxDuration * 1.1;
-
 
     d.defaultDurationChanged(time);
     d.guiDurationChanged(d.m_guiDuration);
@@ -239,9 +231,7 @@ IntervalDurations::Algorithms::changeAllDurations(
 }
 
 SCORE_PLUGIN_SCENARIO_EXPORT void
-IntervalDurations::Algorithms::scaleAllDurations(
-    IntervalModel& cstr,
-    const TimeVal& time)
+IntervalDurations::Algorithms::scaleAllDurations(IntervalModel& cstr, const TimeVal& time)
 {
   if (cstr.duration.defaultDuration() != time)
   {
@@ -259,21 +249,17 @@ IntervalDurations::Algorithms::scaleAllDurations(
 template <>
 void DataStreamReader::read(const Scenario::IntervalDurations& durs)
 {
-  m_stream << durs.m_defaultDuration << durs.m_minDuration
-           << durs.m_maxDuration << durs.m_guiDuration
-           << durs.m_speed
-           << durs.m_rigidity
-           << durs.m_isMinNull << durs.m_isMaxInfinite;
+  m_stream << durs.m_defaultDuration << durs.m_minDuration << durs.m_maxDuration
+           << durs.m_guiDuration << durs.m_speed << durs.m_rigidity << durs.m_isMinNull
+           << durs.m_isMaxInfinite;
 }
 
 template <>
 void DataStreamWriter::write(Scenario::IntervalDurations& durs)
 {
-  m_stream >> durs.m_defaultDuration >> durs.m_minDuration
-      >> durs.m_maxDuration >> durs.m_guiDuration
-      >> durs.m_speed
-      >> durs.m_rigidity
-      >> durs.m_isMinNull >> durs.m_isMaxInfinite;
+  m_stream >> durs.m_defaultDuration >> durs.m_minDuration >> durs.m_maxDuration
+      >> durs.m_guiDuration >> durs.m_speed >> durs.m_rigidity >> durs.m_isMinNull
+      >> durs.m_isMaxInfinite;
 }
 
 template <>
@@ -292,8 +278,7 @@ void JSONReader::read(const Scenario::IntervalDurations& durs)
 template <>
 void JSONWriter::write(Scenario::IntervalDurations& durs)
 {
-  durs.m_defaultDuration
-      <<= obj[strings.DefaultDuration];
+  durs.m_defaultDuration <<= obj[strings.DefaultDuration];
   durs.m_minDuration <<= obj[strings.MinDuration];
   durs.m_maxDuration <<= obj[strings.MaxDuration];
 

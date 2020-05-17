@@ -1,7 +1,7 @@
 #pragma once
-#include <string>
-
 #include <score_lib_base_export.h>
+
+#include <string>
 namespace score
 {
 struct StringConstants

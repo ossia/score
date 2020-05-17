@@ -20,9 +20,8 @@ LayerPresenter::LayerPresenter(
     QObject* parent)
     : Process::LayerPresenter{layer, view, ctx, parent}, m_view{view}
 {
-  connect(view, &LayerView::pressed, this, [&]() {
-    m_context.context.focusDispatcher.focus(this);
-  });
+  connect(
+      view, &LayerView::pressed, this, [&]() { m_context.context.focusDispatcher.focus(this); });
 
   con(layer, &ProcessModel::fileChanged, this, [&]() {
     m_view->setData(layer.file());
@@ -32,11 +31,7 @@ LayerPresenter::LayerPresenter(
   m_view->setData(layer.file());
   m_view->recompute(m_ratio);
 
-  connect(
-      m_view,
-      &LayerView::askContextMenu,
-      this,
-      &LayerPresenter::contextMenuRequested);
+  connect(m_view, &LayerView::askContextMenu, this, &LayerPresenter::contextMenuRequested);
   connect(m_view, &LayerView::dropReceived, this, &LayerPresenter::onDrop);
 }
 

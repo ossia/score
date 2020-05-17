@@ -1,19 +1,18 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Scenario/Document/Interval/IntervalView.hpp>
-
+#include <Process/Dataflow/CableItem.hpp>
+#include <Process/ProcessMimeSerialization.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
+#include <Scenario/Application/Menus/ScenarioCopy.hpp>
+#include <Scenario/Document/Interval/IntervalHeader.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
-#include <Scenario/Document/Interval/IntervalHeader.hpp>
-
-#include <Process/Dataflow/CableItem.hpp>
-#include <Process/Style/ScenarioStyle.hpp>
-#include <Process/ProcessMimeSerialization.hpp>
-#include <Scenario/Application/Menus/ScenarioCopy.hpp>
+#include <Scenario/Document/Interval/IntervalView.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <score/widgets/MimeData.hpp>
+
 #include <QCursor>
 #include <QDrag>
 #include <QMimeData>
@@ -61,7 +60,7 @@ IntervalView::~IntervalView()
       item->setParentItem(nullptr);
     }
   }
-  //delete m_overlay;
+  // delete m_overlay;
 }
 
 void IntervalView::setInfinite(bool infinite)
@@ -79,11 +78,11 @@ void IntervalView::setInfinite(bool infinite)
 
 void IntervalView::setExecuting(bool e)
 {
-  if(m_waiting && !e)
+  if (m_waiting && !e)
   {
     m_execPing.start();
   }
-  else if(e)
+  else if (e)
   {
     m_execPing.stop();
   }
@@ -148,12 +147,12 @@ void IntervalView::setHeight(double height)
 double IntervalView::setPlayWidth(double width)
 {
   const auto v = std::abs(m_playWidth - width);
-  if (v > 1.
-      || (width > 0 && (playedSolidPath.isEmpty())))
+  if (v > 1. || (width > 0 && (playedSolidPath.isEmpty())))
   {
     m_playWidth = width;
     updatePlayPaths();
-    // Already called in DisplayedElementsPresenter::on_intervalExecutionTimer() and
+    // Already called in
+    // DisplayedElementsPresenter::on_intervalExecutionTimer() and
     // ScenarioPresenter::on_intervalExecutionTimer()
     // update();
     return v;
@@ -191,8 +190,7 @@ void IntervalView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   if (event->buttons() & Qt::MiddleButton)
   {
-    if (auto si = dynamic_cast<Scenario::ScenarioInterface*>(
-            presenter().model().parent()))
+    if (auto si = dynamic_cast<Scenario::ScenarioInterface*>(presenter().model().parent()))
     {
       JSONReader r;
       copySelectedElementsToJson(r, *const_cast<ScenarioInterface*>(si), m_presenter.context());
@@ -231,7 +229,7 @@ void IntervalView::setWarning(bool warning)
 
 const score::Brush& IntervalView::intervalColor(const Process::Style& skin) const
 {
-  if(Q_UNLIKELY(m_dropTarget))
+  if (Q_UNLIKELY(m_dropTarget))
   {
     return skin.IntervalDropTarget();
   }
@@ -259,8 +257,7 @@ const score::Brush& IntervalView::intervalColor(const Process::Style& skin) cons
 
 void IntervalView::updateCounterPos()
 {
-  m_counterItem.setPos(
-      defaultWidth() - m_counterItem.boundingRect().width() - 5, 5);
+  m_counterItem.setPos(defaultWidth() - m_counterItem.boundingRect().width() - 5, 5);
 }
 
 void IntervalView::setExecutionState(IntervalExecutionState s)

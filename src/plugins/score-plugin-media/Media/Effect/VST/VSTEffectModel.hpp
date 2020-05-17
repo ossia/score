@@ -9,10 +9,10 @@
 
 #include <ossia/detail/hash_map.hpp>
 
-
 #include <Control/DefaultEffectItem.hpp>
 #include <Effect/EffectFactory.hpp>
 #include <score_plugin_media_export.h>
+
 #include <verdigris>
 namespace Media::VST
 {
@@ -33,11 +33,7 @@ PROCESS_METADATA(
     {},
     {},
     Process::ProcessFlags::ExternalEffect)
-UUID_METADATA(
-    ,
-    Process::Port,
-    Media::VST::VSTControlInlet,
-    "e523bc44-8599-4a04-94c1-04ce0d1a692a")
+UUID_METADATA(, Process::Port, Media::VST::VSTControlInlet, "e523bc44-8599-4a04-94c1-04ce0d1a692a")
 DESCRIPTION_METADATA(, Media::VST::VSTEffectModel, "VST")
 namespace Media::VST
 {
@@ -47,12 +43,9 @@ struct AEffectWrapper
   AEffect* fx{};
   VstTimeInfo info;
 
-  AEffectWrapper(AEffect* f) noexcept : fx{f} {}
+  AEffectWrapper(AEffect* f) noexcept : fx{f} { }
 
-  auto getParameter(int32_t index) const noexcept
-  {
-    return fx->getParameter(fx, index);
-  }
+  auto getParameter(int32_t index) const noexcept { return fx->getParameter(fx, index); }
   auto setParameter(int32_t index, float p) const noexcept
   {
     return fx->setParameter(fx, index, p);
@@ -74,16 +67,14 @@ struct AEffectWrapper
     {
       fx->dispatcher(fx, effStopProcess, 0, 0, nullptr, 0.f);
       fx->dispatcher(fx, effMainsChanged, 0, 0, nullptr, 0.f);
-      score::invoke(
-          [fx = fx] { fx->dispatcher(fx, effClose, 0, 0, nullptr, 0.f); });
+      score::invoke([fx = fx] { fx->dispatcher(fx, effClose, 0, 0, nullptr, 0.f); });
     }
   }
 };
 
 class CreateVSTControl;
 class VSTControlInlet;
-class SCORE_PLUGIN_MEDIA_EXPORT VSTEffectModel final
-    : public Process::ProcessModel
+class SCORE_PLUGIN_MEDIA_EXPORT VSTEffectModel final : public Process::ProcessModel
 {
   W_OBJECT(VSTEffectModel)
   SCORE_SERIALIZE_FRIENDS
@@ -158,14 +149,11 @@ intptr_t vst_host_callback(
 namespace Process
 {
 template <>
-QString
-EffectProcessFactory_T<Media::VST::VSTEffectModel>::customConstructionData()
-    const;
+QString EffectProcessFactory_T<Media::VST::VSTEffectModel>::customConstructionData() const;
 
 template <>
 Process::Descriptor
-EffectProcessFactory_T<Media::VST::VSTEffectModel>::descriptor(
-    QString d) const;
+EffectProcessFactory_T<Media::VST::VSTEffectModel>::descriptor(QString d) const;
 }
 
 namespace Media::VST

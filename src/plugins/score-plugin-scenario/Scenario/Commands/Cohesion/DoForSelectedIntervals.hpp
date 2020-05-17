@@ -14,8 +14,8 @@ void DoForSelectedIntervals(const score::DocumentContext& doc, Fun f)
   using namespace std;
 
   // Fetch the selected intervals
-  auto selected_intervals = filterSelectionByType<IntervalModel>(
-      doc.selectionStack.currentSelection());
+  auto selected_intervals
+      = filterSelectionByType<IntervalModel>(doc.selectionStack.currentSelection());
 
   if (selected_intervals.empty())
     return;

@@ -13,23 +13,23 @@
 #include <core/presenter/Presenter.hpp>
 #include <core/settings/Settings.hpp>
 #include <core/settings/SettingsView.hpp>
+#include <core/view/FixedTabWidget.hpp>
 #include <core/view/QRecentFilesMenu.h>
 #include <core/view/Window.hpp>
-#include <core/view/FixedTabWidget.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 
+#include <QApplication>
 #include <QMenuBar>
 #include <QObject>
+#include <QPainter>
 #include <QToolBar>
-#include <QApplication>
 #include <qnamespace.h>
 
 #include <wobjectimpl.h>
 
 #include <vector>
 
-#include <QPainter>
 #include <unordered_map>
 W_OBJECT_IMPL(score::Presenter)
 namespace score
@@ -57,23 +57,21 @@ Presenter::Presenter(
     , m_components{}
     , m_components_readonly{m_components}
     , m_menubar{get_menubar(view)}
-    , m_context{app,
-                m_components_readonly,
-                m_docManager,
-                m_menus,
-                m_toolbars,
-                m_actions,
-                m_settings.settings(),
-                m_view}
+    , m_context{
+          app,
+          m_components_readonly,
+          m_docManager,
+          m_menus,
+          m_toolbars,
+          m_actions,
+          m_settings.settings(),
+          m_view}
 {
   m_docManager.init(m_context); // It is necessary to break
   // this dependency cycle.
 
   connect(
-      &m_context.docManager,
-      &DocumentManager::documentChanged,
-      &m_actions,
-      &ActionManager::reset);
+      &m_context.docManager, &DocumentManager::documentChanged, &m_actions, &ActionManager::reset);
 
   if (m_view)
     m_view->setPresenter(this);
@@ -131,9 +129,7 @@ void Presenter::setupGUI()
 
     for (auto& tb : toolbars)
     {
-      ossia::sort(tb.second, [](auto& lhs, auto& rhs) {
-        return lhs.column() < rhs.column();
-      });
+      ossia::sort(tb.second, [](auto& lhs, auto& rhs) { return lhs.column() < rhs.column(); });
     }
 
     {
@@ -148,8 +144,6 @@ void Presenter::setupGUI()
     {
       auto bw = view()->transportBar;
       auto bl = (QGridLayout*)bw->layout();
-
-
 
       int i = 0;
       for (const Toolbar& tb : toolbars[Qt::BottomToolBarArea])

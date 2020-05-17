@@ -10,7 +10,6 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VariantSerialization.hpp>
 
-
 template <>
 void DataStreamReader::read(const State::Pulse& rel)
 {

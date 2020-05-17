@@ -18,8 +18,7 @@
 namespace Scenario
 {
 template <typename Scenario_T, typename ToolPalette_T>
-class Creation_FromEvent final
-    : public CreationState<Scenario_T, ToolPalette_T>
+class Creation_FromEvent final : public CreationState<Scenario_T, ToolPalette_T>
 {
 public:
   Creation_FromEvent(
@@ -27,15 +26,15 @@ public:
       const Scenario_T& scenarioPath,
       const score::CommandStackFacade& stack,
       QState* parent)
-      : CreationState<Scenario_T, ToolPalette_T>{stateMachine,
-                                                 stack,
-                                                 std::move(scenarioPath),
-                                                 parent}
+      : CreationState<Scenario_T, ToolPalette_T>{
+          stateMachine,
+          stack,
+          std::move(scenarioPath),
+          parent}
   {
     using namespace Scenario::Command;
     auto finalState = new QFinalState{this};
-    QObject::connect(
-        finalState, &QState::entered, [&]() { this->clearCreatedIds(); });
+    QObject::connect(finalState, &QState::entered, [&]() { this->clearCreatedIds(); });
 
     auto mainState = new QState{this};
     mainState->setObjectName("Main state");
@@ -59,12 +58,10 @@ public:
       released->addTransition(finalState);
 
       // Release
-      score::make_transition<ReleaseOnAnything_Transition>(
-          mainState, released);
+      score::make_transition<ReleaseOnAnything_Transition>(mainState, released);
 
       // Pressed -> ...
-      score::make_transition<MoveOnNothing_Transition<Scenario_T>>(
-          pressed, move_nothing, *this);
+      score::make_transition<MoveOnNothing_Transition<Scenario_T>>(pressed, move_nothing, *this);
 
       /// MoveOnNothing -> ...
       // MoveOnNothing -> MoveOnNothing.
@@ -125,8 +122,7 @@ public:
       });
 
       // MoveOnEvent -> MoveOnEvent
-      score::make_transition<MoveOnEvent_Transition<Scenario_T>>(
-          move_event, move_event, *this);
+      score::make_transition<MoveOnEvent_Transition<Scenario_T>>(move_event, move_event, *this);
 
       // MoveOnEvent -> MoveOnTimeSync
       this->add_transition(move_event, move_timesync, [&]() {
@@ -175,12 +171,12 @@ public:
 
         if (this->currentPoint.date <= this->m_clickedPoint.date)
         {
-          this->currentPoint.date
-              = this->m_clickedPoint.date + TimeVal::fromMsecs(10);
+          this->currentPoint.date = this->m_clickedPoint.date + TimeVal::fromMsecs(10);
           ;
         }
 
-        this->currentPoint.date = stateMachine.magnetic().getPosition(&stateMachine.model(), this->currentPoint.date);
+        this->currentPoint.date
+            = stateMachine.magnetic().getPosition(&stateMachine.model(), this->currentPoint.date);
 
         this->m_dispatcher.template submit<MoveNewEvent>(
             this->m_scenario,
@@ -204,9 +200,7 @@ public:
         }
 
         this->m_dispatcher.template submit<MoveNewState>(
-            this->m_scenario,
-            this->createdStates.last(),
-            this->currentPoint.y);
+            this->m_scenario, this->createdStates.last(), this->currentPoint.y);
       });
 
       QObject::connect(move_event, &QState::entered, [&]() {
@@ -222,21 +216,17 @@ public:
         }
 
         this->m_dispatcher.template submit<MoveNewState>(
-            this->m_scenario,
-            this->createdStates.last(),
-            this->currentPoint.y);
+            this->m_scenario, this->createdStates.last(), this->currentPoint.y);
       });
 
-      QObject::connect(
-          released, &QState::entered, this, &Creation_FromEvent::commit);
+      QObject::connect(released, &QState::entered, this, &Creation_FromEvent::commit);
     }
 
     auto rollbackState = new QState{this};
     rollbackState->setObjectName("Rollback");
     score::make_transition<score::Cancel_Transition>(mainState, rollbackState);
     rollbackState->addTransition(finalState);
-    QObject::connect(
-        rollbackState, &QState::entered, this, &Creation_FromEvent::rollback);
+    QObject::connect(rollbackState, &QState::entered, this, &Creation_FromEvent::rollback);
 
     this->setInitialState(mainState);
   }

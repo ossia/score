@@ -12,9 +12,9 @@
 namespace Media
 {
 
-class AudioChainComponentBase : public ::Execution::ProcessComponent_T<
-                                       Media::AudioChain::ProcessModel,
-                                       ossia::node_chain_process>
+class AudioChainComponentBase
+    : public ::Execution::
+          ProcessComponent_T<Media::AudioChain::ProcessModel, ossia::node_chain_process>
 
 {
   COMPONENT_METADATA("d638adb3-64da-4b6e-b84d-7c32684fa79d")
@@ -43,8 +43,7 @@ public:
   }
   void added(::Execution::ProcessComponent& e);
 
-  std::function<void()>
-  removing(const Process::ProcessModel& e, ::Execution::ProcessComponent& c);
+  std::function<void()> removing(const Process::ProcessModel& e, ::Execution::ProcessComponent& c);
   template <typename Component_T, typename Element, typename Fun>
   void removed(const Element& elt, const Component_T& comp, Fun f)
   {
@@ -82,33 +81,22 @@ protected:
   std::vector<std::pair<Id<Process::ProcessModel>, RegisteredEffect>> m_fxes;
 
   void unreg(const RegisteredEffect& fx);
-  void
-  reg(const RegisteredEffect& fx, Execution::Transaction&);
+  void reg(const RegisteredEffect& fx, Execution::Transaction&);
   void unregister_old_first_node(
-      std::pair<
-          Id<Process::ProcessModel>,
-          AudioChainComponentBase::RegisteredEffect>& new_first,
+      std::pair<Id<Process::ProcessModel>, AudioChainComponentBase::RegisteredEffect>& new_first,
       Execution::Transaction& commands);
   void register_new_first_node(
-      std::pair<
-          Id<Process::ProcessModel>,
-          AudioChainComponentBase::RegisteredEffect>& new_first,
+      std::pair<Id<Process::ProcessModel>, AudioChainComponentBase::RegisteredEffect>& new_first,
       Execution::Transaction& commands);
   void unregister_old_last_node(
-      std::pair<
-          Id<Process::ProcessModel>,
-          AudioChainComponentBase::RegisteredEffect>& new_first,
+      std::pair<Id<Process::ProcessModel>, AudioChainComponentBase::RegisteredEffect>& new_first,
       Execution::Transaction& commands);
   void register_new_last_node(
-      std::pair<
-          Id<Process::ProcessModel>,
-          AudioChainComponentBase::RegisteredEffect>& new_first,
+      std::pair<Id<Process::ProcessModel>, AudioChainComponentBase::RegisteredEffect>& new_first,
       Execution::Transaction& commands);
 
   void register_node_again(
-      std::pair<
-          Id<Process::ProcessModel>,
-          AudioChainComponentBase::RegisteredEffect>& new_first,
+      std::pair<Id<Process::ProcessModel>, AudioChainComponentBase::RegisteredEffect>& new_first,
       Execution::Transaction& commands);
   void createPassthrough(Execution::Transaction&);
   void removePassthrough(Execution::Transaction&);
@@ -117,8 +105,7 @@ protected:
 };
 
 class AudioChainComponent final
-    : public score::
-          PolymorphicComponentHierarchy<AudioChainComponentBase, false>
+    : public score::PolymorphicComponentHierarchy<AudioChainComponentBase, false>
 {
 public:
   AudioChainComponent(
@@ -136,8 +123,7 @@ public:
   ~AudioChainComponent();
 };
 
-using AudioChainComponentFactory
-    = ::Execution::ProcessComponentFactory_T<AudioChainComponent>;
+using AudioChainComponentFactory = ::Execution::ProcessComponentFactory_T<AudioChainComponent>;
 }
 
 SCORE_CONCRETE_COMPONENT_FACTORY(

@@ -17,11 +17,10 @@
 
 namespace Loop
 {
-class LayerPresenter final : public Process::LayerPresenter,
-                             public BaseScenarioPresenter<
-                                 Loop::ProcessModel,
-                                 Scenario::TemporalIntervalPresenter>,
-                             public Nano::Observer
+class LayerPresenter final
+    : public Process::LayerPresenter,
+      public BaseScenarioPresenter<Loop::ProcessModel, Scenario::TemporalIntervalPresenter>,
+      public Nano::Observer
 {
   W_OBJECT(LayerPresenter)
   friend class ViewUpdater;
@@ -36,9 +35,7 @@ public:
   ~LayerPresenter();
   LayerView& view() const { return *m_view; }
 
-  using BaseScenarioPresenter<
-      Loop::ProcessModel,
-      Scenario::TemporalIntervalPresenter>::event;
+  using BaseScenarioPresenter<Loop::ProcessModel, Scenario::TemporalIntervalPresenter>::event;
   using QObject::event;
 
   void setWidth(qreal width, qreal defaultWidth) override;
@@ -56,11 +53,9 @@ public:
 
   ZoomRatio zoomRatio() const { return m_zoomRatio; }
 
-  void fillContextMenu(
-      QMenu&,
-      QPoint pos,
-      QPointF scenepos,
-      const Process::LayerContextMenuManager&) override;
+  void
+  fillContextMenu(QMenu&, QPoint pos, QPointF scenepos, const Process::LayerContextMenuManager&)
+      override;
 
 public:
   void pressed(QPointF arg_1) W_SIGNAL(pressed, arg_1);

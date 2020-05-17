@@ -20,17 +20,11 @@ DocumentPresenter::DocumentPresenter(
     : QObject{parent}
     , m_view{v}
     , m_model{m}
-    , m_presenter{fact.makePresenter(
-          ctx,
-          this,
-          m_model.modelDelegate(),
-          m_view.viewDelegate())}
+    , m_presenter{fact.makePresenter(ctx, this, m_model.modelDelegate(), m_view.viewDelegate())}
 {
 }
 
-void DocumentPresenter::setNewSelection(
-    const Selection& old,
-    const Selection& s)
+void DocumentPresenter::setNewSelection(const Selection& old, const Selection& s)
 {
   m_presenter->setNewSelection(old, s);
 }

@@ -33,13 +33,8 @@ public:
   }
 };
 
-using LoopComponent = HierarchicalBaseScenario<
-    LoopBase,
-    ::Loop::ProcessModel,
-    Interval,
-    Event,
-    Sync,
-    State>;
+using LoopComponent
+    = HierarchicalBaseScenario<LoopBase, ::Loop::ProcessModel, Interval, Event, Sync, State>;
 
 using LoopComponentFactory = ProcessComponentFactory_T<LoopComponent>;
 

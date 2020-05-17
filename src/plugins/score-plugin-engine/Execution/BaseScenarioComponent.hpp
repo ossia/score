@@ -4,9 +4,9 @@
 #include <QObject>
 
 #include <score_plugin_engine_export.h>
-#include <verdigris>
 
 #include <memory>
+#include <verdigris>
 namespace ossia
 {
 struct time_value;
@@ -36,9 +36,7 @@ class TimeSyncComponent;
 class BaseScenarioRefContainer
 {
 public:
-  BaseScenarioRefContainer(
-      Scenario::IntervalModel& interval,
-      Scenario::ScenarioInterface& s);
+  BaseScenarioRefContainer(Scenario::IntervalModel& interval, Scenario::ScenarioInterface& s);
 
   BaseScenarioRefContainer(
       Scenario::IntervalModel& interval,

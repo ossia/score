@@ -17,10 +17,10 @@
 
 #include <core/document/Document.hpp>
 
+#include <QDebug>
 #include <QFileInfo>
 #include <QFileSystemWatcher>
 #include <QQmlComponent>
-#include <QDebug>
 
 #include <wobjectimpl.h>
 
@@ -33,10 +33,7 @@ ProcessModel::ProcessModel(
     const QString& data,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : Process::ProcessModel{duration,
-                            id,
-                            Metadata<ObjectKey_k, ProcessModel>::get(),
-                            parent}
+    : Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
 {
   if (data.isEmpty())
   {
@@ -66,9 +63,7 @@ Script {
   metadata().setInstanceName(*this);
 }
 
-ProcessModel::~ProcessModel()
-{
-}
+ProcessModel::~ProcessModel() { }
 
 void ProcessModel::setScript(const QString& script)
 {
@@ -86,8 +81,7 @@ void ProcessModel::setScript(const QString& script)
 
   QByteArray data = trimmed.toUtf8();
 
-  auto path = score::locateFilePath(
-      trimmed, score::IDocument::documentContext(*this));
+  auto path = score::locateFilePath(trimmed, score::IDocument::documentContext(*this));
 
   if (QFileInfo{path}.exists())
   {
@@ -100,7 +94,8 @@ void ProcessModel::setScript(const QString& script)
         this,
         [=](const QString& path) {
           // Note:
-          // https://stackoverflow.com/questions/18300376/qt-qfilesystemwatcher-signal-filechanged-gets-emited-only-once
+          //
+    https://stackoverflow.com/questions/18300376/qt-qfilesystemwatcher-signal-filechanged-gets-emited-only-once
           QTimer::singleShot(20, this, [this, path] {
             m_watch->addPath(path);
             QFile f(path);
@@ -130,7 +125,7 @@ void ProcessModel::setQmlData(const QByteArray& data, bool isFile)
   m_qmlData = data;
 
   auto script = m_cache.get(*this, data, isFile);
-  if(!script)
+  if (!script)
     return;
 
   auto old_inlets = score::clearAndDeleteLater(m_inlets);
@@ -174,7 +169,6 @@ void ProcessModel::setQmlData(const QByteArray& data, bool isFile)
 Script* ProcessModel::currentObject() const noexcept
 {
   return m_cache.tryGet(m_qmlData, m_isFile);
-
 }
 
 ComponentCache::ComponentCache() { }
@@ -194,8 +188,8 @@ Script* ComponentCache::tryGet(const QByteArray& str, bool isFile) const noexcep
     content = str;
   }
 
-  auto it = ossia::find_if(m_map, [&] (const auto& k) { return k.key == content; });
-  if(it != m_map.end())
+  auto it = ossia::find_if(m_map, [&](const auto& k) { return k.key == content; });
+  if (it != m_map.end())
   {
     return it->object.get();
   }
@@ -219,15 +213,15 @@ Script* ComponentCache::get(ProcessModel& process, const QByteArray& str, bool i
     content = str;
   }
 
-  auto it = ossia::find_if(m_map, [&] (const auto& k) { return k.key == content; });
-  if(it != m_map.end())
+  auto it = ossia::find_if(m_map, [&](const auto& k) { return k.key == content; });
+  if (it != m_map.end())
   {
     return it->object.get();
   }
   else
   {
     auto comp = std::make_unique<QQmlComponent>(&process.engine());
-    if(!isFile)
+    if (!isFile)
     {
       comp->setData(str, QUrl());
     }
@@ -247,9 +241,9 @@ Script* ComponentCache::get(ProcessModel& process, const QByteArray& str, bool i
 
     auto obj = comp->create();
     auto script = qobject_cast<JS::Script*>(obj);
-    if(script)
+    if (script)
     {
-      if(m_map.size() > 5)
+      if (m_map.size() > 5)
         m_map.erase(m_map.begin());
 
       m_map.emplace_back(Cache{str, std::move(comp), std::unique_ptr<JS::Script>(script)});
@@ -258,7 +252,7 @@ Script* ComponentCache::get(ProcessModel& process, const QByteArray& str, bool i
     else
     {
       process.errorMessage(0, "The component must be of type Script");
-      if(obj)
+      if (obj)
       {
         delete obj;
       }

@@ -4,7 +4,6 @@
 #include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
-
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Tools/dataStructures.hpp>
 #include <Scenario/Tools/elementFindingHelper.hpp>
@@ -34,10 +33,7 @@ class MoveEvent final : public SerializableMoveEvent
   // No SCORE_COMMAND here since it's a template.
 
 public:
-  const CommandGroupKey& parentKey() const noexcept override
-  {
-    return CommandFactoryName();
-  }
+  const CommandGroupKey& parentKey() const noexcept override { return CommandFactoryName(); }
   const CommandKey& key() const noexcept override
   {
     static const QByteArray name
@@ -47,11 +43,10 @@ public:
   }
   QString description() const override
   {
-    return QObject::tr("Move an event with %1")
-        .arg(DisplacementPolicy::name());
+    return QObject::tr("Move an event with %1").arg(DisplacementPolicy::name());
   }
 
-  MoveEvent() : SerializableMoveEvent{} {}
+  MoveEvent() : SerializableMoveEvent{} { }
   /**
    * @brief MoveEvent
    * @param scenarioPath
@@ -99,10 +94,9 @@ public:
     // NOTICE: multiple event displacement functionnality already available,
     // this is "retro" compatibility
     QVector<Id<TimeSyncModel>> draggedElements;
-    draggedElements.push_back(
-        scenario.events.at(eventId).timeSync()); // retrieve corresponding
-                                                 // timesync and store it in
-                                                 // array
+    draggedElements.push_back(scenario.events.at(eventId).timeSync()); // retrieve corresponding
+                                                                       // timesync and store it in
+                                                                       // array
 
     // the displacement is computed here and we don't need to know how.
     DisplacementPolicy::computeDisplacement(
@@ -117,9 +111,7 @@ public:
     DisplacementPolicy::revertPositions(
         ctx,
         scenario,
-        [&](Process::ProcessModel& p, const TimeVal& t) {
-          p.setParentDuration(m_mode, t);
-        },
+        [&](Process::ProcessModel& p, const TimeVal& t) { p.setParentDuration(m_mode, t); },
         m_savedElementsProperties);
 
     // Dataflow::restoreCables(m_savedElementsProperties.cables, ctx);
@@ -132,9 +124,7 @@ public:
     // update positions using new stored dates
     DisplacementPolicy::updatePositions(
         scenario,
-        [&](Process::ProcessModel& p, const TimeVal& t) {
-          p.setParentDuration(m_mode, t);
-        },
+        [&](Process::ProcessModel& p, const TimeVal& t) { p.setParentDuration(m_mode, t); },
         m_savedElementsProperties);
   }
 
@@ -143,15 +133,13 @@ public:
 protected:
   void serializeImpl(DataStreamInput& s) const override
   {
-    s << m_savedElementsProperties << m_path << m_eventId << m_initialDate
-      << (int)m_mode;
+    s << m_savedElementsProperties << m_path << m_eventId << m_initialDate << (int)m_mode;
   }
 
   void deserializeImpl(DataStreamOutput& s) override
   {
     int mode;
-    s >> m_savedElementsProperties >> m_path >> m_eventId >> m_initialDate
-        >> mode;
+    s >> m_savedElementsProperties >> m_path >> m_eventId >> m_initialDate >> mode;
 
     m_mode = static_cast<ExpandMode>(mode);
   }
@@ -168,8 +156,7 @@ private:
    * @brief m_initialDate
    * the delta will be calculated from the initial date
    */
-  TimeVal
-      m_initialDate; // used to compute the deltaTime and respect undo behavior
+  TimeVal m_initialDate; // used to compute the deltaTime and respect undo behavior
 };
 }
 }

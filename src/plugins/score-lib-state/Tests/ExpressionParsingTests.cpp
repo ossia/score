@@ -378,16 +378,17 @@ private Q_SLOTS:
 
   void test_parse_value()
   {
-    std::vector<std::string> str_list{"[1,2,3]",
-                                      "[1]",
-                                      "[ 1 ]",
-                                      "[ 1, 2, 3 ]",
-                                      "[ 1, 2.3, 3, 'c' ]",
-                                      "1",
-                                      "1.23",
-                                      "'c'",
-                                      "\"lala\"",
-                                      "\"lala lala\""};
+    std::vector<std::string> str_list{
+        "[1,2,3]",
+        "[1]",
+        "[ 1 ]",
+        "[ 1, 2, 3 ]",
+        "[ 1, 2.3, 3, 'c' ]",
+        "1",
+        "1.23",
+        "'c'",
+        "\"lala\"",
+        "\"lala lala\""};
 
     for (const auto& str : str_list)
     {
@@ -426,8 +427,7 @@ private Q_SLOTS:
 
   void test_parse_rel()
   {
-    std::vector<std::string> str_list{"%minuit:/device%<=1234",
-                                      "%minuit:/device% <= 1234"};
+    std::vector<std::string> str_list{"%minuit:/device%<=1234", "%minuit:/device% <= 1234"};
 
     for (const auto& str : str_list)
     {
@@ -440,8 +440,7 @@ private Q_SLOTS:
       bool r = parse(first, last, parser, val);
 
       qDebug() << str.c_str() << r << val.lhs.target<State::Address>()->path
-               << State::convert::toPrettyString(
-                      *val.rhs.target<ossia::value>());
+               << State::convert::toPrettyString(*val.rhs.target<ossia::value>());
     }
   }
 
@@ -539,13 +538,10 @@ private Q_SLOTS:
   }
   void test_address_dot_in_instances()
   {
-    debug_path(
-        State::parseAddressAccessor("myapp:/score/color.1@[color.rgb.r]"));
+    debug_path(State::parseAddressAccessor("myapp:/score/color.1@[color.rgb.r]"));
     debug_path(State::parseAddressAccessor("myapp:/score/color.1"));
-    debug_path(
-        State::parseAddressAccessor("myapp:/score/color@[color.rgb.r]"));
-    debug_path(
-        State::parseAddressAccessor("myapp:/score/color.1@[color.rgb]"));
+    debug_path(State::parseAddressAccessor("myapp:/score/color@[color.rgb.r]"));
+    debug_path(State::parseAddressAccessor("myapp:/score/color.1@[color.rgb]"));
 
     debug_path(State::parseAddress("myapp:/score/color.1@[color.rgb.r]"));
     debug_path(State::parseAddress("myapp:/score/color.1"));
@@ -556,22 +552,15 @@ private Q_SLOTS:
   void test_parse_random()
   {
     using namespace std::literals;
-    QVERIFY(bool(
-        State::parseAddressAccessor("myapp:/score/color.1@[color.rgb.r]")));
+    QVERIFY(bool(State::parseAddressAccessor("myapp:/score/color.1@[color.rgb.r]")));
     QVERIFY(bool(State::parseExpression("{ %myapp:/score% > 2}"s)));
     QVERIFY(bool(State::parseExpression("{2 > %myapp:/stagescore% }"s)));
-    QVERIFY(bool(
-        State::parseExpression("{ %myapp:/score% > %myapp:/stagescore% }"s)));
-    QVERIFY(bool(
-        State::parseExpression("{ %myapp:/score% >= %myapp:/stagescore% }"s)));
-    QVERIFY(bool(State::parseExpression(
-        "{ %my_app:/score% > %my_app:/stagescore% }"s)));
-    QVERIFY(bool(State::parseExpression(
-        "{ %my_app:/score% > %my_app:/stage_score% }"s)));
-    QVERIFY(bool(State::parseExpression(
-        "{ %my_app:/score% > %my_app:/stage_score% }"s)));
-    QVERIFY(bool(State::parseExpression(
-        "{ { %A:/B% > %c:/D% } and { %e:/f% > %g:/h% } }"s)));
+    QVERIFY(bool(State::parseExpression("{ %myapp:/score% > %myapp:/stagescore% }"s)));
+    QVERIFY(bool(State::parseExpression("{ %myapp:/score% >= %myapp:/stagescore% }"s)));
+    QVERIFY(bool(State::parseExpression("{ %my_app:/score% > %my_app:/stagescore% }"s)));
+    QVERIFY(bool(State::parseExpression("{ %my_app:/score% > %my_app:/stage_score% }"s)));
+    QVERIFY(bool(State::parseExpression("{ %my_app:/score% > %my_app:/stage_score% }"s)));
+    QVERIFY(bool(State::parseExpression("{ { %A:/B% > %c:/D% } and { %e:/f% > %g:/h% } }"s)));
   }
 
   // void test_parse_patternmatch()

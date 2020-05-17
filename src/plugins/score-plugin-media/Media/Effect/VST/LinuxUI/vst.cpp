@@ -19,10 +19,7 @@ void VSTWindow::setup_rect(QWidget* container, int width, int height)
   container->setBaseSize({width, height});
 }
 
-VSTWindow::VSTWindow(
-    const VSTEffectModel& e,
-    const score::DocumentContext& ctx)
-    : m_model{e}
+VSTWindow::VSTWindow(const VSTEffectModel& e, const score::DocumentContext& ctx) : m_model{e}
 {
   if (!e.fx)
     throw std::runtime_error("Cannot create UI");
@@ -47,8 +44,7 @@ VSTWindow::VSTWindow(
 
     for (auto& inlet : e.controls)
     {
-      auto sl
-          = VSTFloatSlider::make_item(&fx, *inlet.second, ctx, nullptr, this);
+      auto sl = VSTFloatSlider::make_item(&fx, *inlet.second, ctx, nullptr, this);
       widg->addItem(sl);
     }
   }

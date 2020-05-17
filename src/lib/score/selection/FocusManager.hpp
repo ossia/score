@@ -26,7 +26,8 @@ public:
 
   void changed() E_SIGNAL(SCORE_LIB_BASE_EXPORT, changed)
 
-      private : QPointer<const IdentifiedObjectAbstract> m_obj{};
+private:
+  QPointer<const IdentifiedObjectAbstract> m_obj{};
 };
 
 struct SCORE_LIB_BASE_EXPORT FocusFacade
@@ -35,7 +36,7 @@ private:
   FocusManager& m_mgr;
 
 public:
-  FocusFacade(FocusManager& mgr) : m_mgr{mgr} {}
+  FocusFacade(FocusManager& mgr) : m_mgr{mgr} { }
 
   const IdentifiedObjectAbstract* get() const { return m_mgr.get(); }
 };

@@ -6,12 +6,12 @@
 #include "LocalProtocolSettingsWidget.hpp"
 
 #include <Device/Protocol/DeviceSettings.hpp>
-#include <LocalTree/Device/LocalSpecificSettings.hpp>
 
+#include <QDebug>
 #include <QObject>
 
+#include <LocalTree/Device/LocalSpecificSettings.hpp>
 #include <LocalTree/LocalTreeDocumentPlugin.hpp>
-#include <QDebug>
 namespace Device
 {
 class DeviceInterface;
@@ -67,8 +67,7 @@ Device::ProtocolSettingsWidget* LocalProtocolFactory::makeSettingsWidget()
   return new LocalProtocolSettingsWidget;
 }
 
-QVariant LocalProtocolFactory::makeProtocolSpecificSettings(
-    const VisitorVariant& visitor) const
+QVariant LocalProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
 {
   return makeProtocolSpecificSettings_T<LocalSpecificSettings>(visitor);
 }

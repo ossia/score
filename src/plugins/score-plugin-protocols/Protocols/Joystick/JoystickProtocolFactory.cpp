@@ -41,8 +41,7 @@ Device::ProtocolSettingsWidget* JoystickProtocolFactory::makeSettingsWidget()
   return new JoystickProtocolSettingsWidget;
 }
 
-QVariant JoystickProtocolFactory::makeProtocolSpecificSettings(
-    const VisitorVariant& visitor) const
+QVariant JoystickProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
 {
   return makeProtocolSpecificSettings_T<JoystickSpecificSettings>(visitor);
 }

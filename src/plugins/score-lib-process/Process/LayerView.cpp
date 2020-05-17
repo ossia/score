@@ -15,7 +15,7 @@
 W_OBJECT_IMPL(Process::LayerView)
 namespace Process
 {
-HeaderDelegate::~HeaderDelegate() {}
+HeaderDelegate::~HeaderDelegate() { }
 
 LayerView::~LayerView()
 {
@@ -28,8 +28,8 @@ LayerView::~LayerView()
     }
   }
 }
-void LayerView::heightChanged(qreal) {}
-void LayerView::widthChanged(qreal) {}
+void LayerView::heightChanged(qreal) { }
+void LayerView::widthChanged(qreal) { }
 
 MiniLayer::~MiniLayer() = default;
 
@@ -57,10 +57,7 @@ QRectF LayerView::boundingRect() const
   return {0, 0, m_width, m_height};
 }
 
-void LayerView::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+void LayerView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   paint_impl(painter);
 #if defined(SCORE_SCENARIO_DEBUG_RECTS)
@@ -169,10 +166,7 @@ QRectF MiniLayer::boundingRect() const
   return {0, 0, m_width, m_height};
 }
 
-void MiniLayer::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+void MiniLayer::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   paint_impl(painter);
 }
@@ -212,7 +206,6 @@ qreal MiniLayer::zoom() const
   return m_zoom;
 }
 }
-
 
 void Process::LayerView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {

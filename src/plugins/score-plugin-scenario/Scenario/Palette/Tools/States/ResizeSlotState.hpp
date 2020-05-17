@@ -35,7 +35,7 @@ protected:
 
     return find(begin(types), end(types), e->type()) != end(types);
   }
-  void onTransition(QEvent* event) override {}
+  void onTransition(QEvent* event) override { }
 };
 
 class ReleaseOnAnything_SlotTransition final : public QAbstractTransition
@@ -58,17 +58,14 @@ protected:
 
     return find(begin(types), end(types), e->type()) != end(types);
   }
-  void onTransition(QEvent* event) override {}
+  void onTransition(QEvent* event) override { }
 };
 
 template <typename Scenario_T, typename ToolPalette_T>
 class ResizeSlotState final : public SlotState
 {
 public:
-  ResizeSlotState(
-      const score::CommandStackFacade& stack,
-      const ToolPalette_T& sm,
-      QState* parent)
+  ResizeSlotState(const score::CommandStackFacade& stack, const ToolPalette_T& sm, QState* parent)
       : SlotState{parent}, m_ongoingDispatcher{stack}, m_sm{sm}
   {
     auto press = new QState{this};
@@ -76,30 +73,22 @@ public:
     auto move = new QState{this};
     auto release = new QFinalState{this};
 
-    score::make_transition<Scenario::MoveOnAnything_SlotTransition>(
-        press, move);
-    score::make_transition<Scenario::MoveOnAnything_SlotTransition>(
-        move, move);
-    score::make_transition<Scenario::ReleaseOnAnything_SlotTransition>(
-        press, release);
-    score::make_transition<Scenario::ReleaseOnAnything_SlotTransition>(
-        move, release);
+    score::make_transition<Scenario::MoveOnAnything_SlotTransition>(press, move);
+    score::make_transition<Scenario::MoveOnAnything_SlotTransition>(move, move);
+    score::make_transition<Scenario::ReleaseOnAnything_SlotTransition>(press, release);
+    score::make_transition<Scenario::ReleaseOnAnything_SlotTransition>(move, release);
 
     connect(press, &QAbstractState::entered, [=]() {
       m_originalPoint = m_sm.scenePoint;
 
-      const IntervalModel& cst
-          = this->currentSlot.interval.find(stack.context());
+      const IntervalModel& cst = this->currentSlot.interval.find(stack.context());
       m_originalHeight = cst.getSlotHeight(this->currentSlot);
     });
 
     connect(move, &QAbstractState::entered, [=]() {
-      auto val = std::max(
-          20.0,
-          m_originalHeight + (m_sm.scenePoint.y() - m_originalPoint.y()));
+      auto val = std::max(20.0, m_originalHeight + (m_sm.scenePoint.y() - m_originalPoint.y()));
 
-      const IntervalModel& cst
-          = this->currentSlot.interval.find(stack.context());
+      const IntervalModel& cst = this->currentSlot.interval.find(stack.context());
       m_ongoingDispatcher.submit(cst, this->currentSlot, val);
     });
 
@@ -112,8 +101,7 @@ public:
   }
 
 private:
-  SingleOngoingCommandDispatcher<Scenario::Command::ResizeSlotVertically>
-      m_ongoingDispatcher;
+  SingleOngoingCommandDispatcher<Scenario::Command::ResizeSlotVertically> m_ongoingDispatcher;
   const ToolPalette_T& m_sm;
 };
 }

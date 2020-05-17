@@ -1,18 +1,15 @@
 #include <Process/Drop/ProcessDropHandler.hpp>
 
 #include <QFile>
-#include <QUrl>
-#include <QSet>
 #include <QFileInfo>
+#include <QSet>
+#include <QUrl>
 namespace Process
 {
 
-ProcessDropHandler::ProcessDropHandler()
-{
+ProcessDropHandler::ProcessDropHandler() { }
 
-}
-
-ProcessDropHandler::~ProcessDropHandler() {}
+ProcessDropHandler::~ProcessDropHandler() { }
 
 std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandler::getDrops(
     const QMimeData& mime,
@@ -87,9 +84,8 @@ QSet<QString> ProcessDropHandler::fileExtensions() const noexcept
   return {};
 }
 
-std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandler::drop(
-    const QMimeData& data,
-    const score::DocumentContext& ctx) const noexcept
+std::vector<ProcessDropHandler::ProcessDrop>
+ProcessDropHandler::drop(const QMimeData& data, const score::DocumentContext& ctx) const noexcept
 {
   return {};
 }
@@ -101,7 +97,7 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandler::dropData(
   return {};
 }
 
-ProcessDropHandlerList::~ProcessDropHandlerList() {}
+ProcessDropHandlerList::~ProcessDropHandlerList() { }
 
 std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandlerList::getDrop(
     const QMimeData& mime,
@@ -116,16 +112,15 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandlerList::getDrop(
   return res;
 }
 
-optional<TimeVal> ProcessDropHandlerList::getMaxDuration(
-    const std::vector<ProcessDropHandler::ProcessDrop>& res)
+optional<TimeVal>
+ProcessDropHandlerList::getMaxDuration(const std::vector<ProcessDropHandler::ProcessDrop>& res)
 {
   using drop_t = Process::ProcessDropHandler::ProcessDrop;
   SCORE_ASSERT(!res.empty());
 
-  auto max_t = std::max_element(
-      res.begin(), res.end(), [](const drop_t& l, const drop_t& r) {
-        return l.duration < r.duration;
-      });
+  auto max_t = std::max_element(res.begin(), res.end(), [](const drop_t& l, const drop_t& r) {
+    return l.duration < r.duration;
+  });
 
   return max_t->duration;
 }

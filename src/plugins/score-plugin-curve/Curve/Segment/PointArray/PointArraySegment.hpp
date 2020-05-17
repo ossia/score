@@ -1,8 +1,8 @@
 #pragma once
 #include <Curve/Segment/CurveSegmentModel.hpp>
 
-#include <score/serialization/VisitorInterface.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+#include <score/serialization/VisitorInterface.hpp>
 
 #include <ossia/detail/flat_map.hpp>
 
@@ -10,11 +10,10 @@
 #include <QVariant>
 #include <QVector>
 
-#include <verdigris>
-
 #include <memory>
 #include <utility>
 #include <vector>
+#include <verdigris>
 
 class QObject;
 #include <score/model/Identifier.hpp>
@@ -48,25 +47,17 @@ class SCORE_PLUGIN_CURVE_EXPORT PointArraySegment final : public SegmentModel
   MODEL_METADATA_IMPL(PointArraySegment)
 public:
   using data_type = PointArraySegmentData;
-  PointArraySegment(const Id<SegmentModel>& id, QObject* parent)
-      : SegmentModel{id, parent}
-  {
-  }
+  PointArraySegment(const Id<SegmentModel>& id, QObject* parent) : SegmentModel{id, parent} { }
   PointArraySegment(const SegmentData& dat, QObject* parent);
 
-  PointArraySegment(
-      const PointArraySegment& other,
-      const id_type& id,
-      QObject* parent);
+  PointArraySegment(const PointArraySegment& other, const id_type& id, QObject* parent);
 
-  PointArraySegment(DataStream::Deserializer& vis, QObject* parent)
-      : SegmentModel{vis, parent}
+  PointArraySegment(DataStream::Deserializer& vis, QObject* parent) : SegmentModel{vis, parent}
   {
     vis.writeTo(*this);
   }
 
-  PointArraySegment(JSONObject::Deserializer& vis, QObject* parent)
-      : SegmentModel{vis, parent}
+  PointArraySegment(JSONObject::Deserializer& vis, QObject* parent) : SegmentModel{vis, parent}
   {
     vis.writeTo(*this);
   }
@@ -113,10 +104,8 @@ public:
   void reset();
 
 public:
-  void minChanged(double arg_1)
-      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, minChanged, arg_1)
-  void maxChanged(double arg_1)
-      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, maxChanged, arg_1)
+  void minChanged(double arg_1) E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, minChanged, arg_1)
+  void maxChanged(double arg_1) E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, maxChanged, arg_1)
 
 private:
   // Coordinates in {x, y}.

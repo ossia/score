@@ -1,4 +1,3 @@
-#include <QDebug>
 #include "Port.hpp"
 
 #include "PortItem.hpp"
@@ -6,13 +5,16 @@
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/PortListWidget.hpp>
-#include <Control/Widgets.hpp>
+
 #include <score/model/path/PathSerialization.hpp>
 #include <score/plugins/SerializableHelpers.hpp>
-#include <ossia/dataflow/port.hpp>
 
 #include <ossia-qt/value_metatypes.hpp>
+#include <ossia/dataflow/port.hpp>
 
+#include <QDebug>
+
+#include <Control/Widgets.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Process::Port)
 W_OBJECT_IMPL(Process::Inlet)
@@ -37,30 +39,26 @@ MODEL_METADATA_IMPL_CPP(MidiInlet)
 MODEL_METADATA_IMPL_CPP(MidiOutlet)
 MODEL_METADATA_IMPL_CPP(ControlInlet)
 MODEL_METADATA_IMPL_CPP(ControlOutlet)
-Port::~Port() {}
+Port::~Port() { }
 
 Port::Port(Id<Port> c, const QString& name, QObject* parent)
     : IdentifiedObject<Port>{c, name, parent}
 {
 }
 
-Port::Port(DataStream::Deserializer& vis, QObject* parent)
-    : IdentifiedObject{vis, parent}
+Port::Port(DataStream::Deserializer& vis, QObject* parent) : IdentifiedObject{vis, parent}
 {
   vis.writeTo(*this);
 }
-Port::Port(JSONObject::Deserializer& vis, QObject* parent)
-    : IdentifiedObject{vis, parent}
+Port::Port(JSONObject::Deserializer& vis, QObject* parent) : IdentifiedObject{vis, parent}
 {
   vis.writeTo(*this);
 }
-Port::Port(DataStream::Deserializer&& vis, QObject* parent)
-    : IdentifiedObject{vis, parent}
+Port::Port(DataStream::Deserializer&& vis, QObject* parent) : IdentifiedObject{vis, parent}
 {
   vis.writeTo(*this);
 }
-Port::Port(JSONObject::Deserializer&& vis, QObject* parent)
-    : IdentifiedObject{vis, parent}
+Port::Port(JSONObject::Deserializer&& vis, QObject* parent) : IdentifiedObject{vis, parent}
 {
   vis.writeTo(*this);
 }
@@ -169,70 +167,56 @@ void Port::loadData(const QByteArray& arr) noexcept
 /// Inlet
 ///////////////////////////////
 
-Inlet::~Inlet() {}
+Inlet::~Inlet() { }
 
-void Inlet::setupExecution(ossia::inlet&) const noexcept
-{
-
-}
+void Inlet::setupExecution(ossia::inlet&) const noexcept { }
 
 Inlet::Inlet(Id<Process::Port> c, QObject* parent)
     : Port{std::move(c), QStringLiteral("Inlet"), parent}
 {
 }
 
-Inlet::Inlet(DataStream::Deserializer& vis, QObject* parent)
-    : Port{vis, parent}
+Inlet::Inlet(DataStream::Deserializer& vis, QObject* parent) : Port{vis, parent}
 {
   vis.writeTo(*this);
 }
-Inlet::Inlet(JSONObject::Deserializer& vis, QObject* parent)
-    : Port{vis, parent}
+Inlet::Inlet(JSONObject::Deserializer& vis, QObject* parent) : Port{vis, parent}
 {
   vis.writeTo(*this);
 }
-Inlet::Inlet(DataStream::Deserializer&& vis, QObject* parent)
-    : Port{vis, parent}
+Inlet::Inlet(DataStream::Deserializer&& vis, QObject* parent) : Port{vis, parent}
 {
   vis.writeTo(*this);
 }
-Inlet::Inlet(JSONObject::Deserializer&& vis, QObject* parent)
-    : Port{vis, parent}
+Inlet::Inlet(JSONObject::Deserializer&& vis, QObject* parent) : Port{vis, parent}
 {
   vis.writeTo(*this);
 }
 
-void Inlet::forChildInlets(const smallfun::function<void (Inlet&)>& f) const noexcept
+void Inlet::forChildInlets(const smallfun::function<void(Inlet&)>& f) const noexcept { }
+
+void Inlet::mapExecution(
+    ossia::inlet& exec,
+    const smallfun::function<void(Inlet&, ossia::inlet&)>& f) const noexcept
 {
 }
 
-void Inlet::mapExecution(ossia::inlet& exec, const smallfun::function<void (Inlet&, ossia::inlet&)>& f) const noexcept
-{
-}
+ControlInlet::ControlInlet(Id<Process::Port> c, QObject* parent) : Inlet{std::move(c), parent} { }
+ControlInlet::~ControlInlet() { }
 
-ControlInlet::ControlInlet(Id<Process::Port> c, QObject* parent)
-    : Inlet{std::move(c), parent}
-{
-}
-ControlInlet::~ControlInlet() {}
-
-ControlInlet::ControlInlet(DataStream::Deserializer& vis, QObject* parent)
-    : Inlet{vis, parent}
+ControlInlet::ControlInlet(DataStream::Deserializer& vis, QObject* parent) : Inlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-ControlInlet::ControlInlet(JSONObject::Deserializer& vis, QObject* parent)
-    : Inlet{vis, parent}
+ControlInlet::ControlInlet(JSONObject::Deserializer& vis, QObject* parent) : Inlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-ControlInlet::ControlInlet(DataStream::Deserializer&& vis, QObject* parent)
-    : Inlet{vis, parent}
+ControlInlet::ControlInlet(DataStream::Deserializer&& vis, QObject* parent) : Inlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-ControlInlet::ControlInlet(JSONObject::Deserializer&& vis, QObject* parent)
-    : Inlet{vis, parent}
+ControlInlet::ControlInlet(JSONObject::Deserializer&& vis, QObject* parent) : Inlet{vis, parent}
 {
   vis.writeTo(*this);
 }
@@ -240,118 +224,103 @@ ControlInlet::ControlInlet(JSONObject::Deserializer&& vis, QObject* parent)
 QByteArray ControlInlet::saveData() const noexcept
 {
   return Port::saveData();
-
 }
 
 void ControlInlet::loadData(const QByteArray& arr) noexcept
 {
   Port::loadData(arr);
-
 }
 
-Outlet::~Outlet() {}
+Outlet::~Outlet() { }
 
 Outlet::Outlet(Id<Process::Port> c, QObject* parent)
     : Port{std::move(c), QStringLiteral("Outlet"), parent}
 {
 }
 
-Outlet::Outlet(DataStream::Deserializer& vis, QObject* parent)
-    : Port{vis, parent}
+Outlet::Outlet(DataStream::Deserializer& vis, QObject* parent) : Port{vis, parent}
 {
   vis.writeTo(*this);
 }
-Outlet::Outlet(JSONObject::Deserializer& vis, QObject* parent)
-    : Port{vis, parent}
+Outlet::Outlet(JSONObject::Deserializer& vis, QObject* parent) : Port{vis, parent}
 {
   vis.writeTo(*this);
 }
-Outlet::Outlet(DataStream::Deserializer&& vis, QObject* parent)
-    : Port{vis, parent}
+Outlet::Outlet(DataStream::Deserializer&& vis, QObject* parent) : Port{vis, parent}
 {
   vis.writeTo(*this);
 }
-Outlet::Outlet(JSONObject::Deserializer&& vis, QObject* parent)
-    : Port{vis, parent}
+Outlet::Outlet(JSONObject::Deserializer&& vis, QObject* parent) : Port{vis, parent}
 {
   vis.writeTo(*this);
 }
 
-void Outlet::forChildInlets(const smallfun::function<void (Inlet&)>& f) const noexcept
+void Outlet::forChildInlets(const smallfun::function<void(Inlet&)>& f) const noexcept { }
+
+void Outlet::mapExecution(
+    ossia::outlet& exec,
+    const smallfun::function<void(Inlet&, ossia::inlet&)>& f) const noexcept
 {
 }
 
-void Outlet::mapExecution(ossia::outlet& exec, const smallfun::function<void (Inlet&, ossia::inlet&)>& f) const noexcept
-{
-}
+AudioInlet::~AudioInlet() { }
 
-AudioInlet::~AudioInlet() {}
+AudioInlet::AudioInlet(Id<Process::Port> c, QObject* parent) : Inlet{std::move(c), parent} { }
 
-AudioInlet::AudioInlet(Id<Process::Port> c, QObject* parent)
-  : Inlet{std::move(c), parent}
-{
-}
-
-AudioInlet::AudioInlet(DataStream::Deserializer& vis, QObject* parent)
-  : Inlet{vis, parent}
+AudioInlet::AudioInlet(DataStream::Deserializer& vis, QObject* parent) : Inlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-AudioInlet::AudioInlet(JSONObject::Deserializer& vis, QObject* parent)
-  : Inlet{vis, parent}
+AudioInlet::AudioInlet(JSONObject::Deserializer& vis, QObject* parent) : Inlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-AudioInlet::AudioInlet(DataStream::Deserializer&& vis, QObject* parent)
-  : Inlet{vis, parent}
+AudioInlet::AudioInlet(DataStream::Deserializer&& vis, QObject* parent) : Inlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-AudioInlet::AudioInlet(JSONObject::Deserializer&& vis, QObject* parent)
-  : Inlet{vis, parent}
+AudioInlet::AudioInlet(JSONObject::Deserializer&& vis, QObject* parent) : Inlet{vis, parent}
 {
   vis.writeTo(*this);
 }
 
-AudioOutlet::~AudioOutlet() {}
+AudioOutlet::~AudioOutlet() { }
 
 AudioOutlet::AudioOutlet(Id<Process::Port> c, QObject* parent)
-  : Outlet{std::move(c), parent}
-  , gainInlet{std::make_unique<ControlInlet>(Id<Process::Port>{0}, this)}
-  , panInlet{std::make_unique<ControlInlet>(Id<Process::Port>{1}, this)}
-  , m_gain{1.}
-  , m_pan{1., 1.}
+    : Outlet{std::move(c), parent}
+    , gainInlet{std::make_unique<ControlInlet>(Id<Process::Port>{0}, this)}
+    , panInlet{std::make_unique<ControlInlet>(Id<Process::Port>{1}, this)}
+    , m_gain{1.}
+    , m_pan{1., 1.}
 {
 }
 
-AudioOutlet::AudioOutlet(DataStream::Deserializer& vis, QObject* parent)
-  : Outlet{vis, parent}
+AudioOutlet::AudioOutlet(DataStream::Deserializer& vis, QObject* parent) : Outlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-AudioOutlet::AudioOutlet(JSONObject::Deserializer& vis, QObject* parent)
-  : Outlet{vis, parent}
+AudioOutlet::AudioOutlet(JSONObject::Deserializer& vis, QObject* parent) : Outlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-AudioOutlet::AudioOutlet(DataStream::Deserializer&& vis, QObject* parent)
-  : Outlet{vis, parent}
+AudioOutlet::AudioOutlet(DataStream::Deserializer&& vis, QObject* parent) : Outlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-AudioOutlet::AudioOutlet(JSONObject::Deserializer&& vis, QObject* parent)
-  : Outlet{vis, parent}
+AudioOutlet::AudioOutlet(JSONObject::Deserializer&& vis, QObject* parent) : Outlet{vis, parent}
 {
   vis.writeTo(*this);
 }
 
-void AudioOutlet::forChildInlets(const smallfun::function<void (Inlet&)>& f) const noexcept
+void AudioOutlet::forChildInlets(const smallfun::function<void(Inlet&)>& f) const noexcept
 {
   f(*gainInlet);
   f(*panInlet);
 }
 
-void AudioOutlet::mapExecution(ossia::outlet& exec, const smallfun::function<void (Inlet&, ossia::inlet&)>& f) const noexcept
+void AudioOutlet::mapExecution(
+    ossia::outlet& exec,
+    const smallfun::function<void(Inlet&, ossia::inlet&)>& f) const noexcept
 {
   auto audio_exec = safe_cast<ossia::audio_outlet*>(&exec);
   f(*gainInlet, audio_exec->gain_inlet);
@@ -361,13 +330,11 @@ void AudioOutlet::mapExecution(ossia::outlet& exec, const smallfun::function<voi
 QByteArray AudioOutlet::saveData() const noexcept
 {
   return Port::saveData();
-
 }
 
 void AudioOutlet::loadData(const QByteArray& arr) noexcept
 {
   Port::loadData(arr);
-
 }
 
 bool AudioOutlet::propagate() const
@@ -412,87 +379,67 @@ void AudioOutlet::setPan(ossia::small_vector<double, 2> pan)
   panChanged(m_pan);
 }
 
+MidiInlet::~MidiInlet() { }
 
-MidiInlet::~MidiInlet() {}
+MidiInlet::MidiInlet(Id<Process::Port> c, QObject* parent) : Inlet{std::move(c), parent} { }
 
-MidiInlet::MidiInlet(Id<Process::Port> c, QObject* parent)
-  : Inlet{std::move(c), parent}
-{
-}
-
-MidiInlet::MidiInlet(DataStream::Deserializer& vis, QObject* parent)
-  : Inlet{vis, parent}
+MidiInlet::MidiInlet(DataStream::Deserializer& vis, QObject* parent) : Inlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-MidiInlet::MidiInlet(JSONObject::Deserializer& vis, QObject* parent)
-  : Inlet{vis, parent}
+MidiInlet::MidiInlet(JSONObject::Deserializer& vis, QObject* parent) : Inlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-MidiInlet::MidiInlet(DataStream::Deserializer&& vis, QObject* parent)
-  : Inlet{vis, parent}
+MidiInlet::MidiInlet(DataStream::Deserializer&& vis, QObject* parent) : Inlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-MidiInlet::MidiInlet(JSONObject::Deserializer&& vis, QObject* parent)
-  : Inlet{vis, parent}
+MidiInlet::MidiInlet(JSONObject::Deserializer&& vis, QObject* parent) : Inlet{vis, parent}
 {
   vis.writeTo(*this);
 }
 
-MidiOutlet::~MidiOutlet() {}
+MidiOutlet::~MidiOutlet() { }
 
-MidiOutlet::MidiOutlet(Id<Process::Port> c, QObject* parent)
-  : Outlet{std::move(c), parent}
-{
-}
+MidiOutlet::MidiOutlet(Id<Process::Port> c, QObject* parent) : Outlet{std::move(c), parent} { }
 
-MidiOutlet::MidiOutlet(DataStream::Deserializer& vis, QObject* parent)
-  : Outlet{vis, parent}
+MidiOutlet::MidiOutlet(DataStream::Deserializer& vis, QObject* parent) : Outlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-MidiOutlet::MidiOutlet(JSONObject::Deserializer& vis, QObject* parent)
-  : Outlet{vis, parent}
+MidiOutlet::MidiOutlet(JSONObject::Deserializer& vis, QObject* parent) : Outlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-MidiOutlet::MidiOutlet(DataStream::Deserializer&& vis, QObject* parent)
-  : Outlet{vis, parent}
+MidiOutlet::MidiOutlet(DataStream::Deserializer&& vis, QObject* parent) : Outlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-MidiOutlet::MidiOutlet(JSONObject::Deserializer&& vis, QObject* parent)
-  : Outlet{vis, parent}
+MidiOutlet::MidiOutlet(JSONObject::Deserializer&& vis, QObject* parent) : Outlet{vis, parent}
 {
   vis.writeTo(*this);
 }
 
-ControlOutlet::ControlOutlet(Id<Process::Port> c, QObject* parent)
-    : Outlet{std::move(c), parent}
+ControlOutlet::ControlOutlet(Id<Process::Port> c, QObject* parent) : Outlet{std::move(c), parent}
 {
 }
 
-ControlOutlet::~ControlOutlet() {}
+ControlOutlet::~ControlOutlet() { }
 
-ControlOutlet::ControlOutlet(DataStream::Deserializer& vis, QObject* parent)
-    : Outlet{vis, parent}
+ControlOutlet::ControlOutlet(DataStream::Deserializer& vis, QObject* parent) : Outlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-ControlOutlet::ControlOutlet(JSONObject::Deserializer& vis, QObject* parent)
-    : Outlet{vis, parent}
+ControlOutlet::ControlOutlet(JSONObject::Deserializer& vis, QObject* parent) : Outlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-ControlOutlet::ControlOutlet(DataStream::Deserializer&& vis, QObject* parent)
-    : Outlet{vis, parent}
+ControlOutlet::ControlOutlet(DataStream::Deserializer&& vis, QObject* parent) : Outlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-ControlOutlet::ControlOutlet(JSONObject::Deserializer&& vis, QObject* parent)
-    : Outlet{vis, parent}
+ControlOutlet::ControlOutlet(JSONObject::Deserializer&& vis, QObject* parent) : Outlet{vis, parent}
 {
   vis.writeTo(*this);
 }
@@ -507,66 +454,49 @@ void ControlOutlet::loadData(const QByteArray& arr) noexcept
   Port::loadData(arr);
 }
 
+ValueInlet::~ValueInlet() { }
 
-ValueInlet::~ValueInlet() {}
+ValueInlet::ValueInlet(Id<Process::Port> c, QObject* parent) : Inlet{std::move(c), parent} { }
 
-ValueInlet::ValueInlet(Id<Process::Port> c, QObject* parent)
-  : Inlet{std::move(c), parent}
-{
-}
-
-ValueInlet::ValueInlet(DataStream::Deserializer& vis, QObject* parent)
-  : Inlet{vis, parent}
+ValueInlet::ValueInlet(DataStream::Deserializer& vis, QObject* parent) : Inlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-ValueInlet::ValueInlet(JSONObject::Deserializer& vis, QObject* parent)
-  : Inlet{vis, parent}
+ValueInlet::ValueInlet(JSONObject::Deserializer& vis, QObject* parent) : Inlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-ValueInlet::ValueInlet(DataStream::Deserializer&& vis, QObject* parent)
-  : Inlet{vis, parent}
+ValueInlet::ValueInlet(DataStream::Deserializer&& vis, QObject* parent) : Inlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-ValueInlet::ValueInlet(JSONObject::Deserializer&& vis, QObject* parent)
-  : Inlet{vis, parent}
+ValueInlet::ValueInlet(JSONObject::Deserializer&& vis, QObject* parent) : Inlet{vis, parent}
 {
   vis.writeTo(*this);
 }
 
-ValueOutlet::~ValueOutlet() {}
+ValueOutlet::~ValueOutlet() { }
 
-ValueOutlet::ValueOutlet(Id<Process::Port> c, QObject* parent)
-  : Outlet{std::move(c), parent}
-{
-}
+ValueOutlet::ValueOutlet(Id<Process::Port> c, QObject* parent) : Outlet{std::move(c), parent} { }
 
-ValueOutlet::ValueOutlet(DataStream::Deserializer& vis, QObject* parent)
-  : Outlet{vis, parent}
+ValueOutlet::ValueOutlet(DataStream::Deserializer& vis, QObject* parent) : Outlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-ValueOutlet::ValueOutlet(JSONObject::Deserializer& vis, QObject* parent)
-  : Outlet{vis, parent}
+ValueOutlet::ValueOutlet(JSONObject::Deserializer& vis, QObject* parent) : Outlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-ValueOutlet::ValueOutlet(DataStream::Deserializer&& vis, QObject* parent)
-  : Outlet{vis, parent}
+ValueOutlet::ValueOutlet(DataStream::Deserializer&& vis, QObject* parent) : Outlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-ValueOutlet::ValueOutlet(JSONObject::Deserializer&& vis, QObject* parent)
-  : Outlet{vis, parent}
+ValueOutlet::ValueOutlet(JSONObject::Deserializer&& vis, QObject* parent) : Outlet{vis, parent}
 {
   vis.writeTo(*this);
 }
 
-
-
-PortFactory::~PortFactory() {}
+PortFactory::~PortFactory() { }
 
 Dataflow::PortItem* PortFactory::makeItem(
     Inlet& port,
@@ -606,21 +536,20 @@ void PortFactory::setupOutletInspector(
   PortWidgetSetup::setupInLayout(port, ctx, lay, parent);
 }
 
-
 QWidget* PortFactory::makeControlWidget(
-      ControlInlet& port,
-      const score::DocumentContext& ctx,
-      QGraphicsItem* parent,
-      QObject* context)
+    ControlInlet& port,
+    const score::DocumentContext& ctx,
+    QGraphicsItem* parent,
+    QObject* context)
 {
   return nullptr;
 }
 
 QGraphicsItem* PortFactory::makeControlItem(
-      ControlInlet& port,
-      const score::DocumentContext& ctx,
-      QGraphicsItem* parent,
-      QObject* context)
+    ControlInlet& port,
+    const score::DocumentContext& ctx,
+    QGraphicsItem* parent,
+    QObject* context)
 {
   auto& dom = port.domain().get();
   if (bool(dom))
@@ -647,10 +576,10 @@ QGraphicsItem* PortFactory::makeControlItem(
 }
 
 QGraphicsItem* PortFactory::makeControlItem(
-      ControlOutlet& port,
-      const score::DocumentContext& ctx,
-      QGraphicsItem* parent,
-      QObject* context)
+    ControlOutlet& port,
+    const score::DocumentContext& ctx,
+    QGraphicsItem* parent,
+    QObject* context)
 {
   auto& dom = port.domain().get();
   if (bool(dom))
@@ -676,39 +605,34 @@ QGraphicsItem* PortFactory::makeControlItem(
   }
 }
 
-Port* PortFactoryList::loadMissing(const VisitorVariant& vis, QObject* parent)
-    const
+Port* PortFactoryList::loadMissing(const VisitorVariant& vis, QObject* parent) const
 {
   return nullptr;
 }
 
-PortFactoryList::~PortFactoryList() {}
+PortFactoryList::~PortFactoryList() { }
 
 std::unique_ptr<Inlet> load_inlet(DataStreamWriter& wr, QObject* parent)
 {
-  static auto& il
-      = score::AppComponents().interfaces<Process::PortFactoryList>();
+  static auto& il = score::AppComponents().interfaces<Process::PortFactoryList>();
   return std::unique_ptr<Process::Inlet>((Process::Inlet*)deserialize_interface(il, wr, parent));
 }
 
 std::unique_ptr<Inlet> load_inlet(JSONWriter& wr, QObject* parent)
 {
-  static auto& il
-      = score::AppComponents().interfaces<Process::PortFactoryList>();
+  static auto& il = score::AppComponents().interfaces<Process::PortFactoryList>();
   return std::unique_ptr<Process::Inlet>((Process::Inlet*)deserialize_interface(il, wr, parent));
 }
 
 std::unique_ptr<Outlet> load_outlet(DataStreamWriter& wr, QObject* parent)
 {
-  static auto& il
-      = score::AppComponents().interfaces<Process::PortFactoryList>();
+  static auto& il = score::AppComponents().interfaces<Process::PortFactoryList>();
   return std::unique_ptr<Process::Outlet>((Process::Outlet*)deserialize_interface(il, wr, parent));
 }
 
 std::unique_ptr<Outlet> load_outlet(JSONWriter& wr, QObject* parent)
 {
-  static auto& il
-      = score::AppComponents().interfaces<Process::PortFactoryList>();
+  static auto& il = score::AppComponents().interfaces<Process::PortFactoryList>();
   return std::unique_ptr<Process::Outlet>((Process::Outlet*)deserialize_interface(il, wr, parent));
 }
 
@@ -722,23 +646,23 @@ static auto copy_port(Port&& src, Port& dst)
   dst.takeCables(std::move(src));
 }
 
-template<typename T, typename W>
+template <typename T, typename W>
 auto load_port_t(W& wr, QObject* parent)
 {
   auto out = [&] {
-    if constexpr(std::is_base_of_v<Inlet, T>)
-        return load_inlet(wr, parent).release();
-    else if constexpr(std::is_base_of_v<Outlet, T>)
-        return load_outlet(wr, parent).release();
+    if constexpr (std::is_base_of_v<Inlet, T>)
+      return load_inlet(wr, parent).release();
+    else if constexpr (std::is_base_of_v<Outlet, T>)
+      return load_outlet(wr, parent).release();
     else
-        return nullptr;
+      return nullptr;
   }();
 
-  if(auto p = dynamic_cast<T*>(out))
+  if (auto p = dynamic_cast<T*>(out))
   {
     return std::unique_ptr<T>(static_cast<T*>(out));
   }
-  else if(out)
+  else if (out)
   {
     // Pre 2.0
     auto new_p = std::make_unique<T>(out->id(), parent);
@@ -795,114 +719,104 @@ std::unique_ptr<ControlOutlet> load_control_outlet(JSONWriter& wr, QObject* pare
 
 std::unique_ptr<AudioInlet> load_audio_inlet(DataStreamWriter& wr, QObject* parent)
 {
-    return load_port_t<AudioInlet>(wr, parent);
+  return load_port_t<AudioInlet>(wr, parent);
 }
 
 std::unique_ptr<AudioInlet> load_audio_inlet(JSONWriter& wr, QObject* parent)
 {
-    return load_port_t<AudioInlet>(wr, parent);
+  return load_port_t<AudioInlet>(wr, parent);
 }
 
 std::unique_ptr<AudioOutlet> load_audio_outlet(DataStreamWriter& wr, QObject* parent)
 {
-    return load_port_t<AudioOutlet>(wr, parent);
+  return load_port_t<AudioOutlet>(wr, parent);
 }
 
 std::unique_ptr<AudioOutlet> load_audio_outlet(JSONWriter& wr, QObject* parent)
 {
-    return load_port_t<AudioOutlet>(wr, parent);
+  return load_port_t<AudioOutlet>(wr, parent);
 }
 
 std::unique_ptr<MidiInlet> load_midi_inlet(DataStreamWriter& wr, QObject* parent)
 {
-    return load_port_t<MidiInlet>(wr, parent);
+  return load_port_t<MidiInlet>(wr, parent);
 }
 
 std::unique_ptr<MidiInlet> load_midi_inlet(JSONWriter& wr, QObject* parent)
 {
-    return load_port_t<MidiInlet>(wr, parent);
+  return load_port_t<MidiInlet>(wr, parent);
 }
 
 std::unique_ptr<MidiOutlet> load_midi_outlet(DataStreamWriter& wr, QObject* parent)
 {
-    return load_port_t<MidiOutlet>(wr, parent);
+  return load_port_t<MidiOutlet>(wr, parent);
 }
 
 std::unique_ptr<MidiOutlet> load_midi_outlet(JSONWriter& wr, QObject* parent)
 {
-    return load_port_t<MidiOutlet>(wr, parent);
+  return load_port_t<MidiOutlet>(wr, parent);
 }
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::Port>(const Process::Port& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<Process::Port>(const Process::Port& p)
 {
   insertDelimiter();
-  m_stream << p.hidden << p.m_customData << p.m_exposed
-           << p.m_description << p.m_address;
+  m_stream << p.hidden << p.m_customData << p.m_exposed << p.m_description << p.m_address;
   insertDelimiter();
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::Port>(Process::Port& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::Port>(Process::Port& p)
 {
   checkDelimiter();
-  m_stream >> p.hidden >> p.m_customData >> p.m_exposed
-      >> p.m_description >> p.m_address;
+  m_stream >> p.hidden >> p.m_customData >> p.m_exposed >> p.m_description >> p.m_address;
   checkDelimiter();
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::Port>(const Process::Port& p)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::Port>(const Process::Port& p)
 {
   obj["Hidden"] = (bool)p.hidden;
-  if(!p.m_customData.isEmpty())
+  if (!p.m_customData.isEmpty())
     obj["Custom"] = p.m_customData;
-  if(!p.m_exposed.isEmpty())
+  if (!p.m_exposed.isEmpty())
     obj["Exposed"] = p.m_exposed;
-  if(!p.m_description.isEmpty())
+  if (!p.m_description.isEmpty())
     obj["Description"] = p.m_description;
-  if(!(p.m_address.address.path.isEmpty() || p.m_address.address.device.isEmpty()))
+  if (!(p.m_address.address.path.isEmpty() || p.m_address.address.device.isEmpty()))
     obj["Address"] = p.m_address;
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::Port>(Process::Port& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::Port>(Process::Port& p)
 {
   p.hidden = obj["Hidden"].toBool();
-  if(auto it = obj.tryGet("Custom"))
+  if (auto it = obj.tryGet("Custom"))
     p.m_customData = it->toString();
-  if(auto it = obj.tryGet("Exposed"))
+  if (auto it = obj.tryGet("Exposed"))
     p.m_exposed = it->toString();
-  if(auto it = obj.tryGet("Description"))
+  if (auto it = obj.tryGet("Description"))
     p.m_description = it->toString();
-  if(auto it = obj.tryGet("Address"))
+  if (auto it = obj.tryGet("Address"))
     p.m_address <<= *it;
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::Inlet>(const Process::Inlet& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<Process::Inlet>(const Process::Inlet& p)
 {
   read((Process::Port&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::Inlet>(Process::Inlet& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::Inlet>(Process::Inlet& p)
 {
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::Inlet>(const Process::Inlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::Inlet>(const Process::Inlet& p)
 {
   read((Process::Port&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::Inlet>(Process::Inlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::Inlet>(Process::Inlet& p)
 {
 }
 
@@ -913,20 +827,17 @@ DataStreamReader::read<Process::AudioInlet>(const Process::AudioInlet& p)
   // read((Process::Outlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::AudioInlet>(Process::AudioInlet& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::AudioInlet>(Process::AudioInlet& p)
 {
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::AudioInlet>(const Process::AudioInlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::AudioInlet>(const Process::AudioInlet& p)
 {
   // read((Process::Outlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::AudioInlet>(Process::AudioInlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::AudioInlet>(Process::AudioInlet& p)
 {
 }
 
@@ -934,26 +845,22 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read<Process::MidiInlet>(const Process::MidiInlet& p)
 {
-    // read((Process::Outlet&)p);
+  // read((Process::Outlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::MidiInlet>(Process::MidiInlet& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::MidiInlet>(Process::MidiInlet& p)
 {
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::MidiInlet>(const Process::MidiInlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::MidiInlet>(const Process::MidiInlet& p)
 {
-    // read((Process::Outlet&)p);
+  // read((Process::Outlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::MidiInlet>(Process::MidiInlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::MidiInlet>(Process::MidiInlet& p)
 {
 }
-
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -980,34 +887,29 @@ JSONReader::read<Process::ControlInlet>(const Process::ControlInlet& p)
   obj[strings.Domain] = p.m_domain;
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::ControlInlet>(Process::ControlInlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::ControlInlet>(Process::ControlInlet& p)
 {
   p.m_value <<= obj[strings.Value];
   p.m_domain <<= obj[strings.Domain];
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::Outlet>(const Process::Outlet& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<Process::Outlet>(const Process::Outlet& p)
 {
   read((Process::Port&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::Outlet>(Process::Outlet& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::Outlet>(Process::Outlet& p)
 {
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::Outlet>(const Process::Outlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::Outlet>(const Process::Outlet& p)
 {
   read((Process::Port&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::Outlet>(Process::Outlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::Outlet>(Process::Outlet& p)
 {
 }
 
@@ -1016,9 +918,7 @@ SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read<Process::AudioOutlet>(const Process::AudioOutlet& p)
 {
   // read((Process::Outlet&)p);
-  m_stream
-      << *p.gainInlet << *p.panInlet
-      << p.m_gain << p.m_pan << p.m_propagate;
+  m_stream << *p.gainInlet << *p.panInlet << p.m_gain << p.m_pan << p.m_propagate;
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -1030,8 +930,7 @@ DataStreamWriter::write<Process::AudioOutlet>(Process::AudioOutlet& p)
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::AudioOutlet>(const Process::AudioOutlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::AudioOutlet>(const Process::AudioOutlet& p)
 {
   // read((Process::Outlet&)p);
   obj["GainInlet"] = *p.gainInlet;
@@ -1040,11 +939,9 @@ JSONReader::read<Process::AudioOutlet>(const Process::AudioOutlet& p)
   obj["Gain"] = p.m_gain;
   obj["Pan"] = p.m_pan;
   obj["Propagate"] = p.m_propagate;
-
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::AudioOutlet>(Process::AudioOutlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::AudioOutlet>(Process::AudioOutlet& p)
 {
   {
     JSONWriter writer{obj["GainInlet"]};
@@ -1064,23 +961,20 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read<Process::MidiOutlet>(const Process::MidiOutlet& p)
 {
-    // read((Process::Outlet&)p);
+  // read((Process::Outlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::MidiOutlet>(Process::MidiOutlet& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::MidiOutlet>(Process::MidiOutlet& p)
 {
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::MidiOutlet>(const Process::MidiOutlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::MidiOutlet>(const Process::MidiOutlet& p)
 {
-    // read((Process::Outlet&)p);
+  // read((Process::Outlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::MidiOutlet>(Process::MidiOutlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::MidiOutlet>(Process::MidiOutlet& p)
 {
 }
 
@@ -1109,8 +1003,7 @@ JSONReader::read<Process::ControlOutlet>(const Process::ControlOutlet& p)
   obj[strings.Domain] = p.m_domain;
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::ControlOutlet>(Process::ControlOutlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::ControlOutlet>(Process::ControlOutlet& p)
 {
   p.m_value <<= obj[strings.Value];
   p.m_domain <<= obj[strings.Domain];
@@ -1120,32 +1013,28 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read<Process::ValueInlet>(const Process::ValueInlet& p)
 {
-    // read((Process::Outlet&)p);
+  // read((Process::Outlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::ValueInlet>(Process::ValueInlet& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::ValueInlet>(Process::ValueInlet& p)
 {
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::ValueInlet>(const Process::ValueInlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::ValueInlet>(const Process::ValueInlet& p)
 {
-    // read((Process::Outlet&)p);
+  // read((Process::Outlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::ValueInlet>(Process::ValueInlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::ValueInlet>(Process::ValueInlet& p)
 {
 }
-
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read<Process::ValueOutlet>(const Process::ValueOutlet& p)
 {
-    // read((Process::Outlet&)p);
+  // read((Process::Outlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -1154,14 +1043,11 @@ DataStreamWriter::write<Process::ValueOutlet>(Process::ValueOutlet& p)
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::ValueOutlet>(const Process::ValueOutlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::ValueOutlet>(const Process::ValueOutlet& p)
 {
-    // read((Process::Outlet&)p);
+  // read((Process::Outlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::ValueOutlet>(Process::ValueOutlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::ValueOutlet>(Process::ValueOutlet& p)
 {
 }
-

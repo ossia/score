@@ -39,27 +39,15 @@ public:
       double endStateY,
       bool graphal);
 
-  const Path<Scenario::ProcessModel>& scenarioPath() const
-  {
-    return m_command.scenarioPath();
-  }
+  const Path<Scenario::ProcessModel>& scenarioPath() const { return m_command.scenarioPath(); }
 
-  const Id<IntervalModel>& createdInterval() const
-  {
-    return m_command.createdInterval();
-  }
+  const Id<IntervalModel>& createdInterval() const { return m_command.createdInterval(); }
 
   const Id<StateModel>& startState() const { return m_command.startState(); }
 
-  const Id<StateModel>& createdState() const
-  {
-    return m_command.createdState();
-  }
+  const Id<StateModel>& createdState() const { return m_command.createdState(); }
 
-  const Id<EventModel>& createdEvent() const
-  {
-    return m_command.createdEvent();
-  }
+  const Id<EventModel>& createdEvent() const { return m_command.createdEvent(); }
 
   const Id<TimeSyncModel>& createdTimeSync() const { return m_newTimeSync; }
 

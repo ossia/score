@@ -10,6 +10,7 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Graph.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
@@ -19,7 +20,6 @@
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/ScenarioProcessMetadata.hpp>
 
-#include <Scenario/Document/Graph.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
@@ -31,7 +31,6 @@
 #include <score/tools/IdentifierGeneration.hpp>
 
 #include <core/document/Document.hpp>
-
 
 #include <wobjectimpl.h>
 
@@ -46,10 +45,7 @@ ProcessModel::ProcessModel(
     const score::DocumentContext& ctx,
     QObject* parent)
     : Process::
-          ProcessModel{duration,
-                       id,
-                       Metadata<ObjectKey_k, Scenario::ProcessModel>::get(),
-                       parent}
+        ProcessModel{duration, id, Metadata<ObjectKey_k, Scenario::ProcessModel>::get(), parent}
     , inlet{Process::make_audio_inlet(Id<Process::Port>(0), this)}
     , outlet{Process::make_audio_outlet(Id<Process::Port>(0), this)}
     , m_context{ctx}
@@ -57,16 +53,13 @@ ProcessModel::ProcessModel(
     , m_startEventId{Scenario::startId<EventModel>()}
     , m_startStateId{Scenario::startId<StateModel>()}
 {
-  auto& start_tn = ScenarioCreate<TimeSyncModel>::redo(
-      m_startTimeSyncId, TimeVal::zero(), *this);
+  auto& start_tn = ScenarioCreate<TimeSyncModel>::redo(m_startTimeSyncId, TimeVal::zero(), *this);
   start_tn.metadata().setName("Sync.start");
   start_tn.setStartPoint(true);
 
-  auto& start_ev = ScenarioCreate<EventModel>::redo(
-      m_startEventId, start_tn, *this);
+  auto& start_ev = ScenarioCreate<EventModel>::redo(m_startEventId, start_tn, *this);
   start_ev.metadata().setName("Event.start");
-  auto& start_st = ScenarioCreate<StateModel>::redo(
-      m_startStateId, start_ev, 0.02, *this);
+  auto& start_st = ScenarioCreate<StateModel>::redo(m_startStateId, start_ev, 0.02, *this);
   start_st.metadata().setName("State.start");
   // At the end because plug-ins depend on the start/end timesync & al being
   // here
@@ -162,9 +155,7 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
   return; // Disabled by Asana
 }
 
-void ProcessModel::startExecution()
-{
-}
+void ProcessModel::startExecution() { }
 
 void ProcessModel::stopExecution()
 {
@@ -223,9 +214,8 @@ void ProcessModel::setSelection(const Selection& s) const noexcept
   });
 }
 
-const QVector<Id<IntervalModel>> intervalsBeforeTimeSync(
-    const Scenario::ProcessModel& scenar,
-    const Id<TimeSyncModel>& timeSyncId)
+const QVector<Id<IntervalModel>>
+intervalsBeforeTimeSync(const Scenario::ProcessModel& scenar, const Id<TimeSyncModel>& timeSyncId)
 {
   QVector<Id<IntervalModel>> cstrs;
   const auto& tn = scenar.timeSyncs.at(timeSyncId);

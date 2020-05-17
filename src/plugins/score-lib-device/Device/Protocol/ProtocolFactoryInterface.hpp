@@ -29,9 +29,8 @@ public:
    * will show up first in the protocol list */
   virtual int visualPriority() const;
 
-  virtual DeviceInterface* makeDevice(
-      const Device::DeviceSettings& settings,
-      const score::DocumentContext& ctx)
+  virtual DeviceInterface*
+  makeDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
       = 0;
 
   virtual ProtocolSettingsWidget* makeSettingsWidget() = 0;
@@ -51,21 +50,18 @@ public:
   virtual const Device::DeviceSettings& defaultSettings() const = 0;
 
   // Save
-  virtual void serializeProtocolSpecificSettings(
-      const QVariant& data,
-      const VisitorVariant& visitor) const = 0;
+  virtual void
+  serializeProtocolSpecificSettings(const QVariant& data, const VisitorVariant& visitor) const = 0;
 
   template <typename T>
-  void serializeProtocolSpecificSettings_T(
-      const QVariant& data,
-      const VisitorVariant& visitor) const
+  void
+  serializeProtocolSpecificSettings_T(const QVariant& data, const VisitorVariant& visitor) const
   {
     score::serialize_dyn(visitor, data.value<T>());
   }
 
   // Load
-  virtual QVariant
-  makeProtocolSpecificSettings(const VisitorVariant& visitor) const = 0;
+  virtual QVariant makeProtocolSpecificSettings(const VisitorVariant& visitor) const = 0;
 
   template <typename T>
   QVariant makeProtocolSpecificSettings_T(const VisitorVariant& vis) const
@@ -74,9 +70,8 @@ public:
   }
 
   // Returns true if the two devicesettings can coexist at the same time.
-  virtual bool checkCompatibility(
-      const Device::DeviceSettings& a,
-      const Device::DeviceSettings& b) const = 0;
+  virtual bool
+  checkCompatibility(const Device::DeviceSettings& a, const Device::DeviceSettings& b) const = 0;
 };
 }
 

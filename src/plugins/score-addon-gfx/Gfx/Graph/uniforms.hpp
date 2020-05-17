@@ -21,13 +21,8 @@ enum class Types
   Camera,
 };
 
-using ValueVariant = std::variant<
-    std::monostate,
-    float,
-    ossia::vec2f,
-    ossia::vec3f,
-    ossia::vec4f,
-    image>;
+using ValueVariant
+    = std::variant<std::monostate, float, ossia::vec2f, ossia::vec3f, ossia::vec4f, image>;
 
 #define ensure(...)        \
   do                       \

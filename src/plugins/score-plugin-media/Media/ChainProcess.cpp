@@ -1,23 +1,23 @@
 #include "ChainProcess.hpp"
+
+#include <Media/Commands/InsertEffect.hpp>
 #include <Process/Dataflow/Port.hpp>
-#include <cmath>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 
-#include <Media/Commands/InsertEffect.hpp>
+#include <cmath>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::ChainProcess)
 namespace Media
 {
 
 ChainProcess::ChainProcess(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
-      const QString& name,
-      const score::DocumentContext& ctx,
-      QObject* parent)
-  : ::Process::ProcessModel{duration, id, name, parent}
-  , m_context{ctx}
+    const TimeVal& duration,
+    const Id<Process::ProcessModel>& id,
+    const QString& name,
+    const score::DocumentContext& ctx,
+    QObject* parent)
+    : ::Process::ProcessModel{duration, id, name, parent}, m_context{ctx}
 {
 }
 
@@ -48,7 +48,7 @@ void ChainProcess::insertEffect(Process::ProcessModel* eff, int pos)
       }
     }
 
-    if(pos == int(m_effects.size()) - 1)
+    if (pos == int(m_effects.size()) - 1)
     {
       if (outlets[0]->type() != m_outlets[0]->type())
       {
@@ -134,7 +134,7 @@ void ChainProcess::checkChaining()
       }
     }
 
-    if(pos == int(m_effects.size()) - 1)
+    if (pos == int(m_effects.size()) - 1)
     {
       if (outlets[0]->type() != m_outlets[0]->type())
       {
@@ -174,7 +174,6 @@ void ChainProcess::checkChaining()
   setBadChaining(bad_effect);
 }
 
-
 Selection ChainProcess::selectableChildren() const noexcept
 {
   Selection s;
@@ -192,8 +191,7 @@ Selection ChainProcess::selectedChildren() const noexcept
   return s;
 }
 
-void ChainProcess::setSelection(const Selection& s) const
-    noexcept
+void ChainProcess::setSelection(const Selection& s) const noexcept
 {
   for (auto& c : effects())
   {
@@ -201,9 +199,7 @@ void ChainProcess::setSelection(const Selection& s) const
   }
 }
 
-bool EffectRemover::remove(
-    const Selection& s,
-    const score::DocumentContext& ctx)
+bool EffectRemover::remove(const Selection& s, const score::DocumentContext& ctx)
 {
   if (s.size() == 1)
   {
@@ -213,8 +209,7 @@ bool EffectRemover::remove(
       auto p = proc->parent();
       if (auto fxc = qobject_cast<ChainProcess*>(p))
       {
-        CommandDispatcher<>{ctx.commandStack}.submit<RemoveEffect>(
-            *fxc, *proc);
+        CommandDispatcher<>{ctx.commandStack}.submit<RemoveEffect>(*fxc, *proc);
       }
     }
   }

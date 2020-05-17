@@ -17,10 +17,7 @@ public:
 
   QRectF boundingRect() const override;
 
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final override;

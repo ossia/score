@@ -8,6 +8,7 @@
 #include <qnamespace.h>
 
 #include <score_plugin_scenario_export.h>
+
 #include <verdigris>
 
 class QMimeData;
@@ -59,16 +60,11 @@ public:
   int columnCount(const QModelIndex& parent) const override;
 
   QVariant data(const QModelIndex& index, int role) const override;
-  bool
-  setData(const QModelIndex& index, const QVariant& value, int role) override;
+  bool setData(const QModelIndex& index, const QVariant& value, int role) override;
 
-  QVariant headerData(int section, Qt::Orientation orientation, int role)
-      const override;
-  bool setHeaderData(
-      int section,
-      Qt::Orientation orientation,
-      const QVariant& value,
-      int role) override;
+  QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+  bool setHeaderData(int section, Qt::Orientation orientation, const QVariant& value, int role)
+      override;
 
   QStringList mimeTypes() const override;
   QMimeData* mimeData(const QModelIndexList& indexes) const override;

@@ -7,8 +7,7 @@ namespace Execution
 {
 
 class MergerComponent final
-    : public ::Execution::
-          ProcessComponent_T<Media::Merger::Model, ossia::node_process>
+    : public ::Execution::ProcessComponent_T<Media::Merger::Model, ossia::node_process>
 {
   COMPONENT_METADATA("5e0fbbfd-3d7f-40b3-92eb-dfeddc8d3c84")
 public:
@@ -25,6 +24,5 @@ public:
 private:
 };
 
-using MergerComponentFactory
-    = ::Execution::ProcessComponentFactory_T<MergerComponent>;
+using MergerComponentFactory = ::Execution::ProcessComponentFactory_T<MergerComponent>;
 }

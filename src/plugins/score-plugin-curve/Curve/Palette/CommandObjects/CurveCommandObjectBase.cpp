@@ -18,14 +18,12 @@ class CommandStackFacade;
 
 namespace Curve
 {
-CommandObjectBase::CommandObjectBase(
-    Presenter* pres,
-    const score::CommandStackFacade& stack)
+CommandObjectBase::CommandObjectBase(Presenter* pres, const score::CommandStackFacade& stack)
     : m_presenter{pres}, m_dispatcher{stack}
 {
 }
 
-CommandObjectBase::~CommandObjectBase() {}
+CommandObjectBase::~CommandObjectBase() { }
 
 void CommandObjectBase::press()
 {

@@ -40,8 +40,7 @@ namespace Loop
 namespace RecreateOnPlay
 {
 // TODO see if this can be used for the base scenario model too.
-class Component final
-    : public ::Execution::ProcessComponent_T<Loop::ProcessModel, ossia::loop>
+class Component final : public ::Execution::ProcessComponent_T<Loop::ProcessModel, ossia::loop>
 {
   COMPONENT_METADATA("77b987ae-7bc8-4273-aa9c-9e4ba53a053d")
 public:

@@ -9,9 +9,7 @@ namespace Media::AudioChain
 {
 class ProcessModel;
 
-
-class SCORE_PLUGIN_MEDIA_EXPORT ProcessModel final
-    : public ChainProcess
+class SCORE_PLUGIN_MEDIA_EXPORT ProcessModel final : public ChainProcess
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Media::AudioChain::ProcessModel)
@@ -22,7 +20,7 @@ public:
   explicit ProcessModel(
       const TimeVal& duration,
       const Id<Process::ProcessModel>& id,
-             const score::DocumentContext& ctx,
+      const score::DocumentContext& ctx,
       QObject* parent);
 
   ~ProcessModel() override;

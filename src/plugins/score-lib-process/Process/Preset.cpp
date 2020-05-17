@@ -1,11 +1,13 @@
 #include "Preset.hpp"
+
 #include <Process/ProcessList.hpp>
 using JsonWriter = rapidjson::Writer<rapidjson::StringBuffer>;
 
 namespace Process
 {
 
-std::shared_ptr<Preset> Preset::fromJson(const ProcessFactoryList& procs, const QByteArray& obj) noexcept
+std::shared_ptr<Preset>
+Preset::fromJson(const ProcessFactoryList& procs, const QByteArray& obj) noexcept
 {
   rapidjson::Document doc;
   Process::Preset p;
@@ -16,7 +18,7 @@ std::shared_ptr<Preset> Preset::fromJson(const ProcessFactoryList& procs, const 
   p.key.key <<= k["Uuid"];
   p.key.effect = k["Effect"].toString();
 
-  if(!procs.get(p.key.key))
+  if (!procs.get(p.key.key))
     return {};
 
   rapidjson::StringBuffer buf;
@@ -38,23 +40,20 @@ QByteArray Preset::toJson() const noexcept
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read(const Process::Preset& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(const Process::Preset& p)
 {
   m_stream << p.key.key << p.key.effect << p.data << p.name;
 }
 
 // We only load the members of the process here.
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write(Process::Preset& p)
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::Preset& p)
 {
   m_stream >> p.key.key >> p.key.effect >> p.data >> p.name;
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read(const Process::Preset& p)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::Preset& p)
 {
   stream.StartObject();
   stream.Key("Key");
@@ -80,8 +79,7 @@ JSONReader::read(const Process::Preset& p)
 
 // We only load the members of the process here.
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write(Process::Preset& p)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::Preset& p)
 {
   const auto& k = obj["Key"];
   p.key.key <<= k["Uuid"];

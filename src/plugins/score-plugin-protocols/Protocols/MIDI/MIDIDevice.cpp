@@ -11,21 +11,18 @@
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/midi/midi.hpp>
 
-#include <QMimeData>
-
 #include <QDebug>
+#include <QMimeData>
 
 #include <memory>
 
 namespace Protocols
 {
-MIDIDevice::MIDIDevice(const Device::DeviceSettings& settings)
-    : OwningDeviceInterface{settings}
+MIDIDevice::MIDIDevice(const Device::DeviceSettings& settings) : OwningDeviceInterface{settings}
 {
   using namespace ossia;
 
-  const auto set
-      = settings.deviceSpecificSettings.value<MIDISpecificSettings>();
+  const auto set = settings.deviceSpecificSettings.value<MIDISpecificSettings>();
   m_capas.canRefreshTree = true;
   m_capas.canSerialize = !set.createWholeTree;
   m_capas.hasCallbacks = false;
@@ -41,8 +38,7 @@ bool MIDIDevice::reconnect()
   deviceChanged(old, nullptr);
   m_dev.reset();
 
-  MIDISpecificSettings set
-      = settings().deviceSpecificSettings.value<MIDISpecificSettings>();
+  MIDISpecificSettings set = settings().deviceSpecificSettings.value<MIDISpecificSettings>();
 
   m_capas.canSerialize = !set.createWholeTree;
   try
@@ -55,8 +51,7 @@ bool MIDIDevice::reconnect()
     if (!res)
       return false;
 
-    auto dev
-        = std::make_unique<ossia::net::midi::midi_device>(std::move(proto));
+    auto dev = std::make_unique<ossia::net::midi::midi_device>(std::move(proto));
     dev->set_name(settings().name.toStdString());
     if (set.createWholeTree)
       dev->create_full_tree();
@@ -75,8 +70,7 @@ void MIDIDevice::disconnect()
 {
   if (connected())
   {
-    removeListening_impl(
-        m_dev->get_root_node(), State::Address{m_settings.name, {}});
+    removeListening_impl(m_dev->get_root_node(), State::Address{m_settings.name, {}});
   }
 
   m_callbacks.clear();
@@ -121,8 +115,7 @@ Device::Node MIDIDevice::refresh()
 
 bool MIDIDevice::isLearning() const
 {
-  auto& proto
-      = static_cast<ossia::net::midi::midi_protocol&>(m_dev->get_protocol());
+  auto& proto = static_cast<ossia::net::midi::midi_protocol&>(m_dev->get_protocol());
   return proto.learning();
 }
 
@@ -130,34 +123,23 @@ void MIDIDevice::setLearning(bool b)
 {
   if (!m_dev)
     return;
-  auto& proto
-      = static_cast<ossia::net::midi::midi_protocol&>(m_dev->get_protocol());
+  auto& proto = static_cast<ossia::net::midi::midi_protocol&>(m_dev->get_protocol());
   auto& dev = *m_dev;
   if (b)
   {
-    dev.on_node_created.connect<&DeviceInterface::nodeCreated>(
-        (DeviceInterface*)this);
-    dev.on_node_removing.connect<&DeviceInterface::nodeRemoving>(
-        (DeviceInterface*)this);
-    dev.on_node_renamed.connect<&DeviceInterface::nodeRenamed>(
-        (DeviceInterface*)this);
-    dev.on_parameter_created.connect<&DeviceInterface::addressCreated>(
-        (DeviceInterface*)this);
-    dev.on_attribute_modified.connect<&DeviceInterface::addressUpdated>(
-        (DeviceInterface*)this);
+    dev.on_node_created.connect<&DeviceInterface::nodeCreated>((DeviceInterface*)this);
+    dev.on_node_removing.connect<&DeviceInterface::nodeRemoving>((DeviceInterface*)this);
+    dev.on_node_renamed.connect<&DeviceInterface::nodeRenamed>((DeviceInterface*)this);
+    dev.on_parameter_created.connect<&DeviceInterface::addressCreated>((DeviceInterface*)this);
+    dev.on_attribute_modified.connect<&DeviceInterface::addressUpdated>((DeviceInterface*)this);
   }
   else
   {
-    dev.on_node_created.disconnect<&DeviceInterface::nodeCreated>(
-        (DeviceInterface*)this);
-    dev.on_node_removing.disconnect<&DeviceInterface::nodeRemoving>(
-        (DeviceInterface*)this);
-    dev.on_node_renamed.disconnect<&DeviceInterface::nodeRenamed>(
-        (DeviceInterface*)this);
-    dev.on_parameter_created.disconnect<&DeviceInterface::addressCreated>(
-        (DeviceInterface*)this);
-    dev.on_attribute_modified.disconnect<&DeviceInterface::addressUpdated>(
-        (DeviceInterface*)this);
+    dev.on_node_created.disconnect<&DeviceInterface::nodeCreated>((DeviceInterface*)this);
+    dev.on_node_removing.disconnect<&DeviceInterface::nodeRemoving>((DeviceInterface*)this);
+    dev.on_node_renamed.disconnect<&DeviceInterface::nodeRenamed>((DeviceInterface*)this);
+    dev.on_parameter_created.disconnect<&DeviceInterface::addressCreated>((DeviceInterface*)this);
+    dev.on_attribute_modified.disconnect<&DeviceInterface::addressUpdated>((DeviceInterface*)this);
   }
 
   proto.set_learning(b);

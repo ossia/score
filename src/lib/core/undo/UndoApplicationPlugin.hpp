@@ -23,16 +23,14 @@ namespace score
  * Base class for the "fake" undo plugin,
  * which provides a undo panel.
  */
-class SCORE_LIB_BASE_EXPORT UndoApplicationPlugin final
-    : public score::GUIApplicationPlugin
+class SCORE_LIB_BASE_EXPORT UndoApplicationPlugin final : public score::GUIApplicationPlugin
 {
 public:
   explicit UndoApplicationPlugin(const score::GUIApplicationContext& app);
   ~UndoApplicationPlugin() override;
 
 private:
-  void on_documentChanged(score::Document* olddoc, score::Document* newdoc)
-      override;
+  void on_documentChanged(score::Document* olddoc, score::Document* newdoc) override;
 
   GUIElements makeGUIElements() override;
 

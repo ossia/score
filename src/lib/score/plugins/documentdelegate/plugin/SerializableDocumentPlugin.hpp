@@ -28,7 +28,6 @@ class SCORE_LIB_BASE_EXPORT SerializableDocumentPlugin
 {
   W_OBJECT(SerializableDocumentPlugin)
 public:
-
 protected:
   using DocumentPlugin::DocumentPlugin;
   using ConcreteKey = UuidKey<DocumentPluginFactory>;

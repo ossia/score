@@ -25,8 +25,7 @@ EventSummaryWidget::EventSummaryWidget(
 {
   auto mainLay = new score::MarginLess<QGridLayout>{this};
 
-  auto eventBtn
-      = SelectionButton::make("", &object, *m_selectionDispatcher, this);
+  auto eventBtn = SelectionButton::make("", &object, *m_selectionDispatcher, this);
 
   mainLay->addWidget(new TextLabel{object.metadata().getName()}, 0, 0, 1, 3);
   mainLay->addWidget(new TextLabel{object.date().toString()}, 0, 3, 1, 3);
@@ -40,5 +39,5 @@ EventSummaryWidget::EventSummaryWidget(
   }
 }
 
-EventSummaryWidget::~EventSummaryWidget() {}
+EventSummaryWidget::~EventSummaryWidget() { }
 }

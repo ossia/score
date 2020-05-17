@@ -34,13 +34,9 @@ namespace Scenario
 {
 namespace Command
 {
-class SCORE_PLUGIN_SCENARIO_EXPORT AddProcessToInterval final
-    : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT AddProcessToInterval final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      AddProcessToInterval,
-      "Add a process to a interval")
+  SCORE_COMMAND_DECL(CommandFactoryName(), AddProcessToInterval, "Add a process to a interval")
 
 public:
   AddProcessToInterval(
@@ -65,13 +61,9 @@ private:
   bool m_addedSlot{};
 };
 
-class SCORE_PLUGIN_SCENARIO_EXPORT LoadProcessInInterval final
-    : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT LoadProcessInInterval final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      LoadProcessInInterval,
-      "Load a process in an interval")
+  SCORE_COMMAND_DECL(CommandFactoryName(), LoadProcessInInterval, "Load a process in an interval")
 
 public:
   LoadProcessInInterval(const IntervalModel& interval, const rapidjson::Value& dat);
@@ -90,13 +82,9 @@ private:
   bool m_addedSlot{};
 };
 
-class SCORE_PLUGIN_SCENARIO_EXPORT AddProcessInNewBoxMacro final
-    : public score::AggregateCommand
+class SCORE_PLUGIN_SCENARIO_EXPORT AddProcessInNewBoxMacro final : public score::AggregateCommand
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      AddProcessInNewBoxMacro,
-      "Add a process in a new box")
+  SCORE_COMMAND_DECL(CommandFactoryName(), AddProcessInNewBoxMacro, "Add a process in a new box")
 
 public:
   ~AddProcessInNewBoxMacro();

@@ -8,7 +8,6 @@
 #include <score/model/path/Path.hpp>
 #include <score/tools/std/Optional.hpp>
 
-
 #include <score_plugin_scenario_export.h>
 
 struct DataStreamInput;
@@ -25,10 +24,7 @@ namespace Command
  */
 class SCORE_PLUGIN_SCENARIO_EXPORT ClearInterval final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      ClearInterval,
-      "Clear a interval")
+  SCORE_COMMAND_DECL(CommandFactoryName(), ClearInterval, "Clear a interval")
 public:
   ClearInterval(const IntervalModel& intervalPath);
   void undo(const score::DocumentContext& ctx) const override;

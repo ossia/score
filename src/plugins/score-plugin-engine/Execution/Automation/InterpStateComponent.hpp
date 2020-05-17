@@ -21,8 +21,7 @@ class DeviceList;
 namespace InterpState
 {
 class ExecComponent final
-    : public ::Execution::
-          ProcessComponent_T<InterpState::ProcessModel, ossia::node_process>
+    : public ::Execution::ProcessComponent_T<InterpState::ProcessModel, ossia::node_process>
 {
   COMPONENT_METADATA("66327ccc-1478-4bef-9ce7-3c9765bd76a7")
 public:
@@ -41,11 +40,9 @@ private:
   on_curveChanged(ossia::val_type, const optional<ossia::destination>&);
 
   template <typename T>
-  std::shared_ptr<ossia::curve_abstract>
-  on_curveChanged_impl(const optional<ossia::destination>&);
+  std::shared_ptr<ossia::curve_abstract> on_curveChanged_impl(const optional<ossia::destination>&);
 };
-using ExecComponentFactory
-    = ::Execution::ProcessComponentFactory_T<ExecComponent>;
+using ExecComponentFactory = ::Execution::ProcessComponentFactory_T<ExecComponent>;
 }
 
 SCORE_CONCRETE_COMPONENT_FACTORY(

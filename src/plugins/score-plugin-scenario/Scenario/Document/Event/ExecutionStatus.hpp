@@ -1,10 +1,10 @@
 #pragma once
 #include <score/model/ColorReference.hpp>
 
-
 #include <verdigris>
 class QColor;
-namespace Process {
+namespace Process
+{
 struct Style;
 }
 

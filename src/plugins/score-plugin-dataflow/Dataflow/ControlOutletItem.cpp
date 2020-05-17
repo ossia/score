@@ -1,6 +1,8 @@
 #include "ControlOutletItem.hpp"
-#include <Process/Dataflow/PortListWidget.hpp>
+
 #include <Process/Dataflow/ControlWidgets.hpp>
+#include <Process/Dataflow/PortListWidget.hpp>
+
 #include <ossia/network/domain/domain.hpp>
 
 namespace Dataflow

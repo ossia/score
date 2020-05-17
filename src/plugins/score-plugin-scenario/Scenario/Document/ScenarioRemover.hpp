@@ -2,14 +2,14 @@
 #include <Dataflow/Commands/EditConnection.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Commands/Interval/RemoveProcessFromInterval.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateCommentBlock.hpp>
 #include <Scenario/Commands/State/RemoveStateProcess.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
 
-#include <Scenario/Commands/Scenario/Creations/CreateCommentBlock.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/ObjectRemover.hpp>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
 namespace Scenario
 {
 class ScenarioRemover final : public score::ObjectRemover
@@ -55,7 +55,7 @@ class ScenarioRemover final : public score::ObjectRemover
       if (s.size() == 1)
       {
         auto first = s.begin()->data();
-        if(auto cb = qobject_cast<const Scenario::CommentBlockModel*>(first))
+        if (auto cb = qobject_cast<const Scenario::CommentBlockModel*>(first))
         {
           CommandDispatcher<> d{ctx.commandStack};
           d.submit<Command::RemoveCommentBlock>(*sm, *cb);
@@ -70,7 +70,7 @@ class ScenarioRemover final : public score::ObjectRemover
     auto si = focusedScenarioInterface(ctx);
     if (si)
     {
-      Scenario::clearContentFromSelection(*si,  ctx);
+      Scenario::clearContentFromSelection(*si, ctx);
       return true;
     }
 

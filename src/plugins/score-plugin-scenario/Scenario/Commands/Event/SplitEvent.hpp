@@ -24,10 +24,7 @@ namespace Command
 {
 class SplitEvent final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      SplitEvent,
-      "Split an event")
+  SCORE_COMMAND_DECL(CommandFactoryName(), SplitEvent, "Split an event")
 
 public:
   SplitEvent(
@@ -60,10 +57,7 @@ private:
 
 class SCORE_PLUGIN_SCENARIO_EXPORT SplitWholeEvent final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      SplitWholeEvent,
-      "Split an event")
+  SCORE_COMMAND_DECL(CommandFactoryName(), SplitWholeEvent, "Split an event")
 public:
   SplitWholeEvent(const EventModel& path);
   void undo(const score::DocumentContext& ctx) const override;
@@ -82,10 +76,7 @@ private:
 
 class SplitStateMacro final : public score::AggregateCommand
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      SplitStateMacro,
-      "Split state from node")
+  SCORE_COMMAND_DECL(CommandFactoryName(), SplitStateMacro, "Split state from node")
 };
 }
 }

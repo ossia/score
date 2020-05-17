@@ -8,6 +8,7 @@
 #include <QUuid>
 
 #include <score_lib_process_export.h>
+
 #include <verdigris>
 
 namespace ossia
@@ -82,8 +83,7 @@ public:
   void resetCache() const noexcept override;
 
 public:
-  void typeChanged(CableType type)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, typeChanged, type)
+  void typeChanged(CableType type) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, typeChanged, type)
 
 private:
   CableType m_type{};

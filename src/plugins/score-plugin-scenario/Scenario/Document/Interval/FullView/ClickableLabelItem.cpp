@@ -18,7 +18,7 @@ W_OBJECT_IMPL(Scenario::ClickableLabelItem)
 namespace Scenario
 {
 
-SeparatorItem::SeparatorItem(QGraphicsItem* parent) : QGraphicsItem{parent} {}
+SeparatorItem::SeparatorItem(QGraphicsItem* parent) : QGraphicsItem{parent} { }
 
 QRectF SeparatorItem::boundingRect() const
 {
@@ -50,14 +50,10 @@ ClickableLabelItem::ClickableLabelItem(
     , m_onClick{std::move(onClick)}
 {
   setText(text);
-  connect(
-      &metadata,
-      &score::ModelMetadata::NameChanged,
-      this,
-      [&](const QString& name) {
-        setText(name);
-        textChanged();
-      });
+  connect(&metadata, &score::ModelMetadata::NameChanged, this, [&](const QString& name) {
+    setText(name);
+    textChanged();
+  });
 
   this->setFont(score::Skin::instance().Bold10Pt);
   this->setAcceptHoverEvents(true);

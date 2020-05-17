@@ -20,8 +20,7 @@ W_OBJECT_IMPL(State::DestinationQualifierWidget)
 
 namespace State
 {
-UnitWidget::UnitWidget(Qt::Orientation orient, QWidget* parent)
-    : QWidget{parent}
+UnitWidget::UnitWidget(Qt::Orientation orient, QWidget* parent) : QWidget{parent}
 {
   if (orient == Qt::Horizontal)
     m_layout = new score::MarginLess<QHBoxLayout>{this};
@@ -37,10 +36,8 @@ UnitWidget::UnitWidget(Qt::Orientation orient, QWidget* parent)
   m_dataspace->addItem(tr("None"), QVariant::fromValue(State::Unit{}));
   ossia::for_each_tagged(ossia::dataspace_u_list{}, [=](auto d) {
     // For each dataspace, add its text to the combo box
-    using dataspace_type =
-        typename ossia::matching_unit_u_list<typename decltype(d)::type>::type;
-    ossia::string_view text
-        = ossia::dataspace_traits<dataspace_type>::text()[0];
+    using dataspace_type = typename ossia::matching_unit_u_list<typename decltype(d)::type>::type;
+    ossia::string_view text = ossia::dataspace_traits<dataspace_type>::text()[0];
 
     m_dataspace->addItem(
         QString::fromUtf8(text.data(), text.size()),
@@ -48,25 +45,16 @@ UnitWidget::UnitWidget(Qt::Orientation orient, QWidget* parent)
   });
 
   // Signals
-  connect(
-      m_dataspace,
-      SignalUtils::QComboBox_currentIndexChanged_int(),
-      this,
-      [=](int i) {
-        on_dataspaceChanged(m_dataspace->itemData(i).value<State::Unit>());
-      });
+  connect(m_dataspace, SignalUtils::QComboBox_currentIndexChanged_int(), this, [=](int i) {
+    on_dataspaceChanged(m_dataspace->itemData(i).value<State::Unit>());
+  });
 
-  connect(
-      m_unit,
-      SignalUtils::QComboBox_currentIndexChanged_int(),
-      this,
-      [=](int i) { unitChanged(m_unit->itemData(i).value<State::Unit>()); });
+  connect(m_unit, SignalUtils::QComboBox_currentIndexChanged_int(), this, [=](int i) {
+    unitChanged(m_unit->itemData(i).value<State::Unit>());
+  });
 }
 
-UnitWidget::UnitWidget(
-    const State::Unit& u,
-    Qt::Orientation orient,
-    QWidget* parent)
+UnitWidget::UnitWidget(const State::Unit& u, Qt::Orientation orient, QWidget* parent)
     : UnitWidget{orient, parent}
 {
   setUnit(u);
@@ -87,9 +75,7 @@ void UnitWidget::setUnit(const State::Unit& unit)
     m_dataspace->setCurrentIndex(u.which() + 1);
 
     // Then set the correct unit
-    ossia::apply_nonnull(
-        [=](auto dataspace) { m_unit->setCurrentIndex(dataspace.which()); },
-        u.v);
+    ossia::apply_nonnull([=](auto dataspace) { m_unit->setCurrentIndex(dataspace.which()); }, u.v);
   }
   else
   {
@@ -118,17 +104,14 @@ void UnitWidget::on_dataspaceChanged(const State::Unit& unit)
           [=](auto dataspace) -> void {
             // Then For each unit in the dataspace, add it to the unit
             // combobox.
-            using typelist = typename ossia ::matching_unit_u_list<decltype(
-                dataspace)>::type;
+            using typelist = typename ossia ::matching_unit_u_list<decltype(dataspace)>::type;
             ossia::for_each_tagged(typelist{}, [=](auto u) {
               using unit_type = typename decltype(u)::type;
-              ossia::string_view text
-                  = ossia::unit_traits<unit_type>::text()[0];
+              ossia::string_view text = ossia::unit_traits<unit_type>::text()[0];
 
               m_unit->addItem(
                   QString::fromUtf8(text.data(), text.size()),
-                  QVariant::fromValue(
-                      State::Unit{ossia::unit_t{unit_type{}}}));
+                  QVariant::fromValue(State::Unit{ossia::unit_t{unit_type{}}}));
             });
           },
           d.v);
@@ -147,21 +130,14 @@ class EmptyModel final : public QAbstractItemModel
 public:
   // QAbstractItemModel interface
 public:
-  QModelIndex
-  index(int row, int column, const QModelIndex& parent) const override
+  QModelIndex index(int row, int column, const QModelIndex& parent) const override
   {
     return QModelIndex();
   }
-  QModelIndex parent(const QModelIndex& child) const override
-  {
-    return QModelIndex();
-  }
+  QModelIndex parent(const QModelIndex& child) const override { return QModelIndex(); }
   int rowCount(const QModelIndex& parent) const override { return 0; }
   int columnCount(const QModelIndex& parent) const override { return 0; }
-  QVariant data(const QModelIndex& index, int role) const override
-  {
-    return {};
-  }
+  QVariant data(const QModelIndex& index, int role) const override { return {}; }
 };
 class UnitModel final : public QAbstractItemModel
 {
@@ -172,26 +148,26 @@ public:
   struct TreeNode
   {
     TreeNode* parent{};
-    virtual ~TreeNode() {}
+    virtual ~TreeNode() { }
   };
 
   struct AccessorModel : TreeNode
   {
-    AccessorModel(ossia::destination_qualifiers a) : accessor{a} {}
-    virtual ~AccessorModel() {}
+    AccessorModel(ossia::destination_qualifiers a) : accessor{a} { }
+    virtual ~AccessorModel() { }
     ossia::destination_qualifiers accessor;
   };
 
   struct UnitDataModel : TreeNode
   {
-    virtual ~UnitDataModel() {}
+    virtual ~UnitDataModel() { }
     ossia::unit_t unit;
     std::vector<AccessorModel> accessors;
   };
 
   struct DataspaceModel : TreeNode
   {
-    virtual ~DataspaceModel() {}
+    virtual ~DataspaceModel() { }
     ossia::unit_t dataspace;
     std::vector<UnitDataModel> units;
   };
@@ -206,8 +182,7 @@ public:
       using dataspace_type = typename decltype(d_t)::type;
 
       DataspaceModel d;
-      d.dataspace =
-          typename ossia::matching_unit_u_list<dataspace_type>::type{};
+      d.dataspace = typename ossia::matching_unit_u_list<dataspace_type>::type{};
       ossia::for_each_tagged(dataspace_type{}, [&](auto u_t) {
         using unit_type = typename decltype(u_t)::type;
 
@@ -215,13 +190,12 @@ public:
         u.unit = unit_type{};
         if constexpr (unit_type::is_multidimensional::value)
         {
-          u.accessors.emplace_back(ossia::destination_qualifiers{
-              ossia::destination_index{}, unit_type{}});
-          for (std::size_t i = 0; i < unit_type::array_parameters().size();
-               i++)
+          u.accessors.emplace_back(
+              ossia::destination_qualifiers{ossia::destination_index{}, unit_type{}});
+          for (std::size_t i = 0; i < unit_type::array_parameters().size(); i++)
           {
-            u.accessors.emplace_back(ossia::destination_qualifiers{
-                ossia::destination_index{(int32_t)i}, unit_type{}});
+            u.accessors.emplace_back(
+                ossia::destination_qualifiers{ossia::destination_index{(int32_t)i}, unit_type{}});
           }
         }
         d.units.push_back(std::move(u));
@@ -292,8 +266,7 @@ public:
     return false;
   }
 
-  QModelIndex
-  index(int row, int column, const QModelIndex& parent) const override
+  QModelIndex index(int row, int column, const QModelIndex& parent) const override
   {
     if (!hasIndex(row, column, parent))
       return QModelIndex{};
@@ -309,11 +282,7 @@ public:
     else if (!parent.parent().parent().isValid())
     {
       return createIndex(
-          row,
-          column,
-          (void*)&m_data[parent.parent().row()]
-              .units[parent.row()]
-              .accessors[row]);
+          row, column, (void*)&m_data[parent.parent().row()].units[parent.row()].accessors[row]);
     }
     else
     {
@@ -408,8 +377,7 @@ public:
       if (auto d = dynamic_cast<DataspaceModel*>(p))
       {
         if (d->dataspace)
-          return QString::fromUtf8(
-              ossia::get_dataspace_text(d->dataspace).data());
+          return QString::fromUtf8(ossia::get_dataspace_text(d->dataspace).data());
         else
           return tr("None");
       }
@@ -420,8 +388,7 @@ public:
       else if (auto a = dynamic_cast<AccessorModel*>(p))
       {
         if (!a->accessor.accessors.empty())
-          return QChar(
-              get_unit_accessors(a->accessor.unit)[a->accessor.accessors[0]]);
+          return QChar(get_unit_accessors(a->accessor.unit)[a->accessor.accessors[0]]);
         else
           return QChar();
       }
@@ -442,23 +409,18 @@ static UnitModel& unit_model() noexcept
   return e;
 }
 
-DestinationQualifierWidget::DestinationQualifierWidget(QWidget* parent)
-    : QWidget{parent}
+DestinationQualifierWidget::DestinationQualifierWidget(QWidget* parent) : QWidget{parent}
 {
   // auto& empty = empty_model();
   auto& m = unit_model();
   m_unitMenu = new QMenuView{this};
   m_unitMenu->setModel(&m);
-  connect(
-      m_unitMenu,
-      &QMenuView::triggered,
-      this,
-      &DestinationQualifierWidget::on_unitChanged);
+  connect(m_unitMenu, &QMenuView::triggered, this, &DestinationQualifierWidget::on_unitChanged);
 }
 
 void DestinationQualifierWidget::chooseQualifier()
 {
-  if(!m_unitMenu->isVisible())
+  if (!m_unitMenu->isVisible())
   {
     m_unitMenu->exec(QCursor::pos());
   }
@@ -475,16 +437,16 @@ void DestinationQualifierWidget::on_unitChanged(const QModelIndex& idx)
   if (!idx.isValid())
     return;
 
-  if(idx.parent().parent().isValid())// accessor
+  if (idx.parent().parent().isValid()) // accessor
   {
     if (auto acc = (UnitModel::AccessorModel*)idx.internalPointer())
       qualifiersChanged(acc->accessor);
   }
-  else if(idx.parent().isValid())
+  else if (idx.parent().isValid())
   {
     if (auto unit = (UnitModel::UnitDataModel*)idx.internalPointer())
-    qualifiersChanged(State::DestinationQualifiers{
-        ossia::destination_qualifiers{{}, unit->unit}});
+      qualifiersChanged(
+          State::DestinationQualifiers{ossia::destination_qualifiers{{}, unit->unit}});
   }
   else
   {

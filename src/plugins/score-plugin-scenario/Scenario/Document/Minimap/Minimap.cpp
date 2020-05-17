@@ -2,7 +2,10 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/Minimap/Minimap.hpp>
+
 #include <score/graphics/GraphicsItem.hpp>
+#include <score/tools/Cursor.hpp>
+
 #include <ossia/detail/math.hpp>
 
 #include <QApplication>
@@ -10,9 +13,8 @@
 #include <QGraphicsView>
 #include <QPainter>
 #include <QWidget>
-#include <QGraphicsView>
+
 #include <wobjectimpl.h>
-#include <score/tools/Cursor.hpp>
 
 W_OBJECT_IMPL(Scenario::Minimap)
 namespace Scenario
@@ -88,15 +90,12 @@ QRectF Minimap::boundingRect() const
   return {0., 0., m_width, m_height};
 }
 
-void Minimap::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+void Minimap::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   auto& sk = Process::Style::instance();
   painter->setRenderHint(QPainter::Antialiasing, false);
   painter->fillRect(
-      QRectF{m_leftHandle, 0., m_rightHandle - m_leftHandle, m_height }, sk.MinimapBrush());
+      QRectF{m_leftHandle, 0., m_rightHandle - m_leftHandle, m_height}, sk.MinimapBrush());
 
   painter->setPen(sk.MinimapPen());
 
@@ -145,17 +144,16 @@ void Minimap::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 
   m_startPos = {loc.x, loc.y};
 #else
-  m_startPos = m_viewport->mapToGlobal(QPoint{0,0}) + ev->pos();
+  m_startPos = m_viewport->mapToGlobal(QPoint{0, 0}) + ev->pos();
 #endif
 
-  m_relativeStartX
-      = (ev->pos().x() - m_leftHandle) / (m_rightHandle - m_leftHandle);
+  m_relativeStartX = (ev->pos().x() - m_leftHandle) / (m_rightHandle - m_leftHandle);
   m_startY = ev->pos().y();
 
   if (m_setCursor)
   {
     score::hideCursor(true);
-    //QApplication::changeOverrideCursor(QCursor(Qt::BlankCursor));
+    // QApplication::changeOverrideCursor(QCursor(Qt::BlankCursor));
   }
   else
   {
@@ -188,12 +186,12 @@ void Minimap::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
 
       auto newLeftHandle = std::max(m_leftHandle + dx - dy, 0.);
       auto newRightHandle = std::min(m_rightHandle + dx + dy, m_width);
-      if(m_leftHandle <= 5. && newLeftHandle <= 5.)
+      if (m_leftHandle <= 5. && newLeftHandle <= 5.)
         newRightHandle = m_rightHandle;
-      if(m_rightHandle >= m_width - 5. && newRightHandle >= m_width - 5.)
+      if (m_rightHandle >= m_width - 5. && newRightHandle >= m_width - 5.)
         newLeftHandle = m_leftHandle;
 
-      if(newLeftHandle != m_leftHandle || newRightHandle != m_rightHandle)
+      if (newLeftHandle != m_leftHandle || newRightHandle != m_rightHandle)
       {
         setHandles(newLeftHandle, newRightHandle);
       }
@@ -226,7 +224,7 @@ void Minimap::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
         m_rightHandle));
     pos.setY(m_startY);
 
-    score::setCursorPos(QPointF{m_viewport->mapToGlobal(QPoint{0,0})} + pos);
+    score::setCursorPos(QPointF{m_viewport->mapToGlobal(QPoint{0, 0})} + pos);
   }
   ev->accept();
 }

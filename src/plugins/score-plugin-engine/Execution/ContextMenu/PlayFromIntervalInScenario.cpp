@@ -29,17 +29,13 @@ struct dfs_visitor_state
 struct dfs_visitor : public boost::default_dfs_visitor
 {
   // because these geniuses of boost decided to pass the visitor by value...
-  std::shared_ptr<dfs_visitor_state> state{
-      std::make_shared<dfs_visitor_state>()};
+  std::shared_ptr<dfs_visitor_state> state{std::make_shared<dfs_visitor_state>()};
 
-  void discover_vertex(
-      Scenario::Graph::vertex_descriptor i,
-      const Scenario::Graph& g)
+  void discover_vertex(Scenario::Graph::vertex_descriptor i, const Scenario::Graph& g)
   {
     state->nodes.insert(g[i]);
   }
-  void
-  examine_edge(Scenario::Graph::edge_descriptor i, const Scenario::Graph& g)
+  void examine_edge(Scenario::Graph::edge_descriptor i, const Scenario::Graph& g)
   {
     state->intervals.insert(g[i]);
   }
@@ -57,17 +53,14 @@ PlayFromIntervalScenarioPruner::intervalsToKeep() const
 
     // Do a depth-first search from where we're starting
     dfs_visitor vis;
-    std::vector<boost::default_color_type> color_map(
-        boost::num_vertices(g.graph()));
+    std::vector<boost::default_color_type> color_map(boost::num_vertices(g.graph()));
 
     boost::depth_first_visit(
         g.graph(),
         vertex,
         vis,
         boost::make_iterator_property_map(
-            color_map.begin(),
-            boost::get(boost::vertex_index, g.graph()),
-            color_map[0]));
+            color_map.begin(), boost::get(boost::vertex_index, g.graph()), color_map[0]));
 
     // Add the first interval
     vis.state->intervals.insert(&interval);
@@ -88,8 +81,9 @@ bool PlayFromIntervalScenarioPruner::toRemove(
   return (toKeep.find(c_addr) == toKeep.end()) && (c_addr != &interval);
 }
 
-void PlayFromIntervalScenarioPruner::
-operator()(const Context& exec_ctx, const BaseScenarioElement& bs)
+void PlayFromIntervalScenarioPruner::operator()(
+    const Context& exec_ctx,
+    const BaseScenarioElement& bs)
 {
   auto process_ptr = dynamic_cast<const Process::ProcessModel*>(&scenar);
   if (!process_ptr)
@@ -106,8 +100,7 @@ operator()(const Context& exec_ctx, const BaseScenarioElement& bs)
 
   SCORE_ASSERT(scenar_proc_it != source_procs.end());
 
-  auto scenar_comp
-      = dynamic_cast<ScenarioComponent*>((*scenar_proc_it).second.get());
+  auto scenar_comp = dynamic_cast<ScenarioComponent*>((*scenar_proc_it).second.get());
   const auto scenar_intervals = scenar_comp->intervals();
   IntervalComponent* other_cst{};
   for (auto elt : scenar_intervals)
@@ -127,18 +120,14 @@ operator()(const Context& exec_ctx, const BaseScenarioElement& bs)
 
   // Get the time_interval element of the interval we're starting from,
   // unless it is already linked to the beginning.
-  auto& start_e = *scenar_comp->OSSIAProcess()
-                       .get_start_time_sync()
-                       ->get_time_events()[0];
+  auto& start_e = *scenar_comp->OSSIAProcess().get_start_time_sync()->get_time_events()[0];
   auto& new_end_e = other_cst->OSSIAInterval()->get_start_event();
   if (&start_e != &new_end_e)
   {
     auto end_date = new_end_e.get_time_sync().get_date();
     auto new_cst = ossia::time_interval::create(
         ossia::time_interval::exec_callback{},
-        *scenar_comp->OSSIAProcess()
-             .get_start_time_sync()
-             ->get_time_events()[0],
+        *scenar_comp->OSSIAProcess().get_start_time_sync()->get_time_events()[0],
         new_end_e,
         end_date,
         end_date,

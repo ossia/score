@@ -6,13 +6,13 @@
 #include <Scenario/Document/TimeSync/TimeSyncRawPtrExecution.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
 
+#include <score/tools/Bind.hpp>
+
+#include <ossia/dataflow/execution_state.hpp>
 #include <ossia/detail/logger.hpp>
 #include <ossia/editor/expression/expression.hpp>
 #include <ossia/editor/scenario/time_sync.hpp>
 #include <ossia/editor/state/state.hpp>
-#include <score/tools/Bind.hpp>
-#include <ossia/dataflow/execution_state.hpp>
-
 
 #include <exception>
 
@@ -23,8 +23,7 @@ TimeSyncRawPtrComponent::TimeSyncRawPtrComponent(
     const Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
-    : Execution::Component{ctx, id, "Executor::Event", nullptr}
-    , m_score_node{&element}
+    : Execution::Component{ctx, id, "Executor::Event", nullptr}, m_score_node{&element}
 {
   con(element,
       &Scenario::TimeSyncModel::triggeredByGui,
@@ -35,15 +34,13 @@ TimeSyncRawPtrComponent::TimeSyncRawPtrComponent(
       &Scenario::TimeSyncModel::activeChanged,
       this,
       &TimeSyncRawPtrComponent::updateTrigger);
-  con(element,
-      &Scenario::TimeSyncModel::autotriggerChanged,
-      this,
-      [=] (bool b) { in_exec([ts = m_ossia_node,b] { ts->set_autotrigger(b); }); });
+  con(element, &Scenario::TimeSyncModel::autotriggerChanged, this, [=](bool b) {
+    in_exec([ts = m_ossia_node, b] { ts->set_autotrigger(b); });
+  });
   con(element,
       &Scenario::TimeSyncModel::triggerChanged,
       this,
       [this](const State::Expression& expr) { this->updateTrigger(); });
-
 
   con(element,
       &Scenario::TimeSyncModel::musicalSyncChanged,
@@ -78,9 +75,7 @@ ossia::expression_ptr TimeSyncRawPtrComponent::makeTrigger() const
   return ossia::expressions::make_expression_true();
 }
 
-void TimeSyncRawPtrComponent::onSetup(
-    ossia::time_sync* ptr,
-    ossia::expression_ptr exp)
+void TimeSyncRawPtrComponent::onSetup(ossia::time_sync* ptr, ossia::expression_ptr exp)
 {
   m_ossia_node = ptr;
   m_ossia_node->set_expression(std::move(exp));
@@ -120,7 +115,8 @@ void TimeSyncRawPtrComponent::updateTrigger()
 void TimeSyncRawPtrComponent::updateTriggerTime()
 {
   const auto sync = m_score_node->musicalSync();
-  this->in_exec([e = m_ossia_node, sync] { e->set_sync_rate(sync, ossia::quarter_duration<double>); });
+  this->in_exec(
+      [e = m_ossia_node, sync] { e->set_sync_rate(sync, ossia::quarter_duration<double>); });
 }
 
 void TimeSyncRawPtrComponent::on_GUITrigger()

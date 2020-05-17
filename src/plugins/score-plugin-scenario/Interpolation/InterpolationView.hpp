@@ -2,7 +2,6 @@
 #include <Curve/CurveView.hpp>
 #include <Process/LayerView.hpp>
 
-
 #include <verdigris>
 
 namespace Interpolation

@@ -5,9 +5,7 @@
 namespace Process
 {
 
-ChangePortAddress::ChangePortAddress(
-    const Process::Port& p,
-    State::AddressAccessor addr)
+ChangePortAddress::ChangePortAddress(const Process::Port& p, State::AddressAccessor addr)
     : m_model{p}, m_old{p.address()}, m_new{std::move(addr)}
 {
 }

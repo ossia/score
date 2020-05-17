@@ -4,22 +4,21 @@
 
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+
 #include <score/application/ApplicationContext.hpp>
+
 #include <core/application/ApplicationSettings.hpp>
+
 #include <QOpenGLWidget>
 #include <QWheelEvent>
 
 namespace Scenario
 {
 
-TimeRulerGraphicsView::TimeRulerGraphicsView(QGraphicsScene* scene)
-    : QGraphicsView{scene}
+TimeRulerGraphicsView::TimeRulerGraphicsView(QGraphicsScene* scene) : QGraphicsView{scene}
 {
   setRenderHints(
-        QPainter::Antialiasing
-        | QPainter::SmoothPixmapTransform
-        | QPainter::TextAntialiasing);
-
+      QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing);
 
   setAlignment(Qt::AlignTop | Qt::AlignLeft);
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -31,13 +30,11 @@ TimeRulerGraphicsView::TimeRulerGraphicsView(QGraphicsScene* scene)
   setBackgroundBrush(Process::Style::instance().MinimapBackground());
   setOptimizationFlag(QGraphicsView::DontSavePainterState, true);
 
-
-//#if !defined(__EMSCRIPTEN__)
-//  setAttribute(Qt::WA_OpaquePaintEvent, true);
-//  setAttribute(Qt::WA_PaintOnScreen, true);
-//#endif
+  //#if !defined(__EMSCRIPTEN__)
+  //  setAttribute(Qt::WA_OpaquePaintEvent, true);
+  //  setAttribute(Qt::WA_PaintOnScreen, true);
   //#endif
-
+  //#endif
 
 #if defined(__APPLE__)
   setRenderHints(0);
@@ -45,13 +42,10 @@ TimeRulerGraphicsView::TimeRulerGraphicsView(QGraphicsScene* scene)
 #endif
 }
 
-MinimapGraphicsView::MinimapGraphicsView(QGraphicsScene* s)
-    : TimeRulerGraphicsView{s}
+MinimapGraphicsView::MinimapGraphicsView(QGraphicsScene* s) : TimeRulerGraphicsView{s}
 {
   setRenderHints(
-        QPainter::Antialiasing
-        | QPainter::SmoothPixmapTransform
-        | QPainter::TextAntialiasing);
+      QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing);
   setSceneRect({0, 0, 2000, 100});
   setFixedHeight(15);
   setFrameStyle(0);
@@ -59,14 +53,13 @@ MinimapGraphicsView::MinimapGraphicsView(QGraphicsScene* s)
   setDragMode(DragMode::NoDrag);
   setBackgroundBrush(Process::Style::instance().MinimapBackground());
 
-
 #if defined(__APPLE__)
   setRenderHints(0);
   setOptimizationFlag(QGraphicsView::IndirectPainting, true);
 #endif
 }
 
-void MinimapGraphicsView::scrollContentsBy(int dx, int dy) {}
+void MinimapGraphicsView::scrollContentsBy(int dx, int dy) { }
 
 void MinimapGraphicsView::wheelEvent(QWheelEvent* event)
 {

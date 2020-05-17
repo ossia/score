@@ -2,7 +2,6 @@
 #include <Dataflow/PortItem.hpp>
 #include <Process/Dataflow/PortListWidget.hpp>
 
-
 namespace Dataflow
 {
 template <typename T>
@@ -35,10 +34,10 @@ struct WidgetInletFactory : public AutomatablePortFactory
   }
 
   QGraphicsItem* makeControlItem(
-        Process::ControlInlet& port,
-        const score::DocumentContext& ctx,
-        QGraphicsItem* parent,
-        QObject* context) override
+      Process::ControlInlet& port,
+      const score::DocumentContext& ctx,
+      QGraphicsItem* parent,
+      QObject* context) override
   {
     auto& ctrl = static_cast<Model_T&>(port);
     using widg_t = typename Model_T::control_type;

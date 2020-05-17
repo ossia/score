@@ -19,13 +19,9 @@ namespace Scenario
 class StateModel;
 namespace Command
 {
-class SCORE_PLUGIN_SCENARIO_EXPORT AddStateProcessToState final
-    : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT AddStateProcessToState final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      AddStateProcessToState,
-      "Add a state process")
+  SCORE_COMMAND_DECL(CommandFactoryName(), AddStateProcessToState, "Add a state process")
 public:
   AddStateProcessToState(
       const Scenario::StateModel& state,

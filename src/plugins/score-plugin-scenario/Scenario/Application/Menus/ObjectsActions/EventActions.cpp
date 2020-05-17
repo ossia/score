@@ -14,7 +14,6 @@
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 
-#include <score/serialization/DataStreamVisitor.hpp>
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/MenuManager.hpp>
 #include <score/model/path/PathSerialization.hpp>
@@ -26,14 +25,13 @@
 
 #include <QAction>
 #include <QMenu>
-#include <QToolBar>
 #include <QSet>
+#include <QToolBar>
 namespace Scenario
 {
 EventActions::EventActions(ScenarioApplicationPlugin* parent)
     : m_parent{parent}
-    , m_triggerCommandFactory{
-          parent->context.interfaces<Command::TriggerCommandFactoryList>()}
+    , m_triggerCommandFactory{parent->context.interfaces<Command::TriggerCommandFactoryList>()}
 {
   if (!parent->context.applicationSettings.gui)
     return;
@@ -41,11 +39,7 @@ EventActions::EventActions(ScenarioApplicationPlugin* parent)
 
   /// Add Trigger ///
   m_addTrigger = new QAction{tr("Enable trigger"), this};
-  connect(
-      m_addTrigger,
-      &QAction::triggered,
-      this,
-      &EventActions::addTriggerToTimeSync);
+  connect(m_addTrigger, &QAction::triggered, this, &EventActions::addTriggerToTimeSync);
   m_addTrigger->setEnabled(false);
 
   m_addTrigger->setToolTip(tr("Enable trigger"));
@@ -57,17 +51,12 @@ EventActions::EventActions(ScenarioApplicationPlugin* parent)
 
   /// Remove Trigger ///
   m_removeTrigger = new QAction{tr("Disable trigger"), this};
-  connect(
-      m_removeTrigger,
-      &QAction::triggered,
-      this,
-      &EventActions::removeTriggerFromTimeSync);
+  connect(m_removeTrigger, &QAction::triggered, this, &EventActions::removeTriggerFromTimeSync);
   m_removeTrigger->setEnabled(false);
 
   /// Add Condition ///
   m_addCondition = new QAction{tr("Add Condition"), this};
-  connect(
-      m_addCondition, &QAction::triggered, this, &EventActions::addCondition);
+  connect(m_addCondition, &QAction::triggered, this, &EventActions::addCondition);
   m_addCondition->setEnabled(false);
 
   m_addCondition->setToolTip(tr("Add Condition"));
@@ -79,11 +68,7 @@ EventActions::EventActions(ScenarioApplicationPlugin* parent)
 
   /// Remove Condition ///
   m_removeCondition = new QAction{tr("Remove Condition"), this};
-  connect(
-      m_removeCondition,
-      &QAction::triggered,
-      this,
-      &EventActions::removeCondition);
+  connect(m_removeCondition, &QAction::triggered, this, &EventActions::removeCondition);
   m_removeCondition->setEnabled(false);
 }
 
@@ -100,16 +85,14 @@ void EventActions::makeGUIElements(score::GUIElements& ref)
   auto bar = new QToolBar{tr("Event")};
   bar->addAction(m_addTrigger);
   bar->addAction(m_addCondition);
-  ref.toolbars.emplace_back(
-      bar, StringKey<score::Toolbar>("Event"), Qt::TopToolBarArea, 600);
+  ref.toolbars.emplace_back(bar, StringKey<score::Toolbar>("Event"), Qt::TopToolBarArea, 600);
 
   ref.actions.add<Actions::AddTrigger>(m_addTrigger);
   ref.actions.add<Actions::RemoveTrigger>(m_removeTrigger);
   ref.actions.add<Actions::AddCondition>(m_addCondition);
   ref.actions.add<Actions::RemoveCondition>(m_removeCondition);
 
-  auto& cond = m_parent->context.actions
-                   .condition<EnableWhenScenarioInterfaceInstantObject>();
+  auto& cond = m_parent->context.actions.condition<EnableWhenScenarioInterfaceInstantObject>();
   cond.add<Actions::AddTrigger>();
   cond.add<Actions::RemoveTrigger>();
   cond.add<Actions::AddCondition>();
@@ -119,26 +102,24 @@ void EventActions::makeGUIElements(score::GUIElements& ref)
 void EventActions::setupContextMenu(Process::LayerContextMenuManager& ctxm)
 {
   using namespace Process;
-  Process::LayerContextMenu cm
-      = MetaContextMenu<ContextMenus::EventContextMenu>::make();
+  Process::LayerContextMenu cm = MetaContextMenu<ContextMenus::EventContextMenu>::make();
 
-  cm.functions.push_back(
-      [this](QMenu& menu, QPoint, QPointF, const Process::LayerContext& ctx) {
-        using namespace score;
-        auto sel = ctx.context.selectionStack.currentSelection();
-        if (sel.empty())
-          return;
+  cm.functions.push_back([this](QMenu& menu, QPoint, QPointF, const Process::LayerContext& ctx) {
+    using namespace score;
+    auto sel = ctx.context.selectionStack.currentSelection();
+    if (sel.empty())
+      return;
 
-        if (std::any_of(sel.cbegin(), sel.cend(), [](const QObject* obj) {
-              return dynamic_cast<const EventModel*>(obj);
-            })) // TODO : event or timesync ?
-        {
-          auto m = menu.addMenu(tr("Event"));
+    if (std::any_of(sel.cbegin(), sel.cend(), [](const QObject* obj) {
+          return dynamic_cast<const EventModel*>(obj);
+        })) // TODO : event or timesync ?
+    {
+      auto m = menu.addMenu(tr("Event"));
 
-          m->addAction(m_addTrigger);
-          m->addAction(m_removeTrigger);
-        }
-      });
+      m->addAction(m_addTrigger);
+      m->addAction(m_removeTrigger);
+    }
+  });
 
   ctxm.insert(std::move(cm));
 }
@@ -210,8 +191,7 @@ void EventActions::addCondition()
   const EventModel& ev = *selectedEvents.front();
   if (ev.condition() == State::Expression{})
   {
-    auto cmd = new Scenario::Command::SetCondition{
-        ev, State::defaultTrueExpression()};
+    auto cmd = new Scenario::Command::SetCondition{ev, State::defaultTrueExpression()};
     dispatcher().submit(cmd);
   }
 }
@@ -252,10 +232,10 @@ void EventActions::removeTriggerFromTimeSync()
   if (selectedTimeSyncs.empty())
   {
     auto selectedEvents = selectedElements(si->getEvents());
-    if(selectedEvents.empty())
+    if (selectedEvents.empty())
     {
       auto selectedStates = selectedElements(si->getStates());
-      if(selectedStates.empty())
+      if (selectedStates.empty())
       {
         return;
       }
@@ -284,8 +264,7 @@ void EventActions::removeTriggerFromTimeSync()
 
 CommandDispatcher<> EventActions::dispatcher()
 {
-  CommandDispatcher<> disp{
-      m_parent->currentDocument()->context().commandStack};
+  CommandDispatcher<> disp{m_parent->currentDocument()->context().commandStack};
   return disp;
 }
 }

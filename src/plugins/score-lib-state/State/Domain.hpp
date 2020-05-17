@@ -1,9 +1,9 @@
 #pragma once
 
 #include <score_lib_state_export.h>
-#include <verdigris>
 
 #include <memory>
+#include <verdigris>
 
 namespace ossia
 {
@@ -26,8 +26,8 @@ public:
   Domain(const ossia::domain&) noexcept;
   Domain& operator=(const ossia::domain&) noexcept;
 
-  operator const ossia::domain&() const noexcept;
-  operator ossia::domain&() noexcept;
+  operator const ossia::domain &() const noexcept;
+  operator ossia::domain &() noexcept;
 
   bool operator==(const State::Domain& other) const noexcept;
   bool operator!=(const State::Domain& other) const noexcept;

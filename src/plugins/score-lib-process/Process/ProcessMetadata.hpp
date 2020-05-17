@@ -45,60 +45,46 @@ struct Descriptor
 class Descriptor_k;
 }
 #define PROCESS_FLAGS_METADATA(Export, Model, Flags) \
-  TYPED_METADATA(                                    \
-      Export, Model, Process::ProcessFlags_k, Process::ProcessFlags, Flags)
+  TYPED_METADATA(Export, Model, Process::ProcessFlags_k, Process::ProcessFlags, Flags)
 
-#define PROCESS_METADATA(                                                \
-    Export,                                                              \
-    Model,                                                               \
-    Uuid,                                                                \
-    ObjectKey,                                                           \
-    PrettyName,                                                          \
-    CategoryEnum,                                                        \
-    Category,                                                            \
-    Desc,                                                                \
-    Author,                                                              \
-    Tags,                                                                \
-    InputSpec,                                                           \
-    OutputSpec,                                                          \
-    Flags)                                                               \
-  MODEL_METADATA(                                                        \
-      Export, Process::ProcessModel, Model, Uuid, ObjectKey, PrettyName) \
-  CATEGORY_METADATA(Export, Model, Category)                             \
-  TAGS_METADATA(Export, Model, Tags)                                     \
-  PROCESS_FLAGS_METADATA(Export, Model, (Process::ProcessFlags)(Flags))  \
-  template <>                                                            \
-  struct Export Metadata<::Process::Descriptor_k, Model>                 \
-  {                                                                      \
-    static ::Process::Descriptor get()                                   \
-    {                                                                    \
-      static const ::Process::Descriptor k{PrettyName,                   \
-                                           CategoryEnum,                 \
-                                           Category,                     \
-                                           Desc,                         \
-                                           Author,                       \
-                                           Tags,                         \
-                                           InputSpec,                    \
-                                           OutputSpec};                  \
-      return k;                                                          \
-    }                                                                    \
+#define PROCESS_METADATA(                                                                 \
+    Export,                                                                               \
+    Model,                                                                                \
+    Uuid,                                                                                 \
+    ObjectKey,                                                                            \
+    PrettyName,                                                                           \
+    CategoryEnum,                                                                         \
+    Category,                                                                             \
+    Desc,                                                                                 \
+    Author,                                                                               \
+    Tags,                                                                                 \
+    InputSpec,                                                                            \
+    OutputSpec,                                                                           \
+    Flags)                                                                                \
+  MODEL_METADATA(Export, Process::ProcessModel, Model, Uuid, ObjectKey, PrettyName)       \
+  CATEGORY_METADATA(Export, Model, Category)                                              \
+  TAGS_METADATA(Export, Model, Tags)                                                      \
+  PROCESS_FLAGS_METADATA(Export, Model, (Process::ProcessFlags)(Flags))                   \
+  template <>                                                                             \
+  struct Export Metadata<::Process::Descriptor_k, Model>                                  \
+  {                                                                                       \
+    static ::Process::Descriptor get()                                                    \
+    {                                                                                     \
+      static const ::Process::Descriptor k{                                               \
+          PrettyName, CategoryEnum, Category, Desc, Author, Tags, InputSpec, OutputSpec}; \
+      return k;                                                                           \
+    }                                                                                     \
   };
 
-#define PROCESS_METADATA_IMPL(Model)                        \
-  MODEL_METADATA_IMPL(Model)                                \
-  QString prettyShortName() const noexcept override         \
-  {                                                         \
-    return Metadata<PrettyName_k, Model>::get();            \
-  }                                                         \
-  QString category() const noexcept override                \
-  {                                                         \
-    return Metadata<Category_k, Model>::get();              \
-  }                                                         \
-  QStringList tags() const noexcept override                \
-  {                                                         \
-    return Metadata<Tags_k, Model>::get();                  \
-  }                                                         \
-  Process::ProcessFlags flags() const noexcept override     \
-  {                                                         \
-    return Metadata<Process::ProcessFlags_k, Model>::get(); \
+#define PROCESS_METADATA_IMPL(Model)                                                        \
+  MODEL_METADATA_IMPL(Model)                                                                \
+  QString prettyShortName() const noexcept override                                         \
+  {                                                                                         \
+    return Metadata<PrettyName_k, Model>::get();                                            \
+  }                                                                                         \
+  QString category() const noexcept override { return Metadata<Category_k, Model>::get(); } \
+  QStringList tags() const noexcept override { return Metadata<Tags_k, Model>::get(); }     \
+  Process::ProcessFlags flags() const noexcept override                                     \
+  {                                                                                         \
+    return Metadata<Process::ProcessFlags_k, Model>::get();                                 \
   }

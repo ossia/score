@@ -10,10 +10,7 @@ namespace Gfx
 class DocumentPlugin final : public score::DocumentPlugin
 {
 public:
-  DocumentPlugin(
-      const score::DocumentContext& doc,
-      Id<score::DocumentPlugin> id,
-      QObject* parent);
+  DocumentPlugin(const score::DocumentContext& doc, Id<score::DocumentPlugin> id, QObject* parent);
   ~DocumentPlugin() override;
 
   gfx_window_context context;

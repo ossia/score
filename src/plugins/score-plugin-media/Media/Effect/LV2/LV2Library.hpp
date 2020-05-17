@@ -10,9 +10,7 @@ namespace Media::LV2
 class LibraryHandler final : public Library::LibraryInterface
 {
   SCORE_CONCRETE("570f0b92-a091-47ff-a5c3-a585e07df2bf")
-  void setup(
-      Library::ProcessesItemModel& model,
-      const score::GUIApplicationContext& ctx) override
+  void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx) override
   {
     const auto& key = LV2EffectFactory{}.concreteKey();
     QModelIndex node = model.find(key);
@@ -20,8 +18,7 @@ class LibraryHandler final : public Library::LibraryInterface
     {
       return;
     }
-    auto& parent
-        = *reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
+    auto& parent = *reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
 
     auto& plug = ctx.applicationPlugin<Media::ApplicationPlugin>();
     auto& world = plug.lilv;

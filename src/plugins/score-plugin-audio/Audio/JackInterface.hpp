@@ -1,20 +1,20 @@
 #pragma once
+#include <score/command/Dispatchers/SettingsCommandDispatcher.hpp>
+#include <score/tools/Bind.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
 #include <ossia/audio/jack_protocol.hpp>
 
+#include <QDebug>
 #include <QFormLayout>
 #include <QLabel>
 #include <QSpinBox>
-#include <QWidget>
 #include <QTimer>
-#include <QDebug>
+#include <QWidget>
 
 #include <Audio/AudioInterface.hpp>
 #include <Audio/Settings/Model.hpp>
 #include <Audio/Settings/View.hpp>
-#include <score/command/Dispatchers/SettingsCommandDispatcher.hpp>
-#include <score/tools/Bind.hpp>
 
 namespace Audio
 {
@@ -22,30 +22,28 @@ namespace Audio
 class JackFactory final : public AudioFactory
 {
   SCORE_CONCRETE("7ff2af00-f2f5-4930-beec-0e2d21eda195")
-  private:
-    std::weak_ptr<ossia::jack_client> m_client{};
+private:
+  std::weak_ptr<ossia::jack_client> m_client{};
+
 public:
-  ~JackFactory() override {}
+  ~JackFactory() override { }
 
   QString prettyName() const override { return QObject::tr("JACK"); }
-  std::unique_ptr<ossia::audio_engine> make_engine(
-      const Audio::Settings::Model& set,
-      const score::ApplicationContext& ctx) override
+  std::unique_ptr<ossia::audio_engine>
+  make_engine(const Audio::Settings::Model& set, const score::ApplicationContext& ctx) override
   {
     static_assert(std::is_base_of_v<ossia::audio_engine, ossia::jack_engine>);
     auto clt = m_client.lock();
-    if(!clt)
+    if (!clt)
     {
       m_client = (clt = std::make_shared<ossia::jack_client>("ossia score"));
     }
-    return std::make_unique<ossia::jack_engine>(
-        clt,
-        set.getDefaultIn(),
-        set.getDefaultOut());
+    return std::make_unique<ossia::jack_engine>(clt, set.getDefaultIn(), set.getDefaultOut());
   }
 
   void setupSettingsWidget(
-      QWidget* w, QFormLayout* lay,
+      QWidget* w,
+      QFormLayout* lay,
       Audio::Settings::Model& m,
       Audio::Settings::View& v,
       score::SettingsCommandDispatcher& m_disp)
@@ -67,7 +65,7 @@ public:
 
     qDebug() << "JACK: " << WeakJack::instance().available();
     std::shared_ptr<ossia::jack_client> client = m_client.lock();
-    if(!client)
+    if (!client)
     {
       m_client = (client = std::make_shared<ossia::jack_client>("ossia score"));
       qDebug("Creating a jack client");
@@ -92,12 +90,8 @@ public:
       in_count->setRange(0, 1024);
       lay->addRow(QObject::tr("Inputs"), in_count);
       QObject::connect(
-          in_count,
-          SignalUtils::QSpinBox_valueChanged_int(),
-          w,
-          [=, &m, &m_disp](int i) {
-            m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultIn>(
-                m, i);
+          in_count, SignalUtils::QSpinBox_valueChanged_int(), w, [=, &m, &m_disp](int i) {
+            m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultIn>(m, i);
           });
 
       in_count->setValue(m.getDefaultIn());
@@ -107,12 +101,8 @@ public:
       out_count->setRange(0, 1024);
       lay->addRow(QObject::tr("Outputs"), out_count);
       QObject::connect(
-          out_count,
-          SignalUtils::QSpinBox_valueChanged_int(),
-          w,
-          [=, &m, &m_disp](int i) {
-            m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultOut>(
-                m, i);
+          out_count, SignalUtils::QSpinBox_valueChanged_int(), w, [=, &m, &m_disp](int i) {
+            m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultOut>(m, i);
           });
 
       out_count->setValue(m.getDefaultIn());
@@ -141,10 +131,13 @@ public:
     auto w = new QWidget{parent};
     auto lay = new QFormLayout{w};
 
-    QTimer::singleShot(1000, [=,&m,&v,&m_disp] {
-      try {
+    QTimer::singleShot(1000, [=, &m, &v, &m_disp] {
+      try
+      {
         setupSettingsWidget(w, lay, m, v, m_disp);
-      }  catch (...) {
+      }
+      catch (...)
+      {
         qDebug("Could not set up JACK !");
       }
     });

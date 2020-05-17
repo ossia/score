@@ -16,10 +16,7 @@ public:
   ProcessPanelGraphicsProxy();
 
   QRectF boundingRect() const override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
   void setRect(const QSizeF& size);
 };

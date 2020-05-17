@@ -1,10 +1,11 @@
 #pragma once
 #include <score/command/CommandFactoryKey.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
-#include <score_lib_base_export.h>
 
 #include <QByteArray>
 #include <QString>
+
+#include <score_lib_base_export.h>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -69,21 +70,18 @@ protected:
  * ScoreFunctions.cmake. See score_generate_command_list_file.
  *
  */
-#define SCORE_COMMAND_DECL(parentNameFun, name, desc)                      \
-public:                                                                    \
-  name() noexcept {}                                                       \
-  const CommandGroupKey& parentKey() const noexcept override               \
-  {                                                                        \
-    return parentNameFun;                                                  \
-  }                                                                        \
-  const CommandKey& key() const noexcept override { return static_key(); } \
-  QString description() const override { return QObject::tr(desc); }       \
-  static const CommandKey& static_key() noexcept                           \
-  {                                                                        \
-    static const CommandKey var{#name};                                    \
-    return var;                                                            \
-  }                                                                        \
-                                                                           \
+#define SCORE_COMMAND_DECL(parentNameFun, name, desc)                                  \
+public:                                                                                \
+  name() noexcept { }                                                                  \
+  const CommandGroupKey& parentKey() const noexcept override { return parentNameFun; } \
+  const CommandKey& key() const noexcept override { return static_key(); }             \
+  QString description() const override { return QObject::tr(desc); }                   \
+  static const CommandKey& static_key() noexcept                                       \
+  {                                                                                    \
+    static const CommandKey var{#name};                                                \
+    return var;                                                                        \
+  }                                                                                    \
+                                                                                       \
 private:
 
 /**

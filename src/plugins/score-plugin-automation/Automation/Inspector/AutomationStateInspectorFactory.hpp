@@ -1,7 +1,6 @@
 #pragma once
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 
-
 namespace Automation
 {
 class StateInspectorFactory final : public Inspector::InspectorWidgetFactory

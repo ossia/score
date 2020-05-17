@@ -1,15 +1,16 @@
 #include "SoundDrop.hpp"
 
-#include <Audio/Settings/Model.hpp>
 #include <Loop/LoopProcessModel.hpp>
 #include <Media/AudioDecoder.hpp>
 #include <Media/Commands/ChangeAudioFile.hpp>
 #include <Media/Sound/SoundModel.hpp>
 #include <Process/TimeValueSerialization.hpp>
 
-#include <QMimeData>
 #include <QFileInfo>
+#include <QMimeData>
 #include <QUrl>
+
+#include <Audio/Settings/Model.hpp>
 
 namespace Media
 {
@@ -32,7 +33,7 @@ DroppedAudioFiles::DroppedAudioFiles(const score::DocumentContext& ctx, const QM
         const auto& file = AudioFileManager::instance().get(filename, ctx);
 
         auto dur = info.duration();
-        if(auto tempo = estimateTempo(*file))
+        if (auto tempo = estimateTempo(*file))
         {
           AudioDecoder::database()[filename].tempo = *tempo;
         }
@@ -55,13 +56,11 @@ QSet<QString> DropHandler::mimeTypes() const noexcept
 
 QSet<QString> DropHandler::fileExtensions() const noexcept
 {
-  return {
-      "wav", "aif", "aiff", "flac", "ogg", "mp3", "ape", "wv", "m4a", "wma", "w64"};
+  return {"wav", "aif", "aiff", "flac", "ogg", "mp3", "ape", "wv", "m4a", "wma", "w64"};
 }
 
-std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::drop(
-    const QMimeData& mime,
-    const score::DocumentContext& ctx) const noexcept
+std::vector<Process::ProcessDropHandler::ProcessDrop>
+DropHandler::drop(const QMimeData& mime, const score::DocumentContext& ctx) const noexcept
 {
   std::vector<Process::ProcessDropHandler::ProcessDrop> vec;
 
@@ -75,8 +74,8 @@ std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::drop(
     p.creation.key = Metadata<ConcreteKey_k, Sound::ProcessModel>::get();
     p.creation.prettyName = QFileInfo{file.first}.baseName();
     p.duration = file.second;
-    p.setup = [f = std::move(file.first), song_t = *p.duration](
-                  Process::ProcessModel& m, score::Dispatcher& disp) {
+    p.setup = [f = std::move(file.first),
+               song_t = *p.duration](Process::ProcessModel& m, score::Dispatcher& disp) {
       auto& proc = static_cast<Sound::ProcessModel&>(m);
       disp.submit(new Media::ChangeAudioFile{proc, std::move(f)});
     };

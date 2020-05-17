@@ -27,9 +27,9 @@
 #include <Scenario/Document/DisplayedElements/ScenarioDisplayedElementsProvider.hpp>
 #include <Scenario/Document/Event/EventExecution.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
-#include <Scenario/Document/Tempo/TempoFactory.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentFactory.hpp>
 #include <Scenario/Document/ScenarioRemover.hpp>
+#include <Scenario/Document/Tempo/TempoFactory.hpp>
 #include <Scenario/ExecutionChecker/CSPCoherencyCheckerList.hpp>
 #include <Scenario/Inspector/Interpolation/InterpolationInspectorWidget.hpp>
 #include <Scenario/Inspector/Interval/IntervalInspectorFactory.hpp>
@@ -39,8 +39,6 @@
 #include <Scenario/Process/ScenarioExecution.hpp>
 #include <Scenario/Process/ScenarioFactory.hpp>
 #include <Scenario/Settings/ScenarioSettingsFactory.hpp>
-
-#include <LocalTree/ScenarioComponent.hpp>
 #include <State/Message.hpp>
 #include <State/Unit.hpp>
 #include <State/Value.hpp>
@@ -62,6 +60,7 @@
 #include <QPainterPath>
 
 #include <Interpolation/InterpolationFactory.hpp>
+#include <LocalTree/ScenarioComponent.hpp>
 #include <score_plugin_scenario.hpp>
 #include <score_plugin_scenario_commands_files.hpp>
 #include <wobjectimpl.h>
@@ -76,8 +75,8 @@ score_plugin_scenario::score_plugin_scenario()
 #endif
   using namespace Scenario;
   // QMetaType::registerComparators<ossia::value>();
-  //QMetaType::registerComparators<State::Message>();
-  //QMetaType::registerComparators<State::MessageList>();
+  // QMetaType::registerComparators<State::Message>();
+  // QMetaType::registerComparators<State::MessageList>();
 
   qRegisterMetaType<State::Expression>();
   qRegisterMetaTypeStreamOperators<State::Message>();
@@ -115,15 +114,14 @@ score_plugin_scenario::score_plugin_scenario()
 
 score_plugin_scenario::~score_plugin_scenario() = default;
 
-score::GUIApplicationPlugin* score_plugin_scenario::make_guiApplicationPlugin(
-    const score::GUIApplicationContext& app)
+score::GUIApplicationPlugin*
+score_plugin_scenario::make_guiApplicationPlugin(const score::GUIApplicationContext& app)
 {
   using namespace Scenario;
   return new ScenarioApplicationPlugin{app};
 }
 
-std::vector<std::unique_ptr<score::InterfaceListBase>>
-score_plugin_scenario::factoryFamilies()
+std::vector<std::unique_ptr<score::InterfaceListBase>> score_plugin_scenario::factoryFamilies()
 {
   using namespace Scenario;
   using namespace Scenario::Command;
@@ -140,21 +138,17 @@ score_plugin_scenario::factoryFamilies()
 }
 
 template <>
-struct FactoryBuilder<
-    score::GUIApplicationContext,
-    Scenario::ScenarioTemporalLayerFactory>
+struct FactoryBuilder<score::GUIApplicationContext, Scenario::ScenarioTemporalLayerFactory>
 {
   static auto make(const score::GUIApplicationContext& ctx)
   {
     using namespace Scenario;
     auto& appPlugin = ctx.guiApplicationPlugin<ScenarioApplicationPlugin>();
-    return std::make_unique<ScenarioTemporalLayerFactory>(
-        appPlugin.editionSettings());
+    return std::make_unique<ScenarioTemporalLayerFactory>(appPlugin.editionSettings());
   }
 };
 
-std::vector<std::unique_ptr<score::InterfaceBase>>
-score_plugin_scenario::factories(
+std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_scenario::factories(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& key) const
 {
@@ -163,26 +157,21 @@ score_plugin_scenario::factories(
   return instantiate_factories<
       score::ApplicationContext,
       FW<Process::ProcessModelFactory,
-      ScenarioFactory
-      , Scenario::TempoFactory
-      , Interpolation::InterpolationFactory
-      >,
-      FW<Process::LayerFactory
-      , Interpolation::InterpolationLayerFactory
-      , Scenario::TempoLayerFactory
-      >,
+         ScenarioFactory,
+         Scenario::TempoFactory,
+         Interpolation::InterpolationFactory>,
+      FW<Process::LayerFactory,
+         Interpolation::InterpolationLayerFactory,
+         Scenario::TempoLayerFactory>,
       FW<MoveEventFactoryInterface, MoveEventClassicFactory>,
       FW<DisplayedElementsToolPaletteFactory,
          BaseScenarioDisplayedElementsToolPaletteFactory,
          ScenarioDisplayedElementsToolPaletteFactory>,
-      FW<TriggerCommandFactory,
-         ScenarioTriggerCommandFactory,
-         BaseScenarioTriggerCommandFactory>,
+      FW<TriggerCommandFactory, ScenarioTriggerCommandFactory, BaseScenarioTriggerCommandFactory>,
       FW<DisplayedElementsProvider,
          DefaultDisplayedElementsProvider,
          ScenarioDisplayedElementsProvider,
-         BaseScenarioDisplayedElementsProvider
-      >,
+         BaseScenarioDisplayedElementsProvider>,
       FW<score::DocumentDelegateFactory, Scenario::ScenarioDocumentFactory>,
       FW<score::SettingsDelegateFactory, Scenario::Settings::Factory>,
       FW<score::PanelDelegateFactory, Scenario::ObjectPanelDelegateFactory>,
@@ -204,10 +193,8 @@ score_plugin_scenario::factories(
          Interpolation::InspectorFactory>,
       FW<score::ValidityChecker, ScenarioValidityChecker>,
 
-      FW<LocalTree::ProcessComponentFactory,
-         LocalTree::ScenarioComponentFactory>,
-      FW<Execution::ProcessComponentFactory,
-         Execution::ScenarioComponentFactory>,
+      FW<LocalTree::ProcessComponentFactory, LocalTree::ScenarioComponentFactory>,
+      FW<Execution::ProcessComponentFactory, Execution::ScenarioComponentFactory>,
       FW<Library::LibraryInterface,
          Scenario::SlotLibraryHandler,
          Scenario::ScenarioLibraryHandler>,
@@ -217,8 +204,7 @@ score_plugin_scenario::factories(
       FW<score::ObjectRemover, Scenario::ScenarioRemover>>(ctx, key);
 }
 
-std::pair<const CommandGroupKey, CommandGeneratorMap>
-score_plugin_scenario::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_scenario::make_commands()
 {
   using namespace Scenario;
   using namespace Dataflow;
@@ -234,8 +220,7 @@ score_plugin_scenario::make_commands()
   return cmds;
 }
 
-std::vector<std::unique_ptr<score::InterfaceBase>>
-score_plugin_scenario::guiFactories(
+std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_scenario::guiFactories(
     const score::GUIApplicationContext& ctx,
     const score::InterfaceKey& key) const
 {

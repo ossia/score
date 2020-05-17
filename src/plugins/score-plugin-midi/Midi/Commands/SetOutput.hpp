@@ -9,10 +9,7 @@ class ProcessModel;
 
 class SetChannel final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      Midi::CommandFactoryName(),
-      SetChannel,
-      "Set Midi channel")
+  SCORE_COMMAND_DECL(Midi::CommandFactoryName(), SetChannel, "Set Midi channel")
 public:
   // Channel should be in [ 0; 15 ]
   SetChannel(const ProcessModel& model, int chan);

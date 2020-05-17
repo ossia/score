@@ -1,7 +1,8 @@
 #pragma once
 
-#include <verdigris>
 #include <QString>
+
+#include <verdigris>
 
 namespace Protocols
 {

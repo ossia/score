@@ -10,7 +10,7 @@ score::hash_map<std::string, std::unique_ptr<any_serializer>>& anySerializers()
   return ser;
 }
 
-any_serializer::~any_serializer() {}
+any_serializer::~any_serializer() { }
 
 void any_serializer::cast_error(const char* err)
 {

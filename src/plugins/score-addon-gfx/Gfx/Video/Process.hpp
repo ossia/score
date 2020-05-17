@@ -19,10 +19,7 @@ class Model final : public Process::ProcessModel
   W_OBJECT(Model)
 
 public:
-  Model(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
+  Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
 
   template <typename Impl>
   Model(Impl& vis, QObject* parent) : Process::ProcessModel{vis, parent}
@@ -37,10 +34,7 @@ public:
   void pathChanged(const QString& f) W_SIGNAL(pathChanged, f);
   PROPERTY(QString, path READ path WRITE setPath NOTIFY pathChanged)
 
-  const std::shared_ptr<video_decoder>& decoder() const noexcept
-  {
-    return m_decoder;
-  }
+  const std::shared_ptr<video_decoder>& decoder() const noexcept { return m_decoder; }
 
 private:
   QString prettyName() const noexcept override;

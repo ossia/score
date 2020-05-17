@@ -13,10 +13,10 @@
 #include <QTextLayout>
 
 #include <score_plugin_scenario_export.h>
-#include <verdigris>
 
 #include <chrono>
 #include <deque>
+#include <verdigris>
 class QGraphicsSceneMouseEvent;
 class QPainter;
 class QStyleOptionGraphicsItem;
@@ -26,9 +26,7 @@ class QGraphicsView;
 namespace Scenario
 {
 class MusicalGrid;
-class TimeRulerBase
-    : public QObject
-    , public QGraphicsItem
+class TimeRulerBase : public QObject, public QGraphicsItem
 {
   W_OBJECT(TimeRulerBase)
 public:
@@ -40,8 +38,6 @@ public:
 
   void drag(QPointF arg_1, QPointF arg_2) W_SIGNAL(drag, arg_1, arg_2);
   void rescale() W_SIGNAL(rescale);
-
-
 
 protected:
   virtual void createRulerPath() = 0;
@@ -55,8 +51,7 @@ protected:
   qreal m_width{};
 };
 
-class TimeRuler final
-    : public TimeRulerBase
+class TimeRuler final : public TimeRulerBase
 {
   Q_INTERFACES(QGraphicsItem)
 
@@ -72,15 +67,9 @@ public:
   TimeRuler(QGraphicsView*);
 
 private:
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
-  qreal graduationSpacing() const
-  {
-    return m_intervalsBetweenMark * m_graduationsSpacing;
-  }
+  qreal graduationSpacing() const { return m_intervalsBetweenMark * m_graduationsSpacing; }
 
   void computeGraduationSpacing() override;
   void createRulerPath() override;
@@ -97,7 +86,6 @@ private:
 
   std::vector<Mark> m_marks;
 
-
   qreal m_graduationsSpacing{};
   qreal m_graduationDelta{};
   qreal m_intervalsBetweenMark{};
@@ -112,9 +100,7 @@ private:
   std::deque<std::pair<std::chrono::nanoseconds, QGlyphRun>> m_stringCache;
 };
 
-
-class MusicalRuler final
-    : public TimeRulerBase
+class MusicalRuler final : public TimeRulerBase
 {
   Q_INTERFACES(QGraphicsItem)
 
@@ -130,11 +116,7 @@ public:
   MusicalRuler(QGraphicsView*);
 
 private:
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
-
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
   void computeGraduationSpacing() override;
   void createRulerPath() override;

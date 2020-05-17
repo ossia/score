@@ -11,18 +11,17 @@
 namespace Scenario
 {
 
-const ScenarioInterface*
-focusedScenarioInterface(const score::DocumentContext& ctx)
+const ScenarioInterface* focusedScenarioInterface(const score::DocumentContext& ctx)
 {
-  if (auto layer = dynamic_cast<const Scenario::ScenarioInterface*>(
-          ctx.document.focusManager().get()))
+  if (auto layer
+      = dynamic_cast<const Scenario::ScenarioInterface*>(ctx.document.focusManager().get()))
   {
     return layer;
   }
   else
   {
-    auto model = dynamic_cast<Scenario::ScenarioDocumentModel*>(
-        &ctx.document.model().modelDelegate());
+    auto model
+        = dynamic_cast<Scenario::ScenarioDocumentModel*>(&ctx.document.model().modelDelegate());
     if (model)
     {
       auto& bs = model->baseScenario();
@@ -37,8 +36,7 @@ focusedScenarioInterface(const score::DocumentContext& ctx)
 
 const ProcessModel* focusedScenarioModel(const score::DocumentContext& ctx)
 {
-  return dynamic_cast<const Scenario::ProcessModel*>(
-      ctx.document.focusManager().get());
+  return dynamic_cast<const Scenario::ProcessModel*>(ctx.document.focusManager().get());
 }
 
 EnableWhenScenarioModelObject::EnableWhenScenarioModelObject()
@@ -51,9 +49,7 @@ score::ActionConditionKey EnableWhenScenarioModelObject::static_key()
   return score::ActionConditionKey{"ScenarioModelObject"};
 }
 
-void EnableWhenScenarioModelObject::action(
-    score::ActionManager& mgr,
-    score::MaybeDocument doc)
+void EnableWhenScenarioModelObject::action(score::ActionManager& mgr, score::MaybeDocument doc)
 {
   if (!doc)
   {
@@ -89,14 +85,12 @@ void EnableWhenScenarioModelObject::action(
   setEnabled(mgr, res);
 }
 
-EnableWhenScenarioInterfaceInstantObject::
-    EnableWhenScenarioInterfaceInstantObject()
+EnableWhenScenarioInterfaceInstantObject::EnableWhenScenarioInterfaceInstantObject()
     : score::ActionCondition{static_key()}
 {
 }
 
-score::ActionConditionKey
-EnableWhenScenarioInterfaceInstantObject::static_key()
+score::ActionConditionKey EnableWhenScenarioInterfaceInstantObject::static_key()
 {
   return score::ActionConditionKey{"ScenarioInterfaceInstantObject"};
 }
@@ -132,9 +126,7 @@ score::ActionConditionKey EnableWhenScenarioInterfaceObject::static_key()
   return score::ActionConditionKey{"ScenarioInterfaceObject"};
 }
 
-void EnableWhenScenarioInterfaceObject::action(
-    score::ActionManager& mgr,
-    score::MaybeDocument doc)
+void EnableWhenScenarioInterfaceObject::action(score::ActionManager& mgr, score::MaybeDocument doc)
 {
   if (!doc)
   {

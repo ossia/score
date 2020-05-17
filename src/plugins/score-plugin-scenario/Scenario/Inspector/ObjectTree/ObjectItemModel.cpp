@@ -21,14 +21,14 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/model/EntitySerialization.hpp>
-#include <score/widgets/TextLabel.hpp>
 #include <score/tools/Bind.hpp>
+#include <score/widgets/TextLabel.hpp>
 
-#include <QToolButton>
-#include <QHeaderView>
 #include <QAction>
-#include <QMenu>
 #include <QDebug>
+#include <QHeaderView>
+#include <QMenu>
+#include <QToolButton>
 
 #include <Effect/EffectFactory.hpp>
 
@@ -44,8 +44,8 @@
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/plugins/panel/PanelDelegate.hpp>
-#include <score/widgets/SetIcons.hpp>
 #include <score/widgets/ArrowButton.hpp>
+#include <score/widgets/SetIcons.hpp>
 
 #include <core/presenter/DocumentManager.hpp>
 
@@ -54,9 +54,7 @@ W_OBJECT_IMPL(Scenario::ObjectItemModel)
 namespace Scenario
 {
 
-ObjectItemModel::ObjectItemModel(
-    const score::DocumentContext& ctx,
-    QObject* parent)
+ObjectItemModel::ObjectItemModel(const score::DocumentContext& ctx, QObject* parent)
     : QAbstractItemModel{parent}, m_ctx{ctx}
 {
 }
@@ -92,8 +90,7 @@ void ObjectItemModel::setSelected(QList<const IdentifiedObjectAbstract*> objs)
       Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*st);
       auto& parent_ev = Scenario::parentEvent(*st, scenar);
       auto& parent_ts = Scenario::parentTimeSync(parent_ev, scenar);
-      if (parent_ev.states().size() > 1
-          || parent_ev.condition() != State::Expression{})
+      if (parent_ev.states().size() > 1 || parent_ev.condition() != State::Expression{})
       {
         if (parent_ts.events().size() > 1 || parent_ts.active())
           root.push_back(&parent_ts);
@@ -110,8 +107,7 @@ void ObjectItemModel::setSelected(QList<const IdentifiedObjectAbstract*> objs)
         Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*state);
         root.push_back(&Scenario::parentTimeSync(*state, scenar));
       }
-      else if (
-          auto itv = qobject_cast<Scenario::IntervalModel*>(proc->parent()))
+      else if (auto itv = qobject_cast<Scenario::IntervalModel*>(proc->parent()))
       {
         root.push_back(itv);
       }
@@ -142,12 +138,10 @@ void ObjectItemModel::setupConnections()
     m_aliveMap.insert(obj, obj);
     if (auto cst = qobject_cast<const Scenario::IntervalModel*>(obj))
     {
-      cst->processes.added
-          .connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(
-              *this);
-      cst->processes.removed
-          .connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(
-              *this);
+      cst->processes.added.connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(
+          *this);
+      cst->processes.removed.connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(
+          *this);
 
       for (auto& proc : cst->processes)
         m_aliveMap.insert(&proc, &proc);
@@ -155,29 +149,25 @@ void ObjectItemModel::setupConnections()
     else if (auto tn = qobject_cast<const Scenario::TimeSyncModel*>(obj))
     {
       auto& scenar = Scenario::parentScenario(*tn);
-      m_itemCon.push_back(
-          connect(tn, &TimeSyncModel::newEvent, this, [=] { recompute(); }));
-      m_itemCon.push_back(connect(
-          tn, &TimeSyncModel::eventRemoved, this, [=] { recompute(); }));
+      m_itemCon.push_back(connect(tn, &TimeSyncModel::newEvent, this, [=] { recompute(); }));
+      m_itemCon.push_back(connect(tn, &TimeSyncModel::eventRemoved, this, [=] { recompute(); }));
 
       for (const auto& ev : tn->events())
       {
         if (auto* eptr = scenar.findEvent(ev))
         {
           m_aliveMap.insert(eptr, eptr);
-          m_itemCon.push_back(connect(
-              eptr, &EventModel::statesChanged, this, [=] { recompute(); }));
+          m_itemCon.push_back(
+              connect(eptr, &EventModel::statesChanged, this, [=] { recompute(); }));
           for (const auto& st : eptr->states())
           {
             if (auto* sptr = scenar.findState(st))
             {
               m_aliveMap.insert(sptr, sptr);
-              sptr->stateProcesses.added.connect<
-                  &ObjectItemModel::recompute<const Process::ProcessModel&>>(
-                  *this);
-              sptr->stateProcesses.removed.connect<
-                  &ObjectItemModel::recompute<const Process::ProcessModel&>>(
-                  *this);
+              sptr->stateProcesses.added
+                  .connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(*this);
+              sptr->stateProcesses.removed
+                  .connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(*this);
 
               for (const auto& sp : sptr->stateProcesses)
                 m_aliveMap.insert(&sp, &sp);
@@ -191,20 +181,17 @@ void ObjectItemModel::setupConnections()
       auto& scenar = Scenario::parentScenario(*ev);
       auto& e = *ev;
       m_aliveMap.insert(&e, &e);
-      m_itemCon.push_back(
-          con(e, &EventModel::statesChanged, this, [=] { recompute(); }));
+      m_itemCon.push_back(con(e, &EventModel::statesChanged, this, [=] { recompute(); }));
 
       for (const auto& st : e.states())
       {
         if (auto* sptr = scenar.findState(st))
         {
           m_aliveMap.insert(sptr, sptr);
-          sptr->stateProcesses.added.connect<
-              &ObjectItemModel::recompute<const Process::ProcessModel&>>(
-              *this);
-          sptr->stateProcesses.removed.connect<
-              &ObjectItemModel::recompute<const Process::ProcessModel&>>(
-              *this);
+          sptr->stateProcesses.added
+              .connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(*this);
+          sptr->stateProcesses.removed
+              .connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(*this);
 
           for (const auto& sp : sptr->stateProcesses)
             m_aliveMap.insert(&sp, &sp);
@@ -215,12 +202,10 @@ void ObjectItemModel::setupConnections()
     {
       auto& s = *st;
       m_aliveMap.insert(&s, &s);
-      s.stateProcesses.added
-          .connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(
-              *this);
-      s.stateProcesses.removed
-          .connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(
-              *this);
+      s.stateProcesses.added.connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(
+          *this);
+      s.stateProcesses.removed.connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(
+          *this);
 
       for (const auto& sp : s.stateProcesses)
         m_aliveMap.insert(&sp, &sp);
@@ -247,8 +232,7 @@ void ObjectItemModel::cleanConnections()
   m_itemCon.clear();
 }
 
-QModelIndex
-ObjectItemModel::index(int row, int column, const QModelIndex& parent) const
+QModelIndex ObjectItemModel::index(int row, int column, const QModelIndex& parent) const
 {
   auto sel = (QObject*)parent.internalPointer();
   if (isAlive(sel))
@@ -410,10 +394,7 @@ QModelIndex ObjectItemModel::parent(const QModelIndex& child) const
   return QModelIndex{};
 }
 
-QVariant ObjectItemModel::headerData(
-    int section,
-    Qt::Orientation orientation,
-    int role) const
+QVariant ObjectItemModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
   if (role == Qt::DisplayRole)
   {
@@ -617,10 +598,7 @@ Qt::ItemFlags ObjectItemModel::flags(const QModelIndex& index) const
   return f;
 }
 
-bool ObjectItemModel::setData(
-    const QModelIndex& index,
-    const QVariant& value,
-    int role)
+bool ObjectItemModel::setData(const QModelIndex& index, const QVariant& value, int role)
 {
   if (index.column() == 0)
   {
@@ -645,8 +623,7 @@ bool ObjectItemModel::setData(
       if (!sanitize(cst))
         return false;
 
-      disp.submit<Command::ChangeElementName<Scenario::IntervalModel>>(
-          *cst, new_name);
+      disp.submit<Command::ChangeElementName<Scenario::IntervalModel>>(*cst, new_name);
       return true;
     }
     else if (auto ev = qobject_cast<Scenario::EventModel*>(sel))
@@ -654,8 +631,7 @@ bool ObjectItemModel::setData(
       if (!sanitize(ev))
         return false;
 
-      disp.submit<Command::ChangeElementName<Scenario::EventModel>>(
-          *ev, new_name);
+      disp.submit<Command::ChangeElementName<Scenario::EventModel>>(*ev, new_name);
       return true;
     }
     else if (auto tn = qobject_cast<Scenario::TimeSyncModel*>(sel))
@@ -663,8 +639,7 @@ bool ObjectItemModel::setData(
       if (!sanitize(tn))
         return false;
 
-      disp.submit<Command::ChangeElementName<Scenario::TimeSyncModel>>(
-          *tn, new_name);
+      disp.submit<Command::ChangeElementName<Scenario::TimeSyncModel>>(*tn, new_name);
       return true;
     }
     else if (auto st = qobject_cast<Scenario::StateModel*>(sel))
@@ -672,8 +647,7 @@ bool ObjectItemModel::setData(
       if (!sanitize(st))
         return false;
 
-      disp.submit<Command::ChangeElementName<Scenario::StateModel>>(
-          *st, new_name);
+      disp.submit<Command::ChangeElementName<Scenario::StateModel>>(*st, new_name);
       return true;
     }
     else if (auto p = qobject_cast<Process::ProcessModel*>(sel))
@@ -683,8 +657,7 @@ bool ObjectItemModel::setData(
       if (new_name.isEmpty())
         new_name = QString("%1.0").arg(p->objectName());
 
-      disp.submit<Command::ChangeElementName<Process::ProcessModel>>(
-          *p, new_name);
+      disp.submit<Command::ChangeElementName<Process::ProcessModel>>(*p, new_name);
       return true;
     }
   }
@@ -854,8 +827,7 @@ bool ObjectItemModel::dropMimeData(
 
       // put before row: row == 0 -> begin
       CommandDispatcher<> disp{m_ctx.dispatcher};
-      disp.submit(
-          new PutStateProcessBefore{*sta, the_proc->id(), other->id()});
+      disp.submit(new PutStateProcessBefore{*sta, the_proc->id(), other->id()});
     }
     else if (row >= sta->stateProcesses.size())
     {
@@ -890,12 +862,10 @@ bool ObjectItemModel::dropMimeData(
       CommandDispatcher<> disp{m_ctx.dispatcher};
       disp.submit(new PutProcessBefore{*itv, the_proc->id(), other->id()});
     }
-    else if (
-        auto sta = qobject_cast<Scenario::StateModel*>(the_proc->parent()))
+    else if (auto sta = qobject_cast<Scenario::StateModel*>(the_proc->parent()))
     {
       CommandDispatcher<> disp{m_ctx.dispatcher};
-      disp.submit(
-          new PutStateProcessBefore{*sta, the_proc->id(), other->id()});
+      disp.submit(new PutStateProcessBefore{*sta, the_proc->id(), other->id()});
     }
     return true;
   }
@@ -975,8 +945,7 @@ SelectionStackWidget::SelectionStackWidget(
   });
 }
 
-ObjectPanelDelegate::ObjectPanelDelegate(
-    const score::GUIApplicationContext& ctx)
+ObjectPanelDelegate::ObjectPanelDelegate(const score::GUIApplicationContext& ctx)
     : score::PanelDelegate{ctx}
     , m_widget{new SizePolicyWidget}
     , m_lay{new QVBoxLayout{m_widget}}
@@ -986,9 +955,10 @@ ObjectPanelDelegate::ObjectPanelDelegate(
   m_widget->setMinimumHeight(160);
   m_widget->setSizeHint({250, 100});
   m_widget->setMinimumWidth(250);
-  m_widget->setStatusTip(QObject::tr("Shows the currently selected items.\n"
-                                     "They can be renamed by double-clicking.\n"
-                                     "More options are available on the right-click menu."));
+  m_widget->setStatusTip(
+      QObject::tr("Shows the currently selected items.\n"
+                  "They can be renamed by double-clicking.\n"
+                  "More options are available on the right-click menu."));
 }
 
 QWidget* ObjectPanelDelegate::widget()
@@ -998,19 +968,19 @@ QWidget* ObjectPanelDelegate::widget()
 
 const score::PanelStatus& ObjectPanelDelegate::defaultPanelStatus() const
 {
-  static const score::PanelStatus status{true, false,
-                                         Qt::RightDockWidgetArea,
-                                         8,
-                                         QObject::tr("Objects"),
-                                         "objects",
-                                         QObject::tr("Ctrl+Shift+O")};
+  static const score::PanelStatus status{
+      true,
+      false,
+      Qt::RightDockWidgetArea,
+      8,
+      QObject::tr("Objects"),
+      "objects",
+      QObject::tr("Ctrl+Shift+O")};
 
   return status;
 }
 
-void ObjectPanelDelegate::on_modelChanged(
-    score::MaybeDocument oldm,
-    score::MaybeDocument newm)
+void ObjectPanelDelegate::on_modelChanged(score::MaybeDocument oldm, score::MaybeDocument newm)
 {
   using namespace score;
   delete m_objects;
@@ -1025,8 +995,7 @@ void ObjectPanelDelegate::on_modelChanged(
   {
     m_objects = new ObjectWidget{*newm, m_widget};
 
-    m_objects->setSizePolicy(
-        QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
+    m_objects->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
 
     SelectionStack& stack = newm->selectionStack;
     m_stack = new SelectionStackWidget{stack, m_widget, m_objects};
@@ -1066,10 +1035,8 @@ void ObjectPanelDelegate::setNewSelection(const Selection& sel)
       }
       idx = m_objects->indexBelow(idx);
     }
-    selection->select(
-        toSelect, QItemSelectionModel::Select | QItemSelectionModel::Rows);
-    selection->select(
-        toDeselect, QItemSelectionModel::Deselect | QItemSelectionModel::Rows);
+    selection->select(toSelect, QItemSelectionModel::Select | QItemSelectionModel::Rows);
+    selection->select(toDeselect, QItemSelectionModel::Deselect | QItemSelectionModel::Rows);
     m_objects->updatingSelection = false;
 
     m_objects->header()->resizeSection(1, QHeaderView::Stretch);
@@ -1120,7 +1087,8 @@ struct ContextMenuCallback
 {
   const score::DocumentContext& m_ctx;
   const IntervalModel& cst;
-  void operator()(const AddProcessDialog::Key& proc, QString dat) {
+  void operator()(const AddProcessDialog::Key& proc, QString dat)
+  {
     using namespace Scenario::Command;
     Macro m{new AddProcessInNewSlot, m_ctx};
 
@@ -1151,8 +1119,7 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
       m->addAction(addproc);
       connect(addproc, &QAction::triggered, this, [this, &cst] {
         auto& fact = m_ctx.app.interfaces<Process::ProcessFactoryList>();
-        auto dialog = new AddProcessDialog{
-            fact, Process::ProcessFlags::SupportsTemporal, this};
+        auto dialog = new AddProcessDialog{fact, Process::ProcessFlags::SupportsTemporal, this};
         dialog->on_okPressed = ContextMenuCallback{m_ctx, *cst};
 
         dialog->launchWindow();
@@ -1165,8 +1132,7 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
       m->addAction(addproc);
       connect(addproc, &QAction::triggered, this, [=] {
         auto& fact = m_ctx.app.interfaces<Process::ProcessFactoryList>();
-        auto dialog = new AddProcessDialog{
-            fact, Process::ProcessFlags::SupportsState, this};
+        auto dialog = new AddProcessDialog{fact, Process::ProcessFlags::SupportsState, this};
 
         dialog->on_okPressed = [&](const auto& proc, QString dat) {
           CommandDispatcher<> disp{m_ctx.commandStack};
@@ -1188,22 +1154,19 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
           c.submit<Scenario::Command::RemoveStateProcess>(*state, proc->id());
         });
       }
-      else if (
-          auto itv = qobject_cast<Scenario::IntervalModel*>(proc->parent()))
+      else if (auto itv = qobject_cast<Scenario::IntervalModel*>(proc->parent()))
       {
         auto deleteact = new QAction{tr("Remove"), m};
         m->addAction(deleteact);
         connect(deleteact, &QAction::triggered, this, [=] {
           CommandDispatcher<> c{m_ctx.commandStack};
-          c.submit<Scenario::Command::RemoveProcessFromInterval>(
-              *itv, proc->id());
+          c.submit<Scenario::Command::RemoveProcessFromInterval>(*itv, proc->id());
         });
         auto duplicate = new QAction{tr("Duplicate"), m};
         m->addAction(duplicate);
         connect(duplicate, &QAction::triggered, this, [=] {
           CommandDispatcher<> c{m_ctx.commandStack};
-          c.submit<Scenario::Command::DuplicateOnlyProcessToInterval>(
-              *itv, *proc);
+          c.submit<Scenario::Command::DuplicateOnlyProcessToInterval>(*itv, *proc);
         });
       }
     }
@@ -1213,9 +1176,7 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
   }
 }
 
-NeighbourSelector::NeighbourSelector(
-    score::SelectionStack& s,
-    ObjectWidget* objects)
+NeighbourSelector::NeighbourSelector(score::SelectionStack& s, ObjectWidget* objects)
     : m_stack{s}, m_objects{objects}, m_selectionDispatcher{s}
 {
 }
@@ -1281,8 +1242,7 @@ void NeighbourSelector::selectRight()
     if (auto interval = qobject_cast<const IntervalModel*>(obj.data()))
     {
       // Interval always have previous state
-      Scenario::ScenarioInterface& scenar
-          = Scenario::parentScenario(*interval);
+      Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*interval);
       sel.append(&scenar.state(interval->endState()));
     }
     else if (auto state = qobject_cast<const StateModel*>(obj.data()))
@@ -1308,8 +1268,7 @@ void NeighbourSelector::selectLeft()
     if (auto interval = qobject_cast<const IntervalModel*>(obj.data()))
     {
       // Interval always have previous state
-      Scenario::ScenarioInterface& scenar
-          = Scenario::parentScenario(*interval);
+      Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*interval);
       sel.append(&scenar.state(interval->startState()));
     }
     else if (auto state = qobject_cast<const StateModel*>(obj.data()))
@@ -1358,8 +1317,7 @@ SearchWidget::SearchWidget(const score::GUIApplicationContext& ctx)
 
   for (auto& cpt : appCtx.panels())
   {
-    if (Explorer::PanelDelegate* panel
-        = dynamic_cast<Explorer::PanelDelegate*>(&cpt))
+    if (Explorer::PanelDelegate* panel = dynamic_cast<Explorer::PanelDelegate*>(&cpt))
     {
       Explorer::DeviceExplorerWidget* widget
           = static_cast<Explorer::DeviceExplorerWidget*>(panel->widget());
@@ -1371,18 +1329,19 @@ SearchWidget::SearchWidget(const score::GUIApplicationContext& ctx)
     }
   }
 }
-template<typename T>
+template <typename T>
 void add_if_contains(const T& o, const QString& str, Selection& sel)
 {
   const auto& obj = o.metadata();
-  if(obj.getName().contains(str) || obj.getComment().contains(str) || obj.getLabel().contains(str))
+  if (obj.getName().contains(str) || obj.getComment().contains(str)
+      || obj.getLabel().contains(str))
   {
     sel.append(&o);
   }
 }
 void add_if_contains(const Scenario::CommentBlockModel& o, const QString& str, Selection& sel)
 {
-  if(o.content().contains(str))
+  if (o.content().contains(str))
   {
     sel.append(&o);
   }
@@ -1453,17 +1412,14 @@ void SearchWidget::search()
     {
       if (auto state = qobject_cast<const StateModel*>(obj))
       {
-        bool flag
-            = false; // used to break loop at several point to avoid adding
-                     // the same object severals time and to sped-up main loop
+        bool flag = false; // used to break loop at several point to avoid adding
+                           // the same object severals time and to sped-up main loop
 
-        State::MessageList list
-            = Process::flatten(state->messages().rootNode());
+        State::MessageList list = Process::flatten(state->messages().rootNode());
 
         for (const auto& addr : addresses)
         {
-          auto nodes = Process::try_getNodesFromAddress(
-              state->messages().rootNode(), addr);
+          auto nodes = Process::try_getNodesFromAddress(state->messages().rootNode(), addr);
 
           if (!nodes.empty())
           {
@@ -1474,8 +1430,7 @@ void SearchWidget::search()
 
           for (auto mess : list)
           {
-            if (mess.address.address.toString().contains(
-                    addr.address.toString()))
+            if (mess.address.address.toString().contains(addr.address.toString()))
             {
               sel.append(state);
               flag = true;
@@ -1549,8 +1504,7 @@ void SearchWidget::dropEvent(QDropEvent* ev)
     // TODO refactor with CreateCurves and AutomationDropHandle
     if (node.is<Device::AddressSettings>())
     {
-      const Device::AddressSettings& addr
-          = node.get<Device::AddressSettings>();
+      const Device::AddressSettings& addr = node.get<Device::AddressSettings>();
       Device::FullAddressSettings as;
       static_cast<Device::AddressSettingsCommon&>(as) = addr;
       as.address = nl.front().first;

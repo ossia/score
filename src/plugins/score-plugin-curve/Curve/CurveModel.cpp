@@ -93,16 +93,15 @@ void Model::addSegment(SegmentModel* m)
 
   if (m->previous())
   {
-    auto previousSegment = std::find_if(
-        m_segments.begin(), m_segments.end(), [&](const auto& seg) {
-          return seg.following() == m->id();
-        });
+    auto previousSegment
+        = std::find_if(m_segments.begin(), m_segments.end(), [&](const auto& seg) {
+            return seg.following() == m->id();
+          });
     if (previousSegment != m_segments.end())
     {
-      auto thePt = std::find_if(
-          m_points.begin(), m_points.end(), [&](PointModel* pt) {
-            return pt->previous() == (*previousSegment).id();
-          });
+      auto thePt = std::find_if(m_points.begin(), m_points.end(), [&](PointModel* pt) {
+        return pt->previous() == (*previousSegment).id();
+      });
 
       if (thePt != m_points.end())
       {
@@ -130,16 +129,15 @@ void Model::addSegment(SegmentModel* m)
 
   if (m->following())
   {
-    auto followingSegment = std::find_if(
-        m_segments.begin(), m_segments.end(), [&](const auto& seg) {
-          return seg.previous() == m->id();
-        });
+    auto followingSegment
+        = std::find_if(m_segments.begin(), m_segments.end(), [&](const auto& seg) {
+            return seg.previous() == m->id();
+          });
     if (followingSegment != m_segments.end())
     {
-      auto thePt = std::find_if(
-          m_points.begin(), m_points.end(), [&](PointModel* pt) {
-            return pt->following() == (*followingSegment).id();
-          });
+      auto thePt = std::find_if(m_points.begin(), m_points.end(), [&](PointModel* pt) {
+        return pt->following() == (*followingSegment).id();
+      });
 
       if (thePt != m_points.end())
       {
@@ -234,8 +232,7 @@ std::vector<SegmentModel*> Model::sortedSegments() const
     dat.push_back(&seg);
   }
 
-  ossia::sort(
-      dat, [](auto s1, auto s2) { return s1->start().x() < s2->start().x(); });
+  ossia::sort(dat, [](auto s1, auto s2) { return s1->start().x() < s2->start().x(); });
 
   return dat;
 }
@@ -252,7 +249,6 @@ std::vector<SegmentData> Model::toCurveData() const
   return dat;
 }
 
-
 void Model::fromCurveData(const std::vector<SegmentData>& curve)
 {
   this->blockSignals(true);
@@ -260,7 +256,6 @@ void Model::fromCurveData(const std::vector<SegmentData>& curve)
 
   auto& context = score::IDocument::documentContext(*this).app;
   auto& csl = context.interfaces<SegmentList>();
-
 
   static std::vector<SegmentData> map;
   map.assign(curve.begin(), curve.end());
@@ -357,8 +352,7 @@ std::vector<SegmentData> orderedSegments(const Model& curve)
 }
 
 CurveDomain::CurveDomain(const ossia::domain& dom)
-    : min{ossia::convert<double>(dom.get_min())}
-    , max{ossia::convert<double>(dom.get_max())}
+    : min{ossia::convert<double>(dom.get_min())}, max{ossia::convert<double>(dom.get_max())}
 {
   if (min == 0. && max == 0.)
   {
@@ -370,8 +364,7 @@ CurveDomain::CurveDomain(const ossia::domain& dom)
 }
 
 CurveDomain::CurveDomain(const ossia::domain& dom, const ossia::value& v)
-    : min{ossia::convert<double>(dom.get_min())}
-    , max{ossia::convert<double>(dom.get_max())}
+    : min{ossia::convert<double>(dom.get_min())}, max{ossia::convert<double>(dom.get_max())}
 {
   if (min == 0. && max == 0.)
   {
@@ -399,12 +392,10 @@ CurveDomain::CurveDomain(const ossia::domain& dom, double start, double end)
 {
   auto min_v = dom.get_min();
   auto max_v = dom.get_max();
-  min = (min_v.valid())
-            ? std::min(ossia::convert<double>(min_v), std::min(start, end))
-            : std::min(start, end);
-  max = (max_v.valid())
-            ? std::max(ossia::convert<double>(max_v), std::max(start, end))
-            : std::max(start, end);
+  min = (min_v.valid()) ? std::min(ossia::convert<double>(min_v), std::min(start, end))
+                        : std::min(start, end);
+  max = (max_v.valid()) ? std::max(ossia::convert<double>(max_v), std::max(start, end))
+                        : std::max(start, end);
 
   ensureValid();
 }

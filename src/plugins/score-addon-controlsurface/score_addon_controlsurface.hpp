@@ -15,8 +15,8 @@
 #include <vector>
 
 class score_addon_controlsurface final : public score::Plugin_QtInterface,
-                                   public score::FactoryInterface_QtInterface,
-                                   public score::CommandFactory_QtInterface
+                                         public score::FactoryInterface_QtInterface,
+                                         public score::CommandFactory_QtInterface
 {
   SCORE_PLUGIN_METADATA(1, "b1562a52-242c-44bb-a096-6eacd4aee6a2")
 
@@ -25,10 +25,8 @@ public:
   ~score_addon_controlsurface() override;
 
 private:
-  std::vector<std::unique_ptr<score::InterfaceBase>> factories(
-      const score::ApplicationContext& ctx,
-      const score::InterfaceKey& key) const override;
+  std::vector<std::unique_ptr<score::InterfaceBase>>
+  factories(const score::ApplicationContext& ctx, const score::InterfaceKey& key) const override;
 
-  std::pair<const CommandGroupKey, CommandGeneratorMap>
-  make_commands() override;
+  std::pair<const CommandGroupKey, CommandGeneratorMap> make_commands() override;
 };

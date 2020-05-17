@@ -14,7 +14,6 @@
 
 #include <QByteArray>
 
-
 namespace Scenario
 {
 class EventModel;
@@ -31,19 +30,12 @@ MoveEventOnCreationMeta::MoveEventOnCreationMeta(
     , m_moveEventImplementation(
           score::AppContext()
               .interfaces<MoveEventList>()
-              .get(
-                  score::AppContext(),
-                  MoveEventFactoryInterface::Strategy::CREATION)
-              .make(
-                  scenarioPath,
-                  std::move(eventId),
-                  std::move(newDate),
-                  mode,
-                  LockMode::Free))
+              .get(score::AppContext(), MoveEventFactoryInterface::Strategy::CREATION)
+              .make(scenarioPath, std::move(eventId), std::move(newDate), mode, LockMode::Free))
 {
 }
 
-MoveEventOnCreationMeta::~MoveEventOnCreationMeta() {}
+MoveEventOnCreationMeta::~MoveEventOnCreationMeta() { }
 
 void MoveEventOnCreationMeta::undo(const score::DocumentContext& ctx) const
 {
@@ -74,9 +66,7 @@ void MoveEventOnCreationMeta::deserializeImpl(DataStreamOutput& qDataStream)
   m_moveEventImplementation
       = score::AppContext()
             .interfaces<MoveEventList>()
-            .get(
-                score::AppContext(),
-                MoveEventFactoryInterface::Strategy::CREATION)
+            .get(score::AppContext(), MoveEventFactoryInterface::Strategy::CREATION)
             .make(LockMode::Free);
 
   m_moveEventImplementation->deserialize(cmdData);
@@ -90,8 +80,7 @@ void MoveEventOnCreationMeta::update(
     ExpandMode mode,
     LockMode lm)
 {
-  m_moveEventImplementation->update(
-      scenario, eventId, newDate, y, mode, LockMode::Free);
+  m_moveEventImplementation->update(scenario, eventId, newDate, y, mode, LockMode::Free);
 }
 }
 }

@@ -28,8 +28,8 @@
 #include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/selection/Selectable.hpp>
-#include <score/tools/std/Optional.hpp>
 #include <score/tools/Bind.hpp>
+#include <score/tools/std/Optional.hpp>
 
 #include <QAction>
 #include <QMenu>
@@ -66,8 +66,7 @@ Presenter::Presenter(
     , m_commandDispatcher{context.commandStack}
     , m_style{style}
     , m_editionSettings{
-          context.app.guiApplicationPlugin<Curve::ApplicationPlugin>()
-              .editionSettings()}
+          context.app.guiApplicationPlugin<Curve::ApplicationPlugin>().editionSettings()}
 {
   // For each segment in the model, create a segment and relevant points in the
   // view.
@@ -75,14 +74,10 @@ Presenter::Presenter(
   setupView();
   setupSignals();
 
-  connect(
-      m_view,
-      &View::contextMenuRequested,
-      this,
-      &Presenter::contextMenuRequested);
+  connect(m_view, &View::contextMenuRequested, this, &Presenter::contextMenuRequested);
 }
 
-Presenter::~Presenter() {}
+Presenter::~Presenter() { }
 
 void Presenter::setRect(const QRectF& rect)
 {
@@ -127,9 +122,7 @@ void Presenter::setupSignals()
     addPoint(new PointView{&point, m_style, m_view});
   });
 
-  con(m_model, &Model::pointRemoved, this, [&](const Id<PointModel>& m) {
-    m_points.erase(m);
-  });
+  con(m_model, &Model::pointRemoved, this, [&](const Id<PointModel>& m) { m_points.erase(m); });
 
   con(m_model, &Model::segmentRemoved, this, [&](const Id<SegmentModel>& m) {
     m_segments.erase(m);
@@ -168,10 +161,7 @@ void Presenter::setupView()
   });
 }
 
-void Presenter::fillContextMenu(
-    QMenu& menu,
-    const QPoint& pos,
-    const QPointF& scenepos)
+void Presenter::fillContextMenu(QMenu& menu, const QPoint& pos, const QPointF& scenepos)
 {
   menu.addSeparator();
 
@@ -214,7 +204,9 @@ void Presenter::fillContextMenu(
   }
 
   auto lockAction = new QAction{tr("Lock between points"), this};
-  lockAction->setStatusTip(tr("Prevent the moved point from moving before its previous point or after its following point."));
+  lockAction->setStatusTip(
+      tr("Prevent the moved point from moving before its previous point or "
+         "after its following point."));
   connect(lockAction, &QAction::toggled, this, [&](bool b) {
     m_editionSettings.setLockBetweenPoints(b);
   });
@@ -265,23 +257,13 @@ void Presenter::addSegment_impl(SegmentView* seg_view)
 
 void Presenter::setupPointConnections(PointView* pt_view)
 {
-  connect(
-      pt_view,
-      &PointView::contextMenuRequested,
-      m_view,
-      &View::contextMenuRequested);
-  con(pt_view->model(), &PointModel::posChanged, this, [=]() {
-    setPos(*pt_view);
-  });
+  connect(pt_view, &PointView::contextMenuRequested, m_view, &View::contextMenuRequested);
+  con(pt_view->model(), &PointModel::posChanged, this, [=]() { setPos(*pt_view); });
 }
 
 void Presenter::setupSegmentConnections(SegmentView* seg_view)
 {
-  connect(
-      seg_view,
-      &SegmentView::contextMenuRequested,
-      m_view,
-      &View::contextMenuRequested);
+  connect(seg_view, &SegmentView::contextMenuRequested, m_view, &View::contextMenuRequested);
 }
 
 void Presenter::modelReset()
@@ -511,19 +493,15 @@ void Presenter::removeSelection()
       {
         if (it->previous)
         {
-          auto prev_it
-              = ossia::find_if(newSegments, [&](const SegmentData& d) {
-                  return d.id == *it->previous;
-                });
+          auto prev_it = ossia::find_if(
+              newSegments, [&](const SegmentData& d) { return d.id == *it->previous; });
           if (prev_it != newSegments.end())
             prev_it->following = OptionalId<SegmentModel>{};
         }
         if (it->following)
         {
-          auto next_it
-              = ossia::find_if(newSegments, [&](const SegmentData& d) {
-                  return d.id == *it->following;
-                });
+          auto next_it = ossia::find_if(
+              newSegments, [&](const SegmentData& d) { return d.id == *it->following; });
           if (next_it != newSegments.end())
             next_it->previous = OptionalId<SegmentModel>{};
         }
@@ -541,13 +519,11 @@ void Presenter::removeSelection()
   }
 
   // Recreate if appropriate
-  if (editionSettings().removePointBehaviour()
-      == RemovePointBehaviour::RemoveAndAddSegment)
+  if (editionSettings().removePointBehaviour() == RemovePointBehaviour::RemoveAndAddSegment)
   {
     // Find the "holes" in the new segment list.
-    ossia::sort(newSegments, [](const SegmentData& s1, const SegmentData& s2) {
-      return s1.x() < s2.x();
-    });
+    ossia::sort(
+        newSegments, [](const SegmentData& s1, const SegmentData& s2) { return s1.x() < s2.x(); });
 
     // First if there is no segments, we recreate one.
     if (newSegments.empty())
@@ -639,8 +615,7 @@ void Presenter::removeSelection()
   m_commandDispatcher.submit(new UpdateCurve{m_model, std::move(newSegments)});
 }
 
-void Presenter::updateSegmentsType(
-    const UuidKey<Curve::SegmentFactory>& segment)
+void Presenter::updateSegmentsType(const UuidKey<Curve::SegmentFactory>& segment)
 {
   // They keep their start / end and previous / following but change type.
   auto factory = m_curveSegments.get(segment);
