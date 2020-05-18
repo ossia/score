@@ -32,7 +32,7 @@ void JSONReader::read(const Protocols::MIDISpecificSettings& n)
 template <>
 void JSONWriter::write(Protocols::MIDISpecificSettings& n)
 {
-  obj["IO"], n.io;
+  obj["IO"] = n.io;
   n.endpoint = obj["Endpoint"].toString();
   n.port = obj["Port"].toInt();
   if (auto it = obj.tryGet("CreateWholeTree"))
