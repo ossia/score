@@ -470,23 +470,37 @@ target_include_directories(score_lib_base PUBLIC ${OSSIA_3RDPARTY_FOLDER}/verdig
 setup_score_library(score_lib_base)
 
 if(SCORE_PCH)
-  target_precompile_headers(score_lib_base PRIVATE
-    "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/score/prefix.hpp>"
-    "$<$<COMPILE_LANGUAGE:OBJCXX>:${CMAKE_CURRENT_SOURCE_DIR}/score/prefix.hpp>"
-  )
+  if(APPLE)
+    target_precompile_headers(score_lib_base PRIVATE
+      "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/score/prefix.hpp>"
+      "$<$<COMPILE_LANGUAGE:OBJCXX>:${CMAKE_CURRENT_SOURCE_DIR}/score/prefix.hpp>"
+    )
+  else()
+    target_precompile_headers(score_lib_base PRIVATE
+      "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/score/prefix.hpp>"
+    )
+  endif()
 endif()
 
 if(SCORE_PCH)
   # Create a dummy library which will be used to propagate the PCH to all the plug-ins
   # We cannot use score_lib_base's directly as it mau have SCORE_LIB_BASE_EXPORT defined
   # to dllexport - building it separately ensures that it will be dllimport instead.
-  add_library(score_lib_pch STATIC core/dummy.cpp core/dummy.mm)
+  add_library(score_lib_pch STATIC core/dummy.cpp)
   target_link_libraries(score_lib_pch PUBLIC score_lib_base)
   setup_score_library(score_lib_pch)
-  target_precompile_headers(score_lib_pch PUBLIC
-    "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/score/prefix.hpp>"
-    "$<$<COMPILE_LANGUAGE:OBJCXX>:${CMAKE_CURRENT_SOURCE_DIR}/score/prefix.hpp>"
-  )
+
+  if(APPLE)
+    target_sources(score_lib_pch PRIVATE core/dummy.mm)
+    target_precompile_headers(score_lib_pch PUBLIC
+      "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/score/prefix.hpp>"
+      "$<$<COMPILE_LANGUAGE:OBJCXX>:${CMAKE_CURRENT_SOURCE_DIR}/score/prefix.hpp>"
+    )
+  else()
+    target_precompile_headers(score_lib_pch PUBLIC
+      "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/score/prefix.hpp>"
+    )
+  endif()
 endif()
 
 set(_score_license_written 0 CACHE INTERNAL "")

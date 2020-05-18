@@ -97,7 +97,7 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/ScoreConfiguration.cmake")
 include(3rdparty/libossia.cmake)
 add_subdirectory(3rdparty/QCodeEditor)
 
-
+disable_qt_plugins(QCodeEditor)
 
 set(3RDPARTY_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/")
 set(SCORE_ROOT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")

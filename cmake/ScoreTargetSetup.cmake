@@ -4,6 +4,8 @@ include(LinkerWarnings)
 include(DebugMode)
 
 function(score_pch TheTarget)
+  disable_qt_plugins("${TheTarget}")
+
   if(NOT SCORE_PCH)
     return()
   endif()

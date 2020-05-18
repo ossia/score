@@ -149,3 +149,6 @@ endif()
 
 include(UnityApp.cmake)
 include(ScoreDeployment)
+
+disable_qt_plugins(${APPNAME})
+enable_minimal_qt_plugins(${APPNAME})

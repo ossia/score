@@ -12,6 +12,7 @@
 
 #include <ossia/detail/pod_vector.hpp>
 
+#include <QTimer>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/breadth_first_search.hpp>
 #include <boost/graph/connected_components.hpp>
