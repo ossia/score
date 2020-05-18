@@ -36,18 +36,6 @@ void disableAppRestore()
 }
 #endif
 
-#if defined(QT_STATIC)
-#include <QtPlugin>
-Q_IMPORT_PLUGIN(QJpegPlugin)
-// Q_IMPORT_PLUGIN(QSvgPlugin)
-// Q_IMPORT_PLUGIN(QSvgIconPlugin)
-
-#if defined(__linux__)
-Q_IMPORT_PLUGIN(QXcbIntegrationPlugin)
-Q_IMPORT_PLUGIN(QXcbGlxIntegrationPlugin)
-#endif
-#endif
-
 static void setup_x11()
 {
 #if defined(__linux__)

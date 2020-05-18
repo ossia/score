@@ -8,6 +8,12 @@
 #if !defined(NOMINMAX)
 #define NOMINMAX
 #endif
+#if !defined(UNICODE)
+#define UNICODE 1
+#endif
+#if !defined(_UNICODE)
+#define _UNICODE 1
+#endif
 #include <windows.h>
 #endif
 

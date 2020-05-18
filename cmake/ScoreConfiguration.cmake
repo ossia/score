@@ -14,10 +14,6 @@ endif()
 
 option(SCORE_ENABLE_LTO "Enable link-time optimization. Won't work on Travis." OFF)
 option(SCORE_ENABLE_OPTIMIZE_CUSTOM "Enable -march=native." OFF)
-
-option(OSSIA_NO_EXAMPLES "Don't build OSSIA examples" True)
-option(OSSIA_NO_TESTS "Don't build OSSIA tests" True)
-
 option(SCORE_PCH "Use precompiled headers. Will make the build faster." OFF)
 
 option(SCORE_STATIC_EVERYTHING "Try to link with everything static" OFF)
@@ -153,6 +149,10 @@ if(SCORE_ENABLE_LTO)
 endif()
 
 if(SCORE_SANITIZE)
+  set(SCORE_PCH 0)
+endif()
+
+if(CMAKE_UNITY_BUILD)
   set(SCORE_PCH 0)
 endif()
 

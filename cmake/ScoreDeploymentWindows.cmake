@@ -24,6 +24,7 @@ if(MINGW)
         ${cxx_path}/libc++.dll
         ${cxx_path}/libunwind.dll
         ${MINGW64_LIB}/../bin/zlib1.dll
+        ${MINGW64_LIB}/../bin/libwinpthread-1.dll
   )
 endif()
 
