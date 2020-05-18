@@ -3,7 +3,8 @@
 
 #include <RemoteControl/Settings/Model.hpp>
 class QCheckBox;
-class QDoubleSpinBox;
+
+namespace score{ class FormWidget;}
 namespace RemoteControl
 {
 namespace Settings
@@ -20,7 +21,7 @@ public:
 
 private:
   QWidget* getWidget() override;
-  QWidget* m_widg{};
+  score::FormWidget* m_widg{};
 
   QCheckBox* m_enabled{};
 };

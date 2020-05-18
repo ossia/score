@@ -4,6 +4,7 @@
 
 #include <verdigris>
 class QCheckBox;
+namespace score{ class FormWidget;}
 namespace Explorer::Settings
 {
 class View : public score::GlobalSettingsView
@@ -21,7 +22,7 @@ public:
 
 private:
   QWidget* getWidget() override;
-  QWidget* m_widg{};
+  score::FormWidget* m_widg{};
 
   QCheckBox* m_cb{};
 };
@@ -41,6 +42,6 @@ public:
 
 private:
   QWidget* getWidget() override;
-  QWidget* m_widg{};
+  score::FormWidget* m_widg{};
 };
 }

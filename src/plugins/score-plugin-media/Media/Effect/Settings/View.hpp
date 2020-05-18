@@ -4,7 +4,9 @@
 
 #include <verdigris>
 class QListWidget;
-class QCheckBox;
+
+namespace score { class FormWidget; }
+
 namespace Media::Settings
 {
 class View : public score::GlobalSettingsView
@@ -24,7 +26,7 @@ private:
 
 private:
   QWidget* getWidget() override;
-  QWidget* m_widg{};
+  score::FormWidget* m_widg{};
   QStringList m_curitems;
 };
 }

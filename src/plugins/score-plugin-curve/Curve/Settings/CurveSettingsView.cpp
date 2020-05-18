@@ -3,6 +3,7 @@
 #include "CurveSettingsView.hpp"
 
 #include <score/widgets/SignalUtils.hpp>
+#include <score/widgets/FormWidget.hpp>
 
 #include <QCheckBox>
 #include <QFormLayout>
@@ -12,10 +13,11 @@ namespace Curve
 namespace Settings
 {
 
-View::View() : m_widg{new QWidget}
+View::View()
 {
-  auto lay = new QFormLayout;
-  lay->setSpacing(10);
+  m_widg = new score::FormWidget{tr("Recording")};
+  auto lay = m_widg->layout();
+
   {
     m_sb = new QDoubleSpinBox;
 
@@ -89,8 +91,6 @@ View::View() : m_widg{new QWidget}
 
     lay->addRow(m_playWhileRecording);
   }
-
-  m_widg->setLayout(lay);
 }
 
 void View::setSimplificationRatio(int val)

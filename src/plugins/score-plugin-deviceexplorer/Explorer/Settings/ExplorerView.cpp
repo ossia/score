@@ -5,18 +5,18 @@
 #include "ExplorerModel.hpp"
 
 #include <score/widgets/SignalUtils.hpp>
+#include <score/widgets/FormWidget.hpp>
 
 #include <QCheckBox>
 #include <QFormLayout>
 namespace Explorer::Settings
 {
-View::View() : m_widg{new QWidget}
+View::View()
 {
-  auto lay = new QFormLayout;
-  lay->setSpacing(10);
-  SETTINGS_UI_COMBOBOX_SETUP("Log level", LogLevel, DeviceLogLevel{});
+  m_widg = new score::FormWidget{tr("Device explorer")};
+  auto lay = m_widg->layout();
 
-  m_widg->setLayout(lay);
+  SETTINGS_UI_COMBOBOX_SETUP("Log level", LogLevel, DeviceLogLevel{});
 
   m_cb = new QCheckBox{tr("Enable local tree")};
   lay->addRow(m_cb);
@@ -40,10 +40,10 @@ SETTINGS_UI_COMBOBOX_IMPL(LogLevel)
 
 namespace Explorer::ProjectSettings
 {
-View::View() : m_widg{new QWidget}
+View::View()
 {
-  auto lay = new QFormLayout;
-  m_widg->setLayout(lay);
+  m_widg = new score::FormWidget{tr("Device explorer")};
+  auto lay = m_widg->layout();
   SETTINGS_UI_DOUBLE_SPINBOX_SETUP("Midi Import Ratio", MidiImportRatio);
   SETTINGS_UI_TOGGLE_SETUP("Refresh on load", RefreshOnStart);
   SETTINGS_UI_TOGGLE_SETUP("Reconnect on load", ReconnectOnStart);

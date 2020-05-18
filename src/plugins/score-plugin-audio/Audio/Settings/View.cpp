@@ -1,6 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <score/widgets/SignalUtils.hpp>
+#include <score/widgets/FormWidget.hpp>
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -11,10 +12,10 @@
 #include <Audio/Settings/View.hpp>
 namespace Audio::Settings
 {
-View::View() : m_widg{new QWidget}
+View::View()
 {
-  auto lay = new QFormLayout{m_widg};
-  lay->setSpacing(10);
+  m_widg = new score::FormWidget{tr("Audio")};
+  auto lay = m_widg->layout();
 
   // General settings
   SETTINGS_UI_TOGGLE_SETUP("Auto-Stereo", AutoStereo);

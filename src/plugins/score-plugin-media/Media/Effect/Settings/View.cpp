@@ -7,6 +7,7 @@
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/widgets/SignalUtils.hpp>
+#include <score/widgets/FormWidget.hpp>
 
 #include <QFileDialog>
 #include <QFormLayout>
@@ -16,11 +17,10 @@
 #include <QPushButton>
 namespace Media::Settings
 {
-View::View() : m_widg{new QWidget}
+View::View()
 {
-  auto lay = new QFormLayout;
-
-  m_widg->setLayout(lay);
+  m_widg = new score::FormWidget{tr("Effects")};
+  auto lay = m_widg->layout();
 
 #if defined(HAS_VST2)
   m_VstPaths = new QListWidget;

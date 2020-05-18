@@ -6,6 +6,7 @@
 #include <score/tools/Bind.hpp>
 #include <score/widgets/MessageBox.hpp>
 #include <score/widgets/SetIcons.hpp>
+#include <score/widgets/FormWidget.hpp>
 
 #include <QApplication>
 #include <QDir>
@@ -104,10 +105,11 @@ QIcon Presenter::settingsIcon()
       QStringLiteral(":/icons/settings_library_off.png"));
 }
 
-View::View() : m_widg{new QWidget}
+View::View()
 {
-  auto lay = new QFormLayout;
-  m_widg->setLayout(lay);
+  m_widg = new score::FormWidget{tr("Library")};
+
+  auto lay = m_widg->layout();
 
   SETTINGS_UI_PATH_SETUP("Default Path", Path);
 }

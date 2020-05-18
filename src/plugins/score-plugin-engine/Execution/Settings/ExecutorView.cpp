@@ -3,6 +3,7 @@
 #include "ExecutorView.hpp"
 
 #include <score/widgets/SignalUtils.hpp>
+#include <score/widgets/FormWidget.hpp>
 
 #include <QCheckBox>
 #include <QFormLayout>
@@ -13,15 +14,14 @@ namespace Execution
 namespace Settings
 {
 
-View::View() : m_widg{new QWidget}
+View::View()
 {
+  m_widg = new score::FormWidget{tr("Execution")};
+
   auto group = new QGroupBox{tr("Advanced"), m_widg};
 
   { // general settings
-    auto lay = new QFormLayout;
-    lay->setSpacing(10);
-
-    m_widg->setLayout(lay);
+    auto lay = m_widg->layout();
 
     SETTINGS_UI_TOGGLE_SETUP("Enable listening during execution", ExecutionListening);
     SETTINGS_UI_TOGGLE_SETUP("Logging", Logging);

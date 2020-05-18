@@ -6,6 +6,8 @@
 #include <verdigris>
 class QCheckBox;
 class QDoubleSpinBox;
+namespace score{ class FormWidget;}
+
 namespace Curve
 {
 namespace Settings
@@ -32,7 +34,7 @@ public:
 
 private:
   QWidget* getWidget() override;
-  QWidget* m_widg{};
+  score::FormWidget* m_widg{};
 
   QDoubleSpinBox* m_sb{};
   QCheckBox* m_simpl{};

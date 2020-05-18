@@ -35,7 +35,7 @@ private:                                                              \
       m_##Control->setText(val);       \
   }
 
-class QSpinBox;
+namespace score { class FormWidget; }
 class QCheckBox;
 namespace Library::Settings
 {
@@ -62,7 +62,7 @@ public:
 
 private:
   QWidget* getWidget() override;
-  QWidget* m_widg{};
+  score::FormWidget* m_widg{};
 };
 
 class Presenter : public score::GlobalSettingsPresenter

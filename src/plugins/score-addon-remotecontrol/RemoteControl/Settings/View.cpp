@@ -2,7 +2,7 @@
 
 #include <QCheckBox>
 #include <QFormLayout>
-#include <QSpinBox>
+#include <score/widgets/FormWidget.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(RemoteControl::Settings::View)
@@ -11,9 +11,10 @@ namespace RemoteControl
 namespace Settings
 {
 
-View::View() : m_widg{new QWidget}
+View::View()
 {
-  auto lay = new QFormLayout;
+  m_widg = new score::FormWidget{tr("Remote control")};
+  auto lay = m_widg->layout();
 
   {
     m_enabled = new QCheckBox{tr("Enabled")};
@@ -34,8 +35,6 @@ View::View() : m_widg{new QWidget}
 
     lay->addRow(m_enabled);
   }
-
-  m_widg->setLayout(lay);
 }
 
 void View::setEnabled(bool val)

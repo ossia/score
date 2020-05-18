@@ -9,6 +9,8 @@
 class QComboBox;
 class QSpinBox;
 class QCheckBox;
+
+namespace score { class FormWidget;}
 namespace Scenario
 {
 namespace Settings
@@ -42,7 +44,7 @@ public:
 
 private:
   QWidget* getWidget() override;
-  QWidget* m_widg{};
+  score::FormWidget* m_widg{};
 
   QComboBox* m_skin{};
   QLineEdit* m_editor{};

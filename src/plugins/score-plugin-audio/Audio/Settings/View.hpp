@@ -7,6 +7,9 @@
 #include <verdigris>
 class QStackedWidget;
 class QCheckBox;
+
+namespace score { class FormWidget;}
+
 namespace Audio::Settings
 {
 class View : public score::GlobalSettingsView
@@ -31,7 +34,7 @@ public:
 private:
   QWidget* getWidget() override;
 
-  QWidget* m_widg{};
+  score::FormWidget* m_widg{};
   QWidget* m_sw{};
   QComboBox* m_Driver{};
   QWidget* m_curDriver{};

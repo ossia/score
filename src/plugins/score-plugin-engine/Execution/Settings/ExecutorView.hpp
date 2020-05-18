@@ -4,8 +4,9 @@
 #include <Execution/Settings/ExecutorModel.hpp>
 
 #include <verdigris>
-class QSpinBox;
-class QCheckBox;
+
+namespace score {class FormWidget;}
+
 namespace Execution
 {
 namespace Settings
@@ -41,7 +42,7 @@ public:
 
 private:
   QWidget* getWidget() override;
-  QWidget* m_widg{};
+  score::FormWidget* m_widg{};
 };
 }
 }

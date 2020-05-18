@@ -5,6 +5,7 @@
 #include <score/model/Skin.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/widgets/SignalUtils.hpp>
+#include <score/widgets/FormWidget.hpp>
 
 #include <core/view/StyleLoader.hpp>
 
@@ -15,6 +16,7 @@
 #include <QFileDialog>
 #include <QFormLayout>
 #include <QLineEdit>
+#include <QLabel>
 #include <QListWidget>
 #include <QPushButton>
 #include <QSpinBox>
@@ -407,10 +409,11 @@ public:
   }
 };
 
-View::View() : m_widg{new QWidget}
+View::View()
 {
-  auto lay = new QFormLayout;
-  m_widg->setLayout(lay);
+  m_widg = new score::FormWidget{tr("User interface")};
+
+  auto lay = m_widg->layout();
   lay->setLabelAlignment(Qt::AlignLeft);
   lay->setSpacing(10);
   /*
