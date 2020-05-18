@@ -49,6 +49,3 @@ else()
     COMPONENT OssiaScore)
 endif()
 
-if(SCORE_COTIRE)
-  cotire(ossia-score-vstpuppet)
-endif()

@@ -18,7 +18,7 @@ option(SCORE_ENABLE_OPTIMIZE_CUSTOM "Enable -march=native." OFF)
 option(OSSIA_NO_EXAMPLES "Don't build OSSIA examples" True)
 option(OSSIA_NO_TESTS "Don't build OSSIA tests" True)
 
-option(SCORE_COTIRE "Use cotire. Will make the build faster." OFF)
+option(SCORE_PCH "Use precompiled headers. Will make the build faster." OFF)
 
 option(SCORE_STATIC_EVERYTHING "Try to link with everything static" OFF)
 option(SCORE_USE_DEV_PLUGINS "Build the prototypal plugins" OFF)
@@ -152,6 +152,10 @@ if(SCORE_ENABLE_LTO)
   setup_lto()
 endif()
 
+if(SCORE_SANITIZE)
+  set(SCORE_PCH 0)
+endif()
+
 # Useful header files
 include(WriteCompilerDetectionHeader)
 write_compiler_detection_header(
@@ -178,10 +182,6 @@ score_write_file("${CMAKE_CURRENT_BINARY_DIR}/score_git_info.hpp"
 #define SCORE_VERSION_EXTRA \"${SCORE_VERSION_EXTRA}\"
 #define SCORE_CODENAME \"${SCORE_CODENAME}\"
 ")
-
-set(COTIRE_UNITY_MAXIMUM_NUMBER_OF_INCLUDES "-j2")
-include(cotire)
-
 
 install(
   FILES

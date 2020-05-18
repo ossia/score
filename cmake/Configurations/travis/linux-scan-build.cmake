@@ -1,6 +1,5 @@
 set(CMAKE_BUILD_TYPE Release CACHE INTERNAL "")
 
-set(DISABLE_COTIRE True CACHE BOOL "No cotire" FORCE)
 set(OSSIA_SANITIZE True CACHE BOOL "Sanitize ossia" FORCE)
 set(SCORE_PCH False)
 set(DEPLOYMENT_BUILD False)
