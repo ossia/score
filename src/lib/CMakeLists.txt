@@ -438,10 +438,15 @@ add_library(score_lib_base ${SRCS} ${HEADERS} ${QRCS})
 if(APPLE)
     find_library(AppKit_FK AppKit)
     target_sources(score_lib_base PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Cursor.mm")
+        "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Cursor.mm"
+    )
     target_link_libraries(${PROJECT_NAME} PRIVATE
         ${AppKit_FK}
-        )
+    )
+    set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Cursor.mm"
+        PROPERTIES
+          SKIP_UNITY_BUILD_INCLUSION 1
+    )
 endif()
 
 target_include_directories(score_lib_base PUBLIC "${3RDPARTY_FOLDER}")
@@ -462,8 +467,23 @@ target_include_directories(score_lib_base PUBLIC 3rdparty/Qt-Color-Widgets/src)
 target_include_directories(score_lib_base PUBLIC 3rdparty/Qt-Color-Widgets/QtColorWidgets)
 target_include_directories(score_lib_base PUBLIC ${OSSIA_3RDPARTY_FOLDER}/verdigris/src)
 
-set_property(TARGET score_lib_base PROPERTY COTIRE_CXX_PREFIX_HEADER_INIT "${CMAKE_CURRENT_SOURCE_DIR}/score/prefix.hpp")
+target_precompile_headers(score_lib_base PRIVATE
+    "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/score/prefix.hpp>"
+    "$<$<COMPILE_LANGUAGE:OBJCXX>:${CMAKE_CURRENT_SOURCE_DIR}/score/prefix.hpp>"
+)
 setup_score_library(score_lib_base)
+
+# Create a dummy library which will be used to propagate the PCH to all the plug-ins
+# We cannot use score_lib_base's directly as it mau have SCORE_LIB_BASE_EXPORT defined
+# to dllexport - building it separately ensures that it will be dllimport instead.
+add_library(score_lib_pch STATIC core/dummy.cpp core/dummy.mm)
+target_link_libraries(score_lib_pch PUBLIC score_lib_base)
+setup_score_library(score_lib_pch)
+target_precompile_headers(score_lib_pch PUBLIC
+    "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/score/prefix.hpp>"
+    "$<$<COMPILE_LANGUAGE:OBJCXX>:${CMAKE_CURRENT_SOURCE_DIR}/score/prefix.hpp>"
+)
+
 
 set(_score_license_written 0 CACHE INTERNAL "")
 if(NOT _score_license_written)

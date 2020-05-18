@@ -69,7 +69,6 @@ setup_score_plugin(${PROJECT_NAME})
 #        OUTPUT_NAME "${ADDON_FILENAME}")
 #    configure_file("${SETUP_ADDON_METADATA}" "${ADDON_FOLDER}/localaddon.json")
 
-#    score_cotire_post("${AddonTarget}")
 #endfunction()
 
 #setup_score_addon(

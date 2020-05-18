@@ -14,7 +14,7 @@
 #include <ossia/network/base/parameter.hpp>
 #include <ossia/network/base/protocol.hpp>
 #include <ossia/network/common/network_logger.hpp>
-
+#include <QMenu>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Device::DeviceInterface)
 namespace Device

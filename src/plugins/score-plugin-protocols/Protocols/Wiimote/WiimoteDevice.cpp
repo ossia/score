@@ -10,6 +10,7 @@
 
 #include <thread>
 
+#include <wobjectimpl.h>
 W_OBJECT_IMPL(Protocols::WiimoteDevice)
 
 namespace Protocols

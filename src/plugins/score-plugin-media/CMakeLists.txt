@@ -215,9 +215,16 @@ if(APPLE)
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/AppleUI/vstwindow.h"
     )
   set(VST_SRCS ${VST_SRCS}
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/AppleUI/vstwindow.m"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/AppleUI/vstwindow.mm"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/AppleUI/vst2x.mm"
     )
+
+  set_source_files_properties(
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/AppleUI/vstwindow.mm"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/AppleUI/vst2x.mm"
+    PROPERTIES
+      SKIP_UNITY_BUILD_INCLUSION 1
+  )
 else()
   set(VST_SRCS ${VST_SRCS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/LinuxUI/vst.cpp"

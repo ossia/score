@@ -26,8 +26,6 @@
 struct NSAutoreleasePool;
 #include <CoreFoundation/CFNumber.h>
 #include <CoreFoundation/CFPreferences.h>
-extern "C" NSAutoreleasePool* mac_init_pool();
-extern "C" void mac_finish_pool(NSAutoreleasePool* pool);
 void disableAppRestore()
 {
   CFPreferencesSetAppValue(
@@ -165,8 +163,6 @@ static void setup_app_flags()
 int main(int argc, char** argv)
 {
 #if defined(__APPLE__)
-  auto pool = mac_init_pool();
-
   disableAppRestore();
   qputenv("QT_MAC_WANTS_LAYER", "1");
 #endif
@@ -197,9 +193,6 @@ int main(int argc, char** argv)
 #endif
   int res = app.exec();
 
-#if defined(__APPLE__)
-  mac_finish_pool(pool);
-#endif
   return res;
 }
 

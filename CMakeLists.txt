@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.17 FATAL_ERROR)
 set(CMAKE_MODULE_PATH
     "${CMAKE_MODULE_PATH}"
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake"
@@ -41,21 +41,9 @@ if(NOT SCORE_CONFIGURATION)
 endif()
 include("${SCORE_CONFIGURATION}")
 
-# Ninja does not handle unity builds well
-if("${CMAKE_GENERATOR}" MATCHES "^Ninja")
-  set(SCORE_COTIRE_DISABLE_UNITY True)
-endif()
-
 project(score LANGUAGES C CXX)
-if(CMAKE_VERSION VERSION_LESS 3.13)
-cmake_policy(VERSION 3.10)
-cmake_policy(SET CMP0025 NEW)
-cmake_policy(SET CMP0063 NEW)
-else()
-cmake_policy(VERSION 3.13)
-cmake_policy(SET CMP0025 NEW)
-cmake_policy(SET CMP0063 NEW)
-cmake_policy(SET CMP0079 NEW)
+if(APPLE)
+  enable_language(OBJCXX)
 endif()
 
 set(SCORE_VERSION_MAJOR 3)
@@ -66,6 +54,10 @@ set(SCORE_CODENAME "The zoolok salpati drowns slorcily in globamate")
 
 set(SCORE_VERSION
     "${SCORE_VERSION_MAJOR}.${SCORE_VERSION_MINOR}.${SCORE_VERSION_PATCH}")
+
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_UNITY_BUILD_BATCH_SIZE 5000)
 
 if(MSVC)
   # TODO check /experimental:preprocessor at some point
@@ -96,14 +88,6 @@ find_package(Qt5 5.9 REQUIRED
                Gui
                Network
                Xml
-#             OPTIONAL_COMPONENTS
-#               Quick
-#               QuickControls2
-#               SerialPort
-#               Svg
-#               WebSockets
-#               Qml
-#               Test
 )
 
 include(3rdparty/libossia.cmake)
@@ -112,9 +96,7 @@ enable_testing()
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/ScoreFunctions.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/ScoreConfiguration.cmake")
 
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(3RDPARTY_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/")
 set(SCORE_ROOT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")

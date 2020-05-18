@@ -10,6 +10,7 @@
 #include <score_lib_device_export.h>
 
 #include <verdigris>
+class QMenu;
 namespace ossia
 {
 class value;

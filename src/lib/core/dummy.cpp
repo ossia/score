@@ -1,0 +1,1 @@
+void score_dummy_symbol_to_please_cxx_compiler() { }

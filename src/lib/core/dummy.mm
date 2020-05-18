@@ -1,0 +1,1 @@
+void score_dummy_symbol_to_please_objcxx_compiler() { }

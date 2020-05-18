@@ -8,13 +8,11 @@
 #include <vector>
 #include <verdigris>
 
-class DataStream;
-class JSONObject;
-class QObject;
 #include <score/model/Identifier.hpp>
 
 #include <score_plugin_curve_export.h>
 
+class Selection;
 namespace ossia
 {
 struct domain;

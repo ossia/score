@@ -21,8 +21,8 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
     }
     auto& parent = *reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
 
-    auto& fx = parent.emplace_back(Library::ProcessData{{{}, "Effects", {}}, {}}, &parent);
-    auto& inst = parent.emplace_back(Library::ProcessData{{{}, "Instruments", {}}, {}}, &parent);
+    auto& fx = parent.emplace_back(Library::ProcessData{{{}, "Effects", {}}, {}, {}, {}}, &parent);
+    auto& inst = parent.emplace_back(Library::ProcessData{{{}, "Instruments", {}}, {}, {}, {}}, &parent);
     auto& plug = ctx.applicationPlugin<Media::ApplicationPlugin>();
 
     auto reset_plugs = [=, &plug, &inst, &fx] {

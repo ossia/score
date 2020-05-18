@@ -18,6 +18,7 @@
 #include <QTextLayout>
 
 #include <Magnetism/MagnetismAdjuster.hpp>
+#include <ossia/detail/algorithms.hpp>
 
 #include <verdigris>
 

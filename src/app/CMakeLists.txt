@@ -19,6 +19,11 @@ add_executable(${APPNAME} WIN32
 #target_link_libraries(score-main PRIVATE ${APPNAME})
 
 
+set_target_properties(${APPNAME}
+  PROPERTIES
+    CXX_VISIBILITY_PRESET hidden
+    VISIBILITY_INLINES_HIDDEN 1)
+
 target_include_directories(${APPNAME} PRIVATE "${3RDPARTY_FOLDER}/phantomstyle/src")
 
 target_link_libraries(${APPNAME} PUBLIC score_lib_base)
@@ -60,8 +65,6 @@ if(UNIX AND NOT APPLE)
 endif()
 
 if(APPLE)
-    target_sources(${APPNAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/mac_main.m")
-
     find_library(CFLIB CoreFoundation)
     find_library(FLIB Foundation)
     target_link_libraries(${APPNAME} PRIVATE ${CFLIB} ${FLIB})

@@ -18,6 +18,7 @@
 #include <memory>
 #include <verdigris>
 
+class QAction;
 class ObjectPath;
 class QSize;
 namespace score

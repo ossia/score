@@ -3,10 +3,12 @@
 #include <score/tools/Cursor.hpp>
 
 #include <ossia/detail/flicks.hpp>
+#include <ossia/detail/algorithms.hpp>
 
 #include <QPainter>
 #include <QStyleOptionComplex>
 #include <QTime>
+#include <cmath>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::TimeSpinBox)

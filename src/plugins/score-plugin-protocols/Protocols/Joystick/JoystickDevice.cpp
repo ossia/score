@@ -5,6 +5,7 @@
 
 #include <ossia/network/joystick/joystick_protocol.hpp>
 
+#include <wobjectimpl.h>
 W_OBJECT_IMPL(Protocols::JoystickDevice)
 
 namespace Protocols

@@ -7,6 +7,7 @@
 #include <QBitmap>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
+#include <QCursor>
 
 #include <wobjectimpl.h>
 

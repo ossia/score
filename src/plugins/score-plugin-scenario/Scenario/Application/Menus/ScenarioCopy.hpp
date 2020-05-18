@@ -2,6 +2,8 @@
 #include <score_plugin_scenario_export.h>
 
 #include <vector>
+
+#include <score/serialization/JSONVisitor.hpp>
 class QJsonObject;
 class QObject;
 class Selection;

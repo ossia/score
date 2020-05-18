@@ -19,7 +19,6 @@ option(OSSIA_NO_EXAMPLES "Don't build OSSIA examples" True)
 option(OSSIA_NO_TESTS "Don't build OSSIA tests" True)
 
 option(SCORE_COTIRE "Use cotire. Will make the build faster." OFF)
-option(SCORE_COTIRE_ALL_HEADERS "All headers will be put in prefix headers. Faster for CI but slower for development" OFF)
 
 option(SCORE_STATIC_EVERYTHING "Try to link with everything static" OFF)
 option(SCORE_USE_DEV_PLUGINS "Build the prototypal plugins" OFF)

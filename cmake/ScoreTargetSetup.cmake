@@ -3,49 +3,31 @@ include(UseGold)
 include(LinkerWarnings)
 include(DebugMode)
 
-function(score_cotire_pre TheTarget)
-  if(SCORE_COTIRE)
-    if(SCORE_COTIRE_DISABLE_UNITY)
-      set_property(TARGET ${TheTarget} PROPERTY COTIRE_ADD_UNITY_BUILD FALSE)
-    else()
-      set_property(TARGET ${TheTarget} PROPERTY COTIRE_UNITY_SOURCE_MAXIMUM_NUMBER_OF_INCLUDES 9999)
-    endif()
-
-    if(SCORE_COTIRE_ALL_HEADERS)
-      set_target_properties(${TheTarget} PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "")
-    endif()
-
-    # FIXME on windows
-    set_target_properties(${TheTarget} PROPERTIES
-      COTIRE_PREFIX_HEADER_IGNORE_PATH "${COTIRE_PREFIX_HEADER_IGNORE_PATH};/usr/include/boost/preprocessor/")
-
-    if(TARGET score_lib_base AND NOT ${TheTarget} STREQUAL "score_lib_base")
-      # We reuse the same prefix header
-
-      get_target_property(SCORE_COMMON_PREFIX_HEADER score_lib_base COTIRE_CXX_PREFIX_HEADER)
-      set_target_properties(${TheTarget} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "${SCORE_COMMON_PREFIX_HEADER}")
-    endif()
-
+function(score_pch TheTarget)
+  if(NOT SCORE_PCH)
+    return()
   endif()
-endfunction()
+  if(NOT TARGET score_lib_base)
+    return()
+  endif()
+  if("${TheTarget}" STREQUAL "score_lib_base")
+      return()
+  endif()
+  if("${TheTarget}" STREQUAL "score_lib_pch")
+      return()
+  endif()
 
-function(score_cotire_post TheTarget)
-if(SCORE_COTIRE)
-   cotire(${TheTarget})
-endif()
+  target_precompile_headers("${TheTarget}" REUSE_FROM score_lib_pch)
 endfunction()
 
 ### Call at the beginning of a plug-in cmakelists ###
-function(score_common_setup)
+macro(score_common_setup)
   enable_testing()
   set(CMAKE_INCLUDE_CURRENT_DIR ON)
   set(CMAKE_POSITION_INDEPENDENT_CODE ON)
   set(CMAKE_AUTOUIC OFF)
   set(CMAKE_AUTOMOC OFF)
-  cmake_policy(SET CMP0020 NEW)
-  cmake_policy(SET CMP0042 NEW)
-endfunction()
-
+endmacro()
 
 ### Initialization of most common stuff ###
 
@@ -321,7 +303,7 @@ endfunction()
 
 function(setup_score_common_features TheTarget)
   score_set_compile_options(${TheTarget})
-  score_cotire_pre(${TheTarget})
+  score_pch(${TheTarget})
 
   if(ENABLE_LTO)
     set_property(TARGET ${TheTarget}
@@ -340,7 +322,6 @@ endfunction()
 ### Initialization of common stuff ###
 function(setup_score_common_exe_features TheTarget)
   setup_score_common_features(${TheTarget})
-  score_cotire_post(${TheTarget})
 endfunction()
 
 function(setup_score_common_test_features TheTarget)
@@ -420,8 +401,6 @@ function(setup_score_library PluginName)
         )
     endif()
   endif()
-
-  score_cotire_post("${PluginName}")
 endfunction()
 
 
@@ -446,6 +425,4 @@ function(setup_score_plugin PluginName)
         RUNTIME DESTINATION bin/plugins)
     endif()
   endif()
-
-  score_cotire_post("${PluginName}")
 endfunction()

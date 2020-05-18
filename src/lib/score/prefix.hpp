@@ -1,8 +1,5 @@
 #ifndef SCORE_PREFIX_HEADER
 #define SCORE_PREFIX_HEADER
-#pragma warning(push, 0) // MSVC
-#pragma GCC system_header
-#pragma clang system_header
 
 #if defined(_MSC_VER)
 #if !defined(WIN32_LEAN_AND_MEAN)
@@ -13,7 +10,6 @@
 #endif
 #include <windows.h>
 #endif
-/////////////////////
 
 #include <score/command/AggregateCommand.hpp>
 #include <score/model/EntityImpl.hpp>
