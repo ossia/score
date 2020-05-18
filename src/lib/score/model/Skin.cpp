@@ -150,6 +150,11 @@ Skin::Skin() noexcept
   SliderFont.setPixelSize(10 * 96. / 72.);
   SliderFont.setWeight(QFont::DemiBold);
 
+  double dpr = qApp->devicePixelRatio();
+#if defined(__APPLE__)
+  dpr = 1.;
+#endif
+
   int hotspotX = 12 * qApp->devicePixelRatio();
   int hotspotY = 10 * qApp->devicePixelRatio();
   CursorPointer = QCursor{score::get_pixmap(":/icons/cursor_pointer.png"), hotspotX, hotspotY};
