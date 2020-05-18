@@ -271,7 +271,11 @@ void IntervalComponent::onSetup(
   {
     toRegister.push_back(tempo_proc->inlet.get());
   }
-  system().setup.register_node(toRegister, {interval().outlet.get()}, m_ossia_interval->node);
+
+  if(interval().outlet)
+  {
+    system().setup.register_node(toRegister, {interval().outlet.get()}, m_ossia_interval->node);
+  }
 
   init();
 }
