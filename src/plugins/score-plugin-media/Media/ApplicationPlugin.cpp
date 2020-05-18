@@ -310,13 +310,21 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
       continue;
 
     auto proc = std::make_unique<QProcess>();
-    proc->setProgram(
+
 #if defined(__APPLE__)
-        qApp->applicationDirPath() + "/ossia-score-vstpuppet"
+    auto env = proc->processEnvironment();
+    proc->setProcessEnvironment(std::move(env));
+
+    {
+      QString bundle_vstpuppet = qApp->applicationDirPath() + "/ossia-score-vstpuppet.app/Contents/MacOS/ossia-score-vstpuppet";
+      if(QFile::exists(bundle_vstpuppet))
+        proc->setProgram(bundle_vstpuppet);
+      else
+        proc->setProgram(qApp->applicationDirPath() + "/ossia-score-vstpuppet");
+    }
 #else
-        "ossia-score-vstpuppet"
+    proc->setProgram("ossia-score-vstpuppet");
 #endif
-    );
     proc->setArguments({path, QString::number(i)});
     m_processes.push_back({path, std::move(proc), false, {}});
     i++;

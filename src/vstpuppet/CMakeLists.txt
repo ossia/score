@@ -30,10 +30,12 @@ if(APPLE AND DEPLOYMENT_BUILD)
   set_target_properties(
       ossia-score-vstpuppet
       PROPERTIES
+        MACOSX_BUNDLE TRUE
+        MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in"
         RUNTIME_OUTPUT_DIRECTORY score.app/Contents/MacOS)
   install(
     TARGETS ossia-score-vstpuppet
-    RUNTIME DESTINATION score.app/Contents/MacOS
+    BUNDLE DESTINATION score.app/Contents/MacOS
     COMPONENT OssiaScore)
 elseif(WIN32)
   install(
