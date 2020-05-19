@@ -1,13 +1,13 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TriggerView.hpp"
-
 #include <score/widgets/Pixmap.hpp>
 
 #include <QBitmap>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 #include <QCursor>
+#include <QGuiApplication>
 
 #include <wobjectimpl.h>
 
@@ -19,7 +19,7 @@ static const constexpr int iconSize = 20;
 static const QPixmap& triggerPixmap()
 {
   static auto p = score::get_pixmap(":/icons/scenario_trigger.png");
-  p.setDevicePixelRatio(2.);
+  p.setDevicePixelRatio(qApp->devicePixelRatio());
   return p;
 }
 static const QImage& triggerImage()
@@ -30,19 +30,19 @@ static const QImage& triggerImage()
 static const QPixmap& selectedTriggerPixmap()
 {
   static auto p = score::get_pixmap(":/icons/scenario_trigger_selected.png");
-  p.setDevicePixelRatio(2.);
+  p.setDevicePixelRatio(qApp->devicePixelRatio());
   return p;
 }
 static const QPixmap& hoveredTriggerPixmap()
 {
   static auto p = score::get_pixmap(":/icons/scenario_trigger_hovered.png");
-  p.setDevicePixelRatio(2.);
+  p.setDevicePixelRatio(qApp->devicePixelRatio());
   return p;
 }
 static const QPixmap& triggerSpriteSheet()
 {
   static auto p = score::get_pixmap(":/icons/trigger_sprite.png");
-  p.setDevicePixelRatio(2.);
+  p.setDevicePixelRatio(qApp->devicePixelRatio());
   return p;
 }
 
@@ -54,7 +54,6 @@ TriggerView::TriggerView(QGraphicsItem* parent)
     , m_hovered{false}
     , m_waiting{false}
 {
-  this->setCursor(Qt::OpenHandCursor);
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setAcceptHoverEvents(true);
   this->setAcceptDrops(true);
@@ -123,6 +122,7 @@ void TriggerView::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
   update();
   event->accept();
 }
+
 
 void TriggerView::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
