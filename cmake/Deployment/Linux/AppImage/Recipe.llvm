@@ -34,14 +34,14 @@ cd ./$BUILD_DIR
 
 # Get score from git
 (
-  $GIT clone -j16 https://github.com/OSSIA/score
+  $GIT clone --recursive  -j16 https://github.com/OSSIA/score
   cd score/
   $GIT checkout $TRAVIS_COMMIT
   $GIT reset --hard HEAD
   $GIT clean -dffx
-  $GIT submodule update --init 
+  $GIT submodule update --init --recursive -j16
 
-  # cd base/addons
+  # cd src/addons
   # $GIT clone https://github.com/OSSIA/score-addon-jit
 )
 
@@ -78,8 +78,8 @@ cp $APP.AppDir/usr/share/pixmaps/ossia-score.png $APP.AppDir/
 
     # Fonts
     mkdir -p ./usr/bin/lib/fonts
-    cp -rf $SOURCE_DIR/base/lib/resources/*.otf ./usr/bin/lib/fonts/
-    cp -rf $SOURCE_DIR/base/lib/resources/*.ttf ./usr/bin/lib/fonts/
+    cp -rf $SOURCE_DIR/src/lib/resources/*.otf ./usr/bin/lib/fonts/
+    cp -rf $SOURCE_DIR/src/lib/resources/*.ttf ./usr/bin/lib/fonts/
 
     ldd usr/bin/ossia-score | grep "=>" | awk '{print $3}' | grep so |  xargs -I '{}' cp -v '{}' ./usr/lib || true
 
@@ -96,7 +96,7 @@ cp $APP.AppDir/usr/share/pixmaps/ossia-score.png $APP.AppDir/
     rm -f usr/lib/libgpg-error.so.0 || true
     rm -f usr/lib/libjack* || true
     rm -f usr/lib/libasound* || true
-    rm -f usr/lib/libxcb* || true
+#    rm -f usr/lib/libxcb* || true
     rm -f usr/lib/libgssapi_krb5.so.2 || true
     rm -f usr/lib/libgssapi.so.3 || true
     rm -f usr/lib/libhcrypto.so.4 || true
@@ -135,6 +135,31 @@ cp $APP.AppDir/usr/share/pixmaps/ossia-score.png $APP.AppDir/
     rm -f usr/lib/libXau.so.6 || true
     rm -f usr/lib/libXext.so.6 || true
     rm -f usr/lib/libGLdispatch.so.0 || true
+    rm -f usr/lib/libattr.so.1 || true
+    rm -f usr/lib/libbz2.so.1 || true
+    rm -f usr/lib/libcap.so.2 || true
+    rm -f usr/lib/libdbus-1.so.3 || true
+    rm -f usr/lib/libdw.so.1 || true
+    rm -f usr/lib/libelf.so.1 || true
+    rm -f usr/lib/libgcrypt.so.11 || true
+    rm -f usr/lib/libartnet.a || true
+    rm -f usr/lib/libattr.so.1 || true
+    rm -f usr/lib/libbz2.so.1 || true
+    rm -f usr/lib/libcap.so.2 || true
+    rm -f usr/lib/libdbus-1.so.3 || true
+    rm -f usr/lib/libdw.so.1 || true
+    rm -f usr/lib/libelf.so.1 || true
+    rm -f usr/lib/libgcrypt.so.11 || true
+    rm -f usr/lib/liblz4.so.1 || true
+    rm -f usr/lib/liblzma.so.5 || true
+    rm -f usr/lib/libpcre.so.1 || true
+    rm -f usr/lib/libselinux.so.1 || true
+    rm -f usr/lib/libsystemd.so.0 || true
+    # rm -f usr/lib/libtinfo.so.5 || true
+
+    rm -rf usr/lib/cmake || true
+    rm -rf usr/lib/qt5 || true
+
 
     # Delete potentially dangerous libraries
     rm -f usr/lib/libgobject* usr/lib/libc.so.* || true

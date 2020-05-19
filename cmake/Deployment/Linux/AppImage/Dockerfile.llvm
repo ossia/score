@@ -9,10 +9,10 @@ RUN yum -y install devtoolset-8-gcc devtoolset-8-make devtoolset-8 \
 
 
 RUN mkdir -p /opt/score-sdk 
-# WORKDIR /opt/score-sdk
-RUN wget https://github.com/OSSIA/sdk/releases/download/sdk15/score-sdk-linux-llvm.tar.xz && \
-    tar xaf score-sdk-linux-llvm.tar.xz && \
-    rm -rf score-sdk-linux-llvm.tar.xz
+
+RUN wget https://github.com/OSSIA/sdk/releases/download/sdk15/score-sdk-linux-llvm.tar.xz \
+    && tar xaf score-sdk-linux-llvm.tar.xz \
+    && rm -rf score-sdk-linux-llvm.tar.xz
     
 #ADD Recipe.llvm /Recipe.llvm
 #RUN bash -ex Recipe.llvm
