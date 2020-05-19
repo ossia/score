@@ -437,11 +437,13 @@ add_library(score_lib_base ${SRCS} ${HEADERS} ${QRCS})
 
 if(APPLE)
     find_library(AppKit_FK AppKit)
+    find_library(AppServices_FK ApplicationServices)
     target_sources(score_lib_base PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Cursor.mm"
     )
     target_link_libraries(${PROJECT_NAME} PRIVATE
         ${AppKit_FK}
+        ${AppServices_FK}
     )
     set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Cursor.mm"
         PROPERTIES
