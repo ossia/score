@@ -54,6 +54,8 @@ TriggerView::TriggerView(QGraphicsItem* parent)
     , m_hovered{false}
     , m_waiting{false}
 {
+  auto& skin = score::Skin::instance();
+  this->setCursor(skin.CursorPointingHand);
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setAcceptHoverEvents(true);
   this->setAcceptDrops(true);
