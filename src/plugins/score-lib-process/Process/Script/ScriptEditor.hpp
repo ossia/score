@@ -44,6 +44,8 @@ public:
   {
     setText((m_process.*Property_T::get)());
     con(m_process, &Process_T::errorMessage, this, &ScriptDialog::setError);
+    con(m_process, &IdentifiedObjectAbstract::identified_object_destroying,
+        this, &QWidget::deleteLater);
     con(m_process, Property_T::notify, this, &ScriptDialog::setText);
   }
 

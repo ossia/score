@@ -18,6 +18,9 @@ function(score_pch TheTarget)
   if("${TheTarget}" STREQUAL "score_lib_pch")
       return()
   endif()
+  if("${TheTarget}" STREQUAL "score_addon_jit") # due to a bug with llvm 10 in c++20
+    return()
+  endif()
 
   target_precompile_headers("${TheTarget}" REUSE_FROM score_lib_pch)
 endfunction()
