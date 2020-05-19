@@ -18,7 +18,7 @@
    enable-background="new 0 0 10.104 12.644"
    xml:space="preserve"
    id="svg13"
-   sodipodi:docname="scenario_trigger_selected.svg"
+   sodipodi:docname="scenario_trigger_hovered.svg"
    inkscape:version="0.92.4 5da689c313, 2019-01-14"><metadata
    id="metadata19"><rdf:RDF><cc:Work
        rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
@@ -36,9 +36,9 @@
    inkscape:window-height="1015"
    id="namedview15"
    showgrid="true"
-   inkscape:zoom="134.98643"
-   inkscape:cx="2.983091"
-   inkscape:cy="15.566009"
+   inkscape:zoom="41.734936"
+   inkscape:cx="2.7460301"
+   inkscape:cy="15.647499"
    inkscape:window-x="0"
    inkscape:window-y="0"
    inkscape:window-maximized="1"
@@ -48,22 +48,22 @@
 <g
    id="Trigger"
    transform="matrix(1.5835313,0,0,1.5817779,2,1.162e-7)"
-   style="fill:#fdaa00;fill-opacity:1">
+   style="fill:#0396fa;fill-opacity:1">
 	<g
    id="g8"
-   style="fill:#fdaa00;fill-opacity:1">
+   style="fill:#0396fa;fill-opacity:1">
 		<g
    id="g4"
-   style="fill:#fdaa00;fill-opacity:1">
+   style="fill:#0396fa;fill-opacity:1">
 			<path
    d="M 10.104,1.8965999 H 5.6834999 V 12.644 h -1.263 V 1.8965999 H 0 V 0 h 10.104 z"
    id="path2"
    inkscape:connector-curvature="0"
-   style="fill:#fdaa00;fill-opacity:1"
+   style="fill:#0396fa;fill-opacity:1"
    sodipodi:nodetypes="ccccccccc" />
 		</g>
 		<path
-   style="fill:#fdaa00;fill-opacity:1"
+   style="fill:#0396fa;fill-opacity:1"
    d="M 5.052,9.069 1.8945,5.0576 h 6.3149999 z"
    id="polygon6"
    inkscape:connector-curvature="0"
@@ -72,12 +72,10 @@
 </g>
 <g
    id="Exit"
-   transform="matrix(1.9794141,0,0,1.9794141,-10.722625,4.451058)"
-   style="fill:#fdaa00;fill-opacity:1">
+   transform="matrix(1.9794141,0,0,1.9794141,-10.722625,4.451058)">
 </g>
 <g
    id="Loop"
-   transform="matrix(1.9794141,0,0,1.9794141,-10.722625,4.451058)"
-   style="fill:#fdaa00;fill-opacity:1">
+   transform="matrix(1.9794141,0,0,1.9794141,-10.722625,4.451058)">
 </g>
 </svg>
