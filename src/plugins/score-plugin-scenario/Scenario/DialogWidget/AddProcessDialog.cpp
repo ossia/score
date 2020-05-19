@@ -98,6 +98,7 @@ void AddProcessDialog::updateProcesses(const QString& str)
       m_processes->addItem(item);
     }
   }
+  m_processes->setCurrentItem(m_processes->item(0));
 }
 
 void AddProcessDialog::setup()
