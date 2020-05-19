@@ -50,24 +50,6 @@ static void setup_x11()
 #endif
 }
 
-
-#if defined(QT_STATIC)
-#include <QtPlugin>
-// Q_IMPORT_PLUGIN(QJpegPlugin)
-// Q_IMPORT_PLUGIN(QSvgPlugin)
-// Q_IMPORT_PLUGIN(QSvgIconPlugin)
-
-#if defined(__linux__)
-Q_IMPORT_PLUGIN(QXcbIntegrationPlugin)
-Q_IMPORT_PLUGIN(QXcbGlxIntegrationPlugin)
-#elif defined(__APPLE__)
-Q_IMPORT_PLUGIN(QCocoaIntegrationPlugin)
-#elif defined(_WIN32)
-Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin)
-#endif
-#endif
-
-
 static void disable_denormals()
 {
 #if defined(__SSE3__)
