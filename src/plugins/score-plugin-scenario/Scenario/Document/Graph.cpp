@@ -102,6 +102,57 @@ struct CycleDetector
     //}
   }
 
+  bool anyIntersectGraphal(std::vector<Id<IntervalModel>>& a, std::vector<Id<IntervalModel>>& b)
+  {
+    ossia::small_vector<Id<IntervalModel>, 4> intersect;
+    std::sort(a.begin(), a.end(), [](const auto& lhs, const auto& rhs) {
+      return lhs.val() < rhs.val();
+    });
+    std::sort(b.begin(), b.end(), [](const auto& lhs, const auto& rhs) {
+      return lhs.val() < rhs.val();
+    });
+    std::set_intersection(a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(intersect));
+
+    bool ok = false;
+    for (const auto& itv : intersect)
+    {
+      auto& m = scenario.interval(itv);
+      if (m.graphal())
+      {
+        ok = true;
+      }
+    }
+
+    if(ok)
+    {
+      for (const auto& itv : intersect)
+      {
+        auto& m = scenario.interval(itv);
+        this_path_itvs.push_back(&m);
+      }
+    }
+
+    return ok;
+  }
+  bool anyIntervalIsGraph(TimeSyncModel& a, TimeSyncModel& b)
+  {
+    // auto prev_a = Scenario::previousIntervals(a, scenario);
+    auto next_a = Scenario::nextIntervals(a, scenario);
+    auto prev_b = Scenario::previousIntervals(b, scenario);
+    // auto next_b = Scenario::nextIntervals(b, scenario);
+
+    // auto prev_av = std::vector(prev_a.begin(), prev_a.end());
+    auto next_av = std::vector(next_a.begin(), next_a.end());
+
+    auto prev_bv = std::vector(prev_b.begin(), prev_b.end());
+    // auto next_bv = std::vector(next_b.begin(), next_b.end());
+    return anyIntersectGraphal(next_av, prev_bv);
+    // else if(allIntersectGraphal(next_bv, prev_av))
+    //{
+    //  cycles = true;
+    //}
+  }
+
   template <typename Path>
   void cycle(const Path& p, const Scenario::Graph& g)
   {
@@ -121,8 +172,10 @@ struct CycleDetector
         next_ts = (TimeSyncModel*)g[*p.begin()];
       }
 
-      if (!allIntervalsAreGraph(*this_ts, *next_ts))
+      if (!anyIntervalIsGraph(*this_ts, *next_ts))
         has_non_graphal = true;
+      //if (!allIntervalsAreGraph(*this_ts, *next_ts))
+      //  has_non_graphal = true;
     }
 
     if (!has_non_graphal)
@@ -229,12 +282,12 @@ TimenodeGraphComponents TimenodeGraph::components()
 */
 void TimenodeGraph::intervalsChanged(const IntervalModel&)
 {
-  recompute();
+  QTimer::singleShot(8, &m_scenario, [this] { recompute(); });
 }
 
 void TimenodeGraph::timeSyncsChanged(const TimeSyncModel&)
 {
-  recompute();
+  QTimer::singleShot(8, &m_scenario, [this] { recompute(); });
 }
 
 bool TimenodeGraphComponents::isInMain(const EventModel& c) const
