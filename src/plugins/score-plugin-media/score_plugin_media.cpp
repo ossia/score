@@ -61,6 +61,7 @@ extern "C"
 {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
+#include <libavdevice/avdevice.h>
 }
 #endif
 
@@ -69,6 +70,7 @@ score_plugin_media::score_plugin_media()
 #if SCORE_HAS_LIBAV
   av_register_all();
   avcodec_register_all();
+  avdevice_register_all();
 #endif
 
   qRegisterMetaType<Media::Sound::ComputedWaveform>();

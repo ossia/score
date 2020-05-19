@@ -77,6 +77,8 @@ set(HDRS
     Gfx/GfxDevice.hpp
     Gfx/TexturePort.hpp
 
+    Gfx/CameraDevice.hpp
+
     3rdparty/icosphere/Icosphere.h
     # Gfx/graph/hap/source/hap.h
 
@@ -120,6 +122,7 @@ set(SRCS
     Gfx/GfxDevice.cpp
     Gfx/TexturePort.cpp
 
+    Gfx/CameraDevice.cpp
     # Gfx/graph/hap/source/hap.c
 
     3rdparty/icosphere/Icosphere.cpp

@@ -9,7 +9,7 @@ find_package(Qt5 5.3 OPTIONAL_COMPONENTS WebSockets)
 if(OSSIA_SDK)
   set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${OSSIA_SDK}/ffmpeg/lib/pkgconfig" )
 endif()
-find_package(FFmpeg COMPONENTS  AVCODEC AVFORMAT AVUTIL SWRESAMPLE)
+find_package(FFmpeg COMPONENTS  AVCODEC AVFORMAT AVDEVICE AVUTIL SWRESAMPLE)
 if(NOT FFmpeg_FOUND)
     return()
 endif()
@@ -101,7 +101,9 @@ set(HDRS ${HDRS}
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Mixer/MixerPanel.hpp"
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/Video/VideoInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/VideoDecoder.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Video/CameraInput.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_media.hpp"
 )
@@ -152,6 +154,7 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Mixer/MixerPanel.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/VideoDecoder.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Video/CameraInput.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_media.cpp"
 )
@@ -245,7 +248,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 )
 
 ### FFMPEG ###
-target_link_libraries(${PROJECT_NAME} PRIVATE avcodec avformat swresample avutil)
+target_link_libraries(${PROJECT_NAME} PRIVATE avcodec avformat avdevice swresample avutil)
 
 if(APPLE)
     find_library(QuartzCore_FK QuartzCore)

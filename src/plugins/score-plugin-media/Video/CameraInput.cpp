@@ -5,25 +5,20 @@ extern "C"
 #include <libavutil/pixdesc.h>
 #include <libswscale/swscale.h>
 }
-#include "VideoDecoder.hpp"
+#include "CameraInput.hpp"
 
 #include <ossia/detail/flicks.hpp>
 
 #include <QDebug>
 #include <QElapsedTimer>
-
+#include <fmt/format.h>
 #include <functional>
 namespace Video
 {
-VideoInterface::~VideoInterface()
-{
 
-}
+CameraInput::CameraInput() noexcept { }
 
-
-VideoDecoder::VideoDecoder() noexcept { }
-
-VideoDecoder::~VideoDecoder() noexcept
+CameraInput::~CameraInput() noexcept
 {
   close_file();
   AVFrame* frame{};
@@ -41,11 +36,22 @@ VideoDecoder::~VideoDecoder() noexcept
   }
 }
 
-bool VideoDecoder::load(const std::string& inputFile, double fps_unused) noexcept
+bool CameraInput::load(const std::string& inputDevice, const std::string& format, int w, int h, double fps) noexcept
 {
   close_file();
 
-  if (avformat_open_input(&m_formatContext, inputFile.c_str(), nullptr, nullptr) != 0)
+  auto ifmt = av_find_input_format("video4linux2");
+  assert(ifmt);
+
+  m_formatContext = avformat_alloc_context();
+  m_formatContext->flags |= AVFMT_FLAG_NONBLOCK;
+
+  AVDictionary *options = nullptr;
+  av_dict_set(&options, "framerate", std::to_string((int)fps).c_str(), 0);
+  //av_dict_set(&options, "input_format", format.c_str(), 0);
+  av_dict_set(&options, "video_size", fmt::format("{}x{}", w, h).c_str(), 0);
+
+  if (avformat_open_input(&m_formatContext, inputDevice.c_str(), ifmt, &options) != 0)
   {
     close_file();
     return false;
@@ -67,78 +73,43 @@ bool VideoDecoder::load(const std::string& inputFile, double fps_unused) noexcep
   // TODO use a thread pool
   m_thread = std::thread{[this] { this->buffer_thread(); }};
 
-  int64_t secs = m_formatContext->duration / AV_TIME_BASE;
-  int64_t us = m_formatContext->duration % AV_TIME_BASE;
-
-  m_duration = secs * ossia::flicks_per_second<int64_t>;
-  m_duration += us * ossia::flicks_per_millisecond<int64_t> / 1000;
-
   return true;
 }
 
-
-int64_t VideoDecoder::duration() const noexcept
-{
-  return m_duration;
-}
-
-void VideoDecoder::seek(int64_t dts)
-{
-  m_seekTo = dts;
-}
-
-AVFrame* VideoDecoder::dequeue_frame() noexcept
+AVFrame* CameraInput::dequeue_frame() noexcept
 {
   AVFrame* f{};
-  if (auto to_discard = m_discardUntil.exchange(nullptr))
-  {
-    while (m_framesToPlayer.try_dequeue(f) && f != to_discard)
-    {
-      m_releasedFrames.enqueue(f);
-    }
-
-    return to_discard;
-  }
-
   m_framesToPlayer.try_dequeue(f);
   m_condVar.notify_one();
   return f;
 }
 
-void VideoDecoder::release_frame(AVFrame* frame) noexcept
+void CameraInput::release_frame(AVFrame* frame) noexcept
 {
   m_releasedFrames.enqueue(frame);
 }
 
-void VideoDecoder::buffer_thread() noexcept
+void CameraInput::buffer_thread() noexcept
 {
   while (m_running.load(std::memory_order_acquire))
   {
-    if (int64_t seek = m_seekTo.exchange(-1); seek >= 0)
-    {
-      seek_impl(seek);
-    }
-    else
-    {
-      std::unique_lock lck{m_condMut};
-      m_condVar.wait(lck, [&] {
-        return m_framesToPlayer.size_approx() < frames_to_buffer
-               || !m_running.load(std::memory_order_acquire);
-      });
-      if (!m_running.load(std::memory_order_acquire))
-        return;
+    std::unique_lock lck{m_condMut};
+    m_condVar.wait(lck, [&] {
+      return m_framesToPlayer.size_approx() < frames_to_buffer
+          || !m_running.load(std::memory_order_acquire);
+    });
+    if (!m_running.load(std::memory_order_acquire))
+      return;
 
-      if (m_framesToPlayer.size_approx() < (frames_to_buffer / 2))
+    if (m_framesToPlayer.size_approx() < (frames_to_buffer / 2))
       if (auto f = read_frame_impl())
       {
-        m_last_dts = f->pkt_dts;
         m_framesToPlayer.enqueue(f);
       }
-    }
   }
 }
 
-void VideoDecoder::close_file() noexcept
+void CameraInput::close_file() noexcept
 {
   m_running.store(false, std::memory_order_release);
   m_condVar.notify_one();
@@ -155,7 +126,7 @@ void VideoDecoder::close_file() noexcept
   }
 }
 
-AVFrame* VideoDecoder::get_new_frame() noexcept
+AVFrame* CameraInput::get_new_frame() noexcept
 {
   AVFrame* f{};
   if(m_releasedFrames.try_dequeue(f))
@@ -163,45 +134,7 @@ AVFrame* VideoDecoder::get_new_frame() noexcept
   return av_frame_alloc();
 }
 
-bool VideoDecoder::seek_impl(int64_t dts) noexcept
-{
-  int flags = AVSEEK_FLAG_FRAME;
-  if (dts < this->m_last_dts)
-  {
-    flags |= AVSEEK_FLAG_BACKWARD;
-  }
-
-  if (av_seek_frame(m_formatContext, m_stream, dts, flags))
-  {
-    qDebug() << "Failed to seek for time " << dts;
-    return false;
-  }
-
-  avcodec_flush_buffers(m_codecContext);
-
-  int got_frame = 0;
-  AVPacket pkt{};
-  AVFrame* f = get_new_frame();
-  do
-  {
-    if (av_read_frame(m_formatContext, &pkt) == 0)
-    {
-      got_frame = enqueue_frame(&pkt, f);
-      av_packet_unref(&pkt);
-    }
-    else
-    {
-      break;
-    }
-  } while (!(got_frame && f->pkt_dts >= dts));
-
-  m_last_dts = f->pkt_dts;
-  m_framesToPlayer.enqueue(f);
-  m_discardUntil = f;
-  return true;
-}
-
-AVFrame* VideoDecoder::read_frame_impl() noexcept
+AVFrame* CameraInput::read_frame_impl() noexcept
 {
   AVFrame* res = nullptr;
 
@@ -240,7 +173,7 @@ AVFrame* VideoDecoder::read_frame_impl() noexcept
   return res;
 }
 
-bool VideoDecoder::open_stream() noexcept
+bool CameraInput::open_stream() noexcept
 {
   bool res = false;
 
@@ -278,7 +211,7 @@ bool VideoDecoder::open_stream() noexcept
   return res;
 }
 
-void VideoDecoder::close_video() noexcept
+void CameraInput::close_video() noexcept
 {
   if (m_codecContext)
   {
@@ -290,7 +223,7 @@ void VideoDecoder::close_video() noexcept
   }
 }
 
-bool VideoDecoder::enqueue_frame(const AVPacket* pkt, AVFrame* frame) noexcept
+bool CameraInput::enqueue_frame(const AVPacket* pkt, AVFrame* frame) noexcept
 {
   int got_picture_ptr = 0;
 

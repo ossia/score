@@ -5,10 +5,10 @@
 #include "renderstate.hpp"
 #include "uniforms.hpp"
 
-#include <Video/VideoDecoder.hpp>
+#include <Video/VideoInterface.hpp>
 // TODO the "model" nodes should have a first update step so that they
 // can share data across all renderers during a tick
-using video_decoder = ::Video::VideoDecoder;
+using video_decoder = ::Video::VideoInterface;
 struct YUV420Node : NodeModel
 {
   std::shared_ptr<video_decoder> decoder;
@@ -75,7 +75,7 @@ struct YUV420Node : NodeModel
     void customInit(Renderer& renderer) override
     {
       auto& decoder = *static_cast<const YUV420Node&>(node).decoder;
-      const auto w = decoder.width(), h = decoder.height();
+      const auto w = decoder.width, h = decoder.height;
       auto& rhi = *renderer.state.rhi;
 
       // Y
@@ -131,7 +131,7 @@ struct YUV420Node : NodeModel
         decoder.release_frame(frame);
       framesToFree.clear();
 
-      if (!t.isValid() || t.elapsed() > (1000. / decoder.fps()))
+      if (!t.isValid() || t.elapsed() > (1000. / decoder.fps))
       {
         if (auto frame = decoder.dequeue_frame())
         {
@@ -155,7 +155,7 @@ struct YUV420Node : NodeModel
     {
       auto& decoder = *static_cast<const YUV420Node&>(node).decoder;
       // TODO glPixelStorei(GL_UNPACK_ROW_LENGTH, stride);
-      const auto w = decoder.width(), h = decoder.height();
+      const auto w = decoder.width, h = decoder.height;
       auto y_tex = m_samplers[0].texture;
       QRhiTextureSubresourceUploadDescription subdesc;
       subdesc.setData(QByteArray::fromRawData(reinterpret_cast<const char*>(pixels), w * h));
@@ -167,7 +167,7 @@ struct YUV420Node : NodeModel
     void setUPixels(QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept
     {
       auto& decoder = *static_cast<const YUV420Node&>(node).decoder;
-      const auto w = decoder.width(), h = decoder.height();
+      const auto w = decoder.width, h = decoder.height;
       auto u_tex = m_samplers[1].texture;
       QRhiTextureSubresourceUploadDescription subdesc;
       subdesc.setData(QByteArray::fromRawData(reinterpret_cast<const char*>(pixels), w * h / 4));
@@ -180,7 +180,7 @@ struct YUV420Node : NodeModel
     void setVPixels(QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept
     {
       auto& decoder = *static_cast<const YUV420Node&>(node).decoder;
-      const auto w = decoder.width(), h = decoder.height();
+      const auto w = decoder.width, h = decoder.height;
       auto v_tex = m_samplers[2].texture;
       QRhiTextureSubresourceUploadDescription subdesc;
       subdesc.setData(QByteArray::fromRawData(reinterpret_cast<const char*>(pixels), w * h / 4));
@@ -232,7 +232,7 @@ struct RGB0Node : NodeModel
     void customInit(Renderer& renderer) override
     {
       auto& decoder = *static_cast<const RGB0Node&>(node).decoder;
-      const auto w = decoder.width(), h = decoder.height();
+      const auto w = decoder.width, h = decoder.height;
       auto& rhi = *renderer.state.rhi;
 
       {
@@ -258,7 +258,7 @@ struct RGB0Node : NodeModel
         decoder.release_frame(frame);
       framesToFree.clear();
 
-      if (!t.isValid() || t.elapsed() > (1000. / decoder.fps()))
+      if (!t.isValid() || t.elapsed() > (1000. / decoder.fps))
       {
         if (auto frame = decoder.dequeue_frame())
         {
@@ -279,7 +279,7 @@ struct RGB0Node : NodeModel
     void setPixels(QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept
     {
       auto& decoder = *static_cast<const RGB0Node&>(node).decoder;
-      const auto w = decoder.width(), h = decoder.height();
+      const auto w = decoder.width, h = decoder.height;
       auto y_tex = m_samplers[0].texture;
       QRhiTextureSubresourceUploadDescription subdesc;
       subdesc.setData(QByteArray::fromRawData(reinterpret_cast<const char*>(pixels), w * h * 4));
@@ -291,7 +291,7 @@ struct RGB0Node : NodeModel
         std::optional<QSize> renderTargetSize() const noexcept override
         {
           auto& decoder = *static_cast<const RGB0Node&>(node).decoder;
-          const auto w = decoder.width(), h = decoder.height();
+          const auto w = decoder.width, h = decoder.height;
           return QSize{w, h};
         }*/
   };

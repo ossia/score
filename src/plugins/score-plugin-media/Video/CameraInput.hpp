@@ -17,25 +17,20 @@ extern "C"
 namespace Video
 {
 
-class SCORE_PLUGIN_MEDIA_EXPORT VideoDecoder final : public VideoInterface
+class SCORE_PLUGIN_MEDIA_EXPORT CameraInput final : public VideoInterface
 {
 public:
-  VideoDecoder() noexcept;
-  ~VideoDecoder() noexcept;
+  CameraInput() noexcept;
+  ~CameraInput() noexcept;
 
-  bool load(const std::string& inputFile, double fps_unused) noexcept;
-
-  int64_t duration() const noexcept;
-
-  void seek(int64_t dts);
+  bool load(const std::string& inputDevice, const std::string& format, int w, int h, double fps) noexcept;
 
   AVFrame* dequeue_frame() noexcept override;
-  void release_frame(AVFrame*) noexcept override;
+  void release_frame(AVFrame* frame) noexcept override;
 
 private:
   void buffer_thread() noexcept;
   void close_file() noexcept;
-  bool seek_impl(int64_t dts) noexcept;
   AVFrame* read_frame_impl() noexcept;
   bool open_stream() noexcept;
   void close_video() noexcept;
@@ -55,12 +50,6 @@ private:
   AVCodecContext* m_codecContext{};
   AVCodec* m_codec{};
   int m_stream{-1};
-
-  int64_t m_duration{}; // in flicks
-
-  std::atomic<AVFrame*> m_discardUntil{};
-  std::atomic_int64_t m_seekTo = -1;
-  int64_t m_last_dts = 0;
 
   std::atomic_bool m_running{};
 };

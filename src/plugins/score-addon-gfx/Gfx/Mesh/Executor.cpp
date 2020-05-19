@@ -52,7 +52,7 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     auto n = std::make_shared<mesh_node>(
         desc, element.processedFragment(), ctx.doc.plugin<DocumentPlugin>().exec);
 
-    n->root_outputs().push_back(new ossia::value_outlet);
+    n->root_outputs().push_back(new ossia::texture_outlet);
 
     this->node = n;
     m_ossia_process = std::make_shared<ossia::node_process>(n);

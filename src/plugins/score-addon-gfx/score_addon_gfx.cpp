@@ -8,6 +8,7 @@
 #include <Gfx/Filter/Process.hpp>
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxDevice.hpp>
+#include <Gfx/CameraDevice.hpp>
 #include <Gfx/Images/Executor.hpp>
 #include <Gfx/Images/Inspector.hpp>
 #include <Gfx/Images/Layer.hpp>
@@ -34,7 +35,9 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_addon_gfx::factories(
 {
   return instantiate_factories<
       score::ApplicationContext,
-      FW<Device::ProtocolFactory, Gfx::GfxProtocolFactory>,
+      FW<Device::ProtocolFactory
+      , Gfx::GfxProtocolFactory
+      , Gfx::CameraProtocolFactory>,
 
       FW<Process::ProcessModelFactory,
          Gfx::Filter::ProcessFactory,
