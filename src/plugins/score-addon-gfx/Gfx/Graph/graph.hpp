@@ -2,10 +2,11 @@
 #include "node.hpp"
 #include "renderer.hpp"
 
+#include <score_addon_gfx_export.h>
 #include <ossia/detail/algorithms.hpp>
 struct OutputNode;
 class Window;
-struct Graph
+struct SCORE_ADDON_GFX_EXPORT Graph
 {
   std::vector<NodeModel*> nodes;
   std::vector<Edge*> edges;

@@ -4,8 +4,9 @@
 #include <private/qrhi_p.h>
 
 #include <gsl/span>
+#include <score_addon_gfx_export.h>
 
-struct Mesh
+struct SCORE_ADDON_GFX_EXPORT Mesh
 {
   ossia::small_vector<QRhiVertexInputBinding, 2> vertexInputBindings;
   ossia::small_vector<QRhiVertexInputAttribute, 2> vertexAttributeBindings;

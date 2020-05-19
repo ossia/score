@@ -20,7 +20,6 @@ class SCORE_PLUGIN_MEDIA_EXPORT VideoDecoder
 {
 public:
   VideoDecoder() noexcept;
-
   ~VideoDecoder() noexcept;
 
   bool load(const std::string& inputFile, double fps_unused) noexcept;
@@ -35,30 +34,26 @@ public:
   void seek(int64_t dts);
 
   AVFrame* dequeue_frame() noexcept;
+  void release_frame(AVFrame*) noexcept;
 
 private:
-  std::mutex m_condMut;
-  std::condition_variable m_condVar;
   void buffer_thread() noexcept;
-
   void close_file() noexcept;
-
   bool seek_impl(int64_t dts) noexcept;
-
   AVFrame* read_frame_impl() noexcept;
-
   bool open_stream() noexcept;
-
   void close_video() noexcept;
-
   bool enqueue_frame(const AVPacket* pkt, AVFrame* frame) noexcept;
+  AVFrame* get_new_frame() noexcept;
 
   static const constexpr int frames_to_buffer = 16;
 
   std::thread m_thread;
+  std::mutex m_condMut;
+  std::condition_variable m_condVar;
 
-  moodycamel::ReaderWriterQueue<AVFrame*> m_frames;
-  // std::mutex m_framesMutex;
+  moodycamel::ReaderWriterQueue<AVFrame*, 16> m_framesToPlayer;
+  moodycamel::ReaderWriterQueue<AVFrame*, 16> m_releasedFrames;
 
   AVFormatContext* m_formatContext{};
   AVCodecContext* m_codecContext{};

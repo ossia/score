@@ -6,6 +6,8 @@
 #include "uniforms.hpp"
 
 #include <Video/VideoDecoder.hpp>
+// TODO the "model" nodes should have a first update step so that they
+// can share data across all renderers during a tick
 using video_decoder = ::Video::VideoDecoder;
 struct YUV420Node : NodeModel
 {
@@ -66,10 +68,8 @@ struct YUV420Node : NodeModel
     ~Rendered()
     {
       auto& decoder = *static_cast<const YUV420Node&>(node).decoder;
-      while (auto frame = decoder.dequeue_frame())
-      {
-        av_frame_free(&frame);
-      }
+      for (auto frame : framesToFree)
+        decoder.release_frame(frame);
     }
 
     void customInit(Renderer& renderer) override
@@ -126,11 +126,11 @@ struct YUV420Node : NodeModel
 
     void customUpdate(Renderer& renderer, QRhiResourceUpdateBatch& res) override
     {
+      auto& decoder = *static_cast<const YUV420Node&>(node).decoder;
       for (auto frame : framesToFree)
-        av_frame_free(&frame);
+        decoder.release_frame(frame);
       framesToFree.clear();
 
-      auto& decoder = *static_cast<const YUV420Node&>(node).decoder;
       if (!t.isValid() || t.elapsed() > (1000. / decoder.fps()))
       {
         if (auto frame = decoder.dequeue_frame())
@@ -225,10 +225,8 @@ struct RGB0Node : NodeModel
     ~Rendered()
     {
       auto& decoder = *static_cast<const RGB0Node&>(node).decoder;
-      while (auto frame = decoder.dequeue_frame())
-      {
-        av_frame_free(&frame);
-      }
+      for (auto frame : framesToFree)
+        decoder.release_frame(frame);
     }
 
     void customInit(Renderer& renderer) override
@@ -254,11 +252,12 @@ struct RGB0Node : NodeModel
 
     void customUpdate(Renderer& renderer, QRhiResourceUpdateBatch& res) override
     {
+      auto& decoder = *static_cast<const RGB0Node&>(node).decoder;
+
       for (auto frame : framesToFree)
-        av_frame_free(&frame);
+        decoder.release_frame(frame);
       framesToFree.clear();
 
-      auto& decoder = *static_cast<const RGB0Node&>(node).decoder;
       if (!t.isValid() || t.elapsed() > (1000. / decoder.fps()))
       {
         if (auto frame = decoder.dequeue_frame())

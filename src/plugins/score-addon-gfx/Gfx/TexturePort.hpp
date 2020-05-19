@@ -1,6 +1,7 @@
 #pragma once
 #include <Dataflow/PortItem.hpp>
 #include <Process/Dataflow/Port.hpp>
+#include <score_addon_gfx_export.h>
 
 namespace Gfx
 {
@@ -12,7 +13,7 @@ UUID_METADATA(, Process::Port, Gfx::TextureOutlet, "f1c71046-b754-49a5-8e66-d013
 namespace Gfx
 {
 
-class TextureInlet : public Process::Inlet
+class SCORE_ADDON_GFX_EXPORT TextureInlet : public Process::Inlet
 {
   W_OBJECT(TextureInlet)
 
@@ -35,7 +36,7 @@ public:
   }
 };
 
-class TextureOutlet : public Process::Outlet
+class SCORE_ADDON_GFX_EXPORT TextureOutlet : public Process::Outlet
 {
   W_OBJECT(TextureOutlet)
 

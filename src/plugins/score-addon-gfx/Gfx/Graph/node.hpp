@@ -12,6 +12,7 @@
 #include <vector>
 
 #include <unordered_map>
+#include <score_addon_gfx_export.h>
 
 class NodeModel;
 struct Port;
@@ -109,7 +110,7 @@ struct
 static_assert(sizeof(ModelCameraUBO) == sizeof(float) * (16 + 16 + 16 + 16 + 16 + 9));
 struct Renderer;
 class RenderedNode;
-class NodeModel
+class SCORE_ADDON_GFX_EXPORT NodeModel
 {
   friend class RenderedNode;
 
@@ -143,7 +144,7 @@ public:
   bool addedToGraph{};
 };
 
-class RenderedNode
+class SCORE_ADDON_GFX_EXPORT RenderedNode
 {
 public:
   RenderedNode(const NodeModel& node) noexcept : node{node} { }

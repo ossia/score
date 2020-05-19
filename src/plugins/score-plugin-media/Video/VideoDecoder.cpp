@@ -21,6 +21,19 @@ VideoDecoder::VideoDecoder() noexcept { }
 VideoDecoder::~VideoDecoder() noexcept
 {
   close_file();
+  AVFrame* frame{};
+  while (m_framesToPlayer.try_dequeue(frame))
+  {
+    av_frame_free(&frame);
+  }
+
+  // TODO we must check that this is safe as the queue
+  // does not support dequeueing from the same thread as the
+  // enqueuing
+  while (m_releasedFrames.try_dequeue(frame))
+  {
+    av_frame_free(&frame);
+  }
 }
 
 bool VideoDecoder::load(const std::string& inputFile, double fps_unused) noexcept
@@ -92,17 +105,22 @@ AVFrame* VideoDecoder::dequeue_frame() noexcept
   AVFrame* f{};
   if (auto to_discard = m_discardUntil.exchange(nullptr))
   {
-    while (m_frames.try_dequeue(f) && f != to_discard)
+    while (m_framesToPlayer.try_dequeue(f) && f != to_discard)
     {
-      av_frame_free(&f);
+      m_releasedFrames.enqueue(f);
     }
 
     return to_discard;
   }
 
-  m_frames.try_dequeue(f);
+  m_framesToPlayer.try_dequeue(f);
   m_condVar.notify_one();
   return f;
+}
+
+void VideoDecoder::release_frame(AVFrame* frame) noexcept
+{
+  m_releasedFrames.enqueue(frame);
 }
 
 void VideoDecoder::buffer_thread() noexcept
@@ -117,16 +135,17 @@ void VideoDecoder::buffer_thread() noexcept
     {
       std::unique_lock lck{m_condMut};
       m_condVar.wait(lck, [&] {
-        return m_frames.size_approx() < frames_to_buffer
+        return m_framesToPlayer.size_approx() < frames_to_buffer
                || !m_running.load(std::memory_order_acquire);
       });
       if (!m_running.load(std::memory_order_acquire))
         return;
 
+      if (m_framesToPlayer.size_approx() < (frames_to_buffer / 2))
       if (auto f = read_frame_impl())
       {
         m_last_dts = f->pkt_dts;
-        m_frames.enqueue(f);
+        m_framesToPlayer.enqueue(f);
       }
     }
   }
@@ -149,6 +168,14 @@ void VideoDecoder::close_file() noexcept
   }
 }
 
+AVFrame* VideoDecoder::get_new_frame() noexcept
+{
+  AVFrame* f{};
+  if(m_releasedFrames.try_dequeue(f))
+    return f;
+  return av_frame_alloc();
+}
+
 bool VideoDecoder::seek_impl(int64_t dts) noexcept
 {
   int flags = AVSEEK_FLAG_FRAME;
@@ -167,7 +194,7 @@ bool VideoDecoder::seek_impl(int64_t dts) noexcept
 
   int got_frame = 0;
   AVPacket pkt{};
-  AVFrame* f = av_frame_alloc();
+  AVFrame* f = get_new_frame();
   do
   {
     if (av_read_frame(m_formatContext, &pkt) == 0)
@@ -182,7 +209,7 @@ bool VideoDecoder::seek_impl(int64_t dts) noexcept
   } while (!(got_frame && f->pkt_dts >= dts));
 
   m_last_dts = f->pkt_dts;
-  m_frames.enqueue(f);
+  m_framesToPlayer.enqueue(f);
   m_discardUntil = f;
   return true;
 }
@@ -193,7 +220,7 @@ AVFrame* VideoDecoder::read_frame_impl() noexcept
 
   if (m_stream != -1)
   {
-    AVFrame* frame = av_frame_alloc();
+    AVFrame* frame = get_new_frame();
     AVPacket packet;
     memset(&packet, 0, sizeof(AVPacket));
     bool ok = false;
