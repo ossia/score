@@ -98,9 +98,8 @@ void Minimap::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, Q
       QRectF{m_leftHandle, 0., m_rightHandle - m_leftHandle, m_height}, sk.MinimapBrush());
 
   painter->setPen(sk.MinimapPen());
-
-  const double line_length = 5;
-  const QPointF top_left{m_leftHandle + 1., 0};
+  const double line_length = 4;
+  const QPointF top_left{m_leftHandle, 0};
   painter->drawLine(top_left, top_left + QPointF{line_length, 0.});
   painter->drawLine(top_left, top_left + QPointF{0., line_length});
 
@@ -108,7 +107,7 @@ void Minimap::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, Q
   painter->drawLine(top_right, top_right + QPointF{-line_length, 0.});
   painter->drawLine(top_right, top_right + QPointF{0., line_length});
 
-  const QPointF bottom_left{m_leftHandle + 1., m_height - 0.5};
+  const QPointF bottom_left{m_leftHandle, m_height - 0.5};
   painter->drawLine(bottom_left, bottom_left + QPointF{line_length, 0.});
   painter->drawLine(bottom_left, bottom_left + QPointF{0., -line_length});
 
