@@ -7,9 +7,17 @@
 #include <Gfx/GfxExecContext.hpp>
 #include <Gfx/Graph/videonode.hpp>
 #include <Video/CameraInput.hpp>
+
+class QComboBox;
 namespace Gfx
 {
-
+struct camera_settings
+{
+  std::string input;
+  std::string device;
+  int size[2]{{},{}};
+  double fps{};
+};
 class gfx_window_context;
 class camera_protocol : public ossia::net::protocol_base
 {
@@ -32,11 +40,11 @@ public:
   std::shared_ptr<::Video::CameraInput> camera;
   YUV420Node* node{};
 
-  camera_parameter(ossia::net::node_base& n, GfxExecutionAction* ctx)
+  camera_parameter(const camera_settings& settings, ossia::net::node_base& n, GfxExecutionAction* ctx)
       : ossia::net::parameter_base{n}, context{ctx}
   {
     camera = std::make_shared<::Video::CameraInput>();
-    camera->load("/dev/video0", "none", 1920, 1080, 30);
+    camera->load(settings.input, settings.device, settings.size[0], settings.size[1], settings.fps);
 
     node = new YUV420Node(camera);
     node_id = context->ui->register_node(std::unique_ptr<YUV420Node>(node));
@@ -85,9 +93,10 @@ class camera_node : public ossia::net::node_base
   std::unique_ptr<camera_parameter> m_parameter;
 
 public:
-  camera_node(ossia::net::device_base& dev, std::string name)
+  camera_node(const camera_settings& settings, ossia::net::device_base& dev, std::string name)
       : m_device{dev}
       , m_parameter{std::make_unique<camera_parameter>(
+            settings,
             *this,
             dynamic_cast<camera_protocol&>(dev.get_protocol()).context)}
   {
@@ -118,8 +127,8 @@ class camera_device : public ossia::net::device_base
   camera_node root;
 
 public:
-  camera_device(std::unique_ptr<ossia::net::protocol_base> proto, std::string name)
-      : ossia::net::device_base{std::move(proto)}, root{*this, name}
+  camera_device(const camera_settings& settings, std::unique_ptr<ossia::net::protocol_base> proto, std::string name)
+      : ossia::net::device_base{std::move(proto)}, root{settings, *this, name}
   {
   }
 
@@ -137,6 +146,14 @@ public:
 
 namespace Gfx
 {
+struct CameraSettings
+{
+  QString input;
+  QString device;
+  QSize size{};
+  double fps{};
+};
+
 class CameraProtocolFactory final : public Device::ProtocolFactory
 {
   SCORE_CONCRETE("d615690b-f2e2-447b-b70e-a800552db69c")
@@ -207,6 +224,12 @@ public:
 private:
   void setDefaults();
   QLineEdit* m_deviceNameEdit{};
+  QComboBox* m_combo{};
+  std::vector<CameraSettings> m_settings;
 };
 
 }
+
+
+Q_DECLARE_METATYPE(Gfx::CameraSettings)
+W_REGISTER_ARGTYPE(Gfx::CameraSettings)

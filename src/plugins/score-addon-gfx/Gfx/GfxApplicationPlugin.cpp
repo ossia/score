@@ -13,6 +13,12 @@
 namespace Gfx
 {
 
+gfx_exec_node::~gfx_exec_node()
+{
+  for (auto ctl : controls)
+    delete ctl.value;
+}
+
 
 void gfx_exec_node::run(const ossia::token_request& tk, ossia::exec_state_facade) noexcept
 {

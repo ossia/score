@@ -36,22 +36,23 @@ CameraInput::~CameraInput() noexcept
   }
 }
 
-bool CameraInput::load(const std::string& inputDevice, const std::string& format, int w, int h, double fps) noexcept
+bool CameraInput::load(const std::string& inputKind, const std::string& inputDevice, int w, int h, double fps) noexcept
 {
   close_file();
 
-  auto ifmt = av_find_input_format("video4linux2");
+  auto ifmt = av_find_input_format(inputKind.c_str());
   assert(ifmt);
 
   m_formatContext = avformat_alloc_context();
   m_formatContext->flags |= AVFMT_FLAG_NONBLOCK;
 
+  /* TODO it seems that things work without that
   AVDictionary *options = nullptr;
   av_dict_set(&options, "framerate", std::to_string((int)fps).c_str(), 0);
-  //av_dict_set(&options, "input_format", format.c_str(), 0);
+  av_dict_set(&options, "input_format", format.c_str(), 0); // this one seems failing
   av_dict_set(&options, "video_size", fmt::format("{}x{}", w, h).c_str(), 0);
-
-  if (avformat_open_input(&m_formatContext, inputDevice.c_str(), ifmt, &options) != 0)
+  */
+  if (avformat_open_input(&m_formatContext, inputDevice.c_str(), ifmt, nullptr) != 0)
   {
     close_file();
     return false;

@@ -7,12 +7,19 @@
 
 #include <ossia-qt/name_utils.hpp>
 
+#include <QComboBox>
 #include <QFormLayout>
 #include <QMenu>
 #include <QMimeData>
 
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <wobjectimpl.h>
+extern "C"
+{
+#include <libavdevice/avdevice.h>
+#include <libavutil/opt.h>
+}
+
 W_OBJECT_IMPL(Gfx::CameraDevice)
 
 namespace Gfx
@@ -90,12 +97,16 @@ bool CameraDevice::reconnect()
 
   try
   {
+    auto set = this->settings().deviceSpecificSettings.value<CameraSettings>();
+    camera_settings ossia_stgs{set.input.toStdString(), set.device.toStdString(), set.size.width(), set.size.height(), set.fps};
     auto plug = m_ctx.findPlugin<DocumentPlugin>();
     if (plug)
     {
       m_protocol = new camera_protocol{plug->exec};
       m_dev = std::make_unique<camera_device>(
-          std::unique_ptr<ossia::net::protocol_base>(m_protocol), "camera");
+            ossia_stgs,
+            std::unique_ptr<ossia::net::protocol_base>(m_protocol),
+            "camera");
     }
     // TODOengine->reload(&proto);
 
@@ -133,7 +144,7 @@ Device::Node CameraDevice::refresh()
 
 QString CameraProtocolFactory::prettyName() const
 {
-  return QObject::tr("Gfx");
+  return QObject::tr("Camera input");
 }
 
 Device::DeviceInterface* CameraProtocolFactory::makeDevice(
@@ -148,7 +159,9 @@ const Device::DeviceSettings& CameraProtocolFactory::defaultSettings() const
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
     s.protocol = concreteKey();
-    s.name = "Gfx";
+    s.name = "Camera";
+    CameraSettings specif;
+    s.deviceSpecificSettings = QVariant::fromValue(specif);
     return s;
   }();
   return settings;
@@ -178,13 +191,14 @@ Device::ProtocolSettingsWidget* CameraProtocolFactory::makeSettingsWidget()
 
 QVariant CameraProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
 {
-  return {};
+  return makeProtocolSpecificSettings_T<CameraSettings>(visitor);
 }
 
 void CameraProtocolFactory::serializeProtocolSpecificSettings(
     const QVariant& data,
     const VisitorVariant& visitor) const
 {
+  serializeProtocolSpecificSettings_T<CameraSettings>(data, visitor);
 }
 
 bool CameraProtocolFactory::checkCompatibility(
@@ -201,6 +215,33 @@ CameraSettingsWidget::CameraSettingsWidget(QWidget* parent) : ProtocolSettingsWi
   auto layout = new QFormLayout;
   layout->addRow(tr("Device Name"), m_deviceNameEdit);
 
+  m_combo = new QComboBox;
+
+  AVInputFormat* fmt = nullptr;
+  while ((fmt = av_input_video_device_next(fmt)))
+  {
+    AVDeviceInfoList *device_list = nullptr;
+    avdevice_list_input_sources(fmt, nullptr, nullptr, &device_list);
+
+    if(device_list)
+    {
+      for(int i = 0; i < device_list->nb_devices; i++)
+      {
+        auto dev = device_list->devices[i];
+        QString devname = QString("%1 (%2: %3)").arg(dev->device_name).arg(fmt->long_name).arg(fmt->name);
+        m_settings.push_back({QString(fmt->name).split(",").front(), dev->device_name});
+
+        // TODO see AVDeviceCapabilitiesQuery and try to show some stream info ?
+        m_combo->addItem(devname, QString::fromUtf8(dev->device_name));
+      }
+      avdevice_free_list_devices(&device_list);
+      device_list = nullptr;
+    }
+  }
+
+  m_combo->setCurrentIndex(0);
+
+  layout->addRow(tr("Device"), m_combo);
   setLayout(layout);
 
   setDefaults();
@@ -215,6 +256,13 @@ Device::DeviceSettings CameraSettingsWidget::getSettings() const
 {
   Device::DeviceSettings s;
   s.name = m_deviceNameEdit->text();
+  CameraSettings specif;
+  int curIdx = m_combo->currentIndex();
+  if(curIdx >= 0 && curIdx < (int)m_settings.size())
+  {
+    specif = m_settings[curIdx];
+  }
+  s.deviceSpecificSettings = QVariant::fromValue(specif);
   return s;
 }
 
@@ -222,4 +270,36 @@ void CameraSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
   m_deviceNameEdit->setText(settings.name);
 }
+}
+
+template <>
+void DataStreamReader::read(const Gfx::CameraSettings& n)
+{
+  m_stream << n.input << n.device << n.size << n.fps;
+  insertDelimiter();
+}
+
+template <>
+void DataStreamWriter::write(Gfx::CameraSettings& n)
+{
+  m_stream >> n.input >> n.device >> n.size >> n.fps;
+  checkDelimiter();
+}
+
+template <>
+void JSONReader::read(const Gfx::CameraSettings& n)
+{
+  obj["Input"] = n.input;
+  obj["Device"] = n.device;
+  obj["Size"] = n.size;
+  obj["FPS"] = n.fps;
+}
+
+template <>
+void JSONWriter::write(Gfx::CameraSettings& n)
+{
+  n.input = obj["Input"].toString();
+  n.device = obj["Device"].toString();
+  n.size <<= obj["Size"];
+  n.fps = obj["FPS"].toDouble();
 }

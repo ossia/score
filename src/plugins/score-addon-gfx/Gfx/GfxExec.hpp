@@ -9,6 +9,8 @@
 #include <Gfx/GfxContext.hpp>
 #include <Gfx/GfxDevice.hpp>
 #include <Gfx/GfxExecContext.hpp>
+#include <score_addon_gfx_export.h>
+
 namespace Gfx
 {
 
@@ -22,7 +24,7 @@ int64_t index_of(Vector&& v, const typename std::remove_reference_t<Vector>::val
   return -1;
 }
 
-class gfx_exec_node : public ossia::nonowning_graph_node
+class SCORE_ADDON_GFX_EXPORT gfx_exec_node : public ossia::nonowning_graph_node
 {
 public:
   struct control
@@ -55,11 +57,7 @@ public:
     m_inlets.push_back(inletport);
   }
 
-  ~gfx_exec_node()
-  {
-    for (auto ctl : controls)
-      delete ctl.value;
-  }
+  ~gfx_exec_node();
 
   int32_t id{-1};
   void run(const ossia::token_request& tk, ossia::exec_state_facade) noexcept;
