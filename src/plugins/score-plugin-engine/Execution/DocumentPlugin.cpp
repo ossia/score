@@ -62,7 +62,7 @@ DocumentPlugin::DocumentPlugin(
 }
 , m_setup_ctx{m_ctx}, m_base{m_ctx, this}
 {
-  makeGraph();
+  // makeGraph();
   auto& devs = ctx.plugin<Explorer::DeviceDocumentPlugin>();
   local_device = devs.list().localDevice();
   if (auto dev = devs.list().audioDevice())
@@ -148,6 +148,7 @@ void DocumentPlugin::on_finished()
 
   clear();
 
+  /*
   execState = std::make_unique<ossia::execution_state>();
   auto& devlist
       = score::DocumentPlugin::context().plugin<Explorer::DeviceDocumentPlugin>().list().devices();
@@ -160,7 +161,7 @@ void DocumentPlugin::on_finished()
     registerDevice(dev->getDevice());
   }
   execState->apply_device_changes();
-
+  */
   for (auto& v : m_setup_ctx.runtime_connections)
   {
     for (auto& con : v.second)
@@ -180,12 +181,14 @@ void DocumentPlugin::timerEvent(QTimerEvent* event)
 
 void DocumentPlugin::registerDevice(ossia::net::device_base* d)
 {
-  execState->register_device(d);
+  if(execState)
+    execState->register_device(d);
 }
 
 void DocumentPlugin::unregisterDevice(ossia::net::device_base* d)
 {
-  execState->unregister_device(d);
+  if(execState)
+    execState->unregister_device(d);
 }
 
 void DocumentPlugin::makeGraph()
@@ -317,6 +320,7 @@ void DocumentPlugin::clear()
     if (execGraph)
       execGraph->clear();
     execGraph.reset();
+    execState.reset();
   }
 }
 

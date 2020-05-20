@@ -64,21 +64,23 @@ bool CameraInput::load(const std::string& inputKind, const std::string& inputDev
     return false;
   }
 
+  start();
+
   return true;
 }
 
 bool CameraInput::start() noexcept
 {
- if(m_running)
-   return false;
+  if(m_running)
+    return false;
 
- if (!open_stream())
-   return false;
+  if (!open_stream())
+    return false;
 
- m_running.store(true, std::memory_order_release);
- // TODO use a thread pool
- m_thread = std::thread{[this] { this->buffer_thread(); }};
- return true;
+  m_running.store(true, std::memory_order_release);
+  // TODO use a thread pool
+  m_thread = std::thread{[this] { this->buffer_thread(); }};
+  return true;
 }
 
 void CameraInput::stop() noexcept

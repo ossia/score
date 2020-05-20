@@ -573,7 +573,7 @@ void ApplicationPlugin::on_stop()
     else
     {
       // TODO why is this commented
-      // plugmodel->clear();
+      plugmodel->clear();
     }
     // If we can we resume listening
     if (!context.docManager.preparingNewDocument())
