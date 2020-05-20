@@ -22,13 +22,26 @@ class gfx_window_context;
 class camera_protocol : public ossia::net::protocol_base
 {
 public:
-  camera_protocol(GfxExecutionAction& ctx) : context{&ctx} { }
+  std::shared_ptr<::Video::CameraInput> camera;
+  camera_protocol(GfxExecutionAction& ctx) : context{&ctx}
+  {
+    camera = std::make_shared<::Video::CameraInput>();
+  }
   GfxExecutionAction* context{};
   bool pull(ossia::net::parameter_base&) override { return false; }
   bool push(const ossia::net::parameter_base&, const ossia::value& v) override { return false; }
   bool push_raw(const ossia::net::full_parameter_data&) override { return false; }
   bool observe(ossia::net::parameter_base&, bool) override { return false; }
   bool update(ossia::net::node_base& node_base) override { return false; }
+
+  void start_execution() override
+  {
+    camera->start();
+  }
+  void stop_execution() override
+  {
+    camera->stop();
+  }
 };
 
 class camera_parameter : public ossia::net::parameter_base
@@ -36,17 +49,18 @@ class camera_parameter : public ossia::net::parameter_base
   GfxExecutionAction* context{};
 
 public:
-  int32_t node_id{};
   std::shared_ptr<::Video::CameraInput> camera;
+  int32_t node_id{};
   YUV420Node* node{};
 
   camera_parameter(const camera_settings& settings, ossia::net::node_base& n, GfxExecutionAction* ctx)
       : ossia::net::parameter_base{n}, context{ctx}
   {
-    camera = std::make_shared<::Video::CameraInput>();
+    auto& proto = static_cast<camera_protocol&>(n.get_device().get_protocol());
+    camera = proto.camera;
     camera->load(settings.input, settings.device, settings.size[0], settings.size[1], settings.fps);
 
-    node = new YUV420Node(camera);
+    node = new YUV420Node(proto.camera);
     node_id = context->ui->register_node(std::unique_ptr<YUV420Node>(node));
   }
   void pull_texture(port_index idx) { context->setEdge(port_index{this->node_id, 0}, idx); }

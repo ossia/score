@@ -251,4 +251,5 @@ void GfxSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
   m_deviceNameEdit->setText(settings.name);
 }
+
 }
