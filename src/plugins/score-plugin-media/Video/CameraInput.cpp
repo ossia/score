@@ -112,18 +112,14 @@ void CameraInput::buffer_thread() noexcept
   while (m_running.load(std::memory_order_acquire))
   {
     std::unique_lock lck{m_condMut};
-    m_condVar.wait(lck, [&] {
-      return m_framesToPlayer.size_approx() < frames_to_buffer
-          || !m_running.load(std::memory_order_acquire);
-    });
+    m_condVar.wait(lck);
     if (!m_running.load(std::memory_order_acquire))
       return;
 
-    if (m_framesToPlayer.size_approx() < (frames_to_buffer / 2))
-      if (auto f = read_frame_impl())
-      {
-        m_framesToPlayer.enqueue(f);
-      }
+    if (auto f = read_frame_impl())
+    {
+      m_framesToPlayer.enqueue(f);
+    }
   }
 }
 
