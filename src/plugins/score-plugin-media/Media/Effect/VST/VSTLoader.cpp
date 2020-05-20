@@ -18,7 +18,8 @@ namespace VST
 #if defined(_WIN32)
 struct WinLoader
 {
-  static void* load(const char* name) { return LoadLibrary(name); }
+  static void* load(const char* name) { return LoadLibraryA(name); }
+  static void* load(const wchar_t* name) { return LoadLibraryW(name); }
 
   static void unload(void* module) { FreeLibrary((HMODULE)module); }
 

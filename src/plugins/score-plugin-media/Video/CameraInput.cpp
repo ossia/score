@@ -64,17 +64,32 @@ bool CameraInput::load(const std::string& inputKind, const std::string& inputDev
     return false;
   }
 
-  if (!open_stream())
-  {
-    close_file();
-    return false;
-  }
-
-  m_running.store(true, std::memory_order_release);
-  // TODO use a thread pool
-  m_thread = std::thread{[this] { this->buffer_thread(); }};
-
   return true;
+}
+
+bool CameraInput::start() noexcept
+{
+ if(m_running)
+   return false;
+
+ if (!open_stream())
+   return false;
+
+ m_running.store(true, std::memory_order_release);
+ // TODO use a thread pool
+ m_thread = std::thread{[this] { this->buffer_thread(); }};
+ return true;
+}
+
+void CameraInput::stop() noexcept
+{
+  m_running.store(false, std::memory_order_release);
+  m_condVar.notify_one();
+
+  if (m_thread.joinable())
+    m_thread.join();
+
+  close_stream();
 }
 
 AVFrame* CameraInput::dequeue_frame() noexcept
@@ -112,13 +127,7 @@ void CameraInput::buffer_thread() noexcept
 
 void CameraInput::close_file() noexcept
 {
-  m_running.store(false, std::memory_order_release);
-  m_condVar.notify_one();
-
-  if (m_thread.joinable())
-    m_thread.join();
-
-  close_video();
+  stop();
 
   if (m_formatContext)
   {
@@ -198,21 +207,20 @@ bool CameraInput::open_stream() noexcept
         width = m_codecContext->coded_width;
         height = m_codecContext->coded_height;
         fps = av_q2d(m_formatContext->streams[i]->avg_frame_rate);
+        break;
       }
-
-      break;
     }
   }
 
   if (!res)
   {
-    close_video();
+    close_stream();
   }
 
   return res;
 }
 
-void CameraInput::close_video() noexcept
+void CameraInput::close_stream() noexcept
 {
   if (m_codecContext)
   {

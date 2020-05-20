@@ -25,6 +25,9 @@ public:
 
   bool load(const std::string& inputDevice, const std::string& format, int w, int h, double fps) noexcept;
 
+  bool start() noexcept;
+  void stop() noexcept;
+
   AVFrame* dequeue_frame() noexcept override;
   void release_frame(AVFrame* frame) noexcept override;
 
@@ -33,7 +36,7 @@ private:
   void close_file() noexcept;
   AVFrame* read_frame_impl() noexcept;
   bool open_stream() noexcept;
-  void close_video() noexcept;
+  void close_stream() noexcept;
   bool enqueue_frame(const AVPacket* pkt, AVFrame* frame) noexcept;
   AVFrame* get_new_frame() noexcept;
 

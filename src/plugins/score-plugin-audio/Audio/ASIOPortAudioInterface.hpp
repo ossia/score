@@ -4,6 +4,12 @@
 #include <Audio/AudioInterface.hpp>
 #include <Audio/PortAudioInterface.hpp>
 #include <Audio/Settings/Model.hpp>
+#include <score/command/Dispatchers/SettingsCommandDispatcher.hpp>
+#include <score/widgets/SignalUtils.hpp>
+#include <Audio/Settings/View.hpp>
+#include <score/tools/Bind.hpp>
+#include <QComboBox>
+#include <QFormLayout>
 
 #if __has_include(<pa_asio.h>)
 #include <pa_asio.h>

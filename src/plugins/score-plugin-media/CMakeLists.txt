@@ -9,7 +9,7 @@ find_package(Qt5 5.3 OPTIONAL_COMPONENTS WebSockets)
 if(OSSIA_SDK)
   set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${OSSIA_SDK}/ffmpeg/lib/pkgconfig" )
 endif()
-find_package(FFmpeg COMPONENTS  AVCODEC AVFORMAT AVDEVICE AVUTIL SWRESAMPLE)
+find_package(FFmpeg COMPONENTS  AVCODEC AVFORMAT AVDEVICE AVUTIL SWRESAMPLE SWSCALE POSTPROC)
 if(NOT FFmpeg_FOUND)
     return()
 endif()
@@ -248,7 +248,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 )
 
 ### FFMPEG ###
-target_link_libraries(${PROJECT_NAME} PRIVATE avcodec avformat avdevice swresample avutil)
+target_link_libraries(${PROJECT_NAME} PRIVATE avcodec avformat avdevice swresample swscale postproc avutil)
 
 if(APPLE)
     find_library(QuartzCore_FK QuartzCore)
@@ -282,6 +282,9 @@ if(APPLE)
         )
 endif()
 
+if(WIN32)
+    target_link_libraries(${PROJECT_NAME} PRIVATE evr mf mfplat Strmiids Quartz Vfw32)
+endif()
 if(TARGET Qt5::WebSockets)
 target_compile_definitions(${PROJECT_NAME} PUBLIC HAS_VST2)
 target_link_libraries(${PROJECT_NAME} PUBLIC Qt5::WebSockets)

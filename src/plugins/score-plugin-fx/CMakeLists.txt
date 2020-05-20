@@ -34,6 +34,6 @@ target_link_libraries(score_plugin_fx PUBLIC score_plugin_engine)
 
 setup_score_plugin(score_plugin_fx)
 
-if(WIN32 AND NOT MSVC)
+if(WIN32 AND NOT MSVC AND NOT SCORE_PCH)
   target_compile_options(score_plugin_fx PRIVATE -Ofast -fno-finite-math-only -Wa,-mbig-obj)
 endif()
