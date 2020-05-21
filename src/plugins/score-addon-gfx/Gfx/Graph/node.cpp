@@ -30,8 +30,17 @@ void RenderedNode::createRenderTarget(const RenderState& state)
 
 void RenderedNode::setScreenRenderTarget(const RenderState& state)
 {
-  m_renderTarget = state.swapChain->currentFrameRenderTarget();
-  m_renderPass = state.renderPassDescriptor;
+  if(state.swapChain)
+  {
+    m_renderTarget = state.swapChain->currentFrameRenderTarget();
+    m_renderPass = state.renderPassDescriptor;
+  }
+  else
+  {
+    m_renderTarget = nullptr;
+    m_renderPass = nullptr;
+    qDebug() << "Warning: swapchain not found in screenRenderTarget";
+  }
 }
 
 std::optional<QSize> RenderedNode::renderTargetSize() const noexcept
