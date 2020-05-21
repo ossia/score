@@ -200,7 +200,7 @@ void Graph::relinkGraph()
         rn->release(r);
       }
     }
-    r.state.window->canRender = r.renderedNodes.size() > 1;
+    r.output->onRendererChange();
   }
 }
 
@@ -210,6 +210,7 @@ std::shared_ptr<Renderer> Graph::createRenderer(OutputNode* output, RenderState 
   for (auto& node : nodes)
     node->addedToGraph = false;
   Renderer& r = *ptr;
+  r.output = output;
   output->setRenderer(ptr.get());
   r.state = std::move(state);
 

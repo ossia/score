@@ -39,7 +39,6 @@ struct RenderState
   QRhiSwapChain* swapChain{};
   QRhiRenderPassDescriptor* renderPassDescriptor{};
   QRhiRenderBuffer* renderBuffer{};
-  Window* window{};
   Renderer* renderer{};
 
   QOffscreenSurface* surface{};
@@ -49,7 +48,6 @@ struct RenderState
   {
     RenderState state;
 
-    state.window = reinterpret_cast<Window*>(&window);
     if (graphicsApi == Null)
     {
       QRhiNullInitParams params;

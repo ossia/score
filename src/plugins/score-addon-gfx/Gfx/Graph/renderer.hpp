@@ -26,10 +26,12 @@ struct MeshBuffers
   QRhiBuffer* index{};
 };
 
+struct OutputNode;
 struct Renderer
 {
   std::vector<NodeModel*> nodes;
   std::vector<RenderedNode*> renderedNodes;
+  OutputNode* output{};
 
   RenderState state;
   QSize lastSize{};
