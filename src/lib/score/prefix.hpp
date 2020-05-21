@@ -1,7 +1,7 @@
 #ifndef SCORE_PREFIX_HEADER
 #define SCORE_PREFIX_HEADER
 
-#if defined(_MSC_VER)
+#if defined(_WIN32)
 #if !defined(WIN32_LEAN_AND_MEAN)
 #define WIN32_LEAN_AND_MEAN
 #endif
