@@ -426,6 +426,9 @@ void ObjectMenuActions::cutSelectedElementsToJson(JSONReader& r)
 
 void ObjectMenuActions::pasteElements(const rapidjson::Value& obj, const Scenario::Point& origin)
 {
+  if (!obj.IsObject() || obj.MemberCount() == 0)
+    return;
+
   // TODO check for unnecessary uses of focusedProcessModel after
   // focusedPresenter.
   auto pres = m_parent->focusedPresenter();
@@ -444,6 +447,9 @@ void ObjectMenuActions::pasteElementsAfter(
     const Scenario::Point& origin,
     const Selection& sel)
 {
+  if (!obj.IsObject() || obj.MemberCount() == 0)
+    return;
+
   // TODO check for unnecessary uses of focusedProcessModel after
   // focusedPresenter.
   auto pres = m_parent->focusedPresenter();
@@ -498,6 +504,9 @@ static void writeJsonToScenario(
 
 void ObjectMenuActions::writeJsonToSelectedElements(const rapidjson::Value& obj)
 {
+  if (!obj.IsObject() || obj.MemberCount() == 0)
+    return;
+
   auto si = focusedScenarioInterface(m_parent->currentDocument()->context());
   if (auto sm = dynamic_cast<const Scenario::ProcessModel*>(si))
   {

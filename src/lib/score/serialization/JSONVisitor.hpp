@@ -1279,7 +1279,7 @@ inline rapidjson::Document readJson(const QByteArray& arr)
   doc.Parse(arr.data(), arr.size());
   if (doc.HasParseError())
   {
-    throw std::runtime_error("Invalid JSON document !");
+    qDebug() << "Invalid JSON document !";
   }
   return doc;
 }
