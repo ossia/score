@@ -20,9 +20,24 @@ struct OutputNode : NodeModel
 
   virtual ~OutputNode() { }
 
-  std::shared_ptr<Window> window{};
-
   const TexturedTriangle& m_mesh = TexturedTriangle::instance();
+
+  virtual void setRenderer(Renderer*) = 0;
+  virtual Renderer* renderer() const = 0;
+
+  virtual void startRendering() = 0;
+  virtual void stopRendering() = 0;
+  virtual bool canRender() const = 0;
+  virtual void onRendererChange() = 0;
+
+  virtual void createOutput(
+      GraphicsApi graphicsApi,
+      std::function<void()> onReady,
+      std::function<void()> onResize
+      ) = 0;
+
+  virtual void destroyOutput() = 0;
+  virtual RenderState* renderState() const = 0;
 
 protected:
   OutputNode() { setShaders(m_mesh.defaultVertexShader(), filter); }
@@ -112,6 +127,26 @@ struct ProductNode : NodeModel
 
 struct ScreenNode : OutputNode
 {
-  ScreenNode() : OutputNode{} { input.push_back(new Port{this, {}, Types::Image, {}}); }
+  ScreenNode();
   virtual ~ScreenNode();
+
+  std::shared_ptr<Window> window{};
+
+  void startRendering() override;
+  void onRendererChange() override;
+  bool canRender() const override;
+  void stopRendering() override;
+
+  void setRenderer(Renderer* r) override;
+  Renderer* renderer() const override;
+
+  void createOutput(
+      GraphicsApi graphicsApi,
+      std::function<void()> onReady,
+      std::function<void()> onResize
+      ) override;
+  void destroyOutput() override;
+
+  virtual RenderState* renderState() const override;
 };
+

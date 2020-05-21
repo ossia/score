@@ -116,6 +116,7 @@ set(SRCS
     Gfx/Graph/renderer.cpp
     Gfx/Graph/mesh.cpp
     Gfx/Graph/isfnode.cpp
+    Gfx/Graph/screennode.cpp
     Gfx/Graph/phongnode.cpp
 
     Gfx/GfxApplicationPlugin.cpp

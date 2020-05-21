@@ -36,9 +36,8 @@ private:
   std::vector<std::shared_ptr<Renderer>> renderers;
 
   std::vector<std::shared_ptr<Window>> unused_windows;
+};
 
 #if QT_CONFIG(vulkan)
-  QVulkanInstance vulkanInstance;
-  bool vulkanInstanceCreated{};
+QVulkanInstance* staticVulkanInstance();
 #endif
-};

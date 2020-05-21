@@ -21,50 +21,69 @@ static void graphwalk(NodeModel* node, std::vector<NodeModel*>& list)
   }
 }
 
+#if QT_CONFIG(vulkan)
+QVulkanInstance* staticVulkanInstance()
+{
+  static bool vulkanInstanceCreated = false;
+  static bool vulkanInstanceInvalid = false;
+  if(vulkanInstanceInvalid)
+    return nullptr;
+
+  static QVulkanInstance vulkanInstance;
+  if(vulkanInstanceCreated)
+    return &vulkanInstance;
+
+#if !defined(NDEBUG)
+#ifndef Q_OS_ANDROID
+  vulkanInstance.setLayers(QByteArrayList() << "VK_LAYER_LUNARG_standard_validation");
+#else
+  vulkanInstance.setLayers(
+        QByteArrayList() << "VK_LAYER_GOOGLE_threading"
+        << "VK_LAYER_LUNARG_parameter_validation"
+        << "VK_LAYER_LUNARG_object_tracker"
+        << "VK_LAYER_LUNARG_core_validation"
+        << "VK_LAYER_LUNARG_image"
+        << "VK_LAYER_LUNARG_swapchain"
+        << "VK_LAYER_GOOGLE_unique_objects");
+#endif
+#endif
+  vulkanInstance.setExtensions(QByteArrayList() << "VK_KHR_get_physical_device_properties2");
+
+  if (!vulkanInstance.create())
+  {
+    vulkanInstanceInvalid = true;
+    return nullptr;
+  }
+  vulkanInstanceCreated = true;
+  return &vulkanInstance;
+}
+#endif
+
+
 void Graph::setupOutputs(GraphicsApi graphicsApi)
 {
 #if QT_CONFIG(vulkan)
-  if (graphicsApi == Vulkan && !vulkanInstanceCreated)
+  if (graphicsApi == Vulkan)
   {
-#if !defined(NDEBUG)
-#ifndef Q_OS_ANDROID
-    vulkanInstance.setLayers(QByteArrayList() << "VK_LAYER_LUNARG_standard_validation");
-#else
-    vulkanInstance.setLayers(
-        QByteArrayList() << "VK_LAYER_GOOGLE_threading"
-                         << "VK_LAYER_LUNARG_parameter_validation"
-                         << "VK_LAYER_LUNARG_object_tracker"
-                         << "VK_LAYER_LUNARG_core_validation"
-                         << "VK_LAYER_LUNARG_image"
-                         << "VK_LAYER_LUNARG_swapchain"
-                         << "VK_LAYER_GOOGLE_unique_objects");
-#endif
-#endif
-    vulkanInstance.setExtensions(QByteArrayList() << "VK_KHR_get_physical_device_properties2");
-    if (!vulkanInstance.create())
+    if(!staticVulkanInstance())
     {
       qWarning("Failed to create Vulkan instance, switching to OpenGL");
       graphicsApi = OpenGL;
     }
-    vulkanInstanceCreated = true;
   }
 #endif
 
 #if __APPLE__
   graphicsApi = Metal;
 #endif
+
 #ifdef Q_OS_WIN
   graphicsApi = D3D11;
 #endif
 
   for (auto output : outputs)
   {
-    if (output->window)
-    {
-      output->window->canRender = false;
-      output->window->onRender = [] {};
-      ////output->window->state.hasSwapChain = false;
-    }
+    output->stopRendering();
   }
 
   for (auto node : nodes)
@@ -91,44 +110,33 @@ void Graph::setupOutputs(GraphicsApi graphicsApi)
   int i = 0;
   for (auto output : outputs)
   {
-    if (!output->window)
+    if (!output->canRender())
     {
-      output->window = std::make_shared<Window>(graphicsApi);
-
-#if QT_CONFIG(vulkan)
-      if (graphicsApi == Vulkan)
-        output->window->setVulkanInstance(&vulkanInstance);
-#endif
-      output->window->onWindowReady = [=] {
-        output->window->state = RenderState::create(*output->window, graphicsApi);
-
-        renderers.push_back(createRenderer(output, output->window->state));
+      auto onReady = [=] {
+        renderers.push_back(createRenderer(output, *output->renderState()));
       };
-      output->window->onResize = [=] {
+      auto onResize = [=] {
         for (auto it = this->renderers.begin(); it != this->renderers.end(); ++it)
         {
           auto& renderer = **it;
-          if (renderer.state.window == output->window.get())
+          if (&renderer == output->renderer())
           {
             renderer.release();
           }
           (*it).reset();
-          *it = createRenderer(output, output->window->state);
+          *it = createRenderer(output, *output->renderState());
         }
       };
-      output->window->resize(1280, 720);
-      output->window->show();
+
+      output->createOutput(graphicsApi, onReady, onResize);
     }
     else
     {
-      renderers.push_back(createRenderer(output, output->window->state));
+      renderers.push_back(createRenderer(output, *output->renderState()));
       // output->window->state.hasSwapChain = true;
     }
 
-    output->window->onRender = [=] {
-      if (auto r = output->window->state.renderer)
-        r->render();
-    };
+    output->startRendering();
 
     i++;
   }
@@ -202,7 +210,7 @@ std::shared_ptr<Renderer> Graph::createRenderer(OutputNode* output, RenderState 
   for (auto& node : nodes)
     node->addedToGraph = false;
   Renderer& r = *ptr;
-  output->window->state.renderer = ptr.get();
+  output->setRenderer(ptr.get());
   r.state = std::move(state);
 
   auto& model_nodes = r.nodes;
@@ -238,7 +246,7 @@ std::shared_ptr<Renderer> Graph::createRenderer(OutputNode* output, RenderState 
   // Except the last one which is going to render to screen
   r.renderedNodes.back()->setScreenRenderTarget(r.state);
 
-  output->window->canRender = r.renderedNodes.size() > 1;
+  output->onRendererChange();
   {
     // Register the rendered nodes with their parents
     for (auto rn : r.renderedNodes)
@@ -267,6 +275,6 @@ Graph::~Graph()
 
   for (auto out : outputs)
   {
-    out->window.reset();
+    out->destroyOutput();
   }
 }
