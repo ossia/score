@@ -26,19 +26,6 @@ VideoDecoder::VideoDecoder() noexcept { }
 VideoDecoder::~VideoDecoder() noexcept
 {
   close_file();
-  AVFrame* frame{};
-  while (m_framesToPlayer.try_dequeue(frame))
-  {
-    av_frame_free(&frame);
-  }
-
-  // TODO we must check that this is safe as the queue
-  // does not support dequeueing from the same thread as the
-  // enqueuing
-  while (m_releasedFrames.try_dequeue(frame))
-  {
-    av_frame_free(&frame);
-  }
 }
 
 bool VideoDecoder::load(const std::string& inputFile, double fps_unused) noexcept
@@ -140,19 +127,25 @@ void VideoDecoder::buffer_thread() noexcept
 
 void VideoDecoder::close_file() noexcept
 {
+  // Stop the running status
   m_running.store(false, std::memory_order_release);
   m_condVar.notify_one();
 
   if (m_thread.joinable())
     m_thread.join();
 
+  // Clear the stream
   close_video();
 
+  // Clear the fmt context
   if (m_formatContext)
   {
     avformat_close_input(&m_formatContext);
     m_formatContext = nullptr;
   }
+
+  // Remove frames that were in flight
+  drain_frames();
 }
 
 AVFrame* VideoDecoder::get_new_frame() noexcept
@@ -161,6 +154,23 @@ AVFrame* VideoDecoder::get_new_frame() noexcept
   if(m_releasedFrames.try_dequeue(f))
     return f;
   return av_frame_alloc();
+}
+
+void VideoDecoder::drain_frames() noexcept
+{
+  AVFrame* frame{};
+  while (m_framesToPlayer.try_dequeue(frame))
+  {
+    av_frame_free(&frame);
+  }
+
+  // TODO we must check that this is safe as the queue
+  // does not support dequeueing from the same thread as the
+  // enqueuing
+  while (m_releasedFrames.try_dequeue(frame))
+  {
+    av_frame_free(&frame);
+  }
 }
 
 bool VideoDecoder::seek_impl(int64_t dts) noexcept

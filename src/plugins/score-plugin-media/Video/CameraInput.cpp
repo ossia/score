@@ -16,11 +16,134 @@ extern "C"
 namespace Video
 {
 
-CameraInput::CameraInput() noexcept { }
+CameraInput::CameraInput() noexcept
+{
+
+}
 
 CameraInput::~CameraInput() noexcept
 {
   close_file();
+}
+
+bool CameraInput::load(const std::string& inputKind, const std::string& inputDevice, int w, int h, double fps) noexcept
+{
+  close_file();
+  m_inputKind = inputKind;
+  m_inputDevice = inputDevice;
+
+  return true;
+}
+
+bool CameraInput::start() noexcept
+{
+  if(m_running)
+    return false;
+
+  auto ifmt = av_find_input_format(m_inputKind.c_str());
+  assert(ifmt);
+
+  m_formatContext = avformat_alloc_context();
+  m_formatContext->flags |= AVFMT_FLAG_NONBLOCK;
+  m_formatContext->flags |= AVFMT_FLAG_NOBUFFER;
+
+  /* TODO it seems that things work without that
+  AVDictionary *options = nullptr;
+  av_dict_set(&options, "framerate", std::to_string((int)fps).c_str(), 0);
+  av_dict_set(&options, "input_format", format.c_str(), 0); // this one seems failing
+  av_dict_set(&options, "video_size", fmt::format("{}x{}", w, h).c_str(), 0);
+  */
+  if (avformat_open_input(&m_formatContext, m_inputDevice.c_str(), ifmt, nullptr) != 0)
+  {
+    close_file();
+    return false;
+  }
+
+  if (avformat_find_stream_info(m_formatContext, nullptr) < 0)
+  {
+    close_file();
+    return false;
+  }
+
+  if (!open_stream())
+  {
+    close_file();
+    return false;
+  }
+
+  m_running.store(true, std::memory_order_release);
+  // TODO use a thread pool
+  m_thread = std::thread{[this] { this->buffer_thread(); }};
+  return true;
+}
+
+void CameraInput::stop() noexcept
+{
+  close_file();
+}
+
+AVFrame* CameraInput::dequeue_frame() noexcept
+{
+  AVFrame* f{};
+  AVFrame* prev_f{};
+
+  // We only want the latest frame
+  while(m_framesToPlayer.try_dequeue(f)) {
+    if(prev_f)
+      release_frame(prev_f);
+    prev_f = f;
+  }
+  return f;
+}
+
+void CameraInput::release_frame(AVFrame* frame) noexcept
+{
+  m_releasedFrames.enqueue(frame);
+}
+
+void CameraInput::buffer_thread() noexcept
+{
+  while (m_running.load(std::memory_order_acquire))
+  {
+    if (auto f = read_frame_impl())
+    {
+      m_framesToPlayer.enqueue(f);
+    }
+  }
+}
+
+void CameraInput::close_file() noexcept
+{
+  // Stop the running status
+  m_running.store(false, std::memory_order_release);
+
+  if (m_thread.joinable())
+    m_thread.join();
+
+  // Clear the stream
+  close_stream();
+
+  // Clear the fmt context
+  if (m_formatContext)
+  {
+    avformat_close_input(&m_formatContext);
+    m_formatContext = nullptr;
+  }
+
+  // Remove frames that were in flight
+  drain_frames();
+}
+
+AVFrame* CameraInput::get_new_frame() noexcept
+{
+  AVFrame* f{};
+  if(m_releasedFrames.try_dequeue(f))
+    return f;
+  return av_frame_alloc();
+}
+
+void CameraInput::drain_frames() noexcept
+{
   AVFrame* frame{};
   while (m_framesToPlayer.try_dequeue(frame))
   {
@@ -34,112 +157,6 @@ CameraInput::~CameraInput() noexcept
   {
     av_frame_free(&frame);
   }
-}
-
-bool CameraInput::load(const std::string& inputKind, const std::string& inputDevice, int w, int h, double fps) noexcept
-{
-  close_file();
-
-  auto ifmt = av_find_input_format(inputKind.c_str());
-  assert(ifmt);
-
-  m_formatContext = avformat_alloc_context();
-  m_formatContext->flags |= AVFMT_FLAG_NONBLOCK;
-
-  /* TODO it seems that things work without that
-  AVDictionary *options = nullptr;
-  av_dict_set(&options, "framerate", std::to_string((int)fps).c_str(), 0);
-  av_dict_set(&options, "input_format", format.c_str(), 0); // this one seems failing
-  av_dict_set(&options, "video_size", fmt::format("{}x{}", w, h).c_str(), 0);
-  */
-  if (avformat_open_input(&m_formatContext, inputDevice.c_str(), ifmt, nullptr) != 0)
-  {
-    close_file();
-    return false;
-  }
-
-  if (avformat_find_stream_info(m_formatContext, nullptr) < 0)
-  {
-    close_file();
-    return false;
-  }
-
-  start();
-
-  return true;
-}
-
-bool CameraInput::start() noexcept
-{
-  if(m_running)
-    return false;
-
-  if (!open_stream())
-    return false;
-
-  m_running.store(true, std::memory_order_release);
-  // TODO use a thread pool
-  m_thread = std::thread{[this] { this->buffer_thread(); }};
-  return true;
-}
-
-void CameraInput::stop() noexcept
-{
-  m_running.store(false, std::memory_order_release);
-  m_condVar.notify_one();
-
-  if (m_thread.joinable())
-    m_thread.join();
-
-  close_stream();
-}
-
-AVFrame* CameraInput::dequeue_frame() noexcept
-{
-  AVFrame* f{};
-  m_framesToPlayer.try_dequeue(f);
-  m_condVar.notify_one();
-  return f;
-}
-
-void CameraInput::release_frame(AVFrame* frame) noexcept
-{
-  m_releasedFrames.enqueue(frame);
-}
-
-void CameraInput::buffer_thread() noexcept
-{
-  while (m_running.load(std::memory_order_acquire))
-  {
-    std::unique_lock lck{m_condMut};
-    m_condVar.wait(lck);
-    if (!m_running.load(std::memory_order_acquire))
-      return;
-
-    if (auto f = read_frame_impl())
-    {
-      m_framesToPlayer.enqueue(f);
-    }
-  }
-}
-
-void CameraInput::close_file() noexcept
-{
-  stop();
-
-  if (m_formatContext)
-  {
-    avformat_close_input(&m_formatContext);
-    m_formatContext = nullptr;
-  }
-}
-
-AVFrame* CameraInput::get_new_frame() noexcept
-{
-  AVFrame* f{};
-  if(m_releasedFrames.try_dequeue(f))
-    return f;
-  return av_frame_alloc();
 }
 
 AVFrame* CameraInput::read_frame_impl() noexcept
@@ -201,6 +218,8 @@ bool CameraInput::open_stream() noexcept
       if (m_codec)
       {
         pixel_format = m_codecContext->pix_fmt;
+        m_codecContext->flags |= AV_CODEC_FLAG_LOW_DELAY;
+        m_codecContext->flags2 |= AV_CODEC_FLAG2_FAST;
         res = !(avcodec_open2(m_codecContext, m_codec, nullptr) < 0);
         width = m_codecContext->coded_width;
         height = m_codecContext->coded_height;

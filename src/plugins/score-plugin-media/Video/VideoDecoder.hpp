@@ -41,6 +41,7 @@ private:
   void close_video() noexcept;
   bool enqueue_frame(const AVPacket* pkt, AVFrame* frame) noexcept;
   AVFrame* get_new_frame() noexcept;
+  void drain_frames() noexcept;
 
   static const constexpr int frames_to_buffer = 16;
 
