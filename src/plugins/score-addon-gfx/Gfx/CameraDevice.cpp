@@ -145,9 +145,19 @@ Device::Node CameraDevice::refresh()
   return simple_refresh();
 }
 
-QString CameraProtocolFactory::prettyName() const
+QString CameraProtocolFactory::prettyName() const noexcept
 {
   return QObject::tr("Camera input");
+}
+
+QString CameraProtocolFactory::category() const noexcept
+{
+  return StandardCategories::video;
+}
+
+Device::DeviceEnumerator* CameraProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+{
+  return nullptr;
 }
 
 Device::DeviceInterface* CameraProtocolFactory::makeDevice(
@@ -157,7 +167,7 @@ Device::DeviceInterface* CameraProtocolFactory::makeDevice(
   return new CameraDevice(settings, ctx);
 }
 
-const Device::DeviceSettings& CameraProtocolFactory::defaultSettings() const
+const Device::DeviceSettings& CameraProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
@@ -206,7 +216,7 @@ void CameraProtocolFactory::serializeProtocolSpecificSettings(
 
 bool CameraProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const
+    const Device::DeviceSettings& b) const noexcept
 {
   return a.name != b.name;
 }
@@ -338,6 +348,7 @@ Device::DeviceSettings CameraSettingsWidget::getSettings() const
 {
   Device::DeviceSettings s;
   s.name = m_deviceNameEdit->text();
+  s.protocol = CameraProtocolFactory::static_concreteKey();
   CameraSettings specif;
   int curIdx = m_combo->currentIndex();
   if(curIdx >= 0 && curIdx < (int)m_settings.size())

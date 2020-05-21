@@ -22,10 +22,21 @@ struct VisitorVariant;
 
 namespace Protocols
 {
-QString HTTPProtocolFactory::prettyName() const
+QString HTTPProtocolFactory::prettyName() const noexcept
 {
   return QObject::tr("HTTP");
 }
+
+QString HTTPProtocolFactory::category() const noexcept
+{
+  return StandardCategories::web;
+}
+
+Device::DeviceEnumerator* HTTPProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+{
+  return nullptr;
+}
+
 
 Device::DeviceInterface* HTTPProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings,
@@ -34,7 +45,7 @@ Device::DeviceInterface* HTTPProtocolFactory::makeDevice(
   return new HTTPDevice{settings};
 }
 
-const Device::DeviceSettings& HTTPProtocolFactory::defaultSettings() const
+const Device::DeviceSettings& HTTPProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
@@ -66,7 +77,7 @@ void HTTPProtocolFactory::serializeProtocolSpecificSettings(
 
 bool HTTPProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const
+    const Device::DeviceSettings& b) const noexcept
 {
   return a.name != b.name;
 }

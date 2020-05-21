@@ -21,9 +21,19 @@ struct VisitorVariant;
 
 namespace Protocols
 {
-QString OSCProtocolFactory::prettyName() const
+QString OSCProtocolFactory::prettyName() const noexcept
 {
   return QObject::tr("OSC");
+}
+
+QString OSCProtocolFactory::category() const noexcept
+{
+  return StandardCategories::osc;
+}
+
+Device::DeviceEnumerator* OSCProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+{
+  return nullptr;
 }
 
 Device::DeviceInterface* OSCProtocolFactory::makeDevice(
@@ -33,7 +43,7 @@ Device::DeviceInterface* OSCProtocolFactory::makeDevice(
   return new OSCDevice{settings};
 }
 
-const Device::DeviceSettings& OSCProtocolFactory::defaultSettings() const
+const Device::DeviceSettings& OSCProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
@@ -65,7 +75,7 @@ void OSCProtocolFactory::serializeProtocolSpecificSettings(
 
 bool OSCProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const
+    const Device::DeviceSettings& b) const noexcept
 {
   auto a_p = a.deviceSpecificSettings.value<OSCSpecificSettings>();
   auto b_p = b.deviceSpecificSettings.value<OSCSpecificSettings>();

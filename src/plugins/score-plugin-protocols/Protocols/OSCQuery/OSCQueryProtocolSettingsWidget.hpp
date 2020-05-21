@@ -4,7 +4,6 @@
 
 #include <QNetworkAccessManager>
 
-class ZeroconfBrowser;
 class QLineEdit;
 class QSpinBox;
 class QWidget;
@@ -28,9 +27,6 @@ protected:
   QLineEdit* m_deviceNameEdit{};
   QLineEdit* m_localHostEdit{};
 
-  ZeroconfBrowser* m_browser{};
-  QNetworkAccessManager m_http_client;
-  QNetworkReply* m_cur_reply{};
   RateWidget* m_rate{};
 };
 }

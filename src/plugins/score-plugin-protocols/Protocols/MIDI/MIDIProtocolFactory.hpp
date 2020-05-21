@@ -22,12 +22,14 @@ class MIDIProtocolFactory final : public Device::ProtocolFactory
   SCORE_CONCRETE("94a362a1-9411-4ee9-b94d-4bc79b1427cf")
 
   // Implement with OSSIA::Device
-  QString prettyName() const override;
+  QString prettyName() const noexcept override;
+  QString category() const noexcept override;
+  Device::DeviceEnumerator* getEnumerator(const score::DocumentContext& ctx) const override;
 
   Device::DeviceInterface*
   makeDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx) override;
 
-  const Device::DeviceSettings& defaultSettings() const override;
+  const Device::DeviceSettings& defaultSettings() const noexcept override;
 
   Device::ProtocolSettingsWidget* makeSettingsWidget() override;
   Device::AddressDialog* makeAddAddressDialog(
@@ -46,6 +48,6 @@ class MIDIProtocolFactory final : public Device::ProtocolFactory
       const override;
 
   bool checkCompatibility(const Device::DeviceSettings& a, const Device::DeviceSettings& b)
-      const override;
+      const noexcept override;
 };
 }

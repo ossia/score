@@ -4,6 +4,7 @@
 
 #include <QString>
 #include <QVariant>
+#include <verdigris>
 namespace Device
 {
 class ProtocolFactory;
@@ -22,3 +23,5 @@ inline bool operator==(const DeviceSettings& lhs, const DeviceSettings& rhs)
 }
 
 JSON_METADATA(Device::DeviceSettings, "DeviceSettings")
+Q_DECLARE_METATYPE(Device::DeviceSettings)
+W_REGISTER_ARGTYPE(Device::DeviceSettings)

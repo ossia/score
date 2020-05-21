@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "OSCProtocolSettingsWidget.hpp"
 
+#include "OSCProtocolFactory.hpp"
 #include "OSCSpecificSettings.hpp"
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
@@ -57,6 +58,7 @@ Device::DeviceSettings OSCProtocolSettingsWidget::getSettings() const
 {
   Device::DeviceSettings s;
   s.name = m_deviceNameEdit->text();
+  s.protocol = OSCProtocolFactory::static_concreteKey();
 
   OSCSpecificSettings osc;
   osc.host = m_localHostEdit->text();

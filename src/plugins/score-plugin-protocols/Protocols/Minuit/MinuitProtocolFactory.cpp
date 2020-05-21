@@ -14,12 +14,22 @@
 
 namespace Protocols
 {
-QString MinuitProtocolFactory::prettyName() const
+QString MinuitProtocolFactory::prettyName() const noexcept
 {
   return QObject::tr("Minuit");
 }
 
-int MinuitProtocolFactory::visualPriority() const
+QString MinuitProtocolFactory::category() const noexcept
+{
+  return StandardCategories::osc;
+}
+
+Device::DeviceEnumerator* MinuitProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+{
+  return nullptr;
+}
+
+int MinuitProtocolFactory::visualPriority() const noexcept
 {
   return 1;
 }
@@ -31,7 +41,7 @@ Device::DeviceInterface* MinuitProtocolFactory::makeDevice(
   return new MinuitDevice{settings};
 }
 
-const Device::DeviceSettings& MinuitProtocolFactory::defaultSettings() const
+const Device::DeviceSettings& MinuitProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
@@ -63,7 +73,7 @@ void MinuitProtocolFactory::serializeProtocolSpecificSettings(
 
 bool MinuitProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const
+    const Device::DeviceSettings& b) const noexcept
 {
   // TODO we should check also for other devices.  Devices should have a "open
   // ports" method that

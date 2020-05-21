@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "HTTPProtocolSettingsWidget.hpp"
 
+#include "HTTPProtocolFactory.hpp"
 #include "HTTPSpecificSettings.hpp"
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
@@ -54,6 +55,7 @@ Device::DeviceSettings HTTPProtocolSettingsWidget::getSettings() const
 
   Device::DeviceSettings s;
   s.name = m_deviceNameEdit->text();
+  s.protocol = HTTPProtocolFactory::static_concreteKey();
 
   HTTPSpecificSettings specific;
   specific.text = m_codeEdit->toPlainText();

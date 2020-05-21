@@ -7,11 +7,13 @@ class WSProtocolFactory final : public DefaultProtocolFactory
 {
   SCORE_CONCRETE("59e81303-af24-4559-b33d-1c6f59f0f017")
   // Implement with OSSIA::Device
-  QString prettyName() const override;
+  QString prettyName() const noexcept override;
+  QString category() const noexcept override;
+  Device::DeviceEnumerator* getEnumerator(const score::DocumentContext& ctx) const override;
 
   Device::DeviceInterface*
   makeDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx) override;
-  const Device::DeviceSettings& defaultSettings() const override;
+  const Device::DeviceSettings& defaultSettings() const noexcept override;
 
   Device::ProtocolSettingsWidget* makeSettingsWidget() override;
 
@@ -21,6 +23,6 @@ class WSProtocolFactory final : public DefaultProtocolFactory
       const override;
 
   bool checkCompatibility(const Device::DeviceSettings& a, const Device::DeviceSettings& b)
-      const override;
+      const noexcept override;
 };
 }

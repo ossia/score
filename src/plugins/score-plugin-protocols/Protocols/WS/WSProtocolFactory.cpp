@@ -22,9 +22,17 @@ struct VisitorVariant;
 
 namespace Protocols
 {
-QString WSProtocolFactory::prettyName() const
+QString WSProtocolFactory::prettyName() const noexcept
 {
   return QObject::tr("WS");
+}
+QString WSProtocolFactory::category() const noexcept
+{
+  return StandardCategories::web;
+}
+Device::DeviceEnumerator* WSProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+{
+  return nullptr;
 }
 
 Device::DeviceInterface* WSProtocolFactory::makeDevice(
@@ -34,7 +42,7 @@ Device::DeviceInterface* WSProtocolFactory::makeDevice(
   return new WSDevice{settings};
 }
 
-const Device::DeviceSettings& WSProtocolFactory::defaultSettings() const
+const Device::DeviceSettings& WSProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
@@ -66,7 +74,7 @@ void WSProtocolFactory::serializeProtocolSpecificSettings(
 
 bool WSProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const
+    const Device::DeviceSettings& b) const noexcept
 {
   return a.name != b.name;
 }

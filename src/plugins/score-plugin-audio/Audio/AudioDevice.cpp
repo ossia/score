@@ -161,9 +161,19 @@ Device::Node AudioDevice::refresh()
   return simple_refresh();
 }
 
-QString AudioProtocolFactory::prettyName() const
+QString AudioProtocolFactory::prettyName() const noexcept
 {
   return QObject::tr("Audio");
+}
+
+QString AudioProtocolFactory::category() const noexcept
+{
+  return StandardCategories::audio;
+}
+
+Device::DeviceEnumerator* AudioProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+{
+  return nullptr;
 }
 
 Device::DeviceInterface* AudioProtocolFactory::makeDevice(
@@ -190,7 +200,7 @@ Device::DeviceInterface* AudioProtocolFactory::makeDevice(
     return new Dataflow::AudioDevice(settings);
 }
 
-const Device::DeviceSettings& AudioProtocolFactory::defaultSettings() const
+const Device::DeviceSettings& AudioProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
@@ -487,7 +497,7 @@ void AudioProtocolFactory::serializeProtocolSpecificSettings(
 
 bool AudioProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const
+    const Device::DeviceSettings& b) const noexcept
 {
   return a.name != b.name;
 }
@@ -513,6 +523,7 @@ Device::DeviceSettings AudioSettingsWidget::getSettings() const
 {
   Device::DeviceSettings s;
   s.name = m_deviceNameEdit->text();
+  s.protocol = AudioProtocolFactory::static_concreteKey();
   return s;
 }
 

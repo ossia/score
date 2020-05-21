@@ -38,8 +38,8 @@ LocalProtocolSettingsWidget::LocalProtocolSettingsWidget(QWidget* parent)
 Device::DeviceSettings LocalProtocolSettingsWidget::getSettings() const
 {
   Device::DeviceSettings s = LocalProtocolFactory::static_defaultSettings();
-  // TODO *** protocol was never being set here. Check everywhere.! ***
   s.name = "score";
+  s.protocol = LocalProtocolFactory::static_concreteKey();
   LocalSpecificSettings local;
   local.oscPort = m_oscPort->value();
   local.wsPort = m_wsPort->value();

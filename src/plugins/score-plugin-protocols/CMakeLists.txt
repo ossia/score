@@ -228,6 +228,11 @@ target_link_libraries(${PROJECT_NAME}
           ossia
 )
 
+if(OSSIA_DNSSD)
+  target_link_libraries(${PROJECT_NAME} PRIVATE Servus_iface)
+  target_include_directories(${PROJECT_NAME} PRIVATE ${OSSIA_3RDPARTY_FOLDER}/Servus)
+endif()
+
 if(TARGET Qt5::Qml)
     target_sources(${PROJECT_NAME} PRIVATE ${MAPPER_SRCS})
     target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Qml)

@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "WSProtocolSettingsWidget.hpp"
 
+#include "WSProtocolFactory.hpp"
 #include "WSSpecificSettings.hpp"
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
@@ -91,6 +92,7 @@ Device::DeviceSettings WSProtocolSettingsWidget::getSettings() const
 
   Device::DeviceSettings s;
   s.name = m_deviceNameEdit->text();
+  s.protocol = WSProtocolFactory::static_concreteKey();
 
   WSSpecificSettings specific;
   specific.address = m_addressNameEdit->text();

@@ -1,6 +1,7 @@
 
 #include "JoystickProtocolSettingsWidget.hpp"
 
+#include "JoystickProtocolFactory.hpp"
 #include "JoystickSpecificSettings.hpp"
 
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
@@ -50,6 +51,7 @@ Device::DeviceSettings JoystickProtocolSettingsWidget::getSettings() const
 {
   Device::DeviceSettings s;
   s.name = m_deviceNameEdit->text();
+  s.protocol = JoystickProtocolFactory::static_concreteKey();
 
   const int index = m_deviceChoice->currentIndex();
   const int32_t id = ossia::net::joystick_protocol::get_joystick_id(index);

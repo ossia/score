@@ -20,9 +20,19 @@ struct VisitorVariant;
 
 namespace Protocols
 {
-QString MIDIProtocolFactory::prettyName() const
+QString MIDIProtocolFactory::prettyName() const noexcept
 {
   return QObject::tr("MIDI");
+}
+
+QString MIDIProtocolFactory::category() const noexcept
+{
+  return StandardCategories::hardware;
+}
+
+Device::DeviceEnumerator* MIDIProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+{
+  return nullptr;
 }
 
 Device::DeviceInterface* MIDIProtocolFactory::makeDevice(
@@ -32,7 +42,7 @@ Device::DeviceInterface* MIDIProtocolFactory::makeDevice(
   return new MIDIDevice{settings};
 }
 
-const Device::DeviceSettings& MIDIProtocolFactory::defaultSettings() const
+const Device::DeviceSettings& MIDIProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
@@ -81,7 +91,7 @@ void MIDIProtocolFactory::serializeProtocolSpecificSettings(
 
 bool MIDIProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const
+    const Device::DeviceSettings& b) const noexcept
 {
   return a.name != b.name;
 }

@@ -10,9 +10,19 @@
 namespace Protocols
 {
 
-QString JoystickProtocolFactory::prettyName() const
+QString JoystickProtocolFactory::prettyName() const noexcept
 {
   return QObject::tr("Joystick");
+}
+
+QString JoystickProtocolFactory::category() const noexcept
+{
+  return StandardCategories::hardware;
+}
+
+Device::DeviceEnumerator* JoystickProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+{
+  return nullptr;
 }
 
 Device::DeviceInterface* JoystickProtocolFactory::makeDevice(
@@ -22,7 +32,7 @@ Device::DeviceInterface* JoystickProtocolFactory::makeDevice(
   return new JoystickDevice{settings};
 }
 
-const Device::DeviceSettings& JoystickProtocolFactory::defaultSettings() const
+const Device::DeviceSettings& JoystickProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings& settings = [&]() {
     Device::DeviceSettings s;
@@ -55,7 +65,7 @@ void JoystickProtocolFactory::serializeProtocolSpecificSettings(
 
 bool JoystickProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const
+    const Device::DeviceSettings& b) const noexcept
 {
   auto a_ = a.deviceSpecificSettings.value<JoystickSpecificSettings>();
   auto b_ = b.deviceSpecificSettings.value<JoystickSpecificSettings>();

@@ -10,10 +10,21 @@
 namespace Protocols
 {
 
-QString WiimoteProtocolFactory::prettyName() const
+QString WiimoteProtocolFactory::prettyName() const noexcept
 {
   return QObject::tr("Wiimote");
 }
+
+QString WiimoteProtocolFactory::category() const noexcept
+{
+  return StandardCategories::hardware;
+}
+
+Device::DeviceEnumerator* WiimoteProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+{
+  return nullptr;
+}
+
 
 Device::DeviceInterface* WiimoteProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings,
@@ -22,7 +33,7 @@ Device::DeviceInterface* WiimoteProtocolFactory::makeDevice(
   return new WiimoteDevice{settings};
 }
 
-const Device::DeviceSettings& WiimoteProtocolFactory::defaultSettings() const
+const Device::DeviceSettings& WiimoteProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings& settings = [&]() {
     Device::DeviceSettings s;
@@ -55,7 +66,7 @@ void WiimoteProtocolFactory::serializeProtocolSpecificSettings(
 
 bool WiimoteProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const
+    const Device::DeviceSettings& b) const noexcept
 {
   return false;
 }

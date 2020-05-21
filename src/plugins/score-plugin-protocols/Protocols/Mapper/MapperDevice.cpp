@@ -559,9 +559,19 @@ private:
 };
 
 MapperProtocolFactory::~MapperProtocolFactory() { }
-QString MapperProtocolFactory::prettyName() const
+QString MapperProtocolFactory::prettyName() const noexcept
 {
   return QObject::tr("Mapper");
+}
+
+QString MapperProtocolFactory::category() const noexcept
+{
+  return StandardCategories::util;
+}
+
+Device::DeviceEnumerator* MapperProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+{
+  return nullptr;
 }
 
 Device::DeviceInterface* MapperProtocolFactory::makeDevice(
@@ -571,7 +581,7 @@ Device::DeviceInterface* MapperProtocolFactory::makeDevice(
   return new MapperDevice{settings, ctx};
 }
 
-const Device::DeviceSettings& MapperProtocolFactory::defaultSettings() const
+const Device::DeviceSettings& MapperProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
@@ -603,7 +613,7 @@ void MapperProtocolFactory::serializeProtocolSpecificSettings(
 
 bool MapperProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const
+    const Device::DeviceSettings& b) const noexcept
 {
   return a.name != b.name;
 }
@@ -639,6 +649,7 @@ Device::DeviceSettings MapperProtocolSettingsWidget::getSettings() const
 {
   Device::DeviceSettings s;
   s.name = m_name->text();
+  s.protocol = MapperProtocolFactory::static_concreteKey();
 
   s.deviceSpecificSettings
       = QVariant::fromValue(MapperSpecificSettings{m_codeEdit->toPlainText()});

@@ -10,9 +10,19 @@
 namespace Protocols
 {
 
-QString ArtnetProtocolFactory::prettyName() const
+QString ArtnetProtocolFactory::prettyName() const noexcept
 {
   return QObject::tr("Artnet");
+}
+
+QString ArtnetProtocolFactory::category() const noexcept
+{
+  return StandardCategories::lights;
+}
+
+Device::DeviceEnumerator* ArtnetProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+{
+  return nullptr;
 }
 
 Device::DeviceInterface* ArtnetProtocolFactory::makeDevice(
@@ -22,7 +32,7 @@ Device::DeviceInterface* ArtnetProtocolFactory::makeDevice(
   return new ArtnetDevice{settings};
 }
 
-const Device::DeviceSettings& ArtnetProtocolFactory::defaultSettings() const
+const Device::DeviceSettings& ArtnetProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings& settings = [&]() {
     Device::DeviceSettings s;
@@ -55,7 +65,7 @@ void ArtnetProtocolFactory::serializeProtocolSpecificSettings(
 
 bool ArtnetProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const
+    const Device::DeviceSettings& b) const noexcept
 {
   return false; //  TODO
 }

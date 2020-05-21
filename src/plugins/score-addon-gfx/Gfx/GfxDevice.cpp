@@ -160,9 +160,19 @@ Device::Node GfxDevice::refresh()
   return simple_refresh();
 }
 
-QString GfxProtocolFactory::prettyName() const
+QString GfxProtocolFactory::prettyName() const noexcept
 {
   return QObject::tr("Gfx");
+}
+
+QString GfxProtocolFactory::category() const noexcept
+{
+  return StandardCategories::video;
+}
+
+Device::DeviceEnumerator* GfxProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+{
+  return nullptr;
 }
 
 Device::DeviceInterface* GfxProtocolFactory::makeDevice(
@@ -172,7 +182,7 @@ Device::DeviceInterface* GfxProtocolFactory::makeDevice(
   return new GfxDevice(settings, ctx);
 }
 
-const Device::DeviceSettings& GfxProtocolFactory::defaultSettings() const
+const Device::DeviceSettings& GfxProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
@@ -218,7 +228,7 @@ void GfxProtocolFactory::serializeProtocolSpecificSettings(
 
 bool GfxProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const
+    const Device::DeviceSettings& b) const noexcept
 {
   return a.name != b.name;
 }
@@ -244,6 +254,7 @@ Device::DeviceSettings GfxSettingsWidget::getSettings() const
 {
   Device::DeviceSettings s;
   s.name = m_deviceNameEdit->text();
+  s.protocol = GfxProtocolFactory::static_concreteKey();
   return s;
 }
 

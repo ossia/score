@@ -41,9 +41,11 @@ score_plugin_deviceexplorer::score_plugin_deviceexplorer()
   Q_INIT_RESOURCE(DeviceExplorer);
 #endif
   QMetaType::registerComparators<UuidKey<Device::ProtocolFactory>>();
+  qRegisterMetaType<Device::DeviceSettings>();
   qRegisterMetaType<Device::AddressSettings>();
   qRegisterMetaType<Device::FullAddressSettings>();
   qRegisterMetaType<Device::FullAddressAccessorSettings>();
+  qRegisterMetaTypeStreamOperators<Device::DeviceSettings>();
   qRegisterMetaTypeStreamOperators<Device::AddressSettings>();
   qRegisterMetaTypeStreamOperators<Device::FullAddressSettings>();
   qRegisterMetaTypeStreamOperators<Device::FullAddressAccessorSettings>();

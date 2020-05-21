@@ -21,9 +21,19 @@ struct VisitorVariant;
 
 namespace Protocols
 {
-QString LocalProtocolFactory::prettyName() const
+QString LocalProtocolFactory::prettyName() const noexcept
 {
   return QObject::tr("Local");
+}
+
+QString LocalProtocolFactory::category() const noexcept
+{
+  return StandardCategories::util;
+}
+
+Device::DeviceEnumerator* LocalProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+{
+  return nullptr;
 }
 
 Device::DeviceInterface* LocalProtocolFactory::makeDevice(
@@ -57,7 +67,7 @@ const Device::DeviceSettings& LocalProtocolFactory::static_defaultSettings()
   return settings;
 }
 
-const Device::DeviceSettings& LocalProtocolFactory::defaultSettings() const
+const Device::DeviceSettings& LocalProtocolFactory::defaultSettings() const noexcept
 {
   return static_defaultSettings();
 }
@@ -81,7 +91,7 @@ void LocalProtocolFactory::serializeProtocolSpecificSettings(
 
 bool LocalProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const
+    const Device::DeviceSettings& b) const noexcept
 {
   return a.name != b.name;
 }

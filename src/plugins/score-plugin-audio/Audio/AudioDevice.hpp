@@ -15,11 +15,13 @@ namespace Dataflow
 class AudioProtocolFactory final : public Device::ProtocolFactory
 {
   SCORE_CONCRETE("2835e6da-9b55-4029-9802-e1c817acbdc1")
-  QString prettyName() const override;
+  QString prettyName() const noexcept override;
+  QString category() const noexcept override;
+  Device::DeviceEnumerator* getEnumerator(const score::DocumentContext& ctx) const override;
 
   Device::DeviceInterface*
   makeDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx) override;
-  const Device::DeviceSettings& defaultSettings() const override;
+  const Device::DeviceSettings& defaultSettings() const noexcept override;
   Device::AddressDialog* makeAddAddressDialog(
       const Device::DeviceInterface& dev,
       const score::DocumentContext& ctx,
@@ -38,7 +40,7 @@ class AudioProtocolFactory final : public Device::ProtocolFactory
       const override;
 
   bool checkCompatibility(const Device::DeviceSettings& a, const Device::DeviceSettings& b)
-      const override;
+      const noexcept override;
 };
 
 class SCORE_PLUGIN_AUDIO_EXPORT AudioDevice final : public Device::DeviceInterface

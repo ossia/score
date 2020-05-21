@@ -12,11 +12,14 @@
 class QComboBox;
 class QFormLayout;
 class QWidget;
+class QListWidget;
+class QDialogButtonBox;
 
 namespace Device
 {
 class ProtocolFactoryList;
 class ProtocolSettingsWidget;
+class DeviceEnumerator;
 }
 namespace Explorer
 {
@@ -36,24 +39,22 @@ public:
   // the user if he has to edit the device again.
   void setEditingInvalidState(bool);
 
-protected:
-  void updateProtocolWidget();
-  W_SLOT(updateProtocolWidget);
-
-protected:
-  void buildGUI();
-
+private:
+  void selectedProtocolChanged();
   void initAvailableProtocols();
 
-protected:
   const Device::ProtocolFactoryList& m_protocolList;
+  std::unique_ptr<Device::DeviceEnumerator> m_enumerator{};
 
-  QComboBox* m_protocolCBox;
-  Device::ProtocolSettingsWidget* m_protocolWidget;
-  QFormLayout* m_layout;
+  QDialogButtonBox* m_buttonBox{};
+  QListWidget* m_protocols{};
+  QListWidget* m_devices{};
+  Device::ProtocolSettingsWidget* m_protocolWidget{};
+  QFormLayout* m_layout{};
   QList<Device::DeviceSettings> m_previousSettings;
-  int m_index;
+  int m_index{};
 
   bool m_invalidState{false};
+  void selectedDeviceChanged();
 };
 }

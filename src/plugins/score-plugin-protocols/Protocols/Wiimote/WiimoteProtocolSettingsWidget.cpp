@@ -1,6 +1,7 @@
 
 #include "WiimoteProtocolSettingsWidget.hpp"
 
+#include "WiimoteProtocolFactory.hpp"
 #include "WiimoteSpecificSettings.hpp"
 
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
@@ -35,6 +36,7 @@ Device::DeviceSettings WiimoteProtocolSettingsWidget::getSettings() const
 {
   Device::DeviceSettings s;
   s.name = m_deviceNameEdit->text();
+  s.protocol = WiimoteProtocolFactory::static_concreteKey();
 
   WiimoteSpecificSettings settings{};
   s.deviceSpecificSettings = QVariant::fromValue(settings);

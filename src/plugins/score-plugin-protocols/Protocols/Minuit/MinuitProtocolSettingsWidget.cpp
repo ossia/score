@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MinuitProtocolSettingsWidget.hpp"
 
+#include "MinuitProtocolFactory.hpp"
 #include "MinuitSpecificSettings.hpp"
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
@@ -90,6 +91,7 @@ Device::DeviceSettings MinuitProtocolSettingsWidget::getSettings() const
 
   Device::DeviceSettings s;
   s.name = m_deviceNameEdit->text();
+  s.protocol = MinuitProtocolFactory::static_concreteKey();
 
   MinuitSpecificSettings minuit;
   minuit.host = m_localHostEdit->text();

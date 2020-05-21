@@ -16,9 +16,19 @@
 
 namespace Protocols
 {
-QString SerialProtocolFactory::prettyName() const
+QString SerialProtocolFactory::prettyName() const noexcept
 {
   return QObject::tr("Serial");
+}
+
+QString SerialProtocolFactory::category() const noexcept
+{
+  return StandardCategories::hardware;
+}
+
+Device::DeviceEnumerator* SerialProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+{
+  return nullptr;
 }
 
 Device::DeviceInterface* SerialProtocolFactory::makeDevice(
@@ -28,7 +38,7 @@ Device::DeviceInterface* SerialProtocolFactory::makeDevice(
   return new SerialDevice{settings};
 }
 
-const Device::DeviceSettings& SerialProtocolFactory::defaultSettings() const
+const Device::DeviceSettings& SerialProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
@@ -60,7 +70,7 @@ void SerialProtocolFactory::serializeProtocolSpecificSettings(
 
 bool SerialProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const
+    const Device::DeviceSettings& b) const noexcept
 {
   return a.name != b.name;
 }

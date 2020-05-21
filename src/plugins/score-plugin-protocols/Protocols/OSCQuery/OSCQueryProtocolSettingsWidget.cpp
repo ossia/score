@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "OSCQueryProtocolSettingsWidget.hpp"
 
+#include "OSCQueryProtocolFactory.hpp"
 #include "OSCQuerySpecificSettings.hpp"
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
@@ -31,51 +32,7 @@ OSCQueryProtocolSettingsWidget::OSCQueryProtocolSettingsWidget(QWidget* parent)
   m_localHostEdit = new QLineEdit(this);
   m_rate = new RateWidget{this};
 
-  connect(&m_http_client, &QNetworkAccessManager::finished, this, [&](QNetworkReply* ret) {
-    if (ret != m_cur_reply)
-    {
-      ret->deleteLater();
-      return;
-    }
-
-    auto doc = QJsonDocument::fromJson(ret->readAll());
-    if (doc.object().contains("NAME"))
-    {
-      auto str = doc.object()["NAME"].toString();
-      if (!str.isEmpty())
-        m_deviceNameEdit->setText(str);
-    }
-    ret->deleteLater();
-    m_cur_reply = nullptr;
-  });
-
   QFormLayout* layout = new QFormLayout;
-
-#if defined(OSSIA_DNSSD)
-  m_browser = new ZeroconfBrowser{"_oscjson._tcp", this};
-  auto pb = new QPushButton{score::get_pixmap(QStringLiteral(":/icons/search.png")),tr("Find devices..."), this};
-  pb->setMinimumHeight(30);
-  connect(pb, &QPushButton::clicked, m_browser->makeAction(), &QAction::trigger);
-  connect(
-      m_browser,
-      &ZeroconfBrowser::sessionSelected,
-      this,
-      [=](QString name, QString ip, int port, QMap<QString, QByteArray> txt) {
-        m_deviceNameEdit->setText(name);
-
-        if (auto ret = m_http_client.get(QNetworkRequest(
-                QUrl("http://" + ip + ":" + QString::number(port) + "/?HOST_INFO"))))
-        {
-          m_cur_reply = ret;
-        }
-
-        if (txt.contains("WebSockets") && txt["WebSockets"] == "true")
-          m_localHostEdit->setText("ws://" + ip + ":" + QString::number(port));
-        else
-          m_localHostEdit->setText("http://" + ip + ":" + QString::number(port));
-      });
-  layout->addWidget(pb);
-#endif
 
   layout->addRow(tr("Device Name"), m_deviceNameEdit);
   layout->addRow(tr("Host"), m_localHostEdit);
@@ -102,6 +59,7 @@ Device::DeviceSettings OSCQueryProtocolSettingsWidget::getSettings() const
 
   Device::DeviceSettings s;
   s.name = m_deviceNameEdit->text();
+  s.protocol = OSCQueryProtocolFactory::static_concreteKey();
 
   OSCQuerySpecificSettings OSCQuery;
   OSCQuery.host = m_localHostEdit->text();
