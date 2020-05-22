@@ -114,7 +114,7 @@ private:
       connect(ret, &QNetworkReply::errorOccurred,
               this, [&e] { e.exit(); });
 #else
-      connect(ret, &QNetworkReply::error,
+      connect(ret, qOverload<QNetworkReply::NetworkError>(&QNetworkReply::error),
               this, [&e] { e.exit(); });
 #endif
       connect(ret, &QNetworkReply::sslErrors,
