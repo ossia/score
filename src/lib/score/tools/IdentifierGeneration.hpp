@@ -75,7 +75,7 @@ private:
   {
     return other.val();
   }
-  static int32_t getId(const optional<int32_t>& i) { return *i; }
+  static int32_t getId(const std::optional<int32_t>& i) { return *i; }
   static int32_t getId(int32_t i) { return i; }
 };
 

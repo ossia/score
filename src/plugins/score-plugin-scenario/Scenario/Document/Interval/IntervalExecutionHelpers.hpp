@@ -17,7 +17,7 @@
 namespace Execution
 {
 
-inline std::pair<optional<ossia::tempo_curve>, Scenario::TempoProcess*>
+inline std::pair<std::optional<ossia::tempo_curve>, Scenario::TempoProcess*>
 tempoCurve(const Scenario::IntervalModel& itv, const Execution::Context& ctx)
 {
   // TODO
@@ -43,14 +43,14 @@ tempoCurve(const Scenario::IntervalModel& itv, const Execution::Context& ctx)
           *Engine::score_to_ossia::curve<int64_t, double>(scale_x, scale_y, segt_data, {}));
     }
 
-    return {optional<ossia::tempo_curve>{std::move(t)}, proc};
+    return {std::optional<ossia::tempo_curve>{std::move(t)}, proc};
   }
   else
   {
     return {};
   }
 }
-inline optional<ossia::time_signature_map>
+inline std::optional<ossia::time_signature_map>
 timeSignatureMap(const Scenario::IntervalModel& itv, const Execution::Context& ctx)
 {
   if (itv.hasTimeSignature())
@@ -64,7 +64,7 @@ timeSignatureMap(const Scenario::IntervalModel& itv, const Execution::Context& c
   }
   else
   {
-    return ossia::none;
+    return std::nullopt;
   }
 }
 

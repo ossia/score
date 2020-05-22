@@ -29,14 +29,14 @@ Component::Component(
   m_ossia_process = std::make_shared<ossia::nodes::gradient_process>(node);
 
   con(*element.outlet, &Process::Port::addressChanged, this, [=](const auto&) {
-    this->in_exec([node] { node->tween = ossia::none; });
+    this->in_exec([node] { node->tween = std::nullopt; });
   });
 
   // TODO the tween case will reset the "running" value,
   // so it may not work perfectly.
   con(element, &Gradient::ProcessModel::tweenChanged, this, [=](bool b) {
     this->in_exec([=] {
-      node->tween = ossia::none;
+      node->tween = std::nullopt;
       node->mustTween = b;
     });
   });

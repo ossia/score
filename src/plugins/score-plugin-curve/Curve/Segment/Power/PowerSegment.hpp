@@ -62,7 +62,7 @@ private:
   void updateData(int numInterp) const override;
   double valueAt(double x) const override;
 
-  optional<double> verticalParameter() const override;
+  std::optional<double> verticalParameter() const override;
   void setVerticalParameter(double p) override;
 
   QVariant toSegmentSpecificData() const override;

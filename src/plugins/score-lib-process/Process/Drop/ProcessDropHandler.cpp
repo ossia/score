@@ -112,7 +112,7 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandlerList::getDrop(
   return res;
 }
 
-optional<TimeVal>
+std::optional<TimeVal>
 ProcessDropHandlerList::getMaxDuration(const std::vector<ProcessDropHandler::ProcessDrop>& res)
 {
   using drop_t = Process::ProcessDropHandler::ProcessDrop;

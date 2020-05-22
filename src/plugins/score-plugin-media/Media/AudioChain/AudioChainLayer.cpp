@@ -21,7 +21,7 @@
 #include <QUrl>
 namespace
 {
-static optional<int> m_lit{};
+static std::optional<int> m_lit{};
 }
 namespace Media
 {

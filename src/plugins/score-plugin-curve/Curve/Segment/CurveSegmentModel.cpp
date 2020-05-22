@@ -76,12 +76,12 @@ void SegmentModel::setFollowing(const OptionalId<SegmentModel>& following)
 
 void SegmentModel::setHorizontalParameter(double p) { }
 
-optional<double> SegmentModel::verticalParameter() const
+std::optional<double> SegmentModel::verticalParameter() const
 {
   return {};
 }
 
-optional<double> SegmentModel::horizontalParameter() const
+std::optional<double> SegmentModel::horizontalParameter() const
 {
   return {};
 }

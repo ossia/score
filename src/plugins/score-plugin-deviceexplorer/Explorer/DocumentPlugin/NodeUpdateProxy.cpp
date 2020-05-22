@@ -269,7 +269,7 @@ ossia::value NodeUpdateProxy::refreshRemoteValue(const State::Address& addr) con
   return n.value;
 }
 
-optional<ossia::value> NodeUpdateProxy::try_refreshRemoteValue(const State::Address& addr) const
+std::optional<ossia::value> NodeUpdateProxy::try_refreshRemoteValue(const State::Address& addr) const
 {
   // TODO here and in the following function, we should still update
   // the device explorer.

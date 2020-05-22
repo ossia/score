@@ -37,7 +37,7 @@ public:
     setVisible(false);
   }
 
-  void setData(const optional<ProcessData>& d)
+  void setData(const std::optional<ProcessData>& d)
   {
     m_author.setText(QString{});
     m_description.setText(QString{});

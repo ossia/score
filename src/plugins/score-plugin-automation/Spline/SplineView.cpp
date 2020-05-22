@@ -130,7 +130,7 @@ void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* e)
   if (m_clicked)
   {
     changed();
-    m_clicked = ossia::none;
+    m_clicked = std::nullopt;
   }
   e->accept();
 }
@@ -159,7 +159,7 @@ void View::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
   update();
 }
 
-optional<std::size_t> View::findControlPoint(QPointF point)
+std::optional<std::size_t> View::findControlPoint(QPointF point)
 {
   int pointIndex = -1;
   qreal distance = -1;

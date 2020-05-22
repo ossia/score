@@ -36,7 +36,7 @@ private:
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
 
-  optional<std::size_t> findControlPoint(QPointF point);
+  std::optional<std::size_t> findControlPoint(QPointF point);
   void addPoint(const QPointF point);
   template <typename T>
   QPointF mapToCanvas(const T& point) const
@@ -47,6 +47,6 @@ private:
 
   ossia::nodes::spline_data m_spline;
   tinyspline::BSpline m_spl;
-  optional<std::size_t> m_clicked;
+  std::optional<std::size_t> m_clicked;
 };
 }

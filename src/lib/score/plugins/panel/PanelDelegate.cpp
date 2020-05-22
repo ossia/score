@@ -41,7 +41,7 @@ void PanelDelegate::setModel(const DocumentContext& model)
   on_modelChanged(old, m_model);
 }
 
-void PanelDelegate::setModel(none_t)
+void PanelDelegate::setModel(std::nullopt_t)
 {
   auto old = m_model;
   m_model = nullptr;

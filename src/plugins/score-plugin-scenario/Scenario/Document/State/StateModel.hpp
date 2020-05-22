@@ -135,7 +135,7 @@ private:
   ProcessVector m_nextProcesses;
   Id<EventModel> m_eventId;
 
-  // OPTIMIZEME if we shift to Id = int, put this Optional
+  // OPTIMIZEME if we shift to Id = int, put this std::optional
   OptionalId<IntervalModel> m_previousInterval;
   OptionalId<IntervalModel> m_nextInterval;
 

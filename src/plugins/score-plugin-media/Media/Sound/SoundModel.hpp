@@ -102,5 +102,5 @@ private:
 };
 }
 
-optional<double> estimateTempo(const AudioFile& file);
+std::optional<double> estimateTempo(const AudioFile& file);
 }

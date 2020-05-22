@@ -117,8 +117,10 @@ private:
       connect(ret, qOverload<QNetworkReply::NetworkError>(&QNetworkReply::error),
               this, [&e] { e.exit(); });
 #endif
+#if QT_CONFIG(ssl)
       connect(ret, &QNetworkReply::sslErrors,
               this, [&e] { e.exit(); });
+#endif
       connect(ret, &QNetworkReply::finished,
               this, [=,&set, &e] {
         auto doc = QJsonDocument::fromJson(ret->readAll());
@@ -146,7 +148,6 @@ private:
   // DeviceEnumerator API
   void enumerate(std::function<void(const Device::DeviceSettings&)> f) const override
   {
-    using namespace std::literals;
     for(const auto& instance : m_instances)
     {
       f(settingsForInstance(instance));

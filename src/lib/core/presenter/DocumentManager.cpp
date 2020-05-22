@@ -184,7 +184,7 @@ void DocumentManager::setCurrentDocument(const score::GUIApplicationContext& ctx
   {
     for (auto& panel : ctx.panels())
     {
-      panel.setModel(ossia::none);
+      panel.setModel(std::nullopt);
     }
   }
 

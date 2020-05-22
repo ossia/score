@@ -7,7 +7,7 @@
 W_OBJECT_IMPL(Media::Sound::ProcessModel)
 namespace Media
 {
-optional<double> estimateTempo(const AudioFile& file)
+std::optional<double> estimateTempo(const AudioFile& file)
 {
   auto handle = file.unsafe_handle();
   if (auto file = handle.target<AudioFile::mmap_ptr>())

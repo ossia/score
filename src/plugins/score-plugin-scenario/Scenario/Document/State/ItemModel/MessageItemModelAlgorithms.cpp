@@ -521,7 +521,7 @@ void updateTreeWithRemovedUserMessage(
 
   if (node)
   {
-    node->values.userValue = State::OptionalValue{};
+    node->values.userValue = std::optional<ossia::value>{};
 
     // If it is empty, delete it.
     if (node->values.previousProcessValues.empty() && node->values.followingProcessValues.empty()
@@ -535,7 +535,7 @@ void updateTreeWithRemovedUserMessage(
 static void rec_removeUserValue(Process::MessageNode& node)
 {
   // Recursively set the user value to nil.
-  node.values.userValue = State::OptionalValue{};
+  node.values.userValue = std::optional<ossia::value>{};
 
   for (auto& child : node)
   {
@@ -588,7 +588,7 @@ void updateTreeWithRemovedNode(Process::MessageNode& rootNode, const State::Addr
 /// Functions related to removal of user messages ///
 static void nodePruneAction(Process::MessageNode& node)
 {
-  node.values.userValue = State::OptionalValue{};
+  node.values.userValue = std::optional<ossia::value>{};
 }
 
 static void rec_pruneTree(Process::MessageNode& node)

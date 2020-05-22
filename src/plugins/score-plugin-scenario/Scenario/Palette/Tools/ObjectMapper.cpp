@@ -81,7 +81,7 @@ ObjectMapper::itemToStateId(const QGraphicsItem* pressedItem, const QObject* par
   return state.parent() == parentModel ? state.id() : OptionalId<StateModel>{};
 }
 
-optional<SlotPath> ObjectMapper::itemToIntervalFromHeader(
+std::optional<SlotPath> ObjectMapper::itemToIntervalFromHeader(
     const QGraphicsItem* pressedItem,
     const QObject* parentModel) noexcept
 {
@@ -95,11 +95,11 @@ optional<SlotPath> ObjectMapper::itemToIntervalFromHeader(
   }
   else
   {
-    return ossia::none;
+    return std::nullopt;
   }
 }
 
-optional<SlotPath> ObjectMapper::itemToIntervalFromFooter(
+std::optional<SlotPath> ObjectMapper::itemToIntervalFromFooter(
     const QGraphicsItem* pressedItem,
     const QObject* parentModel) noexcept
 {
@@ -113,7 +113,7 @@ optional<SlotPath> ObjectMapper::itemToIntervalFromFooter(
   }
   else
   {
-    return ossia::none;
+    return std::nullopt;
   }
 }
 

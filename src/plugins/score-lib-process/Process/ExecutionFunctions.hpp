@@ -25,6 +25,6 @@ SCORE_LIB_PROCESS_EXPORT
 ossia::net::node_base* findNode(const ossia::execution_state& st, const State::Address& addr);
 
 SCORE_LIB_PROCESS_EXPORT
-optional<ossia::destination>
+std::optional<ossia::destination>
 makeDestination(const ossia::execution_state& devices, const State::AddressAccessor& addr);
 }

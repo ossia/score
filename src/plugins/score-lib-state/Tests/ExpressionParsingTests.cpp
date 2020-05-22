@@ -191,11 +191,11 @@ QDebug operator<<(QDebug dbg, const State::Expression& v)
   return dbg;
 }
 
-static void debug_path(ossia::optional<State::AddressAccessor> addr)
+static void debug_path(std::optional<State::AddressAccessor> addr)
 {
   qDebug() << addr->toString();
 }
-static void debug_path(ossia::optional<State::Address> addr)
+static void debug_path(std::optional<State::Address> addr)
 {
   qDebug() << addr->toString();
 }

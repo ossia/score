@@ -142,7 +142,7 @@ public:
   void removeLayer(int slot, Id<Process::ProcessModel>);
 
   void putLayerToFront(int slot, Id<Process::ProcessModel>);
-  void putLayerToFront(int slot, ossia::none_t);
+  void putLayerToFront(int slot, std::nullopt_t);
 
   void swapSlots(int pos1, int pos2, Slot::RackView fullview);
 

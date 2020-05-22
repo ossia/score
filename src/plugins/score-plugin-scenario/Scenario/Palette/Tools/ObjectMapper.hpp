@@ -29,9 +29,9 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT ObjectMapper
   static OptionalId<StateModel>
   itemToStateId(const QGraphicsItem* pressedItem, const QObject* parentModel) noexcept;
 
-  static optional<SlotPath>
+  static std::optional<SlotPath>
   itemToIntervalFromHeader(const QGraphicsItem* pressedItem, const QObject* parentModel) noexcept;
-  static optional<SlotPath>
+  static std::optional<SlotPath>
   itemToIntervalFromFooter(const QGraphicsItem* pressedItem, const QObject* parentModel) noexcept;
 };
 

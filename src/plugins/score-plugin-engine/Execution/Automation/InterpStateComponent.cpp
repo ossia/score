@@ -112,7 +112,7 @@ void ExecComponent::recompute()
 
 template <typename Y_T>
 std::shared_ptr<ossia::curve_abstract>
-ExecComponent::on_curveChanged_impl(const optional<ossia::destination>& d)
+ExecComponent::on_curveChanged_impl(const std::optional<ossia::destination>& d)
 { /*
    using namespace ossia;
 
@@ -135,7 +135,7 @@ ExecComponent::on_curveChanged_impl(const optional<ossia::destination>& d)
 }
 
 std::shared_ptr<ossia::curve_abstract>
-ExecComponent::on_curveChanged(ossia::val_type type, const optional<ossia::destination>& d)
+ExecComponent::on_curveChanged(ossia::val_type type, const std::optional<ossia::destination>& d)
 { /*
    switch (type)
    {

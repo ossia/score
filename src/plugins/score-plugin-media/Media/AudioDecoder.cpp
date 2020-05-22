@@ -458,7 +458,7 @@ AVFormatContext_ptr open_audio(const QString& path)
 #endif
 }
 
-ossia::optional<AudioInfo> AudioDecoder::probe(const QString& path)
+std::optional<AudioInfo> AudioDecoder::probe(const QString& path)
 {
   auto it = database().find(path);
   if (it == database().end())
@@ -594,14 +594,14 @@ void AudioDecoder::decode(const QString& path, audio_handle hdl)
   startDecode(path, hdl);
 }
 
-ossia::optional<std::pair<AudioInfo, audio_array>>
+std::optional<std::pair<AudioInfo, audio_array>>
 AudioDecoder::decode_synchronous(const QString& path, int rate)
 {
 
   AudioDecoder dec(rate);
   auto res = dec.probe(path);
   if (!res)
-    return ossia::none;
+    return std::nullopt;
 
   dec.sampleRate = res->rate;
   dec.channels = res->channels;

@@ -96,7 +96,7 @@ QLatin1String prettyUnitText(const ossia::unit_t& u)
   return QLatin1String(unit.data(), unit.size());
 }
 
-ossia::optional<ossia::value> parseValue(const std::string& input)
+std::optional<ossia::value> parseValue(const std::string& input)
 {
   auto f(std::begin(input)), l(std::end(input));
   Value_parser<decltype(f)> p;

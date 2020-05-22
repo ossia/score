@@ -47,7 +47,7 @@ bool StateNodeData::hasValue() const
   return values.hasValue();
 }
 
-State::OptionalValue StateNodeData::value() const
+std::optional<ossia::value> StateNodeData::value() const
 {
   return values.value();
 }
@@ -73,7 +73,7 @@ StateNodeValues::value(const std::vector<ProcessStateData>& vec)
   return std::find_if(vec.cbegin(), vec.cend(), [](const auto& pv) { return bool(pv.value); });
 }
 
-State::OptionalValue StateNodeValues::value() const
+std::optional<ossia::value> StateNodeValues::value() const
 {
   for (auto prio : priorities)
   {

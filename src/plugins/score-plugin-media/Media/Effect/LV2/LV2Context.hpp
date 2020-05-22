@@ -70,7 +70,7 @@ struct HostContext
   Lilv::Node work_interface{make_node(LV2_WORKER__interface)};
   Lilv::Node work_schedule{make_node(LV2_WORKER__schedule)};
 
-  Lilv::Node optional_feature{make_node(LV2_CORE__optionalFeature)};
+  Lilv::Node std::optional_feature{make_node(LV2_CORE__optionalFeature)};
   Lilv::Node fixed_size{make_node(LV2_UI__fixedSize)};
   Lilv::Node no_user_resize{make_node(LV2_UI__noUserResize)};
 

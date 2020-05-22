@@ -25,7 +25,7 @@ public:
   // Put proc2 before proc
   PutProcessBefore(
       const IntervalModel& cst,
-      optional<Id<Process::ProcessModel>> proc,
+      std::optional<Id<Process::ProcessModel>> proc,
       Id<Process::ProcessModel> proc2);
 
   void undo(const score::DocumentContext& ctx) const override;
@@ -38,13 +38,13 @@ protected:
 private:
   void putBefore(
       const score::DocumentContext& ctx,
-      optional<Id<Process::ProcessModel>> proc,
+      std::optional<Id<Process::ProcessModel>> proc,
       Id<Process::ProcessModel> proc2) const;
 
   Path<Scenario::IntervalModel> m_path;
-  optional<Id<Process::ProcessModel>> m_proc;
+  std::optional<Id<Process::ProcessModel>> m_proc;
   Id<Process::ProcessModel> m_proc2;
-  optional<Id<Process::ProcessModel>> m_old_after_proc2;
+  std::optional<Id<Process::ProcessModel>> m_old_after_proc2;
 };
 
 class PutStateProcessBefore final : public score::Command
@@ -55,7 +55,7 @@ public:
   // Put proc2 before proc
   PutStateProcessBefore(
       const StateModel& cst,
-      optional<Id<Process::ProcessModel>> proc,
+      std::optional<Id<Process::ProcessModel>> proc,
       Id<Process::ProcessModel> proc2);
 
   void undo(const score::DocumentContext& ctx) const override;
@@ -68,13 +68,13 @@ protected:
 private:
   void putBefore(
       const score::DocumentContext& ctx,
-      optional<Id<Process::ProcessModel>> proc,
+      std::optional<Id<Process::ProcessModel>> proc,
       Id<Process::ProcessModel> proc2) const;
 
   Path<Scenario::StateModel> m_path;
-  optional<Id<Process::ProcessModel>> m_proc;
+  std::optional<Id<Process::ProcessModel>> m_proc;
   Id<Process::ProcessModel> m_proc2;
-  optional<Id<Process::ProcessModel>> m_old_after_proc2;
+  std::optional<Id<Process::ProcessModel>> m_old_after_proc2;
 };
 }
 }

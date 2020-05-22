@@ -24,8 +24,8 @@ public:
     }
   }
 
-  optional<::State::Expression> get() const { return m_currentExp; }
+  std::optional<::State::Expression> get() const { return m_currentExp; }
 
 private:
-  mutable optional<::State::Expression> m_currentExp;
+  mutable std::optional<::State::Expression> m_currentExp;
 };

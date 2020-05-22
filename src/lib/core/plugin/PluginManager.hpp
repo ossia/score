@@ -52,7 +52,7 @@ SCORE_LIB_BASE_EXPORT void loadAddonsInAllFolders(std::vector<score::Addon>& ava
 std::pair<score::Plugin_QtInterface*, PluginLoadingError>
 loadPlugin(const QString& fileName, const std::vector<score::Addon>& availablePlugins);
 
-ossia::optional<score::Addon> makeAddon(
+std::optional<score::Addon> makeAddon(
     const QString& addon_path,
     const QJsonObject& json_addon,
     const std::vector<score::Addon>& availablePlugins);

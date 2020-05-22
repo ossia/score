@@ -42,7 +42,7 @@ address(const State::Address& addr, const ossia::execution_state& deviceList)
   return nullptr;
 }
 
-optional<ossia::message>
+std::optional<ossia::message>
 message(const State::Message& mess, const ossia::execution_state& deviceList)
 {
   if (auto ossia_addr = address(mess.address.address, deviceList))

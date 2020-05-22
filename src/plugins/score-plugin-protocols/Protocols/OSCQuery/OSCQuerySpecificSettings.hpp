@@ -10,7 +10,7 @@ namespace Protocols
 struct OSCQuerySpecificSettings
 {
   QString host;
-  ossia::optional<int> rate{};
+  std::optional<int> rate{};
 };
 }
 Q_DECLARE_METATYPE(Protocols::OSCQuerySpecificSettings)

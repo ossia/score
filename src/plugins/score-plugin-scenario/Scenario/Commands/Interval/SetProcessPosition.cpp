@@ -13,7 +13,7 @@ namespace Command
 {
 PutProcessBefore::PutProcessBefore(
     const IntervalModel& cst,
-    optional<Id<Process::ProcessModel>> proc,
+    std::optional<Id<Process::ProcessModel>> proc,
     Id<Process::ProcessModel> proc2)
     : m_path{cst}, m_proc{std::move(proc)}, m_proc2{std::move(proc2)}
 {
@@ -49,7 +49,7 @@ void PutProcessBefore::redo(const score::DocumentContext& ctx) const
 
 void PutProcessBefore::putBefore(
     const score::DocumentContext& ctx,
-    optional<Id<Process::ProcessModel>> t1,
+    std::optional<Id<Process::ProcessModel>> t1,
     Id<Process::ProcessModel> t2) const
 {
   auto& cst = m_path.find(ctx);
@@ -100,7 +100,7 @@ void PutProcessBefore::deserializeImpl(DataStreamOutput& s)
 
 PutStateProcessBefore::PutStateProcessBefore(
     const StateModel& cst,
-    optional<Id<Process::ProcessModel>> proc,
+    std::optional<Id<Process::ProcessModel>> proc,
     Id<Process::ProcessModel> proc2)
     : m_path{cst}, m_proc{std::move(proc)}, m_proc2{std::move(proc2)}
 {
@@ -136,7 +136,7 @@ void PutStateProcessBefore::redo(const score::DocumentContext& ctx) const
 
 void PutStateProcessBefore::putBefore(
     const score::DocumentContext& ctx,
-    optional<Id<Process::ProcessModel>> t1,
+    std::optional<Id<Process::ProcessModel>> t1,
     Id<Process::ProcessModel> t2) const
 {
   auto& cst = m_path.find(ctx);

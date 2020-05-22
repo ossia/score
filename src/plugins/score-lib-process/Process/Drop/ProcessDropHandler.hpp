@@ -23,7 +23,7 @@ public:
   struct ProcessDrop
   {
     ProcessData creation;
-    optional<TimeVal> duration;
+    std::optional<TimeVal> duration;
     std::function<void(Process::ProcessModel&, score::Dispatcher&)> setup;
   };
 
@@ -59,6 +59,6 @@ public:
   std::vector<ProcessDropHandler::ProcessDrop>
   getDrop(const QMimeData& mime, const score::DocumentContext& ctx) const noexcept;
 
-  static optional<TimeVal> getMaxDuration(const std::vector<ProcessDropHandler::ProcessDrop>&);
+  static std::optional<TimeVal> getMaxDuration(const std::vector<ProcessDropHandler::ProcessDrop>&);
 };
 }

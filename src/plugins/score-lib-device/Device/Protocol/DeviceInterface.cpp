@@ -709,7 +709,7 @@ Device::Node DeviceInterface::refresh()
   return device_node;
 }
 
-optional<ossia::value> DeviceInterface::refresh(const State::Address& address)
+std::optional<ossia::value> DeviceInterface::refresh(const State::Address& address)
 {
   if (auto dev = getDevice())
   {

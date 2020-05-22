@@ -74,7 +74,7 @@ struct SCORE_LIB_STATE_EXPORT Address
   static bool validateFragment(const QString& s);
 
   // Make an address from a valid address string
-  static ossia::optional<Address> fromString(const QString& str);
+  static std::optional<Address> fromString(const QString& str);
 
   /**
    * @brief toString
@@ -139,8 +139,8 @@ struct SCORE_LIB_STATE_EXPORT AddressAccessorHead
   QString toString() const;
 };
 
-SCORE_LIB_STATE_EXPORT optional<State::Address> parseAddress(const QString& str);
-SCORE_LIB_STATE_EXPORT optional<State::AddressAccessor> parseAddressAccessor(const QString& str);
+SCORE_LIB_STATE_EXPORT std::optional<State::Address> parseAddress(const QString& str);
+SCORE_LIB_STATE_EXPORT std::optional<State::AddressAccessor> parseAddressAccessor(const QString& str);
 
 SCORE_LIB_STATE_EXPORT QDebug operator<<(QDebug d, const State::Address& a);
 SCORE_LIB_STATE_EXPORT QDebug operator<<(QDebug d, const DestinationQualifiers& a);

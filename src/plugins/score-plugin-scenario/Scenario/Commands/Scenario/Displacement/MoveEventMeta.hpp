@@ -70,7 +70,7 @@ private:
   // TODO : make a UI to change that
   Path<Scenario::ProcessModel> m_scenario;
   Id<EventModel> m_eventId;
-  optional<Id<StateModel>> m_stateId;
+  std::optional<Id<StateModel>> m_stateId;
   LockMode m_lock{};
   double m_oldY{};
   double m_newY{};

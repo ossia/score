@@ -150,7 +150,7 @@ using Id = id_base_t<tag, int32_t>;
  * @typedef OptionalId identifier for an object that may not exist
  */
 template <typename tag>
-using OptionalId = optional<Id<tag>>;
+using OptionalId = std::optional<Id<tag>>;
 
 namespace std
 {

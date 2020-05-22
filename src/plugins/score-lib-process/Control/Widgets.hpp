@@ -409,10 +409,10 @@ struct Enum final : EnumBase<ArrT>
     {
       if (auto it = ossia::find(this->values, *t); it != this->values.end())
       {
-        return ossia::optional<std::string>{*t};
+        return std::optional<std::string>{*t};
       }
     }
-    return ossia::optional<std::string>{};
+    return std::optional<std::string>{};
   }
 };
 
@@ -453,13 +453,13 @@ struct TimeSignatureChooser final : ossia::safe_nodes::control_in,
     return ossia::value{std::move(s)};
   }
 
-  optional<time_signature> fromValue(const ossia::value& v) const
+  std::optional<time_signature> fromValue(const ossia::value& v) const
   {
     if (auto str = v.target<std::string>())
     {
       return get_time_signature(*str);
     }
-    return ossia::none;
+    return std::nullopt;
   }
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {

@@ -414,7 +414,7 @@ void IntervalModel::removeLayer(int slot, Id<Process::ProcessModel> id)
     if (!procs.empty())
       putLayerToFront(slot, procs.front());
     else
-      putLayerToFront(slot, ossia::none);
+      putLayerToFront(slot, std::nullopt);
   }
 }
 
@@ -424,10 +424,10 @@ void IntervalModel::putLayerToFront(int slot, Id<Process::ProcessModel> id)
   frontLayerChanged(slot, id);
 }
 
-void IntervalModel::putLayerToFront(int slot, ossia::none_t)
+void IntervalModel::putLayerToFront(int slot, std::nullopt_t)
 {
-  m_smallView.at(slot).frontProcess = ossia::none;
-  frontLayerChanged(slot, ossia::none);
+  m_smallView.at(slot).frontProcess = std::nullopt;
+  frontLayerChanged(slot, std::nullopt);
 }
 
 void IntervalModel::addSlot(Slot s, int pos)

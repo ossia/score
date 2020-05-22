@@ -60,10 +60,10 @@ public:
   const score::GUIApplicationContext& context() const;
 
   void setModel(const score::DocumentContext& model);
-  void setModel(none_t n);
+  void setModel(std::nullopt_t n);
 
   /**
-   * @brief document The optional current document
+   * @brief document The std::optional current document
    * @return The document if there is a current document in score, else
    * nothing.
    */

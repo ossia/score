@@ -138,7 +138,7 @@ bool Address::validateFragment(const QString& s)
   return ossia::all_of(s, &ossia::net::is_valid_character_for_name<QChar>);
 }
 
-optional<Address> Address::fromString(const QString& str)
+std::optional<Address> Address::fromString(const QString& str)
 {
   if (!validateString(str))
     return {};
@@ -458,7 +458,7 @@ std::size_t std::hash<State::AddressAccessor>::operator()(const State::AddressAc
   return seed;
 }
 
-ossia::optional<State::Address> State::parseAddress(const QString& str)
+std::optional<State::Address> State::parseAddress(const QString& str)
 {
   auto input = str.toStdString();
   auto f(std::begin(input)), l(std::end(input));
@@ -487,7 +487,7 @@ ossia::optional<State::Address> State::parseAddress(const QString& str)
   }
 }
 
-ossia::optional<State::AddressAccessor> State::parseAddressAccessor(const QString& str)
+std::optional<State::AddressAccessor> State::parseAddressAccessor(const QString& str)
 {
   auto input = str.toStdString();
   auto f(std::begin(input)), l(std::end(input));
@@ -504,7 +504,7 @@ ossia::optional<State::AddressAccessor> State::parseAddressAccessor(const QStrin
     else
     {
       // We try to get an address instead.
-      ossia::optional<State::Address> res = State::parseAddress(str);
+      std::optional<State::Address> res = State::parseAddress(str);
       if (res)
       {
         result.address = (*res);

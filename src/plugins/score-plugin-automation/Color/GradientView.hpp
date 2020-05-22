@@ -34,7 +34,7 @@ private:
 
   ossia::flat_map<double, QColor> m_colors;
   ossia::flat_map<double, QColor> m_origColors;
-  optional<double> m_clicked;
+  std::optional<double> m_clicked;
   double m_dataWidth{};
 };
 }

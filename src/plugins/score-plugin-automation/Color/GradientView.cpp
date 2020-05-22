@@ -65,7 +65,7 @@ void View::paint_impl(QPainter* p) const
 
 void View::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  m_clicked = ossia::none;
+  m_clicked = std::nullopt;
 
   const auto pos = event->pos();
   for (auto& e : m_colors)
@@ -132,7 +132,7 @@ void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     }
   }
 
-  m_clicked = ossia::none;
+  m_clicked = std::nullopt;
 }
 
 void View::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)

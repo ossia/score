@@ -68,8 +68,8 @@ public:
   // Between -1 and 1, to map to the real parameter.
   virtual void setVerticalParameter(double p);
   virtual void setHorizontalParameter(double p);
-  virtual optional<double> verticalParameter() const;
-  virtual optional<double> horizontalParameter() const;
+  virtual std::optional<double> verticalParameter() const;
+  virtual std::optional<double> horizontalParameter() const;
 
   virtual ossia::curve_segment<double> makeDoubleFunction() const = 0;
   virtual ossia::curve_segment<float> makeFloatFunction() const = 0;

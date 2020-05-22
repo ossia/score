@@ -293,7 +293,7 @@ private:
 class DropProcessInIntervalHelper
 {
 public:
-  DropProcessInIntervalHelper(const Scenario::IntervalModel& interval, optional<TimeVal> maxdur)
+  DropProcessInIntervalHelper(const Scenario::IntervalModel& interval, std::optional<TimeVal> maxdur)
       : m_context{score::IDocument::documentContext(interval)}
       , m_macro{new Command::AddProcessInNewBoxMacro, m_context}
       , m_itv{interval}

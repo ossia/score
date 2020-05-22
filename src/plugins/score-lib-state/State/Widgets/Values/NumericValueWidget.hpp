@@ -166,12 +166,12 @@ public:
     if (m_minCB->checkState())
       dom.min = m_min->value();
     else
-      dom.min = ossia::none;
+      dom.min = std::nullopt;
 
     if (m_maxCB->checkState())
       dom.max = m_max->value();
     else
-      dom.max = ossia::none;
+      dom.max = std::nullopt;
 
     dom.values = m_values;
 

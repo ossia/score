@@ -11,6 +11,8 @@
 #include <QGuiApplication>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QBrush>
+#include <QColor>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::Skin)
@@ -155,7 +157,7 @@ Skin::Skin() noexcept
   SliderFont.setWeight(QFont::DemiBold);
 
   double dpr = qApp->devicePixelRatio();
-#if defined(__APPLE__)
+#if defined(__APPLE__) || defined(_WIN32)
   dpr = 1.;
 #endif
 

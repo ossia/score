@@ -39,8 +39,8 @@ struct Descriptor
   QString description;
   QString author{"ossia score"};
   QStringList tags;
-  optional<std::vector<Process::PortType>> inlets;
-  optional<std::vector<Process::PortType>> outlets;
+  std::optional<std::vector<Process::PortType>> inlets;
+  std::optional<std::vector<Process::PortType>> outlets;
 };
 class Descriptor_k;
 }

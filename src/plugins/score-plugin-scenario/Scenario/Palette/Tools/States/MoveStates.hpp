@@ -102,8 +102,8 @@ public:
   SingleOngoingCommandDispatcher<MoveBraceCommand_T> m_dispatcher;
 
 private:
-  optional<TimeVal> m_initialDate;
-  optional<TimeVal> m_initialDuration;
+  std::optional<TimeVal> m_initialDate;
+  std::optional<TimeVal> m_initialDuration;
 };
 
 template <
@@ -163,7 +163,7 @@ public:
         }
         else
         {
-          this->m_pressedPrevious = ossia::none;
+          this->m_pressedPrevious = std::nullopt;
         }
       });
 
@@ -215,6 +215,6 @@ public:
   }
 
   SingleOngoingCommandDispatcher<MoveTimeSyncCommand_T> m_dispatcher;
-  optional<TimeVal> m_pressedPrevious;
+  std::optional<TimeVal> m_pressedPrevious;
 };
 }

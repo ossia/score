@@ -139,7 +139,7 @@ struct TSerializer<DataStream, eggs::variant<Args...>>
 // This allows easy store and retrieval under a familiar name
 
 // TODO add some ASSERT for the variant being set on debug mode. npos case
-// should not happen since we have the OptionalVariant.
+// should not happen since we have the std::optionalVariant.
 
 template <typename T>
 struct VariantJSONSerializer

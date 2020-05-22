@@ -120,5 +120,5 @@ private:
 DEFAULT_MODEL_METADATA(Scenario::TimeSyncModel, "Sync")
 TR_TEXT_METADATA(, Scenario::TimeSyncModel, PrettyName_k, "Sync")
 
-Q_DECLARE_METATYPE(optional<Control::time_signature>)
-W_REGISTER_ARGTYPE(optional<Control::time_signature>)
+Q_DECLARE_METATYPE(std::optional<Control::time_signature>)
+W_REGISTER_ARGTYPE(std::optional<Control::time_signature>)

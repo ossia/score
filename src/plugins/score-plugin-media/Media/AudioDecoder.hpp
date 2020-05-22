@@ -36,10 +36,10 @@ class AudioDecoder : public QObject
 public:
   AudioDecoder(int rate);
   ~AudioDecoder();
-  static ossia::optional<AudioInfo> probe(const QString& path);
+  static std::optional<AudioInfo> probe(const QString& path);
   void decode(const QString& path, audio_handle hdl);
 
-  static ossia::optional<std::pair<AudioInfo, audio_array>>
+  static std::optional<std::pair<AudioInfo, audio_array>>
   decode_synchronous(const QString& path, int rate);
 
   static QHash<QString, AudioInfo>& database();

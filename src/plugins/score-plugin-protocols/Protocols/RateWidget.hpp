@@ -30,7 +30,7 @@ public:
     lay->setStretch(1, 20);
 
     connect(m_check, &QCheckBox::toggled, this, [=](bool t) {
-      rateChanged(ossia::optional<int>{});
+      rateChanged(std::optional<int>{});
       m_spin->setEnabled(t);
     });
 
@@ -40,11 +40,11 @@ public:
     setLayout(lay);
   }
 
-  ossia::optional<int> rate() const noexcept
+  std::optional<int> rate() const noexcept
   {
     if (!m_check->isChecked())
     {
-      return ossia::optional<int>{};
+      return std::optional<int>{};
     }
     else
     {
@@ -52,7 +52,7 @@ public:
     }
   }
 
-  void setRate(ossia::optional<int> r) noexcept
+  void setRate(std::optional<int> r) noexcept
   {
     if (r)
     {
@@ -65,7 +65,7 @@ public:
     }
   }
 
-  void rateChanged(ossia::optional<int> v) W_SIGNAL(rateChanged, v);
+  void rateChanged(std::optional<int> v) W_SIGNAL(rateChanged, v);
 
 private:
   QCheckBox* m_check{};
@@ -74,5 +74,5 @@ private:
 
 }
 
-W_REGISTER_ARGTYPE(ossia::optional<int>)
-Q_DECLARE_METATYPE(ossia::optional<int>)
+W_REGISTER_ARGTYPE(std::optional<int>)
+Q_DECLARE_METATYPE(std::optional<int>)

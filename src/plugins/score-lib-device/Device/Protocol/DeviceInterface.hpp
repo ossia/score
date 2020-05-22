@@ -80,7 +80,7 @@ public:
   // The addresses are not applied to the device, they have to be via a
   // command!
   virtual Device::Node refresh();
-  optional<ossia::value> refresh(const State::Address&);
+  std::optional<ossia::value> refresh(const State::Address&);
   void request(const Device::Node&);
   void setListening(const State::Address&, bool);
   void addToListening(const std::vector<State::Address>&);

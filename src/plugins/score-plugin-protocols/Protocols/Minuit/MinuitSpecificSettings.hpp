@@ -13,7 +13,7 @@ struct MinuitSpecificSettings
   int outputPort{};
   QString host;
   QString localName;
-  ossia::optional<int> rate{};
+  std::optional<int> rate{};
 };
 }
 Q_DECLARE_METATYPE(Protocols::MinuitSpecificSettings)

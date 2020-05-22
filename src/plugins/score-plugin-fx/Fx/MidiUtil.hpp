@@ -150,7 +150,7 @@ static MSVC_CONSTEXPR frozen::unordered_map<int, scales_array, scale::SCALES_MAX
     {scale::VI, make_scale({1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0})},
     {scale::VII, make_scale({0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1})}};
 
-static optional<std::size_t> find_closest_index(const scale_array& arr, std::size_t i)
+static std::optional<std::size_t> find_closest_index(const scale_array& arr, std::size_t i)
 {
   if (arr[i] == 1)
     return i;
@@ -191,7 +191,7 @@ static optional<std::size_t> find_closest_index(const scale_array& arr, std::siz
     }
   }
 
-  return ossia::none;
+  return std::nullopt;
 }
 
 struct Node

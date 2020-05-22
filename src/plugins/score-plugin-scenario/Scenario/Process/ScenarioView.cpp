@@ -72,7 +72,7 @@ void ScenarioView::drawDragLine(QPointF left, QPointF right, const QString& txt)
 
 void ScenarioView::stopDrawDragLine()
 {
-  m_dragLine = ossia::none;
+  m_dragLine = std::nullopt;
   update();
 }
 

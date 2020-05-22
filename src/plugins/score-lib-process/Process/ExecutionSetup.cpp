@@ -35,7 +35,7 @@ ossia::net::node_base* findNode(const ossia::execution_state& st, const State::A
   return ossia::net::find_node((*dev_p)->get_root_node(), addr.path.join("/").toStdString());
 }
 
-optional<ossia::destination>
+std::optional<ossia::destination>
 makeDestination(const ossia::execution_state& devices, const State::AddressAccessor& addr)
 {
   auto n = findNode(devices, addr.address);

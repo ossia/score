@@ -36,7 +36,7 @@ std::shared_ptr<ossia::curve<X_T, Y_T>> curve(
     XScaleFun scale_x,
     YScaleFun scale_y,
     const Segments& segments,
-    const optional<ossia::destination>& tween)
+    const std::optional<ossia::destination>& tween)
 {
   auto curve = std::make_shared<ossia::curve<X_T, Y_T>>();
 
@@ -65,7 +65,7 @@ std::shared_ptr<ossia::curve<X_T, Y_T>> curve(
 // Simpler curve, between [0; 1]
 template <typename Segments>
 ossia::curve<double, float>
-floatCurve(const Segments& segments, const optional<ossia::destination>& tween)
+floatCurve(const Segments& segments, const std::optional<ossia::destination>& tween)
 {
   ossia::curve<double, float> curve;
 

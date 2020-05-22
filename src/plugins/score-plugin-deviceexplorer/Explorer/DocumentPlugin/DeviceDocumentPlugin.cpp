@@ -142,7 +142,7 @@ Device::Node DeviceDocumentPlugin::createDeviceFromNode(const Device::Node& node
   return node;
 }
 
-optional<Device::Node> DeviceDocumentPlugin::loadDeviceFromNode(const Device::Node& node)
+std::optional<Device::Node> DeviceDocumentPlugin::loadDeviceFromNode(const Device::Node& node)
 {
   try
   {

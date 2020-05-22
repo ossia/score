@@ -82,8 +82,8 @@ void PenCommandObject::move()
 
   segts.reserve(segts.size() + 3);
 
-  optional<std::size_t> middle_begin_p{};
-  optional<std::size_t> middle_end_p{};
+  std::optional<std::size_t> middle_begin_p{};
+  std::optional<std::size_t> middle_end_p{};
   if (middleBegin)
   {
     segts.push_back(*std::move(middleBegin));
@@ -159,8 +159,8 @@ void PenCommandObject::release_n(seg_tuple&& segts_tpl)
 
   segts.reserve(segts.size() + lin_segments.size() + 3);
 
-  optional<std::size_t> middle_begin_p{};
-  optional<std::size_t> middle_end_p{};
+  std::optional<std::size_t> middle_begin_p{};
+  std::optional<std::size_t> middle_end_p{};
 
   if (auto& middleBegin = std::get<0>(segts_tpl))
   {
@@ -250,7 +250,7 @@ void PenCommandObject::release_n(seg_tuple&& segts_tpl)
   m_segment.reset();
 }
 
-std::tuple<optional<SegmentData>, optional<SegmentData>, std::vector<SegmentData>>
+std::tuple<std::optional<SegmentData>, std::optional<SegmentData>, std::vector<SegmentData>>
 PenCommandObject::filterSegments()
 {
   auto x = m_state->currentPoint.x();
@@ -268,7 +268,7 @@ PenCommandObject::filterSegments()
   auto segts = m_startSegments;
 
   // remove all segments that start after minPress and end after maxPress
-  optional<SegmentData> middleBegin, middleEnd;
+  std::optional<SegmentData> middleBegin, middleEnd;
   for (auto it = segts.begin(); it != segts.end();)
   {
     const SegmentData& segt = *it;

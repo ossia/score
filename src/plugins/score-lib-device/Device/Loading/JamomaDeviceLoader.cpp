@@ -121,7 +121,7 @@ static ossia::value read_valueDefault(const QDomElement& dom_element, const QStr
   }
 }
 
-static optional<ossia::access_mode> read_service(const QDomElement& dom_element)
+static std::optional<ossia::access_mode> read_service(const QDomElement& dom_element)
 {
   using namespace score;
   if (dom_element.hasAttribute("service"))
@@ -136,10 +136,10 @@ else if(service == "")
     addr.ioType = ossia::access_mode::SET;
 */
     else
-      return ossia::none;
+      return std::nullopt;
   }
 
-  return ossia::none;
+  return std::nullopt;
 }
 
 static auto read_rangeBounds(const QDomElement& dom_element, const QString& type)
@@ -299,7 +299,7 @@ static ossia::value fromJamomaTextualType(const QString& str)
   return {};
 }
 
-static optional<ossia::net::instance_bounds> fromJamomaInstanceBounds(const QString& str)
+static std::optional<ossia::net::instance_bounds> fromJamomaInstanceBounds(const QString& str)
 {
   if (!str.isEmpty())
   {
@@ -309,7 +309,7 @@ static optional<ossia::net::instance_bounds> fromJamomaInstanceBounds(const QStr
       return ossia::net::instance_bounds(inst[0].toInt(), inst[1].toInt());
     }
   }
-  return ossia::none;
+  return std::nullopt;
 }
 
 static ossia::domain fromJamomaJsonDomain(const QString& str, ossia::val_type t)

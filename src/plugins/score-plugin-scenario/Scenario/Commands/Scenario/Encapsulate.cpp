@@ -217,7 +217,7 @@ EncapsData EncapsulateElements(
     for (const auto& stid : Scenario::states(*startSync, scenar))
     {
       auto& st = scenar.states.at(stid);
-      if (st.nextInterval() == ossia::none)
+      if (st.nextInterval() == std::nullopt)
       {
         startState = &st;
         break;
@@ -229,7 +229,7 @@ EncapsData EncapsulateElements(
     for (auto stid : Scenario::states(*endSync, scenar))
     {
       auto& st = scenar.states.at(stid);
-      if (st.previousInterval() == ossia::none)
+      if (st.previousInterval() == std::nullopt)
       {
         endState = &st;
         break;

@@ -79,7 +79,7 @@ private:
   ScenarioPresenter* m_scenario{};
   QRectF m_selectArea{};
   QPointF m_previousPoint{};
-  ossia::optional<QRectF> m_dragLine{};
+  std::optional<QRectF> m_dragLine{};
   QString m_dragText;
   bool m_lock{};
   bool m_moving{};

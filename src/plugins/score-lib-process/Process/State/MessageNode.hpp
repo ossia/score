@@ -22,7 +22,7 @@ class ProcessModel;
 struct ProcessStateData
 {
   Id<Process::ProcessModel> process;
-  State::OptionalValue value;
+  std::optional<ossia::value> value;
 };
 
 enum class PriorityPolicy
@@ -39,7 +39,7 @@ struct SCORE_LIB_PROCESS_EXPORT StateNodeValues
   // TODO use lists or queues instead to manage the priorities
   std::vector<ProcessStateData> previousProcessValues;
   std::vector<ProcessStateData> followingProcessValues;
-  State::OptionalValue userValue;
+  std::optional<ossia::value> userValue;
 
   std::array<PriorityPolicy, 3> priorities{
       {PriorityPolicy::Previous, PriorityPolicy::Following, PriorityPolicy::User}};
@@ -52,7 +52,7 @@ struct SCORE_LIB_PROCESS_EXPORT StateNodeValues
 
   // TODO here we have to choose a policy
   // if we have both previous and following processes ?
-  State::OptionalValue value() const;
+  std::optional<ossia::value> value() const;
 
   QString displayValue() const;
 };
@@ -64,7 +64,7 @@ struct SCORE_LIB_PROCESS_EXPORT StateNodeData
 
   QString displayName() const;
   bool hasValue() const;
-  State::OptionalValue value() const;
+  std::optional<ossia::value> value() const;
 };
 
 SCORE_LIB_PROCESS_EXPORT QDebug operator<<(QDebug d, const ProcessStateData& mess);

@@ -168,7 +168,7 @@ public:
         }
         else
         {
-          this->m_pressedPrevious = ossia::none;
+          this->m_pressedPrevious = std::nullopt;
         }
 
         this->m_pressPos = this->currentPoint;
@@ -291,7 +291,7 @@ public:
   MultiOngoingCommandDispatcher m_movingDispatcher;
   Scenario::Point m_pressPos{}; // where the click landed in the scenario
   Scenario::Point m_origPos{};  // original position of the object being moved
-  optional<TimeVal> m_pressedPrevious;
+  std::optional<TimeVal> m_pressedPrevious;
   TimeVal m_lastDate;
   bool m_startEventCanBeMerged{};
   bool m_endEventCanBeMerged{};
@@ -598,7 +598,7 @@ public:
 //        }
 //        else
 //        {
-//          this->m_pressedPrevious = ossia::none;
+//          this->m_pressedPrevious = std::nullopt;
 //        }
 
 //      });
@@ -607,7 +607,7 @@ public:
 //        m_movingDispatcher.commit();
 //        m_mergingEventDispatcher.commit();
 //        m_mergingTnDispatcher.commit();
-//        m_pressedPrevious = ossia::none;
+//        m_pressedPrevious = std::nullopt;
 //      });
 //    }
 
@@ -629,7 +629,7 @@ public:
 //  m_mergingTnDispatcher; SingleOngoingCommandDispatcher<Command::MergeEvents>
 //  m_mergingEventDispatcher;
 
-//  optional<TimeVal> m_pressedPrevious;
+//  std::optional<TimeVal> m_pressedPrevious;
 //  Scenario::Point m_clickedPoint;
 //};
 }

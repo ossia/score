@@ -52,7 +52,7 @@ public:
       QMenu* menu = nullptr);
 
   State::Expression relation();
-  optional<State::BinaryOperator> binOperator();
+  std::optional<State::BinaryOperator> binOperator();
 
   int id = -1;
 

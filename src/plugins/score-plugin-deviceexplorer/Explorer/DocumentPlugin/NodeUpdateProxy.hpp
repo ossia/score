@@ -92,7 +92,7 @@ public:
   void updateRemoteValue(const State::Address&, const ossia::value&);
 
   ossia::value refreshRemoteValue(const State::Address&) const;
-  optional<ossia::value> try_refreshRemoteValue(const State::Address&) const;
+  std::optional<ossia::value> try_refreshRemoteValue(const State::Address&) const;
   void refreshRemoteValues(const Device::NodeList&);
 
 private:

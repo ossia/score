@@ -218,7 +218,7 @@ State::Expression SimpleExpressionEditorWidget::relation()
     return State::Expression{};
 }
 
-optional<State::BinaryOperator> SimpleExpressionEditorWidget::binOperator()
+std::optional<State::BinaryOperator> SimpleExpressionEditorWidget::binOperator()
 {
   switch (m_binOperator->currentIndex())
   {
@@ -227,7 +227,7 @@ optional<State::BinaryOperator> SimpleExpressionEditorWidget::binOperator()
     case 2:
       return State::BinaryOperator::OR;
     default:
-      return ossia::none;
+      return std::nullopt;
   }
 }
 

@@ -253,7 +253,7 @@ struct Expression_builder : boost::static_visitor<void>
 };
 }
 
-ossia::optional<State::Expression> State::parseExpression(const std::string& input)
+std::optional<State::Expression> State::parseExpression(const std::string& input)
 {
   auto f(std::begin(input)), l(std::end(input));
   auto p = std::make_unique<Expression_parser<decltype(f)>>();
@@ -286,7 +286,7 @@ ossia::optional<State::Expression> State::parseExpression(const std::string& inp
   }
 }
 
-ossia::optional<State::Expression> State::parseExpression(const QString& str)
+std::optional<State::Expression> State::parseExpression(const QString& str)
 {
   return parseExpression(str.toStdString());
 }

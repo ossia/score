@@ -33,7 +33,7 @@ struct SCORE_LIB_DEVICE_EXPORT AddressSettingsCommon
 
   State::Unit unit;
 
-  optional<ossia::access_mode> ioType;
+  std::optional<ossia::access_mode> ioType;
   ossia::bounding_mode clipMode{};
   ossia::repetition_filter repetitionFilter{};
 
@@ -149,7 +149,7 @@ struct SCORE_LIB_DEVICE_EXPORT FullAddressAccessorSettings
   ossia::value value;
   State::Domain domain;
 
-  optional<ossia::access_mode> ioType;
+  std::optional<ossia::access_mode> ioType;
   ossia::bounding_mode clipMode{};
   ossia::repetition_filter repetitionFilter{};
 

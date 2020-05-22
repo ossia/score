@@ -253,7 +253,7 @@ void loadPluginsInAllFolders(std::vector<score::Addon>& availablePlugins, QStrin
 #endif
 }
 
-optional<score::Addon> makeAddon(
+std::optional<score::Addon> makeAddon(
     const QString& addon_path,
     const QJsonObject& json_addon,
     const std::vector<score::Addon>& availablePlugins)
@@ -306,7 +306,7 @@ optional<score::Addon> makeAddon(
   }
 
   if (add.name.isEmpty() || add.path.isEmpty() || add.key.impl().is_nil())
-    return ossia::none;
+    return std::nullopt;
 
   return add;
 }

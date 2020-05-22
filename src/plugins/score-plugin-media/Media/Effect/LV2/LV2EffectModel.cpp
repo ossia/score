@@ -35,7 +35,7 @@
 W_OBJECT_IMPL(Media::LV2::LV2EffectModel)
 namespace Media::LV2
 {
-optional<Lilv::Plugin> find_lv2_plugin(Lilv::World& world, QString path)
+std::optional<Lilv::Plugin> find_lv2_plugin(Lilv::World& world, QString path)
 {
   static tsl::hopscotch_map<QString, const LilvPlugin*> plug_map;
   if (auto it = plug_map.find(path); it != plug_map.end())

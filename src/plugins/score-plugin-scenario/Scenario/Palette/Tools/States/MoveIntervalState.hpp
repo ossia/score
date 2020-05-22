@@ -89,7 +89,7 @@ public:
         }
         else
         {
-          this->m_pressedPrevious = ossia::none;
+          this->m_pressedPrevious = std::nullopt;
         }
 
         this->m_startEventCanBeMerged = previousIntervals(sev, scenar).empty();
@@ -230,7 +230,7 @@ private:
 
   Scenario::Point m_initialClick{};
   Scenario::Point m_intervalInitialPoint{};
-  optional<TimeVal> m_pressedPrevious;
+  std::optional<TimeVal> m_pressedPrevious;
   TimeVal m_lastDate{};
   bool m_startEventCanBeMerged{};
   bool m_endEventCanBeMerged{};

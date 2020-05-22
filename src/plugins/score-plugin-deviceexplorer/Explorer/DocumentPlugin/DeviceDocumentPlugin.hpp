@@ -52,7 +52,7 @@ public:
   // If the output is different that the input,
   // it means that the node has changes and the output should
   // be used.
-  optional<Device::Node> loadDeviceFromNode(const Device::Node&);
+  std::optional<Device::Node> loadDeviceFromNode(const Device::Node&);
 
   void setConnection(bool);
 

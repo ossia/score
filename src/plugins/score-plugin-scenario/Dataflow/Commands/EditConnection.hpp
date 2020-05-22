@@ -70,6 +70,6 @@ private:
   Path<Scenario::ScenarioDocumentModel> m_model;
   Id<Process::Cable> m_cable;
   Process::CableData m_data;
-  optional<bool> m_previousPropagate{};
+  std::optional<bool> m_previousPropagate{};
 };
 }

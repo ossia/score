@@ -27,13 +27,13 @@ using JsonStream = rapidjson::Writer<rapidjson::StringBuffer>;
 struct OptionalSentinel
 {
   template <typename T>
-  friend bool operator==(optional<T>& lhs, const OptionalSentinel& rhs)
+  friend bool operator==(std::optional<T>& lhs, const OptionalSentinel& rhs)
   {
     return !bool(lhs);
   }
 
   template <typename T>
-  friend bool operator!=(optional<T>& lhs, const OptionalSentinel& rhs)
+  friend bool operator!=(std::optional<T>& lhs, const OptionalSentinel& rhs)
   {
     return bool(lhs);
   }
@@ -457,24 +457,24 @@ public:
     JsonValue operator[](const std::string& str) const noexcept { return JsonValue{ref[str]}; }
     JsonValue operator[](const QString& str) const noexcept { return (*this)[str.toStdString()]; }
     template <std::size_t N>
-    optional<JsonValue> tryGet(const char (&str)[N]) const noexcept
+    std::optional<JsonValue> tryGet(const char (&str)[N]) const noexcept
     {
       if (auto it = ref.FindMember(str); it != ref.MemberEnd())
         return JsonValue{it->value};
-      return ossia::none;
+      return std::nullopt;
     }
-    optional<JsonValue> tryGet(const std::string& str) const noexcept
+    std::optional<JsonValue> tryGet(const std::string& str) const noexcept
     {
       if (auto it = ref.FindMember(str); it != ref.MemberEnd())
         return JsonValue{it->value};
-      return ossia::none;
+      return std::nullopt;
     }
-    optional<JsonValue> tryGet(const QString& str) const noexcept
+    std::optional<JsonValue> tryGet(const QString& str) const noexcept
     {
       return tryGet(str.toStdString());
     }
-    optional<JsonValue> constFind(const std::string& str) const noexcept { return tryGet(str); }
-    optional<JsonValue> constFind(const QString& str) const noexcept
+    std::optional<JsonValue> constFind(const std::string& str) const noexcept { return tryGet(str); }
+    std::optional<JsonValue> constFind(const QString& str) const noexcept
     {
       return tryGet(str.toStdString());
     }
@@ -1008,9 +1008,9 @@ struct TSerializer<JSONObject, IdContainer<T, U>> : ArraySerializer
 };
 
 template <typename T>
-struct TSerializer<JSONObject, optional<T>>
+struct TSerializer<JSONObject, std::optional<T>>
 {
-  static void readFrom(JSONObject::Serializer& s, const optional<T>& obj)
+  static void readFrom(JSONObject::Serializer& s, const std::optional<T>& obj)
   {
     if (obj)
       s.readFrom(*obj);
@@ -1018,11 +1018,11 @@ struct TSerializer<JSONObject, optional<T>>
       s.stream.Null();
   }
 
-  static void writeTo(JSONObject::Deserializer& s, optional<T>& obj)
+  static void writeTo(JSONObject::Deserializer& s, std::optional<T>& obj)
   {
     if (s.base.IsNull())
     {
-      obj = ossia::none;
+      obj = std::nullopt;
     }
     else
     {

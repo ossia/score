@@ -163,8 +163,8 @@ namespace State
 {
 using Expression = TreeNode<ExprData>;
 
-SCORE_LIB_STATE_EXPORT optional<State::Expression> parseExpression(const QString& str);
-SCORE_LIB_STATE_EXPORT optional<State::Expression> parseExpression(const std::string& str);
+SCORE_LIB_STATE_EXPORT std::optional<State::Expression> parseExpression(const QString& str);
+SCORE_LIB_STATE_EXPORT std::optional<State::Expression> parseExpression(const std::string& str);
 SCORE_LIB_STATE_EXPORT State::Expression defaultTrueExpression();
 SCORE_LIB_STATE_EXPORT State::Expression defaultFalseExpression();
 

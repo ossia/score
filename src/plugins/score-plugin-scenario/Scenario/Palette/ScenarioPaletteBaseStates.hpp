@@ -26,15 +26,15 @@ public:
 
   void clear()
   {
-    clickedEvent = ossia::none;
-    clickedTimeSync = ossia::none;
-    clickedInterval = ossia::none;
-    clickedState = ossia::none;
+    clickedEvent = std::nullopt;
+    clickedTimeSync = std::nullopt;
+    clickedInterval = std::nullopt;
+    clickedState = std::nullopt;
 
-    hoveredEvent = ossia::none;
-    hoveredTimeSync = ossia::none;
-    hoveredInterval = ossia::none;
-    hoveredState = ossia::none;
+    hoveredEvent = std::nullopt;
+    hoveredTimeSync = std::nullopt;
+    hoveredInterval = std::nullopt;
+    hoveredState = std::nullopt;
 
     currentPoint = Scenario::Point();
   }

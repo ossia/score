@@ -49,8 +49,8 @@ public:
 
   QString name() const noexcept { return score::Skin::instance().toString(ref); }
 
-  static optional<ColorRef> ColorFromString(const QString&) noexcept;
-  static optional<ColorRef> SimilarColor(QColor other) noexcept;
+  static std::optional<ColorRef> ColorFromString(const QString&) noexcept;
+  static std::optional<ColorRef> SimilarColor(QColor other) noexcept;
 
 private:
   const Brush* ref{};

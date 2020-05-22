@@ -38,6 +38,6 @@ protected:
 private:
   Path<Model> m_model;
   SegmentParameterMap m_new;
-  QMap<Id<SegmentModel>, QPair<optional<double>, optional<double>>> m_old;
+  QMap<Id<SegmentModel>, QPair<std::optional<double>, std::optional<double>>> m_old;
 };
 }

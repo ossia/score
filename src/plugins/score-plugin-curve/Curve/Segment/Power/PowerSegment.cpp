@@ -151,7 +151,7 @@ ossia::curve_segment<int> PowerSegment::makeIntFunction() const
   return makeFunction<int>();
 }
 
-optional<double> PowerSegment::verticalParameter() const
+std::optional<double> PowerSegment::verticalParameter() const
 {
   if (start().y() < end().y())
   {

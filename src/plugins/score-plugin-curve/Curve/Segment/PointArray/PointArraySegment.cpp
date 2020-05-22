@@ -215,8 +215,8 @@ std::vector<SegmentData> PointArraySegment::toLinearSegments() const
       Id<SegmentModel>{N0},
       pts[0],
       pts[1],
-      ossia::none,
-      ossia::none,
+      std::nullopt,
+      std::nullopt,
       Metadata<ConcreteKey_k, LinearSegment>::get(),
       QVariant::fromValue(LinearSegmentData{}));
 
@@ -231,7 +231,7 @@ std::vector<SegmentData> PointArraySegment::toLinearSegments() const
         pts[i],
         pts[i + 1],
         Id<SegmentModel>{k - 1},
-        ossia::none,
+        std::nullopt,
         Metadata<ConcreteKey_k, LinearSegment>::get(),
         QVariant::fromValue(LinearSegmentData()));
   }
@@ -252,8 +252,8 @@ std::vector<SegmentData> PointArraySegment::toPowerSegments() const
       Id<SegmentModel>{N0},
       pts[0],
       pts[1],
-      ossia::none,
-      ossia::none,
+      std::nullopt,
+      std::nullopt,
       Metadata<ConcreteKey_k, PowerSegment>::get(),
       QVariant::fromValue(PowerSegmentData{}));
 

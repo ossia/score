@@ -58,5 +58,5 @@ private:
 };
 }
 
-W_REGISTER_ARGTYPE(optional<Library::ProcessData>)
-Q_DECLARE_METATYPE(optional<Library::ProcessData>)
+W_REGISTER_ARGTYPE(std::optional<Library::ProcessData>)
+Q_DECLARE_METATYPE(std::optional<Library::ProcessData>)

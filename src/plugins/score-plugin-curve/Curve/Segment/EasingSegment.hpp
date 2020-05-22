@@ -73,8 +73,8 @@ public:
            + (end().y() - start().y()) * (Easing_T{}(x)-start().x()) / (end().x() - start().x());
   }
 
-  optional<double> verticalParameter() const override { return {}; }
-  optional<double> horizontalParameter() const override { return {}; }
+  std::optional<double> verticalParameter() const override { return {}; }
+  std::optional<double> horizontalParameter() const override { return {}; }
   void setVerticalParameter(double p) override { }
   void setHorizontalParameter(double p) override { }
 

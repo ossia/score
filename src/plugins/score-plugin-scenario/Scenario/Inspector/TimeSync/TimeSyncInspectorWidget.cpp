@@ -120,7 +120,7 @@ class TimeSignatureWidget : public QLineEdit
 public:
   TimeSignatureWidget() { setContentsMargins(0, 0, 0, 0); }
 
-  void setSignature(optional<Control::time_signature> t)
+  void setSignature(std::optional<Control::time_signature> t)
   {
     if (t)
     {
@@ -132,7 +132,7 @@ public:
     }
   }
 
-  optional<Control::time_signature> signature() const
+  std::optional<Control::time_signature> signature() const
   {
     return Control::get_time_signature(this->text().toStdString());
   }
