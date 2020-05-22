@@ -33,28 +33,54 @@ namespace Explorer
 DeviceEditDialog::DeviceEditDialog(const Device::ProtocolFactoryList& pl, QWidget* parent)
     : QDialog(parent), m_protocolList{pl}, m_protocolWidget{nullptr}, m_index(-1)
 {
-  setLayout(new QHBoxLayout);
+  setWindowTitle(tr("Add device"));
+  auto gridLayout = new QGridLayout{};
+  setLayout(gridLayout);
   setModal(true);
 
-  m_buttonBox = new QDialogButtonBox(
-      QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, this);
+  m_buttonBox = new QDialogButtonBox(Qt::Horizontal, this);
+  m_buttonBox->addButton(tr("Add"), QDialogButtonBox::AcceptRole );
+  m_buttonBox->addButton(QDialogButtonBox::Cancel );
+
   connect(m_buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
   connect(m_buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
   m_protocols = new QListWidget{this};
   m_protocols->setFixedWidth(150);
-  layout()->addWidget(m_protocols);
+
+  const auto& skin = score::Skin::instance();
+  {
+    auto protocolTitle = new QLabel{tr("Protocols"), this};
+    protocolTitle->setFont(skin.TitleFont);
+    auto p = protocolTitle->palette();
+    p.setColor(QPalette::WindowText, QColor("#D5D5D5"));
+    protocolTitle->setPalette(p);
+    gridLayout->addWidget(protocolTitle,0,0, Qt::AlignHCenter);
+  }
+
+
+  gridLayout->addWidget(m_protocols,1,0);
 
   m_devices = new QListWidget{this};
-  m_devices->setFixedWidth(120);
-  layout()->addWidget(m_devices);
+  m_devices->setFixedWidth(140);
+  gridLayout->addWidget(m_devices,1,1);
+  {
+    m_devicesLabel = new QLabel{tr("Devices"), this};
+    m_devicesLabel->setFont(skin.TitleFont);
+    auto p = m_devicesLabel->palette();
+    p.setColor(QPalette::WindowText, QColor("#D5D5D5"));
+    m_devicesLabel->setPalette(p);
+    gridLayout->addWidget(m_devicesLabel,0,1, Qt::AlignHCenter);
+  }
+
+
 
   auto mainWidg = new QWidget{this};
-  layout()->addWidget(mainWidg);
+  gridLayout->addWidget(mainWidg,0,2,-1,-1);
   m_layout = new QFormLayout;
   m_layout->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
-  m_layout->addWidget(m_buttonBox);
   mainWidg->setLayout(m_layout);
+  m_layout->addWidget(m_buttonBox);
 
   initAvailableProtocols();
 
@@ -65,6 +91,8 @@ DeviceEditDialog::DeviceEditDialog(const Device::ProtocolFactoryList& pl, QWidge
 
   if (m_protocols->count() > 0)
   {
+    m_protocols->setCurrentItem(m_protocols->item(0));
+    m_index = m_protocols->currentRow();
     selectedProtocolChanged();
   }
 
@@ -144,6 +172,7 @@ void DeviceEditDialog::selectedProtocolChanged()
   if(!m_protocols->currentItem())
   {
     m_devices->setVisible(false);
+    m_devicesLabel->setVisible(false);
     return;
   }
 
@@ -155,6 +184,7 @@ void DeviceEditDialog::selectedProtocolChanged()
   if(m_enumerator)
   {
     m_devices->setVisible(true);
+    m_devicesLabel->setVisible(true);
 
     auto addItem = [&] (const Device::DeviceSettings& settings) {
       auto item = new QListWidgetItem;
@@ -176,12 +206,14 @@ void DeviceEditDialog::selectedProtocolChanged()
   else
   {
     m_devices->setVisible(false);
+    m_devicesLabel->setVisible(false);
   }
   m_protocolWidget = protocol->makeSettingsWidget();
 
   if (m_protocolWidget)
   {
-    m_layout->insertRow(1, m_protocolWidget);
+    m_layout->insertRow(0, m_protocolWidget);
+
     QSizePolicy pol{QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding};
     pol.setVerticalStretch(1);
     m_protocolWidget->setSizePolicy(pol);

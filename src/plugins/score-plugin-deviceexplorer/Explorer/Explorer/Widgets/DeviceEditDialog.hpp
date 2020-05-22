@@ -13,6 +13,7 @@ class QComboBox;
 class QFormLayout;
 class QWidget;
 class QListWidget;
+class QLabel;
 class QDialogButtonBox;
 
 namespace Device
@@ -49,6 +50,7 @@ private:
   QDialogButtonBox* m_buttonBox{};
   QListWidget* m_protocols{};
   QListWidget* m_devices{};
+  QLabel* m_devicesLabel{};
   Device::ProtocolSettingsWidget* m_protocolWidget{};
   QFormLayout* m_layout{};
   QList<Device::DeviceSettings> m_previousSettings;
