@@ -100,6 +100,8 @@ public:
   QFont Medium10Pt;
   QFont Medium12Pt;
 
+  QFont TitleFont;
+
   Brush Dark;
   Brush HalfDark;
   Brush DarkGray;

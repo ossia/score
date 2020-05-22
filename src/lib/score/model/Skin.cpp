@@ -141,6 +141,10 @@ Skin::Skin() noexcept
   Medium12Pt = SansFont;
   Medium12Pt.setPixelSize(12 * 96. / 72.);
 
+  TitleFont = SansFont;
+  TitleFont.setPixelSize(14);
+  TitleFont.setBold(true);
+
   SliderBrush = QColor{"#161514"};
   SliderPen = QPen{QColor{"#62400a"}, 1};
   SliderInteriorBrush = QColor{"#62400a"};
@@ -197,7 +201,8 @@ Skin::Skin() noexcept
          &Medium8Pt,
          &Medium10Pt,
          &Medium12Pt,
-         &SliderFont};
+         &SliderFont,
+         &TitleFont};
   for (QFont* font : fonts)
   {
     font->setHintingPreference(QFont::HintingPreference::PreferVerticalHinting);

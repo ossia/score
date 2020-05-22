@@ -4,6 +4,7 @@
 #include <QLabel>
 
 #include <score_lib_base_export.h>
+#include <score/model/Skin.hpp>
 
 namespace score {
 class SCORE_LIB_BASE_EXPORT FormWidget : public QWidget
@@ -15,11 +16,9 @@ public:
       vlay->setSpacing(10);
       this->setLayout(vlay);
 
+      const auto& skin = score::Skin::instance();
       auto label = new QLabel{title, this};
-      auto f = label->font();
-      f.setPixelSize(14);
-      f.setBold(true);
-      label->setFont(f);
+      label->setFont(skin.TitleFont);
       auto p = label->palette();
       p.setColor(QPalette::WindowText, QColor("#D5D5D5"));
       label->setPalette(p);
