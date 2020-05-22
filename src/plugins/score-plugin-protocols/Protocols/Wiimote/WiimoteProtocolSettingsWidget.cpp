@@ -24,7 +24,7 @@ WiimoteProtocolSettingsWidget::WiimoteProtocolSettingsWidget(QWidget* parent)
   m_deviceNameEdit->setText("Wiimote");
 
   auto layout = new QFormLayout;
-  layout->addRow(tr("Device name"), m_deviceNameEdit);
+  layout->addRow(tr("Name"), m_deviceNameEdit);
   layout->addRow(new QLabel(tr("Be sure to enable discoverable mode !")));
 
   setLayout(layout);

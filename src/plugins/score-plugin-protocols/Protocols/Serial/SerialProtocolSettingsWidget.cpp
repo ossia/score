@@ -13,6 +13,7 @@
 #include <score/widgets/JS/JSEdit.hpp>
 #include <score/widgets/Layout.hpp>
 #include <score/widgets/ComboBox.hpp>
+#include <score/widgets/TextLabel.hpp>
 
 #include <QLineEdit>
 #include <QVariant>
@@ -21,24 +22,31 @@ namespace Protocols
 SerialProtocolSettingsWidget::SerialProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
 {
-  m_name = new QLineEdit;
+  QLabel* deviceNameLabel = new TextLabel(tr("Name"), this);
+  m_name = new QLineEdit{this};
+
+  QLabel* portLabel = new TextLabel(tr("Port"), this);
   m_port = new score::ComboBox{this};
 
   m_codeEdit = new JSEdit(this);
-  m_codeEdit->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
-  m_codeEdit->setMinimumHeight(300);
+  QLabel* codeLabel = new TextLabel(tr("Code"), this);
 
   for (auto port : QSerialPortInfo::availablePorts())
   {
     m_port->addItem(port.portName());
   }
+  QGridLayout* gLayout = new QGridLayout;
 
-  auto lay = new score::FormLayout;
-  lay->addRow(tr("Name"), m_name);
-  lay->addRow(tr("Port"), m_port);
-  lay->addRow(tr("Code"), m_codeEdit);
+  gLayout->addWidget(deviceNameLabel, 0, 0, 1, 1);
+  gLayout->addWidget(m_name, 0, 1, 1, 1);
 
-  setLayout(lay);
+  gLayout->addWidget(portLabel, 1, 0, 1, 1);
+  gLayout->addWidget(m_port, 1, 1, 1, 1);
+
+  gLayout->addWidget(codeLabel, 3, 0, 1, 1);
+  gLayout->addWidget(m_codeEdit, 3, 1, 1, 1);
+
+  setLayout(gLayout);
 
   setDefaults();
 }

@@ -507,7 +507,7 @@ AudioSettingsWidget::AudioSettingsWidget(QWidget* parent) : ProtocolSettingsWidg
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
 
   auto layout = new QFormLayout;
-  layout->addRow(tr("Device Name"), m_deviceNameEdit);
+  layout->addRow(tr("Name"), m_deviceNameEdit);
 
   setLayout(layout);
 

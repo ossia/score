@@ -30,7 +30,7 @@ JoystickProtocolSettingsWidget::JoystickProtocolSettingsWidget(QWidget* parent)
   auto update_button = new QPushButton{"Update", this};
 
   auto layout = new QFormLayout;
-  layout->addRow(tr("Device name"), m_deviceNameEdit);
+  layout->addRow(tr("Name"), m_deviceNameEdit);
   layout->addRow(tr("Joystick"), m_deviceChoice);
   layout->addRow(update_button);
 

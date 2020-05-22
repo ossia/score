@@ -10,6 +10,7 @@
 #include <score/tools/Bind.hpp>
 #include <score/widgets/JS/JSEdit.hpp>
 #include <score/widgets/Layout.hpp>
+#include <score/widgets/TextLabel.hpp>
 
 #include <ossia/detail/config.hpp>
 
@@ -621,18 +622,22 @@ bool MapperProtocolFactory::checkCompatibility(
 MapperProtocolSettingsWidget::MapperProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
 {
+  QLabel* deviceNameLabel = new TextLabel(tr("Name"), this);
   m_name = new QLineEdit;
 
+  QLabel* codeLabel = new TextLabel(tr("Code"), this);
   m_codeEdit = new JSEdit(this);
-  m_codeEdit->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
-  m_codeEdit->setMinimumHeight(300);
-  m_codeEdit->setMaximumHeight(16777215);
 
-  auto lay = new score::FormLayout;
-  lay->addRow(tr("Name"), m_name);
-  lay->addRow(tr("Code"), m_codeEdit);
+  QGridLayout* gLayout = new QGridLayout;
 
-  setLayout(lay);
+  gLayout->addWidget(deviceNameLabel, 0, 0, 1, 1);
+  gLayout->addWidget(m_name, 0, 1, 1, 1);
+
+  gLayout->addWidget(codeLabel, 3, 0, 1, 1);
+  gLayout->addWidget(m_codeEdit, 3, 1, 1, 1);
+
+
+  setLayout(gLayout);
 
   setDefaults();
 }

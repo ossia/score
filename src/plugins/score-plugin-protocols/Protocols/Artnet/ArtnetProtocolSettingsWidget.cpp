@@ -22,7 +22,7 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   m_deviceNameEdit->setText("Artnet");
 
   auto layout = new QFormLayout;
-  layout->addRow(tr("Device name"), m_deviceNameEdit);
+  layout->addRow(tr("Name"), m_deviceNameEdit);
 
   setLayout(layout);
 }

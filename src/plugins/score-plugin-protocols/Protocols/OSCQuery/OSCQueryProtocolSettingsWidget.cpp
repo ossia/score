@@ -34,7 +34,7 @@ OSCQueryProtocolSettingsWidget::OSCQueryProtocolSettingsWidget(QWidget* parent)
 
   QFormLayout* layout = new QFormLayout;
 
-  layout->addRow(tr("Device Name"), m_deviceNameEdit);
+  layout->addRow(tr("Name"), m_deviceNameEdit);
   layout->addRow(tr("Host"), m_localHostEdit);
   layout->addRow(tr("Rate"), m_rate);
 

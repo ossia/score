@@ -37,10 +37,10 @@ OSCProtocolSettingsWidget::OSCProtocolSettingsWidget(QWidget* parent)
   m_rate = new RateWidget{this};
 
   auto layout = new QFormLayout{this};
-  layout->addRow(tr("Device name"), m_deviceNameEdit);
+  layout->addRow(tr("Name"), m_deviceNameEdit);
   layout->addRow(tr("Device listening port"), m_portInputSBox);
   layout->addRow(tr("score listening port"), m_portOutputSBox);
-  layout->addRow(tr("Device host"), m_localHostEdit);
+  layout->addRow(tr("Host"), m_localHostEdit);
   layout->addRow(tr("Rate"), m_rate);
   setDefaults();
 }

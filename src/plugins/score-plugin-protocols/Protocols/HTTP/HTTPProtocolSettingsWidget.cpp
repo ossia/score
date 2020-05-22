@@ -21,7 +21,7 @@ namespace Protocols
 HTTPProtocolSettingsWidget::HTTPProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
 {
-  QLabel* deviceNameLabel = new TextLabel(tr("Device name"), this);
+  QLabel* deviceNameLabel = new TextLabel(tr("Name"), this);
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
 
   QLabel* codeLabel = new TextLabel(tr("Code"), this);

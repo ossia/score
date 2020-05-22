@@ -59,11 +59,11 @@ MinuitProtocolSettingsWidget::MinuitProtocolSettingsWidget(QWidget* parent)
   layout->addWidget(pb);
 #endif
 
-  layout->addRow(tr("Device Name"), m_deviceNameEdit);
+  layout->addRow(tr("Name"), m_deviceNameEdit);
   layout->addRow(tr("Device listening port"), m_portInputSBox);
   layout->addRow(tr("score listening port"), m_portOutputSBox);
   layout->addRow(tr("Host"), m_localHostEdit);
-  layout->addRow(tr("Local Name"), m_localNameEdit);
+  layout->addRow(tr("Local name"), m_localNameEdit);
   layout->addRow(tr("Rate"), m_rate);
 
   setLayout(layout);

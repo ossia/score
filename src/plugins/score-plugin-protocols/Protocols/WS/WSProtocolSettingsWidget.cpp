@@ -10,6 +10,7 @@
 
 #include <score/tools/Debug.hpp>
 #include <score/widgets/JS/JSEdit.hpp>
+#include <score/widgets/TextLabel.hpp>
 
 #include <QDebug>
 #include <QGridLayout>
@@ -24,7 +25,7 @@ namespace Protocols
 WSProtocolSettingsWidget::WSProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
 {
-  auto deviceNameLabel = new QLabel(tr("Device name"), this);
+  auto deviceNameLabel = new QLabel(tr("Name"), this);
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
 
   auto addrLabel = new QLabel(tr("Address"), this);
@@ -32,8 +33,6 @@ WSProtocolSettingsWidget::WSProtocolSettingsWidget(QWidget* parent)
 
   auto codeLabel = new QLabel(tr("Code"), this);
   m_codeEdit = new JSEdit(this);
-  m_codeEdit->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
-  m_codeEdit->setMinimumHeight(300);
 
   connect(m_codeEdit, &JSEdit::editingFinished, this, [=] {
     auto engine = new QQmlEngine;
