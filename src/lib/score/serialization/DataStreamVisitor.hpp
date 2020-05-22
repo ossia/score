@@ -488,9 +488,9 @@ struct TSerializer<DataStream, IdentifiedObject<T>>
 };
 
 template <typename T>
-struct TSerializer<DataStream, optional<T>>
+struct TSerializer<DataStream, std::optional<T>>
 {
-  static void readFrom(DataStream::Serializer& s, const optional<T>& obj)
+  static void readFrom(DataStream::Serializer& s, const std::optional<T>& obj)
   {
     s.stream() << static_cast<bool>(obj);
 
@@ -501,7 +501,7 @@ struct TSerializer<DataStream, optional<T>>
     SCORE_DEBUG_INSERT_DELIMITER2(s);
   }
 
-  static void writeTo(DataStream::Deserializer& s, optional<T>& obj)
+  static void writeTo(DataStream::Deserializer& s, std::optional<T>& obj)
   {
     bool b{};
     s.stream() >> b;
@@ -514,7 +514,7 @@ struct TSerializer<DataStream, optional<T>>
     }
     else
     {
-      obj = ossia::none;
+      obj = std::nullopt;
     }
     SCORE_DEBUG_CHECK_DELIMITER2(s);
   }
