@@ -174,8 +174,7 @@ public:
   friend struct Graph;
   friend struct Renderer;
 
-  void createRenderTarget(const RenderState& state);
-  void setScreenRenderTarget(const RenderState& state);
+  virtual void createRenderTarget(const RenderState& state);
 
   virtual std::optional<QSize> renderTargetSize() const noexcept;
   // Render loop

@@ -37,10 +37,6 @@ public:
 
   ~Window()
   {
-    if (handle())
-      releaseSwapChain();
-
-    state.release();
   }
 
   std::function<void()> onWindowReady;
@@ -52,6 +48,7 @@ public:
   void resizeSwapChain()
   {
     state.hasSwapChain = state.swapChain->buildOrResize(); // also handles m_ds
+    state.size = state.swapChain->currentPixelSize();
     if (onResize)
       onResize();
   }

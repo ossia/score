@@ -42,9 +42,11 @@ struct RenderState
   Renderer* renderer{};
 
   QOffscreenSurface* surface{};
+  QSize size{};
   bool hasSwapChain = false;
 
-  static RenderState create(QWindow& window, GraphicsApi graphicsApi)
+
+  static RenderState createOffscreen(GraphicsApi graphicsApi)
   {
     RenderState state;
 
@@ -60,7 +62,6 @@ struct RenderState
       state.surface = QRhiGles2InitParams::newFallbackSurface();
       QRhiGles2InitParams params;
       params.fallbackSurface = state.surface;
-      params.window = &window;
       state.rhi = QRhi::create(QRhi::OpenGLES2, &params, {});
     }
 #endif
@@ -69,8 +70,7 @@ struct RenderState
     if (graphicsApi == Vulkan)
     {
       QRhiVulkanInitParams params;
-      params.inst = window.vulkanInstance();
-      params.window = &window;
+      params.inst = staticVulkanInstance();
       state.rhi = QRhi::create(QRhi::Vulkan, &params, {});
     }
 #endif
@@ -102,39 +102,6 @@ struct RenderState
     if (!state.rhi)
       qFatal("Failed to create RHI backend");
 
-    state.swapChain = state.rhi->newSwapChain();
-
-    // state.renderBuffer = state.rhi->newRenderBuffer(
-    //            QRhiRenderBuffer::DepthStencil,
-    //            QSize(),
-    //            1,
-    //            QRhiRenderBuffer::UsedWithSwapChainOnly);
-    //
-    state.swapChain->setWindow(&window);
-    // state.swapChain->setDepthStencil(state.renderBuffer);
-    state.swapChain->setSampleCount(1);
-    state.swapChain->setFlags({});
-    state.renderPassDescriptor = state.swapChain->newCompatibleRenderPassDescriptor();
-    state.swapChain->setRenderPassDescriptor(state.renderPassDescriptor);
-
     return state;
-  }
-
-  void release()
-  {
-    delete renderPassDescriptor;
-    renderPassDescriptor = nullptr;
-
-    delete renderBuffer;
-    renderBuffer = nullptr;
-
-    delete swapChain;
-    swapChain = nullptr;
-
-    delete rhi;
-    rhi = nullptr;
-
-    delete surface;
-    surface = nullptr;
   }
 };

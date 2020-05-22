@@ -6,14 +6,43 @@
 
 #include <Gfx/GfxExecContext.hpp>
 #include <Gfx/Graph/nodes.hpp>
+#include <Spout/SpoutSender.h>
 namespace Gfx
 {
+struct SpoutNode : OutputNode
+{
+  SpoutNode();
+  virtual ~SpoutNode();
 
-class gfx_window_context;
-class gfx_protocol : public ossia::net::protocol_base
+  Renderer* m_renderer{};
+  std::shared_ptr<RenderState> m_renderState{};
+  std::shared_ptr<SpoutSender> window{};
+
+  void startRendering() override;
+  void onRendererChange() override;
+  bool canRender() const override;
+  void stopRendering() override;
+
+  void setRenderer(Renderer* r) override;
+  Renderer* renderer() const override;
+
+  void createOutput(
+      GraphicsApi graphicsApi,
+      std::function<void()> onReady,
+      std::function<void()> onResize
+      ) override;
+  void destroyOutput() override;
+
+  RenderState* renderState() const override;
+  RenderedNode* createRenderer() const noexcept override;
+};
+
+
+class spout_window_context;
+class spout_protocol : public ossia::net::protocol_base
 {
 public:
-  gfx_protocol(GfxExecutionAction& ctx) : context{&ctx} { }
+  spout_protocol(GfxExecutionAction& ctx) : context{&ctx} { }
   GfxExecutionAction* context{};
   bool pull(ossia::net::parameter_base&) override { return false; }
   bool push(const ossia::net::parameter_base&, const ossia::value& v) override { return false; }
@@ -22,7 +51,7 @@ public:
   bool update(ossia::net::node_base& node_base) override { return false; }
 };
 
-class gfx_parameter : public ossia::net::parameter_base
+class spout_parameter : public ossia::net::parameter_base
 {
   GfxExecutionAction* context{};
 
@@ -30,14 +59,14 @@ public:
   int32_t node_id{};
   ScreenNode* screen{};
 
-  gfx_parameter(ossia::net::node_base& n, GfxExecutionAction* ctx)
+  spout_parameter(ossia::net::node_base& n, GfxExecutionAction* ctx)
       : ossia::net::parameter_base{n}, context{ctx}
   {
     screen = new ScreenNode;
     node_id = context->ui->register_node(std::unique_ptr<ScreenNode>{screen});
   }
 
-  virtual ~gfx_parameter() { context->ui->unregister_node(node_id); }
+  virtual ~spout_parameter() { context->ui->unregister_node(node_id); }
 
   void pull_value() override { }
 
@@ -72,24 +101,24 @@ public:
   ossia::net::parameter_base& set_bounding(ossia::bounding_mode) override { return *this; }
 };
 
-class gfx_device;
-class gfx_node : public ossia::net::node_base
+class spout_device;
+class spout_node : public ossia::net::node_base
 {
   ossia::net::device_base& m_device;
   node_base* m_parent{};
-  std::unique_ptr<gfx_parameter> m_parameter;
+  std::unique_ptr<spout_parameter> m_parameter;
 
 public:
-  gfx_node(ossia::net::device_base& dev, std::string name)
+  spout_node(ossia::net::device_base& dev, std::string name)
       : m_device{dev}
-      , m_parameter{std::make_unique<gfx_parameter>(
+      , m_parameter{std::make_unique<spout_parameter>(
             *this,
-            dynamic_cast<gfx_protocol&>(dev.get_protocol()).context)}
+            dynamic_cast<spout_protocol&>(dev.get_protocol()).context)}
   {
     m_name = std::move(name);
   }
 
-  gfx_parameter* get_parameter() const override { return m_parameter.get(); }
+  spout_parameter* get_parameter() const override { return m_parameter.get(); }
 
 private:
   ossia::net::device_base& get_device() const override { return m_device; }
@@ -108,18 +137,18 @@ private:
   void removing_child(ossia::net::node_base& node_base) override { }
 };
 
-class gfx_device : public ossia::net::device_base
+class spout_device : public ossia::net::device_base
 {
-  gfx_node root;
+  spout_node root;
 
 public:
-  gfx_device(std::unique_ptr<ossia::net::protocol_base> proto, std::string name)
+  spout_device(std::unique_ptr<ossia::net::protocol_base> proto, std::string name)
       : ossia::net::device_base{std::move(proto)}, root{*this, name}
   {
   }
 
-  const gfx_node& get_root_node() const override { return root; }
-  gfx_node& get_root_node() override { return root; }
+  const spout_node& get_root_node() const override { return root; }
+  spout_node& get_root_node() override { return root; }
 };
 }
 
@@ -132,9 +161,9 @@ public:
 
 namespace Gfx
 {
-class GfxProtocolFactory final : public Device::ProtocolFactory
+class SpoutProtocolFactory final : public Device::ProtocolFactory
 {
-  SCORE_CONCRETE("5a181207-7d40-4ad8-814e-879fcdf8cc31")
+  SCORE_CONCRETE("ddf45db7-9eaf-453c-8fc0-86ccdf21677c")
   QString prettyName() const noexcept override;
   QString category() const noexcept override;
   Device::DeviceEnumerator* getEnumerator(const score::DocumentContext& ctx) const override;
@@ -163,12 +192,12 @@ class GfxProtocolFactory final : public Device::ProtocolFactory
       const noexcept override;
 };
 
-class GfxDevice final : public Device::DeviceInterface
+class SpoutDevice final : public Device::DeviceInterface
 {
-  W_OBJECT(GfxDevice)
+  W_OBJECT(SpoutDevice)
 public:
-  GfxDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx);
-  ~GfxDevice();
+  SpoutDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx);
+  ~SpoutDevice();
 
   void addAddress(const Device::FullAddressSettings& settings) override;
 
@@ -189,14 +218,14 @@ private:
   void setupNode(ossia::net::node_base&, const ossia::extended_attributes& attr);
 
   const score::DocumentContext& m_ctx;
-  gfx_protocol* m_protocol{};
-  mutable std::unique_ptr<gfx_device> m_dev;
+  spout_protocol* m_protocol{};
+  mutable std::unique_ptr<spout_device> m_dev;
 };
 
-class GfxSettingsWidget final : public Device::ProtocolSettingsWidget
+class SpoutSettingsWidget final : public Device::ProtocolSettingsWidget
 {
 public:
-  GfxSettingsWidget(QWidget* parent = nullptr);
+  SpoutSettingsWidget(QWidget* parent = nullptr);
 
   Device::DeviceSettings getSettings() const override;
 

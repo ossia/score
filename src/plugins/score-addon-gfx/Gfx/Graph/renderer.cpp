@@ -49,8 +49,8 @@ void Renderer::init()
 
 void Renderer::release()
 {
-  for (int i = 0; i < renderedNodes.size(); i++)
-    renderedNodes[i]->release(*this);
+  for (auto node : renderedNodes)
+    node->release(*this);
 
   for (auto bufs : m_vertexBuffers)
   {
@@ -71,7 +71,7 @@ void Renderer::release()
 
 void Renderer::maybeRebuild()
 {
-  const QSize outputSize = state.swapChain->currentPixelSize();
+  const QSize outputSize = state.size;
   if (outputSize != lastSize)
   {
     release();
@@ -80,18 +80,13 @@ void Renderer::maybeRebuild()
     // be processed
 
     // For each, we create a render target
-    for (int i = 0; i < renderedNodes.size() - 1; i++)
-    {
-      auto node = renderedNodes[i];
+    for (auto node : renderedNodes)
       node->createRenderTarget(state);
-    }
-
-    // Except the last one which is going to render to screen
-    renderedNodes.back()->setScreenRenderTarget(state);
 
     init();
-    for (int i = 0; i < renderedNodes.size(); i++)
-      renderedNodes[i]->init(*this);
+
+    for (auto node : renderedNodes)
+      node->init(*this);
 
     lastSize = outputSize;
   }

@@ -22,6 +22,9 @@
 #include <Gfx/Video/Inspector.hpp>
 #include <Gfx/Video/Layer.hpp>
 #include <Gfx/Video/Process.hpp>
+#if defined(_WIN32)
+#include <Gfx/SpoutDevice.hpp>
+#endif
 #include <score_addon_gfx_commands_files.hpp>
 #include <score_plugin_engine.hpp>
 
@@ -37,8 +40,11 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_addon_gfx::factories(
       score::ApplicationContext,
       FW<Device::ProtocolFactory
       , Gfx::GfxProtocolFactory
-      , Gfx::CameraProtocolFactory>,
-
+      , Gfx::CameraProtocolFactory
+#if defined(_WIN32)
+      , Gfx::SpoutProtocolFactory
+#endif
+      >,
       FW<Process::ProcessModelFactory,
          Gfx::Filter::ProcessFactory,
          Gfx::Video::ProcessFactory,

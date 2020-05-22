@@ -25,6 +25,7 @@ if(OSSIA_SDK)
       "${OSSIA_SDK}/llvm-libs"
       "${OSSIA_SDK}/llvm"
       "${OSSIA_SDK}/fftw"
+      "${OSSIA_SDK}/zlib"
       "${OSSIA_SDK}/portaudio/lib/cmake"
       "${OSSIA_SDK}/portaudio/lib/cmake/portaudio"
       "${CMAKE_PREFIX_PATH}")

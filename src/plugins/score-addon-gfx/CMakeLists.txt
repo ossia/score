@@ -178,6 +178,16 @@ if(APPLE)
         )
 endif()
 
+if(WIN32)
+  add_subdirectory("${3RDPARTY_FOLDER}/Spout" "${CMAKE_CURRENT_BINARY_DIR}/Spout")
+  target_link_libraries(${PROJECT_NAME} PRIVATE Spout)
+  target_sources(${PROJECT_NAME}
+      PRIVATE
+        Gfx/SpoutDevice.hpp
+        Gfx/SpoutDevice.cpp
+  )
+endif()
+
 # Target-specific options
 setup_score_plugin(${PROJECT_NAME})
 

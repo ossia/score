@@ -131,6 +131,7 @@ struct ScreenNode : OutputNode
   virtual ~ScreenNode();
 
   std::shared_ptr<Window> window{};
+  QRhiSwapChain* swapChain{};
 
   void startRendering() override;
   void onRendererChange() override;
@@ -147,6 +148,9 @@ struct ScreenNode : OutputNode
       ) override;
   void destroyOutput() override;
 
-  virtual RenderState* renderState() const override;
+  RenderState* renderState() const override;
+
+  RenderedNode* createRenderer() const noexcept override;
+
 };
 

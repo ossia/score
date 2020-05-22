@@ -8,7 +8,7 @@ NodeModel::NodeModel() { }
 
 void RenderedNode::createRenderTarget(const RenderState& state)
 {
-  auto sz = state.swapChain->surfacePixelSize();
+  auto sz = state.size;
   if (auto true_sz = renderTargetSize())
   {
     sz = *true_sz;
@@ -26,21 +26,6 @@ void RenderedNode::createRenderTarget(const RenderState& state)
   ensure(renderTarget->build());
 
   this->m_renderTarget = renderTarget;
-}
-
-void RenderedNode::setScreenRenderTarget(const RenderState& state)
-{
-  if(state.swapChain)
-  {
-    m_renderTarget = state.swapChain->currentFrameRenderTarget();
-    m_renderPass = state.renderPassDescriptor;
-  }
-  else
-  {
-    m_renderTarget = nullptr;
-    m_renderPass = nullptr;
-    qDebug() << "Warning: swapchain not found in screenRenderTarget";
-  }
 }
 
 std::optional<QSize> RenderedNode::renderTargetSize() const noexcept
@@ -300,7 +285,7 @@ void RenderedNode::runPass(
 
   cb.beginPass(m_renderTarget, Qt::black, {1.0f, 0}, &updateBatch);
   {
-    const auto sz = renderer.state.swapChain->currentPixelSize();
+    const auto sz = renderer.state.size;
     cb.setGraphicsPipeline(pipeline());
     cb.setShaderResources(resources());
     cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));

@@ -209,6 +209,7 @@ std::shared_ptr<Renderer> Graph::createRenderer(OutputNode* output, RenderState 
   auto ptr = std::make_shared<Renderer>();
   for (auto& node : nodes)
     node->addedToGraph = false;
+
   Renderer& r = *ptr;
   r.output = output;
   output->setRenderer(ptr.get());
@@ -219,7 +220,7 @@ std::shared_ptr<Renderer> Graph::createRenderer(OutputNode* output, RenderState 
     model_nodes.push_back(output);
 
     // In which order do we want to render stuff
-    int processed = 0;
+    std::size_t processed = 0;
     while (processed != model_nodes.size())
     {
       graphwalk(model_nodes[processed], model_nodes);
@@ -238,22 +239,14 @@ std::shared_ptr<Renderer> Graph::createRenderer(OutputNode* output, RenderState 
   }
 
   // For each, we create a render target
-  for (std::size_t i = 0; i < r.renderedNodes.size() - 1; i++)
-  {
-    auto node = r.renderedNodes[i];
+  for (auto node : r.renderedNodes)
     node->createRenderTarget(r.state);
-  }
-
-  // Except the last one which is going to render to screen
-  r.renderedNodes.back()->setScreenRenderTarget(r.state);
 
   output->onRendererChange();
   {
     // Register the rendered nodes with their parents
-    for (auto rn : r.renderedNodes)
-    {
-      const_cast<NodeModel&>(rn->node).renderedNodes[&r] = rn;
-    }
+    for (auto node : r.renderedNodes)
+      const_cast<NodeModel&>(node->node).renderedNodes[&r] = node;
 
     r.init();
 

@@ -5,7 +5,7 @@
 #include <ossia/detail/hash_map.hpp>
 #include <ossia/network/value/value_conversion.hpp>
 
-#include <Gfx/Graph/window.hpp>
+#include <Gfx/Graph/graph.hpp>
 #include <concurrentqueue.h>
 namespace Gfx
 {

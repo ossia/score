@@ -12,6 +12,7 @@
 #include <QMimeData>
 
 #include <Gfx/GfxApplicationPlugin.hpp>
+#include <Gfx/Graph/window.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Gfx::GfxDevice)
 
