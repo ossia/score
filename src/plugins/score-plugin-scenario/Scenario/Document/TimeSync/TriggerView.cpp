@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TriggerView.hpp"
 #include <score/widgets/Pixmap.hpp>
+#include <score/model/Skin.hpp>
 
 #include <QBitmap>
 #include <QGraphicsSceneMouseEvent>

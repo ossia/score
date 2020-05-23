@@ -3,7 +3,7 @@
 #include "graph.hpp"
 #include "mesh.hpp"
 #include "renderer.hpp"
-
+#include <score/tools/Debug.hpp>
 NodeModel::NodeModel() { }
 
 void RenderedNode::createRenderTarget(const RenderState& state)

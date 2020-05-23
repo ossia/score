@@ -39,5 +39,6 @@ private:
 };
 
 #if QT_CONFIG(vulkan)
+class QVulkanInstance;
 QVulkanInstance* staticVulkanInstance();
 #endif

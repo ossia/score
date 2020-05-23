@@ -49,6 +49,13 @@ public:
   {
   }
 
+  constexpr uuid& operator=(const uuid& other) noexcept
+  {
+    for(int i = 0; i < 16; i++)
+      data[i] = other.data[i];
+    return *this;
+  }
+
   constexpr uuid(uint8_t* other) noexcept
       : data{
           other[0],

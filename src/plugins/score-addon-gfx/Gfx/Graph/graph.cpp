@@ -5,7 +5,7 @@
 #include "window.hpp"
 
 #include <score/tools/Debug.hpp>
-
+#include <QVulkanInstance>
 static void graphwalk(NodeModel* node, std::vector<NodeModel*>& list)
 {
   for (auto inputs : node->input)

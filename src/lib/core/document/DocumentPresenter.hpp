@@ -3,7 +3,7 @@
 #include <QObject>
 
 #include <verdigris>
-
+#include <score_lib_base_export.h>
 class Selection;
 namespace score
 {
@@ -15,7 +15,7 @@ class DocumentView;
 /**
  * @brief Interface between the DocumentModel and the DocumentView.
  */
-class DocumentPresenter final : public QObject
+class SCORE_LIB_BASE_EXPORT DocumentPresenter final : public QObject
 {
   W_OBJECT(DocumentPresenter)
 public:

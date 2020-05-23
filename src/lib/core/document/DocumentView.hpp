@@ -1,7 +1,7 @@
 #pragma once
 
 #include <verdigris>
-
+#include <score_lib_base_export.h>
 namespace score
 {
 class Document;
@@ -15,7 +15,7 @@ class PanelView;
  * It displays a @c{DocumentDelegateViewInterface}, in
  * the central widget.
  */
-class DocumentView final : public QObject
+class SCORE_LIB_BASE_EXPORT DocumentView final : public QObject
 {
   W_OBJECT(DocumentView)
 public:

@@ -5,6 +5,7 @@
 
 #include <QApplication>
 #include <QPainter>
+#include <QPainterPath>
 
 namespace Process
 {
