@@ -89,7 +89,9 @@ DeviceEditDialog::DeviceEditDialog(const Device::ProtocolFactoryList& pl, QWidge
   initAvailableProtocols();
 
   connect(m_protocols, &QTreeView::activated,
-          this, [this] { selectedProtocolChanged(); });
+          this, [this] {
+    selectedProtocolChanged();
+  });
   connect(m_devices, &QListWidget::currentRowChanged,
           this, [this] { selectedDeviceChanged(); });
 
@@ -178,6 +180,18 @@ void DeviceEditDialog::selectedDeviceChanged()
 
 void DeviceEditDialog::selectedProtocolChanged()
 {
+  // Recreate
+  if(m_protocols->selectedItems().isEmpty())
+  {
+    //m_devices->setVisible(false);
+    //m_devicesLabel->setVisible(false);
+    return;
+  }
+  auto selected_item = m_protocols->selectedItems().first();
+  auto key = selected_item->data(0,Qt::UserRole).value<UuidKey<Device::ProtocolFactory>>();
+  if (key == UuidKey<Device::ProtocolFactory>{})
+    return;
+
   // Clear listener
   if(m_enumerator)
   {
@@ -197,17 +211,7 @@ void DeviceEditDialog::selectedProtocolChanged()
     m_protocolWidget = nullptr;
   }
 
-  // Recreate
-  if(m_protocols->selectedItems().isEmpty())
-  {
-    m_devices->setVisible(false);
-    m_devicesLabel->setVisible(false);
-    return;
-  }
-  auto selected_item = m_protocols->selectedItems().first();
-
  // m_index = m_protocols->selectedIndexes().first();
-  auto key = selected_item->data(0,Qt::UserRole).value<UuidKey<Device::ProtocolFactory>>();
 
   auto protocol = m_protocolList.get(key);
   m_enumerator.reset(protocol->getEnumerator(*(score::DocumentContext*)0));
