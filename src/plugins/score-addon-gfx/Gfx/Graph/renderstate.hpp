@@ -36,7 +36,6 @@ class QOffscreenSurface;
 struct RenderState
 {
   QRhi* rhi{};
-  QRhiSwapChain* swapChain{};
   QRhiRenderPassDescriptor* renderPassDescriptor{};
   QRhiRenderBuffer* renderBuffer{};
   Renderer* renderer{};
@@ -45,7 +44,7 @@ struct RenderState
   QSize size{};
   bool hasSwapChain = false;
 
-
+/*
   static RenderState createOffscreen(GraphicsApi graphicsApi)
   {
     RenderState state;
@@ -103,5 +102,5 @@ struct RenderState
       qFatal("Failed to create RHI backend");
 
     return state;
-  }
+  }*/
 };

@@ -8,6 +8,7 @@
 
 #include <Execution/DocumentPlugin.hpp>
 
+#include <Gfx/GfxParameter.hpp>
 #include <Gfx/CameraDevice.hpp>
 #include "GfxExec.hpp"
 namespace Gfx
@@ -99,7 +100,7 @@ void gfx_exec_node::run(const ossia::token_request& tk, ossia::exec_state_facade
   auto out = this->m_outlets[0]->address.target<ossia::net::parameter_base*>();
   if (out)
   {
-    if (auto p = dynamic_cast<gfx_parameter*>(*out))
+    if (auto p = dynamic_cast<gfx_parameter_base*>(*out))
     {
       p->push_texture({this->id, 0});
     }

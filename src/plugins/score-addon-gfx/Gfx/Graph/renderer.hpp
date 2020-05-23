@@ -51,7 +51,7 @@ struct Renderer
   void init();
   void release();
 
-  void render();
+  void render(QRhiCommandBuffer& commands);
 
   void update(QRhiResourceUpdateBatch& res);
 

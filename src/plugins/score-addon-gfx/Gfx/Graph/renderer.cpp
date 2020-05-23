@@ -92,12 +92,12 @@ void Renderer::maybeRebuild()
   }
 }
 
-void Renderer::render()
+void Renderer::render(QRhiCommandBuffer& commands)
 {
   if (renderedNodes.size() <= 1)
+  {
     return;
-  const auto commands = state.swapChain->currentFrameCommandBuffer();
-
+  }
   // Check if the viewport has changed
   maybeRebuild();
 
@@ -106,7 +106,7 @@ void Renderer::render()
 
   for (int i = 0; i < renderedNodes.size(); i++)
   {
-    renderedNodes[i]->runPass(*this, *commands, *updateBatch);
+    renderedNodes[i]->runPass(*this, commands, *updateBatch);
 
     if (i < renderedNodes.size() - 1)
       updateBatch = state.rhi->nextResourceUpdateBatch();

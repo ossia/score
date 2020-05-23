@@ -82,11 +82,11 @@ void ScreenNode::startRendering()
 {
   if (window)
   {
-    window->onRender = [this] {
+    window->onRender = [this] (QRhiCommandBuffer& commands) {
     if (auto r = window->state.renderer)
     {
       window->canRender = r->renderedNodes.size() > 1;
-      r->render();
+      r->render(commands);
     }
     };
   }
@@ -103,7 +103,7 @@ void ScreenNode::stopRendering()
   if (window)
   {
     window->canRender = false;
-    window->onRender = [] {};
+    window->onRender = [] (QRhiCommandBuffer&) {};
     ////window->state.hasSwapChain = false;
   }
 }
@@ -134,6 +134,7 @@ void ScreenNode::createOutput(GraphicsApi graphicsApi, std::function<void ()> on
     {
 
       swapChain = window->state.rhi->newSwapChain();
+      window->swapChain = swapChain;
 
       // state.renderBuffer = state.rhi->newRenderBuffer(
       //            QRhiRenderBuffer::DepthStencil,
@@ -170,6 +171,7 @@ void ScreenNode::destroyOutput()
 
   delete swapChain;
   swapChain = nullptr;
+  window->swapChain = nullptr;
 
   delete s.rhi;
   s.rhi = nullptr;

@@ -17,7 +17,9 @@ namespace Device
 template <typename TheList>
 static auto get_device_iterator_by_name(const QString& name, const TheList& devlist)
 {
-  return ossia::find_if(devlist, [&](DeviceInterface* d) { return d->settings().name == name; });
+  return ossia::find_if(devlist, [&](DeviceInterface* d) {
+    return d->settings().name == name;
+  });
 }
 
 DeviceInterface& DeviceList::device(const QString& name) const

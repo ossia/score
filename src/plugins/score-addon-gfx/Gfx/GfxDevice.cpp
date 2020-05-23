@@ -16,6 +16,32 @@
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Gfx::GfxDevice)
 
+#include <ossia/network/base/device.hpp>
+#include <ossia/network/base/protocol.hpp>
+
+#include <QLineEdit>
+
+#include <Gfx/GfxExecContext.hpp>
+#include <Gfx/GfxParameter.hpp>
+#include <Gfx/Graph/nodes.hpp>
+namespace Gfx
+{
+class gfx_device : public ossia::net::device_base
+{
+  gfx_node_base root;
+
+public:
+  gfx_device(std::unique_ptr<ossia::net::protocol_base> proto, std::string name)
+      : ossia::net::device_base{std::move(proto)}, root{*this, new ScreenNode, name}
+  {
+  }
+
+  const gfx_node_base& get_root_node() const override { return root; }
+  gfx_node_base& get_root_node() override { return root; }
+};
+}
+
+
 namespace Gfx
 {
 
@@ -52,9 +78,9 @@ void GfxDevice::setupContextMenu(QMenu& menu) const
   if (m_dev)
   {
     auto p = m_dev.get()->get_root_node().get_parameter();
-    if (p)
+    if (auto param = safe_cast<gfx_parameter_base*>(p))
     {
-      if (auto s = p->screen)
+      if (auto s = safe_cast<ScreenNode*>(param->node))
       {
         if (auto w = s->window)
         {
@@ -123,9 +149,10 @@ bool GfxDevice::reconnect()
     auto plug = m_ctx.findPlugin<DocumentPlugin>();
     if (plug)
     {
-      m_protocol = new gfx_protocol{plug->exec};
+      m_protocol = new gfx_protocol_base{plug->exec};
       m_dev = std::make_unique<gfx_device>(
-          std::unique_ptr<ossia::net::protocol_base>(m_protocol), "gfx");
+          std::unique_ptr<ossia::net::protocol_base>(m_protocol),
+          m_settings.name.toStdString());
     }
     // TODOengine->reload(&proto);
 

@@ -81,6 +81,8 @@ void Graph::setupOutputs(GraphicsApi graphicsApi)
   graphicsApi = D3D11;
 #endif
 
+  graphicsApi = OpenGL; // for spout support
+
   for (auto output : outputs)
   {
     output->stopRendering();
@@ -107,7 +109,7 @@ void Graph::setupOutputs(GraphicsApi graphicsApi)
       outputs.push_back(out);
 
   renderers.reserve(std::max((int)16, (int)outputs.size()));
-  int i = 0;
+
   for (auto output : outputs)
   {
     if (!output->canRender())
@@ -116,15 +118,14 @@ void Graph::setupOutputs(GraphicsApi graphicsApi)
         renderers.push_back(createRenderer(output, *output->renderState()));
       };
       auto onResize = [=] {
-        for (auto it = this->renderers.begin(); it != this->renderers.end(); ++it)
+        for (std::shared_ptr<Renderer>& renderer : this->renderers)
         {
-          auto& renderer = **it;
-          if (&renderer == output->renderer())
+          if (renderer.get() == output->renderer())
           {
-            renderer.release();
+            renderer->release();
           }
-          (*it).reset();
-          *it = createRenderer(output, *output->renderState());
+          renderer.reset();
+          renderer = createRenderer(output, *output->renderState());
         }
       };
 
@@ -132,13 +133,14 @@ void Graph::setupOutputs(GraphicsApi graphicsApi)
     }
     else
     {
-      renderers.push_back(createRenderer(output, *output->renderState()));
+      if(auto rs = output->renderState())
+      {
+        renderers.push_back(createRenderer(output, *rs));
+      }
       // output->window->state.hasSwapChain = true;
     }
 
     output->startRendering();
-
-    i++;
   }
 }
 
@@ -206,6 +208,7 @@ void Graph::relinkGraph()
 
 std::shared_ptr<Renderer> Graph::createRenderer(OutputNode* output, RenderState state)
 {
+  qDebug() << "Graph::createRenderer:" ;
   auto ptr = std::make_shared<Renderer>();
   for (auto& node : nodes)
     node->addedToGraph = false;
@@ -231,6 +234,7 @@ std::shared_ptr<Renderer> Graph::createRenderer(OutputNode* output, RenderState 
     // Now we have the nodes in the order in which they are going to
     // be processed
 
+    qDebug() << "createRenderer:" << model_nodes.size() ;
     // We create renderers for each of them
     for (auto node : model_nodes)
     {
