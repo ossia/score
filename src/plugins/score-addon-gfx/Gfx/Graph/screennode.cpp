@@ -3,6 +3,29 @@
 #include "graph.hpp"
 
 
+#include <QtGui/private/qrhinull_p.h>
+
+#ifndef QT_NO_OPENGL
+#include <QOffscreenSurface>
+#include <QtGui/private/qrhigles2_p.h>
+#endif
+
+#if QT_CONFIG(vulkan)
+#include <QtGui/private/qrhivulkan_p.h>
+#endif
+
+#ifdef Q_OS_WIN
+#include <QtGui/private/qrhid3d11_p.h>
+#endif
+
+#ifdef Q_OS_DARWIN
+#include <QtGui/private/qrhimetal_p.h>
+#endif
+
+#include <QOffscreenSurface>
+#include <QWindow>
+
+
 static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
 {
   RenderState state;
@@ -85,7 +108,7 @@ void ScreenNode::startRendering()
     window->onRender = [this] (QRhiCommandBuffer& commands) {
     if (auto r = window->state.renderer)
     {
-      window->canRender = r->renderedNodes.size() > 1;
+      window->m_canRender = r->renderedNodes.size() > 1;
       r->render(commands);
     }
     };
@@ -96,13 +119,13 @@ void ScreenNode::onRendererChange()
 {
   if (window)
     if (auto r = window->state.renderer)
-      window->canRender = r->renderedNodes.size() > 1;
+      window->m_canRender = r->renderedNodes.size() > 1;
 }
 void ScreenNode::stopRendering()
 {
   if (window)
   {
-    window->canRender = false;
+    window->m_canRender = false;
     window->onRender = [] (QRhiCommandBuffer&) {};
     ////window->state.hasSwapChain = false;
   }
@@ -166,8 +189,8 @@ void ScreenNode::destroyOutput()
   delete s.renderPassDescriptor;
   s.renderPassDescriptor = nullptr;
 
-  delete s.renderBuffer;
-  s.renderBuffer = nullptr;
+  //delete s.renderBuffer;
+  //s.renderBuffer = nullptr;
 
   delete swapChain;
   swapChain = nullptr;

@@ -38,7 +38,8 @@ struct SpoutNode : OutputNode
   QRhiTexture* m_texture{};
   QRhiTextureRenderTarget* m_renderTarget{};
   std::shared_ptr<RenderState> m_renderState{};
-  std::shared_ptr<SpoutSender> window{};
+  std::shared_ptr<SpoutSender> m_spout{};
+  bool m_hasSender{};
 
   void startRendering() override;
   void onRendererChange() override;
@@ -97,12 +98,12 @@ SpoutNode::SpoutNode()
 
       {
         rhi->makeThreadLocalNativeContextCurrent();
-        static bool b = window->CreateSender("ossia score", 1280, 720);
+        static bool b = m_spout->CreateSender("ossia score", 1280, 720);
 
         if(b)
         {
           auto tex = dynamic_cast<QGles2Texture*>(m_texture)->texture;
-          window->SendTexture(tex, GL_TEXTURE_2D, 1280, 720);
+          m_spout->SendTexture(tex, GL_TEXTURE_2D, 1280, 720);
         }
         else
         {
@@ -120,7 +121,7 @@ SpoutNode::~SpoutNode()
 }
 bool SpoutNode::canRender() const
 {
-  return bool(window);
+  return bool(m_spout);
 }
 
 void SpoutNode::startRendering()
@@ -177,7 +178,7 @@ void SpoutNode::createOutput(
       std::function<void ()> onReady,
       std::function<void ()> onResize)
 {
-  window = std::make_shared<SpoutSender>();
+  m_spout = std::make_shared<SpoutSender>();
   m_renderState = std::make_shared<RenderState>();
 
   m_renderState->surface = QRhiGles2InitParams::newFallbackSurface();
@@ -203,9 +204,9 @@ void SpoutNode::createOutput(
 
 void SpoutNode::destroyOutput()
 {
-  if(window)
-    window->ReleaseSender();
-  window.reset();
+  if(m_spout)
+    m_spout->ReleaseSender();
+  m_spout.reset();
 }
 
 RenderState* SpoutNode::renderState() const

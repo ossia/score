@@ -4,6 +4,8 @@
 #include "scene.hpp"
 
 #include <QPlatformSurfaceEvent>
+#include <QWindow>
+#include <QtGui/private/qrhigles2_p.h>
 
 class Window : public QWindow
 {
@@ -42,12 +44,11 @@ public:
   std::function<void()> onWindowReady;
   std::function<void(QRhiCommandBuffer&)> onRender;
   std::function<void()> onResize;
-  bool canRender{};
   void init() { onWindowReady(); }
 
   void resizeSwapChain()
   {
-    state.hasSwapChain = swapChain->buildOrResize(); // also handles m_ds
+    m_hasSwapChain = swapChain->buildOrResize();
     state.size = swapChain->currentPixelSize();
     if (onResize)
       onResize();
@@ -55,16 +56,16 @@ public:
 
   void releaseSwapChain()
   {
-    if (state.hasSwapChain)
+    if (m_hasSwapChain)
     {
-      state.hasSwapChain = false;
+      m_hasSwapChain = false;
       swapChain->release();
     }
   }
 
   void render()
   {
-    if (!state.hasSwapChain || m_notExposed)
+    if (!m_hasSwapChain || m_notExposed)
     {
       requestUpdate();
       return;
@@ -74,18 +75,18 @@ public:
         || m_newlyExposed)
     {
       resizeSwapChain();
-      if (!state.hasSwapChain)
+      if (!m_hasSwapChain)
         return;
       m_newlyExposed = false;
     }
 
-    if (canRender)
+    if (m_canRender)
     {
       QRhi::FrameOpResult r = state.rhi->beginFrame(swapChain, {});
       if (r == QRhi::FrameOpSwapChainOutOfDate)
       {
         resizeSwapChain();
-        if (!state.hasSwapChain)
+        if (!m_hasSwapChain)
         {
           requestUpdate();
           return;
@@ -109,7 +110,7 @@ public:
       if (r == QRhi::FrameOpSwapChainOutOfDate)
       {
         resizeSwapChain();
-        if (!state.hasSwapChain)
+        if (!m_hasSwapChain)
         {
           requestUpdate();
           return;
@@ -141,9 +142,9 @@ public:
       resizeSwapChain();
     }
 
-    const QSize surfaceSize = state.hasSwapChain ? swapChain->surfacePixelSize() : QSize();
+    const QSize surfaceSize = m_hasSwapChain ? swapChain->surfacePixelSize() : QSize();
 
-    if ((!isExposed() || (state.hasSwapChain && surfaceSize.isEmpty())) && m_running)
+    if ((!isExposed() || (m_hasSwapChain && surfaceSize.isEmpty())) && m_running)
       m_notExposed = true;
 
     if (isExposed() && m_running && m_notExposed && !surfaceSize.isEmpty())
@@ -184,9 +185,12 @@ public:
 
   RenderState state;
   QRhiSwapChain* swapChain{};
+  bool m_canRender{};
 
 private:
   bool m_running = false;
   bool m_notExposed = false;
   bool m_newlyExposed = false;
+
+  bool m_hasSwapChain{};
 };

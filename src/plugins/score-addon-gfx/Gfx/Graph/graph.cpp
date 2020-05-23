@@ -81,8 +81,6 @@ void Graph::setupOutputs(GraphicsApi graphicsApi)
   graphicsApi = D3D11;
 #endif
 
-  graphicsApi = OpenGL; // for spout support
-
   for (auto output : outputs)
   {
     output->stopRendering();
@@ -208,7 +206,6 @@ void Graph::relinkGraph()
 
 std::shared_ptr<Renderer> Graph::createRenderer(OutputNode* output, RenderState state)
 {
-  qDebug() << "Graph::createRenderer:" ;
   auto ptr = std::make_shared<Renderer>();
   for (auto& node : nodes)
     node->addedToGraph = false;
@@ -233,8 +230,6 @@ std::shared_ptr<Renderer> Graph::createRenderer(OutputNode* output, RenderState 
 
     // Now we have the nodes in the order in which they are going to
     // be processed
-
-    qDebug() << "createRenderer:" << model_nodes.size() ;
     // We create renderers for each of them
     for (auto node : model_nodes)
     {
