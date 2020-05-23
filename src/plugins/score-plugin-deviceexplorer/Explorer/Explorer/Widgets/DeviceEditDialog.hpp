@@ -13,6 +13,7 @@ class QComboBox;
 class QFormLayout;
 class QWidget;
 class QListWidget;
+class QTreeWidget;
 class QLabel;
 class QDialogButtonBox;
 
@@ -48,7 +49,7 @@ private:
   std::unique_ptr<Device::DeviceEnumerator> m_enumerator{};
 
   QDialogButtonBox* m_buttonBox{};
-  QListWidget* m_protocols{};
+  QTreeWidget* m_protocols{};
   QListWidget* m_devices{};
   QLabel* m_devicesLabel{};
   Device::ProtocolSettingsWidget* m_protocolWidget{};

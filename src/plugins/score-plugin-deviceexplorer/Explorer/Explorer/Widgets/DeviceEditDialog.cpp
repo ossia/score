@@ -21,11 +21,13 @@
 #include <QPushButton>
 #include <QSplitter>
 #include <QWidget>
+#include <QHeaderView>
 #include <qnamespace.h>
 
 #include <wobjectimpl.h>
 
 #include <QListWidget>
+#include <QTreeWidget>
 #include <utility>
 W_OBJECT_IMPL(Explorer::DeviceEditDialog)
 namespace Explorer
@@ -45,8 +47,10 @@ DeviceEditDialog::DeviceEditDialog(const Device::ProtocolFactoryList& pl, QWidge
   connect(m_buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
   connect(m_buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
-  m_protocols = new QListWidget{this};
+  m_protocols = new QTreeWidget{this};
   m_protocols->setFixedWidth(150);
+  m_protocols->header()->hide();
+  m_protocols->setSelectionMode(QAbstractItemView::SingleSelection);
 
   const auto& skin = score::Skin::instance();
   {
@@ -84,15 +88,16 @@ DeviceEditDialog::DeviceEditDialog(const Device::ProtocolFactoryList& pl, QWidge
 
   initAvailableProtocols();
 
-  connect(m_protocols, &QListWidget::currentRowChanged,
+  connect(m_protocols, &QTreeView::activated,
           this, [this] { selectedProtocolChanged(); });
   connect(m_devices, &QListWidget::currentRowChanged,
           this, [this] { selectedDeviceChanged(); });
 
-  if (m_protocols->count() > 0)
+
+  if (m_protocols->topLevelItemCount() > 0)
   {
-    m_protocols->setCurrentItem(m_protocols->item(0));
-    m_index = m_protocols->currentRow();
+  //  m_protocols->setCurrentItem();
+  //  m_index = m_protocols->currentRow();
     selectedProtocolChanged();
   }
 
@@ -118,18 +123,42 @@ void DeviceEditDialog::initAvailableProtocols()
   ossia::sort(sorted, [](Device::ProtocolFactory* lhs, Device::ProtocolFactory* rhs) {
     return lhs->visualPriority() > rhs->visualPriority();
   });
-
   for (const auto& prot_pair : sorted)
   {
     auto& prot = *prot_pair;
-    auto item = new QListWidgetItem;
-    item->setText(prot.prettyName());
-    item->setData(Qt::UserRole, QVariant::fromValue(prot.concreteKey()));
-    m_protocols->addItem(item);
+    auto cat_list = m_protocols->findItems(prot.category(),Qt::MatchFixedString);
+    QTreeWidgetItem* categoryItem;
+    if(cat_list.size() == 0)
+    {
+      categoryItem = new QTreeWidgetItem;
+      categoryItem->setText(0, prot.category());
+      categoryItem->setFlags(Qt::ItemIsEnabled);
+      m_protocols->addTopLevelItem(categoryItem);
+    }
+    else
+    {
+      categoryItem = cat_list.first();
+    }
 
+    auto item = new QTreeWidgetItem{categoryItem};
+    item->setText(0, prot.prettyName());
+    item->setData(0,Qt::UserRole, QVariant::fromValue(prot.concreteKey()));
+    item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     m_previousSettings.append(prot.defaultSettings());
   }
 
+  for(int i = 0; i < m_protocols->topLevelItemCount(); i++)
+  {
+    auto catItem = m_protocols->topLevelItem(i);
+    catItem->setExpanded(true);
+    auto font = catItem->font(0);
+    font.setPixelSize(font.pixelSize()+1);
+    font.setBold(true);
+    catItem->setFont(0,font);
+  }
+
+  m_protocols->setRootIsDecorated(false);
+  m_protocols->setExpandsOnDoubleClick(false);
   m_index = 0;
 }
 
@@ -169,15 +198,16 @@ void DeviceEditDialog::selectedProtocolChanged()
   }
 
   // Recreate
-  if(!m_protocols->currentItem())
+  if(m_protocols->selectedItems().isEmpty())
   {
     m_devices->setVisible(false);
     m_devicesLabel->setVisible(false);
     return;
   }
+  auto selected_item = m_protocols->selectedItems().first();
 
-  m_index = m_protocols->currentRow();
-  auto key = m_protocols->currentItem()->data(Qt::UserRole).value<UuidKey<Device::ProtocolFactory>>();
+ // m_index = m_protocols->selectedIndexes().first();
+  auto key = selected_item->data(0,Qt::UserRole).value<UuidKey<Device::ProtocolFactory>>();
 
   auto protocol = m_protocolList.get(key);
   m_enumerator.reset(protocol->getEnumerator(*(score::DocumentContext*)0));
@@ -233,17 +263,23 @@ Device::DeviceSettings DeviceEditDialog::getSettings() const
 
 void DeviceEditDialog::setSettings(const Device::DeviceSettings& settings)
 {
-  for(int i = 0; i < m_protocols->count(); i++) {
-    auto item = m_protocols->item(i);
-    if(item->data(Qt::UserRole).value<UuidKey<Device::ProtocolFactory>>() == settings.protocol)
+  for(int i = 0; i < m_protocols->topLevelItemCount(); i++)
+  {
+    auto catItem = m_protocols->topLevelItem(i);
+    for(int j = 0; j < catItem->childCount(); j++)
     {
-      m_protocols->setCurrentRow(i);
-      if(m_protocolWidget)
+      auto item = catItem->child(j);
+      if(item->data(0,Qt::UserRole).value<UuidKey<Device::ProtocolFactory>>() == settings.protocol)
       {
-        m_protocolWidget->setSettings(settings);
+        m_protocols->setCurrentItem(item);
+        if(m_protocolWidget)
+        {
+          m_protocolWidget->setSettings(settings);
+        }
+        return;
       }
-      return;
     }
+
   }
 }
 
