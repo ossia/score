@@ -87,7 +87,7 @@ void ApplicationPlugin::on_documentChanged(score::Document* olddoc, score::Docum
     auto messages = context.findPanel<score::MessagesPanelDelegate>();
     if (messages)
     {
-      if (auto qw = messages->dock())
+      if (auto qw = messages->widget())
       {
         auto func = [=, &devices](bool visible) {
           disableConnections();
@@ -98,7 +98,9 @@ void ApplicationPlugin::on_documentChanged(score::Document* olddoc, score::Docum
           devices.setLogging(visible);
         };
 
-        m_visible = QObject::connect(qw, &QDockWidget::visibilityChanged, messages, func);
+        m_visible =
+            QObject::connect(qw, &score::VisibilityNotifying<QListView>::visibilityChanged,
+                             messages, func);
 
         func(qw->isVisible());
       }

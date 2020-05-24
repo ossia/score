@@ -136,7 +136,7 @@ LogToMessagePanel(QtMsgType type, const QMessageLogContext& context, const QStri
 MessagesPanelDelegate::MessagesPanelDelegate(const score::GUIApplicationContext& ctx)
     : score::PanelDelegate{ctx}
     , m_itemModel{new LogMessagesItemModel{this}}
-    , m_widget{new QListView}
+    , m_widget{new VisibilityNotifying<QListView>}
 {
   g_messagesPanel = this;
 
@@ -154,7 +154,7 @@ MessagesPanelDelegate::MessagesPanelDelegate(const score::GUIApplicationContext&
   });
 }
 
-QWidget* MessagesPanelDelegate::widget()
+VisibilityNotifying<QListView>* MessagesPanelDelegate::widget()
 {
   return m_widget;
 }
@@ -166,9 +166,9 @@ const score::PanelStatus& MessagesPanelDelegate::defaultPanelStatus() const
       false,
       Qt::LeftDockWidgetArea,
       10,
-      QObject::tr("Messages"),
+      QObject::tr("Message log"),
       "messages",
-      QObject::tr("Ctrl+Shift+E")};
+      QObject::tr("Ctrl+Shift+G")};
 
   return status;
 }
@@ -181,11 +181,6 @@ void MessagesPanelDelegate::qtLog(const std::string& str)
       push(QString::fromStdString(str), score::log::dark4);
     }
   });
-}
-
-QDockWidget* MessagesPanelDelegate::dock()
-{
-  return qobject_cast<QDockWidget*>(m_widget->parent());
 }
 
 void MessagesPanelDelegate::push(const QString& str, const QColor& col)

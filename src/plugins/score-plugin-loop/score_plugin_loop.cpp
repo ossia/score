@@ -29,7 +29,7 @@
 #include <score_plugin_loop_commands_files.hpp>
 #include <string.h>
 
-SCORE_DECLARE_ACTION(PutInLoop, "&Put in Loop", Loop, Qt::SHIFT + Qt::CTRL + Qt::Key_L)
+SCORE_DECLARE_ACTION(PutInLoop, "&Put in Loop", Loop, Qt::ALT + Qt::CTRL + Qt::Key_L)
 
 namespace Loop
 {
