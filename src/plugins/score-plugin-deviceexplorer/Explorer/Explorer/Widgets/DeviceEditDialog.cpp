@@ -156,7 +156,7 @@ void DeviceEditDialog::initAvailableProtocols()
     auto catItem = m_protocols->topLevelItem(i);
     catItem->setExpanded(true);
     auto font = catItem->font(0);
-    font.setPixelSize(font.pixelSize()+1);
+    font.setPixelSize(13);
     font.setBold(true);
     catItem->setFont(0,font);
   }
@@ -276,6 +276,7 @@ void DeviceEditDialog::setSettings(const Device::DeviceSettings& settings)
       if(item->data(0,Qt::UserRole).value<UuidKey<Device::ProtocolFactory>>() == settings.protocol)
       {
         m_protocols->setCurrentItem(item);
+        selectedProtocolChanged();
         if(m_protocolWidget)
         {
           m_protocolWidget->setSettings(settings);

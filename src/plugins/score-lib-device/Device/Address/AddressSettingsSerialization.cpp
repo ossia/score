@@ -35,30 +35,39 @@ void JSONReader::read(const Device::AddressSettingsCommon& n)
   // Metadata
   if (n.ioType)
     obj[strings.ioType] = Device::AccessModeText()[*n.ioType];
+
   obj[strings.ClipMode] = Device::ClipModeStringMap()[n.clipMode];
-  obj[strings.Unit] = State::prettyUnitText(n.unit);
+
+  if(n.unit.get())
+    obj[strings.Unit] = State::prettyUnitText(n.unit);
 
   obj[strings.RepetitionFilter] = static_cast<bool>(n.repetitionFilter);
 
   // Value, domain and type
   obj[strings.Value] = n.value;
   obj[strings.Domain] = n.domain;
-  obj[strings.Extended] = n.extendedAttributes;
+
+  if(!n.extendedAttributes.empty())
+    obj[strings.Extended] = n.extendedAttributes;
 }
 
 template <>
 void JSONWriter::write(Device::AddressSettingsCommon& n)
 {
-  n.ioType = Device::AccessModeText().key(obj[strings.ioType].toString());
+  if(auto iot = obj.tryGet(strings.ioType))
+    n.ioType = Device::AccessModeText().key(iot->toString());
   n.clipMode = Device::ClipModeStringMap().key(obj[strings.ClipMode].toString());
-  n.unit = ossia::parse_pretty_unit(obj[strings.Unit].toString().toStdString());
+
+  if(auto unit = obj.tryGet(strings.Unit))
+    n.unit = ossia::parse_pretty_unit(unit->toString().toStdString());
 
   n.repetitionFilter = (ossia::repetition_filter)obj[strings.RepetitionFilter].toBool();
 
   n.value <<= obj[strings.Value];
   n.domain <<= obj[strings.Domain];
 
-  n.extendedAttributes <<= obj[strings.Extended];
+  if(auto ext = obj.tryGet(strings.Extended))
+    n.extendedAttributes <<= *ext;
 }
 
 template <>
