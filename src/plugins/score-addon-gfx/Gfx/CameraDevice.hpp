@@ -51,7 +51,7 @@ class camera_parameter : public ossia::net::parameter_base
 public:
   std::shared_ptr<::Video::CameraInput> camera;
   int32_t node_id{};
-  RGB0Node* node{};
+  VideoNode* node{};
 
   camera_parameter(const camera_settings& settings, ossia::net::node_base& n, GfxExecutionAction* ctx)
       : ossia::net::parameter_base{n}, context{ctx}
@@ -60,8 +60,8 @@ public:
     camera = proto.camera;
     camera->load(settings.input, settings.device, settings.size[0], settings.size[1], settings.fps);
 
-    node = new RGB0Node(proto.camera);
-    node_id = context->ui->register_node(std::unique_ptr<RGB0Node>(node));
+    node = new VideoNode(proto.camera);
+    node_id = context->ui->register_node(std::unique_ptr<VideoNode>(node));
   }
   void pull_texture(port_index idx) { context->setEdge(port_index{this->node_id, 0}, idx); }
 

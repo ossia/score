@@ -30,8 +30,10 @@ MeshBuffers Renderer::initMeshBuffer(const Mesh& mesh)
 
 void Renderer::init()
 {
-  auto& rhi = *state.rhi;
   ready = false;
+  if(!state.rhi)
+    return;
+  auto& rhi = *state.rhi;
 
   m_rendererUBO = rhi.newBuffer(
 #if defined(_WIN32)

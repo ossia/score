@@ -50,13 +50,13 @@ void NodeModel::setShaders(QString vert, QString frag)
 
   b.setSourceString(vert.toLatin1(), QShader::VertexStage);
   m_vertexS = b.bake();
-  qDebug() << b.errorMessage();
+  if(!b.errorMessage().isEmpty()) qDebug() << b.errorMessage();
 
   b.setSourceString(frag.toLatin1(), QShader::FragmentStage);
   m_fragmentS = b.bake();
-  qDebug() << b.errorMessage();
   if (!b.errorMessage().isEmpty())
   {
+    qDebug() << b.errorMessage();
     qDebug() << frag.toStdString().data();
   }
 

@@ -208,7 +208,7 @@ bool CameraDevice::reconnect()
       m_dev = std::make_unique<camera_device>(
             ossia_stgs,
             std::unique_ptr<ossia::net::protocol_base>(m_protocol),
-            "camera");
+            this->settings().name.toStdString());
     }
     // TODOengine->reload(&proto);
 
@@ -369,8 +369,9 @@ void CameraSettingsWidget::setSettings(const Device::DeviceSettings& settings)
   if(!prettyName.isEmpty())
   {
     prettyName = prettyName.split(':').front();
-    prettyName = prettyName.split(' ').front();
+    prettyName = prettyName.split('(').front();
     prettyName.remove("/dev/");
+    prettyName = prettyName.trimmed();
     ossia::net::sanitize_device_name(prettyName);
   }
   m_deviceNameEdit->setText(prettyName);

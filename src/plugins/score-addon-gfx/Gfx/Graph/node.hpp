@@ -129,9 +129,9 @@ public:
 
   ProcessUBO standardUBO{};
 
-protected:
   void setShaders(QString vert, QString frag);
 
+protected:
   QShader m_vertexS;
   QShader m_fragmentS;
 

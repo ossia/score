@@ -12,10 +12,6 @@
 #include <Gfx/Graph/videonode.hpp>
 #include <Gfx/Video/Process.hpp>
 
-extern "C"
-{
-#include <libavutil/pixdesc.h>
-}
 namespace Gfx::Video
 {
 class video_node final : public gfx_exec_node
@@ -24,18 +20,7 @@ public:
   video_node(const std::shared_ptr<video_decoder>& dec, GfxExecutionAction& ctx)
       : gfx_exec_node{ctx}, m_decoder{dec}
   {
-    switch (dec->pixel_format)
-    {
-      case AV_PIX_FMT_YUV420P:
-        id = exec_context->ui->register_node(std::make_unique<YUV420Node>(dec));
-        break;
-      case AV_PIX_FMT_RGB0:
-        id = exec_context->ui->register_node(std::make_unique<RGB0Node>(dec));
-        break;
-      default:
-        qDebug() << "Unhandled pixel format: " << av_get_pix_fmt_name(dec->pixel_format);
-        break;
-    }
+    id = exec_context->ui->register_node(std::make_unique<VideoNode>(dec));
     dec->seek(0);
   }
 
