@@ -45,7 +45,7 @@ public:
 
   const score::DocumentContext& ctx()
   {
-    return score::GUIAppContext().documents.currentDocument()->context();
+    return score::GUIAppContext().currentDocument();
   }
 
   void createOSCDevice(QString name, QString host, int in, int out)

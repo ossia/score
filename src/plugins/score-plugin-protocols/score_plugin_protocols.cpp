@@ -85,8 +85,8 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_protocols::facto
          Protocols::OSCQueryProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_MIDI)
-         ,
-         Protocols::MIDIProtocolFactory
+         , Protocols::MIDIInputProtocolFactory
+         , Protocols::MIDIOutputProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_HTTP)
          ,

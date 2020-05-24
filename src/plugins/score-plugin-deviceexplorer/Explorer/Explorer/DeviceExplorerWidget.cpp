@@ -897,6 +897,7 @@ void DeviceExplorerWidget::addDevice()
   delete m_deviceDialog;
   m_deviceDialog = nullptr;
 }
+
 void DeviceExplorerWidget::exportDevice()
 {
   auto indexes = m_ntView->selectedIndexes();
@@ -907,8 +908,12 @@ void DeviceExplorerWidget::exportDevice()
   if (!n.is<Device::DeviceSettings>())
     return;
 
-  QFile f{QFileDialog::getSaveFileName(
-      this, tr("Device file"), QString{}, tr("Device file (*.device)"))};
+  auto fileName = QFileDialog::getSaveFileName(
+        this, tr("Device file"), QString{}, tr("Device file (*.device)"));
+  if(!fileName.endsWith(".device"))
+    fileName.append(".device");
+
+  QFile f{fileName};
   if (f.open(QIODevice::WriteOnly))
   {
     f.write(toJson(n));

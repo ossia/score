@@ -227,7 +227,7 @@ int main(int argc, char** argv)
 
       QFileDialog::getOpenFileContent("Header (*.hpp, *.h)", [] (const QString& name, const QByteArray& data) {
 
-        fxd::DocumentModel& fxmodel = fxd::fxModel(score::GUIAppContext().documents.currentDocument()->context());
+        fxd::DocumentModel& fxmodel = fxd::fxModel(score::GUIAppContext().currentDocument());
 
         // Extract metadata
 

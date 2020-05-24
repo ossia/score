@@ -26,56 +26,25 @@ JoystickProtocolSettingsWidget::JoystickProtocolSettingsWidget(QWidget* parent)
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
   m_deviceNameEdit->setText("Joystick");
 
-  m_deviceChoice = new score::ComboBox{this};
-  auto update_button = new QPushButton{"Update", this};
-
   auto layout = new QFormLayout;
   layout->addRow(tr("Name"), m_deviceNameEdit);
-  layout->addRow(tr("Joystick"), m_deviceChoice);
-  layout->addRow(update_button);
 
   setLayout(layout);
-
-  connect(
-      update_button,
-      &QAbstractButton::released,
-      this,
-      &JoystickProtocolSettingsWidget::update_device_list);
-
-  update_device_list();
 }
 
 JoystickProtocolSettingsWidget::~JoystickProtocolSettingsWidget() { }
 
 Device::DeviceSettings JoystickProtocolSettingsWidget::getSettings() const
 {
-  Device::DeviceSettings s;
+  Device::DeviceSettings s = m_settings;
   s.name = m_deviceNameEdit->text();
-  s.protocol = JoystickProtocolFactory::static_concreteKey();
-
-  const int index = m_deviceChoice->currentIndex();
-  const int32_t id = ossia::net::joystick_protocol::get_joystick_id(index);
-
-  JoystickSpecificSettings settings{id, index};
-  s.deviceSpecificSettings = QVariant::fromValue(settings);
   return s;
 }
 
 void JoystickProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
+  m_settings = settings;
   m_deviceNameEdit->setText(settings.name);
 }
 
-void JoystickProtocolSettingsWidget::update_device_list()
-{
-  m_deviceChoice->clear();
-
-  const unsigned int joystick_count = ossia::net::joystick_protocol::get_joystick_count();
-
-  for (unsigned int i = 0; i < joystick_count; ++i)
-  {
-    const char* s = ossia::net::joystick_protocol::get_joystick_name(i);
-    m_deviceChoice->addItem(s);
-  }
-}
 }

@@ -49,6 +49,7 @@ private:
   std::unique_ptr<Device::DeviceEnumerator> m_enumerator{};
 
   QDialogButtonBox* m_buttonBox{};
+  QPushButton* m_okButton{};
   QTreeWidget* m_protocols{};
   QListWidget* m_devices{};
   QLabel* m_devicesLabel{};

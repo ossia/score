@@ -18,7 +18,7 @@ void MidiOutletFactory::setupOutletInspector(
     QObject* context)
 {
   static const MSVC_BUGGY_CONSTEXPR auto midi_uuid
-      = Protocols::MIDIProtocolFactory::static_concreteKey();
+      = Protocols::MIDIInputProtocolFactory::static_concreteKey();
 
   auto& device = *ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
   QStringList midiDevices;

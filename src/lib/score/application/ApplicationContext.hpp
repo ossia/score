@@ -11,6 +11,7 @@ class MenuManager;
 class ToolbarManager;
 class ActionManager;
 struct DocumentList;
+struct DocumentContext;
 /**
  * @brief Used to access all the application-wide state and structures
  *
@@ -85,6 +86,8 @@ struct SCORE_LIB_BASE_EXPORT ApplicationContext
   {
     return components.instantiateUndoCommand(cmd);
   }
+
+  const score::DocumentContext& currentDocument() const noexcept;
 
   //! Access to start-up command-line settings
   const score::ApplicationSettings& applicationSettings;

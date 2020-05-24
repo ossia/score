@@ -21,10 +21,8 @@ public:
   Device::DeviceSettings getSettings() const override;
   void setSettings(const Device::DeviceSettings& settings) override;
 
-  void update_device_list();
-
 protected:
   QLineEdit* m_deviceNameEdit{};
-  score::ComboBox* m_deviceChoice{};
+  Device::DeviceSettings m_settings;
 };
 }

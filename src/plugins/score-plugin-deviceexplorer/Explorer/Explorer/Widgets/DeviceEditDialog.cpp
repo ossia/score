@@ -10,7 +10,8 @@
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/TextLabel.hpp>
-
+#include <score/application/GUIApplicationContext.hpp>
+#include <core/document/Document.hpp>
 #include <ossia/detail/algorithms.hpp>
 
 #include <QComboBox>
@@ -41,7 +42,7 @@ DeviceEditDialog::DeviceEditDialog(const Device::ProtocolFactoryList& pl, QWidge
   setModal(true);
 
   m_buttonBox = new QDialogButtonBox(Qt::Horizontal, this);
-  m_buttonBox->addButton(tr("Add"), QDialogButtonBox::AcceptRole );
+  m_okButton = m_buttonBox->addButton(tr("Add"), QDialogButtonBox::AcceptRole);
   m_buttonBox->addButton(QDialogButtonBox::Cancel );
 
   connect(m_buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
@@ -103,7 +104,8 @@ DeviceEditDialog::DeviceEditDialog(const Device::ProtocolFactoryList& pl, QWidge
     selectedProtocolChanged();
   }
 
-  setMinimumWidth(600);
+  setMinimumWidth(700);
+  setMinimumHeight(400);
 }
 
 DeviceEditDialog::~DeviceEditDialog()
@@ -211,10 +213,8 @@ void DeviceEditDialog::selectedProtocolChanged()
     m_protocolWidget = nullptr;
   }
 
- // m_index = m_protocols->selectedIndexes().first();
-
   auto protocol = m_protocolList.get(key);
-  m_enumerator.reset(protocol->getEnumerator(*(score::DocumentContext*)0));
+  m_enumerator.reset(protocol->getEnumerator(score::GUIAppContext().currentDocument()));
   if(m_enumerator)
   {
     m_devices->setVisible(true);
@@ -283,7 +283,6 @@ void DeviceEditDialog::setSettings(const Device::DeviceSettings& settings)
         return;
       }
     }
-
   }
 }
 
@@ -292,7 +291,7 @@ void DeviceEditDialog::setEditingInvalidState(bool st)
   if (st != m_invalidState)
   {
     m_invalidState = st;
-    m_buttonBox->button(QDialogButtonBox::Ok)->setEnabled(st);
+    m_okButton->setEnabled(st);
   }
 }
 }

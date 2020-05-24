@@ -20,29 +20,79 @@ struct VisitorVariant;
 
 namespace Protocols
 {
-QString MIDIProtocolFactory::prettyName() const noexcept
+template<ossia::net::midi::midi_info::Type Type>
+class MidiEnumerator : public Device::DeviceEnumerator
 {
-  return QObject::tr("MIDI");
+public:
+  void enumerate(std::function<void(const Device::DeviceSettings&)> f) const override
+  {
+    try
+    {
+      auto prot = std::make_unique<ossia::net::midi::midi_protocol>();
+      auto vec = prot->scan();
+
+      for (auto& elt : vec)
+      {
+        if (elt.type == Type)
+        {
+          Device::DeviceSettings set;
+          MIDISpecificSettings specif;
+          set.name = QString::fromStdString(elt.device);
+          specif.endpoint = QString::fromStdString(elt.device);
+
+          // Clean up the name a bit
+          if(!set.name.isEmpty())
+            set.name = set.name.split(':').front();
+
+          if constexpr (Type == ossia::net::midi::midi_info::Type::RemoteInput)
+          {
+            specif.io = MIDISpecificSettings::IO::In;
+            set.protocol = MIDIInputProtocolFactory::static_concreteKey();
+            specif.createWholeTree = true;
+          }
+          else
+          {
+            specif.io = MIDISpecificSettings::IO::Out;
+            set.protocol = MIDIInputProtocolFactory::static_concreteKey();
+          }
+
+          specif.port = elt.port;
+          set.deviceSpecificSettings = QVariant::fromValue(set);
+
+          f(set);
+        }
+      }
+    }
+    catch (std::exception& e)
+    {
+      qDebug() << e.what();
+    }
+  }
+};
+
+QString MIDIInputProtocolFactory::prettyName() const noexcept
+{
+  return QObject::tr("MIDI Input");
 }
 
-QString MIDIProtocolFactory::category() const noexcept
+QString MIDIInputProtocolFactory::category() const noexcept
 {
   return StandardCategories::hardware;
 }
 
-Device::DeviceEnumerator* MIDIProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerator* MIDIInputProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
-  return nullptr;
+  return new MidiEnumerator<ossia::net::midi::midi_info::Type::RemoteInput>;
 }
 
-Device::DeviceInterface* MIDIProtocolFactory::makeDevice(
+Device::DeviceInterface* MIDIInputProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings,
     const score::DocumentContext& ctx)
 {
   return new MIDIDevice{settings};
 }
 
-const Device::DeviceSettings& MIDIProtocolFactory::defaultSettings() const noexcept
+const Device::DeviceSettings& MIDIInputProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
@@ -55,12 +105,12 @@ const Device::DeviceSettings& MIDIProtocolFactory::defaultSettings() const noexc
   return settings;
 }
 
-Device::ProtocolSettingsWidget* MIDIProtocolFactory::makeSettingsWidget()
+Device::ProtocolSettingsWidget* MIDIInputProtocolFactory::makeSettingsWidget()
 {
-  return new MIDIProtocolSettingsWidget;
+  return new MIDIInputSettingsWidget;
 }
 
-Device::AddressDialog* MIDIProtocolFactory::makeAddAddressDialog(
+Device::AddressDialog* MIDIInputProtocolFactory::makeAddAddressDialog(
     const Device::DeviceInterface& dev,
     const score::DocumentContext& ctx,
     QWidget* parent)
@@ -68,7 +118,7 @@ Device::AddressDialog* MIDIProtocolFactory::makeAddAddressDialog(
   return nullptr;
 }
 
-Device::AddressDialog* MIDIProtocolFactory::makeEditAddressDialog(
+Device::AddressDialog* MIDIInputProtocolFactory::makeEditAddressDialog(
     const Device::AddressSettings&,
     const Device::DeviceInterface& dev,
     const score::DocumentContext& ctx,
@@ -77,19 +127,95 @@ Device::AddressDialog* MIDIProtocolFactory::makeEditAddressDialog(
   return nullptr;
 }
 
-QVariant MIDIProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
+QVariant MIDIInputProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
 {
   return makeProtocolSpecificSettings_T<MIDISpecificSettings>(visitor);
 }
 
-void MIDIProtocolFactory::serializeProtocolSpecificSettings(
+void MIDIInputProtocolFactory::serializeProtocolSpecificSettings(
     const QVariant& data,
     const VisitorVariant& visitor) const
 {
   serializeProtocolSpecificSettings_T<MIDISpecificSettings>(data, visitor);
 }
 
-bool MIDIProtocolFactory::checkCompatibility(
+bool MIDIInputProtocolFactory::checkCompatibility(
+    const Device::DeviceSettings& a,
+    const Device::DeviceSettings& b) const noexcept
+{
+  return a.name != b.name;
+}
+
+QString MIDIOutputProtocolFactory::prettyName() const noexcept
+{
+  return QObject::tr("MIDI Output");
+}
+
+QString MIDIOutputProtocolFactory::category() const noexcept
+{
+  return StandardCategories::hardware;
+}
+
+Device::DeviceEnumerator* MIDIOutputProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+{
+  return new MidiEnumerator<ossia::net::midi::midi_info::Type::RemoteOutput>;
+}
+
+Device::DeviceInterface* MIDIOutputProtocolFactory::makeDevice(
+    const Device::DeviceSettings& settings,
+    const score::DocumentContext& ctx)
+{
+  return new MIDIDevice{settings};
+}
+
+const Device::DeviceSettings& MIDIOutputProtocolFactory::defaultSettings() const noexcept
+{
+  static const Device::DeviceSettings settings = [&]() {
+    Device::DeviceSettings s;
+    s.protocol = concreteKey();
+    s.name = "Midi";
+    MIDISpecificSettings specif;
+    s.deviceSpecificSettings = QVariant::fromValue(specif);
+    return s;
+  }();
+  return settings;
+}
+
+Device::ProtocolSettingsWidget* MIDIOutputProtocolFactory::makeSettingsWidget()
+{
+  return new MIDIOutputSettingsWidget;
+}
+
+Device::AddressDialog* MIDIOutputProtocolFactory::makeAddAddressDialog(
+    const Device::DeviceInterface& dev,
+    const score::DocumentContext& ctx,
+    QWidget* parent)
+{
+  return nullptr;
+}
+
+Device::AddressDialog* MIDIOutputProtocolFactory::makeEditAddressDialog(
+    const Device::AddressSettings&,
+    const Device::DeviceInterface& dev,
+    const score::DocumentContext& ctx,
+    QWidget*)
+{
+  return nullptr;
+}
+
+QVariant MIDIOutputProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
+{
+  return makeProtocolSpecificSettings_T<MIDISpecificSettings>(visitor);
+}
+
+void MIDIOutputProtocolFactory::serializeProtocolSpecificSettings(
+    const QVariant& data,
+    const VisitorVariant& visitor) const
+{
+  serializeProtocolSpecificSettings_T<MIDISpecificSettings>(data, visitor);
+}
+
+bool MIDIOutputProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a,
     const Device::DeviceSettings& b) const noexcept
 {

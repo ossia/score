@@ -14,26 +14,35 @@ class QLineEdit;
 
 namespace Protocols
 {
-class MIDIProtocolSettingsWidget final : public Device::ProtocolSettingsWidget
+class MIDIInputSettingsWidget final : public Device::ProtocolSettingsWidget
 {
-  W_OBJECT(MIDIProtocolSettingsWidget)
+  W_OBJECT(MIDIInputSettingsWidget)
 
 public:
-  MIDIProtocolSettingsWidget(QWidget* parent = nullptr);
+  MIDIInputSettingsWidget(QWidget* parent = nullptr);
 
 private:
   Device::DeviceSettings getSettings() const override;
 
   void setSettings(const Device::DeviceSettings& settings) override;
 
-  void updateDevices(ossia::net::midi::midi_info::Type);
-  void updateInputDevices();
-  void updateOutputDevices();
+  QLineEdit* m_name{};
+  Device::DeviceSettings m_current;
+};
+class MIDIOutputSettingsWidget final : public Device::ProtocolSettingsWidget
+{
+  W_OBJECT(MIDIOutputSettingsWidget)
+
+public:
+  MIDIOutputSettingsWidget(QWidget* parent = nullptr);
+
+private:
+  Device::DeviceSettings getSettings() const override;
+
+  void setSettings(const Device::DeviceSettings& settings) override;
 
   QLineEdit* m_name{};
-  QRadioButton* m_inButton{};
-  QRadioButton* m_outButton{};
-  score::ComboBox* m_deviceCBox{};
   QCheckBox* m_createWhole{};
+  Device::DeviceSettings m_current;
 };
 }
