@@ -356,6 +356,7 @@ ossia::audio_protocol& DocumentPlugin::audioProto()
 
 void DocumentPlugin::runAllCommands() const
 {
+  std::atomic_thread_fence(std::memory_order_seq_cst);
   ExecutionCommand com;
   while (m_execQueue.try_dequeue(com))
     com();

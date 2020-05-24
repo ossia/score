@@ -40,10 +40,6 @@ public:
           set.name = QString::fromStdString(elt.device);
           specif.endpoint = QString::fromStdString(elt.device);
 
-          // Clean up the name a bit
-          if(!set.name.isEmpty())
-            set.name = set.name.split(':').front();
-
           if constexpr (Type == ossia::net::midi::midi_info::Type::RemoteInput)
           {
             specif.io = MIDISpecificSettings::IO::In;

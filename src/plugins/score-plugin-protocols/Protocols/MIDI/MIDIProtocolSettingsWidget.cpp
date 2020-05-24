@@ -6,6 +6,7 @@
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <score/widgets/ComboBox.hpp>
+#include <ossia-qt/name_utils.hpp>
 
 #include <QCheckBox>
 #include <QDebug>
@@ -46,7 +47,15 @@ Device::DeviceSettings MIDIInputSettingsWidget::getSettings() const
 void MIDIInputSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
   m_current = settings;
-  m_name->setText(settings.name);
+
+  // Clean up the name a bit
+  auto prettyName = settings.name;
+  if(!prettyName.isEmpty())
+  {
+    prettyName = prettyName.split(':').front();
+    ossia::net::sanitize_device_name(prettyName);
+  }
+  m_name->setText(prettyName);
 }
 }
 
@@ -86,7 +95,15 @@ void MIDIOutputSettingsWidget::setSettings(const Device::DeviceSettings& setting
 {
   m_current = settings;
 
-  m_name->setText(settings.name);
+  // Clean up the name a bit
+  auto prettyName = settings.name;
+  if(!prettyName.isEmpty())
+  {
+    prettyName = prettyName.split(':').front();
+    ossia::net::sanitize_device_name(prettyName);
+  }
+  m_name->setText(prettyName);
+
   if (settings.deviceSpecificSettings.canConvert<MIDISpecificSettings>())
   {
     m_createWhole->setChecked(settings.deviceSpecificSettings.value<MIDISpecificSettings>().createWholeTree);

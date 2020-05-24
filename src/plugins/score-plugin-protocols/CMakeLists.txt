@@ -8,16 +8,18 @@ find_package(Qt5 5.9 OPTIONAL_COMPONENTS Qml)
 
 # Files & main target
 set(HDRS
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSSIADevice.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/ProtocolLibrary.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/RateWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSSIADevice.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/ProtocolLibrary.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/RateWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/LibraryDeviceEnumerator.hpp"
 
-    "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_protocols.hpp"
-    )
+  "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_protocols.hpp"
+)
 
 set(SRCS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/LibraryDeviceEnumerator.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_protocols.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_protocols.cpp"
 )
 
 set(OSC_HDRS

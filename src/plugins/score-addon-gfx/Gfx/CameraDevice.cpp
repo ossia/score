@@ -28,6 +28,105 @@ W_OBJECT_IMPL(Gfx::CameraDevice)
 namespace Gfx
 {
 
+#if defined(_WIN32)
+static void enumerateDevices(std::function<void(CameraSettings, QString)> func)
+{
+  REFGUID category = CLSID_VideoInputDeviceCategory;
+  IEnumMoniker *pEnum = nullptr;
+  {
+    // Create the System Device Enumerator.
+    ICreateDevEnum *pDevEnum;
+    HRESULT hr = CoCreateInstance(CLSID_SystemDeviceEnum, NULL,
+                                  CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pDevEnum));
+
+    if (SUCCEEDED(hr))
+    {
+      // Create an enumerator for the category.
+      hr = pDevEnum->CreateClassEnumerator(category, &pEnum, 0);
+      if (hr == S_FALSE)
+      {
+        hr = VFW_E_NOT_FOUND;  // The category is empty. Treat as an error.
+      }
+      pDevEnum->Release();
+    }
+  }
+
+  if(pEnum)
+  {
+    IMoniker* pMoniker = nullptr;
+    while (pEnum->Next(1, &pMoniker, NULL) == S_OK)
+    {
+      QString prettyName;
+      CameraSettings settings;
+      settings.input = "dshow";
+      IPropertyBag *pPropBag;
+      HRESULT hr = pMoniker->BindToStorage(0, 0, IID_PPV_ARGS(&pPropBag));
+      if (FAILED(hr))
+      {
+        pMoniker->Release();
+        continue;
+      }
+
+      VARIANT var;
+      VariantInit(&var);
+
+      // Get description or friendly name.
+      hr = pPropBag->Read(L"Description", &var, 0);
+      if (FAILED(hr))
+      {
+        hr = pPropBag->Read(L"FriendlyName", &var, 0);
+      }
+      if (SUCCEEDED(hr))
+      {
+        prettyName = QString::fromWCharArray(var.bstrVal);
+        settings.device = "video=" + QString::fromWCharArray(var.bstrVal);
+        VariantClear(&var);
+      }
+
+      hr = pPropBag->Read(L"DevicePath", &var, 0);
+      if (SUCCEEDED(hr))
+      {
+        // The device path is not intended for display.
+        // TODO why doesn't this work with ffmpeg :/
+        // settings.device = "video=" + QString::fromWCharArray(var.bstrVal);
+        VariantClear(&var);
+      }
+
+      if(!settings.device.isEmpty() && !prettyName.isEmpty())
+      {
+        func(settings, prettyName);
+      }
+      pPropBag->Release();
+      pMoniker->Release();
+    }
+  }
+}
+#else
+static void enumerateDevices(std::function<void(CameraSettings, QString)> func)
+{
+  AVInputFormat* fmt = nullptr;
+  while ((fmt = av_input_video_device_next(fmt)))
+  {
+    AVDeviceInfoList *device_list = nullptr;
+    avdevice_list_input_sources(fmt, nullptr, nullptr, &device_list);
+
+    if(device_list)
+    {
+      for(int i = 0; i < device_list->nb_devices; i++)
+      {
+        auto dev = device_list->devices[i];
+        QString devname = QString("%1 (%2: %3)").arg(dev->device_name).arg(fmt->long_name).arg(fmt->name);
+        // TODO see AVDeviceCapabilitiesQuery and try to show some stream info ?
+        func({QString(fmt->name).split(",").front(), dev->device_name}, devname);
+      }
+      avdevice_free_list_devices(&device_list);
+      device_list = nullptr;
+    }
+  }
+}
+#endif
+
+
 CameraDevice::CameraDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
     : DeviceInterface{settings}, m_ctx{ctx}
 {
@@ -145,6 +244,23 @@ Device::Node CameraDevice::refresh()
   return simple_refresh();
 }
 
+
+
+class CameraEnumerator : public Device::DeviceEnumerator
+{
+public:
+  void enumerate(std::function<void(const Device::DeviceSettings&)> f) const override
+  {
+    enumerateDevices([&] (const CameraSettings& set, QString name) {
+      Device::DeviceSettings s;
+      s.name = name;
+      s.protocol = CameraProtocolFactory::static_concreteKey();
+      s.deviceSpecificSettings = QVariant::fromValue(set);
+      f(s);
+    });
+  }
+};
+
 QString CameraProtocolFactory::prettyName() const noexcept
 {
   return QObject::tr("Camera input");
@@ -157,7 +273,7 @@ QString CameraProtocolFactory::category() const noexcept
 
 Device::DeviceEnumerator* CameraProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
-  return nullptr;
+  return new CameraEnumerator;
 }
 
 Device::DeviceInterface* CameraProtocolFactory::makeDevice(
@@ -221,119 +337,12 @@ bool CameraProtocolFactory::checkCompatibility(
   return a.name != b.name;
 }
 
-#if defined(_WIN32)
-static void enumerateDevices(std::function<void(CameraSettings, QString)> func)
-{
-  REFGUID category = CLSID_VideoInputDeviceCategory;
-  IEnumMoniker *pEnum = nullptr;
-  {
-    // Create the System Device Enumerator.
-    ICreateDevEnum *pDevEnum;
-    HRESULT hr = CoCreateInstance(CLSID_SystemDeviceEnum, NULL,
-                                  CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pDevEnum));
-
-    if (SUCCEEDED(hr))
-    {
-      // Create an enumerator for the category.
-      hr = pDevEnum->CreateClassEnumerator(category, &pEnum, 0);
-      if (hr == S_FALSE)
-      {
-        hr = VFW_E_NOT_FOUND;  // The category is empty. Treat as an error.
-      }
-      pDevEnum->Release();
-    }
-  }
-
-  if(pEnum)
-  {
-    IMoniker* pMoniker = nullptr;
-    while (pEnum->Next(1, &pMoniker, NULL) == S_OK)
-    {
-      QString prettyName;
-      CameraSettings settings;
-      settings.input = "dshow";
-      IPropertyBag *pPropBag;
-      HRESULT hr = pMoniker->BindToStorage(0, 0, IID_PPV_ARGS(&pPropBag));
-      if (FAILED(hr))
-      {
-        pMoniker->Release();
-        continue;
-      }
-
-      VARIANT var;
-      VariantInit(&var);
-
-      // Get description or friendly name.
-      hr = pPropBag->Read(L"Description", &var, 0);
-      if (FAILED(hr))
-      {
-        hr = pPropBag->Read(L"FriendlyName", &var, 0);
-      }
-      if (SUCCEEDED(hr))
-      {
-        prettyName = QString::fromWCharArray(var.bstrVal);
-        settings.device = "video=" + QString::fromWCharArray(var.bstrVal);
-        VariantClear(&var);
-      }
-
-      hr = pPropBag->Read(L"DevicePath", &var, 0);
-      if (SUCCEEDED(hr))
-      {
-        // The device path is not intended for display.
-        // TODO why doesn't this work with ffmpeg :/
-        // settings.device = "video=" + QString::fromWCharArray(var.bstrVal);
-        VariantClear(&var);
-      }
-
-      if(!settings.device.isEmpty() && !prettyName.isEmpty())
-      {
-        func(settings, prettyName);
-      }
-      pPropBag->Release();
-      pMoniker->Release();
-    }
-  }
-}
-#else
-static void enumerateDevices(std::function<void(CameraSettings, QString)> func)
-{
-  AVInputFormat* fmt = nullptr;
-  while ((fmt = av_input_video_device_next(fmt)))
-  {
-    AVDeviceInfoList *device_list = nullptr;
-    avdevice_list_input_sources(fmt, nullptr, nullptr, &device_list);
-
-    if(device_list)
-    {
-      for(int i = 0; i < device_list->nb_devices; i++)
-      {
-        auto dev = device_list->devices[i];
-        QString devname = QString("%1 (%2: %3)").arg(dev->device_name).arg(fmt->long_name).arg(fmt->name);
-        // TODO see AVDeviceCapabilitiesQuery and try to show some stream info ?
-        func({QString(fmt->name).split(",").front(), dev->device_name}, devname);
-      }
-      avdevice_free_list_devices(&device_list);
-      device_list = nullptr;
-    }
-  }
-}
-#endif
-
 CameraSettingsWidget::CameraSettingsWidget(QWidget* parent) : ProtocolSettingsWidget(parent)
 {
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
 
   auto layout = new QFormLayout;
   layout->addRow(tr("Device Name"), m_deviceNameEdit);
-
-  m_combo = new QComboBox;
-  enumerateDevices([this] (const CameraSettings& settings, QString prettyname) {
-    m_settings.push_back(settings);
-    m_combo->addItem(prettyname);
-  });
-  m_combo->setCurrentIndex(0);
-
-  layout->addRow(tr("Device"), m_combo);
   setLayout(layout);
 
   setDefaults();
@@ -346,22 +355,25 @@ void CameraSettingsWidget::setDefaults()
 
 Device::DeviceSettings CameraSettingsWidget::getSettings() const
 {
-  Device::DeviceSettings s;
+  Device::DeviceSettings s = m_settings;
   s.name = m_deviceNameEdit->text();
-  s.protocol = CameraProtocolFactory::static_concreteKey();
-  CameraSettings specif;
-  int curIdx = m_combo->currentIndex();
-  if(curIdx >= 0 && curIdx < (int)m_settings.size())
-  {
-    specif = m_settings[curIdx];
-  }
-  s.deviceSpecificSettings = QVariant::fromValue(specif);
   return s;
 }
 
 void CameraSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
-  m_deviceNameEdit->setText(settings.name);
+  m_settings = settings;
+
+  // Clean up the name a bit
+  auto prettyName = settings.name;
+  if(!prettyName.isEmpty())
+  {
+    prettyName = prettyName.split(':').front();
+    prettyName = prettyName.split(' ').front();
+    prettyName.remove("/dev/");
+    ossia::net::sanitize_device_name(prettyName);
+  }
+  m_deviceNameEdit->setText(prettyName);
 }
 
 }

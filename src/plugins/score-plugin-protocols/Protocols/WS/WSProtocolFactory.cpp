@@ -5,6 +5,7 @@
 #include "WSDevice.hpp"
 
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <Protocols/LibraryDeviceEnumerator.hpp>
 #include <Protocols/WS/WSProtocolSettingsWidget.hpp>
 #include <Protocols/WS/WSSpecificSettings.hpp>
 
@@ -32,7 +33,14 @@ QString WSProtocolFactory::category() const noexcept
 }
 Device::DeviceEnumerator* WSProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
-  return nullptr;
+  return new LibraryDeviceEnumerator{
+    "Ossia.WebSockets",
+    "qml",
+    WSProtocolFactory::static_concreteKey(),
+        [] (const QByteArray& arr) {
+      return QVariant::fromValue(WSSpecificSettings{{}, arr});
+    },
+    ctx};
 }
 
 Device::DeviceInterface* WSProtocolFactory::makeDevice(

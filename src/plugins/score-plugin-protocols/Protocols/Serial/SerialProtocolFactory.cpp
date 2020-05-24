@@ -9,6 +9,7 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Protocols/Serial/SerialProtocolSettingsWidget.hpp>
 #include <Protocols/Serial/SerialSpecificSettings.hpp>
+#include <Protocols/LibraryDeviceEnumerator.hpp>
 
 #include <ossia/network/base/device.hpp>
 
@@ -28,7 +29,14 @@ QString SerialProtocolFactory::category() const noexcept
 
 Device::DeviceEnumerator* SerialProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
-  return nullptr;
+  return new LibraryDeviceEnumerator{
+    "Ossia.Serial",
+    "qml",
+    SerialProtocolFactory::static_concreteKey(),
+        [] (const QByteArray& arr) {
+      return QVariant::fromValue(SerialSpecificSettings{{}, arr});
+    },
+    ctx};
 }
 
 Device::DeviceInterface* SerialProtocolFactory::makeDevice(

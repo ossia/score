@@ -32,6 +32,10 @@ bool CameraInput::load(const std::string& inputKind, const std::string& inputDev
   m_inputKind = inputKind;
   m_inputDevice = inputDevice;
 
+  auto ifmt = av_find_input_format(m_inputKind.c_str());
+  assert(ifmt);
+  qDebug() << ifmt->name << ifmt->long_name;
+
   return true;
 }
 

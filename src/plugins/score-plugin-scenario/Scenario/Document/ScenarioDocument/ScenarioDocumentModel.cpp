@@ -128,7 +128,11 @@ void ScenarioDocumentModel::finishLoading()
   }
 }
 
-ScenarioDocumentModel::~ScenarioDocumentModel() { }
+ScenarioDocumentModel::~ScenarioDocumentModel()
+{
+  cables.clear();
+  delete m_baseScenario;
+}
 
 IntervalModel& ScenarioDocumentModel::baseInterval() const
 {

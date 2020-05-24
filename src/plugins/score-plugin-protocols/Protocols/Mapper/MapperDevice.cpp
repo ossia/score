@@ -6,6 +6,7 @@
 #include <Explorer/DeviceLogging.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Protocols/Mapper/MapperDevice.hpp>
+#include <Protocols/LibraryDeviceEnumerator.hpp>
 
 #include <score/tools/Bind.hpp>
 #include <score/widgets/JS/JSEdit.hpp>
@@ -572,7 +573,14 @@ QString MapperProtocolFactory::category() const noexcept
 
 Device::DeviceEnumerator* MapperProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
-  return nullptr;
+  return new LibraryDeviceEnumerator{
+    "Ossia.Mapper",
+    "qml",
+    MapperProtocolFactory::static_concreteKey(),
+        [] (const QByteArray& arr) {
+      return QVariant::fromValue(MapperSpecificSettings{arr});
+    },
+    ctx};
 }
 
 Device::DeviceInterface* MapperProtocolFactory::makeDevice(

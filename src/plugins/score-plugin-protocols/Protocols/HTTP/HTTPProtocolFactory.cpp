@@ -7,18 +7,8 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Protocols/HTTP/HTTPProtocolSettingsWidget.hpp>
 #include <Protocols/HTTP/HTTPSpecificSettings.hpp>
-
 #include <ossia/network/base/device.hpp>
-
-#include <QObject>
-
-namespace Device
-{
-class DeviceInterface;
-class ProtocolSettingsWidget;
-}
-
-struct VisitorVariant;
+#include <Protocols/LibraryDeviceEnumerator.hpp>
 
 namespace Protocols
 {
@@ -34,9 +24,15 @@ QString HTTPProtocolFactory::category() const noexcept
 
 Device::DeviceEnumerator* HTTPProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
-  return nullptr;
+  return new LibraryDeviceEnumerator{
+    "Ossia.Http",
+    "qml",
+    HTTPProtocolFactory::static_concreteKey(),
+        [] (const QByteArray& arr) {
+      return QVariant::fromValue(HTTPSpecificSettings{arr});
+    },
+    ctx};
 }
-
 
 Device::DeviceInterface* HTTPProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings,
