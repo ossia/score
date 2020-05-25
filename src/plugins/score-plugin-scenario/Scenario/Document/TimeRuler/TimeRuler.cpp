@@ -67,7 +67,7 @@ MusicalRuler::MusicalRuler(QGraphicsView* v) : m_viewport{v}
 
   auto font = score::Skin::instance().MonoFont;
   font.setWeight(QFont::Normal);
-  font.setPixelSize(11);
+  font.setPixelSize(10);
   font.setBold(false);
   m_layout.setFont(font);
 
@@ -284,7 +284,7 @@ TimeRuler::TimeRuler(QGraphicsView* v)
 
   auto font = score::Skin::instance().MonoFont;
   font.setWeight(QFont::Normal);
-  font.setPixelSize(11);
+  font.setPixelSize(10);
   font.setBold(false);
   m_layout.setFont(font);
 
