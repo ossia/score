@@ -14,6 +14,8 @@
 #include <Scenario/Inspector/Interval/Widgets/DurationSectionWidget.hpp>
 #include <Scenario/Inspector/MetadataWidget.hpp>
 #include <score/widgets/SelectionButton.hpp>
+#include <Scenario/Commands/Cohesion/DoForSelectedIntervals.hpp>
+#include <Scenario/Commands/Cohesion/InterpolateStates.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 
 #include <score/document/DocumentContext.hpp>
@@ -36,7 +38,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
     : InspectorWidgetBase{object,
                           ctx,
                           parent,
-                          object.graphal() ? tr("Direct transition") : tr("Interval (%1)").arg(object.metadata().getName())}
+                          (object.graphal() ? tr("Direct transition") : tr("Interval (%1)").arg(object.metadata().getName()))}
     , m_model{object}
 {
   using namespace score;
@@ -84,6 +86,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
   {
     ScenarioDocumentModel& doc = get<ScenarioDocumentModel>(*documentFromObject(m_model));
     auto busWidg = new QToolButton{this};
+
     busWidg->setIcon(makeIcons(
         QStringLiteral(":/icons/audio_bus_on.png"),
         QStringLiteral(":/icons/audio_bus_off.png"),
@@ -93,6 +96,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
     busWidg->setChecked(ossia::contains(doc.busIntervals, &m_model));
     busWidg->setAutoRaise(true);
     busWidg->setIconSize(QSize{32, 32});
+
     connect(busWidg, &QToolButton::toggled, this, [=, &ctx, &doc](bool b) {
       bool is_bus = ossia::contains(doc.busIntervals, &m_model);
       if ((b && !is_bus) || (!b && is_bus))
@@ -101,11 +105,15 @@ IntervalInspectorWidget::IntervalInspectorWidget(
         disp.submit<Command::SetBus>(doc, m_model, b);
       }
     });
+
+
     btnLayout->addWidget(busWidg);
   }
+
   // Time signature
   {
     auto sigWidg = new QToolButton{this};
+
     sigWidg->setIcon(makeIcons(
         QStringLiteral(":/icons/time_signature_on.png"),
         QStringLiteral(":/icons/time_signature_off.png"),
@@ -114,15 +122,29 @@ IntervalInspectorWidget::IntervalInspectorWidget(
     sigWidg->setCheckable(true);
     sigWidg->setAutoRaise(true);
     sigWidg->setChecked(this->m_model.hasTimeSignature());
-
     sigWidg->setIconSize(QSize{32, 32});
+
     connect(sigWidg, &QToolButton::toggled, this, [=](bool b) {
       if (b != this->m_model.hasTimeSignature())
       {
         this->commandDispatcher()->submit<Command::SetHasTimeSignature>(m_model, b);
       }
+
     });
     btnLayout->addWidget(sigWidg);
+  }
+  {
+    auto interp = new QToolButton{this};
+    interp->setToolTip(tr("Interpolate states (Ctrl+K)"));
+    interp->setIcon(makeIcons(
+        QStringLiteral(":/icons/interpolate_on.png"),
+        QStringLiteral(":/icons/interpolate_off.png"),
+        QStringLiteral(":/icons/interpolate_disabled.png")));
+    connect(interp, &QToolButton::clicked, this, [&] {
+      DoForSelectedIntervals(this->context(), Command::InterpolateStates);
+    });
+
+    btnLayout->addWidget(interp);
   }
   {
     QWidget* spacerWidget = new QWidget(this);

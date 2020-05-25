@@ -1,7 +1,6 @@
 #pragma once
 #include <Scenario/Application/Menus/ObjectsActions/EventActions.hpp>
 #include <Scenario/Application/Menus/ObjectsActions/IntervalActions.hpp>
-#include <Scenario/Application/Menus/ObjectsActions/StateActions.hpp>
 
 #include <score/actions/Action.hpp>
 #include <score/actions/Menu.hpp>
@@ -43,7 +42,6 @@ private:
 
   EventActions m_eventActions;
   IntervalActions m_cstrActions;
-  StateActions m_stateActions;
 
   QAction* m_removeElements{};
   QAction* m_copyContent{};

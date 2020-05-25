@@ -5,8 +5,6 @@
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/Cohesion/CreateCurves.hpp>
-#include <Scenario/Commands/Cohesion/DoForSelectedIntervals.hpp>
-#include <Scenario/Commands/Cohesion/InterpolateStates.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Scenario/HideRackInViewModel.hpp>
 #include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
@@ -73,21 +71,6 @@ IntervalActions::IntervalActions(ScenarioApplicationPlugin* parent) : m_parent{p
     dialog->deleteLater();
   });
 
-  m_interp = new QAction{tr("Interpolate states"), this};
-  m_interp->setShortcutContext(Qt::ApplicationShortcut);
-  m_interp->setToolTip(tr("Interpolate states (Ctrl+K)"));
-  setIcons(
-      m_interp,
-      QStringLiteral(":/icons/interpolate_on.png"),
-      QStringLiteral(":/icons/interpolate_off.png"),
-      QStringLiteral(":/icons/interpolate_disabled.png"));
-  connect(m_interp, &QAction::triggered, this, [&]() {
-    if (auto doc = m_parent->currentDocument())
-    {
-      DoForSelectedIntervals(doc->context(), Command::InterpolateStates);
-    }
-  });
-
   m_showRacks = new QAction{tr("Show Racks"), this};
   m_showRacks->setShortcutContext(Qt::ApplicationShortcut);
   m_showRacks->setToolTip(tr("Show racks"));
@@ -97,24 +80,6 @@ IntervalActions::IntervalActions(ScenarioApplicationPlugin* parent) : m_parent{p
   m_hideRacks->setShortcutContext(Qt::ApplicationShortcut);
   m_hideRacks->setToolTip(tr("Hide racks"));
   connect(m_hideRacks, &QAction::triggered, this, &IntervalActions::on_hideRacks);
-
-  m_curves = new QAction{this};
-  m_curves->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-  // TODO add "center widget" and "panels"
-  if (parent->context.mainWindow)
-    parent->context.mainWindow->addAction(m_curves);
-
-  setIcons(
-      m_curves,
-      QStringLiteral(":/icons/create_curve_on.png"),
-      QStringLiteral(":/icons/create_curve_off.png"),
-      QStringLiteral(":/icons/create_curve_disabled.png"));
-
-  connect(m_curves, &QAction::triggered, this, [&]() {
-    if (auto doc = m_parent->currentDocument())
-      DoForSelectedIntervals(doc->context(), CreateCurves);
-  });
-  m_curves->setEnabled(false);
 }
 
 IntervalActions::~IntervalActions() { }
@@ -125,28 +90,16 @@ void IntervalActions::makeGUIElements(score::GUIElements& ref)
 
   Menu& object = m_parent->context.menus.get().at(Menus::Object());
   object.menu()->addAction(m_addProcess);
-  object.menu()->addAction(m_interp);
-  object.menu()->addAction(m_curves);
   object.menu()->addAction(m_showRacks);
   object.menu()->addAction(m_hideRacks);
-  {
-    auto bar = new QToolBar{tr("Interval")};
-    bar->addAction(m_interp);
-    bar->addAction(m_curves);
-    ref.toolbars.emplace_back(bar, StringKey<score::Toolbar>("Interval"), Qt::TopToolBarArea, 700);
-  }
 
   ref.actions.add<Actions::AddProcess>(m_addProcess);
-  ref.actions.add<Actions::InterpolateStates>(m_interp);
-  ref.actions.add<Actions::CreateCurves>(m_curves);
   ref.actions.add<Actions::ShowRacks>(m_showRacks);
   ref.actions.add<Actions::HideRacks>(m_hideRacks);
 
   auto& cond = m_parent->context.actions
                    .condition<score::EnableWhenSelectionContains<Scenario::IntervalModel>>();
   cond.add<Actions::AddProcess>();
-  cond.add<Actions::InterpolateStates>();
-  cond.add<Actions::CreateCurves>();
   cond.add<Actions::ShowRacks>();
   cond.add<Actions::HideRacks>();
 }
@@ -172,7 +125,6 @@ void IntervalActions::setupContextMenu(Process::LayerContextMenuManager& ctxm)
       {
         cstrSubmenu->addAction(m_addProcess);
       }
-      cstrSubmenu->addAction(m_interp);
       cstrSubmenu->addAction(m_showRacks);
       cstrSubmenu->addAction(m_hideRacks);
     }

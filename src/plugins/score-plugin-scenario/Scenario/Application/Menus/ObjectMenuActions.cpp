@@ -56,7 +56,7 @@ namespace Scenario
 {
 
 ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
-    : m_parent{parent}, m_eventActions{parent}, m_cstrActions{parent}, m_stateActions{parent}
+    : m_parent{parent}, m_eventActions{parent}, m_cstrActions{parent}
 {
   if (!parent->context.applicationSettings.gui)
     return;
@@ -315,7 +315,6 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
   object.menu()->addAction(m_duplicate);
   m_eventActions.makeGUIElements(e);
   m_cstrActions.makeGUIElements(e);
-  m_stateActions.makeGUIElements(e);
 
   Menu& view = base_menus.at(Menus::View());
   view.menu()->addAction(m_selectAll);
@@ -391,7 +390,6 @@ void ObjectMenuActions::setupContextMenu(Process::LayerContextMenuManager& ctxm)
       });
   m_eventActions.setupContextMenu(ctxm);
   m_cstrActions.setupContextMenu(ctxm);
-  m_stateActions.setupContextMenu(ctxm);
 
   ctxm.insert(std::move(scenario_model));
   ctxm.insert(std::move(scenario_object));

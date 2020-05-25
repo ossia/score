@@ -12,7 +12,7 @@ score_common_setup()
 find_package(Qt5Gui 5.15 REQUIRED Private)
 
 if(NOT TARGET avformat)
-  find_package(FFmpeg COMPONENTS  AVCODEC AVFORMAT AVUTIL)
+  find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVUTIL AVDEVICE)
 endif()
 
 add_subdirectory(3rdparty/libisf)
@@ -144,7 +144,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
    Qt5::ShaderTools  Qt5::GuiPrivate
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE
-  avcodec avformat swresample avutil score_plugin_media isf)
+  avcodec avformat swresample avutil avdevice score_plugin_media isf)
 
 if(APPLE)
     find_library(QuartzCore_FK QuartzCore)

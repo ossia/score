@@ -54,6 +54,8 @@ public:
   void closeEvent(QCloseEvent*) override;
   void allPanelsAdded();
 
+  void addTopToolbar(QToolBar* b);
+
 public:
   void activeDocumentChanged(const Id<DocumentModel>& arg_1)
       E_SIGNAL(SCORE_LIB_BASE_EXPORT, activeDocumentChanged, arg_1)
@@ -69,6 +71,7 @@ public:
 
   QWidget* centralDocumentWidget{};
   QSplitter* rightSplitter{};
+  QWidget* topleftToolbar{};
   FixedTabWidget* leftTabs{};
   // QTabWidget* rightTabs{};
   FixedTabWidget* bottomTabs{};

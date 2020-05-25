@@ -82,11 +82,6 @@ void EventActions::makeGUIElements(score::GUIElements& ref)
   object.menu()->addAction(m_addCondition);
   object.menu()->addAction(m_removeCondition);
 
-  auto bar = new QToolBar{tr("Event")};
-  bar->addAction(m_addTrigger);
-  bar->addAction(m_addCondition);
-  ref.toolbars.emplace_back(bar, StringKey<score::Toolbar>("Event"), Qt::TopToolBarArea, 600);
-
   ref.actions.add<Actions::AddTrigger>(m_addTrigger);
   ref.actions.add<Actions::RemoveTrigger>(m_removeTrigger);
   ref.actions.add<Actions::AddCondition>(m_addCondition);
@@ -101,27 +96,6 @@ void EventActions::makeGUIElements(score::GUIElements& ref)
 
 void EventActions::setupContextMenu(Process::LayerContextMenuManager& ctxm)
 {
-  using namespace Process;
-  Process::LayerContextMenu cm = MetaContextMenu<ContextMenus::EventContextMenu>::make();
-
-  cm.functions.push_back([this](QMenu& menu, QPoint, QPointF, const Process::LayerContext& ctx) {
-    using namespace score;
-    auto sel = ctx.context.selectionStack.currentSelection();
-    if (sel.empty())
-      return;
-
-    if (std::any_of(sel.cbegin(), sel.cend(), [](const QObject* obj) {
-          return dynamic_cast<const EventModel*>(obj);
-        })) // TODO : event or timesync ?
-    {
-      auto m = menu.addMenu(tr("Event"));
-
-      m->addAction(m_addTrigger);
-      m->addAction(m_removeTrigger);
-    }
-  });
-
-  ctxm.insert(std::move(cm));
 }
 
 void EventActions::addTriggerToTimeSync()

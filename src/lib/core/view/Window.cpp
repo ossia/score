@@ -153,12 +153,15 @@ View::View(QObject* parent) : QMainWindow{}
 
   setIconSize(QSize{24, 24});
 
+  topleftToolbar = new QWidget;
+  topleftToolbar->setLayout(new score::MarginLess<QHBoxLayout>);
   auto leftLabel = new TitleBar;
   leftTabs = new FixedTabWidget;
   connect(leftTabs, &FixedTabWidget::actionTriggered, this, [=](QAction* act, bool b) {
     leftLabel->setText(act->text());
   });
-  ((QVBoxLayout*)leftTabs->layout())->insertWidget(0, leftLabel);
+  ((QVBoxLayout*)leftTabs->layout())->insertWidget(0, topleftToolbar);
+  ((QVBoxLayout*)leftTabs->layout())->insertWidget(1, leftLabel);
   rightSplitter = new RectSplitter{Qt::Vertical};
   auto rect = QGuiApplication::primaryScreen()->availableGeometry();
   this->resize(static_cast<int>(rect.width() * 0.75), static_cast<int>(rect.height() * 0.75));
@@ -372,6 +375,14 @@ void View::allPanelsAdded()
 
   // Show the device explorer first
   leftTabs->toolbar()->actions().front()->trigger();
+}
+
+void View::addTopToolbar(QToolBar* b)
+{
+  b->setFloatable(false);
+  b->setMovable(false);
+  topleftToolbar->layout()->addWidget(b);
+
 }
 
 void View::closeDocument(DocumentView* doc)

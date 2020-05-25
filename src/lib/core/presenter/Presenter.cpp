@@ -135,9 +135,7 @@ void Presenter::setupGUI()
     {
       for (const Toolbar& tb : toolbars[Qt::TopToolBarArea])
       {
-        view()->addToolBar(Qt::TopToolBarArea, tb.toolbar());
-        tb.toolbar()->setFloatable(false);
-        tb.toolbar()->setMovable(false);
+        view()->addTopToolbar(tb.toolbar());
       }
     }
 

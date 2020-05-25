@@ -115,14 +115,8 @@ SCORE_DECLARE_ACTION(RemoveTrigger, "&Disable Trigger", Scenario, QKeySequence::
 SCORE_DECLARE_ACTION(AddCondition, "&Add Condition", Scenario, QKeySequence::UnknownKey)
 SCORE_DECLARE_ACTION(RemoveCondition, "&Remove Condition", Scenario, QKeySequence::UnknownKey)
 
-// State
-SCORE_DECLARE_ACTION(RefreshStates, "Refresh St&ates", Scenario, Qt::CTRL + Qt::Key_U)
-SCORE_DECLARE_ACTION(Snapshot, "Snapshot in Event", Scenario, QKeySequence(QObject::tr("Ctrl+L")))
-
 // Interval
 SCORE_DECLARE_ACTION(AddProcess, "&Add a process", Scenario, QKeySequence::UnknownKey)
-SCORE_DECLARE_ACTION(InterpolateStates, "&Interpolate states", Scenario, Qt::CTRL + Qt::Key_K)
-SCORE_DECLARE_ACTION(CreateCurves, "Create Curves", Scenario, QKeySequence(QObject::tr("Ctrl+J")))
 SCORE_DECLARE_ACTION(MergeTimeSyncs, "&Synchronize", Scenario, Qt::SHIFT + Qt::Key_M)
 SCORE_DECLARE_ACTION(ShowRacks, "&Show processes", Scenario, QKeySequence::UnknownKey)
 SCORE_DECLARE_ACTION(HideRacks, "&Hide processes", Scenario, QKeySequence::UnknownKey)
@@ -149,4 +143,3 @@ SCORE_PROCESS_DECLARE_CONTEXT_MENU(SCORE_PLUGIN_SCENARIO_EXPORT, ScenarioObjectC
 SCORE_PROCESS_DECLARE_CONTEXT_MENU(SCORE_PLUGIN_SCENARIO_EXPORT, ScenarioModelContextMenu)
 SCORE_PROCESS_DECLARE_CONTEXT_MENU(SCORE_PLUGIN_SCENARIO_EXPORT, IntervalContextMenu)
 SCORE_PROCESS_DECLARE_CONTEXT_MENU(SCORE_PLUGIN_SCENARIO_EXPORT, EventContextMenu)
-SCORE_PROCESS_DECLARE_CONTEXT_MENU(SCORE_PLUGIN_SCENARIO_EXPORT, StateContextMenu)

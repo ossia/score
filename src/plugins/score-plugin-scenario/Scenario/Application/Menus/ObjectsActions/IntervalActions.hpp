@@ -41,8 +41,6 @@ private:
 
   ScenarioApplicationPlugin* m_parent{};
   QAction* m_addProcess{};
-  QAction* m_interp{};
-  QAction* m_curves{};
 
   QAction* m_hideRacks{};
   QAction* m_showRacks{};

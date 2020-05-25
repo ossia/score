@@ -17,7 +17,12 @@
 #include <score/widgets/SelectionButton.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Application/ScenarioActions.hpp>
 
+#include <Scenario/Commands/Cohesion/RefreshStates.hpp>
+#include <Scenario/Commands/Cohesion/SnapshotParameters.hpp>
+
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -26,6 +31,7 @@
 #include <score/model/path/Path.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <score/actions/ActionManager.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/Separator.hpp>
 #include <score/widgets/SetIcons.hpp>
@@ -196,6 +202,99 @@ StateInspectorWidget::StateInspectorWidget(
 
     connect(desynchronize, &QPushButton::clicked, this, &StateInspectorWidget::splitFromNode);
   }
+  {
+    auto snapshot = new QToolButton;
+    snapshot->setShortcut(tr("Ctrl+L"));
+    snapshot->setToolTip(tr("Ctrl+L"));
+    snapshot->setIcon(makeIcons(
+        QStringLiteral(":/icons/snapshot_on.png"),
+        QStringLiteral(":/icons/snapshot_off.png"),
+        QStringLiteral(":/icons/snapshot_disabled.png")));
+    connect(snapshot, &QToolButton::clicked, this, [this] {
+        SnapshotParametersInStates(this->context());
+    });
+    m_btnLayout.addWidget(snapshot);
+  }
+  {
+    auto refresh = new QToolButton;
+    refresh->setShortcut(tr("Ctrl+U"));
+    refresh->setToolTip(tr("Ctrl+U"));
+    refresh->setIcon(makeIcons(
+                        QStringLiteral(":/icons/refresh_on.png"),
+                        QStringLiteral(":/icons/refresh_off.png"),
+                        QStringLiteral(":/icons/refresh_disabled.png")));
+    connect(refresh, &QToolButton::clicked, this, [this] {
+      Scenario::Command::RefreshStates(this->context());
+    });
+    m_btnLayout.addWidget(refresh);
+  }
+  {
+    auto trigger = new QToolButton;
+    trigger->setCheckable(true);
+    trigger->setChecked(Scenario::parentTimeSync(m_model, *scenar).active());
+    //trigger->setShortcut(tr("Ctrl+U"));
+    //trigger->setToolTip(tr("Ctrl+U"));
+    trigger->setIcon(makeIcons(
+                        QStringLiteral(":/icons/trigger_on.png"),
+                        QStringLiteral(":/icons/trigger_off.png"),
+                       QStringLiteral(":/icons/trigger_disabled.png")));
+    connect(trigger, &QToolButton::toggled, this, [this] (bool b) {
+      if(b)
+      {
+        auto& addTrig = context().app.actions.action<Actions::AddTrigger>();
+        addTrig.action()->trigger();
+      }
+      else
+      {
+        auto& rmTrig = context().app.actions.action<Actions::RemoveTrigger>();
+        rmTrig.action()->trigger();
+      }
+    });
+    m_btnLayout.addWidget(trigger);
+  }
+  {
+    auto condition = new QToolButton;
+    condition->setCheckable(true);
+    condition->setChecked(Scenario::parentTimeSync(m_model, *scenar).active());
+    //trigger->setShortcut(tr("Ctrl+U"));
+    //trigger->setToolTip(tr("Ctrl+U"));
+    condition->setIcon(makeIcons(
+                        QStringLiteral(":/icons/condition_on.png"),
+                        QStringLiteral(":/icons/condition_off.png"),
+                       QStringLiteral(":/icons/condition_disabled.png")));
+    connect(condition, &QToolButton::toggled, this, [this] (bool b) {
+      if(b)
+      {
+        auto& addTrig = context().app.actions.action<Actions::AddCondition>();
+        addTrig.action()->trigger();
+      }
+      else
+      {
+        auto& rmTrig = context().app.actions.action<Actions::RemoveCondition>();
+        rmTrig.action()->trigger();
+      }
+    });
+    m_btnLayout.addWidget(condition);
+  }
+  /* TODO play state ?
+  {
+    auto play = new QToolButton;
+    play->setShortcut(tr("Ctrl+P"));
+    play->setToolTip(tr("Ctrl+P"));
+    play->setIcon(makeIcons(
+        QStringLiteral(":/icons/play_on.png"),
+        QStringLiteral(":/icons/play_off.png"),
+        QStringLiteral(":/icons/play_disabled.png")));
+    connect(play, &QToolButton::clicked, this, [this] {
+      {
+        auto ossia_state = Engine::score_to_ossia::state(*state, r_ctx);
+        ossia_state.launch();
+      }
+    }
+    });
+    m_btnLayout.addWidget(snapshot);
+  }
+  */
   {
     QWidget* spacerWidget = new QWidget(this);
     spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);

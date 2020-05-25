@@ -222,7 +222,6 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager& ctxm)
 {
   using namespace Process;
   Process::LayerContextMenu& scenario_cm = ctxm.menu<ContextMenus::ScenarioModelContextMenu>();
-  Process::LayerContextMenu& state_cm = ctxm.menu<ContextMenus::StateContextMenu>();
   Process::LayerContextMenu& cst_cm = ctxm.menu<ContextMenus::IntervalContextMenu>();
 
   cst_cm.functions.push_back(
@@ -240,6 +239,8 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager& ctxm)
         }
       });
 
+  SCORE_TODO;
+  /*
   state_cm.functions.push_back(
       [this](QMenu& menu, QPoint, QPointF, const Process::LayerContext& ctx) {
         using namespace score;
@@ -255,6 +256,7 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager& ctxm)
           stateSubmenu->addAction(m_playStates);
         }
       });
+  */
 
   scenario_cm.functions.push_back(
       [this](QMenu& menu, QPoint, QPointF scenept, const Process::LayerContext& ctx) {
