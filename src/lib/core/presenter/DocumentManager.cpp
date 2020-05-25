@@ -293,7 +293,7 @@ bool DocumentManager::saveDocumentAs(Document& doc)
   d.setOption(QFileDialog::DontConfirmOverwrite, false);
   d.setFileMode(QFileDialog::AnyFile);
   d.setAcceptMode(QFileDialog::AcceptSave);
-
+  d.selectFile("untitled.score");
   if (d.exec())
   {
     auto files = d.selectedFiles();
