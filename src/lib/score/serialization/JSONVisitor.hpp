@@ -14,6 +14,8 @@
 #include <boost/container/static_vector.hpp>
 
 #include <rapidjson/document.h>
+#include <QDebug>
+
 /**
  * This file contains facilities
  * to serialize an object into a QJsonObject.
