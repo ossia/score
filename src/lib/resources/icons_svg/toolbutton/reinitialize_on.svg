@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Generator: Adobe Illustrator 21.0.2, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"
@@ -9,42 +7,46 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   version="1.1"
-   id="Calque_1"
-   x="0px"
-   y="0px"
-   viewBox="0 0 48.000001 48.000001"
-   xml:space="preserve"
-   sodipodi:docname="reinitialize_on.svg"
-   width="48"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
    height="48"
-   inkscape:version="0.92.4 5da689c313, 2019-01-14"><metadata
+   width="48"
+   sodipodi:docname="reinitialize_on.svg"
+   xml:space="preserve"
+   viewBox="0 0 48.000001 48.000001"
+   y="0px"
+   x="0px"
+   id="Calque_1"
+   version="1.1"
+   inkscape:export-filename="/home/alevy/dev/score/src/lib/resources/icons/reinitialize_on.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"><metadata
    id="metadata17"><rdf:RDF><cc:Work
        rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
          rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title>boutons</dc:title></cc:Work></rdf:RDF></metadata><defs
    id="defs15" /><sodipodi:namedview
-   pagecolor="#ffffff"
-   bordercolor="#666666"
-   borderopacity="1"
-   objecttolerance="10"
-   gridtolerance="10"
-   guidetolerance="10"
-   inkscape:pageopacity="0"
-   inkscape:pageshadow="2"
-   inkscape:window-width="1920"
-   inkscape:window-height="1007"
-   id="namedview13"
-   showgrid="false"
-   inkscape:zoom="8.1660901"
-   inkscape:cx="-27.30805"
-   inkscape:cy="14.694916"
-   inkscape:window-x="0"
-   inkscape:window-y="0"
+   inkscape:document-rotation="0"
+   inkscape:current-layer="layer2"
    inkscape:window-maximized="1"
-   inkscape:current-layer="layer1" />
+   inkscape:window-y="0"
+   inkscape:window-x="0"
+   inkscape:cy="266.8357"
+   inkscape:cx="-421.33782"
+   inkscape:zoom="0.92366748"
+   showgrid="false"
+   id="namedview13"
+   inkscape:window-height="1015"
+   inkscape:window-width="1920"
+   inkscape:pageshadow="2"
+   inkscape:pageopacity="0"
+   guidetolerance="10"
+   gridtolerance="10"
+   objecttolerance="10"
+   borderopacity="1"
+   bordercolor="#666666"
+   pagecolor="#ffffff" />
 <style
-   type="text/css"
-   id="style2">
+   id="style2"
+   type="text/css">
 	.st0{display:none;fill:#3D3D3D;}
 	.st1{display:none;fill:#000100;}
 	.st2{fill:#808080;}
@@ -52,45 +54,50 @@
 <title
    id="title4">boutons</title>
 <rect
-   x="0.5"
-   y="19.6"
-   class="st0"
-   width="27.9"
-   height="27.9"
+   style="display:none;fill:#3d3d3d"
    id="rect6"
-   style="display:none;fill:#3d3d3d" />
+   height="27.9"
+   width="27.9"
+   class="st0"
+   y="19.6"
+   x="0.5" />
 <path
-   class="st1"
-   d="M 28.9,48 H 0 V 19.1 H 28.9 Z M 1,47 H 27.9 V 20.1 H 1 Z"
-   id="path8"
+   style="display:none;fill:#000100"
    inkscape:connector-curvature="0"
-   style="display:none;fill:#000100" />
+   id="path8"
+   d="M 28.9,48 H 0 V 19.1 H 28.9 Z M 1,47 H 27.9 V 20.1 H 1 Z"
+   class="st1" />
 
 <g
-   inkscape:groupmode="layer"
-   id="layer3"
+   sodipodi:insensitive="true"
    inkscape:label="Background"
-   sodipodi:insensitive="true"><rect
-     style="opacity:1;vector-effect:none;fill:#f6a019;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
-     id="rect823"
-     width="46"
-     height="46"
-     x="1"
-     y="1" /></g><g
+   id="layer3"
    inkscape:groupmode="layer"
-   id="layer1"
+   style="display:inline"><rect
+     y="1"
+     x="1"
+     height="46"
+     width="46"
+     id="rect823"
+     style="opacity:1;vector-effect:none;fill:#f6a019;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers" /></g><g
    inkscape:label="Icon"
-   style="display:inline"
-   transform="translate(0,19.1)"><path
+   id="layer2"
+   inkscape:groupmode="layer"><path
      inkscape:connector-curvature="0"
      class="st2"
-     d="m 12.149871,-1.3448667 c 3.509115,-7.2375508 12.281903,-10.3080273 19.300134,-6.7989118 7.01823,3.509115 10.308025,12.0625845 6.798911,19.3001335 -3.509116,7.23755 -12.062585,10.308026 -19.300135,6.79891 -1.096598,-0.438639 -1.973877,-1.096598 -2.851156,-1.754558"
+     d="M 13.5,24 27.716514,35.814815 V 28.922839 C 36.413249,28.754071 39.143322,29.339137 42.5,35.814815 42.5,24.71365 36.404387,19.770985 27.716514,19.077161 v -6.891976 z"
      id="path10-3"
-     style="display:inline;fill:none;stroke:#000000;stroke-width:3.67631483;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" /><polygon
-     transform="matrix(2.1729454,0.29735719,-0.29735719,2.1729454,-2.9510972,-30.777982)"
-     class="st3"
-     points="11.8,12.2 7.4,16.6 5.8,10.6 "
-     id="polygon12"
-     style="display:inline;fill:#060000;fill-opacity:1;stroke:none;stroke-opacity:1"
-     inkscape:transform-center-x="-1.3505783"
-     inkscape:transform-center-y="0.45019271" /></g></svg>
+     style="display:inline;fill:#000000;fill-opacity:1;stroke-width:2.13693"
+     sodipodi:nodetypes="ccccccc" /><path
+     id="path840-3-6"
+     style="display:inline;fill:none;fill-opacity:1;stroke:#000000;stroke-width:3;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke"
+     sodipodi:type="arc"
+     sodipodi:cx="14.943619"
+     sodipodi:cy="23.999689"
+     sodipodi:rx="7.2709727"
+     sodipodi:ry="7.2709727"
+     sodipodi:start="1.1756498"
+     sodipodi:end="5.1033124"
+     sodipodi:arc-type="arc"
+     d="M 17.742532,30.710362 A 7.2709727,7.2709727 0 0 1 9.1850245,28.438792 7.2709727,7.2709727 0 0 1 9.1663291,19.584945 7.2709727,7.2709727 0 0 1 17.714167,17.277256"
+     sodipodi:open="true" /></g></svg>
