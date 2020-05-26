@@ -311,7 +311,6 @@ void ScenarioPresenter::fillContextMenu(
   cm.menu<ContextMenus::ScenarioModelContextMenu>().build(menu, pos, scenepos, this->context());
   menu.addSeparator();
   cm.menu<ContextMenus::IntervalContextMenu>().build(menu, pos, scenepos, this->context());
-  cm.menu<ContextMenus::EventContextMenu>().build(menu, pos, scenepos, this->context());
 
   menu.addSeparator();
 
