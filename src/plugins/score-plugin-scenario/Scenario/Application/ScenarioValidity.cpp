@@ -31,8 +31,17 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
     auto es = scenar.findState(interval.endState());
     SCORE_ASSERT(es);
 
+    SCORE_ASSERT(ss != es);
+
     SCORE_ASSERT(ss->nextInterval() == interval.id());
     SCORE_ASSERT(es->previousInterval() == interval.id());
+
+    auto sev = scenar.findEvent(ss->eventId());
+    SCORE_ASSERT(sev);
+    auto eev = scenar.findEvent(es->eventId());
+    SCORE_ASSERT(eev);
+
+    SCORE_ASSERT(sev != eev);
 
     auto& dur = interval.duration;
     SCORE_ASSERT(dur.defaultDuration() >= 0_tv);
