@@ -187,10 +187,9 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
       file->addAction(saveas_doc);
     }
 
-    file->addSeparator();
-
-    file->addMenu(export_menu);
 #ifdef SCORE_DEBUG
+    file->addSeparator();
+    file->addMenu(export_menu);
     // Add command stack import / export
     {
       auto loadStack_act = new QAction(m_presenter.view());
