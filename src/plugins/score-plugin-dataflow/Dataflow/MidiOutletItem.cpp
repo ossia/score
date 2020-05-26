@@ -34,6 +34,6 @@ void MidiOutletFactory::setupOutletInspector(
     }
   });
 
-  lay.addRow(Process::makeMidiCombo(midiDevices, port, ctx, parent));
+  lay.addRow(Process::makeDeviceCombo(midiDevices, port, ctx, parent));
 }
 }

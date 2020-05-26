@@ -117,7 +117,7 @@ QWidget* makeAddressCombo(
   return edit;
 }
 
-QWidget* makeMidiCombo(
+QWidget* makeDeviceCombo(
     QStringList devices,
     const Process::Port& port,
     const score::DocumentContext& ctx,

@@ -39,7 +39,7 @@ QWidget* makeAddressCombo(
     QWidget* parent);
 
 SCORE_LIB_PROCESS_EXPORT
-QWidget* makeMidiCombo(
+QWidget* makeDeviceCombo(
     QStringList devices,
     const Process::Port& port,
     const score::DocumentContext& ctx,

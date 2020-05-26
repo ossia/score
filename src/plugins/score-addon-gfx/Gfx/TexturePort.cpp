@@ -1,12 +1,14 @@
+#include "GfxDevice.hpp"
 #include "TexturePort.hpp"
 
+#include <Device/Protocol/DeviceInterface.hpp>
+#include <Inspector/InspectorLayout.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <score/plugins/SerializableHelpers.hpp>
+#include <Process/Dataflow/AudioPortComboBox.hpp>
 
 #include <wobjectimpl.h>
 
-#include <Device/Protocol/DeviceInterface.hpp>
-
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 W_OBJECT_IMPL(Gfx::TextureInlet)
 W_OBJECT_IMPL(Gfx::TextureOutlet)
 
@@ -70,25 +72,20 @@ void TextureInletFactory::setupInletInspector(
     QWidget* parent,
     Inspector::Layout& lay,
     QObject* context)
-{/*
-  static const MSVC_BUGGY_CONSTEXPR auto midi_uuid
-      = Protocols::MIDIInputProtocolFactory::static_concreteKey();
-
+{
   auto& device = *ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
-  QStringList midiDevices;
-  midiDevices.push_back("");
+  QStringList devices;
+  devices.push_back("");
 
   device.list().apply([&](Device::DeviceInterface& dev) {
-    auto& set = dev.settings();
-    if (set.protocol == midi_uuid)
+    if(dynamic_cast<GfxInputDevice*>(&dev))
     {
-      const auto& midi_set = set.deviceSpecificSettings.value<Protocols::MIDISpecificSettings>();
-      if (midi_set.io == Protocols::MIDISpecificSettings::IO::Out)
-        midiDevices.push_back(set.name);
+      auto& set = dev.settings();
+      devices.push_back(set.name);
     }
   });
 
-  lay.addRow(Process::makeMidiCombo(midiDevices, port, ctx, parent));*/
+  lay.addRow(Process::makeDeviceCombo(devices, port, ctx, parent));
 }
 
 
@@ -98,25 +95,20 @@ void TextureOutletFactory::setupOutletInspector(
     QWidget* parent,
     Inspector::Layout& lay,
     QObject* context)
-{/*
-  static const MSVC_BUGGY_CONSTEXPR auto midi_uuid
-      = Protocols::MIDIInputProtocolFactory::static_concreteKey();
-
+{
   auto& device = *ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
-  QStringList midiDevices;
-  midiDevices.push_back("");
+  QStringList devices;
+  devices.push_back("");
 
   device.list().apply([&](Device::DeviceInterface& dev) {
-    auto& set = dev.settings();
-    if (set.protocol == midi_uuid)
+    if(dynamic_cast<GfxOutputDevice*>(&dev))
     {
-      const auto& midi_set = set.deviceSpecificSettings.value<Protocols::MIDISpecificSettings>();
-      if (midi_set.io == Protocols::MIDISpecificSettings::IO::Out)
-        midiDevices.push_back(set.name);
+      auto& set = dev.settings();
+      devices.push_back(set.name);
     }
   });
 
-  lay.addRow(Process::makeMidiCombo(midiDevices, port, ctx, parent));*/
+  lay.addRow(Process::makeDeviceCombo(devices, port, ctx, parent));
 }
 }
 
