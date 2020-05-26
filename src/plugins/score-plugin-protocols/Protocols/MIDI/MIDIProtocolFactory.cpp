@@ -40,7 +40,7 @@ public:
           set.name = QString::fromStdString(elt.device);
           specif.endpoint = QString::fromStdString(elt.device);
 
-          if constexpr (Type == ossia::net::midi::midi_info::Type::RemoteInput)
+          if constexpr (Type == ossia::net::midi::midi_info::Type::RemoteOutput)
           {
             specif.io = MIDISpecificSettings::IO::In;
             set.protocol = MIDIInputProtocolFactory::static_concreteKey();
@@ -53,7 +53,7 @@ public:
           }
 
           specif.port = elt.port;
-          set.deviceSpecificSettings = QVariant::fromValue(set);
+          set.deviceSpecificSettings = QVariant::fromValue(specif);
 
           f(set);
         }
