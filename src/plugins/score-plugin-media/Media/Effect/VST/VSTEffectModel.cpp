@@ -605,7 +605,6 @@ void VSTEffectModel::load()
 template <>
 void DataStreamReader::read(const Media::VST::VSTEffectModel& eff)
 {
-  readPorts(*this, eff.m_inlets, eff.m_outlets);
   m_stream << eff.m_effectId;
 
   if (eff.fx)
@@ -632,15 +631,13 @@ void DataStreamReader::read(const Media::VST::VSTEffectModel& eff)
     }
   }
 
+  readPorts(*this, eff.m_inlets, eff.m_outlets);
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Media::VST::VSTEffectModel& eff)
 {
-  writePorts(
-      *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets, eff.m_outlets, &eff);
-
   m_stream >> eff.m_effectId;
   int32_t kind = 0;
   m_stream >> kind;
@@ -693,6 +690,9 @@ void DataStreamWriter::write(Media::VST::VSTEffectModel& eff)
     });
   }
 
+  writePorts(
+      *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets, eff.m_outlets, &eff);
+
   checkDelimiter();
 }
 
@@ -728,9 +728,6 @@ void JSONReader::read(const Media::VST::VSTEffectModel& eff)
 template <>
 void JSONWriter::write(Media::VST::VSTEffectModel& eff)
 {
-  writePorts(
-      *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets, eff.m_outlets, &eff);
-
   auto it = base.FindMember("EffectId");
   if (it != base.MemberEnd())
   {
@@ -749,6 +746,9 @@ void JSONWriter::write(Media::VST::VSTEffectModel& eff)
   }
 
   eff.load();
+  writePorts(
+      *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets, eff.m_outlets, &eff);
+
   QPointer<Media::VST::VSTEffectModel> ptr = &eff;
   QTimer::singleShot(1000, [base = clone(this->base), ptr] {
     if (!ptr)

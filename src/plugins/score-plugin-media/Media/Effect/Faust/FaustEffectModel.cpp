@@ -378,34 +378,33 @@ void FaustEffectModel::reload()
 template <>
 void DataStreamReader::read(const Media::Faust::FaustEffectModel& eff)
 {
-  readPorts(*this, eff.m_inlets, eff.m_outlets);
   m_stream << eff.m_text;
+  readPorts(*this, eff.m_inlets, eff.m_outlets);
 }
 
 template <>
 void DataStreamWriter::write(Media::Faust::FaustEffectModel& eff)
 {
-  writePorts(
-      *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets, eff.m_outlets, &eff);
-
   m_stream >> eff.m_text;
   eff.reload();
+  writePorts(
+      *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets, eff.m_outlets, &eff);
 }
 
 template <>
 void JSONReader::read(const Media::Faust::FaustEffectModel& eff)
 {
-  readPorts(*this, eff.m_inlets, eff.m_outlets);
   obj["Text"] = eff.text();
+  readPorts(*this, eff.m_inlets, eff.m_outlets);
 }
 
 template <>
 void JSONWriter::write(Media::Faust::FaustEffectModel& eff)
 {
-  writePorts(
-      *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets, eff.m_outlets, &eff);
   eff.m_text = obj["Text"].toString();
   eff.reload();
+  writePorts(
+      *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets, eff.m_outlets, &eff);
 }
 
 namespace Execution

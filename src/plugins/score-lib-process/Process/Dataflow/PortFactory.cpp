@@ -19,6 +19,11 @@ void writePorts(
     Process::Outlets& outs,
     QObject* parent)
 {
+  qDeleteAll(ins);
+  qDeleteAll(outs);
+  ins.clear();
+  outs.clear();
+
   ArrayEntitySerializer::writeTo(
       wr,
       pl,
@@ -45,6 +50,11 @@ void writePorts(
     Process::Outlets& outs,
     QObject* parent)
 {
+  qDeleteAll(ins);
+  qDeleteAll(outs);
+  ins.clear();
+  outs.clear();
+
   ArrayEntitySerializer::writeTo(
       JSONWriter{obj.obj["Inlets"]},
       pl,

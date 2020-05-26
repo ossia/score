@@ -341,18 +341,54 @@ std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::dropData(
   return vec;
 }
 }
+
+/*
+struct PortSaver
+{
+  Process::Inlets& originalInlets;
+  Process::Inlets savedInlets;
+  Process::Outlets& originalOutlets;
+  Process::Outlets savedOutlets;
+  PortSaver(Process::Inlets& i, Process::Outlets& o)
+    : originalInlets{i}
+    , savedInlets{std::move(i)}
+    , originalOutlets{o}
+    , savedOutlets{std::move(o)}
+  {
+
+  }
+
+  ~PortSaver()
+  {
+    using namespace std;
+
+    for(auto inlet  : originalInlets)
+      delete inlet;
+    swap(originalInlets, savedInlets);
+
+    for(auto outlet  : originalOutlets)
+      delete outlet;
+    swap(originalOutlets, savedOutlets);
+  }
+};
+*/
 template <>
 void DataStreamReader::read(const Gfx::Filter::Model& proc)
 {
+  m_stream << proc.m_fragment;
+
   readPorts(*this, proc.m_inlets, proc.m_outlets);
 
-  m_stream << proc.m_fragment;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Gfx::Filter::Model& proc)
 {
+  QString s;
+  m_stream >> s;
+  proc.setFragment(s);
+
   writePorts(
       *this,
       components.interfaces<Process::PortFactoryList>(),
@@ -360,27 +396,26 @@ void DataStreamWriter::write(Gfx::Filter::Model& proc)
       proc.m_outlets,
       &proc);
 
-  QString s;
-  m_stream >> s;
-  proc.setFragment(s);
   checkDelimiter();
 }
 
 template <>
 void JSONReader::read(const Gfx::Filter::Model& proc)
 {
-  readPorts(*this, proc.m_inlets, proc.m_outlets);
   obj["Fragment"] = proc.fragment();
+
+  readPorts(*this, proc.m_inlets, proc.m_outlets);
 }
 
 template <>
 void JSONWriter::write(Gfx::Filter::Model& proc)
 {
+  proc.setFragment(obj["Fragment"].toString());
+
   writePorts(
       *this,
       components.interfaces<Process::PortFactoryList>(),
       proc.m_inlets,
       proc.m_outlets,
       &proc);
-  proc.setFragment(obj["Fragment"].toString());
 }

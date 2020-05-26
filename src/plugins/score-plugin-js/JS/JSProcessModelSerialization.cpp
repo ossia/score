@@ -15,9 +15,9 @@
 template <>
 void DataStreamReader::read(const JS::ProcessModel& proc)
 {
-  readPorts(*this, proc.m_inlets, proc.m_outlets);
-
   m_stream << proc.m_script;
+
+  readPorts(*this, proc.m_inlets, proc.m_outlets);
 
   insertDelimiter();
 }
@@ -25,16 +25,16 @@ void DataStreamReader::read(const JS::ProcessModel& proc)
 template <>
 void DataStreamWriter::write(JS::ProcessModel& proc)
 {
+  QString str;
+  m_stream >> str;
+  proc.setScript(str);
+
   writePorts(
       *this,
       components.interfaces<Process::PortFactoryList>(),
       proc.m_inlets,
       proc.m_outlets,
       &proc);
-
-  QString str;
-  m_stream >> str;
-  proc.setScript(str);
 
   checkDelimiter();
 }
@@ -42,18 +42,18 @@ void DataStreamWriter::write(JS::ProcessModel& proc)
 template <>
 void JSONReader::read(const JS::ProcessModel& proc)
 {
-  readPorts(*this, proc.m_inlets, proc.m_outlets);
   obj["Script"] = proc.script();
+  readPorts(*this, proc.m_inlets, proc.m_outlets);
 }
 
 template <>
 void JSONWriter::write(JS::ProcessModel& proc)
 {
+  proc.setScript(obj["Script"].toString());
   writePorts(
       *this,
       components.interfaces<Process::PortFactoryList>(),
       proc.m_inlets,
       proc.m_outlets,
       &proc);
-  proc.setScript(obj["Script"].toString());
 }

@@ -302,46 +302,46 @@ std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::dropData(
 template <>
 void DataStreamReader::read(const Gfx::Mesh::Model& proc)
 {
+  m_stream << proc.m_fragment << proc.m_mesh;
   readPorts(*this, proc.m_inlets, proc.m_outlets);
 
-  m_stream << proc.m_fragment << proc.m_mesh;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Gfx::Mesh::Model& proc)
 {
+
+  QString s;
+  m_stream >> s;
+  proc.setFragment(s);
+  m_stream >> proc.m_mesh;
   writePorts(
       *this,
       components.interfaces<Process::PortFactoryList>(),
       proc.m_inlets,
       proc.m_outlets,
       &proc);
-
-  QString s;
-  m_stream >> s;
-  proc.setFragment(s);
-  m_stream >> proc.m_mesh;
   checkDelimiter();
 }
 
 template <>
 void JSONReader::read(const Gfx::Mesh::Model& proc)
 {
-  readPorts(*this, proc.m_inlets, proc.m_outlets);
   obj["Fragment"] = proc.fragment();
   obj["Mesh"] = proc.mesh();
+  readPorts(*this, proc.m_inlets, proc.m_outlets);
 }
 
 template <>
 void JSONWriter::write(Gfx::Mesh::Model& proc)
 {
+  proc.setFragment(obj["Fragment"].toString());
+  proc.setMesh(obj["Mesh"].toString());
   writePorts(
       *this,
       components.interfaces<Process::PortFactoryList>(),
       proc.m_inlets,
       proc.m_outlets,
       &proc);
-  proc.setFragment(obj["Fragment"].toString());
-  proc.setMesh(obj["Mesh"].toString());
 }
