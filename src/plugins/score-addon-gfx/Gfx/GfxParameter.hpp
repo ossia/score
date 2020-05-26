@@ -18,7 +18,7 @@ public:
   int32_t node_id{};
 
   gfx_parameter_base(ossia::net::node_base& n, NodeModel* node, GfxExecutionAction* ctx)
-      : ossia::net::parameter_base{n}, context{ctx}
+    : ossia::net::parameter_base{n}, context{ctx}, node{node}
   {
     node_id = context->ui->register_node(std::unique_ptr<NodeModel>{node});
   }
