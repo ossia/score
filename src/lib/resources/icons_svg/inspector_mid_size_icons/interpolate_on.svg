@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Generator: Adobe Illustrator 21.0.2, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"
@@ -18,7 +16,7 @@
    sodipodi:docname="interpolate_on.svg"
    width="48"
    height="48"
-   inkscape:version="0.92.4 5da689c313, 2019-01-14"><metadata
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"><metadata
    id="metadata17"><rdf:RDF><cc:Work
        rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
          rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title>boutons</dc:title></cc:Work></rdf:RDF></metadata><defs
@@ -32,16 +30,19 @@
    inkscape:pageopacity="0"
    inkscape:pageshadow="2"
    inkscape:window-width="1920"
-   inkscape:window-height="1007"
+   inkscape:window-height="1015"
    id="namedview13"
    showgrid="false"
-   inkscape:zoom="8.1660901"
-   inkscape:cx="0.30614354"
-   inkscape:cy="21.552543"
+   inkscape:zoom="7.6396798"
+   inkscape:cx="-20.785607"
+   inkscape:cy="30.408403"
    inkscape:window-x="0"
    inkscape:window-y="0"
    inkscape:window-maximized="1"
-   inkscape:current-layer="layer1" />
+   inkscape:current-layer="layer1"
+   inkscape:document-rotation="0"
+   inkscape:snap-bbox="true"
+   inkscape:snap-bbox-midpoints="true" />
 <style
    type="text/css"
    id="style2">
@@ -81,28 +82,27 @@
    id="layer1"
    inkscape:label="Icon"
    style="display:inline"
-   transform="translate(0,19.1)"><circle
-     class="st2"
-     cx="9.8796301"
-     cy="18.788891"
-     id="circle10"
-     style="display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:2.81635785"
-     r="3.3796296" /><circle
-     class="st2"
-     cx="38.120369"
-     cy="-8.9888906"
-     id="circle12"
-     style="display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:2.81635785"
-     r="3.3796296" /><line
-     class="st3"
-     x1="12.878795"
-     y1="15.789536"
-     x2="30.120781"
-     y2="-0.98643982"
-     id="line14"
-     style="display:inline;fill:none;stroke:#000000;stroke-width:2.70370364;stroke-miterlimit:4;stroke-dasharray:5.40740732, 2.70370366;stroke-dashoffset:0;stroke-opacity:1" /><polygon
-     transform="matrix(-1.4869612,1.4869612,1.4404027,1.4404027,18.810753,-32.051154)"
-     class="st2"
-     points="9.5,11.1 9.5,18.4 5,14.7 "
-     id="polygon10"
-     style="display:inline;fill:#000000;fill-opacity:1;stroke:none" /></g></svg>
+   transform="translate(0,19.1)"><g
+     id="g844"><circle
+       r="3.5"
+       style="display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:2.91667"
+       id="circle10"
+       cy="17.4"
+       cx="11.5"
+       class="st2" /><circle
+       r="3.5"
+       style="display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:2.91667"
+       id="circle12"
+       cy="-7.5999999"
+       cx="36.5"
+       class="st2" /><path
+       sodipodi:nodetypes="cc"
+       class="st3"
+       d="M 11.355054,17.580302 30.492005,-1.7004245"
+       style="display:inline;fill:none;stroke:#000000;stroke-width:2.704;stroke-miterlimit:3.5;stroke-dasharray:5.408, 2.704;stroke-dashoffset:8.3824;stroke-opacity:1"
+       id="line14" /><path
+       sodipodi:nodetypes="cccc"
+       class="st2"
+       d="M 20.621657,-2.599999 31.49834,8.4208149 32.49834,-3.6 Z"
+       style="display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:2.0697"
+       id="polygon10" /></g></g></svg>

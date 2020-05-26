@@ -181,7 +181,7 @@ StateInspectorWidget::StateInspectorWidget(
     splitEvent->setStatusTip(tr("Split condition"));
 
     splitEvent->setAutoRaise(true);
-    splitEvent->setIconSize(QSize{32, 32});
+    splitEvent->setIconSize(QSize{28,28});
     m_btnLayout.addWidget(splitEvent);
     connect(splitEvent, &QPushButton::clicked, this, &StateInspectorWidget::splitFromEvent);
   }
@@ -196,7 +196,7 @@ StateInspectorWidget::StateInspectorWidget(
     desynchronize->setStatusTip(tr("Desynchronize"));
 
     desynchronize->setAutoRaise(true);
-    desynchronize->setIconSize(QSize{32, 32});
+    desynchronize->setIconSize(QSize{28,28});
 
     m_btnLayout.addWidget(desynchronize);
 
@@ -210,6 +210,9 @@ StateInspectorWidget::StateInspectorWidget(
         QStringLiteral(":/icons/snapshot_on.png"),
         QStringLiteral(":/icons/snapshot_off.png"),
         QStringLiteral(":/icons/snapshot_disabled.png")));
+    snapshot->setIconSize(QSize{28,28});
+    snapshot->setAutoRaise(true);
+
     connect(snapshot, &QToolButton::clicked, this, [this] {
         SnapshotParametersInStates(this->context());
     });
@@ -223,6 +226,9 @@ StateInspectorWidget::StateInspectorWidget(
                         QStringLiteral(":/icons/refresh_on.png"),
                         QStringLiteral(":/icons/refresh_off.png"),
                         QStringLiteral(":/icons/refresh_disabled.png")));
+    refresh->setIconSize(QSize{28,28});
+    refresh->setAutoRaise(true);
+
     connect(refresh, &QToolButton::clicked, this, [this] {
       Scenario::Command::RefreshStates(this->context());
     });
@@ -238,6 +244,9 @@ StateInspectorWidget::StateInspectorWidget(
                         QStringLiteral(":/icons/trigger_on.png"),
                         QStringLiteral(":/icons/trigger_off.png"),
                        QStringLiteral(":/icons/trigger_disabled.png")));
+    trigger->setAutoRaise(true);
+    trigger->setIconSize(QSize{28,28});
+
     connect(trigger, &QToolButton::toggled, this, [this] (bool b) {
       if(b)
       {
@@ -262,6 +271,9 @@ StateInspectorWidget::StateInspectorWidget(
                         QStringLiteral(":/icons/condition_on.png"),
                         QStringLiteral(":/icons/condition_off.png"),
                        QStringLiteral(":/icons/condition_disabled.png")));
+    condition->setIconSize(QSize{28,28});
+    condition->setAutoRaise(true);
+
     connect(condition, &QToolButton::toggled, this, [this] (bool b) {
       if(b)
       {

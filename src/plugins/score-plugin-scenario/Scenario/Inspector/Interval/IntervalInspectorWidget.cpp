@@ -73,7 +73,8 @@ IntervalInspectorWidget::IntervalInspectorWidget(
         QStringLiteral(":/icons/fullview_off.png")));
     fullview->setToolTip(tr("FullView"));
     fullview->setAutoRaise(true);
-    fullview->setIconSize(QSize{32, 32});
+    fullview->setIconSize(QSize{28, 28});
+
     connect(fullview, &QToolButton::clicked, this, [this] {
       auto base = get<ScenarioDocumentPresenter>(*documentFromObject(m_model));
       if (base)
@@ -95,7 +96,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
     busWidg->setCheckable(true);
     busWidg->setChecked(ossia::contains(doc.busIntervals, &m_model));
     busWidg->setAutoRaise(true);
-    busWidg->setIconSize(QSize{32, 32});
+    busWidg->setIconSize(QSize{28, 28});
 
     connect(busWidg, &QToolButton::toggled, this, [=, &ctx, &doc](bool b) {
       bool is_bus = ossia::contains(doc.busIntervals, &m_model);
@@ -122,7 +123,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
     sigWidg->setCheckable(true);
     sigWidg->setAutoRaise(true);
     sigWidg->setChecked(this->m_model.hasTimeSignature());
-    sigWidg->setIconSize(QSize{32, 32});
+    sigWidg->setIconSize(QSize{28, 28});
 
     connect(sigWidg, &QToolButton::toggled, this, [=](bool b) {
       if (b != this->m_model.hasTimeSignature())
@@ -140,6 +141,9 @@ IntervalInspectorWidget::IntervalInspectorWidget(
         QStringLiteral(":/icons/interpolate_on.png"),
         QStringLiteral(":/icons/interpolate_off.png"),
         QStringLiteral(":/icons/interpolate_disabled.png")));
+    interp->setIconSize(QSize{28, 28});
+    interp->setAutoRaise(true);
+
     connect(interp, &QToolButton::clicked, this, [&] {
       DoForSelectedIntervals(this->context(), Command::InterpolateStates);
     });

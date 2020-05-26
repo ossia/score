@@ -89,7 +89,7 @@ public:
         loop_btn->setToolTip(tr("Loop"));
 
         loop_btn->setAutoRaise(true);
-        loop_btn->setIconSize(QSize{32, 32});
+        loop_btn->setIconSize(QSize{28, 28});
         loop_btn->setCheckable(true);
         loop_btn->setChecked(process.loops());
         connect(loop_btn, &QToolButton::toggled, this, [&](bool b) {

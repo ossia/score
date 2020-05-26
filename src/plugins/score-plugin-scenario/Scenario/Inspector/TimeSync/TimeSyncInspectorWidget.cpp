@@ -176,7 +176,7 @@ to the root of a score.)_"));
     m_autotrigger->setWhatsThis(m_autotrigger->statusTip());
 
     m_autotrigger->setAutoRaise(true);
-    m_autotrigger->setIconSize(QSize{32, 32});
+    m_autotrigger->setIconSize(QSize{28,28});
     m_autotrigger->setCheckable(true);
     m_autotrigger->setChecked(object.autotrigger());
 
@@ -204,7 +204,7 @@ to the root of a score.)_"));
     m_isStart->setWhatsThis(m_isStart->statusTip());
 
     m_isStart->setAutoRaise(true);
-    m_isStart->setIconSize(QSize{32, 32});
+    m_isStart->setIconSize(QSize{28,28});
     m_isStart->setCheckable(true);
     m_isStart->setChecked(object.isStartPoint());
 
