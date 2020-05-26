@@ -156,8 +156,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
     spacerWidget->setVisible(true);
     btnLayout->addWidget(spacerWidget);
   }
-
-  lay->addRow(btnLayout);
+  ((QBoxLayout*)meta->layout())->insertLayout(0, btnLayout);
 
   // Speed
   auto speedWidg = new SpeedWidget{true, true, this};

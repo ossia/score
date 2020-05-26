@@ -35,13 +35,14 @@ InspectorWidgetBase::InspectorWidgetBase(
   m_label = new TextLabel{name, this};
   auto f = m_label->font();
   f.setBold(true);
-  f.setPixelSize(18);
+  f.setPixelSize(12);
   m_label->setFont(f);
   m_sections.push_back(m_label);
 
   // scroll Area
   auto scrollArea = new QScrollArea;
   scrollArea->setWidgetResizable(true);
+  scrollArea->setFrameStyle(QFrame::NoFrame);
   scrollArea->setSizeAdjustPolicy(QScrollArea::AdjustToContents);
   scrollArea->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
   auto scrollAreaContentWidget = new QWidget;

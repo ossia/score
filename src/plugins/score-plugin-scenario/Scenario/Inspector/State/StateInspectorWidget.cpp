@@ -314,11 +314,18 @@ StateInspectorWidget::StateInspectorWidget(
     m_btnLayout.addWidget(spacerWidget);
   }
 
-  m_btnLayout.layout()->setContentsMargins(0, 0, 0, 0);
+  m_btnLayout.setContentsMargins(0, 0, 0, 0);
 
-  auto btns = new QWidget(this);
-  btns->setLayout(&m_btnLayout);
-  properties.push_back(btns);
+  //auto btns = new QWidget(this);
+  //btns->setLayout(&m_btnLayout);
+  ((QBoxLayout*)metadata->layout())->insertLayout(0, &m_btnLayout);
+  //properties.push_back(btns);
+  //{
+  //  auto frame = new QFrame;
+  //  frame->setFrameShape(QFrame::HLine);
+  //  frame->setFrameShadow(QFrame::Sunken);
+  //  properties.push_back(frame);
+  //}
 
   {
     auto tab = new QTabWidget;
