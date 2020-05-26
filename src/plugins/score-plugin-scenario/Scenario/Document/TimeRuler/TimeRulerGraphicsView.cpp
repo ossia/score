@@ -47,7 +47,7 @@ MinimapGraphicsView::MinimapGraphicsView(QGraphicsScene* s) : TimeRulerGraphicsV
   setRenderHints(
       QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing);
   setSceneRect({0, 0, 2000, 100});
-  setFixedHeight(15);
+  setFixedHeight(20);
   setFrameStyle(0);
 
   setDragMode(DragMode::NoDrag);
