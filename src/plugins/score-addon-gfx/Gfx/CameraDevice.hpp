@@ -5,6 +5,7 @@
 #include <QLineEdit>
 
 #include <Gfx/GfxExecContext.hpp>
+#include <Gfx/GfxDevice.hpp>
 #include <Gfx/Graph/videonode.hpp>
 #include <Video/CameraInput.hpp>
 
@@ -199,31 +200,16 @@ class CameraProtocolFactory final : public Device::ProtocolFactory
       const noexcept override;
 };
 
-class CameraDevice final : public Device::DeviceInterface
+class CameraDevice final : public GfxInputDevice
 {
   W_OBJECT(CameraDevice)
 public:
-  CameraDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx);
+  using GfxInputDevice::GfxInputDevice;
   ~CameraDevice();
-
-  void addAddress(const Device::FullAddressSettings& settings) override;
-
-  void updateAddress(
-      const State::Address& currentAddr,
-      const Device::FullAddressSettings& settings) override;
+private:
   bool reconnect() override;
-  void recreate(const Device::Node& n) override;
   ossia::net::device_base* getDevice() const override { return m_dev.get(); }
 
-private:
-  using Device::DeviceInterface::refresh;
-  QMimeData* mimeData() const override;
-  Device::Node refresh() override;
-  void disconnect() override;
-
-  void setupNode(ossia::net::node_base&, const ossia::extended_attributes& attr);
-
-  const score::DocumentContext& m_ctx;
   camera_protocol* m_protocol{};
   mutable std::unique_ptr<camera_device> m_dev;
 };
@@ -234,7 +220,6 @@ public:
   CameraSettingsWidget(QWidget* parent = nullptr);
 
   Device::DeviceSettings getSettings() const override;
-
   void setSettings(const Device::DeviceSettings& settings) override;
 
 private:

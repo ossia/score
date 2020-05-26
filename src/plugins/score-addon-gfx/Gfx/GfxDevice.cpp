@@ -1,67 +1,32 @@
 #include "GfxDevice.hpp"
+#include "GfxParameter.hpp"
 
 #include <State/MessageListSerialization.hpp>
-#include <State/Widgets/AddressFragmentLineEdit.hpp>
+#include <ossia/network/base/device.hpp>
 
-#include <score/serialization/MimeVisitor.hpp>
-
-#include <ossia-qt/name_utils.hpp>
-
-#include <QFormLayout>
-#include <QMenu>
 #include <QMimeData>
 
-#include <Gfx/GfxApplicationPlugin.hpp>
-#include <Gfx/Graph/window.hpp>
-#include <wobjectimpl.h>
-W_OBJECT_IMPL(Gfx::GfxDevice)
-
-#include <ossia/network/base/device.hpp>
-#include <ossia/network/base/protocol.hpp>
-
-#include <QLineEdit>
-
-#include <Gfx/GfxExecContext.hpp>
-#include <Gfx/GfxParameter.hpp>
-#include <Gfx/Graph/nodes.hpp>
-namespace Gfx
-{
-class gfx_device : public ossia::net::device_base
-{
-  gfx_node_base root;
-
-public:
-  gfx_device(std::unique_ptr<ossia::net::protocol_base> proto, std::string name)
-      : ossia::net::device_base{std::move(proto)}, root{*this, new ScreenNode, name}
-  {
-  }
-
-  const gfx_node_base& get_root_node() const override { return root; }
-  gfx_node_base& get_root_node() override { return root; }
-};
-}
-
 
 namespace Gfx
 {
 
-GfxDevice::GfxDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
-    : DeviceInterface{settings}, m_ctx{ctx}
+GfxInputDevice::GfxInputDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
+  : Device::DeviceInterface{settings}, m_ctx{ctx}
 {
   m_capas.canAddNode = false;
   m_capas.canRemoveNode = false;
   m_capas.canRenameNode = false;
   m_capas.canSetProperties = false;
-  m_capas.canRefreshTree = true;
+  m_capas.canRefreshTree = false;
   m_capas.canRefreshValue = false;
   m_capas.hasCallbacks = false;
   m_capas.canListen = false;
   m_capas.canSerialize = true;
 }
 
-GfxDevice::~GfxDevice() { }
+GfxInputDevice::~GfxInputDevice() { }
 
-QMimeData* GfxDevice::mimeData() const
+QMimeData* GfxInputDevice::mimeData() const
 {
   auto mimeData = new QMimeData;
 
@@ -73,222 +38,87 @@ QMimeData* GfxDevice::mimeData() const
   return mimeData;
 }
 
-void GfxDevice::setupContextMenu(QMenu& menu) const
+void GfxInputDevice::addAddress(const Device::FullAddressSettings& settings)
 {
-  if (m_dev)
-  {
-    auto p = m_dev.get()->get_root_node().get_parameter();
-    if (auto param = safe_cast<gfx_parameter_base*>(p))
-    {
-      if (auto s = safe_cast<ScreenNode*>(param->node))
-      {
-        if (auto w = s->window)
-        {
-          auto showhide = new QAction;
-          if (!w->isVisible())
-          {
-            showhide->setText(tr("Show"));
-            connect(showhide, &QAction::triggered, w.get(), [w] { w->show(); });
-          }
-          else
-          {
-            showhide->setText(tr("Hide"));
-            connect(showhide, &QAction::triggered, w.get(), [w] { w->hide(); });
-          }
-          menu.addAction(showhide);
-        }
-      }
-    }
-  }
 }
 
-void GfxDevice::addAddress(const Device::FullAddressSettings& settings)
-{
-  using namespace ossia;
-  if (auto dev = getDevice())
-  {
-    // Create the node. It is added into the device.
-    ossia::net::node_base* node = Device::createNodeFromPath(settings.address.path, *dev);
-    SCORE_ASSERT(node);
-    setupNode(*node, settings.extendedAttributes);
-  }
-}
-
-void GfxDevice::updateAddress(
+void GfxInputDevice::updateAddress(
     const State::Address& currentAddr,
     const Device::FullAddressSettings& settings)
 {
-  if (auto dev = getDevice())
-  {
-    if (auto node = Device::getNodeFromPath(currentAddr.path, *dev))
-    {
-      setupNode(*node, settings.extendedAttributes);
-
-      auto newName = settings.address.path.last();
-      if (!latin_compare(newName, node->get_name()))
-      {
-        renameListening_impl(currentAddr, newName);
-        node->set_name(newName.toStdString());
-      }
-    }
-  }
 }
 
-void GfxDevice::disconnect()
+void GfxInputDevice::disconnect()
 {
-  // TODO handle listening ??
-  // setLogging_impl(Device::get_cur_logging(isLogging()));
 }
 
-bool GfxDevice::reconnect()
+void GfxInputDevice::recreate(const Device::Node& n)
 {
-  disconnect();
-
-  try
-  {
-    auto plug = m_ctx.findPlugin<DocumentPlugin>();
-    if (plug)
-    {
-      m_protocol = new gfx_protocol_base{plug->exec};
-      m_dev = std::make_unique<gfx_device>(
-          std::unique_ptr<ossia::net::protocol_base>(m_protocol),
-          m_settings.name.toStdString());
-    }
-    // TODOengine->reload(&proto);
-
-    // setLogging_impl(Device::get_cur_logging(isLogging()));
-  }
-  catch (std::exception& e)
-  {
-    qDebug() << "Could not connect: " << e.what();
-  }
-  catch (...)
-  {
-    // TODO save the reason of the non-connection.
-  }
-
-  return connected();
 }
 
-void GfxDevice::recreate(const Device::Node& n)
+void GfxInputDevice::setupNode(ossia::net::node_base& node, const ossia::extended_attributes& attr)
 {
-  for (auto& child : n)
-  {
-    addNode(child);
-  }
 }
 
-void GfxDevice::setupNode(ossia::net::node_base& node, const ossia::extended_attributes& attr)
-{
-  // TODO
-}
-
-Device::Node GfxDevice::refresh()
+Device::Node GfxInputDevice::refresh()
 {
   return simple_refresh();
 }
 
-QString GfxProtocolFactory::prettyName() const noexcept
+GfxOutputDevice::GfxOutputDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
+  : Device::DeviceInterface{settings}, m_ctx{ctx}
 {
-  return QObject::tr("Gfx");
+  m_capas.canAddNode = false;
+  m_capas.canRemoveNode = false;
+  m_capas.canRenameNode = false;
+  m_capas.canSetProperties = false;
+  m_capas.canRefreshTree = false;
+  m_capas.canRefreshValue = false;
+  m_capas.hasCallbacks = false;
+  m_capas.canListen = false;
+  m_capas.canSerialize = true;
 }
 
-QString GfxProtocolFactory::category() const noexcept
+GfxOutputDevice::~GfxOutputDevice() { }
+
+QMimeData* GfxOutputDevice::mimeData() const
 {
-  return StandardCategories::video;
+  auto mimeData = new QMimeData;
+
+  State::Message mess;
+  mess.address.address.device = m_settings.name;
+
+  Mime<State::MessageList>::Serializer s{*mimeData};
+  s.serialize({mess});
+  return mimeData;
 }
 
-Device::DeviceEnumerator* GfxProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
-{
-  return nullptr;
-}
-
-Device::DeviceInterface* GfxProtocolFactory::makeDevice(
-    const Device::DeviceSettings& settings,
-    const score::DocumentContext& ctx)
-{
-  return new GfxDevice(settings, ctx);
-}
-
-const Device::DeviceSettings& GfxProtocolFactory::defaultSettings() const noexcept
-{
-  static const Device::DeviceSettings settings = [&]() {
-    Device::DeviceSettings s;
-    s.protocol = concreteKey();
-    s.name = "Gfx";
-    return s;
-  }();
-  return settings;
-}
-
-Device::AddressDialog* GfxProtocolFactory::makeAddAddressDialog(
-    const Device::DeviceInterface& dev,
-    const score::DocumentContext& ctx,
-    QWidget* parent)
-{
-  return nullptr;
-}
-
-Device::AddressDialog* GfxProtocolFactory::makeEditAddressDialog(
-    const Device::AddressSettings& set,
-    const Device::DeviceInterface& dev,
-    const score::DocumentContext& ctx,
-    QWidget* parent)
-{
-  return nullptr;
-}
-
-Device::ProtocolSettingsWidget* GfxProtocolFactory::makeSettingsWidget()
-{
-  return new GfxSettingsWidget;
-}
-
-QVariant GfxProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
-{
-  return {};
-}
-
-void GfxProtocolFactory::serializeProtocolSpecificSettings(
-    const QVariant& data,
-    const VisitorVariant& visitor) const
+void GfxOutputDevice::addAddress(const Device::FullAddressSettings& settings)
 {
 }
 
-bool GfxProtocolFactory::checkCompatibility(
-    const Device::DeviceSettings& a,
-    const Device::DeviceSettings& b) const noexcept
+void GfxOutputDevice::updateAddress(
+    const State::Address& currentAddr,
+    const Device::FullAddressSettings& settings)
 {
-  return a.name != b.name;
 }
 
-GfxSettingsWidget::GfxSettingsWidget(QWidget* parent) : ProtocolSettingsWidget(parent)
+void GfxOutputDevice::disconnect()
 {
-  m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
-
-  auto layout = new QFormLayout;
-  layout->addRow(tr("Device Name"), m_deviceNameEdit);
-
-  setLayout(layout);
-
-  setDefaults();
 }
 
-void GfxSettingsWidget::setDefaults()
+void GfxOutputDevice::recreate(const Device::Node& n)
 {
-  m_deviceNameEdit->setText("gfx");
 }
 
-Device::DeviceSettings GfxSettingsWidget::getSettings() const
+void GfxOutputDevice::setupNode(ossia::net::node_base& node, const ossia::extended_attributes& attr)
 {
-  Device::DeviceSettings s;
-  s.name = m_deviceNameEdit->text();
-  s.protocol = GfxProtocolFactory::static_concreteKey();
-  return s;
 }
 
-void GfxSettingsWidget::setSettings(const Device::DeviceSettings& settings)
+Device::Node GfxOutputDevice::refresh()
 {
-  m_deviceNameEdit->setText(settings.name);
+  return simple_refresh();
 }
+
 
 }

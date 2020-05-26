@@ -73,6 +73,13 @@ struct TextureInletFactory final : public Dataflow::AutomatablePortFactory
       return new Model_T{deserializer, parent};
     });
   }
+
+  void setupInletInspector(
+      const Process::Inlet& port,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      Inspector::Layout& lay,
+      QObject* context) override;
 };
 
 struct TextureOutletFactory final : public Dataflow::AutomatablePortFactory
@@ -89,5 +96,12 @@ struct TextureOutletFactory final : public Dataflow::AutomatablePortFactory
       return new Model_T{deserializer, parent};
     });
   }
+
+  void setupOutletInspector(
+      const Process::Outlet& port,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      Inspector::Layout& lay,
+      QObject* context) override;
 };
 }

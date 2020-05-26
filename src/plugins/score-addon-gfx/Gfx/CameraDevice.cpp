@@ -127,71 +127,7 @@ static void enumerateDevices(std::function<void(CameraSettings, QString)> func)
 #endif
 
 
-CameraDevice::CameraDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
-    : DeviceInterface{settings}, m_ctx{ctx}
-{
-  m_capas.canAddNode = false;
-  m_capas.canRemoveNode = false;
-  m_capas.canRenameNode = false;
-  m_capas.canSetProperties = false;
-  m_capas.canRefreshTree = true;
-  m_capas.canRefreshValue = false;
-  m_capas.hasCallbacks = false;
-  m_capas.canListen = false;
-  m_capas.canSerialize = true;
-}
-
 CameraDevice::~CameraDevice() { }
-
-QMimeData* CameraDevice::mimeData() const
-{
-  auto mimeData = new QMimeData;
-
-  State::Message mess;
-  mess.address.address.device = m_settings.name;
-
-  Mime<State::MessageList>::Serializer s{*mimeData};
-  s.serialize({mess});
-  return mimeData;
-}
-
-void CameraDevice::addAddress(const Device::FullAddressSettings& settings)
-{
-  using namespace ossia;
-  if (auto dev = getDevice())
-  {
-    // Create the node. It is added into the device.
-    ossia::net::node_base* node = Device::createNodeFromPath(settings.address.path, *dev);
-    SCORE_ASSERT(node);
-    setupNode(*node, settings.extendedAttributes);
-  }
-}
-
-void CameraDevice::updateAddress(
-    const State::Address& currentAddr,
-    const Device::FullAddressSettings& settings)
-{
-  if (auto dev = getDevice())
-  {
-    if (auto node = Device::getNodeFromPath(currentAddr.path, *dev))
-    {
-      setupNode(*node, settings.extendedAttributes);
-
-      auto newName = settings.address.path.last();
-      if (!latin_compare(newName, node->get_name()))
-      {
-        renameListening_impl(currentAddr, newName);
-        node->set_name(newName.toStdString());
-      }
-    }
-  }
-}
-
-void CameraDevice::disconnect()
-{
-  // TODO handle listening ??
-  // setLogging_impl(Device::get_cur_logging(isLogging()));
-}
 
 bool CameraDevice::reconnect()
 {
@@ -224,24 +160,6 @@ bool CameraDevice::reconnect()
   }
 
   return connected();
-}
-
-void CameraDevice::recreate(const Device::Node& n)
-{
-  for (auto& child : n)
-  {
-    addNode(child);
-  }
-}
-
-void CameraDevice::setupNode(ossia::net::node_base& node, const ossia::extended_attributes& attr)
-{
-  // TODO
-}
-
-Device::Node CameraDevice::refresh()
-{
-  return simple_refresh();
 }
 
 

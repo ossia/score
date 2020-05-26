@@ -18,6 +18,7 @@
 #include <Gfx/Mesh/Layer.hpp>
 #include <Gfx/Mesh/Process.hpp>
 #include <Gfx/TexturePort.hpp>
+#include <Gfx/WindowDevice.hpp>
 #include <Gfx/Video/Executor.hpp>
 #include <Gfx/Video/Inspector.hpp>
 #include <Gfx/Video/Layer.hpp>
@@ -39,7 +40,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_addon_gfx::factories(
   return instantiate_factories<
       score::ApplicationContext,
       FW<Device::ProtocolFactory
-      , Gfx::GfxProtocolFactory
+      , Gfx::WindowProtocolFactory
       , Gfx::CameraProtocolFactory
 #if defined(_WIN32)
       , Gfx::SpoutProtocolFactory

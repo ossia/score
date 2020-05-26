@@ -1,18 +1,12 @@
 #pragma once
-#include <QLineEdit>
 #include <Gfx/GfxDevice.hpp>
-
-#include <Device/Protocol/DeviceInterface.hpp>
-#include <Device/Protocol/DeviceSettings.hpp>
-#include <Device/Protocol/ProtocolFactoryInterface.hpp>
-#include <Device/Protocol/ProtocolSettingsWidget.hpp>
 
 namespace Gfx
 {
-class gfx_protocol_base;
-class SpoutProtocolFactory final : public Device::ProtocolFactory
+
+class WindowProtocolFactory final : public Device::ProtocolFactory
 {
-  SCORE_CONCRETE("ddf45db7-9eaf-453c-8fc0-86ccdf21677c")
+  SCORE_CONCRETE("5a181207-7d40-4ad8-814e-879fcdf8cc31")
   QString prettyName() const noexcept override;
   QString category() const noexcept override;
   Device::DeviceEnumerator* getEnumerator(const score::DocumentContext& ctx) const override;
@@ -41,25 +35,26 @@ class SpoutProtocolFactory final : public Device::ProtocolFactory
       const noexcept override;
 };
 
-class SpoutDevice final : public GfxOutputDevice
+class WindowDevice final : public GfxOutputDevice
 {
-  W_OBJECT(SpoutDevice)
+  W_OBJECT(WindowDevice)
 public:
-    using GfxOutputDevice::GfxOutputDevice;
-  ~SpoutDevice();
+  using GfxOutputDevice::GfxOutputDevice;
+  ~WindowDevice();
 
 private:
-  bool reconnect() override;
+  void setupContextMenu(QMenu&) const override;
   ossia::net::device_base* getDevice() const override { return m_dev.get(); }
+  bool reconnect() override;
 
   gfx_protocol_base* m_protocol{};
   mutable std::unique_ptr<ossia::net::device_base> m_dev;
 };
 
-class SpoutSettingsWidget final : public Device::ProtocolSettingsWidget
+class WindowSettingsWidget final : public Device::ProtocolSettingsWidget
 {
 public:
-  SpoutSettingsWidget(QWidget* parent = nullptr);
+  WindowSettingsWidget(QWidget* parent = nullptr);
 
   Device::DeviceSettings getSettings() const override;
 
