@@ -13,8 +13,12 @@
 #include <QFormLayout>
 #include <QLabel>
 #include <QListWidget>
+#include <QTableWidget>
 #include <QMenu>
 #include <QPushButton>
+#include <QSplitter>
+#include <QHeaderView>
+
 namespace Media::Settings
 {
 View::View()
@@ -23,6 +27,14 @@ View::View()
   auto lay = m_widg->layout();
 
 #if defined(HAS_VST2)
+  auto splitter = new QSplitter(Qt::Vertical);
+  splitter->setCollapsible(0,false);
+  lay->addRow(splitter);
+
+  auto vstPathWidget = new QWidget;
+  auto vstPathWidgetLayout = new QFormLayout;
+  vstPathWidget->setLayout(vstPathWidgetLayout);
+
   m_VstPaths = new QListWidget;
 
   auto button_lay = new QHBoxLayout;
@@ -33,8 +45,19 @@ View::View()
   button_lay->addWidget(rescan);
 
   auto vst_lay = new QGridLayout;
-  auto vst_ok = new QListWidget;
-  auto vst_bad = new QListWidget;
+  auto vst_ok = new QTableWidget;
+  vst_ok->verticalHeader()->setVisible(false);
+  vst_ok->setColumnCount(2);
+  vst_ok->setColumnWidth(0,120);
+  vst_ok->horizontalHeader()->setStretchLastSection(true);
+  vst_ok->setHorizontalHeaderLabels({tr("Name"), tr("Path")});
+
+  auto vst_bad = new QTableWidget;
+  vst_bad->verticalHeader()->setVisible(false);
+  vst_bad->setColumnCount(2);
+  vst_bad->setColumnWidth(0,120);
+  vst_bad->horizontalHeader()->setStretchLastSection(true);
+  vst_bad->setHorizontalHeaderLabels({tr("Name"), tr("Path")});
 
   m_VstPaths->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
   connect(m_VstPaths, &QListWidget::customContextMenuRequested, this, [=](const QPoint& p) {
@@ -55,8 +78,12 @@ View::View()
     m->deleteLater();
   });
 
-  lay->addRow(tr("VST paths"), m_VstPaths);
-  lay->addRow(button_lay);
+  vstPathWidgetLayout->addRow(tr("VST paths"), m_VstPaths);
+  vstPathWidgetLayout->addRow(button_lay);
+
+  splitter->addWidget(vstPathWidget);
+  splitter->setStretchFactor(0,1);
+  splitter->setCollapsible(0,false);
 
   connect(pb, &QPushButton::clicked, this, [=] {
     auto path = QFileDialog::getExistingDirectory(m_widg, tr("VST Path"));
@@ -72,31 +99,46 @@ View::View()
   connect(rescan, &QPushButton::clicked, this, [&] { app_plug.rescanVSTs(m_curitems); });
 
   auto reloadVSTs = [=, &app_plug] {
-    vst_ok->clear();
-    vst_bad->clear();
+    vst_ok->clearContents();
+    vst_ok->setRowCount(0);
+
+    vst_bad->clearContents();
+    vst_bad->setRowCount(0);
+
     for (auto& plug : app_plug.vst_infos)
     {
       if (plug.isValid)
       {
-        vst_ok->addItem(
-            QString{"%1 - %2\t(%3)"}.arg(plug.prettyName).arg(plug.displayName).arg(plug.path));
+        auto row = vst_ok->rowCount();
+        vst_ok->setRowCount( row + 1);
+        vst_ok->setItem(row, 0, new QTableWidgetItem{plug.prettyName.isEmpty() ? plug.displayName : plug.prettyName});
+        vst_ok->setItem(row, 1, new QTableWidgetItem{plug.path});
       }
       else
       {
-        vst_bad->addItem(
-            QString{"%1 - %2\t(%3)"}.arg(plug.prettyName).arg(plug.displayName).arg(plug.path));
+        auto row = vst_bad->rowCount();
+        vst_bad->setRowCount( row + 1);
+        vst_bad->setItem(row, 0, new QTableWidgetItem{plug.prettyName.isEmpty() ? plug.displayName : plug.prettyName});
+        vst_bad->setItem(row, 1, new QTableWidgetItem{plug.path});
       }
     }
   };
 
   reloadVSTs();
 
+  auto vstWidget = new QWidget;
+  vstWidget->setLayout(vst_lay);
+
   con(app_plug, &Media::ApplicationPlugin::vstChanged, this, reloadVSTs);
-  lay->addRow(vst_lay);
-  vst_lay->addWidget(new QLabel("Working plug-ins"), 0, 0, 1, 1);
-  vst_lay->addWidget(new QLabel("Bad plug-ins"), 0, 1, 1, 1);
+  vst_lay->addWidget(new QLabel(tr("Working plug-ins")), 0, 0, 1, 1);
+  vst_lay->addWidget(new QLabel(tr("Faulty plug-ins")), 0, 1, 1, 1);
   vst_lay->addWidget(vst_ok, 1, 0, 1, 1);
   vst_lay->addWidget(vst_bad, 1, 1, 1, 1);
+
+  splitter->addWidget(vstWidget);
+  splitter->setStretchFactor(1,4);
+  splitter->setCollapsible(1,false);
+
 #endif
 }
 

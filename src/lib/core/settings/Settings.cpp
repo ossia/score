@@ -30,6 +30,7 @@ void Settings::setupView()
 {
   m_settingsView = new SettingsView<SettingsDelegateModel>(nullptr);
   m_settingsView->setWindowTitle(QObject::tr("Settings"));
+  m_settingsView->setMinimumWidth(1000);
   m_settingsPresenter = new SettingsPresenter<SettingsDelegateModel>(m_settingsView, nullptr);
 }
 
