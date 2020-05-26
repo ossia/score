@@ -20,7 +20,7 @@ static const constexpr int iconSize = 20;
 static const QPixmap& triggerPixmap()
 {
   static auto p = score::get_pixmap(":/icons/scenario_trigger.png");
-  p.setDevicePixelRatio(qApp->devicePixelRatio());
+  //p.setDevicePixelRatio(qApp->devicePixelRatio());
   return p;
 }
 static const QImage& triggerImage()
@@ -31,19 +31,19 @@ static const QImage& triggerImage()
 static const QPixmap& selectedTriggerPixmap()
 {
   static auto p = score::get_pixmap(":/icons/scenario_trigger_selected.png");
-  p.setDevicePixelRatio(qApp->devicePixelRatio());
+  //p.setDevicePixelRatio(qApp->devicePixelRatio());
   return p;
 }
 static const QPixmap& hoveredTriggerPixmap()
 {
   static auto p = score::get_pixmap(":/icons/scenario_trigger_hovered.png");
-  p.setDevicePixelRatio(qApp->devicePixelRatio());
+  //p.setDevicePixelRatio(qApp->devicePixelRatio());
   return p;
 }
 static const QPixmap& triggerSpriteSheet()
 {
   static auto p = score::get_pixmap(":/icons/trigger_sprite.png");
-  p.setDevicePixelRatio(qApp->devicePixelRatio());
+  //p.setDevicePixelRatio(qApp->devicePixelRatio());
   return p;
 }
 

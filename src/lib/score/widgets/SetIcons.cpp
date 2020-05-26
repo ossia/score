@@ -105,21 +105,18 @@ namespace score
 QPixmap get_pixmap(QString str)
 {
   QPixmap img;
-  if (auto screen = qApp->primaryScreen())
+  if (qApp->devicePixelRatio() >= 2.0)
   {
-    if (screen->devicePixelRatio() >= 2.0)
+    auto newstr = str;
+    newstr.replace(".png", "@2x.png", Qt::CaseInsensitive);
+    if (QFile::exists(newstr))
     {
-      auto newstr = str;
-      newstr.replace(".png", "@2x.png", Qt::CaseInsensitive);
-      if (QFile::exists(newstr))
-      {
-        img.setDevicePixelRatio(2.);
-        str = newstr;
-      }
-      else
-      {
-        qDebug() << "hidpi pixmap not found: " << newstr;
-      }
+      img.setDevicePixelRatio(2.);
+      str = newstr;
+    }
+    else
+    {
+      qDebug() << "hidpi pixmap not found: " << newstr;
     }
   }
   img.load(str);
@@ -129,21 +126,18 @@ QPixmap get_pixmap(QString str)
 QImage get_image(QString str)
 {
   QImage img;
-  if (auto screen = qApp->primaryScreen())
+  if (qApp->devicePixelRatio() >= 2.0)
   {
-    if (screen->devicePixelRatio() >= 2.0)
+    auto newstr = str;
+    newstr.replace(".png", "@2x.png", Qt::CaseInsensitive);
+    if (QFile::exists(newstr))
     {
-      auto newstr = str;
-      newstr.replace(".png", "@2x.png", Qt::CaseInsensitive);
-      if (QFile::exists(newstr))
-      {
-        img.setDevicePixelRatio(2.);
-        str = newstr;
-      }
-      else
-      {
-        qDebug() << "hidpi pixmap not found: " << newstr;
-      }
+      img.setDevicePixelRatio(2.);
+      str = newstr;
+    }
+    else
+    {
+      qDebug() << "hidpi pixmap not found: " << newstr;
     }
   }
   img.load(str);

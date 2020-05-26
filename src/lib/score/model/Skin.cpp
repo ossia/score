@@ -156,9 +156,10 @@ Skin::Skin() noexcept
   SliderFont.setPixelSize(10 * 96. / 72.);
   SliderFont.setWeight(QFont::DemiBold);
 
-  double dpr = qApp->devicePixelRatio();
-#if defined(__APPLE__) || defined(_WIN32)
-  dpr = 1.;
+#if defined(__linux__) && defined(SCORE_DEBUG)
+  const double dpr = qApp->devicePixelRatio();
+#else
+  constexpr double dpr = 1.;
 #endif
 
   int hotspotX = 12 * dpr;
