@@ -263,6 +263,31 @@ public:
     toIgnore.push_back(sev_pres.view());
     toIgnore.push_back(sts_pres.view());
     toIgnore.push_back(&sts_pres.trigger());
+
+    for(auto& itv : Scenario::previousIntervals(sts_pres.model(), this->m_scenario))
+    {
+      auto& sst_pres = m_sm.presenter().state(this->m_scenario.interval(itv).startState());
+      auto& sev_pres = m_sm.presenter().event(sst_pres.model().eventId());
+      auto& sts_pres = m_sm.presenter().timeSync(sev_pres.model().timeSync());
+
+      toIgnore.push_back(sst_pres.view());
+      toIgnore.push_back(sev_pres.view());
+      toIgnore.push_back(sts_pres.view());
+      toIgnore.push_back(&sts_pres.trigger());
+    }
+
+    for(auto& itv : Scenario::nextIntervals(sts_pres.model(), this->m_scenario))
+    {
+      auto& sst_pres = m_sm.presenter().state(this->m_scenario.interval(itv).endState());
+      auto& sev_pres = m_sm.presenter().event(sst_pres.model().eventId());
+      auto& sts_pres = m_sm.presenter().timeSync(sev_pres.model().timeSync());
+
+      toIgnore.push_back(sst_pres.view());
+      toIgnore.push_back(sev_pres.view());
+      toIgnore.push_back(sts_pres.view());
+      toIgnore.push_back(&sts_pres.trigger());
+    }
+
     QGraphicsItem* item = m_sm.itemAt({date, st.heightPercentage()}, toIgnore);
 
     if (auto stateToMerge = qgraphicsitem_cast<Scenario::StateView*>(item))
