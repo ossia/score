@@ -107,11 +107,11 @@ void Minimap::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, Q
   painter->drawLine(top_right, top_right + QPointF{-line_length, 0.});
   painter->drawLine(top_right, top_right + QPointF{0., line_length});
 
-  const QPointF bottom_left{m_leftHandle, m_height - 0.5};
+  const QPointF bottom_left{m_leftHandle, m_height - 6};
   painter->drawLine(bottom_left, bottom_left + QPointF{line_length, 0.});
   painter->drawLine(bottom_left, bottom_left + QPointF{0., -line_length});
 
-  const QPointF bottom_right{m_rightHandle - 1., m_height - 0.5};
+  const QPointF bottom_right{m_rightHandle - 1., m_height - 6};
   painter->drawLine(bottom_right, bottom_right + QPointF{-line_length, 0.});
   painter->drawLine(bottom_right, bottom_right + QPointF{0., -line_length});
 }

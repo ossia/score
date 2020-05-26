@@ -298,6 +298,8 @@ void ToolMenuActions::makeGUIElements(score::GUIElements& ref)
     bar->addAction(m_createtool);
     bar->addAction(m_playtool);
     bar->addAction(m_altAction);
+    bar->addAction(m_scale);
+    bar->addAction(m_grow);
 
     ref.toolbars.emplace_back(bar, StringKey<score::Toolbar>("Tools"), Qt::TopToolBarArea, 800);
 
@@ -321,12 +323,6 @@ void ToolMenuActions::makeGUIElements(score::GUIElements& ref)
 
   // Scale modes
   {
-    auto bar = new QToolBar{tr("Modes")};
-    bar->addAction(m_scale);
-    bar->addAction(m_grow);
-
-    ref.toolbars.emplace_back(bar, StringKey<score::Toolbar>("Modes"), Qt::TopToolBarArea, 900);
-
     menu.menu()->addSeparator();
     menu.menu()->addAction(m_scale);
     menu.menu()->addAction(m_grow);
