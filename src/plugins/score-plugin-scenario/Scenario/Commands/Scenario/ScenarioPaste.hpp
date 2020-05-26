@@ -57,12 +57,12 @@ struct ScenarioBeingCopied
       for (const auto& element : json_arr)
       {
         Process::CableData cd;
-        if (element.HasMember("ObjectName"))
+        if (element.IsObject() && element.HasMember("ObjectName"))
         {
           cd <<= JsonValue{obj["Data"]};
           cables.emplace_back(std::move(cd));
         }
-        else
+        else if(element.IsArray())
         {
           cd <<= JsonValue{element.GetArray()[1]};
           cables.emplace_back(cd);
