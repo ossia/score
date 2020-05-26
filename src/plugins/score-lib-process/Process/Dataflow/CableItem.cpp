@@ -140,6 +140,9 @@ void CableItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
         case Process::PortType::Midi:
           painter->setPen(style.MidiCablePen());
           break;
+        case Process::PortType::Texture:
+          painter->setPen(style.skin.LightGray.main.pen3_solid_round_round);
+          break;
       }
     }
     else
@@ -154,6 +157,9 @@ void CableItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
           break;
         case Process::PortType::Midi:
           painter->setPen(style.SelectedMidiCablePen());
+          break;
+        case Process::PortType::Texture:
+          painter->setPen(style.skin.LightGray.lighter.pen3_solid_round_round);
           break;
       }
     }

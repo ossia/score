@@ -602,6 +602,8 @@ const score::Brush& portBrush(Process::PortType type)
       return skin.Port2;
     case Process::PortType::Midi:
       return skin.Port3;
+    case Process::PortType::Texture:
+      return skin.LightGray;
     default:
       return skin.Warn1;
   }
