@@ -266,9 +266,11 @@ struct VideoNode : NodeModel
         gpu = std::make_unique<YUV420Decoder>(*this, *decoder);
         break;
       case AV_PIX_FMT_RGB0:
+      case AV_PIX_FMT_RGBA:
         gpu = std::make_unique<RGB0Decoder>(QRhiTexture::RGBA8, *this, *decoder);
         break;
       case AV_PIX_FMT_BGR0:
+      case AV_PIX_FMT_BGRA:
         gpu = std::make_unique<RGB0Decoder>(QRhiTexture::BGRA8, *this, *decoder);
         break;
       default:
