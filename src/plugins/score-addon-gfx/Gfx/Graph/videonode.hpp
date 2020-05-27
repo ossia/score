@@ -241,6 +241,34 @@ struct RGB0Decoder : GPUVideoDecoder
   }
 };
 
+struct EmptyDecoder : GPUVideoDecoder
+{
+  static const constexpr auto hashtag_no_filter = R"_(#version 450
+    void main ()
+    {
+    }
+  )_";
+
+
+  EmptyDecoder(NodeModel& n)
+    : node{n}
+  { }
+
+  NodeModel& node;
+  void init(Renderer& r, RenderedNode& rendered) override
+  {
+    node.setShaders(node.mesh().defaultVertexShader(), hashtag_no_filter);
+  }
+
+  void exec(Renderer&, RenderedNode& rendered, QRhiResourceUpdateBatch& res, AVFrame& frame) override
+  {
+  }
+
+  void release(Renderer&, RenderedNode& n) override
+  {
+  }
+};
+
 struct VideoNode : NodeModel
 {
   std::shared_ptr<video_decoder> decoder;
@@ -275,7 +303,7 @@ struct VideoNode : NodeModel
         break;
       default:
         qDebug() << "Unhandled pixel format: " << av_get_pix_fmt_name(current_format);
-        gpu.reset();
+        gpu = std::make_unique<EmptyDecoder>(*this);
         break;
     }
   }

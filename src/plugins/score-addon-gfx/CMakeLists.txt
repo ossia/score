@@ -85,8 +85,12 @@ set(HDRS
 
     score_addon_gfx.hpp
 )
-
-set(SRCS
+if(WIN32)
+set(SPOUT_SRCS
+    Gfx/SpoutDevice.hpp
+    Gfx/SpoutDevice.cpp)
+endif()
+set(SRCS ${SPOUT_SRCS}
     Gfx/Filter/Executor.cpp
     Gfx/Filter/LocalTree.cpp
     Gfx/Filter/Process.cpp
@@ -184,11 +188,6 @@ endif()
 if(WIN32)
   add_subdirectory("${3RDPARTY_FOLDER}/Spout" "${CMAKE_CURRENT_BINARY_DIR}/Spout")
   target_link_libraries(${PROJECT_NAME} PRIVATE Spout)
-  target_sources(${PROJECT_NAME}
-      PRIVATE
-        Gfx/SpoutDevice.hpp
-        Gfx/SpoutDevice.cpp
-  )
 endif()
 
 # Target-specific options

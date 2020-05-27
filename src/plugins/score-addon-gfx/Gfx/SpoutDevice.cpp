@@ -1,3 +1,4 @@
+#include <Spout/SpoutSender.h>
 #include "SpoutDevice.hpp"
 
 #include <State/MessageListSerialization.hpp>
@@ -14,7 +15,6 @@
 
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <wobjectimpl.h>
-W_OBJECT_IMPL(Gfx::SpoutDevice)
 
 #include <QTimer>
 
@@ -26,7 +26,8 @@ W_OBJECT_IMPL(Gfx::SpoutDevice)
 #include <Gfx/GfxExecContext.hpp>
 #include <Gfx/GfxParameter.hpp>
 #include <Gfx/Graph/nodes.hpp>
-#include <Spout/SpoutSender.h>
+W_OBJECT_IMPL(Gfx::SpoutDevice)
+
 namespace Gfx
 {
 struct SpoutNode : OutputNode
