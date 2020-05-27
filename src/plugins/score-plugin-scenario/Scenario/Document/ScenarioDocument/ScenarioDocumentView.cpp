@@ -94,13 +94,17 @@ void ProcessGraphicsView::scrollHorizontal(double dx)
   }
 }
 
+QRectF ProcessGraphicsView::visibleRect() const noexcept
+{
+  return QRectF{this->mapToScene(QPoint{}), this->mapToScene(this->rect().bottomRight())};
+}
+
 void ProcessGraphicsView::resizeEvent(QResizeEvent* ev)
 {
   QGraphicsView::resizeEvent(ev);
   sizeChanged(size());
 
-  visibleRectChanged(
-      QRectF{this->mapToScene(QPoint{}), this->mapToScene(this->rect().bottomRight())});
+  visibleRectChanged(visibleRect());
 
   if (m_opengl)
     viewport()->update();
@@ -114,8 +118,7 @@ void ProcessGraphicsView::scrollContentsBy(int dx, int dy)
   if (dx != 0)
     scrolled(dx);
 
-  visibleRectChanged(
-      QRectF{this->mapToScene(QPoint{}), this->mapToScene(this->rect().bottomRight())});
+  visibleRectChanged(visibleRect());
 
   if (m_opengl)
     viewport()->update();

@@ -544,6 +544,9 @@ void ScenarioDocumentPresenter::on_viewReady()
 
     if (!window_size_set)
       on_windowSizeChanged({});
+
+    if(auto p = m_scenarioPresenter.intervalPresenter())
+     p->on_visibleRectChanged(view().view().visibleRect());
   });
 }
 

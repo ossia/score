@@ -53,6 +53,7 @@ public:
   ~ProcessGraphicsView() override;
 
   void scrollHorizontal(double dx);
+  QRectF visibleRect() const noexcept;
 
   QPointer<score::ArrowDialog> currentPopup{};
 
