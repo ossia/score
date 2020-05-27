@@ -141,16 +141,13 @@ void PointArraySegment::addPointUnscaled(double x, double y)
       if (it1 != end && it2 != end)
       {
         std::advance(it1, 1);
-        if (it1 != end)
+        if (it1 != end && it1 != it2)
         {
-          if (it1 == it2)
-            m_points.erase(it2);
-          else
-            m_points.erase(it1, it2);
+          m_points.erase(it1, it2);
         }
       }
     }
-    else if (x < m_lastX)
+    else if (x < m_lastX && m_points.size() > 1)
     {
       auto it1 = m_points.find(x);
       auto it2 = m_points.lower_bound(m_lastX);
@@ -158,12 +155,9 @@ void PointArraySegment::addPointUnscaled(double x, double y)
       if (it1 != end && it2 != end)
       {
         std::advance(it1, 1);
-        if (it1 != end)
+        if (it1 != end && it1 != it2)
         {
-          if (it1 == it2)
-            m_points.erase(it2);
-          else
-            m_points.erase(it1, it2);
+          m_points.erase(it1, it2);
         }
       }
     }
