@@ -110,10 +110,16 @@ void VideoDecoder::buffer_thread() noexcept
       std::unique_lock lck{m_condMut};
       m_condVar.wait(lck, [&] {
         return m_framesToPlayer.size_approx() < frames_to_buffer
-               || !m_running.load(std::memory_order_acquire);
+               || !m_running.load(std::memory_order_acquire)
+               || (m_seekTo != -1);
       });
       if (!m_running.load(std::memory_order_acquire))
         return;
+
+      if (int64_t seek = m_seekTo.exchange(-1); seek >= 0)
+      {
+        seek_impl(seek);
+      }
 
       if (m_framesToPlayer.size_approx() < (frames_to_buffer / 2))
       if (auto f = read_frame_impl())
@@ -177,9 +183,8 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
 {
   if(m_stream >=  m_formatContext->nb_streams)
     return false;
-  const AVRational tb = m_formatContext->streams[m_stream]->time_base;
-  const double ratio_seconds = double(tb.num) / double(tb.den);
-  const int64_t dts = (flicks / ossia::flicks_per_second<double>) / ratio_seconds;
+
+  const int64_t dts = flicks * dts_per_flicks;
 
   int flags = AVSEEK_FLAG_FRAME;
   if (dts < this->m_last_dts)
@@ -271,6 +276,10 @@ bool VideoDecoder::open_stream() noexcept
     {
       m_stream = i;
       m_codecContext = m_formatContext->streams[i]->codec;
+      const AVRational tb = m_formatContext->streams[m_stream]->time_base;
+      dts_per_flicks = (tb.den / (tb.num * ossia::flicks_per_second<double>));
+      flicks_per_dts = (tb.num * ossia::flicks_per_second<double>) / tb.den;
+
       m_codec = avcodec_find_decoder(m_codecContext->codec_id);
 
       if (m_codec)

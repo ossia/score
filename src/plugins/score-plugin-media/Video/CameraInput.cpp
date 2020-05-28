@@ -18,7 +18,7 @@ namespace Video
 
 CameraInput::CameraInput() noexcept
 {
-
+  realTime = true;
 }
 
 CameraInput::~CameraInput() noexcept

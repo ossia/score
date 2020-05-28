@@ -521,7 +521,7 @@ struct LineEdit
     LineEditItem() { setTextInteractionFlags(Qt::TextEditorInteraction); }
   };
   template <typename T, typename Control_T>
-  static QGraphicsItem* make_item(
+  static LineEditItem* make_item(
       const T& slider,
       Control_T& inlet,
       const score::DocumentContext& ctx,

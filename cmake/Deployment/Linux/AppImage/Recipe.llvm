@@ -60,11 +60,12 @@ export SOURCE_DIR=$PWD/score
       -DCMAKE_PREFIX_PATH=$QT_DIR/lib/cmake/Qt5 \
       -DOSSIA_SDK=$OSSIA_SDK \
       -DCMAKE_SKIP_RPATH=ON \
+      -DCMAKE_UNITY_BUILD=ON \
       -DOSSIA_USE_FAST_LINKER=1 \
       -DCMAKE_EXE_LINKER_FLAGS="-static-libstdc++ -pthread" #\
     # -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++ -pthread"
 
-    $CMAKE --build . --target all_unity -- -j$NPROC && $CMAKE --build . --target install/strip/fast
+    $CMAKE --build . -- -j$NPROC && $CMAKE --build . --target install/strip/fast
 )
 
 # Copy pixmaps

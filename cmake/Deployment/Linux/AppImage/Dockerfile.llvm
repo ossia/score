@@ -12,7 +12,7 @@ RUN mkdir -p /opt/score-sdk
 
 RUN wget https://github.com/OSSIA/sdk/releases/download/sdk15/score-sdk-linux-llvm.tar.xz \
     && tar xaf score-sdk-linux-llvm.tar.xz \
-    && rm -rf score-sdk-linux-llvm.tar.xz
+    && rm -rf  score-sdk-linux-llvm.tar.xz
     
 #ADD Recipe.llvm /Recipe.llvm
 #RUN bash -ex Recipe.llvm

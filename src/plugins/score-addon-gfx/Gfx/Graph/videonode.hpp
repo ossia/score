@@ -6,6 +6,7 @@
 #include "uniforms.hpp"
 
 #include <Video/VideoInterface.hpp>
+#include <ossia/detail/flicks.hpp>
 extern "C"
 {
 #include <libavutil/pixdesc.h>
@@ -412,6 +413,7 @@ struct VideoNode : NodeModel
   std::shared_ptr<video_decoder> decoder;
   std::unique_ptr<GPUVideoDecoder> gpu;
   AVPixelFormat current_format = AV_PIX_FMT_YUV420P;
+  std::atomic_bool seeked{};
 
   const TexturedTriangle& m_mesh = TexturedTriangle::instance();
   VideoNode(std::shared_ptr<video_decoder> dec)
@@ -475,9 +477,9 @@ struct VideoNode : NodeModel
   struct Rendered : RenderedNode
   {
     using RenderedNode::RenderedNode;
-    QElapsedTimer t;
     std::vector<AVFrame*> framesToFree;
     AVPixelFormat current_format = AV_PIX_FMT_YUV420P;
+    QElapsedTimer t;
 
     ~Rendered()
     {
@@ -497,6 +499,7 @@ struct VideoNode : NodeModel
     // a frame because rendered may have different rates, so we cannot know "when"
     // all renderers have rendered, thue the pattern in the following function
     // is not enough
+    double lastFrameTime{};
     void customUpdate(Renderer& renderer, QRhiResourceUpdateBatch& res) override
     {
       auto& nodem = const_cast<VideoNode&>(static_cast<const VideoNode&>(node));
@@ -505,7 +508,25 @@ struct VideoNode : NodeModel
         decoder.release_frame(frame);
       framesToFree.clear();
 
-      if (!t.isValid() || t.elapsed() > (1000. / decoder.fps))
+
+      // TODO
+      auto mustReadFrame = [this, &decoder, &nodem] {
+        const auto current_time = nodem.standardUBO.time; // In seconds
+        auto next_frame_time = lastFrameTime;
+
+        // what more can we do ?
+        const double inv_fps = decoder.fps > 0 ? 1. / decoder.fps : 1. / 24.;
+        next_frame_time += inv_fps;
+
+        const bool we_are_late = current_time > next_frame_time;
+        const bool timer = t.elapsed() > (1000. * inv_fps);
+        //const bool we_are_in_advance = std::abs(current_time - next_frame_time) > (2. * inv_fps);
+        //const bool seeked = nodem.seeked.exchange(false);
+        //const bool seeked_forward =
+        return we_are_late || timer;
+      };
+
+      if (decoder.realTime || mustReadFrame())
       {
         if (auto frame = decoder.dequeue_frame())
         {
@@ -514,6 +535,12 @@ struct VideoNode : NodeModel
           {
             nodem.gpu->exec(renderer, *this, res, *frame);
           }
+
+          int64_t ts = av_frame_get_best_effort_timestamp(frame);
+          lastFrameTime = (decoder.flicks_per_dts * ts) / ossia::flicks_per_second<double>;
+
+          //qDebug() << lastFrameTime << node.standardUBO.time;
+          //qDebug() << (lastFrameTime - nodem.standardUBO.time);
 
           framesToFree.push_back(frame);
         }

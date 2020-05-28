@@ -45,6 +45,7 @@ static void mathItem(
   c0_bg->setRect({0., 0., 300., 200.});
 
   auto edit_item = makeControl(std::get<0>(controls), edit, parent, context, doc, portFactory);
+  edit_item.control.setTextWidth(280);
   edit_item.root.setPos(c0, 40);
   /*
   ((QGraphicsProxyWidget&)edit_item.control).setMinimumWidth(200);

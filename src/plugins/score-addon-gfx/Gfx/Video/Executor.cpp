@@ -20,7 +20,9 @@ public:
   video_node(const std::shared_ptr<video_decoder>& dec, GfxExecutionAction& ctx)
       : gfx_exec_node{ctx}, m_decoder{dec}
   {
-    id = exec_context->ui->register_node(std::make_unique<VideoNode>(dec));
+    auto n = std::make_unique<VideoNode>(dec);
+    impl = n.get();
+    id = exec_context->ui->register_node(std::move(n));
     dec->seek(0);
   }
 
@@ -35,6 +37,7 @@ public:
 
   video_decoder& decoder() const noexcept { return *m_decoder; }
 
+  VideoNode* impl{};
 private:
   std::shared_ptr<video_decoder> m_decoder;
 };
@@ -46,13 +49,17 @@ public:
 
   void offset_impl(ossia::time_value tv) override
   {
-    // TODO
-    static_cast<video_node&>(*node).decoder().seek(tv.impl);
+    auto& vnode = static_cast<video_node&>(*node);
+    // TODO should be a "seek" info in what goes from decoder to renderer instead...
+    vnode.decoder().seek(tv.impl);
+    vnode.impl->seeked = true;
   }
+
   void transport_impl(ossia::time_value date) override
   {
-    // TODO
-    static_cast<video_node&>(*node).decoder().seek(date.impl);
+    auto& vnode = static_cast<video_node&>(*node);
+    vnode.decoder().seek(date.impl);
+    vnode.impl->seeked = true;
   }
 
   void state_impl(const ossia::token_request& req) { node->request(req); }
