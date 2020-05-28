@@ -25,6 +25,7 @@ W_OBJECT_IMPL(score::QGraphicsEnum)
 W_OBJECT_IMPL(score::QGraphicsHSVChooser)
 W_OBJECT_IMPL(score::QGraphicsXYChooser)
 W_OBJECT_IMPL(score::QGraphicsCheckBox)
+W_OBJECT_IMPL(score::QGraphicsToggle)
 
 namespace score
 {
@@ -1330,10 +1331,11 @@ void QGraphicsCheckBox::paint(
   {
     double position = (m_rect.width() - insideBoxWidth) * 0.5;
     painter->setPen(skin.Base4.main.pen2);
-    painter->drawLine(position, position, position + insideBoxWidth, position + + insideBoxWidth);
+    painter->drawLine(position, position, position + insideBoxWidth, position + insideBoxWidth);
     painter->drawLine(position, position + + insideBoxWidth, position + + insideBoxWidth, position);
-  //  painter->fillRect(QRectF{position,position, insideBoxWidth, insideBoxWidth}, skin.Base4.main.brush);
   }
+
+  painter->setRenderHint(QPainter::Antialiasing, false);
  }
 
 QRectF QGraphicsCheckBox::boundingRect() const
@@ -1341,6 +1343,72 @@ QRectF QGraphicsCheckBox::boundingRect() const
   return m_rect;
 }
 
+QGraphicsToggle::QGraphicsToggle(const QString& textToggled, const QString& textUntoggled, QGraphicsItem* parent)
+  : m_textToggled(textToggled),
+    m_textUntoggled(textUntoggled)
+{
+  auto& skin = score::Skin::instance();
+  setCursor(skin.CursorPointingHand);
+}
+
+void QGraphicsToggle::toggle()
+{
+  m_toggled = !m_toggled;
+}
+
+void QGraphicsToggle::setState(bool toggled)
+{
+  if (toggled != m_toggled)
+  {
+    m_toggled = toggled;
+  }
+}
+
+void QGraphicsToggle::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+  m_toggled = !m_toggled;
+  toggled(m_toggled);
+  event->accept();
+}
+
+void QGraphicsToggle::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+  event->accept();
+}
+
+void QGraphicsToggle::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+  event->accept();
+}
+
+void QGraphicsToggle::paint(
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
+{
+  auto& skin = score::Skin::instance();
+  painter->setRenderHint(QPainter::Antialiasing, true);
+
+  constexpr const double margin = 2.;
+  const double backgroundRectWidth = m_rect.width() - 2. * margin;
+  const double backgroundRectHeight = m_rect.height() - 2. * margin;
+
+  painter->fillRect(QRectF{margin,margin, backgroundRectWidth, backgroundRectHeight}, skin.Emphasis2.main.brush);
+
+  painter->setPen(skin.Base4.main.pen1);//skin.Base4.lighter180.pen1);
+  painter->setFont(skin.Medium10Pt);
+  painter->drawText(
+      QRectF{margin,margin, backgroundRectWidth, backgroundRectHeight},
+      m_toggled ? m_textToggled : m_textUntoggled,
+      QTextOption(Qt::AlignCenter));
+
+  painter->setRenderHint(QPainter::Antialiasing, false);
+}
+
+QRectF QGraphicsToggle::boundingRect() const
+{
+  return m_rect;
+}
 }
 
 W_OBJECT_IMPL(score::ComboBoxWithEnter)

@@ -18,6 +18,8 @@ namespace score
 {
 static const constexpr QRectF defaultSliderSize{0., 0., 60., 20.};
 static const constexpr QRectF defaultKnobSize{0., 0., 35., 35.};
+static const constexpr QRectF defaultCheckBoxSize{0., 0., 20., 20.};
+static const constexpr QRectF defaultToggleSize{0., 0., 60., 20.};
 
 struct DoubleSpinboxWithEnter;
 struct DefaultGraphicsSliderImpl;
@@ -531,12 +533,42 @@ class SCORE_LIB_BASE_EXPORT QGraphicsCheckBox final
 {
   W_OBJECT(QGraphicsCheckBox)
   Q_INTERFACES(QGraphicsItem)
-  QRectF m_rect{0., 0., 20., 20.};
+  QRectF m_rect{defaultCheckBoxSize};
 
    bool m_toggled{};
 
 public:
   QGraphicsCheckBox(QGraphicsItem* parent);
+
+  void toggle();
+  void setState(bool toggled);
+
+public:
+  void toggled(bool arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, toggled, arg_1)
+
+private:
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  QRectF boundingRect() const override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+};
+
+
+class SCORE_LIB_BASE_EXPORT QGraphicsToggle final
+    : public QObject,
+      public QGraphicsItem
+{
+  W_OBJECT(QGraphicsToggle)
+  Q_INTERFACES(QGraphicsItem)
+  QRectF m_rect{defaultToggleSize};
+
+  QString m_textToggled{};
+  QString m_textUntoggled{};
+  bool m_toggled{};
+
+public:
+  QGraphicsToggle(const QString& textToggled, const QString& textUntoggled, QGraphicsItem* parent);
 
   void toggle();
   void setState(bool toggled);

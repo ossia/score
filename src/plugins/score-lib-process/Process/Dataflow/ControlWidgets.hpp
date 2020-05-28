@@ -363,17 +363,8 @@ struct Toggle
       QWidget* parent,
       QObject* context)
   {
-    QPalette palette;
-    palette.setColor(QPalette::Highlight, QColor{"#62400a"});
-    palette.setColor(QPalette::HighlightedText, QColor{"silver"});
-    palette.setColor(QPalette::WindowText, QColor{"#f6a019"});
-    palette.setColor(QPalette::Window, QColor{"#62400a"});
-
     auto sl = new QCheckBox{parent};
     sl->setChecked(ossia::convert<bool>(inlet.value()));
-    sl->setContentsMargins(0, 0, 0, 0);
-    sl->setMinimumWidth(18);
-    sl->setPalette(palette);
     QObject::connect(sl, &QCheckBox::toggled, context, [&inlet, &ctx](bool val) {
       CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(inlet, val);
     });
@@ -456,47 +447,59 @@ struct ChooserToggle
   }
   template <typename T, typename Control_T>
   static auto make_widget(
-      const T& slider,
+      const T& control,
       Control_T& inlet,
       const score::DocumentContext& ctx,
       QWidget* parent,
       QObject* context)
   {
-    const auto& alts = getAlternatives(slider);
-    SCORE_ASSERT(alts.size() == 2);
-    auto sl = new score::ToggleButton{alts, parent};
-    sl->setCheckable(true);
-    bool b = ossia::convert<bool>(inlet.value());
-    if (b && !sl->isChecked())
-      sl->toggle();
-    else if (!b && sl->isChecked())
-      sl->toggle();
-    sl->setContentsMargins(0, 0, 0, 0);
 
-    QObject::connect(sl, &QCheckBox::toggled, context, [&inlet, &ctx](bool val) {
+    const auto& alts = getAlternatives(control);
+    SCORE_ASSERT(alts.size() == 2);
+    auto toggleBtn = new score::ToggleButton{alts, parent};
+    toggleBtn->setCheckable(true);
+    bool b = ossia::convert<bool>(inlet.value());
+    if (b && !toggleBtn->isChecked())
+      toggleBtn->toggle();
+    else if (!b && toggleBtn->isChecked())
+      toggleBtn->toggle();
+
+    QObject::connect(toggleBtn, &score::ToggleButton::toggled, context, [&inlet, &ctx](bool val) {
       CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(inlet, val);
     });
 
-    QObject::connect(&inlet, &Control_T::valueChanged, sl, [sl](ossia::value val) {
+    QObject::connect(&inlet, &Control_T::valueChanged, toggleBtn, [toggleBtn](ossia::value val) {
       bool b = ossia::convert<bool>(val);
-      if (b && !sl->isChecked())
-        sl->toggle();
-      else if (!b && sl->isChecked())
-        sl->toggle();
+      if (b && !toggleBtn->isChecked())
+        toggleBtn->toggle();
+      else if (!b && toggleBtn->isChecked())
+        toggleBtn->toggle();
     });
 
-    return sl;
+    return toggleBtn;
   }
 
   template <typename T, typename Control_T>
   static QGraphicsItem* make_item(
-      const T& slider,
+      const T& control,
       Control_T& inlet,
       const score::DocumentContext& ctx,
       QGraphicsItem* parent,
       QObject* context)
   {
-    return wrapWidget(make_widget(slider, inlet, ctx, nullptr, context));
+    const auto& alts = getAlternatives(control);
+    SCORE_ASSERT(alts.size() == 2);
+    auto toggle = new score::QGraphicsToggle{alts[0], alts[1], nullptr};
+
+    QObject::connect(toggle, &score::QGraphicsToggle::toggled, context, [=, &inlet, &ctx] (bool toggled){
+      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, toggled);
+    });
+
+    QObject::connect(&inlet, &Control_T::valueChanged, toggle, [toggle](ossia::value val) {
+      toggle->setState(ossia::convert<bool>(val));
+    });
+
+    return toggle;
   }
 };
 
@@ -539,7 +542,8 @@ struct LineEdit
       QObject* context)
   {
     auto sl = new LineEditItem{};
-    sl->setTextWidth(280.);
+    sl->setTextWidth(180.);
+    sl->setDefaultTextColor(QColor{"#E0B01E"});
 
     sl->setPlainText(QString::fromStdString(ossia::convert<std::string>(inlet.value())));
 
