@@ -39,6 +39,8 @@ QGraphicsPixmapButton::QGraphicsPixmapButton(
 {
   // TODO https://bugreports.qt.io/browse/QTBUG-77970
   setShapeMode(QGraphicsPixmapItem::BoundingRectShape);
+  auto& skin = score::Skin::instance();
+  setCursor(skin.CursorPointingHand);
 }
 
 void QGraphicsPixmapButton::mousePressEvent(QGraphicsSceneMouseEvent* event)
@@ -73,7 +75,8 @@ QGraphicsSelectablePixmapToggle::QGraphicsSelectablePixmapToggle(
 {
   // TODO https://bugreports.qt.io/browse/QTBUG-77970
   setShapeMode(QGraphicsPixmapItem::BoundingRectShape);
-  setCursor(Qt::CrossCursor);
+  auto& skin = score::Skin::instance();
+  setCursor(skin.CursorPointingHand);
 }
 
 void QGraphicsSelectablePixmapToggle::toggle()
@@ -136,7 +139,8 @@ QGraphicsPixmapToggle::QGraphicsPixmapToggle(
 {
   // TODO https://bugreports.qt.io/browse/QTBUG-77970
   setShapeMode(QGraphicsPixmapItem::BoundingRectShape);
-  setCursor(Qt::CrossCursor);
+  auto& skin = score::Skin::instance();
+  setCursor(skin.CursorPointingHand);
 }
 
 void QGraphicsPixmapToggle::toggle()
@@ -176,7 +180,11 @@ template void QGraphicsSliderBase<QGraphicsSlider>::setRect(const QRectF& r);
 template void QGraphicsSliderBase<QGraphicsLogSlider>::setRect(const QRectF& r);
 template void QGraphicsSliderBase<QGraphicsIntSlider>::setRect(const QRectF& r);
 
-QGraphicsSlider::QGraphicsSlider(QGraphicsItem* parent) : QGraphicsSliderBase{parent} { }
+QGraphicsSlider::QGraphicsSlider(QGraphicsItem* parent) : QGraphicsSliderBase{parent}
+{
+  auto& skin = score::Skin::instance();
+  setCursor(skin.CursorPointingHand);
+}
 
 void QGraphicsSlider::setValue(double v)
 {
@@ -229,6 +237,8 @@ void QGraphicsSlider::paint(
 
 QGraphicsKnob::QGraphicsKnob(QGraphicsItem* parent) : QGraphicsItem{parent}
 {
+  auto& skin = score::Skin::instance();
+  setCursor(skin.CursorPointingHand);
   this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
 
@@ -294,6 +304,8 @@ void QGraphicsKnob::paint(
 
 QGraphicsLogSlider::QGraphicsLogSlider(QGraphicsItem* parent) : QGraphicsSliderBase{parent}
 {
+  auto& skin = score::Skin::instance();
+  setCursor(skin.CursorPointingHand);
   this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
 
@@ -358,6 +370,8 @@ void QGraphicsLogSlider::paint(
 
 QGraphicsLogKnob::QGraphicsLogKnob(QGraphicsItem* parent) : QGraphicsItem{parent}
 {
+  auto& skin = score::Skin::instance();
+  setCursor(skin.CursorPointingHand);
   this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
 
@@ -433,6 +447,8 @@ void QGraphicsLogKnob::paint(
 
 QGraphicsIntSlider::QGraphicsIntSlider(QGraphicsItem* parent) : QGraphicsSliderBase{parent}
 {
+  auto& skin = score::Skin::instance();
+  setCursor(skin.CursorPointingHand);
   this->setAcceptedMouseButtons(Qt::LeftButton);
 }
 
@@ -715,6 +731,8 @@ struct DefaultComboImpl
 
 QGraphicsCombo::QGraphicsCombo(QGraphicsItem* parent) : QGraphicsItem{parent}
 {
+  auto& skin = score::Skin::instance();
+  setCursor(skin.CursorPointingHand);
   this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
 
@@ -907,7 +925,11 @@ void QGraphicsEnum::paint(
   }
 }
 
-QGraphicsPixmapEnum::QGraphicsPixmapEnum(QGraphicsItem* parent) : QGraphicsEnum{parent} { }
+QGraphicsPixmapEnum::QGraphicsPixmapEnum(QGraphicsItem* parent) : QGraphicsEnum{parent}
+{
+  auto& skin = score::Skin::instance();
+  setCursor(skin.CursorPointingHand);
+}
 
 void QGraphicsPixmapEnum::paint(
     QPainter* painter,
@@ -1151,7 +1173,11 @@ QRectF QGraphicsHSVChooser::boundingRect() const
   return QRectF{0, 0, 140, 100};
 }
 
-QGraphicsXYChooser::QGraphicsXYChooser(QGraphicsItem* parent) { }
+QGraphicsXYChooser::QGraphicsXYChooser(QGraphicsItem* parent)
+{
+  auto& skin = score::Skin::instance();
+  setCursor(skin.CursorPointingHand);
+}
 
 void QGraphicsXYChooser::setPoint(const QPointF& r)
 {
