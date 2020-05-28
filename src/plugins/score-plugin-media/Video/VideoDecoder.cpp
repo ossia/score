@@ -69,9 +69,9 @@ int64_t VideoDecoder::duration() const noexcept
   return m_duration;
 }
 
-void VideoDecoder::seek(int64_t dts)
+void VideoDecoder::seek(int64_t flicks)
 {
-  m_seekTo = dts;
+  m_seekTo = flicks;
 }
 
 AVFrame* VideoDecoder::dequeue_frame() noexcept
@@ -173,8 +173,14 @@ void VideoDecoder::drain_frames() noexcept
   }
 }
 
-bool VideoDecoder::seek_impl(int64_t dts) noexcept
+bool VideoDecoder::seek_impl(int64_t flicks) noexcept
 {
+  if(m_stream >=  m_formatContext->nb_streams)
+    return false;
+  const AVRational tb = m_formatContext->streams[m_stream]->time_base;
+  const double ratio_seconds = double(tb.num) / double(tb.den);
+  const int64_t dts = (flicks / ossia::flicks_per_second<double>) / ratio_seconds;
+
   int flags = AVSEEK_FLAG_FRAME;
   if (dts < this->m_last_dts)
   {

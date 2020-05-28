@@ -27,7 +27,7 @@ public:
 
   int64_t duration() const noexcept;
 
-  void seek(int64_t dts);
+  void seek(int64_t flicks);
 
   AVFrame* dequeue_frame() noexcept override;
   void release_frame(AVFrame*) noexcept override;
