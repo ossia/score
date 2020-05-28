@@ -357,7 +357,7 @@ struct Toggle
 {
   template <typename T, typename Control_T>
   static auto make_widget(
-      const T& slider,
+      const T& toggle,
       Control_T& inlet,
       const score::DocumentContext& ctx,
       QWidget* parent,
@@ -387,13 +387,23 @@ struct Toggle
 
   template <typename T, typename Control_T>
   static QGraphicsItem* make_item(
-      const T& slider,
+      const T& toggle,
       Control_T& inlet,
       const score::DocumentContext& ctx,
       QGraphicsItem* parent,
       QObject* context)
   {
-    return wrapWidget(make_widget(slider, inlet, ctx, nullptr, context));
+    auto cb = new score::QGraphicsCheckBox{nullptr};
+
+    QObject::connect(cb, &score::QGraphicsCheckBox::toggled, context, [=, &inlet, &ctx] (bool toggled){
+      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, toggled);
+    });
+
+    QObject::connect(&inlet, &Control_T::valueChanged, cb, [cb](ossia::value val) {
+      cb->setState(ossia::convert<bool>(val));
+    });
+
+    return cb;
   }
 };
 
