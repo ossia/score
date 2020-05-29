@@ -185,6 +185,9 @@ Skin::Skin() noexcept
   CursorScaleFDiag
       = QCursor{score::get_pixmap(":/icons/cursor_scale_fdiag.png"), centerHotspot, centerHotspot};
 
+  CursorSpin
+      = QCursor{score::get_pixmap(":/icons/cursor_spin.png"), centerHotspot, centerHotspot};
+
   hotspotX = 12 * dpr;
   hotspotY = 10 * dpr;
   CursorPlayFromHere

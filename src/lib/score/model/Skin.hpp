@@ -180,6 +180,7 @@ public:
   QCursor CursorScaleH;
   QCursor CursorScaleV;
   QCursor CursorScaleFDiag;
+  QCursor CursorSpin;
 
   QCursor CursorPlayFromHere;
   QCursor CursorCreationMode;

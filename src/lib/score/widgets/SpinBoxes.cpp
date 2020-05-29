@@ -245,6 +245,8 @@ TimeSpinBox::TimeMode globalTimeMode = TimeSpinBox::TimeMode::Bars;
 
 TimeSpinBox::TimeSpinBox(QWidget* parent) : QWidget(parent)
 {
+  auto& skin = score::Skin::instance();
+  setCursor(skin.CursorSpin);
   spinBoxes.push_back(this);
   m_mode = globalTimeMode;
 }

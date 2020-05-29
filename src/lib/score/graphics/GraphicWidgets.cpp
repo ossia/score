@@ -733,7 +733,7 @@ struct DefaultComboImpl
 QGraphicsCombo::QGraphicsCombo(QGraphicsItem* parent) : QGraphicsItem{parent}
 {
   auto& skin = score::Skin::instance();
-  setCursor(skin.CursorPointingHand);
+  setCursor(skin.CursorSpin);
   this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
 
@@ -769,6 +769,8 @@ void QGraphicsCombo::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 void QGraphicsCombo::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   DefaultComboImpl::mouseReleaseEvent(*this, event);
+  auto& skin = score::Skin::instance();
+  setCursor(skin.CursorSpin);
   event->accept();
 }
 
@@ -786,16 +788,16 @@ void QGraphicsCombo::paint(
   painter->setRenderHint(QPainter::Antialiasing, true);
 
   painter->setPen(skin.NoPen);
-  painter->setBrush(skin.Background1.main.brush);
+  painter->setBrush(skin.Emphasis2.main.brush);
 
   // Draw rect
   const QRectF brect = boundingRect().adjusted(1, 1, -1, -1);
   painter->drawRoundedRect(brect, 1, 1);
 
   // Draw text
+  painter->setPen(skin.Base4.main.pen2);
   painter->setRenderHint(QPainter::Antialiasing, false);
-  painter->setPen(skin.Base4.lighter180.pen1);
-  painter->setFont(skin.Medium8Pt);
+  painter->setFont(skin.Medium10Pt);
   painter->drawText(brect, array[value()], QTextOption(Qt::AlignCenter));
 }
 
@@ -1303,11 +1305,6 @@ void QGraphicsCheckBox::mousePressEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
-void QGraphicsCheckBox::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
-{
-  event->accept();
-}
-
 void QGraphicsCheckBox::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   event->accept();
@@ -1371,11 +1368,6 @@ void QGraphicsToggle::mousePressEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
-void QGraphicsToggle::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
-{
-  event->accept();
-}
-
 void QGraphicsToggle::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   event->accept();
@@ -1395,7 +1387,7 @@ void QGraphicsToggle::paint(
 
   painter->fillRect(QRectF{margin,margin, backgroundRectWidth, backgroundRectHeight}, skin.Emphasis2.main.brush);
 
-  painter->setPen(skin.Base4.main.pen1);//skin.Base4.lighter180.pen1);
+  painter->setPen(skin.Base4.main.pen1);
   painter->setFont(skin.Medium10Pt);
   painter->drawText(
       QRectF{margin,margin, backgroundRectWidth, backgroundRectHeight},

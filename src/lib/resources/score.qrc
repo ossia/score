@@ -593,5 +593,7 @@
         <file>icons/cursor_pointing_hand@2x.png</file>
         <file>icons/cursor_scale_fdiag.png</file>
         <file>icons/cursor_scale_fdiag@2x.png</file>
+        <file>icons/cursor_spin.png</file>
+        <file>icons/cursor_spin@2x.png</file>
     </qresource>
 </RCC>
