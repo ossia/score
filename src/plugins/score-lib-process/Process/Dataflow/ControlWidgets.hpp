@@ -517,7 +517,6 @@ struct LineEdit
     sl->setText(QString::fromStdString(ossia::convert<std::string>(inlet.value())));
     sl->setContentsMargins(0, 0, 0, 0);
     sl->setMaximumWidth(70);
-
     QObject::connect(sl, &QLineEdit::editingFinished, context, [sl, &inlet, &ctx]() {
       CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
           inlet, sl->text().toStdString());
@@ -544,6 +543,7 @@ struct LineEdit
     auto sl = new LineEditItem{};
     sl->setTextWidth(180.);
     sl->setDefaultTextColor(QColor{"#E0B01E"});
+    sl->setCursor(Qt::IBeamCursor);
 
     sl->setPlainText(QString::fromStdString(ossia::convert<std::string>(inlet.value())));
 
