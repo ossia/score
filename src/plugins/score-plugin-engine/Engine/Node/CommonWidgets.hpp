@@ -89,22 +89,22 @@ static constexpr auto WaveformChooser()
       ossia::make_array(
           "Sin", "Triangle", "Saw", "Square", "Sample & Hold", "Noise 1", "Noise 2", "Noise 3"),
       std::array<const char*, 16>{
-          ":/icons/waves/sin_off.png",
-          ":/icons/waves/sin_on.png",
-          ":/icons/waves/triangle_off.png",
-          ":/icons/waves/triangle_on.png",
-          ":/icons/waves/saw_off.png",
-          ":/icons/waves/saw_on.png",
-          ":/icons/waves/square_off.png",
-          ":/icons/waves/square_on.png",
-          ":/icons/waves/sample_and_hold_off.png",
-          ":/icons/waves/sample_and_hold_on.png",
-          ":/icons/waves/noise1_off.png",
-          ":/icons/waves/noise1_on.png",
-          ":/icons/waves/noise2_off.png",
-          ":/icons/waves/noise2_on.png",
-          ":/icons/waves/noise3_off.png",
-          ":/icons/waves/noise3_on.png"});
+          ":/icons/wave_sin_off.png",
+          ":/icons/wave_sin_on.png",
+          ":/icons/wave_triangle_off.png",
+          ":/icons/wave_triangle_on.png",
+          ":/icons/wave_saw_off.png",
+          ":/icons/wave_saw_on.png",
+          ":/icons/wave_square_off.png",
+          ":/icons/wave_square_on.png",
+          ":/icons/wave_sample_and_hold_off.png",
+          ":/icons/wave_sample_and_hold_on.png",
+          ":/icons/wave_noise1_off.png",
+          ":/icons/wave_noise1_on.png",
+          ":/icons/wave_noise2_off.png",
+          ":/icons/wave_noise2_on.png",
+          ":/icons/wave_noise3_off.png",
+          ":/icons/wave_noise3_on.png"});
 }
 
 enum LoopMode

@@ -805,7 +805,7 @@ void QGraphicsCombo::paint(
 QGraphicsEnum::QGraphicsEnum(QGraphicsItem* parent) : QGraphicsItem{parent}
 {
   this->setAcceptedMouseButtons(Qt::LeftButton);
-  setRect({0, 0, 150, 45});
+  setRect({0, 0, 104, 44});
 }
 
 void QGraphicsEnum::setRect(const QRectF& r)
@@ -837,7 +837,7 @@ void QGraphicsEnum::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
   for (int i = 0; i < array.size(); i++)
   {
-    QRectF rect{2. + col * w, 2. + row * h, w - 1., h - 1.};
+    QRectF rect{2. + col * w, 2. + row * h, w,h};
     if (rect.contains(event->pos()))
     {
       m_clicking = i;
@@ -898,13 +898,12 @@ void QGraphicsEnum::paint(
   int col = 0;
   const double w = m_smallRect.width() / columns;
   const double h = m_smallRect.height() / actual_rows;
-
   painter->setBrush(bg);
   int i = 0;
   QRectF clickRect{};
   for (const QString& str : array)
   {
-    QRectF rect{2. + col * w, 2. + row * h, w - 1., h - 1.};
+    QRectF rect{2. + col * w, 2. + row * h, w, h};
     if (i == m_clicking)
     {
       clickRect = rect;
@@ -956,7 +955,7 @@ void QGraphicsPixmapEnum::paint(
   int i = 0;
   for (std::size_t img = 0; img < off_images.size(); img++)
   {
-    QRectF rect{4. + col * w, 4. + row * h, w - 3., h - 3.};
+    QRectF rect{2. + col * w, 2. + row * h, w, h};
     if (i != m_clicking)
     {
       painter->setPen(noPen);
