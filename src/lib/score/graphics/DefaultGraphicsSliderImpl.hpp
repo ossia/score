@@ -48,7 +48,6 @@ struct DefaultGraphicsSliderImpl
 
     // Draw handle
     painter->fillRect(self.handleRect(), skin.Base4);
-
     // painter->setPen(QPen(Qt::green, 1));
     // painter->setBrush(QBrush(Qt::transparent));
     // painter->drawRect(textrect);
@@ -69,7 +68,8 @@ struct DefaultGraphicsSliderImpl
       }
 
       const auto srect = self.sliderRect();
-      double curPos = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
+      const auto posX = event->pos().x() - srect.x();
+      double curPos = ossia::clamp(posX, 0., srect.width()) / srect.width();
       if (curPos != self.m_value)
       {
         self.m_value = curPos;
@@ -88,13 +88,15 @@ struct DefaultGraphicsSliderImpl
     if ((event->buttons() & Qt::LeftButton) && self.m_grab)
     {
       const auto srect = self.sliderRect();
-      double curPos = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
+      const auto posX = event->pos().x() - srect.x();
+      double curPos = ossia::clamp(posX, 0., srect.width()) / srect.width();
       if (curPos != self.m_value)
       {
         self.m_value = curPos;
         self.valueChanged(self.m_value);
         self.sliderMoved();
         self.update();
+
       }
     }
     event->accept();
@@ -108,7 +110,8 @@ struct DefaultGraphicsSliderImpl
       if (self.m_grab)
       {
         const auto srect = self.sliderRect();
-        double curPos = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
+        const auto posX = event->pos().x() - srect.x();
+        double curPos = ossia::clamp(posX, 0., srect.width()) / srect.width();
         if (curPos != self.m_value)
         {
           self.m_value = curPos;
