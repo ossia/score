@@ -10,6 +10,7 @@
 #include <QTime>
 #include <cmath>
 
+#include <QLineEdit>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::TimeSpinBox)
 namespace score
@@ -21,6 +22,11 @@ static const constexpr int millisecondStart = 20;
 static const constexpr int secondStart = 50;
 static const constexpr int minuteStart = 70;
 
+static constexpr const auto barDuration = 4 * ossia::quarter_duration<int64_t>;
+static constexpr const auto quarterDuration = ossia::quarter_duration<int64_t>;
+static constexpr const auto semiquaverDuration = ossia::quarter_duration<int64_t> / 4;
+static constexpr const auto centDuration = ossia::quarter_duration<int64_t> / 400;
+
 struct BarSpinBox
 {
   TimeSpinBox& self;
@@ -28,11 +34,17 @@ struct BarSpinBox
   {
     auto& m_barTime = self.m_barTime;
     const auto w = text_rect.width();
-    const auto cent_start = w - centStart;
+    const auto cent_start = 2 + w - centStart;
     const auto sq_start = w - semiquaverStart;
     const auto q_start = w - quarterStart;
     const auto bar_w = q_start - text_rect.x();
 
+    /*
+    p.fillRect(QRect{text_rect.x(), text_rect.y(), bar_w, text_rect.height()}, Qt::red);
+    p.fillRect(QRect{q_start, text_rect.y(), 20, text_rect.height()}, Qt::green);
+    p.fillRect(QRect{sq_start, text_rect.y(), 20, text_rect.height()}, Qt::blue);
+    p.fillRect(QRect{cent_start, text_rect.y(), 30, text_rect.height()}, Qt::yellow);
+    */
     p.drawText(
         QRect{text_rect.x(), text_rect.y(), bar_w, text_rect.height()},
         QString{"%1 ."}.arg(m_barTime.bars),
@@ -48,7 +60,65 @@ struct BarSpinBox
     p.drawText(
         QRect{cent_start, text_rect.y(), 30, text_rect.height()},
         QString{"%1"}.arg(m_barTime.cents, 2, 10, QChar('0')),
-        QTextOption(Qt::AlignRight));
+        QTextOption(Qt::AlignLeft));
+  }
+
+  QString text() const noexcept
+  {
+    auto& m_barTime = self.m_barTime;
+    return QString{"%1 . %2 . %3 . %4"}
+    .arg(m_barTime.bars)
+    .arg(m_barTime.quarters)
+    .arg(m_barTime.semiquavers)
+    .arg(m_barTime.cents, 2, 10, QChar('0'))
+    ;
+  }
+
+  static std::optional<int64_t> parseText(QString str) noexcept
+  {
+    // Check for bad characters
+    auto check = str;
+    check.replace(QRegularExpression("[0-9]"), "");
+    check.replace(' ', "");
+    check.replace('.', "");
+    if(!check.isEmpty())
+      return {};
+
+    int64_t time{};
+    auto splitted = str.split(".");
+    if(splitted.empty())
+      return {};
+
+    int cents = 0;
+    int semiquavers = 0;
+    int quarters = 0;
+    int bars = 0;
+    // Bar cents
+
+    auto it = splitted.rbegin();
+    if(it != splitted.rend()) {
+      cents = it->toInt();
+      ++it;
+    }
+    if(it != splitted.rend()) {
+      semiquavers = it->toInt();
+      ++it;
+    }
+    if(it != splitted.rend()) {
+      quarters = it->toInt();
+      ++it;
+    }
+    if(it != splitted.rend()) {
+      bars = it->toInt();
+      ++it;
+    }
+
+    time += barDuration * bars;
+    time += quarterDuration * quarters;
+    time += semiquaverDuration * semiquavers;
+    time += centDuration * cents;
+
+    return time;
   }
 
   void mousePress(QRect text_rect, QMouseEvent* event)
@@ -137,20 +207,46 @@ struct SecondSpinBox
 
     p.drawText(
         QRect{text_rect.x(), text_rect.y(), bar_w, text_rect.height()},
-        QString{"%1 :"}.arg(t.hour()),
+        QString{"%1 :"}.arg(t.hour(), 2, 10, QChar('0')),
         QTextOption(Qt::AlignRight));
     p.drawText(
         QRect{q_start, text_rect.y(), 20, text_rect.height()},
-        QString{"%1 :"}.arg(t.minute()),
+        QString{"%1 :"}.arg(t.minute(), 2, 10, QChar('0')),
         QTextOption(Qt::AlignRight));
     p.drawText(
         QRect{sq_start, text_rect.y(), 20, text_rect.height()},
-        QString{"%1 ."}.arg(t.second()),
+        QString{"%1  ."}.arg(t.second(), 2, 10, QChar('0')),
         QTextOption(Qt::AlignRight));
     p.drawText(
         QRect{cent_start, text_rect.y(), 30, text_rect.height()},
-        QString{"%1"}.arg(t.msec(), 2, 10, QChar('0')),
-        QTextOption(Qt::AlignRight));
+        QString{"%1"}.arg(t.msec(), 3, 10, QChar('0')),
+        QTextOption(Qt::AlignLeft));
+  }
+
+  QString text() const noexcept
+  {
+    QTime t = QTime(0, 0, 0, 0).addMSecs(self.time().impl / ossia::flicks_per_millisecond<double>);
+    return QString{"%1:%2:%3.%4"}
+    .arg(t.hour(), 2, 10, QChar('0'))
+    .arg(t.minute(), 2, 10, QChar('0'))
+    .arg(t.second(), 2, 10, QChar('0'))
+    .arg(t.msec(), 3, 10, QChar('0'))
+    ;
+  }
+
+  static std::optional<int64_t> parseText(QString str) noexcept
+  {
+    str.remove(' ');
+    auto t = QTime::fromString(str, "hh:mm:ss.zzz");
+    if(!t.isValid())
+      return {};
+
+    int64_t flicks{};
+    flicks += t.hour() * 3600 * 1000 * ossia::flicks_per_millisecond<int64_t>;
+    flicks += t.minute() * 60 * 1000 * ossia::flicks_per_millisecond<int64_t>;
+    flicks += t.second() * 1000 * ossia::flicks_per_millisecond<int64_t>;
+    flicks += t.msec() * ossia::flicks_per_millisecond<int64_t>;
+    return flicks;
   }
 
   void mousePress(QRect text_rect, QMouseEvent* event)
@@ -233,6 +329,16 @@ struct FlicksSpinBox
   TimeSpinBox& self;
   void paint(QPainter& p, QRect text_rect) { }
 
+  QString text() const noexcept
+  {
+    return QString{"%1"}.arg(self.m_flicks);
+  }
+
+  static std::optional<int64_t> parseText(QString str) noexcept
+  {
+    return {};
+  }
+
   void mousePress(QRect text_rect, QMouseEvent* event) { }
 
   void mouseMove(QMouseEvent* event) { }
@@ -281,17 +387,13 @@ void TimeSpinBox::setTime(ossia::time_value t)
 
 void TimeSpinBox::updateTime()
 {
-  constexpr const auto bar_duration = 4 * ossia::quarter_duration<int64_t>;
-  constexpr const auto qrt_duration = ossia::quarter_duration<int64_t>;
-  constexpr const auto sem_duration = ossia::quarter_duration<int64_t> / 4;
-  constexpr const auto cnt_duration = ossia::quarter_duration<int64_t> / 400;
-  const int64_t bars = m_flicks / (bar_duration);
-  const int64_t quarters = (m_flicks - (bars * bar_duration)) / qrt_duration;
+  const int64_t bars = m_flicks / (barDuration);
+  const int64_t quarters = (m_flicks - (bars * barDuration)) / quarterDuration;
   const int64_t semiquavers
-      = (m_flicks - (bars * bar_duration) - (quarters * qrt_duration)) / sem_duration;
-  const int64_t cents = (m_flicks - (bars * bar_duration) - (quarters * qrt_duration)
-                         - (semiquavers * sem_duration))
-                        / cnt_duration;
+      = (m_flicks - (bars * barDuration) - (quarters * quarterDuration)) / semiquaverDuration;
+  const int64_t cents = (m_flicks - (bars * barDuration) - (quarters * quarterDuration)
+                         - (semiquavers * semiquaverDuration))
+                        / centDuration;
   m_barTime.bars = bars;
   m_barTime.quarters = quarters;
   m_barTime.semiquavers = semiquavers;
@@ -343,6 +445,8 @@ void TimeSpinBox::mousePressEvent(QMouseEvent* event)
   // #else
   //     QGuiApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
   // #endif
+
+  event->accept();
 }
 
 void TimeSpinBox::mouseMoveEvent(QMouseEvent* event)
@@ -364,6 +468,8 @@ void TimeSpinBox::mouseMoveEvent(QMouseEvent* event)
   // score::hideCursor(true);
   updateTime();
   timeChanged({this->m_flicks});
+
+  event->accept();
 }
 
 void TimeSpinBox::mouseReleaseEvent(QMouseEvent* event)
@@ -385,9 +491,58 @@ void TimeSpinBox::mouseReleaseEvent(QMouseEvent* event)
   //  score::setCursorPos(m_startPos);
   updateTime();
   editingFinished();
+
+  event->accept();
 }
 
-void TimeSpinBox::mouseDoubleClickEvent(QMouseEvent* event) { }
+void TimeSpinBox::mouseDoubleClickEvent(QMouseEvent* event)
+{
+  auto le = new QLineEdit;
+  le->setGeometry(this->rect());
+  le->setParent(this);
+  le->show();
+  switch(m_mode)
+  {
+    case Bars:
+      le->setText(BarSpinBox{*this}.text());
+      break;
+    case Seconds:
+      le->setText(SecondSpinBox{*this}.text());
+      break;
+    case Flicks:
+      le->setText(FlicksSpinBox{*this}.text());
+      break;
+  }
+  le->setAlignment(Qt::AlignRight);
+  le->selectAll();
+
+  connect(le, &QLineEdit::editingFinished,
+          this, [this, le] {
+    std::optional<int64_t> flicks;
+    switch(m_mode)
+    {
+      case Bars:
+        flicks = BarSpinBox{*this}.parseText(le->text());
+        break;
+      case Seconds:
+        flicks = SecondSpinBox{*this}.parseText(le->text());
+        break;
+      case Flicks:
+        flicks = FlicksSpinBox{*this}.parseText(le->text());
+        break;
+    }
+
+    if(flicks && *flicks != m_flicks) {
+      m_flicks = *flicks;
+      updateTime();
+      timeChanged({this->m_flicks});
+      editingFinished();
+    }
+    le->deleteLater();
+  });
+
+  event->accept();
+}
 
 void TimeSpinBox::initStyleOption(QStyleOptionFrame* option) const noexcept
 {
@@ -441,91 +596,6 @@ void TimeSpinBox::paintEvent(QPaintEvent* event)
       FlicksSpinBox{*this}.paint(p, text_rect);
       break;
   }
-
-  /*
-  Qt::Alignment va = QStyle::visualAlignment(d->control->layoutDirection(),
-QFlag(d->alignment)); switch (va & Qt::AlignVertical_Mask) { case
-Qt::AlignBottom: d->vscroll = r.y() + r.height() - fm.height() -
-QLineEditPrivate::verticalMargin; break; case Qt::AlignTop: d->vscroll = r.y()
-+ QLineEditPrivate::verticalMargin; break; default:
-       //center
-       d->vscroll = r.y() + (r.height() - fm.height() + 1) / 2;
-       break;
-  }
-  QRect lineRect(r.x() + QLineEditPrivate::horizontalMargin, d->vscroll,
-                 r.width() - 2 * QLineEditPrivate::horizontalMargin,
-fm.height());
-
-
-
-  int cix = qRound(d->control->cursorToX());
-
-  // horizontal scrolling. d->hscroll is the left indent from the beginning
-  // of the text line to the left edge of lineRect. we update this value
-  // depending on the delta from the last paint event; in effect this means
-  // the below code handles all scrolling based on the textline (widthUsed),
-  // the line edit rect (lineRect) and the cursor position (cix).
-  int widthUsed = qRound(d->control->naturalTextWidth()) + 1;
-  if (widthUsed <= lineRect.width()) {
-      // text fits in lineRect; use hscroll for alignment
-      switch (va & ~(Qt::AlignAbsolute|Qt::AlignVertical_Mask)) {
-      case Qt::AlignRight:
-          d->hscroll = widthUsed - lineRect.width() + 1;
-          break;
-      case Qt::AlignHCenter:
-          d->hscroll = (widthUsed - lineRect.width()) / 2;
-          break;
-      default:
-          // Left
-          d->hscroll = 0;
-          break;
-      }
-  } else if (cix - d->hscroll >= lineRect.width()) {
-      // text doesn't fit, cursor is to the right of lineRect (scroll right)
-      d->hscroll = cix - lineRect.width() + 1;
-  } else if (cix - d->hscroll < 0 && d->hscroll < widthUsed) {
-      // text doesn't fit, cursor is to the left of lineRect (scroll left)
-      d->hscroll = cix;
-  } else if (widthUsed - d->hscroll < lineRect.width()) {
-      // text doesn't fit, text document is to the left of lineRect; align
-      // right
-      d->hscroll = widthUsed - lineRect.width() + 1;
-  } else {
-      //in case the text is bigger than the lineedit, the hscroll can never be
-negative d->hscroll = qMax(0, d->hscroll);
-  }
-
-
-  // the y offset is there to keep the baseline constant in case we have script
-changes in the text. QPoint topLeft = lineRect.topLeft() - QPoint(d->hscroll,
-d->control->ascent() - fm.ascent());
-
-  // draw text, selections and cursors
-  p.setPen(pal.text().color());
-
-  int flags = QWidgetLineControl::DrawText;
-
-#ifdef QT_KEYPAD_NAVIGATION
-  if (!QApplicationPrivate::keypadNavigationEnabled() || hasEditFocus())
-#endif
-  if (d->control->hasSelectedText() || (d->cursorVisible &&
-!d->control->inputMask().isEmpty() && !d->control->isReadOnly())){ flags |=
-QWidgetLineControl::DrawSelections;
-      // Palette only used for selections/mask and may not be in sync
-      if (d->control->palette() != pal
-         || d->control->palette().currentColorGroup() !=
-pal.currentColorGroup()) d->control->setPalette(pal);
-  }
-
-  // Asian users see an IM selection text as cursor on candidate
-  // selection phase of input method, so the ordinary cursor should be
-  // invisible if we have a preedit string.
-  if (d->cursorVisible && !d->control->isReadOnly())
-      flags |= QWidgetLineControl::DrawCursor;
-
-  d->control->setCursorWidth(style()->pixelMetric(QStyle::PM_TextCursorWidth,
-&panel)); d->control->draw(&p, topLeft, r, flags);
-  */
 }
 
 }
