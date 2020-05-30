@@ -76,7 +76,7 @@ struct DefaultGraphicsKnobImpl
 
     // Draw text
     painter->setPen(skin.Base4.lighter180.pen1);
-    painter->setFont(skin.SansFontSmall);
+    painter->setFont(skin.Medium8Pt);
     painter->drawText(
         QRectF{0., srect.height() + textDelta, srect.width(), 10.},
         text,
