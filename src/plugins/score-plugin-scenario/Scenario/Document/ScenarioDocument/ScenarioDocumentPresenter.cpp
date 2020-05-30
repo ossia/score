@@ -254,6 +254,8 @@ void ScenarioDocumentPresenter::switchMode(bool nodal)
   const auto mode = nodal ? IntervalModel::ViewMode::Nodal : IntervalModel::ViewMode::Temporal;
   displayedInterval().setViewMode(mode);
 
+  QObject::disconnect(m_nodalDrop);
+  QObject::disconnect(m_nodalContextMenu);
   if (nodal)
   {
     removeDisplayedIntervalPresenter();
@@ -268,7 +270,7 @@ void ScenarioDocumentPresenter::switchMode(bool nodal)
 
     view().view().setContextMenuPolicy(Qt::CustomContextMenu);
 
-    connect(
+    m_nodalDrop = connect(
         &view().view(),
         &ProcessGraphicsView::dropRequested,
         m_nodal,
@@ -278,7 +280,7 @@ void ScenarioDocumentPresenter::switchMode(bool nodal)
           m_nodal->on_drop(ip, data);
         });
 
-    con(view().view(),
+    m_nodalContextMenu = con(view().view(),
         &QGraphicsView::customContextMenuRequested,
         this,
         [this](const QPoint& pos) {
@@ -300,6 +302,7 @@ void ScenarioDocumentPresenter::switchMode(bool nodal)
     view().view().setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     view().view().setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     view().view().setDragMode(QGraphicsView::NoDrag);
+    view().view().setContextMenuPolicy(Qt::DefaultContextMenu);
   }
 
   /*

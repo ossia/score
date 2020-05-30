@@ -156,5 +156,7 @@ private:
   void switchMode(bool nodal);
   void removeDisplayedIntervalPresenter();
   void recenterNodal();
+
+  QMetaObject::Connection m_nodalDrop, m_nodalContextMenu;
 };
 }
