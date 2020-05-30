@@ -542,7 +542,7 @@ double QGraphicsIntSlider::getHandleX() const
 {
   return sliderRect().width() * ((double(m_value) - m_min) / (m_max - m_min));
 }
-
+/*
 struct SCORE_LIB_BASE_EXPORT ComboBoxWithEnter final : public QComboBox
 {
   W_OBJECT(ComboBoxWithEnter)
@@ -582,20 +582,29 @@ private:
     return res;
   }
 
-  void focusInEvent(QFocusEvent* event) override { QComboBox::focusInEvent(event); }
+  void focusInEvent(QFocusEvent* event) override
+  {
+    QComboBox::focusInEvent(event);
+  }
 
   void focusOutEvent(QFocusEvent* event) override
   {
-    QComboBox::focusOutEvent(event);
-    auto lv = findChildren<QListView*>().front();
-    if (lv)
+    dumpObjectTree();
+    auto lvs = findChildren<QListView*>();
+
+    if (!lvs.empty())
     {
+      auto lv = lvs.front();
       lv->installEventFilter(this);
-      QTimer::singleShot(100, this, [this] {
-        auto lv = findChildren<QListView*>().front();
-        if (!lv->hasFocus())
+      QTimer::singleShot(2000, this, [this] {
+        auto lvs = findChildren<QListView*>();
+        if(!lvs.empty())
         {
-          editingFinished();
+          auto lv = lvs.front();
+          if (!lv->hasFocus())
+          {
+            editingFinished();
+          }
         }
       });
     }
@@ -603,9 +612,10 @@ private:
     {
       editingFinished();
     }
+    QComboBox::focusOutEvent(event);
   }
 };
-
+*/
 struct DefaultComboImpl
 {
   static inline double origValue{};
@@ -695,7 +705,7 @@ struct DefaultComboImpl
       self.sliderReleased();
     }
     else if (event->button() == Qt::RightButton)
-    {
+    {/*
       QTimer::singleShot(0, [&, pos = event->scenePos()] {
         auto w = new ComboBoxWithEnter;
         w->addItems(self.array);
@@ -725,7 +735,7 @@ struct DefaultComboImpl
           }
           obj = nullptr;
         });
-      });
+      });*/
     }
     event->accept();
   }
@@ -1473,4 +1483,4 @@ QRectF QGraphicsButton::boundingRect() const
 }
 }
 
-W_OBJECT_IMPL(score::ComboBoxWithEnter)
+//W_OBJECT_IMPL(score::ComboBoxWithEnter)
