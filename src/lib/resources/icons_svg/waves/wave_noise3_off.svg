@@ -7,66 +7,66 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   inkscape:export-ydpi="31.23"
-   inkscape:export-xdpi="31.23"
-   inkscape:export-filename="/home/alevy/graphisme/icons_score/waves/saw_on.png"
-   sodipodi:docname="wave_noise3_off.svg"
-   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
-   id="svg8"
-   version="1.1"
-   viewBox="0 0 6.6145831 5.2916668"
+   width="25"
    height="20"
-   width="25">
+   viewBox="0 0 6.6145831 5.2916668"
+   version="1.1"
+   id="svg8"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
+   sodipodi:docname="wave_noise3_off.svg"
+   inkscape:export-filename="/home/alevy/graphisme/icons_score/waves/saw_on.png"
+   inkscape:export-xdpi="31.23"
+   inkscape:export-ydpi="31.23">
   <defs
      id="defs2">
     <inkscape:path-effect
-       lpeversion="0"
-       only_selected="false"
-       apply_with_weight="true"
-       apply_no_weight="true"
-       helper_size="0"
-       steps="2"
-       weight="33.333333"
-       is_visible="true"
+       effect="bspline"
        id="path-effect3719"
-       effect="bspline" />
-    <inkscape:path-effect
-       lpeversion="0"
-       only_selected="false"
-       apply_with_weight="true"
-       apply_no_weight="true"
-       helper_size="0"
-       steps="2"
-       weight="33.333333"
        is_visible="true"
+       weight="33.333333"
+       steps="2"
+       helper_size="0"
+       apply_no_weight="true"
+       apply_with_weight="true"
+       only_selected="false"
+       lpeversion="0" />
+    <inkscape:path-effect
+       effect="bspline"
        id="path-effect3719-9"
-       effect="bspline" />
+       is_visible="true"
+       weight="33.333333"
+       steps="2"
+       helper_size="0"
+       apply_no_weight="true"
+       apply_with_weight="true"
+       only_selected="false"
+       lpeversion="0" />
   </defs>
   <sodipodi:namedview
-     inkscape:snap-bbox="true"
-     inkscape:document-rotation="0"
-     inkscape:window-maximized="1"
-     inkscape:window-y="0"
-     inkscape:window-x="0"
-     inkscape:window-height="1015"
-     inkscape:window-width="1920"
-     units="px"
-     showgrid="true"
-     inkscape:current-layer="g844"
-     inkscape:document-units="px"
-     inkscape:cy="10.532414"
-     inkscape:cx="11.296963"
-     inkscape:zoom="23.950016"
-     inkscape:pageshadow="2"
-     inkscape:pageopacity="0.0"
-     borderopacity="1.0"
-     bordercolor="#666666"
-     pagecolor="#ffffff"
+     inkscape:snap-global="true"
      id="base"
-     inkscape:snap-global="true">
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="30.237778"
+     inkscape:cx="11.296963"
+     inkscape:cy="10.532414"
+     inkscape:document-units="px"
+     inkscape:current-layer="g844"
+     showgrid="true"
+     units="px"
+     inkscape:window-width="1920"
+     inkscape:window-height="1015"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:document-rotation="0"
+     inkscape:snap-bbox="true">
     <inkscape:grid
-       id="grid875"
-       type="xygrid" />
+       type="xygrid"
+       id="grid875" />
   </sodipodi:namedview>
   <metadata
      id="metadata5">
@@ -76,33 +76,33 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
   <g
-     inkscape:label="sin_on"
-     inkscape:groupmode="layer"
-     id="g844"
+     style="display:inline"
      transform="translate(-79.934816,-73.123725)"
-     style="display:inline">
+     id="g844"
+     inkscape:groupmode="layer"
+     inkscape:label="sin_on">
     <path
-       style="fill:none;stroke:#666666;stroke-width:0.79375;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="m 80.599909,75.938422 1.058333,-1.5875 1.058334,2.910417 1.058333,-1.322917 0.79375,1.058334 1.322917,-1.852084"
+       sodipodi:nodetypes="cccccc"
        id="path26"
-       sodipodi:nodetypes="cccccc" />
+       d="m 80.599909,75.938422 1.058333,-1.5875 1.058334,2.910417 1.058333,-1.322917 0.79375,1.058334 1.322917,-1.852084"
+       style="fill:none;stroke:#666666;stroke-width:0.52916666;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     <text
-       id="text870"
-       y="74.930794"
-       x="84.165611"
-       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.11667px;line-height:0.433917px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:#666666;fill-opacity:1;stroke:none;stroke-width:0.26458333;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;"
-       xml:space="preserve"
+       inkscape:export-ydpi="31"
        inkscape:export-xdpi="31"
-       inkscape:export-ydpi="31"><tspan
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.11667px;font-family:Ubuntu;-inkscape-font-specification:'Ubuntu Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#666666;fill-opacity:1;stroke-width:0.26458333;stroke-miterlimit:4;stroke-dasharray:none;stroke:none;stroke-opacity:1;"
-         y="74.930794"
-         x="84.165611"
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.11667px;line-height:0.433917px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:#666666;fill-opacity:1;stroke:none;stroke-width:0.26458333;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;"
+       x="84.165611"
+       y="74.930794"
+       id="text870"><tspan
+         sodipodi:role="line"
          id="tspan868"
-         sodipodi:role="line">3</tspan></text>
+         x="84.165611"
+         y="74.930794"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.11667px;font-family:Ubuntu;-inkscape-font-specification:'Ubuntu Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#666666;fill-opacity:1;stroke-width:0.26458333;stroke-miterlimit:4;stroke-dasharray:none;stroke:none;stroke-opacity:1;">3</tspan></text>
   </g>
 </svg>

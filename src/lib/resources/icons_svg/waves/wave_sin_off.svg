@@ -7,66 +7,66 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="25"
-   height="20"
-   viewBox="0 0 6.6145831 5.2916668"
-   version="1.1"
-   id="svg8"
-   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
-   sodipodi:docname="wave_sin_off.svg"
-   inkscape:export-filename="/home/alevy/graphisme/icons_score/waves/saw_on.png"
+   inkscape:export-ydpi="31.23"
    inkscape:export-xdpi="31.23"
-   inkscape:export-ydpi="31.23">
+   inkscape:export-filename="/home/alevy/graphisme/icons_score/waves/saw_on.png"
+   sodipodi:docname="wave_sin_off.svg"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
+   id="svg8"
+   version="1.1"
+   viewBox="0 0 6.6145831 5.2916668"
+   height="20"
+   width="25">
   <defs
      id="defs2">
     <inkscape:path-effect
-       effect="bspline"
+       lpeversion="0"
+       only_selected="false"
+       apply_with_weight="true"
+       apply_no_weight="true"
+       helper_size="0"
+       steps="2"
+       weight="33.333333"
+       is_visible="true"
        id="path-effect3719"
-       is_visible="true"
-       weight="33.333333"
-       steps="2"
-       helper_size="0"
-       apply_no_weight="true"
-       apply_with_weight="true"
-       only_selected="false"
-       lpeversion="0" />
+       effect="bspline" />
     <inkscape:path-effect
-       effect="bspline"
-       id="path-effect3719-9"
-       is_visible="true"
-       weight="33.333333"
-       steps="2"
-       helper_size="0"
-       apply_no_weight="true"
-       apply_with_weight="true"
+       lpeversion="0"
        only_selected="false"
-       lpeversion="0" />
+       apply_with_weight="true"
+       apply_no_weight="true"
+       helper_size="0"
+       steps="2"
+       weight="33.333333"
+       is_visible="true"
+       id="path-effect3719-9"
+       effect="bspline" />
   </defs>
   <sodipodi:namedview
-     inkscape:snap-global="false"
-     id="base"
-     pagecolor="#ffffff"
-     bordercolor="#666666"
-     borderopacity="1.0"
-     inkscape:pageopacity="0.0"
-     inkscape:pageshadow="2"
-     inkscape:zoom="9.3577046"
-     inkscape:cx="19.873432"
-     inkscape:cy="21.108444"
-     inkscape:document-units="px"
-     inkscape:current-layer="g844"
-     showgrid="true"
-     units="px"
-     inkscape:window-width="1920"
-     inkscape:window-height="1015"
-     inkscape:window-x="0"
-     inkscape:window-y="0"
-     inkscape:window-maximized="1"
+     inkscape:snap-bbox="true"
      inkscape:document-rotation="0"
-     inkscape:snap-bbox="true">
+     inkscape:window-maximized="1"
+     inkscape:window-y="0"
+     inkscape:window-x="0"
+     inkscape:window-height="1015"
+     inkscape:window-width="1920"
+     units="px"
+     showgrid="true"
+     inkscape:current-layer="g844"
+     inkscape:document-units="px"
+     inkscape:cy="21.108444"
+     inkscape:cx="19.873432"
+     inkscape:zoom="11.814447"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     borderopacity="1.0"
+     bordercolor="#666666"
+     pagecolor="#ffffff"
+     id="base"
+     inkscape:snap-global="false">
     <inkscape:grid
-       type="xygrid"
-       id="grid875" />
+       id="grid875"
+       type="xygrid" />
   </sodipodi:namedview>
   <metadata
      id="metadata5">
@@ -76,20 +76,20 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
   <g
-     style="display:inline"
-     transform="translate(-79.934816,-73.123725)"
-     id="g844"
+     inkscape:label="sin_on"
      inkscape:groupmode="layer"
-     inkscape:label="sin_on">
+     id="g844"
+     transform="translate(-79.934816,-73.123725)"
+     style="display:inline">
     <path
-       sodipodi:nodetypes="ccsssc"
-       id="path26"
+       style="fill:none;stroke:#666666;stroke-width:0.52916666;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="m 80.516448,75.769558 0.04471,-0.220662 c 0.248352,-0.847809 0.667857,-1.631421 1.362377,-1.631421 1.45622,0 0.970813,3.704167 2.427033,3.704167 0.766263,0 1.229974,-0.771603 1.563096,-1.753011 l 0.06726,-0.198145"
-       style="fill:none;stroke:#666666;stroke-width:0.79375;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+       id="path26"
+       sodipodi:nodetypes="ccsssc" />
   </g>
 </svg>
