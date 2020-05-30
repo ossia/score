@@ -581,4 +581,29 @@ private:
   QRectF boundingRect() const override;
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 };
+
+class SCORE_LIB_BASE_EXPORT QGraphicsButton final
+    : public QObject,
+      public QGraphicsItem
+{
+  W_OBJECT(QGraphicsButton)
+  Q_INTERFACES(QGraphicsItem)
+  QRectF m_rect{defaultToggleSize};
+  QString m_text;
+
+  bool m_pressed{};
+
+public:
+  QGraphicsButton(const QString& text, QGraphicsItem* parent);
+
+  void bang();
+
+  void pressed(bool b) E_SIGNAL(SCORE_LIB_BASE_EXPORT, pressed, b)
+
+private:
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  QRectF boundingRect() const override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+};
 }

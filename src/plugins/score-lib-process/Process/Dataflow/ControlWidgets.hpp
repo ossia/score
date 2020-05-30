@@ -25,19 +25,6 @@
 
 namespace WidgetFactory
 {
-inline QGraphicsItem* wrapWidget(QWidget* widg)
-{
-  if (widg->maximumWidth() > 130 || widg->maximumWidth() == 0)
-    widg->setMaximumWidth(130);
-  widg->setContentsMargins(0, 0, 0, 0);
-  widg->setPalette(score::transparentPalette());
-  widg->setAutoFillBackground(false);
-
-  auto wrap = new QGraphicsProxyWidget{};
-  wrap->setWidget(widg);
-  wrap->setContentsMargins(0, 0, 0, 0);
-  return wrap;
-}
 template <typename T>
 using SetControlValue = typename std::conditional<
     std::is_base_of<Process::ControlInlet, T>::value,
@@ -388,6 +375,7 @@ struct Toggle
 
     QObject::connect(cb, &score::QGraphicsCheckBox::toggled, context, [=, &inlet, &ctx] (bool toggled){
       ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, toggled);
+      ctx.dispatcher.commit();
     });
 
     QObject::connect(&inlet, &Control_T::valueChanged, cb, [cb](ossia::value val) {
@@ -428,7 +416,14 @@ struct Button
       QGraphicsItem* parent,
       QObject* context)
   {
-    return wrapWidget(make_widget(slider, inlet, ctx, nullptr, context));
+    auto toggle = new score::QGraphicsButton{inlet.customData(), nullptr};
+
+    QObject::connect(toggle, &score::QGraphicsButton::pressed, context, [=, &inlet, &ctx] (bool pressed){
+      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, pressed);
+      ctx.dispatcher.commit();
+    });
+
+    return toggle;
   }
 };
 struct ChooserToggle
@@ -493,6 +488,7 @@ struct ChooserToggle
 
     QObject::connect(toggle, &score::QGraphicsToggle::toggled, context, [=, &inlet, &ctx] (bool toggled){
       ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, toggled);
+      ctx.dispatcher.commit();
     });
 
     QObject::connect(&inlet, &Control_T::valueChanged, toggle, [toggle](ossia::value val) {
@@ -754,56 +750,6 @@ struct TimeSignatureValidator final : public QValidator
       return State::Invalid;
 
     return State::Acceptable;
-  }
-};
-
-struct TimeSignatureChooser
-{
-  template <typename Control_T>
-  static auto make_widget(
-      const unused_t& slider,
-      Control_T& inlet,
-      const score::DocumentContext& ctx,
-      QWidget* parent,
-      QObject* context)
-  {
-    auto sl = new QLineEdit;
-
-    sl->setValidator(new TimeSignatureValidator{sl});
-    sl->setContentsMargins(0, 0, 0, 0);
-    sl->setMaximumWidth(70);
-
-    auto set_text = [sl](const ossia::value& val) {
-      const auto& vptr = val.target<std::string>();
-      if (!vptr)
-        return;
-      if (!Control::get_time_signature(*vptr))
-        return;
-
-      sl->setText(QString::fromStdString(*vptr));
-    };
-    set_text(inlet.value());
-
-    QObject::connect(sl, &QLineEdit::editingFinished, context, [sl, &inlet, &ctx] {
-      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
-          inlet, sl->text().toStdString());
-    });
-
-    QObject::connect(
-        &inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) { set_text(val); });
-
-    return sl;
-  }
-
-  template <typename U, typename Control_T>
-  static QGraphicsItem* make_item(
-      const U& slider,
-      Control_T& inlet,
-      const score::DocumentContext& ctx,
-      QGraphicsItem* parent,
-      QObject* context)
-  {
-    return wrapWidget(make_widget(slider, inlet, ctx, nullptr, context));
   }
 };
 

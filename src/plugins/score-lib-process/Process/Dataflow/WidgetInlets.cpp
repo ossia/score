@@ -220,22 +220,6 @@ LineEdit::LineEdit(QString init, const QString& name, Id<Port> id, QObject* pare
 
 LineEdit::~LineEdit() { }
 
-TimeSignatureChooser::TimeSignatureChooser(
-    std::string init,
-    const QString& name,
-    Id<Process::Port> id,
-    QObject* parent)
-    : ControlInlet{id, parent}
-{
-  using namespace std::literals;
-  hidden = true;
-  setValue(init);
-  setDomain(State::Domain{ossia::domain_base<std::string>{{"3/4", "4/4"}}});
-  setCustomData(name);
-}
-
-TimeSignatureChooser::~TimeSignatureChooser() { }
-
 Button::Button(const QString& name, Id<Port> id, QObject* parent) : ControlInlet{id, parent}
 {
   hidden = true;
@@ -424,29 +408,6 @@ SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::Enum>(Process::Enum& p)
 {
   p.values <<= obj["Values"];
   p.pixmaps <<= obj["Pixmaps"];
-}
-
-template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::TimeSignatureChooser>(const Process::TimeSignatureChooser& p)
-{
-  read((const Process::ControlInlet&)p);
-}
-template <>
-SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::TimeSignatureChooser>(Process::TimeSignatureChooser& p)
-{
-}
-template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::TimeSignatureChooser>(const Process::TimeSignatureChooser& p)
-{
-  read((const Process::ControlInlet&)p);
-}
-template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONWriter::write<Process::TimeSignatureChooser>(Process::TimeSignatureChooser& p)
-{
 }
 
 template <>

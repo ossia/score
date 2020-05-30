@@ -164,10 +164,6 @@ constexpr auto LFOFreqKnob()
 {
   return Control::LogFloatKnob("Frequency", 0.01f, 100.f, 1.f);
 }
-constexpr auto TimeSigChooser()
-{
-  return Control::TimeSignatureChooser("Sig.", "4/4");
-}
 constexpr auto TempoChooser()
 {
   return Control::FloatSlider("Tempo", 20, 300, 120);

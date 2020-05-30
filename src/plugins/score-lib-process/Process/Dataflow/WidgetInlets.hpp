@@ -16,7 +16,6 @@ struct ChooserToggle;
 struct ComboBox;
 struct LineEdit;
 struct Enum;
-struct TimeSignatureChooser;
 struct Button;
 struct HSVSlider;
 struct XYSlider;
@@ -73,12 +72,6 @@ UUID_METADATA(
     Process::Port,
     Process::ComboBox,
     "485680cc-b8b9-4a01-acc7-3e8334bdc016")
-
-UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::TimeSignatureChooser,
-    "91970a5f-aab8-4993-8410-4aff56adf7dc")
 
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT,
@@ -258,20 +251,6 @@ struct SCORE_LIB_PROCESS_EXPORT Enum : public Process::ControlInlet
   Enum(JSONObject::Deserializer& vis, QObject* parent);
   Enum(DataStream::Deserializer&& vis, QObject* parent);
   Enum(JSONObject::Deserializer&& vis, QObject* parent);
-};
-
-struct SCORE_LIB_PROCESS_EXPORT TimeSignatureChooser : public Process::ControlInlet
-{
-  MODEL_METADATA_IMPL(TimeSignatureChooser)
-  using control_type = WidgetFactory::TimeSignatureChooser;
-  TimeSignatureChooser(
-      std::string init,
-      const QString& name,
-      Id<Process::Port> id,
-      QObject* parent);
-  ~TimeSignatureChooser();
-
-  using Process::ControlInlet::ControlInlet;
 };
 
 struct SCORE_LIB_PROCESS_EXPORT Button : public Process::ControlInlet

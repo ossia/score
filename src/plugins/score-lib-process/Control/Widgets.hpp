@@ -207,6 +207,36 @@ struct IntSpinBox final : ossia::safe_nodes::control_in, WidgetFactory::IntSpinB
     v->domain = ossia::domain_base<int>(this->min, this->max);
   }
 };
+
+struct Button final : ossia::safe_nodes::control_in, WidgetFactory::Button
+{
+  static const constexpr bool must_validate = false;
+  template <std::size_t N>
+  constexpr Button(const char (&name)[N]) : ossia::safe_nodes::control_in{name}
+  {
+  }
+
+  using type = bool;
+  using port_type = Process::Toggle;
+  auto create_inlet(Id<Process::Port> id, QObject* parent) const
+  {
+    return new Process::Button{QString::fromUtf8(name.data(), name.size()), id, parent};
+  }
+  auto create_inlet(DataStream::Deserializer& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::Button>(id, parent);
+  }
+  auto create_inlet(JSONObject::Deserializer&& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::Button>(id, parent);
+  }
+
+  bool fromValue(const ossia::value& v) const { return ossia::convert<bool>(v); }
+  ossia::value toValue(bool v) const { return v; }
+
+  void setup_exec(ossia::value_inlet& v) const { v->domain = ossia::domain_base<bool>(); }
+};
+
 struct Toggle final : ossia::safe_nodes::control_in, WidgetFactory::Toggle
 {
   static const constexpr bool must_validate = false;
@@ -430,52 +460,6 @@ struct UnvalidatedEnum final : EnumBase<ArrT>
   }
 };
 
-struct TimeSignatureChooser final : ossia::safe_nodes::control_in,
-                                    WidgetFactory::TimeSignatureChooser
-{
-  static const constexpr bool must_validate = true;
-  using type = time_signature;
-  using port_type = Process::TimeSignatureChooser;
-  const std::string_view init;
-  template <std::size_t M, std::size_t N>
-  constexpr TimeSignatureChooser(const char (&name)[M], const char (&in)[N])
-      : ossia::safe_nodes::control_in{name}, init{in, N}
-  {
-  }
-
-  ossia::value toValue(time_signature v) const
-  {
-    std::string s;
-    s.reserve(8);
-    s += std::to_string(v.upper);
-    s += '/';
-    s += std::to_string(v.lower);
-    return ossia::value{std::move(s)};
-  }
-
-  std::optional<time_signature> fromValue(const ossia::value& v) const
-  {
-    if (auto str = v.target<std::string>())
-    {
-      return get_time_signature(*str);
-    }
-    return std::nullopt;
-  }
-  auto create_inlet(Id<Process::Port> id, QObject* parent) const
-  {
-    return new Process::TimeSignatureChooser{
-        init.data(), QString::fromUtf8(name.data(), name.size()), id, parent};
-  }
-  auto create_inlet(DataStream::Deserializer& id, QObject* parent) const
-  {
-    return deserialize_known_interface<Process::TimeSignatureChooser>(id, parent);
-  }
-  auto create_inlet(JSONObject::Deserializer&& id, QObject* parent) const
-  {
-    return deserialize_known_interface<Process::TimeSignatureChooser>(id, parent);
-  }
-  void setup_exec(ossia::value_inlet& v) const { }
-};
 
 template <typename T1, typename T2>
 constexpr auto make_enum(const T1& t1, std::size_t s, const T2& t2)

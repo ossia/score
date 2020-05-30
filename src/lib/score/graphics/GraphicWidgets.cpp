@@ -26,6 +26,7 @@ W_OBJECT_IMPL(score::QGraphicsHSVChooser)
 W_OBJECT_IMPL(score::QGraphicsXYChooser)
 W_OBJECT_IMPL(score::QGraphicsCheckBox)
 W_OBJECT_IMPL(score::QGraphicsToggle)
+W_OBJECT_IMPL(score::QGraphicsButton)
 
 namespace score
 {
@@ -1288,6 +1289,7 @@ QGraphicsCheckBox::QGraphicsCheckBox( QGraphicsItem* parent)
 void QGraphicsCheckBox::toggle()
 {
   m_toggled = !m_toggled;
+  update();
 }
 
 void QGraphicsCheckBox::setState(bool toggled)
@@ -1295,6 +1297,7 @@ void QGraphicsCheckBox::setState(bool toggled)
   if (toggled != m_toggled)
   {
     m_toggled = toggled;
+    update();
   }
 }
 
@@ -1303,6 +1306,7 @@ void QGraphicsCheckBox::mousePressEvent(QGraphicsSceneMouseEvent* event)
   m_toggled = !m_toggled;
   toggled(m_toggled);
   event->accept();
+  update();
 }
 
 void QGraphicsCheckBox::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
@@ -1351,6 +1355,7 @@ QGraphicsToggle::QGraphicsToggle(const QString& textToggled, const QString& text
 void QGraphicsToggle::toggle()
 {
   m_toggled = !m_toggled;
+  update();
 }
 
 void QGraphicsToggle::setState(bool toggled)
@@ -1358,6 +1363,7 @@ void QGraphicsToggle::setState(bool toggled)
   if (toggled != m_toggled)
   {
     m_toggled = toggled;
+    update();
   }
 }
 
@@ -1365,6 +1371,7 @@ void QGraphicsToggle::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   m_toggled = !m_toggled;
   toggled(m_toggled);
+  update();
   event->accept();
 }
 
@@ -1398,6 +1405,70 @@ void QGraphicsToggle::paint(
 }
 
 QRectF QGraphicsToggle::boundingRect() const
+{
+  return m_rect;
+}
+
+
+QGraphicsButton::QGraphicsButton(const QString& text, QGraphicsItem* parent)
+  : m_text(text)
+{
+  auto& skin = score::Skin::instance();
+  setCursor(skin.CursorPointingHand);
+}
+
+void QGraphicsButton::bang()
+{
+  m_pressed = true;
+  QTimer::singleShot(32, this, [this] { m_pressed = false; update(); });
+  update();
+}
+
+
+void QGraphicsButton::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+  m_pressed = true;
+  pressed(true);
+  update();
+  event->accept();
+}
+
+void QGraphicsButton::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+  m_pressed = false;
+  pressed(false);
+  update();
+  event->accept();
+}
+
+void QGraphicsButton::paint(
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
+{
+  auto& skin = score::Skin::instance();
+  painter->setRenderHint(QPainter::Antialiasing, true);
+
+  constexpr const double margin = 2.;
+  const double backgroundRectWidth = m_rect.width() - 2. * margin;
+  const double backgroundRectHeight = m_rect.height() - 2. * margin;
+
+  painter->setPen(skin.NoPen);
+  painter->setBrush(!m_pressed ? skin.Emphasis2.main.brush : skin.Emphasis2.lighter180.brush);
+
+  painter->drawEllipse(QRectF{margin, margin, backgroundRectHeight, backgroundRectHeight});
+
+  painter->setPen(skin.Base4.main.pen1);
+  painter->setFont(skin.Medium10Pt);
+  painter->drawText(
+      QRectF{margin + 14 + 2,margin, backgroundRectWidth - 14, backgroundRectHeight},
+      m_text,
+      QTextOption(Qt::AlignCenter));
+
+  painter->setRenderHint(QPainter::Antialiasing, false);
+}
+
+QRectF QGraphicsButton::boundingRect() const
 {
   return m_rect;
 }

@@ -32,7 +32,7 @@ struct Node
         Control::Toggle{"Toggle", true},
         Control::ChooserToggle{"ChooserToggle", {"false", "true"}, true},
         Control::LineEdit{"LineEdit", "henlo"},
-        Control::TimeSignatureChooser{"TimeSignatureChooser", "4/4"},
+        Control::Button{"Bango"},
         Control::Widgets::QuantificationChooser(),
         Control::Widgets::MusicalDurationChooser(),
         Control::Widgets::DurationChooser(),
@@ -40,7 +40,6 @@ struct Node
         Control::Widgets::LFOFreqSlider(),
         Control::Widgets::FreqKnob(),
         Control::Widgets::LFOFreqKnob(),
-        Control::Widgets::TimeSigChooser(),
         Control::Widgets::WaveformChooser());
   };
 
