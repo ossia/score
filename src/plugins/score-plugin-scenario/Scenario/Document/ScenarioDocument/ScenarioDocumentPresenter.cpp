@@ -257,6 +257,7 @@ void ScenarioDocumentPresenter::switchMode(bool nodal)
   if (nodal)
   {
     removeDisplayedIntervalPresenter();
+    view().timeBar().hide();
 
     m_nodal = new NodalIntervalView{displayedInterval(), context(), &view().baseItem()};
 
@@ -413,7 +414,7 @@ void ScenarioDocumentPresenter::setLargeView()
 void ScenarioDocumentPresenter::startTimeBar(IntervalModel& itv)
 {
   auto& bar = view().timeBar();
-  bar.setVisible(context().app.settings<Scenario::Settings::Model>().getTimeBar());
+  bar.setVisible(context().app.settings<Scenario::Settings::Model>().getTimeBar() && !m_nodal);
   view().timeBar().playing = true;
   view().timeBar().setInterval(&itv);
 }
