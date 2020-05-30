@@ -75,12 +75,14 @@ void CoreApplicationPlugin::openSettings()
 }
 void CoreApplicationPlugin::openProjectSettings()
 {
+  /* see https://github.com/OSSIA/score/issues/1025
   auto doc = m_presenter.documentManager().currentDocument();
   if (doc)
   {
     m_presenter.m_projectSettings.setup(doc->context());
     m_presenter.m_projectSettings.view().exec();
   }
+  */
 }
 
 void CoreApplicationPlugin::help()
@@ -240,6 +242,7 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
       e.actions.add<Actions::OpenSettings>(settings_act);
       settings->addAction(settings_act);
     }
+    /* see https://github.com/OSSIA/score/issues/1025
     {
       auto settings_act = new QAction(m_presenter.view());
       connect(
@@ -247,6 +250,7 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
       e.actions.add<Actions::OpenProjectSettings>(settings_act);
       settings->addAction(settings_act);
     }
+    */
 
     ////// About /////
     {

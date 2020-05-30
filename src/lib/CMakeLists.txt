@@ -491,6 +491,7 @@ if(SCORE_PCH)
   add_library(score_lib_pch STATIC core/dummy.cpp)
   target_link_libraries(score_lib_pch PUBLIC score_lib_base)
   setup_score_library(score_lib_pch)
+  target_compile_definitions(score_lib_pch PUBLIC SCORE_LIB_PCH_EXPORTS)
 
   if(APPLE)
     target_sources(score_lib_pch PRIVATE core/dummy.mm)

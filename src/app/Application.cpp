@@ -490,7 +490,7 @@ void Application::init()
   {
     score::setQApplicationSettings(*qApp);
     m_settings.setupView();
-    m_projectSettings.setupView();
+    //m_projectSettings.setupView();
     m_view = new score::View{this};
   }
 
