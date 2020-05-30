@@ -589,12 +589,11 @@ class SCORE_LIB_BASE_EXPORT QGraphicsButton final
   W_OBJECT(QGraphicsButton)
   Q_INTERFACES(QGraphicsItem)
   QRectF m_rect{defaultToggleSize};
-  QString m_text;
 
   bool m_pressed{};
 
 public:
-  QGraphicsButton(const QString& text, QGraphicsItem* parent);
+  QGraphicsButton(QGraphicsItem* parent);
 
   void bang();
 

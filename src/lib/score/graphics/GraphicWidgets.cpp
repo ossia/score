@@ -1419,8 +1419,7 @@ QRectF QGraphicsToggle::boundingRect() const
 }
 
 
-QGraphicsButton::QGraphicsButton(const QString& text, QGraphicsItem* parent)
-  : m_text(text)
+QGraphicsButton::QGraphicsButton(QGraphicsItem* parent)
 {
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointingHand);
@@ -1459,20 +1458,22 @@ void QGraphicsButton::paint(
   painter->setRenderHint(QPainter::Antialiasing, true);
 
   constexpr const double margin = 2.;
-  const double backgroundRectWidth = m_rect.width() - 2. * margin;
-  const double backgroundRectHeight = m_rect.height() - 2. * margin;
+  constexpr const  double backgroundRectWidth = 16.;
+
+  constexpr const double insideCircleWidth = 12.;
+  const double insideCircleOffset = margin + 0.5f * (backgroundRectWidth - insideCircleWidth);
 
   painter->setPen(skin.NoPen);
-  painter->setBrush(!m_pressed ? skin.Emphasis2.main.brush : skin.Emphasis2.lighter180.brush);
+  painter->setBrush(!m_pressed ? skin.Emphasis2.main.brush : skin.Base4.main.brush);
 
-  painter->drawEllipse(QRectF{margin, margin, backgroundRectHeight, backgroundRectHeight});
+  painter->drawEllipse(QRectF{margin, margin, backgroundRectWidth, backgroundRectWidth});
 
-  painter->setPen(skin.Base4.main.pen1);
-  painter->setFont(skin.Medium10Pt);
-  painter->drawText(
-      QRectF{margin + 14 + 2,margin, backgroundRectWidth - 14, backgroundRectHeight},
-      m_text,
-      QTextOption(Qt::AlignCenter));
+  if(m_pressed)
+  {
+    painter->setPen(skin.Emphasis2.main.pen2);
+    painter->setBrush(skin.NoBrush);
+    painter->drawEllipse(QRectF{insideCircleOffset, insideCircleOffset, insideCircleWidth, insideCircleWidth});
+  }
 
   painter->setRenderHint(QPainter::Antialiasing, false);
 }

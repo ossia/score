@@ -416,7 +416,7 @@ struct Button
       QGraphicsItem* parent,
       QObject* context)
   {
-    auto toggle = new score::QGraphicsButton{inlet.customData(), nullptr};
+    auto toggle = new score::QGraphicsButton{nullptr};
 
     QObject::connect(toggle, &score::QGraphicsButton::pressed, context, [=, &inlet, &ctx] (bool pressed){
       ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, pressed);
