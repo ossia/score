@@ -164,20 +164,20 @@ void LayerData::updateLoops(
     QGraphicsItem* parentItem,
     QObject* parent)
 {
+  auto f = ctx.processList.findDefaultFactory(m_model->concreteKey());
+  SCORE_ASSERT(f);
   if (m_model->loops())
   {
     const auto view_width = m_model->loopDuration().toPixels(r);
-
+    constexpr double min_view_width = 10.;
     // TODO here it should be different between fullview and temporal
     // (parent_width vs default_width)
     const auto num_views
-        = (view_width < 4) ? 0 : std::max((int)1, (int)std::ceil(parent_width / view_width));
+        = (view_width < min_view_width) ? 1 : std::max((int)1, (int)std::ceil(parent_width / view_width));
     if ((int)m_layers.size() < num_views)
     {
       int missing = num_views - m_layers.size();
 
-      auto f = ctx.processList.findDefaultFactory(m_model->concreteKey());
-      SCORE_ASSERT(f);
       for (int i = 0; i < missing; i++)
       {
         addView(*f, r, ctx, parentItem, parent);
@@ -197,15 +197,13 @@ void LayerData::updateLoops(
 
     if (!m_layers.empty())
       m_layers.front().container->setFlag(QGraphicsItem::ItemHasNoContents, false);
+    else
+      SCORE_SOFT_ASSERT(!"Missing layer view !");
   }
   else
   {
     if (m_layers.empty())
     {
-      // Initial case
-      auto f = ctx.processList.findDefaultFactory(m_model->concreteKey());
-      SCORE_ASSERT(f);
-
       addView(*f, r, ctx, parentItem, parent);
     }
     else
@@ -219,6 +217,8 @@ void LayerData::updateLoops(
 
     if (!m_layers.empty())
       m_layers.front().container->setFlag(QGraphicsItem::ItemHasNoContents, true);
+    else
+      SCORE_SOFT_ASSERT(!"Missing layer view !");
   }
 
   if (!m_layers.empty())
@@ -254,40 +254,7 @@ Process::GraphicsShapeItem* LayerData::makeSlotHeaderDelegate() const
     return p->makeSlotHeaderDelegate();
   return nullptr;
 }
-/*
-void LayerData::updatePositions(qreal y, qreal instancewidth)
-{
-  m_slotY = y;
-  qreal x = 0;
-  for (const auto& p : m_layers)
-  {
-    p.container->setRect({0, 0, instancewidth, p.container->rect().height()});
-    p.container->setPos(x, y);
-    x += instancewidth;
-  }
-}
 
-void LayerData::updateXPositions(qreal instancewidth) const
-{
-  qreal x = 0;
-  for (const auto& p : m_layers)
-  {
-    p.container->setRect({0, 0, instancewidth, p.container->rect().height()});
-    p.container->setX(x);
-    x += instancewidth;
-  }
-}
-
-void LayerData::updateContainerWidths(qreal w) const
-{
-  if(m_layers.empty())
-    return;
-
-  for (const auto& p : m_layers)
-    p.container->setRect({0., 0., w, p.container->rect().height()});
-}
-
-*/
 void LayerData::updateYPositions(qreal y)
 {
   m_slotY = y;
