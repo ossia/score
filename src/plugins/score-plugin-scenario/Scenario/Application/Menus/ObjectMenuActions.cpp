@@ -426,6 +426,8 @@ void ObjectMenuActions::pasteElements(const rapidjson::Value& obj, const Scenari
 {
   if (!obj.IsObject() || obj.MemberCount() == 0)
     return;
+  if(!obj.HasMember("TimeNodes"))
+    return;
 
   // TODO check for unnecessary uses of focusedProcessModel after
   // focusedPresenter.
@@ -446,6 +448,8 @@ void ObjectMenuActions::pasteElementsAfter(
     const Selection& sel)
 {
   if (!obj.IsObject() || obj.MemberCount() == 0)
+    return;
+  if(!obj.HasMember("TimeNodes"))
     return;
 
   // TODO check for unnecessary uses of focusedProcessModel after
