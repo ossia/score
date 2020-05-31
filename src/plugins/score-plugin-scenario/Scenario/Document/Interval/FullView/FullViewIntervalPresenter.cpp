@@ -632,9 +632,9 @@ FullViewIntervalPresenter::magneticPosition(const QObject* o, const TimeVal t) c
   const TimeVal& closestBar = closest_element(m_timebars->magneticTimings, msecs);
 
   if (!snapToScenario)
-    return closestBar;
+    return closestBar - timeDelta;
   else if (std::abs(closestBar.impl - t.impl) < std::abs(scenarioT.impl - t.impl))
-    return closestBar;
+    return closestBar - timeDelta;
   else
     return scenarioT;
 }
