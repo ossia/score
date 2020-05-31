@@ -27,6 +27,7 @@ public:
   void setTab(int index);
   std::pair<int, QAction*> addTab(QWidget* widg, const score::PanelStatus& v);
   QAction* addAction(QWidget* widg, const PanelStatus& v);
+  QAction* addAction(QAction* act);
 
   QBrush brush;
   void paintEvent(QPaintEvent* ev) override;

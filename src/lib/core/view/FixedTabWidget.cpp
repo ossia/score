@@ -93,6 +93,12 @@ QAction* FixedTabWidget::addAction(QWidget* widg, const PanelStatus& v)
   return btn;
 }
 
+QAction* FixedTabWidget::addAction(QAction* act)
+{
+  m_buttons->addAction(act);
+  return act;
+}
+
 void FixedTabWidget::paintEvent(QPaintEvent* ev)
 {
   if (brush == QBrush())

@@ -155,6 +155,16 @@ void Presenter::setupGUI()
           i++;
         }
 
+        // TODO find a better design for that !
+        if(tb.key() == StringKey<score::Toolbar>("Audio"))
+        {
+          if(!tb.toolbar()->actions().empty())
+          {
+            auto audio_engine_act =  tb.toolbar()->actions().back();
+            tb.toolbar()->removeAction(audio_engine_act);
+            view()->bottomTabs->addAction(audio_engine_act);
+          }
+        }
         bl->addWidget(tb.toolbar(), 0, i, Qt::AlignCenter);
         tb.toolbar()->setIconSize({24, 24});
         tb.toolbar()->setFloatable(false);
