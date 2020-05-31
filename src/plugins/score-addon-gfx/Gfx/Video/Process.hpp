@@ -29,14 +29,31 @@ public:
 
   ~Model() override;
 
+  const std::shared_ptr<video_decoder>& decoder() const noexcept { return m_decoder; }
+
   QString path() const noexcept { return m_path; }
   void setPath(const QString& f);
   void pathChanged(const QString& f) W_SIGNAL(pathChanged, f);
+
+  double nativeTempo() const noexcept;
+  void setNativeTempo(double);
+  void nativeTempoChanged(double t) W_SIGNAL(nativeTempoChanged, t);
+
+  bool ignoreTempo() const noexcept;
+  void setIgnoreTempo(bool);
+  void ignoreTempoChanged(bool t) W_SIGNAL(ignoreTempoChanged, t);
+
   PROPERTY(QString, path READ path WRITE setPath NOTIFY pathChanged)
+  PROPERTY(
+      double,
+      nativeTempo READ nativeTempo WRITE setNativeTempo NOTIFY nativeTempoChanged,
+      W_Final)
+  PROPERTY(
+      bool,
+      ignoreTempo READ ignoreTempo WRITE setIgnoreTempo NOTIFY ignoreTempoChanged,
+      W_Final)
 
-  const std::shared_ptr<video_decoder>& decoder() const noexcept { return m_decoder; }
-
-private:
+  private:
   QString prettyName() const noexcept override;
   void startExecution() override;
   void stopExecution() override;
@@ -48,6 +65,8 @@ private:
 
   QString m_path;
   std::shared_ptr<video_decoder> m_decoder;
+  double m_nativeTempo{};
+  bool m_ignoreTempo{};
 };
 
 using ProcessFactory = Process::ProcessFactory_T<Gfx::Video::Model>;
@@ -74,3 +93,7 @@ class DropHandler final : public Process::ProcessDropHandler
 
 PROPERTY_COMMAND_T(Gfx, ChangeVideo, Video::Model::p_path, "Change video")
 SCORE_COMMAND_DECL_T(Gfx::ChangeVideo)
+PROPERTY_COMMAND_T(Gfx, ChangeTempo, Video::Model::p_nativeTempo, "Change video tempo")
+SCORE_COMMAND_DECL_T(Gfx::ChangeTempo)
+PROPERTY_COMMAND_T(Gfx, ChangeIgnoreTempo, Video::Model::p_ignoreTempo, "Ignore video tempo")
+SCORE_COMMAND_DECL_T(Gfx::ChangeIgnoreTempo)

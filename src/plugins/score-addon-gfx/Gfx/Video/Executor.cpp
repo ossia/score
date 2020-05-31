@@ -17,10 +17,10 @@ namespace Gfx::Video
 class video_node final : public gfx_exec_node
 {
 public:
-  video_node(const std::shared_ptr<video_decoder>& dec, GfxExecutionAction& ctx)
+  video_node(const std::shared_ptr<video_decoder>& dec, std::optional<double> tempo, GfxExecutionAction& ctx)
       : gfx_exec_node{ctx}, m_decoder{dec}
   {
-    auto n = std::make_unique<VideoNode>(dec);
+    auto n = std::make_unique<VideoNode>(dec, tempo);
     impl = n.get();
     id = exec_context->ui->register_node(std::move(n));
     dec->seek(0);
@@ -75,12 +75,15 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     const Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
-    : ProcessComponent_T{element, ctx, id, "gfxExecutorComponent", parent}
+    : ProcessComponent_T{element, ctx, id, "VideoExecutorComponent", parent}
 {
   if (element.decoder())
   {
+    std::optional<double> tempo;
+    if(!element.ignoreTempo())
+      tempo = element.nativeTempo();
     auto n
-        = std::make_shared<video_node>(element.decoder(), ctx.doc.plugin<DocumentPlugin>().exec);
+        = std::make_shared<video_node>(element.decoder(), tempo, ctx.doc.plugin<DocumentPlugin>().exec);
 
     n->root_outputs().push_back(new ossia::texture_outlet);
 

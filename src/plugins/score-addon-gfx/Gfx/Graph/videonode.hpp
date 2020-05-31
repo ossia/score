@@ -200,9 +200,16 @@ static const constexpr auto yuv420_filter = R"_(#version 450
   })_";
 
 
-  YUV420Decoder(NodeModel& n, video_decoder& d): node{n}, decoder{d} { }
+  YUV420Decoder(NodeModel& n, video_decoder& d)
+    : node{n}
+    , decoder{d}
+  {
+
+  }
+
   NodeModel& node;
   video_decoder& decoder;
+
   void init(Renderer& r, RenderedNode& rendered) override
   {
     auto& rhi = *r.state.rhi;
@@ -414,13 +421,15 @@ struct VideoNode : NodeModel
   std::unique_ptr<GPUVideoDecoder> gpu;
   AVPixelFormat current_format = AV_PIX_FMT_YUV420P;
   std::atomic_bool seeked{};
+  std::optional<double> nativeTempo;
 
   const TexturedTriangle& m_mesh = TexturedTriangle::instance();
-  VideoNode(std::shared_ptr<video_decoder> dec)
+  VideoNode(std::shared_ptr<video_decoder> dec
+            , std::optional<double> nativeTempo)
     : decoder{std::move(dec)}
     , current_format{decoder->pixel_format}
+    , nativeTempo{nativeTempo}
   {
-    //setShaders(m_mesh.defaultVertexShader(), yuv420_filter);
     initGpuDecoder();
 
     output.push_back(new Port{this, {}, Types::Image, {}});
@@ -511,11 +520,18 @@ struct VideoNode : NodeModel
 
       // TODO
       auto mustReadFrame = [this, &decoder, &nodem] {
-        const auto current_time = nodem.standardUBO.time; // In seconds
+        double tempoRatio = 1.;
+        if(nodem.nativeTempo)
+          tempoRatio = (*nodem.nativeTempo) / 120.;
+
+        auto current_time = nodem.standardUBO.time * tempoRatio; // In seconds
         auto next_frame_time = lastFrameTime;
 
         // what more can we do ?
-        const double inv_fps = decoder.fps > 0 ? 1. / decoder.fps : 1. / 24.;
+        const double inv_fps = decoder.fps > 0
+            ? 1. / (tempoRatio * decoder.fps)
+            : 1. / 24.
+        ;
         next_frame_time += inv_fps;
 
         const bool we_are_late = current_time > next_frame_time;

@@ -15,7 +15,8 @@ namespace Gfx::Video
 {
 
 Model::Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
-    : Process::ProcessModel{duration, id, "gfxProcess", parent}
+    : Process::ProcessModel{duration, id, "VideoProcess", parent}
+    , m_nativeTempo{120}
 {
   metadata().setInstanceName(*this);
   setLoops(true);
@@ -39,6 +40,34 @@ void Model::setPath(const QString& f)
 QString Model::prettyName() const noexcept
 {
   return tr("Video");
+}
+
+double Model::nativeTempo() const noexcept
+{
+  return m_nativeTempo;
+}
+
+void Model::setNativeTempo(double t)
+{
+  if (t != m_nativeTempo)
+  {
+    m_nativeTempo = t;
+    nativeTempoChanged(t);
+  }
+}
+
+bool Model::ignoreTempo() const noexcept
+{
+  return m_ignoreTempo;
+}
+
+void Model::setIgnoreTempo(bool t)
+{
+  if (t != m_ignoreTempo)
+  {
+    m_ignoreTempo = t;
+    ignoreTempoChanged(t);
+  }
 }
 
 void Model::startExecution() { }
@@ -94,7 +123,7 @@ void DataStreamReader::read(const Gfx::Video::Model& proc)
 {
   readPorts(*this, proc.m_inlets, proc.m_outlets);
 
-  m_stream << proc.m_path;
+  m_stream << proc.m_path << proc.m_nativeTempo << proc.m_ignoreTempo;
   insertDelimiter();
 }
 
@@ -109,7 +138,7 @@ void DataStreamWriter::write(Gfx::Video::Model& proc)
       &proc);
 
   QString path;
-  m_stream >> path;
+  m_stream >> path >> proc.m_nativeTempo >> proc.m_ignoreTempo;
   proc.setPath(path);
   checkDelimiter();
 }
@@ -119,6 +148,8 @@ void JSONReader::read(const Gfx::Video::Model& proc)
 {
   readPorts(*this, proc.m_inlets, proc.m_outlets);
   obj["FilePath"] = proc.m_path;
+  obj["Tempo"] = proc.m_nativeTempo;
+  obj["IgnoreTempo"] = proc.m_ignoreTempo;
 }
 
 template <>
@@ -131,4 +162,6 @@ void JSONWriter::write(Gfx::Video::Model& proc)
       proc.m_outlets,
       &proc);
   proc.setPath(obj["FilePath"].toString());
+  proc.m_nativeTempo = obj["Tempo"].toDouble();
+  proc.m_ignoreTempo = obj["IgnoreTempo"].toBool();
 }

@@ -61,7 +61,7 @@ public:
     camera = proto.camera;
     camera->load(settings.input, settings.device, settings.size[0], settings.size[1], settings.fps);
 
-    node = new VideoNode(proto.camera);
+    node = new VideoNode(proto.camera, {});
     node_id = context->ui->register_node(std::unique_ptr<VideoNode>(node));
   }
   void pull_texture(port_index idx) { context->setEdge(port_index{this->node_id, 0}, idx); }
