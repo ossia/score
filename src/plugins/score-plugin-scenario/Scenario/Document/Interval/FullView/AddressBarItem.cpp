@@ -91,9 +91,18 @@ void AddressBarItem::paint(
 void AddressBarItem::redraw()
 {
   double currentWidth = 0.;
+  int k = 0;
   for (auto obj : m_items)
   {
-    obj->setPos(currentWidth, 0.);
+    if(k % 2 == 0)
+    {
+      obj->setPos(currentWidth, -4.);
+    }
+    else
+    {
+      obj->setPos(currentWidth, -1.);
+    }
+    k++;
     currentWidth += 10. + obj->boundingRect().width();
   }
 
