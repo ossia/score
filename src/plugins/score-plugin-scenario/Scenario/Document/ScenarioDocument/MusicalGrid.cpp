@@ -31,11 +31,20 @@ ossia::bar_time timeToMetrics(MusicalGrid& grid, TimeVal x0_time)
       const auto sig_upper = prev_sig.upper;
       const auto sig_lower = prev_sig.lower;
       int64_t this_bar_date = it->first.impl;
-      int32_t quarters = (this_bar_date - prev_bar_date) / ossia::quarter_duration<int64_t>;
-      int32_t bars = quarters / (4. * double(sig_upper) / sig_lower);
+      auto [quarters, qrem] = std::div((this_bar_date - prev_bar_date), ossia::quarter_duration<int64_t>);
+      auto [bars, brem] = std::div(quarters, (4. * double(sig_upper) / sig_lower));
 
-      start.bars += bars + 1;
+      //int32_t quarters = (this_bar_date - prev_bar_date) / ossia::quarter_duration<int64_t>;
+      //int32_t bars = quarters / (4. * double(sig_upper) / sig_lower);
 
+      start.bars += bars;
+      // If the signature change falls on "not a previous bar",
+      // we increment the bar counter
+      if(qrem != 0 || brem != 0) {
+        start.bars += 1;
+      }
+
+      if(bars * (4. * double(sig_upper) / sig_lower))
       prev_bar_date = this_bar_date;
       prev_sig = it->second;
     }
@@ -43,15 +52,15 @@ ossia::bar_time timeToMetrics(MusicalGrid& grid, TimeVal x0_time)
   {
     const auto sig_upper = last_before->second.upper;
     const auto sig_lower = last_before->second.lower;
-    int64_t flicks_since_last_signature = (x0_time.impl - last_before->first.impl);
-    int64_t quarters = flicks_since_last_signature / ossia::quarter_duration<int64_t>;
-    int64_t bars = quarters / (4. * double(sig_upper) / sig_lower);
+    int64_t flicks_since_last_sig = (x0_time.impl - last_before->first.impl);
+    int64_t quarters_since_last_sig = flicks_since_last_sig / ossia::quarter_duration<int64_t>;
+    int64_t bars = quarters_since_last_sig / (4. * double(sig_upper) / sig_lower);
     start.bars += bars;
-    start.quarters = quarters - bars * (4. * double(sig_upper) / sig_lower);
-    start.semiquavers = (flicks_since_last_signature - quarters * ossia::quarter_duration<int64_t>)
+    start.quarters = quarters_since_last_sig - bars * (4. * double(sig_upper) / sig_lower);
+    start.semiquavers = (flicks_since_last_sig - quarters_since_last_sig * ossia::quarter_duration<int64_t>)
                         / (ossia::quarter_duration<int64_t> / 4);
-    start.cents = (flicks_since_last_signature
-                   - quarters
+    start.cents = (flicks_since_last_sig
+                   - quarters_since_last_sig
                          * ossia::quarter_duration<
                              int64_t> - start.semiquavers * (ossia::quarter_duration<int64_t> / 4))
                   / (ossia::quarter_duration<int64_t> / 400);
@@ -106,7 +115,7 @@ Durations computeDurations(ossia::time_signature sig, double zoom)
     b.cents = 1;
   }
 
-  pow2 /= (double(sig.upper) / sig.lower);
+  //pow2 /= (double(sig.upper) / sig.lower);
 
   return {pow2, b, int64_t(main_div_source / pow2)};
 }
@@ -134,7 +143,6 @@ void computeAll(
   auto& measures = *grid.m_measures;
   auto& magneticTimings = grid.timebars.magneticTimings;
 
-  int k = 0;
   const double y0 = rect.y();
   const double y1 = rect.y() + rect.height();
 
@@ -150,7 +158,10 @@ void computeAll(
   ossia::time_signature prev_sig = last_sig_change_it->second;
 
   // ossia::bar_time main_time = grid.start;
-  auto isVisible = [&](double bar_x_pos) { return (bar_x_pos - last_delim_px) < rect.width(); };
+  auto isVisible = [&](double bar_x_pos) {
+    return (bar_x_pos - last_delim_px) < rect.width();
+  };
+
   // This function adds a main vertical line, and adds
   // the sub-bars between the new main and the previous one.
   auto addNewMain = [&](double bar_x_pos, TimeVal cur_t) {
@@ -196,6 +207,7 @@ void computeAll(
     // addBars(main_time, increment);
   };
 
+  int k = 0;
   while (isVisible(bar_x_pos))
   {
     bar_x_pos = last_delim_px + k * division_px;
@@ -234,12 +246,15 @@ void computeAll(
 
       addNewMain(last_delim_px, last_delim);
 
-      k = 0;
+      k = 1;
     }
     else
     {
       // Default case between two measure changes
       // TODO merge it with the one above
+
+      // note: if a measure change falls on a new measure
+      // we get a duplicated bar here
       addNewMain(bar_x_pos, current_time);
       k++;
     }

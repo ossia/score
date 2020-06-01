@@ -87,6 +87,7 @@ void MusicalRuler::paint(QPainter* p, const QStyleOptionGraphicsItem* option, QW
 
     double last_pos = m_grid->mainPositions.front().pos_x;
 
+    painter.fillRect(QRectF{last_pos - 2, 0, 4, 30}, Qt::red);
     for (auto& [pos_x, timings, increment] : m_grid->mainPositions)
     {
       const auto& glyphs = getGlyphs(timings, increment);
