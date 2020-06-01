@@ -32,6 +32,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/GraphicsItem.hpp>
@@ -573,49 +574,22 @@ FullViewIntervalPresenter::magneticPosition(const QObject* o, const TimeVal t) c
   // t is the time in the context of obj
   // we have to find its closest parent interval with a time signature
   // definition and compute its time delta
-  TimeVal timeDelta = TimeVal::zero();
-  const IntervalModel* model = &m_model;
-  while (o)
-  {
-    if (o == &m_model)
-    {
-      if (!m_model.hasTimeSignature())
-        return scenarioT;
-
-      break;
-    }
-    else
-    {
-      if (auto itv = dynamic_cast<const Scenario::IntervalModel*>(o))
-      {
-        if (itv->hasTimeSignature())
-        {
-          // This interval is the local origin of times
-          model = itv;
-          break;
-        }
-        else
-        {
-          // Skip the interval and go directly to its parent process
-          timeDelta += itv->date();
-          o = itv->parent();
-          continue;
-        }
-      }
-      else
-      {
-        o = o->parent();
-        continue;
-      }
-    }
-  }
+  const IntervalModel* cur_model = nullptr;
+  do {
+   cur_model = qobject_cast<const IntervalModel*>(o);
+   if(cur_model)
+     break;
+   else
+     o = o->parent();
+  } while(!cur_model && o);
+  auto [model, timeDelta] = closestParentWithMusicalMetrics(&m_model);
 
   if (!o)
     return scenarioT;
 
   // Find leftmost signature
   const TimeVal msecs = t + timeDelta;
-  const auto& sig = m_model.timeSignatureMap();
+  const auto& sig = model->timeSignatureMap();
   if (sig.empty())
     return scenarioT;
 
@@ -623,20 +597,23 @@ FullViewIntervalPresenter::magneticPosition(const QObject* o, const TimeVal t) c
   if (leftmost_sig != sig.begin())
     leftmost_sig--;
 
-  const TimeVal orig_date = leftmost_sig->first;
-
   // Snap to grid
   if (m_timebars->magneticTimings.empty())
     return scenarioT;
 
   const TimeVal& closestBar = closest_element(m_timebars->magneticTimings, msecs);
-
   if (!snapToScenario)
+  {
     return closestBar - timeDelta;
+  }
   else if (std::abs(closestBar.impl - t.impl) < std::abs(scenarioT.impl - t.impl))
+  {
     return closestBar - timeDelta;
+  }
   else
+  {
     return scenarioT;
+  }
 }
 
 double FullViewIntervalPresenter::on_playPercentageChanged(double t)

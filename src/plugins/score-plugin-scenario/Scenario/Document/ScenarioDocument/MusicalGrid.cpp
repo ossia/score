@@ -191,12 +191,13 @@ void computeAll(
     {
       // auto sub_time = main_time;
       // addBars(sub_time, sub_increment);
-      int sub_k = 1;
-      double pos = prev_bar_x_pos + sub_increment_px;
-      for (; pos < bar_x_pos; pos += sub_increment_px)
+
+      double pos = prev_bar_x_pos;
+      for (int sub_k = 0; pos <= bar_x_pos; sub_k++)
       {
         sub.positions.push_back(QLineF(pos, y0, pos, y1));
-        magneticTimings.push_back(TimeVal(cur_t.impl + sub_increment_t.impl * (sub_k++)));
+        magneticTimings.push_back(TimeVal(cur_t.impl + sub_increment_t.impl * sub_k));
+        pos = prev_bar_x_pos + sub_k * sub_increment_px;
         // grid.subPositions.push_back({pos, timeToMetrics(grid, cur_t),
         // sub_increment}); addBars(sub_time, sub_increment);
       }
@@ -337,6 +338,8 @@ void MusicalGrid::compute(TimeVal timeDelta, ZoomRatio zoom, QRectF sceneRect, T
       inc,
       sceneRect);
 
+  std::sort(timebars.magneticTimings.begin(), timebars.magneticTimings.end());//, [] (auto t1, auto t2) { return t1 < t2});
+  std::unique(timebars.magneticTimings.begin(), timebars.magneticTimings.end());
   for (auto& [v, _1, _2] : mainPositions)
     v -= x0_time.toPixels(zoom) + 100;
   for (auto& [v, _1, _2] : subPositions)
