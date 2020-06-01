@@ -256,13 +256,21 @@ public:
 
     auto& sst_pres = m_sm.presenter().state(st.id());
     auto& sev_pres = m_sm.presenter().event(ev.id());
-    auto& sts_pres = m_sm.presenter().timeSync(ts.id());
+    TimeSyncPresenter& sts_pres = m_sm.presenter().timeSync(ts.id());
 
     std::vector<QGraphicsItem*> toIgnore;
-    toIgnore.push_back(sst_pres.view());
-    toIgnore.push_back(sev_pres.view());
     toIgnore.push_back(sts_pres.view());
     toIgnore.push_back(&sts_pres.trigger());
+    for(auto& ev_id : sts_pres.model().events())
+    {
+      auto& ev = m_sm.presenter().event(ev_id);
+      toIgnore.push_back(ev.view());
+      for(auto& st_id : ev.model().states())
+      {
+        auto& st = m_sm.presenter().state(st_id);
+        toIgnore.push_back(st.view());
+      }
+    }
 
     for(auto& itv : Scenario::previousIntervals(sts_pres.model(), this->m_scenario))
     {
