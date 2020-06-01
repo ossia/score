@@ -146,6 +146,11 @@ static void setup_app_flags()
   QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps, true);
   QCoreApplication::setAttribute(Qt::AA_CompressHighFrequencyEvents);
 #endif
+
+#if defined(__linux__)
+  // Else things look horrible on KDE plasma, etc
+  qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
+#endif
 }
 
 int main(int argc, char** argv)
