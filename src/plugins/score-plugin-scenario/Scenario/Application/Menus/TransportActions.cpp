@@ -51,7 +51,7 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
   m_playGlobal->setObjectName("Play Root");
   m_playGlobal->setShortcut(Qt::Key_Shift + Qt::Key_Space);
   m_playGlobal->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-  m_playGlobal->setStatusTip("Play the top-level score");
+  m_playGlobal->setStatusTip("Play the top-level score from the beginning");
   m_playGlobal->setData(false);
   setIcons(
       m_playGlobal,
@@ -148,7 +148,7 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
 
     m_playGlobal->setEnabled(true);
     m_playGlobal->setChecked(false);
-    m_play->setText(tr("Play (global)"));
+    m_playGlobal->setText(tr("Play (global)"));
     setIcons(
         m_playGlobal,
         QStringLiteral(":/icons/play_glob_on.png"),
