@@ -63,6 +63,11 @@ StatePresenter::StatePresenter(
         = score::GUIAppContext().guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
     plug.editionSettings().setTool(Scenario::Tool::CreateGraph);
   });
+  connect(m_view, &StateView::startCreateSequence, this, [=] {
+    auto& plug
+        = score::GUIAppContext().guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
+    plug.editionSettings().setTool(Scenario::Tool::CreateSequence);
+  });
   connect(m_view, &StateView::dropReceived, this, &StatePresenter::handleDrop);
 
   updateStateView();

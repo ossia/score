@@ -180,11 +180,6 @@ public:
 
         date = stateMachine.magnetic().getPosition(&stateMachine.model(), date);
 
-        if (!stateMachine.editionSettings().sequence())
-        {
-          // TODO why??
-          date = tn.date();
-        }
 
         if (this->m_pressedPrevious)
         {

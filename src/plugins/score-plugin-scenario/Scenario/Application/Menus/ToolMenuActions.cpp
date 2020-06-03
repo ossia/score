@@ -113,18 +113,6 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent) : m_parent{p
     m_parent->editionSettings().setTool(Scenario::Tool::MoveSlot);
   });
 
-  // SHIFT
-  m_shiftAction = makeToolbarAction(tr("Sequence"), this, ExpandMode::CannotExpand, tr(""));
-  setIcons(
-      m_shiftAction,
-      QStringLiteral(":/icons/sequence_on.png"),
-      QStringLiteral(":/icons/sequence_off.png"),
-      QStringLiteral(":/icons/sequence_disabled.png"));
-
-  connect(m_shiftAction, &QAction::toggled, this, [=](bool val) {
-    m_parent->editionSettings().setSequence(val);
-  });
-
   // ALT
   m_altAction = makeToolbarAction(tr("Lock"), this, ExpandMode::CannotExpand, tr("Alt"));
   setIcons(
@@ -191,6 +179,8 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent) : m_parent{p
         switch (t)
         {
           case Scenario::Tool::Create:
+          case Scenario::Tool::CreateGraph:
+          case Scenario::Tool::CreateSequence:
             if (!m_createtool->isChecked())
               m_createtool->setChecked(true);
             break;
@@ -216,22 +206,6 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent) : m_parent{p
             break;
           default:
             break;
-        }
-      });
-
-  con(parent->editionSettings(),
-      &Scenario::EditionSettings::sequenceChanged,
-      this,
-      [=](bool sequence) {
-        if (sequence)
-        {
-          if (!m_shiftAction->isChecked())
-            m_shiftAction->setChecked(true);
-        }
-        else
-        {
-          if (m_shiftAction->isChecked())
-            m_shiftAction->setChecked(false);
         }
       });
 
@@ -311,13 +285,11 @@ void ToolMenuActions::makeGUIElements(score::GUIElements& ref)
     ref.actions.add<Actions::SelectTool>(m_selecttool);
     ref.actions.add<Actions::CreateTool>(m_createtool);
     ref.actions.add<Actions::PlayTool>(m_playtool);
-    ref.actions.add<Actions::SequenceMode>(m_shiftAction);
     ref.actions.add<Actions::LockMode>(m_altAction);
 
     scenario_iface_cond.add<Actions::SelectTool>();
     scenario_iface_cond.add<Actions::PlayTool>();
     scenario_proc_cond.add<Actions::CreateTool>();
-    scenario_proc_cond.add<Actions::SequenceMode>();
     scenario_proc_cond.add<Actions::LockMode>();
   }
 
@@ -336,11 +308,7 @@ void ToolMenuActions::makeGUIElements(score::GUIElements& ref)
 
 void ToolMenuActions::keyPressed(int key)
 {
-  if (key == Qt::Key_Shift)
-  {
-    m_shiftAction->setChecked(true);
-  }
-  else if (key == Qt::Key_Alt)
+  if (key == Qt::Key_Alt)
   {
     m_altAction->setChecked(true);
   }
@@ -348,11 +316,7 @@ void ToolMenuActions::keyPressed(int key)
 
 void ToolMenuActions::keyReleased(int key)
 {
-  if (key == Qt::Key_Shift)
-  {
-    m_shiftAction->setChecked(false);
-  }
-  else if (key == Qt::Key_Alt)
+  if (key == Qt::Key_Alt)
   {
     m_altAction->setChecked(false);
   }

@@ -20,11 +20,12 @@ class QWidget;
 
 namespace Scenario
 {
-class StatePlusOverlay;
-class StateGraphPlusOverlay;
+struct StateOverlays;
 class StatePresenter;
 
-class SCORE_PLUGIN_SCENARIO_EXPORT StateView final : public QObject, public QGraphicsItem
+class SCORE_PLUGIN_SCENARIO_EXPORT StateView final
+    : public QObject
+    , public QGraphicsItem
 {
   W_OBJECT(StateView)
   Q_INTERFACES(QGraphicsItem)
@@ -35,7 +36,7 @@ public:
   static const constexpr qreal dilated = 1.5;
 
   StateView(StatePresenter& presenter, QGraphicsItem* parent = nullptr);
-  virtual ~StateView() = default;
+  virtual ~StateView();
 
   static const constexpr int Type = ItemType::State;
   int type() const final override { return Type; }
@@ -56,6 +57,7 @@ public:
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dropReceived, arg_1)
   void startCreateMode() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, startCreateMode)
   void startCreateGraphalMode() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, startCreateGraphalMode)
+  void startCreateSequence() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, startCreateSequence)
 
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
@@ -65,15 +67,13 @@ protected:
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
   void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
   void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override;
-
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 
 private:
   void setDilatation(bool);
   void updateOverlay();
   StatePresenter& m_presenter;
-  StatePlusOverlay* m_overlay{};
-  StateGraphPlusOverlay* m_graphOverlay{};
+  StateOverlays* m_overlays{};
   ExecutionStatusProperty m_status{};
   score::ColorBang m_execPing;
 

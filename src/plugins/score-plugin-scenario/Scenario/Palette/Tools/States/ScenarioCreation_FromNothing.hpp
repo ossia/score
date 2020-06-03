@@ -1,6 +1,7 @@
 #pragma once
 #include "ScenarioCreationState.hpp"
 
+#include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateEvent_State.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
@@ -182,13 +183,14 @@ public:
           this->currentPoint.date = TimeVal::fromMsecs(10);
         }
 
+        Scenario::EditionSettings& settings = this->m_parentSM.editionSettings();
         this->m_dispatcher.template submit<MoveNewEvent>(
             this->m_scenario,
             this->createdIntervals.last(),
             this->createdEvents.last(),
             this->currentPoint.date,
             this->currentPoint.y,
-            stateMachine.editionSettings().sequence());
+            settings.tool() == Tool::CreateSequence);
       });
 
       QObject::connect(move_timesync, &QState::entered, [&]() {

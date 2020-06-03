@@ -192,39 +192,7 @@ public:
           ;
         }
 
-        // Magnetism handling :
-        // If we press "sequence"... we're always in sequence.
-        //
-        // Else, if we're < 10 pixels, we switch to "sequence"
-        // Else, we keep the normal state.
-        bool manual_sequence = qApp->keyboardModifiers() & Qt::ShiftModifier;
-        if (!manual_sequence)
-        {
-          double h = stateMachine.presenter().view().height();
-          auto sequence = settings.sequence();
-          auto magnetism_distance
-              = h
-                    * std::abs(
-                        this->currentPoint.y
-                        - this->m_parentSM.model().state(*this->clickedState).heightPercentage())
-                < 10.;
-          if (!sequence && magnetism_distance)
-          {
-            settings.setSequence(true);
-            this->rollback();
-            createToNothing();
-            return;
-          }
-          else if (sequence && !magnetism_distance)
-          {
-            settings.setSequence(false);
-            this->rollback();
-            createToNothing();
-            return;
-          }
-        }
-
-        auto sequence = settings.sequence();
+        auto sequence = settings.tool() == Tool::CreateSequence;
         if (sequence)
         {
           if (this->clickedState)
@@ -293,8 +261,9 @@ private:
     const auto& scenar = this->m_parentSM.model();
     if (!this->clickedState)
       return;
-    bool sequence = this->m_parentSM.editionSettings().sequence();
-    bool new_event = qApp->keyboardModifiers() & Qt::ALT;
+    Scenario::EditionSettings& settings = this->m_parentSM.editionSettings();
+    const bool sequence = settings.tool() == Tool::CreateSequence;
+    const bool new_event = qApp->keyboardModifiers() & Qt::ALT;
     auto& st = scenar.state(*this->clickedState);
     if (new_event && !sequence)
     {

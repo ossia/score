@@ -198,7 +198,7 @@ public:
             this->createdEvents.last(),
             this->currentPoint.date,
             this->currentPoint.y,
-            stateMachine.editionSettings().sequence());
+            stateMachine.editionSettings().tool() == Tool::CreateSequence);
       });
 
       QObject::connect(move_timesync, &QState::entered, [&]() {

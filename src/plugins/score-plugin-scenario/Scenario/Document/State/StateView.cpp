@@ -78,6 +78,11 @@ StateView::StateView(StatePresenter& pres, QGraphicsItem* parent)
   this->setAcceptHoverEvents(true);
 }
 
+StateView::~StateView()
+{
+  delete m_overlays;
+}
+
 QRectF StateView::boundingRect() const
 {
   const auto radius = m_dilated ? fullRadius * dilated : fullRadius;
@@ -256,21 +261,15 @@ void StateView::updateOverlay()
   {
     if (m_selected || m_hovered)
     {
-      if (m_overlay)
+      if (m_overlays)
         return;
 
-      m_overlay = new StatePlusOverlay{this};
-      m_overlay->setPos(0, -14);
-
-      m_graphOverlay = new StateGraphPlusOverlay{this};
-      m_graphOverlay->setPos(0, 10);
+      m_overlays = new StateOverlays{this};
     }
     else
     {
-      delete m_overlay;
-      m_overlay = nullptr;
-      delete m_graphOverlay;
-      m_graphOverlay = nullptr;
+      delete m_overlays;
+      m_overlays = nullptr;
     }
   }
 }

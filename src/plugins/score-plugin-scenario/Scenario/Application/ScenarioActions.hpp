@@ -89,7 +89,6 @@ SCORE_DECLARE_ACTION_2S(
     QKeySequence{QObject::tr("C")},
     QKeySequence{QObject::tr("Shift+C")})
 SCORE_DECLARE_ACTION(PlayTool, "Tool &Play", Scenario, Qt::Key_P)
-SCORE_DECLARE_ACTION(SequenceMode, "Se&quence", Scenario, Qt::Key_Shift)
 SCORE_DECLARE_ACTION(LockMode, "&Lock", Scenario, QKeySequence{QObject::tr("Alt")})
 
 SCORE_DECLARE_ACTION(Scale, "&Scale mode", Scenario, Qt::ALT + Qt::Key_S)

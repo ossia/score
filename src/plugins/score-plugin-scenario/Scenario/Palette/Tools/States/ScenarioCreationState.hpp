@@ -165,7 +165,7 @@ protected:
 
   void createToNothing_base(const Id<StateModel>& originalState)
   {
-    if (!m_parentSM.editionSettings().sequence())
+    if (m_parentSM.editionSettings().tool() != Tool::CreateSequence)
     {
       auto cmd = new Scenario::Command::CreateInterval_State_Event_TimeSync{
           this->m_scenario,
@@ -208,7 +208,7 @@ protected:
       return;
 
     using namespace Command;
-    if (m_parentSM.editionSettings().sequence())
+    if (m_parentSM.editionSettings().tool() == Tool::CreateSequence)
       return;
 
     if (this->createdStates.empty())
@@ -283,7 +283,6 @@ protected:
     score::SelectionDispatcher d{this->m_parentSM.context().context.selectionStack};
     d.setAndCommit(sel);
     this->clearCreatedIds();
-    this->m_parentSM.editionSettings().setSequence(false);
   }
 
   void rollback()

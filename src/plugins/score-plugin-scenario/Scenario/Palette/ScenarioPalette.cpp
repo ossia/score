@@ -53,6 +53,7 @@ void ToolPalette::on_pressed(QPointF point)
   {
     case Scenario::Tool::Create:
     case Scenario::Tool::CreateGraph:
+    case Scenario::Tool::CreateSequence:
       m_createTool.on_pressed(point, scenarioPoint);
       break;
     case Scenario::Tool::Playing:
@@ -75,6 +76,7 @@ void ToolPalette::on_moved(QPointF point)
   {
     case Scenario::Tool::Create:
     case Scenario::Tool::CreateGraph:
+    case Scenario::Tool::CreateSequence:
       m_createTool.on_moved(point, scenarioPoint);
       break;
     case Scenario::Tool::Select:
@@ -94,6 +96,7 @@ void ToolPalette::on_released(QPointF point)
   {
     case Scenario::Tool::Create:
     case Scenario::Tool::CreateGraph:
+    case Scenario::Tool::CreateSequence:
       m_createTool.on_released(point, scenarioPoint);
       es.setTool(Scenario::Tool::Select);
       break;

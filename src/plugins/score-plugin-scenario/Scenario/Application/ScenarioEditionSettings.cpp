@@ -36,29 +36,14 @@ void Scenario::EditionSettings::setTool(Scenario::Tool tool)
     if (m_tool != Scenario::Tool::Playing)
       m_previousTool = m_tool;
 
-    if (m_tool != Scenario::Tool::Create && m_tool != Scenario::Tool::CreateGraph)
+    if (!isCreationTool(m_tool))
     {
-      setSequence(false);
       setLockMode(LockMode::Free);
     }
 
     m_tool = tool;
     toolChanged(tool);
   }
-}
-
-bool Scenario::EditionSettings::sequence() const
-{
-  return m_sequence;
-}
-
-void Scenario::EditionSettings::setSequence(bool sequence)
-{
-  if (m_sequence == sequence)
-    return;
-
-  m_sequence = sequence;
-  sequenceChanged(sequence);
 }
 
 void Scenario::EditionSettings::setExecution(bool ex)
@@ -69,16 +54,14 @@ void Scenario::EditionSettings::setExecution(bool ex)
 void Scenario::EditionSettings::setDefault()
 {
   setTool(Scenario::Tool::Select);
-  setSequence(false);
   setLockMode(LockMode::Free);
 }
 
 void Scenario::EditionSettings::restoreTool()
 {
   setTool(Scenario::Tool{m_previousTool});
-  if (m_tool != Scenario::Tool::Create && m_tool != Scenario::Tool::CreateGraph)
+  if (!isCreationTool(m_tool))
   {
-    setSequence(false);
     setLockMode(LockMode::Free);
   }
 }
