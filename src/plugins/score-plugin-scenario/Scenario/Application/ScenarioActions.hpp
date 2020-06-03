@@ -120,8 +120,8 @@ SCORE_DECLARE_ACTION(MergeTimeSyncs, "&Synchronize", Scenario, Qt::SHIFT + Qt::K
 SCORE_DECLARE_ACTION(ShowRacks, "&Show processes", Scenario, QKeySequence::UnknownKey)
 SCORE_DECLARE_ACTION(HideRacks, "&Hide processes", Scenario, QKeySequence::UnknownKey)
 
-SCORE_DECLARE_ACTION(Encapsulate, "&Encapsulate", Scenario, Qt::SHIFT + Qt::CTRL + Qt::Key_E)
-SCORE_DECLARE_ACTION(Decapsulate, "&Decapsulate", Scenario, Qt::SHIFT + Qt::CTRL + Qt::Key_D)
+SCORE_DECLARE_ACTION(Encapsulate, "&Encapsulate", Scenario, Qt::CTRL + Qt::ALT + Qt::Key_E)
+SCORE_DECLARE_ACTION(Decapsulate, "&Decapsulate", Scenario, Qt::CTRL + Qt::ALT + Qt::Key_D)
 SCORE_DECLARE_ACTION(FoldIntervals, "Fold intervals", Scenario, Qt::CTRL + Qt::ALT + Qt::Key_F)
 SCORE_DECLARE_ACTION(UnfoldIntervals, "Unfold intervals", Scenario, Qt::CTRL + Qt::ALT + Qt::Key_U)
 SCORE_DECLARE_ACTION(LevelUp, "Go to parent interval", Scenario, Qt::CTRL + Qt::ALT + Qt::Key_Up)

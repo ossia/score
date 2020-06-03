@@ -235,7 +235,7 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
   });
 
   m_goToParent = new QAction{this};
-  m_deselectAll->setToolTip("Ctrl+Shift+Up");
+  m_goToParent->setToolTip("Ctrl+Shift+Up");
   connect(m_goToParent, &QAction::triggered, [this]() {
     if (auto pres = getScenarioDocPresenter())
     {
