@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
+   height="48"
+   width="48"
+   sodipodi:docname="sequence_on.svg"
+   xml:space="preserve"
+   viewBox="0 0 48.000001 48.000001"
+   y="0px"
+   x="0px"
+   id="Calque_1"
+   version="1.1"><metadata
+   id="metadata17"><rdf:RDF><cc:Work
+       rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title>boutons</dc:title></cc:Work></rdf:RDF></metadata><defs
+   id="defs15" /><sodipodi:namedview
+   inkscape:document-rotation="0"
+   inkscape:current-layer="layer1"
+   inkscape:window-maximized="1"
+   inkscape:window-y="0"
+   inkscape:window-x="0"
+   inkscape:cy="21.919916"
+   inkscape:cx="17.266526"
+   inkscape:zoom="7.8985007"
+   showgrid="false"
+   id="namedview13"
+   inkscape:window-height="1015"
+   inkscape:window-width="1920"
+   inkscape:pageshadow="2"
+   inkscape:pageopacity="0"
+   guidetolerance="10"
+   gridtolerance="10"
+   objecttolerance="10"
+   borderopacity="1"
+   bordercolor="#666666"
+   pagecolor="#ffffff" />
+<style
+   id="style2"
+   type="text/css">
+	.st0{display:none;fill:#3D3D3D;}
+	.st1{display:none;fill:#000100;}
+	.st2{fill:#808080;}
+</style>
+<title
+   id="title4">boutons</title>
+<rect
+   style="display:none;fill:#3d3d3d"
+   id="rect6"
+   height="27.9"
+   width="27.9"
+   class="st0"
+   y="19.6"
+   x="0.5" />
+<path
+   style="display:none;fill:#000100"
+   inkscape:connector-curvature="0"
+   id="path8"
+   d="M 28.9,48 H 0 V 19.1 H 28.9 Z M 1,47 H 27.9 V 20.1 H 1 Z"
+   class="st1" />
+
+<g
+   transform="translate(0,19.1)"
+   style="display:inline"
+   inkscape:label="Icon"
+   id="layer1"
+   inkscape:groupmode="layer"><path
+     sodipodi:nodetypes="sssccsccsssccsccs"
+     inkscape:connector-curvature="0"
+     id="path3379"
+     d="M 11.070761,0.32923738 C 8.600373,0.32923738 6.5,2.4296125 6.5,4.9 c 0,2.4703898 2.100373,4.5707626 4.570761,4.5707626 1.917669,0 3.432874,-1.2691557 4.093791,-2.8720307 h 4.741657 c 0.723187,1.5718464 2.159064,2.8720307 4.09379,2.8720307 1.90479,0 3.369873,-1.2224322 4.096342,-2.8720307 h 4.736555 c 0.723139,1.5719675 2.161511,2.8720307 4.096343,2.8720307 C 39.399627,9.4707626 41.5,7.3703898 41.5,4.9 c 0,-2.4703875 -2.100373,-4.57076262 -4.570761,-4.57076262 -1.91756,0 -3.430249,1.26929392 -4.091241,2.87203072 H 28.096341 C 27.373203,1.6293005 25.93483,0.32923738 23.999999,0.32923738 c -1.917557,0 -3.430249,1.26929392 -4.091238,2.87203072 H 15.167105 C 14.443965,1.6293005 13.005594,0.32923738 11.070761,0.32923738 Z"
+     style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:medium;line-height:normal;font-family:sans-serif;font-variant-ligatures:normal;font-variant-position:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-alternates:normal;font-feature-settings:normal;text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;text-decoration-style:solid;text-decoration-color:#000000;letter-spacing:normal;word-spacing:normal;text-transform:none;writing-mode:lr-tb;direction:ltr;text-orientation:mixed;dominant-baseline:auto;baseline-shift:baseline;text-anchor:start;white-space:normal;shape-padding:0;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;vector-effect:none;fill:#f6a019;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.30593204;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate" /></g></svg>

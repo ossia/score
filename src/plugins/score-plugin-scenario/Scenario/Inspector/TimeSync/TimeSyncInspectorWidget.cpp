@@ -163,6 +163,7 @@ TimeSyncInspectorWidget::TimeSyncInspectorWidget(
     m_autotrigger = new QToolButton{};
     m_autotrigger->setIcon(makeIcons(
         QStringLiteral(":/icons/auto_trigger_on.png"),
+        QStringLiteral(":/icons/auto_trigger_hover.png"),
         QStringLiteral(":/icons/auto_trigger_off.png"),
         QStringLiteral(":/icons/auto_trigger_off.png")));
     m_autotrigger->setToolTip(tr("Auto-trigger"));
@@ -195,6 +196,7 @@ to the root of a score.)_"));
     m_isStart = new QToolButton{};
     m_isStart->setIcon(makeIcons(
         QStringLiteral(":/icons/start_on_play_on.png"),
+        QStringLiteral(":/icons/start_on_play_hover.png"),
         QStringLiteral(":/icons/start_on_play_off.png"),
         QStringLiteral(":/icons/start_on_play_off.png")));
     m_isStart->setChecked(object.isStartPoint());

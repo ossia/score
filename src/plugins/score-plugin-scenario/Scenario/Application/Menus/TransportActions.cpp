@@ -43,6 +43,7 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
   setIcons(
       m_play,
       QStringLiteral(":/icons/play_on.png"),
+      QStringLiteral(":/icons/play_hover.png"),
       QStringLiteral(":/icons/play_off.png"),
       QStringLiteral(":/icons/play_disabled.png"));
 
@@ -56,6 +57,7 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
   setIcons(
       m_playGlobal,
       QStringLiteral(":/icons/play_glob_on.png"),
+      QStringLiteral(":/icons/play_glob_hover.png"),
       QStringLiteral(":/icons/play_glob_off.png"),
       QStringLiteral(":/icons/play_glob_disabled.png"));
 
@@ -67,6 +69,7 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
   setIcons(
       m_stop,
       QStringLiteral(":/icons/stop_on.png"),
+      QStringLiteral(":/icons/stop_hover.png"),
       QStringLiteral(":/icons/stop_off.png"),
       QStringLiteral(":/icons/stop_disabled.png"));
   /*
@@ -89,6 +92,7 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
   setIcons(
       m_stopAndInit,
       QStringLiteral(":/icons/reinitialize_on.png"),
+      QStringLiteral(":/icons/reinitialize_hover.png"),
       QStringLiteral(":/icons/reinitialize_off.png"),
       QStringLiteral(":/icons/reinitialize_disabled.png"));
   /*
@@ -107,21 +111,24 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
 
     setIcons(
         m_play,
-        b ? QStringLiteral(":/icons/play_on.png") : QStringLiteral(":/icons/play_on.png"),
-        b ? QStringLiteral(":/icons/play_off.png") : QStringLiteral(":/icons/play_off.png"),
-        b ? QStringLiteral(":/icons/play_disabled.png")
-          : QStringLiteral(":/icons/play_disabled.png"));
+        !b ? QStringLiteral(":/icons/play_on.png") : QStringLiteral(":/icons/pause_on.png"),
+          !b ? QStringLiteral(":/icons/play_hover.png") : QStringLiteral(":/icons/pause_hover.png"),
+        !b ? QStringLiteral(":/icons/play_off.png") : QStringLiteral(":/icons/pause_off.png"),
+        !b ? QStringLiteral(":/icons/pause_disabled.png")
+          : QStringLiteral(":/icons/pause_disabled.png"));
 
     m_playGlobal->setText(b ? tr("Pause") : tr("Play (global)"));
     m_playGlobal->setData(b);
     setIcons(
         m_playGlobal,
-        b ? QStringLiteral(":/icons/play_glob_on.png")
-          : QStringLiteral(":/icons/play_glob_on.png"),
-        b ? QStringLiteral(":/icons/play_glob_off.png")
-          : QStringLiteral(":/icons/play_glob_off.png"),
-        b ? QStringLiteral(":/icons/play_glob_disabled.png")
-          : QStringLiteral(":/icons/play_glob_disabled.png"));
+        !b ? QStringLiteral(":/icons/play_glob_on.png")
+          : QStringLiteral(":/icons/pause_on.png"),
+        !b ? QStringLiteral(":/icons/play_glob_hover.png")
+            : QStringLiteral(":/icons/pause_hover.png"),
+        !b ? QStringLiteral(":/icons/play_glob_off.png")
+          : QStringLiteral(":/icons/pause_off.png"),
+        !b ? QStringLiteral(":/icons/play_glob_disabled.png")
+          : QStringLiteral(":/icons/pause_disabled.png"));
   };
   connect(m_play, &QAction::toggled, this, [=](bool b) {
     on_play(b);
@@ -142,6 +149,7 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
     setIcons(
         m_play,
         QStringLiteral(":/icons/play_on.png"),
+        QStringLiteral(":/icons/play_hover.png"),
         QStringLiteral(":/icons/play_off.png"),
         QStringLiteral(":/icons/play_disabled.png"));
     m_play->setData(false);
@@ -152,6 +160,7 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
     setIcons(
         m_playGlobal,
         QStringLiteral(":/icons/play_glob_on.png"),
+        QStringLiteral(":/icons/play_glob_hover.png"),
         QStringLiteral(":/icons/play_glob_off.png"),
         QStringLiteral(":/icons/play_glob_disabled.png"));
     m_playGlobal->setData(false);

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
+   height="48"
+   width="48"
+   sodipodi:docname="timeline_on.svg"
+   xml:space="preserve"
+   viewBox="0 0 48.000001 48.000001"
+   y="0px"
+   x="0px"
+   id="Calque_1"
+   version="1.1"><metadata
+   id="metadata17"><rdf:RDF><cc:Work
+       rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title>boutons</dc:title></cc:Work></rdf:RDF></metadata><defs
+   id="defs15" /><sodipodi:namedview
+   inkscape:document-rotation="0"
+   inkscape:current-layer="layer1"
+   inkscape:window-maximized="1"
+   inkscape:window-y="0"
+   inkscape:window-x="0"
+   inkscape:cy="18.001272"
+   inkscape:cx="-23.940466"
+   inkscape:zoom="7.8985007"
+   showgrid="false"
+   id="namedview13"
+   inkscape:window-height="1015"
+   inkscape:window-width="1920"
+   inkscape:pageshadow="2"
+   inkscape:pageopacity="0"
+   guidetolerance="10"
+   gridtolerance="10"
+   objecttolerance="10"
+   borderopacity="1"
+   bordercolor="#666666"
+   pagecolor="#ffffff" />
+<style
+   id="style2"
+   type="text/css">
+	.st0{display:none;fill:#3D3D3D;}
+	.st1{display:none;fill:#000100;}
+	.st2{fill:#808080;}
+</style>
+<title
+   id="title4">boutons</title>
+<rect
+   style="display:none;fill:#3d3d3d"
+   id="rect6"
+   height="27.9"
+   width="27.9"
+   class="st0"
+   y="19.6"
+   x="0.5" />
+<path
+   style="display:none;fill:#000100"
+   inkscape:connector-curvature="0"
+   id="path8"
+   d="M 28.9,48 H 0 V 19.1 H 28.9 Z M 1,47 H 27.9 V 20.1 H 1 Z"
+   class="st1" />
+
+<g
+   transform="translate(0,19.1)"
+   style="display:inline"
+   inkscape:label="Icon"
+   id="layer1"
+   inkscape:groupmode="layer"><path
+     inkscape:connector-curvature="0"
+     id="path1408-9"
+     d="m 9,0.00435415 c -2.731814,0 -5,2.26818685 -5,4.99999935 0,2.7318125 2.268186,5.0000005 5,5.0000005 2.731813,0 5,-2.268188 5,-5.0000005 C 14,2.272541 11.731813,0.00435415 9,0.00435415 Z"
+     style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:medium;line-height:normal;font-family:sans-serif;font-variant-ligatures:normal;font-variant-position:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-alternates:normal;font-feature-settings:normal;text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;text-decoration-style:solid;text-decoration-color:#000000;letter-spacing:normal;word-spacing:normal;text-transform:none;writing-mode:lr-tb;direction:ltr;text-orientation:mixed;dominant-baseline:auto;baseline-shift:baseline;text-anchor:start;white-space:normal;shape-padding:0;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;vector-effect:none;fill:#f6a019;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate" /><path
+     id="rect1410-2-7-3"
+     d="M 8.620219,3.4137331 H 29.878874 V 6.3862657 H 8.620219 Z"
+     style="display:inline;opacity:1;vector-effect:none;fill:#f6a019;fill-opacity:1;stroke:none;stroke-width:4.05565691;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+     inkscape:connector-curvature="0" /><path
+     inkscape:connector-curvature="0"
+     id="path4338-6"
+     d="M 44,4.9000027 29.481802,12.433698 V -2.6336976 Z"
+     inkscape:transform-center-y="0.027611469"
+     inkscape:transform-center-x="0.45494298"
+     style="display:inline;opacity:1;vector-effect:none;fill:#f6a019;fill-opacity:1;stroke:none;stroke-width:2.2341361;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers" /></g></svg>

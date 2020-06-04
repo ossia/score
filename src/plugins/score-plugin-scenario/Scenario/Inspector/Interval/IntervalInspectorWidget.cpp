@@ -69,6 +69,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
     auto fullview = new QToolButton;
     fullview->setIcon(makeIcons(
         QStringLiteral(":/icons/fullview_on.png"),
+        QStringLiteral(":/icons/fullview_hover.png"),
         QStringLiteral(":/icons/fullview_off.png"),
         QStringLiteral(":/icons/fullview_off.png")));
     fullview->setToolTip(tr("FullView"));
@@ -90,6 +91,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
 
     busWidg->setIcon(makeIcons(
         QStringLiteral(":/icons/audio_bus_on.png"),
+        QStringLiteral(":/icons/audio_bus_hover.png"),
         QStringLiteral(":/icons/audio_bus_off.png"),
         QStringLiteral(":/icons/audio_bus_off.png")));
     busWidg->setToolTip(tr("Audio bus"));
@@ -117,6 +119,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
 
     sigWidg->setIcon(makeIcons(
         QStringLiteral(":/icons/time_signature_on.png"),
+        QStringLiteral(":/icons/time_signature_hover.png"),
         QStringLiteral(":/icons/time_signature_off.png"),
         QStringLiteral(":/icons/time_signature_off.png")));
     sigWidg->setToolTip(tr("Time signature"));
@@ -139,6 +142,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
     interp->setToolTip(tr("Interpolate states (Ctrl+K)"));
     interp->setIcon(makeIcons(
         QStringLiteral(":/icons/interpolate_on.png"),
+        QStringLiteral(":/icons/interpolate_hover.png"),
         QStringLiteral(":/icons/interpolate_off.png"),
         QStringLiteral(":/icons/interpolate_disabled.png")));
     interp->setIconSize(QSize{28, 28});

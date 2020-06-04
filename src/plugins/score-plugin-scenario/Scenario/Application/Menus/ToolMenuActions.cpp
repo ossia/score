@@ -18,6 +18,7 @@
 
 #include <QAction>
 #include <QActionGroup>
+#include <QHBoxLayout>
 #include <QMainWindow>
 #include <QMenu>
 #include <QString>
@@ -64,6 +65,7 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent) : m_parent{p
   setIcons(
       m_selecttool,
       QStringLiteral(":/icons/select_and_move_on.png"),
+      QStringLiteral(":/icons/select_and_move_hover.png"),
       QStringLiteral(":/icons/select_and_move_off.png"),
       QStringLiteral(":/icons/select_and_move_disabled.png"));
 
@@ -74,11 +76,12 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent) : m_parent{p
 
   // CREATE
   m_createtool
-      = makeToolbarAction(tr("Create"), m_scenarioToolActionGroup, Scenario::Tool::Create, tr(""));
+      = makeToolbarAction(tr("Create"), m_scenarioToolActionGroup, Scenario::Tool::Create, tr("C"));
 
   setIcons(
       m_createtool,
       QStringLiteral(":/icons/create_on.png"),
+      QStringLiteral(":/icons/create_hover.png"),
       QStringLiteral(":/icons/create_off.png"),
       QStringLiteral(":/icons/create_disabled.png"));
 
@@ -93,6 +96,7 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent) : m_parent{p
   setIcons(
       m_playtool,
       QStringLiteral(":/icons/play_on.png"),
+      QStringLiteral(":/icons/play_hover.png"),
       QStringLiteral(":/icons/play_off.png"),
       QStringLiteral(":/icons/play_disabled.png"));
 
@@ -107,6 +111,7 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent) : m_parent{p
   setIcons(
       slotmovetool,
       QStringLiteral(":/icons/move_on.png"),
+      QStringLiteral(":/icons/move_hover.png"),
       QStringLiteral(":/icons/move_off.png"),
       QStringLiteral(":/icons/move_disabled.png"));
   connect(slotmovetool, &QAction::triggered, this, [=]() {
@@ -118,6 +123,7 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent) : m_parent{p
   setIcons(
       m_altAction,
       QStringLiteral(":/icons/clip_duration_on.png"),
+      QStringLiteral(":/icons/clip_duration_hover.png"),
       QStringLiteral(":/icons/clip_duration_off.png"),
       QStringLiteral(":/icons/clip_duration_disabled.png"));
 
@@ -137,7 +143,8 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent) : m_parent{p
   setIcons(
       m_scale,
       QStringLiteral(":/icons/scale_on.png"),
-      QStringLiteral(":/icons/scale_off.png"),
+      QStringLiteral(":/icons/scale_hover.png"),
+      QStringLiteral(":/icons/scale_content_on.png"),
       QStringLiteral(":/icons/scale_disabled.png"));
 
   connect(m_scale, &QAction::triggered, this, [=]() {
@@ -145,12 +152,13 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent) : m_parent{p
   });
 
   m_grow = makeToolbarAction(
-      tr("Grow/Shrink"), m_scenarioScaleModeActionGroup, ExpandMode::GrowShrink, tr("Alt+D"));
+      tr("Scale with content"), m_scenarioScaleModeActionGroup, ExpandMode::GrowShrink, tr("Alt+D"));
   setIcons(
       m_grow,
-      QStringLiteral(":/icons/grow_shrink_on.png"),
-      QStringLiteral(":/icons/grow_shrink_off.png"),
-      QStringLiteral(":/icons/grow_shrink_disabled.png"));
+      QStringLiteral(":/icons/scale_content_on.png"),
+      QStringLiteral(":/icons/scale_content_hover.png"),
+      QStringLiteral(":/icons/scale_content_off.png"),
+      QStringLiteral(":/icons/scale_content_disabled.png"));
 
   connect(m_grow, &QAction::triggered, this, [=]() {
     m_parent->editionSettings().setExpandMode(ExpandMode::GrowShrink);
@@ -271,9 +279,11 @@ void ToolMenuActions::makeGUIElements(score::GUIElements& ref)
     bar->addAction(m_selecttool);
     bar->addAction(m_createtool);
     bar->addAction(m_playtool);
+    bar->addSeparator();
     bar->addAction(m_altAction);
     bar->addAction(m_scale);
     bar->addAction(m_grow);
+    bar->setIconSize(QSize{24,24});
 
     ref.toolbars.emplace_back(bar, StringKey<score::Toolbar>("Tools"), Qt::TopToolBarArea, 800);
 
@@ -296,6 +306,7 @@ void ToolMenuActions::makeGUIElements(score::GUIElements& ref)
   // Scale modes
   {
     menu.menu()->addSeparator();
+    menu.menu()->addAction(m_altAction);
     menu.menu()->addAction(m_scale);
     menu.menu()->addAction(m_grow);
 

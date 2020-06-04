@@ -113,6 +113,7 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(const score::GUIApplication
     setIcons(
         m_showCables,
         QStringLiteral(":/icons/show_cables_on.png"),
+        QStringLiteral(":/icons/show_cables_hover.png"),
         QStringLiteral(":/icons/show_cables_off.png"),
         QStringLiteral(":/icons/show_cables_disabled.png"));
     connect(m_showCables, &QAction::toggled, this, [this](bool c) {

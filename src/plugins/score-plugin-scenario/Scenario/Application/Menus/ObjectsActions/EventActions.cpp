@@ -46,6 +46,7 @@ EventActions::EventActions(ScenarioApplicationPlugin* parent)
   setIcons(
       m_addTrigger,
       QStringLiteral(":/icons/trigger_on.png"),
+      QStringLiteral(":/icons/trigger_hover.png"),
       QStringLiteral(":/icons/trigger_off.png"),
       QStringLiteral(":/icons/trigger_disabled.png"));
 
@@ -63,6 +64,7 @@ EventActions::EventActions(ScenarioApplicationPlugin* parent)
   setIcons(
       m_addCondition,
       QStringLiteral(":/icons/condition_on.png"),
+      QStringLiteral(":/icons/condition_hover.png"),
       QStringLiteral(":/icons/condition_off.png"),
       QStringLiteral(":/icons/condition_disabled.png"));
 

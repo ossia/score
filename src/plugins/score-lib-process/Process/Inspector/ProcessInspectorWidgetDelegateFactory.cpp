@@ -84,6 +84,7 @@ public:
         auto loop_btn = new QToolButton;
         loop_btn->setIcon(makeIcons(
             QStringLiteral(":/icons/loop_on.png"),
+            QStringLiteral(":/icons/loop_hover.png"),
             QStringLiteral(":/icons/loop_off.png"),
             QStringLiteral(":/icons/loop_off.png")));
         loop_btn->setToolTip(tr("Loop"));

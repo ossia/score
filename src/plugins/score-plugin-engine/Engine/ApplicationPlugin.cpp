@@ -226,6 +226,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
       setIcons(
           timeline_act,
           QStringLiteral(":/icons/timeline_on.png"),
+          QStringLiteral(":/icons/timeline_hover.png"),
           QStringLiteral(":/icons/timeline_off.png"),
           QStringLiteral(":/icons/timeline_disabled.png"));
 
@@ -240,6 +241,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
       setIcons(
           nodal_act,
           QStringLiteral(":/icons/nodal_on.png"),
+          QStringLiteral(":/icons/nodal_hover.png"),
           QStringLiteral(":/icons/nodal_off.png"),
           QStringLiteral(":/icons/nodal_disabled.png"));
 
@@ -255,6 +257,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
       setIcons(
           musical_act,
           QStringLiteral(":/icons/music_on.png"),
+          QStringLiteral(":/icons/music_hover.png"),
           QStringLiteral(":/icons/music_off.png"),
           QStringLiteral(":/icons/music_disabled.png"));
       connect(musical_act, &QAction::toggled, this, [this](bool ok) {

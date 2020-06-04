@@ -56,6 +56,38 @@ void setIcons(
     map.insert(std::make_pair(std::move(pair), std::move(icon)));
   }
 }
+void setIcons(
+    QAction* action,
+    const QString& iconOn,
+    const QString& iconHover,
+    const QString& iconOff,
+    const QString& iconDisable)
+{
+  auto& map = iconMap();
+  auto pair = std::make_pair(iconOn, iconOff);
+  auto it = map.find(pair);
+  if (it != map.end())
+  {
+    action->setIcon(it.value());
+  }
+  else
+  {
+    QIcon icon;
+    QPixmap on = score::get_pixmap(iconOn);
+    QPixmap off = score::get_pixmap(iconOff);
+    QPixmap disable = score::get_pixmap(iconDisable);
+    QPixmap hover = score::get_pixmap(iconHover);
+    icon.addPixmap(on, QIcon::Mode::Selected);
+    icon.addPixmap(hover, QIcon::Mode::Active);
+    icon.addPixmap(hover, QIcon::Mode::Active, QIcon::State::On);
+    icon.addPixmap(on, QIcon::Mode::Normal, QIcon::State::On);
+    icon.addPixmap(disable, QIcon::Mode::Disabled);
+    icon.addPixmap(off, QIcon::Mode::Normal);
+    action->setIcon(icon);
+
+    map.insert(std::make_pair(std::move(pair), std::move(icon)));
+  }
+}
 
 QIcon makeIcon(const QString& icon)
 {
@@ -65,6 +97,11 @@ QIcon makeIcon(const QString& icon)
 QIcon makeIcons(const QString& iconOn, const QString& iconOff, const QString& iconDisabled)
 {
   return genIconFromPixmaps(iconOn, iconOff, iconDisabled);
+}
+
+QIcon makeIcons(const QString& iconOn, const QString& iconHover, const QString& iconOff, const QString& iconDisabled)
+{
+  return genIconFromPixmaps(iconOn, iconHover, iconOff, iconDisabled);
 }
 
 QIcon genIconFromPixmaps(
@@ -99,6 +136,39 @@ QIcon genIconFromPixmaps(
   }
 }
 
+QIcon genIconFromPixmaps(
+    const QString& iconOn,
+    const QString& iconHover,
+    const QString& iconOff,
+    const QString& iconDisabled)
+{
+  auto& map = iconMap();
+  auto pair = std::make_pair(iconOn, iconOff);
+  auto it = map.find(pair);
+  if (it != map.end())
+  {
+    return it.value();
+  }
+  else
+  {
+    QIcon icon;
+    QPixmap on(score::get_pixmap(iconOn));
+    QPixmap off(score::get_pixmap(iconOff));
+    QPixmap disabled(score::get_pixmap(iconDisabled));
+    QPixmap hover(score::get_pixmap(iconHover));
+
+    icon.addPixmap(on, QIcon::Mode::Selected);
+    icon.addPixmap(hover, QIcon::Mode::Active);
+    icon.addPixmap(hover, QIcon::Mode::Active, QIcon::State::On);
+    icon.addPixmap(on, QIcon::Mode::Normal, QIcon::State::On);
+    icon.addPixmap(on, QIcon::Mode::Selected, QIcon::State::On);
+    icon.addPixmap(off, QIcon::Mode::Normal);
+    icon.addPixmap(disabled, QIcon::Mode::Disabled);
+
+    map.insert(std::make_pair(std::move(pair), icon));
+    return icon;
+  }
+}
 namespace score
 {
 

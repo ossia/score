@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
+   height="48"
+   width="48"
+   sodipodi:docname="interpolate_on.svg"
+   xml:space="preserve"
+   viewBox="0 0 48.000001 48.000001"
+   y="0px"
+   x="0px"
+   id="Calque_1"
+   version="1.1"><metadata
+   id="metadata17"><rdf:RDF><cc:Work
+       rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title>boutons</dc:title></cc:Work></rdf:RDF></metadata><defs
+   id="defs15" /><sodipodi:namedview
+   inkscape:snap-bbox-midpoints="true"
+   inkscape:snap-bbox="true"
+   inkscape:document-rotation="0"
+   inkscape:current-layer="layer1"
+   inkscape:window-maximized="1"
+   inkscape:window-y="0"
+   inkscape:window-x="0"
+   inkscape:cy="27.143238"
+   inkscape:cx="17.740961"
+   inkscape:zoom="7.38934"
+   showgrid="false"
+   id="namedview13"
+   inkscape:window-height="1015"
+   inkscape:window-width="1920"
+   inkscape:pageshadow="2"
+   inkscape:pageopacity="0"
+   guidetolerance="10"
+   gridtolerance="10"
+   objecttolerance="10"
+   borderopacity="1"
+   bordercolor="#666666"
+   pagecolor="#ffffff" />
+<style
+   id="style2"
+   type="text/css">
+	.st0{display:none;fill:#3D3D3D;}
+	.st1{display:none;fill:#000100;}
+	.st2{fill:#808080;}
+</style>
+<title
+   id="title4">boutons</title>
+<rect
+   style="display:none;fill:#3d3d3d"
+   id="rect6"
+   height="27.9"
+   width="27.9"
+   class="st0"
+   y="19.6"
+   x="0.5" />
+<path
+   style="display:none;fill:#000100"
+   inkscape:connector-curvature="0"
+   id="path8"
+   d="M 28.9,48 H 0 V 19.1 H 28.9 Z M 1,47 H 27.9 V 20.1 H 1 Z"
+   class="st1" />
+
+<g
+   transform="translate(0,19.1)"
+   style="display:inline"
+   inkscape:label="Icon"
+   id="layer1"
+   inkscape:groupmode="layer"><circle
+     r="3.5"
+     style="display:inline;fill:#f6a019;fill-opacity:1;stroke:none;stroke-width:2.91667"
+     id="circle10"
+     cy="17.4"
+     cx="11.5"
+     class="st2" /><circle
+     r="3.5"
+     style="display:inline;fill:#f6a019;fill-opacity:1;stroke:none;stroke-width:2.91667"
+     id="circle12"
+     cy="-7.5999999"
+     cx="36.5"
+     class="st2" /><path
+     sodipodi:nodetypes="cc"
+     class="st3"
+     d="M 11.355054,17.580302 30.492005,-1.7004245"
+     style="display:inline;fill:#f6a019;fill-opacity:1;stroke:#f6a019;stroke-width:2.704;stroke-miterlimit:3.5;stroke-dasharray:5.408, 2.70400000000000018;stroke-dashoffset:8.3824;stroke-opacity:1"
+     id="line14" /><path
+     sodipodi:nodetypes="cccc"
+     class="st2"
+     d="M 20.621657,-2.599999 31.49834,8.4208149 32.49834,-3.6 Z"
+     style="display:inline;fill:#f6a019;fill-opacity:1;stroke:none;stroke-width:2.0697"
+     id="polygon10" /></g></svg>

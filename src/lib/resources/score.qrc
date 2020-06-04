@@ -17,8 +17,6 @@
         <file>icons/next_on.png</file>
         <file>icons/prev_off.png</file>
         <file>icons/prev_on.png</file>
-        <file>icons/create_curve_off.png</file>
-        <file>icons/create_curve_on.png</file>
         <file>icons/add_off.png</file>
         <file>icons/add_off@2x.png</file>
         <file>icons/add_on.png</file>
@@ -42,32 +40,10 @@
         <file>icons/condition_remove_off@2x.png</file>
         <file>icons/condition_remove_on.png</file>
         <file>icons/condition_remove_on@2x.png</file>
-        <file>icons/create_curve_off@2x.png</file>
-        <file>icons/create_curve_on@2x.png</file>
         <file>icons/create_off.png</file>
         <file>icons/create_off@2x.png</file>
         <file>icons/create_on.png</file>
         <file>icons/create_on@2x.png</file>
-        <file>icons/delete_off.png</file>
-        <file>icons/delete_off@2x.png</file>
-        <file>icons/delete_on.png</file>
-        <file>icons/delete_on@2x.png</file>
-        <file>icons/end_off.png</file>
-        <file>icons/end_off@2x.png</file>
-        <file>icons/end_on.png</file>
-        <file>icons/end_on@2x.png</file>
-        <file>icons/fast_forward_off.png</file>
-        <file>icons/fast_forward_off@2x.png</file>
-        <file>icons/fast_forward_on.png</file>
-        <file>icons/fast_forward_on@2x.png</file>
-        <file>icons/fast_rewind_off.png</file>
-        <file>icons/fast_rewind_off@2x.png</file>
-        <file>icons/fast_rewind_on.png</file>
-        <file>icons/fast_rewind_on@2x.png</file>
-        <file>icons/grow_shrink_off.png</file>
-        <file>icons/grow_shrink_off@2x.png</file>
-        <file>icons/grow_shrink_on.png</file>
-        <file>icons/grow_shrink_on@2x.png</file>
         <file>icons/interpolate_off.png</file>
         <file>icons/interpolate_off@2x.png</file>
         <file>icons/interpolate_on.png</file>
@@ -106,8 +82,6 @@
         <file>icons/select_and_move_off@2x.png</file>
         <file>icons/select_and_move_on.png</file>
         <file>icons/select_and_move_on@2x.png</file>
-        <file>icons/sequence_off.png</file>
-        <file>icons/sequence_on.png</file>
         <file>icons/snapshot_off.png</file>
         <file>icons/snapshot_on.png</file>
         <file>icons/stop_off.png</file>
@@ -126,8 +100,6 @@
         <file>icons/clip_duration_on@2x.png</file>
         <file>icons/pause_off@2x.png</file>
         <file>icons/pause_on@2x.png</file>
-        <file>icons/sequence_off@2x.png</file>
-        <file>icons/sequence_on@2x.png</file>
         <file>icons/snapshot_off@2x.png</file>
         <file>icons/snapshot_on@2x.png</file>
         <file>icons/gear_off.png</file>
@@ -164,24 +136,12 @@
         <file>icons/move_disabled@2x.png</file>
         <file>icons/interpolate_disabled.png</file>
         <file>icons/interpolate_disabled@2x.png</file>
-        <file>icons/grow_shrink_disabled.png</file>
-        <file>icons/grow_shrink_disabled@2x.png</file>
         <file>icons/gear_disabled.png</file>
         <file>icons/gear_disabled@2x.png</file>
-        <file>icons/fast_rewind_disabled.png</file>
-        <file>icons/fast_rewind_disabled@2x.png</file>
-        <file>icons/fast_forward_disabled.png</file>
-        <file>icons/fast_forward_disabled@2x.png</file>
         <file>icons/engine_disabled.png</file>
         <file>icons/engine_disabled@2x.png</file>
-        <file>icons/end_disabled.png</file>
-        <file>icons/end_disabled@2x.png</file>
-        <file>icons/delete_disabled.png</file>
-        <file>icons/delete_disabled@2x.png</file>
         <file>icons/create_disabled.png</file>
         <file>icons/create_disabled@2x.png</file>
-        <file>icons/create_curve_disabled.png</file>
-        <file>icons/create_curve_disabled@2x.png</file>
         <file>icons/condition_disabled.png</file>
         <file>icons/condition_disabled@2x.png</file>
         <file>icons/condition_add_disabled.png</file>
@@ -194,8 +154,6 @@
         <file>icons/stop_disabled@2x.png</file>
         <file>icons/pause_disabled.png</file>
         <file>icons/pause_disabled@2x.png</file>
-        <file>icons/sequence_disabled.png</file>
-        <file>icons/sequence_disabled@2x.png</file>
         <file>icons/snapshot_disabled.png</file>
         <file>icons/snapshot_disabled@2x.png</file>
         <file>icons/undock_dock_off.png</file>
@@ -595,5 +553,79 @@
         <file>icons/wave_triangle_off@2x.png</file>
         <file>icons/wave_triangle_on.png</file>
         <file>icons/wave_triangle_on@2x.png</file>
+        <file>icons/nodal_hover.png</file>
+        <file>icons/nodal_hover@2x.png</file>
+        <file>icons/music_hover.png</file>
+        <file>icons/music_hover@2x.png</file>
+        <file>icons/show_cables_hover.png</file>
+        <file>icons/show_cables_hover@2x.png</file>
+        <file>icons/timeline_hover.png</file>
+        <file>icons/timeline_hover@2x.png</file>
+        <file>icons/clip_duration_hover.png</file>
+        <file>icons/clip_duration_hover@2x.png</file>
+        <file>icons/create_hover.png</file>
+        <file>icons/create_hover@2x.png</file>
+        <file>icons/move_hover.png</file>
+        <file>icons/move_hover@2x.png</file>
+        <file>icons/next_hover.png</file>
+        <file>icons/next_hover@2x.png</file>
+        <file>icons/pause_hover.png</file>
+        <file>icons/pause_hover@2x.png</file>
+        <file>icons/play_glob_hover.png</file>
+        <file>icons/play_glob_hover@2x.png</file>
+        <file>icons/play_hover.png</file>
+        <file>icons/play_hover@2x.png</file>
+        <file>icons/port_address.png</file>
+        <file>icons/port_address@2x.png</file>
+        <file>icons/prev_hover.png</file>
+        <file>icons/prev_hover@2x.png</file>
+        <file>icons/reinitialize_hover.png</file>
+        <file>icons/reinitialize_hover@2x.png</file>
+        <file>icons/scale_hover.png</file>
+        <file>icons/scale_hover@2x.png</file>
+        <file>icons/select_and_move_hover.png</file>
+        <file>icons/select_and_move_hover@2x.png</file>
+        <file>icons/stop_hover.png</file>
+        <file>icons/stop_hover@2x.png</file>
+        <file>icons/template_disabled.png</file>
+        <file>icons/template_disabled@2x.png</file>
+        <file>icons/template_off.png</file>
+        <file>icons/template_off@2x.png</file>
+        <file>icons/template_on.png</file>
+        <file>icons/template_on@2x.png</file>
+        <file>icons/audio_bus_hover.png</file>
+        <file>icons/audio_bus_hover@2x.png</file>
+        <file>icons/auto_trigger_hover.png</file>
+        <file>icons/auto_trigger_hover@2x.png</file>
+        <file>icons/condition_hover.png</file>
+        <file>icons/condition_hover@2x.png</file>
+        <file>icons/desynchronize_hover.png</file>
+        <file>icons/desynchronize_hover@2x.png</file>
+        <file>icons/fullview_hover.png</file>
+        <file>icons/fullview_hover@2x.png</file>
+        <file>icons/interpolate_hover.png</file>
+        <file>icons/interpolate_hover@2x.png</file>
+        <file>icons/loop_hover.png</file>
+        <file>icons/loop_hover@2x.png</file>
+        <file>icons/refresh_hover.png</file>
+        <file>icons/refresh_hover@2x.png</file>
+        <file>icons/snapshot_hover.png</file>
+        <file>icons/snapshot_hover@2x.png</file>
+        <file>icons/split_condition_hover.png</file>
+        <file>icons/split_condition_hover@2x.png</file>
+        <file>icons/start_on_play_hover.png</file>
+        <file>icons/start_on_play_hover@2x.png</file>
+        <file>icons/time_signature_hover.png</file>
+        <file>icons/time_signature_hover@2x.png</file>
+        <file>icons/trigger_hover.png</file>
+        <file>icons/trigger_hover@2x.png</file>
+        <file>icons/scale_content_disabled.png</file>
+        <file>icons/scale_content_disabled@2x.png</file>
+        <file>icons/scale_content_hover.png</file>
+        <file>icons/scale_content_hover@2x.png</file>
+        <file>icons/scale_content_off.png</file>
+        <file>icons/scale_content_off@2x.png</file>
+        <file>icons/scale_content_on.png</file>
+        <file>icons/scale_content_on@2x.png</file>
     </qresource>
 </RCC>

@@ -175,6 +175,7 @@ StateInspectorWidget::StateInspectorWidget(
     auto splitEvent = new QToolButton;
     splitEvent->setIcon(makeIcons(
         QStringLiteral(":/icons/split_condition_on.png"),
+        QStringLiteral(":/icons/split_condition_hover.png"),
         QStringLiteral(":/icons/split_condition_off.png"),
         QStringLiteral(":/icons/split_condition_off.png")));
     splitEvent->setToolTip(tr("Split condition"));
@@ -190,6 +191,7 @@ StateInspectorWidget::StateInspectorWidget(
     auto desynchronize = new QToolButton;
     desynchronize->setIcon(makeIcons(
         QStringLiteral(":/icons/desynchronize_on.png"),
+        QStringLiteral(":/icons/desynchronize_hover.png"),
         QStringLiteral(":/icons/desynchronize_off.png"),
         QStringLiteral(":/icons/desynchronize_off.png")));
     desynchronize->setToolTip(tr("Desynchronize"));
@@ -208,6 +210,7 @@ StateInspectorWidget::StateInspectorWidget(
     snapshot->setToolTip(tr("Ctrl+L"));
     snapshot->setIcon(makeIcons(
         QStringLiteral(":/icons/snapshot_on.png"),
+        QStringLiteral(":/icons/snapshot_hover.png"),
         QStringLiteral(":/icons/snapshot_off.png"),
         QStringLiteral(":/icons/snapshot_disabled.png")));
     snapshot->setIconSize(QSize{28,28});
@@ -224,6 +227,7 @@ StateInspectorWidget::StateInspectorWidget(
     refresh->setToolTip(tr("Ctrl+U"));
     refresh->setIcon(makeIcons(
                         QStringLiteral(":/icons/refresh_on.png"),
+                       QStringLiteral(":/icons/refresh_hover.png"),
                         QStringLiteral(":/icons/refresh_off.png"),
                         QStringLiteral(":/icons/refresh_disabled.png")));
     refresh->setIconSize(QSize{28,28});
@@ -242,6 +246,7 @@ StateInspectorWidget::StateInspectorWidget(
     //trigger->setToolTip(tr("Ctrl+U"));
     trigger->setIcon(makeIcons(
                         QStringLiteral(":/icons/trigger_on.png"),
+                       QStringLiteral(":/icons/trigger_hover.png"),
                         QStringLiteral(":/icons/trigger_off.png"),
                        QStringLiteral(":/icons/trigger_disabled.png")));
     trigger->setAutoRaise(true);
@@ -269,6 +274,7 @@ StateInspectorWidget::StateInspectorWidget(
     //trigger->setToolTip(tr("Ctrl+U"));
     condition->setIcon(makeIcons(
                         QStringLiteral(":/icons/condition_on.png"),
+                         QStringLiteral(":/icons/condition_hover.png"),
                         QStringLiteral(":/icons/condition_off.png"),
                        QStringLiteral(":/icons/condition_disabled.png")));
     condition->setIconSize(QSize{28,28});
