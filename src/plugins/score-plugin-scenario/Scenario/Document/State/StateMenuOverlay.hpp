@@ -18,6 +18,8 @@ public:
     : QGraphicsItem{parent}
   {
     this->setAcceptHoverEvents(true);
+    auto& skin = score::Skin::instance();
+    this->setCursor(skin.CursorPointingHand);
   }
 
   static const constexpr int Type = ItemType::StateOverlay;
@@ -41,17 +43,17 @@ public:
     painter->setPen(p);
 
     // TODO instead of a cross, make an arrow that looks like |->
-    const auto small_rad = m_big ? 3. : 2.;
+    const auto small_rad = m_big ? 4. : 2.;
 
     const auto l1
         = m_big ? QLineF{QPointF{15 - small_rad, 0}, QPointF{15 - small_rad, 2 * small_rad}}
-                      .translated(-3, 1)
+                      .translated(-2, 1)
                 : QLineF{QPointF{15 - small_rad, 0}, QPointF{15 - small_rad, 2 * small_rad}}
                       .translated(-4, 2);
     const auto l2
         = m_big
               ? QLineF{QPointF{15 - 2 * small_rad, small_rad}, QPointF{15, small_rad}}.translated(
-                  -3, 1)
+                  -2, 1)
               : QLineF{QPointF{15 - 2 * small_rad, small_rad}, QPointF{15, small_rad}}.translated(
                   -4, 2);
 
