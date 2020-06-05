@@ -30,6 +30,7 @@ score::UndoApplicationPlugin::UndoApplicationPlugin(const score::GUIApplicationC
   setIcons(
       m_undoAction,
       QStringLiteral(":/icons/prev_on.png"),
+      QStringLiteral(":/icons/prev_hover.png"),
       QStringLiteral(":/icons/prev_off.png"),
       QStringLiteral(":/icons/prev_disabled.png"));
 
@@ -44,6 +45,7 @@ score::UndoApplicationPlugin::UndoApplicationPlugin(const score::GUIApplicationC
   setIcons(
       m_redoAction,
       QStringLiteral(":/icons/next_on.png"),
+      QStringLiteral(":/icons/next_hover.png"),
       QStringLiteral(":/icons/next_off.png"),
       QStringLiteral(":/icons/next_disabled.png"));
 
