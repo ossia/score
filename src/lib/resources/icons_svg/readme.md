@@ -26,17 +26,17 @@
 * Line cap: square
 * Line join: miter
 * The design has to be declined into four states: on, off, hover and disabled. Each of them has a different name and color theme:
-  * On state
+  * On state ![template_on.svg](templates/template_on.svg)
     * Name: **{button name}_on.svg** 
     * Color: __#f6a019ff__ (orange)
-  * Off state
+  * Off state ![template_off.svg](templates/template_off.svg)
     * Name: **{button name}_off.svg**
     * Color: __#f0f0f0ff__ (light grey)
-  * Hover state
+  * Hover state ![template_hover.svg](templates/template_hover.svg)
     * Name: **{button name}_hover.svg** 
     * Background: square filled with __#f6a019ff__ (orange) and with a contour of __1px__ in __#000000ff__ (black)
     * Color: __#000000ff__ (black)
-  * Disabled state
+  * Disabled state ![template_disabled.svg](templates/template_disabled.svg)
     * Name: **{button name}_disabled.svg** 
     * Color: __#808080ff__ (dark grey)
 
