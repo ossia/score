@@ -23,6 +23,7 @@
 #include <core/command/CommandStack.hpp>
 #include <core/document/Document.hpp>
 
+#include <QApplication>
 #include <QAction>
 #include <QDebug>
 #include <QGraphicsScene>
@@ -62,7 +63,7 @@ ProcessGraphicsView::ProcessGraphicsView(
   setFrameStyle(0);
   setDragMode(QGraphicsView::NoDrag);
   setAcceptDrops(true);
-
+  setFocusPolicy(Qt::WheelFocus);
   setRenderHints(
       QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing);
   // setCacheMode(QGraphicsView::CacheBackground);
@@ -126,6 +127,11 @@ void ProcessGraphicsView::scrollContentsBy(int dx, int dy)
 
 void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
 {
+  setFocus(Qt::MouseFocusReason);
+  auto pressedModifier = qApp->keyboardModifiers();
+  m_hZoom = pressedModifier == Qt::ControlModifier;
+  m_vZoom = pressedModifier == Qt::ShiftModifier;
+
   auto t = std::chrono::steady_clock::now();
   if (std::chrono::duration_cast<std::chrono::milliseconds>(t - m_lastwheel).count() < 16)
   {
@@ -164,11 +170,6 @@ void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
 
 void ProcessGraphicsView::keyPressEvent(QKeyEvent* event)
 {
-  if (event->key() == Qt::Key_Control)
-    m_hZoom = true;
-  else if (event->key() == Qt::Key_Shift)
-    m_vZoom = true;
-
   for (auto& plug : m_app.guiApplicationPlugins())
     plug->on_keyPressEvent(*event);
   event->ignore();
@@ -181,11 +182,6 @@ void ProcessGraphicsView::keyPressEvent(QKeyEvent* event)
 
 void ProcessGraphicsView::keyReleaseEvent(QKeyEvent* event)
 {
-  if (event->key() == Qt::Key_Control)
-    m_hZoom = false;
-  else if (event->key() == Qt::Key_Shift)
-    m_vZoom = false;
-
   for (auto& plug : m_app.guiApplicationPlugins())
     plug->on_keyReleaseEvent(*event);
   event->ignore();
@@ -198,8 +194,6 @@ void ProcessGraphicsView::keyReleaseEvent(QKeyEvent* event)
 
 void ProcessGraphicsView::focusOutEvent(QFocusEvent* event)
 {
-  m_hZoom = false;
-  m_vZoom = false;
   focusedOut();
   event->ignore();
 
@@ -211,8 +205,6 @@ void ProcessGraphicsView::focusOutEvent(QFocusEvent* event)
 
 void ProcessGraphicsView::leaveEvent(QEvent* event)
 {
-  m_hZoom = false;
-  m_vZoom = false;
   focusedOut();
   QGraphicsView::leaveEvent(event);
 
