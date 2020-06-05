@@ -17,7 +17,7 @@
 
 ### Creating the svg icon
 * The icon drawing should be centered
-* The icon drawing should have a margin of 4px all around
+* The icon drawing should have a margin of 4px all around, e.g. for a 24x24 px icon: 
 
 ![example](templates/guide.svg)
 
