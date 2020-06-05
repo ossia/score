@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Generator: Adobe Illustrator 21.0.2, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"
@@ -9,42 +7,45 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   version="1.1"
-   id="Calque_1"
-   x="0px"
-   y="0px"
-   viewBox="0 0 48.000001 48.000001"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
+   height="24"
+   width="24"
+   sodipodi:docname="template_hover.svg"
    xml:space="preserve"
-   sodipodi:docname="template_on.svg"
-   width="48"
-   height="48"
-   inkscape:version="0.92.4 5da689c313, 2019-01-14"><metadata
+   viewBox="0 0 24 24"
+   y="0px"
+   x="0px"
+   id="Calque_1"
+   version="1.1"><metadata
    id="metadata17"><rdf:RDF><cc:Work
        rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
          rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title>boutons</dc:title></cc:Work></rdf:RDF></metadata><defs
    id="defs15" /><sodipodi:namedview
-   pagecolor="#ffffff"
-   bordercolor="#666666"
-   borderopacity="1"
-   objecttolerance="10"
-   gridtolerance="10"
-   guidetolerance="10"
-   inkscape:pageopacity="0"
-   inkscape:pageshadow="2"
-   inkscape:window-width="1920"
-   inkscape:window-height="1007"
-   id="namedview13"
-   showgrid="false"
-   inkscape:zoom="8.1660901"
-   inkscape:cx="-36.308685"
-   inkscape:cy="22.409746"
-   inkscape:window-x="0"
-   inkscape:window-y="0"
+   inkscape:document-rotation="0"
+   inkscape:current-layer="layer1"
    inkscape:window-maximized="1"
-   inkscape:current-layer="layer2" />
+   inkscape:window-y="0"
+   inkscape:window-x="0"
+   inkscape:cy="11.797598"
+   inkscape:cx="20.577164"
+   inkscape:zoom="23.26023"
+   showgrid="true"
+   id="namedview13"
+   inkscape:window-height="1015"
+   inkscape:window-width="1920"
+   inkscape:pageshadow="2"
+   inkscape:pageopacity="0"
+   guidetolerance="10"
+   gridtolerance="10"
+   objecttolerance="10"
+   borderopacity="1"
+   bordercolor="#666666"
+   pagecolor="#ffffff"><inkscape:grid
+     id="grid839"
+     type="xygrid" /></sodipodi:namedview>
 <style
-   type="text/css"
-   id="style2">
+   id="style2"
+   type="text/css">
 	.st0{display:none;fill:#3D3D3D;}
 	.st1{display:none;fill:#000100;}
 	.st2{fill:#808080;}
@@ -52,49 +53,49 @@
 <title
    id="title4">boutons</title>
 <rect
-   x="0.5"
-   y="19.6"
-   class="st0"
-   width="27.9"
-   height="27.9"
+   style="display:none;fill:#3d3d3d"
    id="rect6"
-   style="display:none;fill:#3d3d3d" />
+   height="27.9"
+   width="27.9"
+   class="st0"
+   y="19.6"
+   x="0.5" />
 <path
-   class="st1"
-   d="M 28.9,48 H 0 V 19.1 H 28.9 Z M 1,47 H 27.9 V 20.1 H 1 Z"
-   id="path8"
+   style="display:none;fill:#000100"
    inkscape:connector-curvature="0"
-   style="display:none;fill:#000100" />
+   id="path8"
+   d="M 28.9,48 H 0 V 19.1 H 28.9 Z M 1,47 H 27.9 V 20.1 H 1 Z"
+   class="st1" />
 
 <g
-   inkscape:groupmode="layer"
+   inkscape:label="Background"
    id="layer3"
-   inkscape:label="Background"><rect
-     style="opacity:1;vector-effect:none;fill:#f6a019;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+   inkscape:groupmode="layer"><rect
+     y="0.5"
+     x="0.5"
+     height="23"
+     width="23"
      id="rect823"
-     width="46"
-     height="46"
-     x="1"
-     y="1" /></g><g
-   inkscape:groupmode="layer"
-   id="layer2"
-   inkscape:label="Inside square - remove in the final svg"
-   transform="translate(0,19.1)"
+     style="opacity:1;vector-effect:none;fill:#f6a019;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:fill markers stroke" /></g><g
+   sodipodi:insensitive="true"
    style="display:none"
-   sodipodi:insensitive="true"><rect
-     style="display:inline;opacity:1;vector-effect:none;fill:#c6e3e0;fill-opacity:1;stroke:none;stroke-width:16.38918495;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
-     id="rect22"
-     width="40"
-     height="40"
+   transform="translate(0,19.1)"
+   inkscape:label="Inside square - remove in the final svg"
+   id="layer2"
+   inkscape:groupmode="layer"><rect
+     y="-15.1"
      x="4"
-     y="-15.1" /></g><g
-   inkscape:groupmode="layer"
-   id="layer1"
-   inkscape:label="Icon"
+     height="40"
+     width="40"
+     id="rect22"
+     style="display:inline;opacity:1;vector-effect:none;fill:#c6e3e0;fill-opacity:1;stroke:none;stroke-width:16.3892;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers" /></g><g
+   transform="translate(0,19.1)"
    style="display:inline"
-   transform="translate(0,19.1)"><path
-     style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:2.72727299"
-     class="st2"
-     d="M 11.590909,-10.1 36.409091,4.8999998 11.590909,19.9 Z"
+   inkscape:label="Icon"
+   id="layer1"
+   inkscape:groupmode="layer"><path
+     inkscape:connector-curvature="0"
      id="path10"
-     inkscape:connector-curvature="0" /></g></svg>
+     d="M 6,-14.6 18.409092,-7.1000001 6,0.4 Z"
+     class="st2"
+     style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:2.72727" /></g></svg>
