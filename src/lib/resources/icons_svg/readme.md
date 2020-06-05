@@ -18,7 +18,7 @@
 ### Creating the svg icon
 * The icon drawing should be centered
 * The icon drawing should have a margin of 4px all around
-![example](templates/template_on.svg)
+![example](templates/guide.svg)
 * Not necessarily but *very* recommended rule: try to make the icon pixel perfect as possible. This does not apply to all icons but for the ones with straight lines, and with overall complicated design, the pixel-perfectness helps the design to be more clean. For the icons of 24x24px or more, it is recommended but not mandatory, but for icons in 16x16 it has to be pixel perfect or almost in order to achieve a clean and crips design. 
 * Line width should be of 2 to 3px, there is no strict rules: it depends on the overall look and balance
 * Line cap: square
