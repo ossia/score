@@ -3,6 +3,7 @@
 #include <score/actions/Action.hpp>
 #include <score/actions/Menu.hpp>
 #include <score/selection/Selection.hpp>
+#include <Process/ExpandMode.hpp>
 
 namespace score
 {
@@ -27,18 +28,17 @@ private:
   void keyPressed(int key);
   void keyReleased(int key);
 
+  void setExpandMode(ExpandMode mode);
+
   ScenarioApplicationPlugin* m_parent{};
 
-  QActionGroup* m_scenarioScaleModeActionGroup{};
   QActionGroup* m_scenarioToolActionGroup{};
-
-  QAction* m_scale{};
-  QAction* m_grow{};
-
-  QAction* m_altAction{};
 
   QAction* m_selecttool{};
   QAction* m_createtool{};
   QAction* m_playtool{};
+
+  QAction* m_scaleAction{};
+  QAction* m_lockAction{};
 };
 }

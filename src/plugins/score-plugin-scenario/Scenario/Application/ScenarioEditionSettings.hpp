@@ -13,7 +13,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT EditionSettings final : public QObject
 {
   W_OBJECT(EditionSettings)
 
-  ExpandMode m_expandMode{ExpandMode::Scale};
+  ExpandMode m_expandMode{ExpandMode::GrowShrink};
   Scenario::Tool m_tool{Scenario::Tool::Select};
   Scenario::Tool m_previousTool{Scenario::Tool::Select};
   LockMode m_lockMode{};

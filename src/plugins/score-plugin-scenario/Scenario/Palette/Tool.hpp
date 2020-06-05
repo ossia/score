@@ -11,7 +11,6 @@ enum class Tool : uint8_t
   CreateSequence,
   Select        ,
   Play          ,
-  MoveSlot      ,
   Playing       ,
 };
 

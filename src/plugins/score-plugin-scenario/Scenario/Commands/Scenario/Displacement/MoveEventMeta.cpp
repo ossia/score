@@ -60,6 +60,7 @@ MoveEventMeta::MoveEventMeta(
     , m_scenario{scenar}
     , m_eventId{std::move(eventId)}
     , m_stateId{std::move(sid)}
+    , m_expand{mode}
     , m_lock{lm}
     , m_newY{y}
     , m_moveEventImplementation(
@@ -121,7 +122,7 @@ void MoveEventMeta::update(
     LockMode lock,
     const Id<StateModel>& st)
 {
-  if (lock == m_lock)
+  if (lock == m_lock && mode == m_expand)
   {
     m_moveEventImplementation->update(scenar, eventId, newDate, y, mode, lock);
   }
@@ -132,6 +133,7 @@ void MoveEventMeta::update(
     m_moveEventImplementation = mevlist.get(appctx, MoveEventFactoryInterface::Strategy::MOVE)
                                     .make(scenar, eventId, newDate, mode, lock);
     m_lock = lock;
+    m_expand = mode;
   }
   m_newY = y;
   updateY(scenar, m_newY);
@@ -139,16 +141,19 @@ void MoveEventMeta::update(
 
 void MoveEventMeta::serializeImpl(DataStreamInput& s) const
 {
+  int e = (int)m_expand;
   int l = (int)m_lock;
-  s << m_scenario << m_eventId << m_stateId << l << m_oldY << m_newY
+  s << m_scenario << m_eventId << m_stateId << e << l << m_oldY << m_newY
     << m_moveEventImplementation->serialize();
 }
 
 void MoveEventMeta::deserializeImpl(DataStreamOutput& s)
 {
   QByteArray cmdData;
+  int e;
   int l;
-  s >> m_scenario >> m_eventId >> m_stateId >> l >> m_oldY >> m_newY >> cmdData;
+  s >> m_scenario >> m_eventId >> m_stateId >> e >> l >> m_oldY >> m_newY >> cmdData;
+  m_expand = (ExpandMode)e;
   m_lock = (LockMode)l;
 
   m_moveEventImplementation

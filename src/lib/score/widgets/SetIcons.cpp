@@ -18,10 +18,22 @@ struct hash<std::pair<QString, QString>>
 {
   std::size_t operator()(const std::pair<QString, QString>& p) const noexcept { return qHash(p); }
 };
+
+template <>
+struct hash<std::tuple<QString, QString, QString>>
+{
+  std::size_t operator()(const std::tuple<QString, QString, QString>& p) const noexcept {
+    return
+          qHash(std::get<0>(p))
+        ^ qHash(std::get<1>(p))
+        ^ qHash(std::get<2>(p))
+    ;
+  }
+};
 }
 static auto& iconMap()
 {
-  static tsl::hopscotch_map<std::pair<QString, QString>, QIcon> icons;
+  static tsl::hopscotch_map<std::tuple<QString, QString, QString>, QIcon> icons;
   return icons;
 }
 
@@ -33,7 +45,7 @@ void setIcons(
     bool enableHover)
 {
   auto& map = iconMap();
-  auto pair = std::make_pair(iconOn, iconOff);
+  auto pair = std::make_tuple(iconOn, iconOff, iconDisable);
   auto it = map.find(pair);
   if (it != map.end())
   {
@@ -64,7 +76,7 @@ void setIcons(
     const QString& iconDisable)
 {
   auto& map = iconMap();
-  auto pair = std::make_pair(iconOn, iconOff);
+  auto pair = std::make_tuple(iconOn, iconOff, iconDisable);
   auto it = map.find(pair);
   if (it != map.end())
   {
@@ -110,7 +122,7 @@ QIcon genIconFromPixmaps(
     const QString& iconDisabled)
 {
   auto& map = iconMap();
-  auto pair = std::make_pair(iconOn, iconOff);
+  auto pair = std::make_tuple(iconOn, iconOff, iconDisabled);
   auto it = map.find(pair);
   if (it != map.end())
   {
@@ -143,7 +155,7 @@ QIcon genIconFromPixmaps(
     const QString& iconDisabled)
 {
   auto& map = iconMap();
-  auto pair = std::make_pair(iconOn, iconOff);
+  auto pair = std::make_tuple(iconOn, iconOff, iconDisabled);
   auto it = map.find(pair);
   if (it != map.end())
   {

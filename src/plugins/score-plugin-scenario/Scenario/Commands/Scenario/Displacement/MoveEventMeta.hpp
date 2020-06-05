@@ -71,6 +71,7 @@ private:
   Path<Scenario::ProcessModel> m_scenario;
   Id<EventModel> m_eventId;
   std::optional<Id<StateModel>> m_stateId;
+  ExpandMode m_expand{};
   LockMode m_lock{};
   double m_oldY{};
   double m_newY{};

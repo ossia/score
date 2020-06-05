@@ -89,10 +89,11 @@ SCORE_DECLARE_ACTION_2S(
     QKeySequence{QObject::tr("C")},
     QKeySequence{QObject::tr("Shift+C")})
 SCORE_DECLARE_ACTION(PlayTool, "Tool &Play", Scenario, Qt::Key_P)
-SCORE_DECLARE_ACTION(LockMode, "&Lock", Scenario, QKeySequence{QObject::tr("Alt")})
 
-SCORE_DECLARE_ACTION(Scale, "&Scale mode", Scenario, Qt::ALT + Qt::Key_S)
-SCORE_DECLARE_ACTION(Grow, "&Grow mode", Scenario, Qt::ALT + Qt::Key_D)
+// For those two the "shortcuts" are just shift and alt, but this is not supported
+// by QKeySequence. See ToolMenuActions.cpp
+SCORE_DECLARE_ACTION(LockMode, "&Lock", Scenario, QKeySequence{})
+SCORE_DECLARE_ACTION(Scale, "&Scale mode", Scenario, QKeySequence{})
 
 // Object
 #if defined(__APPLE__)

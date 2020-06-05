@@ -80,7 +80,12 @@ private:
   void on_presenterFocused(Process::LayerPresenter* lm);
   void on_presenterDefocused(Process::LayerPresenter* lm);
 
-  QMetaObject::Connection m_focusConnection, m_defocusConnection, m_contextMenuConnection;
+  QMetaObject::Connection m_focusConnection,
+                          m_defocusConnection,
+                          m_contextMenuConnection,
+                          m_keyPressConnection,
+                          m_keyReleaseConnection;
+
   Scenario::EditionSettings m_editionSettings;
   Process::LayerContextMenuManager m_layerCtxMenuManager;
   ScenarioExecution m_execution;

@@ -260,10 +260,9 @@ void ScenarioApplicationPlugin::on_presenterDefocused(Process::LayerPresenter* p
 void ScenarioApplicationPlugin::on_presenterFocused(Process::LayerPresenter* pres)
 {
   // Generic stuff
-  if (focusedPresenter())
-  {
-    disconnect(m_contextMenuConnection);
-  }
+  disconnect(m_contextMenuConnection);
+  disconnect(m_keyPressConnection);
+  disconnect(m_keyReleaseConnection);
   if (pres)
   {
     // If a layer is right-clicked,
@@ -288,10 +287,11 @@ void ScenarioApplicationPlugin::on_presenterFocused(Process::LayerPresenter* pre
   auto s_pres = dynamic_cast<ScenarioPresenter*>(pres);
   if (s_pres)
   {
-    connect(s_pres, &ScenarioPresenter::keyPressed, this, &ScenarioApplicationPlugin::keyPressed);
+    m_keyPressConnection = connect(s_pres, &ScenarioPresenter::keyPressed,
+                                   this, &ScenarioApplicationPlugin::keyPressed);
 
-    connect(
-        s_pres, &ScenarioPresenter::keyReleased, this, &ScenarioApplicationPlugin::keyReleased);
+    m_keyReleaseConnection = connect(s_pres, &ScenarioPresenter::keyReleased,
+                                     this, &ScenarioApplicationPlugin::keyReleased);
 
     auto& select_act = context.actions.action<Actions::SelectTool>();
     select_act.action()->trigger();
