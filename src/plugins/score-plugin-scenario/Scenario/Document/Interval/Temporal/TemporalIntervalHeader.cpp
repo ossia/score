@@ -111,11 +111,6 @@ void TemporalIntervalHeader::paint(
   if (m_rackButton && !itv.processes.empty())
     rack_button_offset += interval_header_rack_button_spacing;
 
-
-  double tx = painter->transform().m31();
-  double tx_int;
-  double tx_rem = std::modf(tx, &tx_int);
-
   const auto p = QPointF{
       m_previous_x + rack_button_offset,
       std::round(-1. + (IntervalHeader::headerHeight() - m_textRectCache.height()) / 2.)};
