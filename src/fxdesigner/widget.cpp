@@ -5,6 +5,8 @@
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/graphics/RectItem.hpp>
 #include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(fxd::Widget)
 
@@ -78,7 +80,7 @@ namespace fxd {
 
     QGraphicsItem* operator()(const EnumWidget& e)
     {
-      auto it = new score::QGraphicsEnum{e.alternatives, nullptr};
+      auto it = new score::QGraphicsEnum{{e.alternatives.begin(), e.alternatives.end()}, nullptr};
       it->rows = e.rows;
       it->columns = e.columns;
       it->setZValue(10);

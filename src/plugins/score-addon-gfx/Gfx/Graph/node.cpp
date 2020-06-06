@@ -308,11 +308,18 @@ void RenderedNode::replaceTexture(QRhiSampler* sampler, QRhiTexture* newTexture)
   {
     if (b.data()->type == QRhiShaderResourceBinding::Type::SampledTexture)
     {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
       SCORE_ASSERT(b.data()->u.stex.count >= 1);
       if (b.data()->u.stex.texSamplers[0].sampler == sampler)
       {
         b.data()->u.stex.texSamplers[0].tex = newTexture;
       }
+#else
+      if (b.data()->u.stex.sampler == sampler)
+      {
+        b.data()->u.stex.tex = newTexture;
+      }
+#endif
     }
   }
 

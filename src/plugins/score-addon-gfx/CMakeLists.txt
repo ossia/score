@@ -1,6 +1,6 @@
 project(score_addon_gfx LANGUAGES C CXX)
 
-find_package(Qt5 5.15 OPTIONAL_COMPONENTS ShaderTools)
+find_package(Qt5 5.14 OPTIONAL_COMPONENTS ShaderTools)
 if(NOT TARGET Qt5::ShaderTools)
   return()
 endif()
@@ -9,7 +9,7 @@ endif()
 score_common_setup()
 
 
-find_package(Qt5Gui 5.15 REQUIRED Private)
+find_package(Qt5Gui 5.14 REQUIRED Private)
 
 if(NOT TARGET avformat)
   find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVUTIL AVDEVICE)

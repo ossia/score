@@ -4,7 +4,7 @@
 #include "renderer.hpp"
 #include "renderstate.hpp"
 #include "uniforms.hpp"
-
+#include <QElapsedTimer>
 #include <Video/VideoInterface.hpp>
 #include <ossia/detail/flicks.hpp>
 extern "C"

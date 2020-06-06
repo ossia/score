@@ -117,7 +117,7 @@ class DocumentFactory final : public score::DocumentDelegateFactory
     std::allocator<DocumentModel> alloc;
     auto res = alloc.allocate(1);
     ptr = res;
-    alloc.construct(res, ctx, parent);
+    new (&res) DocumentModel{ctx, parent};
   }
 
   void load(
@@ -130,7 +130,7 @@ class DocumentFactory final : public score::DocumentDelegateFactory
     auto res = alloc.allocate(1);
     ptr = res;
     score::deserialize_dyn(vis, [&](auto&& deserializer) {
-      alloc.construct(res, deserializer, ctx, parent);
+      new (&res) DocumentModel{deserializer, ctx, parent};
       return ptr;
     });
   }

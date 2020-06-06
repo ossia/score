@@ -207,7 +207,7 @@ void ScreenNode::destroyOutput()
 
 RenderState* ScreenNode::renderState() const
 {
-  if(window)
+  if(window && window->swapChain)
     return &window->state;
   return nullptr;
 }
