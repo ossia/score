@@ -60,7 +60,7 @@ private:
   qreal m_previous_x{};
 
   QRectF m_textRectCache;
-  QImage m_line;
+  QPixmap m_line;
   QPolygonF m_poly;
 
   score::QGraphicsSelectablePixmapToggle* m_rackButton{};

@@ -72,11 +72,11 @@ void ScenarioViewInterface::on_intervalMoved(const TemporalIntervalPresenter& pr
 
   if (dateChanged)
   {
-    cstr_view.setPos(startPos, rect.height() * cstr_model.heightPercentage());
+    cstr_view.setPos(startPos, std::round(rect.height() * cstr_model.heightPercentage()));
   }
   else
   {
-    cstr_view.setY(qreal(rect.height() * cstr_model.heightPercentage()));
+    cstr_view.setY(std::round(rect.height() * cstr_model.heightPercentage()));
   }
 
   cstr_view.setDefaultWidth(cstr_model.duration.defaultDuration().toPixels(msPerPixel));

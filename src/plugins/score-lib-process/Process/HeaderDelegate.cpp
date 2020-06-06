@@ -41,11 +41,12 @@ QPixmap makeGlyphs(const QString& glyph, const QPen& pen)
     path.fill(Qt::transparent);
 
     QPainter p{&path};
+
     p.setPen(pen);
     p.drawGlyphRun(QPointF{0, 0}, r[0]);
   }
 
-  return QPixmap::fromImage(path);
+  return QPixmap::fromImage(std::move(path), Qt::NoFormatConversion);
 }
 
 static double portY()
@@ -184,7 +185,6 @@ void DefaultHeaderDelegate::paint(
     const QStyleOptionGraphicsItem* option,
     QWidget* widget)
 {
-  // painter->fillRect(boundingRect(), Qt::white);
   const auto start = 3. + (m_ui ? 10. : 0.);
   const auto w = boundingRect().width();
   if (w > minPortWidth())

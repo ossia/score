@@ -713,7 +713,7 @@ void TemporalIntervalPresenter::updatePositions()
 
     if (slot.header)
     {
-      slot.header->setPos(QPointF{0.5, currentSlotY});
+      slot.header->setPos(QPointF{0., currentSlotY});
       slot.header->setSlotIndex(i);
     }
     currentSlotY += SlotHeader::headerHeight();
@@ -734,7 +734,7 @@ void TemporalIntervalPresenter::updatePositions()
 
     if (slot.footer)
     {
-      slot.footer->setPos(QPointF{0.5, currentSlotY});
+      slot.footer->setPos(QPointF{0., currentSlotY});
       slot.footer->setSlotIndex(i);
       currentSlotY += SlotFooter::footerHeight();
     }

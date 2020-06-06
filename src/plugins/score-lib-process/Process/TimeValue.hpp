@@ -127,7 +127,7 @@ struct TimeVal : ossia::time_value
 
   constexpr double toPixels(ZoomRatio ratio) const noexcept
   {
-    return (ratio > 0 && !infinite()) ? impl / ratio : 0;
+    return (ratio > 0 && !infinite()) ? std::round(impl / ratio) : 0;
   }
 
   QTime toQTime() const noexcept

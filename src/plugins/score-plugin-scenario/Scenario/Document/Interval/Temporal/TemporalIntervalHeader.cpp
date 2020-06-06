@@ -111,9 +111,14 @@ void TemporalIntervalHeader::paint(
   if (m_rackButton && !itv.processes.empty())
     rack_button_offset += interval_header_rack_button_spacing;
 
+
+  double tx = painter->transform().m31();
+  double tx_int;
+  double tx_rem = std::modf(tx, &tx_int);
+
   const auto p = QPointF{
       m_previous_x + rack_button_offset,
-      -1. + (IntervalHeader::headerHeight() - m_textRectCache.height()) / 2.};
+      std::round(-1. + (IntervalHeader::headerHeight() - m_textRectCache.height()) / 2.)};
 
   if (moved)
     updateButtons();
@@ -129,7 +134,7 @@ void TemporalIntervalHeader::paint(
     painter->setRenderHint(QPainter::Antialiasing, false);
   }
 
-  painter->drawImage(p, m_line);
+   painter->drawPixmap(p, m_line);
   // painter->setPen(Qt::red);
   // painter->setBrush(Qt::transparent);
   // painter->drawPath(shape());
@@ -349,32 +354,32 @@ void TemporalIntervalHeader::on_textChanged()
   if (text.isEmpty())
   {
     m_textRectCache = {};
-    m_line = QImage{};
+    m_line = QPixmap{};
     return;
   }
   else
   {
+    QImage img;
     QTextLayout layout(text, font);
     layout.beginLayout();
     auto line = layout.createLine();
     layout.endLayout();
 
     m_textRectCache = line.naturalTextRect();
-    m_line = QImage{};
     auto r = line.glyphRuns();
     if (r.size() > 0)
     {
       double ratio = 1.;
       if (auto v = getView(*this))
         ratio = v->devicePixelRatioF();
-      m_line = QImage(
+      img = QImage(
           m_textRectCache.width() * ratio,
           m_textRectCache.height() * ratio,
           QImage::Format_ARGB32_Premultiplied);
-      m_line.setDevicePixelRatio(ratio);
-      m_line.fill(Qt::transparent);
+      img.setDevicePixelRatio(ratio);
+      img.fill(Qt::transparent);
 
-      QPainter p{&m_line};
+      QPainter p{&img};
       if (m_hovered || m_selected)
         p.setPen(skin.IntervalBraceSelected());
       else
@@ -387,6 +392,7 @@ void TemporalIntervalHeader::on_textChanged()
       }
       p.drawGlyphRun(QPointF{0, 0}, r[0]);
     }
+    this->m_line = QPixmap::fromImage(std::move(img), Qt::NoFormatConversion);
   }
   updateButtons();
   update();
