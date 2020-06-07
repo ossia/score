@@ -325,6 +325,18 @@ double Model::lastPointPos() const
   return pos;
 }
 
+std::optional<double> Model::valueAt(double x) const noexcept
+{
+  for(const Curve::SegmentModel& segment : m_segments)
+  {
+    if(segment.start().x() <= x && x <= segment.end().x())
+    {
+      return segment.valueAt(x);
+    }
+  }
+  return {};
+}
+
 void Model::addPoint(PointModel* pt)
 {
   m_points.push_back(pt);

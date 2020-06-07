@@ -62,6 +62,7 @@ public:
 
   double lastPointPos() const;
 
+  std::optional<double> valueAt(double x) const noexcept;
 public:
   void segmentAdded(const SegmentModel& arg_1)
       E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, segmentAdded, arg_1)

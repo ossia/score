@@ -750,6 +750,44 @@ ParentTimeInfo closestParentWithMusicalMetrics(const IntervalModel* self)
   return {};
 }
 
+ParentTimeInfo closestParentWithTempo(const IntervalModel* self)
+{
+  TimeVal delta = TimeVal::zero();
+  if(self->tempoCurve())
+    return {self, delta};
+
+  delta += self->date();
+  auto p = self->parent();
+  if (p)
+  {
+    p = p->parent();
+  }
+
+  while (p)
+  {
+    if (auto pi = qobject_cast<const IntervalModel*>(p))
+    {
+      if (pi->tempoCurve())
+      {
+        return {pi, delta};
+      }
+      else
+      {
+        delta += pi->date();
+        if ((p = p->parent()))
+          p = p->parent();
+      }
+    }
+    else
+    {
+      if ((p = p->parent()))
+        p = p->parent();
+    }
+  }
+
+  return {};
+}
+
 QPointF newProcessPosition(const IntervalModel& cst) noexcept
 {
   // Find a good position for the process in the nodal graph

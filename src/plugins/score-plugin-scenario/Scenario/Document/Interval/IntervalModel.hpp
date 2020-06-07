@@ -292,6 +292,8 @@ struct ParentTimeInfo
 
 SCORE_PLUGIN_SCENARIO_EXPORT
 ParentTimeInfo closestParentWithMusicalMetrics(const IntervalModel*);
+SCORE_PLUGIN_SCENARIO_EXPORT
+ParentTimeInfo closestParentWithTempo(const IntervalModel*);
 
 SCORE_PLUGIN_SCENARIO_EXPORT
 TimeVal timeDelta(const IntervalModel* child, const IntervalModel* parent);

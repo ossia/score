@@ -2,6 +2,7 @@
 
 #include <QRegularExpression>
 
+#include <Media/Tempo.hpp>
 #include <Audio/Settings/Model.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::Sound::ProcessModel)
@@ -73,7 +74,7 @@ void ProcessModel::setFile(const QString& file)
     }
     else
     {
-      setNativeTempo(120.); // TODO use the root tempo
+      setNativeTempo(tempoAtStartDate(*this));
     }
     on_mediaChanged();
     prettyNameChanged();

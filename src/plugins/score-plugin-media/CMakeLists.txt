@@ -33,6 +33,7 @@ endif()
 # Files & main target
 set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioArray.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Tempo.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/ChangeAudioFile.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/MediaCommandFactory.hpp"
@@ -148,6 +149,7 @@ set(SRCS
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/MediaFileHandle.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/RMSData.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Tempo.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioDecoder.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/ApplicationPlugin.cpp"
 
