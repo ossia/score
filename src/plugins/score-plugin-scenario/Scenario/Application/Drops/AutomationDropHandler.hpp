@@ -68,6 +68,17 @@ private:
   bool drop(const Scenario::ScenarioPresenter&, QPointF pos, const QMimeData& mime) override;
 };
 
+class DropPresetInScenario final : public GhostIntervalDropHandler
+{
+  SCORE_CONCRETE("bb137853-1bd9-4c38-a777-2d980771e567")
+
+public:
+  DropPresetInScenario();
+
+private:
+  bool drop(const Scenario::ScenarioPresenter&, QPointF pos, const QMimeData& mime) override;
+};
+
 class DropScenario final : public GhostIntervalDropHandler
 {
   SCORE_CONCRETE("34961e8b-19a5-408f-af90-55f59ce8c58a")
@@ -88,6 +99,7 @@ public:
 private:
   bool drop(const Scenario::ScenarioPresenter&, QPointF pos, const QMimeData& mime) override;
 };
+
 class DropLayerInInterval final : public IntervalDropHandler
 {
   SCORE_CONCRETE("9df2eac6-6680-43cc-9634-60324416ba04")
@@ -105,6 +117,25 @@ public:
       Scenario::Command::Macro& m,
       const rapidjson::Document& json);
 };
+
+class DropPresetInInterval final : public IntervalDropHandler
+{
+  SCORE_CONCRETE("93d1dd9d-5923-4bc2-8c52-cbe0677a3202")
+
+  bool drop(
+      const score::DocumentContext& ctx,
+      const Scenario::IntervalModel&,
+      QPointF p,
+      const QMimeData& mime) override;
+
+public:
+  static void perform(
+      const IntervalModel& interval,
+      const score::DocumentContext& doc,
+      Scenario::Command::Macro& m,
+      const rapidjson::Document& json);
+};
+
 /**
  * @brief The ProcessDropHandler class
  * Will create a blank process.

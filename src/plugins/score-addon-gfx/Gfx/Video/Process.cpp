@@ -8,6 +8,7 @@
 #include <Gfx/Graph/node.hpp>
 #include <Gfx/Graph/nodes.hpp>
 #include <Gfx/TexturePort.hpp>
+#include <Media/Tempo.hpp>
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Gfx::Video::Model)
@@ -20,6 +21,8 @@ Model::Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObje
 {
   metadata().setInstanceName(*this);
   setLoops(true);
+  setNativeTempo(Media::tempoAtStartDate(*this));
+
   m_outlets.push_back(new TextureOutlet{Id<Process::Port>(0), this});
 }
 
