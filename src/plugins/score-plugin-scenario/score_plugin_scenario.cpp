@@ -58,6 +58,7 @@
 #include <QList>
 #include <QMetaType>
 #include <QPainterPath>
+#include <score_plugin_library.hpp>
 
 #include <Interpolation/InterpolationFactory.hpp>
 #include <LocalTree/ScenarioComponent.hpp>
@@ -226,6 +227,11 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_scenario::guiFac
   return instantiate_factories<
       score::GUIApplicationContext,
       FW<Process::LayerFactory, ScenarioTemporalLayerFactory>>(ctx, key);
+}
+
+std::vector<score::PluginKey> score_plugin_scenario::required() const
+{
+  return {score_plugin_library::static_key()};
 }
 
 #include <score/plugins/PluginInstances.hpp>

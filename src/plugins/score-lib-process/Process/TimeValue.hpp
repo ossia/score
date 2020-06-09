@@ -10,6 +10,7 @@
 
 #include <QStringBuilder>
 #include <QTime>
+#include <cmath>
 
 #include <flicks.h>
 

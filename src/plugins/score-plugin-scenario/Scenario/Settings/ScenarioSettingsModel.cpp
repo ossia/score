@@ -70,7 +70,7 @@ void Model::setSkin(const QString& skin)
     return;
 
   QFile f(skin);
-  if (skin.isEmpty())
+  if (skin.isEmpty() || skin == "Default")
     f.setFileName(":/skin/DefaultSkin.json");
 
   if (f.open(QFile::ReadOnly))

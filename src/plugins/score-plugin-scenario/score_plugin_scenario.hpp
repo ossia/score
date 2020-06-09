@@ -80,4 +80,6 @@ private:
   std::vector<std::unique_ptr<score::InterfaceBase>> guiFactories(
       const score::GUIApplicationContext&,
       const score::InterfaceKey& factoryName) const override;
+
+  std::vector<score::PluginKey> required() const override;
 };
