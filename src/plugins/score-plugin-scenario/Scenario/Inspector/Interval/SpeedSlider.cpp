@@ -11,6 +11,7 @@
 #include <QPushButton>
 #include <QSlider>
 #include <QWidget>
+#include <QApplication>
 
 namespace Scenario
 {
@@ -42,17 +43,11 @@ SpeedWidget::SpeedWidget(bool withButtons, bool showText, QWidget* parent) : QWi
     for (double factor : {0., 0.5, 1., 2., 5.})
     {
       auto pb = new QPushButton{"× " + QString::number(factor), this};
+
       pb->setMinimumWidth(35);
       pb->setMaximumWidth(45);
       pb->setFlat(true);
       pb->setContentsMargins(0, 0, 0, 0);
-
-#ifndef QT_NO_STYLE_STYLESHEET
-      pb->setStyleSheet(
-          "QPushButton { margin: 0px; padding: 0px; border:  1px solid "
-          "#252930; "
-          + score::ValueStylesheet + "}" + "QPushButton:hover { border: 1px solid #aaa;} ");
-#endif
 
       connect(pb, &QPushButton::clicked, this, [=] { m_slider->setSpeed(factor); });
       lay->addWidget(pb, 1, btn_col++, 1, 1);

@@ -12,8 +12,10 @@ SelectionButton::SelectionButton(
     Selection target,
     score::SelectionDispatcher& disp,
     QWidget* parent)
-    : QPushButton{text, parent}, m_dispatcher{disp}
+    : QToolButton{parent}
+    , m_dispatcher{disp}
 {
+  setText(text);
   auto icon = makeIcons(
       QStringLiteral(":/icons/next_on.png"),
       QStringLiteral(":/icons/next_off.png"),
@@ -22,15 +24,5 @@ SelectionButton::SelectionButton(
   setObjectName("SelectionButton");
   setIcon(icon);
 
-#ifndef QT_NO_STYLE_STYLESHEET
-  setStyleSheet(
-      "margin: 5px;"
-      "margin-left: 10px;"
-      "text-align: left;"
-      "text-decoration: underline;"
-      "border: none;");
-#endif
-  setFlat(true);
-
-  connect(this, &QPushButton::clicked, this, [=]() { m_dispatcher.setAndCommit(target); });
+  connect(this, &QToolButton::clicked, this, [=]() { m_dispatcher.setAndCommit(target); });
 }

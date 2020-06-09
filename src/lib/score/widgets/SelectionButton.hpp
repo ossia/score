@@ -1,7 +1,7 @@
 #pragma once
 #include <score/selection/Selection.hpp>
 
-#include <QPushButton>
+#include <QToolButton>
 #include <QString>
 #include <QWidget>
 
@@ -11,7 +11,7 @@ namespace score
 {
 class SelectionDispatcher;
 }
-class SCORE_LIB_BASE_EXPORT SelectionButton final : public QPushButton
+class SCORE_LIB_BASE_EXPORT SelectionButton final : public QToolButton
 {
 public:
   SelectionButton(
