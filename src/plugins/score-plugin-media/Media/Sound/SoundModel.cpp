@@ -71,6 +71,7 @@ void ProcessModel::setFile(const QString& file)
     {
       setNativeTempo(*tempo);
       setStretchMode(ossia::audio_stretch_mode::RubberBandPercussive);
+      setLoops(true);
     }
     else
     {
