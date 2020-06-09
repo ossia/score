@@ -13,6 +13,18 @@ class LayerView;
 class FilterWidget;
 struct WaveformComputerImpl;
 
+struct WaveformRequest
+{
+  std::shared_ptr<AudioFile> file;
+  double zoom{};
+
+  QSizeF layerSize{};
+  double devicePixelRatio{};
+  double view_x0{};
+  double view_xmax{};
+  bool colors{};
+};
+
 struct ComputedWaveform
 {
   enum Mode
@@ -31,41 +43,39 @@ struct WaveformComputer : public QObject
 {
   W_OBJECT(WaveformComputer)
 public:
-  WaveformComputer(LayerView& layer);
+  WaveformComputer();
+  ~WaveformComputer();
 
-  LayerView& m_layer;
-  QGraphicsView& m_view;
-
-  ~WaveformComputer() { m_drawThread.quit(); }
   void stop();
 
 public:
-  void recompute(const std::shared_ptr<AudioFile>& arg_1, double arg_2, bool cols)
-      W_SIGNAL(recompute, arg_1, arg_2, cols);
-  void ready(QVector<QImage*> img, ComputedWaveform wf) W_SIGNAL(ready, img, wf);
+  void recompute(WaveformRequest req)
+  W_SIGNAL(recompute, req);
 
-private:
-  void on_recompute(std::shared_ptr<AudioFile> data, double ratio, bool cols, int64_t n);
-  W_SLOT(on_recompute);
+  void ready(QVector<QImage*> img, ComputedWaveform wf)
+  W_SIGNAL(ready, img, wf);
 
 private:
   friend struct WaveformComputerImpl;
+
+  void on_recompute(WaveformRequest&& req, int64_t n);
   void timerEvent(QTimerEvent* event) override;
 
-  ZoomRatio m_zoom{};
 
   std::atomic_int64_t m_redraw_count = std::numeric_limits<int64_t>::lowest();
   QThread m_drawThread;
   std::chrono::steady_clock::time_point last_request = std::chrono::steady_clock::now();
 
-  std::shared_ptr<AudioFile> m_file{};
-  bool m_cols{};
+  WaveformRequest m_currentRequest;
+
   int64_t m_n{};
   int64_t m_processed_n{-1};
 };
 
 }
 
+Q_DECLARE_METATYPE(Media::Sound::WaveformRequest)
+W_REGISTER_ARGTYPE(Media::Sound::WaveformRequest)
 Q_DECLARE_METATYPE(Media::Sound::ComputedWaveform)
 W_REGISTER_ARGTYPE(Media::Sound::ComputedWaveform)
 W_REGISTER_ARGTYPE(QVector<QImage>)

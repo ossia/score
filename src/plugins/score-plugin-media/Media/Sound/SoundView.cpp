@@ -2,24 +2,29 @@
 #include <Media/Sound/QImagePool.hpp>
 #include <Media/RMSData.hpp>
 
+#include <score/tools/std/Invoke.hpp>
+
 #include <QGraphicsView>
 #include <QScrollBar>
 
 namespace Media::Sound
 {
 LayerView::LayerView(QGraphicsItem* parent)
-    : Process::LayerView{parent}, m_cpt{new WaveformComputer{*this}}
+    : Process::LayerView{parent}, m_cpt{new WaveformComputer{}}
 {
   setCacheMode(NoCache);
   setFlag(ItemClipsToShape, true);
   this->setAcceptDrops(true);
   if (auto view = getView(*parent))
+  {
     connect(
         view->horizontalScrollBar(),
         &QScrollBar::valueChanged,
         this,
         &Media::Sound::LayerView::scrollValueChanged);
-  connect(m_cpt, &WaveformComputer::ready, this, [=](QVector<QImage*> img, ComputedWaveform wf) {
+  }
+  connect(m_cpt, &WaveformComputer::ready,
+          this, [=](QVector<QImage*> img, ComputedWaveform wf) {
     {
       QImagePool::instance().giveBack(m_images);
       m_images = std::move(img);
@@ -43,8 +48,12 @@ LayerView::LayerView(QGraphicsItem* parent)
 
 LayerView::~LayerView()
 {
+  ossia::qt::run_async(m_cpt, [this] {
+    auto t = m_cpt->thread();
+    m_cpt->moveToThread(this->thread());
+    t->quit();
+  });
   m_cpt->stop();
-  m_cpt->moveToThread(this->thread());
   delete m_cpt;
 
   QImagePool::instance().giveBack(m_images);
@@ -77,26 +86,40 @@ void LayerView::setData(const std::shared_ptr<AudioFile>& data)
   m_sampleRate = data->sampleRate();
 }
 
+void LayerView::recompute() const
+{
+  if(Q_UNLIKELY(!m_data))
+    return;
+
+  if(auto view = getView(*this))
+  {
+    WaveformRequest req{
+      m_data,
+      m_zoom,
+      QSizeF{width(), height()},
+      view->devicePixelRatioF(),
+      mapFromScene(view->mapToScene(0, 0)).x(),
+      mapFromScene(view->mapToScene(view->width(), 0)).x(),
+      m_frontColors
+    };
+    m_cpt->recompute(std::move(req));
+  }
+  m_recomputed = true;
+}
+
 void LayerView::setFrontColors(bool b)
 {
   if (b != m_frontColors)
   {
     m_frontColors = b;
-    if (m_data)
-    {
-      m_cpt->recompute(m_data, m_zoom, m_frontColors);
-    }
+    recompute();
   }
 }
 
 void LayerView::recompute(ZoomRatio ratio)
 {
   m_zoom = ratio;
-  if (m_data)
-  {
-    m_cpt->recompute(m_data, m_zoom, m_frontColors);
-    m_recomputed = true;
-  }
+  recompute();
 }
 
 void LayerView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
@@ -117,7 +140,7 @@ void LayerView::paint_impl(QPainter* painter) const
   if (channels == 0.)
   {
     if (!m_recomputed)
-      m_cpt->recompute(m_data, m_zoom, m_frontColors);
+      recompute();
     return;
   }
 

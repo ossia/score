@@ -17,19 +17,19 @@
 W_OBJECT_IMPL(Media::Sound::WaveformComputer)
 namespace Media::Sound
 {
-WaveformComputer::WaveformComputer(LayerView& layer)
-  : m_layer{layer}
-  , m_view{*getView(m_layer)}
+WaveformComputer::WaveformComputer()
 {
   connect(
       this,
       &WaveformComputer::recompute,
       this,
-      [=](const std::shared_ptr<AudioFile>& arg_1, double arg_2, bool cols) {
+      [=](WaveformRequest req) {
         int64_t n = ++m_redraw_count;
 
         // qDebug() << "count: " << n;
-        ossia::qt::run_async(this, [=] { on_recompute(arg_1, arg_2, cols, n); });
+        ossia::qt::run_async(this, [=, r = std::move(req)] () mutable {
+          on_recompute(std::move(r), n);
+        });
       },
       Qt::DirectConnection);
   startTimer(16, Qt::CoarseTimer);
@@ -38,21 +38,19 @@ WaveformComputer::WaveformComputer(LayerView& layer)
   m_drawThread.start();
 }
 
+WaveformComputer::~WaveformComputer()
+{
+}
+
 void WaveformComputer::stop()
 {
-  ossia::qt::run_async(this, [this] {
-    moveToThread(m_layer.thread());
-    m_drawThread.quit();
-  });
   m_drawThread.wait();
 }
 
 struct WaveformComputerImpl
 {
-  AudioFile& data;
   AudioFile::ViewHandle& handle;
-  ZoomRatio ratio;
-  bool cols;
+  const WaveformRequest& request;
   int64_t redraw_number;
   WaveformComputer& computer;
 
@@ -108,8 +106,8 @@ struct WaveformComputerImpl
     return p;
   }();
 
-  const unsigned int main_color = cols ? orange : gray;
-  const QPen& main_pen = cols ? orange_pen : gray_pen;
+  const unsigned int main_color = request.colors ? orange : gray;
+  const QPen& main_pen = request.colors ? orange_pen : gray_pen;
 
   struct QPainterCleanup
   {
@@ -266,7 +264,7 @@ struct WaveformComputerImpl
 
     ComputedWaveform result;
     result.mode = ComputedWaveform::Mean;
-    result.zoom = ratio;
+    result.zoom = request.zoom;
     result.x0 = infos.logical_x0;
     result.xf = infos.logical_x0 + infos.logical_max_pixel;
 
@@ -326,7 +324,7 @@ struct WaveformComputerImpl
 
     ComputedWaveform result;
     result.mode = ComputedWaveform::Mean;
-    result.zoom = ratio;
+    result.zoom = request.zoom;
     result.x0 = infos.logical_x0;
     result.xf = infos.logical_x0 + infos.logical_max_pixel;
 
@@ -378,7 +376,7 @@ struct WaveformComputerImpl
 
     ComputedWaveform result;
     result.mode = ComputedWaveform::Sample;
-    result.zoom = ratio;
+    result.zoom = request.zoom;
     result.x0 = infos.logical_x0;
     result.xf = infos.logical_x0 + infos.logical_max_pixel;
 
@@ -388,23 +386,23 @@ struct WaveformComputerImpl
   void compute()
   {
     SizeInfos infos;
-    LayerView& m_layer = computer.m_layer;
-    QGraphicsView& m_view = computer.m_view;
+    const auto& data = *request.file;
+    const auto ratio = request.zoom;
 
     infos.nchannels = data.channels();
     if (infos.nchannels == 0)
       return;
 
     // Height of each channel
-    infos.logical_h = m_layer.height() / (float)infos.nchannels;
+    infos.logical_h = request.layerSize.height() / (float)infos.nchannels;
     if (infos.logical_h < 1.)
       return;
-    infos.logical_w = m_layer.width();
+    infos.logical_w = request.layerSize.width();
     if (infos.logical_w <= 1.)
       return;
 
     // leftmost point
-    infos.logical_x0 = std::max(std::floor(m_layer.mapFromScene(m_view.mapToScene(0, 0)).x()), 0.);
+    infos.logical_x0 = std::max(std::floor(request.view_x0), 0.);
 
     auto& rms = data.rms();
     if (rms.frames_count == 0)
@@ -421,9 +419,7 @@ struct WaveformComputerImpl
     if (infos.logical_samples_per_pixels <= 1e-6)
       return;
 
-    LayerView& layer = computer.m_layer;
-    QGraphicsView& view = computer.m_view;
-    infos.logical_xf = std::floor(layer.mapFromScene(view.mapToScene(view.width(), 0)).x());
+    infos.logical_xf = std::floor(request.view_xmax);
     infos.decoded_samples = data.decodedSamples();
     infos.rightmost_sample = (int32_t)(infos.decoded_samples / infos.logical_samples_per_pixels);
     infos.logical_xf = std::min(infos.logical_xf, infos.rightmost_sample);
@@ -442,7 +438,7 @@ struct WaveformComputerImpl
     if (infos.logical_width <= 1.)
       return;
 
-    const auto dpr = m_view.devicePixelRatioF();
+    const auto dpr = request.devicePixelRatio;
     infos.physical_samples_per_pixels = infos.logical_samples_per_pixels / dpr;
 
     infos.physical_h = dpr * infos.logical_h;
@@ -483,31 +479,28 @@ struct WaveformComputerImpl
 };
 
 void WaveformComputer::on_recompute(
-    std::shared_ptr<AudioFile> data_qp,
-    ZoomRatio ratio,
-    bool cols,
+    WaveformRequest&& req,
     int64_t n)
 {
   if (m_redraw_count > n)
     return;
 
-  if (!data_qp)
+  if (!req.file)
     return;
 
-  auto& data = *data_qp;
-
-  if (data.channels() == 0)
+  if (req.file->channels() == 0)
     return;
-  m_zoom = ratio;
-  m_cols = cols;
-  m_file = data_qp;
+
+  m_currentRequest = std::move(req);
   m_n = n;
+
   last_request = std::chrono::steady_clock::now();
 }
 
 void WaveformComputer::timerEvent(QTimerEvent* event)
 {
-  if (!m_file)
+  auto& file = m_currentRequest.file;
+  if (!file)
     return;
   if (m_n == m_processed_n)
     return;
@@ -518,8 +511,8 @@ void WaveformComputer::timerEvent(QTimerEvent* event)
   if (now - last_request < 16ms && !(now - last_request > 32ms))
     return;
 
-  auto dataHandle = m_file->handle();
-  WaveformComputerImpl impl{*m_file, dataHandle, m_zoom, m_cols, m_n, *this};
+  auto dataHandle = file->handle();
+  WaveformComputerImpl impl{dataHandle, m_currentRequest, m_n, *this};
   impl.compute();
   m_processed_n = m_n;
   // qDebug() << "finished processing" << m_processed_n;

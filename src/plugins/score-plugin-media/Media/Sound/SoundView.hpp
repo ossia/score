@@ -24,6 +24,7 @@ public:
   void setData(const std::shared_ptr<AudioFile>& data);
   void setFrontColors(bool);
   void recompute(ZoomRatio ratio);
+  void recompute() const;
 
   void on_finishedDecoding();
 
@@ -56,7 +57,7 @@ private:
   ComputedWaveform m_wf{};
 
   bool m_frontColors{true};
-  bool m_recomputed{false};
+  mutable bool m_recomputed{false};
 
   friend class FilterWidget;
 };
