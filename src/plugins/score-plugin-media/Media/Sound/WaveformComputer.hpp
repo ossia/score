@@ -4,6 +4,9 @@
 #include <QObject>
 #include <QVector>
 #include <QImage>
+#include <QThread>
+
+#include <memory>
 #include <verdigris>
 
 class QGraphicsView;
@@ -63,13 +66,28 @@ private:
 
 
   std::atomic_int64_t m_redraw_count = std::numeric_limits<int64_t>::lowest();
-  QThread m_drawThread;
   std::chrono::steady_clock::time_point last_request = std::chrono::steady_clock::now();
 
   WaveformRequest m_currentRequest;
 
   int64_t m_n{};
   int64_t m_processed_n{-1};
+};
+
+struct WaveformThreads
+{
+  WaveformThreads();
+
+  static WaveformThreads& instance();
+
+  QThread* acquireThread();
+  void releaseThread();
+
+  std::unique_ptr<QThread[]> threads;
+  int numThreads{};
+  int currentThread{};
+
+  int inFlight = 0;
 };
 
 }

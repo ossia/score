@@ -11,6 +11,7 @@
 #include <QColor>
 #include <QPainter>
 #include <QGraphicsView>
+#include <QThreadPool>
 
 #include <wobjectimpl.h>
 
@@ -26,7 +27,6 @@ WaveformComputer::WaveformComputer()
       [=](WaveformRequest req) {
         int64_t n = ++m_redraw_count;
 
-        // qDebug() << "count: " << n;
         ossia::qt::run_async(this, [=, r = std::move(req)] () mutable {
           on_recompute(std::move(r), n);
         });
@@ -34,8 +34,8 @@ WaveformComputer::WaveformComputer()
       Qt::DirectConnection);
   startTimer(16, Qt::CoarseTimer);
 
-  this->moveToThread(&m_drawThread);
-  m_drawThread.start();
+  auto& inst = WaveformThreads::instance();
+  this->moveToThread(inst.acquireThread());
 }
 
 WaveformComputer::~WaveformComputer()
@@ -44,7 +44,6 @@ WaveformComputer::~WaveformComputer()
 
 void WaveformComputer::stop()
 {
-  m_drawThread.wait();
 }
 
 struct WaveformComputerImpl
@@ -516,6 +515,64 @@ void WaveformComputer::timerEvent(QTimerEvent* event)
   impl.compute();
   m_processed_n = m_n;
   // qDebug() << "finished processing" << m_processed_n;
+}
+
+
+
+
+
+
+WaveformThreads::WaveformThreads()
+{
+}
+
+WaveformThreads& WaveformThreads::instance() {
+  static WaveformThreads threads;
+  return threads;
+}
+
+QThread* WaveformThreads::acquireThread()
+{
+  if(!threads)
+  {
+    numThreads = QThreadPool::globalInstance()->maxThreadCount();
+    if(numThreads > 2)
+      numThreads = numThreads / 2;
+    if(numThreads < 2)
+      numThreads = 2;
+    threads = std::make_unique<QThread[]>(numThreads);
+
+    for(int i = 0; i < numThreads; i++)
+    {
+      threads[i].start();
+    }
+    currentThread = 0;
+  }
+
+  QThread& t = threads[currentThread];
+  currentThread++;
+  currentThread = currentThread % numThreads;
+  inFlight ++;
+  return &t;
+}
+
+void WaveformThreads::releaseThread()
+{
+  inFlight--;
+
+  if(inFlight == 0)
+  {
+    for(int i = 0; i < numThreads; i++)
+    {
+      threads[i].quit();
+    }
+    for(int i = 0; i < numThreads; i++)
+    {
+      threads[i].wait();
+    }
+
+    threads.reset();
+  }
 }
 
 }

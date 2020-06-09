@@ -48,13 +48,10 @@ LayerView::LayerView(QGraphicsItem* parent)
 
 LayerView::~LayerView()
 {
-  ossia::qt::run_async(m_cpt, [this] {
-    auto t = m_cpt->thread();
-    m_cpt->moveToThread(this->thread());
-    t->quit();
-  });
-  m_cpt->stop();
-  delete m_cpt;
+  ossia::qt::run_async(m_cpt, &QObject::deleteLater);
+  m_cpt = nullptr;
+
+  WaveformThreads::instance().releaseThread();
 
   QImagePool::instance().giveBack(m_images);
 }
