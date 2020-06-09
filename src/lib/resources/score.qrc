@@ -2,7 +2,6 @@
     <qresource prefix="/">
         <file>about/about_background.png</file>
         <file>about/about_background@2x.png</file>
-        <file>qsimpledarkstyle.qss</file>
         <file>Catamaran-Regular.ttf</file>
         <file>Montserrat-Regular.ttf</file>
         <file>Ubuntu-R.ttf</file>
@@ -188,12 +187,6 @@
         <file>icons/radio_checked_disabled@2x.png</file>
         <file>icons/radio_unchecked@2x.png</file>
         <file>icons/radio_checked@2x.png</file>
-        <file>style/linux.qss</file>
-        <file>style/macos.qss</file>
-        <file>style/windows.qss</file>
-        <file>style/lineedit.qss</file>
-        <file>style/scrollbars.qss</file>
-        <file>style/spinbox.qss</file>
         <file>icons/desynchronize_off.png</file>
         <file>icons/desynchronize_off@2x.png</file>
         <file>icons/desynchronize_on.png</file>
@@ -627,5 +620,6 @@
         <file>icons/scale_content_off@2x.png</file>
         <file>icons/scale_content_on.png</file>
         <file>icons/scale_content_on@2x.png</file>
+        <file>skin/DefaultSkin.json</file>
     </qresource>
 </RCC>

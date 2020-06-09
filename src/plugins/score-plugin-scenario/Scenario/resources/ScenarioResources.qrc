@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/">
-        <file>DefaultSkin.json</file>
-    </qresource>
-</RCC>

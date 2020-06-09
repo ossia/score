@@ -70,9 +70,6 @@
 W_OBJECT_IMPL(Interpolation::Presenter)
 score_plugin_scenario::score_plugin_scenario()
 {
-#if defined(SCORE_STATIC_PLUGINS)
-  Q_INIT_RESOURCE(ScenarioResources);
-#endif
   using namespace Scenario;
   // QMetaType::registerComparators<ossia::value>();
   // QMetaType::registerComparators<State::Message>();

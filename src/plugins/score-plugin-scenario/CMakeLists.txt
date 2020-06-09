@@ -336,7 +336,6 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/CableHelpers.hpp"
 
 )
-qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/resources/ScenarioResources.qrc")
 
 if(SCORE_WEBSOCKETS)
 set(SRCS

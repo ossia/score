@@ -6,8 +6,11 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/FormWidget.hpp>
+#include <score/widgets/MarginLess.hpp>
 
-#include <core/view/StyleLoader.hpp>
+#include <score/application/ApplicationContext.hpp>
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
+#include <Library/LibrarySettings.hpp>
 
 #include <QApplication>
 #include <QCheckBox>
@@ -20,312 +23,43 @@
 #include <QListWidget>
 #include <QPushButton>
 #include <QSpinBox>
-#include <QSyntaxHighlighter>
 #include <QTextEdit>
 #include <QtColorWidgets/ColorWheel>
+#include <QJsonObject>
+#include <QJsonDocument>
+#include <QJsonValue>
+#include <QJsonArray>
+#include <QDir>
 
 namespace Scenario
 {
 namespace Settings
 {
-// CssHighlighter:
-// License: GPLv3.
-// Author: The Qt Project
-// Taken from
-// https://github.com/qt/qttools/blob/5.9.1/src/designer/src/lib/shared/csshighlighter.cpp
-
-class CssHighlighter : public QSyntaxHighlighter
-{
-public:
-  explicit CssHighlighter(QTextDocument* document);
-
-protected:
-  void highlightBlock(const QString&) override;
-  void highlight(const QString&, int, int, int /*State*/);
-
-private:
-  enum State
-  {
-    Selector,
-    Property,
-    Value,
-    Pseudo,
-    Pseudo1,
-    Pseudo2,
-    Quote,
-    MaybeComment,
-    Comment,
-    MaybeCommentEnd
-  };
-};
-
-CssHighlighter::CssHighlighter(QTextDocument* document) : QSyntaxHighlighter(document) { }
-
-void CssHighlighter::highlightBlock(const QString& text)
-{
-  enum Token
-  {
-    ALNUM,
-    LBRACE,
-    RBRACE,
-    COLON,
-    SEMICOLON,
-    COMMA,
-    QUOTE,
-    SLASH,
-    STAR
-  };
-  static const int transitions[10][9] = {
-      {Selector,
-       Property,
-       Selector,
-       Pseudo,
-       Property,
-       Selector,
-       Quote,
-       MaybeComment,
-       Selector}, // Selector
-      {Property,
-       Property,
-       Selector,
-       Value,
-       Property,
-       Property,
-       Quote,
-       MaybeComment,
-       Property},                                                                      // Property
-      {Value, Property, Selector, Value, Property, Value, Quote, MaybeComment, Value}, // Value
-      {Pseudo1,
-       Property,
-       Selector,
-       Pseudo2,
-       Selector,
-       Selector,
-       Quote,
-       MaybeComment,
-       Pseudo}, // Pseudo
-      {Pseudo1,
-       Property,
-       Selector,
-       Pseudo,
-       Selector,
-       Selector,
-       Quote,
-       MaybeComment,
-       Pseudo1}, // Pseudo1
-      {Pseudo2,
-       Property,
-       Selector,
-       Pseudo,
-       Selector,
-       Selector,
-       Quote,
-       MaybeComment,
-       Pseudo2},                                                    // Pseudo2
-      {Quote, Quote, Quote, Quote, Quote, Quote, -1, Quote, Quote}, // Quote
-      {-1, -1, -1, -1, -1, -1, -1, -1, Comment},                    // MaybeComment
-      {Comment,
-       Comment,
-       Comment,
-       Comment,
-       Comment,
-       Comment,
-       Comment,
-       Comment,
-       MaybeCommentEnd}, // Comment
-      {Comment,
-       Comment,
-       Comment,
-       Comment,
-       Comment,
-       Comment,
-       Comment,
-       -1,
-       MaybeCommentEnd} // MaybeCommentEnd
-  };
-
-  int lastIndex = 0;
-  bool lastWasSlash = false;
-  int state = previousBlockState(), save_state;
-  if (state == -1)
-  {
-    // As long as the text is empty, leave the state undetermined
-    if (text.isEmpty())
-    {
-      setCurrentBlockState(-1);
-      return;
-    }
-    // The initial state is based on the precense of a : and the absense of a
-    // {. This is because Qt style sheets support both a full stylesheet as
-    // well as an inline form with just properties.
-    state = save_state
-        = (text.indexOf(QLatin1Char(':')) > -1 && text.indexOf(QLatin1Char('{')) == -1) ? Property
-                                                                                        : Selector;
-  }
-  else
-  {
-    save_state = state >> 16;
-    state &= 0x00ff;
-  }
-
-  if (state == MaybeCommentEnd)
-  {
-    state = Comment;
-  }
-  else if (state == MaybeComment)
-  {
-    state = save_state;
-  }
-
-  for (int i = 0; i < text.length(); i++)
-  {
-    int token = ALNUM;
-    const QChar c = text.at(i);
-    const char a = c.toLatin1();
-
-    if (state == Quote)
-    {
-      if (a == '\\')
-      {
-        lastWasSlash = true;
-      }
-      else
-      {
-        if (a == '\"' && !lastWasSlash)
-        {
-          token = QUOTE;
-        }
-        lastWasSlash = false;
-      }
-    }
-    else
-    {
-      switch (a)
-      {
-        case '{':
-          token = LBRACE;
-          break;
-        case '}':
-          token = RBRACE;
-          break;
-        case ':':
-          token = COLON;
-          break;
-        case ';':
-          token = SEMICOLON;
-          break;
-        case ',':
-          token = COMMA;
-          break;
-        case '\"':
-          token = QUOTE;
-          break;
-        case '/':
-          token = SLASH;
-          break;
-        case '*':
-          token = STAR;
-          break;
-        default:
-          break;
-      }
-    }
-
-    int new_state = transitions[state][token];
-
-    if (new_state != state)
-    {
-      bool include_token = new_state == MaybeCommentEnd
-                           || (state == MaybeCommentEnd && new_state != Comment) || state == Quote;
-      highlight(text, lastIndex, i - lastIndex + include_token, state);
-
-      if (new_state == Comment)
-      {
-        lastIndex = i - 1; // include the slash and star
-      }
-      else
-      {
-        lastIndex = i + ((token == ALNUM || new_state == Quote) ? 0 : 1);
-      }
-    }
-
-    if (new_state == -1)
-    {
-      state = save_state;
-    }
-    else if (state <= Pseudo2)
-    {
-      save_state = state;
-      state = new_state;
-    }
-    else
-    {
-      state = new_state;
-    }
-  }
-
-  highlight(text, lastIndex, text.length() - lastIndex, state);
-  setCurrentBlockState(state + (save_state << 16));
-}
-
-void CssHighlighter::highlight(const QString& text, int start, int length, int state)
-{
-  if (start >= text.length() || length <= 0)
-    return;
-
-  QTextCharFormat format;
-
-  switch (state)
-  {
-    case Selector:
-      setFormat(start, length, qRgb(250, 200, 200));
-      break;
-    case Property:
-      setFormat(start, length, qRgb(200, 200, 250));
-      break;
-    case Value:
-      setFormat(start, length, qRgb(200, 200, 200));
-      break;
-    case Pseudo1:
-      setFormat(start, length, qRgb(250, 220, 180));
-      break;
-    case Pseudo2:
-      setFormat(start, length, qRgb(220, 250, 180));
-      break;
-    case Quote:
-      setFormat(start, length, qRgb(180, 220, 180));
-      break;
-    case Comment:
-    case MaybeCommentEnd:
-      format.setForeground(Qt::darkGreen);
-      setFormat(start, length, format);
-      break;
-    default:
-      break;
-  }
-}
 
 class ThemeDialog : public QDialog
 {
 public:
   QHBoxLayout layout;
-  QVBoxLayout sublay;
+  QFormLayout sublay;
   QListWidget list;
   QLineEdit hexa;
   QLineEdit rgb;
   QPushButton save{tr("Save")};
-  QTextEdit css;
-  CssHighlighter highlight{css.document()};
   color_widgets::ColorWheel wheel;
-  ThemeDialog(QWidget* p) : QDialog{p}
+  ThemeDialog(const QString& skinFile, QWidget* p) : QDialog{p}
   {
+    setWindowTitle(tr("Edit skin"));
+
     layout.addWidget(&list);
     layout.addLayout(&sublay);
-    sublay.addWidget(&wheel);
-    sublay.addWidget(&hexa);
-    sublay.addWidget(&rgb);
+
+    wheel.setMinimumSize(QSize{100,100});
+    wheel.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    sublay.setWidget(0, QFormLayout::SpanningRole, &wheel);
+
+    sublay.addRow(tr("HEX"),&hexa);
+    sublay.addRow(tr("RGB"),&rgb);
     sublay.addWidget(&save);
-    layout.addWidget(&css);
     this->setLayout(&layout);
     score::Skin& s = score::Skin::instance();
     for (auto& col : s.getColors())
@@ -374,11 +108,9 @@ public:
       }
     });
 
-    connect(&save, &QPushButton::clicked, this, [] {
-      return;
-      /*
+    connect(&save, &QPushButton::clicked, this, [&] {
       auto f = QFileDialog::getSaveFileName(
-          nullptr, tr("Skin"), "", tr("*.json"));
+          nullptr, tr("Save edited skin file"), skinFile, tr("*.json"));
       if (f.isEmpty())
         return;
       QFile fl{f};
@@ -389,23 +121,13 @@ public:
       QJsonObject obj;
       for (auto& col : score::Skin::instance().getColors())
       {
-        obj.insert(col.second, toJsonValue(col.first));
+       obj.insert(col.second, QJsonArray{col.first.red(), col.first.green(), col.first.blue() });
       }
 
       QJsonDocument doc;
       doc.setObject(obj);
       fl.write(doc.toJson());
-      */
     });
-
-    score::StyleLoader loader;
-    css.document()->setPlainText(loader.readStyleSheet());
-
-#ifndef QT_NO_STYLE_STYLESHEET
-    connect(css.document(), &QTextDocument::contentsChanged, this, [=] {
-      qApp->setStyleSheet(css.document()->toPlainText());
-    });
-#endif
   }
 };
 
@@ -416,33 +138,53 @@ View::View()
   auto lay = m_widg->layout();
   lay->setLabelAlignment(Qt::AlignLeft);
   lay->setSpacing(10);
-  /*
 
   // SKIN
   {
+
     m_skin = new QComboBox;
-    m_skin->addItems({"Default", "Dark", "IEEE"});
-    lay->addRow(tr("Skin"), m_skin);
-    auto es = new QPushButton{tr("Edit skin")};
-    connect(es, &QPushButton::clicked, this, [] {
-      ThemeDialog d{nullptr};
+    m_skin->addItem("Default", ":/skin/DefaultSkin.json");
+
+    auto skinPath = score::AppContext().settings<Library::Settings::Model>().getPath() + "/Skins/";
+    QDir skinDir(skinPath, "*.json");
+    auto skinList = skinDir.entryList();
+    for(const auto& skin: skinList)
+    {
+      m_skin->addItem(skin, QVariant{skinPath+"/"+skin});
+    }
+
+    auto ls = new QPushButton{tr("Browse...")};
+    connect(ls, &QPushButton::clicked, this, [=] {
+      auto f = QFileDialog::getOpenFileName(nullptr, tr("Load skin"), tr("*.json"));
+      if(!f.isEmpty())
+      {
+        SkinChanged(f);
+      }
+    });
+
+    auto es = new QPushButton{tr("Edit")};
+    connect(es, &QPushButton::clicked, this, [&] {
+      ThemeDialog d{m_skin->currentData().toString(), nullptr};
       d.exec();
     });
-    auto ls = new QPushButton{tr("Load skin")};
-    connect(ls, &QPushButton::clicked, this, [=] {
-      auto f = QFileDialog::getOpenFileName(nullptr, tr("Skin"), tr("*.json"));
-      SkinChanged(f);
-    });
-    lay->addWidget(ls);
-    lay->addWidget(es);
 
-    connect(m_skin, &QComboBox::currentTextChanged, this, &View::SkinChanged);
+    auto subw = new QWidget;
+    auto sublay = new score::MarginLess<QHBoxLayout>{subw};
+    sublay->addWidget(m_skin);
+    sublay->addWidget(ls);
+    sublay->addWidget(es);
+
+    lay->addRow(tr("Skin"), subw);
+
+    connect(m_skin, SignalUtils::QComboBox_currentIndexChanged_int(), this, [=] (int index){
+      auto skinPath = m_skin->itemData(index).toString();
+      SkinChanged(skinPath);
+    });
   }
-  */
 
   {
     auto subw = new QWidget;
-    auto sublay = new QHBoxLayout{subw};
+    auto sublay = new score::MarginLess<QHBoxLayout>{subw};
     m_editor = new QLineEdit{};
     auto btn = new QPushButton{tr("Browse..."), m_widg};
     connect(btn, &QPushButton::pressed, this, [=] {
@@ -508,17 +250,19 @@ SETTINGS_UI_TOGGLE_IMPL(MagneticMeasures)
 
 void View::setSkin(const QString& val)
 {
-  return;
-  /*
   if (val != m_skin->currentText())
   {
-    int index = m_skin->findText(val);
+    int index = m_skin->findData(val);
     if (index != -1)
     {
       m_skin->setCurrentIndex(index);
     }
+    else
+    {
+      m_skin->addItem(val, QVariant{val});
+      m_skin->setCurrentIndex(m_skin->count()-1);
+    }
   }
-  */
 }
 
 void View::setDefaultEditor(QString val)

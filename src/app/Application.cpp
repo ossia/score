@@ -18,7 +18,6 @@
 #include <core/document/DocumentModel.hpp>
 #include <core/presenter/DocumentManager.hpp>
 #include <core/presenter/Presenter.hpp>
-#include <core/view/StyleLoader.hpp>
 #include <core/view/Window.hpp>
 
 #include <ossia-qt/qt_logger.hpp>
@@ -364,8 +363,6 @@ static void setQApplicationSettings(QApplication& m_app)
   QFontDatabase::addApplicationFont(":/Montserrat-SemiBold.ttf"); // Montserrat
   QFontDatabase::addApplicationFont(":/Montserrat-Light.ttf"); // Montserrat
 
-  static score::StyleLoader style;
-  style.on_styleChanged();
   m_app.setStyle(new PhantomStyle);
 
   auto pal = qApp->palette();

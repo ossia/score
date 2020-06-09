@@ -3,7 +3,6 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
-#include <score/widgets/MarginLess.hpp>
 
 #include <core/document/Document.hpp>
 #include <core/document/DocumentView.hpp>
