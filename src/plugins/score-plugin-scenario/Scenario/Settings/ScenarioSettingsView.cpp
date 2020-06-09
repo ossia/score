@@ -38,6 +38,8 @@ namespace Settings
 
 class ThemeDialog : public QDialog
 {
+    W_OBJECT(ThemeDialog)
+
 public:
   QHBoxLayout layout;
   QFormLayout sublay;
@@ -46,6 +48,9 @@ public:
   QLineEdit rgb;
   QPushButton save{tr("Save")};
   color_widgets::ColorWheel wheel;
+
+  void skinSaved(const QString& arg_1) W_SIGNAL(skinSaved, arg_1);
+
   ThemeDialog(const QString& skinFile, QWidget* p) : QDialog{p}
   {
     setWindowTitle(tr("Edit skin"));
@@ -127,9 +132,11 @@ public:
       QJsonDocument doc;
       doc.setObject(obj);
       fl.write(doc.toJson());
+      skinSaved(f);
     });
   }
 };
+W_OBJECT_IMPL(ThemeDialog);
 
 View::View()
 {
@@ -154,6 +161,7 @@ View::View()
     }
 
     auto ls = new QPushButton{tr("Browse...")};
+    ls->setMaximumWidth(100);
     connect(ls, &QPushButton::clicked, this, [=] {
       auto f = QFileDialog::getOpenFileName(nullptr, tr("Load skin"), tr("*.json"));
       if(!f.isEmpty())
@@ -163,8 +171,17 @@ View::View()
     });
 
     auto es = new QPushButton{tr("Edit")};
+    es->setMaximumWidth(100);
+
     connect(es, &QPushButton::clicked, this, [&] {
-      ThemeDialog d{m_skin->currentData().toString(), nullptr};
+      QString skinToEditPath = m_skin->currentData().toString();
+      if(m_skin->currentText() == tr("Default"))
+          skinToEditPath = skinPath;
+      ThemeDialog d{skinToEditPath, nullptr};
+      connect(&d, &ThemeDialog::skinSaved, this, [&](const QString& skin) {
+        SkinChanged(skin);
+      });
+
       d.exec();
     });
 
@@ -300,3 +317,4 @@ QWidget* View::getWidget()
 }
 }
 }
+
