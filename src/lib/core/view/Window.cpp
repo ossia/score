@@ -236,7 +236,6 @@ View::View(QObject* parent) : QMainWindow{}
         });
   }
   totalWidg->addWidget(rightSplitter);
-  totalWidg->setHandleWidth(1);
 
   setCentralWidget(totalWidg);
   connect(
