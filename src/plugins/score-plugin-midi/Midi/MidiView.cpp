@@ -34,7 +34,9 @@ View::~View() { }
 
 void View::heightChanged(qreal h)
 {
-  QPixmap bg(100, h);
+  const double dpi = qApp->devicePixelRatio();
+  QPixmap bg(100 * dpi, h * dpi);
+  bg.setDevicePixelRatio(dpi);
   QPainter painter(&bg);
   auto p = &painter;
 
@@ -161,48 +163,63 @@ void View::paint_impl(QPainter* p) const
   {
     if (canEdit())
     {
+      const double dpi = p->device()->devicePixelRatioF();
       const auto view_left = v->mapToScene(0, 0);
       const auto left = std::max(0., this->mapFromScene(view_left).x());
-
       double x = left + 50.;
-      m_fragmentCache.clear();
-      m_fragmentCache.push_back(QPainter::PixmapFragment{
-          left + 50.,
-          m_bgCache.height() / 2.,
-          0.,
-          0.,
-          (double)m_bgCache.width(),
-          (double)m_bgCache.height(),
-          1.,
-          1.,
-          0.,
-          1.});
-      constexpr double text_w = 30.;
+      const double text_w = 30. * dpi;
       const double next_w = m_bgCache.width() - text_w;
+      const double proc_w = width();
+      const double h = std::round(m_bgCache.height() / 2.);
 
-      x += m_bgCache.width() - text_w / 2.;
-      for (int i = 0; i < 20; i++)
+      if (p->device()->devicePixelRatioF() == 1.)
       {
+        m_fragmentCache.clear();
         m_fragmentCache.push_back(QPainter::PixmapFragment{
-            x,
-            m_bgCache.height() / 2.,
-            text_w,
+            left + 50.,
+            h,
             0.,
-            next_w,
+            0.,
+            (double)m_bgCache.width(),
             (double)m_bgCache.height(),
             1.,
             1.,
             0.,
             1.});
-        x += next_w;
-      }
 
-      p->drawPixmapFragments(
-          m_fragmentCache.data(),
-          m_fragmentCache.size(),
-          m_bgCache,
-          QPainter::PixmapFragmentHint::OpaqueHint);
-      // p->drawPixmap(left, 0, m_bgCache);
+        x += m_bgCache.width() - text_w / 2.;
+        while(x - next_w < proc_w)
+        {
+          m_fragmentCache.push_back(QPainter::PixmapFragment{
+              x,
+              h,
+              text_w,
+              0.,
+              next_w,
+              (double)m_bgCache.height(),
+              1.,
+              1.,
+              0.,
+              1.});
+          x += next_w;
+        }
+
+        p->drawPixmapFragments(
+            m_fragmentCache.data(),
+            m_fragmentCache.size(),
+            m_bgCache,
+            QPainter::PixmapFragmentHint::OpaqueHint);
+      }
+      else
+      {
+        p->drawPixmap(QPointF{0, 0}, m_bgCache);
+
+        while(x - next_w < proc_w)
+        {
+          p->drawPixmap(QPointF{x, 0}, m_bgCache, QRectF{text_w, 0., next_w, (double)m_bgCache.height()});
+          x += next_w / dpi;
+        }
+      }
     }
   }
   if (!m_selectArea.isEmpty())
