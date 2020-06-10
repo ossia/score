@@ -83,25 +83,34 @@ void ProcessModel::setRange(int min, int max)
 
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration) noexcept
 {
-  setDuration(newDuration);
   notesChanged();
+  setDuration(newDuration);
 }
 
 void ProcessModel::setDurationAndGrow(const TimeVal& newDuration) noexcept
 {
-  auto ratio = duration() / newDuration;
+  if(duration() == newDuration)
+    return;
+  if(newDuration == TimeVal::zero())
+    return;
+  auto ratio = double(duration().impl) / newDuration.impl;
 
   for (auto& note : notes)
     note.scale(ratio);
 
-  setDuration(newDuration);
   notesChanged();
+  setDuration(newDuration);
 }
 
 void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 {
-  auto ratio = duration() / newDuration;
-  auto inv_ratio = newDuration / duration();
+  if(duration() == newDuration)
+    return;
+  if(newDuration == TimeVal::zero())
+    return;
+
+  auto ratio = double(duration().impl) / newDuration.impl;
+  auto inv_ratio = newDuration.impl / double(duration().impl);
 
   std::vector<Id<Note>> toErase;
   for (Note& n : notes)
@@ -120,8 +129,8 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
   {
     notes.remove(note);
   }
-  setDuration(newDuration);
   notesChanged();
+  setDuration(newDuration);
 }
 }
 

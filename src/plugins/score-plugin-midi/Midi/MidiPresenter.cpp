@@ -53,6 +53,11 @@ Presenter::Presenter(
 
   auto& model = layer;
 
+  con(model, &ProcessModel::durationChanged, this, [&] {
+    for (auto note : m_notes)
+      updateNote(*note);
+  }, Qt::QueuedConnection);
+
   con(model, &ProcessModel::notesChanged, this, [&] {
     for (auto note : m_notes)
     {
@@ -165,7 +170,7 @@ void Presenter::fillContextMenu(
 void Presenter::setWidth(qreal val, qreal defaultWidth)
 {
   m_view->setWidth(val);
-  m_view->setDefaultWidth(model().duration().toPixels(m_zr));
+  m_view->setDefaultWidth(defaultWidth);
   for (auto note : m_notes)
     updateNote(*note);
 }
@@ -270,7 +275,9 @@ void Presenter::updateNote(NoteView& v)
   const auto noteRect = v.computeRect();
   const auto newPos = noteRect.topLeft();
   if (newPos != v.pos())
+  {
     v.setPos(newPos);
+  }
 
   v.setWidth(noteRect.width());
   v.setHeight(noteRect.height());
