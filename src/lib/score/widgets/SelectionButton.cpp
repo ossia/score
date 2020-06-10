@@ -15,14 +15,16 @@ SelectionButton::SelectionButton(
     : QToolButton{parent}
     , m_dispatcher{disp}
 {
-  setText(text);
   auto icon = makeIcons(
+      QStringLiteral(":/icons/next_on.png"),
       QStringLiteral(":/icons/next_on.png"),
       QStringLiteral(":/icons/next_off.png"),
       QStringLiteral(":/icons/next_disabled.png"));
 
   setObjectName("SelectionButton");
+  setText(text);
   setIcon(icon);
+  setAutoRaise(true);
 
   connect(this, &QToolButton::clicked, this, [=]() { m_dispatcher.setAndCommit(target); });
 }

@@ -166,7 +166,7 @@ function(GenerateUnity targets)
 
   # C++ build line
   set(BUILD "${BUILD}\n")
-  set(BUILD "${BUILD}$CXX -flifetime-dse=1 -mrtm -Wfatal-errors -c unity.cpp -o unity.o -fPIC -std=c++1z \\\n")
+  set(BUILD "${BUILD}$CXX -mrtm -Wfatal-errors -c unity.cpp -o unity.o -fPIC -std=c++1z \\\n")
   foreach(include ${INCLUDES})
     set(BUILD "${BUILD} -I${include} \\\n")
   endforeach()

@@ -82,6 +82,7 @@ CableWidget::CableWidget(
     QString name = tr("Source");
     fillPortName(name, source);
     auto b = SelectionButton::make(name, &source, m_selectionDispatcher, this);
+    b->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     lay->addWidget(b);
   }
 
@@ -89,6 +90,7 @@ CableWidget::CableWidget(
     QString name = tr("Sink");
     fillPortName(name, sink);
     auto b = SelectionButton::make(name, &sink, m_selectionDispatcher, this);
+    b->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     lay->addWidget(b);
   }
 }
