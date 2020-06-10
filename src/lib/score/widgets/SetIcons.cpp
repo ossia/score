@@ -59,7 +59,10 @@ void setIcons(
     QPixmap disable = score::get_pixmap(iconDisable);
     icon.addPixmap(on, QIcon::Mode::Selected);
     if (enableHover)
+    {
       icon.addPixmap(on, QIcon::Mode::Active);
+      icon.addPixmap(on, QIcon::Mode::Active, QIcon::State::On);
+    }
     icon.addPixmap(on, QIcon::Mode::Normal, QIcon::State::On);
     icon.addPixmap(disable, QIcon::Mode::Disabled);
     icon.addPixmap(off, QIcon::Mode::Normal);
