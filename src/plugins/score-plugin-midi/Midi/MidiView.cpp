@@ -38,10 +38,9 @@ void View::heightChanged(qreal h)
   QPixmap bg(100 * dpi, h * dpi);
   bg.setDevicePixelRatio(dpi);
   bg.fill(Qt::transparent);
-  QPainter painter(&bg);
-  auto p = &painter;
+  QPainter p(&bg);
 
-  p->setRenderHint(QPainter::Antialiasing, false);
+  p.setRenderHint(QPainter::Antialiasing, false);
   //    1 3   6 8 10
   //   0 2 4 5 7 9  11
   const auto rect = boundingRect();
@@ -76,7 +75,7 @@ void View::heightChanged(qreal h)
       }
   };
 
-  p->setPen(Qt::NoPen);
+  p.setPen(Qt::NoPen);
 
   if (canEdit())
   {
@@ -92,8 +91,8 @@ void View::heightChanged(qreal h)
               = QRectF{0, rect.height() + note_height * (m_min - i - 1) - 1, width, note_height};
         };
         for_white_notes(draw_bg_white);
-        p->setBrush(style.lightBrush);
-        p->drawRects(white_rects, max_white);
+        p.setBrush(style.lightBrush);
+        p.drawRects(white_rects, max_white);
       }
 
       {
@@ -106,24 +105,36 @@ void View::heightChanged(qreal h)
               = QLineF{0, y, width, y};
         }
 
-        p->setPen(style.darkPen);
-        p->drawLines(lines, max_lines);
+        p.setPen(style.darkPen);
+        p.drawLines(lines, max_lines);
       }
 
       if (note_height > 10)
       {
+        QPixmap text(30 * dpi, h * dpi);
+        text.setDevicePixelRatio(dpi);
+        text.fill(Qt::transparent);
+        QPainter text_painter{&text};
         static constexpr const char* texts[]{
             "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
         const auto draw_text = [&](int i) {
-          p->drawText(
+          text_painter.drawText(
               QRectF{4., rect.height() + note_height * (m_min - i - 1) - 1, width, note_height},
               texts[i % 12],
               QTextOption{Qt::AlignVCenter});
         };
 
-        p->setPen(style.darkerBrush.color());
+        text_painter.setPen(style.darkerBrush.color());
         for_white_notes(draw_text);
         for_black_notes(draw_text);
+        m_textCache = std::move(text);
+      }
+      else
+      {
+        if(!m_textCache.isNull())
+        {
+          m_textCache = QPixmap{};
+        }
       }
     }
   }
@@ -165,7 +176,7 @@ void View::paint_impl(QPainter* p) const
       const double dpi = p->device()->devicePixelRatioF();
       const auto view_left = v->mapToScene(0, 0);
       const auto left = std::max(0., this->mapFromScene(view_left).x());
-      double x = left + 50.;
+      double x = left;
       const double text_w = 30. * dpi;
       const double next_w = m_bgCache.width() - text_w;
       const double proc_w = width();
@@ -174,19 +185,6 @@ void View::paint_impl(QPainter* p) const
       if (p->device()->devicePixelRatioF() == 1.)
       {
         m_fragmentCache.clear();
-        m_fragmentCache.push_back(QPainter::PixmapFragment{
-            left + 50.,
-            h,
-            0.,
-            0.,
-            (double)m_bgCache.width(),
-            (double)m_bgCache.height(),
-            1.,
-            1.,
-            0.,
-            1.});
-
-        x += m_bgCache.width() - text_w / 2.;
         while(x - next_w < proc_w)
         {
           m_fragmentCache.push_back(QPainter::PixmapFragment{
@@ -210,13 +208,16 @@ void View::paint_impl(QPainter* p) const
       }
       else
       {
-        p->drawPixmap(QPointF{0, 0}, m_bgCache);
-
         while(x - next_w < proc_w)
         {
           p->drawPixmap(QPointF{x, 0}, m_bgCache, QRectF{text_w, 0., next_w, (double)m_bgCache.height()});
           x += next_w / dpi;
         }
+      }
+
+      if(left < 30 && !m_textCache.isNull())
+      {
+        p->drawPixmap(QPointF{}, m_textCache);
       }
     }
   }

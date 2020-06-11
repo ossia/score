@@ -21,7 +21,7 @@ struct MidiStyle
     }
   }
 
-  const QBrush lightBrush{QColor{"#3085bcbd"}};
+  const QBrush lightBrush{QColor{"#303d4c57"}};
   const QBrush darkerBrush{QColor{"#B0B0B0"}};
   const QBrush transparentBrush{Qt::transparent};
   const QPen darkPen = [] {
@@ -38,7 +38,7 @@ struct MidiStyle
   }();
 
   const QBrush noteBaseBrush{QColor{"#ff9900"}};
-  const QPen noteSelectedBasePen{QColor{"#F6A019"}, 2};
+  const QPen noteSelectedBasePen{QColor{"#cc3000"}, 2};
   const QPen noteBasePen{QColor{"#e0b01e"}};
 
   QBrush paintedNoteBrush[128];

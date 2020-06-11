@@ -45,6 +45,7 @@ private:
   double m_defaultW; // Covers the [ 0; 1 ] area
   int m_min{0}, m_max{127};
 
+  QPixmap m_textCache;
   QPixmap m_bgCache;
 
   mutable std::vector<QPainter::PixmapFragment> m_fragmentCache;
