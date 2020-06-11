@@ -4,18 +4,22 @@
 
 #include <Midi/MidiStyle.hpp>
 #include <Midi/MidiView.hpp>
+#include <Midi/MidiPresenter.hpp>
 
 #include <QCursor>
 #include <QGraphicsSceneMouseEvent>
 #include <QGuiApplication>
 #include <QPainter>
-
-#include <wobjectimpl.h>
-W_OBJECT_IMPL(Midi::NoteView)
 namespace Midi
 {
 
-NoteView::NoteView(const Note& n, View* parent) : QGraphicsItem{parent}, note{n}
+NoteView::NoteView(const Note& n, Presenter& p, View* parent)
+  : QGraphicsItem{parent}
+  , note{n}
+  , m_presenter{p}
+  , m_scaling{false}
+  , m_velocityChange{false}
+  , m_duplicate{false}
 {
   this->setFlag(QGraphicsItem::ItemIsSelectable, true);
   this->setFlag(QGraphicsItem::ItemIsMovable, true);
@@ -147,7 +151,7 @@ static QPointF noteview_origpoint;
 void NoteView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   if (!(QGuiApplication::keyboardModifiers() & Qt::CTRL) && !isSelected())
-    deselectOtherNotes();
+    m_presenter.on_deselectOtherNotes();
   setSelected(true);
 
   m_velocityChange = false;
@@ -162,6 +166,10 @@ void NoteView::mousePressEvent(QGraphicsSceneMouseEvent* event)
     else if (qApp->keyboardModifiers() & Qt::ShiftModifier)
     {
       m_velocityChange = true;
+    }
+    else if (qApp->keyboardModifiers() & Qt::AltModifier)
+    {
+      m_duplicate = true;
     }
     else
     {
@@ -179,7 +187,7 @@ void NoteView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     if (m_velocityChange && qApp->keyboardModifiers() & Qt::ShiftModifier)
     {
       double distance = event->scenePos().y() - event->buttonDownScenePos(Qt::LeftButton).y();
-      requestVelocityChange(distance);
+      m_presenter.on_requestVelocityChange(note, distance);
     }
     else if (m_scaling)
     {
@@ -201,19 +209,19 @@ void NoteView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     if (m_velocityChange && qApp->keyboardModifiers() & Qt::ShiftModifier)
     {
       double distance = event->scenePos().y() - event->buttonDownScenePos(Qt::LeftButton).y();
-      requestVelocityChange(distance);
-      velocityChangeFinished();
+      m_presenter.on_requestVelocityChange(note, distance);
+      m_presenter.on_velocityChangeFinished();
     }
     else if (m_scaling)
     {
-      noteScaled(m_width / ((View*)parentItem())->defaultWidth());
+      m_presenter.on_noteScaled(note, m_width / ((View*)parentItem())->defaultWidth());
       event->accept();
     }
     else
     {
       this->setPos(closestPos(
           noteview_origpoint + event->scenePos() - event->buttonDownScenePos(Qt::LeftButton)));
-      noteChangeFinished();
+      m_presenter.on_noteChangeFinished(*this);
     }
   }
   m_velocityChange = false;

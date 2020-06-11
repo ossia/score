@@ -207,67 +207,75 @@ const Midi::ProcessModel& Presenter::model() const noexcept
   return static_cast<const Midi::ProcessModel&>(m_process);
 }
 
-void Presenter::setupNote(NoteView& v)
+void Presenter::on_deselectOtherNotes()
 {
-  con(v.note, &Note::noteChanged, &v, [&] { updateNote(v); });
+  for (NoteView* n : m_notes)
+    n->setSelected(false);
+}
 
-  con(v, &NoteView::deselectOtherNotes, this, [&] {
-    for (NoteView* n : m_notes)
-      n->setSelected(false);
-  });
-  con(v, &NoteView::noteChangeFinished, this, [&] {
-    const auto [min, max] = this->model().range();
-    auto newPos = v.pos();
-    auto rect = m_view->boundingRect();
-    auto height = rect.height();
+void Presenter::on_noteChanged(NoteView& v)
+{
+  updateNote(v);
+}
 
-    // Snap to grid : we round y to the closest multiple of 127
-    int note = ossia::clamp(
-        int(max
-            - (qMin(rect.bottom(), qMax(newPos.y(), rect.top())) / height)
-                  * this->m_view->visibleCount()),
-        min,
-        max);
+void Presenter::on_noteChangeFinished(NoteView& v)
+{
+  const auto [min, max] = this->model().range();
+  auto newPos = v.pos();
+  auto rect = m_view->boundingRect();
+  auto height = rect.height();
 
-    auto notes = selectedNotes();
-    auto it = ossia::find(notes, v.note.id());
-    if (it == notes.end())
-    {
-      notes = {v.note.id()};
-    }
+  // Snap to grid : we round y to the closest multiple of 127
+  int note = ossia::clamp(
+      int(max
+          - (qMin(rect.bottom(), qMax(newPos.y(), rect.top())) / height)
+                * this->m_view->visibleCount()),
+      min,
+      max);
 
-    m_moveDispatcher.submit(
-        model(),
-        notes,
-        note - v.note.pitch(),
-        newPos.x() / m_view->defaultWidth() - v.note.start());
-    m_moveDispatcher.commit();
-  });
+  auto notes = selectedNotes();
+  auto it = ossia::find(notes, v.note.id());
+  if (it == notes.end())
+  {
+    notes = {v.note.id()};
+  }
 
-  con(v, &NoteView::noteScaled, this, [&](double newScale) {
-    auto notes = selectedNotes();
-    auto it = ossia::find(notes, v.note.id());
-    if (it == notes.end())
-    {
-      notes = {v.note.id()};
-    }
+  m_moveDispatcher.submit(
+      model(),
+      notes,
+      note - v.note.pitch(),
+      newPos.x() / m_view->defaultWidth() - v.note.start());
+  m_moveDispatcher.commit();
+}
 
-    auto dt = newScale - v.note.duration();
-    CommandDispatcher<>{context().context.commandStack}.submit(new ScaleNotes{model(), notes, dt});
-  });
+void Presenter::on_noteScaled(const Note& note, double newScale)
+{
+  auto notes = selectedNotes();
+  auto it = ossia::find(notes, note.id());
+  if (it == notes.end())
+  {
+    notes = {note.id()};
+  }
 
-  con(v, &NoteView::requestVelocityChange, this, [&](double velocityDelta) {
-    auto notes = selectedNotes();
-    auto it = ossia::find(notes, v.note.id());
-    if (it == notes.end())
-    {
-      notes = {v.note.id()};
-    }
+  auto dt = newScale - note.duration();
+  CommandDispatcher<>{context().context.commandStack}.submit(new ScaleNotes{model(), notes, dt});
+}
 
-    m_velocityDispatcher.submit(model(), notes, velocityDelta / 5.);
-  });
+void Presenter::on_requestVelocityChange(const Note& note, double velocityDelta)
+{
+  auto notes = selectedNotes();
+  auto it = ossia::find(notes, note.id());
+  if (it == notes.end())
+  {
+    notes = {note.id()};
+  }
 
-  con(v, &NoteView::velocityChangeFinished, this, [&] { m_velocityDispatcher.commit(); });
+  m_velocityDispatcher.submit(model(), notes, velocityDelta / 5.);
+}
+
+void Presenter::on_velocityChangeFinished()
+{
+  m_velocityDispatcher.commit();
 }
 
 void Presenter::updateNote(NoteView& v)
@@ -285,8 +293,7 @@ void Presenter::updateNote(NoteView& v)
 
 void Presenter::on_noteAdded(const Note& n)
 {
-  auto v = new NoteView{n, m_view};
-  setupNote(*v);
+  auto v = new NoteView{n, *this, m_view};
   updateNote(*v);
   m_notes.push_back(v);
 }

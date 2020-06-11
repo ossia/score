@@ -34,8 +34,15 @@ public:
 
   const Midi::ProcessModel& model() const noexcept;
 
+  void on_deselectOtherNotes();
+  void on_noteChanged(NoteView& v);
+  void on_noteChangeFinished(NoteView& v);
+  void on_noteScaled(const Note& note, double newScale);
+  void on_requestVelocityChange(const Note& note, double velocityDelta);
+  void on_velocityChangeFinished();
+
+
 private:
-  void setupNote(NoteView&);
   void updateNote(NoteView&);
   void on_noteAdded(const Note&);
   void on_noteRemoving(const Note&);
