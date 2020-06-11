@@ -37,11 +37,11 @@ void View::heightChanged(qreal h)
   const double dpi = qApp->devicePixelRatio();
   QPixmap bg(100 * dpi, h * dpi);
   bg.setDevicePixelRatio(dpi);
+  bg.fill(Qt::transparent);
   QPainter painter(&bg);
   auto p = &painter;
 
   p->setRenderHint(QPainter::Antialiasing, false);
-  p->setPen(style.darkPen);
   //    1 3   6 8 10
   //   0 2 4 5 7 9  11
   const auto rect = boundingRect();
@@ -76,9 +76,7 @@ void View::heightChanged(qreal h)
       }
   };
 
-  p->setPen(style.darkerBrush.color());
-  p->setBrush(style.darkerBrush);
-  p->setPen(style.darkPen);
+  p->setPen(Qt::NoPen);
 
   if (canEdit())
   {
@@ -99,16 +97,17 @@ void View::heightChanged(qreal h)
       }
 
       {
-        QRectF* black_rects = (QRectF*)alloca((sizeof(QRectF) * visibleCount()));
-        int max_black = 0;
-        const auto draw_bg_black = [&](int i) {
-          black_rects[max_black++]
-              = QRectF{0, rect.height() + note_height * (m_min - i - 1) - 1, width, note_height};
-        };
-        for_black_notes(draw_bg_black);
+        QLineF* lines = (QLineF*)alloca((sizeof(QLineF) * visibleCount()));
+        int max_lines = 0;
+        for (int i = m_min; i <= m_max; i++)
+        {
+          const float y = rect.height() + note_height * (m_min - i - 1) - 1;
+          lines[max_lines++]
+              = QLineF{0, y, width, y};
+        }
 
-        p->setBrush(style.darkBrush);
-        p->drawRects(black_rects, max_black);
+        p->setPen(style.darkPen);
+        p->drawLines(lines, max_lines);
       }
 
       if (note_height > 10)
@@ -117,7 +116,7 @@ void View::heightChanged(qreal h)
             "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
         const auto draw_text = [&](int i) {
           p->drawText(
-              QRectF{2., rect.height() + note_height * (m_min - i - 1) - 1, width, note_height},
+              QRectF{4., rect.height() + note_height * (m_min - i - 1) - 1, width, note_height},
               texts[i % 12],
               QTextOption{Qt::AlignVCenter});
         };
@@ -207,8 +206,7 @@ void View::paint_impl(QPainter* p) const
         p->drawPixmapFragments(
             m_fragmentCache.data(),
             m_fragmentCache.size(),
-            m_bgCache,
-            QPainter::PixmapFragmentHint::OpaqueHint);
+            m_bgCache);
       }
       else
       {

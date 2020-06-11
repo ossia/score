@@ -8,26 +8,26 @@ struct MidiStyle
 {
   MidiStyle()
   {
-    for (std::size_t i = 0; i < std::size(paintedNotePen); i++)
+    auto baseOrange = noteBaseBrush.color();
+    float hue = baseOrange.hslHueF();
+    float saturation = baseOrange.hslSaturationF();
+    float lightness = baseOrange.lightnessF();
+    for (std::size_t i = 0; i < std::size(paintedNoteBrush); i++)
     {
-      auto orange = noteBaseBrush.color();
-      orange.setHslF(orange.hslHueF() - 0.02, 1., 0.25 + (127. - i) / 256.);
-      paintedNotePen[i].setColor(orange);
-      paintedNotePen[i].setWidth(2);
-      paintedNotePen[i].setStyle(Qt::DashLine);
-      paintedNotePen[i].setCapStyle(Qt::SquareCap);
-      paintedNotePen[i].setJoinStyle(Qt::BevelJoin);
-      paintedNotePen[i].setCosmetic(true);
+      auto orange = baseOrange;
+      orange.setHslF(hue, 0.2 + 1.5 *  i / 256., lightness);
+      paintedNoteBrush[i].setColor(orange);
+      paintedNoteBrush[i].setStyle(Qt::SolidPattern);
     }
   }
 
-  const QBrush lightBrush = QColor::fromRgb(200, 200, 200);
-  const QBrush darkBrush = QColor::fromRgb(170, 170, 170);
-  const QBrush darkerBrush = QColor::fromRgb(70, 70, 70);
+  const QBrush lightBrush{QColor{"#3085bcbd"}};
+  const QBrush darkerBrush{QColor{"#B0B0B0"}};
   const QBrush transparentBrush{Qt::transparent};
   const QPen darkPen = [] {
-    QPen p = QColor::fromRgb(150, 150, 150);
+    QPen p{QColor{"#604C4C4C"}};
     p.setCosmetic(true);
+    p.setWidthF(1);
     return p;
   }();
 
@@ -37,14 +37,10 @@ struct MidiStyle
     return pen;
   }();
 
-  const QBrush noteBaseBrush{QColor::fromRgb(200, 120, 20)};
-  const QBrush noteSelectedBaseBrush{QColor::fromRgb(200, 120, 20).darker()};
-  const QPen noteBasePen = [] {
-    QPen p{QColor::fromRgb(200, 120, 20).darker()};
-    // p.setWidthF(0.8);
-    return p;
-  }();
+  const QBrush noteBaseBrush{QColor{"#ff9900"}};
+  const QPen noteSelectedBasePen{QColor{"#F6A019"}, 2};
+  const QPen noteBasePen{QColor{"#e0b01e"}};
 
-  QPen paintedNotePen[128];
+  QBrush paintedNoteBrush[128];
 };
 }

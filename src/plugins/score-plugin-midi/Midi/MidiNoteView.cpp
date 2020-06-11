@@ -29,21 +29,17 @@ void NoteView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
 
   painter->setRenderHint(QPainter::Antialiasing, false);
 
-  painter->setBrush(this->isSelected() ? s.noteSelectedBaseBrush : s.noteBaseBrush);
-  painter->setPen(s.noteBasePen);
   if (m_width <= 1.2)
   {
+    painter->setPen(this->isSelected() ? s.noteSelectedBasePen : s.noteBasePen);
     painter->drawLine(0, 0, 0, m_height - 1.5);
   }
   else
   {
-    painter->drawRect(boundingRect().adjusted(0., 0., 0., -1.5));
+    painter->setPen(this->isSelected() ? s.noteSelectedBasePen : Qt::NoPen);
+    painter->setBrush(s.paintedNoteBrush[note.velocity()]);
 
-    if (m_height > 8 && m_width > 4)
-    {
-      painter->setPen(s.paintedNotePen[note.velocity()]);
-      painter->drawLine(QPointF{2., m_height / 2.}, QPointF{m_width - 2., m_height / 2.});
-    }
+    painter->drawRect(boundingRect().adjusted(0., 0., 0., 0));
   }
 }
 
@@ -121,7 +117,15 @@ void NoteView::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
   }
   else
   {
-    this->setCursor(Qt::ArrowCursor);
+    if(qApp->keyboardModifiers() == Qt::ShiftModifier)
+    {
+      auto& skin = score::Skin::instance();
+      this->setCursor(skin.CursorSpin);
+    }
+    else
+    {
+      this->setCursor(Qt::ArrowCursor);
+    }
   }
 
   QGraphicsItem::hoverMoveEvent(event);
