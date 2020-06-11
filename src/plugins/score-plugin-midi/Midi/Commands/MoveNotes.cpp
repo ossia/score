@@ -39,6 +39,7 @@ void MoveNotes::undo(const score::DocumentContext& ctx) const
     n.setStart(note.second.start());
     n.setPitch(note.second.pitch());
   }
+  model.notesNeedUpdate();
 }
 
 void MoveNotes::redo(const score::DocumentContext& ctx) const
@@ -50,18 +51,16 @@ void MoveNotes::redo(const score::DocumentContext& ctx) const
     n.setStart(note.second.start());
     n.setPitch(note.second.pitch());
   }
+  model.notesNeedUpdate();
 }
 
 void MoveNotes::update(unused_t, unused_t, int note_delta, double t_delta)
 {
-  m_after.clear();
-  m_after.reserve(m_before.size());
-  for (auto& elt : m_before)
+  for(int i = 0, N = m_before.size(); i < N; i++)
   {
-    NoteData data = elt.second;
-    data.setPitch(qBound(0, data.pitch() + note_delta, 127));
-    data.setStart(std::max(data.start() + t_delta, 0.));
-    m_after.push_back({elt.first, std::move(data)});
+    auto& data = m_before[i].second;
+    m_after[i].second.setPitch(qBound(0, data.pitch() + note_delta, 127));
+    m_after[i].second.setStart(std::max(data.start() + t_delta, 0.));
   }
 }
 

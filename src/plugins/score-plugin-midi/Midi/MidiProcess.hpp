@@ -47,6 +47,7 @@ public:
   using Process::ProcessModel::setDuration;
 
 public:
+  void notesNeedUpdate() W_SIGNAL(notesNeedUpdate);
   void notesChanged() W_SIGNAL(notesChanged);
   void channelChanged(int arg_1) W_SIGNAL(channelChanged, arg_1);
 

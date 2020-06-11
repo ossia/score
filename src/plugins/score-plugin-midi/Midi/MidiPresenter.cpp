@@ -57,6 +57,10 @@ Presenter::Presenter(
     for (auto note : m_notes)
       updateNote(*note);
   }, Qt::QueuedConnection);
+  con(model, &ProcessModel::notesNeedUpdate, this, [&] {
+    for (auto note : m_notes)
+      updateNote(*note);
+  });
 
   con(model, &ProcessModel::notesChanged, this, [&] {
     for (auto note : m_notes)
@@ -215,11 +219,12 @@ void Presenter::on_deselectOtherNotes()
 
 void Presenter::on_noteChanged(NoteView& v)
 {
-  updateNote(v);
-}
+  if(!m_origMovePitch)
+  {
+    m_origMovePitch = v.note.pitch();
+    m_origMoveStart = v.note.start();
+  }
 
-void Presenter::on_noteChangeFinished(NoteView& v)
-{
   const auto [min, max] = this->model().range();
   auto newPos = v.pos();
   auto rect = m_view->boundingRect();
@@ -243,9 +248,17 @@ void Presenter::on_noteChangeFinished(NoteView& v)
   m_moveDispatcher.submit(
       model(),
       notes,
-      note - v.note.pitch(),
-      newPos.x() / m_view->defaultWidth() - v.note.start());
+      note - *m_origMovePitch,
+      newPos.x() / m_view->defaultWidth() - *m_origMoveStart);
+}
+
+void Presenter::on_noteChangeFinished(NoteView& v)
+{
+  on_noteChanged(v);
   m_moveDispatcher.commit();
+
+  m_origMovePitch = std::nullopt;
+  m_origMoveStart = std::nullopt;
 }
 
 void Presenter::on_noteScaled(const Note& note, double newScale)
@@ -271,6 +284,19 @@ void Presenter::on_requestVelocityChange(const Note& note, double velocityDelta)
   }
 
   m_velocityDispatcher.submit(model(), notes, velocityDelta / 5.);
+}
+
+void Presenter::on_duplicate()
+{/*
+  auto notes = selectedNotes();
+  auto it = ossia::find(notes, note.id());
+  if (it == notes.end())
+  {
+    notes = {note.id()};
+  }
+
+  m_velocityDispatcher.submit(model(), notes, velocityDelta / 5.);
+  */
 }
 
 void Presenter::on_velocityChangeFinished()

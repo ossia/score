@@ -35,6 +35,7 @@ public:
   const Midi::ProcessModel& model() const noexcept;
 
   void on_deselectOtherNotes();
+  void on_duplicate();
   void on_noteChanged(NoteView& v);
   void on_noteChangeFinished(NoteView& v);
   void on_noteScaled(const Note& note, double newScale);
@@ -55,6 +56,10 @@ private:
 
   SingleOngoingCommandDispatcher<MoveNotes> m_moveDispatcher;
   SingleOngoingCommandDispatcher<ChangeNotesVelocity> m_velocityDispatcher;
+
+  std::optional<int> m_origMovePitch{};
+  std::optional<double> m_origMoveStart{};
+
   ZoomRatio m_zr{};
   void fillContextMenu(
       QMenu& menu,

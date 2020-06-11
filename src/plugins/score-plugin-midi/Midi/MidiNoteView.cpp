@@ -189,6 +189,11 @@ void NoteView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
       double distance = event->scenePos().y() - event->buttonDownScenePos(Qt::LeftButton).y();
       m_presenter.on_requestVelocityChange(note, distance);
     }
+    if (m_duplicate && qApp->keyboardModifiers() & Qt::AltModifier)
+    {
+      //double distance = event->scenePos().y() - event->buttonDownScenePos(Qt::LeftButton).y();
+      m_presenter.on_duplicate();
+    }
     else if (m_scaling)
     {
       this->setWidth(std::max(2., event->pos().x()));
@@ -197,6 +202,7 @@ void NoteView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     {
       this->setPos(closestPos(
           noteview_origpoint + event->scenePos() - event->buttonDownScenePos(Qt::LeftButton)));
+       m_presenter.on_noteChanged(*this);
     }
     event->accept();
   }
