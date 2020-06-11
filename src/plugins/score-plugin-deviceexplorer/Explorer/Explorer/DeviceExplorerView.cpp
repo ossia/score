@@ -41,6 +41,7 @@ DeviceExplorerView::DeviceExplorerView(QWidget* parent) : QTreeView(parent), m_h
 
   setSelectionBehavior(QAbstractItemView::SelectRows);
   setSelectionMode(QAbstractItemView::ExtendedSelection);
+  setAlternatingRowColors(true);
 
   header()->setContextMenuPolicy(Qt::CustomContextMenu);
   connect(
