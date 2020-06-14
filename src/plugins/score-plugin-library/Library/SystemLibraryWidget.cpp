@@ -79,6 +79,7 @@ SystemLibraryWidget::SystemLibraryWidget(const score::GUIApplicationContext& ctx
     }
   });
   m_tv.setAcceptDrops(true);
+  m_tv.setSelectionMode(QAbstractItemView::SelectionMode::ExtendedSelection);
 
   QTimer::singleShot(1000, [this, il, &ctx] {
     auto& settings = ctx.settings<Library::Settings::Model>();

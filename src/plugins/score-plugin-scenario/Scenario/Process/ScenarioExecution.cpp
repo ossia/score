@@ -374,16 +374,14 @@ StateComponent* ScenarioComponentBase::make<StateComponent, Scenario::StateModel
     const Id<score::Component>& id,
     Scenario::StateModel& st)
 {
-  auto elt = std::make_shared<StateComponent>(st, m_ctx, id, this);
-
   auto& events = m_ossia_timeevents;
-
   SCORE_ASSERT(events.find(st.eventId()) != events.end());
   auto ossia_ev = events.at(st.eventId());
 
-  m_ctx.executionQueue.enqueue([elt, ev = ossia_ev] {
-    if (auto e = ev->OSSIAEvent())
-      elt->onSetup(e);
+  auto elt = std::make_shared<StateComponent>(st, ossia_ev->OSSIAEvent(), m_ctx, id, this);
+
+  m_ctx.executionQueue.enqueue([elt] {
+    elt->onSetup();
   });
 
   m_ossia_states.insert({st.id(), elt});

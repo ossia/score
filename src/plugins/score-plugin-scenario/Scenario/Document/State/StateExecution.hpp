@@ -33,6 +33,7 @@ public:
   using component_factory_list_t = ProcessComponentFactoryList;
   StateComponentBase(
       const Scenario::StateModel& element,
+      std::shared_ptr<ossia::time_event> ev,
       const Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent);
@@ -98,6 +99,7 @@ public:
   StateComponent(Args&&... args)
       : PolymorphicComponentHierarchyManager{score::lazy_init_t{}, std::forward<Args>(args)...}
   {
+    init();
   }
 
   StateComponent(const StateComponent&) = delete;
@@ -107,7 +109,7 @@ public:
   ~StateComponent();
 
   //! To be called from the API edition queue
-  void onSetup(const std::shared_ptr<ossia::time_event>& root);
+  void onSetup();
 
   void init();
   void cleanup(const std::shared_ptr<StateComponent>&);

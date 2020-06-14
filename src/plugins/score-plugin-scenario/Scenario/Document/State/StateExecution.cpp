@@ -43,14 +43,18 @@ toOssiaControls(const SetupContext& ctx, const Scenario::StateModel& state)
 }
 StateComponentBase::StateComponentBase(
     const Scenario::StateModel& element,
+    std::shared_ptr<ossia::time_event> ev,
     const Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
     : Execution::Component{ctx, id, "Executor::State", nullptr}
     , m_model{&element}
+    , m_ev{std::move(ev)}
     , m_node{std::make_shared<ossia::nodes::state_writer>(
           Engine::score_to_ossia::state(element, ctx))}
 {
+  system().setup.register_node({}, {}, m_node);
+
   connect(&element, &Scenario::StateModel::sig_statesUpdated, this, [this, &ctx] {
     in_exec([n = m_node, x = Engine::score_to_ossia::state(*m_model, ctx)]() mutable {
       n->data = std::move(x);
@@ -164,13 +168,9 @@ StateComponentBase::removing(const Process::ProcessModel& e, ProcessComponent& c
 
 StateComponent::~StateComponent() { }
 
-void StateComponent::onSetup(const std::shared_ptr<ossia::time_event>& root)
+void StateComponent::onSetup()
 {
-  m_ev = root;
   m_ev->add_time_process(std::make_shared<ossia::node_process>(m_node));
-  system().setup.register_node({}, {}, m_node);
-
-  init();
 }
 
 void StateComponent::init()

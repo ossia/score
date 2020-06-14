@@ -78,9 +78,9 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
       element.endEvent(), m_ctx, newId(element.endEvent()), this);
 
   m_ossia_startState = std::make_shared<StateComponent>(
-      element.startState(), m_ctx, newId(element.startState()), this);
+      element.startState(), main_start_event, m_ctx, newId(element.startState()), this);
   m_ossia_endState = std::make_shared<StateComponent>(
-      element.endState(), m_ctx, newId(element.endState()), this);
+      element.endState(), main_end_event, m_ctx, newId(element.endState()), this);
 
   m_ossia_interval = std::make_shared<IntervalComponent>(
       element.interval(), m_ctx, newId(element.interval()), this);
@@ -95,8 +95,8 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
       main_end_event,
       m_ossia_endEvent->makeExpression(),
       (ossia::time_event::offset_behavior)element.endEvent().offsetBehavior());
-  m_ossia_startState->onSetup(main_start_event);
-  m_ossia_endState->onSetup(main_end_event);
+  m_ossia_startState->onSetup();
+  m_ossia_endState->onSetup();
   m_ossia_interval->onSetup(m_ossia_interval, main_interval, m_ossia_interval->makeDurations());
 
   for (auto dev : m_ctx.execState->edit_devices())

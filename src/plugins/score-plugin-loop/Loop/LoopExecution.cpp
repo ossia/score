@@ -101,9 +101,9 @@ Component::Component(
       element.endEvent(), system(), score::newId(element.endEvent()), this);
 
   m_ossia_startState = std::make_shared<StateComponent>(
-      element.startState(), system(), score::newId(element.startState()), this);
+      element.startState(), main_start_event, system(), score::newId(element.startState()), this);
   m_ossia_endState = std::make_shared<StateComponent>(
-      element.endState(), system(), score::newId(element.endState()), this);
+      element.endState(), main_end_event, system(), score::newId(element.endState()), this);
 
   m_ossia_interval = std::make_shared<IntervalRawPtrComponent>(
       element.interval(), system(), score::newId(element.interval()), this);
@@ -118,8 +118,8 @@ Component::Component(
       main_end_event,
       m_ossia_endEvent->makeExpression(),
       (ossia::time_event::offset_behavior)element.endEvent().offsetBehavior());
-  m_ossia_startState->onSetup(main_start_event);
-  m_ossia_endState->onSetup(main_end_event);
+  m_ossia_startState->onSetup();
+  m_ossia_endState->onSetup();
   m_ossia_interval->onSetup(
       m_ossia_interval, &loop->get_time_interval(), m_ossia_interval->makeDurations());
 
