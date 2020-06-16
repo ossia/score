@@ -9,9 +9,8 @@ struct MidiStyle
   MidiStyle()
   {
     auto baseOrange = noteBaseBrush.color();
-    float hue = baseOrange.hslHueF();
-    float saturation = baseOrange.hslSaturationF();
-    float lightness = baseOrange.lightnessF();
+    const double hue = baseOrange.hslHueF();
+    const double lightness = baseOrange.lightnessF();
     for (std::size_t i = 0; i < std::size(paintedNoteBrush); i++)
     {
       auto orange = baseOrange;
