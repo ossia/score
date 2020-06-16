@@ -44,7 +44,7 @@ set(SRCS
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS} ${QRCS})
 
-target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_scenario score_plugin_loop score_plugin_js Qt5::WebSockets)
+target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_scenario score_plugin_js Qt5::WebSockets)
 
 setup_score_plugin(${PROJECT_NAME})
 

@@ -248,8 +248,8 @@ add_library(${PROJECT_NAME}
 
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS};${FAUST_HDRS};${LV2_HDRS};${VST_HDRS}")
 target_link_libraries(${PROJECT_NAME} PUBLIC
-                     Qt5::Core Qt5::Widgets # Qt5::Concurrent
-                     score_lib_base score_plugin_loop score_plugin_engine score_plugin_library score_plugin_audio score_plugin_dataflow
+                     Qt5::Core Qt5::Widgets
+                     score_lib_base score_plugin_engine score_plugin_library score_plugin_audio score_plugin_dataflow
 )
 
 ### FFMPEG ###

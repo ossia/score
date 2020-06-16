@@ -80,7 +80,7 @@ target_link_libraries(${PROJECT_NAME}
           Qt5::Core Qt5::Widgets
           score_lib_base score_lib_device score_lib_process
           score_plugin_library score_plugin_deviceexplorer
-          score_plugin_scenario score_plugin_loop
+          score_plugin_scenario
           score_plugin_audio
           ossia
 )

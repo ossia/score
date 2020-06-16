@@ -4,7 +4,6 @@
 #include <Explorer/Commands/Add/AddDevice.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <JS/Commands/ScriptMacro.hpp>
-#include <Loop/LoopProcessModel.hpp>
 #include <Protocols/OSC/OSCProtocolFactory.hpp>
 #include <Protocols/OSC/OSCSpecificSettings.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
@@ -106,27 +105,6 @@ public:
     m.commit();
   }
   W_SLOT(automate)
-
-  void putInLoop(QObject* interval)
-  {
-    auto itv = qobject_cast<Scenario::IntervalModel*>(interval);
-    if (!itv)
-      return;
-    Scenario::Command::Macro m{new ScriptMacro, ctx()};
-
-    auto& loop = m.createProcessInSlot<Loop::ProcessModel>(*itv, {}, {});
-    for (auto proc : shallow_copy(itv->processes))
-    {
-      if (proc != &loop)
-      {
-        m.moveProcess(*itv, loop.intervals()[0], proc->id());
-      }
-    }
-    // TODO copy slots so that the processes are in the correct order
-
-    m.commit();
-  }
-  W_SLOT(putInLoop)
 
   void undo() { ctx().document.commandStack().undo(); }
   W_SLOT(undo)

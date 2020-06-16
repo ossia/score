@@ -6,7 +6,6 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/Settings/ExplorerModel.hpp>
-#include <Loop/LoopProcessModel.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <Process/Style/Pixmaps.hpp>
 #include <Process/TimeValue.hpp>
@@ -624,19 +623,6 @@ void ApplicationPlugin::on_stop()
         {
           ev.setStatus(Scenario::ExecutionStatus::Editing, *e);
         }
-      }
-
-      auto loops = doc->findChildren<Loop::ProcessModel*>();
-      for (Loop::ProcessModel* lp : loops)
-      {
-        lp->interval().reset();
-        lp->interval().executionFinished();
-        lp->startEvent().setStatus(Scenario::ExecutionStatus::Editing, *lp);
-        lp->endEvent().setStatus(Scenario::ExecutionStatus::Editing, *lp);
-        lp->startState().setStatus(Scenario::ExecutionStatus::Editing);
-        lp->endState().setStatus(Scenario::ExecutionStatus::Editing);
-        lp->startTimeSync().setWaiting(false);
-        lp->endTimeSync().setWaiting(false);
       }
     });
   }

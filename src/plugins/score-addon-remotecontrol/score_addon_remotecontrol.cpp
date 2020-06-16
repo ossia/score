@@ -3,7 +3,6 @@
 #include <score/plugins/FactorySetup.hpp>
 
 #include <RemoteControl/ApplicationPlugin.hpp>
-#include <RemoteControl/Scenario/Loop.hpp>
 #include <RemoteControl/Scenario/Scenario.hpp>
 #include <RemoteControl/Settings/Factory.hpp>
 #include <score_plugin_deviceexplorer.hpp>
@@ -32,8 +31,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_addon_remotecontrol::fa
       score::ApplicationContext,
       FW<score::SettingsDelegateFactory, RemoteControl::Settings::Factory>,
       FW<RemoteControl::ProcessComponentFactory,
-         RemoteControl::ScenarioComponentFactory,
-         RemoteControl::LoopComponentFactory>>(ctx, key);
+         RemoteControl::ScenarioComponentFactory>>(ctx, key);
 }
 
 auto score_addon_remotecontrol::required() const -> std::vector<score::PluginKey>

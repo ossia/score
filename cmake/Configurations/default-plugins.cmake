@@ -17,8 +17,6 @@ score-plugin-mapping
 score-plugin-automation
 score-plugin-scenario
 
-score-plugin-loop
-
 score-plugin-protocols
 
 score-plugin-audio

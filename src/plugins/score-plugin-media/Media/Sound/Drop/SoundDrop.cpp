@@ -1,6 +1,5 @@
 #include "SoundDrop.hpp"
 
-#include <Loop/LoopProcessModel.hpp>
 #include <Media/AudioDecoder.hpp>
 #include <Media/Commands/ChangeAudioFile.hpp>
 #include <Media/Sound/SoundModel.hpp>
