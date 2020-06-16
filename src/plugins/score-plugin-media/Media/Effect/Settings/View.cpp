@@ -28,7 +28,6 @@ View::View()
 
 #if defined(HAS_VST2)
   auto splitter = new QSplitter(Qt::Vertical);
-  splitter->setCollapsible(0,false);
   lay->addRow(splitter);
 
   auto vstPathWidget = new QWidget;

@@ -84,18 +84,40 @@ private:
     {
       ip = m_serv.get(instance, "servus_ip");
     }
+
+#if defined(_WIN32)
+    if(!ip.empty() && ip.back() == '.')
+      ip.pop_back();
+#endif
+
     std::string port = m_serv.get(instance, "servus_port");
     bool websockets = m_serv.get(instance, "WebSockets") == "true"sv;
 
+    try
     {
       asio::io_service io_service;
+
       asio::ip::tcp::resolver resolver(io_service);
-      asio::ip::tcp::resolver::query query(ip, port);
-      asio::ip::tcp::resolver::iterator iter = resolver.resolve(query);
-      if (iter->endpoint().address().is_loopback())
+      asio::ip::tcp::resolver::iterator iter = resolver.resolve(asio::ip::tcp::v4(), ip, port,
+                                                                asio::ip::resolver_base::numeric_service
+                                                                );
+
+      asio::ip::tcp::resolver::iterator end;
+      while(iter != end)
       {
-        ip = "localhost";
+        if (iter->endpoint().address().is_loopback())
+        {
+          ip = "localhost";
+          break;
+        }
+        else
+        {
+          ip = iter->endpoint().address().to_string();
+          ++iter;
+        }
       }
+    }
+    catch(...) {
     }
 
     {
@@ -105,9 +127,10 @@ private:
           .arg(QString::fromStdString(ip))
           .arg(QString::fromStdString(port));
 
+
       QNetworkRequest qreq{QUrl(req)};
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
-      qreq.setTransferTimeout(2000);
+      qreq.setTransferTimeout(1000);
 #endif
       auto ret = m_http.get(qreq);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
