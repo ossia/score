@@ -152,7 +152,7 @@ View::View()
     m_skin = new QComboBox;
     m_skin->addItem("Default", ":/skin/DefaultSkin.json");
 
-    auto skinPath = score::AppContext().settings<Library::Settings::Model>().getPath() + "/Skins/";
+    const QString skinPath = score::AppContext().settings<Library::Settings::Model>().getPath() + "/Skins/";
     QDir skinDir(skinPath, "*.json");
     auto skinList = skinDir.entryList();
     for(const auto& skin: skinList)
