@@ -152,7 +152,6 @@ private:
   NodalIntervalView* m_nodal{};
 
   QAction* m_timelineAction{};
-  QAction* m_nodalAction{};
   void switchMode(bool nodal);
   void removeDisplayedIntervalPresenter();
   void recenterNodal();

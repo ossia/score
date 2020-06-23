@@ -217,10 +217,10 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     toolbars.emplace_back(
         ui_toolbar, StringKey<score::Toolbar>("UISetup"), Qt::BottomToolBarArea, 10);
 
-    auto actgrp = new QActionGroup{ui_toolbar};
     {
-      auto timeline_act = new QAction{tr("Timeline interval"), actgrp};
+      auto timeline_act = new QAction{tr("Timeline interval"), ui_toolbar};
       timeline_act->setCheckable(true);
+      timeline_act->setChecked(false);
       timeline_act->setStatusTip(tr("Change between nodal and timeline mode"));
       setIcons(
           timeline_act,
@@ -229,23 +229,28 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
           QStringLiteral(":/icons/timeline_off.png"),
           QStringLiteral(":/icons/timeline_disabled.png"));
 
+      connect(timeline_act, &QAction::toggled,
+              this, [=] (bool checked) {
+         if(checked)
+         {
+           setIcons(
+               timeline_act,
+               QStringLiteral(":/icons/timeline_on.png"),
+               QStringLiteral(":/icons/timeline_hover.png"),
+               QStringLiteral(":/icons/timeline_on.png"),
+               QStringLiteral(":/icons/timeline_disabled.png"));
+         }
+         else
+         {
+           setIcons(
+               timeline_act,
+               QStringLiteral(":/icons/nodal_on.png"),
+               QStringLiteral(":/icons/nodal_hover.png"),
+               QStringLiteral(":/icons/nodal_on.png"),
+               QStringLiteral(":/icons/nodal_disabled.png"));
+         }
+      });
       ui_toolbar->addAction(timeline_act);
-      actgrp->addAction(timeline_act);
-    }
-
-    {
-      auto nodal_act = new QAction{tr("Nodal interval"), actgrp};
-      nodal_act->setCheckable(true);
-      nodal_act->setStatusTip(tr("Change between nodal and timeline mode"));
-      setIcons(
-          nodal_act,
-          QStringLiteral(":/icons/nodal_on.png"),
-          QStringLiteral(":/icons/nodal_hover.png"),
-          QStringLiteral(":/icons/nodal_off.png"),
-          QStringLiteral(":/icons/nodal_disabled.png"));
-
-      ui_toolbar->addAction(nodal_act);
-      actgrp->addAction(nodal_act);
     }
 
     {

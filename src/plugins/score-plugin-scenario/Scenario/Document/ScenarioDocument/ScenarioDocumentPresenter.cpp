@@ -222,11 +222,9 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
     auto actions = tb->second.toolbar()->actions();
 
     m_timelineAction = actions[0];
-    m_nodalAction = actions[1];
 
-    auto grp = qobject_cast<QActionGroup*>(m_timelineAction->parent());
-    connect(grp, &QActionGroup::triggered, this, [=](QAction* act) {
-      const bool nodal = act != m_timelineAction;
+    connect(m_timelineAction, &QAction::toggled, this, [=](bool b) {
+      const bool nodal = !b;
       if (nodal && !m_nodal)
         switchMode(true);
       else if (!nodal && m_nodal)
@@ -741,17 +739,15 @@ void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel& interval)
 
   // Setup of the nodal stuff
   {
-    if (m_timelineAction && m_nodalAction)
+    if (m_timelineAction)
     {
       switch (interval.viewMode())
       {
         case Scenario::IntervalModel::Temporal:
           m_timelineAction->setChecked(true);
-          m_nodalAction->setChecked(false);
           break;
         case Scenario::IntervalModel::Nodal:
           m_timelineAction->setChecked(false);
-          m_nodalAction->setChecked(true);
           break;
       }
     }
