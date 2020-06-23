@@ -517,6 +517,8 @@ void ScenarioComponentBase::startIntervalExecution(const Id<Scenario::IntervalMo
   auto it = m_ossia_intervals.find(id);
   if (it != m_ossia_intervals.end())
     it->second->executionStarted();
+
+  cst.setExecutionState(Scenario::IntervalExecutionState::Enabled);
 }
 
 void ScenarioComponentBase::disableIntervalExecution(const Id<Scenario::IntervalModel>& id)
