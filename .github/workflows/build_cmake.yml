@@ -1,0 +1,57 @@
+name: Build
+
+on: [push]
+
+jobs:
+  build:
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+#         - {
+#             name: "Windows (Clang)",
+#             artifact: "build/score-*-Windows.zip",
+#             os: windows-latest,
+#             build_type: "Release",
+#             cxx: "../llvm-mingw/bin/clang++.exe"
+#           }
+        - {
+            name: "Windows (MSVC)",
+            artifact: "build/score-*-Windows.zip",
+            os: windows-latest,
+            build_type: "Release"
+          }
+    steps:
+    - uses: actions/checkout@v2
+    - name: deps
+      run:  |
+        git submodule update --init --recursive
+        
+        python -m pip install --upgrade pip
+        python -m pip install aqtinstall
+        python -m aqt install --outputdir c:\Qt 5.15.0 windows desktop win64_msvc2019_64
+
+        cmake -P 'cmake/download-llvm.cmake'
+        #cmake -E tar x llvm.zip
+        cmake -E tar x ninja.zip
+        echo "::add-path::$PWD"
+        #echo "::add-path::$PWD/llvm-mingw/bin"
+        choco install ninja
+      shell: bash
+
+    - name: configure
+      env:
+        CXXFLAGS: ${{ matrix.config.cxxflags }}
+        CXX: ${{ matrix.config.cxx }}
+      run: |
+        mkdir build && cd build
+        cmake -GNinja -DCMAKE_PREFIX_PATH="C:/hostedtoolcache/windows/Boost/1.72.0;c:/Qt/5.15.0/msvc2019_64" ..
+      shell: bash
+
+    - name: make
+      run: cd build && cmake --build .
+
+    - name: deploy
+      run: cd build && cmake --build . --target package
