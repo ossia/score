@@ -34,6 +34,7 @@ export SOURCE_DIR=$PWD/score
     cd build
     cmake $SOURCE_DIR \
       -DSCORE_CONFIGURATION=static-release \
+      -DCMAKE_UNITY_BUILD=1 \
       -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT \
       -DCMAKE_PREFIX_PATH="$(dirname $(find /usr/local -name 'Qt5Config.cmake'))" \
       -DBOOST_ROOT=$BOOST_ROOT \
@@ -41,7 +42,7 @@ export SOURCE_DIR=$PWD/score
       -DOSSIA_USE_FAST_LINKER=1
 
 
-    cmake --build . --target all_unity -- -j$NPROC
+    cmake --build . -- -j$NPROC
     cmake --build . --target install
 )
 

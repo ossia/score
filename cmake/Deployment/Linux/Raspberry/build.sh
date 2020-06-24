@@ -26,6 +26,7 @@ cd /image/build
 cmake ../score \
 	-DSCORE_CONFIGURATION=static-release \
 	-DCMAKE_INSTALL_PREFIX=/opt/score \
+	-DCMAKE_BUILD_UNITY=1 \
 	-DDEPLOYMENT_BUILD=1 \
 	-DCMAKE_PREFIX_PATH=/usr/local/Qt-5.13.0 \
 	-DCMAKE_AR=/usr/local/bin/arm-linux-gnueabihf-gcc-ar-9 \
@@ -33,7 +34,7 @@ cmake ../score \
 	-DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=gold" \
 	-DCMAKE_SYSTEM_PROCESSOR=arm
 
-make all_unity -j8
+make -j8
 make install
 )
 

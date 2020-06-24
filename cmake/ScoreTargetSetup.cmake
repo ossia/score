@@ -23,6 +23,7 @@ function(score_pch TheTarget)
   endif()
 
   target_precompile_headers("${TheTarget}" REUSE_FROM score_lib_pch)
+  target_compile_definitions("${TheTarget}" PRIVATE SCORE_LIB_PCH_EXPORTS)
 endfunction()
 
 ### Call at the beginning of a plug-in cmakelists ###
