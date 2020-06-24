@@ -1,13 +1,11 @@
-language: cpp
+language: shell
 
 cache:
   directories:
   - $HOME/travis-cache
 
 osx_image: xcode11.3
-language: minimal
 dist: bionic
-sudo: required
 services:
   - docker
 
@@ -22,7 +20,7 @@ env:
    - COVERITY_SCAN_BUILD_URL="https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh"
    - COVERITY_SCAN_BUILD="curl -s $COVERITY_SCAN_BUILD_URL | bash"
 
-matrix:
+jobs:
   exclude:
     - os: linux
     - os: osx
@@ -73,7 +71,7 @@ deploy:
     api_key:
       secure: "hk56wIhJMippWajLTGtO44szXtBCzhCNHAET9fKZ7dXcfEVG22YHuUDMo1ROn6ZhthB5m8SLgctuTf4GtuvGxhdQzjeBSsvYCs6QAAUtMjBb4/lafcBZfr3Amf5TT8MfznGESQDMGjMUjnwQlUoWCVE0XoqNq6DbFlyoZPpscSE="
     file: build/Score-$TRAVIS_TAG-macOS.zip
-    skip_cleanup: true
+    cleanup: true
     on:
       tags: true
       condition: $CAN_DEPLOY = True && $TRAVIS_OS_NAME = osx
@@ -81,7 +79,7 @@ deploy:
     api_key:
       secure: "hk56wIhJMippWajLTGtO44szXtBCzhCNHAET9fKZ7dXcfEVG22YHuUDMo1ROn6ZhthB5m8SLgctuTf4GtuvGxhdQzjeBSsvYCs6QAAUtMjBb4/lafcBZfr3Amf5TT8MfznGESQDMGjMUjnwQlUoWCVE0XoqNq6DbFlyoZPpscSE="
     file: build/Score-$TRAVIS_TAG-amd64.AppImage
-    skip_cleanup: true
+    cleanup: true
     on:
       tags: true
       condition: $CAN_DEPLOY = True && $TRAVIS_OS_NAME = linux
@@ -89,7 +87,7 @@ deploy:
     api_key:
       secure: "hk56wIhJMippWajLTGtO44szXtBCzhCNHAET9fKZ7dXcfEVG22YHuUDMo1ROn6ZhthB5m8SLgctuTf4GtuvGxhdQzjeBSsvYCs6QAAUtMjBb4/lafcBZfr3Amf5TT8MfznGESQDMGjMUjnwQlUoWCVE0XoqNq6DbFlyoZPpscSE="
     file: build/Score-$TRAVIS_TAG-src.tar.xz
-    skip_cleanup: true
+    cleanup: true
     on:
       tags: true
       condition: $CAN_DEPLOY = True && $CONF = tarball
