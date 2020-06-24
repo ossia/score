@@ -18,7 +18,7 @@ case "$TRAVIS_OS_NAME" in
     sudo apt-get update -qq
     sudo apt-get install wget software-properties-common
 
-    wget -nv https://github.com/Kitware/CMake/releases/download/v3.16.4/cmake-3.16.4-Linux-x86_64.tar.gz -O cmake-linux.tgz &
+    wget -nv https://github.com/Kitware/CMake/releases/download/v3.17.3/cmake-3.17.3-Linux-x86_64.tar.gz -O cmake-linux.tgz &
     echo 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-9 main' | sudo tee /etc/apt/sources.list.d/llvm.list
     sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 1397BC53640DB551
     sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 15CF4D18AF4F7421
