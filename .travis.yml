@@ -21,10 +21,6 @@ env:
    - COVERITY_SCAN_BUILD="curl -s $COVERITY_SCAN_BUILD_URL | bash"
 
 jobs:
-  exclude:
-    - os: linux
-    - os: osx
-
   include:
 # disabled due to out of memory errors...
 #    - os: linux
