@@ -144,7 +144,8 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
     auto& tr = view().timeRuler();
     con(tr, &TimeRuler::drag, this, &ScenarioDocumentPresenter::on_timeRulerScrollEvent);
 
-    tr.setZoomRatio(m_zoomRatio);
+    if (m_zoomRatio > 0)
+      tr.setZoomRatio(m_zoomRatio);
     tr.setWidth(view().viewWidth());
     if (auto p = m_scenarioPresenter.intervalPresenter())
       tr.setGrid(p->grid());
