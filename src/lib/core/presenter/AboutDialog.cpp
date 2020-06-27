@@ -148,6 +148,7 @@ AboutDialog::AboutDialog(QWidget* parent)
   //! recent commit - see score/src/lib/CMakeLists.txt at the end
   map["phantomstyle"] = License{"https://github.com/randrew/phantomstyle", phantomstyle_LICENSE};
   map["hsluvc"] = License{"", hsluv_LICENSE};
+  map["VST"] = License{"https://steinberg.net", "VST is a trademark of Steinberg Media Technologies GmbH, registered in Europe and other countries."};
 
   // software list
   auto softwareList = new QListWidget{this};
