@@ -91,9 +91,9 @@ void View::paint_impl(QPainter* p) const
     p->fillRect(boundingRect(), score::Skin::instance().Background2.main.brush);
   }
 
-  if (m_lit)
+  if (m_lit && *m_lit > 0)
   {
-    int idx = *m_lit;
+    int idx = std::min((int)m_effects.size(), *m_lit);
     double w = 2.5;
     for (int i = 0; i < idx; i++)
     {
