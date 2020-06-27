@@ -231,6 +231,8 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
       else if (!nodal && m_nodal)
         switchMode(false);
     });
+
+    m_musicalAction = actions[1];
   }
 
   setDisplayedInterval(model().baseInterval());
@@ -433,6 +435,7 @@ bool ScenarioDocumentPresenter::isNodal() const noexcept
 {
   return !m_timelineAction->isChecked();
 }
+
 static bool window_size_set = false;
 void ScenarioDocumentPresenter::on_windowSizeChanged(QSize sz)
 {
@@ -752,9 +755,14 @@ void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel& interval)
           break;
       }
     }
+    switchMode(interval.viewMode() == IntervalModel::ViewMode::Nodal);
   }
 
-  switchMode(interval.viewMode() == IntervalModel::ViewMode::Nodal);
+  // Setup of the musical stuff
+  if (m_musicalAction)
+  {
+    m_musicalAction->setChecked(interval.hasTimeSignature());
+  }
 }
 
 void ScenarioDocumentPresenter::removeDisplayedIntervalPresenter()
