@@ -22,6 +22,7 @@ inline bool operator==(const DeviceSettings& lhs, const DeviceSettings& rhs)
 }
 }
 
-JSON_METADATA(Device::DeviceSettings, "DeviceSettings")
+// See note in AddressSettings.hpp for Address / Device
+JSON_METADATA(Device::DeviceSettings, "Device")
 Q_DECLARE_METATYPE(Device::DeviceSettings)
 W_REGISTER_ARGTYPE(Device::DeviceSettings)

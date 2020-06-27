@@ -159,7 +159,10 @@ struct SCORE_LIB_DEVICE_EXPORT FullAddressAccessorSettings
 };
 }
 
-JSON_METADATA(Device::AddressSettings, "AddressSettings")
+// Important: keep in sync with strings.Address / strings.Device in score::Strings
+// as it is used with a manual switch in DeviceNodeSerialization and with the variant-based
+// switch in DeviceDocumentPluginSerialization (the node.impl() case).
+JSON_METADATA(Device::AddressSettings, "Address")
 Q_DECLARE_METATYPE(Device::AddressSettings)
 Q_DECLARE_METATYPE(Device::FullAddressSettings)
 Q_DECLARE_METATYPE(Device::FullAddressAccessorSettings)
