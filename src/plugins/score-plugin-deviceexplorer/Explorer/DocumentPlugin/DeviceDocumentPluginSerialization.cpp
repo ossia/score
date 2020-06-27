@@ -21,7 +21,7 @@ void JSONReader::read(const Explorer::DeviceDocumentPlugin& plug)
   // Childrens of the root node are the devices
   // We don't save their children if they don't have canSerialize().
 
-  // TODO WTF
+  // Used to read the "InvisibleRootNode" content
   this->stream.Key("RootNode");
   this->stream.StartObject();
   this->stream.EndObject();
