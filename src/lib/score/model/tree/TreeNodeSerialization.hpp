@@ -42,22 +42,30 @@ struct TSerializer<JSONObject, TreeNode<T>>
   static void readFrom(JSONObject::Serializer& s, const TreeNode<T>& n)
   {
     s.stream.StartObject();
+
     s.readFrom(static_cast<const T&>(n));
-    s.obj[s.strings.Children] = n.children();
+
+    if(n.childCount() > 0)
+      s.obj[s.strings.Children] = n.children();
+
     s.stream.EndObject();
   }
 
   static void writeTo(JSONObject::Deserializer& s, TreeNode<T>& n)
   {
     s.writeTo(static_cast<T&>(n));
-    const auto& children = s.obj[s.strings.Children].toArray();
-    for (const auto& val : children)
+    auto it = s.obj.constFind(s.strings.Children);
+    if (it != s.obj.constEnd())
     {
-      TreeNode<T> child;
-      JSONObject::Deserializer nodeWriter(val);
+      const auto& children = it->toArray();
+      for (const auto& val : children)
+      {
+        TreeNode<T> child;
+        JSONObject::Deserializer nodeWriter(val);
 
-      nodeWriter.writeTo(child);
-      n.push_back(std::move(child));
+        nodeWriter.writeTo(child);
+        n.push_back(std::move(child));
+      }
     }
   }
 };
