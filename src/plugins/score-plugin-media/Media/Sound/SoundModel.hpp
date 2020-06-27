@@ -92,6 +92,7 @@ public:
       W_Final)
 
 private:
+  void loadFile(const QString& str);
   void init();
 
   std::shared_ptr<AudioFile> m_file;

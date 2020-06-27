@@ -57,15 +57,21 @@ ProcessModel::ProcessModel(
 
 ProcessModel::~ProcessModel() { }
 
+
+void ProcessModel::loadFile(const QString& file)
+{
+  m_file->on_mediaChanged.disconnect<&ProcessModel::on_mediaChanged>(*this);
+
+  m_file = AudioFileManager::instance().get(file, score::IDocument::documentContext(*this));
+
+  m_file->on_mediaChanged.connect<&ProcessModel::on_mediaChanged>(*this);
+}
+
 void ProcessModel::setFile(const QString& file)
 {
   if (file != m_file->originalFile())
   {
-    m_file->on_mediaChanged.disconnect<&ProcessModel::on_mediaChanged>(*this);
-
-    m_file = AudioFileManager::instance().get(file, score::IDocument::documentContext(*this));
-
-    m_file->on_mediaChanged.connect<&ProcessModel::on_mediaChanged>(*this);
+    loadFile(file);
 
     if (auto tempo = estimateTempo(*m_file))
     {
@@ -185,7 +191,7 @@ void DataStreamWriter::write(Media::Sound::ProcessModel& proc)
 {
   QString s;
   m_stream >> s;
-  proc.setFile(s);
+  proc.loadFile(s);
   proc.outlet = load_audio_outlet(*this, &proc);
 
   m_stream >> proc.m_upmixChannels >> proc.m_startChannel >> proc.m_mode >> proc.m_nativeTempo;
@@ -206,7 +212,7 @@ void JSONReader::read(const Media::Sound::ProcessModel& proc)
 template <>
 void JSONWriter::write(Media::Sound::ProcessModel& proc)
 {
-  proc.setFile(obj["File"].toString());
+  proc.loadFile(obj["File"].toString());
   JSONWriter writer{obj["Outlet"]};
   proc.outlet = Process::load_audio_outlet(writer, &proc);
   proc.m_upmixChannels = obj["Upmix"].toInt();
