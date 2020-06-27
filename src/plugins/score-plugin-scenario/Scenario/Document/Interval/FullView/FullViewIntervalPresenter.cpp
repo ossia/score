@@ -584,7 +584,7 @@ FullViewIntervalPresenter::magneticPosition(const QObject* o, const TimeVal t) c
   } while(!cur_model && o);
   auto [model, timeDelta] = closestParentWithMusicalMetrics(&m_model);
 
-  if (!o)
+  if (!o || !model)
     return scenarioT;
 
   // Find leftmost signature
