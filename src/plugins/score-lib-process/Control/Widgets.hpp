@@ -407,7 +407,7 @@ struct EnumBase : ossia::safe_nodes::control_in, WidgetFactory::Enum
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
     return new Process::Enum{
-        ossia::flat_set<std::string>(values.begin(), values.end()),
+        std::vector<std::string>(values.begin(), values.end()),
         pixmaps[0] == nullptr ? std::vector<QString>{}
                               : std::vector<QString>{pixmaps.begin(), pixmaps.end()},
         values[init],

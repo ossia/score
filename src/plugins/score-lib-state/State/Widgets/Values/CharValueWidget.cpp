@@ -65,7 +65,7 @@ CharValueSetDialog::set_type CharValueSetDialog::values()
   {
     auto val = widg->value();
     char v = val.v.get<char>();
-    t.insert(v);
+    t.push_back(v);
   }
   return t;
 }

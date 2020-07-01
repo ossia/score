@@ -239,7 +239,7 @@ struct TSerializer<DataStream, ossia::domain_base<T>>
       {
         typename domain_t::value_type v;
         s.stream() >> v;
-        domain.values.insert(v);
+        domain.values.push_back(v);
       }
     }
 
@@ -272,7 +272,7 @@ struct TSerializer<DataStream, ossia::domain_base<std::string>>
       {
         std::string v;
         s.stream() >> v;
-        domain.values.insert(v);
+        domain.values.push_back(v);
       }
     }
 

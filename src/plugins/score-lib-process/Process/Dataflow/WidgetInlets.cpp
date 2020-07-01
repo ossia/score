@@ -10,7 +10,7 @@ Enum::Enum(DataStream::Deserializer& vis, QObject* parent) : ControlInlet{vis, p
   vis.writeTo(*this);
 }
 Enum::Enum(
-    const ossia::flat_set<std::string>& dom,
+    const std::vector<std::string>& dom,
     std::vector<QString> pixmaps,
     std::string init,
     const QString& name,
@@ -40,7 +40,7 @@ Enum::Enum(
   setValue(init);
   ossia::domain_base<std::string> dom;
   for (auto& val : values)
-    dom.values.insert(val.toStdString());
+    dom.values.push_back(val.toStdString());
   setDomain(State::Domain{dom});
   setCustomData(name);
 }

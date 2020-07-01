@@ -42,7 +42,7 @@ template <typename T>
 class NumericValueSetDialog final : public QDialog
 {
 public:
-  using set_type = ossia::flat_set<T>;
+  using set_type = std::vector<T>;
   NumericValueSetDialog(QWidget* parent) : QDialog{parent}
   {
     auto lay = new score::MarginLess<QVBoxLayout>{this};
@@ -66,7 +66,7 @@ public:
     set_type t;
     for (auto widg : m_widgs)
     {
-      t.insert(widg->value().template get<T>());
+      t.push_back(widg->value().template get<T>());
     }
     return t;
   }
@@ -124,7 +124,7 @@ class NumericDomainWidget final : public QWidget
 {
 public:
   using domain_type = ossia::domain_base<T>;
-  using set_type = ossia::flat_set<T>;
+  using set_type = std::vector<T>;
 
   NumericDomainWidget(QWidget* parent) : QWidget{parent}
   {

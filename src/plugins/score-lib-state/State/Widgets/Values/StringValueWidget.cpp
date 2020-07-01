@@ -54,7 +54,7 @@ StringValueSetDialog::set_type StringValueSetDialog::values()
   set_type t;
   for (StringValueWidget* widg : m_widgs)
   {
-    t.insert(widg->value().v.get<std::string>());
+    t.push_back(widg->value().v.get<std::string>());
   }
   return t;
 }

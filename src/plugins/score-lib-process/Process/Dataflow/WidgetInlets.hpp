@@ -229,7 +229,7 @@ struct SCORE_LIB_PROCESS_EXPORT Enum : public Process::ControlInlet
   std::vector<QString> values;
   std::vector<QString> pixmaps;
   Enum(
-      const ossia::flat_set<std::string>& dom,
+      const std::vector<std::string>& dom,
       std::vector<QString> pixmaps,
       std::string init,
       const QString& name,

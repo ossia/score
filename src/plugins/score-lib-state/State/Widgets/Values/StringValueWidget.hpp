@@ -26,7 +26,7 @@ private:
 class SCORE_LIB_STATE_EXPORT StringValueSetDialog final : public QDialog
 {
 public:
-  using set_type = ossia::flat_set<std::string>;
+  using set_type = std::vector<std::string>;
   StringValueSetDialog(QWidget* parent);
 
   set_type values();
