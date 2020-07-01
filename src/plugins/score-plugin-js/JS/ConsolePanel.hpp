@@ -176,7 +176,7 @@ public:
     auto lay = new QVBoxLayout;
     m_widget->setLayout(lay);
     m_edit = new QPlainTextEdit{m_widget};
-    m_edit->setTextInteractionFlags(Qt::TextBrowserInteraction);
+    m_edit->setTextInteractionFlags(Qt::TextEditorInteraction);
 
     lay->addWidget(m_edit, 1);
     m_lineEdit = new QLineEdit{m_widget};
@@ -198,13 +198,13 @@ public:
 
   void evaluate(const QString& txt)
   {
-    m_edit->appendPlainText(">> " + txt);
+    m_edit->appendPlainText("> " + txt);
     auto res = m_engine.evaluate(txt);
     if (res.isError())
     {
       m_edit->appendPlainText("ERROR: " + res.toString() + "\n");
     }
-    else
+    else if(!res.isUndefined())
     {
       m_edit->appendPlainText(res.toString() + "\n");
     }

@@ -235,7 +235,9 @@ Script* ComponentCache::get(ProcessModel& process, const QByteArray& str, bool i
     {
       const auto& err = errs.first();
       qDebug() << err.line() << err.toString();
-      process.errorMessage(err.line(), err.toString());
+      auto str = err.toString();
+      str.remove("<Unknown File>:");
+      process.errorMessage(err.line(), str);
       return nullptr;
     }
 
