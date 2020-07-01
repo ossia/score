@@ -1,7 +1,7 @@
 #pragma once
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
-
+#include <Protocols/OSC/OSCSpecificSettings.hpp>
 #include <verdigris>
 
 class QLineEdit;

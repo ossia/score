@@ -31,6 +31,8 @@
 #include <QJsonArray>
 #include <QDir>
 
+#include <wobjectimpl.h>
+
 namespace Scenario
 {
 namespace Settings

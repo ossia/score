@@ -16,6 +16,7 @@
 #include <ossia/detail/config.hpp>
 
 #include <ossia-qt/js_utilities.hpp>
+#include <ossia-qt/invoke.hpp>
 #include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/logger.hpp>
 #include <ossia/network/base/protocol.hpp>
@@ -234,7 +235,7 @@ struct mapper_parameter final : wrapped_parameter<mapper_parameter_data>, Nano::
 {
 public:
   using wrapped_parameter<mapper_parameter_data>::wrapped_parameter;
-  ~mapper_parameter()
+  ~mapper_parameter() override
   {
     for (auto& n : callbacks)
     {
@@ -242,6 +243,8 @@ public:
       if (auto p = n.first->get_parameter())
         p->remove_callback(n.second);
     }
+
+    callback_container<value_callback>::callbacks_clear();
   }
 
   void connect(ossia::net::parameter_base& s, mapper_protocol& proto);
@@ -276,8 +279,6 @@ public:
   mapper_protocol(const QByteArray& code, Device::DeviceList& roots)
       : m_code{code}, m_devices{roots}, m_roots{m_devices.roots()}
   {
-    this->moveToThread(&m_thread);
-    m_thread.start();
     m_engine = new QQmlEngine{this};
     m_component = new QQmlComponent{m_engine};
 
@@ -319,6 +320,9 @@ public:
           return;
       }
     });
+
+    this->moveToThread(&m_thread);
+    m_thread.start();
   }
 
   ~mapper_protocol() override
@@ -456,7 +460,7 @@ private:
   void set_device(device_base& dev) override
   {
     m_device = &dev;
-    m_component->setData(m_code, QUrl{});
+    ossia::qt::run_async(this, [this] { m_component->setData(m_code, QUrl{}); });
   }
 
 private:

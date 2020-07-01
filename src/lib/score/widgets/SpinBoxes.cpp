@@ -1,6 +1,7 @@
 #include "SpinBoxes.hpp"
 
 #include <score/tools/Cursor.hpp>
+#include <score/model/Skin.hpp>
 
 #include <ossia/detail/flicks.hpp>
 #include <ossia/detail/algorithms.hpp>
