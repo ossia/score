@@ -2,6 +2,7 @@
 
 #include <Explorer/Commands/Add/AddAddress.hpp>
 #include <Explorer/Commands/Add/AddDevice.hpp>
+#include <Explorer/Commands/Add/LoadDevice.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <JS/Commands/ScriptMacro.hpp>
 #include <Protocols/OSC/OSCProtocolFactory.hpp>
@@ -57,7 +58,7 @@ public:
     set.protocol = Protocols::OSCProtocolFactory::static_concreteKey();
 
     Scenario::Command::Macro m{new ScriptMacro, ctx()};
-    m.submit(new Explorer::Command::AddDevice{plug, std::move(set)});
+    m.submit(new Explorer::Command::LoadDevice{plug, std::move(set)});
     m.commit();
   }
   W_SLOT(createOSCDevice)

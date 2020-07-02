@@ -1,11 +1,11 @@
 #pragma once
 
+#include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <score_plugin_deviceexplorer_export.h>
 
 #include <QDialog>
 #include <QList>
-
-#include <score_plugin_deviceexplorer_export.h>
 
 #include <verdigris>
 
@@ -34,6 +34,7 @@ public:
   ~DeviceEditDialog();
 
   Device::DeviceSettings getSettings() const;
+  Device::Node getDevice() const;
 
   void setSettings(const Device::DeviceSettings& settings);
 

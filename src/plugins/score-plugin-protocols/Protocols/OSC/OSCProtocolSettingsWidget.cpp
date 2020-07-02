@@ -5,6 +5,8 @@
 #include "OSCProtocolFactory.hpp"
 #include "OSCSpecificSettings.hpp"
 
+#include <Device/Loading/JamomaDeviceLoader.hpp>
+#include <Device/Loading/ScoreDeviceLoader.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <Protocols/RateWidget.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
@@ -60,11 +62,12 @@ Device::DeviceSettings OSCProtocolSettingsWidget::getSettings() const
   s.name = m_deviceNameEdit->text();
   s.protocol = OSCProtocolFactory::static_concreteKey();
 
-  OSCSpecificSettings osc;
+  OSCSpecificSettings osc = m_settings;
   osc.host = m_localHostEdit->text();
   osc.inputPort = m_portInputSBox->value();
   osc.outputPort = m_portOutputSBox->value();
   osc.rate = m_rate->rate();
+  osc.jsonToLoad.clear();
 
   // TODO list.append(m_namespaceFilePathEdit->text());
   s.deviceSpecificSettings = QVariant::fromValue(osc);
@@ -72,17 +75,32 @@ Device::DeviceSettings OSCProtocolSettingsWidget::getSettings() const
   return s;
 }
 
+Device::Node OSCProtocolSettingsWidget::getDevice() const
+{
+  auto set = getSettings();
+  Device::Node n{set, nullptr};
+
+  const auto& json = m_settings.jsonToLoad;
+  if (json.isEmpty())
+    return n;
+
+  // This is normal, we just check what we can instantiate.
+  Device::loadDeviceFromScoreJSON(readJson(json), n);
+
+  return n;
+}
+
 void OSCProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 {
   m_deviceNameEdit->setText(settings.name);
-  OSCSpecificSettings osc;
+
   if (settings.deviceSpecificSettings.canConvert<OSCSpecificSettings>())
   {
-    osc = settings.deviceSpecificSettings.value<OSCSpecificSettings>();
-    m_portInputSBox->setValue(osc.inputPort);
-    m_portOutputSBox->setValue(osc.outputPort);
-    m_localHostEdit->setText(osc.host);
-    m_rate->setRate(osc.rate);
+    m_settings = settings.deviceSpecificSettings.value<OSCSpecificSettings>();
+    m_portInputSBox->setValue(m_settings.inputPort);
+    m_portOutputSBox->setValue(m_settings.outputPort);
+    m_localHostEdit->setText(m_settings.host);
+    m_rate->setRate(m_settings.rate);
   }
 }
 }

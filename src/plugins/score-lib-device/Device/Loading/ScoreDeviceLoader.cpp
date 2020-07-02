@@ -20,28 +20,30 @@
 namespace Device
 {
 
-bool loadDeviceFromScoreJSON(const QString& filePath, Device::Node& node)
-{
-  QFile doc{filePath};
-  if (!doc.open(QIODevice::ReadOnly))
-  {
-    qDebug() << "Erreur : Impossible d'ouvrir le ficher Device";
-    doc.close();
-    return false;
-  }
 
-  auto json = readJson(doc.readAll());
+bool loadDeviceFromScoreJSON(const rapidjson::Document& json, Node& node)
+{
   if (!json.IsObject())
   {
-    qDebug() << "Erreur : Impossible de charger le ficher Device";
-    doc.close();
+    qDebug() << "Unable to parse the OSC device file";
     return false;
   }
-
-  doc.close();
 
   JSONObject::Deserializer des{json};
   des.writeTo(node);
   return true;
 }
+
+bool loadDeviceFromScoreJSON(const QString& filePath, Device::Node& node)
+{
+  QFile doc{filePath};
+  if (!doc.open(QIODevice::ReadOnly))
+  {
+    qDebug() << "Unable to load the OSC device" << filePath;
+    return false;
+  }
+
+  return loadDeviceFromScoreJSON(readJson(doc.readAll()), node);
+}
+
 }

@@ -102,6 +102,19 @@ void DeviceDocumentPlugin::asyncConnect(Device::DeviceInterface& newdev)
     newdev.reconnect();
   }
 }
+/** The following code handles device creation / loading.
+ *
+ * There are multiple cases:
+ * - Adding a new device:
+ *   - Creating a device that won't have anything set-up (Default OSC device)
+ *   - Creating a device with a pre-existing node (loading an OSC device through a device file)
+ *   - Creating a device that needs refreshing (OSCQuery, Minuit, MIDI...)
+ * - Loading a save file:
+ *   - Same cases than above. When refreshing however the previous node is kept
+ *     in case we want to work without e.g. a device available
+ *   -> what happens for not found MIDI devices
+ *   -> what happens for not found OSCQuery devices
+ */
 
 Device::Node DeviceDocumentPlugin::createDeviceFromNode(const Device::Node& node)
 {
@@ -142,7 +155,8 @@ Device::Node DeviceDocumentPlugin::createDeviceFromNode(const Device::Node& node
   return node;
 }
 
-std::optional<Device::Node> DeviceDocumentPlugin::loadDeviceFromNode(const Device::Node& node)
+std::optional<Device::Node> DeviceDocumentPlugin::loadDeviceFromNode(
+      const Device::Node& node)
 {
   try
   {
@@ -151,6 +165,9 @@ std::optional<Device::Node> DeviceDocumentPlugin::loadDeviceFromNode(const Devic
     auto proto = fact.get(node.get<Device::DeviceSettings>().protocol);
     Device::DeviceInterface* newdev
         = proto->makeDevice(node.get<Device::DeviceSettings>(), context());
+
+    if (!newdev)
+      throw std::runtime_error("Null device");
 
     initDevice(*newdev);
 

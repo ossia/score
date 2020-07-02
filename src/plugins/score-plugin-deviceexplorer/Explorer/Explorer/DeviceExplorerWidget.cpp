@@ -873,7 +873,8 @@ void DeviceExplorerWidget::addDevice()
   if (code == QDialog::Accepted)
   {
     SCORE_ASSERT(model());
-    auto deviceSettings = m_deviceDialog->getSettings();
+    auto node = m_deviceDialog->getDevice();
+    auto& deviceSettings = *node.target<Device::DeviceSettings>();
     if (!model()->checkDeviceInstantiatable(deviceSettings))
     {
       if (!model()->tryDeviceInstantiation(deviceSettings, *m_deviceDialog))
@@ -888,7 +889,7 @@ void DeviceExplorerWidget::addDevice()
     blockGUI(true);
 
     auto& devplug = model()->deviceModel();
-    m_cmdDispatcher->submit(new Command::AddDevice{devplug, deviceSettings});
+    m_cmdDispatcher->submit(new Command::LoadDevice{devplug, std::move(node)});
 
     blockGUI(false);
   }

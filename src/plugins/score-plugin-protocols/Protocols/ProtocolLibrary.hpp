@@ -185,7 +185,7 @@ class QMLLibraryHandler final : public Library::LibraryInterface
       ossia::net::sanitize_device_name(deviceSettings.name);
 
       CommandDispatcher<>{ctx.commandStack}.submit(
-          new Explorer::Command::AddDevice{devplug, deviceSettings});
+          new Explorer::Command::LoadDevice{devplug, deviceSettings});
     }
     return true;
   }

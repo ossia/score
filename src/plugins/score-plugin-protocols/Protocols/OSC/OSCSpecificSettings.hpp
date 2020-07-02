@@ -13,6 +13,10 @@ struct OSCSpecificSettings
   int outputPort{};
   QString host;
   std::optional<int> rate{};
+
+  // Note: this one is not saved, it is only used
+  // to allow loading a .json file as an OSC device
+  QByteArray jsonToLoad;
 };
 }
 Q_DECLARE_METATYPE(Protocols::OSCSpecificSettings)

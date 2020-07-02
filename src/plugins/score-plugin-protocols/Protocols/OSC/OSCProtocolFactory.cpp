@@ -34,18 +34,14 @@ QString OSCProtocolFactory::category() const noexcept
 
 Device::DeviceEnumerator* OSCProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
-  return nullptr;
-  // TODO !
-  /*
   return new LibraryDeviceEnumerator{
     "9a42de4b-f6eb-4bca-9564-01b975f601b9",
     "json",
     OSCProtocolFactory::static_concreteKey(),
         [] (const QByteArray& arr) {
-      return QVariant{};//QVariant::fromValue(OSCSpecificSettings{{}, arr});
+      return QVariant::fromValue(OSCSpecificSettings{9996, 9997, "127.0.0.1", std::nullopt, arr});
     },
     ctx};
-  */
 }
 
 Device::DeviceInterface* OSCProtocolFactory::makeDevice(

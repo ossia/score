@@ -25,9 +25,9 @@ namespace Explorer
 {
 NodeUpdateProxy::NodeUpdateProxy(DeviceDocumentPlugin& root) : devModel{root} { }
 
-void NodeUpdateProxy::addDevice(const Device::DeviceSettings& dev)
+void NodeUpdateProxy::addDevice(const Device::Node& node)
 {
-  devModel.explorer().addDevice(devModel.createDeviceFromNode(Device::Node(dev, nullptr)));
+  devModel.explorer().addDevice(devModel.createDeviceFromNode(node));
 }
 
 void NodeUpdateProxy::loadDevice(const Device::Node& node)

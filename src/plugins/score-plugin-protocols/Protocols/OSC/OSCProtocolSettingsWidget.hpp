@@ -17,6 +17,7 @@ public:
   OSCProtocolSettingsWidget(QWidget* parent = nullptr);
 
   Device::DeviceSettings getSettings() const override;
+  Device::Node getDevice() const override;
   void setSettings(const Device::DeviceSettings& settings) override;
 
 private:
@@ -26,5 +27,6 @@ private:
   QSpinBox* m_portInputSBox{};
   QLineEdit* m_localHostEdit{};
   RateWidget* m_rate{};
+  OSCSpecificSettings m_settings;
 };
 }

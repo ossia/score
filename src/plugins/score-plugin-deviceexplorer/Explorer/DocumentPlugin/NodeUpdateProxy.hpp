@@ -46,7 +46,7 @@ public:
   NodeUpdateProxy& operator=(const NodeUpdateProxy&) = delete;
   NodeUpdateProxy& operator=(NodeUpdateProxy&&) = delete;
 
-  void addDevice(const Device::DeviceSettings& dev);
+  void addDevice(const Device::Node& node);
   void loadDevice(const Device::Node& node);
 
   void updateDevice(const QString& name, const Device::DeviceSettings& dev);

@@ -6,4 +6,10 @@ namespace Device
 {
 ProtocolSettingsWidget::~ProtocolSettingsWidget() = default;
 AddressDialog::~AddressDialog() = default;
+
+Device::Node ProtocolSettingsWidget::getDevice() const
+{
+  return Device::Node{getSettings(), nullptr};
+}
+
 }

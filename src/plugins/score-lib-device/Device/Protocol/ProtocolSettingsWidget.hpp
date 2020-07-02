@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Device/Address/AddressSettings.hpp>
+#include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 
 #include <QDialog>
@@ -10,13 +11,14 @@
 
 namespace Device
 {
-class SCORE_LIB_DEVICE_EXPORT ProtocolSettingsWidget : public QWidget
+class SCORE_LIB_DEVICE_EXPORT ProtocolSettingsWidget
+    : public QWidget
 {
 public:
-  explicit ProtocolSettingsWidget(QWidget* parent = nullptr) : QWidget(parent) { }
-
+  using QWidget::QWidget;
   virtual ~ProtocolSettingsWidget();
   virtual Device::DeviceSettings getSettings() const = 0;
+  virtual Device::Node getDevice() const;
   virtual void setSettings(const Device::DeviceSettings& settings) = 0;
 };
 

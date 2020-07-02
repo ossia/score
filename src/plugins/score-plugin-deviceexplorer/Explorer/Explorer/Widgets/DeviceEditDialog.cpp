@@ -265,6 +265,14 @@ Device::DeviceSettings DeviceEditDialog::getSettings() const
   return {};
 }
 
+Device::Node DeviceEditDialog::getDevice() const
+{
+  if (m_protocolWidget)
+    return m_protocolWidget->getDevice();
+
+  return {};
+}
+
 void DeviceEditDialog::setSettings(const Device::DeviceSettings& settings)
 {
   for(int i = 0; i < m_protocols->topLevelItemCount(); i++)

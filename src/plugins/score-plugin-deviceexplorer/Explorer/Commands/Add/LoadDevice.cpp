@@ -17,6 +17,11 @@ namespace Explorer
 {
 namespace Command
 {
+LoadDevice::LoadDevice(const DeviceDocumentPlugin& devplug, const Device::DeviceSettings& set)
+  : LoadDevice{devplug, Device::Node{set, {}}}
+{
+}
+
 LoadDevice::LoadDevice(const DeviceDocumentPlugin& devplug, Device::Node&& node)
     : m_deviceNode(std::move(node))
 {
@@ -31,7 +36,7 @@ void LoadDevice::undo(const score::DocumentContext& ctx) const
 void LoadDevice::redo(const score::DocumentContext& ctx) const
 {
   auto& devplug = ctx.plugin<DeviceDocumentPlugin>();
-  devplug.updateProxy.loadDevice(m_deviceNode);
+  devplug.updateProxy.addDevice(m_deviceNode);
 }
 
 void LoadDevice::serializeImpl(DataStreamInput& d) const
