@@ -14,6 +14,12 @@
 W_OBJECT_IMPL(Gfx::Filter::Model)
 namespace Gfx::Filter
 {
+static const QString defaultISFVertex = QStringLiteral(
+R"_(
+void main(void)	{
+  isf_vertShaderInit();
+}
+)_");
 
 Model::Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
     : Process::ProcessModel{duration, id, "gfxProcess", parent}
@@ -67,6 +73,29 @@ void main()
 
 Model::~Model() { }
 
+void Model::setVertex(QString f)
+{
+  if (f == m_vertex)
+    return;
+  m_vertex = f;
+  m_processedVertex = f;
+  if(m_processedVertex.contains("isf_vertShaderInit()"))
+  {
+    m_processedVertex.prepend(R"_(#version 450
+layout(location = 0) in vec2 position;
+layout(location = 1) in vec2 texcoord;
+layout(location = 0) out vec2 isf_FragNormCoord;
+void isf_vertShaderInit()
+{
+  gl_Position = vec4( position, 0.0, 1.0 );
+  isf_FragNormCoord = vec2((gl_Position.x+1.0)/2.0, (gl_Position.y+1.0)/2.0);
+}
+)_");
+  }
+
+  vertexChanged(f);
+}
+
 void Model::setFragment(QString f)
 {
   if (f == m_fragment)
@@ -87,6 +116,10 @@ void Model::setFragment(QString f)
     if (isfprocessed != f)
     {
       m_processedFragment = isfprocessed;
+      if(m_vertex.isEmpty())
+      {
+        setVertex(defaultISFVertex);
+      }
       m_isfDescriptor = p.data();
       setupIsf(m_isfDescriptor);
 

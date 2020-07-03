@@ -21,7 +21,8 @@ void main(void) {
 }
       )_";
 
-  ISFNode(const isf::descriptor& desc, QString frag);
+  //ISFNode(const isf::descriptor& desc, QString frag);
+  ISFNode(const isf::descriptor& desc, QString vert, QString frag);
   ISFNode(const isf::descriptor& desc, QString vert, QString frag, const Mesh* mesh);
 
   virtual ~ISFNode();

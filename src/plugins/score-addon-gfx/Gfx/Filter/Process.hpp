@@ -33,14 +33,19 @@ public:
 
   ~Model() override;
 
-  QString fragment() const noexcept { return m_fragment; }
-  QString processedFragment() const noexcept { return m_processedFragment; }
+  const QString& fragment() const noexcept { return m_fragment; }
+  const QString& processedFragment() const noexcept { return m_processedFragment; }
+  const QString& vertex() const noexcept { return m_vertex; }
+  const QString& processedVertex() const noexcept { return m_processedVertex; }
+  void setVertex(QString f);
+  void vertexChanged(const QString& v) W_SIGNAL(vertexChanged, v);
   void setFragment(QString f);
   void fragmentChanged(const QString& f) W_SIGNAL(fragmentChanged, f);
 
   const isf::descriptor& isfDescriptor() const noexcept { return m_isfDescriptor; }
   void errorMessage(int arg_1, const QString& arg_2) W_SIGNAL(errorMessage, arg_1, arg_2);
 
+  PROPERTY(QString, vertex READ vertex WRITE setVertex NOTIFY vertexChanged)
   PROPERTY(QString, fragment READ fragment WRITE setFragment NOTIFY fragmentChanged)
 private:
   void setupIsf(const isf::descriptor& d);
@@ -54,6 +59,8 @@ private:
   void setDurationAndGrow(const TimeVal& newDuration) noexcept override;
   void setDurationAndShrink(const TimeVal& newDuration) noexcept override;
 
+  QString m_vertex;
+  QString m_processedVertex;
   QString m_fragment;
   QString m_processedFragment;
   isf::descriptor m_isfDescriptor;

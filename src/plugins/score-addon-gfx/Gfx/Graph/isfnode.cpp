@@ -140,8 +140,8 @@ struct input_port_vis
 
 }
 
-ISFNode::ISFNode(const isf::descriptor& desc, QString frag)
-    : ISFNode{desc, defaultVert, frag, &TexturedTriangle::instance()}
+ISFNode::ISFNode(const isf::descriptor& desc, QString vert, QString frag)
+    : ISFNode{desc, vert, frag, &TexturedTriangle::instance()}
 {
 }
 
