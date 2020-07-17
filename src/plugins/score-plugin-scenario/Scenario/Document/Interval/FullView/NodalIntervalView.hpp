@@ -40,6 +40,11 @@ public:
         Qt::QueuedConnection);
   }
 
+  ~NodalIntervalView()
+  {
+    qDeleteAll(m_nodeItems);
+  }
+
   void on_drop(QPointF pos, const QMimeData* data)
   {
     m_context.app.interfaces<Scenario::IntervalDropHandlerList>().drop(

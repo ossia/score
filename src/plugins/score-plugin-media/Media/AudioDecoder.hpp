@@ -3,6 +3,7 @@
 #include <Process/TimeValue.hpp>
 
 #include <ossia/detail/optional.hpp>
+#include <ossia/detail/flicks.hpp>
 
 #include <QThread>
 

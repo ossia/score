@@ -257,9 +257,13 @@ void ScenarioDocumentPresenter::switchMode(bool nodal)
 
   QObject::disconnect(m_nodalDrop);
   QObject::disconnect(m_nodalContextMenu);
+  delete m_nodal;
+  m_nodal = nullptr;
+
+  removeDisplayedIntervalPresenter();
+
   if (nodal)
   {
-    removeDisplayedIntervalPresenter();
     view().timeBar().hide();
 
     m_nodal = new NodalIntervalView{displayedInterval(), context(), &view().baseItem()};
@@ -295,9 +299,6 @@ void ScenarioDocumentPresenter::switchMode(bool nodal)
   }
   else
   {
-    delete m_nodal;
-    m_nodal = nullptr;
-
     createDisplayedIntervalPresenter(displayedInterval());
 
     view().view().setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);

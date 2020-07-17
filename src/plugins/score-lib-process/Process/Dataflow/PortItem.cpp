@@ -571,14 +571,16 @@ QVariant PortItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QV
     case QGraphicsItem::ItemScenePositionHasChanged:
       for (auto cbl : cables)
       {
-        cbl->resize();
+        if (cbl)
+          cbl->resize();
       }
       break;
     case QGraphicsItem::ItemVisibleHasChanged:
     case QGraphicsItem::ItemSceneHasChanged:
       for (auto cbl : cables)
       {
-        cbl->check();
+        if (cbl)
+          cbl->check();
       }
       break;
     default:
