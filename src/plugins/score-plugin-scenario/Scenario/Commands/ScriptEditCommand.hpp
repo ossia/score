@@ -19,8 +19,9 @@ template <typename Process_T, typename Property_T>
 class EditScript : public score::Command
 {
 public:
+  using param_type = typename Property_T::param_type;
   using score::Command::Command;
-  EditScript(const Process_T& model, QString newScript)
+  EditScript(const Process_T& model, param_type newScript)
       : m_path{model}, m_newScript{std::move(newScript)}, m_oldScript{(model.*Property_T::get)()}
   {
     m_oldCables = Dataflow::saveCables(
@@ -154,8 +155,8 @@ private:
   }
 
   Path<Process_T> m_path;
-  QString m_newScript;
-  QString m_oldScript;
+  param_type m_newScript;
+  param_type m_oldScript;
 
   std::vector<SavedPort> m_oldInlets, m_oldOutlets;
 

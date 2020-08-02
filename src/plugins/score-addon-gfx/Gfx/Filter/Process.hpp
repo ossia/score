@@ -7,11 +7,32 @@
 #include <Gfx/CommandFactory.hpp>
 #include <Gfx/Filter/Metadata.hpp>
 #include <isf.hpp>
-
+#include <array>
 namespace isf
 {
 struct descriptor;
 }
+
+namespace Gfx
+{
+struct ShaderProgram {
+  QString vertex;
+  QString fragment;
+
+  struct MemberSpec {
+    QString name;
+    QString ShaderProgram::* pointer;
+  };
+
+  static const inline std::array<MemberSpec, 2> specification{
+    MemberSpec{QObject::tr("Fragment"), &ShaderProgram::fragment},
+    MemberSpec{QObject::tr("Vertex"), &ShaderProgram::vertex},
+  };
+};
+}
+
+Q_DECLARE_METATYPE(Gfx::ShaderProgram)
+W_REGISTER_ARGTYPE(Gfx::ShaderProgram)
 namespace Gfx::Filter
 {
 class Model final : public Process::ProcessModel
@@ -33,20 +54,28 @@ public:
 
   ~Model() override;
 
-  const QString& fragment() const noexcept { return m_fragment; }
-  const QString& processedFragment() const noexcept { return m_processedFragment; }
-  const QString& vertex() const noexcept { return m_vertex; }
-  const QString& processedVertex() const noexcept { return m_processedVertex; }
+  const QString& vertex() const noexcept { return m_program.vertex; }
   void setVertex(QString f);
   void vertexChanged(const QString& v) W_SIGNAL(vertexChanged, v);
+  PROPERTY(QString, vertex READ vertex WRITE setVertex NOTIFY vertexChanged)
+
+  const QString& fragment() const noexcept { return m_program.fragment; }
   void setFragment(QString f);
   void fragmentChanged(const QString& f) W_SIGNAL(fragmentChanged, f);
+  PROPERTY(QString, fragment READ fragment WRITE setFragment NOTIFY fragmentChanged)
+
+  const ShaderProgram& program() const noexcept { return m_program; }
+  void setProgram(const ShaderProgram& f);
+  void programChanged(const ShaderProgram& f) W_SIGNAL(programChanged, f);
+  PROPERTY(Gfx::ShaderProgram, program READ program WRITE setProgram NOTIFY programChanged)
+
+  const QString& processedVertex() const noexcept { return m_processedProgram.vertex; }
+  const QString& processedFragment() const noexcept { return m_processedProgram.fragment; }
+  const ShaderProgram& processedProgram() const noexcept { return m_processedProgram; }
 
   const isf::descriptor& isfDescriptor() const noexcept { return m_isfDescriptor; }
   void errorMessage(int arg_1, const QString& arg_2) W_SIGNAL(errorMessage, arg_1, arg_2);
 
-  PROPERTY(QString, vertex READ vertex WRITE setVertex NOTIFY vertexChanged)
-  PROPERTY(QString, fragment READ fragment WRITE setFragment NOTIFY fragmentChanged)
 private:
   void setupIsf(const isf::descriptor& d);
   void setupNormalShader();
@@ -59,10 +88,8 @@ private:
   void setDurationAndGrow(const TimeVal& newDuration) noexcept override;
   void setDurationAndShrink(const TimeVal& newDuration) noexcept override;
 
-  QString m_vertex;
-  QString m_processedVertex;
-  QString m_fragment;
-  QString m_processedFragment;
+  ShaderProgram m_program;
+  ShaderProgram m_processedProgram;
   isf::descriptor m_isfDescriptor;
 };
 
@@ -92,9 +119,9 @@ class DropHandler final : public Process::ProcessDropHandler
 
 namespace Gfx
 {
-class ChangeFragmentShader : public Scenario::EditScript<Filter::Model, Filter::Model::p_fragment>
+class ChangeShader : public Scenario::EditScript<Filter::Model, Filter::Model::p_program>
 {
-  SCORE_COMMAND_DECL(CommandFactoryName(), ChangeFragmentShader, "Edit a script")
+  SCORE_COMMAND_DECL(CommandFactoryName(), ChangeShader, "Edit a script")
 public:
   using EditScript::EditScript;
 };
@@ -103,8 +130,8 @@ public:
 namespace score
 {
 template <>
-struct StaticPropertyCommand<Gfx::Filter::Model::p_fragment> : Gfx::ChangeFragmentShader
+struct StaticPropertyCommand<Gfx::Filter::Model::p_program> : Gfx::ChangeShader
 {
-  using ChangeFragmentShader::ChangeFragmentShader;
+  using ChangeShader::ChangeShader;
 };
 }

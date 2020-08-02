@@ -75,6 +75,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Automatable/AutomatableFactory.hpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Script/ScriptEditor.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Script/MultiScriptEditor.hpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Effect/EffectFactory.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Effect/EffectLayer.hpp"

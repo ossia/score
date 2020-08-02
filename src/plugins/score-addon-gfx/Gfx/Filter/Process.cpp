@@ -15,8 +15,7 @@ W_OBJECT_IMPL(Gfx::Filter::Model)
 namespace Gfx::Filter
 {
 static const QString defaultISFVertex = QStringLiteral(
-R"_(
-void main(void)	{
+R"_(void main(void)	{
   isf_vertShaderInit();
 }
 )_");
@@ -75,13 +74,13 @@ Model::~Model() { }
 
 void Model::setVertex(QString f)
 {
-  if (f == m_vertex)
+  if (f == m_program.vertex)
     return;
-  m_vertex = f;
-  m_processedVertex = f;
-  if(m_processedVertex.contains("isf_vertShaderInit()"))
+  m_program.vertex = f;
+  m_processedProgram.vertex = f;
+  if(m_processedProgram.vertex.contains("isf_vertShaderInit()"))
   {
-    m_processedVertex.prepend(R"_(#version 450
+    m_processedProgram.vertex.prepend(R"_(#version 450
 layout(location = 0) in vec2 position;
 layout(location = 1) in vec2 texcoord;
 layout(location = 0) out vec2 isf_FragNormCoord;
@@ -94,13 +93,62 @@ void isf_vertShaderInit()
   }
 
   vertexChanged(f);
+  programChanged(m_program);
+}
+
+namespace
+{
+void updateToGlsl45(ShaderProgram& program)
+{
+  static const QRegularExpression out_expr{R"_(^out\s+(\w+)\s+(\w+)\s*;)_", QRegularExpression::MultilineOption};
+  static const QRegularExpression in_expr{R"_(^in\s+(\w+)\s+(\w+)\s*;)_", QRegularExpression::MultilineOption};
+
+  ossia::flat_map<QString, int> attributes_locations_map;
+
+  // First fixup the vertex shader and look for all the attributes
+  {
+    // location 0 is taken by fragColor - we start at 1.
+    int cur_location = 1;
+
+    auto match_idx = program.vertex.indexOf(out_expr);
+    while(match_idx != -1)
+    {
+      const QStringRef partialString = program.vertex.midRef(match_idx);
+      const auto& match = out_expr.match(partialString);
+      const int len = match.capturedLength(0);
+      attributes_locations_map[match.captured(2)] = cur_location;
+
+      program.vertex.insert(match_idx, QString("layout(location = %1) ").arg(cur_location));
+      cur_location++;
+
+      match_idx = program.vertex.indexOf(out_expr, match_idx + len);
+    }
+  }
+
+  // Then move on to the fragment shader, and reuse the same locations.
+  {
+    auto match_idx = program.fragment.indexOf(in_expr);
+    while(match_idx != -1)
+    {
+      const QStringRef partialString = program.fragment.midRef(match_idx);
+      const auto& match = in_expr.match(partialString);
+      const int len = match.capturedLength(0);
+
+      const int loc = attributes_locations_map[match.captured(2)];
+
+      program.fragment.insert(match_idx, QString("layout(location = %1) ").arg(loc));
+
+      match_idx = program.fragment.indexOf(in_expr, match_idx + len);
+    }
+  }
+}
 }
 
 void Model::setFragment(QString f)
 {
-  if (f == m_fragment)
+  if (f == m_program.fragment)
     return;
-  m_fragment = f;
+  m_program.fragment = f;
 
   auto inls = std::move(m_inlets);
   m_inlets.clear();
@@ -115,11 +163,14 @@ void Model::setFragment(QString f)
     auto isfprocessed = QString::fromStdString(p.fragment());
     if (isfprocessed != f)
     {
-      m_processedFragment = isfprocessed;
-      if(m_vertex.isEmpty())
+      m_processedProgram.fragment = isfprocessed;
+      if(m_program.vertex.isEmpty())
       {
         setVertex(defaultISFVertex);
       }
+
+      updateToGlsl45(m_processedProgram);
+
       m_isfDescriptor = p.data();
       setupIsf(m_isfDescriptor);
 
@@ -133,10 +184,17 @@ void Model::setFragment(QString f)
   }
 
   m_isfDescriptor = {};
-  m_processedFragment = m_fragment;
+  m_processedProgram.fragment = m_program.fragment;
   setupNormalShader();
 
   inletsChanged();
+  programChanged(m_program);
+}
+
+void Model::setProgram(const ShaderProgram& f)
+{
+  setVertex(f.vertex);
+  setFragment(f.fragment);
 }
 
 QString Model::prettyName() const noexcept
@@ -147,7 +205,7 @@ QString Model::prettyName() const noexcept
 void Model::setupIsf(const isf::descriptor& desc)
 {
   auto& [shader, error]
-      = ShaderCache::get(m_processedFragment.toLatin1(), QShader::Stage::FragmentStage);
+      = ShaderCache::get(m_processedProgram.fragment.toLatin1(), QShader::Stage::FragmentStage);
 
   if (!error.isEmpty())
   {
@@ -276,7 +334,7 @@ void Model::setupIsf(const isf::descriptor& desc)
 void Model::setupNormalShader()
 {
   auto& [shader, error]
-      = ShaderCache::get(m_processedFragment.toLatin1(), QShader::Stage::FragmentStage);
+      = ShaderCache::get(m_processedProgram.fragment.toLatin1(), QShader::Stage::FragmentStage);
 
   if (!error.isEmpty())
   {
@@ -359,15 +417,32 @@ std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::dropData(
 {
   std::vector<Process::ProcessDropHandler::ProcessDrop> vec;
   {
-    for (const auto& [filename, file] : data)
+    for (const auto& [filename, fragData] : data)
     {
       Process::ProcessDropHandler::ProcessDrop p;
       p.creation.key = Metadata<ConcreteKey_k, Gfx::Filter::Model>::get();
       p.creation.prettyName = QFileInfo{filename}.baseName();
-      p.setup = [str = file](Process::ProcessModel& m, score::Dispatcher& disp) {
+
+      // ISF works by storing a vertex shader next to the fragment shader.
+      QString vertexName = filename;
+      vertexName.replace(".frag", ".vert");
+      vertexName.replace(".fs", ".vs");
+
+      QString vertexData = defaultISFVertex;
+      if(vertexName != filename)
+      {
+        if(QFile vertexFile{vertexName};
+           vertexFile.exists() && vertexFile.open(QIODevice::ReadOnly))
+        {
+          vertexData = vertexFile.readAll();
+        }
+      }
+
+      p.setup = [program = Gfx::ShaderProgram{vertexData, fragData}](Process::ProcessModel& m, score::Dispatcher& disp) {
         auto& midi = static_cast<Gfx::Filter::Model&>(m);
-        disp.submit(new ChangeFragmentShader{midi, QString{str}});
+        disp.submit(new ChangeShader{midi, program});
       };
+
       vec.push_back(std::move(p));
     }
   }
@@ -405,10 +480,23 @@ struct PortSaver
   }
 };
 */
+
+template <>
+void DataStreamReader::read(const Gfx::ShaderProgram& p)
+{
+  m_stream << p.vertex << p.fragment;
+}
+
+template <>
+void DataStreamWriter::write(Gfx::ShaderProgram& p)
+{
+  m_stream >> p.vertex >> p.fragment;
+}
+
 template <>
 void DataStreamReader::read(const Gfx::Filter::Model& proc)
 {
-  m_stream << proc.m_fragment;
+  m_stream << proc.m_program;
 
   readPorts(*this, proc.m_inlets, proc.m_outlets);
 
@@ -418,9 +506,9 @@ void DataStreamReader::read(const Gfx::Filter::Model& proc)
 template <>
 void DataStreamWriter::write(Gfx::Filter::Model& proc)
 {
-  QString s;
+  Gfx::ShaderProgram s;
   m_stream >> s;
-  proc.setFragment(s);
+  proc.setProgram(s);
 
   writePorts(
       *this,
@@ -435,6 +523,7 @@ void DataStreamWriter::write(Gfx::Filter::Model& proc)
 template <>
 void JSONReader::read(const Gfx::Filter::Model& proc)
 {
+  obj["Vertex"] = proc.vertex();
   obj["Fragment"] = proc.fragment();
 
   readPorts(*this, proc.m_inlets, proc.m_outlets);
@@ -443,7 +532,10 @@ void JSONReader::read(const Gfx::Filter::Model& proc)
 template <>
 void JSONWriter::write(Gfx::Filter::Model& proc)
 {
-  proc.setFragment(obj["Fragment"].toString());
+  Gfx::ShaderProgram s;
+  s.vertex = obj["Vertex"].toString();
+  s.fragment = obj["Fragment"].toString();
+  proc.setProgram(s);
 
   writePorts(
       *this,
