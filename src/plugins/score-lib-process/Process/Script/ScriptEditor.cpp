@@ -12,6 +12,15 @@
 #include <QVBoxLayout>
 namespace Process
 {
+namespace
+{
+void setTabWidth(QTextEdit& edit, int spaceCount)
+{
+  const QString spaces(spaceCount, QChar(' '));
+  const QFontMetrics metrics(edit.font());
+  edit.setTabStopDistance(metrics.horizontalAdvance(spaces));
+}
+}
 
 ScriptDialog::ScriptDialog(const score::DocumentContext& ctx, QWidget* parent)
     : QDialog{parent}, m_context{ctx}
@@ -41,6 +50,8 @@ ScriptDialog::ScriptDialog(const score::DocumentContext& ctx, QWidget* parent)
   }
 
   m_textedit->setHighlighter(new QCXXHighlighter);
+  setTabWidth(*m_textedit, 4);
+
   m_error = new QPlainTextEdit{this};
   m_error->setReadOnly(true);
   m_error->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
@@ -139,6 +150,8 @@ void MultiScriptDialog::addTab(const QString &name, const QString &text)
   }
 
   m_textedit->setHighlighter(new QCXXHighlighter);
+  setTabWidth(*m_textedit, 4);
+
   auto m_error = new QPlainTextEdit{this};
   m_error->setReadOnly(true);
   m_error->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);

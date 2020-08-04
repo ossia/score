@@ -77,23 +77,9 @@ void Model::setVertex(QString f)
   if (f == m_program.vertex)
     return;
   m_program.vertex = f;
-  m_processedProgram.vertex = f;
-  if(m_processedProgram.vertex.contains("isf_vertShaderInit()"))
-  {
-    m_processedProgram.vertex.prepend(R"_(#version 450
-layout(location = 0) in vec2 position;
-layout(location = 1) in vec2 texcoord;
-layout(location = 0) out vec2 isf_FragNormCoord;
-void isf_vertShaderInit()
-{
-  gl_Position = vec4( position, 0.0, 1.0 );
-  isf_FragNormCoord = vec2((gl_Position.x+1.0)/2.0, (gl_Position.y+1.0)/2.0);
-}
-)_");
-  }
+  m_processedProgram.vertex.clear();
 
   vertexChanged(f);
-  programChanged(m_program);
 }
 
 namespace
@@ -150,6 +136,15 @@ void Model::setFragment(QString f)
     return;
   m_program.fragment = f;
 
+  programChanged(m_program);
+}
+
+void Model::setProgram(const ShaderProgram& f)
+{
+  setVertex(f.vertex);
+  setFragment(f.fragment);
+
+
   auto inls = std::move(m_inlets);
   m_inlets.clear();
   inletsChanged();
@@ -159,15 +154,13 @@ void Model::setFragment(QString f)
 
   try
   {
-    isf::parser p{{}, f.toStdString()};
-    auto isfprocessed = QString::fromStdString(p.fragment());
-    if (isfprocessed != f)
+    isf::parser p{m_program.vertex.toStdString(), m_program.fragment.toStdString()};
+    auto isfVert = QString::fromStdString(p.vertex());
+    auto isfFrag = QString::fromStdString(p.fragment());
+    if (isfVert != m_program.vertex || isfFrag != m_program.fragment)
     {
-      m_processedProgram.fragment = isfprocessed;
-      if(m_program.vertex.isEmpty())
-      {
-        setVertex(defaultISFVertex);
-      }
+      m_processedProgram.vertex = isfVert;
+      m_processedProgram.fragment = isfFrag;
 
       updateToGlsl45(m_processedProgram);
 
@@ -175,6 +168,7 @@ void Model::setFragment(QString f)
       setupIsf(m_isfDescriptor);
 
       inletsChanged();
+      programChanged(m_program);
 
       return;
     }
@@ -184,17 +178,12 @@ void Model::setFragment(QString f)
   }
 
   m_isfDescriptor = {};
+  m_processedProgram.vertex = m_program.vertex;
   m_processedProgram.fragment = m_program.fragment;
   setupNormalShader();
 
   inletsChanged();
   programChanged(m_program);
-}
-
-void Model::setProgram(const ShaderProgram& f)
-{
-  setVertex(f.vertex);
-  setFragment(f.fragment);
 }
 
 QString Model::prettyName() const noexcept
