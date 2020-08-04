@@ -695,6 +695,8 @@ void parser::parse_isf()
   m_fragment += fragWithoutISF;
 
   // Replace the special ISF functions
+  // TODO rework that: https://docs.isf.video/ref_functions.html#isf-exclusive-functions & ofxISF shows the right way
+
   static const std::regex img_this_pixel("IMG_THIS_PIXEL\\((.+?)\\)");
   static const std::regex img_pixel("IMG_PIXEL\\((.+?)\\)");
   static const std::regex img_norm_pixel("IMG_NORM_PIXEL\\((.+?)\\)");
