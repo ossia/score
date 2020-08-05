@@ -1,6 +1,6 @@
 [submodule "API"]
 	path = 3rdparty/libossia
-	url = https://github.com/OSSIA/API
+	url = https://github.com/ossia/libossia
 [submodule "3rdparty/QProgressIndicator"]
 	path = src/lib/3rdparty/QProgressIndicator
 	url = https://github.com/jcelerier/QProgressIndicator
