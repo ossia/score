@@ -10,7 +10,7 @@ git_pull_rebase_helper()
 }
 
 # Install required libs
-wget -nv https://github.com/OSSIA/sdk/releases/download/sdk14/score-sdk-linux-llvm.tar.xz -O score-sdk.txz
+wget -nv https://github.com/ossia/sdk/releases/download/sdk14/score-sdk-linux-llvm.tar.xz -O score-sdk.txz
 tar -xaf score-sdk.txz --directory /
 
 export BOOST_VER=72

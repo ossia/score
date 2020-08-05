@@ -834,7 +834,7 @@ static void getAddressesRecursively(
   if (node.is<Device::AddressSettings>())
   {
     const Device::AddressSettings& addr = node.get<Device::AddressSettings>();
-    // FIXME see https://github.com/OSSIA/libossia/issues/291
+    // FIXME see https://github.com/ossia/libossia/issues/291
     if (ossia::is_numeric(addr.value) || ossia::is_array(addr.value))
     {
       Device::FullAddressSettings as;

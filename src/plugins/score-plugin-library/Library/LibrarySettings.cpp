@@ -70,11 +70,11 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
           tr("The user library has not been found. \n"
              "Do you want to download it from the internet ? \n\n"
              "Note: you can always download it later from : \n"
-             "https://github.com/OSSIA/score-user-library"));
+             "https://github.com/ossia/score-user-library"));
       if (dl)
       {
         zdl::download_and_extract(
-            QUrl{"https://github.com/OSSIA/score-user-library/archive/"
+            QUrl{"https://github.com/ossia/score-user-library/archive/"
                  "master.zip"},
             dir.absolutePath(),
             [](const auto&) {},

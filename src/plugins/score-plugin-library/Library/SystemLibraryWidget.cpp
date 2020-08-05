@@ -27,7 +27,7 @@ SystemLibraryWidget::SystemLibraryWidget(const score::GUIApplicationContext& ctx
                   "It is present by default in your user's Documents folder, \n"
                   "in a subfolder named ossia score library."
                   "A user-provided library is available on : \n"
-                  "github.com/OSSIA/score-user-library"));
+                  "github.com/ossia/score-user-library"));
   auto lay = new score::MarginLess<QVBoxLayout>;
 
   this->setLayout(lay);

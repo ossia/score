@@ -30,7 +30,7 @@
  * * \ref Explorer
  *<br>
  * To contribute to score, it can also be useful to have a look at the
- * tutorial plug-in : https://github.com/OSSIA/score-addon-tutorial
+ * tutorial plug-in : https://github.com/ossia/score-addon-tutorial
  */
 
 /*! \namespace score
@@ -110,7 +110,7 @@
  *
  * The core plug-ins are in the folder base/plugins.
  *
- * Other plug-ins are available on the github page : https://github.com/OSSIA/
+ * Other plug-ins are available on the github page : https://github.com/ossia/
  *
  * For instance:
  *
@@ -284,7 +284,7 @@
  * Its implementation is in score-plugin-pluginsettings.
  * Add-ons are listed in a central repository :
  *
- * https://github.com/OSSIA/score-addons/blob/master/addons.json
+ * https://github.com/ossia/score-addons/blob/master/addons.json
  *
  * Each addon provides a JSON description file with the following keys :
  *

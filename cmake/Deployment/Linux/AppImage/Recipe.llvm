@@ -34,7 +34,7 @@ cd ./$BUILD_DIR
 
 # Get score from git
 (
-  $GIT clone --recursive  -j16 https://github.com/OSSIA/score
+  $GIT clone --recursive  -j16 https://github.com/ossia/score
   cd score/
   $GIT checkout $TRAVIS_COMMIT
   $GIT reset --hard HEAD
@@ -42,7 +42,7 @@ cd ./$BUILD_DIR
   $GIT submodule update --init --recursive -j16
 
   # cd src/addons
-  # $GIT clone https://github.com/OSSIA/score-addon-jit
+  # $GIT clone https://github.com/ossia/score-addon-jit
 )
 
 # Build score in the AppDir

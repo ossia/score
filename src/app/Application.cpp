@@ -293,7 +293,7 @@ namespace score
         {qApp->tr("Tutorials"),"https://www.youtube.com/playlist?list=PLIHLSiZpIa6aRQT5v6RInuyCR3qWmMEgV", ":/icons/tutorials_off.png", ":/icons/tutorials_on.png"},
         {qApp->tr("Contribute"),"https://opencollective.com/ossia/contribute", ":/icons/contribute_off.png", ":/icons/contribute_on.png"},
         {qApp->tr("Forum"),"http://forum.ossia.io/", ":/icons/forum_off.png", ":/icons/forum_on.png"},
-        {qApp->tr("Chat"),"https://gitter.im/OSSIA/score", ":/icons/chat_off.png", ":/icons/chat_on.png"}
+        {qApp->tr("Chat"),"https://gitter.im/ossia/score", ":/icons/chat_off.png", ":/icons/chat_on.png"}
       }};
       label_y = 285;
       for(const auto& m: menus)

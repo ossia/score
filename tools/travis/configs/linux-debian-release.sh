@@ -29,7 +29,7 @@ make install
 cd /
 rm -rf /portaudio
 
-git clone --recursive -j16 https://github.com/OSSIA/score
+git clone --recursive -j16 https://github.com/ossia/score
 mkdir build
 cd build
 cmake -GNinja -Wno-dev ../score \

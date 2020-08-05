@@ -24,7 +24,7 @@ UserPanel::UserPanel(const score::GUIApplicationContext& ctx)
   m_widget->setStatusTip(
       QObject::tr("This panel allows to browse medias and presets in the documents. \n"
                   "Check for library updates on \n"
-                  "github.com/OSSIA/score-user-library"));
+                  "github.com/ossia/score-user-library"));
 }
 
 QWidget* UserPanel::widget()

@@ -27,7 +27,7 @@
  * it is not part of the save.
  *
  * See for instance the addon tutorial
- * (<https://github.com/OSSIA/score-addon-tutorial>).
+ * (<https://github.com/ossia/score-addon-tutorial>).
  *
  * The UI works as follows :
  * * Process::ProcessModel is the base class for processes.

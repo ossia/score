@@ -76,7 +76,7 @@ void CoreApplicationPlugin::openSettings()
 }
 void CoreApplicationPlugin::openProjectSettings()
 {
-  /* see https://github.com/OSSIA/score/issues/1025
+  /* see https://github.com/ossia/score/issues/1025
   auto doc = m_presenter.documentManager().currentDocument();
   if (doc)
   {
@@ -243,7 +243,7 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
       e.actions.add<Actions::OpenSettings>(settings_act);
       settings->addAction(settings_act);
     }
-    /* see https://github.com/OSSIA/score/issues/1025
+    /* see https://github.com/ossia/score/issues/1025
     {
       auto settings_act = new QAction(m_presenter.view());
       connect(
@@ -284,7 +284,7 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
       auto issues_act = new QAction(m_presenter.view());
       issues_act->setStatusTip(tr("Report issues on the Github ossia score repository"));
       connect(issues_act, &QAction::triggered, this, [] {
-        QDesktopServices::openUrl(QUrl("https://github.com/OSSIA/score/issues"));
+        QDesktopServices::openUrl(QUrl("https://github.com/ossia/score/issues"));
       });
       e.actions.add<Actions::Issues>(issues_act);
       about->addAction(issues_act);

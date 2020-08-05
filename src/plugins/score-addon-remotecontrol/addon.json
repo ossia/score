@@ -1,10 +1,10 @@
 {
-    "src": "https://github.com/OSSIA/score-addon-remotecontrol/archive/master.zip",
+    "src": "https://github.com/ossia/score-addon-remotecontrol/archive/master.zip",
     "name": "RemoteControl",
     "raw_name": "score-addon-remotecontrol",
     "version": "1.0",
     "short": "Control and trigger i-score from a WebSockets application",
     "long": "This addon enables the control of i-score over WebSockets. Right now, one can control the transport of the score, and can trigger the trigger points when they become available.",
-    "small": "https://raw.githubusercontent.com/OSSIA/score-addon-remotecontrol/master/Deployment/ic_settings_remote_3x.png",
+    "small": "https://raw.githubusercontent.com/ossia/score-addon-remotecontrol/master/Deployment/ic_settings_remote_3x.png",
     "key": "ecffb9d5-3d67-4b89-a64f-341b68cd9603"
 }

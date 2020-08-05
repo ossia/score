@@ -18,7 +18,7 @@ cd ./$BUILD_DIR
 
 # Get score from git
 (
-  git clone https://github.com/OSSIA/score
+  git clone https://github.com/ossia/score
   cd score/
   git checkout $TRAVIS_COMMIT
   git submodule update --init

@@ -16,7 +16,7 @@ export CXXFLAGS="-O3 -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -g0"
 (
 mkdir -p image
 cd /image
-git clone --recursive -j16 https://github.com/OSSIA/score
+git clone --recursive -j16 https://github.com/ossia/score
 )
 
 (
