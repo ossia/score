@@ -117,31 +117,6 @@ function(score_set_gcc_compile_options theTarget)
           "$<$<CONFIG:Debug>:-ggdb>"
       )
 
-    if(SCORE_SPLIT_DEBUG)
-      target_link_libraries(${theTarget} PUBLIC
-        #          "$<$<CONFIG:Debug>:-Wa,--compress-debug-sections>"
-        #          "$<$<CONFIG:Debug>:-Wl,--compress-debug-sections=zlib>"
-                  "$<$<CONFIG:Debug>:-fvar-tracking-assignments>"
-        )
-
-      if(GDB_INDEX_SUPPORTED)
-        if(NOT OSSIA_SANITIZE)
-          target_link_libraries(${theTarget} PUBLIC
-            "$<$<CONFIG:Debug>:-Wl,--gdb-index>"
-          )
-        endif()
-      endif()
-    endif()
-
-      get_target_property(NO_LTO ${theTarget} SCORE_TARGET_NO_LTO)
-      if(NOT ${NO_LTO})
-          target_compile_options(${theTarget} PUBLIC
-#            "$<$<BOOL:${SCORE_ENABLE_LTO}>:-s>"
-#            "$<$<BOOL:${SCORE_ENABLE_LTO}>:-flto>"
-#            "$<$<BOOL:${SCORE_ENABLE_LTO}>:-fuse-linker-plugin>"
-#            "$<$<BOOL:${SCORE_ENABLE_LTO}>:-fno-fat-lto-objects>"
-          )
-      endif()
       target_link_libraries(${theTarget} PUBLIC
           "$<$<CONFIG:Release>:-ffunction-sections>"
           "$<$<CONFIG:Release>:-fdata-sections>"
@@ -149,11 +124,6 @@ function(score_set_gcc_compile_options theTarget)
           "$<$<CONFIG:Debug>:-fvar-tracking-assignments>"
           "$<$<CONFIG:Debug>:-O0>"
           "$<$<CONFIG:Debug>:-ggdb>"
-
-#          "$<$<BOOL:${SCORE_ENABLE_LTO}>:-s>"
-#          "$<$<BOOL:${SCORE_ENABLE_LTO}>:-flto>"
-#          "$<$<BOOL:${SCORE_ENABLE_LTO}>:-fuse-linker-plugin>"
-#          "$<$<BOOL:${SCORE_ENABLE_LTO}>:-fno-fat-lto-objects>"
           )
 
       endif()
@@ -182,24 +152,6 @@ endfunction()
 function(score_set_linux_compile_options theTarget)
     use_gold(${theTarget})
 
-    if(NOT SCORE_SANITIZE AND (LINKER_IS_GOLD OR LINKER_IS_LLD) AND SCORE_SPLIT_DEBUG)
-        target_compile_options(${theTarget} PUBLIC
-            # Debug options
-          #          "$<$<CONFIG:Debug>:-Wa,--compress-debug-sections>"
-          #          "$<$<CONFIG:Debug>:-Wl,--compress-debug-sections=zlib>"
-          # "$<$<CONFIG:Debug>:-gsplit-dwarf>"
-          "$<$<CONFIG:Debug>:-fdebug-types-section>"
-          "$<$<CONFIG:Debug>:-ggnu-pubnames>"
-        )
-
-      target_link_libraries(${theTarget} PUBLIC
-      -Wl,-z,defs
-      -Wl,-z,now
-      -Wl,--no-allow-shlib-undefined
-      -Wl,--no-undefined
-      -Wl,--unresolved-symbols,report-all
-      )
-    endif()
     target_compile_options(${theTarget} PUBLIC
         # Debug options
         "$<$<CONFIG:Debug>:-ggdb>"

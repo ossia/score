@@ -29,7 +29,6 @@ option(SCORE_TESTBED "Enable the testbed. See Tests/testbed/README" OFF)
 option(SCORE_PLAYER "Build standalone player" OFF)
 option(DEFINE_SCORE_SCENARIO_DEBUG_RECTS "Enable to have debug rects around elements of a scenario" OFF)
 
-option(SCORE_SPLIT_DEBUG "Split debug information" ON)
 option(SCORE_COVERAGE "Enable coverage" OFF)
 
 option(SCORE_INSTALL_HEADERS "Install headers" OFF)
