@@ -26,10 +26,9 @@ stages:
 
         - script: |
             cinst -y ninja 
-            cinst -y 7zip.install
             mkdir /c/score-sdk
             cd /c/score-sdk
-            wget https://github.com/ossia/sdk/releases/download/sdk15/score-sdk-mingw.7z
+            curl https://github.com/ossia/sdk/releases/download/sdk15/score-sdk-mingw.7z --output score-sdk-mingw.7z
             7z x score-sdk-mingw.7z
             rm score-sdk-mingw.7z
             ls
