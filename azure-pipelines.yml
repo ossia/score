@@ -1,0 +1,46 @@
+trigger:
+  branches:
+    include:
+    - '*'
+  tags:
+    include:
+    - '*'
+pr:
+  - '*'
+
+variables:
+  isGitTag: $[startsWith(variables['Build.SourceBranch'], 'refs/tags/')]
+  gitTag: $[replace(variables['Build.SourceBranch'], 'refs/tags/', '')]
+
+stages:
+  - stage: Build
+    jobs:
+      - job: Win32
+        displayName: Win32
+        pool:
+          vmImage: 'windows-2019'
+
+        steps:
+        - checkout: self
+          submodules: true
+
+        - script: |
+            cinst -y ninja 
+            cinst -y 7zip.install
+            mkdir /c/score-sdk
+            cd /c/score-sdk
+            wget https://github.com/ossia/sdk/releases/download/sdk15/score-sdk-mingw.7z
+            7z x score-sdk-mingw.7z
+            rm score-sdk-mingw.7z
+            ls
+
+        - script: |
+            cd $(System.DefaultWorkingDirectory)
+            mkdir build
+            cd build
+            export PATH=/c/score-sdk/llvm/bin:$PATH
+            cmake -GNinja $(Build.SourcesDirectory) -DCMAKE_CXX_COMPILER="clang.exe" -DCMAKE_C_COMPILER="clang++.exe" -DOSSIA_SDK=c:/score-sdk -DCMAKE_INSTALL_PREFIX=install -DCMAKE_BUILD_TYPE=Release
+            cmake --build .
+            cmake --build . --target package
+            ls
+          displayName: Build
