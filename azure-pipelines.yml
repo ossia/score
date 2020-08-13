@@ -37,8 +37,8 @@ stages:
             cd $(System.DefaultWorkingDirectory)
             mkdir build
             cd build
-            export PATH=/c/score-sdk/llvm/bin:$PATH
-            cmake -GNinja $(Build.SourcesDirectory) -DCMAKE_CXX_COMPILER="clang.exe" -DCMAKE_C_COMPILER="clang++.exe" -DOSSIA_SDK=c:/score-sdk -DCMAKE_INSTALL_PREFIX=install -DCMAKE_BUILD_TYPE=Release
+            set PATH=$PATH;c:\score-sdk\llvm\bin
+            cmake -GNinja $(Build.SourcesDirectory) -DCMAKE_C_COMPILER=clang.exe -DCMAKE_CXX_COMPILER=clang++.exe -DOSSIA_SDK=c:\score-sdk -DCMAKE_INSTALL_PREFIX=install -DCMAKE_BUILD_TYPE=Release -DSCORE_CONFIGURATION=static-release
             cmake --build .
             cmake --build . --target package
             ls
