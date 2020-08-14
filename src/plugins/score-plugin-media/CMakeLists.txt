@@ -315,8 +315,13 @@ endif()
 target_include_directories(${PROJECT_NAME}
     PRIVATE
       ${OSSIA_3RDPARTY_FOLDER}/r8brain-free-src
-      ${OSSIA_3RDPARTY_FOLDER}/rubberband/rubberband
 )
+target_link_libraries(${PROJECT_NAME}
+  PRIVATE
+    rubberband
+    samplerate
+)
+
 setup_score_plugin(${PROJECT_NAME})
 
 if(Faust_FOUND)
