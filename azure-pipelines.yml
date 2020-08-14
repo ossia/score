@@ -34,7 +34,13 @@ stages:
             ls
 
         - script: |
+            pushd "C:\Program Files (x86)\Microsoft Visual Studio\Installer\"
+            for /f "delims=" %%x in ('.\vswhere.exe -latest -property InstallationPath') do set VSPATH=%%x
+            popd
+            call "%VSPATH%\VC\Auxiliary\Build\vcvarsall.bat" x64
+
             cd $(System.DefaultWorkingDirectory)
+            
             mkdir build
             cd build
             set PATH=$PATH;c:\score-sdk\llvm\bin
