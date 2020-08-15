@@ -25,27 +25,21 @@ stages:
           submodules: true
 
         - script: |
-            cinst -y ninja cmake
+            cinst -y ninja
             mkdir c:\score-sdk
             cd c:\score-sdk
             curl -L https://github.com/ossia/sdk/releases/download/sdk15/score-sdk-mingw.7z --output score-sdk-mingw.7z
             7z x score-sdk-mingw.7z
             rm score-sdk-mingw.7z
-            ls
+            dir
 
         - script: |
-            pushd "C:\Program Files (x86)\Microsoft Visual Studio\Installer\"
-            for /f "delims=" %%x in ('.\vswhere.exe -latest -property InstallationPath') do set VSPATH=%%x
-            popd
-            call "%VSPATH%\VC\Auxiliary\Build\vcvarsall.bat" x64
-
-            cd $(System.DefaultWorkingDirectory)
-            
             mkdir build
             cd build
-            set PATH=$PATH;c:\score-sdk\llvm\bin
+            set PATH=%PATH%;c:\score-sdk\llvm\bin
             cmake -GNinja $(Build.SourcesDirectory) -DCMAKE_C_COMPILER=clang.exe -DCMAKE_CXX_COMPILER=clang++.exe -DOSSIA_SDK=c:\score-sdk -DCMAKE_INSTALL_PREFIX=install -DCMAKE_BUILD_TYPE=Release -DSCORE_CONFIGURATION=static-release
             cmake --build .
             cmake --build . --target package
-            ls
+            dir
+            
           displayName: Build
