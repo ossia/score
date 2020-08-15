@@ -6,6 +6,15 @@
 #define BOOST_PHOENIX_USING_LIBCPP
 #endif
 
+// see https://github.com/boostorg/iostreams/pull/106
+#define BOOST_IOSTREAMS_DETAIL_CONFIG_FPOS_HPP_INCLUDED
+#include <boost/config.hpp>
+/*
+#include <boost/iostreams/detail/config/fpos.hpp>
+#if defined(BOOST_IOSTREAMS_HAS_DINKUMWARE_FPOS)
+#undef BOOST_IOSTREAMS_HAS_DINKUMWARE_FPOS
+#endif
+*/
 #include <State/Value.hpp>
 
 #include <ossia/network/base/name_validation.hpp>
