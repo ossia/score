@@ -48,13 +48,13 @@ case "$TRAVIS_OS_NAME" in
   osx)
     set +e
 
-     brew update
-     brew remove qt
-     brew upgrade 
-     brew install gnu-tar wget
+    brew update
+    brew remove qt
+    brew upgrade 
+    brew install gnu-tar wget
 ##     brew install qt cmake portaudio ffmpeg ninja libsamplerate
     SDK_ARCHIVE=score-sdk-mac.tar.gz
-    wget -nv https://github.com/ossia/score-sdk/releases/download/sdk14/$SDK_ARCHIVE -O $SDK_ARCHIVE
+    wget -nv https://github.com/ossia/score-sdk/releases/download/sdk15/$SDK_ARCHIVE -O $SDK_ARCHIVE
     sudo mkdir -p /opt/score-sdk-osx
     sudo chmod -R a+rwx /opt/score-sdk-osx
     gtar xhaf $SDK_ARCHIVE --directory /opt/score-sdk-osx
