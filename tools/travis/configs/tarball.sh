@@ -3,20 +3,20 @@ cd ..
 rm -rf .git
 rm -rf *.tar.xz
 find . -name '.git' -exec rm -rf {} \;
-rm -rf 3rdparty/libossia/.git
-rm -rf 3rdparty/libossia/3rdparty/CicmWrapper
+rm -rf 3rdparty/libossia/.git || true
+rm -rf 3rdparty/libossia/3rdparty/CicmWrapper || true
 
-cp 3rdparty/libossia/3rdparty/pure-data/LICENSE.txt pd-license.txt
-cp 3rdparty/libossia/3rdparty/pure-data/portaudio/portaudio/LICENSE.txt portaudio-license.txt
-rm -rf 3rdparty/libossia/3rdparty/pure-data
-mkdir -p 3rdparty/libossia/3rdparty/pure-data/portaudio/portaudio/
-mv portaudio-license.txt 3rdparty/libossia/3rdparty/pure-data/portaudio/portaudio/LICENSE.txt 
-mv pd-license.txt 3rdparty/libossia/3rdparty/pure-data/LICENSE.txt 
+cp -rf 3rdparty/libossia/3rdparty/pure-data/LICENSE.txt pd-license.txt || true
+cp -rf 3rdparty/libossia/3rdparty/pure-data/portaudio/portaudio/LICENSE.txt portaudio-license.txt || true
+rm -rf 3rdparty/libossia/3rdparty/pure-data || true
+mkdir -p 3rdparty/libossia/3rdparty/pure-data/portaudio/portaudio/ || true
+mv portaudio-license.txt 3rdparty/libossia/3rdparty/pure-data/portaudio/portaudio/LICENSE.txt  || true
+mv pd-license.txt 3rdparty/libossia/3rdparty/pure-data/LICENSE.txt  || true
 
-mv 3rdparty/libossia/3rdparty/pybind11/LICENSE pybind11-license.txt
-rm -rf 3rdparty/libossia/3rdparty/pybind11
-mkdir -p 3rdparty/libossia/3rdparty/pybind11
-mv pybind11-license.txt 3rdparty/libossia/3rdparty/pybind11/LICENSE
+mv 3rdparty/libossia/3rdparty/pybind11/LICENSE pybind11-license.txt || true
+rm -rf 3rdparty/libossia/3rdparty/pybind11 || true
+mkdir -p 3rdparty/libossia/3rdparty/pybind11 || true
+mv pybind11-license.txt 3rdparty/libossia/3rdparty/pybind11/LICENSE || true
 
 rm -rf 3rdparty/libossia/3rdparty/jni_hpp
 rm -rf 3rdparty/libossia/3rdparty/max-sdk
