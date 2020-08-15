@@ -26,12 +26,16 @@ stages:
 
         - script: |
             cinst -y ninja
-            mkdir c:\score-sdk
-            cd c:\score-sdk
+        - bash: |
+            set -x
+            pwd
+            mkdir /c/score-sdk
+            cd /c/score-sdk
+            pwd
             curl -L https://github.com/ossia/sdk/releases/download/sdk15/score-sdk-mingw.7z --output score-sdk-mingw.7z
             7z x score-sdk-mingw.7z
             rm score-sdk-mingw.7z
-            dir
+            ls
 
         - script: |
             mkdir build
