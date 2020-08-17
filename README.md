@@ -23,13 +23,14 @@ Releases are available for [Windows, Linux (via AppImage) and Mac OS X](https://
 * Linux: make executable (right click -> permissions or `chmod +x`) and run the AppImage.
 
 ## Build status
-* Linux, OS X: [![Travis Status](https://travis-ci.org/ossia/score.svg?branch=master)](https://travis-ci.org/ossia/score)
-* Windows: [![Appveyor Status](https://ci.appveyor.com/api/projects/status/github/ossia/score?branch=master&svg=true)](https://ci.appveyor.com/project/JeanMichalCelerier/score)
+* Linux, macOS: [![Travis Status](https://travis-ci.org/ossia/score.svg?branch=master)](https://travis-ci.org/ossia/score)
+* Windows (clang): [![Azure Pipelines](https://img.shields.io/azure-devops/build/ossia/f914424f-63a4-43f7-b424-67c9dc58ae05/2)](https://dev.azure.com/ossia/libossia/_build?definitionId=2)
+* Windows (MSVC): [![Appveyor Status](https://ci.appveyor.com/api/projects/status/github/ossia/score?branch=master&svg=true)](https://ci.appveyor.com/project/JeanMichalCelerier/score)
 * [![OpenHub](https://www.openhub.net/p/score/widgets/project_thin_badge?format=gif)](https://www.openhub.net/p/score)
 * ossia score uses [CppDepend](https://www.cppdepend.com/) to ensure consistent code quality improvements ; please check it out !
 
 In order to build score, follow the [instructions](https://github.com/ossia/score/wiki/Build-and-install).
-Current builds tested on Mac OS X, Ubuntu 14.04, ArchLinux, Windows 8.1.
+Current builds tested on macOS 10.14, Ubuntu 20.04, and Windows 10.
 
 ## Contributing
 
