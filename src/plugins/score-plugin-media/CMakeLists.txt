@@ -179,7 +179,7 @@ if(Faust_FOUND)
     )
 endif()
 
-if(TARGET Lilv)
+if(TARGET Lilv AND TARGET Suil)
     set(LV2_HDRS
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2EffectModel.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/lv2_atom_helpers.hpp"
