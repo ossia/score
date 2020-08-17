@@ -46,18 +46,7 @@ endfunction()
 # imported_link_libraries(t_dest target1 target2 ...)
 # Make imported library target @t_dest effectively linked with @target1, @target2 ...
 function(imported_link_libraries t_dest)
-    # IMPORTED_LOCATION's and INTERFACE_LINK_LIBRARIES's from dependencies
-    # should be appended to target's INTERFACE_LINK_LIBRARIES.
-    get_property(v1 TARGET ${t_dest} PROPERTY INTERFACE_LINK_LIBRARIES)
-    _combine_targets_property(v2 IMPORTED_LOCATION_DEBUG ${ARGN})
-    _combine_targets_property(v3 IMPORTED_LOCATION_RELEASE ${ARGN})
-    _combine_targets_property(v4 IMPORTED_LOCATION ${ARGN})
-    _combine_targets_property(v5 INTERFACE_LINK_LIBRARIES ${ARGN})
-
-    set(v ${v1} ${v2} ${v3} ${v4} ${v5})
-    list(REMOVE_DUPLICATES v)
-
-    set_property(TARGET ${t_dest} PROPERTY INTERFACE_LINK_LIBRARIES "${v}")
+    target_link_libraries(${t_dest} INTERFACE ${ARGN})
 endfunction()
 
 # The default components were taken from a survey over other FindFFMPEG.cmake files
