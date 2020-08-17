@@ -1,6 +1,6 @@
 environment:
-  QTDIR: C:/Qt/5.14/msvc2017_64
-  BOOST_ROOT: C:/Libraries/boost_1_72_0
+  QTDIR: C:/Qt/5.15/msvc2017_64
+  BOOST_ROOT: C:/Libraries/boost_1_73_0
 
 configuration: Release
 
@@ -18,7 +18,6 @@ install:
   - move ffmpeg c:\ffmpeg
 
 build_script:
-  # - cmake -T host=x64 -G "Visual Studio 16 2019" -A x64 -DSCORE_CONFIGURATION=static-release -DBOOST_ROOT="%BOOST_ROOT%" -DCMAKE_PREFIX_PATH="%QTDIR%/lib/cmake/Qt5" -DSCORE_ENABLE_LTO=0 ..
   - git submodule update --init --recursive
   - set PATH=%CD%;%PATH%
   - mkdir build
@@ -31,14 +30,3 @@ build_script:
 artifacts:
   - name: Installer
     path: 'build/ossia score-*.exe'
-
-deploy:
-  release: $(APPVEYOR_REPO_TAG_NAME)
-  provider: GitHub
-  artifact: /.*\.exe/
-  auth_token:
-    secure: j0nBV9xVItdG3j6d0gHoyvrzi7TOhAy9/QIeyCbFeP8PTqq7DPr1oYwL5WIkPaXe
-  draft: false
-  prerelease: false
-  on:
-    appveyor_repo_tag: true
