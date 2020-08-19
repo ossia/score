@@ -6,4 +6,4 @@ export PS4='+ ${FUNCNAME[0]:+${FUNCNAME[0]}():}line ${LINENO}: '
 
 export CTEST_OUTPUT_ON_FAILURE=1
 export CONFIG_FOLDER="$(pwd)/../tools/travis/configs"
-source "$(pwd)/../tools/travis/configs/$CONF.sh"
+source "$(pwd)/tools/travis/configs/$CONF.sh"
