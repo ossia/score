@@ -1,5 +1,10 @@
 project(score_addon_gfx LANGUAGES C CXX)
 
+if (Qt5Core_VERSION VERSION_LESS 5.14.0)
+  message("Video plug-in requires Qt 5.14 at least.")
+  return()
+endif()
+
 find_package(Qt5 5.14 OPTIONAL_COMPONENTS ShaderTools)
 if(NOT TARGET Qt5::ShaderTools)
   return()
