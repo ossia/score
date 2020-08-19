@@ -7,6 +7,7 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/Algorithms/ContainersAccessors.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 
 #include <score/model/ModelMetadata.hpp>
 

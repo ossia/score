@@ -205,7 +205,7 @@ public:
   void setParent(TreeNode* parent) noexcept { m_parent = parent; }
 
   template <typename Fun>
-  void visit(Fun f) const noexcept(noexcept(f(*this)))
+  void visit(Fun f) const noexcept(noexcept(f(std::declval<TreeNode>())))
   {
     f(*this);
 
