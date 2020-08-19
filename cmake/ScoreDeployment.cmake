@@ -25,24 +25,23 @@ set(CPACK_SOURCE_IGNORE_FILES
   "/src/disabled_addons"
   "/src/disabled-addons"
   "/Documentation"
-  "/API/3rdparty/concurrentqueue/benchmarks"
+  "/3rdparty/ossia/3rdparty/concurrentqueue/benchmarks"
 )
 
 set(CPACK_INSTALL_CMAKE_PROJECTS)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-include(ScoreDeploymentOSX)
+  include(ScoreDeploymentOSX)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Android")
-include(ScoreDeploymentAndroid)
+  include(ScoreDeploymentAndroid)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-if(GENERIC_LINUX_DEPLOYMENT_BUILD)
-include(ScoreDeploymentGenericLinux)
-else()
-include(ScoreDeploymentLinux)
-endif()
+  if(GENERIC_LINUX_DEPLOYMENT_BUILD)
+    include(ScoreDeploymentGenericLinux)
+  else()
+    include(ScoreDeploymentLinux)
+  endif()
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-include(ScoreDeploymentWindows)
+  include(ScoreDeploymentWindows)
 endif()
-
 
 include(CPack)

@@ -1,11 +1,13 @@
 #!/bin/sh
 
+mkdir build && cd build
+
 docker pull ossia/score-package-linux
 docker run --name buildvm \
            -v "$(pwd)"/../cmake/Deployment/Linux/AppImage/Recipe.llvm:/Recipe \
            -e TRAVIS_COMMIT \
            ossia/score-package-linux /bin/bash /Recipe
-#docker run --name buildvm ossia/score-package-linux /bin/bash Recipe
+
 docker cp buildvm:/score.AppDir.txz .
 
 tar xaf score.AppDir.txz

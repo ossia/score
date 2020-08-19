@@ -13,11 +13,6 @@ if(APPLE AND EXISTS /usr/local/opt/qt5)
   list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/qt5")
 endif()
 
-set(CMAKE_MODULE_PATH
-  "${CMAKE_CURRENT_SOURCE_DIR}/cmake"
-  "${CMAKE_MODULE_PATH}"
-)
-
 if(OSSIA_SDK)
   set(CMAKE_PREFIX_PATH
       "${OSSIA_SDK}/SDL2/cmake"
@@ -29,18 +24,9 @@ if(OSSIA_SDK)
       "${OSSIA_SDK}/portaudio/lib/cmake"
       "${OSSIA_SDK}/portaudio/lib/cmake/portaudio"
       "${CMAKE_PREFIX_PATH}")
-endif()
 
-if(NOT SCORE_CONFIGURATION)
-  if(${CMAKE_BUILD_TYPE} MATCHES Debug)
-    set(SCORE_CONFIGURATION static-debug)
-  elseif(${CMAKE_BUILD_TYPE} MATCHES Release)
-    set(SCORE_CONFIGURATION static-release)
-  else()
-    set(SCORE_CONFIGURATION developer)
-  endif()
+  set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${OSSIA_SDK}/ffmpeg/lib/pkgconfig")
 endif()
-include("${SCORE_CONFIGURATION}")
 
 project(score LANGUAGES C CXX)
 if(APPLE)
@@ -53,16 +39,19 @@ set(SCORE_VERSION_PATCH 0)
 set(SCORE_VERSION_EXTRA "alpha5")
 set(SCORE_CODENAME "The zoolok salpati drowns slorcily in globamate")
 
-set(SCORE_VERSION
-    "${SCORE_VERSION_MAJOR}.${SCORE_VERSION_MINOR}.${SCORE_VERSION_PATCH}")
+set(SCORE_VERSION "${SCORE_VERSION_MAJOR}.${SCORE_VERSION_MINOR}.${SCORE_VERSION_PATCH}")
 
+if(NOT SCORE_DYNAMIC_PLUGINS)
+  set(SCORE_STATIC_PLUGINS ON)
+endif()
+include(all-plugins)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_UNITY_BUILD_BATCH_SIZE 5000)
 
 if(MSVC)
   # TODO check /experimental:preprocessor at some point
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /std:c++latest /permissive- /volatile:iso")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /MP /std:c++latest /permissive- /volatile:iso")
   add_definitions(/D_HAS_AUTO_PTR_ETC=1
                   /D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS=1
                   /DNOMINMAX
@@ -71,10 +60,10 @@ if(MSVC)
 else()
   if(CMAKE_VERSION VERSION_GREATER 3.16)
     set(CMAKE_CXX_STANDARD 20)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++2a -fno-stack-protector ")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++2a ")
   else()
     set(CMAKE_CXX_STANDARD 17)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1z -fno-stack-protector ")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1z ")
   endif()
 endif()
 
@@ -147,6 +136,6 @@ if(INTEGRATION_TESTING)
   setup_score_tests(tests/Integration)
 endif()
 
-include(GenerateQMake)
-include(GenerateUnity)
+# include(GenerateQMake)
+# include(GenerateUnity)
 include(CTest)

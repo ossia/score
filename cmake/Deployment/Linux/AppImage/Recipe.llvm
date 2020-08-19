@@ -3,21 +3,22 @@ set -o pipefail
 
 export OSSIA_SDK=/opt/score-sdk
 export QT_DIR=$OSSIA_SDK/qt5-static
+export QTDIR=$OSSIA_SDK/qt5-static
 export NPROC=$(nproc)
 export PATH=$OSSIA_SDK/llvm/bin:$PATH
 export GIT=/opt/rh/rh-git218/root/usr/bin/git
 export LD_LIBRARY_PATH=$OSSIA_SDK/llvm/lib:/opt/rh/rh-git218/root/usr/lib:/opt/rh/httpd24/root/usr/lib64
-export QTDIR=$OSSIA_SDK/qt5-static
  
 export CC=$OSSIA_SDK/llvm/bin/clang
 export CXX=$OSSIA_SDK/llvm/bin/clang++
-export CFLAGS="-O3"
-export CXXFLAGS="-O3"
+export CFLAGS="-Ofast -flto"
+export CXXFLAGS="-Ofast -flto"
 
 ln -s /opt/rh/rh-git218/root/usr/bin/git /usr/bin/git || true
 
 (
-    wget -nv --no-check-certificate -c  https://github.com/Kitware/CMake/releases/download/v3.17.1/cmake-3.17.1-Linux-x86_64.tar.gz
+    rm -rf cmake-*
+    wget -nv --no-check-certificate -c  https://github.com/Kitware/CMake/releases/download/v3.18.1/cmake-3.18.1-Linux-x86_64.tar.gz
     tar xaf cmake-*.tar.gz
 )
 
@@ -34,8 +35,13 @@ cd ./$BUILD_DIR
 
 # Get score from git
 (
-  $GIT clone --recursive  -j16 https://github.com/ossia/score
+  if [[ ! -d score ]]; then
+    $GIT clone --recursive  -j16 https://github.com/ossia/score
+  fi
   cd score/
+  $GIT reset
+  $GIT checkout .
+  $GIT fetch
   $GIT checkout $TRAVIS_COMMIT
   $GIT reset --hard HEAD
   $GIT clean -dffx
@@ -55,14 +61,13 @@ export SOURCE_DIR=$PWD/score
 
     cd build
     $CMAKE $SOURCE_DIR \
-      -DSCORE_CONFIGURATION=static-release \
+      -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT \
       -DCMAKE_PREFIX_PATH=$QT_DIR/lib/cmake/Qt5 \
       -DOSSIA_SDK=$OSSIA_SDK \
       -DCMAKE_SKIP_RPATH=ON \
       -DCMAKE_UNITY_BUILD=ON \
-      -DOSSIA_USE_FAST_LINKER=1 \
-      -DCMAKE_EXE_LINKER_FLAGS="-static-libstdc++ -pthread" #\
+      -DCMAKE_EXE_LINKER_FLAGS="-static-libstdc++ -pthread -fuse-ld=lld -Ofast -s -flto" #\
     # -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++ -pthread"
 
     $CMAKE --build . -- -j$NPROC && $CMAKE --build . --target install/strip/fast

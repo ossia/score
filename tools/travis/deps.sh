@@ -18,23 +18,23 @@ case "$TRAVIS_OS_NAME" in
     sudo apt-get update -qq
     sudo apt-get install wget software-properties-common
 
-    wget -nv https://github.com/Kitware/CMake/releases/download/v3.17.3/cmake-3.17.3-Linux-x86_64.tar.gz -O cmake-linux.tgz &
-    echo 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-9 main' | sudo tee /etc/apt/sources.list.d/llvm.list
+    wget -nv https://github.com/jcelerier/cninja/releases/download/v3.4.0/cninja-3.4.0-Linux.tar.gz -O cninja-linux.tgz &
+    wget -nv https://github.com/Kitware/CMake/releases/download/v3.18.1/cmake-3.18.1-Linux-x86_64.tar.gz -O cmake-linux.tgz &
+    echo 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-10 main' | sudo tee /etc/apt/sources.list.d/llvm.list
     sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 1397BC53640DB551
     sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 15CF4D18AF4F7421
 
     sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test
-    sudo add-apt-repository --yes ppa:beineri/opt-qt-5.14.1-bionic
+    sudo add-apt-repository --yes ppa:beineri/opt-qt-5.15.0-focal
 
     sudo apt-get update -qq
     sudo apt-get install -qq --force-yes \
-        g++-9 binutils libasound-dev ninja-build \
+        g++-10 binutils libasound-dev ninja-build \
         gcovr lcov \
-        qt514-meta-minimal qt514svg qt514quickcontrols2 qt514websockets qt514serialport \
-        qt514base qt514declarative \
+        qt515base qt515declarative qt515svg qt515quickcontrols2 qt515websockets qt515serialport \
         libgl1-mesa-dev \
         libavcodec-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev \
-        portaudio19-dev clang-9 lld-9 \
+        portaudio19-dev clang-10 lld-10 \
         libbluetooth-dev \
         libsdl2-dev libsdl2-2.0-0 libglu1-mesa-dev libglu1-mesa \
         libgles2-mesa-dev \
@@ -42,6 +42,7 @@ case "$TRAVIS_OS_NAME" in
 
     wait wget || true
 
+    tar xaf cninja-linux.tgz
     tar xaf cmake-linux.tgz
     mv cmake-*-x86_64 cmake-latest
   ;;
