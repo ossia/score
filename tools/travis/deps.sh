@@ -34,7 +34,8 @@ case "$TRAVIS_OS_NAME" in
         qt515base qt515declarative qt515svg qt515quickcontrols2 qt515websockets qt515serialport \
         libgl1-mesa-dev \
         libavcodec-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev \
-        portaudio19-dev clang-10 lld-10 \
+        portaudio19-dev \
+        clang-10 lld-10 libc++-10-dev libc++abi-10-dev \
         libbluetooth-dev \
         libsdl2-dev libsdl2-2.0-0 libglu1-mesa-dev libglu1-mesa \
         libgles2-mesa-dev \
