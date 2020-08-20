@@ -1,8 +1,10 @@
 #!/bin/bash
-cd ..
+
+
 rm -rf .git
 rm -rf *.tar.xz
-find . -name '.git' -exec rm -rf {} \;
+find . -name '.git' -exec rm -rf {} \; || true
+find . -name '.git' -exec rm -rf {} \; || true
 rm -rf 3rdparty/libossia/.git || true
 rm -rf 3rdparty/libossia/3rdparty/CicmWrapper || true
 

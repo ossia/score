@@ -18,7 +18,7 @@ case "$TRAVIS_OS_NAME" in
     sudo apt-get update -qq
     sudo apt-get install wget software-properties-common
 
-    wget -nv https://github.com/jcelerier/cninja/releases/download/v3.4.0/cninja-3.4.0-Linux.tar.gz -O cninja-linux.tgz &
+    wget -nv https://github.com/jcelerier/cninja/releases/download/v3.5.0/cninja-3.5.0-Linux.tar.gz -O cninja-linux.tgz &
     wget -nv https://github.com/Kitware/CMake/releases/download/v3.18.1/cmake-3.18.1-Linux-x86_64.tar.gz -O cmake-linux.tgz &
     echo 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-10 main' | sudo tee /etc/apt/sources.list.d/llvm.list
     sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 1397BC53640DB551
@@ -43,6 +43,7 @@ case "$TRAVIS_OS_NAME" in
     wait wget || true
 
     tar xaf cninja-linux.tgz
+    cp -rf cninja /usr/bin/
     tar xaf cmake-linux.tgz
     mv cmake-*-x86_64 cmake-latest
   ;;
