@@ -43,7 +43,7 @@ case "$TRAVIS_OS_NAME" in
     wait wget || true
 
     tar xaf cninja-linux.tgz
-    cp -rf cninja /usr/bin/
+    sudo cp -rf cninja /usr/bin/
     tar xaf cmake-linux.tgz
     mv cmake-*-x86_64 cmake-latest
   ;;
