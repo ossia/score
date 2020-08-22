@@ -22,10 +22,10 @@ build_script:
   - set PATH=%CD%;%PATH%
   - mkdir build
   - cd build
-  - dir C:/Qt
-  - dir C:/Qt/5.15
-  - dir %QTDIR%  
-  - dir %QTDIR%/lib/cmake/Qt5
+  - dir C:\Qt
+  - dir C:\Qt\5.15
+  - dir C:\Qt\5.15\msvc2017_64
+  - dir %QTDIR%\lib\cmake\Qt5
 
   - call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" amd64
   - cmake -G "NMake Makefiles JOM" -DCMAKE_UNITY_BUILD=1 -DSCORE_CONFIGURATION=static-release -DBOOST_ROOT="%BOOST_ROOT%" -DCMAKE_PREFIX_PATH="%QTDIR%" ..
