@@ -1,5 +1,5 @@
 environment:
-  QTDIR: C:/Qt/5.15/msvc2017_64
+  QTDIR: C:/Qt/5.15/msvc2019_64
   BOOST_ROOT: C:/Libraries/boost_1_73_0
 
 configuration: Release
@@ -18,15 +18,11 @@ install:
   - move ffmpeg c:\ffmpeg
 
 build_script:
+  - dir C:\Qt
   - git submodule update --init --recursive
   - set PATH=%CD%;%PATH%
   - mkdir build
   - cd build
-  - dir C:\Qt
-  - dir C:\Qt\5.15
-  - dir C:\Qt\5.15\msvc2017_64
-  - dir %QTDIR%\lib\cmake\Qt5
-
   - call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" amd64
   - cmake -G "NMake Makefiles JOM" -DCMAKE_UNITY_BUILD=1 -DSCORE_CONFIGURATION=static-release -DBOOST_ROOT="%BOOST_ROOT%" -DCMAKE_PREFIX_PATH="%QTDIR%" ..
   - cmake --build . --config Release -- -j4
