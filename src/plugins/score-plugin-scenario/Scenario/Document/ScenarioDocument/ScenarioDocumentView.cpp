@@ -217,20 +217,23 @@ void ProcessGraphicsView::mousePressEvent(QMouseEvent* event)
   if (auto dialog = this->scene()->activePanel())
   {
     const auto other = itemAt(event->pos());
-    switch (other->type())
+    if (other)
     {
-      case Dataflow::PortItem::Type:
-      case Dataflow::CableItem::Type:
-        break;
-
-      default:
+      switch (other->type())
       {
-        const auto mapped_pos = other->mapToItem(dialog, QPointF{0, 0});
-        if (!dialog->contains(mapped_pos))
+        case Dataflow::PortItem::Type:
+        case Dataflow::CableItem::Type:
+          break;
+
+        default:
         {
-          delete dialog;
+          const auto mapped_pos = other->mapToItem(dialog, QPointF{0, 0});
+          if (!dialog->contains(mapped_pos))
+          {
+            delete dialog;
+          }
+          break;
         }
-        break;
       }
     }
   }
