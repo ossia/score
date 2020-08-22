@@ -26,6 +26,11 @@ SelectionStack::SelectionStack()
   m_unselectable.push(Selection{});
 }
 
+SelectionStack::~SelectionStack()
+{
+
+}
+
 bool SelectionStack::canUnselect() const
 {
   return m_unselectable.size() > 1;

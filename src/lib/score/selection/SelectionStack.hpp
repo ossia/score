@@ -25,6 +25,7 @@ class SCORE_LIB_BASE_EXPORT SelectionStack final : public QObject
   W_OBJECT(SelectionStack)
 public:
   SelectionStack();
+  ~SelectionStack();
 
   bool canUnselect() const;
   bool canReselect() const;
