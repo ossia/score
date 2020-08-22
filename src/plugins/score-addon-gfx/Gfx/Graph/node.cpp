@@ -237,7 +237,7 @@ void RenderedNode::update(Renderer& renderer, QRhiResourceUpdateBatch& res)
 {
   res.updateDynamicBuffer(m_processUBO, 0, sizeof(ProcessUBO), &this->node.standardUBO);
 
-  if (m_materialSize > 0 && materialChangedIndex != node.materialChanged)
+  if (m_materialUBO && m_materialSize > 0 && materialChangedIndex != node.materialChanged)
   {
     char* data = node.m_materialData.get();
     res.updateDynamicBuffer(m_materialUBO, 0, m_materialSize, data);
