@@ -8,8 +8,6 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
-#include <QTimer>
-
 #include <Control/DefaultEffectItem.hpp>
 #include <Effect/EffectLayout.hpp>
 #include <Gfx/Images/Presenter.hpp>
