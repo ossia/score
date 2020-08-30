@@ -213,20 +213,24 @@ bool CameraInput::open_stream() noexcept
 
   for (unsigned int i = 0; i < m_formatContext->nb_streams; i++)
   {
-    if (m_formatContext->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
+    auto codecpar = m_formatContext->streams[i]->codecpar;
+    if (codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
     {
       m_stream = i;
-      m_codecContext = m_formatContext->streams[i]->codec;
-      m_codec = avcodec_find_decoder(m_codecContext->codec_id);
+      m_codec = avcodec_find_decoder(codecpar->codec_id);
 
       if (m_codec)
       {
-        pixel_format = m_codecContext->pix_fmt;
+        m_codecContext = avcodec_alloc_context3(m_codec);
+        avcodec_parameters_to_context(m_codecContext, codecpar);
+
         m_codecContext->flags |= AV_CODEC_FLAG_LOW_DELAY;
         m_codecContext->flags2 |= AV_CODEC_FLAG2_FAST;
+
         res = !(avcodec_open2(m_codecContext, m_codec, nullptr) < 0);
-        width = m_codecContext->coded_width;
-        height = m_codecContext->coded_height;
+        pixel_format = static_cast<AVPixelFormat>(codecpar->format);
+        width = codecpar->width;
+        height = codecpar->height;
         fps = av_q2d(m_formatContext->streams[i]->avg_frame_rate);
         break;
       }
