@@ -26,48 +26,36 @@ Model::Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObje
   metadata().setInstanceName(*this);
   m_outlets.push_back(new TextureOutlet{Id<Process::Port>(0), this});
 
-  setFragment(R"_(#version 450
-layout(location = 0) in vec2 v_texcoord;
-layout(location = 0) out vec4 fragColor;
+  const auto defaultFrag = QStringLiteral(R"_(/*{
+"CREDIT": "ossia score",
+"ISFVSN": "2",
+"DESCRIPTION": "Colorize",
+"CATEGORIES": [ "Color Effect", "Utility" ],
+"INPUTS": [
+  {
+    "NAME": "inputImage",
+    "TYPE": "image"
+  },
+  {
+    "NAME": "color",
+    "TYPE": "color",
+    "DEFAULT": [
+      0.8,
+      0.4,
+      0.2,
+      1.
+    ]
+  }
+]
+}*/
 
-// Shared uniform buffer for the whole render window
-layout(std140, binding = 0) uniform renderer_t {
-  mat4 clipSpaceCorrMatrix;
-  vec2 texcoordAdjust;
+void main() {
+  vec4 srcPixel = IMG_THIS_PIXEL(inputImage);
+  gl_FragColor = srcPixel * color;
+}
+)_");
 
-  vec2 renderSize;
-};
-
-// Time-dependent uniforms, only relevant during execution
-layout(std140, binding = 1) uniform process_t {
-  float time;
-  float timeDelta;
-  float progress;
-
-  int passIndex;
-  int frameIndex;
-
-  vec4 date;
-  vec4 mouse;
-  vec4 channelTime;
-
-  float sampleRate;
-};
-
-// Everything here will be exposed as UI controls
-layout(std140, binding = 2) uniform material_t {
-  vec4 color;
-};
-
-
-void main()
-{
-  // Important : texture origin depends on the graphics API used (Vulkan, D3D, etc).
-  // Thus the following adjustment is required :
-  vec2 texcoord = vec2(v_texcoord.x, texcoordAdjust.y + texcoordAdjust.x * v_texcoord.y);
-
-  fragColor = vec4(color.rgb * (1+sin(progress * 100))/2. * texcoord.xxy, 1.);
-})_");
+  setProgram({defaultISFVertex, defaultFrag});
 }
 
 Model::~Model() { }
