@@ -60,6 +60,12 @@ void main() {
 
 Model::~Model() { }
 
+bool Model::validate(const ShaderProgram& txt) const noexcept
+{
+  SCORE_TODO;
+  return true;
+}
+
 void Model::setVertex(QString f)
 {
   if (f == m_program.vertex)

@@ -28,6 +28,10 @@ struct ShaderProgram {
     MemberSpec{QObject::tr("Fragment"), &ShaderProgram::fragment},
     MemberSpec{QObject::tr("Vertex"), &ShaderProgram::vertex},
   };
+
+  friend QDebug& operator<<(QDebug& d, const ShaderProgram& sp) {
+    return (d << sp.vertex << sp.fragment);
+  }
 };
 }
 
@@ -53,6 +57,8 @@ public:
   }
 
   ~Model() override;
+
+  bool validate(const ShaderProgram& txt) const noexcept;
 
   const QString& vertex() const noexcept { return m_program.vertex; }
   void setVertex(QString f);

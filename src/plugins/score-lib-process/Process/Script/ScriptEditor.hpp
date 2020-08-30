@@ -55,8 +55,13 @@ public:
     this->setError(0, QString{});
     if (this->text() != (m_process.*Property_T::get)())
     {
-      CommandDispatcher<>{m_context.commandStack}.submit(
-            new score::StaticPropertyCommand<Property_T>{m_process, this->text()});
+      // TODO try to see if we can make this a bit more efficient,
+      // by passing the validated / transformed data to the command maybe ?
+      if (m_process.validate(this->text()))
+      {
+        CommandDispatcher<>{m_context.commandStack}.submit(
+              new score::StaticPropertyCommand<Property_T>{m_process, this->text()});
+      }
     }
   }
 

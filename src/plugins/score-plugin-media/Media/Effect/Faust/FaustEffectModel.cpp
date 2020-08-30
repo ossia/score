@@ -68,6 +68,12 @@ FaustEffectModel::FaustEffectModel(
 
 FaustEffectModel::~FaustEffectModel() { }
 
+bool FaustEffectModel::validate(const QString& txt) const noexcept
+{
+  SCORE_TODO;
+  return true;
+}
+
 void FaustEffectModel::setText(const QString& txt)
 {
   if (txt != m_text)

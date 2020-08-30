@@ -17,7 +17,7 @@ class ProcessModel;
 struct ComponentCache
 {
 public:
-  JS::Script* get(JS::ProcessModel& process, const QByteArray& str, bool isFile) noexcept;
+  JS::Script* get(const JS::ProcessModel& process, const QByteArray& str, bool isFile) noexcept;
   JS::Script* tryGet(const QByteArray& str, bool isFile) const noexcept;
   ComponentCache();
   ~ComponentCache();
@@ -53,16 +53,16 @@ public:
   }
 
   void setScript(const QString& script);
-  void setQmlData(const QByteArray&, bool isFile);
   const QString& script() const noexcept { return m_script; }
+
   const QByteArray& qmlData() const noexcept { return m_qmlData; }
-  QQmlEngine& engine() noexcept { return m_dummyEngine; }
 
   JS::Script* currentObject() const noexcept;
 
   ~ProcessModel() override;
 
-  void errorMessage(int arg_1, const QString& arg_2) W_SIGNAL(errorMessage, arg_1, arg_2);
+  bool validate(const QString& str) const noexcept;
+  void errorMessage(int arg_1, const QString& arg_2) const W_SIGNAL(errorMessage, arg_1, arg_2);
   void scriptOk() W_SIGNAL(scriptOk);
   void scriptChanged(const QString& arg_1) W_SIGNAL(scriptChanged, arg_1);
 
@@ -70,11 +70,12 @@ public:
 
   PROPERTY(QString, script READ script WRITE setScript NOTIFY scriptChanged)
 private:
+  bool setQmlData(const QByteArray&, bool isFile);
+
   QString m_script;
   QByteArray m_qmlData;
-  QQmlEngine m_dummyEngine;
-  ComponentCache m_cache;
-  std::unique_ptr<QFileSystemWatcher> m_watch;
+  mutable ComponentCache m_cache;
+  //std::unique_ptr<QFileSystemWatcher> m_watch;
   bool m_isFile{};
 };
 }

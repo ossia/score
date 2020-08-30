@@ -6,7 +6,7 @@ namespace Media::Faust
 {
 class EditScript : public Scenario::EditScript<FaustEffectModel, FaustEffectModel::p_text>
 {
-  SCORE_COMMAND_DECL(CommandFactoryName(), EditScript, "Edit a faust script")
+  SCORE_COMMAND_DECL(CommandFactoryName(), EditScript, "Edit a Faust program")
 public:
   using Scenario::EditScript<FaustEffectModel, FaustEffectModel::p_text>::EditScript;
 };

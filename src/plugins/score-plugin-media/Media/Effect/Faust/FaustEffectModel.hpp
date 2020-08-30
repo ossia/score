@@ -64,6 +64,7 @@ public:
     init();
   }
 
+  bool validate(const QString& txt) const noexcept;
   const QString& text() const { return m_text; }
 
   QString prettyName() const noexcept override;

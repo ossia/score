@@ -65,21 +65,38 @@ Script {
 
 ProcessModel::~ProcessModel() { }
 
+bool ProcessModel::validate(const QString& script) const noexcept
+{
+  const auto trimmed = script.trimmed();
+  const QByteArray data = trimmed.toUtf8();
+
+  auto path = score::locateFilePath(trimmed, score::IDocument::documentContext(*this));
+
+  if (QFileInfo{path}.exists())
+  {
+    return (bool) m_cache.get(*this, path.toUtf8(), true);
+  }
+  else
+  {
+    if(!data.startsWith("import"))
+        return false;
+    return (bool) m_cache.get(*this, data, false);
+  }
+}
+
 void ProcessModel::setScript(const QString& script)
 {
-  m_watch.reset();
   /*
+  m_watch.reset();
+
   if (m_dummyObject)
     m_dummyObject->deleteLater();
   m_dummyObject = nullptr;
   m_dummyComponent.reset();
   m_dummyComponent = std::make_unique<QQmlComponent>(&m_dummyEngine);
   */
-  m_script = script;
-  scriptChanged(script);
-  auto trimmed = script.trimmed();
-
-  QByteArray data = trimmed.toUtf8();
+  const auto trimmed = script.trimmed();
+  const QByteArray data = trimmed.toUtf8();
 
   auto path = score::locateFilePath(trimmed, score::IDocument::documentContext(*this));
 
@@ -108,25 +125,30 @@ void ProcessModel::setScript(const QString& script)
         });
 
     */
-    setQmlData(path.toUtf8(), true);
+    if(!setQmlData(path.toUtf8(), true))
+      return;
   }
   else
   {
-    setQmlData(data, false);
+    if(!setQmlData(data, false))
+      return;
   }
+
+  m_script = script;
+  scriptChanged(script);
 }
 
-void ProcessModel::setQmlData(const QByteArray& data, bool isFile)
+bool ProcessModel::setQmlData(const QByteArray& data, bool isFile)
 {
   if (!isFile && !data.startsWith("import"))
-    return;
-
-  m_isFile = isFile;
-  m_qmlData = data;
+    return false;
 
   auto script = m_cache.get(*this, data, isFile);
   if (!script)
-    return;
+    return false;
+
+  m_isFile = isFile;
+  m_qmlData = data;
 
   auto old_inlets = score::clearAndDeleteLater(m_inlets);
   auto old_outlets = score::clearAndDeleteLater(m_outlets);
@@ -164,6 +186,8 @@ void ProcessModel::setQmlData(const QByteArray& data, bool isFile)
   qmlDataChanged(data);
   inletsChanged();
   outletsChanged();
+
+  return true;
 }
 
 Script* ProcessModel::currentObject() const noexcept
@@ -199,7 +223,7 @@ Script* ComponentCache::tryGet(const QByteArray& str, bool isFile) const noexcep
   }
 }
 
-Script* ComponentCache::get(ProcessModel& process, const QByteArray& str, bool isFile) noexcept
+Script* ComponentCache::get(const ProcessModel& process, const QByteArray& str, bool isFile) noexcept
 {
   QByteArray content;
   if (isFile)
@@ -220,7 +244,9 @@ Script* ComponentCache::get(ProcessModel& process, const QByteArray& str, bool i
   }
   else
   {
-    auto comp = std::make_unique<QQmlComponent>(&process.engine());
+    static QQmlEngine dummyEngine;
+
+    auto comp = std::make_unique<QQmlComponent>(&dummyEngine);
     if (!isFile)
     {
       comp->setData(str, QUrl());
