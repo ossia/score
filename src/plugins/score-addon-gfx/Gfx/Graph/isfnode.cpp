@@ -140,12 +140,12 @@ struct input_port_vis
 
 }
 
-ISFNode::ISFNode(const isf::descriptor& desc, QString vert, QString frag)
+ISFNode::ISFNode(const isf::descriptor& desc, const QShader& vert, const QShader& frag)
     : ISFNode{desc, vert, frag, &TexturedTriangle::instance()}
 {
 }
 
-ISFNode::ISFNode(const isf::descriptor& desc, QString vert, QString frag, const Mesh* mesh)
+ISFNode::ISFNode(const isf::descriptor& desc, const QShader& vert, const QShader& frag, const Mesh* mesh)
     : m_mesh{mesh}
 {
   setShaders(vert, frag);

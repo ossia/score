@@ -66,6 +66,12 @@ void NodeModel::setShaders(QString vert, QString frag)
     throw std::runtime_error("invalid fragment shader");
 }
 
+void NodeModel::setShaders(const QShader& vert, const QShader& frag)
+{
+  m_vertexS = vert;
+  m_fragmentS = frag;
+}
+
 void RenderedNode::init(Renderer& renderer)
 {
   auto& rhi = *renderer.state.rhi;

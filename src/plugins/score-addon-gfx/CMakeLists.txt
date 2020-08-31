@@ -81,6 +81,7 @@ set(HDRS
     Gfx/GfxExec.hpp
     Gfx/GfxDevice.hpp
     Gfx/TexturePort.hpp
+    Gfx/ShaderProgram.hpp
 
     Gfx/CameraDevice.hpp
     Gfx/WindowDevice.hpp
@@ -132,6 +133,7 @@ set(SRCS ${SPOUT_SRCS}
     Gfx/GfxApplicationPlugin.cpp
     Gfx/GfxDevice.cpp
     Gfx/TexturePort.cpp
+    Gfx/ShaderProgram.cpp
 
     Gfx/CameraDevice.cpp
     Gfx/WindowDevice.cpp

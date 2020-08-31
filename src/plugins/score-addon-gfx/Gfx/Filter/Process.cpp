@@ -4,14 +4,16 @@
 #include <Process/Dataflow/WidgetInlets.hpp>
 
 #include <QFileInfo>
-#include <QShaderBaker>
 
 #include <Gfx/Graph/node.hpp>
 #include <Gfx/Graph/nodes.hpp>
 #include <Gfx/Graph/shadercache.hpp>
 #include <Gfx/TexturePort.hpp>
+#include <score/tools/DeleteAll.hpp>
 #include <wobjectimpl.h>
+
 W_OBJECT_IMPL(Gfx::Filter::Model)
+
 namespace Gfx::Filter
 {
 static const QString defaultISFVertex = QStringLiteral(
@@ -62,8 +64,7 @@ Model::~Model() { }
 
 bool Model::validate(const ShaderProgram& txt) const noexcept
 {
-  SCORE_TODO;
-  return true;
+  return bool(ProgramCache::instance().get(txt));
 }
 
 void Model::setVertex(QString f)
@@ -76,54 +77,6 @@ void Model::setVertex(QString f)
   vertexChanged(f);
 }
 
-namespace
-{
-void updateToGlsl45(ShaderProgram& program)
-{
-  static const QRegularExpression out_expr{R"_(^out\s+(\w+)\s+(\w+)\s*;)_", QRegularExpression::MultilineOption};
-  static const QRegularExpression in_expr{R"_(^in\s+(\w+)\s+(\w+)\s*;)_", QRegularExpression::MultilineOption};
-
-  ossia::flat_map<QString, int> attributes_locations_map;
-
-  // First fixup the vertex shader and look for all the attributes
-  {
-    // location 0 is taken by fragColor - we start at 1.
-    int cur_location = 1;
-
-    auto match_idx = program.vertex.indexOf(out_expr);
-    while(match_idx != -1)
-    {
-      const QStringRef partialString = program.vertex.midRef(match_idx);
-      const auto& match = out_expr.match(partialString);
-      const int len = match.capturedLength(0);
-      attributes_locations_map[match.captured(2)] = cur_location;
-
-      program.vertex.insert(match_idx, QString("layout(location = %1) ").arg(cur_location));
-      cur_location++;
-
-      match_idx = program.vertex.indexOf(out_expr, match_idx + len);
-    }
-  }
-
-  // Then move on to the fragment shader, and reuse the same locations.
-  {
-    auto match_idx = program.fragment.indexOf(in_expr);
-    while(match_idx != -1)
-    {
-      const QStringRef partialString = program.fragment.midRef(match_idx);
-      const auto& match = in_expr.match(partialString);
-      const int len = match.capturedLength(0);
-
-      const int loc = attributes_locations_map[match.captured(2)];
-
-      program.fragment.insert(match_idx, QString("layout(location = %1) ").arg(loc));
-
-      match_idx = program.fragment.indexOf(in_expr, match_idx + len);
-    }
-  }
-}
-}
-
 void Model::setFragment(QString f)
 {
   if (f == m_program.fragment)
@@ -133,51 +86,37 @@ void Model::setFragment(QString f)
   programChanged(m_program);
 }
 
+
 void Model::setProgram(const ShaderProgram& f)
 {
-  setVertex(f.vertex);
-  setFragment(f.fragment);
-
-
-  auto inls = std::move(m_inlets);
-  m_inlets.clear();
-  inletsChanged();
-
-  for (auto inlet : inls)
-    delete inlet;
-
-  try
+  if(const auto& processed = ProgramCache::instance().get(f))
   {
-    isf::parser p{m_program.vertex.toStdString(), m_program.fragment.toStdString()};
-    auto isfVert = QString::fromStdString(p.vertex());
-    auto isfFrag = QString::fromStdString(p.fragment());
-    if (isfVert != m_program.vertex || isfFrag != m_program.fragment)
-    {
-      m_processedProgram.vertex = isfVert;
-      m_processedProgram.fragment = isfFrag;
+    auto inls = score::clearAndDeleteLater(m_inlets);
+    setVertex(f.vertex);
+    setFragment(f.fragment);
+    m_processedProgram = *processed;
 
-      updateToGlsl45(m_processedProgram);
-
-      m_isfDescriptor = p.data();
-      setupIsf(m_isfDescriptor);
-
-      inletsChanged();
-      programChanged(m_program);
-
-      return;
-    }
+    setupIsf(m_processedProgram.descriptor);
+    inletsChanged();
+    programChanged(m_program);
+    return;
   }
-  catch (...)
+  /*
+  else
   {
+    setVertex(f.vertex);
+    setFragment(f.fragment);
+
+    m_isfDescriptor = {};
+    m_processedProgram.vertex = m_program.vertex;
+    m_processedProgram.fragment = m_program.fragment;
+
+    setupNormalShader();
+
+    inletsChanged();
+    programChanged(m_program);
   }
-
-  m_isfDescriptor = {};
-  m_processedProgram.vertex = m_program.vertex;
-  m_processedProgram.fragment = m_program.fragment;
-  setupNormalShader();
-
-  inletsChanged();
-  programChanged(m_program);
+  */
 }
 
 QString Model::prettyName() const noexcept

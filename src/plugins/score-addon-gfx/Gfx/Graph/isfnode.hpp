@@ -22,8 +22,8 @@ void main(void) {
       )_";
 
   //ISFNode(const isf::descriptor& desc, QString frag);
-  ISFNode(const isf::descriptor& desc, QString vert, QString frag);
-  ISFNode(const isf::descriptor& desc, QString vert, QString frag, const Mesh* mesh);
+  ISFNode(const isf::descriptor& desc, const QShader& vert, const QShader& frag);
+  ISFNode(const isf::descriptor& desc, const QShader& vert, const QShader& frag, const Mesh* mesh);
 
   virtual ~ISFNode();
   const Mesh& mesh() const noexcept;

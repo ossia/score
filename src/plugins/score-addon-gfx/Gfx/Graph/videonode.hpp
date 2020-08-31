@@ -552,7 +552,7 @@ struct VideoNode : NodeModel
             nodem.gpu->exec(renderer, *this, res, *frame);
           }
 
-          int64_t ts = av_frame_get_best_effort_timestamp(frame);
+          int64_t ts = frame->best_effort_timestamp;
           lastFrameTime = (decoder.flicks_per_dts * ts) / ossia::flicks_per_second<double>;
 
           //qDebug() << lastFrameTime << node.standardUBO.time;

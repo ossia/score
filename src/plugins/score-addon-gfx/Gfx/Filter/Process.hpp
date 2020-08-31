@@ -4,39 +4,11 @@
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
 
+#include <Gfx/ShaderProgram.hpp>
 #include <Gfx/CommandFactory.hpp>
 #include <Gfx/Filter/Metadata.hpp>
 #include <isf.hpp>
 #include <array>
-namespace isf
-{
-struct descriptor;
-}
-
-namespace Gfx
-{
-struct ShaderProgram {
-  QString vertex;
-  QString fragment;
-
-  struct MemberSpec {
-    QString name;
-    QString ShaderProgram::* pointer;
-  };
-
-  static const inline std::array<MemberSpec, 2> specification{
-    MemberSpec{QObject::tr("Fragment"), &ShaderProgram::fragment},
-    MemberSpec{QObject::tr("Vertex"), &ShaderProgram::vertex},
-  };
-
-  friend QDebug& operator<<(QDebug& d, const ShaderProgram& sp) {
-    return (d << sp.vertex << sp.fragment);
-  }
-};
-}
-
-Q_DECLARE_METATYPE(Gfx::ShaderProgram)
-W_REGISTER_ARGTYPE(Gfx::ShaderProgram)
 namespace Gfx::Filter
 {
 class Model final : public Process::ProcessModel
@@ -75,11 +47,8 @@ public:
   void programChanged(const ShaderProgram& f) W_SIGNAL(programChanged, f);
   PROPERTY(Gfx::ShaderProgram, program READ program WRITE setProgram NOTIFY programChanged)
 
-  const QString& processedVertex() const noexcept { return m_processedProgram.vertex; }
-  const QString& processedFragment() const noexcept { return m_processedProgram.fragment; }
-  const ShaderProgram& processedProgram() const noexcept { return m_processedProgram; }
+  const ProcessedProgram& processedProgram() const noexcept { return m_processedProgram; }
 
-  const isf::descriptor& isfDescriptor() const noexcept { return m_isfDescriptor; }
   void errorMessage(int arg_1, const QString& arg_2) W_SIGNAL(errorMessage, arg_1, arg_2);
 
 private:
@@ -95,8 +64,7 @@ private:
   void setDurationAndShrink(const TimeVal& newDuration) noexcept override;
 
   ShaderProgram m_program;
-  ShaderProgram m_processedProgram;
-  isf::descriptor m_isfDescriptor;
+  ProcessedProgram m_processedProgram;
 };
 
 using ProcessFactory = Process::ProcessFactory_T<Gfx::Filter::Model>;

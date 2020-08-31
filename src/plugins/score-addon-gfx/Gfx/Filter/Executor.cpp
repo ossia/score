@@ -19,14 +19,7 @@ namespace Gfx::Filter
 class filter_node final : public gfx_exec_node
 {
 public:
-  filter_node(const QString& frag, GfxExecutionAction& ctx) : gfx_exec_node{ctx}
-  {
-    auto n = std::make_unique<FilterNode>(frag);
-
-    id = exec_context->ui->register_node(std::move(n));
-  }
-
-  filter_node(const isf::descriptor& isf, const QString& vert, const QString& frag, GfxExecutionAction& ctx)
+  filter_node(const isf::descriptor& isf, const QShader& vert, const QShader& frag, GfxExecutionAction& ctx)
       : gfx_exec_node{ctx}
   {
     auto n = std::make_unique<ISFNode>(isf, vert, frag);
@@ -48,20 +41,13 @@ ProcessExecutorComponent::ProcessExecutorComponent(
 {
   try
   {
-    const auto& desc = element.isfDescriptor();
+    const auto& shader = element.processedProgram();
+    const auto& desc = shader.descriptor;
 
-    std::shared_ptr<filter_node> n;
-    if(desc.inputs.empty())
-    {
-      n = std::make_shared<filter_node>(
-            element.processedFragment(), ctx.doc.plugin<DocumentPlugin>().exec);
-    }
-    else
-    {
-      n = std::make_shared<filter_node>(
-          desc, element.processedVertex(), element.processedFragment(), ctx.doc.plugin<DocumentPlugin>().exec);
-    }
-
+    auto n = std::make_shared<filter_node>(
+          desc,
+          shader.compiledVertex, shader.compiledFragment,
+          ctx.doc.plugin<DocumentPlugin>().exec);
     int i = 0;
     std::weak_ptr<gfx_exec_node> weak_node = n;
     for (auto& ctl : element.inlets())

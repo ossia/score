@@ -130,6 +130,7 @@ public:
   ProcessUBO standardUBO{};
 
   void setShaders(QString vert, QString frag);
+  void setShaders(const QShader& vert, const QShader& frag);
 
 protected:
   QShader m_vertexS;
