@@ -2,6 +2,8 @@
 #include <ossia/detail/hash_map.hpp>
 #include <isf.hpp>
 
+#include <verdigris>
+
 #include <QtGui/private/qshader_p.h>
 #include <QDebug>
 #include <QString>
