@@ -5,6 +5,8 @@
 #include <score/model/path/Path.hpp>
 #include <score/tools/Unused.hpp>
 
+#include <QVector>
+
 namespace Midi
 {
 class ProcessModel;
