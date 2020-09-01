@@ -192,7 +192,6 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
       m_record->blockSignals(false);
   });
   */
-  connect(m_stopAndInit, &QAction::triggered, m_stop, &QAction::trigger);
   //    connect(m_record, &QAction::toggled, this, [&] (bool b) {
   //    });
 

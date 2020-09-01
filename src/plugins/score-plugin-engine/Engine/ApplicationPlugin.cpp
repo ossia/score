@@ -635,32 +635,65 @@ void ApplicationPlugin::on_stop()
 
 void ApplicationPlugin::on_init()
 {
+  // TODO to be more precise, we should stop the execution, but keep
+  // the execution_state alive until the last message is sent
   if (auto doc = currentDocument())
   {
-    auto plugmodel = doc->context().findPlugin<Execution::DocumentPlugin>();
-    if (!plugmodel)
-      return;
-
     auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(&doc->model().modelDelegate());
     if (!scenar)
       return;
 
-    auto explorer = Explorer::try_deviceExplorerFromObject(*doc);
-    // Disable listening for everything
-    if (explorer
-        && !doc->context().app.settings<Execution::Settings::Model>().getExecutionListening())
-      explorer->deviceModel().listening().stop();
+    auto plugmodel = doc->context().findPlugin<Execution::DocumentPlugin>();
+    if (!plugmodel)
+      return;
 
-    auto state
-        = Engine::score_to_ossia::state(scenar->baseScenario().startState(), plugmodel->context());
-    state.launch();
+    auto explorer = Explorer::try_deviceExplorerFromObject(*doc);
+
+    // Disable listening for everything
+    if (explorer)
+      if(!doc->context().app.settings<Execution::Settings::Model>().getExecutionListening())
+        explorer->deviceModel().listening().stop();
+
+    if(plugmodel->execState)
+    {
+      auto state
+          = Engine::score_to_ossia::state(scenar->baseScenario().startState(), plugmodel->context());
+      state.launch();
+    }
+    else
+    {
+      // Create a temporary execution_state...
+      plugmodel->execState = std::make_shared<ossia::execution_state>();
+
+      // Fill its devices
+      auto& devs = doc->context().plugin<Explorer::DeviceDocumentPlugin>();
+      devs.list().apply([plugmodel] (auto& dev) {
+        if (auto d = dev.getDevice()) {
+          plugmodel->execState->register_device(d);
+        }
+      });
+
+      auto state = Engine::score_to_ossia::state(scenar->baseScenario().startState(), plugmodel->context());
+      state.launch();
+
+      plugmodel->execState.reset();
+    }
+
+
 
     // If we can we resume listening
-    if (!context.docManager.preparingNewDocument())
-    {
-      auto explorer = Explorer::try_deviceExplorerFromObject(*doc);
-      if (explorer)
+    if (explorer)
+      if (!context.docManager.preparingNewDocument())
         explorer->deviceModel().listening().restore();
+
+    if (context.applicationSettings.gui)
+    {
+      auto& stop_action = context.actions.action<Actions::Stop>();
+      stop_action.action()->trigger();
+    }
+    else
+    {
+      this->on_stop();
     }
   }
 }
