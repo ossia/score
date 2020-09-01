@@ -3,6 +3,8 @@
 #include <Midi/MidiNote.hpp>
 
 #include <score/model/path/Path.hpp>
+#include <QVector>
+#include <QPair>
 
 namespace Midi
 {
