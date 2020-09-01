@@ -48,7 +48,7 @@ public:
   PROPERTY(QString, mesh READ mesh WRITE setMesh NOTIFY meshChanged)
 private:
   void setupIsf(const isf::descriptor& d);
-  void setupNormalShader();
+  //void setupNormalShader();
   QString prettyName() const noexcept override;
   void startExecution() override;
   void stopExecution() override;

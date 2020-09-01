@@ -1,4 +1,5 @@
 #pragma once
+
 #include <QShaderBaker>
 
 struct ShaderCache
@@ -11,18 +12,37 @@ public:
       return it->second;
 
     self.baker.setSourceString(shader, stage);
-    self.baker.setGeneratedShaders({
-        {QShader::SpirvShader, 100},
-        {QShader::GlslShader, 120}, // Only GLSL version supported by RHI right now.
-        {QShader::HlslShader, QShaderVersion(50)},
-        {QShader::MslShader, QShaderVersion(12)},
-    });
-
     auto res = self.shaders.insert({shader, {self.baker.bake(), self.baker.errorMessage()}});
     return res.first->second;
   }
 
 private:
+  ShaderCache()
+  {
+    baker.setGeneratedShaders({
+                            {QShader::SpirvShader, 100},
+                            {QShader::GlslShader, 330}, // or 120 ?
+#if defined(_WIN32)
+                            {QShader::HlslShader, QShaderVersion(50)},
+#endif
+#if defined(__APPLE__)
+                            {QShader::MslShader, QShaderVersion(12)},
+#endif
+                          });
+
+    baker.setGeneratedShaderVariants({
+       QShader::Variant{},
+       QShader::Variant{},
+#if defined(_WIN32)
+       QShader::Variant{},
+#endif
+#if defined(__APPLE__)
+       QShader::Variant{},
+#endif
+    });
+  }
+
   QShaderBaker baker;
   std::unordered_map<QByteArray, std::pair<QShader, QString>> shaders;
 };
+

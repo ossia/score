@@ -69,6 +69,7 @@ Model::~Model() { }
 
 void Model::setFragment(QString f)
 {
+  // TODO rework with filter
   if (f == m_fragment)
     return;
   m_fragment = f;
@@ -97,12 +98,14 @@ void Model::setFragment(QString f)
   {
   }
 
+  /*
   m_isfDescriptor = {};
   m_processedFragment = m_fragment;
   setupNormalShader();
 
   inletsChanged();
   outletsChanged();
+  */
 }
 
 void Model::setMesh(QString f)
@@ -202,6 +205,7 @@ void Model::setupIsf(const isf::descriptor& desc)
   }
 }
 
+/*
 void Model::setupNormalShader()
 {
   auto& [shader, error]
@@ -250,6 +254,7 @@ void Model::setupNormalShader()
     }
   }
 }
+*/
 
 void Model::startExecution() { }
 

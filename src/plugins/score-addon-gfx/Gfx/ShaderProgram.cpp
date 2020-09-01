@@ -1,6 +1,7 @@
 #include "ShaderProgram.hpp"
 #include <QShaderBaker>
 #include <QRegularExpression>
+#include <Gfx/Graph/shadercache.hpp>
 #include <ossia/detail/flat_map.hpp>
 namespace Gfx
 {
@@ -59,22 +60,28 @@ ProgramCache& ProgramCache::instance() noexcept
   return cache;
 }
 
-std::optional<ProcessedProgram> ProgramCache::get(
-    const ShaderProgram& program) noexcept
+std::pair<std::optional<ProcessedProgram>, QString> ProgramCache::get(const ShaderProgram& program) noexcept
 {
   auto it = programs.find(program);
   if(it != programs.end())
-    return it->second;
+    return {it->second, QString{}};
 
   try
   {
-    // TODO we could split the cache between
-    // vertex and fragment, as the vertex one will likely be the same 99% of the time...
-
     // Parse ISF and get GLSL shaders
     isf::parser parser{program.vertex.toStdString(), program.fragment.toStdString()};
+
     auto isfVert = QString::fromStdString(parser.vertex());
+    if(isfVert.isEmpty())
+    {
+      return {std::nullopt, "Not a valid ISF vertex shader"};
+    }
+
     auto isfFrag = QString::fromStdString(parser.fragment());
+    if(isfFrag.isEmpty())
+    {
+      return {std::nullopt, "Not a valid ISF fragment shader"};
+    }
 
     if (isfVert != program.vertex || isfFrag != program.fragment)
     {
@@ -83,32 +90,19 @@ std::optional<ProcessedProgram> ProgramCache::get(
       // Add layout, location, etc
       updateToGlsl45(processed);
 
-      // Compile the shaders to spirv, etc.
-      static QShaderBaker& b = [] () -> QShaderBaker& {
-          static QShaderBaker b;
-          b.setGeneratedShaders({
-                                  {QShader::SpirvShader, 100},
-                                  {QShader::GlslShader, 330},
-                                  {QShader::HlslShader, QShaderVersion(50)},
-                                  {QShader::MslShader, QShaderVersion(12)},
-                                });
-          b.setGeneratedShaderVariants(
-            {QShader::Variant{}, QShader::Variant{}, QShader::Variant{}, QShader::Variant{}});
-          return b;
-      }();
-
-      b.setSourceString(processed.vertex.toUtf8(), QShader::VertexStage);
-      QShader vertexS = b.bake();
-      if(!b.errorMessage().isEmpty())
+      // Create QShader objects
+      auto [vertexS, vertexError] = ShaderCache::get(processed.vertex.toUtf8(), QShader::VertexStage);
+      if(!vertexError.isEmpty())
       {
-        qDebug() << b.errorMessage();
+        qDebug() << vertexError;
+        return {std::nullopt, "Vertex shader error: " + vertexError};
       }
 
-      b.setSourceString(processed.fragment.toUtf8(), QShader::FragmentStage);
-      QShader fragmentS = b.bake();
-      if (!b.errorMessage().isEmpty())
+      auto [fragmentS, fragmentError] = ShaderCache::get(processed.fragment.toUtf8(), QShader::FragmentStage);
+      if(!fragmentError.isEmpty())
       {
-        qDebug() << b.errorMessage();
+        qDebug() << fragmentError;
+        return {std::nullopt, "Fragment shader error: " + fragmentError};
       }
 
       if (vertexS.isValid() && fragmentS.isValid())
@@ -118,12 +112,24 @@ std::optional<ProcessedProgram> ProgramCache::get(
         processed.compiledFragment = std::move(fragmentS);
 
         programs[program] = processed;
-        return processed;
+        return {processed, {}};
       }
     }
-  } catch (...) { /* TODO: show error to the user */ }
+    else
+    {
+      return {std::nullopt, "Not a valid ISF shader"};
+    }
+  }
+  catch (const std::runtime_error& error)
+  {
+    return {std::nullopt, QString("ISF error: %1").arg(error.what())};
+  }
+  catch (...)
+  {
+    return {std::nullopt, "Unknown error"};
+  }
 
-  return std::nullopt;
+  return {std::nullopt, "Unknown error"};
 }
 
 }

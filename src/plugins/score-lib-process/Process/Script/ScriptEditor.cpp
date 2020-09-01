@@ -109,6 +109,9 @@ MultiScriptDialog::MultiScriptDialog(const score::DocumentContext& ctx, QWidget*
   m_tabs = new QTabWidget;
   lay->addWidget(m_tabs);
 
+  m_error = new QPlainTextEdit;
+  lay->addWidget(m_error);
+
   auto bbox = new QDialogButtonBox{
       QDialogButtonBox::Ok | QDialogButtonBox::Reset | QDialogButtonBox::Close, this};
 
@@ -117,8 +120,7 @@ MultiScriptDialog::MultiScriptDialog(const score::DocumentContext& ctx, QWidget*
   bbox->button(QDialogButtonBox::Ok)->setText(tr("Compile"));
   bbox->button(QDialogButtonBox::Reset)->setText(tr("Clear log"));
   connect(bbox->button(QDialogButtonBox::Reset), &QPushButton::clicked, this, [=] {
-    for(auto& diag : m_editors)
-      diag.error->clear();
+    m_error->clear();
   });
   connect(bbox, &QDialogButtonBox::accepted, this, &MultiScriptDialog::on_accepted);
   connect(bbox, &QDialogButtonBox::rejected, this, &QDialog::reject);
@@ -162,37 +164,38 @@ void MultiScriptDialog::addTab(const QString &name, const QString &text)
   lay->setStretch(1, 1);
 
   m_tabs->addTab(widg, name);
-
+  m_editors.push_back({m_textedit});
 }
 
-QString MultiScriptDialog::text() const noexcept
+std::vector<QString> MultiScriptDialog::text() const noexcept
 {
-  return {};
-  //return m_textedit->document()->toPlainText();
+  std::vector<QString> vec;
+  vec.reserve(m_editors.size());
+  for(const auto& tab : m_editors)
+    vec.push_back(tab.textedit->document()->toPlainText());
+  return vec;
 }
 
 void MultiScriptDialog::setText(int idx, const QString& str)
 {
-  /*
-  if (str != text())
+  SCORE_ASSERT(idx >= 0);
+  SCORE_ASSERT(std::size_t(idx) < m_editors.size());
+
+  auto textEdit = m_editors[idx].textedit;
+  if (str != textEdit->document()->toPlainText())
   {
-    m_textedit->setPlainText(str);
+    textEdit->setPlainText(str);
   }
-  */
 }
 
-void MultiScriptDialog::setError(int idx, int line, const QString& str)
+void MultiScriptDialog::setError(const QString& str)
 {
-  //m_error->setPlainText(str);
+  m_error->setPlainText(str);
 }
 
-
-
-
-
-
-
-
-
+void MultiScriptDialog::clearError()
+{
+  m_error->clear();
+}
 
 }

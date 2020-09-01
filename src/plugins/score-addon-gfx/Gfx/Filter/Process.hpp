@@ -31,6 +31,7 @@ public:
   ~Model() override;
 
   bool validate(const ShaderProgram& txt) const noexcept;
+  bool validate(const std::vector<QString>& txt) const noexcept;
 
   const QString& vertex() const noexcept { return m_program.vertex; }
   void setVertex(QString f);
@@ -49,11 +50,11 @@ public:
 
   const ProcessedProgram& processedProgram() const noexcept { return m_processedProgram; }
 
-  void errorMessage(int arg_1, const QString& arg_2) W_SIGNAL(errorMessage, arg_1, arg_2);
+  void errorMessage(const QString& arg_2) const W_SIGNAL(errorMessage, arg_2);
 
 private:
   void setupIsf(const isf::descriptor& d);
-  void setupNormalShader();
+  //void setupNormalShader();
   QString prettyName() const noexcept override;
   void startExecution() override;
   void stopExecution() override;

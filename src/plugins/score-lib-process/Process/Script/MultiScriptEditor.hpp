@@ -21,11 +21,12 @@ public:
   MultiScriptDialog(const score::DocumentContext& ctx, QWidget* parent);
 
   QSize sizeHint() const override { return {800, 300}; }
-  QString text() const noexcept;
+  std::vector<QString> text() const noexcept;
 
   void addTab(const QString& name, const QString& text);
   void setText(int idx, const QString& str);
-  void setError(int idx, int line, const QString& str);
+  void setError(const QString& str);
+  void clearError();
 
 protected:
   virtual void on_accepted() = 0;
@@ -34,9 +35,9 @@ protected:
   QTabWidget* m_tabs{};
   struct EditorTab {
     QCodeEditor* textedit{};
-    QPlainTextEdit* error{};
   };
   std::vector<EditorTab> m_editors;
+  QPlainTextEdit* m_error{};
 };
 
 template <typename Process_T, typename Property_T>
@@ -55,26 +56,37 @@ public:
     {
       addTab(name, prop.*addr);
     }
-    /*
-    setText((m_process.*Property_T::get)());
-    con(m_process, &Process_T::errorMessage, this, &ProcessMultiScriptEditDialog::setError);
+
+    con(m_process, Property_T::notify,
+        this, [this] (const auto& prop) {
+      int i = 0;
+      for(auto& [name, addr] : param_type::specification)
+      {
+        setText(i, prop.*addr);
+        i++;
+      }
+    });
+
+    con(m_process, &Process_T::errorMessage,
+        this, &ProcessMultiScriptEditDialog::setError);
     con(m_process, &IdentifiedObjectAbstract::identified_object_destroying,
         this, &QWidget::deleteLater);
-    con(m_process, Property_T::notify, this, &ProcessMultiScriptEditDialog::setText);
-    */
   }
 
 
   void on_accepted() override
   {
-    /*
-    this->setError(0, QString{});
+    this->clearError();
     if (this->text() != (m_process.*Property_T::get)())
     {
-      CommandDispatcher<>{m_context.commandStack}.submit(
-            new score::StaticPropertyCommand<Property_T>{m_process, this->text()});
+      // TODO try to see if we can make this a bit more efficient,
+      // by passing the validated / transformed data to the command maybe ?
+      if (m_process.validate(this->text()))
+      {
+        CommandDispatcher<>{m_context.commandStack}.submit(
+              new score::StaticPropertyCommand<Property_T>{m_process, this->text()});
+      }
     }
-    */
   }
 
 

@@ -64,7 +64,18 @@ Model::~Model() { }
 
 bool Model::validate(const ShaderProgram& txt) const noexcept
 {
-  return bool(ProgramCache::instance().get(txt));
+  const auto& [_, error] = ProgramCache::instance().get(txt);
+  if(!error.isEmpty())
+  {
+    this->errorMessage(error);
+    return false;
+  }
+  return true;
+}
+
+bool Model::validate(const std::vector<QString>& txt) const noexcept
+{
+  return validate(ShaderProgram{txt});
 }
 
 void Model::setVertex(QString f)
@@ -73,6 +84,7 @@ void Model::setVertex(QString f)
     return;
   m_program.vertex = f;
   m_processedProgram.vertex.clear();
+  m_processedProgram.compiledVertex = QShader{};
 
   vertexChanged(f);
 }
@@ -82,6 +94,8 @@ void Model::setFragment(QString f)
   if (f == m_program.fragment)
     return;
   m_program.fragment = f;
+  m_processedProgram.fragment.clear();
+  m_processedProgram.compiledFragment = QShader{};
 
   programChanged(m_program);
 }
@@ -89,34 +103,17 @@ void Model::setFragment(QString f)
 
 void Model::setProgram(const ShaderProgram& f)
 {
-  if(const auto& processed = ProgramCache::instance().get(f))
+  setVertex(f.vertex);
+  setFragment(f.fragment);
+  if(const auto& [processed, error] = ProgramCache::instance().get(f); bool(processed))
   {
     auto inls = score::clearAndDeleteLater(m_inlets);
-    setVertex(f.vertex);
-    setFragment(f.fragment);
     m_processedProgram = *processed;
 
     setupIsf(m_processedProgram.descriptor);
     inletsChanged();
     programChanged(m_program);
-    return;
   }
-  /*
-  else
-  {
-    setVertex(f.vertex);
-    setFragment(f.fragment);
-
-    m_isfDescriptor = {};
-    m_processedProgram.vertex = m_program.vertex;
-    m_processedProgram.fragment = m_program.fragment;
-
-    setupNormalShader();
-
-    inletsChanged();
-    programChanged(m_program);
-  }
-  */
 }
 
 QString Model::prettyName() const noexcept
@@ -126,12 +123,13 @@ QString Model::prettyName() const noexcept
 
 void Model::setupIsf(const isf::descriptor& desc)
 {
-  auto& [shader, error]
-      = ShaderCache::get(m_processedProgram.fragment.toLatin1(), QShader::Stage::FragmentStage);
-
-  if (!error.isEmpty())
   {
-    errorMessage(0, error);
+    auto& [shader, error] = ShaderCache::get(m_processedProgram.fragment.toLatin1(), QShader::Stage::VertexStage);
+    SCORE_ASSERT(error.isEmpty());
+  }
+  {
+    auto& [shader, error] = ShaderCache::get(m_processedProgram.fragment.toLatin1(), QShader::Stage::FragmentStage);
+    SCORE_ASSERT(error.isEmpty());
   }
 
   int i = 0;
@@ -253,59 +251,6 @@ void Model::setupIsf(const isf::descriptor& desc)
   }
 }
 
-void Model::setupNormalShader()
-{
-  auto& [shader, error]
-      = ShaderCache::get(m_processedProgram.fragment.toLatin1(), QShader::Stage::FragmentStage);
-
-  if (!error.isEmpty())
-  {
-    errorMessage(0, error);
-  }
-
-  int i = 0;
-  const auto& d = shader.description();
-
-  for (auto& ub : d.combinedImageSamplers())
-  {
-    m_inlets.push_back(new TextureInlet{Id<Process::Port>(i++), this});
-  }
-
-  for (auto& ub : d.uniformBlocks())
-  {
-    if (ub.blockName != "material_t")
-      continue;
-
-    for (auto& u : ub.members)
-    {
-      switch (u.type)
-      {
-        case QShaderDescription::Float:
-          m_inlets.push_back(new Process::FloatSlider{Id<Process::Port>(i++), this});
-          m_inlets.back()->hidden = true;
-          m_inlets.back()->setCustomData(u.name);
-          controlAdded(m_inlets.back()->id());
-          break;
-        case QShaderDescription::Vec4:
-          if (!u.name.contains("_imgRect"))
-          {
-            m_inlets.push_back(new Process::HSVSlider{Id<Process::Port>(i++), this});
-            m_inlets.back()->hidden = true;
-            m_inlets.back()->setCustomData(u.name);
-            controlAdded(m_inlets.back()->id());
-          }
-          break;
-        default:
-          m_inlets.push_back(new Process::ControlInlet{Id<Process::Port>(i++), this});
-          m_inlets.back()->hidden = true;
-          m_inlets.back()->setCustomData(u.name);
-          controlAdded(m_inlets.back()->id());
-          break;
-      }
-    }
-  }
-}
-
 void Model::startExecution() { }
 
 void Model::stopExecution() { }
@@ -371,37 +316,6 @@ std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::dropData(
   return vec;
 }
 }
-
-/*
-struct PortSaver
-{
-  Process::Inlets& originalInlets;
-  Process::Inlets savedInlets;
-  Process::Outlets& originalOutlets;
-  Process::Outlets savedOutlets;
-  PortSaver(Process::Inlets& i, Process::Outlets& o)
-    : originalInlets{i}
-    , savedInlets{std::move(i)}
-    , originalOutlets{o}
-    , savedOutlets{std::move(o)}
-  {
-
-  }
-
-  ~PortSaver()
-  {
-    using namespace std;
-
-    for(auto inlet  : originalInlets)
-      delete inlet;
-    swap(originalInlets, savedInlets);
-
-    for(auto outlet  : originalOutlets)
-      delete outlet;
-    swap(originalOutlets, savedOutlets);
-  }
-};
-*/
 
 template <>
 void DataStreamReader::read(const Gfx::ShaderProgram& p)
