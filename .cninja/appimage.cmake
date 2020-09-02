@@ -1,6 +1,12 @@
 cninja_require(static-release)
-cninja_require(static)
 
 set_cache(DEPLOYMENT_BUILD 1)
 set_cache(CMAKE_SKIP_RPATH 1)
+set_cache(BUILD_SHARED_LIBS OFF)
+set_cache(CMAKE_FIND_LIBRARY_SUFFIXES .a)
+set_cache(CMAKE_LINK_SEARCH_END_STATIC ON)
+
+add_linker_flags(" -static-libgcc -static-libstdc++")
+
+string(APPEND CMAKE_CXX_STANDARD_LIBRARIES " -lc++abi -pthread")
 
