@@ -60,8 +60,8 @@ cd ./$BUILD_DIR
   $GIT submodule update --init --recursive --jobs 16
 
   # TODO to reenable it we must find a way to link statically properly.
-  #cd src/addons
-  #$GIT clone https://github.com/ossia/score-addon-jit
+  cd src/addons
+  $GIT clone https://github.com/ossia/score-addon-jit
 )
 
 # Build score in the AppDir
