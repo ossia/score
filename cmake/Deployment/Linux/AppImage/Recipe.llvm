@@ -59,8 +59,9 @@ cd ./$BUILD_DIR
   $GIT clean -dffx
   $GIT submodule update --init --recursive --jobs 16
 
-  cd src/addons
-  $GIT clone https://github.com/ossia/score-addon-jit
+  # TODO to reenable it we must find a way to link statically properly.
+  #cd src/addons
+  #$GIT clone https://github.com/ossia/score-addon-jit
 )
 
 # Build score in the AppDir
@@ -70,12 +71,9 @@ export SOURCE_DIR=$PWD/score
 (
     export INSTALL_ROOT=$(cd $APP.AppDir/usr; pwd)
     
-    cninja $SOURCE_DIR static-release -- \
+    cninja $SOURCE_DIR appimage -- \
       -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT \
-      -DOSSIA_SDK=$OSSIA_SDK \
-      -DCMAKE_SKIP_RPATH=ON \
-      -DDEPLOYMENT_BUILD=1 \
-      -DCMAKE_UNITY_BUILD=ON 
+      -DOSSIA_SDK=$OSSIA_SDK
 
     (
       cd build-static-release
