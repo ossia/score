@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/detail/hash_map.hpp>
+#include <score/tools/Debug.hpp>
 #include <isf.hpp>
 
 #include <verdigris>
