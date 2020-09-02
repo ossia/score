@@ -7,26 +7,26 @@ set(SCORE_BIN_INSTALL_DIR ".")
 # Compiler Runtime DLLs
 set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP true)
 
-if(MINGW)
-  get_target_property(ZLIB_LOCATION ZLIB::ZLIB IMPORTED_LOCATION_RELEASE)
-  if(NOT ZLIB_LOCATION)
-    get_target_property(ZLIB_LOCATION ZLIB::ZLIB IMPORTED_LOCATION_DEBUG)
-    if(NOT ZLIB_LOCATION)
-      get_target_property(ZLIB_LOCATION ZLIB::ZLIB IMPORTED_LOCATION)
-    endif()
-  endif()
-
-  get_filename_component(MINGW64_LIB ${ZLIB_LOCATION} DIRECTORY)
-
-  get_filename_component(cxx_path ${CMAKE_CXX_COMPILER} PATH)
-  set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS
-        ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
-        ${cxx_path}/libc++.dll
-        ${cxx_path}/libunwind.dll
-        ${MINGW64_LIB}/../bin/zlib1.dll
-        ${MINGW64_LIB}/../bin/libwinpthread-1.dll
-  )
-endif()
+# if(MINGW)
+#   get_target_property(ZLIB_LOCATION ZLIB::ZLIB IMPORTED_LOCATION_RELEASE)
+#   if(NOT ZLIB_LOCATION)
+#     get_target_property(ZLIB_LOCATION ZLIB::ZLIB IMPORTED_LOCATION_DEBUG)
+#     if(NOT ZLIB_LOCATION)
+#       get_target_property(ZLIB_LOCATION ZLIB::ZLIB IMPORTED_LOCATION)
+#     endif()
+#   endif()
+#
+#   get_filename_component(MINGW64_LIB ${ZLIB_LOCATION} DIRECTORY)
+#
+#   get_filename_component(cxx_path ${CMAKE_CXX_COMPILER} PATH)
+#   set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS
+#         ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
+#         ${cxx_path}/libc++.dll
+#         ${cxx_path}/libunwind.dll
+#         ${MINGW64_LIB}/../bin/zlib1.dll
+#         ${MINGW64_LIB}/../bin/libwinpthread-1.dll
+#   )
+# endif()
 
 include(InstallRequiredSystemLibraries)
 install(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
