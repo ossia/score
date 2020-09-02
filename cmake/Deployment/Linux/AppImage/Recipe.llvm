@@ -18,15 +18,27 @@ ln -s /opt/rh/rh-git218/root/usr/bin/git /usr/bin/git || true
 
 (
     rm -rf cmake-*
-    wget -nv --no-check-certificate -c  https://github.com/Kitware/CMake/releases/download/v3.18.1/cmake-3.18.1-Linux-x86_64.tar.gz
+    wget -nv --no-check-certificate -c https://github.com/Kitware/CMake/releases/download/v3.18.1/cmake-3.18.1-Linux-x86_64.tar.gz
     tar xaf cmake-*.tar.gz
+    rm -rf cmake-*.tar.gz
 )
 
 # Set-up paths
 export CMAKE_PATH=$(find $PWD/cmake-*/ -type d | head -n 1)bin
 export CMAKE=$CMAKE_PATH/cmake
+export PATH=$CMAKE_PATH:$PATH
 
+(
+  wget -nv --no-check-certificate -c https://github.com/ninja-build/ninja/releases/download/v1.10.1/ninja-linux.zip
+  unzip ninja-linux.zip
+  rm -rf ninja-linux.zip
+  mv ninja $CMAKE_PATH/
 
+  wget -nv --no-check-certificate -c https://github.com/jcelerier/cninja/releases/download/v3.6.0/cninja-v3.6.0-Linux.tar.gz
+  tar xaf cninja-*.tar.gz
+  mv cninja $CMAKE_PATH/
+  rm -rf cninja-*.tar.gz
+)
 export BUILD_DIR=Score-build
 export APP=score
 rm -rf ./$BUILD_DIR/$APP.AppDir
@@ -45,10 +57,10 @@ cd ./$BUILD_DIR
   $GIT checkout $TRAVIS_COMMIT
   $GIT reset --hard HEAD
   $GIT clean -dffx
-  $GIT submodule update --init --recursive -j16
+  $GIT submodule update --init --recursive --jobs 16
 
-  # cd src/addons
-  # $GIT clone https://github.com/ossia/score-addon-jit
+  cd src/addons
+  $GIT clone https://github.com/ossia/score-addon-jit
 )
 
 # Build score in the AppDir
@@ -57,20 +69,20 @@ mkdir -p $APP.AppDir/usr
 export SOURCE_DIR=$PWD/score
 (
     export INSTALL_ROOT=$(cd $APP.AppDir/usr; pwd)
-    mkdir -p build
-
-    cd build
-    $CMAKE $SOURCE_DIR \
-      -DCMAKE_BUILD_TYPE=Release \
+    
+    cninja $SOURCE_DIR static-release -- \
       -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT \
-      -DCMAKE_PREFIX_PATH=$QT_DIR/lib/cmake/Qt5 \
       -DOSSIA_SDK=$OSSIA_SDK \
       -DCMAKE_SKIP_RPATH=ON \
-      -DCMAKE_UNITY_BUILD=ON \
-      -DCMAKE_EXE_LINKER_FLAGS="-static-libstdc++ -pthread -fuse-ld=lld -Ofast -s -flto" #\
-    # -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++ -pthread"
+      -DDEPLOYMENT_BUILD=1 \
+      -DCMAKE_UNITY_BUILD=ON 
 
-    $CMAKE --build . -- -j$NPROC && $CMAKE --build . --target install/strip/fast
+    (
+      cd build-static-release
+      cmake --build . --target install/strip
+      rm -rf $INSTALL_ROOT/lib
+      rm -rf $INSTALL_ROOT/include
+    )
 )
 
 # Copy pixmaps
