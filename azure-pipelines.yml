@@ -39,9 +39,37 @@ stages:
             mkdir build
             cd build
             set PATH=%PATH%;c:\score-sdk\llvm\bin
-            cmake -GNinja $(Build.SourcesDirectory) -DCMAKE_C_COMPILER=clang.exe -DCMAKE_CXX_COMPILER=clang++.exe -DOSSIA_SDK=c:\score-sdk -DCMAKE_INSTALL_PREFIX=install -DCMAKE_BUILD_TYPE=Release -DCMAKE_UNITY_BUILD=1 -DSCORE_CONFIGURATION=static-release
+            cmake -GNinja $(Build.SourcesDirectory) ^
+              -DCMAKE_C_COMPILER=clang.exe ^
+              -DCMAKE_CXX_COMPILER=clang++.exe ^
+              -DCMAKE_BUILD_TYPE=Release ^
+              -DCMAKE_EXE_LINKER_FLAGS="-static -static-libgcc -static-libstdc++" ^
+              -DOSSIA_SDK=c:\score-sdk ^
+              -DCMAKE_INSTALL_PREFIX=install ^
+              -DCMAKE_BUILD_TYPE=Release ^
+              -DCMAKE_UNITY_BUILD=1 ^
+              -DDEPLOYMENT_BUILD=1
+              
             cmake --build .
             cmake --build . --target package
             dir
+            move "ossia score-*.exe" "ossia score-$(gitTag)-win64.exe"
+            dir
             
           displayName: Build
+
+        - task: PublishPipelineArtifact@1
+          inputs:
+            targetPath: "$(System.DefaultWorkingDirectory)/ossia score-$(gitTag)-win64.exe"
+            artifactName: Installer
+
+        - task: GitHubRelease@1
+          inputs:
+            gitHubConnection: github.com_jcelerier
+            repositoryName: ossia/score
+            action: 'edit'
+            target: '$(Build.SourceVersion)'
+            tagSource: 'gitTag'
+            assetUploadMode: 'replace'
+            isDraft: true
+            assets: "$(System.DefaultWorkingDirectory)/ossia score-$(gitTag)-win64.exe"
