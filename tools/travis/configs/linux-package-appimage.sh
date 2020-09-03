@@ -1,23 +1,24 @@
 #!/bin/sh
 
-mkdir build && cd build
+mkdir -p build
 
 docker pull ossia/score-package-linux
 docker run --name buildvm \
-           -v "$(pwd)"/../cmake/Deployment/Linux/AppImage/Recipe.llvm:/Recipe \
-           -e TRAVIS_COMMIT \
-           ossia/score-package-linux /bin/bash /Recipe
+           -v "$(pwd)"/cmake/Deployment/Linux/AppImage/Recipe.llvm:/Recipe \
+           --mount type=bind,source="$(pwd)",target=/score \
+           --mount type=bind,source="$(pwd)/build",target=/build \
+           ossia/score-package-linux \
+           /bin/bash /Recipe
 
-docker cp buildvm:/score.AppDir.txz .
-
-tar xaf score.AppDir.txz
-
-cp ../cmake/Deployment/Linux/AppImage/AppRun score.AppDir/
-chmod a+rwx score.AppDir/AppRun
+sudo chown -R $(whoami) build
 
 wget "https://github.com/probonopd/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
 chmod a+x appimagetool-x86_64.AppImage
 
-./appimagetool-x86_64.AppImage -n "score.AppDir" "Score.AppImage"
+wget "https://github.com/probonopd/AppImageKit/releases/download/continuous/AppRun-x86_64"
+chmod a+x AppRun-x86_64
+cp AppRun-x86_64 build/score.AppDir/AppRun
+
+./appimagetool-x86_64.AppImage -n "build/score.AppDir" "Score.AppImage"
 
 chmod a+rwx Score.AppImage

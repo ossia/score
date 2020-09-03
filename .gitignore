@@ -1,4 +1,5 @@
 build-*
+AppRun*
 *.AppImage
 *.txz
 *.AppDir

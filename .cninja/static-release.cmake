@@ -1,6 +1,6 @@
+cninja_require(clang)
 cninja_require(lld)
 cninja_require(linkerwarnings)
-cninja_require(lto=full)
 cninja_require(score-warnings)
 
 set_cache(CMAKE_BUILD_TYPE Release)
