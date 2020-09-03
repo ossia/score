@@ -39,37 +39,19 @@ export PATH=$CMAKE_PATH:$PATH
   mv cninja $CMAKE_PATH/
   rm -rf cninja-*.tar.gz
 )
-export BUILD_DIR=Score-build
+export BUILD_DIR=/build
 export APP=score
-rm -rf ./$BUILD_DIR/$APP.AppDir
-mkdir -p ./$BUILD_DIR/$APP.AppDir
-cd ./$BUILD_DIR
+rm -rf $BUILD_DIR/$APP.AppDir
+mkdir -p $BUILD_DIR/$APP.AppDir
+cd $BUILD_DIR
 
-# Get score from git
-(
-  if [[ ! -d score ]]; then
-    $GIT clone --recursive  -j16 https://github.com/ossia/score
-  fi
-  cd score/
-  $GIT reset
-  $GIT checkout .
-  $GIT fetch
-  $GIT checkout $TRAVIS_COMMIT
-  $GIT reset --hard HEAD
-  $GIT clean -dffx
-  $GIT submodule update --init --recursive --jobs 16
-
-  # TODO to reenable it we must find a way to link statically properly.
-  cd src/addons
-  $GIT clone https://github.com/ossia/score-addon-jit
-)
-
+export APP_DIR=$BUILD_DIR/$APP.AppDir
 # Build score in the AppDir
-mkdir -p $APP.AppDir/usr
+mkdir -p $APP_DIR/usr
 
-export SOURCE_DIR=$PWD/score
+export SOURCE_DIR=/score
 (
-    export INSTALL_ROOT=$(cd $APP.AppDir/usr; pwd)
+    export INSTALL_ROOT=$(cd $APP_DIR/usr; pwd)
     
     cninja $SOURCE_DIR appimage -- \
       -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT \
@@ -84,12 +66,12 @@ export SOURCE_DIR=$PWD/score
 )
 
 # Copy pixmaps
-cp $APP.AppDir/usr/share/applications/ossia-score.desktop $APP.AppDir/
-cp $APP.AppDir/usr/share/pixmaps/ossia-score.png $APP.AppDir/
+cp $APP_DIR/usr/share/applications/ossia-score.desktop $APP_DIR/
+cp $APP_DIR/usr/share/pixmaps/ossia-score.png $APP_DIR/
 
 # Copy needed libraries and remove system ones
 (
-    cd $APP.AppDir
+    cd $APP_DIR
     mkdir -p ./usr/lib/qt5/qml
 
     # Fonts
@@ -187,10 +169,12 @@ cp $APP.AppDir/usr/share/pixmaps/ossia-score.png $APP.AppDir/
     cd usr/ ; find . -type f -exec sed -i -e "s|$QTDIR/lib|././/lib|g" {} \; ; cd ..
 )
 
+# cp $SOURCE_DIR/cmake/Deployment/Linux/AppImage/qt.conf $APP_DIR/usr/bin/
+
 # (
 #     # Copy headers
 #
-#     cd $APP.AppDir
+#     cd $APP_DIR
 #     export HEADERS=$PWD/usr/include
 #     mkdir -p $HEADERS
 #     for package in glibc-headers glibc-devel alsa-lib-devel mesa-libGL-devel libxkbcommon-x11-devel kernel-headers ; do
@@ -214,7 +198,3 @@ cp $APP.AppDir/usr/share/pixmaps/ossia-score.png $APP.AppDir/
 #     # strip usr/bin/ossia-score usr/bin/ossia-score-vstpuppet || true
 # )
 
-cp score/cmake/Deployment/Linux/AppImage/qt.conf $APP.AppDir/usr/bin/
-
-tar caf $APP.AppDir.txz "$APP.AppDir"
-mv $APP.AppDir.txz /$APP.AppDir.txz
