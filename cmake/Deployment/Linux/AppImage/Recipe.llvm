@@ -76,7 +76,7 @@ export SOURCE_DIR=$PWD/score
       -DOSSIA_SDK=$OSSIA_SDK
 
     (
-      cd build-static-release
+      cd build*
       cmake --build . --target install/strip
       rm -rf $INSTALL_ROOT/lib
       rm -rf $INSTALL_ROOT/include
