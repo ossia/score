@@ -18,7 +18,7 @@ ln -s /opt/rh/rh-git218/root/usr/bin/git /usr/bin/git || true
 
 (
     rm -rf cmake-*
-    wget -nv --no-check-certificate -c https://github.com/Kitware/CMake/releases/download/v3.18.1/cmake-3.18.1-Linux-x86_64.tar.gz
+    wget -nv --no-check-certificate -c https://github.com/Kitware/CMake/releases/download/v3.18.2/cmake-3.18.2-Linux-x86_64.tar.gz
     tar xaf cmake-*.tar.gz
     rm -rf cmake-*.tar.gz
 )
@@ -34,7 +34,7 @@ export PATH=$CMAKE_PATH:$PATH
   rm -rf ninja-linux.zip
   mv ninja $CMAKE_PATH/
 
-  wget -nv --no-check-certificate -c https://github.com/jcelerier/cninja/releases/download/v3.6.0/cninja-v3.6.0-Linux.tar.gz
+  wget -nv --no-check-certificate -c https://github.com/jcelerier/cninja/releases/download/v3.6.1/cninja-v3.6.1-Linux.tar.gz
   tar xaf cninja-*.tar.gz
   mv cninja $CMAKE_PATH/
   rm -rf cninja-*.tar.gz
