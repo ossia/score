@@ -3,6 +3,7 @@
 #include <QVector2D>
 #include <QVector3D>
 #include <QVector4D>
+#include <QMatrix4x4>
 #include <verdigris>
 
 namespace JS
