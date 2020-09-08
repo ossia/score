@@ -10,7 +10,11 @@ class GfxExecutionAction final : public Execution::ExecutionAction
 {
   SCORE_CONCRETE("06f48270-35a4-44d2-929a-e67b8e2904f5")
 public:
-  GfxExecutionAction(gfx_window_context& w) : ui{&w} { }
+  GfxExecutionAction(gfx_window_context& w) : ui{&w}
+  {
+    prev_edges.container.reserve(100);
+    edges.container.reserve(100);
+  }
   gfx_window_context* ui{};
 
   void startTick(unsigned long, double) override { edges.clear(); }
@@ -23,10 +27,10 @@ public:
     {
       {
         std::lock_guard l{ui->edges_lock};
-        ui->new_edges = edges;
+        ui->new_edges.container.assign(edges.container.begin(), edges.container.end());
       }
 
-      prev_edges = edges;
+      prev_edges.container.assign(edges.container.begin(), edges.container.end());
       ui->edges_changed = true;
     }
   }

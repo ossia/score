@@ -15,15 +15,15 @@ struct port_index
   int32_t node{};
   int32_t port{};
 
-  auto operator==(port_index other) const noexcept
+  constexpr auto operator==(port_index other) const noexcept
   {
     return node == other.node && port == other.port;
   }
-  auto operator!=(port_index other) const noexcept
+  constexpr auto operator!=(port_index other) const noexcept
   {
     return node != other.node || port != other.port;
   }
-  auto operator<(port_index other) const noexcept
+  constexpr auto operator<(port_index other) const noexcept
   {
     return node < other.node || (node == other.node && port < other.port);
   }
@@ -235,6 +235,9 @@ public:
 
   gfx_window_context()
   {
+    new_edges.container.reserve(100);
+    edges.container.reserve(100);
+
 #if defined(Q_OS_WIN)
     m_api = D3D11;
 #elif defined(Q_OS_DARWIN)
@@ -375,7 +378,7 @@ public:
     }
   }
 
-  void timerEvent(QTimerEvent*) override
+  void updateGraph()
   {
     update_inputs();
 
@@ -388,6 +391,11 @@ public:
       recompute_connections();
       edges_changed = false;
     }
+  }
+
+  void timerEvent(QTimerEvent*) override
+  {
+    updateGraph();
   }
 
   std::mutex edges_lock;

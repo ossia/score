@@ -19,7 +19,7 @@ struct camera_settings
   int size[2]{{},{}};
   double fps{};
 };
-class gfx_window_context;
+
 class camera_protocol : public ossia::net::protocol_base
 {
 public:
