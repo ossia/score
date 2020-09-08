@@ -101,6 +101,7 @@ SCORE_LIB_BASE_EXPORT
 void GUIApplicationRegistrar::registerPanel(PanelDelegateFactory& factory)
 {
   auto panel = factory.make(m_context);
+  panel->setModel(std::nullopt);
 
   m_components.panels.push_back(std::move(panel));
 }

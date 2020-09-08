@@ -232,6 +232,7 @@ void GUIApplicationInterface::registerPlugin(Plugin_QtInterface& p)
     for (auto& panel_fac : panels_ifaces)
     {
       auto p = static_cast<score::PanelDelegateFactory*>(panel_fac)->make(context);
+      p->setModel(std::nullopt);
       components.panels.push_back(std::move(p));
       presenter->view()->setupPanel(components.panels.back().get());
     }
