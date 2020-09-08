@@ -68,13 +68,6 @@ private:
   void setupComponent(QQmlComponent& c);
 };
 
-struct js_control_updater
-{
-  ValueInlet& control;
-  ossia::value v;
-  void operator()() const { control.setValue(v.apply(ossia::qt::ossia_to_qvariant{})); }
-};
-
 struct js_process final : public ossia::node_process
 {
   using node_process::node_process;
@@ -409,6 +402,7 @@ void js_node::run(const ossia::token_request& tk, ossia::exec_state_facade estat
     {
       for (auto& val : dat)
       {
+        // TODO why not js_value_outbound_visitor ? it makes more sense.
         auto qvar = val.value.apply(ossia::qt::ossia_to_qvariant{});
         m_valInlets[i].first->setValue(qvar);
         m_valInlets[i].first->addValue(

@@ -9,6 +9,7 @@
 #include <JS/Executor/Component.hpp>
 #include <JS/JSProcessFactory.hpp>
 #include <JS/Qml/QmlObjects.hpp>
+#include <JS/Qml/ValueTypes.hpp>
 #include <Library/LibraryInterface.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/ProcessFactory.hpp>
@@ -67,6 +68,8 @@ W_OBJECT_IMPL(JS::Script)
 
 score_plugin_js::score_plugin_js()
 {
+  JS::registerQmlValueTypeProvider();
+
   qmlRegisterType<JS::ControlInlet>("Score", 1, 0, "ControlInlet");
   qmlRegisterType<JS::ValueInlet>("Score", 1, 0, "ValueInlet");
   qmlRegisterType<JS::ValueOutlet>("Score", 1, 0, "ValueOutlet");
