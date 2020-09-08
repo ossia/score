@@ -7,6 +7,9 @@
 #include <ControlSurface/Process.hpp>
 namespace ControlSurface
 {
+
+ProcessExecutorComponent::~ProcessExecutorComponent() { }
+
 // class node final : public ossia::nonowning_graph_node
 //{
 // public:

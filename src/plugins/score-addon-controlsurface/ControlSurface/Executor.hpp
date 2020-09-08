@@ -120,7 +120,7 @@ public:
     }
   }
 
-  ~ProcessExecutorComponent() { }
+  ~ProcessExecutorComponent();
 };
 using ProcessExecutorComponentFactory
     = Execution::ProcessComponentFactory_T<ProcessExecutorComponent>;

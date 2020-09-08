@@ -7,7 +7,7 @@
 #include <Process/Dataflow/WidgetInlets.hpp>
 
 #include <ossia/network/base/node_attributes.hpp>
-
+#include <score/serialization/MapSerialization.hpp>
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(ControlSurface::Model)
@@ -194,6 +194,7 @@ template <>
 void DataStreamReader::read(const ControlSurface::Model& proc)
 {
   readPorts(*this, proc.m_inlets, proc.m_outlets);
+  m_stream << proc.m_outputAddresses;
   insertDelimiter();
 }
 
@@ -206,6 +207,7 @@ void DataStreamWriter::write(ControlSurface::Model& proc)
       proc.m_inlets,
       proc.m_outlets,
       &proc);
+  m_stream >> proc.m_outputAddresses;
   checkDelimiter();
 }
 
@@ -213,6 +215,7 @@ template <>
 void JSONReader::read(const ControlSurface::Model& proc)
 {
   readPorts(*this, proc.m_inlets, proc.m_outlets);
+  obj["Addresses"] = proc.m_outputAddresses;
 }
 
 template <>
@@ -224,4 +227,6 @@ void JSONWriter::write(ControlSurface::Model& proc)
       proc.m_inlets,
       proc.m_outlets,
       &proc);
+
+  proc.m_outputAddresses <<= obj["Addresses"];
 }
