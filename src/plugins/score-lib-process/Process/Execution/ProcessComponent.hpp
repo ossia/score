@@ -123,6 +123,11 @@ public:
       comp->lazy_init();
       return comp;
     }
+    catch (const std::runtime_error& e)
+    {
+      qDebug() << "Error during plug-in creation: " << e.what();
+      return {};
+    }
     catch (...)
     {
       return {};
