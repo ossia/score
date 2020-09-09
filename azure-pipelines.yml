@@ -53,7 +53,7 @@ stages:
             cmake --build .
             cmake --build . --target package
             dir
-            move "ossia score-*.exe" "ossia score-$(gitTag)-win64.exe"
+            move "ossia score-3.0.0-win64.exe" "ossia score-$(gitTag)-win64.exe"
             dir
             
           displayName: Build
