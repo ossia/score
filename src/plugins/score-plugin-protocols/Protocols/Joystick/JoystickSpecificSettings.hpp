@@ -7,8 +7,11 @@ namespace Protocols
 
 struct JoystickSpecificSettings
 {
-  int32_t joystick_id;
-  int32_t joystick_index;
+  score::uuid_t id{};
+
+  // device id, device index
+  static const constexpr std::pair<int32_t, int32_t> unassigned{-1, -1};
+  std::pair<int32_t, int32_t> spec{unassigned};
 };
 }
 

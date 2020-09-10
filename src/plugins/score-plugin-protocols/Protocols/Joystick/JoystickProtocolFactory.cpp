@@ -7,7 +7,6 @@
 #include <ossia/network/joystick/joystick_protocol.hpp>
 
 #include <QObject>
-
 namespace Protocols
 {
 
@@ -27,10 +26,10 @@ public:
         set.name = s;
         set.protocol = JoystickProtocolFactory::static_concreteKey();
         JoystickSpecificSettings specif;
-        specif.joystick_id = ossia::net::joystick_protocol::get_joystick_id(i);
-        specif.joystick_index = i;
-        set.deviceSpecificSettings = QVariant::fromValue(set);
+        ossia::net::joystick_protocol::write_joystick_uuid(i, specif.id.data);
+        specif.spec = {ossia::net::joystick_protocol::get_joystick_id(i), i};
 
+        set.deviceSpecificSettings = QVariant::fromValue(specif);
         f(set);
       }
     }
@@ -96,6 +95,6 @@ bool JoystickProtocolFactory::checkCompatibility(
 {
   auto a_ = a.deviceSpecificSettings.value<JoystickSpecificSettings>();
   auto b_ = b.deviceSpecificSettings.value<JoystickSpecificSettings>();
-  return a_.joystick_id != b_.joystick_id;
+  return a_.id != b_.id || a_.spec != b_.spec;
 }
 }
