@@ -9,13 +9,12 @@
 
 class Window : public QWindow
 {
-  GraphicsApi m_graphicsApi{};
 
 public:
-  Window(GraphicsApi graphicsApi) : m_graphicsApi{graphicsApi}
+  Window(GraphicsApi graphicsApi)
   {
     // Tell the platform plugin what we want.
-    switch (m_graphicsApi)
+    switch (graphicsApi)
     {
       case OpenGL:
 #if QT_CONFIG(opengl)
@@ -42,6 +41,7 @@ public:
   }
 
   std::function<void()> onWindowReady;
+  std::function<void()> onUpdate;
   std::function<void(QRhiCommandBuffer&)> onRender;
   std::function<void()> onResize;
   void init() { onWindowReady(); }
@@ -65,6 +65,9 @@ public:
 
   void render()
   {
+    if (onUpdate)
+      onUpdate();
+
     if (!m_hasSwapChain || m_notExposed)
     {
       requestUpdate();

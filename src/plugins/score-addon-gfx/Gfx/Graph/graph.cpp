@@ -127,7 +127,8 @@ void Graph::setupOutputs(GraphicsApi graphicsApi)
         }
       };
 
-      output->createOutput(graphicsApi, onReady, onResize);
+      // TODO only works for one output !!
+      output->createOutput(graphicsApi, onReady, vsync_callback, onResize);
     }
     else
     {
@@ -201,6 +202,30 @@ void Graph::relinkGraph()
       }
     }
     r.output->onRendererChange();
+  }
+}
+
+void Graph::setVSyncCallback(std::function<void ()> cb)
+{
+  // TODO thread safety if vulkan uses a thread ?
+  // If we have more than one output, then instead we sync them with
+  // a simple timer, as they may have drastically different vsync rates.
+  if(cb)
+  {
+    vsync_callback = [this, callback = std::move(cb)] {
+        switch(this->outputs.size())
+        {
+          case 1:
+            callback();
+            break;
+          default:
+            break;
+        }
+    };
+  }
+  else
+  {
+
   }
 }
 

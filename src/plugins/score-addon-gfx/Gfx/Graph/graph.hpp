@@ -21,6 +21,8 @@ struct SCORE_ADDON_GFX_EXPORT Graph
     }
   }
 
+  void setVSyncCallback(std::function<void()>);
+
   void maybeRebuild(Renderer& r);
 
   std::shared_ptr<Renderer> createRenderer(OutputNode*, RenderState state);
@@ -36,6 +38,7 @@ private:
   std::vector<std::shared_ptr<Renderer>> renderers;
 
   std::vector<std::shared_ptr<Window>> unused_windows;
+  std::function<void()> vsync_callback;
 };
 
 #if QT_CONFIG(vulkan)

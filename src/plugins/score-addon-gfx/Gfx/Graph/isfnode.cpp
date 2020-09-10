@@ -58,71 +58,88 @@ struct input_port_vis
   char* data{};
   int sz{};
 
-  void operator()(const isf::float_input&) noexcept
+  void operator()(const isf::float_input& in) noexcept
   {
+    *reinterpret_cast<float*>(data) = in.def;
     self.input.push_back(new Port{&self, data, Types::Float, {}});
     data += 4;
     sz += 4;
   }
 
-  void operator()(const isf::long_input&) noexcept
+  void operator()(const isf::long_input& in) noexcept
   {
+    *reinterpret_cast<int*>(data) = in.def;
     self.input.push_back(new Port{&self, data, Types::Int, {}});
     data += 4;
     sz += 4;
   }
 
-  void operator()(const isf::event_input&) noexcept
+  void operator()(const isf::event_input& in) noexcept
   {
+    *reinterpret_cast<int*>(data) = 0;
     self.input.push_back(new Port{&self, data, Types::Int, {}});
     data += 4;
     sz += 4;
   }
 
-  void operator()(const isf::bool_input&) noexcept
+  void operator()(const isf::bool_input& in) noexcept
   {
+    *reinterpret_cast<int*>(data) = in.def;
     self.input.push_back(new Port{&self, data, Types::Int, {}});
     data += 4;
     sz += 4;
   }
 
-  void operator()(const isf::point2d_input&) noexcept
+  void operator()(const isf::point2d_input& in) noexcept
   {
     if (sz % 8 != 0)
     {
       sz += 4;
       data += 4;
     }
+
+    const auto& arr = in.def.value_or(std::array<double, 2>{0.5, 0.5});
+    *reinterpret_cast<float*>(data) = arr[0];
+    *reinterpret_cast<float*>(data + 4) = arr[1];
     self.input.push_back(new Port{&self, data, Types::Vec2, {}});
     data += 2 * 4;
     sz += 2 * 4;
   }
 
-  void operator()(const isf::point3d_input&) noexcept
+  void operator()(const isf::point3d_input& in) noexcept
   {
     while (sz % 16 != 0)
     {
       sz += 4;
       data += 4;
     }
+    const auto& arr = in.def.value_or(std::array<double, 3>{0.5, 0.5, 0.5});
+    *reinterpret_cast<float*>(data) = arr[0];
+    *reinterpret_cast<float*>(data + 4) = arr[1];
+    *reinterpret_cast<float*>(data + 8) = arr[2];
     self.input.push_back(new Port{&self, data, Types::Vec3, {}});
     data += 3 * 4;
     sz += 3 * 4;
   }
 
-  void operator()(const isf::color_input&) noexcept
+  void operator()(const isf::color_input& in) noexcept
   {
     while (sz % 16 != 0)
     {
       sz += 4;
       data += 4;
     }
+    const auto& arr = in.def.value_or(std::array<double, 4>{0.5, 0.5, 0.5, 0.5});
+    *reinterpret_cast<float*>(data) = arr[0];
+    *reinterpret_cast<float*>(data + 4) = arr[1];
+    *reinterpret_cast<float*>(data + 8) = arr[2];
+    *reinterpret_cast<float*>(data + 12) = arr[3];
     self.input.push_back(new Port{&self, data, Types::Vec4, {}});
     data += 4 * 4;
     sz += 4 * 4;
   }
 
-  void operator()(const isf::image_input&) noexcept
+  void operator()(const isf::image_input& in) noexcept
   {
     self.input.push_back(new Port{&self, {}, Types::Image, {}});
   }

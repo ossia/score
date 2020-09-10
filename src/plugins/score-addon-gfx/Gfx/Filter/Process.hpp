@@ -68,6 +68,7 @@ private:
   ProcessedProgram m_processedProgram;
 };
 
+
 using ProcessFactory = Process::ProcessFactory_T<Gfx::Filter::Model>;
 
 class LibraryHandler final : public Library::LibraryInterface
@@ -75,6 +76,8 @@ class LibraryHandler final : public Library::LibraryInterface
   SCORE_CONCRETE("e62ed6f6-a2c1-4d27-a9c3-1c3bc576bfeb")
 
   QSet<QString> acceptedFiles() const noexcept override;
+
+  QWidget* previewWidget(const QString& path, QWidget* parent) const noexcept override;
 };
 
 class DropHandler final : public Process::ProcessDropHandler
@@ -87,7 +90,6 @@ class DropHandler final : public Process::ProcessDropHandler
       const std::vector<DroppedFile>& data,
       const score::DocumentContext& ctx) const noexcept override;
 };
-
 }
 
 #include <Scenario/Commands/ScriptEditCommand.hpp>

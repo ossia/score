@@ -621,5 +621,8 @@
         <file>icons/scale_content_on.png</file>
         <file>icons/scale_content_on@2x.png</file>
         <file>skin/DefaultSkin.json</file>
+        <file>gfx/testcard-1.png</file>
+        <file>gfx/testcard-2.png</file>
+        <file>gfx/testcard-3.png</file>
     </qresource>
 </RCC>

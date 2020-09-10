@@ -1,6 +1,7 @@
 #include "ShaderProgram.hpp"
 #include <QShaderBaker>
 #include <QRegularExpression>
+#include <QFile>
 #include <Gfx/Graph/shadercache.hpp>
 #include <ossia/detail/flat_map.hpp>
 namespace Gfx
@@ -132,4 +133,38 @@ std::pair<std::optional<ProcessedProgram>, QString> ProgramCache::get(const Shad
   return {std::nullopt, "Unknown error"};
 }
 
+const QString defaultISFVertex = QStringLiteral(
+R"_(void main(void)	{
+  isf_vertShaderInit();
+}
+)_");
+
+ShaderProgram programFromFragmentShaderPath(const QString& fsFilename, QByteArray fsData)
+{
+  // ISF works by storing a vertex shader next to the fragment shader.
+  QString vertexName = fsFilename;
+  vertexName.replace(".frag", ".vert");
+  vertexName.replace(".fs", ".vs");
+
+  QString vertexData = defaultISFVertex;
+  if(vertexName != fsFilename)
+  {
+    if(QFile vertexFile{vertexName};
+       vertexFile.exists() && vertexFile.open(QIODevice::ReadOnly))
+    {
+      vertexData = vertexFile.readAll();
+    }
+  }
+
+  if(fsData.isEmpty())
+  {
+    if(QFile fsFile{fsFilename};
+       fsFile.exists() && fsFile.open(QIODevice::ReadOnly))
+    {
+      fsData = fsFile.readAll();
+    }
+  }
+
+  return {vertexData, fsData};
+}
 }

@@ -249,23 +249,26 @@ public:
 #endif
 
     m_graph = new Graph;
-
+    m_graph->setVSyncCallback([this] { updateGraph(); });
+#if defined(SCORE_THREADED_GFX)
     if (m_api == Vulkan)
     {
       //:startTimer(16);
       moveToThread(&m_thread);
       m_thread.start();
     }
-
+#endif
     QMetaObject::invokeMethod(
         this, [this] { startTimer(16); }, Qt::QueuedConnection);
   }
 
   ~gfx_window_context()
   {
+#if defined(SCORE_THREADED_GFX)
     if (m_thread.isRunning())
       m_thread.exit(0);
     m_thread.wait();
+#endif
   }
 
   int32_t register_node(std::unique_ptr<NodeModel> node)

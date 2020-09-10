@@ -467,36 +467,31 @@ static const std::unordered_map<std::string, root_fun>& root_parse{[] {
                   {
                     // PASS object
                     pass p;
-                    auto target_k = obj.find_object_key(sajson::string("TARGET", 6));
-                    if (target_k != obj.get_length())
+                    if (auto target_k = obj.find_object_key(sajson::string("TARGET", 6)); target_k != obj.get_length())
                     {
                       p.target = obj.get_object_value(target_k).as_string();
                     }
 
-                    auto persistent_k = obj.find_object_key(sajson::string("PERSISTENT", 10));
-                    if (persistent_k != obj.get_length())
+                    if (auto persistent_k = obj.find_object_key(sajson::string("PERSISTENT", 10)); persistent_k != obj.get_length())
                     {
                       p.persistent
                           = obj.get_object_value(persistent_k).get_type() == sajson::TYPE_TRUE;
                     }
 
-                    auto float_k = obj.find_object_key(sajson::string("FLOAT", 5));
-                    if (float_k != obj.get_length())
+                    if (auto float_k = obj.find_object_key(sajson::string("FLOAT", 5)); float_k != obj.get_length())
                     {
                       p.float_storage
                           = obj.get_object_value(float_k).get_type() == sajson::TYPE_TRUE;
                     }
 
-                    auto width_k = obj.find_object_key(sajson::string("WIDTH", 5));
-                    if (width_k != obj.get_length())
+                    if (auto width_k = obj.find_object_key(sajson::string("WIDTH", 5)); width_k != obj.get_length())
                     {
-                      p.width_expression = obj.get_object_value(float_k).as_string();
+                      p.width_expression = obj.get_object_value(width_k).as_string();
                     }
 
-                    auto height_k = obj.find_object_key(sajson::string("height", 5));
-                    if (height_k != obj.get_length())
+                    if (auto height_k = obj.find_object_key(sajson::string("height", 5)); height_k != obj.get_length())
                     {
-                      p.height_expression = obj.get_object_value(float_k).as_string();
+                      p.height_expression = obj.get_object_value(height_k).as_string();
                     }
 
                     d.passes.push_back(std::move(p));

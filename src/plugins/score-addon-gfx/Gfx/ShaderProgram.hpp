@@ -80,6 +80,10 @@ struct ShaderProgram {
     return !(lhs == rhs);
   }
 };
+
+
+extern const QString defaultISFVertex;
+ShaderProgram programFromFragmentShaderPath(const QString& fsFilename, QByteArray fsData);
 }
 
 namespace std

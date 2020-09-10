@@ -33,6 +33,7 @@ struct OutputNode : NodeModel
   virtual void createOutput(
       GraphicsApi graphicsApi,
       std::function<void()> onReady,
+      std::function<void()> onUpdate,
       std::function<void()> onResize
       ) = 0;
 
@@ -127,7 +128,7 @@ struct ProductNode : NodeModel
 
 struct ScreenNode : OutputNode
 {
-  ScreenNode();
+  ScreenNode(bool embedded = false);
   virtual ~ScreenNode();
 
   std::shared_ptr<Window> window{};
@@ -144,13 +145,15 @@ struct ScreenNode : OutputNode
   void createOutput(
       GraphicsApi graphicsApi,
       std::function<void()> onReady,
+      std::function<void()> onUpdate,
       std::function<void()> onResize
       ) override;
   void destroyOutput() override;
 
   RenderState* renderState() const override;
-
   RenderedNode* createRenderer() const noexcept override;
 
+private:
+  bool m_embedded{};
 };
 

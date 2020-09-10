@@ -90,8 +90,9 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
 }
 
 
-ScreenNode::ScreenNode()
+ScreenNode::ScreenNode(bool embedded)
   : OutputNode{}
+  , m_embedded{embedded}
 {
   input.push_back(new Port{this, {}, Types::Image, {}});
 }
@@ -144,7 +145,10 @@ Renderer* ScreenNode::renderer() const
     return nullptr;
 }
 
-void ScreenNode::createOutput(GraphicsApi graphicsApi, std::function<void ()> onReady, std::function<void ()> onResize)
+void ScreenNode::createOutput(GraphicsApi graphicsApi,
+                              std::function<void ()> onReady,
+                              std::function<void ()> onUpdate,
+                              std::function<void ()> onResize)
 {
   window = std::make_shared<Window>(graphicsApi);
 
@@ -152,10 +156,10 @@ void ScreenNode::createOutput(GraphicsApi graphicsApi, std::function<void ()> on
   if (graphicsApi == Vulkan)
     window->setVulkanInstance(staticVulkanInstance());
 #endif
-  window->onWindowReady = [this, graphicsApi, onReady] {
+  window->onUpdate = std::move(onUpdate);
+  window->onWindowReady = [this, graphicsApi, onReady=std::move(onReady)] {
     window->state = createRenderState(*window, graphicsApi);
     {
-
       swapChain = window->state.rhi->newSwapChain();
       window->swapChain = swapChain;
 
@@ -175,9 +179,13 @@ void ScreenNode::createOutput(GraphicsApi graphicsApi, std::function<void ()> on
 
     onReady();
   };
-  window->onResize = onResize;
-  window->resize(1280, 720);
-  window->show();
+  window->onResize = std::move(onResize);
+
+  if(!m_embedded)
+  {
+    window->resize(1280, 720);
+    window->show();
+  }
 }
 
 void ScreenNode::destroyOutput()

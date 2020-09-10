@@ -8,6 +8,7 @@
 #include <Gfx/Graph/node.hpp>
 #include <Gfx/Graph/nodes.hpp>
 #include <Gfx/Graph/shadercache.hpp>
+#include <Gfx/Filter/PreviewWidget.hpp>
 #include <Gfx/TexturePort.hpp>
 #include <score/tools/DeleteAll.hpp>
 #include <wobjectimpl.h>
@@ -16,12 +17,6 @@ W_OBJECT_IMPL(Gfx::Filter::Model)
 
 namespace Gfx::Filter
 {
-static const QString defaultISFVertex = QStringLiteral(
-R"_(void main(void)	{
-  isf_vertShaderInit();
-}
-)_");
-
 Model::Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
     : Process::ProcessModel{duration, id, "gfxProcess", parent}
 {
@@ -273,6 +268,11 @@ QSet<QString> LibraryHandler::acceptedFiles() const noexcept
   return {"frag", "glsl", "fs"};
 }
 
+QWidget* LibraryHandler::previewWidget(const QString& path, QWidget* parent) const noexcept
+{
+  return new ShaderPreviewWidget{path, parent};
+}
+
 QSet<QString> DropHandler::fileExtensions() const noexcept
 {
   return {"frag", "glsl", "fs"};
@@ -290,24 +290,11 @@ std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::dropData(
       p.creation.key = Metadata<ConcreteKey_k, Gfx::Filter::Model>::get();
       p.creation.prettyName = QFileInfo{filename}.baseName();
 
-      // ISF works by storing a vertex shader next to the fragment shader.
-      QString vertexName = filename;
-      vertexName.replace(".frag", ".vert");
-      vertexName.replace(".fs", ".vs");
-
-      QString vertexData = defaultISFVertex;
-      if(vertexName != filename)
+      p.setup = [program = programFromFragmentShaderPath(filename, fragData)]
+                (Process::ProcessModel& m, score::Dispatcher& disp)
       {
-        if(QFile vertexFile{vertexName};
-           vertexFile.exists() && vertexFile.open(QIODevice::ReadOnly))
-        {
-          vertexData = vertexFile.readAll();
-        }
-      }
-
-      p.setup = [program = Gfx::ShaderProgram{vertexData, fragData}](Process::ProcessModel& m, score::Dispatcher& disp) {
-        auto& midi = static_cast<Gfx::Filter::Model&>(m);
-        disp.submit(new ChangeShader{midi, program});
+        auto& fx = static_cast<Gfx::Filter::Model&>(m);
+        disp.submit(new ChangeShader{fx, program});
       };
 
       vec.push_back(std::move(p));
