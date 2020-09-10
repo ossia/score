@@ -23,6 +23,8 @@ struct TSerializer<DataStream, ossia::fast_hash_map<T, U>>
 
   static void writeTo(DataStream::Deserializer& s, type& obj)
   {
+    obj.clear();
+
     std::size_t sz;
     s.stream() >> sz;
     for (std::size_t i = 0; i < sz; i++)
@@ -54,6 +56,8 @@ struct TSerializer<JSONObject, ossia::fast_hash_map<T, U>>
 
   static void writeTo(JSONObject::Deserializer& s, type& obj)
   {
+    obj.clear();
+
     const auto& arr = s.base.GetArray();
     for(const auto& elt : arr)
     {
@@ -83,6 +87,8 @@ struct TSerializer<DataStream, ossia::flat_map<T, U>>
 
   static void writeTo(DataStream::Deserializer& s, type& obj)
   {
+    obj.clear();
+
     std::size_t sz;
     s.stream() >> sz;
     for (std::size_t i = 0; i < sz; i++)

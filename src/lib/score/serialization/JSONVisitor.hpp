@@ -565,6 +565,8 @@ struct ArraySerializer
   static void writeTo(JSONObject::Deserializer& s, T& vec)
   {
     const auto& array = s.base.GetArray();
+
+    vec.clear();
     vec.reserve(array.Size());
     for (const auto& elt : array)
     {
@@ -588,6 +590,8 @@ struct ArraySerializer
   static void writeTo(JSONObject::Deserializer& s, std::array<Arg, N>& vec)
   {
     const auto& array = s.base.GetArray();
+    SCORE_ASSERT(N >= array.Size());
+
     auto it = vec.begin();
     for (const auto& elt : array)
     {
@@ -610,6 +614,8 @@ struct ArraySerializer
   static void writeTo(JSONObject::Deserializer& s, std::array<float, N>& vec)
   {
     const auto& array = s.base.GetArray();
+    SCORE_ASSERT(N >= array.Size());
+
     auto it = vec.begin();
     for (const auto& elt : array)
     {
@@ -630,6 +636,8 @@ struct ArraySerializer
   template <typename T>
   static void writeTo(JSONObject::Deserializer& s, std::list<T>& vec)
   {
+    vec.clear();
+
     const auto& array = s.base.GetArray();
     for (const auto& elt : array)
     {
@@ -654,6 +662,9 @@ struct ArraySerializer
   static void writeTo(JSONObject::Deserializer& s, QList<T>& vec)
   {
     const auto& array = s.base.GetArray();
+    vec.clear();
+    vec.reserve(array.Size());
+
     for (const auto& elt : array)
     {
       T v;
@@ -676,6 +687,7 @@ struct ArraySerializer
   static void writeTo(JSONObject::Deserializer& s, T<std::string, Args...>& vec)
   {
     const auto& array = s.base.GetArray();
+    vec.clear();
     vec.reserve(array.Size());
     for (const auto& elt : array)
     {
@@ -699,6 +711,7 @@ struct ArraySerializer
   static void writeTo(JSONObject::Deserializer& s, T<QString, Args...>& vec)
   {
     const auto& array = s.base.GetArray();
+    vec.clear();
     vec.reserve(array.Size());
     for (const auto& elt : array)
     {
@@ -719,6 +732,7 @@ struct ArraySerializer
   static void writeTo(JSONObject::Deserializer& s, T<int, Args...>& vec)
   {
     const auto& array = s.base.GetArray();
+    vec.clear();
     vec.resize(array.Size());
     auto it = vec.begin();
     for (const auto& elt : array)
@@ -741,6 +755,7 @@ struct ArraySerializer
   static void writeTo(JSONObject::Deserializer& s, T<char, Args...>& vec)
   {
     const auto& array = s.base.GetArray();
+    vec.clear();
     vec.resize(array.Size());
     auto it = vec.begin();
     for (const auto& elt : array)
@@ -763,6 +778,7 @@ struct ArraySerializer
   static void writeTo(JSONObject::Deserializer& s, T<int64_t, Args...>& vec)
   {
     const auto& array = s.base.GetArray();
+    vec.clear();
     vec.resize(array.Size());
     auto it = vec.begin();
     for (const auto& elt : array)
@@ -785,6 +801,7 @@ struct ArraySerializer
   static void writeTo(JSONObject::Deserializer& s, T<float, Args...>& vec)
   {
     const auto& array = s.base.GetArray();
+    vec.clear();
     vec.resize(array.Size());
     auto it = vec.begin();
     for (const auto& elt : array)
@@ -807,6 +824,7 @@ struct ArraySerializer
   static void writeTo(JSONObject::Deserializer& s, T<double, Args...>& vec)
   {
     const auto& array = s.base.GetArray();
+    vec.clear();
     vec.resize(array.Size());
     auto it = vec.begin();
     for (const auto& elt : array)
@@ -839,6 +857,7 @@ struct ArraySerializer
   static void writeTo(JSONObject::Deserializer& s, T<int, N, Args...>& vec)
   {
     const auto& array = s.base.GetArray();
+    vec.clear();
     vec.resize(array.Size());
     auto it = vec.begin();
     for (const auto& elt : array)
@@ -869,6 +888,7 @@ struct ArraySerializer
   static void writeTo(JSONObject::Deserializer& s, T<char, N, Args...>& vec)
   {
     const auto& array = s.base.GetArray();
+    vec.clear();
     vec.resize(array.Size());
     auto it = vec.begin();
     for (const auto& elt : array)
@@ -899,6 +919,7 @@ struct ArraySerializer
   static void writeTo(JSONObject::Deserializer& s, T<int64_t, N, Args...>& vec)
   {
     const auto& array = s.base.GetArray();
+    vec.clear();
     vec.resize(array.Size());
     auto it = vec.begin();
     for (const auto& elt : array)
@@ -929,6 +950,7 @@ struct ArraySerializer
   static void writeTo(JSONObject::Deserializer& s, T<float, N, Args...>& vec)
   {
     const auto& array = s.base.GetArray();
+    vec.clear();
     vec.resize(array.Size());
     auto it = vec.begin();
     for (const auto& elt : array)
@@ -959,6 +981,7 @@ struct ArraySerializer
   static void writeTo(JSONObject::Deserializer& s, T<double, N, Args...>& vec)
   {
     const auto& array = s.base.GetArray();
+    vec.clear();
     vec.resize(array.Size());
     auto it = vec.begin();
     for (const auto& elt : array)
