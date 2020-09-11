@@ -1,5 +1,7 @@
 #pragma once
 
+#include "JoystickDevice.hpp"
+
 #include <verdigris>
 
 namespace Protocols
