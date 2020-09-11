@@ -21,4 +21,4 @@
 	url = https://github.com/jcelerier/magicitems
 [submodule "3rdparty/QCodeEditor"]
 	path = 3rdparty/QCodeEditor
-	url = https://github.com/cpeditor/QCodeEditor
+	url = https://github.com/jcelerier/QCodeEditor
