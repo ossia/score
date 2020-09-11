@@ -70,7 +70,7 @@ std::pair<std::optional<ProcessedProgram>, QString> ProgramCache::get(const Shad
   try
   {
     // Parse ISF and get GLSL shaders
-    isf::parser parser{program.vertex.toStdString(), program.fragment.toStdString()};
+    isf::parser parser{program.vertex.toStdString(), program.fragment.toStdString(), 450, isf::parser::ShaderType::ISF};
 
     auto isfVert = QString::fromStdString(parser.vertex());
     if(isfVert.isEmpty())

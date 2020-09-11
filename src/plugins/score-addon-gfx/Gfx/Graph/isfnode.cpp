@@ -60,7 +60,10 @@ struct input_port_vis
 
   void operator()(const isf::float_input& in) noexcept
   {
-    *reinterpret_cast<float*>(data) = in.def;
+    if(in.def != 0.)
+      *reinterpret_cast<float*>(data) = in.def;
+    else
+      *reinterpret_cast<float*>(data) = (in.max - in.min) / 2.;
     self.input.push_back(new Port{&self, data, Types::Float, {}});
     data += 4;
     sz += 4;

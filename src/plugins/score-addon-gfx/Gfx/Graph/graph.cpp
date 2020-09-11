@@ -34,18 +34,7 @@ QVulkanInstance* staticVulkanInstance()
     return &vulkanInstance;
 
 #if !defined(NDEBUG)
-#ifndef Q_OS_ANDROID
-  vulkanInstance.setLayers(QByteArrayList() << "VK_LAYER_LUNARG_standard_validation");
-#else
-  vulkanInstance.setLayers(
-        QByteArrayList() << "VK_LAYER_GOOGLE_threading"
-        << "VK_LAYER_LUNARG_parameter_validation"
-        << "VK_LAYER_LUNARG_object_tracker"
-        << "VK_LAYER_LUNARG_core_validation"
-        << "VK_LAYER_LUNARG_image"
-        << "VK_LAYER_LUNARG_swapchain"
-        << "VK_LAYER_GOOGLE_unique_objects");
-#endif
+  vulkanInstance.setLayers({"VK_LAYER_KHRONOS_validation"});
 #endif
   vulkanInstance.setExtensions(QByteArrayList() << "VK_KHR_get_physical_device_properties2");
 
