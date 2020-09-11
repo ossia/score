@@ -109,11 +109,16 @@ EffectProcessFactory_T<Media::Faust::FaustEffectModel>::descriptor(QString d) co
 
 namespace Media::Faust
 {
+struct LanguageSpec
+{
+  static constexpr const char* language = "Faust";
+};
+
 using FaustEffectFactory = Process::EffectProcessFactory_T<FaustEffectModel>;
 using LayerFactory = Process::EffectLayerFactory_T<
     FaustEffectModel,
     Process::DefaultEffectItem,
-    Process::ProcessScriptEditDialog<FaustEffectModel, FaustEffectModel::p_text>>;
+    Process::ProcessScriptEditDialog<FaustEffectModel, FaustEffectModel::p_text, LanguageSpec>>;
 }
 
 namespace Execution

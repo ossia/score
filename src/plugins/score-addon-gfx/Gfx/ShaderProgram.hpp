@@ -51,13 +51,14 @@ struct ShaderProgram {
   QString fragment;
 
   struct MemberSpec {
-    QString name;
-    QString ShaderProgram::* pointer;
+    const QString name;
+    const QString ShaderProgram::* pointer;
+    const std::string_view language{};
   };
 
   static const inline std::array<MemberSpec, 2> specification{
-    MemberSpec{QObject::tr("Fragment"), &ShaderProgram::fragment},
-    MemberSpec{QObject::tr("Vertex"), &ShaderProgram::vertex},
+    MemberSpec{QObject::tr("Fragment"), &ShaderProgram::fragment, "GLSL"},
+    MemberSpec{QObject::tr("Vertex"), &ShaderProgram::vertex, "GLSL"},
   };
 
   friend QDebug& operator<<(QDebug& d, const ShaderProgram& sp) {

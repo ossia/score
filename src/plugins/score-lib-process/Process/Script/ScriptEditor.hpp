@@ -17,7 +17,7 @@ class ProcessModel;
 class SCORE_LIB_PROCESS_EXPORT ScriptDialog : public QDialog
 {
 public:
-  ScriptDialog(const score::DocumentContext& ctx, QWidget* parent);
+  ScriptDialog(const std::string_view lang, const score::DocumentContext& ctx, QWidget* parent);
 
   QSize sizeHint() const override { return {800, 300}; }
   QString text() const noexcept;
@@ -33,7 +33,7 @@ protected:
   QPlainTextEdit* m_error{};
 };
 
-template <typename Process_T, typename Property_T>
+template <typename Process_T, typename Property_T, typename Spec_T>
 class ProcessScriptEditDialog : public ScriptDialog
 {
 public:
@@ -41,7 +41,7 @@ public:
       const Process_T& process,
       const score::DocumentContext& ctx,
       QWidget* parent)
-    : ScriptDialog{ctx, parent}, m_process{process}
+    : ScriptDialog{Spec_T::language, ctx, parent}, m_process{process}
   {
     setText((m_process.*Property_T::get)());
     con(m_process, &Process_T::errorMessage, this, &ProcessScriptEditDialog::setError);

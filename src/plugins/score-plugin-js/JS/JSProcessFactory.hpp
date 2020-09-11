@@ -11,9 +11,14 @@
 
 namespace JS
 {
+struct LanguageSpec
+{
+  static constexpr const char* language = "JS";
+};
+
 using ProcessFactory = Process::ProcessFactory_T<JS::ProcessModel>;
 using LayerFactory = Process::EffectLayerFactory_T<
     ProcessModel,
     Process::DefaultEffectItem,
-    Process::ProcessScriptEditDialog<ProcessModel, ProcessModel::p_script>>;
+    Process::ProcessScriptEditDialog<ProcessModel, ProcessModel::p_script, LanguageSpec>>;
 }

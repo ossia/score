@@ -23,7 +23,7 @@ public:
   QSize sizeHint() const override { return {800, 300}; }
   std::vector<QString> text() const noexcept;
 
-  void addTab(const QString& name, const QString& text);
+  void addTab(const QString& name, const QString& text, const std::string_view language);
   void setText(int idx, const QString& str);
   void setError(const QString& str);
   void clearError();
@@ -52,15 +52,15 @@ public:
     : MultiScriptDialog{ctx, parent}, m_process{process}
   {
     const auto& prop = (m_process.*Property_T::get)();
-    for(auto& [name, addr] : param_type::specification)
+    for(auto& [name, addr, lang] : param_type::specification)
     {
-      addTab(name, prop.*addr);
+      addTab(name, prop.*addr, lang);
     }
 
     con(m_process, Property_T::notify,
         this, [this] (const auto& prop) {
       int i = 0;
-      for(auto& [name, addr] : param_type::specification)
+      for(auto& [name, addr, lang] : param_type::specification)
       {
         setText(i, prop.*addr);
         i++;

@@ -2,6 +2,8 @@
 #include "MultiScriptEditor.hpp"
 
 #include <QCXXHighlighter>
+#include <QGLSLHighlighter>
+#include <QJSHighlighter>
 #include <QCodeEditor>
 #include <QDialogButtonBox>
 #include <QFile>
@@ -10,6 +12,7 @@
 #include <QSyntaxStyle>
 #include <QTabWidget>
 #include <QVBoxLayout>
+#include <QGLSLCompleter>
 namespace Process
 {
 namespace
@@ -20,9 +23,29 @@ void setTabWidth(QTextEdit& edit, int spaceCount)
   const QFontMetrics metrics(edit.font());
   edit.setTabStopDistance(metrics.horizontalAdvance(spaces));
 }
+
+std::pair<QStyleSyntaxHighlighter*, QCompleter*> getLanguageStyle(const std::string_view language)
+{
+  if(language == "GLSL")
+  {
+    return {new QGLSLHighlighter, new QGLSLCompleter};
+  }
+  else if(language == "C" || language == "C++")
+  {
+    return {new QCXXHighlighter, nullptr};
+  }
+  else if(language == "JS")
+  {
+    return {new QJSHighlighter, nullptr};
+  }
+  else
+  {
+    return {new QCXXHighlighter, nullptr};
+  }
+}
 }
 
-ScriptDialog::ScriptDialog(const score::DocumentContext& ctx, QWidget* parent)
+ScriptDialog::ScriptDialog(const std::string_view language, const score::DocumentContext& ctx, QWidget* parent)
     : QDialog{parent}, m_context{ctx}
 {
   this->setBaseSize(800, 300);
@@ -49,7 +72,10 @@ ScriptDialog::ScriptDialog(const score::DocumentContext& ctx, QWidget* parent)
     m_textedit->setSyntaxStyle(style);
   }
 
-  m_textedit->setHighlighter(new QCXXHighlighter);
+  auto [highlight, complete] = getLanguageStyle(language);
+  m_textedit->setHighlighter(highlight);
+  m_textedit->setCompleter(complete);
+
   setTabWidth(*m_textedit, 4);
 
   m_error = new QPlainTextEdit{this};
@@ -110,6 +136,9 @@ MultiScriptDialog::MultiScriptDialog(const score::DocumentContext& ctx, QWidget*
   lay->addWidget(m_tabs);
 
   m_error = new QPlainTextEdit;
+  m_error->setReadOnly(true);
+  m_error->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
+
   lay->addWidget(m_error);
 
   auto bbox = new QDialogButtonBox{
@@ -126,12 +155,10 @@ MultiScriptDialog::MultiScriptDialog(const score::DocumentContext& ctx, QWidget*
   connect(bbox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 }
 
-void MultiScriptDialog::addTab(const QString &name, const QString &text)
+void MultiScriptDialog::addTab(const QString &name, const QString &text, const std::string_view language)
 {
-  auto widg = new QWidget;
-  auto lay = new QVBoxLayout{widg};
-  auto m_textedit = new QCodeEditor{this};
-  m_textedit->setText(text);
+  auto textedit = new QCodeEditor{this};
+  textedit->setText(text);
 
   // TODO share that with scriptdialog, and load it only once
   {
@@ -146,25 +173,19 @@ void MultiScriptDialog::addTab(const QString &name, const QString &text)
       }
       else
       {
-        m_textedit->setSyntaxStyle(style);
+        textedit->setSyntaxStyle(style);
       }
     }
   }
 
-  m_textedit->setHighlighter(new QCXXHighlighter);
-  setTabWidth(*m_textedit, 4);
+  auto [highlight, complete] = getLanguageStyle(language);
+  textedit->setHighlighter(highlight);
+  textedit->setCompleter(complete);
 
-  auto m_error = new QPlainTextEdit{this};
-  m_error->setReadOnly(true);
-  m_error->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
+  setTabWidth(*textedit, 4);
 
-  lay->addWidget(m_textedit);
-  lay->addWidget(m_error);
-  lay->setStretch(0, 3);
-  lay->setStretch(1, 1);
-
-  m_tabs->addTab(widg, name);
-  m_editors.push_back({m_textedit});
+  m_tabs->addTab(textedit, name);
+  m_editors.push_back({textedit});
 }
 
 std::vector<QString> MultiScriptDialog::text() const noexcept
