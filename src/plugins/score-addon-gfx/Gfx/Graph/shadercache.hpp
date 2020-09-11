@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QShaderBaker>
+#include <unordered_map>
 
 struct ShaderCache
 {
