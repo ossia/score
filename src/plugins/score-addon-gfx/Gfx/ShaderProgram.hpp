@@ -82,8 +82,6 @@ struct ShaderProgram {
   }
 };
 
-
-extern const QString defaultISFVertex;
 ShaderProgram programFromFragmentShaderPath(const QString& fsFilename, QByteArray fsData);
 }
 

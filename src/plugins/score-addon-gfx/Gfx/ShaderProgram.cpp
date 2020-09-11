@@ -52,6 +52,14 @@ void updateToGlsl45(ShaderProgram& program)
       match_idx = program.fragment.indexOf(in_expr, match_idx + len);
     }
   }
+
+  // Remove lowp, highp, etc
+  program.vertex.remove("lowp ");
+  program.vertex.remove("mediump ");
+  program.vertex.remove("highp ");
+  program.fragment.remove("lowp ");
+  program.fragment.remove("mediump ");
+  program.fragment.remove("highp ");
 }
 }
 
@@ -95,14 +103,17 @@ std::pair<std::optional<ProcessedProgram>, QString> ProgramCache::get(const Shad
       auto [vertexS, vertexError] = ShaderCache::get(processed.vertex.toUtf8(), QShader::VertexStage);
       if(!vertexError.isEmpty())
       {
-        qDebug() << vertexError;
+        qDebug().noquote() << vertexError;
+        qDebug().noquote() << processed.vertex.toUtf8();
         return {std::nullopt, "Vertex shader error: " + vertexError};
       }
 
       auto [fragmentS, fragmentError] = ShaderCache::get(processed.fragment.toUtf8(), QShader::FragmentStage);
       if(!fragmentError.isEmpty())
       {
-        qDebug() << fragmentError;
+        qDebug().noquote() << fragmentError;
+        qDebug().noquote() << processed.fragment.toUtf8();
+
         return {std::nullopt, "Fragment shader error: " + fragmentError};
       }
 
@@ -133,12 +144,6 @@ std::pair<std::optional<ProcessedProgram>, QString> ProgramCache::get(const Shad
   return {std::nullopt, "Unknown error"};
 }
 
-const QString defaultISFVertex = QStringLiteral(
-R"_(void main(void)	{
-  isf_vertShaderInit();
-}
-)_");
-
 ShaderProgram programFromFragmentShaderPath(const QString& fsFilename, QByteArray fsData)
 {
   // ISF works by storing a vertex shader next to the fragment shader.
@@ -146,7 +151,8 @@ ShaderProgram programFromFragmentShaderPath(const QString& fsFilename, QByteArra
   vertexName.replace(".frag", ".vert");
   vertexName.replace(".fs", ".vs");
 
-  QString vertexData = defaultISFVertex;
+  // If empty: will be using the ISF's default
+  QString vertexData;
   if(vertexName != fsFilename)
   {
     if(QFile vertexFile{vertexName};

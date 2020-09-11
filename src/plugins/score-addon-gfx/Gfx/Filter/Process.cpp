@@ -52,7 +52,7 @@ void main() {
 }
 )_");
 
-  setProgram({defaultISFVertex, defaultFrag});
+  setProgram({QByteArray{}, defaultFrag});
 }
 
 Model::~Model() { }

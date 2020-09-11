@@ -88,18 +88,12 @@ struct PreviewInputvisitor
 
 ShaderPreviewWidget::ShaderPreviewWidget(const QString& path, QWidget* parent): QWidget{parent}
 {
-  startTimer(16);
-
   ShaderProgram program = programFromFragmentShaderPath(path, {});
 
   if(const auto& [processed, error] = ProgramCache::instance().get(program); bool(processed))
   {
     m_program = *std::move(processed);
     setup();
-  }
-  else
-  {
-    qDebug() << error;
   }
 }
 
@@ -144,6 +138,9 @@ void ShaderPreviewWidget::setup()
   widg->setMinimumHeight(200);
   widg->setMaximumHeight(200);
   lay->addWidget(widg);
+
+  // so anyways, I started blasting...
+  startTimer(16);
 }
 
 void ShaderPreviewWidget::timerEvent(QTimerEvent* event)

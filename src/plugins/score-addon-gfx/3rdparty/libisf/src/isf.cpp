@@ -580,6 +580,7 @@ void parser::parse_isf()
 
   // We start from empty strings.
 
+  bool simpleVS = false;
   m_vertex.clear();
   m_fragment.clear();
 
@@ -625,6 +626,7 @@ void parser::parse_isf()
         if (m_sourceVertex.empty())
         {
           m_vertex = GLSL45.defaultVertexShader;
+          simpleVS = true;
         }
         else if(m_sourceVertex.find("isf_vertShaderInit()") != std::string::npos)
         {
@@ -679,14 +681,16 @@ void parser::parse_isf()
         material_ubos += samplers;
       }
 
-      m_vertex += material_ubos;
+      if(!simpleVS)
+        m_vertex += material_ubos;
       m_fragment += material_ubos;
       break;
     }
   }
 
   // Add the actual vert / frag code
-  m_vertex += m_sourceVertex;
+  if(!simpleVS)
+    m_vertex += m_sourceVertex;
   m_fragment += fragWithoutISF;
 
   // Replace the special ISF functions
