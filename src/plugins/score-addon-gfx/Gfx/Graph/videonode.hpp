@@ -499,6 +499,8 @@ struct VideoNode : NodeModel
 
     void customInit(Renderer& renderer) override
     {
+      defaultShaderMaterialInit(renderer);
+
       auto& nodem = static_cast<const VideoNode&>(node);
       if(nodem.gpu)
         nodem.gpu->init(renderer, *this);

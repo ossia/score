@@ -81,6 +81,8 @@ struct ImagesNode : NodeModel
     std::vector<QRhiTexture*> textures;
     void customInit(Renderer& renderer) override
     {
+      defaultShaderMaterialInit(renderer);
+
       prev_ubo.currentImageIndex = -1;
       auto& n = static_cast<const ImagesNode&>(this->node);
       auto& rhi = *renderer.state.rhi;

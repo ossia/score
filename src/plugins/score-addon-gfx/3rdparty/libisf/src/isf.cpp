@@ -18,11 +18,20 @@ static constexpr struct glsl45_t {
 
 layout(location = 0) in vec2 position;
 layout(location = 1) in vec2 texcoord;
+//layout(location = 0) out vec2 isf_TexCoord;
 layout(location = 0) out vec2 isf_FragNormCoord;
+
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 texcoordAdjust;
+
+  vec2 RENDERSIZE;
+};
 
 void main()
 {
-  gl_Position = vec4( position, 0.0, 1.0 );
+  gl_Position = clipSpaceCorrMatrix * vec4( position, 0.0, 1.0 );
+//  isf_TexCoord = texcoord;
   isf_FragNormCoord = vec2((gl_Position.x+1.0)/2.0, (gl_Position.y+1.0)/2.0);
 }
 )_";
@@ -31,16 +40,21 @@ void main()
 
 layout(location = 0) in vec2 position;
 layout(location = 1) in vec2 texcoord;
+//layout(location = 0) out vec2 isf_TexCoord;
 layout(location = 0) out vec2 isf_FragNormCoord;
 
+)_";
+  static constexpr auto vertexInitFunc = R"_(
 void isf_vertShaderInit()
 {
-  gl_Position = vec4( position, 0.0, 1.0 );
+  gl_Position = clipSpaceCorrMatrix * vec4( position, 0.0, 1.0 );
+//  isf_TexCoord = texcoord;
   isf_FragNormCoord = vec2((gl_Position.x+1.0)/2.0, (gl_Position.y+1.0)/2.0);
 }
 )_";
 
   static constexpr auto fragmentPrelude = R"_(#version 450
+//layout(location = 0) in vec2 isf_TexCoord;
 layout(location = 0) in vec2 isf_FragNormCoord;
 layout(location = 0) out vec4 isf_FragColor;
 )_";
@@ -48,24 +62,47 @@ layout(location = 0) out vec4 isf_FragColor;
   static constexpr auto defaultUniforms = R"_(
 // Shared uniform buffer for the whole render window
 layout(std140, binding = 0) uniform renderer_t {
-mat4 clipSpaceCorrMatrix;
-vec2 texcoordAdjust;
+  mat4 clipSpaceCorrMatrix;
+  vec2 texcoordAdjust;
 
-vec2 RENDERSIZE;
+  vec2 RENDERSIZE;
 };
+
+//vec2 isf_FragCoord = vec2(isf_TexCoord.x, texcoordAdjust.y + texcoordAdjust.x * isf_TexCoord.y);
+//vec2 isf_FragNormCoord = vec2(isf_TexCoord.x, texcoordAdjust.y + texcoordAdjust.x * isf_TexCoord.y) / RENDERSIZE;
 
 // Time-dependent uniforms, only relevant during execution
 layout(std140, binding = 1) uniform process_t {
-float TIME;
-float TIMEDELTA;
-float PROGRESS;
+  float TIME;
+  float TIMEDELTA;
+  float PROGRESS;
 
-int PASSINDEX;
-int FRAMEINDEX;
+  int PASSINDEX;
+  int FRAMEINDEX;
 
-vec4 DATE;
+  vec4 DATE;
 };
 )_";
+
+  static constexpr auto defaultFunctions =
+      R"_(
+#define TEX_DIMENSIONS(tex) _ ## tex ## _imgRect.xy
+//#define IMG_THIS_PIXEL(tex) texture(tex, isf_FragNormCoord * TEX_DIMENSIONS(tex))
+//#define IMG_THIS_NORM_PIXEL(tex) texture(tex, isf_FragNormCoord * TEX_DIMENSIONS(tex))
+//#define IMG_PIXEL(tex, coord) texture(tex, coord * TEX_DIMENSIONS(tex) / RENDERSIZE)
+//#define IMG_NORM_PIXEL(tex, coord) texture(tex, coord * TEX_DIMENSIONS(tex))
+
+//#define IMG_THIS_PIXEL(tex) texture(tex, isf_FragNormCoord * TEX_DIMENSIONS(tex) / RENDERSIZE)
+//#define IMG_THIS_NORM_PIXEL(tex) texture(tex, isf_FragNormCoord * TEX_DIMENSIONS(tex) / RENDERSIZE)
+//#define IMG_PIXEL(tex, coord) texture(tex, coord * TEX_DIMENSIONS(tex) / RENDERSIZE)
+//#define IMG_NORM_PIXEL(tex, coord) texture(tex, coord * TEX_DIMENSIONS(tex) / RENDERSIZE)
+
+#define IMG_THIS_PIXEL(tex) texture(tex, isf_FragNormCoord)
+#define IMG_THIS_NORM_PIXEL(tex) texture(tex, isf_FragNormCoord)
+#define IMG_PIXEL(tex, coord) texture(tex, coord / RENDERSIZE)
+#define IMG_NORM_PIXEL(tex, coord) texture(tex, coord)
+)_";
+
 } GLSL45;
 
 static constexpr struct glsl3_t {
@@ -443,7 +480,7 @@ static const std::unordered_map<std::string, root_fun>& root_parse{[] {
                   auto obj = v.get_array_element(i);
                   if (obj.get_type() == sajson::TYPE_OBJECT)
                   {
-                    auto k = obj.find_object_key(sajson::string("TYPE", 4));
+                    auto k = obj.find_object_key(sajson::literal("TYPE"));
                     if (k != obj.get_length())
                     {
                       auto inp = input_parse.find(obj.get_object_value(k).as_string());
@@ -467,29 +504,29 @@ static const std::unordered_map<std::string, root_fun>& root_parse{[] {
                   {
                     // PASS object
                     pass p;
-                    if (auto target_k = obj.find_object_key(sajson::string("TARGET", 6)); target_k != obj.get_length())
+                    if (auto target_k = obj.find_object_key(sajson::literal("TARGET")); target_k != obj.get_length())
                     {
                       p.target = obj.get_object_value(target_k).as_string();
                     }
 
-                    if (auto persistent_k = obj.find_object_key(sajson::string("PERSISTENT", 10)); persistent_k != obj.get_length())
+                    if (auto persistent_k = obj.find_object_key(sajson::literal("PERSISTENT")); persistent_k != obj.get_length())
                     {
                       p.persistent
                           = obj.get_object_value(persistent_k).get_type() == sajson::TYPE_TRUE;
                     }
 
-                    if (auto float_k = obj.find_object_key(sajson::string("FLOAT", 5)); float_k != obj.get_length())
+                    if (auto float_k = obj.find_object_key(sajson::literal("FLOAT")); float_k != obj.get_length())
                     {
                       p.float_storage
                           = obj.get_object_value(float_k).get_type() == sajson::TYPE_TRUE;
                     }
 
-                    if (auto width_k = obj.find_object_key(sajson::string("WIDTH", 5)); width_k != obj.get_length())
+                    if (auto width_k = obj.find_object_key(sajson::literal("WIDTH")); width_k != obj.get_length())
                     {
                       p.width_expression = obj.get_object_value(width_k).as_string();
                     }
 
-                    if (auto height_k = obj.find_object_key(sajson::string("height", 5)); height_k != obj.get_length())
+                    if (auto height_k = obj.find_object_key(sajson::literal("HEIGHT")); height_k != obj.get_length())
                     {
                       p.height_expression = obj.get_object_value(height_k).as_string();
                     }
@@ -642,11 +679,11 @@ void parser::parse_isf()
       // Setup the parameters UBOs
       std::string material_ubos = GLSL45.defaultUniforms;
 
-      if (!d.inputs.empty())
+      int binding = 3;
+
+      if (!d.inputs.empty() || !d.passes.empty())
       {
-        int binding = 3;
         std::string samplers;
-        std::string sampler_additional_info;
         material_ubos += "layout(std140, binding = 2) uniform material_t {\n";
         for (const isf::input& val : d.inputs)
         {
@@ -662,7 +699,7 @@ void parser::parse_isf()
             samplers += val.name;
             samplers += ";\n";
 
-            sampler_additional_info += "vec4 _" + val.name + "_imgRect;\n";
+            material_ubos += "vec2 _" + val.name + "_imgRect;\n";
 
             binding++;
           }
@@ -674,7 +711,23 @@ void parser::parse_isf()
             material_ubos += ";\n";
           }
         }
-        material_ubos += sampler_additional_info;
+
+        for(const isf::pass& p : d.passes)
+        {
+          if(p.target != "")
+          {
+            samplers += "layout(binding = ";
+            samplers += std::to_string(binding);
+            samplers += ") uniform sampler2D ";
+            samplers += p.target;
+            samplers += ";\n";
+
+            material_ubos += "vec2 _" + p.target + "_imgRect;\n";
+
+            binding++;
+          }
+        }
+
         material_ubos += "};\n";
         material_ubos += "\n";
 
@@ -682,8 +735,12 @@ void parser::parse_isf()
       }
 
       if(!simpleVS)
+      {
         m_vertex += material_ubos;
+        m_vertex += GLSL45.vertexInitFunc;
+      }
       m_fragment += material_ubos;
+      m_fragment += GLSL45.defaultFunctions;
       break;
     }
   }
@@ -693,23 +750,12 @@ void parser::parse_isf()
     m_vertex += m_sourceVertex;
   m_fragment += fragWithoutISF;
 
-  // Replace the special ISF functions
-  // TODO rework that: https://docs.isf.video/ref_functions.html#isf-exclusive-functions & ofxISF shows the right way
-
-  static const std::regex img_this_pixel("IMG_THIS_PIXEL\\((.+?)\\)");
-  static const std::regex img_pixel("IMG_PIXEL\\((.+?)\\)");
-  static const std::regex img_norm_pixel("IMG_NORM_PIXEL\\((.+?)\\)");
-  static const std::regex img_this_norm_pixel("IMG_THIS_NORM_PIXEL\\((.+?)\\)");
+  // Replace the special ISF stuff
   static const std::regex img_size("IMG_SIZE\\((.+?)\\)");
   static const std::regex gl_FragColor("gl_FragColor");
   static const std::regex vv_Frag("vv_Frag");
 
-  m_fragment = std::regex_replace(m_fragment, img_this_pixel, "texture($1, isf_FragNormCoord)");
-  m_fragment
-      = std::regex_replace(m_fragment, img_this_norm_pixel, "texture($1, isf_FragNormCoord)");
-  m_fragment = std::regex_replace(m_fragment, img_pixel, "texture($1)");
-  m_fragment = std::regex_replace(m_fragment, img_norm_pixel, "texture($1)");
-  m_fragment = std::regex_replace(m_fragment, img_size, "$1_imgRect.zw");
+  m_fragment = std::regex_replace(m_fragment, img_size, "_$1_imgRect.xy");
   m_fragment = std::regex_replace(m_fragment, gl_FragColor, "isf_FragColor");
   m_fragment = std::regex_replace(m_fragment, vv_Frag, "isf_Frag");
 }

@@ -7,6 +7,7 @@
 
 #include <list>
 
+struct RenderedISFNode;
 struct ISFNode : NodeModel
 {
   static const inline QString defaultVert =
@@ -34,5 +35,9 @@ void main(void) {
   std::list<AudioTexture> audio_textures;
 
 private:
+  friend struct RenderedISFNode;
   const Mesh* m_mesh{};
+
+  isf::descriptor m_descriptor;
+  int m_materialSize{};
 };

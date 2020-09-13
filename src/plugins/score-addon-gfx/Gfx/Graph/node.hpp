@@ -132,11 +132,11 @@ public:
   void setShaders(QString vert, QString frag);
   void setShaders(const QShader& vert, const QShader& frag);
 
+  std::unique_ptr<char[]> m_materialData;
 protected:
   QShader m_vertexS;
   QShader m_fragmentS;
 
-  std::unique_ptr<char[]> m_materialData;
 
   friend class RenderedNode;
 
@@ -151,6 +151,19 @@ public:
   RenderedNode(const NodeModel& node) noexcept : node{node} { }
 
   virtual ~RenderedNode() { }
+
+  struct Pipeline
+  {
+    QRhiGraphicsPipeline* pipeline{};
+    QRhiShaderResourceBindings* srb{};
+  };
+
+  Pipeline buildPipeline(
+        QRhi& rhi,
+        const Mesh& mesh,
+        const Renderer& renderer,
+        QRhiRenderPassDescriptor& renderPass);
+
   const NodeModel& node;
 
   QRhiTexture* m_texture{};
@@ -189,10 +202,11 @@ public:
   void release(Renderer&);
   void releaseWithoutRenderTarget(Renderer&);
 
-  void runPass(Renderer&, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch& updateBatch);
+  virtual void runPass(Renderer&, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch& updateBatch);
 
   void replaceTexture(QRhiSampler* sampler, QRhiTexture* newTexture);
 
+  void defaultShaderMaterialInit(Renderer& renderer);
   QRhiGraphicsPipeline* pipeline() { return m_ps; }
   QRhiShaderResourceBindings* resources() { return m_srb; }
 };

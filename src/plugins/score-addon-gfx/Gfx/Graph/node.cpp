@@ -33,7 +33,10 @@ std::optional<QSize> RenderedNode::renderTargetSize() const noexcept
   return {};
 }
 
-void RenderedNode::customInit(Renderer& renderer) { }
+void RenderedNode::customInit(Renderer& renderer)
+{
+  defaultShaderMaterialInit(renderer);
+}
 
 void NodeModel::setShaders(QString vert, QString frag)
 {
@@ -72,23 +75,11 @@ void NodeModel::setShaders(const QShader& vert, const QShader& frag)
   m_fragmentS = frag;
 }
 
-void RenderedNode::init(Renderer& renderer)
+void RenderedNode::defaultShaderMaterialInit(Renderer& renderer)
 {
   auto& rhi = *renderer.state.rhi;
 
   auto& input = node.input;
-
-  const auto& mesh = node.mesh();
-  if (!m_meshBuffer)
-  {
-    auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh);
-    m_meshBuffer = mbuffer;
-    m_idxBuffer = ibuffer;
-  }
-
-  m_processUBO = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(ProcessUBO));
-  m_processUBO->build();
-
   // Set up shader inputs
   {
     m_materialSize = 0;
@@ -124,11 +115,11 @@ void RenderedNode::init(Renderer& renderer)
         case Types::Image:
         {
           auto sampler = rhi.newSampler(
-              QRhiSampler::Linear,
-              QRhiSampler::Linear,
-              QRhiSampler::None,
-              QRhiSampler::ClampToEdge,
-              QRhiSampler::ClampToEdge);
+                QRhiSampler::Linear,
+                QRhiSampler::Linear,
+                QRhiSampler::None,
+                QRhiSampler::ClampToEdge,
+                QRhiSampler::ClampToEdge);
           ensure(sampler->build());
 
           QRhiTexture* texture = renderer.m_emptyTexture;
@@ -156,85 +147,115 @@ void RenderedNode::init(Renderer& renderer)
       ensure(m_materialUBO->build());
     }
   }
+}
+
+void RenderedNode::init(Renderer& renderer)
+{
+  auto& rhi = *renderer.state.rhi;
+
+  const auto& mesh = node.mesh();
+  if (!m_meshBuffer)
+  {
+    auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh);
+    m_meshBuffer = mbuffer;
+    m_idxBuffer = ibuffer;
+  }
+
+  m_processUBO = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(ProcessUBO));
+  m_processUBO->build();
 
   customInit(renderer);
-  // Build the pipeline
+
+  if(!m_ps)
   {
-    m_ps = rhi.newGraphicsPipeline();
-    ensure(m_ps);
+    // Build the pipeline
+    auto [ps, srb] = buildPipeline(rhi, mesh, renderer, *m_renderPass);
+    m_ps = ps;
+    m_srb = srb;
+  }
+}
 
-    QRhiGraphicsPipeline::TargetBlend premulAlphaBlend;
-    premulAlphaBlend.enable = true;
-    m_ps->setTargetBlends({premulAlphaBlend});
+auto RenderedNode::buildPipeline(
+      QRhi& rhi,
+      const Mesh& mesh,
+      const Renderer& renderer,
+      QRhiRenderPassDescriptor& renderPass) -> Pipeline
+{
+  auto ps = rhi.newGraphicsPipeline();
+  ensure(ps);
 
-    m_ps->setSampleCount(1);
+  QRhiGraphicsPipeline::TargetBlend premulAlphaBlend;
+  premulAlphaBlend.enable = true;
+  ps->setTargetBlends({premulAlphaBlend});
 
-    m_ps->setDepthTest(false);
-    m_ps->setDepthWrite(false);
-    // m_ps->setCullMode(QRhiGraphicsPipeline::CullMode::Back);
-    // m_ps->setFrontFace(QRhiGraphicsPipeline::FrontFace::CCW);
+  ps->setSampleCount(1);
 
-    m_ps->setShaderStages(
+  ps->setDepthTest(false);
+  ps->setDepthWrite(false);
+  // m_ps->setCullMode(QRhiGraphicsPipeline::CullMode::Back);
+  // m_ps->setFrontFace(QRhiGraphicsPipeline::FrontFace::CCW);
+
+  ps->setShaderStages(
         {{QRhiShaderStage::Vertex, node.m_vertexS},
          {QRhiShaderStage::Fragment, node.m_fragmentS}});
 
-    QRhiVertexInputLayout inputLayout;
-    inputLayout.setBindings(mesh.vertexInputBindings.begin(), mesh.vertexInputBindings.end());
-    inputLayout.setAttributes(
+  QRhiVertexInputLayout inputLayout;
+  inputLayout.setBindings(mesh.vertexInputBindings.begin(), mesh.vertexInputBindings.end());
+  inputLayout.setAttributes(
         mesh.vertexAttributeBindings.begin(), mesh.vertexAttributeBindings.end());
-    m_ps->setVertexInputLayout(inputLayout);
+  ps->setVertexInputLayout(inputLayout);
 
-    // Shader resource bindings
-    m_srb = rhi.newShaderResourceBindings();
-    ensure(m_srb);
+  // Shader resource bindings
+  auto srb = rhi.newShaderResourceBindings();
+  ensure(srb);
 
-    QVector<QRhiShaderResourceBinding> bindings;
+  QVector<QRhiShaderResourceBinding> bindings;
 
-    const auto bindingStages
-        = QRhiShaderResourceBinding::VertexStage | QRhiShaderResourceBinding::FragmentStage;
+  const auto bindingStages
+      = QRhiShaderResourceBinding::VertexStage | QRhiShaderResourceBinding::FragmentStage;
 
-    {
-      const auto rendererBinding
-          = QRhiShaderResourceBinding::uniformBuffer(0, bindingStages, renderer.m_rendererUBO);
-      bindings.push_back(rendererBinding);
-    }
-
-    {
-      const auto standardUniformBinding
-          = QRhiShaderResourceBinding::uniformBuffer(1, bindingStages, m_processUBO);
-      bindings.push_back(standardUniformBinding);
-    }
-
-    // Bind materials
-    if (m_materialUBO)
-    {
-      const auto materialBinding
-          = QRhiShaderResourceBinding::uniformBuffer(2, bindingStages, m_materialUBO);
-      bindings.push_back(materialBinding);
-    }
-
-    // Bind samplers
-    int binding = 3;
-    for (auto sampler : this->m_samplers)
-    {
-      assert(sampler.texture);
-      bindings.push_back(QRhiShaderResourceBinding::sampledTexture(
-          binding,
-          QRhiShaderResourceBinding::VertexStage | QRhiShaderResourceBinding::FragmentStage,
-          sampler.texture,
-          sampler.sampler));
-      binding++;
-    }
-    m_srb->setBindings(bindings.begin(), bindings.end());
-    ensure(m_srb->build());
-
-    m_ps->setShaderResourceBindings(m_srb);
-
-    ensure(m_renderPass);
-    m_ps->setRenderPassDescriptor(this->m_renderPass);
-
-    ensure(m_ps->build());
+  {
+    const auto rendererBinding
+        = QRhiShaderResourceBinding::uniformBuffer(0, bindingStages, renderer.m_rendererUBO);
+    bindings.push_back(rendererBinding);
   }
+
+  {
+    const auto standardUniformBinding
+        = QRhiShaderResourceBinding::uniformBuffer(1, bindingStages, m_processUBO);
+    bindings.push_back(standardUniformBinding);
+  }
+
+  // Bind materials
+  if (m_materialUBO)
+  {
+    const auto materialBinding
+        = QRhiShaderResourceBinding::uniformBuffer(2, bindingStages, m_materialUBO);
+    bindings.push_back(materialBinding);
+  }
+
+  // Bind samplers
+  int binding = 3;
+  for (auto sampler : this->m_samplers)
+  {
+    assert(sampler.texture);
+    bindings.push_back(QRhiShaderResourceBinding::sampledTexture(
+                         binding,
+                         QRhiShaderResourceBinding::VertexStage | QRhiShaderResourceBinding::FragmentStage,
+                         sampler.texture,
+                         sampler.sampler));
+    binding++;
+  }
+  srb->setBindings(bindings.begin(), bindings.end());
+  ensure(srb->build());
+
+  ps->setShaderResourceBindings(srb);
+
+  ensure(m_renderPass);
+  ps->setRenderPassDescriptor(&renderPass);
+
+  ensure(ps->build());
+  return {ps, srb};
 }
 
 void RenderedNode::customUpdate(Renderer& renderer, QRhiResourceUpdateBatch& res) { }
@@ -271,7 +292,6 @@ void RenderedNode::releaseWithoutRenderTarget(Renderer& r)
 
   delete m_materialUBO;
   m_materialUBO = nullptr;
-  m_materialSize = 0;
 
   delete m_ps;
   m_ps = nullptr;
