@@ -107,7 +107,7 @@ public:
   void removeControl(const Id<Process::Port>&);
   void removeControl(int fxnum);
 
-  void addControl(int idx, float v) W_SIGNAL(addControl, idx, v);
+  //void addControl(int idx, float v) W_SIGNAL(addControl, idx, v);
   void on_addControl(int idx, float v);
   W_SLOT(on_addControl);
   void on_addControl_impl(VSTControlInlet* inl);

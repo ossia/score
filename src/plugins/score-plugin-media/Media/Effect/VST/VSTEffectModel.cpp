@@ -30,6 +30,9 @@
 #include <memory>
 #include <set>
 W_OBJECT_IMPL(Media::VST::VSTEffectModel)
+
+// If a VST has less than this many parameters they will be shown by default.
+#define VST_DEFAULT_PARAM_NUMBER_CUTOFF 10
 namespace Process
 {
 template <>
@@ -138,6 +141,7 @@ bool VSTEffectModel::hasExternalUI() const noexcept
 
 void VSTEffectModel::removeControl(int fxNum)
 {
+  qDebug() << "removeControl(int) " << fxNum;
   auto it = controls.find(fxNum);
   SCORE_ASSERT(it != controls.end());
   auto ctrl = it->second;
@@ -161,6 +165,7 @@ void VSTEffectModel::removeControl(const Id<Process::Port>& id)
   SCORE_ASSERT(it != m_inlets.end());
   auto ctrl = safe_cast<VSTControlInlet*>(*it);
 
+  qDebug() << "removeControl(id) " << ctrl->fxNum;
   controls.erase(ctrl->fxNum);
   m_inlets.erase(it);
 
@@ -178,11 +183,17 @@ VSTControlInlet* VSTEffectModel::getControl(const Id<Process::Port>& p) const
 
 void VSTEffectModel::init()
 {
-  connect(this, &VSTEffectModel::addControl, this, &VSTEffectModel::on_addControl);
+//  connect(this, &VSTEffectModel::addControl, this, &VSTEffectModel::on_addControl);
 }
 
 void VSTEffectModel::on_addControl(int i, float v)
 {
+  if(controls.find(i) != controls.end())
+  {
+    return;
+  }
+
+  SCORE_ASSERT(controls.find(i) == controls.end());
   auto ctrl = new VSTControlInlet{Id<Process::Port>(getStrongId(inlets()).val()), this};
   ctrl->hidden = true;
   ctrl->fxNum = i;
@@ -225,7 +236,9 @@ void VSTEffectModel::on_addControl_impl(VSTControlInlet* ctrl)
     */
   }
   m_inlets.push_back(ctrl);
+  SCORE_ASSERT(controls.find(ctrl->fxNum) == controls.end());
   controls.insert({ctrl->fxNum, ctrl});
+  SCORE_ASSERT(controls.find(ctrl->fxNum) != controls.end());
   controlAdded(ctrl->id());
 }
 
@@ -306,21 +319,18 @@ intptr_t vst_host_callback(
         auto vst = reinterpret_cast<VSTEffectModel*>(effect->resvd1);
         if (vst)
         {
-          auto ctrl_it = vst->controls.find(index);
-          if (ctrl_it != vst->controls.end())
-          {
-            ctrl_it->second->setValue(opt);
-          }
-          else
-          {
-            ossia::qt::run_async(vst, [=] {
+          ossia::qt::run_async(vst, [=] {
+            auto ctrl_it = vst->controls.find(index);
+            if (ctrl_it != vst->controls.end())
+            {
+              ctrl_it->second->setValue(opt);
+            }
+            else
+            {
               auto& ctx = score::IDocument::documentContext(*vst);
-              if (vst->controls.find(index) == vst->controls.end())
-              {
-                CommandDispatcher<>{ctx.commandStack}.submit<CreateVSTControl>(*vst, index, opt);
-              }
-            });
-          }
+              CommandDispatcher<>{ctx.commandStack}.submit<CreateVSTControl>(*vst, index, opt);
+            }
+          });
         }
 
         break;
@@ -567,7 +577,7 @@ void VSTEffectModel::create()
     m_inlets.push_back(new Process::AudioInlet(Id<Process::Port>{inlet_i++}, this));
   }
 
-  if (fx->fx->numParams < 10 || !(fx->fx->flags & VstAEffectFlags::effFlagsHasEditor))
+  if (fx->fx->numParams < VST_DEFAULT_PARAM_NUMBER_CUTOFF || !(fx->fx->flags & VstAEffectFlags::effFlagsHasEditor))
   {
     for (int i = 0; i < fx->fx->numParams; i++)
     {
@@ -585,12 +595,16 @@ void VSTEffectModel::load()
   SCORE_ASSERT(!fx);
   initFx();
   if (!fx)
+  {
+    qDebug() << "not loading (no fx)";
     return;
+  }
 
   for (std::size_t i = VST_FIRST_CONTROL_INDEX; i < m_inlets.size(); i++)
   {
     auto inlet = safe_cast<VSTControlInlet*>(m_inlets[i]);
     int ctrl = inlet->fxNum;
+
     connect(inlet, &VSTControlInlet::valueChanged, this, [this, ctrl](float newval) {
       if (std::abs(newval - fx->getParameter(ctrl)) > 0.0001)
         fx->setParameter(ctrl, newval);
@@ -641,7 +655,6 @@ void DataStreamWriter::write(Media::VST::VSTEffectModel& eff)
   m_stream >> eff.m_effectId;
   int32_t kind = 0;
   m_stream >> kind;
-  eff.load();
 
   if (kind == SCORE_DATASTREAM_IDENTIFY_VST_CHUNK)
   {
@@ -693,6 +706,7 @@ void DataStreamWriter::write(Media::VST::VSTEffectModel& eff)
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets, eff.m_outlets, &eff);
 
+  eff.load();
   checkDelimiter();
 }
 
@@ -745,10 +759,6 @@ void JSONWriter::write(Media::VST::VSTEffectModel& eff)
     }
   }
 
-  eff.load();
-  writePorts(
-      *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets, eff.m_outlets, &eff);
-
   QPointer<Media::VST::VSTEffectModel> ptr = &eff;
   QTimer::singleShot(1000, [base = clone(this->base), ptr] {
     if (!ptr)
@@ -785,6 +795,11 @@ void JSONWriter::write(Media::VST::VSTEffectModel& eff)
       }
     }
   });
+
+  writePorts(
+      *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets, eff.m_outlets, &eff);
+
+  eff.load();
 }
 
 template <>
