@@ -53,14 +53,14 @@ stages:
             cmake --build .
             cmake --build . --target package
             dir
-            move "ossia score-3.0.0-win64.exe" "ossia score-$(gitTag)-win64.exe"
+            move "ossia score-3.0.0-win64.exe" "ossia score-win64.exe"
             dir
             
           displayName: Build
 
         - task: PublishPipelineArtifact@1
           inputs:
-            targetPath: "$(System.DefaultWorkingDirectory)/ossia score-$(gitTag)-win64.exe"
+            targetPath: "$(System.DefaultWorkingDirectory)/ossia score-win64.exe"
             artifactName: Installer
 
         - task: GitHubRelease@1
@@ -72,4 +72,4 @@ stages:
             tagSource: 'gitTag'
             assetUploadMode: 'replace'
             isDraft: true
-            assets: "$(System.DefaultWorkingDirectory)/ossia score-$(gitTag)-win64.exe"
+            assets: "$(System.DefaultWorkingDirectory)/ossia score-win64.exe"
