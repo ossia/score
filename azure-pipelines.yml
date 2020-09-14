@@ -60,7 +60,7 @@ stages:
 
         - task: PublishPipelineArtifact@1
           inputs:
-            targetPath: "$(System.DefaultWorkingDirectory)/ossia score-win64.exe"
+            targetPath: "$(System.DefaultWorkingDirectory)/build/ossia score-win64.exe"
             artifactName: Installer
 
         - task: GitHubRelease@1
@@ -72,4 +72,4 @@ stages:
             tagSource: 'gitTag'
             assetUploadMode: 'replace'
             isDraft: true
-            assets: "$(System.DefaultWorkingDirectory)/ossia score-win64.exe"
+            assets: "$(System.DefaultWorkingDirectory)/build/ossia score-win64.exe"
