@@ -216,7 +216,6 @@ void MinMaxFloatOutletItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
     {
       m_subView = new MinMaxFloatOutletMiniPanel{
           safe_cast<const Process::MinMaxFloatOutlet&>(m_port), m_context, this->scene()};
-      scene()->addItem(m_subView);
       m_subView->setPos(this->mapToScene(0, -42));
     }
     else

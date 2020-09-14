@@ -12,6 +12,8 @@
 
 #include <LocalTree/ProcessComponent.hpp>
 #include <Magnetism/MagnetismAdjuster.hpp>
+
+#include <QGraphicsScene>
 #include <score_lib_process.hpp>
 #include <score_lib_process_commands_files.hpp>
 namespace Process
@@ -19,6 +21,30 @@ namespace Process
 DataflowManager::DataflowManager() { }
 
 DataflowManager::~DataflowManager() { }
+
+Dataflow::CableItem* DataflowManager::createCable(const Process::Cable& cable, const Process::Context& m_context, QGraphicsScene* scene)
+{
+  auto ptr = &cable;
+  auto it = m_cableMap.find(ptr);
+  if(it == m_cableMap.end())
+  {
+    auto item = new Dataflow::CableItem{*ptr, m_context, nullptr};
+    m_cableMap.insert({ptr, item});
+    if (!item->parentItem() && scene)
+      scene->addItem(item);
+    return item;
+  }
+  else if(it->second == nullptr)
+  {
+    auto item = new Dataflow::CableItem{*ptr, m_context, nullptr};
+    it.value() = item;
+    if (!item->parentItem() && scene)
+      scene->addItem(item);
+    return item;
+  }
+
+  return nullptr;
+}
 }
 score_lib_process::score_lib_process()
 {

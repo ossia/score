@@ -564,9 +564,7 @@ void ScenarioDocumentPresenter::on_cableAdded(Process::Cable& c)
   ossia::qt::run_async(this, [this, ptr = QPointer{&c}] {
     if (ptr)
     {
-      auto it = new Dataflow::CableItem{*ptr, m_context, nullptr};
-      if (!it->parentItem())
-        view().scene().addItem(it);
+      m_dataflow.createCable(*ptr, m_context, &view().scene());
     }
   });
 }

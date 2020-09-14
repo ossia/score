@@ -37,7 +37,6 @@ CableItem::CableItem(const Process::Cable& c, const Process::Context& ctx, QGrap
   this->setFlag(QGraphicsItem::ItemClipsToShape);
 
   SCORE_ASSERT(canCreateCable(c, plug));
-  plug.cables().insert({&c, this});
 
   con(c.selection, &Selectable::changed, this, [=](bool b) {
     if (m_p1 && m_p2)

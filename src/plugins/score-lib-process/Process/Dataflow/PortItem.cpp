@@ -259,9 +259,7 @@ PortItem::PortItem(const Process::Port& p, const Process::Context& ctx, QGraphic
         }
         else
         {
-          auto it = new Dataflow::CableItem{*c.first, m_context, nullptr};
-          if (!it->parentItem() && scene())
-            scene()->addItem(it);
+          m_context.dataflow.createCable(*c.first, m_context, scene());
         }
       }
       else if (c.first->sink().unsafePath() == path.unsafePath())
@@ -273,9 +271,7 @@ PortItem::PortItem(const Process::Port& p, const Process::Context& ctx, QGraphic
         }
         else
         {
-          auto it = new Dataflow::CableItem{*c.first, m_context, nullptr};
-          if (!it->parentItem() && scene())
-            scene()->addItem(it);
+          m_context.dataflow.createCable(*c.first, m_context, scene());
         }
       }
     }
