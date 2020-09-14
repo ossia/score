@@ -1,5 +1,7 @@
 #include "isfnode.hpp"
 
+#include <score/tools/Debug.hpp>
+
 #include <boost/algorithm/string.hpp>
 #include <exprtk.hpp>
 namespace
