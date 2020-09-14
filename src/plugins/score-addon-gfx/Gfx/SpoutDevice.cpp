@@ -38,6 +38,7 @@ struct SpoutNode : OutputNode
   Renderer* m_renderer{};
   QRhiTexture* m_texture{};
   QRhiTextureRenderTarget* m_renderTarget{};
+  std::function<void()> m_update;
   std::shared_ptr<RenderState> m_renderState{};
   std::shared_ptr<SpoutSender> m_spout{};
   bool m_hasSender{};
@@ -53,6 +54,7 @@ struct SpoutNode : OutputNode
   void createOutput(
       GraphicsApi graphicsApi,
       std::function<void()> onReady,
+      std::function<void()> onUpdate,
       std::function<void()> onResize
       ) override;
   void destroyOutput() override;
@@ -89,6 +91,9 @@ SpoutNode::SpoutNode()
   timer_unsafe = new QTimer;
   QObject::connect(timer_unsafe, &QTimer::timeout,
                    [this] {
+    if(m_update)
+      m_update();
+
     if(m_renderer && m_renderState) {
       auto rhi = m_renderState->rhi;
       QRhiCommandBuffer *cb{};
@@ -177,10 +182,12 @@ Renderer* SpoutNode::renderer() const
 void SpoutNode::createOutput(
       GraphicsApi graphicsApi,
       std::function<void ()> onReady,
+      std::function<void()> onUpdate,
       std::function<void ()> onResize)
 {
   m_spout = std::make_shared<SpoutSender>();
   m_renderState = std::make_shared<RenderState>();
+  m_update = onUpdate;
 
   m_renderState->surface = QRhiGles2InitParams::newFallbackSurface();
   QRhiGles2InitParams params;
