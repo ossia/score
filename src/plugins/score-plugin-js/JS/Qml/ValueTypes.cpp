@@ -5,6 +5,8 @@
 W_GADGET_IMPL(JS::Vec2fValueType)
 W_GADGET_IMPL(JS::Vec3fValueType)
 W_GADGET_IMPL(JS::Vec4fValueType)
+W_GADGET_IMPL(JS::TokenRequestValueType)
+W_GADGET_IMPL(JS::ExecutionStateValueType)
 
 // Most of this code is refactored out of the qtdeclarative source.
 /****************************************************************************
@@ -132,7 +134,15 @@ public:
         case QMetaType::QVector4D:
             return &Vec4fValueType::staticMetaObject;
         default:
+          {
+            static const int tokenId = QMetaTypeId<ossia::token_request>::qt_metatype_id();
+            if(type == tokenId)
+              return &TokenRequestValueType::staticMetaObject;
+            static const int execStateId = QMetaTypeId<ossia::exec_state_facade>::qt_metatype_id();
+            if(type == execStateId)
+              return &ExecutionStateValueType::staticMetaObject;
             break;
+          }
         }
 
         return nullptr;
@@ -150,7 +160,13 @@ public:
         case QMetaType::QVector4D:
             dst.setValue<QVector4D>(QVector4D());
             return true;
-        default: break;
+        default:
+          {
+            static const int tokenId = QMetaTypeId<JS::TokenRequestValueType>::qt_metatype_id();
+            if(type == tokenId)
+              dst.setValue<ossia::token_request>({});
+            break;
+          }
         }
 
         return false;
@@ -523,6 +539,7 @@ QVector3D Vec3fValueType::crossProduct(const QVector3D &vec) const
 
 qreal Vec3fValueType::dotProduct(const QVector3D &vec) const
 {
+  qDebug("in here");
     return QVector3D::dotProduct(v, vec);
 }
 
@@ -701,4 +718,118 @@ bool Vec4fValueType::fuzzyEquals(const QVector4D &vec) const
 {
     return qFuzzyCompare(v, vec);
 }
+
+double TokenRequestValueType::previous_date() const noexcept { return req.prev_date.impl; }
+
+
+double TokenRequestValueType::date() const noexcept { return req.date.impl; }
+
+
+double TokenRequestValueType::parent_duration() const noexcept { return req.parent_duration.impl; }
+
+
+double TokenRequestValueType::offset() const noexcept { return req.offset.impl; }
+
+
+double TokenRequestValueType::speed() const noexcept { return req.speed; }
+
+
+double TokenRequestValueType::tempo() const noexcept { return req.tempo; }
+
+
+double TokenRequestValueType::musical_start_last_signature() const noexcept { return req.musical_start_last_signature; }
+
+
+double TokenRequestValueType::musical_start_last_bar() const noexcept { return req.musical_start_last_bar; }
+
+
+double TokenRequestValueType::musical_start_position() const noexcept { return req.musical_start_position; }
+
+
+double TokenRequestValueType::musical_end_last_bar() const noexcept { return req.musical_end_last_bar; }
+
+
+double TokenRequestValueType::musical_end_position() const noexcept { return req.musical_end_position; }
+
+
+double TokenRequestValueType::signature_upper() const noexcept { return req.signature.upper; }
+
+
+double TokenRequestValueType::signature_lower() const noexcept { return req.signature.lower; }
+
+
+double TokenRequestValueType::logical_start() const noexcept { return req.logical_start().impl; }
+
+
+double TokenRequestValueType::logical_read_duration() const noexcept { return req.logical_read_duration().impl; }
+
+
+double TokenRequestValueType::physical_start(double ratio) const noexcept { return req.physical_start(ratio); }
+
+
+double TokenRequestValueType::physical_read_duration(double ratio) const noexcept { return req.physical_read_duration(ratio); }
+
+
+double TokenRequestValueType::physical_write_duration(double ratio) const noexcept { return req.physical_write_duration(ratio); }
+
+
+bool TokenRequestValueType::in_range(double time) const noexcept { return req.in_range({int64_t(time)}); }
+
+
+double TokenRequestValueType::to_physical_time_in_tick(double time, double ratio) const noexcept { return req.to_physical_time_in_tick(time, ratio); }
+
+
+double TokenRequestValueType::from_physical_time_in_tick(double time, double ratio) const noexcept { return req.from_physical_time_in_tick(time, ratio).impl; }
+
+
+double TokenRequestValueType::position() const noexcept { return req.position(); }
+
+
+bool TokenRequestValueType::forward() const noexcept { return req.forward(); }
+
+
+bool TokenRequestValueType::backward() const noexcept { return req.backward(); }
+
+
+bool TokenRequestValueType::paused() const noexcept { return req.paused(); }
+
+
+double TokenRequestValueType::get_quantification_date(double ratio) const noexcept
+{
+  if(auto res = req.get_quantification_date(ratio))
+    return res->impl;
+  return -1;
+}
+
+
+double TokenRequestValueType::get_physical_quantification_date(double rate, double ratio) const noexcept
+{
+  if(auto res = req.get_physical_quantification_date(rate, ratio))
+    return *res;
+  return -1;
+}
+
+
+void TokenRequestValueType::reduce_end_time(double time) noexcept { return req.reduce_end_time({int64_t(time)}); }
+
+
+void TokenRequestValueType::increase_start_time(double time) noexcept { return req.increase_start_time({int64_t(time)}); }
+
+
+bool TokenRequestValueType::unexpected_bar_change() const noexcept { return req.unexpected_bar_change(); }
+
+int ExecutionStateValueType::sample_rate() const noexcept { return req.sampleRate(); }
+
+int ExecutionStateValueType::buffer_size() const noexcept { return req.bufferSize(); }
+
+double ExecutionStateValueType::model_to_samples() const noexcept { return req.modelToSamples(); }
+
+double ExecutionStateValueType::samples_to_model() const noexcept { return req.samplesToModel(); }
+
+double ExecutionStateValueType::samples_since_start() const noexcept { return req.samplesSinceStart(); }
+
+double ExecutionStateValueType::start_date() const noexcept { return req.startDate(); }
+
+double ExecutionStateValueType::current_date() const noexcept { return req.currentDate(); }
+
 }

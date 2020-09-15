@@ -7,6 +7,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <JS/ConsolePanel.hpp>
 #include <JS/JSProcessModel.hpp>
+#include <JS/Qml/Metatypes.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
 
 #include <score/tools/Bind.hpp>
@@ -433,14 +434,19 @@ void js_node::run(const ossia::token_request& tk, ossia::exec_state_facade estat
   }
 
   if (m_tickCall.empty())
-    m_tickCall = {{}, {}, {}, {}};
+    m_tickCall = {{}, {}};
 
-  m_tickCall[0] = double(tk.prev_date.impl);
-  m_tickCall[1] = double(tk.date.impl);
-  m_tickCall[2] = double(tk.position());
-  m_tickCall[3] = double(tk.offset.impl);
+  m_tickCall[0] = m_engine->toScriptValue(tk);
+  m_tickCall[1] = m_engine->toScriptValue(estate);
 
-  tick.call(m_tickCall);
+  auto res = tick.call(m_tickCall);
+  if(res.isError())
+  {
+    qDebug() << "JS Error at "
+             << res.property("lineNumber").toInt()
+             << ": "
+             << res.toString();
+  }
 
   for (int i = 0; i < m_valOutlets.size(); i++)
   {

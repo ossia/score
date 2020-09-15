@@ -11,6 +11,8 @@
 #include <JS/Qml/QmlObjects.hpp>
 #include <JS/Qml/ValueTypes.hpp>
 #include <Library/LibraryInterface.hpp>
+#include <Library/LibrarySettings.hpp>
+#include <Library/ProcessesItemModel.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/ProcessFactory.hpp>
 
@@ -19,8 +21,10 @@
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/tools/std/HashMap.hpp>
 
+#include <QDirIterator>
 #include <QFileInfo>
 #include <QQmlListProperty>
+#include <QTimer>
 
 #include <Execution/DocumentPlugin.hpp>
 #include <score_plugin_js_commands_files.hpp>
@@ -30,11 +34,67 @@ W_OBJECT_IMPL(JS::EditJsContext)
 
 namespace JS
 {
-class LibraryHandler final : public Library::LibraryInterface
+class LibraryHandler final : public QObject, public Library::LibraryInterface
 {
   SCORE_CONCRETE("5231ea8b-da66-4c6f-9e34-d9a79cbc494a")
 
   QSet<QString> acceptedFiles() const noexcept override { return {"js", "qml"}; }
+
+  static inline const QRegularExpression scoreImport{"import Score [0-9].[0-9]"};
+
+  QDir libraryFolder;
+  QDirIterator iterator{QString{}};
+  Library::ProcessNode* parent{};
+
+  void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx) override
+  {
+    // TODO relaunch whenever library path changes...
+    const auto& key = Metadata<ConcreteKey_k, JS::ProcessModel>::get();
+    QModelIndex node = model.find(key);
+    if (node == QModelIndex{})
+      return;
+
+    parent = reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
+
+    // We use the parent folder as category...
+    libraryFolder.setPath(ctx.settings<Library::Settings::Model>().getPath());
+
+    iterator.~QDirIterator();
+    new (&iterator) QDirIterator{
+      libraryFolder.absolutePath(),
+      {"*.js", "*.qml"},
+      QDir::NoFilter,
+      QDirIterator::Subdirectories | QDirIterator::FollowSymlinks
+    };
+
+    next();
+  }
+
+  void next()
+  {
+    if (iterator.hasNext())
+    {
+      auto file = QFileInfo{iterator.next()};
+      registerScript(file);
+      QTimer::singleShot(1, this, &LibraryHandler::next);
+    }
+  }
+
+  void registerScript(const QFileInfo& file)
+  {
+    Library::ProcessData pdata;
+    pdata.prettyName = file.baseName();
+    pdata.key = Metadata<ConcreteKey_k, JS::ProcessModel>::get();
+    pdata.customData = [&] { QFile f(file.absoluteFilePath()); f.open(QIODevice::ReadOnly); return f.readAll(); }();
+
+    {
+      auto matches = scoreImport.match(pdata.customData);
+      if(matches.hasMatch())
+      {
+        parent->emplace_back(std::move(pdata), parent);
+      }
+    }
+  }
 };
 
 class DropHandler final : public Process::ProcessDropHandler

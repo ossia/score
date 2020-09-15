@@ -28,6 +28,7 @@ set(HDRS
 
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/QmlObjects.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/ValueTypes.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/Metatypes.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessFactory.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessMetadata.hpp"
