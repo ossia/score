@@ -64,6 +64,7 @@ void Model::addSortedSegment(SegmentModel* m)
   {
     // The previous segment has already been inserted,
     // hence the previous point is present.
+    SCORE_ASSERT(!m_points.empty());
     m_points.back()->setFollowing(m->id());
   }
 
@@ -251,21 +252,41 @@ std::vector<SegmentData> Model::toCurveData() const
 
 void Model::fromCurveData(const std::vector<SegmentData>& curve)
 {
-  this->blockSignals(true);
-  clear();
-
-  auto& context = score::IDocument::documentContext(*this).app;
-  auto& csl = context.interfaces<SegmentList>();
-
-  static std::vector<SegmentData> map;
-  map.assign(curve.begin(), curve.end());
-  std::sort(map.begin(), map.end());
-  for (const auto& elt : map)
   {
-    addSortedSegment(createCurveSegment(csl, elt, this));
+    QSignalBlocker _{this};
+    clear();
+
+    auto& context = score::IDocument::documentContext(*this).app;
+    auto& csl = context.interfaces<SegmentList>();
+
+    static std::vector<SegmentData> map;
+    map.assign(curve.begin(), curve.end());
+    std::sort(map.begin(), map.end());
+
+    /*
+    qDebug() << "Printing map: ";
+    for(auto elt : map)
+    {
+      QString log = QStringLiteral("id: %1 [%2; %3] prev: %4 following: %5")
+                  .arg(elt.id.val())
+                  .arg(elt.start.x())
+                  .arg(elt.end.x())
+                  .arg(elt.previous.value_or(Id<Curve::SegmentModel>{-1}).val())
+                  .arg(elt.following.value_or(Id<Curve::SegmentModel>{-1}).val());
+      qDebug() << log;
+    }
+    std::cout << std::endl;
+    std::cerr << std::endl;
+    */
+    SCORE_ASSERT(map.empty() || (!map.front().previous && !map.back().following));
+
+    for (const auto& elt : map)
+    {
+      addSortedSegment(createCurveSegment(csl, elt, this));
+    }
+    map.clear();
   }
-  map.clear();
-  this->blockSignals(false);
+
   curveReset();
   changed();
 }
