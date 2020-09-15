@@ -212,19 +212,44 @@ void ProcessGraphicsView::leaveEvent(QEvent* event)
     viewport()->update();
 }
 
-void ProcessGraphicsView::mousePressEvent(QMouseEvent* event)
+void ProcessGraphicsView::checkAndRemoveCurrentDialog(QPoint pos)
 {
+  // Close the small output panels (gain/pan, etc) if we're clicking somewhere else
   if (auto dialog = this->scene()->activePanel())
   {
-    const auto other = itemAt(event->pos());
+    const auto notChildOfDialog = [=] (QGraphicsItem* item)
+    {
+      if(!item)
+        return true;
+
+      auto parent = item->parentItem();
+      if(!parent || (parent != dialog && parent->parentItem() != dialog))
+        return true;
+
+      return false;
+    };
+    const auto other = itemAt(pos);
     if (other)
     {
       switch (other->type())
       {
         case Dataflow::PortItem::Type:
-        case Dataflow::CableItem::Type:
+        {
+          if(notChildOfDialog(other))
+          {
+            delete dialog;
+          }
           break;
-
+        }
+        case Dataflow::CableItem::Type:
+        {
+          auto cable = static_cast<Dataflow::CableItem*>(other);
+          if(notChildOfDialog(cable->source()) && notChildOfDialog(cable->target()))
+          {
+            delete dialog;
+          }
+          break;
+        }
         default:
         {
           const auto mapped_pos = other->mapToItem(dialog, QPointF{0, 0});
@@ -236,9 +261,29 @@ void ProcessGraphicsView::mousePressEvent(QMouseEvent* event)
         }
       }
     }
+    else
+    {
+      delete dialog;
+    }
   }
+}
+
+void ProcessGraphicsView::mousePressEvent(QMouseEvent* event)
+{
+  checkAndRemoveCurrentDialog(event->pos());
 
   QGraphicsView::mousePressEvent(event);
+
+  // Handle right-click menu in nodal view
+  if(event->button() & Qt::RightButton)
+  {
+    const auto item = itemAt(event->pos());
+    if (!item)
+    {
+      emptyContextMenuRequested(event->pos());
+    }
+  }
+
   if (m_opengl)
     viewport()->update();
 }

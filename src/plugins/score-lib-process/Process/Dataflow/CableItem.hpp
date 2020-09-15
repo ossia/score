@@ -37,8 +37,8 @@ public:
 
   void resize();
   void check();
-  PortItem* source() const;
-  PortItem* target() const;
+  PortItem* source() const noexcept;
+  PortItem* target() const noexcept;
   void setSource(PortItem* p);
   void setTarget(PortItem* p);
 

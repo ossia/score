@@ -66,9 +66,12 @@ public:
   void verticalZoom(QPointF pixDelta, QPointF pos)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, verticalZoom, pixDelta, pos)
 
-  void visibleRectChanged(QRectF r) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, visibleRectChanged, r)
+  void visibleRectChanged(QRectF r)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, visibleRectChanged, r)
   void dropRequested(QPoint pos, const QMimeData* mime)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dropRequested, pos, mime)
+  void emptyContextMenuRequested(QPoint pos)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, emptyContextMenuRequested, pos)
 
 private:
   void resizeEvent(QResizeEvent* ev) override;
@@ -85,6 +88,7 @@ private:
   void dragMoveEvent(QDragMoveEvent* event) override;
   void dragLeaveEvent(QDragLeaveEvent* event) override;
   void dropEvent(QDropEvent* event) override;
+  void checkAndRemoveCurrentDialog(QPoint pos);
   // void drawBackground(QPainter* painter, const QRectF& rect) override;
 
   const score::GUIApplicationContext& m_app;
@@ -94,7 +98,6 @@ private:
   bool m_vZoom{false};
   bool m_opengl{false};
 
-  // QObject interface
 };
 
 class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentView final : public score::DocumentDelegateView

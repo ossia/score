@@ -235,12 +235,12 @@ void CableItem::check()
   }
 }
 
-PortItem* CableItem::source() const
+PortItem* CableItem::source() const noexcept
 {
   return m_p1;
 }
 
-PortItem* CableItem::target() const
+PortItem* CableItem::target() const noexcept
 {
   return m_p2;
 }
