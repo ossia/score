@@ -1,5 +1,6 @@
 #pragma once
 #include <Library/LibraryInterface.hpp>
+#include <Library/LibrarySettings.hpp>
 #include <Library/ProcessesItemModel.hpp>
 #include <Media/ApplicationPlugin.hpp>
 #include <Media/Commands/InsertFaust.hpp>
@@ -7,14 +8,108 @@
 #include <Process/Drop/ProcessDropHandler.hpp>
 
 #include <QFileInfo>
+#include <QTimer>
+#include <QDirIterator>
 
 namespace Media::Faust
 {
-class LibraryHandler final : public Library::LibraryInterface
+class LibraryHandler final : public QObject, public Library::LibraryInterface
 {
   SCORE_CONCRETE("e274ee7b-9142-43a0-9d77-9286a63af4d9")
 
   QSet<QString> acceptedFiles() const noexcept override { return {"dsp"}; }
+
+  static inline const QRegularExpression nameExpr{"declare name \"([a-zA-Z0-9_-]+)\";"};
+  static inline const QRegularExpression authorExpr{"declare author \"([a-zA-Z0-9_-]+)\";"};
+  static inline const QRegularExpression descExpr{"declare description \"([a-zA-Z0-9.<>\(\):/~, _-]+)\";"};
+
+  QDir libraryFolder;
+  QDirIterator iterator{QString{}};
+  Library::ProcessNode* parent{};
+  std::unordered_map<QString, Library::ProcessNode*> categories;
+
+  void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx) override
+  {
+    // TODO relaunch whenever library path changes...
+    const auto& key = FaustEffectFactory{}.concreteKey();
+    QModelIndex node = model.find(key);
+    if (node == QModelIndex{})
+      return;
+
+    parent = reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
+
+    // We use the parent folder as category...
+    libraryFolder.setPath(ctx.settings<Library::Settings::Model>().getPath());
+
+    iterator.~QDirIterator();
+    new (&iterator) QDirIterator{
+      libraryFolder.absolutePath(),
+      {"*.dsp"},
+      QDir::NoFilter,
+      QDirIterator::Subdirectories | QDirIterator::FollowSymlinks
+    };
+
+    next();
+  }
+
+  void next()
+  {
+    if (iterator.hasNext())
+    {
+      auto file = QFileInfo{iterator.next()};
+      registerDSP(file);
+      QTimer::singleShot(1, this, &LibraryHandler::next);
+    }
+  }
+
+  void registerDSP(const QFileInfo& file)
+  {
+    Library::ProcessData pdata;
+    pdata.prettyName = file.baseName();
+    pdata.key = Metadata<ConcreteKey_k, FaustEffectModel>::get();
+    pdata.customData = [&] { QFile f(file.absoluteFilePath()); f.open(QIODevice::ReadOnly); return f.readAll(); }();
+
+    {
+      auto matches = nameExpr.match(pdata.customData);
+      if(matches.hasMatch())
+      {
+        pdata.prettyName = matches.captured(1);
+      }
+    }
+    {
+      auto matches = authorExpr.match(pdata.customData);
+      if(matches.hasMatch())
+      {
+        pdata.author = matches.captured(1);
+      }
+    }
+    {
+      auto matches = descExpr.match(pdata.customData);
+      if(matches.hasMatch())
+      {
+        pdata.description = matches.captured(1);
+      }
+    }
+
+    auto parentFolder = file.dir().dirName();
+    if(auto it = categories.find(parentFolder); it != categories.end())
+    {
+      it->second->emplace_back(std::move(pdata), it->second);
+    }
+    else
+    {
+      if(file.dir() == libraryFolder)
+      {
+        parent->emplace_back(std::move(pdata), parent);
+      }
+      else
+      {
+        auto& category = parent->emplace_back(Library::ProcessData{{{}, parentFolder, {}}, {}, {}, {}}, parent);
+        category.emplace_back(std::move(pdata), &category);
+        categories[parentFolder] = &category;
+      }
+    }
+  }
 };
 
 class DropHandler final : public Process::ProcessDropHandler
