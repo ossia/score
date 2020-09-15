@@ -4,6 +4,7 @@
 #include <Library/ProcessesItemModel.hpp>
 #include <Media/ApplicationPlugin.hpp>
 #include <Media/Effect/VST/VSTEffectModel.hpp>
+#include <score/tools/Bind.hpp>
 
 namespace Media::VST
 {
@@ -35,11 +36,11 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
               {key, name, QString::number(vst.uniqueID)}, {}, vst.author, {}};
           if (vst.isSynth)
           {
-            inst.emplace_back(pdata, &inst);
+            inst.emplace_back(std::move(pdata), &inst);
           }
           else
           {
-            fx.emplace_back(pdata, &fx);
+            fx.emplace_back(std::move(pdata), &fx);
           }
         }
       }
