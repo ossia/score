@@ -2,6 +2,7 @@
 #if defined(OSSIA_PROTOCOL_ARTNET)
 #include "ArtnetProtocolSettingsWidget.hpp"
 #include "ArtnetSpecificSettings.hpp"
+#include "ArtnetProtocolFactory.hpp"
 
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
@@ -31,8 +32,10 @@ ArtnetProtocolSettingsWidget::~ArtnetProtocolSettingsWidget() { }
 
 Device::DeviceSettings ArtnetProtocolSettingsWidget::getSettings() const
 {
+  // TODO should be = m_settings to follow the other patterns.
   Device::DeviceSettings s;
   s.name = m_deviceNameEdit->text();
+  s.protocol = ArtnetProtocolFactory::static_concreteKey();
 
   ArtnetSpecificSettings settings{};
   s.deviceSpecificSettings = QVariant::fromValue(settings);

@@ -275,6 +275,7 @@ Device::DeviceSettings CameraSettingsWidget::getSettings() const
 {
   Device::DeviceSettings s = m_settings;
   s.name = m_deviceNameEdit->text();
+  s.protocol = CameraProtocolFactory::static_concreteKey();
   return s;
 }
 

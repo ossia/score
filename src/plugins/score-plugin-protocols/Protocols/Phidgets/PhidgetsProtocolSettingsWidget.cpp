@@ -5,6 +5,7 @@
 #if defined(OSSIA_PROTOCOL_PHIDGETS)
 #include "PhidgetsProtocolSettingsWidget.hpp"
 #include "PhidgetsSpecificSettings.hpp"
+#include "PhidgetsProtocolFactory.hpp"
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
@@ -39,6 +40,7 @@ Device::DeviceSettings PhidgetProtocolSettingsWidget::getSettings() const
 {
   Device::DeviceSettings s;
   s.name = m_name->text();
+  s.protocol = PhidgetsProtocolFactory::static_concreteKey();
   PhidgetSpecificSettings specific;
   s.deviceSpecificSettings = QVariant::fromValue(specific);
   return s;

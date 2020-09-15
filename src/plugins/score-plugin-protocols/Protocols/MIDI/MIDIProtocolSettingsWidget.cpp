@@ -3,6 +3,7 @@
 #include "MIDIProtocolSettingsWidget.hpp"
 
 #include "MIDISpecificSettings.hpp"
+#include "MIDIProtocolFactory.hpp"
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <score/widgets/ComboBox.hpp>
@@ -37,6 +38,7 @@ Device::DeviceSettings MIDIInputSettingsWidget::getSettings() const
   Device::DeviceSettings s = m_current;
   MIDISpecificSettings midi = s.deviceSpecificSettings.value<MIDISpecificSettings>();
   s.name = m_name->text();
+  s.protocol = MIDIInputProtocolFactory::static_concreteKey();
   midi.createWholeTree = true;
 
   s.deviceSpecificSettings = QVariant::fromValue(midi);
@@ -84,6 +86,7 @@ Device::DeviceSettings MIDIOutputSettingsWidget::getSettings() const
   Device::DeviceSettings s = m_current;
   MIDISpecificSettings midi = s.deviceSpecificSettings.value<MIDISpecificSettings>();
   s.name = m_name->text();
+  s.protocol = MIDIOutputProtocolFactory::static_concreteKey();
   midi.createWholeTree = m_createWhole->isChecked();
 
   s.deviceSpecificSettings = QVariant::fromValue(midi);

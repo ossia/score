@@ -38,6 +38,7 @@ Device::DeviceSettings JoystickProtocolSettingsWidget::getSettings() const
 {
   Device::DeviceSettings s = m_settings;
   s.name = m_deviceNameEdit->text();
+  s.protocol = JoystickProtocolFactory::static_concreteKey();
   return s;
 }
 
