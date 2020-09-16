@@ -11,6 +11,8 @@
 #include <QTimer>
 #include <QDirIterator>
 
+#include <unordered_map>
+
 namespace Media::Faust
 {
 class LibraryHandler final : public QObject, public Library::LibraryInterface
@@ -19,9 +21,9 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
 
   QSet<QString> acceptedFiles() const noexcept override { return {"dsp"}; }
 
-  static inline const QRegularExpression nameExpr{"declare name \"([a-zA-Z0-9_-]+)\";"};
-  static inline const QRegularExpression authorExpr{"declare author \"([a-zA-Z0-9_-]+)\";"};
-  static inline const QRegularExpression descExpr{"declare description \"([a-zA-Z0-9.<>\(\):/~, _-]+)\";"};
+  static inline const QRegularExpression nameExpr{R"_(declare name "([a-zA-Z0-9_-]+)";)_"};
+  static inline const QRegularExpression authorExpr{R"_(declare author "([a-zA-Z0-9_-]+)";)_"};
+  static inline const QRegularExpression descExpr{R"_(declare description "([a-zA-Z0-9.<>\(\):/~, _-]+)";)_"};
 
   QDir libraryFolder;
   QDirIterator iterator{QString{}};
@@ -68,6 +70,7 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
     pdata.prettyName = file.baseName();
     pdata.key = Metadata<ConcreteKey_k, FaustEffectModel>::get();
     pdata.customData = [&] { QFile f(file.absoluteFilePath()); f.open(QIODevice::ReadOnly); return f.readAll(); }();
+    pdata.author = "Faust standard library";
 
     {
       auto matches = nameExpr.match(pdata.customData);
