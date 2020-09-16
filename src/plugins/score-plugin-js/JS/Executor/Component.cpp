@@ -14,6 +14,7 @@
 
 #include <ossia-qt/invoke.hpp>
 #include <ossia-qt/js_utilities.hpp>
+#include <ossia-qt/time.hpp>
 #include <ossia/dataflow/port.hpp>
 #include <ossia/detail/logger.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
