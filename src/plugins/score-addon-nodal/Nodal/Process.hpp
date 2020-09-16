@@ -57,6 +57,9 @@ private:
   void stopExecution() override;
   void reset() override;
 
+  void ancestorStartDateChanged() override;
+  void ancestorTempoChanged() override;
+
   const score::DocumentContext& m_context;
 };
 

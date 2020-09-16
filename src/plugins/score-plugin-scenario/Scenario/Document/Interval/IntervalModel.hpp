@@ -178,6 +178,9 @@ public:
 
   TempoProcess* tempoCurve() const noexcept;
 
+  void ancestorStartDateChanged();
+  void ancestorTempoChanged();
+
   void addSignature(TimeVal t, Control::time_signature sig);
   void removeSignature(TimeVal t);
   void setTimeSignatureMap(const TimeSignatureMap& map);

@@ -30,6 +30,7 @@ public:
   void parentGeometryChanged() override;
 
 private:
+  void updateTempo();
   void onDrop(const QPointF& p, const QMimeData& mime);
   LayerView* m_view{};
   ZoomRatio m_ratio{1};

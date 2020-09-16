@@ -190,6 +190,21 @@ TempoProcess* IntervalModel::tempoCurve() const noexcept
   return nullptr;
 }
 
+void IntervalModel::ancestorStartDateChanged()
+{
+  for(auto& proc : processes)
+    proc.ancestorStartDateChanged();
+}
+
+void IntervalModel::ancestorTempoChanged()
+{
+  if(!tempoCurve())
+  {
+    for(auto& proc : processes)
+      proc.ancestorTempoChanged();
+  }
+}
+
 void IntervalModel::addSignature(TimeVal t, Control::time_signature sig)
 {
   m_signatures[t] = sig;
@@ -242,6 +257,10 @@ const TimeVal& IntervalModel::date() const
 void IntervalModel::setStartDate(const TimeVal& start)
 {
   m_date = start;
+
+  for(auto& proc : processes)
+    proc.ancestorStartDateChanged();
+
   dateChanged(start);
 }
 

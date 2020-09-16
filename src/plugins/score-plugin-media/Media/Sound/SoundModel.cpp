@@ -174,6 +174,16 @@ void ProcessModel::init()
 {
   m_outlets.push_back(outlet.get());
 }
+
+void ProcessModel::ancestorStartDateChanged()
+{
+  scoreTempoChanged();
+}
+
+void ProcessModel::ancestorTempoChanged()
+{
+  scoreTempoChanged();
+}
 }
 }
 

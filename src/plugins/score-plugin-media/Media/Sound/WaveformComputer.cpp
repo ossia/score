@@ -58,7 +58,8 @@ struct WaveformComputerImpl
     int nchannels;
     float logical_samples_per_pixels;
     float physical_samples_per_pixels;
-    static constexpr const double rate_ratio = 1.;
+    float tempo_ratio;
+    float pixel_ratio;
 
     float logical_h;
     int logical_h_int;
@@ -237,7 +238,7 @@ struct WaveformComputerImpl
       if (!initImages(images, infos, p, _))
         return;
 
-      const float pix_ratio = infos.physical_samples_per_pixels * infos.rate_ratio;
+      const float pix_ratio = infos.pixel_ratio;
       for (int32_t x_samples = infos.physical_x0, x_pixels = x_samples - infos.physical_x0;
            x_samples < infos.physical_xf && x_pixels < infos.physical_max_pixel;
            x_samples++, x_pixels++)
@@ -281,7 +282,7 @@ struct WaveformComputerImpl
       if (!initImages(images, infos /*, p, _*/))
         return;
 
-      const float pix_ratio = infos.physical_samples_per_pixels * infos.rate_ratio;
+      const float pix_ratio = infos.pixel_ratio;
       for (int32_t x_samples = infos.physical_x0, x_pixels = x_samples - infos.physical_x0;
            x_samples < infos.physical_xf && x_pixels < infos.physical_max_pixel;
            x_samples++, x_pixels++)
@@ -336,7 +337,7 @@ struct WaveformComputerImpl
     if (!initImages(images, infos))
       return;
 
-    const float pix_ratio = infos.physical_samples_per_pixels * infos.rate_ratio;
+    const float pix_ratio = infos.pixel_ratio;
     int64_t oldbegin = 0;
     for (int32_t x_samples = infos.physical_x0, x_pixels = x_samples - infos.physical_x0;
          x_samples < infos.physical_xf && x_pixels < infos.physical_max_pixel;
@@ -386,7 +387,7 @@ struct WaveformComputerImpl
   {
     SizeInfos infos;
     const auto& data = *request.file;
-    const auto ratio = request.zoom;
+    const auto zoom = request.zoom;
 
     infos.nchannels = data.channels();
     if (infos.nchannels == 0)
@@ -402,6 +403,7 @@ struct WaveformComputerImpl
 
     // leftmost point
     infos.logical_x0 = std::max(std::floor(request.view_x0), 0.);
+    infos.tempo_ratio = request.tempo_ratio;
 
     auto& rms = data.rms();
     if (rms.frames_count == 0)
@@ -414,7 +416,7 @@ struct WaveformComputerImpl
     // because the waveform could have been computed at a different samplerate.
     // infos.rate_ratio =  data.rms().sampleRateRatio(audioSampleRate);
     infos.logical_samples_per_pixels
-        = 0.001 * ratio * audioSampleRate / ossia::flicks_per_millisecond<double>;
+        = infos.tempo_ratio * 0.001 * zoom * audioSampleRate / (ossia::flicks_per_millisecond<double>);
     if (infos.logical_samples_per_pixels <= 1e-6)
       return;
 
@@ -439,6 +441,7 @@ struct WaveformComputerImpl
 
     const auto dpr = request.devicePixelRatio;
     infos.physical_samples_per_pixels = infos.logical_samples_per_pixels / dpr;
+    infos.pixel_ratio = infos.physical_samples_per_pixels;
 
     infos.physical_h = dpr * infos.logical_h;
     infos.physical_h_int = dpr * infos.logical_h_int;

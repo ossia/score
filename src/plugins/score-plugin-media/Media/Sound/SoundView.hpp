@@ -23,6 +23,7 @@ public:
 
   void setData(const std::shared_ptr<AudioFile>& data);
   void setFrontColors(bool);
+  void setTempoRatio(double);
   void recompute(ZoomRatio ratio);
   void recompute() const;
 
@@ -49,6 +50,7 @@ private:
   int m_sampleRate{};
 
   ZoomRatio m_zoom{};
+  double m_tempoRatio{1.};
   void printAction(long);
 
   QVector<QImage*> m_images;
@@ -59,7 +61,6 @@ private:
   bool m_frontColors{true};
   mutable bool m_recomputed{false};
 
-  friend class FilterWidget;
 };
 }
 }

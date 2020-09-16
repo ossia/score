@@ -153,6 +153,9 @@ private:
   void stopExecution() override;
   void reset() override;
 
+  void ancestorStartDateChanged() override;
+  void ancestorTempoChanged() override;
+
   Selection selectableChildren() const noexcept override;
 
 public:

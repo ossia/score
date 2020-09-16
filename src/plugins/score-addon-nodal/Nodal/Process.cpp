@@ -67,6 +67,18 @@ void Model::reset()
   resetExecution();
 }
 
+void Model::ancestorStartDateChanged()
+{
+  for (Process::ProcessModel& n : this->nodes)
+    n.ancestorStartDateChanged();
+}
+
+void Model::ancestorTempoChanged()
+{
+  for (Process::ProcessModel& n : this->nodes)
+    n.ancestorTempoChanged();
+}
+
 bool NodeRemover::remove(const Selection& s, const score::DocumentContext& ctx)
 {
   if (s.size() == 1)

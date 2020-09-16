@@ -93,6 +93,7 @@ void LayerView::recompute() const
     WaveformRequest req{
       m_data,
       m_zoom,
+      m_tempoRatio,
       QSizeF{width(), height()},
       view->devicePixelRatioF(),
       mapFromScene(view->mapToScene(0, 0)).x(),
@@ -109,6 +110,15 @@ void LayerView::setFrontColors(bool b)
   if (b != m_frontColors)
   {
     m_frontColors = b;
+    recompute();
+  }
+}
+
+void LayerView::setTempoRatio(double r)
+{
+  if(r != m_tempoRatio)
+  {
+    m_tempoRatio = r;
     recompute();
   }
 }

@@ -234,6 +234,16 @@ Preset ProcessModel::savePreset() const noexcept
   return p;
 }
 
+void ProcessModel::ancestorStartDateChanged()
+{
+
+}
+
+void ProcessModel::ancestorTempoChanged()
+{
+
+}
+
 void ProcessModel::forEachControl(smallfun::function<void(Inlet&, const ossia::value&)> f) const
 {
   for (const auto& inlet : m_inlets)

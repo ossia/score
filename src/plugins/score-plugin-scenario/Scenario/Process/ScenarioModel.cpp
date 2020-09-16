@@ -244,4 +244,15 @@ TimeVal ProcessModel::contentDuration() const noexcept
   return max_tn_pos;
 }
 
+void ProcessModel::ancestorStartDateChanged()
+{
+  for(auto& itv : intervals)
+    itv.ancestorStartDateChanged();
+}
+
+void ProcessModel::ancestorTempoChanged()
+{
+  for(auto& itv : intervals)
+    itv.ancestorTempoChanged();
+}
 }

@@ -6,5 +6,5 @@
 namespace Media
 {
 SCORE_PLUGIN_MEDIA_EXPORT
-double tempoAtStartDate(Process::ProcessModel& m) noexcept;
+double tempoAtStartDate(const Process::ProcessModel& m) noexcept;
 }

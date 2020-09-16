@@ -13,13 +13,13 @@ class QGraphicsView;
 namespace Media::Sound
 {
 class LayerView;
-class FilterWidget;
 struct WaveformComputerImpl;
 
 struct WaveformRequest
 {
   std::shared_ptr<AudioFile> file;
   double zoom{};
+  double tempo_ratio{};
 
   QSizeF layerSize{};
   double devicePixelRatio{};

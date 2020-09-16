@@ -19,7 +19,7 @@ static constexpr double tempoCurveToTempo(double t) noexcept
   return Scenario::TempoProcess::min + t * (Scenario::TempoProcess::max - Scenario::TempoProcess::min);
 }
 
-double tempoAtStartDate(Process::ProcessModel& m) noexcept
+double tempoAtStartDate(const Process::ProcessModel& m) noexcept
 {
   double tempo = [&] {
     auto parent = m.parent();

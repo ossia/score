@@ -26,7 +26,7 @@ struct AudioInfo
   // Duration
   TimeVal duration() const noexcept
   {
-    return TimeVal::fromMsecs(1000. * (double(length) / double(rate)) * (tempo / 120.));
+    return TimeVal::fromMsecs(1000. * (double(length) / double(rate)) * (tempo / ossia::root_tempo));
   }
 };
 

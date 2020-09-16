@@ -202,6 +202,7 @@ AVFrame* CameraInput::read_frame_impl() noexcept
   return res;
 }
 
+
 bool CameraInput::open_stream() noexcept
 {
   bool res = false;

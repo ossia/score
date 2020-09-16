@@ -69,6 +69,7 @@ public:
 
 public:
   void fileChanged() W_SIGNAL(fileChanged);
+  void scoreTempoChanged() W_SIGNAL(scoreTempoChanged);
   void nativeTempoChanged(double t) W_SIGNAL(nativeTempoChanged, t);
   void upmixChannelsChanged(int upmixChannels) W_SIGNAL(upmixChannelsChanged, upmixChannels);
   void startChannelChanged(int startChannel) W_SIGNAL(startChannelChanged, startChannel);
@@ -94,6 +95,9 @@ public:
 private:
   void loadFile(const QString& str);
   void init();
+
+  void ancestorStartDateChanged() override;
+  void ancestorTempoChanged() override;
 
   std::shared_ptr<AudioFile> m_file;
   int m_upmixChannels{};

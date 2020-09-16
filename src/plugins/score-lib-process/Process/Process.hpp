@@ -120,6 +120,10 @@ public:
   virtual void loadPreset(const Preset& preset);
   virtual Preset savePreset() const noexcept;
 
+  // Called when an ancestor was moved in the timeline
+  virtual void ancestorStartDateChanged();
+  virtual void ancestorTempoChanged();
+
   virtual void
       forEachControl(smallfun::function<void(Process::Inlet&, const ossia::value&)>) const;
 
