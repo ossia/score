@@ -9,7 +9,9 @@ CMAKE_COMMON_FLAGS+=' -DCMAKE_C_FLAGS="-march=ivybridge -mtune=haswell"'
 CMAKE_COMMON_FLAGS+=' -DCMAKE_CXX_FLAGS="-march=ivybridge -mtune=haswell"'
 
 eval "/usr/local/bin/cninja static-release era=10.14 -- $CMAKE_COMMON_FLAGS"
+(
 cd build-*
 xcrun $CMAKE_BIN --build . --target install/strip/fast -- -j2
-mv build-* build
+)
+mv build-*/bundle .
 
