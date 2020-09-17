@@ -1,5 +1,7 @@
 #!/bin/bash
 export SCORE_SDK=/opt/score-sdk-osx
+if [[ -d "$SCORE_SDK/qt5-static" ]]; then
+  export QT_PATH=$SCORE_SDK/qt5-static/lib/cmake/Qt5
 if [[ -d "$SCORE_SDK/qt5-dynamic" ]]; then
   export QT_PATH=$SCORE_SDK/qt5-dynamic/lib/cmake/Qt5
 elif [[ -d "/usr/local/Cellar/qt" ]]; then

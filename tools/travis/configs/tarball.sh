@@ -56,4 +56,4 @@ gpg --import sign-ossia-travis.pub.asc
 gpg --allow-secret-key-import --import sign-ossia-travis.priv.asc
 
 gpg -ab ossia-score.tar.xz
-#gpg --default-key ... -ab ossia-score.tar.xz 
+
