@@ -1,5 +1,6 @@
 #!/bin/bash
 
+cd /home/travis/build/ossia/score/
 
 rm -rf .git
 rm -rf *.tar.xz
@@ -38,4 +39,11 @@ find . -name '*.user.*' -exec rm {} \;
 
 tar caf ossia-score.tar.xz ./*
 
+openssl aes-256-cbc \
+    -K $encrypted_6c5b26e1ceb3_key \
+    -iv $encrypted_6c5b26e1ceb3_iv \
+    -in /home/travis/build/ossia/score/tools/travis/sign-ossia-travis.priv.asc.enc \
+    -out sign-ossia-travis.priv.asc \
+    -d
+gpg -r sign-ossia-travis.priv.asc -ab ossia-score.tar.xz
 #gpg --default-key ... -ab ossia-score.tar.xz 

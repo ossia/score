@@ -67,7 +67,7 @@ deploy:
   - provider: releases
     api_key:
       secure: "hk56wIhJMippWajLTGtO44szXtBCzhCNHAET9fKZ7dXcfEVG22YHuUDMo1ROn6ZhthB5m8SLgctuTf4GtuvGxhdQzjeBSsvYCs6QAAUtMjBb4/lafcBZfr3Amf5TT8MfznGESQDMGjMUjnwQlUoWCVE0XoqNq6DbFlyoZPpscSE="
-    file: build/Score-$TRAVIS_TAG-macOS.zip
+    file: /Users/travis/build/ossia/score/bundle/Score-$TRAVIS_TAG-macOS.zip
     skip_cleanup: true
     on:
       tags: true
@@ -75,7 +75,7 @@ deploy:
   - provider: releases
     api_key:
       secure: "hk56wIhJMippWajLTGtO44szXtBCzhCNHAET9fKZ7dXcfEVG22YHuUDMo1ROn6ZhthB5m8SLgctuTf4GtuvGxhdQzjeBSsvYCs6QAAUtMjBb4/lafcBZfr3Amf5TT8MfznGESQDMGjMUjnwQlUoWCVE0XoqNq6DbFlyoZPpscSE="
-    file: build/Score-$TRAVIS_TAG-amd64.AppImage
+    file: /home/travis/build/ossia/score/build/Score-$TRAVIS_TAG-amd64.AppImage
     skip_cleanup: true
     on:
       tags: true
@@ -83,7 +83,9 @@ deploy:
   - provider: releases
     api_key:
       secure: "hk56wIhJMippWajLTGtO44szXtBCzhCNHAET9fKZ7dXcfEVG22YHuUDMo1ROn6ZhthB5m8SLgctuTf4GtuvGxhdQzjeBSsvYCs6QAAUtMjBb4/lafcBZfr3Amf5TT8MfznGESQDMGjMUjnwQlUoWCVE0XoqNq6DbFlyoZPpscSE="
-    file: build/Score-$TRAVIS_TAG-src.tar.xz
+    file: 
+      - /home/travis/build/ossia/score/ossia-score.tar.xz
+      - /home/travis/build/ossia/score/ossia-score.tar.xz.asc
     skip_cleanup: true
     on:
       tags: true

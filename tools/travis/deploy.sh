@@ -13,7 +13,7 @@ case "$CONF" in
     mv "Score-$TRAVIS_TAG-macOS.zip" ..
   ;;
   linux-package-appimage)
-    cd build
+    cd /home/travis/build/ossia/score/build/
     mv "Score.AppImage" "Score-$TRAVIS_TAG-amd64.AppImage"
   ;;
   tarball)
