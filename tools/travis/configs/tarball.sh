@@ -40,10 +40,20 @@ find . -name '*.user.*' -exec rm {} \;
 tar caf ossia-score.tar.xz ./*
 
 openssl aes-256-cbc \
+    -K $encrypted_781ac4e795ea_key \
+    -iv $encrypted_781ac4e795ea_iv \
+    -in /home/travis/build/ossia/score/tools/travis/sign-ossia-travis.pub.asc.enc \
+    -out sign-ossia-travis.pub.asc \
+    -d
+openssl aes-256-cbc \
     -K $encrypted_6c5b26e1ceb3_key \
     -iv $encrypted_6c5b26e1ceb3_iv \
     -in /home/travis/build/ossia/score/tools/travis/sign-ossia-travis.priv.asc.enc \
     -out sign-ossia-travis.priv.asc \
     -d
-gpg -r sign-ossia-travis.priv.asc -ab ossia-score.tar.xz
+
+gpg --import sign-ossia-travis.pub.asc
+gpg --allow-secret-key-import --import sign-ossia-travis.priv.asc
+
+gpg -ab ossia-score.tar.xz
 #gpg --default-key ... -ab ossia-score.tar.xz 

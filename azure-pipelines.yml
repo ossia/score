@@ -71,6 +71,7 @@ stages:
             action: 'edit'
             target: '$(Build.SourceVersion)'
             tag: '$(gitTag)'
+            tagSource: manual
+            title: '$(gitTag)'
             assetUploadMode: 'replace'
-            isDraft: true
             assets: "$(System.DefaultWorkingDirectory)/build/ossia score-win64.exe"
