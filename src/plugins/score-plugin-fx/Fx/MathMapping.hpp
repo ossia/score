@@ -41,6 +41,9 @@ struct Node
       syms.add_variable("a", p1);
       syms.add_variable("b", p2);
       syms.add_variable("c", p3);
+      syms.add_variable("m1", m1);
+      syms.add_variable("m2", m2);
+      syms.add_variable("m3", m3);
       syms.add_constants();
 
       expr.register_symbol_table(syms);
@@ -50,6 +53,7 @@ struct Node
     double cur_deltatime{};
     double cur_pos{};
     double p1{}, p2{}, p3{};
+    double m1{}, m2{}, m3{};
     exprtk::symbol_table<double> syms;
     exprtk::expression<double> expr;
     exprtk::parser<double> parser;
@@ -129,21 +133,68 @@ struct Node
   {
     State()
     {
-      syms.add_variable("x", cur_in);
-      syms.add_variable("px", prev_in);
+      cur_in.reserve(8);
+      cur_out.reserve(8);
+      prev_in.reserve(8);
+      m1.reserve(8);
+      m2.reserve(8);
+      m3.reserve(8);
+      cur_in.resize(2);
+      cur_out.resize(2);
+      prev_in.resize(2);
+      m1.resize(2);
+      m2.resize(2);
+      m3.resize(2);
+
+      syms.add_vector("x", cur_in);
+      syms.add_vector("out", cur_out);
+      syms.add_vector("px", prev_in);
       syms.add_variable("t", cur_time);
       syms.add_variable("a", p1);
       syms.add_variable("b", p2);
       syms.add_variable("c", p3);
-      syms.add_variable("fs", fs);
+      syms.add_vector("m1", m1);
+      syms.add_vector("m2", m2);
+      syms.add_vector("m3", m3);
+      syms.add_constant("fs", fs);
       syms.add_constants();
 
       expr.register_symbol_table(syms);
     }
-    double cur_in{};
-    double prev_in{};
+
+    void reset_symbols(std::size_t N)
+    {
+      if(N == cur_in.size())
+        return;
+
+      syms.remove_vector("x");
+      syms.remove_vector("out");
+      syms.remove_vector("px");
+      syms.remove_vector("m1");
+      syms.remove_vector("m2");
+      syms.remove_vector("m3");
+
+      cur_in.resize(N);
+      cur_out.resize(N);
+      prev_in.resize(N);
+      m1.resize(N);
+      m2.resize(N);
+      m3.resize(N);
+
+      syms.add_vector("x", cur_in);
+      syms.add_vector("out", cur_out);
+      syms.add_vector("px", prev_in);
+      syms.add_vector("m1", m1);
+      syms.add_vector("m2", m2);
+      syms.add_vector("m3", m3);
+    }
+
+    std::vector<double> cur_in{};
+    std::vector<double> cur_out{};
+    std::vector<double> prev_in{};
     double cur_time{};
     double p1{}, p2{}, p3{};
+    std::vector<double> m1, m2, m3;
     double fs{44100};
     exprtk::symbol_table<double> syms;
     exprtk::expression<double> expr;
@@ -178,9 +229,15 @@ struct Node
 
       const auto min_count = std::min((int64_t)input.samples[0].size() - start, count);
 
-      output.samples.resize(1);
-      auto& out = output.samples[0];
-      out.resize(st.bufferSize());
+      const int chans = input.samples.size();
+      self.reset_symbols(chans);
+      output.samples.resize(chans);
+
+      for(int j = 0; j < chans; j++)
+      {
+        auto& out = output.samples[j];
+        out.resize(st.bufferSize());
+      }
 
       self.p1 = a;
       self.p2 = b;
@@ -189,10 +246,18 @@ struct Node
       const auto start_sample = (tk.prev_date * samplesRatio).impl;
       for (int64_t i = 0; i < min_count; i++)
       {
-        self.cur_in = input.samples[0][start + i];
+        for(int j = 0; j < chans; j++)
+        {
+          self.cur_in[j] = input.samples[j][start + i];
+        }
         self.cur_time = start_sample + i;
-        out[start + i] = self.expr.value();
-        self.prev_in = self.cur_in;
+
+        const auto res = self.expr.value();
+        for(int j = 0; j < chans; j++)
+        {
+          output.samples[j][start + i] = self.cur_out[j];
+        }
+        std::swap(self.cur_in, self.prev_in);
       }
     }
   }
