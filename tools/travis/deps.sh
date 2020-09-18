@@ -25,7 +25,7 @@ case "$TRAVIS_OS_NAME" in
     sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 15CF4D18AF4F7421
 
     sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test
-    sudo add-apt-repository --yes ppa:beineri/opt-qt-5.15.1-focal
+    sudo add-apt-repository --yes ppa:beineri/opt-qt-5.15.0-focal
 
     sudo apt-get update -qq
     sudo apt-get install -qq --force-yes \
@@ -54,9 +54,9 @@ case "$TRAVIS_OS_NAME" in
     brew update
     brew remove qt
     brew upgrade 
-    brew install gnu-tar wget
+    brew install gnu-tar wget 
 ##     brew install qt cmake portaudio ffmpeg ninja libsamplerate
-    wget -nv https://github.com/jcelerier/cninja/releases/download/v3.7.2/cninja-3.7.2-macOS.tar.gz -O cninja.tgz &
+    wget -nv https://github.com/jcelerier/cninja/releases/download/v3.7.2/cninja-v3.7.2-macOS.tar.gz -O cninja.tgz &
     
     SDK_ARCHIVE=score-sdk-mac.tar.gz
     wget -nv https://github.com/ossia/score-sdk/releases/download/sdk15/$SDK_ARCHIVE -O $SDK_ARCHIVE
