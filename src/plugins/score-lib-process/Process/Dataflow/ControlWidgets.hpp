@@ -20,7 +20,7 @@
 #include <QLineEdit>
 #include <QPalette>
 #include <QTextDocument>
-
+#include <private/qwidgettextcontrol_p.h>
 #include <score_lib_process_export.h>
 
 namespace WidgetFactory
@@ -526,7 +526,14 @@ struct LineEdit
   }
   struct LineEditItem : public QGraphicsTextItem
   {
-    LineEditItem() { setTextInteractionFlags(Qt::TextEditorInteraction); }
+    LineEditItem() {
+      setTextInteractionFlags(Qt::TextEditorInteraction);
+      auto ctl = this->findChild<QWidgetTextControl*>();
+      if(ctl)
+      {
+        ctl->setAcceptRichText(false);
+      }
+    }
   };
   template <typename T, typename Control_T>
   static LineEditItem* make_item(

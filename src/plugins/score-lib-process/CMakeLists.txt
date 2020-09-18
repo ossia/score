@@ -150,7 +150,7 @@ set(PROCESS_SRCS
 
 add_library(score_lib_process ${PROCESS_HDRS} ${PROCESS_SRCS})
 target_link_libraries(score_lib_process  PUBLIC
-    Qt5::Core Qt5::Widgets score_lib_base score_lib_state
+    Qt5::Core Qt5::Widgets Qt5::WidgetsPrivate score_lib_base score_lib_state
     score_lib_inspector score_lib_device score_lib_localtree)
 target_compile_definitions(score_lib_process PUBLIC
     $<$<BOOL:${DEFINE_SCORE_SCENARIO_DEBUG_RECTS}>:SCORE_SCENARIO_DEBUG_RECTS>)
