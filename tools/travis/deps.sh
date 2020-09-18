@@ -18,8 +18,8 @@ case "$TRAVIS_OS_NAME" in
     sudo apt-get update -qq
     sudo apt-get install wget software-properties-common
 
-    wget -nv https://github.com/jcelerier/cninja/releases/download/v3.7.2/cninja-v3.7.2-Linux.tar.gz -O cninja-linux.tgz &
-    wget -nv https://github.com/Kitware/CMake/releases/download/v3.18.1/cmake-3.18.1-Linux-x86_64.tar.gz -O cmake-linux.tgz &
+    wget -nv https://github.com/jcelerier/cninja/releases/download/v3.7.3/cninja-v3.7.3-Linux.tar.gz -O cninja.tgz &
+    wget -nv https://github.com/Kitware/CMake/releases/download/v3.18.2/cmake-3.18.2-Linux-x86_64.tar.gz -O cmake.tgz &
     echo 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-10 main' | sudo tee /etc/apt/sources.list.d/llvm.list
     sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 1397BC53640DB551
     sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 15CF4D18AF4F7421
@@ -43,9 +43,9 @@ case "$TRAVIS_OS_NAME" in
 
     wait wget || true
 
-    tar xaf cninja-linux.tgz
+    tar xaf cninja.tgz
     sudo cp -rf cninja /usr/bin/
-    tar xaf cmake-linux.tgz
+    tar xaf cmake.tgz
     mv cmake-*-x86_64 cmake-latest
   ;;
   osx)
@@ -56,7 +56,7 @@ case "$TRAVIS_OS_NAME" in
     brew upgrade 
     brew install gnu-tar wget ninja
 ##     brew install qt cmake portaudio ffmpeg ninja libsamplerate
-    wget -nv https://github.com/jcelerier/cninja/releases/download/v3.7.2/cninja-v3.7.2-macOS.tar.gz -O cninja.tgz &
+    wget -nv https://github.com/jcelerier/cninja/releases/download/v3.7.3/cninja-v3.7.3-macOS.tar.gz -O cninja.tgz &
     
     SDK_ARCHIVE=score-sdk-mac.tar.gz
     wget -nv https://github.com/ossia/score-sdk/releases/download/sdk15/$SDK_ARCHIVE -O $SDK_ARCHIVE
