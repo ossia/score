@@ -269,6 +269,8 @@ public:
       m_thread.exit(0);
     m_thread.wait();
 #endif
+
+    delete m_graph;
   }
 
   int32_t register_node(std::unique_ptr<NodeModel> node)
