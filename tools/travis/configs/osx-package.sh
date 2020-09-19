@@ -7,6 +7,8 @@ CMAKE_COMMON_FLAGS+=" -DCMAKE_OSX_SYSROOT=/Applications/Xcode.app/Contents/Devel
 CMAKE_COMMON_FLAGS+=" -DOSSIA_SDK=$SCORE_SDK"
 CMAKE_COMMON_FLAGS+=' -DCMAKE_C_FLAGS="-march=ivybridge -mtune=haswell"'
 CMAKE_COMMON_FLAGS+=' -DCMAKE_CXX_FLAGS="-march=ivybridge -mtune=haswell"'
+CMAKE_COMMON_FLAGS+=' -DCMAKE_C_COMPILER=/usr/bin/clang'
+CMAKE_COMMON_FLAGS+=' -DCMAKE_CXX_COMPILER=/usr/bin/clang++'
 CMAKE_COMMON_FLAGS+=' -DDEPLOYMENT_BUILD=1'
 
 eval "/usr/local/bin/cninja static-release linkerwarnings=no era=10.14 -- $CMAKE_COMMON_FLAGS"
