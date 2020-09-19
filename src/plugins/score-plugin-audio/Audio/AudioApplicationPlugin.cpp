@@ -17,6 +17,7 @@
 
 #include <QToolBar>
 
+#include <Audio/AudioDevice.hpp>
 #include <Audio/AudioInterface.hpp>
 #include <Audio/AudioPreviewExecutor.hpp>
 #include <Audio/Settings/Model.hpp>
@@ -154,12 +155,16 @@ try
 
   if (auto doc = this->currentDocument())
   {
-    auto dev = doc->context().plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice();
+    auto dev = (Dataflow::AudioDevice*) doc->context().plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice();
     if (!dev)
       return;
     if (audio)
     {
       audio->stop();
+      if(auto proto = dev->getProtocol())
+      {
+        proto->engine = nullptr;
+      }
       audio.reset();
     }
 

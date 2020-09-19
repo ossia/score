@@ -58,6 +58,7 @@ public:
   bool reconnect() override;
   void recreate(const Device::Node& n) override;
   ossia::net::device_base* getDevice() const override { return &m_dev; }
+  ossia::audio_protocol* getProtocol() const { return m_protocol; }
 
   void changed() E_SIGNAL(SCORE_PLUGIN_AUDIO_EXPORT, changed);
 
