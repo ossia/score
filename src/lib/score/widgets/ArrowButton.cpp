@@ -13,7 +13,9 @@ std::array<QString, 5> arrow_name = {
     "left", // LeftArrow
     "right" // RightArrow
 };
-ArrowButton::ArrowButton(Qt::ArrowType arrowType, QWidget* parent) : QToolButton{parent}
+ArrowButton::ArrowButton(Qt::ArrowType arrowType, QWidget* parent)
+  : QToolButton{parent}
+  , m_arrowType{arrowType}
 {
   setArrowType(arrowType);
   setIconSize(QSize(8, 8));
