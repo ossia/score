@@ -238,14 +238,20 @@ void DocumentManager::forceCloseDocument(const score::GUIApplicationContext& ctx
     plug->on_documentClosing();
   }
 
-  QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
-
   if (m_view)
     m_view->closeDocument(doc.view());
+
+  QPointer<Document> d = &doc;
+
+  QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+
   ossia::remove_one(m_documents, &doc);
   setCurrentDocument(ctx, !m_documents.empty() ? m_documents.back() : nullptr);
 
-  delete &doc;
+  if(d)
+  {
+    delete &doc;
+  }
 }
 
 bool DocumentManager::saveDocument(Document& doc)
