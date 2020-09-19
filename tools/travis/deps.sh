@@ -18,7 +18,7 @@ case "$TRAVIS_OS_NAME" in
     sudo apt-get update -qq
     sudo apt-get install wget software-properties-common
 
-    wget -nv https://github.com/jcelerier/cninja/releases/download/v3.7.3/cninja-v3.7.3-Linux.tar.gz -O cninja.tgz &
+    wget -nv https://github.com/jcelerier/cninja/releases/download/v3.7.4/cninja-v3.7.4-Linux.tar.gz -O cninja.tgz &
     wget -nv https://github.com/Kitware/CMake/releases/download/v3.18.2/cmake-3.18.2-Linux-x86_64.tar.gz -O cmake.tgz &
     echo 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-10 main' | sudo tee /etc/apt/sources.list.d/llvm.list
     sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 1397BC53640DB551
@@ -56,7 +56,7 @@ case "$TRAVIS_OS_NAME" in
     brew upgrade 
     brew install gnu-tar wget ninja
 ##     brew install qt cmake portaudio ffmpeg ninja libsamplerate
-    wget -nv https://github.com/jcelerier/cninja/releases/download/v3.7.3/cninja-v3.7.3-macOS.tar.gz -O cninja.tgz &
+    wget -nv https://github.com/jcelerier/cninja/releases/download/v3.7.4/cninja-v3.7.4-macOS.tar.gz -O cninja.tgz &
     
     SDK_ARCHIVE=score-sdk-mac.tar.gz
     wget -nv https://github.com/ossia/score-sdk/releases/download/sdk15/$SDK_ARCHIVE -O $SDK_ARCHIVE
