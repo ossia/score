@@ -59,7 +59,7 @@ case "$TRAVIS_OS_NAME" in
     wget -nv https://github.com/jcelerier/cninja/releases/download/v3.7.4/cninja-v3.7.4-macOS.tar.gz -O cninja.tgz &
     
     SDK_ARCHIVE=score-sdk-mac.tar.gz
-    wget -nv https://github.com/ossia/score-sdk/releases/download/sdk15/$SDK_ARCHIVE -O $SDK_ARCHIVE
+    wget -nv https://github.com/ossia/score-sdk/releases/download/sdk16/$SDK_ARCHIVE -O $SDK_ARCHIVE
     sudo mkdir -p /opt/score-sdk-osx
     sudo chmod -R a+rwx /opt/score-sdk-osx
     gtar xhaf $SDK_ARCHIVE --directory /opt/score-sdk-osx
