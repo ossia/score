@@ -153,21 +153,28 @@ try
   auto& preview = AudioPreviewExecutor::instance();
   preview.audio = nullptr;
 
+  if (audio)
+  {
+    for(auto d : context.docManager.documents())
+    {
+      auto dev = (Dataflow::AudioDevice*) d->context().plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice();
+      if(dev)
+      {
+        if(auto proto = dev->getProtocol())
+        {
+          proto->stop();
+        }
+      }
+    }
+    audio->stop();
+    audio.reset();
+  }
+
   if (auto doc = this->currentDocument())
   {
     auto dev = (Dataflow::AudioDevice*) doc->context().plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice();
     if (!dev)
       return;
-    if (audio)
-    {
-      audio->stop();
-      if(auto proto = dev->getProtocol())
-      {
-        proto->engine = nullptr;
-      }
-      audio.reset();
-    }
-
     setup_engine();
 
     m_audioEngineAct->setChecked(bool(audio));

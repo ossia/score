@@ -332,6 +332,8 @@ void DocumentPlugin::on_documentClosing()
     m_ctx.context().doc.app.guiApplicationPlugin<Engine::ApplicationPlugin>().on_stop();
     clear();
   }
+
+  audioProto().stop();
 }
 
 const BaseScenarioElement& DocumentPlugin::baseScenario() const
