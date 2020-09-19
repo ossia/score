@@ -7,6 +7,8 @@ option(ISF_ENABLE_TESTS "Enable ISF tests" OFF)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 
 add_library(isf
     src/sajson.h
