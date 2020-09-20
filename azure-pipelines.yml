@@ -11,7 +11,7 @@ pr:
 variables:
   isGitTag: $[startsWith(variables['Build.SourceBranch'], 'refs/tags/')]
   gitTag: $[replace(variables['Build.SourceBranch'], 'refs/tags/', '')]
-  gitTagNoV: $[replace(variables['Build.SourceBranch'], 'refs/tags/v', '')]
+  gitTagNoV: $[replace(replace(variables['Build.SourceBranch'], 'refs/tags/v', ''), '/', '')]
 
 stages:
   - stage: Build
@@ -54,15 +54,14 @@ stages:
             cmake --build .
             cmake --build . --target package
             dir
-            mkdir "$(System.DefaultWorkingDirectory)/deploy"
-            move "ossia score-3.0.0-win64.exe" "$(System.DefaultWorkingDirectory)/deploy/ossia score-$(gitTagNoV)-win64.exe"
-            dir "$(System.DefaultWorkingDirectory)/deploy"
+            move "ossia score-3.0.0-win64.exe" "ossia score-$(gitTagNoV)-win64.exe"
+            dir
             
           displayName: Build
 
         - task: PublishPipelineArtifact@1
           inputs:
-            targetPath: "$(System.DefaultWorkingDirectory)/deploy/*"
+            targetPath: "$(System.DefaultWorkingDirectory)/build/ossia score-$(gitTagNoV)-win64.exe"
             artifactName: Installer
 
         - task: GitHubRelease@1
@@ -76,4 +75,4 @@ stages:
             tagSource: manual
             title: '$(gitTag)'
             assetUploadMode: 'replace'
-            assets: "$(System.DefaultWorkingDirectory)/deploy/*"
+            assets: "$(System.DefaultWorkingDirectory)/build/ossia score-$(gitTagNoV)-win64.exe"
