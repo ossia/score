@@ -30,8 +30,6 @@ option(SCORE_INSTALL_HEADERS "Install headers" OFF)
 
 option(SCORE_FX_DESIGNER "FX GUI designer" OFF)
 
-include("${SCORE_CONFIGURATION}")
-
 set(CMAKE_DEBUG_POSTFIX "")
 if(APPLE)
     set(SCORE_ADDON_PLATFORM "darwin-amd64")
