@@ -44,7 +44,7 @@ Script {
   ValueOutlet { id: out1 }
   FloatSlider { id: sl; min: 10; max: 100; }
 
-  tick: function(oldtime, time, position, offset) {
+  tick: function(token, state) {
     if (typeof in1.value !== 'undefined') {
       console.log(in1.value);
       out1.value = in1.value + sl.value * Math.random();

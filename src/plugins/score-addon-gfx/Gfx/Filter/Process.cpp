@@ -119,7 +119,7 @@ QString Model::prettyName() const noexcept
 void Model::setupIsf(const isf::descriptor& desc)
 {
   {
-    auto& [shader, error] = ShaderCache::get(m_processedProgram.fragment.toLatin1(), QShader::Stage::VertexStage);
+    auto& [shader, error] = ShaderCache::get(m_processedProgram.vertex.toLatin1(), QShader::Stage::VertexStage);
     SCORE_ASSERT(error.isEmpty());
   }
   {

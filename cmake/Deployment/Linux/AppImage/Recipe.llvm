@@ -8,7 +8,7 @@ export NPROC=$(nproc)
 export PATH=$OSSIA_SDK/llvm/bin:$PATH
 export GIT=/opt/rh/rh-git218/root/usr/bin/git
 export LD_LIBRARY_PATH=$OSSIA_SDK/llvm/lib:/opt/rh/rh-git218/root/usr/lib:/opt/rh/httpd24/root/usr/lib64
- 
+
 export CC=$OSSIA_SDK/llvm/bin/clang
 export CXX=$OSSIA_SDK/llvm/bin/clang++
 
@@ -32,7 +32,7 @@ mkdir -p $APP_DIR/usr
 export SOURCE_DIR=/score
 (
     export INSTALL_ROOT=$(cd $APP_DIR/usr; pwd)
-    
+
     cninja $SOURCE_DIR appimage -- \
       -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT \
       -DOSSIA_SDK=$OSSIA_SDK
