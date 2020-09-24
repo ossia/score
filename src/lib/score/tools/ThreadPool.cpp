@@ -1,5 +1,5 @@
 #include <score/tools/ThreadPool.hpp>
-#include <QThreadPool>
+#include <thread>
 
 namespace score
 {
@@ -33,7 +33,7 @@ QThread* ThreadPool::acquireThread()
 {
   if(!m_threads)
   {
-    m_numThreads = QThreadPool::globalInstance()->maxThreadCount();
+    m_numThreads = std::thread::hardware_concurrency();
     if(m_numThreads > 2)
       m_numThreads = m_numThreads / 2;
     if(m_numThreads < 2)

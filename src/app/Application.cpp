@@ -30,6 +30,7 @@
 #include <QOpenGLContext>
 #include <QPushButton>
 #include <QLabel>
+#include <QThreadPool>
 #include <QPainter>
 #include <core/view/QRecentFilesMenu.h>
 
@@ -593,6 +594,8 @@ void Application::initDocuments()
   #if !defined(SCORE_SPLASH_SCREEN)
   openNewDocument();
   #endif
+
+  QThreadPool::globalInstance()->setMaxThreadCount(2);
 }
 
 void Application::openNewDocument()
