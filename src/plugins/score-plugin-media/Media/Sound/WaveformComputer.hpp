@@ -4,7 +4,6 @@
 #include <QObject>
 #include <QVector>
 #include <QImage>
-#include <QThread>
 
 #include <memory>
 #include <verdigris>
@@ -74,21 +73,6 @@ private:
   int64_t m_processed_n{-1};
 };
 
-struct WaveformThreads
-{
-  WaveformThreads();
-
-  static WaveformThreads& instance();
-
-  QThread* acquireThread();
-  void releaseThread();
-
-  std::unique_ptr<QThread[]> threads;
-  int numThreads{};
-  int currentThread{};
-
-  int inFlight = 0;
-};
 
 }
 

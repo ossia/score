@@ -5,13 +5,13 @@
 
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/tools/std/Invoke.hpp>
+#include <score/tools/ThreadPool.hpp>
 
 #include <ossia/detail/math.hpp>
 
 #include <QColor>
 #include <QPainter>
 #include <QGraphicsView>
-#include <QThreadPool>
 
 #include <wobjectimpl.h>
 
@@ -34,7 +34,7 @@ WaveformComputer::WaveformComputer()
       Qt::DirectConnection);
   startTimer(16, Qt::CoarseTimer);
 
-  auto& inst = WaveformThreads::instance();
+  auto& inst = score::ThreadPool::instance();
   this->moveToThread(inst.acquireThread());
 }
 
@@ -523,59 +523,5 @@ void WaveformComputer::timerEvent(QTimerEvent* event)
 
 
 
-
-
-WaveformThreads::WaveformThreads()
-{
-}
-
-WaveformThreads& WaveformThreads::instance() {
-  static WaveformThreads threads;
-  return threads;
-}
-
-QThread* WaveformThreads::acquireThread()
-{
-  if(!threads)
-  {
-    numThreads = QThreadPool::globalInstance()->maxThreadCount();
-    if(numThreads > 2)
-      numThreads = numThreads / 2;
-    if(numThreads < 2)
-      numThreads = 2;
-    threads = std::make_unique<QThread[]>(numThreads);
-
-    for(int i = 0; i < numThreads; i++)
-    {
-      threads[i].start();
-    }
-    currentThread = 0;
-  }
-
-  QThread& t = threads[currentThread];
-  currentThread++;
-  currentThread = currentThread % numThreads;
-  inFlight ++;
-  return &t;
-}
-
-void WaveformThreads::releaseThread()
-{
-  inFlight--;
-
-  if(inFlight == 0)
-  {
-    for(int i = 0; i < numThreads; i++)
-    {
-      threads[i].quit();
-    }
-    for(int i = 0; i < numThreads; i++)
-    {
-      threads[i].wait();
-    }
-
-    threads.reset();
-  }
-}
 
 }

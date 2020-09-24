@@ -3,6 +3,7 @@
 #include <Media/RMSData.hpp>
 
 #include <score/tools/std/Invoke.hpp>
+#include <score/tools/ThreadPool.hpp>
 
 #include <QGraphicsView>
 #include <QScrollBar>
@@ -42,7 +43,6 @@ LayerView::LayerView(QGraphicsItem* parent)
     m_wf = wf;
 
     update();
-    //) << "ready!";
   });
 }
 
@@ -51,7 +51,7 @@ LayerView::~LayerView()
   ossia::qt::run_async(m_cpt, &QObject::deleteLater);
   m_cpt = nullptr;
 
-  WaveformThreads::instance().releaseThread();
+  score::ThreadPool::instance().releaseThread();
 
   QImagePool::instance().giveBack(m_images);
 }
