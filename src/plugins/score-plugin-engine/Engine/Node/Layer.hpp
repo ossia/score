@@ -123,6 +123,15 @@ public:
   virtual ~ControlLayerFactory() = default;
 
 private:
+  std::optional<double> recommendedHeight() const noexcept override
+  {
+    if constexpr(Info::Metadata::recommended_height > 0)
+    {
+      return Info::Metadata::recommended_height;
+    }
+    return LayerFactory::recommendedHeight();
+  }
+
   UuidKey<Process::ProcessModel> concreteKey() const noexcept override
   {
     return Metadata<ConcreteKey_k, ControlProcess<Info>>::get();

@@ -95,6 +95,15 @@ private:
     return Metadata<ConcreteKey_k, Model_T>::get();
   }
 
+  std::optional<double> recommendedHeight() const noexcept override
+  {
+    if constexpr(LayerPresenter_T::recommendedHeight > 0.)
+    {
+      return LayerPresenter_T::recommendedHeight;
+    }
+    return LayerFactory::recommendedHeight();
+  }
+
   LayerView_T* makeLayerView(
       const Process::ProcessModel& viewmodel,
       const Process::Context& context,

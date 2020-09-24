@@ -1,5 +1,7 @@
 #include "AddProcessToInterval.hpp"
 
+#include <score/document/DocumentContext.hpp>
+
 namespace Scenario
 {
 namespace Command
@@ -36,7 +38,7 @@ void AddProcessToInterval::redo(const score::DocumentContext& ctx) const
   // Make it visible
   if (m_addedSlot)
   {
-    auto h = score::AppContext().settings<Scenario::Settings::Model>().getSlotHeight();
+    const double h = Scenario::getNewLayerHeight(ctx.app, proc);
     interval.addSlot(Slot{{proc.id()}, proc.id(), h});
     interval.setSmallViewVisible(true);
   }
@@ -106,7 +108,7 @@ void LoadProcessInInterval::redo(const score::DocumentContext& ctx) const
   // Make it visible
   if (m_addedSlot)
   {
-    auto h = score::AppContext().settings<Scenario::Settings::Model>().getSlotHeight();
+    const double h = Scenario::getNewLayerHeight(ctx.app, proc);
     interval.addSlot(Slot{{proc.id()}, proc.id(), h});
     interval.setSmallViewVisible(true);
   }

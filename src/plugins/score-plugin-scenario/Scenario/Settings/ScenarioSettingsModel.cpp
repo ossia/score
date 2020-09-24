@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioSettingsModel.hpp"
 
+#include <Process/Process.hpp>
+#include <Process/ProcessList.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/Skin.hpp>
 #include <score/plugins/InterfaceList.hpp>
@@ -145,4 +147,21 @@ SCORE_SETTINGS_PARAMETER_CPP(bool, Model, TimeBar)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, MeasureBars)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, MagneticMeasures)
 }
+
+double getNewLayerHeight(const score::ApplicationContext& ctx, const Process::ProcessModel& proc) noexcept
+{
+  double h = 100;
+  const auto& fact = ctx.interfaces<Process::LayerFactoryList>().get(proc.concreteKey());
+
+  if(auto opt_h = fact->recommendedHeight())
+  {
+    h = *opt_h;
+  }
+  else
+  {
+    h = ctx.settings<Scenario::Settings::Model>().getSlotHeight();
+  }
+  return h;
+}
+
 }

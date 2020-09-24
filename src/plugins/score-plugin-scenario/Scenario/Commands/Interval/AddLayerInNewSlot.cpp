@@ -38,7 +38,7 @@ void AddLayerInNewSlot::undo(const score::DocumentContext& ctx) const
 void AddLayerInNewSlot::redo(const score::DocumentContext& ctx) const
 {
   auto& interval = m_path.find(ctx);
-  auto h = ctx.app.settings<Scenario::Settings::Model>().getSlotHeight();
+  const double h = Scenario::getNewLayerHeight(ctx.app, interval.processes.at(m_processId));
 
   interval.addSlot(Slot{{m_processId}, m_processId, h});
 }

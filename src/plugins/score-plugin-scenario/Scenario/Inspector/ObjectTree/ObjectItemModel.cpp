@@ -1094,8 +1094,7 @@ struct ContextMenuCallback
 
     if (auto p = m.createProcess(cst, proc, dat, {}))
     {
-      m.createSlot(cst);
-      m.addLayerToLastSlot(cst, *p);
+      m.addLayerInNewSlot(cst, *p);
       m.commit();
     }
   }

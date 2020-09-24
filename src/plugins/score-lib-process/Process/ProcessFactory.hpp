@@ -64,6 +64,8 @@ public:
   static const constexpr bool ui_interface = true;
   ~LayerFactory() override;
 
+  virtual std::optional<double> recommendedHeight() const noexcept;
+
   virtual Process::LayerPresenter* makeLayerPresenter(
       const Process::ProcessModel&,
       Process::LayerView*,

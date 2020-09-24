@@ -9,6 +9,7 @@
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/ChangeId.hpp>
+#include <score/document/DocumentContext.hpp>
 #include <score/model/path/ObjectPath.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
@@ -110,7 +111,7 @@ void MoveProcess::redo(const score::DocumentContext& ctx) const
 
   if (m_addedSlot)
   {
-    auto h = score::AppContext().settings<Scenario::Settings::Model>().getSlotHeight();
+    auto h = ctx.app.settings<Scenario::Settings::Model>().getSlotHeight();
     tgt.addSlot(Slot{{m_newId}, m_newId, h});
     tgt.setSmallViewVisible(true);
   }

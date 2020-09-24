@@ -51,7 +51,6 @@ private:
 
   ZoomRatio m_zoom{};
   double m_tempoRatio{1.};
-  void printAction(long);
 
   QVector<QImage*> m_images;
   WaveformComputer* m_cpt{};
@@ -60,7 +59,6 @@ private:
 
   bool m_frontColors{true};
   mutable bool m_recomputed{false};
-
 };
 }
 }

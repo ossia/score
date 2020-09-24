@@ -20,6 +20,11 @@ ProcessModelFactory::~ProcessModelFactory() { }
 
 LayerFactory::~LayerFactory() { }
 
+std::optional<double> LayerFactory::recommendedHeight() const noexcept
+{
+  return std::nullopt;
+}
+
 ProcessFactoryList::~ProcessFactoryList() { }
 
 LayerFactoryList::~LayerFactoryList() { }

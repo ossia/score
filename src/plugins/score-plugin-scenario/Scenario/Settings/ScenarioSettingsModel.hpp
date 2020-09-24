@@ -7,6 +7,10 @@
 
 #include <verdigris>
 
+namespace Process
+{
+class ProcessModel;
+}
 namespace Scenario
 {
 namespace Settings
@@ -57,4 +61,6 @@ SCORE_SETTINGS_PARAMETER(Model, TimeBar)
 SCORE_SETTINGS_PARAMETER(Model, MeasureBars)
 SCORE_SETTINGS_PARAMETER(Model, MagneticMeasures)
 }
+
+double getNewLayerHeight(const score::ApplicationContext& ctx, const Process::ProcessModel& proc) noexcept;
 }

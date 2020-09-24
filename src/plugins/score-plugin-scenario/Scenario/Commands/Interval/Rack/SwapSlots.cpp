@@ -5,6 +5,7 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
+#include <score/document/DocumentContext.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
@@ -86,7 +87,7 @@ MoveLayerInNewSlot::MoveLayerInNewSlot(const IntervalModel& rack, int first, int
   Scenario::Slot newSlot;
   newSlot.processes.push_back(*source.frontProcess);
   newSlot.frontProcess = *source.frontProcess;
-  newSlot.height = score::AppContext().settings<Scenario::Settings::Model>().getSlotHeight();
+  newSlot.height = rack.context().app.settings<Scenario::Settings::Model>().getSlotHeight();
 
   auto it = ossia::find(source.processes, *source.frontProcess);
   SCORE_ASSERT(it != source.processes.end());

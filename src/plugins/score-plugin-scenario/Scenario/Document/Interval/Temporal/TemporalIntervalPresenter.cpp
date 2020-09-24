@@ -299,8 +299,7 @@ struct RequestOverlayMenuCallback
 
       if (auto p = m.createProcess(self.model(), key, dat, {}))
       {
-        m.createSlot(self.model());
-        m.addLayerToLastSlot(self.model(), *p);
+        m.addLayerInNewSlot(self.model(), *p);
         m.commit();
       }
     }
