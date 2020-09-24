@@ -181,13 +181,14 @@ void VideoDecoder::drain_frames() noexcept
 
 bool VideoDecoder::seek_impl(int64_t flicks) noexcept
 {
-  if(m_stream >=  m_formatContext->nb_streams)
+  if(m_stream >=  int(m_formatContext->nb_streams))
     return false;
 
   const int64_t dts = flicks * dts_per_flicks;
 
   int flags = AVSEEK_FLAG_FRAME;
-  if (dts < this->m_last_dts)
+  const bool seek_forward = dts >= this->m_last_dts;
+  if (!seek_forward)
   {
     flags |= AVSEEK_FLAG_BACKWARD;
   }
@@ -214,7 +215,7 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
     {
       break;
     }
-  } while (!(got_frame && f->pkt_dts >= dts));
+  } while (!(got_frame && ((seek_forward && f->pkt_dts >= dts) || (!seek_forward && f->pkt_dts <= dts))));
 
   m_last_dts = f->pkt_dts;
   m_framesToPlayer.enqueue(f);
