@@ -12,8 +12,8 @@ extern "C"
 #include <mutex>
 #include <string>
 #include <thread>
-
 #include <condition_variable>
+
 namespace Video
 {
 
@@ -66,4 +66,5 @@ private:
   std::atomic_bool m_running{};
 };
 
+bool readVideoFrame(AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* frame);
 }

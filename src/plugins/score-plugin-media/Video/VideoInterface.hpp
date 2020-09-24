@@ -7,12 +7,8 @@ extern "C"
 
 namespace Video
 {
-struct SCORE_PLUGIN_MEDIA_EXPORT VideoInterface
+struct SCORE_PLUGIN_MEDIA_EXPORT VideoMetadata
 {
-  virtual ~VideoInterface();
-  virtual AVFrame* dequeue_frame() noexcept = 0;
-  virtual void release_frame(AVFrame* frame) noexcept = 0;
-
   int width{};
   int height{};
   double fps{};
@@ -20,6 +16,14 @@ struct SCORE_PLUGIN_MEDIA_EXPORT VideoInterface
   bool realTime{};
   double flicks_per_dts{};
   double dts_per_flicks{};
+};
+
+struct SCORE_PLUGIN_MEDIA_EXPORT VideoInterface
+    : VideoMetadata
+{
+  virtual ~VideoInterface();
+  virtual AVFrame* dequeue_frame() noexcept = 0;
+  virtual void release_frame(AVFrame* frame) noexcept = 0;
 };
 
 }

@@ -104,6 +104,7 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/VideoInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/VideoDecoder.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/CameraInput.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Video/Thumbnailer.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_media.hpp"
 )
@@ -157,6 +158,7 @@ set(SRCS
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/VideoDecoder.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/CameraInput.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Video/Thumbnailer.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_media.cpp"
 )

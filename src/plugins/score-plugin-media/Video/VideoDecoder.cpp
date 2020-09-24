@@ -317,15 +317,20 @@ void VideoDecoder::close_video() noexcept
 
 bool VideoDecoder::enqueue_frame(const AVPacket* pkt, AVFrame* frame) noexcept
 {
+  return readVideoFrame(m_codecContext, pkt, frame);
+}
+
+bool readVideoFrame(AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* frame)
+{
   int got_picture_ptr = 0;
 
-  if (m_codecContext && pkt && frame)
+  if (codecContext && pkt && frame)
   {
-    int ret = avcodec_send_packet(m_codecContext, pkt);
+    int ret = avcodec_send_packet(codecContext, pkt);
     if (ret < 0)
       return ret == AVERROR_EOF ? 0 : ret;
 
-    ret = avcodec_receive_frame(m_codecContext, frame);
+    ret = avcodec_receive_frame(codecContext, frame);
     if (ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF)
       return ret;
 
