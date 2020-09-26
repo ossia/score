@@ -18,7 +18,9 @@ struct Node
 
     static const constexpr auto controls = std::make_tuple(
         Control::Widgets::LoopChooser(),
-        Control::Widgets::QuantificationChooser());
+        Control::Widgets::QuantificationChooser(),
+        Control::Toggle("Echo during recording", true)
+    );
     static const constexpr audio_in audio_ins[]{"in"};
     static const constexpr audio_out audio_outs[]{"out"};
   };
@@ -36,6 +38,7 @@ struct Node
   run(const ossia::audio_port& p1,
       const std::string& mode,
       float quantif,
+      bool echo,
       ossia::audio_port& p2,
       ossia::token_request tk,
       ossia::exec_state_facade st,
@@ -46,35 +49,46 @@ struct Node
     auto m = Control::Widgets::GetLoopMode(mode);
     if (m != state.actualMode)
     {
-      if (auto time = tk.get_quantification_date(quantif))
+      if (quantif != 0)
       {
-        // Finish what we were doing until the quantization date
+        if (auto time = tk.get_quantification_date(1. / quantif))
         {
-          auto sub_tk = tk;
-          sub_tk.reduce_end_time(*time);
-          action(p1, p2, sub_tk, state, modelRatio);
+          // Finish what we were doing until the quantization date
+          {
+            auto sub_tk = tk;
+            sub_tk.reduce_end_time(*time);
+            action(p1, p2, sub_tk, state, modelRatio, echo);
+          }
+
+          // We can switch to the new mode
+          state.actualMode = m;
+          state.playbackPos = 0;
+
+          // Remaining of the tick
+          {
+            auto sub_tk = tk;
+            sub_tk.increase_start_time(tk.date - *time);
+
+            action(p1, p2, sub_tk, state, modelRatio, echo);
+          }
         }
-
-        // We can switch to the new mode
-        state.actualMode = m;
-        state.playbackPos = 0;
-
-        // Remaining of the tick
+        else
         {
-          auto sub_tk = tk;
-          sub_tk.increase_start_time(tk.date - *time);
-
-          action(p1, p2, sub_tk, state, modelRatio);
+          action(p1, p2, tk, state, modelRatio, echo);
         }
       }
       else
       {
-        action(p1, p2, tk, state, modelRatio);
+        // We can switch to the new mode
+        state.actualMode = m;
+        state.playbackPos = 0;
+
+        action(p1, p2, tk, state, modelRatio, echo);
       }
     }
     else
     {
-      action(p1, p2, tk, state, modelRatio);
+      action(p1, p2, tk, state, modelRatio, echo);
     }
   }
 
@@ -83,7 +97,8 @@ struct Node
       ossia::audio_port& p2,
       ossia::token_request tk,
       State& state,
-      double modelRatio)
+      double modelRatio,
+      bool echoRecord)
   {
     switch (state.actualMode)
     {
@@ -97,10 +112,14 @@ struct Node
         stop(p1, p2, tk, state, modelRatio);
         break;
       case Control::Widgets::LoopMode::Record:
-        record(p1, p2, tk, state, modelRatio);
+        echoRecord
+            ? record(p1, p2, tk, state, modelRatio)
+            : record_noecho(p1, p2, tk, state, modelRatio);
         break;
       case Control::Widgets::LoopMode::Overdub:
-        overdub(p1, p2, tk, state, modelRatio);
+        echoRecord
+            ? overdub(p1, p2, tk, state, modelRatio)
+            : overdub_noecho(p1, p2, tk, state, modelRatio);
         break;
     }
   }
@@ -226,6 +245,41 @@ struct Node
     state.playbackPos += N;
   }
 
+  static void record_noecho(
+      const ossia::audio_port& p1,
+      ossia::audio_port& p2,
+      ossia::token_request tk,
+      State& state,
+      double modelRatio)
+  {
+    // Copy input to output, and append input to buffer
+    const auto chans = p1.samples.size();
+    p2.samples.resize(chans);
+    state.audio.resize(chans);
+
+    const int64_t N = tk.physical_write_duration(modelRatio);
+    const int64_t first_pos = tk.physical_start(modelRatio);
+
+    for (std::size_t i = 0; i < chans; i++)
+    {
+      auto& in = p1.samples[i];
+      auto& record = state.audio[i];
+
+      const int64_t samples = in.size();
+      int64_t max = std::min(N, samples);
+
+      record.resize(state.playbackPos + samples);
+      int64_t k = state.playbackPos;
+
+      for (int64_t j = first_pos; j < max; j++)
+      {
+        record[k] = in[j];
+        k++;
+      }
+    }
+    state.playbackPos += N;
+  }
+
   static void overdub(
       const ossia::audio_port& p1,
       ossia::audio_port& p2,
@@ -260,7 +314,49 @@ struct Node
 
       for (int64_t j = first_pos; j < max; j++)
       {
-        out[j] = in[j];
+        record[k] += in[j];
+        out[j] = record[k];
+        k++;
+      }
+    }
+    state.playbackPos += N;
+  }
+
+  static void overdub_noecho(
+      const ossia::audio_port& p1,
+      ossia::audio_port& p2,
+      ossia::token_request tk,
+      State& state,
+      double modelRatio)
+  {
+    //! if we go past the end we have to start from the beginning ? or we keep
+    //! extending ?
+
+    // Copy input to output, and append input to buffer
+    const auto chans = p1.samples.size();
+    p2.samples.resize(chans);
+    state.audio.resize(chans);
+
+    const int64_t N = tk.physical_write_duration(modelRatio);
+    const int64_t first_pos = tk.physical_start(modelRatio);
+
+    for (std::size_t i = 0; i < chans; i++)
+    {
+      auto& in = p1.samples[i];
+      auto& out = p2.samples[i];
+      auto& record = state.audio[i];
+
+      const int64_t samples = in.size();
+      int64_t max = std::min(N, samples);
+
+      out.resize(samples);
+      if (record.size() < state.playbackPos + samples)
+        record.resize(state.playbackPos + samples);
+      int64_t k = state.playbackPos;
+
+      for (int64_t j = first_pos; j < max; j++)
+      {
+        out[j] = record[k];
         record[k] += in[j];
         k++;
       }
