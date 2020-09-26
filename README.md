@@ -2,13 +2,13 @@
 
 [![Financial Contributors on Open Collective](https://opencollective.com/ossia/all/badge.svg?label=financial+contributors)](https://opencollective.com/ossia) [![join the chat at https://gitter.im/ossia/score](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ossia/score?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Downloads](https://img.shields.io/github/downloads/ossia/score/total.svg)](https://github.com/ossia/score/releases) [![Version](https://img.shields.io/github/release/ossia/score.svg)](https://github.com/ossia/score/releases)
 
-[**ossia score**](http://ossia.io) is a ***sequencer*** for audio-visual artists, designed to create ***interactive*** shows. 
+[**ossia score**](https://ossia.io) is a ***sequencer*** for audio-visual artists, designed to create ***interactive*** shows. 
 
 Sequence **OSC, MIDI, DMX, sound files** and more, between multiple software and hardware, create ***interactive*** and ***intermedia*** scores and ***script*** in JavaScript to customize your score.
 
 Free, open source and runs on desktop, mobile and embedded.
 
-Read more on http://ossia.io, come ask questions on the [forum](http://forum.ossia.io/c/score) or hang out in a [chat](https://gitter.im/ossia/score) with us, we will be happy to help you !
+Read more on https://ossia.io, come ask questions on the [forum](https://forum.ossia.io/c/score) or hang out in a [chat](https://gitter.im/ossia/score) with us, we will be happy to help you !
 
 ### Download the [latest release here](https://github.com/ossia/score/releases/) and read the Releases section in this README.
 
@@ -40,7 +40,7 @@ When updating the score repository through the command line, don't forget to upd
     git pull
     git submodule update --init --recursive
 
-Some useful and easy potential contributions are listed [on the website](http://ossia.io/contributing/).
+Some useful and easy potential contributions are listed [on the website](https://ossia.io/contributing/).
 
 There are also many fixable areas in the code :
 sequencer
