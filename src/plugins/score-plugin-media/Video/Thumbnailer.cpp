@@ -43,61 +43,70 @@ VideoThumbnailer::VideoThumbnailer(QString path)
     return;
   }
 
-  bool res = false;
   for (unsigned int i = 0; i < m_formatContext->nb_streams; i++)
   {
     if (m_formatContext->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
     {
-      m_stream = i;
-      m_codecContext = m_formatContext->streams[i]->codec;
-      const AVRational tb = m_formatContext->streams[m_stream]->time_base;
-      dts_per_flicks = (tb.den / (tb.num * ossia::flicks_per_second<double>));
-      flicks_per_dts = (tb.num * ossia::flicks_per_second<double>) / tb.den;
-
-      m_codec = avcodec_find_decoder(m_codecContext->codec_id);
-
-      if (m_codec)
+      if(m_stream == -1)
       {
-        pixel_format = m_codecContext->pix_fmt;
-        int err = avcodec_open2(m_codecContext, m_codec, nullptr) ;
-        res = !(err < 0);
-        if(!res)
-        {
-          char str[1500];
-          qDebug() << "VideoThumbnailer: avcodec_open2 failed" << av_make_error_string(str, 1499, err);
-          break;
-        }
+        m_stream = i;
+        continue;
+      }
+    }
+    m_formatContext->streams[i]->discard = AVDISCARD_ALL;
+  }
 
-        width = m_codecContext->coded_width;
-        height = m_codecContext->coded_height;
-        if(height > 0 && width > 0)
-          m_aspect = double(width) / height;
-        else
-          m_aspect = 1.;
+  bool res = false;
+  if(m_stream != -1)
+  {
+    const AVStream* stream =  m_formatContext->streams[m_stream];
+    m_codecContext = stream->codec;
+    const AVRational tb = m_formatContext->streams[m_stream]->time_base;
+    dts_per_flicks = (tb.den / (tb.num * ossia::flicks_per_second<double>));
+    flicks_per_dts = (tb.num * ossia::flicks_per_second<double>) / tb.den;
 
-        smallHeight = 55;
-        smallWidth = smallHeight * m_aspect;
+    m_codec = avcodec_find_decoder(m_codecContext->codec_id);
 
-        // Allocate a rescale context
-        m_rescale = sws_getContext(
-              this->width, this->height, this->pixel_format,
-              smallWidth, smallHeight,
-              AV_PIX_FMT_RGB24, SWS_FAST_BILINEAR, NULL, NULL, NULL);
-
-        // Allocate a frame to do the RGB conversion
-        m_rgb = av_frame_alloc();
-        m_rgb->width = smallWidth;
-        m_rgb->height = smallHeight;
-        m_rgb->format = AV_PIX_FMT_RGB24;
-        av_frame_get_buffer(m_rgb, 0);
-
-        fps = av_q2d(m_formatContext->streams[i]->avg_frame_rate);
+    if (m_codec)
+    {
+      pixel_format = m_codecContext->pix_fmt;
+      int err = avcodec_open2(m_codecContext, m_codec, nullptr) ;
+      res = !(err < 0);
+      if(!res)
+      {
+        char str[1500];
+        qDebug() << "VideoThumbnailer: avcodec_open2 failed" << av_make_error_string(str, 1499, err);
+        goto err;
       }
 
-      break;
+      width = m_codecContext->coded_width;
+      height = m_codecContext->coded_height;
+      if(height > 0 && width > 0)
+        m_aspect = double(width) / height;
+      else
+        m_aspect = 1.;
+
+      smallHeight = 55;
+      smallWidth = smallHeight * m_aspect;
+
+      // Allocate a rescale context
+      m_rescale = sws_getContext(
+            this->width, this->height, this->pixel_format,
+            smallWidth, smallHeight,
+            AV_PIX_FMT_RGB24, SWS_FAST_BILINEAR, NULL, NULL, NULL);
+
+      // Allocate a frame to do the RGB conversion
+      m_rgb = av_frame_alloc();
+      m_rgb->width = smallWidth;
+      m_rgb->height = smallHeight;
+      m_rgb->format = AV_PIX_FMT_RGB24;
+      av_frame_get_buffer(m_rgb, 0);
+
+      fps = av_q2d(stream->avg_frame_rate);
     }
   }
 
+  err:
   if(!res)
   {
     // error
@@ -125,6 +134,7 @@ VideoThumbnailer::VideoThumbnailer(QString path)
       avformat_close_input(&m_formatContext);
       m_formatContext = nullptr;
     }
+    return;
   }
 }
 
@@ -133,12 +143,13 @@ VideoThumbnailer::~VideoThumbnailer()
 
 }
 
-void VideoThumbnailer::onRequest(QVector<int64_t> flicks)
+void VideoThumbnailer::onRequest(int64_t req, QVector<int64_t> flicks)
 {
   if(!m_codecContext)
     return;
 
   m_requests = std::move(flicks);
+  m_requestIndex = req;
   m_currentIndex = 0;
 
   if(m_currentIndex < m_requests.size())
@@ -155,14 +166,15 @@ QImage VideoThumbnailer::process(int64_t flicks)
   {
     const int64_t dts = flicks * dts_per_flicks;
 
-    int flags = AVSEEK_FLAG_FRAME;
-    const bool seek_forward = dts >= this->m_last_dts;
-    if (!seek_forward)
-    {
-      flags |= AVSEEK_FLAG_BACKWARD;
-    }
+    constexpr int64_t min_dts_delta = 20000;
+    if(std::abs(dts - m_last_dts) < min_dts_delta)
+      return {};
 
-    if (av_seek_frame(m_formatContext, m_stream, dts, flags))
+    // TODO - maybe we should also store the "last dequeued dts" from the
+    // decoder side - this way no need to seek if we are in the interval
+
+    const bool seek_forward = dts >= this->m_last_dts;
+    if (av_seek_frame(m_formatContext, m_stream, dts, seek_forward ? 0 : AVSEEK_FLAG_BACKWARD) < 0)
     {
       qDebug() << "VideoThumbnailer: Failed to seek for time " << dts;
       return {};
@@ -170,48 +182,75 @@ QImage VideoThumbnailer::process(int64_t flicks)
 
     avcodec_flush_buffers(m_codecContext);
 
-    //int got_frame = 0;
-    AVPacket packet{};
-    memset(&packet, 0, sizeof(AVPacket));
-
     AVFrame* frame = av_frame_alloc();
 
-    while (av_read_frame(m_formatContext, &packet) >= 0)
-    {
-      if (packet.stream_index == m_stream)
-      {
-        if (readVideoFrame(m_codecContext, &packet, frame))
-        {
-          if (frame->pkt_dts >= dts)
-          {
-            res = frame;
-            ok = true;
+    AVPacket packet{};
+    av_init_packet(&packet);
 
-            av_packet_unref(&packet);
-            packet = AVPacket{};
-            break;
-          }
+    int k = 0;
+    retry_decode:
+    while (av_read_frame(m_formatContext, &packet) >= 0 && k < 5)
+    {
+      k++;
+      if(packet.stream_index != m_stream)
+        qDebug() << "packet.stream_index != m_stream";
+
+      int ret = avcodec_send_packet(m_codecContext, &packet);
+      if (ret < 0)
+      {
+        if(ret == AVERROR(EAGAIN))
+        {
+          av_packet_unref(&packet);
+          av_init_packet(&packet);
+          goto retry_decode;
+        }
+        else if (ret == AVERROR_EOF)
+        {
+          qDebug("avcodec_send_packet eof");
+          break;
+        }
+        else
+        {
+          qDebug("avcodec_send_packet error");
+          break;
+        }
+      }
+
+      ret = avcodec_receive_frame(m_codecContext, frame);
+      if (ret < 0)
+      {
+        if(ret == AVERROR(EAGAIN))
+        {
+          av_packet_unref(&packet);
+          av_init_packet(&packet);
+          goto retry_decode;
+        }
+        else if(ret == AVERROR_EOF)
+        {
+          qDebug("avcodec_receive_frame eof");
+        }
+        else
+        {
+          qDebug("avcodec_receive_frame error");
+        }
+      }
+
+      if(ret == 0)
+      {
+        if (frame->pkt_dts >= dts)
+        {
+          res = frame;
+          ok = true;
+
+          av_packet_unref(&packet);
+          packet = AVPacket{};
+          break;
         }
       }
 
       av_packet_unref(&packet);
       packet = AVPacket{};
     }
-    /*
-    do
-    {
-      if (av_read_frame(m_formatContext, &pkt) == 0)
-      {
-        got_frame = readVideoFrame(m_codecContext, &pkt, frame);
-        av_packet_unref(&pkt);
-      }
-      else
-      {
-        break;
-      }
-    } while (!(got_frame && frame->pkt_dts >= dts));
-    */
-
     m_last_dts = frame->pkt_dts;
 
     if(!res)
@@ -220,7 +259,6 @@ QImage VideoThumbnailer::process(int64_t flicks)
       return {};
     }
   }
-
 
   // 2. Resize
   sws_scale(m_rescale, res->data, res->linesize, 0, this->height, m_rgb->data, m_rgb->linesize);
@@ -247,7 +285,7 @@ void VideoThumbnailer::processNext()
   const auto flicks = m_requests[m_currentIndex];
 
   if(auto img = process(flicks); !img.isNull())
-    thumbnailReady(flicks, std::move(img));
+    thumbnailReady(m_requestIndex, flicks, std::move(img));
 
   m_currentIndex++;
   if(m_currentIndex < m_requests.size())

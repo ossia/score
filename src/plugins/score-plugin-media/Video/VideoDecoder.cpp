@@ -8,6 +8,7 @@ extern "C"
 #include "VideoDecoder.hpp"
 
 #include <ossia/detail/flicks.hpp>
+#include <score/tools/Debug.hpp>
 
 #include <QDebug>
 #include <QElapsedTimer>
@@ -181,19 +182,20 @@ void VideoDecoder::drain_frames() noexcept
 
 bool VideoDecoder::seek_impl(int64_t flicks) noexcept
 {
-  if(m_stream >=  int(m_formatContext->nb_streams))
+  if(m_stream >= int(m_formatContext->nb_streams))
     return false;
 
   const int64_t dts = flicks * dts_per_flicks;
 
-  int flags = AVSEEK_FLAG_FRAME;
-  const bool seek_forward = dts >= this->m_last_dts;
-  if (!seek_forward)
-  {
-    flags |= AVSEEK_FLAG_BACKWARD;
-  }
+  constexpr int64_t min_dts_delta = 20000;
+  if(std::abs(dts - m_last_dts) < min_dts_delta)
+    return false;
 
-  if (av_seek_frame(m_formatContext, m_stream, dts, flags))
+  // TODO - maybe we should also store the "last dequeued dts" from the
+  // decoder side - this way no need to seek if we are in the interval
+
+  const bool seek_forward = dts >= this->m_last_dts;
+  if (av_seek_frame(m_formatContext, m_stream, dts, seek_forward ? 0 : AVSEEK_FLAG_BACKWARD) < 0)
   {
     qDebug() << "Failed to seek for time " << dts;
     return false;
@@ -204,6 +206,7 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
   int got_frame = 0;
   AVPacket pkt{};
   AVFrame* f = get_new_frame();
+  int k = 0;
   do
   {
     if (av_read_frame(m_formatContext, &pkt) == 0)
@@ -215,7 +218,8 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
     {
       break;
     }
-  } while (!(got_frame && ((seek_forward && f->pkt_dts >= dts) || (!seek_forward && f->pkt_dts <= dts))));
+    k++;
+  } while (k < 5 && !(got_frame && ((seek_forward && f->pkt_dts >= dts) || (!seek_forward && f->pkt_dts <= dts) || std::abs(f->pkt_dts - dts) < min_dts_delta)));
 
   m_last_dts = f->pkt_dts;
   m_framesToPlayer.enqueue(f);
@@ -275,24 +279,32 @@ bool VideoDecoder::open_stream() noexcept
   {
     if (m_formatContext->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
     {
-      m_stream = i;
-      m_codecContext = m_formatContext->streams[i]->codec;
-      const AVRational tb = m_formatContext->streams[m_stream]->time_base;
-      dts_per_flicks = (tb.den / (tb.num * ossia::flicks_per_second<double>));
-      flicks_per_dts = (tb.num * ossia::flicks_per_second<double>) / tb.den;
-
-      m_codec = avcodec_find_decoder(m_codecContext->codec_id);
-
-      if (m_codec)
+      if(m_stream == -1)
       {
-        pixel_format = m_codecContext->pix_fmt;
-        res = !(avcodec_open2(m_codecContext, m_codec, nullptr) < 0);
-        width = m_codecContext->coded_width;
-        height = m_codecContext->coded_height;
-        fps = av_q2d(m_formatContext->streams[i]->avg_frame_rate);
+        m_stream = i;
+        continue;
       }
+    }
+    m_formatContext->streams[i]->discard = AVDISCARD_ALL;
+  }
 
-      break;
+  if(m_stream != -1)
+  {
+    const AVStream* stream =  m_formatContext->streams[m_stream];
+    m_codecContext = stream->codec;
+    const AVRational tb = stream->time_base;
+    dts_per_flicks = (tb.den / (tb.num * ossia::flicks_per_second<double>));
+    flicks_per_dts = (tb.num * ossia::flicks_per_second<double>) / tb.den;
+
+    m_codec = avcodec_find_decoder(m_codecContext->codec_id);
+
+    if (m_codec)
+    {
+      pixel_format = m_codecContext->pix_fmt;
+      res = !(avcodec_open2(m_codecContext, m_codec, nullptr) < 0);
+      width = m_codecContext->coded_width;
+      height = m_codecContext->coded_height;
+      fps = av_q2d(stream->avg_frame_rate);
     }
   }
 
@@ -300,7 +312,6 @@ bool VideoDecoder::open_stream() noexcept
   {
     close_video();
   }
-
   return res;
 }
 

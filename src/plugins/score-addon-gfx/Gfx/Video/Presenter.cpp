@@ -56,7 +56,10 @@ void Presenter::putBehind()
   m_view->setOpacity(0.2);
 }
 
-void Presenter::on_zoomRatioChanged(ZoomRatio) { }
+void Presenter::on_zoomRatioChanged(ZoomRatio r)
+{
+  m_view->setZoom(r);
+}
 
 void Presenter::parentGeometryChanged() { }
 

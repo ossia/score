@@ -39,6 +39,7 @@
 #include <score/tools/Bind.hpp>
 
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/closest_element.hpp>
 #include <ossia/detail/flicks.hpp>
 
 #include <QGraphicsScene>
@@ -512,31 +513,6 @@ void FullViewIntervalPresenter::on_zoomRatioChanged(ZoomRatio ratio)
   updateProcessesShape();
 }
 
-template <typename T, typename U>
-auto closest_element(const T& vec, const U& val) noexcept
-{
-  assert(!vec.empty());
-  auto it = std::lower_bound(vec.begin(), vec.end(), val);
-  if (it != vec.end())
-  {
-    if (it != vec.begin())
-    {
-      auto prev = it - 1;
-      if (abs(*prev - val) < abs(*it - val))
-        return *prev;
-      else
-        return *it;
-    }
-    else
-    {
-      return *it;
-    }
-  }
-  else
-  {
-    return *vec.rbegin();
-  }
-}
 TimeVal
 FullViewIntervalPresenter::magneticPosition(const QObject* o, const TimeVal t) const noexcept
 {
