@@ -376,8 +376,11 @@ void IntervalModel::setMidTime(const TimeVal& value)
 
 void IntervalModel::setSmallViewVisible(bool v)
 {
-  m_smallViewShown = v;
-  smallViewVisibleChanged(v);
+  if(v != m_smallViewShown)
+  {
+    m_smallViewShown = v;
+    smallViewVisibleChanged(v);
+  }
 }
 
 bool IntervalModel::smallViewVisible() const
