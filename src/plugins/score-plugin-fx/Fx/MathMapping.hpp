@@ -25,7 +25,7 @@ struct Node
     static const constexpr value_out value_outs[]{"out"};
 
     static const constexpr auto controls = std::make_tuple(
-        Control::LineEdit("Expression (ExprTK)", "cos(t) + log(pos * x / dt)"),
+        Control::LineEdit("Expression (ExprTK)", "cos(t) + log(pos * (1+abs(x)) / dt)"),
         Control::FloatSlider("Param (a)", 0., 1., 0.5),
         Control::FloatSlider("Param (b)", 0., 1., 0.5),
         Control::FloatSlider("Param (c)", 0., 1., 0.5));
@@ -123,7 +123,12 @@ struct Node
     static const constexpr audio_out audio_outs[]{"out"};
 
     static const constexpr auto controls = std::make_tuple(
-        Control::LineEdit("Expression (ExprTK)", "a * x"),
+        Control::LineEdit("Expression (ExprTK)", "var n := x[];\n"
+                          "\n"
+                          "for (var i := 0; i < n; i += 1) {\n"
+                          "  var dist := tan(x[i]*log(1 + 200 * a));\n"
+                          "  out[i] := clamp(0, dist, 1);\n"
+                          "}\n"),
         Control::FloatSlider("Param (a)", 0., 1., 0.5),
         Control::FloatSlider("Param (b)", 0., 1., 0.5),
         Control::FloatSlider("Param (c)", 0., 1., 0.5));

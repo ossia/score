@@ -172,7 +172,12 @@ struct Node
     static const constexpr audio_out audio_outs[]{"out"};
 
     static const constexpr auto controls = std::make_tuple(
-        Control::LineEdit("Expression (ExprTK)", "a * cos( 2 * pi * t * 440 * b / fs )"),
+        Control::LineEdit("Expression (ExprTK)",
+             "var phi := 2 * pi * (20 + a * 500) / fs;\n"
+             "m1[0] += phi;\n"
+             "\n"
+             "out[0] := b * cos(m1[0]);\n"
+             "out[1] := b * cos(m1[0]);\n"),
         Control::FloatSlider("Param (a)", 0., 1., 0.5),
         Control::FloatSlider("Param (b)", 0., 1., 0.5),
         Control::FloatSlider("Param (c)", 0., 1., 0.5));
