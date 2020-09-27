@@ -202,6 +202,9 @@ private:
   void timerEvent(QTimerEvent* event) override;
   Skin() noexcept;
 
+  struct NoGUI { };
+  explicit Skin(NoGUI);
+
   struct color_map;
   color_map* m_colorMap{};
   QVector<QPair<QString, Brush>> m_defaultPalette;

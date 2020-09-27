@@ -3,7 +3,8 @@
 #include "SetIcons.hpp"
 
 #include <score/widgets/Pixmap.hpp>
-
+#include <score/application/ApplicationContext.hpp>
+#include <core/application/ApplicationSettings.hpp>
 #include <QDebug>
 #include <QFile>
 #include <QGuiApplication>
@@ -191,6 +192,10 @@ namespace score
 QPixmap get_pixmap(QString str)
 {
   QPixmap img;
+  static const bool gui = score::AppContext().applicationSettings.gui;
+  if(!gui)
+    return img;
+
   if (qApp->devicePixelRatio() >= 2.0)
   {
     auto newstr = str;
@@ -212,6 +217,10 @@ QPixmap get_pixmap(QString str)
 QImage get_image(QString str)
 {
   QImage img;
+  static const bool gui = score::AppContext().applicationSettings.gui;
+  if(!gui)
+    return img;
+
   if (qApp->devicePixelRatio() >= 2.0)
   {
     auto newstr = str;

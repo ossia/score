@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Skin.hpp"
 
+#include <score/application/ApplicationContext.hpp>
+#include <core/application/ApplicationSettings.hpp>
 #include <score/widgets/Pixmap.hpp>
 
 #include <ossia/detail/flat_map.hpp>
@@ -214,8 +216,10 @@ Skin::Skin() noexcept
     font->setHintingPreference(QFont::HintingPreference::PreferVerticalHinting);
     font->setStyleHint(QFont::StyleHint::SansSerif);
     font->setStyleStrategy(QFont::StyleStrategy(
-        QFont::StyleStrategy::OpenGLCompatible | QFont::StyleStrategy::PreferQuality
-        | QFont::StyleStrategy::PreferMatch | QFont::StyleStrategy::NoFontMerging));
+                             QFont::StyleStrategy::PreferQuality |
+                             QFont::StyleStrategy::PreferMatch |
+                             QFont::StyleStrategy::NoFontMerging)
+    );
   }
   for (QFont* font : mono_fonts)
   {
@@ -223,10 +227,18 @@ Skin::Skin() noexcept
   }
 }
 
+Skin::Skin(Skin::NoGUI)
+  : m_colorMap{new color_map{}}
+{
+
+}
+
 Skin& score::Skin::instance() noexcept
 {
-  static Skin s;
-  return s;
+  static const auto s = score::AppContext().applicationSettings.gui
+      ? std::unique_ptr<Skin>(new Skin())
+      : std::unique_ptr<Skin>(new Skin(Skin::NoGUI{}));
+  return *s;
 }
 
 #define SCORE_CONVERT_COLOR(Col) \

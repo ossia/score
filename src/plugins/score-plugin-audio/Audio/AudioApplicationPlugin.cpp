@@ -177,7 +177,8 @@ try
       return;
     setup_engine();
 
-    m_audioEngineAct->setChecked(bool(audio));
+    if(m_audioEngineAct)
+      m_audioEngineAct->setChecked(bool(audio));
 
     auto& preview = AudioPreviewExecutor::instance();
     preview.audio = nullptr;
