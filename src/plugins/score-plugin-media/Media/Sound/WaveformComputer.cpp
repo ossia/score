@@ -52,6 +52,7 @@ struct WaveformComputerImpl
   const WaveformRequest& request;
   int64_t redraw_number;
   WaveformComputer& computer;
+  QImagePool& pool = QImagePool::instance();
 
   struct SizeInfos
   {
@@ -137,7 +138,6 @@ struct WaveformComputerImpl
 
   bool initImages(QVector<QImage*>& images, const SizeInfos& infos) const noexcept
   {
-    auto& pool = QImagePool::instance();
     images.resize(infos.nchannels);
     for (int i = 0; i < infos.nchannels; i++)
     {
@@ -146,7 +146,11 @@ struct WaveformComputerImpl
       // No need to set device pixel ratio here, since we
       // change pixels directly
       if (computer.m_redraw_count > redraw_number)
+      {
+        images.resize(i + 1);
+        pool.giveBack(images);
         return false;
+      }
     }
     return true;
   }
@@ -155,7 +159,6 @@ struct WaveformComputerImpl
   initImages(QVector<QImage*>& images, const SizeInfos& infos, QPainter* p, QPainterCleanup& _)
       const noexcept
   {
-    auto& pool = QImagePool::instance();
     images.resize(infos.nchannels);
     for (int i = 0; i < infos.nchannels; i++)
     {
@@ -165,7 +168,11 @@ struct WaveformComputerImpl
       images[i]->setDevicePixelRatio(1.);
 
       if (computer.m_redraw_count > redraw_number)
+      {
+        images.resize(i + 1);
+        pool.giveBack(images);
         return false;
+      }
 
       p[i].begin(images[i]);
       p[i].setPen(this->main_pen);
@@ -174,6 +181,7 @@ struct WaveformComputerImpl
     }
     return true;
   }
+
   /*
     void compute_rms(const SizeInfos infos, const RMSData& rms)
     {
@@ -187,7 +195,10 @@ struct WaveformComputerImpl
           )
       {
         if(computer.m_redraw_count > redraw_number)
+        {
+          pool.giveBack(images);
           return;
+        }
 
         const auto rms_sample = rms.frame(
               (x_samples)     * infos.logical_samples_per_pixels *
@@ -245,6 +256,7 @@ struct WaveformComputerImpl
       {
         if (computer.m_redraw_count > redraw_number)
         {
+          pool.giveBack(images);
           return;
         }
 
@@ -288,7 +300,10 @@ struct WaveformComputerImpl
            x_samples++, x_pixels++)
       {
         if (computer.m_redraw_count > redraw_number)
+        {
+          pool.giveBack(images);
           return;
+        }
 
         int64_t start_sample = x_samples * pix_ratio;
         if (start_sample >= infos.decoded_samples)
@@ -344,7 +359,10 @@ struct WaveformComputerImpl
          x_samples++, x_pixels++)
     {
       if (computer.m_redraw_count > redraw_number)
+      {
+        pool.giveBack(images);
         return;
+      }
 
       int64_t begin = (x_samples)*pix_ratio;
       if (begin == oldbegin)
