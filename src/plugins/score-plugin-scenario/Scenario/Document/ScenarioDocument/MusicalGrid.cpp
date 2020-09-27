@@ -138,6 +138,7 @@ void computeAll(
     ossia::bar_time increment,
     QRectF rect)
 {
+  //qDebug("\n\n\n starting \n");
   auto& bars = grid.timebars.lightBars;
   auto& sub = grid.timebars.lighterBars;
   auto& measures = *grid.m_measures;
@@ -150,6 +151,7 @@ void computeAll(
   if (division_px <= 1.)
     return;
 
+  TimeVal prev_time = last_delim;
   TimeVal current_time = last_delim;
   double last_delim_px = last_delim.toPixels(zoom);
   double bar_x_pos{last_delim_px};
@@ -164,26 +166,28 @@ void computeAll(
 
   // This function adds a main vertical line, and adds
   // the sub-bars between the new main and the previous one.
-  auto addNewMain = [&](double bar_x_pos, TimeVal cur_t) {
-    bars.positions.push_back(QLineF(bar_x_pos, y0, bar_x_pos, y1));
-    grid.mainPositions.push_back({bar_x_pos, timeToMetrics(grid, cur_t), increment});
+  auto addNewMain = [&](double new_bar_x_pos, TimeVal prev_t, TimeVal cur_t) {
+    //qDebug() << " !!! adding main bar" << new_bar_x_pos;
+    bars.positions.push_back(QLineF(new_bar_x_pos, y0, new_bar_x_pos, y1));
+    grid.mainPositions.push_back({new_bar_x_pos, timeToMetrics(grid, cur_t), increment});
     magneticTimings.push_back(cur_t);
 
-    ossia::bar_time sub_increment{};
     TimeVal sub_increment_t{};
     double sub_increment_px{};
     if (increment.bars == 1)
     {
       // We display the quarter notes
-      sub_increment.quarters = 1;
-      sub_increment_t = TimeVal(ossia::quarter_duration<int64_t> * 4. / prev_sig.lower);
+      sub_increment_t = TimeVal(ossia::quarter_duration<double> * 4. / prev_sig.lower);
       sub_increment_px = sub_increment_t.toPixels(zoom);
     }
     else
     {
+      return;
+      /*
       // Just cut things in half
-      sub_increment_t = TimeVal(zoom * (bar_x_pos - prev_bar_x_pos) / 2.);
-      sub_increment_px = (bar_x_pos - prev_bar_x_pos) / 2.;
+      sub_increment_t = (cur_t.impl - prev_t.impl) / 2;//TimeVal(zoom * (bar_x_pos - prev_bar_x_pos) / 2.);
+      sub_increment_px = (new_bar_x_pos - prev_bar_x_pos) / 2.;
+      */
     }
 
     // Only display sub bars if there is enough visual space.
@@ -192,19 +196,33 @@ void computeAll(
       // auto sub_time = main_time;
       // addBars(sub_time, sub_increment);
 
-      double pos = prev_bar_x_pos;
-      for (int sub_k = 0; pos <= bar_x_pos; sub_k++)
+      TimeVal sub_bar_t = prev_t + sub_increment_t;
+      //double pos = prev_bar_x_pos;
+      while(sub_bar_t < cur_t)
       {
-        sub.positions.push_back(QLineF(pos, y0, pos, y1));
-        magneticTimings.push_back(TimeVal(cur_t.impl + sub_increment_t.impl * sub_k));
+        double kp = sub_bar_t.toPixels(zoom);
+        sub.positions.push_back(QLineF(kp, y0, kp, y1));
+        magneticTimings.push_back(sub_bar_t);
+        sub_bar_t += sub_increment_t;
+      }
+      /*
+      for (int sub_k = 0; pos <= new_bar_x_pos; sub_k++)
+      {
+        auto kt = TimeVal(prev_t.impl + sub_increment_t.impl * sub_k);
+        double kp = kt.toPixels(zoom);
+        qDebug() << "      -> sub bar" << pos;
+        qDebug() << "      -> magnetic timing" << kt;
+        sub.positions.push_back(QLineF(kp, y0, kp, y1));
+        magneticTimings.push_back(kt);
         pos = prev_bar_x_pos + sub_k * sub_increment_px;
         // grid.subPositions.push_back({pos, timeToMetrics(grid, cur_t),
         // sub_increment}); addBars(sub_time, sub_increment);
       }
+      */
     }
 
     prev_sig = last_sig_change_it->second;
-    prev_bar_x_pos = bar_x_pos;
+    prev_bar_x_pos = new_bar_x_pos;
     // addBars(main_time, increment);
   };
 
@@ -212,6 +230,7 @@ void computeAll(
   while (isVisible(bar_x_pos))
   {
     bar_x_pos = last_delim_px + k * division_px;
+    prev_time = current_time;
     current_time = last_delim.impl + division.impl * k;
     SCORE_ASSERT(last_sig_change_it != measures.end());
 
@@ -223,10 +242,11 @@ void computeAll(
       // if there is e.g. only a default 4/4 at the beginning
       do
       {
-        addNewMain(bar_x_pos, current_time);
+        addNewMain(bar_x_pos, prev_time, current_time);
 
         k++;
         bar_x_pos = last_delim_px + k * division_px;
+        prev_time = current_time;
         current_time = last_delim.impl + division.impl * k;
       } while (isVisible(bar_x_pos));
 
@@ -245,9 +265,9 @@ void computeAll(
       last_delim = (last_sig_change_it->first - timeDelta);
       last_delim_px = last_delim.toPixels(zoom);
 
-      addNewMain(last_delim_px, last_delim);
+      addNewMain(last_delim_px, prev_time, last_delim);
 
-      k = 1;
+      k = 0;
     }
     else
     {
@@ -256,7 +276,7 @@ void computeAll(
 
       // note: if a measure change falls on a new measure
       // we get a duplicated bar here
-      addNewMain(bar_x_pos, current_time);
+      addNewMain(bar_x_pos, prev_time, current_time);
       k++;
     }
   }
@@ -301,6 +321,21 @@ bars * (4. * double(sig_upper) / sig_lower);
 */
 }
 
+static
+QDebug operator<<(QDebug d, MusicalGrid::timings t)
+{
+  d << QString("%1  inc: [%2, %3, %4, %5]  t: [%6, %7, %8, %9]")
+       .arg(t.pos_x)
+       .arg(t.increment.bars)
+       .arg(t.increment.quarters)
+       .arg(t.increment.semiquavers)
+       .arg(t.increment.cents)
+       .arg(t.timings.bars)
+       .arg(t.timings.quarters)
+       .arg(t.timings.semiquavers)
+       .arg(t.timings.cents);
+  return d;
+}
 void MusicalGrid::compute(TimeVal timeDelta, ZoomRatio zoom, QRectF sceneRect, TimeVal x0_time)
 {
   SCORE_ASSERT(m_measures);
@@ -308,7 +343,7 @@ void MusicalGrid::compute(TimeVal timeDelta, ZoomRatio zoom, QRectF sceneRect, T
   // Find the last measure change before x0_time.
   // this->start = computeStart(*this, x0_time, last_signature_change);
   mainPositions.clear();
-  subPositions.clear();
+  //subPositions.clear();
   timebars.lightBars.positions.clear();
   timebars.lighterBars.positions.clear();
   timebars.magneticTimings.clear();
@@ -342,9 +377,19 @@ void MusicalGrid::compute(TimeVal timeDelta, ZoomRatio zoom, QRectF sceneRect, T
   std::unique(timebars.magneticTimings.begin(), timebars.magneticTimings.end());
   for (auto& [v, _1, _2] : mainPositions)
     v -= x0_time.toPixels(zoom) + 100;
-  for (auto& [v, _1, _2] : subPositions)
-    v -= x0_time.toPixels(zoom) + 100;
-
+  // for (auto& [v, _1, _2] : subPositions)
+  //   v -= x0_time.toPixels(zoom) + 100;
+/*
+  {
+    qDebug(" =================== ");
+    for(int i = 0; i < std::min((int)mainPositions.size(), 3); i++)
+      qDebug() << "Main " << i <<  mainPositions[i];
+    //for(int i = 0; i < std::min((int)subPositions.size(), 8); i++)
+    //  qDebug() << "Sub" << i <<  subPositions[i];
+    for(int i = 0; i < std::min((int)timebars.magneticTimings.size(), 8); i++)
+      qDebug() << "Magnetic" << i <<  timebars.magneticTimings[i].toQTime();
+  }
+*/
   this->timebars.lightBars.updateShapes();
   this->timebars.lighterBars.updateShapes();
   changed();

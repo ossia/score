@@ -25,7 +25,7 @@ public:
   };
 
   std::vector<timings> mainPositions;
-  std::vector<timings> subPositions;
+  //std::vector<timings> subPositions;
 
   void changed() W_SIGNAL(changed);
 
