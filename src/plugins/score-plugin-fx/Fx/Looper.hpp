@@ -19,7 +19,7 @@ struct Node
     static const constexpr auto controls = std::make_tuple(
         Control::Widgets::LoopChooser(),
         Control::Widgets::QuantificationChooser(),
-        Control::Toggle("Echo during recording", true)
+        Control::Toggle("Passthrough", true)
     );
     static const constexpr audio_in audio_ins[]{"in"};
     static const constexpr audio_out audio_outs[]{"out"};
@@ -362,6 +362,44 @@ struct Node
       }
     }
     state.playbackPos += N;
+  }
+
+
+  static void item(
+      Process::Enum& mode,
+      Process::ComboBox& quantif,
+      Process::Toggle& echo,
+      const Process::ProcessModel& process,
+      QGraphicsItem& parent,
+      QObject& context,
+      const Process::Context& doc)
+  {
+    using namespace Process;
+    const Process::PortFactoryList& portFactory = doc.app.interfaces<Process::PortFactoryList>();
+    const auto c0 = 10;
+    const auto c1 = 220;
+
+    auto c0_bg = new score::BackgroundItem{&parent};
+    c0_bg->setRect({0., 0., 340., 60});
+    auto mode_item
+        = makeControlNoText(std::get<0>(Metadata::controls), mode, parent, context, doc, portFactory);
+    mode_item.root.setPos(c0, 10);
+    mode_item.control.setPos({4, 0});
+    mode_item.control.setRect({0, 0, 200, 30});
+    mode_item.port.setPos({-8, 10});
+
+    auto quant_item = makeControlNoText(
+        std::get<1>(Metadata::controls), quantif, parent, context, doc, portFactory);
+    quant_item.root.setPos(c1, 10);
+    quant_item.control.setPos({10, 0});
+    quant_item.port.setPos({-3, 4});
+
+    auto echo_item
+        = makeControl(std::get<2>(Metadata::controls), echo, parent, context, doc, portFactory);
+    echo_item.root.setPos(c1, 35);
+    echo_item.control.setPos({10, 0});
+    echo_item.port.setPos({-3, 4});
+    echo_item.text.setPos({30, 3});
   }
 };
 }
