@@ -39,11 +39,13 @@ PlayContextMenu::PlayContextMenu(
   /// Right-click actions
   m_playStates = new QAction{tr("Play (States)"), this};
   connect(m_playStates, &QAction::triggered, [=]() {
-    const auto& ctx = m_ctx.currentDocument();
-    auto sm = focusedScenarioInterface(ctx);
+    auto ctx = m_ctx.currentDocument();
+    if(!ctx)
+      return;
+    auto sm = focusedScenarioInterface(*ctx);
     if (sm)
     {
-      auto& r_ctx = ctx.plugin<Execution::DocumentPlugin>().context();
+      auto& r_ctx = ctx->plugin<Execution::DocumentPlugin>().context();
 
       for (const StateModel* state : selectedElements(sm->getStates()))
       {
@@ -55,8 +57,10 @@ PlayContextMenu::PlayContextMenu(
 
   m_playIntervals = new QAction{tr("Play (Intervals)"), this};
   connect(m_playIntervals, &QAction::triggered, [&]() {
-    const auto& ctx = m_ctx.currentDocument();
-    auto sm = focusedScenarioInterface(ctx);
+    auto ctx = m_ctx.currentDocument();
+    if(!ctx)
+      return;
+    auto sm = focusedScenarioInterface(*ctx);
     if (!sm)
       return;
 
@@ -90,8 +94,10 @@ PlayContextMenu::PlayContextMenu(
       &Scenario::ScenarioExecution::playState,
       this,
       [=](const Scenario::ScenarioInterface& scenar, const Id<StateModel>& id) {
-        const auto& ctx = m_ctx.currentDocument();
-        auto& r_ctx = ctx.plugin<Execution::DocumentPlugin>().context();
+        auto ctx = m_ctx.currentDocument();
+        if(!ctx)
+          return;
+        auto& r_ctx = ctx->plugin<Execution::DocumentPlugin>().context();
 
         auto& score_state = scenar.state(id);
 

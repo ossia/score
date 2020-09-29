@@ -8,79 +8,116 @@
 
 namespace Execution
 {
-Audio::tick_fun makeExecutionTick(
-    ossia::tick_setup_options opt,
-    Execution::DocumentPlugin& m_plug,
-    Execution::BaseScenarioElement& m_cur)
+namespace
 {
-  auto actions = m_plug.actions();
-  for (Execution::ExecutionAction& act : m_plug.context().doc.app.interfaces<Execution::ExecutionActionList>())
+struct AudioTickHelper
+{
+  AudioTickHelper(
+      ossia::tick_setup_options opt,
+      Execution::DocumentPlugin& plug,
+      Execution::BaseScenarioElement& scenar)
+    : m_tick{ossia::make_tick(opt, *plug.execState, *plug.execGraph, *scenar.baseInterval().OSSIAInterval())}
+    , m_plug{plug}
+    , m_proto{plug.audioProto()}
   {
-    actions.push_back(&act);
+    m_actions = plug.actions();
+    for (Execution::ExecutionAction& act : plug.context().doc.app.interfaces<Execution::ExecutionActionList>())
+    {
+      m_actions.push_back(&act);
+    }
   }
 
-  auto tick = ossia::make_tick(
-      opt, *m_plug.execState, *m_plug.execGraph, *m_cur.baseInterval().OSSIAInterval());
+  void clearBuffers(const ossia::audio_tick_state& t) const
+  {
+    // Clear buffers as some APIs are nastyyyy
+    for(int chan = 0; chan < t.n_out; chan++)
+    {
+      float* c = t.outputs[chan];
+      for(std::size_t i = 0; i < t.frames; i++)
+      {
+        c[i] = 0.f;
+      }
+    }
+  }
 
-  return [tick, plug = &m_plug, actions = std::move(actions)] (ossia::audio_tick_state t) {
+  void dequeueCommands() const
+  try
+  {
     // Run some commands if they have been submitted.
     Execution::ExecutionCommand c;
-    while (plug->context().executionQueue.try_dequeue(c))
+    auto& exec = m_plug.context().executionQueue;
+    auto& gcq = m_plug.context().gcQueue;
+    while (exec.try_dequeue(c))
     {
       c();
+      gcq.enqueue(gc(std::move(c)));
     }
+  } catch (...) { }
 
-    for (auto act : actions)
+  void main(const ossia::audio_tick_state& t) const
+  try
+  {
+    // Match the audio_protocol with the actual I/O
+    m_proto.setup_buffers(t);
+
+    // The actual tick
+    for (auto act : m_actions)
       act->startTick(t);
 
-    tick(t.frames, t.seconds);
+    m_tick(t.frames, t.seconds);
 
-    for (auto act : actions)
+    for (auto act : m_actions)
       act->endTick(t);
+  } catch (...) { }
+
+  smallfun::function<void(unsigned long, double), 128> m_tick;
+  Execution::DocumentPlugin& m_plug;
+  ossia::audio_protocol& m_proto;
+  std::vector<ExecutionAction*> m_actions;
+};
+}
+
+
+Audio::tick_fun makeExecutionTick(
+    ossia::tick_setup_options opt,
+    Execution::DocumentPlugin& plug,
+    Execution::BaseScenarioElement& scenar)
+{
+  return [helper = AudioTickHelper{opt, plug, scenar}] (ossia::audio_tick_state t)
+  {
+    helper.clearBuffers(t);
+      helper.dequeueCommands();
+      helper.main(t);
   };
 }
 
 Audio::tick_fun makeBenchmarkTick(
     ossia::tick_setup_options opt,
-    Execution::DocumentPlugin& m_plug,
-    Execution::BaseScenarioElement& m_cur)
+    Execution::DocumentPlugin& plug,
+    Execution::BaseScenarioElement& scenar)
 {
-  auto actions = m_plug.actions();
-  for (Execution::ExecutionAction& act : m_plug.context().doc.app.interfaces<Execution::ExecutionActionList>())
-  {
-    actions.push_back(&act);
-  }
-
   auto tick = ossia::make_tick(
-      opt, *m_plug.execState, *m_plug.execGraph, *m_cur.baseInterval().OSSIAInterval());
+      opt, *plug.execState, *plug.execGraph, *scenar.baseInterval().OSSIAInterval());
 
-  return [tick, plug = &m_plug, actions = std::move(actions)] (ossia::audio_tick_state t) {
-    // Run some commands if they have been submitted.
-    Execution::ExecutionCommand c;
-    while (plug->context().executionQueue.try_dequeue(c))
-    {
-      c();
-    }
+  int i = 0;
+  return [helper = AudioTickHelper{opt, plug, scenar}, i]
+      (ossia::audio_tick_state t) mutable
+  {
+    helper.clearBuffers(t);
+    helper.dequeueCommands();
 
-    auto& bench = *plug->bench;
-    static int i = 0;
+    auto& bench = *helper.m_plug.bench;
     if (i % 50 == 0)
     {
       bench.measure = true;
       auto t0 = std::chrono::steady_clock::now();
 
-      for (auto act : actions)
-        act->startTick(t);
-
-      tick(t.frames, t.seconds);
-
-      for (auto act : actions)
-        act->endTick(t);
+      helper.main(t);
 
       auto t1 = std::chrono::steady_clock::now();
       auto total = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count();
 
-      plug->slot_bench(bench, total);
+      helper.m_plug.slot_bench(bench, total);
       for (auto& p : bench)
       {
         p.second = {};
@@ -90,13 +127,7 @@ Audio::tick_fun makeBenchmarkTick(
     {
       bench.measure = false;
 
-      for (auto act : actions)
-        act->startTick(t);
-
-      tick(t.frames, t.seconds);
-
-      for (auto act : actions)
-        act->endTick(t);
+      helper.main(t);
     }
 
     i++;

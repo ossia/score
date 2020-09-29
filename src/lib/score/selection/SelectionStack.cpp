@@ -18,8 +18,15 @@
 W_OBJECT_IMPL(score::SelectionStack)
 W_OBJECT_IMPL(Selectable)
 W_OBJECT_IMPL(score::FocusManager)
+void Selection::removeDuplicates()
+{
+  std::sort(begin(), end());
+  std::unique(begin(), end());
+}
+
 namespace score
 {
+
 SelectionStack::SelectionStack()
 {
   connect(this, &SelectionStack::pushNewSelection, this, &SelectionStack::push);

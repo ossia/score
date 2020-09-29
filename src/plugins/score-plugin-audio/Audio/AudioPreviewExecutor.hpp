@@ -3,7 +3,7 @@
 
 #include <ossia/dataflow/nodes/media.hpp>
 
-#include <readerwriterqueue.h>
+#include <ossia/detail/lockfree_queue.hpp>
 #include <score_plugin_audio_export.h>
 
 namespace ossia
@@ -36,7 +36,7 @@ public:
   sound current_sound{};
   int64_t currentPos{};
   bool playing{};
-  moodycamel::ReaderWriterQueue<sound> queue;
+  ossia::spsc_queue<sound> queue;
 };
 
 }

@@ -43,21 +43,22 @@ class EditJsContext : public QObject
 public:
   EditJsContext() { }
 
-  const score::DocumentContext& ctx()
+  const score::DocumentContext* ctx()
   {
     return score::GUIAppContext().currentDocument();
   }
 
   void createOSCDevice(QString name, QString host, int in, int out)
   {
-    auto& plug = ctx().plugin<Explorer::DeviceDocumentPlugin>();
+    auto doc = ctx(); if (!doc) return;
+    auto& plug = doc->plugin<Explorer::DeviceDocumentPlugin>();
     Device::DeviceSettings set;
     set.name = name;
     set.deviceSpecificSettings
         = QVariant::fromValue(Protocols::OSCSpecificSettings{in, out, host});
     set.protocol = Protocols::OSCProtocolFactory::static_concreteKey();
 
-    Scenario::Command::Macro m{new ScriptMacro, ctx()};
+    Scenario::Command::Macro m{new ScriptMacro, *doc};
     m.submit(new Explorer::Command::LoadDevice{plug, std::move(set)});
     m.commit();
   }
@@ -65,12 +66,13 @@ public:
 
   void createAddress(QString addr, QString type)
   {
+    auto doc = ctx(); if (!doc) return;
     auto a = State::Address::fromString(addr);
     if (!a)
       return;
 
-    auto& plug = ctx().plugin<Explorer::DeviceDocumentPlugin>();
-    Scenario::Command::Macro m{new ScriptMacro, ctx()};
+    auto& plug = doc->plugin<Explorer::DeviceDocumentPlugin>();
+    Scenario::Command::Macro m{new ScriptMacro, *doc};
 
     Device::FullAddressSettings set;
     set.address = *a;
@@ -98,19 +100,28 @@ public:
 
   void automate(QObject* interval, QString addr)
   {
+    auto doc = ctx(); if (!doc) return;
     auto itv = qobject_cast<Scenario::IntervalModel*>(interval);
     if (!itv)
       return;
-    Scenario::Command::Macro m{new ScriptMacro, ctx()};
+    Scenario::Command::Macro m{new ScriptMacro, *doc};
     m.automate(*itv, addr);
     m.commit();
   }
   W_SLOT(automate)
 
-  void undo() { ctx().document.commandStack().undo(); }
+  void undo()
+  {
+    auto doc = ctx(); if (!doc) return;
+    doc->document.commandStack().undo();
+  }
   W_SLOT(undo)
 
-  void redo() { ctx().document.commandStack().redo(); }
+  void redo()
+  {
+    auto doc = ctx(); if (!doc) return;
+    doc->document.commandStack().redo();
+  }
   W_SLOT(redo)
 
   QObject* find(QString p)

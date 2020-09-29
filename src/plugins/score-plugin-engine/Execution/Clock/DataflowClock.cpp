@@ -11,6 +11,8 @@
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/detail/flicks.hpp>
 
+
+#include <Audio/AudioApplicationPlugin.hpp>
 #include <Audio/Settings/Model.hpp>
 #include <Audio/AudioTick.hpp>
 #include <Execution/ExecutionTick.hpp>
@@ -21,18 +23,21 @@ namespace Dataflow
 Clock::Clock(const Execution::Context& ctx)
     : Execution::Clock{ctx}
     , m_default{ctx}
+    , m_audio{context.doc.app.guiApplicationPlugin<Audio::ApplicationPlugin>()}
     , m_plug{context.doc.plugin<Execution::DocumentPlugin>()}
 {
 }
 
-Clock::~Clock() { }
+Clock::~Clock()
+{
+}
 
 void Clock::play_impl(const TimeVal& t, Execution::BaseScenarioElement& bs)
 {
   m_paused = false;
 
   m_cur = &bs;
-  m_default.play(t);
+  m_default.play(t, bs);
 
   resume_impl(bs);
 }
@@ -40,19 +45,19 @@ void Clock::play_impl(const TimeVal& t, Execution::BaseScenarioElement& bs)
 void Clock::pause_impl(Execution::BaseScenarioElement& bs)
 {
   m_paused = true;
-  if (auto e = m_plug.audioProto().engine)
+  if (auto e = m_audio.audio.get())
     e->set_tick(Audio::makePauseTick(this->context.doc.app));
-  m_default.pause();
+  m_default.pause(bs);
 }
 
 void Clock::resume_impl(Execution::BaseScenarioElement& bs)
 {
-  auto e = m_plug.audioProto().engine;
+  auto e = m_audio.audio.get();
   if (!e)
     return;
 
   m_paused = false;
-  m_default.resume();
+  m_default.resume(bs);
   auto tick = m_plug.settings.getTick();
   auto commit = m_plug.settings.getCommit();
 
@@ -87,11 +92,11 @@ void Clock::stop_impl(Execution::BaseScenarioElement& bs)
 {
   m_paused = false;
 
-  if (auto e = m_plug.audioProto().engine)
+  if (auto e = m_audio.audio.get())
     e->set_tick(Audio::makePauseTick(this->context.doc.app));
 
+  m_default.stop(bs);
   m_plug.finished();
-  m_default.stop();
 }
 
 bool Clock::paused() const

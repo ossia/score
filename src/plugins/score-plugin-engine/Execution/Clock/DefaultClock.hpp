@@ -10,20 +10,21 @@ class IntervalModel;
 namespace Execution
 {
 class BaseScenarioElement;
-class SCORE_PLUGIN_ENGINE_EXPORT DefaultClock final : public Clock
+class SCORE_PLUGIN_ENGINE_EXPORT DefaultClock
 {
 public:
   DefaultClock(const Context& ctx);
-
-  virtual ~DefaultClock();
+  ~DefaultClock();
 
   void prepareExecution(const TimeVal& t, BaseScenarioElement& bs);
 
+  void play(const TimeVal& t, BaseScenarioElement&);
+  void pause(BaseScenarioElement&);
+  void resume(BaseScenarioElement&);
+  void stop(BaseScenarioElement&);
+
 private:
-  void play_impl(const TimeVal& t, BaseScenarioElement&) override;
-  void pause_impl(BaseScenarioElement&) override;
-  void resume_impl(BaseScenarioElement&) override;
-  void stop_impl(BaseScenarioElement&) override;
+  const Context& context;
 };
 class ControlClock final : public Clock
 {

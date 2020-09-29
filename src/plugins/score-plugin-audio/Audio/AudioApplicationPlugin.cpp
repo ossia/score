@@ -29,6 +29,7 @@ namespace Audio
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
     : score::GUIApplicationPlugin{ctx}
 {
+  startTimer(50);
 }
 
 void ApplicationPlugin::initialize()
@@ -49,9 +50,14 @@ void ApplicationPlugin::on_documentChanged(score::Document* olddoc, score::Docum
   restart_engine();
 }
 
+void ApplicationPlugin::timerEvent(QTimerEvent*)
+{
+  if(audio)
+    audio->gc();
+}
+
 score::GUIElements ApplicationPlugin::makeGUIElements()
 {
-
   GUIElements e;
 
   auto& toolbars = e.toolbars;
@@ -79,12 +85,18 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     connect(sl, &score::VolumeSlider::valueChanged, this, [=](double v) {
       if (!this->audio)
         return;
-      if (!this->audio->protocol)
-        return;
-      ossia::audio_protocol* p = this->audio->protocol;
-      auto& dev = p->get_device();
 
-      auto root = ossia::net::find_node(dev.get_root_node(), "/out/main");
+      auto doc = context.currentDocument();
+      if (!doc)
+        return;
+      auto dev = (Dataflow::AudioDevice*) doc->plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice();
+      if(!dev)
+        return;
+      auto p = dev->getProtocol();
+      if(!p)
+        return;
+
+      auto root = ossia::net::find_node(dev->getDevice()->get_root_node(), "/out/main");
       if (root)
       {
         if (auto p = root->get_parameter())

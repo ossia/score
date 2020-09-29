@@ -35,6 +35,9 @@ private:
   void initialize() override;
 
   void on_documentChanged(score::Document* olddoc, score::Document* newdoc) override;
+
+  void timerEvent(QTimerEvent*) override;
+
 };
 
 }

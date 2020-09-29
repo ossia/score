@@ -13,10 +13,11 @@ score::ApplicationContext::ApplicationContext(
 {
 }
 
-const score::DocumentContext& score::ApplicationContext::currentDocument() const noexcept
+const score::DocumentContext* score::ApplicationContext::currentDocument() const noexcept
 {
-  SCORE_ASSERT(documents.currentDocument());
-  return documents.currentDocument()->context();
+  if(auto doc = documents.currentDocument())
+    return &doc->context();
+  return nullptr;
 }
 
 score::ApplicationContext::~ApplicationContext() = default;

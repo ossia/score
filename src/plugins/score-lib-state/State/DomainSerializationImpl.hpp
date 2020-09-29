@@ -2,6 +2,8 @@
 #include <State/OSSIASerializationImpl.hpp>
 #include <State/ValueSerializationImpl.hpp>
 
+#include <ossia/detail/typelist.hpp>
+
 //////////// Domain Variant serialization /////////////
 
 template <>
@@ -389,7 +391,7 @@ struct TSerializer<JSONObject, ossia::domain_base_variant>
     s.stream.EndObject();
   }
 
-  using value_type_list = brigand::list<
+  using value_type_list = ossia::tl<
       ossia::domain_base<ossia::impulse>,
       ossia::domain_base<bool>,
       ossia::domain_base<int>,

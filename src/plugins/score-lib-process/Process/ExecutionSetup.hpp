@@ -65,8 +65,6 @@ struct Transaction
   {
     for (auto& cmd : commands)
       cmd();
-
-    context.editionQueue.enqueue(gc(std::move(*this)));
   }
 };
 

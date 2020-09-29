@@ -94,7 +94,11 @@ bool AudioDevice::reconnect()
     auto& engine = score::GUIAppContext().guiApplicationPlugin<Audio::ApplicationPlugin>().audio;
     if (!engine)
       return false;
-    engine->reload(&proto);
+
+    // We have to sync the GUI tree with the audio thread so we stop it momentarily...
+    engine->stop();
+    proto.setup_tree(engine->effective_inputs, engine->effective_outputs);
+    engine->start();
 
     setLogging_impl(Device::get_cur_logging(isLogging()));
   }
@@ -122,6 +126,8 @@ void AudioDevice::recreate(const Device::Node& n)
 
 void AudioDevice::setupNode(ossia::net::node_base& node, const ossia::extended_attributes& attr)
 {
+  // TODO make sure that this function which modifies the tree
+  // is done in the execution thread ...
   auto kind_it = attr.find("audio-kind");
   if (kind_it == attr.end())
     return; // it will be added automatically

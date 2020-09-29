@@ -4,7 +4,8 @@
 #include <ossia/editor/scenario/time_value.hpp>
 
 #include <concurrentqueue.h>
-#include <readerwriterqueue.h>
+#include <ossia/detail/lockfree_queue.hpp>
+
 #include <score_lib_process_export.h>
 #include <smallfun.hpp>
 
@@ -69,8 +70,15 @@ using ExecutionCommand = smallfun::function<
     128,
     std::max((int)8, (int)std::max(alignof(std::function<void()>), alignof(double))),
     smallfun::Methods::Move>;
-using ExecutionCommandQueue = moodycamel::ReaderWriterQueue<ExecutionCommand, 1024>;
+using GCCommand = smallfun::function<
+    void(),
+    128 + 4 * 8,
+    std::max((int)8, (int)std::max(alignof(std::function<void()>), alignof(double))),
+    smallfun::Methods::Move>;
+
+using ExecutionCommandQueue = ossia::spsc_queue<ExecutionCommand, 1024>;
 using EditionCommandQueue = moodycamel::ConcurrentQueue<ExecutionCommand>;
+using GCCommandQueue = moodycamel::ConcurrentQueue<GCCommand>;
 
 //! Useful structures when creating the execution elements.
 //!
@@ -90,6 +98,7 @@ struct SCORE_LIB_PROCESS_EXPORT Context
   //! \see LiveModification
   ExecutionCommandQueue& executionQueue;
   EditionCommandQueue& editionQueue;
+  GCCommandQueue& gcQueue;
   SetupContext& setup;
 
   const std::shared_ptr<ossia::graph_interface>& execGraph;

@@ -5,7 +5,7 @@ extern "C"
 #include <libavformat/avformat.h>
 }
 
-#include <readerwriterqueue.h>
+#include <ossia/detail/lockfree_queue.hpp>
 #include <score_plugin_media_export.h>
 
 #include <atomic>
@@ -45,8 +45,8 @@ private:
 
   std::thread m_thread;
 
-  moodycamel::ReaderWriterQueue<AVFrame*, 16> m_framesToPlayer;
-  moodycamel::ReaderWriterQueue<AVFrame*, 16> m_releasedFrames;
+  ossia::spsc_queue<AVFrame*, 16> m_framesToPlayer;
+  ossia::spsc_queue<AVFrame*, 16> m_releasedFrames;
 
   std::string m_inputKind;
   std::string m_inputDevice;

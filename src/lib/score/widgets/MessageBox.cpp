@@ -1,10 +1,11 @@
 #include "MessageBox.hpp"
 
 #include <score/widgets/Pixmap.hpp>
-
-#include <QMessageBox>
 #include <score/application/ApplicationContext.hpp>
 #include <core/application/ApplicationSettings.hpp>
+
+#include <QMessageBox>
+#include <QDebug>
 
 namespace score
 {

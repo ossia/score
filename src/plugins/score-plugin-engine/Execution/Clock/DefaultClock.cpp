@@ -19,7 +19,7 @@
 namespace Execution
 {
 DefaultClock::~DefaultClock() = default;
-DefaultClock::DefaultClock(const Context& ctx) : Clock{ctx} { }
+DefaultClock::DefaultClock(const Context& ctx) : context{ctx} { }
 
 void DefaultClock::prepareExecution(const TimeVal& t, BaseScenarioElement& bs)
 {
@@ -41,7 +41,7 @@ void DefaultClock::prepareExecution(const TimeVal& t, BaseScenarioElement& bs)
   }
 }
 
-void DefaultClock::play_impl(const TimeVal& t, BaseScenarioElement& bs)
+void DefaultClock::play(const TimeVal& t, BaseScenarioElement& bs)
 {
   prepareExecution(t, bs);
   try
@@ -55,17 +55,17 @@ void DefaultClock::play_impl(const TimeVal& t, BaseScenarioElement& bs)
   }
 }
 
-void DefaultClock::pause_impl(BaseScenarioElement& bs)
+void DefaultClock::pause(BaseScenarioElement& bs)
 {
   bs.baseInterval().pause();
 }
 
-void DefaultClock::resume_impl(BaseScenarioElement& bs)
+void DefaultClock::resume(BaseScenarioElement& bs)
 {
   bs.baseInterval().resume();
 }
 
-void DefaultClock::stop_impl(BaseScenarioElement& bs)
+void DefaultClock::stop(BaseScenarioElement& bs)
 {
   bs.baseInterval().stop();
 }
@@ -108,19 +108,19 @@ void ControlClock::play_impl(const TimeVal& t, Execution::BaseScenarioElement& b
 void ControlClock::pause_impl(Execution::BaseScenarioElement& bs)
 {
   m_clock.pause();
-  m_default.pause();
+  m_default.pause(bs);
 }
 
 void ControlClock::resume_impl(Execution::BaseScenarioElement& bs)
 {
-  m_default.resume();
+  m_default.resume(bs);
   m_clock.resume();
 }
 
 void ControlClock::stop_impl(Execution::BaseScenarioElement& bs)
 {
+  m_default.stop(bs);
   m_clock.stop();
-  m_default.stop();
 }
 
 bool ControlClock::paused() const
