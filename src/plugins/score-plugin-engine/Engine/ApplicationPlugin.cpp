@@ -224,14 +224,14 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
       timeline_act->setStatusTip(tr("Change between nodal and timeline mode"));
       setIcons(
           timeline_act,
-          QStringLiteral(":/icons/timeline_on.png"),
-          QStringLiteral(":/icons/timeline_hover.png"),
-          QStringLiteral(":/icons/timeline_off.png"),
-          QStringLiteral(":/icons/timeline_disabled.png"));
+          QStringLiteral(":/icons/nodal_on.png"),
+          QStringLiteral(":/icons/nodal_hover.png"),
+          QStringLiteral(":/icons/nodal_on.png"),
+          QStringLiteral(":/icons/nodal_disabled.png"));
 
       connect(timeline_act, &QAction::toggled,
               this, [=] (bool checked) {
-         if(checked)
+         if(!checked)
          {
            setIcons(
                timeline_act,
