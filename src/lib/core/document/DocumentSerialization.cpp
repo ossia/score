@@ -230,7 +230,8 @@ void Document::loadModel(const QString& fileName, DocumentDelegateFactory& facto
       score::warning(
           qApp->activeWindow(),
           tr("Warning"),
-          tr("There is probably something wrong with the loaded file."));
+          tr("The save format is too old. Wait until the developers implement loading of the older save format."));
+      throw std::runtime_error("Invalid project file");
     }
     m_model->loadDocumentAsJson(m_context, doc, factory);
   }
