@@ -18,6 +18,7 @@
 #include <QToolBar>
 
 #include <Audio/AudioDevice.hpp>
+#include <Audio/AudioTick.hpp>
 #include <Audio/AudioInterface.hpp>
 #include <Audio/AudioPreviewExecutor.hpp>
 #include <Audio/Settings/Model.hpp>
@@ -25,24 +26,6 @@
 SCORE_DECLARE_ACTION(RestartAudio, "Restart Audio", Common, QKeySequence::UnknownKey)
 namespace Audio
 {
-namespace
-{
-static auto makeDefaultTick(const score::ApplicationContext& app)
-{
-  std::vector<Execution::ExecutionAction*> actions;
-  for (Execution::ExecutionAction& act : app.interfaces<Execution::ExecutionActionList>())
-  {
-    actions.push_back(&act);
-  }
-
-  return [actions = std::move(actions)](unsigned long samples, double sec) {
-    for (auto act : actions)
-      act->startTick(samples, sec);
-    for (auto act : actions)
-      act->endTick(samples, sec);
-  };
-}
-}
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
     : score::GUIApplicationPlugin{ctx}
 {
@@ -57,31 +40,9 @@ void ApplicationPlugin::initialize()
       this,
       &ApplicationPlugin::restart_engine,
       Qt::QueuedConnection);
-
-  if (context.applicationSettings.gui)
-  {
-    auto& stop_action = context.actions.action<Actions::Stop>();
-    connect(
-        stop_action.action(),
-        &QAction::triggered,
-        this,
-        &ApplicationPlugin::on_stop,
-        Qt::QueuedConnection);
-  }
 }
 
 ApplicationPlugin::~ApplicationPlugin() { }
-
-void ApplicationPlugin::on_stop()
-{
-  if (audio)
-  {
-    // TODO we should untie audio_engine and audio_protocol so that
-    // the audio_engine does not depend on a document running
-    audio->set_tick(makeDefaultTick(this->context));
-    //audio->reload(nullptr);
-  }
-}
 
 void ApplicationPlugin::on_documentChanged(score::Document* olddoc, score::Document* newdoc)
 {
@@ -166,7 +127,9 @@ try
         }
       }
     }
+
     audio->stop();
+
     audio.reset();
   }
 
@@ -186,7 +149,7 @@ try
     if (audio)
     {
       preview.audio = audio->protocol;
-      audio->set_tick(makeDefaultTick(this->context));
+      audio->set_tick(Audio::makePauseTick(this->context));
     }
     else
     {

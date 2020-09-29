@@ -31,7 +31,6 @@ private:
   void restart_engine();
   void setup_engine();
   void initialize() override;
-  void on_stop();
 
   void on_documentChanged(score::Document* olddoc, score::Document* newdoc) override;
 };
