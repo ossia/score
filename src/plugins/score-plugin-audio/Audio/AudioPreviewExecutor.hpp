@@ -24,7 +24,7 @@ public:
 
   explicit AudioPreviewExecutor();
 
-  void endTick(unsigned long frameCount, double seconds) override;
+  void endTick(const ossia::audio_tick_state& st) override;
 
   struct sound
   {
@@ -37,7 +37,6 @@ public:
   int64_t currentPos{};
   bool playing{};
   moodycamel::ReaderWriterQueue<sound> queue;
-  ossia::audio_protocol* audio{};
 };
 
 }

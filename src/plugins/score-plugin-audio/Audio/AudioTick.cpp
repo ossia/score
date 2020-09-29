@@ -11,11 +11,11 @@ tick_fun makePauseTick(const score::ApplicationContext& app)
     actions.push_back(&act);
   }
 
-  return [actions = std::move(actions)](unsigned long samples, double sec) {
+  return [actions = std::move(actions)] (ossia::audio_tick_state t) {
     for (auto act : actions)
-      act->startTick(samples, sec);
+      act->startTick(t);
     for (auto act : actions)
-      act->endTick(samples, sec);
+      act->endTick(t);
   };
 }
 

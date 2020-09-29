@@ -22,7 +22,7 @@ Audio::tick_fun makeExecutionTick(
   auto tick = ossia::make_tick(
       opt, *m_plug.execState, *m_plug.execGraph, *m_cur.baseInterval().OSSIAInterval());
 
-  return [tick, plug = &m_plug, actions = std::move(actions)](auto&&... args) {
+  return [tick, plug = &m_plug, actions = std::move(actions)] (ossia::audio_tick_state t) {
     // Run some commands if they have been submitted.
     Execution::ExecutionCommand c;
     while (plug->context().executionQueue.try_dequeue(c))
@@ -31,12 +31,12 @@ Audio::tick_fun makeExecutionTick(
     }
 
     for (auto act : actions)
-      act->startTick(args...);
+      act->startTick(t);
 
-    tick(args...);
+    tick(t.frames, t.seconds);
 
     for (auto act : actions)
-      act->endTick(args...);
+      act->endTick(t);
   };
 }
 
@@ -54,7 +54,7 @@ Audio::tick_fun makeBenchmarkTick(
   auto tick = ossia::make_tick(
       opt, *m_plug.execState, *m_plug.execGraph, *m_cur.baseInterval().OSSIAInterval());
 
-  return [tick, plug = &m_plug, actions = std::move(actions)](auto&&... args) {
+  return [tick, plug = &m_plug, actions = std::move(actions)] (ossia::audio_tick_state t) {
     // Run some commands if they have been submitted.
     Execution::ExecutionCommand c;
     while (plug->context().executionQueue.try_dequeue(c))
@@ -70,12 +70,12 @@ Audio::tick_fun makeBenchmarkTick(
       auto t0 = std::chrono::steady_clock::now();
 
       for (auto act : actions)
-        act->startTick(args...);
+        act->startTick(t);
 
-      tick(args...);
+      tick(t.frames, t.seconds);
 
       for (auto act : actions)
-        act->endTick(args...);
+        act->endTick(t);
 
       auto t1 = std::chrono::steady_clock::now();
       auto total = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count();
@@ -91,12 +91,12 @@ Audio::tick_fun makeBenchmarkTick(
       bench.measure = false;
 
       for (auto act : actions)
-        act->startTick(args...);
+        act->startTick(t);
 
-      tick(args...);
+      tick(t.frames, t.seconds);
 
       for (auto act : actions)
-        act->endTick(args...);
+        act->endTick(t);
     }
 
     i++;

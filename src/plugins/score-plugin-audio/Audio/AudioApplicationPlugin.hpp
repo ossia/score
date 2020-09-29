@@ -25,11 +25,13 @@ public:
   std::unique_ptr<ossia::audio_engine> audio;
 
 private:
+  void restart_engine();
+  void stop_engine();
+  void start_engine();
+
   QAction* m_audioEngineAct{};
 
   bool m_updating_audio = false;
-  void restart_engine();
-  void setup_engine();
   void initialize() override;
 
   void on_documentChanged(score::Document* olddoc, score::Document* newdoc) override;
