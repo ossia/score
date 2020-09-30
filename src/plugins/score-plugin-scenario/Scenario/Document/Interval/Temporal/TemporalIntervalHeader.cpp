@@ -364,15 +364,7 @@ void TemporalIntervalHeader::on_textChanged()
     auto r = line.glyphRuns();
     if (r.size() > 0)
     {
-      double ratio = 1.;
-      if (auto v = getView(*this))
-        ratio = v->devicePixelRatioF();
-      img = QImage(
-          m_textRectCache.width() * ratio,
-          m_textRectCache.height() * ratio,
-          QImage::Format_ARGB32_Premultiplied);
-      img.setDevicePixelRatio(ratio);
-      img.fill(Qt::transparent);
+      img = newImage(m_textRectCache.width(), m_textRectCache.height());
 
       QPainter p{&img};
       if (m_hovered || m_selected)

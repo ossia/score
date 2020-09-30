@@ -5,6 +5,7 @@
 #include <score/plugins/UuidKey.hpp>
 #include <score/tools/Debug.hpp>
 
+#include <QGuiApplication>
 #include <QGraphicsItem>
 #include <QGraphicsView>
 
@@ -54,4 +55,13 @@ QGraphicsView* getView(const QPainter& painter)
   auto widg = static_cast<QWidget*>(painter.device());
   SCORE_ASSERT(widg);
   return static_cast<QGraphicsView*>(widg->parent());
+}
+
+QImage newImage(double logical_w, double logical_h)
+{
+  double ratio = qApp->devicePixelRatio();
+  QImage img(logical_w * ratio, logical_h * ratio, QImage::Format_ARGB32_Premultiplied);
+  img.setDevicePixelRatio(ratio);
+  img.fill(Qt::transparent);
+  return img;
 }
