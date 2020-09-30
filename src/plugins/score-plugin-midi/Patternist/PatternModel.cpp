@@ -114,6 +114,7 @@ void DataStreamWriter::write(Patternist::Lane& proc)
 template <>
 void JSONReader::read(const Patternist::Lane& proc)
 {
+  stream.StartObject();
   obj["Note"] = (int)proc.note;
 
   std::string str;
@@ -122,6 +123,7 @@ void JSONReader::read(const Patternist::Lane& proc)
     str.push_back(b ? 'X' : '.');
 
   obj["Pattern"] = str;
+  stream.EndObject();
 }
 
 template <>
@@ -147,9 +149,11 @@ void DataStreamWriter::write(Patternist::Pattern& proc)
 template <>
 void JSONReader::read(const Patternist::Pattern& proc)
 {
+  stream.StartObject();
   obj["Length"] = proc.length;
   obj["Division"] = proc.division;
   obj["Lanes"] = proc.lanes;
+  stream.EndObject();
 }
 
 template <>
