@@ -54,6 +54,7 @@ protected:
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 
 private:
+  const QPixmap& pixmap(const score::Brush& b);
   TimeSyncPresenter& m_presenter;
   VerticalExtent m_extent;
 
