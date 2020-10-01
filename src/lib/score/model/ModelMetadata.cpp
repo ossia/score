@@ -234,8 +234,6 @@ SCORE_LIB_BASE_EXPORT void JSONWriter::write(score::ModelMetadata& md)
     md.m_color = score::Skin::instance().fromString("Base1");
   }
 
-  md.m_color.getBrush();
-
   md.m_label = obj[strings.Label].toString();
 
   {
