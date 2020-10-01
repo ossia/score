@@ -55,7 +55,8 @@ public:
         set.getDefaultIn(),
         set.getDefaultOut(),
         set.getRate(),
-        set.getBufferSize());
+        set.getBufferSize(),
+        paWASAPI);
   }
 
   void setCard(QComboBox* combo, QString val)

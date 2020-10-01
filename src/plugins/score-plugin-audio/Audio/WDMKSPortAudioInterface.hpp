@@ -31,15 +31,17 @@ public:
           auto dev_idx = Pa_HostApiDeviceIndexToDeviceIndex(i, card);
           auto dev = Pa_GetDeviceInfo(dev_idx);
           auto raw_name = QString::fromUtf8(Pa_GetDeviceInfo(dev_idx)->name);
-
-          devices.push_back(PortAudioCard{
-              "WDMKS",
-              raw_name,
-              raw_name,
-              dev_idx,
-              dev->maxInputChannels,
-              dev->maxOutputChannels,
-              hostapi->type});
+          if(dev->maxOutputChannels > 0)
+          {
+            devices.push_back(PortAudioCard{
+                "WDMKS",
+                raw_name,
+                raw_name,
+                dev_idx,
+                dev->maxInputChannels,
+                dev->maxOutputChannels,
+                hostapi->type});
+          }
         }
       }
     }
@@ -56,7 +58,8 @@ public:
         set.getDefaultIn(),
         set.getDefaultOut(),
         set.getRate(),
-        set.getBufferSize());
+        set.getBufferSize(),
+        paWDMKS);
   }
 
   void setCard(QComboBox* combo, QString val)
@@ -88,6 +91,7 @@ public:
     for (std::size_t i = 1; i < devices.size(); i++)
     {
       auto& card = devices[i];
+      //qDebug() << card.api << card.raw_name << card.pretty_name << card.inputChan << card.outputChan;
       card_list->addItem(card.pretty_name, (int)i);
       card.out_index = card_list->count() - 1;
     }

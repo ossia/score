@@ -202,7 +202,8 @@ ALSAFactory::make_engine(const Audio::Settings::Model& set, const score::Applica
       set.getDefaultIn(),
       set.getDefaultOut(),
       set.getRate(),
-      set.getBufferSize());
+      set.getBufferSize(),
+      paALSA);
 }
 
 QWidget* ALSAFactory::make_settings(
