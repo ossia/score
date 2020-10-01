@@ -402,7 +402,10 @@ namespace {
 bool runningUnderAnUISession() noexcept
 {
 #if __linux__
-  return !qgetenv("DISPLAY").isEmpty() || !qgetenv("WAYLAND_DISPLAY").isEmpty();
+  return
+      !qgetenv("DISPLAY").isEmpty() ||
+      !qgetenv("WAYLAND_DISPLAY").isEmpty() ||
+      (qgetenv("XDG_SESSION_TYPE") != "tty");
 #else
   // Win32 and macOS always have a graphical session
   return true;
