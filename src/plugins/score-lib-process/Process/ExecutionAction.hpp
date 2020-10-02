@@ -1,7 +1,7 @@
 #pragma once
 #include <score/plugins/Interface.hpp>
 #include <score/plugins/InterfaceList.hpp>
-#include <ossia/audio/audio_protocol.hpp>
+#include <ossia/audio/audio_tick.hpp>
 
 #include <score_lib_process_export.h>
 

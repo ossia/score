@@ -1,6 +1,7 @@
 #include <Audio/AudioTick.hpp>
 
 #include <ossia/dataflow/graph/graph_interface.hpp>
+#include <ossia/audio/audio_protocol.hpp>
 
 #include <Execution/BaseScenarioComponent.hpp>
 #include <Execution/DocumentPlugin.hpp>

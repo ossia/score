@@ -17,7 +17,8 @@
 #include <score/serialization/AnySerialization.hpp>
 #include <score/tools/std/HashMap.hpp>
 
-#include <ossia/audio/audio_protocol.hpp>
+#include <ossia/network/base/node_attributes.hpp>
+#include <ossia/audio/audio_parameter.hpp>
 
 #include <score_plugin_deviceexplorer_commands_files.hpp>
 struct audio_mapping_attr

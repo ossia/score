@@ -14,6 +14,7 @@
 #include <score/widgets/MarginLess.hpp>
 
 #include <ossia/audio/audio_parameter.hpp>
+#include <ossia/audio/audio_protocol.hpp>
 #include <ossia/network/base/node.hpp>
 #include <ossia/network/base/parameter.hpp>
 

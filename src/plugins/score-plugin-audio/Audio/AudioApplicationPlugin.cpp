@@ -13,6 +13,7 @@
 #include <core/application/ApplicationSettings.hpp>
 #include <core/presenter/DocumentManager.hpp>
 
+#include <ossia/audio/audio_engine.hpp>
 #include <ossia/audio/audio_protocol.hpp>
 
 #include <QToolBar>

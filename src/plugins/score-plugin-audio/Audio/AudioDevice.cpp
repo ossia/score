@@ -9,6 +9,8 @@
 
 #include <ossia-qt/js_utilities.hpp>
 #include <ossia/audio/audio_parameter.hpp>
+#include <ossia/audio/audio_protocol.hpp>
+#include <ossia/audio/audio_engine.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>
 

@@ -3,7 +3,7 @@
 
 #include <score/application/ApplicationContext.hpp>
 
-#include <ossia/audio/audio_protocol.hpp>
+#include <ossia/audio/audio_engine.hpp>
 
 #include <score_plugin_audio_export.h>
 

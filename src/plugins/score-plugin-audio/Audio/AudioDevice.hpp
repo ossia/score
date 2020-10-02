@@ -4,11 +4,16 @@
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 
-#include <ossia/audio/audio_protocol.hpp>
+#include <ossia/network/generic/generic_device.hpp>
 
 #include <score_plugin_audio_export.h>
 
 #include <verdigris>
+
+namespace ossia
+{
+class audio_protocol;
+}
 class QLineEdit;
 namespace Dataflow
 {
