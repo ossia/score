@@ -5,8 +5,10 @@
 #include <Process/HeaderDelegate.hpp>
 #include <Process/Process.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Process/Style/Pixmaps.hpp>
 
 #include <score/graphics/GraphicsItem.hpp>
+#include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/YPos.hpp>
 #include <score/tools/Bind.hpp>
 
@@ -91,25 +93,27 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(
     const Process::Context& doc)
     : HeaderDelegate{m, doc}
 {
+  m_portStartX = 0.;
+  const auto flags = m.flags();
+  auto& pixmaps = Process::Pixmaps::instance();
   m_ui = Process::makeExternalUIButton(m_model, m_context, this, this);
-  const auto spacing = 16;
   if (m_ui)
   {
     m_ui->setPos({m_portStartX, 2});
-    m_portStartX += spacing;
+    m_portStartX += 12;
   }
 
-  if(true || flags & Process::ProcessFlags::Recordable)
+  if(flags & Process::ProcessFlags::Recordable)
   {
     auto rec_btn = new score::QGraphicsPixmapToggle{pixmaps.record_on, pixmaps.record_off, this};
-    rec_btn->setPos(m_portStartX, 1);
-    m_portStartX += spacing;
+    rec_btn->setPos(m_portStartX, 2);
+    m_portStartX += 12;
   }
-  if(true || flags & Process::ProcessFlags::Snapshottable)
+  if(flags & Process::ProcessFlags::Snapshottable)
   {
-    auto rec_btn = new score::QGraphicsPixmapButton{pixmaps.snapshot, pixmaps.snapshot, this};
-    rec_btn->setPos(m_portStartX, 1);
-    m_portStartX += spacing;
+    auto rec_btn = new score::QGraphicsPixmapButton{pixmaps.snapshot_on, pixmaps.snapshot_off, this};
+    rec_btn->setPos(m_portStartX, 2);
+    m_portStartX += 18;
   }
 
   con(m_model, &Process::ProcessModel::prettyNameChanged, this, [=] {
@@ -207,7 +211,7 @@ void DefaultHeaderDelegate::updatePorts()
   qDeleteAll(m_inPorts);
   m_inPorts.clear();
 
-  m_portEndX = m_ui ? 10. : 0.;
+  m_portEndX = m_portStartX;
   const auto& inlets = m_model.inlets();
 
   auto& portFactory
@@ -237,7 +241,7 @@ void DefaultHeaderDelegate::paint(
     const QStyleOptionGraphicsItem* option,
     QWidget* widget)
 {
-  const auto start = 3. + (m_ui ? 10. : 0.);
+  const auto start = 3. + m_portStartX;
   const auto w = boundingRect().width();
   if (w > minPortWidth())
   {

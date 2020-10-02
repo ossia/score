@@ -46,6 +46,12 @@ enum ProcessFlags : int64_t
   //! The process is currently creating new controls (the runtime state changed by the user)
   CreateControls =     SCORE_FLAG(9),
 
+  //! The process is snapshottable
+  Snapshottable =      SCORE_FLAG(10),
+
+  //! The process is recordable
+  Recordable =         SCORE_FLAG(11),
+
   SupportsLasting = SupportsTemporal | TimeIndependent,
   ExternalEffect = SupportsTemporal | TimeIndependent | RequiresCustomData | ControlSurface,
   SupportsAll = SupportsTemporal | TimeIndependent | SupportsState
