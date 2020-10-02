@@ -65,8 +65,7 @@ IntervalModel::IntervalModel(
 
 IntervalModel::~IntervalModel()
 {
-  static_assert(
-      std::is_same<serialization_tag<IntervalModel>::type, visitor_entity_tag>::value, "");
+  static_assert(is_entity<IntervalModel>::value && !is_abstract_base<IntervalModel>::value && !is_custom_serialized<IntervalModel>::value, "");
   processes.clear();
   identified_object_destroying(this);
 }

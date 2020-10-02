@@ -1,4 +1,5 @@
 #pragma once
+#include <cinttypes>
 #include <type_traits>
 
 // Check
@@ -86,6 +87,11 @@ template <
     auto A7,
     class A8>
 struct is_template<T<A1, A2, A3, A4, A5, A6, A7, A8>> : std::true_type
+{
+};
+
+template <template<class, std::size_t> class T, class X, std::size_t u>
+struct is_template<T<X,u>> : std::true_type
 {
 };
 

@@ -102,7 +102,6 @@ public:
   template <typename T>
   void readFrom(const T& obj)
   {
-    using tag = typename serialization_tag<T>::type;
     static constexpr bool has_base = base_kind<T>::value;
 
     if constexpr (has_base)
@@ -117,11 +116,11 @@ public:
     }
     else
     {
-      if constexpr (std::is_same_v<tag, visitor_template_tag>)
+      if constexpr ((is_template<T>::value && !is_abstract_base<T>::value && !is_identified_object<T>::value) || is_custom_serialized<T>::value)
       {
         TSerializer<JSONObject, T>::readFrom(*this, obj);
       }
-      else if constexpr (std::is_same_v<tag, visitor_object_tag>)
+      else if constexpr (is_identified_object<T>::value && !is_entity<T>::value && !is_abstract_base<T>::value && !is_custom_serialized<T>::value)
       {
         stream.StartObject();
         TSerializer<JSONObject, typename T::object_type>::readFrom(*this, obj);
@@ -133,7 +132,7 @@ public:
 
         stream.EndObject();
       }
-      else if constexpr (std::is_same_v<tag, visitor_entity_tag>)
+      else if constexpr (is_entity<T>::value && !is_abstract_base<T>::value && !is_custom_serialized<T>::value)
       {
         stream.StartObject();
         TSerializer<JSONObject, typename T::entity_type>::readFrom(*this, obj);
@@ -144,7 +143,7 @@ public:
           read(obj);
         stream.EndObject();
       }
-      else if constexpr (std::is_same_v<tag, visitor_abstract_tag>)
+      else if constexpr (!is_identified_object<T>::value && is_abstract_base<T>::value && !is_custom_serialized<T>::value)
       {
         stream.StartObject();
         readFromAbstract(obj, [](JSONReader& sub, const T& obj) {
@@ -153,7 +152,7 @@ public:
         });
         stream.EndObject();
       }
-      else if constexpr (std::is_same_v<tag, visitor_abstract_object_tag>)
+      else if constexpr (is_identified_object<T>::value && !is_entity<T>::value && is_abstract_base<T>::value && !is_custom_serialized<T>::value)
       {
         stream.StartObject();
         readFromAbstract(obj, [](JSONReader& sub, const T& obj) {
@@ -166,7 +165,7 @@ public:
         });
         stream.EndObject();
       }
-      else if constexpr (std::is_same_v<tag, visitor_abstract_entity_tag>)
+      else if constexpr (is_entity<T>::value && is_abstract_base<T>::value && !is_custom_serialized<T>::value)
       {
         stream.StartObject();
         readFromAbstract(obj, [](JSONReader& sub, const T& obj) {
@@ -179,15 +178,11 @@ public:
         });
         stream.EndObject();
       }
-      else if constexpr (std::is_same_v<tag, visitor_default_tag>)
+      else
       {
         //! Used to serialize general objects that won't fit in the other
         //! categories
         read(obj);
-      }
-      else
-      {
-        static_assert(std::is_same_v<tag, void>, "Unhandled serialization case");
       }
     }
   }
@@ -430,12 +425,11 @@ public:
   template <typename T>
   void writeTo(T& obj)
   {
-    using tag = typename serialization_tag<T>::type;
-    if constexpr (std::is_same_v<tag, visitor_template_tag>)
+    if constexpr ((is_template<T>::value && !is_abstract_base<T>::value && !is_identified_object<T>::value) || is_custom_serialized<T>::value)
     {
       TSerializer<JSONObject, T>::writeTo(*this, obj);
     }
-    else if constexpr (std::is_enum_v<T>)
+    else if constexpr (std::is_enum<T>::value)
     {
       obj = static_cast<T>(base.GetInt());
     }

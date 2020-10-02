@@ -217,7 +217,6 @@ public:
   template <typename T>
   void readFrom(const T& obj)
   {
-    using tag = typename serialization_tag<T>::type;
     static constexpr bool has_base = base_kind<T>::value;
 
     if constexpr (has_base)
@@ -226,11 +225,11 @@ public:
     }
     else
     {
-      if constexpr (std::is_same_v<tag, visitor_template_tag>)
+      if constexpr ((is_template<T>::value && !is_abstract_base<T>::value && !is_identified_object<T>::value) || is_custom_serialized<T>::value)
       {
         TSerializer<DataStream, T>::readFrom(*this, obj);
       }
-      else if constexpr (std::is_same_v<tag, visitor_object_tag>)
+      else if constexpr (is_identified_object<T>::value && !is_entity<T>::value && !is_abstract_base<T>::value && !is_custom_serialized<T>::value)
       {
         TSerializer<DataStream, typename T::object_type>::readFrom(*this, obj);
 
@@ -239,7 +238,7 @@ public:
         else
           read(obj);
       }
-      else if constexpr (std::is_same_v<tag, visitor_entity_tag>)
+      else if constexpr (is_entity<T>::value && !is_abstract_base<T>::value && !is_custom_serialized<T>::value)
       {
         TSerializer<DataStream, typename T::entity_type>::readFrom(*this, obj);
 
@@ -248,14 +247,14 @@ public:
         else
           read(obj);
       }
-      else if constexpr (std::is_same_v<tag, visitor_abstract_tag>)
+      else if constexpr (!is_identified_object<T>::value && is_abstract_base<T>::value && !is_custom_serialized<T>::value)
       {
         readFromAbstract(obj, [](DataStreamReader& sub, const T& obj) {
           // Read the implementation of the base object
           sub.read(obj);
         });
       }
-      else if constexpr (std::is_same_v<tag, visitor_abstract_object_tag>)
+      else if constexpr (is_identified_object<T>::value && !is_entity<T>::value && is_abstract_base<T>::value && !is_custom_serialized<T>::value)
       {
         readFromAbstract(obj, [](DataStreamReader& sub, const T& obj) {
           TSerializer<DataStream, IdentifiedObject<T>>::readFrom(sub, obj);
@@ -266,7 +265,7 @@ public:
             sub.read(obj);
         });
       }
-      else if constexpr (std::is_same_v<tag, visitor_abstract_entity_tag>)
+      else if constexpr (is_entity<T>::value && is_abstract_base<T>::value && !is_custom_serialized<T>::value)
       {
         readFromAbstract(obj, [](DataStreamReader& sub, const T& obj) {
           TSerializer<DataStream, score::Entity<T>>::readFrom(sub, obj);
@@ -277,20 +276,16 @@ public:
             sub.read(obj);
         });
       }
-      else if constexpr (std::is_same_v<tag, visitor_default_tag>)
-      {
-        //! Used to serialize general objects that won't fit in the other
-        //! categories
-        read(obj);
-      }
-      else if constexpr (std::is_same_v<tag, visitor_enum_tag>)
+      else if constexpr (std::is_enum<T>::value)
       {
         static_assert(check_enum_size<T>::value);
         m_stream << (int32_t)obj;
       }
       else
       {
-        static_assert(std::is_same_v<tag, void>, "Unhandled serialization case");
+        //! Used to serialize general objects that won't fit in the other
+        //! categories
+        read(obj);
       }
     }
   }
@@ -380,13 +375,11 @@ public:
   template <typename T>
   void writeTo(T& obj)
   {
-    using tag = typename serialization_tag<T>::type;
-
-    if constexpr (std::is_same_v<tag, visitor_template_tag>)
+    if constexpr ((is_template<T>::value && !is_abstract_base<T>::value && !is_identified_object<T>::value) || is_custom_serialized<T>::value)
     {
       TSerializer<DataStream, T>::writeTo(*this, obj);
     }
-    else if constexpr (std::is_same_v<tag, visitor_enum_tag>)
+    else if constexpr (std::is_enum<T>::value)
     {
       static_assert(check_enum_size<T>::value);
       int32_t e;

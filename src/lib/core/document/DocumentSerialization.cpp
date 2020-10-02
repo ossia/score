@@ -115,11 +115,7 @@ QByteArray Document::saveAsByteArray()
     if (auto serializable_plugin = qobject_cast<SerializableDocumentPlugin*>(plugin))
     {
       static_assert(is_identified_object<SerializableDocumentPlugin>::value, "");
-      static_assert(
-          std::is_same<
-              serialization_tag<SerializableDocumentPlugin>::type,
-              visitor_abstract_object_tag>::value,
-          "");
+      static_assert((is_identified_object<SerializableDocumentPlugin>::value && !is_entity<SerializableDocumentPlugin>::value && is_abstract_base<SerializableDocumentPlugin>::value && !is_custom_serialized<SerializableDocumentPlugin>::value),  "");
       QByteArray arr_before, arr_after;
       DataStream::Serializer s_before{&arr_before};
       s_before.readFrom(*serializable_plugin);

@@ -121,8 +121,7 @@ template <typename T>
 struct serialization_tag<
     T,
     std::enable_if_t<
-        !is_identified_object<T>::value && is_abstract_base<T>::value
-        && !is_custom_serialized<T>::value>>
+        !is_identified_object<T>::value && is_abstract_base<T>::value && !is_custom_serialized<T>::value>>
 {
   using type = visitor_abstract_tag;
 };
@@ -131,8 +130,7 @@ template <typename T>
 struct serialization_tag<
     T,
     std::enable_if_t<
-        is_identified_object<T>::value && !is_entity<T>::value && !is_abstract_base<T>::value
-        && !is_custom_serialized<T>::value>>
+        is_identified_object<T>::value && !is_entity<T>::value && !is_abstract_base<T>::value && !is_custom_serialized<T>::value>>
 {
   using type = visitor_object_tag;
 };
@@ -141,8 +139,7 @@ template <typename T>
 struct serialization_tag<
     T,
     std::enable_if_t<
-        is_identified_object<T>::value && !is_entity<T>::value && is_abstract_base<T>::value
-        && !is_custom_serialized<T>::value>>
+        is_identified_object<T>::value && !is_entity<T>::value && is_abstract_base<T>::value && !is_custom_serialized<T>::value>>
 {
   using type = visitor_abstract_object_tag;
 };
@@ -169,8 +166,7 @@ template <typename T>
 struct serialization_tag<
     T,
     std::enable_if_t<
-        is_template<T>::value && !is_abstract_base<T>::value && !is_identified_object<T>::value
-        && !is_custom_serialized<T>::value>>
+        is_template<T>::value && !is_abstract_base<T>::value && !is_identified_object<T>::value && !is_custom_serialized<T>::value>>
 {
   using type = visitor_template_tag;
 };

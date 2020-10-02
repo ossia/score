@@ -22,8 +22,7 @@
 #include <score/tools/std/Optional.hpp>
 
 static_assert(is_template<Scenario::Rack>::value);
-static_assert(std::is_same_v<serialization_tag<Scenario::Rack>::type, visitor_template_tag>);
-static_assert(std::is_same_v<serialization_tag<Scenario::FullRack>::type, visitor_template_tag>);
+static_assert(is_template<Scenario::FullRack>::value);
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(const ossia::time_signature& slot)
 {

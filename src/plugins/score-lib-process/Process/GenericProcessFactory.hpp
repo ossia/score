@@ -97,7 +97,7 @@ private:
 
   std::optional<double> recommendedHeight() const noexcept override
   {
-    if constexpr(LayerPresenter_T::recommendedHeight > 0.)
+    if constexpr(bool(LayerPresenter_T::recommendedHeight))
     {
       return LayerPresenter_T::recommendedHeight;
     }
