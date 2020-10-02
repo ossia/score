@@ -628,7 +628,9 @@
         <file>icons/process_record_off@2x.png</file>
         <file>icons/process_record_on.png</file>
         <file>icons/process_record_on@2x.png</file>
-        <file>icons/preset_snapshot.png</file>
-        <file>icons/preset_snapshot@2x.png</file>
+        <file>icons/preset_snapshot_off.png</file>
+        <file>icons/preset_snapshot_off@2x.png</file>
+        <file>icons/preset_snapshot_on.png</file>
+        <file>icons/preset_snapshot_on@2x.png</file>
     </qresource>
 </RCC>

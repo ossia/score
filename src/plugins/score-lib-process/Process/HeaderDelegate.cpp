@@ -67,23 +67,24 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(
   const auto flags = m.flags();
   auto& pixmaps = Process::Pixmaps::instance();
   m_ui = Process::makeExternalUIButton(m_model, m_context, this, this);
+  const auto spacing = 16;
   if (m_ui)
   {
     m_ui->setPos({m_portStartX, 2});
-    m_portStartX += 12;
+    m_portStartX += spacing;
   }
 
   if(true || flags & Process::ProcessFlags::Recordable)
   {
     auto rec_btn = new score::QGraphicsPixmapToggle{pixmaps.record_on, pixmaps.record_off, this};
-    rec_btn->setPos(m_portStartX, 2);
-    m_portStartX += 12;
+    rec_btn->setPos(m_portStartX, 1);
+    m_portStartX += spacing;
   }
   if(true || flags & Process::ProcessFlags::Snapshottable)
   {
     auto rec_btn = new score::QGraphicsPixmapButton{pixmaps.snapshot, pixmaps.snapshot, this};
-    rec_btn->setPos(m_portStartX, 2);
-    m_portStartX += 18;
+    rec_btn->setPos(m_portStartX, 1);
+    m_portStartX += spacing;
   }
 
   con(m_model, &Process::ProcessModel::prettyNameChanged, this, [=] {

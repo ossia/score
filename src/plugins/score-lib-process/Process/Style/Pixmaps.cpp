@@ -36,7 +36,7 @@ Pixmaps::Pixmaps() noexcept
     , record_off{score::get_pixmap(":/icons/process_record_off.png")}
     , record_on{score::get_pixmap(":/icons/process_record_on.png")}
 
-    , snapshot{score::get_pixmap(":/icons/preset_snapshot.png")}
+    , snapshot{score::get_pixmap(":/icons/preset_snapshot_off.png")}
 
     , close_off{score::get_pixmap(":/icons/close_on.png")}
     , close_on{score::get_pixmap(":/icons/close_off.png")}
