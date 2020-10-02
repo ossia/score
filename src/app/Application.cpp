@@ -484,10 +484,15 @@ void Application::init()
   score_init_static_plugins();
 #endif
 
-  std::vector<spdlog::sink_ptr> v{std::make_shared<spdlog::sinks::stderr_sink_mt>(),
-                                  std::make_shared<ossia::qt::log_sink>()};
+  std::vector<spdlog::sink_ptr> v;
+  try {
+    v.push_back(std::make_shared<spdlog::sinks::stderr_sink_mt>());
+  } catch (...) { }
+  try {
+    v.push_back(std::make_shared<ossia::qt::log_sink>());
+  } catch (...) { }
 
-  ossia::context context{v};
+  ossia::context context{std::move(v)};
   ossia::logger().set_level(spdlog::level::debug);
 
   score::setQApplicationMetadata();
