@@ -18,6 +18,12 @@ struct SCORE_LIB_PROCESS_EXPORT Pixmaps
   const QPixmap preset_off;
   const QPixmap preset_on;
 
+  const QPixmap record_off;
+  const QPixmap record_on;
+
+  const QPixmap snapshot_off;
+  const QPixmap snapshot_on;
+
   const QPixmap close_off;
   const QPixmap close_on;
 
