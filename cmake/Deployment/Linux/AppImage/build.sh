@@ -1,9 +1,9 @@
 #!/bin/sh
 export SOURCE_DIR=$(git rev-parse --show-toplevel)
 
-rm -rf *AppDir*
-rm -rf *AppImage
-rm -rf build
+sudo rm -rf *AppDir*
+sudo rm -rf *AppImage
+sudo rm -rf build
 mkdir build
 
 docker build --squash --compress --force-rm  -f Dockerfile.llvm -t ossia/score-linux-llvm . 

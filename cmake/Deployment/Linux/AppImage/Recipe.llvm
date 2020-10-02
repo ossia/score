@@ -40,8 +40,6 @@ export SOURCE_DIR=/score
     (
       cd build*
       cmake --build . --target install/strip
-      rm -rf $INSTALL_ROOT/lib
-      rm -rf $INSTALL_ROOT/include
     )
 )
 
@@ -142,8 +140,10 @@ cp $APP_DIR/usr/share/pixmaps/ossia-score.png $APP_DIR/
     # Delete potentially dangerous libraries
     rm -f usr/lib/libgobject* usr/lib/libc.so.* || true
 
-    find . -name '*.a' -exec rm {} \;
-    find . -name '*.cmake' -exec rm {} \;
+    find . -name '*.a' -exec rm -rf {} \;
+    find . -name '*.cmake' -exec rm -rf {} \;
+    find . -name 'build' -exec rm -rf {} \;
+    rm -rf usr/Ossia
 
     cd usr/ ; find . -type f -exec sed -i -e 's|/usr/lib|././/lib|g' {} \; ; cd ..
     cd usr/ ; find . -type f -exec sed -i -e "s|$QTDIR/lib|././/lib|g" {} \; ; cd ..
@@ -151,30 +151,32 @@ cp $APP_DIR/usr/share/pixmaps/ossia-score.png $APP_DIR/
 
 # cp $SOURCE_DIR/cmake/Deployment/Linux/AppImage/qt.conf $APP_DIR/usr/bin/
 
-# (
-#     # Copy headers
-#
-#     cd $APP_DIR
-#     export HEADERS=$PWD/usr/include
-#     mkdir -p $HEADERS
-#     for package in glibc-headers glibc-devel alsa-lib-devel mesa-libGL-devel libxkbcommon-x11-devel kernel-headers ; do
-#       (
-#         cd /usr/include
-#         rsync -aR $(rpm -ql $package | grep '/usr/include' | grep '\.h' | cut -c 14-  | sort | uniq) $HEADERS
-#       )
-#     done
-#
-#     mkdir $HEADERS/qt
-#     rsync -a $OSSIA_SDK/qt5-static/include/ $HEADERS/qt/
-#
-#     rsync -a $OSSIA_SDK/llvm/include/ $HEADERS/
-#     rsync -a $OSSIA_SDK/ffmpeg/include/ $HEADERS/
-#     rsync -a $OSSIA_SDK/portaudio/include/ $HEADERS/
-#
-#     mkdir -p $PWD/usr/lib/clang/7.0.1/include
-#     rsync -a $OSSIA_SDK/llvm/lib/clang/7.0.1/include/ $PWD/usr/lib/clang/7.0.1/include/
-#
-#     # Strip binaries
-#     # strip usr/bin/ossia-score usr/bin/ossia-score-vstpuppet || true
-# )
+(
+    # Copy headers
+
+    cd $APP_DIR
+    export HEADERS=$PWD/usr/include
+    mkdir -p $HEADERS
+    for package in glibc-headers glibc-devel alsa-lib-devel mesa-libGL-devel libxkbcommon-x11-devel kernel-headers ; do
+      (
+        cd /usr/include
+        rsync -aR $(rpm -ql $package | grep '/usr/include' | grep '\.h' | cut -c 14-  | sort | uniq) $HEADERS
+      )
+    done
+
+    mkdir $HEADERS/qt
+    rsync -a $OSSIA_SDK/qt5-static/include/ $HEADERS/qt/
+
+    rsync -a $OSSIA_SDK/llvm/include/ $HEADERS/
+    rsync -a $OSSIA_SDK/ffmpeg/include/ $HEADERS/
+    rsync -a $OSSIA_SDK/fftw/include/ $HEADERS/
+    rsync -a $OSSIA_SDK/portaudio/include/ $HEADERS/
+
+    export LLVM_VER=$(ls /opt/score-sdk/llvm/lib/clang/)
+    mkdir -p $PWD/usr/lib/clang/$LLVM_VER/include
+    rsync -a $OSSIA_SDK/llvm/lib/clang/$LLVM_VER/include/ $PWD/usr/lib/clang/$LLVM_VER/include/
+
+    # Strip binaries
+    # strip usr/bin/ossia-score usr/bin/ossia-score-vstpuppet || true
+)
 
