@@ -132,6 +132,11 @@ void IntervalView::setMinWidth(double min)
   }
 }
 
+void IntervalView::setRigid(bool r)
+{
+  m_rigid = r;
+}
+
 void IntervalView::setHeight(double height)
 {
   if (m_height != height)

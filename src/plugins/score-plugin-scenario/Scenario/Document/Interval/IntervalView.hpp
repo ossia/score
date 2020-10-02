@@ -49,6 +49,7 @@ public:
   void setDefaultWidth(double width);
   void setMaxWidth(bool infinite, double max);
   void setMinWidth(double min);
+  void setRigid(bool r);
   void setHeight(double height);
   double setPlayWidth(double width);
   void setValid(bool val);
@@ -62,6 +63,8 @@ public:
   double minWidth() const { return m_minWidth; }
 
   double maxWidth() const { return m_maxWidth; }
+
+  bool rigid() const { return m_rigid; }
 
   double intervalAndRackHeight() const { return m_height; }
 
@@ -133,6 +136,7 @@ protected:
   bool m_warning : 1;
   bool m_waiting : 1;
   bool m_dropTarget : 1;
+  bool m_rigid : 1;
   IntervalExecutionState m_state : 2;
 };
 }
