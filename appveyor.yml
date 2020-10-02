@@ -23,7 +23,11 @@ build_script:
   - set PATH=%CD%;%PATH%
   - mkdir build
   - cd build
-  - call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" amd64
+  
+  - dir "C:\Program Files (x86)"
+  - dir "C:\Program Files (x86)\Microsoft Visual Studio"
+  - dir "C:\Program Files (x86)\Microsoft Visual Studio\2019"
+  - call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Preview\VC\Auxiliary\Build\vcvarsall.bat" amd64
   - cmake -G "NMake Makefiles JOM" -DCMAKE_UNITY_BUILD=1 -DCMAKE_BUILD_TYPE=Release -DBOOST_ROOT="%BOOST_ROOT%" -DCMAKE_PREFIX_PATH="%QTDIR%" ..
   - cmake --build . --config Release -- -j4
   - cmake --build . --config Release --target Package
