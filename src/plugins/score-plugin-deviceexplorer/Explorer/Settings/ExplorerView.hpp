@@ -16,7 +16,7 @@ public:
   void setLocalTree(bool);
 
 public:
-  void localTreeChanged(int arg_1) W_SIGNAL(localTreeChanged, arg_1);
+  void localTreeChanged(bool arg_1) W_SIGNAL(localTreeChanged, arg_1);
 
   SETTINGS_UI_COMBOBOX_HPP(LogLevel)
 
