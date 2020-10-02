@@ -133,11 +133,14 @@ void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
   m_vZoom = pressedModifier == Qt::ShiftModifier;
 
   auto t = std::chrono::steady_clock::now();
-  if (std::chrono::duration_cast<std::chrono::milliseconds>(t - m_lastwheel).count() < 16)
+  static int wheelCount = 0;
+
+  if (std::chrono::duration_cast<std::chrono::milliseconds>(t - m_lastwheel).count() < 16 && wheelCount < 3)
   {
+    wheelCount++;
     return;
   }
-
+  wheelCount = 0;
   m_lastwheel = t;
   QPoint d = event->angleDelta();
   QPointF delta = {d.x() / 8., d.y() / 8.};
