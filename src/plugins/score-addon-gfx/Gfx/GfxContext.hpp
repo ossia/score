@@ -133,6 +133,8 @@ struct gfx_view_node
             memcpy(value, &fv, 4);
             break;
           }
+          default:
+            break;
         }
       }
       void operator()(char v) const noexcept

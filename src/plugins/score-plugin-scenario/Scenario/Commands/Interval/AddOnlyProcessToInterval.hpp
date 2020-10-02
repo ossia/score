@@ -8,7 +8,7 @@
 
 #include <QPointF>
 
-#include <rapidjson/document.h>
+#include <ossia/detail/json.hpp>
 #include <score_plugin_scenario_export.h>
 struct DataStreamInput;
 struct DataStreamOutput;

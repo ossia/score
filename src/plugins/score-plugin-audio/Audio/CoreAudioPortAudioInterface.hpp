@@ -66,7 +66,8 @@ public:
         set.getDefaultIn(),
         set.getDefaultOut(),
         set.getRate(),
-        set.getBufferSize());
+        set.getBufferSize(),
+        paCoreAudio);
   }
 
   void setCard(QComboBox* combo, QString val)

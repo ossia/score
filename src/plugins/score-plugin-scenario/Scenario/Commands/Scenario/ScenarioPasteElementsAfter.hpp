@@ -11,7 +11,7 @@
 #include <QMap>
 #include <QVector>
 
-#include <rapidjson/document.h>
+#include <ossia/detail/json.hpp>
 namespace Scenario
 {
 struct Point;

@@ -2,19 +2,14 @@
 #include <State/OSSIASerializationImpl.hpp>
 
 #include <ossia/detail/size.hpp>
+#include <ossia/detail/typelist.hpp>
 
-#include <brigand/sequences/list.hpp>
-
-template <typename... Args>
-struct tl
-{
-};
 template <>
 struct TSerializer<JSONObject, ossia::value_variant_type>
 {
   using var_t = ossia::value_variant_type;
 
-  using value_type_list = tl<
+  using value_type_list = ossia::tl<
       float,
       int,
       ossia::vec2f,

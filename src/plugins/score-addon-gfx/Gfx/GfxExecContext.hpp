@@ -17,11 +17,11 @@ public:
   }
   gfx_window_context* ui{};
 
-  void startTick(unsigned long, double) override { edges.clear(); }
+  void startTick(const ossia::audio_tick_state& st) override { edges.clear(); }
 
   void setEdge(port_index source, port_index sink) { edges.insert({source, sink}); }
 
-  void endTick(unsigned long, double) override
+  void endTick(const ossia::audio_tick_state& st) override
   {
     if (edges != prev_edges)
     {

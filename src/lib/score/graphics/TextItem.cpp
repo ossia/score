@@ -94,13 +94,7 @@ void SimpleTextItem::updateImpl()
 
     if (r.size() > 0)
     {
-      double ratio = 2.;
-      if (auto v = getView(*this))
-        ratio = v->devicePixelRatioF();
-      m_line = QImage(
-          m_rect.width() * ratio, m_rect.height() * ratio, QImage::Format_ARGB32_Premultiplied);
-      m_line.setDevicePixelRatio(ratio);
-      m_line.fill(Qt::transparent);
+      m_line = newImage(m_rect.width(), m_rect.height());
 
       QPainter p{&m_line};
       auto& skin = score::Skin::instance();

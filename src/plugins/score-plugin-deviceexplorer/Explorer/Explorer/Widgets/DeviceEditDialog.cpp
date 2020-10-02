@@ -182,6 +182,10 @@ void DeviceEditDialog::selectedDeviceChanged()
 
 void DeviceEditDialog::selectedProtocolChanged()
 {
+  auto doc = score::GUIAppContext().currentDocument();
+  if(!doc)
+    return;
+
   // Recreate
   if(m_protocols->selectedItems().isEmpty())
   {
@@ -214,7 +218,7 @@ void DeviceEditDialog::selectedProtocolChanged()
   }
 
   auto protocol = m_protocolList.get(key);
-  m_enumerator.reset(protocol->getEnumerator(score::GUIAppContext().currentDocument()));
+  m_enumerator.reset(protocol->getEnumerator(*doc));
   if(m_enumerator)
   {
     m_devices->setVisible(true);

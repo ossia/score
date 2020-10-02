@@ -2,6 +2,10 @@
 #include <Execution/Clock/ClockFactory.hpp>
 #include <Execution/Clock/DefaultClock.hpp>
 #include <Execution/DocumentPlugin.hpp>
+namespace Audio
+{
+class ApplicationPlugin;
+}
 namespace Process
 {
 class Cable;
@@ -25,6 +29,7 @@ private:
   bool paused() const override;
 
   Execution::DefaultClock m_default;
+  Audio::ApplicationPlugin& m_audio;
   Execution::DocumentPlugin& m_plug;
   Execution::BaseScenarioElement* m_cur{};
   bool m_paused{};

@@ -122,7 +122,7 @@ if(UNIX AND NOT APPLE)
       get_filename_component(QT_ROOT_FOLDER "${QT_ROOT_FOLDER}" ABSOLUTE)
       file(
         WRITE "${CMAKE_CURRENT_BINARY_DIR}/run.sh"
-        "#!/bin/sh\nLD_LIBRARY_PATH=${QT_ROOT_FOLDER} ./ossia-score\n"
+        "#!/bin/sh\nLD_LIBRARY_PATH=${QT_ROOT_FOLDER} ./ossia-score $@\n"
       )
 
       file(

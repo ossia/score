@@ -30,6 +30,7 @@
 #include <QOpenGLContext>
 #include <QPushButton>
 #include <QLabel>
+#include <QDir>
 #include <QThreadPool>
 #include <QPainter>
 #include <core/view/QRecentFilesMenu.h>
@@ -398,6 +399,36 @@ static void setQApplicationSettings(QApplication& m_app)
 
 } // namespace score
 
+namespace {
+bool runningUnderAnUISession() noexcept
+{
+#if __linux__
+  return
+      !qgetenv("DISPLAY").isEmpty() ||
+      !qgetenv("WAYLAND_DISPLAY").isEmpty() ||
+      (qgetenv("XDG_SESSION_TYPE") != "tty");
+#else
+  // Win32 and macOS always have a graphical session
+  return true;
+#endif
+}
+
+QCoreApplication* createApplication(const score::ApplicationSettings& set, int& argc, char** argv)
+{
+  if (set.gui)
+  {
+    return new SafeQApplication{argc, argv};
+  }
+  else
+  {
+    if(runningUnderAnUISession())
+      return new QGuiApplication{argc, argv};
+    else
+      return new QCoreApplication{argc, argv};
+  }
+}
+}
+
 Application::Application(int& argc, char** argv) : QObject{nullptr}
 {
   m_instance = this;
@@ -407,10 +438,7 @@ Application::Application(int& argc, char** argv) : QObject{nullptr}
     l.append(QString::fromUtf8(argv[i]));
   m_applicationSettings.parse(l, argc, argv);
 
-  if (m_applicationSettings.gui)
-    m_app = new SafeQApplication{argc, argv};
-  else
-    m_app = new QCoreApplication{argc, argv};
+  m_app = createApplication(m_applicationSettings, argc, argv);
 }
 
 Application::Application(
@@ -418,10 +446,7 @@ Application::Application(
     : QObject{nullptr}, m_applicationSettings(appSettings)
 {
   m_instance = this;
-  if (m_applicationSettings.gui)
-    m_app = new SafeQApplication{argc, argv};
-  else
-    m_app = new QCoreApplication{argc, argv};
+  m_app = createApplication(m_applicationSettings, argc, argv);
 }
 
 Application::~Application()

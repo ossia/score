@@ -92,6 +92,7 @@ private:
 
   mutable ExecutionCommandQueue m_execQueue;
   mutable EditionCommandQueue m_editionQueue;
+  mutable GCCommandQueue m_gcQueue;
   Context m_ctx;
   SetupContext m_setup_ctx;
   BaseScenarioElement m_base;

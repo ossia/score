@@ -115,17 +115,18 @@ RemoveSelection::RemoveSelection(const Scenario::ProcessModel& scenar, Selection
     }
   }
 
-  auto purged = sel.toList().toSet().toList();
+  sel.removeDuplicates();
 
   QObjectList l;
-  l.reserve(purged.size());
-  for (auto p : purged)
-    l.push_back((QObject*)p);
+  l.reserve(sel.size());
+  for (const QPointer<const IdentifiedObjectAbstract>& p : sel)
+    l.push_back(const_cast<IdentifiedObjectAbstract*>(p.data()));
   m_cables = Dataflow::saveCables(l, score::IDocument::documentContext(scenar));
 
   // Serialize ALL the things
-  for (const auto& obj : purged)
+  for (const QPointer<const IdentifiedObjectAbstract>& ptr : sel)
   {
+    auto obj = ptr.data();
     if (auto state = dynamic_cast<const StateModel*>(obj))
     {
       if (Q_UNLIKELY(state->id() != Scenario::startId<StateModel>()))

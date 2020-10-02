@@ -67,6 +67,9 @@ public:
       l.push_back(elt);
     return l;
   }
+
+  SCORE_LIB_BASE_EXPORT
+  void removeDuplicates();
 };
 
 template <typename T>
@@ -127,5 +130,4 @@ filterSelections(Selection& newSelection, const Selection& currentSelection, boo
 
   return newSelection;
 }
-
 W_REGISTER_ARGTYPE(Selection)

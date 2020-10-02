@@ -567,21 +567,25 @@ void ApplicationPlugin::on_stop()
 
   if (m_clock)
   {
-    m_clock->stop();
+    auto clock = std::move(m_clock);
     m_clock.reset();
+    clock->stop();
   }
 
   if (auto doc = currentDocument())
   {
     doc->context().execTimer.stop();
     auto plugmodel = doc->context().findPlugin<Execution::DocumentPlugin>();
-    if (!plugmodel)
-      return;
-    else
+    if (plugmodel)
     {
       // TODO why is this commented
       plugmodel->clear();
     }
+    else
+    {
+      return;
+    }
+
     // If we can we resume listening
     if (!context.docManager.preparingNewDocument())
     {

@@ -3,7 +3,7 @@
 
 #include <ossia/dataflow/nodes/media.hpp>
 
-#include <readerwriterqueue.h>
+#include <ossia/detail/lockfree_queue.hpp>
 #include <score_plugin_audio_export.h>
 
 namespace ossia
@@ -24,7 +24,7 @@ public:
 
   explicit AudioPreviewExecutor();
 
-  void endTick(unsigned long frameCount, double seconds) override;
+  void endTick(const ossia::audio_tick_state& st) override;
 
   struct sound
   {
@@ -36,8 +36,7 @@ public:
   sound current_sound{};
   int64_t currentPos{};
   bool playing{};
-  moodycamel::ReaderWriterQueue<sound> queue;
-  ossia::audio_protocol* audio{};
+  ossia::spsc_queue<sound> queue;
 };
 
 }

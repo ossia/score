@@ -50,9 +50,10 @@ DocumentPlugin::DocumentPlugin(
     , settings{ctx.app.settings<Execution::Settings::Model>()}
     , m_execQueue(1024)
     , m_editionQueue(1024)
+    , m_gcQueue(1024)
     , m_ctx
 {
-  ctx, m_created, {}, {}, m_execQueue, m_editionQueue, m_setup_ctx, execGraph, execState
+  ctx, m_created, {}, {}, m_execQueue, m_editionQueue, m_gcQueue, m_setup_ctx, execGraph, execState
 #if __cplusplus > 201703L
       ,
   {
@@ -115,7 +116,7 @@ DocumentPlugin::DocumentPlugin(
       Qt::QueuedConnection);
 
   connect(
-      this, &DocumentPlugin::finished, this, &DocumentPlugin::on_finished, Qt::QueuedConnection);
+      this, &DocumentPlugin::finished, this, &DocumentPlugin::on_finished, Qt::DirectConnection);
   connect(
       this, &DocumentPlugin::sig_bench, this, &DocumentPlugin::slot_bench, Qt::QueuedConnection);
 }
@@ -143,7 +144,14 @@ void DocumentPlugin::on_finished()
   {
     killTimer(m_tid);
     m_tid = -1;
-    QCoreApplication::instance()->processEvents();
+
+    {
+      ExecutionCommand cmd;
+      while (m_editionQueue.try_dequeue(cmd))
+        cmd();
+      GCCommand gc;
+      while (m_gcQueue.try_dequeue(gc)) ;
+    }
   }
 
   clear();
@@ -177,6 +185,8 @@ void DocumentPlugin::timerEvent(QTimerEvent* event)
   ExecutionCommand cmd;
   while (m_editionQueue.try_dequeue(cmd))
     cmd();
+  GCCommand gc;
+  while (m_gcQueue.try_dequeue(gc)) ;
 }
 
 void DocumentPlugin::registerDevice(ossia::net::device_base* d)
@@ -269,13 +279,6 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
   m_ctx.reverseTime = settings.makeReverseTimeFunction(ctx);
 
   makeGraph();
-
-  auto& audio_app = ctx.app.guiApplicationPlugin<Audio::ApplicationPlugin>();
-  if (audio_app.audio && audio_device)
-  {
-    audioProto().stop();
-    audio_app.audio->reload(&audioProto());
-  }
 
   auto parent = dynamic_cast<Scenario::ScenarioInterface*>(cst.parent());
   SCORE_ASSERT(parent);

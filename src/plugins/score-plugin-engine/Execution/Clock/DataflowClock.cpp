@@ -11,7 +11,11 @@
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/detail/flicks.hpp>
 
+
+#include <Audio/AudioApplicationPlugin.hpp>
 #include <Audio/Settings/Model.hpp>
+#include <Audio/AudioTick.hpp>
+#include <Execution/ExecutionTick.hpp>
 #include <Execution/Settings/ExecutorModel.hpp>
 #include <flicks.h>
 namespace Dataflow
@@ -19,51 +23,41 @@ namespace Dataflow
 Clock::Clock(const Execution::Context& ctx)
     : Execution::Clock{ctx}
     , m_default{ctx}
+    , m_audio{context.doc.app.guiApplicationPlugin<Audio::ApplicationPlugin>()}
     , m_plug{context.doc.plugin<Execution::DocumentPlugin>()}
 {
 }
 
-Clock::~Clock() { }
+Clock::~Clock()
+{
+}
 
 void Clock::play_impl(const TimeVal& t, Execution::BaseScenarioElement& bs)
 {
   m_paused = false;
 
-  m_plug.execGraph->print(std::cerr);
   m_cur = &bs;
-  m_default.play(t);
+  m_default.play(t, bs);
 
   resume_impl(bs);
-}
-
-static ossia::audio_engine::fun_type get_pause_tick(const score::DocumentContext& doc)
-{
-  auto actions = doc.plugin<Execution::DocumentPlugin>().actions();
-  for (Execution::ExecutionAction& act : doc.app.interfaces<Execution::ExecutionActionList>())
-  {
-    actions.push_back(&act);
-  }
-
-  return [actions = std::move(actions)](unsigned long samples, double sec) {
-    for (auto act : actions)
-      act->startTick(samples, sec);
-    for (auto act : actions)
-      act->endTick(samples, sec);
-  };
 }
 
 void Clock::pause_impl(Execution::BaseScenarioElement& bs)
 {
   m_paused = true;
-  if (auto e = m_plug.audioProto().engine)
-    e->set_tick(get_pause_tick(this->context.doc));
-  m_default.pause();
+  if (auto e = m_audio.audio.get())
+    e->set_tick(Audio::makePauseTick(this->context.doc.app));
+  m_default.pause(bs);
 }
 
 void Clock::resume_impl(Execution::BaseScenarioElement& bs)
 {
+  auto e = m_audio.audio.get();
+  if (!e)
+    return;
+
   m_paused = false;
-  m_default.resume();
+  m_default.resume(bs);
   auto tick = m_plug.settings.getTick();
   auto commit = m_plug.settings.getCommit();
 
@@ -84,99 +78,25 @@ void Clock::resume_impl(Execution::BaseScenarioElement& bs)
   else if (commit == Execution::Settings::CommitPolicies{}.Merged)
     opt.commit = ossia::tick_setup_options::Merged;
 
-  // Per-tick actions - some are per-document, other are global
-  auto actions = this->context.doc.plugin<Execution::DocumentPlugin>().actions();
-  for (Execution::ExecutionAction& act :
-       this->context.doc.app.interfaces<Execution::ExecutionActionList>())
-  {
-    actions.push_back(&act);
-  }
-
   if (m_plug.settings.getBench() && m_plug.bench)
   {
-    auto tick = ossia::make_tick(
-        opt, *m_plug.execState, *m_plug.execGraph, *m_cur->baseInterval().OSSIAInterval());
-
-    if (auto e = m_plug.audioProto().engine)
-      e->set_tick([tick, plug = &m_plug, actions = std::move(actions)](auto&&... args) {
-        // Run some commands if they have been submitted.
-        Execution::ExecutionCommand c;
-        while (plug->context().executionQueue.try_dequeue(c))
-        {
-          c();
-        }
-
-        auto& bench = *plug->bench;
-        static int i = 0;
-        if (i % 50 == 0)
-        {
-          bench.measure = true;
-          auto t0 = std::chrono::steady_clock::now();
-          for (auto act : actions)
-            act->startTick(args...);
-          tick(args...);
-          for (auto act : actions)
-            act->endTick(args...);
-          auto t1 = std::chrono::steady_clock::now();
-          auto total = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count();
-
-          plug->slot_bench(bench, total);
-          for (auto& p : bench)
-          {
-            p.second = {};
-          }
-        }
-        else
-        {
-          bench.measure = false;
-          for (auto act : actions)
-            act->startTick(args...);
-          tick(args...);
-          for (auto act : actions)
-            act->endTick(args...);
-        }
-
-        i++;
-      });
+    e->set_tick(Execution::makeBenchmarkTick(opt, m_plug, *m_cur));
   }
   else
   {
-    auto tick = ossia::make_tick(
-        opt, *m_plug.execState, *m_plug.execGraph, *m_cur->baseInterval().OSSIAInterval());
-
-    if (auto e = m_plug.audioProto().engine)
-      e->set_tick([tick, plug = &m_plug, actions = std::move(actions)](auto&&... args) {
-        // Run some commands if they have been submitted.
-        Execution::ExecutionCommand c;
-        while (plug->context().executionQueue.try_dequeue(c))
-        {
-          c();
-        }
-
-        for (auto act : actions)
-        {
-          act->startTick(args...);
-        }
-        tick(args...);
-        for (auto act : actions)
-        {
-          act->endTick(args...);
-        }
-      });
+    e->set_tick(Execution::makeExecutionTick(opt, m_plug, *m_cur));
   }
-
-  m_plug.execGraph->print(std::cerr);
 }
 
 void Clock::stop_impl(Execution::BaseScenarioElement& bs)
 {
   m_paused = false;
 
-  if (auto e = m_plug.audioProto().engine)
-    e->set_tick(get_pause_tick(this->context.doc));
+  if (auto e = m_audio.audio.get())
+    e->set_tick(Audio::makePauseTick(this->context.doc.app));
 
+  m_default.stop(bs);
   m_plug.finished();
-  m_default.stop();
 }
 
 bool Clock::paused() const

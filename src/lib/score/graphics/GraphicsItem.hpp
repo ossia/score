@@ -29,6 +29,8 @@ QGraphicsView* getView(const QGraphicsItem& self);
 SCORE_LIB_BASE_EXPORT
 QGraphicsView* getView(const QPainter& painter);
 
+SCORE_LIB_BASE_EXPORT
+QImage newImage(double logical_w, double logical_h);
 template <typename T>
 struct graphics_item_ptr
 {

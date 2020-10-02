@@ -21,6 +21,7 @@ public:
 
     PortAudioScope portaudio;
 
+    devices.push_back(PortAudioCard{{}, {}, QObject::tr("No device"), -1, 0, 0, {}});
     for (int i = 0; i < Pa_GetHostApiCount(); i++)
     {
       auto hostapi = Pa_GetHostApiInfo(i);
@@ -41,6 +42,7 @@ public:
               dev->maxOutputChannels,
               hostapi->type});
         }
+        break;
       }
     }
   }
@@ -56,13 +58,16 @@ public:
         set.getDefaultIn(),
         set.getDefaultOut(),
         set.getRate(),
-        set.getBufferSize());
+        1024,
+        paMME);
   }
 
   void setCardIn(QComboBox* combo, QString val)
   {
     auto dev_it
-        = ossia::find_if(devices, [&](const PortAudioCard& d) { return d.raw_name == val; });
+        = ossia::find_if(devices, [&](const PortAudioCard& d) {
+      return d.raw_name == val && d.inputChan > 0;
+    });
     if (dev_it != devices.end())
     {
       combo->setCurrentIndex(dev_it->in_index);
@@ -71,7 +76,9 @@ public:
   void setCardOut(QComboBox* combo, QString val)
   {
     auto dev_it
-        = ossia::find_if(devices, [&](const PortAudioCard& d) { return d.raw_name == val; });
+        = ossia::find_if(devices, [&](const PortAudioCard& d) {
+      return d.raw_name == val && d.outputChan > 0;
+    });
     if (dev_it != devices.end())
     {
       combo->setCurrentIndex(dev_it->out_index);
@@ -102,7 +109,7 @@ public:
       }
       else
       {
-        qDebug() << err << Pa_GetErrorText(err);
+        qDebug() << "MME: samplerate errpr " << err << Pa_GetErrorText(err);
       }
     }
   }
@@ -120,7 +127,7 @@ public:
     auto card_out = new QComboBox{w};
 
     auto rate = new QComboBox{w};
-    auto buffersize = new QComboBox{w};
+   // auto buffersize = new QComboBox{w};
 
     auto updateRates = [=] {
       updateSampleRates(
@@ -139,6 +146,7 @@ public:
     for (std::size_t i = 1; i < devices.size(); i++)
     {
       auto& card = devices[i];
+
       if (card.inputChan > 0)
       {
         card_in->addItem(card.pretty_name, (int)i);
@@ -241,12 +249,13 @@ public:
 
       updateRates();
     }
-
+/*
     {
       lay->addRow(QObject::tr("Buffer size"), buffersize);
 
       updateRates();
     }
+*/
     con(m, &Model::changed, w, [=, &m] {
       setCardIn(card_in, m.getCardIn());
       setCardOut(card_out, m.getCardOut());

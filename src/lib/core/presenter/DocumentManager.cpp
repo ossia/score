@@ -519,22 +519,29 @@ bool DocumentManager::checkAndUpdateJson(
   auto plugin_it = obj.FindMember("Plugins");
   if (plugin_it != obj.MemberEnd())
   {
-    for (const auto& plugin_val : plugin_it->value.GetArray())
+    if (plugin_it->value.IsArray())
     {
-      const auto& plugin_obj = plugin_val.GetObject();
-      auto plugin_key_it = plugin_obj.FindMember("Key");
-      if (plugin_key_it == plugin_obj.MemberEnd())
-        continue;
-      QByteArray key_arr = QByteArray::fromRawData(
-          plugin_key_it->value.GetString(), plugin_key_it->value.GetStringLength());
-      auto plugin_key = UuidKey<score::Plugin>::fromString(key_arr);
+      for (const auto& plugin_val : plugin_it->value.GetArray())
+      {
+        const auto& plugin_obj = plugin_val.GetObject();
+        auto plugin_key_it = plugin_obj.FindMember("Key");
+        if (plugin_key_it == plugin_obj.MemberEnd())
+          continue;
+        QByteArray key_arr = QByteArray::fromRawData(
+            plugin_key_it->value.GetString(), plugin_key_it->value.GetStringLength());
+        auto plugin_key = UuidKey<score::Plugin>::fromString(key_arr);
 
-      Version plugin_version{0};
-      auto plugin_ver_it = plugin_obj.FindMember("Version");
-      if (plugin_ver_it != plugin_obj.MemberEnd())
-        plugin_version = Version{plugin_ver_it->value.GetInt()};
+        Version plugin_version{0};
+        auto plugin_ver_it = plugin_obj.FindMember("Version");
+        if (plugin_ver_it != plugin_obj.MemberEnd())
+          plugin_version = Version{plugin_ver_it->value.GetInt()};
 
-      loading_plugins.push_back({plugin_key, plugin_version});
+        loading_plugins.push_back({plugin_key, plugin_version});
+      }
+    }
+    else
+    {
+      return false;
     }
   }
 

@@ -71,7 +71,7 @@ private:
     });
     m_widg->show();
 
-    m_default.play(t);
+    m_default.play(t, bs);
 
     resume_impl(bs);
   }

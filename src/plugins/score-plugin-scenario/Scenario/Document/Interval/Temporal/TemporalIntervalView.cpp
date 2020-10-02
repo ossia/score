@@ -256,8 +256,11 @@ void TemporalIntervalView::paint(QPainter* p, const QStyleOptionGraphicsItem* so
   {
     // Background
     auto vr = visibleRect;
+    const qreal maxAdjust = (m_rigid || m_maxWidth <= m_defaultWidth
+                             ? 0.
+                             : m_defaultWidth - m_maxWidth);
     vr.adjust(
-        0.5, 2., -0.5 + (m_maxWidth > m_defaultWidth ? m_defaultWidth - m_maxWidth : 0.), -2.);
+        0.5, 2., -0.5 + maxAdjust, -2.);
 
     auto brush = m_presenter.model().metadata().getColor().getBrush().main.brush;
     auto col = brush.color();

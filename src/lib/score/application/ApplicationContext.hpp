@@ -87,7 +87,7 @@ struct SCORE_LIB_BASE_EXPORT ApplicationContext
     return components.instantiateUndoCommand(cmd);
   }
 
-  const score::DocumentContext& currentDocument() const noexcept;
+  const score::DocumentContext* currentDocument() const noexcept;
 
   //! Access to start-up command-line settings
   const score::ApplicationSettings& applicationSettings;

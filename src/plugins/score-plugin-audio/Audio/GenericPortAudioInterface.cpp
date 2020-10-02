@@ -109,6 +109,18 @@ QString PortAudioFactory::prettyName() const
 std::unique_ptr<ossia::audio_engine>
 PortAudioFactory::make_engine(const Settings::Model& set, const score::ApplicationContext& ctx)
 {
+  PaHostApiTypeId api{};
+  {
+     auto out = set.getCardOut();
+     for(const auto& dev : devices)
+     {
+       if(dev.pretty_name == out)
+       {
+         api = dev.hostapi;
+       }
+     }
+  }
+
   return std::make_unique<ossia::portaudio_engine>(
       "ossia score",
       set.getCardIn().toStdString(),
@@ -116,7 +128,8 @@ PortAudioFactory::make_engine(const Settings::Model& set, const score::Applicati
       set.getDefaultIn(),
       set.getDefaultOut(),
       set.getRate(),
-      set.getBufferSize());
+      set.getBufferSize(),
+      api);
 }
 
 void PortAudioFactory::setCardIn(QComboBox* combo, QString val)

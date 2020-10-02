@@ -16,6 +16,7 @@
 #include <QTextLine>
 
 #include <Effect/EffectLayer.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 namespace Process
 {
 QPixmap makeGlyphs(const QString& glyph, const QPen& pen)
@@ -34,11 +35,7 @@ QPixmap makeGlyphs(const QString& glyph, const QPen& pen)
   if (r.size() >= 1)
   {
     auto rect = line.naturalTextRect();
-    double ratio = qApp->devicePixelRatio();
-    path
-        = QImage(rect.width() * ratio, rect.height() * ratio, QImage::Format_ARGB32_Premultiplied);
-    path.setDevicePixelRatio(ratio);
-    path.fill(Qt::transparent);
+    path = newImage(rect.width(), rect.height());
 
     QPainter p{&path};
 

@@ -18,6 +18,7 @@
 #include <QToolBar>
 
 #include <Audio/AudioDevice.hpp>
+#include <Audio/AudioTick.hpp>
 #include <Audio/AudioInterface.hpp>
 #include <Audio/AudioPreviewExecutor.hpp>
 #include <Audio/Settings/Model.hpp>
@@ -25,27 +26,10 @@
 SCORE_DECLARE_ACTION(RestartAudio, "Restart Audio", Common, QKeySequence::UnknownKey)
 namespace Audio
 {
-namespace
-{
-static auto makeDefaultTick(const score::ApplicationContext& app)
-{
-  std::vector<Execution::ExecutionAction*> actions;
-  for (Execution::ExecutionAction& act : app.interfaces<Execution::ExecutionActionList>())
-  {
-    actions.push_back(&act);
-  }
-
-  return [actions = std::move(actions)](unsigned long samples, double sec) {
-    for (auto act : actions)
-      act->startTick(samples, sec);
-    for (auto act : actions)
-      act->endTick(samples, sec);
-  };
-}
-}
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
     : score::GUIApplicationPlugin{ctx}
 {
+  startTimer(50);
 }
 
 void ApplicationPlugin::initialize()
@@ -57,40 +41,23 @@ void ApplicationPlugin::initialize()
       this,
       &ApplicationPlugin::restart_engine,
       Qt::QueuedConnection);
-
-  if (context.applicationSettings.gui)
-  {
-    auto& stop_action = context.actions.action<Actions::Stop>();
-    connect(
-        stop_action.action(),
-        &QAction::triggered,
-        this,
-        &ApplicationPlugin::on_stop,
-        Qt::QueuedConnection);
-  }
 }
 
 ApplicationPlugin::~ApplicationPlugin() { }
-
-void ApplicationPlugin::on_stop()
-{
-  if (audio)
-  {
-    // TODO we should untie audio_engine and audio_protocol so that
-    // the audio_engine does not depend on a document running
-    audio->set_tick(makeDefaultTick(this->context));
-    //audio->reload(nullptr);
-  }
-}
 
 void ApplicationPlugin::on_documentChanged(score::Document* olddoc, score::Document* newdoc)
 {
   restart_engine();
 }
 
+void ApplicationPlugin::timerEvent(QTimerEvent*)
+{
+  if(audio)
+    audio->gc();
+}
+
 score::GUIElements ApplicationPlugin::makeGUIElements()
 {
-
   GUIElements e;
 
   auto& toolbars = e.toolbars;
@@ -118,12 +85,18 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     connect(sl, &score::VolumeSlider::valueChanged, this, [=](double v) {
       if (!this->audio)
         return;
-      if (!this->audio->protocol)
-        return;
-      ossia::audio_protocol* p = this->audio->protocol;
-      auto& dev = p->get_device();
 
-      auto root = ossia::net::find_node(dev.get_root_node(), "/out/main");
+      auto doc = context.currentDocument();
+      if (!doc)
+        return;
+      auto dev = (Dataflow::AudioDevice*) doc->plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice();
+      if(!dev)
+        return;
+      auto p = dev->getProtocol();
+      if(!p)
+        return;
+
+      auto root = ossia::net::find_node(dev->getDevice()->get_root_node(), "/out/main");
       if (root)
       {
         if (auto p = root->get_parameter())
@@ -150,9 +123,22 @@ try
 {
   if (m_updating_audio)
     return;
-  auto& preview = AudioPreviewExecutor::instance();
-  preview.audio = nullptr;
 
+  stop_engine();
+  start_engine();
+}
+catch (...)
+{
+  score::warning(
+      context.documentTabWidget,
+      tr("Audio Error"),
+      tr("Warning: audio engine stuck. "
+         "Operation aborted. "
+         "Check the audio settings."));
+}
+
+void ApplicationPlugin::stop_engine()
+{
   if (audio)
   {
     for(auto d : context.docManager.documents())
@@ -166,84 +152,58 @@ try
         }
       }
     }
+
     audio->stop();
     audio.reset();
   }
+}
 
+void ApplicationPlugin::start_engine()
+{
   if (auto doc = this->currentDocument())
   {
     auto dev = (Dataflow::AudioDevice*) doc->context().plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice();
     if (!dev)
       return;
-    setup_engine();
 
-    if(m_audioEngineAct)
+    auto& set = this->context.settings<Audio::Settings::Model>();
+    auto& engines = score::GUIAppContext().interfaces<Audio::AudioFactoryList>();
+
+    if (auto dev = engines.get(set.getDriver()))
+    {
+      try
+      {
+        audio = dev->make_engine(set, this->context);
+        if (!audio)
+          throw std::runtime_error{""};
+
+        m_updating_audio = true;
+        auto bs = audio->effective_buffer_size;
+        auto rate = audio->effective_sample_rate;
+        set.setBufferSize(bs <= 0 ? 512 : bs);
+        set.setRate(rate <= 0 ? 44100 : rate);
+        m_updating_audio = false;
+      }
+      catch (...)
+      {
+        score::warning(
+            nullptr,
+            tr("Audio error"),
+            tr("The desired audio settings could not be applied.\nPlease change "
+               "them."));
+      }
+    }
+
+    if (m_audioEngineAct)
       m_audioEngineAct->setChecked(bool(audio));
 
-    auto& preview = AudioPreviewExecutor::instance();
-    preview.audio = nullptr;
     dev->reconnect();
     if (audio)
     {
-      preview.audio = audio->protocol;
-      audio->set_tick(makeDefaultTick(this->context));
-    }
-    else
-    {
-      preview.audio = nullptr;
+      audio->set_tick(Audio::makePauseTick(this->context));
     }
   }
 }
-catch (...)
-{
-  score::warning(
-      context.documentTabWidget,
-      tr("Audio Error"),
-      tr("Warning: audio engine stuck. "
-         "Operation aborted. "
-         "Check the audio settings."));
-}
 
-void ApplicationPlugin::setup_engine()
-{
-  auto& set = this->context.settings<Audio::Settings::Model>();
-  auto& engines = score::GUIAppContext().interfaces<Audio::AudioFactoryList>();
-
-  auto& preview = AudioPreviewExecutor::instance();
-  preview.audio = nullptr;
-  audio.reset();
-  if (auto dev = engines.get(set.getDriver()))
-  {
-    try
-    {
-      audio = dev->make_engine(set, this->context);
-      if (!audio)
-        throw std::runtime_error{""};
-
-      m_updating_audio = true;
-      auto bs = audio->effective_buffer_size;
-      auto rate = audio->effective_sample_rate;
-      set.setBufferSize(bs <= 0 ? 512 : bs);
-      set.setRate(rate <= 0 ? 44100 : rate);
-
-      m_updating_audio = false;
-    }
-    catch (...)
-    {
-      score::warning(
-          nullptr,
-          tr("Audio error"),
-          tr("The desired audio settings could not be applied.\nPlease change "
-             "them."));
-    }
-  }
-
-  if (m_audioEngineAct)
-    m_audioEngineAct->setChecked(bool(audio));
-  if (audio)
-  {
-    preview.audio = audio->protocol;
-  }
-}
 
 }

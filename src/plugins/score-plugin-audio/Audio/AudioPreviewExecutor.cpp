@@ -12,12 +12,12 @@ AudioPreviewExecutor& AudioPreviewExecutor::instance()
   return *m_instance;
 }
 
-AudioPreviewExecutor::AudioPreviewExecutor() : audio{}
+AudioPreviewExecutor::AudioPreviewExecutor()
 {
   m_instance = this;
 }
 
-void AudioPreviewExecutor::endTick(unsigned long frameCount, double seconds)
+void AudioPreviewExecutor::endTick(const ossia::audio_tick_state& t)
 {
   bool received = false;
   while (queue.try_dequeue(current_sound))
@@ -39,14 +39,10 @@ void AudioPreviewExecutor::endTick(unsigned long frameCount, double seconds)
     }
   }
 
-  if (!audio)
-    return;
-
-  auto& outs = this->audio->audio_outs;
-  if (playing && current_sound.handle && outs.size() >= 2)
+  if (playing && current_sound.handle && t.n_out >= 2)
   {
-    auto out_l = outs[0]->audio[0];
-    auto out_r = outs[1]->audio[0];
+    auto out_l = t.outputs[0];
+    auto out_r = t.outputs[1];
 
     switch (current_sound.handle->data.size())
     {
@@ -61,7 +57,7 @@ void AudioPreviewExecutor::endTick(unsigned long frameCount, double seconds)
 
         int64_t& i = currentPos;
         unsigned long out_i = 0;
-        for (; i < max_n && out_i < frameCount; i++, out_i++)
+        for (; i < max_n && out_i < t.frames; i++, out_i++)
         {
           out_l[out_i] += 0.6f * in_mono[i];
           out_r[out_i] += 0.6f * in_mono[i];
@@ -83,7 +79,7 @@ void AudioPreviewExecutor::endTick(unsigned long frameCount, double seconds)
 
         int64_t& i = currentPos;
         unsigned long out_i = 0;
-        for (; i < max_n && out_i < frameCount; i++, out_i++)
+        for (; i < max_n && out_i < t.frames; i++, out_i++)
         {
           out_l[out_i] += 0.6f * in_l[i];
           out_r[out_i] += 0.6f * in_r[i];
