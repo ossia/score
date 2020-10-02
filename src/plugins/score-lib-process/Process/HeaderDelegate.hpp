@@ -49,7 +49,10 @@ protected:
 
   QPixmap m_line, m_bench;
   QGraphicsItem* m_ui{};
+  QGraphicsItem* m_record{};
+  QGraphicsItem* m_snapshot{};
   ossia::small_vector<Dataflow::PortItem*, 3> m_inPorts;
+  double m_portStartX{};
   double m_portEndX{};
   bool m_sel{};
 
