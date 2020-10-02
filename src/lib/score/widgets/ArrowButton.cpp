@@ -1,7 +1,7 @@
 #include "ArrowButton.hpp"
 
 #include <score/widgets/SetIcons.hpp>
-
+#include <array>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::ArrowButton)
 namespace score

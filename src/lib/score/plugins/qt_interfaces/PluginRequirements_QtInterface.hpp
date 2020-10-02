@@ -2,7 +2,7 @@
 #include <score/plugins/UuidKey.hpp>
 #include <score/tools/Version.hpp>
 
-#include <rapidjson/document.h>
+#include <ossia/detail/json.hpp>
 #include <score_lib_base_export.h>
 
 #include <vector>

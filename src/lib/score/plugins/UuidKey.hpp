@@ -3,6 +3,7 @@
 
 #include <score_lib_base_export.h>
 
+#include <stdexcept>
 #include <cstdint>
 #include <string>
 

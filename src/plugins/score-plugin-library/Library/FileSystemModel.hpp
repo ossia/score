@@ -49,7 +49,7 @@ public:
       }
     }
 
-    setNameFilters(types.toList());
+    setNameFilters(types.values());
     setNameFilterDisables(false);
     setFilter(QDir::AllDirs | QDir::Files | QDir::NoDotAndDotDot);
 

@@ -4,6 +4,9 @@
 #include <QDebug>
 
 #ifdef _WIN32
+#if defined(_MSC_VER)
+#include <windows.h>
+#endif
 #include <debugapi.h>
 #define DEBUG_BREAK DebugBreak()
 #else

@@ -30,6 +30,7 @@
 #include <QOpenGLContext>
 #include <QPushButton>
 #include <QLabel>
+#include <QDir>
 #include <QThreadPool>
 #include <QPainter>
 #include <core/view/QRecentFilesMenu.h>

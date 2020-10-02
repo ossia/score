@@ -7,7 +7,7 @@
 #include <score/model/path/Path.hpp>
 #include <score/tools/std/HashMap.hpp>
 
-#include <rapidjson/document.h>
+#include <ossia/detail/json.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
