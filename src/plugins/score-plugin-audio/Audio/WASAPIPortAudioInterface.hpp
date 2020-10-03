@@ -29,16 +29,18 @@ public:
         {
           auto dev_idx = Pa_HostApiDeviceIndexToDeviceIndex(i, card);
           auto dev = Pa_GetDeviceInfo(dev_idx);
-          auto raw_name = QString::fromUtf8(Pa_GetDeviceInfo(dev_idx)->name);
-
-          devices.push_back(PortAudioCard{
-              "WASAPI",
-              raw_name,
-              raw_name,
-              dev_idx,
-              dev->maxInputChannels,
-              dev->maxOutputChannels,
-              hostapi->type});
+          if(dev->maxOutputChannels > 0)
+          {
+            auto raw_name = QString::fromUtf8(Pa_GetDeviceInfo(dev_idx)->name);
+            devices.push_back(PortAudioCard{
+                "WASAPI",
+                raw_name,
+                raw_name,
+                dev_idx,
+                dev->maxInputChannels,
+                dev->maxOutputChannels,
+                hostapi->type});
+          }
         }
       }
     }
