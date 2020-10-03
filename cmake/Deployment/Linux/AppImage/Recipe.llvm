@@ -35,7 +35,8 @@ export SOURCE_DIR=/score
 
     cninja $SOURCE_DIR appimage -- \
       -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT \
-      -DOSSIA_SDK=$OSSIA_SDK
+      -DOSSIA_SDK=$OSSIA_SDK \
+      -DCMAKE_INSTALL_MESSAGE=NEVER
 
     (
       cd build*
@@ -151,6 +152,9 @@ cp $APP_DIR/usr/share/pixmaps/ossia-score.png $APP_DIR/
 
 # cp $SOURCE_DIR/cmake/Deployment/Linux/AppImage/qt.conf $APP_DIR/usr/bin/
 
+if [[ "x$JUST_BUILD" != "x" ]]; then
+  exit 0
+fi
 (
     # Copy headers
 

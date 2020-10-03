@@ -1,6 +1,4 @@
 #!/bin/sh
-export SOURCE_DIR=$(git rev-parse --show-toplevel)
-
 sudo rm -rf *AppDir*
 sudo rm -rf *AppImage
 sudo rm -rf build
@@ -9,9 +7,9 @@ mkdir build
 docker build --squash --compress --force-rm  -f Dockerfile.llvm -t ossia/score-linux-llvm . 
 
 
-docker run --rm --name llvm-build-vm -it \
+docker run --rm -it \
            -v "$(pwd)"/Recipe.llvm:/Recipe \
-           --mount type=bind,source="$SOURCE_DIR",target=/score \
+           --mount type=bind,source=$(git rev-parse --show-toplevel),target=/score \
            --mount type=bind,source="$(pwd)/build",target=/build \
            -w="/" \
            ossia/score-linux-llvm \
