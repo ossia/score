@@ -22,7 +22,7 @@ cp -rf "$SRC/qt5-static/include/"* "$DST/usr/include/"
 cp -rf "$SRC/ffmpeg/include/"* "$DST/usr/include/"
 cp -rf "$SRC/fftw/include/"* "$DST/usr/include/"
 cp -rf "$SRC/portaudio/include/"* "$DST/usr/include/"
-cp -rf "$SRC/openssd/include/"* "$DST/usr/include/"
+cp -rf "$SRC/openssl/include/"* "$DST/usr/include/"
 
 if [[ -d "$SCORE/3rdparty/libossia/3rdparty/boost_1_73_0" ]]; then
   cp -rf "$SCORE/3rdparty/libossia/3rdparty/boost_1_73_0/boost" "$DST/usr/include/"

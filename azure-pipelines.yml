@@ -70,7 +70,7 @@ stages:
 
             ./src/plugins/score-plugin-jit/tools/create-sdk-mingw.sh
 
-            (cd SDK; zip -r -q -9 $(Build.ArtifactStagingDirectory)/windows-sdk.zip usr)
+            (cd build/SDK; 7z a $(Build.ArtifactStagingDirectory)/windows-sdk.zip usr)
             
           displayName: Build
 
