@@ -9,27 +9,24 @@
 #include <score/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
+#include <QObject>
+
 #include <utility>
 #include <vector>
 
-class score_addon_gfx final : public score::Plugin_QtInterface,
-                              public score::FactoryInterface_QtInterface,
-                              public score::CommandFactory_QtInterface,
-                              public score::ApplicationPlugin_QtInterface
+class score_plugin_nodal final : public score::Plugin_QtInterface,
+                                public score::FactoryInterface_QtInterface,
+                                public score::CommandFactory_QtInterface
 {
-  SCORE_PLUGIN_METADATA(1, "11f76f02-11a4-4803-858d-a744ccdc0a7e")
+  SCORE_PLUGIN_METADATA(1, "8128b35f-369e-4309-b982-1ecf68203075")
 
 public:
-  score_addon_gfx();
-  ~score_addon_gfx() override;
+  score_plugin_nodal();
+  ~score_plugin_nodal() override;
 
 private:
-  score::GUIApplicationPlugin*
-  make_guiApplicationPlugin(const score::GUIApplicationContext& app) override;
-
   std::vector<std::unique_ptr<score::InterfaceBase>>
   factories(const score::ApplicationContext& ctx, const score::InterfaceKey& key) const override;
 
   std::pair<const CommandGroupKey, CommandGeneratorMap> make_commands() override;
-  std::vector<score::PluginKey> required() const override;
 };

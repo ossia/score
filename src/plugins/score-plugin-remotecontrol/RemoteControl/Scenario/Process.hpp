@@ -7,11 +7,11 @@
 #include <score/plugins/ModelFactory.hpp>
 
 #include <RemoteControl/DocumentPlugin.hpp>
-#include <score_addon_remotecontrol_export.h>
+#include <score_plugin_remotecontrol_export.h>
 
 namespace RemoteControl
 {
-class SCORE_ADDON_REMOTECONTROL_EXPORT ProcessComponent
+class SCORE_PLUGIN_REMOTECONTROL_EXPORT ProcessComponent
     : public Process::GenericProcessComponent<DocumentPlugin>
 {
   ABSTRACT_COMPONENT_METADATA(
@@ -31,7 +31,7 @@ public:
 template <typename Process_T>
 using ProcessComponent_T = Process::GenericProcessComponent_T<ProcessComponent, Process_T>;
 
-class SCORE_ADDON_REMOTECONTROL_EXPORT ProcessComponentFactory
+class SCORE_PLUGIN_REMOTECONTROL_EXPORT ProcessComponentFactory
     : public score::
           GenericComponentFactory<Process::ProcessModel, DocumentPlugin, ProcessComponentFactory>
 {

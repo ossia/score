@@ -1,4 +1,4 @@
-project(score_addon_nodal LANGUAGES CXX)
+project(score_plugin_nodal LANGUAGES CXX)
 
 # General initialization
 score_common_setup()
@@ -15,7 +15,7 @@ set(HDRS
     Nodal/CommandFactory.hpp
     Nodal/Commands.hpp
 
-    score_addon_nodal.hpp
+    score_plugin_nodal.hpp
 )
 set(SRCS
     Nodal/Executor.cpp
@@ -25,7 +25,7 @@ set(SRCS
     Nodal/View.cpp
     Nodal/Commands.cpp
 
-    score_addon_nodal.cpp
+    score_plugin_nodal.cpp
 )
 
 

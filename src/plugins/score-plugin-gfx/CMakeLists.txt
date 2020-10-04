@@ -1,4 +1,4 @@
-project(score_addon_gfx LANGUAGES C CXX)
+project(score_plugin_gfx LANGUAGES C CXX)
 
 if (Qt5Core_VERSION VERSION_LESS 5.14.0)
   message("Video plug-in requires Qt 5.14 at least.")
@@ -90,7 +90,7 @@ set(HDRS
     3rdparty/icosphere/Icosphere.h
     # Gfx/graph/hap/source/hap.h
 
-    score_addon_gfx.hpp
+    score_plugin_gfx.hpp
 )
 if(WIN32)
 set(SPOUT_SRCS
@@ -144,7 +144,7 @@ set(SRCS ${SPOUT_SRCS}
 
     3rdparty/icosphere/Icosphere.cpp
 
-    score_addon_gfx.cpp
+    score_plugin_gfx.cpp
 )
 
 

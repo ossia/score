@@ -14,15 +14,15 @@
 #include <utility>
 #include <vector>
 
-class score_addon_nodal final : public score::Plugin_QtInterface,
-                                public score::FactoryInterface_QtInterface,
-                                public score::CommandFactory_QtInterface
+class score_plugin_controlsurface final : public score::Plugin_QtInterface,
+                                         public score::FactoryInterface_QtInterface,
+                                         public score::CommandFactory_QtInterface
 {
-  SCORE_PLUGIN_METADATA(1, "8128b35f-369e-4309-b982-1ecf68203075")
+  SCORE_PLUGIN_METADATA(1, "b1562a52-242c-44bb-a096-6eacd4aee6a2")
 
 public:
-  score_addon_nodal();
-  ~score_addon_nodal() override;
+  score_plugin_controlsurface();
+  ~score_plugin_controlsurface() override;
 
 private:
   std::vector<std::unique_ptr<score::InterfaceBase>>

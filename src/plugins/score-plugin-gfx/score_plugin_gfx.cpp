@@ -1,4 +1,4 @@
-#include "score_addon_gfx.hpp"
+#include "score_plugin_gfx.hpp"
 
 #include <score/plugins/FactorySetup.hpp>
 
@@ -26,14 +26,14 @@
 #if defined(_WIN32)
 #include <Gfx/SpoutDevice.hpp>
 #endif
-#include <score_addon_gfx_commands_files.hpp>
+#include <score_plugin_gfx_commands_files.hpp>
 #include <score_plugin_engine.hpp>
 
-score_addon_gfx::score_addon_gfx() { }
+score_plugin_gfx::score_plugin_gfx() { }
 
-score_addon_gfx::~score_addon_gfx() { }
+score_plugin_gfx::~score_plugin_gfx() { }
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_addon_gfx::factories(
+std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_gfx::factories(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& key) const
 {
@@ -79,27 +79,27 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_addon_gfx::factories(
 }
 
 score::GUIApplicationPlugin*
-score_addon_gfx::make_guiApplicationPlugin(const score::GUIApplicationContext& app)
+score_plugin_gfx::make_guiApplicationPlugin(const score::GUIApplicationContext& app)
 {
   return new Gfx::ApplicationPlugin{app};
 }
 
-std::pair<const CommandGroupKey, CommandGeneratorMap> score_addon_gfx::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_gfx::make_commands()
 {
   using namespace Gfx;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       CommandFactoryName(), CommandGeneratorMap{}};
 
   ossia::for_each_type<
-#include <score_addon_gfx_commands.hpp>
+#include <score_plugin_gfx_commands.hpp>
       >(score::commands::FactoryInserter{cmds.second});
 
   return cmds;
 }
-auto score_addon_gfx::required() const -> std::vector<score::PluginKey>
+auto score_plugin_gfx::required() const -> std::vector<score::PluginKey>
 {
   return {score_plugin_engine::static_key()};
 }
 
 #include <score/plugins/PluginInstances.hpp>
-SCORE_EXPORT_PLUGIN(score_addon_gfx)
+SCORE_EXPORT_PLUGIN(score_plugin_gfx)

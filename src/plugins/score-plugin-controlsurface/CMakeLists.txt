@@ -1,4 +1,4 @@
-project(score_addon_controlsurface LANGUAGES CXX)
+project(score_plugin_controlsurface LANGUAGES CXX)
 
 # General initialization
 score_common_setup()
@@ -15,7 +15,7 @@ set(HDRS
     ControlSurface/CommandFactory.hpp
     ControlSurface/Commands.hpp
 
-    score_addon_controlsurface.hpp
+    score_plugin_controlsurface.hpp
 )
 set(SRCS
     ControlSurface/Executor.cpp
@@ -24,7 +24,7 @@ set(SRCS
     ControlSurface/Process.cpp
     ControlSurface/View.cpp
 
-    score_addon_controlsurface.cpp
+    score_plugin_controlsurface.cpp
 )
 
 

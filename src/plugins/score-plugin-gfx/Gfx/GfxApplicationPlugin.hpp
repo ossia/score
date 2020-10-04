@@ -4,11 +4,11 @@
 
 #include <Gfx/GfxContext.hpp>
 #include <Gfx/GfxExec.hpp>
-#include <score_addon_gfx_export.h>
+#include <score_plugin_gfx_export.h>
 
 namespace Gfx
 {
-class SCORE_ADDON_GFX_EXPORT DocumentPlugin final : public score::DocumentPlugin
+class SCORE_PLUGIN_GFX_EXPORT DocumentPlugin final : public score::DocumentPlugin
 {
 public:
   DocumentPlugin(const score::DocumentContext& doc, Id<score::DocumentPlugin> id, QObject* parent);

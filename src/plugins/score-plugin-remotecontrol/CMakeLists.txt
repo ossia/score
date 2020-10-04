@@ -1,4 +1,4 @@
-project(score_addon_remotecontrol LANGUAGES CXX)
+project(score_plugin_remotecontrol LANGUAGES CXX)
 
 find_package(Qt5 5.9 REQUIRED COMPONENTS WebSockets)
 
@@ -21,7 +21,7 @@ set(HDRS
   "RemoteControl/ApplicationPlugin.hpp"
   "RemoteControl/DocumentPlugin.hpp"
   "i-score-remote/RemoteApplication.hpp"
-  "score_addon_remotecontrol.hpp"
+  "score_plugin_remotecontrol.hpp"
   )
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Settings/Model.cpp"
@@ -39,7 +39,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/ApplicationPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/DocumentPlugin.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/score_addon_remotecontrol.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_remotecontrol.cpp"
 )
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS} ${QRCS})
@@ -58,16 +58,16 @@ setup_score_plugin(${PROJECT_NAME})
 
 #    setup_score_common_lib_features("${AddonTarget}")
 
-#    set(ADDON_FOLDER "${CMAKE_BINARY_DIR}/addons/${SETUP_ADDON_NAME}/")
-#    set(ADDON_PLATFORM "${SCORE_ADDON_PLATFORM}")
-#    set(ADDON_FILENAME "${SETUP_ADDON_NAME}-${SCORE_ADDON_SUFFIX}")
+#    set(ADDON_FOLDER "${CMAKE_BINARY_DIR}/addons/${SETUP_PLUGIN_NAME}/")
+#    set(ADDON_PLATFORM "${SCORE_PLUGIN_PLATFORM}")
+#    set(ADDON_FILENAME "${SETUP_PLUGIN_NAME}-${SCORE_PLUGIN_SUFFIX}")
 
 #    set_target_properties(${AddonTarget} PROPERTIES
 #        LIBRARY_OUTPUT_DIRECTORY "${ADDON_FOLDER}/"
 #        PREFIX ""
 #        SUFFIX ""
 #        OUTPUT_NAME "${ADDON_FILENAME}")
-#    configure_file("${SETUP_ADDON_METADATA}" "${ADDON_FOLDER}/localaddon.json")
+#    configure_file("${SETUP_PLUGIN_METADATA}" "${ADDON_FOLDER}/localaddon.json")
 
 #endfunction()
 

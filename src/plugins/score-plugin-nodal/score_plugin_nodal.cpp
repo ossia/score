@@ -1,4 +1,4 @@
-#include "score_addon_nodal.hpp"
+#include "score_plugin_nodal.hpp"
 
 #include <Process/DocumentPlugin.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
@@ -26,7 +26,7 @@
 #include <Nodal/Layer.hpp>
 #include <Nodal/LocalTree.hpp>
 #include <Nodal/Process.hpp>
-#include <score_addon_nodal_commands_files.hpp>
+#include <score_plugin_nodal_commands_files.hpp>
 /*
 namespace Nodal
 {
@@ -184,11 +184,11 @@ class PanelDelegateFactory final : public score::PanelDelegateFactory
 }
 
 */
-score_addon_nodal::score_addon_nodal() { }
+score_plugin_nodal::score_plugin_nodal() { }
 
-score_addon_nodal::~score_addon_nodal() { }
+score_plugin_nodal::~score_plugin_nodal() { }
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_addon_nodal::factories(
+std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_nodal::factories(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& key) const
 {
@@ -204,18 +204,18 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_addon_nodal::factories(
       >(ctx, key);
 }
 
-std::pair<const CommandGroupKey, CommandGeneratorMap> score_addon_nodal::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_nodal::make_commands()
 {
   using namespace Nodal;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       Nodal::CommandFactoryName(), CommandGeneratorMap{}};
 
   ossia::for_each_type<
-#include <score_addon_nodal_commands.hpp>
+#include <score_plugin_nodal_commands.hpp>
       >(score::commands::FactoryInserter{cmds.second});
 
   return cmds;
 }
 
 #include <score/plugins/PluginInstances.hpp>
-SCORE_EXPORT_PLUGIN(score_addon_nodal)
+SCORE_EXPORT_PLUGIN(score_plugin_nodal)
