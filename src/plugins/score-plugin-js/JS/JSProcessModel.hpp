@@ -1,5 +1,6 @@
 #pragma once
 #include <JS/JSProcessMetadata.hpp>
+#include <JS/Qml/QmlObjects.hpp>
 #include <Process/Process.hpp>
 
 #include <QFileSystemWatcher>
