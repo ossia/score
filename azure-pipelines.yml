@@ -68,7 +68,7 @@ stages:
             ls
             (
               cd build
-              cmake --install . --strip --component Devel --prefix "$SDK_DIR"
+              cmake --install . --strip --component Devel --prefix "$SDK_DIR/usr"
             )
 
             ./src/plugins/score-plugin-jit/tools/create-sdk-mingw.sh
