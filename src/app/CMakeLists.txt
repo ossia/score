@@ -143,11 +143,9 @@ else()
   install(
     TARGETS ${APPNAME}
     BUNDLE DESTINATION .
-    RUNTIME DESTINATION bin
     COMPONENT OssiaScore)
 endif()
 
-include(UnityApp.cmake)
 include(ScoreDeployment)
 
 disable_qt_plugins(${APPNAME})
