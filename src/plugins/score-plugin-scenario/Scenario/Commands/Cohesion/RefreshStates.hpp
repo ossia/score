@@ -1,6 +1,5 @@
 #pragma once
-#include <QList>
-
+#include <vector>
 namespace score
 {
 class CommandStackFacade;
