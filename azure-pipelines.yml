@@ -41,8 +41,8 @@ stages:
             cd build
             set PATH=%PATH%;c:\score-sdk\llvm\bin
             cmake -GNinja $(Build.SourcesDirectory) ^
-              -DCMAKE_C_COMPILER=clang.exe ^
-              -DCMAKE_CXX_COMPILER=clang++.exe ^
+              -DCMAKE_C_COMPILER=c:\score-sdk\llvm\bin\clang.exe ^
+              -DCMAKE_CXX_COMPILER=c:\score-sdk\llvm\bin\clang++.exe ^
               -DCMAKE_BUILD_TYPE=Release ^
               -DOSSIA_SDK=c:\score-sdk ^
               -DCMAKE_INSTALL_PREFIX=install ^
@@ -62,11 +62,13 @@ stages:
         - bash: |
             export SCORE_DIR="$PWD"
             export SDK_DIR="$PWD/build/SDK"
-            cd build
+            ls
+            (
+              cd build
+              cmake --install . --strip --component Devel --prefix "$SDK_DIR"
+            )
 
-            cmake --install . --strip --component Devel --prefix "$SDK_DIR"
-
-            $(Build.SourcesDirectory)/src/plugins/score-plugin-jit/tools/create-sdk-mingw.sh
+            ./src/plugins/score-plugin-jit/tools/create-sdk-mingw.sh
 
             (cd SDK; zip -r -q -9 $(Build.ArtifactStagingDirectory)/windows-sdk.zip usr)
             
