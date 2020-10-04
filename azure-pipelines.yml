@@ -56,7 +56,7 @@ stages:
             cmake --build .
             cmake --build . --target package
             dir
-            move "ossia score-3.0.0-win64.exe" "ossia score-$(gitTagNoV)-win64.exe"
+            move "ossia score-3.0.0-win64.exe" "$(Build.ArtifactStagingDirectory)\ossia score-$(gitTagNoV)-win64.exe"
             dir
 
         - bash: |
@@ -68,18 +68,18 @@ stages:
 
             $(Build.SourcesDirectory)/src/plugins/score-plugin-jit/tools/create-sdk-mingw.sh
 
-            (cd SDK; zip -r -q -9 ../windows-sdk.zip usr)
+            (cd SDK; zip -r -q -9 $(Build.ArtifactStagingDirectory)/windows-sdk.zip usr)
             
           displayName: Build
 
         - task: PublishPipelineArtifact@1
           inputs:
-            targetPath: "$(System.DefaultWorkingDirectory)/build/ossia score-$(gitTagNoV)-win64.exe"
+            targetPath: "$(Build.ArtifactStagingDirectory)/ossia score-$(gitTagNoV)-win64.exe"
             artifactName: Installer
 
         - task: PublishPipelineArtifact@1
           inputs:
-            targetPath: "$(System.DefaultWorkingDirectory)/build/windows-sdk.zip"
+            targetPath: "$(Build.ArtifactStagingDirectory)/windows-sdk.zip"
             artifactName: SDK
 
         - task: GitHubRelease@1
@@ -93,6 +93,3 @@ stages:
             tagSource: manual
             title: '$(gitTag)'
             assetUploadMode: 'replace'
-            assets:
-              - "$(System.DefaultWorkingDirectory)/build/ossia score-$(gitTagNoV)-win64.exe"
-              - "$(System.DefaultWorkingDirectory)/build/windows-sdk.zip"
