@@ -136,13 +136,17 @@ endif()
 if(WIN32)
   install(
     TARGETS ${APPNAME}
-    BUNDLE DESTINATION .
     RUNTIME DESTINATION .
     COMPONENT OssiaScore)
-else()
+elseif(APPLE)
   install(
     TARGETS ${APPNAME}
     BUNDLE DESTINATION .
+    COMPONENT OssiaScore)
+else() # Linux
+  install(
+    TARGETS ${APPNAME}
+    RUNTIME DESTINATION bin
     COMPONENT OssiaScore)
 endif()
 

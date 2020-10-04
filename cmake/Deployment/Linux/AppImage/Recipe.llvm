@@ -16,19 +16,24 @@ ln -s /opt/rh/rh-git218/root/usr/bin/git /usr/bin/git || true
 
 # Set-up paths
 export CMAKE_PATH=$(find $PWD/cmake-*/ -type d | head -n 1)bin
-export CMAKE=$CMAKE_PATH/cmake
-export PATH=$CMAKE_PATH:$PATH
+export CMAKE="$CMAKE_PATH/cmake"
+export PATH="$CMAKE_PATH:$PATH"
 
 export BUILD_DIR=/build
 export APP=score
-rm -rf $BUILD_DIR/$APP.AppDir
-mkdir -p $BUILD_DIR/$APP.AppDir
-cd $BUILD_DIR
+rm -rf "$BUILD_DIR/$APP.AppDir"
+mkdir -p "$BUILD_DIR/$APP.AppDir"
 
-export APP_DIR=$BUILD_DIR/$APP.AppDir
+cd "$BUILD_DIR"
+
+export APP_DIR="$BUILD_DIR/$APP.AppDir"
+mkdir -p "$APP_DIR/usr"
+
+export SDK_DIR="$BUILD_DIR/SDK"
+rm -rf "$SDK_DIR"
+mkdir -p "$SDK_DIR"
+
 # Build score in the AppDir
-mkdir -p $APP_DIR/usr
-
 export SOURCE_DIR=/score
 (
     export INSTALL_ROOT=$(cd $APP_DIR/usr; pwd)
@@ -40,7 +45,9 @@ export SOURCE_DIR=/score
 
     (
       cd build*
-      cmake --build . --target install/strip
+      cmake --install . --strip --component OssiaScore
+      cmake --install . --strip --component Devel --prefix "$SDK_DIR/usr"
+      rm -rf "$SDK_DIR/usr/lib"
     )
 )
 
@@ -155,32 +162,5 @@ cp $APP_DIR/usr/share/pixmaps/ossia-score.png $APP_DIR/
 if [[ "x$JUST_BUILD" != "x" ]]; then
   exit 0
 fi
-(
-    # Copy headers
 
-    cd $APP_DIR
-    export HEADERS=$PWD/usr/include
-    mkdir -p $HEADERS
-    for package in glibc-headers glibc-devel alsa-lib-devel mesa-libGL-devel libxkbcommon-x11-devel kernel-headers ; do
-      (
-        cd /usr/include
-        rsync -aR $(rpm -ql $package | grep '/usr/include' | grep '\.h' | cut -c 14-  | sort | uniq) $HEADERS
-      )
-    done
-
-    mkdir $HEADERS/qt
-    rsync -a $OSSIA_SDK/qt5-static/include/ $HEADERS/qt/
-
-    rsync -a $OSSIA_SDK/llvm/include/ $HEADERS/
-    rsync -a $OSSIA_SDK/ffmpeg/include/ $HEADERS/
-    rsync -a $OSSIA_SDK/fftw/include/ $HEADERS/
-    rsync -a $OSSIA_SDK/portaudio/include/ $HEADERS/
-
-    export LLVM_VER=$(ls /opt/score-sdk/llvm/lib/clang/)
-    mkdir -p $PWD/usr/lib/clang/$LLVM_VER/include
-    rsync -a $OSSIA_SDK/llvm/lib/clang/$LLVM_VER/include/ $PWD/usr/lib/clang/$LLVM_VER/include/
-
-    # Strip binaries
-    # strip usr/bin/ossia-score usr/bin/ossia-score-vstpuppet || true
-)
-
+$SOURCE_DIR/src/plugins/score-plugin-jit/tools/create-sdk-linux.sh

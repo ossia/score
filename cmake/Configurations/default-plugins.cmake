@@ -31,12 +31,14 @@ score-plugin-js
 score-plugin-midi
 score-plugin-recording
 
-score-addon-nodal
-score-addon-controlsurface
-score-addon-remotecontrol
+score-plugin-nodal
+score-plugin-controlsurface
+score-plugin-remotecontrol
 
 score-plugin-ui
 
-score-addon-gfx
+score-plugin-gfx
 score-plugin-packagemanager
+
+score-plugin-jit
 )

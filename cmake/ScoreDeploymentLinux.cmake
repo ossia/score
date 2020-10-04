@@ -73,6 +73,7 @@ if(EXISTS "${CMAKE_BINARY_DIR}/src/plugins/score-plugin-media/faustlibs-prefix/s
       "${CMAKE_BINARY_DIR}/src/plugins/score-plugin-media/faustlibs-prefix/src/faustlibs/"
     DESTINATION
       "share/faust"
+    COMPONENT OssiaScore
      PATTERN ".git" EXCLUDE
      PATTERN "doc" EXCLUDE
      PATTERN "*.html" EXCLUDE
@@ -110,7 +111,7 @@ set(CPACK_DEBIAN_PACKAGE_NAME "ossia-score")
 set(CPACK_DEBIAN_OSSIASCORE_PACKAGE_NAME "ossia-score")
 set(CPACK_DEBIAN_FILE_NAME "ossia-score_${CPACK_PACKAGE_VERSION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}.deb")
 
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "ossia devs <ossia.collective@gmail.com>")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "ossia devs <contact@ossia.io>")
 set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://ossia.io")
 set(CPACK_DEBIAN_PACKAGE_PROVIDES "ossia-score")
 if(SCORE_STATIC_QT)
