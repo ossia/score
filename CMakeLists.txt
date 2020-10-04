@@ -1,4 +1,8 @@
-cmake_minimum_required(VERSION 3.17 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
+if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.18)
+  cmake_policy(VERSION 3.18)
+endif()
+
 set(CMAKE_MODULE_PATH
     "${CMAKE_MODULE_PATH}"
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake"

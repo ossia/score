@@ -90,10 +90,12 @@ struct is_template<T<A1, A2, A3, A4, A5, A6, A7, A8>> : std::true_type
 {
 };
 
+#if defined(__clang__)
 template <template<class, std::size_t> class T, class X, std::size_t u>
 struct is_template<T<X,u>> : std::true_type
 {
 };
+#endif
 
 template <class>
 struct is_custom_serialized : std::false_type

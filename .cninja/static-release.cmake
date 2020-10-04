@@ -1,4 +1,4 @@
-cninja_require(clang)
+cninja_require(compiler=clang)
 cninja_require(lld)
 cninja_require(score-warnings)
 
