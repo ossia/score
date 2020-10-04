@@ -1,3 +1,4 @@
+*.zip
 build-*
 AppRun*
 *.AppImage

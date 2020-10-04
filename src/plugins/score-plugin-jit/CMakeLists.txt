@@ -1,5 +1,20 @@
 project(score_plugin_jit LANGUAGES CXX)
 
+find_package(LLVM PATHS ${LLVM_DIR})
+find_package(Clang PATHS ${LLVM_DIR}/../Clang)
+find_package(Polly PATHS ${LLVM_DIR}/../Polly)
+
+if(NOT LLVM_FOUND OR NOT Clang_FOUND)
+  message(" -- LLVM & libclang were not found, skipping JIT plug-in")
+  return()
+endif()
+if(LLVM_VERSION VERSION_GREATER "10.0")
+  message(" -- LLVM version: ${LLVM_VERSION}")
+else()
+  message(" -- LLVM Version ${LLVM_VERSION} incompatible, skipping JIT plug-in")
+  return()
+endif()
+
 # Based on the code in
 # https://github.com/weliveindetail/JitFromScratch
 
@@ -45,15 +60,6 @@ if(TARGET score_plugin_gfx)
   set(HDRS ${HDRS} Texgen/Texgen.hpp)
   target_sources(${PROJECT_NAME} PRIVATE Texgen/Texgen.hpp Texgen/Texgen.cpp)
   target_link_libraries(${PROJECT_NAME} PRIVATE score_plugin_gfx)
-endif()
-find_package(LLVM REQUIRED PATHS ${LLVM_DIR})
-find_package(Clang REQUIRED PATHS ${LLVM_DIR}/../Clang)
-find_package(Polly PATHS ${LLVM_DIR}/../Polly)
-
-if(LLVM_VERSION VERSION_GREATER "7.0")
-  message("-- LLVM version: ${LLVM_VERSION}")
-else()
-  message(FATAL_ERROR "LLVM Version incompatible")
 endif()
 
 # LLVM definitions
