@@ -18,7 +18,13 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandler::getDrops(
   std::vector<ProcessDrop> res;
   // Try to extract data from the mime formats
   const auto& formats = mime.formats();
-  auto commonFormats = mimeTypes().intersect(QSet<QString>(formats.begin(), formats.end()));
+  auto commonFormats = mimeTypes().intersect(
+      #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
+        formats.toSet()
+      #else
+        QSet<QString>(formats.begin(), formats.end())
+      #endif
+  );
   if (!commonFormats.isEmpty())
   {
     // Try to check if the handler has special code for handling mime data
