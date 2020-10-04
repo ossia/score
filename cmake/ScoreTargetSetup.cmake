@@ -121,6 +121,7 @@ function(setup_score_common_lib_features TheTarget)
             PATTERN ".git" EXCLUDE
             PATTERN "tests" EXCLUDE
             PATTERN "Tests" EXCLUDE
+            PATTERN "SDK" EXCLUDE
     )
     install(FILES
           ${_binDir}/${TheTarget}_export.h

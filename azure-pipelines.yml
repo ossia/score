@@ -30,8 +30,8 @@ stages:
         - bash: |
             set -x            
             mkdir /c/score-sdk
-            cd /c/score-sdk            
-            curl -L https://github.com/ossia/sdk/releases/download/sdk15/score-sdk-mingw.7z --output score-sdk-mingw.7z
+            cd /c/score-sdk
+            curl -L https://github.com/ossia/sdk/releases/download/sdk16/score-sdk-mingw.7z --output score-sdk-mingw.7z
             7z x score-sdk-mingw.7z
             rm score-sdk-mingw.7z
             ls
@@ -44,11 +44,13 @@ stages:
               -DCMAKE_C_COMPILER=clang.exe ^
               -DCMAKE_CXX_COMPILER=clang++.exe ^
               -DCMAKE_BUILD_TYPE=Release ^
-              -DCMAKE_EXE_LINKER_FLAGS="-static -static-libgcc -static-libstdc++" ^
               -DOSSIA_SDK=c:\score-sdk ^
               -DCMAKE_INSTALL_PREFIX=install ^
+              -DCMAKE_PREFIX_PATH="c:/score-sdk/qt5-static;c:/score-sdk/llvm-libs;c:/score-sdk/SDL2;c:/score-sdk" ^
               -DCMAKE_BUILD_TYPE=Release ^
               -DCMAKE_UNITY_BUILD=1 ^
+              -DOSSIA_STATIC_EXPORT=1 ^
+              -DSCORE_INSTALL_HEADERS=1 ^
               -DDEPLOYMENT_BUILD=1
               
             cmake --build .
@@ -56,6 +58,8 @@ stages:
             dir
             move "ossia score-3.0.0-win64.exe" "ossia score-$(gitTagNoV)-win64.exe"
             dir
+            cmake -DCOMPONENT=Devel -P cmake_install.cmake
+
             
           displayName: Build
 
