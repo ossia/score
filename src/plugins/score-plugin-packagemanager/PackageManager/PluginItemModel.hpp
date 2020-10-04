@@ -18,7 +18,7 @@ namespace score
 {
 struct ApplicationContext;
 }
-namespace PluginSettings
+namespace PM
 {
 
 struct RemotePackage
@@ -122,5 +122,5 @@ private:
 };
 }
 
-Q_DECLARE_METATYPE(PluginSettings::RemotePackage)
-W_REGISTER_ARGTYPE(PluginSettings::RemotePackage)
+Q_DECLARE_METATYPE(PM::RemotePackage)
+W_REGISTER_ARGTYPE(PM::RemotePackage)

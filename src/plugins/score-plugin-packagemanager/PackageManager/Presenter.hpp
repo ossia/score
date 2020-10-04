@@ -6,7 +6,7 @@
 
 #include <verdigris>
 
-namespace PluginSettings
+namespace PM
 {
 class BlacklistCommand;
 class PluginSettingsModel;
@@ -21,7 +21,7 @@ public:
       QObject* parent);
 
 private:
-  QString settingsName() override { return tr("Plugin"); }
+  QString settingsName() override { return tr("Packages"); }
 
   QIcon settingsIcon() override;
 };

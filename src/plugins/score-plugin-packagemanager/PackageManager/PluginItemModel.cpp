@@ -15,7 +15,7 @@
 #include <QJsonObject>
 #include <QPixmap>
 
-namespace PluginSettings
+namespace PM
 {
 LocalPackagesModel::LocalPackagesModel(
     const score::ApplicationContext& ctx)

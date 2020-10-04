@@ -15,7 +15,7 @@
 #include <QStringList>
 #include <QVariant>
 #include <qnamespace.h>
-namespace PluginSettings
+namespace PM
 {
 PluginSettingsModel::PluginSettingsModel(
     QSettings& set,

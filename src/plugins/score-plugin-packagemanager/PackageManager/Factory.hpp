@@ -5,7 +5,7 @@
 
 #include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 
-namespace PluginSettings
+namespace PM
 {
 SCORE_DECLARE_SETTINGS_FACTORY(
     Factory,

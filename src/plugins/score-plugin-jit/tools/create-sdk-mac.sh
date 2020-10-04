@@ -1,10 +1,18 @@
 #!/bin/bash
 
-export SCORE=$(python -c "import os; print(os.path.realpath('$PWD/../../../..'))" "$PWD/../../../..")
-export SRC="/opt/score-sdk-osx"
-export DST="$PWD/SDK" 
+if [[ "x$SCORE_DIR" == "x" ]]; then
+  echo "SCORE_DIR not set"
+  exit 1
+fi
 
-rm -rf "$DST"
+if [[ "x$SDK_DIR" == "x" ]]; then
+  echo "SDK_DIR not set"
+  exit 1
+fi
+export SCORE="$SCORE_DIR"
+export SRC="/opt/score-sdk-osx"
+export DST="$SDK_DIR"
+
 mkdir -p "$DST/usr/include"
 mkdir -p "$DST/usr/lib"
 

@@ -29,8 +29,8 @@
 #include <wobjectimpl.h>
 #include <score_git_info.hpp>
 
-W_OBJECT_IMPL(PluginSettings::PluginSettingsView)
-namespace PluginSettings
+W_OBJECT_IMPL(PM::PluginSettingsView)
+namespace PM
 {
 
 namespace zip_helper

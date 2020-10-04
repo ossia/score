@@ -17,13 +17,13 @@
 #include <QStyle>
 
 #include <wobjectimpl.h>
-W_OBJECT_IMPL(PluginSettings::PluginSettingsPresenter)
+W_OBJECT_IMPL(PM::PluginSettingsPresenter)
 namespace score
 {
 class SettingsDelegateModel;
 } // namespace score
 
-namespace PluginSettings
+namespace PM
 {
 
 PluginSettingsPresenter::PluginSettingsPresenter(
@@ -52,7 +52,7 @@ PluginSettingsPresenter::PluginSettingsPresenter(
       [&](const QModelIndex& current, const QModelIndex& previous) {
         RemotePackage& addon = ps_model.remotePlugins.addons().at(current.row());
 
-        ps_view.installButton().setEnabled(addon.file != QUrl{});
+        ps_view.installButton().setEnabled(addon.file != QUrl{} || addon.kind == "sdk");
       });
 
   ps_view.installButton().setEnabled(false);

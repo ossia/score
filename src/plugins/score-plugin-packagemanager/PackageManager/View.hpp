@@ -14,7 +14,7 @@
 #include <verdigris>
 class QObject;
 
-namespace PluginSettings
+namespace PM
 {
 class PluginSettingsPresenter;
 class PluginSettingsView : public score::GlobalSettingsView

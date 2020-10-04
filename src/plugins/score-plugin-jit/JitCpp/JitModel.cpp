@@ -12,6 +12,7 @@
 
 #include <Process/Dataflow/PortFactory.hpp>
 
+#include <score/tools/DeleteAll.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
@@ -160,10 +161,8 @@ void JitEffectModel::reload()
       old_compilers.pop_back();
   }
 
-  qDebug( "== reload() == ");
   m_compiler = std::make_unique<NodeCompiler>("score_graph_node_factory");
 
-  qDebug( "     std::make_unique<NodeCompiler> == ");
   auto fx_text = m_text.toLocal8Bit();
   if (fx_text.isEmpty())
     return;
@@ -173,7 +172,6 @@ void JitEffectModel::reload()
   {
     jit_factory = (*m_compiler)(fx_text.toStdString(), {}, CompilerOptions{false});
 
-    qDebug( "     jit_factory == ");
     if (!jit_factory)
       return;
   }
@@ -190,7 +188,6 @@ void JitEffectModel::reload()
   }
 
   std::unique_ptr<ossia::graph_node> jit_object{jit_factory()};
-  qDebug( "     jit_object == ");
   if (!jit_object)
   {
     jit_factory = {};
@@ -199,28 +196,22 @@ void JitEffectModel::reload()
   // creating a new dsp
 
   factory = std::move(jit_factory);
-  qDeleteAll(m_inlets);
-  qDeleteAll(m_outlets);
-  m_inlets.clear();
-  m_outlets.clear();
 
-  qDebug( "     about to call jit_object->root_inputs... == ");
+  auto inls = score::clearAndDeleteLater(m_inlets);
+  auto outls = score::clearAndDeleteLater(m_outlets);
+
+
   for (ossia::inlet* port : jit_object->root_inputs())
   {
-    qDebug( "      inputs ok ");
     if (auto inl = port->visit(inlet_vis{*this}))
     {
-      qDebug( "      inputs added ");
       m_inlets.push_back(inl);
     }
   }
-  qDebug( "     about to call jit_object->root_outputs... == ");
   for (ossia::outlet* port : jit_object->root_outputs())
   {
-    qDebug( "      outputs ok ");
     if (auto inl = port->visit(outlet_vis{*this}))
     {
-      qDebug( "      outputs added ");
       m_outlets.push_back(inl);
     }
   }
@@ -229,7 +220,6 @@ void JitEffectModel::reload()
       && m_outlets.front()->type() == Process::PortType::Audio)
     safe_cast<Process::AudioOutlet*>(m_outlets.front())->setPropagate(true);
 
-  qDebug( "     all done... == ");
   inletsChanged();
   outletsChanged();
   changed();

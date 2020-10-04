@@ -7,7 +7,7 @@
 
 class QAbstractItemModel;
 
-namespace PluginSettings
+namespace PM
 {
 class BlacklistCommand;
 

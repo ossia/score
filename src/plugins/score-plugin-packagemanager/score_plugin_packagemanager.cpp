@@ -16,7 +16,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_packagemanager::
   return instantiate_factories<
       score::ApplicationContext,
       FW<score::SettingsDelegateFactory
-      , PluginSettings::Factory>
+      , PM::Factory>
       >(ctx, key);
 }
 
