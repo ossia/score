@@ -25,7 +25,7 @@ Releases are available for [Windows, Linux (via AppImage) and Mac OS X](https://
 ## Build status
 * Linux, macOS: [![Travis Status](https://travis-ci.org/ossia/score.svg?branch=master)](https://travis-ci.org/ossia/score)
 * Windows (clang): [![Azure Pipelines](https://img.shields.io/azure-devops/build/ossia/f914424f-63a4-43f7-b424-67c9dc58ae05/2)](https://dev.azure.com/ossia/libossia/_build?definitionId=2)
-* Windows (MSVC): [![Appveyor Status](https://ci.appveyor.com/api/projects/status/github/ossia/score?branch=master&svg=true)](https://ci.appveyor.com/project/JeanMichalCelerier/score)
+* Windows (MSVC): [![Appveyor Status](https://ci.appveyor.com/api/projects/status/github/ossia/score?branch=master&svg=true)](https://ci.appveyor.com/project/JeanMichalCelerier/score) (currently broken due to [MSVC bugs](https://developercommunity.visualstudio.com/content/problem/1143950/regression-c-internal-compiler-error-in-1670-with-1.html))
 * [![OpenHub](https://www.openhub.net/p/score/widgets/project_thin_badge?format=gif)](https://www.openhub.net/p/score)
 * ossia score uses [CppDepend](https://www.cppdepend.com/) to ensure consistent code quality improvements ; please check it out !
 
