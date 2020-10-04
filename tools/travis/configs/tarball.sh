@@ -21,8 +21,15 @@ rm -rf 3rdparty/libossia/3rdparty/pybind11 || true
 mkdir -p 3rdparty/libossia/3rdparty/pybind11 || true
 mv pybind11-license.txt 3rdparty/libossia/3rdparty/pybind11/LICENSE || true
 
+rm -rf 3rdparty/libossia/3rdparty/cpp-taskflow/benchmarks
+rm -rf 3rdparty/libossia/3rdparty/cpp-taskflow/3rd-party
+rm -rf 3rdparty/libossia/3rdparty/cpp-taskflow/image
+rm -rf 3rdparty/libossia/3rdparty/cpp-taskflow/doxygen
+rm -rf 3rdparty/libossia/3rdparty/cpp-taskflow/docs
+rm -rf 3rdparty/libossia/3rdparty/r8brain-free-src/bench
 rm -rf 3rdparty/libossia/3rdparty/jni_hpp
 rm -rf 3rdparty/libossia/3rdparty/max-sdk
+rm -rf 3rdparty/libossia/3rdparty/rapidjson/thirdparty
 rm -rf 3rdparty/libossia/3rdparty/concurrentqueue/benchmarks
 rm -rf 3rdparty/libossia/3rdparty/concurrentqueue/build
 rm -rf 3rdparty/libossia/3rdparty/concurrentqueue/test
