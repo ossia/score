@@ -18,24 +18,24 @@ mkdir -p "$DST/usr/include"
 mkdir -p "$DST/usr/lib"
 
 cd "$DST/usr"
-rsync -ar "$SRC/qt5-static/include/" "include/"
-rsync -ar "$SRC/ffmpeg/include/" "include/"
-rsync -ar "$SRC/fftw/include/" "include/"
-rsync -ar "$SRC/portaudio/include/" "include/"
-rsync -ar "$SRC/openssl/include/" "include/"
+cp -rf "$SRC/qt5-static/include/"* "$DST/usr/include/"
+cp -rf "$SRC/ffmpeg/include/"* "$DST/usr/include/"
+cp -rf "$SRC/fftw/include/"* "$DST/usr/include/"
+cp -rf "$SRC/portaudio/include/"* "$DST/usr/include/"
+cp -rf "$SRC/openssd/include/"* "$DST/usr/include/"
 
 if [[ -d "$SCORE/3rdparty/libossia/3rdparty/boost_1_73_0" ]]; then
-  rsync -ar "$SCORE/3rdparty/libossia/3rdparty/boost_1_73_0/boost" "include/"
+  cp -rf "$SCORE/3rdparty/libossia/3rdparty/boost_1_73_0/boost" "$DST/usr/include/"
 fi
 
 (
 # Copy our compiler's intrinsincs
 export LLVM_VER=$(ls $SRC/llvm-libs/lib/clang/)
 mkdir -p "$DST/usr/lib/clang/$LLVM_VER/include"
-rsync -ar "$SRC/llvm-libs/lib/clang/$LLVM_VER/include/" "$DST/usr/lib/clang/$LLVM_VER/include/"
+cp -rf "$SRC/llvm-libs/lib/clang/$LLVM_VER/include/"* "$DST/usr/lib/clang/$LLVM_VER/include/"
 )
 
 (
 # Copy the mingw API
-rsync -ar "$SRC/llvm/include/" "$DST/usr/include/"
+cp -rf "$SRC/llvm/include/"* "$DST/usr/include/"
 )
