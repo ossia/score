@@ -28,6 +28,9 @@ stages:
         - script: |
             cinst -y ninja
         - bash: |
+            echo " ============ "
+            echo "$BUILD_ARTIFACTSTAGINGDIRECTORY"
+            echo "$BUILD_SOURCESDIRECTORY"
             set -x            
             mkdir /c/score-sdk
             cd /c/score-sdk
@@ -70,7 +73,7 @@ stages:
 
             ./src/plugins/score-plugin-jit/tools/create-sdk-mingw.sh
 
-            (cd build/SDK; 7z a $(Build.ArtifactStagingDirectory)/windows-sdk.zip usr)
+            (cd build/SDK; 7z a "$BUILD_ARTIFACTSTAGINGDIRECTORY/windows-sdk.zip" usr)
             
           displayName: Build
 
