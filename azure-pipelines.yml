@@ -41,8 +41,8 @@ stages:
             cd build
             set PATH=%PATH%;c:\score-sdk\llvm\bin
             cmake -GNinja $(Build.SourcesDirectory) ^
-              -DCMAKE_C_COMPILER=c:\score-sdk\llvm\bin\clang.exe ^
-              -DCMAKE_CXX_COMPILER=c:\score-sdk\llvm\bin\clang++.exe ^
+              -DCMAKE_C_COMPILER=c:/score-sdk/llvm/bin/clang.exe ^
+              -DCMAKE_CXX_COMPILER=c:/score-sdk/llvm/bin/clang++.exe ^
               -DCMAKE_BUILD_TYPE=Release ^
               -DOSSIA_SDK=c:\score-sdk ^
               -DCMAKE_INSTALL_PREFIX=install ^
