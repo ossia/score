@@ -287,6 +287,7 @@ public:
         return false;
     }
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
     bool variantFromJsObject(int type, const QV4::Value &object, QV4::ExecutionEngine *v4, QVariant *v) override
     {
       return false;
@@ -312,6 +313,7 @@ public:
         return ok;
         */
     }
+#endif
 
     template<typename T>
     bool typedEqual(const void *lhs, const QVariant& rhs)
