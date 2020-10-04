@@ -22,4 +22,4 @@ cp AppRun-x86_64 build/score.AppDir/AppRun
 ./appimagetool-x86_64.AppImage -n "build/score.AppDir" "Score.AppImage"
 
 chmod a+rwx Score.AppImage
-(cd build/SDK; zip ../../linux-sdk.zip -r usr -9)
+(cd build/SDK; zip  -r -q -9 ../../linux-sdk.zip usr )

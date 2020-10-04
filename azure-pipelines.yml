@@ -68,7 +68,7 @@ stages:
 
             $(Build.SourcesDirectory)/src/plugins/score-plugin-jit/tools/create-sdk-mingw.sh
 
-            (cd SDK; zip ../windows-sdk.zip -r -9 usr)
+            (cd SDK; zip -r -q -9 ../windows-sdk.zip usr)
             
           displayName: Build
 

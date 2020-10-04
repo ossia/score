@@ -27,4 +27,4 @@ mv build-*/bundle .
 
 ./src/plugins/score-plugin-jit/tools/create-sdk-mac.sh
 
-(cd SDK; zip ../bundle/mac-sdk.zip -r -9 usr)
+(cd SDK; zip -r -q -9 ../bundle/mac-sdk.zip usr)
