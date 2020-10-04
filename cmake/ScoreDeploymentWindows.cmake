@@ -118,7 +118,7 @@ install(CODE "
     )
 ")
 
-if(NOT TARGET score_addon_jit)
+if(NOT TARGET score_plugin_jit)
     install(CODE "
         file(REMOVE_RECURSE
             \"\${CMAKE_INSTALL_PREFIX}/include\"
