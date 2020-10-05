@@ -9,7 +9,7 @@
 #include <QProgressDialog>
 
 #include <thread>
-
+#include <ossia-qt/invoke.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Protocols::WiimoteDevice)
 
@@ -53,7 +53,7 @@ bool WiimoteDevice::reconnect()
     {
       SCORE_TODO;
     }
-    dialog.cancel();
+    ossia::qt::run_async(&dialog, [&dialog] { dialog.cancel(); });
   }};
 
   dialog.exec();
