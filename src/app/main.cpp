@@ -21,6 +21,7 @@
 #if defined(_WIN32)
 #include <Windows.h>
 #include <mmsystem.h>
+#include <ntdef.h>
 extern "C" NTSYSAPI NTSTATUS NTAPI NtSetTimerResolution(ULONG DesiredResolution, BOOLEAN SetResolution, PULONG CurrentResolution);
 #endif
 
