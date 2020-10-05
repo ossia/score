@@ -6,7 +6,8 @@ RUN yum -y install devtoolset-9-gcc devtoolset-9-make devtoolset-9 \
     nasm libxkbcommon-x11-devel alsa-lib-devel glib2-devel \
     vulkan vulkan-devel xcb-util-wm xcb-util-wm-devel libxkbcommon-devel \
     xcb-util-image-devel xcb-util-keysyms-devel xcb-util-cursor-devel xcb-util-renderutil-devel pulseaudio-libs-devel \
-    rsync
+    rsync \
+    bluez-devel avahi-devel
 
 
 RUN mkdir -p /opt/score-sdk 
