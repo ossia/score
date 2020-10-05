@@ -143,6 +143,11 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/.git")
 else()
   set(GIT_COMMIT_HASH "")
 endif()
+set(SCORE_VERSION_TAG "${SCORE_VERSION_MAJOR}.${SCORE_VERSION_MINOR}.${SCORE_VERSION_PATCH}")
+if(NOT "${SCORE_VERSION_EXTRA}" STREQUAL "")
+  set(SCORE_VERSION_TAG "${SCORE_VERSION_TAG}-${SCORE_VERSION_EXTRA}")
+endif()
+
 score_write_file("${CMAKE_CURRENT_BINARY_DIR}/score_git_info.hpp"
 "#pragma once
 #define GIT_COMMIT \"${GIT_COMMIT_HASH}\"
@@ -151,6 +156,8 @@ score_write_file("${CMAKE_CURRENT_BINARY_DIR}/score_git_info.hpp"
 #define SCORE_VERSION_PATCH ${SCORE_VERSION_PATCH}
 #define SCORE_VERSION_EXTRA \"${SCORE_VERSION_EXTRA}\"
 #define SCORE_CODENAME \"${SCORE_CODENAME}\"
+#define SCORE_TAG \"v${SCORE_VERSION_TAG}\"
+#define SCORE_TAG_NO_V \"${SCORE_VERSION_TAG}\"
 ")
 
 install(

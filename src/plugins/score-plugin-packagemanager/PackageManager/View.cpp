@@ -290,26 +290,27 @@ void PluginSettingsView::installAddon(const RemotePackage& addon)
           .arg(addon.name)
           .arg(QFileInfo(addons_path).absoluteFilePath()));
   },
-  [this] {
+  [=] {
     m_progress->setHidden(true);
     QMessageBox::warning(
           m_widget,
           tr("Download failed"),
-          tr("The package %1 could not be downloaded."));
+          tr("The package %1 could not be downloaded.").arg(addon.name));
   });
 }
 
 void PluginSettingsView::installSDK(const RemotePackage& addon)
 {
-  QString version = QString{"v%1.%2.%3"}
-      .arg(SCORE_VERSION_MAJOR)
-      .arg(SCORE_VERSION_MINOR)
-      .arg(SCORE_VERSION_PATCH)
+  QString version = SCORE_TAG_NO_V;
+  constexpr const char* platform =
+    #if defined(_WIN32)
+      "windows"
+    #elif defined(__APPLE__)
+      "mac"
+    #else
+      "linux"
+    #endif
   ;
-  if(strlen(SCORE_VERSION_EXTRA) > 0)
-  {
-    version += "-" SCORE_VERSION_EXTRA;
-  }
 
   const QString lib_path{score::AppContext()
         .settings<Library::Settings::Model>()
@@ -319,20 +320,12 @@ void PluginSettingsView::installSDK(const RemotePackage& addon)
 
   const QUrl sdk_url =
       QString("https://github.com/ossia/score/releases/download/%1/%2-sdk.zip")
-      .arg(version)
-      .arg(
-      #if defined(_WIN32)
-        "windows"
-      #elif defined(__APPLE__)
-        "mac"
-      #else
-        "linux"
-      #endif
-  );
+      .arg(SCORE_TAG)
+      .arg(platform);
 
   zdl::download_and_extract(
         sdk_url,
-        QFileInfo{sdk_path}.absolutePath(),
+        QFileInfo{sdk_path}.absoluteFilePath(),
         [=] (const std::vector<QString>& res) {
     m_progress->setHidden(true);
     if(res.empty())
@@ -348,12 +341,36 @@ void PluginSettingsView::installSDK(const RemotePackage& addon)
     QMessageBox::warning(
           m_widget,
           tr("Download failed"),
-          tr("The package %1 could not be downloaded."));
+          tr("The SDK could not be downloaded."));
   });
 }
 
 void PluginSettingsView::installLibrary(const RemotePackage& addon)
 {
-  SCORE_TODO;
+  const QString destination{score::AppContext()
+        .settings<Library::Settings::Model>()
+        .getPath() + "/Packages/" + addon.raw_name};
+
+
+  zdl::download_and_extract(
+        addon.file,
+        QFileInfo{destination}.absoluteFilePath(),
+        [=] (const std::vector<QString>& res) {
+    m_progress->setHidden(true);
+    if(res.empty())
+      return;
+
+    QMessageBox::information(
+          m_widget,
+          tr("Package downloaded"),
+          tr("The package %1 has been succesfully installed in the user library.").arg(addon.name));
+  },
+  [=] {
+    m_progress->setHidden(true);
+    QMessageBox::warning(
+          m_widget,
+          tr("Download failed"),
+          tr("The package %1 could not be downloaded.").arg(addon.name));
+  });
 }
 }

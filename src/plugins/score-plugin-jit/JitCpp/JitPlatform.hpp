@@ -28,17 +28,23 @@
 #endif
 #endif
 #include <JitCpp/JitOptions.hpp>
+#include <score_git_info.hpp>
 namespace Jit
 {
 
 static inline std::string locateSDK()
 {
   auto& ctx = score::AppContext().settings<Library::Settings::Model>();
-  auto path = ctx.getPath();
+  auto path = ctx.getPath() + "/SDK/";
 
-  if(QString libPath = path + "/SDK/usr/include/c++"; QDir(libPath).exists())
+  if(QString libPath = path + QString(SCORE_TAG_NO_V) + "/usr"; QDir(libPath + "/include/c++").exists())
   {
-    return QString(path + "/SDK/usr").toStdString();
+    return libPath.toStdString();
+  }
+
+  if(QString libPath = path + "/usr"; QDir(libPath + "/include/c++").exists())
+  {
+    return libPath.toStdString();
   }
 
   auto appFolder = qApp->applicationDirPath();
@@ -132,7 +138,7 @@ static inline void populateCompileOptions(std::vector<std::string>& args, Compil
   args.push_back("-fno-trapping-math");
   args.push_back("-ffp-contract=fast");
 
-#if !defined(__linux__) || (defined(__linux__) && __GLIBC_MINOR__ >= 31)
+#if !defined(__linux__) // || (defined(__linux__) && __GLIBC_MINOR__ >= 31)
   // isn't that great
   // https://reviews.llvm.org/D74712
   args.push_back("-Ofast");
@@ -367,6 +373,43 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
 #if defined(_LIBCPP_VERSION)
   args.push_back("-internal-isystem");
   args.push_back(sdk + "/include/c++/v1");
+#elif defined(_GLIBCXX_RELEASE)
+  // Try to locate the correct libstdc++ folder
+  // TODO these are only heuristics. how to make them better ?
+  {
+    const auto libstdcpp_major = QString::number(_GLIBCXX_RELEASE);
+
+    QDir cpp_dir{"/usr/include/c++"};
+    // Note: as this is only used for debugging we look in the host /usr
+    QDirIterator cpp_it{cpp_dir};
+    while (cpp_it.hasNext())
+    {
+      cpp_it.next();
+      auto ver = cpp_it.fileName();
+      if (!ver.isEmpty() && ver.startsWith(libstdcpp_major))
+      {
+        auto gcc = ver.toStdString();
+
+        // e.g. /usr/include/c++/8.2.1
+        args.push_back("-internal-isystem");
+        args.push_back("/usr/include/c++/" + gcc);
+
+        cpp_dir.cd(ver);
+        for (auto& triple : getPotentialTriples())
+        {
+          if (cpp_dir.exists(triple))
+          {
+            // e.g. /usr/include/c++/8.2.1/x86_64-pc-linux-gnu
+            args.push_back("-internal-isystem");
+            args.push_back("/usr/include/c++/" + gcc + "/" + triple.toStdString());
+            break;
+          }
+        }
+
+        break;
+      }
+    }
+  }
 #endif
 
   args.push_back("-internal-isystem");
@@ -390,42 +433,6 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
     args.push_back("-I" + sdk + "/include/" + path);
   };
 
-#if defined(_LIBCPP_VERSION)
-  include("c++/v1");
-#elif defined(_GLIBCXX_RELEASE)
-  // Try to locate the correct libstdc++ folder
-  // TODO these are only heuristics. how to make them better ?
-  {
-    const auto libstdcpp_major = QString::number(_GLIBCXX_RELEASE);
-
-    QDirIterator cpp_it{dir};
-    while (cpp_it.hasNext())
-    {
-      cpp_it.next();
-      auto ver = cpp_it.fileName();
-      if (!ver.isEmpty() && ver.startsWith(libstdcpp_major))
-      {
-        auto gcc = ver.toStdString();
-
-        // e.g. /usr/include/c++/8.2.1
-        include("c++/" + gcc);
-
-        dir.cd(QString::fromStdString(gcc));
-        for (auto& triple : getPotentialTriples())
-        {
-          if (dir.exists(triple))
-          {
-            // e.g. /usr/include/c++/8.2.1/x86_64-pc-linux-gnu
-            include("c++/" + gcc + "/" + triple.toStdString());
-            break;
-          }
-        }
-
-        break;
-      }
-    }
-  }
-#endif
 
 #if defined(__linux__)
   include("x86_64-linux-gnu"); // #debian
