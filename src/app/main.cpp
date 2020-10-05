@@ -18,6 +18,12 @@
 #include <dlfcn.h>
 #endif
 
+#if defined(_WIN32)
+#include <Windows.h>
+#include <timeapi.h>
+extern "C" NTSYSAPI NTSTATUS NTAPI NtSetTimerResolution(ULONG DesiredResolution, BOOLEAN SetResolution, PULONG CurrentResolution);
+#endif
+
 #if defined(__SSE3__)
 #include <pmmintrin.h>
 #endif
@@ -49,6 +55,28 @@ static void setup_x11()
   }
 #endif
 }
+
+struct increase_timer_precision
+{
+  increase_timer_precision()
+  {
+#if defined(_WIN32)
+  // First try to set the 1ms period
+  timeBeginPeriod(1);
+
+  // Then maybe we can go a bit lower...
+  ULONG currentRes{};
+  NtSetTimerResolution(100, TRUE, &currentRes);
+#endif
+  }
+
+  ~increase_timer_precision()
+  {
+#if defined(_WIN32)
+    timeEndPeriod(1);
+#endif
+  }
+};
 
 static void disable_denormals()
 {
@@ -172,6 +200,8 @@ int main(int argc, char** argv)
   Application app(argc, argv);
 
   app.init();
+
+  increase_timer_precision timerRes;
 
 #if __has_include(<valgrind/callgrind.h>)
   /*
