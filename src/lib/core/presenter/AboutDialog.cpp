@@ -29,7 +29,7 @@ AboutDialog::AboutDialog(QWidget* parent)
     , m_mouseAreaOssiaScore(122, 30, 554, 130)
     , m_mouseAreaLabri(93, 370, 126, 40)
     , m_mouseAreaScrime(56, 435, 200, 70)
-    , m_mouseAreaBlueYeti(81, 515, 150, 150)
+    , m_mouseAreaBlueYeti(76, 518, 160, 145)
 {
   setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
   resize(m_windowSize.width(), m_windowSize.height());
