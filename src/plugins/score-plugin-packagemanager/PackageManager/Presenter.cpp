@@ -9,6 +9,7 @@
 
 #include <score/command/Command.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
+#include <score/widgets/SetIcons.hpp>
 
 #include <QApplication>
 #include <QDebug>
@@ -64,6 +65,9 @@ PluginSettingsPresenter::PluginSettingsPresenter(
 
 QIcon PluginSettingsPresenter::settingsIcon()
 {
-  return QApplication::style()->standardIcon(QStyle::SP_CommandLink);
+  return makeIcons(
+      QStringLiteral(":/icons/settings_package_on.png"),
+      QStringLiteral(":/icons/settings_package_off.png"),
+      QStringLiteral(":/icons/settings_package_off.png"));
 }
 }
