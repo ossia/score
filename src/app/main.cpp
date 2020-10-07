@@ -180,6 +180,10 @@ static void setup_app_flags()
 #if defined(__linux__)
   // Else things look horrible on KDE plasma, etc
   qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
+
+  // https://github.com/ossia/score/issues/953
+  // https://github.com/ossia/score/issues/1046
+  QCoreApplication::setAttribute(Qt::AA_DontUseNativeDialogs);
 #endif
 }
 
