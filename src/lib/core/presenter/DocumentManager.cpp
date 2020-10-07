@@ -35,6 +35,7 @@
 #include <QSaveFile>
 #include <QSettings>
 #include <QStringList>
+#include <QStandardPaths>
 
 #include <multi_index/hashed_index.hpp>
 #include <multi_index/identity.hpp>
@@ -78,6 +79,39 @@ struct hash<score::LoadedPluginVersions>
     return std::hash<UuidKey<score::Plugin>>{}(kagi.plugin);
   }
 };
+}
+
+namespace
+{
+
+static QDir getDialogDirectory(score::Document* current)
+{
+  if(current)
+  {
+    auto& doc = *current;
+    QFileInfo file = doc.metadata().fileName();
+    if(auto dir = file.absoluteDir(); dir.exists())
+      return dir;
+  }
+
+  if (QSettings s; s.contains("score/last_open_doc"))
+  {
+    QFileInfo file = s.value("score/last_open_doc").toString();
+    if(auto dir = file.absoluteDir(); dir.exists())
+      return dir;
+  }
+
+  auto docs = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
+  if(!docs.isEmpty())
+    return docs.front();
+
+  auto home = QStandardPaths::standardLocations(QStandardPaths::HomeLocation);
+  if(!home.isEmpty())
+    return home.front();
+
+  return {};
+}
+
 }
 
 namespace score
@@ -299,6 +333,8 @@ bool DocumentManager::saveDocumentAs(Document& doc)
   d.setOption(QFileDialog::DontConfirmOverwrite, false);
   d.setFileMode(QFileDialog::AnyFile);
   d.setAcceptMode(QFileDialog::AcceptSave);
+  d.setDirectory(getDialogDirectory(&doc));
+
   d.selectFile("untitled.score");
   if (d.exec())
   {
@@ -417,21 +453,13 @@ DocumentManager::loadStack(const score::GUIApplicationContext& ctx, const QStrin
   return nullptr;
 }
 
-static QString lastOpenFileName()
-{
-  QSettings s;
-  if (s.contains("score/last_open_doc"))
-    return s.value("score/last_open_doc").toString();
-  return {};
-}
-
 Document* DocumentManager::loadFile(const score::GUIApplicationContext& ctx)
 {
   if (!m_view)
     return nullptr;
 
   QString loadname = QFileDialog::getOpenFileName(
-      m_view, tr("Open"), lastOpenFileName(), "Scores (*.scorebin *.score *.scorejson)");
+      m_view, tr("Open"), getDialogDirectory(nullptr).absolutePath(), "Scores (*.scorebin *.score *.scorejson)");
   QSettings s;
   s.setValue("score/last_open_doc", QFileInfo(loadname).absoluteDir().path());
   return loadFile(ctx, loadname);
