@@ -158,7 +158,7 @@ Skin::Skin() noexcept
   SliderFont.setPixelSize(10 * 96. / 72.);
   SliderFont.setWeight(QFont::DemiBold);
 
-#if defined(__linux__) && defined(SCORE_DEBUG)
+#if defined(__linux__)
   const double dpr = qApp->devicePixelRatio();
 #else
   constexpr double dpr = 1.;
