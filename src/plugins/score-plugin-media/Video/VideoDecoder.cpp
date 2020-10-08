@@ -110,7 +110,7 @@ void VideoDecoder::buffer_thread() noexcept
     {
       std::unique_lock lck{m_condMut};
       m_condVar.wait(lck, [&] {
-        return m_framesToPlayer.size_approx() < frames_to_buffer
+        return m_framesToPlayer.size_approx() < frames_to_buffer / 2
                || !m_running.load(std::memory_order_acquire)
                || (m_seekTo != -1);
       });
