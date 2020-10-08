@@ -26,20 +26,54 @@
 W_OBJECT_IMPL(Jit::BytebeatModel)
 namespace Jit
 {
-QString generateBytebeatFunction(const QString& bb)
+QString generateBytebeatFunction(QString bb)
 {
-  return QString(R"_(
+  QString computed = "(";
+  static const QRegularExpression cpp_comm_1("/\\*(.*?)\\*/", QRegularExpression::DotMatchesEverythingOption);
+  static const QRegularExpression cpp_comm_2("//.*\n");
+  bb.remove(cpp_comm_1);
+  bb.remove(cpp_comm_2);
+
+  int k = 0;
+  auto lines = bb.split("\n");
+  for(auto& line : lines)
+  {
+    if(const auto simp = line.simplified(); !simp.isEmpty())
+    {
+      computed += QStringLiteral("double(signed_char(%1))+").arg(simp);
+      k++;
+    }
+  }
+
+  if(k > 0 && computed.length() > 0)
+  {
+    computed.resize(computed.size() - 1);
+    computed.push_back(QString(") * double(%1)").arg(1. / (128 * k), 0, 'g', 20));
+  }
+  else
+  {
+    computed = "0.";
+  }
+
+  auto res = QStringLiteral(R"_(
+#if __has_include(<cmath>)
+#include <cmath>
+#endif
+
+using signed_char = signed char;
 extern "C"
 void score_bytebeat(double* input, int size, int T)
 {
   for(auto end = input + size; input < end; ++input, ++T)
   {
     const int t = T / 4;
-    signed char expr = (%1);
-    *(input) = double(expr) / double(128.);
+    {
+      *(input) = %1;
+    }
   }
 }
-)_").arg(bb);
+)_").arg(computed);
+return res;
 }
 
 BytebeatModel::BytebeatModel(
@@ -266,7 +300,11 @@ template <>
 QString
 EffectProcessFactory_T<Jit::BytebeatModel>::customConstructionData() const
 {
-  return "(((t<<1)^((t<<1)+(t>>7)&t>>12))|t>>(4-(1^7&(t>>19)))|t>>7)";
+  return R"_(
+/* one per line */
+(((t<<1)^((t<<1)+(t>>7)&t>>12))|t>>(4-(1^7&(t>>19)))|t>>7)
+t*(t>>10&((t>>16)+1))
+)_";
 }
 
 template <>
