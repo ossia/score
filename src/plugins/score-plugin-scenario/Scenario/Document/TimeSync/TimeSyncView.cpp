@@ -47,10 +47,11 @@ const QPixmap& TimeSyncView::pixmap(const score::Brush& b)
   QPixmap pmap;
   {
     auto img = newImage(4, 500);
+
     {
       QPainter p{&img};
       p.setPen(Process::Style::instance().TimenodePen(b));
-      p.drawLine(QPointF(1., 1.), QPointF(1., 498.));
+      p.drawLine(QPointF(1., 1.), QPointF(1., 502.));
     }
     pmap = QPixmap::fromImage(std::move(img));
   }
@@ -104,15 +105,8 @@ void TimeSyncView::paint(
   auto& pix = (isSelected())
       ? pixmap(skin.TimenodeSelected())
       : pixmap(*m_color);
-  for(int y = -1; y < height; y += timeSyncPixmapSize.height() - 2)
-  {
-    double w = 4;
-    double h = 500;
-    if(y + h > height)
-      h = height - y;
 
-    painter->drawPixmap(-1, y, w, h, pix);
-  }
+  painter->drawTiledPixmap(-1, -1, 4, height, pix);
 
 #if defined(SCORE_SCENARIO_DEBUG_RECTS)
   painter->setPen(Qt::darkMagenta);
