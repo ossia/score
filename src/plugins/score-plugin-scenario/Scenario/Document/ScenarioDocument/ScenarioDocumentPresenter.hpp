@@ -61,7 +61,7 @@ public:
   ~ScenarioDocumentPresenter() override;
 
   IntervalModel& displayedInterval() const;
-  const DisplayedElementsPresenter& presenters() const;
+  DisplayedElementsPresenter& presenters();
   const ScenarioDocumentModel& model() const;
   ScenarioDocumentView& view() const;
   const Process::Context& context() const;

@@ -60,6 +60,8 @@ public:
   }
   void movedAsked(const QPointF& p);
 
+  void setSnapLine(std::optional<double>);
+
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
@@ -80,6 +82,7 @@ private:
   QRectF m_selectArea{};
   QPointF m_previousPoint{};
   std::optional<QRectF> m_dragLine{};
+  std::optional<double> m_snapLine{};
   QString m_dragText;
   bool m_lock{};
   bool m_moving{};

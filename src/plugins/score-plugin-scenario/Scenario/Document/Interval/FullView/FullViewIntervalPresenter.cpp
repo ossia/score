@@ -513,7 +513,7 @@ void FullViewIntervalPresenter::on_zoomRatioChanged(ZoomRatio ratio)
   updateProcessesShape();
 }
 
-TimeVal
+Process::MagneticInfo
 FullViewIntervalPresenter::magneticPosition(const QObject* o, const TimeVal t) const noexcept
 {
   // TODO instead call a virtual function on the process that return the date
@@ -545,7 +545,7 @@ FullViewIntervalPresenter::magneticPosition(const QObject* o, const TimeVal t) c
   }
 
   if (!m_settings.getMagneticMeasures() || !m_settings.getMeasureBars())
-    return scenarioT;
+    return {scenarioT, snapToScenario};
 
   // t is the time in the context of obj
   // we have to find its closest parent interval with a time signature
@@ -561,13 +561,13 @@ FullViewIntervalPresenter::magneticPosition(const QObject* o, const TimeVal t) c
   auto [model, timeDelta] = closestParentWithMusicalMetrics(&m_model);
 
   if (!o || !model)
-    return scenarioT;
+    return {scenarioT, snapToScenario};
 
   // Find leftmost signature
   const TimeVal msecs = t + timeDelta;
   const auto& sig = model->timeSignatureMap();
   if (sig.empty())
-    return scenarioT;
+    return {scenarioT, snapToScenario};
 
   auto leftmost_sig = sig.lower_bound(msecs);
   if (leftmost_sig != sig.begin())
@@ -575,20 +575,20 @@ FullViewIntervalPresenter::magneticPosition(const QObject* o, const TimeVal t) c
 
   // Snap to grid
   if (m_timebars->magneticTimings.empty())
-    return scenarioT;
+    return {scenarioT, snapToScenario};
 
   const TimeVal& closestBar = closest_element(m_timebars->magneticTimings, msecs);
   if (!snapToScenario)
   {
-    return closestBar - timeDelta;
+    return {closestBar - timeDelta, snapToScenario};
   }
   else if (std::abs(closestBar.impl - t.impl) < std::abs(scenarioT.impl - t.impl))
   {
-    return closestBar - timeDelta;
+    return {closestBar - timeDelta, false};
   }
   else
   {
-    return scenarioT;
+    return {scenarioT, snapToScenario};
   }
 }
 
@@ -609,6 +609,11 @@ void FullViewIntervalPresenter::on_visibleRectChanged(QRectF r)
     m_sceneRect = r;
     updateTimeBars();
   }
+}
+
+void FullViewIntervalPresenter::setSnapLine(TimeVal t, bool enabled)
+{
+
 }
 
 void FullViewIntervalPresenter::updateTimeBars()

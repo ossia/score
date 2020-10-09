@@ -1,4 +1,5 @@
 #pragma once
+#include <Magnetism/MagneticInfo.hpp>
 #include <Scenario/Document/Interval/FullView/FullViewIntervalView.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
@@ -41,7 +42,7 @@ public:
   void updateHeight();
   void on_zoomRatioChanged(ZoomRatio val) override;
 
-  TimeVal magneticPosition(const QObject* obj, TimeVal t) const noexcept;
+  Process::MagneticInfo magneticPosition(const QObject* obj, TimeVal t) const noexcept;
 
   const std::vector<SlotPresenter>& getSlots() const { return m_slots; }
   double on_playPercentageChanged(double t);
@@ -49,6 +50,8 @@ public:
   MusicalGrid& grid() const noexcept;
 
   void on_visibleRectChanged(QRectF);
+
+  void setSnapLine(TimeVal t, bool enabled);
 
 public:
   void intervalSelected(IntervalModel& arg_1)

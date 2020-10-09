@@ -59,7 +59,7 @@ QGraphicsItem& ScenarioDisplayedElementsToolPalette::view() const
   return m_view;
 }
 
-const DisplayedElementsPresenter& ScenarioDisplayedElementsToolPalette::presenter() const
+DisplayedElementsPresenter& ScenarioDisplayedElementsToolPalette::presenter() const
 {
   return m_presenter.presenters();
 }

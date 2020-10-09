@@ -39,7 +39,7 @@ public:
       QGraphicsItem*);
 
   QGraphicsItem& view() const;
-  const DisplayedElementsPresenter& presenter() const;
+  DisplayedElementsPresenter& presenter() const;
   const Scenario::ProcessModel& model() const;
   const BaseElementContext& context() const;
   Process::MagnetismAdjuster& magnetic() const { return m_magnetic; }

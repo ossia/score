@@ -37,10 +37,12 @@ public:
   void setGuiWidth(double);
 
   void setSelected(bool selected);
+  void setSnapLine(std::optional<double>);
 
 private:
   void drawDashedPath(QPainter& p, QRectF visibleRect, const Process::Style& skin);
   void drawPlayDashedPath(QPainter& p, QRectF visibleRect, const Process::Style& skin);
   double m_guiWidth{};
+  std::optional<double> m_snapLine{};
 };
 }

@@ -57,6 +57,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/LoadPreset.hpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Magnetism/MagnetismAdjuster.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Magnetism/MagneticInfo.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Actions/ProcessActions.hpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ExecutionContext.hpp"

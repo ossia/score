@@ -44,6 +44,8 @@ public:
   void setVisible(bool);
   void remove();
 
+  void setSnapLine(TimeVal t, bool enabled);
+
 public:
   void requestFocusedPresenterChange(Process::LayerPresenter* arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, requestFocusedPresenterChange, arg_1)

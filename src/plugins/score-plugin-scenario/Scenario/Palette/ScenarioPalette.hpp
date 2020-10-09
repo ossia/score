@@ -38,7 +38,7 @@ class ToolPalette final : public GraphicsSceneToolPalette
 public:
   ToolPalette(Process::LayerContext&, ScenarioPresenter& presenter);
 
-  const ScenarioPresenter& presenter() const { return m_presenter; }
+  ScenarioPresenter& presenter() const { return m_presenter; }
   Scenario::EditionSettings& editionSettings() const;
 
   const Process::LayerContext& context() const { return m_context; }

@@ -50,7 +50,7 @@ BaseGraphicsObject& BaseScenarioDisplayedElementsToolPalette::view() const
   return m_presenter.view().baseItem();
 }
 
-const DisplayedElementsPresenter& BaseScenarioDisplayedElementsToolPalette::presenter() const
+DisplayedElementsPresenter& BaseScenarioDisplayedElementsToolPalette::presenter() const
 {
   return m_presenter.presenters();
 }

@@ -49,6 +49,14 @@ void ScenarioView::paint_impl(QPainter* painter) const
     painter->setCompositionMode(QPainter::CompositionMode::CompositionMode_SourceOver);
   }
 
+  if (m_snapLine)
+  {
+    painter->setPen(QPen{Qt::gray, 1, Qt::DashLine});
+
+    double x = *m_snapLine;
+    painter->drawLine(x, 0, x, height());
+  }
+
   if (m_dragLine)
   {
     painter->setRenderHint(QPainter::Antialiasing, true);
@@ -84,6 +92,15 @@ void ScenarioView::movedAsked(const QPointF& p)
 
   // we use the last pos, because if not there's a larsen and crash
   m_previousPoint = p;
+}
+
+void ScenarioView::setSnapLine(std::optional<double> s)
+{
+  if(m_snapLine != s)
+  {
+    m_snapLine = s;
+    update();
+  }
 }
 
 void ScenarioView::mousePressEvent(QGraphicsSceneMouseEvent* event)

@@ -190,8 +190,10 @@ public:
         m_lastDate
             = this->m_pressedPrevious ? std::max(adjDate, *this->m_pressedPrevious) : adjDate;
 
-        m_lastDate = stateMachine.magnetic().getPosition(
+        auto [magPos, snap] = stateMachine.magnetic().getPosition(
             &Scenario::parentTimeSync(*evId, stateMachine.model()), m_lastDate);
+        m_lastDate = magPos;
+        stateMachine.presenter().setSnapLine(magPos, snap);
 
         m_lastDate = std::max(m_lastDate, TimeVal{});
 
@@ -232,6 +234,7 @@ public:
         m_movingDispatcher.template commit<Command::MoveStateMacro>();
         this->m_pressPos = {};
         this->m_pressedPrevious = {};
+        stateMachine.presenter().setSnapLine({}, false);
       });
     }
 
@@ -242,6 +245,7 @@ public:
       this->rollback();
       this->m_pressPos = {};
       this->m_pressedPrevious = {};
+      stateMachine.presenter().setSnapLine({}, false);
     });
 
     this->setInitialState(mainState);

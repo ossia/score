@@ -273,6 +273,11 @@ void DisplayedElementsPresenter::remove()
   m_endNodePresenter = nullptr;
 }
 
+void DisplayedElementsPresenter::setSnapLine(TimeVal t, bool enabled)
+{
+
+}
+
 void DisplayedElementsPresenter::updateLength(double length)
 {
   const double Y = m_model.isNodal() ? 20 : deltaY;

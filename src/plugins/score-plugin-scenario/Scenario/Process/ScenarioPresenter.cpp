@@ -293,6 +293,14 @@ StatePresenter& ScenarioPresenter::state(const Id<StateModel>& id) const
   return m_states.at(id);
 }
 
+void ScenarioPresenter::setSnapLine(TimeVal t, bool enabled)
+{
+  if(enabled)
+    view().setSnapLine(t.toPixels(m_zoomRatio));
+  else
+    view().setSnapLine(std::nullopt);
+}
+
 EventPresenter& ScenarioPresenter::event(const Id<EventModel>& id) const
 {
   return m_events.at(id);

@@ -1,4 +1,5 @@
 #pragma once
+#include <Magnetism/MagneticInfo.hpp>
 #include <Process/TimeValue.hpp>
 
 #include <score/plugins/Interface.hpp>
@@ -15,15 +16,15 @@ namespace Process
 {
 class ProcessModel;
 
-class SCORE_LIB_PROCESS_EXPORT MagnetismAdjuster final : public score::InterfaceListBase
+class SCORE_LIB_PROCESS_EXPORT MagnetismAdjuster final
+    : public QObject
+    , public score::InterfaceListBase
 {
 public:
   MagnetismAdjuster() noexcept;
   ~MagnetismAdjuster() noexcept;
 
-  using MagnetismHandler = std::function<TimeVal(const QObject*, TimeVal)>;
-
-  TimeVal getPosition(const QObject* obj, TimeVal original) noexcept;
+  MagneticInfo getPosition(const QObject* obj, TimeVal original) noexcept;
 
   // Shortcut for some classes : the API to implement must look like
   // Position magneticPosition(Position

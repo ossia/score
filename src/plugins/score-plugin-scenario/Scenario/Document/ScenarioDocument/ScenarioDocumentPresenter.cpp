@@ -325,7 +325,7 @@ IntervalModel& ScenarioDocumentPresenter::displayedInterval() const
   return displayedElements.interval();
 }
 
-const DisplayedElementsPresenter& ScenarioDocumentPresenter::presenters() const
+DisplayedElementsPresenter& ScenarioDocumentPresenter::presenters()
 {
   return m_scenarioPresenter;
 }

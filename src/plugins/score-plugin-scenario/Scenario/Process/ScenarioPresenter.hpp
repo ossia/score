@@ -77,6 +77,8 @@ public:
   Scenario::ToolPalette& stateMachine() { return m_sm; }
   Scenario::EditionSettings& editionSettings() const { return m_editionSettings; }
 
+  void setSnapLine(TimeVal t, bool enabled);
+
   void
   fillContextMenu(QMenu&, QPoint pos, QPointF scenepos, const Process::LayerContextMenuManager&)
       override;

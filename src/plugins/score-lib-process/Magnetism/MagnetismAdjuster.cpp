@@ -11,11 +11,11 @@ MagnetismAdjuster::MagnetismAdjuster() noexcept { }
 
 MagnetismAdjuster::~MagnetismAdjuster() noexcept { }
 
-TimeVal MagnetismAdjuster::getPosition(const QObject* obj, TimeVal original) noexcept
+MagneticInfo MagnetismAdjuster::getPosition(const QObject* obj, TimeVal original) noexcept
 {
   // For all magnetism handlers registered,
   // find the one which is closest to the origin position
-  std::vector<TimeVal> results;
+  std::vector<MagneticInfo> results;
   for (auto it = m_handlers.begin(); it != m_handlers.end();)
   {
     if (it->first)
@@ -33,14 +33,14 @@ TimeVal MagnetismAdjuster::getPosition(const QObject* obj, TimeVal original) noe
   // No handler -> no magnetism
   if (results.empty())
   {
-    return original;
+    return MagneticInfo{original, false};
   }
 
   // Find the min of the distances and return the related Position
   auto it = results.begin();
 
   int64_t min_distance = std::abs((original - *it).impl);
-  TimeVal min_pos = *it;
+  MagneticInfo min_pos = *it;
 
   ++it;
   for (; it != results.end(); ++it)
@@ -58,11 +58,20 @@ TimeVal MagnetismAdjuster::getPosition(const QObject* obj, TimeVal original) noe
 
 void MagnetismAdjuster::registerHandler(
     QObject* context,
-    MagnetismAdjuster::MagnetismHandler h) noexcept
+    MagnetismHandler h) noexcept
 {
   auto it = ossia::find_if(m_handlers, [&](auto& p) { return p.first == context; });
   if (it == m_handlers.end())
     m_handlers.emplace_back(context, h);
+
+  if(context)
+  {
+    QObject::connect(context, &QObject::destroyed,
+            this, [=] {
+      qDebug() << "Warning: MagnetismAdjuster::registerHandler: unregistering happened in unnatural ways: " << context->objectName();
+      unregisterHandler(context);
+    });
+  }
 }
 
 void MagnetismAdjuster::unregisterHandler(QObject* context) noexcept
@@ -71,6 +80,7 @@ void MagnetismAdjuster::unregisterHandler(QObject* context) noexcept
   if (it != m_handlers.end())
   {
     m_handlers.erase(it);
+    QObject::disconnect(context, nullptr, this, nullptr);
   }
 }
 

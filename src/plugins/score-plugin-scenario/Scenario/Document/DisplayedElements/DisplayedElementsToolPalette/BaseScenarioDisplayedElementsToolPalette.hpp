@@ -29,7 +29,7 @@ public:
   BaseScenarioDisplayedElementsToolPalette(ScenarioDocumentPresenter& pres);
 
   BaseGraphicsObject& view() const;
-  const DisplayedElementsPresenter& presenter() const;
+  DisplayedElementsPresenter& presenter() const;
   const BaseScenario& model() const;
   const BaseElementContext& context() const;
   Process::MagnetismAdjuster& magnetic() const { return m_magnetic; }

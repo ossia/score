@@ -216,6 +216,16 @@ void FullViewIntervalView::setSelected(bool selected)
   setZValue(m_selected ? ZPos::SelectedInterval : ZPos::Interval);
   update();
 }
+
+void FullViewIntervalView::setSnapLine(std::optional<double> s)
+{
+  if(m_snapLine != s)
+  {
+    m_snapLine = s;
+    update();
+  }
+}
+
 QRectF FullViewIntervalView::boundingRect() const
 {
   return {
@@ -253,6 +263,12 @@ void FullViewIntervalView::paint(
   if (itemDrawableTopLeft.y() > 20)
   {
     return;
+  }
+
+  if (m_snapLine)
+  {
+    p->setPen(Qt::blue);
+    p->drawLine(*m_snapLine, 0, *m_snapLine, 500);
   }
 
   auto& painter = *p;
