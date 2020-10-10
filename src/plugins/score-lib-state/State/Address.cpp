@@ -14,7 +14,6 @@
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/base/name_validation.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
-
 #include <QDebug>
 #include <QStringBuilder>
 
@@ -124,7 +123,11 @@ bool Address::validateString(const QString& str)
                && (firstslash == (firstcolon + 1) && !str.contains("//"));
 
   QStringList path = str.split("/");
-  valid &= !path.empty();
+  if(path.empty())
+    return false;
+
+  if(path.first().count(':') > 1)
+    return false;
 
   path.first().remove(":");
 
@@ -487,8 +490,27 @@ std::optional<State::Address> State::parseAddress(const QString& str)
   }
 }
 
+namespace
+{
+bool validatePatternCharacters(const QString& str)
+{
+  const auto chars = QStringLiteral("abcdefghijklmnopqrstuvwxyz"
+                                   "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                   "0123456789"
+                                   "_~(): .*?,{}[]-@/");
+  for(const auto& c : str)
+  {
+    if(Q_UNLIKELY(!chars.contains(c)))
+      return false;
+  }
+  return true;
+}
+}
 std::optional<State::AddressAccessor> State::parseAddressAccessor(const QString& str)
 {
+  if(!validatePatternCharacters(str))
+    return std::nullopt;
+
   auto input = str.toStdString();
   auto f(std::begin(input)), l(std::end(input));
   auto p = std::make_unique<AddressAccessor_parser<decltype(f)>>();
