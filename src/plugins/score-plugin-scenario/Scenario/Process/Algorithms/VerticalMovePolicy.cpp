@@ -69,7 +69,7 @@ void updateEventExtent(ScenarioPresenter& pres, EventPresenter& ev, double view_
         return;
 
       const double h = (1. + itv->getHeight()) / view_height;
-      if (itv->smallViewVisible() && st.heightPercentage() + h > max)
+      if (st.heightPercentage() + h > max)
       {
         max = st.heightPercentage() + h;
       }

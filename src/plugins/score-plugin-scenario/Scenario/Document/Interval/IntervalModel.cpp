@@ -579,9 +579,10 @@ void IntervalModel::setSlotHeight(const SlotId& slot, double height)
 double IntervalModel::getHeight() const noexcept
 {
   double h = 0.;
+  const double slotSize = (this->smallViewVisible() ? 1. : 0.);
   for (const auto& slot : m_smallView)
   {
-    h += slot.height + SlotHeader::headerHeight() + SlotFooter::footerHeight();
+    h += slot.height * slotSize + SlotHeader::headerHeight() + SlotFooter::footerHeight();
   }
   return h;
 }
