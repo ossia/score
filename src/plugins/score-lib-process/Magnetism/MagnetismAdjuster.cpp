@@ -76,6 +76,9 @@ void MagnetismAdjuster::registerHandler(
 
 void MagnetismAdjuster::unregisterHandler(QObject* context) noexcept
 {
+  if(!context)
+    return;
+
   auto it = ossia::find_if(m_handlers, [&](auto& p) { return p.first == context; });
   if (it != m_handlers.end())
   {
