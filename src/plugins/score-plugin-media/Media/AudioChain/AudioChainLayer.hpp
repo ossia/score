@@ -2,6 +2,8 @@
 #include <Media/ChainProcess.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
+#include <nano_observer.hpp>
+
 namespace Media
 {
 class EffectItem;
@@ -40,7 +42,9 @@ private:
   bool m_invalid{};
 };
 
-class Presenter final : public Process::LayerPresenter
+class Presenter final
+    : public Process::LayerPresenter
+    , public Nano::Observer
 {
 public:
   explicit Presenter(
@@ -59,6 +63,9 @@ public:
   void parentGeometryChanged() override;
 
   void on_drop(const QMimeData& mime, int pos);
+  void on_effectAdded(const Process::ProcessModel& p);
+  void on_effectRemoved(const Process::ProcessModel& p);
+  void on_orderChanged();
 
 private:
   View* m_view{};

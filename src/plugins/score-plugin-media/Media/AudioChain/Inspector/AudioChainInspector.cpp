@@ -45,7 +45,10 @@ InspectorWidget::InspectorWidget(
   auto lay = new QVBoxLayout;
   m_list = new QListWidget;
   lay->addWidget(m_list);
-  con(process(), &AudioChain::ProcessModel::effectsChanged, this, &InspectorWidget::recreate);
+
+  object.effects().added.connect<&InspectorWidget::on_effectAdded>(this);
+  object.effects().removed.connect<&InspectorWidget::on_effectRemoved>(this);
+  object.effects().orderChanged.connect<&InspectorWidget::on_orderChanged>(this);
 
   connect(
       m_list,
@@ -101,6 +104,21 @@ InspectorWidget::InspectorWidget(
   // Double-click : open editor window.
 
   this->setLayout(lay);
+}
+
+void InspectorWidget::on_effectAdded(const Process::ProcessModel& p)
+{
+  recreate();
+}
+
+void InspectorWidget::on_effectRemoved(const Process::ProcessModel& p)
+{
+  recreate();
+}
+
+void InspectorWidget::on_orderChanged()
+{
+  recreate();
 }
 
 void InspectorWidget::add_score(std::size_t pos)

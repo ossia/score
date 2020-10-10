@@ -4,14 +4,16 @@
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
-
+#include <nano_observer.hpp>
 #include <QMenu>
 class QListWidget;
 class QPushButton;
 
 namespace Media::SynthChain
 {
-class InspectorWidget final : public Process::InspectorWidgetDelegate_T<ProcessModel>
+class InspectorWidget final
+    : public Process::InspectorWidgetDelegate_T<ProcessModel>
+    , public Nano::Observer
 {
 public:
   explicit InspectorWidget(
@@ -26,6 +28,9 @@ private:
   const score::DocumentContext& m_ctx;
   void addRequested(int pos);
   int cur_pos();
+  void on_effectAdded(const Process::ProcessModel& p);
+  void on_effectRemoved(const Process::ProcessModel& p);
+  void on_orderChanged();
 
   QMenu m_contextMenu;
 };

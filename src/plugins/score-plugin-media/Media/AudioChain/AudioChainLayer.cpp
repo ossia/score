@@ -192,14 +192,29 @@ Presenter::Presenter(
   });
 
   auto& m = static_cast<const AudioChain::ProcessModel&>(model);
-  con(m, &AudioChain::ProcessModel::effectsChanged, this, [&] {
-    m_view->setup(static_cast<const AudioChain::ProcessModel&>(model), m_context);
-  });
   con(m, &AudioChain::ProcessModel::badChainingChanged, this, [&](bool b) {
     m_view->setInvalid(b);
   });
 
+  m.effects().added.connect<&Presenter::on_effectAdded>(this);
+  m.effects().removed.connect<&Presenter::on_effectRemoved>(this);
+  m.effects().orderChanged.connect<&Presenter::on_orderChanged>(this);
   m_view->setup(static_cast<const AudioChain::ProcessModel&>(model), m_context);
+}
+
+void Presenter::on_effectAdded(const Process::ProcessModel& p)
+{
+  m_view->setup(static_cast<const AudioChain::ProcessModel&>(model()), m_context);
+}
+
+void Presenter::on_effectRemoved(const Process::ProcessModel& p)
+{
+  m_view->setup(static_cast<const AudioChain::ProcessModel&>(model()), m_context);
+}
+
+void Presenter::on_orderChanged()
+{
+  m_view->setup(static_cast<const AudioChain::ProcessModel&>(model()), m_context);
 }
 
 void Presenter::setWidth(qreal width, qreal defaultWidth)
@@ -322,7 +337,6 @@ void Presenter::on_drop(const QMimeData& mime, int pos)
         cmd.commit();
       }
     }
-  }
 }
-
+}
 }

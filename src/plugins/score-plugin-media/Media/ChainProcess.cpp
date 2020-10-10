@@ -76,8 +76,6 @@ void ChainProcess::insertEffect(Process::ProcessModel* eff, int pos)
   m_effects.insert_at(pos, eff);
 
   setBadChaining(bad_effect);
-
-  effectsChanged();
 }
 
 void ChainProcess::removeEffect(const Id<Process::ProcessModel>& e)
@@ -86,7 +84,6 @@ void ChainProcess::removeEffect(const Id<Process::ProcessModel>& e)
   checkChaining();
   // TODO adjust and check ports
   // TODO introduce a dummy effect if the ports don't match
-  effectsChanged();
 }
 
 void ChainProcess::moveEffect(const Id<Process::ProcessModel>& e, int new_pos)
@@ -100,7 +97,6 @@ void ChainProcess::moveEffect(const Id<Process::ProcessModel>& e, int new_pos)
   if (old_pos != -1)
   {
     m_effects.move(e, new_pos);
-    effectsChanged();
   }
   checkChaining();
 }

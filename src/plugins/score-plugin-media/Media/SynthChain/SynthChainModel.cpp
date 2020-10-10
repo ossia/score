@@ -98,8 +98,6 @@ void JSONWriter::write(Media::SynthChain::ProcessModel& proc)
     if (fx)
     {
       proc.m_effects.add(fx);
-
-      proc.effectsChanged();
     }
     else
       SCORE_TODO;

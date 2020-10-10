@@ -99,8 +99,6 @@ void JSONWriter::write(Media::AudioChain::ProcessModel& proc)
     if (fx)
     {
       proc.m_effects.add(fx);
-
-      proc.effectsChanged();
     }
     else
       SCORE_TODO;

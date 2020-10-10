@@ -4,14 +4,16 @@
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
-
+#include <nano_observer.hpp>
 #include <QMenu>
 class QListWidget;
 class QPushButton;
 
 namespace Media::AudioChain
 {
-class InspectorWidget final : public Process::InspectorWidgetDelegate_T<ProcessModel>
+class InspectorWidget final
+    : public Process::InspectorWidgetDelegate_T<ProcessModel>
+    , public Nano::Observer
 {
 public:
   explicit InspectorWidget(
@@ -25,6 +27,9 @@ private:
   void add_vst2(std::size_t pos);
   void add_faust(std::size_t pos);
   void recreate();
+  void on_effectAdded(const Process::ProcessModel& p);
+  void on_effectRemoved(const Process::ProcessModel& p);
+  void on_orderChanged();
   QListWidget* m_list{};
   CommandDispatcher<> m_dispatcher;
   const score::DocumentContext& m_ctx;

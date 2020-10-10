@@ -52,8 +52,6 @@ public:
   };
   W_SLOT(setBadChaining)
 
-  void effectsChanged() W_SIGNAL(effectsChanged);
-
   void badChainingChanged(bool badChaining) W_SIGNAL(badChainingChanged, badChaining);
 
 protected:
