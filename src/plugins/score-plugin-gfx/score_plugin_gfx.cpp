@@ -14,7 +14,6 @@
 #include <Gfx/Images/Layer.hpp>
 #include <Gfx/Images/Process.hpp>
 #include <Gfx/Mesh/Executor.hpp>
-#include <Gfx/Mesh/Inspector.hpp>
 #include <Gfx/Mesh/Layer.hpp>
 #include <Gfx/Mesh/Process.hpp>
 #include <Gfx/TexturePort.hpp>
@@ -63,7 +62,6 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_gfx::factories(
          Gfx::Images::ProcessExecutorComponentFactory>,
       FW<Inspector::InspectorWidgetFactory,
          Gfx::Video::InspectorFactory,
-         Gfx::Mesh::InspectorFactory,
          Gfx::Images::InspectorFactory>,
       FW<Process::PortFactory, Gfx::TextureInletFactory, Gfx::TextureOutletFactory>,
       FW<Process::ProcessDropHandler,

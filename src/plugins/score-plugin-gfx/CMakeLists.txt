@@ -34,7 +34,6 @@ set(HDRS
     Gfx/Filter/PreviewWidget.hpp
 
     Gfx/Mesh/Executor.hpp
-    Gfx/Mesh/Inspector.hpp
     Gfx/Mesh/LocalTree.hpp
     Gfx/Mesh/Metadata.hpp
     Gfx/Mesh/Presenter.hpp
@@ -104,7 +103,6 @@ set(SRCS ${SPOUT_SRCS}
     Gfx/Filter/PreviewWidget.cpp
 
     Gfx/Mesh/Executor.cpp
-    Gfx/Mesh/Inspector.cpp
     Gfx/Mesh/LocalTree.cpp
     Gfx/Mesh/Presenter.cpp
     Gfx/Mesh/Process.cpp

@@ -237,7 +237,6 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/DoubleSlider.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/IntSlider.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/DoubleSpinBox.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/JS/JSEdit.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/Layout.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/MarginLess.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/MimeData.hpp"
@@ -377,7 +376,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SelectionButton.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/Separator.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ArrowButton.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/JS/JSEdit.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/MessageBox.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SpinBoxes.cpp"
 

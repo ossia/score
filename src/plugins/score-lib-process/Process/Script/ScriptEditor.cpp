@@ -1,50 +1,17 @@
 #include "ScriptEditor.hpp"
 #include "MultiScriptEditor.hpp"
+#include "ScriptWidget.hpp"
 
-#include <QCXXHighlighter>
-#include <QGLSLHighlighter>
-#include <QJSHighlighter>
 #include <QCodeEditor>
 #include <QDialogButtonBox>
 #include <QFile>
 #include <QPlainTextEdit>
 #include <QPushButton>
-#include <QSyntaxStyle>
 #include <QTabWidget>
 #include <QVBoxLayout>
-#include <QGLSLCompleter>
+#include <frozen/map.h>
 namespace Process
 {
-namespace
-{
-void setTabWidth(QTextEdit& edit, int spaceCount)
-{
-  const QString spaces(spaceCount, QChar(' '));
-  const QFontMetrics metrics(edit.font());
-  edit.setTabStopDistance(metrics.horizontalAdvance(spaces));
-}
-
-std::pair<QStyleSyntaxHighlighter*, QCompleter*> getLanguageStyle(const std::string_view language)
-{
-  if(language == "GLSL")
-  {
-    return {new QGLSLHighlighter, new QGLSLCompleter};
-  }
-  else if(language == "C" || language == "C++")
-  {
-    return {new QCXXHighlighter, nullptr};
-  }
-  else if(language == "JS")
-  {
-    return {new QJSHighlighter, nullptr};
-  }
-  else
-  {
-    return {new QCXXHighlighter, nullptr};
-  }
-}
-}
-
 ScriptDialog::ScriptDialog(const std::string_view language, const score::DocumentContext& ctx, QWidget* parent)
     : QDialog{parent}, m_context{ctx}
 {
@@ -53,30 +20,7 @@ ScriptDialog::ScriptDialog(const std::string_view language, const score::Documen
   auto lay = new QVBoxLayout{this};
   this->setLayout(lay);
 
-  m_textedit = new QCodeEditor{this};
-
-  {
-    QFile fl(":/drakula.xml");
-
-    if (!fl.open(QIODevice::ReadOnly))
-    {
-      return;
-    }
-
-    auto style = new QSyntaxStyle(this);
-    if (!style->load(fl.readAll()))
-    {
-      delete style;
-      return;
-    }
-    m_textedit->setSyntaxStyle(style);
-  }
-
-  auto [highlight, complete] = getLanguageStyle(language);
-  m_textedit->setHighlighter(highlight);
-  m_textedit->setCompleter(complete);
-
-  setTabWidth(*m_textedit, 4);
+  m_textedit = createScriptWidget(language);
 
   m_error = new QPlainTextEdit{this};
   m_error->setReadOnly(true);
@@ -157,32 +101,8 @@ MultiScriptDialog::MultiScriptDialog(const score::DocumentContext& ctx, QWidget*
 
 void MultiScriptDialog::addTab(const QString &name, const QString &text, const std::string_view language)
 {
-  auto textedit = new QCodeEditor{this};
+  auto textedit = createScriptWidget(language);
   textedit->setText(text);
-
-  // TODO share that with scriptdialog, and load it only once
-  {
-    QFile fl(":/drakula.xml");
-
-    if (fl.open(QIODevice::ReadOnly))
-    {
-      auto style = new QSyntaxStyle(this);
-      if (!style->load(fl.readAll()))
-      {
-        delete style;
-      }
-      else
-      {
-        textedit->setSyntaxStyle(style);
-      }
-    }
-  }
-
-  auto [highlight, complete] = getLanguageStyle(language);
-  textedit->setHighlighter(highlight);
-  textedit->setCompleter(complete);
-
-  setTabWidth(*textedit, 4);
 
   m_tabs->addTab(textedit, name);
   m_editors.push_back({textedit});

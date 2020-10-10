@@ -10,7 +10,7 @@
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
-#include <score/widgets/JS/JSEdit.hpp>
+#include <QCodeEditor>
 
 #include <QFormLayout>
 #include <QLineEdit>

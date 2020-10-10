@@ -6,9 +6,10 @@
 #include "HTTPSpecificSettings.hpp"
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+#include <Process/Script/ScriptWidget.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
-#include <score/widgets/JS/JSEdit.hpp>
+#include <QCodeEditor>
 #include <score/widgets/TextLabel.hpp>
 
 #include <QGridLayout>
@@ -24,16 +25,13 @@ HTTPProtocolSettingsWidget::HTTPProtocolSettingsWidget(QWidget* parent)
   QLabel* deviceNameLabel = new TextLabel(tr("Name"), this);
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
 
-  QLabel* codeLabel = new TextLabel(tr("Code"), this);
-  m_codeEdit = new JSEdit(this);
+  m_codeEdit = Process::createScriptWidget("JS");
 
   QGridLayout* gLayout = new QGridLayout;
 
   gLayout->addWidget(deviceNameLabel, 0, 0, 1, 1);
   gLayout->addWidget(m_deviceNameEdit, 0, 1, 1, 1);
-
-  gLayout->addWidget(codeLabel, 3, 0, 1, 1);
-  gLayout->addWidget(m_codeEdit, 3, 1, 1, 1);
+  gLayout->addWidget(m_codeEdit, 3, 0, 1, 2);
 
   setLayout(gLayout);
 

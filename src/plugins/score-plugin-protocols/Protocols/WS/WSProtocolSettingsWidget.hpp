@@ -3,7 +3,7 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 class QLineEdit;
-class JSEdit;
+class QCodeEditor;
 class QSpinBox;
 class QWidget;
 
@@ -20,10 +20,11 @@ public:
 
 protected:
   void setDefaults();
+  void parseHost();
 
 protected:
   QLineEdit* m_deviceNameEdit{};
   QLineEdit* m_addressNameEdit{};
-  JSEdit* m_codeEdit{};
+  QCodeEditor* m_codeEdit{};
 };
 }

@@ -10,7 +10,7 @@
 
 Q_DECLARE_METATYPE(std::vector<ossia::net::node_base*>)
 W_REGISTER_ARGTYPE(std::vector<ossia::net::node_base*>)
-class JSEdit;
+class QCodeEditor;
 namespace Protocols
 {
 class Mapper : public QObject
@@ -64,7 +64,7 @@ protected:
 
 protected:
   QLineEdit* m_name{};
-  JSEdit* m_codeEdit{};
+  QCodeEditor* m_codeEdit{};
 };
 }
 

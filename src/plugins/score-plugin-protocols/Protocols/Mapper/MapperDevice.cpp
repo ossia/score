@@ -7,9 +7,10 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Protocols/Mapper/MapperDevice.hpp>
 #include <Protocols/LibraryDeviceEnumerator.hpp>
+#include <Process/Script/ScriptWidget.hpp>
 
 #include <score/tools/Bind.hpp>
-#include <score/widgets/JS/JSEdit.hpp>
+#include <QCodeEditor>
 #include <score/widgets/Layout.hpp>
 #include <score/widgets/TextLabel.hpp>
 
@@ -29,6 +30,7 @@
 #include <QQmlContext>
 #include <QQmlEngine>
 #include <QThread>
+#include <QCodeEditor>
 
 #include <wobjectimpl.h>
 
@@ -637,16 +639,13 @@ MapperProtocolSettingsWidget::MapperProtocolSettingsWidget(QWidget* parent)
   QLabel* deviceNameLabel = new TextLabel(tr("Name"), this);
   m_name = new QLineEdit;
 
-  QLabel* codeLabel = new TextLabel(tr("Code"), this);
-  m_codeEdit = new JSEdit(this);
+  m_codeEdit = Process::createScriptWidget("JS");
 
   QGridLayout* gLayout = new QGridLayout;
 
   gLayout->addWidget(deviceNameLabel, 0, 0, 1, 1);
   gLayout->addWidget(m_name, 0, 1, 1, 1);
-
-  gLayout->addWidget(codeLabel, 3, 0, 1, 1);
-  gLayout->addWidget(m_codeEdit, 3, 1, 1, 1);
+  gLayout->addWidget(m_codeEdit, 3, 0, 1, 2);
 
 
   setLayout(gLayout);

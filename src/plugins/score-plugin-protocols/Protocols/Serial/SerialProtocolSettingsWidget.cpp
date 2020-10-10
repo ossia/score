@@ -8,9 +8,10 @@
 #include "SerialProtocolFactory.hpp"
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+#include <Process/Script/ScriptWidget.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
-#include <score/widgets/JS/JSEdit.hpp>
+#include <QCodeEditor>
 #include <score/widgets/Layout.hpp>
 #include <score/widgets/ComboBox.hpp>
 #include <score/widgets/TextLabel.hpp>
@@ -28,8 +29,7 @@ SerialProtocolSettingsWidget::SerialProtocolSettingsWidget(QWidget* parent)
   QLabel* portLabel = new TextLabel(tr("Port"), this);
   m_port = new score::ComboBox{this};
 
-  m_codeEdit = new JSEdit(this);
-  QLabel* codeLabel = new TextLabel(tr("Code"), this);
+  m_codeEdit = Process::createScriptWidget("JS");
 
   for (auto port : QSerialPortInfo::availablePorts())
   {
@@ -42,9 +42,7 @@ SerialProtocolSettingsWidget::SerialProtocolSettingsWidget(QWidget* parent)
 
   gLayout->addWidget(portLabel, 1, 0, 1, 1);
   gLayout->addWidget(m_port, 1, 1, 1, 1);
-
-  gLayout->addWidget(codeLabel, 3, 0, 1, 1);
-  gLayout->addWidget(m_codeEdit, 3, 1, 1, 1);
+  gLayout->addWidget(m_codeEdit, 3, 0, 1, 2);
 
   setLayout(gLayout);
 

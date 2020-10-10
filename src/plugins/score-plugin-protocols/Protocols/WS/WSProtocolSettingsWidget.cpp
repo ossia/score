@@ -6,12 +6,13 @@
 #include "WSSpecificSettings.hpp"
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+#include <Process/Script/ScriptWidget.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
 #include <score/tools/Debug.hpp>
-#include <score/widgets/JS/JSEdit.hpp>
 #include <score/widgets/TextLabel.hpp>
 
+#include <QCodeEditor>
 #include <QDebug>
 #include <QGridLayout>
 #include <QLabel>
@@ -31,34 +32,9 @@ WSProtocolSettingsWidget::WSProtocolSettingsWidget(QWidget* parent)
   auto addrLabel = new QLabel(tr("Address"), this);
   m_addressNameEdit = new QLineEdit{this};
 
-  auto codeLabel = new QLabel(tr("Code"), this);
-  m_codeEdit = new JSEdit(this);
+  m_codeEdit = Process::createScriptWidget("JS");
 
-  connect(m_codeEdit, &JSEdit::editingFinished, this, [=] {
-    auto engine = new QQmlEngine;
-    auto comp = new QQmlComponent{engine};
-    connect(comp, &QQmlComponent::statusChanged, this, [=](QQmlComponent::Status status) {
-      switch (status)
-      {
-        case QQmlComponent::Status::Ready:
-        {
-          auto object = comp->create();
-          if (auto prop = object->property("host").toString(); !prop.isEmpty())
-          {
-            m_addressNameEdit->setText(prop);
-          }
-          object->deleteLater();
-          break;
-        }
-        default:
-          qDebug() << status << comp->errorString();
-      }
-      comp->deleteLater();
-      engine->deleteLater();
-    });
-
-    comp->setData(m_codeEdit->document()->toPlainText().toUtf8(), QUrl{});
-  });
+  connect(m_codeEdit, &QCodeEditor::editingFinished, this, &WSProtocolSettingsWidget::parseHost);
 
   auto layout = new QGridLayout;
 
@@ -66,9 +42,7 @@ WSProtocolSettingsWidget::WSProtocolSettingsWidget(QWidget* parent)
   layout->addWidget(m_deviceNameEdit, 0, 1, 1, 1);
   layout->addWidget(addrLabel, 1, 0, 1, 1);
   layout->addWidget(m_addressNameEdit, 1, 1, 1, 1);
-
-  layout->addWidget(codeLabel, 3, 0, 1, 1);
-  layout->addWidget(m_codeEdit, 3, 1, 1, 1);
+  layout->addWidget(m_codeEdit, 3, 0, 1, 2);
 
   setLayout(layout);
 
@@ -83,6 +57,33 @@ void WSProtocolSettingsWidget::setDefaults()
   m_deviceNameEdit->setText("newDevice");
   m_codeEdit->setPlainText("");
   m_addressNameEdit->clear();
+}
+
+void WSProtocolSettingsWidget::parseHost()
+{
+  auto engine = new QQmlEngine;
+  auto comp = new QQmlComponent{engine};
+  connect(comp, &QQmlComponent::statusChanged, this, [=](QQmlComponent::Status status) {
+    switch (status)
+    {
+      case QQmlComponent::Status::Ready:
+      {
+        auto object = comp->create();
+        if (auto prop = object->property("host").toString(); !prop.isEmpty())
+        {
+          m_addressNameEdit->setText(prop);
+        }
+        object->deleteLater();
+        break;
+      }
+      default:
+        qDebug() << status << comp->errorString();
+    }
+    comp->deleteLater();
+    engine->deleteLater();
+  });
+
+  comp->setData(m_codeEdit->document()->toPlainText().toUtf8(), QUrl{});
 }
 
 Device::DeviceSettings WSProtocolSettingsWidget::getSettings() const
@@ -110,7 +111,11 @@ void WSProtocolSettingsWidget::setSettings(const Device::DeviceSettings& setting
     specific = settings.deviceSpecificSettings.value<WSSpecificSettings>();
 
     m_addressNameEdit->setText(specific.address);
-    m_codeEdit->setPlainText(specific.text);
+    if(specific.text != m_codeEdit->toPlainText())
+    {
+      m_codeEdit->setPlainText(specific.text);
+      parseHost();
+    }
   }
 }
 }
