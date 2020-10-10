@@ -187,10 +187,8 @@ public:
   double signature_upper() const noexcept;
   double signature_lower() const noexcept;
 
-  double logical_start() const noexcept;
-  W_INVOKABLE(logical_start)
-  double logical_read_duration() const noexcept;
-  W_INVOKABLE(logical_read_duration)
+  double model_read_duration() const noexcept;
+  W_INVOKABLE(model_read_duration)
   double physical_start(double ratio) const noexcept;
   W_INVOKABLE(physical_start)
   double physical_read_duration(double ratio) const noexcept;
@@ -252,18 +250,18 @@ public:
 
   int sample_rate() const noexcept;
   int buffer_size() const noexcept;
-  double model_to_samples() const noexcept;
-  double samples_to_model() const noexcept;
-  double samples_since_start() const noexcept;
-  double start_date() const noexcept;
-  double current_date() const noexcept;
+  double model_to_physical() const noexcept;
+  double physical_to_model() const noexcept;
+  double physical_date() const noexcept;
+  double start_date_ns() const noexcept;
+  double current_date_ns() const noexcept;
 
   W_PROPERTY(int, sample_rate READ sample_rate FINAL)
   W_PROPERTY(int, buffer_size READ buffer_size FINAL)
-  W_PROPERTY(double, model_to_samples READ model_to_samples FINAL)
-  W_PROPERTY(double, samples_to_model READ samples_to_model FINAL)
-  W_PROPERTY(double, samples_since_start READ samples_since_start FINAL)
-  W_PROPERTY(double, start_date READ start_date FINAL)
-  W_PROPERTY(double, current_date READ current_date FINAL)
+  W_PROPERTY(double, model_to_physical READ model_to_physical FINAL)
+  W_PROPERTY(double, physical_to_model READ physical_to_model FINAL)
+  W_PROPERTY(double, physical_date READ physical_date FINAL)
+  W_PROPERTY(double, start_date_ns READ start_date_ns FINAL)
+  W_PROPERTY(double, current_date_ns READ current_date_ns FINAL)
 };
 }

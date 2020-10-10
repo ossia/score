@@ -760,10 +760,7 @@ double TokenRequestValueType::signature_upper() const noexcept { return req.sign
 double TokenRequestValueType::signature_lower() const noexcept { return req.signature.lower; }
 
 
-double TokenRequestValueType::logical_start() const noexcept { return req.logical_start().impl; }
-
-
-double TokenRequestValueType::logical_read_duration() const noexcept { return req.logical_read_duration().impl; }
+double TokenRequestValueType::model_read_duration() const noexcept { return req.model_read_duration().impl; }
 
 
 double TokenRequestValueType::physical_start(double ratio) const noexcept { return req.physical_start(ratio); }
@@ -824,14 +821,14 @@ int ExecutionStateValueType::sample_rate() const noexcept { return req.sampleRat
 
 int ExecutionStateValueType::buffer_size() const noexcept { return req.bufferSize(); }
 
-double ExecutionStateValueType::model_to_samples() const noexcept { return req.modelToSamples(); }
+double ExecutionStateValueType::model_to_physical() const noexcept { return req.modelToSamples(); }
 
-double ExecutionStateValueType::samples_to_model() const noexcept { return req.samplesToModel(); }
+double ExecutionStateValueType::physical_to_model() const noexcept { return req.samplesToModel(); }
 
-double ExecutionStateValueType::samples_since_start() const noexcept { return req.samplesSinceStart(); }
+double ExecutionStateValueType::physical_date() const noexcept { return req.samplesSinceStart(); }
 
-double ExecutionStateValueType::start_date() const noexcept { return req.startDate(); }
+double ExecutionStateValueType::start_date_ns() const noexcept { return req.startDate(); }
 
-double ExecutionStateValueType::current_date() const noexcept { return req.currentDate(); }
+double ExecutionStateValueType::current_date_ns() const noexcept { return req.currentDate(); }
 
 }

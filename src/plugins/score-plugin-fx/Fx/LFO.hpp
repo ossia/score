@@ -142,7 +142,7 @@ struct Node
   {
     constexpr const double sine_ratio = ossia::two_pi / ossia::flicks_per_second<double>;
     const auto& waveform_map = Control::Widgets::waveformMap();
-    const auto elapsed = tk.logical_read_duration().impl;
+    const auto elapsed = tk.model_read_duration().impl;
 
     if (quantif)
     {
