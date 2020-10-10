@@ -27,6 +27,7 @@ private:
   void setSettings(const Device::DeviceSettings& settings) override;
 
   QLineEdit* m_name{};
+  QCheckBox* m_createWhole{};
   Device::DeviceSettings m_current;
 };
 class MIDIOutputSettingsWidget final : public Device::ProtocolSettingsWidget

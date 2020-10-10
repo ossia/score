@@ -26,11 +26,15 @@ MIDIInputSettingsWidget::MIDIInputSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
 {
   m_name = new QLineEdit{"MidiIn"};
+  m_createWhole = new QCheckBox{tr("Create whole tree"), this};
 
   auto lay = new QFormLayout;
   lay->addRow(tr("Name"), m_name);
+  lay->addRow(m_createWhole);
 
   setLayout(lay);
+  m_createWhole->setChecked(false);
+  m_createWhole->setEnabled(true);
 }
 
 Device::DeviceSettings MIDIInputSettingsWidget::getSettings() const
@@ -39,7 +43,7 @@ Device::DeviceSettings MIDIInputSettingsWidget::getSettings() const
   MIDISpecificSettings midi = s.deviceSpecificSettings.value<MIDISpecificSettings>();
   s.name = m_name->text();
   s.protocol = MIDIInputProtocolFactory::static_concreteKey();
-  midi.createWholeTree = true;
+  midi.createWholeTree = m_createWhole->isChecked();
 
   s.deviceSpecificSettings = QVariant::fromValue(midi);
 
