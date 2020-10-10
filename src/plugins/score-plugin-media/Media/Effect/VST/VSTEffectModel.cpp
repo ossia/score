@@ -288,7 +288,8 @@ intptr_t vst_host_callback(
         auto vst = reinterpret_cast<VSTEffectModel*>(effect->resvd1);
         if (vst && vst->externalUI)
         {
-          ((VSTWindow*)vst->externalUI)->resize(index, value);
+          auto window = ((VSTWindow*)vst->externalUI);
+          ossia::qt::run_async(window, [=] { window->resize(index, value); });
         }
         result = 1;
         break;
