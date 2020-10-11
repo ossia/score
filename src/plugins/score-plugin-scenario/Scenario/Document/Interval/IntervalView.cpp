@@ -281,7 +281,7 @@ void IntervalView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
 void IntervalView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 {
   QGraphicsItem::dragLeaveEvent(event);
-  setDropTarget(m_presenter.header()->contains(mapToItem(m_presenter.header(), event->pos())));
+  setDropTarget(false);
   event->accept();
 }
 
