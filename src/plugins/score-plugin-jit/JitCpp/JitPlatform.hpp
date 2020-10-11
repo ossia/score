@@ -35,7 +35,7 @@ namespace Jit
 static inline std::string locateSDK()
 {
   auto& ctx = score::AppContext().settings<Library::Settings::Model>();
-  auto path = ctx.getPath() + "/SDK/";
+  QString path = ctx.getPath() + "/SDK/";
 
   if(QString libPath = path + QString(SCORE_TAG_NO_V) + "/usr"; QDir(libPath + "/include/c++").exists())
   {
