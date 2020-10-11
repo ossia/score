@@ -267,7 +267,7 @@ void ScenarioDocumentPresenter::switchMode(bool nodal)
   {
     view().timeBar().hide();
 
-    m_nodal = new NodalIntervalView{displayedInterval(), context(), &view().baseItem()};
+    m_nodal = new NodalIntervalView{NodalIntervalView::AllItems, displayedInterval(), context(), &view().baseItem()};
 
     view().view().setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     view().view().setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);

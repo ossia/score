@@ -19,6 +19,7 @@ class DefaultHeaderDelegate;
 class TemporalIntervalHeader;
 class TemporalIntervalView;
 struct SlotPresenter;
+class NodalIntervalView;
 class SCORE_PLUGIN_SCENARIO_EXPORT TemporalIntervalPresenter final : public IntervalPresenter
 {
   W_OBJECT(TemporalIntervalPresenter)
@@ -55,10 +56,10 @@ public:
 
 private:
   double rackHeight() const;
-  double smallRackHeight() const;
+  double collapsedRackHeight() const;
 
   void createSlot(int pos, const Slot& slt);
-  void createSmallSlot(int pos, const Slot& aSlt);
+  void createCollapsedSlot(int pos, const Slot& aSlt);
 
   void createLayer(int slot, const Process::ProcessModel& proc);
 
@@ -81,6 +82,10 @@ private:
   void stopSlotDrag() const override;
 
   void setHeaderWidth(const SlotPresenter& slot, double w);
+  void setHeaderWidth(const LayerSlotPresenter& slot, double w);
+  void setHeaderWidth(const NodalSlotPresenter& slot, double w);
+  void createNodalSlot();
+
 
   bool m_handles{true};
 };

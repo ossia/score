@@ -17,8 +17,8 @@ enum ProcessFlags : int64_t
   //! Can be loaded as a process of an interval
   SupportsTemporal = 1,
 
-  //! Can be loaded in an effect chain
-  SupportsEffectChain = 2,
+  //! The process won't change if the parent duration changes (eg it's a filter)
+  TimeIndependent = 2,
 
   //! Can be loaded in a state
   SupportsState = 4,
@@ -29,13 +29,9 @@ enum ProcessFlags : int64_t
   //! When created in an interval, go on the top slot or in a new slot
   PutInNewSlot = 16,
 
-  //! The process won't change if the parent duration changes (eg it's a
-  //! filter)
-  TimeIndependent = 32,
-
-  SupportsLasting = SupportsTemporal | SupportsEffectChain,
-  ExternalEffect = SupportsLasting | RequiresCustomData | TimeIndependent,
-  SupportsAll = SupportsTemporal | SupportsEffectChain | SupportsState
+  SupportsLasting = SupportsTemporal | TimeIndependent,
+  ExternalEffect  = SupportsTemporal | TimeIndependent | RequiresCustomData,
+  SupportsAll     = SupportsTemporal | TimeIndependent | SupportsState
 };
 
 /**

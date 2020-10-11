@@ -293,6 +293,15 @@ QPixmap LayerData::pixmap() const noexcept
   return {};
 }
 
+void LayerData::disconnect(const Process::ProcessModel& proc, QObject& intervalPresenter)
+{
+  QObject::disconnect(&proc, &Process::ProcessModel::loopsChanged, &intervalPresenter, nullptr);
+  QObject::disconnect(
+        &proc, &Process::ProcessModel::startOffsetChanged, &intervalPresenter, nullptr);
+  QObject::disconnect(
+        &proc, &Process::ProcessModel::loopDurationChanged, &intervalPresenter, nullptr);
+}
+
 LayerRectItem::LayerRectItem(QGraphicsItem* parent) : score::ResizeableItem{parent}
 {
   // this->setFlag(ItemHasNoContents, true);

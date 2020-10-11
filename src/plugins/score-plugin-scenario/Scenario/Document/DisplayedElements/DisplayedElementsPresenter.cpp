@@ -156,9 +156,13 @@ void DisplayedElementsPresenter::showInterval()
   auto& rack = m_intervalPresenter->getSlots();
   if (!rack.empty())
   {
-    auto& procs = rack.front().layers;
-    if (!procs.empty())
-      requestFocusedPresenterChange(procs.front().mainPresenter());
+    const auto& front = rack.front();
+    if(auto* slot = front.getLayerSlot())
+    {
+      auto& procs = slot->layers;
+      if (!procs.empty())
+        requestFocusedPresenterChange(procs.front().mainPresenter());
+    }
     // TODO else ??
   }
 

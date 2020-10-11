@@ -223,17 +223,17 @@ FullViewIntervalPresenter::~FullViewIntervalPresenter()
 void FullViewIntervalPresenter::createSlot(int slot_i, const FullSlot& slt)
 {
   // Create the slot
-  {
-    SlotPresenter p;
+  auto& slot = [&] () -> LayerSlotPresenter& {
+    LayerSlotPresenter p;
     p.header = new SlotHeader{*this, slot_i, m_view};
     p.footer = new AmovibleSlotFooter{*this, slot_i, m_view};
-    m_slots.insert(m_slots.begin() + slot_i, std::move(p));
-  }
+    auto it = m_slots.insert(m_slots.begin() + slot_i, std::move(p));
+    return *it->getLayerSlot();
+  }();
 
   const auto& proc = m_model.processes.at(slt.process);
 
   // Create a layer container
-  auto& slot = m_slots.at(slot_i);
   auto& ld = slot.layers.emplace_back(&proc);
 
   // Create layers
@@ -265,10 +265,11 @@ void FullViewIntervalPresenter::createSlot(int slot_i, const FullSlot& slt)
 
   con(proc, &Process::ProcessModel::loopsChanged, this, [this, slot_i](bool b) {
     SCORE_ASSERT(slot_i < int(m_slots.size()));
-    auto& slt = this->m_slots[slot_i];
+    auto slt = this->m_slots[slot_i].getLayerSlot();
 
-    SCORE_ASSERT(!slt.layers.empty());
-    LayerData& ld = slt.layers.front();
+    SCORE_ASSERT(slt);
+    SCORE_ASSERT(!slt->layers.empty());
+    LayerData& ld = slt->layers.front();
     const auto gui_width = m_model.duration.guiDuration().toPixels(m_zoomRatio);
     const auto def_width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
     const auto slot_height = ld.model().getSlotHeight();
@@ -277,19 +278,21 @@ void FullViewIntervalPresenter::createSlot(int slot_i, const FullSlot& slt)
 
   con(proc, &Process::ProcessModel::startOffsetChanged, this, [this, slot_i] {
     SCORE_ASSERT(slot_i < int(m_slots.size()));
-    auto& slot = this->m_slots[slot_i];
+    auto slt = this->m_slots[slot_i].getLayerSlot();
 
-    SCORE_ASSERT(!slot.layers.empty());
-    auto& ld = slot.layers.front();
+    SCORE_ASSERT(slt);
+    SCORE_ASSERT(!slt->layers.empty());
+    auto& ld = slt->layers.front();
 
     ld.updateStartOffset(-ld.model().startOffset().toPixels(m_zoomRatio));
   });
   con(proc, &Process::ProcessModel::loopDurationChanged, this, [this, slot_i] {
     SCORE_ASSERT(slot_i < int(m_slots.size()));
-    auto& slt = this->m_slots[slot_i];
+    auto slt = this->m_slots[slot_i].getLayerSlot();
 
-    SCORE_ASSERT(!slt.layers.empty());
-    LayerData& ld = slt.layers.front();
+    SCORE_ASSERT(slt);
+    SCORE_ASSERT(!slt->layers.empty());
+    LayerData& ld = slt->layers.front();
     const auto gui_width = m_model.duration.guiDuration().toPixels(m_zoomRatio);
     const auto def_width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
     const auto slot_height = ld.model().getSlotHeight();
@@ -301,19 +304,27 @@ void FullViewIntervalPresenter::createSlot(int slot_i, const FullSlot& slt)
 
 void FullViewIntervalPresenter::requestSlotMenu(int slot, QPoint pos, QPointF sp) const
 {
+  auto slt = m_slots[slot].getLayerSlot();
+  if(!slt)
+    return;
+
   auto menu = new QMenu;
   auto& reg = score::GUIAppContext()
                   .guiApplicationPlugin<ScenarioApplicationPlugin>()
                   .layerContextMenuRegistrar();
 
-  m_slots[slot].layers.front().fillContextMenu(*menu, pos, sp, reg);
+  slt->layers.front().fillContextMenu(*menu, pos, sp, reg);
   menu->exec(pos);
   menu->close();
   menu->deleteLater();
 }
 
-void FullViewIntervalPresenter::updateProcessShape(const LayerData& ld, const SlotPresenter& slot)
+void FullViewIntervalPresenter::updateProcessShape(const LayerData& ld, const SlotPresenter& slt)
 {
+  auto slot = slt.getLayerSlot();
+  if(!slot)
+    return;
+
   const auto h = ld.model().getSlotHeight();
   ld.setHeight(h);
   ld.updateContainerHeights(h); // TODO merge with setHeight
@@ -322,15 +333,15 @@ void FullViewIntervalPresenter::updateProcessShape(const LayerData& ld, const Sl
   auto dwidth = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
   ld.setWidth(width, dwidth);
 
-  slot.header->setWidth(width);
-  slot.footer->setWidth(width);
+  slot->header->setWidth(width);
+  slot->footer->setWidth(width);
 
-  slot.headerDelegate->setSize(QSizeF{
+  slot->headerDelegate->setSize(QSizeF{
       std::max(0., width - SlotHeader::handleWidth() - SlotHeader::menuWidth()),
       SlotHeader::headerHeight()});
-  slot.headerDelegate->setX(30);
-  slot.footerDelegate->setSize(QSizeF{width, SlotFooter::footerHeight()});
-  slot.footerDelegate->setX(30);
+  slot->headerDelegate->setX(30);
+  slot->footerDelegate->setSize(QSizeF{width, SlotFooter::footerHeight()});
+  slot->footerDelegate->setX(30);
 
   ld.parentGeometryChanged();
 }
@@ -338,16 +349,24 @@ void FullViewIntervalPresenter::updateProcessShape(const LayerData& ld, const Sl
 void FullViewIntervalPresenter::updateProcessShape(int slot)
 {
   auto& slt = m_slots.at(slot);
-  if (!slt.layers.empty())
-    updateProcessShape(slt.layers.front(), slt);
+  auto lay_slt = slt.getLayerSlot();
+  if(!lay_slt)
+    return;
+
+  if (!lay_slt->layers.empty())
+    updateProcessShape(lay_slt->layers.front(), slt);
 }
 
 void FullViewIntervalPresenter::on_slotRemoved(int pos)
 {
   SlotPresenter& slot = m_slots.at(pos);
-  for (const LayerData& proc : slot.layers)
+  auto lay_slt = slot.getLayerSlot();
+  if(lay_slt)
   {
-    proc.disconnect(proc.model(), *this);
+    for (const LayerData& proc : lay_slt->layers)
+    {
+      proc.disconnect(proc.model(), *this);
+    }
   }
   slot.cleanup(this->view()->scene());
 
@@ -373,28 +392,42 @@ void FullViewIntervalPresenter::updatePositions()
 
   for (int i = 0; i < (int)m_slots.size(); i++)
   {
-    SlotPresenter& slot = m_slots[i];
-    if (!slot.layers.empty())
+    if(auto slot = m_slots[i].getLayerSlot())
     {
-      LayerData& ld = slot.layers.front();
+      if (!slot->layers.empty())
+      {
+        LayerData& ld = slot->layers.front();
 
-      assert(slot.header);
-      slot.header->setPos(QPointF{0, currentSlotY});
-      slot.header->setSlotIndex(i);
-      currentSlotY += slot.headerHeight();
+        assert(slot->header);
+        slot->header->setPos(QPointF{0, currentSlotY});
+        slot->header->setSlotIndex(i);
+        currentSlotY += slot->headerHeight();
 
-      ld.updateYPositions(currentSlotY);
-      ld.update();
+        ld.updateYPositions(currentSlotY);
+        ld.update();
 
-      currentSlotY += ld.model().getSlotHeight();
-      assert(slot.footer);
-      slot.footer->setPos(QPointF{0, currentSlotY});
-      slot.footer->setSlotIndex(i);
-      currentSlotY += slot.footerHeight();
+        currentSlotY += ld.model().getSlotHeight();
+        assert(slot->footer);
+        slot->footer->setPos(QPointF{0, currentSlotY});
+        slot->footer->setSlotIndex(i);
+        currentSlotY += slot->footerHeight();
+      }
+      else
+      {
+        currentSlotY += SlotHeader::headerHeight();
+        currentSlotY += SlotFooter::footerHeight();
+      }
     }
-    else
+    else if(auto slot = m_slots[i].getNodalSlot())
     {
+      assert(slot->header);
+      slot->header->setPos(QPointF{0, currentSlotY});
+      slot->header->setSlotIndex(i);
       currentSlotY += SlotHeader::headerHeight();
+      currentSlotY += slot->height;
+      assert(slot->footer);
+      slot->footer->setPos(QPointF{0, currentSlotY});
+      slot->footer->setSlotIndex(i);
       currentSlotY += SlotFooter::footerHeight();
     }
   }
@@ -410,12 +443,21 @@ void FullViewIntervalPresenter::updatePositions()
 double FullViewIntervalPresenter::rackHeight() const
 {
   qreal height = 0;
-  for (const SlotPresenter& slot : m_slots)
+  for (const SlotPresenter& slt : m_slots)
   {
-    if (!slot.layers.empty())
-      height += slot.layers.front().model().getSlotHeight();
+    if(auto slot = slt.getLayerSlot())
+    {
+      if (!slot->layers.empty())
+        height += slot->layers.front().model().getSlotHeight();
 
-    height += slot.headerHeight() + slot.footerHeight();
+      height += slot->headerHeight() + slot->footerHeight();
+    }
+    else if(auto slot = slt.getNodalSlot())
+    {
+      height += SlotHeader::headerHeight();
+      height += slot->height;
+      height += SlotFooter::footerHeight();
+    }
   }
   return height;
 }
@@ -457,23 +499,25 @@ void FullViewIntervalPresenter::selectedSlot(int i) const
 {
   score::SelectionDispatcher disp{m_context.selectionStack};
   SCORE_ASSERT(size_t(i) < m_slots.size());
-  auto& slot = m_slots[i];
-
-  if (!m_slots[i].layers.empty())
+  auto slot = m_slots[i].getLayerSlot();
+  if(slot)
   {
-    if(auto pres = m_slots[i].layers.front().mainPresenter())
+    if (!slot->layers.empty())
     {
-      m_context.focusDispatcher.focus(pres);
-      disp.setAndCommit({&slot.layers.front().model()});
+      if(auto pres = slot->layers.front().mainPresenter())
+      {
+        m_context.focusDispatcher.focus(pres);
+        disp.setAndCommit({&slot->layers.front().model()});
+      }
+      else
+      {
+        SCORE_SOFT_ASSERT(!"No main presenter");
+      }
     }
     else
     {
-      SCORE_SOFT_ASSERT(!"No main presenter");
+      SCORE_SOFT_ASSERT(!"No layer!");
     }
-  }
-  else
-  {
-    SCORE_SOFT_ASSERT(!"No layer!");
   }
 }
 
@@ -501,12 +545,15 @@ void FullViewIntervalPresenter::on_zoomRatioChanged(ZoomRatio ratio)
 
   for (auto& slot : m_slots)
   {
-    if (slot.headerDelegate)
-      slot.headerDelegate->on_zoomRatioChanged(ratio);
-    for (auto& ld : slot.layers)
+    if(auto lay_slot = slot.getLayerSlot())
     {
-      const auto slot_height = ld.model().getSlotHeight();
-      ld.on_zoomRatioChanged(m_context, ratio, gui_width, def_width, slot_height, m_view, this);
+      if (lay_slot->headerDelegate)
+        lay_slot->headerDelegate->on_zoomRatioChanged(ratio);
+      for (auto& ld : lay_slot->layers)
+      {
+        const auto slot_height = ld.model().getSlotHeight();
+        ld.on_zoomRatioChanged(m_context, ratio, gui_width, def_width, slot_height, m_view, this);
+      }
     }
   }
 
@@ -678,16 +725,28 @@ void FullViewIntervalPresenter::on_guiDurationChanged(const TimeVal& val)
 
   for (SlotPresenter& slot : m_slots)
   {
-    if (!slot.layers.empty())
-    {
-      auto& ld = slot.layers.front();
-      const auto slot_height = ld.model().getSlotHeight();
-
-      ld.updateLoops(m_context, m_zoomRatio, gui_width, def_width, slot_height, m_view, this);
-    }
-    slot.header->setWidth(gui_width);
-    slot.footer->setWidth(gui_width);
+    slot.visit([&] (auto& slot) { on_guiDurationChanged(slot, gui_width, def_width); });
   }
+}
+
+void FullViewIntervalPresenter::on_guiDurationChanged(LayerSlotPresenter& slot, double gui_width, double def_width)
+{
+  if (!slot.layers.empty())
+  {
+    auto& ld = slot.layers.front();
+    const auto slot_height = ld.model().getSlotHeight();
+
+    ld.updateLoops(m_context, m_zoomRatio, gui_width, def_width, slot_height, m_view, this);
+  }
+  slot.header->setWidth(gui_width);
+  slot.footer->setWidth(gui_width);
+
+}
+
+void FullViewIntervalPresenter::on_guiDurationChanged(NodalSlotPresenter& slot, double gui_width, double def_width)
+{
+  slot.header->setWidth(gui_width);
+  slot.footer->setWidth(gui_width);
 }
 
 void FullViewIntervalPresenter::updateHeight()

@@ -97,12 +97,14 @@ void SlotHeader::mousePressEvent(QGraphicsSceneMouseEvent* event)
   {
     slot_header_drag.reset(new QDrag(event->widget()));
   }
-  else if (
-      boundingRect().contains(event->pos())
-      && m_presenter.getSlots()[m_slotIndex].layers.size() > 1)
+  else if (boundingRect().contains(event->pos()))
   {
-    if (const auto tip = dynamic_cast<const TemporalIntervalPresenter*>(&m_presenter))
-      tip->requestProcessSelectorMenu(m_slotIndex, event->screenPos(), event->scenePos());
+    auto slt = m_presenter.getSlots()[m_slotIndex].getLayerSlot();
+    if(slt && slt->layers.size() > 1)
+    {
+      if (const auto tip = dynamic_cast<const TemporalIntervalPresenter*>(&m_presenter))
+        tip->requestProcessSelectorMenu(m_slotIndex, event->screenPos(), event->scenePos());
+    }
   }
   event->accept();
 }
@@ -146,10 +148,10 @@ void SlotHeader::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     mime->setData(score::mime::layerdata(), r.toByteArray());
     slot_header_drag->setMimeData(mime);
 
-    auto& slot = m_presenter.getSlots()[m_slotIndex];
-    if (!slot.layers.empty())
+    auto slt = m_presenter.getSlots()[m_slotIndex].getLayerSlot();
+    if (!slt->layers.empty())
     {
-      auto& view = slot.layers.front();
+      auto& view = slt->layers.front();
       slot_header_drag->setPixmap(view.pixmap().scaledToWidth(50));
       slot_header_drag->setHotSpot(QPoint(5, 5));
     }

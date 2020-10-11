@@ -14,7 +14,7 @@
 namespace Scenario
 {
 
-void SlotPresenter::cleanupHeaderFooter()
+void LayerSlotPresenter::cleanupHeaderFooter()
 {
   if (headerDelegate)
   {
@@ -28,7 +28,7 @@ void SlotPresenter::cleanupHeaderFooter()
   }
 }
 
-void SlotPresenter::cleanup(QGraphicsScene* sc)
+void LayerSlotPresenter::cleanup(QGraphicsScene* sc)
 {
   if (sc)
   {

@@ -356,9 +356,13 @@ void ScenarioApplicationPlugin::on_documentChanged(
 
       if (cst_pres && !cst_pres->getSlots().empty())
       {
-        auto p = cst_pres->getSlots().front().layers.front().mainPresenter();
-        if (p)
-          focusManager->focus(p);
+        auto& firstSlot = cst_pres->getSlots().front();
+        if(auto slt = firstSlot.getLayerSlot())
+        {
+          auto p = slt->layers.front().mainPresenter();
+          if (p)
+            focusManager->focus(p);
+        }
       }
     }
   }

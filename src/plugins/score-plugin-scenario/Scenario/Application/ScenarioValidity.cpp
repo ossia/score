@@ -55,8 +55,15 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
 
     for (auto& slot : interval.smallView())
     {
-      SCORE_ASSERT(slot.frontProcess);
-      SCORE_ASSERT(interval.processes.find(*slot.frontProcess) != interval.processes.end());
+      if(!slot.nodal)
+      {
+        SCORE_ASSERT(slot.frontProcess);
+        SCORE_ASSERT(interval.processes.find(*slot.frontProcess) != interval.processes.end());
+      }
+      else
+      {
+        SCORE_ASSERT(!slot.frontProcess);
+      }
     }
     /*
     if (dur.isRigid())

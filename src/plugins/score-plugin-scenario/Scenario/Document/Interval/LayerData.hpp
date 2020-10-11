@@ -1,6 +1,5 @@
 #pragma once
 #include <Process/ZoomHelper.hpp>
-
 #include <score/graphics/RectItem.hpp>
 
 #include <QPoint>
@@ -152,14 +151,7 @@ public:
 
   const std::vector<Layer>& layers() const noexcept { return m_layers; }
 
-  static void disconnect(const Process::ProcessModel& proc, QObject& intervalPresenter)
-  {
-    QObject::disconnect(&proc, &Process::ProcessModel::loopsChanged, &intervalPresenter, nullptr);
-    QObject::disconnect(
-        &proc, &Process::ProcessModel::startOffsetChanged, &intervalPresenter, nullptr);
-    QObject::disconnect(
-        &proc, &Process::ProcessModel::loopDurationChanged, &intervalPresenter, nullptr);
-  }
+  static void disconnect(const Process::ProcessModel& proc, QObject& intervalPresenter);
 
 private:
   const Process::ProcessModel* m_model{};

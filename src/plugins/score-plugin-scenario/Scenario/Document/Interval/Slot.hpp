@@ -32,12 +32,14 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT Slot
   OptionalId<Process::ProcessModel> frontProcess;
   qreal height{200};
   bool focus{};
+  bool nodal{};
 };
 
 using Rack = std::vector<Slot>;
 struct FullSlot
 {
   Id<Process::ProcessModel> process;
+  bool nodal{};
 };
 using FullRack = std::vector<FullSlot>;
 class IntervalModel;

@@ -69,6 +69,8 @@ private:
   void on_modeChanged(IntervalModel::ViewMode);
   void on_defaultDurationChanged(const TimeVal&);
   void on_guiDurationChanged(const TimeVal&);
+  void on_guiDurationChanged(LayerSlotPresenter& slot, double gui_width, double def_width);
+  void on_guiDurationChanged(NodalSlotPresenter& slot, double gui_width, double def_width);
   void createSlot(int pos, const FullSlot& slt);
   void updateProcessShape(int slot);
   void updateProcessShape(const LayerData& layer, const SlotPresenter& pres);

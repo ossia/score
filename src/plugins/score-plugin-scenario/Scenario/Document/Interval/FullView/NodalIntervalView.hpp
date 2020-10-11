@@ -12,12 +12,18 @@
 
 namespace Scenario
 {
-
 class NodalIntervalView : public score::EmptyRectItem, public Nano::Observer
 {
 public:
-  NodalIntervalView(const IntervalModel& model, const Process::Context& ctx, QGraphicsItem* parent)
-      : score::EmptyRectItem{parent}, m_model{model}, m_context{ctx}
+  enum ItemsToShow {
+    AllItems,
+    OnlyEffects
+  };
+  NodalIntervalView(ItemsToShow sh, const IntervalModel& model, const Process::Context& ctx, QGraphicsItem* parent)
+      : score::EmptyRectItem{parent}
+      , m_model{model}
+      , m_context{ctx}
+      , m_itemsToShow{sh}
   {
     // setAcceptDrops(false);
     // setFlag(ItemHasNoContents, true);
@@ -25,6 +31,8 @@ public:
     const qreal r = m_model.duration.defaultDuration().impl;
     for (auto& proc : m_model.processes)
     {
+      if(m_itemsToShow == ItemsToShow::OnlyEffects && !(proc.flags() & Process::ProcessFlags::TimeIndependent))
+        continue;
       auto item = new Process::NodeItem{proc, m_context, this};
       m_nodeItems.push_back(item);
       item->setZoomRatio(r);
@@ -62,6 +70,22 @@ public:
 
   void on_processAdded(const Process::ProcessModel& proc)
   {
+    if(m_itemsToShow == ItemsToShow::OnlyEffects && !(proc.flags() & Process::ProcessFlags::TimeIndependent))
+      return;
+
+    // The reason for this loop sucks a bit.
+    // The "nodal" small view is created in IntervalModel::on_addProcess when slotAdded is sent,
+    // which is called as a response of the nano signal processes.mutable_added.connect<>...
+    // But NodalIntervalView adds itself to the callback list: this means that
+    // after creation which already creates a node for the process, we get the item duplicated here.
+    for (auto it = m_nodeItems.begin(); it != m_nodeItems.end(); ++it)
+    {
+      if (&(*it)->model() == &proc)
+      {
+        return;
+      }
+    }
+
     auto item = new Process::NodeItem{proc, m_context, this};
     const qreal r = m_model.duration.defaultDuration().impl;
 
@@ -132,6 +156,7 @@ public:
 private:
   const IntervalModel& m_model;
   const Process::Context& m_context;
+  ItemsToShow m_itemsToShow{};
   std::vector<Process::NodeItem*> m_nodeItems;
 };
 

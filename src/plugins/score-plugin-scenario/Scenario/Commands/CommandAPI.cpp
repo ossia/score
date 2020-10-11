@@ -105,7 +105,10 @@ Process::ProcessModel* Macro::createProcessInNewSlot(
 {
   if (auto proc = createProcess(interval, key, data, pos))
   {
-    addLayerInNewSlot(interval, *proc);
+    if(!(proc->flags() & Process::ProcessFlags::TimeIndependent))
+    {
+      addLayerInNewSlot(interval, *proc);
+    }
     return proc;
   }
   return nullptr;

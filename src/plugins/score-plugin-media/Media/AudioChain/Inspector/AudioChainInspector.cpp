@@ -125,7 +125,7 @@ void InspectorWidget::add_score(std::size_t pos)
 {
   auto& base_fxs = m_ctx.app.interfaces<Process::ProcessFactoryList>();
   auto dialog
-      = new Scenario::AddProcessDialog(base_fxs, Process::ProcessFlags::SupportsEffectChain, this);
+      = new Scenario::AddProcessDialog(base_fxs, Process::ProcessFlags::SupportsLasting, this);
 
   dialog->on_okPressed = [&](const auto& proc, const QString&) {
     m_dispatcher.submit(new InsertEffect{process(), proc, {}, pos});
