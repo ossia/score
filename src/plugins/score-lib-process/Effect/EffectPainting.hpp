@@ -1,6 +1,7 @@
 #pragma once
 #include <Process/Process.hpp>
 
+#include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/TextItem.hpp>
 #include <score/model/Skin.hpp>
 #include <score/tools/Bind.hpp>
@@ -10,6 +11,7 @@
 #include <QPainter>
 
 #include <Effect/EffectLayer.hpp>
+#include <Process/Style/Pixmaps.hpp>
 
 namespace Effect
 {
@@ -20,7 +22,7 @@ public:
   static const constexpr qreal FooterHeight = 12.;
   static const constexpr qreal Corner = 2.;
   static const constexpr qreal PortSpacing = 10.;
-  static const constexpr qreal InletX0 = 2.;
+  static const constexpr qreal InletX0 = 12.;
   static const constexpr qreal InletY0 = 1.;
   static const constexpr qreal OutletX0 = 2.;
   static const constexpr qreal OutletY0 = -12.; // Add to height
@@ -59,7 +61,7 @@ protected:
     });
 
     m_label->setFont(skin.Bold10Pt);
-    m_label->setPos({12., 0});
+    m_label->setPos({30., 0});
 
     // Selection
     con(process.selection, &Selectable::changed, this, &ItemBase::setSelected);

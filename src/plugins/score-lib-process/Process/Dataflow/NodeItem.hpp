@@ -40,6 +40,7 @@ public:
   const Process::ProcessModel& model() const noexcept { return m_model; }
 
 private:
+  void createContentItem();
   void updateSize();
   void setSize(QSizeF sz);
 
@@ -61,6 +62,7 @@ private:
 
   // Body
   QGraphicsItem* m_fx{};
+  score::QGraphicsPixmapToggle* m_fold{};
   Process::LayerPresenter* m_presenter{};
 
   std::vector<Dataflow::PortItem*> m_inlets, m_outlets;

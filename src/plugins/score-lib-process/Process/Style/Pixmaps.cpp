@@ -53,6 +53,9 @@ Pixmaps::Pixmaps() noexcept
     , roll{score::get_pixmap(":/icons/rack_button_on.png")}
     , roll_selected{score::get_pixmap(":/icons/rack_button_on_selected.png")}
 
+    , unroll_small{score::get_pixmap(":/icons/rack_button_small_off.png")}
+    , roll_small{score::get_pixmap(":/icons/rack_button_small_on.png")}
+
     , add{score::get_pixmap(":/icons/process_add_off.png")}
 
     , metricHandle{drawPath([](QPainterPath& path, double dpr) {

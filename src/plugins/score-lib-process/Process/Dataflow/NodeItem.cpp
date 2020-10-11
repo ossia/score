@@ -68,12 +68,13 @@ void NodeItem::resetOutlets()
   }
 }
 
-NodeItem::NodeItem(
-    const Process::ProcessModel& model,
-    const Process::Context& ctx,
-    QGraphicsItem* parent)
-    : ItemBase{model, ctx, parent}, m_model{model}, m_context{ctx}
+void NodeItem::createContentItem()
 {
+  if(m_fx)
+    return;
+
+  auto& ctx = m_context;
+  auto& model = m_model;
   // Body
   auto& fact = ctx.app.interfaces<Process::LayerFactoryList>();
   if (auto factory = fact.findDefaultFactory(model))
@@ -82,7 +83,6 @@ NodeItem::NodeItem(
     {
       m_fx = fx;
       connect(fx, &score::ResizeableItem::sizeChanged, this, &NodeItem::updateSize);
-      updateSize();
     }
     else if (auto fx = factory->makeLayerView(model, ctx, this))
     {
@@ -102,21 +102,53 @@ NodeItem::NodeItem(
     m_contentSize = m_fx->boundingRect().size();
   }
 
+  // Positions / size
+  m_fx->setPos({0, Effect::ItemBase::TitleHeight});
+
   m_contentSize
       = QSizeF{std::max(100., m_contentSize.width()), std::max(10., m_contentSize.height())};
+
+  if (m_ui)
+  {
+    m_ui->setPos({m_contentSize.width() + TopButtonX0, TopButtonY0});
+  }
+}
+
+NodeItem::NodeItem(
+    const Process::ProcessModel& model,
+    const Process::Context& ctx,
+    QGraphicsItem* parent)
+    : ItemBase{model, ctx, parent}, m_model{model}, m_context{ctx}
+{
+  createContentItem();
 
   resetInlets();
   resetOutlets();
   connect(&model, &Process::ProcessModel::inletsChanged, this, &NodeItem::resetInlets);
   connect(&model, &Process::ProcessModel::outletsChanged, this, &NodeItem::resetOutlets);
 
-  if (m_ui)
-  {
-    m_ui->setPos({m_contentSize.width() + TopButtonX0, TopButtonY0});
-  }
+  const auto& pixmaps = Process::Pixmaps::instance();
+  m_fold = new score::QGraphicsPixmapToggle{
+      pixmaps.unroll_small, pixmaps.roll_small,  this};
+  m_fold->setPos({0, 0});
+  m_fold->setState(true);
 
-  // Positions / size
-  m_fx->setPos({0, Effect::ItemBase::TitleHeight});
+  connect(m_fold, &score::QGraphicsPixmapToggle::toggled, this, [=] (bool b) {
+    if(b)
+    {
+      createContentItem();
+    }
+    else
+    {
+      delete m_fx;
+      m_fx = nullptr;
+      double port_w = std::max(m_inlets.size() * 12., m_outlets.size() * 12.);
+      m_contentSize = QSizeF{30 + m_label->boundingRect().width() + port_w, 0};
+    }
+    updateSize();
+  });
+
+  updateSize();
 
   ::bind(model, Process::ProcessModel::p_position{}, this, [this](QPointF p) {
     if (p != pos())
@@ -135,14 +167,15 @@ NodeItem::NodeItem(
 
 void NodeItem::updateSize()
 {
-  if (!m_fx)
-    return;
-
-  auto sz = m_fx->boundingRect().size();
-  if (sz != m_contentSize)
+  auto sz = m_fx ? m_fx->boundingRect().size() : QSizeF{100, 0};
+  if (sz != m_contentSize || !m_fx)
   {
     prepareGeometryChange();
-    m_contentSize = QSizeF{std::max(100., sz.width()), std::max(10., sz.height())};
+    if(m_fx)
+    {
+      m_contentSize = QSizeF{std::max(100., sz.width()), std::max(10., sz.height())};
+    }
+
     if (m_ui)
     {
       m_ui->setParentItem(nullptr);

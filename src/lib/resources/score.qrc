@@ -628,5 +628,9 @@
         <file>icons/settings_package_off@2x.png</file>
         <file>icons/settings_package_on.png</file>
         <file>icons/settings_package_on@2x.png</file>
+        <file>icons/rack_button_small_off.png</file>
+        <file>icons/rack_button_small_off@2x.png</file>
+        <file>icons/rack_button_small_on.png</file>
+        <file>icons/rack_button_small_on@2x.png</file>
     </qresource>
 </RCC>
