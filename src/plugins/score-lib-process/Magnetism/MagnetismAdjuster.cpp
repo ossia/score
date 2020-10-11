@@ -4,6 +4,7 @@
 
 #include <ossia/detail/algorithms.hpp>
 
+#include <QDebug>
 namespace Process
 {
 
