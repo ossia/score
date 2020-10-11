@@ -1,9 +1,6 @@
 #include "score_plugin_media.hpp"
 
 #include <Media/ApplicationPlugin.hpp>
-#include <Media/AudioChain/AudioChainExecutor.hpp>
-#include <Media/AudioChain/AudioChainFactory.hpp>
-#include <Media/AudioChain/Inspector/AudioChainInspector.hpp>
 #include <Media/Effect/Settings/Factory.hpp>
 #include <Media/Inspector/Factory.hpp>
 #include <Media/Merger/Executor.hpp>
@@ -18,9 +15,6 @@
 #include <Media/Step/Executor.hpp>
 #include <Media/Step/Factory.hpp>
 #include <Media/Step/Inspector.hpp>
-#include <Media/SynthChain/Inspector/SynthChainInspector.hpp>
-#include <Media/SynthChain/SynthChainExecutor.hpp>
-#include <Media/SynthChain/SynthChainFactory.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 
 #include <Mixer/MixerPanel.hpp>
@@ -121,8 +115,6 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
       score::ApplicationContext,
       FW<Process::ProcessModelFactory,
          Media::Sound::ProcessFactory,
-         Media::AudioChain::ProcessFactory,
-         Media::SynthChain::ProcessFactory,
          Media::Step::ProcessFactory,
          Media::Metro::ProcessFactory,
          Media::Merger::ProcessFactory
@@ -141,16 +133,12 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
          >,
       FW<Inspector::InspectorWidgetFactory,
          Media::Sound::InspectorFactory,
-         Media::AudioChain::InspectorFactory,
-         Media::SynthChain::InspectorFactory,
          Media::Step::InspectorFactory
          // , Media::Metro::InspectorFactory
          ,
          Media::Merger::InspectorFactory>,
       FW<Process::LayerFactory,
          Media::Sound::LayerFactory,
-         Media::AudioChain::LayerFactory,
-         Media::SynthChain::LayerFactory,
          Media::Metro::LayerFactory,
          Media::Step::LayerFactory,
          Media::Merger::LayerFactory
@@ -189,8 +177,6 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
 
       FW<Execution::ProcessComponentFactory,
          Execution::SoundComponentFactory,
-         Media::AudioChainComponentFactory,
-         Media::SynthChainComponentFactory,
          Execution::StepComponentFactory,
          Execution::MetroComponentFactory,
          Execution::MergerComponentFactory
@@ -215,8 +201,8 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
 #endif
          >,
       FW<score::SettingsDelegateFactory, Media::Settings::Factory>,
-      FW<score::PanelDelegateFactory, Mixer::PanelDelegateFactory>,
-      FW<score::ObjectRemover, Media::EffectRemover>>(ctx, key);
+      FW<score::PanelDelegateFactory, Mixer::PanelDelegateFactory>
+      >(ctx, key);
 }
 
 #include <score/plugins/PluginInstances.hpp>

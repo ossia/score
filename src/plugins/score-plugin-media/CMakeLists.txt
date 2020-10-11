@@ -34,7 +34,6 @@ set(HDRS ${HDRS}
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/ChangeAudioFile.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/MediaCommandFactory.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/InsertEffect.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Inspector/AudioInspector.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Inspector/Factory.hpp"
@@ -49,23 +48,6 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/Drop/SoundDrop.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundLibraryHandler.hpp"
-
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/ChainProcess.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/ChainItem.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/ChainExecutor.hpp"
-
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioChain/AudioChainFactory.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioChain/AudioChainLayer.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioChain/AudioChainMetadata.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioChain/AudioChainModel.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioChain/AudioChainExecutor.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioChain/Inspector/AudioChainInspector.hpp"
-
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/SynthChain/SynthChainFactory.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/SynthChain/SynthChainMetadata.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/SynthChain/SynthChainModel.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/SynthChain/SynthChainExecutor.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/SynthChain/Inspector/SynthChainInspector.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/Model.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/Presenter.hpp"
@@ -112,7 +94,6 @@ set(HDRS ${HDRS}
 set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/ChangeAudioFile.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/MediaCommandFactory.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/InsertEffect.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Inspector/AudioInspector.cpp"
 
@@ -122,18 +103,6 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/WaveformComputer.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/Drop/SoundDrop.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundComponent.cpp"
-
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/ChainProcess.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/ChainItem.cpp"
-
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioChain/AudioChainModel.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioChain/AudioChainExecutor.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioChain/AudioChainLayer.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioChain/Inspector/AudioChainInspector.cpp"
-
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/SynthChain/SynthChainModel.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/SynthChain/SynthChainExecutor.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/SynthChain/Inspector/SynthChainInspector.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/Model.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/Presenter.cpp"
@@ -171,7 +140,6 @@ if(Faust_FOUND)
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Faust/FaustEffectModel.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Faust/FaustLibrary.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/EditFaustEffect.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/InsertFaust.hpp"
         )
     set(FAUST_SRCS
       "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Faust/FaustEffectModel.cpp"
@@ -186,7 +154,6 @@ if(TARGET Lilv AND TARGET Suil)
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2Node.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2Window.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2Library.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/InsertLV2.hpp"
         )
     set(LV2_SRCS
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2EffectModel.cpp"
@@ -206,7 +173,6 @@ set(VST_HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTLibrary.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/vst-compat.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/VSTCommands.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/InsertVST.hpp"
   )
 set(VST_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTLoader.cpp"

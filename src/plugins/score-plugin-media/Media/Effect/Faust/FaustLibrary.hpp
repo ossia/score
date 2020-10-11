@@ -3,7 +3,6 @@
 #include <Library/LibrarySettings.hpp>
 #include <Library/ProcessesItemModel.hpp>
 #include <Media/ApplicationPlugin.hpp>
-#include <Media/Commands/InsertFaust.hpp>
 #include <Media/Effect/Faust/FaustEffectModel.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
 
