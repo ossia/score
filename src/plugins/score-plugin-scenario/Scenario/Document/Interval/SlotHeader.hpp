@@ -43,6 +43,7 @@ private:
   qreal m_width{};
   // double m_menupos{};
   int m_slotIndex{};
+  QByteArray dragMimeData(bool temporal);
 };
 
 class SlotFooter : public QGraphicsItem

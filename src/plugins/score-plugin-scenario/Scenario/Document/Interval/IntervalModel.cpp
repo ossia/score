@@ -547,9 +547,17 @@ void IntervalModel::setExecuting(bool m)
 double IntervalModel::getSlotHeight(const SlotId& slot) const
 {
   if (slot.fullView())
-    return processes.at(m_fullView.at(slot.index).process).getSlotHeight();
+  {
+    auto& slt = m_fullView.at(slot.index);
+    if(slt.nodal)
+      return m_nodalFullViewSlotHeight;
+    else
+      return processes.at(slt.process).getSlotHeight();
+  }
   else
+  {
     return m_smallView.at(slot.index).height;
+  }
 }
 
 double IntervalModel::getSlotHeightForProcess(const Id<Process::ProcessModel>& p) const
@@ -570,9 +578,17 @@ void IntervalModel::setSlotHeight(const SlotId& slot, double height)
 {
   height = std::max(height, 20.);
   if (slot.fullView())
-    processes.at(m_fullView.at(slot.index).process).setSlotHeight(height);
+  {
+    auto& slt = m_fullView.at(slot.index);
+    if(slt.nodal)
+      m_nodalFullViewSlotHeight = height;
+    else
+      processes.at(slt.process).setSlotHeight(height);
+  }
   else
+  {
     getSmallViewSlot(slot.index).height = height;
+  }
   slotResized(slot);
 }
 

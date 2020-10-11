@@ -51,7 +51,6 @@ namespace
 class TemporalNodalView final : public NodalIntervalView
 {
 public:
-  SlotPresenter slotPresenter;
   TemporalNodalView(ItemsToShow sh, const IntervalModel& model, const Process::Context& ctx, QGraphicsItem* parent):
     NodalIntervalView{sh, model, ctx, parent}
   {
@@ -512,7 +511,8 @@ void TemporalIntervalPresenter::createSlot(int pos, const Slot& aSlt)
       NodalSlotPresenter p;
       p.header = new SlotHeader{*this, (int)m_model.smallView().size(), this->view()};
       p.footer = new AmovibleSlotFooter{*this, (int)m_model.smallView().size(), this->view()};
-      auto nodal = new TemporalNodalView{NodalIntervalView::OnlyEffects, this->model(), this->context(), this->view()};
+      auto nodal = new NodalIntervalView{NodalIntervalView::OnlyEffects, this->model(), this->context(), this->view()};
+      nodal->setFlag(QGraphicsItem::ItemClipsChildrenToShape, true);
       p.view = nodal;
 
       const auto def_width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);

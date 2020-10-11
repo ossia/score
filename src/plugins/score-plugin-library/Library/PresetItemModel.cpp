@@ -167,6 +167,8 @@ bool PresetItemModel::dropMimeData(
 {
   const auto& ctx = score::GUIAppContext();
   const rapidjson::Document jsondoc = readJson(data->data(score::mime::layerdata()));
+  if(!jsondoc.HasMember("Path"))
+    return false;
   auto obj = JsonValue{jsondoc}["Path"].to<Path<Process::ProcessModel>>();
   auto doc = ctx.docManager.currentDocument();
   if (!doc)

@@ -72,8 +72,12 @@ private:
   void on_guiDurationChanged(LayerSlotPresenter& slot, double gui_width, double def_width);
   void on_guiDurationChanged(NodalSlotPresenter& slot, double gui_width, double def_width);
   void createSlot(int pos, const FullSlot& slt);
+  void setupSlot(LayerSlotPresenter& slot, const Process::ProcessModel& proc, int slot_i);
+  void setupSlot(NodalSlotPresenter& slot, int slot_i);
   void updateProcessShape(int slot);
-  void updateProcessShape(const LayerData& layer, const SlotPresenter& pres);
+  void updateProcessShape(const LayerData& layer, const LayerSlotPresenter& pres);
+  void updateProcessShape(LayerSlotPresenter& slot, int idx);
+  void updateProcessShape(NodalSlotPresenter& slot, int idx);
   void on_slotRemoved(int);
 
   void updateProcessesShape();

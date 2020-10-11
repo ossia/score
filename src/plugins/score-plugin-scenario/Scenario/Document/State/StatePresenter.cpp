@@ -120,6 +120,8 @@ void StatePresenter::handleDrop(const QMimeData& mime)
   else if (fmt.contains(score::mime::layerdata()))
   {
     const auto json = readJson(mime.data(score::mime::layerdata()));
+    if(!json.HasMember("Path") || !json.HasMember("Duration"))
+      return;
     const auto& obj = JsonValue{json["Path"]}.to<Path<Process::ProcessModel>>();
 
     if (auto proc = obj.try_find(m_ctx))

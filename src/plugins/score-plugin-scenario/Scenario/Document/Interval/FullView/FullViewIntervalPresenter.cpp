@@ -220,19 +220,39 @@ FullViewIntervalPresenter::~FullViewIntervalPresenter()
   delete view;
 }
 
-void FullViewIntervalPresenter::createSlot(int slot_i, const FullSlot& slt)
+void FullViewIntervalPresenter::createSlot(int slot_i, const FullSlot& s)
 {
-  // Create the slot
-  auto& slot = [&] () -> LayerSlotPresenter& {
+  if(!s.nodal)
+  {
+    // Create the slot
     LayerSlotPresenter p;
     p.header = new SlotHeader{*this, slot_i, m_view};
     p.footer = new AmovibleSlotFooter{*this, slot_i, m_view};
     auto it = m_slots.insert(m_slots.begin() + slot_i, std::move(p));
-    return *it->getLayerSlot();
-  }();
+    auto& slt = *it->getLayerSlot();
+    setupSlot(slt,  m_model.processes.at(s.process), slot_i);
+  }
+  else
+  {
+    NodalSlotPresenter p;
+    p.header = new SlotHeader{*this, slot_i, m_view};
+    auto nodal = new NodalIntervalView{NodalIntervalView::OnlyEffects, this->model(), this->context(), this->view()};
+    nodal->setFlag(QGraphicsItem::ItemClipsChildrenToShape, true);
+    p.view = nodal;
+    p.footer = new AmovibleSlotFooter{*this, slot_i, m_view};
+    auto it = m_slots.insert(m_slots.begin() + slot_i, std::move(p));
 
-  const auto& proc = m_model.processes.at(slt.process);
+    setupSlot(*it->getNodalSlot(), slot_i);
+  }
+}
 
+void FullViewIntervalPresenter::setupSlot(NodalSlotPresenter& slot, int slot_i)
+{
+  updateProcessShape(slot_i);
+}
+
+void FullViewIntervalPresenter::setupSlot(LayerSlotPresenter& slot, const Process::ProcessModel& proc, int slot_i)
+{
   // Create a layer container
   auto& ld = slot.layers.emplace_back(&proc);
 
@@ -263,7 +283,7 @@ void FullViewIntervalPresenter::createSlot(int slot_i, const FullSlot& slt)
   // Connect loop things
   LayerData::disconnect(proc, *this);
 
-  con(proc, &Process::ProcessModel::loopsChanged, this, [this, slot_i](bool b) {
+  con(proc, &Process::ProcessModel::loopsChanged, this, [this, slot_i] (bool b) {
     SCORE_ASSERT(slot_i < int(m_slots.size()));
     auto slt = this->m_slots[slot_i].getLayerSlot();
 
@@ -319,12 +339,8 @@ void FullViewIntervalPresenter::requestSlotMenu(int slot, QPoint pos, QPointF sp
   menu->deleteLater();
 }
 
-void FullViewIntervalPresenter::updateProcessShape(const LayerData& ld, const SlotPresenter& slt)
+void FullViewIntervalPresenter::updateProcessShape(const LayerData& ld, const LayerSlotPresenter& slot)
 {
-  auto slot = slt.getLayerSlot();
-  if(!slot)
-    return;
-
   const auto h = ld.model().getSlotHeight();
   ld.setHeight(h);
   ld.updateContainerHeights(h); // TODO merge with setHeight
@@ -333,28 +349,40 @@ void FullViewIntervalPresenter::updateProcessShape(const LayerData& ld, const Sl
   auto dwidth = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
   ld.setWidth(width, dwidth);
 
-  slot->header->setWidth(width);
-  slot->footer->setWidth(width);
+  slot.header->setWidth(width);
+  slot.footer->setWidth(width);
 
-  slot->headerDelegate->setSize(QSizeF{
+  slot.headerDelegate->setSize(QSizeF{
       std::max(0., width - SlotHeader::handleWidth() - SlotHeader::menuWidth()),
       SlotHeader::headerHeight()});
-  slot->headerDelegate->setX(30);
-  slot->footerDelegate->setSize(QSizeF{width, SlotFooter::footerHeight()});
-  slot->footerDelegate->setX(30);
+  slot.headerDelegate->setX(30);
+  slot.footerDelegate->setSize(QSizeF{width, SlotFooter::footerHeight()});
+  slot.footerDelegate->setX(30);
 
   ld.parentGeometryChanged();
 }
 
-void FullViewIntervalPresenter::updateProcessShape(int slot)
+void FullViewIntervalPresenter::updateProcessShape(LayerSlotPresenter& slot, int idx)
 {
-  auto& slt = m_slots.at(slot);
-  auto lay_slt = slt.getLayerSlot();
-  if(!lay_slt)
-    return;
+  if (!slot.layers.empty())
+    updateProcessShape(slot.layers.front(), slot);
+}
 
-  if (!lay_slt->layers.empty())
-    updateProcessShape(lay_slt->layers.front(), slt);
+void FullViewIntervalPresenter::updateProcessShape(NodalSlotPresenter& slot, int idx)
+{
+  const auto h =  this->model().getSlotHeight({idx, Slot::FullView});
+  auto width = m_model.duration.guiDuration().toPixels(m_zoomRatio);
+  //auto dwidth = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
+  slot.header->setWidth(width);
+  slot.view->setRect({0, 0, width, h});
+  slot.height = h;
+  slot.footer->setWidth(width);
+}
+
+void FullViewIntervalPresenter::updateProcessShape(int idx)
+{
+  auto& slt = m_slots.at(idx);
+  slt.visit([=] (auto& slot) { updateProcessShape(slot, idx); });
 }
 
 void FullViewIntervalPresenter::on_slotRemoved(int pos)
@@ -392,44 +420,50 @@ void FullViewIntervalPresenter::updatePositions()
 
   for (int i = 0; i < (int)m_slots.size(); i++)
   {
-    if(auto slot = m_slots[i].getLayerSlot())
-    {
-      if (!slot->layers.empty())
-      {
-        LayerData& ld = slot->layers.front();
+    m_slots[i].visit(
+          [&] (LayerSlotPresenter& slot) {
 
-        assert(slot->header);
-        slot->header->setPos(QPointF{0, currentSlotY});
-        slot->header->setSlotIndex(i);
-        currentSlotY += slot->headerHeight();
+      if (!slot.layers.empty())
+      {
+        LayerData& ld = slot.layers.front();
+
+        assert(slot.header);
+        slot.header->setPos(QPointF{0, currentSlotY});
+        slot.header->setSlotIndex(i);
+        currentSlotY += slot.headerHeight();
 
         ld.updateYPositions(currentSlotY);
         ld.update();
 
         currentSlotY += ld.model().getSlotHeight();
-        assert(slot->footer);
-        slot->footer->setPos(QPointF{0, currentSlotY});
-        slot->footer->setSlotIndex(i);
-        currentSlotY += slot->footerHeight();
+        assert(slot.footer);
+        slot.footer->setPos(QPointF{0, currentSlotY});
+        slot.footer->setSlotIndex(i);
+        currentSlotY += slot.footerHeight();
       }
       else
       {
         currentSlotY += SlotHeader::headerHeight();
         currentSlotY += SlotFooter::footerHeight();
       }
-    }
-    else if(auto slot = m_slots[i].getNodalSlot())
-    {
-      assert(slot->header);
-      slot->header->setPos(QPointF{0, currentSlotY});
-      slot->header->setSlotIndex(i);
+    },
+    [&] (NodalSlotPresenter& slot) {
+
+      assert(slot.header);
+      slot.header->setPos(QPointF{0, currentSlotY});
+      slot.header->setSlotIndex(i);
       currentSlotY += SlotHeader::headerHeight();
-      currentSlotY += slot->height;
-      assert(slot->footer);
-      slot->footer->setPos(QPointF{0, currentSlotY});
-      slot->footer->setSlotIndex(i);
+
+      slot.view->setPos(QPointF{0, currentSlotY});
+      updateProcessShape(slot, i);
+      currentSlotY += slot.height;
+
+      assert(slot.footer);
+      slot.footer->setPos(QPointF{0, currentSlotY});
+      slot.footer->setSlotIndex(i);
       currentSlotY += SlotFooter::footerHeight();
     }
+    );
   }
 
   // Horizontal shape

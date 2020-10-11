@@ -264,6 +264,8 @@ private:
   TimeVal m_date;
   double m_heightPercentage{0.5};
 
+  double m_nodalFullViewSlotHeight{100};
+
   ZoomRatio m_zoom{-1};
   TimeVal m_center{};
   IntervalExecutionState m_executionState : 2;

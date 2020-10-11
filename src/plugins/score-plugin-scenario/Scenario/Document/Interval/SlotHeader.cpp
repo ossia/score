@@ -109,6 +109,43 @@ void SlotHeader::mousePressEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
+QByteArray SlotHeader::dragMimeData(bool temporal)
+{
+  std::optional<Id<Process::ProcessModel>> proc_id;
+  if(temporal)
+  {
+    proc_id = m_presenter.model().smallView()[m_slotIndex].frontProcess;
+  }
+  else
+  {
+    auto& slt = m_presenter.model().fullView()[m_slotIndex];
+    if(!slt.nodal)
+      proc_id = slt.process;
+  }
+
+  JSONReader r;
+  if(proc_id)
+  {
+    auto& proc = m_presenter.model().processes.at(*proc_id);
+    r.stream.StartObject();
+    copyProcess(r, proc);
+    r.obj["Path"] = score::IDocument::path(proc);
+    r.obj["Duration"] = m_presenter.model().duration.defaultDuration().msec();
+    r.obj["SlotIndex"] = m_slotIndex;
+    r.obj["View"] = temporal ? QStringLiteral("Small") : QStringLiteral("Full");
+    r.stream.EndObject();
+  }
+  else
+  {
+    r.stream.StartObject();
+    r.obj["SlotIndex"] = m_slotIndex;
+    r.obj["View"] = temporal ? QStringLiteral("Small") : QStringLiteral("Full");
+    r.stream.EndObject();
+  }
+
+  return r.toByteArray();
+}
+
 void SlotHeader::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   event->accept();
@@ -129,26 +166,15 @@ void SlotHeader::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
       return;
     }
 
+    auto slt = m_presenter.getSlots()[m_slotIndex].getLayerSlot();
+    if(!slt)
+      return;
+
     bool temporal = dynamic_cast<const TemporalIntervalPresenter*>(&m_presenter);
     QMimeData* mime = new QMimeData;
-    auto proc_id = temporal ? *m_presenter.model().smallView()[m_slotIndex].frontProcess
-                            : m_presenter.model().fullView()[m_slotIndex].process;
-
-    auto& proc = m_presenter.model().processes.at(proc_id);
-    JSONReader r;
-    {
-      r.stream.StartObject();
-      copyProcess(r, proc);
-      r.obj["Path"] = score::IDocument::path(proc);
-      r.obj["Duration"] = m_presenter.model().duration.defaultDuration().msec();
-      r.obj["SlotIndex"] = m_slotIndex;
-      r.obj["View"] = temporal ? QStringLiteral("Small") : QStringLiteral("Full");
-      r.stream.EndObject();
-    }
-    mime->setData(score::mime::layerdata(), r.toByteArray());
+    mime->setData(score::mime::layerdata(), dragMimeData(temporal));
     slot_header_drag->setMimeData(mime);
 
-    auto slt = m_presenter.getSlots()[m_slotIndex].getLayerSlot();
     if (!slt->layers.empty())
     {
       auto& view = slt->layers.front();

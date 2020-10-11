@@ -70,6 +70,8 @@ bool SlotLibraryHandler::onDrop(
   auto file = model.fileInfo(parent);
 
   auto json = readJson(mime.data(score::mime::layerdata()));
+  if(!json.HasMember("Path") || !json.HasMember("Duration"))
+    return false;
 
   QString path = file.isDir() ? file.absoluteFilePath() : file.absolutePath();
 

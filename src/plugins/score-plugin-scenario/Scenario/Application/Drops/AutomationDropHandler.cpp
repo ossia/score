@@ -541,6 +541,8 @@ bool DropLayerInScenario::drop(const ScenarioPresenter& pres, QPointF pos, const
 
   if (!json.IsObject() || json.MemberCount() == 0)
     return false;
+  if(!json.HasMember("Path") || !json.HasMember("Duration"))
+    return false;
 
   Scenario::Command::Macro m{
       new Scenario::Command::AddProcessInNewBoxMacro, pres.context().context};
@@ -618,6 +620,12 @@ void DropLayerInInterval::perform(
 {
   const auto pid = ossia::get_pid();
   bool same_doc = false;
+
+  if (!json.HasMember("Path") || !json.HasMember("Cables"))
+  {
+    // TODO this is the "move the nodal slot" case
+    return;
+  }
   if (json.HasMember("PID") && json.HasMember("Document"))
   {
     same_doc = (pid == json["PID"].GetInt());
