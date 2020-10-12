@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.17)
 
 project(libisf CXX)
-include(GenerateExportHeader)
+include(GenerateStaticExport)
 option(ISF_ENABLE_EDITOR "Enable ISF editor" OFF)
 option(ISF_ENABLE_TESTS "Enable ISF tests" OFF)
 
