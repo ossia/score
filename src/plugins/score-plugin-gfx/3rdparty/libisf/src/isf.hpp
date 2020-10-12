@@ -6,6 +6,8 @@
 #include <variant>
 #include <vector>
 
+#include <isf_export.h>
+
 namespace isf
 {
 class invalid_file : public std::runtime_error
@@ -121,7 +123,7 @@ struct descriptor
   std::vector<pass> passes;
 };
 
-class parser
+class ISF_EXPORT parser
 {
   std::string m_sourceVertex;
   std::string m_sourceFragment;

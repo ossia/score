@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.17)
 
 project(libisf CXX)
-
+include(GenerateExportHeader)
 option(ISF_ENABLE_EDITOR "Enable ISF editor" OFF)
 option(ISF_ENABLE_TESTS "Enable ISF tests" OFF)
 
@@ -15,7 +15,13 @@ add_library(isf
     src/isf.hpp
     src/isf.cpp
 )
-target_include_directories(isf PUBLIC src/)
+target_include_directories(isf
+  PUBLIC
+    src/
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+
+generate_export_header(isf BASE_NAME ISF)
 
 if(ISF_ENABLE_TESTS)
   add_executable(tst_glsl450 tests/glsl450)
