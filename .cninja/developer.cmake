@@ -1,7 +1,7 @@
 cninja_require(lld)
 cninja_require(linkerwarnings)
 cninja_require(debugsyms)
-cninja_require(debugmode)
+#cninja_require(debugmode)
 cninja_require(debugsplit)
 cninja_require(score-warnings)
 
