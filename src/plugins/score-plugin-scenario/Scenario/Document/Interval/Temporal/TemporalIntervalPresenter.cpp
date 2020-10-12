@@ -399,9 +399,15 @@ void TemporalIntervalPresenter::startSlotDrag(int curslot, QPointF pos) const
       [=](int slot) {
         if (slot == curslot)
           return;
+
+        auto& modelSlot = m_model.smallView()[slot];
+        auto& modelCurslot = m_model.smallView()[curslot];
         CommandDispatcher<> disp{this->m_context.commandStack};
         if (qApp->keyboardModifiers() & Qt::ALT
-            || m_model.smallView()[curslot].processes.size() == 1)
+            || modelCurslot.processes.size() == 1
+            || modelSlot.nodal
+            || modelCurslot.nodal
+            )
         {
           disp.submit<Command::ChangeSlotPosition>(
               this->m_model, Slot::RackView::SmallView, curslot, slot);
@@ -422,9 +428,16 @@ void TemporalIntervalPresenter::startSlotDrag(int curslot, QPointF pos) const
         if (slot == curslot)
           return;
 
+        auto& modelSlot = m_model.smallView()[slot];
+        if (modelSlot.nodal)
+          return;
+        auto& modelCurSlot = m_model.smallView()[curslot];
+        if (modelCurSlot.nodal)
+          return;
+
         CommandDispatcher<> disp{this->m_context.commandStack};
         if (qApp->keyboardModifiers() & Qt::ALT
-            || m_model.smallView()[curslot].processes.size() == 1)
+            || modelCurSlot.processes.size() == 1)
         {
           disp.submit<Command::MergeSlots>(this->m_model, curslot, slot);
         }

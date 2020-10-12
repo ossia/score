@@ -405,13 +405,13 @@ void TemporalIntervalHeader::hoverLeaveEvent(QGraphicsSceneHoverEvent* h)
 
 void TemporalIntervalHeader::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
 {
-  m_view->setDropTarget(true);
+  m_view->dragEnterEvent(event);
   event->accept();
 }
 
 void TemporalIntervalHeader::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 {
-  m_view->setDropTarget(m_view->contains(mapToItem(m_view, event->pos())));
+  m_view->dragLeaveEvent(event);
   event->accept();
 }
 

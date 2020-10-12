@@ -166,20 +166,19 @@ void SlotHeader::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
       return;
     }
 
-    auto slt = m_presenter.getSlots()[m_slotIndex].getLayerSlot();
-    if(!slt)
-      return;
-
     bool temporal = dynamic_cast<const TemporalIntervalPresenter*>(&m_presenter);
     QMimeData* mime = new QMimeData;
     mime->setData(score::mime::layerdata(), dragMimeData(temporal));
     slot_header_drag->setMimeData(mime);
 
-    if (!slt->layers.empty())
+    if(auto slt = m_presenter.getSlots()[m_slotIndex].getLayerSlot())
     {
-      auto& view = slt->layers.front();
-      slot_header_drag->setPixmap(view.pixmap().scaledToWidth(50));
-      slot_header_drag->setHotSpot(QPoint(5, 5));
+      if (!slt->layers.empty())
+      {
+        auto& view = slt->layers.front();
+        slot_header_drag->setPixmap(view.pixmap().scaledToWidth(50));
+        slot_header_drag->setHotSpot(QPoint(5, 5));
+      }
     }
 
     QObject::connect(slot_header_drag.get(), &QDrag::destroyed, &m_presenter, [p = &m_presenter] {

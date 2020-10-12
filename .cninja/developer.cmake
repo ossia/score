@@ -5,6 +5,7 @@ cninja_require(debugsyms)
 cninja_require(debugsplit)
 cninja_require(score-warnings)
 
+set_cache(CMAKE_BUILD_TYPE Debug)
 set_cache(SCORE_PCH True)
 set_cache(SCORE_DYNAMIC_PLUGINS True)
 
