@@ -115,7 +115,7 @@ void ApplicationPlugin::setupAddon(const QString& addon)
 
   const std::string id
       = json["key"].toString().remove(QChar('-')).toStdString();
-  m_compiler.submitJob(id, cpp_files, flags, CompilerOptions{});
+  m_compiler.submitJob(id, cpp_files, flags, CompilerOptions{false});
 }
 
 void ApplicationPlugin::setupNode(const QString& f)
@@ -149,7 +149,7 @@ void ApplicationPlugin::setupNode(const QString& f)
             )_");
 
       qDebug() << "Registering JIT node" << f;
-      m_compiler.submitJob(uuid.toStdString(), node.toStdString(), {}, CompilerOptions{});
+      m_compiler.submitJob(uuid.toStdString(), node.toStdString(), {}, CompilerOptions{false});
     }
   }
 }

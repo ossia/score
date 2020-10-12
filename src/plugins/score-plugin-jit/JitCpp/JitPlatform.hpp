@@ -157,7 +157,7 @@ static inline void populateCompileOptions(std::vector<std::string>& args, Compil
   args.push_back("pic");
   args.push_back("-pic-level");
   args.push_back("2");
-  args.push_back("-pic-is-pie");
+  //args.push_back("-pic-is-pie");
 
   args.push_back("-fvisibility");
   args.push_back("hidden");
@@ -469,6 +469,7 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
                              "/3rdparty/libossia/3rdparty/nano-signal-slot/include",
                              "/3rdparty/libossia/3rdparty/spdlog/include",
                              "/3rdparty/libossia/3rdparty/brigand/include",
+                             "/3rdparty/libossia/3rdparty/Flicks",
                              "/3rdparty/libossia/3rdparty/fmt/include",
                              "/3rdparty/libossia/3rdparty/hopscotch-map/include",
                              "/3rdparty/libossia/3rdparty/chobo-shl/include",
