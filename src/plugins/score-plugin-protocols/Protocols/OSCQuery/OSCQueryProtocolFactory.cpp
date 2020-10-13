@@ -132,7 +132,7 @@ private:
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
       qreq.setTransferTimeout(1000);
 #endif
-      auto ret = m_http.get(qreq);
+      QPointer<QNetworkReply> ret = m_http.get(qreq);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
       connect(ret, &QNetworkReply::errorOccurred,
               this, [&e] { e.exit(); });
@@ -156,6 +156,10 @@ private:
       });
 
       e.exec();
+      if(ret)
+      {
+        ret->deleteLater();
+      }
     }
 
     sub.host = QString("%1://%2:%3")
