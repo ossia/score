@@ -54,13 +54,13 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(ossia::time_signature& slot)
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(const Scenario::Slot& slot)
 {
-  m_stream << slot.processes << slot.frontProcess << slot.height;
+  m_stream << slot.processes << slot.frontProcess << slot.height << slot.nodal;
 }
 
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(Scenario::Slot& slot)
 {
-  m_stream >> slot.processes >> slot.frontProcess >> slot.height;
+  m_stream >> slot.processes >> slot.frontProcess >> slot.height >> slot.nodal;
 }
 
 template <>
@@ -70,6 +70,7 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONReader::read(const Scenario::Slot& slot)
   obj[strings.Processes] = slot.processes;
   obj[strings.Process] = slot.frontProcess;
   obj[strings.Height] = slot.height;
+  obj["Nodal"] = slot.nodal;
   stream.EndObject();
 }
 template <>
@@ -78,18 +79,19 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(Scenario::Slot& slot)
   slot.processes <<= obj[strings.Processes];
   slot.frontProcess <<= obj[strings.Process];
   slot.height = obj[strings.Height].toDouble();
+  slot.nodal = obj["Nodal"].toBool();
 }
 
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(const Scenario::FullSlot& slot)
 {
-  m_stream << slot.process;
+  m_stream << slot.process << slot.nodal;
 }
 
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(Scenario::FullSlot& slot)
 {
-  m_stream >> slot.process;
+  m_stream >> slot.process >> slot.nodal;
 }
 
 template <>
@@ -97,12 +99,14 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONReader::read(const Scenario::FullSlot& slo
 {
   stream.StartObject();
   obj[strings.Process] = slot.process;
+  obj["Nodal"] = slot.nodal;
   stream.EndObject();
 }
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(Scenario::FullSlot& slot)
 {
   slot.process <<= obj[strings.Process];
+  slot.nodal = obj["Nodal"].toBool();
 }
 
 template <>
@@ -147,7 +151,7 @@ SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(const Scenario::Interva
   m_stream << interval.m_signatures << interval.duration << interval.m_startState
            << interval.m_endState
 
-           << interval.m_date << interval.m_heightPercentage << interval.m_zoom
+           << interval.m_date << interval.m_heightPercentage << interval.m_nodalFullViewSlotHeight << interval.m_zoom
            << interval.m_center << interval.m_viewMode << interval.m_smallViewShown
            << interval.m_hasSignature;
 
@@ -200,7 +204,7 @@ SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(Scenario::IntervalMode
   m_stream >> interval.m_signatures >> interval.duration >> interval.m_startState
       >> interval.m_endState
 
-      >> interval.m_date >> interval.m_heightPercentage >> interval.m_zoom >> interval.m_center
+      >> interval.m_date >> interval.m_heightPercentage >> interval.m_nodalFullViewSlotHeight >> interval.m_zoom >> interval.m_center
       >> vm >> sv >> hs;
   interval.m_viewMode = vm;
   interval.m_smallViewShown = sv;
@@ -248,6 +252,7 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONReader::read(const Scenario::IntervalModel
 
   obj[strings.StartDate] = interval.m_date;
   obj[strings.HeightPercentage] = interval.m_heightPercentage;
+  obj["NodalSlotHeight"] = interval.m_nodalFullViewSlotHeight;
 
   obj[strings.Zoom] = interval.m_zoom;
   obj[strings.Center] = interval.m_center;
@@ -334,6 +339,7 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(Scenario::IntervalModel& int
 
   interval.m_date <<= obj[strings.StartDate];
   interval.m_heightPercentage = obj[strings.HeightPercentage].toDouble();
+  interval.m_nodalFullViewSlotHeight = obj["NodalSlotHeight"].toDouble();
   interval.m_viewMode = static_cast<Scenario::IntervalModel::ViewMode>(obj["ViewMode"].toInt());
 
   auto zit = obj.constFind(strings.Zoom);

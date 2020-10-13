@@ -28,7 +28,7 @@ struct SCORE_LIB_BASE_EXPORT ApplicationSettings
   bool autoplay = false;
 
   //! The version of the base score framework's JSON save file.
-  score::Version saveFormatVersion{3};
+  score::Version saveFormatVersion{4};
 
   //! List of scenarios that should be loaded
   QStringList loadList;
