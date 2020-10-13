@@ -39,11 +39,114 @@
 namespace Process
 {
 
+static const constexpr qreal TitleHeight = 17.;
+static const constexpr qreal TitleX0 = 15;
+static const constexpr qreal TitleY0 = -TitleHeight;
+static const constexpr qreal FoldX0 = 1;
+static const constexpr qreal FoldY0 = TitleY0;
+static const constexpr qreal UiX0 = 8;
+static const constexpr qreal UiY0 = TitleY0;
+static const constexpr qreal TitleWithUiX0 = 20;
+
+static const constexpr qreal FooterHeight = 0.;
+static const constexpr qreal Corner = 2.;
+static const constexpr qreal PortSpacing = 10.;
+static const constexpr qreal InletX0 = -10.;
+static const constexpr qreal InletY0 = 0;
+static const constexpr qreal OutletX0 = -2.;
+static const constexpr qreal OutletY0 = InletY0; // Add to height
+static const constexpr qreal TopButtonX0 = -12.;
+static const constexpr qreal TopButtonY0 = TitleY0 + 2.;
+static const constexpr qreal LeftSideWidth = 10.;
+static const constexpr qreal RightSideWidth = LeftSideWidth;
+
+NodeItem::NodeItem(
+    const Process::ProcessModel& process,
+    const Process::Context& ctx,
+    QGraphicsItem* parent)
+    : QGraphicsItem{parent}
+    , m_model{process}
+    , m_context{ctx}
+{
+  setAcceptedMouseButtons(Qt::LeftButton);
+  setAcceptHoverEvents(true);
+  setFlag(ItemIsFocusable, true);
+  setFlag(ItemClipsChildrenToShape, false);
+
+  // Title
+  const auto& pixmaps = Process::Pixmaps::instance();
+  m_fold = new score::QGraphicsPixmapToggle{
+      pixmaps.unroll_small, pixmaps.roll_small,  this};
+  m_fold->setState(true);
+
+  m_uiButton = Process::makeExternalUIButton(process, ctx, this, this);
+
+  auto& skin = score::Skin::instance();
+  m_label = new score::SimpleTextItem{skin.Light.main, this};
+
+  if (const auto& label = process.metadata().getLabel(); !label.isEmpty())
+    m_label->setText(label);
+  else
+    m_label->setText(process.prettyShortName());
+
+  con(process.metadata(), &score::ModelMetadata::LabelChanged, this, [&](const QString& label) {
+    if (!label.isEmpty())
+      m_label->setText(label);
+    else
+      m_label->setText(process.prettyShortName());
+  });
+
+  m_label->setFont(skin.Bold10Pt);
+
+  // Selection
+  con(process.selection, &Selectable::changed, this, &NodeItem::setSelected);
+
+  createContentItem();
+
+  resetInlets();
+  resetOutlets();
+  connect(&process, &Process::ProcessModel::inletsChanged, this, &NodeItem::resetInlets);
+  connect(&process, &Process::ProcessModel::outletsChanged, this, &NodeItem::resetOutlets);
+
+  connect(m_fold, &score::QGraphicsPixmapToggle::toggled, this, [=] (bool b) {
+    if(b)
+    {
+      createContentItem();
+    }
+    else
+    {
+      delete m_fx;
+      m_fx = nullptr;
+      double port_h = std::max(m_inlets.size() * 12., m_outlets.size() * 12.);
+      m_contentSize = QSizeF{TitleX0 + m_label->boundingRect().width(), port_h};
+    }
+    updateSize();
+  });
+
+  updateSize();
+
+  ::bind(process, Process::ProcessModel::p_position{}, this, [this](QPointF p) {
+    if (p != pos())
+      setPos(p);
+  });
+
+  // TODO review the resizing heuristic...
+  if (m_presenter)
+  {
+    ::bind(process, Process::ProcessModel::p_size{}, this, [this](QSizeF s) {
+      if (s != m_contentSize)
+        setSize(s);
+    });
+  }
+}
+
+
 void NodeItem::resetInlets()
 {
   qDeleteAll(m_inlets);
   m_inlets.clear();
-  qreal x = InletX0;
+  const qreal x = InletX0;
+  qreal y = InletY0;
   auto& portFactory = score::GUIAppContext().interfaces<Process::PortFactoryList>();
   for (Process::Inlet* port : m_model.inlets())
   {
@@ -51,21 +154,52 @@ void NodeItem::resetInlets()
       continue;
     Process::PortFactory* fact = portFactory.get(port->concreteKey());
     Dataflow::PortItem* item = fact->makeItem(*port, m_context, this, this);
-    item->setPos(x, InletY0);
+    item->setPos(x, y);
     m_inlets.push_back(item);
 
-    x += PortSpacing;
+    y += PortSpacing;
   }
 
-  m_label->setPos(QPointF{x + 2., 0.});
+  updateTitlePos();
+}
+
+void NodeItem::updateTitlePos()
+{
+  if(m_inlets.empty())
+  {
+    m_fold->setPos({FoldX0, FoldY0});
+    if(m_uiButton)
+    {
+      m_uiButton->setPos({UiX0, UiY0});
+      m_label->setPos({TitleWithUiX0, TitleY0});
+    }
+    else
+    {
+      m_label->setPos({TitleX0, TitleY0});
+    }
+  }
+  else
+  {
+    m_fold->setPos({FoldX0 + InletX0, FoldY0});
+    if(m_uiButton)
+    {
+      m_uiButton->setPos({UiX0 + InletX0, UiY0});
+      m_label->setPos({TitleWithUiX0 + InletX0, TitleY0});
+    }
+    else
+    {
+      m_label->setPos({TitleX0 + InletX0, TitleY0});
+    }
+  }
 }
 
 void NodeItem::resetOutlets()
 {
   qDeleteAll(m_outlets);
   m_outlets.clear();
-  qreal x = OutletX0;
-  const qreal h = boundingRect().height() + OutletY0;
+  const qreal x = m_contentSize.width() + OutletX0;
+  qreal y = OutletY0;
+
   auto& portFactory = score::AppContext().interfaces<Process::PortFactoryList>();
   for (Process::Outlet* port : m_model.outlets())
   {
@@ -73,10 +207,10 @@ void NodeItem::resetOutlets()
       continue;
     Process::PortFactory* fact = portFactory.get(port->concreteKey());
     auto item = fact->makeItem(*port, m_context, this, this);
-    item->setPos(x, h);
+    item->setPos(x, y);
     m_outlets.push_back(item);
 
-    x += PortSpacing;
+    y += PortSpacing;
   }
 }
 
@@ -96,39 +230,20 @@ void NodeItem::setSelected(bool s)
 
 QRectF NodeItem::boundingRect() const
 {
-  return {0., 0., m_contentSize.width(), TitleHeight + m_contentSize.height() + FooterHeight};
-}
-
-void NodeItem::paintNode(QPainter* painter, bool selected, bool hovered, QRectF rect)
-{
-  const auto& skin = score::Skin::instance();
-
-  const auto& bset = skin.Emphasis5;
-  const auto& fillbrush = skin.Emphasis5;
-  const auto& brush = selected ? skin.Base2.darker : hovered ? bset.lighter : bset.main;
-  const auto& pen = brush.pen2_solid_round_round;
-
-  painter->setRenderHint(QPainter::Antialiasing, true);
-
-  // Body
-  painter->setPen(pen);
-  painter->setBrush(fillbrush);
-
-  painter->drawRoundedRect(rect, Corner, Corner);
-
-  painter->setRenderHint(QPainter::Antialiasing, false);
-
-  const auto h = rect.height();
-  const auto w = rect.width();
-  // Header
-  painter->setBrush(brush.brush);
-  painter->fillRect(QRectF{1., 0., w - 2., TitleHeight}, brush.brush);
-
-  // Footer
-  painter->fillRect(QRectF{1., h - FooterHeight, w - 2., FooterHeight}, brush.brush);
-  // painter->setPen(Qt::green);
-  // painter->setBrush(Qt::transparent);
-  // painter->drawRect(rect);
+  double x = 0.;
+  double y = 0;
+  double w = m_contentSize.width();
+  const double h = m_contentSize.height() + FooterHeight;
+  if(!m_inlets.empty())
+  {
+      x -= LeftSideWidth;
+      w += LeftSideWidth;
+  }
+  if(!m_outlets.empty())
+  {
+      w += RightSideWidth;
+  }
+  return {x, y, w, h};
 }
 
 void NodeItem::createContentItem()
@@ -166,97 +281,12 @@ void NodeItem::createContentItem()
   }
 
   // Positions / size
-  m_fx->setPos({0, TitleHeight});
+  m_fx->setPos({0, 0});
 
   m_contentSize
       = QSizeF{std::max(100., m_contentSize.width()), std::max(10., m_contentSize.height())};
 
-  if (m_ui)
-  {
-    m_ui->setPos({m_contentSize.width() + TopButtonX0, TopButtonY0});
-  }
-}
-
-NodeItem::NodeItem(
-    const Process::ProcessModel& process,
-    const Process::Context& ctx,
-    QGraphicsItem* parent)
-    : QGraphicsItem{parent}
-    , m_model{process}
-    , m_context{ctx}
-{
-  setAcceptedMouseButtons(Qt::LeftButton);
-  setAcceptHoverEvents(true);
-  setFlag(ItemIsFocusable, true);
-  setFlag(ItemClipsChildrenToShape, true);
-
-  // Title
-  m_ui = Process::makeExternalUIButton(process, ctx, this, this);
-
-  auto& skin = score::Skin::instance();
-  m_label = new score::SimpleTextItem{skin.Light.main, this};
-
-  if (const auto& label = process.metadata().getLabel(); !label.isEmpty())
-    m_label->setText(label);
-  else
-    m_label->setText(process.prettyShortName());
-
-  con(process.metadata(), &score::ModelMetadata::LabelChanged, this, [&](const QString& label) {
-    if (!label.isEmpty())
-      m_label->setText(label);
-    else
-      m_label->setText(process.prettyShortName());
-  });
-
-  m_label->setFont(skin.Bold10Pt);
-  m_label->setPos({30., 0});
-
-  // Selection
-  con(process.selection, &Selectable::changed, this, &NodeItem::setSelected);
-
-  createContentItem();
-
-  resetInlets();
-  resetOutlets();
-  connect(&process, &Process::ProcessModel::inletsChanged, this, &NodeItem::resetInlets);
-  connect(&process, &Process::ProcessModel::outletsChanged, this, &NodeItem::resetOutlets);
-
-  const auto& pixmaps = Process::Pixmaps::instance();
-  m_fold = new score::QGraphicsPixmapToggle{
-      pixmaps.unroll_small, pixmaps.roll_small,  this};
-  m_fold->setPos({0, 0});
-  m_fold->setState(true);
-
-  connect(m_fold, &score::QGraphicsPixmapToggle::toggled, this, [=] (bool b) {
-    if(b)
-    {
-      createContentItem();
-    }
-    else
-    {
-      delete m_fx;
-      m_fx = nullptr;
-      double port_w = std::max(m_inlets.size() * 12., m_outlets.size() * 12.);
-      m_contentSize = QSizeF{30 + m_label->boundingRect().width() + port_w, 0};
-    }
-    updateSize();
-  });
-
-  updateSize();
-
-  ::bind(process, Process::ProcessModel::p_position{}, this, [this](QPointF p) {
-    if (p != pos())
-      setPos(p);
-  });
-
-  // TODO review the resizing heuristic...
-  if (m_presenter)
-  {
-    ::bind(process, Process::ProcessModel::p_size{}, this, [this](QSizeF s) {
-      if (s != m_contentSize)
-        setSize(s);
-    });
-  }
+  updateTitlePos();
 }
 
 void NodeItem::updateSize()
@@ -270,23 +300,21 @@ void NodeItem::updateSize()
       m_contentSize = QSizeF{std::max(100., sz.width()), std::max(10., sz.height())};
     }
 
-    if (m_ui)
+    if (m_uiButton)
     {
-      m_ui->setParentItem(nullptr);
+      m_uiButton->setParentItem(nullptr);
     }
-
-    const auto r = boundingRect();
 
     for (auto& outlet : m_outlets)
     {
-      outlet->setPos(outlet->pos().x(), r.height() + OutletY0);
+      outlet->setPos(m_contentSize.width() + OutletX0, outlet->pos().y());
     }
 
-    if (m_ui)
+    if (m_uiButton)
     {
-      m_ui->setParentItem(this);
-      m_ui->setPos({m_contentSize.width() + TopButtonX0, TopButtonY0});
+      m_uiButton->setParentItem(this);
     }
+    updateTitlePos();
     update();
   }
 }
@@ -301,9 +329,9 @@ void NodeItem::setSize(QSizeF sz)
     prepareGeometryChange();
     m_contentSize = sz;
 
-    if (m_ui)
+    if (m_uiButton)
     {
-      m_ui->setParentItem(nullptr);
+      m_uiButton->setParentItem(nullptr);
     }
 
     m_presenter->setWidth(sz.width(), sz.width());
@@ -313,10 +341,10 @@ void NodeItem::setSize(QSizeF sz)
 
     resetInlets();
     resetOutlets();
-    if (m_ui)
+    if (m_uiButton)
     {
-      m_ui->setParentItem(this);
-      m_ui->setPos({m_contentSize.width() + TopButtonX0, TopButtonY0});
+      m_uiButton->setParentItem(this);
+      m_uiButton->setPos({m_contentSize.width() + TopButtonX0, TopButtonY0});
     }
   }
 }
@@ -364,7 +392,43 @@ bool NodeItem::isInSelectionCorner(QPointF p, QRectF r) const
 
 void NodeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  paintNode(painter, m_selected, m_hover, boundingRect());
+  const auto& skin = score::Skin::instance();
+  const auto rect = boundingRect();
+  //painter->fillRect(boundingRect(), Qt::red);
+  // return;
+
+  const auto& bset = skin.Emphasis5;
+  const auto& fillbrush = skin.Emphasis5;
+  const auto& brush = m_selected
+      ? skin.Base2.darker
+      : m_hover
+        ? bset.lighter
+        : bset.main;
+  const auto& pen = brush.pen2_solid_round_round;
+
+  painter->setRenderHint(QPainter::Antialiasing, true);
+
+  // Body
+  painter->setPen(pen);
+  painter->setBrush(fillbrush);
+
+  painter->drawRoundedRect(rect, Corner, Corner);
+
+  painter->setRenderHint(QPainter::Antialiasing, false);
+
+  return;
+  const auto h = rect.height();
+  const auto w = rect.width();
+  // Header
+  painter->setBrush(brush.brush);
+  painter->fillRect(QRectF{1., 0., w - 2., TitleHeight}, brush.brush);
+
+  // Footer
+  painter->fillRect(QRectF{1., h - FooterHeight, w - 2., FooterHeight}, brush.brush);
+  // painter->setPen(Qt::green);
+  // painter->setBrush(Qt::transparent);
+  // painter->drawRect(rect);
+
 
   if (m_presenter)
   {

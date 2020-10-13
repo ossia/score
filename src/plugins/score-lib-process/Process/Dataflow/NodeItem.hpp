@@ -64,28 +64,18 @@ private:
   void resetInlets();
   void resetOutlets();
 
-
-  static const constexpr qreal TitleHeight = 15.;
-  static const constexpr qreal FooterHeight = 12.;
-  static const constexpr qreal Corner = 2.;
-  static const constexpr qreal PortSpacing = 10.;
-  static const constexpr qreal InletX0 = 12.;
-  static const constexpr qreal InletY0 = 1.;
-  static const constexpr qreal OutletX0 = 2.;
-  static const constexpr qreal OutletY0 = -12.; // Add to height
-  static const constexpr qreal TopButtonX0 = -12.;
-  static const constexpr qreal TopButtonY0 = 2.;
   QSizeF size() const noexcept;
 
   void setSelected(bool s);
 
+  void updateTitlePos();
   QRectF boundingRect() const final override;
 
   static void paintNode(QPainter* painter, bool selected, bool hovered, QRectF rect);
 
 
   // Title
-  QGraphicsItem* m_ui{};
+  QGraphicsItem* m_uiButton{};
   score::SimpleTextItem* m_label{};
 
   QSizeF m_contentSize{};
