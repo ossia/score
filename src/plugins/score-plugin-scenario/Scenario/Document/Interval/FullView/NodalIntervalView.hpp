@@ -5,6 +5,7 @@
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 
 #include <score/graphics/RectItem.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <ossia/detail/math.hpp>
 

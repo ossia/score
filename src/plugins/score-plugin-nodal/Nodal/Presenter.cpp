@@ -5,16 +5,18 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/model/EntitySerialization.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <ossia/detail/math.hpp>
-
-#include <QTimer>
 
 #include <Nodal/CommandFactory.hpp>
 #include <Nodal/Commands.hpp>
 #include <Nodal/Presenter.hpp>
 #include <Nodal/Process.hpp>
 #include <Nodal/View.hpp>
+
+
+#include <QTimer>
 
 namespace Nodal
 {

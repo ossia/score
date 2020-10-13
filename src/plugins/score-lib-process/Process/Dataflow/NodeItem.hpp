@@ -4,12 +4,14 @@
 #include <score/model/Identifier.hpp>
 
 #include <QGraphicsItem>
+#include <QObject>
 
-#include <Effect/EffectPainting.hpp>
+#include <score_lib_process_export.h>
 namespace score
 {
 struct DocumentContext;
 class SimpleTextItem;
+class QGraphicsPixmapToggle;
 }
 namespace Dataflow
 {
@@ -20,12 +22,15 @@ namespace Process
 class ProcessModel;
 class LayerPresenter;
 struct LayerContext;
+struct Context;
 }
 
 namespace Process
 {
 class TitleItem;
-class SCORE_LIB_PROCESS_EXPORT NodeItem : public Effect::ItemBase
+class SCORE_LIB_PROCESS_EXPORT NodeItem
+    : public QObject
+    , public QGraphicsItem
 {
 public:
   NodeItem(const Process::ProcessModel& model, const Process::Context& ctx, QGraphicsItem* parent);
@@ -35,9 +40,10 @@ public:
   void setZoomRatio(ZoomRatio r);
   void setPlayPercentage(float f);
 
-  qreal width() const noexcept { return m_contentSize.width(); }
+  qreal width() const noexcept;
+  qreal height() const;
 
-  const Process::ProcessModel& model() const noexcept { return m_model; }
+  const Process::ProcessModel& model() const noexcept;
 
 private:
   void createContentItem();
@@ -58,6 +64,32 @@ private:
   void resetInlets();
   void resetOutlets();
 
+
+  static const constexpr qreal TitleHeight = 15.;
+  static const constexpr qreal FooterHeight = 12.;
+  static const constexpr qreal Corner = 2.;
+  static const constexpr qreal PortSpacing = 10.;
+  static const constexpr qreal InletX0 = 12.;
+  static const constexpr qreal InletY0 = 1.;
+  static const constexpr qreal OutletX0 = 2.;
+  static const constexpr qreal OutletY0 = -12.; // Add to height
+  static const constexpr qreal TopButtonX0 = -12.;
+  static const constexpr qreal TopButtonY0 = 2.;
+  QSizeF size() const noexcept;
+
+  void setSelected(bool s);
+
+  QRectF boundingRect() const final override;
+
+  static void paintNode(QPainter* painter, bool selected, bool hovered, QRectF rect);
+
+
+  // Title
+  QGraphicsItem* m_ui{};
+  score::SimpleTextItem* m_label{};
+
+  QSizeF m_contentSize{};
+
   const Process::ProcessModel& m_model;
 
   // Body
@@ -70,5 +102,8 @@ private:
 
   ZoomRatio m_ratio{1.};
   double m_playPercentage{};
+
+  bool m_hover{false};
+  bool m_selected{false};
 };
 }

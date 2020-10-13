@@ -6,12 +6,24 @@
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Process/Process.hpp>
+#include <Process/Style/Pixmaps.hpp>
+
+#include <QPainter>
+
+#include <Effect/EffectLayer.hpp>
+
+
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/graphics/TextItem.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
+#include <score/tools/Bind.hpp>
+#include <score/graphics/GraphicWidgets.hpp>
+#include <score/graphics/TextItem.hpp>
+#include <score/model/Skin.hpp>
 #include <score/tools/Bind.hpp>
 
 #include <QCursor>
@@ -68,6 +80,57 @@ void NodeItem::resetOutlets()
   }
 }
 
+QSizeF NodeItem::size() const noexcept { return m_contentSize; }
+
+void NodeItem::setSelected(bool s)
+{
+  if (m_selected != s)
+  {
+    m_selected = s;
+    if (s)
+      setFocus();
+
+    update();
+  }
+}
+
+QRectF NodeItem::boundingRect() const
+{
+  return {0., 0., m_contentSize.width(), TitleHeight + m_contentSize.height() + FooterHeight};
+}
+
+void NodeItem::paintNode(QPainter* painter, bool selected, bool hovered, QRectF rect)
+{
+  const auto& skin = score::Skin::instance();
+
+  const auto& bset = skin.Emphasis5;
+  const auto& fillbrush = skin.Emphasis5;
+  const auto& brush = selected ? skin.Base2.darker : hovered ? bset.lighter : bset.main;
+  const auto& pen = brush.pen2_solid_round_round;
+
+  painter->setRenderHint(QPainter::Antialiasing, true);
+
+  // Body
+  painter->setPen(pen);
+  painter->setBrush(fillbrush);
+
+  painter->drawRoundedRect(rect, Corner, Corner);
+
+  painter->setRenderHint(QPainter::Antialiasing, false);
+
+  const auto h = rect.height();
+  const auto w = rect.width();
+  // Header
+  painter->setBrush(brush.brush);
+  painter->fillRect(QRectF{1., 0., w - 2., TitleHeight}, brush.brush);
+
+  // Footer
+  painter->fillRect(QRectF{1., h - FooterHeight, w - 2., FooterHeight}, brush.brush);
+  // painter->setPen(Qt::green);
+  // painter->setBrush(Qt::transparent);
+  // painter->drawRect(rect);
+}
+
 void NodeItem::createContentItem()
 {
   if(m_fx)
@@ -103,7 +166,7 @@ void NodeItem::createContentItem()
   }
 
   // Positions / size
-  m_fx->setPos({0, Effect::ItemBase::TitleHeight});
+  m_fx->setPos({0, TitleHeight});
 
   m_contentSize
       = QSizeF{std::max(100., m_contentSize.width()), std::max(10., m_contentSize.height())};
@@ -115,17 +178,48 @@ void NodeItem::createContentItem()
 }
 
 NodeItem::NodeItem(
-    const Process::ProcessModel& model,
+    const Process::ProcessModel& process,
     const Process::Context& ctx,
     QGraphicsItem* parent)
-    : ItemBase{model, ctx, parent}, m_model{model}, m_context{ctx}
+    : QGraphicsItem{parent}
+    , m_model{process}
+    , m_context{ctx}
 {
+  setAcceptedMouseButtons(Qt::LeftButton);
+  setAcceptHoverEvents(true);
+  setFlag(ItemIsFocusable, true);
+  setFlag(ItemClipsChildrenToShape, true);
+
+  // Title
+  m_ui = Process::makeExternalUIButton(process, ctx, this, this);
+
+  auto& skin = score::Skin::instance();
+  m_label = new score::SimpleTextItem{skin.Light.main, this};
+
+  if (const auto& label = process.metadata().getLabel(); !label.isEmpty())
+    m_label->setText(label);
+  else
+    m_label->setText(process.prettyShortName());
+
+  con(process.metadata(), &score::ModelMetadata::LabelChanged, this, [&](const QString& label) {
+    if (!label.isEmpty())
+      m_label->setText(label);
+    else
+      m_label->setText(process.prettyShortName());
+  });
+
+  m_label->setFont(skin.Bold10Pt);
+  m_label->setPos({30., 0});
+
+  // Selection
+  con(process.selection, &Selectable::changed, this, &NodeItem::setSelected);
+
   createContentItem();
 
   resetInlets();
   resetOutlets();
-  connect(&model, &Process::ProcessModel::inletsChanged, this, &NodeItem::resetInlets);
-  connect(&model, &Process::ProcessModel::outletsChanged, this, &NodeItem::resetOutlets);
+  connect(&process, &Process::ProcessModel::inletsChanged, this, &NodeItem::resetInlets);
+  connect(&process, &Process::ProcessModel::outletsChanged, this, &NodeItem::resetOutlets);
 
   const auto& pixmaps = Process::Pixmaps::instance();
   m_fold = new score::QGraphicsPixmapToggle{
@@ -150,7 +244,7 @@ NodeItem::NodeItem(
 
   updateSize();
 
-  ::bind(model, Process::ProcessModel::p_position{}, this, [this](QPointF p) {
+  ::bind(process, Process::ProcessModel::p_position{}, this, [this](QPointF p) {
     if (p != pos())
       setPos(p);
   });
@@ -158,7 +252,7 @@ NodeItem::NodeItem(
   // TODO review the resizing heuristic...
   if (m_presenter)
   {
-    ::bind(model, Process::ProcessModel::p_size{}, this, [this](QSizeF s) {
+    ::bind(process, Process::ProcessModel::p_size{}, this, [this](QSizeF s) {
       if (s != m_contentSize)
         setSize(s);
     });
@@ -257,6 +351,12 @@ void NodeItem::setPlayPercentage(float f)
   update({0., 14., m_contentSize.width() * f, 14.});
 }
 
+qreal NodeItem::width() const noexcept { return m_contentSize.width(); }
+
+qreal NodeItem::height() const { return TitleHeight + m_contentSize.height() + FooterHeight; }
+
+const ProcessModel& NodeItem::model() const noexcept { return m_model; }
+
 bool NodeItem::isInSelectionCorner(QPointF p, QRectF r) const
 {
   return p.x() > r.width() - 10. && p.y() > r.height() - 10.;
@@ -264,7 +364,7 @@ bool NodeItem::isInSelectionCorner(QPointF p, QRectF r) const
 
 void NodeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  ItemBase::paintNode(painter, m_selected, m_hover, boundingRect());
+  paintNode(painter, m_selected, m_hover, boundingRect());
 
   if (m_presenter)
   {
@@ -354,7 +454,9 @@ void NodeItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
     unsetCursor();
   }
 
-  ItemBase::hoverEnterEvent(event);
+  m_hover = true;
+  update();
+  event->accept();
 }
 
 void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
@@ -368,12 +470,15 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
   {
     unsetCursor();
   }
-  ItemBase::hoverMoveEvent(event);
+   event->accept();
 }
 
 void NodeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
   unsetCursor();
-  ItemBase::hoverLeaveEvent(event);
+
+  m_hover = false;
+  update();
+  event->accept();
 }
 }
