@@ -75,6 +75,9 @@ void PenCommandObject::move()
   auto& middleEnd = std::get<1>(segts_tpl);
   auto& segts = std::get<2>(segts_tpl);
 
+  if(std::abs(m_maxPress.x() - m_minPress.x()) < 1e-8)
+    return;
+
   auto dat_base = m_segment.toSegmentData();
   dat_base.id = point_array_id;
   dat_base.start = m_minPress;
@@ -134,7 +137,7 @@ void PenCommandObject::release()
 {
   auto segts_tpl = filterSegments();
   // First handle the case of a single point
-  if (m_segment.points().size() == 1)
+  if (m_segment.points().size() == 1 || (std::abs(m_maxPress.x() - m_minPress.x()) < 1e-8))
   {
     cancel();
   }
