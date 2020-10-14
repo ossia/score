@@ -20,6 +20,7 @@ struct Node
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::Analyzer;
     static const constexpr auto description = "Visualize an input signal";
+    static const constexpr auto flags = Process::ProcessFlags::SupportsTemporal;
     static const uuid_constexpr auto uuid = make_uuid("9906e563-ddeb-4ecd-908c-952baee2a0a5");
 
     static const constexpr value_in value_ins[]{"in"};

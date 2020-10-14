@@ -105,12 +105,12 @@ struct Metadata<Process::Descriptor_k, Control::ControlProcess<Info>>
 template <typename Info>
 struct Metadata<Process::ProcessFlags_k, Control::ControlProcess<Info>>
 {
-  static Process::ProcessFlags get() { return Process::ProcessFlags::SupportsAll; }
+  static Process::ProcessFlags get() noexcept { return Info::Metadata::flags; }
 };
 template <typename Info>
 struct Metadata<ObjectKey_k, Control::ControlProcess<Info>>
 {
-  static Q_DECL_RELAXED_CONSTEXPR auto get() { return Info::Metadata::objectKey; }
+  static Q_DECL_RELAXED_CONSTEXPR auto get() noexcept { return Info::Metadata::objectKey; }
 };
 template <typename Info>
 struct Metadata<ConcreteKey_k, Control::ControlProcess<Info>>

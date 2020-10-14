@@ -23,7 +23,11 @@
 
 namespace Control
 {
-using Meta_base = ossia::safe_nodes::base_metadata;
+struct Meta_base : public ossia::safe_nodes::base_metadata
+{
+  static const constexpr Process::ProcessFlags flags = Process::ProcessFlags::SupportsLasting;
+};
+
 template <typename Node>
 using ProcessFactory = Process::ProcessFactory_T<ControlProcess<Node>>;
 
