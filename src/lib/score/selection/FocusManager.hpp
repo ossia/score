@@ -12,7 +12,7 @@ public:
   const IdentifiedObjectAbstract* get() { return m_obj; }
 
   template <typename T>
-  void set(QPointer<const T> obj)
+  void set(QPointer<T> obj)
   {
     m_obj = obj.data();
     changed();
@@ -27,7 +27,7 @@ public:
   void changed() E_SIGNAL(SCORE_LIB_BASE_EXPORT, changed)
 
 private:
-  QPointer<const IdentifiedObjectAbstract> m_obj{};
+  QPointer<IdentifiedObjectAbstract> m_obj{};
 };
 
 struct SCORE_LIB_BASE_EXPORT FocusFacade

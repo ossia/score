@@ -17,6 +17,7 @@
 #include <ossia/audio/audio_protocol.hpp>
 #include <ossia/network/base/node.hpp>
 #include <ossia/network/base/parameter.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
 
 #include <QHBoxLayout>
 #include <QPainter>
@@ -195,7 +196,7 @@ public:
     m_lay.setSpacing(4);
 
     con(m_title, &QPushButton::clicked, this, [this] {
-      m_context.selectionStack.pushNewSelection({m_model});
+      score::SelectionDispatcher{m_context.selectionStack}.select(*m_model);
     });
 
     m_gainSlider.setValue(param->outlet->gain());

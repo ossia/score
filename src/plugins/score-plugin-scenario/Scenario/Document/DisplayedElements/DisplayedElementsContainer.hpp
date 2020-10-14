@@ -20,12 +20,12 @@ struct DisplayedElementsContainer
 
   DisplayedElementsContainer(
       IntervalModel& cst,
-      const StateModel& sst,
-      const StateModel& est,
-      const EventModel& sev,
-      const EventModel& eev,
-      const TimeSyncModel& stn,
-      const TimeSyncModel& etn)
+      StateModel& sst,
+      StateModel& est,
+      EventModel& sev,
+      EventModel& eev,
+      TimeSyncModel& stn,
+      TimeSyncModel& etn)
       : interval{&cst}
       , startState{&sst}
       , endState{&est}
@@ -37,12 +37,12 @@ struct DisplayedElementsContainer
   }
 
   QPointer<IntervalModel> interval{};
-  QPointer<const StateModel> startState{};
-  QPointer<const StateModel> endState{};
-  QPointer<const EventModel> startEvent{};
-  QPointer<const EventModel> endEvent{};
-  QPointer<const TimeSyncModel> startNode{};
-  QPointer<const TimeSyncModel> endNode{};
+  QPointer<StateModel> startState{};
+  QPointer<StateModel> endState{};
+  QPointer<EventModel> startEvent{};
+  QPointer<EventModel> endEvent{};
+  QPointer<TimeSyncModel> startNode{};
+  QPointer<TimeSyncModel> endNode{};
 };
 
 struct DisplayedElementsPresenterContainer

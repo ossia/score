@@ -76,6 +76,7 @@ ResizeableItem::~ResizeableItem() { }
 EmptyRectItem::EmptyRectItem(QGraphicsItem* parent) : ResizeableItem{parent}
 {
   this->setFlag(ItemHasNoContents, true);
+  this->setAcceptedMouseButtons({});
 }
 void EmptyRectItem::setRect(const QRectF& r)
 {
@@ -114,16 +115,27 @@ void EmptyRectItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 }
 void EmptyRectItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  event->accept();
+  event->ignore();
 }
 void EmptyRectItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  event->accept();
+  event->ignore();
 }
 void EmptyRectItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  clicked();
-  event->accept();
+  //clicked();
+  event->ignore();
+}
+
+BackgroundItem::BackgroundItem(QGraphicsItem *parent)
+    : QGraphicsItem{parent}
+{
+  setAcceptedMouseButtons({});
+}
+
+BackgroundItem::~BackgroundItem()
+{
+
 }
 
 void BackgroundItem::paint(
@@ -153,17 +165,20 @@ QRectF BackgroundItem::boundingRect() const
 
 void BackgroundItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  event->accept();
+  QGraphicsItem::mousePressEvent(event);
+  event->ignore();
 }
 
 void BackgroundItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  event->accept();
+  QGraphicsItem::mouseMoveEvent(event);
+  event->ignore();
 }
 
 void BackgroundItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  event->accept();
+  QGraphicsItem::mouseReleaseEvent(event);
+  event->ignore();
 }
 
 EmptyItem::EmptyItem(QGraphicsItem* parent) : QGraphicsItem{parent}

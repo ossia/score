@@ -145,7 +145,7 @@ void removeSelection(const Scenario::ProcessModel& scenario, const score::Docume
   }
 
   score::SelectionDispatcher s{ctx.selectionStack};
-  s.setAndCommit({});
+  s.deselect();
   ctx.selectionStack.clear();
   // We have to remove the first / last timesyncs / events from the selection.
   ossia::erase_if(sel, [&](auto&& elt) { return elt->id_val() == startId_val; });

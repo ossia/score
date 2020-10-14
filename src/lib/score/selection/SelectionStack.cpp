@@ -24,6 +24,29 @@ void Selection::removeDuplicates()
   std::unique(begin(), end());
 }
 
+Selectable::Selectable()
+{
+}
+
+Selectable::~Selectable()
+{
+  set(false);
+}
+
+bool Selectable::get() const noexcept
+{
+  return m_val;
+}
+
+void Selectable::set(bool v)
+{
+  if (m_val != v)
+  {
+    m_val = v;
+    changed(v);
+  }
+}
+
 namespace score
 {
 

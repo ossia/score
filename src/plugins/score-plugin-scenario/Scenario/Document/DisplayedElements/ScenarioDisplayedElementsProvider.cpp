@@ -29,10 +29,10 @@ DisplayedElementsContainer ScenarioDisplayedElementsProvider::make(IntervalModel
 {
   if (auto parent_scenario = dynamic_cast<Scenario::ProcessModel*>(cst.parent()))
   {
-    const auto& sst = parent_scenario->states.at(cst.startState());
-    const auto& est = parent_scenario->states.at(cst.endState());
-    const auto& sev = parent_scenario->events.at(sst.eventId());
-    const auto& eev = parent_scenario->events.at(est.eventId());
+    auto& sst = parent_scenario->states.at(cst.startState());
+    auto& est = parent_scenario->states.at(cst.endState());
+    auto& sev = parent_scenario->events.at(sst.eventId());
+    auto& eev = parent_scenario->events.at(est.eventId());
     return DisplayedElementsContainer{
         cst,
         sst,
@@ -81,10 +81,10 @@ DisplayedElementsContainer DefaultDisplayedElementsProvider::make(IntervalModel&
 {
   if (auto parent_scenario = dynamic_cast<Scenario::ScenarioInterface*>(cst.parent()))
   {
-    const auto& sst = parent_scenario->state(cst.startState());
-    const auto& est = parent_scenario->state(cst.endState());
-    const auto& sev = parent_scenario->event(sst.eventId());
-    const auto& eev = parent_scenario->event(est.eventId());
+    auto& sst = parent_scenario->state(cst.startState());
+    auto& est = parent_scenario->state(cst.endState());
+    auto& sev = parent_scenario->event(sst.eventId());
+    auto& eev = parent_scenario->event(est.eventId());
     return DisplayedElementsContainer{
         cst,
         sst,

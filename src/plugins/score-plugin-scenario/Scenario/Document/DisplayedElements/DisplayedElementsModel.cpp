@@ -16,7 +16,15 @@ namespace Scenario
 {
 void DisplayedElementsModel::setSelection(const Selection& s)
 {
-  ossia::for_each_in_tuple(elements(), [&](auto elt) {
+  ossia::for_each_in_tuple(std::make_tuple(
+                             m_elements.startNode,
+                             m_elements.endNode,
+                             m_elements.startEvent,
+                             m_elements.endEvent,
+                             m_elements.startState,
+                             m_elements.endState,
+                             m_elements.interval),
+                           [&] (auto elt) {
     elt->selection.set(s.contains(elt.data())); // OPTIMIZEME
   });
 }
@@ -32,32 +40,32 @@ IntervalModel& DisplayedElementsModel::interval() const
   return *m_elements.interval;
 }
 
-const TimeSyncModel& DisplayedElementsModel::startTimeSync() const
+TimeSyncModel& DisplayedElementsModel::startTimeSync() const
 {
   return *m_elements.startNode;
 }
 
-const TimeSyncModel& DisplayedElementsModel::endTimeSync() const
+TimeSyncModel& DisplayedElementsModel::endTimeSync() const
 {
   return *m_elements.endNode;
 }
 
-const EventModel& DisplayedElementsModel::startEvent() const
+EventModel& DisplayedElementsModel::startEvent() const
 {
   return *m_elements.startEvent;
 }
 
-const EventModel& DisplayedElementsModel::endEvent() const
+EventModel& DisplayedElementsModel::endEvent() const
 {
   return *m_elements.endEvent;
 }
 
-const StateModel& DisplayedElementsModel::startState() const
+StateModel& DisplayedElementsModel::startState() const
 {
   return *m_elements.startState;
 }
 
-const StateModel& DisplayedElementsModel::endState() const
+StateModel& DisplayedElementsModel::endState() const
 {
   return *m_elements.endState;
 }

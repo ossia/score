@@ -16,7 +16,9 @@ class SCORE_LIB_BASE_EXPORT SelectionDispatcher
 public:
   explicit SelectionDispatcher(SelectionStack& s) : m_stack{s} { }
 
-  void setAndCommit(const Selection&);
+  void deselect();
+  void select(const Selection&);
+  void select(const IdentifiedObjectAbstract& obj);
 
   score::SelectionStack& stack() const;
 

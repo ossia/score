@@ -297,7 +297,7 @@ Selection Model::selectedChildren() const
   for (const auto& elt : m_segments)
   {
     if (elt.selection.get())
-      s.append(&elt);
+      s.append(elt);
   }
   for (const auto& elt : m_points)
   {

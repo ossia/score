@@ -335,19 +335,19 @@ void ScenarioDocumentPresenter::selectAll()
   auto processmodel = focusManager().focusedModel();
   if (processmodel)
   {
-    m_selectionDispatcher.setAndCommit(processmodel->selectableChildren());
+    m_selectionDispatcher.select(processmodel->selectableChildren());
   }
 }
 
 void ScenarioDocumentPresenter::deselectAll()
 {
-  m_selectionDispatcher.setAndCommit(Selection{});
+  m_selectionDispatcher.deselect();
 }
 
 void ScenarioDocumentPresenter::selectTop()
 {
   focusManager().focus(this);
-  score::SelectionDispatcher{m_context.selectionStack}.setAndCommit(
+  score::SelectionDispatcher{m_context.selectionStack}.select(Selection
       {&displayedElements.startState(),
        &displayedElements.interval(),
        &displayedElements.endState()});
@@ -835,15 +835,15 @@ void ScenarioDocumentPresenter::setNewSelection(const Selection& old, const Sele
     const auto it = ossia::find(s, e);
     if (it == s.end())
     {
-      if (auto proc = qobject_cast<const Process::ProcessModel*>(e))
+      if (auto proc = qobject_cast<Process::ProcessModel*>(e))
       {
         proc->selection.set(false);
       }
-      else if (auto port = qobject_cast<const Process::Port*>(e))
+      else if (auto port = qobject_cast<Process::Port*>(e))
       {
         port->selection.set(false);
       }
-      else if (auto cable = qobject_cast<const Process::Cable*>(e))
+      else if (auto cable = qobject_cast<Process::Cable*>(e))
       {
         cable->selection.set(false);
       }
@@ -905,7 +905,7 @@ void ScenarioDocumentPresenter::setNewSelection(const Selection& old, const Sele
 
     if (newProc)
     {
-      if (auto p = qobject_cast<const Process::ProcessModel*>(*s.begin()))
+      if (auto p = qobject_cast<Process::ProcessModel*>(*s.begin()))
       {
         // the process itself is being selected
         p->selection.set(true);
@@ -923,15 +923,15 @@ void ScenarioDocumentPresenter::setNewSelection(const Selection& old, const Sele
           newProc,
           &Process::ProcessModel::identified_object_destroying,
           this,
-          [&] { m_selectionDispatcher.setAndCommit(Selection{}); },
+          [&] { m_selectionDispatcher.deselect(); },
           Qt::UniqueConnection);
     }
 
     for (auto& elt : s)
     {
-      if (auto cable = qobject_cast<const Process::Cable*>(elt.data()))
+      if (auto cable = qobject_cast<Process::Cable*>(elt.data()))
         cable->selection.set(true);
-      else if (auto port = qobject_cast<const Process::Port*>(elt.data()))
+      else if (auto port = qobject_cast<Process::Port*>(elt.data()))
         port->selection.set(true);
     }
   }

@@ -8,6 +8,7 @@
 
 #include <score/document/DocumentContext.hpp>
 #include <score/graphics/PainterPath.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
 #include <score/selection/SelectionStack.hpp>
 #include <score/tools/Bind.hpp>
 
@@ -269,7 +270,7 @@ QPainterPath CableItem::opaqueArea() const
 
 void CableItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  m_context.selectionStack.pushNewSelection({&m_cable});
+  score::SelectionDispatcher{m_context.selectionStack}.select(m_cable);
   event->accept();
 }
 

@@ -102,6 +102,7 @@ NodeItem::NodeItem(
   con(process.selection, &Selectable::changed, this, &NodeItem::setSelected);
 
   createContentItem();
+  m_selected = process.selection.get();
 
   resetInlets();
   resetOutlets();
@@ -474,7 +475,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
   if (m_presenter)
     m_context.focusDispatcher.focus(m_presenter);
 
-  score::SelectionDispatcher{m_context.selectionStack}.setAndCommit({&m_model});
+  score::SelectionDispatcher{m_context.selectionStack}.select(m_model);
   event->accept();
 }
 

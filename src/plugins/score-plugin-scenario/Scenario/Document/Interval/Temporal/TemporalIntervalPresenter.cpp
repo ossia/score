@@ -994,7 +994,7 @@ void TemporalIntervalPresenter::selectedSlot(int i) const
 
   if (lay_slot->layers.empty())
   {
-    disp.setAndCommit({&m_model});
+    disp.select(m_model);
   }
   else
   {
@@ -1006,7 +1006,7 @@ void TemporalIntervalPresenter::selectedSlot(int i) const
         if(auto pres = lay_slot->layers.front().mainPresenter())
         {
           m_context.focusDispatcher.focus(lay_slot->layers.front().mainPresenter());
-          disp.setAndCommit({&m_model.processes.at(*proc)});
+          disp.select(m_model.processes.at(*proc));
         }
         else
         {

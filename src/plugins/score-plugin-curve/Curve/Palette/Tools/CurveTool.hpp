@@ -69,7 +69,7 @@ protected:
       const Selection& selected,
       bool multi = CommonSelectionState::multiSelection())
   {
-    score::SelectionDispatcher{context().selectionStack}.setAndCommit(
+    score::SelectionDispatcher{context().selectionStack}.select(
         filterSelections(&model, selected, multi));
   }
 

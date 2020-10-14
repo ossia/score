@@ -7,9 +7,20 @@
 #include <score/selection/Selection.hpp>
 namespace score
 {
-void SelectionDispatcher::setAndCommit(const Selection& s)
+static const Selection emptySelection;
+void SelectionDispatcher::deselect()
+{
+  m_stack.pushNewSelection(emptySelection);
+}
+
+void SelectionDispatcher::select(const Selection& s)
 {
   m_stack.pushNewSelection(s);
+}
+
+void SelectionDispatcher::select(const IdentifiedObjectAbstract& s)
+{
+  m_stack.pushNewSelection(Selection{const_cast<IdentifiedObjectAbstract*>(&s)});
 }
 
 score::SelectionStack& SelectionDispatcher::stack() const

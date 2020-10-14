@@ -53,8 +53,8 @@ public:
   {
     if (m_parentSM.scenePoint == m_initialPoint)
     {
-      dispatcher.setAndCommit(Selection{});
-      dispatcher.setAndCommit(Selection{&m_parentSM.model()});
+      dispatcher.deselect();
+      dispatcher.select(m_parentSM.model());
     }
 
     m_scenarioView.setSelectionArea(QRectF{});
@@ -62,7 +62,7 @@ public:
 
   void on_deselect() override
   {
-    dispatcher.setAndCommit(Selection{});
+    dispatcher.deselect();
     m_scenarioView.setSelectionArea(QRectF{});
   }
 
@@ -77,7 +77,7 @@ public:
     {
       if (area.intersects(elt.view()->boundingRect().translated(elt.view()->pos())))
       {
-        sel.append(&elt.model());
+        sel.append(elt.model());
       }
     }
 
@@ -89,7 +89,7 @@ public:
       {
         if (area.intersects(elt.boundingRect().translated(elt.pos())))
         {
-          sel.append(&elt.model());
+          sel.append(elt.model());
         }
       }
     }
@@ -98,25 +98,25 @@ public:
     {
       if (area.intersects(elt.view()->boundingRect().translated(elt.view()->pos())))
       {
-        sel.append(&elt.model());
+        sel.append(elt.model());
       }
     }
     for (const auto& elt : presenter.getEvents())
     {
       if (area.intersects(elt.view()->boundingRect().translated(elt.view()->pos())))
       {
-        sel.append(&elt.model());
+        sel.append(elt.model());
       }
     }
     for (const auto& elt : presenter.getStates())
     {
       if (area.intersects(elt.view()->boundingRect().translated(elt.view()->pos())))
       {
-        sel.append(&elt.model());
+        sel.append(elt.model());
       }
     }
 
-    dispatcher.setAndCommit(
+    dispatcher.select(
         filterSelections(sel, m_parentSM.model().selectedChildren(), multiSelection()));
   }
 };

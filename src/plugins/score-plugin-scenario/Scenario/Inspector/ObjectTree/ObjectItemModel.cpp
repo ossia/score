@@ -1074,11 +1074,11 @@ void ObjectWidget::selectionChanged(
     if (!sel.empty())
     {
       auto obj = (IdentifiedObjectAbstract*)sel.at(0).internalPointer();
-      d.setAndCommit(Selection{obj});
+      d.select(Selection{obj});
     }
     else
     {
-      d.setAndCommit({});
+      d.deselect();
     }
   }
 }
@@ -1242,20 +1242,20 @@ void NeighbourSelector::selectRight()
     {
       // Interval always have previous state
       Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*interval);
-      sel.append(&scenar.state(interval->endState()));
+      sel.append(scenar.state(interval->endState()));
     }
     else if (auto state = qobject_cast<const StateModel*>(obj.data()))
     {
       if (state->nextInterval())
       {
         Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*state);
-        sel.append(&scenar.interval(*state->nextInterval()));
+        sel.append(scenar.interval(*state->nextInterval()));
       }
     }
   }
 
   if (!sel.empty())
-    m_selectionDispatcher.setAndCommit(sel);
+    m_selectionDispatcher.select(sel);
 }
 
 void NeighbourSelector::selectLeft()
@@ -1268,20 +1268,20 @@ void NeighbourSelector::selectLeft()
     {
       // Interval always have previous state
       Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*interval);
-      sel.append(&scenar.state(interval->startState()));
+      sel.append(scenar.state(interval->startState()));
     }
     else if (auto state = qobject_cast<const StateModel*>(obj.data()))
     {
       if (state->previousInterval())
       {
         Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*state);
-        sel.append(&scenar.interval(*state->previousInterval()));
+        sel.append(scenar.interval(*state->previousInterval()));
       }
     }
   }
 
   if (!sel.empty())
-    m_selectionDispatcher.setAndCommit(sel);
+    m_selectionDispatcher.select(sel);
 }
 
 void NeighbourSelector::selectUp()
@@ -1292,7 +1292,7 @@ void NeighbourSelector::selectUp()
   {
     Selection sel{};
     sel.append((IdentifiedObjectAbstract*)idx.internalPointer());
-    m_selectionDispatcher.setAndCommit(sel);
+    m_selectionDispatcher.select(sel);
   }
 }
 
@@ -1304,7 +1304,7 @@ void NeighbourSelector::selectDown()
   {
     Selection sel{};
     sel.append((IdentifiedObjectAbstract*)idx.internalPointer());
-    m_selectionDispatcher.setAndCommit(sel);
+    m_selectionDispatcher.select(sel);
   }
 }
 
@@ -1335,14 +1335,14 @@ void add_if_contains(const T& o, const QString& str, Selection& sel)
   if (obj.getName().contains(str) || obj.getComment().contains(str)
       || obj.getLabel().contains(str))
   {
-    sel.append(&o);
+    sel.append(o);
   }
 }
 void add_if_contains(const Scenario::CommentBlockModel& o, const QString& str, Selection& sel)
 {
   if (o.content().contains(str))
   {
-    sel.append(&o);
+    sel.append(o);
   }
 }
 
@@ -1474,7 +1474,7 @@ void SearchWidget::search()
   }
 
   score::SelectionDispatcher d{doc->context().selectionStack};
-  d.setAndCommit(sel);
+  d.select(sel);
 }
 
 void SearchWidget::dragEnterEvent(QDragEnterEvent* event)

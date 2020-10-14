@@ -91,7 +91,7 @@ public:
         {
           const auto& elt = this->m_palette.presenter().state(id);
 
-          m_state->dispatcher.setAndCommit(filterSelections(
+          m_state->dispatcher.select(filterSelections(
               &elt.model(),
               this->m_palette.model().selectedChildren(),
               m_state->multiSelection()));
@@ -103,7 +103,7 @@ public:
         {
           const auto& elt = this->m_palette.presenter().event(id);
 
-          m_state->dispatcher.setAndCommit(filterSelections(
+          m_state->dispatcher.select(filterSelections(
               &elt.model(),
               this->m_palette.model().selectedChildren(),
               m_state->multiSelection()));
@@ -115,7 +115,7 @@ public:
         {
           const auto& elt = this->m_palette.presenter().timeSync(id);
 
-          m_state->dispatcher.setAndCommit(filterSelections(
+          m_state->dispatcher.select(filterSelections(
               &elt.model(),
               this->m_palette.model().selectedChildren(),
               m_state->multiSelection()));
@@ -128,7 +128,7 @@ public:
 
           if (!model.selection.get())
           {
-            m_state->dispatcher.setAndCommit(filterSelections(
+            m_state->dispatcher.select(filterSelections(
                 &model, this->m_palette.model().selectedChildren(), m_state->multiSelection()));
           }
           this->localSM().postEvent(new ClickOnInterval_Event{id, sp});
@@ -140,7 +140,7 @@ public:
 
           if (!elt.isSelected())
           {
-            m_state->dispatcher.setAndCommit(filterSelections(
+            m_state->dispatcher.select(filterSelections(
                 &elt.model(),
                 this->m_palette.model().selectedChildren(),
                 m_state->multiSelection()));
@@ -155,7 +155,7 @@ public:
 
           if (!elt.isSelected())
           {
-            m_state->dispatcher.setAndCommit(filterSelections(
+            m_state->dispatcher.select(filterSelections(
                 &elt.model(),
                 this->m_palette.model().selectedChildren(),
                 m_state->multiSelection()));

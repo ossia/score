@@ -477,7 +477,7 @@ void ScenarioPresenter::selectLeft()
       {
         auto& itv = *selection.selectedIntervals.front();
         auto& left_state = Scenario::startState(itv, model());
-        score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({&left_state});
+        score::SelectionDispatcher{m_context.context.selectionStack}.select(left_state);
       }
       else if (n_states == 1)
       {
@@ -485,7 +485,7 @@ void ScenarioPresenter::selectLeft()
         if (st.previousInterval())
         {
           auto& left_itv = Scenario::previousInterval(st, model());
-          score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({&left_itv});
+          score::SelectionDispatcher{m_context.context.selectionStack}.select(left_itv);
         }
       }
       break;
@@ -511,7 +511,7 @@ void ScenarioPresenter::selectRight()
       {
         auto& itv = *selection.selectedIntervals.front();
         auto& left_state = Scenario::endState(itv, model());
-        score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({&left_state});
+        score::SelectionDispatcher{m_context.context.selectionStack}.select(left_state);
       }
       else if (n_states == 1)
       {
@@ -519,7 +519,7 @@ void ScenarioPresenter::selectRight()
         if (st.nextInterval())
         {
           auto& left_itv = Scenario::nextInterval(st, model());
-          score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({&left_itv});
+          score::SelectionDispatcher{m_context.context.selectionStack}.select(left_itv);
         }
       }
       break;
@@ -577,11 +577,11 @@ void ScenarioPresenter::selectUp()
 
     if (cur_state != &sel_state)
     {
-      score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({cur_state});
+      score::SelectionDispatcher{m_context.context.selectionStack}.select(*cur_state);
     }
     else
     {
-      score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({&parent_ts});
+      score::SelectionDispatcher{m_context.context.selectionStack}.select(parent_ts);
     }
   }
   else
@@ -617,13 +617,13 @@ void ScenarioPresenter::selectUp()
           {
             if (const auto& prev_proc = rack[i - 1].frontProcess)
             {
-              score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit(
-                  {&itv->processes.at(*prev_proc)});
+              score::SelectionDispatcher{m_context.context.selectionStack}.select(
+                  itv->processes.at(*prev_proc));
             }
           }
           else if (i == 0)
           {
-            score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({itv});
+            score::SelectionDispatcher{m_context.context.selectionStack}.select(*itv);
           }
         }
         i++;
@@ -664,7 +664,7 @@ void ScenarioPresenter::selectDown()
       }
     }
 
-    score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({cur_state});
+    score::SelectionDispatcher{m_context.context.selectionStack}.select(*cur_state);
   }
   else if (n_itvs == 1)
   {
@@ -679,7 +679,7 @@ void ScenarioPresenter::selectDown()
     if (front)
     {
       auto& proc = itv.processes.at(*front);
-      score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({&proc});
+      score::SelectionDispatcher{m_context.context.selectionStack}.select(proc);
     }
   }
   else if (n_states == 1)
@@ -703,7 +703,7 @@ void ScenarioPresenter::selectDown()
     }
 
     if (cur_state != &sel_state)
-      score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({cur_state});
+      score::SelectionDispatcher{m_context.context.selectionStack}.select(*cur_state);
   }
   else
   {
@@ -738,8 +738,8 @@ void ScenarioPresenter::selectDown()
           {
             if (const auto& next_proc = rack[i + 1].frontProcess)
             {
-              score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit(
-                  {&itv->processes.at(*next_proc)});
+              score::SelectionDispatcher{m_context.context.selectionStack}.select(
+                  itv->processes.at(*next_proc));
             }
           }
         }
@@ -979,7 +979,7 @@ void ScenarioPresenter::on_commentCreated(const CommentBlockModel& comment_block
 
   // Selection
   connect(cmt_pres, &CommentBlockPresenter::selected, this, [&]() {
-    m_selectionDispatcher.setAndCommit({&comment_block_model});
+    m_selectionDispatcher.select(comment_block_model);
   });
 
   // Commands

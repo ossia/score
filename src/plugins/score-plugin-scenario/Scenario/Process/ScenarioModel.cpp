@@ -183,7 +183,7 @@ Selection ProcessModel::selectableChildren() const noexcept
   Selection objects;
   apply([&](const auto& m) {
     for (auto& elt : this->*m)
-      objects.append(&elt);
+      objects.append(elt);
   });
   return objects;
 }
@@ -194,7 +194,7 @@ static void copySelected(const InputVec& in, OutputVec& out)
   for (const auto& elt : in)
   {
     if (elt.selection.get())
-      out.append(&elt);
+      out.append(elt);
   }
 }
 

@@ -509,9 +509,11 @@ void PortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     switch (event->button())
     {
       case Qt::LeftButton:
-        score::SelectionDispatcher{score::IDocument::documentContext(m_port).selectionStack}
-            .setAndCommit({&m_port});
+      {
+        score::SelectionDispatcher disp{m_context.selectionStack};
+        disp.select(m_port);
         break;
+      }
       default:
         break;
     }

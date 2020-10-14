@@ -43,7 +43,7 @@ Selection CurveProcessModel::selectableChildren() const noexcept
 {
   Selection s;
   for (auto& segment : m_curve->segments())
-    s.append(&segment);
+    s.append(segment);
   for (auto& point : m_curve->points())
     s.append(point);
   return s;

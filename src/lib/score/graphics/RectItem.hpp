@@ -52,8 +52,8 @@ public:
   QRectF boundingRect() const final override;
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
-public:
-  void clicked() E_SIGNAL(SCORE_LIB_BASE_EXPORT, clicked)
+//public:
+//  void clicked() E_SIGNAL(SCORE_LIB_BASE_EXPORT, clicked)
 
 private:
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) final override;
@@ -69,7 +69,8 @@ protected:
 class SCORE_LIB_BASE_EXPORT BackgroundItem final : public QGraphicsItem
 {
 public:
-  using QGraphicsItem::QGraphicsItem;
+  BackgroundItem(QGraphicsItem* parent);
+  ~BackgroundItem();
 
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
   void setRect(const QRectF& r);

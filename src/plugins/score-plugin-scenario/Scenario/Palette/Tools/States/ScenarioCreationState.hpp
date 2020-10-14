@@ -262,7 +262,7 @@ protected:
       }
       else
       {
-        sel.append(&(*sp));
+        sel.append(*sp);
       }
     }
 
@@ -276,12 +276,12 @@ protected:
       }
       else
       {
-        sel.append(&(*ip));
+        sel.append(*ip);
       }
     }
 
     score::SelectionDispatcher d{this->m_parentSM.context().context.selectionStack};
-    d.setAndCommit(sel);
+    d.select(sel);
     this->clearCreatedIds();
   }
 

@@ -8,9 +8,9 @@
 /**
  * A selection is a set of objects.
  */
-class Selection final : private QList<QPointer<const IdentifiedObjectAbstract>>
+class Selection final : private QList<QPointer<IdentifiedObjectAbstract>>
 {
-  using base_type = QList<QPointer<const IdentifiedObjectAbstract>>;
+  using base_type = QList<QPointer<IdentifiedObjectAbstract>>;
 
 public:
   using base_type::at;
@@ -28,7 +28,7 @@ public:
   using base_type::removeAll;
   using base_type::size;
 
-  static Selection fromList(const QList<const IdentifiedObjectAbstract*>& other)
+  static Selection fromList(const QList<IdentifiedObjectAbstract*>& other)
   {
     Selection s;
     for (auto elt : other)
@@ -36,6 +36,38 @@ public:
       s.base_type::append(elt);
     }
     return s;
+  }
+
+  bool contains(const IdentifiedObjectAbstract& obj) const noexcept
+  {
+    for(const auto& ptr : *this)
+    {
+      if(ptr.data() == &obj)
+        return true;
+    }
+    return false;
+  }
+
+  bool contains(const IdentifiedObjectAbstract* obj) const noexcept
+  {
+    for(const auto& ptr : *this)
+    {
+      if(ptr.data() == obj)
+        return true;
+    }
+    return false;
+  }
+
+  void append(const IdentifiedObjectAbstract& obj)
+  {
+    append(&obj);
+  }
+
+  void append(const IdentifiedObjectAbstract* obj)
+  {
+    auto ptr = const_cast<IdentifiedObjectAbstract*>(obj);
+    if (!contains(ptr))
+      base_type::append(ptr);
   }
 
   void append(const base_type::value_type& obj)
@@ -93,21 +125,22 @@ Selection filterSelections(T* pressedModel, Selection sel, bool cumulation)
     sel.clear();
   }
 
+  const auto ptr = const_cast<std::remove_const_t<T>*>(pressedModel);
   // If the pressed element is selected
   if (pressedModel->selection.get())
   {
     if (cumulation)
     {
-      sel.removeAll(pressedModel);
+      sel.removeAll(ptr);
     }
     else
     {
-      sel.append(pressedModel);
+      sel.append(ptr);
     }
   }
   else
   {
-    sel.append(pressedModel);
+    sel.append(ptr);
   }
 
   return sel;

@@ -47,16 +47,16 @@ public:
   {
     if (m_parentSM.scenePoint == m_initialPoint)
     {
-      dispatcher.setAndCommit(Selection{});
+      dispatcher.deselect();
       auto proc = (IdentifiedObjectAbstract*)m_parentSM.model().parent();
-      dispatcher.setAndCommit(Selection{proc});
+      dispatcher.select(Selection{proc});
     }
     m_view.setSelectionArea(QRectF{});
   }
 
   void on_deselect() override
   {
-    dispatcher.setAndCommit(Selection{});
+    dispatcher.deselect();
     m_view.setSelectionArea(QRectF{});
   }
 
@@ -70,7 +70,7 @@ private:
     {
       if (point.shape().translated(point.pos()).intersects(scene_area))
       {
-        sel.append(&point.model());
+        sel.append(point.model());
       }
     }
 
@@ -78,11 +78,11 @@ private:
     {
       if (segment.shape().translated(segment.pos()).intersects(scene_area))
       {
-        sel.append(&segment.model());
+        sel.append(segment.model());
       }
     }
 
-    dispatcher.setAndCommit(
+    dispatcher.select(
         filterSelections(sel, m_parentSM.model().selectedChildren(), multiSelection()));
   }
 };

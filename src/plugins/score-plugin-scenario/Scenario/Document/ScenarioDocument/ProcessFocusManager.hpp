@@ -37,7 +37,7 @@ public:
   ProcessFocusManager(score::FocusManager& fmgr);
   ~ProcessFocusManager();
 
-  const ProcessModel* focusedModel() const;
+  ProcessModel* focusedModel() const;
   LayerPresenter* focusedPresenter() const;
 
   void focus(QPointer<Process::LayerPresenter>);
@@ -60,7 +60,7 @@ private:
 
   score::FocusManager& m_mgr;
 
-  QPointer<const ProcessModel> m_currentModel{};
+  QPointer<ProcessModel> m_currentModel{};
   QPointer<LayerPresenter> m_currentPresenter{};
 
   QMetaObject::Connection m_deathConnection{};

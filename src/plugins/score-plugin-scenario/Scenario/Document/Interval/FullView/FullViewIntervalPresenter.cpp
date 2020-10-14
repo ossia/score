@@ -541,7 +541,7 @@ void FullViewIntervalPresenter::selectedSlot(int i) const
       if(auto pres = slot->layers.front().mainPresenter())
       {
         m_context.focusDispatcher.focus(pres);
-        disp.setAndCommit({&slot->layers.front().model()});
+        disp.select(slot->layers.front().model());
       }
       else
       {

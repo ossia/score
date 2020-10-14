@@ -69,7 +69,7 @@ ScenarioDocumentModel::ScenarioDocumentModel(
   score::SelectionDispatcher d{ctx.selectionStack};
   auto scenar = qobject_cast<Scenario::ProcessModel*>(&*itv.processes.begin());
   if (scenar)
-    d.setAndCommit({&scenar->startEvent()});
+    d.select(scenar->startEvent());
 }
 
 void ScenarioDocumentModel::finishLoading()

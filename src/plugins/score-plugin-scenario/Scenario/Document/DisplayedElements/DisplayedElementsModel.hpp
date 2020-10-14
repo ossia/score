@@ -23,28 +23,16 @@ public:
   void setDisplayedElements(DisplayedElementsContainer&&);
   IntervalModel& interval() const;
 
-  const TimeSyncModel& startTimeSync() const;
-  const TimeSyncModel& endTimeSync() const;
+  TimeSyncModel& startTimeSync() const;
+  TimeSyncModel& endTimeSync() const;
 
-  const EventModel& startEvent() const;
-  const EventModel& endEvent() const;
+  EventModel& startEvent() const;
+  EventModel& endEvent() const;
 
-  const StateModel& startState() const;
-  const StateModel& endState() const;
+  StateModel& startState() const;
+  StateModel& endState() const;
 
 private:
-  auto elements() const
-  {
-    return std::make_tuple(
-        m_elements.startNode,
-        m_elements.endNode,
-        m_elements.startEvent,
-        m_elements.endEvent,
-        m_elements.startState,
-        m_elements.endState,
-        m_elements.interval);
-  }
-
   DisplayedElementsContainer m_elements;
   bool m_initialized = false;
 };

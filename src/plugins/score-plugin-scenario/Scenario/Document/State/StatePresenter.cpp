@@ -93,7 +93,7 @@ const StateModel& StatePresenter::model() const
 void StatePresenter::select() const
 {
   score::SelectionDispatcher disp{m_ctx.selectionStack};
-  disp.setAndCommit({&m_model});
+  disp.select(m_model);
 }
 
 bool StatePresenter::isSelected() const

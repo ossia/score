@@ -58,12 +58,12 @@ RemoveSelection::RemoveSelection(const Scenario::ProcessModel& scenar, Selection
       auto start_id = interval->startState();
       auto& start = scenar.states.at(start_id);
       if (start.empty() && !start.previousInterval())
-        sel.append(&start);
+        sel.append(start);
 
       auto end_id = interval->endState();
       auto& end = scenar.states.at(end_id);
       if (end.empty() && !end.nextInterval())
-        sel.append(&end);
+        sel.append(end);
     }
   }
 
@@ -87,7 +87,7 @@ RemoveSelection::RemoveSelection(const Scenario::ProcessModel& scenar, Selection
       }
       if (add_event)
       {
-        sel.append(&ev);
+        sel.append(ev);
       }
     }
   }
@@ -110,7 +110,7 @@ RemoveSelection::RemoveSelection(const Scenario::ProcessModel& scenar, Selection
       }
       if (add_ts)
       {
-        sel.append(&ts);
+        sel.append(ts);
       }
     }
   }
@@ -119,12 +119,12 @@ RemoveSelection::RemoveSelection(const Scenario::ProcessModel& scenar, Selection
 
   QObjectList l;
   l.reserve(sel.size());
-  for (const QPointer<const IdentifiedObjectAbstract>& p : sel)
-    l.push_back(const_cast<IdentifiedObjectAbstract*>(p.data()));
+  for (const QPointer<IdentifiedObjectAbstract>& p : sel)
+    l.push_back(p.data());
   m_cables = Dataflow::saveCables(l, score::IDocument::documentContext(scenar));
 
   // Serialize ALL the things
-  for (const QPointer<const IdentifiedObjectAbstract>& ptr : sel)
+  for (const QPointer<IdentifiedObjectAbstract>& ptr : sel)
   {
     auto obj = ptr.data();
     if (auto state = dynamic_cast<const StateModel*>(obj))

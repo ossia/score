@@ -11,7 +11,7 @@ namespace Process
 {
 ProcessFocusManager::ProcessFocusManager(score::FocusManager& fmgr) : m_mgr{fmgr} { }
 ProcessFocusManager::~ProcessFocusManager() { }
-const ProcessModel* ProcessFocusManager::focusedModel() const
+ProcessModel* ProcessFocusManager::focusedModel() const
 {
   return m_currentModel;
 }
@@ -39,7 +39,7 @@ void ProcessFocusManager::focus(QPointer<Process::LayerPresenter> p)
 
   if (m_currentPresenter)
   {
-    m_currentModel = &m_currentPresenter->model();
+    m_currentModel = const_cast<Process::ProcessModel*>(&m_currentPresenter->model());
 
     sig_focusedViewModel(m_currentModel);
 
@@ -88,7 +88,7 @@ void ProcessFocusManager::defocusPresenter(LayerPresenter* p)
 {
   p->setFocus(false);
   if (p->model().selection.get())
-    p->model().selection.set(false);
+    const_cast<ProcessModel&>(p->model()).selection.set(false);
   m_deathConnection = QMetaObject::Connection{};
   sig_defocusedPresenter(p);
 }
