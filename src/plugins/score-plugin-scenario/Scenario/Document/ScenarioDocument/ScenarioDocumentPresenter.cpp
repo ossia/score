@@ -49,6 +49,10 @@
 #include <core/application/ApplicationSettings.hpp>
 #include <core/view/Window.hpp>
 
+#include <Library/Panel/LibraryPanelDelegate.hpp>
+#include <Library/ProcessWidget.hpp>
+#include <Scenario/Commands/CommandAPI.hpp>
+#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <ossia-qt/invoke.hpp>
 #include <ossia/detail/math.hpp>
 
@@ -234,6 +238,14 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
 
     m_musicalAction = actions[1];
   }
+
+  // Library double-click
+  if(auto processLib = ctx.app.findPanel<Library::ProcessPanel>())
+  {
+    con(processLib->processWidget().processView(), &Library::ProcessTreeView::doubleClicked,
+        this, &ScenarioDocumentPresenter::on_addProcessFromLibrary);
+  }
+
 
   setDisplayedInterval(model().baseInterval());
 
@@ -528,6 +540,28 @@ ZoomRatio ScenarioDocumentPresenter::computeZoom(double l, double r)
   // Compute new zoom level
   const auto disptime = dur.impl * ((r - l) / map_w);
   return disptime / view_width;
+}
+
+void ScenarioDocumentPresenter::on_addProcessFromLibrary(const Library::ProcessData &dat)
+{
+  if(m_nodal)
+  {
+    Command::Macro m{new Command::DropProcessInIntervalMacro, m_context};
+    m.createProcessInNewSlot(displayedInterval(), dat.key, dat.customData);
+    m.commit();
+  }
+  else
+  {
+    auto sel = filterSelectionByType<IntervalModel>(m_context.selectionStack.currentSelection());
+    if(sel.size() == 1)
+    {
+      const Scenario::IntervalModel& itv = *sel.front();
+
+      Command::Macro m{new Command::DropProcessInIntervalMacro, m_context};
+      m.createProcessInNewSlot(itv, dat.key, dat.customData);
+      m.commit();
+    }
+  }
 }
 
 void ScenarioDocumentPresenter::on_viewReady()

@@ -272,18 +272,6 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
   on_rackVisibleChanged(m_model.smallViewVisible());
 }
 
-void TemporalIntervalPresenter::createNodalSlot()
-{/*
-  m_nodal.header = new SlotHeader{*this, (int)m_model.smallView().size(), this->view()};
-  m_nodal.footer = new AmovibleSlotFooter{*this, (int)m_model.smallView().size(), this->view()};
-  auto nodal = new TemporalNodalView{NodalIntervalView::OnlyEffects, this->model(), this->context(), this->view()};
-
-  const auto def_width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
-  nodal->setRect({0, 0, def_width, m_nodal.height});
-  m_nodal.view = nodal;
-  */
-}
-
 TemporalIntervalPresenter::~TemporalIntervalPresenter()
 {
   auto view = Scenario::view(this);
@@ -322,9 +310,8 @@ struct RequestOverlayMenuCallback
     {
       Macro m{new AddProcessInNewSlot, self.context()};
 
-      if (auto p = m.createProcess(self.model(), key, dat, {}))
+      if (auto p = m.createProcessInNewSlot(self.model(), key, dat))
       {
-        m.addLayerInNewSlot(self.model(), *p);
         m.commit();
       }
     }
@@ -526,6 +513,7 @@ void TemporalIntervalPresenter::createSlot(int pos, const Slot& aSlt)
       p.footer = new AmovibleSlotFooter{*this, (int)m_model.smallView().size(), this->view()};
       auto nodal = new NodalIntervalView{NodalIntervalView::OnlyEffects, this->model(), this->context(), this->view()};
       nodal->setFlag(QGraphicsItem::ItemClipsChildrenToShape, true);
+
       p.view = nodal;
 
       const auto def_width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);

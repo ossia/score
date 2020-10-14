@@ -89,7 +89,12 @@ ProcessPanel::ProcessPanel(const score::GUIApplicationContext& ctx)
     : score::PanelDelegate{ctx}, m_widget{new ProcessWidget{ctx, nullptr}}
 {
   m_widget->setStatusTip(
-      QObject::tr("This panel allows to list available processes, effects and plug-ins."));
+        QObject::tr("This panel allows to list available processes, effects and plug-ins."));
+}
+
+ProcessWidget &ProcessPanel::processWidget() const noexcept
+{
+  return *(ProcessWidget*)m_widget;
 }
 
 QWidget* ProcessPanel::widget()

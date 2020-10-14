@@ -81,6 +81,11 @@ public:
   Process::ProcessModel* createProcessInNewSlot(
       const Scenario::IntervalModel& interval,
       const UuidKey<Process::ProcessModel>& key,
+      const QString& data);
+
+  Process::ProcessModel* createProcessInNewSlot(
+      const Scenario::IntervalModel& interval,
+      const UuidKey<Process::ProcessModel>& key,
       const QString& data,
       const QPointF& pos);
 
@@ -88,7 +93,7 @@ public:
   T& createProcessInNewSlot(const Scenario::IntervalModel& interval, const QString& data)
   {
     return *safe_cast<T*>(
-        this->createProcessInNewSlot(interval, Metadata<ConcreteKey_k, T>::get(), data, {}));
+        this->createProcessInNewSlot(interval, Metadata<ConcreteKey_k, T>::get(), data));
   }
 
   Process::ProcessModel*

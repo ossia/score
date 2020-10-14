@@ -97,6 +97,27 @@ Process::ProcessModel* Macro::createProcessInSlot(
   return nullptr;
 }
 
+static QPointF newProcessNodalPosition(const IntervalModel& m) noexcept
+{
+  QPointF mid;
+  if (m.processes.empty())
+    return mid;
+
+  for (auto& proc : m.processes)
+    mid += proc.position();
+
+  mid /= m.processes.size();
+  return mid;
+}
+
+Process::ProcessModel* Macro::createProcessInNewSlot(
+    const IntervalModel& interval,
+    const UuidKey<Process::ProcessModel>& key,
+    const QString& data)
+{
+  return createProcessInNewSlot(interval, key, data, newProcessNodalPosition(interval));
+}
+
 Process::ProcessModel* Macro::createProcessInNewSlot(
     const IntervalModel& interval,
     const UuidKey<Process::ProcessModel>& key,

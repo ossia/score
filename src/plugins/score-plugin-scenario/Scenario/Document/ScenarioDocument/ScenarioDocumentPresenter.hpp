@@ -32,6 +32,9 @@ namespace Process
 {
 class MiniLayer;
 }
+namespace Library {
+struct ProcessData;
+}
 namespace Scenario
 {
 class DisplayedElementsPresenter;
@@ -122,6 +125,8 @@ private:
   void on_horizontalPositionChanged(int dx);
   void on_minimapChanged(double l, double r);
   ZoomRatio computeZoom(double l, double r);
+
+  void on_addProcessFromLibrary(const Library::ProcessData& dat);
 
   void updateMinimap();
   // double displayedDuration() const;

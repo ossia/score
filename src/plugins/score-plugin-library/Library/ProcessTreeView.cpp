@@ -3,6 +3,7 @@
 #include <score/widgets/Pixmap.hpp>
 
 #include <QDrag>
+#include <QMouseEvent>
 #include <QGuiApplication>
 #include <QMimeData>
 #include <QSortFilterProxyModel>
@@ -12,18 +13,22 @@
 W_OBJECT_IMPL(Library::ProcessTreeView)
 namespace Library
 {
+Library::ProcessData* ProcessTreeView::dataFromViewIndex(QModelIndex idx)
+{
+  SCORE_ASSERT(idx.isValid());
+  auto proxy = (QSortFilterProxyModel*)this->model();
+  auto model_idx = proxy->mapToSource(idx);
+  auto data = reinterpret_cast<TreeNode<ProcessData>*>(model_idx.internalPointer());
+  return data;
+}
+
 void ProcessTreeView::selectionChanged(const QItemSelection& sel, const QItemSelection& desel)
 {
   setDropIndicatorShown(true);
 
-  if (sel.size() > 0)
+  if (!sel.isEmpty())
   {
-    auto idx = sel.indexes().front();
-    auto proxy = (QSortFilterProxyModel*)this->model();
-    auto model_idx = proxy->mapToSource(idx);
-    auto data = reinterpret_cast<TreeNode<ProcessData>*>(model_idx.internalPointer());
-
-    selected(*data);
+    selected(*dataFromViewIndex(sel.indexes().front()));
   }
   else if (desel.size() > 0)
   {
@@ -64,6 +69,22 @@ void ProcessTreeView::startDrag(Qt::DropActions)
     */
     drag->exec();
   }
+}
+
+void ProcessTreeView::mouseDoubleClickEvent(QMouseEvent *event)
+{
+  auto index = indexAt(event->pos());
+  if(index.isValid())
+  {
+    auto data = dataFromViewIndex(index);
+    if(data->key != UuidKey<Process::ProcessModel>{})
+    {
+      doubleClicked(*data);
+      event->accept();
+      return;
+    }
+  }
+  QTreeView::mouseDoubleClickEvent(event);
 }
 
 }

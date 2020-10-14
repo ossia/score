@@ -1,10 +1,12 @@
 #pragma once
 #include <score/plugins/panel/PanelDelegate.hpp>
+#include <score_plugin_library_export.h>
 class QTabWidget;
 namespace Library
 {
 class ProjectLibraryWidget;
 class SystemLibraryWidget;
+class ProcessWidget;
 class FileSystemModel;
 class UserPanel final : public score::PanelDelegate
 {
@@ -31,10 +33,11 @@ private:
   ProjectLibraryWidget* m_widget{};
 };
 
-class ProcessPanel final : public score::PanelDelegate
+class SCORE_PLUGIN_LIBRARY_EXPORT ProcessPanel final : public score::PanelDelegate
 {
 public:
   ProcessPanel(const score::GUIApplicationContext& ctx);
+  ProcessWidget& processWidget() const noexcept;
 
 private:
   QWidget* widget() override;
