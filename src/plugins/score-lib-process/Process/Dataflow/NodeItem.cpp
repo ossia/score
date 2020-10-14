@@ -44,9 +44,9 @@ static const constexpr qreal TitleX0 = 15;
 static const constexpr qreal TitleY0 = -TitleHeight;
 static const constexpr qreal FoldX0 = 1;
 static const constexpr qreal FoldY0 = TitleY0;
-static const constexpr qreal UiX0 = 8;
-static const constexpr qreal UiY0 = TitleY0;
-static const constexpr qreal TitleWithUiX0 = 20;
+static const constexpr qreal UiX0 = 15;
+static const constexpr qreal UiY0 = TitleY0 + 3;
+static const constexpr qreal TitleWithUiX0 = 27;
 
 static const constexpr qreal FooterHeight = 0.;
 static const constexpr qreal Corner = 2.;
@@ -231,10 +231,10 @@ void NodeItem::setSelected(bool s)
 
 QRectF NodeItem::boundingRect() const
 {
-  double x = 0.;
-  double y = 0;
+  double x = 0;
+  double y = -TitleHeight;
   double w = m_contentSize.width();
-  const double h = m_contentSize.height() + FooterHeight;
+  const double h = m_contentSize.height() + TitleHeight + FooterHeight;
   if(!m_inlets.empty())
   {
       x -= LeftSideWidth;
@@ -417,36 +417,13 @@ void NodeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
 
   painter->setRenderHint(QPainter::Antialiasing, false);
 
-  return;
-  const auto h = rect.height();
-  const auto w = rect.width();
-  // Header
-  painter->setBrush(brush.brush);
-  painter->fillRect(QRectF{1., 0., w - 2., TitleHeight}, brush.brush);
-
-  // Footer
-  painter->fillRect(QRectF{1., h - FooterHeight, w - 2., FooterHeight}, brush.brush);
-  // painter->setPen(Qt::green);
-  // painter->setBrush(Qt::transparent);
-  // painter->drawRect(rect);
-
-
-  if (m_presenter)
-  {
-    auto& style = Process::Style::instance();
-    const auto h = height();
-    const auto w = width();
-    painter->setPen(style.IntervalWarning().main.pen0_solid_round);
-    painter->drawLine(w - 8., h - 3., w - 3., h - 3.);
-    painter->drawLine(w - 3., h - 8., w - 3., h - 3.);
-  }
 
   // Exec
   if (m_playPercentage != 0.)
   {
     auto& style = Process::Style::instance();
     painter->setPen(style.IntervalPlayFill().main.pen1_solid_flat_miter);
-    painter->drawLine(QPointF{0., 14.}, QPointF{width() * m_playPercentage, 14.});
+    painter->drawLine(QPointF{0., TitleHeight}, QPointF{width() * m_playPercentage, 14.});
   }
 }
 
