@@ -82,7 +82,7 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
 #endif
 
   if (!state.rhi)
-    qFatal("Failed to create RHI backend");
+    qDebug() << ("Failed to create RHI backend");
 
   state.size = window.size();
 
@@ -159,6 +159,7 @@ void ScreenNode::createOutput(GraphicsApi graphicsApi,
   window->onUpdate = std::move(onUpdate);
   window->onWindowReady = [this, graphicsApi, onReady=std::move(onReady)] {
     window->state = createRenderState(*window, graphicsApi);
+    if(window->state.rhi)
     {
       swapChain = window->state.rhi->newSwapChain();
       window->swapChain = swapChain;
@@ -175,9 +176,9 @@ void ScreenNode::createOutput(GraphicsApi graphicsApi,
       swapChain->setFlags({});
       window->state.renderPassDescriptor = swapChain->newCompatibleRenderPassDescriptor();
       swapChain->setRenderPassDescriptor(window->state.renderPassDescriptor);
-    }
 
-    onReady();
+      onReady();
+    }
   };
   window->onResize = std::move(onResize);
 

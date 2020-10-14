@@ -48,15 +48,18 @@ public:
 
   void resizeSwapChain()
   {
-    m_hasSwapChain = swapChain->buildOrResize();
-    state.size = swapChain->currentPixelSize();
-    if (onResize)
-      onResize();
+    if(swapChain)
+    {
+      m_hasSwapChain = swapChain->buildOrResize();
+      state.size = swapChain->currentPixelSize();
+      if (onResize)
+        onResize();
+    }
   }
 
   void releaseSwapChain()
   {
-    if (m_hasSwapChain)
+    if (swapChain && m_hasSwapChain)
     {
       m_hasSwapChain = false;
       swapChain->release();
@@ -67,6 +70,9 @@ public:
   {
     if (onUpdate)
       onUpdate();
+
+    if (!swapChain)
+      return;
 
     if (!m_hasSwapChain || m_notExposed)
     {

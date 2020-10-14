@@ -33,10 +33,15 @@ bool CameraInput::load(const std::string& inputKind, const std::string& inputDev
   m_inputDevice = inputDevice;
 
   auto ifmt = av_find_input_format(m_inputKind.c_str());
-  assert(ifmt);
-  qDebug() << ifmt->name << ifmt->long_name;
-
-  return true;
+  if(ifmt)
+  {
+      qDebug() << ifmt->name << ifmt->long_name;
+      return true;
+  }
+  else
+  {
+      return false;
+  }
 }
 
 bool CameraInput::start() noexcept
@@ -45,7 +50,8 @@ bool CameraInput::start() noexcept
     return false;
 
   auto ifmt = av_find_input_format(m_inputKind.c_str());
-  assert(ifmt);
+  if (!ifmt)
+      return false;
 
   m_formatContext = avformat_alloc_context();
   m_formatContext->flags |= AVFMT_FLAG_NONBLOCK;
@@ -208,7 +214,10 @@ bool CameraInput::open_stream() noexcept
   bool res = false;
 
   if (!m_formatContext)
-    return res;
+  {
+    close_stream();
+    return false;
+  }
 
   m_stream = -1;
 
@@ -241,9 +250,10 @@ bool CameraInput::open_stream() noexcept
   if (!res)
   {
     close_stream();
+    return false;
   }
 
-  return res;
+  return true;
 }
 
 void CameraInput::close_stream() noexcept
@@ -251,11 +261,11 @@ void CameraInput::close_stream() noexcept
   if (m_codecContext)
   {
     avcodec_close(m_codecContext);
-    m_codecContext = nullptr;
-    m_codec = nullptr;
-
-    m_stream = -1;
   }
+
+  m_codecContext = nullptr;
+  m_codec = nullptr;
+  m_stream = -1;
 }
 
 bool CameraInput::enqueue_frame(const AVPacket* pkt, AVFrame* frame) noexcept
