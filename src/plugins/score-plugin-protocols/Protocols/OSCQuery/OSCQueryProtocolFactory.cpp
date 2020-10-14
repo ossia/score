@@ -210,7 +210,9 @@ int OSCQueryProtocolFactory::visualPriority() const noexcept
 Device::DeviceEnumerator* OSCQueryProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
 #if defined(OSSIA_DNSSD)
-  return new OSCQueryEnumerator;
+ try {
+   return new OSCQueryEnumerator;
+ } catch(...) { return nullptr; }
 #else
   return nullptr;
 #endif
