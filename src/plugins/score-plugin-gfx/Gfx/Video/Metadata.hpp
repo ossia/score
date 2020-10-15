@@ -19,5 +19,5 @@ PROCESS_METADATA(
     (QStringList{"gfx", "video"}),     // Tags
     {},                                // Inputs
     {},                                // Outputs
-    Process::ProcessFlags::SupportsAll // Flags
+    Process::ProcessFlags::SupportsTemporal // Flags
 )
