@@ -68,7 +68,7 @@ void RemoveProcessFromInterval::redo(const score::DocumentContext& ctx) const
   int i = 0;
   for (const Slot& slot : interval.smallView())
   {
-    if (slot.processes.size() == 1 && slot.processes[0] == m_processId)
+    if (!slot.nodal && slot.processes.size() == 1 && slot.processes[0] == m_processId)
       slots_to_remove.push_back(i);
     i++;
   }

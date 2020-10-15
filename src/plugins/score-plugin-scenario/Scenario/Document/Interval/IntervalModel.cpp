@@ -468,12 +468,14 @@ void IntervalModel::addSlot(Slot s)
 
 void IntervalModel::removeSlot(int pos)
 {
-  SCORE_ASSERT((int)m_smallView.size() >= pos);
-  m_smallView.erase(m_smallView.begin() + pos);
-  slotRemoved({pos, Slot::SmallView});
+  if((int)m_smallView.size() > pos)
+  {
+    m_smallView.erase(m_smallView.begin() + pos);
+    slotRemoved({pos, Slot::SmallView});
 
-  if (m_smallView.empty())
-    setSmallViewVisible(false);
+    if (m_smallView.empty())
+      setSmallViewVisible(false);
+  }
 }
 
 const Slot* IntervalModel::findSmallViewSlot(int slot) const
@@ -757,16 +759,19 @@ void IntervalModel::on_removingProcess(const Process::ProcessModel& p)
         return slt.nodal;
       });
 
-      SCORE_ASSERT(smallNodalSlot != m_smallView.end());
-      if(smallNodalSlot->processes.size() > 1)
+      if(smallNodalSlot != m_smallView.end())
       {
-        ossia::remove_erase(smallNodalSlot->processes, p.id());
-      }
-      else
-      {
-        int N = std::distance(m_smallView.begin(), smallNodalSlot);
-        m_smallView.erase(smallNodalSlot);
-        slotRemoved(SlotId{N, Slot::SmallView});
+        SCORE_ASSERT(m_smallView.size() > 0);
+        SCORE_ASSERT(!m_smallView.empty());
+        if(smallNodalSlot->processes.size() > 1)
+        {
+          ossia::remove_erase(smallNodalSlot->processes, p.id());
+        }
+        else
+        {
+          int N = std::distance(m_smallView.begin(), smallNodalSlot);
+          removeSlot(N);
+        }
       }
     }
     {
@@ -774,28 +779,31 @@ void IntervalModel::on_removingProcess(const Process::ProcessModel& p)
         return slt.nodal;
       });
 
-      SCORE_ASSERT(fullNodalSlot != m_fullView.end());
-      int numTimeIndependent = ossia::count_if(processes, [] (const auto& proc) {
-        return proc.flags() & Process::ProcessFlags::TimeIndependent;
-      });
-      if(numTimeIndependent <= 1)
+      if(fullNodalSlot != m_fullView.end())
       {
-        int N = std::distance(m_fullView.begin(), fullNodalSlot);
-        m_fullView.erase(fullNodalSlot);
-        slotRemoved(SlotId{N, Slot::FullView});
+        SCORE_ASSERT(m_fullView.size() > 0);
+        int numTimeIndependent = ossia::count_if(processes, [] (const auto& proc) {
+          return proc.flags() & Process::ProcessFlags::TimeIndependent;
+        });
+        if(numTimeIndependent <= 1)
+        {
+          int N = std::distance(m_fullView.begin(), fullNodalSlot);
+          m_fullView.erase(fullNodalSlot);
+          slotRemoved(SlotId{N, Slot::FullView});
+        }
+        /* TODO
+        if(fullNodalSlot->processes.size() > 1)
+        {
+          ossia::remove_erase(fullNodalSlot->processes, p.id());
+        }
+        else
+        {
+          int N = std::distance(m_fullView.begin(), fullNodalSlot);
+          m_fullView.erase(fullNodalSlot);
+          slotRemoved(SlotId{N, Slot::fullView});
+        }
+        */
       }
-      /* TODO
-      if(fullNodalSlot->processes.size() > 1)
-      {
-        ossia::remove_erase(fullNodalSlot->processes, p.id());
-      }
-      else
-      {
-        int N = std::distance(m_fullView.begin(), fullNodalSlot);
-        m_fullView.erase(fullNodalSlot);
-        slotRemoved(SlotId{N, Slot::fullView});
-      }
-      */
     }
   }
 }
