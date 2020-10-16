@@ -632,5 +632,11 @@
         <file>icons/rack_button_small_off@2x.png</file>
         <file>icons/rack_button_small_on.png</file>
         <file>icons/rack_button_small_on@2x.png</file>
+        <file>icons/zoom/center.png</file>
+        <file>icons/zoom/center@2x.png</file>
+        <file>icons/zoom/minus.png</file>
+        <file>icons/zoom/minus@2x.png</file>
+        <file>icons/zoom/plus.png</file>
+        <file>icons/zoom/plus@2x.png</file>
     </qresource>
 </RCC>

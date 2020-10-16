@@ -28,6 +28,16 @@ public:
     m_path.find(ctx).setSpline(m_new);
   }
 
+  void update(const ProcessModel&, const ossia::nodes::spline_data& newval)
+  {
+    m_new = newval;
+  }
+  void update(const ProcessModel&, ossia::nodes::spline_data&& newval)
+  {
+    using namespace std;
+    swap(m_new, newval);
+  }
+
 protected:
   void serializeImpl(DataStreamInput& s) const override { s << m_path << m_old << m_new; }
   void deserializeImpl(DataStreamOutput& s) override { s >> m_path >> m_old >> m_new; }

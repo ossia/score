@@ -227,6 +227,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/PainterPath.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/RectItem.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/TextItem.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/ZoomItem.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/YPos.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ClearLayout.hpp"
@@ -366,6 +367,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/GraphicWidgets.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/RectItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/TextItem.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/ZoomItem.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ClearLayout.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ControlWidgets.cpp"
