@@ -105,7 +105,7 @@ static void setup_faust_path()
 #if defined(__APPLE__)
   auto last_slash = path.find_last_of('/');
   path = path.substr(0, last_slash);
-  path += "/../Frameworks/Faust.framework";
+  path += "/../Resources/Faust";
 #elif defined(__linux__)
   auto last_slash = path.find_last_of('/');
   path = path.substr(0, last_slash);

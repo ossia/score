@@ -76,7 +76,7 @@ if(EXISTS "${CMAKE_BINARY_DIR}/src/plugins/score-plugin-media/faustlibs-prefix/s
     DIRECTORY
       "${CMAKE_BINARY_DIR}/src/plugins/score-plugin-media/faustlibs-prefix/src/faustlibs/"
     DESTINATION
-      "${APPNAME}.app/Contents/Frameworks/Faust.framework"
+      "${APPNAME}.app/Contents/Resources/Faust"
     COMPONENT OssiaScore
       PATTERN ".git" EXCLUDE
       PATTERN "doc" EXCLUDE
