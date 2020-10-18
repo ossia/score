@@ -276,18 +276,22 @@ void ScenarioDocumentPresenter::switchMode(bool nodal)
 
   removeDisplayedIntervalPresenter();
 
+
+  view().view().setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  view().view().setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  view().view().setDragMode(QGraphicsView::NoDrag);
   view().view().setContextMenuPolicy(Qt::DefaultContextMenu);
   if (nodal)
   {
     view().timeBar().hide();
 
     m_nodal = new NodalIntervalView{NodalIntervalView::AllItems, displayedInterval(), context(), &view().baseItem()};
-
+/*
     view().view().setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     view().view().setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     view().view().setDragMode(QGraphicsView::ScrollHandDrag);
-    view().view().setSceneRect(QRectF{-5000, -5000, 10000, 10000});
-
+*/
+    view().view().setSceneRect(QRectF{0,0,10,10});
     m_nodalDrop = connect(
         &view().view(),
         &ProcessGraphicsView::dropRequested,
@@ -313,10 +317,6 @@ void ScenarioDocumentPresenter::switchMode(bool nodal)
   else
   {
     createDisplayedIntervalPresenter(displayedInterval());
-
-    view().view().setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    view().view().setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    view().view().setDragMode(QGraphicsView::NoDrag);
   }
 
   /*
