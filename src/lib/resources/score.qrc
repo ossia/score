@@ -632,11 +632,17 @@
         <file>icons/rack_button_small_off@2x.png</file>
         <file>icons/rack_button_small_on.png</file>
         <file>icons/rack_button_small_on@2x.png</file>
-        <file>icons/zoom/center.png</file>
-        <file>icons/zoom/center@2x.png</file>
-        <file>icons/zoom/minus.png</file>
-        <file>icons/zoom/minus@2x.png</file>
-        <file>icons/zoom/plus.png</file>
-        <file>icons/zoom/plus@2x.png</file>
+        <file>icons/zoom/center_off.png</file>
+        <file>icons/zoom/center_off@2x.png</file>
+        <file>icons/zoom/center_on.png</file>
+        <file>icons/zoom/center_on@2x.png</file>
+        <file>icons/zoom/minus_off.png</file>
+        <file>icons/zoom/minus_off@2x.png</file>
+        <file>icons/zoom/minus_on.png</file>
+        <file>icons/zoom/minus_on@2x.png</file>
+        <file>icons/zoom/plus_off.png</file>
+        <file>icons/zoom/plus_off@2x.png</file>
+        <file>icons/zoom/plus_on.png</file>
+        <file>icons/zoom/plus_on@2x.png</file>
     </qresource>
 </RCC>

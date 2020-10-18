@@ -11,12 +11,12 @@
    id="Calque_1"
    x="0px"
    y="0px"
-   viewBox="0 0 21.280987 20.311502"
+   viewBox="0 0 16 15.999999"
    xml:space="preserve"
-   sodipodi:docname="plus.svg"
-   width="21.280987"
-   height="20.311502"
-   inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"><metadata
+   sodipodi:docname="minus_off.svg"
+   width="16"
+   height="16"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"><metadata
    id="metadata17"><rdf:RDF><cc:Work
        rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
          rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title>boutons</dc:title></cc:Work></rdf:RDF></metadata><defs
@@ -30,20 +30,23 @@
    inkscape:pageopacity="0"
    inkscape:pageshadow="2"
    inkscape:window-width="1916"
-   inkscape:window-height="2120"
+   inkscape:window-height="1015"
    id="namedview13"
-   showgrid="false"
+   showgrid="true"
    fit-margin-top="0"
    fit-margin-left="0"
    fit-margin-right="0"
    fit-margin-bottom="0"
-   inkscape:zoom="26.112443"
-   inkscape:cx="20.801498"
-   inkscape:cy="-9.8384563"
-   inkscape:window-x="1920"
+   inkscape:zoom="22.105482"
+   inkscape:cx="3.4336387"
+   inkscape:cy="12.799227"
+   inkscape:window-x="4"
    inkscape:window-y="0"
    inkscape:window-maximized="0"
-   inkscape:current-layer="Calque_1" />
+   inkscape:current-layer="Calque_1"
+   inkscape:document-rotation="0"><inkscape:grid
+     type="xygrid"
+     id="grid12" /></sodipodi:namedview>
 <style
    type="text/css"
    id="style2">
@@ -52,31 +55,19 @@
 </style>
 <title
    id="title4">boutons</title>
-<rect
-   style="fill:none;stroke:#03c3dd;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:10;stroke-opacity:1;paint-order:markers fill stroke"
-   id="rect848"
-   width="19.280987"
-   height="18.311502"
-   x="1"
-   y="1"
-   ry="4.89013" /><circle
+<circle
    class="st0"
    cx="10.640493"
    cy="10.155751"
    r="7"
    id="circle6" />
+
 <line
    class="st1"
-   x1="10.640493"
-   y1="15.105498"
-   x2="10.640493"
-   y2="5.2060037"
-   id="line8" />
-<line
-   class="st1"
-   x1="15.59024"
-   y1="10.155751"
-   x2="5.6907458"
-   y2="10.155751"
-   id="line10" />
+   x1="11.999919"
+   y1="8"
+   x2="4.0000811"
+   y2="8"
+   id="line10"
+   style="stroke:#03c3dd;stroke-width:1.99999;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1" />
 </svg>
