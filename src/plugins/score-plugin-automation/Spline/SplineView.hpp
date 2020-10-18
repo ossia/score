@@ -18,6 +18,7 @@ public:
   void setSpline(ossia::nodes::spline_data d);
   const ossia::nodes::spline_data& spline() const noexcept;
 
+  void recenter();
 
   void changed() W_SIGNAL(changed);
 

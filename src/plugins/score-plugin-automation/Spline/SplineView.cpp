@@ -122,8 +122,11 @@ public:
       m_bottomRight.rx() = std::max(pt.x(), m_bottomRight.rx());
       m_bottomRight.ry() = std::max(1. - pt.y(), m_bottomRight.ry());
     }
-    m_topLeft -= QPointF{10, 10};
-    m_bottomRight += QPointF{10, 10};
+
+    const double w = m_bottomRight.x() - m_topLeft.x();
+    const double h = m_bottomRight.y() - m_topLeft.y();
+    m_topLeft -= QPointF{0.1 * w, 0.1 * h};
+    m_bottomRight += QPointF{0.1 * w, 0.1 * h};
     update();
   }
 
@@ -308,29 +311,22 @@ View::View(QGraphicsItem* parent) : LayerView{parent}
 
   auto item = new score::ZoomItem{this};
   item->setPos(10, 10);
+
+  // TODO proper zooming is done in log space
   connect(item, &score::ZoomItem::zoom, this, [this] {
     auto& zoom = m_impl->m_zoom;
-    zoom = qBound(0.2, zoom + 0.2, 10.);
+    zoom = qBound(0.001, zoom * 1.5, 1000.);
     m_impl->setScale(zoom);
   });
   connect(item, &score::ZoomItem::dezoom,
           this, [this] {
     auto& zoom = m_impl->m_zoom;
-    zoom = qBound(0.2, zoom - 0.2, 10.);
+    zoom = qBound(0.001, zoom / 1.5, 1000.);
     m_impl->setScale(zoom);
   });
 
-  auto recenter =  [this] {
-    m_impl->updateRect();
-    m_impl->setZoomToFitRect(boundingRect());
-    auto childCenter = m_impl->mapRectToParent(m_impl->boundingRect()).center() - m_impl->pos();
-    auto ourCenter = boundingRect().center();
-    auto delta = ourCenter - childCenter;
-
-    m_impl->setPos(delta);
-  };
   connect(item, &score::ZoomItem::recenter,
-          this, recenter);
+          this, &View::recenter);
   recenter();
 
   this->setFlags(QGraphicsItem::ItemIsFocusable | QGraphicsItem::ItemClipsToShape);
@@ -345,6 +341,17 @@ void View::setSpline(ossia::nodes::spline_data d)
 const ossia::nodes::spline_data& View::spline() const noexcept
 {
   return m_impl->spline();
+}
+
+void View::recenter()
+{
+  m_impl->updateRect();
+  m_impl->setZoomToFitRect(boundingRect());
+  auto childCenter = m_impl->mapRectToParent(m_impl->boundingRect()).center() - m_impl->pos();
+  auto ourCenter = boundingRect().center();
+  auto delta = ourCenter - childCenter;
+
+  m_impl->setPos(delta);
 }
 
 void View::paint_impl(QPainter* p) const

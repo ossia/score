@@ -39,11 +39,13 @@ Presenter::Presenter(
 void Presenter::setWidth(qreal val, qreal defaultWidth)
 {
   m_view->setWidth(val);
+  m_view->recenter();
 }
 
 void Presenter::setHeight(qreal val)
 {
   m_view->setHeight(val);
+  m_view->recenter();
 }
 
 void Presenter::putToFront()
@@ -58,7 +60,6 @@ void Presenter::putBehind()
 
 void Presenter::on_zoomRatioChanged(ZoomRatio r)
 {
-  m_zoomRatio = r;
   parentGeometryChanged();
 }
 
