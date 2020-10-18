@@ -165,7 +165,7 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
       this,
       [=](const QPointF& pos, const QMimeData& mime) {
         m_context.app.interfaces<Scenario::IntervalDropHandlerList>().drop(
-            m_context, m_model, pos, mime);
+              m_context, m_model, {}, mime);
       });
 
   // Time

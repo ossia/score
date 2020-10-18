@@ -925,17 +925,38 @@ ParentTimeInfo closestParentWithTempo(const IntervalModel* self)
 
 QPointF newProcessPosition(const IntervalModel& cst) noexcept
 {
-  // Find a good position for the process in the nodal graph
-  qreal min_y = 10;
+  static ossia::flat_set<double> autoPos;
+  autoPos.clear();
+  autoPos.container.reserve(100);
   for (const Process::ProcessModel& proc : cst.processes)
   {
-    qreal bottom_y = proc.position().y() + proc.size().height() + 60;
-    if (bottom_y > min_y)
-      min_y = bottom_y;
+    const auto p = proc.position();
+    if(p.x() - p.y() < 5)
+    {
+      autoPos.insert((p.x() + p.y()) / 2);
+    }
   }
 
-  min_y += 10;
-  return {10., min_y};
+  double start = 10.;
+  auto it = autoPos.lower_bound(start);
+  double distance = 0.;
+  if(it != autoPos.end())
+  {
+    distance = std::abs(*it - start);
+    if(distance < 10)
+    {
+      do {
+        start += 10.;
+        it = autoPos.lower_bound(start);
+        if(it != autoPos.end())
+          distance = std::abs(*it - start);
+      } while(it != autoPos.end() && distance < 10);
+
+      if(distance < 10)
+        start += 10;
+    }
+  }
+  return {start, start};
 }
 
 }
