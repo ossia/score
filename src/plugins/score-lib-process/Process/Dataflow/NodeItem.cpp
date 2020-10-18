@@ -119,7 +119,7 @@ NodeItem::NodeItem(
       delete m_fx;
       m_fx = nullptr;
       double port_h = std::max(m_inlets.size() * 12., m_outlets.size() * 12.);
-      m_contentSize = QSizeF{TitleX0 + m_label->boundingRect().width(), port_h};
+      m_contentSize = QSizeF{TitleWithUiX0 + m_label->boundingRect().width() + 6, port_h};
     }
     updateSize();
   });
