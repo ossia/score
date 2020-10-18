@@ -926,7 +926,7 @@ ParentTimeInfo closestParentWithTempo(const IntervalModel* self)
 QPointF newProcessPosition(const IntervalModel& cst) noexcept
 {
   // Find a good position for the process in the nodal graph
-  qreal min_y = 0;
+  qreal min_y = 10;
   for (const Process::ProcessModel& proc : cst.processes)
   {
     qreal bottom_y = proc.position().y() + proc.size().height() + 60;
