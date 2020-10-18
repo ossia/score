@@ -31,6 +31,7 @@ public:
 
 public:
   void clicked() E_SIGNAL(SCORE_LIB_BASE_EXPORT, clicked)
+
 private:
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) final override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) final override;
@@ -52,15 +53,12 @@ public:
   QRectF boundingRect() const final override;
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
-//public:
-//  void clicked() E_SIGNAL(SCORE_LIB_BASE_EXPORT, clicked)
-
 private:
-  void hoverEnterEvent(QGraphicsSceneHoverEvent* event) final override;
-  void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) final override;
-  void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;
-  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final override;
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final override;
+  void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
+  void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 
 protected:
   QRectF m_rect{};

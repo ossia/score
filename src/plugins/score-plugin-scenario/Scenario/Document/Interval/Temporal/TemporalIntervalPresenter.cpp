@@ -46,18 +46,6 @@ W_OBJECT_IMPL(Scenario::TemporalIntervalPresenter)
 
 namespace Scenario
 {
-namespace
-{
-class TemporalNodalView final : public NodalIntervalView
-{
-public:
-  TemporalNodalView(ItemsToShow sh, const IntervalModel& model, const Process::Context& ctx, QGraphicsItem* parent):
-    NodalIntervalView{sh, model, ctx, parent}
-  {
-    setFlag(ItemClipsChildrenToShape, true);
-  }
-};
-}
 TemporalIntervalPresenter::TemporalIntervalPresenter(
     const IntervalModel& interval,
     const Process::Context& ctx,

@@ -117,6 +117,8 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
   con(view().view(), &ProcessGraphicsView::visibleRectChanged, this, [&](QRectF rect) {
     if (auto p = presenters().intervalPresenter())
       p->on_visibleRectChanged(rect);
+    if (m_nodal)
+      m_nodal->setRect({0, 0, rect.width(), rect.height()});
   });
   con(view().view(),
       &ProcessGraphicsView::horizontalZoom,

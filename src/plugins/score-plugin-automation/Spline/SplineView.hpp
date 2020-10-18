@@ -31,7 +31,6 @@ private:
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
 
   void moveControlPoint(QPointF mouse);
-  void dragScene(QPointF mouse);
 
   CurveItem* m_impl{};
   QPointF m_pressedPos{};

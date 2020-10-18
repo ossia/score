@@ -123,7 +123,6 @@ void EmptyRectItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 }
 void EmptyRectItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  //clicked();
   event->ignore();
 }
 

@@ -382,13 +382,4 @@ void View::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e)
 
 }
 
-void View::dragScene(QPointF mouse)
-{
-  auto delta = mouse - m_pressedPos;
-  auto t = this->transform();
-  t.translate(delta.x(), delta.y());
-  m_pressedPos = mouse;
-  setTransform(t);
-}
-
 }
