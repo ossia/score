@@ -49,14 +49,14 @@ public:
 
     auto squarePen = skin.IntervalMuted().main.pen3_dashed_flat_miter;
     squarePen.setWidthF(1. / m_zoom);
-    squarePen.setStyle(Qt::DotLine);
+    squarePen.setStyle(Qt::SolidLine);
 
     painter.setBrush(skin.NoBrush());
     painter.setPen(squarePen);
     //painter.drawRect(QRectF{-1, -1, 2, 2});
-    double biggestDim = 10. * std::max(boundingRect().width(), boundingRect().height());
-    painter.drawLine(-biggestDim / m_zoom, 0, biggestDim / m_zoom, 0);
-    painter.drawLine(0, -biggestDim / m_zoom, 0, biggestDim / m_zoom);
+    double biggestDim = std::max(boundingRect().width(), boundingRect().height());
+    painter.drawLine(-biggestDim * m_zoom, 0, biggestDim * m_zoom, 0);
+    painter.drawLine(0, -biggestDim * m_zoom, 0, biggestDim * m_zoom);
     painter.setRenderHint(QPainter::Antialiasing);
 
     //double m_zoom = 1.;
