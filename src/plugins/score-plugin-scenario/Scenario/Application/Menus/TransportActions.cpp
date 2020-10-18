@@ -16,6 +16,7 @@
 
 #include <QAction>
 #include <QDebug>
+#include <QKeySequence>
 #include <QLabel>
 #include <QMainWindow>
 #include <QMenu>
@@ -85,7 +86,7 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
   */
   m_stopAndInit = new QAction{tr("Reinitialize"), nullptr};
   m_stopAndInit->setObjectName("StopAndInit");
-  m_stopAndInit->setShortcut(Qt::CTRL + Qt::Key_Return);
+  m_stopAndInit->setShortcut(QKeySequence(QObject::tr("Ctrl+Return")));
   m_stopAndInit->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   m_stopAndInit->setStatusTip("Stop execution of the score and send the initial state");
 

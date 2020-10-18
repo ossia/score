@@ -77,7 +77,7 @@ SCORE_DECLARE_ACTION(PlayGlobal, "&Play Root", Scenario, Qt::Key_Shift + Qt::Key
 SCORE_DECLARE_ACTION(Stop, "&Stop", Scenario, Qt::Key_Return)
 SCORE_DECLARE_ACTION(GoToStart, "&Go to Start", Scenario, Qt::Key_Back)
 SCORE_DECLARE_ACTION(GoToEnd, "Go to &End", Scenario, Qt::Key_Forward)
-SCORE_DECLARE_ACTION(Reinitialize, "&Reinitialize", Scenario, Qt::CTRL + Qt::Key_Return)
+SCORE_DECLARE_ACTION(Reinitialize, "&Reinitialize", Scenario, QKeySequence(QObject::tr("Ctrl+Return")))
 SCORE_DECLARE_ACTION(Record, "&Record", Scenario, QKeySequence::UnknownKey)
 
 // Edit
@@ -117,26 +117,26 @@ SCORE_DECLARE_ACTION(RemoveCondition, "&Remove Condition", Scenario, QKeySequenc
 
 // Interval
 SCORE_DECLARE_ACTION(AddProcess, "&Add a process", Scenario, QKeySequence::UnknownKey)
-SCORE_DECLARE_ACTION(MergeTimeSyncs, "&Synchronize", Scenario, Qt::SHIFT + Qt::Key_M)
+SCORE_DECLARE_ACTION(MergeTimeSyncs, "&Synchronize", Scenario, QKeySequence(QObject::tr("Shift+M")))
 SCORE_DECLARE_ACTION(ShowRacks, "&Show processes", Scenario, QKeySequence::UnknownKey)
 SCORE_DECLARE_ACTION(HideRacks, "&Hide processes", Scenario, QKeySequence::UnknownKey)
 
-SCORE_DECLARE_ACTION(Encapsulate, "&Encapsulate", Scenario, Qt::CTRL + Qt::ALT + Qt::Key_E)
-SCORE_DECLARE_ACTION(Decapsulate, "&Decapsulate", Scenario, Qt::CTRL + Qt::ALT + Qt::Key_D)
-SCORE_DECLARE_ACTION(FoldIntervals, "Fold intervals", Scenario, Qt::CTRL + Qt::ALT + Qt::Key_F)
-SCORE_DECLARE_ACTION(UnfoldIntervals, "Unfold intervals", Scenario, Qt::CTRL + Qt::ALT + Qt::Key_U)
-SCORE_DECLARE_ACTION(LevelUp, "Go to parent interval", Scenario, Qt::CTRL + Qt::ALT + Qt::Key_Up)
+SCORE_DECLARE_ACTION(Encapsulate, "&Encapsulate", Scenario, QKeySequence(QObject::tr("Ctrl+Alt+E")))
+SCORE_DECLARE_ACTION(Decapsulate, "&Decapsulate", Scenario, QKeySequence(QObject::tr("Ctrl+Alt+D")))
+SCORE_DECLARE_ACTION(FoldIntervals, "Fold intervals", Scenario, QKeySequence(QObject::tr("Ctrl+Alt+F")))
+SCORE_DECLARE_ACTION(UnfoldIntervals, "Unfold intervals", Scenario, QKeySequence(QObject::tr("Ctrl+Alt+U")))
+SCORE_DECLARE_ACTION(LevelUp, "Go to parent interval", Scenario, QKeySequence(QObject::tr("Ctrl+Alt+Up")))
 
-SCORE_DECLARE_ACTION(Duplicate, "&Duplicate", Scenario, Qt::ALT + Qt::Key_D)
+SCORE_DECLARE_ACTION(Duplicate, "&Duplicate", Scenario, QKeySequence(QObject::tr("Alt+D")))
 
-SCORE_DECLARE_ACTION(ShowCables, "&Show cables", Dataflow, Qt::ALT + Qt::SHIFT + Qt::Key_G)
+SCORE_DECLARE_ACTION(ShowCables, "&Show cables", Dataflow, QKeySequence(QObject::tr("Alt+Shift+G")))
 
 // Navigation
 SCORE_DECLARE_ACTION(MoveUp, "&Move up", Scenario, Qt::UpArrow)
 SCORE_DECLARE_ACTION(MoveDown, "&Move down", Scenario, Qt::DownArrow)
 SCORE_DECLARE_ACTION(MoveLeft, "&Move left", Scenario, Qt::LeftArrow)
 SCORE_DECLARE_ACTION(MoveRight, "&Move right", Scenario, Qt::RightArrow)
-SCORE_DECLARE_ACTION(GoToParent, "&Go to parent", Scenario, Qt::CTRL + Qt::Key_Up)
+SCORE_DECLARE_ACTION(GoToParent, "&Go to parent", Scenario, QKeySequence(QObject::tr("Ctrl+Up")))
 
 /// Context menus
 SCORE_PROCESS_DECLARE_CONTEXT_MENU(SCORE_PLUGIN_SCENARIO_EXPORT, ScenarioObjectContextMenu)
