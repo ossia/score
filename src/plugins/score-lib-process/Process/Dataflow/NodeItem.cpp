@@ -284,8 +284,10 @@ void NodeItem::createContentItem()
   // Positions / size
   m_fx->setPos({0, 0});
 
-  m_contentSize
-      = QSizeF{std::max(100., m_contentSize.width()), std::max(10., m_contentSize.height())};
+  double w = std::max(TitleWithUiX0 + m_label->boundingRect().width() + 6, m_contentSize.width());
+  w = std::max(100., w);
+  double h = std::max(10., m_contentSize.height());
+  m_contentSize = QSizeF{w, h};
 
   updateTitlePos();
 }
@@ -298,7 +300,10 @@ void NodeItem::updateSize()
     prepareGeometryChange();
     if(m_fx)
     {
-      m_contentSize = QSizeF{std::max(100., sz.width()), std::max(10., sz.height())};
+      double w = std::max(TitleWithUiX0 + m_label->boundingRect().width() + 6, sz.width());
+      w = std::max(100., w);
+      double h = std::max(10., sz.height());
+      m_contentSize = QSizeF{w, h};
     }
 
     if (m_uiButton)
