@@ -185,7 +185,7 @@ static bool faustIsMidi(llvm_dsp& dsp)
 }
 
 ossia::flat_set<llvm_dsp_factory*> dsp_factories;
-ossia::flat_set<dsp_poly_factory*> dsp_poly_factories;
+ossia::flat_set<ossia::nodes::custom_dsp_poly_factory*> dsp_poly_factories;
 void FaustEffectModel::reloadFx(llvm_dsp_factory* fac, llvm_dsp* obj)
 {
   dsp_factories.insert(fac);
@@ -237,12 +237,12 @@ void FaustEffectModel::reloadFx(llvm_dsp_factory* fac, llvm_dsp* obj)
     out->setPropagate(true);
     m_outlets.push_back(out);
 
-    Faust::UI<decltype(*this)> ui{*this};
+    Faust::UI<decltype(*this), false> ui{*this};
     faust_object->buildUserInterface(&ui);
   }
 }
 
-void FaustEffectModel::reloadMidi(dsp_poly_factory* fac, dsp_poly* obj)
+void FaustEffectModel::reloadMidi(ossia::nodes::custom_dsp_poly_factory* fac, ossia::nodes::custom_dsp_poly_effect* obj)
 {
   dsp_poly_factories.insert(fac);
   if (faust_factory && faust_object)
@@ -294,7 +294,7 @@ void FaustEffectModel::reloadMidi(dsp_poly_factory* fac, dsp_poly* obj)
     out->setPropagate(true);
     m_outlets.push_back(out);
 
-    Faust::UI<decltype(*this)> ui{*this};
+    Faust::UI<decltype(*this), true> ui{*this};
     faust_poly_object->buildUserInterface(&ui);
   }
 }
@@ -340,7 +340,7 @@ void FaustEffectModel::reload()
   if (faustIsMidi(*obj))
   {
     delete obj;
-    auto fac = createPolyDSPFactoryFromString("score", str, argc, argv, triple, err, -1);
+    auto fac = ossia::nodes::createCustomPolyDSPFactoryFromString("score", str, argc, argv, triple, err, -1);
     dsp_poly_factories.insert(fac);
 
     auto obj = fac->createPolyDSPInstance(64, false, true);
@@ -457,6 +457,7 @@ void FaustEffectComponent::reloadSynth()
   using faust_type = ossia::nodes::faust_synth;
   auto& proc = process();
   auto& ctx = system();
+
   proc.faust_poly_object->init(ctx.execState->sampleRate);
   auto node = std::make_shared<faust_type>(proc.faust_poly_object);
   this->node = node;

@@ -14,7 +14,7 @@ namespace Media
 namespace Faust
 {
 
-template <typename Proc>
+template <typename Proc, bool Synth>
 struct UI : ::UI
 {
   Proc& fx;
@@ -30,6 +30,13 @@ struct UI : ::UI
 
   void addButton(const char* label, FAUSTFLOAT* zone) override
   {
+    if constexpr(Synth)
+    {
+      using namespace std::literals;
+      if (label == "Panic"sv || label == "gate"sv)
+        return;
+    }
+
     auto inl = new Process::Button{label, getStrongId(fx.inlets()), &fx};
     fx.inlets().push_back(inl);
   }
@@ -48,6 +55,13 @@ struct UI : ::UI
       FAUSTFLOAT max,
       FAUSTFLOAT step) override
   {
+    if constexpr(Synth)
+    {
+      using namespace std::literals;
+      if (label == "gain"sv || label == "freq"sv || label == "sustain"sv)
+        return;
+    }
+
     auto inl = new Process::FloatSlider{min, max, init, label, getStrongId(fx.inlets()), &fx};
     fx.inlets().push_back(inl);
   }

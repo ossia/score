@@ -22,6 +22,12 @@ namespace Media::Faust
 class FaustEffectModel;
 }
 
+namespace ossia::nodes
+{
+struct custom_dsp_poly_factory;
+struct custom_dsp_poly_effect;
+}
+
 PROCESS_METADATA(
     ,
     Media::Faust::FaustEffectModel,
@@ -78,8 +84,8 @@ public:
   llvm_dsp_factory* faust_factory{};
   llvm_dsp* faust_object{};
 
-  dsp_poly_factory* faust_poly_factory{};
-  dsp_poly* faust_poly_object{};
+  ossia::nodes::custom_dsp_poly_factory* faust_poly_factory{};
+  ossia::nodes::custom_dsp_poly_effect* faust_poly_object{};
 
   void changed() W_SIGNAL(changed);
   void textChanged(const QString& str) W_SIGNAL(textChanged, str);
@@ -91,7 +97,7 @@ private:
   void init();
   void reload();
   void reloadFx(llvm_dsp_factory* fac, llvm_dsp* obj);
-  void reloadMidi(dsp_poly_factory* fac, dsp_poly* obj);
+  void reloadMidi(ossia::nodes::custom_dsp_poly_factory* fac, ossia::nodes::custom_dsp_poly_effect* obj);
   QString m_text;
   QString m_declareName;
 };
