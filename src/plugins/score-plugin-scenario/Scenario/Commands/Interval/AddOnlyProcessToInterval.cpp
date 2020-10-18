@@ -86,8 +86,8 @@ AddOnlyProcessToInterval::redo(IntervalModel& interval, const score::DocumentCon
       ctx,
       &interval);
 
-  AddProcess(interval, proc);
   proc->setPosition(m_graphpos);
+  AddProcess(interval, proc);
   return *proc;
 }
 
