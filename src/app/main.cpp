@@ -102,18 +102,24 @@ static void disable_denormals()
 static void setup_faust_path()
 {
   auto path = ossia::get_exe_path();
-#if defined(__APPLE__)
-  auto last_slash = path.find_last_of('/');
-  path = path.substr(0, last_slash);
-  path += "/../Resources/Faust";
-#elif defined(__linux__)
-  auto last_slash = path.find_last_of('/');
-  path = path.substr(0, last_slash);
-  path += "/../share/faust";
-#elif defined(_WIN32)
+#if defined(_WIN32)
   auto last_slash = path.find_last_of('\\');
   path = path.substr(0, last_slash);
+#else
+  auto last_slash = path.find_last_of('/');
+  path = path.substr(0, last_slash);
+#endif
+
+#if defined(SCORE_DEPLOYMENT_BUILD)
+#if defined(__APPLE__)
+  path += "/../Resources/Faust";
+#elif defined(__linux__)
+  path += "/../share/faust";
+#elif defined(_WIN32)
   path += "/faust";
+#endif
+#else
+  path += "/src/plugins/score-plugin-media/faustlibs-prefix/src/faustlibs";
 #endif
 
   qputenv("FAUST_LIB_PATH", path.c_str());

@@ -11,6 +11,7 @@
 #include <score/tools/Bind.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/std/String.hpp>
+#include <score/tools/DeleteAll.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/nodes/faust/faust_node.hpp>
@@ -228,10 +229,8 @@ void FaustEffectModel::reloadFx(llvm_dsp_factory* fac, llvm_dsp* obj)
     {
       controlRemoved(*m_inlets[i]);
     }
-    qDeleteAll(m_inlets);
-    qDeleteAll(m_outlets);
-    m_inlets.clear();
-    m_outlets.clear();
+    auto inls = score::clearAndDeleteLater(m_inlets);
+    auto outls = score::clearAndDeleteLater(m_outlets);
 
     m_inlets.push_back(new Process::AudioInlet{getStrongId(m_inlets), this});
     auto out = new Process::AudioOutlet{getStrongId(m_outlets), this};
@@ -286,10 +285,8 @@ void FaustEffectModel::reloadMidi(dsp_poly_factory* fac, dsp_poly* obj)
     {
       controlRemoved(*m_inlets[i]);
     }
-    qDeleteAll(m_inlets);
-    qDeleteAll(m_outlets);
-    m_inlets.clear();
-    m_outlets.clear();
+    auto inls = score::clearAndDeleteLater(m_inlets);
+    auto outls = score::clearAndDeleteLater(m_outlets);
 
     m_inlets.push_back(new Process::MidiInlet{getStrongId(m_inlets), this});
 
