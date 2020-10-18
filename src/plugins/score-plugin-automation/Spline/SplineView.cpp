@@ -319,8 +319,8 @@ View::View(QGraphicsItem* parent) : LayerView{parent}
     zoom = qBound(0.2, zoom - 0.2, 10.);
     m_impl->setScale(zoom);
   });
-  connect(item, &score::ZoomItem::recenter,
-          this, [this] {
+
+  auto recenter =  [this] {
     m_impl->updateRect();
     m_impl->setZoomToFitRect(boundingRect());
     auto childCenter = m_impl->mapRectToParent(m_impl->boundingRect()).center() - m_impl->pos();
@@ -328,7 +328,10 @@ View::View(QGraphicsItem* parent) : LayerView{parent}
     auto delta = ourCenter - childCenter;
 
     m_impl->setPos(delta);
-  });
+  };
+  connect(item, &score::ZoomItem::recenter,
+          this, recenter);
+  recenter();
 
   this->setFlags(QGraphicsItem::ItemIsFocusable | QGraphicsItem::ItemClipsToShape);
 }
