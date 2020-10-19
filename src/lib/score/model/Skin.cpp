@@ -47,10 +47,10 @@ Skin::~Skin()
   delete m_colorMap;
 }
 Skin::Skin() noexcept
-    : SansFont{"Ubuntu"}
+    : SansFont{"Px437 EverexME 5x8"}
     , MonoFont{"APCCourier-Bold", int(10 * 96. / 72.), QFont::Black}
     , MonoFontSmall{"APCCourier-Bold", int(7 * 96. / 72.), QFont::Normal}
-    , SansFontSmall{"Ubuntu", int(7 * 96. / 72.)}
+    , SansFontSmall{"Px437 EverexME 5x8", int(7 * 96. / 72.)}
     , TransparentPen{Qt::transparent}
     , TransparentBrush{Qt::transparent}
     , NoPen{Qt::NoPen}

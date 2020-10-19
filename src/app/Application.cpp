@@ -365,6 +365,11 @@ static void setQApplicationSettings(QApplication& m_app)
   QFontDatabase::addApplicationFont(":/Montserrat-SemiBold.ttf"); // Montserrat
   QFontDatabase::addApplicationFont(":/Montserrat-Light.ttf"); // Montserrat
 
+  QFontDatabase::addApplicationFont(":/Px437_EverexME_5x8.ttf"); // Px437 EverexME 5x8
+
+  int x = QFontDatabase::addApplicationFont(":/Greybeard-Regular.ttf"); // Greybeard
+  qDebug() << QFontDatabase::applicationFontFamilies(x);
+  SCORE_ASSERT(QFile(":/Greybeard-Regular.ttf").exists());
   m_app.setStyle(new PhantomStyle);
 
   auto pal = qApp->palette();
@@ -392,6 +397,13 @@ static void setQApplicationSettings(QApplication& m_app)
   constexpr const int defaultFontSize = 10;
 
   QFont f("Ubuntu", defaultFontSize);
+  f.setHintingPreference(QFont::PreferVerticalHinting);
+  f.setStyleStrategy(QFont::PreferQuality);
+
+  f = QFont("Px437 EverexME 5x8", 8);
+  f.setHintingPreference(QFont::PreferNoHinting);
+  f.setStyleStrategy(QFont::PreferBitmap);
+
   qApp->setFont(f);
 
   qApp->setPalette(pal);

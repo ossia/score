@@ -624,6 +624,7 @@
         <file>gfx/testcard-1.png</file>
         <file>gfx/testcard-3.png</file>
         <file>gfx/testcard-2.jpeg</file>
+
         <file>icons/settings_package_off.png</file>
         <file>icons/settings_package_off@2x.png</file>
         <file>icons/settings_package_on.png</file>
@@ -638,5 +639,8 @@
         <file>icons/zoom/minus@2x.png</file>
         <file>icons/zoom/plus.png</file>
         <file>icons/zoom/plus@2x.png</file>
+
+        <file>Px437_EverexME_5x8.ttf</file>
+        <file>Greybeard-Regular.ttf</file>
     </qresource>
 </RCC>

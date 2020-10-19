@@ -171,6 +171,7 @@ static void setup_app_flags()
 
 #if !defined(__EMSCRIPTEN__)
   QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts, true);
+  QCoreApplication::setAttribute(Qt::AA_Use96Dpi, true);
   QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling, true);
   QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps, true);
   QCoreApplication::setAttribute(Qt::AA_CompressHighFrequencyEvents, true);
