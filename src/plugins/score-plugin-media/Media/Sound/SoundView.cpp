@@ -1,4 +1,5 @@
 #include "SoundView.hpp"
+#include <Media/Sound/SoundModel.hpp>
 #include <Media/Sound/QImagePool.hpp>
 #include <Media/RMSData.hpp>
 
@@ -10,8 +11,10 @@
 
 namespace Media::Sound
 {
-LayerView::LayerView(QGraphicsItem* parent)
-    : Process::LayerView{parent}, m_cpt{new WaveformComputer{}}
+LayerView::LayerView(const ProcessModel& m, QGraphicsItem* parent)
+  : Process::LayerView{parent}
+  , m_cpt{new WaveformComputer{}}
+  , m_model{m}
 {
   setCacheMode(NoCache);
   setFlag(ItemClipsToShape, true);
@@ -98,6 +101,9 @@ void LayerView::recompute() const
       view->devicePixelRatioF(),
       mapFromScene(view->mapToScene(0, 0)).x(),
       mapFromScene(view->mapToScene(view->width(), 0)).x(),
+      m_model.startOffset(),
+      m_model.loopDuration(),
+      m_model.loops(),
       m_frontColors
     };
     m_cpt->recompute(std::move(req));

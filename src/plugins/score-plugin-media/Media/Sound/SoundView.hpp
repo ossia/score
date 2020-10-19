@@ -15,10 +15,11 @@ namespace Media
 {
 namespace Sound
 {
+class ProcessModel;
 class LayerView final : public Process::LayerView, public Nano::Observer
 {
 public:
-  explicit LayerView(QGraphicsItem* parent);
+  explicit LayerView(const ProcessModel& model, QGraphicsItem* parent);
   ~LayerView();
 
   void setData(const std::shared_ptr<AudioFile>& data);
@@ -56,6 +57,7 @@ private:
   WaveformComputer* m_cpt{};
 
   ComputedWaveform m_wf{};
+  const ProcessModel& m_model;
 
   bool m_frontColors{true};
   mutable bool m_recomputed{false};

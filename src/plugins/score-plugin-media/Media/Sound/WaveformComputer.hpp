@@ -24,6 +24,11 @@ struct WaveformRequest
   double devicePixelRatio{};
   double view_x0{};
   double view_xmax{};
+
+  TimeVal startOffset{};
+  TimeVal loopDuration{};
+  bool loops{};
+
   bool colors{};
 };
 

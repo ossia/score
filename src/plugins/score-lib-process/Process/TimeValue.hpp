@@ -131,6 +131,12 @@ struct TimeVal : ossia::time_value
     return (ratio > 0 && !infinite()) ? std::round(impl / ratio) : 0;
   }
 
+  constexpr int64_t toSample(double sampleRate) const noexcept
+  {
+    const double samples_per_flicks = sampleRate / ossia::flicks_per_second<double>;
+    return (sampleRate > 0 && !infinite()) ? std::round(impl * samples_per_flicks) : 0;
+  }
+
   QTime toQTime() const noexcept
   {
     if (infinite())

@@ -193,7 +193,7 @@ struct FrameComputer
 {
   int64_t start_frame;
   int64_t end_frame;
-  ossia::small_vector<T, 8> sum;
+  ossia::small_vector<T, 8>& sum;
   Fun_T fun;
 
   void operator()() const noexcept { }
@@ -274,7 +274,7 @@ struct FrameComputer
 struct SingleFrameComputer
 {
   int64_t start_frame;
-  ossia::small_vector<float, 8> sum;
+  ossia::small_vector<float, 8>& sum;
 
   void operator()() const noexcept { }
 
@@ -310,28 +310,24 @@ struct SingleFrameComputer
   }
 };
 
-ossia::small_vector<float, 8> AudioFile::ViewHandle::frame(int64_t start_frame) noexcept
+void AudioFile::ViewHandle::frame(int64_t start_frame, ossia::small_vector<float, 8>& out) noexcept
 {
-  SingleFrameComputer _{start_frame, {}};
+  SingleFrameComputer _{start_frame, out};
   ossia::apply(_, *this);
-  return _.sum;
 }
 
-ossia::small_vector<float, 8>
-AudioFile::ViewHandle::absmax_frame(int64_t start_frame, int64_t end_frame) noexcept
+void AudioFile::ViewHandle::absmax_frame(int64_t start_frame, int64_t end_frame, ossia::small_vector<float, 8>& out) noexcept
 {
   struct AbsMax
   {
     static float init(float v) noexcept { return v; }
     float operator()(float f1, float f2) const noexcept { return abs_max(f1, f2); }
   };
-  FrameComputer<AbsMax, float> _{start_frame, end_frame, {}, {}};
+  FrameComputer<AbsMax, float> _{start_frame, end_frame, out, {}};
   ossia::apply(_, *this);
-  return _.sum;
 }
 
-ossia::small_vector<std::pair<float, float>, 8>
-AudioFile::ViewHandle::minmax_frame(int64_t start_frame, int64_t end_frame) noexcept
+void AudioFile::ViewHandle::minmax_frame(int64_t start_frame, int64_t end_frame, ossia::small_vector<std::pair<float, float>, 8>& out) noexcept
 {
   struct MinMax
   {
@@ -342,9 +338,8 @@ AudioFile::ViewHandle::minmax_frame(int64_t start_frame, int64_t end_frame) noex
     }
   };
 
-  FrameComputer<MinMax, std::pair<float, float>> _{start_frame, end_frame, {}, {}};
+  FrameComputer<MinMax, std::pair<float, float>> _{start_frame, end_frame, out, {}};
   ossia::apply(_, *this);
-  return _.sum;
 }
 
 void AudioFile::load_ffmpeg(int rate)

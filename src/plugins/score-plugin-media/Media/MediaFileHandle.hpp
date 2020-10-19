@@ -139,10 +139,9 @@ public:
     using view_impl_t::view_impl_t;
     ViewHandle(const Handle&);
 
-    ossia::small_vector<float, 8> frame(int64_t start_frame) noexcept;
-    ossia::small_vector<float, 8> absmax_frame(int64_t start_frame, int64_t end_frame) noexcept;
-    ossia::small_vector<std::pair<float, float>, 8>
-    minmax_frame(int64_t start_frame, int64_t end_frame) noexcept;
+    void frame(int64_t start_frame, ossia::small_vector<float, 8>& out) noexcept;
+    void absmax_frame(int64_t start_frame, int64_t end_frame, ossia::small_vector<float, 8>& out) noexcept;
+    void minmax_frame(int64_t start_frame, int64_t end_frame, ossia::small_vector<std::pair<float, float>, 8>& out) noexcept;
   };
 
   // Note : this is a copy, because it's not thread safe.
