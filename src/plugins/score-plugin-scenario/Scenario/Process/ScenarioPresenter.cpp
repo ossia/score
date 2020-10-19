@@ -797,8 +797,11 @@ void ScenarioPresenter::on_eventCreated(const EventModel& event_model)
       [=](const Id<TimeSyncModel>& old_id, const Id<TimeSyncModel>& new_id) {
         auto& old_t = m_timeSyncs.at(old_id);
         old_t.removeEvent(ev_pres);
+        updateTimeSyncExtent(old_t);
+
         auto& new_t = m_timeSyncs.at(new_id);
         new_t.addEvent(ev_pres);
+        updateTimeSyncExtent(new_t);
       });
 
   // For the state machine
@@ -809,22 +812,21 @@ void ScenarioPresenter::on_eventCreated(const EventModel& event_model)
 
 void ScenarioPresenter::on_timeSyncCreated(const TimeSyncModel& timeSync_model)
 {
-  auto tn_pres = new TimeSyncPresenter{timeSync_model, m_view, this};
-  m_timeSyncs.insert(tn_pres);
+  auto ts_pres = new TimeSyncPresenter{timeSync_model, m_view, this};
+  m_timeSyncs.insert(ts_pres);
 
-  m_viewInterface.on_timeSyncMoved(*tn_pres);
+  m_viewInterface.on_timeSyncMoved(*ts_pres);
 
-  con(*tn_pres, &TimeSyncPresenter::extentChanged, this, [=](const VerticalExtent&) {
-    m_viewInterface.on_timeSyncMoved(*tn_pres);
-  });
-  con(timeSync_model, &TimeSyncModel::dateChanged, this, [=](const TimeVal&) {
-    m_viewInterface.on_timeSyncMoved(*tn_pres);
-  });
+  auto updateSyncPos = [=] {
+    m_viewInterface.on_timeSyncMoved(*ts_pres);
+  };
+  con(*ts_pres, &TimeSyncPresenter::extentChanged, this, updateSyncPos);
+  con(timeSync_model, &TimeSyncModel::dateChanged, this, updateSyncPos);
 
   // For the state machine
-  connect(tn_pres, &TimeSyncPresenter::pressed, m_view, &ScenarioView::pressedAsked);
-  connect(tn_pres, &TimeSyncPresenter::moved, m_view, &ScenarioView::movedAsked);
-  connect(tn_pres, &TimeSyncPresenter::released, m_view, &ScenarioView::released);
+  connect(ts_pres, &TimeSyncPresenter::pressed, m_view, &ScenarioView::pressedAsked);
+  connect(ts_pres, &TimeSyncPresenter::moved, m_view, &ScenarioView::movedAsked);
+  connect(ts_pres, &TimeSyncPresenter::released, m_view, &ScenarioView::released);
 }
 
 void ScenarioPresenter::on_stateCreated(const StateModel& state)
