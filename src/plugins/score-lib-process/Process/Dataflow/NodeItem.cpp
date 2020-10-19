@@ -116,8 +116,18 @@ NodeItem::NodeItem(
     }
     else
     {
-      delete m_fx;
-      m_fx = nullptr;
+      if(m_presenter)
+      {
+        delete m_presenter;
+        m_presenter = nullptr;
+        m_fx = nullptr;
+      }
+      else
+      {
+        delete m_fx;
+        m_fx = nullptr;
+      }
+
       double port_h = std::max(m_inlets.size() * 12., m_outlets.size() * 12.);
       m_contentSize = QSizeF{TitleWithUiX0 + m_label->boundingRect().width() + 6, port_h};
     }
