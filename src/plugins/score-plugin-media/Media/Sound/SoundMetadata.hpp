@@ -22,6 +22,6 @@ PROCESS_METADATA(
     {},
     {},
     {std::vector<Process::PortType>{Process::PortType::Audio}},
-    Process::ProcessFlags::SupportsTemporal | Process::ProcessFlags::PutInNewSlot)
+    Process::ProcessFlags::SupportsTemporal | Process::ProcessFlags::PutInNewSlot | Process::ProcessFlags::HandlesLooping)
 
 UNDO_NAME_METADATA(EMPTY_MACRO, Media::Sound::ProcessModel, "Sound")

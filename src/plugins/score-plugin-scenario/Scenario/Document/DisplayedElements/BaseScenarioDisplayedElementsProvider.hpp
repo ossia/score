@@ -13,6 +13,7 @@ public:
   bool matches(const IntervalModel& cst) const override;
   DisplayedElementsContainer make(IntervalModel& cst) const override;
   DisplayedElementsPresenterContainer make_presenters(
+      ZoomRatio zoom,
       const IntervalModel& m,
       const Process::Context& ctx,
       QGraphicsItem* view_parent,

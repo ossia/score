@@ -910,9 +910,9 @@ void ScenarioPresenter::on_intervalCreated(const IntervalModel& interval)
   }
   else
   {
-    auto cst_pres = new TemporalIntervalPresenter{interval, m_context.context, true, m_view, this};
+    auto cst_pres = new TemporalIntervalPresenter{m_zoomRatio, interval, m_context.context, true, m_view, this};
     m_intervals.insert(cst_pres);
-    cst_pres->on_zoomRatioChanged(m_zoomRatio);
+    cst_pres->on_zoomRatioChanged(m_zoomRatio); // TODO review this now that we pass it directly
 
     m_viewInterface.on_intervalMoved(*cst_pres);
 

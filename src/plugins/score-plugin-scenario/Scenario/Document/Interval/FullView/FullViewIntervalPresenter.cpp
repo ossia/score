@@ -89,11 +89,12 @@ void FullViewIntervalPresenter::stopSlotDrag() const
 }
 
 FullViewIntervalPresenter::FullViewIntervalPresenter(
+    ZoomRatio zoom,
     const IntervalModel& interval,
     const Process::Context& ctx,
     QGraphicsItem* parentobject,
     QObject* parent)
-    : IntervalPresenter{interval, new FullViewIntervalView{*this, parentobject}, new FullViewIntervalHeader{ctx, parentobject}, ctx, parent}
+    : IntervalPresenter{zoom, interval, new FullViewIntervalView{*this, parentobject}, new FullViewIntervalHeader{ctx, parentobject}, ctx, parent}
     , m_timebars{new Timebars{*this}}
     , m_grid{new MusicalGrid{*m_timebars}}
     , m_settings{ctx.app.settings<Scenario::Settings::Model>()}

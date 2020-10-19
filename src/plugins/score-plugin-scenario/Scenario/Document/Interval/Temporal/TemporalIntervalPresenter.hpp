@@ -29,6 +29,7 @@ public:
   const auto& id() const { return IntervalPresenter::id(); } // To please boost::const_mem_fun
 
   TemporalIntervalPresenter(
+      ZoomRatio zoom,
       const IntervalModel& viewModel,
       const Process::Context& ctx,
       bool handles,

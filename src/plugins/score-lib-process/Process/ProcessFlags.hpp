@@ -29,6 +29,9 @@ enum ProcessFlags : int64_t
   //! When created in an interval, go on the top slot or in a new slot
   PutInNewSlot = 16,
 
+  //! The presenter / view already handles rendering when the model loops.
+  HandlesLooping = 32,
+
   SupportsLasting = SupportsTemporal | TimeIndependent,
   ExternalEffect  = SupportsTemporal | TimeIndependent | RequiresCustomData,
   SupportsAll     = SupportsTemporal | TimeIndependent | SupportsState

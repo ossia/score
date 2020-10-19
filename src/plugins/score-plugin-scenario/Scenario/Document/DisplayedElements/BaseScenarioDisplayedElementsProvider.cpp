@@ -38,6 +38,7 @@ DisplayedElementsContainer BaseScenarioDisplayedElementsProvider::make(IntervalM
 }
 
 DisplayedElementsPresenterContainer BaseScenarioDisplayedElementsProvider::make_presenters(
+    ZoomRatio zoom,
     const IntervalModel& m,
     const Process::Context& ctx,
     QGraphicsItem* view_parent,
@@ -46,7 +47,7 @@ DisplayedElementsPresenterContainer BaseScenarioDisplayedElementsProvider::make_
   if (auto bs = dynamic_cast<BaseScenario*>(m.parent()))
   {
     return DisplayedElementsPresenterContainer{
-        new FullViewIntervalPresenter{m, ctx, view_parent, parent},
+        new FullViewIntervalPresenter{zoom, m, ctx, view_parent, parent},
         new StatePresenter{bs->startState(), ctx, view_parent, parent},
         new StatePresenter{bs->endState(), ctx, view_parent, parent},
         new EventPresenter{bs->startEvent(), view_parent, parent},

@@ -85,7 +85,7 @@ BaseGraphicsObject& DisplayedElementsPresenter::view() const
 void DisplayedElementsPresenter::on_displayedIntervalChanged(const IntervalModel& m)
 {
   double cur_zoom = m.zoom();
-  if(cur_zoom <= 0 && m_intervalPresenter)
+  if(cur_zoom <= 0)
   {
     if(m_intervalPresenter)
     {
@@ -105,7 +105,7 @@ void DisplayedElementsPresenter::on_displayedIntervalChanged(const IntervalModel
   auto& ctx = m_model.context();
   auto& provider = ctx.app.interfaces<DisplayedElementsProviderList>();
   DisplayedElementsPresenterContainer elts = provider.make(
-      &DisplayedElementsProvider::make_presenters, m, ctx, &m_model.view().baseItem(), this);
+      &DisplayedElementsProvider::make_presenters, cur_zoom, m, ctx, &m_model.view().baseItem(), this);
   m_intervalPresenter = elts.interval;
   m_startStatePresenter = elts.startState;
   m_endStatePresenter = elts.endState;

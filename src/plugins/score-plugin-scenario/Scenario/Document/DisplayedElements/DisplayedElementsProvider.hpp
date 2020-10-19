@@ -19,6 +19,7 @@ public:
   virtual ~DisplayedElementsProvider();
   virtual bool matches(const IntervalModel& cst) const = 0;
   bool matches(
+      ZoomRatio zoom,
       const IntervalModel& cst,
       const Process::Context& ctx,
       QGraphicsItem* view_parent,
@@ -29,6 +30,7 @@ public:
 
   virtual DisplayedElementsContainer make(IntervalModel& cst) const = 0;
   virtual DisplayedElementsPresenterContainer make_presenters(
+      ZoomRatio zoom,
       const IntervalModel& m,
       const Process::Context& ctx,
       QGraphicsItem* view_parent,

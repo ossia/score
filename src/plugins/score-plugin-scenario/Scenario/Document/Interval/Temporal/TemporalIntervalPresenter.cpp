@@ -47,12 +47,13 @@ W_OBJECT_IMPL(Scenario::TemporalIntervalPresenter)
 namespace Scenario
 {
 TemporalIntervalPresenter::TemporalIntervalPresenter(
+    ZoomRatio zoom,
     const IntervalModel& interval,
     const Process::Context& ctx,
     bool handles,
     QGraphicsItem* parentitem,
     QObject* parent)
-    : IntervalPresenter{interval, new TemporalIntervalView{*this, parentitem}, new TemporalIntervalHeader{*this}, ctx, parent}
+    : IntervalPresenter{zoom, interval, new TemporalIntervalView{*this, parentitem}, new TemporalIntervalHeader{*this}, ctx, parent}
     , m_handles{handles}
 {
   m_header->setPos(15, -IntervalHeader::headerHeight());

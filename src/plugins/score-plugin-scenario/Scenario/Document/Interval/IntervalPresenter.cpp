@@ -27,12 +27,18 @@ W_OBJECT_IMPL(Scenario::IntervalPresenter)
 namespace Scenario
 {
 IntervalPresenter::IntervalPresenter(
+    ZoomRatio zoom,
     const IntervalModel& model,
     IntervalView* view,
     IntervalHeader* header,
     const Process::Context& ctx,
     QObject* parent)
-    : QObject{parent}, m_model{model}, m_view{view}, m_header{header}, m_context{ctx}
+  : QObject{parent}
+  , m_model{model}
+  , m_zoomRatio{zoom}
+  , m_view{view}
+  , m_header{header}
+  , m_context{ctx}
 {
   auto& interval = m_model;
   m_header->setParentItem(m_view);

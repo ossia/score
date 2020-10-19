@@ -14,6 +14,7 @@ public:
   DisplayedElementsContainer make(IntervalModel& cst) const override;
 
   DisplayedElementsPresenterContainer make_presenters(
+      ZoomRatio zoom,
       const IntervalModel& m,
       const Process::Context& ctx,
       QGraphicsItem* view_parent,
@@ -28,6 +29,7 @@ public:
   DisplayedElementsContainer make(IntervalModel& cst) const override;
 
   DisplayedElementsPresenterContainer make_presenters(
+      ZoomRatio zoom,
       const IntervalModel& m,
       const Process::Context& ctx,
       QGraphicsItem* view_parent,

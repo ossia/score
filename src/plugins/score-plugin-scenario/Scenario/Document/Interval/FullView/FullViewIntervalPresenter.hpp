@@ -32,6 +32,7 @@ public:
   using view_type = FullViewIntervalView;
 
   FullViewIntervalPresenter(
+      ZoomRatio zoom,
       const IntervalModel& viewModel,
       const Process::Context& ctx,
       QGraphicsItem* parentobject,

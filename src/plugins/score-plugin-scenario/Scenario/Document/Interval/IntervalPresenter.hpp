@@ -29,6 +29,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT IntervalPresenter : public QObject, public Na
 
 public:
   IntervalPresenter(
+      ZoomRatio zoom,
       const IntervalModel& model,
       IntervalView* view,
       IntervalHeader* header,

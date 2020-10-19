@@ -47,6 +47,7 @@ DisplayedElementsContainer ScenarioDisplayedElementsProvider::make(IntervalModel
 }
 
 DisplayedElementsPresenterContainer ScenarioDisplayedElementsProvider::make_presenters(
+    ZoomRatio zoom,
     const IntervalModel& m,
     const Process::Context& ctx,
     QGraphicsItem* view_parent,
@@ -61,7 +62,7 @@ DisplayedElementsPresenterContainer ScenarioDisplayedElementsProvider::make_pres
     const auto& startNode = sm->timeSyncs.at(startEvent.timeSync());
     const auto& endNode = sm->timeSyncs.at(endEvent.timeSync());
     return DisplayedElementsPresenterContainer{
-        new FullViewIntervalPresenter{m, ctx, view_parent, parent},
+        new FullViewIntervalPresenter{zoom, m, ctx, view_parent, parent},
         new StatePresenter{startState, ctx, view_parent, parent},
         new StatePresenter{endState, ctx, view_parent, parent},
         new EventPresenter{startEvent, view_parent, parent},
@@ -99,6 +100,7 @@ DisplayedElementsContainer DefaultDisplayedElementsProvider::make(IntervalModel&
 }
 
 DisplayedElementsPresenterContainer DefaultDisplayedElementsProvider::make_presenters(
+    ZoomRatio zoom,
     const IntervalModel& m,
     const Process::Context& ctx,
     QGraphicsItem* view_parent,
@@ -113,7 +115,7 @@ DisplayedElementsPresenterContainer DefaultDisplayedElementsProvider::make_prese
     const auto& startNode = sm->timeSync(startEvent.timeSync());
     const auto& endNode = sm->timeSync(endEvent.timeSync());
     return DisplayedElementsPresenterContainer{
-        new FullViewIntervalPresenter{m, ctx, view_parent, parent},
+        new FullViewIntervalPresenter{zoom, m, ctx, view_parent, parent},
         new StatePresenter{startState, ctx, view_parent, parent},
         new StatePresenter{endState, ctx, view_parent, parent},
         new EventPresenter{startEvent, view_parent, parent},

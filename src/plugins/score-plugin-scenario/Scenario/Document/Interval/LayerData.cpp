@@ -166,14 +166,16 @@ void LayerData::updateLoops(
 {
   auto f = ctx.processList.findDefaultFactory(m_model->concreteKey());
   SCORE_ASSERT(f);
-  if (m_model->loops())
+  if (m_model->loops() && !(m_model->flags() & Process::ProcessFlags::HandlesLooping))
   {
     const auto view_width = m_model->loopDuration().toPixels(r);
     constexpr double min_view_width = 10.;
     // TODO here it should be different between fullview and temporal
     // (parent_width vs default_width)
-    const auto num_views
+    auto num_views
         = (view_width < min_view_width) ? 1 : std::max((int)1, (int)std::ceil(parent_width / view_width));
+    num_views = qBound(1, num_views, 500);
+
     if ((int)m_layers.size() < num_views)
     {
       int missing = num_views - m_layers.size();
