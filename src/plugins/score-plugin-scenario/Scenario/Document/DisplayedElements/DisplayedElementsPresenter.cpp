@@ -84,6 +84,21 @@ BaseGraphicsObject& DisplayedElementsPresenter::view() const
 
 void DisplayedElementsPresenter::on_displayedIntervalChanged(const IntervalModel& m)
 {
+  double cur_zoom = m.zoom();
+  if(cur_zoom <= 0 && m_intervalPresenter)
+  {
+    if(m_intervalPresenter)
+    {
+      cur_zoom = m_intervalPresenter->model().zoom();
+    }
+    else
+    {
+      double flicks_per_pixel = m.duration.guiDuration().impl / 700.;
+      cur_zoom = flicks_per_pixel;
+    }
+    ((IntervalModel&)m).setZoom(cur_zoom);
+  }
+
   remove();
 
   // Create states / events
