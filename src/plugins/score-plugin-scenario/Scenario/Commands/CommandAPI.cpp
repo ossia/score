@@ -83,20 +83,6 @@ Process::ProcessModel* Macro::createProcess(
   return nullptr;
 }
 
-Process::ProcessModel* Macro::createProcessInSlot(
-    const IntervalModel& interval,
-    const UuidKey<Process::ProcessModel>& key,
-    const QString& data,
-    const QPointF& pos)
-{
-  auto process_cmd = new AddProcessToInterval{interval, key, data, pos};
-  m.submit(process_cmd);
-  auto it = interval.processes.find(process_cmd->processId());
-  if (it != interval.processes.end())
-    return &(*it);
-  return nullptr;
-}
-
 Process::ProcessModel* Macro::createProcessInNewSlot(
     const IntervalModel& interval,
     const UuidKey<Process::ProcessModel>& key,
@@ -113,9 +99,39 @@ Process::ProcessModel* Macro::createProcessInNewSlot(
 {
   if (auto proc = createProcess(interval, key, data, pos))
   {
-    if(!(proc->flags() & Process::ProcessFlags::TimeIndependent))
+    const auto flags = proc->flags();
+    if(!(flags & Process::ProcessFlags::TimeIndependent))
     {
-      addLayerInNewSlot(interval, *proc);
+      if(flags & Process::ProcessFlags::PutInNewSlot)
+      {
+        addLayerInNewSlot(interval, *proc);
+      }
+      else
+      {
+        const auto& sv = interval.smallView();
+        if(sv.empty())
+        {
+          addLayerInNewSlot(interval, *proc);
+        }
+        else
+        {
+          auto it = ossia::find_if(sv, [] (const Slot& slt) {
+            return slt.nodal == false;
+          });
+          if(it != sv.end())
+          {
+            addLayer(interval, it - sv.begin(), *proc);
+          }
+          else
+          {
+            addLayerInNewSlot(interval, *proc);
+          }
+        }
+      }
+    }
+    else
+    {
+      showRack(interval);
     }
     return proc;
   }

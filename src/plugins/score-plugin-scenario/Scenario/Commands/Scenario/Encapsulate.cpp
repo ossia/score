@@ -73,7 +73,7 @@ void EncapsulateInScenario(const ProcessModel& scenar, const score::CommandStack
     return;
 
   auto& itv = *e.interval;
-  auto& sub_scenar = disp.createProcessInSlot<Scenario::ProcessModel>(itv, {}, {});
+  auto& sub_scenar = disp.createProcessInNewSlot<Scenario::ProcessModel>(itv, {});
 
   // Resize the slot to fit the existing elements
   disp.resizeSlot(

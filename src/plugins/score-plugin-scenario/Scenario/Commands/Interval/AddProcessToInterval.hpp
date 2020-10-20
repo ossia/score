@@ -34,33 +34,6 @@ namespace Scenario
 {
 namespace Command
 {
-class SCORE_PLUGIN_SCENARIO_EXPORT AddProcessToInterval final : public score::Command
-{
-  SCORE_COMMAND_DECL(CommandFactoryName(), AddProcessToInterval, "Add a process to a interval")
-
-public:
-  AddProcessToInterval(
-      const IntervalModel& interval,
-      const UuidKey<Process::ProcessModel>& process,
-      const QString& dat,
-      const QPointF& pos);
-  ~AddProcessToInterval();
-
-  void undo(const score::DocumentContext& ctx) const override;
-  void redo(const score::DocumentContext& ctx) const override;
-
-  const Path<IntervalModel>& intervalPath() const;
-  const Id<Process::ProcessModel>& processId() const;
-  const UuidKey<Process::ProcessModel>& processKey() const;
-
-private:
-  void serializeImpl(DataStreamInput& s) const override;
-  void deserializeImpl(DataStreamOutput& s) override;
-
-  AddOnlyProcessToInterval m_addProcessCommand;
-  bool m_addedSlot{};
-};
-
 class SCORE_PLUGIN_SCENARIO_EXPORT LoadProcessInInterval final : public score::Command
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), LoadProcessInInterval, "Load a process in an interval")

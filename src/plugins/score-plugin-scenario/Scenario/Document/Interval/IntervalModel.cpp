@@ -937,7 +937,7 @@ QPointF newProcessPosition(const IntervalModel& cst) noexcept
     }
   }
 
-  double start = 10.;
+  double start = 40.;
   auto it = autoPos.lower_bound(start);
   double distance = 0.;
   if(it != autoPos.end())

@@ -295,19 +295,10 @@ struct RequestOverlayMenuCallback
   {
     using namespace Scenario::Command;
 
-    if (fact.get(key)->flags() & Process::ProcessFlags::PutInNewSlot)
+    Macro m{new AddProcessInNewSlot, self.context()};
+    if (auto p = m.createProcessInNewSlot(self.model(), key, dat))
     {
-      Macro m{new AddProcessInNewSlot, self.context()};
-
-      if (auto p = m.createProcessInNewSlot(self.model(), key, dat))
-      {
-        m.commit();
-      }
-    }
-    else
-    {
-      CommandDispatcher<> d{self.context().commandStack};
-      d.submit<AddProcessToInterval>(self.model(), key, dat, QPointF{});
+      m.commit();
     }
   }
 };

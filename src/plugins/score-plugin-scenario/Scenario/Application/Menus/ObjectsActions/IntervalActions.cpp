@@ -6,6 +6,7 @@
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/Cohesion/CreateCurves.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
+#include <Scenario/Commands/Interval/CreateProcessInNewSlot.hpp>
 #include <Scenario/Commands/Scenario/HideRackInViewModel.hpp>
 #include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
@@ -24,6 +25,7 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/widgets/SetIcons.hpp>
 
+#include <Scenario/Commands/CommandAPI.hpp>
 #include <core/application/ApplicationSettings.hpp>
 #include <core/document/Document.hpp>
 #include <core/presenter/DocumentManager.hpp>
@@ -141,10 +143,13 @@ void IntervalActions::addProcessInInterval(
   if (selectedIntervals.isEmpty())
     return;
 
-  auto cmd = new Scenario::Command::AddProcessToInterval(
-      **selectedIntervals.begin(), processName, data, {});
+  using namespace Scenario::Command;
 
-  dispatcher().submit(cmd);
+  Macro m{new AddProcessInNewSlot, m_parent->currentDocument()->context()};
+  if (auto p = m.createProcessInNewSlot(**selectedIntervals.begin(), processName, data))
+  {
+    m.commit();
+  }
 }
 
 void IntervalActions::on_showRacks()
