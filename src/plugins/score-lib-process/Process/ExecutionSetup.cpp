@@ -10,7 +10,9 @@
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph_edge.hpp>
 #include <ossia/dataflow/graph_node.hpp>
+
 #include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/editor/scenario/time_process.hpp>
 
 namespace Execution
 {
@@ -550,6 +552,17 @@ void SetupContext::unregister_outlet(
   }
 
   outlets.erase(const_cast<Process::Outlet*>(&proc_port));
+}
+
+void SetupContext::replace_node(
+    const std::shared_ptr<ossia::time_process>& process,
+    const std::shared_ptr<ossia::graph_node>& node,
+    Transaction& commands)
+{
+  commands.push_back([p=process,n=node] () mutable {
+    using namespace std;
+    swap(p->node, n);
+  });
 }
 
 void SetupContext::unregister_node(

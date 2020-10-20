@@ -81,11 +81,11 @@ public:
   const Process::Inlets& inlets() const noexcept { return m_inlets; }
   const Process::Outlets& outlets() const noexcept { return m_outlets; }
 
-  llvm_dsp_factory* faust_factory{};
-  llvm_dsp* faust_object{};
+  std::shared_ptr<llvm_dsp_factory> faust_factory{};
+  std::shared_ptr<llvm_dsp> faust_object{};
 
-  ossia::nodes::custom_dsp_poly_factory* faust_poly_factory{};
-  ossia::nodes::custom_dsp_poly_effect* faust_poly_object{};
+  std::shared_ptr<ossia::nodes::custom_dsp_poly_factory> faust_poly_factory{};
+  std::shared_ptr<ossia::nodes::custom_dsp_poly_effect> faust_poly_object{};
 
   void changed() W_SIGNAL(changed);
   void textChanged(const QString& str) W_SIGNAL(textChanged, str);
@@ -145,10 +145,14 @@ public:
       QObject* parent);
 
 private:
-  void reloadSynth();
-  void reloadFx();
-  template <typename T>
-  void reload();
+  void reload(Execution::Transaction&);
+  void reloadSynth(Execution::Transaction&);
+  void reloadFx(Execution::Transaction&);
+
+  template<typename Node_T>
+  void setupExecutionControls(const Node_T&, int firstControlIndex);
+
+  std::vector<QMetaObject::Connection> m_controlConnections;
 };
 using FaustEffectComponentFactory = Execution::ProcessComponentFactory_T<FaustEffectComponent>;
 }

@@ -48,9 +48,7 @@ public:
   {
     auto node = std::make_shared<ossia::nodes::dummy_node>();
     component.node = node;
-    if (component.m_ossia_process)
-      component.m_ossia_process->node = node;
-    else
+    if (!component.m_ossia_process)
       component.m_ossia_process = std::make_shared<ossia::node_process>(node);
   }
 
@@ -60,9 +58,7 @@ public:
   {
     auto node = std::make_shared<ossia::nodes::sound_ref>();
     component.node = node;
-    if (component.m_ossia_process)
-      component.m_ossia_process->node = node;
-    else
+    if (!component.m_ossia_process)
       component.m_ossia_process = std::make_shared<ossia::sound_process>(node);
 
     recompute_ffmpeg(r, component);
@@ -73,9 +69,7 @@ public:
   {
     auto node = std::make_shared<ossia::nodes::sound_mmap>();
     component.node = node;
-    if (component.m_ossia_process)
-      component.m_ossia_process->node = node;
-    else
+    if (!component.m_ossia_process)
       component.m_ossia_process = std::make_shared<ossia::sound_process>(node);
 
     recompute_drwav(r, component);
@@ -132,6 +126,7 @@ public:
       Execution::Transaction commands{component.system()};
       component.system().setup.unregister_node(component.process(), old_node, commands);
       component.system().setup.register_node(component.process(), component.node, commands);
+      component.system().setup.replace_node(component.OSSIAProcessPtr(), component.node, commands);
       component.nodeChanged(old_node, component.node, commands);
 
       commands.run_all();
@@ -169,6 +164,7 @@ public:
       Execution::Transaction commands{component.system()};
       component.system().setup.unregister_node(component.process(), old_node, commands);
       component.system().setup.register_node(component.process(), component.node, commands);
+      component.system().setup.replace_node(component.OSSIAProcessPtr(), component.node, commands);
       component.nodeChanged(old_node, component.node, commands);
 
       commands.run_all();

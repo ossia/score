@@ -7,6 +7,11 @@
 #include <ossia/detail/small_vector.hpp>
 
 #include <QMetaObject>
+namespace ossia
+{
+class time_process;
+}
+
 namespace Process
 {
 class ProcessModel;
@@ -146,6 +151,11 @@ struct SCORE_LIB_PROCESS_EXPORT SetupContext final : public QObject
       const Process::Outlet& outlet,
       const std::shared_ptr<ossia::graph_node>& node,
       Transaction& vec);
+
+  void replace_node(
+      const std::shared_ptr<ossia::time_process>& process,
+      const std::shared_ptr<ossia::graph_node>& node,
+      Transaction& commands);
 
   void on_cableCreated(Process::Cable& c);
   void on_cableRemoved(const Process::Cable& c);

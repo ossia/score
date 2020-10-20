@@ -14,7 +14,7 @@ endif()
 #if(SCORE_AUDIO_PLUGINS)
   find_package(Lilv QUIET)
   find_package(Suil QUIET)
-  if(NOT MSVC AND NOT ("${CMAKE_CXX_FLAGS}" MATCHES ".*fsanitize.*"))
+  if(NOT MSVC)
     find_package(Faust QUIET)
   endif()
 #endif()
@@ -23,9 +23,6 @@ if(UNIX AND NOT APPLE)
   find_package(ZLIB QUIET)
 endif()
 
-if(Faust_FOUND)
-  set(Faust_FOUND NOT ("${CMAKE_CXX_FLAGS}" MATCHES ".*fsanitize.*"))
-endif()
 
 # Files & main target
 set(HDRS ${HDRS}
