@@ -3,7 +3,7 @@ project(score_plugin_deviceexplorer LANGUAGES CXX)
 score_common_setup()
 
 # Packages
-find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Network Xml)
+find_package(${QT_VERSION} REQUIRED COMPONENTS Core Widgets Network Xml)
 
 # Files & main target
 ### Plugin ###
@@ -144,7 +144,7 @@ if(OSSIA_DNSSD)
   target_link_libraries(${PROJECT_NAME} PRIVATE Servus_iface)
   target_include_directories(${PROJECT_NAME} PRIVATE ${OSSIA_3RDPARTY_FOLDER}/Servus)
 endif()
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Core Qt5::Network)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${QT_PREFIX}::Core ${QT_PREFIX}::Network)
 
 if(WIN32)
   target_link_libraries(${PROJECT_NAME} PRIVATE Ws2_32)

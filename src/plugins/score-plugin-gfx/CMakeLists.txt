@@ -1,20 +1,15 @@
 project(score_plugin_gfx LANGUAGES C CXX)
 
-if (Qt5Core_VERSION VERSION_LESS 5.14.0)
-  message("Video plug-in requires Qt 5.14 at least.")
-  return()
-endif()
-
-find_package(Qt5 5.14 OPTIONAL_COMPONENTS ShaderTools)
-if(NOT TARGET Qt5::ShaderTools)
+find_package(${QT_VERSION} OPTIONAL_COMPONENTS ShaderTools)
+if(NOT TARGET Qt::ShaderTools)
+  message("Video plug-in requires Qt Shader Tools (5.14+)")
   return()
 endif()
 
 # General initialization
 score_common_setup()
 
-
-find_package(Qt5Gui 5.14 REQUIRED Private)
+find_package(${QT_VERSION} REQUIRED Gui)
 
 if(NOT TARGET avformat)
   find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVUTIL AVDEVICE)
@@ -155,7 +150,7 @@ score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 # Link
 target_link_libraries(${PROJECT_NAME} PUBLIC
   score_lib_base  score_lib_localtree score_lib_process score_plugin_dataflow score_plugin_engine
-   Qt5::ShaderTools  Qt5::GuiPrivate
+   ${QT_PREFIX}::ShaderTools  ${QT_PREFIX}::GuiPrivate
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE
   avcodec avformat swresample avutil avdevice score_plugin_media isf)

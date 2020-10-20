@@ -1,12 +1,12 @@
 project(IntegrationTests)
 
-find_package(Qt5 5.9 COMPONENTS Test)
+find_package(${QT_VERSION} COMPONENTS Test)
 enable_testing()
 include(CTest)
 set(CMAKE_AUTOMOC ON)
 function(add_integration_test TESTNAME TESTSRCS)
     add_executable(Integration_${TESTNAME} ${TESTSRCS} score_integration.hpp)
-    target_link_libraries(Integration_${TESTNAME} PRIVATE ${SCORE_PLUGINS_LIST} Qt5::Test)
+    target_link_libraries(Integration_${TESTNAME} PRIVATE ${SCORE_PLUGINS_LIST} ${QT_PREFIX}::Test)
     target_include_directories(Integration_${TESTNAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     add_test(Integration_${TESTNAME}_target Integration_${TESTNAME})
 endFunction()
@@ -29,11 +29,11 @@ function(add_score_test _name _file)
   add_executable(${_name} ${_file})
 
   target_link_libraries(${_name} PRIVATE score_lib_base ${SCORE_PLUGINS_LIST}
-      Qt5::Core Qt5::Widgets Qt5::Gui Qt5::Network Qt5::Xml Qt5::Test)
+      ${QT_PREFIX}::Core ${QT_PREFIX}::Widgets ${QT_PREFIX}::Gui ${QT_PREFIX}::Network ${QT_PREFIX}::Xml ${QT_PREFIX}::Test)
 
-  if(TARGET Qt5::Svg)
+  if(TARGET ${QT_PREFIX}::Svg)
     target_link_libraries(score_lib_base
-      PRIVATE Qt5::Svg
+      PRIVATE ${QT_PREFIX}::Svg
     )
   endif()
 

@@ -7,8 +7,8 @@ endif()
 score_common_setup()
 
 # Packages
-find_package(Qt5 5.3 OPTIONAL_COMPONENTS Qml)
-if(NOT TARGET Qt5::Qml)
+find_package(${QT_VERSION} OPTIONAL_COMPONENTS Qml)
+if(NOT TARGET ${QT_PREFIX}::Qml)
   return()
 endif()
 if(NOT TARGET score_plugin_engine)
@@ -55,7 +55,7 @@ add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
-                     Qt5::Core Qt5::Widgets Qt5::Qml Qt5::QmlPrivate
+                     ${QT_PREFIX}::Core ${QT_PREFIX}::Widgets ${QT_PREFIX}::Qml ${QT_PREFIX}::QmlPrivate
                      score_lib_base score_plugin_engine score_lib_process score_lib_inspector score_lib_device score_plugin_deviceexplorer score_plugin_protocols)
 
 setup_score_plugin(${PROJECT_NAME})

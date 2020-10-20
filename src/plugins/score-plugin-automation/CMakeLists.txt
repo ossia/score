@@ -3,7 +3,7 @@ project(score_plugin_automation LANGUAGES CXX)
 score_common_setup()
 
 # Packages
-find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
+find_package(${QT_VERSION} REQUIRED COMPONENTS Core Widgets)
 
 # Files & main target
 set(HDRS
@@ -90,7 +90,7 @@ add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 
 target_link_libraries(${PROJECT_NAME}
-  PUBLIC Qt5::Core Qt5::Widgets
+  PUBLIC ${QT_PREFIX}::Core ${QT_PREFIX}::Widgets
             score_lib_base score_lib_device
             score_plugin_deviceexplorer score_lib_process
             score_lib_state score_plugin_curve score_lib_inspector

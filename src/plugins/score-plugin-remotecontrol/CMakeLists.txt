@@ -1,6 +1,10 @@
 project(score_plugin_remotecontrol LANGUAGES CXX)
 
-find_package(Qt5 5.9 REQUIRED COMPONENTS WebSockets)
+find_package(${QT_VERSION} OPTIONAL_COMPONENTS WebSockets)
+if(NOT Qt::WebSockets)
+  message("Remote control plug-in requires QtWebSockets.")
+  return()
+endif()
 
 # General initialization
 score_common_setup()
@@ -44,7 +48,7 @@ set(SRCS
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS} ${QRCS})
 
-target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_scenario score_plugin_js Qt5::WebSockets)
+target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_scenario score_plugin_js ${QT_PREFIX}::WebSockets)
 
 setup_score_plugin(${PROJECT_NAME})
 

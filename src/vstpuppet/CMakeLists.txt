@@ -1,7 +1,8 @@
 project(vstpuppet CXX)
-find_package(Qt5 5.9 OPTIONAL_COMPONENTS WebSockets)
+find_package(${QT_VERSION} OPTIONAL_COMPONENTS WebSockets)
 
-if(NOT TARGET Qt5::WebSockets)
+if(NOT TARGET ${QT_PREFIX}::WebSockets)
+  message("VST loading requires QtWebSockets.")
   return()
 endif()
 add_executable(ossia-score-vstpuppet vstpuppet.cpp "${SCORE_SRC}/plugins/score-plugin-media/Media/Effect/VST/VSTLoader.cpp")
@@ -9,9 +10,9 @@ target_compile_definitions(ossia-score-vstpuppet PUBLIC HAS_VST2)
 target_link_libraries(
   ossia-score-vstpuppet
   PRIVATE
-    Qt5::Core
-    Qt5::Gui
-    Qt5::WebSockets
+    ${QT_PREFIX}::Core
+    ${QT_PREFIX}::Gui
+    ${QT_PREFIX}::WebSockets
     ${CMAKE_DL_LIBS})
 
 if(APPLE)

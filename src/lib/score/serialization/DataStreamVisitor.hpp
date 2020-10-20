@@ -111,7 +111,6 @@ operator>>(QDataStream& s, T& t)
 #endif
 
 class QIODevice;
-class QStringList;
 
 struct DataStreamInput
 {

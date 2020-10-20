@@ -36,6 +36,12 @@ project(score LANGUAGES C CXX)
 if(APPLE)
   enable_language(OBJCXX)
 endif()
+if(NOT QT_VERSION)
+  set(QT_VERSION Qt5 5.9)
+  set(QT_PREFIX Qt5)
+else()
+  set(QT_PREFIX Qt6)
+endif()
 
 set(SCORE_VERSION_MAJOR 3)
 set(SCORE_VERSION_MINOR 0)
@@ -75,7 +81,7 @@ if(MSYS OR MINGW)
   find_package(ZLIB)
 endif()
 
-find_package(Qt5 5.9 REQUIRED
+find_package(${QT_VERSION} REQUIRED
              COMPONENTS
                Core
                Widgets

@@ -43,8 +43,8 @@ elseif(UNIX)
     set(SCORE_ADDON_SUFFIX "amd64.so")
 endif()
 
-find_package(Qt5 COMPONENTS Core)
-get_target_property(Qt5_LibType Qt5::Core TYPE)
+find_package(${QT_VERSION} COMPONENTS Core)
+get_target_property(Qt5_LibType Qt::Core TYPE)
 
 if("${Qt5_LibType}" STREQUAL "STATIC_LIBRARY")
   set(SCORE_STATIC_QT ON CACHE INTERNAL "")

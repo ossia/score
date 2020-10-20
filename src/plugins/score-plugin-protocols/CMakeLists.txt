@@ -3,8 +3,8 @@ project(score_plugin_protocols LANGUAGES CXX)
 score_common_setup()
 
 # Packages
-find_package(Qt5 5.9 REQUIRED COMPONENTS Core Widgets Network)
-find_package(Qt5 5.9 OPTIONAL_COMPONENTS Qml)
+find_package(${QT_VERSION} REQUIRED COMPONENTS Core Widgets Network)
+find_package(${QT_VERSION} OPTIONAL_COMPONENTS Qml)
 
 # Files & main target
 set(HDRS
@@ -201,8 +201,8 @@ endif()
 
 if(OSSIA_PROTOCOL_SERIAL)
     target_sources(${PROJECT_NAME} PRIVATE ${SERIAL_HDRS} ${SERIAL_SRCS})
-    find_package(Qt5 5.7 REQUIRED COMPONENTS SerialPort)
-    target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::SerialPort)
+    find_package(${QT_VERSION} REQUIRED COMPONENTS SerialPort)
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${QT_PREFIX}::SerialPort)
 endif()
 
 if(OSSIA_PROTOCOL_PHIDGETS)
@@ -224,7 +224,7 @@ endif()
 
 target_link_libraries(${PROJECT_NAME}
         PUBLIC
-          Qt5::Core Qt5::Widgets Qt5::Network
+          ${QT_PREFIX}::Core ${QT_PREFIX}::Widgets ${QT_PREFIX}::Network
           score_lib_base score_lib_device score_plugin_deviceexplorer
           score_plugin_library
           ossia
@@ -235,9 +235,9 @@ if(OSSIA_DNSSD)
   target_include_directories(${PROJECT_NAME} PRIVATE ${OSSIA_3RDPARTY_FOLDER}/Servus)
 endif()
 
-if(TARGET Qt5::Qml)
+if(TARGET ${QT_PREFIX}::Qml)
     target_sources(${PROJECT_NAME} PRIVATE ${MAPPER_SRCS})
-    target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Qml)
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${QT_PREFIX}::Qml)
 endif()
 
 if(WIN32)

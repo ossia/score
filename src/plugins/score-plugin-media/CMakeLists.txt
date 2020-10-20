@@ -4,8 +4,8 @@ include(ExternalProject)
 score_common_setup()
 
 # Packages
-find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)# Concurrent)
-find_package(Qt5 5.3 OPTIONAL_COMPONENTS WebSockets)
+find_package(${QT_VERSION} REQUIRED COMPONENTS Core Widgets)# Concurrent)
+find_package(${QT_VERSION} OPTIONAL_COMPONENTS WebSockets)
 find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVDEVICE AVUTIL SWRESAMPLE SWSCALE POSTPROC)
 if(NOT FFmpeg_FOUND)
     return()
@@ -162,7 +162,7 @@ if(TARGET Lilv AND TARGET Suil)
     )
 endif()
 
-if(TARGET Qt5::WebSockets)
+if(TARGET ${QT_PREFIX}::WebSockets)
 set(VST_HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTLoader.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTEffectModel.hpp"
@@ -213,7 +213,7 @@ add_library(${PROJECT_NAME}
 
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS};${FAUST_HDRS};${LV2_HDRS};${VST_HDRS}")
 target_link_libraries(${PROJECT_NAME} PUBLIC
-                     Qt5::Core Qt5::Widgets
+                     ${QT_PREFIX}::Core ${QT_PREFIX}::Widgets
                      score_lib_base score_plugin_engine score_plugin_library score_plugin_audio score_plugin_dataflow
 )
 
@@ -255,9 +255,9 @@ endif()
 if(WIN32)
     target_link_libraries(${PROJECT_NAME} PRIVATE evr mf mfplat Strmiids Quartz Vfw32)
 endif()
-if(TARGET Qt5::WebSockets)
+if(TARGET ${QT_PREFIX}::WebSockets)
 target_compile_definitions(${PROJECT_NAME} PUBLIC HAS_VST2)
-target_link_libraries(${PROJECT_NAME} PUBLIC Qt5::WebSockets)
+target_link_libraries(${PROJECT_NAME} PUBLIC ${QT_PREFIX}::WebSockets)
 endif()
 target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_DL_LIBS})
 

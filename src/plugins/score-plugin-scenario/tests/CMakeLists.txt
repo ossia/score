@@ -3,11 +3,11 @@ enable_testing()
 
 include_directories("${SCORE_ROOT_SOURCE_DIR}/base")
 
-find_package(Qt5 5.3 REQUIRED COMPONENTS Core Test)
+find_package(${QT_VERSION} REQUIRED COMPONENTS Core Test)
 
 function(addScoreQtTest TESTNAME TESTSRCS)
                 add_executable(${TESTNAME} ${TESTSRCS})
-                target_link_libraries(${TESTNAME} PRIVATE Qt5::Core Qt5::Test score_lib_base scenario_process DeviceExplorerLibrary StateLibrary)
+                target_link_libraries(${TESTNAME} PRIVATE ${QT_PREFIX}::Core ${QT_PREFIX}::Test score_lib_base scenario_process DeviceExplorerLibrary StateLibrary)
                 add_test(${TESTNAME}_target ${TESTNAME})
 endFunction()
 

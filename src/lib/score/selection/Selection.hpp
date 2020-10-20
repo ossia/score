@@ -84,12 +84,12 @@ public:
 
   bool operator==(const Selection& other) const
   {
-    return base_type::operator!=(static_cast<const base_type&>(other));
+    return static_cast<const base_type&>(*this) == static_cast<const base_type&>(other);
   }
 
   bool operator!=(const Selection& other) const
   {
-    return base_type::operator!=(static_cast<const base_type&>(other));
+    return static_cast<const base_type&>(*this) != static_cast<const base_type&>(other);
   }
 
   QList<const IdentifiedObjectAbstract*> toList() const

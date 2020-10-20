@@ -3,7 +3,7 @@ if(UNIX)
 set(SCORE_BIN_INSTALL_DIR ".")
 
 # Qt Libraries
-get_target_property(QtCore_LOCATION Qt5::Core LOCATION)
+get_target_property(QtCore_LOCATION ${QT_PREFIX}::Core LOCATION)
 get_filename_component(QT_SO_DIR ${QtCore_LOCATION} PATH)
 # TODO Same than for windows deployment
 file(GLOB ICU_SOS "${QT_SO_DIR}/libicu*.so*")

@@ -53,7 +53,7 @@ endif()
 
 target_link_libraries(${PROJECT_NAME}
         PUBLIC
-          Qt5::Core Qt5::Widgets
+          ${QT_PREFIX}::Core ${QT_PREFIX}::Widgets
           score_lib_base score_lib_device score_lib_state score_plugin_scenario score_plugin_deviceexplorer
           ossia
 )

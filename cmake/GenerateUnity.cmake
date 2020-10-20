@@ -17,7 +17,7 @@ endmacro()
 macro(_unity_addLib lib)
   if(TARGET ${lib})
       # ignore
-  elseif("${lib}" MATCHES "^Qt5::")
+  elseif("${lib}" MATCHES "^${QT_PREFIX}::")
     # ignore
   elseif("${lib}" MATCHES "^[A-Za-z0-9]+::")
     # ignore

@@ -7,6 +7,7 @@
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/Dispatchers/RuntimeDispatcher.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+#include <QIODevice>
 
 namespace score
 {

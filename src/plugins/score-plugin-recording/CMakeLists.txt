@@ -6,7 +6,7 @@ endif()
 
 score_common_setup()
 # Packages
-find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
+find_package(${QT_VERSION} REQUIRED COMPONENTS Core Widgets)
 
 # Files & main target
 set(HDRS

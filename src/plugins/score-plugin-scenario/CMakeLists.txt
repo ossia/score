@@ -3,11 +3,11 @@ score_common_setup()
 
 # Packages
 # TODO make a check to see what libs aren't necessary
-find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets OpenGL)
+find_package(${QT_VERSION} REQUIRED COMPONENTS Core Widgets OpenGL)
 
-find_package(Qt5 5.3 QUIET OPTIONAL_COMPONENTS Svg)
+find_package(${QT_VERSION} QUIET OPTIONAL_COMPONENTS Svg)
 if(SCORE_WEBSOCKETS)
-  find_package(Qt5 5.3 REQUIRED COMPONENTS WebSockets)
+  find_package(${QT_VERSION} REQUIRED COMPONENTS WebSockets)
 endif()
 
 find_package(Threads)
@@ -622,7 +622,7 @@ score_generate_command_list_file(score_plugin_scenario "${HDRS}")
 
 target_link_libraries(score_plugin_scenario
   PUBLIC
-    Qt5::Core Qt5::Widgets Qt5::OpenGL
+    ${QT_PREFIX}::Core ${QT_PREFIX}::Widgets ${QT_PREFIX}::OpenGL
     score_lib_base
     score_lib_process score_lib_device score_lib_localtree score_plugin_deviceexplorer
     score_lib_state score_plugin_curve score_plugin_automation
@@ -630,12 +630,12 @@ target_link_libraries(score_plugin_scenario
     Threads::Threads)
 
 
-if(TARGET Qt5::Svg)
+if(TARGET ${QT_PREFIX}::Svg)
   if(SCORE_WEBSOCKETS)
-    target_link_libraries(score_plugin_scenario PRIVATE Qt5::WebSockets)
+    target_link_libraries(score_plugin_scenario PRIVATE ${QT_PREFIX}::WebSockets)
   endif()
   target_link_libraries(score_plugin_scenario
-    PRIVATE Qt5::Svg
+    PRIVATE ${QT_PREFIX}::Svg
   )
 endif()
 

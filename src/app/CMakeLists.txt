@@ -94,7 +94,7 @@ if(IOS)
   find_library(CoreGraphics_LIBRARY CoreGraphics)
   find_library(UIKit_LIBRARY UIKit)
 
-  get_target_property(QtCore_LIB Qt5::Core LOCATION)
+  get_target_property(QtCore_LIB ${QT_PREFIX}::Core LOCATION)
   get_filename_component(QT_LIB_FOLDER ${QtCore_LIB} DIRECTORY)
   find_library(qtharfbuzzng_LIBRARY NAMES qtharfbuzzng libqtharfbuzzng HINTS ${QT_LIB_FOLDER})
   find_library(qtfreetype_LIBRARY NAMES qtfreetype libqtfreetype HINTS ${QT_LIB_FOLDER})
@@ -120,7 +120,7 @@ endif()
 
 if(UNIX AND NOT APPLE)
   if(NOT EXISTS "${CMAKE_BINARY_DIR}/run.sh")
-      get_target_property(QtCore_LIB Qt5::Core LOCATION)
+      get_target_property(QtCore_LIB ${QT_PREFIX}::Core LOCATION)
       get_filename_component(QT_ROOT_FOLDER "${QtCore_LIB}" DIRECTORY)
       get_filename_component(QT_ROOT_FOLDER "${QT_ROOT_FOLDER}" ABSOLUTE)
       file(

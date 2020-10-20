@@ -3,7 +3,7 @@ project(score_lib_state LANGUAGES CXX)
 score_common_setup()
 
 # Packages
-find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
+find_package(${QT_VERSION} REQUIRED COMPONENTS Core Widgets)
 
 # Files & main target
 set(SRCS
@@ -62,7 +62,7 @@ set(HDRS
 
 add_library(${PROJECT_NAME} ${HDRS} ${SRCS})
 target_link_libraries(${PROJECT_NAME} PUBLIC
-    Qt5::Core Qt5::Widgets score_lib_base)
+    ${QT_PREFIX}::Core ${QT_PREFIX}::Widgets score_lib_base)
 setup_score_library(${PROJECT_NAME})
 
 #setup_score_tests(Tests)

@@ -87,7 +87,7 @@ QT+=core widgets gui network xml svg websockets opengl
   list(REMOVE_DUPLICATES LIBS)
   foreach(lib ${LIBS})
     if(TARGET ${lib})
-      if("${lib}" MATCHES "^Qt5::")
+      if("${lib}" MATCHES "^${QT_PREFIX}::")
         # ignore
       elseif("${lib}" MATCHES "^score_")
         # ignore

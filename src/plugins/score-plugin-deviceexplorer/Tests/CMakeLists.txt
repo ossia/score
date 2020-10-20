@@ -7,5 +7,5 @@ find_package(Qt5Widgets)
 
 add_executable(NodeTest NodeTest.cpp)
 setup_score_common_test_features(NodeTest)
-target_link_libraries(NodeTest PRIVATE score_lib_device score_plugin_deviceexplorer Qt5::Core Qt5::Test)
+target_link_libraries(NodeTest PRIVATE score_lib_device score_plugin_deviceexplorer ${QT_PREFIX}::Core ${QT_PREFIX}::Test)
 add_test(NodeTest NodeTest)

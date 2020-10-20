@@ -36,7 +36,7 @@ install(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
 # Qt Libraries
 set(DEBUG_CHAR "$<$<CONFIG:Debug>:d>")
 
-get_target_property(QtCore_LOCATION Qt5::Core LOCATION)
+get_target_property(QtCore_LOCATION ${QT_PREFIX}::Core LOCATION)
 get_filename_component(QT_DLL_DIR ${QtCore_LOCATION} PATH)
 
 if(NOT OSSIA_STATIC)

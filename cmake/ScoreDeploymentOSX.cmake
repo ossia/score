@@ -35,7 +35,7 @@ endif()
 
 # set-up Qt stuff.
 # Remember to set CMAKE_INSTALL_PREFIX on the CMake command line.
-get_target_property(QT_LIBRARY_FILE Qt5::Core LOCATION)
+get_target_property(QT_LIBRARY_FILE ${QT_PREFIX}::Core LOCATION)
 if("${QT_LIBRARY_FILE}" MATCHES "\.a$")
     set(QT_STATIC 1)
 else()
