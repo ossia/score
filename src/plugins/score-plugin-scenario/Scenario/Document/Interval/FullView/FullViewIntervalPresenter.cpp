@@ -294,7 +294,15 @@ void FullViewIntervalPresenter::setupSlot(LayerSlotPresenter& slot, const Proces
     const auto gui_width = m_model.duration.guiDuration().toPixels(m_zoomRatio);
     const auto def_width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
     const auto slot_height = ld.model().getSlotHeight();
-    ld.updateLoops(m_context, m_zoomRatio, gui_width, def_width, slot_height, this->m_view, this);
+
+    if(!(ld.model().flags() & Process::ProcessFlags::HandlesLooping))
+    {
+      ld.updateLoops(m_context, m_zoomRatio, gui_width, def_width, slot_height, this->m_view, this);
+    }
+    else
+    {
+      ld.parentGeometryChanged();
+    }
   });
 
   con(proc, &Process::ProcessModel::startOffsetChanged, this, [this, slot_i] {
@@ -305,7 +313,14 @@ void FullViewIntervalPresenter::setupSlot(LayerSlotPresenter& slot, const Proces
     SCORE_ASSERT(!slt->layers.empty());
     auto& ld = slt->layers.front();
 
-    ld.updateStartOffset(-ld.model().startOffset().toPixels(m_zoomRatio));
+    if(!(ld.model().flags() & Process::ProcessFlags::HandlesLooping))
+    {
+      ld.updateStartOffset(-ld.model().startOffset().toPixels(m_zoomRatio));
+    }
+    else
+    {
+      ld.parentGeometryChanged();
+    }
   });
   con(proc, &Process::ProcessModel::loopDurationChanged, this, [this, slot_i] {
     SCORE_ASSERT(slot_i < int(m_slots.size()));
@@ -314,10 +329,17 @@ void FullViewIntervalPresenter::setupSlot(LayerSlotPresenter& slot, const Proces
     SCORE_ASSERT(slt);
     SCORE_ASSERT(!slt->layers.empty());
     LayerData& ld = slt->layers.front();
-    const auto gui_width = m_model.duration.guiDuration().toPixels(m_zoomRatio);
-    const auto def_width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
-    const auto slot_height = ld.model().getSlotHeight();
-    ld.updateLoops(m_context, m_zoomRatio, gui_width, def_width, slot_height, this->m_view, this);
+    if(!(ld.model().flags() & Process::ProcessFlags::HandlesLooping))
+    {
+      const auto gui_width = m_model.duration.guiDuration().toPixels(m_zoomRatio);
+      const auto def_width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
+      const auto slot_height = ld.model().getSlotHeight();
+      ld.updateLoops(m_context, m_zoomRatio, gui_width, def_width, slot_height, this->m_view, this);
+    }
+    else
+    {
+      ld.parentGeometryChanged();
+    }
   });
 
   updateProcessShape(slot_i);
@@ -690,6 +712,8 @@ void FullViewIntervalPresenter::on_visibleRectChanged(QRectF r)
   {
     m_sceneRect = r;
     updateTimeBars();
+
+    updateAllSlots();
   }
 }
 

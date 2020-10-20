@@ -40,7 +40,11 @@ void LayerData::addView(
   container->setFlag(QGraphicsItem::ItemClipsChildrenToShape);
   container->setY(m_slotY);
   auto view = factory.makeLayerView(*m_model, context, container);
-  view->setPos(-m_model->startOffset().toPixels(zoomRatio), 0.);
+
+  double startX = m_model->flags() & Process::ProcessFlags::HandlesLooping
+      ? 0.
+      : -m_model->startOffset().toPixels(zoomRatio);
+  view->setPos(startX, 0.);
 
   auto presenter = factory.makeLayerPresenter(*m_model, view, context, parent);
   presenter->putToFront();
@@ -133,7 +137,11 @@ void LayerData::on_zoomRatioChanged(
   for (const auto& p : m_layers)
   {
     p.presenter->on_zoomRatioChanged(r);
-    p.view->setPos(-m_model->startOffset().toPixels(r), 0.);
+
+    double startX = m_model->flags() & Process::ProcessFlags::HandlesLooping
+        ? 0.
+        : -m_model->startOffset().toPixels(r);
+    p.view->setPos(startX, 0.);
   }
 }
 

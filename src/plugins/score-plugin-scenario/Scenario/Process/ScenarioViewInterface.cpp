@@ -88,6 +88,7 @@ void ScenarioViewInterface::on_intervalMoved(const TemporalIntervalPresenter& pr
           : cstr_model.duration.maxDuration().toPixels(msPerPixel));
   cstr_view.setRigid(cstr_model.duration.isRigid());
 
+  pres.updateAllSlots();
   m_presenter.m_view->update();
 }
 

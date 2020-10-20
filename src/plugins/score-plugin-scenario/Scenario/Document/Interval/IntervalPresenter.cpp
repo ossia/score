@@ -115,6 +115,20 @@ double IntervalPresenter::on_playPercentageChanged(double t)
     return m_view->setPlayWidth(m_view->defaultWidth() * t);
 }
 
+void IntervalPresenter::updateAllSlots() const
+{
+  for(auto& proc : this->m_slots)
+  {
+    if(auto p = proc.getLayerSlot())
+    {
+      for(auto& lay : p->layers)
+      {
+        lay.parentGeometryChanged();
+      }
+    }
+  }
+}
+
 void IntervalPresenter::updateChildren()
 {
   askUpdate();

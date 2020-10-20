@@ -65,6 +65,8 @@ public:
   virtual void selectedSlot(int) const = 0;
   virtual void requestSlotMenu(int slot, QPoint pos, QPointF sp) const = 0;
 
+  void updateAllSlots() const;
+
 public:
   void pressed(QPointF arg_1) const E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1)
   void moved(QPointF arg_1) const E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1)

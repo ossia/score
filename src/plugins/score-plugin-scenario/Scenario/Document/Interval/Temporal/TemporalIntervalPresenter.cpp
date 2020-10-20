@@ -587,10 +587,18 @@ void TemporalIntervalPresenter::createLayer(int slot_i, const Process::ProcessMo
       SCORE_ASSERT(lay_slt);
       SCORE_ASSERT(!lay_slt->layers.empty());
       LayerData& ld = lay_slt->layers.front();
-      const auto def_width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
-      const auto slot_height = m_model.smallView().at(slot_i).height;
-      ld.updateLoops(
-          m_context, m_zoomRatio, def_width, def_width, slot_height, this->m_view, this);
+
+      if(!(ld.model().flags() & Process::ProcessFlags::HandlesLooping))
+      {
+        const auto def_width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
+        const auto slot_height = m_model.smallView().at(slot_i).height;
+        ld.updateLoops(
+            m_context, m_zoomRatio, def_width, def_width, slot_height, this->m_view, this);
+      }
+      else
+      {
+        ld.parentGeometryChanged();
+      }
     });
 
     con(proc, &Process::ProcessModel::startOffsetChanged, this, [this, slot_i] {
@@ -604,7 +612,14 @@ void TemporalIntervalPresenter::createLayer(int slot_i, const Process::ProcessMo
       {
         auto& ld = slot->layers.front();
 
-        ld.updateStartOffset(-ld.model().startOffset().toPixels(m_zoomRatio));
+        if(!(ld.model().flags() & Process::ProcessFlags::HandlesLooping))
+        {
+          ld.updateStartOffset(-ld.model().startOffset().toPixels(m_zoomRatio));
+        }
+        else
+        {
+          ld.parentGeometryChanged();
+        }
       }
     });
     con(proc, &Process::ProcessModel::loopDurationChanged, this, [this, slot_i] {
@@ -619,9 +634,16 @@ void TemporalIntervalPresenter::createLayer(int slot_i, const Process::ProcessMo
         LayerData& ld = slot->layers.front();
         const auto def_width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
         const auto slot_height = m_model.smallView().at(slot_i).height;
-        ld.updateLoops(
-            m_context, m_zoomRatio, def_width, def_width, slot_height, this->m_view, this);
 
+        if(!(ld.model().flags() & Process::ProcessFlags::HandlesLooping))
+        {
+          ld.updateLoops(
+              m_context, m_zoomRatio, def_width, def_width, slot_height, this->m_view, this);
+        }
+        else
+        {
+          ld.parentGeometryChanged();
+        }
         // TODO on_layerModelPutToFront(i, slot.layers.front().model());
 
       }
