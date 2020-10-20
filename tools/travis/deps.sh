@@ -49,6 +49,15 @@ case "$TRAVIS_OS_NAME" in
     mv cmake-*-x86_64 cmake-latest
   ;;
   osx)
+    echo "=============================="
+    find /Applications/Xcode.app -name MacOSX10.15.sdk -type d
+    ls /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
+    ls /Applications/Xcode-12.2.beta.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
+    ls /Applications/Xcode*.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
+    echo "=============================="
+
+    
+
     # Setup codesigning
     # Thanks https://www.update.rocks/blog/osx-signing-with-travis/
     (
