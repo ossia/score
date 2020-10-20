@@ -10,6 +10,7 @@ namespace Nodal
 View::View(QGraphicsItem* parent) : LayerView{parent}
 {
   setFlag(ItemHasNoContents, true);
+  setFlag(ItemClipsChildrenToShape);
 }
 
 View::~View() { }

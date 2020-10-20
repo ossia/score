@@ -403,12 +403,13 @@ const ProcessModel& NodeItem::model() const noexcept { return m_model; }
 
 bool NodeItem::isInSelectionCorner(QPointF p, QRectF r) const
 {
-  return p.x() > r.width() - 10. && p.y() > r.height() - 10.;
+  return (p.x() - r.x()) > (r.width() - 10.) && (p.y() - r.y()) > (r.height() - 10.);
 }
 
 void NodeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  const auto& skin = score::Skin::instance();
+  auto& style = Process::Style::instance();
+  const auto& skin = style.skin;
   const auto rect = boundingRect();
   //painter->fillRect(boundingRect(), Qt::red);
   // return;
@@ -436,9 +437,22 @@ void NodeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
   // Exec
   if (m_playPercentage != 0.)
   {
-    auto& style = Process::Style::instance();
     painter->setPen(style.IntervalPlayFill().main.pen1_solid_flat_miter);
-    painter->drawLine(QPointF{0., TitleHeight}, QPointF{width() * m_playPercentage, 14.});
+    painter->drawLine(QPointF{0., 0.}, QPointF{width() * m_playPercentage, 0.});
+  }
+
+  // Resizing handle
+  if (m_presenter)
+  {
+    const auto h = m_contentSize.height();
+    const auto w = m_contentSize.width() + (m_outlets.empty() ? 0. : RightSideWidth);
+    painter->setPen(style.IntervalWarning().main.pen0_solid_round);
+    double start_x = w - 6.;
+    double start_y = h - 6.;
+    double center_x = w - 2.;
+    double center_y = h - 2.;
+    painter->drawLine(start_x, center_y, center_x, center_y);
+    painter->drawLine(center_x, start_y, center_x, center_y);
   }
 }
 
@@ -501,7 +515,7 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 
 void NodeItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
-  if (isInSelectionCorner(event->pos(), boundingRect()))
+  if (m_presenter && isInSelectionCorner(event->pos(), boundingRect()))
   {
     auto& skin = score::Skin::instance();
     setCursor(skin.CursorScaleFDiag);
@@ -518,7 +532,7 @@ void NodeItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 
 void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
 {
-  if (isInSelectionCorner(event->pos(), boundingRect()))
+  if (m_presenter && isInSelectionCorner(event->pos(), boundingRect()))
   {
     auto& skin = score::Skin::instance();
     setCursor(skin.CursorScaleFDiag);
