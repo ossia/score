@@ -51,17 +51,17 @@ case "$TRAVIS_OS_NAME" in
   osx)
     echo "=============================="
     find /Applications/Xcode.app -name MacOSX10.15.sdk -type d
-    find /Applications/Xcode.app -iname CoreVideo.framework -type d
+    find /Applications/Xcode.app -iname CoreVideo.framework
     ls /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
     ls /Applications/Xcode-12.2.beta.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
     ls /Applications/Xcode*.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
     ls /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/
     ls /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/
     ls /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/
+    ls /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/CoreVideo.framework
     ls /Applications/Xcode-12.2.beta.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/
     ls /Applications/Xcode-12.2.beta.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/
     ls /Applications/Xcode-12.2.beta.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/
-    /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/CoreVideo.framework
     echo "=============================="
 
     
