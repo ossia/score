@@ -26,7 +26,7 @@ jobs:
 #      env: CONF=linux-gcov CAN_DEPLOY=False
 
     - os: osx
-      osx_image: xcode12.2
+      osx_image: xcode12
       env: CONF=osx-package CAN_DEPLOY=True
     - os: linux
       env: CONF=linux-package-appimage CAN_DEPLOY=True
@@ -38,7 +38,7 @@ jobs:
 #    - os: osx
 #      env: CONF=osx-static-debug CAN_DEPLOY=False
     - os: osx
-      osx_image: xcode12.2
+      osx_image: xcode12
       env: CONF=osx-release CAN_DEPLOY=False
 
 #    - os: linux
