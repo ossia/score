@@ -144,7 +144,7 @@ public:
     if (n)
     {
       component.in_exec(
-          [n = std::dynamic_pointer_cast<ossia::nodes::sound_mmap>(component.OSSIAProcess().node),
+          [n,
            data = r.wav,
            channels = r.wav.channels(),
            tempo = component.process().nativeTempo(),
