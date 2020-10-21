@@ -331,6 +331,7 @@ QStringList stringList(const Address& addr)
 QString toString(const ossia::destination_qualifiers& qualifiers)
 {
   QString str;
+  str.reserve(16);
   if (qualifiers.unit)
   {
     QString unit_text = State::prettyUnitText(qualifiers.unit);
@@ -345,7 +346,9 @@ QString toString(const ossia::destination_qualifiers& qualifiers)
       }
     }
 
-    str += "@[" % std::move(unit_text) % "]";
+    str += "@[";
+    str += std::move(unit_text);
+    str += "]";
   }
   else
   {
@@ -354,7 +357,9 @@ QString toString(const ossia::destination_qualifiers& qualifiers)
       str += '@';
       for (auto acc : qualifiers.accessors)
       {
-        str += "[" % QString::number(acc) % "]";
+        str += "[";
+        str += QString::number(acc);
+        str += "]";
       }
     }
   }
