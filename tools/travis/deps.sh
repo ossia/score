@@ -51,9 +51,11 @@ case "$TRAVIS_OS_NAME" in
   osx)
     echo "=============================="
     find /Applications/Xcode.app -name MacOSX10.15.sdk -type d
+    find /Applications/Xcode.app -iname CoreVideo.framework -type d
     ls /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
     ls /Applications/Xcode-12.2.beta.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
     ls /Applications/Xcode*.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
+    /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/CoreVideo.framework
     echo "=============================="
 
     
