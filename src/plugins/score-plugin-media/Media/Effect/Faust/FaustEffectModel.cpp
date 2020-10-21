@@ -188,7 +188,6 @@ void FaustEffectModel::reloadFx(llvm_dsp_factory* fac, llvm_dsp* obj)
   dsp_factories.push_back(faust_factory);
   if (had_dsp)
   {
-    qDebug() << "reloadFx -- A";
     // Try to reuse controls
     Faust::UpdateUI<decltype(*this), true> ui{*this};
     faust_object->buildUserInterface(&ui);
@@ -204,14 +203,12 @@ void FaustEffectModel::reloadFx(llvm_dsp_factory* fac, llvm_dsp* obj)
   }
   else if ((!m_inlets.empty() || !m_outlets.empty()) && !had_dsp && !had_poly_dsp)
   {
-    qDebug() << "reloadFx -- B";
     // loading - controls already exist but not linked to the dsp
     Faust::UpdateUI<decltype(*this), false> ui{*this};
     faust_object->buildUserInterface(&ui);
   }
   else
   {
-    qDebug() << "reloadFx -- C";
     // creating a new dsp
     auto inls = score::clearAndDeleteLater(m_inlets);
     auto outls = score::clearAndDeleteLater(m_outlets);
@@ -240,7 +237,6 @@ void FaustEffectModel::reloadMidi(ossia::nodes::custom_dsp_poly_factory* fac, os
   dsp_poly_factories.push_back(faust_poly_factory);
   if (had_poly_dsp)
   {
-    qDebug() << "reloadMidi -- A";
     // updating an existing DSP
     // Try to reuse controls
     Faust::UpdateUI<decltype(*this), true> ui{*this};
@@ -257,14 +253,12 @@ void FaustEffectModel::reloadMidi(ossia::nodes::custom_dsp_poly_factory* fac, os
   }
   else if ((!m_inlets.empty() || !m_outlets.empty()) && !had_poly_dsp && !had_dsp)
   {
-    qDebug() << "reloadMidi -- B";
     // Try to reuse controls
     Faust::UpdateUI<decltype(*this), false> ui{*this};
     faust_poly_object->buildUserInterface(&ui);
   }
   else
   {
-    qDebug() << "reloadMidi -- C";
     auto inls = score::clearAndDeleteLater(m_inlets);
     auto outls = score::clearAndDeleteLater(m_outlets);
 
@@ -325,7 +319,7 @@ void FaustEffectModel::reload()
     fac = nullptr;
     {
       auto midi_fac = ossia::nodes::createCustomPolyDSPFactoryFromString("score", str, argc, argv, triple, err, -1);
-      auto midi_obj = midi_fac->createPolyDSPInstance(64, false, true);
+      auto midi_obj = midi_fac->createPolyDSPInstance(4, true, true);
       reloadMidi(midi_fac, midi_obj);
     }
   }
