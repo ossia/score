@@ -458,7 +458,7 @@ void FaustEffectComponent::setupExecutionControls(const Node_T& node, int firstC
     m_controlConnections.push_back(c);
   }
 
-  std::weak_ptr weak_node = node;
+  typename Node_T::weak_type weak_node = node;
   auto c = con(ctx.doc.coarseUpdateTimer, &QTimer::timeout, this, [weak_node, &proc] {
     if (auto node = weak_node.lock())
     {
