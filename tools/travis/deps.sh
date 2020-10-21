@@ -55,6 +55,12 @@ case "$TRAVIS_OS_NAME" in
     ls /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
     ls /Applications/Xcode-12.2.beta.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
     ls /Applications/Xcode*.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
+    ls /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/
+    ls /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/
+    ls /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/
+    ls /Applications/Xcode-12.2.beta.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/
+    ls /Applications/Xcode-12.2.beta.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/
+    ls /Applications/Xcode-12.2.beta.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/
     /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/CoreVideo.framework
     echo "=============================="
 
