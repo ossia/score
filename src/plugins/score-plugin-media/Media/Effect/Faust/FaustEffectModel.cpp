@@ -174,44 +174,45 @@ static bool faustIsMidi(llvm_dsp& dsp)
   return ui.freq && ui.gain && ui.gate;
 }
 
-ossia::flat_set<std::shared_ptr<llvm_dsp_factory>> dsp_factories;
-ossia::flat_set<std::shared_ptr<ossia::nodes::custom_dsp_poly_factory>> dsp_poly_factories;
 void FaustEffectModel::reloadFx(llvm_dsp_factory* fac, llvm_dsp* obj)
 {
+  static std::vector<std::shared_ptr<llvm_dsp_factory>> dsp_factories;
   const bool had_dsp = bool(faust_object);
+  const bool had_poly_dsp = bool(faust_poly_object);
   faust_poly_object.reset();
   faust_poly_factory.reset();
 
   faust_object.reset(obj);
-  faust_factory.reset(fac);
+  faust_factory.reset(fac, deleteDSPFactory);
 
-  dsp_factories.insert(faust_factory);
+  dsp_factories.push_back(faust_factory);
   if (had_dsp)
   {
+    qDebug() << "reloadFx -- A";
     // Try to reuse controls
     Faust::UpdateUI<decltype(*this), true> ui{*this};
     faust_object->buildUserInterface(&ui);
 
+    std::vector<Process::Inlet*> toRemove;
     for (std::size_t i = ui.i; i < m_inlets.size(); i++)
     {
-      controlRemoved(*m_inlets[i]);
-      delete m_inlets[i];
+      toRemove.push_back(m_inlets[i]);
     }
     m_inlets.resize(ui.i);
+    for(auto inl : toRemove)
+      inl->deleteLater();
   }
-  else if ((!m_inlets.empty() || !m_outlets.empty()) && !had_dsp)
+  else if ((!m_inlets.empty() || !m_outlets.empty()) && !had_dsp && !had_poly_dsp)
   {
+    qDebug() << "reloadFx -- B";
     // loading - controls already exist but not linked to the dsp
     Faust::UpdateUI<decltype(*this), false> ui{*this};
     faust_object->buildUserInterface(&ui);
   }
   else
   {
+    qDebug() << "reloadFx -- C";
     // creating a new dsp
-    for (std::size_t i = 1; i < m_inlets.size(); i++)
-    {
-      controlRemoved(*m_inlets[i]);
-    }
     auto inls = score::clearAndDeleteLater(m_inlets);
     auto outls = score::clearAndDeleteLater(m_outlets);
 
@@ -227,44 +228,47 @@ void FaustEffectModel::reloadFx(llvm_dsp_factory* fac, llvm_dsp* obj)
 
 void FaustEffectModel::reloadMidi(ossia::nodes::custom_dsp_poly_factory* fac, ossia::nodes::custom_dsp_poly_effect* obj)
 {
-  const bool had_dsp = bool(faust_poly_object);
+  static std::vector<std::shared_ptr<ossia::nodes::custom_dsp_poly_factory>> dsp_poly_factories;
+  const bool had_dsp = bool(faust_object);
+  const bool had_poly_dsp = bool(faust_poly_object);
   faust_poly_object.reset(obj);
   faust_poly_factory.reset(fac);
 
   faust_object.reset();
   faust_factory.reset();
 
-  dsp_poly_factories.insert(faust_poly_factory);
-  if (had_dsp)
+  dsp_poly_factories.push_back(faust_poly_factory);
+  if (had_poly_dsp)
   {
+    qDebug() << "reloadMidi -- A";
     // updating an existing DSP
     // Try to reuse controls
     Faust::UpdateUI<decltype(*this), true> ui{*this};
     faust_poly_object->buildUserInterface(&ui);
 
+    std::vector<Process::Inlet*> toRemove;
     for (std::size_t i = ui.i; i < m_inlets.size(); i++)
     {
-      controlRemoved(*m_inlets[i]);
-      delete m_inlets[i];
+      toRemove.push_back(m_inlets[i]);
     }
     m_inlets.resize(ui.i);
+    for(auto inl : toRemove)
+      delete inl;
   }
-  else if ((!m_inlets.empty() || !m_outlets.empty()) && !had_dsp)
+  else if ((!m_inlets.empty() || !m_outlets.empty()) && !had_poly_dsp && !had_dsp)
   {
+    qDebug() << "reloadMidi -- B";
     // Try to reuse controls
     Faust::UpdateUI<decltype(*this), false> ui{*this};
     faust_poly_object->buildUserInterface(&ui);
   }
   else
   {
-    // creating a new dsp
-    for (std::size_t i = 1; i < m_inlets.size(); i++)
-    {
-      controlRemoved(*m_inlets[i]);
-    }
+    qDebug() << "reloadMidi -- C";
     auto inls = score::clearAndDeleteLater(m_inlets);
     auto outls = score::clearAndDeleteLater(m_outlets);
 
+    m_inlets.push_back(new Process::AudioInlet{getStrongId(m_inlets), this});
     m_inlets.push_back(new Process::MidiInlet{getStrongId(m_inlets), this});
 
     auto out = new Process::AudioOutlet{getStrongId(m_outlets), this};
@@ -275,6 +279,7 @@ void FaustEffectModel::reloadMidi(ossia::nodes::custom_dsp_poly_factory* fac, os
     faust_poly_object->buildUserInterface(&ui);
   }
 }
+
 void FaustEffectModel::reload()
 {
   auto fx_text = m_text.toLocal8Bit();
@@ -316,10 +321,13 @@ void FaustEffectModel::reload()
   if (faustIsMidi(*obj))
   {
     delete obj;
-    auto fac = ossia::nodes::createCustomPolyDSPFactoryFromString("score", str, argc, argv, triple, err, -1);
-
-    auto obj = fac->createPolyDSPInstance(64, false, true);
-    reloadMidi(fac, obj);
+    deleteDSPFactory(fac);
+    fac = nullptr;
+    {
+      auto midi_fac = ossia::nodes::createCustomPolyDSPFactoryFromString("score", str, argc, argv, triple, err, -1);
+      auto midi_obj = midi_fac->createPolyDSPInstance(64, false, true);
+      reloadMidi(midi_fac, midi_obj);
+    }
   }
   else
   {
@@ -448,7 +456,7 @@ void FaustEffectComponent::setupExecutionControls(const Node_T& node, int firstC
   for (std::size_t i = firstControlIndex, N = proc.inlets().size(); i < N; i++)
   {
     auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
-    *node->controls[i - 1].second = ossia::convert<float>(inlet->value());
+    *node->controls[i - firstControlIndex].second = ossia::convert<float>(inlet->value());
     auto inl = this->node->root_inputs()[i];
     auto c = connect(inlet, &Process::ControlInlet::valueChanged, this, [this, inl](const ossia::value& v) {
       system().executionQueue.enqueue([inl, val = v]() mutable {
@@ -459,13 +467,13 @@ void FaustEffectComponent::setupExecutionControls(const Node_T& node, int firstC
   }
 
   typename Node_T::weak_type weak_node = node;
-  auto c = con(ctx.doc.coarseUpdateTimer, &QTimer::timeout, this, [weak_node, &proc] {
+  auto c = con(ctx.doc.coarseUpdateTimer, &QTimer::timeout, this, [weak_node, firstControlIndex, &proc] {
     if (auto node = weak_node.lock())
     {
-      for (std::size_t i = 1; i < proc.inlets().size(); i++)
+      for (std::size_t i = firstControlIndex; i < proc.inlets().size(); i++)
       {
         auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
-        inlet->setValue(*node->controls[i - 1].second);
+        inlet->setValue(*node->controls[i - firstControlIndex].second);
       }
     }
   });
@@ -488,7 +496,7 @@ void FaustEffectComponent::reloadSynth(Execution::Transaction& transaction)
   else
     ctx.setup.replace_node(m_ossia_process, node, transaction);
 
-  setupExecutionControls(node, 1);
+  setupExecutionControls(node, 2);
 }
 
 void FaustEffectComponent::reloadFx(Execution::Transaction& transaction)
