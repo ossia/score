@@ -101,14 +101,20 @@ static void disable_denormals()
 
 static void setup_faust_path()
 {
+  if(!qgetenv("FAUST_LIB_PATH").isEmpty())
+    return;
+
   auto path = ossia::get_exe_path();
+  auto last_slash =
 #if defined(_WIN32)
-  auto last_slash = path.find_last_of('\\');
-  path = path.substr(0, last_slash);
+      path.find_last_of('\\');
 #else
-  auto last_slash = path.find_last_of('/');
-  path = path.substr(0, last_slash);
+      path.find_last_of('/');
 #endif
+  if(last_slash == std::string::npos)
+    return;
+
+  path = path.substr(0, last_slash);
 
 #if defined(SCORE_DEPLOYMENT_BUILD)
 #if defined(__APPLE__)
