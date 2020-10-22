@@ -1,7 +1,7 @@
 project(score_plugin_remotecontrol LANGUAGES CXX)
 
 find_package(${QT_VERSION} OPTIONAL_COMPONENTS WebSockets)
-if(NOT Qt::WebSockets)
+if(NOT TARGET ${QT_PREFIX}::WebSockets)
   message("Remote control plug-in requires QtWebSockets.")
   return()
 endif()
