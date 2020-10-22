@@ -71,6 +71,8 @@ IntervalModel::~IntervalModel()
 }
 void IntervalModel::initConnections()
 {
+  con(this->duration, &IntervalDurations::speedChanged,
+      this, &IntervalModel::ancestorTempoChanged);
   processes.mutable_added.connect<&IntervalModel::on_addProcess>(this);
   processes.removing.connect<&IntervalModel::on_removingProcess>(this);
 }
