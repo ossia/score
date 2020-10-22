@@ -93,7 +93,7 @@ void DisplayedElementsPresenter::on_displayedIntervalChanged(const IntervalModel
     }
     else
     {
-      double flicks_per_pixel = m.duration.guiDuration().impl / 700.;
+      double flicks_per_pixel = m.duration.defaultDuration().impl / 700.;
       cur_zoom = flicks_per_pixel;
     }
     ((IntervalModel&)m).setZoom(cur_zoom);

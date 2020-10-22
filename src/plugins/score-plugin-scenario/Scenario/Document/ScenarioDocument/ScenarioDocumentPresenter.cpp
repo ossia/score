@@ -569,6 +569,7 @@ void ScenarioDocumentPresenter::on_addProcessFromLibrary(const Library::ProcessD
 void ScenarioDocumentPresenter::on_viewReady()
 {
   QTimer::singleShot(0, [=] {
+    /*
     auto z = displayedInterval().zoom();
     if (z > 0)
     {
@@ -578,7 +579,7 @@ void ScenarioDocumentPresenter::on_viewReady()
                 - minimap_handle_width / 2.;
       view().minimap().modifyHandles(rx, rx + minimap_handle_width);
     }
-    else
+    else*/
     {
       setLargeView();
     }
