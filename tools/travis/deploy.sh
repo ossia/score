@@ -7,6 +7,7 @@ fi
 export TAG=$(echo $TRAVIS_TAG | tr -d v)
 case "$CONF" in
   osx-package)
+    export HOMEBREW_NO_AUTO_UPDATE=1
     brew install graphicsmagick imagemagick npm
     npm install --global create-dmg
 

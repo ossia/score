@@ -88,18 +88,7 @@ case "$TRAVIS_OS_NAME" in
     set +e
 
     export HOMEBREW_NO_AUTO_UPDATE=1
-    ## brew update
-    brew remove qt
-    ## curl -O -k -L https://github.com/ossia/sdk/releases/download/sdk16/macos-packages.tar.gz
-    ## tar -xzf macos-packages.tar.gz
-    ## sudo mv gnu-tar ninja wget /usr/local/Cellar/
-    ## sudo ln -s /usr/local/Cellar/gnu-tar/1.32/bin/gtar /usr/local/bin/gtar
-    ## sudo ln -s /usr/local/Cellar/wget/1.20.3_2/bin/wget /usr/local/bin/wget
-    ## sudo ln -s /usr/local/Cellar/ninja/1.10.1_2/bin /usr/local/bin/ninja
-
-    ## brew upgrade 
-    brew install gnu-tar wget ninja
-##     brew install qt cmake portaudio ffmpeg ninja libsamplerate
+    brew install gnu-tar ninja
     wget -nv https://github.com/jcelerier/cninja/releases/download/v3.7.4/cninja-v3.7.4-macOS.tar.gz -O cninja.tgz &
     
     SDK_ARCHIVE=score-sdk-mac.tar.gz
