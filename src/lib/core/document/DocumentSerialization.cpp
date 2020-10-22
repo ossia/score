@@ -223,11 +223,7 @@ void Document::loadModel(const QString& fileName, DocumentDelegateFactory& facto
     bool ok = DocumentManager::checkAndUpdateJson(doc, m_context.app);
     if (!ok)
     {
-      score::warning(
-          qApp->activeWindow(),
-          tr("Warning"),
-          tr("The save format is too old. Wait until the developers implement loading of the older save format."));
-      throw std::runtime_error("Invalid project file");
+      throw std::runtime_error("The save format is too old. Wait until the developers implement loading of the older save format.");
     }
     m_model->loadDocumentAsJson(m_context, doc, factory);
   }
