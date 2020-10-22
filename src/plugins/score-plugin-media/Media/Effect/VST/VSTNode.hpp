@@ -15,6 +15,9 @@ namespace VST
 
 class vst_node_base : public ossia::graph_node
 {
+public:
+  std::shared_ptr<AEffectWrapper> fx{};
+
 protected:
   explicit vst_node_base(std::shared_ptr<AEffectWrapper>&& ptr) : fx{std::move(ptr)}
   {
@@ -22,7 +25,6 @@ protected:
     controls.reserve(10);
   }
 
-  std::shared_ptr<AEffectWrapper> fx{};
   struct vst_control
   {
     int idx{};
@@ -124,13 +126,13 @@ template <bool UseDouble, bool IsSynth>
 class vst_node final : public vst_node_base
 {
 public:
+  static constexpr bool synth = IsSynth;
   vst_node(std::shared_ptr<AEffectWrapper> dat, int sampleRate) : vst_node_base{std::move(dat)}
   {
     // Midi or audio input
+    m_inlets.push_back(new ossia::audio_inlet);
     if constexpr (IsSynth)
       m_inlets.push_back(new ossia::midi_inlet);
-    else
-      m_inlets.push_back(new ossia::audio_inlet);
 
     // audio output
     m_outlets.push_back(new ossia::audio_outlet);
@@ -183,19 +185,29 @@ public:
 
       dispatch(effProcessEvents, 0, 0, events, 0.f);
 
-      constexpr int samples = 64;
-      float dummy[samples];
+      if constexpr(!UseDouble)
+      {
+        constexpr int samples = 64;
+        float dummy[samples] = { 0.f };
 
-      for (auto& vec : float_v)
-        vec.resize(samples);
+        float** output = (float**)alloca(sizeof(float*) * std::max(2, this->fx->fx->numOutputs));
+        for (int i = 0; i < this->fx->fx->numOutputs; i++)
+          output[i] = dummy;
 
-      float** output = (float**)alloca(sizeof(float*) * std::max(2, this->fx->fx->numOutputs));
-      output[0] = float_v[0].data();
-      output[1] = float_v[1].data();
-      for (int i = 2; i < this->fx->fx->numOutputs; i++)
-        output[i] = dummy;
+        fx->fx->processReplacing(fx->fx, output, output, samples);
+      }
+      else
+      {
+        constexpr int samples = 64;
+        double dummy[samples] = { 0.f };
 
-      fx->fx->processReplacing(fx->fx, output, output, samples);
+        double** output = (double**)alloca(sizeof(double*) * std::max(2, this->fx->fx->numOutputs));
+        for (int i = 0; i < this->fx->fx->numOutputs; i++)
+          output[i] = dummy;
+
+        fx->fx->processDoubleReplacing(fx->fx, output, output, samples);
+
+      }
     }
   }
 
@@ -206,7 +218,7 @@ public:
   void dispatchMidi(Fun&& f)
   {
     // copy midi data
-    auto& ip = static_cast<ossia::midi_inlet*>(m_inlets[0])->data.messages;
+    auto& ip = static_cast<ossia::midi_inlet*>(m_inlets[1])->data.messages;
     const auto n_mess = ip.size();
     if (n_mess == 0)
     {
@@ -258,41 +270,12 @@ public:
         if constexpr (IsSynth)
         {
           dispatchMidi([=] {
-            auto& op = prepareOutput(samples);
-            const auto max_io = std::max(this->fx->fx->numOutputs, this->fx->fx->numInputs);
-            double** output = (double**)alloca(sizeof(double*) * std::max(2, max_io));
-            output[0] = op[0].data();
-            output[1] = op[1].data();
-            double* dummy = (double*)alloca(sizeof(double) * samples);
-            for (int i = 2; i < max_io; i++)
-              output[i] = dummy;
-
-            fx->fx->processDoubleReplacing(fx->fx, output, output, samples);
+            processDouble(samples);
           });
         }
         else
         {
-          // copy audio data
-          double* dummy = (double*)alloca(sizeof(double) * samples);
-
-          auto& ip = prepareInput(samples);
-          double** input
-              = (double**)alloca(sizeof(double*) * std::max(2, this->fx->fx->numInputs));
-          input[0] = ip[0].data();
-          input[1] = ip[1].data();
-          for (int i = 2; i < this->fx->fx->numInputs; i++)
-            input[i] = dummy;
-
-          auto& op = prepareOutput(samples);
-          double** output
-              = (double**)alloca(sizeof(double*) * std::max(2, this->fx->fx->numOutputs));
-          output[0] = op[0].data();
-          output[1] = op[1].data();
-
-          for (int i = 2; i < this->fx->fx->numOutputs; i++)
-            output[i] = dummy;
-
-          fx->fx->processDoubleReplacing(fx->fx, input, output, samples);
+          processDouble(samples);
         }
       }
       else
@@ -300,55 +283,12 @@ public:
         if constexpr (IsSynth)
         {
           dispatchMidi([=] {
-            float* dummy = (float*)alloca(sizeof(float) * samples);
-            auto& op = m_outlets[0]->template cast<ossia::audio_port>().samples;
-            for (auto& vec : float_v)
-              vec.resize(samples);
-
-            const auto max_io = std::max(this->fx->fx->numOutputs, this->fx->fx->numInputs);
-            float** output = (float**)alloca(sizeof(float*) * std::max(2, max_io));
-            output[0] = float_v[0].data();
-            output[1] = float_v[1].data();
-            for (int i = 2; i < max_io; i++)
-              output[i] = dummy;
-
-            fx->fx->processReplacing(fx->fx, output, output, samples);
-
-            op.clear();
-            op.emplace_back(float_v[0].begin(), float_v[0].end());
-            op.emplace_back(float_v[1].begin(), float_v[1].end());
+            processFloat(samples);
           });
         }
         else
         {
-          // copy audio data
-
-          auto& ip = m_inlets[0]->template cast<ossia::audio_port>().samples;
-          auto& op = m_outlets[0]->template cast<ossia::audio_port>().samples;
-          if (ip.size() < 2)
-            ip.resize(2);
-
-          float_v[0].assign(ip[0].begin(), ip[0].end());
-          float_v[1].assign(ip[1].begin(), ip[1].end());
-          float_v[0].resize(samples);
-          float_v[1].resize(samples);
-
-          float* dummy = (float*)alloca(sizeof(float) * samples);
-
-          const auto max_io = std::max(this->fx->fx->numOutputs, this->fx->fx->numInputs);
-          float** output = (float**)alloca(sizeof(float*) * std::max(2, max_io));
-          output[0] = float_v[0].data();
-          output[1] = float_v[1].data();
-          for (int i = 2; i < max_io; i++)
-            output[i] = dummy;
-
-          fx->fx->processReplacing(fx->fx, output, output, samples);
-
-          op.clear();
-          op.emplace_back(float_v[0].begin(), float_v[0].end());
-          op.emplace_back(float_v[1].begin(), float_v[1].end());
-          float_v[0].clear();
-          float_v[1].clear();
+          processFloat(samples);
         }
       }
 
@@ -361,8 +301,74 @@ public:
     }
   }
 
-  std::array<ossia::float_vector, 2> float_v;
+  void processFloat(std::size_t samples)
+  {
+    if constexpr (!UseDouble)
+    {
+    // copy audio data
+    auto& ip = m_inlets[0]->template cast<ossia::audio_port>().samples;
+    auto& op = m_outlets[0]->template cast<ossia::audio_port>().samples;
+    if (ip.size() < 2)
+      ip.resize(2);
+
+    float_v[0].assign(ip[0].begin(), ip[0].end());
+    float_v[1].assign(ip[1].begin(), ip[1].end());
+    float_v[0].resize(samples);
+    float_v[1].resize(samples);
+
+    float* dummy = (float*)alloca(sizeof(float) * samples);
+    std::fill_n(dummy, samples, 0.f);
+
+    const auto max_io = std::max(this->fx->fx->numOutputs, this->fx->fx->numInputs);
+    float** output = (float**)alloca(sizeof(float*) * std::max(2, max_io));
+    output[0] = float_v[0].data();
+    output[1] = float_v[1].data();
+    for (int i = 2; i < max_io; i++)
+      output[i] = dummy;
+
+    fx->fx->processReplacing(fx->fx, output, output, samples);
+
+    op.clear();
+    op.emplace_back(float_v[0].begin(), float_v[0].end());
+    op.emplace_back(float_v[1].begin(), float_v[1].end());
+    float_v[0].clear();
+    float_v[1].clear();
+    }
+  }
+
+  void processDouble(std::size_t samples)
+  {
+    if constexpr (UseDouble)
+    {
+    // copy audio data
+    double* dummy = (double*)alloca(sizeof(double) * samples);
+    std::fill_n(dummy, samples, 0.);
+
+    auto& ip = prepareInput(samples);
+    double** input
+        = (double**)alloca(sizeof(double*) * std::max(2, this->fx->fx->numInputs));
+    input[0] = ip[0].data();
+    input[1] = ip[1].data();
+    for (int i = 2; i < this->fx->fx->numInputs; i++)
+      input[i] = dummy;
+
+    auto& op = prepareOutput(samples);
+    double** output
+        = (double**)alloca(sizeof(double*) * std::max(2, this->fx->fx->numOutputs));
+    output[0] = op[0].data();
+    output[1] = op[1].data();
+
+    for (int i = 2; i < this->fx->fx->numOutputs; i++)
+      output[i] = dummy;
+
+    fx->fx->processDoubleReplacing(fx->fx, input, output, samples);
+    }
+  }
+
+  struct dummy_t { };
+  std::conditional_t<!UseDouble, std::array<ossia::float_vector, 2>, dummy_t> float_v;
 };
+
 template <bool b1, bool b2, typename... Args>
 auto make_vst_fx(Args&... args)
 {

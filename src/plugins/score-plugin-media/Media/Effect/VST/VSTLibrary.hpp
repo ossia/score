@@ -21,6 +21,7 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
       return;
     }
     auto& parent = *reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
+    parent.key = {};
 
     auto& fx = parent.emplace_back(Library::ProcessData{{{}, "Effects", {}}, {}, {}, {}}, &parent);
     auto& inst = parent.emplace_back(Library::ProcessData{{{}, "Instruments", {}}, {}, {}, {}}, &parent);

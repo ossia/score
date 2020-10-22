@@ -569,13 +569,11 @@ void VSTEffectModel::create()
     return;
 
   int inlet_i = 0;
+
+  m_inlets.push_back(new Process::AudioInlet(Id<Process::Port>{inlet_i++}, this));
   if (fx->fx->flags & effFlagsIsSynth)
   {
     m_inlets.push_back(new Process::MidiInlet(Id<Process::Port>{inlet_i++}, this));
-  }
-  else
-  {
-    m_inlets.push_back(new Process::AudioInlet(Id<Process::Port>{inlet_i++}, this));
   }
 
   if (fx->fx->numParams < VST_DEFAULT_PARAM_NUMBER_CUTOFF || !(fx->fx->flags & VstAEffectFlags::effFlagsHasEditor))
@@ -601,7 +599,8 @@ void VSTEffectModel::load()
     return;
   }
 
-  for (std::size_t i = VST_FIRST_CONTROL_INDEX; i < m_inlets.size(); i++)
+  const bool isSynth = fx->fx->flags & effFlagsIsSynth;
+  for (std::size_t i = VST_FIRST_CONTROL_INDEX(isSynth); i < m_inlets.size(); i++)
   {
     auto inlet = safe_cast<VSTControlInlet*>(m_inlets[i]);
     int ctrl = inlet->fxNum;
@@ -674,7 +673,8 @@ void DataStreamWriter::write(Media::VST::VSTEffectModel& eff)
           {
             eff.fx->dispatch(effSetChunk, 0, chunk.size(), chunk.data(), 0.f);
 
-            for (std::size_t i = VST_FIRST_CONTROL_INDEX; i < eff.inlets().size(); i++)
+            const bool isSynth = eff.fx->fx->flags & effFlagsIsSynth;
+            for (std::size_t i = VST_FIRST_CONTROL_INDEX(isSynth); i < eff.inlets().size(); i++)
             {
               auto inlet = safe_cast<Media::VST::VSTControlInlet*>(eff.inlets()[i]);
               inlet->setValue(eff.fx->getParameter(inlet->fxNum));
@@ -775,7 +775,8 @@ void JSONWriter::write(Media::VST::VSTEffectModel& eff)
           auto b64 = websocketpp::base64_decode(JsonValue{it->value}.toStdString());
           eff.fx->dispatch(effSetChunk, 0, b64.size(), b64.data(), 0.f);
 
-          for (std::size_t i = VST_FIRST_CONTROL_INDEX; i < eff.inlets().size(); i++)
+          const bool isSynth = eff.fx->fx->flags & effFlagsIsSynth;
+          for (std::size_t i = VST_FIRST_CONTROL_INDEX(isSynth); i < eff.inlets().size(); i++)
           {
             auto inlet = safe_cast<Media::VST::VSTControlInlet*>(eff.inlets()[i]);
             inlet->setValue(eff.fx->getParameter(inlet->fxNum));

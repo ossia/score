@@ -12,8 +12,8 @@ if(NOT FFmpeg_FOUND)
 endif()
 
 #if(SCORE_AUDIO_PLUGINS)
-  find_package(Lilv QUIET)
-  find_package(Suil QUIET)
+  find_package(Lilv)
+  find_package(Suil)
   if(NOT MSVC)
     find_package(Faust QUIET)
   endif()
@@ -22,7 +22,6 @@ endif()
 if(UNIX AND NOT APPLE)
   find_package(ZLIB QUIET)
 endif()
-
 
 # Files & main target
 set(HDRS ${HDRS}

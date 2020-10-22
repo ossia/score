@@ -37,7 +37,7 @@ UUID_METADATA(, Process::Port, Media::VST::VSTControlInlet, "e523bc44-8599-4a04-
 DESCRIPTION_METADATA(, Media::VST::VSTEffectModel, "VST")
 namespace Media::VST
 {
-#define VST_FIRST_CONTROL_INDEX 1
+#define VST_FIRST_CONTROL_INDEX(synth) ((synth) ? 2 : 1)
 struct AEffectWrapper
 {
   AEffect* fx{};

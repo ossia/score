@@ -89,6 +89,12 @@ VSTEffectItem::VSTEffectItem(
     : score::EmptyRectItem{root}
 {
   rootItem = root;
+
+  if(!effect.fx)
+    return;
+  if(!effect.fx->fx)
+    return;
+
   using namespace Control::Widgets;
   QObject::connect(
       &effect, &Process::ProcessModel::controlAdded, this, [&](const Id<Process::Port>& id) {
@@ -118,7 +124,8 @@ VSTEffectItem::VSTEffectItem(
         updateRect();
       });
 
-  for (std::size_t i = VST_FIRST_CONTROL_INDEX; i < effect.inlets().size(); i++)
+  const bool isSynth = effect.fx->fx->flags & effFlagsIsSynth;
+  for (std::size_t i = VST_FIRST_CONTROL_INDEX(isSynth); i < effect.inlets().size(); i++)
   {
     auto inlet = safe_cast<VSTControlInlet*>(effect.inlets()[i]);
     setupInlet(effect, *inlet, doc);
