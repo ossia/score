@@ -575,6 +575,28 @@ void ApplicationPlugin::on_stop()
   m_playing = false;
   m_paused = false;
 
+  auto doc = currentDocument();
+  if(doc)
+  {
+    auto plugmodel = doc->context().findPlugin<Execution::DocumentPlugin>();
+
+    if (plugmodel)
+    {
+      if (wasplaying)
+      {
+        // TODO this is sent *after* init has been sent, we have to reverse it in on_init
+        // but before the thing is cleaned.
+        if (auto scenar
+            = dynamic_cast<Scenario::ScenarioDocumentModel*>(&doc->model().modelDelegate()))
+        {
+          auto state = Engine::score_to_ossia::state(
+              scenar->baseScenario().endState(), plugmodel->context());
+          state.launch();
+        }
+      }
+    }
+  }
+
   if (m_clock)
   {
     auto clock = std::move(m_clock);
@@ -590,13 +612,13 @@ void ApplicationPlugin::on_stop()
     }
   }
 
-  if (auto doc = currentDocument())
+  if (doc)
   {
     doc->context().execTimer.stop();
+
     auto plugmodel = doc->context().findPlugin<Execution::DocumentPlugin>();
     if (plugmodel)
     {
-      // TODO why is this commented
       plugmodel->clear();
     }
     else
@@ -610,17 +632,6 @@ void ApplicationPlugin::on_stop()
       auto explorer = Explorer::try_deviceExplorerFromObject(*doc);
       if (explorer)
         explorer->deviceModel().listening().restore();
-    }
-
-    if (wasplaying)
-    {
-      if (auto scenar
-          = dynamic_cast<Scenario::ScenarioDocumentModel*>(&doc->model().modelDelegate()))
-      {
-        auto state = Engine::score_to_ossia::state(
-            scenar->baseScenario().endState(), plugmodel->context());
-        state.launch();
-      }
     }
 
     QTimer::singleShot(50, this, [this] {
