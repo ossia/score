@@ -2,13 +2,13 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DeviceExplorerWidget.hpp"
 
-#include "../../../score-plugin-scenario/Scenario/Inspector/ObjectTree/ObjectItemModel.hpp"
 #include "DeviceExplorerFilterProxyModel.hpp"
 #include "DeviceExplorerView.hpp"
 #include "ExplorationWorkerWrapper.hpp"
 #include "QProgressIndicator.h"
 #include "Widgets/AddressEditDialog.hpp"
 #include "Widgets/DeviceEditDialog.hpp"
+#include <Explorer/Panel/DeviceExplorerPanelDelegate.hpp>
 
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Loading/JamomaDeviceLoader.hpp>
@@ -290,12 +290,12 @@ void DeviceExplorerWidget::buildGUI()
   connect(m_learnAction, &QAction::triggered, this, &DeviceExplorerWidget::learn);
   connect(m_findUsageAction, &QAction::triggered, this, &DeviceExplorerWidget::findUsage);
 
-  auto openMenu = new QToolButton(this);
-  openMenu->setIcon(makeIcons(
+  m_openMenu = new QToolButton(this);
+  m_openMenu->setIcon(makeIcons(
       QStringLiteral(":/icons/add_on.png"),
       QStringLiteral(":/icons/add_off.png"),
       QStringLiteral(":/icons/add_disabled.png")));
-  openMenu->setAutoRaise(true);
+  m_openMenu->setAutoRaise(true);
 
   m_addDeviceAction = new QAction(tr("Add device"), this);
   setIcons(
@@ -335,8 +335,8 @@ void DeviceExplorerWidget::buildGUI()
   addMenu->addSeparator();
   addMenu->addAction(m_removeNodeAction);
 
-  connect(
-      openMenu, &QToolButton::clicked, addMenu, [addMenu]() { addMenu->popup(QCursor::pos()); });
+  connect(m_openMenu, &QToolButton::clicked,
+          addMenu, [addMenu]() { addMenu->popup(QCursor::pos()); });
 
   // Add actions to the current widget so that shortcuts work
   {
@@ -365,7 +365,7 @@ void DeviceExplorerWidget::buildGUI()
 
   auto hLayout = new score::MarginLess<QHBoxLayout>;
   hLayout->setSpacing(0);
-  hLayout->addWidget(openMenu);
+  hLayout->addWidget(m_openMenu);
   hLayout->addWidget(m_columnCBox);
   hLayout->addWidget(m_nameLEdit);
 
@@ -410,6 +410,12 @@ void DeviceExplorerWidget::blockGUI(bool b)
     m_lay->setCurrentIndex(0);
     m_refreshIndicator->stopAnimation();
   }
+}
+
+void DeviceExplorerWidget::setEditable(bool b)
+{
+  if(m_openMenu) m_openMenu->setEnabled(b);
+  m_addressView->setEnabled(b);
 }
 
 QModelIndex DeviceExplorerWidget::sourceIndex(QModelIndex index) const
@@ -571,33 +577,28 @@ void DeviceExplorerWidget::updateActions()
   if (!m)
     return;
 
+  const bool editable = m_openMenu ? m_openMenu->isEnabled() : false;
+  m_addDeviceAction->setEnabled(editable);
   m_exportDeviceAction->setEnabled(false);
   m_learnAction->setEnabled(false);
+  m_addSiblingAction->setEnabled(false);
+  m_addChildAction->setEnabled(false);
+  m_editAction->setEnabled(false);
+  m_refreshAction->setEnabled(false);
+  m_refreshValueAction->setEnabled(false);
+  m_removeNodeAction->setEnabled(false);
+  m_findUsageAction->setEnabled(false);
+  m_reconnect->setEnabled(false);
+  m_disconnect->setEnabled(false);
 
   if (!m->isEmpty())
   {
-
     // TODO: choice for multi selection
 
     SCORE_ASSERT(m_ntView);
 
     QModelIndexList selection = m_ntView->selectedIndexes();
-
-    m_addSiblingAction->setEnabled(false);
-    m_addChildAction->setEnabled(false);
-
-    m_reconnect->setEnabled(false);
-    m_disconnect->setEnabled(false);
-
-    if (selection.isEmpty())
-    {
-      m_editAction->setEnabled(false);
-      m_refreshAction->setEnabled(false);
-      m_refreshValueAction->setEnabled(false);
-      m_removeNodeAction->setEnabled(false);
-      m_findUsageAction->setEnabled(false);
-    }
-    else
+    if (!selection.isEmpty())
     {
       m_findUsageAction->setEnabled(true);
     }
@@ -609,24 +610,23 @@ void DeviceExplorerWidget::updateActions()
 
       if (!aDeviceIsSelected)
       {
-        m_refreshValueAction->setEnabled(capas.canRefreshValue);
-        m_addSiblingAction->setEnabled(capas.canAddNode);
-        m_addChildAction->setEnabled(capas.canAddNode);
-        m_removeNodeAction->setEnabled(capas.canRemoveNode);
+        m_refreshValueAction->setEnabled(capas.canRefreshValue && editable);
+        m_addSiblingAction->setEnabled(capas.canAddNode && editable);
+        m_addChildAction->setEnabled(capas.canAddNode && editable);
+        m_removeNodeAction->setEnabled(capas.canRemoveNode && editable);
       }
       else
       {
-        m_refreshAction->setEnabled(capas.canRefreshTree);
-        m_reconnect->setEnabled(capas.canDisconnect);
-        m_disconnect->setEnabled(capas.canDisconnect);
+        m_refreshAction->setEnabled(capas.canRefreshTree && editable);
+        m_reconnect->setEnabled(capas.canDisconnect && editable);
+        m_disconnect->setEnabled(capas.canDisconnect && editable);
         m_exportDeviceAction->setEnabled(true);
         m_addSiblingAction->setEnabled(false);
-        m_addChildAction->setEnabled(capas.canAddNode);
-        m_removeNodeAction->setEnabled(true);
-        m_learnAction->setEnabled(capas.canLearn);
+        m_addChildAction->setEnabled(capas.canAddNode && editable);
+        m_removeNodeAction->setEnabled(editable);
+        m_learnAction->setEnabled(capas.canLearn && editable);
       }
-      m_editAction->setEnabled(true);
-      m_addChildAction->setEnabled(true);
+      m_editAction->setEnabled(editable);
     }
   }
   else
@@ -1184,4 +1184,17 @@ void DeviceExplorerWidget::filterChanged()
   m_proxyModel->setFilterRegExp(regExp);
   m_proxyModel->setColumn((Explorer::Column)m_columnCBox->currentIndex());
 }
+
+DeviceExplorerWidget* findDeviceExplorerWidgetInstance(const score::GUIApplicationContext& ctx) noexcept
+{
+  for (auto& cpt : ctx.panels())
+  {
+    if (Explorer::PanelDelegate* panel = dynamic_cast<Explorer::PanelDelegate*>(&cpt))
+    {
+      return static_cast<Explorer::DeviceExplorerWidget*>(panel->widget());
+    }
+  }
+  return nullptr;
+}
+
 }

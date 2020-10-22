@@ -6,6 +6,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/Settings/ExplorerModel.hpp>
+#include <Explorer/Explorer/DeviceExplorerWidget.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <Process/Style/Pixmaps.hpp>
 #include <Process/TimeValue.hpp>
@@ -495,12 +496,21 @@ void ApplicationPlugin::on_play(
     {
       // Here we stop the listening when we start playing the scenario.
       // Get all the selected nodes
-      auto explorer = Explorer::try_deviceExplorerFromObject(*doc);
-      // Disable listening for everything
-      if (explorer
-          && !doc->context().app.settings<Execution::Settings::Model>().getExecutionListening())
+      if(auto explorer = Explorer::try_deviceExplorerFromObject(*doc))
       {
-        explorer->deviceModel().listening().stop();
+        // Disable listening for everything
+        if (explorer && !plugmodel->settings.getExecutionListening())
+        {
+          explorer->deviceModel().listening().stop();
+        }
+
+        if (this->context.applicationSettings.gui)
+        {
+          if (auto w = Explorer::findDeviceExplorerWidgetInstance(this->context))
+          {
+            w->setEditable(false);
+          }
+        }
       }
 
       plugmodel->reload(cst);
@@ -570,6 +580,14 @@ void ApplicationPlugin::on_stop()
     auto clock = std::move(m_clock);
     m_clock.reset();
     clock->stop();
+  }
+
+  if (context.applicationSettings.gui)
+  {
+    if (auto w = Explorer::findDeviceExplorerWidgetInstance(context))
+    {
+      w->setEditable(true);
+    }
   }
 
   if (auto doc = currentDocument())
@@ -682,8 +700,6 @@ void ApplicationPlugin::on_init()
 
       plugmodel->execState.reset();
     }
-
-
 
     // If we can we resume listening
     if (explorer)

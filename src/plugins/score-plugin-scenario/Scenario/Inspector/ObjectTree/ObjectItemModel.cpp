@@ -35,7 +35,6 @@
 // SearchWidget
 #include <Device/Node/NodeListMimeSerialization.hpp>
 #include <Explorer/Explorer/DeviceExplorerWidget.hpp>
-#include <Explorer/Panel/DeviceExplorerPanelDelegate.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
@@ -1311,22 +1310,13 @@ SearchWidget::SearchWidget(const score::GUIApplicationContext& ctx)
     : score::SearchLineEdit{nullptr}, m_ctx{ctx}
 {
   setAcceptDrops(true);
-  const auto& appCtx = score::GUIAppContext();
-
-  for (auto& cpt : appCtx.panels())
+  if(auto widget = Explorer::findDeviceExplorerWidgetInstance(score::GUIAppContext()))
   {
-    if (Explorer::PanelDelegate* panel = dynamic_cast<Explorer::PanelDelegate*>(&cpt))
-    {
-      Explorer::DeviceExplorerWidget* widget
-          = static_cast<Explorer::DeviceExplorerWidget*>(panel->widget());
-      connect(
-          widget,
-          &Explorer::DeviceExplorerWidget::findAddresses,
-          this,
-          &SearchWidget::on_findAddresses);
-    }
+    connect(widget, &Explorer::DeviceExplorerWidget::findAddresses,
+            this,   &SearchWidget::on_findAddresses);
   }
 }
+
 template <typename T>
 void add_if_contains(const T& o, const QString& str, Selection& sel)
 {

@@ -1,6 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Explorer/ApplicationPlugin.hpp>
+#include <Explorer/Explorer/DeviceExplorerWidget.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
@@ -104,6 +105,11 @@ void ApplicationPlugin::on_documentChanged(score::Document* olddoc, score::Docum
 
         func(qw->isVisible());
       }
+    }
+
+    if (auto w = Explorer::findDeviceExplorerWidgetInstance(this->context))
+    {
+      w->setEditable(true);
     }
   }
 }

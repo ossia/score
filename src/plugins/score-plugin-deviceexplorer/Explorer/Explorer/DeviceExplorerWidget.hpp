@@ -16,9 +16,14 @@ class QContextMenuEvent;
 class QProgressIndicator;
 class QStackedLayout;
 
+class QToolButton;
 class QComboBox;
 class QLineEdit;
 class QTableView;
+namespace score
+{
+struct GUIApplicationContext;
+}
 namespace Device
 {
 class ProtocolFactoryList;
@@ -46,6 +51,9 @@ public:
 
   // Will block the GUI when refreshing.
   void blockGUI(bool);
+
+  // Enable / disable actions that may change the devices.
+  void setEditable(bool);
 
   QModelIndex sourceIndex(QModelIndex) const;
   QModelIndex proxyIndex(QModelIndex) const;
@@ -118,6 +126,8 @@ private:
   QProgressIndicator* m_refreshIndicator{};
   QStackedLayout* m_lay{};
 
+  QToolButton* m_openMenu{};
+
   std::unique_ptr<ListeningManager> m_listeningManager;
   QMetaObject::Connection m_modelCon;
 
@@ -127,4 +137,7 @@ public:
   void findAddresses(QStringList strlst)
       E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, findAddresses, strlst)
 };
+
+SCORE_PLUGIN_DEVICEEXPLORER_EXPORT
+DeviceExplorerWidget* findDeviceExplorerWidgetInstance(const score::GUIApplicationContext& ctx) noexcept;
 }
