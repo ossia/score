@@ -87,10 +87,18 @@ case "$TRAVIS_OS_NAME" in
 
     set +e
 
-    brew update
+    
+    ## brew update
     brew remove qt
-    brew upgrade 
-    brew install gnu-tar wget ninja
+    curl -O -k -L https://github.com/ossia/sdk/releases/download/sdk16/macos-packages.tar.gz
+    tar -xzf macos-packages.tar.gz
+    sudo mv gnu-tar ninja wget /usr/local/Cellar/
+    sudo ln -s /usr/local/Cellar/gnu-tar/1.32/bin/gtar /usr/local/bin/gtar
+    sudo ln -s /usr/local/Cellar/wget/1.20.3_2/bin/wget /usr/local/bin/wget
+    sudo ln -s /usr/local/Cellar/ninja/1.10.1_2/bin /usr/local/bin/ninja
+    
+    ## brew upgrade 
+    ## brew install gnu-tar wget ninja
 ##     brew install qt cmake portaudio ffmpeg ninja libsamplerate
     wget -nv https://github.com/jcelerier/cninja/releases/download/v3.7.4/cninja-v3.7.4-macOS.tar.gz -O cninja.tgz &
     
