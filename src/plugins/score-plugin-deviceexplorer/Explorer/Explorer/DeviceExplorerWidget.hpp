@@ -87,6 +87,8 @@ private:
   void updateActions();
   void updateAddressView();
 
+  bool editable() const noexcept;
+
   // Utilities
   DeviceExplorerFilterProxyModel* proxyModel();
 

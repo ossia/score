@@ -577,7 +577,7 @@ void DeviceExplorerWidget::updateActions()
   if (!m)
     return;
 
-  const bool editable = m_openMenu ? m_openMenu->isEnabled() : false;
+  const bool editable = this->editable();
   m_addDeviceAction->setEnabled(editable);
   m_exportDeviceAction->setEnabled(false);
   m_learnAction->setEnabled(false);
@@ -674,6 +674,11 @@ void DeviceExplorerWidget::updateAddressView()
   }
 }
 
+bool DeviceExplorerWidget::editable() const noexcept
+{
+  return m_openMenu ? m_openMenu->isEnabled() : false;
+}
+
 DeviceExplorerModel* DeviceExplorerWidget::model() const
 {
   return m_ntView->model();
@@ -691,6 +696,9 @@ DeviceExplorerFilterProxyModel* DeviceExplorerWidget::proxyModel()
 
 void DeviceExplorerWidget::edit()
 {
+  if(!editable())
+    return;
+
   const auto& select = model()->nodeFromModelIndex(m_ntView->selectedIndex());
   if (select.is<Device::DeviceSettings>())
   {
@@ -757,6 +765,9 @@ void DeviceExplorerWidget::edit()
 
 void DeviceExplorerWidget::refresh()
 {
+  if(!editable())
+    return;
+
   auto m = model();
   if (!m)
     return;
@@ -788,6 +799,9 @@ void DeviceExplorerWidget::refresh()
 
 void DeviceExplorerWidget::refreshValue()
 {
+  if(!editable())
+    return;
+
   // TODO deprecate this
   QList<QPair<const Device::Node*, ossia::value>> lst;
 
@@ -823,6 +837,9 @@ void DeviceExplorerWidget::refreshValue()
 
 void DeviceExplorerWidget::disconnect()
 {
+  if(!editable())
+    return;
+
   auto m = model();
   if (!m)
     return;
@@ -837,6 +854,9 @@ void DeviceExplorerWidget::disconnect()
 
 void DeviceExplorerWidget::reconnect()
 {
+  if(!editable())
+    return;
+
   auto m = model();
   if (!m)
     return;
@@ -863,6 +883,9 @@ void DeviceExplorerWidget::reconnect()
 
 void DeviceExplorerWidget::addDevice()
 {
+  if(!editable())
+    return;
+
   if (!m_deviceDialog)
   {
     m_deviceDialog = new DeviceEditDialog{m_protocolList, this};
@@ -933,6 +956,9 @@ void DeviceExplorerWidget::addSibling()
 
 void DeviceExplorerWidget::removeNodes()
 {
+  if(!editable())
+    return;
+
   auto indexes = m_ntView->selectedIndexes();
 
   Device::NodeList nodes;
@@ -1033,6 +1059,9 @@ void DeviceExplorerWidget::removeNodes()
 
 void DeviceExplorerWidget::learn()
 {
+  if(!editable())
+    return;
+
   // Get the device
   auto indexes = m_ntView->selectedIndexes();
 
@@ -1106,6 +1135,9 @@ void DeviceExplorerWidget::findUsage()
 
 void DeviceExplorerWidget::addAddress(InsertMode insert)
 {
+  if(!editable())
+    return;
+
   SCORE_ASSERT(model());
   QModelIndex index = proxyModel()->mapToSource(m_ntView->currentIndex());
 
