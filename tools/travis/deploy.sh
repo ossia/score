@@ -8,16 +8,27 @@ export TAG=$(echo $TRAVIS_TAG | tr -d v)
 case "$CONF" in
   osx-package)
     export HOMEBREW_NO_AUTO_UPDATE=1
+    export SRC_PATH=/Users/travis/build/ossia/score
     brew install graphicsmagick imagemagick npm
     npm install --global create-dmg
 
-    cd /Users/travis/build/ossia/score/bundle/
-    mkdir /Users/travis/build/ossia/score/deploy
+    cd $SRC_PATH/bundle/
+    mkdir $SRC_PATH/deploy
 
     # Codesign
     security unlock-keychain -p travis build.keychain
+    mv score.app/Contents/MacOS/ossia-score-vstpuppet.app .
     codesign \
-      --entitlements /Users/travis/build/ossia/score/src/app/entitlements.plist \
+      --entitlements $SRC_PATH/src/vstpuppet/entitlements.plist \
+      --deep \
+      --force \
+      --timestamp \
+      --options=runtime \
+      --sign "ossia.io" \
+      ossia-score-vstpuppet.app
+
+    codesign \
+      --entitlements $SRC_PATH/src/app/entitlements.plist \
       --deep \
       --force \
       --timestamp \
@@ -25,8 +36,9 @@ case "$CONF" in
       --sign "ossia.io" \
       score.app
 
+    mv ossia-score-vstpuppet.app score.app/Contents/MacOS/
     # Create a .dmg
-    cp /Users/travis/build/ossia/score/LICENSE.txt license.txt
+    cp $SRC_PATH/LICENSE.txt license.txt
     security unlock-keychain -p travis build.keychain
     create-dmg 'score.app'
     ls
@@ -58,8 +70,8 @@ case "$CONF" in
       fi
     done
 
-    mv *.dmg "/Users/travis/build/ossia/score/deploy/ossia score-$TAG-macOS.dmg"
-    mv "mac-sdk.zip" "/Users/travis/build/ossia/score/deploy/"
+    mv *.dmg "$SRC_PATH/deploy/ossia score-$TAG-macOS.dmg"
+    mv "mac-sdk.zip" "$SRC_PATH/deploy/"
   ;;
   linux-package-appimage)
     cd /home/travis/build/ossia/score/
