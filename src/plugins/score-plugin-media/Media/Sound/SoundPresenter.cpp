@@ -50,19 +50,21 @@ void LayerPresenter::updateTempo()
   const auto& layer = (const ProcessModel&) m_process;
   if(layer.stretchMode() == ossia::audio_stretch_mode::None)
   {
-    m_view->setTempoRatio(1.);
+    const double tempoAtStart = Media::tempoAtStartDate(m_process);
+    if(tempoAtStart < 0.1)
+      return;
+
+    m_view->setTempoRatio(ossia::root_tempo / tempoAtStart);
     return;
   }
+  else
+  {
+    const double nativeTempo = layer.nativeTempo();
+    if(nativeTempo < 0.1)
+      return;
 
-  const double tempoAtStart = Media::tempoAtStartDate(m_process);
-  if(tempoAtStart < 0.1)
-    return;
-
-  const double nativeTempo = layer.nativeTempo();
-  if(nativeTempo < 0.1)
-    return;
-
-  m_view->setTempoRatio(tempoAtStart / nativeTempo);
+    m_view->setTempoRatio(ossia::root_tempo / nativeTempo);
+  }
 }
 
 void LayerPresenter::setWidth(qreal val, qreal defaultWidth)
