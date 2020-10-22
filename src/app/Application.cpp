@@ -135,7 +135,6 @@ namespace score
 
       painter.setRenderHint(QPainter::Antialiasing, true);
       painter.setRenderHint(QPainter::TextAntialiasing, true);
-      painter.setRenderHint(QPainter::HighQualityAntialiasing, true);
       painter.setPen(QPen{m_currentColor});
 
       QRectF textRect = rect();
@@ -235,7 +234,6 @@ namespace score
       {
         painter.setRenderHint(QPainter::Antialiasing, true);
         painter.setRenderHint(QPainter::TextAntialiasing, true);
-        painter.setRenderHint(QPainter::HighQualityAntialiasing, true);
         painter.setPen(QPen(QColor("#0092CF")));
 
         painter.setFont(f);

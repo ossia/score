@@ -37,7 +37,7 @@ TimeRulerGraphicsView::TimeRulerGraphicsView(QGraphicsScene* scene) : QGraphicsV
   //#endif
 
 #if defined(__APPLE__)
-  setRenderHints(0);
+  setRenderHints(QPainter::RenderHints{});
   setOptimizationFlag(QGraphicsView::IndirectPainting, true);
 #endif
 }

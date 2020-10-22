@@ -8,6 +8,7 @@
 #include <QMacCocoaViewContainer>
 #include "vstwindow.h"
 #include <QApplication>
+#include <QWindow>
 #include <Media/Effect/VST/VSTEffectModel.hpp>
 #include <QDebug>
 
@@ -33,7 +34,8 @@ void VSTWindow::setup_rect(QWidget* container, int width, int height)
   width = width / container->devicePixelRatio();
   height = height / container->devicePixelRatio();
   container->setFixedSize(width, height);
-  auto c = container->findChild<QMacCocoaViewContainer*>();
+  qDebug()<< "setup_rect" << container;
+  auto c = container->findChild<QWidget*>("VSTWindow");
   if(c)
   {
     c->setFixedSize(width, height);
@@ -71,7 +73,10 @@ VSTWindow::VSTWindow(const VSTEffectModel& e, const score::DocumentContext& ctx)
   auto height = rect.bottom - rect.top;
   qDebug() << rect.top << rect.left << rect.bottom << rect.right << width << height;
 
-  auto container = new QMacCocoaViewContainer{superview, this};
+  auto superview_window = QWindow::fromWinId(reinterpret_cast<WId>(superview));
+  auto container = QWidget::createWindowContainer(superview_window, this);
+  container->setObjectName("VSTWindow");
+  qDebug() << container;
 
   NSRect frame = NSMakeRect(rect.left, rect.top,
                             width, height);
@@ -81,7 +86,7 @@ VSTWindow::VSTWindow(const VSTEffectModel& e, const score::DocumentContext& ctx)
 
   NSArray* subviews;
   subviews = [superview subviews];
-  auto m_view = [[subviews objectAtIndex:0] retain];
+  id m_view = [[subviews objectAtIndex:0] retain];
 
   [[NSNotificationCenter defaultCenter] addObserverForName:@"NSViewFrameDidChangeNotification" object:m_view queue:nullptr usingBlock:^(NSNotification* notification) {
       Q_UNUSED(notification);
