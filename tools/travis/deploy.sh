@@ -17,26 +17,23 @@ case "$CONF" in
 
     # Codesign
     security unlock-keychain -p travis build.keychain
-    mv score.app/Contents/MacOS/ossia-score-vstpuppet.app .
+    
     codesign \
       --entitlements $SRC_PATH/src/vstpuppet/entitlements.plist \
-      --deep \
       --force \
       --timestamp \
       --options=runtime \
       --sign "ossia.io" \
-      ossia-score-vstpuppet.app
+      score.app/Contents/MacOS/ossia-score-vstpuppet.app
 
     codesign \
       --entitlements $SRC_PATH/src/app/entitlements.plist \
-      --deep \
       --force \
       --timestamp \
       --options=runtime \
       --sign "ossia.io" \
       score.app
 
-    mv ossia-score-vstpuppet.app score.app/Contents/MacOS/
     # Create a .dmg
     cp $SRC_PATH/LICENSE.txt license.txt
     security unlock-keychain -p travis build.keychain
