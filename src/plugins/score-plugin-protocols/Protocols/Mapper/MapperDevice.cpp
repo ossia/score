@@ -31,6 +31,7 @@
 #include <QQmlEngine>
 #include <QThread>
 #include <QCodeEditor>
+#include <QTimerEvent>
 
 #include <wobjectimpl.h>
 
@@ -157,6 +158,11 @@ ossia::small_vector<ossia::net::parameter_base*, 4> setup_sources(
   return res;
 }
 
+void setup_timer()
+{
+
+}
+
 void apply_reply(
     ossia::net::node_base& self,
     const std::vector<ossia::net::node_base*>& roots,
@@ -198,20 +204,39 @@ struct mapper_parameter_data_base
 {
   mapper_parameter_data_base() = default;
   mapper_parameter_data_base(const mapper_parameter_data_base&) = delete;
-  mapper_parameter_data_base(mapper_parameter_data_base&& other) = default;
+  mapper_parameter_data_base(mapper_parameter_data_base&& other)
+    : bind{std::move(other.bind)}
+    , read{std::move(other.read)}
+    , write{std::move(other.write)}
+    , interval{std::move(other.interval)}
+    , source{std::move(other.source)}
+  {
+
+  }
+
   mapper_parameter_data_base& operator=(const mapper_parameter_data_base&) = delete;
-  mapper_parameter_data_base& operator=(mapper_parameter_data_base&&) = default;
+  mapper_parameter_data_base& operator=(mapper_parameter_data_base&&) = delete;
 
   mapper_parameter_data_base(const QJSValue& val)
-      : bind{val.property("bind")}, read{val.property("read")}, write{val.property("write")}
+      : bind{val.property("bind")}
+      , read{val.property("read")}
+      , write{val.property("write")}
   {
+    if(auto v = val.property("interval"); v.isNumber())
+    {
+      interval = v.toNumber();
+    }
   }
+
+  bool valid(const QJSValue& val) const noexcept { return !val.isUndefined() && !val.isNull(); }
+  bool valid() const noexcept { return valid(bind) || valid(write) || (interval && valid(read)); }
 
   QJSValue bind;
   QJSValue read;
   QJSValue write;
+  std::optional<double> interval;
   ossia::small_vector<ossia::net::parameter_base*, 4> source{};
-  std::unique_ptr<std::mutex> source_lock{std::make_unique<std::mutex>()};
+  std::mutex source_lock;
 };
 
 struct mapper_parameter_data final : public parameter_data, public mapper_parameter_data_base
@@ -221,7 +246,7 @@ struct mapper_parameter_data final : public parameter_data, public mapper_parame
   mapper_parameter_data(const mapper_parameter_data&) = delete;
   mapper_parameter_data(mapper_parameter_data&&) = default;
   mapper_parameter_data& operator=(const mapper_parameter_data&) = delete;
-  mapper_parameter_data& operator=(mapper_parameter_data&&) = default;
+  mapper_parameter_data& operator=(mapper_parameter_data&&) = delete;
 
   mapper_parameter_data(const std::string& name) : parameter_data{name} { }
 
@@ -229,7 +254,6 @@ struct mapper_parameter_data final : public parameter_data, public mapper_parame
       : parameter_data{ossia::qt::make_parameter_data(val)}, mapper_parameter_data_base{val}
   {
   }
-  bool valid() const noexcept { return !bind.isNull() || !write.isNull(); }
 };
 
 class mapper_protocol;
@@ -253,7 +277,7 @@ public:
 
   void on_sourceRemoved(const ossia::net::node_base& s)
   {
-    std::lock_guard g{*data().source_lock};
+    std::lock_guard g{data().source_lock};
     if (auto p = s.get_parameter())
       ossia::remove_erase(data().source, p);
 
@@ -347,7 +371,7 @@ public:
     bool bound = dat.bind.isString() || dat.bind.isArray();
     if (!write && bound)
     {
-      std::lock_guard g{*dat.source_lock};
+      std::lock_guard g{dat.source_lock};
       for (auto p : dat.source)
       {
         if (p)
@@ -365,7 +389,7 @@ public:
         {
           const auto r = apply_reply(res);
           auto cb = param->stop_callbacks();
-          std::lock_guard g{*dat.source_lock};
+          std::lock_guard g{dat.source_lock};
           auto N = std::min(r.size(), dat.source.size());
           for (std::size_t i = 0; i < N; i++)
           {
@@ -378,7 +402,7 @@ public:
         else
         {
           const auto val = ossia::qt::value_from_js(res);
-          std::lock_guard g{*dat.source_lock};
+          std::lock_guard g{dat.source_lock};
           for (auto p : dat.source)
           {
             if (p)
@@ -423,22 +447,57 @@ private:
     if (!m_device)
       return;
 
+    {
+      std::lock_guard g{m_timersLock};
+      for(auto [timer, ptr] : m_timers) {
+        killTimer(timer);
+      }
+      m_timers.clear();
+    }
+
+    // TODO WTF this does nothing because of the change_tree attribute
     m_device->get_root_node().clear_children();
     std::lock_guard l{m_rootLock};
+
     ossia::net::visit_parameters(m_device->get_root_node(), [&](auto& root, auto& param) {
       mapper_parameter& p = (mapper_parameter&)param;
+      mapper_parameter_data_base& data = p.data();
 
-      std::lock_guard g{*p.data().source_lock};
-      p.data().source = setup_sources(p.data().bind, m_device->get_root_node(), m_roots);
-
-      for (auto s : p.data().source)
+      if (data.valid(data.bind))
       {
-        if (s)
+        std::lock_guard g{data.source_lock};
+        data.source = setup_sources(data.bind, m_device->get_root_node(), m_roots);
+
+        for (auto s : data.source)
         {
-          p.connect(*s, *this);
+          if (s)
+          {
+            p.connect(*s, *this);
+          }
         }
       }
+      else if(data.valid(data.read) && data.interval)
+      {
+        double msecs = *data.interval;
+        int timer_id = startTimer(msecs, Qt::PreciseTimer);
+
+        std::lock_guard g{m_timersLock};
+        m_timers[timer_id] = &p;
+      }
     });
+  }
+
+  void timerEvent(QTimerEvent* ev) override
+  {
+    if(auto it = m_timers.find(ev->timerId()); it != m_timers.end())
+    {
+      if(auto p = it->second; p && p->data().read.isCallable())
+      {
+        auto v = qt::value_from_js(p->data().read.call({}));
+        if(v != p->value())
+          p->set_value(v);
+      }
+    }
   }
 
   bool pull(ossia::net::parameter_base&) override
@@ -478,6 +537,9 @@ private:
 
   std::mutex m_rootLock;
   std::vector<ossia::net::node_base*> m_roots;
+
+  std::mutex m_timersLock;
+  ossia::fast_hash_map<int, mapper_parameter*> m_timers;
 };
 
 using mapper_device = ossia::net::wrapped_device<mapper_node, mapper_protocol>;
