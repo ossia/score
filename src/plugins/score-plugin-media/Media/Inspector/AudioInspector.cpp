@@ -51,7 +51,7 @@ InspectorWidget::InspectorWidget(
   });
 
   con(m_edit, &QLineEdit::editingFinished, this, [&]() {
-    m_dispatcher.submit(new ChangeAudioFile(object, m_edit.text()));
+    m_dispatcher.submit(new ChangeAudioFile(object, m_edit.text(), this->m_dispatcher.stack().context()));
   });
   con(m_start, &QSpinBox::editingFinished, this, [&]() {
     if (m_start.value() != process().startChannel())

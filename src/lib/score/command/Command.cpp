@@ -21,7 +21,7 @@ QByteArray Command::serialize() const
   QByteArray arr;
   {
     QDataStream s(&arr, QIODevice::Append);
-    s.setVersion(QDataStream::Qt_5_6);
+    s.setVersion(QDataStream::Qt_DefaultCompiledVersion);
 
     DataStreamInput inp{s};
     serializeImpl(inp);
@@ -33,7 +33,7 @@ QByteArray Command::serialize() const
 void Command::deserialize(const QByteArray& arr)
 {
   QDataStream s(arr);
-  s.setVersion(QDataStream::Qt_5_6);
+  s.setVersion(QDataStream::Qt_DefaultCompiledVersion);
   DataStreamOutput outp{s};
   deserializeImpl(outp);
 }

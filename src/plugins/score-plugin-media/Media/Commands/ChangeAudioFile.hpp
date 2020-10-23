@@ -14,7 +14,7 @@ class ChangeAudioFile final : public score::Command
 {
   SCORE_COMMAND_DECL(Media::CommandFactoryName(), ChangeAudioFile, "Change audio file")
 public:
-  ChangeAudioFile(const Sound::ProcessModel&, const QString& text);
+  ChangeAudioFile(const Sound::ProcessModel&, const QString& text, const score::DocumentContext& ctx);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
@@ -29,6 +29,7 @@ private:
   TimeVal m_olddur{};
   TimeVal m_newdur{};
   TimeVal m_oldloop{};
+  score::Command* m_resizeInterval{};
 };
 }
 

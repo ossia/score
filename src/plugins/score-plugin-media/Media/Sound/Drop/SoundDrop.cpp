@@ -74,9 +74,10 @@ DropHandler::drop(const QMimeData& mime, const score::DocumentContext& ctx) cons
     p.creation.prettyName = QFileInfo{file.first}.baseName();
     p.duration = file.second;
     p.setup = [f = std::move(file.first),
-               song_t = *p.duration](Process::ProcessModel& m, score::Dispatcher& disp) {
+               song_t = *p.duration,
+               &ctx](Process::ProcessModel& m, score::Dispatcher& disp) {
       auto& proc = static_cast<Sound::ProcessModel&>(m);
-      disp.submit(new Media::ChangeAudioFile{proc, std::move(f)});
+      disp.submit(new Media::ChangeAudioFile{proc, std::move(f), ctx});
     };
     vec.push_back(std::move(p));
   }
