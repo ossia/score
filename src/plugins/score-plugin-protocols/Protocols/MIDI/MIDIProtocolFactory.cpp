@@ -40,16 +40,15 @@ public:
           set.name = QString::fromStdString(elt.device);
           specif.endpoint = QString::fromStdString(elt.device);
 
-          if constexpr (Type == ossia::net::midi::midi_info::Type::RemoteOutput)
+          if constexpr (Type == ossia::net::midi::midi_info::Type::Input)
           {
-            specif.io = MIDISpecificSettings::IO::In;
             set.protocol = MIDIInputProtocolFactory::static_concreteKey();
-            specif.createWholeTree = true;
+            specif.io = MIDISpecificSettings::IO::In;
           }
           else
           {
+            set.protocol = MIDIOutputProtocolFactory::static_concreteKey();
             specif.io = MIDISpecificSettings::IO::Out;
-            set.protocol = MIDIInputProtocolFactory::static_concreteKey();
           }
 
           specif.port = elt.port;
@@ -78,7 +77,7 @@ QString MIDIInputProtocolFactory::category() const noexcept
 
 Device::DeviceEnumerator* MIDIInputProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
-  return new MidiEnumerator<ossia::net::midi::midi_info::Type::RemoteInput>;
+  return new MidiEnumerator<ossia::net::midi::midi_info::Type::Input>;
 }
 
 Device::DeviceInterface* MIDIInputProtocolFactory::makeDevice(
@@ -154,7 +153,7 @@ QString MIDIOutputProtocolFactory::category() const noexcept
 
 Device::DeviceEnumerator* MIDIOutputProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
-  return new MidiEnumerator<ossia::net::midi::midi_info::Type::RemoteOutput>;
+  return new MidiEnumerator<ossia::net::midi::midi_info::Type::Output>;
 }
 
 Device::DeviceInterface* MIDIOutputProtocolFactory::makeDevice(

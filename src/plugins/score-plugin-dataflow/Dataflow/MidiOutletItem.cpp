@@ -18,7 +18,7 @@ void MidiOutletFactory::setupOutletInspector(
     QObject* context)
 {
   static const MSVC_BUGGY_CONSTEXPR auto midi_uuid
-      = Protocols::MIDIInputProtocolFactory::static_concreteKey();
+      = Protocols::MIDIOutputProtocolFactory::static_concreteKey();
 
   auto& device = *ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
   QStringList midiDevices;
@@ -29,7 +29,7 @@ void MidiOutletFactory::setupOutletInspector(
     if (set.protocol == midi_uuid)
     {
       const auto& midi_set = set.deviceSpecificSettings.value<Protocols::MIDISpecificSettings>();
-      if (midi_set.io == Protocols::MIDISpecificSettings::IO::In)
+      if (midi_set.io == Protocols::MIDISpecificSettings::IO::Out)
         midiDevices.push_back(set.name);
     }
   });

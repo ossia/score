@@ -29,7 +29,7 @@ void MidiInletFactory::setupInletInspector(
     if (set.protocol == midi_uuid)
     {
       const auto& midi_set = set.deviceSpecificSettings.value<Protocols::MIDISpecificSettings>();
-      if (midi_set.io == Protocols::MIDISpecificSettings::IO::Out)
+      if (midi_set.io == Protocols::MIDISpecificSettings::IO::In)
         midiDevices.push_back(set.name);
     }
   });
