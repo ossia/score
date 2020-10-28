@@ -6,7 +6,6 @@
 
 #include <Color/GradientModel.hpp>
 #include <Metronome/MetronomeModel.hpp>
-#include <Spline/SplineModel.hpp>
 
 class QLabel;
 class QWidget;
@@ -71,28 +70,6 @@ public:
 private:
   void on_tweenChanged();
 
-  QCheckBox* m_tween{};
-
-  CommandDispatcher<> m_dispatcher;
-};
-}
-
-namespace Spline
-{
-class ProcessModel;
-class InspectorWidget final : public Process::InspectorWidgetDelegate_T<Spline::ProcessModel>
-{
-public:
-  explicit InspectorWidget(
-      const ProcessModel& object,
-      const score::DocumentContext& context,
-      QWidget* parent);
-
-private:
-  void on_addressChange(const Device::FullAddressAccessorSettings& newText);
-  void on_tweenChanged();
-
-  Device::AddressAccessorEditWidget* m_lineEdit{};
   QCheckBox* m_tween{};
 
   CommandDispatcher<> m_dispatcher;

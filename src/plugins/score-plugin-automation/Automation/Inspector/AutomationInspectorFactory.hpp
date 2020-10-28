@@ -21,15 +21,6 @@ class InspectorFactory final
 };
 }
 
-namespace Spline
-{
-class InspectorFactory final
-    : public Process::InspectorWidgetDelegateFactory_T<ProcessModel, InspectorWidget>
-{
-  SCORE_CONCRETE("94c5afc5-c8c3-44e2-b8b4-6e53d8518677")
-};
-}
-
 namespace Metronome
 {
 class InspectorFactory final

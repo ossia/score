@@ -217,7 +217,7 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
     }
     else if (m_nodal)
     {
-      m_nodal->on_playPercentageChanged(pctg);
+      m_nodal->on_playPercentageChanged(pctg, displayedInterval().duration.defaultDuration());
     }
   });
 

@@ -961,4 +961,14 @@ QPointF newProcessPosition(const IntervalModel& cst) noexcept
   return {start, start};
 }
 
+// TODO refactor by grepping for _cast.*IntervalModel
+IntervalModel* closestParentInterval(QObject* parentObj) noexcept
+{
+  while (parentObj && !qobject_cast<Scenario::IntervalModel*>(parentObj))
+  {
+    parentObj = parentObj->parent();
+  }
+  return static_cast<IntervalModel*>(parentObj);
+}
+
 }

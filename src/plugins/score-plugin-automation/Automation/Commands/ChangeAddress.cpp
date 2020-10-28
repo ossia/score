@@ -23,7 +23,6 @@
 
 #include <Color/GradientModel.hpp>
 #include <Metronome/MetronomeModel.hpp>
-#include <Spline/SplineModel.hpp>
 
 namespace Automation
 {
@@ -100,37 +99,6 @@ void ChangeAddress::deserializeImpl(DataStreamOutput& s)
 }
 }
 
-namespace Spline
-{
-ChangeSplineAddress::ChangeSplineAddress(
-    const ProcessModel& autom,
-    const State::AddressAccessor& newval)
-    : m_path{autom}, m_old{autom.address()}, m_new{newval}
-{
-}
-
-void ChangeSplineAddress::undo(const score::DocumentContext& ctx) const
-{
-  auto& autom = m_path.find(ctx);
-  autom.setAddress(m_old);
-}
-
-void ChangeSplineAddress::redo(const score::DocumentContext& ctx) const
-{
-  auto& autom = m_path.find(ctx);
-  autom.setAddress(m_new);
-}
-
-void ChangeSplineAddress::serializeImpl(DataStreamInput& s) const
-{
-  s << m_path << m_old << m_new;
-}
-
-void ChangeSplineAddress::deserializeImpl(DataStreamOutput& s)
-{
-  s >> m_path >> m_old >> m_new;
-}
-}
 
 namespace Metronome
 {

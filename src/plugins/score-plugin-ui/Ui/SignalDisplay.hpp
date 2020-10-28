@@ -52,19 +52,9 @@ struct Node
     float max = 1;
 
     Layer(const Process::ProcessModel& process, const Process::Context& doc, QGraphicsItem* parent)
-        : Process::EffectLayerView{parent}, m_interval{}
+        : Process::EffectLayerView{parent}
+        , m_interval{Scenario::closestParentInterval(process.parent())}
     {
-      if (auto obj = process.parent())
-      {
-        do
-        {
-          m_interval = qobject_cast<Scenario::IntervalModel*>(obj);
-          if (m_interval)
-            break;
-          obj = obj->parent();
-        } while (obj);
-      }
-
       if (m_interval)
       {
         connect(m_interval, &Scenario::IntervalModel::executionStarted, this, &Layer::reset);

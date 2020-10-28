@@ -34,6 +34,7 @@ score-plugin-recording
 score-plugin-nodal
 score-plugin-controlsurface
 score-plugin-remotecontrol
+score-plugin-spline
 
 score-plugin-ui
 

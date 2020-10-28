@@ -37,6 +37,5 @@ private:
   qreal m_defaultW{};
   ZoomRatio m_ratio{1.};
   View* m_view{};
-  QMetaObject::Connection m_con;
 };
 }

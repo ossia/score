@@ -8,14 +8,14 @@
 #include <ossia/dataflow/nodes/spline.hpp>
 
 #include <Spline/SplineMetadata.hpp>
-#include <score_plugin_automation_export.h>
 
 #include <verdigris>
 
 namespace Spline
 {
 
-class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Process::ProcessModel
+class ProcessModel final
+    : public Process::ProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Spline::ProcessModel)
@@ -65,11 +65,11 @@ public:
 
 public:
   void addressChanged(const ::State::AddressAccessor& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, addressChanged, arg_1);
-  void tweenChanged(bool tween) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, tweenChanged, tween);
+      W_SIGNAL(addressChanged, arg_1);
+  void tweenChanged(bool tween) W_SIGNAL(tweenChanged, tween);
   void unitChanged(const State::Unit& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, unitChanged, arg_1);
-  void splineChanged() E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, splineChanged);
+      W_SIGNAL(unitChanged, arg_1);
+  void splineChanged() W_SIGNAL(splineChanged);
 
 private:
   //// ProcessModel ////

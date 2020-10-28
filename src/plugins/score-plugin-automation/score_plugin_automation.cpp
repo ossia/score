@@ -34,10 +34,6 @@
 #include <Metronome/MetronomeModel.hpp>
 #include <Metronome/MetronomePresenter.hpp>
 #include <Metronome/MetronomeView.hpp>
-#include <Spline/SplineExecution.hpp>
-#include <Spline/SplineModel.hpp>
-#include <Spline/SplinePresenter.hpp>
-#include <Spline/SplineView.hpp>
 #include <score_plugin_automation_commands_files.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Automation::LayerPresenter)
@@ -92,13 +88,6 @@ using GradientLayerFactory
     = Process::LayerFactory_T<Gradient::ProcessModel, Gradient::Presenter, Gradient::View>;
 }
 
-namespace Spline
-{
-using SplineFactory = Process::ProcessFactory_T<Spline::ProcessModel>;
-using SplineLayerFactory
-    = Process::LayerFactory_T<Spline::ProcessModel, Spline::Presenter, Spline::View>;
-}
-
 namespace Metronome
 {
 using MetronomeFactory = Process::ProcessFactory_T<Metronome::ProcessModel>;
@@ -122,19 +111,16 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_automation::fact
       FW<Process::ProcessModelFactory,
          Automation::AutomationFactory,
          Gradient::GradientFactory,
-         Spline::SplineFactory,
          Metronome::MetronomeFactory>,
       FW<Process::LayerFactory,
          Automation::AutomationLayerFactory,
          Gradient::GradientLayerFactory,
-         Spline::SplineLayerFactory,
          Metronome::MetronomeLayerFactory>,
       FW<Inspector::InspectorWidgetFactory,
          Automation::StateInspectorFactory,
          Automation::PointInspectorFactory,
          Automation::InspectorFactory,
          Gradient::InspectorFactory,
-         Spline::InspectorFactory,
          Metronome::InspectorFactory>,
 
       FW<LocalTree::ProcessComponentFactory, LocalTree::AutomationComponentFactory>,
@@ -144,7 +130,6 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_automation::fact
 
          Automation::RecreateOnPlay::ComponentFactory,
          Gradient::RecreateOnPlay::ComponentFactory,
-         Spline::RecreateOnPlay::ComponentFactory,
          Metronome::RecreateOnPlay::ComponentFactory>>(ctx, key);
 }
 
@@ -152,7 +137,6 @@ std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_automation::m
 {
   using namespace Automation;
   using namespace Gradient;
-  using namespace Spline;
   using namespace Metronome;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       CommandFactoryName(), CommandGeneratorMap{}};

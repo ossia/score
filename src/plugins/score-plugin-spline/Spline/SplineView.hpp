@@ -1,8 +1,6 @@
 #pragma once
 #include <Process/LayerView.hpp>
 
-#include <ossia/editor/automation/tinysplinecpp.h>
-
 #include <Spline/SplineModel.hpp>
 
 #include <verdigris>
@@ -17,6 +15,8 @@ public:
 
   void setSpline(ossia::nodes::spline_data d);
   const ossia::nodes::spline_data& spline() const noexcept;
+
+  void setPlayPercentage(float p);
 
   void recenter();
 

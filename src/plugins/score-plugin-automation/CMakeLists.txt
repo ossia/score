@@ -20,12 +20,6 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Color/GradientMetadata.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Color/GradientExecution.hpp"
 
-  "${CMAKE_CURRENT_SOURCE_DIR}/Spline/SplineModel.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Spline/SplinePresenter.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Spline/SplineView.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Spline/SplineMetadata.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Spline/SplineExecution.hpp"
-
   "${CMAKE_CURRENT_SOURCE_DIR}/Metronome/MetronomeColors.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Metronome/MetronomeModel.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Metronome/MetronomePresenter.hpp"
@@ -58,11 +52,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Color/GradientPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Color/GradientView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Color/GradientExecution.cpp"
-
-"${CMAKE_CURRENT_SOURCE_DIR}/Spline/SplineModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Spline/SplinePresenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Spline/SplineView.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Spline/SplineExecution.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Metronome/MetronomeColors.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Metronome/MetronomeModel.cpp"

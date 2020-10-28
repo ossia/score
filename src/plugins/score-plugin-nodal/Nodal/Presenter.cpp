@@ -66,16 +66,10 @@ Presenter::Presenter(const Model& layer, View* view, const Process::Context& ctx
     }
   });
 
-  auto parentObj = m_model.parent();
-  while (parentObj && !qobject_cast<Scenario::IntervalModel*>(parentObj))
+  if (auto itv = Scenario::closestParentInterval(m_model.parent()))
   {
-    parentObj = parentObj->parent();
-  }
-
-  if (parentObj)
-  {
-    auto& dur = static_cast<Scenario::IntervalModel*>(parentObj)->duration;
-    m_con = con(ctx.execTimer, &QTimer::timeout, this, [&] {
+    auto& dur = itv->duration;
+    con(ctx.execTimer, &QTimer::timeout, this, [&] {
       {
         float p = ossia::clamp((float)dur.playPercentage(), 0.f, 1.f);
         for (Process::NodeItem& node : m_nodes)
@@ -84,14 +78,13 @@ Presenter::Presenter(const Model& layer, View* view, const Process::Context& ctx
         }
       }
     });
+    connect(&m_model, &Model::resetExecution, this, [this] {
+      for (Process::NodeItem& node : m_nodes)
+      {
+        node.setPlayPercentage(0.f, TimeVal{});
+      }
+    });
   }
-
-  connect(&m_model, &Model::resetExecution, this, [this] {
-    for (Process::NodeItem& node : m_nodes)
-    {
-      node.setPlayPercentage(0.f, TimeVal{});
-    }
-  });
 }
 
 Presenter::~Presenter()

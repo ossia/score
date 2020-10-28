@@ -5,6 +5,7 @@
 #include <QPainter>
 #include <Spline/SplineView.hpp>
 #include <score/graphics/ZoomItem.hpp>
+#include <ossia/editor/automation/tinyspline_util.hpp>
 
 #include <cmath>
 #include <numeric>
@@ -38,7 +39,13 @@ public:
     return QRectF(m_topLeft, m_bottomRight);
   }
 
-  void paint(QPainter* p, const QStyleOptionGraphicsItem* option, QWidget* widget) override
+  QPointF point(double pos) const noexcept
+  {
+    auto pt = m_spl.evaluate(pos);
+    return mapToCanvas(ossia::nodes::spline_point{pt[0], pt[1]});
+  }
+
+  void paint(QPainter* p, const QStyleOptionGraphicsItem*, QWidget*) override
   {
     // TODO optimize painting here
     if (m_spline.points.empty())
@@ -47,68 +54,98 @@ public:
     auto& skin = Process::Style::instance();
     QPainter& painter = *p;
 
-    auto squarePen = skin.IntervalMuted().main.pen3_dashed_flat_miter;
-    squarePen.setWidthF(1. / m_zoom);
-    squarePen.setStyle(Qt::SolidLine);
-
-    painter.setBrush(skin.NoBrush());
-    painter.setPen(squarePen);
-    //painter.drawRect(QRectF{-1, -1, 2, 2});
-    double biggestDim = std::max(boundingRect().width(), boundingRect().height());
-    painter.drawLine(-biggestDim * m_zoom, 0, biggestDim * m_zoom, 0);
-    painter.drawLine(0, -biggestDim * m_zoom, 0, biggestDim * m_zoom);
-    painter.setRenderHint(QPainter::Antialiasing);
-
-    //double m_zoom = 1.;
-    QPen segmt = skin.skin.Base4.main.pen2;
-    segmt.setWidthF(segmt.widthF() / m_zoom);
-
-    QPainterPath path;
-    auto p0 = m_spl.evaluate(0).result();
-    path.moveTo(mapToCanvas(ossia::nodes::spline_point{p0[0], p0[1]}));
-    const constexpr auto N = 500;
-    for (std::size_t i = 1U; i < N; i++)
+    // Draw the grid
     {
-      auto pt = m_spl.evaluate(double(i) / N).result();
-      path.lineTo(mapToCanvas(ossia::nodes::spline_point{pt[0], pt[1]}));
+      auto squarePen = skin.IntervalMuted().main.pen3_dashed_flat_miter;
+      squarePen.setWidthF(1. / m_zoom);
+      squarePen.setStyle(Qt::SolidLine);
+
+      painter.setBrush(skin.NoBrush());
+      painter.setPen(squarePen);
+
+      double biggestDim = std::max(boundingRect().width(), boundingRect().height());
+      painter.drawLine(-biggestDim * m_zoom, 0, biggestDim * m_zoom, 0);
+      painter.drawLine(0, -biggestDim * m_zoom, 0, biggestDim * m_zoom);
     }
-    painter.strokePath(path, segmt);
 
-    const auto pts = m_spline.points.size();
+    painter.setRenderHint(QPainter::Antialiasing, true);
 
-    // Handle first point
-    auto fp = mapToCanvas(m_spline.points[0]);
-    const auto pointSize = 3. / m_zoom;
-
-    painter.setPen(skin.TransparentPen());
-    if (m_clicked && 0 != *m_clicked)
-      painter.setBrush(QColor(170, 220, 20));
-    else
-      painter.setBrush(QColor(170, 220, 220));
-    painter.drawEllipse(
-          QRectF{fp.x() - pointSize, fp.y() - pointSize, pointSize * 2., pointSize * 2.});
-
-    QPen purplePen = skin.skin.Emphasis3.darker.pen2_dotted_square_miter;
-    purplePen.setWidthF(purplePen.widthF() / m_zoom);
-    // Remaining points
-    for (std::size_t i = 1U; i < pts; i++)
+    // Draw the curve
     {
-      painter.setPen(purplePen);
-      QPointF p = mapToCanvas(m_spline.points[i]);
-      painter.drawLine(fp, p);
+      QPen segmt = skin.skin.Base4.main.pen2;
+      segmt.setWidthF(segmt.widthF() / m_zoom);
 
-      if (i != m_clicked)
+      static QPainterPath path;
+      path.clear();
+      auto pt = m_spl.evaluate(0);
+      path.moveTo(mapToCanvas(ossia::nodes::spline_point{pt[0], pt[1]}));
+
+      const constexpr auto N = 500;
+      for (std::size_t i = 1U; i < N; i++)
+      {
+        pt = m_spl.evaluate(double(i) / N);
+        path.lineTo(mapToCanvas(ossia::nodes::spline_point{pt[0], pt[1]}));
+      }
+      painter.strokePath(path, segmt);
+
+      if(m_play > 0)
+      {
+        path.clear();
+        pt = m_spl.evaluate(0);
+        path.moveTo(mapToCanvas(ossia::nodes::spline_point{pt[0], pt[1]}));
+        std::size_t max = qBound(0.f, m_play, 1.f) * N;
+        for (std::size_t i = 1U; i < max; i++)
+        {
+          pt = m_spl.evaluate(double(i) / N);
+          path.lineTo(mapToCanvas(ossia::nodes::spline_point{pt[0], pt[1]}));
+        }
+        segmt.setColor(skin.IntervalPlayFill().color());
+        painter.strokePath(path, segmt);
+      }
+    }
+
+    // Draw the points
+    {
+      const auto pts = m_spline.points.size();
+
+      // Handle first point
+      auto fp = mapToCanvas(m_spline.points[0]);
+      const auto pointSize = 3. / m_zoom;
+
+      painter.setPen(skin.TransparentPen());
+      if (m_clicked && 0 != *m_clicked)
         painter.setBrush(QColor(170, 220, 20));
       else
         painter.setBrush(QColor(170, 220, 220));
 
-      painter.setPen(skin.TransparentPen());
       painter.drawEllipse(
-            QRectF{p.x() - pointSize, p.y() - pointSize, pointSize * 2., pointSize * 2.});
-      fp = p;
-    }
-  }
+            QRectF{fp.x() - pointSize, fp.y() - pointSize, pointSize * 2., pointSize * 2.});
 
+      QPen purplePen = skin.skin.Emphasis3.darker.pen2_dotted_square_miter;
+      purplePen.setWidthF(purplePen.widthF() / m_zoom);
+      // Remaining points
+      for (std::size_t i = 1U; i < pts; i++)
+      {
+        // Draw the purple lines
+        painter.setPen(purplePen);
+        QPointF p = mapToCanvas(m_spline.points[i]);
+        painter.drawLine(fp, p);
+
+        // Draw the points
+        if (i != m_clicked)
+          painter.setBrush(QColor(170, 220, 20));
+        else
+          painter.setBrush(QColor(170, 220, 220));
+
+        painter.setPen(skin.TransparentPen());
+        painter.drawEllipse(
+              QRectF{p.x() - pointSize, p.y() - pointSize, pointSize * 2., pointSize * 2.});
+        fp = p;
+      }
+    }
+
+    painter.setRenderHint(QPainter::Antialiasing, false);
+  }
 
   void updateRect()
   {
@@ -152,11 +189,9 @@ public:
 
   void updateSpline()
   {
-    m_spl = tinyspline::BSpline{3, 2, m_spline.points.size(), TS_CLAMPED};
-    ts_bspline_set_ctrlp(
-          m_spl.data(),
-          reinterpret_cast<const tinyspline::real*>(m_spline.points.data()),
-          m_spl.data());
+    m_spl.set_points(
+          reinterpret_cast<const tsReal*>(m_spline.points.data()),
+          m_spline.points.size());
     m_view.changed();
   }
 
@@ -168,6 +203,12 @@ public:
       updateSpline();
       updateRect();
     }
+    update();
+  }
+
+  void setPlayPercentage(float f)
+  {
+    m_play = f;
     update();
   }
 
@@ -298,13 +339,14 @@ public:
 
   std::optional<std::size_t> m_clicked;
   ossia::nodes::spline_data m_spline;
-  tinyspline::BSpline m_spl;
+  ts::spline<2> m_spl;
 
   double m_zoom{10.};
   QPointF m_topLeft, m_bottomRight;
+  float m_play{0.};
 };
 
-static_assert(std::is_same<tinyspline::real, qreal>::value, "");
+static_assert(std::is_same<tsReal, qreal>::value, "");
 View::View(QGraphicsItem* parent) : LayerView{parent}
 {
   m_impl = new CurveItem{*this};
@@ -341,6 +383,11 @@ void View::setSpline(ossia::nodes::spline_data d)
 const ossia::nodes::spline_data& View::spline() const noexcept
 {
   return m_impl->spline();
+}
+
+void View::setPlayPercentage(float p)
+{
+  m_impl->setPlayPercentage(p);
 }
 
 void View::recenter()

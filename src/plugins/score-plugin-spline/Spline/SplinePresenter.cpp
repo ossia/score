@@ -8,9 +8,13 @@
 
 #include <ossia/detail/math.hpp>
 
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+
 #include <Spline/SplineModel.hpp>
 #include <Spline/SplinePresenter.hpp>
 #include <Spline/SplineView.hpp>
+#include <QTimer>
+#include <score/tools/Bind.hpp>
 #include <wobjectimpl.h>
 namespace Spline
 {
@@ -34,6 +38,25 @@ Presenter::Presenter(
 
   connect(m_view, &View::pressed, this, [&] { m_context.context.focusDispatcher.focus(this); });
   connect(m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
+
+  if (auto itv = Scenario::closestParentInterval(layer.parent()))
+  {
+    auto& dur = itv->duration;
+    con(ctx.execTimer, &QTimer::timeout, this, [this, &dur] {
+      {
+        float p = ossia::clamp((float)dur.playPercentage(), 0.f, 1.f);
+        ((View*)m_view)->setPlayPercentage(p);
+      }
+    });
+    /*
+    con(this->model(), &Process::ProcessModel::resetExecution, this, [this] {
+      for (Process::NodeItem& node : m_nodes)
+      {
+        node.setPlayPercentage(0.f, TimeVal{});
+      }
+    });
+    */
+  }
 }
 
 void Presenter::setWidth(qreal val, qreal defaultWidth)
