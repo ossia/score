@@ -27,7 +27,7 @@ public:
   ~NodalIntervalView();
 
   void on_drop(QPointF pos, const QMimeData* data);
-  void on_playPercentageChanged(double t);
+  void on_playPercentageChanged(double t, TimeVal parent_dur);
 
   void recenter();
   QRectF enclosingRect() const noexcept;

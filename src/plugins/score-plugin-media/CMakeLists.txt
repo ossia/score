@@ -106,6 +106,8 @@ set(SRCS
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Executor.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Model.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Factory.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/View.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Merger/Executor.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Merger/Model.cpp"

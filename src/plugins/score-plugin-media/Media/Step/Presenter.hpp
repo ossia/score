@@ -33,15 +33,7 @@ public:
     connect(view, &View::pressed, this, [&] { m_context.context.focusDispatcher.focus(this); });
 
     connect(view, &View::change, this, [&](std::size_t num, float v) {
-      auto vec = m.steps();
-      if (num > vec.size())
-      {
-        vec.resize(num, 0.5f);
-      }
-      v = ossia::clamp(v, 0.f, 1.f);
-      vec[num] = v;
-
-      m_disp.submit(m, std::move(vec));
+      updateSteps(m, m_disp, num, v);
     });
 
     connect(view, &View::released, this, [&] { m_disp.commit(); });
@@ -56,8 +48,6 @@ public:
     con(audio_settings, &Audio::Settings::Model::RateChanged, this, [&] {
       on_zoomRatioChanged(m_ratio);
     });
-
-    view->m_model = &m;
   }
 
   void setWidth(qreal width, qreal defaultWidth) override { m_view->setWidth(width); }

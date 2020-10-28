@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/ZoomHelper.hpp>
+#include <Process/TimeValue.hpp>
 
 #include <score/model/Identifier.hpp>
 
@@ -37,8 +38,8 @@ public:
   const Id<Process::ProcessModel>& id() const noexcept;
   ~NodeItem();
 
-  void setZoomRatio(ZoomRatio r);
-  void setPlayPercentage(float f);
+  void setParentDuration(TimeVal r);
+  void setPlayPercentage(float f, TimeVal parent_dur);
 
   qreal width() const noexcept;
   qreal height() const;
@@ -46,6 +47,7 @@ public:
   const Process::ProcessModel& model() const noexcept;
 
 private:
+  void updateZoomRatio() const noexcept;
   void createContentItem();
   void updateSize();
   void setSize(QSizeF sz);
@@ -90,7 +92,7 @@ private:
   std::vector<Dataflow::PortItem*> m_inlets, m_outlets;
   const Process::Context& m_context;
 
-  ZoomRatio m_ratio{1.};
+  TimeVal m_parentDuration{1};
   double m_playPercentage{};
 
   bool m_hover{false};

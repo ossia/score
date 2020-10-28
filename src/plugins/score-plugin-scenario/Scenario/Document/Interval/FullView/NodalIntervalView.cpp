@@ -17,13 +17,13 @@ NodalIntervalView::NodalIntervalView(NodalIntervalView::ItemsToShow sh, const In
   setAcceptedMouseButtons(Qt::AllButtons);
   // setFlag(ItemHasNoContents, true);
   // setRect(QRectF{0, 0, 1000, 1000});
-  const qreal r = m_model.duration.defaultDuration().impl;
+  const TimeVal r = m_model.duration.defaultDuration();
   for (auto& proc : m_model.processes)
   {
     if(m_itemsToShow == ItemsToShow::OnlyEffects && !(proc.flags() & Process::ProcessFlags::TimeIndependent))
       continue;
     auto item = new Process::NodeItem{proc, m_context, m_container};
-    item->setZoomRatio(r);
+    item->setParentDuration(r);
     m_nodeItems.push_back(item);
   }
   m_model.processes.added.connect<&NodalIntervalView::on_processAdded>(*this);
@@ -33,7 +33,7 @@ NodalIntervalView::NodalIntervalView(NodalIntervalView::ItemsToShow sh, const In
         model,
         &IntervalModel::executionFinished,
         this,
-        [=] { on_playPercentageChanged(0.); },
+        [=] { on_playPercentageChanged(0., TimeVal{}); },
   Qt::QueuedConnection);
 
   {
@@ -93,12 +93,12 @@ void NodalIntervalView::on_drop(QPointF pos, const QMimeData* data)
         m_context, m_model, pos, *data);
 }
 
-void NodalIntervalView::on_playPercentageChanged(double t)
+void NodalIntervalView::on_playPercentageChanged(double t, TimeVal parent_dur)
 {
   t = ossia::clamp(t, 0., 1.);
   for (Process::NodeItem* node : m_nodeItems)
   {
-    node->setPlayPercentage(t);
+    node->setPlayPercentage(t, parent_dur);
   }
 }
 
@@ -121,7 +121,7 @@ void NodalIntervalView::on_processAdded(const Process::ProcessModel& proc)
   }
 
   auto item = new Process::NodeItem{proc, m_context, m_container};
-  item->setZoomRatio(m_model.duration.defaultDuration().impl);
+  item->setParentDuration(m_model.duration.defaultDuration());
   m_nodeItems.push_back(item);
 }
 
@@ -141,10 +141,10 @@ void NodalIntervalView::on_processRemoving(const Process::ProcessModel& model)
 void NodalIntervalView::on_zoomRatioChanged(ZoomRatio ratio)
 {
   // TODO should be "on model duration changed"
-  const qreal r = m_model.duration.defaultDuration().impl;
+  const TimeVal r = m_model.duration.defaultDuration();
   for (Process::NodeItem* node : m_nodeItems)
   {
-    node->setZoomRatio(r);
+    node->setParentDuration(r);
   }
 }
 

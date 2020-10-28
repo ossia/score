@@ -47,7 +47,6 @@
 
 #include <score_plugin_media_commands_files.hpp>
 #include <wobjectimpl.h>
-W_OBJECT_IMPL(Media::Step::View)
 
 #if __has_include(<libavcodec/avcodec.h>)
 #define SCORE_HAS_LIBAV 1

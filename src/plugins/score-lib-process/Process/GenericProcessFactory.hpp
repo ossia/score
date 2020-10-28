@@ -84,7 +84,7 @@ template <
     typename LayerPresenter_T,
     typename LayerView_T,
     typename HeaderDelegate_T = default_t>
-class LayerFactory_T final : public Process::LayerFactory
+class LayerFactory_T : public Process::LayerFactory
 {
 public:
   virtual ~LayerFactory_T() = default;

@@ -95,6 +95,15 @@ NodeItem::NodeItem(
     else
       m_label->setText(process.prettyShortName());
   });
+  con(process, &Process::ProcessModel::loopsChanged, this, [&] {
+    updateZoomRatio();
+  });
+  con(process, &Process::ProcessModel::loopDurationChanged, this, [&] {
+    updateZoomRatio();
+  });
+  con(process, &Process::ProcessModel::startOffsetChanged, this, [&] {
+    updateZoomRatio();
+  });
 
   m_label->setFont(skin.Bold10Pt);
 
@@ -352,8 +361,7 @@ void NodeItem::setSize(QSizeF sz)
 
     m_presenter->setWidth(sz.width(), sz.width());
     m_presenter->setHeight(sz.height());
-    m_presenter->on_zoomRatioChanged(m_ratio / sz.width());
-    m_presenter->parentGeometryChanged();
+    updateZoomRatio();
 
     resetInlets();
     resetOutlets();
@@ -375,22 +383,24 @@ NodeItem::~NodeItem()
   delete m_presenter;
 }
 
-void NodeItem::setZoomRatio(ZoomRatio r)
+void NodeItem::setParentDuration(TimeVal r)
 {
-  if (m_presenter)
+  if(r != m_parentDuration)
   {
-    if (r != m_ratio)
-    {
-      m_ratio = r;
-      m_presenter->on_zoomRatioChanged(m_ratio / m_contentSize.width());
-      // TODO investigate why this is necessary for scenario:
-      m_presenter->parentGeometryChanged();
-    }
+    m_parentDuration = r;
+    updateZoomRatio();
   }
 }
 
-void NodeItem::setPlayPercentage(float f)
+void NodeItem::setPlayPercentage(float f, TimeVal parent_dur)
 {
+  // Comes from the interval -> if we are looping we make a small modulo of it
+  if(m_model.loops())
+  {
+    auto loopDur = m_model.loopDuration().impl;
+    double playdur = f * parent_dur.impl;
+    f = std::fmod(playdur, loopDur) / loopDur;
+  }
   m_playPercentage = f;
   update({0., 14., m_contentSize.width() * f, 14.});
 }
@@ -400,6 +410,17 @@ qreal NodeItem::width() const noexcept { return m_contentSize.width(); }
 qreal NodeItem::height() const { return TitleHeight + m_contentSize.height() + FooterHeight; }
 
 const ProcessModel& NodeItem::model() const noexcept { return m_model; }
+
+void NodeItem::updateZoomRatio() const noexcept
+{
+  const auto dur = m_model.loops() ? m_model.loopDuration() : m_parentDuration;
+  if(m_presenter)
+  {
+    m_presenter->on_zoomRatioChanged(dur.impl / m_contentSize.width());
+    // TODO investigate why this is necessary for scenario:
+    m_presenter->parentGeometryChanged();
+  }
+}
 
 bool NodeItem::isInSelectionCorner(QPointF p, QRectF r) const
 {
