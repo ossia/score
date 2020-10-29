@@ -4,8 +4,11 @@
 
 #include <QPainter>
 #include <Spline/SplineView.hpp>
+#include <Spline/Commands.hpp>
+#include <Process/Script/ScriptEditor.hpp>
 #include <score/graphics/ZoomItem.hpp>
 #include <ossia/editor/automation/tinyspline_util.hpp>
+#include <Process/ProcessContext.hpp>
 
 #include <cmath>
 #include <numeric>
@@ -15,17 +18,74 @@
 // the Qt project:
 // Copyright (C) 2016 The Qt Company Ltd.
 // https://github.com/qt/qtdeclarative/blob/dev/tools/qmleasing/splineeditor.cpp
+#include <QMenu>
+#include <QDialog>
+#include <exprtk.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Spline::View)
 
 namespace Spline
 {
+class SplineGeneratorDialog : public Process::ScriptDialog
+{
+public:
+  SplineGeneratorDialog(
+        const ProcessModel& model,
+        const score::DocumentContext& ctx,
+        QWidget* parent):
+    Process::ScriptDialog{"exprtk", ctx, parent}
+  , m_model{model}
+  {
+    syms.add_variable("t", t);
+    syms.add_variable("x", x);
+    syms.add_variable("y", y);
+    syms.add_constants();
+    expr.register_symbol_table(syms);
+
+    setText(R"_(x := cos(10 * t);
+y := sin(10 * t);
+)_");
+  }
+
+  void on_accepted() override
+  {
+    this->setError(0, QString{});
+    auto txt = this->text().toStdString();
+    bool ok = parser.compile(txt, this->expr);
+    if (!ok)
+    {
+      setError(0, QString::fromStdString(parser.error()));
+      return;
+    }
+    else
+    {
+      ossia::nodes::spline_data data;
+      for(t = 0.; t <= 1.; t += 0.05)
+      {
+        expr.value();
+        data.points.push_back({x, y});
+      }
+
+      CommandDispatcher<>{m_context.commandStack}.submit<ChangeSpline>(
+          m_model, std::move(data));
+    }
+  }
+  double t{}, x{}, y{};
+  exprtk::symbol_table<double> syms;
+  exprtk::expression<double> expr;
+  exprtk::parser<double> parser;
+
+  const ProcessModel& m_model;
+};
+
 class CurveItem : public QGraphicsItem
 {
 public:
-  CurveItem(View& parent)
+  CurveItem(const ProcessModel& model, const score::DocumentContext& ctx, View& parent)
     : QGraphicsItem{&parent}
     , m_view{parent}
+    , m_model{model}
+    , m_context{ctx}
   {
     setFlag(ItemClipsToShape, false);
     setAcceptHoverEvents(true);
@@ -210,6 +270,7 @@ public:
     }
 
     m_view.changed();
+    update();
   }
 
   void updateSplineStroke()
@@ -341,55 +402,83 @@ public:
         e->ignore();
       }
     }
-    else if (btn == Qt::RightButton)
+    else
     {
-      // Delete
-      updateSpline();
+      QGraphicsItem::mousePressEvent(e);
     }
+  }
+
+  void contextMenuEvent(QGraphicsSceneContextMenuEvent* e) override
+  {
+    auto menu = new QMenu{e->widget()};
+    auto setCurveAct = menu->addAction(QObject::tr("Generate curve"));
+    auto res = menu->exec(e->screenPos());
+    if(res == setCurveAct)
+    {
+      auto dial = new SplineGeneratorDialog{this->m_model, this->m_context, e->widget()};
+      dial->exec();
+    }
+    menu->deleteLater();
   }
 
   void mouseMoveEvent(QGraphicsSceneMouseEvent* e) override
   {
-    if(m_selectedPoint)
+    auto btn = e->buttons();
+    if (btn & Qt::LeftButton)
     {
-      moveControlPoint(e->pos());
-      e->accept();
-    }
-    else if(m_selectedCurve)
-    {
-      moveCurve(e->pos() - m_origClick);
-      e->accept();
+      if(m_selectedPoint)
+      {
+        moveControlPoint(e->pos());
+        e->accept();
+      }
+      else if(m_selectedCurve)
+      {
+        moveCurve(e->pos() - m_origClick);
+        e->accept();
+      }
+      else
+      {
+        e->ignore();
+      }
     }
     else
     {
-      e->ignore();
+      QGraphicsItem::mouseMoveEvent(e);
     }
   }
 
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* e) override
   {
-    if (m_selectedPoint)
+    auto btn = e->button();
+    if (btn == Qt::LeftButton)
     {
-      moveControlPoint(e->pos());
-      updateRect();
-      m_view.changed();
-      m_selectedPoint = std::nullopt;
-      e->accept();
-      m_view.released(e->pos());
-    }
-    else if(m_selectedCurve)
-    {
-      moveCurve(e->pos() - m_origClick);
-      updateRect();
-      m_view.changed();
-      m_selectedCurve = false;
-      e->accept();
-      m_view.released(e->pos());
-      m_origSpline.points.clear();
+      if (m_selectedPoint)
+      {
+        moveControlPoint(e->pos());
+        updateRect();
+        m_view.changed();
+        m_selectedPoint = std::nullopt;
+        e->accept();
+        m_view.released(e->pos());
+      }
+      else if(m_selectedCurve)
+      {
+        moveCurve(e->pos() - m_origClick);
+        updateRect();
+        m_view.changed();
+        m_selectedCurve = false;
+        e->accept();
+        m_view.released(e->pos());
+        m_origSpline.points.clear();
+      }
+      else
+      {
+        e->ignore();
+      }
     }
     else
     {
-      e->ignore();
+      QGraphicsItem::mouseReleaseEvent(e);
     }
   }
 
@@ -414,6 +503,7 @@ public:
 
     updateSpline();
     update();
+    event->accept();
   }
 
   void moveControlPoint(QPointF mouse)
@@ -440,8 +530,9 @@ public:
       m_spline.points[i].m_y = m_origSpline.points[i].m_y - delta.y();
     }
     updateSpline();
-    update();
   }
+  const ProcessModel& m_model;
+  const score::DocumentContext& m_context;
 
   std::vector<QPointF> m_points;
   QPainterPath m_curveShape, m_playShape;
@@ -461,9 +552,9 @@ public:
 };
 
 static_assert(std::is_same<tsReal, qreal>::value, "");
-View::View(QGraphicsItem* parent) : LayerView{parent}
+View::View(const ProcessModel& m, const Process::Context& ctx, QGraphicsItem* parent) : LayerView{parent}
 {
-  m_impl = new CurveItem{*this};
+  m_impl = new CurveItem{m, ctx, *this};
 
   auto item = new score::ZoomItem{this};
   item->setPos(10, 10);

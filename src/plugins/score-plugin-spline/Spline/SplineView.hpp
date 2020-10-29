@@ -4,6 +4,11 @@
 #include <Spline/SplineModel.hpp>
 
 #include <verdigris>
+namespace Process
+{
+struct Context;
+}
+
 namespace Spline
 {
 class CurveItem;
@@ -11,7 +16,7 @@ class View final : public Process::LayerView
 {
   W_OBJECT(View)
 public:
-  View(QGraphicsItem* parent);
+  View(const ProcessModel& m, const Process::Context& ctx, QGraphicsItem* parent);
 
   void setSpline(ossia::nodes::spline_data d);
   const ossia::nodes::spline_data& spline() const noexcept;
