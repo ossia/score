@@ -13,18 +13,15 @@
 #include <verdigris>
 /**
  * @namespace Automation
- * @brief Namespace related to the Automation process
+ * @brief Namespace related to the Spline process
  *
- * This namespace contains the Automation process, layer, and related edition
- * commands.
- *
- * The Automation is a process that sets the value of a parameter across time.
- * It is related to the \ref ossia::automation process.
- *
+ * A 2D X-Y automation
  *
  */
-class score_plugin_spline final : public score::Plugin_QtInterface,
-                                      public score::FactoryInterface_QtInterface
+class score_plugin_spline final
+    : public score::Plugin_QtInterface,
+    public score::FactoryInterface_QtInterface,
+    public score::CommandFactory_QtInterface
 {
   SCORE_PLUGIN_METADATA(1, "cab4ef29-b641-4be0-83f8-5f90d0fcd575")
 
@@ -36,4 +33,5 @@ private:
   std::vector<std::unique_ptr<score::InterfaceBase>> factories(
       const score::ApplicationContext& ctx,
       const score::InterfaceKey& factoryName) const override;
+  std::pair<const CommandGroupKey, CommandGeneratorMap> make_commands() override;
 };

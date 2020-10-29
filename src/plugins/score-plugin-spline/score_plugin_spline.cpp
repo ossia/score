@@ -18,6 +18,7 @@
 #include <Spline/SplineView.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <wobjectimpl.h>
+#include <score_plugin_spline_commands_files.hpp>
 namespace Spline
 {
 using SplineFactory = Process::ProcessFactory_T<Spline::ProcessModel>;
@@ -44,5 +45,17 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_spline::factorie
       >(ctx, key);
 }
 
+std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_spline::make_commands()
+{
+  using namespace Spline;
+  std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
+      CommandFactoryName(), CommandGeneratorMap{}};
+
+  ossia::for_each_type<
+#include <score_plugin_spline_commands.hpp>
+      >(score::commands::FactoryInserter{cmds.second});
+
+  return cmds;
+}
 #include <score/plugins/PluginInstances.hpp>
 SCORE_EXPORT_PLUGIN(score_plugin_spline)
