@@ -75,32 +75,12 @@ public:
       QPen segmt = skin.skin.Base4.main.pen2;
       segmt.setWidthF(segmt.widthF() / m_zoom);
 
-      static QPainterPath path;
-      path.clear();
-      auto pt = m_spl.evaluate(0);
-      path.moveTo(mapToCanvas(ossia::nodes::spline_point{pt[0], pt[1]}));
-
-      const constexpr auto N = 500;
-      for (std::size_t i = 1U; i < N; i++)
-      {
-        pt = m_spl.evaluate(double(i) / N);
-        path.lineTo(mapToCanvas(ossia::nodes::spline_point{pt[0], pt[1]}));
-      }
-      painter.strokePath(path, segmt);
+      painter.strokePath(m_curveShape, segmt);
 
       if(m_play > 0)
       {
-        path.clear();
-        pt = m_spl.evaluate(0);
-        path.moveTo(mapToCanvas(ossia::nodes::spline_point{pt[0], pt[1]}));
-        std::size_t max = qBound(0.f, m_play, 1.f) * N;
-        for (std::size_t i = 1U; i < max; i++)
-        {
-          pt = m_spl.evaluate(double(i) / N);
-          path.lineTo(mapToCanvas(ossia::nodes::spline_point{pt[0], pt[1]}));
-        }
         segmt.setColor(skin.IntervalPlayFill().color());
-        painter.strokePath(path, segmt);
+        painter.strokePath(m_playShape, segmt);
       }
     }
 
@@ -187,12 +167,64 @@ public:
     setScale(m_zoom);
   }
 
+  ossia::nodes::spline_point evaluate(double pos) const noexcept
+  {
+    auto pt = m_spl.evaluate(pos);
+    return ossia::nodes::spline_point{pt[0], pt[1]};
+  }
+
+  static const constexpr auto N = 500;
   void updateSpline()
   {
     m_spl.set_points(
           reinterpret_cast<const tsReal*>(m_spline.points.data()),
           m_spline.points.size());
+
+    // Recompute the curve
+    {
+      m_points.clear();
+
+      auto& path = m_curveShape;
+      path.clear();
+
+      auto pt = mapToCanvas(evaluate(0));
+      m_points.push_back(pt);
+      path.moveTo(pt);
+
+      for (std::size_t i = 1U; i < N; i++)
+      {
+        pt = mapToCanvas(evaluate(double(i) / N));
+        path.lineTo(pt);
+        m_points.push_back(pt);
+      }
+
+      updatePlayPath();
+    }
+
     m_view.changed();
+  }
+
+  void updatePlayPath()
+  {
+    if(m_play > 0)
+    {
+      auto& path = m_playShape;
+      path.clear();
+
+      std::size_t max = std::min(std::size_t(qBound(0.f, m_play, 1.f) * N), m_points.size());
+      if(max == 0)
+        return;
+
+      path.moveTo(m_points[0]);
+      for (std::size_t i = 1U; i < max; i++)
+      {
+        path.lineTo(m_points[i]);
+      }
+    }
+    else
+    {
+      m_playShape.clear();
+    }
   }
 
   void setSpline(ossia::nodes::spline_data d)
@@ -209,6 +241,7 @@ public:
   void setPlayPercentage(float f)
   {
     m_play = f;
+    updatePlayPath();
     update();
   }
 
@@ -255,6 +288,10 @@ public:
       {
         moveControlPoint(e->pos());
         e->accept();
+      }
+      else if(m_curveShape.contains(e->pos()))
+      {
+        qDebug() << "click in curve";
       }
       else
       {
@@ -337,6 +374,8 @@ public:
     }
   }
 
+  std::vector<QPointF> m_points;
+  QPainterPath m_curveShape, m_playShape;
   std::optional<std::size_t> m_clicked;
   ossia::nodes::spline_data m_spline;
   ts::spline<2> m_spl;
@@ -344,6 +383,7 @@ public:
   double m_zoom{10.};
   QPointF m_topLeft, m_bottomRight;
   float m_play{0.};
+
 };
 
 static_assert(std::is_same<tsReal, qreal>::value, "");

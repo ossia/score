@@ -37,10 +37,12 @@ Component::~Component() { }
 
 void Component::recompute()
 {
-  const Execution::Context& s = this->system();
-  auto g = process().spline();
-  s.executionQueue.enqueue(
-      [proc = std::dynamic_pointer_cast<spline>(OSSIAProcess().node), g] { proc->set_spline(g); });
+  in_exec([
+          proc = std::dynamic_pointer_cast<spline>(OSSIAProcess().node)
+          , g = process().spline()
+          ] {
+    proc->set_spline(g);
+  });
 }
 }
 }
