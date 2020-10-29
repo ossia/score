@@ -28,6 +28,7 @@ public:
     , m_view{parent}
   {
     setFlag(ItemClipsToShape, false);
+    setAcceptHoverEvents(true);
     setScale(m_zoom);
     updateRect();
   }
@@ -72,7 +73,7 @@ public:
 
     // Draw the curve
     {
-      QPen segmt = skin.skin.Base4.main.pen2;
+      QPen segmt = m_selectedCurve ? skin.skin.Base2.main.pen2 : skin.skin.Base4.main.pen2;
       segmt.setWidthF(segmt.widthF() / m_zoom);
 
       painter.strokePath(m_curveShape, segmt);
@@ -93,7 +94,7 @@ public:
       const auto pointSize = 3. / m_zoom;
 
       painter.setPen(skin.TransparentPen());
-      if (m_clicked && 0 != *m_clicked)
+      if (m_selectedPoint && 0 != *m_selectedPoint)
         painter.setBrush(QColor(170, 220, 20));
       else
         painter.setBrush(QColor(170, 220, 220));
@@ -112,7 +113,7 @@ public:
         painter.drawLine(fp, p);
 
         // Draw the points
-        if (i != m_clicked)
+        if (i != m_selectedPoint)
           painter.setBrush(QColor(170, 220, 20));
         else
           painter.setBrush(QColor(170, 220, 220));
@@ -163,7 +164,13 @@ public:
     const double w_ratio = parent_w / w;
     const double h_ratio = parent_h / h;
 
-    m_zoom = std::min(w_ratio, h_ratio) * 0.9;
+    setZoom(std::min(w_ratio, h_ratio) * 0.9);
+  }
+
+  void setZoom(double zoom)
+  {
+    m_zoom = zoom;
+    updateSplineStroke();
     setScale(m_zoom);
   }
 
@@ -198,10 +205,18 @@ public:
         m_points.push_back(pt);
       }
 
+      updateSplineStroke();
       updatePlayPath();
     }
 
     m_view.changed();
+  }
+
+  void updateSplineStroke()
+  {
+    QPainterPathStroker stk;
+    stk.setWidth(5. / m_zoom);
+    m_strokedShape = stk.createStroke(m_curveShape);
   }
 
   void updatePlayPath()
@@ -279,19 +294,47 @@ public:
     return {};
   }
 
+  void hoverEnterEvent(QGraphicsSceneHoverEvent* e) override
+  {
+    if(m_strokedShape.contains(e->pos()))
+      setCursor(Qt::CrossCursor);
+  }
+  void hoverMoveEvent(QGraphicsSceneHoverEvent* e) override
+  {
+    if(m_strokedShape.contains(e->pos()))
+    {
+      if(cursor() != Qt::CrossCursor)
+        setCursor(Qt::CrossCursor);
+    }
+    else
+    {
+      if(cursor() == Qt::CrossCursor)
+        unsetCursor();
+    }
+  }
+
+  void hoverLeaveEvent(QGraphicsSceneHoverEvent* e) override
+  {
+    unsetCursor();
+  }
+
   void mousePressEvent(QGraphicsSceneMouseEvent* e) override
   {
     auto btn = e->button();
+    m_selectedCurve = false;
     if (btn == Qt::LeftButton)
     {
-      if ((m_clicked = findControlPoint(e->pos())))
+      if ((m_selectedPoint = findControlPoint(e->pos())))
       {
         moveControlPoint(e->pos());
         e->accept();
       }
-      else if(m_curveShape.contains(e->pos()))
+      else if(m_strokedShape.contains(e->pos()))
       {
-        qDebug() << "click in curve";
+        m_origSpline = m_spline;
+        m_origClick = e->pos();
+        m_selectedCurve = true;
+        update();
       }
       else
       {
@@ -307,9 +350,14 @@ public:
 
   void mouseMoveEvent(QGraphicsSceneMouseEvent* e) override
   {
-    if(m_clicked)
+    if(m_selectedPoint)
     {
       moveControlPoint(e->pos());
+      e->accept();
+    }
+    else if(m_selectedCurve)
+    {
+      moveCurve(e->pos() - m_origClick);
       e->accept();
     }
     else
@@ -320,14 +368,24 @@ public:
 
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* e) override
   {
-    if (m_clicked)
+    if (m_selectedPoint)
     {
       moveControlPoint(e->pos());
       updateRect();
       m_view.changed();
-      m_clicked = std::nullopt;
+      m_selectedPoint = std::nullopt;
       e->accept();
       m_view.released(e->pos());
+    }
+    else if(m_selectedCurve)
+    {
+      moveCurve(e->pos() - m_origClick);
+      updateRect();
+      m_view.changed();
+      m_selectedCurve = false;
+      e->accept();
+      m_view.released(e->pos());
+      m_origSpline.points.clear();
     }
     else
     {
@@ -360,10 +418,10 @@ public:
 
   void moveControlPoint(QPointF mouse)
   {
-    SCORE_ASSERT(m_clicked);
+    SCORE_ASSERT(m_selectedPoint);
 
     auto p = mapFromCanvas(mouse);
-    const auto mp = *m_clicked;
+    const auto mp = *m_selectedPoint;
     const auto N = m_spline.points.size();
     if (mp < N)
     {
@@ -374,15 +432,31 @@ public:
     }
   }
 
+  void moveCurve(QPointF delta)
+  {
+    for(std::size_t i = 0; i < m_spline.points.size(); i++)
+    {
+      m_spline.points[i].m_x = m_origSpline.points[i].m_x + delta.x();
+      m_spline.points[i].m_y = m_origSpline.points[i].m_y - delta.y();
+    }
+    updateSpline();
+    update();
+  }
+
   std::vector<QPointF> m_points;
   QPainterPath m_curveShape, m_playShape;
-  std::optional<std::size_t> m_clicked;
+  QPainterPath m_strokedShape;
+  std::optional<std::size_t> m_selectedPoint;
   ossia::nodes::spline_data m_spline;
+  ossia::nodes::spline_data m_origSpline;
+  QPointF m_origClick;
   ts::spline<2> m_spl;
+
 
   double m_zoom{10.};
   QPointF m_topLeft, m_bottomRight;
   float m_play{0.};
+  bool m_selectedCurve{};
 
 };
 
@@ -396,15 +470,13 @@ View::View(QGraphicsItem* parent) : LayerView{parent}
 
   // TODO proper zooming is done in log space
   connect(item, &score::ZoomItem::zoom, this, [this] {
-    auto& zoom = m_impl->m_zoom;
-    zoom = qBound(0.001, zoom * 1.5, 1000.);
-    m_impl->setScale(zoom);
+    auto zoom = m_impl->m_zoom;
+    m_impl->setZoom(qBound(0.001, zoom * 1.5, 1000.));
   });
   connect(item, &score::ZoomItem::dezoom,
           this, [this] {
-    auto& zoom = m_impl->m_zoom;
-    zoom = qBound(0.001, zoom / 1.5, 1000.);
-    m_impl->setScale(zoom);
+    auto zoom = m_impl->m_zoom;
+    m_impl->setZoom(qBound(0.001, zoom / 1.5, 1000.));
   });
 
   connect(item, &score::ZoomItem::recenter,
