@@ -47,7 +47,7 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
     SCORE_ASSERT(dur.defaultDuration() >= 0_tv);
 
     SCORE_ASSERT(!dur.minDuration().infinite());
-    SCORE_ASSERT(dur.minDuration() >= 0_tv);
+    // SCORE_ASSERT(dur.minDuration() >= 0_tv);
     SCORE_ASSERT(dur.minDuration() <= dur.maxDuration());
     SCORE_ASSERT(
         (qFuzzyCompare(dur.defaultDuration().msec(), dur.maxDuration().msec()))
