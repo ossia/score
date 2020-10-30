@@ -97,6 +97,28 @@ void ProcessModel::setUnit(const State::Unit& u)
     unitChanged(u);
   }
 }
+
+void ProcessModel::loadPreset(const Process::Preset& preset)
+{
+  m_spline.points <<= JSONWriter{readJson(preset.data)}.obj["Spline"];
+  splineChanged();
+}
+
+Process::Preset ProcessModel::savePreset() const noexcept
+{
+  Process::Preset p;
+  p.name = this->metadata().getName();
+  p.key = {this->concreteKey(), {}};
+
+  JSONReader r;
+  r.stream.StartObject();
+  r.obj["Spline"] = m_spline.points;
+  r.stream.EndObject();
+
+  p.data = r.toByteArray();
+  return p;
+}
+
 }
 
 /// Point ///

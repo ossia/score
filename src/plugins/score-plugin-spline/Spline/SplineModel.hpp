@@ -78,6 +78,8 @@ private:
   void setDurationAndShrink(const TimeVal& newDuration) noexcept override;
 
   TimeVal contentDuration() const noexcept override;
+  void loadPreset(const Process::Preset& preset) override;
+  Process::Preset savePreset() const noexcept override;
 
   ossia::nodes::spline_data m_spline;
 

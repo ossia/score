@@ -22,6 +22,9 @@
 #include <QDialog>
 #include <exprtk.hpp>
 #include <wobjectimpl.h>
+#include <QDoubleSpinBox>
+#include <QHBoxLayout>
+#include <QFormLayout>
 W_OBJECT_IMPL(Spline::View)
 
 namespace Spline
@@ -36,6 +39,20 @@ public:
     Process::ScriptDialog{"exprtk", ctx, parent}
   , m_model{model}
   {
+    auto step = new QDoubleSpinBox{this};
+    step->setRange(0.0001, 0.3);
+    step->setValue(0.01);
+    step->setSingleStep(0.01);
+    auto lay = static_cast<QBoxLayout*>(this->layout());
+    auto controls = new QFormLayout;
+    controls->addRow("Step (smaller is more precise)", step);
+    lay->insertLayout(2, controls);
+    connect(step, qOverload<double>(&QDoubleSpinBox::valueChanged),
+            this, [=] (double step) {
+      m_step = step;
+    });
+
+
     syms.add_variable("t", t);
     syms.add_variable("x", x);
     syms.add_variable("y", y);
@@ -60,7 +77,7 @@ y := sin(10 * t);
     else
     {
       ossia::nodes::spline_data data;
-      for(t = 0.; t <= 1.; t += 0.05)
+      for(t = 0.; t <= 1.; t += m_step)
       {
         expr.value();
         data.points.push_back({x, y});
@@ -71,6 +88,7 @@ y := sin(10 * t);
     }
   }
   double t{}, x{}, y{};
+  double m_step{0.01};
   exprtk::symbol_table<double> syms;
   exprtk::expression<double> expr;
   exprtk::parser<double> parser;
