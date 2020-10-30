@@ -287,16 +287,7 @@ void Presenter::on_requestVelocityChange(const Note& note, double velocityDelta)
 }
 
 void Presenter::on_duplicate()
-{/*
-  auto notes = selectedNotes();
-  auto it = ossia::find(notes, note.id());
-  if (it == notes.end())
-  {
-    notes = {note.id()};
-  }
-
-  m_velocityDispatcher.submit(model(), notes, velocityDelta / 5.);
-  */
+{
 }
 
 void Presenter::on_velocityChangeFinished()

@@ -55,8 +55,12 @@ private:
   float m_width{};
   float m_height{};
 
-  bool m_scaling: 1;
-  bool m_velocityChange: 1;
-  bool m_duplicate: 1;
+  enum Action {
+    None,
+    Move,
+    Scale,
+    ChangeVelocity,
+    Duplicate
+  } m_action{};
 };
 }

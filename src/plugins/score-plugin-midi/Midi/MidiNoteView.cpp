@@ -17,9 +17,7 @@ NoteView::NoteView(const Note& n, Presenter& p, View* parent)
   : QGraphicsItem{parent}
   , note{n}
   , m_presenter{p}
-  , m_scaling{false}
-  , m_velocityChange{false}
-  , m_duplicate{false}
+  , m_action{None}
 {
   this->setFlag(QGraphicsItem::ItemIsSelectable, true);
   this->setFlag(QGraphicsItem::ItemIsMovable, true);
@@ -150,88 +148,91 @@ bool NoteView::canEdit() const
 static QPointF noteview_origpoint;
 void NoteView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (!(QGuiApplication::keyboardModifiers() & Qt::CTRL) && !isSelected())
+  const auto mods = QGuiApplication::keyboardModifiers();
+  if (!(mods & Qt::ControlModifier) && !isSelected())
     m_presenter.on_deselectOtherNotes();
+
   setSelected(true);
 
-  m_velocityChange = false;
-  m_scaling = false;
-
+  m_action = None;
   if (canEdit())
   {
     if (event->pos().x() >= this->boundingRect().width() - 2)
     {
-      m_scaling = true;
+      m_action = Scale;
     }
-    else if (qApp->keyboardModifiers() & Qt::ShiftModifier)
+    else if (mods & Qt::ShiftModifier)
     {
-      m_velocityChange = true;
+      m_action = ChangeVelocity;
     }
-    else if (qApp->keyboardModifiers() & Qt::AltModifier)
+    else if (mods & Qt::AltModifier)
     {
-      m_duplicate = true;
+      m_action = Duplicate;
     }
     else
     {
+      m_action = Move;
       noteview_origpoint = this->pos();
-      m_scaling = false;
     }
-    event->accept();
   }
+  event->accept();
 }
 
 void NoteView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   if (canEdit())
   {
-    if (m_velocityChange && qApp->keyboardModifiers() & Qt::ShiftModifier)
+    switch(m_action)
     {
-      double distance = event->scenePos().y() - event->buttonDownScenePos(Qt::LeftButton).y();
-      m_presenter.on_requestVelocityChange(note, distance);
+      case Move:
+        this->setPos(closestPos(
+            noteview_origpoint + event->scenePos() - event->buttonDownScenePos(Qt::LeftButton)));
+         m_presenter.on_noteChanged(*this);
+        break;
+      case Scale:
+        this->setWidth(std::max(2., event->pos().x()));
+        break;
+      case Duplicate:
+        m_presenter.on_duplicate();
+        break;
+      case ChangeVelocity:
+        m_presenter.on_requestVelocityChange(note, event->buttonDownScenePos(Qt::LeftButton).y() - event->scenePos().y());
+        break;
+      case None:
+        break;
     }
-    if (m_duplicate && qApp->keyboardModifiers() & Qt::AltModifier)
-    {
-      //double distance = event->scenePos().y() - event->buttonDownScenePos(Qt::LeftButton).y();
-      m_presenter.on_duplicate();
-    }
-    else if (m_scaling)
-    {
-      this->setWidth(std::max(2., event->pos().x()));
-    }
-    else
-    {
-      this->setPos(closestPos(
-          noteview_origpoint + event->scenePos() - event->buttonDownScenePos(Qt::LeftButton)));
-       m_presenter.on_noteChanged(*this);
-    }
-    event->accept();
   }
+  event->accept();
 }
 
 void NoteView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   if (canEdit())
   {
-    if (m_velocityChange && qApp->keyboardModifiers() & Qt::ShiftModifier)
+    switch(m_action)
     {
-      double distance = event->scenePos().y() - event->buttonDownScenePos(Qt::LeftButton).y();
-      m_presenter.on_requestVelocityChange(note, distance);
-      m_presenter.on_velocityChangeFinished();
-    }
-    else if (m_scaling)
-    {
-      m_presenter.on_noteScaled(note, m_width / ((View*)parentItem())->defaultWidth());
-      event->accept();
-    }
-    else
-    {
-      this->setPos(closestPos(
-          noteview_origpoint + event->scenePos() - event->buttonDownScenePos(Qt::LeftButton)));
-      m_presenter.on_noteChangeFinished(*this);
+      case Move:
+        this->setPos(closestPos(
+            noteview_origpoint + event->scenePos() - event->buttonDownScenePos(Qt::LeftButton)));
+         m_presenter.on_noteChanged(*this);
+         m_presenter.on_noteChangeFinished(*this);
+        break;
+      case Scale:
+        this->setWidth(std::max(2., event->pos().x()));
+        m_presenter.on_noteScaled(note, m_width / ((View*)parentItem())->defaultWidth());
+        break;
+      case Duplicate:
+        m_presenter.on_duplicate();
+        break;
+      case ChangeVelocity:
+        m_presenter.on_requestVelocityChange(note, event->buttonDownScenePos(Qt::LeftButton).y() - event->scenePos().y());
+        m_presenter.on_velocityChangeFinished();
+        break;
+      case None:
+        break;
     }
   }
-  m_velocityChange = false;
-  m_scaling = false;
   event->accept();
+  m_action = None;
 }
 }
