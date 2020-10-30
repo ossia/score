@@ -228,6 +228,8 @@ void TemporalIntervalView::paint(QPainter* p, const QStyleOptionGraphicsItem* so
   if (!view)
     return;
   auto& painter = *p;
+  const auto rect = boundingRect();
+
   QPointF sceneDrawableTopLeft = view->mapToScene(-10, 0);
   QPointF sceneDrawableBottomRight = view->mapToScene(view->width() + 10, view->height() + 10);
   QPointF itemDrawableTopLeft = this->mapFromScene(sceneDrawableTopLeft);
@@ -236,13 +238,13 @@ void TemporalIntervalView::paint(QPainter* p, const QStyleOptionGraphicsItem* so
   itemDrawableTopLeft.rx() = std::max(itemDrawableTopLeft.x(), 0.);
   itemDrawableTopLeft.ry() = std::max(itemDrawableTopLeft.y(), 0.);
 
-  itemDrawableBottomRight.rx() = std::min(itemDrawableBottomRight.x(), boundingRect().width());
-  itemDrawableBottomRight.ry() = std::min(itemDrawableBottomRight.y(), boundingRect().height());
-  if (itemDrawableTopLeft.x() > boundingRect().width())
+  itemDrawableBottomRight.rx() = std::min(itemDrawableBottomRight.x(), rect.width());
+  itemDrawableBottomRight.ry() = std::min(itemDrawableBottomRight.y(), rect.height());
+  if (itemDrawableTopLeft.x() > rect.width())
   {
     return;
   }
-  if (itemDrawableBottomRight.y() > boundingRect().height())
+  if (itemDrawableBottomRight.y() > rect.height())
   {
     return;
   }
@@ -250,23 +252,19 @@ void TemporalIntervalView::paint(QPainter* p, const QStyleOptionGraphicsItem* so
   painter.setRenderHint(QPainter::Antialiasing, false);
   auto& skin = Process::Style::instance();
 
-  QRectF visibleRect = QRectF{itemDrawableTopLeft, itemDrawableBottomRight};
+  const QRectF visibleRect = QRectF{itemDrawableTopLeft, itemDrawableBottomRight};
   auto& c = presenter().model();
   if (c.smallViewVisible())
   {
     // Background
-    auto vr = visibleRect;
-    const qreal maxAdjust = (m_rigid || m_maxWidth <= m_defaultWidth
-                             ? 0.
-                             : m_defaultWidth - m_maxWidth);
-    vr.adjust(
-        0.5, 2., -0.5 + maxAdjust, -2.);
+    itemDrawableBottomRight.rx() = std::min(itemDrawableBottomRight.x(), m_defaultWidth);
+    const auto backgroundRect = QRectF{itemDrawableTopLeft + QPointF{0.5, 2.}, itemDrawableBottomRight + QPointF{-0.5, -2.}};
 
     auto brush = m_presenter.model().metadata().getColor().getBrush().main.brush;
     auto col = brush.color();
     col.setAlphaF(0.6);
     brush.setColor(col);
-    painter.fillRect(vr, brush);
+    painter.fillRect(backgroundRect, brush);
   }
 
   // Colors

@@ -109,11 +109,9 @@ void IntervalView::setMaxWidth(bool infinite, double max)
   {
     prepareGeometryChange();
 
-    setInfinite(infinite);
-    if (!infinite)
-    {
-      m_maxWidth = max;
-    }
+    m_infinite = infinite;
+    m_maxWidth = max;
+
     updatePaths();
     updatePlayPaths();
     update();
