@@ -157,6 +157,7 @@ View::View(QObject* parent) : QMainWindow{}
   topleftToolbar->setLayout(new score::MarginLess<QHBoxLayout>);
   auto leftLabel = new TitleBar;
   leftTabs = new FixedTabWidget;
+
   connect(leftTabs, &FixedTabWidget::actionTriggered, this, [=](QAction* act, bool b) {
     leftLabel->setText(act->text());
   });
@@ -342,11 +343,11 @@ void View::setupPanel(PanelDelegate* v)
 
 void View::allPanelsAdded()
 {
+  auto splitter = (RectSplitter*)centralWidget();
   for (auto& panel : score::GUIAppContext().panels())
   {
     if (panel.defaultPanelStatus().prettyName == QObject::tr("Inspector"))
     {
-      auto splitter = (RectSplitter*)centralWidget();
       rightSplitter->insertWidget(1, panel.widget());
 
       auto act = bottomTabs->addAction(rightSplitter->widget(1), panel.defaultPanelStatus());
@@ -374,6 +375,12 @@ void View::allPanelsAdded()
 
   // Show the device explorer first
   leftTabs->toolbar()->actions().front()->trigger();
+  QTimer::singleShot(100, this, [=] {
+  int w = splitter->width();
+  {
+    splitter->setSizes({int(0.19 * w), int(0.66 * w), int(0.15 * w)});
+  }
+  });
 }
 
 void View::addTopToolbar(QToolBar* b)
