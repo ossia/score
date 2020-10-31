@@ -2,14 +2,15 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Process/Style/ScenarioStyle.hpp>
 
-#include <QPainter>
 #include <Spline/SplineView.hpp>
-#include <Spline/Commands.hpp>
-#include <Process/Script/ScriptEditor.hpp>
+#include <Spline/SplineGeneratorDialog.hpp>
 #include <score/graphics/ZoomItem.hpp>
 #include <ossia/editor/automation/tinyspline_util.hpp>
 #include <Process/ProcessContext.hpp>
 
+#include <QMenu>
+#include <QPainter>
+#include <wobjectimpl.h>
 #include <cmath>
 #include <numeric>
 
@@ -18,84 +19,11 @@
 // the Qt project:
 // Copyright (C) 2016 The Qt Company Ltd.
 // https://github.com/qt/qtdeclarative/blob/dev/tools/qmleasing/splineeditor.cpp
-#include <QMenu>
-#include <QDialog>
-#include <exprtk.hpp>
-#include <wobjectimpl.h>
-#include <QDoubleSpinBox>
-#include <QHBoxLayout>
-#include <QFormLayout>
+
 W_OBJECT_IMPL(Spline::View)
 
 namespace Spline
 {
-class SplineGeneratorDialog : public Process::ScriptDialog
-{
-public:
-  SplineGeneratorDialog(
-        const ProcessModel& model,
-        const score::DocumentContext& ctx,
-        QWidget* parent):
-    Process::ScriptDialog{"exprtk", ctx, parent}
-  , m_model{model}
-  {
-    auto step = new QDoubleSpinBox{this};
-    step->setRange(0.0001, 0.3);
-    step->setValue(0.01);
-    step->setSingleStep(0.01);
-    auto lay = static_cast<QBoxLayout*>(this->layout());
-    auto controls = new QFormLayout;
-    controls->addRow("Step (smaller is more precise)", step);
-    lay->insertLayout(2, controls);
-    connect(step, qOverload<double>(&QDoubleSpinBox::valueChanged),
-            this, [=] (double step) {
-      m_step = step;
-    });
-
-
-    syms.add_variable("t", t);
-    syms.add_variable("x", x);
-    syms.add_variable("y", y);
-    syms.add_constants();
-    expr.register_symbol_table(syms);
-
-    setText(R"_(x := cos(10 * t);
-y := sin(10 * t);
-)_");
-  }
-
-  void on_accepted() override
-  {
-    this->setError(0, QString{});
-    auto txt = this->text().toStdString();
-    bool ok = parser.compile(txt, this->expr);
-    if (!ok)
-    {
-      setError(0, QString::fromStdString(parser.error()));
-      return;
-    }
-    else
-    {
-      ossia::nodes::spline_data data;
-      for(t = 0.; t <= 1.; t += m_step)
-      {
-        expr.value();
-        data.points.push_back({x, y});
-      }
-
-      CommandDispatcher<>{m_context.commandStack}.submit<ChangeSpline>(
-          m_model, std::move(data));
-    }
-  }
-  double t{}, x{}, y{};
-  double m_step{0.01};
-  exprtk::symbol_table<double> syms;
-  exprtk::expression<double> expr;
-  exprtk::parser<double> parser;
-
-  const ProcessModel& m_model;
-};
-
 class CurveItem : public QGraphicsItem
 {
 public:
@@ -142,9 +70,11 @@ public:
       painter.setBrush(skin.NoBrush());
       painter.setPen(squarePen);
 
-      double biggestDim = std::max(boundingRect().width(), boundingRect().height());
-      painter.drawLine(-biggestDim * m_zoom, 0, biggestDim * m_zoom, 0);
-      painter.drawLine(0, -biggestDim * m_zoom, 0, biggestDim * m_zoom);
+      const auto rect = boundingRect();
+
+      double biggestDim = std::max(rect.width(), rect.height());
+      painter.drawLine(-biggestDim * m_zoom, rect.height() / 2., biggestDim * m_zoom, rect.height() / 2.);
+      painter.drawLine(rect.height() / 2., -biggestDim * m_zoom, rect.height() / 2., biggestDim * m_zoom);
     }
 
     painter.setRenderHint(QPainter::Antialiasing, true);
@@ -166,9 +96,10 @@ public:
     // Draw the points
     {
       const auto pts = m_spline.points.size();
+      if(pts == 0 || pts > 100)
+        return;
 
       // Handle first point
-      auto fp = mapToCanvas(m_spline.points[0]);
       const auto pointSize = 3. / m_zoom;
 
       painter.setPen(skin.TransparentPen());
@@ -177,29 +108,44 @@ public:
       else
         painter.setBrush(QColor(170, 220, 220));
 
-      painter.drawEllipse(
-            QRectF{fp.x() - pointSize, fp.y() - pointSize, pointSize * 2., pointSize * 2.});
+      {
+        auto fp = mapToCanvas(m_spline.points[0]);
+        painter.drawEllipse(
+              QRectF{fp.x() - pointSize, fp.y() - pointSize, pointSize * 2., pointSize * 2.});
+      }
 
       QPen purplePen = skin.skin.Emphasis3.darker.pen2_dotted_square_miter;
       purplePen.setWidthF(purplePen.widthF() / m_zoom);
       // Remaining points
       for (std::size_t i = 1U; i < pts; i++)
       {
-        // Draw the purple lines
-        painter.setPen(purplePen);
         QPointF p = mapToCanvas(m_spline.points[i]);
-        painter.drawLine(fp, p);
 
         // Draw the points
-        if (i != m_selectedPoint)
-          painter.setBrush(QColor(170, 220, 20));
-        else
+        if(m_selectedPoint == i)
+        {
+          // Draw the purple lines
+          painter.setPen(purplePen);
+          if(i > 0)
+          {
+            QPointF p0 = mapToCanvas(m_spline.points[i - 1]);
+            painter.drawLine(p0, p);
+          }
+          if(i < pts - 1)
+          {
+            QPointF p2 = mapToCanvas(m_spline.points[i + 1]);
+            painter.drawLine(p, p2);
+          }
           painter.setBrush(QColor(170, 220, 220));
+        }
+        else
+        {
+          painter.setBrush(QColor(170, 220, 20));
+        }
 
         painter.setPen(skin.TransparentPen());
         painter.drawEllipse(
               QRectF{p.x() - pointSize, p.y() - pointSize, pointSize * 2., pointSize * 2.});
-        fp = p;
       }
     }
 
@@ -397,35 +343,6 @@ public:
     unsetCursor();
   }
 
-  void mousePressEvent(QGraphicsSceneMouseEvent* e) override
-  {
-    auto btn = e->button();
-    m_selectedCurve = false;
-    if (btn == Qt::LeftButton)
-    {
-      if ((m_selectedPoint = findControlPoint(e->pos())))
-      {
-        moveControlPoint(e->pos());
-        e->accept();
-      }
-      else if(m_strokedShape.contains(e->pos()))
-      {
-        m_origSpline = m_spline;
-        m_origClick = e->pos();
-        m_selectedCurve = true;
-        update();
-      }
-      else
-      {
-        e->ignore();
-      }
-    }
-    else
-    {
-      QGraphicsItem::mousePressEvent(e);
-    }
-  }
-
   void contextMenuEvent(QGraphicsSceneContextMenuEvent* e) override
   {
     auto menu = new QMenu{e->widget()};
@@ -437,6 +354,37 @@ public:
       dial->exec();
     }
     menu->deleteLater();
+  }
+
+  void mousePressEvent(QGraphicsSceneMouseEvent* e) override
+  {
+    auto btn = e->button();
+    m_selectedCurve = false;
+    if (btn == Qt::LeftButton)
+    {
+      if ((m_selectedPoint = findControlPoint(e->pos())))
+      {
+        moveControlPoint(e->pos());
+        e->accept();
+        update();
+      }
+      else if(m_strokedShape.contains(e->pos()))
+      {
+        m_origSpline = m_spline;
+        m_origClick = e->pos();
+        m_selectedCurve = true;
+        e->accept();
+        update();
+      }
+      else
+      {
+        e->ignore();
+      }
+    }
+    else
+    {
+      QGraphicsItem::mousePressEvent(e);
+    }
   }
 
   void mouseMoveEvent(QGraphicsSceneMouseEvent* e) override
@@ -478,6 +426,7 @@ public:
         m_selectedPoint = std::nullopt;
         e->accept();
         m_view.released(e->pos());
+        update();
       }
       else if(m_selectedCurve)
       {
@@ -566,7 +515,6 @@ public:
   QPointF m_topLeft, m_bottomRight;
   float m_play{0.};
   bool m_selectedCurve{};
-
 };
 
 static_assert(std::is_same<tsReal, qreal>::value, "");
@@ -599,6 +547,10 @@ View::View(const ProcessModel& m, const Process::Context& ctx, QGraphicsItem* pa
 void View::setSpline(ossia::nodes::spline_data d)
 {
   m_impl->setSpline(std::move(d));
+  if(!m_impl->m_selectedPoint)
+  {
+    recenter();
+  }
 }
 
 const ossia::nodes::spline_data& View::spline() const noexcept

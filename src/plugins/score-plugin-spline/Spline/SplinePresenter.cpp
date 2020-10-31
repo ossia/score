@@ -26,7 +26,7 @@ Presenter::Presenter(
     : LayerPresenter{layer, view, ctx, parent}, m_view{view}
 {
   putToFront();
-  connect(&layer, &ProcessModel::splineChanged, this, [&] { m_view->setSpline(layer.spline()); });
+  con(layer, &ProcessModel::splineChanged, this, [&] { m_view->setSpline(layer.spline()); });
 
   m_view->setSpline(layer.spline());
   connect(m_view, &View::changed, this, [&] {
@@ -48,14 +48,10 @@ Presenter::Presenter(
         ((View*)m_view)->setPlayPercentage(p);
       }
     });
-    /*
-    con(this->model(), &Process::ProcessModel::resetExecution, this, [this] {
-      for (Process::NodeItem& node : m_nodes)
-      {
-        node.setPlayPercentage(0.f, TimeVal{});
-      }
+
+    con(layer, &ProcessModel::resetExecution, this, [this] {
+      ((View*)m_view)->setPlayPercentage(0.f);
     });
-    */
   }
 }
 

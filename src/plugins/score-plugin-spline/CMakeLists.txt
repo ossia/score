@@ -9,6 +9,7 @@ find_package(${QT_VERSION} REQUIRED COMPONENTS Core Widgets)
 set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Spline/SplineModel.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Spline/SplinePresenter.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Spline/SplineGeneratorDialog.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Spline/SplineView.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Spline/SplineMetadata.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Spline/SplineExecution.hpp"

@@ -98,6 +98,21 @@ void ProcessModel::setUnit(const State::Unit& u)
   }
 }
 
+void ProcessModel::startExecution()
+{
+
+}
+
+void ProcessModel::stopExecution()
+{
+  resetExecution();
+}
+
+void ProcessModel::reset()
+{
+  resetExecution();
+}
+
 void ProcessModel::loadPreset(const Process::Preset& preset)
 {
   m_spline.points <<= JSONWriter{readJson(preset.data)}.obj["Spline"];
