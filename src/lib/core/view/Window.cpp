@@ -376,10 +376,10 @@ void View::allPanelsAdded()
   // Show the device explorer first
   leftTabs->toolbar()->actions().front()->trigger();
   QTimer::singleShot(100, this, [=] {
-  int w = splitter->width();
-  {
-    splitter->setSizes({int(0.19 * w), int(0.66 * w), int(0.15 * w)});
-  }
+    int w = splitter->width();
+    {
+      splitter->setSizes({int(0.19 * w), int(0.66 * w), int(0.15 * w)});
+    }
   });
 }
 
