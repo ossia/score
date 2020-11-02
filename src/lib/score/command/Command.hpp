@@ -4,6 +4,7 @@
 
 #include <QByteArray>
 #include <QString>
+#include <QObject>
 
 #include <score_lib_base_export.h>
 

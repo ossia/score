@@ -3,6 +3,7 @@
 #include <Media/Step/Model.hpp>
 #include <score/tools/Bind.hpp>
 #include <Process/ProcessContext.hpp>
+#include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Media::Step::View)
 W_OBJECT_IMPL(Media::Step::Item)

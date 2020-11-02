@@ -1,6 +1,6 @@
 #pragma once
 #include <score/command/Command.hpp>
-
+#include <score/model/path/Path.hpp>
 #include <ossia/dataflow/nodes/spline.hpp>
 
 namespace Spline
