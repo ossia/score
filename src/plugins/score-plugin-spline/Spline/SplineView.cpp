@@ -7,6 +7,7 @@
 #include <score/graphics/ZoomItem.hpp>
 #include <ossia/editor/automation/tinyspline_util.hpp>
 #include <Process/ProcessContext.hpp>
+#include <score/graphics/PainterPath.hpp>
 
 #include <QMenu>
 #include <QPainter>
@@ -216,7 +217,7 @@ public:
       m_points.clear();
 
       auto& path = m_curveShape;
-      path.clear();
+      clearPainterPath(path);
 
       auto pt = mapToCanvas(evaluate(0));
       m_points.push_back(pt);
@@ -249,7 +250,7 @@ public:
     if(m_play > 0)
     {
       auto& path = m_playShape;
-      path.clear();
+      clearPainterPath(path);
 
       std::size_t max = std::min(std::size_t(qBound(0.f, m_play, 1.f) * N), m_points.size());
       if(max == 0)
@@ -263,7 +264,7 @@ public:
     }
     else
     {
-      m_playShape.clear();
+      clearPainterPath(m_playShape);
     }
   }
 
