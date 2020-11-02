@@ -44,7 +44,7 @@ elseif(UNIX)
 endif()
 
 find_package(${QT_VERSION} COMPONENTS Core)
-get_target_property(Qt5_LibType Qt::Core TYPE)
+get_target_property(Qt5_LibType ${QT_PREFIX}::Core TYPE)
 
 if("${Qt5_LibType}" STREQUAL "STATIC_LIBRARY")
   set(SCORE_STATIC_QT ON CACHE INTERNAL "")

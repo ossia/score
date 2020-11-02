@@ -1,19 +1,27 @@
 project(score_plugin_jit LANGUAGES CXX)
 
+# Find dependencies
 find_package(LLVM PATHS ${LLVM_DIR})
-find_package(Clang PATHS ${LLVM_DIR}/../Clang)
-find_package(Polly PATHS ${LLVM_DIR}/../Polly)
 
-if(NOT LLVM_FOUND OR NOT Clang_FOUND)
-  message(" -- LLVM & libclang were not found, skipping JIT plug-in")
+if(NOT LLVM_FOUND)
+  message(" -- LLVM was not found, skipping JIT plug-in")
   return()
 endif()
+
 if(LLVM_VERSION VERSION_GREATER "10.0")
   message(" -- LLVM version: ${LLVM_VERSION}")
 else()
   message(" -- LLVM Version ${LLVM_VERSION} incompatible, skipping JIT plug-in")
   return()
 endif()
+
+find_package(Clang PATHS ${LLVM_DIR}/../Clang)
+if(NOT Clang_FOUND)
+  message(" -- libclang was not found, skipping JIT plug-in")
+  return()
+endif()
+
+find_package(Polly PATHS ${LLVM_DIR}/../Polly)
 
 # Based on the code in
 # https://github.com/weliveindetail/JitFromScratch

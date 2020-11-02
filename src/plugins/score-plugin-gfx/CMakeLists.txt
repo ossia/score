@@ -1,7 +1,7 @@
 project(score_plugin_gfx LANGUAGES C CXX)
 
 find_package(${QT_VERSION} OPTIONAL_COMPONENTS ShaderTools)
-if(NOT TARGET Qt::ShaderTools)
+if(NOT TARGET ${QT_PREFIX}::ShaderTools)
   message("Video plug-in requires Qt Shader Tools (5.14+)")
   return()
 endif()
