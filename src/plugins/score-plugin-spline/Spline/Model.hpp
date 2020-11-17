@@ -7,7 +7,7 @@
 
 #include <ossia/dataflow/nodes/spline.hpp>
 
-#include <Spline/SplineMetadata.hpp>
+#include <Spline/Metadata.hpp>
 
 #include <verdigris>
 

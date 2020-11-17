@@ -7,20 +7,20 @@ find_package(${QT_VERSION} REQUIRED COMPONENTS Core Widgets)
 
 # Files & main target
 set(HDRS
-  "${CMAKE_CURRENT_SOURCE_DIR}/Spline/SplineModel.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Spline/SplinePresenter.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Spline/SplineGeneratorDialog.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Spline/SplineView.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Spline/SplineMetadata.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Spline/SplineExecution.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Spline/Model.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Spline/Presenter.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Spline/GeneratorDialog.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Spline/View.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Spline/Metadata.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Spline/Execution.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Spline/Commands.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_spline.hpp"
 )
 set(SRCS
-"${CMAKE_CURRENT_SOURCE_DIR}/Spline/SplineModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Spline/SplinePresenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Spline/SplineView.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Spline/SplineExecution.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Spline/Model.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Spline/Presenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Spline/View.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Spline/Execution.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Spline/Commands.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_spline.cpp"
 )

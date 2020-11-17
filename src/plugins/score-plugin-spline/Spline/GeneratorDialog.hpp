@@ -9,11 +9,11 @@
 
 namespace Spline
 {
-class SplineGeneratorDialog
+class GeneratorDialog
     : public Process::ScriptDialog
 {
 public:
-  SplineGeneratorDialog(
+  GeneratorDialog(
         const ProcessModel& model,
         const score::DocumentContext& ctx,
         QWidget* parent):

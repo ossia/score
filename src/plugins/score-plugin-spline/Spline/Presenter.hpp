@@ -5,7 +5,7 @@
 
 #include <score/model/path/PathSerialization.hpp>
 
-#include <Spline/SplineModel.hpp>
+#include <Spline/Model.hpp>
 
 namespace Spline
 {

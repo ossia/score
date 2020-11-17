@@ -10,9 +10,9 @@
 
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 
-#include <Spline/SplineModel.hpp>
-#include <Spline/SplinePresenter.hpp>
-#include <Spline/SplineView.hpp>
+#include <Spline/Model.hpp>
+#include <Spline/Presenter.hpp>
+#include <Spline/View.hpp>
 #include <QTimer>
 #include <score/tools/Bind.hpp>
 #include <wobjectimpl.h>

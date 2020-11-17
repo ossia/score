@@ -1,7 +1,7 @@
 #pragma once
 #include <Process/LayerView.hpp>
 
-#include <Spline/SplineModel.hpp>
+#include <Spline/Model.hpp>
 
 #include <verdigris>
 namespace Process

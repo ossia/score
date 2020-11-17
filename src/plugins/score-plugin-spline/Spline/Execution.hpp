@@ -3,7 +3,7 @@
 
 #include <ossia/dataflow/node_process.hpp>
 
-#include <Spline/SplineModel.hpp>
+#include <Spline/Model.hpp>
 
 namespace Device
 {

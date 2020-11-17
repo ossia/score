@@ -2,8 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Process/Style/ScenarioStyle.hpp>
 
-#include <Spline/SplineView.hpp>
-#include <Spline/SplineGeneratorDialog.hpp>
+#include <Spline/View.hpp>
+#include <Spline/GeneratorDialog.hpp>
 #include <score/graphics/ZoomItem.hpp>
 #include <ossia/editor/automation/tinyspline_util.hpp>
 #include <Process/ProcessContext.hpp>
@@ -195,7 +195,7 @@ public:
   void setZoom(double zoom)
   {
     m_zoom = zoom;
-    updateSplineStroke();
+    updateStroke();
     setScale(m_zoom);
   }
 
@@ -230,7 +230,7 @@ public:
         m_points.push_back(pt);
       }
 
-      updateSplineStroke();
+      updateStroke();
       updatePlayPath();
     }
 
@@ -238,7 +238,7 @@ public:
     update();
   }
 
-  void updateSplineStroke()
+  void updateStroke()
   {
     QPainterPathStroker stk;
     stk.setWidth(5. / m_zoom);
@@ -351,7 +351,7 @@ public:
     auto res = menu->exec(e->screenPos());
     if(res == setCurveAct)
     {
-      auto dial = new SplineGeneratorDialog{this->m_model, this->m_context, e->widget()};
+      auto dial = new GeneratorDialog{this->m_model, this->m_context, e->widget()};
       dial->exec();
     }
     menu->deleteLater();

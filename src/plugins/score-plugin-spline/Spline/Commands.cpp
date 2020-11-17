@@ -1,5 +1,5 @@
 #include "Commands.hpp"
-#include <Spline/SplineModel.hpp>
+#include <Spline/Model.hpp>
 #include <score/command/Command.hpp>
 #include <score/model/path/PathSerialization.hpp>
 

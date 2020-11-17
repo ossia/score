@@ -4,8 +4,8 @@
 
 #include <ossia/network/common/destination_qualifiers.hpp>
 
-#include <Spline/SplineModel.hpp>
-#include <Spline/SplinePresenter.hpp>
+#include <Spline/Model.hpp>
+#include <Spline/Presenter.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Spline::ProcessModel)
 namespace Spline

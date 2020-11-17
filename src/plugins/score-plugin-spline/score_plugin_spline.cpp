@@ -12,10 +12,10 @@
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/tools/std/HashMap.hpp>
 
-#include <Spline/SplineExecution.hpp>
-#include <Spline/SplineModel.hpp>
-#include <Spline/SplinePresenter.hpp>
-#include <Spline/SplineView.hpp>
+#include <Spline/Execution.hpp>
+#include <Spline/Model.hpp>
+#include <Spline/Presenter.hpp>
+#include <Spline/View.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <wobjectimpl.h>
 #include <score_plugin_spline_commands_files.hpp>

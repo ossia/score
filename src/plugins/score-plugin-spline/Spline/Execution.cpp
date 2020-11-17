@@ -1,6 +1,6 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include "SplineExecution.hpp"
+#include "Execution.hpp"
 
 #include <Process/ExecutionContext.hpp>
 
@@ -21,7 +21,7 @@ Component::Component(
         element,
         ctx,
         id,
-        "Executor::SplineComponent",
+        "Executor::Component",
         parent}
 {
   auto node = std::make_shared<spline>();
