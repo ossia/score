@@ -2,7 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Process/Dataflow/Port.hpp>
 
-#include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/network/common/destination_qualifiers.hpp>
 
 #include <Spline/SplineModel.hpp>
 #include <Spline/SplinePresenter.hpp>

@@ -11,7 +11,7 @@
 #include <ossia/dataflow/graph_edge.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 
-#include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/network/common/destination_qualifiers.hpp>
 #include <ossia/editor/scenario/time_process.hpp>
 
 namespace Execution

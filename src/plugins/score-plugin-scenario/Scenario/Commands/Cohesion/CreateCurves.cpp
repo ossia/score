@@ -23,7 +23,7 @@
 #include <score/selection/Selectable.hpp>
 #include <score/selection/SelectionStack.hpp>
 
-#include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/network/common/destination_qualifiers.hpp>
 #include <ossia/network/domain/domain.hpp>
 #include <ossia/network/value/value_conversion.hpp>
 

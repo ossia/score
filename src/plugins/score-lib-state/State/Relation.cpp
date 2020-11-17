@@ -4,7 +4,7 @@
 
 #include <State/ValueConversion.hpp>
 
-#include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/network/common/destination_qualifiers.hpp>
 
 #include <QMap>
 namespace State

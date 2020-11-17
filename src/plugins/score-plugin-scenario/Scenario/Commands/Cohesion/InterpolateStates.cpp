@@ -29,7 +29,7 @@
 #include <score/selection/SelectionStack.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
-#include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/network/common/destination_qualifiers.hpp>
 
 #include <utility>
 #include <vector>

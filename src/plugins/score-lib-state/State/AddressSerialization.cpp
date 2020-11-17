@@ -8,7 +8,7 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VariantSerialization.hpp>
 
-#include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/network/common/destination_qualifiers.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 
 /// Address ///

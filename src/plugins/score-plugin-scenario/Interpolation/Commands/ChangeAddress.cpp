@@ -9,7 +9,7 @@
 
 #include <score/model/path/PathSerialization.hpp>
 
-#include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/network/common/destination_qualifiers.hpp>
 
 #include <Interpolation/Commands/ChangeAddress.hpp>
 

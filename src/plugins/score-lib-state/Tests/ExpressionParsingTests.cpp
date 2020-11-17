@@ -29,7 +29,7 @@ bool validate(const State::Expression& expr)
 #include <State/TraversalPath.hpp>
 
 #include <ossia-qt/js_utilities.hpp>
-#include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/network/common/destination_qualifiers.hpp>
 
 #include <boost/proto/operators.hpp>
 #include <boost/spirit/home/qi/detail/parse_auto.hpp>

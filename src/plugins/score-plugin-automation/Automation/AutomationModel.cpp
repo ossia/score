@@ -25,7 +25,7 @@
 #include <score/tools/std/Optional.hpp>
 
 #include <ossia/dataflow/port.hpp>
-#include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/network/common/destination_qualifiers.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Automation::ProcessModel)

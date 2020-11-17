@@ -10,7 +10,7 @@
 
 #include <score/model/tree/TreeNode.hpp>
 
-#include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/network/common/destination_qualifiers.hpp>
 
 #include <QDebug>
 

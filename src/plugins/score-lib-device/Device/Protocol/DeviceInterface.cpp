@@ -9,7 +9,7 @@
 
 #include <ossia-qt/name_utils.hpp>
 #include <ossia/detail/logger.hpp>
-#include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/network/common/destination_qualifiers.hpp>
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/parameter.hpp>
 #include <ossia/network/base/protocol.hpp>

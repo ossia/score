@@ -409,7 +409,7 @@ AudioDecoder::~AudioDecoder()
 
 struct AVCodecContext_Free
 {
-  void operator()(AVCodecContext* ctx)
+  void operator()(AVCodecContext* ctx) const noexcept
   {
 #if SCORE_HAS_LIBAV
     avcodec_free_context(&ctx);
@@ -418,16 +418,16 @@ struct AVCodecContext_Free
 };
 struct AVFormatContext_Free
 {
-  void operator()(AVFormatContext* ctx)
+  void operator()(AVFormatContext* ctx) const noexcept
   {
 #if SCORE_HAS_LIBAV
-    avformat_free_context(ctx);
+    avformat_close_input(&ctx);
 #endif
   }
 };
 struct AVFrame_Free
 {
-  void operator()(AVFrame* frame)
+  void operator()(AVFrame* frame) const noexcept
   {
 #if SCORE_HAS_LIBAV
     av_frame_free(&frame);

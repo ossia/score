@@ -21,7 +21,7 @@
 #include <score/tools/MapCopy.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/network/common/destination_qualifiers.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 
 #include <Metronome/MetronomeProcessMetadata.hpp>

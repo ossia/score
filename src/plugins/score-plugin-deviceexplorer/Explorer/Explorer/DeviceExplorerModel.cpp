@@ -33,7 +33,7 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/MimeVisitor.hpp>
 
-#include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/network/common/destination_qualifiers.hpp>
 #include <ossia/network/base/node_attributes.hpp>
 #include <ossia/network/domain/domain.hpp>
 
