@@ -6,7 +6,7 @@
 
 #include <score/tools/Debug.hpp>
 #include <QVulkanInstance>
-static void graphwalk(NodeModel* node, std::vector<NodeModel*>& list)
+static void graphwalk(score::gfx::Node* node, std::vector<score::gfx::Node*>& list)
 {
   for (auto inputs : node->input)
   {
@@ -111,6 +111,9 @@ void Graph::setupOutputs(GraphicsApi graphicsApi)
           {
             renderer->release();
           }
+
+          // TODO shouldn't that be in that "if" above ? we only resize
+          // one viewport at a time...
           renderer.reset();
           renderer = createRenderer(output, *output->renderState());
         }
@@ -218,6 +221,17 @@ void Graph::setVSyncCallback(std::function<void ()> cb)
   }
 }
 
+static void createNodeRenderer(score::gfx::Node& node, Renderer& r)
+{
+  auto rn = node.createRenderer();
+
+  // Register the node with the renderer
+  r.renderedNodes.push_back(rn);
+
+  // Register the rendered nodes with their parents
+  node.renderedNodes[&r] = rn;
+}
+
 std::shared_ptr<Renderer> Graph::createRenderer(OutputNode* output, RenderState state)
 {
   auto ptr = std::make_shared<Renderer>();
@@ -247,20 +261,15 @@ std::shared_ptr<Renderer> Graph::createRenderer(OutputNode* output, RenderState 
     // We create renderers for each of them
     for (auto node : model_nodes)
     {
-      r.renderedNodes.push_back(node->createRenderer());
+      createNodeRenderer(*node, r);
     }
   }
 
   // For each, we create a render target
-  for (auto node : r.renderedNodes)
-    node->createRenderTarget(r.state);
+  r.createRenderTargets();
 
   output->onRendererChange();
   {
-    // Register the rendered nodes with their parents
-    for (auto node : r.renderedNodes)
-      const_cast<NodeModel&>(node->node).renderedNodes[&r] = node;
-
     r.init();
 
     if (model_nodes.size() > 1)

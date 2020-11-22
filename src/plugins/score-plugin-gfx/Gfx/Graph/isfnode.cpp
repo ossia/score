@@ -188,7 +188,8 @@ ISFNode::ISFNode(const isf::descriptor& desc, const QShader& vert, const QShader
     : m_mesh{mesh}
     , m_descriptor{desc}
 {
-  setShaders(vert, frag);
+  m_vertexS = vert;
+  m_fragmentS = frag;
 
   // Compoute the size required for the materials
   input_size_vis sz_vis{};
@@ -247,35 +248,71 @@ const Mesh& ISFNode::mesh() const noexcept
   return *this->m_mesh;
 }
 
-struct RenderedISFNode : RenderedNode
+struct RenderedISFNode : score::gfx::NodeRenderer
 {
   struct Pass {
     QRhiSampler* sampler{};
-    QRhiTexture* texture{};
-    QRhiRenderTarget* rt{};
-    QRhiRenderPassDescriptor* rp{};
-    QRhiGraphicsPipeline* pipeline{};
+    TextureRenderTarget renderTarget;
+    Pipeline p;
     QRhiBuffer* processUBO{};
-    QRhiShaderResourceBindings* srb{};
   };
   std::vector<Pass> m_passes;
 
-  using RenderedNode::RenderedNode;
+  //std::unique_ptr<char[]> m_materialData;
+
+  ISFNode& n;
+
+
+  TextureRenderTarget m_lastPassRT;
+
+  std::vector<Sampler> m_samplers;
+
+  // Pipeline
+  Pipeline m_p;
+
+  QRhiBuffer* m_meshBuffer{};
+  QRhiBuffer* m_idxBuffer{};
+
+  QRhiBuffer* m_materialUBO{};
+  int m_materialSize{};
+  int64_t materialChangedIndex{-1};
+
+  RenderedISFNode(const ISFNode& node) noexcept
+    : score::gfx::NodeRenderer{}
+    , n{const_cast<ISFNode&>(node)}
+  {
+
+  }
+
+  std::optional<QSize> renderTargetSize() const noexcept override
+  {
+    return {};
+  }
+
+  TextureRenderTarget createRenderTarget(const RenderState& state) override
+  {
+    auto sz = state.size;
+    if (auto true_sz = renderTargetSize())
+    {
+      sz = *true_sz;
+    }
+
+    m_lastPassRT = score::gfx::createRenderTarget(state, sz);
+    return m_lastPassRT;
+  }
 
   QSize computeTextureSize(const isf::pass& pass)
   {
-    auto& n = (ISFNode&)(node);
-
-    QSize res = m_renderTarget->pixelSize();
+    QSize res = m_lastPassRT.renderTarget->pixelSize();
 
     exprtk::symbol_table<float> syms;
 
     syms.add_constant("var_WIDTH", res.width());
     syms.add_constant("var_HEIGHT", res.height());
     int port_k = 0;
-    for(isf::input& input : n.m_descriptor.inputs)
+    for(const isf::input& input : n.m_descriptor.inputs)
     {
-      auto port = node.input[port_k];
+      auto port = n.input[port_k];
       if(std::get_if<isf::float_input>(&input.data))
       {
         syms.add_constant("var_" + input.name, *(float*)port->value);
@@ -316,21 +353,10 @@ struct RenderedISFNode : RenderedNode
     return res;
   }
 
-
-  void customInit(Renderer& renderer) override
+  int initShaderSamplers(Renderer& renderer)
   {
     QRhi& rhi = *renderer.state.rhi;
-    auto& n = (ISFNode&)(node);
-    auto& input = node.input;
-
-    m_materialSize = n.m_materialSize;
-    if (m_materialSize > 0)
-    {
-      m_materialUBO
-          = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, m_materialSize);
-      ensure(m_materialUBO->build());
-    }
-
+    auto& input = n.input;
     int cur_pos = 0;
     for (auto in : input)
     {
@@ -371,20 +397,14 @@ struct RenderedISFNode : RenderedNode
               QRhiSampler::ClampToEdge);
           ensure(sampler->build());
 
-          QRhiTexture* texture = renderer.m_emptyTexture;
-          if (!in->edges.empty())
-            if (auto source_node = in->edges[0]->source->node)
-              if (auto source_rd = source_node->renderedNodes[&renderer])
-                if (auto tex = source_rd->m_texture)
-                  texture = tex;
-
+          auto texture = renderer.textureTargetForInputPort(*in);
           m_samplers.push_back({sampler, texture});
 
           if (cur_pos % 8 != 0)
             cur_pos += 4;
 
-          *(float*)(node.m_materialData.get() + cur_pos)     = texture->pixelSize().width();
-          *(float*)(node.m_materialData.get() + cur_pos + 4) = texture->pixelSize().height();
+          *(float*)(n.m_materialData.get() + cur_pos)     = texture->pixelSize().width();
+          *(float*)(n.m_materialData.get() + cur_pos + 4) = texture->pixelSize().height();
 
           cur_pos += 8;
           break;
@@ -393,7 +413,12 @@ struct RenderedISFNode : RenderedNode
           break;
       }
     }
+    return cur_pos;
+  }
 
+  void initAudioTextures(Renderer& renderer)
+  {
+    QRhi& rhi = *renderer.state.rhi;
     for (auto& texture : n.audio_textures)
     {
       auto sampler = rhi.newSampler(
@@ -407,97 +432,153 @@ struct RenderedISFNode : RenderedNode
       m_samplers.push_back({sampler, renderer.m_emptyTexture});
       texture.samplers[&renderer] = {sampler, nullptr};
     }
+  }
+
+  void initPassSamplers(Renderer& renderer, int& cur_pos)
+  {
+    QRhi& rhi = *renderer.state.rhi;
+    auto& model_passes = n.m_descriptor.passes;
+    for(int i = 0, N = model_passes.size(); i < N - 1; i++)
+    {
+      auto sampler = rhi.newSampler(
+            QRhiSampler::Linear,
+            QRhiSampler::Linear,
+            QRhiSampler::None,
+            QRhiSampler::ClampToEdge,
+            QRhiSampler::ClampToEdge);
+      sampler->build();
+
+      const QSize texSize = computeTextureSize(model_passes[i]);
+
+      const auto fmt = (model_passes[i].float_storage) ? QRhiTexture::RGBA32F : QRhiTexture::RGBA8;
+
+      auto tex = rhi.newTexture(fmt, texSize, 1, QRhiTexture::Flag{QRhiTexture::RenderTarget});
+      tex->build();
+
+      m_samplers.push_back({sampler, tex});
+
+      if (cur_pos % 8 != 0)
+        cur_pos += 4;
+
+      *(float*)(n.m_materialData.get() + cur_pos)     = texSize.width();
+      *(float*)(n.m_materialData.get() + cur_pos + 4) = texSize.height();
+
+      cur_pos += 8;
+    }
+  }
+
+  Pipeline buildPassPipeline(Renderer& renderer, TextureRenderTarget tgt, QRhiBuffer* processUBO) {
+    return score::gfx::buildPipeline(renderer,  n.mesh(), n.m_vertexS, n.m_fragmentS, tgt, processUBO, m_materialUBO, m_samplers);
+  };
+
+  Pass createPass(Renderer& renderer, Sampler target)
+  {
+    QRhi& rhi = *renderer.state.rhi;
+    auto [sampler, tex] = target;
+
+    auto rt = rhi.newTextureRenderTarget({tex});
+    auto rp = rt->newCompatibleRenderPassDescriptor();
+    ensure(rp);
+    rt->setRenderPassDescriptor(rp);
+    ensure(rt->build());
+
+    QRhiBuffer* pubo{};
+    pubo = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(ProcessUBO));
+    pubo->build();
+
+    auto pip = buildPassPipeline(renderer, TextureRenderTarget{tex, rp, rt}, pubo);
+    auto srb = pip.srb;
+
+    // We have to replace the rendered-to texture by an empty one in each pass,
+    // as RHI does not support both reading and writing to a texture in the same pass.
+    {
+      QVarLengthArray<QRhiShaderResourceBinding> bindings;
+      for(auto it = srb->cbeginBindings(); it != srb->cendBindings(); ++it)
+      {
+        bindings.push_back(*it);
+
+        if(it->data()->type == QRhiShaderResourceBinding::SampledTexture)
+        {
+          if(it->data()->u.stex.texSamplers->tex == tex)
+          {
+            bindings.back().data()->u.stex.texSamplers->tex = renderer.m_emptyTexture;
+          }
+        }
+      }
+      srb->setBindings(bindings.begin(), bindings.end());
+      srb->build();
+    }
+    return Pass{sampler, {tex, rp, rt}, pip, pubo};
+  }
+
+  void init(Renderer& renderer) override
+  {
+    // init()
+    {
+      const auto& mesh = n.mesh();
+      if (!m_meshBuffer)
+      {
+        auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh);
+        m_meshBuffer = mbuffer;
+        m_idxBuffer = ibuffer;
+      }
+    }
+
+    QRhi& rhi = *renderer.state.rhi;
+
+    m_materialSize = n.m_materialSize;
+    if (m_materialSize > 0)
+    {
+      m_materialUBO
+          = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, m_materialSize);
+      ensure(m_materialUBO->build());
+    }
+
+    int cur_pos = initShaderSamplers(renderer);
+
+    initAudioTextures(renderer);
+
 
     auto& model_passes = n.m_descriptor.passes;
     if(!model_passes.empty())
     {
       int first_pass_sampler_idx = m_samplers.size();
+
       // First create all the samplers / textures
+      initPassSamplers(renderer, cur_pos);
+
+      // Then create the passes
       for(int i = 0, N = model_passes.size(); i < N - 1; i++)
       {
-        auto sampler = rhi.newSampler(
-              QRhiSampler::Linear,
-              QRhiSampler::Linear,
-              QRhiSampler::None,
-              QRhiSampler::ClampToEdge,
-              QRhiSampler::ClampToEdge);
-        sampler->build();
-
-        const QSize texSize = computeTextureSize(model_passes[i]);
-
-        const auto fmt = (model_passes[i].float_storage) ? QRhiTexture::RGBA32F : QRhiTexture::RGBA8;
-
-        auto tex = rhi.newTexture(fmt, texSize, 1, QRhiTexture::Flag{QRhiTexture::RenderTarget});
-        tex->build();
-
-        m_samplers.push_back({sampler, tex});
-
-        if (cur_pos % 8 != 0)
-          cur_pos += 4;
-
-        *(float*)(node.m_materialData.get() + cur_pos)     = texSize.width();
-        *(float*)(node.m_materialData.get() + cur_pos + 4) = texSize.height();
-
-        cur_pos += 8;
+        auto target = m_samplers[first_pass_sampler_idx + i];
+        auto pass = createPass(renderer, target);
+        m_passes.push_back(pass);
       }
+    }
 
-      for(int i = 0, N = model_passes.size(); i < N - 1; i++)
-      {
-        auto [sampler, tex] = m_samplers[first_pass_sampler_idx + i];
+    // Last pass is the main write
+    {
+      QRhiBuffer* pubo{};
+      pubo = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(ProcessUBO));
+      pubo->build();
 
-        auto rt = rhi.newTextureRenderTarget({tex});
-        auto rp = rt->newCompatibleRenderPassDescriptor();
-        ensure(rp);
-        rt->setRenderPassDescriptor(rp);
-        ensure(rt->build());
-
-        auto [ps, srb] = buildPipeline(rhi, node.mesh(), renderer, *rp);
-
-        QRhiBuffer* pubo{};
-        // We have to replace the rendered-to texture by an empty one in each pass,
-        // as RHI does not support both reading and writing to a texture in the same pass.
-        {
-          QVarLengthArray<QRhiShaderResourceBinding> bindings;
-          for(auto it = srb->cbeginBindings(); it != srb->cendBindings(); ++it)
-          {
-            bindings.push_back(*it);
-            if(it->data()->type == QRhiShaderResourceBinding::SampledTexture)
-            {
-              if(it->data()->u.stex.texSamplers->tex == tex)
-              {
-                bindings.back().data()->u.stex.texSamplers->tex = renderer.m_emptyTexture;
-              }
-            }
-            else if(it->data()->type == QRhiShaderResourceBinding::UniformBuffer)
-            {
-              if(it->data()->u.ubuf.buf == m_processUBO)
-              {
-                // Allocate a new one instead. Writes to the same buffer get coalesced so
-                // we can't have PASSINDEX==0, 1..
-                pubo = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(ProcessUBO));
-                pubo->build();
-                bindings.back().data()->u.ubuf.buf = pubo;
-              }
-            }
-          }
-          srb->setBindings(bindings.begin(), bindings.end());
-          srb->build();
-        }
-        m_passes.push_back({sampler, tex, rt, rp, ps, pubo, srb});
-      }
-
-      // Last pass is the main write
-      auto [ps, srb] = buildPipeline(rhi, node.mesh(), renderer, *m_renderPass);
-      m_ps = ps;
-      m_srb = srb;
-      m_passes.push_back({nullptr, nullptr, m_renderTarget, m_renderPass, m_ps, m_processUBO, m_srb});
+      auto p = buildPassPipeline(renderer, m_lastPassRT, pubo);
+      m_passes.push_back(Pass{nullptr, m_lastPassRT, p, pubo});
     }
   }
 
-  void customUpdate(Renderer& renderer, QRhiResourceUpdateBatch& res) override
+  void update(Renderer& renderer, QRhiResourceUpdateBatch& res) override
   {
+    {
+      if (m_materialUBO && m_materialSize > 0 && materialChangedIndex != n.materialChanged)
+      {
+        char* data = n.m_materialData.get();
+        res.updateDynamicBuffer(m_materialUBO, 0, m_materialSize, data);
+        materialChangedIndex = n.materialChanged;
+      }
+    }
+
     QRhi& rhi = *renderer.state.rhi;
-    auto& n = (ISFNode&)node;
     for (auto& audio : n.audio_textures)
     {
       bool textureChanged = false;
@@ -530,7 +611,7 @@ struct RenderedISFNode : RenderedNode
 
       if (textureChanged)
       {
-        replaceTexture(rhiSampler, rhiTexture ? rhiTexture : renderer.m_emptyTexture);
+        score::gfx::replaceTexture(*m_p.srb, rhiSampler, rhiTexture ? rhiTexture : renderer.m_emptyTexture);
       }
 
       if (rhiTexture)
@@ -542,56 +623,75 @@ struct RenderedISFNode : RenderedNode
       }
     }
 
-    if(!m_passes.empty())
     {
       // Update all the process UBOs
-      for(int i = 0, N = m_passes.size(); i < N - 1; i++)
+      for(int i = 0, N = m_passes.size(); i < N; i++)
       {
-        ((NodeModel&)node).standardUBO.passIndex = i;
-        res.updateDynamicBuffer(m_passes[i].processUBO, 0, sizeof(ProcessUBO), &this->node.standardUBO);
+        n.standardUBO.passIndex = i;
+        res.updateDynamicBuffer(m_passes[i].processUBO, 0, sizeof(ProcessUBO), &this->n.standardUBO);
       }
     }
   }
 
-  void customRelease(Renderer& renderer) override
+  void releaseWithoutRenderTarget(Renderer& r) override
   {
-    auto& n = (ISFNode&)(node);
-    for (auto& texture : n.audio_textures)
-      if (auto tex = texture.samplers[&renderer].second)
+    // customRelease
+    {
+      for (auto& texture : n.audio_textures)
       {
-        if (tex != renderer.m_emptyTexture)
-          tex->releaseAndDestroyLater();
+        auto it = texture.samplers.find(&r);
+        if(it != texture.samplers.end())
+        {
+          if (auto tex = it->second.second)
+          {
+            if (tex != r.m_emptyTexture)
+              tex->releaseAndDestroyLater();
+          }
+        }
       }
 
-    if(!m_passes.empty())
-    {
-      // Last pass is the "main pass" already being released.
-      m_passes.pop_back();
+      for (auto& pass : m_passes)
+      {
+        // TODO do we also want to remove the last pass texture here ?!
+        pass.p.release();
+        pass.renderTarget.release();
+        pass.processUBO->releaseAndDestroyLater();
+      }
+
+      m_passes.clear();
     }
 
-    for (auto& pass : m_passes)
+    for (auto sampler : m_samplers)
     {
-      pass.rt->releaseAndDestroyLater();
-      pass.rp->releaseAndDestroyLater();
-      pass.texture->releaseAndDestroyLater();
-      pass.processUBO->releaseAndDestroyLater();
-      pass.srb->releaseAndDestroyLater();
-      pass.pipeline->releaseAndDestroyLater();
+      delete sampler.sampler;
+      // texture isdeleted elsewxheree
     }
+    m_samplers.clear();
 
-    m_passes.clear();
+    delete m_materialUBO;
+    m_materialUBO = nullptr;
+
+    m_p.release();
+
+    m_meshBuffer = nullptr;
   }
+
+  void release(Renderer& r) override
+  {
+    releaseWithoutRenderTarget(r);
+  }
+
 
   void runPass(Renderer& renderer, QRhiCommandBuffer& cb, QRhiResourceUpdateBatch& res) override
   {
-    if(m_passes.empty())
-      return RenderedNode::runPass(renderer, cb, res);
+    // if(m_passes.empty())
+    //   return RenderedNode::runPass(renderer, cb, res);
 
     // Update a first time everything
 
     // PASSINDEX must be set to the last index
     // FIXME
-    ((NodeModel&)node).standardUBO.passIndex = m_passes.size() - 1;
+    n.standardUBO.passIndex = m_passes.size() - 1;
 
     update(renderer, res);
 
@@ -600,20 +700,25 @@ struct RenderedISFNode : RenderedNode
     // Draw the passes
     for(const auto& pass : m_passes)
     {
-      SCORE_ASSERT(pass.rt);
-      SCORE_ASSERT(pass.pipeline);
-      SCORE_ASSERT(pass.srb);
+      SCORE_ASSERT(pass.renderTarget.renderTarget);
+      SCORE_ASSERT(pass.p.pipeline);
+      SCORE_ASSERT(pass.p.srb);
       // TODO : combine all the uniforms..
 
-      // TODO need to free stuff
-      cb.beginPass(pass.rt, Qt::black, {1.0f, 0}, updateBatch);
-      {
-        cb.setGraphicsPipeline(pass.pipeline);
-        cb.setShaderResources(pass.srb);
+      auto rt = pass.renderTarget.renderTarget;
+      auto pipeline = pass.p.pipeline;
+      auto srb = pass.p.srb;
+      auto texture = pass.renderTarget.texture;
 
-        if(pass.texture)
+      // TODO need to free stuff
+      cb.beginPass(rt, Qt::black, {1.0f, 0}, updateBatch);
+      {
+        cb.setGraphicsPipeline(pipeline);
+        cb.setShaderResources(srb);
+
+        if(texture)
         {
-          cb.setViewport(QRhiViewport(0, 0, pass.texture->pixelSize().width(), pass.texture->pixelSize().height()));
+          cb.setViewport(QRhiViewport(0, 0, texture->pixelSize().width(), texture->pixelSize().height()));
         }
         else
         {
@@ -623,23 +728,23 @@ struct RenderedISFNode : RenderedNode
 
         assert(this->m_meshBuffer);
         assert(this->m_meshBuffer->usage().testFlag(QRhiBuffer::VertexBuffer));
-        node.mesh().setupBindings(*this->m_meshBuffer, this->m_idxBuffer, cb);
+        n.mesh().setupBindings(*this->m_meshBuffer, this->m_idxBuffer, cb);
 
-        cb.draw(node.mesh().vertexCount);
+        cb.draw(n.mesh().vertexCount);
       }
 
       cb.endPass();
 
-       if(pass.pipeline != m_ps)
-       {
-         // Not the last pass: we have to use another resource batch
-         updateBatch = renderer.state.rhi->nextResourceUpdateBatch();
-       }
+      if(pass.p.pipeline != m_passes.back().p.pipeline)
+      {
+        // Not the last pass: we have to use another resource batch
+        updateBatch = renderer.state.rhi->nextResourceUpdateBatch();
+      }
     }
   }
 };
 
-RenderedNode* ISFNode::createRenderer() const noexcept
+score::gfx::NodeRenderer* ISFNode::createRenderer() const noexcept
 {
   return new RenderedISFNode{*this};
 }

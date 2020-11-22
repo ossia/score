@@ -130,5 +130,5 @@ struct TexgenNode : NodeModel
   std::atomic<func_t> function{};
 
   const Mesh& mesh() const noexcept override { return this->m_mesh; }
-  RenderedNode* createRenderer() const noexcept override { return new Rendered{*this}; }
+  score::gfx::NodeRenderer* createRenderer() const noexcept override { return new Rendered{*this}; }
 };

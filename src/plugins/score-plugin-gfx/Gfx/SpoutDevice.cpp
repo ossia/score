@@ -60,7 +60,7 @@ struct SpoutNode : OutputNode
   void destroyOutput() override;
 
   RenderState* renderState() const override;
-  RenderedNode* createRenderer() const noexcept override;
+  score::gfx::NodeRenderer* createRenderer() const noexcept override;
 };
 
 class spout_device : public ossia::net::device_base
@@ -226,11 +226,12 @@ class SpoutRenderer : public RenderedNode
 {
 public:
   using RenderedNode::RenderedNode;
-  void createRenderTarget(const RenderState& state) override
+  QRhiTexture* createRenderTarget(const RenderState& state) override
   {
     auto& self = static_cast<const SpoutNode&>(this->node);
     m_renderTarget = self.m_renderTarget;
     m_renderPass = state.renderPassDescriptor;
+    return nullptr;
   }
 };
 

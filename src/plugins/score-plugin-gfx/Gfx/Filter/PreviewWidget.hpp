@@ -11,6 +11,7 @@
 #include <QHBoxLayout>
 #include <QOpenGLWidget>
 
+struct ISFNode;
 namespace Gfx
 {
 
@@ -24,8 +25,8 @@ private:
   void timerEvent(QTimerEvent* event) override;
 
   Graph m_graph{};
-  std::vector<NodeModel*> m_previewInputs;
-  NodeModel* m_isf{};
+  std::vector<score::gfx::Node*> m_previewInputs;
+  ISFNode* m_isf{};
   ProcessedProgram m_program;
 };
 }

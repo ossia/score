@@ -126,7 +126,7 @@ struct ProductNode : NodeModel
   virtual ~ProductNode();
 };
 
-struct ScreenNode : OutputNode
+struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
 {
   ScreenNode(bool embedded = false);
   virtual ~ScreenNode();
@@ -151,7 +151,7 @@ struct ScreenNode : OutputNode
   void destroyOutput() override;
 
   RenderState* renderState() const override;
-  RenderedNode* createRenderer() const noexcept override;
+  score::gfx::NodeRenderer* createRenderer() const noexcept override;
 
 private:
   bool m_embedded{};

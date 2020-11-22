@@ -40,7 +40,7 @@ struct gfx_message
 
 struct gfx_view_node
 {
-  std::unique_ptr<NodeModel> impl;
+  std::unique_ptr<score::gfx::ProcessNode> impl;
 
   void process(const ossia::token_request& tk)
   {
@@ -275,7 +275,7 @@ public:
     delete m_graph;
   }
 
-  int32_t register_node(std::unique_ptr<NodeModel> node)
+  int32_t register_node(std::unique_ptr<score::gfx::ProcessNode> node)
   {
     auto next = index;
     m_graph->addNode(node.get());

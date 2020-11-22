@@ -577,7 +577,7 @@ struct VideoNode : NodeModel
 
   virtual ~VideoNode() { }
 
-  RenderedNode* createRenderer() const noexcept override {
+  score::gfx::NodeRenderer* createRenderer() const noexcept override {
     auto r = new Rendered{*this};
     r->current_format = current_format;
     return r;

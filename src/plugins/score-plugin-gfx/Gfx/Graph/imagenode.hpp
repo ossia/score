@@ -20,7 +20,7 @@ struct ImagesNode : NodeModel
   layout(location = 0) in vec2 position;
   layout(location = 1) in vec2 texcoord;
 
-  layout(binding=3) uniform sampler2D y_tex;
+  layout(binding = 3) uniform sampler2D y_tex;
   layout(location = 0) out vec2 v_texcoord;
 
   layout(std140, binding = 0) uniform renderer_t {
@@ -126,7 +126,7 @@ struct ImagesNode : NodeModel
 
       if (prev_ubo.currentImageIndex != n.ubo.currentImageIndex)
       {
-        replaceTexture(m_samplers[0].sampler, textures[n.ubo.currentImageIndex]);
+        score::gfx::replaceTexture(*m_p.srb, m_samplers[0].sampler, textures[n.ubo.currentImageIndex]);
         prev_ubo.currentImageIndex = n.ubo.currentImageIndex;
       }
     }
@@ -162,5 +162,5 @@ struct ImagesNode : NodeModel
   virtual ~ImagesNode() { m_materialData.release(); }
 
   const Mesh& mesh() const noexcept override { return this->m_mesh; }
-  RenderedNode* createRenderer() const noexcept override { return new Rendered{*this}; }
+  score::gfx::NodeRenderer* createRenderer() const noexcept override { return new Rendered{*this}; }
 };

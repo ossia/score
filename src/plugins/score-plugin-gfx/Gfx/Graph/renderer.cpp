@@ -51,6 +51,7 @@ void Renderer::init()
 
 void Renderer::release()
 {
+
   for (auto node : renderedNodes)
     node->release(*this);
 
@@ -59,6 +60,8 @@ void Renderer::release()
     delete bufs.second.mesh;
     delete bufs.second.index;
   }
+
+  textureTargets.clear();
   m_vertexBuffers.clear();
   buffersToUpload.clear();
 
@@ -81,9 +84,7 @@ void Renderer::maybeRebuild()
     // Now we have the nodes in the order in which they are going to
     // be processed
 
-    // For each, we create a render target
-    for (auto node : renderedNodes)
-      node->createRenderTarget(state);
+    createRenderTargets();
 
     init();
 
@@ -91,6 +92,35 @@ void Renderer::maybeRebuild()
       node->init(*this);
 
     lastSize = outputSize;
+  }
+}
+
+QRhiTexture* Renderer::textureTargetForInputPort(Port& port)
+{
+  QRhiTexture* texture = m_emptyTexture;
+  if (port.edges.empty())
+    return texture;
+
+  auto source_node = port.edges[0]->source->node;
+  if (!source_node)
+    return texture;
+
+  auto renderedNode = source_node->renderedNodes[this];
+  auto it = textureTargets.find(renderedNode);
+  if(it == textureTargets.end()) {
+    qDebug() << "! warning ! output texture requested but not existing.";
+    return texture;
+  }
+
+  return it->second;
+}
+
+void Renderer::createRenderTargets()
+{
+  for (auto node : renderedNodes) {
+    auto tg = node->createRenderTarget(state);
+    if(tg.texture)
+      textureTargets[node] = tg.texture;
   }
 }
 
@@ -106,7 +136,7 @@ void Renderer::render(QRhiCommandBuffer& commands)
   auto updateBatch = state.rhi->nextResourceUpdateBatch();
   update(*updateBatch);
 
-  for (int i = 0; i < renderedNodes.size(); i++)
+  for (std::size_t i = 0; i < renderedNodes.size(); i++)
   {
     renderedNodes[i]->runPass(*this, commands, *updateBatch);
 

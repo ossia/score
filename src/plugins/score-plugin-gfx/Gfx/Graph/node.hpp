@@ -14,6 +14,10 @@
 #include <unordered_map>
 #include <score_plugin_gfx_export.h>
 
+namespace score::gfx
+{
+class Node;
+}
 class NodeModel;
 struct Port;
 struct Edge;
@@ -29,7 +33,7 @@ struct AudioTexture
 
 struct Port
 {
-  NodeModel* node{};
+  score::gfx::Node* node{};
   void* value{};
   Types type{};
   std::vector<Edge*> edges;
@@ -56,10 +60,48 @@ struct Edge
   Port* sink{};
 };
 
+struct Pipeline
+{
+  QRhiGraphicsPipeline* pipeline{};
+  QRhiShaderResourceBindings* srb{};
+
+  void release()
+  {
+    delete pipeline;
+    pipeline = nullptr;
+
+    delete srb;
+    srb = nullptr;
+  }
+};
+
 struct Sampler
 {
   QRhiSampler* sampler{};
   QRhiTexture* texture{};
+};
+
+struct TextureRenderTarget {
+  QRhiTexture* texture{};
+  QRhiRenderPassDescriptor* renderPass{};
+  QRhiRenderTarget* renderTarget{};
+
+  operator bool() const noexcept { return texture != nullptr; }
+
+  void release()
+  {
+    if (texture)
+    {
+      delete texture;
+      texture = nullptr;
+
+      delete renderPass;
+      renderPass = nullptr;
+
+      delete renderTarget;
+      renderTarget = nullptr;
+    }
+  }
 };
 
 #if defined(_MSC_VER)
@@ -110,71 +152,100 @@ struct
 static_assert(sizeof(ModelCameraUBO) == sizeof(float) * (16 + 16 + 16 + 16 + 16 + 9));
 struct Renderer;
 class RenderedNode;
-class SCORE_PLUGIN_GFX_EXPORT NodeModel
+
+namespace score::gfx
 {
-  friend class RenderedNode;
+class NodeRenderer;
+class SCORE_PLUGIN_GFX_EXPORT Node
+{
+  friend class NodeRenderer;
 
 public:
-  explicit NodeModel();
-  virtual ~NodeModel();
+  explicit Node()
+  {
 
+  }
+
+  virtual ~Node()
+  {
+
+  }
+
+  virtual NodeRenderer* createRenderer() const noexcept = 0;
   virtual const Mesh& mesh() const noexcept = 0;
-
-  virtual RenderedNode* createRenderer() const noexcept;
 
   std::vector<Port*> input;
   std::vector<Port*> output;
+  ossia::flat_map<Renderer*, score::gfx::NodeRenderer*> renderedNodes;
 
-  ossia::flat_map<Renderer*, RenderedNode*> renderedNodes;
-
-  ProcessUBO standardUBO{};
-
-  void setShaders(QString vert, QString frag);
-  void setShaders(const QShader& vert, const QShader& frag);
-
-  std::unique_ptr<char[]> m_materialData;
-protected:
-  QShader m_vertexS;
-  QShader m_fragmentS;
-
-
-  friend class RenderedNode;
-
-public:
-  int64_t materialChanged{0};
   bool addedToGraph{};
 };
 
-class SCORE_PLUGIN_GFX_EXPORT RenderedNode
+class SCORE_PLUGIN_GFX_EXPORT ProcessNode
+    : public Node
 {
 public:
-  RenderedNode(const NodeModel& node) noexcept : node{node} { }
+  using Node::Node;
+
+  int64_t materialChanged{0};
+  ProcessUBO standardUBO{};
+};
+
+class SCORE_PLUGIN_GFX_EXPORT NodeRenderer
+{
+public:
+  explicit NodeRenderer() noexcept;
+  virtual ~NodeRenderer();
+
+  virtual std::optional<QSize> renderTargetSize() const noexcept = 0;
+  virtual TextureRenderTarget createRenderTarget(const RenderState& state) = 0;
+  virtual void init(Renderer& renderer) = 0;
+  virtual void update(Renderer& renderer, QRhiResourceUpdateBatch& res) = 0;
+  virtual void runPass(Renderer&, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch& updateBatch) = 0;
+  virtual void release(Renderer&) = 0;
+  virtual void releaseWithoutRenderTarget(Renderer&) = 0;
+};
+
+SCORE_PLUGIN_GFX_EXPORT
+TextureRenderTarget createRenderTarget(const RenderState& state, QSize sz);
+
+SCORE_PLUGIN_GFX_EXPORT
+void replaceTexture(QRhiShaderResourceBindings&, QRhiSampler* sampler, QRhiTexture* newTexture);
+
+SCORE_PLUGIN_GFX_EXPORT
+Pipeline buildPipeline(
+      const Renderer& renderer,
+      const Mesh& mesh,
+      const QShader& vertexS, const QShader& fragmentS,
+      const TextureRenderTarget& rt,
+      QRhiBuffer* processUBO,
+      QRhiBuffer* materialUBO,
+      const std::vector<Sampler>& samplers);
+}
+
+class SCORE_PLUGIN_GFX_EXPORT RenderedNode
+    : public score::gfx::NodeRenderer
+{
+public:
+  RenderedNode(const NodeModel& node) noexcept
+    : NodeRenderer{}
+    , node{node}
+  {
+
+  }
 
   virtual ~RenderedNode() { }
 
-  struct Pipeline
-  {
-    QRhiGraphicsPipeline* pipeline{};
-    QRhiShaderResourceBindings* srb{};
-  };
 
-  Pipeline buildPipeline(
-        QRhi& rhi,
-        const Mesh& mesh,
-        const Renderer& renderer,
-        QRhiRenderPassDescriptor& renderPass);
 
   const NodeModel& node;
 
-  QRhiTexture* m_texture{};
-  QRhiRenderTarget* m_renderTarget{};
-  QRhiRenderPassDescriptor* m_renderPass{};
+  TextureRenderTarget m_rt;
 
   std::vector<Sampler> m_samplers;
 
   // Pipeline
-  QRhiShaderResourceBindings* m_srb{};
-  QRhiGraphicsPipeline* m_ps{};
+  Pipeline m_p;
 
   QRhiBuffer* m_meshBuffer{};
   QRhiBuffer* m_idxBuffer{};
@@ -188,7 +259,7 @@ public:
   friend struct Graph;
   friend struct Renderer;
 
-  virtual void createRenderTarget(const RenderState& state);
+  virtual TextureRenderTarget createRenderTarget(const RenderState& state);
 
   virtual std::optional<QSize> renderTargetSize() const noexcept;
   // Render loop
@@ -204,9 +275,31 @@ public:
 
   virtual void runPass(Renderer&, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch& updateBatch);
 
-  void replaceTexture(QRhiSampler* sampler, QRhiTexture* newTexture);
 
   void defaultShaderMaterialInit(Renderer& renderer);
-  QRhiGraphicsPipeline* pipeline() { return m_ps; }
-  QRhiShaderResourceBindings* resources() { return m_srb; }
+  QRhiGraphicsPipeline* pipeline() const { return m_p.pipeline; }
+  QRhiShaderResourceBindings* resources() const { return m_p.srb; }
+};
+
+class SCORE_PLUGIN_GFX_EXPORT NodeModel
+    : public score::gfx::ProcessNode
+{
+  friend class RenderedNode;
+
+public:
+  explicit NodeModel();
+  virtual ~NodeModel();
+
+  virtual score::gfx::NodeRenderer* createRenderer() const noexcept;
+
+  void setShaders(QString vert, QString frag);
+  void setShaders(const QShader& vert, const QShader& frag);
+
+  std::unique_ptr<char[]> m_materialData;
+
+protected:
+  QShader m_vertexS;
+  QShader m_fragmentS;
+
+  friend class RenderedNode;
 };

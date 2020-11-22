@@ -8,12 +8,12 @@ struct OutputNode;
 class Window;
 struct SCORE_PLUGIN_GFX_EXPORT Graph
 {
-  std::vector<NodeModel*> nodes;
+  std::vector<score::gfx::Node*> nodes;
   std::vector<Edge*> edges;
 
-  void addNode(NodeModel* n) { nodes.push_back(n); }
+  void addNode(score::gfx::Node* n) { nodes.push_back(n); }
 
-  void removeNode(NodeModel* n)
+  void removeNode(score::gfx::Node* n)
   {
     if (auto it = ossia::find(nodes, n); it != nodes.end())
     {

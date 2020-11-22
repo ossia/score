@@ -29,8 +29,8 @@ struct MeshBuffers
 struct OutputNode;
 struct Renderer
 {
-  std::vector<NodeModel*> nodes;
-  std::vector<RenderedNode*> renderedNodes;
+  std::vector<score::gfx::Node*> nodes;
+  std::vector<score::gfx::NodeRenderer*> renderedNodes;
   OutputNode* output{};
 
   RenderState state;
@@ -57,6 +57,9 @@ struct Renderer
 
   void maybeRebuild();
 
-private:
+  QRhiTexture* textureTargetForInputPort(Port& port);
+  void createRenderTargets();
+
+  ossia::flat_map<score::gfx::NodeRenderer*, QRhiTexture*> textureTargets;
   ossia::small_vector<std::pair<const Mesh* const, MeshBuffers>, 4> buffersToUpload;
 };

@@ -8,7 +8,7 @@
 #include <list>
 
 struct RenderedISFNode;
-struct ISFNode : NodeModel
+struct ISFNode : score::gfx::ProcessNode
 {
   static const inline QString defaultVert =
       R"_(#version 450
@@ -29,15 +29,18 @@ void main(void) {
   virtual ~ISFNode();
   const Mesh& mesh() const noexcept;
 
-  RenderedNode* createRenderer() const noexcept;
+  score::gfx::NodeRenderer* createRenderer() const noexcept;
 
   // Texture format: 1 row = 1 channel of N samples
   std::list<AudioTexture> audio_textures;
+  std::unique_ptr<char[]> m_materialData;
 
 private:
   friend struct RenderedISFNode;
   const Mesh* m_mesh{};
 
+  QShader m_vertexS;
+  QShader m_fragmentS;
   isf::descriptor m_descriptor;
   int m_materialSize{};
 };
