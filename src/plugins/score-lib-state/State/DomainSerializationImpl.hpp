@@ -40,15 +40,15 @@ struct TSerializer<JSONObject, ossia::vecf_domain<N>>
     // to get multiple iterators from multiple keys in one pass...
     if (auto it = s.obj.tryGet(s.strings.Min))
     {
-      domain.min = *it;
+      domain.min <<= *it;
     }
     if (auto it = s.obj.tryGet(s.strings.Max))
     {
-      domain.max = *it;
+      domain.max <<= *it;
     }
     if (auto it = s.obj.tryGet(s.strings.Values))
     {
-      domain.values = *it;
+      domain.values <<= *it;
     }
   }
 };
@@ -93,15 +93,15 @@ struct TSerializer<JSONObject, ossia::domain_base<T>>
     // to get multiple iterators from multiple keys in one pass...
     if (auto it = s.obj.tryGet(s.strings.Min))
     {
-      domain.min = *it;
+      domain.min <<= *it;
     }
     if (auto it = s.obj.tryGet(s.strings.Max))
     {
-      domain.max = *it;
+      domain.max <<= *it;
     }
     if (auto it = s.obj.tryGet(s.strings.Values))
     {
-      domain.values = *it;
+      domain.values <<= *it;
     }
   }
 };
@@ -379,14 +379,9 @@ struct TSerializer<JSONObject, ossia::domain_base_variant>
   static void readFrom(JSONObject::Serializer& s, const var_t& var)
   {
     s.stream.StartObject();
-    if (var)
+    if ((quint64)var.which() != (quint64)var.npos)
     {
-      ossia::apply_nonnull(
-          [&](const auto& domain) {
-            using type = std::remove_const_t<std::remove_reference_t<decltype(domain)>>;
-            s.obj[Metadata<Json_k, type>::get()] = domain;
-          },
-          var);
+      ossia::for_each_type(value_type_list{}, VariantJSONSerializer<var_t>{s, var});
     }
     s.stream.EndObject();
   }
@@ -425,15 +420,6 @@ struct TSerializer<JSONObject, ossia::domain_base_variant>
   {
     if (!s.base.IsObject() || s.base.MemberCount() == 0)
       return;
-    const auto& keys = keys_list();
-    for (std::size_t i = 0; i < keys.size(); i++)
-    {
-      auto it = s.obj.constFind(keys[i]);
-      if (it != s.obj.constEnd())
-      {
-        apply_typeonly([&](auto type, var_t& var) { var <<= *it; }, (var_t::Type)i, var);
-        return;
-      }
-    }
+    ossia::for_each_type(value_type_list{}, VariantJSONDeserializer<var_t>{s, var});
   }
 };

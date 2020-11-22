@@ -33,7 +33,7 @@ struct TSerializer<JSONObject, ossia::value_variant_type>
 
   static void writeTo(JSONObject::Deserializer& s, var_t& var)
   {
-    if (s.base.MemberCount() == 0)
+    if (!s.base.IsObject() || s.base.MemberCount() == 0)
       return;
     ossia::for_each_type(value_type_list{}, VariantJSONDeserializer<var_t>{s, var});
   }
