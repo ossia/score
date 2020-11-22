@@ -14,15 +14,18 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Spline/Metadata.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Spline/Execution.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Spline/Commands.hpp"
+
   "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_spline.hpp"
 )
+
 set(SRCS
-"${CMAKE_CURRENT_SOURCE_DIR}/Spline/Model.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Spline/Presenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Spline/View.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Spline/Execution.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Spline/Commands.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_spline.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Spline/Model.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Spline/Presenter.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Spline/View.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Spline/Execution.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Spline/Commands.cpp"
+
+  "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_spline.cpp"
 )
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})

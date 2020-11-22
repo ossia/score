@@ -5,7 +5,6 @@
 #include <ossia/network/common/destination_qualifiers.hpp>
 
 #include <Spline/Model.hpp>
-#include <Spline/Presenter.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Spline::ProcessModel)
 namespace Spline
@@ -140,21 +139,21 @@ Process::Preset ProcessModel::savePreset() const noexcept
 template <>
 void DataStreamReader::read(const ossia::nodes::spline_point& autom)
 {
-  m_stream << autom.m_x << autom.m_y;
+  m_stream << autom.x << autom.y;
 }
 
 template <>
 void DataStreamWriter::write(ossia::nodes::spline_point& autom)
 {
-  m_stream >> autom.m_x >> autom.m_y;
+  m_stream >> autom.x >> autom.y;
 }
 
 template <>
 void JSONReader::read(const ossia::nodes::spline_point& autom)
 {
   stream.StartArray();
-  stream.Double(autom.x());
-  stream.Double(autom.y());
+  stream.Double(autom.x);
+  stream.Double(autom.y);
   stream.EndArray();
 }
 
@@ -162,8 +161,8 @@ template <>
 void JSONWriter::write(ossia::nodes::spline_point& autom)
 {
   const auto& arr = base.GetArray();
-  autom.m_x = arr[0].GetDouble();
-  autom.m_y = arr[1].GetDouble();
+  autom.x = arr[0].GetDouble();
+  autom.y = arr[1].GetDouble();
 }
 
 /// Data ///

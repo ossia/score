@@ -16,6 +16,7 @@
 #include <Spline/Model.hpp>
 #include <Spline/Presenter.hpp>
 #include <Spline/View.hpp>
+
 #include <Process/Dataflow/Port.hpp>
 #include <wobjectimpl.h>
 #include <score_plugin_spline_commands_files.hpp>
@@ -23,9 +24,8 @@ namespace Spline
 {
 using SplineFactory = Process::ProcessFactory_T<Spline::ProcessModel>;
 using SplineLayerFactory
-    = Process::LayerFactory_T<Spline::ProcessModel, Spline::Presenter, Spline::View>;
+  = Process::LayerFactory_T<Spline::ProcessModel, Spline::Presenter, Spline::View>;
 }
-
 
 score_plugin_spline::score_plugin_spline() = default;
 score_plugin_spline::~score_plugin_spline() = default;

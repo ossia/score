@@ -160,10 +160,10 @@ public:
     m_bottomRight = QPointF{INT_MIN, INT_MIN};
     for(auto& pt : m_spline.points)
     {
-      m_topLeft.rx() = std::min(pt.x(), m_topLeft.rx());
-      m_topLeft.ry() = std::min(1. - pt.y(), m_topLeft.ry());
-      m_bottomRight.rx() = std::max(pt.x(), m_bottomRight.rx());
-      m_bottomRight.ry() = std::max(1. - pt.y(), m_bottomRight.ry());
+      m_topLeft.rx() = std::min(pt.x, m_topLeft.rx());
+      m_topLeft.ry() = std::min(1. - pt.y, m_topLeft.ry());
+      m_bottomRight.rx() = std::max(pt.x, m_bottomRight.rx());
+      m_bottomRight.ry() = std::max(1. - pt.y, m_bottomRight.ry());
     }
 
     const double w = m_bottomRight.x() - m_topLeft.x();
@@ -288,10 +288,9 @@ public:
 
   const ossia::nodes::spline_data& spline() const { return m_spline; }
 
-  template <typename T>
-  QPointF mapToCanvas(const T& point) const
+  QPointF mapToCanvas(const ossia::nodes::spline_point& point) const
   {
-    return QPointF(point.x(), 1. - point.y());
+    return QPointF(point.x, 1. - point.y);
   }
 
   ossia::nodes::spline_point mapFromCanvas(const QPointF& point) const
@@ -457,7 +456,7 @@ public:
     const std::size_t N = m_spline.points.size();
     for (std::size_t i = 0; i < N - 1; ++i)
     {
-      if (m_spline.points[i].x() <= newPos.x())
+      if (m_spline.points[i].x <= newPos.x)
       {
         splitIndex = i;
       }
@@ -494,8 +493,8 @@ public:
   {
     for(std::size_t i = 0; i < m_spline.points.size(); i++)
     {
-      m_spline.points[i].m_x = m_origSpline.points[i].m_x + delta.x();
-      m_spline.points[i].m_y = m_origSpline.points[i].m_y - delta.y();
+      m_spline.points[i].x = m_origSpline.points[i].x + delta.x();
+      m_spline.points[i].y = m_origSpline.points[i].y - delta.y();
     }
     updateSpline();
   }
