@@ -12,7 +12,7 @@ RUN yum -y install devtoolset-9-gcc devtoolset-9-make devtoolset-9 \
 
 RUN mkdir -p /opt/score-sdk 
 
-RUN wget https://github.com/ossia/sdk/releases/download/sdk16/score-sdk-linux-llvm.tar.xz \
+RUN ls && wget https://github.com/ossia/sdk/releases/download/sdk17/score-sdk-linux-llvm.tar.xz \
     && tar xaf score-sdk-linux-llvm.tar.xz \
     && rm -rf  score-sdk-linux-llvm.tar.xz \
     && wget -nv --no-check-certificate -c https://github.com/Kitware/CMake/releases/download/v3.18.2/cmake-3.18.2-Linux-x86_64.tar.gz \

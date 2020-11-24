@@ -5,7 +5,7 @@ export OSSIA_SDK=/opt/score-sdk
 export QT_DIR=$OSSIA_SDK/qt5-static
 export QTDIR=$OSSIA_SDK/qt5-static
 export NPROC=$(nproc)
-export PATH=$OSSIA_SDK/llvm/bin:$PATH
+export PATH=$OSSIA_SDK/llvm/bin:/opt/rh/rh-git218/root/usr/bin/:$PATH
 export GIT=/opt/rh/rh-git218/root/usr/bin/git
 export LD_LIBRARY_PATH=$OSSIA_SDK/llvm/lib:/opt/rh/rh-git218/root/usr/lib:/opt/rh/httpd24/root/usr/lib64
 
@@ -158,9 +158,5 @@ cp $APP_DIR/usr/share/pixmaps/ossia-score.png $APP_DIR/
 )
 
 # cp $SOURCE_DIR/cmake/Deployment/Linux/AppImage/qt.conf $APP_DIR/usr/bin/
-
-if [[ "x$JUST_BUILD" != "x" ]]; then
-  exit 0
-fi
 
 $SOURCE_DIR/src/plugins/score-plugin-jit/tools/create-sdk-linux.sh
