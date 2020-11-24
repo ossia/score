@@ -226,16 +226,16 @@ class SpoutRenderer : public RenderedNode
 {
 public:
   using RenderedNode::RenderedNode;
-  QRhiTexture* createRenderTarget(const RenderState& state) override
+  TextureRenderTarget createRenderTarget(const RenderState& state) override
   {
     auto& self = static_cast<const SpoutNode&>(this->node);
-    m_renderTarget = self.m_renderTarget;
-    m_renderPass = state.renderPassDescriptor;
-    return nullptr;
+    m_rt.renderTarget = self.m_renderTarget;
+    m_rt.renderPass = state.renderPassDescriptor;
+    return m_rt;
   }
 };
 
-RenderedNode* SpoutNode::createRenderer() const noexcept
+score::gfx::NodeRenderer* SpoutNode::createRenderer() const noexcept
 {
   return new SpoutRenderer{*this};
 }
