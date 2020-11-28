@@ -24,6 +24,10 @@
 
 #include <wobjectimpl.h>
 
+#if __has_include(<sndfile.h>)
+#define SAMPLERATE 1
+#include <faust/gui/SoundUI.h>
+#endif
 W_OBJECT_IMPL(Media::Faust::FaustEffectModel)
 std::list<::GUI*> GUI::fGuiList;
 namespace Process
@@ -434,10 +438,17 @@ void FaustEffectComponent::reload(Execution::Transaction& transaction)
   if (proc.faust_object)
   {
     reloadFx(transaction);
+    static SoundUI soundinterface("", system().execState->sampleRate);
+    proc.faust_object->buildUserInterface(&soundinterface);
   }
   else if (proc.faust_poly_object)
   {
     reloadSynth(transaction);
+    static SoundUI soundinterface("", system().execState->sampleRate);
+    const bool group = proc.faust_poly_object->getGroup();
+    proc.faust_poly_object->setGroup(false);
+    proc.faust_poly_object->buildUserInterface(&soundinterface);
+    proc.faust_poly_object->setGroup(group);
   }
 }
 

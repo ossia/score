@@ -299,6 +299,21 @@ if(Faust_FOUND)
   )
 
   add_dependencies(${PROJECT_NAME} faustlibs)
+  include(FetchContent)
+  set(BUILD_PROGRAMS 0 CACHE "" INTERNAL)
+  set(BUILD_EXAMPLES 0 CACHE "" INTERNAL)
+  set(ENABLE_PACKAGE_CONFIG 0 CACHE "" INTERNAL)
+  set(INSTALL_PKGCONFIG_MODULE 0 CACHE "" INTERNAL)
+  set(ENABLE_EXPERIMENTAL 0 CACHE "" INTERNAL)
+  set(BUILD_TESTING 0 CACHE "" INTERNAL)
+  set(BUILD_REGTEST 0 CACHE "" INTERNAL)
+  FetchContent_Declare(
+    sndfile
+    GIT_REPOSITORY https://github.com/jcelerier/libsndfile
+  )
+  FetchContent_MakeAvailable(sndfile)
+
+  target_link_libraries(${PROJECT_NAME} PRIVATE SndFile::sndfile)
 
   if(WIN32)
     target_link_libraries(${PROJECT_NAME} PRIVATE Ws2_32)
