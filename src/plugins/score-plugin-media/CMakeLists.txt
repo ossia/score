@@ -299,19 +299,38 @@ if(Faust_FOUND)
   )
 
   add_dependencies(${PROJECT_NAME} faustlibs)
+
+  function(disable_var VAR)
+    if(${${VAR}})
+      set(${VAR}_prev "${${VAR}}" CACHE "" INTERNAL)
+    endif()
+    set(${VAR} 0 CACHE "" INTERNAL)
+  endfunction()
+  function(restore_var VAR)
+    if(${${VAR}_prev})
+      set(${VAR} "${${VAR}_prev}" CACHE "" INTERNAL)
+    endif()
+  endfunction()
+
   include(FetchContent)
-  set(BUILD_PROGRAMS 0 CACHE "" INTERNAL)
-  set(BUILD_EXAMPLES 0 CACHE "" INTERNAL)
-  set(ENABLE_PACKAGE_CONFIG 0 CACHE "" INTERNAL)
-  set(INSTALL_PKGCONFIG_MODULE 0 CACHE "" INTERNAL)
-  set(ENABLE_EXPERIMENTAL 0 CACHE "" INTERNAL)
-  set(BUILD_TESTING 0 CACHE "" INTERNAL)
-  set(BUILD_REGTEST 0 CACHE "" INTERNAL)
+  disable_var(BUILD_PROGRAMS)
+  disable_var(BUILD_EXAMPLES)
+  disable_var(ENABLE_PACKAGE_CONFIG)
+  disable_var(INSTALL_PKGCONFIG_MODULE)
+  disable_var(ENABLE_EXPERIMENTAL)
+  disable_var(BUILD_REGTEST)
+  disable_var(BUILD_TESTING)
+
   FetchContent_Declare(
     sndfile
     GIT_REPOSITORY https://github.com/jcelerier/libsndfile
   )
   FetchContent_MakeAvailable(sndfile)
+  if(TARGET sndfile)
+    set_target_properties(sndfile PROPERTIES UNITY_BUILD 0)
+  endif()
+
+  restore_var(BUILD_TESTING)
 
   target_link_libraries(${PROJECT_NAME} PRIVATE SndFile::sndfile)
 
