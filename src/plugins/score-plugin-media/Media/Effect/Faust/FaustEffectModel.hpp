@@ -70,10 +70,10 @@ public:
     init();
   }
 
+  QString prettyName() const noexcept override;
+
   bool validate(const QString& txt) const noexcept;
   const QString& text() const { return m_text; }
-
-  QString prettyName() const noexcept override;
   void setText(const QString& txt);
 
   Process::Inlets& inlets() noexcept { return m_inlets; }

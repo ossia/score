@@ -17,7 +17,7 @@ PROCESS_METADATA(
     Gradient::ProcessModel,
     "b5da735b-a76d-4314-8853-3e8a96486fb9",
     "Gradient",
-    "Automation (color)",
+    "Color automation",
     Process::ProcessCategory::Automation,
     "Automations",
     "Color gradient. Operates in Lab color space.",

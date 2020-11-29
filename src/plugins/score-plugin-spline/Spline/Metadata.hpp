@@ -15,7 +15,7 @@ PROCESS_METADATA(
     Spline::ProcessModel,
     "931a6356-2fca-4f3b-9c65-2de051ef4903",
     "Spline",
-    "Automation (XY)",
+    "2D Automation",
     Process::ProcessCategory::Automation,
     "Automations",
     "Automation following a 2D curve",
