@@ -79,7 +79,7 @@ void gfx_exec_node::run(const ossia::token_request& tk, ossia::exec_state_facade
         // TODO remove this dynamic_cast. maybe target should have
         // audio_parameter / texture_parameter / midi_parameter ... cases
         // does not scale though
-        if(auto cam = dynamic_cast<Gfx::camera_parameter*>(*in))
+        if(auto cam = dynamic_cast<ossia::gfx::texture_parameter*>(*in))
         {
           cam->pull_texture({this->id, inlet_i});
         }

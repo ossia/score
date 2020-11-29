@@ -94,21 +94,12 @@ void CameraInput::stop() noexcept
 
 AVFrame* CameraInput::dequeue_frame() noexcept
 {
-  AVFrame* f{};
-  AVFrame* prev_f{};
-
-  // We only want the latest frame
-  while(m_framesToPlayer.try_dequeue(f)) {
-    if(prev_f)
-      release_frame(prev_f);
-    prev_f = f;
-  }
-  return f;
+  return m_frames.dequeue();
 }
 
 void CameraInput::release_frame(AVFrame* frame) noexcept
 {
-  m_releasedFrames.enqueue(frame);
+  m_frames.release(frame);
 }
 
 void CameraInput::buffer_thread() noexcept
@@ -117,7 +108,7 @@ void CameraInput::buffer_thread() noexcept
   {
     if (auto f = read_frame_impl())
     {
-      m_framesToPlayer.enqueue(f);
+      m_frames.enqueue(f);
     }
   }
 }
@@ -141,32 +132,7 @@ void CameraInput::close_file() noexcept
   }
 
   // Remove frames that were in flight
-  drain_frames();
-}
-
-AVFrame* CameraInput::get_new_frame() noexcept
-{
-  AVFrame* f{};
-  if(m_releasedFrames.try_dequeue(f))
-    return f;
-  return av_frame_alloc();
-}
-
-void CameraInput::drain_frames() noexcept
-{
-  AVFrame* frame{};
-  while (m_framesToPlayer.try_dequeue(frame))
-  {
-    av_frame_free(&frame);
-  }
-
-  // TODO we must check that this is safe as the queue
-  // does not support dequeueing from the same thread as the
-  // enqueuing
-  while (m_releasedFrames.try_dequeue(frame))
-  {
-    av_frame_free(&frame);
-  }
+  m_frames.drain();
 }
 
 AVFrame* CameraInput::read_frame_impl() noexcept
@@ -175,7 +141,7 @@ AVFrame* CameraInput::read_frame_impl() noexcept
 
   if (m_stream != -1)
   {
-    AVFrame* frame = get_new_frame();
+    AVFrame* frame = m_frames.newFrame();
     AVPacket packet;
     memset(&packet, 0, sizeof(AVPacket));
     bool ok = false;

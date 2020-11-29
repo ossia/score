@@ -325,26 +325,35 @@ struct RGB0Decoder : GPUVideoDecoder
     layout(location = 0) in vec2 v_texcoord;
     layout(location = 0) out vec4 fragColor;
 
+    vec4 processTexture(vec4 tex) {
+      vec4 processed = tex;
+      { %1 }
+      return processed;
+    }
+
     void main ()
     {
       vec2 texcoord = vec2(v_texcoord.x, tbuf.texcoordAdjust.y + tbuf.texcoordAdjust.x * v_texcoord.y);
 
-      fragColor = texture(y_tex, texcoord);
+      fragColor = processTexture(texture(y_tex, texcoord));
     })_";
 
 
-  RGB0Decoder(QRhiTexture::Format fmt, NodeModel& n, video_decoder& d)
+  RGB0Decoder(QRhiTexture::Format fmt, NodeModel& n, video_decoder& d, QString f = "")
     : format{fmt}
     , node{n}
     , decoder{d}
+    , filter{f}
   { }
   QRhiTexture::Format format;
   NodeModel& node;
   video_decoder& decoder;
+  QString filter;
+
   void init(Renderer& r, RenderedNode& rendered) override
   {
     auto& rhi = *r.state.rhi;
-    node.setShaders(node.mesh().defaultVertexShader(), rgb_filter);
+    node.setShaders(node.mesh().defaultVertexShader(), QString(rgb_filter).arg(filter));
 
     const auto w = decoder.width, h = decoder.height;
 
@@ -373,7 +382,6 @@ struct RGB0Decoder : GPUVideoDecoder
     for (auto [sampler, tex] : n.m_samplers)
       tex->releaseAndDestroyLater();
   }
-
 
   void setPixels(RenderedNode& rendered, QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept
   {
@@ -422,13 +430,16 @@ struct VideoNode : NodeModel
   AVPixelFormat current_format = AV_PIX_FMT_YUV420P;
   std::atomic_bool seeked{};
   std::optional<double> nativeTempo;
+  QString filter;
 
   const TexturedTriangle& m_mesh = TexturedTriangle::instance();
   VideoNode(std::shared_ptr<video_decoder> dec
-            , std::optional<double> nativeTempo)
+            , std::optional<double> nativeTempo
+            , QString f = {})
     : decoder{std::move(dec)}
     , current_format{decoder->pixel_format}
     , nativeTempo{nativeTempo}
+    , filter{f}
   {
     initGpuDecoder();
 
@@ -448,11 +459,18 @@ struct VideoNode : NodeModel
         break;
       case AV_PIX_FMT_RGB0:
       case AV_PIX_FMT_RGBA:
-        gpu = std::make_unique<RGB0Decoder>(QRhiTexture::RGBA8, *this, *decoder);
+        gpu = std::make_unique<RGB0Decoder>(QRhiTexture::RGBA8, *this, *decoder, filter);
         break;
       case AV_PIX_FMT_BGR0:
       case AV_PIX_FMT_BGRA:
-        gpu = std::make_unique<RGB0Decoder>(QRhiTexture::BGRA8, *this, *decoder);
+        gpu = std::make_unique<RGB0Decoder>(QRhiTexture::BGRA8, *this, *decoder, filter);
+        break;
+      case AV_PIX_FMT_GRAYF32LE:
+      case AV_PIX_FMT_GRAYF32BE:
+        gpu = std::make_unique<RGB0Decoder>(QRhiTexture::R32F, *this, *decoder, filter);
+        break;
+      case AV_PIX_FMT_GRAY8:
+        gpu = std::make_unique<RGB0Decoder>(QRhiTexture::R8, *this, *decoder, filter);
         break;
       default:
         qDebug() << "Unhandled pixel format: " << av_get_pix_fmt_name(current_format);
@@ -489,6 +507,12 @@ struct VideoNode : NodeModel
     std::vector<AVFrame*> framesToFree;
     AVPixelFormat current_format = AV_PIX_FMT_YUV420P;
     QElapsedTimer t;
+
+    Rendered(const NodeModel& node) noexcept
+      : RenderedNode{node}
+    {
+
+    }
 
     ~Rendered()
     {

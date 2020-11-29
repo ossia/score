@@ -4,30 +4,12 @@
 #include <ossia/detail/flicks.hpp>
 #include <ossia/detail/hash_map.hpp>
 #include <ossia/network/value/value_conversion.hpp>
-
+#include <ossia/gfx/port_index.hpp>
 #include <Gfx/Graph/graph.hpp>
 #include <concurrentqueue.h>
 namespace Gfx
 {
-
-struct port_index
-{
-  int32_t node{};
-  int32_t port{};
-
-  constexpr auto operator==(port_index other) const noexcept
-  {
-    return node == other.node && port == other.port;
-  }
-  constexpr auto operator!=(port_index other) const noexcept
-  {
-    return node != other.node || port != other.port;
-  }
-  constexpr auto operator<(port_index other) const noexcept
-  {
-    return node < other.node || (node == other.node && port < other.port);
-  }
-};
+using port_index = ossia::gfx::port_index;
 
 using gfx_input = std::variant<ossia::value, ossia::audio_vector>;
 

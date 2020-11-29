@@ -1,5 +1,6 @@
 #pragma once
 #include <Video/VideoInterface.hpp>
+#include <Video/FrameQueue.hpp>
 extern "C"
 {
 #include <libavformat/avformat.h>
@@ -38,15 +39,11 @@ private:
   bool open_stream() noexcept;
   void close_stream() noexcept;
   bool enqueue_frame(const AVPacket* pkt, AVFrame* frame) noexcept;
-  AVFrame* get_new_frame() noexcept;
-  void drain_frames() noexcept;
 
   static const constexpr int frames_to_buffer = 1;
 
   std::thread m_thread;
-
-  ossia::spsc_queue<AVFrame*, 16> m_framesToPlayer;
-  ossia::spsc_queue<AVFrame*, 16> m_releasedFrames;
+  FrameQueue m_frames;
 
   std::string m_inputKind;
   std::string m_inputDevice;
