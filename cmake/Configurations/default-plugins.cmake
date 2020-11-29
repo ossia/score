@@ -42,4 +42,5 @@ score-plugin-gfx
 score-plugin-packagemanager
 
 score-plugin-jit
+score-plugin-spline3d
 )
