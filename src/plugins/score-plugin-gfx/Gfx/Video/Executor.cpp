@@ -18,12 +18,12 @@ class video_node final : public gfx_exec_node
 {
 public:
   video_node(const std::shared_ptr<video_decoder>& dec, std::optional<double> tempo, GfxExecutionAction& ctx)
-      : gfx_exec_node{ctx}, m_decoder{dec}
+      : gfx_exec_node{ctx}, m_decoder{dec->clone()}
   {
-    auto n = std::make_unique<VideoNode>(dec, tempo);
+    auto n = std::make_unique<VideoNode>(m_decoder, tempo);
     impl = n.get();
     id = exec_context->ui->register_node(std::move(n));
-    dec->seek(0);
+    m_decoder->seek(0);
   }
 
   ~video_node()

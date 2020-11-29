@@ -29,10 +29,18 @@ VideoDecoder::~VideoDecoder() noexcept
   close_file();
 }
 
+std::shared_ptr<VideoDecoder> VideoDecoder::clone() const noexcept
+{
+  auto ptr = std::make_shared<VideoDecoder>();
+  ptr->load(this->m_inputFile, {});
+  return ptr;
+}
+
 bool VideoDecoder::load(const std::string& inputFile, double fps_unused) noexcept
 {
   close_file();
 
+  m_inputFile = inputFile;
   if (avformat_open_input(&m_formatContext, inputFile.c_str(), nullptr, nullptr) != 0)
   {
     close_file();
@@ -187,7 +195,7 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
 
   const int64_t dts = flicks * dts_per_flicks;
 
-  constexpr int64_t min_dts_delta = 20000;
+  constexpr int64_t min_dts_delta = 200;
   if(std::abs(dts - m_last_dts) < min_dts_delta)
     return false;
 

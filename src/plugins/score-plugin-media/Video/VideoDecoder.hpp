@@ -23,6 +23,7 @@ public:
   VideoDecoder() noexcept;
   ~VideoDecoder() noexcept;
 
+  std::shared_ptr<VideoDecoder> clone() const noexcept;
   bool load(const std::string& inputFile, double fps_unused) noexcept;
 
   int64_t duration() const noexcept;
@@ -44,6 +45,8 @@ private:
   void drain_frames() noexcept;
 
   static const constexpr int frames_to_buffer = 16;
+
+  std::string m_inputFile;
 
   std::thread m_thread;
   std::mutex m_condMut;
