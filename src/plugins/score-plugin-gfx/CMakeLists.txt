@@ -17,6 +17,18 @@ endif()
 
 add_subdirectory(3rdparty/libisf)
 
+if(WIN32)
+set(SPOUT_SRCS
+    Gfx/SpoutDevice.hpp
+    Gfx/SpoutDevice.cpp
+)
+endif()
+
+find_package(freenect2)
+if(freenect2_FOUND)
+  set(KINECT2_SRCS Gfx/Kinect2Device.hpp Gfx/Kinect2Device.cpp)
+endif()
+
 # Source files
 set(HDRS
     Gfx/CommandFactory.hpp
@@ -86,12 +98,11 @@ set(HDRS
 
     score_plugin_gfx.hpp
 )
-if(WIN32)
-set(SPOUT_SRCS
-    Gfx/SpoutDevice.hpp
-    Gfx/SpoutDevice.cpp)
-endif()
-set(SRCS ${SPOUT_SRCS}
+
+set(SRCS
+    ${SPOUT_SRCS}
+    ${KINECT2_SRCS}
+
     Gfx/Filter/Executor.cpp
     Gfx/Filter/LocalTree.cpp
     Gfx/Filter/Process.cpp
@@ -190,6 +201,12 @@ endif()
 if(WIN32)
   add_subdirectory("${3RDPARTY_FOLDER}/Spout" "${CMAKE_CURRENT_BINARY_DIR}/Spout")
   target_link_libraries(${PROJECT_NAME} PRIVATE Spout)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_SPOUT)
+endif()
+
+if(freenect2_FOUND)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_FREENECT2)
+  target_link_libraries(${PROJECT_NAME} PRIVATE ${freenect2_LIBRARIES})
 endif()
 
 # Target-specific options

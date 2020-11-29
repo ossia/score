@@ -22,13 +22,24 @@
 #include <Gfx/Video/Inspector.hpp>
 #include <Gfx/Video/Layer.hpp>
 #include <Gfx/Video/Process.hpp>
-#if defined(_WIN32)
+#if defined(HAS_SPOUT)
 #include <Gfx/SpoutDevice.hpp>
+#endif
+#if defined(HAS_FREENECT2)
+#include <Gfx/Kinect2Device.hpp>
 #endif
 #include <score_plugin_gfx_commands_files.hpp>
 #include <score_plugin_engine.hpp>
 
-score_plugin_gfx::score_plugin_gfx() { }
+score_plugin_gfx::score_plugin_gfx()
+{
+#if defined(HAS_FREENECT2)
+  qRegisterMetaType<Gfx::Kinect2Settings>();
+  qRegisterMetaTypeStreamOperators<Gfx::Kinect2Settings>();
+#endif
+  qRegisterMetaType<Gfx::CameraSettings>();
+  qRegisterMetaTypeStreamOperators<Gfx::CameraSettings>();
+}
 
 score_plugin_gfx::~score_plugin_gfx() { }
 
@@ -41,8 +52,11 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_gfx::factories(
       FW<Device::ProtocolFactory
       , Gfx::WindowProtocolFactory
       , Gfx::CameraProtocolFactory
-#if defined(_WIN32)
+#if defined(HAS_SPOUT)
       , Gfx::SpoutProtocolFactory
+#endif
+#if defined(HAS_FREENECT2)
+  , Gfx::Kinect2ProtocolFactory
 #endif
       >,
       FW<Process::ProcessModelFactory,
