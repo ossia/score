@@ -16,15 +16,15 @@ ProcessModel::ProcessModel(
     : Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , outlet{Process::make_value_outlet(Id<Process::Port>(0), this)}
 {
-  m_spline.points.push_back({0., 0.});
+  m_spline.points.push_back({0., 0., 0.});
 
-  m_spline.points.push_back({0.4, 0.075});
-  m_spline.points.push_back({0.45, 0.24});
-  m_spline.points.push_back({0.5, 0.5});
+  m_spline.points.push_back({0.4, 0.075, 0.17});
+  m_spline.points.push_back({0.45, 0.24, 0.54});
+  m_spline.points.push_back({0.5, 0.5, 0.35});
 
-  m_spline.points.push_back({0.55, 0.76});
-  m_spline.points.push_back({0.7, 0.9});
-  m_spline.points.push_back({1.0, 1.0});
+  m_spline.points.push_back({0.55, 0.76, 0.8});
+  m_spline.points.push_back({0.7, 0.9, 0.1});
+  m_spline.points.push_back({1.0, 1.0, 1.0});
 
   init();
   metadata().setInstanceName(*this);
