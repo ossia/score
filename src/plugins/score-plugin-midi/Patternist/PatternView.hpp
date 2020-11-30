@@ -11,7 +11,7 @@ class PortFactoryList;
 namespace score
 {
 struct DocumentContext;
-class QGraphicsIntSlider;
+class QGraphicsNoteChooser;
 }
 namespace Patternist
 {
@@ -37,6 +37,6 @@ private:
 
   const Patternist::ProcessModel& m_model;
 
-  std::vector<score::QGraphicsIntSlider*> m_lanes;
+  std::vector<score::QGraphicsNoteChooser*> m_lanes;
 };
 }
