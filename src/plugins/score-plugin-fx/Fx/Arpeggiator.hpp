@@ -36,8 +36,89 @@ struct Node
     ossia::flat_map<byte, byte> notes;
     ossia::small_vector<chord, 10> arpeggio;
 
+    float previous_octave{};
+    int previous_arpeggio{};
     chord previous_chord;
-    int index{};
+    std::size_t index{};
+
+    void update()
+    {
+      // Create the content of the arpeggio
+      switch (previous_arpeggio)
+      {
+        case 0:
+          arpeggiate(1);
+          break;
+        case 1:
+          arpeggiate(1);
+          std::reverse(arpeggio.begin(), arpeggio.end());
+          break;
+        case 2:
+          arpeggiate(2);
+          arpeggio.insert(arpeggio.end(), arpeggio.begin(), arpeggio.end());
+          std::reverse(arpeggio.begin() + notes.container.size(), arpeggio.end());
+          break;
+        case 3:
+          arpeggiate(2);
+          arpeggio.insert(arpeggio.end(), arpeggio.begin(), arpeggio.end());
+          std::reverse(arpeggio.begin(), arpeggio.begin() + notes.container.size());
+          break;
+        case 4:
+          arpeggio.clear();
+          arpeggio.resize(1);
+          for (std::pair note : notes.container)
+          {
+            arpeggio[0].push_back(note);
+          }
+          break;
+      }
+
+      const std::size_t orig_size = arpeggio.size();
+
+      // Create the octave duplicates
+      for (int i = 1; i < previous_octave; i++)
+      {
+        octavize(orig_size, i);
+      }
+      for (int i = 1; i < previous_octave; i++)
+      {
+        octavize(orig_size, -i);
+      }
+    }
+
+    void arpeggiate(int size_mult)
+    {
+      arpeggio.clear();
+      arpeggio.reserve(notes.container.size() * size_mult);
+      for (std::pair note : notes.container)
+      {
+        arpeggio.push_back(chord{note});
+      }
+    }
+
+    void octavize(std::size_t orig_size, int i)
+    {
+      for (std::size_t j = 0; j < orig_size; j++)
+      {
+        auto copy = arpeggio[j];
+        for (auto it = copy.begin(); it != copy.end(); )
+        {
+          auto& note = *it;
+          int res = note.first + 12 * i;
+          if(res >= 0.f && res <= 127.f)
+          {
+            note.first = res;
+            ++it;
+          }
+          else
+          {
+            it = copy.erase(it);
+          }
+        }
+
+        arpeggio.push_back(std::move(copy));
+      }
+    }
   };
 
   using control_policy = ossia::safe_nodes::precise_tick;
@@ -53,8 +134,12 @@ struct Node
   {
     // Store the current chord in a buffer
     auto msgs = midi.messages;
+    self.previous_octave = octave;
+    self.previous_arpeggio = arpeggio;
+
     if (msgs.size() > 0)
     {
+      // Update the "running" notes
       for (auto& note : msgs)
       {
         if (note.get_message_type() == rtmidi::message_type::NOTE_ON)
@@ -66,56 +151,16 @@ struct Node
           self.notes.erase(note.bytes[1]);
         }
       }
+    }
 
-      auto notes_to_arpeggio = [&](int size_mult) {
-        self.arpeggio.clear();
-        self.arpeggio.reserve(self.notes.container.size() * size_mult);
-        for (std::pair note : self.notes.container)
-        {
-          self.arpeggio.push_back(chord{note});
-        }
-      };
-
-      switch (arpeggio)
-      {
-        case 0:
-          notes_to_arpeggio(1);
-          break;
-        case 1:
-          notes_to_arpeggio(1);
-          std::reverse(self.arpeggio.begin(), self.arpeggio.end());
-          break;
-        case 2:
-          notes_to_arpeggio(2);
-          self.arpeggio.insert(self.arpeggio.end(), self.arpeggio.begin(), self.arpeggio.end());
-          std::reverse(self.arpeggio.begin() + self.notes.container.size(), self.arpeggio.end());
-          break;
-        case 3:
-          notes_to_arpeggio(2);
-          self.arpeggio.insert(self.arpeggio.end(), self.arpeggio.begin(), self.arpeggio.end());
-          std::reverse(self.arpeggio.begin(), self.arpeggio.begin() + self.notes.container.size());
-          break;
-        case 4:
-          self.arpeggio.clear();
-          self.arpeggio.resize(1);
-          for (std::pair note : self.notes.container)
-          {
-            self.arpeggio[0].push_back(note);
-          }
-          break;
-      }
-
-      std::size_t orig_size = self.arpeggio.size();
-
-      for (int i = 1; i < octave; i++)
-      {
-        for (std::size_t j = 0; j < orig_size; j++)
-        {
-          self.arpeggio.push_back(self.arpeggio[j]);
-          for (std::pair<byte, byte>& note : self.arpeggio.back())
-            note.first *= octave;
-        }
-      }
+    // Update the arpeggio itself
+    const bool mustUpdateArpeggio =
+        msgs.size() > 0 ||
+        octave != self.previous_octave ||
+        arpeggio != self.previous_arpeggio;
+    if(mustUpdateArpeggio)
+    {
+      self.update();
     }
 
     if (self.arpeggio.empty())
@@ -130,9 +175,10 @@ struct Node
       return;
     }
 
-    if (self.index > self.arpeggio.size())
+    if (self.index >= self.arpeggio.size())
       self.index = 0;
 
+    // Play the next note / chord if we're on a quantification marker
     if (auto date = tk.get_physical_quantification_date(quantif, st.modelToSamples()))
     {
       // Finish previous notes
