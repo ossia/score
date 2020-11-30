@@ -30,6 +30,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QKeyEvent>
 #include <QPainter>
+#include <QTimer>
 
 #include <Control/DefaultEffectItem.hpp>
 #include <Effect/EffectLayer.hpp>
@@ -127,8 +128,11 @@ NodeItem::NodeItem(
     {
       if(m_presenter)
       {
+        QPointer<Process::LayerView> oldView = static_cast<Process::LayerView*>(m_fx);
         delete m_presenter;
         m_presenter = nullptr;
+        if(oldView)
+          delete oldView;
         m_fx = nullptr;
       }
       else
@@ -140,7 +144,7 @@ NodeItem::NodeItem(
       double port_h = std::max(m_inlets.size() * 12., m_outlets.size() * 12.);
       m_contentSize = QSizeF{TitleWithUiX0 + m_label->boundingRect().width() + 6, port_h};
     }
-    updateSize();
+    QTimer::singleShot(1, this, [this] { updateSize(); });
   });
 
   updateSize();
@@ -314,7 +318,7 @@ void NodeItem::createContentItem()
 void NodeItem::updateSize()
 {
   auto sz = m_fx ? m_fx->boundingRect().size() : QSizeF{100, 0};
-  if (sz != m_contentSize || !m_fx)
+  //if (sz != m_contentSize || !m_fx)
   {
     prepareGeometryChange();
     if(m_fx)
@@ -516,6 +520,7 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     {
       const auto sz = origNodeSize + QSizeF{p.x() - origp.x(), p.y() - origp.y()};
       m_context.dispatcher.submit<Process::ResizeNode>(m_model, sz.expandedTo({10, 10}));
+      updateSize();
       break;
     }
     case Interaction::Move:

@@ -8,6 +8,8 @@
 #include <QGuiApplication>
 #endif
 
+#include <QMouseEvent>
+#include <QGraphicsSceneMouseEvent>
 #include <QPointF>
 
 #include <score_lib_base_export.h>
@@ -50,6 +52,36 @@ inline void moveCursorPos(QPointF pos) noexcept
 #endif
 }
 
+inline QPoint globalPos(QMouseEvent* event)
+{
+#if defined(__APPLE__)
+  CGPoint loc;
+  {
+    CGEventRef event = CGEventCreate(nullptr);
+    loc = CGEventGetLocation(event);
+    CFRelease(event);
+  }
+  return QPoint(loc.x, loc.y);
+#else
+  return event->globalPos();
+#endif
+}
+
+inline QPointF globalPos(QWidget* viewport, QGraphicsSceneMouseEvent* event)
+{
+#if defined(__APPLE__)
+  CGPoint loc;
+  {
+    CGEventRef event = CGEventCreate(nullptr);
+    loc = CGEventGetLocation(event);
+    CFRelease(event);
+  }
+  return QPointF(loc.x, loc.y);
+#else
+  return viewport->mapToGlobal(QPoint{0, 0}) + event->pos();
+#endif
+}
+
 #if defined(__APPLE__)
 SCORE_LIB_BASE_EXPORT
 void hideCursor(bool hasCursor);
@@ -60,7 +92,10 @@ void showCursor();
 
 inline void hideCursor(bool hasCursor)
 {
-  QGuiApplication::changeOverrideCursor(QCursor(Qt::BlankCursor));
+  if(QGuiApplication::overrideCursor())
+    QGuiApplication::changeOverrideCursor(QCursor(Qt::BlankCursor));
+  else
+    QGuiApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
 }
 inline void showCursor()
 {

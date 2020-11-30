@@ -136,16 +136,7 @@ void Minimap::mousePressEvent(QGraphicsSceneMouseEvent* ev)
     return;
   }
 
-#if defined(__APPLE__)
-  CGEventRef event = CGEventCreate(nullptr);
-  CGPoint loc = CGEventGetLocation(event);
-  CFRelease(event);
-
-  m_startPos = {loc.x, loc.y};
-#else
-  m_startPos = m_viewport->mapToGlobal(QPoint{0, 0}) + ev->pos();
-#endif
-
+  m_startPos = score::globalPos(m_viewport, ev);
   m_relativeStartX = (ev->pos().x() - m_leftHandle) / (m_rightHandle - m_leftHandle);
   m_startY = ev->pos().y();
 
@@ -156,17 +147,14 @@ void Minimap::mousePressEvent(QGraphicsSceneMouseEvent* ev)
   }
   else
   {
-#if defined(__APPLE__)
     score::hideCursor(true);
-#else
-    QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
-#endif
     m_setCursor = true;
   }
   ev->accept();
 }
 void Minimap::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
 {
+  // TODO why is it not globalPos
   const auto pos = ev->screenPos();
   if (m_gripLeft || m_gripRight || m_gripMid)
   {
