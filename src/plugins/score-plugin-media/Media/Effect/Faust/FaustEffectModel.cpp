@@ -244,6 +244,7 @@ void FaustEffectModel::reloadMidi(ossia::nodes::custom_dsp_poly_factory* fac, os
     // updating an existing DSP
     // Try to reuse controls
     Faust::UpdateUI<decltype(*this), true> ui{*this};
+    ui.i = 2;
     faust_poly_object->buildUserInterface(&ui);
 
     std::vector<Process::Inlet*> toRemove;
@@ -259,6 +260,7 @@ void FaustEffectModel::reloadMidi(ossia::nodes::custom_dsp_poly_factory* fac, os
   {
     // Try to reuse controls
     Faust::UpdateUI<decltype(*this), false> ui{*this};
+    ui.i = 2;
     faust_poly_object->buildUserInterface(&ui);
   }
   else
@@ -486,6 +488,40 @@ void FaustEffectComponent::setupExecutionControls(const Node_T& node, int firstC
   m_controlConnections.push_back(c);
 }
 
+template<typename Node_T>
+void FaustEffectComponent::setupExecutionControlOutlets(const Node_T& node, int firstControlIndex)
+{
+  auto& proc = process();
+  auto& ctx = system();
+
+  for (std::size_t i = firstControlIndex, N = proc.outlets().size(); i < N; i++)
+  {
+    auto outlet = static_cast<Process::ControlOutlet*>(proc.outlets()[i]);
+    *node->displays[i - firstControlIndex].second = ossia::convert<float>(outlet->value());
+    auto outl = this->node->root_outputs()[i];
+    auto c = connect(outlet, &Process::ControlOutlet::valueChanged, this, [this, outl](const ossia::value& v) {
+      system().executionQueue.enqueue([outl, val = v]() mutable {
+        outl->target<ossia::value_port>()->write_value(std::move(val), 0);
+      });
+    });
+    m_controlConnections.push_back(c);
+  }
+
+  typename Node_T::weak_type weak_node = node;
+  auto c = con(ctx.doc.coarseUpdateTimer, &QTimer::timeout, this, [weak_node, firstControlIndex, &proc] {
+    if (auto node = weak_node.lock())
+    {
+      for (std::size_t i = firstControlIndex; i < proc.outlets().size(); i++)
+      {
+        auto outlet = static_cast<Process::ControlOutlet*>(proc.outlets()[i]);
+        outlet->setValue(*node->displays[i - firstControlIndex].second);
+      }
+    }
+  });
+
+  m_controlConnections.push_back(c);
+}
+
 void FaustEffectComponent::reloadSynth(Execution::Transaction& transaction)
 {
   using faust_type = ossia::nodes::faust_synth;
@@ -502,6 +538,7 @@ void FaustEffectComponent::reloadSynth(Execution::Transaction& transaction)
     ctx.setup.replace_node(m_ossia_process, node, transaction);
 
   setupExecutionControls(node, 2);
+  setupExecutionControlOutlets(node, 1);
 }
 
 void FaustEffectComponent::reloadFx(Execution::Transaction& transaction)
@@ -519,6 +556,7 @@ void FaustEffectComponent::reloadFx(Execution::Transaction& transaction)
     ctx.setup.replace_node(m_ossia_process, node, transaction);
 
   setupExecutionControls(node, 1);
+  setupExecutionControlOutlets(node, 1);
 }
 
 }

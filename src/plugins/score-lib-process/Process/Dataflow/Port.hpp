@@ -382,7 +382,7 @@ public:
   VIRTUAL_CONSTEXPR PortType type() const noexcept override { return Process::PortType::Midi; }
 };
 
-class SCORE_LIB_PROCESS_EXPORT ControlOutlet final : public Outlet
+class SCORE_LIB_PROCESS_EXPORT ControlOutlet : public Outlet
 {
   W_OBJECT(ControlOutlet)
 

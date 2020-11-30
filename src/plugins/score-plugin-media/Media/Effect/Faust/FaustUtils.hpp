@@ -92,6 +92,8 @@ struct UI : ::UI
   void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
       override
   {
+    auto inl = new Process::Bargraph{min, max, min, label, getStrongId(fx.outlets()), &fx};
+    fx.outlets().push_back(inl);
   }
 
   void
@@ -106,6 +108,7 @@ struct UpdateUI : ::UI
 {
   Proc& fx;
   std::size_t i = 1;
+  std::size_t o = 1;
 
   UpdateUI(Proc& sfx) : fx{sfx} { }
 
@@ -238,7 +241,32 @@ struct UpdateUI : ::UI
   void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
       override
   {
+    if (o < fx.outlets().size())
+    {
+      if (auto outlet = dynamic_cast<Process::Bargraph*>(fx.outlets()[o]))
+      {
+        outlet->setCustomData(label);
+        outlet->setDomain(ossia::make_domain(min, max));
+      }
+      else
+      {
+        auto id = fx.outlets()[o]->id();
+        fx.controlRemoved(*fx.outlets()[o]);
+        delete fx.outlets()[o];
+
+        auto inl = new Process::Bargraph{min, max, min, label, id, &fx};
+        fx.outlets()[o] = inl;
+      }
+    }
+    else
+    {
+      auto inl = new Process::Bargraph{min, max, min, label, getStrongId(fx.outlets()), &fx};
+      fx.outlets().push_back(inl);
+      fx.controlAdded(inl->id());
+    }
+    o++;
   }
+
 
   void
   addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) override

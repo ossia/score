@@ -42,6 +42,12 @@ public:
       const score::DocumentContext& ctx,
       Inspector::Layout& lay,
       QWidget* parent);
+  static void setupControl(
+      const Process::ControlOutlet& inlet,
+      QWidget* inlet_widget,
+      const score::DocumentContext& ctx,
+      Inspector::Layout& lay,
+      QWidget* parent);
 
   static QWidget*
   makeAddressWidget(const Process::Port& port, const score::DocumentContext& ctx, QWidget* parent);

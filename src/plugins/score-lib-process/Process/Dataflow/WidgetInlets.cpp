@@ -240,6 +240,27 @@ XYSlider::XYSlider(ossia::vec2f init, const QString& name, Id<Port> id, QObject*
 
 XYSlider::~XYSlider() { }
 
+
+
+
+Bargraph::Bargraph(
+    float min,
+    float max,
+    float init,
+    const QString& name,
+    Id<Port> id,
+    QObject* parent)
+    : ControlOutlet{id, parent}
+{
+  hidden = true;
+  setValue(init);
+  setDomain(ossia::make_domain(min, max));
+  setCustomData(name);
+}
+
+Bargraph::~Bargraph() { }
+
+
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -489,6 +510,28 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::XYSlider>(Process::XYSlider& p)
 {
 }
+
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamReader::read<Process::Bargraph>(const Process::Bargraph& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamWriter::write<Process::Bargraph>(Process::Bargraph& p)
+{
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::Bargraph>(const Process::Bargraph& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::Bargraph>(Process::Bargraph& p)
+{
+}
+
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<QString>(const QString& p)

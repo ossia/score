@@ -128,6 +128,39 @@ void PortWidgetSetup::setupControl(
   vlay.addRow(sw);
 }
 
+void PortWidgetSetup::setupControl(
+    const ControlOutlet& inlet,
+    QWidget* inlet_widget,
+    const score::DocumentContext& ctx,
+    Inspector::Layout& vlay,
+    QWidget* parent)
+{
+  auto widg = new QWidget;
+  auto advBtn = new score::ArrowButton{Qt::RightArrow, widg};
+
+  auto lab = new TextLabel{inlet.customData(), widg};
+  auto hl = new score::MarginLess<QHBoxLayout>{widg};
+  hl->addWidget(advBtn);
+  hl->addWidget(lab);
+
+  auto sw = new QWidget{parent};
+  sw->setContentsMargins(0, 0, 0, 0);
+  auto hl2 = new score::MarginLess<QHBoxLayout>{sw};
+  hl2->addSpacing(30);
+  auto lay = new Inspector::Layout{};
+  Process::PortWidgetSetup::setupInLayout(inlet, ctx, *lay, sw);
+  hl2->addLayout(lay);
+
+  QObject::connect(advBtn, &QToolButton::clicked, sw, [=] {
+    sw->setVisible(!sw->isVisible());
+    advBtn->setArrowType(advBtn->arrowType() == Qt::RightArrow ? Qt::DownArrow : Qt::RightArrow);
+  });
+  sw->setVisible(false);
+
+  vlay.addRow(widg, inlet_widget);
+  vlay.addRow(sw);
+}
+
 QWidget* PortWidgetSetup::makeAddressWidget(
     const Port& port,
     const score::DocumentContext& ctx,

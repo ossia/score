@@ -55,7 +55,9 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_dataflow::factor
          Dataflow::WidgetInletFactory<Process::ComboBox>,
          Dataflow::WidgetInletFactory<Process::Enum>,
          Dataflow::WidgetInletFactory<Process::HSVSlider>,
-         Dataflow::WidgetInletFactory<Process::XYSlider>>>(ctx, key);
+         Dataflow::WidgetInletFactory<Process::XYSlider>,
+         Dataflow::WidgetOutletFactory<Process::Bargraph>
+      >>(ctx, key);
 }
 
 #include <score/plugins/PluginInstances.hpp>

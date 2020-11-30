@@ -19,6 +19,8 @@ struct Enum;
 struct Button;
 struct HSVSlider;
 struct XYSlider;
+
+struct Bargraph;
 }
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT,
@@ -89,6 +91,13 @@ UUID_METADATA(
     Process::Port,
     Process::XYSlider,
     "8093743c-584f-4bb9-97d4-6c7602f87116")
+
+
+UUID_METADATA(
+    SCORE_LIB_PROCESS_EXPORT,
+    Process::Port,
+    Process::Bargraph,
+    "f6d740ce-acc0-44c0-932a-0a03345af84f")
 
 namespace Process
 {
@@ -286,6 +295,28 @@ struct SCORE_LIB_PROCESS_EXPORT XYSlider : public Process::ControlInlet
   auto getMin() const noexcept { return ossia::vec4f{0., 0.}; }
   auto getMax() const noexcept { return ossia::vec4f{1., 1.}; }
   using Process::ControlInlet::ControlInlet;
+};
+
+
+
+// Outlets
+
+struct SCORE_LIB_PROCESS_EXPORT Bargraph : public Process::ControlOutlet
+{
+  MODEL_METADATA_IMPL(Bargraph)
+  using control_type = WidgetFactory::Bargraph;
+  Bargraph(
+      float min,
+      float max,
+      float init,
+      const QString& name,
+      Id<Process::Port> id,
+      QObject* parent);
+  ~Bargraph();
+
+  auto getMin() const noexcept { return domain().get().convert_min<float>(); }
+  auto getMax() const noexcept { return domain().get().convert_max<float>(); }
+  using Process::ControlOutlet::ControlOutlet;
 };
 
 }

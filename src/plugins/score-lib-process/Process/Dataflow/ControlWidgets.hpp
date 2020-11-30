@@ -198,9 +198,15 @@ struct LogFloatControl
   }
 };
 
+
+using FloatSlider = FloatControl<score::QGraphicsSlider>;
+using LogFloatSlider = LogFloatControl<score::QGraphicsLogSlider>;
+using FloatKnob = FloatControl<score::QGraphicsKnob>;
+using LogFloatKnob = LogFloatControl<score::QGraphicsLogKnob>;
+
+
 struct IntSlider
 {
-
   template <typename T, typename Control_T>
   static auto make_widget(
       const T& slider,
@@ -854,8 +860,66 @@ struct XYSlider
   }
 };
 
-using FloatSlider = FloatControl<score::QGraphicsSlider>;
-using LogFloatSlider = LogFloatControl<score::QGraphicsLogSlider>;
-using FloatKnob = FloatControl<score::QGraphicsKnob>;
-using LogFloatKnob = LogFloatControl<score::QGraphicsLogKnob>;
+
+
+
+/// Outlets
+template <typename ControlUI>
+struct FloatDisplay
+{
+  template <typename T, typename Control_T>
+  static auto make_widget(
+      const T& slider,
+      Control_T& inlet,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      QObject* context)
+  {
+    auto min = slider.getMin();
+    auto max = slider.getMax();
+    if (max - min == 0)
+      max = min + 1;
+    auto sl = new score::ValueDoubleSlider{parent};
+    sl->setOrientation(Qt::Horizontal);
+    sl->setContentsMargins(0, 0, 0, 0);
+    sl->min = min;
+    sl->max = max;
+    sl->setValue((ossia::convert<double>(inlet.value()) - min) / (max - min));
+
+    QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](ossia::value val) {
+      if (!sl->moving)
+        sl->setValue((ossia::convert<double>(val) - min) / (max - min));
+    });
+
+    return sl;
+  }
+
+  template <typename T, typename Control_T>
+  static auto make_item(
+      const T& slider,
+      Control_T& inlet,
+      const score::DocumentContext& ctx,
+      QGraphicsItem* parent,
+      QObject* context)
+  {
+    auto min = slider.getMin();
+    auto max = slider.getMax();
+    if (max - min == 0)
+      max = min + 1;
+    auto sl = new ControlUI{nullptr};
+    sl->min = min;
+    sl->max = max;
+    sl->setValue((ossia::convert<double>(inlet.value()) - min) / (max - min));
+
+    QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](ossia::value val) {
+      if (!sl->moving)
+        sl->setValue((ossia::convert<double>(val) - min) / (max - min));
+    });
+
+    return sl;
+  }
+};
+
+
+using Bargraph = FloatDisplay<score::QGraphicsSlider>;
 }
