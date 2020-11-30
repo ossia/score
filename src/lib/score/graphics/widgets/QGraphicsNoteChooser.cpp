@@ -79,6 +79,12 @@ void QGraphicsNoteChooser::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 void QGraphicsNoteChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   mouseMoveEvent(event);
+
+  if(m_grab)
+  {
+    m_grab = false;
+    sliderReleased();
+  }
   score::showCursor();
 }
 

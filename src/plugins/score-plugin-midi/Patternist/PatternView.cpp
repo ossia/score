@@ -59,7 +59,9 @@ void View::updateLanes()
         noteChanged(lane, sl->value());
       });
       connect(
-          sl, &score::QGraphicsNoteChooser::sliderReleased, this, [this] { noteChangeFinished(); });
+          sl, &score::QGraphicsNoteChooser::sliderReleased, this, [this] {
+        noteChangeFinished();
+      });
       m_lanes.push_back(sl);
     }
   }

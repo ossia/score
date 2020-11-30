@@ -1,6 +1,9 @@
 project(score_plugin_spline3d LANGUAGES CXX)
 
 score_common_setup()
+if(NOT TARGET score_plugin_gfx)
+  return()
+endif()
 
 # Packages
 find_package(${QT_VERSION} REQUIRED COMPONENTS Core Widgets)
