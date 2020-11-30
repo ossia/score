@@ -11,6 +11,7 @@
 #include <QMouseEvent>
 #include <QGraphicsSceneMouseEvent>
 #include <QPointF>
+#include <QWidget>
 
 #include <score_lib_base_export.h>
 namespace score

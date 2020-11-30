@@ -7,6 +7,7 @@
 #include <QPainter>
 #include <QGraphicsSceneMouseEvent>
 
+#include <wobjectimpl.h>
 namespace score
 {
 
