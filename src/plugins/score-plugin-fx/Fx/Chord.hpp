@@ -27,7 +27,7 @@ struct Node
         Control::make_enum(
             "Chord",
             0U,
-            ossia::make_array("Major", "Minor", "Sus2", "Sus4", "Dim", "Aug")));
+            ossia::make_array("Maj", "Min", "Sus2", "Sus4", "Dim", "Aug")));
   };
 
   struct State
@@ -54,12 +54,12 @@ struct Node
   using control_policy = ossia::safe_nodes::default_tick;
   // C C# D D# E F F# G G# A A# B
   // 1 .  . .  1 . .  1 .  1 .  .
-  static const constexpr std::array<int, 5> major7{0, 4, 7, 9, 12};
-  static const constexpr std::array<int, 5> minor7{0, 3, 7, 9, 12};
-  static const constexpr std::array<int, 5> sus2{0, 3, 7, 9, 12};
-  static const constexpr std::array<int, 5> sus4{0, 3, 7, 9, 12};
-  static const constexpr std::array<int, 5> dim{0, 3, 7, 9, 12};
-  static const constexpr std::array<int, 5> aug{0, 3, 7, 9, 12};
+  static const constexpr std::array<int, 5> major7{0, 4, 7, 11, 12};
+  static const constexpr std::array<int, 5> minor7{0, 3, 7, 10, 12};
+  static const constexpr std::array<int, 5> sus2{0, 2, 7, 9, 12};
+  static const constexpr std::array<int, 5> sus4{0, 5, 7, 9, 12};
+  static const constexpr std::array<int, 5> dim{0, 3, 6, 9, 12};
+  static const constexpr std::array<int, 5> aug{0, 4, 8, 10, 12};
 
   template <typename T>
   static void
@@ -102,8 +102,8 @@ struct Node
       F&& f)
   {
     static const ossia::string_view_map<std::array<int, 5>> chords{
-        {"Major", major7},
-        {"Minor", minor7},
+        {"Maj", major7},
+        {"Min", minor7},
         {"Sus2", sus2},
         {"Sus4", sus4},
         {"Dim", dim},
