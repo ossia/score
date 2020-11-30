@@ -7,6 +7,7 @@
 #include <ControlSurface/Layer.hpp>
 #include <ControlSurface/LocalTree.hpp>
 #include <ControlSurface/Process.hpp>
+#include <ControlSurface/Remote.hpp>
 #include <score_plugin_controlsurface_commands_files.hpp>
 
 score_plugin_controlsurface::score_plugin_controlsurface() { }
@@ -22,8 +23,9 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_controlsurface::
       FW<Process::ProcessModelFactory, ControlSurface::ProcessFactory>,
       FW<Process::LayerFactory, ControlSurface::LayerFactory>,
       FW<Execution::ProcessComponentFactory, ControlSurface::ProcessExecutorComponentFactory>,
-      FW<LocalTree::ProcessComponentFactory, ControlSurface::LocalTreeProcessComponentFactory>>(
-      ctx, key);
+      FW<LocalTree::ProcessComponentFactory, ControlSurface::LocalTreeProcessComponentFactory>,
+      FW<RemoteControl::ProcessComponentFactory, ControlSurface::RemoteFactory>
+  >(ctx, key);
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_controlsurface::make_commands()

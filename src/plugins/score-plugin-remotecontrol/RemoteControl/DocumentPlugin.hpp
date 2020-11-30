@@ -29,7 +29,7 @@ class Interval;
 struct WSClient
 {
   QWebSocket* socket{};
-  friend bool operator==(const WSClient& lhs, const WSClient& rhs)
+  friend bool operator==(const WSClient& lhs, const WSClient& rhs) noexcept
   {
     return lhs.socket == rhs.socket;
   }
@@ -43,13 +43,11 @@ public:
   ~Receiver();
 
   void registerSync(Path<Scenario::TimeSyncModel> tn);
-
   void unregisterSync(Path<Scenario::TimeSyncModel> tn);
 
   void onNewConnection();
 
   void processTextMessage(const QString& message, const WSClient& w);
-
   void processBinaryMessage(QByteArray message, const WSClient& w);
 
   void socketDisconnected();
@@ -71,7 +69,6 @@ class DocumentPlugin : public score::DocumentPlugin
 {
 public:
   DocumentPlugin(const score::DocumentContext& doc, Id<score::DocumentPlugin> id, QObject* parent);
-
   ~DocumentPlugin();
 
   void on_documentClosing() override;
