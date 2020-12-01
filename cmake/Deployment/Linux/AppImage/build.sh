@@ -20,7 +20,7 @@ chmod a+x appimagetool-x86_64.AppImage
 wget "https://github.com/probonopd/AppImageKit/releases/download/continuous/AppRun-x86_64"
 chmod a+x AppRun-x86_64
 sudo chown -R $(whoami) /tmp/build
-cp AppRun-x86_64 build/score.AppDir/AppRun
+cp AppRun-x86_64 /tmp/build/score.AppDir/AppRun
 cp -rf /tmp/build/score.AppDir .
 ./appimagetool-x86_64.AppImage -n score.AppDir Score.AppImage
 
