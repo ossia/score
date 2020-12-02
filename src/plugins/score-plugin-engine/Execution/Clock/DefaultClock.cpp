@@ -23,21 +23,31 @@ DefaultClock::DefaultClock(const Context& ctx) : context{ctx} { }
 
 void DefaultClock::prepareExecution(const TimeVal& t, BaseScenarioElement& bs)
 {
+  using namespace ossia;
   auto& settings = context.doc.app.settings<Execution::Settings::Model>();
   IntervalComponentBase& comp = bs.baseInterval();
+  const auto& oc = comp.OSSIAInterval();
   if (settings.getValueCompilation())
   {
     comp.interval().duration.setPlayPercentage(0);
 
-    // Send the first state
-    const auto& oc = comp.OSSIAInterval();
-    oc->get_start_event().tick(ossia::Zero, ossia::Zero);
-    context.execGraph->state(*context.execState);
+    context.executionQueue.enqueue([time = context.time(t), oc, g=context.execGraph,s=context.execState] {
+      // Send the first state
+      oc->get_start_event().tick(ossia::Zero, ossia::Zero);
+      g->state(*s);
 
-    if (t != TimeVal::zero())
-      oc->offset(context.time(t));
+      if (time != 0_tv)
+        oc->offset(time);
 
-    context.execState->commit();
+      s->commit();
+    });
+  }
+  else
+  {
+    context.executionQueue.enqueue([time = context.time(t), oc] {
+      if (time != 0_tv)
+        oc->transport(time);
+    });
   }
 }
 
