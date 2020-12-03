@@ -394,7 +394,7 @@ struct AVFormatContext;
 struct AVFrame;
 namespace Media
 {
-AudioDecoder::AudioDecoder(int rate) : m_targetSampleRate{rate}
+AudioDecoder::AudioDecoder(int rate) : convertedSampleRate{rate}
 {
   connect(
       this, &AudioDecoder::startDecode, this, &AudioDecoder::on_startDecode, Qt::QueuedConnection);
@@ -571,14 +571,14 @@ void AudioDecoder::decode(const QString& path, audio_handle hdl)
   }
 
   decoded = 0;
-  sampleRate = info.rate;
+  fileSampleRate = info.rate;
   channels = info.channels;
   auto& data = hdl->data;
   data.resize(info.channels);
 
-  if (m_targetSampleRate != sampleRate)
+  if (convertedSampleRate != fileSampleRate)
     info.max_arr_length
-        = av_rescale_rnd(info.max_arr_length, m_targetSampleRate, sampleRate, AV_ROUND_UP);
+        = av_rescale_rnd(info.max_arr_length, convertedSampleRate, fileSampleRate, AV_ROUND_UP);
 
   for (auto& c : data)
   {
@@ -603,7 +603,7 @@ AudioDecoder::decode_synchronous(const QString& path, int rate)
   if (!res)
     return std::nullopt;
 
-  dec.sampleRate = res->rate;
+  dec.fileSampleRate = res->rate;
   dec.channels = res->channels;
 
   auto hdl = std::make_shared<ossia::audio_data>();
@@ -626,9 +626,9 @@ void AudioDecoder::decodeFrame(Decoder dec, audio_array& data, AVFrame& frame)
   const std::size_t channels = data.size();
   const std::size_t max_samples = data[0].size();
 
-  if (sampleRate != m_targetSampleRate)
+  if (convertedSampleRate != fileSampleRate)
   {
-    auto new_len = av_rescale_rnd(frame.nb_samples, m_targetSampleRate, sampleRate, AV_ROUND_UP);
+    auto new_len = av_rescale_rnd(frame.nb_samples, convertedSampleRate, fileSampleRate, AV_ROUND_UP);
 
     if (decoded + new_len > max_samples)
     {
@@ -673,7 +673,7 @@ void AudioDecoder::decodeRemaining(Decoder dec, audio_array& data, AVFrame& fram
 {
 #if SCORE_HAS_LIBAV
   const std::size_t channels = data.size();
-  if (sampleRate != m_targetSampleRate)
+  if (convertedSampleRate != fileSampleRate)
   {
     int res = 0;
     for (std::size_t i = 0; i < channels; ++i)
@@ -757,7 +757,7 @@ void AudioDecoder::on_startDecode(QString path, audio_handle hdl)
       throw std::runtime_error("Couldn't create decoder");
 
     // init resampling
-    if (sampleRate != m_targetSampleRate)
+    if(convertedSampleRate != fileSampleRate)
     {
       for (std::size_t i = 0; i < channels; ++i)
       {
@@ -765,10 +765,10 @@ void AudioDecoder::on_startDecode(QString path, audio_handle hdl)
             nullptr,
             AV_CH_LAYOUT_MONO,
             AV_SAMPLE_FMT_FLT,
-            m_targetSampleRate,
+            convertedSampleRate,
             AV_CH_LAYOUT_MONO,
             AV_SAMPLE_FMT_FLT,
-            sampleRate,
+            fileSampleRate,
             0,
             nullptr);
         swr_init(swr);

@@ -108,7 +108,7 @@ public:
       component.in_exec([n,
                          data = r->handle,
                          channels = r->decoder.channels,
-                         sampleRate = r->decoder.sampleRate,
+                         sampleRate = r->decoder.convertedSampleRate,
                          tempo = component.process().nativeTempo(),
                          mode = component.process().stretchMode(),
                          upmix = p.upmixChannels(),

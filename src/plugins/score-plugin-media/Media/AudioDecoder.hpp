@@ -45,7 +45,8 @@ public:
 
   static QHash<QString, AudioInfo>& database();
 
-  int32_t sampleRate{};
+  int32_t fileSampleRate{};
+  int32_t convertedSampleRate{};
   int32_t channels{};
   std::size_t decoded{};
 
@@ -64,7 +65,6 @@ private:
 
   QThread* m_baseThread{};
   QThread m_decodeThread;
-  int m_targetSampleRate{};
 
   template <typename Decoder>
   void decodeFrame(Decoder dec, audio_array& data, AVFrame& frame);
