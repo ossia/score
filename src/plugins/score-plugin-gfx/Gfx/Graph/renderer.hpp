@@ -59,6 +59,7 @@ struct Renderer
 
   QRhiTexture* textureTargetForInputPort(Port& port);
   void createRenderTargets();
+  void createRenderTarget(score::gfx::NodeRenderer& node);
 
   ossia::flat_map<score::gfx::NodeRenderer*, QRhiTexture*> textureTargets;
   ossia::small_vector<std::pair<const Mesh* const, MeshBuffers>, 4> buffersToUpload;

@@ -172,7 +172,7 @@ void Graph::relinkGraph()
             rn = node->createRenderer();
             if (node != model_nodes.back())
             {
-              rn->createRenderTarget(r.state);
+              r.createRenderTarget(*rn);
             }
             node->renderedNodes[&r] = rn;
             rn->init(r);

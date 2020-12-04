@@ -23,8 +23,6 @@ struct SCORE_PLUGIN_GFX_EXPORT Graph
 
   void setVSyncCallback(std::function<void()>);
 
-  void maybeRebuild(Renderer& r);
-
   std::shared_ptr<Renderer> createRenderer(OutputNode*, RenderState state);
 
   void setupOutputs(GraphicsApi graphicsApi);

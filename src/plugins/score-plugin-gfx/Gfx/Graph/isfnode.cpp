@@ -732,7 +732,6 @@ struct RenderedISFNode : score::gfx::NodeRenderer
 
         cb.draw(n.mesh().vertexCount);
       }
-
       cb.endPass();
 
       if(pass.p.pipeline != m_passes.back().p.pipeline)

@@ -108,19 +108,26 @@ QRhiTexture* Renderer::textureTargetForInputPort(Port& port)
   auto renderedNode = source_node->renderedNodes[this];
   auto it = textureTargets.find(renderedNode);
   if(it == textureTargets.end()) {
-    qDebug() << "! warning ! output texture requested but not existing.";
+    qDebug() << "! warning ! output texture requested but not existing." << typeid(renderedNode).name();
     return texture;
   }
 
   return it->second;
 }
 
+void Renderer::createRenderTarget(score::gfx::NodeRenderer& node)
+{
+  auto tg = node.createRenderTarget(state);
+  if(tg.texture)
+    textureTargets[&node] = tg.texture;
+  else
+    qDebug() << typeid(node).name() << "does not have a texture ! ";
+}
+
 void Renderer::createRenderTargets()
 {
   for (auto node : renderedNodes) {
-    auto tg = node->createRenderTarget(state);
-    if(tg.texture)
-      textureTargets[node] = tg.texture;
+    createRenderTarget(*node);
   }
 }
 
