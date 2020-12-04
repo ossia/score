@@ -6,6 +6,7 @@
 #include <Execution/BaseScenarioComponent.hpp>
 #include <Execution/DocumentPlugin.hpp>
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
+#include <ossia/editor/scenario/execution_log.hpp>
 
 namespace Execution
 {
@@ -13,6 +14,9 @@ namespace
 {
 struct AudioTickHelper
 {
+#if defined(OSSIA_EXECUTION_LOG)
+  std::shared_ptr<ossia::on_destruct> log_context = std::make_shared<ossia::on_destruct>(ossia::g_exec_log.init());
+#endif
   AudioTickHelper(
       ossia::tick_setup_options opt,
       Execution::DocumentPlugin& plug,

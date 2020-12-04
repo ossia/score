@@ -15,6 +15,7 @@
 
 #include <Execution/BaseScenarioComponent.hpp>
 #include <Execution/Settings/ExecutorModel.hpp>
+#include <ossia/editor/scenario/execution_log.hpp>
 
 namespace Execution
 {
@@ -31,6 +32,9 @@ void DefaultClock::prepareExecution(const TimeVal& t, BaseScenarioElement& bs)
   {
     comp.interval().duration.setPlayPercentage(0);
 
+#if defined(OSSIA_EXECUTION_LOG)
+    auto log = ossia::g_exec_log.init();
+#endif
     context.executionQueue.enqueue([time = context.time(t), oc, g=context.execGraph,s=context.execState] {
       // Send the first state
       oc->get_start_event().tick(ossia::Zero, ossia::Zero);
@@ -56,6 +60,9 @@ void DefaultClock::play(const TimeVal& t, BaseScenarioElement& bs)
   prepareExecution(t, bs);
   try
   {
+#if defined(OSSIA_EXECUTION_LOG)
+    auto log = ossia::g_exec_log.init();
+#endif
     bs.baseInterval().OSSIAInterval()->start_and_tick();
     bs.baseInterval().executionStarted();
   }

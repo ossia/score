@@ -205,6 +205,12 @@ void IntervalComponent::onSetup(
     interval_duration_data dur)
 {
   m_ossia_interval = ossia_cst;
+
+
+#if defined(OSSIA_EXECUTION_LOG)
+  m_ossia_interval->name = this->interval().metadata().getName().toStdString();
+#endif
+
   Scenario::TempoProcess* tempo_proc{};
 
   if (!interval().graphal())
