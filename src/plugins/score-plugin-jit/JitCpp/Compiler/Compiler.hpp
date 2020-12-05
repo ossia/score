@@ -21,12 +21,16 @@ public:
     sys::DynamicLibrary::LoadLibraryPermanently(nullptr);
 
     LLJIT& JIT = *m_jit;
-
     auto &JD = JIT.getMainJITDylib();
+#if defined(SCORE_DEBUG)
     {
-      // auto s = absoluteSymbols({ { Mangle("atexit"), JITEvaluatedSymbol(pointerToJITTargetAddress(&atexit), JITSymbolFlags::Exported)}});
-      // JD.define(std::move(s));
+       auto s = absoluteSymbols({ { m_mangler("atexit"), JITEvaluatedSymbol(pointerToJITTargetAddress(&::atexit), JITSymbolFlags::Exported)}});
+       JD.define(std::move(s));
     }
+#endif
+
+    m_overrides.enable(JD, m_mangler);
+
     {
       auto gen =
           DynamicLibrarySearchGenerator::GetForCurrentProcess(
@@ -99,5 +103,6 @@ private:
 
   const llvm::DataLayout &m_dl{m_jit->getDataLayout()};
   llvm::orc::MangleAndInterner m_mangler{m_jit->getExecutionSession(), m_dl};
+  llvm::orc::LocalCXXRuntimeOverrides m_overrides;
 };
 }
