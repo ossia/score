@@ -29,6 +29,7 @@ struct AudioTexture
   std::vector<float> data;
   int channels{};
   int fixedSize{0};
+  bool fft{};
 };
 
 struct Port

@@ -4,9 +4,9 @@
 
 #include <boost/algorithm/string.hpp>
 #include <exprtk.hpp>
+#include <ossia/audio/fft.hpp>
 namespace
 {
-
 struct input_size_vis
 {
   int sz{};
@@ -174,7 +174,14 @@ struct input_port_vis
     self.input.push_back(new Port{&self, &data, Types::Audio, {}});
   }
 
-  void operator()(const isf::audioFFT_input&) noexcept { }
+  void operator()(const isf::audioFFT_input& audio) noexcept
+  {
+    self.audio_textures.push_back({});
+    auto& data = self.audio_textures.back();
+    data.fixedSize = audio.max;
+    data.fft = true;
+    self.input.push_back(new Port{&self, &data, Types::Audio, {}});
+  }
 };
 
 }
@@ -267,9 +274,6 @@ struct RenderedISFNode : score::gfx::NodeRenderer
 
   std::vector<Sampler> m_samplers;
 
-  // Pipeline
-  Pipeline m_p;
-
   QRhiBuffer* m_meshBuffer{};
   QRhiBuffer* m_idxBuffer{};
 
@@ -277,13 +281,17 @@ struct RenderedISFNode : score::gfx::NodeRenderer
   int m_materialSize{};
   int64_t materialChangedIndex{-1};
 
+  std::vector<float> m_audioScratchpad;
+
   RenderedISFNode(const ISFNode& node) noexcept
     : score::gfx::NodeRenderer{}
     , n{const_cast<ISFNode&>(node)}
+    , m_fft{128}
   {
 
   }
 
+  virtual ~RenderedISFNode();
   std::optional<QSize> renderTargetSize() const noexcept override
   {
     return {};
@@ -567,62 +575,109 @@ struct RenderedISFNode : score::gfx::NodeRenderer
     }
   }
 
-  void update(Renderer& renderer, QRhiResourceUpdateBatch& res) override
+  void updateAudioTexture(AudioTexture& audio, Renderer& renderer, QRhiResourceUpdateBatch& res)
   {
+    QRhi& rhi = *renderer.state.rhi;
+    bool textureChanged = false;
+    auto it = audio.samplers.find(&renderer);
+    if(it == audio.samplers.end())
+      return;
+
+    auto& [rhiSampler, rhiTexture] = it->second;
+    const auto curSz = (rhiTexture) ? rhiTexture->pixelSize() : QSize{};
+    int numSamples = curSz.width() * curSz.height();
+    if (numSamples != audio.data.size())
     {
-      if (m_materialUBO && m_materialSize > 0 && materialChangedIndex != n.materialChanged)
-      {
-        char* data = n.m_materialData.get();
-        res.updateDynamicBuffer(m_materialUBO, 0, m_materialSize, data);
-        materialChangedIndex = n.materialChanged;
-      }
+      delete rhiTexture;
+      rhiTexture = nullptr;
+      textureChanged = true;
     }
 
-    QRhi& rhi = *renderer.state.rhi;
-    for (auto& audio : n.audio_textures)
+    if (!rhiTexture)
     {
-      bool textureChanged = false;
-      auto& [rhiSampler, rhiTexture] = audio.samplers[&renderer];
-      const auto curSz = (rhiTexture) ? rhiTexture->pixelSize() : QSize{};
-      int numSamples = curSz.width() * curSz.height();
-      if (numSamples != audio.data.size())
+      if (audio.channels > 0)
       {
-        delete rhiTexture;
+        int samples = audio.data.size() / audio.channels;
+        int pixelWidth = samples / (audio.fft ? 2 : 1);
+        m_fft.reset(samples);
+        rhiTexture = rhi.newTexture(
+              QRhiTexture::R32F, {pixelWidth, audio.channels}, 1, QRhiTexture::Flag{});
+        rhiTexture->build();
+        textureChanged = true;
+      }
+      else
+      {
         rhiTexture = nullptr;
         textureChanged = true;
       }
+    }
 
-      if (!rhiTexture)
+    if (textureChanged)
+    {
+      for(auto& m_p : m_passes)
+      score::gfx::replaceTexture(*m_p.p.srb, rhiSampler, rhiTexture ? rhiTexture : renderer.m_emptyTexture);
+    }
+
+    if (rhiTexture)
+    {
+      // Process the audio data
+      if(audio.fft)
       {
-        if (audio.channels > 0)
+        if(m_audioScratchpad.size() < audio.data.size())
+          m_audioScratchpad.resize(audio.data.size() / 2);
+        std::size_t bufferSize = audio.data.size() / audio.channels;
+        std::size_t fftSize = bufferSize / 2;
+        const float norm = 1. / (2. * bufferSize);
+        for(int i = 0; i < audio.channels; i++)
         {
-          int samples = audio.data.size() / audio.channels;
-          rhiTexture = rhi.newTexture(
-              QRhiTexture::D32F, {samples, audio.channels}, 1, QRhiTexture::Flag{});
-          rhiTexture->build();
-          textureChanged = true;
-        }
-        else
-        {
-          rhiTexture = nullptr;
-          textureChanged = true;
-        }
-      }
+          float* inputData = audio.data.data() + i * bufferSize;
+          auto spectrum = m_fft.execute(inputData, bufferSize);
 
-      if (textureChanged)
-      {
-        score::gfx::replaceTexture(*m_p.srb, rhiSampler, rhiTexture ? rhiTexture : renderer.m_emptyTexture);
-      }
+          float* outputSpectrum = m_audioScratchpad.data() + i * fftSize;
+          for(std::size_t k = 0; k < fftSize; k++)
+          {
+            outputSpectrum[k] = 0.5f + spectrum[k][0] * norm;
+          }
+        }
 
-      if (rhiTexture)
+        // Copy it
+        QRhiTextureSubresourceUploadDescription subdesc(m_audioScratchpad.data(), (audio.data.size() / 2) * sizeof(float));
+        QRhiTextureUploadEntry entry{0, 0, subdesc};
+        QRhiTextureUploadDescription desc{entry};
+        res.uploadTexture(rhiTexture, desc);
+      }
+      else
       {
-        QRhiTextureSubresourceUploadDescription subdesc(audio.data.data(), audio.data.size() * 4);
+        if(m_audioScratchpad.size() < audio.data.size())
+          m_audioScratchpad.resize(audio.data.size());
+        for(std::size_t i = 0; i < audio.data.size(); i++) {
+          m_audioScratchpad[i] = 0.5f + audio.data[i] / 2.f;
+        }
+
+        // Copy it
+        QRhiTextureSubresourceUploadDescription subdesc(m_audioScratchpad.data(), audio.data.size() * sizeof(float));
         QRhiTextureUploadEntry entry{0, 0, subdesc};
         QRhiTextureUploadDescription desc{entry};
         res.uploadTexture(rhiTexture, desc);
       }
     }
+  }
 
+  ossia::fft m_fft;
+
+  void update(Renderer& renderer, QRhiResourceUpdateBatch& res) override
+  {
+    if (m_materialUBO && m_materialSize > 0 && materialChangedIndex != n.materialChanged)
+    {
+      char* data = n.m_materialData.get();
+      res.updateDynamicBuffer(m_materialUBO, 0, m_materialSize, data);
+      materialChangedIndex = n.materialChanged;
+    }
+
+    for (auto& audio : n.audio_textures)
+    {
+      updateAudioTexture(audio, renderer, res);
+    }
     {
       // Update all the process UBOs
       for(int i = 0, N = m_passes.size(); i < N; i++)
@@ -650,12 +705,19 @@ struct RenderedISFNode : score::gfx::NodeRenderer
         }
       }
 
-      for (auto& pass : m_passes)
+      for (int i = 0; i < int(m_passes.size()) - 1; i++)
       {
+        auto& pass = m_passes[i];
         // TODO do we also want to remove the last pass texture here ?!
         pass.p.release();
         pass.renderTarget.release();
         pass.processUBO->releaseAndDestroyLater();
+      }
+      if(!m_passes.empty())
+      {
+        delete m_passes.back().p.pipeline;
+        delete m_passes.back().p.srb;
+        delete m_passes.back().processUBO;
       }
 
       m_passes.clear();
@@ -671,14 +733,13 @@ struct RenderedISFNode : score::gfx::NodeRenderer
     delete m_materialUBO;
     m_materialUBO = nullptr;
 
-    m_p.release();
-
     m_meshBuffer = nullptr;
   }
 
   void release(Renderer& r) override
   {
     releaseWithoutRenderTarget(r);
+    m_lastPassRT.release();
   }
 
 
@@ -746,4 +807,9 @@ struct RenderedISFNode : score::gfx::NodeRenderer
 score::gfx::NodeRenderer* ISFNode::createRenderer() const noexcept
 {
   return new RenderedISFNode{*this};
+}
+
+RenderedISFNode::~RenderedISFNode()
+{
+
 }

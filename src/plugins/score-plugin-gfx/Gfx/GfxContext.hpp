@@ -191,11 +191,8 @@ struct gfx_view_node
       float* sample = tex.data.data();
       for (auto& chan : v)
       {
-        for (float in : chan)
-        {
-          (*sample) = 0.5f + in / 2.f;
-          sample++;
-        }
+        for(int i = 0, N = chan.size(); i < N; ++i, ++sample)
+          *sample = chan[i];
       }
     }
   }
