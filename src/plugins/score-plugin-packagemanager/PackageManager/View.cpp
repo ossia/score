@@ -240,7 +240,7 @@ void PluginSettingsView::install()
     installAddon(addon);
   else if(addon.kind == "sdk")
     installSDK(addon);
-  else if(addon.kind == "library")
+  else if(addon.kind == "media")
     installLibrary(addon);
 }
 
@@ -349,8 +349,9 @@ void PluginSettingsView::installLibrary(const RemotePackage& addon)
 {
   const QString destination{score::AppContext()
         .settings<Library::Settings::Model>()
-        .getPath() + "/Packages/" + addon.raw_name};
+        .getPath() + "/Media/" + addon.raw_name};
 
+  QDir{}.mkpath(destination);
 
   zdl::download_and_extract(
         addon.file,
