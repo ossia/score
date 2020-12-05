@@ -14,8 +14,7 @@
 namespace Spline
 {
 
-class ProcessModel final
-    : public Process::ProcessModel
+class ProcessModel final : public Process::ProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Spline::ProcessModel)
@@ -63,11 +62,9 @@ public:
 
   std::unique_ptr<Process::Outlet> outlet;
 
-  void addressChanged(const ::State::AddressAccessor& arg_1)
-      W_SIGNAL(addressChanged, arg_1);
+  void addressChanged(const ::State::AddressAccessor& arg_1) W_SIGNAL(addressChanged, arg_1);
   void tweenChanged(bool tween) W_SIGNAL(tweenChanged, tween);
-  void unitChanged(const State::Unit& arg_1)
-      W_SIGNAL(unitChanged, arg_1);
+  void unitChanged(const State::Unit& arg_1) W_SIGNAL(unitChanged, arg_1);
   void splineChanged() W_SIGNAL(splineChanged);
   void resetExecution() W_SIGNAL(resetExecution)
 

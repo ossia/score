@@ -1,10 +1,10 @@
 #pragma once
-#include <Spline/Commands.hpp>
 #include <Device/Address/AddressSettings.hpp>
 #include <Process/LayerPresenter.hpp>
 
 #include <score/model/path/PathSerialization.hpp>
 
+#include <Spline/Commands.hpp>
 #include <Spline/Model.hpp>
 
 namespace Spline

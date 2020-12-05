@@ -1,37 +1,33 @@
 #pragma once
-#include <Spline/Commands.hpp>
 #include <Process/Script/ScriptEditor.hpp>
+
 #include <QDialog>
-#include <exprtk.hpp>
 #include <QDoubleSpinBox>
-#include <QHBoxLayout>
 #include <QFormLayout>
+#include <QHBoxLayout>
+
+#include <Spline/Commands.hpp>
+#include <exprtk.hpp>
 
 namespace Spline
 {
-class GeneratorDialog
-    : public Process::ScriptDialog
+class GeneratorDialog : public Process::ScriptDialog
 {
 public:
-  GeneratorDialog(
-        const ProcessModel& model,
-        const score::DocumentContext& ctx,
-        QWidget* parent):
-    Process::ScriptDialog{"exprtk", ctx, parent}
-  , m_model{model}
+  GeneratorDialog(const ProcessModel& model, const score::DocumentContext& ctx, QWidget* parent)
+      : Process::ScriptDialog{"exprtk", ctx, parent}, m_model{model}
   {
     auto step = new QDoubleSpinBox{this};
     step->setRange(0.0001, 0.3);
     step->setValue(m_step);
     step->setSingleStep(0.001);
     step->setDecimals(8);
-    //step->setStepType(QSpinBox::AdaptiveDecimalStepType);
+    // step->setStepType(QSpinBox::AdaptiveDecimalStepType);
     auto lay = static_cast<QBoxLayout*>(this->layout());
     auto controls = new QFormLayout;
     controls->addRow("Step (smaller is more precise)", step);
     lay->insertLayout(2, controls);
-    connect(step, qOverload<double>(&QDoubleSpinBox::valueChanged),
-            this, [=] (double step) {
+    connect(step, qOverload<double>(&QDoubleSpinBox::valueChanged), this, [=](double step) {
       m_step = step;
     });
 
@@ -59,7 +55,7 @@ y := sin(2 * PI * t);
     else
     {
       ossia::nodes::spline_data data;
-      for(t = 0.; t < 1.; t += m_step)
+      for (t = 0.; t < 1.; t += m_step)
       {
         expr.value();
         data.points.push_back({x, y});
@@ -70,8 +66,7 @@ y := sin(2 * PI * t);
         data.points.push_back({x, y});
       }
 
-      CommandDispatcher<>{m_context.commandStack}.submit<ChangeSpline>(
-          m_model, std::move(data));
+      CommandDispatcher<>{m_context.commandStack}.submit<ChangeSpline>(m_model, std::move(data));
     }
   }
   double t{}, x{}, y{};

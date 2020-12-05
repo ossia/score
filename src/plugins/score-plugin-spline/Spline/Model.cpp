@@ -97,10 +97,7 @@ void ProcessModel::setUnit(const State::Unit& u)
   }
 }
 
-void ProcessModel::startExecution()
-{
-
-}
+void ProcessModel::startExecution() { }
 
 void ProcessModel::stopExecution()
 {

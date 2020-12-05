@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "score_plugin_spline.hpp"
 
+#include <Process/Dataflow/Port.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/HeaderDelegate.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
@@ -16,15 +17,13 @@
 #include <Spline/Model.hpp>
 #include <Spline/Presenter.hpp>
 #include <Spline/View.hpp>
-
-#include <Process/Dataflow/Port.hpp>
-#include <wobjectimpl.h>
 #include <score_plugin_spline_commands_files.hpp>
+#include <wobjectimpl.h>
 namespace Spline
 {
 using SplineFactory = Process::ProcessFactory_T<Spline::ProcessModel>;
 using SplineLayerFactory
-  = Process::LayerFactory_T<Spline::ProcessModel, Spline::Presenter, Spline::View>;
+    = Process::LayerFactory_T<Spline::ProcessModel, Spline::Presenter, Spline::View>;
 }
 
 score_plugin_spline::score_plugin_spline() = default;
@@ -36,13 +35,9 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_spline::factorie
 {
   return instantiate_factories<
       score::ApplicationContext,
-      FW<Process::ProcessModelFactory,
-         Spline::SplineFactory>,
-      FW<Process::LayerFactory,
-         Spline::SplineLayerFactory>,
-      FW<Execution::ProcessComponentFactory,
-         Spline::RecreateOnPlay::ComponentFactory>
-      >(ctx, key);
+      FW<Process::ProcessModelFactory, Spline::SplineFactory>,
+      FW<Process::LayerFactory, Spline::SplineLayerFactory>,
+      FW<Execution::ProcessComponentFactory, Spline::RecreateOnPlay::ComponentFactory>>(ctx, key);
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_spline::make_commands()

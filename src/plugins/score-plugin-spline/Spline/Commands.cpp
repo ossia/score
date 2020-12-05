@@ -1,7 +1,9 @@
 #include "Commands.hpp"
-#include <Spline/Model.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/path/PathSerialization.hpp>
+
+#include <Spline/Model.hpp>
 
 namespace Spline
 {
@@ -12,7 +14,7 @@ const CommandGroupKey& CommandFactoryName()
 }
 
 ChangeSpline::ChangeSpline(const ProcessModel& autom, const ossia::nodes::spline_data& newval)
-  : m_path{autom}, m_old{autom.spline()}, m_new{newval}
+    : m_path{autom}, m_old{autom.spline()}, m_new{newval}
 {
 }
 
@@ -37,9 +39,14 @@ void ChangeSpline::update(const ProcessModel&, ossia::nodes::spline_data&& newva
   swap(m_new, newval);
 }
 
-void ChangeSpline::serializeImpl(DataStreamInput& s) const { s << m_path << m_old << m_new; }
+void ChangeSpline::serializeImpl(DataStreamInput& s) const
+{
+  s << m_path << m_old << m_new;
+}
 
-void ChangeSpline::deserializeImpl(DataStreamOutput& s) { s >> m_path >> m_old >> m_new; }
-
+void ChangeSpline::deserializeImpl(DataStreamOutput& s)
+{
+  s >> m_path >> m_old >> m_new;
+}
 
 }

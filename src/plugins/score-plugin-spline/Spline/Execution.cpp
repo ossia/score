@@ -37,10 +37,7 @@ Component::~Component() { }
 
 void Component::recompute()
 {
-  in_exec([
-          proc = std::dynamic_pointer_cast<spline>(OSSIAProcess().node)
-          , g = process().spline()
-          ] {
+  in_exec([proc = std::dynamic_pointer_cast<spline>(OSSIAProcess().node), g = process().spline()] {
     proc->set_spline(g);
   });
 }

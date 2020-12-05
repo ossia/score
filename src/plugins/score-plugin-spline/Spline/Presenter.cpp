@@ -1,20 +1,20 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Process/Focus/FocusDispatcher.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <ossia/detail/math.hpp>
 
-#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <QTimer>
 
 #include <Spline/Model.hpp>
 #include <Spline/Presenter.hpp>
 #include <Spline/View.hpp>
-#include <QTimer>
-#include <score/tools/Bind.hpp>
 #include <wobjectimpl.h>
 namespace Spline
 {
@@ -32,9 +32,7 @@ Presenter::Presenter(
   connect(m_view, &View::changed, this, [&] {
     context().context.dispatcher.submit<ChangeSpline>(layer, m_view->spline());
   });
-  connect(m_view, &View::released, this, [&] {
-    context().context.dispatcher.commit();
-  });
+  connect(m_view, &View::released, this, [&] { context().context.dispatcher.commit(); });
 
   connect(m_view, &View::pressed, this, [&] { m_context.context.focusDispatcher.focus(this); });
   connect(m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);

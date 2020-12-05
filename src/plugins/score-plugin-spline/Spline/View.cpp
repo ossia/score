@@ -1,18 +1,21 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <Process/ProcessContext.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 
-#include <Spline/View.hpp>
-#include <Spline/GeneratorDialog.hpp>
-#include <score/graphics/ZoomItem.hpp>
-#include <ossia/editor/automation/tinyspline_util.hpp>
-#include <Process/ProcessContext.hpp>
 #include <score/graphics/PainterPath.hpp>
+#include <score/graphics/ZoomItem.hpp>
+
+#include <ossia/editor/automation/tinyspline_util.hpp>
 
 #include <QMenu>
 #include <QPainter>
-#include <wobjectimpl.h>
+
+#include <Spline/GeneratorDialog.hpp>
+#include <Spline/View.hpp>
 #include <cmath>
+#include <wobjectimpl.h>
+
 #include <numeric>
 
 // Disclaimer:
@@ -29,10 +32,7 @@ class CurveItem : public QGraphicsItem
 {
 public:
   CurveItem(const ProcessModel& model, const score::DocumentContext& ctx, View& parent)
-    : QGraphicsItem{&parent}
-    , m_view{parent}
-    , m_model{model}
-    , m_context{ctx}
+      : QGraphicsItem{&parent}, m_view{parent}, m_model{model}, m_context{ctx}
   {
     setFlag(ItemClipsToShape, false);
     setAcceptHoverEvents(true);
@@ -42,10 +42,7 @@ public:
 
   View& m_view;
 
-  QRectF boundingRect() const override
-  {
-    return QRectF(m_topLeft, m_bottomRight);
-  }
+  QRectF boundingRect() const override { return QRectF(m_topLeft, m_bottomRight); }
 
   QPointF point(double pos) const noexcept
   {
@@ -74,8 +71,10 @@ public:
       const auto rect = boundingRect();
 
       double biggestDim = std::max(rect.width(), rect.height());
-      painter.drawLine(-biggestDim * m_zoom, rect.height() / 2., biggestDim * m_zoom, rect.height() / 2.);
-      painter.drawLine(rect.height() / 2., -biggestDim * m_zoom, rect.height() / 2., biggestDim * m_zoom);
+      painter.drawLine(
+          -biggestDim * m_zoom, rect.height() / 2., biggestDim * m_zoom, rect.height() / 2.);
+      painter.drawLine(
+          rect.height() / 2., -biggestDim * m_zoom, rect.height() / 2., biggestDim * m_zoom);
     }
 
     painter.setRenderHint(QPainter::Antialiasing, true);
@@ -87,7 +86,7 @@ public:
 
       painter.strokePath(m_curveShape, segmt);
 
-      if(m_play > 0)
+      if (m_play > 0)
       {
         segmt.setColor(skin.IntervalPlayFill().color());
         painter.strokePath(m_playShape, segmt);
@@ -97,7 +96,7 @@ public:
     // Draw the points
     {
       const auto pts = m_spline.points.size();
-      if(pts == 0 || pts > 100)
+      if (pts == 0 || pts > 100)
         return;
 
       // Handle first point
@@ -112,7 +111,7 @@ public:
       {
         auto fp = mapToCanvas(m_spline.points[0]);
         painter.drawEllipse(
-              QRectF{fp.x() - pointSize, fp.y() - pointSize, pointSize * 2., pointSize * 2.});
+            QRectF{fp.x() - pointSize, fp.y() - pointSize, pointSize * 2., pointSize * 2.});
       }
 
       QPen purplePen = skin.skin.Emphasis3.darker.pen2_dotted_square_miter;
@@ -123,16 +122,16 @@ public:
         QPointF p = mapToCanvas(m_spline.points[i]);
 
         // Draw the points
-        if(m_selectedPoint == i)
+        if (m_selectedPoint == i)
         {
           // Draw the purple lines
           painter.setPen(purplePen);
-          if(i > 0)
+          if (i > 0)
           {
             QPointF p0 = mapToCanvas(m_spline.points[i - 1]);
             painter.drawLine(p0, p);
           }
-          if(i < pts - 1)
+          if (i < pts - 1)
           {
             QPointF p2 = mapToCanvas(m_spline.points[i + 1]);
             painter.drawLine(p, p2);
@@ -146,7 +145,7 @@ public:
 
         painter.setPen(skin.TransparentPen());
         painter.drawEllipse(
-              QRectF{p.x() - pointSize, p.y() - pointSize, pointSize * 2., pointSize * 2.});
+            QRectF{p.x() - pointSize, p.y() - pointSize, pointSize * 2., pointSize * 2.});
       }
     }
 
@@ -158,7 +157,7 @@ public:
     prepareGeometryChange();
     m_topLeft = QPointF{INT_MAX, INT_MAX};
     m_bottomRight = QPointF{INT_MIN, INT_MIN};
-    for(auto& pt : m_spline.points)
+    for (auto& pt : m_spline.points)
     {
       m_topLeft.rx() = std::min(pt.x, m_topLeft.rx());
       m_topLeft.ry() = std::min(1. - pt.y, m_topLeft.ry());
@@ -209,8 +208,7 @@ public:
   void updateSpline()
   {
     m_spl.set_points(
-          reinterpret_cast<const tsReal*>(m_spline.points.data()),
-          m_spline.points.size());
+        reinterpret_cast<const tsReal*>(m_spline.points.data()), m_spline.points.size());
 
     // Recompute the curve
     {
@@ -247,13 +245,13 @@ public:
 
   void updatePlayPath()
   {
-    if(m_play > 0)
+    if (m_play > 0)
     {
       auto& path = m_playShape;
       clearPainterPath(path);
 
       std::size_t max = std::min(std::size_t(qBound(0.f, m_play, 1.f) * N), m_points.size());
-      if(max == 0)
+      if (max == 0)
         return;
 
       path.moveTo(m_points[0]);
@@ -321,34 +319,31 @@ public:
 
   void hoverEnterEvent(QGraphicsSceneHoverEvent* e) override
   {
-    if(m_strokedShape.contains(e->pos()))
+    if (m_strokedShape.contains(e->pos()))
       setCursor(Qt::CrossCursor);
   }
   void hoverMoveEvent(QGraphicsSceneHoverEvent* e) override
   {
-    if(m_strokedShape.contains(e->pos()))
+    if (m_strokedShape.contains(e->pos()))
     {
-      if(cursor() != Qt::CrossCursor)
+      if (cursor() != Qt::CrossCursor)
         setCursor(Qt::CrossCursor);
     }
     else
     {
-      if(cursor() == Qt::CrossCursor)
+      if (cursor() == Qt::CrossCursor)
         unsetCursor();
     }
   }
 
-  void hoverLeaveEvent(QGraphicsSceneHoverEvent* e) override
-  {
-    unsetCursor();
-  }
+  void hoverLeaveEvent(QGraphicsSceneHoverEvent* e) override { unsetCursor(); }
 
   void contextMenuEvent(QGraphicsSceneContextMenuEvent* e) override
   {
     auto menu = new QMenu{e->widget()};
     auto setCurveAct = menu->addAction(QObject::tr("Generate curve"));
     auto res = menu->exec(e->screenPos());
-    if(res == setCurveAct)
+    if (res == setCurveAct)
     {
       auto dial = new GeneratorDialog{this->m_model, this->m_context, e->widget()};
       dial->exec();
@@ -368,7 +363,7 @@ public:
         e->accept();
         update();
       }
-      else if(m_strokedShape.contains(e->pos()))
+      else if (m_strokedShape.contains(e->pos()))
       {
         m_origSpline = m_spline;
         m_origClick = e->pos();
@@ -392,12 +387,12 @@ public:
     auto btn = e->buttons();
     if (btn & Qt::LeftButton)
     {
-      if(m_selectedPoint)
+      if (m_selectedPoint)
       {
         moveControlPoint(e->pos());
         e->accept();
       }
-      else if(m_selectedCurve)
+      else if (m_selectedCurve)
       {
         moveCurve(e->pos() - m_origClick);
         e->accept();
@@ -428,7 +423,7 @@ public:
         m_view.released(e->pos());
         update();
       }
-      else if(m_selectedCurve)
+      else if (m_selectedCurve)
       {
         moveCurve(e->pos() - m_origClick);
         updateRect();
@@ -491,7 +486,7 @@ public:
 
   void moveCurve(QPointF delta)
   {
-    for(std::size_t i = 0; i < m_spline.points.size(); i++)
+    for (std::size_t i = 0; i < m_spline.points.size(); i++)
     {
       m_spline.points[i].x = m_origSpline.points[i].x + delta.x();
       m_spline.points[i].y = m_origSpline.points[i].y - delta.y();
@@ -510,7 +505,6 @@ public:
   QPointF m_origClick;
   ts::spline<2> m_spl;
 
-
   double m_zoom{10.};
   QPointF m_topLeft, m_bottomRight;
   float m_play{0.};
@@ -518,7 +512,8 @@ public:
 };
 
 static_assert(std::is_same<tsReal, qreal>::value, "");
-View::View(const ProcessModel& m, const Process::Context& ctx, QGraphicsItem* parent) : LayerView{parent}
+View::View(const ProcessModel& m, const Process::Context& ctx, QGraphicsItem* parent)
+    : LayerView{parent}
 {
   m_impl = new CurveItem{m, ctx, *this};
 
@@ -530,24 +525,21 @@ View::View(const ProcessModel& m, const Process::Context& ctx, QGraphicsItem* pa
     auto zoom = m_impl->m_zoom;
     m_impl->setZoom(qBound(0.001, zoom * 1.5, 1000.));
   });
-  connect(item, &score::ZoomItem::dezoom,
-          this, [this] {
+  connect(item, &score::ZoomItem::dezoom, this, [this] {
     auto zoom = m_impl->m_zoom;
     m_impl->setZoom(qBound(0.001, zoom / 1.5, 1000.));
   });
 
-  connect(item, &score::ZoomItem::recenter,
-          this, &View::recenter);
+  connect(item, &score::ZoomItem::recenter, this, &View::recenter);
   recenter();
 
   this->setFlags(QGraphicsItem::ItemIsFocusable | QGraphicsItem::ItemClipsToShape);
 }
 
-
 void View::setSpline(ossia::nodes::spline_data d)
 {
   m_impl->setSpline(std::move(d));
-  if(!m_impl->m_selectedPoint)
+  if (!m_impl->m_selectedPoint)
   {
     recenter();
   }
@@ -574,9 +566,7 @@ void View::recenter()
   m_impl->setPos(delta);
 }
 
-void View::paint_impl(QPainter* p) const
-{
-}
+void View::paint_impl(QPainter* p) const { }
 
 void View::mousePressEvent(QGraphicsSceneMouseEvent* e)
 {
@@ -597,9 +587,6 @@ void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* e)
   mouseMoveEvent(e);
 }
 
-void View::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e)
-{
-
-}
+void View::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e) { }
 
 }
