@@ -24,6 +24,7 @@ ScriptDialog::ScriptDialog(const std::string_view language, const score::Documen
 
   m_error = new QPlainTextEdit{this};
   m_error->setReadOnly(true);
+  m_error->setMaximumHeight(120);
   m_error->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
 
   lay->addWidget(m_textedit);
@@ -81,6 +82,7 @@ MultiScriptDialog::MultiScriptDialog(const score::DocumentContext& ctx, QWidget*
 
   m_error = new QPlainTextEdit;
   m_error->setReadOnly(true);
+  m_error->setMaximumHeight(120);
   m_error->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
 
   lay->addWidget(m_error);
