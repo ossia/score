@@ -5,6 +5,8 @@
 #include <QJSHighlighter>
 #include <QGLSLCompleter>
 #include <QSyntaxStyle>
+#include <QMainWindow>
+#include <score/application/GUIApplicationContext.hpp>
 
 namespace Process
 {
@@ -19,21 +21,22 @@ void setTabWidth(QTextEdit& edit, int spaceCount)
 
 std::pair<QStyleSyntaxHighlighter*, QCompleter*> getLanguageStyle(const std::string_view language)
 {
+  auto init = [] (auto t) { t->setParent(score::GUIAppContext().mainWindow); return t; };
   if(language == "glsl" || language == "Glsl" || language == "GLSL")
   {
-    static QGLSLHighlighter highlight;
-    static QGLSLCompleter completer;
-    return {&highlight, &completer};
+    static auto highlight = init(new QGLSLHighlighter);
+    static auto completer = init(new QGLSLCompleter);
+    return {highlight, completer};
   }
   else if(language == "js" || language == "Js" || language == "JS")
   {
-    static QJSHighlighter highlight;
-    return {&highlight, nullptr};
+    static auto highlight = init(new QJSHighlighter);
+    return {highlight, nullptr};
   }
   else // C, C++, ...
   {
-    static QCXXHighlighter highlight;
-    return {&highlight, nullptr};
+    static auto highlight = init(new QCXXHighlighter);
+    return {highlight, nullptr};
   }
 }
 
