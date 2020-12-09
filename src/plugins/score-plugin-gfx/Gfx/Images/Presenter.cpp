@@ -23,7 +23,7 @@ struct Presenter::Port
   QRectF rect;
 };
 Presenter::Presenter(const Model& layer, View* view, const Process::Context& ctx, QObject* parent)
-    : Process::LayerPresenter{layer, view, ctx, parent}, m_model{layer}, m_view{view}
+    : Process::LayerPresenter{layer, view, ctx, parent}, m_view{view}
 {
   auto& portFactory = ctx.app.interfaces<Process::PortFactoryList>();
   for (auto& e : layer.inlets())

@@ -25,7 +25,7 @@ BraceWrapping:
   BeforeCatch:     true
   BeforeElse:      true
   IndentBraces:    false
-  
+
 BinPackArguments: false
 BinPackParameters: false
 ExperimentalAutoDetectBinPacking: false
@@ -34,6 +34,7 @@ BreakBeforeBinaryOperators: All
 BreakBeforeBraces: Allman
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializersBeforeComma: true
+BreakInheritanceList: BeforeComma
 ColumnLimit: 99
 CommentPragmas: '^ IWYU pragma:'
 ConstructorInitializerAllOnOneLineOrOnePerLine: true

@@ -117,7 +117,7 @@ struct ImagesNode : NodeModel
       auto& n = static_cast<const ImagesNode&>(this->node);
       if (!m_uploaded)
       {
-        for (int i = 0; i < n.images.size(); i++)
+        for (int i = 0, N = n.images.size(); i < N; i++)
         {
           res.uploadTexture(textures[i], n.images[i].image);
         }

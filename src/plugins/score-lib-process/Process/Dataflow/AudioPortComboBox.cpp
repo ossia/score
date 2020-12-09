@@ -64,7 +64,7 @@ void AudioPortComboBox::setAddress(const State::Address& addr)
   if (!addr.path.empty())
   {
     auto& name = addr.path.back();
-    for (int i = 0; i < m_child.size(); i++)
+    for (std::size_t i = 0; i < m_child.size(); i++)
     {
       if (m_child[i] == name)
       {

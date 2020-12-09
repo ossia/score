@@ -90,7 +90,7 @@ QVariant LocalPackagesModel::data(const QModelIndex& index, int role) const
 {
   auto row = index.row();
   auto column = (Column)index.column();
-  if (row >= m_vec.size() || row < 0)
+  if (row >= int(m_vec.size()) || row < 0)
     return {};
 
   if (index.column() >= ColumnCount || index.column() < 0)

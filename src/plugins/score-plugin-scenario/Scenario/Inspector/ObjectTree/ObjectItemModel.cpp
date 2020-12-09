@@ -113,7 +113,7 @@ void ObjectItemModel::setSelected(QList<const IdentifiedObjectAbstract*> objs)
     }
   }
 
-  root = root.toSet().toList();
+  root = root.toSet().values();
   if (root != m_root)
   {
     cleanConnections();

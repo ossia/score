@@ -27,10 +27,10 @@ public:
   ~VideoThumbnailer();
 
   void requestThumbnails(int64_t req, QVector<int64_t> flicks)
-  E_SIGNAL(SCORE_PLUGIN_MEDIA_EXPORT, requestThumbnails, req, flicks);
+  E_SIGNAL(SCORE_PLUGIN_MEDIA_EXPORT, requestThumbnails, req, flicks)
 
   void thumbnailReady(int64_t req, int64_t flicks, QImage thumb)
-  E_SIGNAL(SCORE_PLUGIN_MEDIA_EXPORT, thumbnailReady, req, flicks, thumb);
+  E_SIGNAL(SCORE_PLUGIN_MEDIA_EXPORT, thumbnailReady, req, flicks, thumb)
 
   QImage process(int64_t flicks);
 

@@ -586,7 +586,7 @@ struct RenderedISFNode : score::gfx::NodeRenderer
     auto& [rhiSampler, rhiTexture] = it->second;
     const auto curSz = (rhiTexture) ? rhiTexture->pixelSize() : QSize{};
     int numSamples = curSz.width() * curSz.height();
-    if (numSamples != audio.data.size())
+    if (numSamples != int(audio.data.size()))
     {
       delete rhiTexture;
       rhiTexture = nullptr;

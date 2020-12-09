@@ -83,7 +83,7 @@ std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::dropData(
       Process::ProcessDropHandler::ProcessDrop p;
       p.creation.key = Metadata<ConcreteKey_k, Gfx::Images::Model>::get();
       p.setup = [str = filename](Process::ProcessModel& m, score::Dispatcher& disp) {
-        auto& midi = static_cast<Gfx::Images::Model&>(m);
+        auto& imgs = static_cast<Gfx::Images::Model&>(m);
         // TODO disp.submit(new ChangeImages{midi, str});
       };
       vec.push_back(std::move(p));

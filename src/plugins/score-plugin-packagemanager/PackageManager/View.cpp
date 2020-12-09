@@ -231,7 +231,7 @@ void PluginSettingsView::install()
     return;
 
   auto num = rows.first().row();
-  SCORE_ASSERT(remotePlugins.addons().size() > num);
+  SCORE_ASSERT(int(remotePlugins.addons().size()) > num);
   auto& addon = remotePlugins.addons().at(num);
 
   m_progress->setVisible(true);

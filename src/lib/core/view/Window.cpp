@@ -192,7 +192,7 @@ View::View(QObject* parent) : QMainWindow{}
     rs->addWidget(centralTabs);
 
     transportBar = new BottomToolbarWidget;
-    auto transportLay = new score::MarginLess<QGridLayout>{transportBar};
+    new score::MarginLess<QGridLayout>{transportBar};
     QPalette pal;
     pal.setColor(QPalette::Window, Qt::blue);
     transportBar->setPalette(pal);
@@ -218,7 +218,7 @@ View::View(QObject* parent) : QMainWindow{}
         bottomTabs,
         &FixedTabWidget::actionTriggered,
         this,
-        [rs, leftLabel, this](QAction* act, bool ok) {
+        [rs](QAction* act, bool ok) {
           if (ok)
           {
             QList<int> sz = rs->sizes();

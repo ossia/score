@@ -31,35 +31,6 @@ static const constexpr qreal graduationHeight = -15.;
 static const constexpr qreal timeRulerHeight = 30.;
 static const constexpr qreal textPosition = SCORE_YPOS(-22.75, -27.75);
 
-static const constexpr std::array<std::pair<double, ossia::time_value>, 22> musical_graduations{
-    {{0.0, ossia::time_value{32 * ossia::quarter_duration<int64_t>}},
-     {0.0125, ossia::time_value{16 * ossia::quarter_duration<int64_t>}},
-     {0.025, ossia::time_value{8 * ossia::quarter_duration<int64_t>}},
-     {0.05, ossia::time_value{4 * ossia::quarter_duration<int64_t>}},
-     {0.1, ossia::time_value{2 * ossia::quarter_duration<int64_t>}},
-     {0.2, ossia::time_value{1 * ossia::quarter_duration<int64_t>}},
-     {0.5, ossia::time_value{ossia::quarter_duration<int64_t> / 2}},
-
-     {1, ossia::time_value{ossia::quarter_duration<int64_t> / 4}},
-     {2, ossia::time_value{ossia::quarter_duration<int64_t> / 8}},
-     {5, ossia::time_value{ossia::quarter_duration<int64_t> / 16}},
-
-     {10, ossia::time_value{ossia::quarter_duration<int64_t> / 32}},
-     {20, ossia::time_value{ossia::quarter_duration<int64_t> / 64}},
-     {40, ossia::time_value{ossia::quarter_duration<int64_t> / 128}},
-     {80, ossia::time_value{ossia::quarter_duration<int64_t> / 256}},
-
-     {100, ossia::time_value{ossia::quarter_duration<int64_t> / 512}},
-     {200, ossia::time_value{ossia::quarter_duration<int64_t> / 1024}},
-     {500, ossia::time_value{ossia::quarter_duration<int64_t> / 2048}},
-
-     {1000, ossia::time_value{ossia::quarter_duration<int64_t> / 4096}},
-     {2000, ossia::time_value{ossia::quarter_duration<int64_t> / 8192}},
-     {5000, ossia::time_value{ossia::quarter_duration<int64_t> / 16384}},
-
-     {10000, ossia::time_value{ossia::quarter_duration<int64_t> / 32768}},
-     {20000, ossia::time_value{ossia::quarter_duration<int64_t> / 65536}}}};
-
 MusicalRuler::MusicalRuler(QGraphicsView* v) : m_viewport{v}
 {
   m_width = 800;

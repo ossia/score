@@ -11,7 +11,7 @@ struct FilterNode : NodeModel
     setShaders(m_mesh.defaultVertexShader(), frag);
 
     const auto& d = m_fragmentS.description();
-    for (auto& ub : d.combinedImageSamplers())
+    for (int i = 0, n = d.combinedImageSamplers().size(); i < n; i++)
     {
       input.push_back(new Port{this, {}, Types::Image, {}});
     }

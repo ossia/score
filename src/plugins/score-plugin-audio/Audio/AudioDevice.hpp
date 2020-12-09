@@ -65,7 +65,7 @@ public:
   ossia::net::device_base* getDevice() const override { return &m_dev; }
   ossia::audio_protocol* getProtocol() const { return m_protocol; }
 
-  void changed() E_SIGNAL(SCORE_PLUGIN_AUDIO_EXPORT, changed);
+  void changed() E_SIGNAL(SCORE_PLUGIN_AUDIO_EXPORT, changed)
 
 private:
   using Device::DeviceInterface::refresh;

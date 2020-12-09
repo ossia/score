@@ -30,8 +30,8 @@ public:
   void parentGeometryChanged() override;
 
   static constexpr double recommendedHeight = 55.;
+
 private:
-  const Model& m_model;
   View* m_view{};
   void setupInlet(
       Process::ControlInlet& port,

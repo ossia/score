@@ -14,15 +14,25 @@ FileDownloader::FileDownloader(QUrl imageUrl)
       this,
       &FileDownloader::fileDownloaded);
 
-  QNetworkRequest request(imageUrl);
+  QNetworkRequest req(imageUrl);
+  req.setRawHeader("User-Agent", "curl/7.35.0");
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
-  request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
+  req.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+  req.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::SameOriginRedirectPolicy);
+#elif QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
+  req.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
 #endif
-  // TODO http2
-  request.setAttribute(QNetworkRequest::SpdyAllowedAttribute, true);
-  request.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
-  m_mgr.get(request);
+
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
+  req.setAttribute(QNetworkRequest::HTTP2AllowedAttribute, true);
+  req.setAttribute(QNetworkRequest::SpdyAllowedAttribute, true);
+#else
+  req.setAttribute(QNetworkRequest::Http2AllowedAttribute, true);
+#endif
+
+  m_mgr.get(req);
 }
 
 void FileDownloader::fileDownloaded(QNetworkReply* rep)

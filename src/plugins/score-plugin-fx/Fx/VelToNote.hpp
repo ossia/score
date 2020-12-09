@@ -146,7 +146,7 @@ struct Node
     // end it too.
 
     auto start = startq.rbegin()->second;
-    double precision = tightness.rbegin()->second;
+    // TODO double precision = tightness.rbegin()->second;
     auto end = endq.rbegin()->second;
     auto shiftnote = shift_note.rbegin()->second;
     auto base_note = midi_clamp(basenote.rbegin()->second);

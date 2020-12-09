@@ -19,7 +19,6 @@ namespace Gfx::Video
 
 View::View(const Model& model, QGraphicsItem* parent)
   : LayerView{parent}
-  , m_model{model}
 {
   setFlag(ItemClipsToShape, true);
   con(model, &Model::pathChanged,

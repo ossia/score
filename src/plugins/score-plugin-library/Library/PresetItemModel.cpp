@@ -137,7 +137,7 @@ bool PresetItemModel::setData(const QModelIndex& index, const QVariant& value, i
 {
   if (!index.isValid())
     return false;
-  if (index.row() < 0 || index.row() >= presets.size())
+  if (index.row() < 0 || index.row() >= int(presets.size()))
     return false;
   if (role != Qt::EditRole)
     return false;
@@ -212,7 +212,7 @@ QMimeData* PresetItemModel::mimeData(const QModelIndexList& indexes) const
     return nullptr;
 
   int row = indexes.front().row();
-  if (row >= presets.size() || row < 0)
+  if (row >= int(presets.size()) || row < 0)
     return nullptr;
 
   auto mime = new QMimeData;

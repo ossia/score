@@ -33,12 +33,12 @@ void Model::setInCount(int s)
 {
   if (s != m_inCount)
   {
-    auto old = m_inCount;
+    int old = m_inCount;
     m_inCount = s;
 
     if (old < m_inCount)
     {
-      for (std::size_t i = 0; i < (m_inCount - old); i++)
+      for (int i = 0; i < (m_inCount - old); i++)
       {
         m_inlets.push_back(
             Process::make_audio_inlet(Id<Process::Port>(int(old + i)), this).release());
@@ -46,7 +46,7 @@ void Model::setInCount(int s)
     }
     else if (old > m_inCount)
     {
-      for (std::size_t i = m_inCount; i < old; i++)
+      for (int i = m_inCount; i < old; i++)
       {
         delete m_inlets[i];
       }

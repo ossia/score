@@ -21,7 +21,7 @@ FixedTabWidget::FixedTabWidget() noexcept : m_buttons{new QToolBar}
   m_layout.addLayout(layout);
   m_layout.addWidget(m_buttons);
   QPalette transp = this->palette();
-  transp.setColor(QPalette::Background, Qt::transparent);
+  transp.setColor(QPalette::Window, Qt::transparent);
   m_buttons->setPalette(transp);
   m_buttons->setIconSize(QSize{24, 24});
   m_buttons->setContentsMargins(0, 0, 0, 0);

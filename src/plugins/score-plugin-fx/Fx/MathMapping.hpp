@@ -257,7 +257,10 @@ struct Node
         }
         self.cur_time = start_sample + i;
 
-        const auto res = self.expr.value();
+        // Compute the value
+        self.expr.value();
+
+        // Apply the output
         for(int j = 0; j < chans; j++)
         {
           output.samples[j][start + i] = self.cur_out[j];

@@ -203,8 +203,6 @@ void SetupContext::register_node_impl(
     std::size_t n_inlets = std::min(proc_n_inlets, ossia_n_inlets);
     std::size_t n_outlets = std::min(proc_n_outlets, ossia_n_outlets);
 
-    auto& runtime_connection = runtime_connections[node];
-
     for (std::size_t i = 0; i < n_inlets; i++)
     {
       register_inlet_impl(*proc_inlets[i], node->root_inputs()[i], node, exec);

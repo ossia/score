@@ -88,7 +88,6 @@ struct TSerializer<JSONObject, ossia::domain_base<T>>
 
   static void writeTo(const JSONObject::Deserializer& s, domain_t& domain)
   {
-    using val_t = typename domain_t::value_type;
     // OPTIMIZEME there should be something in boost
     // to get multiple iterators from multiple keys in one pass...
     if (auto it = s.obj.tryGet(s.strings.Min))

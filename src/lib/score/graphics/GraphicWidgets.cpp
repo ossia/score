@@ -845,7 +845,7 @@ void QGraphicsEnum::mousePressEvent(QGraphicsSceneMouseEvent* event)
   const double w = m_smallRect.width() / columns;
   const double h = m_smallRect.height() / actual_rows;
 
-  for (int i = 0; i < array.size(); i++)
+  for (std::size_t i = 0; i < array.size(); i++)
   {
     QRectF rect{2. + col * w, 2. + row * h, w,h};
     if (rect.contains(event->pos()))

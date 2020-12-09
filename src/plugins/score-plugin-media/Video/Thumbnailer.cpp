@@ -166,7 +166,7 @@ QImage VideoThumbnailer::process(int64_t flicks)
   {
     const int64_t dts = flicks * dts_per_flicks;
 
-    constexpr int64_t min_dts_delta = 20000;
+    //constexpr int64_t min_dts_delta = 20000;
     //if(std::abs(dts - m_last_dts) < min_dts_delta)
     //  return {};
 

@@ -16,8 +16,8 @@ class SCORE_PLUGIN_LIBRARY_EXPORT ProcessTreeView : public QTreeView
 public:
   using QTreeView::QTreeView;
 
-  void selected(std::optional<Library::ProcessData> p) E_SIGNAL(SCORE_PLUGIN_LIBRARY_EXPORT, selected, p);
-  void doubleClicked(Library::ProcessData p) E_SIGNAL(SCORE_PLUGIN_LIBRARY_EXPORT, doubleClicked, p);
+  void selected(std::optional<Library::ProcessData> p) E_SIGNAL(SCORE_PLUGIN_LIBRARY_EXPORT, selected, p)
+  void doubleClicked(Library::ProcessData p) E_SIGNAL(SCORE_PLUGIN_LIBRARY_EXPORT, doubleClicked, p)
 
 private:
   QModelIndexList selectedDraggableIndexes() const;

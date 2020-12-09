@@ -71,7 +71,6 @@ void FullViewIntervalView::drawPlayDashedPath(
   const qreal min_w = minWidth();
   const qreal max_w = maxWidth();
   const qreal gui_w = m_guiWidth;
-  const qreal def_w = defaultWidth();
   const qreal play_w = playWidth();
 
   // Paths

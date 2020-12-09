@@ -30,7 +30,6 @@ public:
   void parentGeometryChanged() override;
 
 private:
-  const Model& m_model;
   View* m_view{};
   void setupInlet(
       Process::ControlInlet& port,

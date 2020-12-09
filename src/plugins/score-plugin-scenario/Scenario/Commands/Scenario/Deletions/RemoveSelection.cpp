@@ -321,8 +321,8 @@ void RemoveSelection::undo(const score::DocumentContext& ctx) const
     SetNextInterval(ss, *itv);
     SetPreviousInterval(es, *itv);
 
-    auto& sev = parentEvent(ss, scenar);
-    auto& eev = parentEvent(es, scenar);
+    // auto& sev = parentEvent(ss, scenar);
+    // auto& eev = parentEvent(es, scenar);
   }
 
   for (const auto& cmd : m_cmds_set_rigidity)

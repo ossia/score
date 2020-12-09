@@ -39,10 +39,10 @@ class LibraryHandler final : public Library::LibraryInterface
 
     for (auto& category : categories)
     {
-      auto& cat = parent.emplace_back(Library::ProcessData{{{}, category.first, {}}, {}}, &parent);
+      auto& cat = parent.emplace_back(Library::ProcessData{Process::ProcessData{{}, category.first, {}}, {}, {}}, &parent);
       for (auto& plug : category.second)
       {
-        Library::ProcessData pdata{{key, plug, plug}, {}};
+        Library::ProcessData pdata{Process::ProcessData{key, plug, plug}, {}, {}};
         cat.emplace_back(pdata, &cat);
       }
     }

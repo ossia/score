@@ -23,7 +23,6 @@ private:
 
   void paint_impl(QPainter*) const override;
 
-  const Model& m_model;
   ::Video::VideoThumbnailer* m_thumb{};
   ossia::flat_map<int64_t, QImage> m_images;
   double m_zoom{1.};

@@ -53,7 +53,6 @@ W_OBJECT_IMPL(Scenario::LineTextItem)
 
 namespace Scenario
 {
-static int timeSignatureHeight = 20;
 static double timeSignatureBarY = -45.;
 
 static SlotDragOverlay* full_slot_drag_overlay{};

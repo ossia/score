@@ -31,7 +31,6 @@ public:
   AudioPreviewWidget(const QString& path, QWidget* parent = nullptr) : QWidget{parent}
   {
     auto& audio = score::GUIAppContext().settings<Audio::Settings::Model>();
-    int rate = audio.getRate();
 
     auto lay = new score::MarginLess<QHBoxLayout>{this};
     lay->setSpacing(8);

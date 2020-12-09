@@ -148,7 +148,7 @@ struct Node
 
       out.resize(N);
       k = state.playbackPos;
-      if (state.playbackPos + N < record.size())
+      if (state.playbackPos + N < int64_t(record.size()))
       {
         for (int64_t j = first_pos; j < N; j++)
         {
@@ -309,7 +309,7 @@ struct Node
       int64_t max = std::min(N, samples);
 
       out.resize(samples);
-      if (record.size() < state.playbackPos + samples)
+      if (int64_t(record.size()) < state.playbackPos + samples)
         record.resize(state.playbackPos + samples);
       int64_t k = state.playbackPos;
 
@@ -351,7 +351,7 @@ struct Node
       int64_t max = std::min(N, samples);
 
       out.resize(samples);
-      if (record.size() < state.playbackPos + samples)
+      if (int64_t(record.size()) < state.playbackPos + samples)
         record.resize(state.playbackPos + samples);
       int64_t k = state.playbackPos;
 

@@ -25,7 +25,6 @@ namespace Scenario
 {
 namespace
 {
-constexpr QSize timeSyncPixmapSize{4, 500};
 static ossia::fast_hash_map<QRgb, QPixmap> timeSyncPixmaps;
 }
 const QPixmap& TimeSyncView::pixmap(const score::Brush& b)

@@ -119,7 +119,7 @@ Durations computeDurations(ossia::time_signature sig, double zoom)
 
   return {pow2, b, int64_t(main_div_source / pow2)};
 }
-
+/*
 void addBars(ossia::bar_time& time, ossia::bar_time& increment)
 {
   time.bars += increment.bars;
@@ -127,6 +127,7 @@ void addBars(ossia::bar_time& time, ossia::bar_time& increment)
   time.semiquavers += increment.semiquavers;
   time.cents += increment.cents;
 }
+*/
 
 void computeAll(
     MusicalGrid& grid,
@@ -320,7 +321,7 @@ bars * (4. * double(sig_upper) / sig_lower);
 }
 */
 }
-
+/*
 static
 QDebug operator<<(QDebug d, MusicalGrid::timings t)
 {
@@ -336,6 +337,7 @@ QDebug operator<<(QDebug d, MusicalGrid::timings t)
        .arg(t.timings.cents);
   return d;
 }
+*/
 void MusicalGrid::compute(TimeVal timeDelta, ZoomRatio zoom, QRectF sceneRect, TimeVal x0_time)
 {
   SCORE_ASSERT(m_measures);

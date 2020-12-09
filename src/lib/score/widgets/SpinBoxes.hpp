@@ -60,10 +60,7 @@ private:
   int64_t m_travelledY{};
 
   int64_t m_origFlicks{};
-
   int64_t m_flicks{};
-  int64_t m_min{};
-  int64_t m_max{};
 
   ossia::bar_time m_barTime{};
 

@@ -80,8 +80,8 @@ class SCORE_LIB_BASE_EXPORT QMenuView final : public ClickableMenu
         void createMenu(const QModelIndex &parent, QMenu& parentMenu, QMenu *menu = nullptr);
 
     public:
-        void hovered(const QString &text) const E_SIGNAL(SCORE_LIB_BASE_EXPORT, hovered, text);
-        void triggered(const QModelIndex & index) const E_SIGNAL(SCORE_LIB_BASE_EXPORT, triggered, index);
+        void hovered(const QString &text) const E_SIGNAL(SCORE_LIB_BASE_EXPORT, hovered, text)
+        void triggered(const QModelIndex & index) const E_SIGNAL(SCORE_LIB_BASE_EXPORT, triggered, index)
 
     private:
         QScopedPointer<QMenuViewPrivate> d;

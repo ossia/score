@@ -258,8 +258,6 @@ public:
     auto& ev = Scenario::parentEvent(st, this->m_scenario);
     auto& ts = Scenario::parentTimeSync(ev, this->m_scenario);
 
-    auto& sst_pres = m_sm.presenter().state(st.id());
-    auto& sev_pres = m_sm.presenter().event(ev.id());
     TimeSyncPresenter& sts_pres = m_sm.presenter().timeSync(ts.id());
 
     std::vector<QGraphicsItem*> toIgnore;

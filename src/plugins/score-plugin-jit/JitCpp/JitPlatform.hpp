@@ -350,7 +350,7 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
   {
     qDebug() << "Unable to locate standard headers, fallback to /usr";
     sdk = "/usr";
-    dir = "/usr";
+    dir.setPath("/usr");
     if (!dir.cd("include") || !dir.cd("c++"))
     {
       qDebug() << "Unable to locate standard headers++";
