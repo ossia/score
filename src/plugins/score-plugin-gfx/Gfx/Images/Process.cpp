@@ -25,11 +25,6 @@ Model::Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObje
 
   m_outlets.push_back(new TextureOutlet{Id<Process::Port>(0), this});
 
-  m_images.push_back(
-      {"/home/jcelerier/Documents/ossia.png", QImage("/home/jcelerier/Documents/ossia.png")});
-  m_images.push_back(
-      {"/home/jcelerier/Documents/IMG_1929.JPG",
-       QImage("/home/jcelerier/Documents/IMG_1929.JPG")});
 }
 
 Model::~Model() { }
@@ -37,6 +32,8 @@ Model::~Model() { }
 void Model::setImages(const std::vector<Image>& f)
 {
   m_images = f;
+  auto spinbox = safe_cast<Process::IntSpinBox*>(m_inlets[0]);
+  spinbox->setDomain(ossia::make_domain(int(0), int(f.size())));
   imagesChanged();
 }
 
@@ -71,24 +68,41 @@ QSet<QString> DropHandler::fileExtensions() const noexcept
 {
   return {"png", "jpg", "jpeg", "gif", "bmp"};
 }
-
-std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::dropData(
-    const std::vector<DroppedFile>& data,
+std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::drop(
+    const QMimeData& data,
     const score::DocumentContext& ctx) const noexcept
 {
   std::vector<Process::ProcessDropHandler::ProcessDrop> vec;
+
+  if(!data.hasUrls())
+      return vec;
+
+  static const constexpr auto isSupportedImage = [] (const QFileInfo& filepath)
   {
-    for (const auto& [filename, file] : data)
-    {
-      Process::ProcessDropHandler::ProcessDrop p;
-      p.creation.key = Metadata<ConcreteKey_k, Gfx::Images::Model>::get();
-      p.setup = [str = filename](Process::ProcessModel& m, score::Dispatcher& disp) {
-        auto& imgs = static_cast<Gfx::Images::Model&>(m);
-        // TODO disp.submit(new ChangeImages{midi, str});
-      };
-      vec.push_back(std::move(p));
-    }
-  }
+      static const auto set = DropHandler{}.fileExtensions();
+      return set.contains(filepath.completeSuffix().toLower());
+  };
+  Process::ProcessDropHandler::ProcessDrop p;
+  p.creation.key = Metadata<ConcreteKey_k, Gfx::Images::Model>::get();
+  p.setup = [files=data.urls()](Process::ProcessModel& m, score::Dispatcher& disp) {
+      auto& proc = static_cast<Gfx::Images::Model&>(m);
+      std::vector<Image> images;
+
+      for (const auto& url : files)
+      {
+          QString filename = url.toLocalFile();
+          if (!isSupportedImage(QFileInfo{filename}))
+              continue;
+
+          QImage img{filename};
+          if(img.isNull() || img.size() == QSize{})
+              continue;
+
+          images.push_back({std::move(filename), std::move(img)});
+      }
+      disp.submit(new ChangeImages{proc, std::move(images)});
+  };
+  vec.push_back(std::move(p));
   return vec;
 }
 
