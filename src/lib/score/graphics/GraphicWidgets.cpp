@@ -188,6 +188,13 @@ QGraphicsSlider::QGraphicsSlider(QGraphicsItem* parent) : QGraphicsSliderBase{pa
   setCursor(skin.CursorPointingHand);
 }
 
+void QGraphicsSlider::setRange(double min, double max)
+{
+  this->min = min;
+  this->max = max;
+  update();
+}
+
 void QGraphicsSlider::setValue(double v)
 {
   m_value = ossia::clamp(v, 0., 1.);
@@ -250,6 +257,13 @@ void QGraphicsKnob::setRect(const QRectF& r)
   m_rect = r;
 }
 
+void QGraphicsKnob::setRange(double min, double max)
+{
+  this->min = min;
+  this->max = max;
+  update();
+}
+
 void QGraphicsKnob::setValue(double v)
 {
   m_value = ossia::clamp(v, 0., 1.);
@@ -309,6 +323,13 @@ QGraphicsLogSlider::QGraphicsLogSlider(QGraphicsItem* parent) : QGraphicsSliderB
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointingHand);
   this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
+}
+
+void QGraphicsLogSlider::setRange(double min, double max)
+{
+  this->min = min;
+  this->max = max;
+  update();
 }
 
 void QGraphicsLogSlider::setValue(double v)
@@ -381,6 +402,13 @@ void QGraphicsLogKnob::setRect(const QRectF& r)
 {
   prepareGeometryChange();
   m_rect = r;
+}
+
+void QGraphicsLogKnob::setRange(double min, double max)
+{
+  this->min = min;
+  this->max = max;
+  update();
 }
 
 void QGraphicsLogKnob::setValue(double v)

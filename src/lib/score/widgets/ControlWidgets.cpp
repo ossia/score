@@ -198,9 +198,23 @@ void VolumeSlider::paintEvent(QPaintEvent*)
       "vol: " + QString::number(ossia::detail::LinearGainToDecibels(value()), 'f', 1) + " dB");
 }
 
+void ValueDoubleSlider::setRange(double min, double max) noexcept
+{
+  this->min = min;
+  this->max = max;
+  update();
+}
+
 void ValueDoubleSlider::paintEvent(QPaintEvent* event)
 {
   paintWithText(QString::number(min + value() * (max - min), 'f', 3));
+}
+
+void ValueLogDoubleSlider::setRange(double min, double max) noexcept
+{
+  this->min = min;
+  this->max = max;
+  update();
 }
 
 void ValueLogDoubleSlider::paintEvent(QPaintEvent* event)

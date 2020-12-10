@@ -39,7 +39,7 @@ struct OutControl final : ossia::safe_nodes::control_out
 };
 
 template <typename T>
-struct FloatControl final : ossia::safe_nodes::control_in, WidgetFactory::FloatControl<T>
+struct FloatControl final : ossia::safe_nodes::control_in, WidgetFactory::FloatControl<T, WidgetFactory::LinearNormalizer>
 {
   static const constexpr bool must_validate = false;
   using type = float;
@@ -81,7 +81,7 @@ struct FloatControl final : ossia::safe_nodes::control_in, WidgetFactory::FloatC
 };
 
 template <typename T>
-struct LogFloatControl final : ossia::safe_nodes::control_in, WidgetFactory::LogFloatControl<T>
+struct LogFloatControl final : ossia::safe_nodes::control_in, WidgetFactory::FloatControl<T, WidgetFactory::LogNormalizer>
 {
   static const constexpr bool must_validate = false;
   using type = float;

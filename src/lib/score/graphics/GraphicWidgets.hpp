@@ -139,6 +139,7 @@ public:
   double unmap(double v) const noexcept { return (v - min) / (max - min); }
   double map(double v) const noexcept { return (v * (max - min)) + min; }
 
+  void setRange(double min, double max);
   void setValue(double v);
   double value() const;
 
@@ -181,6 +182,7 @@ public:
   double map(double v) const noexcept { return (v * (max - min)) + min; }
 
   void setRect(const QRectF& r);
+  void setRange(double min, double max);
   void setValue(double v);
   double value() const;
   QRectF boundingRect() const override;
@@ -224,6 +226,7 @@ public:
   double unmap(double v) const noexcept;
 
   void setRect(const QRectF& r);
+  void setRange(double min, double max);
   void setValue(double v);
   double value() const;
   QRectF boundingRect() const override;
@@ -265,6 +268,7 @@ private:
 public:
   QGraphicsLogSlider(QGraphicsItem* parent);
 
+  void setRange(double min, double max);
   void setValue(double v);
   double value() const;
 

@@ -3,7 +3,7 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 
-#include <QShaderBaker>
+#include <QFileInfo>
 
 #include <Gfx/Graph/node.hpp>
 #include <Gfx/Graph/nodes.hpp>

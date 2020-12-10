@@ -38,6 +38,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/NodeItem.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortListWidget.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/ControlWidgets.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/ControlWidgetDomains.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/WidgetInlets.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/MinMaxFloatPort.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Drop/ProcessDropHandler.hpp"

@@ -72,6 +72,8 @@ public:
   double min{};
   double max{};
 
+  void setRange(double min, double max) noexcept;
+
 protected:
   void paintEvent(QPaintEvent* event) override;
 };
@@ -84,6 +86,7 @@ public:
   double min{};
   double max{};
 
+  void setRange(double min, double max) noexcept;
 protected:
   void paintEvent(QPaintEvent* event) override;
 };

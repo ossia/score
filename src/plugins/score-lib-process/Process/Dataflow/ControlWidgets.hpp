@@ -1,6 +1,7 @@
 #pragma once
 #include <Process/Commands/SetControlValue.hpp>
 #include <Process/Dataflow/TimeSignature.hpp>
+#include <Process/Dataflow/ControlWidgetDomains.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -11,7 +12,6 @@
 #include <score/widgets/ComboBox.hpp>
 
 #include <ossia/detail/algorithms.hpp>
-#include <ossia/detail/math.hpp>
 #include <ossia/network/value/value_conversion.hpp>
 
 #include <QCheckBox>
@@ -25,13 +25,22 @@
 
 namespace WidgetFactory
 {
+static_assert(std::numeric_limits<float>::is_iec559, "IEEE 754 required");
+
 template <typename T>
-using SetControlValue = typename std::conditional<
+using SetControlValue = typename std::conditional_t<
     std::is_base_of<Process::ControlInlet, T>::value,
     Process::SetControlValue,
-    Process::SetControlOutletValue>::type;
+    Process::SetControlOutletValue
+>;
 
-template <typename ControlUI>
+template <typename Normalizer, typename T>
+using ConcreteNormalizer = std::conditional_t<
+  std::is_base_of_v<Process::ControlInlet, T> || std::is_base_of_v<Process::ControlOutlet, T>,
+  UpdatingNormalizer<Normalizer, T>,
+  FixedNormalizer<Normalizer>
+>;
+template <typename ControlUI, typename Normalizer>
 struct FloatControl
 {
   template <typename T, typename Control_T>
@@ -42,30 +51,27 @@ struct FloatControl
       QWidget* parent,
       QObject* context)
   {
-    auto min = slider.getMin();
-    auto max = slider.getMax();
-    if (max - min == 0)
-      max = min + 1;
+    ConcreteNormalizer<Normalizer, T> norm{slider};
+
     auto sl = new score::ValueDoubleSlider{parent};
     sl->setOrientation(Qt::Horizontal);
     sl->setContentsMargins(0, 0, 0, 0);
-    sl->min = min;
-    sl->max = max;
-    sl->setValue((ossia::convert<double>(inlet.value()) - min) / (max - min));
+    bindFloatDomain(slider, inlet, *sl);
+    sl->setValue(norm.to01(ossia::convert<double>(inlet.value())));
 
-    QObject::connect(sl, &score::DoubleSlider::sliderMoved, context, [=, &inlet, &ctx](double v) {
+    QObject::connect(sl, &score::DoubleSlider::sliderMoved, context, [sl, norm, &inlet, &ctx](double v) {
       sl->moving = true;
-      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, min + sl->value() * (max - min));
+      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, norm.from01(sl->value()));
     });
-    QObject::connect(sl, &score::DoubleSlider::sliderReleased, context, [=, &inlet, &ctx]() {
-      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, min + sl->value() * (max - min));
+    QObject::connect(sl, &score::DoubleSlider::sliderReleased, context, [sl, norm, &inlet, &ctx]() {
+      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, norm.from01(sl->value()));
       ctx.dispatcher.commit();
       sl->moving = false;
     });
 
-    QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](ossia::value val) {
+    QObject::connect(&inlet, &Control_T::valueChanged, sl, [sl, norm] (ossia::value val) {
       if (!sl->moving)
-        sl->setValue((ossia::convert<double>(val) - min) / (max - min));
+        sl->setValue(norm.to01(ossia::convert<double>(val)));
     });
 
     return sl;
@@ -79,119 +85,25 @@ struct FloatControl
       QGraphicsItem* parent,
       QObject* context)
   {
-    auto min = slider.getMin();
-    auto max = slider.getMax();
-    if (max - min == 0)
-      max = min + 1;
-    auto sl = new ControlUI{nullptr};
-    sl->min = min;
-    sl->max = max;
-    sl->setValue((ossia::convert<double>(inlet.value()) - min) / (max - min));
-
-    QObject::connect(sl, &ControlUI::sliderMoved, context, [=, &inlet, &ctx] {
-      sl->moving = true;
-      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, min + sl->value() * (max - min));
-    });
-    QObject::connect(sl, &ControlUI::sliderReleased, context, [&ctx, sl]() {
-      ctx.dispatcher.commit();
-      sl->moving = false;
-    });
-
-    QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](ossia::value val) {
-      if (!sl->moving)
-        sl->setValue((ossia::convert<double>(val) - min) / (max - min));
-    });
-
-    return sl;
-  }
-};
-
-template <typename ControlUI>
-struct LogFloatControl
-{
-  static_assert(std::numeric_limits<float>::is_iec559, "IEEE 754 required");
-
-  static float to01(float min, float range, float val)
-  {
-    return ossia::log_to_normalized(min, range, val);
-  }
-
-  static float from01(float min, float range, float val)
-  {
-    return ossia::normalized_to_log(min, range, val);
-  }
-
-  template <typename T, typename Control_T>
-  static auto make_widget(
-      const T& slider,
-      Control_T& inlet,
-      const score::DocumentContext& ctx,
-      QWidget* parent,
-      QObject* context)
-  {
-    auto min = slider.getMin();
-    auto max = slider.getMax();
-    if (max == min)
-      max += 1;
-
-    auto range = max - min;
-    auto sl = new score::ValueLogDoubleSlider{parent};
-    sl->setOrientation(Qt::Horizontal);
-    sl->setContentsMargins(0, 0, 0, 0);
-    sl->min = min;
-    sl->max = max;
-    sl->setValue(to01(min, range, ossia::convert<double>(inlet.value())));
-
-    QObject::connect(sl, &score::DoubleSlider::sliderMoved, context, [=, &inlet, &ctx](double v) {
-      sl->moving = true;
-      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, from01(min, range, v));
-    });
-    QObject::connect(sl, &score::DoubleSlider::sliderReleased, context, [=, &inlet, &ctx] {
-      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, from01(min, range, sl->value()));
-      ctx.dispatcher.commit();
-      sl->moving = false;
-    });
-
-    QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](ossia::value val) {
-      if (!sl->moving)
-        sl->setValue(to01(min, max, ossia::convert<double>(val)));
-    });
-
-    return sl;
-  }
-
-  template <typename T, typename Control_T>
-  static QGraphicsItem* make_item(
-      const T& slider,
-      Control_T& inlet,
-      const score::DocumentContext& ctx,
-      QGraphicsItem* parent,
-      QObject* context)
-  {
-    auto min = slider.getMin();
-    auto max = slider.getMax();
-    if (max == min)
-      max += 1;
-
-    auto range = max - min;
+    ConcreteNormalizer<Normalizer, T> norm{slider};
 
     auto sl = new ControlUI{nullptr};
-    sl->min = min;
-    sl->max = max;
-    sl->setValue(to01(min, range, ossia::convert<double>(inlet.value())));
+    bindFloatDomain(slider, inlet, *sl);
+    sl->setValue(norm.to01(ossia::convert<double>(inlet.value())));
 
-    QObject::connect(sl, &ControlUI::sliderMoved, context, [=, &inlet, &ctx] {
+    QObject::connect(sl, &ControlUI::sliderMoved, context, [sl, norm, &inlet, &ctx] {
       sl->moving = true;
-      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, from01(min, range, sl->value()));
+      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, norm.from01(sl->value()));
     });
-    QObject::connect(sl, &ControlUI::sliderReleased, context, [&ctx, sl]() {
+    QObject::connect(sl, &ControlUI::sliderReleased, context, [sl, norm, &inlet, &ctx] {
+      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, norm.from01(sl->value()));
       ctx.dispatcher.commit();
       sl->moving = false;
     });
 
-    QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](ossia::value val) {
+    QObject::connect(&inlet, &Control_T::valueChanged, sl, [sl, norm](ossia::value val) {
       if (!sl->moving)
-        sl->setValue(to01(min, range, ossia::convert<double>(val)));
+        sl->setValue(norm.to01(ossia::convert<double>(val)));
     });
 
     return sl;
@@ -199,10 +111,10 @@ struct LogFloatControl
 };
 
 
-using FloatSlider = FloatControl<score::QGraphicsSlider>;
-using LogFloatSlider = LogFloatControl<score::QGraphicsLogSlider>;
-using FloatKnob = FloatControl<score::QGraphicsKnob>;
-using LogFloatKnob = LogFloatControl<score::QGraphicsLogKnob>;
+using FloatSlider = FloatControl<score::QGraphicsSlider, LinearNormalizer>;
+using LogFloatSlider = FloatControl<score::QGraphicsLogSlider, LogNormalizer>;
+using FloatKnob = FloatControl<score::QGraphicsKnob, LinearNormalizer>;
+using LogFloatKnob = FloatControl<score::QGraphicsLogKnob, LogNormalizer>;
 
 
 struct IntSlider
@@ -215,13 +127,9 @@ struct IntSlider
       QWidget* parent,
       QObject* context)
   {
-    auto min = slider.getMin();
-    auto max = slider.getMax();
-    if (max - min == 0)
-      max = min + 1;
     auto sl = new score::ValueSlider{parent};
     sl->setOrientation(Qt::Horizontal);
-    sl->setRange(min, max);
+    bindIntDomain(slider, inlet, *sl);
     sl->setValue(ossia::convert<int>(inlet.value()));
     sl->setContentsMargins(0, 0, 0, 0);
 
@@ -251,13 +159,8 @@ struct IntSlider
       QGraphicsItem* parent,
       QObject* context)
   {
-    auto min = slider.getMin();
-    auto max = slider.getMax();
-    if (max - min == 0)
-      max = min + 1;
-
     auto sl = new score::QGraphicsIntSlider{nullptr};
-    sl->setRange(min, max);
+    bindIntDomain(slider, inlet, *sl);
     sl->setValue(ossia::convert<int>(inlet.value()));
 
     QObject::connect(sl, &score::QGraphicsIntSlider::sliderMoved, context, [=, &inlet, &ctx] {
@@ -280,7 +183,6 @@ struct IntSlider
 
 struct IntSpinBox
 {
-
   template <typename T, typename Control_T>
   static auto make_widget(
       const T& slider,
@@ -289,13 +191,8 @@ struct IntSpinBox
       QWidget* parent,
       QObject* context)
   {
-    auto min = slider.getMin();
-    auto max = slider.getMax();
-    if (max - min == 0)
-      max = min + 1;
-
     auto sl = new QSpinBox{parent};
-    sl->setRange(min, max);
+    bindIntDomain(slider, inlet, *sl);
     sl->setValue(ossia::convert<int>(inlet.value()));
     sl->setContentsMargins(0, 0, 0, 0);
 
@@ -319,14 +216,9 @@ struct IntSpinBox
       QGraphicsItem* parent,
       QObject* context)
   {
-    auto min = slider.getMin();
-    auto max = slider.getMax();
-    if (max - min == 0)
-      max = min + 1;
-
     auto sl = new score::QGraphicsIntSlider{nullptr};
-    sl->setRange(min, max);
     sl->setValue(ossia::convert<int>(inlet.value()));
+    bindIntDomain(slider, inlet, *sl);
 
     QObject::connect(sl, &score::QGraphicsIntSlider::sliderMoved, context, [=, &inlet, &ctx] {
       sl->moving = true;
