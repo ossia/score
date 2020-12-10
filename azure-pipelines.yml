@@ -72,8 +72,23 @@ stages:
             source ci/ubuntu.deps.sh
         - bash: |
             source ci/ubuntu.build.sh
+
+      - job: AppImage
+        displayName: AppImage
+        pool:
+          vmImage: 'ubuntu-20.04'
+
+        steps:
+        - checkout: self
+          submodules: true
+
         - bash: |
-            source ci/ubuntu.deploy.sh
+            source ci/appimage.deps.sh
+        - bash: |
+            source ci/appimage.build.sh
+        - bash: |
+            source ci/appimage.deploy.sh
+
 
       - job: macOS
         displayName: macOS
@@ -85,11 +100,11 @@ stages:
           submodules: true
 
         - bash: |
-            source ci/osx-pacakge.deps.sh
+            source ci/osx-package.deps.sh
         - bash: |
-            source ci/osx-pacakge.build.sh
+            source ci/osx-package.build.sh
         - bash: |
-            source ci/osx-pacakge.deploy.sh
+            source ci/osx-package.deploy.sh
 
       - job: Tarball
         displayName: Tarball

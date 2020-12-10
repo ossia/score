@@ -2,7 +2,7 @@ mkdir build
 cd build
 
 set PATH=%PATH%;c:\score-sdk\llvm\bin
-cmake -GNinja $(Build.SourcesDirectory) ^
+cmake -GNinja %BUILD_SOURCESDIRECTORY% ^
   -DCMAKE_C_COMPILER=c:/score-sdk/llvm/bin/clang.exe ^
   -DCMAKE_CXX_COMPILER=c:/score-sdk/llvm/bin/clang++.exe ^
   -DCMAKE_BUILD_TYPE=Release ^
@@ -19,5 +19,5 @@ cmake --build .
 cmake --build . --target package
 
 dir
-move "ossia score-3.0.0-win64.exe" "$(Build.ArtifactStagingDirectory)\ossia score-$(gitTagNoV)-win64.exe"
+move "ossia score-3.0.0-win64.exe" "%BUILD_ARTIFACTSTAGINGDIRECTORY%\ossia score-%GITTAGNOV%-win64.exe"
 dir
