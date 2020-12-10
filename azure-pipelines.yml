@@ -25,56 +25,15 @@ stages:
         - checkout: self
           submodules: recursive
 
-        - script: |
-            cinst -y ninja
         - bash: |
-            echo " ============ "
-            echo "$BUILD_ARTIFACTSTAGINGDIRECTORY"
-            echo "$BUILD_SOURCESDIRECTORY"
-            set -x            
-            mkdir /c/score-sdk
-            cd /c/score-sdk
-            curl -L https://github.com/ossia/sdk/releases/download/sdk17/score-sdk-mingw.7z --output score-sdk-mingw.7z
-            7z x score-sdk-mingw.7z
-            rm score-sdk-mingw.7z
-            ls
+            source ci/win32.deps.sh
 
         - script: |
-            mkdir build
-            cd build
-            set PATH=%PATH%;c:\score-sdk\llvm\bin
-            cmake -GNinja $(Build.SourcesDirectory) ^
-              -DCMAKE_C_COMPILER=c:/score-sdk/llvm/bin/clang.exe ^
-              -DCMAKE_CXX_COMPILER=c:/score-sdk/llvm/bin/clang++.exe ^
-              -DCMAKE_BUILD_TYPE=Release ^
-              -DOSSIA_SDK=c:\score-sdk ^
-              -DCMAKE_INSTALL_PREFIX=install ^
-              -DCMAKE_PREFIX_PATH="c:/score-sdk/qt5-static;c:/score-sdk/llvm-libs;c:/score-sdk/SDL2;c:/score-sdk" ^
-              -DCMAKE_BUILD_TYPE=Release ^
-              -DCMAKE_UNITY_BUILD=1 ^
-              -DOSSIA_STATIC_EXPORT=1 ^
-              -DSCORE_INSTALL_HEADERS=1 ^
-              -DDEPLOYMENT_BUILD=1
-              
-            cmake --build .
-            cmake --build . --target package
-            dir
-            move "ossia score-3.0.0-win64.exe" "$(Build.ArtifactStagingDirectory)\ossia score-$(gitTagNoV)-win64.exe"
-            dir
+            call ci/win32.build.cmd
 
         - bash: |
-            export SCORE_DIR="$PWD"
-            export SDK_DIR="$PWD/build/SDK"
-            ls
-            (
-              cd build
-              cmake --install . --strip --component Devel --prefix "$SDK_DIR/usr"
-            )
+            source ci/win32.deploy.sh
 
-            ./src/plugins/score-plugin-jit/tools/create-sdk-mingw.sh
-
-            (cd build/SDK; 7z a "$BUILD_ARTIFACTSTAGINGDIRECTORY/windows-sdk.zip" usr)
-            
           displayName: Build
 
         - task: PublishPipelineArtifact@1
@@ -98,3 +57,36 @@ stages:
             tagSource: manual
             title: '$(gitTag)'
             assetUploadMode: 'replace'
+
+
+      - job: Ubuntu
+        displayName: Ubuntu
+        pool:
+          vmImage: 'ubuntu-20.04'
+
+        steps:
+        - checkout: self
+          submodules: true
+
+        - bash: |
+            source ci/ubuntu.deps.sh
+        - bash: |
+            source ci/ubuntu.build.sh
+        - bash: |
+            source ci/ubuntu.deploy.sh
+
+      - job: macOS
+        displayName: macOS
+        pool:
+          vmImage: 'macos-10.15'
+
+        steps:
+        - checkout: self
+          submodules: true
+
+        - bash: |
+            source ci/osx-pacakge.deps.sh
+        - bash: |
+            source ci/osx-pacakge.build.sh
+        - bash: |
+            source ci/osx-pacakge.deploy.sh
