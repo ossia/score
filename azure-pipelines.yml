@@ -90,3 +90,17 @@ stages:
             source ci/osx-pacakge.build.sh
         - bash: |
             source ci/osx-pacakge.deploy.sh
+
+      - job: Tarball
+        displayName: Tarball
+        pool:
+          vmImage: 'ubuntu-20.04'
+
+        steps:
+        - checkout: self
+          submodules: true
+
+        - bash: |
+            source ci/tarball.build.sh
+        - bash: |
+            source ci/tarball.deploy.sh
