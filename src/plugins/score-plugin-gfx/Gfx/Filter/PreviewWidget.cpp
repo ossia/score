@@ -47,9 +47,9 @@ struct PreviewInputvisitor
   {
     static std::array<Gfx::Image, 3> images
     {
-      Gfx::Image{ QString{":/gfx/testcard-1.png"}, QImage{":/gfx/testcard-1.png"} },
-      Gfx::Image{ QString{":/gfx/testcard-2.jpeg"}, QImage{":/gfx/testcard-2.jpeg"} },
-      Gfx::Image{ QString{":/gfx/testcard-3.png"}, QImage{":/gfx/testcard-3.png"} },
+      Gfx::Image{ QString{":/gfx/testcard-1.png"} , {QImage{":/gfx/testcard-1.png"} } },
+      Gfx::Image{ QString{":/gfx/testcard-2.jpeg"}, {QImage{":/gfx/testcard-2.jpeg"}} },
+      Gfx::Image{ QString{":/gfx/testcard-3.png"} , {QImage{":/gfx/testcard-3.png"} } },
     };
     auto image_node = new ImagesNode{{images[img_count]}};
     image_node->ubo.currentImageIndex = 0;
@@ -68,6 +68,8 @@ struct PreviewInputvisitor
         image_node->ubo.position[1] = 1.0;
         break;
     }
+    image_node->ubo.scale[0] = 0.5;
+    image_node->ubo.scale[1] = 0.5;
 
     img_count++;
     img_count = img_count % 3;

@@ -1,12 +1,14 @@
 #pragma once
 #include <Process/GenericProcessFactory.hpp>
+#include <Control/DefaultEffectItem.hpp>
+#include <Effect/EffectFactory.hpp>
 
-#include <Gfx/Images/Presenter.hpp>
 #include <Gfx/Images/Process.hpp>
-#include <Gfx/Images/View.hpp>
 
 namespace Gfx::Images
 {
-using LayerFactory
-    = Process::LayerFactory_T<Gfx::Images::Model, Gfx::Images::Presenter, Gfx::Images::View>;
+using LayerFactory = Process::EffectLayerFactory_T<
+    Gfx::Images::Model,
+    Process::DefaultEffectItem
+>;
 }

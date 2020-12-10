@@ -41,7 +41,7 @@ ProcessExecutorComponent::ProcessExecutorComponent(
 {
   auto n = std::make_shared<image_node>(element.images(), ctx.doc.plugin<DocumentPlugin>().exec);
 
-  for (int i = 0; i < 2; i++)
+  for (int i = 0; i < 4; i++)
   {
     auto ctrl = qobject_cast<Process::ControlInlet*>(element.inlets()[i]);
     auto& p = n->add_control();

@@ -58,12 +58,8 @@ set(HDRS
     Gfx/Video/Layer.hpp
 
     Gfx/Images/Executor.hpp
-    Gfx/Images/Inspector.hpp
-    Gfx/Images/LocalTree.hpp
     Gfx/Images/Metadata.hpp
-    Gfx/Images/Presenter.hpp
     Gfx/Images/Process.hpp
-    Gfx/Images/View.hpp
     Gfx/Images/Layer.hpp
 
     Gfx/Graph/main.cpp
@@ -122,11 +118,7 @@ set(SRCS
     Gfx/Video/View.cpp
 
     Gfx/Images/Executor.cpp
-    Gfx/Images/Inspector.cpp
-    Gfx/Images/LocalTree.cpp
-    Gfx/Images/Presenter.cpp
     Gfx/Images/Process.cpp
-    Gfx/Images/View.cpp
 
     Gfx/Graph/node.cpp
     Gfx/Graph/graph.cpp

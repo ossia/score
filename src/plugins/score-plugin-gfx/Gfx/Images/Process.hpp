@@ -18,6 +18,7 @@ class Model final : public Process::ProcessModel
   W_OBJECT(Model)
 
 public:
+    constexpr bool hasExternalUI() { return false; }
   Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
 
   template <typename Impl>
@@ -60,7 +61,7 @@ class LibraryHandler final : public Library::LibraryInterface
 class DropHandler final : public Process::ProcessDropHandler
 {
   SCORE_CONCRETE("f37aa176-d8be-45bc-b833-d014efba6157")
-
+public:
   QSet<QString> mimeTypes() const noexcept override;
   QSet<QString> fileExtensions() const noexcept override;
   std::vector<ProcessDrop> drop(
