@@ -1,9 +1,5 @@
 #!/bin/bash -eux
-if [[ "$GITTAG" = "" ]]; then
-    GITTAG=devel
-fi
-
-export TAG=$(echo $GITTAG | tr -d v)
+export TAG=$GITTAGNOV
 
 export HOMEBREW_NO_AUTO_UPDATE=1
 export SRC_PATH=/Users/travis/build/ossia/score
@@ -11,7 +7,6 @@ brew install graphicsmagick imagemagick npm
 npm install --global create-dmg
 
 cd $SRC_PATH/bundle/
-mkdir $SRC_PATH/deploy
 
 # Codesign
 security unlock-keychain -p travis build.keychain
@@ -65,5 +60,5 @@ for seconds in 30 30 30 30 30; do
     fi
 done
 
-mv *.dmg "$SRC_PATH/deploy/ossia score-$TAG-macOS.dmg"
-mv "mac-sdk.zip" "$SRC_PATH/deploy/"
+mv *.dmg "$BUILD_ARTIFACTSTAGINGDIRECTORY/ossia score-$TAG-macOS.dmg"
+mv "mac-sdk.zip" "$BUILD_ARTIFACTSTAGINGDIRECTORY/"

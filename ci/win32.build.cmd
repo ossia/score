@@ -17,7 +17,3 @@ cmake -GNinja %BUILD_SOURCESDIRECTORY% ^
 
 cmake --build .
 cmake --build . --target package
-
-dir
-move "ossia score-3.0.0-win64.exe" "%BUILD_ARTIFACTSTAGINGDIRECTORY%\ossia score-%GITTAGNOV%-win64.exe"
-dir

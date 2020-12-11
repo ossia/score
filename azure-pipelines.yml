@@ -10,8 +10,8 @@ pr:
 
 variables:
   isGitTag: $[startsWith(variables['Build.SourceBranch'], 'refs/tags/')]
-  gitTag: $[replace(variables['Build.SourceBranch'], 'refs/tags/', '')]
-  gitTagNoV: $[replace(replace(variables['Build.SourceBranch'], 'refs/tags/v', ''), '/', '')]
+  gitTag: $[replace(replace(variables['Build.SourceBranch'], 'refs/tags/', ''), 'refs/heads/', '')]
+  gitTagNoV: $[replace(replace(replace(variables['Build.SourceBranch'], 'refs/tags/v', ''), 'refs/heads', ''), '/', '')]
 
 stages:
   - stage: Build
@@ -89,6 +89,15 @@ stages:
         - bash: |
             source ci/appimage.deploy.sh
 
+        - task: PublishPipelineArtifact@1
+          inputs:
+            targetPath: "$(Build.ArtifactStagingDirectory)/ossia score-$(gitTagNoV)-linux-amd64.AppImage"
+            artifactName: AppImage
+
+        - task: PublishPipelineArtifact@1
+          inputs:
+            targetPath: "$(Build.ArtifactStagingDirectory)/linux-sdk.zip"
+            artifactName: SDK
 
       - job: macOS
         displayName: macOS
@@ -114,6 +123,16 @@ stages:
         - bash: |
             source ci/osx-package.deploy.sh
 
+        - task: PublishPipelineArtifact@1
+          inputs:
+            targetPath: "$(Build.ArtifactStagingDirectory)/ossia score-$(gitTagNoV)-macOS.dmg"
+            artifactName: DMG
+
+        - task: PublishPipelineArtifact@1
+          inputs:
+            targetPath: "$(Build.ArtifactStagingDirectory)/mac-sdk.zip"
+            artifactName: SDK
+
       - job: Tarball
         displayName: Tarball
         pool:
@@ -138,3 +157,13 @@ stages:
             source ci/tarball.build.sh
         - bash: |
             source ci/tarball.deploy.sh
+
+        - task: PublishPipelineArtifact@1
+          inputs:
+            targetPath: "$(Build.ArtifactStagingDirectory)/ossia score-$(gitTagNoV)-src.tar.xz"
+            artifactName: Source
+
+        - task: PublishPipelineArtifact@1
+          inputs:
+            targetPath: "$(Build.ArtifactStagingDirectory)/ossia score-$(gitTagNoV)-src.tar.xz.asc"
+            artifactName: Signature
