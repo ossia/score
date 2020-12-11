@@ -2,7 +2,7 @@
 export TAG=$GITTAGNOV
 
 export HOMEBREW_NO_AUTO_UPDATE=1
-export SRC_PATH=/Users/travis/build/ossia/score
+export SRC_PATH=$PWD
 brew install graphicsmagick imagemagick npm
 npm install --global create-dmg
 
