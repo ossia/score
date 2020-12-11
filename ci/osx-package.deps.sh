@@ -25,6 +25,8 @@ export HOMEBREW_NO_AUTO_UPDATE=1
 brew install gnu-tar ninja
 wget -nv https://github.com/jcelerier/cninja/releases/download/v3.7.4/cninja-v3.7.4-macOS.tar.gz -O cninja.tgz &
 
+wget -nv https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/MacOSX10.15.sdk.tar.xz &
+
 SDK_ARCHIVE=score-sdk-mac.tar.gz
 wget -nv https://github.com/ossia/score-sdk/releases/download/sdk16/$SDK_ARCHIVE -O $SDK_ARCHIVE
 sudo mkdir -p /opt/score-sdk-osx
@@ -37,4 +39,11 @@ wait wget || true
 gtar xhaf cninja.tgz
 sudo cp -rf cninja /usr/local/bin/
 
+echo "Copying sdks..."
+ls /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
+find /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/ -name CoreVideo.framework
+
+gtar xhaf MacOSX10.15.sdk.tar.xz
+mv MacOSX10.15.sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
+sudo cp -rf cninja /usr/local/bin/
 set -e

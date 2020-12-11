@@ -1,5 +1,5 @@
 #!/bin/bash
-export BUILD_FOLDER=$BUILD_FOLDER
+export BUILD_FOLDER=/tmp/build
 export SOURCE_FOLDER=$PWD
 
 mkdir -p $BUILD_FOLDER
@@ -8,11 +8,11 @@ docker pull ossia/score-package-linux
 docker run \
            -v "$(pwd)"/cmake/Deployment/Linux/AppImage/Recipe.llvm:/Recipe \
            --mount type=bind,source="$(pwd)",target=/score \
-           --mount type=bind,source="$(pwd)/build",target=$BUILD_FOLDER \
+           --mount type=bind,source="$BUILD_FOLDER",target=/build \
            ossia/score-package-linux \
            /bin/bash /Recipe
 
-sudo chown -R $(whoami) build
+sudo chown -R $(whoami) $BUILD_FOLDER
 
 wget "https://github.com/probonopd/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
 chmod a+x appimagetool-x86_64.AppImage
