@@ -10,8 +10,6 @@ export SRC_PATH=/Users/travis/build/ossia/score
 brew install graphicsmagick imagemagick npm
 npm install --global create-dmg
 
-exit 1
-
 cd $SRC_PATH/bundle/
 mkdir $SRC_PATH/deploy
 

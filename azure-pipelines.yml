@@ -94,10 +94,18 @@ stages:
         displayName: macOS
         pool:
           vmImage: 'macos-10.15'
+        variables:
+          - group: macos
 
         steps:
         - checkout: self
           submodules: recursive
+
+        - task: DownloadSecureFile@1
+          name: codesign
+          displayName: 'Download codesign certificate'
+          inputs:
+            secureFile: 'ossia-cert.p12'
 
         - bash: |
             source ci/osx-package.deps.sh
@@ -114,6 +122,17 @@ stages:
         steps:
         - checkout: self
           submodules: recursive
+
+        - task: DownloadSecureFile@1
+          name: pubkey
+          displayName: 'Download CA certificate'
+          inputs:
+            secureFile: 'sign-ossia-travis.pub.asc'
+        - task: DownloadSecureFile@1
+          name: privkey
+          displayName: 'Download CA certificate'
+          inputs:
+            secureFile: 'sign-ossia-travis.priv.asc'
 
         - bash: |
             source ci/tarball.build.sh

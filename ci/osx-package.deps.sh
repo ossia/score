@@ -2,22 +2,18 @@
 
 # Setup codesigning
 # Thanks https://www.update.rocks/blog/osx-signing-with-travis/
-# (
-#     set +x
-#     KEY_CHAIN=build.keychain
-#
-#     openssl aes-256-cbc -K $encrypted_5c96fe262983_key -iv $encrypted_5c96fe262983_iv \
-#         -in /Users/travis/build/ossia/score/tools/travis/ossia-cert.p12.enc \
-#         -out ossia-cert.p12 -d
-#
-#     security create-keychain -p travis $KEY_CHAIN
-#     security default-keychain -s $KEY_CHAIN
-#     security unlock-keychain -p travis $KEY_CHAIN
-#     security import ossia-cert.p12 -k $KEY_CHAIN -P $MAC_CODESIGN_PASSWORD -T /usr/bin/codesign
-#     security set-key-partition-list -S apple-tool:,apple: -s -k travis $KEY_CHAIN
-#
-#     rm -rf *.p12
-# )
+(
+    set +x
+    KEY_CHAIN=build.keychain
+
+    security create-keychain -p travis $KEY_CHAIN
+    security default-keychain -s $KEY_CHAIN
+    security unlock-keychain -p travis $KEY_CHAIN
+    security import $CODESIGN_SECUREFILEPATH -k $KEY_CHAIN -P $MAC_CODESIGN_PASSWORD -T /usr/bin/codesign
+    security set-key-partition-list -S apple-tool:,apple: -s -k travis $KEY_CHAIN
+
+    rm -rf *.p12
+)
 
 set +e
 
