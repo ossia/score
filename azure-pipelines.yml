@@ -38,13 +38,8 @@ stages:
 
         - task: PublishPipelineArtifact@1
           inputs:
-            targetPath: "$(Build.ArtifactStagingDirectory)/ossia score-$(gitTagNoV)-win64.exe"
-            artifactName: Installer
-
-        - task: PublishPipelineArtifact@1
-          inputs:
-            targetPath: "$(Build.ArtifactStagingDirectory)/windows-sdk.zip"
-            artifactName: SDK
+            targetPath: "$(Build.ArtifactStagingDirectory)"
+            artifactName: Windows
 
         - task: GitHubRelease@1
           condition: and(succeeded(), eq(variables.isGitTag, true))
@@ -57,7 +52,6 @@ stages:
             tagSource: manual
             title: '$(gitTag)'
             assetUploadMode: 'replace'
-
 
       - job: Ubuntu
         displayName: Ubuntu
@@ -91,13 +85,8 @@ stages:
 
         - task: PublishPipelineArtifact@1
           inputs:
-            targetPath: "$(Build.ArtifactStagingDirectory)/ossia score-$(gitTagNoV)-linux-amd64.AppImage"
-            artifactName: AppImage
-
-        - task: PublishPipelineArtifact@1
-          inputs:
-            targetPath: "$(Build.ArtifactStagingDirectory)/linux-sdk.zip"
-            artifactName: SDK
+            targetPath: "$(Build.ArtifactStagingDirectory)/"
+            artifactName: Linux
 
       - job: macOS
         displayName: macOS
@@ -125,13 +114,8 @@ stages:
 
         - task: PublishPipelineArtifact@1
           inputs:
-            targetPath: "$(Build.ArtifactStagingDirectory)/ossia score-$(gitTagNoV)-macOS.dmg"
-            artifactName: DMG
-
-        - task: PublishPipelineArtifact@1
-          inputs:
-            targetPath: "$(Build.ArtifactStagingDirectory)/mac-sdk.zip"
-            artifactName: SDK
+            targetPath: "$(Build.ArtifactStagingDirectory)"
+            artifactName: macOS
 
       - job: Tarball
         displayName: Tarball
@@ -160,10 +144,5 @@ stages:
 
         - task: PublishPipelineArtifact@1
           inputs:
-            targetPath: "$(Build.ArtifactStagingDirectory)/ossia score-$(gitTagNoV)-src.tar.xz"
+            targetPath: "$(Build.ArtifactStagingDirectory)"
             artifactName: Source
-
-        - task: PublishPipelineArtifact@1
-          inputs:
-            targetPath: "$(Build.ArtifactStagingDirectory)/ossia score-$(gitTagNoV)-src.tar.xz.asc"
-            artifactName: Signature
