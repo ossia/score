@@ -1,5 +1,21 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
+
+#if defined(_WIN32)
+#if !defined(_MSC_VER)
+#include <Windows.h>
+#include <mmsystem.h>
+#include <ntdef.h>
+extern "C" NTSYSAPI NTSTATUS NTAPI NtSetTimerResolution(ULONG DesiredResolution, BOOLEAN SetResolution, PULONG CurrentResolution);
+#else
+#include <Windows.h>
+#include <mmsystem.h>
+extern "C"  __declspec(dllimport) LONG __stdcall NtSetTimerResolution(ULONG DesiredResolution, BOOLEAN SetResolution, PULONG CurrentResolution);
+#endif
+#endif
+
+
 #include "Application.hpp"
 #include <ossia/detail/thread.hpp>
 #include <score/widgets/MessageBox.hpp>
@@ -16,13 +32,6 @@
 */
 #if defined(__linux__)
 #include <dlfcn.h>
-#endif
-
-#if defined(_WIN32)
-#include <Windows.h>
-#include <mmsystem.h>
-#include <ntdef.h>
-extern "C" NTSYSAPI NTSTATUS NTAPI NtSetTimerResolution(ULONG DesiredResolution, BOOLEAN SetResolution, PULONG CurrentResolution);
 #endif
 
 #if defined(__SSE3__)

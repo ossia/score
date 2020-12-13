@@ -123,12 +123,12 @@ void GUIApplicationInterface::loadPluginData(
 
     auto& panels = registrar.components().panels;
     std::sort(panels.begin(), panels.end(), [](const auto& lhs, const auto& rhs) {
-      return lhs->defaultPanelStatus().priority >= rhs->defaultPanelStatus().priority;
+      return lhs->defaultPanelStatus().priority < rhs->defaultPanelStatus().priority;
     });
-
-    for (auto& panel : panels)
+    
+    for (auto it = panels.rbegin(); it != panels.rend(); ++it)
     {
-      presenter.view()->setupPanel(panel.get());
+      presenter.view()->setupPanel((*it).get());
     }
     presenter.view()->allPanelsAdded();
   }

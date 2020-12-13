@@ -47,6 +47,10 @@ bool OSCDevice::reconnect()
     deviceChanged(nullptr, m_dev.get());
     setLogging_impl(Device::get_cur_logging(isLogging()));
   }
+  catch(std::exception& e)
+  {
+    qDebug() << "OSC Protocol error: " << e.what();
+  }
   catch (...)
   {
     SCORE_TODO;

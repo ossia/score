@@ -66,7 +66,7 @@ set(CMAKE_UNITY_BUILD_BATCH_SIZE 5000)
 
 if(MSVC)
   # TODO check /experimental:preprocessor at some point
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /MP /std:c++latest /permissive- /volatile:iso")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /MP /std:c++latest /Zc:__cplusplus /permissive- /volatile:iso")
   add_definitions(/D_HAS_AUTO_PTR_ETC=1
                   /D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS=1
                   /DNOMINMAX

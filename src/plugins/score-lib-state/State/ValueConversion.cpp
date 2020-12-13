@@ -539,12 +539,11 @@ QString toPrettyString(const ossia::value& val)
       if (n >= 1)
       {
         s += ossia::apply(*this, t[0].v);
-      }
-
-      for (std::size_t i = 1; i < n; i++)
-      {
-        s += ", ";
-        s += ossia::apply(*this, t[i].v);
+        for (std::size_t i = 1; i < n; i++)
+        {
+          s += ", ";
+          s += ossia::apply(*this, t[i].v);
+        }
       }
 
       s += "]";
@@ -552,7 +551,11 @@ QString toPrettyString(const ossia::value& val)
     }
   };
 
-  return ossia::apply(vis{}, val.v);
+  try {
+    return ossia::apply(vis{}, val.v);
+  } catch(std::exception& e) {
+    return e.what();
+  }
 }
 
 namespace

@@ -106,13 +106,13 @@ struct SCORE_LIB_PROCESS_EXPORT Context
 
   auto& context() const { return *this; }
 
+#if !defined(_MSC_VER)
 #if __cplusplus > 201703L
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunknown-attributes"
   [[no_unique_address]] ossia::disable_init_t disable_copy;
 #pragma clang diagnostic pop
 #else
-#if !defined(_MSC_VER)
   Context() = delete;
   Context(const Context&) = delete;
   Context& operator=(const Context&) = delete;

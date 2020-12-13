@@ -54,7 +54,7 @@ DocumentPlugin::DocumentPlugin(
     , m_ctx
 {
   ctx, m_created, {}, {}, m_execQueue, m_editionQueue, m_gcQueue, m_setup_ctx, execGraph, execState
-#if __cplusplus > 201703L
+#if (__cplusplus > 201703L) && !defined(_MSC_VER)
       ,
   {
     ossia::disable_init

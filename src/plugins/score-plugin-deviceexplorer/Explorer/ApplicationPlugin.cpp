@@ -46,17 +46,20 @@ void ApplicationPlugin::setupConnections(
       [&messages](const QString& str) { messages.push(str, score::log::dark2); },
       Qt::QueuedConnection);
 
-  auto qt_sink = dynamic_cast<ossia::qt::log_sink*>(&*ossia::logger().sinks()[1]);
-  if (qt_sink)
+  for (const auto& sink : ossia::logger().sinks())
   {
-    m_error = QObject::connect(
-        qt_sink,
-        &ossia::qt::log_sink::l,
-        &messages,
-        [&messages](spdlog::level::level_enum l, const QString& m) {
-          messages.push(m, score::log::dark3);
-        },
-        Qt::QueuedConnection);
+    if (auto qt_sink = dynamic_cast<ossia::qt::log_sink*>(&*sink))
+    {
+      m_error = QObject::connect(
+          qt_sink,
+          &ossia::qt::log_sink::l,
+          &messages,
+          [&messages](spdlog::level::level_enum l, const QString& m) {
+            messages.push(m, score::log::dark3);
+          },
+          Qt::QueuedConnection);
+      break;
+    }
   }
 }
 
