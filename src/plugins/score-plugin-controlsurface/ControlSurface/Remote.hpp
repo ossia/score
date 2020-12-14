@@ -5,7 +5,6 @@
 
 #include <RemoteControl/Scenario/Process.hpp>
 
-
 namespace ControlSurface
 {
 class Remote : public RemoteControl::ProcessComponent_T<Model>

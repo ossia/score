@@ -6,7 +6,10 @@
 #include <QtWebSockets/QWebSocket>
 #include <QtWebSockets/QWebSocketServer>
 
+#include <ossia/detail/flat_map.hpp>
 #include <nano_observer.hpp>
+
+#include <score_plugin_remotecontrol_export.h>
 template <typename T>
 class TreeNode;
 namespace Device
@@ -37,20 +40,23 @@ struct WSClient
 
 struct Handler
 {
-  std::map<QString, std::function<void(const rapidjson::Value&, const WSClient&)>> answers;
+  ossia::flat_map<QString, std::function<void(const rapidjson::Value&, const WSClient&)>> answers;
 
+  std::function<void(const std::vector<WSClient>&)> onAdded;
+  std::function<void(const std::vector<WSClient>&)> onRemoved;
   std::function<void(const WSClient&)> onClientConnection;
   std::function<void(const WSClient&)> onClientDisconnection;
 };
 
-struct Receiver : public QObject, public Nano::Observer
+struct SCORE_PLUGIN_REMOTECONTROL_EXPORT Receiver : public QObject, public Nano::Observer
 {
 public:
   explicit Receiver(const score::DocumentContext& doc, quint16 port);
 
   ~Receiver();
 
-  void addHandler(Handler&& handler);
+  void addHandler(QObject* context, Handler&& handler);
+  void removeHandler(QObject* context);
 
   void registerSync(Path<Scenario::TimeSyncModel> tn);
   void unregisterSync(Path<Scenario::TimeSyncModel> tn);
@@ -66,7 +72,7 @@ private:
   void on_valueUpdated(const ::State::Address& addr, const ossia::value& v);
 
   QWebSocketServer m_server;
-  QList<WSClient> m_clients;
+  std::vector<WSClient> m_clients;
 
   Explorer::DeviceDocumentPlugin& m_dev;
   std::list<Path<Scenario::TimeSyncModel>> m_activeSyncs;
@@ -74,7 +80,7 @@ private:
   score::hash_map<QString, std::function<void(const rapidjson::Value&, const WSClient&)>> m_answers;
   score::hash_map<::State::Address, WSClient> m_listenedAddresses;
 
-  std::vector<Handler> m_handlers;
+  std::vector<std::pair<QObject*, Handler>> m_handlers;
 };
 
 class DocumentPlugin : public score::DocumentPlugin

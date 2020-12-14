@@ -99,8 +99,10 @@ Receiver::Receiver(const score::DocumentContext& doc, quint16 port)
     if (!path.valid())
       return;
 
-    Scenario::TimeSyncModel& tn = path.find(doc);
-    tn.triggeredByGui();
+    if(Scenario::TimeSyncModel* tn = path.try_find(doc))
+      tn->triggeredByGui();
+    else
+      qDebug() << "warning: tried to trigger a non-existing trigger";
   }));
 
   m_answers.insert(std::make_pair("Message", [this](const rapidjson::Value& obj, const WSClient&) {
@@ -170,9 +172,30 @@ Receiver::~Receiver()
     delete c.socket;
 }
 
-void Receiver::addHandler(Handler&& handler)
+
+void Receiver::addHandler(QObject* context, Handler&& handler)
 {
-  m_handlers.push_back(std::move(handler));
+  if(handler.onAdded)
+  {
+    handler.onAdded(m_clients);
+  }
+
+  m_handlers.emplace_back(context, std::move(handler));
+}
+
+void Receiver::removeHandler(QObject* context)
+{
+  for(auto& [c, h] : m_handlers)
+  {
+    if(c == context)
+      if(h.onRemoved)
+        h.onRemoved(m_clients);
+  }
+
+  ossia::remove_erase_if(m_handlers,
+                         [context] (const auto& p) {
+    return p.first == context;
+  });
 }
 
 void Receiver::registerSync(Path<Scenario::TimeSyncModel> tn)
@@ -228,8 +251,10 @@ void Receiver::onNewConnection()
 
   {
     JSONReader r;
+    r.stream.StartObject();
     r.obj[score::StringConstant().Message] = "DeviceTree"sv;
     r.obj["Nodes"] = m_dev.rootNode();
+    r.stream.EndObject();
 
     client.socket->sendTextMessage(r.toString());
   }
@@ -238,17 +263,20 @@ void Receiver::onNewConnection()
     for (auto path : m_activeSyncs)
     {
       JSONReader r;
+      r.stream.StartObject();
       r.obj[score::StringConstant().Message] = "TriggerAdded"sv;
       r.obj[score::StringConstant().Path] = path;
       r.obj[score::StringConstant().Name] = path.find(m_dev.context()).metadata().getName();
+      r.stream.EndObject();
 
       client.socket->sendTextMessage(r.toString());
     }
   }
 
-  for(auto& h : m_handlers)
+  for(auto& [c,h] : m_handlers)
   {
-    h.onClientConnection(client);
+    if(h.onClientConnection)
+      h.onClientConnection(client);
   }
 
   m_clients.push_back(client);
@@ -281,10 +309,10 @@ void Receiver::processBinaryMessage(QByteArray message, const WSClient& w)
     it->second(wr.base, w);
   }
 
-  for(auto& v : m_handlers)
+  for(auto& [c,h] : m_handlers)
   {
-    if (auto it = v.answers.find(mess);
-        it != v.answers.end())
+    if (auto it = h.answers.find(mess);
+        it != h.answers.end())
     {
       it->second(wr.base, w);
     }
@@ -299,9 +327,10 @@ void Receiver::socketDisconnected()
   {
     WSClient clt{pClient};
 
-    for(auto& h : m_handlers)
+    for(auto& [c,h] : m_handlers)
     {
-      h.onClientDisconnection(clt);
+      if(h.onClientDisconnection)
+        h.onClientDisconnection(clt);
     }
 
     {
@@ -314,7 +343,7 @@ void Receiver::socketDisconnected()
         m_listenedAddresses.erase(it);
     }
 
-    m_clients.removeAll(clt);
+    ossia::remove_erase(m_clients, clt);
     pClient->deleteLater();
   }
 }
