@@ -35,12 +35,22 @@ struct WSClient
   }
 };
 
+struct Handler
+{
+  std::map<QString, std::function<void(const rapidjson::Value&, const WSClient&)>> answers;
+
+  std::function<void(const WSClient&)> onClientConnection;
+  std::function<void(const WSClient&)> onClientDisconnection;
+};
+
 struct Receiver : public QObject, public Nano::Observer
 {
 public:
   explicit Receiver(const score::DocumentContext& doc, quint16 port);
 
   ~Receiver();
+
+  void addHandler(Handler&& handler);
 
   void registerSync(Path<Scenario::TimeSyncModel> tn);
   void unregisterSync(Path<Scenario::TimeSyncModel> tn);
@@ -61,8 +71,10 @@ private:
   Explorer::DeviceDocumentPlugin& m_dev;
   std::list<Path<Scenario::TimeSyncModel>> m_activeSyncs;
 
-  std::map<QString, std::function<void(const rapidjson::Value&, const WSClient&)>> m_answers;
+  score::hash_map<QString, std::function<void(const rapidjson::Value&, const WSClient&)>> m_answers;
   score::hash_map<::State::Address, WSClient> m_listenedAddresses;
+
+  std::vector<Handler> m_handlers;
 };
 
 class DocumentPlugin : public score::DocumentPlugin

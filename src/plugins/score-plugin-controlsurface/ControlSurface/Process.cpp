@@ -178,12 +178,6 @@ QString Model::prettyName() const noexcept
   return tr("Control surface");
 }
 
-void Model::startExecution() { }
-
-void Model::stopExecution() { }
-
-void Model::reset() { }
-
 void Model::setDurationAndScale(const TimeVal& newDuration) noexcept { }
 
 void Model::setDurationAndGrow(const TimeVal& newDuration) noexcept { }

@@ -56,13 +56,6 @@ private:
   void setupIsf(const isf::descriptor& d);
   //void setupNormalShader();
   QString prettyName() const noexcept override;
-  void startExecution() override;
-  void stopExecution() override;
-  void reset() override;
-
-  void setDurationAndScale(const TimeVal& newDuration) noexcept override;
-  void setDurationAndGrow(const TimeVal& newDuration) noexcept override;
-  void setDurationAndShrink(const TimeVal& newDuration) noexcept override;
 
   ShaderProgram m_program;
   ProcessedProgram m_processedProgram;

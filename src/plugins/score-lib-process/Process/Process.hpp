@@ -94,11 +94,6 @@ public:
   PROPERTY(QPointF, position READ position WRITE setPosition NOTIFY positionChanged)
   PROPERTY(QSizeF, size READ size WRITE setSize NOTIFY sizeChanged)
 
-  /// Execution
-  virtual void startExecution();
-  virtual void stopExecution();
-  virtual void reset();
-
   /// States. The process has ownership.
   virtual ProcessStateDataInterface* startStateData() const noexcept;
   virtual ProcessStateDataInterface* endStateData() const noexcept;
@@ -148,8 +143,12 @@ public:
   // FIXME ugh
   QWidget* externalUI{};
 
-  // True if the execution is running.
-  void execution(bool arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, execution, arg_1)
+
+  /// Execution
+  void startExecution() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, startExecution)
+  void stopExecution() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, stopExecution)
+  void resetExecution() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, resetExecution)
+
   void durationChanged(const TimeVal& arg_1)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, durationChanged, arg_1)
   void useParentDurationChanged(bool arg_1)

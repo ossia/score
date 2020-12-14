@@ -145,12 +145,6 @@ const TimeVal& ProcessModel::duration() const noexcept
   return m_duration;
 }
 
-void ProcessModel::startExecution() { }
-
-void ProcessModel::stopExecution() { }
-
-void ProcessModel::reset() { }
-
 ProcessStateDataInterface* ProcessModel::startStateData() const noexcept
 {
   return nullptr;

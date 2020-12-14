@@ -78,12 +78,15 @@ Presenter::Presenter(const Model& layer, View* view, const Process::Context& ctx
         }
       }
     });
-    connect(&m_model, &Model::resetExecution, this, [this] {
+
+    auto reset_exec = [this] {
       for (Process::NodeItem& node : m_nodes)
       {
         node.setPlayPercentage(0.f, TimeVal{});
       }
-    });
+    };
+    connect(&m_model, &Model::stopExecution, this, reset_exec);
+    connect(&m_model, &Model::resetExecution, this, reset_exec);
   }
 }
 

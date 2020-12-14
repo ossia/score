@@ -47,6 +47,9 @@ Presenter::Presenter(
       }
     });
 
+    con(layer, &ProcessModel::stopExecution, this, [this] {
+      ((View*)m_view)->setPlayPercentage(0.f);
+    });
     con(layer, &ProcessModel::resetExecution, this, [this] {
       ((View*)m_view)->setPlayPercentage(0.f);
     });

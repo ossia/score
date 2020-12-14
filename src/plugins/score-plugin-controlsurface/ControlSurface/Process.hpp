@@ -43,7 +43,6 @@ public:
   Process::Outlets& outlets() noexcept { return m_outlets; }
 
   void addControl(const Id<Process::Port>& id, const Device::FullAddressAccessorSettings& message);
-
   void setupControl(Process::ControlInlet* ctl, const State::AddressAccessor& addr);
   void removeControl(const Id<Process::Port>& id);
 
@@ -51,9 +50,6 @@ public:
 
 private:
   QString prettyName() const noexcept override;
-  void startExecution() override;
-  void stopExecution() override;
-  void reset() override;
 
   void setDurationAndScale(const TimeVal& newDuration) noexcept override;
   void setDurationAndGrow(const TimeVal& newDuration) noexcept override;

@@ -305,7 +305,7 @@ void IntervalModel::reset()
 
   for (Process::ProcessModel& proc : processes)
   {
-    proc.reset();
+    proc.resetExecution();
     proc.stopExecution();
   }
 

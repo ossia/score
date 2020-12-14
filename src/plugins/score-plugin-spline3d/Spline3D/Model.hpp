@@ -70,7 +70,6 @@ public:
   void unitChanged(const State::Unit& arg_1)
       W_SIGNAL(unitChanged, arg_1);
   void splineChanged() W_SIGNAL(splineChanged);
-  void resetExecution() W_SIGNAL(resetExecution)
 
 private:
   //// ProcessModel ////
@@ -78,9 +77,6 @@ private:
   void setDurationAndGrow(const TimeVal& newDuration) noexcept override;
   void setDurationAndShrink(const TimeVal& newDuration) noexcept override;
 
-  void startExecution() override;
-  void stopExecution() override;
-  void reset() override;
 
   TimeVal contentDuration() const noexcept override;
   void loadPreset(const Process::Preset& preset) override;

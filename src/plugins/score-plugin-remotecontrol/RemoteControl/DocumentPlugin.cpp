@@ -170,6 +170,11 @@ Receiver::~Receiver()
     delete c.socket;
 }
 
+void Receiver::addHandler(Handler&& handler)
+{
+  m_handlers.push_back(std::move(handler));
+}
+
 void Receiver::registerSync(Path<Scenario::TimeSyncModel> tn)
 {
   if (ossia::find(m_activeSyncs, tn) != m_activeSyncs.end())
@@ -241,6 +246,11 @@ void Receiver::onNewConnection()
     }
   }
 
+  for(auto& h : m_handlers)
+  {
+    h.onClientConnection(client);
+  }
+
   m_clients.push_back(client);
 }
 
@@ -264,11 +274,21 @@ void Receiver::processBinaryMessage(QByteArray message, const WSClient& w)
     return;
 
   auto mess = JsonValue{it->value}.toString();
-  auto answer_it = m_answers.find(mess);
-  if (answer_it == m_answers.end())
-    return;
 
-  answer_it->second(wr.base, w);
+  if (auto it = m_answers.find(mess);
+      it != m_answers.end())
+  {
+    it->second(wr.base, w);
+  }
+
+  for(auto& v : m_handlers)
+  {
+    if (auto it = v.answers.find(mess);
+        it != v.answers.end())
+    {
+      it->second(wr.base, w);
+    }
+  }
 }
 
 void Receiver::socketDisconnected()
@@ -277,15 +297,24 @@ void Receiver::socketDisconnected()
 
   if (pClient)
   {
-    auto it = ossia::find_if(m_listenedAddresses, [=](const auto& pair) {
-      if (pair.second.socket == pClient)
-        return true;
-      return false;
-    });
-    if (it != m_listenedAddresses.end())
-      m_listenedAddresses.erase(it);
+    WSClient clt{pClient};
 
-    m_clients.removeAll(WSClient{pClient});
+    for(auto& h : m_handlers)
+    {
+      h.onClientDisconnection(clt);
+    }
+
+    {
+      auto it = ossia::find_if(m_listenedAddresses, [=](const auto& pair) {
+        if (pair.second.socket == pClient)
+          return true;
+        return false;
+      });
+      if (it != m_listenedAddresses.end())
+        m_listenedAddresses.erase(it);
+    }
+
+    m_clients.removeAll(clt);
     pClient->deleteLater();
   }
 }

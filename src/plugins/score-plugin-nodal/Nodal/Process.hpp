@@ -44,18 +44,12 @@ public:
 
   score::EntityMap<Process::ProcessModel> nodes;
 
-  void resetExecution() W_SIGNAL(resetExecution)
-
 private:
   QString prettyName() const noexcept override;
 
   void setDurationAndScale(const TimeVal& newDuration) noexcept override;
   void setDurationAndGrow(const TimeVal& newDuration) noexcept override;
   void setDurationAndShrink(const TimeVal& newDuration) noexcept override;
-
-  void startExecution() override;
-  void stopExecution() override;
-  void reset() override;
 
   void ancestorStartDateChanged() override;
   void ancestorTempoChanged() override;

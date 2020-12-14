@@ -149,10 +149,6 @@ private:
   void setDurationAndGrow(const TimeVal& newDuration) noexcept override;
   void setDurationAndShrink(const TimeVal& newDuration) noexcept override;
 
-  void startExecution() override;
-  void stopExecution() override;
-  void reset() override;
-
   void ancestorStartDateChanged() override;
   void ancestorTempoChanged() override;
 

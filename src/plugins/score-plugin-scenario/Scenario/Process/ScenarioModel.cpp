@@ -78,6 +78,32 @@ void ProcessModel::init()
   m_outlets.push_back(outlet.get());
 
   m_graph = std::make_unique<TimenodeGraph>(*this);
+
+  auto stopExec = [this]
+  {
+    for (EventModel& ev : events)
+    {
+      ev.setStatus(ExecutionStatus::Editing, *this);
+    }
+  };
+
+  auto reset = [this]
+  {
+    for (auto& interval : intervals)
+    {
+      interval.reset();
+    }
+
+    for (auto& event : events)
+    {
+      event.setStatus(Scenario::ExecutionStatus::Editing, *this);
+    }
+  };
+
+  connect(this, &ProcessModel::stopExecution,
+          this, stopExec);
+  connect(this, &ProcessModel::resetExecution,
+          this, reset);
 }
 
 bool ProcessModel::hasCycles() const noexcept
@@ -153,29 +179,6 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 {
   this->setDuration(newDuration);
   return; // Disabled by Asana
-}
-
-void ProcessModel::startExecution() { }
-
-void ProcessModel::stopExecution()
-{
-  for (EventModel& ev : events)
-  {
-    ev.setStatus(ExecutionStatus::Editing, *this);
-  }
-}
-
-void ProcessModel::reset()
-{
-  for (auto& interval : intervals)
-  {
-    interval.reset();
-  }
-
-  for (auto& event : events)
-  {
-    event.setStatus(Scenario::ExecutionStatus::Editing, *this);
-  }
 }
 
 Selection ProcessModel::selectableChildren() const noexcept

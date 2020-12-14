@@ -245,19 +245,6 @@ void Model::setupIsf(const isf::descriptor& desc)
     i++;
   }
 }
-
-void Model::startExecution() { }
-
-void Model::stopExecution() { }
-
-void Model::reset() { }
-
-void Model::setDurationAndScale(const TimeVal& newDuration) noexcept { }
-
-void Model::setDurationAndGrow(const TimeVal& newDuration) noexcept { }
-
-void Model::setDurationAndShrink(const TimeVal& newDuration) noexcept { }
-
 QSet<QString> DropHandler::mimeTypes() const noexcept
 {
   return {}; // TODO

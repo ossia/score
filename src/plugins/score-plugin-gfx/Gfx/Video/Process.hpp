@@ -55,13 +55,6 @@ public:
 
   private:
   QString prettyName() const noexcept override;
-  void startExecution() override;
-  void stopExecution() override;
-  void reset() override;
-
-  void setDurationAndScale(const TimeVal& newDuration) noexcept override;
-  void setDurationAndGrow(const TimeVal& newDuration) noexcept override;
-  void setDurationAndShrink(const TimeVal& newDuration) noexcept override;
 
   QString m_path;
   std::shared_ptr<video_decoder> m_decoder;

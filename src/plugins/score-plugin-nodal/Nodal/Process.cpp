@@ -55,18 +55,6 @@ void Model::setDurationAndShrink(const TimeVal& newDuration) noexcept
     n.setParentDuration(ExpandMode::GrowShrink, newDuration);
 }
 
-void Model::startExecution() { }
-
-void Model::stopExecution()
-{
-  resetExecution();
-}
-
-void Model::reset()
-{
-  resetExecution();
-}
-
 void Model::ancestorStartDateChanged()
 {
   for (Process::ProcessModel& n : this->nodes)

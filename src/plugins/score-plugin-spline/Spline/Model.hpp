@@ -66,17 +66,12 @@ public:
   void tweenChanged(bool tween) W_SIGNAL(tweenChanged, tween);
   void unitChanged(const State::Unit& arg_1) W_SIGNAL(unitChanged, arg_1);
   void splineChanged() W_SIGNAL(splineChanged);
-  void resetExecution() W_SIGNAL(resetExecution)
 
 private:
   //// ProcessModel ////
   void setDurationAndScale(const TimeVal& newDuration) noexcept override;
   void setDurationAndGrow(const TimeVal& newDuration) noexcept override;
   void setDurationAndShrink(const TimeVal& newDuration) noexcept override;
-
-  void startExecution() override;
-  void stopExecution() override;
-  void reset() override;
 
   TimeVal contentDuration() const noexcept override;
   void loadPreset(const Process::Preset& preset) override;
