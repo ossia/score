@@ -5,6 +5,7 @@
     <script type="text/javascript">
         var ws;
         var triggers = [];
+        var controls = [];
 
         function updateUI() {
             var div = document.getElementById("buttons");
@@ -21,6 +22,31 @@
                         Message: "Trigger",
                         Path: element.Path
                     }))
+                });
+            });
+
+            controls.forEach(element => {
+                element.Controls.forEach(ctrl => {
+                    let label = document.createElement("span");
+                    label.innerHTML = ctrl.Custom;
+                    div.appendChild(label);
+
+                    var slider = document.createElement("input");
+                    slider.type = 'range';
+                    slider.min = 0;
+                    slider.max = 1;
+                    slider.value = ctrl.Value.Float;
+                    slider.step = 0.01;
+                    div.appendChild(slider);
+
+                    slider.oninput = function() {
+                        ws.send(JSON.stringify({
+                            Message: "ControlSurface",
+                            Path: element.Path,
+                            id: ctrl.id,
+                            Value: { Float: parseFloat(slider.value) }
+                        }));
+                    };
                 });
             });
         }
@@ -41,7 +67,15 @@
                     triggers = triggers.filter(element => {
                         return element.Path === obj.Path;
                     });
+                } else if(obj.Message === "ControlSurfaceAdded") {
+                    controls.push(obj);
+                } else if(obj.Message === "ControlSurfaceRemoved") {
+                    controls = controls.filter(element => {
+                        return element.Path === obj.Path;
+                    });
                 }
+
+
 
                 updateUI();
             }
