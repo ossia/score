@@ -5,6 +5,7 @@
 #include <score/model/EntitySerialization.hpp>
 #include <score/plugins/SerializableHelpers.hpp>
 #include <State/ValueSerialization.hpp>
+#include <ossia/detail/algorithms.hpp>
 
 namespace ControlSurface
 {
