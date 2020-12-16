@@ -289,6 +289,7 @@ RemotePackage::fromJson(const QJsonObject& obj) noexcept
   using Funmap = ossia::flat_map<QString, std::function<void(QJsonValue)>>;
   const Funmap funmap{
       {"file", [&](QJsonValue v) { add.file = v.toString(); }},
+      {"src", [&](QJsonValue v) { add.file = v.toString(); }},
       {"name", [&](QJsonValue v) { add.name = v.toString(); }},
       {"raw_name", [&](QJsonValue v) { add.raw_name = v.toString(); }},
       {"version", [&](QJsonValue v) { add.version = v.toString(); }},

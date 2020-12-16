@@ -104,17 +104,21 @@ void ApplicationPlugin::setupAddon(const QString& addon)
   if (addonFolderName == "Nodes")
     return;
 
-  auto [json, cpp_files, files] = loadAddon(addon);
+  auto [json, cpp_files, files, flags] = loadAddon(addon);
 
   if (cpp_files.empty())
     return;
 
   auto addon_files_path = generateAddonFiles(addonFolderName, addon, files);
-  std::vector<std::string> flags
-      = {"-I" + addon.toStdString(), "-I" + addon_files_path.toStdString()};
+  flags.push_back("-I" + addon.toStdString());
+  flags.push_back("-I" + addon_files_path.toStdString());
 
-  const std::string id
+  std::string id
       = json["key"].toString().remove(QChar('-')).toStdString();
+  if(id.empty())
+  {
+    id = addonFolderName.remove(QChar('-')).remove(QChar(' ')).toStdString();
+  }
   m_compiler.submitJob(id, cpp_files, flags, CompilerOptions{false});
 }
 

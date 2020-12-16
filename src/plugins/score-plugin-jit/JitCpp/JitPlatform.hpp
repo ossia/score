@@ -340,29 +340,32 @@ static inline auto getPotentialTriples()
 static inline void populateIncludeDirs(std::vector<std::string>& args)
 {
   auto sdk = locateSDK();
+  auto qsdk = QString::fromStdString(sdk);
   std::cerr << "\nLooking for sdk in: " << sdk << "\n";
-  qDebug() << "Looking for sdk in: " << QString::fromStdString(sdk);
+  qDebug() << "Looking for sdk in: " << qsdk;
 
   bool sdk_found = true;
 
-  QDir dir(QString::fromStdString(sdk));
-  if (!dir.cd("include") || !dir.cd("c++"))
   {
-    qDebug() << "Unable to locate standard headers, fallback to /usr";
-    sdk = "/usr";
-    dir.setPath("/usr");
+    QDir dir(qsdk);
     if (!dir.cd("include") || !dir.cd("c++"))
     {
-      qDebug() << "Unable to locate standard headers++";
-      throw std::runtime_error("Unable to compile");
+      qDebug() << "Unable to locate standard headers, fallback to /usr";
+      sdk = "/usr";
+      dir.setPath("/usr");
+      if (!dir.cd("include") || !dir.cd("c++"))
+      {
+        qDebug() << "Unable to locate standard headers++";
+        throw std::runtime_error("Unable to compile");
+      }
+      sdk_found = false;
     }
-    sdk_found = false;
   }
 
-  qDebug() << "SDK located: " << QString::fromStdString(sdk);
+  qDebug() << "SDK located: " << qsdk;
   std::string llvm_lib_version = SCORE_LLVM_VERSION;
 
-  QDir resDir = QString(QString::fromStdString(sdk) + "/lib/clang");
+  QDir resDir = QString(qsdk + "/lib/clang");
   auto entries = resDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
   if(!entries.empty())
     llvm_lib_version = entries.front().toStdString();
@@ -429,7 +432,7 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
   ///build/score.AppDir/usr/include/
 
 
-  auto include = [&](const auto& path) {
+  auto include = [&](const std::string& path) {
     args.push_back("-I" + sdk + "/include/" + path);
   };
 
@@ -438,10 +441,22 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
   include("x86_64-linux-gnu"); // #debian
 #endif
   // include(""); // /usr/include
+  QDirIterator qtVersionFolder{qsdk + "/include/qt/QtCore", {}, QDir::Filter::Dirs | QDir::Filter::NoDotAndDotDot, {}};
+  std::string qt_version = QT_VERSION_STR;
+  if(qtVersionFolder.hasNext()) {
+    QDir sub = qtVersionFolder.next();
+    qt_version = sub.dirName().toStdString();
+  }
   include("qt");
   include("qt/QtCore");
+  include("qt/QtCore/" + qt_version);
+  include("qt/QtCore/" + qt_version + "/QtCore");
   include("qt/QtGui");
+  include("qt/QtGui/" + qt_version);
+  include("qt/QtGui/" + qt_version + "/QtGui");
   include("qt/QtWidgets");
+  include("qt/QtWidgets/" + qt_version);
+  include("qt/QtWidgets/" + qt_version + "/QtWidgets");
   include("qt/QtXml");
   include("qt/QtQml");
   include("qt/QtNetwork");
@@ -484,7 +499,7 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
                              "/3rdparty/libossia/3rdparty/asio/asio/include",
                              "/3rdparty/libossia/3rdparty/websocketpp",
                              "/3rdparty/libossia/3rdparty/rapidjson/include",
-                             "/3rdparty/libossia/3rdparty/RtMidi17",
+                             "/3rdparty/libossia/3rdparty/RtMidi17/include",
                              "/3rdparty/libossia/3rdparty/oscpack",
                              "/3rdparty/libossia/3rdparty/multi_index/include",
                              "/3rdparty/libossia/3rdparty/verdigris/src",

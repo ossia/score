@@ -71,13 +71,14 @@ ClangCC1Driver::compileTranslationUnit(
 
   // Default flags
   auto flags_vec = getClangCC1Args(opts);
+
+  // Additional flags
+  flags_vec.insert(flags_vec.end(), flags.begin(), flags.end());
+
   flags_vec.push_back("-main-file-name");
   flags_vec.push_back(cpp);
   flags_vec.push_back("-x");
   flags_vec.push_back("c++");
-
-  // Additional flags
-  flags_vec.insert(flags_vec.end(), flags.begin(), flags.end());
 
   // First do a preprocessing pass that we will hash
   flags_vec.push_back("-E");

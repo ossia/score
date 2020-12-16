@@ -17,16 +17,14 @@ struct AddonData
   QJsonObject addon_info;
   std::string unity_cpp;
   std::vector<std::pair<QString, QString>> files;
+  std::vector<std::string> flags;
 };
 
 //! Combines all the source files of an addon into a single unity file to make
 //! build faster
-static AddonData loadAddon(const QString& addon)
+//!
+static void loadBasicAddon(const QString& addon, AddonData& data)
 {
-  AddonData data;
-  if (QFile f(addon + "/addon.json"); f.open(QIODevice::ReadOnly))
-    data.addon_info = QJsonDocument::fromJson(f.readAll()).object();
-
   std::string cpp_files;
   std::vector<std::pair<QString, QString>> files;
   QDirIterator it{addon,
@@ -48,6 +46,65 @@ static AddonData loadAddon(const QString& addon)
       data.files.push_back({fi.filePath(), f.readAll()});
     }
   }
+}
+
+static void loadCMakeAddon(const QString& addon, AddonData& data, QString cm)
+{
+  static const QRegularExpression space{R"_(\s+)_"};
+  static const QRegularExpression sourceFiles{R"_(add_library\(\s*[[:graph:]]+([a-zA-Z0-9_.\/\n ]*)\))_"};
+  static const QRegularExpression definitions{R"_(target_compile_definitions\(\s*[[:graph:]]+\s*[[:graph:]]+([a-zA-Z0-9_"= ]+)\))_"};
+  static const QRegularExpression includes{R"_(target_include_directories\(\s*[[:graph:]]+\s*[[:graph:]]+([a-zA-Z0-9_\/ ]+)\))_"};
+
+  auto files = sourceFiles.globalMatch(cm);
+  auto defs = definitions.globalMatch(cm);
+  auto incs = includes.globalMatch(cm);
+
+  while(files.hasNext()) {
+    auto m = files.next();
+    auto res = m.captured(1).replace('\n', ' ').split(space, Qt::SkipEmptyParts);
+    for(const QString& file : res) {
+      QString filename = QString{R"_(%1/%2)_"}.arg(addon).arg(file);
+      QString path = QString{R"_(#include "%1/%2"
+)_"}.arg(addon).arg(file);
+      data.unity_cpp.append(
+          path.toStdString());
+
+      QFile f{filename};
+      f.open(QIODevice::ReadOnly);
+      data.files.push_back({filename, f.readAll()});
+    }
+  }
+  while(defs.hasNext()) {
+    auto m = defs.next();
+    auto res = m.captured(1).replace('\n', ' ').split(space, Qt::SkipEmptyParts);
+    for(const QString& define : res) {
+      data.flags.push_back(
+          QString{R"_(-D%1)_"}.arg(define).toStdString());
+    }
+  }
+
+  while(incs.hasNext()) {
+    auto m = incs.next();
+    auto res = m.captured(1).replace('\n', ' ').split(space, Qt::SkipEmptyParts);
+
+    for(const QString& path : res) {
+      data.flags.push_back(
+          QString{R"_(-I%1/%2)_"}.arg(addon).arg(path).toStdString());
+    }
+  }
+}
+
+static AddonData loadAddon(const QString& addon)
+{
+  AddonData data;
+  if (QFile f(addon + "/addon.json"); f.open(QIODevice::ReadOnly))
+    data.addon_info = QJsonDocument::fromJson(f.readAll()).object();
+
+  if (QFile f(addon + "/CMakeLists.txt"); f.open(QIODevice::ReadOnly))
+    loadCMakeAddon(addon, data, f.readAll());
+  else
+    loadBasicAddon(addon, data);
+
   return data;
 }
 

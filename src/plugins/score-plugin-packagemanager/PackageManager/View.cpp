@@ -258,7 +258,7 @@ void PluginSettingsView::installAddon(const RemotePackage& addon)
         + "/Addons"};
   zdl::download_and_extract(
         addon.file,
-        QFileInfo{addons_path}.absolutePath(),
+        QDir{addons_path}.absolutePath(),
         [=] (const std::vector<QString>& res) {
     m_progress->setHidden(true);
     if(res.empty())
