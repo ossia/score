@@ -71,7 +71,7 @@ class AddImage final : public score::Command
 public:
   ChangeSpline(
       const ProcessModel& autom,
-      const ossia::nodes::spline_data& newval)
+      const ossia::spline_data& newval)
       : m_path{autom}, m_old{autom.spline()}, m_new{newval}
   {
   }
@@ -98,7 +98,7 @@ protected:
 
 private:
   Path<ProcessModel> m_path;
-  ossia::nodes::spline_data m_old, m_new;
+  ossia::spline_data m_old, m_new;
 };
 */
 }

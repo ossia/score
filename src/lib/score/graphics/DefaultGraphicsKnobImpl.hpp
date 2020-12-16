@@ -2,6 +2,7 @@
 #include <score/model/Skin.hpp>
 #include <score/tools/Cursor.hpp>
 #include <score/widgets/SignalUtils.hpp>
+#include <score/widgets/DoubleSpinBox.hpp>
 
 #include <ossia/detail/math.hpp>
 

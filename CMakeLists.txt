@@ -115,7 +115,6 @@ include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/nano-signal-slot")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/brigand")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/hopscotch-map/src")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/readerwriterqueue")
-include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/exprtk")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/multi_index/include")
 
 include_directories(SYSTEM "${3RDPARTY_FOLDER}/magicitems/include/")

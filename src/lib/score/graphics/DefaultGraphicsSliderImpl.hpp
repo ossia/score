@@ -134,14 +134,14 @@ struct DefaultGraphicsSliderImpl
   {
     QTimer::singleShot(0, [&, self_p = &self, pos] {
       auto w = new DoubleSpinboxWithEnter;
-      self.spinbox = w;
+      self.impl->spinbox = w;
       w->setRange(self.min, self.max);
 
       w->setDecimals(6);
       w->setValue(self.map(self.m_value));
       auto obj = self.scene()->addWidget(w, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
       obj->setPos(pos);
-      self.spinboxProxy = obj;
+      self.impl->spinboxProxy = obj;
 
       QTimer::singleShot(0, w, [w] { w->setFocus(); });
 
@@ -154,18 +154,18 @@ struct DefaultGraphicsSliderImpl
           });
 
       QObject::connect(w, &DoubleSpinboxWithEnter::editingFinished, &self, [obj, con, self_p] {
-        if (self_p->spinbox)
+        if (self_p->impl->spinbox)
         {
           self_p->sliderReleased();
           QObject::disconnect(con);
           QTimer::singleShot(0, self_p, [self_p, scene = self_p->scene(), obj] {
             scene->removeItem(obj);
             delete obj;
-            self_p->spinbox = nullptr;
-            self_p->spinboxProxy = nullptr;
+            self_p->impl->spinbox = nullptr;
+            self_p->impl->spinboxProxy = nullptr;
           });
-          self_p->spinbox = nullptr;
-          self_p->spinboxProxy = nullptr;
+          self_p->impl->spinbox = nullptr;
+          self_p->impl->spinboxProxy = nullptr;
         }
       });
     });

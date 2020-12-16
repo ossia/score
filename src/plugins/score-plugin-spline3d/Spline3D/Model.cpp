@@ -122,19 +122,19 @@ Process::Preset ProcessModel::savePreset() const noexcept
 
 /// Point ///
 template <>
-void DataStreamReader::read(const ossia::nodes::spline3d_point& autom)
+void DataStreamReader::read(const ossia::spline3d_point& autom)
 {
   m_stream << autom.x << autom.y << autom.z;
 }
 
 template <>
-void DataStreamWriter::write(ossia::nodes::spline3d_point& autom)
+void DataStreamWriter::write(ossia::spline3d_point& autom)
 {
   m_stream >> autom.x >> autom.y >> autom.z;
 }
 
 template <>
-void JSONReader::read(const ossia::nodes::spline3d_point& autom)
+void JSONReader::read(const ossia::spline3d_point& autom)
 {
   stream.StartArray();
   stream.Double(autom.x);
@@ -144,7 +144,7 @@ void JSONReader::read(const ossia::nodes::spline3d_point& autom)
 }
 
 template <>
-void JSONWriter::write(ossia::nodes::spline3d_point& autom)
+void JSONWriter::write(ossia::spline3d_point& autom)
 {
   const auto& arr = base.GetArray();
   autom.x = arr[0].GetDouble();
@@ -154,14 +154,14 @@ void JSONWriter::write(ossia::nodes::spline3d_point& autom)
 
 /// Data ///
 template <>
-void DataStreamReader::read(const ossia::nodes::spline3d_data& autom)
+void DataStreamReader::read(const ossia::spline3d_data& autom)
 {
   m_stream << autom.points;
   insertDelimiter();
 }
 
 template <>
-void DataStreamWriter::write(ossia::nodes::spline3d_data& autom)
+void DataStreamWriter::write(ossia::spline3d_data& autom)
 {
   m_stream >> autom.points;
   checkDelimiter();

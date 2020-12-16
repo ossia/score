@@ -479,33 +479,20 @@ public:
   VIRTUAL_CONSTEXPR PortType type() const noexcept override { return Process::PortType::Message; }
 };
 
-inline std::unique_ptr<Inlet> make_value_inlet(const Id<Process::Port>& c, QObject* parent)
-{
-  return std::make_unique<ValueInlet>(c, parent);
-}
+SCORE_LIB_PROCESS_EXPORT
+std::unique_ptr<Inlet> make_value_inlet(const Id<Process::Port>& c, QObject* parent);
+SCORE_LIB_PROCESS_EXPORT
+std::unique_ptr<Outlet> make_value_outlet(const Id<Process::Port>& c, QObject* parent);
 
-inline std::unique_ptr<Outlet> make_value_outlet(const Id<Process::Port>& c, QObject* parent)
-{
-  return std::make_unique<ValueOutlet>(c, parent);
-}
+SCORE_LIB_PROCESS_EXPORT
+std::unique_ptr<MidiInlet> make_midi_inlet(const Id<Process::Port>& c, QObject* parent);
+SCORE_LIB_PROCESS_EXPORT
+std::unique_ptr<MidiOutlet> make_midi_outlet(const Id<Process::Port>& c, QObject* parent);
 
-inline std::unique_ptr<MidiInlet> make_midi_inlet(const Id<Process::Port>& c, QObject* parent)
-{
-  return std::make_unique<MidiInlet>(c, parent);
-}
-inline std::unique_ptr<MidiOutlet> make_midi_outlet(const Id<Process::Port>& c, QObject* parent)
-{
-  return std::make_unique<MidiOutlet>(c, parent);
-}
-
-inline std::unique_ptr<AudioInlet> make_audio_inlet(const Id<Process::Port>& c, QObject* parent)
-{
-  return std::make_unique<AudioInlet>(c, parent);
-}
-inline std::unique_ptr<AudioOutlet> make_audio_outlet(const Id<Process::Port>& c, QObject* parent)
-{
-  return std::make_unique<AudioOutlet>(c, parent);
-}
+SCORE_LIB_PROCESS_EXPORT
+std::unique_ptr<AudioInlet> make_audio_inlet(const Id<Process::Port>& c, QObject* parent);
+SCORE_LIB_PROCESS_EXPORT
+std::unique_ptr<AudioOutlet> make_audio_outlet(const Id<Process::Port>& c, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
 std::unique_ptr<ValueInlet> load_value_inlet(DataStreamWriter& wr, QObject* parent);

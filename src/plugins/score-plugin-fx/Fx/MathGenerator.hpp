@@ -1,27 +1,10 @@
 #pragma once
-#include <ossia/detail/logger.hpp>
-
 #include <Engine/Node/PdNode.hpp>
-#include <exprtk.hpp>
+#include <ossia/math/math_expression.hpp>
 
 #include <numeric>
 namespace Nodes
 {
-template <typename State>
-bool updateExpr(State& self, const std::string& expr)
-{
-  if (expr != self.cur_expr_txt)
-  {
-    self.cur_expr_txt = expr;
-    self.ok = self.parser.compile(self.cur_expr_txt, self.expr);
-    if (!self.ok)
-    {
-      ossia::logger().error("Error while parsing: {}", self.parser.error());
-    }
-  }
-
-  return self.ok;
-}
 
 static void mathItem(
     const std::
@@ -93,28 +76,24 @@ struct Node
   {
     State()
     {
-      syms.add_variable("t", cur_time);
-      syms.add_variable("dt", cur_deltatime);
-      syms.add_variable("pos", cur_pos);
-      syms.add_variable("a", p1);
-      syms.add_variable("b", p2);
-      syms.add_variable("c", p3);
-      syms.add_variable("m1", m1);
-      syms.add_variable("m2", m2);
-      syms.add_variable("m3", m3);
-      syms.add_constants();
-
-      expr.register_symbol_table(syms);
+      expr.add_variable("t", cur_time);
+      expr.add_variable("dt", cur_deltatime);
+      expr.add_variable("pos", cur_pos);
+      expr.add_variable("a", p1);
+      expr.add_variable("b", p2);
+      expr.add_variable("c", p3);
+      expr.add_variable("m1", m1);
+      expr.add_variable("m2", m2);
+      expr.add_variable("m3", m3);
+      expr.add_constants();
+      expr.register_symbol_table();
     }
     double cur_time{};
     double cur_deltatime{};
     double cur_pos{};
     double p1{}, p2{}, p3{};
     double m1{}, m2{}, m3{};
-    exprtk::symbol_table<double> syms;
-    exprtk::expression<double> expr;
-    exprtk::parser<double> parser;
-    std::string cur_expr_txt;
+    ossia::math_expression expr;
     bool ok = false;
   };
 
@@ -129,7 +108,7 @@ struct Node
       ossia::exec_state_facade st,
       State& self)
   {
-    if (!updateExpr(self, expr))
+    if (!self.expr.set_expression(expr))
       return;
 
     self.cur_time = tk.date.impl;
@@ -196,18 +175,18 @@ struct Node
       m2.resize(2);
       m3.resize(2);
 
-      syms.add_vector("out", cur_out);
-      syms.add_variable("t", cur_time);
-      syms.add_variable("a", p1);
-      syms.add_variable("b", p2);
-      syms.add_variable("c", p3);
-      syms.add_vector("m1", m1);
-      syms.add_vector("m2", m2);
-      syms.add_vector("m3", m3);
-      syms.add_constant("fs", fs);
-      syms.add_constants();
+      expr.add_vector("out", cur_out);
+      expr.add_variable("t", cur_time);
+      expr.add_variable("a", p1);
+      expr.add_variable("b", p2);
+      expr.add_variable("c", p3);
+      expr.add_vector("m1", m1);
+      expr.add_vector("m2", m2);
+      expr.add_vector("m3", m3);
+      expr.add_constant("fs", fs);
 
-      expr.register_symbol_table(syms);
+      expr.add_constants();
+      expr.register_symbol_table();
     }
 
     void reset_symbols(std::size_t N)
@@ -216,30 +195,27 @@ struct Node
       if(N == cur_out.size())
         return;
 
-      syms.remove_vector("out");
-      syms.remove_vector("m1");
-      syms.remove_vector("m2");
-      syms.remove_vector("m3");
+      expr.remove_vector("out");
+      expr.remove_vector("m1");
+      expr.remove_vector("m2");
+      expr.remove_vector("m3");
 
       cur_out.resize(N);
       m1.resize(N);
       m2.resize(N);
       m3.resize(N);
 
-      syms.add_vector("out", cur_out);
-      syms.add_vector("m1", m1);
-      syms.add_vector("m2", m2);
-      syms.add_vector("m3", m3);
+      expr.add_vector("out", cur_out);
+      expr.add_vector("m1", m1);
+      expr.add_vector("m2", m2);
+      expr.add_vector("m3", m3);
     }
     std::vector<double> cur_out{};
     double cur_time{};
     double p1{}, p2{}, p3{};
     std::vector<double> m1, m2, m3;
     double fs{44100};
-    exprtk::symbol_table<double> syms;
-    exprtk::expression<double> expr;
-    exprtk::parser<double> parser;
-    std::string cur_expr_txt;
+    ossia::math_expression expr;
     bool ok = false;
   };
 
@@ -256,7 +232,7 @@ struct Node
   {
     if (tk.forward())
     {
-      if (!updateExpr(self, expr))
+      if (!self.expr.set_expression(expr))
         return;
 
       const auto samplesRatio = st.modelToSamples();

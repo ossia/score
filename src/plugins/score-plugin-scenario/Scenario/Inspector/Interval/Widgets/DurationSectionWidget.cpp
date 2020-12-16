@@ -25,7 +25,7 @@
 #include <score/tools/Bind.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <score/widgets/MarginLess.hpp>
-#include <score/widgets/SpinBoxes.hpp>
+#include <score/widgets/TimeSpinBox.hpp>
 #include <score/widgets/TextLabel.hpp>
 
 #include <core/document/Document.hpp>

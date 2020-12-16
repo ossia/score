@@ -3,7 +3,7 @@
 #include <score/tools/Debug.hpp>
 
 #include <boost/algorithm/string.hpp>
-#include <exprtk.hpp>
+#include <ossia/math/math_expression.hpp>
 #include <ossia/audio/fft.hpp>
 namespace
 {
@@ -313,21 +313,27 @@ struct RenderedISFNode : score::gfx::NodeRenderer
   {
     QSize res = m_lastPassRT.renderTarget->pixelSize();
 
-    exprtk::symbol_table<float> syms;
+    ossia::math_expression e;
+    ossia::small_pod_vector<double, 16> data;
 
-    syms.add_constant("var_WIDTH", res.width());
-    syms.add_constant("var_HEIGHT", res.height());
+    // Note : reserve is super important here,
+    // as the expression parser takes *references* to the
+    // variables.
+    data.reserve(2 + n.m_descriptor.inputs.size());
+
+    e.add_constant("var_WIDTH", data.emplace_back(res.width()));
+    e.add_constant("var_HEIGHT", data.emplace_back(res.height()));
     int port_k = 0;
     for(const isf::input& input : n.m_descriptor.inputs)
     {
       auto port = n.input[port_k];
       if(std::get_if<isf::float_input>(&input.data))
       {
-        syms.add_constant("var_" + input.name, *(float*)port->value);
+        e.add_constant("var_" + input.name, data.emplace_back(*(float*)port->value));
       }
-      else
+      else if(std::get_if<isf::long_input>(&input.data))
       {
-        // TODO exprtk only handles the expression type...
+        e.add_constant("var_" + input.name, data.emplace_back(*(int*)port->value));
       }
 
       port_k++;
@@ -336,26 +342,22 @@ struct RenderedISFNode : score::gfx::NodeRenderer
     if(auto expr = pass.width_expression; !expr.empty())
     {
       boost::algorithm::replace_all(expr, "$", "var_");
-      exprtk::expression<float> e;
-      e.register_symbol_table(syms);
-      exprtk::parser<float> parser;
-      bool ok = parser.compile(expr, e);
+      e.register_symbol_table();
+      bool ok = e.set_expression(expr);
       if(ok)
-        res.setWidth(e());
+        res.setWidth(e.value());
       else
-        qDebug() << parser.error().c_str() << expr.c_str();
+        qDebug() << e.error().c_str() << expr.c_str();
     }
     if(auto expr = pass.height_expression; !expr.empty())
     {
       boost::algorithm::replace_all(expr, "$", "var_");
-      exprtk::expression<float> e;
-      e.register_symbol_table(syms);
-      exprtk::parser<float> parser;
-      bool ok = parser.compile(expr, e);
+      e.register_symbol_table();
+      bool ok = e.set_expression(expr);
       if(ok)
-        res.setHeight(e());
+        res.setHeight(e.value());
       else
-        qDebug() << parser.error().c_str() << expr.c_str();
+        qDebug() << e.error().c_str() << expr.c_str();
     }
 
     return res;

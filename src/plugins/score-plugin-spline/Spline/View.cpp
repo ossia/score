@@ -47,7 +47,7 @@ public:
   QPointF point(double pos) const noexcept
   {
     auto pt = m_spl.evaluate(pos);
-    return mapToCanvas(ossia::nodes::spline_point{pt[0], pt[1]});
+    return mapToCanvas(ossia::spline_point{pt[0], pt[1]});
   }
 
   void paint(QPainter* p, const QStyleOptionGraphicsItem*, QWidget*) override
@@ -198,10 +198,10 @@ public:
     setScale(m_zoom);
   }
 
-  ossia::nodes::spline_point evaluate(double pos) const noexcept
+  ossia::spline_point evaluate(double pos) const noexcept
   {
     auto pt = m_spl.evaluate(pos);
-    return ossia::nodes::spline_point{pt[0], pt[1]};
+    return ossia::spline_point{pt[0], pt[1]};
   }
 
   static const constexpr auto N = 500;
@@ -266,7 +266,7 @@ public:
     }
   }
 
-  void setSpline(ossia::nodes::spline_data d)
+  void setSpline(ossia::spline_data d)
   {
     if (d != m_spline)
     {
@@ -284,16 +284,16 @@ public:
     update();
   }
 
-  const ossia::nodes::spline_data& spline() const { return m_spline; }
+  const ossia::spline_data& spline() const { return m_spline; }
 
-  QPointF mapToCanvas(const ossia::nodes::spline_point& point) const
+  QPointF mapToCanvas(const ossia::spline_point& point) const
   {
     return QPointF(point.x, 1. - point.y);
   }
 
-  ossia::nodes::spline_point mapFromCanvas(const QPointF& point) const
+  ossia::spline_point mapFromCanvas(const QPointF& point) const
   {
-    return ossia::nodes::spline_point{(double)point.x(), 1. - point.y()};
+    return ossia::spline_point{(double)point.x(), 1. - point.y()};
   }
 
   std::optional<std::size_t> findControlPoint(QPointF point) const
@@ -500,8 +500,8 @@ public:
   QPainterPath m_curveShape, m_playShape;
   QPainterPath m_strokedShape;
   std::optional<std::size_t> m_selectedPoint;
-  ossia::nodes::spline_data m_spline;
-  ossia::nodes::spline_data m_origSpline;
+  ossia::spline_data m_spline;
+  ossia::spline_data m_origSpline;
   QPointF m_origClick;
   ts::spline<2> m_spl;
 
@@ -536,7 +536,7 @@ View::View(const ProcessModel& m, const Process::Context& ctx, QGraphicsItem* pa
   this->setFlags(QGraphicsItem::ItemIsFocusable | QGraphicsItem::ItemClipsToShape);
 }
 
-void View::setSpline(ossia::nodes::spline_data d)
+void View::setSpline(ossia::spline_data d)
 {
   m_impl->setSpline(std::move(d));
   if (!m_impl->m_selectedPoint)
@@ -545,7 +545,7 @@ void View::setSpline(ossia::nodes::spline_data d)
   }
 }
 
-const ossia::nodes::spline_data& View::spline() const noexcept
+const ossia::spline_data& View::spline() const noexcept
 {
   return m_impl->spline();
 }

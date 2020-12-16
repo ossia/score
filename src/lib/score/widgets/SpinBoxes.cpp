@@ -1,4 +1,5 @@
 #include "SpinBoxes.hpp"
+#include "TimeSpinBox.hpp"
 
 #include <score/tools/Cursor.hpp>
 #include <score/model/Skin.hpp>

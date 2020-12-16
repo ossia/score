@@ -1,6 +1,8 @@
 #pragma once
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <ossia-qt/time.hpp>
+
 namespace Scenario
 {
 using TimeSignatureMap = ossia::flat_map<TimeVal, Control::time_signature>;

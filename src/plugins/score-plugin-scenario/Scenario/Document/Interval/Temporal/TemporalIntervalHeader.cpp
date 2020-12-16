@@ -175,7 +175,7 @@ void TemporalIntervalHeader::updateOverlay()
   bool hadSpeed = m_speed;
 
   if (hadSpeed)
-    overlayVisible |= bool(m_speed->spinbox);
+    overlayVisible |= bool(m_speed->impl->spinbox);
 
   bool needsRackButton = !itv.processes.empty();
   bool needsMute = overlayVisible;

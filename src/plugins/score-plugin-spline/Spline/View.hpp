@@ -18,8 +18,8 @@ class View final : public Process::LayerView
 public:
   View(const ProcessModel& m, const Process::Context& ctx, QGraphicsItem* parent);
 
-  void setSpline(ossia::nodes::spline_data d);
-  const ossia::nodes::spline_data& spline() const noexcept;
+  void setSpline(ossia::spline_data d);
+  const ossia::spline_data& spline() const noexcept;
 
   void setPlayPercentage(float p);
 

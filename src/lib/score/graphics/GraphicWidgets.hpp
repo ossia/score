@@ -1,12 +1,9 @@
 #pragma once
-#include <score/widgets/DoubleSpinBox.hpp>
 #include <score/widgets/Pixmap.hpp>
-#include <score/widgets/SignalUtils.hpp>
 
 #include <ossia-qt/value_metatypes.hpp>
 
 #include <QGraphicsPixmapItem>
-#include <QGraphicsProxyWidget>
 #include <QPointer>
 
 #include <cmath>
@@ -114,8 +111,8 @@ struct SCORE_LIB_BASE_EXPORT QGraphicsSliderBase : public QGraphicsItem
   QRectF boundingRect() const override;
 
   QRectF m_rect{defaultSliderSize};
-  QPointer<DoubleSpinboxWithEnter> spinbox{};
-  QPointer<QGraphicsProxyWidget> spinboxProxy{};
+  struct RightClickImpl;
+  RightClickImpl* impl{};
 };
 
 class SCORE_LIB_BASE_EXPORT QGraphicsSlider final : public QObject,

@@ -5,6 +5,7 @@
 #include <core/application/ApplicationSettings.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <ossia/dataflow/port.hpp>
 
 #include <Execution/DocumentPlugin.hpp>
 

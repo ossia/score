@@ -7,7 +7,6 @@
 #include <score/widgets/Pixmap.hpp>
 
 #include <ossia/audio/audio_protocol.hpp>
-#include <ossia/dataflow/nodes/sound_ref.hpp>
 
 #include <QFileInfo>
 #include <QHBoxLayout>

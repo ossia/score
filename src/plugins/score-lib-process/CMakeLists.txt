@@ -107,6 +107,7 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Process.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/TimeValue.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/ScenarioStyle.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/Pixmaps.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/AudioPortComboBox.cpp"

@@ -8,6 +8,7 @@
 #include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/tools/Unused.hpp>
+#include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/ControlWidgets.hpp>
 #include <score/widgets/ComboBox.hpp>
 
@@ -16,7 +17,6 @@
 
 #include <QCheckBox>
 #include <QGraphicsItem>
-#include <QGraphicsProxyWidget>
 #include <QLineEdit>
 #include <QPalette>
 #include <QTextDocument>

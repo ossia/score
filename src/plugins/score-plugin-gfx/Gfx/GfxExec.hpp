@@ -5,6 +5,7 @@
 
 #include <ossia/dataflow/graph_edge.hpp>
 #include <ossia/dataflow/graph_node.hpp>
+#include <ossia/dataflow/port.hpp>
 
 #include <Gfx/GfxContext.hpp>
 #include <Gfx/GfxDevice.hpp>

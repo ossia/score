@@ -9,14 +9,9 @@ class QCheckBox;
 class QGridLayout;
 class QFormLayout;
 class QLabel;
-namespace score
-{
-class TimeSpinBox;
-} // namespace score
 
 namespace Scenario
 {
-
 class EditionGrid;
 class PlayGrid;
 class EditionSettings;

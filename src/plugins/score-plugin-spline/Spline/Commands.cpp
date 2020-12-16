@@ -13,7 +13,7 @@ const CommandGroupKey& CommandFactoryName()
   return key;
 }
 
-ChangeSpline::ChangeSpline(const ProcessModel& autom, const ossia::nodes::spline_data& newval)
+ChangeSpline::ChangeSpline(const ProcessModel& autom, const ossia::spline_data& newval)
     : m_path{autom}, m_old{autom.spline()}, m_new{newval}
 {
 }
@@ -28,12 +28,12 @@ void ChangeSpline::redo(const score::DocumentContext& ctx) const
   m_path.find(ctx).setSpline(m_new);
 }
 
-void ChangeSpline::update(const ProcessModel&, const ossia::nodes::spline_data& newval)
+void ChangeSpline::update(const ProcessModel&, const ossia::spline_data& newval)
 {
   m_new = newval;
 }
 
-void ChangeSpline::update(const ProcessModel&, ossia::nodes::spline_data&& newval)
+void ChangeSpline::update(const ProcessModel&, ossia::spline_data&& newval)
 {
   using namespace std;
   swap(m_new, newval);

@@ -3,6 +3,7 @@ cninja_require(linkerwarnings)
 cninja_require(debugsyms)
 #cninja_require(debugmode)
 cninja_require(debugsplit)
+cninja_require(timetrace)
 cninja_require(score-warnings)
 
 set_cache(CMAKE_BUILD_TYPE Debug)

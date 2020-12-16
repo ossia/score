@@ -5,7 +5,7 @@
 
 #include <score/serialization/VisitorCommon.hpp>
 
-#include <ossia/dataflow/nodes/spline.hpp>
+#include <ossia/dataflow/nodes/spline/spline2d.hpp>
 
 #include <Spline/Metadata.hpp>
 
@@ -50,8 +50,8 @@ public:
 
   QString prettyName() const noexcept override;
 
-  const ossia::nodes::spline_data& spline() const noexcept { return m_spline; }
-  void setSpline(const ossia::nodes::spline_data& c)
+  const ossia::spline_data& spline() const noexcept { return m_spline; }
+  void setSpline(const ossia::spline_data& c)
   {
     if (m_spline != c)
     {
@@ -77,7 +77,7 @@ private:
   void loadPreset(const Process::Preset& preset) override;
   Process::Preset savePreset() const noexcept override;
 
-  ossia::nodes::spline_data m_spline;
+  ossia::spline_data m_spline;
 
   bool m_tween = false;
 

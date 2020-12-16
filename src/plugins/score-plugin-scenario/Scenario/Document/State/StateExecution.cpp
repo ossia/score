@@ -7,6 +7,7 @@
 #include <Scenario/Execution/score2OSSIA.hpp>
 
 #include <ossia/dataflow/node_process.hpp>
+#include <ossia/dataflow/port.hpp>
 #include <ossia/dataflow/nodes/state.hpp>
 #include <ossia/detail/pod_vector.hpp>
 #include <ossia/editor/scenario/time_event.hpp>

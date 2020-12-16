@@ -7,6 +7,7 @@
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/FormWidget.hpp>
 #include <score/widgets/MarginLess.hpp>
+#include <score/widgets/TimeSpinBox.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>

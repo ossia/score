@@ -6,7 +6,7 @@
 #include <score/model/ComponentHierarchy.hpp>
 #include <score/model/Identifier.hpp>
 
-#include <ossia-qt/time.hpp>
+#include <ossia-qt/time_value.hpp>
 
 #include <QObject>
 

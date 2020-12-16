@@ -2,7 +2,7 @@
 #include <Spline3D/Commands.hpp>
 #include <Process/Script/ScriptEditor.hpp>
 #include <QDialog>
-#include <exprtk.hpp>
+#include <ossia/math/math_expression.hpp>
 #include <QDoubleSpinBox>
 #include <QHBoxLayout>
 #include <QFormLayout>
@@ -35,12 +35,12 @@ public:
       m_step = step;
     });
 
-    syms.add_variable("t", t);
-    syms.add_variable("x", x);
-    syms.add_variable("y", y);
-    syms.add_variable("z", z);
-    syms.add_constants();
-    expr.register_symbol_table(syms);
+    expr.add_variable("t", t);
+    expr.add_variable("x", x);
+    expr.add_variable("y", y);
+    expr.add_variable("z", z);
+    expr.add_constants();
+    expr.register_symbol_table();
 
     setText(R"_(x := cos(2 * PI * t);
 y := sin(2 * PI * t);
@@ -52,15 +52,15 @@ z := sin(7 * PI * t);
   {
     this->setError(0, QString{});
     auto txt = this->text().toStdString();
-    bool ok = parser.compile(txt, this->expr);
+    bool ok = expr.set_expression(txt);
     if (!ok)
     {
-      setError(0, QString::fromStdString(parser.error()));
+      setError(0, QString::fromStdString(expr.error()));
       return;
     }
     else
     {
-      ossia::nodes::spline3d_data data;
+      ossia::spline3d_data data;
       for(t = 0.; t < 1.; t += m_step)
       {
         expr.value();
@@ -78,9 +78,7 @@ z := sin(7 * PI * t);
   }
   double t{}, x{}, y{}, z{};
   double m_step{0.03};
-  exprtk::symbol_table<double> syms;
-  exprtk::expression<double> expr;
-  exprtk::parser<double> parser;
+  ossia::math_expression expr;
 
   const ProcessModel& m_model;
 };

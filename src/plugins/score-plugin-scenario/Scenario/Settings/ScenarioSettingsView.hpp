@@ -10,7 +10,11 @@ class QComboBox;
 class QSpinBox;
 class QCheckBox;
 
-namespace score { class FormWidget;}
+namespace score
+{
+class FormWidget;
+class TimeSpinBox;
+}
 namespace Scenario
 {
 namespace Settings

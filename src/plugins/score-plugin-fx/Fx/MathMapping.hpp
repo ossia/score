@@ -34,19 +34,19 @@ struct Node
   {
     State()
     {
-      syms.add_variable("x", cur_value);
-      syms.add_variable("t", cur_time);
-      syms.add_variable("dt", cur_deltatime);
-      syms.add_variable("pos", cur_pos);
-      syms.add_variable("a", p1);
-      syms.add_variable("b", p2);
-      syms.add_variable("c", p3);
-      syms.add_variable("m1", m1);
-      syms.add_variable("m2", m2);
-      syms.add_variable("m3", m3);
-      syms.add_constants();
+      expr.add_variable("x", cur_value);
+      expr.add_variable("t", cur_time);
+      expr.add_variable("dt", cur_deltatime);
+      expr.add_variable("pos", cur_pos);
+      expr.add_variable("a", p1);
+      expr.add_variable("b", p2);
+      expr.add_variable("c", p3);
+      expr.add_variable("m1", m1);
+      expr.add_variable("m2", m2);
+      expr.add_variable("m3", m3);
+      expr.add_constants();
 
-      expr.register_symbol_table(syms);
+      expr.register_symbol_table();
     }
     double cur_value{};
     double cur_time{};
@@ -54,10 +54,8 @@ struct Node
     double cur_pos{};
     double p1{}, p2{}, p3{};
     double m1{}, m2{}, m3{};
-    exprtk::symbol_table<double> syms;
-    exprtk::expression<double> expr;
-    exprtk::parser<double> parser;
-    std::string cur_expr_txt;
+    ossia::math_expression expr;
+
     bool ok = false;
   };
 
@@ -73,7 +71,7 @@ struct Node
       ossia::exec_state_facade st,
       State& self)
   {
-    if (!updateExpr(self, expr))
+    if (!self.expr.set_expression(expr))
       return;
 
     for (const ossia::timed_value& v : input.get_data())
@@ -151,20 +149,20 @@ struct Node
       m2.resize(2);
       m3.resize(2);
 
-      syms.add_vector("x", cur_in);
-      syms.add_vector("out", cur_out);
-      syms.add_vector("px", prev_in);
-      syms.add_variable("t", cur_time);
-      syms.add_variable("a", p1);
-      syms.add_variable("b", p2);
-      syms.add_variable("c", p3);
-      syms.add_vector("m1", m1);
-      syms.add_vector("m2", m2);
-      syms.add_vector("m3", m3);
-      syms.add_constant("fs", fs);
-      syms.add_constants();
+      expr.add_vector("x", cur_in);
+      expr.add_vector("out", cur_out);
+      expr.add_vector("px", prev_in);
+      expr.add_variable("t", cur_time);
+      expr.add_variable("a", p1);
+      expr.add_variable("b", p2);
+      expr.add_variable("c", p3);
+      expr.add_vector("m1", m1);
+      expr.add_vector("m2", m2);
+      expr.add_vector("m3", m3);
+      expr.add_constant("fs", fs);
+      expr.add_constants();
 
-      expr.register_symbol_table(syms);
+      expr.register_symbol_table();
     }
 
     void reset_symbols(std::size_t N)
@@ -172,12 +170,12 @@ struct Node
       if(N == cur_in.size())
         return;
 
-      syms.remove_vector("x");
-      syms.remove_vector("out");
-      syms.remove_vector("px");
-      syms.remove_vector("m1");
-      syms.remove_vector("m2");
-      syms.remove_vector("m3");
+      expr.remove_vector("x");
+      expr.remove_vector("out");
+      expr.remove_vector("px");
+      expr.remove_vector("m1");
+      expr.remove_vector("m2");
+      expr.remove_vector("m3");
 
       cur_in.resize(N);
       cur_out.resize(N);
@@ -186,12 +184,12 @@ struct Node
       m2.resize(N);
       m3.resize(N);
 
-      syms.add_vector("x", cur_in);
-      syms.add_vector("out", cur_out);
-      syms.add_vector("px", prev_in);
-      syms.add_vector("m1", m1);
-      syms.add_vector("m2", m2);
-      syms.add_vector("m3", m3);
+      expr.add_vector("x", cur_in);
+      expr.add_vector("out", cur_out);
+      expr.add_vector("px", prev_in);
+      expr.add_vector("m1", m1);
+      expr.add_vector("m2", m2);
+      expr.add_vector("m3", m3);
     }
 
     std::vector<double> cur_in{};
@@ -201,10 +199,7 @@ struct Node
     double p1{}, p2{}, p3{};
     std::vector<double> m1, m2, m3;
     double fs{44100};
-    exprtk::symbol_table<double> syms;
-    exprtk::expression<double> expr;
-    exprtk::parser<double> parser;
-    std::string cur_expr_txt;
+    ossia::math_expression expr;
     bool ok = false;
   };
 
@@ -222,7 +217,7 @@ struct Node
   {
     if (tk.date > tk.prev_date)
     {
-      if (!updateExpr(self, expr))
+      if (!self.expr.set_expression(expr))
         return;
 
       const auto samplesRatio = st.modelToSamples();

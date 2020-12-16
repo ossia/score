@@ -11,7 +11,7 @@
 #include <score/tools/Bind.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SetIcons.hpp>
-#include <score/widgets/SpinBoxes.hpp>
+#include <score/widgets/TimeSpinBox.hpp>
 #include <score/widgets/TextLabel.hpp>
 
 #include <QCheckBox>

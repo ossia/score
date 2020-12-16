@@ -10,6 +10,7 @@
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph_edge.hpp>
 #include <ossia/dataflow/graph_node.hpp>
+#include <ossia/dataflow/port.hpp>
 #include <ossia/detail/pod_vector.hpp>
 #include <ossia/editor/curve/curve.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>

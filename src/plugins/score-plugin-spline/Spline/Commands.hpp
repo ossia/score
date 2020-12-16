@@ -2,7 +2,7 @@
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
 
-#include <ossia/dataflow/nodes/spline.hpp>
+#include <ossia/dataflow/nodes/spline/spline2d.hpp>
 
 namespace Spline
 {
@@ -13,14 +13,14 @@ class ChangeSpline final : public score::Command
 {
   SCORE_COMMAND_DECL(Spline::CommandFactoryName(), ChangeSpline, "Change Spline")
 public:
-  ChangeSpline(const ProcessModel& autom, const ossia::nodes::spline_data& newval);
+  ChangeSpline(const ProcessModel& autom, const ossia::spline_data& newval);
 
 public:
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 
-  void update(const ProcessModel&, const ossia::nodes::spline_data& newval);
-  void update(const ProcessModel&, ossia::nodes::spline_data&& newval);
+  void update(const ProcessModel&, const ossia::spline_data& newval);
+  void update(const ProcessModel&, ossia::spline_data&& newval);
 
 protected:
   void serializeImpl(DataStreamInput& s) const override;
@@ -28,6 +28,6 @@ protected:
 
 private:
   Path<ProcessModel> m_path;
-  ossia::nodes::spline_data m_old, m_new;
+  ossia::spline_data m_old, m_new;
 };
 }

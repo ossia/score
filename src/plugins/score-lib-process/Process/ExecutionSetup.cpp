@@ -10,6 +10,7 @@
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph_edge.hpp>
 #include <ossia/dataflow/graph_node.hpp>
+#include <ossia/dataflow/port.hpp>
 
 #include <ossia/network/common/destination_qualifiers.hpp>
 #include <ossia/editor/scenario/time_process.hpp>

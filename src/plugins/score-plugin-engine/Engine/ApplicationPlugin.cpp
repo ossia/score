@@ -32,6 +32,7 @@
 #include <score/widgets/MessageBox.hpp>
 #include <score/widgets/SetIcons.hpp>
 #include <score/widgets/SpinBoxes.hpp>
+#include <score/widgets/TimeSpinBox.hpp>
 
 #include <core/application/ApplicationInterface.hpp>
 #include <core/application/ApplicationSettings.hpp>

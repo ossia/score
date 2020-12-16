@@ -612,6 +612,34 @@ Port* PortFactoryList::loadMissing(const VisitorVariant& vis, QObject* parent) c
 
 PortFactoryList::~PortFactoryList() { }
 
+std::unique_ptr<Inlet> make_value_inlet(const Id<Process::Port>& c, QObject* parent)
+{
+  return std::make_unique<ValueInlet>(c, parent);
+}
+
+std::unique_ptr<Outlet> make_value_outlet(const Id<Process::Port>& c, QObject* parent)
+{
+  return std::make_unique<ValueOutlet>(c, parent);
+}
+
+std::unique_ptr<MidiInlet> make_midi_inlet(const Id<Process::Port>& c, QObject* parent)
+{
+  return std::make_unique<MidiInlet>(c, parent);
+}
+std::unique_ptr<MidiOutlet> make_midi_outlet(const Id<Process::Port>& c, QObject* parent)
+{
+  return std::make_unique<MidiOutlet>(c, parent);
+}
+
+std::unique_ptr<AudioInlet> make_audio_inlet(const Id<Process::Port>& c, QObject* parent)
+{
+  return std::make_unique<AudioInlet>(c, parent);
+}
+std::unique_ptr<AudioOutlet> make_audio_outlet(const Id<Process::Port>& c, QObject* parent)
+{
+  return std::make_unique<AudioOutlet>(c, parent);
+}
+
 std::unique_ptr<Inlet> load_inlet(DataStreamWriter& wr, QObject* parent)
 {
   static auto& il = score::AppComponents().interfaces<Process::PortFactoryList>();

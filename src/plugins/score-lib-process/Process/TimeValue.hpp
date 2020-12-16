@@ -1,22 +1,21 @@
 #pragma once
 #include <Process/ZoomHelper.hpp>
 
-#include <score/serialization/IsTemplate.hpp>
-#include <score/tools/std/Optional.hpp>
-
-#include <ossia-qt/time.hpp>
+#include <ossia-qt/time_value.hpp>
 #include <ossia/detail/flicks.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
 
-#include <QStringBuilder>
-#include <QTime>
 #include <cmath>
 
 #include <flicks.h>
 
+#include <score_lib_process_export.h>
+
 #include <chrono>
 #include <verdigris>
-struct TimeVal : ossia::time_value
+
+class QTime;
+struct SCORE_LIB_PROCESS_EXPORT TimeVal : ossia::time_value
 {
   using ossia::time_value::time_value;
 
@@ -46,12 +45,7 @@ struct TimeVal : ossia::time_value
 
   static constexpr TimeVal zero() noexcept { return TimeVal{time_value{}}; }
 
-  TimeVal(QTime t) noexcept
-      : time_value{int64_t(
-          ossia::flicks_per_millisecond<
-              double> * (t.msec() + 1000. * t.second() + 60000. * t.minute() + 3600000. * t.hour()))}
-  {
-  }
+  explicit TimeVal(const QTime& t) noexcept;
 
   template <
       typename Duration,
@@ -136,24 +130,8 @@ struct TimeVal : ossia::time_value
     return ossia::to_sample(*this, sampleRate);
   }
 
-  QTime toQTime() const noexcept
-  {
-    if (infinite())
-      return QTime(23, 59, 59, 999);
-    else
-      return QTime(0, 0, 0, 0).addMSecs(msec());
-  }
-
-  QString toString() const noexcept
-  {
-    auto qT = this->toQTime();
-    return QString("%1%2%3 s %4 ms")
-        .arg(
-            qT.hour() != 0 ? QString::number(qT.hour()) % QStringLiteral(" h ") : QString(),
-            qT.minute() != 0 ? QString::number(qT.minute()) % QStringLiteral(" min ") : QString(),
-            QString::number(qT.second()),
-            QString::number(qT.msec()));
-  }
+  QTime toQTime() const noexcept;
+  QString toString() const noexcept;
 
   constexpr void setMSecs(double msecs) noexcept
   {
@@ -192,11 +170,6 @@ inline const TimeVal& max(const TimeVal& lhs, const TimeVal& rhs) noexcept
   else
     return lhs;
 }
-
-template <>
-struct is_custom_serialized<TimeVal> : std::true_type
-{
-};
 
 namespace std
 {

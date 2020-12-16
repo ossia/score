@@ -5,6 +5,7 @@
 #include <score/model/ColorReference.hpp>
 
 #include <ossia/editor/scenario/time_value.hpp>
+#include <ossia-qt/time.hpp>
 
 #include <QGlyphRun>
 #include <QGraphicsItem>

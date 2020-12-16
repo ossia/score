@@ -1,11 +1,21 @@
 #pragma once
 #include <score/graphics/GraphicWidgets.hpp>
+#include <score/widgets/DoubleSpinBox.hpp>
+#include <score/widgets/SignalUtils.hpp>
+#include <QGraphicsProxyWidget>
 
 namespace score
 {
+template <typename T>
+struct QGraphicsSliderBase<T>::RightClickImpl {
+QPointer<DoubleSpinboxWithEnter> spinbox{};
+QPointer<QGraphicsProxyWidget> spinboxProxy{};
+};
 
 template <typename T>
-QGraphicsSliderBase<T>::QGraphicsSliderBase(QGraphicsItem* parent) : QGraphicsItem{parent}
+QGraphicsSliderBase<T>::QGraphicsSliderBase(QGraphicsItem* parent)
+  : QGraphicsItem{parent}
+  , impl{new RightClickImpl}
 {
   this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
@@ -13,8 +23,9 @@ QGraphicsSliderBase<T>::QGraphicsSliderBase(QGraphicsItem* parent) : QGraphicsIt
 template <typename T>
 QGraphicsSliderBase<T>::~QGraphicsSliderBase()
 {
-  if (spinbox || spinboxProxy)
-    delete spinboxProxy;
+  if (this->impl->spinbox || this->impl->spinboxProxy)
+    delete this->impl->spinboxProxy;
+  delete impl;
 }
 
 template <typename T>
