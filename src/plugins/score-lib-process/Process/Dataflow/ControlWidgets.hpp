@@ -40,7 +40,7 @@ using ConcreteNormalizer = std::conditional_t<
   UpdatingNormalizer<Normalizer, T>,
   FixedNormalizer<Normalizer>
 >;
-template <typename ControlUI, typename Normalizer>
+template <typename ControlUI, typename Normalizer, bool Control>
 struct FloatControl
 {
   template <typename T, typename Control_T>
@@ -59,19 +59,29 @@ struct FloatControl
     bindFloatDomain(slider, inlet, *sl);
     sl->setValue(norm.to01(ossia::convert<double>(inlet.value())));
 
-    QObject::connect(sl, &score::DoubleSlider::sliderMoved, context, [sl, norm, &inlet, &ctx](double v) {
-      sl->moving = true;
-      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, norm.from01(sl->value()));
-    });
-    QObject::connect(sl, &score::DoubleSlider::sliderReleased, context, [sl, norm, &inlet, &ctx]() {
-      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, norm.from01(sl->value()));
-      ctx.dispatcher.commit();
-      sl->moving = false;
-    });
+    if constexpr(Control)
+    {
+      QObject::connect(sl, &score::DoubleSlider::sliderMoved, context, [sl, norm, &inlet, &ctx](double v) {
+        sl->moving = true;
+        ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, norm.from01(sl->value()));
+      });
+      QObject::connect(sl, &score::DoubleSlider::sliderReleased, context, [sl, norm, &inlet, &ctx]() {
+        ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, norm.from01(sl->value()));
+        ctx.dispatcher.commit();
+        sl->moving = false;
+      });
+    }
 
     QObject::connect(&inlet, &Control_T::valueChanged, sl, [sl, norm] (ossia::value val) {
-      if (!sl->moving)
+      if constexpr(Control)
+      {
+        if (!sl->moving)
+          sl->setValue(norm.to01(ossia::convert<double>(val)));
+      }
+      else
+      {
         sl->setValue(norm.to01(ossia::convert<double>(val)));
+      }
     });
 
     return sl;
@@ -91,19 +101,29 @@ struct FloatControl
     bindFloatDomain(slider, inlet, *sl);
     sl->setValue(norm.to01(ossia::convert<double>(inlet.value())));
 
-    QObject::connect(sl, &ControlUI::sliderMoved, context, [sl, norm, &inlet, &ctx] {
-      sl->moving = true;
-      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, norm.from01(sl->value()));
-    });
-    QObject::connect(sl, &ControlUI::sliderReleased, context, [sl, norm, &inlet, &ctx] {
-      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, norm.from01(sl->value()));
-      ctx.dispatcher.commit();
-      sl->moving = false;
-    });
+    if constexpr(Control)
+    {
+      QObject::connect(sl, &ControlUI::sliderMoved, context, [sl, norm, &inlet, &ctx] {
+        sl->moving = true;
+        ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, norm.from01(sl->value()));
+      });
+      QObject::connect(sl, &ControlUI::sliderReleased, context, [sl, norm, &inlet, &ctx] {
+        ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, norm.from01(sl->value()));
+        ctx.dispatcher.commit();
+        sl->moving = false;
+      });
+    }
 
     QObject::connect(&inlet, &Control_T::valueChanged, sl, [sl, norm](ossia::value val) {
-      if (!sl->moving)
+      if constexpr(Control)
+      {
+        if (!sl->moving)
+          sl->setValue(norm.to01(ossia::convert<double>(val)));
+      }
+      else
+      {
         sl->setValue(norm.to01(ossia::convert<double>(val)));
+      }
     });
 
     return sl;
@@ -111,10 +131,12 @@ struct FloatControl
 };
 
 
-using FloatSlider = FloatControl<score::QGraphicsSlider, LinearNormalizer>;
-using LogFloatSlider = FloatControl<score::QGraphicsLogSlider, LogNormalizer>;
-using FloatKnob = FloatControl<score::QGraphicsKnob, LinearNormalizer>;
-using LogFloatKnob = FloatControl<score::QGraphicsLogKnob, LogNormalizer>;
+using FloatSlider = FloatControl<score::QGraphicsSlider, LinearNormalizer, true>;
+using LogFloatSlider = FloatControl<score::QGraphicsLogSlider, LogNormalizer, true>;
+using FloatKnob = FloatControl<score::QGraphicsKnob, LinearNormalizer, true>;
+using LogFloatKnob = FloatControl<score::QGraphicsLogKnob, LogNormalizer, true>;
+using FloatDisplay = FloatControl<score::QGraphicsSlider, LinearNormalizer, false>;
+using LogFloatDisplay = FloatControl<score::QGraphicsLogSlider, LogNormalizer, false>;
 
 
 struct IntSlider
@@ -756,62 +778,5 @@ struct XYSlider
 
 
 /// Outlets
-template <typename ControlUI>
-struct FloatDisplay
-{
-  template <typename T, typename Control_T>
-  static auto make_widget(
-      const T& slider,
-      Control_T& inlet,
-      const score::DocumentContext& ctx,
-      QWidget* parent,
-      QObject* context)
-  {
-    auto min = slider.getMin();
-    auto max = slider.getMax();
-    if (max - min == 0)
-      max = min + 1;
-    auto sl = new score::ValueDoubleSlider{parent};
-    sl->setOrientation(Qt::Horizontal);
-    sl->setContentsMargins(0, 0, 0, 0);
-    sl->min = min;
-    sl->max = max;
-    sl->setValue((ossia::convert<double>(inlet.value()) - min) / (max - min));
-
-    QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](ossia::value val) {
-      if (!sl->moving)
-        sl->setValue((ossia::convert<double>(val) - min) / (max - min));
-    });
-
-    return sl;
-  }
-
-  template <typename T, typename Control_T>
-  static auto make_item(
-      const T& slider,
-      Control_T& inlet,
-      const score::DocumentContext& ctx,
-      QGraphicsItem* parent,
-      QObject* context)
-  {
-    auto min = slider.getMin();
-    auto max = slider.getMax();
-    if (max - min == 0)
-      max = min + 1;
-    auto sl = new ControlUI{nullptr};
-    sl->min = min;
-    sl->max = max;
-    sl->setValue((ossia::convert<double>(inlet.value()) - min) / (max - min));
-
-    QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](ossia::value val) {
-      if (!sl->moving)
-        sl->setValue((ossia::convert<double>(val) - min) / (max - min));
-    });
-
-    return sl;
-  }
-};
-
-
-using Bargraph = FloatDisplay<score::QGraphicsSlider>;
+using Bargraph = FloatDisplay;
 }

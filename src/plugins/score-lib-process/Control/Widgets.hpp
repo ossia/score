@@ -39,7 +39,7 @@ struct OutControl final : ossia::safe_nodes::control_out
 };
 
 template <typename T>
-struct FloatControl final : ossia::safe_nodes::control_in, WidgetFactory::FloatControl<T, WidgetFactory::LinearNormalizer>
+struct FloatControl final : ossia::safe_nodes::control_in, WidgetFactory::FloatControl<T, WidgetFactory::LinearNormalizer, true>
 {
   static const constexpr bool must_validate = false;
   using type = float;
@@ -81,7 +81,7 @@ struct FloatControl final : ossia::safe_nodes::control_in, WidgetFactory::FloatC
 };
 
 template <typename T>
-struct LogFloatControl final : ossia::safe_nodes::control_in, WidgetFactory::FloatControl<T, WidgetFactory::LogNormalizer>
+struct LogFloatControl final : ossia::safe_nodes::control_in, WidgetFactory::FloatControl<T, WidgetFactory::LogNormalizer, true>
 {
   static const constexpr bool must_validate = false;
   using type = float;
@@ -122,10 +122,55 @@ struct LogFloatControl final : ossia::safe_nodes::control_in, WidgetFactory::Flo
   ossia::value toValue(float v) const { return v; }
 };
 
+
+template <typename T>
+struct FloatDisplay final : ossia::safe_nodes::control_out, WidgetFactory::FloatControl<T, WidgetFactory::LinearNormalizer, false>
+{
+  static const constexpr bool must_validate = false;
+  using type = float;
+  using port_type = Process::Bargraph;
+  const float min{};
+  const float max{};
+  const float init{};
+
+  template <std::size_t N>
+  constexpr FloatDisplay(const char (&name)[N], float v1, float v2, float v3)
+      : ossia::safe_nodes::control_out{name}, min{v1}, max{v2}, init{v3}
+  {
+  }
+
+  auto getMin() const { return min; }
+  auto getMax() const { return max; }
+
+  auto create_outlet(Id<Process::Port> id, QObject* parent) const
+  {
+    return new Process::Bargraph{
+        min, max, init, QString::fromUtf8(name.data(), name.size()), id, parent};
+  }
+  auto create_outlet(DataStream::Deserializer& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::Bargraph>(id, parent);
+  }
+  auto create_outlet(JSONObject::Deserializer&& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::Bargraph>(id, parent);
+  }
+
+  void setup_exec(ossia::value_outlet& v) const
+  {
+    v->domain = ossia::domain_base<float>(this->min, this->max);
+  }
+
+  float fromValue(const ossia::value& v) const { return ossia::convert<float>(v); }
+  ossia::value toValue(float v) const { return v; }
+};
+
 using FloatSlider = FloatControl<score::QGraphicsSlider>;
 using FloatKnob = FloatControl<score::QGraphicsKnob>;
 using LogFloatSlider = LogFloatControl<score::QGraphicsLogSlider>;
 using LogFloatKnob = LogFloatControl<score::QGraphicsLogKnob>;
+
+using Bargraph = FloatDisplay<score::QGraphicsSlider>;
 
 struct IntSlider final : ossia::safe_nodes::control_in, WidgetFactory::IntSlider
 {
