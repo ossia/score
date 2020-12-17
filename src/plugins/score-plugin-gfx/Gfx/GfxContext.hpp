@@ -142,22 +142,151 @@ struct gfx_view_node
       void operator()(const std::string& v) const noexcept { }
       void operator()(ossia::vec2f v) const noexcept
       {
-        assert(type == Types::Vec2);
-        memcpy(value, v.data(), 8);
+        switch (type)
+        {
+          case Types::Int:
+          {
+            int iv = v[0];
+            memcpy(value, &iv, 4);
+            break;
+          }
+          case Types::Float:
+          {
+            float fv = v[0];
+            memcpy(value, &fv, 4);
+            break;
+          }
+          case Types::Vec2:
+          {
+            memcpy(value, v.data(), 8);
+            break;
+          }
+          case Types::Vec3:
+          {
+            memcpy(value, v.data(), 8);
+            *(reinterpret_cast<float*>(value) + 2) = 0.f;
+            break;
+          }
+          case Types::Vec4:
+          {
+            memcpy(value, v.data(), 8);
+            *(reinterpret_cast<float*>(value) + 2) = 0.f;
+            *(reinterpret_cast<float*>(value) + 3) = 0.f;
+            break;
+          }
+          default:
+            break;
+        }
       }
+
       void operator()(ossia::vec3f v) const noexcept
       {
-        assert(type == Types::Vec3);
-        memcpy(value, v.data(), 12);
+        switch (type)
+        {
+          case Types::Int:
+          {
+            int iv = v[0];
+            memcpy(value, &iv, 4);
+            break;
+          }
+          case Types::Float:
+          {
+            float fv = v[0];
+            memcpy(value, &fv, 4);
+            break;
+          }
+          case Types::Vec2:
+          {
+            memcpy(value, v.data(), 8);
+            break;
+          }
+          case Types::Vec3:
+          {
+            memcpy(value, v.data(), 12);
+            break;
+          }
+          case Types::Vec4:
+          {
+            memcpy(value, v.data(), 12);
+            *(reinterpret_cast<float*>(value) + 3) = 0.f;
+            break;
+          }
+          default:
+            break;
+        }
       }
       void operator()(ossia::vec4f v) const noexcept
       {
-        assert(type == Types::Vec4);
-        memcpy(value, v.data(), 16);
+        switch (type)
+        {
+          case Types::Int:
+          {
+            int iv = v[0];
+            memcpy(value, &iv, 4);
+            break;
+          }
+          case Types::Float:
+          {
+            float fv = v[0];
+            memcpy(value, &fv, 4);
+            break;
+          }
+          case Types::Vec2:
+          {
+            memcpy(value, v.data(), 8);
+            break;
+          }
+          case Types::Vec3:
+          {
+            memcpy(value, v.data(), 12);
+            break;
+          }
+          case Types::Vec4:
+          {
+            memcpy(value, v.data(), 16);
+            break;
+          }
+          default:
+            break;
+        }
       }
       void operator()(const std::vector<ossia::value>& v) const noexcept
       {
-        // TODOstd::visit(vec_visitor{v}, value);
+        if(v.empty())
+          return;
+
+        switch (type)
+        {
+          case Types::Int:
+          {
+            int iv = ossia::convert<int>(v[0]);
+            memcpy(value, &iv, 4);
+            break;
+          }
+          case Types::Float:
+          {
+            float fv = ossia::convert<float>(v[0]);
+            memcpy(value, &fv, 4);
+            break;
+          }
+          case Types::Vec2:
+          {
+            (*this)(ossia::convert<ossia::vec2f>(v));
+            break;
+          }
+          case Types::Vec3:
+          {
+            (*this)(ossia::convert<ossia::vec3f>(v));
+            break;
+          }
+          case Types::Vec4:
+          {
+            (*this)(ossia::convert<ossia::vec4f>(v));
+            break;
+          }
+          default:
+            break;
+        }
       }
     };
 
