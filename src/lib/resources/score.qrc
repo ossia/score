@@ -644,5 +644,7 @@
         <file>icons/zoom/plus_off@2x.png</file>
         <file>icons/zoom/plus_on.png</file>
         <file>icons/zoom/plus_on@2x.png</file>
+        <file>icons/analysis.png</file>
+        <file>icons/analysis@2x.png</file>
     </qresource>
 </RCC>
