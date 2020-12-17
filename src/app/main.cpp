@@ -208,6 +208,17 @@ static void setup_app_flags()
 #endif
 }
 
+#if __has_include(<fftw3.h>)
+#include <fftw3.h>
+static void setup_fftw()
+{
+  // See http://fftw.org/fftw3_doc/Thread-safety.html
+  fftw_make_planner_thread_safe();
+}
+#else
+static void setup_fftw() { }
+#endif
+
 int main(int argc, char** argv)
 {
 #if defined(__APPLE__)
@@ -221,6 +232,7 @@ int main(int argc, char** argv)
   setup_locale();
   setup_opengl();
   setup_app_flags();
+  setup_fftw();
 
   QPixmapCache::setCacheLimit(819200);
   Application app(argc, argv);

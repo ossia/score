@@ -107,6 +107,12 @@ if(IOS)
     )
 endif()
 
+find_path(FFTW3_INCLUDEDIR fftw3.h)
+find_library(FFTW3_THREADS_LIBRARY fftw3_threads)
+if(FFTW3_INCLUDEDIR AND FFTW3_LIBRARY)
+  target_link_libraries(${APPNAME} PRIVATE ${FFTW3_THREADS_LIBRARY})
+  target_include_directories(${APPNAME} PRIVATE ${FFTW3_INCLUDEDIR})
+endif()
 setup_score_common_exe_features(${APPNAME})
 
 if(WIN32)
