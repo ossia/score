@@ -173,7 +173,7 @@ struct ImagesNode : NodeModel
   std::vector<Gfx::Image> images;
   ImagesNode(std::vector<Gfx::Image> dec) : images{std::move(dec)}
   {
-    setShaders(vertex, filter);
+    std::tie(m_vertexS, m_fragmentS) = makeShaders(vertex, filter);
     input.push_back(new Port{this, &ubo.currentImageIndex, Types::Int, {}});
     input.push_back(new Port{this, &ubo.opacity, Types::Float, {}});
     input.push_back(new Port{this, &ubo.position[0], Types::Vec2, {}});

@@ -27,7 +27,7 @@ struct MeshBuffers
 };
 
 struct OutputNode;
-struct Renderer
+struct SCORE_PLUGIN_GFX_EXPORT Renderer
 {
   std::vector<score::gfx::Node*> nodes;
   std::vector<score::gfx::NodeRenderer*> renderedNodes;

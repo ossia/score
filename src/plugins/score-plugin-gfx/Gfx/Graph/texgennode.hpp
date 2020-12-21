@@ -121,7 +121,7 @@ struct TexgenNode : NodeModel
   TexgenNode()
   {
     image = QImage{QSize(640, 480), QImage::Format_ARGB32_Premultiplied};
-    setShaders(vertex, filter);
+    std::tie(m_vertexS, m_fragmentS) = makeShaders(vertex, filter);
     output.push_back(new Port{this, {}, Types::Image, {}});
   }
   virtual ~TexgenNode() { m_materialData.release(); }

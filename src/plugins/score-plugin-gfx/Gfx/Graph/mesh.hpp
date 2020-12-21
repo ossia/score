@@ -11,6 +11,7 @@ struct SCORE_PLUGIN_GFX_EXPORT Mesh
   ossia::small_vector<QRhiVertexInputBinding, 2> vertexInputBindings;
   ossia::small_vector<QRhiVertexInputAttribute, 2> vertexAttributeBindings;
   int vertexCount{};
+  int indexCount{};
   gsl::span<const float> vertexArray;
   gsl::span<const unsigned int> indexArray;
 
@@ -42,7 +43,7 @@ struct PlainMesh : Mesh
   {
     const QRhiCommandBuffer::VertexInput bindings[] = {{&vtxData, 0}};
 
-    cb.setVertexInput(0, 1, bindings);
+    cb.setVertexInput(0, 1, bindings, idxData);
   }
 
   const char* defaultVertexShader() const noexcept override

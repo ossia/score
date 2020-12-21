@@ -293,14 +293,17 @@ public:
 
   virtual score::gfx::NodeRenderer* createRenderer() const noexcept;
 
-  void setShaders(QString vert, QString frag);
   void setShaders(const QShader& vert, const QShader& frag);
 
   std::unique_ptr<char[]> m_materialData;
 
-protected:
   QShader m_vertexS;
   QShader m_fragmentS;
 
   friend class RenderedNode;
 };
+
+SCORE_PLUGIN_GFX_EXPORT
+std::pair<QShader, QShader> makeShaders(QString vert, QString frag);
+SCORE_PLUGIN_GFX_EXPORT
+QShader makeCompute(QString compt);

@@ -8,7 +8,7 @@ struct FilterNode : NodeModel
   const TexturedTriangle& m_mesh = TexturedTriangle::instance();
   FilterNode(QString frag)
   {
-    setShaders(m_mesh.defaultVertexShader(), frag);
+    std::tie(m_vertexS, m_fragmentS) = makeShaders(m_mesh.defaultVertexShader(), frag);
 
     const auto& d = m_fragmentS.description();
     for (int i = 0, n = d.combinedImageSamplers().size(); i < n; i++)

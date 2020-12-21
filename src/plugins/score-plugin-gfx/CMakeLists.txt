@@ -40,14 +40,6 @@ set(HDRS
     Gfx/Filter/Layer.hpp
     Gfx/Filter/PreviewWidget.hpp
 
-    Gfx/Mesh/Executor.hpp
-    Gfx/Mesh/LocalTree.hpp
-    Gfx/Mesh/Metadata.hpp
-    Gfx/Mesh/Presenter.hpp
-    Gfx/Mesh/Process.hpp
-    Gfx/Mesh/View.hpp
-    Gfx/Mesh/Layer.hpp
-
     Gfx/Video/Executor.hpp
     Gfx/Video/Inspector.hpp
     Gfx/Video/LocalTree.hpp
@@ -89,7 +81,6 @@ set(HDRS
     Gfx/CameraDevice.hpp
     Gfx/WindowDevice.hpp
 
-    3rdparty/icosphere/Icosphere.h
     # Gfx/graph/hap/source/hap.h
 
     score_plugin_gfx.hpp
@@ -103,12 +94,6 @@ set(SRCS
     Gfx/Filter/LocalTree.cpp
     Gfx/Filter/Process.cpp
     Gfx/Filter/PreviewWidget.cpp
-
-    Gfx/Mesh/Executor.cpp
-    Gfx/Mesh/LocalTree.cpp
-    Gfx/Mesh/Presenter.cpp
-    Gfx/Mesh/Process.cpp
-    Gfx/Mesh/View.cpp
 
     Gfx/Video/Executor.cpp
     Gfx/Video/Inspector.cpp
@@ -138,7 +123,6 @@ set(SRCS
 
     # Gfx/graph/hap/source/hap.c
 
-    3rdparty/icosphere/Icosphere.cpp
 
     score_plugin_gfx.cpp
 )
@@ -155,8 +139,12 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   score_lib_base  score_lib_localtree score_lib_process score_plugin_dataflow score_plugin_engine
    ${QT_PREFIX}::ShaderTools  ${QT_PREFIX}::GuiPrivate
 )
-target_link_libraries(${PROJECT_NAME} PRIVATE
-  avcodec avformat swresample avutil avdevice score_plugin_media isf)
+target_link_libraries(${PROJECT_NAME}
+  PUBLIC
+    isf
+  PRIVATE
+    avcodec avformat swresample avutil avdevice score_plugin_media
+)
 
 if(APPLE)
     find_library(QuartzCore_FK QuartzCore)

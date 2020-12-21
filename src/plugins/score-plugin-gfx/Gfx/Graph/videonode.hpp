@@ -63,7 +63,8 @@ void main()
   void init(Renderer& r, RenderedNode& rendered) override
   {
     auto& rhi = *r.state.rhi;
-    node.setShaders(node.mesh().defaultVertexShader(), yuv420_filter);
+
+    std::tie(node.m_vertexS, node.m_fragmentS) = makeShaders(node.mesh().defaultVertexShader(), yuv420_filter);
 
     const auto w = decoder.width, h = decoder.height;
     // Y
@@ -213,8 +214,7 @@ static const constexpr auto yuv420_filter = R"_(#version 450
   void init(Renderer& r, RenderedNode& rendered) override
   {
     auto& rhi = *r.state.rhi;
-    node.setShaders(node.mesh().defaultVertexShader(), yuv420_filter);
-
+    std::tie(node.m_vertexS, node.m_fragmentS) = makeShaders(node.mesh().defaultVertexShader(), yuv420_filter);
     const auto w = decoder.width, h = decoder.height;
     // Y
     {
@@ -353,7 +353,7 @@ struct RGB0Decoder : GPUVideoDecoder
   void init(Renderer& r, RenderedNode& rendered) override
   {
     auto& rhi = *r.state.rhi;
-    node.setShaders(node.mesh().defaultVertexShader(), QString(rgb_filter).arg(filter));
+    std::tie(node.m_vertexS, node.m_fragmentS) = makeShaders(node.mesh().defaultVertexShader(), QString(rgb_filter).arg(filter));
 
     const auto w = decoder.width, h = decoder.height;
 
@@ -411,7 +411,7 @@ struct EmptyDecoder : GPUVideoDecoder
   NodeModel& node;
   void init(Renderer& r, RenderedNode& rendered) override
   {
-    node.setShaders(node.mesh().defaultVertexShader(), hashtag_no_filter);
+    std::tie(node.m_vertexS, node.m_fragmentS) = makeShaders(node.mesh().defaultVertexShader(), hashtag_no_filter);
   }
 
   void exec(Renderer&, RenderedNode& rendered, QRhiResourceUpdateBatch& res, AVFrame& frame) override

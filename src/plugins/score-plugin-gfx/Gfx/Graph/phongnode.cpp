@@ -69,7 +69,7 @@ PhongNode::PhongNode(const Mesh* mesh) : m_mesh{mesh}
   QMatrix4x4 mvp = projection * mv;
   QMatrix3x3 norm = model.normalMatrix();
 
-  setShaders(mesh->defaultVertexShader(), frag);
+  std::tie(m_vertexS, m_fragmentS) = makeShaders(mesh->defaultVertexShader(), frag);
   const int sz = sizeof(ModelCameraUBO);
   m_materialData.reset(new char[sz]);
   std::fill_n(m_materialData.get(), sz, 0);

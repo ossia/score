@@ -41,7 +41,7 @@ struct OutputNode : NodeModel
   virtual RenderState* renderState() const = 0;
 
 protected:
-  OutputNode() { setShaders(m_mesh.defaultVertexShader(), filter); }
+  OutputNode() { std::tie(m_vertexS, m_fragmentS) = makeShaders(m_mesh.defaultVertexShader(), filter); }
   const Mesh& mesh() const noexcept override { return this->m_mesh; }
 };
 
@@ -65,7 +65,8 @@ struct ColorNode : NodeModel
   const TexturedTriangle& m_mesh = TexturedTriangle::instance();
   ColorNode()
   {
-    setShaders(m_mesh.defaultVertexShader(), filter);
+    std::tie(m_vertexS, m_fragmentS) = makeShaders(m_mesh.defaultVertexShader(), filter);
+
     input.push_back(new Port{this, {}, Types::Vec4, {}});
     // input.back()->value = ossia::vec4f{0.6, 0.3, 0.78, 1.};
     output.push_back(new Port{this, {}, Types::Image, {}});
@@ -90,7 +91,7 @@ struct NoiseNode : NodeModel
   const TexturedTriangle& m_mesh = TexturedTriangle::instance();
   NoiseNode()
   {
-    setShaders(m_mesh.defaultVertexShader(), filter);
+    std::tie(m_vertexS, m_fragmentS) = makeShaders(m_mesh.defaultVertexShader(), filter);
     output.push_back(new Port{this, {}, Types::Image, {}});
   }
   const Mesh& mesh() const noexcept override { return this->m_mesh; }
@@ -117,7 +118,7 @@ struct ProductNode : NodeModel
   const TexturedTriangle& m_mesh = TexturedTriangle::instance();
   ProductNode()
   {
-    setShaders(m_mesh.defaultVertexShader(), filter);
+    std::tie(m_vertexS, m_fragmentS) = makeShaders(m_mesh.defaultVertexShader(), filter);
     input.push_back(new Port{this, {}, Types::Image, {}});
     input.push_back(new Port{this, {}, Types::Image, {}});
     output.push_back(new Port{this, {}, Types::Image, {}});

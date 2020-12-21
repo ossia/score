@@ -13,9 +13,6 @@
 #include <Gfx/Images/Inspector.hpp>
 #include <Gfx/Images/Layer.hpp>
 #include <Gfx/Images/Process.hpp>
-#include <Gfx/Mesh/Executor.hpp>
-#include <Gfx/Mesh/Layer.hpp>
-#include <Gfx/Mesh/Process.hpp>
 #include <Gfx/TexturePort.hpp>
 #include <Gfx/WindowDevice.hpp>
 #include <Gfx/Video/Executor.hpp>
@@ -62,17 +59,14 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_gfx::factories(
       FW<Process::ProcessModelFactory,
          Gfx::Filter::ProcessFactory,
          Gfx::Video::ProcessFactory,
-         Gfx::Mesh::ProcessFactory,
          Gfx::Images::ProcessFactory>,
       FW<Process::LayerFactory,
          Gfx::Filter::LayerFactory,
          Gfx::Video::LayerFactory,
-         Gfx::Mesh::LayerFactory,
          Gfx::Images::LayerFactory>,
       FW<Execution::ProcessComponentFactory,
          Gfx::Filter::ProcessExecutorComponentFactory,
          Gfx::Video::ProcessExecutorComponentFactory,
-         Gfx::Mesh::ProcessExecutorComponentFactory,
          Gfx::Images::ProcessExecutorComponentFactory>,
       FW<Inspector::InspectorWidgetFactory,
          Gfx::Video::InspectorFactory>,
@@ -80,12 +74,10 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_gfx::factories(
       FW<Process::ProcessDropHandler,
          Gfx::Filter::DropHandler,
          Gfx::Video::DropHandler,
-         Gfx::Mesh::DropHandler,
          Gfx::Images::DropHandler>,
       FW<Library::LibraryInterface,
          Gfx::Filter::LibraryHandler,
          Gfx::Video::LibraryHandler,
-         Gfx::Mesh::LibraryHandler,
          Gfx::Images::LibraryHandler>>(ctx, key);
 }
 

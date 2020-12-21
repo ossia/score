@@ -168,7 +168,7 @@ void RenderedNode::customInit(Renderer& renderer)
   defaultShaderMaterialInit(renderer);
 }
 
-void NodeModel::setShaders(QString vert, QString frag)
+std::pair<QShader, QShader> makeShaders(QString vert, QString frag)
 {
   QShaderBaker b;
 
@@ -182,11 +182,11 @@ void NodeModel::setShaders(QString vert, QString frag)
       {QShader::Variant{}, QShader::Variant{}, QShader::Variant{}, QShader::Variant{}});
 
   b.setSourceString(vert.toLatin1(), QShader::VertexStage);
-  m_vertexS = b.bake();
+  QShader m_vertexS = b.bake();
   if(!b.errorMessage().isEmpty()) qDebug() << b.errorMessage();
 
   b.setSourceString(frag.toLatin1(), QShader::FragmentStage);
-  m_fragmentS = b.bake();
+  QShader m_fragmentS = b.bake();
   if (!b.errorMessage().isEmpty())
   {
     qDebug() << b.errorMessage();
@@ -197,6 +197,34 @@ void NodeModel::setShaders(QString vert, QString frag)
     throw std::runtime_error("invalid vertex shader");
   if (!m_fragmentS.isValid())
     throw std::runtime_error("invalid fragment shader");
+
+  return {m_vertexS, m_fragmentS};
+}
+
+QShader makeCompute(QString compute)
+{
+  QShaderBaker b;
+
+  b.setGeneratedShaders({
+                          {QShader::SpirvShader, 100},
+                          {QShader::GlslShader, 330},
+                          {QShader::HlslShader, QShaderVersion(50)},
+                          {QShader::MslShader, QShaderVersion(12)},
+                        });
+  b.setGeneratedShaderVariants(
+        {QShader::Variant{}, QShader::Variant{}, QShader::Variant{}, QShader::Variant{}});
+
+  b.setSourceString(compute.toLatin1(), QShader::ComputeStage);
+  QShader shader = b.bake();
+
+  if (!b.errorMessage().isEmpty())
+  {
+    qDebug() << b.errorMessage();
+  }
+
+  if (!shader.isValid())
+    throw std::runtime_error("invalid compute shader");
+  return shader;
 }
 
 void NodeModel::setShaders(const QShader& vert, const QShader& frag)
