@@ -13,7 +13,7 @@
     security import $CODESIGN_SECUREFILEPATH -k $KEY_CHAIN -P $MAC_CODESIGN_PASSWORD -T /usr/bin/codesign
     security set-key-partition-list -S apple-tool:,apple: -s -k travis $KEY_CHAIN
 
-    rm -rf *.p12
+    rm -rf $CODESIGN_SECUREFILEPATH
 )
 
 set +e
