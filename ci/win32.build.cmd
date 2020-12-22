@@ -1,14 +1,14 @@
 mkdir build
 cd build
 
-set PATH=%PATH%;c:\score-sdk\llvm\bin
+set PATH=%PATH%;c:\ossia-sdk\llvm\bin
 cmake -GNinja %BUILD_SOURCESDIRECTORY% ^
-  -DCMAKE_C_COMPILER=c:/score-sdk/llvm/bin/clang.exe ^
-  -DCMAKE_CXX_COMPILER=c:/score-sdk/llvm/bin/clang++.exe ^
+  -DCMAKE_C_COMPILER=c:/ossia-sdk/llvm/bin/clang.exe ^
+  -DCMAKE_CXX_COMPILER=c:/ossia-sdk/llvm/bin/clang++.exe ^
   -DCMAKE_BUILD_TYPE=Release ^
-  -DOSSIA_SDK=c:\score-sdk ^
+  -DOSSIA_SDK=c:\ossia-sdk ^
   -DCMAKE_INSTALL_PREFIX=install ^
-  -DCMAKE_PREFIX_PATH="c:/score-sdk/qt5-static;c:/score-sdk/llvm-libs;c:/score-sdk/SDL2;c:/score-sdk" ^
+  -DCMAKE_PREFIX_PATH="c:/ossia-sdk/qt5-static;c:/ossia-sdk/llvm-libs;c:/ossia-sdk/SDL2;c:/ossia-sdk" ^
   -DCMAKE_BUILD_TYPE=Release ^
   -DCMAKE_UNITY_BUILD=1 ^
   -DOSSIA_STATIC_EXPORT=1 ^

@@ -6,6 +6,7 @@ set_cache(BUILD_SHARED_LIBS OFF)
 set_cache(CMAKE_FIND_LIBRARY_SUFFIXES .a)
 set_cache(SCORE_INSTALL_HEADERS ON)
 set_cache(OSSIA_STATIC_EXPORT ON)
+set_cache(CMAKE_INSTALL_MESSAGE NEVER)
 
 add_linker_flags(" -Wl,--version-script,/score/cmake/Deployment/Linux/AppImage/version")
 

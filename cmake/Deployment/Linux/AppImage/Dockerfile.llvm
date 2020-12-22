@@ -1,5 +1,5 @@
 FROM centos:7
-RUN yum -y install epel-release centos-release-scl  
+RUN yum -y install epel-release centos-release-scl
 RUN yum -y install devtoolset-9-gcc devtoolset-9-make devtoolset-9 \
            glibc-devel alsa-lib-devel mesa-libGL-devel libxkbcommon-x11-devel zlib-devel ncurses-devel \
            wget xz rh-git218 cmake3  xcb-util xcb-util-devel libX11-devel libXrender-devel libXi-devel dbus-devel glib2-devel mesa-libGL-devel  \
@@ -9,13 +9,10 @@ RUN yum -y install devtoolset-9-gcc devtoolset-9-make devtoolset-9 \
     rsync \
     bluez-devel avahi-devel
 
-
-RUN mkdir -p /opt/score-sdk 
-
-RUN ls && wget https://github.com/ossia/sdk/releases/download/sdk17/score-sdk-linux-llvm.tar.xz \
-    && tar xaf score-sdk-linux-llvm.tar.xz \
-    && rm -rf  score-sdk-linux-llvm.tar.xz \
-    && wget -nv --no-check-certificate -c https://github.com/Kitware/CMake/releases/download/v3.18.2/cmake-3.18.2-Linux-x86_64.tar.gz \
+RUN ls && wget https://github.com/ossia/sdk/releases/download/sdk18/sdk-linux.tar.xz \
+    && tar xaf sdk-linux.tar.xz \
+    && rm -rf  sdk-linux.tar.xz \
+    && wget -nv --no-check-certificate -c https://github.com/Kitware/CMake/releases/download/v3.18.3/cmake-3.18.3-Linux-x86_64.tar.gz \
     && tar xaf cmake-*.tar.gz \
     && rm -rf cmake-*.tar.gz \
     && wget -nv --no-check-certificate -c https://github.com/ninja-build/ninja/releases/download/v1.10.1/ninja-linux.zip \
@@ -26,6 +23,6 @@ RUN ls && wget https://github.com/ossia/sdk/releases/download/sdk17/score-sdk-li
     && rm -rf cninja-*.tar.gz \
     && mv ninja /usr/bin/ \
     && mv cninja /usr/bin/
-    
+
 #ADD Recipe.llvm /Recipe.llvm
 #RUN bash -ex Recipe.llvm

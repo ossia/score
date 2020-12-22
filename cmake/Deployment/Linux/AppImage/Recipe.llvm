@@ -1,7 +1,7 @@
 #!/bin/bash -eux
 set -o pipefail
 
-export OSSIA_SDK=/opt/score-sdk
+export OSSIA_SDK=/opt/ossia-sdk
 export QT_DIR=$OSSIA_SDK/qt5-static
 export QTDIR=$OSSIA_SDK/qt5-static
 export NPROC=$(nproc)
@@ -35,13 +35,13 @@ mkdir -p "$SDK_DIR"
 
 # Build score in the AppDir
 export SOURCE_DIR=/score
+export SCORE_DIR=/score
 (
     export INSTALL_ROOT=$(cd $APP_DIR/usr; pwd)
 
     cninja $SOURCE_DIR appimage -- \
       -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT \
-      -DOSSIA_SDK=$OSSIA_SDK \
-      -DCMAKE_INSTALL_MESSAGE=NEVER
+      -DOSSIA_SDK=$OSSIA_SDK
 
     (
       cd build*
@@ -159,4 +159,4 @@ cp $APP_DIR/usr/share/pixmaps/ossia-score.png $APP_DIR/
 
 # cp $SOURCE_DIR/cmake/Deployment/Linux/AppImage/qt.conf $APP_DIR/usr/bin/
 
-$SOURCE_DIR/src/plugins/score-plugin-jit/tools/create-sdk-linux.sh
+$SOURCE_DIR/ci/create-sdk-linux.sh

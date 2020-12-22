@@ -15,7 +15,7 @@ export SDK_DIR="$PWD/build/SDK"
   cmake --install . --strip --component Devel --prefix "$SDK_DIR/usr"
 )
 
-./src/plugins/score-plugin-jit/tools/create-sdk-mingw.sh
+./ci/create-sdk-mingw.sh
 
 # Copy SDK
 (
