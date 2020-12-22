@@ -22,12 +22,4 @@ sudo apt-get install -qq --force-yes \
      libavcodec-dev libavdevice-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev \
      libclang-10-dev
 
-
-
-find / -name cmake
-
-which cmake
-
-env
-
-exit 1
+sudo snap remove cmake
