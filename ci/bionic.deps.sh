@@ -1,5 +1,8 @@
 #!/bin/bash -eux
 
+rm -rf /usr/local/cmake*
+ls /usr/local
+
 sudo apt-get update -qq
 sudo apt-get install -qq software-properties-common wget
 
@@ -22,8 +25,6 @@ sudo apt-get install -qq --force-yes \
      libclang-10-dev
 
 sudo snap remove cmake
-
-find / -name cmake
 
 which cmake
 

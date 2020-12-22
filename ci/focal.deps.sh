@@ -1,5 +1,8 @@
 #!/bin/bash -eux
 
+rm -rf /usr/local/cmake*
+ls /usr/local
+
 sudo apt-get update -qq
 sudo apt-get install -qq software-properties-common wget
 
