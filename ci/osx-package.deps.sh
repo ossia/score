@@ -9,6 +9,8 @@
     security create-keychain -p travis $KEY_CHAIN
     security default-keychain -s $KEY_CHAIN
     security unlock-keychain -p travis $KEY_CHAIN
+
+    echo "Test password: '$MAC_CODESIGN_PASSWORD'"
     security import $CODESIGN_SECUREFILEPATH -k $KEY_CHAIN -P $MAC_CODESIGN_PASSWORD -T /usr/bin/codesign
     security set-key-partition-list -S apple-tool:,apple: -s -k travis $KEY_CHAIN
 

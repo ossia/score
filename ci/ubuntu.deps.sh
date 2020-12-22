@@ -28,6 +28,7 @@ sudo apt-get install -qq --force-yes \
     libavahi-compat-libdnssd-dev libsamplerate0-dev \
     libclang-10-dev
 
+sudo apt-get remove -qq libllvm-8-dev
 wait wget || true
 
 tar xaf cninja.tgz
