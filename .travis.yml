@@ -1,93 +1,28 @@
 language: shell
 
-cache:
-  directories:
-  - $HOME/travis-cache
-
-dist: focal
 services:
   - docker
 
-env:
-  global:
-  # Coverity
-   - secure: "qu69N1nyTl2TPAMQKSW7gnHFNiTpKGs+xLIl6pGZp28HtLsI+ejeQD2FuVcN2w8RUpUSWL7VBHXtSrEN0ByM2UJ2JSYaEdNyLH0aOt0irDLfUciNhIkG02oY1/pIL+e5+CwB/rsk19Bai6Q9VKJDNnM0WFV4fLvMMDOKFXuncKU="
-   - COVERITY_SCAN_BUILD_COMMAND="make -j2"
-   - COVERITY_SCAN_PROJECT_NAME="OSSIA/i-score"
-   - COVERITY_SCAN_NOTIFICATION_EMAIL="jeanmichael.celerier@gmail.com"
-   - COVERITY_SCAN_BRANCH_PATTERN="master"
-   - COVERITY_SCAN_BUILD_URL="https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh"
-   - COVERITY_SCAN_BUILD="curl -s $COVERITY_SCAN_BUILD_URL | bash"
-
 jobs:
   include:
-# disabled due to out of memory errors...
-#    - os: linux
-#      env: CONF=linux-gcov CAN_DEPLOY=False
-
     - os: osx
       osx_image: xcode12
-      env: CONF=osx-package CAN_DEPLOY=True
+      env: CONF=osx-brew
+
     - os: linux
-      env: CONF=linux-package-appimage CAN_DEPLOY=True
+      dist: bionic
+      env: CONF=bionic CC=clang-10 CXX=clang++-10
+
     - os: linux
-      env: CONF=tarball CAN_DEPLOY=True
+      dist: focal
+      env: CONF=focal CC=gcc-10 CXX=g++-10
 
-#    - os: osx
-#      env: CONF=osx-debug CAN_DEPLOY=False
-#    - os: osx
-#      env: CONF=osx-static-debug CAN_DEPLOY=False
-    - os: osx
-      osx_image: xcode12
-      env: CONF=osx-release CAN_DEPLOY=False
-
-#    - os: linux
-#      env: CONF=linux-debug CAN_DEPLOY=False
-#    - os: linux
-#      env: CONF=linux-static-debug CAN_DEPLOY=False
     - os: linux
-      env: CONF=linux-release CAN_DEPLOY=False
-
-
-# Coverity
-#    - os: linux
-#      env: CONFIG=linux-coverity CAN_DEPLOY=False
+      dist: focal
+      env: CONF=focal CC=clang-10 CXX=clang++-10
 
 before_install:
-- "./tools/travis/deps.sh"
+- "./ci/$CONF.deps.sh"
 
 script:
-- "./tools/travis/build.sh"
-# - travis_wait 30 bash ./tools/travis/build.sh
-
-after_success:
-- "./tools/travis/deploy.sh"
-
-deploy:
-  - provider: releases
-    api_key:
-      secure: "hk56wIhJMippWajLTGtO44szXtBCzhCNHAET9fKZ7dXcfEVG22YHuUDMo1ROn6ZhthB5m8SLgctuTf4GtuvGxhdQzjeBSsvYCs6QAAUtMjBb4/lafcBZfr3Amf5TT8MfznGESQDMGjMUjnwQlUoWCVE0XoqNq6DbFlyoZPpscSE="
-    file: /Users/travis/build/ossia/score/deploy/*
-    file_glob: true
-    skip_cleanup: true
-    on:
-      tags: true
-      condition: $CAN_DEPLOY = True && $TRAVIS_OS_NAME = osx
-  - provider: releases
-    api_key:
-      secure: "hk56wIhJMippWajLTGtO44szXtBCzhCNHAET9fKZ7dXcfEVG22YHuUDMo1ROn6ZhthB5m8SLgctuTf4GtuvGxhdQzjeBSsvYCs6QAAUtMjBb4/lafcBZfr3Amf5TT8MfznGESQDMGjMUjnwQlUoWCVE0XoqNq6DbFlyoZPpscSE="
-    file: /home/travis/build/ossia/score/deploy/*
-    file_glob: true
-    skip_cleanup: true
-    on:
-      tags: true
-      condition: $CAN_DEPLOY = True && $TRAVIS_OS_NAME = linux
-  - provider: releases
-    api_key:
-      secure: "hk56wIhJMippWajLTGtO44szXtBCzhCNHAET9fKZ7dXcfEVG22YHuUDMo1ROn6ZhthB5m8SLgctuTf4GtuvGxhdQzjeBSsvYCs6QAAUtMjBb4/lafcBZfr3Amf5TT8MfznGESQDMGjMUjnwQlUoWCVE0XoqNq6DbFlyoZPpscSE="
-    file: /home/travis/build/ossia/score/deploy/*
-    file_glob: true
-    skip_cleanup: true
-    on:
-      tags: true
-      condition: $CAN_DEPLOY = True && $CONF = tarball
+- "./ci/$CONF.build.sh"
