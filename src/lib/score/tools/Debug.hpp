@@ -62,37 +62,34 @@
 #endif
 
 #ifdef SCORE_DEBUG
-#define SCORE_ASSERT(arg)          \
-  do                               \
-  {                                \
-    bool score_assert_b = !!(arg); \
-    if (!score_assert_b)           \
-    {                              \
-      DEBUG_BREAK;                 \
-      Q_ASSERT(score_assert_b);    \
-    }                              \
+#define SCORE_ASSERT(arg)                               \
+  do                                                    \
+  {                                                     \
+    if (bool score_assert_b = !!(arg); !score_assert_b) \
+    {                                                   \
+      DEBUG_BREAK;                                      \
+      Q_ASSERT((#arg, false));                          \
+    }                                                   \
   } while (false)
 #else
-#define SCORE_ASSERT(arg)                       \
-  do                                            \
-  {                                             \
-    bool score_assert_b = !!(arg);              \
-    if (!score_assert_b)                        \
-    {                                           \
-      throw std::runtime_error("Error: " #arg); \
-    }                                           \
+#define SCORE_ASSERT(arg)                               \
+  do                                                    \
+  {                                                     \
+    if (bool score_assert_b = !!(arg); !score_assert_b) \
+    {                                                   \
+      throw std::runtime_error("Error: " #arg);         \
+    }                                                   \
   } while (false)
 #endif
 
-#define SCORE_SOFT_ASSERT(arg)     \
-  do                               \
-  {                                \
-    bool score_assert_b = !!(arg); \
-    if (!score_assert_b)           \
-    {                              \
-      SCORE_BREAKPOINT;            \
-      qDebug() << "Error: " #arg;  \
-    }                              \
+#define SCORE_SOFT_ASSERT(arg)                          \
+  do                                                    \
+  {                                                     \
+    if (bool score_assert_b = !!(arg); !score_assert_b) \
+    {                                                   \
+      SCORE_BREAKPOINT;                                 \
+      qDebug() << "Error: " #arg;                       \
+    }                                                   \
   } while (false)
 
 #define SCORE_ABORT \

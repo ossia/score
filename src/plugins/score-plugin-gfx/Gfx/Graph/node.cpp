@@ -17,13 +17,13 @@ TextureRenderTarget createRenderTarget(const RenderState& state, QSize sz)
   QRhiColorAttachment color0{ret.texture};
 
   auto renderTarget = state.rhi->newTextureRenderTarget({color0});
-  ensure(renderTarget);
+  SCORE_ASSERT(renderTarget);
 
   auto renderPass = renderTarget->newCompatibleRenderPassDescriptor();
-  ensure(renderPass);
+  SCORE_ASSERT(renderPass);
 
   renderTarget->setRenderPassDescriptor(renderPass);
-  ensure(renderTarget->build());
+  SCORE_ASSERT(renderTarget->build());
 
   ret.renderTarget = renderTarget;
   ret.renderPass = renderPass;
@@ -69,7 +69,7 @@ Pipeline buildPipeline(
 {
   auto& rhi = *renderer.state.rhi;
   auto ps = rhi.newGraphicsPipeline();
-  ensure(ps);
+  SCORE_ASSERT(ps);
 
   QRhiGraphicsPipeline::TargetBlend premulAlphaBlend;
   premulAlphaBlend.enable = true;
@@ -94,7 +94,7 @@ Pipeline buildPipeline(
 
   // Shader resource bindings
   auto srb = rhi.newShaderResourceBindings();
-  ensure(srb);
+  SCORE_ASSERT(srb);
 
   QVector<QRhiShaderResourceBinding> bindings;
 
@@ -134,14 +134,14 @@ Pipeline buildPipeline(
     binding++;
   }
   srb->setBindings(bindings.begin(), bindings.end());
-  ensure(srb->build());
+  SCORE_ASSERT(srb->build());
 
   ps->setShaderResourceBindings(srb);
 
-  ensure(rt.renderPass);
+  SCORE_ASSERT(rt.renderPass);
   ps->setRenderPassDescriptor(rt.renderPass);
 
-  ensure(ps->build());
+  SCORE_ASSERT(ps->build());
   return {ps, srb};
 }
 }
@@ -278,7 +278,7 @@ void RenderedNode::defaultShaderMaterialInit(Renderer& renderer)
                 QRhiSampler::None,
                 QRhiSampler::ClampToEdge,
                 QRhiSampler::ClampToEdge);
-          ensure(sampler->build());
+          SCORE_ASSERT(sampler->build());
 
           m_samplers.push_back({sampler, renderer.textureTargetForInputPort(*in)});
           break;
@@ -295,7 +295,7 @@ void RenderedNode::defaultShaderMaterialInit(Renderer& renderer)
     {
       m_materialUBO
           = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, m_materialSize);
-      ensure(m_materialUBO->build());
+      SCORE_ASSERT(m_materialUBO->build());
     }
   }
 }

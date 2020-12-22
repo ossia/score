@@ -405,7 +405,7 @@ struct RenderedISFNode : score::gfx::NodeRenderer
               QRhiSampler::None,
               QRhiSampler::ClampToEdge,
               QRhiSampler::ClampToEdge);
-          ensure(sampler->build());
+          SCORE_ASSERT(sampler->build());
 
           auto texture = renderer.textureTargetForInputPort(*in);
           m_samplers.push_back({sampler, texture});
@@ -488,9 +488,9 @@ struct RenderedISFNode : score::gfx::NodeRenderer
 
     auto rt = rhi.newTextureRenderTarget({tex});
     auto rp = rt->newCompatibleRenderPassDescriptor();
-    ensure(rp);
+    SCORE_ASSERT(rp);
     rt->setRenderPassDescriptor(rp);
-    ensure(rt->build());
+    SCORE_ASSERT(rt->build());
 
     QRhiBuffer* pubo{};
     pubo = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(ProcessUBO));
@@ -541,7 +541,7 @@ struct RenderedISFNode : score::gfx::NodeRenderer
     {
       m_materialUBO
           = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, m_materialSize);
-      ensure(m_materialUBO->build());
+      SCORE_ASSERT(m_materialUBO->build());
     }
 
     int cur_pos = initShaderSamplers(renderer);

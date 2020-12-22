@@ -1,6 +1,6 @@
 #pragma once
 #include <ossia/network/value/value.hpp>
-
+#include <score/tools/Debug.hpp>
 #include <QColor>
 
 #include <array>
@@ -23,10 +23,3 @@ enum class Types
 
 using ValueVariant
     = std::variant<std::monostate, float, ossia::vec2f, ossia::vec3f, ossia::vec4f, image>;
-
-#define ensure(...)        \
-  do                       \
-  {                        \
-    bool ok = __VA_ARGS__; \
-    assert(ok);            \
-  } while (0)
