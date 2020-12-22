@@ -68,7 +68,7 @@
     if (bool score_assert_b = !!(arg); !score_assert_b) \
     {                                                   \
       DEBUG_BREAK;                                      \
-      Q_ASSERT((#arg, false));                          \
+      Q_ASSERT(!(#arg));                                \
     }                                                   \
   } while (false)
 #else
