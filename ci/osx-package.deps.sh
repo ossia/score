@@ -10,7 +10,6 @@
     security default-keychain -s $KEY_CHAIN
     security unlock-keychain -p travis $KEY_CHAIN
 
-    echo "Test password: '$MAC_CODESIGN_PASSWORD'"
     security import $CODESIGN_SECUREFILEPATH -k $KEY_CHAIN -P $MAC_CODESIGN_PASSWORD -T /usr/bin/codesign
     security set-key-partition-list -S apple-tool:,apple: -s -k travis $KEY_CHAIN
 
@@ -31,6 +30,8 @@ sudo mkdir -p /opt/ossia-sdk
 sudo chown -R $(whoami) /opt
 sudo chmod -R a+rwx /opt
 gtar xhaf $SDK_ARCHIVE --strip-components=2 --directory /opt/ossia-sdk/
+ls /opt/ossia-sdk
+
 sudo rm -rf /Library/Developer/CommandLineTools
 sudo rm -rf /usr/local/include/c++
 
