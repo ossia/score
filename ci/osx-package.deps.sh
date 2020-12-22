@@ -32,11 +32,6 @@ sudo chmod -R a+rwx /opt
 gtar xhaf $SDK_ARCHIVE --strip-components=2 --directory /opt/ossia-sdk/
 ls /opt/ossia-sdk
 
-rm -rf /opt/ossia-sdk/llvm-libs/bin/clang
-rm -rf /opt/ossia-sdk/llvm-libs/bin/clang++
-rm -rf /opt/ossia-sdk/llvm-libs/bin/clang-11
-rm -rf /opt/ossia-sdk/llvm-libs/bin/clang++-11
-
 sudo rm -rf /Library/Developer/CommandLineTools
 sudo rm -rf /usr/local/include/c++
 
