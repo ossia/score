@@ -6,6 +6,10 @@ export SDK_DIR="$PWD/SDK"
 export PATH=/usr/local/bin:$PATH
 sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 
+xcrun env
+xcrun ninja
+
+
 xcrun /usr/local/bin/cninja macos-release -- -DOSSIA_SDK=$OSSIA_SDK
 (
 cd build-*

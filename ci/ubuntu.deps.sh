@@ -5,7 +5,7 @@ sudo chmod -R a+rwx /opt
 sudo apt-get update -qq
 sudo apt-get install wget software-properties-common
 
-wget -nv https://github.com/jcelerier/cninja/releases/download/v3.7.4/cninja-v3.7.4-Linux.tar.gz -O cninja.tgz &
+wget -nv https://github.com/jcelerier/cninja/releases/download/v3.7.5/cninja-v3.7.5-Linux.tar.gz -O cninja.tgz &
 echo 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-10 main' | sudo tee /etc/apt/sources.list.d/llvm.list
 sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 1397BC53640DB551
 sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 15CF4D18AF4F7421

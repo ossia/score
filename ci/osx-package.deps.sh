@@ -20,7 +20,7 @@ set +e
 
 export HOMEBREW_NO_AUTO_UPDATE=1
 brew install gnu-tar ninja
-wget -nv https://github.com/jcelerier/cninja/releases/download/v3.7.4/cninja-v3.7.4-macOS.tar.gz -O cninja.tgz &
+wget -nv https://github.com/jcelerier/cninja/releases/download/v3.7.5/cninja-v3.7.5-macOS.tar.gz -O cninja.tgz &
 
 wget -nv https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/MacOSX10.15.sdk.tar.xz &
 
