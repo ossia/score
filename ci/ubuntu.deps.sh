@@ -13,7 +13,12 @@ sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 15CF4D18AF4F7421
 sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test
 sudo add-apt-repository --yes ppa:beineri/opt-qt-5.15.0-focal
 
+sudo apt purge --auto-remove cmake
+wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
+sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ focal main'
+
 sudo apt-get update -qq
+sudo apt-get upgrade -qq
 sudo apt-get install -qq --force-yes \
     g++-10 binutils libasound-dev ninja-build cmake \
     gcovr lcov \
