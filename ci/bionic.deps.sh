@@ -23,3 +23,11 @@ sudo apt-get install -qq --force-yes \
      libclang-10-dev
 
 sudo snap remove cmake
+
+find / -name cmake
+
+which cmake
+
+env
+
+exit 1
