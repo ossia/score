@@ -1,6 +1,6 @@
 #!/bin/bash -eux
 
-rm -rf /usr/local/cmake*
+sudo rm -rf /usr/local/cmake*
 ls /usr/local
 
 sudo apt-get update -qq
