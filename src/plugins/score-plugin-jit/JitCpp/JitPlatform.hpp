@@ -69,10 +69,13 @@ static inline std::string locateSDK()
     QDir d{appFolder};
     d.cdUp();
     if(d.cd("Frameworks"))
-     if(d.cd("Score.Framework"))
-       return d.absolutePath().toStdString();
-    else
-       return QString(appFolder + "/Score.Framework").toStdString();
+    {
+      if(d.cd("Score.Framework"))
+      {
+        return d.absolutePath().toStdString();
+      }
+    }
+    return QString(appFolder + "/Score.Framework").toStdString();
   }
 #endif
 
