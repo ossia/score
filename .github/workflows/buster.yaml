@@ -1,10 +1,10 @@
-name: Debian Buster build
+name: Linux distro build
 
 on: push
 
 jobs:
   buster:
-    name: Build
+    name: Debian Buster
     runs-on: ubuntu-latest
     container:
       image: debian:buster
@@ -27,3 +27,27 @@ jobs:
       - name: Build
         run: |
           ./ci/buster.build.sh
+
+  fedora:
+    name: Fedora 33
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:33
+
+    steps:
+      - name: Install git
+        run: |
+          dnf install git
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - name: Dependencies
+        run: |
+          ./ci/fedora.deps.sh
+
+      - name: Build
+        run: |
+          ./ci/fedora.build.sh
