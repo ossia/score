@@ -1,8 +1,14 @@
 #!/bin/bash -eux
 
-mkdir "$INCLUDE/qt"
+mkdir -p "$INCLUDE/qt"
 rsync -ar "$OSSIA_SDK/qt5-static/include/" "$INCLUDE/qt/"
-rsync -ar "$OSSIA_SDK/llvm/include/" "$INCLUDE/"
+
+if [[ -d "$OSSIA_SDK/llvm-libs/include" ]]; then
+  rsync -ar "$OSSIA_SDK/llvm-libs/include/" "$INCLUDE/"
+else
+  rsync -ar "$OSSIA_SDK/llvm/include/" "$INCLUDE/"
+fi
+
 rsync -ar "$OSSIA_SDK/ffmpeg/include/" "$INCLUDE/"
 rsync -ar "$OSSIA_SDK/fftw/include/" "$INCLUDE/"
 rsync -ar "$OSSIA_SDK/portaudio/include/" "$INCLUDE/"
