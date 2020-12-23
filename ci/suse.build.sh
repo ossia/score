@@ -5,8 +5,8 @@ export SCORE_DIR=$PWD
 mkdir -p /build || true
 cd /build
 
-CC=gcc-10
-CXX=g++-10
+export CC=gcc-10
+export CXX=g++-10
 
 cmake $SCORE_DIR \
   -GNinja \
