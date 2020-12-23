@@ -2,12 +2,13 @@
 #include <State/Message.hpp>
 
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
-
-#include <QtWebSockets/QWebSocket>
-#include <QtWebSockets/QWebSocketServer>
+#include <score/tools/std/StringHash.hpp>
 
 #include <ossia/detail/flat_map.hpp>
 #include <nano_observer.hpp>
+
+#include <QtWebSockets/QWebSocket>
+#include <QtWebSockets/QWebSocketServer>
 
 #include <score_plugin_remotecontrol_export.h>
 template <typename T>
