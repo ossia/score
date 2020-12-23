@@ -61,7 +61,7 @@ jobs:
     steps:
       - name: Install git
         run: |
-          zypper install -y git
+          zypper -n install git
 
       - name: Checkout code
         uses: actions/checkout@v2
@@ -77,7 +77,7 @@ jobs:
           ./ci/suse.build.sh
 
   susetumbleweed:
-    name: OpenSUSE Leap
+    name: OpenSUSE Tumbleweed
     runs-on: ubuntu-latest
     container:
       image: opensuse/tumbleweed:latest
@@ -85,7 +85,7 @@ jobs:
     steps:
       - name: Install git
         run: |
-          zypper install -y git
+          zypper -n install git
 
       - name: Checkout code
         uses: actions/checkout@v2
@@ -101,7 +101,7 @@ jobs:
           ./ci/suse.build.sh
 
   arch:
-    name: OpenSUSE Leap
+    name: ArchLinux
     runs-on: ubuntu-latest
     container:
       image: archlinux:latest

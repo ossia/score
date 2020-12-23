@@ -1,6 +1,6 @@
 #!/bin/bash -eux
 
-zypper install -y \
+zypper -n install \
    cmake ninja gcc10 gcc10-c++ \
    llvm-devel \
    libjack-devel alsa-devel \
