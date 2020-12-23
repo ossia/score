@@ -21,7 +21,10 @@ SystemLibraryWidget::SystemLibraryWidget(const score::GUIApplicationContext& ctx
     , m_proxy{new QSortFilterProxyModel{this}}
     , m_preview{this}
 {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
   m_proxy->setRecursiveFilteringEnabled(true);
+#endif
+
   setStatusTip(
       QObject::tr("This panel shows the system library.\n"
                   "It is present by default in your user's Documents folder, \n"
@@ -34,8 +37,10 @@ SystemLibraryWidget::SystemLibraryWidget(const score::GUIApplicationContext& ctx
 
   m_proxy->setSourceModel(m_model);
   m_proxy->setFilterKeyColumn(0);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
   auto il = new ItemModelFilterLineEdit{*m_proxy, m_tv, this};
   lay->addWidget(il);
+#endif
   lay->addWidget(&m_tv);
   lay->addWidget(&m_preview);
   m_tv.setModel(m_proxy);
@@ -81,12 +86,21 @@ SystemLibraryWidget::SystemLibraryWidget(const score::GUIApplicationContext& ctx
   m_tv.setAcceptDrops(true);
   m_tv.setSelectionMode(QAbstractItemView::SelectionMode::ExtendedSelection);
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
   QTimer::singleShot(1000, [this, il, &ctx] {
     auto& settings = ctx.settings<Library::Settings::Model>();
     il->reset = [this, &settings] { setRoot(settings.getPath()); };
     il->reset();
     con(settings, &Library::Settings::Model::PathChanged, this, [=] { il->reset(); });
   });
+#else
+  QTimer::singleShot(1000, [this, &ctx] {
+    auto& settings = ctx.settings<Library::Settings::Model>();
+    auto reset = [this, &settings] { setRoot(settings.getPath()); };
+    reset();
+    con(settings, &Library::Settings::Model::PathChanged, this, [=] { reset(); });
+  });
+#endif
 }
 
 SystemLibraryWidget::~SystemLibraryWidget() { }

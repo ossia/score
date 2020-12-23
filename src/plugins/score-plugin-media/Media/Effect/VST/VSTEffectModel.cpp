@@ -690,7 +690,7 @@ void DataStreamWriter::write(Media::VST::VSTEffectModel& eff)
     m_stream >> params;
 
     QPointer<Media::VST::VSTEffectModel> ptr = &eff;
-    QTimer::singleShot(1000, [params = std::move(params), ptr] {
+    QTimer::singleShot(1000, &eff, [params = std::move(params), ptr] {
       if (!ptr)
         return;
       auto& eff = *ptr;
@@ -761,7 +761,12 @@ void JSONWriter::write(Media::VST::VSTEffectModel& eff)
   }
 
   QPointer<Media::VST::VSTEffectModel> ptr = &eff;
-  QTimer::singleShot(1000, [base = clone(this->base), ptr] {
+#if QT_VERSION < QT_VERSION_CHECK(5, 12, 0)
+  QTimer::singleShot(1000, &eff, [base_ptr = std::make_shared<rapidjson::Document>(clone(this->base)), ptr] {
+    auto& base = *base_ptr;
+#else
+  QTimer::singleShot(1000, &eff, [base = clone(this->base), ptr] {
+#endif
     if (!ptr)
       return;
     auto& eff = *ptr;

@@ -197,7 +197,9 @@ static void setup_app_flags()
   QCoreApplication::setAttribute(Qt::AA_CompressHighFrequencyEvents, true);
 #endif
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
   QCoreApplication::setAttribute(Qt::AA_DontShowShortcutsInContextMenus, false);
+#endif
 #if defined(__linux__)
   // Else things look horrible on KDE plasma, etc
   qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");

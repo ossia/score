@@ -2,6 +2,10 @@ project(score_plugin_jit LANGUAGES CXX)
 
 # Find dependencies
 find_package(LLVM PATHS ${LLVM_DIR})
+if(${Qt5Core_VERSION_STRING} VERSION_LESS 5.15)
+  message(" -- JIT plug-in only supported for Qt 5.15+")
+  return()
+endif()
 
 if(NOT LLVM_FOUND)
   message(" -- LLVM was not found, skipping JIT plug-in")

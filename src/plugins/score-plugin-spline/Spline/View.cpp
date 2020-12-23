@@ -8,6 +8,7 @@
 
 #include <ossia/editor/automation/tinyspline_util.hpp>
 
+#include <QCursor>
 #include <QMenu>
 #include <QPainter>
 
@@ -326,12 +327,12 @@ public:
   {
     if (m_strokedShape.contains(e->pos()))
     {
-      if (cursor() != Qt::CrossCursor)
+      if (cursor().shape() != Qt::CrossCursor)
         setCursor(Qt::CrossCursor);
     }
     else
     {
-      if (cursor() == Qt::CrossCursor)
+      if (cursor().shape() == Qt::CrossCursor)
         unsetCursor();
     }
   }

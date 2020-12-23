@@ -90,7 +90,11 @@ void QGraphicsNoteChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 
 static QString noteText(int n)
 {
+#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
+  static const QString lit[12]{"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
+#else
   static const QStringView lit[12]{u"C", u"C#", u"D", u"D#", u"E", u"F", u"F#", u"G", u"G#", u"A", u"A#", u"B"};
+#endif
   return QString{"%1%2"}.arg(lit[n%12]).arg(n / 12 - 1);
 }
 

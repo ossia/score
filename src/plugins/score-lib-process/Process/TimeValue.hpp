@@ -171,6 +171,7 @@ inline const TimeVal& max(const TimeVal& lhs, const TimeVal& rhs) noexcept
     return lhs;
 }
 
+#include <qhash.h>
 namespace std
 {
 template <>

@@ -16,7 +16,12 @@ void setTabWidth(QTextEdit& edit, int spaceCount)
 {
   const QString spaces(spaceCount, QChar(' '));
   const QFontMetrics metrics(edit.font());
+#if QT_VERSION < QT_VERSION_CHECK(5, 11, 0)
+  const qreal width = metrics.boundingRect(spaces).width();
+  edit.setTabStopWidth(width);
+#else
   edit.setTabStopDistance(metrics.horizontalAdvance(spaces));
+#endif
 }
 
 std::pair<QStyleSyntaxHighlighter*, QCompleter*> getLanguageStyle(const std::string_view language)
