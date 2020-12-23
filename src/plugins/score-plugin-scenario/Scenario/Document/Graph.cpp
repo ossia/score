@@ -55,13 +55,14 @@ struct CycleDetector
   {
   }
 
-  bool allIntersectGraphal(std::vector<Id<IntervalModel>>& a, std::vector<Id<IntervalModel>>& b)
+  template<typename T>
+  bool allIntersectGraphal(T& a, T& b)
   {
     ossia::small_vector<Id<IntervalModel>, 4> intersect;
-    std::sort(a.begin(), a.end(), [](const auto& lhs, const auto& rhs) {
+    a.sort([](const auto& lhs, const auto& rhs) {
       return lhs.val() < rhs.val();
     });
-    std::sort(b.begin(), b.end(), [](const auto& lhs, const auto& rhs) {
+    b.sort([](const auto& lhs, const auto& rhs) {
       return lhs.val() < rhs.val();
     });
     std::set_intersection(a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(intersect));
@@ -92,24 +93,25 @@ struct CycleDetector
     // auto next_b = Scenario::nextIntervals(b, scenario);
 
     // auto prev_av = std::vector(prev_a.begin(), prev_a.end());
-    auto next_av = std::vector(next_a.begin(), next_a.end());
+    //auto next_av = std::vector(next_a.begin(), next_a.end());
 
-    auto prev_bv = std::vector(prev_b.begin(), prev_b.end());
+    //auto prev_bv = std::vector(prev_b.begin(), prev_b.end());
     // auto next_bv = std::vector(next_b.begin(), next_b.end());
-    return allIntersectGraphal(next_av, prev_bv);
+    return allIntersectGraphal(next_a, prev_b);
     // else if(allIntersectGraphal(next_bv, prev_av))
     //{
     //  cycles = true;
     //}
   }
 
-  bool anyIntersectGraphal(std::vector<Id<IntervalModel>>& a, std::vector<Id<IntervalModel>>& b)
+  template<typename T>
+  bool anyIntersectGraphal(T& a, T& b)
   {
     ossia::small_vector<Id<IntervalModel>, 4> intersect;
-    std::sort(a.begin(), a.end(), [](const auto& lhs, const auto& rhs) {
+    a.sort([](const auto& lhs, const auto& rhs) {
       return lhs.val() < rhs.val();
     });
-    std::sort(b.begin(), b.end(), [](const auto& lhs, const auto& rhs) {
+    b.sort([](const auto& lhs, const auto& rhs) {
       return lhs.val() < rhs.val();
     });
     std::set_intersection(a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(intersect));
@@ -143,11 +145,11 @@ struct CycleDetector
     // auto next_b = Scenario::nextIntervals(b, scenario);
 
     // auto prev_av = std::vector(prev_a.begin(), prev_a.end());
-    auto next_av = std::vector(next_a.begin(), next_a.end());
+    //auto next_av = std::vector(next_a.begin(), next_a.end());
 
-    auto prev_bv = std::vector(prev_b.begin(), prev_b.end());
+    //auto prev_bv = std::vector(prev_b.begin(), prev_b.end());
     // auto next_bv = std::vector(next_b.begin(), next_b.end());
-    return anyIntersectGraphal(next_av, prev_bv);
+    return anyIntersectGraphal(next_a, prev_b);
     // else if(allIntersectGraphal(next_bv, prev_av))
     //{
     //  cycles = true;
