@@ -37,7 +37,7 @@ jobs:
     steps:
       - name: Install git
         run: |
-          dnf install git
+          dnf install -y git
 
       - name: Checkout code
         uses: actions/checkout@v2
@@ -61,7 +61,7 @@ jobs:
     steps:
       - name: Install git
         run: |
-          zypper install git
+          zypper install -y git
 
       - name: Checkout code
         uses: actions/checkout@v2
@@ -85,7 +85,7 @@ jobs:
     steps:
       - name: Install git
         run: |
-          zypper install git
+          zypper install -y git
 
       - name: Checkout code
         uses: actions/checkout@v2
@@ -99,3 +99,28 @@ jobs:
       - name: Build
         run: |
           ./ci/suse.build.sh
+
+  arch:
+    name: OpenSUSE Leap
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+
+    steps:
+      - name: Install git
+        run: |
+          pacman -Syy --noconfirm
+          pacman -S git --noconfirm
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - name: Dependencies
+        run: |
+          ./ci/archlinux.deps.sh
+
+      - name: Build
+        run: |
+          ./ci/archlinux.build.sh
