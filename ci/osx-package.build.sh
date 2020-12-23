@@ -16,7 +16,6 @@ cd build-*
 xcrun cmake --install . --strip --component OssiaScore
 xcrun cmake --install . --strip --component Devel --prefix "$SDK_DIR/usr"
 )
-mv build-*/install ./install
 
 ./ci/create-sdk-mac.sh
 
