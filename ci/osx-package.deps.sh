@@ -6,16 +6,12 @@
     set +x
     KEY_CHAIN=build.keychain
 
-    shasum -a 512 -b $CODESIGN_SECUREFILEPATH
-    echo "$MAC_CODESIGN_PASSWORD" > codesign_pw
-    shasum -a 512 -b codesign_pw
-
     security create-keychain -p travis $KEY_CHAIN
     security default-keychain -s $KEY_CHAIN
     security unlock-keychain -p travis $KEY_CHAIN
 
-    security import $CODESIGN_SECUREFILEPATH -k $KEY_CHAIN -P $MAC_CODESIGN_PASSWORD -T /usr/bin/codesign
-    security set-key-partition-list -S apple-tool:,apple: -s -k travis $KEY_CHAIN
+    security import $CODESIGN_SECUREFILEPATH -k $KEY_CHAIN -P $MAC_CODESIGN_PASSWORD -T /usr/bin/codesign > /dev/null 2>&1
+    security set-key-partition-list -S apple-tool:,apple: -s -k travis $KEY_CHAIN > /dev/null 2>&1
 
     rm -rf $CODESIGN_SECUREFILEPATH
 )
