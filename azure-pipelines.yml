@@ -94,6 +94,9 @@ stages:
           vmImage: 'macos-10.15'
         variables:
           - group: macos
+        env:
+          MAC_CODESIGN_PASSWORD: $(codesign)
+          MAC_ALTOOL_PASSWORD: $(altool)
 
         steps:
         - checkout: self
