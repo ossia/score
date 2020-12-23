@@ -37,7 +37,7 @@ jobs:
     steps:
       - name: Install git
         run: |
-          dnf install -y git
+          dnf -y install git
 
       - name: Checkout code
         uses: actions/checkout@v2
