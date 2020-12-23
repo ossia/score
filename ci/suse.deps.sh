@@ -1,5 +1,7 @@
 #!/bin/bash -eux
 
+# Disabling libSDL2-devel until -fPIC problem is sorted...
+
 zypper -n install \
    cmake ninja gcc10 gcc10-c++ \
    llvm-devel \
@@ -7,7 +9,6 @@ zypper -n install \
    portaudio-devel \
    lv2-devel liblilv-0-devel suil-devel \
    libavahi-devel \
-   libSDL2-devel \
    fftw3-devel \
    bluez-devel \
    libqt5-qtbase-devel \
