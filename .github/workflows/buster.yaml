@@ -1,0 +1,31 @@
+name: Debian Buster build
+
+on: push
+
+jobs:
+  buster:
+    name: Build
+    runs-on: ubuntu-latest
+    container:
+      image: debian:buster
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - name: ls
+        run: |
+          ls
+          ls /github
+          ls /github/workflows
+          pwd
+
+      - name: Dependencies
+        run: |
+          ./ci/buster.deps.sh
+
+      - name: Build
+        run: |
+          ./ci/buster.build.sh

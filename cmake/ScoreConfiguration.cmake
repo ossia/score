@@ -126,6 +126,10 @@ if(CMAKE_UNITY_BUILD)
   set(SCORE_PCH 0)
 endif()
 
+if(CMAKE_VERSION VERSION_LESS 3.17)
+  set(SCORE_PCH 0)
+endif()
+
 # Useful header files
 include(WriteCompilerDetectionHeader)
 write_compiler_detection_header(
