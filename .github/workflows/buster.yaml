@@ -10,6 +10,11 @@ jobs:
       image: debian:buster
 
     steps:
+      - name: Install git
+        run: |
+          apt-get update -qq
+          apt-get install -qq --force-yes git
+
       - name: Checkout code
         uses: actions/checkout@v2
         with:
