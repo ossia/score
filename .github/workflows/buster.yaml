@@ -20,13 +20,6 @@ jobs:
         with:
           submodules: 'recursive'
 
-      - name: ls
-        run: |
-          ls
-          ls /github
-          ls /github/workflows
-          pwd
-
       - name: Dependencies
         run: |
           ./ci/buster.deps.sh
