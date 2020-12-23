@@ -5,6 +5,9 @@ export SCORE_DIR=$PWD
 mkdir -p /build || true
 cd /build
 
+CC=gcc-10
+CXX=g++-10
+
 cmake $SCORE_DIR \
   -GNinja \
   -DCMAKE_BUILD_TYPE=Release \

@@ -1,6 +1,8 @@
 #!/bin/bash
 
 export SCORE_DIR=$PWD
+
+mkdir -p /build || true
 cd /build
 
 cmake $SCORE_DIR \
