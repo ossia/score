@@ -2,7 +2,7 @@
 
 [![Financial Contributors on Open Collective](https://opencollective.com/ossia/all/badge.svg?label=financial+contributors)](https://opencollective.com/ossia) [![join the chat at https://gitter.im/ossia/score](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ossia/score?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Downloads](https://img.shields.io/github/downloads/ossia/score/total.svg)](https://github.com/ossia/score/releases) [![Version](https://img.shields.io/github/release/ossia/score.svg)](https://github.com/ossia/score/releases)
 
-[**ossia score**](https://ossia.io) is a ***sequencer*** for audio-visual artists, designed to create ***interactive*** shows. 
+[**ossia score**](https://ossia.io) is a ***sequencer*** for audio-visual artists, designed to create ***interactive*** shows.
 
 Sequence **OSC, MIDI, DMX, sound files** and more, between multiple software and hardware, create ***interactive*** and ***intermedia*** scores and ***script*** in JavaScript to customize your score.
 
@@ -23,14 +23,14 @@ Releases are available for [Windows, Linux (via AppImage) and Mac OS X](https://
 * Linux: make executable (right click -> permissions or `chmod +x`) and run the AppImage.
 
 ## Build status
-* Linux, macOS: [![Travis Status](https://travis-ci.org/ossia/score.svg?branch=master)](https://travis-ci.org/ossia/score)
-* Windows (clang): [![Azure Pipelines](https://img.shields.io/azure-devops/build/ossia/f914424f-63a4-43f7-b424-67c9dc58ae05/2)](https://dev.azure.com/ossia/libossia/_build?definitionId=2)
+* Official releases: [![Azure Pipelines](https://img.shields.io/azure-devops/build/ossia/f914424f-63a4-43f7-b424-67c9dc58ae05/2)](https://dev.azure.com/ossia/libossia/_build?definitionId=2)
+* ArchLinux, OpenSUSE, Fedora, Debian: ![Linux distro build](https://github.com/ossia/score/workflows/Linux%20distro%20build/badge.svg)
+* Ubuntu, macOS (with Brew): [![Travis Status](https://travis-ci.org/ossia/score.svg?branch=master)](https://travis-ci.org/ossia/score)
 * Windows (MSVC): [![Appveyor Status](https://ci.appveyor.com/api/projects/status/github/ossia/score?branch=master&svg=true)](https://ci.appveyor.com/project/JeanMichalCelerier/score) (currently broken due to [MSVC bugs](https://developercommunity.visualstudio.com/content/problem/1143950/regression-c-internal-compiler-error-in-1670-with-1.html))
 * [![OpenHub](https://www.openhub.net/p/score/widgets/project_thin_badge?format=gif)](https://www.openhub.net/p/score)
 * ossia score uses [CppDepend](https://www.cppdepend.com/) to ensure consistent code quality improvements ; please check it out !
 
 In order to build score, follow the [instructions](https://github.com/ossia/score/wiki/Build-and-install).
-Current builds tested on macOS 10.14, Ubuntu 20.04, and Windows 10.
 
 ## Contributing
 
@@ -43,8 +43,7 @@ When updating the score repository through the command line, don't forget to upd
 Some useful and easy potential contributions are listed [on the website](https://ossia.io/contributing/).
 
 There are also many fixable areas in the code :
-sequencer
-* [**TODO**](https://github.com/ossia/score/search?q=TODO) : for general problems. Some are [five-minute fixes](https://github.com/ossia/score/blob/2e393a1786154c11d766e6c6476cc2bd5faa95d0/base/plugins/iscore-lib-process/Process/Style/ScenarioStyle.cpp#L3), other are [a multiple-day quest](https://github.com/ossia/score/blob/2e393a1786154c11d766e6c6476cc2bd5faa95d0/base/lib/core/plugin/PluginDependencyGraph.hpp#L67)
+* [**TODO**](https://github.com/ossia/score/search?q=TODO) : for simple issues.
 * [**FIXME**](https://github.com/ossia/score/search?q=FIXME) : for critical bugs / problems.
 * [**MOVEME**](https://github.com/ossia/score/search?q=REMOVEME) : when something is not where it should be.
 * [**REMOVEME**](https://github.com/ossia/score/search?q=REMOVEME) : when something is redundant.
@@ -52,7 +51,7 @@ sequencer
 * [**OPTIMIZEME**](https://github.com/ossia/score/search?q=OPTIMIZEME) : when an easy-to-write-but-suboptimal algorithm is used.
 
 Finally, one can write its own score plug-ins to add custom features to the software.
-An example plug-in with the most common classes reimplemented is provided [here](https://github.com/ossia/iscore-addon-tutorial).
+An example plug-in with the most common classes reimplemented is provided [here](https://github.com/ossia/score-addon-tutorial).
 
 ## Contributors
 
