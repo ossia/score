@@ -9,7 +9,7 @@ zypper -n install \
    portaudio-devel \
    lv2-devel liblilv-0-devel suil-devel \
    libavahi-devel \
-   fftw3-devel \
+   fftw3-devel fftw3-threads-devel \
    bluez-devel \
    libqt5-qtbase-devel \
    libqt5-qtdeclarative-devel libqt5-qtwebsockets-devel libqt5-qttools libqt5-qtserialport-devel \
