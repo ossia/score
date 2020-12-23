@@ -6,7 +6,7 @@ export SRC_PATH=$PWD
 brew install graphicsmagick imagemagick npm
 npm install --global create-dmg
 
-cd $SRC_PATH/bundle/
+cd $SRC_PATH/install/
 
 # Codesign
 security unlock-keychain -p travis build.keychain
