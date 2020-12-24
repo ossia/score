@@ -4,7 +4,7 @@
 
 #if defined(_WIN32)
 #if !defined(_MSC_VER)
-#include <Windows.h>
+#include <windows.h>
 #include <mmsystem.h>
 #include <ntdef.h>
 extern "C" NTSYSAPI NTSTATUS NTAPI NtSetTimerResolution(ULONG DesiredResolution, BOOLEAN SetResolution, PULONG CurrentResolution);

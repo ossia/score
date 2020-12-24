@@ -28,6 +28,31 @@ jobs:
         run: |
           ./ci/buster.build.sh
 
+  buster:
+    name: Debian Bullseye
+    runs-on: ubuntu-latest
+    container:
+      image: debian:bullseye
+
+    steps:
+      - name: Install git
+        run: |
+          apt-get update -qq
+          apt-get install -qq --force-yes git
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - name: Dependencies
+        run: |
+          ./ci/bullseye.deps.sh
+
+      - name: Build
+        run: |
+          ./ci/bullseye.build.sh
+
   fedora:
     name: Fedora 33
     runs-on: ubuntu-latest
@@ -124,3 +149,29 @@ jobs:
       - name: Build
         run: |
           ./ci/archlinux.build.sh
+
+  arch:
+    name: MinGW
+    runs-on: ubuntu-latest
+    container:
+      image:  burningdaylight/mingw-arch:qt
+
+    steps:
+      - name: Install git
+        run: |
+          sudo pacman -Syy --noconfirm
+          sudo pacman -S archlinux-keyring --noconfirm
+          sudo pacman -S git --noconfirm
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - name: Dependencies
+        run: |
+          ./ci/mingw.deps.sh
+
+      - name: Build
+        run: |
+          ./ci/mingw.build.sh

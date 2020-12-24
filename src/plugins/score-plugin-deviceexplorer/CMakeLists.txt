@@ -147,7 +147,7 @@ endif()
 target_link_libraries(${PROJECT_NAME} PRIVATE ${QT_PREFIX}::Core ${QT_PREFIX}::Network)
 
 if(WIN32)
-  target_link_libraries(${PROJECT_NAME} PRIVATE Ws2_32)
+  target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32)
 endif()
 
 setup_score_plugin(score_plugin_deviceexplorer)

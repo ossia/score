@@ -241,7 +241,7 @@ if(TARGET ${QT_PREFIX}::Qml)
 endif()
 
 if(WIN32)
-  target_link_libraries(${PROJECT_NAME} PRIVATE Ws2_32)
+  target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32)
 endif()
 
 setup_score_plugin(${PROJECT_NAME})
