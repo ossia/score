@@ -210,7 +210,7 @@ static void setup_app_flags()
 #endif
 }
 
-#if __has_include(<fftw3.h>)
+#if FFTW3_HAS_THREADS
 #include <fftw3.h>
 static void setup_fftw()
 {

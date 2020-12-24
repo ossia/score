@@ -28,7 +28,7 @@ jobs:
         run: |
           ./ci/buster.build.sh
 
-  buster:
+  bullseye:
     name: Debian Bullseye
     runs-on: ubuntu-latest
     container:
@@ -150,7 +150,7 @@ jobs:
         run: |
           ./ci/archlinux.build.sh
 
-  arch:
+  mingw:
     name: MinGW
     runs-on: ubuntu-latest
     container:
