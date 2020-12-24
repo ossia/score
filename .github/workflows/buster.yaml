@@ -154,14 +154,14 @@ jobs:
     name: MinGW
     runs-on: ubuntu-latest
     container:
-      image:  burningdaylight/mingw-arch:qt
+      image:  burningdaylight/mingw-arch:base
 
     steps:
       - name: Install git
         run: |
           sudo pacman -Syy --noconfirm
           sudo pacman -S archlinux-keyring --noconfirm
-          sudo pacman -S git --noconfirm
+          sudo pacman -S glibc git --noconfirm
 
       - name: Checkout code
         uses: actions/checkout@v2
