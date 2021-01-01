@@ -38,6 +38,11 @@ endmacro()
 ### Initialization of most common stuff ###
 
 function(score_set_compile_options theTarget)
+
+  if(CMAKE_VERSION VERSION_GREATER 3.16)
+    target_compile_features(${theTarget} PUBLIC cxx_std_20)
+  endif()
+
   target_compile_definitions(${theTarget} PUBLIC
       $<$<CONFIG:Debug>:SCORE_DEBUG>
 
