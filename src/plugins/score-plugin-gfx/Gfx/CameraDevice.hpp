@@ -46,7 +46,7 @@ public:
   }
 };
 
-class camera_parameter : public ossia::gfx::texture_parameter
+class camera_parameter : public ossia::gfx::texture_input_parameter
 {
   GfxExecutionAction* context{};
 
@@ -56,7 +56,7 @@ public:
   VideoNode* node{};
 
   camera_parameter(const camera_settings& settings, ossia::net::node_base& n, GfxExecutionAction* ctx)
-      : ossia::gfx::texture_parameter{n}, context{ctx}
+      : ossia::gfx::texture_input_parameter{n}, context{ctx}
   {
     auto& proto = static_cast<camera_protocol&>(n.get_device().get_protocol());
     camera = proto.camera;
