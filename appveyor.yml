@@ -10,12 +10,13 @@ platform: x64
 install:
   - appveyor DownloadFile "https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/unsis/nsis-2.46.5-Unicode-setup.exe" -FileName nsis.exe
   - nsis.exe /S
-  - appveyor DownloadFile "https://github.com/ossia/score-sdk/releases/download/sdk9/win-audio-sdk.zip" -FileName win-audio-sdk.zip
-  - 7z x win-audio-sdk.zip
+  - appveyor DownloadFile "https://github.com/ossia/sdk/releases/download/sdk18/sdk-msvc-release.zip" -FileName sdk.zip
+  - 7z x sdk.zip
   - appveyor DownloadFile "http://download.qt.io/official_releases/jom/jom.zip" -FileName jom.zip
   - 7z x jom.zip
-  - move portaudio c:\portaudio
-  - move ffmpeg c:\ffmpeg
+  - mkdir c:\ossia-sdk
+  - move portaudio c:\ossia-sdk\portaudio
+  - move ffmpeg c:\ossia-sdk\ffmpeg
 
 build_script:
   - dir C:\Qt
@@ -28,7 +29,7 @@ build_script:
   - dir "C:\Program Files (x86)\Microsoft Visual Studio"
   - dir "C:\Program Files (x86)\Microsoft Visual Studio\2019"
   - call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Preview\VC\Auxiliary\Build\vcvarsall.bat" amd64
-  - cmake -G "NMake Makefiles JOM" -DCMAKE_BUILD_TYPE=Release -DBOOST_ROOT="%BOOST_ROOT%" -DCMAKE_PREFIX_PATH="%QTDIR%" ..
+  - cmake -G "NMake Makefiles JOM" -DCMAKE_BUILD_TYPE=Release -DBOOST_ROOT="%BOOST_ROOT%" -DCMAKE_PREFIX_PATH="%QTDIR%" -DSCORE_PCH=1 -DOSSIA_SDK=c:/ossia-sdk ..
   - cmake --build . --config Release -- -j4
   - cmake --build . --config Release --target Package
 
