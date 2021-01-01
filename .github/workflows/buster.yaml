@@ -149,28 +149,3 @@ jobs:
       - name: Build
         run: |
           ./ci/archlinux.build.sh
-
-  mingw:
-    name: MinGW
-    runs-on: ubuntu-latest
-    container:
-      image: ossia/mingw-cross:latest
-
-    steps:
-      - name: Install git
-        run: |
-          sudo pacman -Syy --noconfirm
-          sudo pacman -S git --noconfirm
-
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
-
-      - name: Dependencies
-        run: |
-          ./ci/mingw.deps.sh
-
-      - name: Build
-        run: |
-          ./ci/mingw.build.sh
