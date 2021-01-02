@@ -199,11 +199,12 @@ if(TARGET avutil)
   if(WIN32)
     add_library(winbcrypt STATIC IMPORTED GLOBAL)
     if(MSVC)
-      find_library(BCRYPT_LIBRARY bcrypt)
+      find_library(BCRYPT_LIBRARY bcrypt.lib)
       set_target_properties(winbcrypt PROPERTIES
         IMPORTED_NO_SONAME 1
-        IMPORTED_LOCATION bcrypt
+        IMPORTED_LOCATION "${BCRYPT_LIBRARY}"
       )
+      imported_link_libraries(avdevice shlwapi.lib)
     else()
       find_library(BCRYPT_LIBRARY libbcrypt.a HINTS ${OSSIA_SDK}/llvm/x86_64-w64-mingw32/lib)
       

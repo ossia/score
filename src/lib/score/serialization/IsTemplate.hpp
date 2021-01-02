@@ -90,7 +90,8 @@ struct is_template<T<A1, A2, A3, A4, A5, A6, A7, A8>> : std::true_type
 {
 };
 
-#if defined(__clang__)
+// TODO check where this causes a conflict with gcc
+#if defined(__clang__) || defined(_MSC_VER)
 template <template<class, std::size_t> class T, class X, std::size_t u>
 struct is_template<T<X,u>> : std::true_type
 {
