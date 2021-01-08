@@ -36,11 +36,12 @@ macro(score_common_setup)
 endmacro()
 
 ### Initialization of most common stuff ###
-
 function(score_set_compile_options theTarget)
-
+  # CXX_VERSION_FLAG: see ScoreConfiguration.cmake
   if(CMAKE_VERSION VERSION_GREATER 3.16)
-    target_compile_features(${theTarget} PUBLIC cxx_std_20)
+    target_compile_features(${theTarget} PRIVATE ${CXX_VERSION_FLAG})
+  else()
+    target_compile_features(${theTarget} PRIVATE cxx_std_17)
   endif()
 
   target_compile_definitions(${theTarget} PUBLIC

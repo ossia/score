@@ -75,14 +75,6 @@ if(MSVC)
                   /DNOMINMAX
                   /DWIN32_LEAN_AND_MEAN
                   )
-else()
-  if(CMAKE_VERSION VERSION_GREATER 3.16)
-    set(CMAKE_CXX_STANDARD 20)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++2a ")
-  else()
-    set(CMAKE_CXX_STANDARD 17)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1z ")
-  endif()
 endif()
 
 if(MSYS OR MINGW)

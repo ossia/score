@@ -110,7 +110,7 @@ public:
   void stop_execution() override;
 };
 
-class kinect2_parameter : public ossia::gfx::texture_parameter
+class kinect2_parameter : public ossia::gfx::texture_input_parameter
 {
   GfxExecutionAction* context{};
 
@@ -120,7 +120,7 @@ public:
   VideoNode* node{};
 
   kinect2_parameter(const std::shared_ptr<kinect2_decoder>& dec, ossia::net::node_base& n, GfxExecutionAction& ctx)
-      : ossia::gfx::texture_parameter{n}
+      : ossia::gfx::texture_input_parameter{n}
       , context{&ctx}
       , decoder{dec}
       , node{new VideoNode(decoder, {}, dec->filter)}
