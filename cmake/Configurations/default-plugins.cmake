@@ -43,4 +43,5 @@ score-plugin-packagemanager
 
 score-plugin-jit
 score-plugin-spline3d
+score-plugin-vst3
 )

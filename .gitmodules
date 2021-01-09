@@ -22,3 +22,15 @@
 [submodule "3rdparty/QCodeEditor"]
 	path = 3rdparty/QCodeEditor
 	url = https://github.com/jcelerier/QCodeEditor
+[submodule "3rdparty/vst3/public.sdk"]
+	path = 3rdparty/vst3/public.sdk
+	url = https://github.com/jcelerier/vst3_public_sdk
+[submodule "3rdparty/vst3/pluginterfaces"]
+	path = 3rdparty/vst3/pluginterfaces
+	url = https://github.com/steinbergmedia/vst3_pluginterfaces
+[submodule "3rdparty/vst3/base"]
+	path = 3rdparty/vst3/base
+	url = https://github.com/steinbergmedia/vst3_base
+[submodule "3rdparty/vst3/cmake"]
+	path = 3rdparty/vst3/cmake
+	url = https://github.com/steinbergmedia/vst3_cmake
