@@ -12,6 +12,7 @@ static Steinberg::IPtr<Steinberg::Vst::IComponent> createComponent(
   for (auto &class_info : factory.classInfos())
     if (class_info.category() == kVstAudioEffectClass)
     {
+      std::cerr << class_info.name() << std::endl;
       if(name.empty() || name == class_info.name())
       {
         return factory.createInstance<Steinberg::Vst::IComponent>(class_info.ID());
@@ -33,6 +34,8 @@ void Plugin::load(
   if(component->initialize(&ctx.m_host) != Steinberg::kResultOk)
     throw vst_error("Couldn't initialize VST3 component ({})", path);
 
+
+
   Steinberg::Vst::IAudioProcessor *processor_ptr = nullptr;
   auto audio_iface_res = component->queryInterface(Steinberg::Vst::IAudioProcessor::iid, (void **)&processor_ptr);
   if (audio_iface_res != Steinberg::kResultOk || !processor_ptr)
@@ -40,9 +43,23 @@ void Plugin::load(
 
   processor = Steinberg::shared(processor_ptr);
 
+  // Some level of introspection
+  auto sampleSize = Steinberg::Vst::kSample32;
+  if (processor->canProcessSampleSize(Steinberg::Vst::kSample64))
+  {
+    sampleSize = Steinberg::Vst::kSample64;
+    supportsDouble = true;
+  }
+
+  audio_ins =  component->getBusCount(Steinberg::Vst::kAudio, Steinberg::Vst::kInput);
+  event_ins =  component->getBusCount(Steinberg::Vst::kEvent, Steinberg::Vst::kInput);
+  audio_outs = component->getBusCount(Steinberg::Vst::kAudio, Steinberg::Vst::kOutput);
+  event_outs = component->getBusCount(Steinberg::Vst::kEvent, Steinberg::Vst::kOutput);
+
+
   Steinberg::Vst::ProcessSetup setup{
         Steinberg::Vst::kRealtime,
-        Steinberg::Vst::kSample32,
+        sampleSize,
         max_bs,
         sample_rate
   };
@@ -56,10 +73,6 @@ void Plugin::load(
 
 Plugin::~Plugin()
 {
-}
-
-void Plugin::process(float **inputs, float **outputs) {
-
 }
 
 }

@@ -1,20 +1,20 @@
-/*
 #pragma once
-#if defined(HAS_VST2)
 #include <Library/LibraryInterface.hpp>
 #include <Library/ProcessesItemModel.hpp>
-#include <Media/ApplicationPlugin.hpp>
-#include <Media/Effect/VST/VSTEffectModel.hpp>
+
+#include <Vst3/EffectModel.hpp>
+#include <Vst3/ApplicationPlugin.hpp>
+
 #include <score/tools/Bind.hpp>
 
 namespace vst3
 {
 class LibraryHandler final : public QObject, public Library::LibraryInterface
 {
-  SCORE_CONCRETE("6a13c3cc-bca7-44d6-a0ef-644e99204460")
+  SCORE_CONCRETE("e76eb5e4-4448-41b4-b292-8b37885b9754")
   void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx) override
   {
-    MSVC_BUGGY_CONSTEXPR static const auto key = Metadata<ConcreteKey_k, VSTEffectModel>::get();
+    MSVC_BUGGY_CONSTEXPR static const auto key = Metadata<ConcreteKey_k, Model>::get();
 
     QModelIndex node = model.find(key);
     if (node == QModelIndex{})
@@ -26,8 +26,9 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
 
     auto& fx = parent.emplace_back(Library::ProcessData{{{}, "Effects", {}}, {}, {}, {}}, &parent);
     auto& inst = parent.emplace_back(Library::ProcessData{{{}, "Instruments", {}}, {}, {}, {}}, &parent);
-    auto& plug = ctx.applicationPlugin<Media::ApplicationPlugin>();
-
+    auto& other = parent.emplace_back(Library::ProcessData{{{}, "Other", {}}, {}, {}, {}}, &parent);
+    auto& plug = ctx.applicationPlugin<vst3::ApplicationPlugin>();
+/*
     auto reset_plugs = [=, &plug, &inst, &fx] {
       for (const auto& vst : plug.vst_infos)
       {
@@ -57,8 +58,7 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
       reset_plugs();
       model.endResetModel();
     });
+    */
   }
 };
 }
-#endif
-*/

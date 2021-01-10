@@ -100,44 +100,19 @@ Executor::Executor(
 {
   if (!proc.fx )
     throw std::runtime_error("Unable to load VST");
-/*
-  AEffect& fx = *proc.fx->fx;
 
-  if (fx.flags & effFlagsCanDoubleReplacing)
+  if(proc.fx.supportsDouble)
   {
-    if (fx.flags & effFlagsIsSynth)
-    {
-      auto n = vst3::make_vst_fx<true, true>(proc.fx, ctx.execState->sampleRate);
-      setupNode(n);
-      node = std::move(n);
-    }
-    else
-    {
-      auto n = vst3::make_vst_fx<true, false>(proc.fx, ctx.execState->sampleRate);
-      setupNode(n);
-      node = std::move(n);
-    }
+    auto n = vst3::make_vst_fx<true>(proc.fx, ctx.execState->sampleRate);
+    setupNode(n);
+    node = std::move(n);
   }
   else
   {
-    if (fx.flags & effFlagsIsSynth)
-    {
-      auto n = vst3::make_vst_fx<false, true>(proc.fx, ctx.execState->sampleRate);
-      setupNode(n);
-      node = std::move(n);
-    }
-    else
-    {
-      auto n = vst3::make_vst_fx<false, false>(proc.fx, ctx.execState->sampleRate);
-      setupNode(n);
-      node = std::move(n);
-    }
+    auto n = vst3::make_vst_fx<false>(proc.fx, ctx.execState->sampleRate);
+    setupNode(n);
+    node = std::move(n);
   }
-*/
-
-  auto n = vst3::make_vst_fx<false>(proc.fx, ctx.execState->sampleRate);
-  setupNode(n);
-  node = std::move(n);
   m_ossia_process = std::make_shared<ossia::node_process>(node);
 }
 

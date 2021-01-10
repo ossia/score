@@ -12,7 +12,7 @@ class Executor final
     : public Execution::ProcessComponent_T<vst3::Model, ossia::node_process>
 {
   W_OBJECT(Executor)
-  COMPONENT_METADATA("1693023f-9f28-498c-8d43-c6f9c741a476")
+  COMPONENT_METADATA("a9f2c738-d22b-4654-9f58-25f25f099d79")
 
 public:
   static constexpr bool is_unique = true;
@@ -27,5 +27,5 @@ private:
   template <typename Node_T>
   void setupNode(Node_T& node);
 };
-using VSTEffectComponentFactory = Execution::ProcessComponentFactory_T<Executor>;
+using ExecutorFactory = Execution::ProcessComponentFactory_T<Executor>;
 }

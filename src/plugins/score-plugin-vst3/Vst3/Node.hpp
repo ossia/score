@@ -16,6 +16,12 @@ class vst_node_base : public ossia::graph_node
 {
 public:
   Plugin fx{};
+  // Each element is the amount of channels in a given in/out port
+  ossia::small_pod_vector<int, 2> m_audioInputChannels{};
+  ossia::small_pod_vector<int, 2> m_audioOutputChannels{};
+  int m_totalAudioIns{};
+  int m_totalAudioOuts{};
+
 
 protected:
   explicit vst_node_base(Plugin&& ptr) : fx{std::move(ptr)}
@@ -28,6 +34,8 @@ protected:
       void audioIn(const Steinberg::Vst::BusInfo& bus, int idx)
       {
         self.m_inlets.push_back(new ossia::audio_inlet);
+        self.m_audioInputChannels.push_back(bus.channelCount);
+        self.m_totalAudioIns += bus.channelCount;
       }
       void eventIn(const Steinberg::Vst::BusInfo& bus, int idx)
       {
@@ -36,6 +44,8 @@ protected:
       void audioOut(const Steinberg::Vst::BusInfo& bus, int idx)
       {
         self.m_outlets.push_back(new ossia::audio_outlet);
+        self.m_audioOutputChannels.push_back(bus.channelCount);
+        self.m_totalAudioOuts += bus.channelCount;
       }
       void eventOut(const Steinberg::Vst::BusInfo& bus, int idx)
       {
@@ -45,7 +55,23 @@ protected:
 
     forEachBus(vis{*this}, *fx.component);
 
+    if(m_audioInputChannels.empty())
+      m_audioInputChannels.push_back(2);
+    if(m_audioOutputChannels.empty())
+      m_audioOutputChannels.push_back(2);
+
+    m_totalAudioIns = std::max(2, this->m_totalAudioIns);
+    m_totalAudioOuts = std::max(2, this->m_totalAudioOuts);
+
     if (auto err = fx.processor->setProcessing(true);
+        err != Steinberg::kResultOk && err != Steinberg::kNotImplemented) {
+      ossia::logger().warn("Couldn't set VST3 processing: {}",  err);
+    }
+  }
+
+  ~vst_node_base()
+  {
+    if (auto err = fx.processor->setProcessing(false);
         err != Steinberg::kResultOk && err != Steinberg::kNotImplemented) {
       ossia::logger().warn("Couldn't set VST3 processing: {}",  err);
     }
@@ -129,26 +155,35 @@ public:
 
   void setupTimeInfo(const ossia::token_request& tk, ossia::exec_state_facade st)
   {
-    /*
-    static const constexpr double ppq_reference = 960.;
-
-    auto& time_info = fx->info;
-    time_info.samplePos = tk.date.impl;
+    using namespace Steinberg::Vst;
+    using F = ProcessContext;
+    Steinberg::Vst::ProcessContext& time_info = this->m_context;
     time_info.sampleRate = st.sampleRate();
-    time_info.nanoSeconds = st.currentDate() - st.startDate();
-    time_info.ppqPos = tk.musical_start_position * ppq_reference;
+    time_info.projectTimeSamples = tk.date.impl;
+
+    time_info.systemTime = st.currentDate() - st.startDate();
+    time_info.continousTimeSamples = time_info.projectTimeSamples; // TODO
+
+    time_info.projectTimeMusic = tk.musical_start_position;
+    time_info.barPositionMusic = tk.musical_start_last_bar;
+    time_info.cycleStartMusic = 0.;
+    time_info.cycleEndMusic = 0.;
+
     time_info.tempo = tk.tempo;
-    time_info.barStartPos = tk.musical_start_last_bar * ppq_reference;
-    time_info.cycleStartPos = 0.;
-    time_info.cycleEndPos = 0.;
     time_info.timeSigNumerator = tk.signature.upper;
     time_info.timeSigDenominator = tk.signature.lower;
-    time_info.smpteOffset = 0;
-    time_info.smpteFrameRate = 0;
+
+    // time_info.chord = ....;
+
+    time_info.smpteOffsetSubframes = 0;
+    time_info.frameRate = {};
     time_info.samplesToNextClock = 0;
-    time_info.flags = kVstTransportPlaying | kVstNanosValid | kVstPpqPosValid | kVstTempoValid
-                      | kVstBarsValid | kVstTimeSigValid | kVstClockValid;
-    */
+    time_info.state =
+        F::kPlaying |
+        F::kSystemTimeValid | F::kContTimeValid |
+        F::kProjectTimeMusicValid | F::kBarPositionValid |
+        F::kTempoValid | F::kTimeSigValid
+    ;
   }
 
 
@@ -165,7 +200,7 @@ template <bool UseDouble>
 class vst_node final : public vst_node_base
 {
 public:
-  vst_node(Plugin&& dat, int sampleRate) : vst_node_base{std::move(dat)}
+  vst_node(Plugin dat, int sampleRate) : vst_node_base{std::move(dat)}
   {
     m_vstData.processMode = Steinberg::Vst::ProcessModes::kRealtime;
     if constexpr(UseDouble)
@@ -176,8 +211,8 @@ public:
     m_vstInput.numChannels = 2;
     m_vstOutput.numChannels = 2;
 
-    m_vstData.numInputs = 1;
-    m_vstData.numOutputs = 1;
+    m_vstData.numInputs = m_audioInputChannels.size();
+    m_vstData.numOutputs = m_audioOutputChannels.size();
 
     m_vstData.inputs = &m_vstInput;
     m_vstData.outputs = &m_vstOutput;
@@ -207,7 +242,7 @@ public:
     */
   }
 
-  std::string label() const noexcept override { return "VST"; }
+  std::string label() const noexcept override { return "VST3"; }
 
   void all_notes_off() noexcept override
   {
@@ -328,14 +363,14 @@ public:
       {
         processFloat(samples);
       }
-/*
+
       // upmix mono VSTs to stereo
-      if (this->fx->fx->numOutputs == 1)
+      if (this->m_audioOutputChannels[0] == 1)
       {
         auto& op = m_outlets[0]->template target<ossia::audio_port>()->samples;
         op[1].assign(op[0].begin(), op[0].end());
       }
-*/
+
     }
   }
 
@@ -357,9 +392,8 @@ public:
       float* dummy = (float*)alloca(sizeof(float) * samples);
       std::fill_n(dummy, samples, 0.f);
 
-      //const auto max_io = std::max(this->fx->fx->numOutputs, this->fx->fx->numInputs);
-      const auto max_io = 2; // FIXME
-      float** output = (float**)alloca(sizeof(float*) * std::max(2, max_io));
+      const auto max_io = std::max(this->m_totalAudioIns, this->m_totalAudioOuts);
+      float** output = (float**)alloca(sizeof(float*) * max_io);
       output[0] = float_v[0].data();
       output[1] = float_v[1].data();
       for (int i = 2; i < max_io; i++)
@@ -369,10 +403,10 @@ public:
         m_vstData.numSamples = samples;
 
         m_vstInput.silenceFlags = 0;
-        m_vstInput.channelBuffers32 = (Steinberg::Vst::Sample32 **)output;
+        m_vstInput.channelBuffers32 = output;
 
         m_vstOutput.silenceFlags = 0;
-        m_vstOutput.channelBuffers32 = (Steinberg::Vst::Sample32 **)output;
+        m_vstOutput.channelBuffers32 = output;
 
         fx.processor->process(m_vstData);
       }
@@ -395,29 +429,29 @@ public:
 
     auto& ip = prepareInput(samples);
     double** input
-        = (double**)alloca(sizeof(double*) * std::max(2, this->fx->fx->numInputs));
+        = (double**)alloca(sizeof(double*) * m_totalAudioIns);
     input[0] = ip[0].data();
     input[1] = ip[1].data();
-    for (int i = 2; i < this->fx->fx->numInputs; i++)
+    for (int i = 2; i < this->m_totalAudioIns; i++)
       input[i] = dummy;
 
     auto& op = prepareOutput(samples);
     double** output
-        = (double**)alloca(sizeof(double*) * std::max(2, this->fx->fx->numOutputs));
+        = (double**)alloca(sizeof(double*) * m_totalAudioOuts);
     output[0] = op[0].data();
     output[1] = op[1].data();
 
-    for (int i = 2; i < this->fx->fx->numOutputs; i++)
+    for (int i = 2; i < this->m_totalAudioOuts; i++)
       output[i] = dummy;
 
     {
       m_vstData.numSamples = samples;
 
       m_vstInput.silenceFlags = 0;
-      m_vstInput.channelBuffers32 = (Steinberg::Vst::Sample32 **)input;
+      m_vstInput.channelBuffers64 = input;
 
       m_vstOutput.silenceFlags = 0;
-      m_vstOutput.channelBuffers32 = (Steinberg::Vst::Sample32 **)output;
+      m_vstOutput.channelBuffers64 = output;
 
       fx.processor->process(m_vstData);
     }

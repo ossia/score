@@ -26,10 +26,14 @@ struct Plugin
   void load(ApplicationPlugin& ctx, const std::string& path, const std::string& name, double sr, int max_bs);
   operator bool() const noexcept { return component && processor; }
 
-  void process(float** inputs, float** outputs);
-
   Steinberg::IPtr<Steinberg::Vst::IComponent> component;
   Steinberg::IPtr<Steinberg::Vst::IAudioProcessor> processor;
+
+  bool supportsDouble{};
+  int audio_ins  = 0;
+  int event_ins  = 0;
+  int audio_outs = 0;
+  int event_outs = 0;
 };
 
 template<typename T>

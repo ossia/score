@@ -287,10 +287,10 @@ void Model::initFx()
   auto& media = ctx.app.settings<Audio::Settings::Model>();
 
   VST3::Hosting::ClassInfo cls;
-  cls.get().name = "Surge";
+  cls.get().name = "AGain VST3";
 
   try {
-    this->fx.load(p, "/usr/lib/vst3/Surge.vst3", cls.name(), media.getRate(), 4096);
+    this->fx.load(p, "/usr/lib/vst3/again.vst3", cls.name(), media.getRate(), 4096);
   } catch(std::exception& e) {
     qDebug() << e.what();
     this->fx = {};
@@ -345,11 +345,6 @@ void Model::create()
     return;
 
   {
-    int audio_ins = fx.component->getBusCount(Steinberg::Vst::kAudio, Steinberg::Vst::kInput);
-    int event_ins = fx.component->getBusCount(Steinberg::Vst::kEvent, Steinberg::Vst::kInput);
-    int audio_outs = fx.component->getBusCount(Steinberg::Vst::kAudio, Steinberg::Vst::kOutput);
-    int event_outs = fx.component->getBusCount(Steinberg::Vst::kEvent, Steinberg::Vst::kOutput);
-
     struct vis {
       Model& model;
       Plugin& fx;

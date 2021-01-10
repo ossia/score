@@ -19,10 +19,18 @@ struct vst_error: public std::runtime_error
   }
 };
 
-struct ApplicationPlugin : public score::ApplicationPlugin {
-  using score::ApplicationPlugin::ApplicationPlugin;
-  Steinberg::Vst::HostApplication m_host;
+struct ApplicationPlugin : public score::ApplicationPlugin
+{
+public:
+  ApplicationPlugin(const score::ApplicationContext& ctx);
 
+  void rescan();
+
+  struct AvailablePlugin
+  {
+    VST3::Hosting::Module::Ptr module;
+    VST3::Hosting::ClassInfo classInfo;
+  };
 
   VST3::Hosting::Module::Ptr getModule(const std::string& path)
   {
@@ -44,7 +52,11 @@ struct ApplicationPlugin : public score::ApplicationPlugin {
     }
   }
 
+  Steinberg::Vst::HostApplication m_host;
   ossia::string_map<VST3::Hosting::Module::Ptr> modules;
+  ossia::string_map<VST3::Hosting::Module::Ptr> available;
+
+
 
 };
 }
