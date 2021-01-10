@@ -11,7 +11,7 @@ namespace vst3
 {
 class LibraryHandler final : public QObject, public Library::LibraryInterface
 {
-  SCORE_CONCRETE("e76eb5e4-4448-41b4-b292-8b37885b9754")
+  SCORE_CONCRETE("1d6ca523-628b-431a-9f70-87df92a63551")
   void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx) override
   {
     MSVC_BUGGY_CONSTEXPR static const auto key = Metadata<ConcreteKey_k, Model>::get();
@@ -24,26 +24,35 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
     auto& parent = *reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
     parent.key = {};
 
-    auto& fx = parent.emplace_back(Library::ProcessData{{{}, "Effects", {}}, {}, {}, {}}, &parent);
-    auto& inst = parent.emplace_back(Library::ProcessData{{{}, "Instruments", {}}, {}, {}, {}}, &parent);
-    auto& other = parent.emplace_back(Library::ProcessData{{{}, "Other", {}}, {}, {}, {}}, &parent);
     auto& plug = ctx.applicationPlugin<vst3::ApplicationPlugin>();
-/*
-    auto reset_plugs = [=, &plug, &inst, &fx] {
+
+    auto reset_plugs = [=, &plug, &parent] {
       for (const auto& vst : plug.vst_infos)
       {
         if (vst.isValid)
         {
-          const auto& name = vst.displayName.isEmpty() ? vst.prettyName : vst.displayName;
-          Library::ProcessData pdata{
-              {key, name, QString::number(vst.uniqueID)}, {}, vst.author, {}};
-          if (vst.isSynth)
+          auto name = QString::fromStdString(vst.module->getName());
+
+          Library::ProcessData parent_data{
+            {key, name, QString{}}, {}, {}, {}
+          };
+          auto& node = parent.emplace_back(std::move(parent_data), &parent);
+
+          for(const auto& cls : vst.classInfo)
           {
-            inst.emplace_back(std::move(pdata), &inst);
-          }
-          else
-          {
-            fx.emplace_back(std::move(pdata), &fx);
+            auto name = QString::fromStdString(cls.name());
+            auto vendor = QString::fromStdString(cls.vendor());
+            auto desc = QString::fromStdString(cls.version());
+            auto uid = QString{"%1/::/%2"}.arg(vst.path).arg(name);
+            qDebug() << " !!! " << name << uid;
+            Library::ProcessData classdata{
+              {key, name, uid}, {}, vendor, desc
+            };
+            if(parent.author.isEmpty())
+              parent.author = vendor;
+            if(vst.classInfo.size() == 1)
+              parent.customData = uid;
+            node.emplace_back(std::move(classdata), &node);
           }
         }
       }
@@ -51,14 +60,12 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
 
     reset_plugs();
 
-    con(plug, &Media::ApplicationPlugin::vstChanged, this, [=, &model, &fx, &inst] {
+    con(plug, &vst3::ApplicationPlugin::vstChanged, this, [=, &model, &parent] {
       model.beginResetModel();
-      fx.resize(0);
-      inst.resize(0);
+      parent.resize(0);
       reset_plugs();
       model.endResetModel();
     });
-    */
   }
 };
 }

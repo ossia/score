@@ -121,7 +121,9 @@ private:
   void init();
   void create();
   void load();
-  int32_t m_effectId{};
+
+  QString m_vstPath;
+  QString m_className;
 /*
   auto dispatch(
       int32_t opcode,

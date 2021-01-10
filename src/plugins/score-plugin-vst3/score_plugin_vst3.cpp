@@ -5,6 +5,7 @@
 #include <score_plugin_vst3_commands_files.hpp>
 #include <Vst3/EffectModel.hpp>
 #include <Vst3/Executor.hpp>
+#include <Vst3/Library.hpp>
 #include <Vst3/Plugin.hpp>
 #include <Vst3/ApplicationPlugin.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
@@ -36,6 +37,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_vst3::factories(
       score::ApplicationContext
       , FW<Process::ProcessModelFactory, vst3::VSTEffectFactory>
       , FW<Execution::ProcessComponentFactory, vst3::ExecutorFactory>
+      , FW<Library::LibraryInterface, vst3::LibraryHandler>
   >(ctx, key);
 }
 

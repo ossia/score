@@ -116,8 +116,14 @@ Model::Model(
     const QString& path,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : ProcessModel{t, id, "VST", parent}, m_effectId{path.toInt()}
+    : ProcessModel{t, id, "VST", parent}
 {
+  auto identifier = path.split("/::/", Qt::SkipEmptyParts);
+  if(identifier.size() == 2)
+  {
+    m_vstPath = identifier[0];
+    m_className = identifier[1];
+  }
   init();
   create();
 }
@@ -286,18 +292,15 @@ void Model::initFx()
   auto& p = ctx.app.applicationPlugin<vst3::ApplicationPlugin>();
   auto& media = ctx.app.settings<Audio::Settings::Model>();
 
-  VST3::Hosting::ClassInfo cls;
-  cls.get().name = "AGain VST3";
-
   try {
-    this->fx.load(p, "/usr/lib/vst3/again.vst3", cls.name(), media.getRate(), 4096);
+    this->fx.load(p, m_vstPath.toStdString(), m_className.toStdString(), media.getRate(), 4096);
   } catch(std::exception& e) {
     qDebug() << e.what();
     this->fx = {};
     return;
   }
 
-  metadata().setLabel(QString::fromStdString(cls.name()));
+  metadata().setLabel(m_className);
 
   /*
   float* pt [2] {

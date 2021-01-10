@@ -19,17 +19,26 @@ struct vst_error: public std::runtime_error
   }
 };
 
-struct ApplicationPlugin : public score::ApplicationPlugin
+struct ApplicationPlugin
+    : public QObject
+    , public score::ApplicationPlugin
 {
+  W_OBJECT(ApplicationPlugin)
 public:
   ApplicationPlugin(const score::ApplicationContext& ctx);
 
-  void rescan();
+  void initialize() override;
+
+  void rescan(const QStringList& paths);
+  void vstChanged() W_SIGNAL(vstChanged)
 
   struct AvailablePlugin
   {
+    QString path;
     VST3::Hosting::Module::Ptr module;
-    VST3::Hosting::ClassInfo classInfo;
+    std::vector<VST3::Hosting::ClassInfo> classInfo;
+
+    bool isValid{};
   };
 
   VST3::Hosting::Module::Ptr getModule(const std::string& path)
@@ -54,7 +63,7 @@ public:
 
   Steinberg::Vst::HostApplication m_host;
   ossia::string_map<VST3::Hosting::Module::Ptr> modules;
-  ossia::string_map<VST3::Hosting::Module::Ptr> available;
+  std::vector<AvailablePlugin> vst_infos;
 
 
 
