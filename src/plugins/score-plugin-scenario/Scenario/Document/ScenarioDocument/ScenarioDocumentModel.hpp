@@ -42,6 +42,7 @@ public:
       : score::DocumentDelegateModel{vis, parent}, m_context{ctx}
   {
     vis.writeTo(*this);
+    init();
   }
 
   void finishLoading();
@@ -64,6 +65,7 @@ public:
 
   const score::DocumentContext& context() const noexcept { return m_context; }
 private:
+  void init();
   const score::DocumentContext& m_context;
   BaseScenario* m_baseScenario{};
   std::vector<QByteArray> m_savedCables;

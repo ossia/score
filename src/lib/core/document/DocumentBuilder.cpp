@@ -21,6 +21,7 @@
 #include <QByteArray>
 #include <QDebug>
 #include <QObject>
+#include <QDir>
 #include <QString>
 #include <QVariant>
 
@@ -40,6 +41,26 @@ Document* DocumentBuilder::newDocument(
     DocumentDelegateFactory& doctype)
 {
   QString docName = "Untitled." + RandomNameProvider::generateShortRandomName();
+
+  // FIXME we can't access Library::Settings::Model here :'(
+  QSettings set;
+  if(auto library = set.value("Library/Path").toString(); QDir{library}.exists())
+  {
+    auto templateDocument = QString{"%1/default.score"}.arg(library);
+    if(QFile::exists(templateDocument))
+    {
+      try {
+        auto doc = loadDocument(ctx, templateDocument, doctype);
+        doc->metadata().setFileName(docName);
+        //doc->metadata().set({});
+        doc->model().setId(id);
+        // TODO cables ?!
+        return doc;
+      } catch(...) {
+
+      }
+    }
+  }
   auto doc = new Document{docName, id, doctype, m_parentView, m_parentPresenter};
 
   for (auto& projectsettings : ctx.interfaces<DocumentPluginFactoryList>())

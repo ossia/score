@@ -19,10 +19,7 @@
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Scenario::ScenarioDocumentModel)
-namespace Process
-{
-class LayerPresenter;
-}
+
 namespace Scenario
 {
 ScenarioDocumentModel::ScenarioDocumentModel(
@@ -46,20 +43,15 @@ ScenarioDocumentModel::ScenarioDocumentModel(
   m_baseScenario->endEvent().setDate(itv.duration.defaultDuration());
   m_baseScenario->endTimeSync().setDate(itv.duration.defaultDuration());
 
-  auto& doc_metadata = score::IDocument::documentContext(*parent).document.metadata();
+  auto& doc_metadata = ctx.document.metadata();
   itv.metadata().setName(doc_metadata.fileName());
 
   itv.addSignature(TimeVal::zero(), {4, 4});
   itv.setHasTimeSignature(true);
 
-  connect(
-      &doc_metadata, &score::DocumentMetadata::fileNameChanged, this, [&](const QString& newName) {
-        QFileInfo info(newName);
-        itv.metadata().setName(info.baseName());
-      });
-
   using namespace Scenario::Command;
 
+  // Create the root scenario
   AddOnlyProcessToInterval cmd1{
       itv, Metadata<ConcreteKey_k, Scenario::ProcessModel>::get(), QString{}, QPointF{}};
   cmd1.redo(ctx);
@@ -70,6 +62,20 @@ ScenarioDocumentModel::ScenarioDocumentModel(
   auto scenar = qobject_cast<Scenario::ProcessModel*>(&*itv.processes.begin());
   if (scenar)
     d.select(scenar->startEvent());
+
+  init();
+}
+
+void ScenarioDocumentModel::init()
+{
+  auto& itv = m_baseScenario->interval();
+  auto& doc_metadata = m_context.document.metadata();
+
+  connect(&doc_metadata, &score::DocumentMetadata::fileNameChanged,
+          this, [&](const QString& newName) {
+    QFileInfo info(newName);
+    itv.metadata().setName(info.baseName());
+  });
 }
 
 void ScenarioDocumentModel::finishLoading()
