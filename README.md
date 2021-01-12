@@ -40,7 +40,7 @@ When updating the score repository through the command line, don't forget to upd
     git pull
     git submodule update --init --recursive
 
-Some useful and easy potential contributions are listed [on the website](https://ossia.io/contributing/).
+Some useful and easy potential contributions are listed [on the website](https://ossia.io/contributor-guide.html).
 
 There are also many fixable areas in the code :
 * [**TODO**](https://github.com/ossia/score/search?q=TODO) : for simple issues.
