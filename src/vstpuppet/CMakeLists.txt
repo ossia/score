@@ -25,7 +25,16 @@ endif()
 target_include_directories(
   ossia-score-vstpuppet
   PRIVATE
-    "${SCORE_SRC}/plugins/score-plugin-media")
+    "${SCORE_SRC}/plugins/score-plugin-media"
+)
+
+setup_score_common_exe_features(ossia-score-vstpuppet)
+
+set_target_properties(
+    ossia-score-vstpuppet
+    PROPERTIES
+      DISABLE_PRECOMPILE_HEADERS TRUE
+)
 
 if(APPLE AND DEPLOYMENT_BUILD)
   set_target_properties(
