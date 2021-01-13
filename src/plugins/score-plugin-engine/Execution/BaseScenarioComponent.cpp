@@ -109,7 +109,7 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
         {
           auto node = main_interval->node;
           m_ctx.executionQueue.enqueue([=] {
-            static_cast<ossia::nodes::interval*>(node.get())->audio_out.address = param;
+            static_cast<ossia::nodes::interval*>(node.get())->audio_out.addresses = {param};
           });
           break;
         }

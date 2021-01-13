@@ -75,7 +75,8 @@ void gfx_exec_node::run(const ossia::token_request& tk, ossia::exec_state_facade
     }
     case ossia::texture_port::which:
     {
-      if(auto in = inlet->address.target<ossia::net::parameter_base*>())
+      if (auto& addrs = inlet->addresses; !addrs.empty())
+      if (auto in = addrs[0].target<ossia::net::parameter_base*>())
       {
         // TODO remove this dynamic_cast. maybe target should have
         // audio_parameter / texture_parameter / midi_parameter ... cases
@@ -98,8 +99,8 @@ void gfx_exec_node::run(const ossia::token_request& tk, ossia::exec_state_facade
     inlet_i++;
   }
 
-  auto out = this->m_outlets[0]->address.target<ossia::net::parameter_base*>();
-  if (out)
+  if (auto& addrs = this->m_outlets[0]->addresses; !addrs.empty())
+  if (auto out = addrs[0].target<ossia::net::parameter_base*>())
   {
     if (auto p = dynamic_cast<gfx_parameter_base*>(*out))
     {

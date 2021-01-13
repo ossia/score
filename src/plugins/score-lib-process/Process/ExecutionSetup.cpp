@@ -265,10 +265,10 @@ void set_destination_impl(
   if (address.address.device.isEmpty())
   {
     append([=] {
-      if (port->address)
+      for(auto& addr : port->addresses)
       {
         s->unregister_port(*port);
-        port->address = {};
+        addr = {};
         if (ossia::value_port* dat = port->template target<ossia::value_port>())
         {
           dat->type = {};
@@ -288,7 +288,7 @@ void set_destination_impl(
     {
       append([=] {
         s->unregister_port(*port);
-        port->address = p;
+        port->addresses = {p};
         if (ossia::value_port* dat = port->template target<ossia::value_port>())
         {
           if (qual.unit)
@@ -303,7 +303,7 @@ void set_destination_impl(
     {
       append([=] {
         s->unregister_port(*port);
-        port->address = n;
+        port->addresses = {n};
         s->register_port(*port);
         g->mark_dirty();
       });
@@ -318,7 +318,7 @@ void set_destination_impl(
     {
       append([=, p = *path]() mutable {
         s->unregister_port(*port);
-        port->address = std::move(p);
+        port->addresses = {std::move(p)};
         if (ossia::value_port* dat = port->template target<ossia::value_port>())
         {
           dat->type = {};
@@ -332,7 +332,7 @@ void set_destination_impl(
     {
       append([=] {
         s->unregister_port(*port);
-        port->address = {};
+        port->addresses.clear();
         if (ossia::value_port* dat = port->template target<ossia::value_port>())
         {
           dat->type = {};

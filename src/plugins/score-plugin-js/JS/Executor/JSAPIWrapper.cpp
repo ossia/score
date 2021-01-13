@@ -94,7 +94,7 @@ QVariant ExecStateWrapper::read(const QString& address)
     QVariant var;
     QVariantMap mv;
 
-    bool unique = ossia::apply_to_destination(
+    bool unique = ossia::apply_to_destination_impl(
         addr,
         devices.exec_devices(),
         [&](ossia::net::parameter_base* addr, bool unique) {
@@ -123,7 +123,7 @@ void ExecStateWrapper::write(const QString& address, const QVariant& value)
   {
     auto val = ossia::qt::qt_to_ossia{}(value);
 
-    ossia::apply_to_destination(
+    ossia::apply_to_destination_impl(
         addr,
         devices.exec_devices(),
         [&](ossia::net::parameter_base* addr, bool unique) {
