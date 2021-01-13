@@ -1,3 +1,4 @@
+cninja_require(compiler=clang)
 cninja_require(lld)
 cninja_require(linkerwarnings)
 cninja_require(debugsyms)
