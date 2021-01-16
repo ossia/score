@@ -5,7 +5,14 @@
     <script type="text/javascript">
         var ws;
         var triggers = [];
+        var intervals = [];
         var controls = [];
+
+        function isDifferentPath(path1, path2) {
+            // https://stackoverflow.com/questions/1068834/object-comparison-in-javascript
+            // jfc javascript
+            return JSON.stringify(path1) != JSON.stringify(path2);
+        }
 
         function updateUI() {
             var div = document.getElementById("buttons");
@@ -21,8 +28,32 @@
                     ws.send(JSON.stringify({
                         Message: "Trigger",
                         Path: element.Path
-                    }))
+                    }));
                 });
+            });
+
+            intervals.forEach(element => {
+                let label = document.createElement("span");
+                label.innerHTML = element.Name + " speed: ";
+                div.appendChild(label);
+
+                var slider = document.createElement("input");
+                slider.type = 'range';
+                slider.min = -1;
+                slider.max = 5;
+                slider.value = element.speed;
+                slider.step = 0.01;
+                div.appendChild(slider);
+
+                slider.oninput = function() {
+                    ws.send(JSON.stringify({
+                        Message: "IntervalSpeed",
+                        Path: element.Path,
+                        Speed: parseFloat(slider.value)
+                    }));
+                };
+
+                div.appendChild(document.createElement("br"));
             });
 
             controls.forEach(element => {
@@ -48,6 +79,7 @@
                         }));
                     };
                 });
+                div.appendChild(document.createElement("br"));
             });
         }
 
@@ -65,18 +97,19 @@
                 if (obj.Message === "TriggerAdded") {
                     triggers.push(obj);
                 } else if (obj.Message === "TriggerRemoved") {
-                    triggers = triggers.filter(element => {
-                        return element.Path === obj.Path;
-                    });
-                } else if(obj.Message === "ControlSurfaceAdded") {
-                    controls.push(obj);
-                } else if(obj.Message === "ControlSurfaceRemoved") {
-                    controls = controls.filter(element => {
-                        return element.Path === obj.Path;
-                    });
+                    triggers = triggers.filter(element => isDifferentPath(element.Path, obj.Path));
+
+                } else if (obj.Message === "IntervalAdded") {
+                    intervals.push(obj);
+                } else if (obj.Message === "IntervalRemoved") {
+                    intervals = intervals.filter(element => isDifferentPath(element.Path, obj.Path));
                 }
 
-
+                else if(obj.Message === "ControlSurfaceAdded") {
+                    controls.push(obj);
+                } else if(obj.Message === "ControlSurfaceRemoved") {
+                    controls = controls.filter(element => isDifferentPath(element.Path, obj.Path));
+                }
 
                 updateUI();
             }

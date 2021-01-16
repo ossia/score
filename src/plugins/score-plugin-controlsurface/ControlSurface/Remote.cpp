@@ -47,6 +47,7 @@ struct RemoteMessages
     auto it = obj.FindMember("Path");
     if (it == obj.MemberEnd())
       return;
+
     auto ctrl_it = obj.FindMember("id");
     if(ctrl_it == obj.MemberEnd())
       return;
@@ -56,7 +57,11 @@ struct RemoteMessages
       return;
 
     {
-      Model& cs = path.find(doc);
+      Model* csp = path.try_find(doc);
+      if(!csp)
+        return;
+      auto& cs = *csp;
+
       Id<Process::Inlet> id(ctrl_it->value.GetInt());
       auto it = ossia::find_if(cs.inlets(), [&](const auto& inlet) {
         return inlet->id() == id;
