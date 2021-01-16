@@ -124,6 +124,22 @@ Receiver::Receiver(const score::DocumentContext& doc, quint16 port)
   m_answers.insert(std::make_pair("Stop", [&](const rapidjson::Value&, const WSClient&) {
     doc.app.actions.action<Actions::Stop>().action()->trigger();
   }));
+  m_answers.insert(std::make_pair("Transport", [&](const rapidjson::Value& v, const WSClient&) {
+    if(v.IsObject())
+    {
+      if(auto it = v.FindMember("Milliseconds"); it != v.MemberEnd())
+      {
+        if(it->value.IsNumber())
+        {
+           double ms = it->value.GetDouble();
+
+           auto& ctrl = doc.app.guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
+           ctrl.execution().playAtDate(TimeVal::fromMsecs(ms));
+        }
+      }
+    }
+  }));
+
   m_answers.insert(std::make_pair("Console", [&](const rapidjson::Value& obj, const WSClient&) {
     auto it = obj.FindMember("Code");
     if (it == obj.MemberEnd())
@@ -132,6 +148,7 @@ Receiver::Receiver(const score::DocumentContext& doc, quint16 port)
     auto& console = doc.app.panel<JS::PanelDelegate>();
     console.engine().evaluate(str);
   }));
+
   m_answers.insert(
       std::make_pair("EnableListening", [&](const rapidjson::Value& obj, const WSClient& c) {
         auto it = obj.FindMember(score::StringConstant().Address);
@@ -148,6 +165,7 @@ Receiver::Receiver(const score::DocumentContext& doc, quint16 port)
           m_listenedAddresses.insert(std::make_pair(addr, c));
         }
       }));
+
   m_answers.insert(
       std::make_pair("DisableListening", [&](const rapidjson::Value& obj, const WSClient&) {
         auto it = obj.FindMember(score::StringConstant().Address);

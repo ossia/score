@@ -8,6 +8,9 @@
         var intervals = [];
         var controls = [];
 
+
+        var div = document.getElementById("buttons");
+
         function isDifferentPath(path1, path2) {
             // https://stackoverflow.com/questions/1068834/object-comparison-in-javascript
             // jfc javascript
@@ -93,7 +96,6 @@
 
             ws.onmessage = function (event) {
                 var obj = JSON.parse(event.data);
-                console.log(obj);
                 if (obj.Message === "TriggerAdded") {
                     triggers.push(obj);
                 } else if (obj.Message === "TriggerRemoved") {
@@ -101,6 +103,15 @@
 
                 } else if (obj.Message === "IntervalAdded") {
                     intervals.push(obj);
+                    if(intervals.length === 1)
+                    {
+                       console.log(obj.Path);
+                      // we added the first interval which is the root interval
+                      let transportSlider = document.getElementById("transport");
+                      transportSlider.max = obj.DefaultDuration;
+
+
+                    }
                 } else if (obj.Message === "IntervalRemoved") {
                     intervals = intervals.filter(element => isDifferentPath(element.Path, obj.Path));
                 }
@@ -114,6 +125,19 @@
                 updateUI();
             }
         }
+
+        function play() {
+          ws.send(JSON.stringify({ Message: "Play" }));
+        }
+
+        function pause() {
+            ws.send(JSON.stringify({ Message: "Pause" }));
+        }
+
+        function stop() {
+            ws.send(JSON.stringify({ Message: "Stop" }));
+        }
+
     </script>
 </head>
 
@@ -121,10 +145,29 @@
     <form>
         IP: <input type="text" id="endpoint" name="endpoint" value="ws://127.0.0.1:10212" style="width: 200px"><br>
         <input type="button" onclick="connectToWS()" value="Connect" />
+        <br/><br/>
+        <input type="button" onclick="play()" value="Play" />
+        <input type="button" onclick="pause()" value="Pause" />
+        <input type="button" onclick="stop()" value="Stop" />
+
+        <br/><br/>
+        <label for="transport">Transport</label>
+        <input id="transport" name="transport" type="range" min="0" value="0" max="100000" />
     </form>
     <br /><br />
 
     <div id="buttons"></div>
+    <script>
+
+
+let transportSlider = document.getElementById("transport");
+transportSlider.addEventListener('input', function() {
+    let time = parseFloat(transportSlider.value);
+    console.log(time);
+    ws.send(JSON.stringify({ Message: "Transport", Milliseconds: time }));
+});
+
+</script>
 </body>
 
 </html>

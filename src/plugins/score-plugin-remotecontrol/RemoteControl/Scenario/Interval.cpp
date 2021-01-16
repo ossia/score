@@ -20,6 +20,7 @@ struct IntervalMessages
     r.obj[score::StringConstant().Label] = model.metadata().getLabel();
     r.obj[score::StringConstant().Comment] = model.metadata().getComment();
     r.obj["Speed"] = model.duration.speed();
+    r.obj["DefaultDuration"] = model.duration.defaultDuration().msec();
     r.stream.EndObject();
     return r.toString();
   }
