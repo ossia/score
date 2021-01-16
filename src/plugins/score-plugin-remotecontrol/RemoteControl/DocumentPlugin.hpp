@@ -47,6 +47,33 @@ struct Handler
   std::function<void(const std::vector<WSClient>&)> onRemoved;
   std::function<void(const WSClient&)> onClientConnection;
   std::function<void(const WSClient&)> onClientDisconnection;
+
+  /**
+   * @brief Helper function to set handlers from a pair of init / deinit functions
+   */
+  template<typename T>
+  void setupDefaultHandler(T msgs)
+  {
+    onAdded = [msgs] (const std::vector<RemoteControl::WSClient>& clts) {
+      auto msg = msgs.initMessage();
+      for(auto& clt : clts)
+        clt.socket->sendTextMessage(msg);
+    };
+    onRemoved = [msgs] (const std::vector<RemoteControl::WSClient>& clts) {
+      auto msg = msgs.deinitMessage();
+      for(auto& clt : clts)
+        clt.socket->sendTextMessage(msg);
+    };
+
+    onClientConnection = [msgs] (const RemoteControl::WSClient& clt) {
+      auto msg = msgs.initMessage();
+      clt.socket->sendTextMessage(msg);
+    };
+    onClientDisconnection = [msgs] (const RemoteControl::WSClient& clt) {
+      auto msg = msgs.deinitMessage();
+      clt.socket->sendTextMessage(msg);
+    };
+  }
 };
 
 struct SCORE_PLUGIN_REMOTECONTROL_EXPORT Receiver : public QObject, public Nano::Observer

@@ -11,7 +11,8 @@ namespace ControlSurface
 {
 struct RemoteMessages
 {
-  static QString initMessage(Model& process)
+  Model& process;
+  QString initMessage() const
   {
     using namespace std::literals;
     JSONReader r;
@@ -28,7 +29,7 @@ struct RemoteMessages
     return r.toString();
   }
 
-  static QString deinitMessage(Model& process)
+  QString deinitMessage() const
   {
     using namespace std::literals;
     JSONReader r;
@@ -39,10 +40,9 @@ struct RemoteMessages
     return r.toString();
   }
 
-  static void controlSurface(
+  void controlSurface(
       const rapidjson::Value& obj,
-      Model& process,
-      const score::DocumentContext& doc)
+      const score::DocumentContext& doc) const
   {
     auto it = obj.FindMember("Path");
     if (it == obj.MemberEnd())
@@ -87,30 +87,13 @@ Remote::Remote(
   con(proc, &Model::startExecution,
       this, [this] {
     RemoteControl::Handler h;
+    RemoteMessages msgs{process()};
 
-    h.onAdded = [this] (const std::vector<RemoteControl::WSClient>& clts) {
-      auto msg = RemoteMessages::initMessage(this->process());
-      for(auto& clt : clts)
-        clt.socket->sendTextMessage(msg);
-    };
-    h.onClientConnection = [this] (const RemoteControl::WSClient& clt) {
-      auto msg = RemoteMessages::initMessage(this->process());
-      clt.socket->sendTextMessage(msg);
-    };
-
-    h.onRemoved = [this] (const std::vector<RemoteControl::WSClient>& clts) {
-      auto msg = RemoteMessages::deinitMessage(this->process());
-      for(auto& clt : clts)
-        clt.socket->sendTextMessage(msg);
-    };
-    h.onClientDisconnection = [this] (const RemoteControl::WSClient& clt) {
-      auto msg = RemoteMessages::deinitMessage(this->process());
-      clt.socket->sendTextMessage(msg);
-    };
+    h.setupDefaultHandler(msgs);
 
     h.answers["ControlSurface"] =
-        [this](const rapidjson::Value& v, const RemoteControl::WSClient&) {
-      RemoteMessages::controlSurface(v, this->process(), this->system().context());
+        [this, msgs](const rapidjson::Value& v, const RemoteControl::WSClient&) {
+      msgs.controlSurface(v, this->system().context());
     };
 
     system().receiver.addHandler(this, std::move(h));
