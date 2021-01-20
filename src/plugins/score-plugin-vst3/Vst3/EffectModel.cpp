@@ -28,9 +28,6 @@
 #include <memory>
 #include <set>
 W_OBJECT_IMPL(vst3::Model)
-
-// If a VST has less than this many parameters they will be shown by default.
-#define VST_DEFAULT_PARAM_NUMBER_CUTOFF 10
 namespace Process
 {
 template <>
@@ -148,8 +145,8 @@ bool Model::hasExternalUI() const noexcept
   */
 }
 
-void Model::removeControl(int fxNum)
-{/*
+void Model::removeControl(Steinberg::Vst::ParamID fxNum)
+{
   auto it = controls.find(fxNum);
   SCORE_ASSERT(it != controls.end());
   auto ctrl = it->second;
@@ -164,16 +161,45 @@ void Model::removeControl(int fxNum)
   }
   controlRemoved(*ctrl);
   delete ctrl;
-  */
+}
+
+void Model::on_addControl(const Steinberg::Vst::ParameterInfo& v)
+{
+  if(controls.find(v.id) != controls.end())
+  {
+    return;
+  }
+
+  SCORE_ASSERT(controls.find(v.id) == controls.end());
+  auto ctrl = new ControlInlet{Id<Process::Port>(getStrongId(inlets()).val()), this};
+  ctrl->hidden = true;
+  ctrl->fxNum = v.id;
+  ctrl->setValue(v.defaultNormalizedValue);
+
+  // Metadata
+  {
+    auto name = v.title;
+    auto label = v.shortTitle;
+    // auto display = get_string(effGetParamDisplay, i);
+
+    // Get the name
+    QString str = QString::fromUtf16(name);
+    // if (!label.isEmpty())
+    //   str += "(" + label + ")";
+
+    ctrl->setCustomData(str);
+  }
+
+  on_addControl_impl(ctrl);
+
 }
 
 void Model::removeControl(const Id<Process::Port>& id)
 {
-  /*
   auto it = ossia::find_if(m_inlets, [&](const auto& inl) { return inl->id() == id; });
 
   SCORE_ASSERT(it != m_inlets.end());
-  auto ctrl = safe_cast<VSTControlInlet*>(*it);
+  auto ctrl = safe_cast<ControlInlet*>(*it);
 
   qDebug() << "removeControl(id) " << ctrl->fxNum;
   controls.erase(ctrl->fxNum);
@@ -181,16 +207,13 @@ void Model::removeControl(const Id<Process::Port>& id)
 
   controlRemoved(*ctrl);
   delete ctrl;
-  */
 }
 
-VSTControlInlet* Model::getControl(const Id<Process::Port>& p) const
+ControlInlet* Model::getControl(const Id<Process::Port>& p) const
 {
-  /*
   for (auto e : m_inlets)
     if (e->id() == p)
-      return static_cast<VSTControlInlet*>(e);
-      */
+      return static_cast<ControlInlet*>(e);
   return nullptr;
 }
 
@@ -198,52 +221,20 @@ void Model::init()
 {
 }
 
-void Model::on_addControl(int i, float v)
+void Model::on_addControl_impl(ControlInlet* ctrl)
 {
-  /*
-  if(controls.find(i) != controls.end())
-  {
-    return;
-  }
-
-  SCORE_ASSERT(controls.find(i) == controls.end());
-  auto ctrl = new VSTControlInlet{Id<Process::Port>(getStrongId(inlets()).val()), this};
-  ctrl->hidden = true;
-  ctrl->fxNum = i;
-  ctrl->setValue(v);
-
-  // Metadata
-  {
-    auto name = getString(effGetParamName, i);
-    auto label = getString(effGetParamLabel, i);
-    // auto display = get_string(effGetParamDisplay, i);
-
-    // Get the nameq
-    QString str = name;
-    if (!label.isEmpty())
-      str += "(" + label + ")";
-
-    ctrl->setCustomData(name);
-  }
-
-  on_addControl_impl(ctrl);
-  */
-}
-
-void Model::on_addControl_impl(VSTControlInlet* ctrl)
-{
-  /*
-  connect(ctrl, &VSTControlInlet::valueChanged, this, [this, i = ctrl->fxNum](float newval) {
-    if (std::abs(newval - fx->getParameter(i)) > 0.0001)
-      fx->setParameter(i, newval);
+  connect(ctrl, &ControlInlet::valueChanged, this, [this, i = ctrl->fxNum, c=fx.controller](float newval) {
+    qDebug() << newval;
+    if (std::abs(newval - c->getParamNormalized(i)) > 0.0001)
+      c->setParamNormalized(i, newval);
   });
 
+  qDebug() << "added inlet" << ctrl->customData();
   m_inlets.push_back(ctrl);
   SCORE_ASSERT(controls.find(ctrl->fxNum) == controls.end());
   controls.insert({ctrl->fxNum, ctrl});
   SCORE_ASSERT(controls.find(ctrl->fxNum) != controls.end());
   controlAdded(ctrl->id());
-  */
 }
 
 void Model::reloadControls()
@@ -259,14 +250,6 @@ void Model::reloadControls()
   */
 }
 
-/*
-QString Model::getString(AEffectOpcodes op, int param)
-{
-  char paramName[512] = {0};
-  dispatch(op, param, 0, paramName);
-  return QString::fromUtf8(paramName);
-}
-*/
 
 void Model::closePlugin()
 {
@@ -286,6 +269,74 @@ void Model::closePlugin()
   */
 }
 
+class Handler : public Steinberg::Vst::IComponentHandler
+{
+public:
+  Steinberg::tresult queryInterface(const Steinberg::TUID _iid, void** obj) override
+  {
+    return {};
+  }
+  Steinberg::uint32 addRef() override
+  {
+    return 1;
+  }
+  Steinberg::uint32 release() override
+  {
+    return 1;
+  }
+
+  // IComponentHandler interface
+public:
+  Steinberg::tresult beginEdit(Steinberg::Vst::ParamID id) override
+  {
+    return Steinberg::kResultOk;
+  }
+  Steinberg::tresult performEdit(Steinberg::Vst::ParamID id, Steinberg::Vst::ParamValue valueNormalized) override
+  {
+    qDebug() << id << valueNormalized;
+    return Steinberg::kResultOk;
+  }
+  Steinberg::tresult endEdit(Steinberg::Vst::ParamID id) override
+  {
+    return Steinberg::kResultOk;
+  }
+  Steinberg::tresult restartComponent(Steinberg::int32 flags) override
+  {
+    return Steinberg::kResultOk;
+  }
+};
+
+class ConnectionPoint : public Steinberg::Vst::IConnectionPoint
+{
+public:
+  Steinberg::tresult queryInterface(const Steinberg::TUID _iid, void** obj) override
+  {
+    return {};
+  }
+  Steinberg::uint32 addRef() override
+  {
+    return 1;
+  }
+  Steinberg::uint32 release() override
+  {
+    return 1;
+  }
+
+public:
+  Steinberg::tresult connect(Steinberg::Vst::IConnectionPoint* other) override
+  {
+    return Steinberg::kResultOk;
+  }
+  Steinberg::tresult disconnect(Steinberg::Vst::IConnectionPoint* other) override
+  {
+    return Steinberg::kResultOk;
+  }
+  Steinberg::tresult notify(Steinberg::Vst::IMessage* message) override
+  {
+    return Steinberg::kResultOk;
+  }
+};
+
 void Model::initFx()
 {
   auto& ctx = score::IDocument::documentContext(*this);
@@ -302,14 +353,26 @@ void Model::initFx()
 
   metadata().setLabel(m_className);
 
-  /*
-  float* pt [2] {
-    (float*)alloca(sizeof(float) * 512),
-    (float*)alloca(sizeof(float) * 512)
-  };
-  plug.process(pt, pt);
-  exit(1);
-  */
+
+  this->fx.controller->setComponentHandler(new Handler);
+
+  using namespace Steinberg;
+  using namespace Steinberg::Vst;
+  // TODO need disconnection
+  FUnknownPtr<IConnectionPoint> compICP (fx.component);
+  FUnknownPtr<IConnectionPoint> contrICP (fx.controller);
+  if (compICP->connect (contrICP) != kResultTrue)
+  {
+  }
+  else
+  {
+    if (contrICP->connect (compICP) != kResultTrue)
+    {
+    }
+  }
+
+  //this->fx.controller->connect
+  /// this->fx.controller->setComponentState(...);
 
   /*
   fx = std::make_shared<AEffectWrapper>(getPluginInstance(m_effectId));
@@ -402,17 +465,21 @@ void Model::create()
     };
     forEachBus(vis{*this, fx}, *fx.component);
   }
-  /*
 
-  if (fx->fx->numParams < VST_DEFAULT_PARAM_NUMBER_CUTOFF || !(fx->fx->flags & VstAEffectFlags::effFlagsHasEditor))
+  if(fx.controller)
   {
-    for (int i = 0; i < fx->fx->numParams; i++)
+    const int numParams = fx.controller->getParameterCount();
+    if(numParams < VST_DEFAULT_PARAM_NUMBER_CUTOFF || !fx.view)
     {
-      on_addControl(i, fx->getParameter(i));
+      Steinberg::Vst::ParameterInfo p;
+      for(int i = 0; i < numParams; i++) {
+        if(fx.controller->getParameterInfo(i, p) == Steinberg::kResultOk)
+        {
+          on_addControl(p);
+        }
+      }
     }
   }
-
-  */
 }
 
 void Model::load()
@@ -647,24 +714,24 @@ void JSONWriter::write(vst3::Model& eff)
 }
 
 template <>
-void DataStreamReader::read<vst3::VSTControlInlet>(const vst3::VSTControlInlet& p)
+void DataStreamReader::read<vst3::ControlInlet>(const vst3::ControlInlet& p)
 {
   m_stream << p.fxNum;
 }
 template <>
-void DataStreamWriter::write<vst3::VSTControlInlet>(vst3::VSTControlInlet& p)
+void DataStreamWriter::write<vst3::ControlInlet>(vst3::ControlInlet& p)
 {
   m_stream >> p.fxNum;
 }
 
 template <>
-void JSONReader::read<vst3::VSTControlInlet>(const vst3::VSTControlInlet& p)
+void JSONReader::read<vst3::ControlInlet>(const vst3::ControlInlet& p)
 {
   obj["FxNum"] = p.fxNum;
   obj["Value"] = p.value();
 }
 template <>
-void JSONWriter::write<vst3::VSTControlInlet>(vst3::VSTControlInlet& p)
+void JSONWriter::write<vst3::ControlInlet>(vst3::ControlInlet& p)
 {
   p.fxNum = obj["FxNum"].toInt();
   p.setValue(obj["Value"].toDouble());

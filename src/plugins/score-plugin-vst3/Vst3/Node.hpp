@@ -9,6 +9,7 @@
 #include <ossia/editor/scenario/time_signature.hpp>
 #include <ossia/detail/logger.hpp>
 #include <public.sdk/source/vst/hosting/eventlist.h>
+#include <public.sdk/source/vst/hosting/parameterchanges.h>
 namespace vst3
 {
 
@@ -192,6 +193,8 @@ public:
   Steinberg::Vst::AudioBusBuffers m_vstOutput;
 
   Steinberg::Vst::ProcessContext m_context;
+  ossia::small_vector<Steinberg::Vst::ParameterChanges, 2> m_inputChanges;
+  ossia::small_vector<Steinberg::Vst::ParameterChanges, 2> m_outputChanges;
   ossia::small_vector<Steinberg::Vst::EventList*, 2> m_inputEvents;
   ossia::small_vector<Steinberg::Vst::EventList*, 2> m_outputEvents;
 };
@@ -216,8 +219,10 @@ public:
 
     m_vstData.inputs = &m_vstInput;
     m_vstData.outputs = &m_vstOutput;
-    // m_vstData.inputEvents = m_inputEvents.data();
-    // m_vstData.outputEvents = m_outputEvents.data();
+    m_vstData.inputParameterChanges = m_inputParameters.data();
+    m_vstData.outputParameterChanges = m_outputParameters.data();
+    m_vstData.inputEvents = m_inputEvents.data();
+    m_vstData.outputEvents = m_outputEvents.data();
     m_vstData.processContext = &m_context;
 
     /*
@@ -401,6 +406,7 @@ public:
 
       {
         m_vstData.numSamples = samples;
+        qDebug() << samples;
 
         m_vstInput.silenceFlags = 0;
         m_vstInput.channelBuffers32 = output;

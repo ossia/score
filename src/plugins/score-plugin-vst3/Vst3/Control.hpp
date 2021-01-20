@@ -11,27 +11,27 @@ struct Context;
 namespace vst3
 {
 
-class VSTControlInlet final : public Process::Inlet
+class ControlInlet final : public Process::Inlet
 {
-  W_OBJECT(VSTControlInlet)
+  W_OBJECT(ControlInlet)
   SCORE_SERIALIZE_FRIENDS
 public:
-  MODEL_METADATA_IMPL(VSTControlInlet)
-  VSTControlInlet(Id<Process::Port> c, QObject* parent) : Inlet{std::move(c), parent} { }
+  MODEL_METADATA_IMPL(ControlInlet)
+  ControlInlet(Id<Process::Port> c, QObject* parent) : Inlet{std::move(c), parent} { }
 
-  VSTControlInlet(DataStream::Deserializer& vis, QObject* parent) : Inlet{vis, parent}
+  ControlInlet(DataStream::Deserializer& vis, QObject* parent) : Inlet{vis, parent}
   {
     vis.writeTo(*this);
   }
-  VSTControlInlet(JSONObject::Deserializer& vis, QObject* parent) : Inlet{vis, parent}
+  ControlInlet(JSONObject::Deserializer& vis, QObject* parent) : Inlet{vis, parent}
   {
     vis.writeTo(*this);
   }
-  VSTControlInlet(DataStream::Deserializer&& vis, QObject* parent) : Inlet{vis, parent}
+  ControlInlet(DataStream::Deserializer&& vis, QObject* parent) : Inlet{vis, parent}
   {
     vis.writeTo(*this);
   }
-  VSTControlInlet(JSONObject::Deserializer&& vis, QObject* parent) : Inlet{vis, parent}
+  ControlInlet(JSONObject::Deserializer&& vis, QObject* parent) : Inlet{vis, parent}
   {
     vis.writeTo(*this);
   }
@@ -41,7 +41,7 @@ public:
     return Process::PortType::Message;
   }
 
-  int fxNum{};
+  Steinberg::Vst::ParamID fxNum{};
 
   float value() const { return m_value; }
   void setValue(float v)

@@ -7,6 +7,7 @@
 #include <pluginterfaces/base/funknown.h>
 #include <pluginterfaces/vst/ivstcomponent.h>
 #include <pluginterfaces/vst/ivstaudioprocessor.h>
+#include <pluginterfaces/gui/iplugview.h>
 
 #include <string_view>
 namespace vst3
@@ -26,8 +27,17 @@ struct Plugin
   void load(ApplicationPlugin& ctx, const std::string& path, const std::string& name, double sr, int max_bs);
   operator bool() const noexcept { return component && processor; }
 
-  Steinberg::IPtr<Steinberg::Vst::IComponent> component;
-  Steinberg::IPtr<Steinberg::Vst::IAudioProcessor> processor;
+  std::string path;
+  VST3::Hosting::Module::Ptr module;
+  Steinberg::Vst::IComponent* component{};
+  Steinberg::Vst::IAudioProcessor* processor{};
+  Steinberg::Vst::IEditController* controller{};
+  Steinberg::IPlugView* view{};
+
+  void loadAudioProcessor(ApplicationPlugin& ctx);
+  void loadEditController(ApplicationPlugin& ctx);
+  void loadBuses();
+  void startPlugin(double_t sample_rate, int max_bs);
 
   bool supportsDouble{};
   int audio_ins  = 0;
