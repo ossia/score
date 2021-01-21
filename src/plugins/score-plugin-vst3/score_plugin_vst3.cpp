@@ -8,6 +8,8 @@
 #include <Vst3/Library.hpp>
 #include <Vst3/Plugin.hpp>
 #include <Vst3/ApplicationPlugin.hpp>
+#include <Vst3/Control.hpp>
+#include <Vst3/Widgets.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 namespace vst3
 {
@@ -38,6 +40,8 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_vst3::factories(
       , FW<Process::ProcessModelFactory, vst3::VSTEffectFactory>
       , FW<Execution::ProcessComponentFactory, vst3::ExecutorFactory>
       , FW<Library::LibraryInterface, vst3::LibraryHandler>
+      , FW<Process::PortFactory, vst3::VSTControlPortFactory>
+      , FW<Process::LayerFactory, vst3::LayerFactory>
   >(ctx, key);
 }
 

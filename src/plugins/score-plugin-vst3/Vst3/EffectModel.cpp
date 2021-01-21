@@ -224,12 +224,10 @@ void Model::init()
 void Model::on_addControl_impl(ControlInlet* ctrl)
 {
   connect(ctrl, &ControlInlet::valueChanged, this, [this, i = ctrl->fxNum, c=fx.controller](float newval) {
-    qDebug() << newval;
     if (std::abs(newval - c->getParamNormalized(i)) > 0.0001)
       c->setParamNormalized(i, newval);
   });
 
-  qDebug() << "added inlet" << ctrl->customData();
   m_inlets.push_back(ctrl);
   SCORE_ASSERT(controls.find(ctrl->fxNum) == controls.end());
   controls.insert({ctrl->fxNum, ctrl});

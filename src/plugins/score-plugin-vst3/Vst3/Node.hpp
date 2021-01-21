@@ -13,6 +13,94 @@
 namespace vst3
 {
 
+class param_queue
+    : public Steinberg::Vst::IParamValueQueue
+{
+public:
+  explicit param_queue(Steinberg::Vst::ParamID id): id{id} { }
+
+  Steinberg::Vst::ParamID id{};
+  ossia::small_vector<std::pair<int32_t, Steinberg::Vst::ParamValue>, 1> data;
+  Steinberg::Vst::ParamValue lastValue{};
+
+  Steinberg::tresult queryInterface(const Steinberg::TUID _iid, void** obj) override
+  {
+    return Steinberg::kResultOk;
+  }
+  Steinberg::uint32 addRef() override
+  {
+    return 1;
+  }
+  Steinberg::uint32 release() override
+  {
+    return 1;
+  }
+
+  Steinberg::Vst::ParamID getParameterId() override
+  {
+    return id;
+  }
+  Steinberg::int32 getPointCount() override
+  {
+    return data.size();
+  }
+  Steinberg::tresult getPoint(Steinberg::int32 index, Steinberg::int32& sampleOffset, Steinberg::Vst::ParamValue& value) override
+  {
+    if(index >= 0 && index < data.size())
+      std::tie(sampleOffset, value) = data[index];
+    else if(index == -1)
+    {
+      sampleOffset = 0;
+      value = lastValue;
+    }
+
+    return Steinberg::kResultOk;
+  }
+
+  Steinberg::tresult addPoint(Steinberg::int32 sampleOffset, Steinberg::Vst::ParamValue value, Steinberg::int32& index) override
+  {
+    index = data.size();
+    data.emplace_back(sampleOffset, value);
+    return Steinberg::kResultOk;
+  }
+};
+
+class param_changes
+    : public Steinberg::Vst::IParameterChanges
+{
+public:
+  std::vector<param_queue> queues;
+  Steinberg::tresult queryInterface(const Steinberg::TUID _iid, void** obj) override
+  {
+    return Steinberg::kResultOk;
+  }
+  Steinberg::uint32 addRef() override
+  {
+    return 1;
+  }
+  Steinberg::uint32 release() override
+  {
+    return 1;
+  }
+
+  Steinberg::int32 getParameterCount () override
+  {
+    return queues.size();
+  }
+
+  param_queue* getParameterData (Steinberg::int32 index) override
+  {
+    return &queues[index];
+  }
+
+  param_queue* addParameterData (const Steinberg::Vst::ParamID& id, Steinberg::int32& index /*out*/) override
+  {
+    index = queues.size();
+    queues.emplace_back(id);
+    return &queues.back();
+  }
+};
+
 class vst_node_base : public ossia::graph_node
 {
 public:
@@ -80,39 +168,50 @@ protected:
 
   struct vst_control
   {
-    int idx{};
-    float value{};
+    Steinberg::Vst::ParamID idx{};
+    std::size_t queue_idx{};
     ossia::value_port* port{};
   };
-/*
-  inline void dispatch(
-      int32_t opcode,
-      int32_t index = 0,
-      intptr_t value = 0,
-      void* ptr = nullptr,
-      float opt = 0.0f)
-  {
-    fx->dispatch(opcode, index, value, ptr, opt);
-  }
-*/
+
 public:
   ossia::small_vector<vst_control, 16> controls;
 
+  std::size_t add_control(ossia::value_inlet* inlet, Steinberg::Vst::ParamID id, float v)
+  {
+    auto queue_idx = this->m_inputChanges.queues.size();
+    this->m_inputChanges.queues.emplace_back(id);
+    this->m_inputChanges.queues.back().lastValue = v;
+
+    controls.push_back({id, queue_idx, inlet->target<ossia::value_port>()});
+    root_inputs().push_back(std::move(inlet));
+    return queue_idx;
+  }
+
+  // Used when a control is changed from the ui.
+  void set_control(std::size_t queue_idx, float value)
+  {
+    auto& queue = this->m_inputChanges.queues[queue_idx];
+    queue.lastValue = value;
+    queue.data.clear();
+    queue.data.emplace_back(0, value);
+  }
+
   void setControls()
   {
-    /*
     for (vst_control& p : controls)
     {
       const auto& vec = p.port->get_data();
       if (vec.empty())
         continue;
-      if (auto t = last(vec).template target<float>())
+      if (auto t = last(vec).target<float>())
       {
-        p.value = ossia::clamp<float>(*t, 0.f, 1.f);
-        fx->fx->setParameter(fx->fx, p.idx, p.value);
+        double value = ossia::clamp<double>((double)*t, 0., 1.);
+        auto& queue = m_inputChanges.queues[p.queue_idx];
+        queue.data.clear();
+        queue.data.emplace_back(0, value);
+        queue.lastValue = value;
       }
     }
-    */
   }
 
   auto& prepareInput(std::size_t samples)
@@ -193,10 +292,10 @@ public:
   Steinberg::Vst::AudioBusBuffers m_vstOutput;
 
   Steinberg::Vst::ProcessContext m_context;
-  ossia::small_vector<Steinberg::Vst::ParameterChanges, 2> m_inputChanges;
-  ossia::small_vector<Steinberg::Vst::ParameterChanges, 2> m_outputChanges;
-  ossia::small_vector<Steinberg::Vst::EventList*, 2> m_inputEvents;
-  ossia::small_vector<Steinberg::Vst::EventList*, 2> m_outputEvents;
+  param_changes m_inputChanges;
+  param_changes m_outputChanges;
+  Steinberg::Vst::EventList m_inputEvents;
+  Steinberg::Vst::EventList m_outputEvents;
 };
 
 template <bool UseDouble>
@@ -219,10 +318,10 @@ public:
 
     m_vstData.inputs = &m_vstInput;
     m_vstData.outputs = &m_vstOutput;
-    m_vstData.inputParameterChanges = m_inputParameters.data();
-    m_vstData.outputParameterChanges = m_outputParameters.data();
-    m_vstData.inputEvents = m_inputEvents.data();
-    m_vstData.outputEvents = m_outputEvents.data();
+    m_vstData.inputParameterChanges = &m_inputChanges;
+    m_vstData.outputParameterChanges = &m_outputChanges;
+    m_vstData.inputEvents = &m_inputEvents;
+    m_vstData.outputEvents = &m_outputEvents;
     m_vstData.processContext = &m_context;
 
     /*
@@ -406,7 +505,6 @@ public:
 
       {
         m_vstData.numSamples = samples;
-        qDebug() << samples;
 
         m_vstInput.silenceFlags = 0;
         m_vstInput.channelBuffers32 = output;

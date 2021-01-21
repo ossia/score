@@ -9,21 +9,25 @@ add_subdirectory("${VST3_SDK_ROOT}" "${CMAKE_BINARY_DIR}/vst3")
 # Source files
 set(HDRS
   Vst3/ApplicationPlugin.hpp
+  Vst3/Commands.hpp
   Vst3/Control.hpp
   Vst3/EffectModel.hpp
   Vst3/Executor.hpp
   Vst3/Node.hpp
   Vst3/Plugin.hpp
   Vst3/Library.hpp
+  Vst3/Widgets.hpp
 
   score_plugin_vst3.hpp
 )
 set(SRCS
   Vst3/ApplicationPlugin.cpp
+  Vst3/Commands.cpp
   Vst3/Control.cpp
   Vst3/EffectModel.cpp
   Vst3/Executor.cpp
   Vst3/Plugin.cpp
+  Vst3/Widgets.cpp
 
   score_plugin_vst3.cpp
 )
