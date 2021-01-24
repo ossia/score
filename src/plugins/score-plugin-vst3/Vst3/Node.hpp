@@ -160,6 +160,28 @@ protected:
         err != Steinberg::kResultOk && err != Steinberg::kNotImplemented) {
       ossia::logger().warn("Couldn't set VST3 processing: {}",  err);
     }
+
+    m_vstData.processMode = Steinberg::Vst::ProcessModes::kRealtime;
+    m_vstData.numInputs = m_audioInputChannels.size();
+    m_vstData.numOutputs = m_audioOutputChannels.size();
+    m_vstInput.resize(m_audioInputChannels.size());
+    m_vstOutput.resize(m_audioOutputChannels.size());
+    for(int i = 0; i < m_audioInputChannels.size(); i++)
+    {
+      m_vstInput[i].numChannels = m_audioInputChannels[i];
+    }
+    for(int i = 0; i < m_audioOutputChannels.size(); i++)
+    {
+      m_vstOutput[i].numChannels = m_audioOutputChannels[i];
+    }
+
+    m_vstData.inputs = m_vstInput.data();
+    m_vstData.outputs = m_vstOutput.data();
+    m_vstData.inputParameterChanges = &m_inputChanges;
+    m_vstData.outputParameterChanges = &m_outputChanges;
+    m_vstData.inputEvents = &m_inputEvents;
+    m_vstData.outputEvents = &m_outputEvents;
+    m_vstData.processContext = &m_context;
   }
 
   ~vst_node_base()
@@ -218,49 +240,64 @@ public:
     }
   }
 
-  void dispatchMidi(ossia::midi_port& port)
+  void dispatchMidi()
+  {
+    m_inputEvents.clear();
+    m_outputEvents.clear();
+
+    int k = 0;
+    int audioBusCount = m_audioInputChannels.size();
+    for(int i = audioBusCount; i < audioBusCount + m_totalEventIns; i++)
+      dispatchMidi(*m_inlets[i]->template target<ossia::midi_port>(), k++);
+  }
+
+  void dispatchMidi(ossia::midi_port& port, int index)
   {
     // copy midi data
     auto& ip = port.messages;
-    const auto n_mess = ip.size();
-    if (n_mess == 0)
-    {
-
-      //f();
+    if (ip.empty())
       return;
-    }
 
-    /*
-    // -2 since two are already available ?
-    const auto sz = sizeof(VstEvents) + sizeof(void*) * n_mess * 2;
-    VstEvents* events = (VstEvents*)alloca(sz);
-    std::memset(events, 0, sz);
-    events->numEvents = n_mess;
-
-    ossia::small_vector<VstMidiEvent, 16> vec;
-    vec.resize(n_mess);
-    std::size_t i = 0;
+    using VstEvent = Steinberg::Vst::Event;
+    VstEvent e;
+    e.busIndex = index;
+    e.sampleOffset = 0;
+    e.ppqPosition = 0;
+    e.flags = VstEvent::kIsLive;
     for (rtmidi::message& mess : ip)
     {
-      VstMidiEvent& e = vec[i];
-      std::memset(&e, 0, sizeof(VstMidiEvent));
-
-      e.type = kVstMidiType;
-      e.byteSize = sizeof(VstMidiEvent);
-      e.deltaFrames = mess.timestamp;
-      e.flags = kVstMidiEventIsRealtime;
-
-      std::memcpy(e.midiData, mess.bytes.data(), std::min(mess.bytes.size(), (std::size_t)4));
-      // for (std::size_t k = 0, N = std::min(mess.bytes.size(),
-      // (std::size_t)4); k < N; k++)
-      //   e.midiData[k] = mess.bytes[k];
-
-      events->events[i] = reinterpret_cast<VstEvent*>(&e);
-      i++;
+      switch(mess.get_message_type())
+      {
+        case rtmidi::message_type::NOTE_ON:
+          e.type = VstEvent::kNoteOnEvent;
+          e.noteOn.channel = mess.get_channel();
+          e.noteOn.pitch = mess.bytes[1];
+          e.noteOn.velocity = mess.bytes[2] / 127.f;
+          e.noteOn.noteId = -1;
+          e.noteOn.tuning = 0.f;
+          m_inputEvents.addEvent(e);
+          break;
+        case rtmidi::message_type::NOTE_OFF:
+          e.type = VstEvent::kNoteOffEvent;
+          e.noteOff.channel = mess.get_channel();
+          e.noteOff.pitch = mess.bytes[1];
+          e.noteOff.velocity = mess.bytes[2] / 127.f;
+          e.noteOff.noteId = -1;
+          e.noteOff.tuning = 0.f;
+          m_inputEvents.addEvent(e);
+          break;
+        case rtmidi::message_type::POLY_PRESSURE:
+          e.type = VstEvent::kPolyPressureEvent;
+          e.polyPressure.channel = mess.get_channel();
+          e.polyPressure.pitch = mess.bytes[1];
+          e.polyPressure.pressure = mess.bytes[2] / 127.f;
+          e.polyPressure.noteId = -1;
+          m_inputEvents.addEvent(e);
+          break;
+        default:
+          break;
+      }
     }
-    dispatch(effProcessEvents, 0, 0, events, 0.f);
-    f();
-    */
   }
 
   auto& preparePort(ossia::audio_port& port, int numChannels, std::size_t samples)
@@ -323,32 +360,10 @@ class vst_node final : public vst_node_base
 public:
   vst_node(Plugin dat, int sampleRate) : vst_node_base{std::move(dat)}
   {
-    m_vstData.processMode = Steinberg::Vst::ProcessModes::kRealtime;
     if constexpr(UseDouble)
       m_vstData.symbolicSampleSize = Steinberg::Vst::kSample64;
     else
       m_vstData.symbolicSampleSize = Steinberg::Vst::kSample32;
-
-    m_vstData.numInputs = m_audioInputChannels.size();
-    m_vstData.numOutputs = m_audioOutputChannels.size();
-    m_vstInput.resize(m_audioInputChannels.size());
-    m_vstOutput.resize(m_audioOutputChannels.size());
-    for(int i = 0; i < m_audioInputChannels.size(); i++)
-    {
-      m_vstInput[i].numChannels = m_audioInputChannels[i];
-    }
-    for(int i = 0; i < m_audioOutputChannels.size(); i++)
-    {
-      m_vstOutput[i].numChannels = m_audioOutputChannels[i];
-    }
-
-    m_vstData.inputs = m_vstInput.data();
-    m_vstData.outputs = m_vstOutput.data();
-    m_vstData.inputParameterChanges = &m_inputChanges;
-    m_vstData.outputParameterChanges = &m_outputChanges;
-    m_vstData.inputEvents = &m_inputEvents;
-    m_vstData.outputEvents = &m_outputEvents;
-    m_vstData.processContext = &m_context;
 
     /*
 
@@ -439,8 +454,7 @@ public:
       this->setControls();
       this->setupTimeInfo(tk, st);
 
-      for(int i = m_totalAudioIns; i < m_totalAudioIns + m_totalEventIns; i++)
-        dispatchMidi(*m_inlets[i]->template target<ossia::midi_port>());
+      this->dispatchMidi();
 
       if constexpr (UseDouble)
       {

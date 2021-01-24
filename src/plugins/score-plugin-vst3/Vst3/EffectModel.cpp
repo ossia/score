@@ -352,21 +352,36 @@ void Model::initFx()
   metadata().setLabel(m_className);
 
 
-  this->fx.controller->setComponentHandler(new Handler);
-
-  using namespace Steinberg;
-  using namespace Steinberg::Vst;
-  // TODO need disconnection
-  FUnknownPtr<IConnectionPoint> compICP (fx.component);
-  FUnknownPtr<IConnectionPoint> contrICP (fx.controller);
-  if (compICP->connect (contrICP) != kResultTrue)
+  if(this->fx.controller)
   {
+    this->fx.controller->setComponentHandler(new Handler);
+    using namespace Steinberg;
+    using namespace Steinberg::Vst;
+    // TODO need disconnection
+
+    IConnectionPoint* compICP{};
+    IConnectionPoint* contrICP{};
+    if (fx.component && fx.component->queryInterface (IConnectionPoint::iid, (void**)&compICP) != kResultOk)
+      compICP = nullptr;
+    if (fx.controller && fx.controller->queryInterface (IConnectionPoint::iid, (void**)&contrICP) != kResultOk)
+      contrICP = nullptr;
+    if(compICP && contrICP)
+    {
+      if (compICP->connect (contrICP) != kResultTrue)
+      {
+      }
+      else
+      {
+        if (contrICP->connect (compICP) != kResultTrue)
+        {
+        }
+      }
+    }
+
   }
   else
   {
-    if (contrICP->connect (compICP) != kResultTrue)
-    {
-    }
+    qDebug() << "No fx controller ?!";
   }
 
   //this->fx.controller->connect
