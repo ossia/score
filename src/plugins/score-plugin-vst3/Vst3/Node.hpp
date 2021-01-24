@@ -110,6 +110,8 @@ public:
   ossia::small_pod_vector<int, 2> m_audioOutputChannels{};
   int m_totalAudioIns{};
   int m_totalAudioOuts{};
+  int m_totalEventIns{};
+  int m_totalEventOuts{};
 
 
 protected:
@@ -129,6 +131,7 @@ protected:
       void eventIn(const Steinberg::Vst::BusInfo& bus, int idx)
       {
         self.m_inlets.push_back(new ossia::midi_inlet);
+        self.m_totalEventIns++;
       }
       void audioOut(const Steinberg::Vst::BusInfo& bus, int idx)
       {
@@ -139,6 +142,7 @@ protected:
       void eventOut(const Steinberg::Vst::BusInfo& bus, int idx)
       {
         self.m_outlets.push_back(new ossia::midi_outlet);
+        self.m_totalEventOuts++;
       }
     };
 
@@ -214,43 +218,58 @@ public:
     }
   }
 
-  auto& prepareInput(std::size_t samples)
+  void dispatchMidi(ossia::midi_port& port)
   {
-    auto& ip = m_inlets[0]->template target<ossia::audio_port>()->samples;
-    switch (ip.size())
+    // copy midi data
+    auto& ip = port.messages;
+    const auto n_mess = ip.size();
+    if (n_mess == 0)
     {
-      case 0:
-      {
-        ip.resize(2);
-        ip[0].resize(samples);
-        ip[1].resize(samples);
-        break;
-      }
-      case 1:
-      {
-        ip.resize(2);
-        ip[0].resize(samples);
-        ip[1].assign(ip[0].begin(), ip[0].end());
-        break;
-      }
-      default:
-      {
-        for (auto& i : ip)
-          i.resize(samples);
-        break;
-      }
+
+      //f();
+      return;
     }
 
-    return ip;
+    /*
+    // -2 since two are already available ?
+    const auto sz = sizeof(VstEvents) + sizeof(void*) * n_mess * 2;
+    VstEvents* events = (VstEvents*)alloca(sz);
+    std::memset(events, 0, sz);
+    events->numEvents = n_mess;
+
+    ossia::small_vector<VstMidiEvent, 16> vec;
+    vec.resize(n_mess);
+    std::size_t i = 0;
+    for (rtmidi::message& mess : ip)
+    {
+      VstMidiEvent& e = vec[i];
+      std::memset(&e, 0, sizeof(VstMidiEvent));
+
+      e.type = kVstMidiType;
+      e.byteSize = sizeof(VstMidiEvent);
+      e.deltaFrames = mess.timestamp;
+      e.flags = kVstMidiEventIsRealtime;
+
+      std::memcpy(e.midiData, mess.bytes.data(), std::min(mess.bytes.size(), (std::size_t)4));
+      // for (std::size_t k = 0, N = std::min(mess.bytes.size(),
+      // (std::size_t)4); k < N; k++)
+      //   e.midiData[k] = mess.bytes[k];
+
+      events->events[i] = reinterpret_cast<VstEvent*>(&e);
+      i++;
+    }
+    dispatch(effProcessEvents, 0, 0, events, 0.f);
+    f();
+    */
   }
 
-  auto& prepareOutput(std::size_t samples)
+  auto& preparePort(ossia::audio_port& port, int numChannels, std::size_t samples)
   {
-    auto& op = m_outlets[0]->template target<ossia::audio_port>()->samples;
-    op.resize(2);
-    for (auto& chan : op)
-      chan.resize(samples);
-    return op;
+    auto& ip = port.samples;
+    ip.resize(numChannels);
+    for (auto& i : ip)
+      i.resize(samples);
+    return ip;
   }
 
   void setupTimeInfo(const ossia::token_request& tk, ossia::exec_state_facade st)
@@ -288,8 +307,8 @@ public:
 
 
   Steinberg::Vst::ProcessData m_vstData;
-  Steinberg::Vst::AudioBusBuffers m_vstInput;
-  Steinberg::Vst::AudioBusBuffers m_vstOutput;
+  ossia::small_vector<Steinberg::Vst::AudioBusBuffers, 1> m_vstInput;
+  ossia::small_vector<Steinberg::Vst::AudioBusBuffers, 1> m_vstOutput;
 
   Steinberg::Vst::ProcessContext m_context;
   param_changes m_inputChanges;
@@ -310,14 +329,21 @@ public:
     else
       m_vstData.symbolicSampleSize = Steinberg::Vst::kSample32;
 
-    m_vstInput.numChannels = 2;
-    m_vstOutput.numChannels = 2;
-
     m_vstData.numInputs = m_audioInputChannels.size();
     m_vstData.numOutputs = m_audioOutputChannels.size();
+    m_vstInput.resize(m_audioInputChannels.size());
+    m_vstOutput.resize(m_audioOutputChannels.size());
+    for(int i = 0; i < m_audioInputChannels.size(); i++)
+    {
+      m_vstInput[i].numChannels = m_audioInputChannels[i];
+    }
+    for(int i = 0; i < m_audioOutputChannels.size(); i++)
+    {
+      m_vstOutput[i].numChannels = m_audioOutputChannels[i];
+    }
 
-    m_vstData.inputs = &m_vstInput;
-    m_vstData.outputs = &m_vstOutput;
+    m_vstData.inputs = m_vstInput.data();
+    m_vstData.outputs = m_vstOutput.data();
     m_vstData.inputParameterChanges = &m_inputChanges;
     m_vstData.outputParameterChanges = &m_outputChanges;
     m_vstData.inputEvents = &m_inputEvents;
@@ -405,60 +431,17 @@ public:
     */
   }
 
-  void dispatchMidi()
-  {
-    /*
-    // copy midi data
-    auto& ip = static_cast<ossia::midi_inlet*>(m_inlets[1])->data.messages;
-    const auto n_mess = ip.size();
-    if (n_mess == 0)
-    {
-      f();
-      return;
-    }
-
-    // -2 since two are already available ?
-    const auto sz = sizeof(VstEvents) + sizeof(void*) * n_mess * 2;
-    VstEvents* events = (VstEvents*)alloca(sz);
-    std::memset(events, 0, sz);
-    events->numEvents = n_mess;
-
-    ossia::small_vector<VstMidiEvent, 16> vec;
-    vec.resize(n_mess);
-    std::size_t i = 0;
-    for (rtmidi::message& mess : ip)
-    {
-      VstMidiEvent& e = vec[i];
-      std::memset(&e, 0, sizeof(VstMidiEvent));
-
-      e.type = kVstMidiType;
-      e.byteSize = sizeof(VstMidiEvent);
-      e.deltaFrames = mess.timestamp;
-      e.flags = kVstMidiEventIsRealtime;
-
-      std::memcpy(e.midiData, mess.bytes.data(), std::min(mess.bytes.size(), (std::size_t)4));
-      // for (std::size_t k = 0, N = std::min(mess.bytes.size(),
-      // (std::size_t)4); k < N; k++)
-      //   e.midiData[k] = mess.bytes[k];
-
-      events->events[i] = reinterpret_cast<VstEvent*>(&e);
-      i++;
-    }
-    dispatch(effProcessEvents, 0, 0, events, 0.f);
-    f();
-    */
-  }
-
   void run(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept override
   {
-
     if (!muted() && tk.date > tk.prev_date)
     {
       const std::size_t samples = tk.physical_write_duration(st.modelToSamples());
       this->setControls();
       this->setupTimeInfo(tk, st);
 
-      dispatchMidi();
+      for(int i = m_totalAudioIns; i < m_totalAudioIns + m_totalEventIns; i++)
+        dispatchMidi(*m_inlets[i]->template target<ossia::midi_port>());
+
       if constexpr (UseDouble)
       {
         processDouble(samples);
@@ -467,103 +450,135 @@ public:
       {
         processFloat(samples);
       }
-
-      // upmix mono VSTs to stereo
-      if (this->m_audioOutputChannels[0] == 1)
-      {
-        auto& op = m_outlets[0]->template target<ossia::audio_port>()->samples;
-        op[1].assign(op[0].begin(), op[0].end());
-      }
-
     }
   }
 
   void processFloat(std::size_t samples)
   {
+    // In the float case we have temporary buffers for conversion
     if constexpr (!UseDouble)
     {
       // copy audio data
-      auto& ip = m_inlets[0]->template cast<ossia::audio_port>().samples;
-      auto& op = m_outlets[0]->template cast<ossia::audio_port>().samples;
-      if (ip.size() < 2)
-        ip.resize(2);
+      float** input = (float**)alloca(sizeof(float*) * m_totalAudioIns);
+      float** output = (float**)alloca(sizeof(float*) * m_totalAudioOuts);
 
-      float_v[0].assign(ip[0].begin(), ip[0].end());
-      float_v[1].assign(ip[1].begin(), ip[1].end());
-      float_v[0].resize(samples);
-      float_v[1].resize(samples);
+      float_v.resize(std::max(m_totalAudioIns, m_totalAudioOuts));
+      for(auto& v : float_v)
+        v.resize(samples);
 
-      float* dummy = (float*)alloca(sizeof(float) * samples);
-      std::fill_n(dummy, samples, 0.f);
+      int channel_k = 0;
+      int float_k = 0;
+      for(int i = 0; i < m_audioInputChannels.size(); i++)
+      {
+        const int numChannels = m_audioInputChannels[i];
+        auto& port = *m_inlets[i]->template target<ossia::audio_port>();
+        auto& ip = preparePort(port, numChannels, samples);
 
-      const auto max_io = std::max(this->m_totalAudioIns, this->m_totalAudioOuts);
-      float** output = (float**)alloca(sizeof(float*) * max_io);
-      output[0] = float_v[0].data();
-      output[1] = float_v[1].data();
-      for (int i = 2; i < max_io; i++)
-        output[i] = dummy;
+        Steinberg::Vst::AudioBusBuffers& vst_in = m_vstInput[i];
+        vst_in.channelBuffers32 = input + channel_k;
+        vst_in.silenceFlags = 0;
+
+        for(int k = 0; k < numChannels; k++)
+        {
+          std::copy_n(ip[k].data(), std::min(samples, ip[k].size()), float_v[float_k].data());
+          input[channel_k] = float_v[float_k].data();
+          channel_k++;
+          float_k++;
+        }
+      }
+
+      channel_k = 0;
+      float_k = 0;
+      for(int i = 0; i < m_audioOutputChannels.size(); i++)
+      {
+        const int numChannels = m_audioOutputChannels[i];
+        auto& port = *m_outlets[i]->template target<ossia::audio_port>();
+        auto& op = preparePort(port, numChannels, samples);
+
+        Steinberg::Vst::AudioBusBuffers& vst_out = m_vstOutput[i];
+        vst_out.channelBuffers32 = output + channel_k;
+        vst_out.silenceFlags = 0;
+        for(int k = 0; k < numChannels; k++)
+        {
+          output[channel_k] = float_v[float_k].data();
+          channel_k++;
+          float_k++;
+        }
+      }
 
       {
         m_vstData.numSamples = samples;
 
-        m_vstInput.silenceFlags = 0;
-        m_vstInput.channelBuffers32 = output;
-
-        m_vstOutput.silenceFlags = 0;
-        m_vstOutput.channelBuffers32 = output;
-
         fx.processor->process(m_vstData);
       }
 
-      op.clear();
-      op.emplace_back(float_v[0].begin(), float_v[0].end());
-      op.emplace_back(float_v[1].begin(), float_v[1].end());
-      float_v[0].clear();
-      float_v[1].clear();
+      channel_k = 0;
+      float_k = 0;
+      for(int i = 0; i < m_audioOutputChannels.size(); i++)
+      {
+        const int numChannels = m_audioOutputChannels[i];
+        ossia::audio_port& port = *m_outlets[i]->template target<ossia::audio_port>();
+        for(int k = 0; k < numChannels; k++)
+        {
+          auto& audio_out = port.samples[k];
+          std::copy_n(float_v[float_k].data(), samples, audio_out.data());
+        }
+      }
     }
   }
 
   void processDouble(std::size_t samples)
   {
+    // In the double case we use directly the buffers that are part of the
+    // input & output ports
     if constexpr (UseDouble)
     {
-    // copy audio data
-    double* dummy = (double*)alloca(sizeof(double) * samples);
-    std::fill_n(dummy, samples, 0.);
+      // copy audio data
+      double** input = (double**)alloca(sizeof(double*) * m_totalAudioIns);
+      double** output = (double**)alloca(sizeof(double*) * m_totalAudioOuts);
 
-    auto& ip = prepareInput(samples);
-    double** input
-        = (double**)alloca(sizeof(double*) * m_totalAudioIns);
-    input[0] = ip[0].data();
-    input[1] = ip[1].data();
-    for (int i = 2; i < this->m_totalAudioIns; i++)
-      input[i] = dummy;
+      int channel_k = 0;
+      for(int i = 0; i < m_audioInputChannels.size(); i++)
+      {
+        const int numChannels = m_audioInputChannels[i];
+        auto& port = *m_inlets[i]->template target<ossia::audio_port>();
+        auto& ip = preparePort(port, numChannels, samples);
 
-    auto& op = prepareOutput(samples);
-    double** output
-        = (double**)alloca(sizeof(double*) * m_totalAudioOuts);
-    output[0] = op[0].data();
-    output[1] = op[1].data();
+        Steinberg::Vst::AudioBusBuffers& vst_in = m_vstInput[i];
+        vst_in.channelBuffers64 = input + channel_k;
+        vst_in.silenceFlags = 0;
+        for(int k = 0; k < numChannels; k++)
+        {
+          input[channel_k++] = ip[k].data();
+        }
+      }
 
-    for (int i = 2; i < this->m_totalAudioOuts; i++)
-      output[i] = dummy;
+      channel_k = 0;
+      for(int i = 0; i < m_audioOutputChannels.size(); i++)
+      {
+        const int numChannels = m_audioOutputChannels[i];
+        auto& port = *m_outlets[i]->template target<ossia::audio_port>();
+        auto& op = preparePort(port, numChannels, samples);
 
-    {
-      m_vstData.numSamples = samples;
+        Steinberg::Vst::AudioBusBuffers& vst_out = m_vstOutput[i];
+        vst_out.channelBuffers64 = output + channel_k;
+        vst_out.silenceFlags = 0;
+        for(int k = 0; k < numChannels; k++)
+        {
+          output[channel_k++] = op[k].data();
+        }
+      }
 
-      m_vstInput.silenceFlags = 0;
-      m_vstInput.channelBuffers64 = input;
+      {
+        m_vstData.numSamples = samples;
 
-      m_vstOutput.silenceFlags = 0;
-      m_vstOutput.channelBuffers64 = output;
-
-      fx.processor->process(m_vstData);
-    }
+        fx.processor->process(m_vstData);
+      }
     }
   }
 
   struct dummy_t { };
-  std::conditional_t<!UseDouble, std::array<ossia::float_vector, 2>, dummy_t> float_v;
+  std::conditional_t<!UseDouble, std::vector<ossia::float_vector>, dummy_t> float_v;
 };
 
 template <bool b1, typename... Args>
