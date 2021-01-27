@@ -17,6 +17,10 @@ if(TARGET score_plugin_media)
   add_subdirectory(vstpuppet)
 endif()
 
+if(TARGET score_plugin_vst3)
+  add_subdirectory(vst3puppet)
+endif()
+
 add_subdirectory(app)
 
 if(SCORE_PLAYER)
