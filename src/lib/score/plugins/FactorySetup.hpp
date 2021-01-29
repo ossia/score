@@ -35,7 +35,12 @@ template <
     typename Factory_T>
 struct FactoryBuilder // sorry padre for I have sinned
 {
-  static auto make(const Context_T&) { return std::make_unique<Factory_T>(); }
+  static auto make(const Context_T& ctx) {
+    if constexpr(std::is_constructible_v<Factory_T, const Context_T&>)
+      return std::make_unique<Factory_T>(ctx);
+    else
+      return std::make_unique<Factory_T>();
+  }
 };
 
 /**
