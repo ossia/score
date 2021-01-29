@@ -1,6 +1,5 @@
 #include "score_plugin_media.hpp"
 
-#include <Media/ApplicationPlugin.hpp>
 #include <Media/Effect/Settings/Factory.hpp>
 #include <Media/Inspector/Factory.hpp>
 #include <Media/Merger/Executor.hpp>
@@ -19,18 +18,6 @@
 
 #include <Mixer/MixerPanel.hpp>
 #include <wobjectimpl.h>
-#if defined(HAS_LV2)
-#include <Media/Effect/LV2/LV2EffectModel.hpp>
-#include <Media/Effect/LV2/LV2Library.hpp>
-#include <Media/Effect/LV2/LV2Window.hpp>
-#endif
-#if defined(HAS_VST2)
-#include <Media/Effect/VST/VSTControl.hpp>
-#include <Media/Effect/VST/VSTEffectModel.hpp>
-#include <Media/Effect/VST/VSTExecutor.hpp>
-#include <Media/Effect/VST/VSTLibrary.hpp>
-#include <Media/Effect/VST/VSTWidgets.hpp>
-#endif
 #if defined(HAS_FAUST)
 #include <Media/Effect/Faust/FaustEffectModel.hpp>
 #include <Media/Effect/Faust/FaustLibrary.hpp>
@@ -78,9 +65,6 @@ score_plugin_media::~score_plugin_media() { }
 std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_media::make_commands()
 {
   using namespace Media;
-#if defined(HAS_VST2)
-  using namespace Media::VST;
-#endif
 #if defined(HAS_FAUST)
   using namespace Media::Faust;
 #endif
@@ -92,18 +76,6 @@ std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_media::make_c
       >(score::commands::FactoryInserter{cmds.second});
 
   return cmds;
-}
-
-score::ApplicationPlugin*
-score_plugin_media::make_applicationPlugin(const score::ApplicationContext& app)
-{
-  return new Media::ApplicationPlugin{app};
-}
-
-score::GUIApplicationPlugin*
-score_plugin_media::make_guiApplicationPlugin(const score::GUIApplicationContext& app)
-{
-  return new Media::GUIApplicationPlugin{app};
 }
 
 std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories(
@@ -121,14 +93,6 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
          ,
          Media::Faust::FaustEffectFactory
 #endif
-#if defined(HAS_LV2)
-         ,
-         Media::LV2::LV2EffectFactory
-#endif
-#if defined(HAS_VST2)
-         ,
-         Media::VST::VSTEffectFactory
-#endif
          >,
       FW<Inspector::InspectorWidgetFactory,
          Media::Sound::InspectorFactory,
@@ -141,28 +105,12 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
          Media::Metro::LayerFactory,
          Media::Step::LayerFactory,
          Media::Merger::LayerFactory
-#if defined(HAS_VST2)
-         ,
-         Media::VST::LayerFactory
-#endif
-#if defined(HAS_LV2)
-         ,
-         Media::LV2::LayerFactory
-#endif
 #if defined(HAS_FAUST)
          ,
          Media::Faust::LayerFactory
 #endif
          >,
       FW<Library::LibraryInterface
-#if defined(HAS_VST2)
-         ,
-         Media::VST::LibraryHandler
-#endif
-#if defined(HAS_LV2)
-         ,
-         Media::LV2::LibraryHandler
-#endif
 #if defined(HAS_FAUST)
          ,
          Media::Faust::LibraryHandler
@@ -170,23 +118,12 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
          ,
          Media::Sound::LibraryHandler>,
 
-#if defined(HAS_VST2)
-      FW<Process::PortFactory, Media::VST::VSTControlPortFactory>,
-#endif
 
       FW<Execution::ProcessComponentFactory,
          Execution::SoundComponentFactory,
          Execution::StepComponentFactory,
          Execution::MetroComponentFactory,
          Execution::MergerComponentFactory
-#if defined(HAS_VST2)
-         ,
-         Execution::VSTEffectComponentFactory
-#endif
-#if defined(HAS_LV2)
-         ,
-         Media::LV2::LV2EffectComponentFactory
-#endif
 #if defined(HAS_FAUST)
          ,
          Execution::FaustEffectComponentFactory

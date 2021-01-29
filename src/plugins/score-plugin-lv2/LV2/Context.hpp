@@ -1,6 +1,4 @@
 #pragma once
-#if defined(HAS_LV2)
-
 #include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/small_vector.hpp>
 
@@ -40,7 +38,7 @@
 #include <lv2/lv2plug.in/ns/extensions/ui/ui.h>
 #include <suil-0/suil/suil.h>
 
-namespace Media::LV2
+namespace LV2
 {
 struct EffectContext;
 struct GlobalContext;
@@ -176,4 +174,3 @@ struct Message
   ossia::small_vector<uint8_t, 8> body;
 };
 }
-#endif

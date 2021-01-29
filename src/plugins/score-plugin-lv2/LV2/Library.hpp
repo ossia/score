@@ -1,18 +1,17 @@
 #pragma once
-#if defined(HAS_LV2)
 #include <Library/LibraryInterface.hpp>
 #include <Library/ProcessesItemModel.hpp>
-#include <Media/ApplicationPlugin.hpp>
-#include <Media/Effect/LV2/LV2EffectModel.hpp>
+#include <LV2/ApplicationPlugin.hpp>
+#include <LV2/EffectModel.hpp>
 
-namespace Media::LV2
+namespace LV2
 {
 class LibraryHandler final : public Library::LibraryInterface
 {
   SCORE_CONCRETE("570f0b92-a091-47ff-a5c3-a585e07df2bf")
   void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx) override
   {
-    const auto& key = LV2EffectFactory{}.concreteKey();
+    const auto& key = LV2::ProcessFactory{}.concreteKey();
     QModelIndex node = model.find(key);
     if (node == QModelIndex{})
     {
@@ -20,7 +19,7 @@ class LibraryHandler final : public Library::LibraryInterface
     }
     auto& parent = *reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
 
-    auto& plug = ctx.applicationPlugin<Media::ApplicationPlugin>();
+    auto& plug = ctx.applicationPlugin<LV2::ApplicationPlugin>();
     auto& world = plug.lilv;
 
     auto plugs = world.get_all_plugins();
@@ -49,4 +48,3 @@ class LibraryHandler final : public Library::LibraryInterface
   }
 };
 }
-#endif

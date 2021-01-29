@@ -10,13 +10,9 @@ if(NOT FFmpeg_FOUND)
     return()
 endif()
 
-#if(SCORE_AUDIO_PLUGINS)
-  find_package(Lilv)
-  find_package(Suil)
   if(NOT MSVC)
     find_package(Faust QUIET)
   endif()
-#endif()
 
 if(UNIX AND NOT APPLE)
   find_package(ZLIB QUIET)
@@ -74,7 +70,6 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/MediaFileHandle.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/RMSData.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioDecoder.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/ApplicationPlugin.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Mixer/MixerPanel.hpp"
 
@@ -119,7 +114,6 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/RMSData.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Tempo.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioDecoder.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/ApplicationPlugin.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Mixer/MixerPanel.cpp"
 
@@ -145,30 +139,13 @@ if(Faust_FOUND)
     )
 endif()
 
-if(TARGET Lilv AND TARGET Suil)
-    set(LV2_HDRS
-        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2EffectModel.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/lv2_atom_helpers.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2Context.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2Node.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2Window.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2Library.hpp"
-        )
-    set(LV2_SRCS
-        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2EffectModel.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2Context.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2Window.cpp"
-    )
-endif()
-
 
 add_library(${PROJECT_NAME}
   ${SRCS} ${HDRS}
-  ${LV2_SRCS} ${LV2_HDRS}
   ${FAUST_HDRS} ${FAUST_SRCS}
 )
 
-score_generate_command_list_file(${PROJECT_NAME} "${HDRS};${FAUST_HDRS};${LV2_HDRS}")
+score_generate_command_list_file(${PROJECT_NAME} "${HDRS};${FAUST_HDRS}")
 target_link_libraries(${PROJECT_NAME} PUBLIC
                      ${QT_PREFIX}::Core ${QT_PREFIX}::Widgets
                      score_lib_base score_plugin_engine score_plugin_library score_plugin_audio score_plugin_dataflow
@@ -217,15 +194,6 @@ if(WIN32)
 endif()
 
 target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_DL_LIBS})
-
-if(TARGET Lilv AND TARGET Suil)
-  # Lilv is used in API header, it must stay public
-  target_link_libraries(${PROJECT_NAME} PUBLIC Lilv)
-  target_compile_definitions(${PROJECT_NAME} PUBLIC HAS_LV2)
-  target_include_directories(${PROJECT_NAME} PRIVATE 3rdparty/readerwriterqueue)
-
-  target_link_libraries(${PROJECT_NAME} PRIVATE Suil)
-endif()
 
 if(Faust_FOUND)
   target_compile_definitions(${PROJECT_NAME} PUBLIC HAS_FAUST)

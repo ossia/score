@@ -1,14 +1,11 @@
 #pragma once
-#if defined(HAS_LV2)
-#include <Media/Effect/LV2/LV2Context.hpp>
-#include <Media/Effect/LV2/lv2_atom_helpers.hpp>
+#include <LV2/Context.hpp>
+#include <LV2/lv2_atom_helpers.hpp>
 
 #include <ossia/dataflow/fx_node.hpp>
 #include <ossia/dataflow/port.hpp>
 #include <ossia/detail/pod_vector.hpp>
 
-namespace Media
-{
 namespace LV2
 {
 template <typename OnExecFinished>
@@ -321,5 +318,3 @@ struct lv2_node final : public ossia::graph_node
   }
 };
 }
-}
-#endif

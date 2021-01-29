@@ -1,5 +1,5 @@
-#if defined(HAS_LV2)
-#include "LV2Context.hpp"
+
+#include <LV2/Context.hpp>
 
 #include "lv2_atom_helpers.hpp"
 
@@ -15,8 +15,6 @@
 uint32_t LV2_Atom_Buffer::chunk_type;
 uint32_t LV2_Atom_Buffer::sequence_type;
 
-namespace Media
-{
 namespace LV2
 {
 namespace
@@ -329,5 +327,3 @@ LV2Data::LV2Data(HostContext& h, EffectContext& ctx) : host{h}, effect{ctx}
   }
 }
 }
-}
-#endif

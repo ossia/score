@@ -1,12 +1,11 @@
-#if defined(HAS_LV2)
-#include "LV2EffectModel.hpp"
+#include "EffectModel.hpp"
 
 #include "lv2_atom_helpers.hpp"
 
-#include <Media/ApplicationPlugin.hpp>
-#include <Media/Effect/LV2/LV2Context.hpp>
-#include <Media/Effect/LV2/LV2Node.hpp>
-#include <Media/Effect/LV2/LV2Window.hpp>
+#include <LV2/ApplicationPlugin.hpp>
+#include <LV2/Context.hpp>
+#include <LV2/Node.hpp>
+#include <LV2/Window.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 
 #include <score/tools/Bind.hpp>
@@ -32,8 +31,8 @@
 
 #include <memory>
 #include <set>
-W_OBJECT_IMPL(Media::LV2::LV2EffectModel)
-namespace Media::LV2
+W_OBJECT_IMPL(LV2::Model)
+namespace LV2
 {
 std::optional<Lilv::Plugin> find_lv2_plugin(Lilv::World& world, QString path)
 {
@@ -162,22 +161,22 @@ namespace Process
 {
 
 template <>
-QString EffectProcessFactory_T<Media::LV2::LV2EffectModel>::customConstructionData() const
+QString EffectProcessFactory_T<LV2::Model>::customConstructionData() const
 {
-  auto& world = score::AppComponents().applicationPlugin<Media::ApplicationPlugin>().lilv;
+  auto& world = score::AppComponents().applicationPlugin<LV2::ApplicationPlugin>().lilv;
 
-  Media::LV2::LV2PluginChooserDialog dial{world, nullptr};
+  LV2::LV2PluginChooserDialog dial{world, nullptr};
   dial.exec();
   return dial.m_accepted;
 }
 
 template <>
-Process::Descriptor EffectProcessFactory_T<Media::LV2::LV2EffectModel>::descriptor(QString d) const
+Process::Descriptor EffectProcessFactory_T<LV2::Model>::descriptor(QString d) const
 {
   Process::Descriptor desc;
-  auto& app_plug = score::AppComponents().applicationPlugin<Media::ApplicationPlugin>();
+  auto& app_plug = score::AppComponents().applicationPlugin<LV2::ApplicationPlugin>();
   auto& host = app_plug.lv2_host_context;
-  if (auto plug = Media::LV2::find_lv2_plugin(app_plug.lilv, d))
+  if (auto plug = LV2::find_lv2_plugin(app_plug.lilv, d))
   {
     desc.prettyName = plug->get_name().as_string();
     desc.categoryText = plug->get_class().get_label().as_string();
@@ -255,12 +254,10 @@ Process::Descriptor EffectProcessFactory_T<Media::LV2::LV2EffectModel>::descript
 }
 }
 
-namespace Media
-{
 namespace LV2
 {
 
-LV2EffectModel::LV2EffectModel(
+Model::Model(
     TimeVal t,
     const QString& path,
     const Id<Process::ProcessModel>& id,
@@ -270,7 +267,7 @@ LV2EffectModel::LV2EffectModel(
   reload();
 }
 
-LV2EffectModel::~LV2EffectModel()
+Model::~Model()
 {
   if (externalUI)
   {
@@ -278,17 +275,17 @@ LV2EffectModel::~LV2EffectModel()
     delete w;
   }
 }
-QString LV2EffectModel::prettyName() const noexcept
+QString Model::prettyName() const noexcept
 {
   return metadata().getLabel();
 }
 
-bool LV2EffectModel::hasExternalUI() const noexcept
+bool Model::hasExternalUI() const noexcept
 {
   if (!plugin)
     return false;
 
-  auto& p = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
+  auto& p = score::GUIAppContext().applicationPlugin<LV2::ApplicationPlugin>();
   const auto native_ui_type_uri = "http://lv2plug.in/ns/extensions/ui#Qt5UI";
   auto the_uis = lilv_plugin_get_uis(plugin);
   auto native_ui_type = lilv_new_uri(p.lilv.me, native_ui_type_uri);
@@ -304,9 +301,9 @@ bool LV2EffectModel::hasExternalUI() const noexcept
   return false;
 }
 
-void LV2EffectModel::readPlugin()
+void Model::readPlugin()
 {
-  auto& app_plug = score::AppComponents().applicationPlugin<Media::ApplicationPlugin>();
+  auto& app_plug = score::AppComponents().applicationPlugin<LV2::ApplicationPlugin>();
   auto& h = app_plug.lv2_host_context;
   ossia::float_vector fInControls, fOutControls, fParamMin, fParamMax, fParamInit, fOtherControls;
 
@@ -441,7 +438,7 @@ void LV2EffectModel::readPlugin()
       = lilv_instance_get_descriptor(effectContext.instance)->extension_data;
 }
 
-void LV2EffectModel::reload()
+void Model::reload()
 {
   plugin = nullptr;
 
@@ -449,7 +446,7 @@ void LV2EffectModel::reload()
   if (path.isEmpty())
     return;
 
-  auto& app_plug = score::AppComponents().applicationPlugin<Media::ApplicationPlugin>();
+  auto& app_plug = score::AppComponents().applicationPlugin<LV2::ApplicationPlugin>();
   auto& world = app_plug.lilv;
 
   if (auto plug = find_lv2_plugin(world, path))
@@ -461,35 +458,34 @@ void LV2EffectModel::reload()
   }
 }
 }
-}
 
 template <>
-void DataStreamReader::read(const Media::LV2::LV2EffectModel& eff)
+void DataStreamReader::read(const LV2::Model& eff)
 {
   m_stream << eff.effect();
   insertDelimiter();
 }
 
 template <>
-void DataStreamWriter::write(Media::LV2::LV2EffectModel& eff)
+void DataStreamWriter::write(LV2::Model& eff)
 {
   m_stream >> eff.m_effectPath;
   checkDelimiter();
 }
 
 template <>
-void JSONReader::read(const Media::LV2::LV2EffectModel& eff)
+void JSONReader::read(const LV2::Model& eff)
 {
   obj["Effect"] = eff.effect();
 }
 
 template <>
-void JSONWriter::write(Media::LV2::LV2EffectModel& eff)
+void JSONWriter::write(LV2::Model& eff)
 {
   eff.m_effectPath = obj["Effect"].toString();
 }
 
-namespace Media::LV2
+namespace LV2
 {
 struct on_finish
 {
@@ -515,7 +511,7 @@ struct on_finish
         auto port = (uint32_t)node.data.control_out_ports[k];
         float val = node.fOutControls[k];
 
-        auto cport = static_cast<LV2EffectModel&>(p->process()).control_out_map[port];
+        auto cport = static_cast<Model&>(p->process()).control_out_map[port];
         SCORE_ASSERT(cport);
         cport->setValue(val);
       }
@@ -543,7 +539,7 @@ struct on_finish
 };
 
 LV2EffectComponent::LV2EffectComponent(
-    Media::LV2::LV2EffectModel& proc,
+    LV2::Model& proc,
     const Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
@@ -554,17 +550,17 @@ LV2EffectComponent::LV2EffectComponent(
 void LV2EffectComponent::lazy_init()
 {
   auto& ctx = system();
-  Media::LV2::LV2EffectModel& proc = process();
+  LV2::Model& proc = process();
 
   if (!proc.effectContext.instance)
     return;
 
-  auto& host = ctx.context().doc.app.applicationPlugin<Media::ApplicationPlugin>();
+  auto& host = ctx.context().doc.app.applicationPlugin<LV2::ApplicationPlugin>();
   on_finish of;
   of.self = shared_from_this();
 
-  auto node = std::make_shared<Media::LV2::lv2_node<on_finish>>(
-      Media::LV2::LV2Data{host.lv2_host_context, proc.effectContext},
+  auto node = std::make_shared<LV2::lv2_node<on_finish>>(
+      LV2::LV2Data{host.lv2_host_context, proc.effectContext},
       ctx.execState->sampleRate,
       of);
 
@@ -590,8 +586,8 @@ void LV2EffectComponent::writeAtomToUi(
     uint32_t size,
     const void* body)
 {
-  auto& p = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
-  Media::LV2::Message ev;
+  auto& p = score::GUIAppContext().applicationPlugin<LV2::ApplicationPlugin>();
+  LV2::Message ev;
   ev.index = port_index;
   ev.protocol = p.lv2_host_context.atom_eventTransfer;
   ev.body.resize(sizeof(LV2_Atom) + size);
@@ -613,5 +609,4 @@ void LV2EffectComponent::writeAtomToUi(
   process().plugin_events.enqueue(std::move(ev));
 }
 }
-W_OBJECT_IMPL(Media::LV2::LV2EffectComponent)
-#endif
+W_OBJECT_IMPL(LV2::LV2EffectComponent)

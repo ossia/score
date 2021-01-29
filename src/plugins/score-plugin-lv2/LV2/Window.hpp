@@ -1,19 +1,18 @@
 #pragma once
-#if defined(HAS_LV2)
-#include <Media/Effect/LV2/LV2EffectModel.hpp>
+#include <LV2/EffectModel.hpp>
 
 #include <QDialog>
 
 #include <verdigris>
 
-namespace Media::LV2
+namespace LV2
 {
 
 class Window final : public QDialog
 {
   W_OBJECT(Window)
 public:
-  Window(const LV2EffectModel& e, const score::DocumentContext& ctx, QWidget* parent);
+  Window(const Model& e, const score::DocumentContext& ctx, QWidget* parent);
 
   ~Window() override;
   // TODO void resize(int w, int h);
@@ -23,11 +22,10 @@ private:
   void resizeEvent(QResizeEvent* event) override;
   void closeEvent(QCloseEvent* event) override;
 
-  const LV2EffectModel& m_model;
+  const Model& m_model;
   QWidget* m_widget{};
 };
 
 using LayerFactory
-    = Process::EffectLayerFactory_T<LV2EffectModel, Process::DefaultEffectItem, Window>;
+    = Process::EffectLayerFactory_T<Model, Process::DefaultEffectItem, Window>;
 }
-#endif

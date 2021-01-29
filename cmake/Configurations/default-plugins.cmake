@@ -45,4 +45,5 @@ score-plugin-jit
 score-plugin-spline3d
 score-plugin-vst
 score-plugin-vst3
+score-plugin-lv2
 )

@@ -1,6 +1,5 @@
 #pragma once
-#if defined(HAS_LV2)
-#include <Media/Effect/LV2/LV2Context.hpp>
+#include <LV2/Context.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
@@ -13,13 +12,13 @@
 
 #include <verdigris>
 
-namespace Media::LV2
+namespace LV2
 {
-class LV2EffectModel;
+class Model;
 }
 PROCESS_METADATA(
     ,
-    Media::LV2::LV2EffectModel,
+    LV2::Model,
     "fd5243ba-70b5-4164-b44a-ecb0dcdc0494",
     "LV2",
     "LV2",
@@ -31,24 +30,24 @@ PROCESS_METADATA(
     {},
     {},
     Process::ProcessFlags::ExternalEffect)
-DESCRIPTION_METADATA(, Media::LV2::LV2EffectModel, "LV2")
-namespace Media::LV2
+DESCRIPTION_METADATA(, LV2::Model, "LV2")
+namespace LV2
 {
-class LV2EffectModel : public Process::ProcessModel
+class Model : public Process::ProcessModel
 {
-  W_OBJECT(LV2EffectModel)
+  W_OBJECT(Model)
   SCORE_SERIALIZE_FRIENDS
 public:
-  PROCESS_METADATA_IMPL(LV2EffectModel)
-  LV2EffectModel(
+  PROCESS_METADATA_IMPL(Model)
+  Model(
       TimeVal t,
       const QString& name,
       const Id<Process::ProcessModel>&,
       QObject* parent);
 
-  ~LV2EffectModel() override;
+  ~Model() override;
   template <typename Impl>
-  LV2EffectModel(Impl& vis, QObject* parent) : ProcessModel{vis, parent}
+  Model(Impl& vis, QObject* parent) : ProcessModel{vis, parent}
   {
     vis.writeTo(*this);
     reload();
@@ -80,7 +79,7 @@ private:
 };
 
 class LV2EffectComponent final
-    : public Execution::ProcessComponent_T<Media::LV2::LV2EffectModel, ossia::node_process>
+    : public Execution::ProcessComponent_T<LV2::Model, ossia::node_process>
 {
   W_OBJECT(LV2EffectComponent)
   COMPONENT_METADATA("57f50003-a179-424a-80b1-b9394d73a84a")
@@ -89,7 +88,7 @@ public:
   static constexpr bool is_unique = true;
 
   LV2EffectComponent(
-      Media::LV2::LV2EffectModel& proc,
+      LV2::Model& proc,
       const Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent);
@@ -103,13 +102,12 @@ public:
 namespace Process
 {
 template <>
-QString EffectProcessFactory_T<Media::LV2::LV2EffectModel>::customConstructionData() const;
+QString EffectProcessFactory_T<LV2::Model>::customConstructionData() const;
 }
 
-namespace Media::LV2
+namespace LV2
 {
-using LV2EffectFactory = Process::EffectProcessFactory_T<LV2EffectModel>;
-using LV2EffectComponentFactory = Execution::ProcessComponentFactory_T<LV2EffectComponent>;
+using ProcessFactory = Process::EffectProcessFactory_T<Model>;
+using ExecutorFactory = Execution::ProcessComponentFactory_T<LV2EffectComponent>;
 }
 
-#endif
