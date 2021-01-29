@@ -37,6 +37,8 @@ QString load_vst(const QString& path, int id)
     }
 
     const auto& info = module->getFactory().info();
+    QJsonObject root;
+
     QJsonArray arr;
     for(const auto& cls : module->getFactory().classInfos())
     {
@@ -44,18 +46,25 @@ QString load_vst(const QString& path, int id)
       {
         QJsonObject obj;
 
-        obj["Author"] = QString::fromStdString(cls.vendor());
-        obj["PrettyName"] = QString::fromStdString(cls.name());
-        obj["Subcategories"] = QString::fromStdString(cls.subCategoriesString());
-        obj["Version"] = QString::fromStdString(cls.version());
         obj["UID"] = QString::fromStdString(cls.ID().toString());
-        obj["Path"] = path;
-        obj["Request"] = id;
+        obj["Cardinality"] = cls.cardinality();
+        obj["Category"] = QString::fromStdString(cls.category());
+        obj["Name"] = QString::fromStdString(cls.name());
+        obj["Vendor"] = QString::fromStdString(cls.vendor());
+        obj["Version"] = QString::fromStdString(cls.version());
+        obj["SDKVersion"] = QString::fromStdString(cls.sdkVersion());
+        obj["Subcategories"] = QString::fromStdString(cls.subCategoriesString());
+        obj["ClassFlags"] = (double)cls.classFlags();
 
         arr.push_back(obj);
       }
     }
-    return QJsonDocument{arr}.toJson();
+    root["Name"] = QString::fromStdString(module->getName());
+    root["Path"] = path;
+    root["Request"] = id;
+    root["Classes"] = arr;
+
+    return QJsonDocument{root}.toJson();
   }
   catch (const std::runtime_error& e)
   {
@@ -114,7 +123,7 @@ int main(int argc, char** argv)
 
     QTimer::singleShot(10000, [&] { qDebug() << "timeout"; qApp->exit(1); });
 
-    socket.open(QUrl("ws://127.0.0.1:37587"));
+    socket.open(QUrl("ws://127.0.0.1:37588"));
     app.exec();
   }
   return 1;

@@ -31,10 +31,8 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
       {
         if (vst.isValid)
         {
-          auto name = QString::fromStdString(vst.module->getName());
-
           Library::ProcessData parent_data{
-            {key, name, QString{}}, {}, {}, {}
+            {key, vst.name, QString{}}, {}, {}, {}
           };
           auto& node = parent.emplace_back(std::move(parent_data), &parent);
 

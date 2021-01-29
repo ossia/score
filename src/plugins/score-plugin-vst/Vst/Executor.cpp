@@ -13,8 +13,8 @@
 #include <ossia/network/domain/domain.hpp>
 
 #include <wobjectimpl.h>
-W_OBJECT_IMPL(Vst::Executor)
-namespace Vst
+W_OBJECT_IMPL(vst::Executor)
+namespace vst
 {
 
 template <typename Node_T>
@@ -27,7 +27,7 @@ void Executor::setupNode(Node_T& node)
   constexpr bool isSynth = std::remove_reference_t<decltype(*node)>::synth;
   for (std::size_t i = VST_FIRST_CONTROL_INDEX(isSynth); i < inlets.size(); i++)
   {
-    auto ctrl = safe_cast<Vst::ControlInlet*>(inlets[i]);
+    auto ctrl = safe_cast<vst::ControlInlet*>(inlets[i]);
     auto inlet = new ossia::value_inlet;
 
     node->controls.push_back({ctrl->fxNum, ctrl->value(), inlet->target<ossia::value_port>()});
@@ -37,7 +37,7 @@ void Executor::setupNode(Node_T& node)
   std::weak_ptr<std::remove_reference_t<decltype(*node)>> wp = node;
   connect(
       &proc,
-      &Vst::Model::controlAdded,
+      &vst::Model::controlAdded,
       this,
       [this, &proc, wp](const Id<Process::Port>& id) {
         auto ctrl = proc.getControl(id);
@@ -62,13 +62,13 @@ void Executor::setupNode(Node_T& node)
       });
   connect(
       &proc,
-      &Vst::Model::controlRemoved,
+      &vst::Model::controlRemoved,
       this,
       [this, wp](const Process::Port& port) {
         if (auto n = wp.lock())
         {
           Execution::SetupContext& setup = system().context().setup;
-          in_exec([n, num = static_cast<const Vst::ControlInlet&>(port).fxNum] {
+          in_exec([n, num = static_cast<const vst::ControlInlet&>(port).fxNum] {
             auto it = ossia::find_if(n->controls, [&](auto& c) { return c.idx == num; });
             if (it != n->controls.end())
             {
@@ -90,7 +90,7 @@ void Executor::setupNode(Node_T& node)
 }
 
 Executor::Executor(
-    Vst::Model& proc,
+    vst::Model& proc,
     const Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
@@ -105,13 +105,13 @@ Executor::Executor(
   {
     if (fx.flags & effFlagsIsSynth)
     {
-      auto n = Vst::make_vst_fx<true, true>(proc.fx, ctx.execState->sampleRate);
+      auto n = vst::make_vst_fx<true, true>(proc.fx, ctx.execState->sampleRate);
       setupNode(n);
       node = std::move(n);
     }
     else
     {
-      auto n = Vst::make_vst_fx<true, false>(proc.fx, ctx.execState->sampleRate);
+      auto n = vst::make_vst_fx<true, false>(proc.fx, ctx.execState->sampleRate);
       setupNode(n);
       node = std::move(n);
     }
@@ -120,13 +120,13 @@ Executor::Executor(
   {
     if (fx.flags & effFlagsIsSynth)
     {
-      auto n = Vst::make_vst_fx<false, true>(proc.fx, ctx.execState->sampleRate);
+      auto n = vst::make_vst_fx<false, true>(proc.fx, ctx.execState->sampleRate);
       setupNode(n);
       node = std::move(n);
     }
     else
     {
-      auto n = Vst::make_vst_fx<false, false>(proc.fx, ctx.execState->sampleRate);
+      auto n = vst::make_vst_fx<false, false>(proc.fx, ctx.execState->sampleRate);
       setupNode(n);
       node = std::move(n);
     }

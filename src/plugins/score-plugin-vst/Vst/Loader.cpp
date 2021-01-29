@@ -9,7 +9,7 @@
 #include <dlfcn.h>
 #endif
 
-namespace Vst
+namespace vst
 {
 
 #if defined(_WIN32)

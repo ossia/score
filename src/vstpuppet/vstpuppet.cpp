@@ -116,7 +116,7 @@ QString load_vst(const QString& path, int id)
       return {};
     }
 
-    Vst::Module plugin{path.toStdString()};
+    vst::Module plugin{path.toStdString()};
 
     if (auto m = plugin.getMain())
     {

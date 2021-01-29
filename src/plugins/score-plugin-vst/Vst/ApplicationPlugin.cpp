@@ -20,20 +20,18 @@
 
 #include <Audio/AudioDevice.hpp>
 #include <wobjectimpl.h>
-W_OBJECT_IMPL(Vst::ApplicationPlugin)
+W_OBJECT_IMPL(vst::ApplicationPlugin)
 
 // TODO remove me in a few versions
 static bool vst_invalid_format = false;
 template <>
-void DataStreamReader::read<Vst::ApplicationPlugin::vst_info>(
-    const Vst::ApplicationPlugin::vst_info& p)
+void DataStreamReader::read<vst::VSTInfo>(const vst::VSTInfo& p)
 {
   m_stream << p.path << p.prettyName << p.displayName << p.author << p.uniqueID << p.controls
            << p.isSynth << p.isValid;
 }
 template <>
-void DataStreamWriter::write<Vst::ApplicationPlugin::vst_info>(
-    Vst::ApplicationPlugin::vst_info& p)
+void DataStreamWriter::write<vst::VSTInfo>(vst::VSTInfo& p)
 {
   if (!vst_invalid_format)
     m_stream >> p.path >> p.prettyName >> p.displayName >> p.author >> p.uniqueID >> p.controls
@@ -44,24 +42,23 @@ void DataStreamWriter::write<Vst::ApplicationPlugin::vst_info>(
   }
 }
 
-Q_DECLARE_METATYPE(Vst::ApplicationPlugin::vst_info)
-W_REGISTER_ARGTYPE(Vst::ApplicationPlugin::vst_info)
-Q_DECLARE_METATYPE(std::vector<Vst::ApplicationPlugin::vst_info>)
-W_REGISTER_ARGTYPE(std::vector<Vst::ApplicationPlugin::vst_info>)
+Q_DECLARE_METATYPE(vst::VSTInfo)
+W_REGISTER_ARGTYPE(vst::VSTInfo)
+Q_DECLARE_METATYPE(std::vector<vst::VSTInfo>)
+W_REGISTER_ARGTYPE(std::vector<vst::VSTInfo>)
 
 
-namespace Vst
+namespace vst
 {
 
 ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
     : score::ApplicationPlugin{app}
     , m_wsServer("vst-notification-server", QWebSocketServer::NonSecureMode)
 {
-
-  qRegisterMetaType<vst_info>();
-  qRegisterMetaTypeStreamOperators<vst_info>();
-  qRegisterMetaType<std::vector<vst_info>>();
-  qRegisterMetaTypeStreamOperators<std::vector<vst_info>>();
+  qRegisterMetaType<VSTInfo>();
+  qRegisterMetaTypeStreamOperators<VSTInfo>();
+  qRegisterMetaType<std::vector<VSTInfo>>();
+  qRegisterMetaTypeStreamOperators<std::vector<VSTInfo>>();
 
   m_wsServer.listen({}, 37587);
   con(m_wsServer, &QWebSocketServer::newConnection, this, [this] {
@@ -70,30 +67,7 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
       return;
 
     connect(ws, &QWebSocket::textMessageReceived, this, [=](const QString& txt) {
-      QJsonDocument doc = QJsonDocument::fromJson(txt.toUtf8());
-      if (doc.isObject())
-      {
-        auto obj = doc.object();
-        addVST(obj["Path"].toString(), obj);
-        int id = obj["Request"].toInt();
-
-        if (m_processes[id].process)
-        {
-          m_processes[id].process->close();
-          if (m_processes[id].process->state() == QProcess::ProcessState::NotRunning)
-          {
-            m_processes[id] = {};
-          }
-          else
-          {
-            connect(
-                m_processes[id].process.get(),
-                qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
-                this,
-                [this, id] { m_processes[id] = {}; });
-          }
-        }
-      }
+      processIncomingMessage(txt);
       ws->deleteLater();
     });
   });
@@ -104,9 +78,9 @@ void ApplicationPlugin::initialize()
   // init with the database
   QSettings s;
   auto val = s.value("Effect/KnownVST2");
-  if (val.canConvert<std::vector<vst_info>>())
+  if (val.canConvert<std::vector<VSTInfo>>())
   {
-    vst_infos = val.value<std::vector<vst_info>>();
+    vst_infos = val.value<std::vector<VSTInfo>>();
   }
 
   if (vst_invalid_format)
@@ -124,7 +98,7 @@ void ApplicationPlugin::initialize()
 
 void ApplicationPlugin::addInvalidVST(const QString& path)
 {
-  vst_info i;
+  VSTInfo i;
   i.path = path;
   i.prettyName = "invalid";
   i.uniqueID = -1;
@@ -140,7 +114,7 @@ void ApplicationPlugin::addInvalidVST(const QString& path)
 
 void ApplicationPlugin::addVST(const QString& path, const QJsonObject& obj)
 {
-  vst_info i;
+  VSTInfo i;
   i.path = path;
   i.uniqueID = obj["UniqueID"].toInt();
   i.isSynth = obj["Synth"].toBool();
@@ -192,7 +166,7 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
 #else
     QDirIterator it(
         dir,
-        QStringList{Vst::default_filter},
+        QStringList{vst::default_filter},
         QDir::Files,
         QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
     while (it.hasNext())
@@ -248,6 +222,41 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
     i++;
   }
   scanVSTsEvent();
+}
+
+void ApplicationPlugin::processIncomingMessage(const QString& txt)
+{
+  QJsonDocument doc = QJsonDocument::fromJson(txt.toUtf8());
+  if (doc.isObject())
+  {
+    auto obj = doc.object();
+    addVST(obj["Path"].toString(), obj);
+    int id = obj["Request"].toInt();
+
+    if(id >= 0 && id < m_processes.size())
+    {
+      if (m_processes[id].process)
+      {
+        m_processes[id].process->close();
+        if (m_processes[id].process->state() == QProcess::ProcessState::NotRunning)
+        {
+          m_processes[id] = {};
+        }
+        else
+        {
+          connect(
+                m_processes[id].process.get(),
+                qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
+                this,
+                [this, id] { m_processes[id] = {}; });
+        }
+      }
+    }
+    else
+    {
+      qDebug() << "Got invalid VST3 request ID" << id;
+    }
+  }
 }
 
 void ApplicationPlugin::scanVSTsEvent()

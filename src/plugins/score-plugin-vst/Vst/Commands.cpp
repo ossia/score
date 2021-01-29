@@ -4,7 +4,7 @@
 #include <Vst/EffectModel.hpp>
 
 #include <score/model/path/PathSerialization.hpp>
-namespace Vst
+namespace vst
 {
 const CommandGroupKey& CommandFactoryName()
 {
@@ -87,7 +87,7 @@ void RemoveControl::undo(const score::DocumentContext& ctx) const
   DataStreamWriter wr{m_control};
 
   vst.on_addControl_impl(
-      qobject_cast<Vst::ControlInlet*>(Process::load_value_inlet(wr, &vst).release()));
+      qobject_cast<vst::ControlInlet*>(Process::load_value_inlet(wr, &vst).release()));
 
   Dataflow::restoreCables(m_cables, ctx);
 }

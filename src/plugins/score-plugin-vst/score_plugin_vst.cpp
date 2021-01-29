@@ -28,9 +28,9 @@ score_plugin_vst::~score_plugin_vst() { }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_vst::make_commands()
 {
-  using namespace Vst;
+  using namespace vst;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
-      Vst::CommandFactoryName(), CommandGeneratorMap{}};
+      vst::CommandFactoryName(), CommandGeneratorMap{}};
 
   ossia::for_each_type<
 #include <score_plugin_vst_commands.hpp>
@@ -42,13 +42,13 @@ std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_vst::make_com
 score::ApplicationPlugin*
 score_plugin_vst::make_applicationPlugin(const score::ApplicationContext& app)
 {
-  return new Vst::ApplicationPlugin{app};
+  return new vst::ApplicationPlugin{app};
 }
 
 score::GUIApplicationPlugin*
 score_plugin_vst::make_guiApplicationPlugin(const score::GUIApplicationContext& app)
 {
-  return new Vst::GUIApplicationPlugin{app};
+  return new vst::GUIApplicationPlugin{app};
 }
 
 std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_vst::factories(
@@ -58,22 +58,22 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_vst::factories(
   return instantiate_factories<
       score::ApplicationContext,
       FW<Process::ProcessModelFactory,
-        Vst::VSTEffectFactory
+        vst::VSTEffectFactory
       >,
       FW<Process::LayerFactory,
-        Vst::LayerFactory
+        vst::LayerFactory
       >,
       FW<Library::LibraryInterface,
-        Vst::LibraryHandler
+        vst::LibraryHandler
       >,
       FW<Process::PortFactory,
-        Vst::ControlPortFactory
+        vst::ControlPortFactory
       >,
       FW<Execution::ProcessComponentFactory,
-         Vst::ExecutorFactory
+         vst::ExecutorFactory
       >,
       FW<Media::Settings::PluginSettingsTab,
-         Vst::SettingsWidget
+         vst::SettingsWidget
       >
       >(ctx, key);
 }

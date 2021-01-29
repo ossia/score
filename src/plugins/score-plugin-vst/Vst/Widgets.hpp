@@ -15,7 +15,7 @@ namespace Process
 {
 struct Context;
 }
-namespace Vst
+namespace vst
 {
 
 class EffectItem final : public score::EmptyRectItem

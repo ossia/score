@@ -8,7 +8,7 @@ namespace Process
 {
 struct Context;
 }
-namespace Vst
+namespace vst
 {
 
 class ControlInlet final : public Process::Inlet

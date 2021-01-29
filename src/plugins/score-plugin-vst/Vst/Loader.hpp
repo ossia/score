@@ -6,7 +6,7 @@
 
 #include <string>
 
-namespace Vst
+namespace vst
 {
 using PluginEntryProc = AEffect* (*)(audioMasterCallback audioMaster);
 

@@ -24,9 +24,9 @@
 #include <Engine/Node/CommonWidgets.hpp>
 #include <wobjectimpl.h>
 
-W_OBJECT_IMPL(Vst::Window)
-W_OBJECT_IMPL(Vst::GraphicsSlider)
-namespace Vst
+W_OBJECT_IMPL(vst::Window)
+W_OBJECT_IMPL(vst::GraphicsSlider)
+namespace vst
 {
 
 GraphicsSlider::GraphicsSlider(AEffect* fx, int num, QGraphicsItem* parent)

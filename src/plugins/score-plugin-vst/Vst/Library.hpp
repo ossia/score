@@ -5,7 +5,7 @@
 #include <Vst/EffectModel.hpp>
 #include <score/tools/Bind.hpp>
 
-namespace Vst
+namespace vst
 {
 class LibraryHandler final : public QObject, public Library::LibraryInterface
 {
@@ -24,7 +24,7 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
 
     auto& fx = parent.emplace_back(Library::ProcessData{{{}, "Effects", {}}, {}, {}, {}}, &parent);
     auto& inst = parent.emplace_back(Library::ProcessData{{{}, "Instruments", {}}, {}, {}, {}}, &parent);
-    auto& plug = ctx.applicationPlugin<Vst::ApplicationPlugin>();
+    auto& plug = ctx.applicationPlugin<vst::ApplicationPlugin>();
 
     auto reset_plugs = [=, &plug, &inst, &fx] {
       for (const auto& vst : plug.vst_infos)
@@ -48,7 +48,7 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
 
     reset_plugs();
 
-    con(plug, &Vst::ApplicationPlugin::vstChanged, this, [=, &model, &fx, &inst] {
+    con(plug, &vst::ApplicationPlugin::vstChanged, this, [=, &model, &fx, &inst] {
       model.beginResetModel();
       fx.resize(0);
       inst.resize(0);

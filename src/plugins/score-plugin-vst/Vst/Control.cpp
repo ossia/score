@@ -20,8 +20,8 @@
 #include <QToolButton>
 
 #include <wobjectimpl.h>
-W_OBJECT_IMPL(Vst::ControlInlet)
-namespace Vst
+W_OBJECT_IMPL(vst::ControlInlet)
+namespace vst
 {
 
 void ControlPortItem::setupMenu(QMenu& menu, const score::DocumentContext& ctx)

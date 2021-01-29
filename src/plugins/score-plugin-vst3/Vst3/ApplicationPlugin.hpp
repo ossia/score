@@ -3,12 +3,17 @@
 
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 
-#include <stdexcept>
 #include <ossia/detail/fmt.hpp>
+
+#include <QProcess>
+#include <QWebSocketServer>
+#include <QElapsedTimer>
+
+#include <memory>
+#include <stdexcept>
 
 namespace vst3
 {
-
 struct vst_error: public std::runtime_error
 {
   template<typename... Args>
@@ -17,6 +22,15 @@ struct vst_error: public std::runtime_error
   {
 
   }
+};
+
+struct AvailablePlugin
+{
+  QString path;
+  QString name;
+  std::vector<VST3::Hosting::ClassInfo> classInfo;
+
+  bool isValid{};
 };
 
 struct ApplicationPlugin
@@ -29,43 +43,30 @@ public:
 
   void initialize() override;
 
+  VST3::Hosting::Module::Ptr getModule(const std::string& path);
+
   void rescan(const QStringList& paths);
   void vstChanged() W_SIGNAL(vstChanged)
 
-  struct AvailablePlugin
+  void processIncomingMessage(const QString& txt);
+  void addInvalidVST(const QString& path);
+  void addVST(const QString& path, const QJsonObject& json);
+
+  void scanVSTsEvent();
+
+  struct ScanningProcess
   {
     QString path;
-    VST3::Hosting::Module::Ptr module;
-    std::vector<VST3::Hosting::ClassInfo> classInfo;
-
-    bool isValid{};
+    std::unique_ptr<QProcess> process;
+    bool scanning{};
+    QElapsedTimer timer;
   };
 
-  VST3::Hosting::Module::Ptr getModule(const std::string& path)
-  {
-    std::string err;
-    auto it = modules.find(path);
-    if(it != modules.end())
-    {
-      return it->second;
-    }
-    else
-    {
-      auto module = VST3::Hosting::Module::create(path, err);
+  std::vector<ScanningProcess> m_processes;
 
-      if (!module)
-        throw vst_error("Failed to load VST3 ({}) : {}", path, err);
-
-      modules[path] = module;
-      return module;
-    }
-  }
-
+  QWebSocketServer m_wsServer;
   Steinberg::Vst::HostApplication m_host;
   ossia::string_map<VST3::Hosting::Module::Ptr> modules;
   std::vector<AvailablePlugin> vst_infos;
-
-
-
 };
 }

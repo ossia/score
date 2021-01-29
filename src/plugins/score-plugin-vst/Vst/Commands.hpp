@@ -10,7 +10,7 @@ class Port;
 class Cable;
 class Inlet;
 }
-namespace Vst
+namespace vst
 {
 class Model;
 class ControlInlet;

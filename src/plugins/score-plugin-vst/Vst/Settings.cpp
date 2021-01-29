@@ -12,8 +12,8 @@
 #include <QPushButton>
 #include <QFileDialog>
 
-W_OBJECT_IMPL(Vst::SettingsWidget)
-namespace Vst
+W_OBJECT_IMPL(vst::SettingsWidget)
+namespace vst
 {
 SettingsWidget::SettingsWidget()
 {
@@ -109,7 +109,7 @@ QWidget* SettingsWidget::make(const score::ApplicationContext& ctx)
       VstPathsChanged(m_curitems);
     }
   });
-  auto& app_plug = score::GUIAppContext().applicationPlugin<Vst::ApplicationPlugin>();
+  auto& app_plug = score::GUIAppContext().applicationPlugin<vst::ApplicationPlugin>();
 
   connect(rescan, &QPushButton::clicked, this, [&] { app_plug.rescanVSTs(m_curitems); });
 
@@ -144,7 +144,7 @@ QWidget* SettingsWidget::make(const score::ApplicationContext& ctx)
   auto vstWidget = new QWidget;
   vstWidget->setLayout(vst_lay);
 
-  con(app_plug, &Vst::ApplicationPlugin::vstChanged, this, reloadVSTs);
+  con(app_plug, &vst::ApplicationPlugin::vstChanged, this, reloadVSTs);
   vst_lay->addWidget(new QLabel(tr("Working plug-ins")), 0, 0, 1, 1);
   vst_lay->addWidget(new QLabel(tr("Faulty plug-ins")), 0, 1, 1, 1);
   vst_lay->addWidget(vst_ok, 1, 0, 1, 1);

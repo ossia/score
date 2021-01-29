@@ -14,8 +14,20 @@
 #include <score_plugin_media_export.h>
 
 #include <thread>
-namespace Vst
+namespace vst
 {
+struct VSTInfo
+{
+  QString path;
+  QString prettyName;
+  QString displayName;
+  QString author;
+  int32_t uniqueID{};
+  int32_t controls{};
+  bool isSynth{};
+  bool isValid{};
+};
+
 class SCORE_PLUGIN_MEDIA_EXPORT ApplicationPlugin
     : public QObject
     , public score::ApplicationPlugin
@@ -27,21 +39,16 @@ public:
   ~ApplicationPlugin() override;
 
   void rescanVSTs(const QStringList&);
+  void processIncomingMessage(const QString& txt);
+  void addInvalidVST(const QString& path);
+  void addVST(const QString& path, const QJsonObject& json);
+
+  void scanVSTsEvent();
+
   void vstChanged() W_SIGNAL(vstChanged)
 
-  struct vst_info
-  {
-    QString path;
-    QString prettyName;
-    QString displayName;
-    QString author;
-    int32_t uniqueID{};
-    int32_t controls{};
-    bool isSynth{};
-    bool isValid{};
-  };
-  std::vector<vst_info> vst_infos;
-  ossia::fast_hash_map<int32_t, Vst::Module*> vst_modules;
+  std::vector<VSTInfo> vst_infos;
+  ossia::fast_hash_map<int32_t, vst::Module*> vst_modules;
 
   const std::thread::id m_tid{std::this_thread::get_id()};
   auto mainThreadId() const noexcept { return m_tid; }
@@ -58,10 +65,6 @@ public:
 
   QWebSocketServer m_wsServer;
 
-  void addInvalidVST(const QString& path);
-  void addVST(const QString& path, const QJsonObject& json);
-
-  void scanVSTsEvent();
 };
 
 class GUIApplicationPlugin : public QObject, public score::GUIApplicationPlugin

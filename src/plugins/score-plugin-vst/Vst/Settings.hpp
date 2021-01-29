@@ -9,7 +9,7 @@
 
 class QListWidget;
 
-namespace Vst
+namespace vst
 {
 
 class SettingsWidget

@@ -13,14 +13,14 @@
 #include <score_plugin_media_export.h>
 
 #include <verdigris>
-namespace Vst
+namespace vst
 {
 class Model;
 class ControlInlet;
 }
 PROCESS_METADATA(
     ,
-    Vst::Model,
+    vst::Model,
     "BE8E6BD3-75F2-4102-8895-8A4EB4EA545A",
     "VST",
     "VST",
@@ -32,9 +32,9 @@ PROCESS_METADATA(
     {},
     {},
     Process::ProcessFlags::ExternalEffect)
-UUID_METADATA(, Process::Port, Vst::ControlInlet, "e523bc44-8599-4a04-94c1-04ce0d1a692a")
-DESCRIPTION_METADATA(, Vst::Model, "")
-namespace Vst
+UUID_METADATA(, Process::Port, vst::ControlInlet, "e523bc44-8599-4a04-94c1-04ce0d1a692a")
+DESCRIPTION_METADATA(, vst::Model, "")
+namespace vst
 {
 #define VST_FIRST_CONTROL_INDEX(synth) ((synth) ? 2 : 1)
 struct AEffectWrapper
@@ -77,7 +77,7 @@ class SCORE_PLUGIN_MEDIA_EXPORT Model final : public Process::ProcessModel
 {
   W_OBJECT(Model)
   SCORE_SERIALIZE_FRIENDS
-  friend class Vst::CreateControl;
+  friend class vst::CreateControl;
 
 public:
   PROCESS_METADATA_IMPL(Model)
@@ -148,14 +148,14 @@ intptr_t vst_host_callback(
 namespace Process
 {
 template <>
-QString EffectProcessFactory_T<Vst::Model>::customConstructionData() const;
+QString EffectProcessFactory_T<vst::Model>::customConstructionData() const;
 
 template <>
 Process::Descriptor
-EffectProcessFactory_T<Vst::Model>::descriptor(QString d) const;
+EffectProcessFactory_T<vst::Model>::descriptor(QString d) const;
 }
 
-namespace Vst
+namespace vst
 {
 using VSTEffectFactory = Process::EffectProcessFactory_T<Model>;
 }

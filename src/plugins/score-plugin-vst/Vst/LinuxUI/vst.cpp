@@ -5,7 +5,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QHBoxLayout>
-namespace Vst
+namespace vst
 {
 void Window::setup_rect(QWidget* container, int width, int height)
 {
