@@ -1,18 +1,17 @@
 #include <AppKit/AppKit.h>
-//#include <Cocoa/Cocoa.h>
-#include <Media/Effect/VST/vst-compat.hpp>
-#include <Media/Effect/VST/VSTWidgets.hpp>
+#include <Vst/vst-compat.hpp>
+#include <Vst/Widgets.hpp>
 #include <Foundation/Foundation.h>
 #include <CoreFoundation/CFBundle.h>
 #include <iostream>
 #include <QMacCocoaViewContainer>
-#include "vstwindow.h"
+#include "Window.h"
 #include <QApplication>
 #include <QWindow>
-#include <Media/Effect/VST/VSTEffectModel.hpp>
+#include <Vst/EffectModel.hpp>
 #include <QDebug>
 
-namespace Media::VST
+namespace Vst
 {
 QSize sizeHint(NSView* m_view) {
 
@@ -29,7 +28,7 @@ QSize sizeHint(NSView* m_view) {
 
 }
 
-void VSTWindow::setup_rect(QWidget* container, int width, int height)
+void Window::setup_rect(QWidget* container, int width, int height)
 {
   width = width / container->devicePixelRatio();
   height = height / container->devicePixelRatio();
@@ -42,7 +41,7 @@ void VSTWindow::setup_rect(QWidget* container, int width, int height)
   }
 }
 
-VSTWindow::VSTWindow(const VSTEffectModel& e, const score::DocumentContext& ctx)
+Window::Window(const VSTEffectModel& e, const score::DocumentContext& ctx)
   : m_model{e}
 {
   if(!e.fx)
@@ -94,18 +93,18 @@ VSTWindow::VSTWindow(const VSTEffectModel& e, const score::DocumentContext& ctx)
       //qDebug() << "adjust editor size to" << sizeHint();
       // need to adjust the superview frame to be the same as the view frame
       [superview setFrame:[m_view frame]];
-      setFixedSize(Media::VST::sizeHint(m_view));
+      setFixedSize(Vst::sizeHint(m_view));
       // adjust the size of the window to fit.
       // FIXME: this is indeed a bit dodgy ;)
       QApplication::processEvents();
       adjustSize();
 
-    qDebug() << "got a notification" << Media::VST::sizeHint(m_view);
+    qDebug() << "got a notification" << Vst::sizeHint(m_view);
   }];
 
   //[superview setFrame:NSMakeRect(0, 0, width, height)];
 
-  qDebug() << Media::VST::sizeHint(m_view);
+  qDebug() << Vst::sizeHint(m_view);
   setFixedSize(QSize(width, height));
 
   show();

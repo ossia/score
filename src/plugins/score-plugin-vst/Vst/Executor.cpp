@@ -1,8 +1,7 @@
-#if defined(HAS_VST2)
-#include "VSTExecutor.hpp"
+#include "Executor.hpp"
 
-#include <Media/Effect/VST/VSTControl.hpp>
-#include <Media/Effect/VST/VSTNode.hpp>
+#include <Vst/Control.hpp>
+#include <Vst/Node.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionSetup.hpp>
 
@@ -14,12 +13,12 @@
 #include <ossia/network/domain/domain.hpp>
 
 #include <wobjectimpl.h>
-W_OBJECT_IMPL(Execution::VSTEffectComponent)
-namespace Execution
+W_OBJECT_IMPL(Vst::Executor)
+namespace Vst
 {
 
 template <typename Node_T>
-void VSTEffectComponent::setupNode(Node_T& node)
+void Executor::setupNode(Node_T& node)
 {
   const auto& proc = this->process();
   node->controls.reserve(proc.controls.size());
@@ -28,7 +27,7 @@ void VSTEffectComponent::setupNode(Node_T& node)
   constexpr bool isSynth = std::remove_reference_t<decltype(*node)>::synth;
   for (std::size_t i = VST_FIRST_CONTROL_INDEX(isSynth); i < inlets.size(); i++)
   {
-    auto ctrl = safe_cast<Media::VST::VSTControlInlet*>(inlets[i]);
+    auto ctrl = safe_cast<Vst::ControlInlet*>(inlets[i]);
     auto inlet = new ossia::value_inlet;
 
     node->controls.push_back({ctrl->fxNum, ctrl->value(), inlet->target<ossia::value_port>()});
@@ -38,7 +37,7 @@ void VSTEffectComponent::setupNode(Node_T& node)
   std::weak_ptr<std::remove_reference_t<decltype(*node)>> wp = node;
   connect(
       &proc,
-      &Media::VST::VSTEffectModel::controlAdded,
+      &Vst::Model::controlAdded,
       this,
       [this, &proc, wp](const Id<Process::Port>& id) {
         auto ctrl = proc.getControl(id);
@@ -63,13 +62,13 @@ void VSTEffectComponent::setupNode(Node_T& node)
       });
   connect(
       &proc,
-      &Media::VST::VSTEffectModel::controlRemoved,
+      &Vst::Model::controlRemoved,
       this,
       [this, wp](const Process::Port& port) {
         if (auto n = wp.lock())
         {
           Execution::SetupContext& setup = system().context().setup;
-          in_exec([n, num = static_cast<const Media::VST::VSTControlInlet&>(port).fxNum] {
+          in_exec([n, num = static_cast<const Vst::ControlInlet&>(port).fxNum] {
             auto it = ossia::find_if(n->controls, [&](auto& c) { return c.idx == num; });
             if (it != n->controls.end())
             {
@@ -90,12 +89,12 @@ void VSTEffectComponent::setupNode(Node_T& node)
       });
 }
 
-VSTEffectComponent::VSTEffectComponent(
-    Media::VST::VSTEffectModel& proc,
+Executor::Executor(
+    Vst::Model& proc,
     const Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
-    : ProcessComponent_T{proc, ctx, id, "VSTComponent", parent}
+    : ProcessComponent_T{proc, ctx, id, "Component", parent}
 {
   if (!proc.fx || !proc.fx->fx)
     throw std::runtime_error("Unable to load VST");
@@ -106,13 +105,13 @@ VSTEffectComponent::VSTEffectComponent(
   {
     if (fx.flags & effFlagsIsSynth)
     {
-      auto n = Media::VST::make_vst_fx<true, true>(proc.fx, ctx.execState->sampleRate);
+      auto n = Vst::make_vst_fx<true, true>(proc.fx, ctx.execState->sampleRate);
       setupNode(n);
       node = std::move(n);
     }
     else
     {
-      auto n = Media::VST::make_vst_fx<true, false>(proc.fx, ctx.execState->sampleRate);
+      auto n = Vst::make_vst_fx<true, false>(proc.fx, ctx.execState->sampleRate);
       setupNode(n);
       node = std::move(n);
     }
@@ -121,13 +120,13 @@ VSTEffectComponent::VSTEffectComponent(
   {
     if (fx.flags & effFlagsIsSynth)
     {
-      auto n = Media::VST::make_vst_fx<false, true>(proc.fx, ctx.execState->sampleRate);
+      auto n = Vst::make_vst_fx<false, true>(proc.fx, ctx.execState->sampleRate);
       setupNode(n);
       node = std::move(n);
     }
     else
     {
-      auto n = Media::VST::make_vst_fx<false, false>(proc.fx, ctx.execState->sampleRate);
+      auto n = Vst::make_vst_fx<false, false>(proc.fx, ctx.execState->sampleRate);
       setupNode(n);
       node = std::move(n);
     }
@@ -137,4 +136,3 @@ VSTEffectComponent::VSTEffectComponent(
 }
 
 }
-#endif

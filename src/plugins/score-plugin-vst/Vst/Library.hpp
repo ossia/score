@@ -1,19 +1,18 @@
 #pragma once
-#if defined(HAS_VST2)
 #include <Library/LibraryInterface.hpp>
 #include <Library/ProcessesItemModel.hpp>
-#include <Media/ApplicationPlugin.hpp>
-#include <Media/Effect/VST/VSTEffectModel.hpp>
+#include <Vst/ApplicationPlugin.hpp>
+#include <Vst/EffectModel.hpp>
 #include <score/tools/Bind.hpp>
 
-namespace Media::VST
+namespace Vst
 {
 class LibraryHandler final : public QObject, public Library::LibraryInterface
 {
   SCORE_CONCRETE("6a13c3cc-bca7-44d6-a0ef-644e99204460")
   void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx) override
   {
-    MSVC_BUGGY_CONSTEXPR static const auto key = Metadata<ConcreteKey_k, VSTEffectModel>::get();
+    MSVC_BUGGY_CONSTEXPR static const auto key = Metadata<ConcreteKey_k, Model>::get();
 
     QModelIndex node = model.find(key);
     if (node == QModelIndex{})
@@ -25,7 +24,7 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
 
     auto& fx = parent.emplace_back(Library::ProcessData{{{}, "Effects", {}}, {}, {}, {}}, &parent);
     auto& inst = parent.emplace_back(Library::ProcessData{{{}, "Instruments", {}}, {}, {}, {}}, &parent);
-    auto& plug = ctx.applicationPlugin<Media::ApplicationPlugin>();
+    auto& plug = ctx.applicationPlugin<Vst::ApplicationPlugin>();
 
     auto reset_plugs = [=, &plug, &inst, &fx] {
       for (const auto& vst : plug.vst_infos)
@@ -49,7 +48,7 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
 
     reset_plugs();
 
-    con(plug, &Media::ApplicationPlugin::vstChanged, this, [=, &model, &fx, &inst] {
+    con(plug, &Vst::ApplicationPlugin::vstChanged, this, [=, &model, &fx, &inst] {
       model.beginResetModel();
       fx.resize(0);
       inst.resize(0);
@@ -59,4 +58,3 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
   }
 };
 }
-#endif

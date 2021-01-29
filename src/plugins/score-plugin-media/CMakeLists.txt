@@ -4,8 +4,7 @@ include(ExternalProject)
 score_common_setup()
 
 # Packages
-find_package(${QT_VERSION} REQUIRED COMPONENTS Core Widgets)# Concurrent)
-find_package(${QT_VERSION} OPTIONAL_COMPONENTS WebSockets)
+find_package(${QT_VERSION} REQUIRED COMPONENTS Core Widgets)
 find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVDEVICE AVUTIL SWRESAMPLE SWSCALE POSTPROC)
 if(NOT FFmpeg_FOUND)
     return()
@@ -162,56 +161,14 @@ if(TARGET Lilv AND TARGET Suil)
     )
 endif()
 
-if(TARGET ${QT_PREFIX}::WebSockets)
-set(VST_HDRS
-  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTLoader.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTEffectModel.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTWidgets.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTExecutor.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTControl.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTNode.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTLibrary.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/vst-compat.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/VSTCommands.hpp"
-  )
-set(VST_SRCS
-  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTLoader.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTControl.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTEffectModel.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTWidgets.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTExecutor.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/VSTCommands.cpp"
-  )
 
-if(APPLE)
-  set(VST_HDRS ${VST_HDRS}
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/AppleUI/vstwindow.h"
-    )
-  set(VST_SRCS ${VST_SRCS}
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/AppleUI/vstwindow.mm"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/AppleUI/vst2x.mm"
-    )
-
-  set_source_files_properties(
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/AppleUI/vstwindow.mm"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/AppleUI/vst2x.mm"
-    PROPERTIES
-      SKIP_UNITY_BUILD_INCLUSION 1
-  )
-else()
-  set(VST_SRCS ${VST_SRCS}
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/LinuxUI/vst.cpp"
-    )
-endif()
-endif()
 add_library(${PROJECT_NAME}
   ${SRCS} ${HDRS}
   ${LV2_SRCS} ${LV2_HDRS}
-  ${VST_SRCS} ${VST_HDRS}
   ${FAUST_HDRS} ${FAUST_SRCS}
 )
 
-score_generate_command_list_file(${PROJECT_NAME} "${HDRS};${FAUST_HDRS};${LV2_HDRS};${VST_HDRS}")
+score_generate_command_list_file(${PROJECT_NAME} "${HDRS};${FAUST_HDRS};${LV2_HDRS}")
 target_link_libraries(${PROJECT_NAME} PUBLIC
                      ${QT_PREFIX}::Core ${QT_PREFIX}::Widgets
                      score_lib_base score_plugin_engine score_plugin_library score_plugin_audio score_plugin_dataflow
@@ -258,10 +215,7 @@ if(WIN32)
       target_link_libraries(${PROJECT_NAME} PRIVATE mfplay mfreadwrite mfuuid)
     endif()
 endif()
-if(TARGET ${QT_PREFIX}::WebSockets)
-target_compile_definitions(${PROJECT_NAME} PUBLIC HAS_VST2)
-target_link_libraries(${PROJECT_NAME} PUBLIC ${QT_PREFIX}::WebSockets)
-endif()
+
 target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_DL_LIBS})
 
 if(TARGET Lilv AND TARGET Suil)

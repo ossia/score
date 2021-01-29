@@ -1,6 +1,5 @@
 #pragma once
-#if defined(HAS_VST2)
-#include <Media/Effect/VST/VSTEffectModel.hpp>
+#include <Vst/EffectModel.hpp>
 #include <Process/Dataflow/TimeSignature.hpp>
 
 #include <ossia/dataflow/fx_node.hpp>
@@ -8,9 +7,7 @@
 #include <ossia/dataflow/port.hpp>
 #include <ossia/detail/pod_vector.hpp>
 #include <ossia/editor/scenario/time_signature.hpp>
-namespace Media
-{
-namespace VST
+namespace Vst
 {
 
 class vst_node_base : public ossia::graph_node
@@ -154,7 +151,7 @@ public:
     dispatch(effMainsChanged, 0, 0);
   }
 
-  std::string label() const noexcept override { return "VST"; }
+  std::string label() const noexcept override { return ""; }
 
   void all_notes_off() noexcept override
   {
@@ -375,5 +372,3 @@ auto make_vst_fx(Args&... args)
   return std::make_shared<vst_node<b1, b2>>(args...);
 }
 }
-}
-#endif

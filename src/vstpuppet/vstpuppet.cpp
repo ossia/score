@@ -1,4 +1,4 @@
-#include <Media/Effect/VST/VSTLoader.hpp>
+#include <Vst/Loader.hpp>
 
 #include <QGuiApplication>
 #include <QJsonDocument>
@@ -116,7 +116,7 @@ QString load_vst(const QString& path, int id)
       return {};
     }
 
-    Media::VST::VSTModule plugin{path.toStdString()};
+    Vst::Module plugin{path.toStdString()};
 
     if (auto m = plugin.getMain())
     {

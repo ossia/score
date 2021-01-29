@@ -1,14 +1,13 @@
-#if defined(HAS_VST2)
-#include <Media/Effect/VST/VSTEffectModel.hpp>
-#include <Media/Effect/VST/VSTWidgets.hpp>
-#include <Media/Effect/VST/vst-compat.hpp>
+#include <Vst/EffectModel.hpp>
+#include <Vst/Widgets.hpp>
+#include <Vst/vst-compat.hpp>
 
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QHBoxLayout>
-namespace Media::VST
+namespace Vst
 {
-void VSTWindow::setup_rect(QWidget* container, int width, int height)
+void Window::setup_rect(QWidget* container, int width, int height)
 {
   width = width / container->devicePixelRatio();
   height = height / container->devicePixelRatio();
@@ -19,7 +18,7 @@ void VSTWindow::setup_rect(QWidget* container, int width, int height)
   container->setBaseSize({width, height});
 }
 
-VSTWindow::VSTWindow(const VSTEffectModel& e, const score::DocumentContext& ctx) : m_model{e}
+Window::Window(const Model& e, const score::DocumentContext& ctx) : m_model{e}
 {
   if (!e.fx)
     throw std::runtime_error("Cannot create UI");
@@ -50,4 +49,3 @@ VSTWindow::VSTWindow(const VSTEffectModel& e, const score::DocumentContext& ctx)
   }
 }
 }
-#endif

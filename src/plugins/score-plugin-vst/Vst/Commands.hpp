@@ -1,5 +1,4 @@
 #pragma once
-#if defined(HAS_VST2)
 #include <Dataflow/Commands/CableHelpers.hpp>
 #include <Media/Commands/MediaCommandFactory.hpp>
 
@@ -11,38 +10,40 @@ class Port;
 class Cable;
 class Inlet;
 }
-namespace Media::VST
+namespace Vst
 {
-class VSTEffectModel;
-class VSTControlInlet;
-class SetVSTControl final : public score::Command
+class Model;
+class ControlInlet;
+const CommandGroupKey& CommandFactoryName();
+
+class SetControl final : public score::Command
 {
-  SCORE_COMMAND_DECL(CommandFactoryName(), SetVSTControl, "Set a control")
+  SCORE_COMMAND_DECL(CommandFactoryName(), SetControl, "Set a control")
 
 public:
-  SetVSTControl(const VSTControlInlet& obj, float newval);
-  virtual ~SetVSTControl();
+  SetControl(const ControlInlet& obj, float newval);
+  virtual ~SetControl();
 
   void undo(const score::DocumentContext& ctx) const final override;
   void redo(const score::DocumentContext& ctx) const final override;
-  void update(const VSTControlInlet& obj, float newval);
+  void update(const ControlInlet& obj, float newval);
 
 protected:
   void serializeImpl(DataStreamInput& stream) const final override;
   void deserializeImpl(DataStreamOutput& stream) final override;
 
 private:
-  Path<VSTControlInlet> m_path;
+  Path<ControlInlet> m_path;
   float m_old, m_new;
 };
 
-class CreateVSTControl final : public score::Command
+class CreateControl final : public score::Command
 {
-  SCORE_COMMAND_DECL(CommandFactoryName(), CreateVSTControl, "Create a control")
+  SCORE_COMMAND_DECL(CommandFactoryName(), CreateControl, "Create a control")
 
 public:
-  CreateVSTControl(const VSTEffectModel& obj, int fxNum, float value);
-  virtual ~CreateVSTControl();
+  CreateControl(const Model& obj, int fxNum, float value);
+  virtual ~CreateControl();
   void undo(const score::DocumentContext& ctx) const final override;
   void redo(const score::DocumentContext& ctx) const final override;
 
@@ -51,18 +52,18 @@ protected:
   void deserializeImpl(DataStreamOutput& stream) final override;
 
 private:
-  Path<VSTEffectModel> m_path;
+  Path<Model> m_path;
   int m_fxNum{};
   float m_val{};
 };
 
-class RemoveVSTControl final : public score::Command
+class RemoveControl final : public score::Command
 {
-  SCORE_COMMAND_DECL(CommandFactoryName(), RemoveVSTControl, "Remove a control")
+  SCORE_COMMAND_DECL(CommandFactoryName(), RemoveControl, "Remove a control")
 
 public:
-  RemoveVSTControl(const VSTEffectModel& obj, Id<Process::Port> id);
-  virtual ~RemoveVSTControl();
+  RemoveControl(const Model& obj, Id<Process::Port> id);
+  virtual ~RemoveControl();
   void undo(const score::DocumentContext& ctx) const final override;
   void redo(const score::DocumentContext& ctx) const final override;
 
@@ -71,10 +72,9 @@ protected:
   void deserializeImpl(DataStreamOutput& stream) final override;
 
 private:
-  Path<VSTEffectModel> m_path;
+  Path<Model> m_path;
   Id<Process::Port> m_id;
   QByteArray m_control;
   Dataflow::SerializedCables m_cables;
 };
 }
-#endif

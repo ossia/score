@@ -1,6 +1,5 @@
 #pragma once
-#if defined(HAS_VST2)
-#include <Media/Effect/VST/VSTLoader.hpp>
+#include <Vst/Loader.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
@@ -14,28 +13,28 @@
 #include <score_plugin_media_export.h>
 
 #include <verdigris>
-namespace Media::VST
+namespace Vst
 {
-class VSTEffectModel;
-class VSTControlInlet;
+class Model;
+class ControlInlet;
 }
 PROCESS_METADATA(
     ,
-    Media::VST::VSTEffectModel,
+    Vst::Model,
     "BE8E6BD3-75F2-4102-8895-8A4EB4EA545A",
-    "VST",
-    "VST",
+    "",
+    "",
     Process::ProcessCategory::Other,
     "Audio",
-    "VST plug-in",
+    " plug-in",
     "ossia score",
     {},
     {},
     {},
     Process::ProcessFlags::ExternalEffect)
-UUID_METADATA(, Process::Port, Media::VST::VSTControlInlet, "e523bc44-8599-4a04-94c1-04ce0d1a692a")
-DESCRIPTION_METADATA(, Media::VST::VSTEffectModel, "VST")
-namespace Media::VST
+UUID_METADATA(, Process::Port, Vst::ControlInlet, "e523bc44-8599-4a04-94c1-04ce0d1a692a")
+DESCRIPTION_METADATA(, Vst::Model, "")
+namespace Vst
 {
 #define VST_FIRST_CONTROL_INDEX(synth) ((synth) ? 2 : 1)
 struct AEffectWrapper
@@ -72,37 +71,37 @@ struct AEffectWrapper
   }
 };
 
-class CreateVSTControl;
-class VSTControlInlet;
-class SCORE_PLUGIN_MEDIA_EXPORT VSTEffectModel final : public Process::ProcessModel
+class CreateControl;
+class ControlInlet;
+class SCORE_PLUGIN_MEDIA_EXPORT Model final : public Process::ProcessModel
 {
-  W_OBJECT(VSTEffectModel)
+  W_OBJECT(Model)
   SCORE_SERIALIZE_FRIENDS
-  friend class Media::VST::CreateVSTControl;
+  friend class Vst::CreateControl;
 
 public:
-  PROCESS_METADATA_IMPL(VSTEffectModel)
-  VSTEffectModel(
+  PROCESS_METADATA_IMPL(Model)
+  Model(
       TimeVal t,
       const QString& name,
       const Id<Process::ProcessModel>&,
       QObject* parent);
 
-  ~VSTEffectModel() override;
+  ~Model() override;
   template <typename Impl>
-  VSTEffectModel(Impl& vis, QObject* parent) : ProcessModel{vis, parent}
+  Model(Impl& vis, QObject* parent) : ProcessModel{vis, parent}
   {
     init();
     vis.writeTo(*this);
   }
 
-  VSTControlInlet* getControl(const Id<Process::Port>& p) const;
+  ControlInlet* getControl(const Id<Process::Port>& p) const;
   QString prettyName() const noexcept override;
   bool hasExternalUI() const noexcept;
 
   std::shared_ptr<AEffectWrapper> fx{};
 
-  ossia::fast_hash_map<int, VSTControlInlet*> controls;
+  ossia::fast_hash_map<int, ControlInlet*> controls;
 
   void removeControl(const Id<Process::Port>&);
   void removeControl(int fxnum);
@@ -110,7 +109,7 @@ public:
   //void addControl(int idx, float v) W_SIGNAL(addControl, idx, v);
   void on_addControl(int idx, float v);
   W_SLOT(on_addControl);
-  void on_addControl_impl(VSTControlInlet* inl);
+  void on_addControl_impl(ControlInlet* inl);
 
   void reloadControls();
 
@@ -149,15 +148,14 @@ intptr_t vst_host_callback(
 namespace Process
 {
 template <>
-QString EffectProcessFactory_T<Media::VST::VSTEffectModel>::customConstructionData() const;
+QString EffectProcessFactory_T<Vst::Model>::customConstructionData() const;
 
 template <>
 Process::Descriptor
-EffectProcessFactory_T<Media::VST::VSTEffectModel>::descriptor(QString d) const;
+EffectProcessFactory_T<Vst::Model>::descriptor(QString d) const;
 }
 
-namespace Media::VST
+namespace Vst
 {
-using VSTEffectFactory = Process::EffectProcessFactory_T<VSTEffectModel>;
+using VSTEffectFactory = Process::EffectProcessFactory_T<Model>;
 }
-#endif

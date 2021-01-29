@@ -5,7 +5,7 @@ if(NOT TARGET ${QT_PREFIX}::WebSockets)
   message("VST loading requires QtWebSockets.")
   return()
 endif()
-add_executable(ossia-score-vstpuppet vstpuppet.cpp "${SCORE_SRC}/plugins/score-plugin-media/Media/Effect/VST/VSTLoader.cpp")
+add_executable(ossia-score-vstpuppet vstpuppet.cpp "${SCORE_SRC}/plugins/score-plugin-vst/Vst/Loader.cpp")
 target_compile_definitions(ossia-score-vstpuppet PUBLIC HAS_VST2)
 target_link_libraries(
   ossia-score-vstpuppet
@@ -25,7 +25,7 @@ endif()
 target_include_directories(
   ossia-score-vstpuppet
   PRIVATE
-    "${SCORE_SRC}/plugins/score-plugin-media"
+    "${SCORE_SRC}/plugins/score-plugin-vst"
 )
 
 setup_score_common_exe_features(ossia-score-vstpuppet)

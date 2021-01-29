@@ -1,7 +1,6 @@
 #pragma once
-#if defined(HAS_VST2)
 #include <Dataflow/PortItem.hpp>
-#include <Media/Effect/VST/VSTEffectModel.hpp>
+#include <Vst/EffectModel.hpp>
 
 #include <verdigris>
 
@@ -9,30 +8,30 @@ namespace Process
 {
 struct Context;
 }
-namespace Media::VST
+namespace Vst
 {
 
-class VSTControlInlet final : public Process::Inlet
+class ControlInlet final : public Process::Inlet
 {
-  W_OBJECT(VSTControlInlet)
+  W_OBJECT(ControlInlet)
   SCORE_SERIALIZE_FRIENDS
 public:
-  MODEL_METADATA_IMPL(VSTControlInlet)
-  VSTControlInlet(Id<Process::Port> c, QObject* parent) : Inlet{std::move(c), parent} { }
+  MODEL_METADATA_IMPL(ControlInlet)
+  ControlInlet(Id<Process::Port> c, QObject* parent) : Inlet{std::move(c), parent} { }
 
-  VSTControlInlet(DataStream::Deserializer& vis, QObject* parent) : Inlet{vis, parent}
+  ControlInlet(DataStream::Deserializer& vis, QObject* parent) : Inlet{vis, parent}
   {
     vis.writeTo(*this);
   }
-  VSTControlInlet(JSONObject::Deserializer& vis, QObject* parent) : Inlet{vis, parent}
+  ControlInlet(JSONObject::Deserializer& vis, QObject* parent) : Inlet{vis, parent}
   {
     vis.writeTo(*this);
   }
-  VSTControlInlet(DataStream::Deserializer&& vis, QObject* parent) : Inlet{vis, parent}
+  ControlInlet(DataStream::Deserializer&& vis, QObject* parent) : Inlet{vis, parent}
   {
     vis.writeTo(*this);
   }
-  VSTControlInlet(JSONObject::Deserializer&& vis, QObject* parent) : Inlet{vis, parent}
+  ControlInlet(JSONObject::Deserializer&& vis, QObject* parent) : Inlet{vis, parent}
   {
     vis.writeTo(*this);
   }
@@ -61,7 +60,7 @@ private:
   float m_value{};
 };
 
-struct VSTControlPortItem final : public Dataflow::AutomatablePortItem
+struct ControlPortItem final : public Dataflow::AutomatablePortItem
 {
 public:
   using Dataflow::AutomatablePortItem::AutomatablePortItem;
@@ -73,10 +72,10 @@ public:
       const score::DocumentContext& ctx) override;
 };
 
-class VSTControlPortFactory final : public Process::PortFactory
+class ControlPortFactory final : public Process::PortFactory
 {
 public:
-  ~VSTControlPortFactory() override;
+  ~ControlPortFactory() override;
 
   UuidKey<Process::Port> concreteKey() const noexcept override;
 
@@ -102,4 +101,3 @@ public:
       QObject* context) override;
 };
 }
-#endif

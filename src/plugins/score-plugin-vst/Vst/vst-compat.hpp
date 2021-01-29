@@ -2,6 +2,7 @@
 #define VST_COMPAT_HPP
 /* Compatibility header for interoperability with plug-ins written
  * against the VST specification.
+ * VST is a trademark of Steinberg Media Technologies GmbH
  */
 
 #include <cstdint>

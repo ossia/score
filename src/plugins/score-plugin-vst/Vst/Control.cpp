@@ -1,12 +1,10 @@
-#if defined(HAS_VST2)
-
 #include <Automation/AutomationModel.hpp>
 #include <Automation/Commands/SetAutomationMax.hpp>
 #include <Dataflow/Commands/EditConnection.hpp>
 #include <Inspector/InspectorLayout.hpp>
-#include <Media/Commands/VSTCommands.hpp>
-#include <Media/Effect/VST/VSTControl.hpp>
-#include <Media/Effect/VST/VSTWidgets.hpp>
+#include <Vst/Commands.hpp>
+#include <Vst/Control.hpp>
+#include <Vst/Widgets.hpp>
 #include <Process/Dataflow/PortListWidget.hpp>
 #include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
@@ -22,22 +20,22 @@
 #include <QToolButton>
 
 #include <wobjectimpl.h>
-W_OBJECT_IMPL(Media::VST::VSTControlInlet)
-namespace Media::VST
+W_OBJECT_IMPL(Vst::ControlInlet)
+namespace Vst
 {
 
-void VSTControlPortItem::setupMenu(QMenu& menu, const score::DocumentContext& ctx)
+void ControlPortItem::setupMenu(QMenu& menu, const score::DocumentContext& ctx)
 {
   auto rm_act = menu.addAction(QObject::tr("Remove port"));
   connect(rm_act, &QAction::triggered, this, [this, &ctx] {
     QTimer::singleShot(0, [&ctx, parent = port().parent(), id = port().id()] {
       CommandDispatcher<> disp{ctx.commandStack};
-      disp.submit<RemoveVSTControl>(*static_cast<VSTEffectModel*>(parent), id);
+      disp.submit<RemoveControl>(*static_cast<Model*>(parent), id);
     });
   });
 }
 
-bool VSTControlPortItem::on_createAutomation(
+bool ControlPortItem::on_createAutomation(
     Scenario::IntervalModel& cst,
     std::function<void(score::Command*)> macro,
     const score::DocumentContext& ctx)
@@ -62,32 +60,32 @@ bool VSTControlPortItem::on_createAutomation(
   return true;
 }
 
-VSTControlPortFactory::~VSTControlPortFactory() { }
+ControlPortFactory::~ControlPortFactory() { }
 
-UuidKey<Process::Port> VSTControlPortFactory::concreteKey() const noexcept
+UuidKey<Process::Port> ControlPortFactory::concreteKey() const noexcept
 {
-  return Metadata<ConcreteKey_k, VSTControlInlet>::get();
+  return Metadata<ConcreteKey_k, ControlInlet>::get();
 }
 
-Process::Port* VSTControlPortFactory::load(const VisitorVariant& vis, QObject* parent)
+Process::Port* ControlPortFactory::load(const VisitorVariant& vis, QObject* parent)
 {
   return score::deserialize_dyn(vis, [&](auto&& deserializer) {
-    return new VSTControlInlet{deserializer, parent};
+    return new ControlInlet{deserializer, parent};
   });
 }
 
-Dataflow::PortItem* VSTControlPortFactory::makeItem(
+Dataflow::PortItem* ControlPortFactory::makeItem(
     Process::Inlet& port,
     const Process::Context& ctx,
     QGraphicsItem* parent,
     QObject* context)
 {
-  auto port_item = new VSTControlPortItem{port, ctx, parent};
+  auto port_item = new ControlPortItem{port, ctx, parent};
   // Dataflow::setupSimpleInlet(port_item, port, ctx, parent, context);
   return port_item;
 }
 
-Dataflow::PortItem* VSTControlPortFactory::makeItem(
+Dataflow::PortItem* ControlPortFactory::makeItem(
     Process::Outlet& port,
     const Process::Context& ctx,
     QGraphicsItem* parent,
@@ -97,7 +95,7 @@ Dataflow::PortItem* VSTControlPortFactory::makeItem(
 }
 
 static void setupVSTControl(
-    const VSTControlInlet& inlet,
+    const ControlInlet& inlet,
     QWidget* inlet_widget,
     const score::DocumentContext& ctx,
     Inspector::Layout& vlay,
@@ -128,18 +126,17 @@ static void setupVSTControl(
   vlay.addRow(sw);
 }
 
-void VSTControlPortFactory::setupInletInspector(
+void ControlPortFactory::setupInletInspector(
     const Process::Inlet& port,
     const score::DocumentContext& ctx,
     QWidget* parent,
     Inspector::Layout& lay,
     QObject* context)
 {
-  auto& inl = safe_cast<const VSTControlInlet&>(port);
-  auto proc = safe_cast<VSTEffectModel*>(port.parent());
+  auto& inl = safe_cast<const ControlInlet&>(port);
+  auto proc = safe_cast<Model*>(port.parent());
   auto widg = VSTFloatSlider::make_widget(proc->fx->fx, inl, ctx, parent, context);
 
   setupVSTControl(inl, widg, ctx, lay, parent);
 }
 }
-#endif

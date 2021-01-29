@@ -1,23 +1,22 @@
 #pragma once
-#if defined(HAS_VST2)
 //  Taken and refactored from ofxVstHostPluginLoader.h
 //  https://github.com/Meach/ofxVstHost
 
-#include <Media/Effect/VST/vst-compat.hpp>
+#include <Vst/vst-compat.hpp>
 
 #include <string>
 
-namespace Media::VST
+namespace Vst
 {
 using PluginEntryProc = AEffect* (*)(audioMasterCallback audioMaster);
 
-struct VSTModule
+struct Module
 {
   std::string path;
   void* module{};
 
-  VSTModule(std::string fileName);
-  ~VSTModule();
+  Module(std::string fileName);
+  ~Module();
   PluginEntryProc getMain();
 };
 
@@ -35,4 +34,3 @@ static const constexpr auto default_path = "";
 static const constexpr auto default_filter = "";
 #endif
 }
-#endif

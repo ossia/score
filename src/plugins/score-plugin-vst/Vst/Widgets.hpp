@@ -1,6 +1,5 @@
 #pragma once
-#if defined(HAS_VST2)
-#include <Media/Effect/VST/VSTEffectModel.hpp>
+#include <Vst/EffectModel.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 
 #include <score/graphics/GraphicWidgets.hpp>
@@ -16,29 +15,29 @@ namespace Process
 {
 struct Context;
 }
-namespace Media::VST
+namespace Vst
 {
 
-class VSTEffectItem final : public score::EmptyRectItem
+class EffectItem final : public score::EmptyRectItem
 {
   QGraphicsItem* rootItem{};
-  std::vector<std::pair<VSTControlInlet*, score::EmptyRectItem*>> controlItems;
+  std::vector<std::pair<ControlInlet*, score::EmptyRectItem*>> controlItems;
 
 public:
-  VSTEffectItem(const VSTEffectModel& effect, const Process::Context& doc, QGraphicsItem* root);
+  EffectItem(const Model& effect, const Process::Context& doc, QGraphicsItem* root);
 
-  void setupInlet(const VSTEffectModel& fx, VSTControlInlet& inlet, const Process::Context& doc);
+  void setupInlet(const Model& fx, ControlInlet& inlet, const Process::Context& doc);
 
 private:
   void updateRect();
 };
 
-class VSTGraphicsSlider final : public QObject,
-                                public score::QGraphicsSliderBase<VSTGraphicsSlider>
+class GraphicsSlider final : public QObject,
+                                public score::QGraphicsSliderBase<GraphicsSlider>
 {
-  W_OBJECT(VSTGraphicsSlider)
+  W_OBJECT(GraphicsSlider)
   Q_INTERFACES(QGraphicsItem)
-  friend struct QGraphicsSliderBase<VSTGraphicsSlider>;
+  friend struct QGraphicsSliderBase<GraphicsSlider>;
 
   double m_value{};
   AEffect* fx{};
@@ -51,7 +50,7 @@ public:
   static const constexpr double min = 0.;
   static const constexpr double max = 1.;
   friend struct score::DefaultGraphicsSliderImpl;
-  VSTGraphicsSlider(AEffect* fx, int num, QGraphicsItem* parent);
+  GraphicsSlider(AEffect* fx, int num, QGraphicsItem* parent);
 
   static double map(double v) { return v; }
   static double unmap(double v) { return v; }
@@ -78,28 +77,28 @@ struct VSTFloatSlider : ossia::safe_nodes::control_in
 {
   static QWidget* make_widget(
       AEffect* fx,
-      const VSTControlInlet& inlet,
+      const ControlInlet& inlet,
       const score::DocumentContext& ctx,
       QWidget* parent,
       QObject* context);
   static QGraphicsItem* make_item(
       AEffect* fx,
-      VSTControlInlet& inlet,
+      ControlInlet& inlet,
       const score::DocumentContext& ctx,
       QGraphicsItem* parent,
       QObject* context);
 };
 
-class VSTWindow final : public QDialog
+class Window final : public QDialog
 {
-  W_OBJECT(VSTWindow)
+  W_OBJECT(Window)
 public:
   static ERect getRect(AEffect& e);
   static bool hasUI(AEffect& e);
 
-  VSTWindow(const VSTEffectModel& e, const score::DocumentContext& ctx, QWidget* parent);
+  Window(const Model& e, const score::DocumentContext& ctx, QWidget* parent);
 
-  ~VSTWindow() override;
+  ~Window() override;
   void resize(int w, int h);
 
 public:
@@ -108,17 +107,16 @@ public:
 private:
   static void setup_rect(QWidget* container, int width, int height);
 
-  VSTWindow(const VSTEffectModel& e, const score::DocumentContext& ctx);
+  Window(const Model& e, const score::DocumentContext& ctx);
 
   void resizeEvent(QResizeEvent* event) override;
   void closeEvent(QCloseEvent* event) override;
 
   std::weak_ptr<AEffectWrapper> effect;
   QWidget* m_defaultWidg{};
-  const VSTEffectModel& m_model;
+  const Model& m_model;
 };
 
-using LayerFactory = Process::EffectLayerFactory_T<VSTEffectModel, VSTEffectItem, VSTWindow>;
+using LayerFactory = Process::EffectLayerFactory_T<Model, EffectItem, Window>;
 
 }
-#endif

@@ -1,5 +1,4 @@
-#include "VSTLoader.hpp"
-#if defined(HAS_VST2)
+#include "Loader.hpp"
 #include <stdexcept>
 
 #if defined(_WIN32)
@@ -10,9 +9,7 @@
 #include <dlfcn.h>
 #endif
 
-namespace Media
-{
-namespace VST
+namespace Vst
 {
 
 #if defined(_WIN32)
@@ -25,7 +22,7 @@ struct WinLoader
 
   static PluginEntryProc getMain(void* module)
   {
-    auto mainProc = (PluginEntryProc)GetProcAddress((HMODULE)module, "VSTPluginMain");
+    auto mainProc = (PluginEntryProc)GetProcAddress((HMODULE)module, "PluginMain");
     if (!mainProc)
       mainProc = (PluginEntryProc)GetProcAddress((HMODULE)module, "main");
     return mainProc;
@@ -61,7 +58,7 @@ struct AppleLoader
   static PluginEntryProc getMain(void* module)
   {
     auto mainProc = (PluginEntryProc)CFBundleGetFunctionPointerForName(
-        (CFBundleRef)module, CFSTR("VSTPluginMain"));
+        (CFBundleRef)module, CFSTR("PluginMain"));
     if (!mainProc)
       mainProc = (PluginEntryProc)CFBundleGetFunctionPointerForName(
           (CFBundleRef)module, CFSTR("main_macho"));
@@ -87,7 +84,7 @@ struct LinuxLoader
 
   static PluginEntryProc getMain(void* module)
   {
-    auto mainProc = (PluginEntryProc)dlsym(module, "VSTPluginMain");
+    auto mainProc = (PluginEntryProc)dlsym(module, "PluginMain");
     if (!mainProc)
       mainProc = (PluginEntryProc)dlsym(module, "main");
     return mainProc;
@@ -96,21 +93,19 @@ struct LinuxLoader
 using PluginLoader = LinuxLoader;
 #endif
 
-VSTModule::VSTModule(std::string fileName)
+Module::Module(std::string fileName)
     : path{fileName}, module{PluginLoader::load(fileName.c_str())}
 {
 }
 
-VSTModule::~VSTModule()
+Module::~Module()
 {
   if (module)
     PluginLoader::unload(module);
 }
 
-PluginEntryProc VSTModule::getMain()
+PluginEntryProc Module::getMain()
 {
   return PluginLoader::getMain(module);
 }
 }
-}
-#endif
