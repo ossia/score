@@ -28,7 +28,7 @@ PROCESS_METADATA(
     Process::ProcessCategory::Other,
     "Audio",
     "VST 3 plug-in",
-    "ossia score",
+    "VST is a trademark of Steinberg Media Technologies GmbH",
     {},
     {},
     {},
