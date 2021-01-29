@@ -10,10 +10,6 @@ if(NOT FFmpeg_FOUND)
     return()
 endif()
 
-  if(NOT MSVC)
-    find_package(Faust QUIET)
-  endif()
-
 if(UNIX AND NOT APPLE)
   find_package(ZLIB QUIET)
 endif()
@@ -125,27 +121,11 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_media.cpp"
 )
 
-
-if(Faust_FOUND)
-    set(FAUST_HDRS
-        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Faust/FaustDSPWrapper.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Faust/FaustUtils.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Faust/FaustEffectModel.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Faust/FaustLibrary.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/EditFaustEffect.hpp"
-        )
-    set(FAUST_SRCS
-      "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Faust/FaustEffectModel.cpp"
-    )
-endif()
-
-
 add_library(${PROJECT_NAME}
   ${SRCS} ${HDRS}
-  ${FAUST_HDRS} ${FAUST_SRCS}
 )
 
-score_generate_command_list_file(${PROJECT_NAME} "${HDRS};${FAUST_HDRS}")
+score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 target_link_libraries(${PROJECT_NAME} PUBLIC
                      ${QT_PREFIX}::Core ${QT_PREFIX}::Widgets
                      score_lib_base score_plugin_engine score_plugin_library score_plugin_audio score_plugin_dataflow
@@ -195,17 +175,7 @@ endif()
 
 target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_DL_LIBS})
 
-if(Faust_FOUND)
-  target_compile_definitions(${PROJECT_NAME} PUBLIC HAS_FAUST)
-  target_link_libraries(${PROJECT_NAME} PUBLIC ${FAUST_LIBRARIES})
-  target_include_directories(${PROJECT_NAME} PRIVATE ${FAUST_INCLUDE_DIR})
-endif()
-
 # Rubberband and sample rate conversion
-target_include_directories(${PROJECT_NAME}
-    PRIVATE
-      ${OSSIA_3RDPARTY_FOLDER}/r8brain-free-src
-)
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
     rubberband
@@ -213,55 +183,3 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 setup_score_plugin(${PROJECT_NAME})
-
-if(Faust_FOUND)
-  message("Downloading Faust libs...")
-  # ExternalProject_Add(
-  #     faustlibs
-  #     PREFIX ""
-  #     GIT_REPOSITORY https://github.com/grame-cncm/faustlibraries
-  #     CONFIGURE_COMMAND ""
-  #     BUILD_COMMAND ""
-  #     INSTALL_COMMAND ""
-  # )
-
-  # add_dependencies(${PROJECT_NAME} faustlibs)
-
-  function(disable_var VAR)
-    if(${${VAR}})
-      set(${VAR}_prev "${${VAR}}" CACHE "" INTERNAL)
-    endif()
-    set(${VAR} 0 CACHE "" INTERNAL)
-  endfunction()
-  function(restore_var VAR)
-    if(${${VAR}_prev})
-      set(${VAR} "${${VAR}_prev}" CACHE "" INTERNAL)
-    endif()
-  endfunction()
-
-  include(FetchContent)
-  disable_var(BUILD_PROGRAMS)
-  disable_var(BUILD_EXAMPLES)
-  disable_var(ENABLE_PACKAGE_CONFIG)
-  disable_var(INSTALL_PKGCONFIG_MODULE)
-  disable_var(ENABLE_EXPERIMENTAL)
-  disable_var(BUILD_REGTEST)
-  disable_var(BUILD_TESTING)
-
-  FetchContent_Declare(
-    sndfile
-    GIT_REPOSITORY https://github.com/jcelerier/libsndfile
-  )
-  FetchContent_MakeAvailable(sndfile)
-  if(TARGET sndfile)
-    set_target_properties(sndfile PROPERTIES UNITY_BUILD 0)
-  endif()
-
-  restore_var(BUILD_TESTING)
-
-  target_link_libraries(${PROJECT_NAME} PRIVATE SndFile::sndfile)
-
-  if(WIN32)
-    target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32)
-  endif()
-endif()

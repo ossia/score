@@ -2,8 +2,7 @@
 #include <Library/LibraryInterface.hpp>
 #include <Library/LibrarySettings.hpp>
 #include <Library/ProcessesItemModel.hpp>
-#include <Media/ApplicationPlugin.hpp>
-#include <Media/Effect/Faust/FaustEffectModel.hpp>
+#include <Faust/EffectModel.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
 
 #include <QFileInfo>
@@ -12,7 +11,7 @@
 
 #include <unordered_map>
 
-namespace Media::Faust
+namespace Faust
 {
 class LibraryHandler final : public QObject, public Library::LibraryInterface
 {
@@ -129,7 +128,7 @@ class DropHandler final : public Process::ProcessDropHandler
     for (auto&& [filename, file] : data)
     {
       Process::ProcessDropHandler::ProcessDrop p;
-      p.creation.key = Metadata<ConcreteKey_k, Media::Faust::FaustEffectModel>::get();
+      p.creation.key = Metadata<ConcreteKey_k, Faust::FaustEffectModel>::get();
       // TODO use faust-provided name
       p.creation.prettyName = QFileInfo{filename}.baseName();
       p.creation.customData = std::move(file);

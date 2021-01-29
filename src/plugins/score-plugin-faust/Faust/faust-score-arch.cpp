@@ -1,4 +1,4 @@
-#include <Media/Effect/Faust/FaustDSPWrapper.hpp>
+#include <Faust/FaustDSPWrapper.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/plugins/FactorySetup.hpp>

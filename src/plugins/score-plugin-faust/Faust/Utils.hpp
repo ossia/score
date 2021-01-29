@@ -9,8 +9,6 @@
 
 #include <QDebug>
 
-namespace Media
-{
 namespace Faust
 {
 
@@ -274,5 +272,4 @@ struct UpdateUI : ::UI
     addHorizontalBargraph(label, zone, min, max);
   }
 };
-}
 }

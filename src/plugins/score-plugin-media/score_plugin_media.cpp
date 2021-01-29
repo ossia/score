@@ -18,10 +18,6 @@
 
 #include <Mixer/MixerPanel.hpp>
 #include <wobjectimpl.h>
-#if defined(HAS_FAUST)
-#include <Media/Effect/Faust/FaustEffectModel.hpp>
-#include <Media/Effect/Faust/FaustLibrary.hpp>
-#endif
 #include <Library/LibraryInterface.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
@@ -65,9 +61,6 @@ score_plugin_media::~score_plugin_media() { }
 std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_media::make_commands()
 {
   using namespace Media;
-#if defined(HAS_FAUST)
-  using namespace Media::Faust;
-#endif
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       Media::CommandFactoryName(), CommandGeneratorMap{}};
 
@@ -97,10 +90,6 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
          Media::Step::ProcessFactory,
          Media::Metro::ProcessFactory,
          Media::Merger::ProcessFactory
-#if defined(HAS_FAUST)
-         ,
-         Media::Faust::FaustEffectFactory
-#endif
          >,
       FW<Inspector::InspectorWidgetFactory,
          Media::Sound::InspectorFactory,
@@ -113,17 +102,8 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
          Media::Metro::LayerFactory,
          Media::Step::LayerFactory,
          Media::Merger::LayerFactory
-#if defined(HAS_FAUST)
-         ,
-         Media::Faust::LayerFactory
-#endif
          >,
-      FW<Library::LibraryInterface
-#if defined(HAS_FAUST)
-         ,
-         Media::Faust::LibraryHandler
-#endif
-         ,
+      FW<Library::LibraryInterface,
          Media::Sound::LibraryHandler>,
 
 
@@ -132,17 +112,9 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
          Execution::StepComponentFactory,
          Execution::MetroComponentFactory,
          Execution::MergerComponentFactory
-#if defined(HAS_FAUST)
-         ,
-         Execution::FaustEffectComponentFactory
-#endif
          >,
       FW<Process::ProcessDropHandler,
          Media::Sound::DropHandler
-#if defined(HAS_FAUST)
-         ,
-         Media::Faust::DropHandler
-#endif
          >,
       FW<score::SettingsDelegateFactory, Media::Settings::Factory>,
       FW<score::PanelDelegateFactory, Mixer::PanelDelegateFactory>

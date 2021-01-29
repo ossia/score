@@ -1,5 +1,4 @@
 #pragma once
-#if defined(HAS_FAUST)
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
@@ -17,7 +16,7 @@
 #include <verdigris>
 
 #include <faust/dsp/poly-llvm-dsp.h>
-namespace Media::Faust
+namespace Faust
 {
 class FaustEffectModel;
 }
@@ -30,7 +29,7 @@ struct custom_dsp_poly_effect;
 
 PROCESS_METADATA(
     ,
-    Media::Faust::FaustEffectModel,
+    Faust::FaustEffectModel,
     "5354c61a-1649-4f59-b952-5c2f1b79c1bd",
     "Faust",
     "Faust",
@@ -42,8 +41,8 @@ PROCESS_METADATA(
     {},
     {},
     Process::ProcessFlags::ExternalEffect)
-DESCRIPTION_METADATA(, Media::Faust::FaustEffectModel, "Faust")
-namespace Media::Faust
+DESCRIPTION_METADATA(, Faust::FaustEffectModel, "Faust")
+namespace Faust
 {
 class FaustEffectModel : public Process::ProcessModel
 {
@@ -106,14 +105,14 @@ private:
 namespace Process
 {
 template <>
-QString EffectProcessFactory_T<Media::Faust::FaustEffectModel>::customConstructionData() const;
+QString EffectProcessFactory_T<Faust::FaustEffectModel>::customConstructionData() const;
 
 template <>
 Process::Descriptor
-EffectProcessFactory_T<Media::Faust::FaustEffectModel>::descriptor(QString d) const;
+EffectProcessFactory_T<Faust::FaustEffectModel>::descriptor(QString d) const;
 }
 
-namespace Media::Faust
+namespace Faust
 {
 struct LanguageSpec
 {
@@ -130,7 +129,7 @@ using LayerFactory = Process::EffectLayerFactory_T<
 namespace Execution
 {
 class FaustEffectComponent final
-    : public Execution::ProcessComponent_T<Media::Faust::FaustEffectModel, ossia::node_process>
+    : public Execution::ProcessComponent_T<Faust::FaustEffectModel, ossia::node_process>
 {
   W_OBJECT(FaustEffectComponent)
   COMPONENT_METADATA("eb4f83af-5ddc-4f2f-9426-6f8a599a1e96")
@@ -139,7 +138,7 @@ public:
   static constexpr bool is_unique = true;
 
   FaustEffectComponent(
-      Media::Faust::FaustEffectModel& proc,
+      Faust::FaustEffectModel& proc,
       const Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent);
@@ -158,4 +157,3 @@ private:
 };
 using FaustEffectComponentFactory = Execution::ProcessComponentFactory_T<FaustEffectComponent>;
 }
-#endif

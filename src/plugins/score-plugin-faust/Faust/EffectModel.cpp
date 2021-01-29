@@ -1,8 +1,7 @@
-#if defined(HAS_FAUST)
-#include "FaustEffectModel.hpp"
+#include "EffectModel.hpp"
 
-#include <Media/Commands/EditFaustEffect.hpp>
-#include <Media/Effect/Faust/FaustUtils.hpp>
+#include <Faust/Commands.hpp>
+#include <Faust/Utils.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionSetup.hpp>
@@ -28,26 +27,26 @@
 #define SAMPLERATE 1
 #include <faust/gui/SoundUI.h>
 #endif
-W_OBJECT_IMPL(Media::Faust::FaustEffectModel)
+W_OBJECT_IMPL(Faust::FaustEffectModel)
 std::list<::GUI*> GUI::fGuiList;
 namespace Process
 {
 
 template <>
-QString EffectProcessFactory_T<Media::Faust::FaustEffectModel>::customConstructionData() const
+QString EffectProcessFactory_T<Faust::FaustEffectModel>::customConstructionData() const
 {
   return "process = _;";
 }
 
 template <>
 Process::Descriptor
-EffectProcessFactory_T<Media::Faust::FaustEffectModel>::descriptor(QString d) const
+EffectProcessFactory_T<Faust::FaustEffectModel>::descriptor(QString d) const
 {
   Process::Descriptor desc;
   return desc;
 }
 }
-namespace Media::Faust
+namespace Faust
 {
 
 FaustEffectModel::FaustEffectModel(
@@ -362,14 +361,14 @@ void FaustEffectModel::reload()
 }
 
 template <>
-void DataStreamReader::read(const Media::Faust::FaustEffectModel& eff)
+void DataStreamReader::read(const Faust::FaustEffectModel& eff)
 {
   m_stream << eff.m_text;
   readPorts(*this, eff.m_inlets, eff.m_outlets);
 }
 
 template <>
-void DataStreamWriter::write(Media::Faust::FaustEffectModel& eff)
+void DataStreamWriter::write(Faust::FaustEffectModel& eff)
 {
   m_stream >> eff.m_text;
   eff.reload();
@@ -378,14 +377,14 @@ void DataStreamWriter::write(Media::Faust::FaustEffectModel& eff)
 }
 
 template <>
-void JSONReader::read(const Media::Faust::FaustEffectModel& eff)
+void JSONReader::read(const Faust::FaustEffectModel& eff)
 {
   obj["Text"] = eff.text();
   readPorts(*this, eff.m_inlets, eff.m_outlets);
 }
 
 template <>
-void JSONWriter::write(Media::Faust::FaustEffectModel& eff)
+void JSONWriter::write(Faust::FaustEffectModel& eff)
 {
   eff.m_text = obj["Text"].toString();
   eff.reload();
@@ -397,13 +396,13 @@ namespace Execution
 {
 
 FaustEffectComponent::FaustEffectComponent(
-    Media::Faust::FaustEffectModel& proc,
+    Faust::FaustEffectModel& proc,
     const Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
     : ProcessComponent_T{proc, ctx, id, "FaustComponent", parent}
 {
-  connect(&proc, &Media::Faust::FaustEffectModel::changed, this, [=] {
+  connect(&proc, &Faust::FaustEffectModel::changed, this, [=] {
     for(auto& c : this->m_controlConnections)
       QObject::disconnect(c);
     m_controlConnections.clear();
@@ -561,4 +560,3 @@ void FaustEffectComponent::reloadFx(Execution::Transaction& transaction)
 
 }
 W_OBJECT_IMPL(Execution::FaustEffectComponent)
-#endif

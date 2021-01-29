@@ -1,5 +1,5 @@
 #pragma once
-#include <Media/Effect/Faust/FaustUtils.hpp>
+#include <Faust/FaustUtils.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/ExecutionContext.hpp>
@@ -150,7 +150,7 @@ public:
   Fx(TimeVal t, const Id<Process::ProcessModel>& id, QObject* parent)
       : Process::ProcessModel{t, id, Metadata<ObjectKey_k, Fx>::get(), parent}
   {
-    Wrap<Media::Faust::UI<decltype(*this)>> ui{*this};
+    Wrap<Faust::UI<decltype(*this)>> ui{*this};
     DSP d;
 
     m_inlets.push_back(new Process::Inlet{getStrongId(m_inlets), this});
