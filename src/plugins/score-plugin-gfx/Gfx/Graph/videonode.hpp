@@ -15,6 +15,32 @@ extern "C"
 // can share data across all renderers during a tick
 using video_decoder = ::Video::VideoInterface;
 
+inline
+QRhiTextureSubresourceUploadDescription createTextureUpload(uint8_t* pixels, int w, int h, int bytesPerPixel, int stride)
+{
+  QRhiTextureSubresourceUploadDescription subdesc;
+
+  const int rowBytes = w * bytesPerPixel;
+  qDebug() << w << h << stride ;
+  if(rowBytes == stride)
+  {
+    subdesc.setData(QByteArray::fromRawData(reinterpret_cast<const char*>(pixels), rowBytes * h));
+  }
+  else
+  {
+    QByteArray data{w * h, Qt::Uninitialized};
+    for(int r = 0; r < h; r++)
+    {
+      const char* input = reinterpret_cast<const char*>(pixels + stride * r);
+      char* output = data.data() + rowBytes * r;
+      std::copy(input, input + rowBytes, output);
+    }
+    subdesc.setData(data);
+  }
+
+  return subdesc;
+}
+
 struct GPUVideoDecoder
 {
   virtual ~GPUVideoDecoder() {}
@@ -128,23 +154,22 @@ void main()
 
   void setYPixels(RenderedNode& rendered, QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept
   {
-    // TODO glPixelStorei(GL_UNPACK_ROW_LENGTH, stride);
     const auto w = decoder.width, h = decoder.height;
     auto y_tex = rendered.m_samplers[0].texture;
-    QRhiTextureSubresourceUploadDescription subdesc;
-    subdesc.setData(QByteArray::fromRawData(reinterpret_cast<const char*>(pixels), w * h));
-    QRhiTextureUploadEntry entry{0, 0, subdesc};
+
+    QRhiTextureUploadEntry entry{0, 0, createTextureUpload(pixels, w, h, 1, stride)};
+
     QRhiTextureUploadDescription desc{entry};
     res.uploadTexture(y_tex, desc);
   }
 
   void setUPixels(RenderedNode& rendered, QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept
   {
-    const auto w = decoder.width, h = decoder.height;
+    const auto w = decoder.width / 2, h = decoder.height / 2;
     auto u_tex = rendered.m_samplers[1].texture;
-    QRhiTextureSubresourceUploadDescription subdesc;
-    subdesc.setData(QByteArray::fromRawData(reinterpret_cast<const char*>(pixels), w * h / 4));
-    QRhiTextureUploadEntry entry{0, 0, subdesc};
+
+    QRhiTextureUploadEntry entry{0, 0, createTextureUpload(pixels, w, h, 1, stride)};
+
     QRhiTextureUploadDescription desc{entry};
 
     res.uploadTexture(u_tex, desc);
@@ -152,11 +177,11 @@ void main()
 
   void setVPixels(RenderedNode& rendered, QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept
   {
-    const auto w = decoder.width, h = decoder.height;
+    const auto w = decoder.width / 2, h = decoder.height / 2;
     auto v_tex = rendered.m_samplers[2].texture;
-    QRhiTextureSubresourceUploadDescription subdesc;
-    subdesc.setData(QByteArray::fromRawData(reinterpret_cast<const char*>(pixels), w * h / 4));
-    QRhiTextureUploadEntry entry{0, 0, subdesc};
+
+    QRhiTextureUploadEntry entry{0, 0, createTextureUpload(pixels, w, h, 1, stride)};
+
     QRhiTextureUploadDescription desc{entry};
     res.uploadTexture(v_tex, desc);
   }
@@ -216,6 +241,7 @@ static const constexpr auto yuv420_filter = R"_(#version 450
     auto& rhi = *r.state.rhi;
     std::tie(node.m_vertexS, node.m_fragmentS) = makeShaders(node.mesh().defaultVertexShader(), yuv420_filter);
     const auto w = decoder.width, h = decoder.height;
+
     // Y
     {
       auto tex = rhi.newTexture(QRhiTexture::R8, {w, h}, 1, QRhiTexture::Flag{});
@@ -277,23 +303,21 @@ static const constexpr auto yuv420_filter = R"_(#version 450
 
   void setYPixels(RenderedNode& rendered, QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept
   {
-    // TODO glPixelStorei(GL_UNPACK_ROW_LENGTH, stride);
     const auto w = decoder.width, h = decoder.height;
     auto y_tex = rendered.m_samplers[0].texture;
-    QRhiTextureSubresourceUploadDescription subdesc;
-    subdesc.setData(QByteArray::fromRawData(reinterpret_cast<const char*>(pixels), w * h));
-    QRhiTextureUploadEntry entry{0, 0, subdesc};
+
+    QRhiTextureUploadEntry entry{0, 0, createTextureUpload(pixels, w, h, 1, stride)};
     QRhiTextureUploadDescription desc{entry};
+
     res.uploadTexture(y_tex, desc);
   }
 
   void setUPixels(RenderedNode& rendered, QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept
   {
-    const auto w = decoder.width, h = decoder.height;
+    const auto w = decoder.width / 2, h = decoder.height /2;
     auto u_tex = rendered.m_samplers[1].texture;
-    QRhiTextureSubresourceUploadDescription subdesc;
-    subdesc.setData(QByteArray::fromRawData(reinterpret_cast<const char*>(pixels), w * h / 4));
-    QRhiTextureUploadEntry entry{0, 0, subdesc};
+
+    QRhiTextureUploadEntry entry{0, 0, createTextureUpload(pixels, w, h, 1, stride)};
     QRhiTextureUploadDescription desc{entry};
 
     res.uploadTexture(u_tex, desc);
@@ -301,11 +325,10 @@ static const constexpr auto yuv420_filter = R"_(#version 450
 
   void setVPixels(RenderedNode& rendered, QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept
   {
-    const auto w = decoder.width, h = decoder.height;
+    const auto w = decoder.width / 2, h = decoder.height /2;
     auto v_tex = rendered.m_samplers[2].texture;
-    QRhiTextureSubresourceUploadDescription subdesc;
-    subdesc.setData(QByteArray::fromRawData(reinterpret_cast<const char*>(pixels), w * h / 4));
-    QRhiTextureUploadEntry entry{0, 0, subdesc};
+
+    QRhiTextureUploadEntry entry{0, 0, createTextureUpload(pixels, w, h, 1, stride)};
     QRhiTextureUploadDescription desc{entry};
     res.uploadTexture(v_tex, desc);
   }
@@ -387,9 +410,9 @@ struct RGB0Decoder : GPUVideoDecoder
   {
     const auto w = decoder.width, h = decoder.height;
     auto y_tex = rendered.m_samplers[0].texture;
-    QRhiTextureSubresourceUploadDescription subdesc;
-    subdesc.setData(QByteArray::fromRawData(reinterpret_cast<const char*>(pixels), w * h * 4));
-    QRhiTextureUploadEntry entry{0, 0, subdesc};
+
+    QRhiTextureUploadEntry entry{0, 0, createTextureUpload(pixels, w, h, 4, stride)};
+
     QRhiTextureUploadDescription desc{entry};
     res.uploadTexture(y_tex, desc);
   }
