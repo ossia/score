@@ -4,6 +4,7 @@
 #include <Vst/EffectModel.hpp>
 #include <Vst/Executor.hpp>
 #include <Vst/Library.hpp>
+#include <Vst/Settings.hpp>
 #include <Vst/Widgets.hpp>
 #include <Library/LibraryInterface.hpp>
 
@@ -47,7 +48,7 @@ score_plugin_vst::make_applicationPlugin(const score::ApplicationContext& app)
 score::GUIApplicationPlugin*
 score_plugin_vst::make_guiApplicationPlugin(const score::GUIApplicationContext& app)
 {
-  return new Media::GUIApplicationPlugin{app};
+  return new Vst::GUIApplicationPlugin{app};
 }
 
 std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_vst::factories(
@@ -58,18 +59,22 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_vst::factories(
       score::ApplicationContext,
       FW<Process::ProcessModelFactory,
         Vst::VSTEffectFactory
-        >,
+      >,
       FW<Process::LayerFactory,
         Vst::LayerFactory
-        >,
-      FW<Library::LibraryInterface
-        Vst::LibraryHandler>,
+      >,
+      FW<Library::LibraryInterface,
+        Vst::LibraryHandler
+      >,
       FW<Process::PortFactory,
         Vst::ControlPortFactory
-        >,
+      >,
       FW<Execution::ProcessComponentFactory,
-         Execution::VSTEffectComponentFactory
-         >
+         Vst::ExecutorFactory
+      >,
+      FW<Media::Settings::PluginSettingsTab,
+         Vst::SettingsWidget
+      >
       >(ctx, key);
 }
 

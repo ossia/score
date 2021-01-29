@@ -21,6 +21,8 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Vst/Library.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Vst/vst-compat.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Vst/Commands.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Vst/Settings.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_vst.hpp"
   )
 set(SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Vst/ApplicationPlugin.cpp"
@@ -30,6 +32,8 @@ set(SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Vst/Widgets.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Vst/Executor.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Vst/Commands.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Vst/Settings.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_vst.cpp"
   )
 
 if(APPLE)

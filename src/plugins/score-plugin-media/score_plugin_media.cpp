@@ -78,6 +78,14 @@ std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_media::make_c
   return cmds;
 }
 
+std::vector<std::unique_ptr<score::InterfaceListBase>>
+score_plugin_media::factoryFamilies()
+{
+  return make_ptr_vector<
+      score::InterfaceListBase,
+      Media::Settings::PluginSettingsFactoryList>();
+}
+
 std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& key) const

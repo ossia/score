@@ -20,7 +20,6 @@ namespace Media::Settings
 Presenter::Presenter(Model& m, View& v, QObject* parent)
     : score::GlobalSettingsPresenter{m, v, parent}
 {
-  SETTINGS_PRESENTER(VstPaths);
 }
 
 QString Presenter::settingsName()
