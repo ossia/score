@@ -404,7 +404,9 @@ bool runningUnderAnUISession() noexcept
   return
       !qgetenv("DISPLAY").isEmpty() ||
       !qgetenv("WAYLAND_DISPLAY").isEmpty() ||
-      (qgetenv("XDG_SESSION_TYPE") != "tty");
+      (qgetenv("XDG_SESSION_TYPE") != "tty") ||
+      (qgetenv("QT_QPA_PLATFORM").contains("gl"))
+      ;
 #else
   // Win32 and macOS always have a graphical session
   return true;
@@ -474,9 +476,16 @@ void Application::init()
 {
   if(m_applicationSettings.gui && m_applicationSettings.opengl)
   {
-    QOpenGLContext ctx;
-
-    m_applicationSettings.opengl = ctx.create();
+    auto platform = QGuiApplication::platformName();
+    if(platform.contains("wayland"))
+    {
+      m_applicationSettings.opengl = false;
+    }
+    else
+    {
+      QOpenGLContext ctx;
+      m_applicationSettings.opengl = ctx.create();
+    }
   }
 #if defined(SCORE_STATIC_PLUGINS)
   score_init_static_plugins();
