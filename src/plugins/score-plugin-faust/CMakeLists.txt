@@ -8,7 +8,11 @@ if(MSVC)
 endif()
 
 # Packages
-find_package(Faust QUIET)
+find_package(Faust)
+if(NOT FAUST_FOUND)
+  return()
+endif()
+
 if(UNIX AND NOT APPLE)
   find_package(ZLIB QUIET)
 endif()
