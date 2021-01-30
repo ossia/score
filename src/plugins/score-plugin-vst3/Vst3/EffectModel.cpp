@@ -7,6 +7,7 @@
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
+#include <score/tools/std/String.hpp>
 #include <score/tools/DeleteAll.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
@@ -115,7 +116,7 @@ Model::Model(
     QObject* parent)
     : ProcessModel{t, id, "VST", parent}
 {
-  auto identifier = path.split("/::/", Qt::SkipEmptyParts);
+  auto identifier = splitWithoutEmptyParts(path, "/::/");
   if(identifier.size() == 2)
   {
     m_vstPath = identifier[0];
