@@ -3,6 +3,7 @@
 #include "graph.hpp"
 #include "mesh.hpp"
 #include "renderer.hpp"
+#include "shadercache.hpp"
 #include <score/tools/Debug.hpp>
 NodeModel::NodeModel() { }
 
@@ -170,35 +171,23 @@ void RenderedNode::customInit(Renderer& renderer)
 
 std::pair<QShader, QShader> makeShaders(QString vert, QString frag)
 {
-  QShaderBaker b;
+  auto [vertexS, vertexError] = ShaderCache::get(vert.toUtf8(), QShader::VertexStage);
+  if(!vertexError.isEmpty())
+      qDebug() << vertexError;
 
-  b.setGeneratedShaders({
-      {QShader::SpirvShader, 100},
-      {QShader::GlslShader, 330},
-      {QShader::HlslShader, QShaderVersion(50)},
-      {QShader::MslShader, QShaderVersion(12)},
-  });
-  b.setGeneratedShaderVariants(
-      {QShader::Variant{}, QShader::Variant{}, QShader::Variant{}, QShader::Variant{}});
-
-  b.setSourceString(vert.toLatin1(), QShader::VertexStage);
-  QShader m_vertexS = b.bake();
-  if(!b.errorMessage().isEmpty()) qDebug() << b.errorMessage();
-
-  b.setSourceString(frag.toLatin1(), QShader::FragmentStage);
-  QShader m_fragmentS = b.bake();
-  if (!b.errorMessage().isEmpty())
+  auto [fragmentS, fragmentError] = ShaderCache::get(frag.toUtf8(), QShader::FragmentStage);
+  if (!fragmentError.isEmpty())
   {
-    qDebug() << b.errorMessage();
+    qDebug() << fragmentError;
     qDebug() << frag.toStdString().data();
   }
 
-  if (!m_vertexS.isValid())
+  if (!vertexS.isValid())
     throw std::runtime_error("invalid vertex shader");
-  if (!m_fragmentS.isValid())
+  if (!fragmentS.isValid())
     throw std::runtime_error("invalid fragment shader");
 
-  return {m_vertexS, m_fragmentS};
+  return {vertexS, fragmentS};
 }
 
 QShader makeCompute(QString compute)

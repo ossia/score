@@ -12,6 +12,7 @@
 #include <QLineEdit>
 #include <QFormLayout>
 #include <QMenu>
+#include <QGuiApplication>
 
 #include <wobjectimpl.h>
 

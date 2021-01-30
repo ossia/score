@@ -21,7 +21,6 @@ QRhiTextureSubresourceUploadDescription createTextureUpload(uint8_t* pixels, int
   QRhiTextureSubresourceUploadDescription subdesc;
 
   const int rowBytes = w * bytesPerPixel;
-  qDebug() << w << h << stride ;
   if(rowBytes == stride)
   {
     subdesc.setData(QByteArray::fromRawData(reinterpret_cast<const char*>(pixels), rowBytes * h));

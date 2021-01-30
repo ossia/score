@@ -194,7 +194,6 @@ void ApplicationPlugin::rescan(const QStringList& paths)
     proc->setProgram("ossia-score-vst3puppet");
 #endif
     proc->setArguments({path, QString::number(i)});
-    qDebug() << " == VST3: starting a scan;: " << path << i;
     m_processes.push_back({path, std::move(proc), false, {}});
     i++;
   }
@@ -229,7 +228,6 @@ void ApplicationPlugin::processIncomingMessage(const QString& txt)
 {
   QJsonDocument doc = QJsonDocument::fromJson(txt.toUtf8());
 
-  qDebug() << " == VST3: got json " <<  doc;
   if (doc.isObject())
   {
     auto obj = doc.object();
