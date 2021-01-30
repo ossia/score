@@ -5,6 +5,7 @@
 
 #include <QPlatformSurfaceEvent>
 #include <QWindow>
+#include <QTimer>
 #include <QtGui/private/qrhigles2_p.h>
 
 class Window : public QWindow
@@ -44,7 +45,10 @@ public:
   std::function<void()> onUpdate;
   std::function<void(QRhiCommandBuffer&)> onRender;
   std::function<void()> onResize;
-  void init() { onWindowReady(); }
+  void init()
+  {
+    onWindowReady();
+  }
 
   void resizeSwapChain()
   {
@@ -144,6 +148,10 @@ public:
 
   void exposeEvent(QExposeEvent*) override
   {
+    if(!onWindowReady)
+    {
+      return;
+    }
     if (isExposed() && !m_running)
     {
       m_running = true;

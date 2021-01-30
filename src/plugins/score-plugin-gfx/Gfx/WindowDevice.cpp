@@ -6,6 +6,8 @@
 
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
+#include <core/application/ApplicationSettings.hpp>
+
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/protocol.hpp>
 
@@ -20,6 +22,30 @@ W_OBJECT_IMPL(Gfx::WindowDevice)
 
 namespace Gfx
 {
+static
+ScreenNode* createScreenNode()
+{
+  const auto& settings = score::AppContext().applicationSettings;
+  if(settings.autoplay || !settings.gui)
+  //if(QGuiApplication::platformName().toLower().contains("gl"))
+  {
+    return new ScreenNode{false, true};
+
+    /*
+    auto window = std::make_shared<Window>(defaultGraphicsAPI());
+    window->showFullScreen();
+    QCoreApplication::processEvents();
+    QCoreApplication::processEvents();
+    QCoreApplication::processEvents();
+    return new ScreenNode{window};
+    */
+  }
+  else
+
+  {
+    return new ScreenNode;
+  }
+}
 
 class gfx_device : public ossia::net::device_base
 {
@@ -27,7 +53,8 @@ class gfx_device : public ossia::net::device_base
 
 public:
   gfx_device(std::unique_ptr<ossia::net::protocol_base> proto, std::string name)
-      : ossia::net::device_base{std::move(proto)}, root{*this, new ScreenNode, name}
+      : ossia::net::device_base{std::move(proto)},
+        root{*this, createScreenNode(), name}
   {
   }
 

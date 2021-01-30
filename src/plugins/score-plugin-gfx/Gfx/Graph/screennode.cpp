@@ -90,11 +90,24 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
 }
 
 
-ScreenNode::ScreenNode(bool embedded)
+ScreenNode::ScreenNode(bool embedded, bool fullScreen)
   : OutputNode{}
   , m_embedded{embedded}
+  , m_fullScreen{fullScreen}
+  , m_ownsWindow{true}
 {
   input.push_back(new Port{this, {}, Types::Image, {}});
+}
+
+// Used for the EGL full screen case where we just have a single window
+// anyways, which must be running before everything (else QVulkanInstance crashes)
+ScreenNode::ScreenNode(std::shared_ptr<Window> w)
+  : OutputNode{}
+  , m_embedded{false}
+  , m_ownsWindow{false}
+  , window{std::move(w)}
+{
+  window->showFullScreen();
 }
 
 bool ScreenNode::canRender() const
@@ -150,7 +163,8 @@ void ScreenNode::createOutput(GraphicsApi graphicsApi,
                               std::function<void ()> onUpdate,
                               std::function<void ()> onResize)
 {
-  window = std::make_shared<Window>(graphicsApi);
+  if(m_ownsWindow)
+    window = std::make_shared<Window>(graphicsApi);
 
 #if QT_CONFIG(vulkan)
   if (graphicsApi == Vulkan)
@@ -184,8 +198,22 @@ void ScreenNode::createOutput(GraphicsApi graphicsApi,
 
   if(!m_embedded)
   {
-    window->resize(1280, 720);
-    window->show();
+    /*
+    if(window->isExposed())
+    {
+      window->exposeEvent(nullptr);
+    }
+    */
+
+    if(m_fullScreen)
+    {
+      window->showFullScreen();
+    }
+    else
+    {
+      window->resize(1280, 720);
+      window->show();
+    }
   }
 }
 
@@ -211,7 +239,8 @@ void ScreenNode::destroyOutput()
   delete s.surface;
   s.surface = nullptr;
 
-  window.reset();
+  if(m_ownsWindow)
+    window.reset();
 }
 
 RenderState* ScreenNode::renderState() const

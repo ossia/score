@@ -28,6 +28,7 @@
 #include <score_plugin_gfx_commands_files.hpp>
 #include <score_plugin_engine.hpp>
 
+#include <QWindow>
 score_plugin_gfx::score_plugin_gfx()
 {
 #if defined(HAS_FREENECT2)

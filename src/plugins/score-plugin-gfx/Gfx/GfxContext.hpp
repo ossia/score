@@ -10,6 +10,24 @@
 #include <concurrentqueue.h>
 namespace Gfx
 {
+inline GraphicsApi defaultGraphicsAPI()
+{
+#if defined(Q_OS_WIN)
+    return GraphicsApi::D3D11;
+#elif defined(Q_OS_DARWIN)
+    return GraphicsApi::Metal;
+#elif QT_CONFIG(vulkan)
+    const QString platformName = QGuiApplication::platformName().toLower();
+    if(platformName.contains("gl") || platformName.contains("wayland") || platformName.isEmpty())
+    {
+      return GraphicsApi::OpenGL;
+    }
+
+    return GraphicsApi::Vulkan;
+#else
+    return GraphicsApi::OpenGL;
+#endif
+}
 using port_index = ossia::gfx::port_index;
 
 using gfx_input = std::variant<ossia::value, ossia::audio_vector>;
@@ -349,20 +367,7 @@ public:
     new_edges.container.reserve(100);
     edges.container.reserve(100);
 
-#if defined(Q_OS_WIN)
-    m_api = D3D11;
-#elif defined(Q_OS_DARWIN)
-    m_api = Metal;
-#elif QT_CONFIG(vulkan)
-    m_api = Vulkan;
-    const QString platformName = QGuiApplication::platformName().toLower();
-    if(platformName.contains("gl") || platformName.contains("wayland") || platformName.isEmpty())
-    {
-      m_api = OpenGL;
-    }
-#else
-    m_api = OpenGL;
-#endif
+    m_api = defaultGraphicsAPI();
 
     m_graph = new Graph;
     m_graph->setVSyncCallback([this] { updateGraph(); });

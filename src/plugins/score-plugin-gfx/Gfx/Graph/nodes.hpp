@@ -129,7 +129,8 @@ struct ProductNode : NodeModel
 
 struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
 {
-  ScreenNode(bool embedded = false);
+  ScreenNode(bool embedded = false, bool startFullScreen = false);
+  ScreenNode(std::shared_ptr<Window>);
   virtual ~ScreenNode();
 
   std::shared_ptr<Window> window{};
@@ -156,5 +157,7 @@ struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
 
 private:
   bool m_embedded{};
+  bool m_fullScreen{};
+  bool m_ownsWindow{};
 };
 
