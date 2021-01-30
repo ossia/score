@@ -46,6 +46,7 @@ struct Plugin
   int event_outs = 0;
 };
 
+#if __cpp_concepts >= 201907
 template<typename T>
 concept BusVisitor =
 requires (T&& vis) {
@@ -54,8 +55,11 @@ requires (T&& vis) {
     vis.eventIn(Steinberg::Vst::BusInfo{}, int{});
     vis.eventOut(Steinberg::Vst::BusInfo{}, int{});
 };
-
 void forEachBus(BusVisitor auto&& visitor, Steinberg::Vst::IComponent& component)
+#else
+template<typename T>
+void forEachBus(T&& visitor, Steinberg::Vst::IComponent& component)
+#endif
 {
   const int audio_ins = component.getBusCount(Steinberg::Vst::kAudio, Steinberg::Vst::kInput);
   const int event_ins = component.getBusCount(Steinberg::Vst::kEvent, Steinberg::Vst::kInput);
