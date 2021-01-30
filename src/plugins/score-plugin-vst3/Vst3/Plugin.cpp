@@ -12,7 +12,7 @@
 namespace vst3
 {
 using namespace Steinberg;
-
+#if defined(__linux__)
 class PlugFrame
     : virtual public Steinberg::IPlugFrame
     , virtual public Steinberg::Linux::IRunLoop
@@ -84,12 +84,38 @@ public:
     return Steinberg::kResultOk;
   }
 };
+#elif defined(_WIN32) || defined(__APPLE__)
+class PlugFrame
+    : virtual public Steinberg::IPlugFrame
+{
+public:
+  tresult queryInterface(const TUID _iid, void** obj) override
+  {
+    *obj = nullptr;
+    return kResultFalse;
+  }
+
+  uint32 addRef() override { return 1; }
+  uint32 release() override { return 1; }
+
+  QWindow& w;
+  PlugFrame(QWindow& w) : w{w} { }
+
+  tresult resizeView(Steinberg::IPlugView* view, Steinberg::ViewRect* newSize) override
+  {
+    auto& r = *newSize;
+    w.resize(QSize{r.getWidth(), r.getHeight()});
+    return Steinberg::kResultOk;
+  }
+};
+
+#endif
 
 static Steinberg::Vst::IComponent* createComponent(
-    VST3::Hosting::Module& module,
+    VST3::Hosting::Module& mdl,
     const std::string& name)
 {
-  const auto& factory = module.getFactory();
+  const auto& factory = mdl.getFactory();
   for (auto &class_info : factory.classInfos())
     if (class_info.category() == kVstAudioEffectClass)
     {
@@ -101,7 +127,7 @@ static Steinberg::Vst::IComponent* createComponent(
       }
     }
 
-  throw vst_error("Couldn't create VST3 component ({})", module.getPath());
+  throw vst_error("Couldn't create VST3 component ({})", mdl.getPath());
 }
 
 void Plugin::loadAudioProcessor(ApplicationPlugin& ctx)
@@ -134,7 +160,8 @@ void Plugin::loadEditController(ApplicationPlugin& ctx)
     if (component->getControllerClassId(cid) == Steinberg::kResultTrue)
     {
       FUID f{cid};
-      module->getFactory().get()->createInstance(f, Steinberg::Vst::IEditController::iid, (void**)&controller);
+      mdl->getFactory().get()->createInstance(
+          f, Steinberg::Vst::IEditController::iid, (void**)&controller);
 
       if(controller)
         controller->initialize(&ctx.m_host);
@@ -188,8 +215,8 @@ void Plugin::load(
     double sample_rate, int max_bs)
 {
   this->path = path;
-  module = ctx.getModule(path);
-  component = createComponent(*module, name);
+  mdl = ctx.getModule(path);
+  component = createComponent(*mdl, name);
 
   if(component->initialize(&ctx.m_host) != Steinberg::kResultOk)
     throw vst_error("Couldn't initialize VST3 component ({})", path);

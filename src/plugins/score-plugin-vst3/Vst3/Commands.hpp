@@ -52,7 +52,9 @@ protected:
 
 private:
   Path<Model> m_path;
-  Steinberg::Vst::ParamID m_fxNum{};
+  uint32_t m_fxNum{};
+  static_assert(sizeof(Steinberg::Vst::ParamID) == sizeof(uint32_t));
+
   float m_val{};
 };
 

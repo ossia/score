@@ -179,12 +179,12 @@ void Model::on_addControl(const Steinberg::Vst::ParameterInfo& v)
 
   // Metadata
   {
-    auto name = v.title;
-    auto label = v.shortTitle;
+    const auto& name = v.title;
+    const auto& label = v.shortTitle;
     // auto display = get_string(effGetParamDisplay, i);
 
     // Get the name
-    QString str = QString::fromUtf16(name);
+    QString str = fromString(name);
     // if (!label.isEmpty())
     //   str += "(" + label + ")";
 
@@ -444,7 +444,7 @@ void Model::create()
         init(bus, idx);
 
         auto port = new Process::AudioInlet(Id<Process::Port>{inlet_i++}, &model);
-        port->setCustomData(QString::fromUtf16(bus.name));
+        port->setCustomData(fromString(bus.name));
         model.m_inlets.push_back(port);
       }
       void eventIn(const Steinberg::Vst::BusInfo& bus, int idx)
@@ -452,7 +452,7 @@ void Model::create()
         init(bus, idx);
 
         auto port = new Process::MidiInlet(Id<Process::Port>{inlet_i++}, &model);
-        port->setCustomData(QString::fromUtf16(bus.name));
+        port->setCustomData(fromString(bus.name));
         model.m_inlets.push_back(port);
       }
 
@@ -461,7 +461,7 @@ void Model::create()
         init(bus, idx);
 
         auto port = new Process::AudioOutlet(Id<Process::Port>{outlet_i++}, &model);
-        port->setCustomData(QString::fromUtf16(bus.name));
+        port->setCustomData(fromString(bus.name));
         model.m_outlets.push_back(port);
 
         if(idx == 0)
@@ -473,7 +473,7 @@ void Model::create()
         init(bus, idx);
 
         auto port = new Process::MidiOutlet(Id<Process::Port>{outlet_i++}, &model);
-        port->setCustomData(QString::fromUtf16(bus.name));
+        port->setCustomData(fromString(bus.name));
         model.m_outlets.push_back(port);
       }
     };
@@ -730,18 +730,18 @@ void JSONWriter::write(vst3::Model& eff)
 template <>
 void DataStreamReader::read<vst3::ControlInlet>(const vst3::ControlInlet& p)
 {
-  m_stream << p.fxNum;
+  m_stream << (uint32_t)p.fxNum;
 }
 template <>
 void DataStreamWriter::write<vst3::ControlInlet>(vst3::ControlInlet& p)
 {
-  m_stream >> p.fxNum;
+  m_stream >> (uint32_t&)p.fxNum;
 }
 
 template <>
 void JSONReader::read<vst3::ControlInlet>(const vst3::ControlInlet& p)
 {
-  obj["FxNum"] = p.fxNum;
+  obj["FxNum"] = (uint32_t)p.fxNum;
   obj["Value"] = p.value();
 }
 template <>

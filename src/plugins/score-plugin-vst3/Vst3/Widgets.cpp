@@ -78,7 +78,7 @@ void VSTGraphicsSlider::paint(
   fx->getParamStringByValue(num, m_value, str);
 
   score::DefaultGraphicsSliderImpl::paint(
-      *this, score::Skin::instance(), QString::fromUtf16(str), painter, widget);
+      *this, score::Skin::instance(), fromString(str), painter, widget);
 }
 
 VSTEffectItem::VSTEffectItem(

@@ -39,7 +39,7 @@ void DataStreamReader::read<VST3::Hosting::ClassInfo>(const VST3::Hosting::Class
       << d.version
       << d.sdkVersion
       << d.subCategories
-      << d.classFlags
+      << (const uint32_t&) d.classFlags
   ;
 }
 template <>
@@ -56,10 +56,11 @@ void DataStreamWriter::write<VST3::Hosting::ClassInfo>(VST3::Hosting::ClassInfo&
       >> d.version
       >> d.sdkVersion
       >> d.subCategories
-      >> d.classFlags
+      >> (uint32_t&) d.classFlags
   ;
   d.classID.fromString(clsid);
 }
+
 template <>
 void DataStreamReader::read<vst3::AvailablePlugin>(const vst3::AvailablePlugin& p)
 {
@@ -88,7 +89,7 @@ static const constexpr auto default_filter = "*.vst3";
 static const constexpr auto default_path{"/usr/lib/vst3"};
 static const constexpr auto default_filter = "*.vst3";
 #elif defined(_WIN32)
-static const constexpr auto default_path = "c:\\vst";
+static const constexpr auto default_path = "C:\\Program Files\\Common Files\\VST3";
 static const constexpr auto default_filter = "*.vst3";
 #else
 static const constexpr auto default_path = "";

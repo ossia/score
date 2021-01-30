@@ -11,15 +11,6 @@
 #include <Vst3/Control.hpp>
 #include <Vst3/Widgets.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
-namespace vst3
-{
-
-inline const CommandGroupKey& CommandFactoryName()
-{
-  static const CommandGroupKey key{"VST3"};
-  return key;
-}
-}
 
 score_plugin_vst3::score_plugin_vst3() { }
 

@@ -14,6 +14,14 @@ namespace vst3
 {
 class ApplicationPlugin;
 
+inline
+QString fromString(const Steinberg::Vst::String128& str) {
+#if defined(_WIN32)
+  return QString::fromWCharArray(str);
+#else
+  return fromString(str);
+#endif
+}
 struct Plugin
 {
   Plugin() = default;
@@ -28,7 +36,7 @@ struct Plugin
   operator bool() const noexcept { return component && processor; }
 
   std::string path;
-  VST3::Hosting::Module::Ptr module;
+  VST3::Hosting::Module::Ptr mdl;
   Steinberg::Vst::IComponent* component{};
   Steinberg::Vst::IAudioProcessor* processor{};
   Steinberg::Vst::IEditController* controller{};
