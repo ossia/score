@@ -6,6 +6,7 @@
 #include <ossia/network/value/value_conversion.hpp>
 #include <ossia/gfx/port_index.hpp>
 #include <Gfx/Graph/graph.hpp>
+#include <QGuiApplication>
 #include <concurrentqueue.h>
 namespace Gfx
 {
@@ -354,6 +355,11 @@ public:
     m_api = Metal;
 #elif QT_CONFIG(vulkan)
     m_api = Vulkan;
+    const QString platformName = QGuiApplication::platformName().toLower();
+    if(platformName.contains("gl") || platformName.contains("wayland") || platformName.isEmpty())
+    {
+      m_api = OpenGL;
+    }
 #else
     m_api = OpenGL;
 #endif
