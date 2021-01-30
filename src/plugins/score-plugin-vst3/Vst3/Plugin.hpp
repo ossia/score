@@ -37,7 +37,7 @@ struct Plugin
   void loadAudioProcessor(ApplicationPlugin& ctx);
   void loadEditController(ApplicationPlugin& ctx);
   void loadBuses();
-  void startPlugin(double_t sample_rate, int max_bs);
+  void startPlugin(double sample_rate, int max_bs);
 
   bool supportsDouble{};
   int audio_ins  = 0;

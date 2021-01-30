@@ -1,6 +1,7 @@
 #include <Vst3/ApplicationPlugin.hpp>
 
 #include <score/tools/Bind.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
 
 #include <QWebSocket>
 #include <QDir>
@@ -13,6 +14,7 @@
 #include <QTimer>
 
 #include <sstream>
+#include <wobjectimpl.h>
 
 W_OBJECT_IMPL(vst3::ApplicationPlugin)
 

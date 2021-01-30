@@ -4,6 +4,7 @@
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 
 #include <ossia/detail/fmt.hpp>
+#include <ossia/detail/string_map.hpp>
 
 #include <QProcess>
 #include <QWebSocketServer>

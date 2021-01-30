@@ -1,7 +1,11 @@
 #include <Vst3/Plugin.hpp>
-#include <pluginterfaces/gui/iplugview.h>
-#include <pluginterfaces/gui/iplugview.h>
 #include <Vst3/ApplicationPlugin.hpp>
+
+#include <pluginterfaces/gui/iplugview.h>
+#include <pluginterfaces/gui/iplugview.h>
+
+#include <ossia/detail/algorithms.hpp>
+
 #include <QTimer>
 #include <QWindow>
 
@@ -181,7 +185,7 @@ void Plugin::loadEditController(ApplicationPlugin& ctx)
 void Plugin::load(
     ApplicationPlugin& ctx,
     const std::string& path, const std::string& name,
-    double_t sample_rate, int max_bs)
+    double sample_rate, int max_bs)
 {
   this->path = path;
   module = ctx.getModule(path);

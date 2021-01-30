@@ -12,6 +12,8 @@
 #include <QPushButton>
 #include <QFileDialog>
 
+#include <wobjectimpl.h>
+
 W_OBJECT_IMPL(vst::SettingsWidget)
 namespace vst
 {
