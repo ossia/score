@@ -3,6 +3,7 @@
 #include <score/tools/Bind.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
+#include <QApplication>
 #include <QWebSocket>
 #include <QDir>
 #include <QDirIterator>

@@ -5,7 +5,7 @@
 #include <CoreFoundation/CFBundle.h>
 #include <iostream>
 #include <QMacCocoaViewContainer>
-#include "Window.h"
+#include <Vst/AppleUI/vstwindow.h>
 #include <QApplication>
 #include <QWindow>
 #include <Vst/EffectModel.hpp>
