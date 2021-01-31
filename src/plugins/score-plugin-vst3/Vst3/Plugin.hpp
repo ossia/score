@@ -21,7 +21,7 @@ QString fromString(const Steinberg::Vst::String128& str) {
 #if defined(_WIN32)
   return QString::fromWCharArray(str);
 #else
-  return fromString(str);
+  return QString::fromUtf16(str);
 #endif
 }
 struct Plugin

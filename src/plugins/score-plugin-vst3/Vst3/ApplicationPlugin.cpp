@@ -83,7 +83,7 @@ namespace vst3
 namespace
 {
 #if defined(__APPLE__)
-static const constexpr auto default_path = "/Library/Audio/Plug-Ins/VST";
+static const constexpr auto default_path = "/Library/Audio/Plug-Ins/VST3";
 static const constexpr auto default_filter = "*.vst3";
 #elif defined(__linux__)
 static const constexpr auto default_path{"/usr/lib/vst3"};
@@ -181,9 +181,6 @@ void ApplicationPlugin::rescan(const QStringList& paths)
     auto proc = std::make_unique<QProcess>();
 
 #if defined(__APPLE__)
-    auto env = proc->processEnvironment();
-    proc->setProcessEnvironment(std::move(env));
-
     {
       QString bundle_vstpuppet = qApp->applicationDirPath() + "/ossia-score-vst3puppet.app/Contents/MacOS/ossia-score-vst3puppet";
       if(QFile::exists(bundle_vstpuppet))

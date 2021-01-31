@@ -148,14 +148,6 @@ protected:
 
     forEachBus(vis{*this}, *fx.component);
 
-    if(m_audioInputChannels.empty())
-      m_audioInputChannels.push_back(2);
-    if(m_audioOutputChannels.empty())
-      m_audioOutputChannels.push_back(2);
-
-    m_totalAudioIns = std::max(2, this->m_totalAudioIns);
-    m_totalAudioOuts = std::max(2, this->m_totalAudioOuts);
-
     if (auto err = fx.processor->setProcessing(true);
         err != Steinberg::kResultOk && err != Steinberg::kNotImplemented) {
       ossia::logger().warn("Couldn't set VST3 processing: {}",  err);
@@ -472,70 +464,91 @@ public:
     // In the float case we have temporary buffers for conversion
     if constexpr (!UseDouble)
     {
-      // copy audio data
-      float** input = (float**)alloca(sizeof(float*) * m_totalAudioIns);
-      float** output = (float**)alloca(sizeof(float*) * m_totalAudioOuts);
-
-      float_v.resize(std::max(m_totalAudioIns, m_totalAudioOuts));
-      for(auto& v : float_v)
-        v.resize(samples);
-
-      int channel_k = 0;
-      int float_k = 0;
-      for(int i = 0; i < m_audioInputChannels.size(); i++)
+      // Prepare buffers
+      if(m_totalAudioIns > 0 || m_totalAudioOuts > 0)
       {
-        const int numChannels = m_audioInputChannels[i];
-        auto& port = *m_inlets[i]->template target<ossia::audio_port>();
-        auto& ip = preparePort(port, numChannels, samples);
+        float_v.resize(std::max(m_totalAudioIns, m_totalAudioOuts));
+        for(auto& v : float_v)
+          v.resize(samples);
 
-        Steinberg::Vst::AudioBusBuffers& vst_in = m_vstInput[i];
-        vst_in.channelBuffers32 = input + channel_k;
-        vst_in.silenceFlags = 0;
+        float** input {};
+        float** output{};
 
-        for(int k = 0; k < numChannels; k++)
+        // Copy inputs
+        if(m_totalAudioIns > 0)
         {
-          std::copy_n(ip[k].data(), std::min(samples, ip[k].size()), float_v[float_k].data());
-          input[channel_k] = float_v[float_k].data();
-          channel_k++;
-          float_k++;
+          input = (float**)alloca(sizeof(float*) * m_totalAudioIns);
+          int channel_k = 0;
+          int float_k = 0;
+
+          for(int i = 0; i < m_audioInputChannels.size(); i++)
+          {
+            const int numChannels = m_audioInputChannels[i];
+            auto& port = *m_inlets[i]->template target<ossia::audio_port>();
+            auto& ip = preparePort(port, numChannels, samples);
+
+            Steinberg::Vst::AudioBusBuffers& vst_in = m_vstInput[i];
+            vst_in.channelBuffers32 = input + channel_k;
+            vst_in.silenceFlags = 0;
+
+            for(int k = 0; k < numChannels; k++)
+            {
+              std::copy_n(ip[k].data(), std::min(samples, ip[k].size()), float_v[float_k].data());
+              input[channel_k] = float_v[float_k].data();
+              channel_k++;
+              float_k++;
+            }
+          }
+        }
+
+        // Prepare outputs
+        if(m_totalAudioOuts > 0)
+        {
+          // copy audio data
+          output = (float**)alloca(sizeof(float*) * m_totalAudioOuts);
+
+          int channel_k = 0;
+          int float_k = 0;
+          for(int i = 0; i < m_audioOutputChannels.size(); i++)
+          {
+            const int numChannels = m_audioOutputChannels[i];
+            auto& port = *m_outlets[i]->template target<ossia::audio_port>();
+            auto& op = preparePort(port, numChannels, samples);
+
+            Steinberg::Vst::AudioBusBuffers& vst_out = m_vstOutput[i];
+            vst_out.channelBuffers32 = output + channel_k;
+            vst_out.silenceFlags = 0;
+            for(int k = 0; k < numChannels; k++)
+            {
+              output[channel_k] = float_v[float_k].data();
+              channel_k++;
+              float_k++;
+            }
+          }
         }
       }
 
-      channel_k = 0;
-      float_k = 0;
-      for(int i = 0; i < m_audioOutputChannels.size(); i++)
-      {
-        const int numChannels = m_audioOutputChannels[i];
-        auto& port = *m_outlets[i]->template target<ossia::audio_port>();
-        auto& op = preparePort(port, numChannels, samples);
-
-        Steinberg::Vst::AudioBusBuffers& vst_out = m_vstOutput[i];
-        vst_out.channelBuffers32 = output + channel_k;
-        vst_out.silenceFlags = 0;
-        for(int k = 0; k < numChannels; k++)
-        {
-          output[channel_k] = float_v[float_k].data();
-          channel_k++;
-          float_k++;
-        }
-      }
-
+      // Run the process
       {
         m_vstData.numSamples = samples;
 
         fx.processor->process(m_vstData);
       }
 
-      channel_k = 0;
-      float_k = 0;
-      for(int i = 0; i < m_audioOutputChannels.size(); i++)
+      // Copy the float outputs to the audio outlet buffer
+      if(m_totalAudioOuts > 0)
       {
-        const int numChannels = m_audioOutputChannels[i];
-        ossia::audio_port& port = *m_outlets[i]->template target<ossia::audio_port>();
-        for(int k = 0; k < numChannels; k++)
+        int channel_k = 0;
+        int float_k = 0;
+        for(int i = 0; i < m_audioOutputChannels.size(); i++)
         {
-          auto& audio_out = port.samples[k];
-          std::copy_n(float_v[float_k].data(), samples, audio_out.data());
+          const int numChannels = m_audioOutputChannels[i];
+          ossia::audio_port& port = *m_outlets[i]->template target<ossia::audio_port>();
+          for(int k = 0; k < numChannels; k++)
+          {
+            auto& audio_out = port.samples[k];
+            std::copy_n(float_v[float_k].data(), samples, audio_out.data());
+          }
         }
       }
     }
@@ -547,42 +560,53 @@ public:
     // input & output ports
     if constexpr (UseDouble)
     {
-      // copy audio data
-      double** input = (double**)alloca(sizeof(double*) * m_totalAudioIns);
-      double** output = (double**)alloca(sizeof(double*) * m_totalAudioOuts);
+      double** input{};
+      double** output{};
 
-      int channel_k = 0;
-      for(int i = 0; i < m_audioInputChannels.size(); i++)
+      // Copy inputs
+      if(m_totalAudioIns > 0)
       {
-        const int numChannels = m_audioInputChannels[i];
-        auto& port = *m_inlets[i]->template target<ossia::audio_port>();
-        auto& ip = preparePort(port, numChannels, samples);
+        input = (double**)alloca(sizeof(double*) * m_totalAudioIns);
 
-        Steinberg::Vst::AudioBusBuffers& vst_in = m_vstInput[i];
-        vst_in.channelBuffers64 = input + channel_k;
-        vst_in.silenceFlags = 0;
-        for(int k = 0; k < numChannels; k++)
+        int channel_k = 0;
+        for(int i = 0; i < m_audioInputChannels.size(); i++)
         {
-          input[channel_k++] = ip[k].data();
+          const int numChannels = m_audioInputChannels[i];
+          auto& port = *m_inlets[i]->template target<ossia::audio_port>();
+          auto& ip = preparePort(port, numChannels, samples);
+
+          Steinberg::Vst::AudioBusBuffers& vst_in = m_vstInput[i];
+          vst_in.channelBuffers64 = input + channel_k;
+          vst_in.silenceFlags = 0;
+          for(int k = 0; k < numChannels; k++)
+          {
+            input[channel_k++] = ip[k].data();
+          }
         }
       }
 
-      channel_k = 0;
-      for(int i = 0; i < m_audioOutputChannels.size(); i++)
+      // Prepare outputs
+      if(m_totalAudioOuts > 0)
       {
-        const int numChannels = m_audioOutputChannels[i];
-        auto& port = *m_outlets[i]->template target<ossia::audio_port>();
-        auto& op = preparePort(port, numChannels, samples);
-
-        Steinberg::Vst::AudioBusBuffers& vst_out = m_vstOutput[i];
-        vst_out.channelBuffers64 = output + channel_k;
-        vst_out.silenceFlags = 0;
-        for(int k = 0; k < numChannels; k++)
+        output = (double**)alloca(sizeof(double*) * m_totalAudioOuts);
+        int channel_k = 0;
+        for(int i = 0; i < m_audioOutputChannels.size(); i++)
         {
-          output[channel_k++] = op[k].data();
+          const int numChannels = m_audioOutputChannels[i];
+          auto& port = *m_outlets[i]->template target<ossia::audio_port>();
+          auto& op = preparePort(port, numChannels, samples);
+
+          Steinberg::Vst::AudioBusBuffers& vst_out = m_vstOutput[i];
+          vst_out.channelBuffers64 = output + channel_k;
+          vst_out.silenceFlags = 0;
+          for(int k = 0; k < numChannels; k++)
+          {
+            output[channel_k++] = op[k].data();
+          }
         }
       }
 
+      // Run process
       {
         m_vstData.numSamples = samples;
 

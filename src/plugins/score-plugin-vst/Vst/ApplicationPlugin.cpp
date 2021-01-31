@@ -204,9 +204,6 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
     auto proc = std::make_unique<QProcess>();
 
 #if defined(__APPLE__)
-    auto env = proc->processEnvironment();
-    proc->setProcessEnvironment(std::move(env));
-
     {
       QString bundle_vstpuppet = qApp->applicationDirPath() + "/ossia-score-vstpuppet.app/Contents/MacOS/ossia-score-vstpuppet";
       if(QFile::exists(bundle_vstpuppet))
