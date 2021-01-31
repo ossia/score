@@ -73,10 +73,12 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 )
 
 if(APPLE)
-    find_library(Foundation_FK Foundation)
-    target_link_libraries(${PROJECT_NAME} PRIVATE
-        ${Foundation_FK}
-        )
+  find_library(AppKit_FK AppKit)
+  find_library(Foundation_FK Foundation)
+  target_link_libraries(${PROJECT_NAME} PRIVATE
+    ${Foundation_FK}
+    ${AppKit_FK}
+    )
 endif()
 
 setup_score_plugin(${PROJECT_NAME})

@@ -66,10 +66,12 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 if(APPLE)
-    find_library(Foundation_FK Foundation)
-    target_link_libraries(${PROJECT_NAME} PRIVATE
-        ${Foundation_FK}
-        )
+  find_library(AppKit_FK AppKit)
+  find_library(Foundation_FK Foundation)
+  target_link_libraries(${PROJECT_NAME} PRIVATE
+    ${Foundation_FK}
+    ${AppKit_FK}
+    )
 endif()
 
 # Target-specific options
