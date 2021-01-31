@@ -68,4 +68,11 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
                      score_plugin_media
 )
 
+if(APPLE)
+    find_library(Foundation_FK Foundation)
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+        ${Foundation_FK}
+        )
+endif()
+
 setup_score_plugin(${PROJECT_NAME})

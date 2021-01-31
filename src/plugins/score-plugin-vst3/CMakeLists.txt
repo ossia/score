@@ -61,5 +61,12 @@ target_link_libraries(${PROJECT_NAME}
     sdk_common sdk_hosting
 )
 
+if(APPLE)
+    find_library(Foundation_FK Foundation)
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+        ${Foundation_FK}
+        )
+endif()
+
 # Target-specific options
 setup_score_plugin(${PROJECT_NAME})
