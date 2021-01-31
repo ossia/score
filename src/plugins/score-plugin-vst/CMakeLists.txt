@@ -65,7 +65,7 @@ score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 target_link_libraries(${PROJECT_NAME} PUBLIC
                      ${QT_PREFIX}::Core ${QT_PREFIX}::Widgets ${QT_PREFIX}::WebSockets
                      ${CMAKE_DL_LIBS}
-                     score_plugin_media
+                     score_lib_base score_plugin_automation score_plugin_media
 )
 
 if(APPLE)

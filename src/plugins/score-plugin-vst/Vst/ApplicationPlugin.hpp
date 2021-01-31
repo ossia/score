@@ -11,8 +11,6 @@
 
 #include <QProcess>
 
-#include <score_plugin_media_export.h>
-
 #include <thread>
 namespace vst
 {
@@ -28,7 +26,7 @@ struct VSTInfo
   bool isValid{};
 };
 
-class SCORE_PLUGIN_MEDIA_EXPORT ApplicationPlugin
+class ApplicationPlugin
     : public QObject
     , public score::ApplicationPlugin
 {

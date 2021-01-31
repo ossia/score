@@ -10,8 +10,6 @@
 
 #include <QProcess>
 
-#include <score_plugin_media_export.h>
-
 #include <thread>
 
 namespace LV2
@@ -19,7 +17,7 @@ namespace LV2
 struct HostContext;
 struct GlobalContext;
 
-class SCORE_PLUGIN_MEDIA_EXPORT ApplicationPlugin : public QObject, public score::ApplicationPlugin
+class ApplicationPlugin : public QObject, public score::ApplicationPlugin
 {
   W_OBJECT(ApplicationPlugin)
 public:

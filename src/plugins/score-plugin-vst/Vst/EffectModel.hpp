@@ -10,7 +10,6 @@
 
 #include <Control/DefaultEffectItem.hpp>
 #include <Effect/EffectFactory.hpp>
-#include <score_plugin_media_export.h>
 
 #include <verdigris>
 namespace vst
@@ -73,7 +72,7 @@ struct AEffectWrapper
 
 class CreateControl;
 class ControlInlet;
-class SCORE_PLUGIN_MEDIA_EXPORT Model final : public Process::ProcessModel
+class Model final : public Process::ProcessModel
 {
   W_OBJECT(Model)
   SCORE_SERIALIZE_FRIENDS
