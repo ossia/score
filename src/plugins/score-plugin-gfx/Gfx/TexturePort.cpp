@@ -113,42 +113,42 @@ void TextureOutletFactory::setupOutletInspector(
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<Gfx::TextureInlet>(const Gfx::TextureInlet& p)
+void DataStreamReader::read<Gfx::TextureInlet>(const Gfx::TextureInlet& p)
 {
   // read((Process::Outlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Gfx::TextureInlet>(Gfx::TextureInlet& p)
+void DataStreamWriter::write<Gfx::TextureInlet>(Gfx::TextureInlet& p)
 {
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Gfx::TextureInlet>(const Gfx::TextureInlet& p)
+void JSONReader::read<Gfx::TextureInlet>(const Gfx::TextureInlet& p)
 {
   // read((Process::Outlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Gfx::TextureInlet>(Gfx::TextureInlet& p)
+void JSONWriter::write<Gfx::TextureInlet>(Gfx::TextureInlet& p)
 {
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
+void
 DataStreamReader::read<Gfx::TextureOutlet>(const Gfx::TextureOutlet& p)
 {
   // read((Process::Outlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Gfx::TextureOutlet>(Gfx::TextureOutlet& p)
+void DataStreamWriter::write<Gfx::TextureOutlet>(Gfx::TextureOutlet& p)
 {
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Gfx::TextureOutlet>(const Gfx::TextureOutlet& p)
+void JSONReader::read<Gfx::TextureOutlet>(const Gfx::TextureOutlet& p)
 {
   // read((Process::Outlet&)p);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Gfx::TextureOutlet>(Gfx::TextureOutlet& p)
+void JSONWriter::write<Gfx::TextureOutlet>(Gfx::TextureOutlet& p)
 {
 }

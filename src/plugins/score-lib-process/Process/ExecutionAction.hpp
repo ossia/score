@@ -16,7 +16,7 @@ public:
   virtual void endTick(const ossia::audio_tick_state& st);
 };
 
-class SCORE_LIB_BASE_EXPORT ExecutionActionList final
+class SCORE_LIB_PROCESS_EXPORT ExecutionActionList final
     : public score::InterfaceList<ExecutionAction>
 {
 public:
