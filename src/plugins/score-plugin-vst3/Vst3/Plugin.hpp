@@ -10,6 +10,8 @@
 #include <pluginterfaces/gui/iplugview.h>
 
 #include <string_view>
+#include <QString>
+
 namespace vst3
 {
 class ApplicationPlugin;
