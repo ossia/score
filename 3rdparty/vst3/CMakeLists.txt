@@ -14,7 +14,6 @@ option(SMTG_ADD_VSTGUI "Add VSTGUI Support" OFF)
 # Includes
 #-------------------------------------------------------------------------------
 
-message( " == entering SMTG == ")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 
 include(SMTG_VST3_SDK)
@@ -24,7 +23,6 @@ include(SMTG_VST3_SDK)
 #-------------------------------------------------------------------------------
 project(vstsdk)
 
-message( " == smtg_setup_platform_toolset == ")
 smtg_setup_platform_toolset()
 
 set(ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -57,9 +55,7 @@ include_directories(${ROOT} ${SDK_ROOT})
 #-------------------------------------------------------------------------------
 # CORE AUDIO SDK, AAX SDK
 #-------------------------------------------------------------------------------
-message( " == setupCoreAudioSupport == ")
 setupCoreAudioSupport()
-message( " == setupAaxSupport == ")
 setupAaxSupport()
 
 #-------------------------------------------------------------------------------
@@ -69,17 +65,9 @@ set(SDK_IDE_LIBS_FOLDER FOLDER "Libraries")
 
 #---Add base libraries---------------------------
 set(VST_SDK TRUE) # used for pluginterfaces and public.sdk modules which provides only a subset of them for VST-SDK
-
-message( " == pluginterfaces == ")
 add_subdirectory(pluginterfaces)
-
-message( " == base == ")
 add_subdirectory(base)
-
-message( " == public.sdk == ")
 add_subdirectory(public.sdk)
-
-message( " == ublic.sdk/source/vst/interappaudio == ")
 add_subdirectory(public.sdk/source/vst/interappaudio)
 
 #---Add Wrappers (AU, AAX)-----------------------
@@ -97,7 +85,6 @@ endif()
 
 # Add hosting examples, it includes the validator (must be done before any plug-ins to support running the validator after building)
 set(SDK_IDE_HOSTING_EXAMPLES_FOLDER FOLDER "HostingExamples")
-message( " == public.sdk/samples/vst-hosting == ")
 add_subdirectory(public.sdk/samples/vst-hosting)
 
 #-------------------------------------------------------------------------------
@@ -116,7 +103,6 @@ if(SMTG_ADD_MYPLUGINS_SRC_PATH)
     set(SDK_IDE_MYPLUGINS_FOLDER FOLDER "MyPlugIns")
     if(EXISTS ${SMTG_MYPLUGINS_SRC_PATH})
         set(SMTG_MYPLUGINS_BIN_PATH "${SMTG_MYPLUGINS_SRC_PATH}/build")
-        message( " == SMTG_MYPLUGINS_SRC_PATH ${SMTG_MYPLUGINS_SRC_PATH} == ")
         add_subdirectory(${SMTG_MYPLUGINS_SRC_PATH} ${SMTG_MYPLUGINS_BIN_PATH})
     endif()
 endif()
@@ -152,6 +138,5 @@ if(SMTG_ADD_VSTGUI)
     endif()
 endif()
 
-message( " == public.sdk/samples/vst-hosting == ")
 include(SMTG_CustomModuleTarget)
 set_target_properties(cmake_modules PROPERTIES ${SDK_IDE_LIBS_FOLDER})

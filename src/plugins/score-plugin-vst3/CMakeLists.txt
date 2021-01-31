@@ -7,6 +7,12 @@ if(NOT TARGET score_plugin_media)
   return()
 endif()
 
+if(WIN32)
+  # Needed because on windows we need admin permissions which does not work on CI
+  # (see smtg_create_directory_as_admin_win)
+  set(SMTG_PLUGIN_TARGET_PATH "${CMAKE_CURRENT_BINARY_DIR}/vst3_path" CACHE PATH "vst3 folder")
+  file(MAKE_DIRECTORY "${SMTG_PLUGIN_TARGET_PATH}")
+endif()
 set(VST3_SDK_ROOT "${3RDPARTY_FOLDER}/vst3")
 
 add_subdirectory("${VST3_SDK_ROOT}" "${CMAKE_BINARY_DIR}/vst3")
