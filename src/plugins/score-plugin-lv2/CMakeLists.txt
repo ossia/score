@@ -3,6 +3,10 @@ project(score_plugin_lv2 LANGUAGES CXX)
 include(ExternalProject)
 score_common_setup()
 
+if(NOT TARGET score_plugin_media)
+  return()
+endif()
+
 find_package(Lilv)
 find_package(Suil)
 

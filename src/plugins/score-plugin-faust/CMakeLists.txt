@@ -7,6 +7,10 @@ if(MSVC)
   return()
 endif()
 
+if(NOT TARGET score_plugin_media)
+  return()
+endif()
+
 # Packages
 find_package(Faust)
 if(NOT FAUST_FOUND)

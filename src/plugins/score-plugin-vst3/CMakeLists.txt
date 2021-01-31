@@ -3,6 +3,10 @@ project(score_plugin_vst3 LANGUAGES CXX)
 # General initialization
 score_common_setup()
 
+if(NOT TARGET score_plugin_media)
+  return()
+endif()
+
 set(VST3_SDK_ROOT "${3RDPARTY_FOLDER}/vst3")
 
 add_subdirectory("${VST3_SDK_ROOT}" "${CMAKE_BINARY_DIR}/vst3")

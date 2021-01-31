@@ -2,6 +2,10 @@ project(score_plugin_vst LANGUAGES CXX)
 
 score_common_setup()
 
+if(NOT TARGET score_plugin_media)
+  return()
+endif()
+
 # Packages
 find_package(${QT_VERSION} OPTIONAL_COMPONENTS WebSockets)
 if(NOT TARGET ${QT_PREFIX}::WebSockets)
