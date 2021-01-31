@@ -11,7 +11,7 @@
 #include <Vst/EffectModel.hpp>
 #include <QDebug>
 
-namespace Vst
+namespace vst
 {
 QSize sizeHint(NSView* m_view) {
 
@@ -41,7 +41,7 @@ void Window::setup_rect(QWidget* container, int width, int height)
   }
 }
 
-Window::Window(const VSTEffectModel& e, const score::DocumentContext& ctx)
+Window::Window(const Model& e, const score::DocumentContext& ctx)
   : m_model{e}
 {
   if(!e.fx)
@@ -93,18 +93,18 @@ Window::Window(const VSTEffectModel& e, const score::DocumentContext& ctx)
       //qDebug() << "adjust editor size to" << sizeHint();
       // need to adjust the superview frame to be the same as the view frame
       [superview setFrame:[m_view frame]];
-      setFixedSize(Vst::sizeHint(m_view));
+      setFixedSize(vst::sizeHint(m_view));
       // adjust the size of the window to fit.
       // FIXME: this is indeed a bit dodgy ;)
       QApplication::processEvents();
       adjustSize();
 
-    qDebug() << "got a notification" << Vst::sizeHint(m_view);
+    qDebug() << "got a notification" << vst::sizeHint(m_view);
   }];
 
   //[superview setFrame:NSMakeRect(0, 0, width, height)];
 
-  qDebug() << Vst::sizeHint(m_view);
+  qDebug() << vst::sizeHint(m_view);
   setFixedSize(QSize(width, height));
 
   show();
