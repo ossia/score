@@ -12,6 +12,79 @@
 namespace vst3
 {
 using namespace Steinberg;
+
+
+class Handler : public Steinberg::Vst::IComponentHandler
+{
+public:
+  Steinberg::tresult queryInterface(const Steinberg::TUID _iid, void** obj) override
+  {
+    return {};
+  }
+  Steinberg::uint32 addRef() override
+  {
+    return 1;
+  }
+  Steinberg::uint32 release() override
+  {
+    return 1;
+  }
+
+  // IComponentHandler interface
+public:
+  Steinberg::tresult beginEdit(Steinberg::Vst::ParamID id) override
+  {
+    return Steinberg::kResultOk;
+  }
+  Steinberg::tresult performEdit(Steinberg::Vst::ParamID id, Steinberg::Vst::ParamValue valueNormalized) override
+  {
+    qDebug() << id << valueNormalized;
+    return Steinberg::kResultOk;
+  }
+  Steinberg::tresult endEdit(Steinberg::Vst::ParamID id) override
+  {
+    return Steinberg::kResultOk;
+  }
+  Steinberg::tresult restartComponent(Steinberg::int32 flags) override
+  {
+    return Steinberg::kResultOk;
+  }
+};
+
+class ConnectionPoint : public Steinberg::Vst::IConnectionPoint
+{
+public:
+  Steinberg::tresult queryInterface(const Steinberg::TUID _iid, void** obj) override
+  {
+    return {};
+  }
+  Steinberg::uint32 addRef() override
+  {
+    return 1;
+  }
+  Steinberg::uint32 release() override
+  {
+    return 1;
+  }
+
+public:
+  Steinberg::tresult connect(Steinberg::Vst::IConnectionPoint* other) override
+  {
+    return Steinberg::kResultOk;
+  }
+  Steinberg::tresult disconnect(Steinberg::Vst::IConnectionPoint* other) override
+  {
+    return Steinberg::kResultOk;
+  }
+  Steinberg::tresult notify(Steinberg::Vst::IMessage* message) override
+  {
+    return Steinberg::kResultOk;
+  }
+};
+
+
+
+
 #if defined(__linux__)
 class PlugFrame
     : virtual public Steinberg::IPlugFrame
@@ -152,10 +225,8 @@ void Plugin::loadEditController(ApplicationPlugin& ctx)
 {
   Steinberg::Vst::IEditController* controller{};
   auto ctl_res = component->queryInterface(Steinberg::Vst::IEditController::iid, (void **)&controller);
-  qDebug( ) << " component->queryInterface " << controller;
   if (ctl_res != Steinberg::kResultOk || !controller)
   {
-    qDebug( ) << " ^ not ok";
     Steinberg::TUID cid;
     if (component->getControllerClassId(cid) == Steinberg::kResultTrue)
     {
@@ -165,10 +236,8 @@ void Plugin::loadEditController(ApplicationPlugin& ctx)
 
       if(controller)
         controller->initialize(&ctx.m_host);
-      qDebug( ) << " getControllerClassId" << controller;
     }
   }
-
 
   if (!controller)
   {
@@ -177,7 +246,32 @@ void Plugin::loadEditController(ApplicationPlugin& ctx)
   }
 
   this->controller = controller;
-  qDebug() << path.c_str() << controller->getParameterCount();
+
+  // Connect the controller to the component... for... reasons
+  {
+    controller->setComponentHandler(new Handler);
+    using namespace Steinberg;
+    using namespace Steinberg::Vst;
+    // TODO need disconnection
+
+    IConnectionPoint* compICP{};
+    IConnectionPoint* contrICP{};
+    if (component->queryInterface (IConnectionPoint::iid, (void**)&compICP) != kResultOk)
+      compICP = nullptr;
+
+    if (controller->queryInterface (IConnectionPoint::iid, (void**)&contrICP) != kResultOk)
+      contrICP = nullptr;
+
+    if(compICP && contrICP)
+    {
+      if (compICP->connect (contrICP) != kResultTrue)
+      {
+        contrICP->connect (compICP);
+      }
+    }
+  }
+
+  // Try to instantiate a veiw
   // ridiculous
   Steinberg::IPlugView* view;
   if (!(view = controller->createView(Steinberg::Vst::ViewType::kEditor))) {
@@ -189,12 +283,20 @@ void Plugin::loadEditController(ApplicationPlugin& ctx)
     }
   }
 
+  // Create a widget to put the view inside
   if(view)
   {
     this->view = view;
 
     using namespace Steinberg;
-    auto supported = view->isPlatformTypeSupported(Steinberg::kPlatformTypeX11EmbedWindowID);
+#if defined (__APPLE__)
+    const auto& platform = Steinberg::kPlatformTypeNSView;
+#elif defined(__linux__)
+    const auto& platform = Steinberg::kPlatformTypeX11EmbedWindowID;
+#elif defined(_WIN32)
+    const auto& platform = Steinberg::kPlatformTypeHWND;
+#endif
+    auto supported = view->isPlatformTypeSupported(platform);
 
     if(supported == Steinberg::kResultTrue)
     {
@@ -204,7 +306,7 @@ void Plugin::loadEditController(ApplicationPlugin& ctx)
       z->resize(QSize{r.getWidth(), r.getHeight()});
       z->show();
       view->setFrame(new PlugFrame{*z});
-      view->attached((void*)z->winId(), Steinberg::kPlatformTypeX11EmbedWindowID);
+      view->attached((void*)z->winId(), platform);
     }
   }
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#define DEVELOPMENT 1
+#define RELEASE 1
 #include <public.sdk/source/vst/hosting/module.h>
 #include <public.sdk/source/vst/hosting/plugprovider.h>
 #include <public.sdk/source/vst/hosting/hostclasses.h>

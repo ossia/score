@@ -240,7 +240,10 @@ public:
     int k = 0;
     int audioBusCount = m_audioInputChannels.size();
     for(int i = audioBusCount; i < audioBusCount + m_totalEventIns; i++)
+    {
       dispatchMidi(*m_inlets[i]->template target<ossia::midi_port>(), k++);
+    }
+    m_vstData.inputEvents = (m_inputEvents.getEventCount() > 0) ? &m_inputEvents : nullptr;
   }
 
   void dispatchMidi(ossia::midi_port& port, int index)

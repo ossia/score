@@ -268,73 +268,6 @@ void Model::closePlugin()
   */
 }
 
-class Handler : public Steinberg::Vst::IComponentHandler
-{
-public:
-  Steinberg::tresult queryInterface(const Steinberg::TUID _iid, void** obj) override
-  {
-    return {};
-  }
-  Steinberg::uint32 addRef() override
-  {
-    return 1;
-  }
-  Steinberg::uint32 release() override
-  {
-    return 1;
-  }
-
-  // IComponentHandler interface
-public:
-  Steinberg::tresult beginEdit(Steinberg::Vst::ParamID id) override
-  {
-    return Steinberg::kResultOk;
-  }
-  Steinberg::tresult performEdit(Steinberg::Vst::ParamID id, Steinberg::Vst::ParamValue valueNormalized) override
-  {
-    qDebug() << id << valueNormalized;
-    return Steinberg::kResultOk;
-  }
-  Steinberg::tresult endEdit(Steinberg::Vst::ParamID id) override
-  {
-    return Steinberg::kResultOk;
-  }
-  Steinberg::tresult restartComponent(Steinberg::int32 flags) override
-  {
-    return Steinberg::kResultOk;
-  }
-};
-
-class ConnectionPoint : public Steinberg::Vst::IConnectionPoint
-{
-public:
-  Steinberg::tresult queryInterface(const Steinberg::TUID _iid, void** obj) override
-  {
-    return {};
-  }
-  Steinberg::uint32 addRef() override
-  {
-    return 1;
-  }
-  Steinberg::uint32 release() override
-  {
-    return 1;
-  }
-
-public:
-  Steinberg::tresult connect(Steinberg::Vst::IConnectionPoint* other) override
-  {
-    return Steinberg::kResultOk;
-  }
-  Steinberg::tresult disconnect(Steinberg::Vst::IConnectionPoint* other) override
-  {
-    return Steinberg::kResultOk;
-  }
-  Steinberg::tresult notify(Steinberg::Vst::IMessage* message) override
-  {
-    return Steinberg::kResultOk;
-  }
-};
 
 void Model::initFx()
 {
@@ -351,39 +284,6 @@ void Model::initFx()
   }
 
   metadata().setLabel(m_className);
-
-
-  if(this->fx.controller)
-  {
-    this->fx.controller->setComponentHandler(new Handler);
-    using namespace Steinberg;
-    using namespace Steinberg::Vst;
-    // TODO need disconnection
-
-    IConnectionPoint* compICP{};
-    IConnectionPoint* contrICP{};
-    if (fx.component && fx.component->queryInterface (IConnectionPoint::iid, (void**)&compICP) != kResultOk)
-      compICP = nullptr;
-    if (fx.controller && fx.controller->queryInterface (IConnectionPoint::iid, (void**)&contrICP) != kResultOk)
-      contrICP = nullptr;
-    if(compICP && contrICP)
-    {
-      if (compICP->connect (contrICP) != kResultTrue)
-      {
-      }
-      else
-      {
-        if (contrICP->connect (compICP) != kResultTrue)
-        {
-        }
-      }
-    }
-
-  }
-  else
-  {
-    qDebug() << "No fx controller ?!";
-  }
 
   //this->fx.controller->connect
   /// this->fx.controller->setComponentState(...);
