@@ -9,23 +9,21 @@ npm install --global create-dmg
 cd $SRC_PATH/install/
 
 # Codesign
+sign_app() {
+  codesign \
+      --entitlements "$1" \
+      --force \
+      --timestamp \
+      --options=runtime \
+      --sign "ossia.io" \
+      "$2"
+}
+
 security unlock-keychain -p travis build.keychain
 
-codesign \
-    --entitlements $SRC_PATH/src/vstpuppet/entitlements.plist \
-    --force \
-    --timestamp \
-    --options=runtime \
-    --sign "ossia.io" \
-    score.app/Contents/MacOS/ossia-score-vstpuppet.app
-
-codesign \
-    --entitlements $SRC_PATH/src/app/entitlements.plist \
-    --force \
-    --timestamp \
-    --options=runtime \
-    --sign "ossia.io" \
-    score.app
+sign_app "$SRC_PATH/src/vstpuppet/entitlements.plist" "score.app/Contents/MacOS/ossia-score-vstpuppet.app"
+sign_app "$SRC_PATH/src/vst3puppet/entitlements.plist" "score.app/Contents/MacOS/ossia-score-vst3puppet.app"
+sign_app "$SRC_PATH/src/app/entitlements.plist" "score.app"
 
 # Create a .dmg
 cp $SRC_PATH/LICENSE.txt license.txt
