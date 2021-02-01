@@ -28,6 +28,16 @@ private:
 public:
   ~JackFactory() override { }
 
+  bool available() const noexcept override
+  {
+#if USE_WEAK_JACK
+    auto wj = WeakJack::instance();
+    return wj.available();
+#else
+    return true;
+#endif
+  }
+
   QString prettyName() const override { return QObject::tr("JACK"); }
   std::unique_ptr<ossia::audio_engine>
   make_engine(const Audio::Settings::Model& set, const score::ApplicationContext& ctx) override

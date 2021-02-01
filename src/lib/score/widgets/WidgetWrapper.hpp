@@ -23,7 +23,9 @@ public:
 
   void setWidget(Widget* widg)
   {
-    score::clearLayout(m_lay);
+    if(m_widget)
+      delete m_widget;
+
     m_widget = widg;
 
     if (m_widget)

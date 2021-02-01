@@ -57,7 +57,7 @@ QString EffectProcessFactory_T<vst::Model>::customConstructionData() const
   auto res = QInputDialog::getItem(
       nullptr,
       QObject::tr("Select a VST plug-in"),
-      QObject::tr(" plug-in"),
+      QObject::tr("VST plug-in"),
       vsts,
       0,
       false,
@@ -115,7 +115,7 @@ Model::Model(
     const QString& path,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : ProcessModel{t, id, "", parent}, m_effectId{path.toInt()}
+    : ProcessModel{t, id, "vst", parent}, m_effectId{path.toInt()}
 {
   init();
   create();

@@ -227,6 +227,17 @@ PulseAudioFactory::PulseAudioFactory() { }
 
 PulseAudioFactory::~PulseAudioFactory() { }
 
+
+bool PulseAudioFactory::available() const noexcept
+{
+  try {
+    ossia::libpulse::instance();
+    return true;
+  } catch(...) {
+    return false;
+  }
+}
+
 QString PulseAudioFactory::prettyName() const
 {
   return QObject::tr("PulseAudio");

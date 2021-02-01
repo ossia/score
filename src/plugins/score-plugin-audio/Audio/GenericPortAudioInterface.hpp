@@ -19,6 +19,7 @@ public:
   PortAudioFactory();
 
   ~PortAudioFactory() override;
+  bool available() const noexcept override { return true; }
 
   void rescan();
 

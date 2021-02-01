@@ -259,26 +259,32 @@ public:
   QScrollArea m_physicalInArea;
   QWidget m_physicalInWidget;
   score::MarginLess<QHBoxLayout> m_physicalInLayout;
+  std::vector<QWidget*> m_physicalInWidgets;
 
   QScrollArea m_physicalOutArea;
   QWidget m_physicalOutWidget;
   score::MarginLess<QHBoxLayout> m_physicalOutLayout;
+  std::vector<QWidget*> m_physicalOutWidgets;
 
   QScrollArea m_mappingInArea;
   QWidget m_mappingInWidget;
   score::MarginLess<QHBoxLayout> m_mappingInLayout;
+  std::vector<QWidget*> m_mappingInWidgets;
 
   QScrollArea m_mappingOutArea;
   QWidget m_mappingOutWidget;
   score::MarginLess<QHBoxLayout> m_mappingOutLayout;
+  std::vector<QWidget*> m_mappingOutWidgets;
 
   QScrollArea m_virtualArea;
   QWidget m_virtualWidget;
   score::MarginLess<QHBoxLayout> m_virtualLayout;
+  std::vector<QWidget*> m_virtualWidgets;
 
   QScrollArea m_busArea;
   QWidget m_busWidget;
   score::MarginLess<QHBoxLayout> m_busLayout;
+  std::vector<QWidget*> m_busWidgets;
 
   MixerPanel(const score::DocumentContext& ctx, QWidget* parent)
       : QTabWidget{parent}
@@ -349,30 +355,39 @@ public:
 
   void setupDevice(Dataflow::AudioDevice* dev)
   {
-    score::clearLayout(&m_physicalInLayout);
-    score::clearLayout(&m_physicalOutLayout);
-    score::clearLayout(&m_mappingInLayout);
-    score::clearLayout(&m_mappingOutLayout);
-    score::clearLayout(&m_virtualLayout);
+    qDeleteAll(m_physicalInWidgets); m_physicalInWidgets.clear();
+    qDeleteAll(m_physicalOutWidgets); m_physicalOutWidgets.clear();
+    qDeleteAll(m_mappingInWidgets); m_mappingInWidgets.clear();
+    qDeleteAll(m_mappingOutWidgets); m_mappingOutWidgets.clear();
+    qDeleteAll(m_virtualWidgets); m_virtualWidgets.clear();
+
+    // Remove the addStretch thing
+    delete m_physicalInLayout.takeAt(0);
+    delete m_physicalOutLayout.takeAt(0);
+    delete m_mappingInLayout.takeAt(0);
+    delete m_mappingOutLayout.takeAt(0);
+    delete m_virtualLayout.takeAt(0);
 
     auto& proto = static_cast<ossia::audio_protocol&>(dev->getDevice()->get_protocol());
     {
-
       if (proto.main_audio_in)
       {
         // Main in
         auto w = new AudioDeviceSlider{*proto.main_audio_in, &m_physicalInWidget};
         m_mappingInLayout.addWidget(w);
+        m_mappingInWidgets.push_back(w);
       }
       for (auto& in : proto.audio_ins)
       {
         auto w = new AudioDeviceSlider{*in, &m_physicalInWidget};
         m_physicalInLayout.addWidget(w);
+        m_physicalInWidgets.push_back(w);
       }
       for (auto& in : proto.in_mappings)
       {
         auto w = new AudioDeviceSlider{*in, &m_mappingInArea};
         m_mappingInLayout.addWidget(w);
+        m_mappingInWidgets.push_back(w);
       }
 
       if (proto.main_audio_out)
@@ -380,22 +395,26 @@ public:
         // Main out
         auto w = new AudioDeviceSlider{*proto.main_audio_out, &m_physicalOutWidget};
         m_mappingOutLayout.addWidget(w);
+        m_mappingOutWidgets.push_back(w);
       }
       for (auto& out : proto.audio_outs)
       {
         auto w = new AudioDeviceSlider{*out, &m_physicalOutWidget};
         m_physicalOutLayout.addWidget(w);
+        m_physicalOutWidgets.push_back(w);
       }
       for (auto& out : proto.out_mappings)
       {
         auto w = new AudioDeviceSlider{*out, &m_mappingOutArea};
         m_mappingOutLayout.addWidget(w);
+        m_mappingOutWidgets.push_back(w);
       }
 
       for (auto& out : proto.virtaudio)
       {
         auto w = new AudioDeviceSlider{*out, &m_virtualWidget};
         m_virtualLayout.addWidget(w);
+        m_virtualWidgets.push_back(w);
       }
     }
 
@@ -420,13 +439,17 @@ public:
   void setupBuses()
   {
     auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
-    score::clearLayout(&m_busLayout);
+    qDeleteAll(m_busWidgets);
+    m_busWidgets.clear();
+    // Remove the addStretch thing
+    delete m_busLayout.takeAt(0);
 
     int i = 0;
     for (auto bus : plug.busIntervals)
     {
       auto w = new AudioBusWidget{bus, ctx, &m_busWidget};
       m_busLayout.addWidget(w);
+      m_busWidgets.push_back(w);
     }
 
     m_busWidget.setMinimumSize(i * 100, 150);

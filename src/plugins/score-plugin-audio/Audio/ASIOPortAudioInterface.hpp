@@ -35,6 +35,7 @@ public:
   ASIOFactory() { rescan(); }
 
   ~ASIOFactory() override { }
+  bool available() const noexcept override { return true; }
 
   void rescan()
   {

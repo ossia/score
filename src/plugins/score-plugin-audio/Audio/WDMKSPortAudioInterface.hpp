@@ -14,6 +14,7 @@ public:
   WDMKSFactory() { rescan(); }
 
   ~WDMKSFactory() override { }
+  bool available() const noexcept override { return true; }
 
   void rescan()
   {

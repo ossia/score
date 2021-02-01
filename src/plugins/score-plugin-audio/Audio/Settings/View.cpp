@@ -26,7 +26,10 @@ View::View()
   auto& list = score::GUIAppContext().interfaces<AudioFactoryList>();
   for (AudioFactory& drv : list)
   {
-    m_Driver->addItem(drv.prettyName(), QVariant::fromValue(drv.concreteKey()));
+    if(drv.available())
+    {
+      m_Driver->addItem(drv.prettyName(), QVariant::fromValue(drv.concreteKey()));
+    }
   }
 
   connect(m_Driver, SignalUtils::QComboBox_currentIndexChanged_int(), this, [this](int i) {

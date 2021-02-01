@@ -58,8 +58,11 @@ void PanelDelegate::on_modelChanged(score::MaybeDocument oldm, score::MaybeDocum
   delete m_inspectorPanel;
   m_inspectorPanel = nullptr;
 
-  auto lay = static_cast<QVBoxLayout*>(m_widget->layout());
-  score::clearLayout(lay);
+  auto old_lay = static_cast<QVBoxLayout*>(m_widget->layout());
+  auto lay = new QVBoxLayout;
+  m_widget->setLayout(lay);
+  QWidget{}.setLayout(old_lay);
+
   if (newm)
   {
     SelectionStack& stack = newm->selectionStack;

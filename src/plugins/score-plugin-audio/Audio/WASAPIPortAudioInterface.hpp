@@ -13,6 +13,7 @@ public:
   WASAPIFactory() { rescan(); }
 
   ~WASAPIFactory() override { }
+  bool available() const noexcept override { return true; }
 
   void rescan()
   {

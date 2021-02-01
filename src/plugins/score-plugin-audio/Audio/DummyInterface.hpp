@@ -16,6 +16,7 @@ class DummyFactory final : public AudioFactory
   SCORE_CONCRETE("13dabcc3-9cda-422f-a8c7-5fef5c220677")
 public:
   ~DummyFactory() override { }
+  bool available() const noexcept override { return true; }
 
   QString prettyName() const override { return QObject::tr("Dummy (No audio)"); };
   std::unique_ptr<ossia::audio_engine>

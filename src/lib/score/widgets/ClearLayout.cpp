@@ -3,28 +3,7 @@
 #include "ClearLayout.hpp"
 
 #include <QApplication>
-#include <QLayout>
-#include <QLayoutItem>
 #include <QWidget>
-
-void score::clearLayout(QLayout* layout)
-{
-  if (!layout)
-    return;
-  if (layout->count() == 0)
-    return;
-
-  QLayoutItem* child{};
-  while ((child = layout->takeAt(0)) != nullptr)
-  {
-    if (child->layout() != nullptr)
-      clearLayout(child->layout());
-    else if (child->widget() != nullptr)
-      delete child->widget();
-
-    delete child;
-  }
-}
 
 void score::setCursor(Qt::CursorShape c)
 {

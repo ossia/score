@@ -29,6 +29,7 @@ class SCORE_PLUGIN_AUDIO_EXPORT AudioFactory : public score::InterfaceBase
 public:
   ~AudioFactory() override;
 
+  virtual bool available() const noexcept = 0;
   virtual QString prettyName() const = 0;
   virtual std::unique_ptr<ossia::audio_engine>
   make_engine(const Audio::Settings::Model& settings, const score::ApplicationContext& ctx) = 0;
