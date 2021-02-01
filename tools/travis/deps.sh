@@ -41,7 +41,7 @@ case "$TRAVIS_OS_NAME" in
         libgles2-mesa-dev \
         libavahi-compat-libdnssd-dev libsamplerate0-dev
 
-    wait wget || true
+    wait || true
 
     tar xaf cninja.tgz
     sudo cp -rf cninja /usr/bin/
@@ -99,7 +99,7 @@ case "$TRAVIS_OS_NAME" in
     sudo rm -rf /Library/Developer/CommandLineTools
     sudo rm -rf /usr/local/include/c++
 
-    wait wget || true
+    wait || true
     gtar xhaf cninja.tgz
     sudo cp -rf cninja /usr/local/bin/
 

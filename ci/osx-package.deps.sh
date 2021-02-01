@@ -35,7 +35,7 @@ ls /opt/ossia-sdk
 sudo rm -rf /Library/Developer/CommandLineTools
 sudo rm -rf /usr/local/include/c++
 
-wait wget || true
+wait || true
 gtar xhaf cninja.tgz
 sudo cp -rf cninja /usr/local/bin/
 

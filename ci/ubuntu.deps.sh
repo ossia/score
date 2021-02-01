@@ -34,7 +34,7 @@ sudo apt-get install -qq --force-yes \
     libclang-10-dev
 
 sudo apt-get remove -qq clang-8
-wait wget || true
+wait || true
 
 tar xaf cninja.tgz
 sudo cp -rf cninja /usr/bin/
