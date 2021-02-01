@@ -43,6 +43,7 @@ score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 target_link_libraries(${PROJECT_NAME} PUBLIC
                      score_plugin_media
                      ${FAUST_LIBRARIES}
+                     samplerate
 )
 target_include_directories(${PROJECT_NAME} PRIVATE ${FAUST_INCLUDE_DIR})
 
