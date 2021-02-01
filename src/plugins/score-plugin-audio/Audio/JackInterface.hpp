@@ -32,7 +32,7 @@ public:
   {
 #if USE_WEAK_JACK
     auto wj = WeakJack::instance();
-    return wj.available();
+    return wj.available() == 0;
 #else
     return true;
 #endif
