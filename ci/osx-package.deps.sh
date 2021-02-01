@@ -21,8 +21,7 @@ set +e
 export HOMEBREW_NO_AUTO_UPDATE=1
 brew install gnu-tar ninja
 wget -nv https://github.com/jcelerier/cninja/releases/download/v3.7.5/cninja-v3.7.5-macOS.tar.gz -O cninja.tgz &
-
-wget -nv https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/MacOSX10.15.sdk.tar.xz &
+wget -nv https://github.com/ossia/sdk/releases/download/sdk18/MacOSX11.0.sdk.tar.gz &
 
 SDK_ARCHIVE=sdk-macOS.tar.gz
 wget -nv https://github.com/ossia/score-sdk/releases/download/sdk18/$SDK_ARCHIVE -O $SDK_ARCHIVE
@@ -40,7 +39,7 @@ gtar xhaf cninja.tgz
 sudo cp -rf cninja /usr/local/bin/
 
 echo "Copying sdks..."
-gtar xhaf MacOSX10.15.sdk.tar.xz
-mv MacOSX10.15.sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
+gtar xhaf MacOSX11.0.sdk.tar.gz
+mv MacOSX11.0.sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
 sudo cp -rf cninja /usr/local/bin/
 set -e
