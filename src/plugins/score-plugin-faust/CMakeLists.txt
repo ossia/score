@@ -51,6 +51,17 @@ setup_score_plugin(${PROJECT_NAME})
 
 message("Downloading Faust libs...")
 
+ExternalProject_Add(
+    faustlibs
+    PREFIX ""
+    GIT_REPOSITORY https://github.com/grame-cncm/faustlibraries
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ""
+)
+
+add_dependencies(${PROJECT_NAME} faustlibs)
+
 function(disable_var VAR)
   if(${${VAR}})
     set(${VAR}_prev "${${VAR}}" CACHE "" INTERNAL)
