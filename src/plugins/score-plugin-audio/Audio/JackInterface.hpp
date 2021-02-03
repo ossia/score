@@ -31,7 +31,7 @@ public:
   bool available() const noexcept override
   {
 #if USE_WEAK_JACK
-    auto wj = WeakJack::instance();
+    const auto& wj = WeakJack::instance();
     return wj.available() == 0;
 #else
     return true;
