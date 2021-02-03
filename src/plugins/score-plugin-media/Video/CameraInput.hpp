@@ -4,6 +4,7 @@
 extern "C"
 {
 #include <libavformat/avformat.h>
+#include <libswscale/swscale.h>
 }
 
 #include <ossia/detail/lockfree_queue.hpp>
@@ -38,7 +39,8 @@ private:
   AVFrame* read_frame_impl() noexcept;
   bool open_stream() noexcept;
   void close_stream() noexcept;
-  bool enqueue_frame(const AVPacket* pkt, AVFrame* frame) noexcept;
+  bool enqueue_frame(const AVPacket* pkt, AVFrame** frame) noexcept;
+  void init_scaler() noexcept;
 
   static const constexpr int frames_to_buffer = 1;
 
@@ -49,6 +51,7 @@ private:
   std::string m_inputDevice;
   AVFormatContext* m_formatContext{};
   AVCodecContext* m_codecContext{};
+  SwsContext* m_rescale{};
   AVCodec* m_codec{};
   int m_stream{-1};
 

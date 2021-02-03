@@ -3,6 +3,7 @@
 extern "C"
 {
 #include <libavformat/avformat.h>
+#include <libswscale/swscale.h>
 }
 
 #include <ossia/detail/lockfree_queue.hpp>
@@ -40,9 +41,10 @@ private:
   AVFrame* read_frame_impl() noexcept;
   bool open_stream() noexcept;
   void close_video() noexcept;
-  bool enqueue_frame(const AVPacket* pkt, AVFrame* frame) noexcept;
+  bool enqueue_frame(const AVPacket* pkt, AVFrame** frame) noexcept;
   AVFrame* get_new_frame() noexcept;
   void drain_frames() noexcept;
+  void init_scaler() noexcept;
 
   static const constexpr int frames_to_buffer = 16;
 
@@ -57,6 +59,7 @@ private:
 
   AVFormatContext* m_formatContext{};
   AVCodecContext* m_codecContext{};
+  SwsContext* m_rescale{};
   AVCodec* m_codec{};
   int m_stream{-1};
 

@@ -35,12 +35,12 @@ bool CameraInput::load(const std::string& inputKind, const std::string& inputDev
   auto ifmt = av_find_input_format(m_inputKind.c_str());
   if(ifmt)
   {
-      qDebug() << ifmt->name << ifmt->long_name;
-      return true;
+    qDebug() << ifmt->name << ifmt->long_name;
+    return true;
   }
   else
   {
-      return false;
+    return false;
   }
 }
 
@@ -131,6 +131,12 @@ void CameraInput::close_file() noexcept
     m_formatContext = nullptr;
   }
 
+  if(m_rescale)
+  {
+    sws_freeContext(m_rescale);
+    m_rescale = nullptr;
+  }
+
   // Remove frames that were in flight
   m_frames.drain();
 }
@@ -150,7 +156,7 @@ AVFrame* CameraInput::read_frame_impl() noexcept
     {
       if (packet.stream_index == m_stream)
       {
-        if (enqueue_frame(&packet, frame))
+        if (enqueue_frame(&packet, &frame))
         {
           res = frame;
           ok = true;
@@ -174,6 +180,17 @@ AVFrame* CameraInput::read_frame_impl() noexcept
   return res;
 }
 
+
+void CameraInput::init_scaler() noexcept
+{
+  // Allocate a rescale context
+  qDebug() << "allocating a rescaler for format" << av_get_pix_fmt_name(this->pixel_format);
+  m_rescale = sws_getContext(
+        this->width, this->height, this->pixel_format,
+        this->width, this->height, AV_PIX_FMT_RGBA,
+        SWS_FAST_BILINEAR, NULL, NULL, NULL);
+  pixel_format = AV_PIX_FMT_RGBA;
+}
 
 bool CameraInput::open_stream() noexcept
 {
@@ -208,6 +225,29 @@ bool CameraInput::open_stream() noexcept
         width = codecpar->width;
         height = codecpar->height;
         fps = av_q2d(m_formatContext->streams[i]->avg_frame_rate);
+
+
+        switch(pixel_format)
+        {
+          // Supported formats for gpu decoding
+          case AV_PIX_FMT_YUV420P:
+          case AV_PIX_FMT_YUVJ422P:
+          case AV_PIX_FMT_YUV422P:
+          case AV_PIX_FMT_RGB0:
+          case AV_PIX_FMT_RGBA:
+          case AV_PIX_FMT_BGR0:
+          case AV_PIX_FMT_BGRA:
+          case AV_PIX_FMT_GRAYF32LE:
+          case AV_PIX_FMT_GRAYF32BE:
+          case AV_PIX_FMT_GRAY8:
+            break;
+          // Other formats get rgb'd
+          default:
+          {
+            init_scaler();
+            break;
+          }
+        }
         break;
       }
     }
@@ -234,7 +274,7 @@ void CameraInput::close_stream() noexcept
   m_stream = -1;
 }
 
-bool CameraInput::enqueue_frame(const AVPacket* pkt, AVFrame* frame) noexcept
+bool CameraInput::enqueue_frame(const AVPacket* pkt, AVFrame** frame) noexcept
 {
   int got_picture_ptr = 0;
 
@@ -244,12 +284,33 @@ bool CameraInput::enqueue_frame(const AVPacket* pkt, AVFrame* frame) noexcept
     if (ret < 0)
       return ret == AVERROR_EOF ? 0 : ret;
 
-    ret = avcodec_receive_frame(m_codecContext, frame);
+    ret = avcodec_receive_frame(m_codecContext, *frame);
     if (ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF)
       return ret;
 
     if (ret >= 0)
+    {
       got_picture_ptr = 1;
+
+      if(m_rescale)
+      {
+        // alloc an rgb frame
+        auto m_rgb = av_frame_alloc();
+        m_rgb->width = this->width;
+        m_rgb->height = this->height;
+        m_rgb->format = AV_PIX_FMT_RGBA;
+        av_frame_get_buffer(m_rgb, 0);
+
+        // 2. Resize
+        sws_scale(m_rescale, (*frame)->data, (*frame)->linesize,
+                  0, this->height,
+                  m_rgb->data, m_rgb->linesize);
+
+        av_frame_free(frame);
+        *frame = m_rgb;
+        return true;
+      }
+    }
   }
 
   return got_picture_ptr == 1;

@@ -219,7 +219,7 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
   {
     if (av_read_frame(m_formatContext, &pkt) == 0)
     {
-      got_frame = enqueue_frame(&pkt, f);
+      got_frame = enqueue_frame(&pkt, &f);
       av_packet_unref(&pkt);
     }
     else
@@ -250,7 +250,7 @@ AVFrame* VideoDecoder::read_frame_impl() noexcept
     {
       if (packet.stream_index == m_stream)
       {
-        if (enqueue_frame(&packet, frame))
+        if (enqueue_frame(&packet, &frame))
         {
           res = frame;
           ok = true;
@@ -274,6 +274,16 @@ AVFrame* VideoDecoder::read_frame_impl() noexcept
   return res;
 }
 
+void VideoDecoder::init_scaler() noexcept
+{
+  // Allocate a rescale context
+  qDebug() << "allocating a rescaler for format" << av_get_pix_fmt_name(this->pixel_format);
+  m_rescale = sws_getContext(
+        this->width, this->height, this->pixel_format,
+        this->width, this->height, AV_PIX_FMT_RGBA,
+        SWS_FAST_BILINEAR, NULL, NULL, NULL);
+  pixel_format = AV_PIX_FMT_RGBA;
+}
 bool VideoDecoder::open_stream() noexcept
 {
   bool res = false;
@@ -313,6 +323,28 @@ bool VideoDecoder::open_stream() noexcept
       width = m_codecContext->coded_width;
       height = m_codecContext->coded_height;
       fps = av_q2d(stream->avg_frame_rate);
+
+      switch(pixel_format)
+      {
+        // Supported formats for gpu decoding
+        case AV_PIX_FMT_YUV420P:
+        case AV_PIX_FMT_YUVJ422P:
+        case AV_PIX_FMT_YUV422P:
+        case AV_PIX_FMT_RGB0:
+        case AV_PIX_FMT_RGBA:
+        case AV_PIX_FMT_BGR0:
+        case AV_PIX_FMT_BGRA:
+        case AV_PIX_FMT_GRAYF32LE:
+        case AV_PIX_FMT_GRAYF32BE:
+        case AV_PIX_FMT_GRAY8:
+          break;
+        // Other formats get rgb'd
+        default:
+        {
+          init_scaler();
+          break;
+        }
+      }
     }
   }
 
@@ -331,13 +363,40 @@ void VideoDecoder::close_video() noexcept
     m_codecContext = nullptr;
     m_codec = nullptr;
 
+    if(m_rescale)
+    {
+      sws_freeContext(m_rescale);
+      m_rescale = nullptr;
+    }
+
     m_stream = -1;
   }
 }
 
-bool VideoDecoder::enqueue_frame(const AVPacket* pkt, AVFrame* frame) noexcept
+bool VideoDecoder::enqueue_frame(const AVPacket* pkt, AVFrame** frame) noexcept
 {
-  return readVideoFrame(m_codecContext, pkt, frame);
+  if(readVideoFrame(m_codecContext, pkt, *frame))
+  {
+    if(m_rescale)
+    {
+      // alloc an rgb frame
+      auto m_rgb = av_frame_alloc();
+      m_rgb->width = this->width;
+      m_rgb->height = this->height;
+      m_rgb->format = AV_PIX_FMT_RGBA;
+      av_frame_get_buffer(m_rgb, 0);
+
+      // 2. Resize
+      sws_scale(m_rescale, (*frame)->data, (*frame)->linesize,
+                0, this->height,
+                m_rgb->data, m_rgb->linesize);
+
+      av_frame_free(frame);
+      *frame = m_rgb;
+      return true;
+    }
+  }
+  return false;
 }
 
 bool readVideoFrame(AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* frame)
