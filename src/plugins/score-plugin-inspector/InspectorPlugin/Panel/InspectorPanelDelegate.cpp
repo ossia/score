@@ -60,8 +60,8 @@ void PanelDelegate::on_modelChanged(score::MaybeDocument oldm, score::MaybeDocum
 
   auto old_lay = static_cast<QVBoxLayout*>(m_widget->layout());
   auto lay = new QVBoxLayout;
-  m_widget->setLayout(lay);
   QWidget{}.setLayout(old_lay);
+  m_widget->setLayout(lay);
 
   if (newm)
   {
