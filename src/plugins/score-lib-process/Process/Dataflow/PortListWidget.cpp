@@ -39,8 +39,8 @@ void PortListWidget::reload()
 {
   auto& old_lay = *(Inspector::Layout*)layout();
   auto& lay = *new Inspector::Layout;
-  setLayout(&lay);
   QWidget{}.setLayout(&old_lay);
+  setLayout(&lay);
 
   auto& pf = m_ctx.app.interfaces<PortFactoryList>();
 
