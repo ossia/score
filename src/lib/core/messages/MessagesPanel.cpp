@@ -185,6 +185,9 @@ void MessagesPanelDelegate::qtLog(const std::string& str)
 
 void MessagesPanelDelegate::push(const QString& str, const QColor& col)
 {
+  if(!m_widget->isVisible())
+    return;
+
   m_itemModel->push({str, col});
   m_widget->scrollToBottom();
 }
