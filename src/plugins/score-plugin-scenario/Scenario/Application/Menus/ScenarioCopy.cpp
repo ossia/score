@@ -287,7 +287,10 @@ void copySelectedScenarioElements(JSONReader& r, const Scenario::ProcessModel& s
 void copySelectedScenarioElements(JSONReader& r, const BaseScenarioContainer& sm, QObject* parent)
 {
   CategorisedScenario cat{sm};
-  return copySelected(r, sm, cat, parent);
+
+  r.stream.StartObject();
+  copySelected(r, sm, cat, parent);
+  r.stream.EndObject();
 }
 
 CategorisedScenario::CategorisedScenario() { }

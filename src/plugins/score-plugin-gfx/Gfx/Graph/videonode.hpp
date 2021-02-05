@@ -32,5 +32,5 @@ struct VideoNode : NodeModel
 
   virtual ~VideoNode();
 
-  score::gfx::NodeRenderer* createRenderer() const noexcept;
+  score::gfx::NodeRenderer* createRenderer() const noexcept override;
 };
