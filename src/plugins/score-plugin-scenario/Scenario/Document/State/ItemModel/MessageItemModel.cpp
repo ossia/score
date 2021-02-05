@@ -18,6 +18,7 @@
 #include <score/tools/std/Optional.hpp>
 
 #include <ossia/network/value/value_traits.hpp>
+#include <ossia-qt/name_utils.hpp>
 
 #include <QFile>
 #include <QFileInfo>
@@ -283,10 +284,7 @@ Qt::ItemFlags MessageItemModel::flags(const QModelIndex& index) const
 
   if (index.isValid())
   {
-    f |= Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
-
-    if (index.column() == (int)Column::Value)
-      f |= Qt::ItemIsEditable;
+    f |= Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | Qt::ItemIsEditable;
   }
   else
   {
@@ -302,32 +300,54 @@ bool MessageItemModel::setData(const QModelIndex& index, const QVariant& value_r
 
   auto& n = nodeFromModelIndex(index);
 
-  if (!n.parent() || !n.parent()->parent())
-    return false;
-
-  if (!n.hasValue())
+  if (!n.parent())
     return false;
 
   auto col = Column(index.column());
 
   if (role == Qt::EditRole)
   {
-    if (col == Column::Value)
+    switch(col)
     {
-      auto value = State::convert::fromQVariant(value_received);
-      auto current_val = n.value();
-      if (current_val)
+      case Column::Name:
       {
-        State::convert::convert(*current_val, value);
-      }
-      auto cmd
-          = new Command::AddMessagesToState{stateModel, State::MessageList{{address(n), value}}};
+        QString name = value_received.toString();
+        ossia::net::sanitize_name(name);
+        if(name.isEmpty())
+          return false;
 
-      CommandDispatcher<> disp(score::IDocument::documentContext(stateModel).commandStack);
-      beginResetModel();
-      disp.submit(cmd);
-      endResetModel();
-      return true;
+        // TODO check that name is unique across brethren
+        // TODO accessor
+        auto cmd = new Scenario::Command::RenameAddressInState{stateModel, address(n), {name, {}}};
+
+        CommandDispatcher<> disp(score::IDocument::documentContext(stateModel).commandStack);
+        beginResetModel();
+        disp.submit(cmd);
+        endResetModel();
+        return true;
+      }
+
+      case Column::Value:
+      {
+        if (!n.hasValue())
+          return false;
+        auto value = State::convert::fromQVariant(value_received);
+        auto current_val = n.value();
+        if (current_val)
+        {
+          State::convert::convert(*current_val, value);
+        }
+        auto cmd
+            = new Command::AddMessagesToState{stateModel, State::MessageList{{address(n), value}}};
+
+        CommandDispatcher<> disp(score::IDocument::documentContext(stateModel).commandStack);
+        beginResetModel();
+        disp.submit(cmd);
+        endResetModel();
+        return true;
+      }
+      default:
+        break;
     }
   }
 

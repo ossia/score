@@ -44,6 +44,28 @@ private:
   QMap<Id<Process::ProcessModel>, State::MessageList> m_followingBackup;
 };
 
+
+class RenameAddressInState final : public score::Command
+{
+  SCORE_COMMAND_DECL(CommandFactoryName(), RenameAddressInState, "Rename address in a state")
+
+public:
+  RenameAddressInState(
+      const Scenario::StateModel& state,
+      const State::AddressAccessor& old,
+      const State::AddressAccessorHead& name);
+
+  void undo(const score::DocumentContext& ctx) const override;
+  void redo(const score::DocumentContext& ctx) const override;
+
+private:
+  void serializeImpl(DataStreamInput& s) const override;
+  void deserializeImpl(DataStreamOutput& s) override;
+
+  Path<StateModel> m_state;
+  State::AddressAccessor m_oldName, m_newName;
+};
+
 class SCORE_PLUGIN_SCENARIO_EXPORT AddControlMessagesToState final : public score::Command
 {
   SCORE_COMMAND_DECL(

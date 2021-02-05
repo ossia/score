@@ -342,7 +342,7 @@ CategorisedScenario::CategorisedScenario(const ScenarioInterface& sm)
 
 CategorisedScenario::CategorisedScenario(const Selection& sm)
 {
-  for (auto elt : sm)
+  for (const auto& elt : sm)
   {
     if (auto st = dynamic_cast<const Scenario::StateModel*>(elt.data()))
       selectedStates.push_back(st);

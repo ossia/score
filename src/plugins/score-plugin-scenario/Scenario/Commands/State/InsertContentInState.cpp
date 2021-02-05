@@ -13,9 +13,7 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 
-namespace Scenario
-{
-namespace Command
+namespace Scenario::Command
 {
 
 InsertContentInState::InsertContentInState(
@@ -58,5 +56,5 @@ void InsertContentInState::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_oldNode >> m_newNode >> m_state;
 }
-}
+
 }

@@ -10,7 +10,6 @@ namespace Scenario
 class StateModel;
 namespace Command
 {
-
 class InsertContentInState final : public score::Command
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), InsertContentInState, "Insert content in a state")
@@ -19,15 +18,12 @@ public:
   InsertContentInState(const rapidjson::Value& stateData, const Scenario::StateModel& state);
 
   void undo(const score::DocumentContext& ctx) const override;
-
   void redo(const score::DocumentContext& ctx) const override;
 
-protected:
+private:
   void serializeImpl(DataStreamInput& s) const override;
-
   void deserializeImpl(DataStreamOutput& s) override;
 
-private:
   Process::MessageNode m_oldNode;
   Process::MessageNode m_newNode;
   Path<StateModel> m_state;

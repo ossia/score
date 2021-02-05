@@ -19,6 +19,45 @@ namespace Scenario
 {
 namespace Command
 {
+
+RenameAddressInState::RenameAddressInState(
+    const Scenario::StateModel& state,
+    const State::AddressAccessor& old,
+    const State::AddressAccessorHead& name)
+    : m_state{state}
+    , m_oldName{old}
+    , m_newName{old}
+{
+  if(!m_newName.address.path.isEmpty())
+    m_newName.address.path.back() = name.name;
+  else
+    m_newName.address.device = name.name;
+
+  m_newName.qualifiers = name.qualifiers;
+}
+
+void RenameAddressInState::undo(const score::DocumentContext& ctx) const
+{
+  auto& state = m_state.find(ctx);
+  Scenario::renameAddress(state.messages().rootNode(), m_newName, m_oldName);
+}
+
+void RenameAddressInState::redo(const score::DocumentContext& ctx) const
+{
+  auto& state = m_state.find(ctx);
+  Scenario::renameAddress(state.messages().rootNode(), m_oldName, m_newName);
+}
+
+void RenameAddressInState::serializeImpl(DataStreamInput& s) const
+{
+  s << m_state << m_oldName << m_newName;
+}
+
+void RenameAddressInState::deserializeImpl(DataStreamOutput& s)
+{
+  s >> m_state >> m_oldName >> m_newName;
+}
+
 AddMessagesToState::AddMessagesToState(
     const Scenario::StateModel& state,
     const State::MessageList& messages)

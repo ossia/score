@@ -19,6 +19,7 @@ enum class ProcessPosition
 
 // User messages
 void updateTreeWithMessageList(Process::MessageNode& rootNode, State::MessageList lst);
+void renameAddress(Process::MessageNode& rootNode, const State::AddressAccessor& oldAddr, const State::AddressAccessor& newAddr);
 
 // Messages from a process
 void updateTreeWithMessageList(

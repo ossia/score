@@ -379,6 +379,34 @@ merge_impl(Process::MessageNode& base, const State::AddressAccessor& addr, Merge
   }
 }
 
+static void
+rename_impl(Process::MessageNode& base, const State::AddressAccessor& old_addr, const State::AddressAccessor& new_addr)
+{
+  const auto path_n = old_addr.address.path.size() + 1;
+
+  Process::MessageNode* node = &base;
+  for (int i = 0; i < path_n; i++)
+  {
+    auto it = ossia::find_if(
+        *node, [&](const auto& cur_node) { return match(cur_node.name, old_addr, i); });
+
+    if (it != node->end())
+    {
+      node = &*it;
+
+      if (i == path_n - 1)
+      {
+        if(new_addr.address.path.empty())
+          node->name.name = new_addr.address.device;
+        else
+          node->name.name = new_addr.address.path.back();
+
+        node->name.qualifiers = new_addr.qualifiers;
+      }
+    }
+  }
+}
+
 void updateTreeWithMessageList(Process::MessageNode& rootNode, State::MessageList lst)
 {
   for (const auto& mess : lst)
@@ -666,4 +694,10 @@ int getChildIndex(Process::MessageNode& rootNode, Process::MessageNode* node)
   rec_getChildIndex(rootNode, node, n);
   return n;
 }
+
+void renameAddress(Process::MessageNode& rootNode, const State::AddressAccessor& oldAddr, const State::AddressAccessor& newAddr)
+{
+  rename_impl(rootNode, oldAddr, newAddr);
+}
+
 }
