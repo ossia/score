@@ -72,10 +72,10 @@ endif()
 # )
 
 # set-up Faust stuff
-if(EXISTS "${CMAKE_BINARY_DIR}/src/plugins/score-plugin-media/faustlibs-prefix/src/faustlibs")
+if(EXISTS "${CMAKE_BINARY_DIR}/src/plugins/score-plugin-faust/faustlibs-prefix/src/faustlibs")
   install(
     DIRECTORY
-      "${CMAKE_BINARY_DIR}/src/plugins/score-plugin-media/faustlibs-prefix/src/faustlibs/"
+      "${CMAKE_BINARY_DIR}/src/plugins/score-plugin-faust/faustlibs-prefix/src/faustlibs/"
     DESTINATION
       "${APPNAME}.app/Contents/Resources/Faust"
     COMPONENT OssiaScore

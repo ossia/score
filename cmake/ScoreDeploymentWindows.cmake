@@ -81,10 +81,10 @@ if(EXISTS "${QT_DLL_DIR}/Qt5Core${DEBUG_CHAR}.dll")
 endif()
 
 # Faust stuff
-if(EXISTS "${CMAKE_BINARY_DIR}/src/plugins/score-plugin-media/faustlibs-prefix/src/faustlibs")
+if(EXISTS "${CMAKE_BINARY_DIR}/src/plugins/score-plugin-faust/faustlibs-prefix/src/faustlibs")
   install(
     DIRECTORY
-      "${CMAKE_BINARY_DIR}/src/plugins/score-plugin-media/faustlibs-prefix/src/faustlibs/"
+      "${CMAKE_BINARY_DIR}/src/plugins/score-plugin-faust/faustlibs-prefix/src/faustlibs/"
     DESTINATION
       "${SCORE_BIN_INSTALL_DIR}/faust"
     COMPONENT
