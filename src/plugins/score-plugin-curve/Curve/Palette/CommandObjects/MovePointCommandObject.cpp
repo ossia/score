@@ -174,6 +174,7 @@ void MovePointCommandObject::handleSuppressOnOverlap(CurveSegmentMap& segments)
   std::vector<Id<SegmentModel>> indicesToRemove;
   bool removed_first{};
   bool removed_last{};
+  bool must_set_at_end{true};
 
   auto markForRemoval = [&] (const auto& segment) {
     indicesToRemove.push_back(segment.id);
@@ -194,7 +195,21 @@ void MovePointCommandObject::handleSuppressOnOverlap(CurveSegmentMap& segments)
       if (seg_start_x >= m_originalPress.x() && seg_start_x < current_x && seg_end_x <= current_x)
       {
         // The segment is behind us, we delete it
-        markForRemoval(segment);
+        if(int(indicesToRemove.size()) == int(segments.size()) - 1)
+        {
+          must_set_at_end = false;
+
+          // we are "removing" the last segment, switch its start / end
+          segments_by_id.modify(segments_by_id.find(it->id), [&](SegmentData& seg) {
+            using namespace std;
+            swap(seg.start, seg.end);
+            seg.end.setX(current_x);
+          });
+        }
+        else
+        {
+          markForRemoval(segment);
+        }
       }
       else if (seg_start_x >= m_originalPress.x() && seg_start_x < current_x)
       {
@@ -207,7 +222,6 @@ void MovePointCommandObject::handleSuppressOnOverlap(CurveSegmentMap& segments)
         // If the new segment is non-sensical we remove it
         if (segment.start.x() >= segment.end.x())
         {
-          // OPTIMIZEME
           markForRemoval(segment);
         }
 
@@ -300,7 +314,8 @@ void MovePointCommandObject::handleSuppressOnOverlap(CurveSegmentMap& segments)
   }
 
   // Then we change the start/end of the correct segments
-  setCurrentPoint(segments);
+  if(must_set_at_end)
+    setCurrentPoint(segments);
 }
 
 void MovePointCommandObject::handleCrossOnOverlap(CurveSegmentMap& segments)

@@ -71,7 +71,12 @@ void PointArraySegment::updateData(int numInterp) const
     m_data.reserve(m_points.size());
 
     double length = max_x - min_x;
+    if(std::abs(length) < 1e-12)
+      length = 1e-12;
     double amplitude = max_y - min_y;
+    if(std::abs(amplitude) < 1e-12)
+      amplitude = 1e-12;
+
     // Scale all the points between 0 / 1 in <->
     // and the local min / max in vertical
 

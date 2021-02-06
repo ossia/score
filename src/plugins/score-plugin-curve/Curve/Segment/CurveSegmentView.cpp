@@ -151,6 +151,8 @@ void SegmentView::updatePoints()
   {
     // Get the length of the segment to scale.
     double len = m_model->end().x() - m_model->start().x();
+    if(len <= 1e-16)
+      len = 1e-16;
     double startx = m_model->start().x() * m_rect.width() / len;
     double scalex = m_rect.width() / len;
 
