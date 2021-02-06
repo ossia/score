@@ -396,7 +396,7 @@ struct Node
     static const uuid_constexpr auto uuid = make_uuid("29ce484f-cb56-4501-af79-88768fa261c3");
 
     static const constexpr midi_in midi_ins[]{"in"};
-    static const constexpr value_out value_outs[]{"out"};
+    static const constexpr value_out value_outs[]{{"out", "midipitch"}};
   };
 
   using control_policy = ossia::safe_nodes::default_tick;
