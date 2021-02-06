@@ -34,8 +34,8 @@ AudioDevice::AudioDevice(const Device::DeviceSettings& settings)
     , m_protocol{new ossia::audio_protocol}
     , m_dev{std::unique_ptr<ossia::net::protocol_base>(m_protocol), "audio"}
 {
-  m_capas.canAddNode = false;
-  m_capas.canRemoveNode = false;
+  m_capas.canAddNode = true;
+  m_capas.canRemoveNode = true;
   m_capas.canRenameNode = false;
   m_capas.canSetProperties = false;
   m_capas.canRefreshTree = true;
