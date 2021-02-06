@@ -34,7 +34,9 @@ public:
 class gfx_protocol_base : public ossia::net::protocol_base
 {
 public:
-  gfx_protocol_base(GfxExecutionAction& ctx) : context{&ctx} { }
+  gfx_protocol_base(GfxExecutionAction& ctx)
+      : protocol_base{flags{}}
+      , context{&ctx} { }
   GfxExecutionAction* context{};
   bool pull(ossia::net::parameter_base&) override { return false; }
   bool push(const ossia::net::parameter_base&, const ossia::value& v) override { return false; }

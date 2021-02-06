@@ -303,7 +303,10 @@ class mapper_protocol final : public QObject, public ossia::net::protocol_base
   W_OBJECT(mapper_protocol)
 public:
   mapper_protocol(const QByteArray& code, Device::DeviceList& roots)
-      : m_code{code}, m_devices{roots}, m_roots{m_devices.roots()}
+    : protocol_base{flags{}}
+    , m_code{code}
+    , m_devices{roots}
+    , m_roots{m_devices.roots()}
   {
     m_engine = new QQmlEngine{this};
     m_component = new QQmlComponent{m_engine};

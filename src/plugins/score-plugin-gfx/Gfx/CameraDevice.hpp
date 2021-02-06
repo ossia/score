@@ -25,7 +25,9 @@ class camera_protocol : public ossia::net::protocol_base
 {
 public:
   std::shared_ptr<::Video::CameraInput> camera;
-  camera_protocol(GfxExecutionAction& ctx) : context{&ctx}
+  camera_protocol(GfxExecutionAction& ctx)
+      : protocol_base{flags{}}
+      , context{&ctx}
   {
     camera = std::make_shared<::Video::CameraInput>();
   }
