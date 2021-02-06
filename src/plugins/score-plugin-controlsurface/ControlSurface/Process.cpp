@@ -81,6 +81,8 @@ Process::ControlInlet* makeControlFromType(
   // TODO make better widgets if we have more information.
   switch (addr.value.get_type())
   {
+    case ossia::val_type::IMPULSE:
+      return new Process::Button{id, parent};
     case ossia::val_type::INT:
       return new Process::IntSlider{id, parent};
     case ossia::val_type::FLOAT:
@@ -89,6 +91,10 @@ Process::ControlInlet* makeControlFromType(
       return new Process::Toggle{id, parent};
     case ossia::val_type::STRING:
       return new Process::LineEdit{id, parent};
+    case ossia::val_type::VEC2F:
+      return new Process::XYSlider{id, parent};
+    case ossia::val_type::VEC4F:
+      return new Process::HSVSlider{id, parent};
     default:
       return new Process::ControlInlet(id, parent);
   }

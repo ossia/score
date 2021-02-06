@@ -31,15 +31,20 @@ struct Presenter::Port
 Presenter::Presenter(const Model& layer, View* view, const Process::Context& ctx, QObject* parent)
     : Process::LayerPresenter{layer, view, ctx, parent}, m_view{view}
 {
+  connect(view, &View::pressed, this, [&] { m_context.context.focusDispatcher.focus(this); });
+  connect(m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
+
+
   connect(view, &View::addressesDropped, this, [this, &layer](State::MessageList lst) {
     if (lst.isEmpty())
       return;
 
     auto& docctx = this->context().context;
     MacroCommandDispatcher<AddControlMacro> disp{docctx.commandStack};
-    for (auto& message : lst)
+    auto ids = getStrongIdRangePtr<Process::Port>(lst.size(), m_process.inlets());
+    for (int i = 0; i < lst.size(); i++)
     {
-      disp.submit(new AddControl{docctx, layer, std::move(message)});
+      disp.submit(new AddControl{docctx, std::move(ids[i]), layer, std::move(lst[i])});
     }
     disp.commit();
   });

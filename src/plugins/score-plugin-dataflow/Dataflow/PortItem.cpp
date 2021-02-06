@@ -85,7 +85,9 @@ void onCreateCable(
         *source, *sink);
 }
 
-AutomatablePortItem::~AutomatablePortItem() { }
+AutomatablePortItem::~AutomatablePortItem()
+{
+}
 
 void AutomatablePortItem::setupMenu(QMenu& menu, const score::DocumentContext& ctx)
 {
@@ -94,8 +96,9 @@ void AutomatablePortItem::setupMenu(QMenu& menu, const score::DocumentContext& c
       act,
       &QAction::triggered,
       this,
-      [this, &ctx] { on_createAutomation(ctx); },
-      Qt::QueuedConnection);
+      [this, &ctx] {
+    on_createAutomation(ctx);
+  }, Qt::QueuedConnection);
 }
 
 void AutomatablePortItem::on_createAutomation(const score::DocumentContext& ctx)

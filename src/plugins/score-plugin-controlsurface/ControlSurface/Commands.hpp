@@ -25,9 +25,9 @@ class AddControl : public score::Command
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), AddControl, "Add a control")
 public:
-  AddControl(const score::DocumentContext& ctx, const Model& proc, const State::Message& p)
+  AddControl(const score::DocumentContext& ctx, Id<Process::Port> id, const Model& proc, const State::Message& p)
       : m_model{proc}
-      , m_id{getStrongId(proc.inlets())}
+      , m_id{std::move(id)}
       , m_addr{Explorer::makeFullAddressAccessorSettings(p.address, ctx, 0., 1.)}
   {
     m_addr.value = p.value;

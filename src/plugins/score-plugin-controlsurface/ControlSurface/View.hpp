@@ -26,6 +26,11 @@ public:
 private:
   void paint_impl(QPainter*) const override;
 
+  void mousePressEvent(QGraphicsSceneMouseEvent* ev) override;
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* ev) override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* ev) override;
+  void contextMenuEvent(QGraphicsSceneContextMenuEvent* ev) override;
+
   void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
   void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override;
   void dragMoveEvent(QGraphicsSceneDragDropEvent* event) override;

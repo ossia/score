@@ -263,7 +263,7 @@ QRectF NodeItem::boundingRect() const
       x -= LeftSideWidth;
       w += LeftSideWidth;
   }
-  if(!m_outlets.empty())
+  //if(!m_outlets.empty())
   {
       w += RightSideWidth;
   }
@@ -470,7 +470,7 @@ void NodeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
   if (m_presenter)
   {
     const auto h = m_contentSize.height();
-    const auto w = m_contentSize.width() + (m_outlets.empty() ? 0. : RightSideWidth);
+    const auto w = m_contentSize.width() + RightSideWidth;
     painter->setPen(style.IntervalWarning().main.pen0_solid_round);
     double start_x = w - 6.;
     double start_y = h - 6.;
@@ -514,6 +514,7 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   auto origp = mapToItem(parentItem(), event->buttonDownPos(Qt::LeftButton));
   auto p = mapToItem(parentItem(), event->pos());
+
   switch (nodeItemInteraction)
   {
     case Interaction::Resize:
