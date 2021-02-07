@@ -242,6 +242,7 @@ kinect2_device::kinect2_device(const kinect2_settings& settings, GfxExecutionAct
 }
 
 kinect2_protocol::kinect2_protocol(const kinect2_settings& stgs)
+  : ossia::net::protocol_base{flags{}}
 {
   kinect2.load(stgs);
 }

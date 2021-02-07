@@ -24,7 +24,7 @@ W_OBJECT_IMPL(score::Skin)
 #Col, &Col                  \
   }
 
-#define SCORE_INSERT_COLOR_CUSTOM(Hex, Name) qMakePair(QStringLiteral(Name), QColor(Hex))
+#define SCORE_INSERT_COLOR_CUSTOM(Hex, Name) Brush::Pair{QStringLiteral(Name), QColor(Hex)}
 
 namespace score
 {

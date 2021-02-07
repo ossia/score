@@ -64,6 +64,7 @@ struct SCORE_LIB_BASE_EXPORT Brush
 
   void reload(QColor color) noexcept;
 
+  struct Pair;
 private:
   Brush() noexcept;
   Brush(const Brush&) noexcept;
@@ -77,7 +78,17 @@ private:
 
   friend class Skin;
 };
+struct Brush::Pair
+{
+  Pair(QString&& str, QColor&& c)
+    : first{std::move(str)}
+    , second{std::move(c)}
+  {
 
+  }
+  QString first;
+  Brush second;
+};
 class SCORE_LIB_BASE_EXPORT Skin : public QObject
 {
   W_OBJECT(Skin)
@@ -206,7 +217,7 @@ private:
 
   struct color_map;
   color_map* m_colorMap{};
-  QVector<QPair<QString, Brush>> m_defaultPalette;
+  std::vector<Brush::Pair> m_defaultPalette;
 
   bool m_pulseDirection{false};
 };
