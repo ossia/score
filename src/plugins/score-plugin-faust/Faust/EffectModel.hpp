@@ -98,6 +98,7 @@ private:
   void reloadFx(llvm_dsp_factory* fac, llvm_dsp* obj);
   void reloadMidi(ossia::nodes::custom_dsp_poly_factory* fac, ossia::nodes::custom_dsp_poly_effect* obj);
   QString m_text;
+  QString m_path;
   QString m_declareName;
 };
 }

@@ -15,6 +15,7 @@
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/nodes/faust/faust_node.hpp>
 
+#include <QFileInfo>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QPlainTextEdit>
@@ -281,10 +282,17 @@ void FaustEffectModel::reloadMidi(ossia::nodes::custom_dsp_poly_factory* fac, os
 
 void FaustEffectModel::reload()
 {
-  auto fx_text = m_text.toLocal8Bit();
+  auto fx_text = m_text.toUtf8();
   if (fx_text.isEmpty())
   {
     return;
+  }
+
+  if(QFile f{fx_text}; f.open(QIODevice::ReadOnly))
+  {
+    m_path = QFileInfo{f}.absolutePath();
+    fx_text = f.readAll();
+    m_text = fx_text;
   }
 
   const char* triple =
@@ -294,13 +302,17 @@ void FaustEffectModel::reload()
       ""
 #endif
       ;
+
+  std::string fx_path = m_path.toStdString();
   auto str = fx_text.toStdString();
-  int argc = 0;
-  const char* argv[1]{};
+  int argc = fx_path.empty() ? 0 : 2;
+  const char* argv[3]{"-I", fx_path.c_str()};
 
   std::string err;
   err.resize(4097);
-  auto fac = createDSPFactoryFromString("score", str, argc, argv, triple, err, -1);
+  llvm_dsp_factory* fac{};
+
+  fac = createDSPFactoryFromString("score", str, argc, argv, triple, err, -1);
 
   if (err[0] != 0)
   {
@@ -363,14 +375,14 @@ void FaustEffectModel::reload()
 template <>
 void DataStreamReader::read(const Faust::FaustEffectModel& eff)
 {
-  m_stream << eff.m_text;
+  m_stream << eff.m_text << eff.m_path;
   readPorts(*this, eff.m_inlets, eff.m_outlets);
 }
 
 template <>
 void DataStreamWriter::write(Faust::FaustEffectModel& eff)
 {
-  m_stream >> eff.m_text;
+  m_stream >> eff.m_text >> eff.m_path;
   eff.reload();
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets, eff.m_outlets, &eff);
@@ -380,6 +392,7 @@ template <>
 void JSONReader::read(const Faust::FaustEffectModel& eff)
 {
   obj["Text"] = eff.text();
+  obj["Path"] = eff.m_path;
   readPorts(*this, eff.m_inlets, eff.m_outlets);
 }
 
@@ -387,6 +400,7 @@ template <>
 void JSONWriter::write(Faust::FaustEffectModel& eff)
 {
   eff.m_text = obj["Text"].toString();
+  eff.m_path = obj["Path"].toString();
   eff.reload();
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets, eff.m_outlets, &eff);

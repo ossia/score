@@ -56,8 +56,8 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
   {
     if (iterator.hasNext())
     {
-      auto file = QFileInfo{iterator.next()};
-      registerDSP(file);
+      if(auto file = QFileInfo{iterator.next()}; file.fileName() != "layout.dsp")
+        registerDSP(file);
       QTimer::singleShot(1, this, &LibraryHandler::next);
     }
   }
@@ -67,7 +67,9 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
     Library::ProcessData pdata;
     pdata.prettyName = file.baseName();
     pdata.key = Metadata<ConcreteKey_k, FaustEffectModel>::get();
-    pdata.customData = [&] { QFile f(file.absoluteFilePath()); f.open(QIODevice::ReadOnly); return f.readAll(); }();
+    pdata.customData = [&] {
+      return file.absoluteFilePath();
+    }();
     pdata.author = "Faust standard library";
 
     {
@@ -125,13 +127,13 @@ class DropHandler final : public Process::ProcessDropHandler
   {
     std::vector<Process::ProcessDropHandler::ProcessDrop> vec;
 
-    for (auto&& [filename, file] : data)
+    for (auto&& [filename, _] : data)
     {
       Process::ProcessDropHandler::ProcessDrop p;
       p.creation.key = Metadata<ConcreteKey_k, Faust::FaustEffectModel>::get();
       // TODO use faust-provided name
       p.creation.prettyName = QFileInfo{filename}.baseName();
-      p.creation.customData = std::move(file);
+      p.creation.customData = std::move(filename);
 
       vec.push_back(std::move(p));
     }
