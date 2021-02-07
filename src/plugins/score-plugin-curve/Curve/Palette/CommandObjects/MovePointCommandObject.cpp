@@ -105,20 +105,26 @@ void MovePointCommandObject::move()
   // We start from a clean state
   CurveSegmentMap segments(m_startSegments.cbegin(), m_startSegments.cend());
 
-  // Locking between bounds
-  handleLocking();
-
-  // Manage point - segment replacement
-  handlePointOverlap(segments);
-
-  // This handles what happens when we cross another point.
-  if (m_presenter->editionSettings().suppressOnOverlap())
+  try
   {
-    handleSuppressOnOverlap(segments);
-  }
-  else
-  {
-    handleCrossOnOverlap(segments);
+    // Locking between bounds
+    handleLocking();
+
+    // Manage point - segment replacement
+    handlePointOverlap(segments);
+
+    // This handles what happens when we cross another point.
+    if (m_presenter->editionSettings().suppressOnOverlap())
+    {
+      handleSuppressOnOverlap(segments);
+    }
+    else
+    {
+      handleCrossOnOverlap(segments);
+    }
+
+  } catch (...) {
+    return;
   }
 
   // Rewirte and make a command
