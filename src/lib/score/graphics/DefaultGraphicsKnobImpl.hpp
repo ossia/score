@@ -7,6 +7,8 @@
 #include <ossia/detail/math.hpp>
 
 #include <QDoubleSpinBox>
+#include <QGraphicsScene>
+#include <QGraphicsProxyWidget>
 #include <QGraphicsSceneMouseEvent>
 #include <QGuiApplication>
 #include <QPainter>

@@ -6,6 +6,7 @@
 #include <ossia/detail/math.hpp>
 
 #include <QGraphicsSceneMouseEvent>
+#include <QGraphicsScene>
 #include <QKeyEvent>
 #include <QPainter>
 #include <QPointer>
