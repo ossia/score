@@ -132,7 +132,6 @@ void QGraphicsHSVChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)
   if (new_v != m_value)
   {
     m_value = new_v;
-    valueChanged(m_value);
     sliderMoved();
     update();
   }
@@ -164,7 +163,6 @@ void QGraphicsHSVChooser::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     if (new_v != m_value)
     {
       m_value = new_v;
-      valueChanged(m_value);
       sliderMoved();
       update();
     }
@@ -196,7 +194,6 @@ void QGraphicsHSVChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     if (new_v != m_value)
     {
       m_value = new_v;
-      valueChanged(m_value);
       update();
     }
     sliderReleased();

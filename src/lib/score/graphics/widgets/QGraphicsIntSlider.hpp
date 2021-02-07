@@ -31,7 +31,6 @@ public:
     bool moving = false;
 
 public:
-    void valueChanged(int arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1)
     void sliderMoved() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved)
     void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 

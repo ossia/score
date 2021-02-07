@@ -6,7 +6,10 @@
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 
+#include <ossia/network/common/destination_qualifiers.hpp>
 #include <ossia/network/base/node_attributes.hpp>
+#include <ossia/network/dataspace/dataspace.hpp>
+#include <ossia/network/dataspace/dataspace_visitors.hpp>
 #include <score/serialization/MapSerialization.hpp>
 #include <wobjectimpl.h>
 
@@ -79,6 +82,16 @@ Process::ControlInlet* makeControlFromType(
 {
   // SliderWithOutputAddress<Process::IntSlider>();
   // TODO make better widgets if we have more information.
+
+  auto& unit = addr.address.qualifiers.get().unit.v;
+  if(unit.target<ossia::color_u>())
+  {
+    return new Process::HSVSlider{id, parent};
+  }
+  if(unit.target<ossia::position_u>() && addr.value.get_type() == ossia::val_type::VEC2F)
+  {
+    return new Process::XYSlider{id, parent};
+  }
   switch (addr.value.get_type())
   {
     case ossia::val_type::IMPULSE:
@@ -92,11 +105,9 @@ Process::ControlInlet* makeControlFromType(
     case ossia::val_type::STRING:
       return new Process::LineEdit{id, parent};
     case ossia::val_type::VEC2F:
-      return new Process::XYSlider{id, parent};
     case ossia::val_type::VEC3F:
-      return new Process::MultiSlider{id, parent};
     case ossia::val_type::VEC4F:
-      return new Process::HSVSlider{id, parent};
+      return new Process::MultiSlider{id, parent};
     default:
       return new Process::ControlInlet(id, parent);
   }

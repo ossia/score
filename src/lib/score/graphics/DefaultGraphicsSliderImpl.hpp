@@ -67,12 +67,9 @@ struct DefaultGraphicsSliderImpl
   template <typename T>
   static void mousePressEvent(T& self, QGraphicsSceneMouseEvent* event)
   {
-    if (event->button() == Qt::LeftButton)
+    if (event->button() == Qt::LeftButton && self.isInHandle(event->pos()))
     {
-      if (self.isInHandle(event->pos()))
-      {
-        self.m_grab = true;
-      }
+      self.m_grab = true;
 
       const auto srect = self.sliderRect();
       const auto posX = event->pos().x() - srect.x();
@@ -80,7 +77,6 @@ struct DefaultGraphicsSliderImpl
       if (curPos != self.m_value)
       {
         self.m_value = curPos;
-        self.valueChanged(self.m_value);
         self.sliderMoved();
         self.update();
       }
@@ -100,7 +96,6 @@ struct DefaultGraphicsSliderImpl
       if (curPos != self.m_value)
       {
         self.m_value = curPos;
-        self.valueChanged(self.m_value);
         self.sliderMoved();
         self.update();
 
@@ -122,7 +117,6 @@ struct DefaultGraphicsSliderImpl
         if (curPos != self.m_value)
         {
           self.m_value = curPos;
-          self.valueChanged(self.m_value);
           self.update();
         }
         self.m_grab = false;
@@ -155,7 +149,6 @@ struct DefaultGraphicsSliderImpl
       auto con = QObject::connect(
           w, SignalUtils::QDoubleSpinBox_valueChanged_double(), &self, [&self](double v) {
             self.m_value = self.unmap(v);
-            self.valueChanged(self.m_value);
             self.sliderMoved();
             self.update();
           });

@@ -308,7 +308,7 @@ struct SCORE_LIB_PROCESS_EXPORT MultiSlider : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(MultiSlider)
   using control_type = WidgetFactory::MultiSlider;
-  MultiSlider(ossia::vec2f init, const QString& name, Id<Process::Port> id, QObject* parent);
+  MultiSlider(ossia::value init, const QString& name, Id<Process::Port> id, QObject* parent);
   ~MultiSlider();
 
   ossia::value getMin() const noexcept;

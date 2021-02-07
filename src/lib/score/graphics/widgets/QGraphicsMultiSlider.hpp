@@ -8,24 +8,27 @@
 #include <verdigris>
 
 #include <score_lib_base_export.h>
-
+namespace ossia
+{
+struct domain;
+}
 namespace score
 {
+template<typename T>
 struct SliderWrapper;
 struct RightClickImpl;
 class SCORE_LIB_BASE_EXPORT QGraphicsMultiSlider final : public QObject, public QGraphicsItem
 {
     W_OBJECT(QGraphicsMultiSlider)
     Q_INTERFACES(QGraphicsItem)
-    QRectF m_rect{0., 0., 100., 100.};
-
-private:
-    ossia::value m_value{};
-    bool m_grab{};
-
 public:
+    template<typename T>
     friend struct SliderWrapper;
     double min{0.}, max{1.};
+    int m_grab{-1};
+    ossia::value m_value{};
+    bool moving = false;
+    RightClickImpl* impl{};
 
     QGraphicsMultiSlider(QGraphicsItem* parent);
 
@@ -33,16 +36,15 @@ public:
     void setValue(ossia::value v);
     ossia::value value() const;
 
-    bool moving = false;
-    RightClickImpl* impl{};
+    void setRange(const ossia::value& min, const ossia::value& max);
+    void setRange(const ossia::domain& dom);
 
 public:
-    void valueChanged(ossia::value arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1)
     void sliderMoved() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved)
     void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 
-    private:
-        void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+private:
+    void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
     void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
     QRectF boundingRect() const override;

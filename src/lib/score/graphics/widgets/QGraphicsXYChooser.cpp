@@ -59,7 +59,6 @@ void QGraphicsXYChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)
   if (m_value != newValue)
   {
     m_value = newValue;
-    valueChanged(m_value);
     sliderMoved();
     update();
   }
@@ -79,7 +78,6 @@ void QGraphicsXYChooser::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     if (m_value != newValue)
     {
       m_value = newValue;
-      valueChanged(m_value);
       sliderMoved();
       update();
     }
@@ -100,7 +98,6 @@ void QGraphicsXYChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     if (m_value != newValue)
     {
       m_value = newValue;
-      valueChanged(m_value);
       update();
     }
     sliderReleased();

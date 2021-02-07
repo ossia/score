@@ -64,7 +64,6 @@ void QGraphicsNoteChooser::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
       {
         m_value = res;
         m_curValue = m_value;
-        valueChanged(m_value);
         sliderMoved();
         update();
       }

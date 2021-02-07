@@ -240,15 +240,26 @@ XYSlider::XYSlider(ossia::vec2f init, const QString& name, Id<Port> id, QObject*
 
 XYSlider::~XYSlider() { }
 
-MultiSlider::MultiSlider(ossia::vec2f init, const QString& name, Id<Port> id, QObject* parent)
+MultiSlider::MultiSlider(ossia::value init, const QString& name, Id<Port> id, QObject* parent)
   : ControlInlet{id, parent}
 {
   hidden = true;
-  setValue(init);
+  setValue(std::move(init));
   setCustomData(name);
+  setDomain(ossia::make_domain(0., 1.));
 }
 
 MultiSlider::~MultiSlider() { }
+
+ossia::value MultiSlider::getMin() const noexcept
+{
+  return domain().get().get_min();
+}
+
+ossia::value MultiSlider::getMax() const noexcept
+{
+  return domain().get().get_max();
+}
 
 
 

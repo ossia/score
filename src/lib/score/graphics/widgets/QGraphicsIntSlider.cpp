@@ -51,7 +51,6 @@ void QGraphicsIntSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
   if (res != m_value)
   {
     m_value = res;
-    valueChanged(m_value);
     sliderMoved();
     update();
   }
@@ -69,7 +68,6 @@ void QGraphicsIntSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     if (res != m_value)
     {
       m_value = res;
-      valueChanged(m_value);
       sliderMoved();
       update();
     }
@@ -86,7 +84,6 @@ void QGraphicsIntSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     if (res != m_value)
     {
       m_value = res;
-      valueChanged(m_value);
       update();
     }
     sliderReleased();

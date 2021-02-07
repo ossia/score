@@ -2,6 +2,8 @@
 #include <score/graphics/DefaultGraphicsSliderImpl.hpp>
 
 #include <ossia/detail/math.hpp>
+#include <ossia/network/value/value_conversion.hpp>
+#include <ossia/network/domain/domain_functions.hpp>
 
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
@@ -11,26 +13,38 @@ W_OBJECT_IMPL(score::QGraphicsMultiSlider);
 
 namespace score
 {
+template<typename T>
+struct ValueAssigner;
 
-struct apply_value {
-
-  operator double() const noexcept
-  {
-    return 0.;
-  }
-  double& operator=(double other)
-  {
-    static double d;
-    return d;
-  }
+template<>
+struct ValueAssigner<float>
+{
+  float& value;
+  operator double() { return value; }
+  float& operator=(double d) { return value = d; }
 };
+template<>
+struct ValueAssigner<int>
+{
+  int& value;
+  operator double() { return value; }
+  int& operator=(double d) { return value = d; }
+};
+template<>
+struct ValueAssigner<ossia::value>
+{
+  ossia::value& value;
+  operator double() { return ossia::convert<float>(value); }
+  ossia::value& operator=(double d) { return value = float(d); }
+};
+template<typename T>
+double operator*(double lhs, const ValueAssigner<T>& rhs) noexcept { return lhs * rhs.value; }
 
-
+template<typename T>
 struct SliderWrapper
 {
   QGraphicsMultiSlider& parent;
-  apply_value m_value{};
-  double value{};
+  ValueAssigner<T> m_value{};
   QRectF rect{defaultSliderSize};
 
   RightClickImpl* impl{};
@@ -43,12 +57,11 @@ struct SliderWrapper
 
   QGraphicsScene* scene() { return parent.scene(); }
 
-
-  bool m_grab{false}; // TODO
+  bool m_grab{};
   // TODO refactor with QGraphicsSliderBase
   double getHandleX() const noexcept
   {
-    return sliderRect().width() * value;
+    return sliderRect().width() * m_value;
   }
   QRectF sliderRect() const noexcept {
     return QRectF{rect.x(), rect.y(), rect.width(), 8};
@@ -67,24 +80,22 @@ struct SliderWrapper
     return rect;
   }
 
-  void update()
+  void update() const noexcept
   {
     parent.update();
   }
-  void valueChanged(double arg_1)
-  {
 
-  }
-  void sliderMoved()
+  void sliderMoved() const noexcept
   {
-
-  }
-  void sliderReleased()
-  {
-
+    parent.sliderMoved();
   }
 
-  QGraphicsMultiSlider* operator&() { return &parent; }
+  void sliderReleased() const noexcept
+  {
+    parent.sliderReleased();
+  }
+
+  QGraphicsMultiSlider* operator&() const noexcept { return &parent; }
 };
 
 struct PaintVisitor
@@ -95,12 +106,12 @@ struct PaintVisitor
   score::Skin& skin = score::Skin::instance();
 
   template<std::size_t N>
-  void operator()(const std::array<float, N>& v) const noexcept
+  void operator()(std::array<float, N>& v) const noexcept
   {
     for(std::size_t i = 0; i < N; i++)
     {
-      SliderWrapper slider{self};
-      slider.rect.setY(i * (defaultSliderSize.height() + 4));
+      SliderWrapper<float> slider{self, {v[i]}};
+      slider.rect.moveTop(i * (defaultSliderSize.height() + 4));
       DefaultGraphicsSliderImpl::paint(
             slider,
             skin,
@@ -112,24 +123,58 @@ struct PaintVisitor
 
   void operator()(const std::vector<ossia::value>& v) const noexcept
   {
-
+    SCORE_TODO;
   }
   void operator()(float v) const noexcept
   {
-
+    SCORE_TODO;
   }
   void operator()(int v) const noexcept
   {
-
+    SCORE_TODO;
   }
   template<typename T>
   void operator()(const T&) const noexcept
   {
-
+    SCORE_TODO;
   }
   void operator()() const noexcept
   {
 
+  }
+};
+
+
+struct SizeVisitor
+{
+  const QGraphicsMultiSlider& self;
+  template<std::size_t N>
+  QRectF operator()(const std::array<float, N>& v) const noexcept
+  {
+    return {0, 0, 100, N * (defaultSliderSize.height() + 4)};
+  }
+
+  QRectF operator()(const std::vector<ossia::value>& v) const noexcept
+  {
+    SCORE_TODO;
+    return defaultSliderSize;
+  }
+  QRectF operator()(float v) const noexcept
+  {
+    return defaultSliderSize;
+  }
+  QRectF operator()(int v) const noexcept
+  {
+    return defaultSliderSize;
+  }
+  template<typename T>
+  QRectF operator()(const T&) const noexcept
+  {
+    return defaultSliderSize;
+  }
+  QRectF operator()() const noexcept
+  {
+    return defaultSliderSize;
   }
 };
 
@@ -140,32 +185,44 @@ struct EventVisitor
   QGraphicsSceneMouseEvent& event;
 
   template<std::size_t N>
-  void operator()(const std::array<float, N>& v) const noexcept
+  void operator()(std::array<float, N>& v) const noexcept
   {
     for(std::size_t i = 0; i < N; i++)
     {
-      SliderWrapper slider{self};
-      slider.rect.setY(i * (defaultSliderSize.height() + 4));
+      SliderWrapper<float> slider{self, {v[i]}};
+      slider.m_grab = (self.m_grab == i);
+      bool had_grab{slider.m_grab};
+      slider.rect.moveTop(i * (defaultSliderSize.height() + 4));
       Event(slider, &event);
+
+      if(slider.m_grab)
+      {
+        self.m_grab = i;
+      }
+      else
+      {
+        if(had_grab)
+          self.m_grab = -1;
+      }
     }
   }
 
-  void operator()(const std::vector<ossia::value>& v) const noexcept
+  void operator()(std::vector<ossia::value>& v) const noexcept
   {
-
+    SCORE_TODO;
   }
   void operator()(float v) const noexcept
   {
-
+    SCORE_TODO;
   }
   void operator()(int v) const noexcept
   {
-
+    SCORE_TODO;
   }
   template<typename U>
   void operator()(const U&) const noexcept
   {
-
+    SCORE_TODO;
   }
   void operator()() const noexcept
   {
@@ -197,29 +254,46 @@ ossia::value QGraphicsMultiSlider::value() const
   return m_value;
 }
 
+void QGraphicsMultiSlider::setRange(const ossia::value& min, const ossia::value& max)
+{
+  this->min = ossia::convert<float>(min);
+  this->max = ossia::convert<float>(max);
+}
+
+void QGraphicsMultiSlider::setRange(const ossia::domain& dom)
+{
+  auto [min, max] = ossia::get_float_minmax(dom);
+
+  if(min)
+    this->min = *min;
+  if(max)
+    this->max = *max;
+}
+
 void QGraphicsMultiSlider::setValue(ossia::value v)
 {
+  prepareGeometryChange();
   m_value = v;
   update();
 }
 
 void QGraphicsMultiSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  m_value.apply(EventVisitor<&DefaultGraphicsSliderImpl::mousePressEvent<SliderWrapper>>{*this, *event});
+  m_value.apply(EventVisitor<&DefaultGraphicsSliderImpl::mousePressEvent<SliderWrapper<float>>>{*this, *event});
 }
 
 void QGraphicsMultiSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  m_value.apply(EventVisitor<&DefaultGraphicsSliderImpl::mouseMoveEvent<SliderWrapper>>{*this, *event});
+  m_value.apply(EventVisitor<&DefaultGraphicsSliderImpl::mouseMoveEvent<SliderWrapper<float>>>{*this, *event});
 }
 
 void QGraphicsMultiSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  m_value.apply(EventVisitor<&DefaultGraphicsSliderImpl::mouseReleaseEvent<SliderWrapper>>{*this, *event});
+  m_value.apply(EventVisitor<&DefaultGraphicsSliderImpl::mouseReleaseEvent<SliderWrapper<float>>>{*this, *event});
 }
 
 QRectF QGraphicsMultiSlider::boundingRect() const
 {
-  return QRectF{0, 0, 100, 100};
+  return m_value.apply(SizeVisitor{*this});
 }
 }

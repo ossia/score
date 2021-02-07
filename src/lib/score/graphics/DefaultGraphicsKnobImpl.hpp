@@ -133,7 +133,6 @@ struct DefaultGraphicsKnobImpl
       if (v != self.m_value)
       {
         self.m_value = v;
-        self.valueChanged(self.m_value);
         self.sliderMoved();
         self.update();
       }
@@ -160,7 +159,6 @@ struct DefaultGraphicsKnobImpl
         if (curPos != self.m_value)
         {
           self.m_value = curPos;
-          self.valueChanged(self.m_value);
           self.update();
         }
         self.m_grab = false;
@@ -191,7 +189,6 @@ struct DefaultGraphicsKnobImpl
       auto con = QObject::connect(
           w, SignalUtils::QDoubleSpinBox_valueChanged_double(), &self, [&self](double v) {
             self.m_value = self.unmap(v);
-            self.valueChanged(self.m_value);
             self.sliderMoved();
             self.update();
           });

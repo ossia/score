@@ -802,6 +802,7 @@ struct MultiSlider
   {
     auto sl = new score::QGraphicsMultiSlider{nullptr};
     sl->setValue(inlet.value());
+    sl->setRange(inlet.domain());
 
     QObject::connect(sl, &score::QGraphicsMultiSlider::sliderMoved, context, [=, &inlet, &ctx] {
       sl->moving = true;

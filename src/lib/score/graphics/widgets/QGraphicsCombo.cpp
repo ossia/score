@@ -141,7 +141,6 @@ struct DefaultComboImpl
       if (curPos != self.m_value)
       {
         self.m_value = curPos;
-        self.valueChanged(self.m_value);
         self.sliderMoved();
         self.update();
       }
@@ -168,7 +167,6 @@ struct DefaultComboImpl
         if (curPos != self.m_value)
         {
           self.m_value = curPos;
-          self.valueChanged(self.m_value);
           self.update();
         }
         self.m_grab = false;
@@ -190,7 +188,6 @@ struct DefaultComboImpl
         QObject::connect(
             w, SignalUtils::QComboBox_currentIndexChanged_int(), &self, [=, &self](int v) {
               self.m_value = v;
-              self.valueChanged(self.m_value);
               self.sliderMoved();
               self.update();
             });
