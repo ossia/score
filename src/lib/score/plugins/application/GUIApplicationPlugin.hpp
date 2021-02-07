@@ -4,6 +4,7 @@
 #include <score/actions/Toolbar.hpp>
 #include <score/application/GUIApplicationContext.hpp>
 
+#include <QKeyEvent>
 #include <qnamespace.h>
 
 #include <vector>

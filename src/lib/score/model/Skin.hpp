@@ -76,7 +76,6 @@ private:
   Brush& operator=(const QBrush& b) noexcept;
 
   friend class Skin;
-  friend struct QPair<QString, Brush>;
 };
 
 class SCORE_LIB_BASE_EXPORT Skin : public QObject

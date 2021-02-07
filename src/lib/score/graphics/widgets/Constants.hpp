@@ -1,5 +1,5 @@
 #pragma once
-
+#include <QRectF>
 namespace score
 {
 static const constexpr QRectF defaultSliderSize{0., 0., 60., 20.};
