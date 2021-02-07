@@ -6,6 +6,7 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/graphics/GraphicWidgets.hpp>
+#include <score/graphics/widgets/QGraphicsMultiSlider.hpp>
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/tools/Unused.hpp>
 #include <score/widgets/SignalUtils.hpp>
@@ -700,6 +701,7 @@ struct HSVSlider
       QWidget* parent,
       QObject* context)
   {
+    SCORE_TODO;
     return nullptr; // TODO
   }
 
@@ -742,6 +744,7 @@ struct XYSlider
       QWidget* parent,
       QObject* context)
   {
+    SCORE_TODO;
     return nullptr; // TODO
   }
 
@@ -775,6 +778,48 @@ struct XYSlider
 };
 
 
+struct MultiSlider
+{
+  template <typename T, typename Control_T>
+  static auto make_widget(
+      const T& slider,
+      Control_T& inlet,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      QObject* context)
+  {
+    SCORE_TODO;
+    return nullptr; // TODO
+  }
+
+  template <typename T, typename Control_T>
+  static QGraphicsItem* make_item(
+      const T& slider,
+      Control_T& inlet,
+      const score::DocumentContext& ctx,
+      QGraphicsItem* parent,
+      QObject* context)
+  {
+    auto sl = new score::QGraphicsMultiSlider{nullptr};
+    sl->setValue(inlet.value());
+
+    QObject::connect(sl, &score::QGraphicsMultiSlider::sliderMoved, context, [=, &inlet, &ctx] {
+      sl->moving = true;
+      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
+    });
+    QObject::connect(sl, &score::QGraphicsMultiSlider::sliderReleased, context, [&ctx, sl]() {
+      ctx.dispatcher.commit();
+      sl->moving = false;
+    });
+
+    QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](ossia::value val) {
+      if (!sl->moving)
+        sl->setValue(std::move(val));
+    });
+
+    return sl;
+  }
+};
 
 
 /// Outlets

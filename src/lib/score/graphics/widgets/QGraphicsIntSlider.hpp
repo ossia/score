@@ -35,8 +35,8 @@ public:
     void sliderMoved() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved)
     void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 
-    private:
-        void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+private:
+    void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
     void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;

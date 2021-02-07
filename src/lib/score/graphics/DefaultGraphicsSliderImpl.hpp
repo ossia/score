@@ -7,6 +7,7 @@
 
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsScene>
+#include <QGraphicsProxyWidget>
 #include <QKeyEvent>
 #include <QPainter>
 #include <QPointer>
@@ -17,6 +18,11 @@
 #include <verdigris>
 namespace score
 {
+
+struct RightClickImpl {
+QPointer<DoubleSpinboxWithEnter> spinbox{};
+QPointer<QGraphicsProxyWidget> spinboxProxy{};
+};
 
 struct DefaultGraphicsSliderImpl
 {

@@ -10,6 +10,7 @@
 namespace score
 {
 
+struct RightClickImpl;
 template <typename T>
 struct SCORE_LIB_BASE_EXPORT QGraphicsSliderBase : public QGraphicsItem
 {
@@ -25,7 +26,6 @@ struct SCORE_LIB_BASE_EXPORT QGraphicsSliderBase : public QGraphicsItem
     QRectF boundingRect() const override;
 
     QRectF m_rect{defaultSliderSize};
-    struct RightClickImpl;
     RightClickImpl* impl{};
 };
 

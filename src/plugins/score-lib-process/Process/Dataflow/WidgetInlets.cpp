@@ -240,6 +240,16 @@ XYSlider::XYSlider(ossia::vec2f init, const QString& name, Id<Port> id, QObject*
 
 XYSlider::~XYSlider() { }
 
+MultiSlider::MultiSlider(ossia::vec2f init, const QString& name, Id<Port> id, QObject* parent)
+  : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(init);
+  setCustomData(name);
+}
+
+MultiSlider::~MultiSlider() { }
+
 
 
 
@@ -508,6 +518,25 @@ SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::XYSlider>(const Process:
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::XYSlider>(Process::XYSlider& p)
+{
+}
+
+template <>
+SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<Process::MultiSlider>(const Process::MultiSlider& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::MultiSlider>(Process::MultiSlider& p)
+{
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::MultiSlider>(const Process::MultiSlider& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::MultiSlider>(Process::MultiSlider& p)
 {
 }
 

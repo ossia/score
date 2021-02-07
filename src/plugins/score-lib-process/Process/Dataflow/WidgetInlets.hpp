@@ -19,6 +19,7 @@ struct Enum;
 struct Button;
 struct HSVSlider;
 struct XYSlider;
+struct MultiSlider;
 
 struct Bargraph;
 }
@@ -91,6 +92,11 @@ UUID_METADATA(
     Process::Port,
     Process::XYSlider,
     "8093743c-584f-4bb9-97d4-6c7602f87116")
+UUID_METADATA(
+    SCORE_LIB_PROCESS_EXPORT,
+    Process::Port,
+    Process::MultiSlider,
+    "25de6d71-1554-4fe1-bf3f-9cbf12bdadeb")
 
 
 UUID_METADATA(
@@ -292,10 +298,24 @@ struct SCORE_LIB_PROCESS_EXPORT XYSlider : public Process::ControlInlet
   XYSlider(ossia::vec2f init, const QString& name, Id<Process::Port> id, QObject* parent);
   ~XYSlider();
 
-  auto getMin() const noexcept { return ossia::vec4f{0., 0.}; }
-  auto getMax() const noexcept { return ossia::vec4f{1., 1.}; }
+  auto getMin() const noexcept { return ossia::vec2f{0., 0.}; }
+  auto getMax() const noexcept { return ossia::vec2f{1., 1.}; }
   using Process::ControlInlet::ControlInlet;
 };
+
+
+struct SCORE_LIB_PROCESS_EXPORT MultiSlider : public Process::ControlInlet
+{
+  MODEL_METADATA_IMPL(MultiSlider)
+  using control_type = WidgetFactory::MultiSlider;
+  MultiSlider(ossia::vec2f init, const QString& name, Id<Process::Port> id, QObject* parent);
+  ~MultiSlider();
+
+  ossia::value getMin() const noexcept;
+  ossia::value getMax() const noexcept;
+  using Process::ControlInlet::ControlInlet;
+};
+
 
 
 

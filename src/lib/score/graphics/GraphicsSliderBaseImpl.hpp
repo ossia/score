@@ -1,17 +1,12 @@
 #pragma once
 #include <score/graphics/GraphicWidgets.hpp>
+#include <score/graphics/DefaultGraphicsSliderImpl.hpp>
 #include <score/widgets/DoubleSpinBox.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <QGraphicsProxyWidget>
 
 namespace score
 {
-template <typename T>
-struct QGraphicsSliderBase<T>::RightClickImpl {
-QPointer<DoubleSpinboxWithEnter> spinbox{};
-QPointer<QGraphicsProxyWidget> spinboxProxy{};
-};
-
 template <typename T>
 QGraphicsSliderBase<T>::QGraphicsSliderBase(QGraphicsItem* parent)
   : QGraphicsItem{parent}
