@@ -23,7 +23,7 @@ bool ScenarioValidityChecker::validate(const score::DocumentContext& ctx)
 void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
 {
   using namespace ossia;
-#if defined(SCORE_DEBUG)
+
   for (const IntervalModel& interval : scenar.intervals)
   {
     auto ss = scenar.findState(interval.startState());
@@ -142,6 +142,5 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
       SCORE_ASSERT(ev->timeSync() == tn.id());
     }
   }
-#endif
 }
 }
