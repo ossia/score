@@ -93,7 +93,9 @@ void ApplicationPlugin::initialize()
 
   auto& set = context.settings<Media::Settings::Model>();
   con(set, &Media::Settings::Model::VstPathsChanged, this, &ApplicationPlugin::rescanVSTs);
-  rescanVSTs(set.getVstPaths());
+
+  if(qEnvironmentVariableIsEmpty("SCORE_DISABLE_AUDIOPLUGINS"))
+    rescanVSTs(set.getVstPaths());
 }
 
 void ApplicationPlugin::addInvalidVST(const QString& path)

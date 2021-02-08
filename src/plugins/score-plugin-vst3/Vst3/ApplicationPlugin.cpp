@@ -136,7 +136,8 @@ void ApplicationPlugin::initialize()
   // con(set, &Media::Settings::Model::VstPathsChanged, this, &ApplicationPlugin::rescanVSTs);
   //
 
-  rescan({default_path});
+  if (qEnvironmentVariableIsEmpty("SCORE_DISABLE_AUDIOPLUGINS"))
+    rescan({default_path});
 }
 
 void ApplicationPlugin::rescan(const QStringList& paths)

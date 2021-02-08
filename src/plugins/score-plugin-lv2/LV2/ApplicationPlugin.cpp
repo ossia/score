@@ -74,8 +74,8 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
   static int argc{0};
   static char** argv{nullptr};
   suil_init(&argc, &argv, SUIL_ARG_NONE);
-  QString res = qgetenv("SCORE_DISABLE_LV2");
-  if (res.isEmpty())
+
+  if (qEnvironmentVariableIsEmpty("SCORE_DISABLE_AUDIOPLUGINS"))
     lv2_context->loadPlugins();
 
   lv2_context->ui_host
