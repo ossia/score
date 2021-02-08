@@ -24,7 +24,7 @@ Releases are available for [Windows, Linux (via AppImage) and Mac OS X](https://
 
 ## Build status
 * Official Win/Mac/Linux releases: [![Azure Pipelines](https://img.shields.io/azure-devops/build/ossia/f914424f-63a4-43f7-b424-67c9dc58ae05/2)](https://dev.azure.com/ossia/libossia/_build?definitionId=2)
-* ArchLinux, OpenSUSE, Fedora, Debian: ![Linux distro build](https://github.com/ossia/score/workflows/Linux%20distro%20build/badge.svg)
+* ArchLinux, OpenSUSE, Fedora, Debian: [![Linux distro build](https://github.com/ossia/score/workflows/Linux%20distro%20build/badge.svg)](https://github.com/ossia/score/actions?query=workflow%3A%22Linux+distro+build%22)
 * Ubuntu, macOS (with Brew): [![Travis Status](https://travis-ci.org/ossia/score.svg?branch=master)](https://travis-ci.org/ossia/score)
 * Windows (MSVC): [![Appveyor Status](https://ci.appveyor.com/api/projects/status/github/ossia/score?branch=master&svg=true)](https://ci.appveyor.com/project/JeanMichalCelerier/score) 
 * [![OpenHub](https://www.openhub.net/p/score/widgets/project_thin_badge?format=gif)](https://www.openhub.net/p/score)
