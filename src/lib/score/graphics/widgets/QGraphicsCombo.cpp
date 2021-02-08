@@ -1,5 +1,6 @@
 #include <score/graphics/widgets/QGraphicsCombo.hpp>
 #include <score/tools/Cursor.hpp>
+#include <score/model/Skin.hpp>
 
 #include <ossia/detail/math.hpp>
 
