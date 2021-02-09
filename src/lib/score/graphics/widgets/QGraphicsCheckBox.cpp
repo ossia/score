@@ -1,4 +1,5 @@
 #include <score/graphics/widgets/QGraphicsCheckBox.hpp>
+#include <score/model/Skin.hpp>
 
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>

@@ -1,4 +1,5 @@
 #include <score/graphics/widgets/QGraphicsEnum.hpp>
+#include <score/model/Skin.hpp>
 
 #include <ossia/detail/math.hpp>
 

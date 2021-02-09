@@ -1,6 +1,7 @@
 #include <score/graphics/widgets/QGraphicsLogSlider.hpp>
 #include <score/graphics/DefaultGraphicsSliderImpl.hpp>
 #include <score/graphics/GraphicsSliderBaseImpl.hpp>
+#include <score/model/Skin.hpp>
 
 #include <ossia/detail/math.hpp>
 

@@ -1,5 +1,6 @@
 #include <score/graphics/widgets/QGraphicsLogKnob.hpp>
 #include <score/graphics/DefaultGraphicsKnobImpl.hpp>
+#include <score/model/Skin.hpp>
 
 #include <QGraphicsSceneMouseEvent>
 

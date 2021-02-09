@@ -1,5 +1,6 @@
 #include <score/graphics/widgets/QGraphicsMultiSlider.hpp>
 #include <score/graphics/DefaultGraphicsSliderImpl.hpp>
+#include <score/model/Skin.hpp>
 
 #include <ossia/detail/math.hpp>
 #include <ossia/network/value/value_conversion.hpp>

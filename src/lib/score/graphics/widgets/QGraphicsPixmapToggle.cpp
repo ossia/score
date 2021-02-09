@@ -1,4 +1,5 @@
 #include <score/graphics/widgets/QGraphicsPixmapToggle.hpp>
+#include <score/model/Skin.hpp>
 
 #include <QGraphicsSceneMouseEvent>
 

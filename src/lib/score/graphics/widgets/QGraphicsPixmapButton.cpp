@@ -1,4 +1,5 @@
 #include <score/graphics/widgets/QGraphicsPixmapButton.hpp>
+#include <score/model/Skin.hpp>
 
 #include <QGraphicsSceneMouseEvent>
 

@@ -1,5 +1,6 @@
 #include <score/graphics/widgets/QGraphicsKnob.hpp>
 #include <score/graphics/DefaultGraphicsKnobImpl.hpp>
+#include <score/model/Skin.hpp>
 
 #include <ossia/detail/math.hpp>
 
