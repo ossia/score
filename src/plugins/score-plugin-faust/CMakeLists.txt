@@ -74,28 +74,33 @@ function(restore_var VAR)
   endif()
 endfunction()
 
-include(FetchContent)
-disable_var(BUILD_PROGRAMS)
-disable_var(BUILD_EXAMPLES)
-disable_var(ENABLE_PACKAGE_CONFIG)
-disable_var(INSTALL_PKGCONFIG_MODULE)
-disable_var(ENABLE_EXPERIMENTAL)
-disable_var(BUILD_REGTEST)
-disable_var(BUILD_TESTING)
+find_path(SNDFILE_INCLUDE_DIR sndfile.h)
+if(SNDFILE_INCLUDE_DIR)
+  target_include_directories(${PROJECT_NAME} PRIVATE ${SNDFILE_INCLUDE_DIR})
+  target_link_libraries(${PROJECT_NAME} PRIVATE sndfile)
+else()
+  include(FetchContent)
+  disable_var(BUILD_PROGRAMS)
+  disable_var(BUILD_EXAMPLES)
+  disable_var(ENABLE_PACKAGE_CONFIG)
+  disable_var(INSTALL_PKGCONFIG_MODULE)
+  disable_var(ENABLE_EXPERIMENTAL)
+  disable_var(BUILD_REGTEST)
+  disable_var(BUILD_TESTING)
 
-FetchContent_Declare(
-  sndfile
-  GIT_REPOSITORY https://github.com/jcelerier/libsndfile
-  )
-FetchContent_MakeAvailable(sndfile)
-if(TARGET sndfile)
-  set_target_properties(sndfile PROPERTIES UNITY_BUILD 0)
+  FetchContent_Declare(
+    sndfile
+    GIT_REPOSITORY https://github.com/jcelerier/libsndfile
+    )
+  FetchContent_MakeAvailable(sndfile)
+  if(TARGET sndfile)
+    set_target_properties(sndfile PROPERTIES UNITY_BUILD 0)
+  endif()
+
+  restore_var(BUILD_TESTING)
+
+  target_link_libraries(${PROJECT_NAME} PRIVATE SndFile::sndfile)
 endif()
-
-restore_var(BUILD_TESTING)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE SndFile::sndfile)
-
 if(WIN32)
   target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32)
 endif()
