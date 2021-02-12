@@ -237,8 +237,10 @@ bool CameraInput::open_stream() noexcept
           case AV_PIX_FMT_RGBA:
           case AV_PIX_FMT_BGR0:
           case AV_PIX_FMT_BGRA:
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(56, 19, 100)
           case AV_PIX_FMT_GRAYF32LE:
           case AV_PIX_FMT_GRAYF32BE:
+#endif
           case AV_PIX_FMT_GRAY8:
             break;
           // Other formats get rgb'd

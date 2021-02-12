@@ -136,10 +136,12 @@ void VideoNode::initGpuDecoder()
     case AV_PIX_FMT_BGRA:
         gpu = std::make_unique<RGB0Decoder>(QRhiTexture::BGRA8, *this, *decoder, filter);
         break;
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(56, 19, 100)
     case AV_PIX_FMT_GRAYF32LE:
     case AV_PIX_FMT_GRAYF32BE:
         gpu = std::make_unique<RGB0Decoder>(QRhiTexture::R32F, *this, *decoder, filter);
         break;
+#endif
     case AV_PIX_FMT_GRAY8:
         gpu = std::make_unique<RGB0Decoder>(QRhiTexture::R8, *this, *decoder, filter);
         break;
