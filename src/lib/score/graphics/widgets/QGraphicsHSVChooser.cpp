@@ -1,5 +1,6 @@
 #include <score/graphics/widgets/QGraphicsHSVChooser.hpp>
 #include <score/model/Skin.hpp>
+#include <score/tools/Debug.hpp>
 
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
