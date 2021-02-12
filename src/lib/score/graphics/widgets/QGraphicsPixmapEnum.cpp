@@ -1,10 +1,12 @@
 #include <score/graphics/widgets/QGraphicsPixmapEnum.hpp>
 #include <score/model/Skin.hpp>
+#include <score/tools/Debug.hpp>
 
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 
 #include <wobjectimpl.h>
+#include <cmath>
 
 namespace score
 {

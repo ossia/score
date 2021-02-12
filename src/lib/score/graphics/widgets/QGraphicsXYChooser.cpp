@@ -1,5 +1,6 @@
 #include <score/graphics/widgets/QGraphicsXYChooser.hpp>
 #include <score/model/Skin.hpp>
+#include <score/tools/Debug.hpp>
 
 #include <ossia/detail/math.hpp>
 
