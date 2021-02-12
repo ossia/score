@@ -31,7 +31,7 @@
     <key>LSRequiresCarbon</key>
     <true/>
     <key>LSMinimumSystemVersion</key>
-    <string>10.14.0</string>
+    <string>${CMAKE_OSX_DEPLOYMENT_TARGET}.0</string>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
     <key>NSHighResolutionCapable</key>
