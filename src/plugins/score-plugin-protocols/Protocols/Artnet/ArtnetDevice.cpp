@@ -5,7 +5,10 @@
 #include "ArtnetDevice.hpp"
 #include "ArtnetSpecificSettings.hpp"
 
-#include <ossia/network/artnet/artnet_protocol.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <score/document/DocumentContext.hpp>
+
+#include <ossia/protocols/artnet/artnet_protocol.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 
 #include <wobjectimpl.h>
@@ -14,8 +17,9 @@ W_OBJECT_IMPL(Protocols::ArtnetDevice)
 namespace Protocols
 {
 
-ArtnetDevice::ArtnetDevice(const Device::DeviceSettings& settings)
-    : OwningDeviceInterface{settings}
+ArtnetDevice::ArtnetDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
+  : OwningDeviceInterface{settings}
+  , m_ctx{ctx}
 {
   m_capas.canRefreshTree = true;
   m_capas.canAddNode = false;
@@ -33,9 +37,10 @@ bool ArtnetDevice::reconnect()
 
   try
   {
+    //  20 Hz update rate : TODO add control on widget
+    auto& ctx = m_ctx.plugin<Explorer::DeviceDocumentPlugin>().asioContext;
     auto addr = std::make_unique<ossia::net::generic_device>(
-        std::make_unique<ossia::net::artnet_protocol>(
-            20), //  20 Hz update rate : TODO add control on widget
+        std::make_unique<ossia::net::artnet_protocol>(ctx, 20),
         settings().name.toStdString());
     m_dev = std::move(addr);
     deviceChanged(nullptr, m_dev.get());

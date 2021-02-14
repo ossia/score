@@ -1,23 +1,25 @@
-
 #include "WiimoteDevice.hpp"
-
 #include "WiimoteSpecificSettings.hpp"
 
-#include <ossia/network/wiimote/wiimote_protocol.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <score/document/DocumentContext.hpp>
+
+#include <ossia/protocols/wiimote/wiimote_protocol.hpp>
 
 #include <QLabel>
 #include <QProgressDialog>
 
-#include <thread>
 #include <ossia-qt/invoke.hpp>
 #include <wobjectimpl.h>
+
 W_OBJECT_IMPL(Protocols::WiimoteDevice)
 
 namespace Protocols
 {
 
-WiimoteDevice::WiimoteDevice(const Device::DeviceSettings& settings)
+WiimoteDevice::WiimoteDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
     : OwningDeviceInterface{settings}
+    , m_ctx{ctx}
 {
   m_capas.canRefreshTree = true;
   m_capas.canAddNode = false;
@@ -43,8 +45,9 @@ bool WiimoteDevice::reconnect()
   std::thread task{[&dialog, this]() {
     try
     {
+      auto& ctx = m_ctx.plugin<Explorer::DeviceDocumentPlugin>().asioContext;
       auto addr = std::make_unique<ossia::net::generic_device>(
-          std::make_unique<ossia::net::wiimote_protocol>(false), settings().name.toStdString());
+          std::make_unique<ossia::net::wiimote_protocol>(ctx, false), settings().name.toStdString());
 
       m_dev = std::move(addr);
       deviceChanged(nullptr, m_dev.get());

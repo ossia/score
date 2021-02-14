@@ -30,7 +30,7 @@ Device::DeviceInterface* WiimoteProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings,
     const score::DocumentContext& ctx)
 {
-  return new WiimoteDevice{settings};
+  return new WiimoteDevice{settings, ctx};
 }
 
 const Device::DeviceSettings& WiimoteProtocolFactory::defaultSettings() const noexcept

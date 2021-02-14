@@ -2,7 +2,7 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 
-#include <ossia/network/midi/midi.hpp>
+#include <ossia/protocols/midi/midi.hpp>
 
 #include <verdigris>
 

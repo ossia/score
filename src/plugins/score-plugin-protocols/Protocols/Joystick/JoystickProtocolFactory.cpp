@@ -4,7 +4,7 @@
 #include "JoystickDevice.hpp"
 #include "JoystickProtocolSettingsWidget.hpp"
 #include "JoystickSpecificSettings.hpp"
-#include <ossia/network/joystick/joystick_protocol.hpp>
+#include <ossia/protocols/joystick/joystick_protocol.hpp>
 
 #include <QObject>
 namespace Protocols
@@ -15,19 +15,19 @@ class JoystickEnumerator : public Device::DeviceEnumerator
 public:
   void enumerate(std::function<void(const Device::DeviceSettings&)> f) const override
   {
-    const unsigned int joystick_count = ossia::net::joystick_protocol::get_joystick_count();
+    const unsigned int joystick_count = ossia::net::joystick_info::get_joystick_count();
 
     for (unsigned int i = 0; i < joystick_count; ++i)
     {
-      const char* s = ossia::net::joystick_protocol::get_joystick_name(i);
+      const char* s = ossia::net::joystick_info::get_joystick_name(i);
       if (s)
       {
         Device::DeviceSettings set;
         set.name = s;
         set.protocol = JoystickProtocolFactory::static_concreteKey();
         JoystickSpecificSettings specif;
-        ossia::net::joystick_protocol::write_joystick_uuid(i, specif.id.data);
-        specif.spec = {ossia::net::joystick_protocol::get_joystick_id(i), i};
+        ossia::net::joystick_info::write_joystick_uuid(i, specif.id.data);
+        specif.spec = {ossia::net::joystick_info::get_joystick_id(i), i};
 
         set.deviceSpecificSettings = QVariant::fromValue(specif);
         f(set);
@@ -55,7 +55,7 @@ Device::DeviceInterface* JoystickProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings,
     const score::DocumentContext& ctx)
 {
-  return new JoystickDevice{settings};
+  return new JoystickDevice{settings, ctx};
 }
 
 const Device::DeviceSettings& JoystickProtocolFactory::defaultSettings() const noexcept

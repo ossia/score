@@ -5,11 +5,13 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Protocols/MIDI/MIDISpecificSettings.hpp>
 #include <State/MessageListSerialization.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <score/document/DocumentContext.hpp>
 
 #include <score/serialization/MimeVisitor.hpp>
 
 #include <ossia/network/base/device.hpp>
-#include <ossia/network/midi/midi.hpp>
+#include <ossia/protocols/midi/midi.hpp>
 
 #include <QDebug>
 #include <QMimeData>
@@ -18,7 +20,9 @@
 
 namespace Protocols
 {
-MIDIDevice::MIDIDevice(const Device::DeviceSettings& settings) : OwningDeviceInterface{settings}
+MIDIDevice::MIDIDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
+  : OwningDeviceInterface{settings}
+  , m_ctx{ctx}
 {
   using namespace ossia;
 
@@ -43,7 +47,9 @@ bool MIDIDevice::reconnect()
   m_capas.canSerialize = !set.createWholeTree;
   try
   {
-    auto proto = std::make_unique<ossia::net::midi::midi_protocol>();
+    auto& ctx = m_ctx.plugin<Explorer::DeviceDocumentPlugin>().asioContext;
+
+    auto proto = std::make_unique<ossia::net::midi::midi_protocol>(ctx);
     bool res = proto->set_info(ossia::net::midi::midi_info(
         static_cast<ossia::net::midi::midi_info::Type>(set.io),
         set.endpoint.toStdString(),

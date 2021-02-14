@@ -29,7 +29,7 @@ Device::DeviceInterface* ArtnetProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings,
     const score::DocumentContext& ctx)
 {
-  return new ArtnetDevice{settings};
+  return new ArtnetDevice{settings, ctx};
 }
 
 const Device::DeviceSettings& ArtnetProtocolFactory::defaultSettings() const noexcept

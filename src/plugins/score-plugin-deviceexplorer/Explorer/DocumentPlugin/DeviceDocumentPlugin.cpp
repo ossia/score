@@ -25,6 +25,8 @@
 #include <score/tools/Bind.hpp>
 #include <score/widgets/MessageBox.hpp>
 #include <score/widgets/Pixmap.hpp>
+#include <ossia/network/context.hpp>
+#include <ossia/detail/logger.hpp>
 
 #include <QApplication>
 #include <QDebug>
@@ -52,10 +54,16 @@ DeviceDocumentPlugin::DeviceDocumentPlugin(
         "Explorer::DeviceDocumentPlugin",
         parent}
 {
+  init();
   m_explorer = new DeviceExplorerModel{*this, this};
 }
 
-DeviceDocumentPlugin::~DeviceDocumentPlugin() { }
+DeviceDocumentPlugin::~DeviceDocumentPlugin()
+{
+  m_processMessages = false;
+  asioContext->context.stop();
+  m_asioThread.join();
+}
 
 // MOVEME
 struct print_node_rec
@@ -70,6 +78,20 @@ struct print_node_rec
     }
   }
 };
+
+void DeviceDocumentPlugin::init()
+{
+  asioContext = std::make_shared<ossia::net::network_context>();
+  m_processMessages = true;
+  m_asioThread = std::thread{
+    [this] {
+      while(m_processMessages)
+      {
+        asioContext->run();
+      }
+    }
+  };
+}
 
 void DeviceDocumentPlugin::asyncConnect(Device::DeviceInterface& newdev)
 {
@@ -370,4 +392,5 @@ void DeviceDocumentPlugin::on_valueUpdated(const State::Address& addr, const oss
 {
   updateProxy.updateLocalValue(State::AddressAccessor{addr}, v);
 }
+
 }

@@ -6,7 +6,7 @@
 
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
-#include <ossia/network/joystick/joystick_protocol.hpp>
+#include <ossia/protocols/joystick/joystick_protocol.hpp>
 #include <score/widgets/ComboBox.hpp>
 
 #include <QFormLayout>

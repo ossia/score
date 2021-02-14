@@ -12,7 +12,14 @@
 
 #include <score_plugin_deviceexplorer_export.h>
 
+#include <thread>
 #include <verdigris>
+
+namespace ossia::net
+{
+class network_context;
+using network_context_ptr = std::shared_ptr<network_context>;
+}
 namespace Explorer
 {
 class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final
@@ -34,8 +41,11 @@ public:
   DeviceDocumentPlugin(const score::DocumentContext& ctx, Impl& vis, QObject* parent)
       : score::SerializableDocumentPlugin{ctx, vis, parent}
   {
+    init();
     vis.writeTo(*this);
   }
+
+  void init();
 
   Device::Node& rootNode() { return m_rootNode; }
   const Device::Node& rootNode() const { return m_rootNode; }
@@ -70,6 +80,8 @@ private:
 
   Device::Node m_rootNode;
   Device::DeviceList m_list;
+  std::atomic_bool m_processMessages{};
+  std::thread m_asioThread;
 
   mutable std::unique_ptr<Explorer::ListeningHandler> m_listening;
   DeviceExplorerModel* m_explorer{};
@@ -80,5 +92,6 @@ private:
 
 public:
   NodeUpdateProxy updateProxy{*this};
+  ossia::net::network_context_ptr asioContext;
 };
 }

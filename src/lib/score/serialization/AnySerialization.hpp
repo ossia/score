@@ -36,14 +36,10 @@ struct any_serializer_t final : public any_serializer
 {
   void apply(DataStream::Serializer& s, const ossia::any& val) override
   {
-    try
-    {
-      s.stream() << ossia::any_cast<T>(val);
-    }
-    catch (const std::exception& e)
-    {
-      cast_error(e.what());
-    }
+    if(const T* ptr = std::any_cast<T>(&val))
+      s.stream() << *ptr;
+    else
+      cast_error("");
   }
   void apply(DataStream::Deserializer& s, ossia::any& val) override
   {
@@ -54,14 +50,10 @@ struct any_serializer_t final : public any_serializer
 
   void apply(JSONObject::Serializer& s, const std::string& key, const ossia::any& val) override
   {
-    try
-    {
-      s.obj[key] = ossia::any_cast<T>(val);
-    }
-    catch (const std::exception& e)
-    {
-      cast_error(e.what());
-    }
+    if(const T* ptr = std::any_cast<T>(&val))
+      s.obj[key] = *ptr;
+    else
+      cast_error("");
   }
   void apply(JSONObject::Deserializer& s, const std::string& key, ossia::any& val) override
   {

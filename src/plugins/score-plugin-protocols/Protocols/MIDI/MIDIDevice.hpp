@@ -6,7 +6,7 @@ namespace Protocols
 class MIDIDevice final : public Device::OwningDeviceInterface
 {
 public:
-  MIDIDevice(const Device::DeviceSettings& settings);
+  MIDIDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx);
 
   bool reconnect() override;
 
@@ -19,5 +19,8 @@ public:
 
   bool isLearning() const final override;
   void setLearning(bool) final override;
+
+private:
+  const score::DocumentContext& m_ctx;
 };
 }
