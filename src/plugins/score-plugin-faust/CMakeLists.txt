@@ -11,6 +11,11 @@ if(NOT TARGET score_plugin_media)
   return()
 endif()
 
+if("${CMAKE_CXX_FLAGS}" MATCHES ".*sanitize.*")
+  message("Not building Faust plug-in as ASAN is not supported")
+  return()
+endif()
+
 # Packages
 find_package(Faust)
 if(NOT FAUST_FOUND)

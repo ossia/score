@@ -47,7 +47,7 @@ public:
         // even if the sound is created afterwards there won't be any component
         // anymore
 
-        auto node = std::make_shared<ossia::nodes::dummy_node>();
+        auto node = std::make_shared<ossia::dummy_sound_node>();
         component.node = node;
         component.m_ossia_process = std::make_shared<ossia::sound_process>(node);
       }
