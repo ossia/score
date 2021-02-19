@@ -9,8 +9,8 @@ namespace Protocols
 {
 struct OSCSpecificSettings
 {
-  int inputPort{};
-  int outputPort{};
+  int deviceListeningPort{};
+  int scoreListeningPort{};
   QString host;
   std::optional<int> rate{};
 

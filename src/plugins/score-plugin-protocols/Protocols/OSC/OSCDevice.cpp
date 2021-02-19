@@ -7,11 +7,14 @@
 #include <Explorer/DeviceLogging.hpp>
 #include <Protocols/OSC/OSCSpecificSettings.hpp>
 
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <score/document/DocumentContext.hpp>
+
 #include <score/application/ApplicationContext.hpp>
 
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>
-#include <ossia/network/osc/osc.hpp>
+#include <ossia/protocols/osc/osc_factory.hpp>
 #include <ossia/network/rate_limiting_protocol.hpp>
 
 #include <memory>
@@ -19,7 +22,9 @@
 namespace Protocols
 {
 
-OSCDevice::OSCDevice(const Device::DeviceSettings& settings) : OwningDeviceInterface{settings}
+OSCDevice::OSCDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
+  : OwningDeviceInterface{settings}
+  , m_ctx{ctx}
 {
   using namespace ossia;
   m_capas.canLearn = true;
@@ -32,18 +37,36 @@ bool OSCDevice::reconnect()
 
   try
   {
+    auto& ctx = m_ctx.plugin<Explorer::DeviceDocumentPlugin>().asioContext;
+
     const OSCSpecificSettings& stgs = settings().deviceSpecificSettings.value<OSCSpecificSettings>();
-    std::unique_ptr<ossia::net::protocol_base> ossia_settings
-        = std::make_unique<ossia::net::osc_protocol>(
-            stgs.host.toStdString(), stgs.inputPort, stgs.outputPort);
+    using conf = ossia::net::osc_protocol_configuration;
+    ossia::net::osc_protocol_configuration config;
+    config.mode = conf::CLIENT;
+    config.transport = conf::UDP;
+    config.version = conf::OSC1_0;
+    config.configuration = ossia::net::socket_configuration{
+        "127.0.0.1",
+        stgs.host.toStdString(),
+        uint16_t(stgs.scoreListeningPort),
+        uint16_t(stgs.deviceListeningPort)
+    };
+
+    auto proto = ossia::net::make_osc_protocol(ctx, config);
+
     if (stgs.rate)
     {
-      ossia_settings = std::make_unique<ossia::net::rate_limiting_protocol>(
-          std::chrono::milliseconds{*stgs.rate}, std::move(ossia_settings));
+      auto rate = std::make_unique<ossia::net::rate_limiting_protocol>(
+          std::chrono::milliseconds{*stgs.rate}, std::move(proto));
+      m_dev = std::make_unique<ossia::net::generic_device>(
+          std::move(rate), settings().name.toStdString());
+    }
+    else
+    {
+      m_dev = std::make_unique<ossia::net::generic_device>(
+          std::move(proto), settings().name.toStdString());
     }
 
-    m_dev = std::make_unique<ossia::net::generic_device>(
-        std::move(ossia_settings), settings().name.toStdString());
     deviceChanged(nullptr, m_dev.get());
     setLogging_impl(Device::get_cur_logging(isLogging()));
   }
@@ -69,7 +92,7 @@ void OSCDevice::recreate(const Device::Node& n)
 
 bool OSCDevice::isLearning() const
 {
-  auto& proto = static_cast<ossia::net::osc_protocol&>(m_dev->get_protocol());
+  auto& proto = static_cast<ossia::net::osc_protocol_base&>(m_dev->get_protocol());
   return proto.learning();
 }
 
@@ -77,7 +100,7 @@ void OSCDevice::setLearning(bool b)
 {
   if (!m_dev)
     return;
-  auto& proto = static_cast<ossia::net::osc_protocol&>(m_dev->get_protocol());
+  auto& proto = static_cast<ossia::net::osc_protocol_base&>(m_dev->get_protocol());
   auto& dev = *m_dev;
   if (b)
   {

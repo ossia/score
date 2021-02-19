@@ -48,7 +48,7 @@ Device::DeviceInterface* OSCProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings,
     const score::DocumentContext& ctx)
 {
-  return new OSCDevice{settings};
+  return new OSCDevice{settings, ctx};
 }
 
 const Device::DeviceSettings& OSCProtocolFactory::defaultSettings() const noexcept
@@ -87,6 +87,6 @@ bool OSCProtocolFactory::checkCompatibility(
 {
   auto a_p = a.deviceSpecificSettings.value<OSCSpecificSettings>();
   auto b_p = b.deviceSpecificSettings.value<OSCSpecificSettings>();
-  return a.name != b.name && a_p.inputPort != b_p.inputPort && a_p.outputPort != b_p.outputPort;
+  return a.name != b.name && a_p.deviceListeningPort != b_p.deviceListeningPort && a_p.scoreListeningPort != b_p.scoreListeningPort;
 }
 }

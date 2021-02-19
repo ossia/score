@@ -64,8 +64,8 @@ Device::DeviceSettings OSCProtocolSettingsWidget::getSettings() const
 
   OSCSpecificSettings osc = m_settings;
   osc.host = m_localHostEdit->text();
-  osc.inputPort = m_portInputSBox->value();
-  osc.outputPort = m_portOutputSBox->value();
+  osc.deviceListeningPort = m_portInputSBox->value();
+  osc.scoreListeningPort = m_portOutputSBox->value();
   osc.rate = m_rate->rate();
   osc.jsonToLoad.clear();
 
@@ -97,8 +97,8 @@ void OSCProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settin
   if (settings.deviceSpecificSettings.canConvert<OSCSpecificSettings>())
   {
     m_settings = settings.deviceSpecificSettings.value<OSCSpecificSettings>();
-    m_portInputSBox->setValue(m_settings.inputPort);
-    m_portOutputSBox->setValue(m_settings.outputPort);
+    m_portInputSBox->setValue(m_settings.deviceListeningPort);
+    m_portOutputSBox->setValue(m_settings.scoreListeningPort);
     m_localHostEdit->setText(m_settings.host);
     m_rate->setRate(m_settings.rate);
   }

@@ -10,22 +10,22 @@ void DataStreamReader::read(const Protocols::OSCSpecificSettings& n)
 {
   // TODO put it in the right order before 1.0 final.
   // TODO same for minuit, etc..
-  m_stream << n.outputPort << n.inputPort << n.host << n.rate << n.jsonToLoad;
+  m_stream << n.scoreListeningPort << n.deviceListeningPort << n.host << n.rate << n.jsonToLoad;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Protocols::OSCSpecificSettings& n)
 {
-  m_stream >> n.outputPort >> n.inputPort >> n.host >> n.rate >> n.jsonToLoad;
+  m_stream >> n.scoreListeningPort >> n.deviceListeningPort >> n.host >> n.rate >> n.jsonToLoad;
   checkDelimiter();
 }
 
 template <>
 void JSONReader::read(const Protocols::OSCSpecificSettings& n)
 {
-  obj["OutputPort"] = n.outputPort;
-  obj["InputPort"] = n.inputPort;
+  obj["OutputPort"] = n.scoreListeningPort;
+  obj["InputPort"] = n.deviceListeningPort;
   obj["Host"] = n.host;
   if (n.rate)
     obj["Rate"] = *n.rate;
@@ -34,8 +34,8 @@ void JSONReader::read(const Protocols::OSCSpecificSettings& n)
 template <>
 void JSONWriter::write(Protocols::OSCSpecificSettings& n)
 {
-  n.outputPort = obj["OutputPort"].toInt();
-  n.inputPort = obj["InputPort"].toInt();
+  n.scoreListeningPort = obj["OutputPort"].toInt();
+  n.deviceListeningPort = obj["InputPort"].toInt();
   n.host = obj["Host"].toString();
   if (auto it = obj.tryGet("Rate"))
     n.rate = it->toInt();
