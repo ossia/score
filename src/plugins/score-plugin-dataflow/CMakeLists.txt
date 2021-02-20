@@ -17,6 +17,7 @@ set(HDRS
     Dataflow/ValueInletItem.hpp
     Dataflow/ValueOutletItem.hpp
     Dataflow/DropPortInScenario.hpp
+    Dataflow/WidgetInletFactory.hpp
     score_plugin_dataflow.hpp
 )
 set(SRCS

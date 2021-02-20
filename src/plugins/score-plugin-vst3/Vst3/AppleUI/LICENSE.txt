@@ -1,3 +1,0 @@
-These three files are courtesy of Pierre Cochard. Thanks to him !
-
-https://github.com/pchdev/wpn114

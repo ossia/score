@@ -52,6 +52,7 @@ set(HDRS
     Gfx/Images/Executor.hpp
     Gfx/Images/Metadata.hpp
     Gfx/Images/Process.hpp
+    Gfx/Images/Inspector.hpp
     Gfx/Images/Layer.hpp
 
     Gfx/Graph/main.cpp
@@ -69,11 +70,19 @@ set(HDRS
     Gfx/Graph/videonode.hpp
     Gfx/Graph/phongnode.hpp
     Gfx/Graph/imagenode.hpp
+    Gfx/Graph/texgennode.hpp
     Gfx/Graph/shadercache.hpp
+    Gfx/Graph/decoders/GPUVideoDecoder.hpp
+    Gfx/Graph/decoders/RGBA.hpp
+    Gfx/Graph/decoders/YUV420.hpp
+    Gfx/Graph/decoders/YUV422.hpp
+    Gfx/Graph/decoders/YUYV422.hpp
 
     Gfx/GfxApplicationPlugin.hpp
     Gfx/GfxContext.hpp
     Gfx/GfxExec.hpp
+    Gfx/GfxExecContext.hpp
+    Gfx/GfxParameter.hpp
     Gfx/GfxDevice.hpp
     Gfx/TexturePort.hpp
     Gfx/ShaderProgram.hpp

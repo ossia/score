@@ -27,6 +27,9 @@ set(HDRS
   Vst3/Plugin.hpp
   Vst3/Library.hpp
   Vst3/Widgets.hpp
+  Vst3/UI/Window.hpp
+  Vst3/UI/PlugFrame.hpp
+  Vst3/UI/Linux/PlugFrame.hpp
 
   score_plugin_vst3.hpp
 )

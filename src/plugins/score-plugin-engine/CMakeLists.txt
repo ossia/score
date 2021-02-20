@@ -23,6 +23,7 @@ set(HDRS
   Execution/Settings/ExecutorFactory.hpp
 
   Execution/Clock/ClockFactory.hpp
+  Execution/Clock/ManualClock.hpp
   Execution/Clock/DefaultClock.hpp
   Engine/ApplicationPlugin.hpp
   Engine/Listening/PlayListeningHandler.hpp

@@ -43,6 +43,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/State/OSSIASerializationImpl.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/State/Relation.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/State/Unit.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/UpdateAddress.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/State/ValueConversion.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/State/Value.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/State/ValueSerialization.hpp"

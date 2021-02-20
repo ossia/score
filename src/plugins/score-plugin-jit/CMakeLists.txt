@@ -41,8 +41,9 @@ set(HDRS
     JitCpp/EditScript.hpp
     JitCpp/ClangDriver.hpp
     JitCpp/JitModel.hpp
-    JitCpp/JitUtils.hpp
+    JitCpp/JitOptions.hpp
     JitCpp/JitPlatform.hpp
+    JitCpp/JitUtils.hpp
     JitCpp/ApplicationPlugin.hpp
     JitCpp/MetadataGenerator.hpp
     JitCpp/Compiler/Compiler.hpp
