@@ -138,5 +138,4 @@ struct VSTFloatSlider : ossia::safe_nodes::control_in
       QObject* context);
 };
 
-using LayerFactory = Process::EffectLayerFactory_T<Model, VSTEffectItem/*, VSTWindow */>;
 }

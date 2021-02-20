@@ -26,6 +26,8 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Vst/vst-compat.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Vst/Commands.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Vst/Settings.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Vst/Widgets.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Vst/Window.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_vst.hpp"
   )
 set(SRCS
@@ -33,10 +35,11 @@ set(SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Vst/Loader.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Vst/Control.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Vst/EffectModel.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Vst/Widgets.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Vst/Executor.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Vst/Commands.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Vst/Settings.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Vst/Widgets.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Vst/Window.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_vst.cpp"
   )
 

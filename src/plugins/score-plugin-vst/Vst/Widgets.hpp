@@ -5,8 +5,6 @@
 #include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/TextItem.hpp>
 
-#include <QDialog>
-
 #include <Control/Widgets.hpp>
 
 #include <verdigris>
@@ -89,34 +87,5 @@ struct VSTFloatSlider : ossia::safe_nodes::control_in
       QObject* context);
 };
 
-class Window final : public QDialog
-{
-  W_OBJECT(Window)
-public:
-  static ERect getRect(AEffect& e);
-  static bool hasUI(AEffect& e);
-
-  Window(const Model& e, const score::DocumentContext& ctx, QWidget* parent);
-
-  ~Window() override;
-  void resize(int w, int h);
-
-public:
-  void uiClosing() W_SIGNAL(uiClosing);
-
-private:
-  static void setup_rect(QWidget* container, int width, int height);
-
-  Window(const Model& e, const score::DocumentContext& ctx);
-
-  void resizeEvent(QResizeEvent* event) override;
-  void closeEvent(QCloseEvent* event) override;
-
-  std::weak_ptr<AEffectWrapper> effect;
-  QWidget* m_defaultWidg{};
-  const Model& m_model;
-};
-
-using LayerFactory = Process::EffectLayerFactory_T<Model, EffectItem, Window>;
 
 }

@@ -10,8 +10,13 @@
 #include <Vst3/ApplicationPlugin.hpp>
 #include <Vst3/Control.hpp>
 #include <Vst3/Widgets.hpp>
+#include <Vst3/UI/Window.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 
+namespace vst3
+{
+using LayerFactory = Process::EffectLayerFactory_T<Model, VSTEffectItem, Window>;
+}
 score_plugin_vst3::score_plugin_vst3() { }
 
 score_plugin_vst3::~score_plugin_vst3() { }

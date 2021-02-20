@@ -104,7 +104,28 @@ public:
 class vst_node_base : public ossia::graph_node
 {
 public:
-  Plugin fx{};
+  struct PluginHandle
+  {
+    explicit PluginHandle(const Plugin& p)
+      : component{p.component}
+      , processor{p.processor}
+    {
+      component->addRef();
+      processor->addRef();
+    }
+
+    ~PluginHandle()
+    {
+
+      qDebug() << processor->release();
+      qDebug() << component->release();
+    }
+
+    Steinberg::Vst::IComponent* component{};
+    Steinberg::Vst::IAudioProcessor* processor{};
+  };
+
+  PluginHandle fx;
   // Each element is the amount of channels in a given in/out port
   ossia::small_pod_vector<int, 2> m_audioInputChannels{};
   ossia::small_pod_vector<int, 2> m_audioOutputChannels{};
@@ -115,7 +136,7 @@ public:
 
 
 protected:
-  explicit vst_node_base(Plugin&& ptr) : fx{std::move(ptr)}
+  explicit vst_node_base(const Plugin& ptr) : fx{std::move(ptr)}
   {
     m_inlets.reserve(10);
     controls.reserve(10);

@@ -21,6 +21,7 @@
 #include <Audio/Settings/Model.hpp>
 #include <Audio/Settings/Model.hpp>
 #include <Execution/DocumentPlugin.hpp>
+#include <Vst3/UI/Window.hpp>
 #include <cmath>
 #include <public.sdk/source/vst/hosting/module.h>
 #include <websocketpp/base64/base64.hpp>
@@ -138,12 +139,7 @@ QString Model::prettyName() const noexcept
 
 bool Model::hasExternalUI() const noexcept
 {
-  return false;
-  /*
-  if (!fx)
-    return false;
-  return bool(fx->fx->flags & VstAEffectFlags::effFlagsHasEditor);
-  */
+  return fx.hasUI;
 }
 
 void Model::removeControl(Steinberg::Vst::ParamID fxNum)
@@ -224,7 +220,7 @@ void Model::init()
 
 void Model::on_addControl_impl(ControlInlet* ctrl)
 {
-  connect(ctrl, &ControlInlet::valueChanged, this, [this, i = ctrl->fxNum, c=fx.controller](float newval) {
+  connect(ctrl, &ControlInlet::valueChanged, this, [i = ctrl->fxNum, c=fx.controller](float newval) {
     if (std::abs(newval - c->getParamNormalized(i)) > 0.0001)
       c->setParamNormalized(i, newval);
   });
@@ -252,20 +248,19 @@ void Model::reloadControls()
 
 void Model::closePlugin()
 {
-  /*
   if (fx)
   {
     if (externalUI)
     {
-      auto w = reinterpret_cast<VSTWindow*>(externalUI);
+      auto w = reinterpret_cast<Window*>(externalUI);
       delete w;
     }
-    fx = nullptr;
+    fx.stop();
   }
+
   auto old_inlets = score::clearAndDeleteLater(m_inlets);
   auto old_outlets = score::clearAndDeleteLater(m_outlets);
   metadata().setLabel("Dead VST");
-  */
 }
 
 

@@ -6,6 +6,7 @@
 #include <Vst/Commands.hpp>
 #include <Vst/Control.hpp>
 #include <Vst/Loader.hpp>
+#include <Vst/Window.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>

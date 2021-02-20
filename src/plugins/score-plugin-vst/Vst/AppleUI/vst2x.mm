@@ -1,15 +1,20 @@
 #include <AppKit/AppKit.h>
-#include <Vst/vst-compat.hpp>
-#include <Vst/Widgets.hpp>
 #include <Foundation/Foundation.h>
 #include <CoreFoundation/CFBundle.h>
-#include <iostream>
-#include <QMacCocoaViewContainer>
-#include <Vst/AppleUI/vstwindow.h>
-#include <QApplication>
-#include <QWindow>
+
+#include <Vst/vst-compat.hpp>
+#include <Vst/Window.hpp>
+#include <Vst/Widgets.hpp>
 #include <Vst/EffectModel.hpp>
+#include <Vst/AppleUI/vstwindow.h>
+
+#include <QMacCocoaViewContainer>
+
+#include <QWindow>
+#include <QApplication>
 #include <QDebug>
+
+#include <iostream>
 
 namespace vst
 {

@@ -6,6 +6,7 @@
 #include <Vst/Library.hpp>
 #include <Vst/Settings.hpp>
 #include <Vst/Widgets.hpp>
+#include <Vst/Window.hpp>
 #include <Library/LibraryInterface.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
@@ -19,6 +20,10 @@
 #include <score_plugin_vst_commands_files.hpp>
 #include <wobjectimpl.h>
 
+namespace vst
+{
+using LayerFactory = Process::EffectLayerFactory_T<Model, EffectItem, Window>;
+}
 
 score_plugin_vst::score_plugin_vst()
 {

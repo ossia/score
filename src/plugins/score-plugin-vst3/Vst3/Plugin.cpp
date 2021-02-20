@@ -1,13 +1,13 @@
 #include <Vst3/Plugin.hpp>
 #include <Vst3/ApplicationPlugin.hpp>
 
-#include <pluginterfaces/gui/iplugview.h>
-#include <pluginterfaces/gui/iplugview.h>
 
 #include <ossia/detail/algorithms.hpp>
 
 #include <QTimer>
 #include <QWindow>
+
+#include <Vst3/UI/Window.hpp>
 
 namespace vst3
 {
@@ -17,6 +17,11 @@ using namespace Steinberg;
 class Handler : public Steinberg::Vst::IComponentHandler
 {
 public:
+  ~Handler()
+  {
+    qDebug() << "~Handler()";
+  }
+
   Steinberg::tresult queryInterface(const Steinberg::TUID _iid, void** obj) override
   {
     return {};
@@ -38,7 +43,6 @@ public:
   }
   Steinberg::tresult performEdit(Steinberg::Vst::ParamID id, Steinberg::Vst::ParamValue valueNormalized) override
   {
-    qDebug() << id << valueNormalized;
     return Steinberg::kResultOk;
   }
   Steinberg::tresult endEdit(Steinberg::Vst::ParamID id) override
@@ -54,6 +58,11 @@ public:
 class ConnectionPoint : public Steinberg::Vst::IConnectionPoint
 {
 public:
+  ~ConnectionPoint()
+  {
+    qDebug() << "~ConnectionPoint()";
+  }
+
   Steinberg::tresult queryInterface(const Steinberg::TUID _iid, void** obj) override
   {
     return {};
@@ -81,108 +90,6 @@ public:
     return Steinberg::kResultOk;
   }
 };
-
-
-
-
-#if defined(__linux__)
-class PlugFrame
-    : virtual public Steinberg::IPlugFrame
-    , virtual public Steinberg::Linux::IRunLoop
-{
-public:
-  std::vector<std::pair<Linux::ITimerHandler*, QTimer*>> timers;
-  tresult queryInterface (const TUID _iid, void** obj) override
-  {
-    if(FUID::fromTUID(_iid)  == Linux::IRunLoop::iid)
-    {
-      *obj = static_cast<Steinberg::Linux::IRunLoop*>(this);
-      return kResultOk;
-    }
-    *obj = nullptr;
-    return kResultFalse;
-  }
-
-   uint32  addRef () override
-   {
-     return 1;
-
-   }
-
-   uint32  release () override
-   {
-     return 1;
-
-   }
-   tresult PLUGIN_API registerEventHandler (Linux::IEventHandler* handler, Linux::FileDescriptor fd) override {
-
-     qDebug() << "registerEventHandler";
-     return kResultOk;
-   }
-   tresult PLUGIN_API unregisterEventHandler (Linux::IEventHandler* handler)  override {
-
-     qDebug() << "unregisterEventHandler";
-     return kResultOk;
-   }
-
-   tresult PLUGIN_API registerTimer (Linux::ITimerHandler* handler,
-                 Linux::TimerInterval milliseconds)  override {
-
-     auto t = new QTimer;
-     QObject::connect(t, &QTimer::timeout, [=] { handler->onTimer(); });
-     t->start(milliseconds);
-     timers.push_back({handler, t});
-     qDebug() << "registerTimer" << milliseconds;
-     return kResultOk;
-   }
-   tresult PLUGIN_API unregisterTimer (Linux::ITimerHandler* handler)  override {
-
-     auto t = ossia::find_if(timers, [=] (auto& p1) { return p1.first == handler; });
-     if(t != timers.end())
-     {
-       delete t->second;
-       timers.erase(t);
-     }
-     qDebug() << "unregisterTimer";
-     return kResultOk;
-   }
-
-  QWindow &w;
-  PlugFrame(QWindow &w): w{w} { }
-
-  tresult  resizeView (Steinberg::IPlugView* view, Steinberg::ViewRect* newSize) override
-  {
-    auto& r = *newSize;
-    w.resize(QSize{r.getWidth(), r.getHeight()});
-    return Steinberg::kResultOk;
-  }
-};
-#elif defined(_WIN32) || defined(__APPLE__)
-class PlugFrame
-    : virtual public Steinberg::IPlugFrame
-{
-public:
-  tresult queryInterface(const TUID _iid, void** obj) override
-  {
-    *obj = nullptr;
-    return kResultFalse;
-  }
-
-  uint32 addRef() override { return 1; }
-  uint32 release() override { return 1; }
-
-  QWindow& w;
-  PlugFrame(QWindow& w) : w{w} { }
-
-  tresult resizeView(Steinberg::IPlugView* view, Steinberg::ViewRect* newSize) override
-  {
-    auto& r = *newSize;
-    w.resize(QSize{r.getWidth(), r.getHeight()});
-    return Steinberg::kResultOk;
-  }
-};
-
-#endif
 
 static Steinberg::Vst::IComponent* createComponent(
     VST3::Hosting::Module& mdl,
@@ -273,11 +180,11 @@ void Plugin::loadEditController(ApplicationPlugin& ctx)
 
   // Try to instantiate a veiw
   // ridiculous
-  Steinberg::IPlugView* view;
+  Steinberg::IPlugView* view{};
   if (!(view = controller->createView(Steinberg::Vst::ViewType::kEditor))) {
     if (!(view = controller->createView(nullptr))) {
       if (controller->queryInterface (IPlugView::iid, (void**)&view) == Steinberg::kResultOk) {
-        view->addRef ();
+        view->addRef();
         // TODO don't forget to unref in that case *_*
       }
     }
@@ -287,27 +194,7 @@ void Plugin::loadEditController(ApplicationPlugin& ctx)
   if(view)
   {
     this->view = view;
-
-    using namespace Steinberg;
-#if defined (__APPLE__)
-    const auto& platform = Steinberg::kPlatformTypeNSView;
-#elif defined(__linux__)
-    const auto& platform = Steinberg::kPlatformTypeX11EmbedWindowID;
-#elif defined(_WIN32)
-    const auto& platform = Steinberg::kPlatformTypeHWND;
-#endif
-    auto supported = view->isPlatformTypeSupported(platform);
-
-    if(supported == Steinberg::kResultTrue)
-    {
-      auto z = new QWindow;
-      Steinberg::ViewRect r;
-      view->getSize(&r);
-      z->resize(QSize{r.getWidth(), r.getHeight()});
-      z->show();
-      view->setFrame(new PlugFrame{*z});
-      view->attached((void*)z->winId(), platform);
-    }
+    this->hasUI = view->isPlatformTypeSupported(currentPlatform()) == Steinberg::kResultTrue;
   }
 }
 
@@ -330,10 +217,10 @@ void Plugin::load(
 
   loadBuses();
 
-  startPlugin(sample_rate, max_bs);
+  start(sample_rate, max_bs);
 }
 
-void Plugin::startPlugin(double_t sample_rate, int max_bs)
+void Plugin::start(double_t sample_rate, int max_bs)
 {
   // Some level of introspection
   auto sampleSize = Steinberg::Vst::kSample32;
@@ -355,6 +242,37 @@ void Plugin::startPlugin(double_t sample_rate, int max_bs)
 
   if (component->setActive(true) != Steinberg::kResultOk)
     throw vst_error("Couldn't set VST3 active ({})", path);
+}
+
+void Plugin::stop()
+{
+  if(!component)
+    return;
+
+  component->setActive(false);
+
+
+  if(view)
+  {
+    qDebug() << view->release();
+    view = nullptr;
+  }
+
+  if(controller)
+  {
+    qDebug() << controller->release();
+    controller = nullptr;
+  }
+
+  if(processor)
+  {
+    qDebug() << processor->release();
+    processor = nullptr;
+  }
+
+  qDebug() << component->release();
+  component = nullptr;
+
 }
 
 Plugin::~Plugin()

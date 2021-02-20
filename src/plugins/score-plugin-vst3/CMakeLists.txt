@@ -68,6 +68,7 @@ target_link_libraries(${PROJECT_NAME}
   PRIVATE
     score_plugin_engine
     score_plugin_dataflow
+    score_plugin_media
     sdk_common sdk_hosting
 )
 
