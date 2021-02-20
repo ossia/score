@@ -511,6 +511,10 @@ inline void operator<<=(std::string& t, const JsonValue& self)
 {
   t = self.toStdString();
 }
+inline void operator<<=(QByteArray& t, const JsonValue& self)
+{
+  t = self.toByteArray();
+}
 inline void operator<<=(bool& t, const JsonValue& self)
 {
   t = self.toBool();

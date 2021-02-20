@@ -15,6 +15,7 @@
 namespace vst3
 {
 class ApplicationPlugin;
+class Model;
 
 inline
 QString fromString(const Steinberg::Vst::String128& str) {
@@ -34,7 +35,12 @@ struct Plugin
 
   ~Plugin();
 
-  void load(ApplicationPlugin& ctx, const std::string& path, const std::string& name, double sr, int max_bs);
+  void load(
+      Model& model,
+      ApplicationPlugin& ctx,
+      const std::string& path,
+      const std::string& name,
+      double sr, int max_bs);
   operator bool() const noexcept { return component && processor; }
 
   std::string path;
@@ -45,8 +51,12 @@ struct Plugin
   Steinberg::IPlugView* view{};
 
   void loadAudioProcessor(ApplicationPlugin& ctx);
-  void loadEditController(ApplicationPlugin& ctx);
+  void loadEditController(
+      Model& model,
+      ApplicationPlugin& ctx);
   void loadBuses();
+
+  void loadPluginState();
 
   void start(double sample_rate, int max_bs);
   void stop();

@@ -1,7 +1,7 @@
 #include <Vst3/Plugin.hpp>
+#include <Vst3/DataStream.hpp>
+#include <Vst3/EditHandler.hpp>
 #include <Vst3/ApplicationPlugin.hpp>
-
-
 #include <ossia/detail/algorithms.hpp>
 
 #include <QTimer>
@@ -9,87 +9,12 @@
 
 #include <Vst3/UI/Window.hpp>
 
+
 namespace vst3
 {
 using namespace Steinberg;
 
 
-class Handler : public Steinberg::Vst::IComponentHandler
-{
-public:
-  ~Handler()
-  {
-    qDebug() << "~Handler()";
-  }
-
-  Steinberg::tresult queryInterface(const Steinberg::TUID _iid, void** obj) override
-  {
-    return {};
-  }
-  Steinberg::uint32 addRef() override
-  {
-    return 1;
-  }
-  Steinberg::uint32 release() override
-  {
-    return 1;
-  }
-
-  // IComponentHandler interface
-public:
-  Steinberg::tresult beginEdit(Steinberg::Vst::ParamID id) override
-  {
-    return Steinberg::kResultOk;
-  }
-  Steinberg::tresult performEdit(Steinberg::Vst::ParamID id, Steinberg::Vst::ParamValue valueNormalized) override
-  {
-    return Steinberg::kResultOk;
-  }
-  Steinberg::tresult endEdit(Steinberg::Vst::ParamID id) override
-  {
-    return Steinberg::kResultOk;
-  }
-  Steinberg::tresult restartComponent(Steinberg::int32 flags) override
-  {
-    return Steinberg::kResultOk;
-  }
-};
-
-class ConnectionPoint : public Steinberg::Vst::IConnectionPoint
-{
-public:
-  ~ConnectionPoint()
-  {
-    qDebug() << "~ConnectionPoint()";
-  }
-
-  Steinberg::tresult queryInterface(const Steinberg::TUID _iid, void** obj) override
-  {
-    return {};
-  }
-  Steinberg::uint32 addRef() override
-  {
-    return 1;
-  }
-  Steinberg::uint32 release() override
-  {
-    return 1;
-  }
-
-public:
-  Steinberg::tresult connect(Steinberg::Vst::IConnectionPoint* other) override
-  {
-    return Steinberg::kResultOk;
-  }
-  Steinberg::tresult disconnect(Steinberg::Vst::IConnectionPoint* other) override
-  {
-    return Steinberg::kResultOk;
-  }
-  Steinberg::tresult notify(Steinberg::Vst::IMessage* message) override
-  {
-    return Steinberg::kResultOk;
-  }
-};
 
 static Steinberg::Vst::IComponent* createComponent(
     VST3::Hosting::Module& mdl,
@@ -128,7 +53,25 @@ void Plugin::loadBuses()
   event_outs = component->getBusCount(Steinberg::Vst::kEvent, Steinberg::Vst::kOutput);
 }
 
-void Plugin::loadEditController(ApplicationPlugin& ctx)
+void Plugin::loadPluginState()
+{
+  // Copy the state from the processor component to the controller
+
+  QByteArray arr;
+  QDataStream str{&arr, QIODevice::ReadWrite};
+  Vst3DataStream stream{str};
+  // thanks steinberg doc not even up to date.... stream.setByteOrder (kLittleEndian);
+  if (this->component->getState(&stream) == kResultTrue)
+  {
+    Steinberg::int64 res{};
+    stream.seek(0, Steinberg::IBStream::kIBSeekSet, &res);
+    controller->setComponentState (&stream);
+  }
+}
+
+void Plugin::loadEditController(
+    Model& model,
+    ApplicationPlugin& ctx)
 {
   Steinberg::Vst::IEditController* controller{};
   auto ctl_res = component->queryInterface(Steinberg::Vst::IEditController::iid, (void **)&controller);
@@ -156,7 +99,7 @@ void Plugin::loadEditController(ApplicationPlugin& ctx)
 
   // Connect the controller to the component... for... reasons
   {
-    controller->setComponentHandler(new Handler);
+    controller->setComponentHandler(new Handler{model});
     using namespace Steinberg;
     using namespace Steinberg::Vst;
     // TODO need disconnection
@@ -171,15 +114,13 @@ void Plugin::loadEditController(ApplicationPlugin& ctx)
 
     if(compICP && contrICP)
     {
-      if (compICP->connect (contrICP) != kResultTrue)
-      {
-        contrICP->connect (compICP);
-      }
+      compICP->connect(contrICP);
+      contrICP->connect(compICP);
     }
   }
 
-  // Try to instantiate a veiw
-  // ridiculous
+  // Try to instantiate a view
+  // r i d i c u l o u s
   Steinberg::IPlugView* view{};
   if (!(view = controller->createView(Steinberg::Vst::ViewType::kEditor))) {
     if (!(view = controller->createView(nullptr))) {
@@ -199,6 +140,7 @@ void Plugin::loadEditController(ApplicationPlugin& ctx)
 }
 
 void Plugin::load(
+    Model& model,
     ApplicationPlugin& ctx,
     const std::string& path, const std::string& name,
     double sample_rate, int max_bs)
@@ -213,7 +155,7 @@ void Plugin::load(
   // Reload: component->getState();
   loadAudioProcessor(ctx);
 
-  loadEditController(ctx);
+  loadEditController(model, ctx);
 
   loadBuses();
 

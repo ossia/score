@@ -40,6 +40,7 @@ namespace vst3
 
 class CreateVSTControl;
 class ControlInlet;
+struct PortCreationVisitor;
 
 class Model final : public Process::ProcessModel
 {
@@ -76,6 +77,7 @@ public:
 
   void on_addControl(const Steinberg::Vst::ParameterInfo& v);
   void on_addControl_impl(ControlInlet* inl);
+  void initControl(ControlInlet* inl);
 
   void reloadControls();
 
@@ -83,13 +85,18 @@ private:
   void init();
   void create();
   void load();
+  QByteArray readState() const;
+  void writeState();
 
   QString m_vstPath;
   QString m_className;
 
+  QByteArray m_dataToLoad;
+
   void closePlugin();
   void initFx();
 
+  friend struct PortCreationVisitor;
 };
 }
 
