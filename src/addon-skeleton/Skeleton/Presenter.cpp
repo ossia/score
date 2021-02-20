@@ -9,7 +9,7 @@ namespace Skeleton
 Presenter::Presenter(
     const Model& layer, View* view,
     const Process::Context& ctx, QObject* parent)
-    : Process::LayerPresenter{ctx, parent}, m_model{layer}, m_view{view}
+    : Process::LayerPresenter{layer, view, ctx, parent}, m_model{layer}, m_view{view}
 {
 }
 
@@ -41,13 +41,4 @@ void Presenter::parentGeometryChanged()
 {
 }
 
-const Process::ProcessModel& Presenter::model() const
-{
-  return m_model;
-}
-
-const Id<Process::ProcessModel>& Presenter::modelId() const
-{
-  return m_model.id();
-}
 }

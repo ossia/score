@@ -26,9 +26,6 @@ public:
 
   void parentGeometryChanged() override;
 
-  const Process::ProcessModel& model() const override;
-  const Id<Process::ProcessModel>& modelId() const override;
-
 private:
   const Model& m_model;
   View* m_view{};
