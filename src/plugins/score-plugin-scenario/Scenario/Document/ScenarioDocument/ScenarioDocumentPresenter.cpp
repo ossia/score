@@ -957,10 +957,8 @@ void ScenarioDocumentPresenter::setNewSelection(const Selection& old, const Sele
         newProc->selection.set(true);
       }
       cur_proc_connection = connect(
-          newProc,
-          &Process::ProcessModel::identified_object_destroying,
-          this,
-          [&] { m_selectionDispatcher.deselect(); },
+          newProc, &Process::ProcessModel::identified_object_destroying,
+          this, &ScenarioDocumentPresenter::deselectAll,
           Qt::UniqueConnection);
     }
 
