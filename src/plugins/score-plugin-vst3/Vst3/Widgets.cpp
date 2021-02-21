@@ -203,7 +203,7 @@ QWidget* VSTFloatSlider::make_widget(
     sl->moving = false;
   });
 
-  QObject::connect(&inlet, &ControlInlet::valueChanged, sl, [=](float val) {
+  QObject::connect(&inlet, &vst3::ControlInlet::valueChanged, sl, [=](float val) {
     if (!sl->moving)
       sl->setValue(val);
   });
@@ -229,7 +229,7 @@ QGraphicsItem* VSTFloatSlider::make_item(
     sl->moving = false;
   });
 
-  QObject::connect(&inlet, &ControlInlet::valueChanged, sl, [=](float val) {
+  QObject::connect(&inlet, &vst3::ControlInlet::valueChanged, sl, [=](float val) {
     if (!sl->moving)
       sl->setValue(val);
   });

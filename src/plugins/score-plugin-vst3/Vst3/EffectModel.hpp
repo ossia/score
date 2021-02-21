@@ -85,13 +85,15 @@ private:
   void init();
   void create();
   void load();
-  QByteArray readState() const;
+  QByteArray readProcessorState() const;
+  QByteArray readControllerState() const;
   void writeState();
 
   QString m_vstPath;
   QString m_className;
 
-  QByteArray m_dataToLoad;
+  QByteArray m_savedProcessorState;
+  QByteArray m_savedControllerState;
 
   void closePlugin();
   void initFx();

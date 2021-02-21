@@ -56,7 +56,7 @@ struct Plugin
       ApplicationPlugin& ctx);
   void loadBuses();
 
-  void loadPluginState();
+  void loadProcessorStateToController();
 
   void start(double sample_rate, int max_bs);
   void stop();

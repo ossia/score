@@ -116,7 +116,6 @@ public:
 
     ~PluginHandle()
     {
-
       qDebug() << processor->release();
       qDebug() << component->release();
     }

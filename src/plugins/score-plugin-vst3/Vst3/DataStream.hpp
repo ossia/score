@@ -9,7 +9,10 @@ struct Vst3DataStream
 {
 public:
   QDataStream& stream;
-  explicit Vst3DataStream(QDataStream& s): stream{s} { }
+  explicit Vst3DataStream(QDataStream& s): stream{s}
+  {
+    s.setByteOrder(QDataStream::LittleEndian);
+  }
   Steinberg::tresult queryInterface(const Steinberg::TUID _iid, void **obj) override
   {
     return Steinberg::kResultFalse;
@@ -26,6 +29,7 @@ public:
   Steinberg::tresult read(void *buffer, Steinberg::int32 numBytes, Steinberg::int32 *numBytesRead) override
   {
     int count = stream.readRawData((char*)buffer, numBytes);
+    qDebug() << "Read: " << count;
     if(numBytesRead)
       *numBytesRead = count;
     return Steinberg::kResultTrue;

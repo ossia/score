@@ -53,19 +53,19 @@ void Plugin::loadBuses()
   event_outs = component->getBusCount(Steinberg::Vst::kEvent, Steinberg::Vst::kOutput);
 }
 
-void Plugin::loadPluginState()
+void Plugin::loadProcessorStateToController()
 {
   // Copy the state from the processor component to the controller
 
   QByteArray arr;
-  QDataStream str{&arr, QIODevice::ReadWrite};
-  Vst3DataStream stream{str};
+  QDataStream write_stream{&arr, QIODevice::ReadWrite};
+  Vst3DataStream stream{write_stream};
   // thanks steinberg doc not even up to date.... stream.setByteOrder (kLittleEndian);
   if (this->component->getState(&stream) == kResultTrue)
   {
-    Steinberg::int64 res{};
-    stream.seek(0, Steinberg::IBStream::kIBSeekSet, &res);
-    controller->setComponentState (&stream);
+    QDataStream read_stream{arr};
+    Vst3DataStream stream{read_stream};
+    qDebug() << controller->setComponentState(&stream);
   }
 }
 
@@ -152,7 +152,6 @@ void Plugin::load(
   if(component->initialize(&ctx.m_host) != Steinberg::kResultOk)
     throw vst_error("Couldn't initialize VST3 component ({})", path);
 
-  // Reload: component->getState();
   loadAudioProcessor(ctx);
 
   loadEditController(model, ctx);

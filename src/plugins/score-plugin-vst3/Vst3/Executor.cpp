@@ -32,6 +32,7 @@ void Executor::setupNode(Node_T& node)
       auto queue_idx = node->add_control(new ossia::value_inlet, ctrl->fxNum, ctrl->value());
       connect(ctrl, &vst3::ControlInlet::valueChanged,
               this, [queue_idx, node] (float v) {
+        qDebug() << v;
         node->set_control(queue_idx, v);
       });
     }
