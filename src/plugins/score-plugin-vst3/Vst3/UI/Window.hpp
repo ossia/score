@@ -1,6 +1,4 @@
 #pragma once
-#include <Vst3/UI/Linux/PlugFrame.hpp>
-#include <Vst3/UI/PlugFrame.hpp>
 #include <Vst3/EffectModel.hpp>
 
 #include <score/application/ApplicationContext.hpp>
@@ -8,6 +6,7 @@
 
 #include <pluginterfaces/gui/iplugview.h>
 
+#include <QWindow>
 #include <QDialog>
 
 namespace vst3
@@ -24,10 +23,20 @@ inline const char* currentPlatform()
 #endif
   return "";
 }
+struct WindowContainer
+{
+  WId nativeId;
+  QWindow* qwindow{};
+  QWidget* container{};
+};
+
+class Window;
+WindowContainer createVstWindowContainer(Window& parentWindow, const Model& e, const score::DocumentContext& ctx);
 
 class Window : public QDialog
 {
   const Model& m_model;
+  WindowContainer container;
 public:
   Window(const Model& e, const score::DocumentContext& ctx, QWidget* parent)
     : QDialog{parent}
@@ -37,21 +46,7 @@ public:
 
     setAttribute(Qt::WA_DeleteOnClose, true);
 
-    Steinberg::ViewRect r;
-    view.getSize(&r);
-
-    if(view.canResize())
-    {
-      resize(QSize{r.getWidth(), r.getHeight()});
-    }
-    else
-    {
-      setFixedSize(QSize{r.getWidth(), r.getHeight()});
-    }
-    show();
-
-    view.setFrame(new PlugFrame{*this->windowHandle()});
-    view.attached((void*)winId(), currentPlatform());
+    container = createVstWindowContainer(*this, e, ctx);
 
     bool ontop = score::AppContext().settings<Media::Settings::Model>().getVstAlwaysOnTop();
     if (ontop)
@@ -62,6 +57,7 @@ public:
     {
       setWindowFlags(windowFlags() | Qt::WindowCloseButtonHint);
     }
+    show();
 
     e.externalUIVisible(true);
   }
@@ -69,15 +65,21 @@ public:
   void resizeEvent(QResizeEvent* event)
   {
     QDialog::resizeEvent(event);
+
     Steinberg::IPlugView& view = *m_model.fx.view;
 
     auto& g = this->geometry();
     Steinberg::ViewRect r;
-    r.top = g.top();
-    r.bottom = g.bottom();
-    r.left = g.left();
-    r.bottom = g.right();
-    view.onSize(&r);
+    r.top = 0;
+    r.bottom = g.height();
+    r.left = 0;
+    r.bottom = g.width();
+
+    container.qwindow->resize(r.getWidth(), r.getHeight());
+    container.container->resize(r.getWidth(), r.getHeight());
+
+    if(view.canResize() == Steinberg::kResultTrue)
+      view.onSize(&r);
   }
 
 

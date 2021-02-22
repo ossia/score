@@ -127,7 +127,7 @@ void ApplicationPlugin::initialize()
   {
     vst_infos = val.value<std::vector<AvailablePlugin>>();
   }
-  vst_infos.clear();
+  //vst_infos.clear();
 
   vstChanged();
 

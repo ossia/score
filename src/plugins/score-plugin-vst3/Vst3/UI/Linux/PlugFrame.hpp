@@ -89,9 +89,12 @@ public:
   {
     auto& r = *newSize;
     w.resize(QSize{r.getWidth(), r.getHeight()});
-    QTimer::singleShot(0, &w, [view, r] () mutable {
+
+    if(view->canResize())
+    {
       view->onSize(&r);
-    });
+    }
+
     return Steinberg::kResultOk;
   }
 };

@@ -14,8 +14,6 @@ namespace vst3
 {
 using namespace Steinberg;
 
-
-
 static Steinberg::Vst::IComponent* createComponent(
     VST3::Hosting::Module& mdl,
     const std::string& name)
@@ -65,7 +63,7 @@ void Plugin::loadProcessorStateToController()
   {
     QDataStream read_stream{arr};
     Vst3DataStream stream{read_stream};
-    qDebug() << controller->setComponentState(&stream);
+    controller->setComponentState(&stream);
   }
 }
 
@@ -83,9 +81,6 @@ void Plugin::loadEditController(
       FUID f{cid};
       mdl->getFactory().get()->createInstance(
           f, Steinberg::Vst::IEditController::iid, (void**)&controller);
-
-      if(controller)
-        controller->initialize(&ctx.m_host);
     }
   }
 
@@ -95,6 +90,7 @@ void Plugin::loadEditController(
     return;
   }
 
+  controller->initialize(&ctx.m_host);
   this->controller = controller;
 
   // Connect the controller to the component... for... reasons
@@ -192,7 +188,6 @@ void Plugin::stop()
 
   component->setActive(false);
 
-
   if(view)
   {
     qDebug() << view->release();
@@ -201,6 +196,7 @@ void Plugin::stop()
 
   if(controller)
   {
+    controller->terminate();
     qDebug() << controller->release();
     controller = nullptr;
   }
@@ -211,6 +207,7 @@ void Plugin::stop()
     processor = nullptr;
   }
 
+  component->terminate();
   qDebug() << component->release();
   component = nullptr;
 

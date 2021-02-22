@@ -29,7 +29,6 @@ public:
   Steinberg::tresult read(void *buffer, Steinberg::int32 numBytes, Steinberg::int32 *numBytesRead) override
   {
     int count = stream.readRawData((char*)buffer, numBytes);
-    qDebug() << "Read: " << count;
     if(numBytesRead)
       *numBytesRead = count;
     return Steinberg::kResultTrue;

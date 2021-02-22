@@ -2,12 +2,13 @@
 #include <pluginterfaces/gui/iplugview.h>
 
 #include <QWindow>
+#include <QTimer>
 
 namespace vst3
 {
 #if defined(_WIN32) || defined(__APPLE__)
-class PlugFrame
-    : virtual public Steinberg::IPlugFrame
+class PlugFrame final
+    : public Steinberg::IPlugFrame
 {
 public:
   Steinberg::tresult queryInterface(const Steinberg::TUID _iid, void** obj) override
@@ -26,6 +27,10 @@ public:
   {
     auto& r = *newSize;
     w.resize(QSize{r.getWidth(), r.getHeight()});
+    if(view->canResize() == Steinberg::kResultTrue)
+    {
+      view->onSize(&r);
+    }
     return Steinberg::kResultOk;
   }
 };

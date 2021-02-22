@@ -52,14 +52,24 @@ add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 if(WIN32)
   target_sources(${PROJECT_NAME} PRIVATE
     "${VST3_SDK_ROOT}/public.sdk/source/vst/hosting/module_win32.cpp"
+    Vst3/UI/Window.cpp
   )
 elseif(APPLE)
   target_sources(${PROJECT_NAME} PRIVATE
     "${VST3_SDK_ROOT}/public.sdk/source/vst/hosting/module_mac.mm"
+    Vst3/UI/macOS/Window.mm
+  )
+
+  set_source_files_properties(
+      "${VST3_SDK_ROOT}/public.sdk/source/vst/hosting/module_mac.mm"
+      Vst3/UI/macOS/Window.mm
+    PROPERTIES
+      SKIP_UNITY_BUILD_INCLUSION 1
   )
 else()
   target_sources(${PROJECT_NAME} PRIVATE
     "${VST3_SDK_ROOT}/public.sdk/source/vst/hosting/module_linux.cpp"
+    Vst3/UI/Window.cpp
   )
 endif()
 
