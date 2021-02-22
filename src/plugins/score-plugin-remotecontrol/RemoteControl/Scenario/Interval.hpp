@@ -24,6 +24,8 @@ public:
       DocumentPlugin& doc,
       QObject* parent_comp);
 
+  ~IntervalBase();
+
   ProcessComponent* make(
       const Id<score::Component>& id,
       ProcessComponentFactory& factory,

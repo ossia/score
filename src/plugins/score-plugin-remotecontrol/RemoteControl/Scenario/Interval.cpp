@@ -63,6 +63,7 @@ struct IntervalMessages
     }
   }
 };
+
 IntervalBase::IntervalBase(
     const Id<score::Component>& id,
     Scenario::IntervalModel& Interval,
@@ -70,6 +71,7 @@ IntervalBase::IntervalBase(
     QObject* parent_comp)
     : parent_t{Interval, doc, id, "IntervalComponent", parent_comp}
 {
+  doc.registerInterval(Interval);
   con(Interval, &Scenario::IntervalModel::executionStarted,
       this, [this] {
     RemoteControl::Handler h;
@@ -89,6 +91,13 @@ IntervalBase::IntervalBase(
       this, [this] {
     system().receiver.removeHandler(this);
   });
+}
+
+IntervalBase::~IntervalBase()
+{
+  SCORE_ASSERT(this->m_interval);
+
+  system().unregisterInterval(*this->m_interval);
 }
 
 ProcessComponent* IntervalBase::make(

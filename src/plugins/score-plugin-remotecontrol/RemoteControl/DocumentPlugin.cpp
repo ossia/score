@@ -46,9 +46,65 @@ DocumentPlugin::DocumentPlugin(
           cleanup();
       },
       Qt::QueuedConnection);
+
+  con(doc.coarseUpdateTimer, &QTimer::timeout,
+      this, &DocumentPlugin::heartbeat);
 }
 
-DocumentPlugin::~DocumentPlugin() { }
+DocumentPlugin::~DocumentPlugin()
+{
+
+}
+
+void DocumentPlugin::heartbeat()
+{
+  if(receiver.clients().size() == 0)
+    return;
+
+  JSONReader r;
+  r.stream.StartObject();
+
+  r.stream.Key("Intervals");
+  r.stream.StartArray();
+  for(auto& it : this->m_intervals)
+  {
+    if(*it.second.progress > 0.)
+    {
+      r.stream.StartObject();
+
+      r.stream.Key("Path");
+      r.stream.String(it.second.path);
+
+      r.stream.Key("Progress");
+      r.stream.Double(*it.second.progress);
+
+      r.stream.EndObject();
+    }
+  }
+  r.stream.EndArray();
+  r.stream.EndObject();
+
+  const QString str = r.toString();
+
+  for(auto& clt : receiver.clients())
+  {
+    clt.socket->sendTextMessage(str);
+  }
+}
+
+void DocumentPlugin::registerInterval(Scenario::IntervalModel& m)
+{
+  m_intervals[m.id().val()] = IntervalData{
+      &m,
+      &m.duration.playPercentage(),
+      Path<Scenario::IntervalModel>{m}.unsafePath().toString().toStdString()
+  };
+}
+
+void DocumentPlugin::unregisterInterval(Scenario::IntervalModel& m)
+{
+  m_intervals.erase(m.id().val());
+}
 
 void DocumentPlugin::on_documentClosing()
 {

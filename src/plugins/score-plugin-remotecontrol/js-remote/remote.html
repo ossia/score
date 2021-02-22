@@ -95,7 +95,9 @@
             ws = new WebSocket(endpoint);
 
             ws.onmessage = function (event) {
+
                 var obj = JSON.parse(event.data);
+                console.log(obj);
                 if (obj.Message === "TriggerAdded") {
                     triggers.push(obj);
                 } else if (obj.Message === "TriggerRemoved") {

@@ -4,6 +4,7 @@
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score/tools/std/StringHash.hpp>
 
+#include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/flat_map.hpp>
 #include <nano_observer.hpp>
 
@@ -24,6 +25,7 @@ class DeviceDocumentPlugin;
 }
 namespace Scenario
 {
+class IntervalModel;
 class TimeSyncModel;
 }
 namespace RemoteControl
@@ -96,6 +98,9 @@ public:
 
   void socketDisconnected();
 
+  const std::vector<WSClient>& clients() const noexcept
+  { return m_clients; }
+
 private:
   void on_valueUpdated(const ::State::Address& addr, const ossia::value& v);
 
@@ -117,12 +122,26 @@ public:
   DocumentPlugin(const score::DocumentContext& doc, Id<score::DocumentPlugin> id, QObject* parent);
   ~DocumentPlugin();
 
+  void heartbeat();
+
+  void registerInterval(Scenario::IntervalModel& m);
+  void unregisterInterval(Scenario::IntervalModel& m);
+
   void on_documentClosing() override;
   Receiver receiver;
 
 private:
   void create();
   void cleanup();
+
+  struct IntervalData
+  {
+    Scenario::IntervalModel* model;
+    const double* progress;
+    std::string path;
+  };
+
+  ossia::fast_hash_map<int64_t, IntervalData> m_intervals;
 
   Interval* m_root{};
 };

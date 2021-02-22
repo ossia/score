@@ -49,7 +49,7 @@ public:
     return m_maxDuration;
   }
 
-  double playPercentage() const { return m_playPercentage; }
+  const double& playPercentage() const { return m_playPercentage; }
 
   double speed() const { return m_speed; }
 
