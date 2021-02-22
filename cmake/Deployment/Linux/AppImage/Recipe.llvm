@@ -39,14 +39,20 @@ export SCORE_DIR=/score
 (
     export INSTALL_ROOT=$(cd $APP_DIR/usr; pwd)
 
-    cninja $SOURCE_DIR appimage -- \
+    cninja $SOURCE_DIR $TOOLCHAIN -- \
       -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT \
       -DOSSIA_SDK=$OSSIA_SDK
 
     (
       cd build*
-      cmake --install . --strip --component OssiaScore
-      cmake --install . --strip --component Devel --prefix "$SDK_DIR/usr"
+
+      if [[ "$TOOLCHAIN" =~ ".*debug.*" ]]; then
+        cmake --install . --component OssiaScore
+      else
+        cmake --install --strip . --component OssiaScore
+      fi
+
+      cmake --install . --component Devel --prefix "$SDK_DIR/usr"
       rm -rf "$SDK_DIR/usr/lib"
     )
 )

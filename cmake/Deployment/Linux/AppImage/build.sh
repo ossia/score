@@ -4,11 +4,12 @@ sudo rm -rf *AppImage
 sudo rm -rf /tmp/build
 mkdir /tmp/build
 
-docker build --squash --compress --force-rm  -f Dockerfile.llvm -t ossia/score-linux-llvm . 
+docker build --squash --compress --force-rm  -f Dockerfile.llvm -t ossia/score-linux-llvm .
 
 
 docker run --rm -it \
            -v "$(pwd)"/Recipe.llvm:/Recipe \
+           -e TOOLCHAIN=appimage-debug \
            --mount type=bind,source=$(git rev-parse --show-toplevel),target=/score \
            --mount type=bind,source="/tmp/build",target=/build \
            -w="/" \

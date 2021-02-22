@@ -25,11 +25,11 @@ public:
 #if defined(SCORE_DEBUG)
     {
        auto s = absoluteSymbols({ { m_mangler("atexit"), JITEvaluatedSymbol(pointerToJITTargetAddress(&::atexit), JITSymbolFlags::Exported)}});
-       JD.define(std::move(s));
+       (void)JD.define(std::move(s));
     }
 #endif
 
-    m_overrides.enable(JD, m_mangler);
+    (void)m_overrides.enable(JD, m_mangler);
 
     {
       auto gen =
@@ -54,7 +54,7 @@ public:
   ~JitCompiler()
   {
 #if LLVM_VERSION_MAJOR >= 11
-    m_jit->deinitialize(m_jit->getMainJITDylib());
+    (void)m_jit->deinitialize(m_jit->getMainJITDylib());
 #else
     m_jit->runDestructors();
 #endif
@@ -76,7 +76,7 @@ public:
       throw Err;
 
 #if LLVM_VERSION_MAJOR >= 11
-    m_jit->initialize(m_jit->getMainJITDylib());
+    (void)m_jit->initialize(m_jit->getMainJITDylib());
 #else
     m_jit->runConstructors();
 #endif

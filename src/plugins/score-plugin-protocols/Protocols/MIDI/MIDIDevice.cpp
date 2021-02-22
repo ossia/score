@@ -5,6 +5,7 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Protocols/MIDI/MIDISpecificSettings.hpp>
 #include <State/MessageListSerialization.hpp>
+
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <score/document/DocumentContext.hpp>
 

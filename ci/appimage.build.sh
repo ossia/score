@@ -1,6 +1,6 @@
 #!/bin/bash
 export BUILD_FOLDER=/tmp/build
-export SOURCE_FOLDER=$PWD
+export SOURCE_FOLDER="$PWD"
 wget https://github.com/ossia/sdk/releases/download/sdk19/sdk-linux.tar.xz
 tar xaf sdk-linux.tar.xz
 rm -rf  sdk-linux.tar.xz
@@ -10,6 +10,7 @@ ln -s $BUILD_FOLDER build
 docker pull ossia/score-package-linux
 docker run \
            -v "$SOURCE_FOLDER/cmake/Deployment/Linux/AppImage/Recipe.llvm:/Recipe" \
+           -e TOOLCHAIN=appimage \
            --mount type=bind,source="$PWD/opt/ossia-sdk",target=/opt/ossia-sdk \
            --mount type=bind,source="$SOURCE_FOLDER",target=/score \
            --mount type=bind,source="$BUILD_FOLDER",target=/build \

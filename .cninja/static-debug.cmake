@@ -1,6 +1,5 @@
 cninja_require(lld)
 cninja_require(linkerwarnings)
-cninja_require(lto=full)
 cninja_require(debugmode)
 cninja_require(score-warnings)
 
