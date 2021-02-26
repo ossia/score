@@ -57,6 +57,12 @@ set(SCORE_VERSION "${SCORE_VERSION_MAJOR}.${SCORE_VERSION_MINOR}.${SCORE_VERSION
 if(NOT SCORE_DYNAMIC_PLUGINS)
   set(SCORE_STATIC_PLUGINS ON)
 endif()
+
+if("${CMAKE_BUILD_TYPE}" STREQUAL "")
+  message(FATAL_ERROR "No build type defined. Please set CMAKE_BUILD_TYPE to Debug, Release, RelWithDebInfo...")
+  return()
+endif()
+
 include(all-plugins)
 
 if(SCORE_DISABLED_PLUGINS)
