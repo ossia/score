@@ -94,9 +94,12 @@ endif()
 if(QT_STATIC)
     install(CODE "
         set(BU_CHMOD_BUNDLE_ITEMS ON)
+
+        get_filename_component(SCORE_ABSOLUTE_PATH \"\${CMAKE_INSTALL_PREFIX}/${APPNAME}.app\" ABSOLUTE)
+
         include(BundleUtilities)
         fixup_bundle(
-          \"\${CMAKE_INSTALL_PREFIX}/${APPNAME}.app\"
+          \"\${SCORE_ABSOLUTE_PATH}\"
           \"\"
           \"\")
 
