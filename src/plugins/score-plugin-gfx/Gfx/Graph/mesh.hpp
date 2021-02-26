@@ -3,7 +3,7 @@
 
 #include <private/qrhi_p.h>
 
-#include <gsl/span>
+#include <ossia/detail/span.hpp>
 #include <score_plugin_gfx_export.h>
 
 struct SCORE_PLUGIN_GFX_EXPORT Mesh

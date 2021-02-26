@@ -5,7 +5,7 @@
 #include <QBuffer>
 #include <QFile>
 
-#include <gsl/span>
+#include <ossia/detail/span.hpp>
 
 namespace Media
 {

@@ -140,7 +140,7 @@ inline QDataStream& operator>>(QDataStream& s, int64_t& val)
 #endif
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-#if defined(__APPLE__)
+#if defined(__APPLE__) || defined(__EMSCRIPTEN__)
 inline QDataStream& operator<<(QDataStream& s, std::size_t val)
 {
   s << (quint64)val;

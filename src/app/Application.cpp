@@ -31,11 +31,11 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QDir>
-#include <QThreadPool>
 #include <QPainter>
 #include <core/view/QRecentFilesMenu.h>
-
-
+#if QT_FEATURE_thread
+#include <QThreadPool>
+#endif
 #include <spdlog/sinks/stdout_sinks.h>
 #include <spdlog/spdlog.h>
 
@@ -632,7 +632,9 @@ void Application::initDocuments()
   openNewDocument();
   #endif
 
+#if QT_FEATURE_thread
   QThreadPool::globalInstance()->setMaxThreadCount(2);
+#endif
 }
 
 void Application::openNewDocument()

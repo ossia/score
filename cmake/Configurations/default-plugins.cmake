@@ -1,3 +1,24 @@
+
+if(CMAKE_SYSTEM_NAME MATCHES Emscripten)
+  set(SCORE_PLUGINS_TO_BUILD
+
+  score-lib-inspector
+  score-lib-state
+  score-lib-device
+  score-lib-localtree
+  score-lib-process
+
+  score-plugin-library
+
+  score-plugin-inspector
+
+  score-plugin-deviceexplorer
+
+  score-plugin-curve
+  score-plugin-automation
+  score-plugin-scenario
+)
+else()
 set(SCORE_PLUGINS_TO_BUILD
 
 score-lib-inspector
@@ -48,3 +69,4 @@ score-plugin-vst3
 score-plugin-lv2
 score-plugin-faust
 )
+endif()
