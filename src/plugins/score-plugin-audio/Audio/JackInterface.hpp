@@ -60,9 +60,6 @@ public:
   {
     using Model = Audio::Settings::Model;
 
-    auto in_count = new QSpinBox{w};
-    auto out_count = new QSpinBox{w};
-
 #if defined(_WIN32)
     {
       if (!ossia::has_jackd_process())
@@ -73,7 +70,13 @@ public:
     }
 #endif
 
-    qDebug() << "JACK: " << WeakJack::instance().available();
+    if(WeakJack::instance().available() != 0)
+    {
+      auto label = new QLabel{QObject::tr("JACK does not seem to be running.\nCheck that jackd is running and that /usr/lib/libjack.so exists.")};
+      lay->addWidget(label);
+      return;
+    }
+
     std::shared_ptr<ossia::jack_client> client = m_client.lock();
     if (!client)
     {
@@ -81,6 +84,9 @@ public:
       qDebug("Creating a jack client");
     }
 
+
+    auto in_count = new QSpinBox{w};
+    auto out_count = new QSpinBox{w};
     {
       auto rate = jack_get_sample_rate(*client);
       auto rate_label = new QLabel{QString::number(rate)};
