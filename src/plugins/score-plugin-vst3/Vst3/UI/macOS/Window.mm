@@ -9,38 +9,8 @@
 #include <QHBoxLayout>
 #include <QLabel>
 
-
 namespace vst3
 {
-
-static auto setSize(Steinberg::IPlugView& view, const Steinberg::ViewRect& r, Window& parentWindow, WindowContainer& wc)
-{
-  int w = r.getWidth();
-  int h = r.getHeight();
-
-  if(w < 5) w = 640;
-  if(h < 5) h = 480;
-
-  if(view.canResize() == Steinberg::kResultTrue)
-  {
-    parentWindow.resize(QSize{w, h});
-  }
-  else
-  {
-    parentWindow.setFixedSize(QSize{w, h});
-  }
-  if(wc.qwindow)
-  {
-    wc.qwindow->resize(w, h);
-  }
-  if(wc.container)
-  {
-    wc.container->move(0, 0);
-    wc.container->setFixedSize(w, h);
-  }
-
-  return std::make_pair(w, h);
-}
 WindowContainer createVstWindowContainer(
     Window& parentWindow,
     const Model& e,
@@ -53,14 +23,14 @@ WindowContainer createVstWindowContainer(
   Steinberg::ViewRect r;
 
   view.getSize(&r);
-  auto [w,h] = setSize(view, r, parentWindow, wc);
+  auto [w,h] = wc.setSizeFromQt(view, r, parentWindow);
 
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
   id superview = [[::NSView alloc] initWithFrame: NSMakeRect(0, 0, w, h)];
 
   wc.qwindow = QWindow::fromWinId(reinterpret_cast<WId>(superview));
   wc.container = QWidget::createWindowContainer(wc.qwindow, &parentWindow);
-  //view.setFrame(new PlugFrame{*wc.qwindow});
+  view.setFrame(new PlugFrame{parentWindow, wc});
   view.attached((void*)superview, currentPlatform());
 
   wc.qwindow->show();
@@ -69,7 +39,7 @@ WindowContainer createVstWindowContainer(
 
 
   view.getSize(&r);
-  std::tie(w, h) = setSize(view, r, parentWindow, wc);
+  std::tie(w, h) = wc.setSizeFromQt(view, r, parentWindow);
 
   NSRect frame = NSMakeRect(0, 0, w, h);
   [superview setFrame:frame];
@@ -78,6 +48,14 @@ WindowContainer createVstWindowContainer(
   subviews = [superview subviews];
   id m_view = [[subviews objectAtIndex:0] retain];
 
+  auto adjustSize= [v=&view] (double w, double h){
+    Steinberg::ViewRect r;
+    r.left = 0;
+    r.top = 0;
+    r.right = w;
+    r.bottom = h;
+    v->onSize(&r);
+  };
   [[NSNotificationCenter defaultCenter]
       addObserverForName:@"NSViewFrameDidChangeNotification"
       object:m_view
@@ -85,11 +63,16 @@ WindowContainer createVstWindowContainer(
       usingBlock:^(NSNotification* notification) {
       Q_UNUSED(notification);
 
-    qDebug() << "adjust editor size to" << parentWindow.sizeHint();
+    auto sz = [ m_view frame ];
+    qDebug() << "adjust editor size to" << parentWindow.geometry() <<  sz.size.width << sz.size.height;
+
     // need to adjust the superview frame to be the same as the view frame
-    /*
+
+    adjustSize(parentWindow.geometry().width(), parentWindow.geometry().height());
+
     [superview setFrame:[m_view frame]];
-    wc.qwindow->setFixedSize(vst3::sizeHint(m_view));
+
+    /*wc.qwindow->setFixedSize(vst3::sizeHint(m_view));
     // adjust the size of the window to fit.
     // FIXME: this is indeed a bit dodgy ;)
     QApplication::processEvents();
@@ -107,6 +90,7 @@ WindowContainer createVstWindowContainer(
     //if (view.canResize() == Steinberg::kResultTrue)
     // For some reason in that case the plug-ins aren't centered...
     {
+      qDebug() << r.getWidth() << r.getHeight();
       view.onSize(&r);
     }
   }

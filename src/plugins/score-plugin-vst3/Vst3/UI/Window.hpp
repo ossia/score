@@ -1,36 +1,20 @@
 #pragma once
 #include <Vst3/EffectModel.hpp>
+#include <Vst3/UI/WindowContainer.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <Media/Effect/Settings/Model.hpp>
 
 #include <pluginterfaces/gui/iplugview.h>
 
+#include <QResizeEvent>
 #include <QWindow>
 #include <QDialog>
+
 
 namespace vst3
 {
 
-inline const char* currentPlatform()
-{
-#if defined (__APPLE__)
-  return Steinberg::kPlatformTypeNSView;
-#elif defined(__linux__)
-  return Steinberg::kPlatformTypeX11EmbedWindowID;
-#elif defined(_WIN32)
-  return Steinberg::kPlatformTypeHWND;
-#endif
-  return "";
-}
-struct WindowContainer
-{
-  WId nativeId;
-  QWindow* qwindow{};
-  QWidget* container{};
-};
-
-class Window;
 WindowContainer createVstWindowContainer(Window& parentWindow, const Model& e, const score::DocumentContext& ctx);
 
 class Window : public QDialog
@@ -64,6 +48,9 @@ public:
 
   void resizeEvent(QResizeEvent* event)
   {
+    Steinberg::IPlugView& view = *m_model.fx.view;
+    container.setSizeFromUser(view, event->size(), *this);
+/*
     QDialog::resizeEvent(event);
 
     Steinberg::IPlugView& view = *m_model.fx.view;
@@ -80,6 +67,7 @@ public:
 
     if(view.canResize() == Steinberg::kResultTrue)
       view.onSize(&r);
+      */
   }
 
 
