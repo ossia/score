@@ -115,17 +115,21 @@ void DeviceExplorerView::setInitialColumnsSizes()
 
 void DeviceExplorerView::saveSettings()
 {
+#if !defined(__EMSCRIPTEN__)
   QSettings settings;
   settings.setValue(GeometrySetting, saveGeometry());
   settings.setValue(HeaderViewSetting, header()->saveState());
+#endif
 }
 
 void DeviceExplorerView::restoreSettings()
 {
+#if !defined(__EMSCRIPTEN__)
   QSettings settings;
   restoreGeometry(settings.value(GeometrySetting).toByteArray());
   header()->restoreState(settings.value(HeaderViewSetting).toByteArray());
   this->updateGeometry();
+#endif
 }
 
 void DeviceExplorerView::setModel(QAbstractItemModel* model)

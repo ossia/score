@@ -1,4 +1,7 @@
 #pragma once
+
+#include <Media/Libav.hpp>
+#if SCORE_HAS_LIBAV
 #include <Video/VideoInterface.hpp>
 #include <score_plugin_media_export.h>
 
@@ -58,3 +61,4 @@ private:
 }
 
 W_REGISTER_ARGTYPE(QVector<int64_t>)
+#endif

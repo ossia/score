@@ -148,6 +148,7 @@ QStringList pluginsWhitelist()
 
 static bool isBlacklisted(const QString& str)
 {
+#if !defined(__EMSCRIPTEN__)
   auto whitelist = pluginsWhitelist();
   auto blacklist = pluginsBlacklist();
 
@@ -157,6 +158,9 @@ static bool isBlacklisted(const QString& str)
       return true;
   }
   return ossia::any_of(blacklist, [&](const QString& bl) { return str.contains(bl); });
+#else
+  return false;
+#endif
 }
 
 std::pair<score::Plugin_QtInterface*, PluginLoadingError>

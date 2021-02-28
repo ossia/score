@@ -1,6 +1,7 @@
 #include "AudioDecoder.hpp"
 
 #include <Media/Sound/SoundModel.hpp>
+#include <Media/Libav.hpp>
 
 #include <score/tools/Debug.hpp>
 
@@ -13,8 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if __has_include(<libavcodec/avcodec.h>)
-#define SCORE_HAS_LIBAV 1
+#if SCORE_HAS_LIBAV
 extern "C"
 {
 #include <libavcodec/avcodec.h>
@@ -548,6 +548,7 @@ double AudioDecoder::read_length(const QString& path)
 
 void AudioDecoder::decode(const QString& path, audio_handle hdl)
 {
+#if SCORE_HAS_LIBAV
   SCORE_ASSERT(hdl);
   AudioInfo info;
   auto it = database().find(path);
@@ -592,6 +593,7 @@ void AudioDecoder::decode(const QString& path, audio_handle hdl)
   this->moveToThread(&m_decodeThread);
   m_decodeThread.start();
   startDecode(path, hdl);
+#endif
 }
 
 std::optional<std::pair<AudioInfo, audio_array>>

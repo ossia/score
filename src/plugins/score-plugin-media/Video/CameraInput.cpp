@@ -1,4 +1,5 @@
-
+#include <Media/Libav.hpp>
+#if SCORE_HAS_LIBAV
 extern "C"
 {
 #include <libavcodec/avcodec.h>
@@ -319,3 +320,4 @@ bool CameraInput::enqueue_frame(const AVPacket* pkt, AVFrame** frame) noexcept
 }
 
 }
+#endif

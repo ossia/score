@@ -1,3 +1,6 @@
+#include <Media/Libav.hpp>
+#if SCORE_HAS_LIBAV
+
 #include <Video/Thumbnailer.hpp>
 #include <Video/VideoDecoder.hpp>
 #include <ossia-qt/invoke.hpp>
@@ -294,3 +297,4 @@ void VideoThumbnailer::processNext()
   }
 }
 }
+#endif

@@ -1,5 +1,6 @@
 #include "score_plugin_media.hpp"
 
+#include <Media/Libav.hpp>
 #include <Media/Effect/Settings/Factory.hpp>
 #include <Media/Inspector/Factory.hpp>
 #include <Media/Merger/Executor.hpp>
@@ -31,8 +32,7 @@
 #include <score_plugin_media_commands_files.hpp>
 #include <wobjectimpl.h>
 
-#if __has_include(<libavcodec/avcodec.h>)
-#define SCORE_HAS_LIBAV 1
+#if SCORE_HAS_LIBAV
 extern "C"
 {
 #include <libavcodec/avcodec.h>

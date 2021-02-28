@@ -21,6 +21,7 @@ extern "C"  __declspec(dllimport) LONG __stdcall NtSetTimerResolution(ULONG Desi
 #include <score/widgets/MessageBox.hpp>
 
 #include <QPixmapCache>
+#include <QItemSelection>
 #include <QSurfaceFormat>
 #include <qnamespace.h>
 /*

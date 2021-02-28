@@ -34,6 +34,7 @@ public:
 template <typename T>
 using sp = SettingsParameterMetadata<T>;
 
+#if !defined(__EMSCRIPTEN__)
 template <typename T, typename Model>
 void setupDefaultSettings(QSettings& set, const T& tuple, Model& model)
 {
@@ -57,6 +58,18 @@ void setupDefaultSettings(QSettings& set, const T& tuple, Model& model)
     }
   });
 }
+#else
+template <typename T, typename Model>
+void setupDefaultSettings(QSettings&, const T& tuple, Model& model)
+{
+  ossia::for_each_in_tuple(tuple, [&](auto& e) {
+    using type = std::remove_reference_t<decltype(e)>;
+    using data_type = typename type::data_type;
+    using param_type = typename type::parameter_type;
+    (model.*param_type::set)(e.def);
+  });
+}
+#endif
 }
 
 #define SETTINGS_PARAMETER_IMPL(Name) const score::sp<Model::p_##Name> Name
@@ -88,6 +101,8 @@ public:                                                                         
       PROPERTY(Type, Name READ get##Name WRITE set##Name NOTIFY Name##Changed)  \
 private:
 
+
+#if !defined(__EMSCRIPTEN__)
 #define SCORE_SETTINGS_PARAMETER_CPP(Type, ModelType, Name)          \
   Type ModelType::get##Name() const { return m_##Name; }             \
                                                                      \
@@ -102,6 +117,20 @@ private:
     s.setValue(Parameters::Name.key, QVariant::fromValue(m_##Name)); \
     Name##Changed(val);                                              \
   }
+#else
+#define SCORE_SETTINGS_PARAMETER_CPP(Type, ModelType, Name)          \
+  Type ModelType::get##Name() const { return m_##Name; }             \
+                                                                     \
+  void ModelType::set##Name(Type val)                                \
+  {                                                                  \
+    if (val == m_##Name)                                             \
+      return;                                                        \
+                                                                     \
+    m_##Name = val;                                                  \
+                                                                     \
+    Name##Changed(val);                                              \
+  }
+#endif
 
 #define SCORE_PROJECTSETTINGS_PARAMETER_CPP(Type, ModelType, Name) \
   Type ModelType::get##Name() const { return m_##Name; }           \

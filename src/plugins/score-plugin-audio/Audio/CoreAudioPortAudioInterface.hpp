@@ -17,7 +17,7 @@ namespace Audio
 #if __has_include(<pa_mac_core.h>)
 class CoreAudioFactory final : public QObject, public AudioFactory
 {
-  SCORE_CONCRETE("E75CB711-613F-4F15-834F-398AB1807470")
+  SCORE_CONCRETE("e75cb711-613f-4f15-834f-398ab1807470")
 public:
   std::vector<PortAudioCard> devices;
 

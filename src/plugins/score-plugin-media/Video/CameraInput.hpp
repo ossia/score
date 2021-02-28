@@ -1,4 +1,7 @@
 #pragma once
+#include <Media/Libav.hpp>
+#if SCORE_HAS_LIBAV
+
 #include <Video/VideoInterface.hpp>
 #include <Video/FrameQueue.hpp>
 extern "C"
@@ -59,3 +62,4 @@ private:
 };
 
 }
+#endif

@@ -13,7 +13,7 @@ if(NOT SCORE_DISABLE_ADDONS)
   add_subdirectory(addons)
 endif()
 
-if(TARGET score_plugin_media)
+if(TARGET score_plugin_vst)
   add_subdirectory(vstpuppet)
 endif()
 

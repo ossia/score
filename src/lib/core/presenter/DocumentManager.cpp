@@ -94,12 +94,14 @@ static QDir getDialogDirectory(score::Document* current)
       return dir;
   }
 
+#if !defined(__EMSCRIPTEN__)
   if (QSettings s; s.contains("score/last_open_doc"))
   {
     QFileInfo file = s.value("score/last_open_doc").toString();
     if(auto dir = file.absoluteDir(); dir.exists())
       return dir;
   }
+#endif
 
   auto docs = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
   if(!docs.isEmpty())
@@ -460,8 +462,12 @@ Document* DocumentManager::loadFile(const score::GUIApplicationContext& ctx)
 
   QString loadname = QFileDialog::getOpenFileName(
       m_view, tr("Open"), getDialogDirectory(nullptr).absolutePath(), "Scores (*.scorebin *.score *.scorejson)");
+
+#if !defined(__EMSCRIPTEN__)
   QSettings s;
   s.setValue("score/last_open_doc", QFileInfo(loadname).absoluteDir().path());
+#endif
+
   return loadFile(ctx, loadname);
 }
 

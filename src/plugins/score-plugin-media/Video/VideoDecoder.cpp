@@ -1,3 +1,5 @@
+#include <Media/Libav.hpp>
+#if SCORE_HAS_LIBAV
 
 extern "C"
 {
@@ -423,3 +425,4 @@ bool readVideoFrame(AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* 
 }
 
 }
+#endif

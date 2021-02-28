@@ -17,6 +17,21 @@ if(CMAKE_SYSTEM_NAME MATCHES Emscripten)
   score-plugin-curve
   score-plugin-automation
   score-plugin-scenario
+
+  score-plugin-protocols
+
+  score-plugin-audio
+  score-plugin-engine
+
+  score-plugin-dataflow
+
+  score-plugin-media
+  score-plugin-fx
+
+  score-plugin-js
+  score-plugin-midi
+  score-plugin-recording
+
 )
 else()
 set(SCORE_PLUGINS_TO_BUILD

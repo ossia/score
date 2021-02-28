@@ -15,12 +15,17 @@ SETTINGS_PARAMETER_IMPL(Driver)
 #elif defined(__APPLE__)
       Audio::AudioFactory::ConcreteKey
   {
-    score::uuids::string_generator::compute("e7543875-3b22-457c-bf41-75504637686f")
+    score::uuids::string_generator::compute("e75cb711-613f-4f15-834f-398ab1807470")
   }
 #elif defined(__linux__)
       Audio::AudioFactory::ConcreteKey
   {
     score::uuids::string_generator::compute("3533ee88-9a8d-486c-b20b-6c966cf4eaa0")
+  } // ALSA
+#elif defined(__EMSCRIPTEN__)
+      Audio::AudioFactory::ConcreteKey
+  {
+    score::uuids::string_generator::compute("28b88e91-c5f0-4f13-834f-aa333d14aa81")
   } // ALSA
 #else
       Audio::AudioFactory::ConcreteKey
@@ -67,8 +72,18 @@ void Model::setDriver(Audio::AudioFactory::ConcreteKey val)
 
   m_Driver = val;
 
+  // SDL
+  if(m_Driver == Audio::AudioFactory::ConcreteKey{
+          score::uuids::string_generator::compute("28b88e91-c5f0-4f13-834f-aa333d14aa81")})
+  {
+    setRate(48000);
+    setBufferSize(1024);
+  }
+
+#if !defined(__EMSCRIPTEN__)
   QSettings s;
   s.setValue(Parameters::Driver.key, QVariant::fromValue(m_Driver));
+
   // Special case for dummy driver: set reasonable values
   if (m_Driver
       == Audio::AudioFactory::ConcreteKey{
@@ -80,6 +95,7 @@ void Model::setDriver(Audio::AudioFactory::ConcreteKey val)
     m_BufferSize = 1024;
     s.setValue(Parameters::BufferSize.key, QVariant::fromValue(m_BufferSize));
   }
+#endif
 }
 
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, CardIn)
@@ -99,8 +115,10 @@ void Model::setRate(int val)
 
   m_Rate = val;
 
+#if !defined(__EMSCRIPTEN__)
   QSettings s;
   s.setValue(Parameters::Rate.key, QVariant::fromValue(m_Rate));
+#endif
   RateChanged(val);
 }
 
@@ -118,8 +136,10 @@ void Model::setBufferSize(int val)
 
   m_BufferSize = val;
 
+#if !defined(__EMSCRIPTEN__)
   QSettings s;
   s.setValue(Parameters::BufferSize.key, QVariant::fromValue(m_BufferSize));
+#endif
   BufferSizeChanged(val);
 }
 

@@ -1,3 +1,6 @@
+#include <Media/Libav.hpp>
+#if SCORE_HAS_LIBAV
+
 #include <Video/FrameQueue.hpp>
 
 extern "C"
@@ -58,3 +61,4 @@ void FrameQueue::drain()
 }
 
 }
+#endif

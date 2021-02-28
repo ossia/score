@@ -602,7 +602,11 @@ void ApplicationPlugin::on_stop()
   {
     auto clock = std::move(m_clock);
     m_clock.reset();
-    clock->stop();
+    try {
+      clock->stop();
+    }  catch (...) {
+      qDebug() << "Error while stopping the clock. There is likely an audio hardware issue.";
+    }
   }
 
   if (context.applicationSettings.gui)

@@ -227,8 +227,10 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
   {
     // Nodal stuff
     auto actions = tb->second.toolbar()->actions();
+    SCORE_ASSERT(!actions.empty());
 
     m_timelineAction = actions[0];
+    SCORE_ASSERT(m_timelineAction);
 
     connect(m_timelineAction, &QAction::toggled, this, [=](bool b) {
       const bool nodal = !b;

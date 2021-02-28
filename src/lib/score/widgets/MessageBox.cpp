@@ -12,6 +12,7 @@ namespace score
 
 int question(QWidget* parent, const QString& title, const QString& text)
 {
+#if !defined(__EMSCRIPTEN__)
   if(score::AppContext().applicationSettings.gui)
   {
     auto msg = new QMessageBox{{}, title, text, QMessageBox::Yes | QMessageBox::No, parent};
@@ -22,6 +23,7 @@ int question(QWidget* parent, const QString& title, const QString& text)
     return idx;
   }
   else
+#endif
   {
     qDebug() << title << "\n" << text;
     return 0;
@@ -30,6 +32,7 @@ int question(QWidget* parent, const QString& title, const QString& text)
 
 int information(QWidget* parent, const QString& title, const QString& text)
 {
+#if !defined(__EMSCRIPTEN__)
   if(score::AppContext().applicationSettings.gui)
   {
     auto msg = new QMessageBox{{}, title, text, QMessageBox::Ok, parent};
@@ -40,6 +43,7 @@ int information(QWidget* parent, const QString& title, const QString& text)
     return idx;
   }
   else
+#endif
   {
     qDebug() << title << "\n" << text;
     return 0;
@@ -48,6 +52,7 @@ int information(QWidget* parent, const QString& title, const QString& text)
 
 int warning(QWidget* parent, const QString& title, const QString& text)
 {
+#if !defined(__EMSCRIPTEN__)
   if(score::AppContext().applicationSettings.gui)
   {
     auto msg = new QMessageBox{{}, title, text, QMessageBox::Ok, parent};
@@ -58,6 +63,7 @@ int warning(QWidget* parent, const QString& title, const QString& text)
     return idx;
   }
   else
+#endif
   {
     qDebug() << title << "\n" << text;
     return 0;

@@ -7,6 +7,31 @@ enable_testing()
 set(APPNAME "score")
 set(CMAKE_POSITION_INDEPENDENT_CODE 1)
 
+if(CMAKE_SYSTEM_NAME MATCHES Emscripten)
+  add_link_options("SHELL:-s ASSERTIONS=0")
+  add_link_options("SHELL:-s SAFE_HEAP=0")
+  add_link_options("SHELL:-s USE_SDL=2")
+  add_link_options("SHELL:-s STACK_OVERFLOW_CHECK=1")
+  #add_link_options("SHELL:--source-map-base http://127.0.0.1:8000/")
+  add_link_options("SHELL:-s FETCH=1")
+  add_link_options("SHELL:-s WASM=1")
+  add_link_options("SHELL:-s FULL_ES2=1")
+  add_link_options("SHELL:-s FULL_ES3=1")
+  add_link_options("SHELL:-s USE_WEBGL2=1")
+  #add_link_options("SHELL:-s EXIT_RUNTIME=1")
+  add_link_options("SHELL:-s ERROR_ON_UNDEFINED_SYMBOLS=1")
+  #add_link_options("SHELL:-s USE_PTHREADS=1")
+  #add_link_options("SHELL:-s PTHREAD_POOL_SIZE=16")
+  add_link_options("SHELL:-s TOTAL_MEMORY=2000MB")
+  #add_link_options("SHELL:-s ALLOW_MEMORY_GROWTH=1")
+  #add_link_options("SHELL:-s MAXIMUM_MEMORY=4GB")
+  add_link_options("SHELL:-s EXTRA_EXPORTED_RUNTIME_METHODS=[\"UTF16ToString\",\"stringToUTF16\"]")
+
+  add_link_options("--bind")
+
+  set(CMAKE_EXECUTABLE_SUFFIX ".html")
+endif()
+
 #add_executable(score-main WIN32 AppLauncher.cpp)
 add_executable(${APPNAME} WIN32
   "${CMAKE_CURRENT_SOURCE_DIR}/Application.hpp"
@@ -19,6 +44,9 @@ add_executable(${APPNAME} WIN32
 )
 #target_link_libraries(score-main PRIVATE ${APPNAME})
 
+if(CMAKE_SYSTEM_NAME MATCHES Emscripten)
+  target_link_libraries(${APPNAME} PUBLIC Qt5::QWasmIntegrationPlugin)
+endif()
 
 set_target_properties(${APPNAME}
   PROPERTIES

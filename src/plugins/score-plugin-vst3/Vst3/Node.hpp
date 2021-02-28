@@ -13,11 +13,12 @@
 namespace vst3
 {
 
-class param_queue
+class param_queue final
     : public Steinberg::Vst::IParamValueQueue
 {
 public:
   explicit param_queue(Steinberg::Vst::ParamID id): id{id} { }
+  ~param_queue() { }
 
   Steinberg::Vst::ParamID id{};
   ossia::small_vector<std::pair<int32_t, Steinberg::Vst::ParamValue>, 1> data;
@@ -65,7 +66,7 @@ public:
   }
 };
 
-class param_changes
+class param_changes final
     : public Steinberg::Vst::IParameterChanges
 {
 public:

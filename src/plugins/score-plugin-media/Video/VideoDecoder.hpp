@@ -1,4 +1,6 @@
 #pragma once
+#include <Media/Libav.hpp>
+#if SCORE_HAS_LIBAV
 #include <Video/VideoInterface.hpp>
 extern "C"
 {
@@ -74,3 +76,4 @@ private:
 
 bool readVideoFrame(AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* frame);
 }
+#endif

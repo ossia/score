@@ -25,8 +25,8 @@ public:
     int rate = set.getRate();
     int bs = set.getBufferSize();
 #if defined(__EMSCRIPTEN__)
-    rate = 44100;
-    bs = 8192;
+    rate = 48000;
+    bs = 1024;
 #endif
     return std::make_unique<ossia::sdl_protocol>(rate, bs);
   }

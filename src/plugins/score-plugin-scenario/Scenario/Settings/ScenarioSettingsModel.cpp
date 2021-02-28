@@ -97,8 +97,10 @@ void Model::setSkin(const QString& skin)
 
   m_Skin = skin;
 
+#if !defined(__EMSCRIPTEN__)
   QSettings s;
   s.setValue(Parameters::Skin.key, m_Skin);
+#endif
   SkinChanged(skin);
 }
 
@@ -114,8 +116,11 @@ void Model::setDefaultEditor(QString val)
 
   m_DefaultEditor = val;
 
+#if !defined(__EMSCRIPTEN__)
   QSettings s;
   s.setValue(Parameters::DefaultEditor.key, QVariant::fromValue(m_DefaultEditor));
+#endif
+
   DefaultEditorChanged(val);
 }
 
@@ -133,8 +138,10 @@ void Model::setDefaultDuration(TimeVal val)
 
   m_DefaultDuration = val;
 
+#if !defined(__EMSCRIPTEN__)
   QSettings s;
   s.setValue(Parameters::DefaultDuration.key, QVariant::fromValue(m_DefaultDuration));
+#endif
 
   DefaultDurationChanged(val);
 }

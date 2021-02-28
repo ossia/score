@@ -43,6 +43,7 @@ Document* DocumentBuilder::newDocument(
   QString docName = "Untitled." + RandomNameProvider::generateShortRandomName();
 
   // FIXME we can't access Library::Settings::Model here :'(
+#if !defined(__EMSCRIPTEN__)
   QSettings set;
   if(auto library = set.value("Library/Path").toString(); QDir{library}.exists())
   {
@@ -61,6 +62,7 @@ Document* DocumentBuilder::newDocument(
       }
     }
   }
+#endif
   auto doc = new Document{docName, id, doctype, m_parentView, m_parentPresenter};
 
   for (auto& projectsettings : ctx.interfaces<DocumentPluginFactoryList>())

@@ -6,9 +6,6 @@ score_common_setup()
 # Packages
 find_package(${QT_VERSION} REQUIRED COMPONENTS Core Widgets)
 find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVDEVICE AVUTIL SWRESAMPLE SWSCALE POSTPROC)
-if(NOT FFmpeg_FOUND)
-    return()
-endif()
 
 if(UNIX AND NOT APPLE)
   find_package(ZLIB QUIET)
@@ -135,48 +132,55 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 )
 
 ### FFMPEG ###
-target_link_libraries(${PROJECT_NAME} PRIVATE avcodec avformat avdevice swresample swscale postproc avutil)
 
-if(APPLE)
-    find_library(QuartzCore_FK QuartzCore)
-    find_library(AppKit_FK AppKit)
-    find_library(OpenGL_FK OpenGL)
-    find_library(Foundation_FK Foundation)
-    find_library(AVFoundation_FK AVFoundation)
-    find_library(CoreVideo_FK CoreVideo)
-    find_library(CoreMedia_FK CoreMedia)
-    find_library(VideoDecodeAcceleration_FK VideoDecodeAcceleration)
-    find_library(CoreFoundation_FK CoreFoundation)
-    find_library(AudioToolbox_FK AudioToolbox)
-    find_library(VideoToolbox_FK VideoToolbox)
-    find_package(BZip2 REQUIRED)
-    find_package(ZLIB REQUIRED)
+if(FFmpeg_FOUND)
+  target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+      avcodec avformat avdevice swresample swscale postproc avutil
+  )
 
-    target_link_libraries(${PROJECT_NAME} PRIVATE
-        ${QuartzCore_FK}
-        ${AppKit_FK}
-        ${OpenGL_FK}
-        ${Foundation_FK}
-        ${AVFoundation_FK}
-        ${CoreVideo_FK}
-        ${CoreMedia_FK}
-        ${VideoDecodeAcceleration_FK}
-        ${CoreFoundation_FK}
-        ${AudioToolbox_FK}
-        ${VideoToolbox_FK}
-        BZip2::BZip2
-        ZLIB::ZLIB
-        )
+  if(APPLE)
+      find_library(QuartzCore_FK QuartzCore)
+      find_library(AppKit_FK AppKit)
+      find_library(OpenGL_FK OpenGL)
+      find_library(Foundation_FK Foundation)
+      find_library(AVFoundation_FK AVFoundation)
+      find_library(CoreVideo_FK CoreVideo)
+      find_library(CoreMedia_FK CoreMedia)
+      find_library(VideoDecodeAcceleration_FK VideoDecodeAcceleration)
+      find_library(CoreFoundation_FK CoreFoundation)
+      find_library(AudioToolbox_FK AudioToolbox)
+      find_library(VideoToolbox_FK VideoToolbox)
+      find_package(BZip2 REQUIRED)
+      find_package(ZLIB REQUIRED)
+
+      target_link_libraries(${PROJECT_NAME} PRIVATE
+          ${QuartzCore_FK}
+          ${AppKit_FK}
+          ${OpenGL_FK}
+          ${Foundation_FK}
+          ${AVFoundation_FK}
+          ${CoreVideo_FK}
+          ${CoreMedia_FK}
+          ${VideoDecodeAcceleration_FK}
+          ${CoreFoundation_FK}
+          ${AudioToolbox_FK}
+          ${VideoToolbox_FK}
+          BZip2::BZip2
+          ZLIB::ZLIB
+      )
+  endif()
+
+  if(WIN32)
+      target_link_libraries(${PROJECT_NAME} PRIVATE evr mf mfplat strmiids quartz vfw32)
+      if(MSVC)
+        target_link_libraries(${PROJECT_NAME} PRIVATE mfplay mfreadwrite mfuuid)
+      endif()
+  endif()
+
+  target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_DL_LIBS})
 endif()
 
-if(WIN32)
-    target_link_libraries(${PROJECT_NAME} PRIVATE evr mf mfplat strmiids quartz vfw32)
-    if(MSVC)
-      target_link_libraries(${PROJECT_NAME} PRIVATE mfplay mfreadwrite mfuuid)
-    endif()
-endif()
-
-target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_DL_LIBS})
 
 # Rubberband and sample rate conversion
 target_link_libraries(${PROJECT_NAME}

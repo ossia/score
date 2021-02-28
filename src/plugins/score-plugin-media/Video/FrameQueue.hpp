@@ -1,4 +1,7 @@
 #pragma once
+#include <Media/Libav.hpp>
+#if SCORE_HAS_LIBAV
+
 #include <ossia/detail/lockfree_queue.hpp>
 #include <score_plugin_media_export.h>
 
@@ -24,3 +27,4 @@ private:
   ossia::spsc_queue<AVFrame*, 16> released;
 };
 }
+#endif

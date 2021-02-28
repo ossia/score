@@ -33,7 +33,7 @@
 #include <QDir>
 #include <QPainter>
 #include <core/view/QRecentFilesMenu.h>
-#if QT_FEATURE_thread
+#if QT_CONFIG(thread)
 #include <QThreadPool>
 #endif
 #include <spdlog/sinks/stdout_sinks.h>
@@ -632,7 +632,7 @@ void Application::initDocuments()
   openNewDocument();
   #endif
 
-#if QT_FEATURE_thread
+#if QT_CONFIG(thread)
   QThreadPool::globalInstance()->setMaxThreadCount(2);
 #endif
 }

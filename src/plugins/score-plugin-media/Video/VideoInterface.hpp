@@ -1,4 +1,7 @@
 #pragma once
+#include <Media/Libav.hpp>
+#if SCORE_HAS_LIBAV
+
 #include <score_plugin_media_export.h>
 extern "C"
 {
@@ -27,3 +30,4 @@ struct SCORE_PLUGIN_MEDIA_EXPORT VideoInterface
 };
 
 }
+#endif
