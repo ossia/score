@@ -154,3 +154,26 @@ jobs:
       - name: Build
         run: |
           ./ci/archlinux.build.sh
+
+  wasm:
+    name: WebAssembly
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install git
+        run: |
+          apt-get update -qq
+          apt-get install -qq --force-yes git
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - name: Dependencies
+        run: |
+          ./ci/wasm.deps.sh
+
+      - name: Build
+        run: |
+          ./ci/wasm.build.sh
