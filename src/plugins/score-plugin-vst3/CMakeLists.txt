@@ -7,6 +7,11 @@ if(NOT TARGET score_plugin_media)
   return()
 endif()
 
+if(MSVC)
+  message("VST 3 support does not work yet with MSVC.")
+  return()
+endif()
+
 if(WIN32)
   # Needed because on windows we need admin permissions which does not work on CI
   # (see smtg_create_directory_as_admin_win)
