@@ -32,9 +32,13 @@
 #include <QLabel>
 #include <QDir>
 #include <QPainter>
+#include <qobjectdefs.h>
 #include <core/view/QRecentFilesMenu.h>
-#if QT_CONFIG(thread)
+#include <qconfig.h>
+#if defined(QT_FEATURE_thread)
+#if QT_FEATURE_thread == 1
 #include <QThreadPool>
+#endif
 #endif
 #include <spdlog/sinks/stdout_sinks.h>
 #include <spdlog/spdlog.h>
@@ -632,8 +636,10 @@ void Application::initDocuments()
   openNewDocument();
   #endif
 
-#if QT_CONFIG(thread)
+#if defined(QT_FEATURE_thread)
+#if QT_FEATURE_thread == 1
   QThreadPool::globalInstance()->setMaxThreadCount(2);
+#endif
 #endif
 }
 
