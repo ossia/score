@@ -1,5 +1,7 @@
 #!/bin/bash -eux
 
+export SCORE_DIR=$PWD
+
 mkdir -p /build || true
 cd /build
 
