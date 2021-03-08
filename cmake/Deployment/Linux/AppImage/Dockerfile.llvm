@@ -18,7 +18,7 @@ RUN ls && wget https://github.com/ossia/sdk/releases/download/sdk19/sdk-linux.ta
     && wget -nv --no-check-certificate -c https://github.com/ninja-build/ninja/releases/download/v1.10.1/ninja-linux.zip \
     && unzip ninja-linux.zip \
     && rm -rf ninja-linux.zip \
-    && wget -nv --no-check-certificate -c https://github.com/jcelerier/cninja/releases/download/v3.7.6/cninja-v3.7.4-Linux.tar.gz \
+    && wget -nv --no-check-certificate -c https://github.com/jcelerier/cninja/releases/download/v3.7.6/cninja-v3.7.6-Linux.tar.gz \
     && tar xaf cninja-*.tar.gz \
     && rm -rf cninja-*.tar.gz \
     && mv ninja /usr/bin/ \
