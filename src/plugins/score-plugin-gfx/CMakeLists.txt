@@ -25,10 +25,12 @@ set(SPOUT_SRCS
 endif()
 
 find_package(freenect2)
+if(NOT "${freenect2_LIBRARIES}")
+  set(freenect2_FOUND FALSE)
+endif()
 if(freenect2_FOUND)
   set(KINECT2_SRCS Gfx/Kinect2Device.hpp Gfx/Kinect2Device.cpp)
 endif()
-
 # Source files
 set(HDRS
     Gfx/CommandFactory.hpp

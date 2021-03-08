@@ -44,10 +44,6 @@ add_executable(${APPNAME} WIN32
 )
 #target_link_libraries(score-main PRIVATE ${APPNAME})
 
-if(CMAKE_SYSTEM_NAME MATCHES Emscripten)
-  target_link_libraries(${APPNAME} PUBLIC Qt5::QWasmIntegrationPlugin)
-endif()
-
 set_target_properties(${APPNAME}
   PROPERTIES
     CXX_VISIBILITY_PRESET hidden

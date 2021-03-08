@@ -110,7 +110,7 @@ public:
       *p.first = ctrl->value(); // TODO does this make sense ?
       p.second = true;          // we will send the first value
 
-      const State::AddressAccessor& addr = map.at(ctl->id());
+      const State::AddressAccessor& addr = map.at(ctl->id().val());
       system().setup.set_destination(addr, node->root_outputs().back());
 
       std::weak_ptr<ossia::control_surface_node> weak_node = node;

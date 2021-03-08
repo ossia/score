@@ -1,5 +1,9 @@
 project(score_plugin_jit LANGUAGES CXX)
 
+if(CMAKE_SYSTEM_PROCESSOR MATCHES arm)
+  return()
+endif()
+
 # Find dependencies
 find_package(LLVM PATHS ${LLVM_DIR})
 if(${Qt5Core_VERSION_STRING} VERSION_LESS 5.15)

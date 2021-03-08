@@ -17,6 +17,10 @@ if(NOT FAUST_FOUND)
   return()
 endif()
 
+if(CMAKE_SYSTEM_PROCESSOR MATCHES arm)
+  return()
+endif()
+
 if(UNIX AND NOT APPLE)
   find_package(ZLIB QUIET)
 endif()

@@ -115,7 +115,8 @@ Process::ControlInlet* makeControlFromType(
 
 void Model::setupControl(Process::ControlInlet* ctl, const State::AddressAccessor& addr)
 {
-  m_outputAddresses[ctl->id()] = addr;
+  int32_t id = ctl->id().val();
+  m_outputAddresses[id] = addr;
   ctl->hidden = true;
 
   inlets().push_back(ctl);
@@ -182,7 +183,7 @@ void Model::addControl(const Id<Process::Port>& id, const Device::FullAddressAcc
 
 void Model::removeControl(const Id<Process::Port>& m_id)
 {
-  m_outputAddresses.erase(m_id);
+  m_outputAddresses.erase(m_id.val());
 
   auto it = ossia::find_if(inlets(), [&](const auto& inlet) { return inlet->id() == m_id; });
   SCORE_ASSERT(it != inlets().end());

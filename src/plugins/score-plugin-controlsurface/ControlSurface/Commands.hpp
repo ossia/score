@@ -62,7 +62,7 @@ public:
   RemoveControl(const Model& proc, const Process::Port& p)
       : m_model{proc}
       , m_id{p.id()}
-      , m_addr{proc.outputAddresses().at(p.id())}
+      , m_addr{proc.outputAddresses().at(p.id().val())}
       , m_data{DataStreamReader::marshall(p)}
   {
   }

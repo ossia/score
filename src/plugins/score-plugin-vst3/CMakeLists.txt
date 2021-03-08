@@ -12,6 +12,10 @@ if(MSVC)
   return()
 endif()
 
+if(CMAKE_SYSTEM_PROCESSOR MATCHES arm)
+  return()
+endif()
+
 if(WIN32)
   # Needed because on windows we need admin permissions which does not work on CI
   # (see smtg_create_directory_as_admin_win)

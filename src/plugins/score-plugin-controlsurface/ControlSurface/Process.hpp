@@ -25,7 +25,7 @@ class Model final : public Process::ProcessModel
   W_OBJECT(Model)
 
 public:
-  using address_map = ossia::fast_hash_map<Id<Process::Port>, State::AddressAccessor>;
+  using address_map = ossia::fast_hash_map<int32_t, State::AddressAccessor>;
   Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
 
   template <typename Impl>
@@ -55,7 +55,7 @@ private:
   void setDurationAndGrow(const TimeVal& newDuration) noexcept override;
   void setDurationAndShrink(const TimeVal& newDuration) noexcept override;
 
-  ossia::fast_hash_map<Id<Process::Port>, State::AddressAccessor> m_outputAddresses;
+  address_map m_outputAddresses;
 };
 
 using ProcessFactory = Process::ProcessFactory_T<ControlSurface::Model>;
