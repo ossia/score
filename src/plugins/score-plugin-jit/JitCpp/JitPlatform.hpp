@@ -502,7 +502,7 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
                              "/3rdparty/libossia/3rdparty/asio/asio/include",
                              "/3rdparty/libossia/3rdparty/websocketpp",
                              "/3rdparty/libossia/3rdparty/rapidjson/include",
-                             "/3rdparty/libossia/3rdparty/RtMidi17/include",
+                             "/3rdparty/libossia/3rdparty/libremidi/include",
                              "/3rdparty/libossia/3rdparty/oscpack",
                              "/3rdparty/libossia/3rdparty/multi_index/include",
                              "/3rdparty/libossia/3rdparty/verdigris/src",

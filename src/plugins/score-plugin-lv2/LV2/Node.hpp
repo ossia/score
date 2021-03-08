@@ -163,7 +163,7 @@ struct lv2_node final : public ossia::graph_node
       auto& lv2_port = fMidiIns[i];
       Iterator it{lv2_port.buf};
 
-      for (const rtmidi::message& msg : ossia_port.messages)
+      for (const libremidi::message& msg : ossia_port.messages)
       {
         it.write(msg.timestamp, 0, data.host.midi_event_id, msg.bytes.size(), msg.bytes.data());
       }
@@ -221,7 +221,7 @@ struct lv2_node final : public ossia::graph_node
 
         if (ev->body.type == data.host.midi_event_id)
         {
-          rtmidi::message msg;
+          libremidi::message msg;
           msg.timestamp = ev->time.frames;
           msg.bytes.resize(ev->body.size);
           for (std::size_t i = 0; i < ev->body.size; i++)

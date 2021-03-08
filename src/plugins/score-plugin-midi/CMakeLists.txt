@@ -63,7 +63,7 @@ set(SOURCE_FILES
 
 add_library(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES})
 score_generate_command_list_file(${PROJECT_NAME} "${HEADER_FILES}")
-target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_engine RtMidi17)
+target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_engine libremidi)
 target_include_directories(${PROJECT_NAME} PRIVATE "${OSSIA_3RDPARTY_FOLDER}/GSL")
 
 setup_score_plugin(${PROJECT_NAME})

@@ -467,7 +467,7 @@ void js_node::run(const ossia::token_request& tk, ossia::exec_state_facade estat
     auto& dat = *m_midOutlets[i].second->target<ossia::midi_port>();
     for (const auto& mess : m_midOutlets[i].first->midi())
     {
-      rtmidi::message m;
+      libremidi::message m;
       m.bytes.resize(mess.size());
       for (int j = 0; j < mess.size(); j++)
       {

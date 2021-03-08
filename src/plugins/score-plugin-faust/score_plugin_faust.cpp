@@ -11,6 +11,7 @@
 #include <wobjectimpl.h>
 
 // Undefine macros defined by Qt / Verdigris
+#if defined(__arm__)
 #undef READ
 #undef WRITE
 #undef RESET
@@ -19,13 +20,15 @@
 #include <llvm/Support/TargetRegistry.h>
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Target/TargetMachine.h>
-
+#endif
 score_plugin_faust::score_plugin_faust()
 {
+#if defined(__arm__)
   llvm::InitializeAllTargets();
   llvm::InitializeAllTargetMCs();
   llvm::InitializeAllAsmPrinters();
   llvm::InitializeAllAsmParsers();
+#endif
 }
 
 score_plugin_faust::~score_plugin_faust() { }

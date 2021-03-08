@@ -11,7 +11,7 @@
 #include <QVariant>
 #include <QVector>
 
-#include <rtmidi17/message.hpp>
+#include <libremidi/message.hpp>
 
 #include <verdigris>
 namespace JS
@@ -306,7 +306,7 @@ public:
   void setMidi(const T& arr)
   {
     m_midi.clear();
-    for (const rtmidi::message& mess : arr)
+    for (const libremidi::message& mess : arr)
     {
       const auto N = mess.size();
       QVector<int> m;

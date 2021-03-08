@@ -15,7 +15,7 @@
 #include <QSet>
 #include <QUrl>
 
-#include <rtmidi17/reader.hpp>
+#include <libremidi/reader.hpp>
 
 namespace Midi
 {
@@ -108,7 +108,7 @@ MidiTrack::MidiSong MidiTrack::parse(const QByteArray& dat, const score::Documen
 {
   MidiSong m;
 
-  rtmidi::reader reader{false};
+  libremidi::reader reader{false};
   std::vector<uint8_t> raw(dat.begin(), dat.end());
   reader.parse(raw);
 
@@ -137,15 +137,15 @@ MidiTrack::MidiSong MidiTrack::parse(const QByteArray& dat, const score::Documen
   }
 
   // Read tracks
-  for (const rtmidi::midi_track& t : reader.tracks)
+  for (const libremidi::midi_track& t : reader.tracks)
   {
     MidiTrack nv;
-    for (const rtmidi::track_event& ev : t)
+    for (const libremidi::track_event& ev : t)
     {
       tick += ev.tick;
       switch (ev.m.get_message_type())
       {
-        case rtmidi::message_type::NOTE_ON:
+        case libremidi::message_type::NOTE_ON:
         {
           const auto pitch = ev.m.bytes[1];
           const auto vel = ev.m.bytes[2];
@@ -176,7 +176,7 @@ MidiTrack::MidiSong MidiTrack::parse(const QByteArray& dat, const score::Documen
           }
           break;
         }
-        case rtmidi::message_type::NOTE_OFF:
+        case libremidi::message_type::NOTE_OFF:
         {
           auto it = notes.find(ev.m.bytes[1]);
           if (it != notes.end())
@@ -195,7 +195,7 @@ MidiTrack::MidiSong MidiTrack::parse(const QByteArray& dat, const score::Documen
             auto ev_t = ev.m.get_meta_event_type();
             switch (ev_t)
             {
-              case rtmidi::meta_event_type::TEMPO_CHANGE:
+              case libremidi::meta_event_type::TEMPO_CHANGE:
               {
                 qDebug() << "TEMPO_CHANGE" << ev.m.bytes[0];
                 break;

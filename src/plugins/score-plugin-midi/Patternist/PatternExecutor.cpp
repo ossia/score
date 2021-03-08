@@ -33,7 +33,7 @@ public:
       auto& mess = out.target<ossia::midi_port>()->messages;
       for (uint8_t note : in_flight)
       {
-        mess.push_back(rtmidi::message::note_off(channel, note, 0));
+        mess.push_back(libremidi::message::note_off(channel, note, 0));
         mess.back().timestamp = *date;
       }
       in_flight.clear();
@@ -42,7 +42,7 @@ public:
       {
         if (lane.pattern[current])
         {
-          mess.push_back(rtmidi::message::note_on(channel, lane.note, 64));
+          mess.push_back(libremidi::message::note_on(channel, lane.note, 64));
           mess.back().timestamp = *date;
           in_flight.insert(lane.note);
         }

@@ -72,11 +72,11 @@ AboutDialog::AboutDialog(QWidget* parent)
   map["TinySpline"] = License{"https://github.com/msteinbeck/tinyspline", "MIT License"};
   map["GSL"] = License{"https://github.com/Microsoft/GSL", GSL_LICENSE};
 
-  map["RtMidi17"] = License{
-      "https://github.com/jcelerier/RtMidi17",
+  map["libremidi"] = License{
+      "https://github.com/jcelerier/libremidi",
       "Based on RtMidi (https://github.com/thestk/rtmidi) and "
       "ModernMIDI (https://github.com/ddiakopoulos/ModernMIDI)"};
-  map["RtMidi"] = License{"https://github.com/thestk/rtmidi", rtmidi_LICENSE};
+  map["RtMidi"] = License{"https://github.com/thestk/rtmidi", libremidi_LICENSE};
   map["ModernMidi"] = License{"(https://github.com/ddiakopoulos/ModernMIDI", modernmidi_LICENSE};
   map["Servus"] = License{
       "https://github.com/jcelerier/Servus",

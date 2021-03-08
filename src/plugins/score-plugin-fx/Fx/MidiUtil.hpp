@@ -253,7 +253,7 @@ struct Node
     {
       switch (msg.get_message_type())
       {
-        case rtmidi::message_type::NOTE_ON:
+        case libremidi::message_type::NOTE_ON:
         {
           // map to scale
           if (auto index = find_closest_index(scale, msg.bytes[1]))
@@ -266,7 +266,7 @@ struct Node
             if (it != self.map.end())
             {
               midi_out.messages.push_back(
-                  rtmidi::message::note_off(res.get_channel(), it->second.pitch, res.bytes[2]));
+                  libremidi::message::note_off(res.get_channel(), it->second.pitch, res.bytes[2]));
               midi_out.messages.back().timestamp = offset;
               midi_out.messages.push_back(res);
               midi_out.messages.back().timestamp = offset + 1;
@@ -281,13 +281,13 @@ struct Node
           }
           break;
         }
-        case rtmidi::message_type::NOTE_OFF:
+        case libremidi::message_type::NOTE_OFF:
         {
           auto it = self.map.find(msg.bytes[1]);
           if (it != self.map.end())
           {
             midi_out.messages.push_back(
-                rtmidi::message::note_off(msg.get_channel(), it->second.pitch, msg.bytes[2]));
+                libremidi::message::note_off(msg.get_channel(), it->second.pitch, msg.bytes[2]));
             midi_out.messages.back().timestamp = offset;
             self.map.erase(it);
           }
@@ -315,10 +315,10 @@ struct Node
       {
         if ((*index + transp) != note.pitch)
         {
-          midi_out.messages.push_back(rtmidi::message::note_off(note.chan, note.pitch, note.vel));
+          midi_out.messages.push_back(libremidi::message::note_off(note.chan, note.pitch, note.vel));
           note.pitch = *index + transp;
           midi_out.messages.back().timestamp = offset;
-          midi_out.messages.push_back(rtmidi::message::note_on(note.chan, note.pitch, note.vel));
+          midi_out.messages.push_back(libremidi::message::note_on(note.chan, note.pitch, note.vel));
           midi_out.messages.back().timestamp = offset + 1;
         }
       }
@@ -408,7 +408,7 @@ struct Node
   {
     for (const auto& note : in.messages)
     {
-      if (note.get_message_type() == rtmidi::message_type::NOTE_ON)
+      if (note.get_message_type() == libremidi::message_type::NOTE_ON)
         res.write_value(ossia::value{(int)note.bytes[1]}, note.timestamp);
     }
   }

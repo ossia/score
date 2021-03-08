@@ -232,7 +232,7 @@ public:
     ossia::small_vector<VstMidiEvent, 16> vec;
     vec.resize(n_mess);
     std::size_t i = 0;
-    for (rtmidi::message& mess : ip)
+    for (libremidi::message& mess : ip)
     {
       VstMidiEvent& e = vec[i];
       std::memset(&e, 0, sizeof(VstMidiEvent));

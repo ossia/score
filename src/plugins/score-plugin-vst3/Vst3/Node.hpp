@@ -280,11 +280,11 @@ public:
     e.sampleOffset = 0;
     e.ppqPosition = 0;
     e.flags = VstEvent::kIsLive;
-    for (rtmidi::message& mess : ip)
+    for (libremidi::message& mess : ip)
     {
       switch(mess.get_message_type())
       {
-        case rtmidi::message_type::NOTE_ON:
+        case libremidi::message_type::NOTE_ON:
           e.type = VstEvent::kNoteOnEvent;
           e.noteOn.channel = mess.get_channel();
           e.noteOn.pitch = mess.bytes[1];
@@ -293,7 +293,7 @@ public:
           e.noteOn.tuning = 0.f;
           m_inputEvents.addEvent(e);
           break;
-        case rtmidi::message_type::NOTE_OFF:
+        case libremidi::message_type::NOTE_OFF:
           e.type = VstEvent::kNoteOffEvent;
           e.noteOff.channel = mess.get_channel();
           e.noteOff.pitch = mess.bytes[1];
@@ -302,7 +302,7 @@ public:
           e.noteOff.tuning = 0.f;
           m_inputEvents.addEvent(e);
           break;
-        case rtmidi::message_type::POLY_PRESSURE:
+        case libremidi::message_type::POLY_PRESSURE:
           e.type = VstEvent::kPolyPressureEvent;
           e.polyPressure.channel = mess.get_channel();
           e.polyPressure.pitch = mess.bytes[1];

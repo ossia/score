@@ -142,11 +142,11 @@ struct Node
       // Update the "running" notes
       for (auto& note : msgs)
       {
-        if (note.get_message_type() == rtmidi::message_type::NOTE_ON)
+        if (note.get_message_type() == libremidi::message_type::NOTE_ON)
         {
           self.notes.insert({note.bytes[1], note.bytes[2]});
         }
-        else if (note.get_message_type() == rtmidi::message_type::NOTE_OFF)
+        else if (note.get_message_type() == libremidi::message_type::NOTE_OFF)
         {
           self.notes.erase(note.bytes[1]);
         }
@@ -168,7 +168,7 @@ struct Node
       if (!self.previous_chord.empty())
       {
         for (auto& note : self.previous_chord)
-          out.messages.push_back(rtmidi::message::note_off(1, note.first, 0));
+          out.messages.push_back(libremidi::message::note_off(1, note.first, 0));
         self.previous_chord.clear();
       }
 
@@ -193,7 +193,7 @@ struct Node
 
       for (auto& note : chord)
       {
-        out.messages.push_back(rtmidi::message::note_on(1, note.first, note.second));
+        out.messages.push_back(libremidi::message::note_on(1, note.first, note.second));
         out.messages.back().timestamp = *date;
       }
 

@@ -63,7 +63,7 @@ struct Node
 
   template <typename T>
   static void
-  startChord(const T& chord, const rtmidi::message& m, const std::size_t num, ossia::midi_port& op)
+  startChord(const T& chord, const libremidi::message& m, const std::size_t num, ossia::midi_port& op)
   {
     for (std::size_t i = 0; i < std::min(num, chord.size()); i++)
     {
@@ -71,7 +71,7 @@ struct Node
       if (new_note > 127)
         break;
 
-      auto non = rtmidi::message::note_on(m.get_channel(), new_note, m.bytes[2]);
+      auto non = libremidi::message::note_on(m.get_channel(), new_note, m.bytes[2]);
       non.timestamp = m.timestamp;
       op.messages.push_back(non);
     }
@@ -79,7 +79,7 @@ struct Node
 
   template <typename T>
   static void
-  stopChord(const T& chord, const rtmidi::message& m, const std::size_t num, ossia::midi_port& op)
+  stopChord(const T& chord, const libremidi::message& m, const std::size_t num, ossia::midi_port& op)
   {
     for (std::size_t i = 0; i < std::min(num, chord.size()); i++)
     {
@@ -87,7 +87,7 @@ struct Node
       if (new_note > 127)
         break;
 
-      auto noff = rtmidi::message::note_off(m.get_channel(), new_note, m.bytes[2]);
+      auto noff = libremidi::message::note_off(m.get_channel(), new_note, m.bytes[2]);
       noff.timestamp = m.timestamp;
       op.messages.push_back(noff);
     }
@@ -96,7 +96,7 @@ struct Node
   template <typename F>
   static void dispatchChord(
       std::string_view chord,
-      const rtmidi::message& m,
+      const libremidi::message& m,
       int num,
       ossia::midi_port& op,
       F&& f)
@@ -121,18 +121,18 @@ struct Node
       ossia::exec_state_facade st,
       State& self)
   {
-    for (const rtmidi::message& m : ip.messages)
+    for (const libremidi::message& m : ip.messages)
     {
       auto lastNum = num.rbegin()->second;
       const auto& lastCh = chord.rbegin()->second;
 
-      if (m.get_message_type() == rtmidi::message_type::NOTE_ON)
+      if (m.get_message_type() == libremidi::message_type::NOTE_ON)
       {
         auto cur = m.bytes[1];
         self.chords[cur].push_back({lastCh, lastNum});
         dispatchChord(lastCh, m, lastNum, op, [](auto&&... args) { startChord(args...); });
       }
-      else if (m.get_message_type() == rtmidi::message_type::NOTE_OFF)
+      else if (m.get_message_type() == libremidi::message_type::NOTE_OFF)
       {
         auto it = self.chords.find(m.bytes[1]);
         if (it != self.chords.end())
