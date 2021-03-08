@@ -60,6 +60,5 @@ void PanelDelegate::on_modelChanged(score::MaybeDocument oldm, score::MaybeDocum
   {
     m_widget->setModel(nullptr);
   }
-#endif
 }
 }

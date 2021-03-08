@@ -738,16 +738,14 @@ void DeviceExplorerWidget::edit()
     if (!dev)
       return;
 
-    QScopedPointer<Device::AddressDialog> dial{
-        proto->makeEditAddressDialog(before, *dev, model()->deviceModel().context(), this)};
+    auto dial =
+        proto->makeEditAddressDialog(before, *dev, model()->deviceModel().context(), this);
 
     if (!dial)
       return;
 
-    auto code = static_cast<QDialog::DialogCode>(dial->exec());
-
-    if (code == QDialog::Accepted)
-    {
+    connect(dial, &QDialog::accepted,
+            this, [this, dial, select, before] {
       auto stgs = dial->getSettings();
       // TODO do like for DeviceSettings
       if (!model()->checkAddressEditable(*select.parent(), before, stgs))
@@ -757,9 +755,16 @@ void DeviceExplorerWidget::edit()
           model()->deviceModel(), Device::NodePath(select), stgs};
 
       m_cmdDispatcher->submit(cmd);
-    }
+      updateActions();
+      dial->deleteLater();
+    });
+    connect(dial, &QDialog::rejected,
+            this, [this, dial] {
+      updateActions();
+      dial->deleteLater();
+    });
 
-    updateActions();
+    dial->show();
   }
 }
 
@@ -891,10 +896,8 @@ void DeviceExplorerWidget::addDevice()
     m_deviceDialog = new DeviceEditDialog{m_protocolList, this};
   }
 
-  QDialog::DialogCode code = static_cast<QDialog::DialogCode>(m_deviceDialog->exec());
-
-  if (code == QDialog::Accepted)
-  {
+  connect(m_deviceDialog, &QDialog::accepted,
+          this, [this] {
     SCORE_ASSERT(model());
     auto node = m_deviceDialog->getDevice();
     auto& deviceSettings = *node.target<Device::DeviceSettings>();
@@ -915,11 +918,20 @@ void DeviceExplorerWidget::addDevice()
     m_cmdDispatcher->submit(new Command::LoadDevice{devplug, std::move(node)});
 
     blockGUI(false);
-  }
 
-  updateActions();
-  delete m_deviceDialog;
-  m_deviceDialog = nullptr;
+    updateActions();
+    m_deviceDialog->deleteLater();
+    m_deviceDialog = nullptr;
+  });
+
+  connect(m_deviceDialog, &QDialog::rejected,
+          this, [this] {
+    updateActions();
+    m_deviceDialog->deleteLater();
+    m_deviceDialog = nullptr;
+  });
+
+  m_deviceDialog->show();
 }
 
 void DeviceExplorerWidget::exportDevice()

@@ -249,6 +249,9 @@ bool DeviceExplorerModel::tryDeviceInstantiation(
 {
   while (!checkDeviceInstantiatable(set))
   {
+#if defined(__EMSCRIPTEN__)
+    return false;
+#else
     dial.setSettings(set);
     dial.setEditingInvalidState(true);
 
@@ -260,6 +263,7 @@ bool DeviceExplorerModel::tryDeviceInstantiation(
     }
 
     set = dial.getSettings();
+#endif
   }
 
   dial.setEditingInvalidState(true);
