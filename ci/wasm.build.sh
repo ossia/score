@@ -9,6 +9,8 @@ cd /build
 export QT=/opt/ossia-sdk-wasm/qt5
 
 source /opt/ossia-sdk-wasm/emsdk/emsdk_env.sh
+export CC=$(which emcc)
+export CXX=$(which em++)
 
 cmake -GNinja $SCORE_DIR \
    -DCMAKE_C_FLAGS="-O3 -g0" \
