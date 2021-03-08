@@ -11,7 +11,6 @@ git config --local user.name "github-actions[bot]"
 mv /build/ossia-score.js .
 mv /build/ossia-score.wasm .
 mv $SCORE_DIR/cmake/Deployment/WASM/* .
-echo 'web.ossia.io' > CNAME
 
 git add .
 git commit -m "continuous integration"
