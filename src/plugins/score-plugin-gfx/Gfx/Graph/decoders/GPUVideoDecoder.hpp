@@ -42,7 +42,7 @@ struct GPUVideoDecoder
         char* output = data.data() + rowBytes * r;
         std::copy(input, input + rowBytes, output);
       }
-      subdesc.setData(data);
+      subdesc.setData(std::move(data));
     }
 
     return subdesc;

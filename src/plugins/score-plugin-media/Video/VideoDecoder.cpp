@@ -397,8 +397,8 @@ bool VideoDecoder::enqueue_frame(const AVPacket* pkt, AVFrame** frame) noexcept
 
       av_frame_free(frame);
       *frame = m_rgb;
-      return true;
     }
+    return true;
   }
   return false;
 }
