@@ -190,30 +190,16 @@ std::pair<QShader, QShader> makeShaders(QString vert, QString frag)
   return {vertexS, fragmentS};
 }
 
+// TODO move to ShaderCache
 QShader makeCompute(QString compute)
 {
-  QShaderBaker b;
+  auto [computeS, computeError] = ShaderCache::get(compute.toUtf8(), QShader::ComputeStage);
+  if(!computeError.isEmpty())
+      qDebug() << computeError;
 
-  b.setGeneratedShaders({
-                          {QShader::SpirvShader, 100},
-                          {QShader::GlslShader, 330},
-                          {QShader::HlslShader, QShaderVersion(50)},
-                          {QShader::MslShader, QShaderVersion(12)},
-                        });
-  b.setGeneratedShaderVariants(
-        {QShader::Variant{}, QShader::Variant{}, QShader::Variant{}, QShader::Variant{}});
-
-  b.setSourceString(compute.toLatin1(), QShader::ComputeStage);
-  QShader shader = b.bake();
-
-  if (!b.errorMessage().isEmpty())
-  {
-    qDebug() << b.errorMessage();
-  }
-
-  if (!shader.isValid())
+  if (!computeS.isValid())
     throw std::runtime_error("invalid compute shader");
-  return shader;
+  return computeS;
 }
 
 void NodeModel::setShaders(const QShader& vert, const QShader& frag)

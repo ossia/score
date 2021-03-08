@@ -1,6 +1,8 @@
 #pragma once
+#include <score/tools/OpenGL.hpp>
 
 #include <QShaderBaker>
+
 #include <unordered_map>
 
 struct ShaderCache
@@ -18,29 +20,30 @@ public:
   }
 
 private:
+  score::GLCapabilities m_caps;
   ShaderCache()
   {
     baker.setGeneratedShaders({
-                            {QShader::SpirvShader, 100},
-                            {QShader::GlslShader, 330}, // or 120 ?
-#if defined(_WIN32)
-                            {QShader::HlslShader, QShaderVersion(50)},
-#endif
-#if defined(__APPLE__)
-                            {QShader::MslShader, QShaderVersion(12)},
-#endif
-                          });
+                                {QShader::SpirvShader, 100},
+                                {QShader::GlslShader, m_caps.shaderVersion}, // or 120 ?
+                            #if defined(_WIN32)
+                                {QShader::HlslShader, QShaderVersion(50)},
+                            #endif
+                            #if defined(__APPLE__)
+                                {QShader::MslShader, QShaderVersion(12)},
+                            #endif
+                              });
 
     baker.setGeneratedShaderVariants({
-       QShader::Variant{},
-       QShader::Variant{},
-#if defined(_WIN32)
-       QShader::Variant{},
-#endif
-#if defined(__APPLE__)
-       QShader::Variant{},
-#endif
-    });
+                                       QShader::Variant{},
+                                       QShader::Variant{},
+                                   #if defined(_WIN32)
+                                       QShader::Variant{},
+                                   #endif
+                                   #if defined(__APPLE__)
+                                       QShader::Variant{},
+                                   #endif
+                                     });
   }
 
   QShaderBaker baker;
