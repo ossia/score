@@ -26,5 +26,6 @@ cmake --build . --target install/strip
   cp $SCORE_DIR/cmake/Deployment/Linux/Raspberry/* .
 )
 
+export TAG=$(echo "$GITHUB_REF" | sed "s/.*\///;s/^v//")
 mv install "ossia score-$TAG"
 tar caf "$SCORE_DIR/score.tar.gz" "ossia score-$TAG"

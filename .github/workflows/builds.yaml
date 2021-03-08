@@ -193,7 +193,7 @@ jobs:
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.API_TOKEN_GITHUB }}
-          branch: main
+          branch: 'main'
           force: true
           directory: './site'
           repository: 'ossia/score-web'
