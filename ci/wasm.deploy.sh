@@ -1,5 +1,4 @@
 #!/bin/bash -eux
-export TAG=$GITTAGNOV
 export SCORE_DIR=$PWD
 
 mkdir site
