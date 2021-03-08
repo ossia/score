@@ -55,3 +55,4 @@ cmake -GNinja $SCORE_DIR \
 
 
 cmake --build .
+

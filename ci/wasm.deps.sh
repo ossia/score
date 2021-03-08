@@ -1,12 +1,15 @@
 #!/bin/bash -eux
 
-sudo apt-get update -qq
-sudo apt-get install wget ninja-build
+# Note: this is run from an ArchLinux container due to too recent glibc
+pacman -Syyu --noconfirm
+pacman -S wget ninja
 
 export SDK_ARCHIVE=sdk-wasm.tar.xz
-wget -nv https://github.com/ossia/score-sdk/releases/download/sdk18/$SDK_ARCHIVE -O $SDK_ARCHIVE
+wget -nv https://github.com/ossia/score-sdk/releases/download/sdk19/$SDK_ARCHIVE -O $SDK_ARCHIVE
 
-sudo mkdir -p /opt/ossia-sdk-wasm
-sudo chown -R $(whoami) /opt/ossia-sdk-wasm
-sudo chmod -R a+rwx /opt/ossia-sdk-wasm
+mkdir -p /opt/ossia-sdk-wasm
+chown -R $(whoami) /opt/ossia-sdk-wasm
+chmod -R a+rwx /opt/ossia-sdk-wasm
 tar xaf $SDK_ARCHIVE --strip-components=2 --directory /opt/ossia-sdk-wasm/
+
+rm *.tar.*

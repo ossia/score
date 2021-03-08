@@ -158,12 +158,19 @@ jobs:
   wasm:
     name: WebAssembly
     runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
 
     steps:
       - name: Install git
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -qq --force-yes git
+          # Needed because glibc-2.33 prevents pacman from running...
+          export patched_glibc=glibc-linux4-2.33-4-x86_64.pkg.tar.zst
+          curl -LO "https://repo.archlinuxcn.org/x86_64/$patched_glibc"
+          bsdtar -C / -xvf "$patched_glibc"
+
+          pacman -Syy --noconfirm
+          pacman -S git --noconfirm
 
       - name: Checkout code
         uses: actions/checkout@v2
@@ -177,3 +184,56 @@ jobs:
       - name: Build
         run: |
           ./ci/wasm.build.sh
+
+      - name: Deploy
+        run: |
+          ./ci/wasm.deploy.sh
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.API_TOKEN_GITHUB }}
+          branch: main
+          force: true
+          directory: './site'
+          repository: 'ossia/score-web'
+
+  rpi:
+    name: RaspberryPi
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+
+    steps:
+      - name: Install git
+        run: |
+          # Needed because glibc-2.33 prevents pacman from running...
+          export patched_glibc=glibc-linux4-2.33-4-x86_64.pkg.tar.zst
+          curl -LO "https://repo.archlinuxcn.org/x86_64/$patched_glibc"
+          bsdtar -C / -xvf "$patched_glibc"
+
+          pacman -Syy --noconfirm
+          pacman -S git --noconfirm
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - name: Dependencies
+        run: |
+          ./ci/raspberrypi.deps.sh
+
+      - name: Build
+        run: |
+          ./ci/raspberrypi.build.sh
+
+      - name: Deploy
+        run: |
+          ./ci/raspberrypi.deploy.sh
+
+      - name: Upload build
+        uses: actions/upload-artifact@v2
+        with:
+          path: |
+            *.tar.gz
