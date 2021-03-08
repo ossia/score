@@ -9,16 +9,16 @@ RUN yum -y install devtoolset-9-gcc devtoolset-9-make devtoolset-9 \
     rsync \
     bluez-devel avahi-devel
 
-RUN ls && wget https://github.com/ossia/sdk/releases/download/sdk18/sdk-linux.tar.xz \
+RUN ls && wget https://github.com/ossia/sdk/releases/download/sdk19/sdk-linux.tar.xz \
     && tar xaf sdk-linux.tar.xz \
     && rm -rf  sdk-linux.tar.xz \
-    && wget -nv --no-check-certificate -c https://github.com/Kitware/CMake/releases/download/v3.18.3/cmake-3.18.3-Linux-x86_64.tar.gz \
+    && wget -nv --no-check-certificate -c https://github.com/Kitware/CMake/releases/download/v3.19.6/cmake-3.19.6-Linux-x86_64.tar.gz \
     && tar xaf cmake-*.tar.gz \
     && rm -rf cmake-*.tar.gz \
     && wget -nv --no-check-certificate -c https://github.com/ninja-build/ninja/releases/download/v1.10.1/ninja-linux.zip \
     && unzip ninja-linux.zip \
     && rm -rf ninja-linux.zip \
-    && wget -nv --no-check-certificate -c https://github.com/jcelerier/cninja/releases/download/v3.7.4/cninja-v3.7.4-Linux.tar.gz \
+    && wget -nv --no-check-certificate -c https://github.com/jcelerier/cninja/releases/download/v3.7.6/cninja-v3.7.4-Linux.tar.gz \
     && tar xaf cninja-*.tar.gz \
     && rm -rf cninja-*.tar.gz \
     && mv ninja /usr/bin/ \
