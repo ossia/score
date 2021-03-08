@@ -694,33 +694,6 @@ struct TSerializer<
     SCORE_DEBUG_CHECK_DELIMITER2(s);
   }
 };
-template <typename T, typename U>
-struct TSerializer<DataStream, score::hash_map<T, U>>
-{
-  static void readFrom(DataStream::Serializer& s, const score::hash_map<T, U>& obj)
-  {
-    auto& st = s.stream();
-    st << (int32_t)obj.size();
-    for (const auto& e : obj)
-    {
-      st << e.first << e.second;
-    }
-  }
-
-  static void writeTo(DataStream::Deserializer& s, score::hash_map<T, U>& obj)
-  {
-    auto& st = s.stream();
-    int32_t n;
-    st >> n;
-    for (int32_t i = 0; i < n; i++)
-    {
-      T key;
-      U value;
-      st >> key >> value;
-      obj.emplace(std::move(key), std::move(value));
-    }
-  }
-};
 
 template <typename T>
 struct TSerializer<DataStream, ossia::flat_set<T>>

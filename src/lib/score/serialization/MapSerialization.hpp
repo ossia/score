@@ -5,43 +5,40 @@
 
 #include <ossia/detail/flat_map.hpp>
 #include <ossia/detail/hash_map.hpp>
+#include <unordered_map>
 
-template <typename T, typename U>
-struct TSerializer<DataStream, ossia::fast_hash_map<T, U>>
+struct MapSerializer
 {
-  using type = ossia::fast_hash_map<T, U>;
-  using pair_type = typename type::value_type;
-  static void readFrom(DataStream::Serializer& s, const type& obj)
+  template<typename Map_T>
+  static void readFrom(DataStream::Serializer& s, const Map_T& obj)
   {
-    std::size_t sz = obj.size();
-    s.stream() << sz;
-    for (const auto& pair : obj)
+    auto& st = s.stream();
+    st << (int32_t)obj.size();
+    for (const auto& e : obj)
     {
-      s.stream() << pair;
+      st << e.first << e.second;
     }
   }
 
-  static void writeTo(DataStream::Deserializer& s, type& obj)
+  template<typename Map_T>
+  static void writeTo(DataStream::Deserializer& s, Map_T& obj)
   {
     obj.clear();
 
-    std::size_t sz;
-    s.stream() >> sz;
-    for (std::size_t i = 0; i < sz; i++)
+    auto& st = s.stream();
+    int32_t n;
+    st >> n;
+    for (int32_t i = 0; i < n; i++)
     {
-      pair_type v;
-      s.stream() >> v;
-      obj.insert(std::move(v));
+      typename Map_T::key_type key;
+      typename Map_T::mapped_type value;
+      st >> key >> value;
+      obj.emplace(std::move(key), std::move(value));
     }
   }
-};
 
-template <typename T, typename U>
-struct TSerializer<JSONObject, ossia::fast_hash_map<T, U>>
-{
-  using type = ossia::fast_hash_map<T, U>;
-  using pair_type = typename type::value_type;
-  static void readFrom(JSONObject::Serializer& s, const type& obj)
+  template<typename Map_T>
+  static void readFrom(JSONObject::Serializer& s, const Map_T& obj)
   {
     s.stream.StartArray();
     for (const auto& pair : obj)
@@ -54,7 +51,8 @@ struct TSerializer<JSONObject, ossia::fast_hash_map<T, U>>
     s.stream.EndArray();
   }
 
-  static void writeTo(JSONObject::Deserializer& s, type& obj)
+  template<typename Map_T>
+  static void writeTo(JSONObject::Deserializer& s, Map_T& obj)
   {
     obj.clear();
 
@@ -62,13 +60,44 @@ struct TSerializer<JSONObject, ossia::fast_hash_map<T, U>>
     for(const auto& elt : arr)
     {
       const auto& pair = elt.GetArray();
-      pair_type v;
-      v.first <<= JsonValue{pair[0]};
-      v.second <<= JsonValue{pair[1]};
-      obj.insert(std::move(v));
+      typename Map_T::key_type key;
+      typename Map_T::mapped_type value;
+      key <<= JsonValue{pair[0]};
+      value <<= JsonValue{pair[1]};
+      obj.emplace(std::move(key), std::move(value));
     }
   }
 };
+
+template <typename T, typename U>
+struct TSerializer<DataStream, tsl::hopscotch_map<T, U>> : MapSerializer
+{
+};
+template <typename T, typename U>
+struct TSerializer<JSONObject, tsl::hopscotch_map<T, U>> : MapSerializer
+{
+};
+
+template <typename T, typename U>
+struct TSerializer<DataStream, std::unordered_map<T, U>> : MapSerializer
+{
+};
+template <typename T, typename U>
+struct TSerializer<JSONObject, std::unordered_map<T, U>> : MapSerializer
+{
+};
+
+#if (INTPTR_MAX == INT64_MAX)
+template <typename T, typename U>
+struct TSerializer<DataStream, ska::flat_hash_map<T, U>> : MapSerializer
+{
+};
+template <typename T, typename U>
+struct TSerializer<JSONObject, ska::flat_hash_map<T, U>> : MapSerializer
+{
+};
+#endif
+
 
 template <typename T, typename U>
 struct TSerializer<DataStream, ossia::flat_map<T, U>>
@@ -77,26 +106,12 @@ struct TSerializer<DataStream, ossia::flat_map<T, U>>
   using pair_type = typename type::value_type;
   static void readFrom(DataStream::Serializer& s, const type& obj)
   {
-    std::size_t sz = obj.size();
-    s.stream() << sz;
-    for (const auto& pair : obj)
-    {
-      s.stream() << pair;
-    }
+    s.m_stream << obj.container;
   }
 
   static void writeTo(DataStream::Deserializer& s, type& obj)
   {
-    obj.clear();
-
-    std::size_t sz;
-    s.stream() >> sz;
-    for (std::size_t i = 0; i < sz; i++)
-    {
-      pair_type v;
-      s.stream() >> v;
-      obj.insert(std::move(v));
-    }
+    s.m_stream >> obj.container;
   }
 };
 

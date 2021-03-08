@@ -23,9 +23,10 @@ private:
   score::GLCapabilities m_caps;
   ShaderCache()
   {
+    QShaderVersion::Flags glFlag = m_caps.type == QSurfaceFormat::OpenGLES ? QShaderVersion::GlslEs : QShaderVersion::Flag{};
     baker.setGeneratedShaders({
                                 {QShader::SpirvShader, 100},
-                                {QShader::GlslShader, m_caps.shaderVersion}, // or 120 ?
+                                {QShader::GlslShader, QShaderVersion(m_caps.shaderVersion, glFlag)},
                             #if defined(_WIN32)
                                 {QShader::HlslShader, QShaderVersion(50)},
                             #endif

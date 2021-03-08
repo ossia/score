@@ -14,6 +14,7 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/plugins/SerializableHelpers.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/MapSerialization.hpp>
 
 #include <score_plugin_scenario_export.h>
 
