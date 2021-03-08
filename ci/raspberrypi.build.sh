@@ -2,8 +2,8 @@
 
 export SCORE_DIR=$PWD
 
-sudo mkdir -p /build || true
-sudo chown -R $(whoami) /build
+mkdir -p /build || true
+chown -R $(whoami) /build
 cd /build
 
 cmake $SCORE_DIR \
