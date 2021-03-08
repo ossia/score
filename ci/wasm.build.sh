@@ -2,7 +2,8 @@
 
 export SCORE_DIR=$PWD
 
-mkdir -p /build || true
+sudo mkdir -p /build || true
+sudo chown -R $(whoami) /build
 cd /build
 
 export QT=/opt/ossia-sdk-wasm/qt5
