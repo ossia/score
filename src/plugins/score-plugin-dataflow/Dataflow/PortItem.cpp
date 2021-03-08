@@ -4,16 +4,20 @@
 #include <Dataflow/Commands/CreateModulation.hpp>
 #include <Dataflow/Commands/EditConnection.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
-#include <Process/Commands/EditPort.hpp>
 #include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <State/MessageListSerialization.hpp>
 
+#include <Process/Commands/EditPort.hpp>
+#include <Process/ProcessContext.hpp>
+
+#include <score/selection/SelectionStack.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 
 #include <ossia/network/common/destination_qualifiers.hpp>
 #include <ossia/network/domain/domain.hpp>
 
+#include <QApplication>
 #include <QGraphicsSceneDragDropEvent>
 #include <QMenu>
 #include <QMimeData>
@@ -36,14 +40,12 @@ bool intersection_empty(const Vec& v1, const Vec& v2)
 
 void onCreateCable(
     const score::DocumentContext& ctx,
-    Dataflow::PortItem* p1,
-    Dataflow::PortItem* p2)
+    const Process::Port& port1,
+    const Process::Port& port2)
 {
   auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
   CommandDispatcher<> disp{ctx.commandStack};
 
-  auto& port1 = p1->port();
-  auto& port2 = p2->port();
   if (port1.parent() == port2.parent())
     return;
 
@@ -83,6 +85,14 @@ void onCreateCable(
         plug, getStrongId(plug.cables),
         Process::CableType::ImmediateGlutton,
         *source, *sink);
+}
+
+void onCreateCable(
+    const score::DocumentContext& ctx,
+    Dataflow::PortItem* p1,
+    Dataflow::PortItem* p2)
+{
+  onCreateCable(ctx, p1->port(), p2->port());
 }
 
 AutomatablePortItem::~AutomatablePortItem()
@@ -165,6 +175,37 @@ bool AutomatablePortItem::on_createAutomation(
   return true;
 }
 
+void AutomatablePortItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
+{
+  if (this->contains(event->pos()))
+  {
+    switch (event->button())
+    {
+      case Qt::RightButton:
+        contextMenuRequested(event->scenePos(), event->screenPos());
+        break;
+      case Qt::LeftButton:
+        if(qApp->keyboardModifiers() & Qt::CTRL)
+        {
+          auto sel = this->m_context.selectionStack.currentSelection();
+          if(sel.size() == 1)
+          {
+            if(auto item = qobject_cast<Process::Port*>(sel.at(0).data()))
+            {
+              if(item != &this->m_port)
+              {
+                onCreateCable(this->m_context, *item, this->m_port);
+              }
+            }
+          }
+        }
+      default:
+        break;
+    }
+  }
+  event->accept();
+
+}
 void AutomatablePortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
   prepareGeometryChange();

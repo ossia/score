@@ -29,6 +29,7 @@ public:
       std::function<void(score::Command*)> macro,
       const score::DocumentContext& m_context);
 
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 };
 
