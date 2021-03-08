@@ -14,7 +14,7 @@
 #include <Effect/EffectFactory.hpp>
 
 #include <verdigris>
-
+#include <iostream> // needed by poly-llvm-dsp.h...
 #include <faust/dsp/poly-llvm-dsp.h>
 namespace Faust
 {

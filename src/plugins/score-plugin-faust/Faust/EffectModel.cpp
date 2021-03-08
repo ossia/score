@@ -26,6 +26,7 @@
 
 #if __has_include(<sndfile.h>)
 #define SAMPLERATE 1
+#define FAUST_HAS_SNDFILE 1
 #include <faust/gui/SoundUI.h>
 #endif
 W_OBJECT_IMPL(Faust::FaustEffectModel)
@@ -298,6 +299,12 @@ void FaustEffectModel::reload()
   const char* triple =
 #if defined(_MSC_VER)
       "x86_64-pc-windows-msvc"
+#elif defined(__emscripten__)
+      "wasm32-unknown-unknown-wasm"
+#elif defined(__aarch64__)
+      ""
+#elif defined(__arm__)
+      "arm-none-linux-gnueabihf"
 #else
       ""
 #endif
@@ -453,17 +460,21 @@ void FaustEffectComponent::reload(Execution::Transaction& transaction)
   if (proc.faust_object)
   {
     reloadFx(transaction);
+#if FAUST_HAS_SNDFILE
     static SoundUI soundinterface("", system().execState->sampleRate);
     proc.faust_object->buildUserInterface(&soundinterface);
+#endif
   }
   else if (proc.faust_poly_object)
   {
     reloadSynth(transaction);
+#if FAUST_HAS_SNDFILE
     static SoundUI soundinterface("", system().execState->sampleRate);
     const bool group = proc.faust_poly_object->getGroup();
     proc.faust_poly_object->setGroup(false);
     proc.faust_poly_object->buildUserInterface(&soundinterface);
     proc.faust_poly_object->setGroup(group);
+#endif
   }
 }
 

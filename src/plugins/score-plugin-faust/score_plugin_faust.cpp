@@ -10,9 +10,22 @@
 #include <score_plugin_faust_commands_files.hpp>
 #include <wobjectimpl.h>
 
+// Undefine macros defined by Qt / Verdigris
+#undef READ
+#undef WRITE
+#undef RESET
+#undef OPTIONAL
+
+#include <llvm/Support/TargetRegistry.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Target/TargetMachine.h>
 
 score_plugin_faust::score_plugin_faust()
 {
+  llvm::InitializeAllTargets();
+  llvm::InitializeAllTargetMCs();
+  llvm::InitializeAllAsmPrinters();
+  llvm::InitializeAllAsmParsers();
 }
 
 score_plugin_faust::~score_plugin_faust() { }

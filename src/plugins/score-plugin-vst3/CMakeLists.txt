@@ -12,7 +12,7 @@ if(MSVC)
   return()
 endif()
 
-if(CMAKE_SYSTEM_PROCESSOR MATCHES arm)
+if(CMAKE_SYSTEM_PROCESSOR MATCHES ".*arm.*")
   return()
 endif()
 

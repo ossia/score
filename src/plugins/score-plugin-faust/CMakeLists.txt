@@ -17,10 +17,6 @@ if(NOT FAUST_FOUND)
   return()
 endif()
 
-if(CMAKE_SYSTEM_PROCESSOR MATCHES arm)
-  return()
-endif()
-
 if(UNIX AND NOT APPLE)
   find_package(ZLIB QUIET)
 endif()
@@ -78,6 +74,15 @@ function(restore_var VAR)
   endif()
 endfunction()
 
+if(WIN32)
+  target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32)
+endif()
+
+# needed for llvm::sys::initializeBlabla on arm...
+if(LLVM_INCLUDE_DIRS)
+  target_include_directories(${PROJECT_NAME} PRIVATE ${LLVM_INCLUDE_DIRS})
+endif()
+
 find_path(SNDFILE_INCLUDE_DIR sndfile.h)
 if(SNDFILE_INCLUDE_DIR)
   target_include_directories(${PROJECT_NAME} PRIVATE ${SNDFILE_INCLUDE_DIR})
@@ -104,7 +109,4 @@ else()
   restore_var(BUILD_TESTING)
 
   target_link_libraries(${PROJECT_NAME} PRIVATE SndFile::sndfile)
-endif()
-if(WIN32)
-  target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32)
 endif()

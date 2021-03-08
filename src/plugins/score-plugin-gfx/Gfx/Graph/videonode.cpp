@@ -66,6 +66,7 @@ struct VideoNode::Rendered : RenderedNode
 
       const bool we_are_late = current_time > next_frame_time;
       const bool timer = t.elapsed() > (1000. * inv_fps);
+
       //const bool we_are_in_advance = std::abs(current_time - next_frame_time) > (2. * inv_fps);
       //const bool seeked = nodem.seeked.exchange(false);
       //const bool seeked_forward =
