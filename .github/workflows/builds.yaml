@@ -176,6 +176,8 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: 'recursive'
+          persist-credentials: false
+          fetch-depth: 0
 
       - name: Dependencies
         run: |
