@@ -30,9 +30,8 @@ if(FAUST_FOUND)
   if("${FAUST_LIBRARY}" MATCHES ".*\.a$")
     # This is a static build of faust, hence
     # we have to add all the LLVM flags...
-    find_package(LLVM REQUIRED CONFIG)
     if (NOT "${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "${CMAKE_HOST_SYSTEM_PROCESSOR}")
-      # llvm_map_components_to_libnames(LLVM_LIBS all)
+      find_package(LLVM REQUIRED CONFIG)
       set(LLVM_LIBS "${LLVM_AVAILABLE_LIBS}")
       list(REMOVE_ITEM LLVM_LIBS LTO Remarks)
       set(FAUST_LIBRARIES ${FAUST_LIBRARIES} ${LLVM_LIBS})
