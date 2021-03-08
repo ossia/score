@@ -237,5 +237,6 @@ jobs:
       - name: Upload build
         uses: actions/upload-artifact@v2
         with:
+          name: raspberry-pi-aarch32
           path: |
             *.tar.gz
