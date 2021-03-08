@@ -298,9 +298,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
 
 void ApplicationPlugin::on_initDocument(score::Document& doc)
 {
-#if !defined(__EMSCRIPTEN__)
   score::addDocumentPlugin<LocalTree::DocumentPlugin>(doc);
-#endif
 }
 
 void ApplicationPlugin::on_createdDocument(score::Document& doc)

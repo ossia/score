@@ -9,7 +9,11 @@
 #include <Protocols/MIDI/MIDISpecificSettings.hpp>
 
 #include <QObject>
-
+#if defined(__EMSCRIPTEN__)
+#define LIBREMIDI_HEADER_ONLY 1
+#define LIBREMIDI_EMSCRIPTEN 1
+#include <libremidi/libremidi.hpp>
+#endif
 namespace Device
 {
 class DeviceInterface;
@@ -23,7 +27,55 @@ namespace Protocols
 template<ossia::net::midi::midi_info::Type Type>
 class MidiEnumerator : public Device::DeviceEnumerator
 {
+
+#if defined(__EMSCRIPTEN__)
+  libremidi::observer::callbacks make_callbacks()
+  {
+    libremidi::observer::callbacks cb;
+    if constexpr (Type == ossia::net::midi::midi_info::Type::Input)
+    {
+      cb.input_added = [this] (int port, const std::string& device) {
+        Device::DeviceSettings set;
+        MIDISpecificSettings specif;
+        set.name = QString::fromStdString(device);
+        specif.endpoint = QString::fromStdString(device);
+
+        set.protocol = MIDIInputProtocolFactory::static_concreteKey();
+        specif.io = MIDISpecificSettings::IO::In;
+
+        specif.port = port;
+        set.deviceSpecificSettings = QVariant::fromValue(specif);
+
+        deviceAdded(set);
+      };
+    }
+    else
+    {
+      cb.output_added = [this] (int port, const std::string& device) {
+        Device::DeviceSettings set;
+        MIDISpecificSettings specif;
+        set.name = QString::fromStdString(device);
+        specif.endpoint = QString::fromStdString(device);
+
+        set.protocol = MIDIOutputProtocolFactory::static_concreteKey();
+        specif.io = MIDISpecificSettings::IO::Out;
+        specif.port = port;
+        set.deviceSpecificSettings = QVariant::fromValue(specif);
+
+        deviceAdded(set);
+      };
+    }
+    return cb;
+  }
+
+  libremidi::observer m_observer;
 public:
+  MidiEnumerator()
+    : m_observer{libremidi::API::EMSCRIPTEN_WEBMIDI, make_callbacks()}
+  {
+
+  }
+#endif
   void enumerate(std::function<void(const Device::DeviceSettings&)> f) const override
   {
     try

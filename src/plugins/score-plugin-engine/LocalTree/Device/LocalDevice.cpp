@@ -52,7 +52,7 @@ void LocalDevice::setRemoteSettings(const Device::DeviceSettings& settings)
   if (!m_proto)
     return;
 
-#if defined(OSSIA_PROTOCOL_OSCQUERY)
+#if defined(OSSIA_PROTOCOL_OSCQUERY) && !defined(__EMSCRIPTEN__)
   try
   {
     m_proto->clear();

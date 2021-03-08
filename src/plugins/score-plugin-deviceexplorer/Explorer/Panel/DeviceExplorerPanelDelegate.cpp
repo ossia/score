@@ -41,7 +41,6 @@ const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
 
 void PanelDelegate::on_modelChanged(score::MaybeDocument oldm, score::MaybeDocument newm)
 {
-#if !defined(__EMSCRIPTEN__)
   // DeviceExplorerModel ownership goes to document plugin
   if (oldm)
   {
