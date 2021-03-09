@@ -7,11 +7,9 @@ RUN yum -y install devtoolset-9-gcc devtoolset-9-make devtoolset-9 \
     vulkan vulkan-devel xcb-util-wm xcb-util-wm-devel libxkbcommon-devel \
     xcb-util-image-devel xcb-util-keysyms-devel xcb-util-cursor-devel xcb-util-renderutil-devel pulseaudio-libs-devel \
     rsync \
-    bluez-devel avahi-devel
+    bluez-devel avahi-devel  wayland-devel egl-wayland-devel wayland-protocols-devel libwayland-egl libwayland-cursor libwayland-client
 
-RUN ls && wget https://github.com/ossia/sdk/releases/download/sdk19/sdk-linux.tar.xz \
-    && tar xaf sdk-linux.tar.xz \
-    && rm -rf  sdk-linux.tar.xz \
+RUN ls \
     && wget -nv --no-check-certificate -c https://github.com/Kitware/CMake/releases/download/v3.19.6/cmake-3.19.6-Linux-x86_64.tar.gz \
     && tar xaf cmake-*.tar.gz \
     && rm -rf cmake-*.tar.gz \
