@@ -20,7 +20,7 @@ set +e
 
 export HOMEBREW_NO_AUTO_UPDATE=1
 brew list
-brew remove -f ffmpeg libsndfile flac opus libbluray libogg libvorbis libshout speex theora qt qt5 qtkeychain
+brew remove -f opusfile sox ffmpeg libsndfile flac opus libbluray libogg libvorbis libshout speex theora qt qt5 qtkeychain
 brew install gnu-tar ninja
 wget -nv https://github.com/jcelerier/cninja/releases/download/v3.7.5/cninja-v3.7.5-macOS.tar.gz -O cninja.tgz &
 wget -nv https://github.com/ossia/sdk/releases/download/sdk18/MacOSX11.0.sdk.tar.gz &
