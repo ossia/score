@@ -10,7 +10,7 @@ xcrun env
 xcrun ninja
 
 
-xcrun /usr/local/bin/cninja macos-release -- -DOSSIA_SDK=$OSSIA_SDK -DCMAKE_INSTALL_PREFIX="$PWD/install"
+xcrun /usr/local/bin/cninja macos-release-10.13 -- -DOSSIA_SDK=$OSSIA_SDK -DCMAKE_INSTALL_PREFIX="$PWD/install"
 (
 cd build-*
 xcrun cmake --install . --strip --component OssiaScore
