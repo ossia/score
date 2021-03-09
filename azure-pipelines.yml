@@ -41,18 +41,6 @@ stages:
             targetPath: "$(Build.ArtifactStagingDirectory)"
             artifactName: Windows
 
-        - task: GitHubRelease@1
-          condition: and(succeeded(), eq(variables.isGitTag, true))
-          inputs:
-            gitHubConnection: github.com_jcelerier
-            repositoryName: ossia/score
-            action: 'edit'
-            target: '$(Build.SourceVersion)'
-            tag: '$(gitTag)'
-            tagSource: manual
-            title: '$(gitTag)'
-            assetUploadMode: 'replace'
-
       - job: Ubuntu
         displayName: Ubuntu
         pool:
@@ -152,3 +140,23 @@ stages:
           inputs:
             targetPath: "$(Build.ArtifactStagingDirectory)"
             artifactName: Source
+
+  - stage: Upload
+    condition: and(succeeded(), eq(variables.isGitTag, true))
+    jobs:
+    - job:
+      steps:
+      - task: DownloadPipelineArtifact@2
+        inputs:
+          source: 'current'
+          path: '$(Build.ArtifactStagingDirectory)'
+      - task: GitHubRelease@1
+        inputs:
+          gitHubConnection: github.com_jcelerier
+          repositoryName: ossia/score
+          action: 'edit'
+          target: '$(Build.SourceVersion)'
+          tag: '$(gitTag)'
+          tagSource: userSpecifiedTag
+          title: '$(gitTag)'
+          assetUploadMode: 'replace'
