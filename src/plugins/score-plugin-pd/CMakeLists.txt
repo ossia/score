@@ -39,8 +39,9 @@ add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 target_include_directories(${PROJECT_NAME}
-  PUBLIC
+  PRIVATE
   "${3RDPARTY_FOLDER}/libpd/libpd_wrapper"
+  "${3RDPARTY_FOLDER}/libpd/pure-data/src"
 )
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
