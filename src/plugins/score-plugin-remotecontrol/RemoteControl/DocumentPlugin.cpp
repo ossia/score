@@ -72,11 +72,16 @@ void DocumentPlugin::heartbeat()
     {
       r.stream.StartObject();
 
-      r.stream.Key("Path");
-      r.stream.String(it.second.path);
+      r.obj[score::StringConstant().Path] = it.second.p;
 
       r.stream.Key("Progress");
       r.stream.Double(*it.second.progress);
+
+      r.stream.Key("Speed");
+      r.stream.Double(it.second.model->duration.speed());
+
+      r.stream.Key("Gain");
+      r.stream.Double(it.second.model->outlet->gain());
 
       r.stream.EndObject();
     }
@@ -96,8 +101,7 @@ void DocumentPlugin::registerInterval(Scenario::IntervalModel& m)
 {
   m_intervals[m.id().val()] = IntervalData{
       &m,
-      &m.duration.playPercentage(),
-      Path<Scenario::IntervalModel>{m}.unsafePath().toString().toStdString()
+      &m.duration.playPercentage()
   };
 }
 

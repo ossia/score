@@ -74,6 +74,9 @@ IntervalBase::IntervalBase(
   doc.registerInterval(Interval);
   con(Interval, &Scenario::IntervalModel::executionStarted,
       this, [this] {
+    // In case we do transport, executionStarted is called again without stopped
+    system().receiver.removeHandler(this);
+
     RemoteControl::Handler h;
     IntervalMessages msgs{this->interval()};
 

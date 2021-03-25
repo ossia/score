@@ -138,7 +138,7 @@ private:
   {
     Scenario::IntervalModel* model;
     const double* progress;
-    std::string path;
+    Path<Scenario::IntervalModel> p;
   };
 
   ossia::fast_hash_map<int64_t, IntervalData> m_intervals;
