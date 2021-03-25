@@ -113,6 +113,10 @@ IntervalBase::IntervalBase(
         [this, msgs](const rapidjson::Value& v, const RemoteControl::WSClient&) {
       msgs.speed(v, this->system().context());
     };
+    h.answers["IntervalGain"] =
+        [this, msgs](const rapidjson::Value& v, const RemoteControl::WSClient&) {
+      msgs.gain(v, this->system().context());
+    };
 
     system().receiver.addHandler(this, std::move(h));
   });
