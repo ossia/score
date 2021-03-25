@@ -19,8 +19,6 @@ struct _pdinstance;
 #include <QJSValue>
 #include <QString>
 
-#include <score_addon_pd_export.h>
-
 #include <memory>
 
 namespace Pd
@@ -28,7 +26,7 @@ namespace Pd
 
 class ProcessModel;
 
-class SCORE_ADDON_PD_EXPORT PdGraphNode final : public ossia::graph_node
+class PdGraphNode final : public ossia::graph_node
 {
 public:
   PdGraphNode(
