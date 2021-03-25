@@ -37,4 +37,4 @@
 
 [submodule "3rdparty/libpd"]
 	path = 3rdparty/libpd
-	url = https://github.com/libpd/libpd
+	url = https://github.com/jcelerier/libpd
