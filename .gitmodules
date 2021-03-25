@@ -35,3 +35,6 @@
 	path = 3rdparty/vst3/cmake
 	url = https://github.com/jcelerier/vst3_cmake
 
+[submodule "3rdparty/libpd"]
+	path = 3rdparty/libpd
+	url = https://github.com/libpd/libpd
