@@ -9,7 +9,6 @@ namespace vst {
 
 class Window final : public QDialog
 {
-  W_OBJECT(Window)
 public:
   static ERect getRect(AEffect& e);
 
@@ -17,9 +16,6 @@ public:
 
   ~Window() override;
   void resize(int w, int h);
-
-public:
-  void uiClosing() W_SIGNAL(uiClosing);
 
 private:
   static void setup_rect(QWidget* container, int width, int height);

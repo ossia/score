@@ -11,11 +11,67 @@
 
 #include <QFile>
 #include <QRegularExpression>
+#include <QProcess>
+#include <QSettings>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Pd::ProcessModel)
 namespace Pd
 {
+
+static bool checkIfBinaryIsInPath(const QString& binary)
+{
+#if !defined(_WIN32)
+  QProcess findProcess;
+  findProcess.start("which", {binary});
+  findProcess.setReadChannel(QProcess::ProcessChannel::StandardOutput);
+
+  if(!findProcess.waitForFinished())
+    return {};
+
+  QFileInfo check_file(findProcess.readAll().trimmed());
+  return check_file.exists() && check_file.isFile();
+#endif
+  return false;
+}
+
+#if defined(_WIN32)
+static QString readKeyFromRegistry(const QString& path, const QString& key)
+{
+  QSettings settings(path, QSettings::Registry64Format);
+  return settings.value(key).toString();
+}
+#endif
+const QString& locatePdBinary() noexcept
+{
+  static const QString pdbinary = [] () -> QString {
+    if(QFile::exists("/usr/bin/pd"))
+      return "/usr/bin/pd";
+    else if(QFile::exists("/usr/local/bin/pd"))
+      return "/usr/local/bin/pd";
+#if _WIN32
+    else if(QFile::exists("c:\\Program Files\\Pd\\bin\\pd.exe"))
+      return "c:\\Program Files\\Pd\\bin\\pd.exe";
+    else if(QFile::exists("c:\\Program Files (x86)\\Pd\\bin\\pd.exe"))
+      return "c:\\Program Files (x86)\\Pd\\bin\\pd.exe";
+    else if(QString k = readKeyFromRegistry("HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\pd.exe", "64"); !k.isEmpty())
+      return k + "\\bin";
+    else if(QString k = readKeyFromRegistry("HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\pd.exe", "32"); !k.isEmpty())
+      return k + "\\bin";
+    else if(QString k = readKeyFromRegistry("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\pd.exe", "64"); !k.isEmpty())
+      return k + "\\bin";
+    else if(QString k = readKeyFromRegistry("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\pd.exe", "32"); !k.isEmpty())
+      return k + "\\bin";
+#else
+    else if(checkIfBinaryIsInPath("pd"))
+      return "pd";
+#endif
+    else
+      return {};
+  }();
+  return pdbinary;
+}
+
 ProcessModel::ProcessModel(
     const TimeVal& duration,
       const QString& pdpatch,
@@ -28,6 +84,12 @@ ProcessModel::ProcessModel(
 {
   metadata().setInstanceName(*this);
   setScript(pdpatch);
+}
+
+bool ProcessModel::hasExternalUI() const noexcept
+{
+  const QString& pathToPd = locatePdBinary();
+  return !pathToPd.isEmpty();
 }
 
 ProcessModel::~ProcessModel() {}
@@ -90,17 +152,17 @@ void ProcessModel::setMidiOutput(bool midiOutput)
 
 void ProcessModel::setScript(const QString& script)
 {
-  setMidiInput(false);
-  setMidiOutput(false);
-
-  auto old_inlets = score::clearAndDeleteLater(m_inlets);
-  auto old_outlets = score::clearAndDeleteLater(m_outlets);
-
   m_script = score::locateFilePath(
-      script, score::IDocument::documentContext(*this));
+        script, score::IDocument::documentContext(*this));
   QFile f(m_script);
   if (f.open(QIODevice::ReadOnly))
   {
+    setMidiInput(false);
+    setMidiOutput(false);
+
+    auto old_inlets = score::clearAndDeleteLater(m_inlets);
+    auto old_outlets = score::clearAndDeleteLater(m_outlets);
+
     int i = 0;
     auto get_next_id = [&] {
       i++;
@@ -148,7 +210,7 @@ void ProcessModel::setScript(const QString& script)
 
     {
       static const QRegularExpression midi_regex{
-          "(midiiout|noteout|controlout)"};
+        "(midiiout|noteout|controlout)"};
       auto m = midi_regex.match(patch);
       if (m.hasMatch())
       {
@@ -193,10 +255,10 @@ void ProcessModel::setScript(const QString& script)
         }
       }
     }
+    inletsChanged();
+    outletsChanged();
   }
 
-  inletsChanged();
-  outletsChanged();
   scriptChanged(script);
 }
 

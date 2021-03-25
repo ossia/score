@@ -3,8 +3,6 @@
 
 #include <wobjectimpl.h>
 
-W_OBJECT_IMPL(vst::Window)
-
 namespace vst
 {
 ERect Window::getRect(AEffect& e)

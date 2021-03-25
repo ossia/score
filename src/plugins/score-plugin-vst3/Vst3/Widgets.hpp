@@ -11,60 +11,6 @@
 
 #include <verdigris>
 
-/*
-#if defined(HAS_VST2)
-#include <Media/Effect/VST/Model.hpp>
-#include <Process/Style/ScenarioStyle.hpp>
-
-#include <score/graphics/GraphicWidgets.hpp>
-#include <score/graphics/TextItem.hpp>
-
-#include <QDialog>
-
-#include <Control/Widgets.hpp>
-
-#include <verdigris>
-
-namespace Process
-{
-struct Context;
-}
-namespace vst3
-{
-
-class VSTWindow final : public QDialog
-{
-  W_OBJECT(VSTWindow)
-public:
-  static ERect getRect(AEffect& e);
-  static bool hasUI(AEffect& e);
-
-  VSTWindow(const Model& e, const score::DocumentContext& ctx, QWidget* parent);
-
-  ~VSTWindow() override;
-  void resize(int w, int h);
-
-public:
-  void uiClosing() W_SIGNAL(uiClosing);
-
-private:
-  static void setup_rect(QWidget* container, int width, int height);
-
-  VSTWindow(const Model& e, const score::DocumentContext& ctx);
-
-  void resizeEvent(QResizeEvent* event) override;
-  void closeEvent(QCloseEvent* event) override;
-
-  std::weak_ptr<AEffectWrapper> effect;
-  QWidget* m_defaultWidg{};
-  const Model& m_model;
-};
-
-
-}
-#endif
-*/
-
 namespace vst3
 {
 class VSTEffectItem final : public score::EmptyRectItem

@@ -13,6 +13,9 @@
 
 namespace Pd
 {
+
+const QString& locatePdBinary() noexcept;
+
 class ProcessModel final : public Process::ProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
@@ -33,6 +36,8 @@ public:
   {
     vis.writeTo(*this);
   }
+
+  bool hasExternalUI() const noexcept;
 
   void setScript(const QString& script);
   const QString& script() const;

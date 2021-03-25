@@ -35,6 +35,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_pd::factories(
       score::ApplicationContext,
       FW<Process::ProcessModelFactory, Pd::ProcessFactory>,
       FW<Process::InspectorWidgetDelegateFactory, Pd::InspectorFactory>,
+      FW<Process::LayerFactory, Pd::LayerFactory>,
       FW<Library::LibraryInterface, Pd::LibraryHandler>,
       FW<Process::ProcessDropHandler, Pd::DropHandler>,
       FW<Execution::ProcessComponentFactory, Pd::ComponentFactory>>(ctx, key);
