@@ -62,6 +62,33 @@ struct IntervalMessages
       cs.duration.setSpeed(speed);
     }
   }
+
+  void gain(
+      const rapidjson::Value& obj,
+      const score::DocumentContext& doc) const
+  {
+    auto it = obj.FindMember("Path");
+    if (it == obj.MemberEnd())
+      return;
+
+    auto gain_it = obj.FindMember("Gain");
+    if (gain_it == obj.MemberEnd() || !gain_it->value.IsNumber())
+      return;
+
+    auto path = score::unmarshall<Path<Scenario::IntervalModel>>(it->value);
+    if (!path.valid())
+      return;
+
+    {
+      const double gain = gain_it->value.GetDouble();
+      Scenario::IntervalModel* csp = path.try_find(doc);
+      if(!csp)
+        return;
+      auto& cs = *csp;
+
+      cs.outlet->setGain(gain);
+    }
+  }
 };
 
 IntervalBase::IntervalBase(
