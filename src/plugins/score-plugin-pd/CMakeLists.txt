@@ -1,13 +1,19 @@
 project(score_plugin_pd LANGUAGES CXX)
 
+if(MSVC)
+  # On MSVC this needs winpthread. Since MSVC is just there for the occasional testing
+  # and not for releases... "patches accepted"
+  return()
+endif()
+
 set(PD_MULTI ON CACHE INTERNAL "")
 add_subdirectory("${3RDPARTY_FOLDER}/libpd" "${CMAKE_BINARY_DIR}/libpd")
 set_target_properties(libpd PROPERTIES UNITY_BUILD 0)
 set_target_properties(libpd_static PROPERTIES UNITY_BUILD 0)
 
 if(NOT TARGET libpd)
-    message("Problem occuring when building libpd")
-    return()
+  message("Problem occuring when building libpd")
+  return()
 endif()
 score_common_setup()
 
