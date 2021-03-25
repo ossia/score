@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 export OSSIA_SDK=/opt/ossia-sdk
 
 export SCORE_DIR="$PWD"

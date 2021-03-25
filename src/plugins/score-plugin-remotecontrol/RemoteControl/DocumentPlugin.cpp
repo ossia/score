@@ -101,7 +101,8 @@ void DocumentPlugin::registerInterval(Scenario::IntervalModel& m)
 {
   m_intervals[m.id().val()] = IntervalData{
       &m,
-      &m.duration.playPercentage()
+      &m.duration.playPercentage(),
+      m
   };
 }
 
