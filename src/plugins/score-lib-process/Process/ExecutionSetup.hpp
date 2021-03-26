@@ -73,7 +73,9 @@ struct Transaction
   }
 };
 
-struct SCORE_LIB_PROCESS_EXPORT SetupContext final : public QObject
+struct SCORE_LIB_PROCESS_EXPORT SetupContext final
+    : public QObject
+    , public Nano::Observer
 {
   SetupContext(Context& other) : context{other} { }
   Context& context;

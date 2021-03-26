@@ -51,6 +51,7 @@ class TimeRulerPresenter;
  */
 class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentPresenter final
     : public score::DocumentDelegatePresenter
+    , public Nano::Observer
 {
   W_OBJECT(ScenarioDocumentPresenter)
   friend class DisplayedElementsPresenter;
