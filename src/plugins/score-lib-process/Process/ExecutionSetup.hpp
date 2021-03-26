@@ -7,6 +7,9 @@
 #include <ossia/detail/small_vector.hpp>
 
 #include <QMetaObject>
+
+#include <nano_observer.hpp>
+
 namespace ossia
 {
 class time_process;
