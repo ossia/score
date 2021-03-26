@@ -15,11 +15,7 @@
 
 #include <Pd/Executor/PdExecutor.hpp>
 #include <Pd/PdProcess.hpp>
-
-// We do this to pevent picking up a potential system /usr/inclde/m_pd.h
-#include <libpd/pure-data/src/m_pd.h>
-#include <z_libpd.h>
-
+#include <Pd/IncludeLibpd.hpp>
 #include <vector>
 namespace Pd
 {
