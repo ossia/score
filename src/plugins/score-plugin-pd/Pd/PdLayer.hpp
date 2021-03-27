@@ -42,6 +42,8 @@ struct UiWrapper : public QWidget
 
   ~UiWrapper()
   {
+    const_cast<QWidget*&>(m_model.externalUI) = nullptr;
+    m_model.externalUIVisible(false);
     m_process.terminate();
   }
 };
