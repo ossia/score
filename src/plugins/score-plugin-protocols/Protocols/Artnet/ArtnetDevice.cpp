@@ -9,6 +9,7 @@
 #include <score/document/DocumentContext.hpp>
 
 #include <ossia/protocols/artnet/artnet_protocol.hpp>
+#include <ossia/protocols/artnet/artnet_parameter.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 
 #include <wobjectimpl.h>
@@ -31,18 +32,94 @@ ArtnetDevice::ArtnetDevice(const Device::DeviceSettings& settings, const score::
 
 ArtnetDevice::~ArtnetDevice() { }
 
+
+namespace
+{
+static void addArtnetFixture(
+      ossia::net::generic_device& dev,
+      ossia::net::artnet_protocol& proto,
+      const Artnet::Fixture& fix)
+{
+  // For each fixture, we'll create a node.
+  auto fixt_node = dev.create_child(fix.fixtureName.toStdString());
+  if(!fixt_node)
+    return;
+
+  // For each channel, a sub-node that goes [0-255]
+  int k = fix.address;
+  for(auto& chan : fix.controls)
+  {
+    auto chan_node = fixt_node->create_child(chan.name.toStdString());
+    auto chan_param = std::make_unique<ossia::net::artnet_parameter>(*chan_node, proto.buffer(), k);
+    auto& p = *chan_param;
+    chan_node->set_parameter(std::move(chan_param));
+    p.set_default_value(chan.defaultValue);
+    p.set_value(chan.defaultValue);
+
+    // Then for each range-based subchannels, sub-nodes with the relevant domains.
+    struct chan_visitor
+    {
+      ossia::net::node_base& node;
+      ossia::net::artnet_protocol::dmx_buffer& buffer;
+      int k;
+      void operator()(const Artnet::SingleCapability& v) const noexcept
+      {
+        if(!v.comment.isEmpty())
+          ossia::net::set_description(node, v.comment.toStdString());
+      }
+
+      void operator()(const std::vector<Artnet::RangeCapability>& v) const noexcept
+      {
+        for(auto& capa : v)
+        {
+          std::string name;
+          if(!capa.effectName.isEmpty())
+            name = capa.effectName.toStdString();
+          else
+            name = capa.type.toStdString();
+
+          auto cld = node.create_child(name);
+          auto cld_p = std::make_unique<ossia::net::artnet_parameter>(*cld, buffer, k, capa.range.first, capa.range.second);
+          cld_p->set_value(int(capa.range.first));
+          cld->set_parameter(std::move(cld_p));
+
+          assert(dynamic_cast<ossia::net::artnet_parameter*>(cld->get_parameter()));
+          if(!capa.comment.isEmpty())
+            ossia::net::set_description(*cld, capa.comment.toStdString());
+        }
+      }
+    } vis{*chan_node, proto.buffer(), k};
+
+    std::visit(vis, chan.capabilities);
+
+    k++;
+  }
+
+}
+}
 bool ArtnetDevice::reconnect()
 {
   disconnect();
 
   try
   {
-    //  20 Hz update rate : TODO add control on widget
+    const auto& set = m_settings.deviceSpecificSettings.value<ArtnetSpecificSettings>();
+
+    ossia::net::artnet_protocol_config conf;
+    conf.autocreate = set.fixtures.empty();
+    conf.frequency = set.rate;
     auto& ctx = m_ctx.plugin<Explorer::DeviceDocumentPlugin>().asioContext;
-    auto addr = std::make_unique<ossia::net::generic_device>(
-        std::make_unique<ossia::net::artnet_protocol>(ctx, 20),
+    auto artnet_proto = std::make_unique<ossia::net::artnet_protocol>(ctx, conf);
+    auto& proto = *artnet_proto;
+    auto dev = std::make_unique<ossia::net::generic_device>(
+        std::move(artnet_proto),
         settings().name.toStdString());
-    m_dev = std::move(addr);
+
+    for(auto& fixt : set.fixtures)
+    {
+      addArtnetFixture(*dev, proto, fixt);
+    }
+    m_dev = std::move(dev);
     deviceChanged(nullptr, m_dev.get());
   }
   catch (const std::runtime_error& e)

@@ -122,7 +122,7 @@ void DeviceDocumentPlugin::asyncConnect(Device::DeviceInterface& newdev)
   }
   else
   {
-    ossia::qt::run_async(&newdev, [&] { newdev.reconnect(); });
+    newdev.reconnect();
   }
 }
 /** The following code handles device creation / loading.

@@ -5,7 +5,12 @@
 #include "ArtnetProtocolSettingsWidget.hpp"
 #include "ArtnetSpecificSettings.hpp"
 
+#include <State/Widgets/AddressFragmentLineEdit.hpp>
+#include <score/application/ApplicationContext.hpp>
+#include <score/widgets/SignalUtils.hpp>
 #include <QObject>
+#include <QFormLayout>
+#include <QDialogButtonBox>
 
 namespace Protocols
 {

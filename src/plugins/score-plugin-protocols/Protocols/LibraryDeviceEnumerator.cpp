@@ -2,49 +2,15 @@
 #include <Library/LibrarySettings.hpp>
 
 #include <score/document/DocumentContext.hpp>
+#include <score/tools/FindStringInFile.hpp>
 
 #include <QFileInfo>
 #include <QFile>
 #include <QDirIterator>
 #include <QTimer>
 
-#if __has_include(<experimental/functional>)
-#include <experimental/functional>
-#else
-#include <functional>
-#endif
 namespace Protocols
 {
-template<typename T>
-static void findStringInFile(const QString& filepath, std::string_view req, T onSuccess)
-{
-  QFile f{filepath};
-  if(f.open(QIODevice::ReadOnly)) {
-    unsigned char* data = f.map(0, f.size());
-
-    const char* cbegin = reinterpret_cast<char*>(data);
-    const char* cend = cbegin + f.size();
-
-#if defined(__cpp_lib_boyer_moore_searcher)
-    auto it = std::search(
-          cbegin, cend,
-          std::boyer_moore_searcher(req.begin(), req.end()));
-#elif __has_include(<experimental/functional>)
-    auto it = std::search(
-          cbegin, cend,
-          std::experimental::boyer_moore_searcher(req.begin(), req.end()));
-#else
-    auto it = std::search(cbegin, cend, req.begin(), req.end());
-#endif
-    if(it != cend)
-    {
-      onSuccess(f);
-    }
-
-    f.unmap(data);
-  }
-}
-
 LibraryDeviceEnumerator::LibraryDeviceEnumerator(
     std::string pattern,
     QString ext,
@@ -66,7 +32,7 @@ void LibraryDeviceEnumerator::next()
     auto filepath = m_iterator.next();
     if(QFileInfo fi{filepath}; fi.suffix() == m_extension)
     {
-      findStringInFile(filepath, m_pattern.c_str(), [&] (QFile& f) {
+      score::findStringInFile(filepath, m_pattern.c_str(), [&] (QFile& f) {
         Device::DeviceSettings s;
         s.name = fi.baseName();
         s.protocol = m_key;

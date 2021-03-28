@@ -39,9 +39,6 @@ MIDIDevice::MIDIDevice(const Device::DeviceSettings& settings, const score::Docu
 bool MIDIDevice::reconnect()
 {
   disconnect();
-  auto old = m_dev.get();
-  deviceChanged(old, nullptr);
-  m_dev.reset();
 
   MIDISpecificSettings set = settings().deviceSpecificSettings.value<MIDISpecificSettings>();
 

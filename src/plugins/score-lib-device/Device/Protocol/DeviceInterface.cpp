@@ -910,6 +910,7 @@ void OwningDeviceInterface::disconnect()
   if (m_owned)
   {
     DeviceInterface::disconnect();
+    // TODO why not auto dev = m_dev; ... like in MIDIDevice ?
     deviceChanged(m_dev.get(), nullptr);
     m_dev.reset();
   }
