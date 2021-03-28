@@ -2,9 +2,11 @@
 #include <ossia/detail/config.hpp>
 #if defined(OSSIA_PROTOCOL_ARTNET)
 
+#include <QString>
 #include <vector>
 #include <variant>
 #include <verdigris>
+#include <utility>
 
 namespace Protocols
 {
