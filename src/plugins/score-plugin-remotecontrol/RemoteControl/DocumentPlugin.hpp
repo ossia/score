@@ -116,7 +116,7 @@ private:
   std::vector<std::pair<QObject*, Handler>> m_handlers;
 };
 
-class DocumentPlugin : public score::DocumentPlugin
+class SCORE_PLUGIN_REMOTECONTROL_EXPORT DocumentPlugin : public score::DocumentPlugin
 {
 public:
   DocumentPlugin(const score::DocumentContext& doc, Id<score::DocumentPlugin> id, QObject* parent);
