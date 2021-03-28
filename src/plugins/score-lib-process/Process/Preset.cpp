@@ -1,7 +1,7 @@
 #include "Preset.hpp"
 
 #include <Process/ProcessList.hpp>
-using JsonWriter = rapidjson::Writer<rapidjson::StringBuffer>;
+#include <score/serialization/JSONVisitor.hpp>
 
 namespace Process
 {

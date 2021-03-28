@@ -24,7 +24,7 @@ namespace score
 {
 class ApplicationComponents;
 }
-using JsonStream = rapidjson::Writer<rapidjson::StringBuffer>;
+using JsonWriter = ossia::json_writer;
 struct OptionalSentinel
 {
   template <typename T>
@@ -188,7 +188,7 @@ public:
   }
 
   rapidjson::StringBuffer buffer;
-  JsonStream stream{buffer};
+  JsonWriter stream{buffer};
   struct assigner;
   struct fake_obj
   {
@@ -1310,7 +1310,7 @@ inline QByteArray jsonToByteArray(const rapidjson::Value& arr) noexcept
 {
   rapidjson::StringBuffer buf;
   buf.Reserve(8192);
-  rapidjson::Writer<rapidjson::StringBuffer> w{buf};
+  JsonWriter w{buf};
   arr.Accept(w);
   return QByteArray(buf.GetString(), buf.GetSize());
 }

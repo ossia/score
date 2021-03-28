@@ -28,7 +28,7 @@ class DocumentBackupManager;
 
 namespace score
 {
-using JsonWriter = rapidjson::Writer<rapidjson::StringBuffer>;
+using JsonWriter = ossia::json_writer;
 
 class DocumentDelegateFactory;
 class DocumentModel;
