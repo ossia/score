@@ -27,6 +27,7 @@
 #include <score/widgets/Pixmap.hpp>
 #include <ossia/network/context.hpp>
 #include <ossia/detail/logger.hpp>
+#include <ossia-qt/invoke.hpp>
 
 #include <QApplication>
 #include <QDebug>
@@ -121,7 +122,7 @@ void DeviceDocumentPlugin::asyncConnect(Device::DeviceInterface& newdev)
   }
   else
   {
-    newdev.reconnect();
+    ossia::qt::run_async(&newdev, [&] { newdev.reconnect(); });
   }
 }
 /** The following code handles device creation / loading.
