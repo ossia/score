@@ -1,7 +1,7 @@
 #pragma once
 #include <ossia/detail/config.hpp>
 #if defined(OSSIA_PROTOCOL_ARTNET)
-
+#include <score/tools/std/StringHash.hpp>
 #include <QString>
 #include <vector>
 #include <variant>
