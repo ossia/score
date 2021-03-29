@@ -275,11 +275,11 @@ public:
               {
                 auto pos = std::upper_bound(m_root.begin(), m_root.end(), it->second, FixtureData::SortByName{});
                 auto& child = m_root.emplace(pos, FixtureData{it->second}, &m_root);
-                next(std::make_unique<Scan>(fixtures_dir + "/" + it->first, child));
+                next(std::make_shared<Scan>(fixtures_dir + "/" + it->first, child));
               }
               else
               {
-                next(std::make_unique<Scan>(fixtures_dir + "/" + it->first, *manufacturer_node_it));
+                next(std::make_shared<Scan>(fixtures_dir + "/" + it->first, *manufacturer_node_it));
               }
             }
 
@@ -316,7 +316,9 @@ public:
     }
   }
 
-  void next(std::unique_ptr<Scan> scan)
+  // Note: we could use make_unique here but on old Ubuntus stdlibc++-7 does not seem to support it (or Qt 5.9)
+  // -> QTimer::singleShot calls copy ctor
+  void next(std::shared_ptr<Scan> scan)
   {
     auto& iterator = scan->iterator;
     if(iterator.hasNext())
