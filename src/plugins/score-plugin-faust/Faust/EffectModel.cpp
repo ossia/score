@@ -407,7 +407,8 @@ template <>
 void JSONWriter::write(Faust::FaustEffectModel& eff)
 {
   eff.m_text = obj["Text"].toString();
-  eff.m_path = obj["Path"].toString();
+  if(auto path_it = obj.tryGet("Path"))
+    eff.m_path = path_it->toString();
   eff.reload();
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets, eff.m_outlets, &eff);
