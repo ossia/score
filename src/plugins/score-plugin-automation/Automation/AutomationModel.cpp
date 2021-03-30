@@ -156,10 +156,20 @@ void ProcessModel::setDurationAndGrow(const TimeVal& newDuration) noexcept
 
 void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 {
+  // let's assume that automations just can't shrink
+  return;
+  /*
+
   // If there are no segments, nothing changes
   if (m_curve->segments().size() == 0)
   {
     setDuration(newDuration);
+    return;
+  }
+
+  if(newDuration <= TimeVal::zero())
+  {
+    m_curve->clear();
     return;
   }
 
@@ -175,28 +185,29 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
     pt.setX(pt.x() * scale);
     segment.setEnd(pt);
   }
-  /*
-      // Since we shrink, scale > 1. so we have to cut.
-      // Note:  this will certainly change how some functions do look.
-      auto segments = shallow_copy(m_curve->segments());// Make a copy since we
-     will change the map.
-      for(auto segment : segments)
-      {
-          if(segment->start().x() >= 1.)
-          {
-              // bye
-              m_curve->removeSegment(segment);
-          }
-          else if(segment->end().x() >= 1.)
-          {
-              auto end = segment->end();
-              end.setX(1.);
-              segment->setEnd(end);
-          }
-      }
-  */
+  //
+  //    // Since we shrink, scale > 1. so we have to cut.
+  //    // Note:  this will certainly change how some functions do look.
+  //    auto segments = shallow_copy(m_curve->segments());// Make a copy since we
+  //   will change the map.
+  //    for(auto segment : segments)
+  //    {
+  //        if(segment->start().x() >= 1.)
+  //        {
+  //            // bye
+  //            m_curve->removeSegment(segment);
+  //        }
+  //        else if(segment->end().x() >= 1.)
+  //        {
+  //            auto end = segment->end();
+  //            end.setX(1.);
+  //            segment->setEnd(end);
+  //        }
+  //    }
+  //
   setDuration(newDuration);
   m_curve->changed();
+  */
 }
 
 void ProcessModel::setCurve_impl()
