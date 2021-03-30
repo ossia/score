@@ -11,6 +11,8 @@
 #include <score/model/tree/TreeNodeItemModel.hpp>
 #include <score/tools/FindStringInFile.hpp>
 
+#include <ossia/detail/flat_map.hpp>
+
 #include <QFormLayout>
 #include <QVariant>
 #include <QTableWidget>
@@ -184,12 +186,6 @@ public:
       }
     }
   }
-
-  struct SortByName
-  {
-    bool operator()(const QString& lhs, const FixtureData& rhs) const noexcept { return lhs < rhs.name; }
-    bool operator()(const FixtureData& lhs, const FixtureData& rhs) const noexcept { return lhs.name < rhs.name; }
-  };
 };
 using FixtureNode = TreeNode<FixtureData>;
 
@@ -209,9 +205,10 @@ std::vector<QString> fixturesLibraryPaths()
   return fixtures;
 }
 
-std::unordered_map<QString, QString> readManufacturers(const rapidjson::Document& doc)
+ossia::flat_map<QString, QString> readManufacturers(const rapidjson::Document& doc)
 {
-  std::unordered_map<QString, QString> map;
+  ossia::flat_map<QString, QString> map;
+  map.container.reserve(100);
   if(!doc.IsObject())
     return map;
 
@@ -267,19 +264,51 @@ public:
               continue;
             }
 
+            QModelIndex rootIndex;
             auto manufacturers = readManufacturers(doc);
-            for(auto it = manufacturers.begin(); it != manufacturers.end(); ++it)
+            if(m_root.childCount() == 0)
             {
-              auto manufacturer_node_it = ossia::find_if(m_root, [&] (const FixtureNode& n) { return n.name == it->second; });
-              if(manufacturer_node_it == m_root.end())
+              // Fast-path since we know that everything is already sorted
+              int k = 0;
+              for(auto it = manufacturers.begin(); it != manufacturers.end(); ++it, ++k)
               {
-                auto pos = std::upper_bound(m_root.begin(), m_root.end(), it->second, FixtureData::SortByName{});
-                auto& child = m_root.emplace(pos, FixtureData{it->second}, &m_root);
-                next(std::make_shared<Scan>(fixtures_dir + "/" + it->first, child));
+                beginInsertRows(rootIndex, k, k);
+                auto& child = m_root.emplace_back(FixtureData{it->second}, &m_root);
+                endInsertRows();
+
+                QModelIndex manufacturerIndex = createIndex(k, 0, &child);
+                next(std::make_shared<Scan>(fixtures_dir + "/" + it->first, child), manufacturerIndex);
               }
-              else
+            }
+            else
+            {
+              for(auto it = manufacturers.begin(); it != manufacturers.end(); ++it)
               {
-                next(std::make_shared<Scan>(fixtures_dir + "/" + it->first, *manufacturer_node_it));
+                auto manufacturer_node_it = ossia::find_if(m_root, [&] (const FixtureNode& n) { return n.name == it->second; });
+                if(manufacturer_node_it == m_root.end())
+                {
+                  // We add it sorted to the model
+                  int newRowPosition = 0;
+                  auto other_manufacturer_it = m_root.begin();
+                  while(other_manufacturer_it != m_root.end() && QString::compare(it->second, other_manufacturer_it->name, Qt::CaseInsensitive) >= 0)
+                  {
+                    other_manufacturer_it++;
+                    newRowPosition++;
+                  }
+
+                  beginInsertRows(rootIndex, newRowPosition, newRowPosition);
+                  auto& child = m_root.emplace(other_manufacturer_it, FixtureData{it->second}, &m_root);
+                  endInsertRows();
+
+                  QModelIndex manufacturerIndex = createIndex(newRowPosition, 0, &child);
+                  next(std::make_shared<Scan>(fixtures_dir + "/" + it->first, child), manufacturerIndex);
+                }
+                else
+                {
+                  int distance = std::abs(std::distance(manufacturer_node_it, m_root.begin()));
+                  QModelIndex manufacturerIndex = createIndex(distance, 0, &*manufacturer_node_it);
+                  next(std::make_shared<Scan>(fixtures_dir + "/" + it->first, *manufacturer_node_it), manufacturerIndex);
+                }
               }
             }
 
@@ -290,7 +319,7 @@ public:
     }
   }
 
-  void loadFixture(std::string_view fixture_data, FixtureNode& manufacturer)
+  void loadFixture(std::string_view fixture_data, FixtureNode& manufacturer, const QModelIndex& manufacturerIndex)
   {
     rapidjson::Document doc;
     doc.Parse(fixture_data.data(), fixture_data.size());
@@ -302,8 +331,18 @@ public:
     if(auto it = doc.FindMember("name"); it != doc.MemberEnd())
     {
       QString name = it->value.GetString();
-      auto pos = std::upper_bound(manufacturer.begin(), manufacturer.end(), name, FixtureData::SortByName{});
-      auto& data = manufacturer.emplace(pos, FixtureData{name}, &manufacturer);
+
+      int newRowPosition = 0;
+      auto other_fixture_it = manufacturer.begin();
+      while(other_fixture_it != manufacturer.end() && QString::compare(name, other_fixture_it->name, Qt::CaseInsensitive) >= 0)
+      {
+        other_fixture_it++;
+        newRowPosition++;
+      }
+
+      beginInsertRows(manufacturerIndex, newRowPosition, newRowPosition);
+      auto& data = manufacturer.emplace(other_fixture_it, FixtureData{name}, &manufacturer);
+      endInsertRows();
 
       data.loadModes(doc);
 
@@ -318,7 +357,7 @@ public:
 
   // Note: we could use make_unique here but on old Ubuntus stdlibc++-7 does not seem to support it (or Qt 5.9)
   // -> QTimer::singleShot calls copy ctor
-  void next(std::shared_ptr<Scan> scan)
+  void next(std::shared_ptr<Scan> scan, QModelIndex manufacturerIndex)
   {
     auto& iterator = scan->iterator;
     if(iterator.hasNext())
@@ -334,11 +373,11 @@ public:
           const char* cbegin = reinterpret_cast<char*>(data);
           const char* cend = cbegin + f.size();
 
-          loadFixture(std::string_view(cbegin, f.size()), scan->manufacturer);
+          loadFixture(std::string_view(cbegin, f.size()), scan->manufacturer, manufacturerIndex);
         });
       }
 
-      QTimer::singleShot(1, this, [&,scan=std::move(scan)] () mutable { next(std::move(scan)); });
+      QTimer::singleShot(1, this, [this, scan=std::move(scan), idx=std::move(manufacturerIndex)] () mutable { next(std::move(scan), std::move(idx)); });
     }
   }
 
@@ -416,7 +455,17 @@ public:
 class FixtureTreeView : public QTreeView
 {
 public:
-  using QTreeView::QTreeView;
+  FixtureTreeView(QWidget* parent = nullptr)
+    : QTreeView{parent}
+  {
+    setAllColumnsShowFocus(true);
+    setSelectionBehavior(QAbstractItemView::SelectRows);
+    setSelectionMode(QAbstractItemView::ExtendedSelection);
+    setDragDropMode(QAbstractItemView::NoDragDrop);
+    setAlternatingRowColors(true);
+    setUniformRowHeights(true);
+  }
+
   std::function<void(const FixtureNode&)> onSelectionChanged;
   void selectionChanged(
       const QItemSelection& selected,
@@ -555,6 +604,8 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   m_fixturesWidget = new QTableWidget;
   layout->addRow(m_fixturesWidget);
 
+  m_fixturesWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+  m_fixturesWidget->setSelectionMode(QAbstractItemView::ExtendedSelection);
   m_fixturesWidget->insertColumn(0);
   m_fixturesWidget->insertColumn(1);
   m_fixturesWidget->insertColumn(2);
