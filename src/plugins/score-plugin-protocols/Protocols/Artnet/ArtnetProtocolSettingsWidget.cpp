@@ -640,7 +640,7 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
       rows_to_remove.insert(item->row());
     }
 
-    for(auto it = rows_to_remove.rbegin(); it != rows_to_remove.rend(); ++it)
+    for(auto it = rows_to_remove.container.rbegin(); it != rows_to_remove.container.rend(); ++it)
     {
       m_fixtures.erase(m_fixtures.begin() + *it);
     }
