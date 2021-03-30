@@ -278,11 +278,18 @@ public:
     {
       auto& sst_pres = m_sm.presenter().state(this->m_scenario.interval(itv).startState());
       auto& sev_pres = m_sm.presenter().event(sst_pres.model().eventId());
-      auto& sts_pres = m_sm.presenter().timeSync(sev_pres.model().timeSync());
+      TimeSyncPresenter& sts_pres = m_sm.presenter().timeSync(sev_pres.model().timeSync());
 
-      toIgnore.push_back(sst_pres.view());
-      toIgnore.push_back(sev_pres.view());
       toIgnore.push_back(sts_pres.view());
+      for(auto& ev : sts_pres.events())
+      {
+        toIgnore.push_back(ev->view());
+        for(auto& st : ev->states())
+        {
+          toIgnore.push_back(st->view());
+        }
+      }
+
       toIgnore.push_back(&sts_pres.trigger());
     }
 
@@ -292,9 +299,16 @@ public:
       auto& sev_pres = m_sm.presenter().event(sst_pres.model().eventId());
       auto& sts_pres = m_sm.presenter().timeSync(sev_pres.model().timeSync());
 
-      toIgnore.push_back(sst_pres.view());
-      toIgnore.push_back(sev_pres.view());
       toIgnore.push_back(sts_pres.view());
+      for(auto& ev : sts_pres.events())
+      {
+        toIgnore.push_back(ev->view());
+        for(auto& st : ev->states())
+        {
+          toIgnore.push_back(st->view());
+        }
+      }
+
       toIgnore.push_back(&sts_pres.trigger());
     }
 
