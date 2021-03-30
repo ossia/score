@@ -21,7 +21,7 @@ class InspectorWidget final : public Process::InspectorWidgetDelegate_T<Model>
 public:
   explicit InspectorWidget(const Model& obj, const score::DocumentContext& doc, QWidget* parent)
       : InspectorWidgetDelegate_T{obj, parent}
-      , m_dispatcher{doc.commandStack}
+      , m_dispatcher{doc.dispatcher}
       , m_count{this}
       , m_dur{this}
       , m_min{this}
@@ -67,7 +67,7 @@ public:
   }
 
 private:
-  OngoingCommandDispatcher m_dispatcher;
+  OngoingCommandDispatcher& m_dispatcher;
 
   QSpinBox m_count;
   QSpinBox m_dur;

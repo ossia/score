@@ -55,6 +55,7 @@ void PowerSegment::updateData(int numInterp) const
     {
       m_data.resize(numInterp + 1);
       double start_x = start().x();
+
       double start_y = start().y();
       double end_x = end().x();
       double end_y = end().y();

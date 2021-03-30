@@ -28,7 +28,7 @@ private:
   const Curve::PointModel& m_model;
   QDoubleSpinBox* m_XBox;
   QDoubleSpinBox* m_YBox;
-  OngoingCommandDispatcher m_dispatcher;
+  OngoingCommandDispatcher& m_dispatcher;
   double m_yFactor;
   double m_xFactor;
 

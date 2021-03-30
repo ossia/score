@@ -109,7 +109,7 @@ public:
       , m_dur{m.duration}
       , m_editionSettings{set}
       , m_moveFactory{fac.app.interfaces<IntervalResizerList>().find(m)}
-      , m_dispatcher{fac.commandStack}
+      , m_dispatcher{fac.dispatcher}
       , m_simpleDispatcher{fac.commandStack}
   {
     using namespace score;
@@ -353,7 +353,7 @@ public:
   TimeVal m_max;
   TimeVal m_min;
 
-  OngoingCommandDispatcher m_dispatcher;
+  OngoingCommandDispatcher& m_dispatcher;
   CommandDispatcher<> m_simpleDispatcher;
 };
 /*

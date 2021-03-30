@@ -10,6 +10,7 @@
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Process/TimeValue.hpp>
 
+#include <score/document/DocumentContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <score/widgets/SignalUtils.hpp>
@@ -29,7 +30,7 @@ PointInspectorWidget::PointInspectorWidget(
     QWidget* parent)
     : InspectorWidgetBase{model, doc, parent, tr("Point")}
     , m_model{model}
-    , m_dispatcher{commandDispatcher()->stack()}
+    , m_dispatcher{doc.dispatcher}
 {
   setObjectName("CurvePointInspectorWidget");
   setParent(parent);

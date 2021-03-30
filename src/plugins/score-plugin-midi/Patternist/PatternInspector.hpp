@@ -24,7 +24,7 @@ public:
       const score::DocumentContext& doc,
       QWidget* parent)
       : InspectorWidgetDelegate_T{obj, parent}
-      , m_dispatcher{doc.commandStack}
+      , m_dispatcher{doc.dispatcher}
       , m_channel{this}
       , m_currentPattern{this}
       , m_lanes{this}
@@ -133,7 +133,7 @@ public:
   }
 
 private:
-  OngoingCommandDispatcher m_dispatcher;
+  OngoingCommandDispatcher& m_dispatcher;
 
   QSpinBox m_channel;
   QSpinBox m_currentPattern;

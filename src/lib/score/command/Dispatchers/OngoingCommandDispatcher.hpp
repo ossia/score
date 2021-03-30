@@ -52,7 +52,7 @@ public:
   {
     if (m_cmd)
     {
-      SendStrategy::Quiet::send(stack(), m_cmd.release());
+      SendStrategy::UndoRedo::send(stack(), m_cmd.release());
       stack().enableActions();
     }
   }

@@ -156,10 +156,6 @@ void ProcessModel::setDurationAndGrow(const TimeVal& newDuration) noexcept
 
 void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 {
-  // let's assume that automations just can't shrink
-  return;
-  /*
-
   // If there are no segments, nothing changes
   if (m_curve->segments().size() == 0)
   {
@@ -169,6 +165,7 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 
   if(newDuration <= TimeVal::zero())
   {
+    setDuration(TimeVal::zero());
     m_curve->clear();
     return;
   }
@@ -207,7 +204,6 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
   //
   setDuration(newDuration);
   m_curve->changed();
-  */
 }
 
 void ProcessModel::setCurve_impl()

@@ -148,8 +148,6 @@ private:
 
   Scenario::EditionSettings& m_editionSettings;
 
-  OngoingCommandDispatcher m_ongoingDispatcher;
-
   score::SelectionDispatcher m_selectionDispatcher;
   Scenario::ToolPalette m_sm;
 

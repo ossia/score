@@ -8,6 +8,7 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/widgets/DoubleSlider.hpp>
 #include <score/widgets/SignalUtils.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <QFormLayout>
 #include <QSpinBox>
@@ -20,7 +21,7 @@ class InspectorWidget final : public Process::InspectorWidgetDelegate_T<Model>
 {
 public:
   explicit InspectorWidget(const Model& obj, const score::DocumentContext& doc, QWidget* parent)
-      : InspectorWidgetDelegate_T{obj, parent}, m_dispatcher{doc.commandStack}, m_count{this}
+      : InspectorWidgetDelegate_T{obj, parent}, m_dispatcher{doc.dispatcher}, m_count{this}
   {
     m_count.setRange(1, 24);
     m_count.setValue(obj.inCount());
@@ -38,7 +39,7 @@ public:
   }
 
 private:
-  OngoingCommandDispatcher m_dispatcher;
+  OngoingCommandDispatcher& m_dispatcher;
 
   QSpinBox m_count;
 };

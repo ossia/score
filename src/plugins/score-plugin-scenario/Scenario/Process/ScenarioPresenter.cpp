@@ -49,7 +49,6 @@ ScenarioPresenter::ScenarioPresenter(
     , m_view{static_cast<ScenarioView*>(view)}
     , m_viewInterface{*this}
     , m_editionSettings{e}
-    , m_ongoingDispatcher{context.commandStack}
     , m_selectionDispatcher{context.selectionStack}
     , m_sm{m_context, *this}
 {
@@ -987,11 +986,11 @@ void ScenarioPresenter::on_commentCreated(const CommentBlockModel& comment_block
   // Commands
   connect(cmt_pres, &CommentBlockPresenter::moved, this, [&](QPointF scenPos) {
     auto pos = Scenario::ConvertToScenarioPoint(scenPos, m_zoomRatio, m_view->height());
-    m_ongoingDispatcher.submit<MoveCommentBlock>(
+    this->context().context.dispatcher.submit<MoveCommentBlock>(
         model(), comment_block_model.id(), pos.date, pos.y);
   });
   connect(cmt_pres, &CommentBlockPresenter::released, this, [&](QPointF scenPos) {
-    m_ongoingDispatcher.commit();
+    this->context().context.dispatcher.commit();
   });
 
   connect(cmt_pres, &CommentBlockPresenter::editFinished, this, [&](const QString& doc) {
