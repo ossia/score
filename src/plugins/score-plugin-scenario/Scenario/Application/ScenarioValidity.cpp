@@ -1,8 +1,9 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check
+﻿// This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioValidity.hpp"
 
 #include <Process/TimeValueSerialization.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 
 namespace Scenario
 {
@@ -64,6 +65,14 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
       {
         SCORE_ASSERT(!slot.frontProcess);
       }
+    }
+
+    auto defaultDur = dur.defaultDuration();
+    auto startStateDate = Scenario::startEvent(interval, scenar).date();
+    auto endStateDate = Scenario::endEvent(interval, scenar).date();
+    if(!interval.graphal())
+    {
+      SCORE_ASSERT(endStateDate - startStateDate == defaultDur);
     }
     /*
     if (dur.isRigid())
