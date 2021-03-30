@@ -25,7 +25,11 @@ bool loadDeviceFromScoreJSON(const rapidjson::Document& json, Node& node)
 {
   if (!json.IsObject())
   {
-    qDebug() << "Unable to parse the OSC device file";
+    return false;
+  }
+
+  if(!json.HasMember("Device"))
+  {
     return false;
   }
 
