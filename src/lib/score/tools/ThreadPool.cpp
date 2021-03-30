@@ -1,5 +1,8 @@
 #include <score/tools/ThreadPool.hpp>
 #include <thread>
+#if __has_include(<sys/resource.h>)
+#include <sys/resource.h>
+#endif
 
 namespace score
 {
@@ -42,6 +45,13 @@ QThread* ThreadPool::acquireThread()
 
     for(int i = 0; i < m_numThreads; i++)
     {
+#if __has_include(<sys/resource.h>)
+      ::rlimit lim{0, 0};
+      getrlimit(RLIMIT_STACK, &lim);
+
+      if(lim.rlim_cur > m_threads[i].stackSize())
+        m_threads[i].setStackSize(lim.rlim_cur);
+#endif
       m_threads[i].start();
     }
     m_currentThread = 0;

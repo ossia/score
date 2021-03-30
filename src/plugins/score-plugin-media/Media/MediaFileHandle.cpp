@@ -231,10 +231,20 @@ struct FrameComputer
     if (end_frame - start_frame > 0)
     {
       const int64_t buffer_size = end_frame - start_frame;
+      thread_local std::vector<float> data_cache;
 
-      float* floats = (float*)alloca(sizeof(float) * buffer_size * channels);
       if (Q_UNLIKELY(!wav.seek_to_pcm_frame(start_frame)))
         return;
+
+      float* floats{};
+      int num_elems = buffer_size * channels;
+      if(num_elems > 10000) {
+        data_cache.resize(num_elems);
+        floats = data_cache.data();
+      }
+      else {
+        floats = (float*)alloca(sizeof(float) * num_elems);
+      }
 
       auto max = wav.read_pcm_frames_f32(buffer_size, floats);
       if (Q_UNLIKELY(max == 0))

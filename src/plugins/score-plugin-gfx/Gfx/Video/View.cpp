@@ -82,6 +82,8 @@ void View::widthChanged(qreal w)
 {
   // TODO we also have to fetch new frames if we scroll !
   const double frame_width = m_thumb->smallWidth;
+  if(frame_width < 1.)
+    return;
 
   auto view = ::getView(*this);
   if (!view)
