@@ -49,6 +49,23 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
       "0");
   parser.addOption(waitLoadOpt);
 
+#if defined(__APPLE__)
+  // Bogus macOS gatekeeper BS:
+  // https://stackoverflow.com/questions/55562155/qt-application-for-mac-not-being-launched
+  for(auto it = cargs.begin(); it != cargs.end();)
+  {
+    auto& str = *it;
+    if(str.startsWith("-psn"))
+    {
+      it = cargs.erase(it);
+    }
+    else
+    {
+      ++it;
+    }
+  }
+#endif
+
   if (cargs.contains("--help") || cargs.contains("--version"))
   {
     QCoreApplication app(argc, argv);
