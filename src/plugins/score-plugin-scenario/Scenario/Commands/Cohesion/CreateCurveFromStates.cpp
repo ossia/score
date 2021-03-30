@@ -45,6 +45,8 @@ CreateAutomationFromStates::CreateAutomationFromStates(
     , m_dom{dom}
     , m_tween(tween)
 {
+  if(m_dom.max - m_dom.min < 0.000001)
+    m_dom.max = m_dom.max + 1.;
 }
 
 void CreateAutomationFromStates::redo(const score::DocumentContext& ctx) const
