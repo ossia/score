@@ -59,17 +59,17 @@ if(EXISTS "${QT_PLUGINS_DIR}/platforms/libqcocoa.dylib")
 endif()
 
 # Note: freetype still seems to cause crashes on macOS
-# install(CODE "
-#     file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt.conf\" \"[Paths]
-# Plugins = PlugIns
-# Qml2Imports = Resources/qml
-#
-# [Platforms]
-# CocoaArguments=fontengine=freetype
-# \")
-# "
-# COMPONENT OssiaScore
-# )
+install(CODE "
+    file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt.conf\" \"[Paths]
+Plugins = PlugIns
+Qml2Imports = Resources/qml
+
+[Platforms]
+CocoaArguments=fontengine=freetype
+\")
+"
+COMPONENT OssiaScore
+)
 
 # set-up Faust stuff
 if(EXISTS "${CMAKE_BINARY_DIR}/src/plugins/score-plugin-faust/faustlibs-prefix/src/faustlibs")
