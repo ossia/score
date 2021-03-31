@@ -16,6 +16,13 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES ".*arm.*")
   return()
 endif()
 
+# Packages
+find_package(${QT_VERSION} OPTIONAL_COMPONENTS WebSockets)
+if(NOT TARGET ${QT_PREFIX}::WebSockets)
+  # VST3 support requires websockets
+  return()
+endif()
+
 if(WIN32)
   # Needed because on windows we need admin permissions which does not work on CI
   # (see smtg_create_directory_as_admin_win)
@@ -92,6 +99,7 @@ target_link_libraries(${PROJECT_NAME}
     score_plugin_dataflow
     score_plugin_media
     sdk_common sdk_hosting
+    ${QT_PREFIX}::WebSockets
 )
 
 if(APPLE)

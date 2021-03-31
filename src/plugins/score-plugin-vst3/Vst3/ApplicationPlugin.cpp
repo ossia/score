@@ -5,6 +5,7 @@
 
 #include <QApplication>
 #include <QWebSocket>
+#include <QWebSocketServer>
 #include <QDir>
 #include <QDirIterator>
 #include <QSettings>
@@ -101,9 +102,12 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& ctx)
   , m_wsServer("vst3-notification-server", QWebSocketServer::NonSecureMode)
 {
   qRegisterMetaType<AvailablePlugin>();
-  qRegisterMetaTypeStreamOperators<AvailablePlugin>();
   qRegisterMetaType<std::vector<AvailablePlugin>>();
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+  qRegisterMetaTypeStreamOperators<AvailablePlugin>();
   qRegisterMetaTypeStreamOperators<std::vector<AvailablePlugin>>();
+#endif
 
   m_wsServer.listen({}, 37588);
   con(m_wsServer, &QWebSocketServer::newConnection, this, [this] {

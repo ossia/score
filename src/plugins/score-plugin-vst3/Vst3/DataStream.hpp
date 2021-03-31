@@ -1,6 +1,7 @@
 #pragma once
 #include <pluginterfaces/base/ibstream.h>
 #include <QDataStream>
+#include <QIODevice>
 
 namespace vst3
 {

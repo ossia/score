@@ -56,9 +56,12 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
     , m_wsServer("vst-notification-server", QWebSocketServer::NonSecureMode)
 {
   qRegisterMetaType<VSTInfo>();
-  qRegisterMetaTypeStreamOperators<VSTInfo>();
   qRegisterMetaType<std::vector<VSTInfo>>();
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+  qRegisterMetaTypeStreamOperators<VSTInfo>();
   qRegisterMetaTypeStreamOperators<std::vector<VSTInfo>>();
+#endif
 
   m_wsServer.listen({}, 37587);
   con(m_wsServer, &QWebSocketServer::newConnection, this, [this] {

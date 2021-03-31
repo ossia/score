@@ -33,10 +33,14 @@ score_plugin_gfx::score_plugin_gfx()
 {
 #if defined(HAS_FREENECT2)
   qRegisterMetaType<Gfx::Kinect2Settings>();
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   qRegisterMetaTypeStreamOperators<Gfx::Kinect2Settings>();
 #endif
+#endif
   qRegisterMetaType<Gfx::CameraSettings>();
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   qRegisterMetaTypeStreamOperators<Gfx::CameraSettings>();
+#endif
 }
 
 score_plugin_gfx::~score_plugin_gfx() { }

@@ -353,7 +353,7 @@ void FaustEffectModel::reload()
   }
 
   auto lines = fx_text.split('\n');
-  for (int i = 0; i < std::min(5, lines.size()); i++)
+  for (int i = 0; i < std::min(5, int(lines.size())); i++)
   {
     if (lines[i].startsWith("declare name"))
     {
