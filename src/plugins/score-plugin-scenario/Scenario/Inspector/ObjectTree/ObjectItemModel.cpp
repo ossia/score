@@ -113,7 +113,11 @@ void ObjectItemModel::setSelected(QList<const IdentifiedObjectAbstract*> objs)
     }
   }
 
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
+  root = root.toSet().values();
+#else
   root = QSet<const QObject*>{root.begin(), root.end()}.values();
+#endif
   if (root != m_root)
   {
     cleanConnections();

@@ -1235,7 +1235,7 @@ void DeviceExplorerWidget::filterChanged()
   // RegExp; //Wildcard; //WildcardUnix; //?
   // See http://qt-project.org/doc/qt-5/QRegExptml#PatternSyntax-enum
 
-  QRegExp regExp(pattern, cs, syntax);
+  QRegExp regExp(pattern, Qt::CaseInsensitive, syntax);
 
   m_proxyModel->setFilterRegExp(regExp);
 #else
