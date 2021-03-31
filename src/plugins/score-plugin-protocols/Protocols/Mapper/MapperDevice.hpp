@@ -8,6 +8,14 @@
 
 #include <verdigris>
 
+inline QDataStream& operator<<(QDataStream& st, const std::vector<ossia::net::node_base*>& p)
+{
+   return st;
+}
+inline QDataStream& operator>>(QDataStream& st, std::vector<ossia::net::node_base*>& p)
+{
+  return st;
+}
 Q_DECLARE_METATYPE(std::vector<ossia::net::node_base*>)
 W_REGISTER_ARGTYPE(std::vector<ossia::net::node_base*>)
 class QCodeEditor;

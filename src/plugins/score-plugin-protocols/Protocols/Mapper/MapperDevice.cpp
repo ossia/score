@@ -16,6 +16,8 @@
 
 #include <ossia/detail/config.hpp>
 
+#include <score/serialization/AnySerialization.hpp>
+#include <score/serialization/MapSerialization.hpp>
 #include <ossia-qt/js_utilities.hpp>
 #include <ossia-qt/invoke.hpp>
 #include <ossia/detail/hash_map.hpp>
@@ -38,7 +40,6 @@
 #include <iomanip>
 #include <sstream>
 #include <verdigris>
-
 namespace ossia::net
 {
 class observable_device_roots final : public QObject

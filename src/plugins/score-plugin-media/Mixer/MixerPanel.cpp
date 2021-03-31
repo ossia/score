@@ -192,7 +192,7 @@ public:
     m_lay.addWidget(&m_upmix, 2, 1, 1, 1);
     m_lay.addWidget(&m_propagate, 3, 1, 1, 1);
     m_lay.addWidget(&m_panSlider, 7, 0, 1, 2);
-    m_lay.setMargin(3);
+    m_lay.setContentsMargins(3, 3, 3, 3);
     m_lay.setSpacing(4);
 
     con(m_title, &QPushButton::clicked, this, [this] {

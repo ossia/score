@@ -43,7 +43,9 @@
 #endif
 #include <Process/Style/ScenarioStyle.hpp>
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <QGLWidget>
+#endif
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::ScenarioDocumentView)
@@ -146,22 +148,41 @@ void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
   QPointF delta = {d.x() / 8., d.y() / 8.};
   if (m_hZoom)
   {
-    horizontalZoom(delta, mapToScene(event->pos()));
+    QPoint pos =
+    #if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
+        event->pos()
+    #else
+        event->position().toPoint()
+    #endif
+    ;
+    horizontalZoom(delta, mapToScene(pos));
     return;
   }
   else if (m_vZoom)
   {
-    verticalZoom(delta, mapToScene(event->pos()));
+    QPoint pos =
+    #if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
+        event->pos()
+    #else
+        event->position().toPoint()
+    #endif
+    ;
+    verticalZoom(delta, mapToScene(pos));
     return;
   }
   struct MyWheelEvent : public QWheelEvent
   {
     MyWheelEvent(const QWheelEvent& other) : QWheelEvent{other}
     {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
       p.ry() /= 4.;
       pixelD.ry() /= 4.;
       angleD /= 4.;
       qt4D /= 4.;
+#else
+      this->m_angleDelta.ry() /= 4.;
+      this->m_pixelDelta.ry() /= 4.;
+#endif
     }
   };
   MyWheelEvent e{*event};
@@ -443,7 +464,7 @@ ScenarioDocumentView::ScenarioDocumentView(const score::DocumentContext& ctx, QO
     auto& es = ctx.app.guiApplicationPlugin<ScenarioApplicationPlugin>().editionSettings();
     es.setTool(Scenario::Tool::Select);
   });
-
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   const bool opengl = ctx.app.applicationSettings.opengl;
   if (opengl)
   {
@@ -471,6 +492,7 @@ ScenarioDocumentView::ScenarioDocumentView(const score::DocumentContext& ctx, QO
       m_timer = startTimer(8);
   }
   else
+#endif
   {
     // m_minimapView.setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
     m_view.setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);

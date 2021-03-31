@@ -8,6 +8,7 @@
 #include <QFile>
 #include <QGraphicsScene>
 #include <QMimeData>
+#include <QWidget>
 #include <QPainter>
 #if __has_include(<QSvgGenerator>)
 #include <QSvgGenerator>

@@ -131,7 +131,7 @@ public:
   score::EntityMap<CommentBlockModel> comments;
 
 public:
-  void intervalMoved(const Scenario::IntervalModel& arg_1) const
+  void intervalMoved(const Scenario::IntervalModel* arg_1) const
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalMoved, arg_1)
 
   void locked() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, locked)
@@ -269,6 +269,10 @@ struct ElementTraits<Scenario::ProcessModel, StateModel>
 }
 DESCRIPTION_METADATA(SCORE_PLUGIN_SCENARIO_EXPORT, Scenario::ProcessModel, "Scenario")
 
+Q_DECLARE_METATYPE(const Scenario::ProcessModel*)
+Q_DECLARE_METATYPE(Scenario::ProcessModel*)
+W_REGISTER_ARGTYPE(const Scenario::ProcessModel*)
+W_REGISTER_ARGTYPE(Scenario::ProcessModel*)
 W_REGISTER_ARGTYPE(const Scenario::ProcessModel&)
 W_REGISTER_ARGTYPE(Scenario::ProcessModel&)
 W_REGISTER_ARGTYPE(Scenario::ProcessModel)

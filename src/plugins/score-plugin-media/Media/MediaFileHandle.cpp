@@ -13,6 +13,10 @@
 
 #include <ossia/detail/apply.hpp>
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
+#include <QRegularExpression>
+#endif
+
 #include <QDebug>
 #include <QFileInfo>
 
@@ -138,7 +142,12 @@ bool AudioFile::isSupported(const QFile& file)
 {
   return file.exists()
          && file.fileName().contains(
-             QRegExp(".(wav|aif|aiff|flac|ogg|mp3|m4a)", Qt::CaseInsensitive));
+      #if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
+        QRegularExpression(".(wav|aif|aiff|flac|ogg|mp3|m4a)", QRegularExpression::CaseInsensitiveOption)
+      #else
+        QRegExp(".(wav|aif|aiff|flac|ogg|mp3|m4a)", Qt::CaseInsensitive)
+      #endif
+        );
 }
 
 int64_t AudioFile::samples() const

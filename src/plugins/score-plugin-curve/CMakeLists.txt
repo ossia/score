@@ -111,3 +111,9 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
                      score_lib_base score_lib_process score_lib_state)
 
 setup_score_plugin(${PROJECT_NAME})
+
+if(TARGET ${QT_PREFIX}::StateMachine)
+  target_link_libraries(${PROJECT_NAME}
+    PUBLIC ${QT_PREFIX}::StateMachine
+  )
+endif()

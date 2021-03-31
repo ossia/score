@@ -19,8 +19,11 @@ file(GENERATE
 )
 
 # Files & main target
-qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/resources/score.qrc")
-
+if(Qt5Core_VERSION_STRING)
+  qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/resources/score.qrc")
+else()
+  qt_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/resources/score.qrc")
+endif()
 set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationRegistrar.hpp"
@@ -504,6 +507,11 @@ target_link_libraries(score_lib_base
 if(TARGET ${QT_PREFIX}::Svg)
   target_link_libraries(score_lib_base
     PRIVATE ${QT_PREFIX}::Svg
+  )
+endif()
+if(TARGET ${QT_PREFIX}::StateMachine)
+  target_link_libraries(score_lib_base
+    PRIVATE ${QT_PREFIX}::StateMachine
   )
 endif()
 target_include_directories(score_lib_base PUBLIC 3rdparty/QProgressIndicator)

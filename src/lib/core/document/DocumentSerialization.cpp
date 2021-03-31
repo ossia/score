@@ -38,6 +38,7 @@
 #include <QString>
 #include <QVariant>
 #include <QVector>
+#include <QWidget>
 
 #include <fmt/format.h>
 

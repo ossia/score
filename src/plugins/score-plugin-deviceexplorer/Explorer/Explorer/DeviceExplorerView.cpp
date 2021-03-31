@@ -20,8 +20,7 @@
 #include <QPainter>
 #include <QSettings>
 #include <QString>
-#include <qnamespace.h>
-#include <qtypetraits.h>
+
 
 W_REGISTER_ARGTYPE(QItemSelection)
 

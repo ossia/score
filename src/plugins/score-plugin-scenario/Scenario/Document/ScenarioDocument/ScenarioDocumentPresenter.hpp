@@ -84,7 +84,7 @@ public:
 
   void setNewSelection(const Selection& old, const Selection& s) override;
 
-  void setDisplayedInterval(Scenario::IntervalModel& interval);
+  void setDisplayedInterval(Scenario::IntervalModel* interval);
   void createDisplayedIntervalPresenter(Scenario::IntervalModel& interval);
 
   void on_viewModelDefocused(const Process::ProcessModel* vm);

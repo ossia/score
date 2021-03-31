@@ -29,7 +29,10 @@
 score_plugin_audio::score_plugin_audio()
 {
   qRegisterMetaType<Audio::AudioFactory::ConcreteKey>("AudioKey");
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   qRegisterMetaTypeStreamOperators<Audio::AudioFactory::ConcreteKey>("AudioKey");
+#endif
 }
 
 score_plugin_audio::~score_plugin_audio() { }

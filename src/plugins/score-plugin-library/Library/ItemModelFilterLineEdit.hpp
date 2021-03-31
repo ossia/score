@@ -20,7 +20,11 @@ public:
 
   void search() override
   {
+#if QT_VERSION < QT_VERSION_CHECK(5, 12, 0)
     if (text() != m_proxy.filterRegExp().pattern())
+#else
+    if (text() != m_proxy.filterRegularExpression().pattern())
+#endif
     {
       m_proxy.setFilterFixedString(text());
       m_proxy.setFilterCaseSensitivity(Qt::CaseInsensitive);

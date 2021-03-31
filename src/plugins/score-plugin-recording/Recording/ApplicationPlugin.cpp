@@ -60,7 +60,7 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
   }
 }
 
-void ApplicationPlugin::record(Scenario::ProcessModel& scenar, Scenario::Point pt)
+void ApplicationPlugin::record(Scenario::ProcessModel* scenar, Scenario::Point pt)
 {
   if (m_currentContext)
     return;
@@ -68,7 +68,7 @@ void ApplicationPlugin::record(Scenario::ProcessModel& scenar, Scenario::Point p
   m_stopAction->trigger();
   QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
-  m_currentContext = std::make_unique<Recording::RecordContext>(scenar, pt);
+  m_currentContext = std::make_unique<Recording::RecordContext>(*scenar, pt);
   m_recManager = std::make_unique<SingleRecorder<AutomationRecorder>>(*m_currentContext);
 
   if (context.settings<Curve::Settings::Model>().getPlayWhileRecording())
@@ -89,7 +89,7 @@ void ApplicationPlugin::record(Scenario::ProcessModel& scenar, Scenario::Point p
   }
 }
 
-void ApplicationPlugin::recordMessages(Scenario::ProcessModel& scenar, Scenario::Point pt)
+void ApplicationPlugin::recordMessages(Scenario::ProcessModel* scenar, Scenario::Point pt)
 {
   if (m_currentContext)
     return;
@@ -97,7 +97,7 @@ void ApplicationPlugin::recordMessages(Scenario::ProcessModel& scenar, Scenario:
   m_stopAction->trigger();
   QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
-  m_currentContext = std::make_unique<Recording::RecordContext>(scenar, pt);
+  m_currentContext = std::make_unique<Recording::RecordContext>(*scenar, pt);
   m_recMessagesManager = std::make_unique<SingleRecorder<MessageRecorder>>(*m_currentContext);
 
   if (context.settings<Curve::Settings::Model>().getPlayWhileRecording())

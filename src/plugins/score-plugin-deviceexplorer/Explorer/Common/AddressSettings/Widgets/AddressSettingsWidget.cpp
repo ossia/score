@@ -11,6 +11,8 @@
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
+#include <score/serialization/AnySerialization.hpp>
+#include <score/serialization/MapSerialization.hpp>
 #include <ossia-qt/metatypes.hpp>
 #include <ossia/network/base/node_attributes.hpp>
 

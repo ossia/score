@@ -1,5 +1,6 @@
 #include <Curve/ApplicationPlugin.hpp>
 
+#include <QActionGroup>
 #include <QKeyEvent>
 
 namespace Curve

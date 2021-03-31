@@ -125,7 +125,6 @@ set(SRCS
 #"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/ModelTest/tst_modeltest.cpp"
 
 )
-qt5_add_resources(EXPLORER_RESOURCES_RCC "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DeviceExplorer.qrc")
 
 add_library(${PROJECT_NAME}
       ${SRCS} ${HDRS}

@@ -96,6 +96,10 @@ find_package(${QT_VERSION} REQUIRED
                Xml
 )
 
+if(NOT Qt5Core_VERSION_STRING)
+  find_package(${QT_VERSION} REQUIRED COMPONENTS StateMachine OpenGLWidgets)
+endif()
+
 enable_testing()
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/ScoreFunctions.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/ScoreConfiguration.cmake")

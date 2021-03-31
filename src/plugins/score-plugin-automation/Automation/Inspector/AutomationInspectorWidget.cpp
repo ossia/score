@@ -42,7 +42,6 @@ InspectorWidget::InspectorWidget(
 
   auto vlay = new QFormLayout;
   vlay->setSpacing(2);
-  vlay->setMargin(2);
   vlay->setContentsMargins(0, 0, 0, 0);
 
   // Address
@@ -148,7 +147,6 @@ InspectorWidget::InspectorWidget(
 
   auto vlay = new QFormLayout;
   vlay->setSpacing(2);
-  vlay->setMargin(2);
   vlay->setContentsMargins(0, 0, 0, 0);
 
   // Address
@@ -209,7 +207,6 @@ InspectorWidget::InspectorWidget(
 
   auto vlay = new QFormLayout;
   vlay->setSpacing(2);
-  vlay->setMargin(2);
   vlay->setContentsMargins(0, 0, 0, 0);
 
   // Address

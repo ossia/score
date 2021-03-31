@@ -284,7 +284,7 @@ void Scenario::TemporalIntervalPresenter::on_doubleClick()
   auto base = score::IDocument::get<ScenarioDocumentPresenter>(document);
 
   if (base)
-    base->setDisplayedInterval(const_cast<IntervalModel&>(this->m_model));
+    base->setDisplayedInterval(const_cast<IntervalModel*>(&this->m_model));
 }
 
 struct RequestOverlayMenuCallback

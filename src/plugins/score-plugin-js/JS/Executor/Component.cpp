@@ -13,6 +13,8 @@
 #include <score/tools/Bind.hpp>
 
 #include <ossia-qt/invoke.hpp>
+#include <score/serialization/AnySerialization.hpp>
+#include <score/serialization/MapSerialization.hpp>
 #include <ossia-qt/js_utilities.hpp>
 #include <ossia-qt/time.hpp>
 #include <ossia/dataflow/port.hpp>

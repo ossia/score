@@ -6,6 +6,8 @@
 
 #include <score/serialization/StringConstants.hpp>
 
+#include <score/serialization/AnySerialization.hpp>
+#include <score/serialization/MapSerialization.hpp>
 #include <ossia-qt/js_utilities.hpp>
 #include <ossia/detail/apply.hpp>
 #include <ossia/network/value/value.hpp>

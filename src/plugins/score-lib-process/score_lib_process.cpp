@@ -49,7 +49,9 @@ Dataflow::CableItem* DataflowManager::createCable(const Process::Cable& cable, c
 score_lib_process::score_lib_process()
 {
   qRegisterMetaType<Process::pan_weight>();
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   qRegisterMetaTypeStreamOperators<Process::pan_weight>();
+#endif
 }
 score_lib_process::~score_lib_process() = default;
 

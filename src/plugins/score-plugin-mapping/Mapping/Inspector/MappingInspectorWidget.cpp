@@ -39,7 +39,6 @@ InspectorWidget::InspectorWidget(
 
   auto lay = new QFormLayout;
   lay->setSpacing(2);
-  lay->setMargin(2);
   lay->setContentsMargins(0, 0, 0, 0);
 
   {

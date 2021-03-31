@@ -28,7 +28,7 @@ State::State(
           auto plug = doc.app.findGuiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
           if (plug)
           {
-            plug->execution().playState(Scenario::parentScenario(*s), s->id());
+            plug->execution().playState(&Scenario::parentScenario(*s), s->id());
           }
         }
       }));

@@ -12,6 +12,8 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 
+#include <score/serialization/AnySerialization.hpp>
+#include <score/serialization/MapSerialization.hpp>
 #include <ossia-qt/js_utilities.hpp>
 
 #include <QFileInfo>

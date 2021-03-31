@@ -62,7 +62,7 @@ public:
       case Qt::Key_Right:
       {
         auto c = textCursor();
-        c.setPosition(std::min(toPlainText().size(), c.position() + 1));
+        c.setPosition(std::min(int(toPlainText().size()), c.position() + 1));
         setTextCursor(c);
         return;
       }

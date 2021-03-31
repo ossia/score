@@ -55,7 +55,7 @@ public:
   void setSnapLine(TimeVal t, bool enabled);
 
 public:
-  void intervalSelected(IntervalModel& arg_1)
+  void intervalSelected(IntervalModel* arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalSelected, arg_1)
 
 private:

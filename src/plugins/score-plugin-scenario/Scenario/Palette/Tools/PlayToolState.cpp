@@ -39,7 +39,7 @@ void PlayToolState::on_pressed(QPointF scenePoint, Scenario::Point scenarioPoint
 
       auto id = state.parent() == &this->m_sm.model() ? state.id() : OptionalId<StateModel>{};
       if (id)
-        m_exec.playState(m_sm.model(), *id);
+        m_exec.playState(&m_sm.model(), *id);
       break;
     }
     case IntervalView::Type:
@@ -51,11 +51,11 @@ void PlayToolState::on_pressed(QPointF scenePoint, Scenario::Point scenarioPoint
       {
         if (QApplication::keyboardModifiers() & Qt::AltModifier)
         {
-          m_exec.playInterval(m_sm.model(), *id);
+          m_exec.playInterval(&m_sm.model(), *id);
         }
         else
         {
-          m_exec.playFromIntervalAtDate(m_sm.model(), *id, scenarioPoint.date);
+          m_exec.playFromIntervalAtDate(&m_sm.model(), *id, scenarioPoint.date);
         }
       }
       break;

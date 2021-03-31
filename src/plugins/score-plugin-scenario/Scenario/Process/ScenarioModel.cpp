@@ -164,7 +164,7 @@ void ProcessModel::setDurationAndScale(const TimeVal& newDuration) noexcept
       process.setParentDuration(ExpandMode::Scale, newdur);
     }
 
-    intervalMoved(interval);
+    intervalMoved(&interval);
   }
 
   this->setDuration(newDuration);

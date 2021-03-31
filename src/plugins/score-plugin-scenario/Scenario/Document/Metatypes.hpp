@@ -1,6 +1,7 @@
 #pragma once
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
+#include <score/model/path/PathSerialization.hpp>
 
 #include <QPointer>
 

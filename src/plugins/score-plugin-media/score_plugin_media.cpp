@@ -53,7 +53,10 @@ score_plugin_media::score_plugin_media()
   qRegisterMetaType<QVector<QImage>>();
   qRegisterMetaType<QVector<QImage*>>();
   qRegisterMetaType<ossia::audio_stretch_mode>();
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   qRegisterMetaTypeStreamOperators<ossia::audio_stretch_mode>();
+#endif
 }
 
 score_plugin_media::~score_plugin_media() { }

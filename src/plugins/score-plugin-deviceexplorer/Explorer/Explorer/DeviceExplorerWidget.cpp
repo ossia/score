@@ -45,6 +45,8 @@
 #include <score/widgets/SetIcons.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
+#include <score/serialization/AnySerialization.hpp>
+#include <score/serialization/MapSerialization.hpp>
 #include <ossia-qt/js_utilities.hpp>
 #include <ossia/detail/algorithms.hpp>
 
@@ -65,7 +67,11 @@
 #include <QListWidget>
 #include <QMenu>
 #include <QPair>
+#if QT_VERSION < QT_VERSION_CHECK(5, 12, 0)
 #include <QRegExp>
+#else
+#include <QRegularExpression>
+#endif
 #include <QSize>
 #include <QStackedLayout>
 #include <QString>
@@ -118,10 +124,16 @@ public:
     if (!v)
       return;
 
+#if QT_VERSION < QT_VERSION_CHECK(5, 12, 0)
     if (text() != m->filterRegExp().pattern())
     {
       m->setFilterRegExp(QRegExp(text(), Qt::CaseInsensitive, QRegExp::FixedString));
-
+#else
+    if (text() != m->filterRegularExpression().pattern())
+    {
+      m->setFilterFixedString(text());
+      m->setFilterCaseSensitivity(Qt::CaseInsensitive);
+#endif
       if (text().isEmpty())
         v->collapseAll();
       else
@@ -1218,14 +1230,17 @@ void DeviceExplorerWidget::filterChanged()
   SCORE_ASSERT(m_nameLEdit);
 
   QString pattern = m_nameLEdit->text();
-  Qt::CaseSensitivity cs = Qt::CaseSensitive;
-
-  QRegExp::PatternSyntax syntax = QRegExp::WildcardUnix; // RegExp; //Wildcard; //WildcardUnix; //?
+#if QT_VERSION < QT_VERSION_CHECK(5, 12, 0)
+  QRegExp::PatternSyntax syntax = QRegExp::WildcardUnix;
+  // RegExp; //Wildcard; //WildcardUnix; //?
   // See http://qt-project.org/doc/qt-5/QRegExptml#PatternSyntax-enum
 
   QRegExp regExp(pattern, cs, syntax);
 
   m_proxyModel->setFilterRegExp(regExp);
+#else
+  m_proxyModel->setFilterWildcard(pattern);
+#endif
   m_proxyModel->setColumn((Explorer::Column)m_columnCBox->currentIndex());
 }
 

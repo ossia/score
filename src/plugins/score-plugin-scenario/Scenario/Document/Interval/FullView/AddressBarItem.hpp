@@ -1,5 +1,6 @@
 #pragma once
 #include <score/model/path/ObjectPath.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 
 #include <QGraphicsItem>
 #include <QList>
@@ -30,7 +31,7 @@ public:
 
 public:
   void needRedraw() W_SIGNAL(needRedraw);
-  void intervalSelected(IntervalModel& cst) W_SIGNAL(intervalSelected, cst);
+  void intervalSelected(IntervalModel* cst) W_SIGNAL(intervalSelected, cst);
 
 private:
   void redraw();

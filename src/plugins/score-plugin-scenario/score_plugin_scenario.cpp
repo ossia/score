@@ -77,13 +77,6 @@ score_plugin_scenario::score_plugin_scenario()
   // QMetaType::registerComparators<State::MessageList>();
 
   qRegisterMetaType<State::Expression>();
-  qRegisterMetaTypeStreamOperators<State::Message>();
-  qRegisterMetaTypeStreamOperators<State::MessageList>();
-  qRegisterMetaTypeStreamOperators<State::Address>();
-  qRegisterMetaTypeStreamOperators<ossia::value>();
-  qRegisterMetaTypeStreamOperators<State::Expression>();
-
-  qRegisterMetaTypeStreamOperators<TimeVal>();
   qRegisterMetaType<ExecutionStatus>();
   qRegisterMetaType<Scenario::IntervalExecutionState>();
   qRegisterMetaType<QPointer<Process::LayerPresenter>>();
@@ -93,13 +86,8 @@ score_plugin_scenario::score_plugin_scenario()
 
   qRegisterMetaType<LockMode>();
   qRegisterMetaType<Scenario::OffsetBehavior>();
-  qRegisterMetaTypeStreamOperators<Scenario::OffsetBehavior>();
 
   qRegisterMetaType<State::Unit>();
-  qRegisterMetaTypeStreamOperators<State::Unit>();
-  qRegisterMetaTypeStreamOperators<State::vec2f>();
-  qRegisterMetaTypeStreamOperators<State::vec3f>();
-  qRegisterMetaTypeStreamOperators<State::vec4f>();
 
   qRegisterMetaType<QPainterPath>();
   qRegisterMetaType<QList<QPainterPath>>();
@@ -108,6 +96,21 @@ score_plugin_scenario::score_plugin_scenario()
   qRegisterMetaType<std::shared_ptr<Execution::EventComponent>>();
   qRegisterMetaType<ossia::time_event::status>();
   qRegisterMetaType<ossia::time_value>();
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+  qRegisterMetaTypeStreamOperators<State::Message>();
+  qRegisterMetaTypeStreamOperators<State::MessageList>();
+  qRegisterMetaTypeStreamOperators<State::Address>();
+  qRegisterMetaTypeStreamOperators<ossia::value>();
+  qRegisterMetaTypeStreamOperators<State::Expression>();
+
+  qRegisterMetaTypeStreamOperators<TimeVal>();
+  qRegisterMetaTypeStreamOperators<Scenario::OffsetBehavior>();
+  qRegisterMetaTypeStreamOperators<State::Unit>();
+  qRegisterMetaTypeStreamOperators<State::vec2f>();
+  qRegisterMetaTypeStreamOperators<State::vec3f>();
+  qRegisterMetaTypeStreamOperators<State::vec4f>();
+#endif
 }
 
 score_plugin_scenario::~score_plugin_scenario() = default;

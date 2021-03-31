@@ -36,7 +36,10 @@ ApplicationInterface::ApplicationInterface()
   qRegisterMetaType<Id<score::DocumentModel>>("Id<DocumentModel>");
   qRegisterMetaType<QVector<int>>();
   qRegisterMetaType<QPair<QString, QString>>();
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   qRegisterMetaTypeStreamOperators<QPair<QString, QString>>();
+#endif
 }
 
 ApplicationInterface& ApplicationInterface::instance()

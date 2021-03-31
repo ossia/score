@@ -14,6 +14,7 @@
 #include <libremidi/message.hpp>
 
 #include <verdigris>
+
 namespace JS
 {
 class Inlet : public QObject

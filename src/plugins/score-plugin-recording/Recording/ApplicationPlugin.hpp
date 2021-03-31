@@ -23,8 +23,8 @@ class ApplicationPlugin final : public QObject, public score::GUIApplicationPlug
 public:
   ApplicationPlugin(const score::GUIApplicationContext& app);
 
-  void record(Scenario::ProcessModel&, Scenario::Point pt);
-  void recordMessages(Scenario::ProcessModel&, Scenario::Point pt);
+  void record(Scenario::ProcessModel*, Scenario::Point pt);
+  void recordMessages(Scenario::ProcessModel*, Scenario::Point pt);
   void stopRecord();
 
 private:

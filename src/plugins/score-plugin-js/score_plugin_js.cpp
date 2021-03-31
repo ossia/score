@@ -128,7 +128,9 @@ W_OBJECT_IMPL(JS::Script)
 
 score_plugin_js::score_plugin_js()
 {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   JS::registerQmlValueTypeProvider();
+#endif
 
   qmlRegisterType<JS::ControlInlet>("Score", 1, 0, "ControlInlet");
   qmlRegisterType<JS::ValueInlet>("Score", 1, 0, "ValueInlet");

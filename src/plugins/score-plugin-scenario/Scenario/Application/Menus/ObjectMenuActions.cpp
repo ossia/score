@@ -244,7 +244,7 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
       {
         if (auto parent = qobject_cast<Scenario::IntervalModel*>(cur))
         {
-          pres->setDisplayedInterval(*parent);
+          pres->setDisplayedInterval(parent);
           break;
         }
       }

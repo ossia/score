@@ -113,7 +113,7 @@ void ObjectItemModel::setSelected(QList<const IdentifiedObjectAbstract*> objs)
     }
   }
 
-  root = root.toSet().values();
+  root = QSet<const QObject*>{root.begin(), root.end()}.values();
   if (root != m_root)
   {
     cleanConnections();
@@ -222,6 +222,14 @@ void ObjectItemModel::setupConnections()
   }
 }
 
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+void ObjectItemModel::multiData(const QModelIndex &index, QModelRoleDataSpan roleDataSpan) const
+{
+  SCORE_ASSERT(index.isValid());
+  return QAbstractItemModel::multiData(index, roleDataSpan);
+}
+#endif
 void ObjectItemModel::cleanConnections()
 {
   this->removeAll();

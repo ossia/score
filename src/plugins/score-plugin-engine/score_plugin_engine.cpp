@@ -32,7 +32,9 @@ W_OBJECT_IMPL(Execution::ManualClock::TimeWidget)
 score_plugin_engine::score_plugin_engine()
 {
   qRegisterMetaType<Execution::ClockFactory::ConcreteKey>("ClockKey");
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   qRegisterMetaTypeStreamOperators<Execution::ClockFactory::ConcreteKey>("ClockKey");
+#endif
 }
 
 score_plugin_engine::~score_plugin_engine() { }

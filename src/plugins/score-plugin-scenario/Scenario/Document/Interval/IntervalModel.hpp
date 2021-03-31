@@ -9,6 +9,9 @@
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Document/Metatypes.hpp>
 #include <Scenario/Document/ModelConsistency.hpp>
+#if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
+#include <score/serialization/MapSerialization.hpp>
+#endif
 
 #include <score/model/Component.hpp>
 #include <score/model/EntityImpl.hpp>
@@ -313,7 +316,12 @@ Q_DECLARE_METATYPE(Scenario::TimeSignatureMap)
 W_REGISTER_ARGTYPE(Scenario::TimeSignatureMap)
 Q_DECLARE_METATYPE(Scenario::IntervalModel::ViewMode)
 W_REGISTER_ARGTYPE(Scenario::IntervalModel::ViewMode)
-Q_DECLARE_METATYPE(QPointer<const Scenario::IntervalModel>)
-W_REGISTER_ARGTYPE(QPointer<const Scenario::IntervalModel>)
+Q_DECLARE_METATYPE(QPointer<Scenario::IntervalModel>)
+W_REGISTER_ARGTYPE(QPointer<Scenario::IntervalModel>)
 
 TR_TEXT_METADATA(, Scenario::IntervalModel, PrettyName_k, "Interval")
+
+Q_DECLARE_METATYPE(Scenario::IntervalModel*)
+W_REGISTER_ARGTYPE(Scenario::IntervalModel*)
+Q_DECLARE_METATYPE(const Scenario::IntervalModel*)
+W_REGISTER_ARGTYPE(const Scenario::IntervalModel*)

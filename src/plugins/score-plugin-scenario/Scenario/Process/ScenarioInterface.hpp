@@ -79,3 +79,8 @@ struct ElementTraits<Scenario::ScenarioInterface, StateModel>
 
 W_REGISTER_ARGTYPE(const Scenario::ScenarioInterface&)
 W_REGISTER_ARGTYPE(Scenario::ScenarioInterface)
+
+Q_DECLARE_METATYPE(const Scenario::ScenarioInterface*)
+Q_DECLARE_METATYPE(Scenario::ScenarioInterface*)
+W_REGISTER_ARGTYPE(const Scenario::ScenarioInterface*)
+W_REGISTER_ARGTYPE(Scenario::ScenarioInterface*)

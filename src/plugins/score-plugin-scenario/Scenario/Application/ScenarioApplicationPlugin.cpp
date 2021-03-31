@@ -192,7 +192,7 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(const score::GUIApplication
           itv = itv->parent();
           if (auto itv_ = qobject_cast<const IntervalModel*>(itv))
           {
-            pres->setDisplayedInterval(const_cast<IntervalModel&>(*itv_));
+            pres->setDisplayedInterval(const_cast<IntervalModel*>(itv_));
             return;
           }
         }

@@ -153,11 +153,11 @@ public:
 
     if (auto itv = qobject_cast<Scenario::IntervalModel*>(obj))
     {
-      plug->execution().playInterval(Scenario::parentScenario(*itv), itv->id());
+      plug->execution().playInterval(&Scenario::parentScenario(*itv), itv->id());
     }
     else if (auto state = qobject_cast<Scenario::StateModel*>(obj))
     {
-      plug->execution().playState(Scenario::parentScenario(*state), state->id());
+      plug->execution().playState(&Scenario::parentScenario(*state), state->id());
     }
   }
   W_SLOT(play)

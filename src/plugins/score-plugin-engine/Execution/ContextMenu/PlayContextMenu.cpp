@@ -93,13 +93,13 @@ PlayContextMenu::PlayContextMenu(
   con(exec_signals,
       &Scenario::ScenarioExecution::playState,
       this,
-      [=](const Scenario::ScenarioInterface& scenar, const Id<StateModel>& id) {
+      [=](const Scenario::ScenarioInterface* scenar, const Id<StateModel>& id) {
         auto ctx = m_ctx.currentDocument();
         if(!ctx)
           return;
         auto& r_ctx = ctx->plugin<Execution::DocumentPlugin>().context();
 
-        auto& score_state = scenar.state(id);
+        auto& score_state = scenar->state(id);
 
         // Make the state blink
         auto old_status = score_state.status();
@@ -141,22 +141,22 @@ PlayContextMenu::PlayContextMenu(
   con(exec_signals,
       &Scenario::ScenarioExecution::playInterval,
       this,
-      [&](const Scenario::ScenarioInterface& scenar, const Id<IntervalModel>& id) {
-        plug.on_play(scenar.interval(id), true);
+      [&](const Scenario::ScenarioInterface* scenar, const Id<IntervalModel>& id) {
+        plug.on_play(scenar->interval(id), true);
       });
 
   con(exec_signals,
       &Scenario::ScenarioExecution::playFromIntervalAtDate,
       this,
-      [&](const Scenario::ScenarioInterface& scenar,
+      [&](const Scenario::ScenarioInterface* scenar,
           Id<Scenario::IntervalModel> id,
           const TimeVal& t) {
         // First we select the parent scenario of the interval,
-        auto& cst_to_play = scenar.interval(id);
+        auto& cst_to_play = scenar->interval(id);
 
         // and the parent interval of this scenario;
         // this is what needs executing.
-        auto parent = dynamic_cast<const QObject*>(&scenar)->parent();
+        auto parent = dynamic_cast<const QObject*>(scenar)->parent();
         IntervalModel* parentItv{};
         while (parent)
         {
@@ -172,7 +172,7 @@ PlayContextMenu::PlayContextMenu(
           // TODO: this also plays the other processes of the interval? Maybe
           // remove them, too ?
           plug.on_play(
-              *parentItv, true, PlayFromIntervalScenarioPruner{scenar, cst_to_play, t}, t);
+              *parentItv, true, PlayFromIntervalScenarioPruner{*scenar, cst_to_play, t}, t);
         }
       });
 
@@ -188,7 +188,7 @@ PlayContextMenu::PlayContextMenu(
     auto p = const_cast<Scenario::ProcessModel*>(proc);
 
     exec_signals.startRecording(
-        *p,
+        p,
         Scenario::ConvertToScenarioPoint(
             pres.view().mapFromScene(recdata.point),
             pres.zoomRatio(),
@@ -208,7 +208,7 @@ PlayContextMenu::PlayContextMenu(
     auto p = const_cast<Scenario::ProcessModel*>(proc);
 
     exec_signals.startRecordingMessages(
-        *p,
+        p,
         Scenario::ConvertToScenarioPoint(
             pres.view().mapFromScene(recdata.point),
             pres.zoomRatio(),

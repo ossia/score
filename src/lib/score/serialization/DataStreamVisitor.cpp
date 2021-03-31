@@ -46,6 +46,7 @@ void DataStreamWriter::checkDelimiter()
   }
 }
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 QDataStream& operator<<(QDataStream& s, char c)
 {
   return s << QChar(c);
@@ -58,6 +59,7 @@ QDataStream& operator>>(QDataStream& s, char& c)
   c = r.toLatin1();
   return s;
 }
+#endif
 
 QDataStream& operator<<(QDataStream& stream, const std::string& obj)
 {

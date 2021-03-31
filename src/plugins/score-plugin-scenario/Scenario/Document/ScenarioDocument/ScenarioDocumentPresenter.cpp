@@ -251,7 +251,7 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
   }
 
 
-  setDisplayedInterval(model().baseInterval());
+  setDisplayedInterval(&model().baseInterval());
 
   model().cables.mutable_added.connect<&ScenarioDocumentPresenter::on_cableAdded>(*this);
   model().cables.removing.connect<&ScenarioDocumentPresenter::on_cableRemoving>(*this);
@@ -719,8 +719,10 @@ void ScenarioDocumentPresenter::updateMinimap()
   // minimap.setRightHandle(rh_x);
 }
 
-void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel& interval)
+void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel* itv)
 {
+  // Can't be a ref because of a qmetatype quirk
+  auto& interval = *itv;
   auto& ctx = score::IDocument::documentContext(model());
   if (displayedElements.initialized())
   {
@@ -748,7 +750,7 @@ void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel& interval)
   if (&interval != &model().baseInterval())
   {
     m_intervalConnection = con(interval, &QObject::destroyed, this, [&]() {
-      setDisplayedInterval(model().baseInterval());
+      setDisplayedInterval(&model().baseInterval());
     });
   }
   m_durationConnection = con(

@@ -26,7 +26,7 @@ AudioPortComboBox::AudioPortComboBox(
   }
 
   connect(
-      this, qOverload<const QString&>(&QComboBox::currentIndexChanged), [=](const QString& str) {
+      this, &QComboBox::currentTextChanged, [=](const QString& str) {
         if (str == "None")
         {
           if (m_address.address != m_root)

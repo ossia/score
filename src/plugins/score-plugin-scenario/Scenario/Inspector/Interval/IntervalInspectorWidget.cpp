@@ -79,7 +79,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
     connect(fullview, &QToolButton::clicked, this, [this] {
       auto base = get<ScenarioDocumentPresenter>(*documentFromObject(m_model));
       if (base)
-        base->setDisplayedInterval(model());
+        base->setDisplayedInterval(&model());
     });
     btnLayout->addWidget(fullview);
   }

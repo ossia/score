@@ -149,7 +149,7 @@ void updateIntervalVerticalPos(
   for (auto& interval : intervalsToUpdate)
   {
     interval->setHeightPercentage(y);
-    s.intervalMoved(*interval);
+    s.intervalMoved(interval);
   }
 
   for (auto& state : statesToUpdate)

@@ -6,6 +6,8 @@
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
 
+#include <score/serialization/AnySerialization.hpp>
+#include <score/serialization/MapSerialization.hpp>
 #include <ossia-qt/js_utilities.hpp>
 #include <ossia/dataflow/audio_port.hpp>
 #include <ossia/dataflow/dataflow.hpp>

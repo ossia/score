@@ -3,6 +3,9 @@
 
 #include <score/model/tree/InvisibleRootNode.hpp>
 #include <score/model/tree/TreeNode.hpp>
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#include <score/model/tree/TreeNodeSerialization.hpp>
+#endif
 #include <score/model/tree/VariantBasedNode.hpp>
 #include <score/tools/std/Optional.hpp>
 

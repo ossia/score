@@ -78,7 +78,7 @@ public:
         scaleMethod(process, defaultDuration);
       }
 
-      scenario.intervalMoved(curIntervalToUpdate);
+      scenario.intervalMoved(&curIntervalToUpdate);
     }
   }
 
@@ -155,7 +155,7 @@ public:
       // GenericDisplacementPolicy.
       curIntervalPropertiesToUpdate.reload(curIntervalToUpdate);
 
-      scenario.intervalMoved(curIntervalToUpdate);
+      scenario.intervalMoved(&curIntervalToUpdate);
     }
   }
 };

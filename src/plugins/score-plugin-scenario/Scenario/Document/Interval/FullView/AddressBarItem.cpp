@@ -52,7 +52,7 @@ void AddressBarItem::setTargetObject(ObjectPath&& path)
     QString txt = thisObj.metadata().getName();
 
     auto lab = new ClickableLabelItem{
-        thisObj.metadata(), [&](ClickableLabelItem*) { intervalSelected(thisObj); }, txt, this};
+        thisObj.metadata(), [&](ClickableLabelItem*) { intervalSelected(&thisObj); }, txt, this};
 
     lab->setIndex(i);
     connect(lab, &ClickableLabelItem::textChanged, this, &AddressBarItem::redraw);

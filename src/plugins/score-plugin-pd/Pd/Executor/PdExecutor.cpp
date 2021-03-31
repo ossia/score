@@ -1,6 +1,8 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Process/Dataflow/Port.hpp>
 
+#include <score/serialization/AnySerialization.hpp>
+#include <score/serialization/MapSerialization.hpp>
 #include <ossia-qt/js_utilities.hpp>
 #include <ossia/audio/audio_parameter.hpp>
 #include <ossia/dataflow/execution_state.hpp>

@@ -4,8 +4,7 @@
 #include <QChar>
 #include <QString>
 #include <QVariant>
-
-class QStringList;
+#include <QStringList>
 
 namespace State
 {

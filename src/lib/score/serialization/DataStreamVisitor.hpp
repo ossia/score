@@ -6,6 +6,7 @@
 #include <score/serialization/VisitorTags.hpp>
 #include <score/tools/std/HashMap.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <score/tools/Debug.hpp>
 
 #include <ossia/detail/flat_set.hpp>
 #include <ossia/detail/small_vector.hpp>
@@ -15,6 +16,7 @@
 #include <QVector2D>
 #include <QVector3D>
 #include <QVector4D>
+#include <QQmlListProperty>
 
 #include <score_lib_base_export.h>
 #include <sys/types.h>
@@ -88,8 +90,10 @@ struct is_QDataStreamSerializable<
 {
 };
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 SCORE_LIB_BASE_EXPORT QDataStream& operator<<(QDataStream& s, char c);
 SCORE_LIB_BASE_EXPORT QDataStream& operator>>(QDataStream& s, char& c);
+#endif
 
 SCORE_LIB_BASE_EXPORT QDataStream& operator<<(QDataStream& stream, const std::string& obj);
 SCORE_LIB_BASE_EXPORT QDataStream& operator>>(QDataStream& stream, std::string& obj);
@@ -408,11 +412,34 @@ private:
   QDataStream m_stream_impl;
 };
 
+template<typename T> struct is_shared_ptr : std::false_type {};
+template<typename T> struct is_shared_ptr<std::shared_ptr<T>> : std::true_type {};
+template<typename T>
+static constexpr bool is_shared_ptr_v = is_shared_ptr<T>::value;
+template<typename T> struct is_qpointer : std::false_type {};
+template<typename T> struct is_qpointer<QPointer<T>> : std::true_type {};
+template<typename T>
+static constexpr bool is_qpointer_v = is_qpointer<T>::value;
+template<typename T> struct is_qqmllistproperty: std::false_type {};
+template<typename T> struct is_qqmllistproperty<QQmlListProperty<T>> : std::true_type {};
+template<typename T>
+static constexpr bool is_qqmllistproperty_v = is_qqmllistproperty<T>::value;
+
 template <
     typename T,
     std::enable_if_t<
-        !std::is_arithmetic<T>::value && !std::is_enum<T>::value
-        && !std::is_same<T, QStringList>::value>* = nullptr>
+        !std::is_arithmetic<T>::value
+        && !std::is_enum<T>::value
+        && !std::is_same<T, QStringList>::value
+      #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        && !std::is_same<T, QIterable<QMetaSequence>>::value
+        && !std::is_same<T, QIterable<QMetaAssociation>>::value
+        && !is_shared_ptr_v<T>
+        && !is_qpointer_v<T>
+        && !is_qqmllistproperty_v<T>
+      #endif
+      >*
+    = nullptr>
 QDataStream& operator<<(QDataStream& stream, const T& obj)
 {
   DataStreamReader reader{stream.device()};
@@ -423,8 +450,17 @@ QDataStream& operator<<(QDataStream& stream, const T& obj)
 template <
     typename T,
     std::enable_if_t<
-        !std::is_arithmetic<T>::value && !std::is_enum<T>::value
-        && !std::is_same<T, QStringList>::value>* = nullptr>
+        !std::is_arithmetic<T>::value
+        && !std::is_enum<T>::value
+        && !std::is_same<T, QStringList>::value
+      #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        && !std::is_same<T, QIterable<QMetaSequence>>::value
+        && !std::is_same<T, QIterable<QMetaAssociation>>::value
+        && !is_shared_ptr_v<T>
+        && !is_qpointer_v<T>
+        && !is_qqmllistproperty_v<T>
+      #endif
+      >* = nullptr>
 QDataStream& operator>>(QDataStream& stream, T& obj)
 {
   DataStreamWriter writer{stream.device()};
@@ -606,7 +642,9 @@ struct TSerializer<
     std::vector<T, Alloc>,
     std::enable_if_t<
         !is_QDataStreamSerializable<typename std::vector<T, Alloc>::value_type>::value
-        && !std::is_pointer_v<T>>>
+        && !std::is_pointer_v<T>
+        && !is_shared_ptr_v<T>
+    >>
 {
   static void readFrom(DataStream::Serializer& s, const std::vector<T, Alloc>& vec)
   {
@@ -731,6 +769,21 @@ struct TSerializer<DataStream, std::pair<T, U>>
   static void writeTo(DataStream::Deserializer& s, type& obj)
   {
     s.stream() >> obj.first >> obj.second;
+  }
+};
+
+template <typename T>
+struct TSerializer<DataStream, std::shared_ptr<T>>
+{
+  using type = std::shared_ptr<T>;
+  static void readFrom(DataStream::Serializer& s, const type& obj)
+  {
+    SCORE_ABORT;
+  }
+
+  static void writeTo(DataStream::Deserializer& s, type& obj)
+  {
+    SCORE_ABORT;
   }
 };
 

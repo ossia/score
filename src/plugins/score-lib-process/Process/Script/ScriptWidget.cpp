@@ -6,6 +6,7 @@
 #include <QGLSLCompleter>
 #include <QSyntaxStyle>
 #include <QMainWindow>
+#include <QFile>
 #include <score/application/GUIApplicationContext.hpp>
 
 namespace Process

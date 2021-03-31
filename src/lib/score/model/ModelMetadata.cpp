@@ -6,6 +6,8 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
+#include <score/serialization/AnySerialization.hpp>
+#include <score/serialization/MapSerialization.hpp>
 #include <ossia-qt/js_utilities.hpp>
 #include <ossia/network/base/name_validation.hpp>
 
@@ -77,7 +79,7 @@ void ModelMetadata::setName(const QString& arg) noexcept
         {
           if (auto m = qobject_cast<ModelMetadata*>((*cld2)[j]))
           {
-            if (const auto& n = m->getName(); !n.isEmpty())
+            if (const QString& n = m->getName(); !n.isEmpty())
             {
               if (cur_bros_idx < cur_bros_size)
               {

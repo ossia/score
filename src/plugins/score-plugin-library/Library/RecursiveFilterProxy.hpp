@@ -1,5 +1,6 @@
 #pragma once
 #include <QSortFilterProxyModel>
+#include <score/tools/Debug.hpp>
 
 namespace Library
 {
@@ -30,7 +31,11 @@ private:
   bool filterAcceptsRowItself(int srcRow, const QModelIndex& srcParent) const
   {
     QModelIndex index = sourceModel()->index(srcRow, 0, srcParent);
+#if QT_VERSION < QT_VERSION_CHECK(5, 12, 0)
     return sourceModel()->data(index).toString().contains(filterRegExp());
+#else
+    return sourceModel()->data(index).toString().contains(filterRegularExpression());
+#endif
   }
 
   bool hasAcceptedChildren(int srcRow, const QModelIndex& srcParent) const

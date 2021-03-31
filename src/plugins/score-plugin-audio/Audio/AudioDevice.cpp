@@ -7,6 +7,8 @@
 #include <score/tools/Bind.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
+#include <score/serialization/AnySerialization.hpp>
+#include <score/serialization/MapSerialization.hpp>
 #include <ossia-qt/js_utilities.hpp>
 #include <ossia/audio/audio_parameter.hpp>
 #include <ossia/audio/audio_protocol.hpp>

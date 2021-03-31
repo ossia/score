@@ -43,7 +43,6 @@
 #include <QMimeData>
 #include <QObject>
 #include <QTreeView>
-#include <qtypetraits.h>
 
 #include <wobjectimpl.h>
 

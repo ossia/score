@@ -22,7 +22,7 @@ public:
   InfoWidget(QWidget* parent)
   {
     auto lay = new score::MarginLess<QVBoxLayout>{this};
-    lay->setMargin(6);
+    lay->setContentsMargins(6, 6, 6, 6);
     QFont f;
     f.setBold(true);
     m_name.setFont(f);

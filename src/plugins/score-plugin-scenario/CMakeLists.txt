@@ -634,6 +634,16 @@ target_link_libraries(score_plugin_scenario
     score_lib_inspector score_plugin_library
     Threads::Threads)
 
+if(TARGET ${QT_PREFIX}::StateMachine)
+  target_link_libraries(score_plugin_scenario
+    PUBLIC ${QT_PREFIX}::StateMachine
+  )
+endif()
+if(TARGET ${QT_PREFIX}::OpenGLWidgets)
+  target_link_libraries(score_plugin_scenario
+    PRIVATE ${QT_PREFIX}::OpenGLWidgets
+  )
+endif()
 
 if(TARGET ${QT_PREFIX}::Svg)
   if(SCORE_WEBSOCKETS)
