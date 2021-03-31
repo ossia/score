@@ -76,10 +76,15 @@ void View::onPathChanged(const QString& str)
     }
     update();
   }, Qt::QueuedConnection);
+
+  widthChanged(width());
 }
 
 void View::widthChanged(qreal w)
 {
+  if(w < 10)
+    return;
+
   // TODO we also have to fetch new frames if we scroll !
   const double frame_width = m_thumb->smallWidth;
   if(frame_width < 1.)
