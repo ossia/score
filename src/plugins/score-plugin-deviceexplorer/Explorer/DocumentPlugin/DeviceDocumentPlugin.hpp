@@ -17,7 +17,7 @@
 
 namespace ossia::net
 {
-class network_context;
+struct network_context;
 using network_context_ptr = std::shared_ptr<network_context>;
 }
 namespace Explorer
