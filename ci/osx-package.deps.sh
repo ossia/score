@@ -26,12 +26,12 @@ wget -nv https://github.com/jcelerier/cninja/releases/download/v3.7.5/cninja-v3.
 wget -nv https://github.com/ossia/sdk/releases/download/sdk18/MacOSX11.0.sdk.tar.gz &
 
 SDK_ARCHIVE=sdk-macOS.tar.gz
-wget -nv https://github.com/ossia/score-sdk/releases/download/sdk19/$SDK_ARCHIVE -O $SDK_ARCHIVE
-sudo mkdir -p /opt/ossia-sdk
+wget -nv https://github.com/ossia/score-sdk/releases/download/sdk20/$SDK_ARCHIVE -O $SDK_ARCHIVE
+sudo mkdir -p /opt/ossia-sdk-x86_64/
 sudo chown -R $(whoami) /opt
 sudo chmod -R a+rwx /opt
-gtar xhaf $SDK_ARCHIVE --strip-components=2 --directory /opt/ossia-sdk/
-ls /opt/ossia-sdk
+gtar xhaf $SDK_ARCHIVE --strip-components=2 --directory /opt/ossia-sdk-x86_64/
+ls /opt/ossia-sdk-x86_64/
 
 sudo rm -rf /Library/Developer/CommandLineTools
 sudo rm -rf /usr/local/include/c++

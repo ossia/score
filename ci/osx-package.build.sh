@@ -1,5 +1,5 @@
 #!/bin/bash -e
-export OSSIA_SDK=/opt/ossia-sdk
+export OSSIA_SDK=/opt/ossia-sdk-x86_64
 
 export SCORE_DIR="$PWD"
 export SDK_DIR="$PWD/SDK"
