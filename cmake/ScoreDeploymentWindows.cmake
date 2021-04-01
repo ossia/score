@@ -27,7 +27,7 @@ if(MINGW)
   )
 endif()
 
-if(TARGET score_pugin_pd)
+if(TARGET score_plugin_pd)
   set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS
     ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
     "${3RDPARTY_FOLDER}/libpd/libs/mingw64/libwinpthread-1.dll"
