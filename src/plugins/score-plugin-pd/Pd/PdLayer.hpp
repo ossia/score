@@ -11,20 +11,21 @@ namespace Pd
 {
 struct UiWrapper : public QWidget
 {
-  const ProcessModel& m_model;
+  QPointer<const ProcessModel> m_model;
   QProcess m_process;
   UiWrapper(
       const ProcessModel& proc,
       const score::DocumentContext& ctx,
       QWidget* parent)
-    : m_model{proc}
+    : m_model{&proc}
   {
+    setGeometry(0, 0, 0, 0);
+
     connect(&m_process, qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
             this, &QWidget::deleteLater);
     connect(&proc, &IdentifiedObjectAbstract::identified_object_destroying,
             this, &QWidget::deleteLater);
-    auto bin = locatePdBinary();
-    setGeometry(0, 0, 0, 0);
+    const auto& bin = locatePdBinary();
     if(!bin.isEmpty())
     {
       m_process.start(bin, {proc.script()});
@@ -34,16 +35,22 @@ struct UiWrapper : public QWidget
   void closeEvent(QCloseEvent* event) override
   {
     QPointer<UiWrapper> p(this);
-    const_cast<QWidget*&>(m_model.externalUI) = nullptr;
-    m_model.externalUIVisible(false);
+    if(m_model)
+    {
+      const_cast<QWidget*&>(m_model->externalUI) = nullptr;
+      m_model->externalUIVisible(false);
+    }
     if (p)
       QWidget::closeEvent(event);
   }
 
   ~UiWrapper()
   {
-    const_cast<QWidget*&>(m_model.externalUI) = nullptr;
-    m_model.externalUIVisible(false);
+    if(m_model)
+    {
+      const_cast<QWidget*&>(m_model->externalUI) = nullptr;
+      m_model->externalUIVisible(false);
+    }
     m_process.terminate();
   }
 };
