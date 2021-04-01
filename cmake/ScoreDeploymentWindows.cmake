@@ -21,10 +21,16 @@ if(MINGW)
   get_filename_component(cxx_path ${CMAKE_CXX_COMPILER} PATH)
   set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS
         ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
-        ${cxx_path}/libc++.dll
-        ${cxx_path}/libunwind.dll
+        "${cxx_path}/libc++.dll"
+        "${cxx_path}/libunwind.dll"
 #        ${MINGW64_LIB}/../bin/zlib1.dll
-#        ${MINGW64_LIB}/../bin/libwinpthread-1.dll
+  )
+endif()
+
+if(TARGET score_pugin_pd)
+  set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS
+    ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
+    "${3RDPARTY_FOLDER}/libpd/libs/mingw64/libwinpthread-1.dll"
   )
 endif()
 
