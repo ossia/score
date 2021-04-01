@@ -25,6 +25,9 @@ chmod a+x appimagetool-x86_64.AppImage
 wget "https://github.com/probonopd/AppImageKit/releases/download/continuous/AppRun-x86_64"
 chmod a+x AppRun-x86_64
 cp AppRun-x86_64 build/score.AppDir/AppRun
+cp "$SOURCE_FOLDER/cmake/Deployment/Linux/AppImage/ossia-score.desktop" build/score.AppDir/
+cp "$SOURCE_FOLDER/src/lib/resources/ossia-score.png" build/score.AppDir/
+cp "$SOURCE_FOLDER/src/lib/resources/ossia-score.png" build/score.AppDir/.DirIcon
 
 ./appimagetool-x86_64.AppImage -n "build/score.AppDir" "Score.AppImage"
 

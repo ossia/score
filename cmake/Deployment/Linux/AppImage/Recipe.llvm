@@ -49,7 +49,7 @@ export SCORE_DIR=/score
       if [[ "$TOOLCHAIN" =~ ".*debug.*" ]]; then
         cmake --install . --component OssiaScore
       else
-        cmake --install --strip . --component OssiaScore
+        cmake --install . --strip --component OssiaScore
       fi
 
       cmake --install . --component Devel --prefix "$SDK_DIR/usr"
