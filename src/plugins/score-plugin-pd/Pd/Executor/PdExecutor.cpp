@@ -29,47 +29,58 @@ struct ossia_to_pd_value
   const char* mess{};
   void operator()() const {}
 
+  void just_add_values(const ossia::value& value) const noexcept
+  {
+    switch(value.get_type())
+    {
+      case ossia::val_type::INT:
+        libpd_add_float(value.get<int>());
+        break;
+      case ossia::val_type::FLOAT:
+        libpd_add_float(value.get<float>());
+        break;
+      case ossia::val_type::BOOL:
+        libpd_add_float(value.get<bool>());
+        break;
+      case ossia::val_type::CHAR:
+        libpd_add_float(value.get<char>());
+        break;
+      case ossia::val_type::STRING:
+        libpd_add_symbol(value.get<std::string>().c_str());
+        break;
+      case ossia::val_type::VEC2F:
+        libpd_add_float(value.get<ossia::vec2f>()[0]);
+        libpd_add_float(value.get<ossia::vec2f>()[1]);
+        break;
+      case ossia::val_type::VEC3F:
+        libpd_add_float(value.get<ossia::vec3f>()[0]);
+        libpd_add_float(value.get<ossia::vec3f>()[1]);
+        libpd_add_float(value.get<ossia::vec3f>()[3]);
+        break;
+      case ossia::val_type::VEC4F:
+        libpd_add_float(value.get<ossia::vec4f>()[0]);
+        libpd_add_float(value.get<ossia::vec4f>()[1]);
+        libpd_add_float(value.get<ossia::vec4f>()[2]);
+        libpd_add_float(value.get<ossia::vec4f>()[3]);
+        break;
+      case ossia::val_type::LIST:
+        for(auto& v : value.get<std::vector<ossia::value>>())
+          just_add_values(v);
+        break;
+      case ossia::val_type::IMPULSE:
+        libpd_add_float(1.f);
+        break;
+      default:
+        break;
+    }
+  }
   void operator()(const std::vector<ossia::value>& v) const
   {
     // TODO improve that
     libpd_start_message(v.size());
     for(auto& value : v)
     {
-      switch(value.get_type())
-      {
-        case ossia::val_type::INT:
-          libpd_add_float(value.get<int>());
-          break;
-        case ossia::val_type::FLOAT:
-          libpd_add_float(value.get<float>());
-          break;
-        case ossia::val_type::BOOL:
-          libpd_add_float(value.get<bool>());
-          break;
-        case ossia::val_type::CHAR:
-          libpd_add_float(value.get<char>());
-          break;
-        case ossia::val_type::STRING:
-          libpd_add_symbol(value.get<std::string>().c_str());
-          break;
-        case ossia::val_type::VEC2F:
-          libpd_add_float(value.get<ossia::vec2f>()[0]);
-          libpd_add_float(value.get<ossia::vec2f>()[1]);
-          break;
-        case ossia::val_type::VEC3F:
-          libpd_add_float(value.get<ossia::vec3f>()[0]);
-          libpd_add_float(value.get<ossia::vec3f>()[1]);
-          libpd_add_float(value.get<ossia::vec3f>()[3]);
-          break;
-        case ossia::val_type::VEC4F:
-          libpd_add_float(value.get<ossia::vec4f>()[0]);
-          libpd_add_float(value.get<ossia::vec4f>()[1]);
-          libpd_add_float(value.get<ossia::vec4f>()[2]);
-          libpd_add_float(value.get<ossia::vec4f>()[3]);
-          break;
-        default:
-          break;
-      }
+      just_add_values(value);
     }
     libpd_finish_list(mess);
   }
@@ -107,7 +118,6 @@ struct ossia_to_pd_value
     libpd_symbol(mess, f.c_str());
   }
   void operator()(const ossia::impulse& f) const { libpd_bang(mess); }
-
 };
 
 struct libpd_list_wrapper
@@ -246,7 +256,7 @@ PdGraphNode::PdGraphNode(
   }
 
   // Set-up message callbacks
-  libpd_set_printhook([](const char* s) { qDebug() << "string: " << s; });
+  libpd_set_printhook([](const char* s) { qDebug() << "[pd: print] " << s; });
 
   libpd_set_floathook([](const char* recv, float f) {
     if (auto v = m_currentInstance->get_value_port(recv))

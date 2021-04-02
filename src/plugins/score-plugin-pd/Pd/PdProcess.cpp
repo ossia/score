@@ -9,6 +9,7 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/DeleteAll.hpp>
 #include <score/tools/File.hpp>
+#include <ossia/detail/flat_map.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 #include <ossia/network/common/complex_type.hpp>
 #include <ossia/network/base/parameter_data.hpp>
@@ -99,7 +100,7 @@ PatchSpec::Control parseControlSpec(QString var)
 auto initFuncMap()
 {
   using InletFunc = std::function<Process::Inlet*(const PatchSpec::Control& , const Id<Process::Port>& , QObject*)>;
-  std::unordered_map<QString, InletFunc> widgetFuncMap{
+  ossia::flat_map<QString, InletFunc> widgetFuncMap{
     {"floatslider", [] (const PatchSpec::Control& ctl, const Id<Process::Port>& id, QObject* parent) -> Process::Inlet* {
         const auto [dom_min, dom_max] = ossia::get_float_minmax(ctl.domain);
         float min{dom_min ? *dom_min : 0.f};
@@ -134,11 +135,6 @@ auto initFuncMap()
     },
     {"toggle", [] (const PatchSpec::Control& ctl, const Id<Process::Port>& id, QObject* parent) -> Process::Inlet* {
          return new Process::Toggle{false, ctl.name, id, parent};
-      }
-    },
-    {"choosertoggle", [] (const PatchSpec::Control& ctl, const Id<Process::Port>& id, QObject* parent) -> Process::Inlet* {
-        QStringList choices; // TODO
-         return new Process::ChooserToggle{choices, false, ctl.name, id, parent};
       }
     },
     {"lineedit", [] (const PatchSpec::Control& ctl, const Id<Process::Port>& id, QObject* parent) -> Process::Inlet* {
