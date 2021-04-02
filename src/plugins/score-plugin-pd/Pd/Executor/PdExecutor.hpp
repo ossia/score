@@ -55,8 +55,6 @@ public:
   run(const ossia::token_request& t, ossia::exec_state_facade e) noexcept override;
   void add_dzero(std::string& s) const;
 
-  static PdGraphNode* m_currentInstance;
-
   _pdinstance* m_instance{};
   int m_dollarzero = 0;
 
