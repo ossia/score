@@ -476,6 +476,7 @@ void FaustEffectComponent::reload(Execution::Transaction& transaction)
   }
 }
 
+// TODO reuse this code
 template<typename Node_T>
 void FaustEffectComponent::setupExecutionControls(const Node_T& node, int firstControlIndex)
 {

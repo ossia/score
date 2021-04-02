@@ -11,10 +11,27 @@
 
 #include <Pd/PdMetadata.hpp>
 
+#include <ossia/network/dataspace/dataspace.hpp>
+#include <ossia/network/domain/domain.hpp>
 namespace Pd
 {
 
 const QString& locatePdBinary() noexcept;
+
+struct PatchSpec
+{
+  struct Control {
+    QString name; // Pretty name
+    QString remote; // Name used for send/receive
+    QString type;
+    QString widget;
+    QString unit;
+    ossia::value defaultv;
+    ossia::domain domain;
+
+  };
+  std::vector<Control> receives, sends;
+};
 
 class ProcessModel final : public Process::ProcessModel
 {
@@ -44,6 +61,7 @@ public:
 
   ~ProcessModel() override;
 
+  const PatchSpec& patchSpec() const noexcept { return m_spec; }
   int audioInputs() const;
   int audioOutputs() const;
   bool midiInput() const;
@@ -78,6 +96,7 @@ public:
   PROPERTY(QString, script READ script WRITE setScript NOTIFY scriptChanged)
 private:
   QString m_script;
+  PatchSpec m_spec;
   int m_audioInputs{0};
   int m_audioOutputs{0};
   bool m_midiInput{};

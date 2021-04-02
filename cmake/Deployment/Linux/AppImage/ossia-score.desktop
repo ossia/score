@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=ossia score
+Comment=An interactive sequencer for the intermedia arts
+Exec=ossia-score
+Icon=ossia-score
+Terminal=false
+Categories=AudioVideo;
+X-AppImage-Name=ossia score
+X-AppImage-Version=3.0.0
+X-AppImage-Arch=x86_64

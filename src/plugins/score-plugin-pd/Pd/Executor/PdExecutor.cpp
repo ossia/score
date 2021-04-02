@@ -83,22 +83,23 @@ PdGraphNode::PdGraphNode(
     std::size_t audio_outputs,
     Process::Inlets inport,
     Process::Outlets outport,
+    const Pd::PatchSpec& spec,
     bool midi_in,
     bool midi_out)
     : m_audioIns{audio_inputs}, m_audioOuts{audio_outputs}, m_file{file}
 {
   m_currentInstance = nullptr;
 
-  for (auto proc : inport)
+  for (const auto& port : spec.receives)
   {
-    if (proc->type() == Process::PortType::Message)
-      m_inmess.push_back(proc->customData().toStdString());
+    m_inmess.push_back(port.name.toStdString());
   }
-  for (auto proc : outport)
+
+  for (const auto& port : spec.sends)
   {
-    if (proc->type() == Process::PortType::Message)
-      m_outmess.push_back(proc->customData().toStdString());
+    m_outmess.push_back(port.name.toStdString());
   }
+
   // Set-up buffers
   const std::size_t bs = libpd_blocksize();
   m_inbuf.resize(m_audioIns * bs);
@@ -123,9 +124,15 @@ PdGraphNode::PdGraphNode(
   m_dollarzero = libpd_getdollarzero(handle);
 
   for (auto& mess : m_inmess)
+  {
     add_dzero(mess);
+    std::cerr << mess << std::endl;
+  }
   for (auto& mess : m_outmess)
+  {
     add_dzero(mess);
+    std::cerr << mess << std::endl;
+  }
 
   // Create correct I/Os
   bool hasAudioIn = m_audioIns > 0;
@@ -169,7 +176,8 @@ PdGraphNode::PdGraphNode(
   m_firstOutMessage = m_outlets.size();
   for (std::size_t i = 0; i < m_outmess.size(); i++)
   {
-    libpd_bind(m_outmess[i].c_str());
+    bool ok = libpd_bind(m_outmess[i].c_str());
+    qDebug() << ok;
     auto port = new ossia::value_outlet;
     m_outlets.push_back(port);
   }
@@ -372,6 +380,7 @@ void PdGraphNode::run(
 
     for (auto& val : dat)
     {
+      std::cerr << "sending message to " << mess << " : " << ossia::value_to_pretty_string(val.value) << std::endl;
       val.value.apply(ossia_to_pd_value{mess});
     }
   }
@@ -478,7 +487,7 @@ Component::Component(
       out_mess.push_back(e.customData().toStdString());
   }
 
-  node = std::make_shared<PdGraphNode>(
+  auto pdnode = std::make_shared<PdGraphNode>(
       f.canonicalPath().toStdString(),
       f.fileName().toStdString(),
       ctx,
@@ -486,8 +495,24 @@ Component::Component(
       element.audioOutputs(),
       model_inlets,
       model_outlets,
+      element.patchSpec(),
       element.midiInput(),
       element.midiOutput());
+  node = pdnode;
+
+  for(int i = pdnode->m_firstInMessage, N = pdnode->root_inputs().size(); i < N; i++)
+  {
+    const Process::ControlInlet* inlet = safe_cast<Process::ControlInlet*>(element.inlets()[i]);
+
+    auto inl = pdnode->root_inputs()[i];
+    inl->target<ossia::value_port>()->write_value(inlet->value(), 0);
+    auto c = connect(inlet, &Process::ControlInlet::valueChanged,
+                     this, [this, inl](const ossia::value& v) {
+      system().executionQueue.enqueue([inl, val = v]() mutable {
+        inl->target<ossia::value_port>()->write_value(std::move(val), 0);
+      });
+    });
+  }
 
   m_ossia_process = std::make_shared<pd_process>(node);
 }

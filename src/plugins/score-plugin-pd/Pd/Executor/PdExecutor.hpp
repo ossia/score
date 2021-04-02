@@ -1,6 +1,7 @@
 #pragma once
 #define PDINSTANCE
 struct _pdinstance;
+#include <Pd/PdProcess.hpp>
 #include <Explorer/DeviceList.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/ExecutionContext.hpp>
@@ -37,12 +38,12 @@ public:
       std::size_t audio_outputs,
       Process::Inlets inmess,
       Process::Outlets outmess,
+      const Pd::PatchSpec& spec,
       bool midi_in = true,
       bool midi_out = true);
 
   ~PdGraphNode();
 
-private:
   ossia::outlet* get_outlet(const char* str) const;
 
   ossia::value_port* get_value_port(const char* str) const;
