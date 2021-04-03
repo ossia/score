@@ -3,7 +3,6 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Process/Commands/EditPort.hpp>
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
-#include <Scenario/Document/Interval/IntervalRawPtrExecution.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
 #include <score/model/ComponentUtils.hpp>

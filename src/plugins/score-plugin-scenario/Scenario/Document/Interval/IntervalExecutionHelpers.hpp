@@ -13,6 +13,7 @@
 #include <ossia/dataflow/port.hpp>
 #include <ossia/detail/pod_vector.hpp>
 #include <ossia/editor/curve/curve.hpp>
+#include <ossia/editor/scenario/time_process.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 
 namespace Execution
