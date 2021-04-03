@@ -469,7 +469,7 @@ void ProcessModel::setScript(const QString& script)
     }
 
     {
-      static const QRegularExpression recv_regex{R"_((r|receive) \\\$0-(.*);)_"};
+      static const QRegularExpression recv_regex{R"_((r|receive) \\\$0-(.*?);)_", QRegularExpression::DotMatchesEverythingOption};
       auto it = recv_regex.globalMatch(patch);
       while (it.hasNext())
       {
@@ -490,7 +490,7 @@ void ProcessModel::setScript(const QString& script)
     }
 
     {
-      static const QRegularExpression send_regex{R"_((s|send) \\\$0-(.*);)_"};
+      static const QRegularExpression send_regex{R"_((s|send) \\\$0-(.*?);)_", QRegularExpression::DotMatchesEverythingOption};
       auto it = send_regex.globalMatch(patch);
       while (it.hasNext())
       {
