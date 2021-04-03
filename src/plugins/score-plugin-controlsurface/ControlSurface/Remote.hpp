@@ -17,6 +17,7 @@ public:
       RemoteControl::DocumentPlugin& doc,
       const Id<score::Component>& id,
       QObject* parent_obj);
+  ~Remote();
 };
 
 

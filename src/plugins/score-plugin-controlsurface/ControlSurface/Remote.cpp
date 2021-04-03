@@ -112,4 +112,9 @@ Remote::Remote(
   });
 }
 
+
+Remote::~Remote()
+{
+  system().receiver.removeHandler(this);
+}
 }
