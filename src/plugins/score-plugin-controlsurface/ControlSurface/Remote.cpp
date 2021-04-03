@@ -19,6 +19,8 @@ struct RemoteMessages
     r.stream.StartObject();
     r.obj[score::StringConstant().Message] = "ControlSurfaceAdded"sv;
     r.obj[score::StringConstant().Path] = Path{process};
+    r.obj[score::StringConstant().Name] = process.metadata().getName();
+    r.obj[score::StringConstant().Label] = process.metadata().getLabel();
 
     Process::Inlets controls;
     process.forEachControl([&] (auto& inl, auto& val) {
