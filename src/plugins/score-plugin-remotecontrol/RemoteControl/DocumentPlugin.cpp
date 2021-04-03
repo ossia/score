@@ -89,12 +89,7 @@ void DocumentPlugin::heartbeat()
   r.stream.EndArray();
   r.stream.EndObject();
 
-  const QString str = r.toString();
-
-  for(auto& clt : receiver.clients())
-  {
-    clt.socket->sendTextMessage(str);
-  }
+  receiver.sendMessage(r.toString());
 }
 
 void DocumentPlugin::registerInterval(Scenario::IntervalModel& m)
@@ -395,6 +390,14 @@ void Receiver::processBinaryMessage(QByteArray message, const WSClient& w)
     {
       it->second(wr.base, w);
     }
+  }
+}
+
+void Receiver::sendMessage(const QString& str)
+{
+  for(auto& clt : m_clients)
+  {
+    clt.socket->sendTextMessage(str);
   }
 }
 

@@ -647,14 +647,14 @@ void ApplicationPlugin::on_stop()
       if (!scenar)
         return;
       scenar->baseInterval().reset();
-      scenar->baseInterval().executionFinished();
+      scenar->baseInterval().executionEvent(Scenario::IntervalExecutionEvent::Finished);
       auto procs = doc->findChildren<Scenario::ProcessModel*>();
       for (Scenario::ProcessModel* e : procs)
       {
         for (auto& itv : e->intervals)
         {
           itv.reset();
-          itv.executionFinished();
+          itv.executionEvent(Scenario::IntervalExecutionEvent::Finished);
         }
         for (auto& ts : e->timeSyncs)
         {

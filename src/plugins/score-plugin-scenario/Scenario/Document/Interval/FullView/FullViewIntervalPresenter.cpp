@@ -164,34 +164,32 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
   // Execution
   con(
       interval,
-      &IntervalModel::executionStarted,
+      &IntervalModel::executionEvent,
       this,
-      [=] {
+      [=] (Scenario::IntervalExecutionEvent ev){
+    switch(ev)
+    {
+      case IntervalExecutionEvent::Playing:
         m_view->setExecuting(true);
         m_view->updatePaths();
         m_view->update();
-      },
-      Qt::QueuedConnection);
-  con(
-      interval,
-      &IntervalModel::executionStopped,
-      this,
-      [=] { m_view->setExecuting(false); },
-      Qt::QueuedConnection);
-  con(
-      interval,
-      &IntervalModel::executionFinished,
-      this,
-      [=] {
+        break;
+      case IntervalExecutionEvent::Stopped:
+        m_view->setExecuting(false);
+        break;
+      case IntervalExecutionEvent::Finished:
         m_view->setExecuting(false);
         m_view->setPlayWidth(0.);
         m_view->updatePaths();
         m_view->update();
-      },
-      Qt::QueuedConnection);
+        break;
+      default:
+        break;
+      }
+  },
+  Qt::QueuedConnection);
 
   // Drops
-
   con(*this->view(),
       &IntervalView::dropReceived,
       this,

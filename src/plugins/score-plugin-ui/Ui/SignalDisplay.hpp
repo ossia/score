@@ -57,8 +57,17 @@ struct Node
     {
       if (m_interval)
       {
-        connect(m_interval, &Scenario::IntervalModel::executionStarted, this, &Layer::reset);
-        connect(m_interval, &Scenario::IntervalModel::executionStopped, this, &Layer::reset);
+        connect(m_interval, &Scenario::IntervalModel::executionEvent, this, [=] (Scenario::IntervalExecutionEvent ev){
+          switch(ev)
+          {
+            case Scenario::IntervalExecutionEvent::Playing:
+            case Scenario::IntervalExecutionEvent::Stopped:
+              reset();
+              break;
+            default:
+              break;
+          }
+        });
 
         auto out = static_cast<Process::ControlOutlet*>(process.outlets().front());
 

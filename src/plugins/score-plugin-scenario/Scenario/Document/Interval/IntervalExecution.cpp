@@ -329,11 +329,13 @@ Scenario::IntervalModel& IntervalComponentBase::scoreInterval() const
 void IntervalComponentBase::pause()
 {
   m_ossia_interval->pause();
+  interval().executionEvent(Scenario::IntervalExecutionEvent::Paused);
 }
 
 void IntervalComponentBase::resume()
 {
   m_ossia_interval->resume();
+  interval().executionEvent(Scenario::IntervalExecutionEvent::Resumed);
 }
 
 void IntervalComponentBase::stop()
@@ -352,7 +354,7 @@ void IntervalComponentBase::stop()
 void IntervalComponentBase::executionStarted()
 {
   interval().duration.setPlayPercentage(0);
-  interval().executionStarted();
+  interval().executionEvent(Scenario::IntervalExecutionEvent::Playing);
   for (Process::ProcessModel& proc : interval().processes)
   {
     proc.startExecution();
@@ -362,7 +364,7 @@ void IntervalComponentBase::executionStarted()
 
 void IntervalComponentBase::executionStopped()
 {
-  interval().executionStopped();
+  interval().executionEvent(Scenario::IntervalExecutionEvent::Stopped);
   for (Process::ProcessModel& proc : interval().processes)
   {
     proc.stopExecution();

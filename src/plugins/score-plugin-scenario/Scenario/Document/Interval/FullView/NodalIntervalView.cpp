@@ -31,9 +31,12 @@ NodalIntervalView::NodalIntervalView(NodalIntervalView::ItemsToShow sh, const In
 
   con(
         model,
-        &IntervalModel::executionFinished,
+        &IntervalModel::executionEvent,
         this,
-        [=] { on_playPercentageChanged(0., TimeVal{}); },
+        [=] (IntervalExecutionEvent ev) {
+    if(ev == IntervalExecutionEvent::Finished)
+      on_playPercentageChanged(0., TimeVal{});
+  },
   Qt::QueuedConnection);
 
   {

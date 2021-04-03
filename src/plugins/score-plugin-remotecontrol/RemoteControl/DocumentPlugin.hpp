@@ -96,6 +96,8 @@ public:
   void processTextMessage(const QString& message, const WSClient& w);
   void processBinaryMessage(QByteArray message, const WSClient& w);
 
+  void sendMessage(const QString& str);
+
   void socketDisconnected();
 
   const std::vector<WSClient>& clients() const noexcept
@@ -128,6 +130,7 @@ public:
   void unregisterInterval(Scenario::IntervalModel& m);
 
   void on_documentClosing() override;
+
   Receiver receiver;
 
 private:

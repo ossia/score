@@ -208,9 +208,9 @@ public:
   void focusChanged(bool arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, focusChanged, arg_1)
   void executionStateChanged(Scenario::IntervalExecutionState arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executionStateChanged, arg_1)
-  void executionStarted() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executionStarted)
-  void executionStopped() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executionStopped)
-  void executionFinished() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executionFinished)
+
+  void executionEvent(Scenario::IntervalExecutionEvent ev) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executionEvent, ev)
+
 
   void smallViewVisibleChanged(bool fv)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, smallViewVisibleChanged, fv)

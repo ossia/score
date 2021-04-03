@@ -40,9 +40,12 @@ GraphalIntervalPresenter::GraphalIntervalPresenter(
 {
   resize();
   connect(&model.selection, &Selectable::changed, this, [this] { update(); });
-  connect(&model, &IntervalModel::executionStarted, this, [this] {
-    m_execPing.start();
-    update();
+  connect(&model, &IntervalModel::executionEvent, this, [this] (IntervalExecutionEvent ev) {
+    if(ev == IntervalExecutionEvent::Playing)
+    {
+      m_execPing.start();
+      update();
+    }
   });
 }
 
