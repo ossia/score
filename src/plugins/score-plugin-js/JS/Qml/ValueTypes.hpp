@@ -1,4 +1,6 @@
 #pragma once
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <QObject>
 #include <QVector2D>
 #include <QVector3D>
@@ -265,3 +267,4 @@ public:
   W_PROPERTY(double, current_date_ns READ current_date_ns FINAL)
 };
 }
+#endif

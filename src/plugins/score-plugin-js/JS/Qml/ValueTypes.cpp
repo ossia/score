@@ -1,3 +1,6 @@
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+
 #include <JS/Qml/ValueTypes.hpp>
 #include <private/qqmlglobal_p.h>
 #include <private/qqmlvaluetype_p.h>
@@ -50,7 +53,6 @@ W_GADGET_IMPL(JS::ExecutionStateValueType)
 
 namespace JS
 {
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 
 class OssiaTypeProvider : public QQmlValueTypeProvider
 {
@@ -831,5 +833,6 @@ double ExecutionStateValueType::physical_date() const noexcept { return req.samp
 double ExecutionStateValueType::start_date_ns() const noexcept { return req.startDate(); }
 
 double ExecutionStateValueType::current_date_ns() const noexcept { return req.currentDate(); }
-#endif
 }
+
+#endif
