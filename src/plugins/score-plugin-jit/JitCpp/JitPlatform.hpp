@@ -460,8 +460,10 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
   include("qt/QtWidgets");
   include("qt/QtWidgets/" + qt_version);
   include("qt/QtWidgets/" + qt_version + "/QtWidgets");
-  include("qt/QtXml");
   include("qt/QtQml");
+  include("qt/QtQml/" + qt_version);
+  include("qt/QtQml/" + qt_version +  "/QtQml");
+  include("qt/QtXml");
   include("qt/QtNetwork");
   include("qt/QtSvg");
   include("qt/QtSql");

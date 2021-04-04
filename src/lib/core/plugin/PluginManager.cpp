@@ -132,7 +132,6 @@ QStringList addonsDir()
 #endif
   l << QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation).first()
            + "/score/addons";
-  qDebug() << l;
   return l;
 }
 
