@@ -157,7 +157,7 @@ add_library(score_lib_process ${PROCESS_HDRS} ${PROCESS_SRCS})
 target_compile_definitions(score_lib_process PUBLIC
     $<$<BOOL:${DEFINE_SCORE_SCENARIO_DEBUG_RECTS}>:SCORE_SCENARIO_DEBUG_RECTS>)
 
-target_include_directories(score_lib_process PUBLIC ${Qt5Widgets_PRIVATE_INCLUDE_DIRS})
+target_include_directories(score_lib_process PUBLIC ${${QT_PREFIX}Widgets_PRIVATE_INCLUDE_DIRS})
 
 target_link_libraries(score_lib_process  PUBLIC
     ${QT_PREFIX}::Core ${QT_PREFIX}::Widgets ${QT_PREFIX}::WidgetsPrivate score_lib_base score_lib_state

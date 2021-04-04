@@ -54,7 +54,7 @@ add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 # TODO make this automatic in some way, and extend to other components
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${Qt5Qml_PRIVATE_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME} PUBLIC ${${QT_PREFIX}Qml_PRIVATE_INCLUDE_DIRS})
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
                      ${QT_PREFIX}::Core ${QT_PREFIX}::Widgets ${QT_PREFIX}::Qml ${QT_PREFIX}::QmlPrivate
