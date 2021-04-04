@@ -155,6 +155,36 @@ jobs:
         run: |
           ./ci/archlinux.build.sh
 
+  archqt6:
+    name: ArchLinux-Qt6
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+
+    steps:
+      - name: Install git
+        run: |
+          # Needed because glibc-2.33 prevents pacman from running...
+          export patched_glibc=glibc-linux4-2.33-4-x86_64.pkg.tar.zst
+          curl -LO "https://repo.archlinuxcn.org/x86_64/$patched_glibc"
+          bsdtar -C / -xvf "$patched_glibc"
+
+          pacman -Syy --noconfirm
+          pacman -S git --noconfirm
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - name: Dependencies
+        run: |
+          ./ci/archlinux-qt6.deps.sh
+
+      - name: Build
+        run: |
+          ./ci/archlinux-qt6.build.sh
+
   wasm:
     name: WebAssembly
     runs-on: ubuntu-latest
