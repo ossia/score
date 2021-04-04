@@ -415,7 +415,7 @@ void ProcessModel::setScript(const QString& script)
       return Id<Process::Port>(i);
     };
 
-    auto patch = f.readAll();
+    QString patch = score::readFileAsQString(f);
     {
       static const QRegularExpression adc_regex{"adc~"};
       auto m = adc_regex.match(patch);

@@ -39,7 +39,9 @@ Device::DeviceEnumerator* OSCProtocolFactory::getEnumerator(const score::Documen
     "json",
     OSCProtocolFactory::static_concreteKey(),
         [] (const QByteArray& arr) {
-      return QVariant::fromValue(OSCSpecificSettings{9996, 9997, "127.0.0.1", std::nullopt, arr});
+      auto copy = arr;
+      copy.detach();
+      return QVariant::fromValue(OSCSpecificSettings{9996, 9997, "127.0.0.1", std::nullopt, std::move(copy)});
     },
     ctx};
 }

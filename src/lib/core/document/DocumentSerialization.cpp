@@ -19,6 +19,7 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <score/tools/File.hpp>
 #include <score/widgets/MessageBox.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
@@ -208,7 +209,7 @@ void Document::loadModel(const QString& fileName, DocumentDelegateFactory& facto
   {
     QFile f(fileName);
     f.open(QIODevice::ReadOnly);
-    auto data = f.readAll();
+    auto data = score::mapAsByteArray(f);
     SCORE_ASSERT(!data.isEmpty());
 
     m_model->loadDocumentAsByteArray(m_context, data, factory);
@@ -217,16 +218,21 @@ void Document::loadModel(const QString& fileName, DocumentDelegateFactory& facto
   {
     QFile f(fileName);
     f.open(QIODevice::ReadOnly);
-    auto data = f.readAll();
-    SCORE_ASSERT(!data.isEmpty());
-
-    auto doc = readJson(data);
-    bool ok = DocumentManager::checkAndUpdateJson(doc, m_context.app);
-    if (!ok)
+    auto data = score::mapAsByteArray(f);
+    if(!data.isEmpty())
     {
-      throw std::runtime_error("The save format is too old. Wait until the developers implement loading of the older save format.");
+      auto doc = readJson(data);
+      bool ok = DocumentManager::checkAndUpdateJson(doc, m_context.app);
+      if (!ok)
+      {
+        throw std::runtime_error("The save format is too old. Wait until the developers implement loading of the older save format.");
+      }
+      m_model->loadDocumentAsJson(m_context, doc, factory);
     }
-    m_model->loadDocumentAsJson(m_context, doc, factory);
+    else
+    {
+      throw std::runtime_error("Tried to open an empty file.");
+    }
   }
   else
   {

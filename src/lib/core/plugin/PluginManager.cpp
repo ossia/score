@@ -5,6 +5,7 @@
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+#include <score/tools/File.hpp>
 
 #include <core/application/ApplicationRegistrar.hpp>
 #include <core/plugin/PluginManager.hpp>
@@ -334,7 +335,7 @@ void loadAddonsInAllFolders(std::vector<score::Addon>& availablePlugins)
       addonFile.open(QFile::ReadOnly);
 
       auto addon = makeAddon(
-          folder, QJsonDocument::fromJson(addonFile.readAll()).object(), availablePlugins);
+          folder, QJsonDocument::fromJson(score::mapAsByteArray(addonFile)).object(), availablePlugins);
 
       if (addon)
         availablePlugins.push_back(std::move(*addon));

@@ -201,11 +201,11 @@ ComponentCache::~ComponentCache() { }
 Script* ComponentCache::tryGet(const QByteArray& str, bool isFile) const noexcept
 {
   QByteArray content;
+  QFile f{str};
   if (isFile)
   {
-    QFile f{str};
     f.open(QIODevice::ReadOnly);
-    content = f.readAll();
+    content = score::mapAsByteArray(f);
   }
   else
   {
@@ -225,12 +225,12 @@ Script* ComponentCache::tryGet(const QByteArray& str, bool isFile) const noexcep
 
 Script* ComponentCache::get(const ProcessModel& process, const QByteArray& str, bool isFile) noexcept
 {
+  QFile f{str};
   QByteArray content;
   if (isFile)
   {
-    QFile f{str};
     f.open(QIODevice::ReadOnly);
-    content = f.readAll();
+    content = score::mapAsByteArray(f);
   }
   else
   {

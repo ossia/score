@@ -3,6 +3,7 @@
 
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/FindStringInFile.hpp>
+#include <score/tools/File.hpp>
 
 #include <QFileInfo>
 #include <QFile>
@@ -21,22 +22,27 @@ LibraryDeviceEnumerator::LibraryDeviceEnumerator(
   , m_extension{ext}
   , m_key{k}
   , m_createDeviceSettings{createDev}
-  , m_iterator{ctx.app.settings<Library::Settings::Model>().getPath(), QDirIterator::Subdirectories | QDirIterator::FollowSymlinks}
+  , m_iterator{
+      ctx.app.settings<Library::Settings::Model>().getPath(),
+      QStringList{"*." + ext},
+      QDir::Files,
+      QDirIterator::Subdirectories | QDirIterator::FollowSymlinks
+  }
 {
-  next();
+  QTimer::singleShot(1, this, &LibraryDeviceEnumerator::next);
 }
 
 void LibraryDeviceEnumerator::next()
 {
   if(m_iterator.hasNext()) {
-    auto filepath = m_iterator.next();
-    if(QFileInfo fi{filepath}; fi.suffix() == m_extension)
+    const auto& filepath = m_iterator.next();
+
     {
       score::findStringInFile(filepath, m_pattern.c_str(), [&] (QFile& f) {
         Device::DeviceSettings s;
-        s.name = fi.baseName();
+        s.name = QFileInfo{filepath}.baseName();
         s.protocol = m_key;
-        s.deviceSpecificSettings = m_createDeviceSettings(f.readAll());
+        s.deviceSpecificSettings = m_createDeviceSettings(score::mapAsByteArray(f));
         deviceAdded(s);
       });
     }

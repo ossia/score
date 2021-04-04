@@ -5,6 +5,7 @@
 #include <Library/LibrarySettings.hpp>
 
 #include <score/application/ApplicationContext.hpp>
+#include <score/tools/File.hpp>
 
 #include <QDir>
 #include <QDirIterator>
@@ -32,7 +33,7 @@ LocalPackagesModel::LocalPackagesModel(
       if (addon.open(QIODevice::ReadOnly))
       {
         auto add = RemotePackage::fromJson(
-            QJsonDocument::fromJson(addon.readAll()).object());
+            QJsonDocument::fromJson(score::mapAsByteArray(addon)).object());
         if (add)
         {
           beginResetModel();

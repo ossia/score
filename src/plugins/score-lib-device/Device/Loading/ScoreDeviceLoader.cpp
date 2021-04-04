@@ -10,6 +10,7 @@
 #include <State/Value.hpp>
 
 #include <score/model/tree/TreeNodeSerialization.hpp>
+#include <score/tools/File.hpp>
 
 #include <ossia/network/domain/domain.hpp>
 
@@ -47,7 +48,7 @@ bool loadDeviceFromScoreJSON(const QString& filePath, Device::Node& node)
     return false;
   }
 
-  return loadDeviceFromScoreJSON(readJson(doc.readAll()), node);
+  return loadDeviceFromScoreJSON(readJson(score::mapAsByteArray(doc)), node);
 }
 
 }

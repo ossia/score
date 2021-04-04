@@ -3,6 +3,7 @@
 #include "JamomaDeviceLoader.hpp"
 
 #include <score/tools/std/StringHash.hpp>
+#include <score/tools/File.hpp>
 
 #include <ossia/network/base/node_attributes.hpp>
 #include <ossia/network/domain/domain.hpp>
@@ -499,7 +500,7 @@ try
     return false;
   }
 
-  QJsonDocument qt_doc = QJsonDocument::fromJson(theFile.readAll());
+  QJsonDocument qt_doc = QJsonDocument::fromJson(score::mapAsByteArray(theFile));
   if (qt_doc.isNull())
   {
     return false;

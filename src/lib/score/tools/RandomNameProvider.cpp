@@ -3,6 +3,7 @@
 #include "RandomNameProvider.hpp"
 
 #include <score/tools/IdentifierGeneration.hpp>
+#include <score/tools/File.hpp>
 
 #include <QFile>
 #include <QStringList>
@@ -16,7 +17,7 @@ struct WordList : public QStringList
     QFile f(":/dict.txt");
     if (f.open(QFile::Text | QFile::ReadOnly))
     {
-      QString list = f.readAll();
+      QString list = score::readFileAsQString(f);
       static_cast<QStringList&>(*this) = list.split("\n", {} /* Qt::KeepEmptyParts */);
     }
     else

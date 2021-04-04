@@ -7,6 +7,7 @@
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/Skin.hpp>
 #include <score/plugins/InterfaceList.hpp>
+#include <score/tools/File.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
 
@@ -77,9 +78,8 @@ void Model::setSkin(const QString& skin)
 
   if (f.open(QFile::ReadOnly))
   {
-    auto arr = f.readAll();
     QJsonParseError err;
-    auto doc = QJsonDocument::fromJson(arr, &err);
+    auto doc = QJsonDocument::fromJson(score::mapAsByteArray(f), &err);
     if (err.error)
     {
       qDebug() << "could not load skin : " << err.errorString() << err.offset;

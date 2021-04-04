@@ -12,6 +12,8 @@
 
 #include <JitCpp/ClangDriver.hpp>
 
+#include <score/tools/File.hpp>
+
 #include <QCryptographicHash>
 #include <QStandardPaths>
 #include <sstream>
@@ -182,7 +184,7 @@ std::vector<std::string> ClangCC1Driver::getClangCC1Args(CompilerOptions opts)
   QFile f("/tmp/args.txt");
   if(f.exists())
   {
-    QString r = f.readAll();
+    QString r = score::readFileAsQString(f);
     auto splitted = r.split(QRegularExpression("[:space:]"));
     args.clear();
     for(auto splt: splitted)

@@ -8,6 +8,7 @@
 #include <QMainWindow>
 #include <QFile>
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/tools/File.hpp>
 
 namespace Process
 {
@@ -55,7 +56,7 @@ QSyntaxStyle* getStyle()
     QFile fl(":/drakula.xml");
 
     if (fl.open(QIODevice::ReadOnly))
-      style.load(fl.readAll());
+      style.load(score::mapAsByteArray(fl));
 
     tried_to_load = true;
   }

@@ -7,6 +7,7 @@
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/model/path/PathSerialization.hpp>
+#include <score/tools/File.hpp>
 
 #include <core/presenter/DocumentManager.hpp>
 
@@ -37,7 +38,7 @@ void PresetItemModel::registerPreset(const Process::ProcessFactoryList& procs, c
   if (!f.open(QIODevice::ReadOnly))
     return;
 
-  if (auto p = Process::Preset::fromJson(procs, f.readAll()))
+  if (auto p = Process::Preset::fromJson(procs, score::mapAsByteArray(f)))
   {
     auto it = std::lower_bound(
         presets.begin(), presets.end(), *p, [](const auto& lhs, const auto& rhs) {

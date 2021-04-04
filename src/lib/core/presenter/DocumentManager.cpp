@@ -13,6 +13,7 @@
 #include <score/tools/std/Optional.hpp>
 #include <score/widgets/MessageBox.hpp>
 #include <score/widgets/Pixmap.hpp>
+#include <score/tools/File.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
 #include <core/command/CommandStack.hpp>
@@ -434,8 +435,7 @@ DocumentManager::loadStack(const score::GUIApplicationContext& ctx, const QStrin
 
   if (cmdF.open(QIODevice::ReadOnly))
   {
-    QByteArray cmdArr{cmdF.readAll()};
-    cmdF.close();
+    QByteArray cmdArr{score::mapAsByteArray(cmdF)};
 
     DataStream::Deserializer writer(cmdArr);
 

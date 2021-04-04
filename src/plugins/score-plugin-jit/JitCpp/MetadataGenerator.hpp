@@ -7,6 +7,8 @@
 #include <QRegularExpression>
 #include <QStringBuilder>
 
+#include <score/tools/File.hpp>
+
 #include <vector>
 
 namespace Jit
@@ -16,6 +18,7 @@ struct AddonData
 {
   QJsonObject addon_info;
   std::string unity_cpp;
+  // Warning ! if ever changing that to QByteArray, look for mapFile usage as right now the file is read with mmap
   std::vector<std::pair<QString, QString>> files;
   std::vector<std::string> flags;
 };
@@ -71,7 +74,7 @@ static void loadCMakeAddon(const QString& addon, AddonData& data, QString cm)
 
       QFile f{filename};
       f.open(QIODevice::ReadOnly);
-      data.files.push_back({filename, f.readAll()});
+      data.files.push_back({filename, score::readFileAsQString(f)});
     }
   }
   while(defs.hasNext()) {
