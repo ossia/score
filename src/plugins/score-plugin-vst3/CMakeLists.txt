@@ -37,6 +37,8 @@ set(HDRS
   Vst3/ApplicationPlugin.hpp
   Vst3/Commands.hpp
   Vst3/Control.hpp
+  Vst3/DataStream.hpp
+  Vst3/EditHandler.hpp
   Vst3/EffectModel.hpp
   Vst3/Executor.hpp
   Vst3/Node.hpp

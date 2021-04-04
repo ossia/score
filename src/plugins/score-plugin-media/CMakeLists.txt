@@ -14,6 +14,7 @@ endif()
 # Files & main target
 set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioArray.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Libav.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Tempo.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/ChangeAudioFile.hpp"
