@@ -5,7 +5,9 @@ pacman -S --noconfirm \
    icu \
    ffmpeg portaudio jack2 lv2 suil lilv sdl2 alsa-lib \
    avahi fftw bluez-libs \
-   tar xz wget
+   tar xz wget \
+   libxkbcommon libxkbcommon-x11 \
+   vulkan-headers vulkan-icd-loader 
 
 wget https://github.com/ossia/sdk/releases/download/sdk20/qt6-debug.tar.xz
 tar xaf qt6-debug.tar.xz
