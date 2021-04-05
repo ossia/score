@@ -431,6 +431,7 @@ template <
         !std::is_arithmetic<T>::value
         && !std::is_enum<T>::value
         && !std::is_same<T, QStringList>::value
+        && !std::is_pointer<T>::value
       #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
         && !std::is_same<T, QIterable<QMetaSequence>>::value
         && !std::is_same<T, QIterable<QMetaAssociation>>::value
@@ -453,6 +454,7 @@ template <
         !std::is_arithmetic<T>::value
         && !std::is_enum<T>::value
         && !std::is_same<T, QStringList>::value
+        && !std::is_pointer<T>::value
       #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
         && !std::is_same<T, QIterable<QMetaSequence>>::value
         && !std::is_same<T, QIterable<QMetaAssociation>>::value
