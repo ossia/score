@@ -32,6 +32,7 @@
 #include <QLabel>
 #include <QDir>
 #include <QPainter>
+#include <QStandardPaths>
 #include <qobjectdefs.h>
 #include <core/view/QRecentFilesMenu.h>
 #include <qconfig.h>
@@ -83,7 +84,11 @@ namespace score
 
       protected:
         void paintEvent(QPaintEvent* event) override;
-        void enterEvent(QEvent* event)  override;
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+        void enterEvent(QEvent* event) override;
+#else
+        void enterEvent(QEnterEvent* event) override;
+#endif
         void leaveEvent(QEvent* event)  override;
         void mousePressEvent(QMouseEvent* event)  override;
 
@@ -152,7 +157,11 @@ namespace score
       painter.drawText(textRect,m_title);
     }
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     void InteractiveLabel::enterEvent(QEvent* event)
+#else
+    void InteractiveLabel::enterEvent(QEnterEvent* event)
+#endif
     {
       if(!m_interactive)
         return;
@@ -163,6 +172,7 @@ namespace score
 
       repaint();
     }
+
     void InteractiveLabel::leaveEvent(QEvent* event)
     {
       if(!m_interactive)
@@ -174,6 +184,7 @@ namespace score
 
        repaint();
     }
+
     void InteractiveLabel::mousePressEvent(QMouseEvent* event)
     {
       if(m_openExternalLink)
