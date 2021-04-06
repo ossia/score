@@ -373,10 +373,9 @@ ossia::midi_port* PdGraphNode::get_midi_out() const
 }
 
 void PdGraphNode::run(
-    const ossia::token_request& t_,
+    const ossia::token_request& t,
     ossia::exec_state_facade e) noexcept
 {
-  auto t = t_;
   // Setup
   pd_setinstance(m_instance);
   m_currentInstance = this;
@@ -443,13 +442,13 @@ void PdGraphNode::run(
   }
 
   // Copy message inputs
-  for (std::size_t i = 0; i < m_inmess.size(); ++i)
+  for (std::size_t i = 0, N = m_inmess.size(); i < N; ++i)
   {
     auto& dat = m_inlets[m_firstInMessage + i]
                     ->target<ossia::value_port>()
                     ->get_data();
 
-    auto mess = m_inmess[i].c_str();
+    const char* mess = m_inmess[i].c_str();
 
     for (auto& val : dat)
     {
@@ -458,7 +457,7 @@ void PdGraphNode::run(
   }
 
   // Compute number of samples to process
-  uint64_t req_samples = t.physical_write_duration(e.modelToSamples());
+  const uint64_t req_samples = t.physical_write_duration(e.modelToSamples());
   if (m_audioOuts == 0)
   {
     libpd_process_raw(m_inbuf.data(), m_outbuf.data());
@@ -577,7 +576,7 @@ Component::Component(
     if(const Process::ControlInlet* inlet = qobject_cast<Process::ControlInlet*>(element.inlets()[i]))
     {
       auto inl = pdnode->root_inputs()[i];
-      inl->target<ossia::value_port>()->write_value(inlet->value(), 0);
+      inlet->value().apply(ossia_to_pd_value{pdnode->m_inmess[i - pdnode->m_firstInMessage].c_str()});
       auto c = connect(inlet, &Process::ControlInlet::valueChanged,
                        this, [this, inl](const ossia::value& v) {
         system().executionQueue.enqueue([inl, val = v]() mutable {
