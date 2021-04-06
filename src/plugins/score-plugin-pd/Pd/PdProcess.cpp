@@ -106,7 +106,7 @@ auto initFuncMap()
         const auto [dom_min, dom_max] = ossia::get_float_minmax(ctl.domain);
         float min{dom_min ? *dom_min : 0.f};
         float max{dom_max ? *dom_max : 1.f};
-        float init{0.f};
+        float init{ossia::convert<float>(ctl.defaultv)};
         return new Process::FloatSlider{min, max, init, ctl.name, id, parent};
       }
     },
@@ -114,7 +114,7 @@ auto initFuncMap()
         const auto [dom_min, dom_max] = ossia::get_float_minmax(ctl.domain);
         float min{dom_min ? *dom_min : 0.f};
         float max{dom_max ? *dom_max : 1.f};
-        float init{0.f};
+        float init{ossia::convert<float>(ctl.defaultv)};
         return new Process::LogFloatSlider{min, max, init, ctl.name, id, parent};
       }
     },
@@ -122,7 +122,7 @@ auto initFuncMap()
         const auto [dom_min, dom_max] = ossia::get_float_minmax(ctl.domain);
         int min{dom_min ? int(*dom_min) : 0};
         int max{dom_max ? int(*dom_max) : 127};
-        int init{0};
+        int init{ossia::convert<int>(ctl.defaultv)};
         return new Process::IntSlider{min, max, init, ctl.name, id, parent};
       }
     },
@@ -130,22 +130,23 @@ auto initFuncMap()
         const auto [dom_min, dom_max] = ossia::get_float_minmax(ctl.domain);
         int min{dom_min ? int(*dom_min) : 0};
         int max{dom_max ? int(*dom_max) : 127};
-        int init{0};
+        int init{ossia::convert<int>(ctl.defaultv)};
         return new Process::IntSpinBox{min, max, init, ctl.name, id, parent};
       }
     },
     {"toggle", [] (const PatchSpec::Control& ctl, const Id<Process::Port>& id, QObject* parent) -> Process::Inlet* {
-         return new Process::Toggle{false, ctl.name, id, parent};
+         return new Process::Toggle{ossia::convert<bool>(ctl.defaultv), ctl.name, id, parent};
       }
     },
     {"lineedit", [] (const PatchSpec::Control& ctl, const Id<Process::Port>& id, QObject* parent) -> Process::Inlet* {
-        return new Process::LineEdit{{}, ctl.name, id, parent};
+        const std::string& init = ossia::convert<std::string>(ctl.defaultv);
+        return new Process::LineEdit{
+          QString::fromUtf8(init.c_str(), init.size()), ctl.name, id, parent};
       }
     },
     {"combobox", [] (const PatchSpec::Control& ctl, const Id<Process::Port>& id, QObject* parent) -> Process::Inlet* {
         std::vector<std::pair<QString, ossia::value>> choices;
-        ossia::value init;
-         return new Process::ComboBox{choices, init, ctl.name, id, parent};
+         return new Process::ComboBox{choices, ctl.defaultv, ctl.name, id, parent};
       }
     },
     {"button", [] (const PatchSpec::Control& ctl, const Id<Process::Port>& id, QObject* parent) -> Process::Inlet* {
@@ -470,7 +471,7 @@ void ProcessModel::setScript(const QString& script)
     }
 
     {
-      static const QRegularExpression recv_regex{R"_((r|receive) \\\$0-(.*?);)_", QRegularExpression::DotMatchesEverythingOption};
+      static const QRegularExpression recv_regex{R"_((r|receive)\s+\\\$0-(.*?)(,\s+f\s+[0-9]+)?;)_", QRegularExpression::DotMatchesEverythingOption};
       auto it = recv_regex.globalMatch(patch);
       while (it.hasNext())
       {
@@ -491,7 +492,7 @@ void ProcessModel::setScript(const QString& script)
     }
 
     {
-      static const QRegularExpression send_regex{R"_((s|send) \\\$0-(.*?);)_", QRegularExpression::DotMatchesEverythingOption};
+      static const QRegularExpression send_regex{R"_((s|send)\s+\\\$0-(.*?)(,\s+f\s+[0-9]+)?;)_", QRegularExpression::DotMatchesEverythingOption};
       auto it = send_regex.globalMatch(patch);
       while (it.hasNext())
       {
