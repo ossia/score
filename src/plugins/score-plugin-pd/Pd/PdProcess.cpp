@@ -259,7 +259,7 @@ const QString& locatePdBinary() noexcept
 #if __APPLE__
     {
       const auto& applist = QDir{"/Applications"}.entryList();
-      if(applist.contains("Pd-l2ork"))
+      if(applist.contains("Pd-l2ork.app"))
       {
         QString pd_path = "/Applications/Pd-l2ork.app/Contents/MacOS/nwjs";
         if(QFile::exists(pd_path))
