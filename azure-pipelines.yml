@@ -153,6 +153,13 @@ stages:
           source: 'current'
           path: '$(System.DefaultWorkingDirectory)'
 
+      - bash: |
+          echo " ============================ "
+          ls '$(Build.ArtifactStagingDirectory)'
+          echo " ============================ "
+          ls '$(System.DefaultWorkingDirectory)'
+          echo " ============================ "
+
       - task: GitHubRelease@1
         inputs:
           gitHubConnection: github.com_jcelerier
