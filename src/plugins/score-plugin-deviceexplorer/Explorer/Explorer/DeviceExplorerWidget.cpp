@@ -124,7 +124,7 @@ public:
     if (!v)
       return;
 
-#if QT_VERSION < QT_VERSION_CHECK(5, 12, 0)
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     if (text() != m->filterRegExp().pattern())
     {
       m->setFilterRegExp(QRegExp(text(), Qt::CaseInsensitive, QRegExp::FixedString));
