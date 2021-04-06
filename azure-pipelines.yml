@@ -142,7 +142,6 @@ stages:
             artifactName: Source
 
   - stage: Upload
-    condition: and(succeeded(), eq(variables.isGitTag, true))
     jobs:
     - job:
       steps:
@@ -154,13 +153,12 @@ stages:
           path: '$(System.DefaultWorkingDirectory)'
 
       - bash: |
-          echo " ============================ "
-          ls '$(Build.ArtifactStagingDirectory)'
-          echo " ============================ "
-          ls '$(System.DefaultWorkingDirectory)'
-          echo " ============================ "
+          cd "$(System.DefaultWorkingDirectory)"
+          find . -type f -exec mv {} . \;
+          ls
 
       - task: GitHubRelease@1
+        condition: and(succeeded(), eq(variables.isGitTag, true))
         inputs:
           gitHubConnection: github.com_jcelerier
           repositoryName: ossia/score
