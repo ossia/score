@@ -39,13 +39,13 @@ RenameAddressInState::RenameAddressInState(
 void RenameAddressInState::undo(const score::DocumentContext& ctx) const
 {
   auto& state = m_state.find(ctx);
-  Scenario::renameAddress(state.messages().rootNode(), m_newName, m_oldName);
+  Scenario::renameAddress(state.messages(), m_newName, m_oldName);
 }
 
 void RenameAddressInState::redo(const score::DocumentContext& ctx) const
 {
   auto& state = m_state.find(ctx);
-  Scenario::renameAddress(state.messages().rootNode(), m_oldName, m_newName);
+  Scenario::renameAddress(state.messages(), m_oldName, m_newName);
 }
 
 void RenameAddressInState::serializeImpl(DataStreamInput& s) const
@@ -133,7 +133,6 @@ void AddMessagesToState::redo(const score::DocumentContext& ctx) const
 {
   auto& model = m_path.find(ctx).messages();
   model = m_newState;
-  // TODO we should reset the model
 }
 
 void AddMessagesToState::serializeImpl(DataStreamInput& d) const

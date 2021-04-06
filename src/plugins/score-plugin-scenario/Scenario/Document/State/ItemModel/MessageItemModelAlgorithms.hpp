@@ -47,3 +47,83 @@ int countNodes(Process::MessageNode& rootNode);
 Process::MessageNode* getNthChild(Process::MessageNode& rootNode, int n);
 int getChildIndex(Process::MessageNode& rootNode, Process::MessageNode* n);
 }
+
+
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+namespace Scenario
+{
+// User messages
+inline
+void updateModelWithMessageList(MessageItemModel& model, State::MessageList lst)
+{
+  model.beginResetModel();
+  updateTreeWithMessageList(model.rootNode(), std::move(lst));
+  model.endResetModel();
+}
+
+inline
+void renameAddress(MessageItemModel& model, const State::AddressAccessor& oldAddr, const State::AddressAccessor& newAddr)
+{
+  model.beginResetModel();
+  renameAddress(model.rootNode(), oldAddr, newAddr);
+  model.endResetModel();
+}
+
+// Messages from a process
+inline
+void updateModelWithMessageList(
+    MessageItemModel& model,
+    State::MessageList lst,
+    const Id<Process::ProcessModel>& proc,
+    ProcessPosition pos)
+{
+  model.beginResetModel();
+  updateTreeWithMessageList(model.rootNode(), std::move(lst), proc, pos);
+  model.endResetModel();
+}
+
+inline
+void updateModelWithRemovedProcess(
+    MessageItemModel& model,
+    const Id<Process::ProcessModel>& proc,
+    ProcessPosition pos)
+{
+  model.beginResetModel();
+  updateTreeWithRemovedProcess(model.rootNode(), proc, pos);
+  model.endResetModel();
+}
+
+inline
+void updateModelWithRemovedInterval(MessageItemModel& model, ProcessPosition pos)
+{
+  model.beginResetModel();
+  updateTreeWithRemovedInterval(model.rootNode(), pos);
+  model.endResetModel();
+}
+
+inline
+void updateModelWithRemovedUserMessage(
+    MessageItemModel& model,
+    const State::AddressAccessor& addr)
+{
+  model.beginResetModel();
+  updateTreeWithRemovedUserMessage(model.rootNode(), addr);
+  model.endResetModel();
+}
+
+inline
+void updateModelWithRemovedNode(MessageItemModel& model, const State::AddressAccessor& addr)
+{
+  model.beginResetModel();
+  updateTreeWithRemovedNode(model.rootNode(), addr);
+  model.endResetModel();
+}
+
+inline
+void removeAllUserMessages(MessageItemModel& model)
+{
+  model.beginResetModel();
+  removeAllUserMessages(model.rootNode());
+  model.endResetModel();
+}
+}

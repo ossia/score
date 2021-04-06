@@ -33,7 +33,7 @@ static void AddProcessBeforeState(StateModel& statemodel, const Process::Process
       next_proc.process().setMessages(ml, messages.rootNode());
     }
 
-    updateTreeWithMessageList(messages.rootNode(), ml, proc.id(), ProcessPosition::Previous);
+    updateModelWithMessageList(messages, ml, proc.id(), ProcessPosition::Previous);
     statemodel.sig_statesUpdated();
   };
 
@@ -58,7 +58,7 @@ static void AddProcessAfterState(StateModel& statemodel, const Process::ProcessM
       prev_proc.process().setMessages(ml, messages.rootNode());
     }
 
-    updateTreeWithMessageList(messages.rootNode(), ml, proc.id(), ProcessPosition::Following);
+    updateModelWithMessageList(messages, ml, proc.id(), ProcessPosition::Following);
     statemodel.sig_statesUpdated();
   };
 
@@ -78,8 +78,8 @@ static void RemoveProcessBeforeState(StateModel& statemodel, const Process::Proc
   auto it = ossia::find_if(
       statemodel.previousProcesses(), [&](const auto& elt) { return state == &elt.process(); });
 
-  updateTreeWithRemovedProcess(
-      statemodel.messages().rootNode(), proc.id(), ProcessPosition::Previous);
+  updateModelWithRemovedProcess(
+      statemodel.messages(), proc.id(), ProcessPosition::Previous);
   statemodel.sig_statesUpdated();
 
   // TODO debug the need for this check
@@ -96,8 +96,8 @@ static void RemoveProcessAfterState(StateModel& statemodel, const Process::Proce
   auto it = ossia::find_if(
       statemodel.followingProcesses(), [&](const auto& elt) { return state == &elt.process(); });
 
-  updateTreeWithRemovedProcess(
-      statemodel.messages().rootNode(), proc.id(), ProcessPosition::Following);
+  updateModelWithRemovedProcess(
+      statemodel.messages(), proc.id(), ProcessPosition::Following);
   statemodel.sig_statesUpdated();
 
   // TODO debug the need for this check
@@ -162,9 +162,7 @@ void SetNoPreviousInterval(StateModel& state)
 {
   if (state.previousInterval())
   {
-    auto node = state.messages().rootNode();
-    updateTreeWithRemovedInterval(node, ProcessPosition::Previous);
-    state.messages() = std::move(node);
+    updateModelWithRemovedInterval(state.messages(), ProcessPosition::Previous);
 
     state.previousProcesses().clear();
     state.setPreviousInterval(OptionalId<IntervalModel>{});
@@ -175,9 +173,7 @@ void SetNoNextInterval(StateModel& state)
 {
   if (state.nextInterval())
   {
-    auto node = state.messages().rootNode();
-    updateTreeWithRemovedInterval(node, ProcessPosition::Following);
-    state.messages() = std::move(node);
+    updateModelWithRemovedInterval(state.messages(), ProcessPosition::Following);
 
     state.followingProcesses().clear();
     state.setNextInterval(OptionalId<IntervalModel>{});

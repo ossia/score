@@ -25,19 +25,14 @@ void ClearState::undo(const score::DocumentContext& ctx) const
 {
   auto& state = m_path.find(ctx);
 
-  Process::MessageNode n = state.messages().rootNode();
-  updateTreeWithMessageList(n, m_oldState);
-
-  state.messages() = std::move(n);
+  updateModelWithMessageList(state.messages(), m_oldState);
 }
 
 void ClearState::redo(const score::DocumentContext& ctx) const
 {
   auto& state = m_path.find(ctx);
 
-  Process::MessageNode n = state.messages().rootNode();
-  removeAllUserMessages(n);
-  state.messages() = std::move(n);
+  removeAllUserMessages(state.messages());
 }
 
 void ClearState::serializeImpl(DataStreamInput& s) const

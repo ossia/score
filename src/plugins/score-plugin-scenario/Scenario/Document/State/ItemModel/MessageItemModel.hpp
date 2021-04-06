@@ -88,6 +88,13 @@ public:
 
   const StateModel& stateModel;
 
+  using QAbstractItemModel::beginResetModel;
+  using QAbstractItemModel::endResetModel;
+  using QAbstractItemModel::beginInsertRows;
+  using QAbstractItemModel::endInsertRows;
+  using QAbstractItemModel::beginRemoveRows;
+  using QAbstractItemModel::endRemoveRows;
+
 public:
   void userMessage(const State::Message& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, userMessage, arg_1)
