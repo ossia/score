@@ -27,6 +27,7 @@ namespace Pd
 
 PatchSpec::Control parseControlSpec(QString var)
 {
+  var = var.replace("\n", " ");
   QStringList splitted = var.split(" ");
   splitted.removeAll(QString{});
 
