@@ -239,18 +239,33 @@ ScenarioComponentBase::removing(const Scenario::IntervalModel& e, IntervalCompon
   {
     std::shared_ptr<ossia::scenario> proc
         = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
-    m_ctx.executionQueue.enqueue([proc, cstr = c.OSSIAInterval()] {
+
+    std::shared_ptr<ossia::time_event> start_ev, end_ev;
+    auto start_ev_it = m_ossia_timeevents.find(Scenario::startEvent(e, this->process()).id());
+    if(start_ev_it != m_ossia_timeevents.end())
+      start_ev = start_ev_it->second->OSSIAEvent();
+    auto end_ev_it = m_ossia_timeevents.find(Scenario::endEvent(e, this->process()).id());
+    if(end_ev_it != m_ossia_timeevents.end())
+      end_ev = end_ev_it->second->OSSIAEvent();
+
+    m_ctx.executionQueue.enqueue([proc, cstr = c.OSSIAInterval(), start_ev, end_ev] {
       if (cstr)
       {
-        auto& next = cstr->get_start_event().next_time_intervals();
-        auto next_it = ossia::find(next, cstr);
-        if (next_it != next.end())
-          next.erase(next_it);
+        if(start_ev)
+        {
+          auto& next = start_ev->next_time_intervals();
+          auto next_it = ossia::find(next, cstr);
+          if (next_it != next.end())
+            next.erase(next_it);
+        }
 
-        auto& prev = cstr->get_end_event().previous_time_intervals();
-        auto prev_it = ossia::find(prev, cstr);
-        if (prev_it != prev.end())
-          prev.erase(prev_it);
+        if(end_ev)
+        {
+          auto& prev = end_ev->previous_time_intervals();
+          auto prev_it = ossia::find(prev, cstr);
+          if (prev_it != prev.end())
+            prev.erase(prev_it);
+        }
 
         proc->remove_time_interval(cstr);
       }
@@ -275,7 +290,9 @@ ScenarioComponentBase::removing(const Scenario::TimeSyncModel& e, TimeSyncCompon
     {
       std::shared_ptr<ossia::scenario> proc
           = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
-      m_ctx.executionQueue.enqueue([proc, tn = c.OSSIATimeSync()] { proc->remove_time_sync(tn); });
+      m_ctx.executionQueue.enqueue([proc, tn = c.OSSIATimeSync()] {
+        proc->remove_time_sync(tn);
+      });
     }
     it->second->cleanup();
 
@@ -287,17 +304,30 @@ ScenarioComponentBase::removing(const Scenario::TimeSyncModel& e, TimeSyncCompon
 std::function<void()>
 ScenarioComponentBase::removing(const Scenario::EventModel& e, EventComponent& c)
 {
-  auto it = m_ossia_timeevents.find(e.id());
-  if (it != m_ossia_timeevents.end())
+  auto ev_it = m_ossia_timeevents.find(e.id());
+  if (ev_it != m_ossia_timeevents.end())
   {
+    // Timesync still exists
+    auto tn_it = m_ossia_timesyncs.find(e.timeSync());
+    if(tn_it != m_ossia_timesyncs.end() && tn_it->second)
+    {
+      if(auto tn = tn_it->second->OSSIATimeSync())
+      {
+        m_ctx.executionQueue.enqueue([tn, ev = c.OSSIAEvent()] {
+          tn->remove(ev);
+          ev->cleanup();
+        });
+        c.cleanup();
+        return [=] { m_ossia_timeevents.erase(ev_it); };
+      }
+    }
+
+    // Timesync does not exist anymore:
     m_ctx.executionQueue.enqueue([ev = c.OSSIAEvent()] {
-      ev->get_time_sync().remove(ev);
       ev->cleanup();
     });
-
     c.cleanup();
-
-    return [=] { m_ossia_timeevents.erase(it); };
+    return [=] { m_ossia_timeevents.erase(ev_it); };
   }
   return {};
 }

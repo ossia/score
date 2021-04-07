@@ -103,7 +103,7 @@ void PlayFromIntervalScenarioPruner::operator()(
   auto scenar_comp = dynamic_cast<ScenarioComponent*>((*scenar_proc_it).second.get());
   const auto scenar_intervals = scenar_comp->intervals();
   IntervalComponent* other_cst{};
-  for (auto elt : scenar_intervals)
+  for (const auto& elt : scenar_intervals)
   {
     auto& is = elt.second->scoreInterval();
     if (toRemove(toKeep, is))
