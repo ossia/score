@@ -2,6 +2,8 @@ include(Sanitize)
 include(UseGold)
 include(LinkerWarnings)
 include(DebugMode)
+include(StaticQt)
+include(GenerateStaticExport)
 
 function(score_pch TheTarget)
   disable_qt_plugins("${TheTarget}")

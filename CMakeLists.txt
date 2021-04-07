@@ -132,9 +132,6 @@ set(SCORE_PLUGINS_LIST CACHE INTERNAL "List of plugins")
 
 add_subdirectory(src)
 
-if(SCORE_EMBEDDED)
-  return()
-endif()
 if(SCORE_TESTBED)
   add_subdirectory(Tests/testbed)
 endif()
