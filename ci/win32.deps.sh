@@ -1,6 +1,7 @@
 #!/bin/bash
 
 cinst -y ninja
+cinst -y rsync
 
 set -x
 mkdir /c/ossia-sdk
