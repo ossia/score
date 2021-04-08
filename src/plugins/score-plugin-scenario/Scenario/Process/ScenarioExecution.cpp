@@ -77,16 +77,6 @@ ScenarioComponentBase::ScenarioComponentBase(
       this,
       &ScenarioComponentBase::eventCallback,
       Qt::QueuedConnection);
-
-  /*
-
-  auto& start_ts = *OSSIAProcess().get_start_time_sync();
-  m_ghost_start =
-  std::make_shared<ossia::time_event>(ossia::time_event::exec_callback{},
-  start_ts, ossia::expressions::make_expression_true());
-
-  start_ts.insert(start_ts.get_time_events().end(), m_ghost_start);
-  */
 }
 
 ScenarioComponentBase::~ScenarioComponentBase() { }
@@ -453,6 +443,22 @@ EventComponent* ScenarioComponentBase::make<EventComponent, Scenario::EventModel
   elt->onSetup(
       ossia_ev, elt->makeExpression(), (ossia::time_event::offset_behavior)(ev.offsetBehavior()));
 
+  connect(&ev, &Scenario::EventModel::timeSyncChanged,
+          this, [=] (const Id<Scenario::TimeSyncModel>& old_ts_id, const Id<Scenario::TimeSyncModel>& new_ts_id) {
+    auto old_ts = m_ossia_timesyncs.at(old_ts_id);
+    auto new_ts = m_ossia_timesyncs.at(new_ts_id);
+    SCORE_ASSERT(old_ts);
+    SCORE_ASSERT(new_ts);
+    SCORE_ASSERT(old_ts->OSSIATimeSync());
+    SCORE_ASSERT(new_ts->OSSIATimeSync());
+
+    m_ctx.executionQueue.enqueue([old_t = old_ts->OSSIATimeSync(), new_t = new_ts->OSSIATimeSync(), ossia_ev] {
+      old_t->remove(ossia_ev);
+      new_t->insert(new_t->get_time_events().end(), ossia_ev);
+      ossia_ev->set_time_sync(*new_t);
+    });
+  });
+
   // The event is inserted in the API edition thread
   m_ctx.executionQueue.enqueue([event = ossia_ev, time_sync = tn->OSSIATimeSync()] {
     SCORE_ASSERT(event);
@@ -569,7 +575,10 @@ void ScenarioComponentBase::eventCallback(
     std::shared_ptr<EventComponent> ev,
     ossia::time_event::status newStatus)
 {
-  auto the_event = const_cast<Scenario::EventModel*>(&ev->scoreEvent());
+  auto the_event = const_cast<Scenario::EventModel*>(ev->scoreEvent());
+  if(!the_event)
+    return;
+
   the_event->setStatus(static_cast<Scenario::ExecutionStatus>(newStatus), process());
 
   for (auto& state : the_event->states())

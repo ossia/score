@@ -36,10 +36,9 @@ public:
       ossia::time_event::offset_behavior b);
 
   std::shared_ptr<ossia::time_event> OSSIAEvent() const;
-  const Scenario::EventModel& scoreEvent() const
+  const Scenario::EventModel* scoreEvent() const
   {
-    SCORE_ASSERT(m_score_event);
-    return *m_score_event;
+    return m_score_event;
   }
 
 public:
