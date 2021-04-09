@@ -339,10 +339,11 @@ void Presenter::on_drop(const QPointF& pos, const QMimeData& md)
   CommandDispatcher<> disp{m_context.context.commandStack};
   // Scale notes so that the durations are relative to the ratio of the song
   // duration & constraint duration
+  const double ratio = song.durationInMs / model().duration().msec();
   for (auto& note : track.notes)
   {
-    note.setStart(song.durationInMs * note.start() / model().duration().msec());
-    note.setDuration(song.durationInMs * note.duration() / model().duration().msec());
+    note.setStart(ratio * note.start());
+    note.setDuration(ratio * note.duration());
   }
   disp.submit<Midi::ReplaceNotes>(model(), track.notes, track.min, track.max, model().duration());
 }

@@ -50,9 +50,21 @@ std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::dropData(
             p.creation.prettyName = QFileInfo{filename}.baseName();
             p.duration = TimeVal::fromMsecs(song.durationInMs);
             p.setup = [track = std::move(t),
-                       song_t = *p.duration](Process::ProcessModel& m, score::Dispatcher& disp) {
+                       song_t = song.durationInMs] (Process::ProcessModel& m, score::Dispatcher& disp) mutable {
               auto& midi = static_cast<Midi::ProcessModel&>(m);
-              disp.submit(new Midi::ReplaceNotes{midi, track.notes, track.min, track.max, song_t});
+
+              // If we drop in an existing interval, time must be rescaled
+              TimeVal actualDuration = m.duration();
+              const double ratio = song_t / actualDuration.msec();
+              if(ratio != 1.)
+              {
+               for (auto& note : track.notes)
+               {
+                 note.setStart(ratio * note.start());
+                 note.setDuration(ratio * note.duration());
+               }
+              }
+              disp.submit(new Midi::ReplaceNotes{midi, track.notes, track.min, track.max, actualDuration});
             };
             vec.push_back(std::move(p));
           }
