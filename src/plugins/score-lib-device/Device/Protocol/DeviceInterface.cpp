@@ -232,12 +232,15 @@ ossia::net::node_base* createNodeFromPath(const QStringList& path, ossia::net::d
         SCORE_ASSERT(newNode);
         if (path_k != newNode->get_name())
         {
-          qDebug() << path[k] << newNode->get_name().c_str();
+          qDebug() << "Warning! " << path[k] << " was requested as node name but backend converted to  "
+                   << newNode->get_name().c_str() << "was obtained. Check for special characters.";
+          parentnode->remove_child(*newNode);
+          return nullptr;
+          /*
           for (const auto& node : parentnode->children())
           {
             qDebug() << node->get_name().c_str();
-          }
-          SCORE_ABORT;
+          }*/
         }
         if (k == path.size() - 1)
         {
@@ -277,10 +280,11 @@ void DeviceInterface::addAddress(const FullAddressSettings& settings)
   {
     // Create the node. It is added into the device.
     ossia::net::node_base* node = createNodeFromPath(settings.address.path, *dev);
-    SCORE_ASSERT(node);
-
-    // Populate the node with a parameter (if it isn't a no_value_t).
-    createOSSIAAddress(settings, *node);
+    if(node)
+    {
+      // Populate the node with a parameter (if it isn't a no_value_t).
+      createOSSIAAddress(settings, *node);
+    }
   }
 }
 

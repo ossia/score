@@ -31,7 +31,7 @@ Device::DeviceEnumerator* SerialProtocolFactory::getEnumerator(const score::Docu
 {
   return new LibraryDeviceEnumerator{
     "Ossia.Serial",
-    "qml",
+    {"*.qml"},
     SerialProtocolFactory::static_concreteKey(),
         [] (const QByteArray& arr) {
       return QVariant::fromValue(SerialSpecificSettings{{}, arr});

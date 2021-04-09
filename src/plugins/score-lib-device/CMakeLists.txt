@@ -15,6 +15,7 @@ set(HEADERS
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/ItemModels/NodeDisplayMethods.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Loading/ScoreDeviceLoader.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Loading/JamomaDeviceLoader.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Device/Loading/TouchOSCDeviceLoader.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Node/DeviceNode.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Node/NodeListMimeSerialization.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Protocol/DeviceInterface.hpp"
@@ -49,6 +50,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Loading/JamomaDeviceLoader.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Loading/ScoreDeviceLoader.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Device/Loading/TouchOSCDeviceLoader.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Widgets/DeviceCompleter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Widgets/AddressAccessorEditWidget.cpp"

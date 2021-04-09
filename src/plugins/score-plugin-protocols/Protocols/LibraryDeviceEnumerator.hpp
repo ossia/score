@@ -10,13 +10,12 @@ class LibraryDeviceEnumerator
 {
 public:
   std::string m_pattern;
-  QString m_extension;
   Device::ProtocolFactory::ConcreteKey m_key;
   std::function<QVariant(QByteArray)> m_createDeviceSettings;
   QDirIterator m_iterator;
   LibraryDeviceEnumerator(
       std::string pattern,
-      QString extension,
+      QStringList extension,
       Device::ProtocolFactory::ConcreteKey k,
       std::function<QVariant(QByteArray)> createDev,
       const score::DocumentContext& ctx);

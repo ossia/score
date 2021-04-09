@@ -1,6 +1,7 @@
 #pragma once
 #include <Device/Loading/JamomaDeviceLoader.hpp>
 #include <Device/Loading/ScoreDeviceLoader.hpp>
+#include <Device/Loading/TouchOSCDeviceLoader.hpp>
 #include <Device/Protocol/ProtocolList.hpp>
 #include <Explorer/Commands/Add/AddDevice.hpp>
 #include <Explorer/Commands/Add/LoadDevice.hpp>
@@ -55,14 +56,15 @@ class OSCLibraryHandler final : public Library::LibraryInterface
 {
   SCORE_CONCRETE("8d4c06e2-851b-4d5f-82f2-68056a50c370")
 
-  QSet<QString> acceptedFiles() const noexcept override { return {"json", "xml", "device"}; }
+  QSet<QString> acceptedFiles() const noexcept override { return {"touchosc", "json", "xml", "device"}; }
 
   bool onDoubleClick(const QString& path, const score::DocumentContext& ctx) override
   {
     Device::Node n{Device::DeviceSettings{}, nullptr};
-    bool ok = (path.endsWith(".json") && Device::loadDeviceFromScoreJSON(path, n))
+    bool ok =    (path.endsWith(".touchosc") && Device::loadDeviceFromTouchOSC(path, n))
+              || (path.endsWith(".json") && Device::loadDeviceFromScoreJSON(path, n))
               || (path.endsWith(".xml") && Device::loadDeviceFromXML(path, n))
-              || (path.endsWith(".device") && Device::loadDeviceFromJamomaJSON(path, n));
+              || (path.endsWith(".device") && Device::loadDeviceFromScoreJSON(path, n));
     if (!ok)
       return false;
 

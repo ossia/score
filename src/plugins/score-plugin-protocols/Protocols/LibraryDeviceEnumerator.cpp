@@ -14,17 +14,16 @@ namespace Protocols
 {
 LibraryDeviceEnumerator::LibraryDeviceEnumerator(
     std::string pattern,
-    QString ext,
+    QStringList ext,
     Device::ProtocolFactory::ConcreteKey k,
     std::function<QVariant (QByteArray)> createDev,
     const score::DocumentContext& ctx)
   : m_pattern{std::move(pattern)}
-  , m_extension{ext}
   , m_key{k}
   , m_createDeviceSettings{createDev}
   , m_iterator{
       ctx.app.settings<Library::Settings::Model>().getPath(),
-      QStringList{"*." + ext},
+      ext,
       QDir::Files,
       QDirIterator::Subdirectories | QDirIterator::FollowSymlinks
   }

@@ -56,8 +56,8 @@ void AudioDevice::addAddress(const Device::FullAddressSettings& settings)
   {
     // Create the node. It is added into the device.
     ossia::net::node_base* node = Device::createNodeFromPath(settings.address.path, *dev);
-    SCORE_ASSERT(node);
-    setupNode(*node, settings.extendedAttributes);
+    if(node)
+      setupNode(*node, settings.extendedAttributes);
   }
 }
 

@@ -647,7 +647,7 @@ Device::DeviceEnumerator* MapperProtocolFactory::getEnumerator(const score::Docu
 {
   return new LibraryDeviceEnumerator{
     "Ossia.Mapper",
-    "qml",
+    {"*.qml"},
     MapperProtocolFactory::static_concreteKey(),
         [] (const QByteArray& arr) {
       return QVariant::fromValue(MapperSpecificSettings{arr});

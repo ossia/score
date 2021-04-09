@@ -26,7 +26,7 @@ Device::DeviceEnumerator* HTTPProtocolFactory::getEnumerator(const score::Docume
 {
   return new LibraryDeviceEnumerator{
     "Ossia.Http",
-    "qml",
+    {"*.qml"},
     HTTPProtocolFactory::static_concreteKey(),
         [] (const QByteArray& arr) {
       return QVariant::fromValue(HTTPSpecificSettings{arr});
