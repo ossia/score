@@ -73,6 +73,10 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_UNITY_BUILD_BATCH_SIZE 5000)
 
+if(CMAKE_VERSION VERSION_GREATER 3.19)
+  set(CMAKE_PCH_INSTANTIATE_TEMPLATES 1)
+endif()
+
 if(MSVC)
   # TODO check /experimental:preprocessor at some point
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /MP /std:c++latest /Zc:__cplusplus /permissive- /volatile:iso")
