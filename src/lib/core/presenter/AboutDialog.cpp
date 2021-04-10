@@ -105,10 +105,14 @@ AboutDialog::AboutDialog(QWidget* parent)
   map["fmt"] = License{"https://github.com/fmtlib/fmt", fmt_LICENSE};
   map["frozen"] = License{"https://github.com/serge-sans-paille/frozen", frozen_LICENSE};
   map["hopscotch-map"] = License{"https://github.com/tessil/hopscotch-map", hopscotchmap_LICENSE};
+  map["libpd"] = License{"https://github.com/libpd/libpd", libpd_LICENSE};
+
   map["multi_index"] = License{"https://github.com/jcelerier/multi_index", multiindex_LICENSE};
   map["nano-signal-slot"]
       = License{"https://github.com/jcelerier/nano-signal-slot", nanosignal_LICENSE};
   map["OSCPack"] = License{"https://github.com/jcelerier/oscpack", "Boost License"};
+  map["pd"] = License{"http://msp.ucsd.edu/software.html", pd_LICENSE};
+
   map["pybind11"] = License{"https://github.com/pybind/pybind11", pybind11_LICENSE};
   map["rapidjson"] = License{"https://github.com/miloyip/rapidjson", rapidjson_LICENSE};
   map["spdlog"] = License{"https://github.com/gabime/spdlog", spdlog_LICENSE};
