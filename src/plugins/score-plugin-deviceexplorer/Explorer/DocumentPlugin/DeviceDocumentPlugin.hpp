@@ -89,6 +89,7 @@ private:
       m_connections;
 
   void asyncConnect(Device::DeviceInterface& newdev);
+   void timerEvent(QTimerEvent *event) override;
 
 public:
   NodeUpdateProxy updateProxy{*this};

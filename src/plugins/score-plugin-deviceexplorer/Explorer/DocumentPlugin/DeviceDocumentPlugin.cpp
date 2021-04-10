@@ -84,6 +84,9 @@ void DeviceDocumentPlugin::init()
 {
   asioContext = std::make_shared<ossia::net::network_context>();
   m_processMessages = true;
+#if defined(__EMSCRIPTEN__)
+  startTimer(8);
+#else
   m_asioThread = std::thread{
     [this] {
       while(m_processMessages)
@@ -92,6 +95,7 @@ void DeviceDocumentPlugin::init()
       }
     }
   };
+#endif
 }
 
 void DeviceDocumentPlugin::asyncConnect(Device::DeviceInterface& newdev)
@@ -124,6 +128,26 @@ void DeviceDocumentPlugin::asyncConnect(Device::DeviceInterface& newdev)
   {
     newdev.reconnect();
   }
+}
+
+void DeviceDocumentPlugin::timerEvent(QTimerEvent* event)
+{
+#if defined(__EMSCRIPTEN__)
+  if(m_processMessages)
+  {
+    using work_guard = asio::executor_work_guard<asio::io_context::executor_type>;
+
+    work_guard wg{asioContext->context.get_executor()};
+    try {
+      asioContext->context.poll();
+    } catch (std::exception& e) {
+      ossia::logger().error("Error while processing network events: {}", e.what());
+    } catch (...) {
+      ossia::logger().error("Error while processing network events.");
+    }
+  }
+#endif
+
 }
 /** The following code handles device creation / loading.
  *
@@ -354,6 +378,7 @@ int index(const DeviceDocumentPlugin& model, const QString& name)
   }
   return -1;
 }
+
 void DeviceDocumentPlugin::reconnect(const QString& device)
 {
   auto f = [this](Device::DeviceInterface& dev) {
