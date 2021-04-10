@@ -138,6 +138,7 @@ IntervalBase::IntervalBase(
   add_get<IntervalDurations::p_percentage>(interval.duration);
 
   add<IntervalDurations::p_speed>(interval.duration);
+  add<IntervalModel::p_muted>(interval);
 }
 
 ProcessComponent* IntervalBase::make(
