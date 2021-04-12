@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TouchOSCDeviceLoader.hpp"
 
+#include <score/tools/std/String.hpp>
 #include <score/tools/std/StringHash.hpp>
 #include <score/tools/File.hpp>
 
@@ -38,7 +39,7 @@ void handleTouchOSC(TouchOSCControlMap& layout, Device::Node& node)
 {
   for(auto& [osc_addr, ctl] : layout)
   {
-    auto splitted = osc_addr.split("/", Qt::SkipEmptyParts);
+    auto splitted = ::splitWithoutEmptyParts(osc_addr, "/");
     Device::Node* cur = &node;
     for(int i = 0; i < splitted.size(); i++)
     {
