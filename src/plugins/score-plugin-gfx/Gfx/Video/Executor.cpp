@@ -42,27 +42,32 @@ private:
   std::shared_ptr<video_decoder> m_decoder;
 };
 
-class video_process : public ossia::node_process
+class video_process final : public ossia::node_process
 {
 public:
   using node_process::node_process;
 
-  void offset_impl(ossia::time_value tv) override
+  void offset_impl(ossia::time_value date) override
   {
     auto& vnode = static_cast<video_node&>(*node);
     // TODO should be a "seek" info in what goes from decoder to renderer instead...
-    vnode.decoder().seek(tv.impl);
+
+    if(!this->m_loops)
+    {
+      vnode.decoder().seek(this->m_start_offset.impl + date.impl);
+    }
+    else
+    {
+      vnode.decoder().seek(this->m_start_offset.impl + ((date.impl - this->m_start_offset.impl) % this->m_loop_duration.impl));
+    }
+
     vnode.impl->seeked = true;
   }
 
   void transport_impl(ossia::time_value date) override
   {
-    auto& vnode = static_cast<video_node&>(*node);
-    vnode.decoder().seek(date.impl);
-    vnode.impl->seeked = true;
+    offset_impl(date);
   }
-
-  void state_impl(const ossia::token_request& req) { node->request(req); }
 
   void start() override { static_cast<video_node&>(*node).decoder().seek(0); }
   void stop() override { static_cast<video_node&>(*node).decoder().seek(0); }

@@ -99,6 +99,10 @@ AVFrame* VideoDecoder::dequeue_frame() noexcept
   }
 
   m_framesToPlayer.try_dequeue(f);
+  if(f)
+  {
+    m_last_dequeued_dts = f->pkt_dts;
+  }
   m_condVar.notify_one();
   return f;
 }
@@ -135,7 +139,6 @@ void VideoDecoder::buffer_thread() noexcept
       if (m_framesToPlayer.size_approx() < (frames_to_buffer / 2))
       if (auto f = read_frame_impl())
       {
-        m_last_dts = f->pkt_dts;
         m_framesToPlayer.enqueue(f);
       }
     }
@@ -190,90 +193,153 @@ void VideoDecoder::drain_frames() noexcept
   }
 }
 
+ReadFrame VideoDecoder::read_one_frame(AVFrame* frame, AVPacket& packet)
+{
+  const bool hap = (m_formatContext->streams[m_stream]->codecpar->codec_id == AV_CODEC_ID_HAP);
+  int res{};
+  while ((res = av_read_frame(m_formatContext, &packet)) >= 0)
+  {
+    if (packet.stream_index == m_stream)
+    {
+      if(hap)
+      {
+        auto cp = m_formatContext->streams[m_stream]->codecpar;
+        // TODO this is a hack, we store the FOURCC in the format...
+
+        memcpy(&frame->format, &cp->codec_tag, 4);
+
+        frame->buf[0] = av_buffer_ref(packet.buf);
+        frame->format = (cp->codec_tag);
+        frame->best_effort_timestamp = packet.pts;
+        frame->data[0] = packet.data;//(uint8_t*)malloc(sizeof(uint8_t) * packet.size);
+        frame->linesize[0] = packet.size;
+        frame->pts = packet.pts;
+        frame->pkt_dts = packet.dts;
+        frame->pkt_duration = packet.duration;
+
+        //std::copy_n(packet.data, packet.size, frame->data[0]);
+        return {frame, 0};
+      }
+      else
+      {
+        return enqueue_frame(&packet, &frame);
+      }
+
+      av_packet_unref(&packet);
+      break;
+    }
+
+    av_packet_unref(&packet);
+  }
+  if(res != 0 && res != AVERROR_EOF)
+    qDebug() << "Error while reading a frame: " << av_err2str(res);
+  return {nullptr, res};
+}
+
+/*
+// https://stackoverflow.com/a/44468529/1495627
+static
+int seek_to_frame(AVFormatContext* format, AVStream* stream, int frameIndex)
+{
+  using namespace std;
+  // Seek is done on packet dts
+  int64_t target_dts_usecs = std::round(frameIndex * (double)stream->r_frame_rate.den / stream->r_frame_rate.num * AV_TIME_BASE);
+  // Remove first dts: when non zero seek should be more accurate
+  auto first_dts_usecs = std::round(stream->first_dts * (double)stream->time_base.num / stream->time_base.den * AV_TIME_BASE);
+  target_dts_usecs += first_dts_usecs;
+  return av_seek_frame(format, -1, target_dts_usecs, AVSEEK_FLAG_BACKWARD);
+}
+*/
+
 bool VideoDecoder::seek_impl(int64_t flicks) noexcept
 {
   if(m_stream >= int(m_formatContext->nb_streams))
     return false;
 
+  const auto stream = m_formatContext->streams[m_stream];
   const int64_t dts = flicks * dts_per_flicks;
 
-  constexpr int64_t min_dts_delta = 200;
-  if(std::abs(dts - m_last_dts) < min_dts_delta)
+  // Don't seek if we're less than 0.2 second close to the request
+  // unit of the timestamps in seconds: stream->time_base.num / stream->time_base.den
+  const int64_t min_dts_delta = (0.2 * stream->time_base.den) / stream->time_base.num;
+  if(std::abs(dts - m_last_dequeued_dts) <= min_dts_delta)
     return false;
 
   // TODO - maybe we should also store the "last dequeued dts" from the
   // decoder side - this way no need to seek if we are in the interval
-
-  const bool seek_forward = dts >= this->m_last_dts;
-  if (av_seek_frame(m_formatContext, m_stream, dts, seek_forward ? 0 : AVSEEK_FLAG_BACKWARD) < 0)
+  const bool seek_forward = dts >= this->m_last_dequeued_dts;
+  const auto start = stream->first_dts;
+  if (av_seek_frame(m_formatContext, m_stream, start + dts, AVSEEK_FLAG_BACKWARD))
   {
     qDebug() << "Failed to seek for time " << dts;
     return false;
   }
 
-  avcodec_flush_buffers(m_codecContext);
+  if(m_codecContext)
+    avcodec_flush_buffers(m_codecContext);
 
-  int got_frame = 0;
   AVPacket pkt{};
   AVFrame* f = get_new_frame();
-  int k = 0;
+  assert(f);
+
+  ReadFrame r;
   do
   {
-    if (av_read_frame(m_formatContext, &pkt) == 0)
+    // First flush the buffer or smth
+    do
     {
-      got_frame = enqueue_frame(&pkt, &f);
-      av_packet_unref(&pkt);
-    }
-    else
+      r = read_one_frame(f, pkt);
+    }  while(r.error == AVERROR(EAGAIN));
+
+    if(r.error == AVERROR_EOF)
     {
       break;
     }
-    k++;
-  } while (k < 5 && !(got_frame && ((seek_forward && f->pkt_dts >= dts) || (!seek_forward && f->pkt_dts <= dts) || std::abs(f->pkt_dts - dts) < min_dts_delta)));
 
-  m_last_dts = f->pkt_dts;
-  m_framesToPlayer.enqueue(f);
-  m_discardUntil = f;
+    // we're starting to see correct frames, try to get close to the dts we want.
+    while(f->pkt_dts + f->pkt_duration < dts)
+    {
+      r = read_one_frame(f, pkt);
+      if(r.error == AVERROR_EOF)
+        break;
+    }
+  } while (0);
+
+  if(r.frame)
+  {
+    m_framesToPlayer.enqueue(f);
+    m_discardUntil = f;
+  }
+  else
+  {
+    av_frame_free(&f);
+  }
   return true;
 }
 
+
 AVFrame* VideoDecoder::read_frame_impl() noexcept
 {
-  AVFrame* res = nullptr;
+  ReadFrame res;
 
   if (m_stream != -1)
   {
     AVFrame* frame = get_new_frame();
     AVPacket packet;
     memset(&packet, 0, sizeof(AVPacket));
-    bool ok = false;
 
-    while (av_read_frame(m_formatContext, &packet) >= 0)
+    do
     {
-      if (packet.stream_index == m_stream)
-      {
-        if (enqueue_frame(&packet, &frame))
-        {
-          res = frame;
-          ok = true;
-        }
+      res = read_one_frame(frame, packet);
+    }  while(res.error == AVERROR(EAGAIN));
 
-        av_packet_unref(&packet);
-        packet = AVPacket{};
-        break;
-      }
-
-      av_packet_unref(&packet);
-      packet = AVPacket{};
-    }
-
-    if (!ok)
+    if (!res.frame)
     {
       av_frame_free(&frame);
-      res = nullptr;
+      res.frame = nullptr;
     }
   }
-  return res;
+  return res.frame;
 }
 
 void VideoDecoder::init_scaler() noexcept
@@ -286,6 +352,7 @@ void VideoDecoder::init_scaler() noexcept
         SWS_FAST_BILINEAR, NULL, NULL, NULL);
   pixel_format = AV_PIX_FMT_RGBA;
 }
+
 bool VideoDecoder::open_stream() noexcept
 {
   bool res = false;
@@ -316,15 +383,15 @@ bool VideoDecoder::open_stream() noexcept
     dts_per_flicks = (tb.den / (tb.num * ossia::flicks_per_second<double>));
     flicks_per_dts = (tb.num * ossia::flicks_per_second<double>) / tb.den;
 
-    m_codec = avcodec_find_decoder(m_codecContext->codec_id);
-
-    if (m_codec)
+    auto codecPar = stream->codecpar;
+    if ((m_codec = avcodec_find_decoder(codecPar->codec_id)))
     {
-      pixel_format = m_codecContext->pix_fmt;
-      res = !(avcodec_open2(m_codecContext, m_codec, nullptr) < 0);
-      width = m_codecContext->coded_width;
-      height = m_codecContext->coded_height;
+      pixel_format = (AVPixelFormat)codecPar->format;
+      width = codecPar->width;
+      height = codecPar->height;
       fps = av_q2d(stream->avg_frame_rate);
+
+      res = !(avcodec_open2(m_codecContext, m_codec, nullptr) < 0);
 
       switch(pixel_format)
       {
@@ -377,9 +444,10 @@ void VideoDecoder::close_video() noexcept
   }
 }
 
-bool VideoDecoder::enqueue_frame(const AVPacket* pkt, AVFrame** frame) noexcept
+ReadFrame VideoDecoder::enqueue_frame(const AVPacket* pkt, AVFrame** frame) noexcept
 {
-  if(readVideoFrame(m_codecContext, pkt, *frame))
+  ReadFrame read = readVideoFrame(m_codecContext, pkt, *frame);
+  if(read.frame)
   {
     if(m_rescale)
     {
@@ -398,30 +466,40 @@ bool VideoDecoder::enqueue_frame(const AVPacket* pkt, AVFrame** frame) noexcept
       av_frame_free(frame);
       *frame = m_rgb;
     }
-    return true;
   }
-  return false;
+  return read;
 }
 
-bool readVideoFrame(AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* frame)
+ReadFrame readVideoFrame(AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* frame)
 {
-  int got_picture_ptr = 0;
-
   if (codecContext && pkt && frame)
   {
     int ret = avcodec_send_packet(codecContext, pkt);
     if (ret < 0)
-      return ret == AVERROR_EOF ? 0 : ret;
+    {
+      if(ret != AVERROR_EOF)
+      {
+        qDebug() << "avcodec_send_packet: " << av_err2str(ret);
+      }
+      return {nullptr, ret};
+    }
 
     ret = avcodec_receive_frame(codecContext, frame);
     if (ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF)
-      return ret;
-
-    if (ret >= 0)
-      got_picture_ptr = 1;
+    {
+      qDebug() << "avcodec_receive_frame: " << av_err2str(ret);
+      return {nullptr, ret};
+    }
+    else
+    {
+      if(frame->pts >= 0)
+        return {frame, ret};
+      else
+        return {nullptr, ret};
+    }
   }
 
-  return got_picture_ptr == 1;
+  return {nullptr, AVERROR_UNKNOWN};
 }
 
 }

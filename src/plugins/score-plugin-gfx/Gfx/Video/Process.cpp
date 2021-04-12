@@ -99,6 +99,7 @@ std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::dropData(
     {
       Process::ProcessDropHandler::ProcessDrop p;
       p.creation.key = Metadata<ConcreteKey_k, Gfx::Video::Model>::get();
+      p.creation.customData = filename;
       p.setup = [str = filename](Process::ProcessModel& m, score::Dispatcher& disp) {
         auto& video = static_cast<Gfx::Video::Model&>(m);
         disp.submit(new ChangeVideo{video, str});

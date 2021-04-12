@@ -34,6 +34,8 @@ Presenter::Presenter(const Model& layer, View* view, const Process::Context& ctx
 
     setupInlet(*inlet, portFactory, ctx);
   }
+
+  connect(m_view, &View::dropReceived, this, &Presenter::on_drop);
 }
 
 void Presenter::setWidth(qreal val, qreal defaultWidth)
@@ -92,4 +94,17 @@ void Presenter::setupInlet(
   // TODO   on_controlAdded(inlet.id());
   // TODO });
 }
+
+void Presenter::on_drop(const QPointF& pos, const QMimeData& md)
+{
+  auto drops = Video::DropHandler{}.getDrops(md, this->context().context);
+  if(drops.empty())
+    return;
+
+  auto& video = drops[0];
+
+  CommandDispatcher<> disp{m_context.context.commandStack};
+  disp.submit<ChangeVideo>(static_cast<const Video::Model&>(model()), video.creation.customData);
+}
+
 }

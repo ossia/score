@@ -38,3 +38,9 @@
 [submodule "3rdparty/libpd"]
 	path = 3rdparty/libpd
 	url = https://github.com/jcelerier/libpd
+[submodule "3rdparty/snappy"]
+	path = 3rdparty/snappy
+	url = https://github.com/google/snappy
+[submodule "3rdparty/hap"]
+	path = 3rdparty/hap
+	url = https://github.com/Vidvox/hap

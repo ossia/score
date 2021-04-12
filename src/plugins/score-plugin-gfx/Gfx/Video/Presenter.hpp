@@ -25,6 +25,7 @@ public:
   void putToFront() override;
   void putBehind() override;
 
+  void on_drop(const QPointF& pos, const QMimeData& md);
   void on_zoomRatioChanged(ZoomRatio) override;
 
   void parentGeometryChanged() override;

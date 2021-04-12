@@ -1,6 +1,7 @@
 #include <Gfx/Graph/videonode.hpp>
 
 #include <Gfx/Graph/decoders/RGBA.hpp>
+#include <Gfx/Graph/decoders/HAP.hpp>
 #include <Gfx/Graph/decoders/YUV420.hpp>
 #include <Gfx/Graph/decoders/YUV422.hpp>
 #include <Gfx/Graph/decoders/YUYV422.hpp>
@@ -117,40 +118,61 @@ VideoNode::VideoNode(std::shared_ptr<video_decoder> dec, std::optional<double> n
 
 void VideoNode::initGpuDecoder()
 {
-    switch (current_format)
-    {
+  switch (current_format)
+  {
     case AV_PIX_FMT_YUV420P:
-        gpu = std::make_unique<YUV420Decoder>(*this, *decoder);
-        break;
+      gpu = std::make_unique<YUV420Decoder>(*this, *decoder);
+      break;
     case AV_PIX_FMT_YUVJ422P:
     case AV_PIX_FMT_YUV422P:
-        gpu = std::make_unique<YUV422Decoder>(*this, *decoder);
-        break;
-    // case AV_PIX_FMT_YUYV422:
-    //     gpu = std::make_unique<YUYV422Decoder>(*this, *decoder);
-    //     break;
+      gpu = std::make_unique<YUV422Decoder>(*this, *decoder);
+      break;
+      // case AV_PIX_FMT_YUYV422:
+      //     gpu = std::make_unique<YUYV422Decoder>(*this, *decoder);
+      //     break;
     case AV_PIX_FMT_RGB0:
     case AV_PIX_FMT_RGBA:
-        gpu = std::make_unique<RGB0Decoder>(QRhiTexture::RGBA8, *this, *decoder, filter);
-        break;
+      gpu = std::make_unique<RGB0Decoder>(QRhiTexture::RGBA8, *this, *decoder, filter);
+      break;
     case AV_PIX_FMT_BGR0:
     case AV_PIX_FMT_BGRA:
-        gpu = std::make_unique<RGB0Decoder>(QRhiTexture::BGRA8, *this, *decoder, filter);
-        break;
+      gpu = std::make_unique<RGB0Decoder>(QRhiTexture::BGRA8, *this, *decoder, filter);
+      break;
 #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(56, 19, 100)
     case AV_PIX_FMT_GRAYF32LE:
     case AV_PIX_FMT_GRAYF32BE:
-        gpu = std::make_unique<RGB0Decoder>(QRhiTexture::R32F, *this, *decoder, filter);
-        break;
+      gpu = std::make_unique<RGB0Decoder>(QRhiTexture::R32F, *this, *decoder, filter);
+      break;
 #endif
     case AV_PIX_FMT_GRAY8:
-        gpu = std::make_unique<RGB0Decoder>(QRhiTexture::R8, *this, *decoder, filter);
-        break;
+      gpu = std::make_unique<RGB0Decoder>(QRhiTexture::R8, *this, *decoder, filter);
+      break;
     default:
+    {
+      // try to read format as a 4cc
+      std::string_view fourcc{(const char*) &current_format, 4};
+
+      if(fourcc == "Hap1")
+        gpu = std::make_unique<HAPDecoder>(QRhiTexture::BC1, *this, *decoder, filter);
+      else if(fourcc == "Hap5")
+        gpu = std::make_unique<HAPDecoder>(QRhiTexture::BC3, *this, *decoder, filter);
+      else if(fourcc == "HapY")
+        gpu = std::make_unique<HAPYCoCgDecoder>(QRhiTexture::BC3, *this, *decoder, filter);
+      else if(fourcc == "HapM")
+        gpu = std::make_unique<HAPYCoCgDecoder>(QRhiTexture::BC3, *this, *decoder, filter);
+      else if(fourcc == "HapA")
+        gpu = std::make_unique<HAPDecoder>(QRhiTexture::BC4, *this, *decoder, filter);
+      else if(fourcc == "Hap7")
+        gpu = std::make_unique<HAPDecoder>(QRhiTexture::BC7, *this, *decoder, filter);
+
+      if(!gpu)
+      {
         qDebug() << "Unhandled pixel format: " << av_get_pix_fmt_name(current_format);
         gpu = std::make_unique<EmptyDecoder>(*this);
-        break;
+      }
+      break;
     }
+  }
 }
 
 void VideoNode::checkFormat(AVPixelFormat fmt)
@@ -183,3 +205,6 @@ score::gfx::NodeRenderer* VideoNode::createRenderer() const noexcept {
     r->current_format = current_format;
     return r;
 }
+
+
+#include <hap/source/hap.c>

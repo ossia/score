@@ -20,6 +20,7 @@ namespace Gfx::Video
 View::View(const Model& model, QGraphicsItem* parent)
   : LayerView{parent}
 {
+  this->setAcceptDrops(true);
   setFlag(ItemClipsToShape, true);
   con(model, &Model::pathChanged,
       this,  &View::onPathChanged);
@@ -151,5 +152,11 @@ void View::paint_impl(QPainter* painter) const
       painter->drawImage(QPointF{px, 0.f}, it->second);
     }
   }
+}
+
+void View::dropEvent(QGraphicsSceneDragDropEvent* event)
+{
+  dropReceived(event->pos(), *event->mimeData());
+  event->accept();
 }
 }

@@ -19,7 +19,10 @@ extern "C"
 
 namespace Video
 {
-
+struct ReadFrame {
+  AVFrame* frame{};
+  int error{};
+};
 class SCORE_PLUGIN_MEDIA_EXPORT VideoDecoder final : public VideoInterface
 {
 public:
@@ -43,10 +46,12 @@ private:
   AVFrame* read_frame_impl() noexcept;
   bool open_stream() noexcept;
   void close_video() noexcept;
-  bool enqueue_frame(const AVPacket* pkt, AVFrame** frame) noexcept;
+  ReadFrame enqueue_frame(const AVPacket* pkt, AVFrame** frame) noexcept;
   AVFrame* get_new_frame() noexcept;
   void drain_frames() noexcept;
   void init_scaler() noexcept;
+
+  ReadFrame read_one_frame(AVFrame* frame, AVPacket& packet);
 
   static const constexpr int frames_to_buffer = 16;
 
@@ -69,11 +74,12 @@ private:
 
   std::atomic<AVFrame*> m_discardUntil{};
   std::atomic_int64_t m_seekTo = -1;
-  int64_t m_last_dts = 0;
+  std::atomic_int64_t m_last_dequeued_dts = 0;
+  std::atomic_int64_t m_dequeued = 0;
 
   std::atomic_bool m_running{};
 };
 
-bool readVideoFrame(AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* frame);
+ReadFrame readVideoFrame(AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* frame);
 }
 #endif

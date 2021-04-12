@@ -21,6 +21,7 @@ private:
   void onPathChanged(const QString& str);
   void widthChanged(qreal) override;
 
+  void dropEvent(QGraphicsSceneDragDropEvent* event);
   void paint_impl(QPainter*) const override;
 
   ::Video::VideoThumbnailer* m_thumb{};

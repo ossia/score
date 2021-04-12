@@ -75,6 +75,7 @@ set(HDRS
     Gfx/Graph/texgennode.hpp
     Gfx/Graph/shadercache.hpp
     Gfx/Graph/decoders/GPUVideoDecoder.hpp
+    Gfx/Graph/decoders/HAP.hpp
     Gfx/Graph/decoders/RGBA.hpp
     Gfx/Graph/decoders/YUV420.hpp
     Gfx/Graph/decoders/YUV422.hpp
@@ -150,6 +151,7 @@ score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 target_link_libraries(${PROJECT_NAME} PUBLIC
   score_lib_base  score_lib_localtree score_lib_process score_plugin_dataflow score_plugin_engine
    ${QT_PREFIX}::ShaderTools  ${QT_PREFIX}::GuiPrivate
+   snappy # for HAP
 )
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
