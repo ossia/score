@@ -22,7 +22,7 @@ jobs:
       env: CONF=focal CC=clang-10 CXX=clang++-10
 
 before_install:
-- "./ci/$CONF.deps.sh"
+- travis_wait "./ci/$CONF.deps.sh"
 
 script:
-- "./ci/$CONF.build.sh"
+- travis_wait "./ci/$CONF.build.sh"
