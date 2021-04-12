@@ -4,7 +4,7 @@ namespace Protocols::Settings
 #if defined(_WIN32)
   MidiAPI::operator QStringList() const { return {"MME", "UWP", "JACK"}; }
 #elif defined(__APPLE__)
-  MidiAPI::perator QStringList() const { return {"CoreMidi", "JACK"}; }
+  MidiAPI::operator QStringList() const { return {"CoreMidi", "JACK"}; }
 #elif defined(__linux__)
   MidiAPI::operator QStringList() const { return {"ALSA (sequencer)", "ALSA (raw)", "JACK"}; }
 #elif defined(__emscripten__)
