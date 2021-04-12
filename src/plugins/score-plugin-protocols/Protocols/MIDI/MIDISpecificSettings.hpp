@@ -1,4 +1,5 @@
 #pragma once
+#include <libremidi/api.hpp>
 
 #include <QString>
 
@@ -15,6 +16,7 @@ struct MIDISpecificSettings
   } io{};
   QString endpoint;
   int port{};
+  libremidi::API api{};
   bool createWholeTree{};
 };
 }

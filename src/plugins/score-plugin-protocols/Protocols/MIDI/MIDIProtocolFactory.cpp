@@ -7,6 +7,7 @@
 
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Protocols/MIDI/MIDISpecificSettings.hpp>
+#include <Protocols/Settings/Model.hpp>
 
 #include <QObject>
 #if defined(__EMSCRIPTEN__)
@@ -42,8 +43,9 @@ class MidiEnumerator : public Device::DeviceEnumerator
 
         set.protocol = MIDIInputProtocolFactory::static_concreteKey();
         specif.io = MIDISpecificSettings::IO::In;
-
+        specif.api = libremidi::API::EMSCRIPTEN_WEBMIDI;
         specif.port = port;
+
         set.deviceSpecificSettings = QVariant::fromValue(specif);
 
         deviceAdded(set);
@@ -59,7 +61,9 @@ class MidiEnumerator : public Device::DeviceEnumerator
 
         set.protocol = MIDIOutputProtocolFactory::static_concreteKey();
         specif.io = MIDISpecificSettings::IO::Out;
+        specif.api = libremidi::API::EMSCRIPTEN_WEBMIDI;
         specif.port = port;
+
         set.deviceSpecificSettings = QVariant::fromValue(specif);
 
         deviceAdded(set);
@@ -80,7 +84,8 @@ public:
   {
     try
     {
-      auto vec = ossia::net::midi::midi_protocol::scan();
+      auto api = score::AppContext().settings<Protocols::Settings::Model>().getMidiApiAsEnum();
+      auto vec = ossia::net::midi::midi_protocol::scan(api);
 
       for (auto& elt : vec)
       {
@@ -90,6 +95,7 @@ public:
           MIDISpecificSettings specif;
           set.name = QString::fromStdString(elt.device);
           specif.endpoint = QString::fromStdString(elt.device);
+          specif.api = api;
 
           if constexpr (Type == ossia::net::midi::midi_info::Type::Input)
           {

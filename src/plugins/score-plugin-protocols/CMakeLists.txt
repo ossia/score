@@ -8,6 +8,11 @@ find_package(${QT_VERSION} OPTIONAL_COMPONENTS Qml)
 
 # Files & main target
 set(HDRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Settings/Model.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Settings/Presenter.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Settings/View.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Settings/Factory.hpp"
+
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSSIADevice.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/ProtocolLibrary.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/RateWidget.hpp"
@@ -17,6 +22,10 @@ set(HDRS
 )
 
 set(SRCS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Settings/Model.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Settings/Presenter.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Settings/View.cpp"
+
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/LibraryDeviceEnumerator.cpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_protocols.cpp"
@@ -216,7 +225,6 @@ endif()
 if(OSSIA_PROTOCOL_WIIMOTE)
     target_sources(${PROJECT_NAME} PRIVATE ${WIIMOTE_HDRS} ${WIIMOTE_SRCS})
 endif()
-
 
 if(OSSIA_PROTOCOL_ARTNET)
     target_sources(${PROJECT_NAME} PRIVATE ${ARTNET_HDRS} ${ARTNET_SRCS})

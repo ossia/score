@@ -5,6 +5,7 @@
 
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Protocols/ProtocolLibrary.hpp>
+#include <Protocols/Settings/Factory.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
 #include <score/plugins/InterfaceList.hpp>
@@ -117,6 +118,9 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_protocols::facto
          Protocols::ArtnetProtocolFactory
 #endif
          >,
+      FW<score::SettingsDelegateFactory,
+         Protocols::Settings::Factory
+      >,
       FW<Library::LibraryInterface,
          Protocols::OSCLibraryHandler
 #if __has_include(<QQmlEngine>)
