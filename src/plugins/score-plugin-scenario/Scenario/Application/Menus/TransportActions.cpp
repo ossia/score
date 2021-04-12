@@ -233,8 +233,6 @@ void TransportActions::makeGUIElements(score::GUIElements& ref)
 
     bar->addWidget(new Scenario::SpeedWidget{false, true, bar});
 
-    qDebug() << bar->children();
-
     ref.toolbars.emplace_back(
         bar, StringKey<score::Toolbar>("Transport"), Qt::BottomToolBarArea, 200);
   }

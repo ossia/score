@@ -42,7 +42,7 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
             auto vendor = QString::fromStdString(cls.vendor());
             auto desc = QString::fromStdString(cls.version());
             auto uid = QString{"%1/::/%2"}.arg(vst.path).arg(name);
-            qDebug() << " !!! " << name << uid;
+
             Library::ProcessData classdata{
               {key, name, uid}, {}, vendor, desc
             };
