@@ -18,6 +18,7 @@ extern "C"
 #include <functional>
 namespace Video
 {
+static char global_errbuf[512];
 VideoInterface::~VideoInterface()
 {
 
@@ -232,7 +233,7 @@ ReadFrame VideoDecoder::read_one_frame(AVFrame* frame, AVPacket& packet)
     av_packet_unref(&packet);
   }
   if(res != 0 && res != AVERROR_EOF)
-    qDebug() << "Error while reading a frame: " << av_err2str(res);
+    qDebug() << "Error while reading a frame: " << av_make_error_string(global_errbuf, sizeof(global_errbuf), res);
   return {nullptr, res};
 }
 
@@ -479,7 +480,7 @@ ReadFrame readVideoFrame(AVCodecContext* codecContext, const AVPacket* pkt, AVFr
     {
       if(ret != AVERROR_EOF)
       {
-        qDebug() << "avcodec_send_packet: " << av_err2str(ret);
+        qDebug() << "avcodec_send_packet: " << av_make_error_string(global_errbuf, sizeof(global_errbuf), ret);
       }
       return {nullptr, ret};
     }
@@ -487,7 +488,7 @@ ReadFrame readVideoFrame(AVCodecContext* codecContext, const AVPacket* pkt, AVFr
     ret = avcodec_receive_frame(codecContext, frame);
     if (ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF)
     {
-      qDebug() << "avcodec_receive_frame: " << av_err2str(ret);
+      qDebug() << "avcodec_receive_frame: " << av_make_error_string(global_errbuf, sizeof(global_errbuf), ret);
       return {nullptr, ret};
     }
     else
