@@ -20,7 +20,6 @@ namespace Audio::Settings
 Presenter::Presenter(Model& m, View& v, QObject* parent)
     : score::GlobalSettingsPresenter{m, v, parent}
 {
-
   v.setDriver(m.getDriver());
   loadDriver(m.getDriver());
   v.setRate(m.getRate());

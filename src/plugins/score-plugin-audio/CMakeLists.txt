@@ -34,6 +34,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/ALSAPortAudioInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/GenericPortAudioInterface.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Audio/JackInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioApplicationPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioPreviewExecutor.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioTick.cpp"

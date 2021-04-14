@@ -34,6 +34,8 @@ SETTINGS_PARAMETER_IMPL(Driver)
   }
 #endif
 };
+SETTINGS_PARAMETER_IMPL(InputNames){QStringLiteral("Audio/InputNames"), {}};
+SETTINGS_PARAMETER_IMPL(OutputNames){QStringLiteral("Audio/OutputNames"), {}};
 SETTINGS_PARAMETER_IMPL(CardIn){QStringLiteral("Audio/CardIn"), ""};
 SETTINGS_PARAMETER_IMPL(CardOut){QStringLiteral("Audio/CardOut"), ""};
 SETTINGS_PARAMETER_IMPL(BufferSize){QStringLiteral("Audio/BufferSize"), 64};
@@ -41,10 +43,11 @@ SETTINGS_PARAMETER_IMPL(Rate){QStringLiteral("Audio/SamplingRate"), 44100};
 SETTINGS_PARAMETER_IMPL(DefaultIn){QStringLiteral("Audio/DefaultIn"), 2};
 SETTINGS_PARAMETER_IMPL(DefaultOut){QStringLiteral("Audio/DefaultOut"), 2};
 SETTINGS_PARAMETER_IMPL(AutoStereo){QStringLiteral("Audio/AutoStereo"), true};
+SETTINGS_PARAMETER_IMPL(AutoConnect){QStringLiteral("Audio/AutoConnect"), true};
 
 static auto list()
 {
-  return std::tie(Driver, Rate, CardIn, CardOut, BufferSize, DefaultIn, DefaultOut, AutoStereo);
+  return std::tie(Driver, Rate, InputNames, OutputNames, CardIn, CardOut, BufferSize, DefaultIn, DefaultOut, AutoStereo, AutoConnect);
 }
 }
 
@@ -98,9 +101,6 @@ void Model::setDriver(Audio::AudioFactory::ConcreteKey val)
 #endif
 }
 
-SCORE_SETTINGS_PARAMETER_CPP(QString, Model, CardIn)
-SCORE_SETTINGS_PARAMETER_CPP(QString, Model, CardOut)
-
 int Model::getRate() const
 {
   return m_Rate;
@@ -143,7 +143,12 @@ void Model::setBufferSize(int val)
   BufferSizeChanged(val);
 }
 
+SCORE_SETTINGS_PARAMETER_CPP(QStringList, Model, InputNames)
+SCORE_SETTINGS_PARAMETER_CPP(QStringList, Model, OutputNames)
+SCORE_SETTINGS_PARAMETER_CPP(QString, Model, CardIn)
+SCORE_SETTINGS_PARAMETER_CPP(QString, Model, CardOut)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, DefaultIn)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, DefaultOut)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, AutoStereo)
+SCORE_SETTINGS_PARAMETER_CPP(bool, Model, AutoConnect)
 }
