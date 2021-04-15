@@ -62,10 +62,10 @@ public:
   QWidget* setupTimingWidget(QLabel*) const;
   void initLocalTreeNodes(LocalTree::DocumentPlugin&);
 
-  Execution::ExecutionManager& execution() { return m_execution; }
+  Execution::ExecutionController& execution() { return m_execution; }
 private:
   Execution::PlayContextMenu m_playActions;
-  Execution::ExecutionManager m_execution;
+  Execution::ExecutionController m_execution;
 
   Scenario::SpeedWidget* m_speedSlider{};
 };

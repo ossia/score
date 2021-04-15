@@ -105,7 +105,7 @@
 
 namespace Execution
 {
-ExecutionManager::ExecutionManager(const score::GUIApplicationContext& ctx)
+ExecutionController::ExecutionController(const score::GUIApplicationContext& ctx)
   : context{ctx}
   , m_scenario{ctx.guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>()}
   , m_actions{m_scenario.transportActions()}
@@ -115,86 +115,126 @@ ExecutionManager::ExecutionManager(const score::GUIApplicationContext& ctx)
     auto& acts = ctx.actions;
     using namespace Actions;
     connect(acts.action<Play>().action(), &QAction::triggered,
-            this, &ExecutionManager::request_play_local,
+            this, &ExecutionController::request_play_local,
             Qt::QueuedConnection);
 
     connect(acts.action<PlayGlobal>().action(), &QAction::triggered,
-            this, &ExecutionManager::request_play_global,
+            this, &ExecutionController::request_play_global,
             Qt::QueuedConnection);
 
     connect(acts.action<Stop>().action(), &QAction::triggered,
-            this, &ExecutionManager::request_stop,
+            this, &ExecutionController::request_stop,
             Qt::QueuedConnection);
 
     connect(acts.action<Reinitialize>().action(), &QAction::triggered,
-            this, &ExecutionManager::on_reinitialize,
+            this, &ExecutionController::on_reinitialize,
             Qt::QueuedConnection);
 
     connect(&m_scenario.execution(), &Scenario::ScenarioExecution::playAtDate,
-            this, &ExecutionManager::request_play_from_here);
+            this, &ExecutionController::request_play_from_here);
   }
 }
 
-ExecutionManager::~ExecutionManager()
+ExecutionController::~ExecutionController()
 {
   if(m_transport)
     m_transport->teardown();
 }
 
-void ExecutionManager::request_play_global(bool b)
+void ExecutionController::request_play_global(bool b)
 {
   if(b)
+  {
+    this->m_requestLocalPlay = false;
     m_transport->requestPlay();
+  }
   else
+  {
     m_transport->requestPause();
+  }
 }
 
-void ExecutionManager::request_play_local(bool b)
+void ExecutionController::request_play_local(bool b)
 {
   if(b)
-    trigger_play_local();
+  {
+    this->m_requestLocalPlay = true;
+    m_transport->requestPlay();
+  }
   else
-    trigger_pause();
+  {
+    m_transport->requestPause();
+  }
 }
 
-void ExecutionManager::request_stop()
+void ExecutionController::request_play_interval(
+    Scenario::IntervalModel& itv,
+    exec_setup_fun setup,
+    TimeVal t)
+{
+  m_intervalsToPlay.push_back({itv, std::move(setup), t});
+  m_transport->requestPlay();
+}
+
+void ExecutionController::request_stop()
 {
   m_transport->requestStop();
 }
 
 
-void ExecutionManager::trigger_play_local()
+void ExecutionController::trigger_play()
 {
-  m_actions.onPlayLocal(true);
-  on_play_local(true);
+  if(!m_intervalsToPlay.empty())
+  {
+    m_actions.onPlayLocal();
+    for(auto& to_play : m_intervalsToPlay)
+      play_interval(to_play.interval, std::move(to_play.setup), to_play.t);
+    m_intervalsToPlay.clear();
+  }
+  else if(this->m_requestLocalPlay)
+  {
+    m_actions.onPlayLocal();
+    on_play_local(true);
+  }
+  else
+  {
+    m_actions.onPlayGlobal();
+    on_play_global(true);
+  }
+
+  // Note: we set this here so that external "play" request are global
+  // as it makes more sense:
+  // local play is just for checking a sub-part of the score, but the external tools's times will
+  // always be relative to the whole general score
+  this->m_requestLocalPlay = false;
 }
 
-void ExecutionManager::trigger_play_global()
-{
-  m_actions.onPlayGlobal(true);
-  on_play_global(true);
-}
-
-void ExecutionManager::trigger_pause()
+void ExecutionController::trigger_pause()
 {
   m_actions.onPause();
   on_pause();
 }
 
-void ExecutionManager::trigger_stop()
+void ExecutionController::trigger_stop()
 {
   m_actions.onStop();
   on_stop();
+
+  // See note above
+  this->m_requestLocalPlay = false;
 }
 
-void ExecutionManager::trigger_reinitialize()
+void ExecutionController::trigger_reinitialize()
 {
   m_actions.onStop();
   on_reinitialize();
+
+  // See note above
+  this->m_requestLocalPlay = false;
 }
 
 
-void ExecutionManager::on_play_global(bool b)
+void ExecutionController::on_play_global(bool b)
 {
   if (auto scenar = currentScenarioModel())
   {
@@ -209,7 +249,7 @@ void ExecutionManager::on_play_global(bool b)
   }
 }
 
-void ExecutionManager::on_play_local(bool b, ::TimeVal t)
+void ExecutionController::on_play_local(bool b, ::TimeVal t)
 {
   if (auto scenar = currentScenarioPresenter())
   {
@@ -228,12 +268,12 @@ void ExecutionManager::on_play_local(bool b, ::TimeVal t)
   }
 }
 
-void ExecutionManager::on_play_local(bool b)
+void ExecutionController::on_play_local(bool b)
 {
   on_play_local(b, ::TimeVal::zero());
 }
 
-void ExecutionManager::on_pause()
+void ExecutionController::on_pause()
 {
   ensure_audio_engine();
 
@@ -248,7 +288,7 @@ void ExecutionManager::on_pause()
 }
 
 
-void ExecutionManager::on_transport(TimeVal t)
+void ExecutionController::on_transport(TimeVal t)
 {
   if (!m_clock)
     return;
@@ -273,34 +313,34 @@ void ExecutionManager::on_transport(TimeVal t)
   }
 }
 
-void ExecutionManager::request_play_from_localtree(bool val)
+void ExecutionController::request_play_from_localtree(bool val)
 {
-  if (!playing() && val)
+  if (!m_playing && val)
   {
     // not playing, play requested
-    trigger_play_local();
+    request_play_local(val);
   }
-  else if (playing())
+  else if (m_playing)
   {
-    if (paused() == val)
+    if (m_paused == val)
     {
       // paused, play requested
       // or playing, pause requested
-      trigger_play_local();
+      request_play_local(val);
     }
   }
 }
 
-void ExecutionManager::request_play_global_from_localtree(bool val)
+void ExecutionController::request_play_global_from_localtree(bool val)
 {
-  if (!playing() && val)
+  if (!m_playing && val)
   {
     // not playing, play requested
     request_play_global(val);
   }
-  else if (playing())
+  else if (m_playing)
   {
-    if (paused() == val)
+    if (m_paused == val)
     {
       // paused, play requested
       // or playing, pause requested
@@ -309,22 +349,22 @@ void ExecutionManager::request_play_global_from_localtree(bool val)
   }
 }
 
-void ExecutionManager::request_transport_from_localtree(TimeVal t)
+void ExecutionController::request_transport_from_localtree(TimeVal t)
 {
   on_transport(t);
 }
 
-void ExecutionManager::request_stop_from_localtree()
+void ExecutionController::request_stop_from_localtree()
 {
   trigger_stop();
 }
 
-void ExecutionManager::request_reinitialize_from_localtree()
+void ExecutionController::request_reinitialize_from_localtree()
 {
   trigger_reinitialize();
 }
 
-void ExecutionManager::request_play_from_here(TimeVal t)
+void ExecutionController::request_play_from_here(TimeVal t)
 {
   if (m_clock)
   {
@@ -338,7 +378,7 @@ void ExecutionManager::request_play_from_here(TimeVal t)
   }
 }
 
-void ExecutionManager::ensure_audio_engine()
+void ExecutionController::ensure_audio_engine()
 {
   auto& audio_engine = this->context.guiApplicationPlugin<Audio::ApplicationPlugin>();
   if (!audio_engine.audio)
@@ -365,7 +405,7 @@ void ExecutionManager::ensure_audio_engine()
   }
 }
 
-void ExecutionManager::play_interval(
+void ExecutionController::play_interval(
     Scenario::IntervalModel& cst,
     exec_setup_fun setup_fun,
     TimeVal t)
@@ -430,7 +470,7 @@ void ExecutionManager::play_interval(
   doc->context().execTimer.start();
 }
 
-TimeVal ExecutionManager::execution_time() const
+TimeVal ExecutionController::execution_time() const
 {
   if(m_clock)
   {
@@ -440,7 +480,7 @@ TimeVal ExecutionManager::execution_time() const
   return TimeVal::zero();
 }
 
-void ExecutionManager::on_record(::TimeVal t)
+void ExecutionController::on_record(::TimeVal t)
 {
   SCORE_ASSERT(!m_playing);
 
@@ -462,12 +502,13 @@ void ExecutionManager::on_record(::TimeVal t)
   }
 }
 
-void ExecutionManager::on_stop()
+void ExecutionController::on_stop()
 {
   bool wasplaying = m_playing;
   m_playing = false;
   m_paused = false;
 
+  // Send the end state
   auto doc = currentDocument();
   if(doc)
   {
@@ -530,36 +571,39 @@ void ExecutionManager::on_stop()
         explorer->deviceModel().listening().restore();
     }
 
-    QTimer::singleShot(50, this, [this] {
-      // FIXME uuuugh have an event in scenario instead (or better, move this
-      // in process)
-      auto scenar = currentScenarioModel();
-      if (!scenar)
-        return;
-      scenar->baseInterval().reset();
-      scenar->baseInterval().executionEvent(Scenario::IntervalExecutionEvent::Finished);
-      auto procs = scenar->context().document.findChildren<Scenario::ProcessModel*>();
-      for (Scenario::ProcessModel* e : procs)
-      {
-        for (auto& itv : e->intervals)
-        {
-          itv.reset();
-          itv.executionEvent(Scenario::IntervalExecutionEvent::Finished);
-        }
-        for (auto& ts : e->timeSyncs)
-        {
-          ts.setWaiting(false);
-        }
-        for (auto& ev : e->events)
-        {
-          ev.setStatus(Scenario::ExecutionStatus::Editing, *e);
-        }
-      }
-    });
+    QTimer::singleShot(50, this, &ExecutionController::reset_edition);
   }
 }
 
-void ExecutionManager::on_reinitialize()
+void ExecutionController::reset_edition()
+{
+  // FIXME uuuugh have an event in scenario instead (or better, move this
+  // in process)
+  auto scenar = currentScenarioModel();
+  if (!scenar)
+    return;
+  scenar->baseInterval().reset();
+  scenar->baseInterval().executionEvent(Scenario::IntervalExecutionEvent::Finished);
+  auto procs = scenar->context().document.findChildren<Scenario::ProcessModel*>();
+  for (Scenario::ProcessModel* e : procs)
+  {
+    for (auto& itv : e->intervals)
+    {
+      itv.reset();
+      itv.executionEvent(Scenario::IntervalExecutionEvent::Finished);
+    }
+    for (auto& ts : e->timeSyncs)
+    {
+      ts.setWaiting(false);
+    }
+    for (auto& ev : e->events)
+    {
+      ev.setStatus(Scenario::ExecutionStatus::Editing, *e);
+    }
+  }
+}
+
+void ExecutionController::on_reinitialize()
 {
   // TODO to be more precise, we should stop the execution, but keep
   // the execution_state alive until the last message is sent
@@ -590,21 +634,21 @@ void ExecutionManager::on_reinitialize()
 }
 
 
-void ExecutionManager::init_transport()
+void ExecutionController::init_transport()
 {
   auto& s = context.settings<Execution::Settings::Model>();
   m_transport = s.getTransport();
   SCORE_ASSERT(m_transport);
   m_transport->setup();
   connect(m_transport, &Execution::TransportInterface::play,
-          this, &ExecutionManager::trigger_play_global);
+          this, &ExecutionController::trigger_play);
   connect(m_transport, &Execution::TransportInterface::pause,
-          this, &ExecutionManager::trigger_pause);
+          this, &ExecutionController::trigger_pause);
   connect(m_transport, &Execution::TransportInterface::stop,
-          this, &ExecutionManager::trigger_stop);
+          this, &ExecutionController::trigger_stop);
 }
 
-Scenario::ScenarioDocumentModel* ExecutionManager::currentScenarioModel()
+Scenario::ScenarioDocumentModel* ExecutionController::currentScenarioModel()
 {
   if (auto doc = currentDocument())
   {
@@ -613,7 +657,7 @@ Scenario::ScenarioDocumentModel* ExecutionManager::currentScenarioModel()
   return nullptr;
 }
 
-Scenario::ScenarioDocumentPresenter* ExecutionManager::currentScenarioPresenter()
+Scenario::ScenarioDocumentPresenter* ExecutionController::currentScenarioPresenter()
 {
   if (auto doc = currentDocument())
   {
@@ -622,12 +666,12 @@ Scenario::ScenarioDocumentPresenter* ExecutionManager::currentScenarioPresenter(
   return nullptr;
 }
 
-score::Document* ExecutionManager::currentDocument() const
+score::Document* ExecutionController::currentDocument() const
 {
   return context.documents.currentDocument();
 }
 
-std::unique_ptr<Execution::Clock> ExecutionManager::makeClock(const Execution::Context& ctx)
+std::unique_ptr<Execution::Clock> ExecutionController::makeClock(const Execution::Context& ctx)
 {
   auto& s = context.settings<Execution::Settings::Model>();
   return s.makeClock(ctx);

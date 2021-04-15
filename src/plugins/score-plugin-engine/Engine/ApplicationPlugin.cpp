@@ -63,7 +63,7 @@ bool ApplicationPlugin::handleStartup()
       // TODO what happens if we load multiple documents ?
       QTimer::singleShot(
           context.applicationSettings.waitAfterLoad * 1000,
-            &m_execution, [=] { m_execution.on_play_local(true); });
+            &m_execution, [=] { m_execution.request_play_local(true); });
       return true;
     }
   }
@@ -318,7 +318,8 @@ void ApplicationPlugin::on_documentChanged(score::Document* olddoc, score::Docum
 
 void ApplicationPlugin::prepareNewDocument()
 {
-  execution().on_stop();
+  execution().request_stop();
+  // TODO what if JACK is stuck? force-stop after some time ?
 }
 
 void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)

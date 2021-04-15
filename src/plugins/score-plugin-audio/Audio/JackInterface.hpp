@@ -53,7 +53,6 @@ public:
   E_SIGNAL(SCORE_PLUGIN_AUDIO_EXPORT, transportStateChanged, st);
 
   jack_transport_state_t m_prevState{};
-  ossia::transport_status m_lastStatusInExecution;
 };
 #endif
 }

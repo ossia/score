@@ -22,8 +22,8 @@ public:
 
   void makeGUIElements(score::GUIElements& ref);
 
-  void onPlayLocal(bool b);
-  void onPlayGlobal(bool b);
+  void onPlayLocal();
+  void onPlayGlobal();
   void onPause();
   void onStop();
 private:

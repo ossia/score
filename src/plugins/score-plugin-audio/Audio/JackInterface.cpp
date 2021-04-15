@@ -234,21 +234,18 @@ JackFactory::make_engine(const Audio::Settings::Model& set, const score::Applica
       {
         case jack_transport_state_t::JackTransportStopped:
         {
-          qDebug() << "Stopped";
           transportStateChanged(ossia::transport_status::stopped);
           m_prevState = st;
           return 1;
         }
         case jack_transport_state_t::JackTransportStarting:
         {
-          qDebug() << "Starting..";
           transportStateChanged(ossia::transport_status::starting);
           m_prevState = st;
           return 0;
         }
         case jack_transport_state_t::JackTransportRolling:
         {
-          qDebug() << "Rolling";
           transportStateChanged(ossia::transport_status::playing);
           m_prevState = st;
           return 1;
@@ -256,12 +253,10 @@ JackFactory::make_engine(const Audio::Settings::Model& set, const score::Applica
         case jack_transport_state_t::JackTransportLooping:
           m_prevState = st;
         {
-          qDebug() << "Looping";
           return 1;
         }
         case jack_transport_state_t::JackTransportNetStarting:
         {
-          qDebug() << "NetStarting";
           m_prevState = st;
           return 1;
         }
@@ -271,15 +266,9 @@ JackFactory::make_engine(const Audio::Settings::Model& set, const score::Applica
     {
       if(m_prevState == jack_transport_state_t::JackTransportStarting)
       {
-        if(Audio::execution_status.load() != ossia::transport_status::playing)
-        {
-          qDebug(" --> not yet");
-          return 0;
-        }
-        {
-          qDebug(" --> ok !");
-          return 1;
-        }
+        return Audio::execution_status.load() == ossia::transport_status::playing
+             ? 1
+             : 0;
       }
     }
     return 1;

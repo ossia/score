@@ -166,7 +166,7 @@ public:
   {
     auto plug = score::GUIAppContext().findGuiApplicationPlugin<Engine::ApplicationPlugin>();
     if(plug)
-      plug->execution().trigger_stop();
+      plug->execution().request_stop();
   }
   W_SLOT(stop)
 };

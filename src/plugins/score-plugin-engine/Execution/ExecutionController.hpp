@@ -22,19 +22,20 @@ class TransportInterface;
 class BaseScenarioElement;
 using exec_setup_fun
     = std::function<void(const Execution::Context&, Execution::BaseScenarioElement&)>;
-class SCORE_PLUGIN_ENGINE_EXPORT ExecutionManager : public QObject
+class SCORE_PLUGIN_ENGINE_EXPORT ExecutionController : public QObject
 {
 public:
-  ExecutionManager(const score::GUIApplicationContext& ctx);
-  ~ExecutionManager();
+  ExecutionController(const score::GUIApplicationContext& ctx);
+  ~ExecutionController();
+
+  void init_transport();
 
   TimeVal execution_time() const;
-  bool playing() const { return m_playing; }
-  bool paused() const { return m_paused; }
 
   void on_record(::TimeVal t);
   void on_transport(TimeVal t);
 
+  // User requests playback to the transport interface from the local tree
   void request_play_from_localtree(bool);
   void request_play_global_from_localtree(bool);
   void request_transport_from_localtree(TimeVal);
@@ -45,13 +46,17 @@ public:
   void request_play_from_here(TimeVal t);
   void request_play_global(bool);
   void request_play_local(bool);
+  void request_play_interval(
+      Scenario::IntervalModel&,
+      exec_setup_fun setup = {},
+      ::TimeVal t = ::TimeVal::zero());
   void request_stop();
 
+private:
+
   // If the transport interface answers: these functions will "press" the Play, etc...
-  // buttons programmatically to put them in the right state, OR
-  // start playback directly if there's no GUI
-  void trigger_play_global();
-  void trigger_play_local();
+  // buttons programmatically to put them in the right state, and start the playback
+  void trigger_play();
   void trigger_pause();
   void trigger_stop();
   void trigger_reinitialize();
@@ -64,7 +69,6 @@ public:
       exec_setup_fun setup = {},
       ::TimeVal t = ::TimeVal::zero());
 
-  void init_transport();
   void ensure_audio_engine();
 
   void on_play_local(bool, ::TimeVal t);
@@ -75,9 +79,9 @@ public:
    * @brief Stop execution and resend the start state
    */
   void on_reinitialize();
+  void reset_edition();
 
 private:
-
   Scenario::ScenarioDocumentModel* currentScenarioModel();
   Scenario::ScenarioDocumentPresenter* currentScenarioPresenter();
   score::Document* currentDocument() const;
@@ -88,7 +92,18 @@ private:
   Scenario::TransportActions& m_actions;
   std::unique_ptr<Execution::Clock> m_clock;
   Execution::TransportInterface* m_transport{};
+
+  struct IntervalToPlay
+  {
+    Scenario::IntervalModel& interval;
+    exec_setup_fun setup;
+    ::TimeVal t;
+  };
+  std::vector<IntervalToPlay> m_intervalsToPlay;
+
   bool m_playing{false};
   bool m_paused{false};
+  bool m_requestLocalPlay{};
+
 };
 }

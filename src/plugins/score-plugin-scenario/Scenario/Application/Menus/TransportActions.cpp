@@ -105,13 +105,6 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
   //    m_record->setCheckable(true);
 
   /*
-   *
-  connect(m_play, &QAction::toggled, this, &TransportActions::onPlay);
-  connect(m_playGlobal, &QAction::toggled, this, &TransportActions::onPlayGlobal);
-  connect(m_stop, &QAction::triggered, this, &TransportActions::onStop);
-
-  */
-  /*
   connect(m_goToStart, &QAction::triggered, this, [&] {
       m_play->blockSignals(true);
       m_record->blockSignals(true);
@@ -201,21 +194,21 @@ void TransportActions::makeGUIElements(score::GUIElements& ref)
   // cond.add<Actions::Record>();
 }
 
-void TransportActions::onPlayLocal(bool b)
+void TransportActions::onPlayLocal()
 {
   if(!m_play)
     return;
 
-  onPlay(b);
+  onPlay(true);
   m_playGlobal->setEnabled(false);
 }
 
-void TransportActions::onPlayGlobal(bool b)
+void TransportActions::onPlayGlobal()
 {
   if(!m_play)
     return;
 
-  onPlay(b);
+  onPlay(true);
   m_play->setEnabled(false);
 }
 
