@@ -4,6 +4,10 @@
 #include <score/command/Dispatchers/SettingsCommandDispatcher.hpp>
 
 #include <ossia/audio/jack_protocol.hpp>
+#include <score_plugin_audio_export.h>
+
+Q_DECLARE_METATYPE(ossia::transport_status)
+W_REGISTER_ARGTYPE(ossia::transport_status)
 
 class QFormLayout;
 namespace Audio
@@ -13,8 +17,11 @@ class Model;
 class View;
 }
 #if defined(OSSIA_AUDIO_JACK)
-class JackFactory final : public AudioFactory
+class SCORE_PLUGIN_AUDIO_EXPORT JackFactory final
+    : public QObject
+    , public AudioFactory
 {
+  W_OBJECT(JackFactory)
   SCORE_CONCRETE("7ff2af00-f2f5-4930-beec-0e2d21eda195")
 private:
   std::weak_ptr<ossia::jack_client> m_client{};
@@ -28,6 +35,8 @@ public:
   std::unique_ptr<ossia::audio_engine>
   make_engine(const Audio::Settings::Model& set, const score::ApplicationContext& ctx) override;
 
+  std::shared_ptr<ossia::jack_client> acquireClient();
+
   void setupSettingsWidget(
       QWidget* w,
       QFormLayout* lay,
@@ -39,6 +48,12 @@ public:
       Audio::Settings::View& v,
       score::SettingsCommandDispatcher& m_disp,
       QWidget* parent) override;
+
+  void transportStateChanged(ossia::transport_status st)
+  E_SIGNAL(SCORE_PLUGIN_AUDIO_EXPORT, transportStateChanged, st);
+
+  jack_transport_state_t m_prevState{};
+  ossia::transport_status m_lastStatusInExecution;
 };
 #endif
 }

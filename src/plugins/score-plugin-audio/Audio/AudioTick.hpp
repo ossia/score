@@ -7,6 +7,8 @@
 
 #include <score_plugin_audio_export.h>
 
+#include <ossia/audio/audio_tick.hpp>
+
 namespace Audio
 {
 using tick_fun = ossia::audio_engine::fun_type;
@@ -14,4 +16,5 @@ using tick_fun = ossia::audio_engine::fun_type;
 SCORE_PLUGIN_AUDIO_EXPORT
 tick_fun makePauseTick(const score::ApplicationContext& app);
 
+extern std::atomic<ossia::transport_status> execution_status;
 }

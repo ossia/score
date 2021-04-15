@@ -68,7 +68,7 @@ PlayContextMenu::PlayContextMenu(
     {
       if (elt.selection.get())
       {
-        plug.on_play(elt, true);
+        plug.execution().play_interval(elt);
         return;
       }
     }
@@ -142,7 +142,7 @@ PlayContextMenu::PlayContextMenu(
       &Scenario::ScenarioExecution::playInterval,
       this,
       [&](const Scenario::ScenarioInterface* scenar, const Id<IntervalModel>& id) {
-        plug.on_play(scenar->interval(id), true);
+        plug.execution().play_interval(scenar->interval(id));
       });
 
   con(exec_signals,
@@ -171,8 +171,8 @@ PlayContextMenu::PlayContextMenu(
           // We start playing the parent scenario.
           // TODO: this also plays the other processes of the interval? Maybe
           // remove them, too ?
-          plug.on_play(
-              *parentItv, true, PlayFromIntervalScenarioPruner{*scenar, cst_to_play, t}, t);
+          plug.execution().play_interval(
+              *parentItv, PlayFromIntervalScenarioPruner{*scenar, cst_to_play, t}, t);
         }
       });
 

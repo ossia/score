@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Execution/ExecutionController.hpp>
+
 #include <Process/TimeValue.hpp>
 
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
@@ -21,6 +23,7 @@ namespace Execution
 {
 struct Context;
 class Clock;
+class TransportInterface;
 class BaseScenarioElement;
 }
 
@@ -37,53 +40,33 @@ class audio_engine;
 class QLabel;
 namespace Engine
 {
-using exec_setup_fun
-    = std::function<void(const Execution::Context&, Execution::BaseScenarioElement&)>;
-class SCORE_PLUGIN_ENGINE_EXPORT ApplicationPlugin final : public QObject,
-                                                           public score::GUIApplicationPlugin
+
+class SCORE_PLUGIN_ENGINE_EXPORT ApplicationPlugin final
+    : public QObject
+    , public score::GUIApplicationPlugin
 {
 public:
   ApplicationPlugin(const score::GUIApplicationContext& app);
   ~ApplicationPlugin() override;
 
+  void initialize() override;
+
   bool handleStartup() override;
   score::GUIElements makeGUIElements() override;
 
+  void prepareNewDocument() override;
   void on_initDocument(score::Document& doc) override;
   void on_createdDocument(score::Document& doc) override;
-
   void on_documentChanged(score::Document* olddoc, score::Document* newdoc) override;
 
-  void prepareNewDocument() override;
-
-  void on_play(bool, ::TimeVal t = ::TimeVal::zero());
-  void on_play(
-      Scenario::IntervalModel&,
-      bool,
-      exec_setup_fun setup = {},
-      ::TimeVal t = ::TimeVal::zero());
-
-  void on_record(::TimeVal t);
-
-  bool playing() const { return m_playing; }
-
-  bool paused() const { return m_paused; }
-
-  void on_stop();
-
-private:
-  void on_init();
-  void initialize() override;
-  void on_transport(TimeVal t);
-  void initLocalTreeNodes(LocalTree::DocumentPlugin&);
   QWidget* setupTimingWidget(QLabel*) const;
+  void initLocalTreeNodes(LocalTree::DocumentPlugin&);
 
-  std::unique_ptr<Execution::Clock> makeClock(const Execution::Context&);
-
+  Execution::ExecutionManager& execution() { return m_execution; }
+private:
   Execution::PlayContextMenu m_playActions;
+  Execution::ExecutionManager m_execution;
 
-  std::unique_ptr<Execution::Clock> m_clock;
   Scenario::SpeedWidget* m_speedSlider{};
-  bool m_playing{false}, m_paused{false};
 };
 }

@@ -104,73 +104,13 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
   */
   //    m_record->setCheckable(true);
 
-  auto on_play = [&](bool b) {
-    m_play->setText(b ? tr("Pause") : tr("Play"));
-    m_play->setData(b); // True for "pause" state (i.e. currently playing),
-                        // false for "play" state (i.e. currently paused)
-    m_play->setStatusTip(b ? "Play the currently displayed interval" : "Pause execution");
+  /*
+   *
+  connect(m_play, &QAction::toggled, this, &TransportActions::onPlay);
+  connect(m_playGlobal, &QAction::toggled, this, &TransportActions::onPlayGlobal);
+  connect(m_stop, &QAction::triggered, this, &TransportActions::onStop);
 
-    setIcons(
-        m_play,
-        !b ? QStringLiteral(":/icons/play_on.png") : QStringLiteral(":/icons/pause_on.png"),
-          !b ? QStringLiteral(":/icons/play_hover.png") : QStringLiteral(":/icons/pause_hover.png"),
-        !b ? QStringLiteral(":/icons/play_off.png") : QStringLiteral(":/icons/pause_off.png"),
-        !b ? QStringLiteral(":/icons/pause_disabled.png")
-          : QStringLiteral(":/icons/pause_disabled.png"));
-
-    m_playGlobal->setText(b ? tr("Pause") : tr("Play (global)"));
-    m_playGlobal->setData(b);
-    setIcons(
-        m_playGlobal,
-        !b ? QStringLiteral(":/icons/play_glob_on.png")
-          : QStringLiteral(":/icons/pause_on.png"),
-        !b ? QStringLiteral(":/icons/play_glob_hover.png")
-            : QStringLiteral(":/icons/pause_hover.png"),
-        !b ? QStringLiteral(":/icons/play_glob_off.png")
-          : QStringLiteral(":/icons/pause_off.png"),
-        !b ? QStringLiteral(":/icons/play_glob_disabled.png")
-          : QStringLiteral(":/icons/pause_disabled.png"));
-  };
-  connect(m_play, &QAction::toggled, this, [=](bool b) {
-    on_play(b);
-    m_playGlobal->setEnabled(false);
-  });
-  connect(m_playGlobal, &QAction::toggled, this, [=](bool b) {
-    on_play(b);
-    m_play->setEnabled(false);
-  });
-  connect(m_stop, &QAction::triggered, this, [&] {
-    m_play->blockSignals(true);
-    m_playGlobal->blockSignals(true);
-    //        m_record->blockSignals(true);
-
-    m_play->setEnabled(true);
-    m_play->setChecked(false);
-    m_play->setText(tr("Play"));
-    setIcons(
-        m_play,
-        QStringLiteral(":/icons/play_on.png"),
-        QStringLiteral(":/icons/play_hover.png"),
-        QStringLiteral(":/icons/play_off.png"),
-        QStringLiteral(":/icons/play_disabled.png"));
-    m_play->setData(false);
-
-    m_playGlobal->setEnabled(true);
-    m_playGlobal->setChecked(false);
-    m_playGlobal->setText(tr("Play (global)"));
-    setIcons(
-        m_playGlobal,
-        QStringLiteral(":/icons/play_glob_on.png"),
-        QStringLiteral(":/icons/play_glob_hover.png"),
-        QStringLiteral(":/icons/play_glob_off.png"),
-        QStringLiteral(":/icons/play_glob_disabled.png"));
-    m_playGlobal->setData(false);
-    //        m_record->setChecked(false);
-
-    m_play->blockSignals(false);
-    m_playGlobal->blockSignals(false);
-    //        m_record->blockSignals(false);
-  });
+  */
   /*
   connect(m_goToStart, &QAction::triggered, this, [&] {
       m_play->blockSignals(true);
@@ -260,4 +200,94 @@ void TransportActions::makeGUIElements(score::GUIElements& ref)
   cond.add<Actions::Reinitialize>();
   // cond.add<Actions::Record>();
 }
+
+void TransportActions::onPlayLocal(bool b)
+{
+  if(!m_play)
+    return;
+
+  onPlay(b);
+  m_playGlobal->setEnabled(false);
+}
+
+void TransportActions::onPlayGlobal(bool b)
+{
+  if(!m_play)
+    return;
+
+  onPlay(b);
+  m_play->setEnabled(false);
+}
+
+void TransportActions::onPause()
+{
+  onPlay(false);
+}
+
+
+void TransportActions::onPlay(bool b)
+{
+  m_play->setText(b ? tr("Pause") : tr("Play"));
+  m_play->setData(b); // True for "pause" state (i.e. currently playing),
+  // false for "play" state (i.e. currently paused)
+  m_play->setStatusTip(b ? "Play the currently displayed interval" : "Pause execution");
+
+  setIcons(
+        m_play,
+        !b ? QStringLiteral(":/icons/play_on.png") : QStringLiteral(":/icons/pause_on.png"),
+        !b ? QStringLiteral(":/icons/play_hover.png") : QStringLiteral(":/icons/pause_hover.png"),
+        !b ? QStringLiteral(":/icons/play_off.png") : QStringLiteral(":/icons/pause_off.png"),
+        !b ? QStringLiteral(":/icons/pause_disabled.png")
+           : QStringLiteral(":/icons/pause_disabled.png"));
+
+  m_playGlobal->setText(b ? tr("Pause") : tr("Play (global)"));
+  m_playGlobal->setData(b);
+  setIcons(
+        m_playGlobal,
+        !b ? QStringLiteral(":/icons/play_glob_on.png")
+           : QStringLiteral(":/icons/pause_on.png"),
+        !b ? QStringLiteral(":/icons/play_glob_hover.png")
+           : QStringLiteral(":/icons/pause_hover.png"),
+        !b ? QStringLiteral(":/icons/play_glob_off.png")
+           : QStringLiteral(":/icons/pause_off.png"),
+        !b ? QStringLiteral(":/icons/play_glob_disabled.png")
+           : QStringLiteral(":/icons/pause_disabled.png"));
+}
+
+void TransportActions::onStop()
+{
+  if(!m_play)
+    return;
+
+   m_play->blockSignals(true);
+   m_playGlobal->blockSignals(true);
+   //        m_record->blockSignals(true);
+
+   m_play->setEnabled(true);
+   m_play->setChecked(false);
+   m_play->setText(tr("Play"));
+   setIcons(
+       m_play,
+       QStringLiteral(":/icons/play_on.png"),
+       QStringLiteral(":/icons/play_hover.png"),
+       QStringLiteral(":/icons/play_off.png"),
+       QStringLiteral(":/icons/play_disabled.png"));
+   m_play->setData(false);
+
+   m_playGlobal->setEnabled(true);
+   m_playGlobal->setChecked(false);
+   m_playGlobal->setText(tr("Play (global)"));
+   setIcons(
+       m_playGlobal,
+       QStringLiteral(":/icons/play_glob_on.png"),
+       QStringLiteral(":/icons/play_glob_hover.png"),
+       QStringLiteral(":/icons/play_glob_off.png"),
+       QStringLiteral(":/icons/play_glob_disabled.png"));
+   m_playGlobal->setData(false);
+   //        m_record->setChecked(false);
+
+   m_play->blockSignals(false);
+   m_playGlobal->blockSignals(false);
+   //        m_record->blockSignals(false);
+ }
 }

@@ -2,6 +2,7 @@
 
 #include <score/selection/Selection.hpp>
 
+#include <score_plugin_scenario_export.h>
 namespace score
 {
 struct GUIApplicationContext;
@@ -13,7 +14,7 @@ class QToolBar;
 
 namespace Scenario
 {
-class TransportActions final : public QObject
+class SCORE_PLUGIN_SCENARIO_EXPORT TransportActions final : public QObject
 {
 public:
   TransportActions(const score::GUIApplicationContext&);
@@ -21,7 +22,12 @@ public:
 
   void makeGUIElements(score::GUIElements& ref);
 
+  void onPlayLocal(bool b);
+  void onPlayGlobal(bool b);
+  void onPause();
+  void onStop();
 private:
+  void onPlay(bool b);
   const score::GUIApplicationContext& m_context;
 
   QAction* m_play{};

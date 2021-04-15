@@ -9,6 +9,9 @@
 #include <Execution/Clock/DataflowClock.hpp>
 #include <Execution/Clock/DefaultClock.hpp>
 
+#if defined(OSSIA_AUDIO_JACK)
+#include <Audio/JackInterface.hpp>
+#endif
 namespace Execution
 {
 namespace Settings
@@ -69,6 +72,8 @@ static auto list()
 
 Model::Model(QSettings& set, const score::ApplicationContext& ctx)
     : m_clockFactories{ctx.interfaces<ClockFactoryList>()}
+    , m_audioSettings{ctx.settings<Audio::Settings::Model>()}
+    , m_transportInterfaces{ctx.interfaces<TransportInterfaceList>()}
 {
   score::setupDefaultSettings(set, Parameters::list(), *this);
   // TODO
@@ -99,6 +104,20 @@ reverse_time_function Model::makeReverseTimeFunction(const score::DocumentContex
   auto it = m_clockFactories.get(m_Clock);
   return it ? it->makeReverseTimeFunction(ctx)
             : Dataflow::ClockFactory{}.makeReverseTimeFunction(ctx);
+}
+
+TransportInterface* Model::getTransport() const
+{
+#if defined(OSSIA_AUDIO_JACK)
+  if(m_audioSettings.getDriver() == Audio::JackFactory::static_concreteKey())
+  {
+    if(m_audioSettings.getJackTransport() != Audio::Settings::ExternalTransport::None)
+    {
+      return (JackTransport*)m_transportInterfaces.get(Execution::JackTransport::static_concreteKey());
+    }
+  }
+#endif
+  return m_transportInterfaces.get(Execution::DirectTransport::static_concreteKey());
 }
 
 SCORE_SETTINGS_PARAMETER_CPP(ClockFactory::ConcreteKey, Model, Clock)

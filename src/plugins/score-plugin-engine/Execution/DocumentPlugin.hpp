@@ -16,7 +16,7 @@
 
 #include <memory>
 #include <verdigris>
-
+Q_DECLARE_METATYPE(ossia::bench_map)
 namespace ossia
 {
 class audio_protocol;
@@ -54,6 +54,8 @@ public:
   void on_documentClosing() override;
   const BaseScenarioElement& baseScenario() const;
   BaseScenarioElement& baseScenario();
+
+  void playStartState();
 
   bool isPlaying() const;
 

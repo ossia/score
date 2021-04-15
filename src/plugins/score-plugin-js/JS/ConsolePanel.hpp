@@ -164,16 +164,9 @@ public:
 
   void stop()
   {
-    const auto& context = score::GUIAppContext();
-    if (context.applicationSettings.gui)
-    {
-      auto& stop_action = context.actions.action<Actions::Stop>();
-      stop_action.action()->trigger();
-    }
-    else
-    {
-      context.guiApplicationPlugin<Engine::ApplicationPlugin>().on_stop();
-    }
+    auto plug = score::GUIAppContext().findGuiApplicationPlugin<Engine::ApplicationPlugin>();
+    if(plug)
+      plug->execution().trigger_stop();
   }
   W_SLOT(stop)
 };

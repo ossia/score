@@ -1,4 +1,5 @@
 #include <Audio/JackInterface.hpp>
+#include <Audio/AudioTick.hpp>
 
 #include <score/tools/Bind.hpp>
 #include <score/widgets/SignalUtils.hpp>
@@ -14,7 +15,11 @@
 
 #include <Audio/Settings/Model.hpp>
 #include <Audio/Settings/View.hpp>
+#include <wobjectimpl.h>
 
+#if defined(OSSIA_AUDIO_JACK)
+W_OBJECT_IMPL(Audio::JackFactory)
+#endif
 namespace Audio
 {
 #if defined(OSSIA_AUDIO_JACK)
@@ -179,19 +184,32 @@ bool JackFactory::available() const noexcept
 #endif
 }
 
+std::shared_ptr<ossia::jack_client> JackFactory::acquireClient()
+try
+{
+  std::shared_ptr<ossia::jack_client> clt = m_client.lock();
+
+  if (!clt)
+    m_client = (clt = std::make_shared<ossia::jack_client>("ossia score"));
+
+  return clt;
+}
+catch(...)
+{
+  return {};
+}
+
+
 std::unique_ptr<ossia::audio_engine>
 JackFactory::make_engine(const Audio::Settings::Model& set, const score::ApplicationContext& ctx)
 {
   static_assert(std::is_base_of_v<ossia::audio_engine, ossia::jack_engine>);
-  std::shared_ptr<ossia::jack_client> clt = m_client.lock();
 
-  if (!clt)
-  {
-    m_client = (clt = std::make_shared<ossia::jack_client>("ossia score"));
-  }
+  auto clt = acquireClient();
 
   ossia::jack_settings settings;
   settings.autoconnect = set.getAutoConnect();
+  settings.transport = static_cast<ossia::transport_mode>(set.getJackTransport());
   for(auto& name : set.getInputNames())
     settings.inputs.push_back(name.toStdString());
   for(auto& name : set.getOutputNames())
@@ -205,6 +223,68 @@ JackFactory::make_engine(const Audio::Settings::Model& set, const score::Applica
   {
     settings.outputs.push_back("out_" + std::to_string(settings.outputs.size()));
   }
+
+  // ! Warning ! this function is executed in the audio thread
+  settings.sync_function = [this] (jack_transport_state_t st, jack_position_t *) -> int
+  {
+    if(m_prevState != st)
+    {
+      // warning! sending a queued signal may allocate
+      switch(st)
+      {
+        case jack_transport_state_t::JackTransportStopped:
+        {
+          qDebug() << "Stopped";
+          transportStateChanged(ossia::transport_status::stopped);
+          m_prevState = st;
+          return 1;
+        }
+        case jack_transport_state_t::JackTransportStarting:
+        {
+          qDebug() << "Starting..";
+          transportStateChanged(ossia::transport_status::starting);
+          m_prevState = st;
+          return 0;
+        }
+        case jack_transport_state_t::JackTransportRolling:
+        {
+          qDebug() << "Rolling";
+          transportStateChanged(ossia::transport_status::playing);
+          m_prevState = st;
+          return 1;
+        }
+        case jack_transport_state_t::JackTransportLooping:
+          m_prevState = st;
+        {
+          qDebug() << "Looping";
+          return 1;
+        }
+        case jack_transport_state_t::JackTransportNetStarting:
+        {
+          qDebug() << "NetStarting";
+          m_prevState = st;
+          return 1;
+        }
+      }
+    }
+    else
+    {
+      if(m_prevState == jack_transport_state_t::JackTransportStarting)
+      {
+        if(Audio::execution_status.load() != ossia::transport_status::playing)
+        {
+          qDebug(" --> not yet");
+          return 0;
+        }
+        {
+          qDebug(" --> ok !");
+          return 1;
+        }
+      }
+    }
+    return 1;
+  };
+
   // FIXME investigate why jack_client_close crashes if called here (e.g. because the ctor of jack_engine throws)
   return std::make_unique<ossia::jack_engine>(clt, set.getDefaultIn(), set.getDefaultOut(), settings);
 }
@@ -267,6 +347,16 @@ void JackFactory::setupSettingsWidget(
         });
     autoconnect->setChecked(m.getAutoConnect());
   }
+  auto transport = new QComboBox{w};
+  {
+    transport->addItems({"None", "Client", "Master"});
+    transport->setCurrentIndex((int)m.getJackTransport());
+    lay->addRow(QObject::tr("Enable JACK transport"), transport);
+    QObject::connect(
+          transport, qOverload<int>(&QComboBox::currentIndexChanged), w, [=, &m, &m_disp](int c) {
+      m_disp.submitDeferredCommand<Audio::Settings::SetModelJackTransport>(m, static_cast<Audio::Settings::ExternalTransport>(c));
+    });
+  }
 
   auto in_ports = new AddRemoveList{"in_", m.getInputNames(), w};
   auto out_ports = new AddRemoveList{"out_", m.getOutputNames(), w};
@@ -322,6 +412,11 @@ void JackFactory::setupSettingsWidget(
   }
 
   con(m, &Model::changed, w, [=, &m] {
+    {
+      auto val = m.getJackTransport();
+      if ((int)val != transport->currentIndex())
+        transport->setCurrentIndex((int)val);
+    }
     {
       auto val = m.getAutoConnect();
       if (val != autoconnect->isChecked())

@@ -7,6 +7,8 @@
 #include <Execution/DocumentPlugin.hpp>
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
 #include <ossia/editor/scenario/execution_log.hpp>
+#include <ossia/editor/scenario/time_interval.hpp>
+#include <ossia/dataflow/execution_state.hpp>
 
 namespace Execution
 {
@@ -21,8 +23,11 @@ struct AudioTickHelper
       ossia::tick_setup_options opt,
       Execution::DocumentPlugin& plug,
       Execution::BaseScenarioElement& scenar)
-    : m_tick{ossia::make_tick(opt, *plug.execState, *plug.execGraph, *scenar.baseInterval().OSSIAInterval())}
+    : m_itv{*scenar.baseInterval().OSSIAInterval()}
+    , m_tick{ossia::make_tick(opt, *plug.execState, *plug.execGraph, m_itv)}
     , m_plug{plug}
+    , m_execQueue{plug.context().executionQueue}
+    , m_gcQueue{plug.context().gcQueue}
     , m_proto{plug.audioProto()}
   {
     m_actions = plug.actions();
@@ -46,18 +51,70 @@ struct AudioTickHelper
   }
 
   void dequeueCommands() const
-  try
   {
     // Run some commands if they have been submitted.
     Execution::ExecutionCommand c;
-    auto& exec = m_plug.context().executionQueue;
-    auto& gcq = m_plug.context().gcQueue;
-    while (exec.try_dequeue(c))
+    while (m_execQueue.try_dequeue(c))
     {
-      c();
-      gcq.enqueue(gc(std::move(c)));
+      try
+      {
+        c();
+        m_gcQueue.enqueue(gc(std::move(c)));
+      } catch (...) { }
     }
-  } catch (...) { }
+  }
+
+  void main_tick(const ossia::audio_tick_state& t) const
+  {
+    // TODO this means that transport isn't visible until we play again
+    if(t.status && *t.status != ossia::transport_status::playing)
+      return;
+
+    // Transport if necessary
+    if(t.position_in_frames)
+    {
+      auto cur = *t.position_in_frames;
+      if(m_prev_frame)
+      {
+        auto prev = *m_prev_frame;
+        if(prev + t.frames == cur)
+        {
+          // Normal playback
+          m_tick(t.frames, t.seconds);
+        }
+        else if(prev == cur)
+        {
+          // Pause, do not advance the score execution
+        }
+        else
+        {
+          // transport
+          const auto flicks = cur * m_plug.execState->samplesToModelRatio;
+          m_itv.transport(ossia::time_value{int64_t(flicks)});
+
+          m_tick(t.frames, t.seconds);
+        }
+      }
+      else
+      {
+        // first time this is called, m_prev_frame not initialized yet
+        if(cur != 0)
+        {
+          // transport to pur ourselves aligned with the global clock
+          const auto flicks = cur * m_plug.execState->samplesToModelRatio;
+          m_itv.transport(ossia::time_value{int64_t(flicks)});
+        }
+
+        m_tick(t.frames, t.seconds);
+      }
+      m_prev_frame = *t.position_in_frames;
+    }
+    else
+    {
+      // No transport information, normal playback
+      m_tick(t.frames, t.seconds);
+    }
+  }
 
   void main(const ossia::audio_tick_state& t) const
   try
@@ -69,16 +126,21 @@ struct AudioTickHelper
     for (auto act : m_actions)
       act->startTick(t);
 
-    m_tick(t.frames, t.seconds);
+    main_tick(t);
 
     for (auto act : m_actions)
       act->endTick(t);
   } catch (...) { }
 
+  ossia::time_interval& m_itv;
   smallfun::function<void(unsigned long, double), 128> m_tick;
-  Execution::DocumentPlugin& m_plug;
+  DocumentPlugin& m_plug;
+  ExecutionCommandQueue& m_execQueue;
+  GCCommandQueue& m_gcQueue;
   ossia::audio_protocol& m_proto;
   std::vector<ExecutionAction*> m_actions;
+
+  mutable std::optional<uint64_t> m_prev_frame;
 };
 }
 
@@ -88,11 +150,13 @@ Audio::tick_fun makeExecutionTick(
     Execution::DocumentPlugin& plug,
     Execution::BaseScenarioElement& scenar)
 {
-  return [helper = AudioTickHelper{opt, plug, scenar}] (ossia::audio_tick_state t)
+  return [helper = AudioTickHelper{opt, plug, scenar}] (const ossia::audio_tick_state& t)
   {
+    Audio::execution_status.store(ossia::transport_status::playing);
+
     helper.clearBuffers(t);
-      helper.dequeueCommands();
-      helper.main(t);
+    helper.dequeueCommands();
+    helper.main(t);
   };
 }
 
@@ -106,8 +170,10 @@ Audio::tick_fun makeBenchmarkTick(
 
   int i = 0;
   return [helper = AudioTickHelper{opt, plug, scenar}, i]
-      (ossia::audio_tick_state t) mutable
+      (const ossia::audio_tick_state& t) mutable
   {
+    Audio::execution_status.store(ossia::transport_status::playing);
+
     helper.clearBuffers(t);
     helper.dequeueCommands();
 
@@ -122,7 +188,7 @@ Audio::tick_fun makeBenchmarkTick(
       auto t1 = std::chrono::steady_clock::now();
       auto total = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count();
 
-      helper.m_plug.slot_bench(bench, total);
+      helper.m_plug.sig_bench(bench, total);
       for (auto& p : bench)
       {
         p.second = {};

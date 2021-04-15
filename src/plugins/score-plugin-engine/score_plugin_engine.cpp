@@ -19,6 +19,7 @@
 #include <Execution/Clock/DataflowClock.hpp>
 #include <Execution/Clock/DefaultClock.hpp>
 #include <Execution/Clock/ManualClock.hpp>
+#include <Execution/Transport/TransportInterface.hpp>
 #include <Execution/DocumentPlugin.hpp>
 #include <Execution/Settings/ExecutorFactory.hpp>
 #include <LocalTree/Device/LocalProtocolFactory.hpp>
@@ -31,6 +32,7 @@ W_OBJECT_IMPL(Execution::ManualClock::TimeWidget)
 
 score_plugin_engine::score_plugin_engine()
 {
+  qRegisterMetaType<ossia::bench_map>("BenchMap");
   qRegisterMetaType<Execution::ClockFactory::ConcreteKey>("ClockKey");
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   qRegisterMetaTypeStreamOperators<Execution::ClockFactory::ConcreteKey>("ClockKey");
@@ -48,9 +50,11 @@ score_plugin_engine::make_guiApplicationPlugin(const score::GUIApplicationContex
 std::vector<std::unique_ptr<score::InterfaceListBase>> score_plugin_engine::factoryFamilies()
 {
   return make_ptr_vector<
-      score::InterfaceListBase,
-      Execution::ProcessComponentFactoryList,
-      Execution::ClockFactoryList>();
+      score::InterfaceListBase
+      , Execution::ProcessComponentFactoryList
+      , Execution::ClockFactoryList
+      , Execution::TransportInterfaceList
+      >();
 }
 
 std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_engine::factories(
@@ -65,6 +69,12 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_engine::factorie
       FW<Device::ProtocolFactory, Protocols::LocalProtocolFactory>,
       FW<Explorer::ListeningHandlerFactory, Execution::PlayListeningHandlerFactory>,
       FW<score::SettingsDelegateFactory, Execution::Settings::Factory>,
+      FW<Execution::TransportInterface
+      , Execution::DirectTransport
+#if defined(OSSIA_AUDIO_JACK)
+      , Execution::JackTransport
+#endif
+      >,
       FW<Execution::ClockFactory
          // , Execution::ControlClockFactory
          ,

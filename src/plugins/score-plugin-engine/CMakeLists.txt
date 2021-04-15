@@ -14,6 +14,7 @@ set(HDRS
   Execution/BaseScenarioComponent.hpp
   Execution/DocumentPlugin.hpp
   Execution/ExecutionTick.hpp
+  Execution/ExecutionController.hpp
 
   Execution/Automation/InterpStateComponent.hpp
 
@@ -25,6 +26,9 @@ set(HDRS
   Execution/Clock/ClockFactory.hpp
   Execution/Clock/ManualClock.hpp
   Execution/Clock/DefaultClock.hpp
+
+  Execution/Transport/TransportInterface.hpp
+
   Engine/ApplicationPlugin.hpp
   Engine/Listening/PlayListeningHandler.hpp
   Engine/Listening/PlayListeningHandlerFactory.hpp
@@ -56,10 +60,13 @@ set(SRCS
   Execution/BaseScenarioComponent.cpp
   Execution/DocumentPlugin.cpp
   Execution/ExecutionTick.cpp
+  Execution/ExecutionController.cpp
 
   Execution/Automation/InterpStateComponent.cpp
   Execution/Clock/ClockFactory.cpp
   Execution/Clock/DefaultClock.cpp
+
+  Execution/Transport/TransportInterface.cpp
 
   Execution/Settings/ExecutorModel.cpp
   Execution/Settings/ExecutorPresenter.cpp

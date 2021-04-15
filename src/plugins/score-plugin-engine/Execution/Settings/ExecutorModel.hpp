@@ -5,7 +5,10 @@
 
 #include <ossia/editor/scenario/time_value.hpp>
 
+#include <Audio/Settings/Model.hpp>
+#include <Audio/Settings/Model.hpp>
 #include <Execution/Clock/ClockFactory.hpp>
+#include <Execution/Transport/TransportInterface.hpp>
 #include <score_plugin_engine_export.h>
 
 #include <verdigris>
@@ -72,6 +75,8 @@ class SCORE_PLUGIN_ENGINE_EXPORT Model : public score::SettingsDelegateModel
   bool m_TransportValueCompilation{};
 
   const ClockFactoryList& m_clockFactories;
+  const Audio::Settings::Model& m_audioSettings;
+  const TransportInterfaceList& m_transportInterfaces;
 
 public:
   Model(QSettings& set, const score::ApplicationContext& ctx);
@@ -81,6 +86,8 @@ public:
   std::unique_ptr<Clock> makeClock(const Execution::Context& ctx) const;
   time_function makeTimeFunction(const score::DocumentContext&) const;
   reverse_time_function makeReverseTimeFunction(const score::DocumentContext&) const;
+
+  TransportInterface* getTransport() const;
 
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, ClockFactory::ConcreteKey, Clock)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, QString, Scheduling)

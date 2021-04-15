@@ -3,6 +3,8 @@
 
 #include <Gfx/GfxContext.hpp>
 
+#include <ossia/detail/flat_set.hpp>
+
 namespace Gfx
 {
 

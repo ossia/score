@@ -332,7 +332,7 @@ void DocumentPlugin::on_documentClosing()
   if (m_base.active())
   {
     m_base.baseInterval().stop();
-    m_ctx.context().doc.app.guiApplicationPlugin<Engine::ApplicationPlugin>().on_stop();
+    m_ctx.context().doc.app.guiApplicationPlugin<Engine::ApplicationPlugin>().execution().request_stop();
     clear();
   }
 
@@ -347,6 +347,41 @@ const BaseScenarioElement& DocumentPlugin::baseScenario() const
 BaseScenarioElement& DocumentPlugin::baseScenario()
 {
   return m_base;
+}
+
+void DocumentPlugin::playStartState()
+{
+  auto scenar = score::IDocument::try_get<Scenario::ScenarioDocumentModel>(this->m_context.document);
+  if (!scenar)
+    return;
+  auto& sm = scenar->baseScenario().startState();
+
+  // FIXME that does not look thread-safe at all !
+  // what if devices are being added/removed in the exec thread !
+  if(execState)
+  {
+    auto state
+        = Engine::score_to_ossia::state(sm, this->context());
+    state.launch();
+  }
+  else
+  {
+    // Create a temporary execution_state...
+    execState = std::make_shared<ossia::execution_state>();
+
+    // Fill its devices
+    auto& devs = this->context().doc.plugin<Explorer::DeviceDocumentPlugin>();
+    devs.list().apply([this] (auto& dev) {
+      if (auto d = dev.getDevice()) {
+        execState->register_device(d);
+      }
+    });
+
+    auto state = Engine::score_to_ossia::state(sm, this->context());
+    state.launch();
+
+    execState.reset();
+  }
 }
 
 bool DocumentPlugin::isPlaying() const

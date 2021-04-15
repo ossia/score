@@ -29,9 +29,11 @@
 score_plugin_audio::score_plugin_audio()
 {
   qRegisterMetaType<Audio::AudioFactory::ConcreteKey>("AudioKey");
+  qRegisterMetaType<Audio::Settings::ExternalTransport>("ExternalTransport");
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   qRegisterMetaTypeStreamOperators<Audio::AudioFactory::ConcreteKey>("AudioKey");
+  qRegisterMetaTypeStreamOperators<Audio::Settings::ExternalTransport>("ExternalTransport");
 #endif
 }
 

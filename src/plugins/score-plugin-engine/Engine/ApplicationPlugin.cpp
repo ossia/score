@@ -2,141 +2,48 @@
 /// check / it. PVS-Studio Static Code Analyzer for C, C++ and C#:
 /// http://www.viva64.com
 #include "ApplicationPlugin.hpp"
+#include <Execution/DocumentPlugin.hpp>
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/Settings/ExplorerModel.hpp>
-#include <Explorer/Explorer/DeviceExplorerWidget.hpp>
-#include <Process/ExecutionContext.hpp>
-#include <Process/Style/Pixmaps.hpp>
-#include <Process/TimeValue.hpp>
-#include <Scenario/Application/ScenarioActions.hpp>
+
+#include <LocalTree/LocalTreeDocumentPlugin.hpp>
+
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Document/Interval/IntervalExecution.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-#include <Scenario/Execution/score2OSSIA.hpp>
+#include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Inspector/Interval/SpeedSlider.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/ToolbarManager.hpp>
-#include <score/application/ApplicationContext.hpp>
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
-#include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
-#include <score/tools/Bind.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-#include <score/widgets/ControlWidgets.hpp>
-#include <score/widgets/DoubleSlider.hpp>
-#include <score/widgets/MessageBox.hpp>
 #include <score/widgets/SetIcons.hpp>
-#include <score/widgets/SpinBoxes.hpp>
 #include <score/widgets/TimeSpinBox.hpp>
+#include <score/tools/Bind.hpp>
 
-#include <core/application/ApplicationInterface.hpp>
 #include <core/application/ApplicationSettings.hpp>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
-#include <core/document/DocumentPresenter.hpp>
+#include <core/application/ApplicationInterface.hpp>
 #include <core/presenter/DocumentManager.hpp>
 
 #include <ossia-qt/invoke.hpp>
-#include <ossia/dataflow/execution_state.hpp>
-#include <ossia/editor/scenario/time_interval.hpp>
-#include <ossia/network/generic/generic_device.hpp>
 
-#include <QAction>
-#include <QLabel>
-#include <QMainWindow>
 #include <QTabWidget>
 #include <QToolBar>
+#include <QMainWindow>
+#include <QTimer>
+#include <QLabel>
 
-#include <Audio/AudioApplicationPlugin.hpp>
-#include <Execution/BaseScenarioComponent.hpp>
-#include <Execution/Clock/ClockFactory.hpp>
-#include <Execution/ContextMenu/PlayContextMenu.hpp>
-#include <Execution/DocumentPlugin.hpp>
-#include <Execution/Settings/ExecutorModel.hpp>
-#include <LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <wobjectimpl.h>
-
-#include <vector>
 
 namespace Engine
 {
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
-    : score::GUIApplicationPlugin{ctx}, m_playActions{*this, ctx}
+    : score::GUIApplicationPlugin{ctx}
+    , m_execution{ctx}
+    , m_playActions{*this, ctx}
 {
-  // qInstallMessageHandler(nullptr);
-  // Two parts :
-  // One that maintains the devices for each document
-  // (and disconnects / reconnects them when the current document changes)
-  // Also during execution, one shouldn't be able to switch document.
-
-  // Another part that, at execution time, creates structures corresponding
-  // to the Scenario plug-in with the OSSIA API.
-
   if (ctx.applicationSettings.gui)
   {
-    auto& play_action = ctx.actions.action<Actions::Play>();
-    connect(
-        play_action.action(),
-        &QAction::triggered,
-        this,
-        [&](bool b) { on_play(b); },
-        Qt::QueuedConnection);
-
-    auto& play_glob_action = ctx.actions.action<Actions::PlayGlobal>();
-    connect(
-        play_glob_action.action(),
-        &QAction::triggered,
-        this,
-        [&](bool b) {
-          if (auto doc = currentDocument())
-          {
-            auto& mod = doc->model().modelDelegate();
-            auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(&mod);
-            if (scenar)
-            {
-              on_play(scenar->baseInterval(), b, {}, TimeVal::zero());
-            }
-          }
-        },
-        Qt::QueuedConnection);
-
-    auto& stop_action = ctx.actions.action<Actions::Stop>();
-    connect(
-        stop_action.action(),
-        &QAction::triggered,
-        this,
-        &ApplicationPlugin::on_stop,
-        Qt::QueuedConnection);
-
-    auto& init_action = ctx.actions.action<Actions::Reinitialize>();
-    connect(
-        init_action.action(),
-        &QAction::triggered,
-        this,
-        &ApplicationPlugin::on_init,
-        Qt::QueuedConnection);
-
     auto& ctrl = ctx.guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
-    con(ctrl.execution(),
-        &Scenario::ScenarioExecution::playAtDate,
-        this,
-        [=, act = play_action.action()](const TimeVal& t) {
-          if (m_clock)
-          {
-            on_transport(t);
-          }
-          else
-          {
-            on_play(true, t);
-            act->trigger();
-          }
-        });
-
     m_playActions.setupContextMenu(ctrl.layerContextMenuRegistrar());
   }
 }
@@ -155,7 +62,8 @@ bool ApplicationPlugin::handleStartup()
     {
       // TODO what happens if we load multiple documents ?
       QTimer::singleShot(
-          context.applicationSettings.waitAfterLoad * 1000, this, [=] { on_play(true); });
+          context.applicationSettings.waitAfterLoad * 1000,
+            &m_execution, [=] { m_execution.on_play_local(true); });
       return true;
     }
   }
@@ -185,26 +93,45 @@ void ApplicationPlugin::initialize()
       }
     }
   }
+
+  m_execution.init_transport();
 }
 
 QWidget* ApplicationPlugin::setupTimingWidget(QLabel* time_label) const
 {
   auto timer = new QTimer{time_label};
   connect(timer, &QTimer::timeout, this, [=] {
-    if (m_clock)
+    auto t = m_execution.execution_time();
+    if(t == TimeVal::zero())
     {
-      auto& itv = m_clock->scenario.baseInterval().scoreInterval().duration;
-      auto time = TimeVal(itv.defaultDuration() * itv.playPercentage()).toQTime();
-      time_label->setText(time.toString("HH:mm:ss.zzz"));
+      time_label->setText(QStringLiteral("00:00:00.000"));
     }
     else
     {
-      time_label->setText("00:00:00.000");
+      const double one_hour_in_ms = 3600 * 1000;
+      const double one_minute_in_ms = 60000;
+      const double one_second_in_ms = 1000;
+      int64_t ms = t.impl / ossia::flicks_per_millisecond<double>;
+      int64_t hours = ms / one_hour_in_ms;
+      ms -= hours * one_hour_in_ms;
+      int64_t minutes = ms / one_minute_in_ms;
+      ms -= minutes * one_minute_in_ms;
+      int64_t seconds = ms / one_second_in_ms;
+      ms -= seconds * one_second_in_ms;
+
+      time_label->setText(
+            QStringLiteral("%1:%2:%3.%4")
+             .arg(hours, 2, 10, QLatin1Char('0'))
+             .arg(minutes, 2, 10, QLatin1Char('0'))
+             .arg(seconds, 2, 10, QLatin1Char('0'))
+             .arg(ms, 3, 10, QLatin1Char('0'))
+      );
     }
   });
   timer->start(1000 / 20);
   return time_label;
 }
+
 score::GUIElements ApplicationPlugin::makeGUIElements()
 {
   GUIElements e;
@@ -391,345 +318,7 @@ void ApplicationPlugin::on_documentChanged(score::Document* olddoc, score::Docum
 
 void ApplicationPlugin::prepareNewDocument()
 {
-  on_stop();
-}
-
-void ApplicationPlugin::on_play(bool b, ::TimeVal t)
-{
-  // TODO have a on_exit handler to properly stop the scenario.
-  if (auto doc = currentDocument())
-  {
-    if (auto pres = doc->presenter())
-    {
-      auto scenar = dynamic_cast<Scenario::ScenarioDocumentPresenter*>(pres->presenterDelegate());
-      if (scenar)
-        on_play(scenar->displayedElements.interval(), b, {}, t);
-    }
-    else
-    {
-      auto& mod = doc->model().modelDelegate();
-      auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(&mod);
-      if (scenar)
-      {
-        on_play(scenar->baseInterval(), b, {}, t);
-      }
-    }
-  }
-}
-
-void ApplicationPlugin::on_transport(TimeVal t)
-{
-  if (!m_clock)
-    return;
-
-  auto itv = m_clock->scenario.baseInterval().OSSIAInterval();
-  if (!itv)
-    return;
-
-  auto& settings = context.settings<Execution::Settings::Model>();
-  auto& ctx = m_clock->context;
-  if (settings.getTransportValueCompilation())
-  {
-    auto execState = m_clock->context.execState;
-    ctx.executionQueue.enqueue([execState, itv, time = m_clock->context.time(t)] {
-      itv->offset(time);
-      execState->commit();
-    });
-  }
-  else
-  {
-    ctx.executionQueue.enqueue([itv, time = m_clock->context.time(t)] { itv->transport(time); });
-  }
-}
-
-void ApplicationPlugin::on_play(
-    Scenario::IntervalModel& cst,
-    bool b,
-    exec_setup_fun setup_fun,
-    TimeVal t)
-{
-  auto doc = currentDocument();
-  if (!doc)
-    return;
-
-  auto plugmodel = doc->context().findPlugin<Execution::DocumentPlugin>();
-  if (!plugmodel)
-    return;
-
-  auto& audio_engine = this->context.guiApplicationPlugin<Audio::ApplicationPlugin>();
-  if (!audio_engine.audio)
-  {
-    if (this->context.mainWindow)
-    {
-      score::warning(
-          this->context.mainWindow,
-          tr("Cannot play"),
-          tr("Cannot start playback. It looks like the audio engine is not "
-             "running.\n"
-             "Check the audio settings in the software settings to ensure "
-             "that a sound card "
-             "is correctly configured.\n\n"
-             "Check Settings > Audio > Device in particular. "
-             "The power-on icon at the bottom of the transport toolbar will "
-             "light up when the engine is running."));
-      return;
-    }
-    else
-    {
-      qFatal("Cannot playback without an audio engine set up");
-    }
-  }
-
-  if (b)
-  {
-    if (m_playing)
-    {
-      SCORE_ASSERT(bool(m_clock));
-      if (m_clock->paused())
-      {
-        m_clock->resume();
-        m_paused = false;
-      }
-    }
-    else
-    {
-      // Here we stop the listening when we start playing the scenario.
-      // Get all the selected nodes
-      if(auto explorer = Explorer::try_deviceExplorerFromObject(*doc))
-      {
-        // Disable listening for everything
-        if (explorer && !plugmodel->settings.getExecutionListening())
-        {
-          explorer->deviceModel().listening().stop();
-        }
-
-        if (this->context.applicationSettings.gui)
-        {
-          if (auto w = Explorer::findDeviceExplorerWidgetInstance(this->context))
-          {
-            w->setEditable(false);
-          }
-        }
-      }
-
-      plugmodel->reload(cst);
-
-      auto& c = plugmodel->context();
-      m_clock = makeClock(c);
-
-      if (setup_fun)
-      {
-        plugmodel->runAllCommands();
-        setup_fun(c, plugmodel->baseScenario());
-        plugmodel->runAllCommands();
-      }
-
-      m_clock->play(t);
-      m_paused = false;
-    }
-
-    m_playing = true;
-    doc->context().execTimer.start();
-  }
-  else
-  {
-    if (m_clock)
-    {
-      m_clock->pause();
-      m_paused = true;
-
-      doc->context().execTimer.stop();
-    }
-  }
-}
-
-void ApplicationPlugin::on_record(::TimeVal t)
-{
-  SCORE_ASSERT(!m_playing);
-
-  // TODO have a on_exit handler to properly stop the scenario.
-  if (auto doc = currentDocument())
-  {
-    auto plugmodel = doc->context().findPlugin<Execution::DocumentPlugin>();
-    if (!plugmodel)
-      return;
-    auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(&doc->model().modelDelegate());
-    if (!scenar)
-      return;
-
-    // Listening isn't stopped here.
-    plugmodel->reload(scenar->baseInterval());
-    m_clock = makeClock(plugmodel->context());
-    m_clock->play(t);
-
-    doc->context().execTimer.start();
-    m_playing = true;
-    m_paused = false;
-  }
-}
-
-void ApplicationPlugin::on_stop()
-{
-  bool wasplaying = m_playing;
-  m_playing = false;
-  m_paused = false;
-
-  auto doc = currentDocument();
-  if(doc)
-  {
-    auto plugmodel = doc->context().findPlugin<Execution::DocumentPlugin>();
-
-    if (plugmodel)
-    {
-      if (wasplaying)
-      {
-        // TODO this is sent *after* init has been sent, we have to reverse it in on_init
-        // but before the thing is cleaned.
-        if (auto scenar
-            = dynamic_cast<Scenario::ScenarioDocumentModel*>(&doc->model().modelDelegate()))
-        {
-          auto state = Engine::score_to_ossia::state(
-              scenar->baseScenario().endState(), plugmodel->context());
-          state.launch();
-        }
-      }
-    }
-  }
-
-  if (m_clock)
-  {
-    auto clock = std::move(m_clock);
-    m_clock.reset();
-    try {
-      clock->stop();
-    }  catch (...) {
-      qDebug() << "Error while stopping the clock. There is likely an audio hardware issue.";
-    }
-  }
-
-  if (context.applicationSettings.gui)
-  {
-    if (auto w = Explorer::findDeviceExplorerWidgetInstance(context))
-    {
-      w->setEditable(true);
-    }
-  }
-
-  if (doc)
-  {
-    doc->context().execTimer.stop();
-
-    auto plugmodel = doc->context().findPlugin<Execution::DocumentPlugin>();
-    if (plugmodel)
-    {
-      plugmodel->clear();
-    }
-    else
-    {
-      return;
-    }
-
-    // If we can we resume listening
-    if (!context.docManager.preparingNewDocument())
-    {
-      auto explorer = Explorer::try_deviceExplorerFromObject(*doc);
-      if (explorer)
-        explorer->deviceModel().listening().restore();
-    }
-
-    QTimer::singleShot(50, this, [this] {
-      // FIXME uuuugh have an event in scenario instead (or better, move this
-      // in process)
-      auto doc = currentDocument();
-      if (!doc)
-        return;
-      auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(&doc->model().modelDelegate());
-      if (!scenar)
-        return;
-      scenar->baseInterval().reset();
-      scenar->baseInterval().executionEvent(Scenario::IntervalExecutionEvent::Finished);
-      auto procs = doc->findChildren<Scenario::ProcessModel*>();
-      for (Scenario::ProcessModel* e : procs)
-      {
-        for (auto& itv : e->intervals)
-        {
-          itv.reset();
-          itv.executionEvent(Scenario::IntervalExecutionEvent::Finished);
-        }
-        for (auto& ts : e->timeSyncs)
-        {
-          ts.setWaiting(false);
-        }
-        for (auto& ev : e->events)
-        {
-          ev.setStatus(Scenario::ExecutionStatus::Editing, *e);
-        }
-      }
-    });
-  }
-}
-
-void ApplicationPlugin::on_init()
-{
-  // TODO to be more precise, we should stop the execution, but keep
-  // the execution_state alive until the last message is sent
-  if (auto doc = currentDocument())
-  {
-    auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(&doc->model().modelDelegate());
-    if (!scenar)
-      return;
-
-    auto plugmodel = doc->context().findPlugin<Execution::DocumentPlugin>();
-    if (!plugmodel)
-      return;
-
-    auto explorer = Explorer::try_deviceExplorerFromObject(*doc);
-
-    // Disable listening for everything
-    if (explorer)
-      if(!doc->context().app.settings<Execution::Settings::Model>().getExecutionListening())
-        explorer->deviceModel().listening().stop();
-
-    if(plugmodel->execState)
-    {
-      auto state
-          = Engine::score_to_ossia::state(scenar->baseScenario().startState(), plugmodel->context());
-      state.launch();
-    }
-    else
-    {
-      // Create a temporary execution_state...
-      plugmodel->execState = std::make_shared<ossia::execution_state>();
-
-      // Fill its devices
-      auto& devs = doc->context().plugin<Explorer::DeviceDocumentPlugin>();
-      devs.list().apply([plugmodel] (auto& dev) {
-        if (auto d = dev.getDevice()) {
-          plugmodel->execState->register_device(d);
-        }
-      });
-
-      auto state = Engine::score_to_ossia::state(scenar->baseScenario().startState(), plugmodel->context());
-      state.launch();
-
-      plugmodel->execState.reset();
-    }
-
-    // If we can we resume listening
-    if (explorer)
-      if (!context.docManager.preparingNewDocument())
-        explorer->deviceModel().listening().restore();
-
-    if (context.applicationSettings.gui)
-    {
-      auto& stop_action = context.actions.action<Actions::Stop>();
-      stop_action.action()->trigger();
-    }
-    else
-    {
-      this->on_stop();
-    }
-  }
+  execution().on_stop();
 }
 
 void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
@@ -746,10 +335,10 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     if (context.applicationSettings.gui)
     {
       auto& play_action = appplug.context.actions.action<Actions::Play>();
-      connect(play_action.action(), &QAction::triggered, &lt, [=] { p->push_value(true); });
+      connect(play_action.action(), &QAction::toggled, &lt, [=] { p->push_value(true); });
 
       auto& stop_action = context.actions.action<Actions::Stop>();
-      connect(stop_action.action(), &QAction::triggered, &lt, [=] { p->push_value(false); });
+      connect(stop_action.action(), &QAction::toggled, &lt, [=] { p->push_value(false); });
     }
   }
   {
@@ -761,37 +350,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
       ossia::qt::run_async(this, [=] {
         if (auto val = v.target<bool>())
         {
-          if (!playing() && *val)
-          {
-            // not playing, play requested
-            if (context.applicationSettings.gui)
-            {
-              auto& play_action = context.actions.action<Actions::Play>();
-              play_action.action()->trigger();
-            }
-            else
-            {
-              this->on_play(true);
-            }
-          }
-          else if (playing())
-          {
-            if (paused() == *val)
-            {
-              // paused, play requested
-              // or playing, pause requested
-
-              if (context.applicationSettings.gui)
-              {
-                auto& play_action = context.actions.action<Actions::Play>();
-                play_action.action()->trigger();
-              }
-              else
-              {
-                this->on_play(true);
-              }
-            }
-          }
+          execution().request_play_from_localtree(*val);
         }
       });
     });
@@ -806,53 +365,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
       ossia::qt::run_async(this, [=] {
         if (auto val = v.target<bool>())
         {
-          if (!playing() && *val)
-          {
-            // not playing, play requested
-            if (context.applicationSettings.gui)
-            {
-              auto& play_action = context.actions.action<Actions::PlayGlobal>();
-              play_action.action()->trigger();
-            }
-            else
-            {
-              if (auto doc = currentDocument())
-              {
-                auto& mod = doc->model().modelDelegate();
-                auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(&mod);
-                if (scenar)
-                {
-                  on_play(scenar->baseInterval(), true, {}, TimeVal{});
-                }
-              }
-            }
-          }
-          else if (playing())
-          {
-            if (paused() == *val)
-            {
-              // paused, play requested
-              // or playing, pause requested
-
-              if (context.applicationSettings.gui)
-              {
-                auto& play_action = context.actions.action<Actions::PlayGlobal>();
-                play_action.action()->trigger();
-              }
-              else
-              {
-                if (auto doc = currentDocument())
-                {
-                  auto& mod = doc->model().modelDelegate();
-                  auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(&mod);
-                  if (scenar)
-                  {
-                    on_play(scenar->baseInterval(), true, {}, TimeVal{});
-                  }
-                }
-              }
-            }
-          }
+          execution().request_play_global_from_localtree(*val);
         }
       });
     });
@@ -866,7 +379,9 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     local_transport_address->set_unit(ossia::millisecond_u{});
     local_transport_address->add_callback([&](const ossia::value& v) {
       ossia::qt::run_async(
-          this, [=] { on_transport(TimeVal::fromMsecs(ossia::convert<float>(v))); });
+          this, [=] {
+        execution().request_transport_from_localtree(TimeVal::fromMsecs(ossia::convert<float>(v)));
+      });
     });
   }
 
@@ -877,15 +392,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     local_stop_address->set_access(ossia::access_mode::SET);
     local_stop_address->add_callback([&](const ossia::value&) {
       ossia::qt::run_async(this, [=] {
-        if (context.applicationSettings.gui)
-        {
-          auto& stop_action = context.actions.action<Actions::Stop>();
-          stop_action.action()->trigger();
-        }
-        else
-        {
-          this->on_stop();
-        }
+        execution().request_stop_from_localtree();
       });
     });
   }
@@ -897,15 +404,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     local_stop_address->set_access(ossia::access_mode::SET);
     local_stop_address->add_callback([&](const ossia::value&) {
       ossia::qt::run_async(this, [=] {
-        if (context.applicationSettings.gui)
-        {
-          auto& stop_action = context.actions.action<Actions::Reinitialize>();
-          stop_action.action()->trigger();
-        }
-        else
-        {
-          this->on_init();
-        }
+        execution().request_reinitialize_from_localtree();
       });
     });
   }
@@ -916,15 +415,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     address->set_access(ossia::access_mode::SET);
     address->add_callback([&](const ossia::value&) {
       ossia::qt::run_async(this, [=] {
-        if (context.applicationSettings.gui)
-        {
-          auto& stop_action = context.actions.action<Actions::Stop>();
-          stop_action.action()->trigger();
-        }
-        else
-        {
-          this->on_stop();
-        }
+        execution().request_stop_from_localtree();
 
         QTimer::singleShot(500, [] { score::GUIApplicationInterface::instance().forceExit(); });
       });
@@ -972,9 +463,4 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
   }
 }
 
-std::unique_ptr<Execution::Clock> ApplicationPlugin::makeClock(const Execution::Context& ctx)
-{
-  auto& s = context.settings<Execution::Settings::Model>();
-  return s.makeClock(ctx);
-}
 }

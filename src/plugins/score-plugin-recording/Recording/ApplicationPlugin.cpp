@@ -24,6 +24,7 @@
 #include <qnamespace.h>
 
 #include <Engine/ApplicationPlugin.hpp>
+#include <Execution/ExecutionController.hpp>
 
 namespace Recording
 {
@@ -77,7 +78,7 @@ void ApplicationPlugin::record(Scenario::ProcessModel* scenar, Scenario::Point p
         &m_recManager->recorder,
         &Recording::AutomationRecorder::firstMessageReceived,
         this,
-        [=]() { m_ossiaplug->on_record(pt.date); },
+        [=]() { m_ossiaplug->execution().on_record(pt.date); },
         Qt::QueuedConnection);
   }
 
@@ -106,7 +107,7 @@ void ApplicationPlugin::recordMessages(Scenario::ProcessModel* scenar, Scenario:
         &m_recMessagesManager->recorder,
         &Recording::MessageRecorder::firstMessageReceived,
         this,
-        [=]() { m_ossiaplug->on_record(pt.date); },
+        [=]() { m_ossiaplug->execution().on_record(pt.date); },
         Qt::QueuedConnection);
   }
 
