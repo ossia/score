@@ -92,6 +92,9 @@ struct AudioTickHelper
         else
         {
           // transport
+          // TODO here we must multiply by root_tempo / tempo  ... if we have  a fixed tempo !
+          // If we have a tempo map we have to integrate over it to compute which logical duration
+          // maps to which physical duration.
           const auto flicks = cur * m_plug.execState->samplesToModelRatio;
           m_itv.transport(ossia::time_value{int64_t(flicks)});
 

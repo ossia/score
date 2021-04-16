@@ -277,28 +277,31 @@ JackFactory::make_engine(const Audio::Settings::Model& set, const score::Applica
   };
   settings.timebase_function = [&info=this->currentTransportInfo] (int frames, jack_position_t& pos)
   {
-    pos.frame += frames;
-    pos.valid = JackPositionBBT;
+   // pos.frame += frames;
+    pos.valid = jack_position_bits_t(JackPositionBBT | JackBBTFrameOffset);
 
     // Duration of a quarter note in flicks
-    const double quarter_duration = ossia::quarter_duration<double>;
-    // FIXME we need to compute the current bar, etc... in the time_interval.
-    // FIXME speed is broken
-    pos.bar = (info.date.impl / (4 * quarter_duration));
-    pos.beat = (info.date.impl - pos.bar * 4 * quarter_duration) / quarter_duration;
-    pos.tick = (info.date.impl - pos.bar * 4 * quarter_duration - pos.beat * quarter_duration) / 100;
-    pos.bar_start_tick = 0;
+    const double beat_duration = ossia::quarter_duration<double>;
+    const double ticks_per_beat = 1920.; // apparently some common value, 2*default midi PPQ (960)
 
     pos.beats_per_bar = info.signature.upper;
     pos.beat_type = info.signature.lower;
-
-    pos.ticks_per_beat = 100.;
+    pos.ticks_per_beat = ticks_per_beat;
     pos.beats_per_minute = info.current_tempo;
 
-    pos.bbt_offset = info.musical_start_position;
+    // FIXME speed is broken
+    pos.bar = (info.date.impl / (4 * beat_duration));
+    pos.beat = (info.date.impl - pos.bar * 4 * beat_duration) / beat_duration;
+    pos.tick = (info.date.impl - pos.bar * 4 * beat_duration - pos.beat * beat_duration) / ticks_per_beat;
+    pos.bar_start_tick = info.musical_start_last_bar * ticks_per_beat;
+
+    // bar / beat are human-readable values, 1-based
+    pos.bar++;
+    pos.beat++;
+
+    pos.bbt_offset = 0;
   };
 
-  // FIXME investigate why jack_client_close crashes if called here (e.g. because the ctor of jack_engine throws)
   return std::make_unique<ossia::jack_engine>(clt, set.getDefaultIn(), set.getDefaultOut(), settings);
 }
 

@@ -356,7 +356,7 @@ void ExecutionController::request_play_global_from_localtree(bool val)
 
 void ExecutionController::request_transport_from_localtree(TimeVal t)
 {
-  on_transport(t);
+  m_transport->requestTransport(t);
 }
 
 void ExecutionController::request_stop_from_localtree()
@@ -373,7 +373,7 @@ void ExecutionController::request_play_from_here(TimeVal t)
 {
   if (m_clock)
   {
-    on_transport(t);
+    m_transport->requestTransport(t);
   }
   else
   {
@@ -643,7 +643,6 @@ void ExecutionController::init_transport()
 {
   if(m_transport)
     m_transport->teardown();
-  delete m_transport;
 
   auto& s = context.settings<Execution::Settings::Model>();
   m_transport = s.getTransport();

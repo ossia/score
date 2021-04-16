@@ -57,6 +57,8 @@ void JackTransport::setup()
         case ossia::transport_status::starting:
           play();
           break;
+        default:
+          break;
       }
     }, Qt::QueuedConnection);
   }
@@ -96,8 +98,11 @@ void JackTransport::requestTransport(ossia::time_value t)
   if(m_client && m_client->client)
   {
     auto rate = jack_get_sample_rate(m_client->client);
-    qDebug() << ossia::to_sample(t, rate);
-    jack_transport_locate(m_client->client, ossia::to_sample(t, rate));
+    // TODO here we do not have enough information to do it correctly.
+    // t is in "logical units" and we have to go to physical units. But this
+    // depends on the tempo curve of the main interval.
+    double position_in_frames = ossia::to_sample(t, rate);
+    jack_transport_locate(m_client->client, position_in_frames);
   }
 }
 
