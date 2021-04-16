@@ -17,6 +17,8 @@
 #include <Audio/Settings/View.hpp>
 #include <wobjectimpl.h>
 
+#include <thread>
+
 #if defined(OSSIA_AUDIO_JACK)
 W_OBJECT_IMPL(Audio::JackFactory)
 #endif
@@ -287,8 +289,8 @@ JackFactory::make_engine(const Audio::Settings::Model& set, const score::Applica
     pos.tick = (info.date.impl - pos.bar * 4 * quarter_duration - pos.beat * quarter_duration) / 100;
     pos.bar_start_tick = 0;
 
-    pos.beats_per_bar = info.time_signature.upper;
-    pos.beat_type = info.time_signature.lower;
+    pos.beats_per_bar = info.signature.upper;
+    pos.beat_type = info.signature.lower;
 
     pos.ticks_per_beat = 100.;
     pos.beats_per_minute = info.current_tempo;
