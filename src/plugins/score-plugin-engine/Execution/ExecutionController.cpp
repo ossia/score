@@ -19,6 +19,7 @@
 #include <Audio/AudioApplicationPlugin.hpp>
 
 #include <score/actions/ActionManager.hpp>
+#include <score/tools/Bind.hpp>
 #include <score/widgets/MessageBox.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
@@ -137,8 +138,12 @@ ExecutionController::ExecutionController(const score::GUIApplicationContext& ctx
 
 ExecutionController::~ExecutionController()
 {
-  if(m_transport)
-    m_transport->teardown();
+  m_transport->teardown();
+}
+
+TransportInterface& ExecutionController::transport() const noexcept
+{
+  return *m_transport;
 }
 
 void ExecutionController::request_play_global(bool b)
@@ -636,6 +641,10 @@ void ExecutionController::on_reinitialize()
 
 void ExecutionController::init_transport()
 {
+  if(m_transport)
+    m_transport->teardown();
+  delete m_transport;
+
   auto& s = context.settings<Execution::Settings::Model>();
   m_transport = s.getTransport();
   SCORE_ASSERT(m_transport);
@@ -646,6 +655,11 @@ void ExecutionController::init_transport()
           this, &ExecutionController::trigger_pause);
   connect(m_transport, &Execution::TransportInterface::stop,
           this, &ExecutionController::trigger_stop);
+
+
+  auto& audio_settings = this->context.settings<Audio::Settings::Model>();
+  con(audio_settings, &Audio::Settings::Model::JackTransportChanged,
+      this, &ExecutionController::init_transport, Qt::UniqueConnection);
 }
 
 Scenario::ScenarioDocumentModel* ExecutionController::currentScenarioModel()

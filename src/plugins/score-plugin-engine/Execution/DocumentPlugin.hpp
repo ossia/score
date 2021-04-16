@@ -41,6 +41,7 @@ class AudioDevice;
 }
 namespace Execution
 {
+class ExecutionController;
 class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final : public score::DocumentPlugin
 {
   W_OBJECT(DocumentPlugin)
@@ -59,7 +60,8 @@ public:
 
   bool isPlaying() const;
 
-  const Context& context() const { return m_ctx; }
+  const Context& context() const noexcept { return m_ctx; }
+  const ExecutionController& executionController() const noexcept;
   ossia::audio_protocol& audioProto();
 
   void runAllCommands() const;

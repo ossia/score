@@ -5,10 +5,13 @@
 
 #include <Execution/BaseScenarioComponent.hpp>
 #include <Execution/DocumentPlugin.hpp>
+#include <Execution/ExecutionController.hpp>
+#include <Execution/Transport/TransportInterface.hpp>
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
 #include <ossia/editor/scenario/execution_log.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/dataflow/execution_state.hpp>
+#include <ossia/dataflow/graph/tick_setup.hpp>
 
 namespace Execution
 {
@@ -24,7 +27,7 @@ struct AudioTickHelper
       Execution::DocumentPlugin& plug,
       Execution::BaseScenarioElement& scenar)
     : m_itv{*scenar.baseInterval().OSSIAInterval()}
-    , m_tick{ossia::make_tick(opt, *plug.execState, *plug.execGraph, m_itv)}
+    , m_tick{ossia::make_tick(opt, *plug.execState, *plug.execGraph, m_itv, plug.executionController().transport().transportUpdateFunction())}
     , m_plug{plug}
     , m_execQueue{plug.context().executionQueue}
     , m_gcQueue{plug.context().gcQueue}
@@ -166,7 +169,7 @@ Audio::tick_fun makeBenchmarkTick(
     Execution::BaseScenarioElement& scenar)
 {
   auto tick = ossia::make_tick(
-      opt, *plug.execState, *plug.execGraph, *scenar.baseInterval().OSSIAInterval());
+      opt, *plug.execState, *plug.execGraph, *scenar.baseInterval().OSSIAInterval(), plug.executionController().transport().transportUpdateFunction());
 
   int i = 0;
   return [helper = AudioTickHelper{opt, plug, scenar}, i]

@@ -4,10 +4,14 @@
 #include <score/command/Dispatchers/SettingsCommandDispatcher.hpp>
 
 #include <ossia/audio/jack_protocol.hpp>
+#include <ossia/dataflow/transport.hpp>
+
 #include <score_plugin_audio_export.h>
 
+#if defined(OSSIA_AUDIO_JACK)
 Q_DECLARE_METATYPE(ossia::transport_status)
 W_REGISTER_ARGTYPE(ossia::transport_status)
+#endif
 
 class QFormLayout;
 namespace Audio
@@ -52,6 +56,8 @@ public:
   void transportStateChanged(ossia::transport_status st)
   E_SIGNAL(SCORE_PLUGIN_AUDIO_EXPORT, transportStateChanged, st);
 
+  ossia::tick_transport_info currentTransportInfo;
+private:
   jack_transport_state_t m_prevState{};
 };
 #endif

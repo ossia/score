@@ -28,6 +28,7 @@ public:
   ExecutionController(const score::GUIApplicationContext& ctx);
   ~ExecutionController();
 
+  TransportInterface& transport() const noexcept;
   void init_transport();
 
   TimeVal execution_time() const;

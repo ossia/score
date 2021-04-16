@@ -224,7 +224,7 @@ JackFactory::make_engine(const Audio::Settings::Model& set, const score::Applica
     settings.outputs.push_back("out_" + std::to_string(settings.outputs.size()));
   }
 
-  // ! Warning ! this function is executed in the audio thread
+  // ! Warning ! these functions are executed in the audio thread
   settings.sync_function = [this] (jack_transport_state_t st, jack_position_t *) -> int
   {
     if(m_prevState != st)
@@ -272,6 +272,28 @@ JackFactory::make_engine(const Audio::Settings::Model& set, const score::Applica
       }
     }
     return 1;
+  };
+  settings.timebase_function = [&info=this->currentTransportInfo] (int frames, jack_position_t& pos)
+  {
+    pos.frame += frames;
+    pos.valid = JackPositionBBT;
+
+    // Duration of a quarter note in flicks
+    const double quarter_duration = ossia::quarter_duration<double>;
+    // FIXME we need to compute the current bar, etc... in the time_interval.
+    // FIXME speed is broken
+    pos.bar = (info.date.impl / (4 * quarter_duration));
+    pos.beat = (info.date.impl - pos.bar * 4 * quarter_duration) / quarter_duration;
+    pos.tick = (info.date.impl - pos.bar * 4 * quarter_duration - pos.beat * quarter_duration) / 100;
+    pos.bar_start_tick = 0;
+
+    pos.beats_per_bar = info.time_signature.upper;
+    pos.beat_type = info.time_signature.lower;
+
+    pos.ticks_per_beat = 100.;
+    pos.beats_per_minute = info.current_tempo;
+
+    pos.bbt_offset = info.musical_start_position;
   };
 
   // FIXME investigate why jack_client_close crashes if called here (e.g. because the ctor of jack_engine throws)

@@ -20,6 +20,7 @@
 #include <Execution/Clock/DefaultClock.hpp>
 #include <Execution/Clock/ManualClock.hpp>
 #include <Execution/Transport/TransportInterface.hpp>
+#include <Execution/Transport/JackTransport.hpp>
 #include <Execution/DocumentPlugin.hpp>
 #include <Execution/Settings/ExecutorFactory.hpp>
 #include <LocalTree/Device/LocalProtocolFactory.hpp>

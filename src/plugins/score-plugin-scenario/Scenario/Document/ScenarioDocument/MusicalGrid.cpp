@@ -45,7 +45,7 @@ ossia::bar_time timeToMetrics(MusicalGrid& grid, TimeVal x0_time)
       }
 
       if(bars * (4. * double(sig_upper) / sig_lower))
-      prev_bar_date = this_bar_date;
+        prev_bar_date = this_bar_date;
       prev_sig = it->second;
     }
   }

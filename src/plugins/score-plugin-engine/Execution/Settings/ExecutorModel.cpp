@@ -8,7 +8,7 @@
 
 #include <Execution/Clock/DataflowClock.hpp>
 #include <Execution/Clock/DefaultClock.hpp>
-
+#include <Execution/Transport/JackTransport.hpp>
 #if defined(OSSIA_AUDIO_JACK)
 #include <Audio/JackInterface.hpp>
 #endif
@@ -113,7 +113,10 @@ TransportInterface* Model::getTransport() const
   {
     if(m_audioSettings.getJackTransport() != Audio::Settings::ExternalTransport::None)
     {
-      return (JackTransport*)m_transportInterfaces.get(Execution::JackTransport::static_concreteKey());
+      if(auto t = m_transportInterfaces.get(Execution::JackTransport::static_concreteKey()))
+      {
+        return t;
+      }
     }
   }
 #endif

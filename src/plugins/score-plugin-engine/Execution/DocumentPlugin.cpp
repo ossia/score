@@ -29,7 +29,7 @@
 #include <ossia/detail/logger.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/network/common/path.hpp>
-
+#include <ossia/dataflow/bench_map.hpp>
 #include <QCoreApplication>
 
 #include <Audio/AudioApplicationPlugin.hpp>
@@ -387,6 +387,11 @@ void DocumentPlugin::playStartState()
 bool DocumentPlugin::isPlaying() const
 {
   return m_base.active();
+}
+
+const ExecutionController& DocumentPlugin::executionController() const noexcept
+{
+  return this->context().doc.app.guiApplicationPlugin<Engine::ApplicationPlugin>().execution();
 }
 
 ossia::audio_protocol& DocumentPlugin::audioProto()
