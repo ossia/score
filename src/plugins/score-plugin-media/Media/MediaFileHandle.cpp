@@ -210,7 +210,7 @@ struct FrameComputer
   void operator()(const AudioFile::LibavView& r) noexcept
   {
     const int channels = r.data.size();
-    SCORE_ASSERT((int)sum.size() == channels);
+    assert((int)sum.size() == channels);
     if (end_frame - start_frame > 0)
     {
       for (int c = 0; c < channels; c++)
@@ -235,7 +235,7 @@ struct FrameComputer
   {
     auto& wav = r.wav;
     const int channels = wav.channels();
-    SCORE_ASSERT((int)sum.size() == channels);
+    assert((int)sum.size() == channels);
 
     if (end_frame - start_frame > 0)
     {
@@ -300,7 +300,7 @@ struct SingleFrameComputer
   void operator()(const AudioFile::LibavView& r) noexcept
   {
     const int channels = r.data.size();
-    SCORE_ASSERT((int)sum.size() == channels);
+    assert((int)sum.size() == channels);
     for (int c = 0; c < channels; c++)
     {
       const auto& vals = r.data[c];
@@ -312,7 +312,7 @@ struct SingleFrameComputer
   {
     auto& wav = r.wav;
     const int channels = wav.channels();
-    SCORE_ASSERT((int)sum.size() == channels);
+    assert((int)sum.size() == channels);
 
     float* val = (float*)alloca(sizeof(float) * channels);
     if (Q_UNLIKELY(!wav.seek_to_pcm_frame(start_frame)))

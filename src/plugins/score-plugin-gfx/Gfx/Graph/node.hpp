@@ -1,4 +1,5 @@
 #pragma once
+#include <ossia/detail/packed_struct.hpp>
 #include "mesh.hpp"
 #include "renderstate.hpp"
 #include "uniforms.hpp"
@@ -105,14 +106,7 @@ struct TextureRenderTarget {
   }
 };
 
-#if defined(_MSC_VER)
-#pragma pack(push, 1)
-#endif
-struct
-#if defined(__GNUC__) || defined(__clang__)
-    __attribute__((packed))
-#endif
-    ProcessUBO
+packed_struct ProcessUBO
 {
   float time{};
   float timeDelta{};
@@ -127,18 +121,9 @@ struct
 
   float sampleRate{};
 };
-#if defined(_MSC_VER)
-#pragma pack()
-#endif
+end_packed_struct
 
-#if defined(_MSC_VER)
-#pragma pack(push, 1)
-#endif
-struct
-#if defined(__GNUC__) || defined(__clang__)
-    __attribute__((packed))
-#endif
-    ModelCameraUBO
+packed_struct ModelCameraUBO
 {
   float mvp[16]{};
   float mv[16]{};
@@ -147,9 +132,8 @@ struct
   float projection[16]{};
   float modelNormal[9]{};
 };
-#if defined(_MSC_VER)
-#pragma pack()
-#endif
+end_packed_struct
+
 static_assert(sizeof(ModelCameraUBO) == sizeof(float) * (16 + 16 + 16 + 16 + 16 + 9));
 struct Renderer;
 class RenderedNode;
