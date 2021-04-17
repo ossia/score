@@ -257,7 +257,8 @@ JackFactory::make_engine(const Audio::Settings::Model& set, const score::Applica
         {
           return 1;
         }
-        case jack_transport_state_t::JackTransportNetStarting:
+        default:
+        // commented as not available in Debian buster / bullseye : case jack_transport_state_t::JackTransportNetStarting:
         {
           m_prevState = st;
           return 1;
