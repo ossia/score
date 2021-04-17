@@ -3,7 +3,6 @@
 #include <score/application/ApplicationContext.hpp>
 #include <Audio/JackInterface.hpp>
 #include <Audio/Settings/Model.hpp>
-#include <weak_libjack.h>
 namespace Execution
 {
 
