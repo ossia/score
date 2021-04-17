@@ -26,6 +26,12 @@
 #include <verdigris>
 
 #include <type_traits>
+
+class QModelIndex;
+class QMimeData;
+class QItemSelection;
+class QItemSelectionRange;
+
 template <typename model>
 class IdentifiedObject;
 namespace score
@@ -424,22 +430,28 @@ template<typename T> struct is_qqmllistproperty: std::false_type {};
 template<typename T> struct is_qqmllistproperty<QQmlListProperty<T>> : std::true_type {};
 template<typename T>
 static constexpr bool is_qqmllistproperty_v = is_qqmllistproperty<T>::value;
-
+template<typename T>
+static constexpr bool is_datastream_serializable =
+       !std::is_arithmetic<T>::value
+    && !std::is_enum<T>::value
+    && !std::is_same<T, QStringList>::value
+    && !std::is_pointer<T>::value
+  #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    && !std::is_same<T, QIterable<QMetaSequence>>::value
+    && !std::is_same<T, QIterable<QMetaAssociation>>::value
+    && !std::is_same<T, QModelIndex>::value
+    && !std::is_same<T, QMimeData>::value
+    && !std::is_same<T, QItemSelection>::value
+    && !std::is_same<T, QItemSelectionRange>::value
+    && !std::is_same<T, QtMetaTypePrivate::QPairVariantInterfaceImpl>::value
+    && !is_shared_ptr_v<T>
+    && !is_qpointer_v<T>
+    && !is_qqmllistproperty_v<T>
+  #endif
+;
 template <
     typename T,
-    std::enable_if_t<
-        !std::is_arithmetic<T>::value
-        && !std::is_enum<T>::value
-        && !std::is_same<T, QStringList>::value
-        && !std::is_pointer<T>::value
-      #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-        && !std::is_same<T, QIterable<QMetaSequence>>::value
-        && !std::is_same<T, QIterable<QMetaAssociation>>::value
-        && !is_shared_ptr_v<T>
-        && !is_qpointer_v<T>
-        && !is_qqmllistproperty_v<T>
-      #endif
-      >*
+    std::enable_if_t<is_datastream_serializable<T>>*
     = nullptr>
 QDataStream& operator<<(QDataStream& stream, const T& obj)
 {
@@ -450,19 +462,7 @@ QDataStream& operator<<(QDataStream& stream, const T& obj)
 
 template <
     typename T,
-    std::enable_if_t<
-        !std::is_arithmetic<T>::value
-        && !std::is_enum<T>::value
-        && !std::is_same<T, QStringList>::value
-        && !std::is_pointer<T>::value
-      #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-        && !std::is_same<T, QIterable<QMetaSequence>>::value
-        && !std::is_same<T, QIterable<QMetaAssociation>>::value
-        && !is_shared_ptr_v<T>
-        && !is_qpointer_v<T>
-        && !is_qqmllistproperty_v<T>
-      #endif
-      >* = nullptr>
+    std::enable_if_t<is_datastream_serializable<T>>* = nullptr>
 QDataStream& operator>>(QDataStream& stream, T& obj)
 {
   DataStreamWriter writer{stream.device()};

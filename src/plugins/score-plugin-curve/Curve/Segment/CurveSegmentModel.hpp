@@ -115,6 +115,5 @@ OBJECTKEY_METADATA(SCORE_PLUGIN_CURVE_EXPORT, Curve::SegmentModel, "CurveSegment
 // extern template class SCORE_PLUGIN_CURVE_EXPORT
 // IdContainer<Curve::SegmentModel>;
 
-W_REGISTER_ARGTYPE(const Curve::SegmentModel&)
-W_REGISTER_ARGTYPE(Curve::SegmentModel)
+W_REGISTER_ARGTYPE(const Curve::SegmentModel*)
 W_REGISTER_ARGTYPE(Id<Curve::SegmentModel>)

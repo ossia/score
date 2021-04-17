@@ -51,9 +51,9 @@ public:
   void logError(const QString& arg_1) const
       E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, logError, arg_1)
 
-  void deviceAdded(DeviceInterface& dev) const
+  void deviceAdded(DeviceInterface* dev) const
       E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, deviceAdded, dev)
-  void deviceRemoved(DeviceInterface& dev) const
+  void deviceRemoved(DeviceInterface* dev) const
       E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, deviceRemoved, dev)
 
 private:
@@ -63,4 +63,4 @@ private:
 };
 }
 
-W_REGISTER_ARGTYPE(Device::DeviceInterface&)
+W_REGISTER_ARGTYPE(Device::DeviceInterface*)

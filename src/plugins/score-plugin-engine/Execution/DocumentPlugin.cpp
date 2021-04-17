@@ -77,27 +77,10 @@ DocumentPlugin::DocumentPlugin(
     ctx.plugin<Explorer::DeviceDocumentPlugin>().list().setAudioDevice(audio_device);
   }
 
-  auto on_deviceAdded = [=](auto& dev) {
-    if (auto d = dev.getDevice())
-    {
-      connect(
-          &dev,
-          &Device::DeviceInterface::deviceChanged,
-          this,
-          [=](ossia::net::device_base* old_dev, ossia::net::device_base* new_dev) {
-            if (old_dev)
-              unregisterDevice(old_dev);
-            if (new_dev)
-              registerDevice(new_dev);
-          });
-      registerDevice(d);
-    }
-  };
-
-  devs.list().apply(on_deviceAdded);
-  con(devs.list(), &Device::DeviceList::deviceAdded, this, on_deviceAdded);
-  con(devs.list(), &Device::DeviceList::deviceRemoved, this, [=](auto& dev) {
-    if (auto d = dev.getDevice())
+  devs.list().apply([this] (auto& d) { on_deviceAdded(&d); });
+  con(devs.list(), &Device::DeviceList::deviceAdded, this, &DocumentPlugin::on_deviceAdded);
+  con(devs.list(), &Device::DeviceList::deviceRemoved, this, [=](auto* dev) {
+    if (auto d = dev->getDevice())
       unregisterDevice(d);
   });
 
@@ -428,6 +411,21 @@ void DocumentPlugin::slot_bench(ossia::bench_map b, int64_t ns)
         }
       }
     }
+  }
+}
+
+void DocumentPlugin::on_deviceAdded(Device::DeviceInterface* dev)
+{
+  if (auto d = dev->getDevice())
+  {
+    connect(dev, &Device::DeviceInterface::deviceChanged,
+            this, [=](ossia::net::device_base* old_dev, ossia::net::device_base* new_dev) {
+      if (old_dev)
+        unregisterDevice(old_dev);
+      if (new_dev)
+        registerDevice(new_dev);
+    });
+    registerDevice(d);
   }
 }
 }

@@ -78,7 +78,7 @@ void DeviceList::addDevice(DeviceInterface* dev)
   connect(dev, &DeviceInterface::logOutbound, this, &DeviceList::logOutbound);
 
   dev->setLogging(get_cur_logging(m_logging));
-  deviceAdded(*dev);
+  deviceAdded(dev);
 }
 
 void DeviceList::removeDevice(const QString& name)
@@ -102,7 +102,7 @@ void DeviceList::removeDevice(const QString& name)
     auto it = get_device_iterator_by_name(name, m_devices);
     SCORE_ASSERT(it != m_devices.end());
 
-    deviceRemoved(**it);
+    deviceRemoved(*it);
     delete *it;
     m_devices.erase(it);
   }

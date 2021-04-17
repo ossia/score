@@ -194,7 +194,7 @@ void Model::insertSegment(SegmentModel* m)
     }
   });
 
-  segmentAdded(*m);
+  segmentAdded(m);
 }
 
 void Model::removeSegment(SegmentModel* m)
@@ -362,7 +362,7 @@ void Model::addPoint(PointModel* pt)
 {
   m_points.push_back(pt);
 
-  pointAdded(*pt);
+  pointAdded(pt);
 }
 
 void Model::removePoint(PointModel* pt)

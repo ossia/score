@@ -58,6 +58,9 @@ private:
 };
 }
 
+inline QDataStream& operator<<(QDataStream& i, const Library::ProcessData& sel) { return i; }
+inline QDataStream& operator>>(QDataStream& i, Library::ProcessData& sel) { return i; }
+
 W_REGISTER_ARGTYPE(Library::ProcessData)
 Q_DECLARE_METATYPE(Library::ProcessData)
 W_REGISTER_ARGTYPE(std::optional<Library::ProcessData>)

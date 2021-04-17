@@ -114,12 +114,12 @@ void Presenter::setPos(SegmentView& segment)
 
 void Presenter::setupSignals()
 {
-  con(m_model, &Model::segmentAdded, this, [&](const SegmentModel& segment) {
-    addSegment(new SegmentView{&segment, m_style, m_view});
+  con(m_model, &Model::segmentAdded, this, [&](const SegmentModel* segment) {
+    addSegment(new SegmentView{segment, m_style, m_view});
   });
 
-  con(m_model, &Model::pointAdded, this, [&](const PointModel& point) {
-    addPoint(new PointView{&point, m_style, m_view});
+  con(m_model, &Model::pointAdded, this, [&](const PointModel* point) {
+    addPoint(new PointView{point, m_style, m_view});
   });
 
   con(m_model, &Model::pointRemoved, this, [&](const Id<PointModel>& m) { m_points.erase(m); });

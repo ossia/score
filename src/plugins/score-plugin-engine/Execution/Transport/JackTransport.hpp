@@ -24,5 +24,5 @@ public:
 
   std::shared_ptr<ossia::jack_client> m_client;
 };
-}
 #endif
+}

@@ -40,6 +40,5 @@ private:
 };
 }
 
-W_REGISTER_ARGTYPE(const Curve::PointModel&)
-W_REGISTER_ARGTYPE(Curve::PointModel)
+W_REGISTER_ARGTYPE(const Curve::PointModel*)
 W_REGISTER_ARGTYPE(Id<Curve::PointModel>)

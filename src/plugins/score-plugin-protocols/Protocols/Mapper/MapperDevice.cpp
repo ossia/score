@@ -48,7 +48,7 @@ class observable_device_roots final : public QObject
 public:
   observable_device_roots(Device::DeviceList& devices)
   {
-    devices.apply([this](auto& dev) { on_deviceAdded(dev); });
+    devices.apply([this](auto& dev) { on_deviceAdded(&dev); });
     con(devices, &Device::DeviceList::deviceAdded, this, &observable_device_roots::on_deviceAdded);
 
     con(devices,
@@ -57,23 +57,23 @@ public:
         &observable_device_roots::on_deviceRemoved);
   }
 
-  void on_deviceAdded(const Device::DeviceInterface& d)
+  void on_deviceAdded(const Device::DeviceInterface* d)
   {
-    con(d, &Device::DeviceInterface::deviceChanged, this, [this](auto oldd, auto newd) {
+    connect(d, &Device::DeviceInterface::deviceChanged, this, [this](auto oldd, auto newd) {
       ossia::remove_erase(m_devices, oldd);
       if (newd)
         m_devices.push_back(newd);
       rootsChanged(roots());
     });
-    if (auto dev = d.getDevice())
+    if (auto dev = d->getDevice())
       m_devices.push_back(dev);
 
     rootsChanged(roots());
   }
 
-  void on_deviceRemoved(const Device::DeviceInterface& d)
+  void on_deviceRemoved(const Device::DeviceInterface* d)
   {
-    ossia::remove_erase(m_devices, d.getDevice());
+    ossia::remove_erase(m_devices, d->getDevice());
     rootsChanged(roots());
   }
 

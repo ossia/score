@@ -88,6 +88,7 @@ public:
   W_SLOT(slot_bench);
 
 private:
+  void on_deviceAdded(Device::DeviceInterface* device);
   void on_finished();
   void timerEvent(QTimerEvent* event) override;
   void registerDevice(ossia::net::device_base*);

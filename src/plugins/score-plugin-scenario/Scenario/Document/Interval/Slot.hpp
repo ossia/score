@@ -86,6 +86,8 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT SlotId
 };
 }
 
+inline QDataStream& operator<<(QDataStream& i, const Scenario::SlotId& sel) { return i; }
+inline QDataStream& operator>>(QDataStream& i, Scenario::SlotId& sel) { return i; }
 W_REGISTER_ARGTYPE(Scenario::Slot)
 W_REGISTER_ARGTYPE(Scenario::Rack)
 W_REGISTER_ARGTYPE(Scenario::Slot::RackView)

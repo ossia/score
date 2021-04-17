@@ -163,4 +163,8 @@ filterSelections(Selection& newSelection, const Selection& currentSelection, boo
 
   return newSelection;
 }
+
+inline QDataStream& operator<<(QDataStream& i, const Selection& sel) { return i; }
+inline QDataStream& operator>>(QDataStream& i, Selection& sel) { return i; }
+Q_DECLARE_METATYPE(Selection)
 W_REGISTER_ARGTYPE(Selection)
