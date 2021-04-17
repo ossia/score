@@ -1,4 +1,6 @@
 #pragma once
+#include <score/tools/Debug.hpp>
+
 #include <ossia/dataflow/graph_node.hpp>
 
 #include <verdigris>
