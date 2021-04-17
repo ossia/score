@@ -22,7 +22,8 @@ jobs:
       env: CONF=focal CC=clang-10 CXX=clang++-10
 
 before_install:
-- travis_wait "./ci/$CONF.deps.sh"
+- pip install git+https://github.com/naftulikay/travis-pls
+- travis-pls "./ci/$CONF.deps.sh"
 
 script:
-- travis_wait "./ci/$CONF.build.sh"
+- travis-pls "./ci/$CONF.build.sh"
