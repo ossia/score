@@ -4,42 +4,6 @@
 #include <hap/source/hap.h>
 struct HAPDecoder : GPUVideoDecoder
 {
-  static const constexpr auto rgb_filter = R"_(#version 450
-    layout(std140, binding = 0) uniform buf {
-    mat4 clipSpaceCorrMatrix;
-    vec2 texcoordAdjust;
-    } tbuf;
-
-    layout(binding=3) uniform sampler2D y_tex;
-
-    layout(location = 0) in vec2 v_texcoord;
-    layout(location = 0) out vec4 fragColor;
-
-    vec4 processTexture(vec4 tex) {
-      vec4 processed = tex;
-      { %1 }
-      return processed;
-    }
-
-    void main ()
-    {
-      vec2 texcoord = vec2(v_texcoord.x, tbuf.texcoordAdjust.y + tbuf.texcoordAdjust.x * v_texcoord.y);
-
-      fragColor = processTexture(texture(y_tex, texcoord));
-    })_";
-
-
-  HAPDecoder(QRhiTexture::Format fmt, NodeModel& n, video_decoder& d, QString f = "")
-    : format{fmt}
-    , node{n}
-    , decoder{d}
-    , filter{f}
-  { }
-  QRhiTexture::Format format;
-  NodeModel& node;
-  video_decoder& decoder;
-  QString filter;
-
   struct HAPSection
   {
     static HAPSection read(const uint8_t* bytes)
@@ -73,28 +37,6 @@ struct HAPDecoder : GPUVideoDecoder
     uint32_t size{};
     const uint8_t* data{};
   };
-
-  void init(Renderer& r, RenderedNode& rendered) override
-  {
-    auto& rhi = *r.state.rhi;
-    std::tie(node.m_vertexS, node.m_fragmentS) = makeShaders(node.mesh().defaultVertexShader(), QString(rgb_filter).arg(filter));
-
-    const auto w = decoder.width, h = decoder.height;
-
-    {
-      auto tex = rhi.newTexture(format, QSize{w, h}, 1, QRhiTexture::Flag{});
-      tex->build();
-
-      auto sampler = rhi.newSampler(
-          QRhiSampler::Linear,
-          QRhiSampler::Linear,
-          QRhiSampler::None,
-          QRhiSampler::ClampToEdge,
-          QRhiSampler::ClampToEdge);
-      sampler->build();
-      rendered.m_samplers.push_back({sampler, tex});
-    }
-  }
 
   void exec(Renderer&, RenderedNode& rendered, QRhiResourceUpdateBatch& res, AVFrame& frame) override
   {
@@ -132,7 +74,7 @@ struct HAPDecoder : GPUVideoDecoder
     }
   }
 
-  void setPixels_noEncoding(RenderedNode& rendered, QRhiResourceUpdateBatch& res, const uint8_t* data_start, std::size_t size)
+  static void setPixels_noEncoding(RenderedNode& rendered, QRhiResourceUpdateBatch& res, const uint8_t* data_start, std::size_t size)
   {
     QRhiTextureSubresourceUploadDescription sub;
     sub.setData(QByteArray::fromRawData((const char*)data_start, size));
@@ -144,7 +86,7 @@ struct HAPDecoder : GPUVideoDecoder
     res.uploadTexture(y_tex, desc);
   }
 
-  void setPixels_snappy(RenderedNode& rendered, QRhiResourceUpdateBatch& res, const uint8_t* data_start, std::size_t size)
+  static void setPixels_snappy(RenderedNode& rendered, QRhiResourceUpdateBatch& res, const uint8_t* data_start, std::size_t size)
   {
     size_t uncomp_size{};
     snappy::GetUncompressedLength((const char*)data_start, size, &uncomp_size);
@@ -162,52 +104,6 @@ struct HAPDecoder : GPUVideoDecoder
     res.uploadTexture(y_tex, desc);
   }
 
-  void setPixels_manual(RenderedNode& rendered, QRhiResourceUpdateBatch& res, const uint8_t* data_start, std::size_t size)
-  {
-    auto section = HAPSection::read(data_start);
-
-    if(section.type != 0x01)
-      return;
-
-    struct
-    {
-      HAPSection compTable;
-      HAPSection sizeTables;
-      std::optional<HAPSection> ofstTable;
-    } decodeContainer;
-
-    qDebug() << "zection zeirezerrzerez" << section.size;
-    for(auto* data = section.data; data < section.data + section.size; data++)
-    {
-      fprintf(stderr, "%02X ", *data);
-    }
-    std::cerr << std::endl;
-    return;
-    auto end = section.data + section.size;
-    std::vector<HAPSection> decodeContainers;
-    auto nextSection = HAPSection::read(section.data);
-    while(nextSection.data < end)
-    {
-      decodeContainers.push_back(nextSection);
-      nextSection = HAPSection::read(section.data + 4);
-    }
-
-    qDebug() << "num sections:" << decodeContainers.size();
-    for(auto cont : decodeContainers)
-      qDebug() << cont.type;
-    /*
-    qDebug() << " decomp size: " << section.size;
-
-    decodeContainer.compTable = HAPSection::read(section.data + section.size);
-    qDebug() << " compTable : " << decodeContainer.compTable.type<< decodeContainer.compTable.size;
-    decodeContainer.sizeTable = HAPSection::read(decodeContainer.compTable.data + decodeContainer.compTable.size);
-    HAPSection rem = HAPSection::read(decodeContainer.sizeTable.data + decodeContainer.sizeTable.size);
-    if(rem.type == 0x04);
-    decodeContainer.ofstTable = rem;
-*/
-
-  }
-
   void release(Renderer&, RenderedNode& n) override
   {
     for (auto [sampler, tex] : n.m_samplers)
@@ -219,34 +115,49 @@ struct HAPDecoder : GPUVideoDecoder
 };
 
 
-struct HAPYCoCgDecoder : GPUVideoDecoder
+
+struct HAPDefaultDecoder : HAPDecoder
 {
-  static const constexpr auto rgb_filter = R"_(#version 450
-    layout(std140, binding = 0) uniform buf {
-    mat4 clipSpaceCorrMatrix;
-    vec2 texcoordAdjust;
-    } tbuf;
+  static inline const QString fragment = QStringLiteral(R"_(#version 450
+layout(std140, binding = 0) uniform buf {
+mat4 clipSpaceCorrMatrix;
+vec2 texcoordAdjust;
+} tbuf;
 
-    layout(binding=3) uniform sampler2D y_tex;
+layout(binding=3) uniform sampler2D y_tex;
 
-    layout(location = 0) in vec2 v_texcoord;
-    layout(location = 0) out vec4 fragColor;
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
 
-    vec4 processTexture(vec4 tex) {
-      vec4 processed = tex;
-      { %1 }
-      return processed;
-    }
+vec4 processYCoCg(vec4 CoCgSY) {
+  const vec4 offsets = vec4(-0.50196078431373, -0.50196078431373, 0.0, 0.0);
+  CoCgSY += offsets;
+  float scale = ( CoCgSY.z * ( 255.0 / 8.0 ) ) + 1.0;
 
-    void main ()
-    {
-      vec2 texcoord = vec2(v_texcoord.x, tbuf.texcoordAdjust.y + tbuf.texcoordAdjust.x * v_texcoord.y);
+  float Co = CoCgSY.x / scale;
+  float Cg = CoCgSY.y / scale;
+  float Y = CoCgSY.w;
 
-      fragColor = processTexture(texture(y_tex, texcoord));
-    })_";
+  vec4 rgba = vec4(Y + Co - Cg, Y + Cg, Y - Co - Cg, 1.0);
+  return rgba;
+}
 
+vec4 processTexture(vec4 tex) {
+  vec4 processed = tex;
+  { %1 }
+  return processed;
+}
 
-  HAPYCoCgDecoder(QRhiTexture::Format fmt, NodeModel& n, video_decoder& d, QString f = "")
+void main ()
+{
+  vec2 texcoord = vec2(v_texcoord.x, tbuf.texcoordAdjust.y + tbuf.texcoordAdjust.x * v_texcoord.y);
+
+  fragColor = processTexture(texture(y_tex, texcoord));
+})_");
+
+  static inline const QString ycocg_filter =  QStringLiteral("processed = processYCoCg(processed);\n");
+
+  HAPDefaultDecoder(QRhiTexture::Format fmt, NodeModel& n, video_decoder& d, QString f = "")
     : format{fmt}
     , node{n}
     , decoder{d}
@@ -260,7 +171,7 @@ struct HAPYCoCgDecoder : GPUVideoDecoder
   void init(Renderer& r, RenderedNode& rendered) override
   {
     auto& rhi = *r.state.rhi;
-    std::tie(node.m_vertexS, node.m_fragmentS) = makeShaders(node.mesh().defaultVertexShader(), QString(rgb_filter).arg(filter));
+    std::tie(node.m_vertexS, node.m_fragmentS) = makeShaders(node.mesh().defaultVertexShader(), QString(fragment).arg(filter));
 
     const auto w = decoder.width, h = decoder.height;
 
@@ -278,111 +189,139 @@ struct HAPYCoCgDecoder : GPUVideoDecoder
       rendered.m_samplers.push_back({sampler, tex});
     }
   }
+};
+
+struct HAPMDecoder : HAPDecoder
+{
+  static inline const QString fragment = QStringLiteral(R"_(#version 450
+layout(std140, binding = 0) uniform buf {
+mat4 clipSpaceCorrMatrix;
+vec2 texcoordAdjust;
+} tbuf;
+
+layout(binding=3) uniform sampler2D y_tex;
+layout(binding=4) uniform sampler2D alpha_tex;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+vec4 processYCoCg(vec4 CoCgSY, vec4 alpha) {
+  const vec4 offsets = vec4(-0.50196078431373, -0.50196078431373, 0.0, 0.0);
+  CoCgSY += offsets;
+  float scale = ( CoCgSY.z * ( 255.0 / 8.0 ) ) + 1.0;
+
+  float Co = CoCgSY.x / scale;
+  float Cg = CoCgSY.y / scale;
+  float Y = CoCgSY.w;
+
+  vec4 rgba = vec4(Y + Co - Cg, Y + Cg, Y - Co - Cg, alpha.r);
+  return rgba;
+}
+
+vec4 processTexture(vec4 tex) {
+  vec4 processed = tex;
+  { %1 }
+  return processed;
+}
+
+void main ()
+{
+  vec2 texcoord = vec2(v_texcoord.x, tbuf.texcoordAdjust.y + tbuf.texcoordAdjust.x * v_texcoord.y);
+
+  vec4 ycocg = texture(y_tex, texcoord);
+  vec4 alpha = texture(alpha_tex, texcoord);
+  fragColor = processTexture(processYCoCg(ycocg, alpha));
+})_");
+
+  HAPMDecoder(NodeModel& n, video_decoder& d, QString f = "")
+    : node{n}
+    , decoder{d}
+    , filter{f}
+  { }
+  NodeModel& node;
+  video_decoder& decoder;
+  QString filter;
+  void init(Renderer& r, RenderedNode& rendered) override
+  {
+    auto& rhi = *r.state.rhi;
+    std::tie(node.m_vertexS, node.m_fragmentS) = makeShaders(node.mesh().defaultVertexShader(), QString(fragment).arg(filter));
+
+    const auto w = decoder.width, h = decoder.height;
+
+    // Color texture
+    {
+      auto tex = rhi.newTexture(QRhiTexture::BC3, QSize{w, h}, 1, QRhiTexture::Flag{});
+      tex->build();
+
+      auto sampler = rhi.newSampler(
+            QRhiSampler::Linear,
+            QRhiSampler::Linear,
+            QRhiSampler::None,
+            QRhiSampler::ClampToEdge,
+            QRhiSampler::ClampToEdge);
+      sampler->build();
+      rendered.m_samplers.push_back({sampler, tex});
+    }
+    // Alpha texture
+    {
+      auto tex = rhi.newTexture(QRhiTexture::BC4, QSize{w, h}, 1, QRhiTexture::Flag{});
+      tex->build();
+
+      auto sampler = rhi.newSampler(
+            QRhiSampler::Linear,
+            QRhiSampler::Linear,
+            QRhiSampler::None,
+            QRhiSampler::ClampToEdge,
+            QRhiSampler::ClampToEdge);
+      sampler->build();
+      rendered.m_samplers.push_back({sampler, tex});
+    }
+  }
 
   void exec(Renderer&, RenderedNode& rendered, QRhiResourceUpdateBatch& res, AVFrame& frame) override
   {
-    auto bytes = frame.data[0];
-    uint32_t size{};
-    uint8_t type = bytes[3];
-    uint8_t* data_start{};
-    if(bytes[0] == 0 && bytes[1] == 0 && bytes[2] == 0)
+    HapDecodeCallback cb = [] (HapDecodeWorkFunction function, void *p, unsigned int count, void *info) {
+      for(int i = 0; i < count; i++)
+        function(p, i);
+    };
+    void* ctx = nullptr;
+    void* ycocg_output = m_buffer.get();
+    unsigned long ycocg_outBytes = buffer_size;
+    unsigned long ycocg_outBytesUsed{};
+    unsigned int ycocg_outFormat{};
+    auto r = HapDecode(frame.data[0], frame.linesize[0], 0, cb, ctx, ycocg_output, ycocg_outBytes, &ycocg_outBytesUsed, &ycocg_outFormat);
+    if(r == HapResult_No_Error)
     {
-      // bytes 4,5,6,7 hold the size
-      size += bytes[7] << 24;
-      size += bytes[6] << 16;
-      size += bytes[5] << 8;
-      size += bytes[4];
-      data_start = bytes + 8;
+      void* alpha_output = m_alphaBuffer.get();
+      unsigned long alpha_outBytes = buffer_size;
+      unsigned long alpha_outBytesUsed{};
+      unsigned int alpha_outFormat{};
+      r = HapDecode(frame.data[0], frame.linesize[0], 1, cb, ctx, alpha_output, alpha_outBytes, &alpha_outBytesUsed, &alpha_outFormat);
+      if(r == HapResult_No_Error)
+      {
+        setPixels(rendered, res, rendered.m_samplers[0].texture, (const uint8_t*)ycocg_output, ycocg_outBytesUsed);
+        setPixels(rendered, res, rendered.m_samplers[1].texture, (const uint8_t*)alpha_output, alpha_outBytesUsed);
+      }
     }
     else
     {
-      // bytes 0, 1, 2 hold the size
-      size += bytes[2] << 16;
-      size += bytes[1] << 8;
-      size += bytes[0];
-      data_start = bytes + 4;
-    }
-
-    if(type == 0x0D)
-      return;
-
-    enum TextureCompression { BC1, BC3, YCoCg_BC3, BC4, BC7 } textureCompression{};
-    enum Coding { None, Snappy, Manual } coding{};
-
-    switch (type >> 4)
-    {
-      case 0xA:
-        coding = None;
-        break;
-      case 0xB:
-        coding = Snappy;
-        break;
-      case 0xC:
-        coding = Manual;
-        break;
-    }
-    switch (type & 0x0F)
-    {
-      case 0x1:
-        textureCompression = BC4;
-        break;
-      case 0xB:
-        textureCompression = BC1;
-        break;
-      case 0xC:
-        textureCompression = BC7;
-        break;
-      case 0xE:
-        textureCompression = BC3;
-        break;
-      case 0xF:
-        textureCompression = YCoCg_BC3;
-        break;
-    }
-
-    switch(coding)
-    {
-      case None:
-      {
-        QRhiTextureSubresourceUploadDescription sub;
-        sub.setData(QByteArray::fromRawData((const char*)data_start, size));
-        QRhiTextureUploadEntry entry{0, 0, sub};
-
-        QRhiTextureUploadDescription desc{entry};
-
-        auto y_tex = rendered.m_samplers[0].texture;
-        res.uploadTexture(y_tex, desc);
-        break;
-      }
-      case Snappy:
-      {
-        size_t uncomp_size{};
-        snappy::GetUncompressedLength((const char*)data_start, size, &uncomp_size);
-
-        QByteArray data(uncomp_size, Qt::Uninitialized);
-        snappy::RawUncompress((const char*)data_start, size, data.data());
-
-        QRhiTextureSubresourceUploadDescription sub;
-        sub.setData(std::move(data));
-        QRhiTextureUploadEntry entry{0, 0, sub};
-
-        QRhiTextureUploadDescription desc{entry};
-
-        auto y_tex = rendered.m_samplers[0].texture;
-        res.uploadTexture(y_tex, desc);
-        break;
-      }
-      case Manual:
-      {
-        break;
-      }
+      qDebug() << r;
     }
   }
 
-  void release(Renderer&, RenderedNode& n) override
+  static void setPixels(RenderedNode& rendered, QRhiResourceUpdateBatch& res,
+                        QRhiTexture* tex,
+                        const uint8_t* ycocg_start, std::size_t ycocg_size)
   {
-    for (auto [sampler, tex] : n.m_samplers)
-      tex->releaseAndDestroyLater();
+    QRhiTextureSubresourceUploadDescription sub;
+    sub.setData(QByteArray::fromRawData((const char*)ycocg_start, ycocg_size));
+    QRhiTextureUploadEntry entry{0, 0, sub};
+
+    QRhiTextureUploadDescription desc{entry};
+
+    res.uploadTexture(tex, desc);
   }
+
+  std::unique_ptr<char[]> m_alphaBuffer = std::make_unique<char[]>(1024 * 1024 * 16);
 };
 

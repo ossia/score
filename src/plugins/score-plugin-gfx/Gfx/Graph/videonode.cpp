@@ -153,17 +153,17 @@ void VideoNode::initGpuDecoder()
       std::string_view fourcc{(const char*) &current_format, 4};
 
       if(fourcc == "Hap1")
-        gpu = std::make_unique<HAPDecoder>(QRhiTexture::BC1, *this, *decoder, filter);
+        gpu = std::make_unique<HAPDefaultDecoder>(QRhiTexture::BC1, *this, *decoder, filter);
       else if(fourcc == "Hap5")
-        gpu = std::make_unique<HAPDecoder>(QRhiTexture::BC3, *this, *decoder, filter);
+        gpu = std::make_unique<HAPDefaultDecoder>(QRhiTexture::BC3, *this, *decoder, filter);
       else if(fourcc == "HapY")
-        gpu = std::make_unique<HAPYCoCgDecoder>(QRhiTexture::BC3, *this, *decoder, filter);
+        gpu = std::make_unique<HAPDefaultDecoder>(QRhiTexture::BC3, *this, *decoder, HAPDefaultDecoder::ycocg_filter + filter);
       else if(fourcc == "HapM")
-        gpu = std::make_unique<HAPYCoCgDecoder>(QRhiTexture::BC3, *this, *decoder, filter);
+        gpu = std::make_unique<HAPMDecoder>(*this, *decoder, filter);
       else if(fourcc == "HapA")
-        gpu = std::make_unique<HAPDecoder>(QRhiTexture::BC4, *this, *decoder, filter);
+        gpu = std::make_unique<HAPDefaultDecoder>(QRhiTexture::BC4, *this, *decoder, filter);
       else if(fourcc == "Hap7")
-        gpu = std::make_unique<HAPDecoder>(QRhiTexture::BC7, *this, *decoder, filter);
+        gpu = std::make_unique<HAPDefaultDecoder>(QRhiTexture::BC7, *this, *decoder, filter);
 
       if(!gpu)
       {
