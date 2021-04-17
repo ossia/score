@@ -4,6 +4,7 @@
 #include <State/Domain.hpp>
 
 #include <ossia/network/domain/domain.hpp>
+#include <score/tools/Debug.hpp>
 
 #include <QJSValue>
 #include <QObject>
@@ -407,6 +408,11 @@ private:
   QJSValue m_resume;
 };
 }
+
+inline QDataStream& operator<<(QDataStream& i, const JS::MidiMessage& sel) { SCORE_ABORT; return i; }
+inline QDataStream& operator>>(QDataStream& i, JS::MidiMessage& sel) { SCORE_ABORT; return i; }
+inline QDataStream& operator<<(QDataStream& i, const JS::ValueMessage& sel) { SCORE_ABORT; return i; }
+inline QDataStream& operator>>(QDataStream& i, JS::ValueMessage& sel) { SCORE_ABORT; return i; }
 Q_DECLARE_METATYPE(JS::ValueInlet*)
 Q_DECLARE_METATYPE(JS::ValueOutlet*)
 Q_DECLARE_METATYPE(JS::AudioInlet*)

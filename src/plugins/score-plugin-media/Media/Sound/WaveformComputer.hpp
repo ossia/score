@@ -1,6 +1,9 @@
 #pragma once
 #include <Media/AudioArray.hpp>
 #include <Media/MediaFileHandle.hpp>
+
+#include <score/tools/Debug.hpp>
+
 #include <QObject>
 #include <QVector>
 #include <QImage>
@@ -81,6 +84,10 @@ private:
 
 }
 
+inline QDataStream& operator<<(QDataStream& i, const Media::Sound::WaveformRequest& sel) { SCORE_ABORT; return i; }
+inline QDataStream& operator>>(QDataStream& i, Media::Sound::WaveformRequest& sel) { SCORE_ABORT; return i; }
+inline QDataStream& operator<<(QDataStream& i, const Media::Sound::ComputedWaveform& sel) { SCORE_ABORT; return i; }
+inline QDataStream& operator>>(QDataStream& i, Media::Sound::ComputedWaveform& sel) { SCORE_ABORT; return i; }
 Q_DECLARE_METATYPE(Media::Sound::WaveformRequest)
 W_REGISTER_ARGTYPE(Media::Sound::WaveformRequest)
 Q_DECLARE_METATYPE(Media::Sound::ComputedWaveform)

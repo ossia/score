@@ -1,4 +1,7 @@
 #pragma once
+#include <score/tools/Debug.hpp>
+
+#include <QDataStream>
 #include <QPointF>
 
 #include <verdigris>
@@ -20,5 +23,8 @@ struct ScenarioRecordInitData
   QPointF point;
 };
 }
+
+inline QDataStream& operator<<(QDataStream& i, const Scenario::ScenarioRecordInitData& sel) { SCORE_ABORT; return i; }
+inline QDataStream& operator>>(QDataStream& i, Scenario::ScenarioRecordInitData& sel) { SCORE_ABORT; return i; }
 Q_DECLARE_METATYPE(Scenario::ScenarioRecordInitData)
 W_REGISTER_ARGTYPE(Scenario::ScenarioRecordInitData)

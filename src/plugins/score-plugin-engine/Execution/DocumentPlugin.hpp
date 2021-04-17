@@ -16,6 +16,9 @@
 
 #include <memory>
 #include <verdigris>
+
+inline QDataStream& operator<<(QDataStream& i, const ossia::bench_map& sel) { SCORE_ABORT; return i; }
+inline QDataStream& operator>>(QDataStream& i, ossia::bench_map& sel) { SCORE_ABORT; return i; }
 Q_DECLARE_METATYPE(ossia::bench_map)
 namespace ossia
 {

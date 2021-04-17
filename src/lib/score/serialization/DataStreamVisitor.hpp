@@ -27,6 +27,7 @@
 
 #include <type_traits>
 
+class QSslError;
 class QModelIndex;
 class QMimeData;
 class QItemSelection;
@@ -441,6 +442,7 @@ static constexpr bool is_datastream_serializable =
     && !std::is_same<T, QIterable<QMetaAssociation>>::value
     && !std::is_same<T, QModelIndex>::value
     && !std::is_same<T, QMimeData>::value
+    && !std::is_same<T, QSslError>::value
     && !std::is_same<T, QItemSelection>::value
     && !std::is_same<T, QItemSelectionRange>::value
     && !std::is_same<T, QtMetaTypePrivate::QPairVariantInterfaceImpl>::value

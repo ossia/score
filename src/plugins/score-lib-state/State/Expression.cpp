@@ -22,10 +22,17 @@ QDebug operator<<(QDebug s, const Message& mess)
   return s;
 }
 
+// That one is needed for std::list::operator< 's instantiation...
 bool operator<(const State::ExprData& lhs, const State::ExprData& rhs)
 {
   return false;
 }
+}
+
+// That one is needed for Q_DECLARE_METATYPE in Qt 6....
+bool operator<(const State::ExprData& lhs, const State::ExprData& rhs)
+{
+  return State::operator<(lhs, rhs);
 }
 
 #if !defined(SCORE_ALL_UNITY)

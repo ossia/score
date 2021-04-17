@@ -258,10 +258,10 @@ struct HandleNodeChange
   void operator()(
       const ossia::node_ptr& old_node,
       const ossia::node_ptr& new_node,
-      Execution::Transaction& commands) const noexcept
+      Execution::Transaction* commands) const noexcept
   {
 
-    commands.push_back([cst_node_weak = this->cst_node_weak,
+    commands->push_back([cst_node_weak = this->cst_node_weak,
                         g_weak = this->g_weak,
                         propagated = propagatedOutlets(proc.outlets()),
                         old_node,

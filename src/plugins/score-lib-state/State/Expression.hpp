@@ -160,6 +160,8 @@ protected:
   TreeNode<State::ExprData>* m_parent{};
   std::list<TreeNode> m_children;
 };
+
+SCORE_LIB_STATE_EXPORT
 bool operator<(const State::ExprData& lhs, const State::ExprData& rhs);
 
 namespace State

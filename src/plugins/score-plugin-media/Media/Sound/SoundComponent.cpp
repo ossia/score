@@ -103,7 +103,7 @@ public:
           component.system().setup.unregister_node(component.process(), old_node, commands);
           component.system().setup.register_node(component.process(), component.node, commands);
           component.system().setup.replace_node(component.OSSIAProcessPtr(), component.node, commands);
-          component.nodeChanged(old_node, component.node, commands);
+          component.nodeChanged(old_node, component.node, &commands);
         }
 
         commands.run_all();
@@ -127,7 +127,7 @@ public:
           component.system().setup.unregister_node(component.process(), old_node, commands);
           component.system().setup.register_node(component.process(), component.node, commands);
           component.system().setup.replace_node(component.OSSIAProcessPtr(), component.node, commands);
-          component.nodeChanged(old_node, component.node, commands);
+          component.nodeChanged(old_node, component.node, &commands);
         }
 
         commands.run_all();

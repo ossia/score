@@ -1,4 +1,5 @@
 #pragma once
+#include <score/tools/Debug.hpp>
 #include <Process/TimeValue.hpp>
 
 #include <QPointF>
@@ -24,5 +25,7 @@ inline QPointF ConvertFromScenarioPoint(const Point& point, ZoomRatio zoom, doub
 }
 }
 
+inline QDataStream& operator<<(QDataStream& i, const Scenario::Point& sel) { SCORE_ABORT; return i; }
+inline QDataStream& operator>>(QDataStream& i, Scenario::Point& sel) { SCORE_ABORT; return i; }
 Q_DECLARE_METATYPE(Scenario::Point)
 W_REGISTER_ARGTYPE(Scenario::Point)

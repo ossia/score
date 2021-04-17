@@ -190,17 +190,17 @@ target_link_libraries(${PROJECT_NAME} PUBLIC score_lib_process score_plugin_libr
 setup_score_plugin(${PROJECT_NAME})
 if(NOT WIN32)
   get_target_property(CF ${PROJECT_NAME} COMPILE_FEATURES)
-  get_target_property(CXF ${PROJECT_NAME} COMPILE_OPTIONS)
-
-  list(REMOVE_ITEM CF cxx_std_20)
-  list(APPEND CF cxx_std_17)
-  set_target_properties(${PROJECT_NAME}
-    PROPERTIES
-      COMPILE_FEATURES "${CF}"
-      INTERFACE_COMPILE_FEATURES "${CF}"
-      CXX_STANDARD 17
-      CXX_STANDARD_REQUIRED ON
-  )
+  if(CF)
+    list(REMOVE_ITEM CF cxx_std_20)
+    list(APPEND CF cxx_std_17)
+    set_target_properties(${PROJECT_NAME}
+      PROPERTIES
+        COMPILE_FEATURES "${CF}"
+        INTERFACE_COMPILE_FEATURES "${CF}"
+        CXX_STANDARD 17
+        CXX_STANDARD_REQUIRED ON
+    )
+  endif()
 endif()
 # Things to install :
 # - lib/clang/${LLVM_PACKAGE_VERSION}

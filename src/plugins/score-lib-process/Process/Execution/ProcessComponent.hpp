@@ -71,7 +71,7 @@ public:
   void nodeChanged(
       const ossia::node_ptr& old_node,
       const ossia::node_ptr& new_node,
-      Execution::Transaction& commands)
+      Execution::Transaction* commands)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, nodeChanged, old_node, new_node, commands)
 
 protected:
@@ -150,4 +150,4 @@ W_REGISTER_ARGTYPE(ossia::node_ptr)
 Q_DECLARE_METATYPE(std::shared_ptr<Execution::ProcessComponent>)
 W_REGISTER_ARGTYPE(std::shared_ptr<Execution::ProcessComponent>)
 W_REGISTER_ARGTYPE(const std::shared_ptr<Execution::ProcessComponent>&)
-W_REGISTER_ARGTYPE(Execution::Transaction&)
+W_REGISTER_ARGTYPE(Execution::Transaction*)

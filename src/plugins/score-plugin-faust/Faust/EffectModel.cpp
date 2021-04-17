@@ -444,7 +444,7 @@ FaustEffectComponent::FaustEffectComponent(
     if (this->node)
     {
       setup.register_node(process(), this->node, commands);
-      nodeChanged(old_node, this->node, commands);
+      nodeChanged(old_node, this->node, &commands);
     }
 
     commands.run_all();
