@@ -54,7 +54,7 @@ static const ColorInterpolator& getInterpolator(QColor c1, QColor c2, const QPen
 
 const QPen& score::ColorBang::getNextPen(QColor c1, QColor c2, const QPen& pen) noexcept
 {
-  SCORE_ASSERT(pos > 0 && pos <= 59);
+  assert(pos > 0 && pos <= 59);
   return getInterpolator(c1, c2, pen).pens[pos--];
 }
 

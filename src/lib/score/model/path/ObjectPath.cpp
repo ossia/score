@@ -197,7 +197,6 @@ QObject* ObjectPath::find_impl_unsafe(const score::DocumentContext& ctx) const n
 {
   using namespace score;
   QObject* obj = &ctx.document.model();
-  SCORE_ASSERT(obj);
 
   for (const auto& currentObjIdentifier : m_objectIdentifiers)
   {

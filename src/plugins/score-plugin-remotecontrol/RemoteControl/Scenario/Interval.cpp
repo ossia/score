@@ -161,7 +161,7 @@ IntervalBase::IntervalBase(
 
 IntervalBase::~IntervalBase()
 {
-  SCORE_ASSERT(this->m_interval);
+  assert(this->m_interval);
 
   system().unregisterInterval(*this->m_interval);
 }

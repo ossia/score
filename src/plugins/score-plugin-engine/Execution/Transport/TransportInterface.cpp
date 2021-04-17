@@ -1,4 +1,6 @@
 #include "TransportInterface.hpp"
+#include <wobjectimpl.h>
+
 W_OBJECT_IMPL(Execution::TransportInterface)
 namespace Execution
 {
