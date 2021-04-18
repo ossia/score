@@ -1,6 +1,6 @@
 #pragma once
 
-/*! \page Models
+/*! \page Models Data models
  *
  * score provides ways to create hierarchical data models,
  * based on an entity-component paradigm similar to game engines.
@@ -100,6 +100,13 @@
  * implementation is provided with TreeNodeItemModel, with the nodes of the
  * tree are based on TreeNode.
  *
+ * \section SimpleObjectsModel Tree models for simple objects
+ *
+ * This section refers to the handling of non-QObject objects.
+ * Such lightweight "data-like" objects (for the device explorer, the library, the states) don't own an identifier.
+ * They are identified by their position in their own tree.
+ * Such a data-like object can be put easily in a tree structure with the TreeNode mixin.
+ * It can then be exposed very easily to the Qt's model/view implementation, with NodeItemModel.
  *
  * \see Serialization
  */

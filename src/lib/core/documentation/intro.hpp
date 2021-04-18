@@ -13,13 +13,9 @@
  * * \ref Contexts
  * * \ref Commands
  * * \ref Serialization
- * * \ref Documents
- * * \ref Actions
- * * \ref CodingStyle
- * * \ref BuildSystem
- * * \ref Metadata
  * * \ref ModelViewPresenter
  * * \ref StateMachines
+ * * \ref CodingStyle
  *<br><br>
  * Documentation of specific plug-ins and modules of the software:
  * <br>
@@ -28,8 +24,6 @@
  * * \ref Device
  * * \ref Execution
  * * \ref LocalTree
- * * \ref Protocols
- * * \ref Explorer
  * * \ref Scenario
  * * \ref Curve
  * * \ref Automation
@@ -50,21 +44,4 @@
  * classes, the plug-in loading code, etc.
  * * `score` is the "public" part of the score API : this code can be used by
  * plug-ins.
- */
-
-/*! \page Documents
- *
- */
-
-/*! \page Metadata
- *
- * Static, dynamic, Qt...
- */
-
-/*! \page Actions
- *
- */
-
-/*! \page BuildSystem Build system
- *
  */

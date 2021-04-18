@@ -1,5 +1,5 @@
 #pragma once
-/*! \page Contexts
+/*! \page Contexts Contexts
  *
  * Contexts are a solution to the problem of requiring global state.
  * There are multiple nested levels of context in score :
@@ -8,7 +8,7 @@
  * * score::GUIApplicationContext : extends ApplicationContext, available in
  * the GUI software (not in the command-line & embedded players)
  * * score::DocumentContext
- * * Scenario::Context
+ * * Process::Context
  * * Various execution contexts, for audio, etc.
  *
  * A context is simply a class that references other classes useful in a given

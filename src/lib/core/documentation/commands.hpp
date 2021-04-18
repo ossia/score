@@ -1,5 +1,5 @@
 #pragma once
-/*! \page Commands
+/*! \page Commands Commands
  *
  * Commands are used for undo-redo.
  * A command is simply a class which inherits from score::Command.

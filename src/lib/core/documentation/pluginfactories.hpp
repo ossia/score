@@ -1,4 +1,5 @@
 #pragma once
+
 /*! \page PluginsFactoriesAndInterfaces Plug-ins, factories and interfaces
  *
  * Due to the plug-in architecture of the software, a system to load classes
