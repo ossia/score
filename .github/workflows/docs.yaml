@@ -40,11 +40,15 @@ jobs:
           cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_C_COMPILER=/usr/bin/clang-10 -DCMAKE_CXX_COMPILER=/usr/bin/clang++-10
           find . -name '*.h' -exec mv {} ../docs/Doxygen/headers/ \;
           find . -name '*.hpp' -exec mv {} ../docs/Doxygen/headers/ \;
+
       - name: Build docs
         run: |
           (cd docs/Doxygen ; doxygen > doxygen.log)
+          pwd
+          ls
           mkdir build
-          mv docs/Doxygen/html/* build/
+          ls docs/Doxygen
+          mv docs/Doxygen/output/html/* build/
           touch build/.nojekyll
 
       - name: Deploy
