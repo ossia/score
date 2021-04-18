@@ -68,7 +68,7 @@ debug_types(const score::InterfaceBase* orig, const score::InterfaceBase* repl) 
  * {
  *   auto res = iface.do_something(...);
  * }
- * \encode
+ * \endcode
  *
  * An implementation of an interface shall never be inserted twice.
  */

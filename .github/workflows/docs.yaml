@@ -25,13 +25,21 @@ jobs:
             libavahi-compat-libdnssd-dev libsamplerate0-dev \
             portaudio19-dev \
             libavcodec-dev libavdevice-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev \
-            libclang-10-dev libboost-dev
+            libclang-10-dev libboost-dev cmake
 
       - name: Checkout code
         uses: actions/checkout@v2
         with:
           submodules: 'recursive'
 
+      - name: Configure
+        run: |
+          mkdir configure
+          mkdir docs/Doxygen/headers
+          cd configure
+          cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_C_COMPILER=/usr/bin/clang-10 -DCMAKE_CXX_COMPILER=/usr/bin/clang++-10
+          find . -name '*.h' -exec mv {} ../docs/Doxygen/headers/ \;
+          find . -name '*.hpp' -exec mv {} ../docs/Doxygen/headers/ \;
       - name: Build docs
         run: |
           (cd docs/Doxygen ; doxygen > doxygen.log)
