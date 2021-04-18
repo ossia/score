@@ -23,10 +23,10 @@ jobs:
 
       - name: Build docs
         run: |
-        (cd docs/Doxygen ; doxygen > doxygen.log)
-        mkdir build
-        mv docs/Doxygen/html/* build/
-        touch build/.nojekyll
+          (cd docs/Doxygen ; doxygen > doxygen.log)
+          mkdir build
+          mv docs/Doxygen/html/* build/
+          touch build/.nojekyll
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@4.1.1
