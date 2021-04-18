@@ -1,0 +1,11 @@
+#N canvas 330 22 380 803 10;
+#X obj 228 158 s \$0-out;
+#X obj 125 170 dac~;
+#X obj 187 73 r \$0-freq;
+#X obj 228 124 * 2;
+#X obj 127 126 phasor~ 50;
+#X connect 2 0 3 0;
+#X connect 2 0 4 0;
+#X connect 3 0 0 0;
+#X connect 4 0 1 0;
+#X connect 4 0 1 1;

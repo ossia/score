@@ -1,0 +1,12 @@
+#N canvas 292 216 450 300 10;
+#X obj 137 95 adc~;
+#X obj 85 135 lop~ 100;
+#X obj 161 140 lop~ 100;
+#X obj 209 96 r \$0-filter;
+#X obj 95 236 dac~;
+#X connect 0 0 1 0;
+#X connect 0 1 2 0;
+#X connect 1 0 4 0;
+#X connect 2 0 4 1;
+#X connect 3 0 2 1;
+#X connect 3 0 1 1;

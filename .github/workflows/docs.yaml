@@ -54,5 +54,7 @@ jobs:
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@4.1.1
         with:
+          repository-name: ossia/score-api-docs
+          token: ${{ secrets.API_TOKEN_GITHUB }}
           branch: gh-pages
           folder: build
