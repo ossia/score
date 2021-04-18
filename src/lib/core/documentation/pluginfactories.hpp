@@ -1,52 +1,4 @@
 #pragma once
-
-/*! \mainpage
- *
- * Welcome to the score code documentation.
- * <br><br>
- * Here is the documentation of core concepts used throughout the score code
- *base. <br> All the following concepts are sowewhat interdependents, hence
- *reading everything twice may be useful to get a clear mental picture. <br>
- * * \ref Models
- * * \ref PluginsFactoriesAndInterfaces
- * * \ref Contexts
- * * \ref Commands
- * * \ref Serialization
- * * \ref Documents
- * * \ref Actions
- * * \ref CodingStyle
- * * \ref BuildSystem
- * * \ref Metadata
- * * \ref ModelViewPresenter
- *<br><br>
- * Documentation of specific plug-ins :
- * <br>
- * * \ref Scenario
- * * \ref Curve
- * * \ref Automation
- * * \ref Device
- * * \ref State
- * * \ref Process
- * * \ref Explorer
- *<br>
- * To contribute to score, it can also be useful to have a look at the
- * tutorial plug-in : https://github.com/ossia/score-addon-tutorial
- */
-
-/*! \namespace score
- * \brief Base toolkit upon which the software is built.
- *
- * This namespace contains only non-domain specific classes
- * and utilities : serialization, model-view, documents, etc.
- *
- * It is split in two folders :
- *
- * * `core` is the internal mechanic to set-up the software : the actual widget
- * classes, the plug-in loading code, etc.
- * * `score` is the "public" part of the score API : this code can be used by
- * plug-ins.
- */
-
 /*! \page PluginsFactoriesAndInterfaces Plug-ins, factories and interfaces
  *
  * Due to the plug-in architecture of the software, a system to load classes
@@ -266,26 +218,5 @@
  "TheAddon-amd64.dylib".
  *
  * Add-ons are searched for in `$DOCUMENTS/score/addons`.
- *
- */
-
-/*! \page Documents
- *
- */
-
-/*! \page Metadata
- *
- * Static, dynamic, Qt...
- */
-
-/*! \page Actions
- *
- */
-
-/*! \page BuildSystem Build system
- *
- */
-
-/*! \page ModelViewPresenter Model-View-Presenter separation
  *
  */

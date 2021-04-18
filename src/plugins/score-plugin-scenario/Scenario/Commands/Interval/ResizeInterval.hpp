@@ -9,8 +9,16 @@
 
 #include <score_plugin_scenario_export.h>
 
-/** README
- *
+
+namespace score
+{
+class Command;
+}
+namespace Scenario
+{
+class IntervalModel;
+
+/**
  * So, I know what you are thinking right now:
  * "okay, it's the command to resize intervals, it must not be too hard,
  * just add / remove the date to the current interval date and live happily
@@ -47,15 +55,6 @@
  * resizing rules. Hence, it **has** to be abstract in some way.
  *
  */
-
-namespace score
-{
-class Command;
-}
-namespace Scenario
-{
-class IntervalModel;
-
 class SCORE_PLUGIN_SCENARIO_EXPORT IntervalResizer : public score::InterfaceBase
 {
   SCORE_INTERFACE(IntervalResizer, "8db5b613-a9a8-4a49-9e89-6c07e7117518")
