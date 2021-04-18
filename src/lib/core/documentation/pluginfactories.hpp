@@ -187,12 +187,14 @@
  *
  * Each addon provides a JSON description file with the following keys :
  *
- * * One key per plug-in architecture. The currently supported formats are :
+ * * One key per plug-in architecture. The possible names are :
+ *   * src
  *   * windows-x86
  *   * windows-amd64
  *   * darwin-amd64
  *   * linux-amd64
  *   * linux-arm
+ * * Currently score only supports `src` which means that the plug-in will be built from source.
  *
  * The value should be a link to a zipped addon package for the relevant
  architecture.

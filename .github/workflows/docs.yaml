@@ -1,0 +1,35 @@
+name: Documentation build
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  docs:
+    name: Generate doxygen documentation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install git
+        run: |
+          apt-get update -qq
+          apt-get install -qq --force-yes git doxygen
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - name: Build docs
+        run: |
+        (cd docs/Doxygen ; doxygen > doxygen.log)
+        mkdir build
+        mv docs/Doxygen/html/* build/
+        touch build/.nojekyll
+
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@4.1.1
+        with:
+          branch: gh-pages
+          folder: build

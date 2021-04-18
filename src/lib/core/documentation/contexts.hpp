@@ -5,7 +5,7 @@
  * There are multiple nested levels of context in score :
  *
  * * score::ApplicationContext : where classes are registered
- * * score::GuiApplicationContext : extends ApplicationContext, available in
+ * * score::GUIApplicationContext : extends ApplicationContext, available in
  * the GUI software (not in the command-line & embedded players)
  * * score::DocumentContext
  * * Scenario::Context

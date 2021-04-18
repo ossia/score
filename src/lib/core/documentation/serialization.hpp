@@ -126,5 +126,5 @@
  * - For simple "value-like" classes please see `TimeValue` which is a good example.
  * - For a simple object without inheritance, please see `TimeNodeModel`. Please note how the `TimeNodeModel` serializes its parent class, `IdentifiedObject<TimeNodeModel>` and how the deserializing constructor first calls to the deserializing constructor of the parent class. This is necessary because we just want, in the client code, to do : `TimeNodeModel m; Serializer s; s.readFrom(m);`.
  * - For an example of polymorphic object : `ProcessModel`. Here the deserialization requires lookup in the process factory, so we have to save an identifier for our process beforehand. Since we can't make a `new ProcessModel(deserialize, parent)`, we have a utility method `createProcess` (in a header) that is used to deserialize these processes.
- * - The `ConstraintModel`  serialization / deserialization show how a `ProcessModel` is saved in practice.
+ * - The `IntervalModel`  serialization / deserialization show how a `ProcessModel` is saved in practice.
  */
