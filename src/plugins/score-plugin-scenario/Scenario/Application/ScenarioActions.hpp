@@ -86,8 +86,8 @@ SCORE_DECLARE_ACTION_2S(
     CreateTool,
     "Tool &Create",
     Scenario,
-    QKeySequence{QObject::tr("C")},
-    QKeySequence{QObject::tr("Shift+C")})
+    QKeySequence{QObject::tr("A")},
+    QKeySequence{QObject::tr("Shift+A")})
 SCORE_DECLARE_ACTION(PlayTool, "Tool &Play", Scenario, Qt::Key_P)
 
 // For those two the "shortcuts" are just shift and alt, but this is not supported
@@ -109,11 +109,11 @@ SCORE_DECLARE_ACTION(ElementsToJson, "Convert to &JSON", Scenario, QKeySequence:
 
 // Event
 SCORE_DECLARE_ACTION(MergeEvents, "Merge events", Scenario, QKeySequence::UnknownKey)
-SCORE_DECLARE_ACTION(AddTrigger, "&Enable Trigger", Scenario, QKeySequence::UnknownKey)
-SCORE_DECLARE_ACTION(RemoveTrigger, "&Disable Trigger", Scenario, QKeySequence::UnknownKey)
+SCORE_DECLARE_ACTION(AddTrigger, "&Enable Trigger", Scenario, Qt::Key_T)
+SCORE_DECLARE_ACTION(RemoveTrigger, "&Disable Trigger", Scenario, QKeySequence(QObject::tr("Shift+T")))
 
-SCORE_DECLARE_ACTION(AddCondition, "&Add Condition", Scenario, QKeySequence::UnknownKey)
-SCORE_DECLARE_ACTION(RemoveCondition, "&Remove Condition", Scenario, QKeySequence::UnknownKey)
+SCORE_DECLARE_ACTION(AddCondition, "&Add Condition", Scenario, Qt::Key_C)
+SCORE_DECLARE_ACTION(RemoveCondition, "&Remove Condition", Scenario, QKeySequence(QObject::tr("Shift+C")))
 
 // Interval
 SCORE_DECLARE_ACTION(AddProcess, "&Add a process", Scenario, QKeySequence::UnknownKey)

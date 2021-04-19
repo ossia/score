@@ -8,6 +8,7 @@ cninja_require(timetrace)
 cninja_require(score-warnings)
 
 set_cache(CMAKE_BUILD_TYPE Debug)
+set_cache(CMAKE_LINK_DEPENDS_NO_SHARED 1)
 set_cache(SCORE_PCH True)
 set_cache(SCORE_DYNAMIC_PLUGINS True)
 

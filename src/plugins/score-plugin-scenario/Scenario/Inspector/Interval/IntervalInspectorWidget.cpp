@@ -140,6 +140,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
   {
     auto interp = new QToolButton{this};
     interp->setToolTip(tr("Interpolate states (Ctrl+K)"));
+    interp->setShortcut(QKeySequence(tr("Ctrl+K")));
     interp->setIcon(makeIcons(
         QStringLiteral(":/icons/interpolate_on.png"),
         QStringLiteral(":/icons/interpolate_hover.png"),
