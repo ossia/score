@@ -293,6 +293,8 @@ AudioOutlet::AudioOutlet(Id<Process::Port> c, QObject* parent)
     , m_gain{1.}
     , m_pan{1., 1.}
 {
+  gainInlet->setCustomData("Gain");
+  panInlet->setCustomData("Pan");
 }
 
 AudioOutlet::AudioOutlet(DataStream::Deserializer& vis, QObject* parent) : Outlet{vis, parent}

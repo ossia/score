@@ -16,6 +16,7 @@
 
 #include <QCursor>
 #include <QDrag>
+#include <QApplication>
 #include <QMimeData>
 
 #include <wobjectimpl.h>

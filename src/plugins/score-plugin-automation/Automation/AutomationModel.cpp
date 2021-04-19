@@ -99,10 +99,18 @@ QString ProcessModel::prettyName() const noexcept
       if (Process::Port* inlet = cbl->sink().try_find(doc))
       {
         QString name = inlet->customData();
-        auto process = qobject_cast<Process::ProcessModel*>(inlet->parent());
+        auto inlet_parent = inlet->parent();
+        auto process = qobject_cast<Process::ProcessModel*>(inlet_parent);
         if (process)
         {
           name += " (" + process->prettyName() + ")";
+        }
+        else if(auto port = qobject_cast<Process::Port*>(inlet_parent))
+        {
+          if(auto process = qobject_cast<Process::ProcessModel*>(inlet_parent->parent()))
+          {
+            name += " (" + process->prettyName() + ")";
+          }
         }
         return name;
       }
