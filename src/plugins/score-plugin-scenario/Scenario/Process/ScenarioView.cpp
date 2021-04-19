@@ -106,7 +106,7 @@ void ScenarioView::setSnapLine(std::optional<double> s)
 void ScenarioView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   m_moving = false;
-  if (event->button() == Qt::LeftButton)
+  if (event->button() == Qt::LeftButton && !(qApp->keyboardModifiers() & Qt::ALT))
   {
     pressed(event->scenePos());
   }
@@ -116,7 +116,7 @@ void ScenarioView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void ScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (event->buttons() & Qt::MiddleButton)
+  if (qApp->keyboardModifiers() & Qt::ALT)
   {
     JSONReader r;
     copySelectedScenarioElements(r, m_scenario->model());

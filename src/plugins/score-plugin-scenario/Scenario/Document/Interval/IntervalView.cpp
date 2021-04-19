@@ -193,7 +193,7 @@ void IntervalView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void IntervalView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (event->buttons() & Qt::MiddleButton)
+  if (qApp->keyboardModifiers() & Qt::ALT)
   {
     if (auto si = dynamic_cast<Scenario::ScenarioInterface*>(presenter().model().parent()))
     {
