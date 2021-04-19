@@ -77,6 +77,7 @@ public:
 
   void setExecutionState(IntervalExecutionState);
   const score::Brush& intervalColor(const Process::Style& skin) const;
+  const QPixmap& intervalDashedPixmap(const Process::Style& skin) const;
 
   void updateLabelPos();
   void updateCounterPos();

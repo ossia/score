@@ -134,8 +134,7 @@ void TemporalIntervalView::drawDashedPath(
   const qreal def_w = defaultWidth();
   const qreal play_w = playWidth();
 
-  auto& pixmaps = intervalPixmaps(skin);
-  auto& dash_pixmap = !this->m_selected ? pixmaps.dashed : pixmaps.dashedSelected;
+  auto& dash_pixmap = intervalDashedPixmap(skin);
 
   // Paths
   if (play_w <= min_w)

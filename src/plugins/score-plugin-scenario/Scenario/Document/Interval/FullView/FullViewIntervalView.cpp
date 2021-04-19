@@ -46,8 +46,7 @@ void FullViewIntervalView::drawDashedPath(
   const qreal gui_w = m_guiWidth;
   const qreal play_w = playWidth();
 
-  auto& pixmaps = intervalPixmaps(skin);
-  auto& dash_pixmap = !this->m_selected ? pixmaps.dashed : pixmaps.dashedSelected;
+  auto& dash_pixmap = intervalDashedPixmap(skin);
 
   // Paths
   if (play_w <= min_w)

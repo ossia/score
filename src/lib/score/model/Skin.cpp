@@ -315,6 +315,8 @@ void Skin::load(const QJsonObject& obj)
     Transparent1.lighter = Gray.main;
     Transparent1.lighter180 = HalfLight.main;
   }
+
+  LoadIndex++;
   changed();
 }
 

@@ -205,6 +205,7 @@ public:
   // In [0; 25[
   int PulseIndex{};
 
+  int LoadIndex{};
 public:
   void changed() E_SIGNAL(SCORE_LIB_BASE_EXPORT, changed)
 

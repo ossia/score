@@ -14,11 +14,15 @@ struct IntervalPixmaps
 {
   void update(const Process::Style& style);
 
-  QColor oldBase, oldSelected;
   QPixmap dashed;
   QPixmap dashedSelected;
+  QPixmap dashedDropTarget;
+  QPixmap dashedWarning;
+  QPixmap dashedInvalid;
+  QPixmap dashedMuted;
   std::array<QPixmap, 25> playDashed;
 
+  int loadIndex{};
   static void
   drawDashes(qreal from, qreal to, QPainter& p, const QRectF& visibleRect, const QPixmap& pixmap);
 };

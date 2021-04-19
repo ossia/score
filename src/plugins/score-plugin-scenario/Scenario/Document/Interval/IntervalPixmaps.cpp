@@ -5,38 +5,39 @@ namespace Scenario
 
 void IntervalPixmaps::update(const Process::Style& style)
 {
+  if (loadIndex == style.skin.LoadIndex)
+    return;
+  loadIndex = style.skin.LoadIndex;
+
   auto& dashPen = style.IntervalDashPen(style.IntervalBase());
   auto& dashSelectedPen = style.IntervalDashPen(style.IntervalSelected());
-  if (oldBase == dashPen.color() && oldSelected == dashSelectedPen.color())
-    return;
+  auto& dashDropTargetPen = style.IntervalDashPen(style.IntervalDropTarget());
+  auto& dashWarningPen = style.IntervalDashPen(style.IntervalWarning());
+  auto& dashLoopPen = style.IntervalDashPen(style.IntervalLoop());
+  auto& dashMutedPen = style.IntervalDashPen(style.IntervalMuted());
 
+  const double pen_width = dashPen.widthF();
   static constexpr double dash_width = 18.;
-  {
-    const auto pen_width = dashPen.widthF();
 
-    QImage image(dash_width, pen_width, QImage::Format_ARGB32_Premultiplied);
+  QImage image(dash_width, pen_width, QImage::Format_ARGB32_Premultiplied);
+
+  for(auto& [pen, pixmap] : {
+      std::tie(dashPen, dashed),
+      std::tie(dashSelectedPen, dashedSelected),
+      std::tie(dashDropTargetPen, dashedDropTarget),
+      std::tie(dashWarningPen, dashedWarning),
+      std::tie(dashLoopPen, dashedInvalid),
+      std::tie(dashMutedPen, dashedMuted)
+    })
+  {
     image.fill(Qt::transparent);
     QPainter p;
     p.begin(&image);
-    p.setPen(dashPen);
+    p.setPen(pen);
     p.drawLine(QPointF{0, pen_width / 2.}, QPointF{dash_width, pen_width / 2.});
     p.end();
 
-    dashed = QPixmap::fromImage(image);
-  }
-
-  {
-    const auto pen_width = dashSelectedPen.widthF();
-
-    QImage image(dash_width, pen_width, QImage::Format_ARGB32_Premultiplied);
-    image.fill(Qt::transparent);
-    QPainter p;
-    p.begin(&image);
-    p.setPen(dashSelectedPen);
-    p.drawLine(QPointF{0, pen_width / 2.}, QPointF{dash_width, pen_width / 2.});
-    p.end();
-
-    dashedSelected = QPixmap::fromImage(image);
+    pixmap = QPixmap::fromImage(image);
   }
 
   {
@@ -48,9 +49,6 @@ void IntervalPixmaps::update(const Process::Style& style)
       pulse_base.setAlphaF(alpha);
       dashPlayPen.setColor(pulse_base);
 
-      const auto pen_width = dashSelectedPen.widthF();
-
-      QImage image(dash_width, pen_width, QImage::Format_ARGB32_Premultiplied);
       image.fill(Qt::transparent);
       QPainter p;
       p.begin(&image);
@@ -61,8 +59,6 @@ void IntervalPixmaps::update(const Process::Style& style)
       playDashed[i] = QPixmap::fromImage(image);
     }
   }
-  oldBase = dashPen.color();
-  oldSelected = dashSelectedPen.color();
 }
 
 void IntervalPixmaps::drawDashes(
@@ -75,7 +71,7 @@ void IntervalPixmaps::drawDashes(
   from = std::max(from, visibleRect.left());
   to = std::min(to, visibleRect.right());
   const qreal w = pixmap.width();
-  const qreal h = -2.;
+  const qreal h = -1.;
   for (; from < to - w; from += w)
   {
     p.drawPixmap(from, h, pixmap);

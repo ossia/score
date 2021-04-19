@@ -8,6 +8,7 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/Interval/IntervalView.hpp>
+#include <Scenario/Document/Interval/IntervalPixmaps.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
@@ -255,6 +256,35 @@ const score::Brush& IntervalView::intervalColor(const Process::Style& skin) cons
   else
   {
     return skin.IntervalBase();
+  }
+}
+
+const QPixmap& IntervalView::intervalDashedPixmap(const Process::Style& skin) const
+{
+  auto& pixmaps = intervalPixmaps(skin);
+  if (Q_UNLIKELY(m_dropTarget))
+  {
+    return pixmaps.dashedDropTarget;
+  }
+  else if (Q_UNLIKELY(m_selected))
+  {
+    return pixmaps.dashedSelected;
+  }
+  else if (Q_UNLIKELY(m_warning))
+  {
+    return pixmaps.dashedWarning;
+  }
+  else if (Q_UNLIKELY(!m_validInterval || m_state == IntervalExecutionState::Disabled))
+  {
+    return pixmaps.dashedInvalid;
+  }
+  else if (Q_UNLIKELY(m_state == IntervalExecutionState::Muted))
+  {
+    return pixmaps.dashedMuted;
+  }
+  else
+  {
+    return pixmaps.dashed;
   }
 }
 
