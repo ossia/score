@@ -5,8 +5,13 @@
 #include <Vst/EffectModel.hpp>
 #include <score/tools/Bind.hpp>
 
+#include <ossia/detail/algorithms.hpp>
+
+#include <algorithm>
 namespace vst
 {
+
+
 class LibraryHandler final : public QObject, public Library::LibraryInterface
 {
   SCORE_CONCRETE("6a13c3cc-bca7-44d6-a0ef-644e99204460")
@@ -36,11 +41,11 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
               {key, name, QString::number(vst.uniqueID)}, {}, vst.author, {}};
           if (vst.isSynth)
           {
-            inst.emplace_back(std::move(pdata), &inst);
+            Library::addToLibrary(inst, std::move(pdata));
           }
           else
           {
-            fx.emplace_back(std::move(pdata), &fx);
+            Library::addToLibrary(fx, std::move(pdata));
           }
         }
       }

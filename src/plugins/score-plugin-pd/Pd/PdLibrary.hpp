@@ -19,10 +19,8 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
 
   QSet<QString> acceptedFiles() const noexcept override { return {"pd"}; }
 
-  QDir libraryFolder;
   QDirIterator iterator{QString{}};
-  Library::ProcessNode* parent{};
-  std::unordered_map<QString, Library::ProcessNode*> categories;
+  Library::Subcategories categories;
 
   void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx) override
   {
@@ -32,14 +30,14 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
     if (node == QModelIndex{})
       return;
 
-    parent = reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
+    categories.parent = reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
 
     // We use the parent folder as category...
-    libraryFolder.setPath(ctx.settings<Library::Settings::Model>().getPath());
+    categories.libraryFolder.setPath(ctx.settings<Library::Settings::Model>().getPath());
 
     iterator.~QDirIterator();
     new (&iterator) QDirIterator{
-      libraryFolder.absolutePath(),
+      categories.libraryFolder.absolutePath(),
       {"*.pd"},
       QDir::NoFilter,
       QDirIterator::Subdirectories | QDirIterator::FollowSymlinks
@@ -52,13 +50,12 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
   {
     if (iterator.hasNext())
     {
-      if(auto file = QFileInfo{iterator.next()}; file.fileName() != "layout.dsp")
-        registerDSP(file);
+      registerPatch(iterator.next());
       QTimer::singleShot(1, this, &LibraryHandler::next);
     }
   }
 
-  void registerDSP(const QFileInfo& file)
+  void registerPatch(const QFileInfo& file)
   {
     Library::ProcessData pdata;
     pdata.prettyName = file.baseName();
@@ -67,24 +64,7 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
       return file.absoluteFilePath();
     }();
 
-    auto parentFolder = file.dir().dirName();
-    if(auto it = categories.find(parentFolder); it != categories.end())
-    {
-      it->second->emplace_back(std::move(pdata), it->second);
-    }
-    else
-    {
-      if(file.dir() == libraryFolder)
-      {
-        parent->emplace_back(std::move(pdata), parent);
-      }
-      else
-      {
-        auto& category = parent->emplace_back(Library::ProcessData{{{}, parentFolder, {}}, {}, {}, {}}, parent);
-        category.emplace_back(std::move(pdata), &category);
-        categories[parentFolder] = &category;
-      }
-    }
+    categories.add(file, std::move(pdata));
   }
 };
 

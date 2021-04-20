@@ -34,7 +34,8 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
           Library::ProcessData parent_data{
             {key, vst.name, QString{}}, {}, {}, {}
           };
-          auto& node = parent.emplace_back(std::move(parent_data), &parent);
+
+          auto& node = Library::addToLibrary(parent, std::move(parent_data));
 
           for(const auto& cls : vst.classInfo)
           {
@@ -50,7 +51,7 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
               parent.author = vendor;
             if(vst.classInfo.size() == 1)
               parent.customData = uid;
-            node.emplace_back(std::move(classdata), &node);
+            Library::addToLibrary(node, std::move(classdata));
           }
         }
       }

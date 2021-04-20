@@ -133,4 +133,15 @@ Qt::DropActions ProcessesItemModel::supportedDragActions() const
   return Qt::CopyAction;
 }
 
+ProcessNode& addToLibrary(ProcessNode& parent, ProcessData&& data)
+{
+  const struct {
+    bool operator()(const QString& lhs, const Library::ProcessData& rhs) const noexcept
+    { return QString::compare(lhs, rhs.prettyName, Qt::CaseInsensitive) < 0; }
+    bool operator()(const  Library::ProcessData& lhs, const QString& rhs) const noexcept
+    { return QString::compare(lhs.prettyName, rhs, Qt::CaseInsensitive) < 0; }
+  } nameSort;
+  return ossia::emplace_sorted(parent, data.prettyName, nameSort, std::move(data), &parent);
+}
+
 }

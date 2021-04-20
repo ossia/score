@@ -38,11 +38,11 @@ class LibraryHandler final : public Library::LibraryInterface
 
     for (auto& category : categories)
     {
+      // Already sorted through the map
       auto& cat = parent.emplace_back(Library::ProcessData{Process::ProcessData{{}, category.first, {}}, {}, {}}, &parent);
       for (auto& plug : category.second)
       {
-        Library::ProcessData pdata{Process::ProcessData{key, plug, plug}, {}, {}};
-        cat.emplace_back(pdata, &cat);
+        Library::addToLibrary(cat, Library::ProcessData {Process::ProcessData{key, plug, plug}, {}, {}});
       }
     }
   }

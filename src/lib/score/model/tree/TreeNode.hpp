@@ -152,6 +152,14 @@ public:
   }
 
   template <typename... Args>
+  auto& insert(Args&&... args) noexcept
+  {
+    auto& n = *m_children.insert(std::forward<Args>(args)...);
+    n.setParent(this);
+    return n;
+  }
+
+  template <typename... Args>
   auto& emplace(Args&&... args) noexcept
   {
     auto& n = *m_children.emplace(std::forward<Args>(args)...);

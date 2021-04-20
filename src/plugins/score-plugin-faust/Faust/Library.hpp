@@ -23,10 +23,9 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
   static inline const QRegularExpression authorExpr{R"_(declare author "([a-zA-Z0-9_-]+)";)_"};
   static inline const QRegularExpression descExpr{R"_(declare description "([a-zA-Z0-9.<>\(\):/~, _-]+)";)_"};
 
-  QDir libraryFolder;
   QDirIterator iterator{QString{}};
-  Library::ProcessNode* parent{};
-  std::unordered_map<QString, Library::ProcessNode*> categories;
+
+  Library::Subcategories categories;
 
   void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx) override
   {
@@ -36,14 +35,14 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
     if (node == QModelIndex{})
       return;
 
-    parent = reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
+    categories.parent = reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
 
     // We use the parent folder as category...
-    libraryFolder.setPath(ctx.settings<Library::Settings::Model>().getPath());
+    categories.libraryFolder.setPath(ctx.settings<Library::Settings::Model>().getPath());
 
     iterator.~QDirIterator();
     new (&iterator) QDirIterator{
-      libraryFolder.absolutePath(),
+      categories.libraryFolder.absolutePath(),
       {"*.dsp"},
       QDir::NoFilter,
       QDirIterator::Subdirectories | QDirIterator::FollowSymlinks
@@ -94,24 +93,7 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
       }
     }
 
-    auto parentFolder = file.dir().dirName();
-    if(auto it = categories.find(parentFolder); it != categories.end())
-    {
-      it->second->emplace_back(std::move(pdata), it->second);
-    }
-    else
-    {
-      if(file.dir() == libraryFolder)
-      {
-        parent->emplace_back(std::move(pdata), parent);
-      }
-      else
-      {
-        auto& category = parent->emplace_back(Library::ProcessData{{{}, parentFolder, {}}, {}, {}, {}}, parent);
-        category.emplace_back(std::move(pdata), &category);
-        categories[parentFolder] = &category;
-      }
-    }
+    categories.add(file, std::move(pdata));
   }
 };
 

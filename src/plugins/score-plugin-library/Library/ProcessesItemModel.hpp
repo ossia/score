@@ -7,9 +7,11 @@
 #include <score/tools/std/Optional.hpp>
 
 #include <QIcon>
+#include <QDir>
 
 #include <score_plugin_library_export.h>
 
+#include <unordered_map>
 #include <verdigris>
 
 namespace score
@@ -27,6 +29,8 @@ struct ProcessData : Process::ProcessData
 };
 
 using ProcessNode = TreeNode<ProcessData>;
+SCORE_PLUGIN_LIBRARY_EXPORT
+ProcessNode& addToLibrary(ProcessNode& parent, Library::ProcessData&& data);
 
 class SCORE_PLUGIN_LIBRARY_EXPORT ProcessesItemModel : public TreeNodeBasedItemModel<ProcessNode>
 {
@@ -56,6 +60,41 @@ public:
 private:
   ProcessNode m_root;
 };
+
+
+/** Utility class to organize a library in subcategories that depend
+ *  on a file organization on disk, e.g. if it looks for .dsp files, it will create a subcategory
+ *  for each folder which contains .dsp files.
+ */
+struct Subcategories
+{
+  Library::ProcessNode* parent{};
+  QDir libraryFolder;
+  std::unordered_map<QString, Library::ProcessNode*> categories;
+
+  void add(const QFileInfo& file, Library::ProcessData&& pdata)
+  {
+    auto parentFolder = file.dir().dirName();
+    if(auto it = categories.find(parentFolder); it != categories.end())
+    {
+      Library::addToLibrary(*it->second, std::move(pdata));
+    }
+    else
+    {
+      if(file.dir() == libraryFolder)
+      {
+        Library::addToLibrary(*parent, std::move(pdata));
+      }
+      else
+      {
+        auto& category = Library::addToLibrary(*parent, Library::ProcessData{{{}, parentFolder, {}}, {}, {}, {}});
+        Library::addToLibrary(category, std::move(pdata));
+        categories[parentFolder] = &category;
+      }
+    }
+  }
+};
+
 }
 
 inline QDataStream& operator<<(QDataStream& i, const Library::ProcessData& sel) { return i; }
