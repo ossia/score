@@ -15,6 +15,8 @@ struct PositionedEvent<Scenario::Point> : public QEvent
   {
     // Here we artificially prevent to move over the header of the rack
     // so that the elements won't disappear in the void.
+    if(point.date.impl < 0)
+      point.date.impl = 0;
     point.y = clamp(point.y, 0.004, 0.99);
   }
 

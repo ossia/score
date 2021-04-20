@@ -149,8 +149,9 @@ void CommandStack::redoAndPush(Command* cmd)
 
 void CommandStack::push(Command* cmd)
 {
-  localCommand(cmd);
   updateStack([&]() {
+    localCommand(cmd);
+
     // We lose the state we saved
     if (currentIndex() < m_savedIndex)
       setSavedIndex(-1);
@@ -203,6 +204,11 @@ void CommandStack::setSavedIndex(int index)
     m_savedIndex = index;
     saveIndexChanged(m_savedIndex == this->currentIndex());
   }
+}
+
+void CommandStack::validateDocument() const
+{
+  m_checker();
 }
 
 CommandStackFacade::CommandStackFacade(CommandStack& stack) : m_stack{stack} { }

@@ -132,6 +132,7 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
     auto tn = scenar.findTimeSync(event.timeSync());
     SCORE_ASSERT(tn);
     SCORE_ASSERT(ossia::contains(tn->events(), event.id()));
+    SCORE_ASSERT(tn->date().impl == event.date().impl);
 
     SCORE_ASSERT(!event.states().empty());
     for (auto& state : event.states())
@@ -153,12 +154,23 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
 
   for (const TimeSyncModel& tn : scenar.timeSyncs)
   {
+    SCORE_ASSERT(tn.date().impl >= 0);
     SCORE_ASSERT(!tn.events().empty());
     for (auto& event : tn.events())
     {
       auto ev = scenar.findEvent(event);
       SCORE_ASSERT(ev);
       SCORE_ASSERT(ev->timeSync() == tn.id());
+    }
+  }
+
+  // Start event validation
+  auto& startEvent = scenar.startEvent();
+  for(auto& state : startEvent.states())
+  {
+    if(auto itv = scenar.state(state).previousInterval())
+    {
+      SCORE_ASSERT(scenar.interval(*itv).graphal());
     }
   }
 }

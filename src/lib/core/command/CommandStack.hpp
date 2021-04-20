@@ -202,6 +202,7 @@ public:
 
   void setSavedIndex(int index);
 
+  void validateDocument() const;
 private:
   QStack<score::Command*> m_undoable;
   QStack<score::Command*> m_redoable;

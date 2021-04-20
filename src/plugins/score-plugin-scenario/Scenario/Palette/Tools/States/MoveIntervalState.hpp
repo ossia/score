@@ -114,6 +114,9 @@ public:
 
         if (qApp->keyboardModifiers() & Qt::ShiftModifier)
         {
+          if(&sts == &scenario.startTimeSync())
+            return;
+
           m_lastDate
               = m_intervalInitialPoint.date + (this->currentPoint.date - m_initialClick.date);
           if (this->m_pressedPrevious)
@@ -150,9 +153,15 @@ public:
         auto& cst = scenario.interval(*this->clickedInterval);
         if (cst.graphal())
           return;
+        auto& sst = Scenario::startState(cst, scenario);
+        auto& sev = Scenario::parentEvent(sst, scenario);
+        auto& sts = Scenario::parentTimeSync(sev, scenario);
 
         if (qApp->keyboardModifiers() & Qt::ShiftModifier)
         {
+          if(&sts == &scenario.startTimeSync())
+            return;
+
           if (this->m_startEventCanBeMerged)
           {
             merge(cst, Scenario::startState(cst, m_scenario), m_lastDate);
