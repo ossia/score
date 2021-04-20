@@ -8,6 +8,7 @@
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Tools/dataStructures.hpp>
 
@@ -42,7 +43,7 @@ public:
       // update related events
       for (const auto& event : curTimenodeToUpdate.events())
       {
-        scenario.events.at(event).setDate(curTimenodeToUpdate.date());
+        scenario.events.at(event).setDate(curTimenodePropertiesToUpdate.newDate);
       }
     }
 
@@ -51,34 +52,32 @@ public:
     {
       auto curIntervalPropertiesToUpdate_id = e.first;
 
-      auto& curIntervalToUpdate = scenario.intervals.at(curIntervalPropertiesToUpdate_id);
+      auto& curInterval = scenario.intervals.at(curIntervalPropertiesToUpdate_id);
       auto& curIntervalPropertiesToUpdate = e.second;
 
       // compute default duration here
-      const auto& date
-          = scenario.event(scenario.state(curIntervalToUpdate.startState()).eventId()).date();
-      const auto& endDate
-          = scenario.event(scenario.state(curIntervalToUpdate.endState()).eventId()).date();
+      const auto& date = Scenario::startEvent(curInterval, scenario).date();
+      const auto& endDate = Scenario::endEvent(curInterval, scenario).date();
 
       TimeVal defaultDuration = endDate - date;
 
       // set start date and default duration
       using namespace ossia;
-      if ((curIntervalToUpdate.date() - date) != 0_tv)
+      if (curInterval.date() != date)
       {
-        curIntervalToUpdate.setStartDate(date);
+        curInterval.setStartDate(date);
       }
-      curIntervalToUpdate.duration.setDefaultDuration(defaultDuration);
+      curInterval.duration.setDefaultDuration(defaultDuration);
 
-      curIntervalToUpdate.duration.setMinDuration(curIntervalPropertiesToUpdate.newMin);
-      curIntervalToUpdate.duration.setMaxDuration(curIntervalPropertiesToUpdate.newMax);
+      curInterval.duration.setMinDuration(curIntervalPropertiesToUpdate.newMin);
+      curInterval.duration.setMaxDuration(curIntervalPropertiesToUpdate.newMax);
 
-      for (auto& process : curIntervalToUpdate.processes)
+      for (auto& process : curInterval.processes)
       {
         scaleMethod(process, defaultDuration);
       }
 
-      scenario.intervalMoved(&curIntervalToUpdate);
+      scenario.intervalMoved(&curInterval);
     }
   }
 
@@ -100,7 +99,7 @@ public:
       // update related events to mach the date
       for (const auto& event : curTimenodeToUpdate.events())
       {
-        scenario.events.at(event).setDate(curTimenodeToUpdate.date());
+        scenario.events.at(event).setDate(curTimenodePropertiesToUpdate.oldDate);
       }
     }
 
@@ -109,28 +108,28 @@ public:
     {
       auto curIntervalPropertiesToUpdate_id = e.first;
 
-      auto& curIntervalToUpdate = scenario.intervals.at(curIntervalPropertiesToUpdate_id);
+      auto& curInterval = scenario.intervals.at(curIntervalPropertiesToUpdate_id);
       const IntervalProperties& curIntervalPropertiesToUpdate = e.second;
 
       // compute default duration here
-      const auto& date
-          = scenario.event(scenario.state(curIntervalToUpdate.startState()).eventId()).date();
-      const auto& endDate
-          = scenario.event(scenario.state(curIntervalToUpdate.endState()).eventId()).date();
+      const auto& date = Scenario::startEvent(curInterval, scenario).date();
+      const auto& endDate = Scenario::endEvent(curInterval, scenario).date();
 
       TimeVal defaultDuration = endDate - date;
 
+      SCORE_ASSERT(defaultDuration == curIntervalPropertiesToUpdate.oldDefault);
+
       // set start date and default duration
       using namespace ossia;
-      if ((curIntervalToUpdate.date() - date) != 0_tv)
+      if (curInterval.date() != curIntervalPropertiesToUpdate.oldDate)
       {
-        curIntervalToUpdate.setStartDate(date);
+        curInterval.setStartDate(curIntervalPropertiesToUpdate.oldDate);
       }
-      curIntervalToUpdate.duration.setDefaultDuration(defaultDuration);
+      curInterval.duration.setDefaultDuration(curIntervalPropertiesToUpdate.oldDefault);
 
       // set durations
-      curIntervalToUpdate.duration.setMinDuration(curIntervalPropertiesToUpdate.oldMin);
-      curIntervalToUpdate.duration.setMaxDuration(curIntervalPropertiesToUpdate.oldMax);
+      curInterval.duration.setMinDuration(curIntervalPropertiesToUpdate.oldMin);
+      curInterval.duration.setMaxDuration(curIntervalPropertiesToUpdate.oldMax);
 
       // Now we have to restore the state of each interval that might have
       // been modified
@@ -138,24 +137,24 @@ public:
 
       // 1. Clear the interval
       {
-        curIntervalToUpdate.clearSmallView();
+        curInterval.clearSmallView();
 
         // We make copies since the iterators might change.
         // TODO check if this is still valid wrt boost::multi_index
-        auto processes = shallow_copy(curIntervalToUpdate.processes);
+        auto processes = shallow_copy(curInterval.processes);
         for (auto process : processes)
         {
           if (!(process->flags() & Process::ProcessFlags::TimeIndependent))
-            RemoveProcess(curIntervalToUpdate, process->id());
+            RemoveProcess(curInterval, process->id());
         }
       }
 
       // 2. Restore the rackes & processes.
       // Restore the interval. The saving is done in
       // GenericDisplacementPolicy.
-      curIntervalPropertiesToUpdate.reload(curIntervalToUpdate);
+      curIntervalPropertiesToUpdate.reload(curInterval);
 
-      scenario.intervalMoved(&curIntervalToUpdate);
+      scenario.intervalMoved(&curInterval);
     }
   }
 };

@@ -51,14 +51,14 @@ void MergeTimeSyncs::undo(const score::DocumentContext& ctx) const
   auto events_in_timesync = recreatedTn->events();
   // we remove and re-add events in recreated Tn
   // to ensure correct parentship between elements.
-  for (auto evId : events_in_timesync)
+  for (const auto& evId : events_in_timesync)
   {
     recreatedTn->removeEvent(evId);
     globalTn.removeEvent(evId);
   }
 
   scenar.timeSyncs.add(recreatedTn);
-  for (auto evId : events_in_timesync)
+  for (const auto& evId : events_in_timesync)
   {
     recreatedTn->addEvent(evId);
   }

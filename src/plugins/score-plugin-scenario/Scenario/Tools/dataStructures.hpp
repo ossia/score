@@ -50,6 +50,7 @@ struct IntervalProperties : public IntervalSaveData
 {
   using IntervalSaveData::IntervalSaveData;
 
+  TimeVal oldDate{};
   TimeVal oldDefault{};
   TimeVal oldMin{};
   TimeVal newMin{};

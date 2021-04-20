@@ -50,6 +50,7 @@ void IntervalDurations::checkConsistency()
 
 void IntervalDurations::setDefaultDuration(const TimeVal& arg)
 {
+  SCORE_ASSERT(arg.impl >= 0);
   if (m_defaultDuration != arg)
   {
     m_defaultDuration = arg;
@@ -89,6 +90,7 @@ void IntervalDurations::setMaxDuration(const TimeVal& arg)
 
 void IntervalDurations::setGuiDuration(TimeVal guiDuration)
 {
+  SCORE_ASSERT(guiDuration.impl >= 0);
   if (m_guiDuration == guiDuration)
     return;
 
@@ -142,6 +144,7 @@ void IntervalDurations::setMaxInfinite(bool isMaxInfinite)
 SCORE_PLUGIN_SCENARIO_EXPORT void
 IntervalDurations::Algorithms::setDurationInBounds(IntervalModel& cstr, const TimeVal& time)
 {
+  SCORE_ASSERT(time.impl >= 0);
   if (cstr.duration.defaultDuration() != time)
   {
     // Rigid
@@ -164,6 +167,7 @@ IntervalDurations::Algorithms::setDurationInBounds(IntervalModel& cstr, const Ti
 SCORE_PLUGIN_SCENARIO_EXPORT void
 IntervalDurations::Algorithms::fixAllDurations(IntervalModel& cstr, const TimeVal& time)
 {
+  SCORE_ASSERT(time.impl >= 0);
   auto& dur = cstr.duration;
   if (dur.defaultDuration() != time || dur.minDuration() != time || dur.maxDuration() != time)
   {
@@ -185,6 +189,7 @@ IntervalDurations::Algorithms::fixAllDurations(IntervalModel& cstr, const TimeVa
 SCORE_PLUGIN_SCENARIO_EXPORT void
 IntervalDurations::Algorithms::changeAllDurations(IntervalModel& cstr, const TimeVal& time)
 {
+  SCORE_ASSERT(time.impl >= 0);
   auto& d = cstr.duration;
   if (d.isRigid())
   {

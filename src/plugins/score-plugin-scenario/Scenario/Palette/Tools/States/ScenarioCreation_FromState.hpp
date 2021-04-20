@@ -167,6 +167,7 @@ public:
         if (this->createdIntervals.empty() || this->createdEvents.empty())
         {
           this->rollback();
+          createToNothing();
           return;
         }
 
@@ -215,6 +216,7 @@ public:
         if (this->createdStates.empty())
         {
           this->rollback();
+          createToEvent();
           return;
         }
 
@@ -231,6 +233,7 @@ public:
         if (this->createdStates.empty())
         {
           this->rollback();
+          createToTimeSync();
           return;
         }
 
@@ -265,10 +268,14 @@ private:
     const bool sequence = settings.tool() == Tool::CreateSequence;
     const bool new_event = qApp->keyboardModifiers() & Qt::ALT;
     auto& st = scenar.state(*this->clickedState);
+    auto& ev = Scenario::parentEvent(st, scenar);
+    if(ev.date() > this->currentPoint.date)
+      return;
+
     if (new_event && !sequence)
     {
       // Create new event on the timesync
-      auto tn = Scenario::parentEvent(st, scenar).timeSync();
+      auto tn = ev.timeSync();
       auto cmd
           = new Scenario::Command::CreateEvent_State{this->m_scenario, tn, this->currentPoint.y};
       this->m_dispatcher.submit(cmd);

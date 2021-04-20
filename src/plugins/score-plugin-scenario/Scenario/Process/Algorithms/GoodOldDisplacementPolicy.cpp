@@ -30,6 +30,7 @@ void GoodOldDisplacementPolicy::computeDisplacement(
     const TimeVal& deltaTime,
     ElementsProperties& elementsProperties)
 {
+  auto orig = elementsProperties;
   // this old behavior supports only the move of one timesync
   if (draggedElements.length() != 1)
   {
@@ -66,7 +67,9 @@ void GoodOldDisplacementPolicy::computeDisplacement(
       val.newDate = val.oldDate + deltaTime;
     }
 
+    beforeComputingIntervals:
     // Make a list of the intervals that need to be resized
+    TimeVal maxNegativeDelta = TimeVal::zero();
     for (const auto& curTimeSyncId : timeSyncsToTranslate)
     {
       auto& curTimeSync = scenario.timeSync(curTimeSyncId);
@@ -90,9 +93,18 @@ void GoodOldDisplacementPolicy::computeDisplacement(
             if (cur_interval_it == elementsProperties.intervals.end())
             {
               IntervalProperties c{curInterval, false};
+              c.oldDate = curInterval.date();
+              c.oldDefault = curInterval.duration.defaultDuration();
               c.oldMin = curInterval.duration.minDuration();
               c.oldMax = curInterval.duration.maxDuration();
 
+              {
+                const auto& date = Scenario::startEvent(curInterval, scenario).date();
+                const auto& endDate = Scenario::endEvent(curInterval, scenario).date();
+
+                TimeVal defaultDuration = endDate - date;
+                SCORE_ASSERT(defaultDuration == c.oldDefault);
+              }
               cur_interval_it
                   = elementsProperties.intervals.emplace(curIntervalId, std::move(c)).first;
 
@@ -120,6 +132,10 @@ void GoodOldDisplacementPolicy::computeDisplacement(
             const auto& endDate = elementsProperties.timesyncs[curTimeSyncId].newDate;
 
             TimeVal newDefaultDuration = endDate - date;
+            if(newDefaultDuration < maxNegativeDelta)
+            {
+              maxNegativeDelta = newDefaultDuration;
+            }
             TimeVal deltaBounds = newDefaultDuration - curInterval.duration.defaultDuration();
 
             auto& val = cur_interval_it.value();
@@ -129,6 +145,23 @@ void GoodOldDisplacementPolicy::computeDisplacement(
             // nothing to do for now
           }
         }
+      }
+
+      if(maxNegativeDelta.impl < 0)
+      {
+        elementsProperties = std::move(orig);
+        return;
+        /*
+        // TODO alternative:
+        const int64_t opposite{-maxNegativeDelta.impl};
+        for(auto it = elementsProperties.timesyncs.begin(); it != elementsProperties.timesyncs.end(); ++it)
+        {
+          it.value().newDate.impl += opposite;
+        }
+        elementsProperties.intervals.clear();
+        processesToSave.clear();
+        goto beforeComputingIntervals;
+        */
       }
     }
 

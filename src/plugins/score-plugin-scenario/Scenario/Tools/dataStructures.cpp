@@ -140,8 +140,10 @@ template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
 DataStreamReader::read(const Scenario::IntervalProperties& intervalProperties)
 {
-  m_stream << intervalProperties.oldDefault << intervalProperties.oldMin
-           << intervalProperties.newMin << intervalProperties.oldMax << intervalProperties.newMax;
+  m_stream << intervalProperties.oldDate << intervalProperties.oldDefault
+           << intervalProperties.oldMin << intervalProperties.newMin
+           << intervalProperties.oldMax << intervalProperties.newMax
+  ;
 
   readFrom(static_cast<const Scenario::IntervalSaveData&>(intervalProperties));
 
@@ -152,9 +154,10 @@ template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
 DataStreamWriter::write(Scenario::IntervalProperties& intervalProperties)
 {
-  m_stream >> intervalProperties.oldDefault >> intervalProperties.oldMin
-      >> intervalProperties.newMin >> intervalProperties.oldMax >> intervalProperties.newMax;
-
+  m_stream >> intervalProperties.oldDate >> intervalProperties.oldDefault
+           >> intervalProperties.oldMin >> intervalProperties.newMin
+           >> intervalProperties.oldMax >> intervalProperties.newMax
+  ;
   writeTo(static_cast<Scenario::IntervalSaveData&>(intervalProperties));
   checkDelimiter();
 }
