@@ -1,6 +1,8 @@
 #include "MergeEvents.hpp"
 
 #include <score/model/EntitySerialization.hpp>
+#include <core/document/Document.hpp>
+#include <score/document/DocumentContext.hpp>
 
 namespace Scenario
 {
@@ -66,7 +68,7 @@ void MergeEvents::undo(const score::DocumentContext& ctx) const
 
   // we remove and re-add states in recreated event
   // to ensure correct parentship between elements.
-  for (auto stateId : states_in_event)
+  for (const auto& stateId : states_in_event)
   {
     recreatedEvent->removeState(stateId);
     eventWhereThingsWereMoved.removeState(stateId);
@@ -75,7 +77,7 @@ void MergeEvents::undo(const score::DocumentContext& ctx) const
   recreatedEvent->changeTimeSync(eventWhereThingsWereMoved.timeSync());
   scenar.events.add(recreatedEvent);
 
-  for (auto stateId : states_in_event)
+  for (const auto& stateId : states_in_event)
   {
     recreatedEvent->addState(stateId);
     scenar.states.at(stateId).setEventId(m_movingEventId);

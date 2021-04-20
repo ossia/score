@@ -222,18 +222,18 @@ public:
       m_points.push_back(pt);
       path.moveTo(pt);
 
-      for (std::size_t i = 1U; i < N; i++)
+      for (std::size_t i = 1U; i <= N; i++)
       {
         pt = mapToCanvas(evaluate(double(i) / N));
         path.lineTo(pt);
         m_points.push_back(pt);
       }
 
+
       updateStroke();
       updatePlayPath();
     }
 
-    m_view.changed();
     update();
   }
 
@@ -450,15 +450,31 @@ public:
     const auto newPos = mapFromCanvas(event->pos());
     std::size_t splitIndex = 0;
     const std::size_t N = m_spline.points.size();
+    if(N < 2)
+    {
+      m_spline.points.push_back(newPos);
+      updateSpline();
+      update();
+      event->accept();
+      return;
+    }
+
+    double dist_min = std::numeric_limits<double>::max();
     for (std::size_t i = 0; i < N - 1; ++i)
     {
-      if (m_spline.points[i].x <= newPos.x)
+      QPointF p0{newPos.x, newPos.y};
+      QPointF p1{m_spline.points[i].x, m_spline.points[i].y};
+      QPointF p2{m_spline.points[i+1].x, m_spline.points[i+1].y};
+      QLineF l1{p0, p1};
+      QLineF l2{p0, p2};
+
+      const double num = std::abs((p2.x() - p1.x()) * (p1.y() - p0.y()) - (p1.x() - p0.x()) * (p2.y() - p1.y()));
+      const double denom = std::sqrt(std::pow(p2.x() - p1.x(), 2) + std::pow(p2.y() - p1.y(), 2));
+      const double point_to_line_distance = num / denom;
+      if(point_to_line_distance + l1.length() + l2.length() < dist_min)
       {
+        dist_min = point_to_line_distance + l1.length() + l2.length() ;
         splitIndex = i;
-      }
-      else
-      {
-        break;
       }
     }
 

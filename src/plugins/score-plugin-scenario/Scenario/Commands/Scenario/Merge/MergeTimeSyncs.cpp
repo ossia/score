@@ -5,6 +5,8 @@
 
 #include <score/model/EntitySerialization.hpp>
 #include <score/model/tree/TreeNodeSerialization.hpp>
+#include <core/document/Document.hpp>
+#include <score/document/DocumentContext.hpp>
 
 namespace Scenario
 {

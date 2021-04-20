@@ -46,25 +46,6 @@ static State::Address ToAddress(const ossia::net::node_base& node)
   return addr;
 }
 
-ossia::net::node_base* getNodeFromPath(const QStringList& path, ossia::net::device_base& dev)
-{
-  using namespace ossia;
-  // Find the relevant node to add in the device
-  ossia::net::node_base* node = &dev.get_root_node();
-  const int n = path.size();
-  for (int i = 0; i < n; i++)
-  {
-    auto cld = node->find_child(path[i]);
-
-    SCORE_ASSERT(cld);
-
-    node = cld;
-  }
-
-  SCORE_ASSERT(node);
-  return node;
-}
-
 ossia::net::node_base* findNodeFromPath(const QStringList& path, ossia::net::device_base& dev)
 {
   using namespace ossia;
@@ -403,7 +384,7 @@ void DeviceInterface::updateAddress(
 {
   if (auto dev = getDevice())
   {
-    if (auto node = getNodeFromPath(currentAddr.path, *dev))
+    if (auto node = findNodeFromPath(currentAddr.path, *dev))
     {
       bool is_listening = m_callbacks.find(currentAddr) != m_callbacks.end();
 
@@ -439,6 +420,10 @@ void DeviceInterface::updateAddress(
         renameListening_impl(currentAddr, newName);
         node->set_name(newName.toStdString());
       }
+    }
+    else
+    {
+      qDebug() << "updateAddress: Warning ! did not find" << currentAddr;
     }
   }
 }
@@ -661,21 +646,26 @@ void DeviceInterface::removeNode(const State::Address& address)
     return;
   if (auto dev = getDevice())
   {
-    ossia::net::node_base* node = getNodeFromPath(address.path, *dev);
-
-    auto parent = node->get_parent();
-    if (parent->has_child(*node))
+    if(auto node = findNodeFromPath(address.path, *dev))
     {
-      /* If we are listening to this node, we recursively
-       * remove listening to all the children. */
-      removeListening_impl(*node, address);
+      auto parent = node->get_parent();
+      if (parent->has_child(*node))
+      {
+        /* If we are listening to this node, we recursively
+         * remove listening to all the children. */
+        removeListening_impl(*node, address);
 
-      // TODO !! if we remove nodes while recording
-      // (or anything involving a registered listening state), there will be
-      // crashes.
-      // The Device Explorer should be locked for edition during recording /
-      // playing.
-      parent->remove_child(node->get_name());
+        // TODO !! if we remove nodes while recording
+        // (or anything involving a registered listening state), there will be
+        // crashes.
+        // The Device Explorer should be locked for edition during recording /
+        // playing.
+        parent->remove_child(node->get_name());
+      }
+    }
+    else
+    {
+      qDebug() << "Warning ! removeNode: did not find" << address;
     }
   }
 }
@@ -862,12 +852,17 @@ void DeviceInterface::sendMessage(const State::Address& addr, const ossia::value
 {
   if (auto dev = getDevice())
   {
-    auto node = getNodeFromPath(addr.path, *dev);
-
-    auto addr = node->get_parameter();
-    if (addr)
+    if(auto node = findNodeFromPath(addr.path, *dev))
     {
-      addr->push_value(v);
+      auto addr = node->get_parameter();
+      if (addr)
+      {
+        addr->push_value(v);
+      }
+    }
+    else
+    {
+      qDebug() << "Warning! sendMessage: did not find" << addr;
     }
   }
 }

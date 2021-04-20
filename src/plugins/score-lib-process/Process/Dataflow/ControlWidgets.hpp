@@ -473,8 +473,12 @@ struct LineEdit
 
     auto doc = sl->document();
     QObject::connect(doc, &QTextDocument::contentsChanged, context, [=, &inlet, &ctx] {
-      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
-          inlet, doc->toPlainText().toStdString());
+      auto cur_str = ossia::convert<std::string>(inlet.value());
+      if(cur_str != doc->toPlainText().toStdString())
+      {
+        CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
+            inlet, doc->toPlainText().toStdString());
+      }
     });
     QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
       auto str = QString::fromStdString(ossia::convert<std::string>(val));

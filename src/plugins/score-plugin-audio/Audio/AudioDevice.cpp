@@ -67,7 +67,7 @@ void AudioDevice::updateAddress(
 {
   if (auto dev = getDevice())
   {
-    if (auto node = Device::getNodeFromPath(currentAddr.path, *dev))
+    if (auto node = Device::findNodeFromPath(currentAddr.path, *dev))
     {
       setupNode(*node, settings.extendedAttributes);
 

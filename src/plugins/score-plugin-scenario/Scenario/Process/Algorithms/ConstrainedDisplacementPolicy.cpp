@@ -93,19 +93,25 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
       auto& c = it.value();
       c.newMin = std::max(TimeVal::zero(), c.oldMin + dt);
       c.newMax = c.oldMax + dt;
+
+      SCORE_ASSERT(c.oldDefault + dt >= TimeVal::zero());
+      SCORE_ASSERT(c.oldDefault + dt <= c.newMax);
     }
     else
     {
       auto& curInterval = scenario.intervals.at(id);
       IntervalProperties c{curInterval, false};
+      c.oldDate = curInterval.date();
       c.oldDefault = curInterval.duration.defaultDuration();
       c.oldMin = curInterval.duration.minDuration();
       c.oldMax = curInterval.duration.maxDuration();
 
-      c.newMin = c.oldMin;
-      c.newMax = c.oldMax;
       c.newMin = std::max(TimeVal::zero(), c.oldMin + dt);
       c.newMax = c.oldMax + dt;
+
+      SCORE_ASSERT(c.oldDefault + dt >= TimeVal::zero());
+      SCORE_ASSERT(c.oldDefault + dt <= c.newMax);
+
       elementsProperties.intervals.insert({id, std::move(c)});
     }
   }
@@ -118,20 +124,25 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
       auto& c = it.value();
       c.newMin = std::max(TimeVal::zero(), c.oldMin - dt);
       c.newMax = c.oldMax - dt;
+
+      SCORE_ASSERT(c.oldDefault - dt >= TimeVal::zero());
+      SCORE_ASSERT(c.oldDefault - dt <= c.newMax);
     }
     else
     {
       auto& curInterval = scenario.intervals.at(id);
       IntervalProperties c{curInterval, false};
+      c.oldDate = curInterval.date();
       c.oldDefault = curInterval.duration.defaultDuration();
       c.oldMin = curInterval.duration.minDuration();
       c.oldMax = curInterval.duration.maxDuration();
 
-      c.newMin = c.oldMin;
-      c.newMax = c.oldMax;
-
       c.newMin = std::max(TimeVal::zero(), c.oldMin - dt);
       c.newMax = c.oldMax - dt;
+
+      SCORE_ASSERT(c.oldDefault - dt >= TimeVal::zero());
+      SCORE_ASSERT(c.oldDefault - dt <= c.newMax);
+
       elementsProperties.intervals.insert({id, std::move(c)});
     }
   }

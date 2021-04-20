@@ -108,8 +108,6 @@ public:
   {
     auto& scenario = m_path.find(ctx);
 
-    ScenarioValidityChecker::checkValidity(scenario);
-
     // update positions using old stored dates
     DisplacementPolicy::revertPositions(
         ctx,
@@ -117,7 +115,6 @@ public:
         [&](Process::ProcessModel& p, const TimeVal& t) { p.setParentDuration(m_mode, t); },
         m_savedElementsProperties);
 
-     ScenarioValidityChecker::checkValidity(scenario);
     // Dataflow::restoreCables(m_savedElementsProperties.cables, ctx);
   }
 
@@ -125,15 +122,12 @@ public:
   {
     auto& scenario = m_path.find(ctx);
 
-    ScenarioValidityChecker::checkValidity(scenario);
-
     // update positions using new stored dates
     DisplacementPolicy::updatePositions(
         scenario,
         [&](Process::ProcessModel& p, const TimeVal& t) { p.setParentDuration(m_mode, t); },
         m_savedElementsProperties);
 
-    ScenarioValidityChecker::checkValidity(scenario);
   }
 
   const Path<Scenario::ProcessModel>& path() const override { return m_path; }

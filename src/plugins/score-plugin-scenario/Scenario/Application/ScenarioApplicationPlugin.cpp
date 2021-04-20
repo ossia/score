@@ -128,13 +128,14 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(const score::GUIApplication
         {
           for (const auto& port : plug->context().dataflow.ports())
           {
-            Dataflow::PortItem& item = *port.second;
-            item.resetPortVisible();
+            if(port.second)
+              port.second->resetPortVisible();
           }
 
           for (auto& cable : plug->context().dataflow.cables())
           {
-            cable.second->check();
+            if(cable.second)
+              cable.second->check();
           }
         }
       }

@@ -32,7 +32,9 @@ Presenter::Presenter(
   connect(m_view, &View::changed, this, [&] {
     context().context.dispatcher.submit<ChangeSpline>(layer, m_view->spline());
   });
-  connect(m_view, &View::released, this, [&] { context().context.dispatcher.commit(); });
+  connect(m_view, &View::released, this, [&] {
+    context().context.dispatcher.commit();
+  });
 
   connect(m_view, &View::pressed, this, [&] { m_context.context.focusDispatcher.focus(this); });
   connect(m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
