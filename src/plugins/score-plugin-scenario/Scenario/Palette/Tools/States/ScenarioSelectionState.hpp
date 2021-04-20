@@ -82,8 +82,8 @@ public:
     }
 
     if constexpr (std::is_same_v<
-                      std::remove_reference_t<decltype(presenter)>,
-                      const Scenario::ScenarioPresenter>)
+                      std::remove_const_t<std::remove_reference_t<decltype(presenter)>>,
+                      Scenario::ScenarioPresenter>)
     {
       for (const auto& elt : presenter.getGraphIntervals())
       {
