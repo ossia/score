@@ -55,9 +55,12 @@ void View::dragMoveEvent(QGraphicsSceneDragDropEvent* event) { }
 void View::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
   Mime<State::MessageList>::Deserializer des(*event->mimeData());
-  auto list = des.deserialize();
-  if (!list.isEmpty())
-    addressesDropped(list);
+  if(event->mimeData()->hasFormat(score::mime::messagelist()))
+  {
+    auto list = des.deserialize();
+    if (!list.isEmpty())
+      addressesDropped(list);
+  }
 }
 
 }
