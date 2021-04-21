@@ -38,6 +38,7 @@
 #include <ossia/network/common/destination_qualifiers.hpp>
 #include <ossia/network/base/node_attributes.hpp>
 #include <ossia/network/domain/domain.hpp>
+#include <ossia-qt/name_utils.hpp>
 
 #include <QAbstractProxyModel>
 #include <QApplication>
