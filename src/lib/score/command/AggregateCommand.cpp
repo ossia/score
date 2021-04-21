@@ -22,9 +22,7 @@ void AggregateCommand::undo(const score::DocumentContext& ctx) const
 {
   for (const auto& cmd : boost::adaptors::reverse(m_cmds))
   {
-    ctx.document.commandStack().validateDocument();
     cmd->undo(ctx);
-    ctx.document.commandStack().validateDocument();
   }
 }
 
@@ -32,9 +30,7 @@ void AggregateCommand::redo(const score::DocumentContext& ctx) const
 {
   for (const auto& cmd : m_cmds)
   {
-    ctx.document.commandStack().validateDocument();
     cmd->redo(ctx);
-    ctx.document.commandStack().validateDocument();
   }
 }
 
