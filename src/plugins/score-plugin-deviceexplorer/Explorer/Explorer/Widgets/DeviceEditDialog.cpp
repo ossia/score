@@ -5,6 +5,7 @@
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Device/Protocol/ProtocolList.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 
 #include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
@@ -33,14 +34,24 @@
 W_OBJECT_IMPL(Explorer::DeviceEditDialog)
 namespace Explorer
 {
-DeviceEditDialog::DeviceEditDialog(const Device::ProtocolFactoryList& pl, QWidget* parent)
-    : QDialog(parent), m_protocolList{pl}, m_protocolWidget{nullptr}, m_index(-1)
+DeviceEditDialog::DeviceEditDialog(
+      const DeviceExplorerModel& model,
+      const Device::ProtocolFactoryList& pl,
+      QWidget* parent)
+  : QDialog{parent}
+  , m_model{model}
+  , m_protocolList{pl}
+  , m_protocolWidget{nullptr}
+  , m_index{-1}
 {
   setWindowTitle(tr("Add device"));
   auto gridLayout = new QGridLayout{};
   setLayout(gridLayout);
   setModal(true);
 
+  m_invalidLabel = new QLabel{tr("Cannot add device.\n Try changing the name to make it unique, \nor check that the ports aren't already used")};
+  m_invalidLabel->setAlignment(Qt::AlignRight);
+  m_invalidLabel->setTextFormat(Qt::PlainText);
   m_buttonBox = new QDialogButtonBox(Qt::Horizontal, this);
   m_okButton = m_buttonBox->addButton(tr("Add"), QDialogButtonBox::AcceptRole);
   m_buttonBox->addButton(QDialogButtonBox::Cancel );
@@ -55,12 +66,12 @@ DeviceEditDialog::DeviceEditDialog(const Device::ProtocolFactoryList& pl, QWidge
 
   const auto& skin = score::Skin::instance();
   {
-    auto protocolTitle = new QLabel{tr("Protocols"), this};
-    protocolTitle->setFont(skin.TitleFont);
-    auto p = protocolTitle->palette();
+    m_protocolsLabel = new QLabel{tr("Protocols"), this};
+    m_protocolsLabel->setFont(skin.TitleFont);
+    auto p = m_protocolsLabel->palette();
     p.setColor(QPalette::WindowText, QColor("#D5D5D5"));
-    protocolTitle->setPalette(p);
-    gridLayout->addWidget(protocolTitle,0,0, Qt::AlignHCenter);
+    m_protocolsLabel->setPalette(p);
+    gridLayout->addWidget(m_protocolsLabel,0,0, Qt::AlignHCenter);
   }
 
 
@@ -80,12 +91,13 @@ DeviceEditDialog::DeviceEditDialog(const Device::ProtocolFactoryList& pl, QWidge
 
 
 
-  auto mainWidg = new QWidget{this};
-  gridLayout->addWidget(mainWidg,0,2,-1,-1);
+  m_main = new QWidget{this};
+  gridLayout->addWidget(m_main,0,2,-1,-1);
   m_layout = new QFormLayout;
   m_layout->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
-  mainWidg->setLayout(m_layout);
-  m_layout->addWidget(m_buttonBox);
+  m_main->setLayout(m_layout);
+  m_layout->addRow(m_invalidLabel);
+  m_layout->addRow(m_buttonBox);
 
   initAvailableProtocols();
 
@@ -106,6 +118,8 @@ DeviceEditDialog::DeviceEditDialog(const Device::ProtocolFactoryList& pl, QWidge
 
   setMinimumWidth(700);
   setMinimumHeight(400);
+
+  setAcceptEnabled(false);
 }
 
 DeviceEditDialog::~DeviceEditDialog()
@@ -178,6 +192,8 @@ void DeviceEditDialog::selectedDeviceChanged()
   auto data = item->data(Qt::UserRole).value<Device::DeviceSettings>();
   if(m_protocolWidget)
     m_protocolWidget->setSettings(data);
+
+  updateValidity();
 }
 
 void DeviceEditDialog::selectedProtocolChanged()
@@ -250,6 +266,9 @@ void DeviceEditDialog::selectedProtocolChanged()
 
   if (m_protocolWidget)
   {
+    connect(m_protocolWidget, &Device::ProtocolSettingsWidget::changed,
+            this, &DeviceEditDialog::updateValidity);
+
     m_layout->insertRow(0, m_protocolWidget);
 
     QSizePolicy pol{QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding};
@@ -259,6 +278,7 @@ void DeviceEditDialog::selectedProtocolChanged()
     this->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
     updateGeometry();
   }
+  updateValidity();
 }
 
 Device::DeviceSettings DeviceEditDialog::getSettings() const
@@ -293,18 +313,44 @@ void DeviceEditDialog::setSettings(const Device::DeviceSettings& settings)
         {
           m_protocolWidget->setSettings(settings);
         }
+        updateValidity();
         return;
       }
     }
   }
 }
 
-void DeviceEditDialog::setEditingInvalidState(bool st)
+void DeviceEditDialog::setAcceptEnabled(bool st)
 {
-  if (st != m_invalidState)
+  m_okButton->setEnabled(st);
+  m_invalidLabel->setVisible(!st);
+}
+
+void DeviceEditDialog::setBrowserEnabled(bool st)
+{
+  if(!st)
   {
-    m_invalidState = st;
-    m_okButton->setEnabled(st);
+    m_enumerator.reset();
+
+    delete m_protocols;
+    m_protocols = nullptr;
+    delete m_protocolsLabel;
+    m_protocolsLabel = nullptr;
+    delete m_devices;
+    m_devices = nullptr;
+    delete m_devicesLabel;
+    m_devicesLabel = nullptr;
+
+    auto this_lay = this->layout();
+    this_lay->removeWidget(m_main);
+    delete this_lay;
+    auto lay = m_main->layout();
+    this->setLayout(lay);
   }
+}
+
+void DeviceEditDialog::updateValidity()
+{
+  setAcceptEnabled(m_model.checkDeviceInstantiatable(getSettings()));
 }
 }

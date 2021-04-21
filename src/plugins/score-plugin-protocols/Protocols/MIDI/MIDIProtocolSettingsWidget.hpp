@@ -6,6 +6,10 @@
 
 #include <verdigris>
 
+namespace State
+{
+class AddressFragmentLineEdit;
+}
 namespace score { class ComboBox;}
 class QCheckBox;
 class QRadioButton;
@@ -26,7 +30,7 @@ private:
 
   void setSettings(const Device::DeviceSettings& settings) override;
 
-  QLineEdit* m_name{};
+  State::AddressFragmentLineEdit* m_name{};
   QCheckBox* m_createWhole{};
   Device::DeviceSettings m_current;
 };
@@ -42,7 +46,7 @@ private:
 
   void setSettings(const Device::DeviceSettings& settings) override;
 
-  QLineEdit* m_name{};
+  State::AddressFragmentLineEdit* m_name{};
   QCheckBox* m_createWhole{};
   Device::DeviceSettings m_current;
 };

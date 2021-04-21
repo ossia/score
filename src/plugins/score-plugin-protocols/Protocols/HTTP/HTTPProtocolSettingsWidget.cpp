@@ -24,8 +24,10 @@ HTTPProtocolSettingsWidget::HTTPProtocolSettingsWidget(QWidget* parent)
 {
   QLabel* deviceNameLabel = new TextLabel(tr("Name"), this);
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
+  checkForChanges(m_deviceNameEdit);
 
   m_codeEdit = Process::createScriptWidget("JS");
+  checkForChanges(m_codeEdit);
 
   QGridLayout* gLayout = new QGridLayout;
 

@@ -27,12 +27,15 @@ OSCProtocolSettingsWidget::OSCProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
 {
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
+  checkForChanges(m_deviceNameEdit);
 
   m_portInputSBox = new QSpinBox(this);
   m_portInputSBox->setRange(0, 65535);
+  checkForChanges(m_portInputSBox);
 
   m_portOutputSBox = new QSpinBox(this);
   m_portOutputSBox->setRange(0, 65535);
+  checkForChanges(m_portOutputSBox);
 
   m_localHostEdit = new QLineEdit(this);
 
@@ -86,6 +89,12 @@ Device::Node OSCProtocolSettingsWidget::getDevice() const
 
   // This is normal, we just check what we can instantiate.
   Device::loadDeviceFromScoreJSON(readJson(json), n);
+
+  // Re-apply our original settings which may have been overwritten
+  if(auto dev = n.target<Device::DeviceSettings>())
+  {
+    *dev = set;
+  }
 
   return n;
 }

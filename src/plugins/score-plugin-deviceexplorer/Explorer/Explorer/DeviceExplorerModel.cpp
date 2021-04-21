@@ -32,6 +32,8 @@
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/MimeVisitor.hpp>
+#include <score/widgets/MessageBox.hpp>
+#include <QMainWindow>
 
 #include <ossia/network/common/destination_qualifiers.hpp>
 #include <ossia/network/base/node_attributes.hpp>
@@ -219,7 +221,7 @@ void DeviceExplorerModel::updateValue(
   dataChanged(nodeIndex, nodeIndex);
 }
 
-bool DeviceExplorerModel::checkDeviceInstantiatable(Device::DeviceSettings& n)
+bool DeviceExplorerModel::checkDeviceInstantiatable(const Device::DeviceSettings& n) const
 {
   // No name -> no love
   if (n.name.isEmpty())
@@ -240,33 +242,6 @@ bool DeviceExplorerModel::checkDeviceInstantiatable(Device::DeviceSettings& n)
            || (set.protocol == n.protocol
                && !prot->checkCompatibility(n, child.get<Device::DeviceSettings>()));
   });
-}
-
-bool DeviceExplorerModel::tryDeviceInstantiation(
-    Device::DeviceSettings& set,
-    DeviceEditDialog& dial)
-{
-  while (!checkDeviceInstantiatable(set))
-  {
-#if defined(__EMSCRIPTEN__)
-    return false;
-#else
-    dial.setSettings(set);
-    dial.setEditingInvalidState(true);
-
-    bool ret = dial.exec();
-    if (!ret)
-    {
-      dial.setEditingInvalidState(false);
-      return false;
-    }
-
-    set = dial.getSettings();
-#endif
-  }
-
-  dial.setEditingInvalidState(true);
-  return true;
 }
 
 bool DeviceExplorerModel::checkAddressInstantiatable(
@@ -813,28 +788,83 @@ bool DeviceExplorerModel::dropMimeData(
 
     if (mimeType == score::mime::device())
     {
-      SCORE_ASSERT(n.is<Device::DeviceSettings>());
-
-      bool deviceOK = checkDeviceInstantiatable(n.get<Device::DeviceSettings>());
-      if (!deviceOK)
-      {
-        // We ask the user to fix the incompatibilities by himself.
-        DeviceEditDialog dial{
-            m_devicePlugin.context().app.interfaces<Device::ProtocolFactoryList>(),
-            QApplication::activeWindow()};
-        if (!tryDeviceInstantiation(n.get<Device::DeviceSettings>(), dial))
-          return false;
-      }
-
-      // Perform the loading
-      auto cmd = new Command::LoadDevice{deviceModel(), std::move(n)};
-
-      m_cmdQ.redoAndPush(cmd);
+      checkAndLoadDevice(n);
     }
-
     return true;
   }
   return false;
+}
+
+void DeviceExplorerModel::checkAndLoadDevice(Device::Node n)
+{
+  SCORE_ASSERT(n.is<Device::DeviceSettings>());
+  auto& deviceSettings = *n.target<Device::DeviceSettings>();
+
+  // We ask the user to fix the incompatibilities by himself, maybe change
+  // the name also.
+  auto dialog = new DeviceEditDialog{
+      *this,
+      m_devicePlugin.context().app.interfaces<Device::ProtocolFactoryList>(),
+      QApplication::activeWindow()};
+
+  dialog->setSettings(deviceSettings);
+  dialog->setBrowserEnabled(false);
+
+  connect(dialog, &QDialog::accepted,
+          this, [this, dialog, node = std::move(n)] () mutable {
+    auto new_settings = dialog->getSettings();
+    auto& deviceSettings = *node.target<Device::DeviceSettings>();
+    deviceSettings = new_settings;
+    if (!checkDeviceInstantiatable(deviceSettings))
+    {
+      score::warning(m_devicePlugin.context().app.mainWindow, "Error", "Could not create the device");
+      return;
+    }
+    ossia::net::sanitize_device_name(deviceSettings.name);
+
+    auto cmd = new Command::LoadDevice{deviceModel(), std::move(node)};
+    m_cmdQ.redoAndPush(cmd);
+    dialog->deleteLater();
+  });
+  connect(dialog, &QDialog::rejected,
+          this, [this, dialog] {
+    dialog->deleteLater();
+  });
+  dialog->show();
+}
+
+void DeviceExplorerModel::checkAndLoadDevice(Device::DeviceSettings deviceSettings)
+{
+  // We ask the user to fix the incompatibilities by himself, maybe change
+  // the name also.
+  auto dialog = new DeviceEditDialog{
+      *this,
+      m_devicePlugin.context().app.interfaces<Device::ProtocolFactoryList>(),
+      QApplication::activeWindow()};
+
+  dialog->setSettings(deviceSettings);
+  dialog->setBrowserEnabled(false);
+
+  connect(dialog, &QDialog::accepted,
+          this, [this, dialog] {
+    auto node = dialog->getDevice();
+    auto& deviceSettings = *node.target<Device::DeviceSettings>();
+    if (!checkDeviceInstantiatable(deviceSettings))
+    {
+      score::warning(m_devicePlugin.context().app.mainWindow, "Error", "Could not create the device");
+      return;
+    }
+    ossia::net::sanitize_device_name(deviceSettings.name);
+
+    auto cmd = new Command::LoadDevice{deviceModel(), std::move(node)};
+    m_cmdQ.redoAndPush(cmd);
+    dialog->deleteLater();
+  });
+  connect(dialog, &QDialog::rejected,
+          this, [this, dialog] {
+    dialog->deleteLater();
+  });
+  dialog->show();
 }
 
 QModelIndex DeviceExplorerModel::convertPathToIndex(const Device::NodePath& path)

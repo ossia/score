@@ -12,11 +12,13 @@
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/widgets/MessageBox.hpp>
 
 #include <score/serialization/AnySerialization.hpp>
 #include <score/serialization/MapSerialization.hpp>
 #include <ossia-qt/js_utilities.hpp>
 
+#include <QMainWindow>
 #include <QFileInfo>
 #if __has_include(<QQmlEngine>)
 #include <QQmlComponent>
@@ -79,31 +81,14 @@ class OSCLibraryHandler final : public Library::LibraryInterface
     fact.insert(std::make_unique<Protocols::OSCQueryProtocolFactory>());
 #endif
 
-    Device::DeviceSettings set;
+    auto& devplug = ctx.plugin<Explorer::DeviceDocumentPlugin>();
+    auto& model = devplug.explorer();
+
+    Device::DeviceSettings& set = *n.target<Device::DeviceSettings>();
     set.name = QFileInfo(path).baseName();
     set.protocol = Protocols::OSCProtocolFactory::static_concreteKey();
-    auto dialog = std::make_unique<Explorer::DeviceEditDialog>(fact, nullptr);
-    dialog->setSettings(set);
-    auto code = static_cast<QDialog::DialogCode>(dialog->exec());
-    if (code == QDialog::Accepted)
-    {
-      auto& devplug = ctx.plugin<Explorer::DeviceDocumentPlugin>();
-      auto& model = devplug.explorer();
 
-      auto deviceSettings = dialog->getSettings();
-      if (!model.checkDeviceInstantiatable(deviceSettings))
-      {
-        if (!model.tryDeviceInstantiation(deviceSettings, *dialog))
-        {
-          return true;
-        }
-      }
-      ossia::net::sanitize_device_name(deviceSettings.name);
-      n.get<Device::DeviceSettings>() = deviceSettings;
-
-      CommandDispatcher<>{ctx.commandStack}.submit(
-          new Explorer::Command::LoadDevice{devplug, std::move(n)});
-    }
+    model.checkAndLoadDevice(std::move(n));
     return true;
   }
 };
@@ -170,27 +155,10 @@ class QMLLibraryHandler final : public Library::LibraryInterface
     if (set.protocol == UuidKey<Device::ProtocolFactory>{})
       return false;
 
-    auto dialog = std::make_unique<Explorer::DeviceEditDialog>(fact, nullptr);
-    dialog->setSettings(set);
-    auto code = static_cast<QDialog::DialogCode>(dialog->exec());
-    if (code == QDialog::Accepted)
-    {
-      auto& devplug = ctx.plugin<Explorer::DeviceDocumentPlugin>();
-      auto& model = devplug.explorer();
+    auto& devplug = ctx.plugin<Explorer::DeviceDocumentPlugin>();
+    auto& model = devplug.explorer();
 
-      auto deviceSettings = dialog->getSettings();
-      if (!model.checkDeviceInstantiatable(deviceSettings))
-      {
-        if (!model.tryDeviceInstantiation(deviceSettings, *dialog))
-        {
-          return true;
-        }
-      }
-      ossia::net::sanitize_device_name(deviceSettings.name);
-
-      CommandDispatcher<>{ctx.commandStack}.submit(
-          new Explorer::Command::LoadDevice{devplug, deviceSettings});
-    }
+    model.checkAndLoadDevice(set);
     return true;
   }
 };

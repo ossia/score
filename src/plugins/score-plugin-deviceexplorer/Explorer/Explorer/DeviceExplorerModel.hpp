@@ -102,8 +102,7 @@ public:
   // trigger a dialog to edit them as wanted.
   // Returns true if the device is to be added, false if
   // it should not be added.
-  bool checkDeviceInstantiatable(Device::DeviceSettings& n);
-  bool tryDeviceInstantiation(Device::DeviceSettings&, DeviceEditDialog&);
+  bool checkDeviceInstantiatable(const Device::DeviceSettings& n) const;
 
   bool checkAddressInstantiatable(Device::Node& parent, const Device::AddressSettings& addr);
 
@@ -154,7 +153,8 @@ public:
 
   SelectedNodes uniqueSelectedNodes(
       const QModelIndexList& indexes) const; // Note : filters so that only parents are given.
-
+  void checkAndLoadDevice(Device::Node n);
+  void checkAndLoadDevice(Device::DeviceSettings n);
 public:
   void nodeChanged(Device::Node* n) E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, nodeChanged, n)
 

@@ -25,12 +25,13 @@ class DeviceEnumerator;
 }
 namespace Explorer
 {
+class DeviceExplorerModel;
 class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceEditDialog final : public QDialog
 {
   W_OBJECT(DeviceEditDialog)
 
 public:
-  explicit DeviceEditDialog(const Device::ProtocolFactoryList& pl, QWidget* parent);
+  explicit DeviceEditDialog(const DeviceExplorerModel& model, const Device::ProtocolFactoryList& pl, QWidget* parent);
   ~DeviceEditDialog();
 
   Device::DeviceSettings getSettings() const;
@@ -40,12 +41,17 @@ public:
 
   // This mode will display a warning to
   // the user if he has to edit the device again.
-  void setEditingInvalidState(bool);
+  void setAcceptEnabled(bool);
 
+  // enable protocol & device browsing
+  void setBrowserEnabled(bool);
+
+  void updateValidity();
 private:
   void selectedProtocolChanged();
   void initAvailableProtocols();
 
+  const DeviceExplorerModel& m_model;
   const Device::ProtocolFactoryList& m_protocolList;
   std::unique_ptr<Device::DeviceEnumerator> m_enumerator{};
 
@@ -53,13 +59,15 @@ private:
   QPushButton* m_okButton{};
   QTreeWidget* m_protocols{};
   QListWidget* m_devices{};
+  QWidget* m_main{};
+  QLabel* m_protocolsLabel{};
   QLabel* m_devicesLabel{};
   Device::ProtocolSettingsWidget* m_protocolWidget{};
   QFormLayout* m_layout{};
   QList<Device::DeviceSettings> m_previousSettings;
+  QLabel* m_invalidLabel{};
   int m_index{};
 
-  bool m_invalidState{false};
   void selectedDeviceChanged();
 };
 }

@@ -27,6 +27,10 @@ LocalProtocolSettingsWidget::LocalProtocolSettingsWidget(QWidget* parent)
   m_wsPort = new QSpinBox;
   m_oscPort->setRange(0, 65535);
   m_wsPort->setRange(0, 65535);
+
+  checkForChanges(m_oscPort);
+  checkForChanges(m_wsPort);
+
   lay->addRow(tr("OSC port"), m_oscPort);
   lay->addRow(tr("WebSocket port"), m_wsPort);
 

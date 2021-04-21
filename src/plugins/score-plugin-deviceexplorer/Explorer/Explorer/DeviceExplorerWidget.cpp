@@ -716,7 +716,7 @@ void DeviceExplorerWidget::edit()
   {
     if (!m_deviceDialog)
     {
-      m_deviceDialog = new DeviceEditDialog{m_protocolList, this};
+      m_deviceDialog = new DeviceEditDialog{*model(), m_protocolList, this};
     }
     auto set = select.get<Device::DeviceSettings>();
     m_deviceDialog->setSettings(set);
@@ -905,7 +905,7 @@ void DeviceExplorerWidget::addDevice()
 
   if (!m_deviceDialog)
   {
-    m_deviceDialog = new DeviceEditDialog{m_protocolList, this};
+    m_deviceDialog = new DeviceEditDialog{*model(), m_protocolList, this};
   }
 
   connect(m_deviceDialog, &QDialog::accepted,
@@ -915,12 +915,9 @@ void DeviceExplorerWidget::addDevice()
     auto& deviceSettings = *node.target<Device::DeviceSettings>();
     if (!model()->checkDeviceInstantiatable(deviceSettings))
     {
-      if (!model()->tryDeviceInstantiation(deviceSettings, *m_deviceDialog))
-      {
-        delete m_deviceDialog;
-        m_deviceDialog = nullptr;
-        return;
-      }
+      m_deviceDialog->deleteLater();
+      m_deviceDialog = nullptr;
+      return;
     }
     ossia::net::sanitize_device_name(deviceSettings.name);
 

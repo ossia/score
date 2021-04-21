@@ -8,6 +8,7 @@
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <score/widgets/ComboBox.hpp>
 #include <ossia-qt/name_utils.hpp>
+#include <State/Widgets/AddressFragmentLineEdit.hpp>
 
 #include <QCheckBox>
 #include <QDebug>
@@ -25,7 +26,8 @@ namespace Protocols
 MIDIInputSettingsWidget::MIDIInputSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
 {
-  m_name = new QLineEdit{"MidiIn"};
+  m_name = new State::AddressFragmentLineEdit{this};
+  checkForChanges(m_name);
   m_createWhole = new QCheckBox{tr("Create whole tree"), this};
 
   auto lay = new QFormLayout;
@@ -73,7 +75,8 @@ namespace Protocols
 MIDIOutputSettingsWidget::MIDIOutputSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
 {
-  m_name = new QLineEdit{"MidiOut"};
+  m_name = new State::AddressFragmentLineEdit{this};
+  checkForChanges(m_name);
   m_createWhole = new QCheckBox{tr("Create whole tree"), this};
 
   auto lay = new QFormLayout;

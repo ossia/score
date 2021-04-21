@@ -515,6 +515,7 @@ bool AudioProtocolFactory::checkCompatibility(
 AudioSettingsWidget::AudioSettingsWidget(QWidget* parent) : ProtocolSettingsWidget(parent)
 {
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
+  checkForChanges(m_deviceNameEdit);
 
   auto layout = new QFormLayout;
   layout->addRow(tr("Name"), m_deviceNameEdit);

@@ -21,6 +21,7 @@ WiimoteProtocolSettingsWidget::WiimoteProtocolSettingsWidget(QWidget* parent)
     : Device::ProtocolSettingsWidget(parent)
 {
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
+  checkForChanges(m_deviceNameEdit);
   m_deviceNameEdit->setText("Wiimote");
 
   auto layout = new QFormLayout;

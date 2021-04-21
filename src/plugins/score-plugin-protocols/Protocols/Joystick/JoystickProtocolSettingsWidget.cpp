@@ -24,6 +24,7 @@ JoystickProtocolSettingsWidget::JoystickProtocolSettingsWidget(QWidget* parent)
     : Device::ProtocolSettingsWidget(parent)
 {
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
+  checkForChanges(m_deviceNameEdit);
   m_deviceNameEdit->setText("Joystick");
 
   auto layout = new QFormLayout;

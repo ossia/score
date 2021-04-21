@@ -28,11 +28,13 @@ WSProtocolSettingsWidget::WSProtocolSettingsWidget(QWidget* parent)
 {
   auto deviceNameLabel = new QLabel(tr("Name"), this);
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
+  checkForChanges(m_deviceNameEdit);
 
   auto addrLabel = new QLabel(tr("Address"), this);
   m_addressNameEdit = new QLineEdit{this};
 
   m_codeEdit = Process::createScriptWidget("JS");
+  checkForChanges(m_codeEdit);
 
   connect(m_codeEdit, &QCodeEditor::editingFinished, this, &WSProtocolSettingsWidget::parseHost);
 

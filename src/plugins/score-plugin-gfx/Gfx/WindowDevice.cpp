@@ -199,6 +199,7 @@ bool WindowProtocolFactory::checkCompatibility(
 WindowSettingsWidget::WindowSettingsWidget(QWidget* parent) : ProtocolSettingsWidget(parent)
 {
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
+  checkForChanges(m_deviceNameEdit);
 
   auto layout = new QFormLayout;
   layout->addRow(tr("Device Name"), m_deviceNameEdit);
