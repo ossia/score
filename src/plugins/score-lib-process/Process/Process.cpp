@@ -238,7 +238,7 @@ void ProcessModel::ancestorTempoChanged()
 
 }
 
-void ProcessModel::forEachControl(smallfun::function<void(Inlet&, const ossia::value&)> f) const
+void ProcessModel::forEachControl(smallfun::function<void(ControlInlet&, const ossia::value&)> f) const
 {
   for (const auto& inlet : m_inlets)
   {

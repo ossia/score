@@ -42,6 +42,19 @@ struct RemoteMessages
     return r.toString();
   }
 
+  QString controlMessage(const Process::ControlInlet& inl) const
+  {
+    using namespace std::literals;
+    JSONReader r;
+    r.stream.StartObject();
+    r.obj[score::StringConstant().Message] = "ControlSurfaceControl"sv;
+    r.obj[score::StringConstant().Path] = Path{process};
+    r.obj["Control"] = inl.id();
+    r.obj[score::StringConstant().Value] = inl.value();
+    r.stream.EndObject();
+    return r.toString();
+  }
+
   void controlSurface(
       const rapidjson::Value& obj,
       const score::DocumentContext& doc) const
@@ -103,12 +116,25 @@ Remote::Remote(
       msgs.controlSurface(v, this->system().context());
     };
 
+    process().forEachControl([&] (const Process::ControlInlet& inl, auto& val) {
+      con(inl, &Process::ControlInlet::valueChanged,
+          this, [this, &inl] {
+        RemoteMessages msgs{process()};
+        system().receiver.sendMessage(msgs.controlMessage(inl));
+      });
+    });
+
     system().receiver.addHandler(this, std::move(h));
   });
 
   con(proc, &Model::stopExecution,
       this, [this] {
     system().receiver.removeHandler(this);
+
+    process().forEachControl([this] (const Process::ControlInlet& inl, auto& val) {
+    QObject::disconnect(&inl, &Process::ControlInlet::valueChanged,
+                        this, nullptr);
+    });
   });
 }
 

@@ -34,6 +34,7 @@ namespace Process
 {
 class Port;
 class Inlet;
+class ControlInlet;
 class Outlet;
 class AudioInlet;
 class AudioOutlet;
@@ -120,7 +121,7 @@ public:
   virtual void ancestorTempoChanged();
 
   virtual void
-      forEachControl(smallfun::function<void(Process::Inlet&, const ossia::value&)>) const;
+      forEachControl(smallfun::function<void(Process::ControlInlet&, const ossia::value&)>) const;
 
   // Clip duration things
   bool loops() const noexcept { return m_loops; }
