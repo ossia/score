@@ -146,6 +146,7 @@ set(CPACK_COMPONENTS_ALL OssiaScore)
 set(CPACK_MONOLITHIC_INSTALL FALSE)
 
 set(CPACK_NSIS_PACKAGE_NAME "ossia score")
+set(CPACK_NSIS_INSTALLED_ICON_NAME "score.exe")
 set(CPACK_PACKAGE_ICON "${SCORE_ROOT_SOURCE_DIR}\\\\src\\\\lib\\\\resources\\\\score.ico")
 set(CPACK_NSIS_MUI_ICON "${CPACK_PACKAGE_ICON}")
 set(CPACK_NSIS_MUI_UNIICON "${CPACK_PACKAGE_ICON}")
@@ -184,3 +185,5 @@ DeleteRegKey HKLM 'Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\App Pat
 \\\${unregisterExtension} '.score' 'score score'
 ")
 
+string(APPEND CPACK_NSIS_DEFINES "\nManifestDPIAware true\n")
+string(APPEND CPACK_NSIS_DEFINES "\nRequestExecutionLevel user\n")
