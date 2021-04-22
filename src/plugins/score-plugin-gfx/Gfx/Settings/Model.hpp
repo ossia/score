@@ -46,7 +46,7 @@ public:
   QString getGraphicsApi() const;
   void setGraphicsApi(QString);
   void GraphicsApiChanged(QString arg) E_SIGNAL(SCORE_PLUGIN_GFX_EXPORT, GraphicsApiChanged, arg)
-  PROPERTY(QString, GraphicsApi READ getGraphicsApi WRITE setGraphicsApi NOTIFY GraphicsApiChanged)
+  PROPERTY(QString, GraphicsApi, &Model::getGraphicsApi, &Model::setGraphicsApi, &Model::GraphicsApiChanged)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, GraphicsApi)
