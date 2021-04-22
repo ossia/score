@@ -15,25 +15,7 @@ struct GraphicsApis
   const QString Vulkan{"Vulkan"};
   const QString Metal{"Metal"};
   const QString D3D11{"Direct3D 11"};
-  operator QStringList() const {
-    QStringList lst;
-#ifndef QT_NO_OPENGL
-    lst += OpenGL;
-#endif
-
-#if QT_CONFIG(vulkan)
-    lst += Vulkan;
-#endif
-
-#ifdef Q_OS_WIN
-    lst += D3D11;
-#endif
-
-#if defined(Q_OS_MACOS) || defined(Q_OS_IOS)
-    lst += Metal;
-#endif
-    return lst;
-  }
+  operator QStringList() const noexcept;
 };
 
 class Model : public score::SettingsDelegateModel

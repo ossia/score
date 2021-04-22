@@ -62,14 +62,6 @@ void Graph::setupOutputs(GraphicsApi graphicsApi)
   }
 #endif
 
-#if __APPLE__
-  graphicsApi = Metal;
-#endif
-
-#ifdef Q_OS_WIN
-  graphicsApi = D3D11;
-#endif
-
   for (auto output : outputs)
   {
     output->stopRendering();

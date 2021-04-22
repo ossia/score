@@ -35,7 +35,7 @@ static auto list()
 }
 }
 
-Gfx::Settings::GraphicsApis::operator QStringList() const {
+Gfx::Settings::GraphicsApis::operator QStringList() const noexcept {
   QStringList lst;
 #ifndef QT_NO_OPENGL
   lst += OpenGL;
