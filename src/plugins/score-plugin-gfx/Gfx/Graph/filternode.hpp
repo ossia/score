@@ -2,7 +2,6 @@
 #include "mesh.hpp"
 #include "node.hpp"
 
-#include <QtShaderTools/QShaderBaker>
 struct FilterNode : NodeModel
 {
   const TexturedTriangle& m_mesh = TexturedTriangle::instance();

@@ -26,7 +26,7 @@ TextureRenderTarget createRenderTarget(const RenderState& state, QSize sz)
 {
   TextureRenderTarget ret;
   ret.texture = state.rhi->newTexture(QRhiTexture::RGBA8, sz, 1, QRhiTexture::RenderTarget);
-  ret.texture->build();
+  ret.texture->create();
 
   QRhiColorAttachment color0{ret.texture};
 
@@ -37,7 +37,7 @@ TextureRenderTarget createRenderTarget(const RenderState& state, QSize sz)
   SCORE_ASSERT(renderPass);
 
   renderTarget->setRenderPassDescriptor(renderPass);
-  SCORE_ASSERT(renderTarget->build());
+  SCORE_ASSERT(renderTarget->create());
 
   ret.renderTarget = renderTarget;
   ret.renderPass = renderPass;
@@ -67,9 +67,9 @@ void replaceTexture(QRhiShaderResourceBindings& srb, QRhiSampler* sampler, QRhiT
     }
   }
 
-  srb.release();
+  srb.destroy();
   srb.setBindings(tmp.begin(), tmp.end());
-  srb.build();
+  srb.create();
 }
 
 Pipeline buildPipeline(
@@ -148,14 +148,14 @@ Pipeline buildPipeline(
     binding++;
   }
   srb->setBindings(bindings.begin(), bindings.end());
-  SCORE_ASSERT(srb->build());
+  SCORE_ASSERT(srb->create());
 
   ps->setShaderResourceBindings(srb);
 
   SCORE_ASSERT(rt.renderPass);
   ps->setRenderPassDescriptor(rt.renderPass);
 
-  SCORE_ASSERT(ps->build());
+  SCORE_ASSERT(ps->create());
   return {ps, srb};
 }
 }
@@ -266,7 +266,7 @@ void RenderedNode::defaultShaderMaterialInit(Renderer& renderer)
                 QRhiSampler::None,
                 QRhiSampler::ClampToEdge,
                 QRhiSampler::ClampToEdge);
-          SCORE_ASSERT(sampler->build());
+          SCORE_ASSERT(sampler->create());
 
           m_samplers.push_back({sampler, renderer.textureTargetForInputPort(*in)});
           break;
@@ -283,7 +283,7 @@ void RenderedNode::defaultShaderMaterialInit(Renderer& renderer)
     {
       m_materialUBO
           = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, m_materialSize);
-      SCORE_ASSERT(m_materialUBO->build());
+      SCORE_ASSERT(m_materialUBO->create());
     }
   }
 }
@@ -301,7 +301,7 @@ void RenderedNode::init(Renderer& renderer)
   }
 
   m_processUBO = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(ProcessUBO));
-  m_processUBO->build();
+  m_processUBO->create();
 
   customInit(renderer);
 

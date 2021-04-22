@@ -6,8 +6,6 @@
 
 #include <ossia/detail/flat_map.hpp>
 
-#include <QShaderBaker>
-
 #include <algorithm>
 #include <optional>
 #include <vector>
@@ -15,6 +13,7 @@
 #include <unordered_map>
 #include <score_plugin_gfx_export.h>
 
+#include <Gfx/Qt5Compat.hpp>
 namespace score::gfx
 {
 class Node;

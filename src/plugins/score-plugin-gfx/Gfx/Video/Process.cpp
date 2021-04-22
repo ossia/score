@@ -3,8 +3,6 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 
-#include <QShaderBaker>
-
 #include <Gfx/Graph/node.hpp>
 #include <Gfx/Graph/nodes.hpp>
 #include <Gfx/TexturePort.hpp>

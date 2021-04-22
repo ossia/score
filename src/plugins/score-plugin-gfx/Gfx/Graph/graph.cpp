@@ -38,6 +38,9 @@ QVulkanInstance* staticVulkanInstance()
 #endif
   vulkanInstance.setExtensions(QByteArrayList() << "VK_KHR_get_physical_device_properties2");
 
+#if defined(create)
+#undef create
+#endif
   if (!vulkanInstance.create())
   {
     vulkanInstanceInvalid = true;

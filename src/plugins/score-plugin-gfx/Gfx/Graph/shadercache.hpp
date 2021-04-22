@@ -1,7 +1,11 @@
 #pragma once
 #include <score/tools/OpenGL.hpp>
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <QShaderBaker>
+#else
+#include <QtShaderTools/private/qshaderbaker_p.h>
+#endif
 
 #include <unordered_map>
 

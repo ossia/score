@@ -155,9 +155,10 @@ score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 # Link
 target_link_libraries(${PROJECT_NAME} PUBLIC
   score_lib_base  score_lib_localtree score_lib_process score_plugin_dataflow score_plugin_engine
-   ${QT_PREFIX}::ShaderTools  ${QT_PREFIX}::GuiPrivate
+   ${QT_PREFIX}::ShaderTools ${QT_PREFIX}::ShaderToolsPrivate  ${QT_PREFIX}::GuiPrivate
    snappy # for HAP
 )
+
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
     isf
@@ -208,6 +209,11 @@ if(freenect2_FOUND)
   target_link_libraries(${PROJECT_NAME} PRIVATE ${freenect2_LIBRARIES})
 endif()
 
+if(TARGET ${QT_PREFIX}::OpenGLWidgets)
+  target_link_libraries(${PROJECT_NAME}
+    PRIVATE ${QT_PREFIX}::OpenGLWidgets
+  )
+endif()
 # Target-specific options
 setup_score_plugin(${PROJECT_NAME})
 

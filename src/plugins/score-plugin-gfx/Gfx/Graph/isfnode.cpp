@@ -407,7 +407,7 @@ struct RenderedISFNode : score::gfx::NodeRenderer
               QRhiSampler::None,
               QRhiSampler::ClampToEdge,
               QRhiSampler::ClampToEdge);
-          SCORE_ASSERT(sampler->build());
+          SCORE_ASSERT(sampler->create());
 
           auto texture = renderer.textureTargetForInputPort(*in);
           m_samplers.push_back({sampler, texture});
@@ -439,7 +439,7 @@ struct RenderedISFNode : score::gfx::NodeRenderer
           QRhiSampler::None,
           QRhiSampler::ClampToEdge,
           QRhiSampler::ClampToEdge);
-      sampler->build();
+      sampler->create();
 
       m_samplers.push_back({sampler, renderer.m_emptyTexture});
       texture.samplers[&renderer] = {sampler, nullptr};
@@ -458,14 +458,14 @@ struct RenderedISFNode : score::gfx::NodeRenderer
             QRhiSampler::None,
             QRhiSampler::ClampToEdge,
             QRhiSampler::ClampToEdge);
-      sampler->build();
+      sampler->create();
 
       const QSize texSize = computeTextureSize(model_passes[i]);
 
       const auto fmt = (model_passes[i].float_storage) ? QRhiTexture::RGBA32F : QRhiTexture::RGBA8;
 
       auto tex = rhi.newTexture(fmt, texSize, 1, QRhiTexture::Flag{QRhiTexture::RenderTarget});
-      tex->build();
+      tex->create();
 
       m_samplers.push_back({sampler, tex});
 
@@ -492,11 +492,11 @@ struct RenderedISFNode : score::gfx::NodeRenderer
     auto rp = rt->newCompatibleRenderPassDescriptor();
     SCORE_ASSERT(rp);
     rt->setRenderPassDescriptor(rp);
-    SCORE_ASSERT(rt->build());
+    SCORE_ASSERT(rt->create());
 
     QRhiBuffer* pubo{};
     pubo = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(ProcessUBO));
-    pubo->build();
+    pubo->create();
 
     auto pip = buildPassPipeline(renderer, TextureRenderTarget{tex, rp, rt}, pubo);
     auto srb = pip.srb;
@@ -518,7 +518,7 @@ struct RenderedISFNode : score::gfx::NodeRenderer
         }
       }
       srb->setBindings(bindings.begin(), bindings.end());
-      srb->build();
+      srb->create();
     }
     return Pass{sampler, {tex, rp, rt}, pip, pubo};
   }
@@ -543,7 +543,7 @@ struct RenderedISFNode : score::gfx::NodeRenderer
     {
       m_materialUBO
           = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, m_materialSize);
-      SCORE_ASSERT(m_materialUBO->build());
+      SCORE_ASSERT(m_materialUBO->create());
     }
 
     int cur_pos = initShaderSamplers(renderer);
@@ -572,7 +572,7 @@ struct RenderedISFNode : score::gfx::NodeRenderer
     {
       QRhiBuffer* pubo{};
       pubo = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(ProcessUBO));
-      pubo->build();
+      pubo->create();
 
       auto p = buildPassPipeline(renderer, m_lastPassRT, pubo);
       m_passes.push_back(Pass{nullptr, m_lastPassRT, p, pubo});
@@ -606,7 +606,7 @@ struct RenderedISFNode : score::gfx::NodeRenderer
         m_fft.reset(samples);
         rhiTexture = rhi.newTexture(
               QRhiTexture::R32F, {pixelWidth, audio.channels}, 1, QRhiTexture::Flag{});
-        rhiTexture->build();
+        rhiTexture->create();
         textureChanged = true;
       }
       else
@@ -704,7 +704,7 @@ struct RenderedISFNode : score::gfx::NodeRenderer
           if (auto tex = it->second.second)
           {
             if (tex != r.m_emptyTexture)
-              tex->releaseAndDestroyLater();
+              tex->deleteLater();
           }
         }
       }
@@ -715,7 +715,7 @@ struct RenderedISFNode : score::gfx::NodeRenderer
         // TODO do we also want to remove the last pass texture here ?!
         pass.p.release();
         pass.renderTarget.release();
-        pass.processUBO->releaseAndDestroyLater();
+        pass.processUBO->deleteLater();
       }
       if(!m_passes.empty())
       {

@@ -8,11 +8,11 @@
 #include <QTimer>
 #include <QtGui/private/qrhigles2_p.h>
 
+#include <Gfx/Qt5Compat.hpp>
 class Window : public QWindow
 {
-
 public:
-  Window(GraphicsApi graphicsApi)
+  explicit Window(GraphicsApi graphicsApi)
   {
     // Tell the platform plugin what we want.
     switch (graphicsApi)
@@ -54,7 +54,7 @@ public:
   {
     if(swapChain)
     {
-      m_hasSwapChain = swapChain->buildOrResize();
+      m_hasSwapChain = swapChain->createOrResize();
       state.size = swapChain->currentPixelSize();
       if (onResize)
         onResize();
@@ -66,7 +66,7 @@ public:
     if (swapChain && m_hasSwapChain)
     {
       m_hasSwapChain = false;
-      swapChain->release();
+      swapChain->destroy();
     }
   }
 

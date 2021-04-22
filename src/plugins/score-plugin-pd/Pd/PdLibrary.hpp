@@ -50,7 +50,7 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
   {
     if (iterator.hasNext())
     {
-      registerPatch(iterator.next());
+      registerPatch(QFileInfo{iterator.next()});
       QTimer::singleShot(1, this, &LibraryHandler::next);
     }
   }

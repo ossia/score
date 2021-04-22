@@ -45,7 +45,7 @@ void main() {
     // Y
     {
       auto tex = rhi.newTexture(QRhiTexture::RGBA8, {w/4, h/2}, 1, QRhiTexture::Flag{});
-      tex->build();
+      tex->create();
 
       auto sampler = rhi.newSampler(
           QRhiSampler::Linear,
@@ -53,7 +53,7 @@ void main() {
           QRhiSampler::None,
           QRhiSampler::ClampToEdge,
           QRhiSampler::ClampToEdge);
-      sampler->build();
+      sampler->create();
       rendered.m_samplers.push_back({sampler, tex});
     }
   }
@@ -66,7 +66,7 @@ void main() {
   void release(Renderer&, RenderedNode& n) override
   {
     for (auto [sampler, tex] : n.m_samplers)
-      tex->releaseAndDestroyLater();
+      tex->deleteLater();
   }
 
   void setYPixels(RenderedNode& rendered, QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept

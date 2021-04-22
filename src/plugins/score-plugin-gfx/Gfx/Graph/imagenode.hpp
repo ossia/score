@@ -101,7 +101,7 @@ struct ImagesNode : NodeModel
           auto tex = rhi.newTexture(
               QRhiTexture::BGRA8, QSize{sz.width(), sz.height()}, 1, QRhiTexture::Flag{});
 
-          tex->build();
+          tex->create();
           textures.push_back(tex);
         }
       }
@@ -114,7 +114,7 @@ struct ImagesNode : NodeModel
             QRhiSampler::Repeat,
             QRhiSampler::Repeat);
 
-        sampler->build();
+        sampler->create();
         auto tex = textures.empty() ? renderer.m_emptyTexture : textures.front();
         m_samplers.push_back({sampler, tex});
       }
@@ -155,7 +155,9 @@ struct ImagesNode : NodeModel
     void customRelease(Renderer&) override
     {
       for (auto tex : textures)
-        tex->releaseAndDestroyLater();
+      {
+        tex->deleteLater();
+      }
       textures.clear();
     }
 

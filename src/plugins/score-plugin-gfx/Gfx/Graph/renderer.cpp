@@ -10,7 +10,7 @@ MeshBuffers Renderer::initMeshBuffer(const Mesh& mesh)
   auto& rhi = *state.rhi;
   auto mesh_buf = rhi.newBuffer(
       QRhiBuffer::Immutable, QRhiBuffer::VertexBuffer, mesh.vertexArray.size() * sizeof(float));
-  mesh_buf->build();
+  mesh_buf->create();
 
   QRhiBuffer* idx_buf{};
   if (!mesh.indexArray.empty())
@@ -19,7 +19,7 @@ MeshBuffers Renderer::initMeshBuffer(const Mesh& mesh)
         QRhiBuffer::Immutable,
         QRhiBuffer::IndexBuffer,
         mesh.indexArray.size() * sizeof(unsigned int));
-    idx_buf->build();
+    idx_buf->create();
   }
 
   MeshBuffers ret{mesh_buf, idx_buf};
@@ -43,10 +43,10 @@ void Renderer::init()
 #endif
       QRhiBuffer::UniformBuffer,
       sizeof(ScreenUBO));
-  m_rendererUBO->build();
+  m_rendererUBO->create();
 
   m_emptyTexture = rhi.newTexture(QRhiTexture::RGBA8, QSize{1, 1}, 1, QRhiTexture::Flag{});
-  m_emptyTexture->build();
+  m_emptyTexture->create();
 }
 
 void Renderer::release()

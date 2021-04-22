@@ -1,5 +1,4 @@
 #include "ShaderProgram.hpp"
-#include <QShaderBaker>
 #include <QRegularExpression>
 #include <QFile>
 #include <Gfx/Graph/shadercache.hpp>
@@ -24,7 +23,7 @@ void updateToGlsl45(ShaderProgram& program)
     auto match_idx = program.vertex.indexOf(out_expr);
     while(match_idx != -1)
     {
-      const QStringRef partialString = program.vertex.midRef(match_idx);
+      const QString partialString = program.vertex.mid(match_idx);
       const auto& match = out_expr.match(partialString);
       const int len = match.capturedLength(0);
       attributes_locations_map[match.captured(2)] = cur_location;
@@ -41,7 +40,7 @@ void updateToGlsl45(ShaderProgram& program)
     auto match_idx = program.fragment.indexOf(in_expr);
     while(match_idx != -1)
     {
-      const QStringRef partialString = program.fragment.midRef(match_idx);
+      const QString partialString = program.fragment.mid(match_idx);
       const auto& match = in_expr.match(partialString);
       const int len = match.capturedLength(0);
 

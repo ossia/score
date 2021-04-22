@@ -201,11 +201,11 @@ void SpoutNode::createOutput(
                        m_renderState->size,
                        1,
                        QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);
-  m_texture->build();
+  m_texture->create();
   m_renderTarget = rhi->newTextureRenderTarget({ m_texture });
   m_renderState->renderPassDescriptor = m_renderTarget->newCompatibleRenderPassDescriptor();
   m_renderTarget->setRenderPassDescriptor(m_renderState->renderPassDescriptor);
-  m_renderTarget->build();
+  m_renderTarget->create();
 
   onReady();
 }

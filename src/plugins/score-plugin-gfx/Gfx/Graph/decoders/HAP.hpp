@@ -107,7 +107,7 @@ struct HAPDecoder : GPUVideoDecoder
   void release(Renderer&, RenderedNode& n) override
   {
     for (auto [sampler, tex] : n.m_samplers)
-      tex->releaseAndDestroyLater();
+      tex->deleteLater();
   }
 
   static constexpr int buffer_size = 1024 * 1024 * 16;
@@ -177,7 +177,7 @@ void main ()
 
     {
       auto tex = rhi.newTexture(format, QSize{w, h}, 1, QRhiTexture::Flag{});
-      tex->build();
+      tex->create();
 
       auto sampler = rhi.newSampler(
           QRhiSampler::Linear,
@@ -185,7 +185,7 @@ void main ()
           QRhiSampler::None,
           QRhiSampler::ClampToEdge,
           QRhiSampler::ClampToEdge);
-      sampler->build();
+      sampler->create();
       rendered.m_samplers.push_back({sampler, tex});
     }
   }
@@ -251,7 +251,7 @@ void main ()
     // Color texture
     {
       auto tex = rhi.newTexture(QRhiTexture::BC3, QSize{w, h}, 1, QRhiTexture::Flag{});
-      tex->build();
+      tex->create();
 
       auto sampler = rhi.newSampler(
             QRhiSampler::Linear,
@@ -259,13 +259,13 @@ void main ()
             QRhiSampler::None,
             QRhiSampler::ClampToEdge,
             QRhiSampler::ClampToEdge);
-      sampler->build();
+      sampler->create();
       rendered.m_samplers.push_back({sampler, tex});
     }
     // Alpha texture
     {
       auto tex = rhi.newTexture(QRhiTexture::BC4, QSize{w, h}, 1, QRhiTexture::Flag{});
-      tex->build();
+      tex->create();
 
       auto sampler = rhi.newSampler(
             QRhiSampler::Linear,
@@ -273,7 +273,7 @@ void main ()
             QRhiSampler::None,
             QRhiSampler::ClampToEdge,
             QRhiSampler::ClampToEdge);
-      sampler->build();
+      sampler->create();
       rendered.m_samplers.push_back({sampler, tex});
     }
   }

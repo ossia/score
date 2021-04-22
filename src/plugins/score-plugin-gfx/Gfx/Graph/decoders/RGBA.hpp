@@ -48,7 +48,7 @@ struct RGB0Decoder : GPUVideoDecoder
 
     {
       auto tex = rhi.newTexture(format, QSize{w, h}, 1, QRhiTexture::Flag{});
-      tex->build();
+      tex->create();
 
       auto sampler = rhi.newSampler(
           QRhiSampler::Linear,
@@ -56,7 +56,7 @@ struct RGB0Decoder : GPUVideoDecoder
           QRhiSampler::None,
           QRhiSampler::ClampToEdge,
           QRhiSampler::ClampToEdge);
-      sampler->build();
+      sampler->create();
       rendered.m_samplers.push_back({sampler, tex});
     }
   }
@@ -69,7 +69,7 @@ struct RGB0Decoder : GPUVideoDecoder
   void release(Renderer&, RenderedNode& n) override
   {
     for (auto [sampler, tex] : n.m_samplers)
-      tex->releaseAndDestroyLater();
+      tex->deleteLater();
   }
 
   void setPixels(RenderedNode& rendered, QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept

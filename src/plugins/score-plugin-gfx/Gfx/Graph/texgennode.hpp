@@ -73,7 +73,7 @@ struct TexgenNode : NodeModel
       {
         texture = rhi.newTexture(QRhiTexture::RGBA8, n.image.size(), 1, QRhiTexture::Flag{});
 
-        texture->build();
+        texture->create();
       }
 
       {
@@ -84,7 +84,7 @@ struct TexgenNode : NodeModel
             QRhiSampler::ClampToEdge,
             QRhiSampler::ClampToEdge);
 
-        sampler->build();
+        sampler->create();
         m_samplers.push_back({sampler, texture});
       }
     }
@@ -101,7 +101,7 @@ struct TexgenNode : NodeModel
 
     void customRelease(Renderer&) override
     {
-      texture->releaseAndDestroyLater();
+      texture->deleteLater();
       texture = nullptr;
     }
 
