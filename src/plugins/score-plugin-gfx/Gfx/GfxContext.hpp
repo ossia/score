@@ -6,27 +6,15 @@
 #include <ossia/network/value/value_conversion.hpp>
 #include <ossia/gfx/port_index.hpp>
 #include <Gfx/Graph/graph.hpp>
+#include <Gfx/Settings/Model.hpp>
+#include <score/application/ApplicationContext.hpp>
 #include <QGuiApplication>
 #include <concurrentqueue.h>
 namespace Gfx
 {
 inline GraphicsApi defaultGraphicsAPI()
 {
-#if defined(Q_OS_WIN)
-    return GraphicsApi::D3D11;
-#elif defined(Q_OS_DARWIN)
-    return GraphicsApi::Metal;
-#elif QT_CONFIG(vulkan)
-    const QString platformName = QGuiApplication::platformName().toLower();
-    if(platformName.contains("gl") || platformName.contains("wayland") || platformName.isEmpty())
-    {
-      return GraphicsApi::OpenGL;
-    }
-
-    return GraphicsApi::Vulkan;
-#else
-    return GraphicsApi::OpenGL;
-#endif
+  return score::AppContext().settings<Gfx::Settings::Model>().graphicsApiEnum();
 }
 using port_index = ossia::gfx::port_index;
 

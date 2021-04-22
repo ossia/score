@@ -19,6 +19,7 @@
 #include <Gfx/Video/Inspector.hpp>
 #include <Gfx/Video/Layer.hpp>
 #include <Gfx/Video/Process.hpp>
+#include <Gfx/Settings/Factory.hpp>
 #if defined(HAS_SPOUT)
 #include <Gfx/SpoutDevice.hpp>
 #endif
@@ -83,7 +84,9 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_gfx::factories(
       FW<Library::LibraryInterface,
          Gfx::Filter::LibraryHandler,
          Gfx::Video::LibraryHandler,
-         Gfx::Images::LibraryHandler>>(ctx, key);
+         Gfx::Images::LibraryHandler>
+      , FW<score::SettingsDelegateFactory, Gfx::Settings::Factory>
+      >(ctx, key);
 }
 
 score::GUIApplicationPlugin*

@@ -11,15 +11,6 @@ namespace Execution
 {
 namespace Settings
 {
-inline QString toString(score::uuid_t t)
-{
-  QString s;
-  for (auto c : t.data)
-  {
-    s += QString::number(c) + " ";
-  }
-  return s;
-}
 class View : public score::GlobalSettingsView
 {
   W_OBJECT(View)

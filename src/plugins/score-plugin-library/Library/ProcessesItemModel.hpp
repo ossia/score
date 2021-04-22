@@ -5,7 +5,7 @@
 #include <score/model/tree/TreeNode.hpp>
 #include <score/model/tree/TreeNodeItemModel.hpp>
 #include <score/tools/std/Optional.hpp>
-
+#include <score/tools/std/StringHash.hpp>
 #include <QIcon>
 #include <QDir>
 

@@ -5,6 +5,19 @@
 #include "renderer.hpp"
 #include "shadercache.hpp"
 #include <score/tools/Debug.hpp>
+
+#include "nodes.hpp"
+#include "filternode.hpp"
+
+ColorNode::~ColorNode() { }
+
+ProductNode::~ProductNode() { }
+
+NoiseNode::~NoiseNode() { }
+
+FilterNode::~FilterNode() { }
+
+
 NodeModel::NodeModel() { }
 
 namespace score::gfx

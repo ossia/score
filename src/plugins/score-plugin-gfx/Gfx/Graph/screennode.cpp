@@ -110,6 +110,8 @@ ScreenNode::ScreenNode(std::shared_ptr<Window> w)
   window->showFullScreen();
 }
 
+ScreenNode::~ScreenNode() { }
+
 bool ScreenNode::canRender() const
 {
   return bool(window);

@@ -57,7 +57,6 @@ set(HDRS
     Gfx/Images/Inspector.hpp
     Gfx/Images/Layer.hpp
 
-    Gfx/Graph/main.cpp
     Gfx/Graph/window.hpp
     Gfx/Graph/renderstate.hpp
     Gfx/Graph/scene.hpp
@@ -80,6 +79,11 @@ set(HDRS
     Gfx/Graph/decoders/YUV420.hpp
     Gfx/Graph/decoders/YUV422.hpp
     Gfx/Graph/decoders/YUYV422.hpp
+
+    Gfx/Settings/Model.hpp
+    Gfx/Settings/Presenter.hpp
+    Gfx/Settings/View.hpp
+    Gfx/Settings/Factory.hpp
 
     Gfx/GfxApplicationPlugin.hpp
     Gfx/GfxContext.hpp
@@ -134,8 +138,9 @@ set(SRCS
     Gfx/CameraDevice.cpp
     Gfx/WindowDevice.cpp
 
-    # Gfx/graph/hap/source/hap.c
-
+    Gfx/Settings/Model.cpp
+    Gfx/Settings/Presenter.cpp
+    Gfx/Settings/View.cpp
 
     score_plugin_gfx.cpp
 )

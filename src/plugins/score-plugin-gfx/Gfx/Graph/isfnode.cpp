@@ -250,6 +250,8 @@ ISFNode::ISFNode(const isf::descriptor& desc, const QShader& vert, const QShader
   output.push_back(new Port{this, {}, Types::Image, {}});
 }
 
+ISFNode::~ISFNode() { }
+
 const Mesh& ISFNode::mesh() const noexcept
 {
   return *this->m_mesh;
