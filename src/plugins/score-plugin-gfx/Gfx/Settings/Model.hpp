@@ -20,13 +20,16 @@ struct GraphicsApis
 #ifndef QT_NO_OPENGL
     lst += OpenGL;
 #endif
+
 #if QT_CONFIG(vulkan)
     lst += Vulkan;
 #endif
-#if defined(Q_OS_MACOS) || defined(Q_OS_IOS)
+
+#ifdef Q_OS_WIN
     lst += D3D11;
 #endif
-#ifdef Q_OS_WIN
+
+#if defined(Q_OS_MACOS) || defined(Q_OS_IOS)
     lst += Metal;
 #endif
     return lst;

@@ -35,6 +35,26 @@ static auto list()
 }
 }
 
+Gfx::Settings::GraphicsApis::operator QStringList() const {
+  QStringList lst;
+#ifndef QT_NO_OPENGL
+  lst += OpenGL;
+#endif
+
+#if QT_CONFIG(vulkan)
+  lst += Vulkan;
+#endif
+
+#ifdef Q_OS_WIN
+  lst += D3D11;
+#endif
+
+#if defined(Q_OS_MACOS) || defined(Q_OS_IOS)
+  lst += Metal;
+#endif
+  return lst;
+}
+
 Model::Model(QSettings& set, const score::ApplicationContext& ctx)
 {
   score::setupDefaultSettings(set, Parameters::list(), *this);
@@ -62,4 +82,6 @@ GraphicsApi Model::graphicsApiEnum() const noexcept
 }
 
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, GraphicsApi)
+
+
 }

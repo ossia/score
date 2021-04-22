@@ -30,12 +30,6 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
 {
   RenderState state;
 
-  if (graphicsApi == Null)
-  {
-    QRhiNullInitParams params;
-    state.rhi = QRhi::create(QRhi::Null, &params, {});
-  }
-
 #ifndef QT_NO_OPENGL
   if (graphicsApi == OpenGL)
   {
@@ -44,6 +38,8 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
     params.fallbackSurface = state.surface;
     params.window = &window;
     state.rhi = QRhi::create(QRhi::OpenGLES2, &params, {});
+    state.size = window.size();
+    return state;
   }
 #endif
 
@@ -54,6 +50,8 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
     params.inst = window.vulkanInstance();
     params.window = &window;
     state.rhi = QRhi::create(QRhi::Vulkan, &params, {});
+    state.size = window.size();
+    return state;
   }
 #endif
 
@@ -68,6 +66,8 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
     //   params.repeatDeviceKill = true;
     // }
     state.rhi = QRhi::create(QRhi::D3D11, &params, {});
+    state.size = window.size();
+    return state;
   }
 #endif
 
@@ -76,15 +76,20 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
   {
     QRhiMetalInitParams params;
     state.rhi = QRhi::create(QRhi::Metal, &params, {});
-    if (!state.rhi)
-      qFatal("Failed to create METAL backend");
+    state.size = window.size();
+    return state;
   }
 #endif
 
   if (!state.rhi)
-    qDebug() << ("Failed to create RHI backend");
+  {
+    qDebug() << "Failed to create RHI backend, creating Null backend";
 
-  state.size = window.size();
+    QRhiNullInitParams params;
+    state.rhi = QRhi::create(QRhi::Null, &params, {});
+    state.size = window.size();
+    return state;
+  }
 
   return state;
 }
