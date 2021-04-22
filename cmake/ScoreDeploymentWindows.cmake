@@ -150,12 +150,14 @@ set(CPACK_NSIS_INSTALLED_ICON_NAME "score.exe")
 set(CPACK_PACKAGE_ICON "${SCORE_ROOT_SOURCE_DIR}\\\\src\\\\lib\\\\resources\\\\score.ico")
 set(CPACK_NSIS_MUI_ICON "${CPACK_PACKAGE_ICON}")
 set(CPACK_NSIS_MUI_UNIICON "${CPACK_PACKAGE_ICON}")
+set(CPACK_NSIS_MANIFEST_DPI_AWARE 1)
 
 set(CPACK_NSIS_HELP_LINK "https:\\\\\\\\ossia.io")
 set(CPACK_NSIS_URL_INFO_ABOUT "https:\\\\\\\\ossia.io")
 set(CPACK_NSIS_CONTACT "https:\\\\\\\\gitter.im\\\\OSSIA\\\\score")
 
 set(CPACK_NSIS_COMPRESSOR "/SOLID lzma")
+set(CPACK_NSIS_BRANDING_TEXT " ")
 
 set(CPACK_NSIS_MENU_LINKS
     "score.exe" "ossia score"
@@ -184,6 +186,3 @@ DeleteRegKey HKLM 'Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\App Pat
 \\\${unregisterExtension} '.scorejson' 'score score'
 \\\${unregisterExtension} '.score' 'score score'
 ")
-
-string(APPEND CPACK_NSIS_DEFINES "\nManifestDPIAware true\n")
-string(APPEND CPACK_NSIS_DEFINES "\nRequestExecutionLevel user\n")
