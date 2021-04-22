@@ -28,6 +28,8 @@
 #include <Gfx/Graph/nodes.hpp>
 W_OBJECT_IMPL(Gfx::SpoutDevice)
 
+#include <Gfx/Qt5CompatPush>
+
 namespace Gfx
 {
 struct SpoutNode : OutputNode
@@ -192,7 +194,9 @@ void SpoutNode::createOutput(
   m_renderState->surface = QRhiGles2InitParams::newFallbackSurface();
   QRhiGles2InitParams params;
   params.fallbackSurface = m_renderState->surface;
+#include <Gfx/Qt5CompatPop>
   m_renderState->rhi = QRhi::create(QRhi::OpenGLES2, &params, {});
+#include <Gfx/Qt5CompatPush>
   m_renderState->size = QSize(1280, 720);
 
   auto rhi = m_renderState->rhi;
@@ -380,3 +384,4 @@ void SpoutSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 }
 
 }
+#include <Gfx/Qt5CompatPop>
