@@ -56,6 +56,7 @@ struct TexgenNode : NodeModel
     float position[2];
   } ubo;
 
+#include <Gfx/Qt5CompatPush>
   struct Rendered : RenderedNode
   {
     using RenderedNode::RenderedNode;
@@ -132,3 +133,5 @@ struct TexgenNode : NodeModel
   const Mesh& mesh() const noexcept override { return this->m_mesh; }
   score::gfx::NodeRenderer* createRenderer() const noexcept override { return new Rendered{*this}; }
 };
+
+#include <Gfx/Qt5CompatPop>

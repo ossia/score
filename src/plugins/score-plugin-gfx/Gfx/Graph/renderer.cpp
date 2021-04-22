@@ -2,6 +2,7 @@
 
 #include "mesh.hpp"
 
+#include <Gfx/Qt5CompatPush>
 MeshBuffers Renderer::initMeshBuffer(const Mesh& mesh)
 {
   if (auto it = m_vertexBuffers.find(&mesh); it != m_vertexBuffers.end())
@@ -194,3 +195,5 @@ void Renderer::update(QRhiResourceUpdateBatch& res)
     buffersToUpload.clear();
   }
 }
+
+#include <Gfx/Qt5CompatPop>

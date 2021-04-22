@@ -7,6 +7,7 @@
 
 #include <ossia/detail/math.hpp>
 
+#include <Gfx/Qt5CompatPush>
 namespace Gfx
 {
 struct Image
@@ -189,3 +190,5 @@ struct ImagesNode : NodeModel
   const Mesh& mesh() const noexcept override { return this->m_mesh; }
   score::gfx::NodeRenderer* createRenderer() const noexcept override { return new Rendered{*this}; }
 };
+
+#include <Gfx/Qt5CompatPop>

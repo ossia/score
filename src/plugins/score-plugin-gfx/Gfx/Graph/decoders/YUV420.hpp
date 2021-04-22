@@ -2,6 +2,7 @@
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
 
 
+#include <Gfx/Qt5CompatPush>
 struct YUV420Decoder : GPUVideoDecoder
 {
   // Taken from
@@ -148,3 +149,5 @@ static const constexpr auto yuv420_filter = R"_(#version 450
     res.uploadTexture(v_tex, desc);
   }
 };
+
+#include <Gfx/Qt5CompatPop>

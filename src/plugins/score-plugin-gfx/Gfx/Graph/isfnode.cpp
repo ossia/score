@@ -5,6 +5,7 @@
 #include <boost/algorithm/string.hpp>
 #include <ossia/math/math_expression.hpp>
 #include <ossia/audio/fft.hpp>
+#include <Gfx/Qt5CompatPush>
 namespace
 {
 struct input_size_vis
@@ -817,3 +818,4 @@ RenderedISFNode::~RenderedISFNode()
 {
 
 }
+#include <Gfx/Qt5CompatPop>

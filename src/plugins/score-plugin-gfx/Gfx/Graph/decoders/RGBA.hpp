@@ -1,6 +1,7 @@
 #pragma once
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
 
+#include <Gfx/Qt5CompatPush>
 struct RGB0Decoder : GPUVideoDecoder
 {
   static const constexpr auto rgb_filter = R"_(#version 450

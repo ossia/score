@@ -2,6 +2,8 @@
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
 #include <snappy.h>
 #include <hap/source/hap.h>
+
+#include <Gfx/Qt5CompatPush>
 struct HAPDecoder : GPUVideoDecoder
 {
   struct HAPSection
@@ -325,3 +327,4 @@ void main ()
   std::unique_ptr<char[]> m_alphaBuffer = std::make_unique<char[]>(1024 * 1024 * 16);
 };
 
+#include <Gfx/Qt5CompatPop>

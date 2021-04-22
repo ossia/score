@@ -1,6 +1,7 @@
 #pragma once
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
 
+#include <Gfx/Qt5CompatPush>
 struct YUYV422Decoder : GPUVideoDecoder
 {
 static const constexpr auto filter = R"_(#version 450
@@ -81,3 +82,5 @@ void main() {
   }
 
 };
+
+#include <Gfx/Qt5CompatPop>

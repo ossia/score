@@ -22,6 +22,7 @@ NodeModel::NodeModel() { }
 
 namespace score::gfx
 {
+#include <Gfx/Qt5CompatPush>
 TextureRenderTarget createRenderTarget(const RenderState& state, QSize sz)
 {
   TextureRenderTarget ret;
@@ -401,3 +402,5 @@ score::gfx::NodeRenderer::~NodeRenderer()
 {
 
 }
+
+#include <Gfx/Qt5CompatPop>

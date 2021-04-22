@@ -8,7 +8,6 @@
 #include <QTimer>
 #include <QtGui/private/qrhigles2_p.h>
 
-#include <Gfx/Qt5Compat.hpp>
 class Window : public QWindow
 {
 public:
@@ -50,6 +49,7 @@ public:
     onWindowReady();
   }
 
+#include <Gfx/Qt5CompatPush>
   void resizeSwapChain()
   {
     if(swapChain)
@@ -69,6 +69,7 @@ public:
       swapChain->destroy();
     }
   }
+#include <Gfx/Qt5CompatPop>
 
   void render()
   {

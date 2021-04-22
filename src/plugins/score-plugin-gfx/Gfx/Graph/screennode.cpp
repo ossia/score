@@ -37,9 +37,6 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
     QRhiGles2InitParams params;
     params.fallbackSurface = state.surface;
     params.window = &window;
-#if defined(create)
-#undef create
-#endif
     state.rhi = QRhi::create(QRhi::OpenGLES2, &params, {});
     state.size = window.size();
     return state;

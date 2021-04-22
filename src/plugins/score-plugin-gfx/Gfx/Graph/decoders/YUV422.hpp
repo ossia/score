@@ -1,6 +1,7 @@
 #pragma once
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
 
+#include <Gfx/Qt5CompatPush>
 struct YUV422Decoder : GPUVideoDecoder
 {
   // Taken from
@@ -137,3 +138,6 @@ void main()
     res.uploadTexture(v_tex, desc);
   }
 };
+
+
+#include <Gfx/Qt5CompatPop>
