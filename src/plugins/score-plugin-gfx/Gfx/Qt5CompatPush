@@ -1,0 +1,8 @@
+// Utility macros because some names have changed between Qt 5 and Qt 6 in QRhi.
+// Don't add include guards / pragmes !
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#define createOrResize buildOrResize
+#define destroy release
+#define create build
+#define deleteLater releaseAndDestroyLater
+#endif

@@ -1,0 +1,7 @@
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#undef createOrResize
+#undef destroy
+#undef create
+#undef deleteLater
+#endif
