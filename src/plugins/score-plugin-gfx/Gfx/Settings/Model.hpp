@@ -43,7 +43,10 @@ public:
   Model(QSettings& set, const score::ApplicationContext& ctx);
 
   GraphicsApi graphicsApiEnum() const noexcept;
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_GFX_EXPORT, QString, GraphicsApi)
+  QString getGraphicsApi() const;
+  void setGraphicsApi(QString);
+  void GraphicsApiChanged(QString arg) E_SIGNAL(SCORE_PLUGIN_GFX_EXPORT, GraphicsApiChanged, arg)
+  PROPERTY(QString, GraphicsApi READ getGraphicsApi WRITE setGraphicsApi NOTIFY GraphicsApiChanged)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, GraphicsApi)
