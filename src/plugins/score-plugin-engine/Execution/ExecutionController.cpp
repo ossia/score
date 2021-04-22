@@ -654,6 +654,8 @@ void ExecutionController::init_transport()
           this, &ExecutionController::trigger_pause);
   connect(m_transport, &Execution::TransportInterface::stop,
           this, &ExecutionController::trigger_stop);
+  connect(m_transport, &Execution::TransportInterface::transport,
+          this, &ExecutionController::on_transport);
 
 
   auto& audio_settings = this->context.settings<Audio::Settings::Model>();
