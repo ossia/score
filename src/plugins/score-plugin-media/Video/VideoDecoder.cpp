@@ -223,6 +223,7 @@ ReadFrame VideoDecoder::read_one_frame(AVFrame* frame, AVPacket& packet)
       }
       else
       {
+        SCORE_ASSERT(m_codecContext);
         return enqueue_frame(&packet, &frame);
       }
 
@@ -379,7 +380,6 @@ bool VideoDecoder::open_stream() noexcept
   if(m_stream != -1)
   {
     const AVStream* stream =  m_formatContext->streams[m_stream];
-    m_codecContext = stream->codec;
     const AVRational tb = stream->time_base;
     dts_per_flicks = (tb.den / (tb.num * ossia::flicks_per_second<double>));
     flicks_per_dts = (tb.num * ossia::flicks_per_second<double>) / tb.den;
@@ -387,34 +387,49 @@ bool VideoDecoder::open_stream() noexcept
     auto codecPar = stream->codecpar;
     if ((m_codec = avcodec_find_decoder(codecPar->codec_id)))
     {
-      pixel_format = (AVPixelFormat)codecPar->format;
-      width = codecPar->width;
-      height = codecPar->height;
-      fps = av_q2d(stream->avg_frame_rate);
-
-      res = !(avcodec_open2(m_codecContext, m_codec, nullptr) < 0);
-
-      switch(pixel_format)
+      if(stream->codecpar->codec_id == AV_CODEC_ID_HAP)
       {
-        // Supported formats for gpu decoding
-        case AV_PIX_FMT_YUV420P:
-        case AV_PIX_FMT_YUVJ422P:
-        case AV_PIX_FMT_YUV422P:
-        case AV_PIX_FMT_RGB0:
-        case AV_PIX_FMT_RGBA:
-        case AV_PIX_FMT_BGR0:
-        case AV_PIX_FMT_BGRA:
-#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(56, 19, 100)
-        case AV_PIX_FMT_GRAYF32LE:
-        case AV_PIX_FMT_GRAYF32BE:
-#endif
-        case AV_PIX_FMT_GRAY8:
-          break;
-        // Other formats get rgb'd
-        default:
+        // TODO this is a hack, we store the FOURCC in the format...
+        memcpy(&pixel_format, &stream->codecpar->codec_tag, 4);
+        width = codecPar->width;
+        height = codecPar->height;
+        fps = av_q2d(stream->avg_frame_rate);
+
+        m_codecContext = nullptr;
+        m_codec = nullptr;
+        res = true;
+      }
+      else
+      {
+        pixel_format = (AVPixelFormat)codecPar->format;
+        width = codecPar->width;
+        height = codecPar->height;
+        fps = av_q2d(stream->avg_frame_rate);
+        m_codecContext = stream->codec;
+        res = !(avcodec_open2(m_codecContext, m_codec, nullptr) < 0);
+
+        switch(pixel_format)
         {
-          init_scaler();
-          break;
+          // Supported formats for gpu decoding
+          case AV_PIX_FMT_YUV420P:
+          case AV_PIX_FMT_YUVJ422P:
+          case AV_PIX_FMT_YUV422P:
+          case AV_PIX_FMT_RGB0:
+          case AV_PIX_FMT_RGBA:
+          case AV_PIX_FMT_BGR0:
+          case AV_PIX_FMT_BGRA:
+  #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(56, 19, 100)
+          case AV_PIX_FMT_GRAYF32LE:
+          case AV_PIX_FMT_GRAYF32BE:
+  #endif
+          case AV_PIX_FMT_GRAY8:
+            break;
+          // Other formats get rgb'd
+          default:
+          {
+            init_scaler();
+            break;
+          }
         }
       }
     }
@@ -434,15 +449,15 @@ void VideoDecoder::close_video() noexcept
     avcodec_close(m_codecContext);
     m_codecContext = nullptr;
     m_codec = nullptr;
-
-    if(m_rescale)
-    {
-      sws_freeContext(m_rescale);
-      m_rescale = nullptr;
-    }
-
-    m_stream = -1;
   }
+
+  if(m_rescale)
+  {
+    sws_freeContext(m_rescale);
+    m_rescale = nullptr;
+  }
+
+  m_stream = -1;
 }
 
 ReadFrame VideoDecoder::enqueue_frame(const AVPacket* pkt, AVFrame** frame) noexcept
