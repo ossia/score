@@ -2,6 +2,7 @@
 #include <score/plugins/Interface.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+#include <score/plugins/UuidKeySerialization.hpp>
 
 #include <QString>
 #include <QVariant>

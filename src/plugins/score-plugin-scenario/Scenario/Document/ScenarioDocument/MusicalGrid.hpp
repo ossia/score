@@ -5,7 +5,7 @@
 
 namespace Scenario
 {
-using TimeSignatureMap = ossia::flat_map<TimeVal, Control::time_signature>;
+using TimeSignatureMap = ossia::flat_map<TimeVal, ossia::time_signature>;
 struct Timebars;
 class LightBars;
 class LighterBars;

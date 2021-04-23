@@ -55,9 +55,3 @@ struct graphics_item_ptr
 
   T* operator->() const { return impl; }
 };
-
-Q_DECLARE_METATYPE(QPainterPath)
-Q_DECLARE_METATYPE(QList<QPainterPath>)
-
-W_REGISTER_ARGTYPE(QPainterPath)
-W_REGISTER_ARGTYPE(QList<QPainterPath>)

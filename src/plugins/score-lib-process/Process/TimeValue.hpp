@@ -1,5 +1,7 @@
 #pragma once
 #include <Process/ZoomHelper.hpp>
+#include <score/serialization/IsTemplate.hpp>
+#include <score/serialization/DataStreamFwd.hpp>
 
 #include <ossia-qt/time_value.hpp>
 #include <ossia/detail/flicks.hpp>
@@ -180,6 +182,11 @@ struct hash<TimeVal>
   std::size_t operator()(const TimeVal& t) const { return qHash(t.impl); }
 };
 }
+template <>
+struct is_custom_serialized<TimeVal> : std::true_type
+{
+};
 
+SCORE_SERALIZE_DATASTREAM_DECLARE(SCORE_LIB_PROCESS_EXPORT, TimeVal)
 Q_DECLARE_METATYPE(TimeVal)
 W_REGISTER_ARGTYPE(TimeVal)

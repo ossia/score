@@ -13,6 +13,7 @@
 
 #include <vector>
 
+SCORE_SERALIZE_DATASTREAM_DEFINE(Curve::LinearSegmentData)
 namespace Curve
 {
 LinearSegment::LinearSegment(

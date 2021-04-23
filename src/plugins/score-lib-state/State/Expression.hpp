@@ -185,5 +185,6 @@ JSON_METADATA(State::Pulse, "Pulse")
 JSON_METADATA(State::UnaryOperator, "UnOp")
 JSON_METADATA(State::BinaryOperator, "BinOp")
 
+SCORE_SERALIZE_DATASTREAM_DECLARE(SCORE_LIB_STATE_EXPORT, State::Expression)
 Q_DECLARE_METATYPE(State::Expression)
 W_REGISTER_ARGTYPE(State::Expression)

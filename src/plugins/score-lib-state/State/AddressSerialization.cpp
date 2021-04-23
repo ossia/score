@@ -11,6 +11,9 @@
 #include <ossia/network/common/destination_qualifiers.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 
+SCORE_SERALIZE_DATASTREAM_DEFINE(State::Address)
+SCORE_SERALIZE_DATASTREAM_DEFINE(State::DestinationQualifiers)
+SCORE_SERALIZE_DATASTREAM_DEFINE(State::AddressAccessor)
 /// Address ///
 template <>
 SCORE_LIB_STATE_EXPORT void DataStreamReader::read(const State::Address& a)

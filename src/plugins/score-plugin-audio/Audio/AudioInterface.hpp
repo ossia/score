@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <score/plugins/InterfaceList.hpp>
+#include <score/plugins/UuidKeySerialization.hpp>
 
 #include <score_plugin_audio_export.h>
 
@@ -51,5 +52,5 @@ class AudioFactoryList final : public score::InterfaceList<AudioFactory>
 };
 }
 
-Q_DECLARE_METATYPE(Audio::AudioFactory::ConcreteKey)
-W_REGISTER_ARGTYPE(Audio::AudioFactory::ConcreteKey)
+Q_DECLARE_METATYPE(UuidKey<Audio::AudioFactory>)
+W_REGISTER_ARGTYPE(UuidKey<Audio::AudioFactory>)

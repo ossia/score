@@ -127,12 +127,12 @@ void TimeSyncModel::setStartPoint(bool a)
   startPointChanged(a);
 }
 
-Control::musical_sync TimeSyncModel::musicalSync() const noexcept
+ossia::musical_sync TimeSyncModel::musicalSync() const noexcept
 {
   return m_musicalSync;
 }
 
-void TimeSyncModel::setMusicalSync(Control::musical_sync s)
+void TimeSyncModel::setMusicalSync(ossia::musical_sync s)
 {
   if (m_musicalSync != s)
   {

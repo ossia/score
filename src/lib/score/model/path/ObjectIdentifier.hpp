@@ -44,7 +44,4 @@ private:
   int32_t m_id{};
 };
 
-Q_DECLARE_METATYPE(ObjectIdentifier)
-W_REGISTER_ARGTYPE(ObjectIdentifier)
-
 using ObjectIdentifierVector = std::vector<ObjectIdentifier>;

@@ -2,6 +2,7 @@
 #include <score/model/Skin.hpp>
 #include <score/tools/Debug.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <score/serialization/DataStreamFwd.hpp>
 
 #include <QColor>
 
@@ -57,5 +58,6 @@ private:
 };
 }
 
+SCORE_SERALIZE_DATASTREAM_DECLARE(SCORE_LIB_BASE_EXPORT, score::ColorRef);
 Q_DECLARE_METATYPE(score::ColorRef)
 W_REGISTER_ARGTYPE(score::ColorRef)

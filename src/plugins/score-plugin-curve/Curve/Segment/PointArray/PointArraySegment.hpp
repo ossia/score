@@ -118,5 +118,6 @@ private:
 };
 }
 
+SCORE_SERALIZE_DATASTREAM_DECLARE(SCORE_PLUGIN_CURVE_EXPORT, Curve::PointArraySegmentData)
 Q_DECLARE_METATYPE(Curve::PointArraySegmentData)
 W_REGISTER_ARGTYPE(Curve::PointArraySegmentData)

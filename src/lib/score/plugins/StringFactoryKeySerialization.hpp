@@ -2,6 +2,9 @@
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
+
+//SCORE_SERALIZE_DATASTREAM_DEFINE_T(template<typename T>, StringKey<T>)
+
 template <typename U>
 struct TSerializer<DataStream, StringKey<U>>
 {

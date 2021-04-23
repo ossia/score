@@ -118,7 +118,7 @@ public:
     }
   }
 
-  void setSignature(TimeVal time, Control::time_signature sig)
+  void setSignature(TimeVal time, ossia::time_signature sig)
   {
     m_time = time;
     if (sig != m_sig)
@@ -130,13 +130,13 @@ public:
   }
 
   const TimeVal& time() const noexcept { return m_time; }
-  const Control::time_signature& signature() const noexcept { return m_sig; }
+  const ossia::time_signature& signature() const noexcept { return m_sig; }
 
   void move(double originalPos, double delta) W_SIGNAL(move, originalPos, delta);
   void press() W_SIGNAL(press);
   void release() W_SIGNAL(release);
   void remove() W_SIGNAL(remove);
-  void signatureChange(Control::time_signature sig) W_SIGNAL(signatureChange, sig);
+  void signatureChange(ossia::time_signature sig) W_SIGNAL(signatureChange, sig);
 
   bool pressed{};
 
@@ -218,7 +218,7 @@ protected:
     mv->accept();
   }
   TimeVal m_time{};
-  Control::time_signature m_sig{0, 0};
+  ossia::time_signature m_sig{0, 0};
   QPixmap m_signature;
   QRectF m_rect;
 
@@ -296,7 +296,7 @@ public:
     handlesChanged();
   }
 
-  void createHandle(TimeVal time, Control::time_signature sig)
+  void createHandle(TimeVal time, ossia::time_signature sig)
   {
     assert(m_model);
     TimeSignatureHandle* handle{};
@@ -349,7 +349,7 @@ public:
         *handle,
         &TimeSignatureHandle::signatureChange,
         this,
-        [=](Control::time_signature sig) {
+        [=](ossia::time_signature sig) {
           assert(m_model);
           auto signatures = m_model->timeSignatureMap();
 
@@ -532,7 +532,7 @@ private:
   {
     assert(m_model);
     auto signatures = m_model->timeSignatureMap();
-    signatures[TimeVal::fromPixels(pos.x(), m_ratio)] = Control::time_signature{4, 4};
+    signatures[TimeVal::fromPixels(pos.x(), m_ratio)] = ossia::time_signature{4, 4};
     CommandDispatcher<> disp{m_itv.context().commandStack};
     disp.submit<Scenario::Command::SetTimeSignatures>(*m_model, signatures);
   }
@@ -561,7 +561,7 @@ private:
   TimeSignatureMap m_origHandles{};
 
   TimeVal m_origTime{};
-  Control::time_signature m_origSig{};
+  ossia::time_signature m_origSig{};
 };
 
 class FullViewIntervalPresenter;

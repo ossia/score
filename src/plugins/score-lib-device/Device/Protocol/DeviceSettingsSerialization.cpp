@@ -14,6 +14,7 @@
 #include <score/serialization/JSONVisitor.hpp>
 
 #include <QDebug>
+SCORE_SERALIZE_DATASTREAM_DEFINE(Device::DeviceSettings)
 
 template <>
 SCORE_LIB_DEVICE_EXPORT void DataStreamReader::read(const Device::DeviceSettings& n)

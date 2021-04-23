@@ -4,6 +4,7 @@
 
 #include <score/tools/Debug.hpp>
 
+SCORE_SERALIZE_DATASTREAM_DEFINE(score::ColorRef);
 namespace score
 {
 std::optional<ColorRef> ColorRef::ColorFromString(const QString& txt) noexcept

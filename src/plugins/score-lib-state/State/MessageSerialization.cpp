@@ -9,6 +9,8 @@
 
 #include <score/serialization/DataStreamVisitor.hpp>
 
+SCORE_SERALIZE_DATASTREAM_DEFINE(State::Message)
+SCORE_SERALIZE_DATASTREAM_DEFINE(State::MessageList)
 template <>
 SCORE_LIB_STATE_EXPORT void DataStreamReader::read(const State::Message& mess)
 {

@@ -181,5 +181,3 @@ struct SCORE_LIB_BASE_EXPORT hash<ObjectPath>
 };
 }
 
-Q_DECLARE_METATYPE(ObjectPath)
-W_REGISTER_ARGTYPE(ObjectPath)

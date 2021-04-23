@@ -26,9 +26,8 @@ class SCORE_LIB_BASE_EXPORT Component : public IdentifiedObject<score::Component
   W_OBJECT(Component)
 public:
   using IdentifiedObject<score::Component>::IdentifiedObject;
-  using Key = UuidKey<score::Component>;
-  virtual Key key() const noexcept = 0;
-  virtual bool key_match(Key other) const noexcept = 0;
+  virtual UuidKey<score::Component> key() const noexcept = 0;
+  virtual bool key_match(UuidKey<score::Component> other) const noexcept = 0;
 
   ~Component() override;
 };
@@ -84,9 +83,9 @@ extern template class SCORE_LIB_BASE_EXPORT
 public:                                                                                   \
   using base_component_type = Type;                                                       \
                                                                                           \
-  static MSVC_BUGGY_CONSTEXPR Component::Key static_key() noexcept { return_uuid(Uuid); } \
+  static MSVC_BUGGY_CONSTEXPR UuidKey<score::Component> static_key() noexcept { return_uuid(Uuid); } \
                                                                                           \
-  static MSVC_BUGGY_CONSTEXPR bool base_key_match(Component::Key other) noexcept          \
+  static MSVC_BUGGY_CONSTEXPR bool base_key_match(UuidKey<score::Component> other) noexcept          \
   {                                                                                       \
     return static_key() == other;                                                         \
   }                                                                                       \
@@ -98,11 +97,11 @@ private:
  */
 #define COMPONENT_METADATA(Uuid)                                                          \
 public:                                                                                   \
-  static MSVC_BUGGY_CONSTEXPR Component::Key static_key() noexcept { return_uuid(Uuid); } \
+  static MSVC_BUGGY_CONSTEXPR UuidKey<score::Component> static_key() noexcept { return_uuid(Uuid); } \
                                                                                           \
-  Component::Key key() const noexcept final override { return static_key(); }             \
+  UuidKey<score::Component> key() const noexcept final override { return static_key(); }             \
                                                                                           \
-  bool key_match(Component::Key other) const noexcept final override                      \
+  bool key_match(UuidKey<score::Component> other) const noexcept final override                      \
   {                                                                                       \
     return static_key() == other || base_component_type::base_key_match(other);           \
   }                                                                                       \
@@ -114,11 +113,11 @@ private:
  */
 #define COMMON_COMPONENT_METADATA(Uuid)                                                   \
 public:                                                                                   \
-  static MSVC_BUGGY_CONSTEXPR Component::Key static_key() noexcept { return_uuid(Uuid); } \
+  static MSVC_BUGGY_CONSTEXPR UuidKey<score::Component> static_key() noexcept { return_uuid(Uuid); } \
                                                                                           \
-  Component::Key key() const noexcept final override { return static_key(); }             \
+  UuidKey<score::Component> key() const noexcept final override { return static_key(); }             \
                                                                                           \
-  bool key_match(Component::Key other) const noexcept final override                      \
+  bool key_match(UuidKey<score::Component> other) const noexcept final override                      \
   {                                                                                       \
     return static_key() == other;                                                         \
   }                                                                                       \

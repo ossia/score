@@ -42,6 +42,8 @@ inline bool operator<(const State::MessageList&, const State::MessageList&)
 }
 }
 
+SCORE_SERALIZE_DATASTREAM_DECLARE(SCORE_LIB_STATE_EXPORT, State::Message)
+SCORE_SERALIZE_DATASTREAM_DECLARE(SCORE_LIB_STATE_EXPORT, State::MessageList)
 Q_DECLARE_METATYPE(State::Message)
 Q_DECLARE_METATYPE(State::MessageList)
 W_REGISTER_ARGTYPE(State::Message)

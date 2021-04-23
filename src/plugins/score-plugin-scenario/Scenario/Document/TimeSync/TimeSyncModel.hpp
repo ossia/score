@@ -71,8 +71,8 @@ public:
   bool isStartPoint() const noexcept;
   void setStartPoint(bool t);
 
-  Control::musical_sync musicalSync() const noexcept;
-  void setMusicalSync(Control::musical_sync sig);
+  ossia::musical_sync musicalSync() const noexcept;
+  void setMusicalSync(ossia::musical_sync sig);
 
   void setWaiting(bool);
   bool waiting() const noexcept;
@@ -96,11 +96,11 @@ public:
 
   void waitingChanged(bool b) const E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, waitingChanged, b)
 
-  double musicalSyncChanged(Control::musical_sync sync)
+  double musicalSyncChanged(ossia::musical_sync sync)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, musicalSyncChanged, sync)
 
   PROPERTY(
-      Control::musical_sync,
+      ossia::musical_sync,
       musicalSync READ musicalSync WRITE setMusicalSync NOTIFY musicalSyncChanged)
   PROPERTY(bool, startPoint READ isStartPoint WRITE setStartPoint NOTIFY startPointChanged)
 
@@ -109,7 +109,7 @@ private:
   State::Expression m_expression;
 
   EventIdVec m_events;
-  Control::musical_sync m_musicalSync{1.};
+  ossia::musical_sync m_musicalSync{1.};
   bool m_active{false};
   bool m_autotrigger{false};
   bool m_startPoint{false};
@@ -119,6 +119,3 @@ private:
 
 DEFAULT_MODEL_METADATA(Scenario::TimeSyncModel, "Sync")
 TR_TEXT_METADATA(, Scenario::TimeSyncModel, PrettyName_k, "Sync")
-
-Q_DECLARE_METATYPE(std::optional<Control::time_signature>)
-W_REGISTER_ARGTYPE(std::optional<Control::time_signature>)

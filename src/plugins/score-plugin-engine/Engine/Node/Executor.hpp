@@ -234,14 +234,14 @@ class Executor final
     : public Execution::ProcessComponent_T<ControlProcess<Info>, ossia::node_process>
 {
 public:
-  static Q_DECL_RELAXED_CONSTEXPR score::Component::Key static_key() noexcept
+  static Q_DECL_RELAXED_CONSTEXPR UuidKey<score::Component> static_key() noexcept
   {
     return Info::Metadata::uuid;
   }
 
-  score::Component::Key key() const noexcept final override { return static_key(); }
+  UuidKey<score::Component> key() const noexcept final override { return static_key(); }
 
-  bool key_match(score::Component::Key other) const noexcept final override
+  bool key_match(UuidKey<score::Component> other) const noexcept final override
   {
     return static_key() == other || Execution::ProcessComponent::base_key_match(other);
   }

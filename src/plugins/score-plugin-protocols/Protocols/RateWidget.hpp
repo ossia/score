@@ -75,4 +75,3 @@ private:
 }
 
 W_REGISTER_ARGTYPE(std::optional<int>)
-Q_DECLARE_METATYPE(std::optional<int>)

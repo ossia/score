@@ -7,10 +7,6 @@
 
 #include <QDebug>
 
-template <>
-struct is_custom_serialized<TimeVal> : std::true_type
-{
-};
 
 inline QDebug operator<<(QDebug d, const TimeVal& tv)
 {

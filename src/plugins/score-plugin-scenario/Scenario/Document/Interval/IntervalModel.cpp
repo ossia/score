@@ -206,7 +206,7 @@ void IntervalModel::ancestorTempoChanged()
   }
 }
 
-void IntervalModel::addSignature(TimeVal t, Control::time_signature sig)
+void IntervalModel::addSignature(TimeVal t, ossia::time_signature sig)
 {
   m_signatures[t] = sig;
   timeSignaturesChanged(m_signatures);

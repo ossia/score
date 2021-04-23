@@ -43,7 +43,7 @@ namespace Scenario
 class StateModel;
 class TempoProcess;
 
-using TimeSignatureMap = ossia::flat_map<TimeVal, Control::time_signature>;
+using TimeSignatureMap = ossia::flat_map<TimeVal, ossia::time_signature>;
 class SCORE_PLUGIN_SCENARIO_EXPORT IntervalModel final : public score::Entity<IntervalModel>,
                                                          public Nano::Observer
 {
@@ -184,7 +184,7 @@ public:
   void ancestorStartDateChanged();
   void ancestorTempoChanged();
 
-  void addSignature(TimeVal t, Control::time_signature sig);
+  void addSignature(TimeVal t, ossia::time_signature sig);
   void removeSignature(TimeVal t);
   void setTimeSignatureMap(const TimeSignatureMap& map);
   const TimeSignatureMap& timeSignatureMap() const noexcept { return m_signatures; }

@@ -181,6 +181,7 @@ enum Segments
 };
 }
 
+SCORE_SERALIZE_DATASTREAM_DECLARE(, Curve::SegmentData)
 Q_DECLARE_METATYPE(Curve::SegmentData)
 W_REGISTER_ARGTYPE(Curve::SegmentData)
 

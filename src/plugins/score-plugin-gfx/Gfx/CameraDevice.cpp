@@ -25,6 +25,7 @@ extern "C"
 
 W_OBJECT_IMPL(Gfx::CameraDevice)
 
+SCORE_SERALIZE_DATASTREAM_DEFINE(Gfx::CameraSettings);
 namespace Gfx
 {
 
@@ -302,14 +303,14 @@ void CameraSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 template <>
 void DataStreamReader::read(const Gfx::CameraSettings& n)
 {
-  m_stream << n.input << n.device << n.size << n.fps;
+  m_stream << n.input << n.device << n.size.width() << n.size.height() << n.fps;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Gfx::CameraSettings& n)
 {
-  m_stream >> n.input >> n.device >> n.size >> n.fps;
+  m_stream >> n.input >> n.device >> n.size.rwidth() >> n.size.rheight() >> n.fps;
   checkDelimiter();
 }
 

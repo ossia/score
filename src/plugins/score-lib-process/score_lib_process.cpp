@@ -48,8 +48,10 @@ Dataflow::CableItem* DataflowManager::createCable(const Process::Cable& cable, c
 }
 score_lib_process::score_lib_process()
 {
+  qRegisterMetaType<TimeVal>();
   qRegisterMetaType<Process::pan_weight>();
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+  qRegisterMetaTypeStreamOperators<TimeVal>();
   qRegisterMetaTypeStreamOperators<Process::pan_weight>();
 #endif
 }

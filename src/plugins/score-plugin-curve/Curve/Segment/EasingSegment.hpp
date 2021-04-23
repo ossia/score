@@ -145,6 +145,7 @@ inline void JSONWriter::write(Curve::EasingData& segmt)
 {
 }
 
+SCORE_SERALIZE_DATASTREAM_DECLARE(, Curve::EasingData)
 Q_DECLARE_METATYPE(Curve::EasingData)
 W_REGISTER_ARGTYPE(Curve::EasingData)
 

@@ -18,6 +18,7 @@
 
 #include <score_plugin_curve_commands_files.hpp>
 
+SCORE_SERALIZE_DATASTREAM_DEFINE(Curve::EasingData)
 score_plugin_curve::score_plugin_curve()
 {
   qRegisterMetaType<Curve::Settings::Mode>();

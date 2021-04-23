@@ -9,6 +9,8 @@
 
 #include <wobjectimpl.h>
 // W_GADGET_IMPL(State::Domain)
+
+SCORE_SERALIZE_DATASTREAM_DEFINE(State::Domain)
 namespace State
 {
 

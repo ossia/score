@@ -203,5 +203,6 @@ private:
 }
 
 
+SCORE_SERALIZE_DATASTREAM_DECLARE(, Gfx::CameraSettings);
 Q_DECLARE_METATYPE(Gfx::CameraSettings)
 W_REGISTER_ARGTYPE(Gfx::CameraSettings)

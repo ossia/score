@@ -22,6 +22,8 @@
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(vst::ApplicationPlugin)
 
+SCORE_SERALIZE_DATASTREAM_DEFINE(vst::VSTInfo)
+SCORE_SERALIZE_DATASTREAM_DEFINE(std::vector<vst::VSTInfo>)
 // TODO remove me in a few versions
 static bool vst_invalid_format = false;
 template <>

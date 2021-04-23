@@ -1,6 +1,8 @@
 #include <Process/TimeValue.hpp>
+#include <Process/TimeValueSerialization.hpp>
 #include <QTime>
 
+SCORE_SERALIZE_DATASTREAM_DEFINE(TimeVal)
 TimeVal::TimeVal(const QTime& t) noexcept
   : time_value{int64_t(
                  ossia::flicks_per_millisecond<

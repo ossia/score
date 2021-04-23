@@ -1,37 +1,17 @@
 #pragma once
-#include <score/model/Identifier.hpp>
-#include <score/plugins/UuidKey.hpp>
+#include <score/serialization/DataStreamFwd.hpp>
+#include <score/serialization/DataStreamHelpers.hpp>
 #include <score/serialization/CommonTypes.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 #include <score/serialization/VisitorTags.hpp>
+
 #include <score/tools/std/HashMap.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <score/tools/Debug.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/plugins/UuidKey.hpp>
 
 #include <ossia/detail/flat_set.hpp>
 #include <ossia/detail/small_vector.hpp>
-
-#include <QByteArray>
-#include <QDataStream>
-#include <QVector2D>
-#include <QVector3D>
-#include <QVector4D>
-#include <QQmlListProperty>
-
-#include <score_lib_base_export.h>
-#include <sys/types.h>
-
-#include <string>
-#include <vector>
-#include <verdigris>
-
-#include <type_traits>
-
-class QSslError;
-class QModelIndex;
-class QMimeData;
-class QItemSelection;
-class QItemSelectionRange;
 
 template <typename model>
 class IdentifiedObject;
@@ -42,147 +22,6 @@ class Entity;
 class ApplicationComponents;
 }
 
-#if defined(SCORE_DEBUG_DELIMITERS)
-#define SCORE_DEBUG_INSERT_DELIMITER \
-  do                                 \
-  {                                  \
-    insertDelimiter();               \
-  } while (0)
-#define SCORE_DEBUG_INSERT_DELIMITER2(Vis) \
-  do                                       \
-  {                                        \
-    Vis.insertDelimiter();                 \
-  } while (0)
-#define SCORE_DEBUG_CHECK_DELIMITER \
-  do                                \
-  {                                 \
-    checkDelimiter();               \
-  } while (0)
-#define SCORE_DEBUG_CHECK_DELIMITER2(Vis) \
-  do                                      \
-  {                                       \
-    Vis.checkDelimiter();                 \
-  } while (0)
-#else
-#define SCORE_DEBUG_INSERT_DELIMITER
-#define SCORE_DEBUG_INSERT_DELIMITER2(Vis)
-#define SCORE_DEBUG_CHECK_DELIMITER
-#define SCORE_DEBUG_CHECK_DELIMITER2(Vis)
-#endif
-
-/**
- * \file DataStreamVisitor.hpp
- *
- * This file contains facilities
- * to serialize an object using QDataStream.
- *
- * Generally, it is used with QByteArrays, but it works with any QIODevice.
- */
-template <typename T>
-using enable_if_QDataStreamSerializable = typename std::enable_if_t<
-    std::is_arithmetic<T>::value || std::is_same<T, QStringList>::value
-    || std::is_same<T, QVector2D>::value || std::is_same<T, QVector3D>::value
-    || std::is_same<T, QVector4D>::value || std::is_same<T, QPointF>::value
-    || std::is_same<T, QPoint>::value || std::is_same<T, std::string>::value>;
-
-template <class, class Enable = void>
-struct is_QDataStreamSerializable : std::false_type
-{
-};
-
-template <class T>
-struct is_QDataStreamSerializable<
-    T,
-    enable_if_QDataStreamSerializable<typename std::decay<T>::type>> : std::true_type
-{
-};
-
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-SCORE_LIB_BASE_EXPORT QDataStream& operator<<(QDataStream& s, char c);
-SCORE_LIB_BASE_EXPORT QDataStream& operator>>(QDataStream& s, char& c);
-#endif
-
-SCORE_LIB_BASE_EXPORT QDataStream& operator<<(QDataStream& stream, const std::string& obj);
-SCORE_LIB_BASE_EXPORT QDataStream& operator>>(QDataStream& stream, std::string& obj);
-
-#if (QT_VERSION < QT_VERSION_CHECK(5, 14, 0))
-template <typename T>
-typename std::enable_if<std::is_enum<T>::value, QDataStream&>::type&
-operator<<(QDataStream& s, const T& t)
-{
-  return s << static_cast<typename std::underlying_type<T>::type>(t);
-}
-
-template <typename T>
-typename std::enable_if<std::is_enum<T>::value, QDataStream&>::type&
-operator>>(QDataStream& s, T& t)
-{
-  return s >> reinterpret_cast<typename std::underlying_type<T>::type&>(t);
-}
-#endif
-
-class QIODevice;
-
-struct DataStreamInput
-{
-  QDataStream& stream;
-};
-#if (INTPTR_MAX == INT64_MAX) && !defined(__APPLE__) && !defined(_WIN32)
-inline QDataStream& operator<<(QDataStream& s, uint64_t val)
-{
-  s << (quint64)val;
-  return s;
-}
-inline QDataStream& operator>>(QDataStream& s, uint64_t& val)
-{
-  s >> (quint64&)val;
-  return s;
-}
-inline QDataStream& operator<<(QDataStream& s, int64_t val)
-{
-  s << (qint64)val;
-  return s;
-}
-inline QDataStream& operator>>(QDataStream& s, int64_t& val)
-{
-  s >> (qint64&)val;
-  return s;
-}
-#endif
-
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-#if defined(__APPLE__) || defined(__EMSCRIPTEN__)
-inline QDataStream& operator<<(QDataStream& s, std::size_t val)
-{
-  s << (quint64)val;
-  return s;
-}
-inline QDataStream& operator>>(QDataStream& s, std::size_t& val)
-{
-  s >> (quint64&)val;
-  return s;
-}
-#endif
-#endif
-
-template <typename T>
-DataStreamInput& operator<<(DataStreamInput& s, const T& obj)
-{
-  s.stream << obj;
-  return s;
-}
-
-struct DataStreamOutput
-{
-  QDataStream& stream;
-};
-
-template <typename T>
-DataStreamOutput& operator>>(DataStreamOutput& s, T& obj)
-{
-  s.stream >> obj;
-  return s;
-}
 
 class SCORE_LIB_BASE_EXPORT DataStreamReader : public AbstractVisitor
 {
@@ -419,58 +258,20 @@ private:
   QDataStream m_stream_impl;
 };
 
-template<typename T> struct is_shared_ptr : std::false_type {};
-template<typename T> struct is_shared_ptr<std::shared_ptr<T>> : std::true_type {};
-template<typename T>
-static constexpr bool is_shared_ptr_v = is_shared_ptr<T>::value;
-template<typename T> struct is_qpointer : std::false_type {};
-template<typename T> struct is_qpointer<QPointer<T>> : std::true_type {};
-template<typename T>
-static constexpr bool is_qpointer_v = is_qpointer<T>::value;
-template<typename T> struct is_qqmllistproperty: std::false_type {};
-template<typename T> struct is_qqmllistproperty<QQmlListProperty<T>> : std::true_type {};
-template<typename T>
-static constexpr bool is_qqmllistproperty_v = is_qqmllistproperty<T>::value;
-template<typename T>
-static constexpr bool is_datastream_serializable =
-       !std::is_arithmetic<T>::value
-    && !std::is_enum<T>::value
-    && !std::is_same<T, QStringList>::value
-    && !std::is_pointer<T>::value
-  #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-    && !std::is_same<T, QIterable<QMetaSequence>>::value
-    && !std::is_same<T, QIterable<QMetaAssociation>>::value
-    && !std::is_same<T, QModelIndex>::value
-    && !std::is_same<T, QMimeData>::value
-    && !std::is_same<T, QSslError>::value
-    && !std::is_same<T, QItemSelection>::value
-    && !std::is_same<T, QItemSelectionRange>::value
-    && !std::is_same<T, QtMetaTypePrivate::QPairVariantInterfaceImpl>::value
-    && !is_shared_ptr_v<T>
-    && !is_qpointer_v<T>
-    && !is_qqmllistproperty_v<T>
-  #endif
-;
-template <
-    typename T,
-    std::enable_if_t<is_datastream_serializable<T>>*
-    = nullptr>
-QDataStream& operator<<(QDataStream& stream, const T& obj)
+template <typename T, std::enable_if_t<!std::is_enum_v<T>>*>
+DataStreamInput& operator<<(DataStreamInput& s, const T& obj)
 {
-  DataStreamReader reader{stream.device()};
+  DataStreamReader reader{s.stream.device()};
   reader.readFrom(obj);
-  return stream;
+  return s;
 }
 
-template <
-    typename T,
-    std::enable_if_t<is_datastream_serializable<T>>* = nullptr>
-QDataStream& operator>>(QDataStream& stream, T& obj)
+template <typename T, std::enable_if_t<!std::is_enum_v<T>>*>
+DataStreamOutput& operator>>(DataStreamOutput& s, T& obj)
 {
-  DataStreamWriter writer{stream.device()};
+  DataStreamWriter writer{s.stream.device()};
   writer.writeTo(obj);
-
-  return stream;
+  return s;
 }
 
 template <typename U>
@@ -638,6 +439,24 @@ struct TSerializer<DataStream, ossia::static_vector<T, N>>
     SCORE_DEBUG_CHECK_DELIMITER2(s);
   }
 };
+
+template<typename T, std::size_t N>
+OSSIA_INLINE
+QDataStream& operator<<(QDataStream& stream, const ossia::small_vector<T, N>& obj) {
+  DataStreamReader reader{stream.device()};
+  reader.readFrom(obj);
+  return stream;
+}
+
+template<typename T, std::size_t N>
+OSSIA_INLINE
+QDataStream& operator>>(QDataStream& stream, ossia::small_vector<T, N>& obj)
+{
+  DataStreamWriter writer{stream.device()};
+  writer.writeTo(obj);
+  return stream;
+}
+
 #endif
 
 template <typename T, typename Alloc>
@@ -795,3 +614,4 @@ Q_DECLARE_METATYPE(DataStreamReader*)
 Q_DECLARE_METATYPE(DataStreamWriter*)
 W_REGISTER_ARGTYPE(DataStreamReader*)
 W_REGISTER_ARGTYPE(DataStreamWriter*)
+

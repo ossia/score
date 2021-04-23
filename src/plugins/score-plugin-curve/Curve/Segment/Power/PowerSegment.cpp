@@ -12,6 +12,7 @@
 
 #include <ossia/editor/curve/curve_segment/linear.hpp>
 
+SCORE_SERALIZE_DATASTREAM_DEFINE(Curve::PowerSegmentData)
 namespace Curve
 {
 

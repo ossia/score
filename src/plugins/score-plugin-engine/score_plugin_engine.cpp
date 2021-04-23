@@ -9,6 +9,7 @@
 #include <score/plugins/FactorySetup.hpp>
 #include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
+#include <score/plugins/UuidKeySerialization.hpp>
 
 #include <ossia/editor/scenario/time_event.hpp>
 #include <ossia/network/base/device.hpp>

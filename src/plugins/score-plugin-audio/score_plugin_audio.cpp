@@ -6,6 +6,7 @@
 #include <score/plugins/FactorySetup.hpp>
 #include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
+#include <score/plugins/UuidKeySerialization.hpp>
 
 #include <Audio/ALSAPortAudioInterface.hpp>
 #include <Audio/ASIOPortAudioInterface.hpp>
@@ -28,13 +29,17 @@
 
 score_plugin_audio::score_plugin_audio()
 {
-  qRegisterMetaType<Audio::AudioFactory::ConcreteKey>("AudioKey");
   qRegisterMetaType<Audio::Settings::ExternalTransport>("ExternalTransport");
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   qRegisterMetaTypeStreamOperators<Audio::AudioFactory::ConcreteKey>("AudioKey");
   qRegisterMetaTypeStreamOperators<Audio::Settings::ExternalTransport>("ExternalTransport");
 #endif
+
+  QVariant v = QVariant::fromValue(Audio::AudioFactory::ConcreteKey{});
+  QByteArray b;
+  QDataStream s{&b, QIODevice::WriteOnly};
+  v.save(s);
 }
 
 score_plugin_audio::~score_plugin_audio() { }

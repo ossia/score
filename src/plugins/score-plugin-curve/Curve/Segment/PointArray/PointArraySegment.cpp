@@ -21,6 +21,8 @@
 
 #include <cstddef>
 #include <functional>
+
+SCORE_SERALIZE_DATASTREAM_DEFINE(Curve::PointArraySegmentData)
 W_OBJECT_IMPL(Curve::PointArraySegment)
 namespace Curve
 {

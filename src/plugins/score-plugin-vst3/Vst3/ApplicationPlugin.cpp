@@ -20,6 +20,8 @@
 
 W_OBJECT_IMPL(vst3::ApplicationPlugin)
 
+SCORE_SERALIZE_DATASTREAM_DEFINE(vst3::AvailablePlugin)
+SCORE_SERALIZE_DATASTREAM_DEFINE(std::vector<vst3::AvailablePlugin>)
 
 Q_DECLARE_METATYPE(vst3::AvailablePlugin)
 W_REGISTER_ARGTYPE(vst3::AvailablePlugin)

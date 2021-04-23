@@ -152,7 +152,7 @@ QByteArray Port::saveData() const noexcept
   QByteArray arr;
   {
     QDataStream p{&arr, QIODevice::WriteOnly};
-    p << m_cables << m_address;
+    DataStreamInput ip{p}; ip << m_cables << m_address;
   }
   return arr;
 }
@@ -160,7 +160,7 @@ QByteArray Port::saveData() const noexcept
 void Port::loadData(const QByteArray& arr) noexcept
 {
   QDataStream p{arr};
-  p >> m_cables >> m_address;
+  DataStreamOutput op{p}; op >> m_cables >> m_address;
 }
 
 ///////////////////////////////

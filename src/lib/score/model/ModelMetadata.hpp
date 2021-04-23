@@ -71,5 +71,6 @@ private:
   bool m_touchedName{};
 };
 }
+
 Q_DECLARE_METATYPE(score::ModelMetadata*)
 W_REGISTER_ARGTYPE(score::ModelMetadata*)

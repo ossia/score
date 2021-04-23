@@ -89,9 +89,6 @@ score_plugin_scenario::score_plugin_scenario()
 
   qRegisterMetaType<State::Unit>();
 
-  qRegisterMetaType<QPainterPath>();
-  qRegisterMetaType<QList<QPainterPath>>();
-
   qRegisterMetaType<std::shared_ptr<Execution::ProcessComponent>>();
   qRegisterMetaType<std::shared_ptr<Execution::EventComponent>>();
   qRegisterMetaType<ossia::time_event::status>();

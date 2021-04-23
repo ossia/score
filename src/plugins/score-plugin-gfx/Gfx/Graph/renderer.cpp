@@ -37,11 +37,7 @@ void Renderer::init()
   auto& rhi = *state.rhi;
 
   m_rendererUBO = rhi.newBuffer(
-#if defined(_WIN32)
       QRhiBuffer::Dynamic,
-#else
-      QRhiBuffer::Immutable,
-#endif
       QRhiBuffer::UniformBuffer,
       sizeof(ScreenUBO));
   m_rendererUBO->create();
@@ -176,11 +172,7 @@ void Renderer::update(QRhiResourceUpdateBatch& res)
     screenUBO.renderSize[0] = this->lastSize.width();
     screenUBO.renderSize[1] = this->lastSize.height();
 
-#if defined(_WIN32)
     res.updateDynamicBuffer(m_rendererUBO, 0, sizeof(ScreenUBO), &screenUBO);
-#else
-    res.uploadStaticBuffer(m_rendererUBO, 0, sizeof(ScreenUBO), &screenUBO);
-#endif
   }
 
   if (Q_UNLIKELY(!buffersToUpload.empty()))

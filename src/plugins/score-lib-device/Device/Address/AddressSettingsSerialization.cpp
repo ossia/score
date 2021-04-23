@@ -14,6 +14,9 @@
 
 #include <ossia/network/dataspace/dataspace.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
+SCORE_SERALIZE_DATASTREAM_DEFINE(Device::AddressSettings)
+SCORE_SERALIZE_DATASTREAM_DEFINE(Device::FullAddressSettings)
+SCORE_SERALIZE_DATASTREAM_DEFINE(Device::FullAddressAccessorSettings)
 
 template <>
 void DataStreamReader::read(const Device::AddressSettingsCommon& n)

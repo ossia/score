@@ -55,5 +55,6 @@ public:
 };
 }
 
+SCORE_SERALIZE_DATASTREAM_DECLARE(, Curve::LinearSegmentData)
 Q_DECLARE_METATYPE(Curve::LinearSegmentData)
 W_REGISTER_ARGTYPE(Curve::LinearSegmentData)
