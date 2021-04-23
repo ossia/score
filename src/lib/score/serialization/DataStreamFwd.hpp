@@ -3,7 +3,7 @@
 
 class QDataStream;
 
-#define SCORE_SERALIZE_DATASTREAM_DECLARE(EXPORT, T)        \
+#define SCORE_SERIALIZE_DATASTREAM_DECLARE(EXPORT, T)        \
 EXPORT                                                      \
 QDataStream& operator<<(QDataStream& stream, const T& obj); \
 EXPORT                                                      \

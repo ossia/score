@@ -1,5 +1,6 @@
 #pragma once
 #include <score/tools/std/Optional.hpp>
+#include <score/serialization/DataStreamFwd.hpp>
 
 #include <ossia/detail/destination_index.hpp>
 #include <ossia/detail/optional.hpp>
@@ -165,9 +166,9 @@ struct SCORE_LIB_STATE_EXPORT hash<State::AddressAccessor>
 };
 }
 
-SCORE_SERALIZE_DATASTREAM_DECLARE(SCORE_LIB_STATE_EXPORT, State::DestinationQualifiers)
-SCORE_SERALIZE_DATASTREAM_DECLARE(SCORE_LIB_STATE_EXPORT, State::Address)
-SCORE_SERALIZE_DATASTREAM_DECLARE(SCORE_LIB_STATE_EXPORT, State::AddressAccessor)
+SCORE_SERIALIZE_DATASTREAM_DECLARE(SCORE_LIB_STATE_EXPORT, State::DestinationQualifiers)
+SCORE_SERIALIZE_DATASTREAM_DECLARE(SCORE_LIB_STATE_EXPORT, State::Address)
+SCORE_SERIALIZE_DATASTREAM_DECLARE(SCORE_LIB_STATE_EXPORT, State::AddressAccessor)
 
 Q_DECLARE_METATYPE(State::DestinationQualifiers)
 Q_DECLARE_METATYPE(State::Address)

@@ -2,6 +2,7 @@
 #include <Curve/Palette/CurvePoint.hpp>
 
 #include <score/model/IdentifiedObject.hpp>
+#include <score/serialization/DataStreamFwd.hpp>
 #include <score/plugins/UuidKey.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
@@ -181,7 +182,7 @@ enum Segments
 };
 }
 
-SCORE_SERALIZE_DATASTREAM_DECLARE(, Curve::SegmentData)
+SCORE_SERIALIZE_DATASTREAM_DECLARE(, Curve::SegmentData)
 Q_DECLARE_METATYPE(Curve::SegmentData)
 W_REGISTER_ARGTYPE(Curve::SegmentData)
 

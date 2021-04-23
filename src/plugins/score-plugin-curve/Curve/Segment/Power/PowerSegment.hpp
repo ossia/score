@@ -76,6 +76,6 @@ private:
 };
 }
 
-SCORE_SERALIZE_DATASTREAM_DECLARE(, Curve::PowerSegmentData)
+SCORE_SERIALIZE_DATASTREAM_DECLARE(, Curve::PowerSegmentData)
 Q_DECLARE_METATYPE(Curve::PowerSegmentData)
 W_REGISTER_ARGTYPE(Curve::PowerSegmentData)

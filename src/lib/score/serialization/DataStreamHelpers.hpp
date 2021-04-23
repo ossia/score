@@ -48,49 +48,7 @@ template<typename T> struct is_qpointer<QPointer<T>> : std::true_type {};
 template<typename T>
 static constexpr bool is_qpointer_v = is_qpointer<T>::value;
 
-/*
-template<typename T> struct is_qqmllistproperty: std::false_type {};
-template<typename T> struct is_qqmllistproperty<QQmlListProperty<T>> : std::true_type {};
-template<typename T>
-static constexpr bool is_qqmllistproperty_v = is_qqmllistproperty<T>::value;
 
-template<typename T> struct is_qmap: std::false_type {};
-template<typename K, typename V> struct is_qmap<QMap<K, V>> : std::true_type {};
-template<typename T> static constexpr bool is_qmap_v = is_qmap<T>::value;
-
-class QSslError;
-class QModelIndex;
-class QMimeData;
-class QItemSelection;
-class QItemSelectionRange;
-class QLinearGradient;
-
-template<typename T>
-static constexpr bool is_datastream_serializable =
-       !std::is_arithmetic<T>::value
-    && !std::is_enum<T>::value
-    && !std::is_same<T, QStringList>::value
-    && !std::is_pointer<T>::value
-    && !std::is_same<T, std::string>::value
-    && !std::is_same<T, QPointF>::value
-    && !std::is_same<T, QSizeF>::value
-    && !is_qmap_v<T>
-  #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-    && !std::is_same<T, QIterable<QMetaSequence>>::value
-    && !std::is_same<T, QIterable<QMetaAssociation>>::value
-    && !std::is_same<T, QModelIndex>::value
-    && !std::is_same<T, QMimeData>::value
-    && !std::is_same<T, QSslError>::value
-    && !std::is_same<T, QItemSelection>::value
-    && !std::is_same<T, QItemSelectionRange>::value
-    && !std::is_same<T, QLinearGradient>::value
-    && !std::is_same<T, QtMetaTypePrivate::QPairVariantInterfaceImpl>::value
-    && !is_shared_ptr_v<T>
-    && !is_qpointer_v<T>
-    && !is_qqmllistproperty_v<T>
-  #endif
-;
-*/
 #if defined(SCORE_DEBUG_DELIMITERS)
 #define SCORE_DEBUG_INSERT_DELIMITER \
   do                                 \
@@ -182,6 +140,10 @@ struct DataStreamOutput
 };
 
 #if (INTPTR_MAX == INT64_MAX) && !defined(__APPLE__) && !defined(_WIN32)
+#define SCORE_INT64_IS_QINT64
+#endif
+
+#if defined(SCORE_INT64_IS_QINT64)
 inline QDataStream& operator<<(QDataStream& s, uint64_t val)
 {
   s << (quint64)val;
@@ -228,19 +190,6 @@ DataStreamInput& operator<<(DataStreamInput& s, const T& obj);
 template <typename T, std::enable_if_t<!std::is_enum_v<T>>* = nullptr>
 DataStreamOutput& operator>>(DataStreamOutput& s, T& obj);
 
-/*
-template <
-    typename T,
-    std::enable_if_t<!is_datastream_serializable<T>>*
-    = nullptr>
-DataStreamInput& operator<<(DataStreamInput& s, const T& obj);
-template <
-    typename T,
-    std::enable_if_t<!is_datastream_serializable<T>>*
-    = nullptr>
-DataStreamOutput& operator>>(DataStreamOutput& s, T& obj);
-*/
-
 #define DATASTREAM_QT_BUILTIN(T)                              \
 OSSIA_INLINE                                                  \
 DataStreamInput& operator<<(DataStreamInput& s, const T& obj) \
@@ -280,11 +229,20 @@ DATASTREAM_QT_BUILTIN(qint8)
 DATASTREAM_QT_BUILTIN(qint16)
 DATASTREAM_QT_BUILTIN(qint32)
 DATASTREAM_QT_BUILTIN(qint64)
+
+#if defined(SCORE_INT64_IS_QINT64)
 DATASTREAM_QT_BUILTIN(int64_t)
+#endif
+
 DATASTREAM_QT_BUILTIN(quint8)
 DATASTREAM_QT_BUILTIN(quint16)
 DATASTREAM_QT_BUILTIN(quint32)
 DATASTREAM_QT_BUILTIN(quint64)
+
+#if defined(SCORE_INT64_IS_QINT64)
+DATASTREAM_QT_BUILTIN(uint64_t)
+#endif
+
 DATASTREAM_QT_BUILTIN(float)
 DATASTREAM_QT_BUILTIN(double)
 DATASTREAM_QT_BUILTIN(QString)

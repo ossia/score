@@ -21,6 +21,7 @@ if(OSSIA_SDK)
   set(CMAKE_PREFIX_PATH
       "${OSSIA_SDK}"
       "${OSSIA_SDK}/SDL2/cmake"
+      "${OSSIA_SDK}/qt5-static-debug"
       "${OSSIA_SDK}/qt5-static"
       "${OSSIA_SDK}/llvm-libs"
       "${OSSIA_SDK}/llvm"

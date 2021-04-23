@@ -164,9 +164,9 @@ struct SCORE_LIB_DEVICE_EXPORT FullAddressAccessorSettings
 // switch in DeviceDocumentPluginSerialization (the node.impl() case).
 JSON_METADATA(Device::AddressSettings, "Address")
 
-SCORE_SERALIZE_DATASTREAM_DECLARE(SCORE_LIB_DEVICE_EXPORT, Device::AddressSettings);
-SCORE_SERALIZE_DATASTREAM_DECLARE(SCORE_LIB_DEVICE_EXPORT, Device::FullAddressSettings);
-SCORE_SERALIZE_DATASTREAM_DECLARE(SCORE_LIB_DEVICE_EXPORT, Device::FullAddressAccessorSettings);
+SCORE_SERIALIZE_DATASTREAM_DECLARE(SCORE_LIB_DEVICE_EXPORT, Device::AddressSettings);
+SCORE_SERIALIZE_DATASTREAM_DECLARE(SCORE_LIB_DEVICE_EXPORT, Device::FullAddressSettings);
+SCORE_SERIALIZE_DATASTREAM_DECLARE(SCORE_LIB_DEVICE_EXPORT, Device::FullAddressAccessorSettings);
 
 Q_DECLARE_METATYPE(Device::AddressSettings)
 Q_DECLARE_METATYPE(Device::FullAddressSettings)

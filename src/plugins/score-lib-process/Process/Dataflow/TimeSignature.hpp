@@ -41,7 +41,7 @@ inline std::optional<ossia::time_signature> get_time_signature(const std::string
 }
 }
 
-SCORE_SERALIZE_DATASTREAM_DECLARE(, ossia::time_signature)
+SCORE_SERIALIZE_DATASTREAM_DECLARE(, ossia::time_signature)
 
 Q_DECLARE_METATYPE(std::optional<ossia::time_signature>)
 W_REGISTER_ARGTYPE(std::optional<ossia::time_signature>)

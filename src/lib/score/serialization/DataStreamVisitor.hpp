@@ -13,6 +13,8 @@
 #include <ossia/detail/flat_set.hpp>
 #include <ossia/detail/small_vector.hpp>
 
+#include <verdigris>
+
 template <typename model>
 class IdentifiedObject;
 namespace score

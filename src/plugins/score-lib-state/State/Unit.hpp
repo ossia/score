@@ -63,6 +63,6 @@ struct is_custom_serialized<ossia::unit_t> : public std::true_type
 {
 };
 
-SCORE_SERALIZE_DATASTREAM_DECLARE(SCORE_LIB_STATE_EXPORT, State::Unit)
+SCORE_SERIALIZE_DATASTREAM_DECLARE(SCORE_LIB_STATE_EXPORT, State::Unit)
 Q_DECLARE_METATYPE(State::Unit)
 W_REGISTER_ARGTYPE(State::Unit)

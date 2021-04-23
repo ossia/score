@@ -59,7 +59,9 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
   if (graphicsApi == D3D11)
   {
     QRhiD3D11InitParams params;
-    params.enableDebugLayer = false;
+#if !defined(NDEBUG)
+    params.enableDebugLayer = true;
+#endif
     // if (framesUntilTdr > 0)
     // {
     //   params.framesUntilKillingDeviceViaTdr = framesUntilTdr;

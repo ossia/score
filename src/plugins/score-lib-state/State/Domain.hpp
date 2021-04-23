@@ -1,5 +1,5 @@
 #pragma once
-
+#include <score/serialization/DataStreamFwd.hpp>
 #include <score_lib_state_export.h>
 
 #include <memory>
@@ -40,6 +40,6 @@ private:
 };
 }
 
-SCORE_SERALIZE_DATASTREAM_DECLARE(SCORE_LIB_STATE_EXPORT, State::Domain)
+SCORE_SERIALIZE_DATASTREAM_DECLARE(SCORE_LIB_STATE_EXPORT, ::State::Domain)
 Q_DECLARE_METATYPE(State::Domain)
 W_REGISTER_ARGTYPE(State::Domain)
