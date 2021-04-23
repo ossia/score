@@ -38,9 +38,6 @@ public:
   int columnCount(const QModelIndex& parent) const override;
 
   QVariant data(const QModelIndex& index, int role) const override;
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-  void multiData(const QModelIndex &index, QModelRoleDataSpan roleDataSpan) const override;
-#endif
   Qt::ItemFlags flags(const QModelIndex& index) const override;
 
   bool setData(const QModelIndex& index, const QVariant& value, int role) override;

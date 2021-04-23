@@ -96,8 +96,14 @@ void ObjectItemModel::setSelected(QList<const IdentifiedObjectAbstract*> objs)
         else if (!root.contains(&parent_ev) && !root.contains(&parent_ts))
           root.push_back(&parent_ev);
       }
+      else if (parent_ts.active() || parent_ts.events().size() > 1)
+      {
+        root.push_back(&parent_ts);
+      }
       else if (!root.contains(&parent_ev) && !root.contains(&parent_ts))
+      {
         root.push_back(st);
+      }
     }
     else if (auto proc = qobject_cast<const Process::ProcessModel*>(sel))
     {
@@ -226,14 +232,6 @@ void ObjectItemModel::setupConnections()
   }
 }
 
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-void ObjectItemModel::multiData(const QModelIndex &index, QModelRoleDataSpan roleDataSpan) const
-{
-  SCORE_ASSERT(index.isValid());
-  return QAbstractItemModel::multiData(index, roleDataSpan);
-}
-#endif
 void ObjectItemModel::cleanConnections()
 {
   this->removeAll();
@@ -254,6 +252,7 @@ QModelIndex ObjectItemModel::index(int row, int column, const QModelIndex& paren
       {
         auto it = cst->processes.begin();
         std::advance(it, row);
+        SCORE_ASSERT(row < rowCount(parent));
         return createIndex(row, column, &*(it));
       }
       else
@@ -270,7 +269,10 @@ QModelIndex ObjectItemModel::index(int row, int column, const QModelIndex& paren
         std::advance(it, row);
 
         if (auto st = scenar.findState(*it))
+        {
+          SCORE_ASSERT(row < rowCount(parent));
           return createIndex(row, column, st);
+        }
       }
       else
       {
@@ -286,7 +288,10 @@ QModelIndex ObjectItemModel::index(int row, int column, const QModelIndex& paren
         std::advance(it, row);
 
         if (auto ev = scenar.findEvent(*it))
+        {
+          SCORE_ASSERT(row < rowCount(parent));
           return createIndex(row, column, ev);
+        }
       }
       else
       {
@@ -300,6 +305,8 @@ QModelIndex ObjectItemModel::index(int row, int column, const QModelIndex& paren
         auto it = st->stateProcesses.begin();
         std::advance(it, row);
         auto& proc = *it;
+
+        SCORE_ASSERT(row < rowCount(parent));
         return createIndex(row, column, &proc);
       }
       else
@@ -314,6 +321,11 @@ QModelIndex ObjectItemModel::index(int row, int column, const QModelIndex& paren
   }
   else if (!m_root.empty() && row >= 0)
   {
+    if(row >= rowCount(parent))
+    {
+      qWarning("FIXME");
+      return QModelIndex{};
+    }
     return createIndex(row, column, (void*)m_root[row]);
   }
   else
@@ -373,7 +385,18 @@ QModelIndex ObjectItemModel::parent(const QModelIndex& child) const
     SCORE_ASSERT(it != tn.events().end());
     auto idx = std::distance(tn.events().begin(), it);
     if (idx >= 0)
-      return createIndex(idx, 0, (void*)&Scenario::parentEvent(*st, scenar));
+    {
+      auto& parent_event = Scenario::parentEvent(*st, scenar);
+
+      if(ossia::contains(m_root, st))
+      {
+        return QModelIndex{};
+      }
+      else
+      {
+        return createIndex(idx, 0, (void*)&Scenario::parentEvent(*st, scenar));
+      }
+    }
     else
       return QModelIndex{};
   }
