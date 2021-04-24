@@ -24,7 +24,6 @@ struct RGB0Decoder : GPUVideoDecoder
     void main ()
     {
       vec2 texcoord = vec2(v_texcoord.x, tbuf.texcoordAdjust.y + tbuf.texcoordAdjust.x * v_texcoord.y);
-
       fragColor = processTexture(texture(y_tex, texcoord));
     })_";
 

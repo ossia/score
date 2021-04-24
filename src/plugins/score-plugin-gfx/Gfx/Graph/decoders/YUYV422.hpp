@@ -23,7 +23,8 @@ const vec3 B_cf = vec3(1.164383,  2.017232,  0.000000);
 const vec3 offset = vec3(-0.0625, -0.5, -0.5);
 
 void main() {
-  vec3 tc =  texture(u_tex, v_texcoord).rgb;
+  vec2 texcoord = vec2(v_texcoord.x, tbuf.texcoordAdjust.y + tbuf.texcoordAdjust.x * v_texcoord.y);
+  vec3 tc = texture(u_tex, texcoord).rgb;
   vec3 yuv = vec3(tc.g, tc.b, tc.r);
   yuv += offset;
   fragColor.r = dot(yuv, R_cf);

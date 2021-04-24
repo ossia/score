@@ -159,14 +159,17 @@ void Renderer::update(QRhiResourceUpdateBatch& res)
 
     if (!state.rhi->isYUpInFramebuffer())
     {
+      // Vulkan, D3D, Metal
       screenUBO.texcoordAdjust[0] = 1.f;
       screenUBO.texcoordAdjust[1] = 0.f;
     }
     else
     {
+      // GL
       screenUBO.texcoordAdjust[0] = -1.f;
       screenUBO.texcoordAdjust[1] = 1.f;
     }
+
     memcpy(&screenUBO.clipSpaceCorrMatrix[0], proj.data(), sizeof(float) * 16);
 
     screenUBO.renderSize[0] = this->lastSize.width();
