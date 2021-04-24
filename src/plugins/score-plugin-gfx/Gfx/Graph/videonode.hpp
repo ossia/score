@@ -9,11 +9,12 @@
 #include <QElapsedTimer>
 #include <Video/VideoInterface.hpp>
 #include <ossia/detail/flicks.hpp>
-struct VideoNode : NodeModel
+struct SCORE_PLUGIN_GFX_EXPORT VideoNode : NodeModel
 {
   std::shared_ptr<video_decoder> decoder;
   std::unique_ptr<GPUVideoDecoder> gpu;
-  AVPixelFormat current_format = AV_PIX_FMT_YUV420P;
+  AVPixelFormat current_format = AVPixelFormat(-1);
+  int current_width{}, current_height{};
   std::atomic_bool seeked{};
   std::optional<double> nativeTempo;
   QString filter;
@@ -24,7 +25,7 @@ struct VideoNode : NodeModel
             , QString f = {});
 
   void initGpuDecoder();
-  void checkFormat(AVPixelFormat fmt);
+  void checkFormat(AVPixelFormat fmt, int w, int h);
 
   const Mesh& mesh() const noexcept override;
 

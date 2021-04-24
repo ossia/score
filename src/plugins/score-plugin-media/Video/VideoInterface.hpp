@@ -15,7 +15,7 @@ struct SCORE_PLUGIN_MEDIA_EXPORT VideoMetadata
   int width{};
   int height{};
   double fps{};
-  AVPixelFormat pixel_format{};
+  AVPixelFormat pixel_format = AVPixelFormat(-1);
   bool realTime{};
   double flicks_per_dts{};
   double dts_per_flicks{};

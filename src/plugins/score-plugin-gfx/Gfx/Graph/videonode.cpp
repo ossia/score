@@ -10,7 +10,7 @@ struct VideoNode::Rendered : RenderedNode
 {
   using RenderedNode::RenderedNode;
   std::vector<AVFrame*> framesToFree;
-  AVPixelFormat current_format = AV_PIX_FMT_YUV420P;
+  AVPixelFormat current_format = AVPixelFormat(-1);
   QElapsedTimer t;
 
   Rendered(const NodeModel& node) noexcept
@@ -78,7 +78,7 @@ struct VideoNode::Rendered : RenderedNode
     {
       if (auto frame = decoder.dequeue_frame())
       {
-        nodem.checkFormat(static_cast<AVPixelFormat>(frame->format));
+        nodem.checkFormat(static_cast<AVPixelFormat>(frame->format), frame->width, frame->height);
         if(nodem.gpu)
         {
           nodem.gpu->exec(renderer, *this, res, *frame);
@@ -127,9 +127,12 @@ void VideoNode::initGpuDecoder()
     case AV_PIX_FMT_YUV422P:
       gpu = std::make_unique<YUV422Decoder>(*this, *decoder);
       break;
-      // case AV_PIX_FMT_YUYV422:
-      //     gpu = std::make_unique<YUYV422Decoder>(*this, *decoder);
-      //     break;
+    case AV_PIX_FMT_UYVY422:
+      gpu = std::make_unique<UYVY422Decoder>(*this, *decoder);
+      break;
+    case AV_PIX_FMT_YUYV422:
+      gpu = std::make_unique<YUYV422Decoder>(*this, *decoder);
+      break;
     case AV_PIX_FMT_RGB0:
     case AV_PIX_FMT_RGBA:
       gpu = std::make_unique<RGB0Decoder>(QRhiTexture::RGBA8, *this, *decoder, filter);
@@ -175,10 +178,10 @@ void VideoNode::initGpuDecoder()
   }
 }
 
-void VideoNode::checkFormat(AVPixelFormat fmt)
+void VideoNode::checkFormat(AVPixelFormat fmt, int w, int h)
 {
     // TODO won't work if VK is threaded and there are multiple windows
-    if(fmt != current_format)
+    if(fmt != current_format || w != current_width || h != current_height)
     {
         if(gpu)
         {
@@ -186,6 +189,8 @@ void VideoNode::checkFormat(AVPixelFormat fmt)
                 r.second->releaseWithoutRenderTarget(*r.first);
         }
         current_format = fmt;
+        current_width = w;
+        current_height = h;
         initGpuDecoder();
 
         if(gpu)
