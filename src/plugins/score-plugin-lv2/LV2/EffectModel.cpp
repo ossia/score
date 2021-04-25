@@ -383,6 +383,7 @@ void Model::readPlugin()
     Lilv::Port p = data.effect.plugin.get_port_by_index(port_id);
     Lilv::Node n = p.get_name();
 
+    SCORE_ASSERT(!std::isnan(fParamInit[port_id]));
     auto port = new Process::FloatSlider{
         fParamMin[port_id],
         fParamMax[port_id],
@@ -413,7 +414,14 @@ void Model::readPlugin()
     auto port = new Process::ControlOutlet{Id<Process::Port>{out_id++}, this};
     port->hidden = true;
     port->setDomain(State::Domain{ossia::make_domain(fParamMin[port_id], fParamMax[port_id])});
-    port->setValue(fParamInit[port_id]);
+    if(std::isnan(fParamInit[port_id]))
+    {
+      port->setValue(fParamMin[port_id]);
+    }
+    else
+    {
+      port->setValue(fParamInit[port_id]);
+    }
 
     Lilv::Port p = data.effect.plugin.get_port_by_index(port_id);
     Lilv::Node n = p.get_name();
