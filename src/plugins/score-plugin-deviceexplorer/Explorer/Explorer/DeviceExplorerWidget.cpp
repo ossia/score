@@ -149,7 +149,7 @@ class LearnDialog final : public QDialog
 public:
   LearnDialog(Device::DeviceInterface& dev, QWidget* w) : QDialog{w}, m_dev{dev}
   {
-    this->setWindowTitle(tr("OSC learning"));
+    this->setWindowTitle(dev.name() + tr(": learning"));
     auto lay = new QVBoxLayout{this};
 
     QDialogButtonBox* buttonBox = new QDialogButtonBox(
