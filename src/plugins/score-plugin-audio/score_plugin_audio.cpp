@@ -27,6 +27,14 @@
 
 #include <ossia-config.hpp>
 
+#if OSSIA_AUDIO_PORTAUDIO && defined(__linux__) && __has_include(<alsa/asoundlib.h>)
+#include <alsa/asoundlib.h>
+static
+void asound_error(const char *file, int line, const char *function, int err, const char *fmt, ...) {
+
+}
+#endif
+
 score_plugin_audio::score_plugin_audio()
 {
   qRegisterMetaType<Audio::Settings::ExternalTransport>("ExternalTransport");
@@ -34,6 +42,20 @@ score_plugin_audio::score_plugin_audio()
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   qRegisterMetaTypeStreamOperators<Audio::AudioFactory::ConcreteKey>("AudioKey");
   qRegisterMetaTypeStreamOperators<Audio::Settings::ExternalTransport>("ExternalTransport");
+#endif
+
+#if OSSIA_AUDIO_JACK
+  jack_set_error_function([](const char* str) {
+    std::cerr << "JACK ERROR: " << str << std::endl;
+  });
+  jack_set_info_function([](const char* str) {
+    // std::cerr << "JACK INFO: " << str << std::endl;
+  });
+#endif
+#if OSSIA_AUDIO_PORTAUDIO && defined(__linux__) && __has_include(<alsa/asoundlib.h>)
+  auto asound = dlopen("libasound.so.2", RTLD_LAZY | RTLD_LOCAL);
+  auto sym = (decltype(snd_lib_error_set_handler)*)dlsym(asound, "snd_lib_error_set_handler");
+  sym(asound_error);
 #endif
 
   QVariant v = QVariant::fromValue(Audio::AudioFactory::ConcreteKey{});
