@@ -49,9 +49,18 @@ public:
       }
     }
 
-    setRootPath(QDir::rootPath());
+    // QFileSystemModel is case-sensitive, so we at least handle the ALL-CAPS EXTENSIONS
+    // **floppy drive noises buzzing in the background**
+    {
+      auto copy = types;
+      for(auto t : copy) {
+        types.insert(t.toUpper());
+      }
+    }
+
     setNameFilters(types.values());
     setNameFilterDisables(false);
+    setResolveSymlinks(true);
     setFilter(QDir::AllDirs | QDir::Files | QDir::NoDotAndDotDot);
 
     for (auto& lib : lib_setup)
