@@ -126,6 +126,12 @@ ClangCC1Driver::compileTranslationUnit(
     flags_vec.push_back(bitcodeFile);
     flags_vec.push_back(cpp);
 
+    std::cerr << "Original option dump ! \n";
+    for(const auto& arg : flags_vec)
+    {
+      std::cerr << arg << " ";
+    }
+    std::cerr << std::endl;
     Timer t;
     llvm::Error err = compileCppToBitcodeFile(flags_vec);
     if (err)
@@ -175,30 +181,32 @@ std::vector<std::string> ClangCC1Driver::getClangCC1Args(CompilerOptions opts)
   populateDefinitions(args);
   populateIncludeDirs(args);
 
-  std::cerr << "Original option dump ! \n";
-  for(const auto& arg : args)
-  {
-    std::cerr << " -- " << arg << std::endl;
-  }
-
-  QFile f("/tmp/args.txt");
-  if(f.exists())
-  {
-    QString r = score::readFileAsQString(f);
-    auto splitted = r.split(QRegularExpression("[:space:]"));
-    args.clear();
-    for(auto splt: splitted)
-    {
-      args.push_back(r.toStdString());
-    }
-
-    std::cerr << "Actual option dump ! \n";
-    for(const auto& arg : args)
-    {
-      std::cerr << " -- " << arg << std::endl;
-    }
-  }
-
+  //
+  // std::cerr << "Original option dump ! \n";
+  // for(const auto& arg : args)
+  // {
+  //   std::cerr << " -- " << arg << std::endl;
+  // }
+  //
+  //
+  // QFile f("/tmp/args.txt");
+  // if(f.exists())
+  // {
+  //   QString r = score::readFileAsQString(f);
+  //   auto splitted = r.split(QRegularExpression("[:space:]"));
+  //   args.clear();
+  //   for(auto splt: splitted)
+  //   {
+  //     args.push_back(r.toStdString());
+  //   }
+  //
+  //   // std::cerr << "Actual option dump ! \n";
+  //   // for(const auto& arg : args)
+  //   // {
+  //   //   std::cerr << " -- " << arg << std::endl;
+  //   // }
+  // }
+  //
   return args;
 }
 

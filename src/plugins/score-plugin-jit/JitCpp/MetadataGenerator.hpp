@@ -67,6 +67,7 @@ static void loadCMakeAddon(const QString& addon, AddonData& data, QString cm)
     auto res = m.captured(1).replace('\n', ' ').split(space, Qt::SkipEmptyParts);
     for(const QString& file : res) {
       QString filename = QString{R"_(%1/%2)_"}.arg(addon).arg(file);
+
       QString path = QString{R"_(#include "%1/%2"
 )_"}.arg(addon).arg(file);
       data.unity_cpp.append(

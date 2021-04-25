@@ -1,12 +1,14 @@
 #include <Library/LibrarySettings.hpp>
 
 #include <core/application/ApplicationInterface.hpp>
+#include <core/application/ApplicationSettings.hpp>
 #include <core/view/Window.hpp>
 
 #include <QApplication>
 #include <QDir>
 #include <QDirIterator>
 #include <QDebug>
+#include <QCommandLineParser>
 //#include <QQuickWidget>
 #include <QThread>
 
@@ -33,11 +35,59 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
       this,
       &ApplicationPlugin::setupNode);
 
-  con(m_compiler,
-      &AddonCompiler::jobCompleted,
-      this,
-      &ApplicationPlugin::registerAddon,
-      Qt::QueuedConnection);
+
+  {
+    // Command-line option parsing
+    QCommandLineParser parser;
+
+    QCommandLineOption compile_node(
+        "compile-node",
+        QCoreApplication::translate("jit", "Node to compile"), "Name", "");
+    parser.addOption(compile_node);
+    QCommandLineOption compile_addon(
+          "compile-addon",
+          QCoreApplication::translate("jit", "Path to the addon to compile"), "Name", "");
+    parser.addOption(compile_addon);
+
+    parser.parse(ctx.applicationSettings.arguments);
+    auto node_to_compile = parser.value(compile_node);
+    auto addon_to_compile = parser.value(compile_addon);
+
+    qDebug() << node_to_compile << addon_to_compile;
+    if((!node_to_compile.isEmpty() || !addon_to_compile.isEmpty()))
+    {
+      if(QFile::exists(node_to_compile))
+      {
+        con(m_compiler,
+            &AddonCompiler::jobCompleted,
+            this, [this] (auto addon) {
+          registerAddon(addon);
+          exit(0);
+        });
+
+        setupNode(node_to_compile);
+      }
+      else  if(QFile::exists(addon_to_compile))
+      {
+        con(m_compiler,
+            &AddonCompiler::jobCompleted,
+            this, [this] (auto addon) {
+          registerAddon(addon);
+          exit(0);
+        });
+
+        setupAddon(addon_to_compile);
+      }
+    }
+    else
+    {
+      con(m_compiler,
+          &AddonCompiler::jobCompleted,
+          this,
+          &ApplicationPlugin::registerAddon,
+          Qt::QueuedConnection);
+    }
+  }
 }
 
 void ApplicationPlugin::rescanAddons()

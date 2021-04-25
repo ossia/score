@@ -15,6 +15,8 @@ namespace score
 {
 void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
 {
+  arguments = cargs;
+
 #if defined(__linux__)
   opengl = true;
 #else
@@ -75,7 +77,7 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
   }
   else
   {
-    parser.process(cargs);
+    parser.parse(cargs);
   }
 
   const QStringList args = parser.positionalArguments();

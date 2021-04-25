@@ -36,6 +36,10 @@ struct SCORE_LIB_BASE_EXPORT ApplicationSettings
   //! Seconds to wait before playing
   int waitAfterLoad = 0;
 
+  //! Complete list of arguments passed to parse
+  QStringList arguments;
+
+  //! Parse the arguments.
   void parse(QStringList args, int& argc, char** argv);
 };
 
