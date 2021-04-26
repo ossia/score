@@ -16,7 +16,7 @@ AddressDialog::~AddressDialog() = default;
 
 void ProtocolSettingsWidget::checkForChanges(QLineEdit* w)
 {
-  connect(w, &QLineEdit::editingFinished,
+  connect(w, &QLineEdit::textEdited,
           this, &ProtocolSettingsWidget::changed);
 }
 void ProtocolSettingsWidget::checkForChanges(QComboBox* w)

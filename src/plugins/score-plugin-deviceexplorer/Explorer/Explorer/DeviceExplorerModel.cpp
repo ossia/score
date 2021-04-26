@@ -245,6 +245,35 @@ bool DeviceExplorerModel::checkDeviceInstantiatable(const Device::DeviceSettings
   });
 }
 
+bool DeviceExplorerModel::checkDeviceEditable(
+      const QString& originalName,
+      const Device::DeviceSettings& n) const
+{
+  // No name -> no love
+  if (n.name.isEmpty())
+    return false;
+
+  // Request from the protocol factory the protocol to see
+  // if it is compatible.
+  auto& context = m_devicePlugin.context().app;
+  auto prot = context.interfaces<Device::ProtocolFactoryList>().get(n.protocol);
+  if (!prot)
+    return false;
+
+  // Look for other childs in the same protocol.
+  return std::none_of(rootNode().begin(), rootNode().end(), [&](const Device::Node& child) {
+    SCORE_ASSERT(child.is<Device::DeviceSettings>());
+    const auto& set = child.get<Device::DeviceSettings>();
+    // Ignore the device that is being edited
+    if(set.name == originalName)
+      return false;
+
+    return (set.name == n.name)
+           || (set.protocol == n.protocol
+               && !prot->checkCompatibility(n, child.get<Device::DeviceSettings>()));
+  });
+}
+
 bool DeviceExplorerModel::checkAddressInstantiatable(
     Device::Node& parent,
     const Device::AddressSettings& addr)
@@ -806,6 +835,7 @@ void DeviceExplorerModel::checkAndLoadDevice(Device::Node n)
   auto dialog = new DeviceEditDialog{
       *this,
       m_devicePlugin.context().app.interfaces<Device::ProtocolFactoryList>(),
+      DeviceEditDialog::Creating,
       QApplication::activeWindow()};
 
   dialog->setSettings(deviceSettings);
@@ -841,6 +871,7 @@ void DeviceExplorerModel::checkAndLoadDevice(Device::DeviceSettings deviceSettin
   auto dialog = new DeviceEditDialog{
       *this,
       m_devicePlugin.context().app.interfaces<Device::ProtocolFactoryList>(),
+      DeviceEditDialog::Creating,
       QApplication::activeWindow()};
 
   dialog->setSettings(deviceSettings);

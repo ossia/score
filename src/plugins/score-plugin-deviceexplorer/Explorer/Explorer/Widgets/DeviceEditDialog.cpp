@@ -37,10 +37,12 @@ namespace Explorer
 DeviceEditDialog::DeviceEditDialog(
       const DeviceExplorerModel& model,
       const Device::ProtocolFactoryList& pl,
+      Mode mode,
       QWidget* parent)
   : QDialog{parent}
   , m_model{model}
   , m_protocolList{pl}
+  , m_mode{mode}
   , m_protocolWidget{nullptr}
   , m_index{-1}
 {
@@ -299,6 +301,8 @@ Device::Node DeviceEditDialog::getDevice() const
 
 void DeviceEditDialog::setSettings(const Device::DeviceSettings& settings)
 {
+  m_originalName = settings.name;
+
   for(int i = 0; i < m_protocols->topLevelItemCount(); i++)
   {
     auto catItem = m_protocols->topLevelItem(i);
@@ -351,6 +355,14 @@ void DeviceEditDialog::setBrowserEnabled(bool st)
 
 void DeviceEditDialog::updateValidity()
 {
-  setAcceptEnabled(m_model.checkDeviceInstantiatable(getSettings()));
+  switch(m_mode)
+  {
+    case Mode::Creating:
+      setAcceptEnabled(m_model.checkDeviceInstantiatable(getSettings()));
+      break;
+    case Mode::Editing:
+      setAcceptEnabled(m_model.checkDeviceEditable(m_originalName, getSettings()));
+      break;
+  }
 }
 }

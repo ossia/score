@@ -31,7 +31,10 @@ class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceEditDialog final : public QDialog
   W_OBJECT(DeviceEditDialog)
 
 public:
-  explicit DeviceEditDialog(const DeviceExplorerModel& model, const Device::ProtocolFactoryList& pl, QWidget* parent);
+  enum Mode {
+    Creating, Editing
+  };
+  explicit DeviceEditDialog(const DeviceExplorerModel& model, const Device::ProtocolFactoryList& pl, Mode mode, QWidget* parent);
   ~DeviceEditDialog();
 
   Device::DeviceSettings getSettings() const;
@@ -49,10 +52,12 @@ public:
   void updateValidity();
 private:
   void selectedProtocolChanged();
+  void selectedDeviceChanged();
   void initAvailableProtocols();
 
   const DeviceExplorerModel& m_model;
   const Device::ProtocolFactoryList& m_protocolList;
+  Mode m_mode{};
   std::unique_ptr<Device::DeviceEnumerator> m_enumerator{};
 
   QDialogButtonBox* m_buttonBox{};
@@ -66,8 +71,9 @@ private:
   QFormLayout* m_layout{};
   QList<Device::DeviceSettings> m_previousSettings;
   QLabel* m_invalidLabel{};
+
+  QString m_originalName{};
   int m_index{};
 
-  void selectedDeviceChanged();
 };
 }

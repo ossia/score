@@ -716,7 +716,7 @@ void DeviceExplorerWidget::edit()
   {
     if (!m_deviceDialog)
     {
-      m_deviceDialog = new DeviceEditDialog{*model(), m_protocolList, this};
+      m_deviceDialog = new DeviceEditDialog{*model(), m_protocolList, DeviceEditDialog::Editing, this};
     }
     auto set = select.get<Device::DeviceSettings>();
     m_deviceDialog->setSettings(set);
@@ -905,7 +905,11 @@ void DeviceExplorerWidget::addDevice()
 
   if (!m_deviceDialog)
   {
-    m_deviceDialog = new DeviceEditDialog{*model(), m_protocolList, this};
+    m_deviceDialog = new DeviceEditDialog{
+        *model(),
+        m_protocolList,
+        DeviceEditDialog::Creating,
+        this};
   }
 
   connect(m_deviceDialog, &QDialog::accepted,

@@ -103,6 +103,7 @@ public:
   // Returns true if the device is to be added, false if
   // it should not be added.
   bool checkDeviceInstantiatable(const Device::DeviceSettings& n) const;
+  bool checkDeviceEditable(const QString& originalName, const Device::DeviceSettings& n) const;
 
   bool checkAddressInstantiatable(Device::Node& parent, const Device::AddressSettings& addr);
 
