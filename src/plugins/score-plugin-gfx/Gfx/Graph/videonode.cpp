@@ -40,6 +40,7 @@ struct VideoNode::Rendered : RenderedNode
   // all renderers have rendered, thue the pattern in the following function
   // is not enough
   double lastFrameTime{};
+  double lastPlaybackTime{-1.};
   void customUpdate(Renderer& renderer, QRhiResourceUpdateBatch& res) override
   {
     auto& nodem = const_cast<VideoNode&>(static_cast<const VideoNode&>(node));
@@ -57,6 +58,13 @@ struct VideoNode::Rendered : RenderedNode
 
       auto current_time = nodem.standardUBO.time * tempoRatio; // In seconds
       auto next_frame_time = lastFrameTime;
+
+      // pause
+      if(nodem.standardUBO.time == lastPlaybackTime)
+      {
+        return false;
+      }
+      lastPlaybackTime = nodem.standardUBO.time;
 
       // what more can we do ?
       const double inv_fps = decoder.fps > 0
