@@ -135,25 +135,25 @@ struct PortSetup
     for (const auto& in : Node_T::Metadata::audio_ins)
     {
       auto p = new Process::AudioInlet(Id<Process::Port>(inlet++), &self);
-      p->setCustomData(QString::fromUtf8(in.name.data(), in.name.size()));
+      p->setName(QString::fromUtf8(in.name.data(), in.name.size()));
       ins.push_back(p);
     }
     for (const auto& in : Node_T::Metadata::midi_ins)
     {
       auto p = new Process::MidiInlet(Id<Process::Port>(inlet++), &self);
-      p->setCustomData(QString::fromUtf8(in.name.data(), in.name.size()));
+      p->setName(QString::fromUtf8(in.name.data(), in.name.size()));
       ins.push_back(p);
     }
     for (const auto& in : Node_T::Metadata::value_ins)
     {
       auto p = new Process::ValueInlet(Id<Process::Port>(inlet++), &self);
-      p->setCustomData(QString::fromUtf8(in.name.data(), in.name.size()));
+      p->setName(QString::fromUtf8(in.name.data(), in.name.size()));
       ins.push_back(p);
     }
     for (const auto& in : Node_T::Metadata::address_ins)
     {
       auto p = new Process::ValueInlet(Id<Process::Port>(inlet++), &self);
-      p->setCustomData(QString::fromUtf8(in.name.data(), in.name.size()));
+      p->setName(QString::fromUtf8(in.name.data(), in.name.size()));
       ins.push_back(p);
     }
     ossia::for_each_in_tuple(Node_T::Metadata::controls, [&](const auto& ctrl) {
@@ -168,7 +168,7 @@ struct PortSetup
     for (const auto& out : Node_T::Metadata::audio_outs)
     {
       auto p = new Process::AudioOutlet(Id<Process::Port>(outlet++), &self);
-      p->setCustomData(QString::fromUtf8(out.name.data(), out.name.size()));
+      p->setName(QString::fromUtf8(out.name.data(), out.name.size()));
       if (outlet == 1)
         p->setPropagate(true);
       outs.push_back(p);
@@ -176,13 +176,13 @@ struct PortSetup
     for (const auto& out : Node_T::Metadata::midi_outs)
     {
       auto p = new Process::MidiOutlet(Id<Process::Port>(outlet++), &self);
-      p->setCustomData(QString::fromUtf8(out.name.data(), out.name.size()));
+      p->setName(QString::fromUtf8(out.name.data(), out.name.size()));
       outs.push_back(p);
     }
     for (const auto& out : Node_T::Metadata::value_outs)
     {
       auto p = new Process::ValueOutlet(Id<Process::Port>(outlet++), &self);
-      p->setCustomData(QString::fromUtf8(out.name.data(), out.name.size()));
+      p->setName(QString::fromUtf8(out.name.data(), out.name.size()));
       outs.push_back(p);
     }
     ossia::for_each_in_tuple(Node_T::Metadata::control_outs, [&](const auto& ctrl) {

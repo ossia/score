@@ -36,7 +36,6 @@ set(HDRS
     Gfx/CommandFactory.hpp
 
     Gfx/Filter/Executor.hpp
-    Gfx/Filter/LocalTree.hpp
     Gfx/Filter/Metadata.hpp
     Gfx/Filter/Process.hpp
     Gfx/Filter/Layer.hpp
@@ -44,7 +43,6 @@ set(HDRS
 
     Gfx/Video/Executor.hpp
     Gfx/Video/Inspector.hpp
-    Gfx/Video/LocalTree.hpp
     Gfx/Video/Metadata.hpp
     Gfx/Video/Presenter.hpp
     Gfx/Video/Process.hpp
@@ -107,13 +105,11 @@ set(SRCS
     ${KINECT2_SRCS}
 
     Gfx/Filter/Executor.cpp
-    Gfx/Filter/LocalTree.cpp
     Gfx/Filter/Process.cpp
     Gfx/Filter/PreviewWidget.cpp
 
     Gfx/Video/Executor.cpp
     Gfx/Video/Inspector.cpp
-    Gfx/Video/LocalTree.cpp
     Gfx/Video/Presenter.cpp
     Gfx/Video/Process.cpp
     Gfx/Video/View.cpp

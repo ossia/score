@@ -20,6 +20,7 @@ LocalTree::ProcessComponent::ProcessComponent(
         name,
         parent}
 {
+  SCORE_ASSERT(!proc.metadata().getName().isEmpty());
 }
 
 LocalTree::ProcessComponent::~ProcessComponent() = default;

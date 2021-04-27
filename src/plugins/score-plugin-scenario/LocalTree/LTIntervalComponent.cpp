@@ -90,28 +90,33 @@ public:
   {
     try
     {
-
       for (Process::Inlet* inlet : proc.inlets())
       {
-        m_properties.push_back(add_property<Process::Inlet::p_address>(
-            this->node(), *inlet, inlet->customData().toStdString(), this));
-        auto& port_node = m_properties.back()->addr.get_node();
         if (auto control = dynamic_cast<Process::ControlInlet*>(inlet))
         {
-          m_properties.push_back(add_value_property<Process::ControlInlet::p_value>(
-              port_node, *control, "value", this));
+          if(!inlet->exposed().isEmpty())
+          {
+            m_properties.push_back(add_property<Process::Inlet::p_address>(
+                                     this->node(), *inlet, inlet->exposed().toStdString(), this));
+            auto& port_node = m_properties.back()->addr.get_node();
+            m_properties.push_back(add_value_property<Process::ControlInlet::p_value>(
+                                     port_node, *control, "value", this));
+          }
         }
       }
 
       for (auto& outlet : proc.outlets())
       {
-        m_properties.push_back(add_property<Process::Outlet::p_address>(
-            this->node(), *outlet, outlet->customData().toStdString(), this));
-        auto& port_node = m_properties.back()->addr.get_node();
         if (auto control = dynamic_cast<Process::ControlOutlet*>(outlet))
         {
-          m_properties.push_back(add_value_property<Process::ControlOutlet::p_value>(
-              port_node, *control, "value", this));
+          if(!outlet->exposed().isEmpty())
+          {
+            m_properties.push_back(add_property<Process::Outlet::p_address>(
+                                     this->node(), *outlet, outlet->exposed().toStdString(), this));
+            auto& port_node = m_properties.back()->addr.get_node();
+            m_properties.push_back(add_value_property<Process::ControlOutlet::p_value>(
+                                     port_node, *control, "value", this));
+          }
         }
       }
     }
@@ -152,7 +157,11 @@ ProcessComponent* IntervalBase::make(
 ProcessComponent*
 IntervalBase::make(const Id<score::Component>& id, Process::ProcessModel& process)
 {
-  return new DefaultProcessComponent{m_processesNode, process, system(), id, this};
+  if(!process.metadata().getName().isEmpty())
+  {
+    return new DefaultProcessComponent{m_processesNode, process, system(), id, this};
+  }
+  return nullptr;
 }
 
 bool IntervalBase::removing(const Process::ProcessModel& cst, const ProcessComponent& comp)

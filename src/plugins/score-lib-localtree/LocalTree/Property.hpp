@@ -60,6 +60,7 @@ struct PropertyWrapper final : public BaseCallbackWrapper
 template <typename Property, typename Object>
 auto add_property(ossia::net::node_base& n, Object& obj, QObject* context)
 {
+  SCORE_ASSERT(!std::string_view(Property::name).empty());
   constexpr const auto t = ossia::qt_property_converter<typename Property::param_type>::val;
   auto node = n.create_child(Property::name);
   SCORE_ASSERT(node);
@@ -74,6 +75,7 @@ auto add_property(ossia::net::node_base& n, Object& obj, QObject* context)
 template <typename Property, typename Object>
 auto add_property(ossia::net::node_base& n, Object& obj, const std::string& name, QObject* context)
 {
+  SCORE_ASSERT(!name.empty());
   constexpr const auto t = ossia::qt_property_converter<typename Property::param_type>::val;
   auto node = n.create_child(name);
   SCORE_ASSERT(node);

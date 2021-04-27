@@ -87,7 +87,7 @@ void DefaultEffectItem::setupPort(T& port, const Process::PortFactoryList& portF
         return factory.makeControlItem(inlet, doc, item, parent);
       },
       [&](int j) { return m_ports[j].rect.size(); },
-      [&] { return port.customData(); });
+      [&] { return port.visualName(); });
   auto [item, portItem, widg, lab, itemRect]
       = Process::createControl(i, csetup, port, portFactory, m_ctx, this, this);
   m_ports.push_back(Port{item, portItem, itemRect});

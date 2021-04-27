@@ -32,7 +32,7 @@ ProcessModel::~ProcessModel() { }
 
 void ProcessModel::init()
 {
-  outlet->setCustomData("Out");
+  outlet->setName("Out");
   auto update_invalid_address = [=](const State::AddressAccessor& addr) {
     if (addr.qualifiers.get() != ossia::destination_qualifiers{{}, ossia::argb_u{}})
     {

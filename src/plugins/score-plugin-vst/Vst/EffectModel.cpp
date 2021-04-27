@@ -210,7 +210,7 @@ void Model::on_addControl(int i, float v)
     if (!label.isEmpty())
       str += "(" + label + ")";
 
-    ctrl->setCustomData(name);
+    ctrl->setName(name);
   }
 
   on_addControl_impl(ctrl);
@@ -557,7 +557,8 @@ void Model::initFx()
   auto& app = ctx.applicationPlugin<vst::ApplicationPlugin>();
   auto it = ossia::find_if(app.vst_infos, [=](auto& i) { return i.uniqueID == fx->fx->uniqueID; });
   SCORE_ASSERT(it != app.vst_infos.end());
-  metadata().setLabel(it->prettyName);
+  metadata().setName(it->prettyName);
+  metadata().setLabel(metadata().getName());
 }
 
 void Model::create()

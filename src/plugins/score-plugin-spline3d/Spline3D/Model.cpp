@@ -34,7 +34,7 @@ ProcessModel::~ProcessModel() { }
 
 void ProcessModel::init()
 {
-  outlet->setCustomData("Out");
+  outlet->setName("Out");
   m_outlets.push_back(outlet.get());
   connect(
       outlet.get(), &Process::Port::addressChanged, this, [=](const State::AddressAccessor& arg) {

@@ -81,7 +81,7 @@ void Presenter::setupInlet(
         return factory.makeControlItem(inlet, doc, item, parent);
       },
       [&](int j) { return m_ports[j].rect.size(); },
-      [&] { return port.customData(); });
+      [&] { return port.name(); });
   auto [item, portItem, widg, lab, itemRect]
       = Process::createControl(i, csetup, port, portFactory, doc, m_view, this);
 

@@ -360,7 +360,7 @@ void Model::readPlugin()
 
     Lilv::Port p = data.effect.plugin.get_port_by_index(port_id);
     Lilv::Node n = p.get_name();
-    port->setCustomData(QString::fromUtf8(n.as_string()));
+    port->setName(QString::fromUtf8(n.as_string()));
 
     m_inlets.push_back(port);
   }
@@ -371,7 +371,7 @@ void Model::readPlugin()
 
     Lilv::Port p = data.effect.plugin.get_port_by_index(port_id);
     Lilv::Node n = p.get_name();
-    port->setCustomData(QString::fromUtf8(n.as_string()));
+    port->setName(QString::fromUtf8(n.as_string()));
 
     m_outlets.push_back(port);
   }
@@ -425,7 +425,7 @@ void Model::readPlugin()
 
     Lilv::Port p = data.effect.plugin.get_port_by_index(port_id);
     Lilv::Node n = p.get_name();
-    port->setCustomData(QString::fromUtf8(n.as_string()));
+    port->setName(QString::fromUtf8(n.as_string()));
     control_out_map.insert({port_id, port});
 
     m_outlets.push_back(port);
@@ -462,7 +462,11 @@ void Model::reload()
     plugin = plug->me;
     effectContext.plugin.me = *plug;
     readPlugin();
-    metadata().setLabel(QString(plug->get_name().as_string()));
+    QString name = plug->get_name().as_string();
+    if(name.isEmpty())
+      name = path.split("/").back();
+    metadata().setName(name);
+    metadata().setLabel(name);
   }
 }
 }

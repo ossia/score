@@ -108,7 +108,7 @@ static void setupVSTControl(
   auto advBtn = new QToolButton{widg};
   advBtn->setIcon(makeIcon(QStringLiteral(":/icons/port_message.png")));
 
-  auto lab = new TextLabel{inlet.customData(), widg};
+  auto lab = new TextLabel{inlet.name(), widg};
   auto hl = new score::MarginLess<QHBoxLayout>{widg};
   hl->addWidget(advBtn);
   hl->addWidget(lab);

@@ -291,9 +291,15 @@ void FaustEffectModel::reload()
 
   if(QFile f{fx_text}; f.open(QIODevice::ReadOnly))
   {
-    m_path = QFileInfo{f}.absolutePath();
+    QFileInfo fi{f};
+    m_path = fi.absolutePath();
     fx_text = f.readAll();
     m_text = fx_text;
+    m_declareName = fi.baseName();
+  }
+  else
+  {
+    m_declareName = QStringLiteral("Faust");
   }
 
   const char* triple =
@@ -371,6 +377,7 @@ void FaustEffectModel::reload()
     }
   }
 
+  metadata().setName(m_declareName);
   metadata().setLabel(m_declareName);
   inletsChanged();
   outletsChanged();

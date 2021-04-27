@@ -185,7 +185,7 @@ void MinMaxFloatOutletFactory::setupOutletInspector(
   auto widg = new QWidget;
   auto hl = new score::MarginLess<QHBoxLayout>{widg};
 
-  auto lab = new TextLabel{port.customData(), widg};
+  auto lab = new TextLabel{port.name(), widg};
   hl->addWidget(lab);
 
   auto advBtn = new QToolButton{widg};

@@ -138,7 +138,7 @@ void Model::addControl(const Id<Process::Port>& id, const Device::FullAddressAcc
     int length_limit = 20;
     if (addr.address.path.isEmpty())
     {
-      ctl->setCustomData("-");
+      ctl->setName("-");
     }
     else
     {
@@ -169,7 +169,7 @@ void Model::addControl(const Id<Process::Port>& id, const Device::FullAddressAcc
       if (it != addr.address.path.rend())
         str.remove(0, 1);
 
-      ctl->setCustomData(str + quals);
+      ctl->setName(str + quals);
     }
   };
 

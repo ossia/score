@@ -147,7 +147,7 @@ void VSTEffectItem::setupInlet(
         return VSTFloatSlider::make_item(fx.fx.controller, inlet, doc, item, parent);
       },
       [&](int j) { return controlItems[j].second->boundingRect().size(); },
-      [&] { return inlet.customData(); },
+      [&] { return inlet.name(); },
       [](auto&&...) -> auto& {
         static VSTControlPortFactory f;
         return f;

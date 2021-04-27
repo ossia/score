@@ -179,7 +179,7 @@ void Model::on_addControl(const Steinberg::Vst::ParameterInfo& v)
   ctrl->hidden = true;
   ctrl->fxNum = v.id;
   ctrl->setValue(v.defaultNormalizedValue);
-  ctrl->setCustomData(fromString(v.title));
+  ctrl->setName(fromString(v.title));
 
   on_addControl_impl(ctrl);
 }
@@ -278,8 +278,8 @@ void Model::initFx()
     return;
   }
 
-  metadata().setLabel(m_className);
-
+  metadata().setName(m_className);
+  metadata().setLabel(metadata().getName());
 
   /// this->fx.controller->setComponentState(...);
 }
@@ -332,7 +332,7 @@ struct PortCreationVisitor {
     BusActivationVisitor{fx}.audioIn(bus, idx);
 
     auto port = new Process::AudioInlet(Id<Process::Port>{inlet_i++}, &model);
-    port->setCustomData(fromString(bus.name));
+    port->setName(fromString(bus.name));
     model.m_inlets.push_back(port);
   }
   void eventIn(const Steinberg::Vst::BusInfo& bus, int idx)
@@ -340,7 +340,7 @@ struct PortCreationVisitor {
     BusActivationVisitor{fx}.eventIn(bus, idx);
 
     auto port = new Process::MidiInlet(Id<Process::Port>{inlet_i++}, &model);
-    port->setCustomData(fromString(bus.name));
+    port->setName(fromString(bus.name));
     model.m_inlets.push_back(port);
   }
 
@@ -349,7 +349,7 @@ struct PortCreationVisitor {
     BusActivationVisitor{fx}.audioOut(bus, idx);
 
     auto port = new Process::AudioOutlet(Id<Process::Port>{outlet_i++}, &model);
-    port->setCustomData(fromString(bus.name));
+    port->setName(fromString(bus.name));
     model.m_outlets.push_back(port);
 
     if(idx == 0)
@@ -361,7 +361,7 @@ struct PortCreationVisitor {
     BusActivationVisitor{fx}.eventOut(bus, idx);
 
     auto port = new Process::MidiOutlet(Id<Process::Port>{outlet_i++}, &model);
-    port->setCustomData(fromString(bus.name));
+    port->setName(fromString(bus.name));
     model.m_outlets.push_back(port);
   }
 };

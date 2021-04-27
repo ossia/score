@@ -72,7 +72,7 @@ bool ProcessModel::validate(const QString& script) const noexcept
 
   auto path = score::locateFilePath(trimmed, score::IDocument::documentContext(*this));
 
-  if (QFileInfo{path}.exists())
+  if (QFileInfo::exists(path))
   {
     return (bool) m_cache.get(*this, path.toUtf8(), true);
   }
@@ -162,7 +162,7 @@ bool ProcessModel::setQmlData(const QByteArray& data, bool isFile)
     for (auto n : cld_inlet)
     {
       auto port = n->make(Id<Process::Port>(i++), this);
-      port->setCustomData(n->objectName());
+      port->setName(n->objectName());
       if (auto addr = State::parseAddressAccessor(n->address()))
         port->setAddress(std::move(*addr));
       m_inlets.push_back(port);
@@ -175,12 +175,24 @@ bool ProcessModel::setQmlData(const QByteArray& data, bool isFile)
     for (auto n : cld_outlet)
     {
       auto port = n->make(Id<Process::Port>(i++), this);
-      port->setCustomData(n->objectName());
+      port->setName(n->objectName());
       if (auto addr = State::parseAddressAccessor(n->address()))
         port->setAddress(std::move(*addr));
       m_outlets.push_back(port);
     }
   }
+
+  if(m_isFile)
+  {
+    const auto name = QFileInfo{data}.baseName();
+    metadata().setName(name);
+    metadata().setLabel(name);
+  }
+  else if (metadata().getName().isEmpty())
+  {
+    metadata().setName(QStringLiteral("Script"));
+  }
+
   scriptOk();
 
   qmlDataChanged(data);
@@ -225,10 +237,11 @@ Script* ComponentCache::tryGet(const QByteArray& str, bool isFile) const noexcep
 
 Script* ComponentCache::get(const ProcessModel& process, const QByteArray& str, bool isFile) noexcept
 {
-  QFile f{str};
+  QFile f;
   QByteArray content;
   if (isFile)
   {
+    f.setFileName(str);
     f.open(QIODevice::ReadOnly);
     content = score::mapAsByteArray(f);
   }

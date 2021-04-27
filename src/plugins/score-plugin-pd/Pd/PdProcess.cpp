@@ -227,7 +227,7 @@ Process::Inlet* makeInletFromSpec(const PatchSpec::Control& ctl, const Id<Proces
   {
     inl = new Process::ValueInlet{id, parent};
   }
-  inl->setCustomData(ctl.name);
+  inl->setName(ctl.name);
   return inl;
 }
 static bool checkIfBinaryIsInPath(const QString& binary)
@@ -424,7 +424,7 @@ void ProcessModel::setScript(const QString& script)
       if (m.hasMatch())
       {
         auto p = new Process::AudioInlet{get_next_id(), this};
-        p->setCustomData("Audio In");
+        p->setName("Audio In");
         setAudioInputs(2);
         m_inlets.push_back(p);
       }
@@ -437,7 +437,7 @@ void ProcessModel::setScript(const QString& script)
       {
         auto p = new Process::AudioOutlet{get_next_id(), this};
         p->setPropagate(true);
-        p->setCustomData("Audio Out");
+        p->setName("Audio Out");
         setAudioOutputs(2);
         m_outlets.push_back(p);
       }
@@ -449,7 +449,7 @@ void ProcessModel::setScript(const QString& script)
       if (m.hasMatch())
       {
         auto p = new Process::MidiInlet{get_next_id(), this};
-        p->setCustomData("Midi In");
+        p->setName("Midi In");
         m_inlets.push_back(p);
 
         setMidiInput(true);
@@ -463,7 +463,7 @@ void ProcessModel::setScript(const QString& script)
       if (m.hasMatch())
       {
         auto p = new Process::MidiOutlet{get_next_id(), this};
-        p->setCustomData("Midi Out");
+        p->setName("Midi Out");
         m_outlets.push_back(p);
 
         setMidiOutput(true);
@@ -505,7 +505,7 @@ void ProcessModel::setScript(const QString& script)
 
             Process::Outlet* p{};
             p = new Process::ValueOutlet{get_next_id(), this};
-            p->setCustomData(ctl.name);
+            p->setName(ctl.name);
             m_outlets.push_back(p);
 
             m_spec.sends.push_back(ctl);

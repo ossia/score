@@ -39,6 +39,8 @@ TexgenModel::TexgenModel(
     QObject* parent)
     : Process::ProcessModel{t, id, "Jit", parent}
 {
+  metadata().setName("Texgen");
+  metadata().setLabel(metadata().getName());
   auto audio_out = new Gfx::TextureOutlet{Id<Process::Port>{0}, this};
   this->m_outlets.push_back(audio_out);
   init();

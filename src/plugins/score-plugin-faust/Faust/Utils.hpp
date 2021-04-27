@@ -126,7 +126,7 @@ struct UpdateUI : ::UI
     {
       if (auto inlet = dynamic_cast<Process::Button*>(fx.inlets()[i]))
       {
-        inlet->setCustomData(label);
+        inlet->setName(label);
       }
       else
       {
@@ -154,7 +154,7 @@ struct UpdateUI : ::UI
     {
       if (auto inlet = dynamic_cast<Process::Toggle*>(fx.inlets()[i]))
       {
-        inlet->setCustomData(label);
+        inlet->setName(label);
         if constexpr (SetInit)
           inlet->setValue(bool(*zone));
       }
@@ -190,7 +190,7 @@ struct UpdateUI : ::UI
     {
       if (auto inlet = dynamic_cast<Process::FloatSlider*>(fx.inlets()[i]))
       {
-        inlet->setCustomData(label);
+        inlet->setName(label);
         inlet->setDomain(ossia::make_domain(min, max));
         if constexpr (SetInit)
           inlet->setValue(init);
@@ -243,7 +243,7 @@ struct UpdateUI : ::UI
     {
       if (auto outlet = dynamic_cast<Process::Bargraph*>(fx.outlets()[o]))
       {
-        outlet->setCustomData(label);
+        outlet->setName(label);
         outlet->setDomain(ossia::make_domain(min, max));
       }
       else

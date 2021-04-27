@@ -219,7 +219,10 @@ PortItem::PortItem(const Process::Port& p, const Process::Context& ctx, QGraphic
   this->setAcceptDrops(true);
   this->setAcceptHoverEvents(true);
   this->setFlag(QGraphicsItem::ItemSendsScenePositionChanges, true);
-  this->setToolTip(p.customData());
+  if(!p.description().isEmpty())
+    this->setToolTip(p.description());
+  else if(!p.exposed().isEmpty())
+    this->setToolTip(p.exposed());
 
   connect(&p, &QObject::destroyed, this, [] {
     qDebug("Port destroyed before its item");

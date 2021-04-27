@@ -10,6 +10,7 @@
 #include <score/plugins/SerializableHelpers.hpp>
 
 #include <ossia-qt/value_metatypes.hpp>
+#include <ossia-qt/name_utils.hpp>
 #include <ossia/dataflow/port.hpp>
 
 #include <QDebug>
@@ -78,6 +79,24 @@ void Port::takeCables(Port&& c)
   c.cablesChanged();
 }
 
+const QString& Port::visualName() const noexcept
+{
+  if(Q_LIKELY(!m_name.isEmpty()))
+    return m_name;
+  else
+    return m_exposed;
+}
+
+const QString& Port::visualDescription() const noexcept
+{
+  if(!m_description.isEmpty())
+    return m_description;
+  else if(Q_LIKELY(!m_name.isEmpty()))
+    return m_name;
+  else
+    return m_exposed;
+}
+
 void Port::removeCable(const Path<Cable>& c)
 {
   auto it = ossia::find(m_cables, c);
@@ -88,13 +107,16 @@ void Port::removeCable(const Path<Cable>& c)
   }
 }
 
-const QString& Port::customData() const noexcept
+const QString& Port::name() const noexcept
 {
-  return m_customData;
+  return m_name;
 }
 const QString& Port::exposed() const noexcept
 {
-  return m_exposed;
+  if(!m_exposed.isEmpty())
+    return m_exposed;
+  else
+    return m_name;
 }
 const QString& Port::description() const noexcept
 {
@@ -111,19 +133,34 @@ const std::vector<Path<Cable>>& Port::cables() const noexcept
   return m_cables;
 }
 
-void Port::setCustomData(const QString& customData)
+void Port::setName(const QString& name)
 {
-  if (m_customData == customData)
+  if (m_name == name)
     return;
 
-  m_customData = customData;
-  customDataChanged(m_customData);
+  if(name.isEmpty())
+  {
+    qDebug() << "Warning: tried to create a port with an empty name";
+    return;
+  }
+
+  m_name = name;
+  QString newExposed = m_name.toLower();
+  ossia::net::sanitize_name(newExposed);
+  setExposed(newExposed);
+  nameChanged(m_name);
 }
 
 void Port::setExposed(const QString& exposed)
 {
   if (m_exposed == exposed)
     return;
+
+  if(exposed.isEmpty())
+  {
+    qDebug() << "Warning: tried to create a port with an empty exposed name";
+    return;
+  }
 
   m_exposed = exposed;
   exposedChanged(m_exposed);
@@ -201,7 +238,10 @@ void Inlet::mapExecution(
 {
 }
 
-ControlInlet::ControlInlet(Id<Process::Port> c, QObject* parent) : Inlet{std::move(c), parent} { }
+ControlInlet::ControlInlet(Id<Process::Port> c, QObject* parent) : Inlet{std::move(c), parent}
+{
+  setName("Control");
+}
 ControlInlet::~ControlInlet() { }
 
 ControlInlet::ControlInlet(DataStream::Deserializer& vis, QObject* parent) : Inlet{vis, parent}
@@ -265,7 +305,11 @@ void Outlet::mapExecution(
 
 AudioInlet::~AudioInlet() { }
 
-AudioInlet::AudioInlet(Id<Process::Port> c, QObject* parent) : Inlet{std::move(c), parent} { }
+AudioInlet::AudioInlet(Id<Process::Port> c, QObject* parent)
+  : Inlet{std::move(c), parent}
+{
+  setName("Audio in");
+}
 
 AudioInlet::AudioInlet(DataStream::Deserializer& vis, QObject* parent) : Inlet{vis, parent}
 {
@@ -293,8 +337,9 @@ AudioOutlet::AudioOutlet(Id<Process::Port> c, QObject* parent)
     , m_gain{1.}
     , m_pan{1., 1.}
 {
-  gainInlet->setCustomData("Gain");
-  panInlet->setCustomData("Pan");
+  setName("Audio out");
+  gainInlet->setName("Gain");
+  panInlet->setName("Pan");
 }
 
 AudioOutlet::AudioOutlet(DataStream::Deserializer& vis, QObject* parent) : Outlet{vis, parent}
@@ -383,7 +428,10 @@ void AudioOutlet::setPan(ossia::small_vector<double, 2> pan)
 
 MidiInlet::~MidiInlet() { }
 
-MidiInlet::MidiInlet(Id<Process::Port> c, QObject* parent) : Inlet{std::move(c), parent} { }
+MidiInlet::MidiInlet(Id<Process::Port> c, QObject* parent) : Inlet{std::move(c), parent}
+{
+  setName("MIDI in");
+}
 
 MidiInlet::MidiInlet(DataStream::Deserializer& vis, QObject* parent) : Inlet{vis, parent}
 {
@@ -404,7 +452,10 @@ MidiInlet::MidiInlet(JSONObject::Deserializer&& vis, QObject* parent) : Inlet{vi
 
 MidiOutlet::~MidiOutlet() { }
 
-MidiOutlet::MidiOutlet(Id<Process::Port> c, QObject* parent) : Outlet{std::move(c), parent} { }
+MidiOutlet::MidiOutlet(Id<Process::Port> c, QObject* parent) : Outlet{std::move(c), parent}
+{
+  setName("MIDI out");
+}
 
 MidiOutlet::MidiOutlet(DataStream::Deserializer& vis, QObject* parent) : Outlet{vis, parent}
 {
@@ -425,6 +476,7 @@ MidiOutlet::MidiOutlet(JSONObject::Deserializer&& vis, QObject* parent) : Outlet
 
 ControlOutlet::ControlOutlet(Id<Process::Port> c, QObject* parent) : Outlet{std::move(c), parent}
 {
+  setName("Control out");
 }
 
 ControlOutlet::~ControlOutlet() { }
@@ -458,7 +510,10 @@ void ControlOutlet::loadData(const QByteArray& arr) noexcept
 
 ValueInlet::~ValueInlet() { }
 
-ValueInlet::ValueInlet(Id<Process::Port> c, QObject* parent) : Inlet{std::move(c), parent} { }
+ValueInlet::ValueInlet(Id<Process::Port> c, QObject* parent) : Inlet{std::move(c), parent}
+{
+  setName("Value in");
+}
 
 ValueInlet::ValueInlet(DataStream::Deserializer& vis, QObject* parent) : Inlet{vis, parent}
 {
@@ -479,7 +534,10 @@ ValueInlet::ValueInlet(JSONObject::Deserializer&& vis, QObject* parent) : Inlet{
 
 ValueOutlet::~ValueOutlet() { }
 
-ValueOutlet::ValueOutlet(Id<Process::Port> c, QObject* parent) : Outlet{std::move(c), parent} { }
+ValueOutlet::ValueOutlet(Id<Process::Port> c, QObject* parent) : Outlet{std::move(c), parent}
+{
+  setName("Value out");
+}
 
 ValueOutlet::ValueOutlet(DataStream::Deserializer& vis, QObject* parent) : Outlet{vis, parent}
 {
@@ -669,7 +727,7 @@ std::unique_ptr<Outlet> load_outlet(JSONWriter& wr, QObject* parent)
 static auto copy_port(Port&& src, Port& dst)
 {
   dst.hidden = src.hidden;
-  dst.setCustomData(src.customData());
+  dst.setName(src.name());
   dst.setAddress(src.address());
   dst.setExposed(src.exposed());
   dst.setDescription(src.description());
@@ -792,14 +850,14 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<Process::Port>(const Process::Port& p)
 {
   insertDelimiter();
-  m_stream << p.hidden << p.m_customData << p.m_exposed << p.m_description << p.m_address;
+  m_stream << p.hidden << p.m_name << p.m_exposed << p.m_description << p.m_address;
   insertDelimiter();
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::Port>(Process::Port& p)
 {
   checkDelimiter();
-  m_stream >> p.hidden >> p.m_customData >> p.m_exposed >> p.m_description >> p.m_address;
+  m_stream >> p.hidden >> p.m_name >> p.m_exposed >> p.m_description >> p.m_address;
   checkDelimiter();
 }
 
@@ -807,8 +865,8 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::Port>(const Process::Port& p)
 {
   obj["Hidden"] = (bool)p.hidden;
-  if (!p.m_customData.isEmpty())
-    obj["Custom"] = p.m_customData;
+  if (!p.m_name.isEmpty())
+    obj["Custom"] = p.m_name;
   if (!p.m_exposed.isEmpty())
     obj["Exposed"] = p.m_exposed;
   if (!p.m_description.isEmpty())
@@ -821,7 +879,7 @@ SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::Port>(Process::Port& p)
 {
   p.hidden = obj["Hidden"].toBool();
   if (auto it = obj.tryGet("Custom"))
-    p.m_customData = it->toString();
+    p.m_name = it->toString();
   if (auto it = obj.tryGet("Exposed"))
     p.m_exposed = it->toString();
   if (auto it = obj.tryGet("Description"))

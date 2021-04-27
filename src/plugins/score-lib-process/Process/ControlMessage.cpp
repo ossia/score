@@ -15,9 +15,9 @@ QString ControlMessage::name(const score::DocumentContext& ctx) const noexcept
   {
     auto parent = qobject_cast<Process::ProcessModel*>(port->parent());
     if (parent)
-      return parent->metadata().getName() + " (" + port->customData() + ")";
+      return parent->metadata().getName() + " (" + port->description() + ")";
     else
-      return port->customData();
+      return port->description();
   }
   return QStringLiteral("(deleted)");
 }

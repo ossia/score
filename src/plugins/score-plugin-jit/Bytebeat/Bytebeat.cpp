@@ -91,6 +91,8 @@ BytebeatModel::BytebeatModel(
     setScript(Process::EffectProcessFactory_T<Jit::BytebeatModel>{}.customConstructionData());
   else
     setScript(jitProgram);
+
+  metadata().setInstanceName(*this);
 }
 
 BytebeatModel::~BytebeatModel() {}

@@ -16,10 +16,10 @@ static void fillPortName(QString& name, const Process::Port& port)
     auto model = p->findChild<score::ModelMetadata*>({}, Qt::FindDirectChildrenOnly);
     if(model)
     {
-      if(!port.customData().isEmpty())
+      if(!port.name().isEmpty())
       {
         name += QString(": %1 (%2)")
-            .arg(port.customData())
+            .arg(port.name())
             .arg(model->getName());
       }
       else
@@ -35,10 +35,10 @@ static void fillPortName(QString& name, const Process::Port& port)
          model = p->findChild<score::ModelMetadata*>({}, Qt::FindDirectChildrenOnly);
          if(model)
          {
-           if(!port.customData().isEmpty())
+           if(!port.name().isEmpty())
            {
              name += QString(": %1 (%2)")
-                 .arg(port.customData())
+                 .arg(port.name())
                  .arg(model->getName());
            }
            else

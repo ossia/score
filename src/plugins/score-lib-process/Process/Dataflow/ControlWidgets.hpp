@@ -318,7 +318,8 @@ struct Button
       QObject* context)
   {
     auto sl = new QPushButton{parent};
-    sl->setText(inlet.customData().isEmpty() ? QObject::tr("Bang") : inlet.customData());
+    const auto& name = inlet.visualName();
+    sl->setText(name.isEmpty() ? QObject::tr("Bang") : name);
     sl->setContentsMargins(0, 0, 0, 0);
 
     // TODO should we not make a command here

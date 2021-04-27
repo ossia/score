@@ -28,9 +28,9 @@ public:
         {const_cast<Process_T*>(&model)}, score::IDocument::documentContext(model));
 
     for (auto& port : model.inlets())
-      m_oldInlets.emplace_back(SavedPort{port->customData(), port->type(), port->saveData()});
+      m_oldInlets.emplace_back(SavedPort{port->name(), port->type(), port->saveData()});
     for (auto& port : model.outlets())
-      m_oldOutlets.emplace_back(SavedPort{port->customData(), port->type(), port->saveData()});
+      m_oldOutlets.emplace_back(SavedPort{port->name(), port->type(), port->saveData()});
   }
 
 private:
@@ -124,7 +124,7 @@ private:
       auto new_p = cmt.inlets()[i];
       auto& old_p = m_oldInlets[i];
 
-      if (new_p->type() == old_p.type && new_p->customData() == old_p.name)
+      if (new_p->type() == old_p.type && new_p->name() == old_p.name)
       {
         new_p->loadData(old_p.data);
         restoreCables(*new_p, doc, ctx, m_oldCables);
@@ -136,7 +136,7 @@ private:
       auto new_p = cmt.outlets()[i];
       auto& old_p = m_oldOutlets[i];
 
-      if (new_p->type() == old_p.type && new_p->customData() == old_p.name)
+      if (new_p->type() == old_p.type && new_p->name() == old_p.name)
       {
         new_p->loadData(old_p.data);
         restoreCables(*new_p, doc, ctx, m_oldCables);

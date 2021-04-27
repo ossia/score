@@ -15,7 +15,7 @@ public:
       : QWidget{parent}
   {
     auto lay = new Inspector::Layout{this};
-    lay->addRow(port.customData(), (QWidget*)nullptr);
+    lay->addRow(port.name(), (QWidget*)nullptr);
 
     auto& pf = ctx.app.interfaces<Process::PortFactoryList>();
     auto fact = pf.get(port.concreteKey());
@@ -32,7 +32,7 @@ public:
       : QWidget{parent}
   {
     auto lay = new Inspector::Layout{this};
-    lay->addRow(port.customData(), (QWidget*)nullptr);
+    lay->addRow(port.name(), (QWidget*)nullptr);
 
     auto& pf = ctx.app.interfaces<Process::PortFactoryList>();
     auto fact = pf.get(port.concreteKey());

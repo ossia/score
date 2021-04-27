@@ -100,7 +100,7 @@ auto createControl(
     lab->setText(QObject::tr("Control"));
 
   QObject::connect(
-      &port, &Process::ControlInlet::customDataChanged, item, [=](const QString& txt) {
+      &port, &Process::ControlInlet::nameChanged, item, [=](const QString& txt) {
         lab->setText(txt);
       });
 

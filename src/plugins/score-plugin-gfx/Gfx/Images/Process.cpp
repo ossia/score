@@ -19,18 +19,18 @@ Model::Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObje
 {
   metadata().setInstanceName(*this);
   m_inlets.push_back(new Process::IntSpinBox{Id<Process::Port>(0), this});
-  m_inlets.back()->setCustomData(tr("Index"));
+  m_inlets.back()->setName(tr("Index"));
   {
     auto opacity = new Process::FloatSlider{Id<Process::Port>(1), this};
-    opacity->setCustomData(tr("Opacity"));
+    opacity->setName(tr("Opacity"));
     opacity->setValue(1.);
     m_inlets.push_back(opacity);
   }
   m_inlets.push_back(new Process::XYSlider{Id<Process::Port>(2), this});
-  m_inlets.back()->setCustomData(tr("Position"));
+  m_inlets.back()->setName(tr("Position"));
   {
     auto scale = new Process::XYSlider{Id<Process::Port>(3), this};
-    scale->setCustomData(tr("Scale"));
+    scale->setName(tr("Scale"));
     scale->setValue(ossia::vec2f{1., 1.});
     scale->setDomain(ossia::make_domain(ossia::vec2f{0.01, 0.01}, ossia::vec2f{10., 10.}));
     m_inlets.push_back(scale);

@@ -112,7 +112,10 @@ public:
   void removeCable(const Path<Process::Cable>& c);
   void takeCables(Process::Port&& c);
 
-  const QString& customData() const noexcept;
+  const QString& visualName() const noexcept;
+  const QString& visualDescription() const noexcept;
+
+  const QString& name() const noexcept;
   const State::AddressAccessor& address() const noexcept;
   const std::vector<Path<Cable>>& cables() const noexcept;
   const QString& exposed() const noexcept;
@@ -121,8 +124,8 @@ public:
   virtual PortType type() const noexcept = 0;
 
 public:
-  void setCustomData(const QString& customData);
-  W_SLOT(setCustomData);
+  void setName(const QString& customData);
+  W_SLOT(setName);
   void setExposed(const QString& add);
   W_SLOT(setExposed);
   void setDescription(const QString& add);
@@ -130,17 +133,19 @@ public:
   void setAddress(const State::AddressAccessor& address);
   W_SLOT(setAddress);
 
-  void exposedChanged(const QString& addr) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, exposedChanged, addr)
+  void nameChanged(const QString& name)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, nameChanged, name)
+  void exposedChanged(const QString& addr)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, exposedChanged, addr)
   void descriptionChanged(const QString& txt)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, descriptionChanged, txt)
-  void cablesChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, cablesChanged)
-  void customDataChanged(const QString& customData)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, customDataChanged, customData)
+  void cablesChanged()
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, cablesChanged)
   void addressChanged(const State::AddressAccessor& address)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, addressChanged, address)
 
   PROPERTY(State::AddressAccessor, address READ address WRITE setAddress NOTIFY addressChanged)
-  PROPERTY(QString, customData READ customData WRITE setCustomData NOTIFY customDataChanged)
+  PROPERTY(QString, name READ name WRITE setName NOTIFY nameChanged)
 
   virtual QByteArray saveData() const noexcept;
   virtual void loadData(const QByteArray& arr) noexcept;
@@ -158,7 +163,7 @@ protected:
 
 private:
   std::vector<Path<Cable>> m_cables;
-  QString m_customData;
+  QString m_name;
   QString m_exposed;
   QString m_description;
   State::AddressAccessor m_address;

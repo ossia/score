@@ -85,7 +85,7 @@ void PortWidgetSetup::setupAlone(
     Inspector::Layout& lay,
     QWidget* parent)
 {
-  setupImpl(port.customData(), port, ctx, lay, parent);
+  setupImpl(port.name(), port, ctx, lay, parent);
 }
 
 void PortWidgetSetup::setupInLayout(
@@ -107,7 +107,7 @@ void PortWidgetSetup::setupControl(
   auto widg = new QWidget;
   auto advBtn = new score::ArrowButton{Qt::RightArrow, widg};
 
-  auto lab = new TextLabel{inlet.customData(), widg};
+  auto lab = new TextLabel{inlet.name(), widg};
   auto hl = new score::MarginLess<QHBoxLayout>{widg};
   hl->addWidget(advBtn);
   hl->addWidget(lab);
@@ -140,7 +140,7 @@ void PortWidgetSetup::setupControl(
   auto widg = new QWidget;
   auto advBtn = new score::ArrowButton{Qt::RightArrow, widg};
 
-  auto lab = new TextLabel{inlet.customData(), widg};
+  auto lab = new TextLabel{inlet.name(), widg};
   auto hl = new score::MarginLess<QHBoxLayout>{widg};
   hl->addWidget(advBtn);
   hl->addWidget(lab);

@@ -35,7 +35,7 @@ namespace Automation
 
 void ProcessModel::init()
 {
-  outlet->setCustomData("Out");
+  outlet->setName("Out");
   m_outlets.push_back(outlet.get());
   connect(
       outlet.get(), &Process::Port::addressChanged, this, [=](const State::AddressAccessor& arg) {
@@ -98,7 +98,7 @@ QString ProcessModel::prettyName() const noexcept
     if (Process::Cable* cbl = cables.front().try_find(doc))
       if (Process::Port* inlet = cbl->sink().try_find(doc))
       {
-        QString name = inlet->customData();
+        QString name = inlet->name();
         auto inlet_parent = inlet->parent();
         auto process = qobject_cast<Process::ProcessModel*>(inlet_parent);
         if (process)
