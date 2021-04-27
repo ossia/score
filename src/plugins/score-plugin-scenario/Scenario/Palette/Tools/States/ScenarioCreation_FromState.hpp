@@ -267,9 +267,10 @@ private:
     Scenario::EditionSettings& settings = this->m_parentSM.editionSettings();
     const bool sequence = settings.tool() == Tool::CreateSequence;
     const bool new_event = qApp->keyboardModifiers() & Qt::ALT;
+    const bool graph_interval = settings.tool() == Scenario::Tool::CreateGraph;
     auto& st = scenar.state(*this->clickedState);
     auto& ev = Scenario::parentEvent(st, scenar);
-    if(ev.date() > this->currentPoint.date)
+    if(ev.date() > this->currentPoint.date && !graph_interval)
       return;
 
     if (new_event && !sequence)
