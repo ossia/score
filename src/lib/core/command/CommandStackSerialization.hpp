@@ -26,19 +26,30 @@ void loadCommandStack(
   stack.updateStack([&]() {
     stack.setSavedIndex(-1);
 
+    bool ok = true;
     for (const auto& elt : undoStack)
     {
       auto cmd = components.instantiateUndoCommand(elt);
 
-      redo_fun(cmd);
-      stack.undoable().push(cmd);
+      if(redo_fun(cmd))
+      {
+        stack.undoable().push(cmd);
+      }
+      else
+      {
+        ok = false;
+        break;
+      }
     }
 
-    for (const auto& elt : redoStack)
+    if(ok)
     {
-      auto cmd = components.instantiateUndoCommand(elt);
+      for (const auto& elt : redoStack)
+      {
+        auto cmd = components.instantiateUndoCommand(elt);
 
-      stack.redoable().push(cmd);
+        stack.redoable().push(cmd);
+      }
     }
   });
 }

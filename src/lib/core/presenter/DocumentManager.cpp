@@ -448,6 +448,7 @@ DocumentManager::loadStack(const score::GUIApplicationContext& ctx, const QStrin
 
     loadCommandStack(ctx.components, writer, doc->commandStack(), [doc](auto cmd) {
       cmd->redo(doc->context());
+      return true;
     });
     return doc;
   }
