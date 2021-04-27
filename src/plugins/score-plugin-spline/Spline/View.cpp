@@ -184,8 +184,14 @@ public:
     // we take 16.6 as zoom ratio
     const double w = m_bottomRight.x() - m_topLeft.x();
     const double h = m_bottomRight.y() - m_topLeft.y();
+    if(w < 5 || h < 5)
+      return;
+
     const double parent_w = parentRect.width();
     const double parent_h = parentRect.height();
+    if(parent_w < 5 || parent_h < 5)
+      return;
+
     const double w_ratio = parent_w / w;
     const double h_ratio = parent_h / h;
 
