@@ -25,6 +25,6 @@ protected:
 
 private:
   Path<ProcessModel> m_model;
-  QVector<QPair<Id<Note>, NoteData>> m_notes;
+  std::vector<std::pair<Id<Note>, NoteData>> m_notes;
 };
 }

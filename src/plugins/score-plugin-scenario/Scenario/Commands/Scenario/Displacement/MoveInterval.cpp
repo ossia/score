@@ -27,11 +27,11 @@ MoveInterval::MoveInterval(
 
   for (auto& elt : list)
   {
-    m_selectedIntervals.append({elt->id(), elt->heightPercentage()});
+    m_selectedIntervals.push_back({elt->id(), elt->heightPercentage()});
   }
 
   if (m_selectedIntervals.empty())
-    m_selectedIntervals.append({m_interval, m_oldHeight});
+    m_selectedIntervals.push_back({m_interval, m_oldHeight});
 }
 
 void MoveInterval::undo(const score::DocumentContext& ctx) const

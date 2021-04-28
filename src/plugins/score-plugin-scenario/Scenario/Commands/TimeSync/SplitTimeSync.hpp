@@ -22,7 +22,7 @@ class SplitTimeSync final : public score::Command
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), SplitTimeSync, "Desynchronize")
 public:
-  SplitTimeSync(const TimeSyncModel& path, QVector<Id<EventModel>> eventsInNewTimeSync);
+  SplitTimeSync(const TimeSyncModel& path, std::vector<Id<EventModel>> eventsInNewTimeSync);
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 
@@ -32,7 +32,7 @@ protected:
 
 private:
   Path<TimeSyncModel> m_path;
-  QVector<Id<EventModel>> m_eventsInNewTimeSync;
+  std::vector<Id<EventModel>> m_eventsInNewTimeSync;
 
   Id<TimeSyncModel> m_originalTimeSyncId;
   Id<TimeSyncModel> m_newTimeSyncId;

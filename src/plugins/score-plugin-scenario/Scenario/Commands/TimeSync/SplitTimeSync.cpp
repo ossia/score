@@ -22,7 +22,7 @@ namespace Command
 
 SplitTimeSync::SplitTimeSync(
     const TimeSyncModel& path,
-    QVector<Id<EventModel>> eventsInNewTimeSync)
+    std::vector<Id<EventModel>> eventsInNewTimeSync)
     : m_path{path}, m_eventsInNewTimeSync(std::move(eventsInNewTimeSync))
 {
   m_originalTimeSyncId = path.id();

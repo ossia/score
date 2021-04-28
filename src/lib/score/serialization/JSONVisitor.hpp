@@ -1,10 +1,11 @@
 #pragma once
-#include <score/model/EntityBase.hpp>
 #include <score/serialization/CommonTypes.hpp>
 #include <score/serialization/StringConstants.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 #include <score/serialization/VisitorTags.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/tools/ForEach.hpp>
+#include <score/tools/Debug.hpp>
 
 #include <ossia/detail/flat_set.hpp>
 #include <ossia/detail/json.hpp>
@@ -13,15 +14,22 @@
 #include <boost/container/small_vector.hpp>
 #include <boost/container/static_vector.hpp>
 
+#include <verdigris>
+
 #include <QDebug>
+
+template <typename T>
+class IdentifiedObject;
 
 /**
  * This file contains facilities
  * to serialize an object into a QJsonObject.
  */
-
 namespace score
 {
+template <typename T>
+class Entity;
+
 class ApplicationComponents;
 }
 using JsonWriter = ossia::json_writer;
@@ -74,17 +82,12 @@ public:
   void read(const unsigned char&) const noexcept = delete;
 
   //! Called by code that wants to serialize.
+  //! The two next methodsDefined in EntitySerialization.hpp
   template <typename T>
-  void readFrom(const score::Entity<T>& obj)
-  {
-    TSerializer<JSONObject, score::Entity<T>>::readFrom(*this, obj);
-  }
+  void readFrom(const score::Entity<T>& obj);
 
   template <typename T>
-  void readFrom(const IdentifiedObject<T>& obj)
-  {
-    TSerializer<JSONObject, IdentifiedObject<T>>::readFrom(*this, obj);
-  }
+  void readFrom(const IdentifiedObject<T>& obj);
 
   void readFrom(const QString& obj) noexcept { readFrom(obj.toUtf8()); }
   void readFrom(const QByteArray& t) noexcept { stream.String(t.data(), t.size()); }
@@ -1024,8 +1027,8 @@ struct TSerializer<JSONObject, std::array<float, N>> : ArraySerializer
 {
 };
 
-template <typename T, typename U>
-struct TSerializer<JSONObject, IdContainer<T, U>> : ArraySerializer
+template <typename T, typename U, typename V>
+struct TSerializer<JSONObject, IdContainer<T, U, V>> : ArraySerializer
 {
 };
 

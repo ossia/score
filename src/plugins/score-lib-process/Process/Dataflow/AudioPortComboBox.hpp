@@ -1,4 +1,5 @@
 #pragma once
+#include <score/document/DocumentContext.hpp>
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Node/DeviceNode.hpp>
 #include <State/Address.hpp>

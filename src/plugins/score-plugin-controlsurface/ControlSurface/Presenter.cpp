@@ -36,7 +36,7 @@ Presenter::Presenter(const Model& layer, View* view, const Process::Context& ctx
 
 
   connect(view, &View::addressesDropped, this, [this, &layer](State::MessageList lst) {
-    if (lst.isEmpty())
+    if (lst.empty())
       return;
 
     auto& docctx = this->context().context;

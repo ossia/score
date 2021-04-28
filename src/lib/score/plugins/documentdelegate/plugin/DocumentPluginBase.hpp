@@ -1,4 +1,5 @@
 #pragma once
+#include <score/model/IdentifiedObject.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/plugins/SerializableInterface.hpp>
 #include <score/serialization/VisitorCommon.hpp>

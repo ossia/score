@@ -32,7 +32,7 @@ protected:
 
 private:
   Path<ProcessModel> m_model;
-  QVector<QPair<Id<Note>, NoteData>> m_before, m_after;
+  std::vector<std::pair<Id<Note>, NoteData>> m_before, m_after;
 };
 
 class ChangeNotesVelocity final : public score::Command
@@ -55,6 +55,6 @@ protected:
 
 private:
   Path<ProcessModel> m_model;
-  QVector<QPair<Id<Note>, NoteData>> m_before, m_after;
+  std::vector<std::pair<Id<Note>, NoteData>> m_before, m_after;
 };
 }

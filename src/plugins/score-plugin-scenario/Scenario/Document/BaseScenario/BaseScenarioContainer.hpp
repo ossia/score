@@ -1,4 +1,5 @@
 #pragma once
+#include <score/document/DocumentContext.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 
 #include <score/model/Identifier.hpp>

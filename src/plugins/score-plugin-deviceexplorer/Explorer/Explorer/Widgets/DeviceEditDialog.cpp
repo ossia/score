@@ -14,6 +14,7 @@
 #include <score/application/GUIApplicationContext.hpp>
 #include <core/document/Document.hpp>
 #include <ossia/detail/algorithms.hpp>
+#include <score/model/Skin.hpp>
 
 #include <QComboBox>
 #include <QDialogButtonBox>

@@ -108,7 +108,7 @@ void NodeUpdateProxy::rec_addNode(Device::NodePath parentPath, const Device::Nod
 {
   addAddress(parentPath, n.template get<Device::AddressSettings>(), row);
 
-  parentPath.append(row);
+  parentPath.push_back(row);
 
   int r = 0;
   for (const auto& child : n.children())

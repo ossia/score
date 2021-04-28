@@ -1,4 +1,5 @@
 #pragma once
+#include <score/document/DocumentContext.hpp>
 #include <Device/ItemModels/NodeBasedItemModel.hpp>
 #include <Device/Node/DeviceNode.hpp>
 #include <Explorer/Explorer/Column.hpp>

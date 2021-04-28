@@ -31,7 +31,7 @@ void RemoveAddress::undo(const score::DocumentContext& ctx) const
 {
   auto& devplug = ctx.plugin<DeviceDocumentPlugin>();
   auto parentPath = m_nodePath;
-  parentPath.removeLast();
+  parentPath.pop_back();
 
   devplug.updateProxy.addNode(parentPath, m_savedNode, m_nodePath.back());
 }
@@ -40,7 +40,7 @@ void RemoveAddress::redo(const score::DocumentContext& ctx) const
 {
   auto& devplug = ctx.plugin<DeviceDocumentPlugin>();
   auto parentPath = m_nodePath;
-  parentPath.removeLast();
+  parentPath.pop_back();
   devplug.updateProxy.removeNode(parentPath, m_savedNode.get<Device::AddressSettings>());
 }
 

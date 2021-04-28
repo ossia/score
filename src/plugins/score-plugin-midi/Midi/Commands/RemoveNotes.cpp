@@ -16,7 +16,7 @@ RemoveNotes::RemoveNotes(const ProcessModel& model, const std::vector<Id<Note>>&
   {
     auto& note = model.notes.at(id);
     m_notes.push_back(
-        qMakePair(id, NoteData{note.start(), note.duration(), note.pitch(), note.velocity()}));
+        std::make_pair(id, NoteData{note.start(), note.duration(), note.pitch(), note.velocity()}));
   }
 }
 

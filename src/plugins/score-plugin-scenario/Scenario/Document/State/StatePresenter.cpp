@@ -151,7 +151,7 @@ void StatePresenter::handleDrop(const QMimeData& mime)
         auto path = u.toLocalFile();
         if (QFile f{path}; f.open(QIODevice::ReadOnly))
         {
-          ml += JsonValue{readJson(f.readAll())}.to<State::MessageList>();
+          ossia::insert_at_end(ml, JsonValue{readJson(f.readAll())}.to<State::MessageList>());
         }
       }
       if (!ml.empty())

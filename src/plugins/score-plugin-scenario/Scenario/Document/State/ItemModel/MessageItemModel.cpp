@@ -178,9 +178,10 @@ QMimeData* MessageItemModel::mimeData(const QModelIndexList& indexes) const
   nodes.parents = filterUniqueParents(nodes.parents);
 
   State::MessageList messages;
+  messages.reserve(nodes.parents.size());
   for (auto* node : nodes.parents)
   {
-    messages += flatten(*node);
+    ossia::insert_at_end(messages, flatten(*node));
   }
 
   if (!messages.empty())
@@ -255,7 +256,7 @@ bool MessageItemModel::dropMimeData(
       auto path = u.toLocalFile();
       if (QFile f{path}; QFileInfo{f}.suffix() == "cues" && f.open(QIODevice::ReadOnly))
       {
-        ml += fromJson<State::MessageList>(f.readAll());
+        ossia::insert_at_end(ml, fromJson<State::MessageList>(f.readAll()));
       }
     }
 

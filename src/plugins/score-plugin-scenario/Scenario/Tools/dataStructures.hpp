@@ -42,8 +42,8 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT IntervalSaveData
   void reload(IntervalModel&) const;
 
   Path<IntervalModel> intervalPath;
-  QVector<QByteArray> processes;
-  QVector<QByteArray> racks;
+  std::vector<QByteArray> processes;
+  std::vector<QByteArray> racks;
 };
 
 struct IntervalProperties : public IntervalSaveData

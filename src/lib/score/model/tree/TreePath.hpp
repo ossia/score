@@ -3,7 +3,7 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
-#include <QList>
+#include <vector>
 #include <QModelIndex>
 template <typename T>
 using ref = T&;
@@ -30,10 +30,10 @@ enum class InsertMode
 // Sadly we can't have a non-const interface
 // because of QList<Node*> in Node::children...
 template <typename T>
-class TreePath : public QList<int>
+class TreePath : public std::vector<int>
 {
 private:
-  using impl_type = QList<int>;
+  using impl_type = std::vector<int>;
 
 public:
   TreePath() = default;
@@ -42,6 +42,9 @@ public:
   TreePath(QModelIndex index)
   {
     QModelIndex iter = index;
+
+    if(iter.isValid())
+      reserve(4);
 
     while (iter.isValid())
     {
@@ -62,6 +65,11 @@ public:
       prepend(iter->parent()->indexOfChild(iter));
       iter = iter->parent();
     }
+  }
+
+  void prepend(int val)
+  {
+    this->insert(this->begin(), val);
   }
 
   const T* toNode(const T* iter) const
@@ -104,16 +112,16 @@ public:
 };
 
 template <typename T>
-struct TSerializer<DataStream, TreePath<T>>
+struct TSerializer<DataStream, TreePath<T>> : TSerializer<DataStream, std::vector<int>>
 {
   static void readFrom(DataStream::Serializer& s, const TreePath<T>& path)
   {
-    s.stream() << static_cast<const QList<int>&>(path);
+     TSerializer<DataStream, std::vector<int>>::readFrom(s, static_cast<const std::vector<int>&>(path));
   }
 
   static void writeTo(DataStream::Deserializer& s, TreePath<T>& path)
   {
-    s.stream() >> static_cast<QList<int>&>(path);
+    TSerializer<DataStream, std::vector<int>>::writeTo(s, static_cast<std::vector<int>&>(path));
   }
 };
 
@@ -122,11 +130,11 @@ struct TSerializer<JSONObject, TreePath<T>>
 {
   static void readFrom(JSONObject::Serializer& s, const TreePath<T>& path)
   {
-    s.obj[s.strings.Path] = static_cast<const QList<int>&>(path);
+    s.obj[s.strings.Path] = static_cast<const std::vector<int>&>(path);
   }
 
   static void writeTo(JSONObject::Deserializer& s, TreePath<T>& path)
   {
-    static_cast<QList<int>&>(path) <<= s.obj[s.strings.Path];
+    static_cast<std::vector<int>&>(path) <<= s.obj[s.strings.Path];
   }
 };

@@ -6,9 +6,7 @@
 #include <score/model/path/Path.hpp>
 #include <score/tools/Unused.hpp>
 #include <score/tools/std/Optional.hpp>
-
-#include <QMap>
-#include <QPair>
+#include <ossia/detail/flat_map.hpp>
 
 #include <score_plugin_curve_export.h>
 
@@ -19,7 +17,7 @@ namespace Curve
 {
 class Model;
 class SegmentModel;
-using SegmentParameterMap = QMap<Id<SegmentModel>, QPair<double, double>>;
+using SegmentParameterMap = ossia::flat_map<Id<SegmentModel>, std::pair<double, double>>;
 class SCORE_PLUGIN_CURVE_EXPORT SetSegmentParameters final : public score::Command
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), SetSegmentParameters, "Set segment parameters")
@@ -38,6 +36,6 @@ protected:
 private:
   Path<Model> m_model;
   SegmentParameterMap m_new;
-  QMap<Id<SegmentModel>, QPair<std::optional<double>, std::optional<double>>> m_old;
+  ossia::flat_map<Id<SegmentModel>, std::pair<std::optional<double>, std::optional<double>>> m_old;
 };
 }

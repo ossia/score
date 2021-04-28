@@ -1,6 +1,7 @@
 #pragma once
 
 #include <score/model/Identifier.hpp>
+#include <score/tools/Metadata.hpp>
 #include <score/plugins/Interface.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 

@@ -23,10 +23,10 @@ MoveNotes::MoveNotes(
   {
     auto& note = model.notes.at(note_id);
     NoteData data = note.noteData();
-    m_before.push_back(qMakePair(note.id(), data));
+    m_before.push_back(std::make_pair(note.id(), data));
     data.m_pitch = qBound(0, data.m_pitch + note_delta, 127);
     data.m_start = std::max(data.m_start + t_delta, 0.);
-    m_after.push_back(qMakePair(note.id(), data));
+    m_after.push_back(std::make_pair(note.id(), data));
   }
 }
 
@@ -86,9 +86,9 @@ ChangeNotesVelocity::ChangeNotesVelocity(
   {
     auto& note = model.notes.at(note_id);
     NoteData data = note.noteData();
-    m_before.push_back(qMakePair(note.id(), data));
+    m_before.push_back(std::make_pair(note.id(), data));
     data.m_velocity = qBound(0, int(data.m_velocity + vel_delta), 127);
-    m_after.push_back(qMakePair(note.id(), data));
+    m_after.push_back(std::make_pair(note.id(), data));
   }
 }
 

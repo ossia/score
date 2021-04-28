@@ -7,10 +7,9 @@
 #include <score/model/path/Path.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <ossia/detail/flat_map.hpp>
 
 #include <QJsonObject>
-#include <QMap>
-#include <QVector>
 
 #include <ossia/detail/json.hpp>
 namespace Scenario
@@ -42,18 +41,17 @@ protected:
 private:
   Path<Scenario::ProcessModel> m_ts;
 
-  // TODO std::vector...
-  QVector<Id<TimeSyncModel>> m_ids_timesyncs;
-  QVector<Id<IntervalModel>> m_ids_intervals;
-  QVector<Id<EventModel>> m_ids_events;
-  QVector<Id<StateModel>> m_ids_states;
+  std::vector<Id<TimeSyncModel>> m_ids_timesyncs;
+  std::vector<Id<IntervalModel>> m_ids_intervals;
+  std::vector<Id<EventModel>> m_ids_events;
+  std::vector<Id<StateModel>> m_ids_states;
 
-  QVector<QByteArray> m_json_timesyncs;
-  QVector<QByteArray> m_json_intervals;
-  QVector<QByteArray> m_json_events;
-  QVector<QByteArray> m_json_states;
+  std::vector<QByteArray> m_json_timesyncs;
+  std::vector<QByteArray> m_json_intervals;
+  std::vector<QByteArray> m_json_events;
+  std::vector<QByteArray> m_json_states;
 
-  QMap<Id<Process::Cable>, Process::CableData> m_cables;
+  ossia::flat_map<Id<Process::Cable>, Process::CableData> m_cables;
 };
 }
 }

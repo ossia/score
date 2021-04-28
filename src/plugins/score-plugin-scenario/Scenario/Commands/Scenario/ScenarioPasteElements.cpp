@@ -22,6 +22,7 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+#include <score/serialization/MapSerialization.hpp>
 #include <score/tools/Clamp.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
@@ -171,7 +172,7 @@ ScenarioPasteElements::ScenarioPasteElements(
           source_vec.begin(), p.unsafePath().vec().begin(), p.unsafePath().vec().end());
       sink_vec.insert(sink_vec.begin(), p.unsafePath().vec().begin(), p.unsafePath().vec().end());
 
-      m_cables.insert(cable_ids[i], std::move(cd));
+      m_cables.insert({cable_ids[i], std::move(cd)});
       i++;
     }
   }
@@ -329,7 +330,7 @@ void ScenarioPasteElements::undo(const score::DocumentContext& ctx) const
 
   ScenarioDocumentModel& model
       = score::IDocument::modelDelegate<ScenarioDocumentModel>(ctx.document);
-  for (const auto& cable_id : m_cables.keys())
+  for (const auto& [cable_id, cable_data] : m_cables)
   {
     auto& c = model.cables.at(cable_id);
     c.source().find(ctx).removeCable(c);
@@ -391,9 +392,8 @@ void ScenarioPasteElements::redo(const score::DocumentContext& ctx) const
 
   ScenarioDocumentModel& model
       = score::IDocument::modelDelegate<ScenarioDocumentModel>(ctx.document);
-  for (const auto& cable_id : m_cables.keys())
+  for (const auto& [cable_id, dat] : m_cables)
   {
-    const auto& dat = m_cables[cable_id];
     auto c = new Process::Cable{cable_id, dat, &model};
 
     Path<Scenario::ScenarioDocumentModel> model_path{model};

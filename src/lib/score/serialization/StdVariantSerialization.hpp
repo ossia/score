@@ -3,6 +3,7 @@
 #include <score/serialization/JSONVisitor.hpp>
 
 #include <ossia/detail/for_each.hpp>
+#include <score/tools/Metadata.hpp>
 
 #include <variant>
 

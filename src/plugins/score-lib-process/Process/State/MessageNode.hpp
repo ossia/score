@@ -5,7 +5,6 @@
 
 #include <score/model/Identifier.hpp>
 #include <score/model/tree/TreeNode.hpp>
-#include <score/model/tree/TreePath.hpp>
 #include <score/tools/std/Optional.hpp>
 
 #include <QString>
@@ -71,7 +70,6 @@ SCORE_LIB_PROCESS_EXPORT QDebug operator<<(QDebug d, const ProcessStateData& mes
 SCORE_LIB_PROCESS_EXPORT QDebug operator<<(QDebug d, const StateNodeData& mess);
 
 using MessageNode = TreeNode<StateNodeData>;
-using MessageNodePath = TreePath<MessageNode>;
 
 SCORE_LIB_PROCESS_EXPORT State::AddressAccessor address(const MessageNode& treeNode);
 SCORE_LIB_PROCESS_EXPORT State::Message message(const MessageNode& node);

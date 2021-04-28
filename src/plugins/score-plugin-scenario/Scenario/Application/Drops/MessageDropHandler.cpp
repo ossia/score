@@ -16,6 +16,8 @@
 
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 
+#include <ossia/detail/algorithms.hpp>
+
 #include <QFile>
 #include <QFileInfo>
 #include <QMimeData>
@@ -54,7 +56,8 @@ bool MessageDropHandler::drop(
         auto json = readJson(f.readAll());
         JSONWriter wr{json};
         sub <<= JsonValue{wr.base};
-        ml += sub;
+
+        ossia::insert_at_end(ml, std::move(sub));
       }
     }
   }

@@ -674,6 +674,7 @@ QMimeData* DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
 
   // The "MessagesList" part.
   State::MessageList messages;
+  messages.reserve(uniqueNodes.parents.size() + uniqueNodes.messages.size());
   for (const auto& node : uniqueNodes.parents)
   {
     Device::parametersList(*node, messages);
@@ -681,7 +682,7 @@ QMimeData* DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
 
   for (const auto& node : uniqueNodes.messages)
   {
-    messages += Device::message(*node);
+    messages.push_back(Device::message(*node));
   }
 
   if (!messages.empty())
@@ -964,13 +965,14 @@ State::MessageList getSelectionSnapshot(DeviceExplorerModel& model)
 
   // Conversion
   State::MessageList messages;
+  messages.reserve(uniqueNodes.parents.size() + uniqueNodes.messages.size());
   for (const auto& node : uniqueNodes.parents)
   {
     Device::parametersList(*node, messages);
   }
   for (const auto& node : uniqueNodes.messages)
   {
-    messages += Device::message(*node);
+    messages.push_back(Device::message(*node));
   }
 
   return messages;

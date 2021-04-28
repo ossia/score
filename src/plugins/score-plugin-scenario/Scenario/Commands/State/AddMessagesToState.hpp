@@ -8,7 +8,7 @@
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 
-#include <QMap>
+#include <ossia/detail/flat_map.hpp>
 
 #include <score_plugin_scenario_export.h>
 namespace Process
@@ -40,8 +40,8 @@ private:
 
   Process::MessageNode m_oldState, m_newState;
 
-  QMap<Id<Process::ProcessModel>, State::MessageList> m_previousBackup;
-  QMap<Id<Process::ProcessModel>, State::MessageList> m_followingBackup;
+  ossia::flat_map<Id<Process::ProcessModel>, State::MessageList> m_previousBackup;
+  ossia::flat_map<Id<Process::ProcessModel>, State::MessageList> m_followingBackup;
 };
 
 

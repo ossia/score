@@ -8,6 +8,10 @@ export DST="$SDK_DIR"
 export INCLUDE="$DST/usr/include"
 export LIB="$DST/usr/lib"
 
+convert_path () {
+  cygpath -w "$1"
+}
+
 mkdir -p "$INCLUDE"
 mkdir -p "$LIB"
 
@@ -20,6 +24,6 @@ cp -rf "$OSSIA_SDK/llvm/include/"* "$INCLUDE/"
 # Copy our compiler's intrinsincs
 export LLVM_VER=$(ls $OSSIA_SDK/llvm-libs/lib/clang/)
 mkdir -p "$DST/usr/lib/clang/$LLVM_VER/include"
-rsync -ar "$OSSIA_SDK/llvm-libs/lib/clang/$LLVM_VER/include" "$LIB/clang/$LLVM_VER/"
+rsync -ar $(convert_path "$OSSIA_SDK/llvm-libs/lib/clang/$LLVM_VER/include") $(convert_path "$LIB/clang/$LLVM_VER/")
 
 

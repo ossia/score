@@ -2,6 +2,7 @@
 #include <Process/State/MessageNode.hpp>
 
 #include <score/model/tree/TreeNodeItemModel.hpp>
+#include <score/tools/Metadata.hpp>
 
 #include <QStringList>
 #include <QVariant>

@@ -6,11 +6,15 @@
 #include <ossia/detail/callback_container.hpp>
 #include <ossia/network/base/value_callback.hpp>
 
-#include <nano_observer.hpp>
+#include <nano_signal_slot.hpp>
 #include <score_lib_device_export.h>
 
 #include <verdigris>
 class QMenu;
+namespace score
+{
+class DocumentContext;
+}
 namespace ossia
 {
 class value;

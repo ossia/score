@@ -2,6 +2,20 @@
 #include <score/model/EntityBase.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+
+
+template <typename T>
+void JSONReader::readFrom(const score::Entity<T>& obj)
+{
+  TSerializer<JSONObject, score::Entity<T>>::readFrom(*this, obj);
+}
+
+template <typename T>
+void JSONReader::readFrom(const IdentifiedObject<T>& obj)
+{
+  TSerializer<JSONObject, IdentifiedObject<T>>::readFrom(*this, obj);
+}
+
 template <typename T>
 struct TSerializer<DataStream, score::Entity<T>>
 {

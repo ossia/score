@@ -14,6 +14,7 @@
 #include <score/model/tree/TreeNode.hpp>
 #include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/MapSerialization.hpp>
 
 namespace Scenario
 {
@@ -84,7 +85,7 @@ AddMessagesToState::AddMessagesToState(
   for (const ProcessStateWrapper& prevProc : state.previousProcesses())
   {
     const auto& processModel = prevProc.process().process();
-    m_previousBackup.insert(processModel.id(), prevProc.process().messages());
+    m_previousBackup.insert({processModel.id(), prevProc.process().messages()});
 
     auto lst = prevProc.process().setMessages(messages, m_oldState);
 
@@ -94,7 +95,7 @@ AddMessagesToState::AddMessagesToState(
   for (const ProcessStateWrapper& nextProc : state.followingProcesses())
   {
     const auto& processModel = nextProc.process().process();
-    m_followingBackup.insert(processModel.id(), nextProc.process().messages());
+    m_followingBackup.insert({processModel.id(), nextProc.process().messages()});
 
     auto lst = nextProc.process().setMessages(messages, m_oldState);
 
@@ -120,12 +121,12 @@ void AddMessagesToState::undo(const score::DocumentContext& ctx) const
   for (const ProcessStateWrapper& prevProc : sm.previousProcesses())
   {
     prevProc.process().setMessages(
-        m_previousBackup[prevProc.process().process().id()], m_oldState);
+        m_previousBackup.at(prevProc.process().process().id()), m_oldState);
   }
   for (const ProcessStateWrapper& nextProc : sm.followingProcesses())
   {
     nextProc.process().setMessages(
-        m_followingBackup[nextProc.process().process().id()], m_oldState);
+        m_followingBackup.at(nextProc.process().process().id()), m_oldState);
   }
 }
 

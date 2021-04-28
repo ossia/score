@@ -25,7 +25,7 @@ namespace Command
 SplitEvent::SplitEvent(
     const Scenario::ProcessModel& scenario,
     Id<EventModel> event,
-    QVector<Id<StateModel>> movingstates)
+    std::vector<Id<StateModel>> movingstates)
     : m_scenarioPath{scenario}
     , m_originalEvent{std::move(event)}
     , m_newEvent{getStrongId(scenario.events)}
@@ -38,7 +38,7 @@ SplitEvent::SplitEvent(
     const Scenario::ProcessModel& scenario,
     Id<EventModel> event,
     Id<EventModel> new_event,
-    QVector<Id<StateModel>> movingstates)
+    std::vector<Id<StateModel>> movingstates)
     : m_scenarioPath{scenario}
     , m_originalEvent{std::move(event)}
     , m_newEvent{new_event}

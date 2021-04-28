@@ -211,7 +211,7 @@ WindowSettingsWidget::WindowSettingsWidget(QWidget* parent) : ProtocolSettingsWi
 
 void WindowSettingsWidget::setDefaults()
 {
-  m_deviceNameEdit->setText("gfx");
+  m_deviceNameEdit->setText("window");
 }
 
 Device::DeviceSettings WindowSettingsWidget::getSettings() const

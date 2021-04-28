@@ -8,6 +8,10 @@ export DST="$SDK_DIR"
 export INCLUDE="$DST/usr/include"
 export LIB="$DST/usr/lib"
 
+convert_path () {
+  echo "$1"
+}
+
 mkdir -p "$INCLUDE"
 mkdir -p "$LIB"
 

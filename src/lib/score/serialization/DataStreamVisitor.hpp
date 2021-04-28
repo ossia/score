@@ -358,17 +358,8 @@ struct TSerializer<DataStream, std::optional<T>>
 template <typename T>
 struct TSerializer<DataStream, QList<T>>
 {
-  static void readFrom(DataStream::Serializer& s, const QList<T>& obj)
-  {
-    s.stream() << obj;
-    SCORE_DEBUG_INSERT_DELIMITER2(s);
-  }
-
-  static void writeTo(DataStream::Deserializer& s, QList<T>& obj)
-  {
-    s.stream() >> obj;
-    SCORE_DEBUG_CHECK_DELIMITER2(s);
-  }
+  static void readFrom(DataStream::Serializer& s, const QList<T>& obj) = delete;
+  static void writeTo(DataStream::Deserializer& s, QList<T>& obj) = delete;
 };
 
 template <typename T, std::size_t N>

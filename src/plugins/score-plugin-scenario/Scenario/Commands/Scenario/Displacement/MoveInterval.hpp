@@ -41,7 +41,7 @@ private:
   double m_oldHeight{};
   double m_newHeight{};
 
-  QList<QPair<Id<IntervalModel>, double>> m_selectedIntervals;
+  std::vector<std::pair<Id<IntervalModel>, double>> m_selectedIntervals;
 };
 }
 }

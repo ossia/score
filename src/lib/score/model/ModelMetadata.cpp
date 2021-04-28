@@ -3,6 +3,7 @@
 
 #include "ModelMetadata.hpp"
 
+#include <score/model/IdentifiedObject.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
@@ -10,6 +11,7 @@
 #include <score/serialization/MapSerialization.hpp>
 #include <ossia-qt/js_utilities.hpp>
 #include <ossia/network/base/name_validation.hpp>
+
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::ModelMetadata)
@@ -38,11 +40,6 @@ ColorRef ModelMetadata::getColor() const noexcept
 const QString& ModelMetadata::getLabel() const noexcept
 {
   return m_label;
-}
-
-const QVariantMap& ModelMetadata::getExtendedMetadata() const noexcept
-{
-  return m_extendedMetadata;
 }
 
 bool ModelMetadata::touchedName() const noexcept
@@ -150,17 +147,6 @@ void ModelMetadata::setLabel(const QString& arg) noexcept
   metadataChanged();
 }
 
-void ModelMetadata::setExtendedMetadata(const QVariantMap& arg) noexcept
-{
-  if (m_extendedMetadata == arg)
-  {
-    return;
-  }
-
-  m_extendedMetadata = arg;
-  ExtendedMetadataChanged(arg);
-  metadataChanged();
-}
 }
 
 // MOVEME
@@ -185,7 +171,7 @@ template <>
 SCORE_LIB_BASE_EXPORT void DataStreamReader::read(const score::ModelMetadata& md)
 {
   m_stream << md.m_scriptingName << md.m_comment << md.m_color << md.m_label
-           << md.m_extendedMetadata << md.m_touchedName;
+           << md.m_touchedName;
 
   insertDelimiter();
 }
@@ -194,7 +180,7 @@ template <>
 SCORE_LIB_BASE_EXPORT void DataStreamWriter::write(score::ModelMetadata& md)
 {
   m_stream >> md.m_scriptingName >> md.m_comment >> md.m_color >> md.m_label
-      >> md.m_extendedMetadata >> md.m_touchedName;
+      >> md.m_touchedName;
 
   checkDelimiter();
 }
@@ -208,10 +194,6 @@ SCORE_LIB_BASE_EXPORT void JSONReader::read(const score::ModelMetadata& md)
   obj[strings.Color] = md.m_color.name();
   obj[strings.Label] = md.m_label;
   obj[strings.Touched] = md.m_touchedName;
-  if (!md.m_extendedMetadata.empty())
-  {
-    obj[strings.Extended] = md.m_extendedMetadata;
-  }
   stream.EndObject();
 }
 
@@ -237,13 +219,6 @@ SCORE_LIB_BASE_EXPORT void JSONWriter::write(score::ModelMetadata& md)
   }
 
   md.m_label = obj[strings.Label].toString();
-
-  {
-    if (auto map = obj.tryGet(strings.Extended))
-    {
-      md.m_extendedMetadata <<= *map;
-    }
-  }
 
   md.m_touchedName = obj[strings.Touched].toBool();
 }

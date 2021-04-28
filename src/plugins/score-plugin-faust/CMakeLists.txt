@@ -60,6 +60,7 @@ ExternalProject_Add(
     faustlibs
     PREFIX ""
     GIT_REPOSITORY https://github.com/grame-cncm/faustlibraries
+    GIT_TAG 7c67bc8c653d23965122502c3b2a9a0604940538
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ""
