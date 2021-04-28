@@ -6,7 +6,7 @@ sudo apt-get update -qq
 sudo apt-get install wget software-properties-common
 
 wget -nv https://github.com/jcelerier/cninja/releases/download/v3.7.5/cninja-v3.7.5-Linux.tar.gz -O cninja.tgz &
-echo 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-10 main' | sudo tee /etc/apt/sources.list.d/llvm.list
+echo 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main' | sudo tee /etc/apt/sources.list.d/llvm.list
 sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 1397BC53640DB551
 sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 15CF4D18AF4F7421
 
@@ -26,15 +26,18 @@ sudo apt-get install -qq --force-yes \
     libgl1-mesa-dev \
     libavcodec-dev libavdevice-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev \
     portaudio19-dev \
-    clang-10 lld-10 libc++-10-dev libc++abi-10-dev \
+    clang-11 lld-11 libc++-11-dev libc++abi-11-dev \
     libbluetooth-dev \
     libsdl2-dev libsdl2-2.0-0 libglu1-mesa-dev libglu1-mesa \
     libgles2-mesa-dev \
     libavahi-compat-libdnssd-dev libsamplerate0-dev \
-    libclang-10-dev
+    libclang-11-dev
 
-sudo apt-get remove -qq clang-8
+sudo apt-get remove -qq clang-8 clang-9 libclang-9-dev llvm-9-dev  libclang-10-dev llvm-10-dev
 wait || true
+
+dpkg -l | grep llvm
+dpkg -l | grep clang
 
 tar xaf cninja.tgz
 sudo cp -rf cninja /usr/bin/
