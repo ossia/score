@@ -138,12 +138,6 @@ bool EventView::isSelected() const
   return m_selected;
 }
 
-void EventView::setWidthScale(double d)
-{
-  QTransform t;
-  this->setTransform(t.scale(d, 1.));
-}
-
 void EventView::changeToolTip(const QString& c)
 {
   this->setToolTip(c);

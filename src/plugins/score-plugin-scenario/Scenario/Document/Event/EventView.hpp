@@ -58,7 +58,6 @@ public:
   void setExtent(const VerticalExtent& extent);
   void setExtent(VerticalExtent&& extent);
 
-  void setWidthScale(double);
   void changeToolTip(const QString&);
 
 public:

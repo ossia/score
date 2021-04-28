@@ -453,7 +453,23 @@ Application::Application(int& argc, char** argv) : QObject{nullptr}
     l.append(QString::fromUtf8(argv[i]));
   m_applicationSettings.parse(l, argc, argv);
 
+  QCoreApplication::setOrganizationName("ossia");
+  QCoreApplication::setOrganizationDomain("ossia.io");
+  QCoreApplication::setApplicationName("score");
+
+#if !defined(__EMSCRIPTEN__)
+  QSettings s;
+  double zoom = s.value("Skin/Zoom").toDouble();
+  if(zoom != 1.)
+  {
+    zoom = qBound(0.1, zoom, 10.);
+    qputenv("QT_SCALE_FACTOR", QString("%1").arg(zoom).toLatin1());
+  }
+#endif
+
+
   m_app = createApplication(m_applicationSettings, argc, argv);
+
 }
 
 Application::Application(
@@ -461,6 +477,22 @@ Application::Application(
     : QObject{nullptr}, m_applicationSettings(appSettings)
 {
   m_instance = this;
+
+  QCoreApplication::setOrganizationName("ossia");
+  QCoreApplication::setOrganizationDomain("ossia.io");
+  QCoreApplication::setApplicationName("score");
+
+#if !defined(__EMSCRIPTEN__)
+  QSettings s;
+  double zoom = s.value("Skin/Zoom").toDouble();
+  if(zoom != 1.)
+  {
+    zoom = qBound(1., zoom, 10.);
+    qputenv("QT_SCALE_FACTOR", QString("%1").arg(zoom).toLatin1());
+  }
+#endif
+
+
   m_app = createApplication(m_applicationSettings, argc, argv);
 }
 

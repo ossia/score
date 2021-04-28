@@ -161,17 +161,6 @@ ScenarioPresenter::ScenarioPresenter(
         }
       });
 
-  m_graphicalScale = context.app.settings<Settings::Model>().getGraphicZoom();
-
-  con(context.app.settings<Settings::Model>(),
-      &Settings::Model::GraphicZoomChanged,
-      this,
-      [&](double d) {
-        m_graphicalScale = d;
-        m_viewInterface.on_graphicalScaleChanged(m_graphicalScale);
-      });
-  m_viewInterface.on_graphicalScaleChanged(m_graphicalScale);
-
   m_con = con(
       context.execTimer, &QTimer::timeout, this, &ScenarioPresenter::on_intervalExecutionTimer);
 
@@ -779,7 +768,6 @@ void ScenarioPresenter::on_eventCreated(const EventModel& event_model)
 
   TimeSyncPresenter& ts = m_timeSyncs.at(event_model.timeSync());
   ts.addEvent(ev_pres);
-  ev_pres->view()->setWidthScale(m_graphicalScale);
   m_viewInterface.on_eventMoved(*ev_pres);
 
   con(*ev_pres, &EventPresenter::extentChanged, this, [=](const VerticalExtent&) {
@@ -833,7 +821,6 @@ void ScenarioPresenter::on_stateCreated(const StateModel& state)
   auto st_pres = new StatePresenter{state, m_context.context, m_view, this};
   m_states.insert(st_pres);
 
-  st_pres->view()->setScale(m_graphicalScale);
   m_viewInterface.on_stateMoved(*st_pres);
 
   EventPresenter& ev_pres = m_events.at(state.eventId());

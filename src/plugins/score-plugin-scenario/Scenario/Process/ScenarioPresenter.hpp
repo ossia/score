@@ -131,7 +131,6 @@ private:
   void updateAllElements();
 
   ZoomRatio m_zoomRatio{1};
-  double m_graphicalScale{1.};
 
   // The order of deletion matters!
   // m_view has to be deleted after the other elements.

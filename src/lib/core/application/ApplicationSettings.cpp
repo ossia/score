@@ -100,7 +100,7 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
 
 void setQApplicationMetadata()
 {
-  QCoreApplication::setOrganizationName("OSSIA");
+  QCoreApplication::setOrganizationName("ossia");
   QCoreApplication::setOrganizationDomain("ossia.io");
   QCoreApplication::setApplicationName("score");
   if (QString(SCORE_VERSION_EXTRA).isEmpty())

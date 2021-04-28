@@ -22,8 +22,6 @@ public:
   void on_stateMoved(const StatePresenter& state);
   void on_commentMoved(const CommentBlockPresenter& comment);
 
-  void on_graphicalScaleChanged(double scale);
-
 private:
   const ScenarioPresenter& m_presenter;
 };

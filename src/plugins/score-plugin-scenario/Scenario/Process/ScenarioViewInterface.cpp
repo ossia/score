@@ -130,17 +130,4 @@ void update_min_max(const T& val, T& min, T& max)
   max = val > max ? val : max;
 }
 
-void ScenarioViewInterface::on_graphicalScaleChanged(double scale)
-{
-  for (auto& e : m_presenter.getEvents())
-  {
-    e.view()->setWidthScale(scale);
-  }
-  for (auto& s : m_presenter.getStates())
-  {
-    s.view()->setScale(scale);
-  }
-
-  m_presenter.m_view->update();
-}
 }

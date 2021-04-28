@@ -226,14 +226,14 @@ View::View()
   }
   // ZOOM
   m_zoomSpinBox = new QSpinBox;
-  m_zoomSpinBox->setMinimum(50);
-  m_zoomSpinBox->setMaximum(300);
+  m_zoomSpinBox->setMinimum(100);
+  m_zoomSpinBox->setMaximum(200);
 
   connect(m_zoomSpinBox, SignalUtils::QSpinBox_valueChanged_int(), this, &View::zoomChanged);
 
   m_zoomSpinBox->setSuffix(tr("%"));
 
-  lay->addRow(tr("Graphical Zoom (50% -- 300%)"), m_zoomSpinBox);
+  lay->addRow(tr("Graphical Zoom (needs restart)"), m_zoomSpinBox);
 
   // SLOT HEIGHT
   m_slotHeightBox = new QSpinBox;
