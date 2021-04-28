@@ -1,5 +1,6 @@
 #pragma once
 #include <score/tools/std/Optional.hpp>
+#include <score/serialization/DataStreamFwd.hpp> 
 #include <ossia/editor/scenario/time_signature.hpp>
 #include <ossia-qt/time.hpp>
 

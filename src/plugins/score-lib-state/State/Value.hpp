@@ -1,5 +1,6 @@
 #pragma once
 #include <score/tools/std/Optional.hpp>
+#include <score/serialization/DataStreamFwd.hpp> 
 
 #include <ossia-qt/value_metatypes.hpp>
 #include <ossia/network/value/value.hpp>

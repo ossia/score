@@ -1,5 +1,6 @@
 #pragma once
 #include <score/serialization/VisitorInterface.hpp>
+#include <score/serialization/DataStreamFwd.hpp> 
 
 #include <QLatin1String>
 
