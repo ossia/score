@@ -279,8 +279,8 @@ void ScenarioDocumentPresenter::switchMode(bool nodal)
   removeDisplayedIntervalPresenter();
 
 
-  view().view().setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  view().view().setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  view().view().setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+  view().view().setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
   view().view().setDragMode(QGraphicsView::NoDrag);
   view().view().setContextMenuPolicy(Qt::DefaultContextMenu);
   if (nodal)

@@ -432,8 +432,8 @@ ScenarioDocumentView::ScenarioDocumentView(const score::DocumentContext& ctx, QO
 
   lay->setSpacing(1);
 
-  m_view.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  m_view.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  m_view.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+  m_view.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 
   auto& skin = score::Skin::instance();
   con(skin, &score::Skin::changed, this, [&] {
