@@ -455,13 +455,13 @@ bool DropScenario::drop(const ScenarioPresenter& pres, QPointF pos, const QMimeD
   return false;
 }
 
-DropScore::DropScore()
+DropScoreInScenario::DropScoreInScenario()
 {
   m_acceptableSuffixes.push_back("score");
   m_acceptableSuffixes.push_back("scorebin");
 }
 
-bool DropScore::drop(const ScenarioPresenter& pres, QPointF pos, const QMimeData& mime)
+bool DropScoreInScenario::drop(const ScenarioPresenter& pres, QPointF pos, const QMimeData& mime)
 {
   if (mime.hasUrls())
   {
@@ -471,35 +471,48 @@ bool DropScore::drop(const ScenarioPresenter& pres, QPointF pos, const QMimeData
     if (QFile f{path}; QFileInfo{f}.suffix() == "score" && f.open(QIODevice::ReadOnly))
     {
       rapidjson::Document res;
+      res.SetObject();
 
       auto obj = readJson(f.readAll());
       auto& docobj = obj["Document"];
-      res["Cables"] = docobj["Cables"];
+
+      // ScenarioPasteElements expects the cable address to start from the topmost interval in the copied
+      // content
+      res.AddMember("Cables", docobj["Cables"], res.GetAllocator());
+      for(auto& c : res["Cables"].GetArray())
+      {
+        auto source = c["Source"].GetArray();
+        source.Erase(source.Begin());
+        source.Erase(source.Begin());
+        auto sink= c["Sink"].GetArray();
+        sink.Erase(sink.Begin());
+        sink.Erase(sink.Begin());
+      }
 
       auto& scenar = docobj["BaseScenario"];
 
       {
         rapidjson::Value arr(rapidjson::kArrayType);
         arr.PushBack(scenar["Constraint"], obj.GetAllocator());
-        res["Intervals"] = arr;
+        res.AddMember("Intervals", arr, res.GetAllocator());
       }
       {
         rapidjson::Value arr(rapidjson::kArrayType);
         arr.PushBack(scenar["StartState"], obj.GetAllocator());
         arr.PushBack(scenar["EndState"], obj.GetAllocator());
-        res["States"] = arr;
+        res.AddMember("States", arr, res.GetAllocator());
       }
       {
         rapidjson::Value arr(rapidjson::kArrayType);
         arr.PushBack(scenar["StartEvent"], obj.GetAllocator());
         arr.PushBack(scenar["EndEvent"], obj.GetAllocator());
-        res["Events"] = arr;
+        res.AddMember("Events", arr, res.GetAllocator());
       }
       {
         rapidjson::Value arr(rapidjson::kArrayType);
         arr.PushBack(scenar["StartTimeNode"], obj.GetAllocator());
         arr.PushBack(scenar["EndTimeNode"], obj.GetAllocator());
-        res["TimeNodes"] = arr;
+        res.AddMember("TimeNodes", arr, res.GetAllocator());
       }
 
       CommandDispatcher<> d{doc.commandStack};
@@ -716,8 +729,10 @@ bool DropLayerInInterval::drop(
     }
 
     if (ok)
+    {
       m.commit();
-    return true;
+      return true;
+    }
   }
 
   return false;
@@ -825,8 +840,10 @@ bool DropPresetInInterval::drop(
     }
 
     if (ok)
+    {
       m.commit();
-    return true;
+      return true;
+    }
   }
 
   return false;
@@ -894,6 +911,57 @@ bool AutomationDropHandler::drop(
   {
     return false;
   }
+}
+
+bool DropScoreInInterval::drop(const score::DocumentContext& doc, const IntervalModel& interval, QPointF p, const QMimeData& mime)
+{
+  if (mime.hasUrls())
+  {
+    auto path = mime.urls().first().toLocalFile();
+    if (QFile f{path}; QFileInfo{f}.suffix() == "score" && f.open(QIODevice::ReadOnly))
+    {
+      auto obj = readJson(f.readAll());
+      auto& docobj = obj["Document"];
+      auto& scenar = docobj["BaseScenario"];
+      auto& itv = scenar["Constraint"];
+
+      Scenario::Command::Macro m{new Command::DropProcessInIntervalMacro, doc};
+      for(auto& json : itv["Processes"].GetArray())
+      {
+        rapidjson::Value v{rapidjson::kObjectType};
+        v.AddMember("Process", json, obj.GetAllocator());
+
+        m.loadProcessInSlot(interval, v);
+      }
+
+      // Reload cables
+      {
+        ObjectPath old_path{
+          { "Scenario::ScenarioDocumentModel", 1 },
+          { "Scenario::BaseScenario", 0 },
+          { "Scenario::IntervalModel", 0 }
+        };
+        auto new_path = score::IDocument::path(interval).unsafePath();
+        auto cables = Dataflow::serializedCablesFromCableJson(old_path, docobj["Cables"].GetArray());
+
+        auto& document = score::IDocument::get<Scenario::ScenarioDocumentModel>(doc.document);
+        for (auto& c : cables)
+        {
+          c.first = getStrongId(document.cables);
+        }
+        m.loadCables(new_path, cables);
+      }
+
+      // Finally we show the newly created rack
+      m.showRack(interval);
+
+      m.commit();
+
+      return true;
+    }
+  }
+
+  return false;
 }
 
 }

@@ -101,7 +101,7 @@ void AddOnlyProcessToInterval::deserializeImpl(DataStreamOutput& s)
   s >> m_path >> m_processName >> m_data >> m_graphpos >> m_createdProcessId;
 }
 
-LoadOnlyProcessInInterval::LoadOnlyProcessInInterval(
+LoadOnlyLayerInInterval::LoadOnlyLayerInInterval(
     const IntervalModel& cst,
     Id<Process::ProcessModel> processId,
     const rapidjson::Value& dat)
@@ -109,23 +109,23 @@ LoadOnlyProcessInInterval::LoadOnlyProcessInInterval(
 {
 }
 
-void LoadOnlyProcessInInterval::undo(const score::DocumentContext& ctx) const
+void LoadOnlyLayerInInterval::undo(const score::DocumentContext& ctx) const
 {
   undo(m_path.find(ctx));
 }
 
-void LoadOnlyProcessInInterval::redo(const score::DocumentContext& ctx) const
+void LoadOnlyLayerInInterval::redo(const score::DocumentContext& ctx) const
 {
   redo(m_path.find(ctx), ctx);
 }
 
-void LoadOnlyProcessInInterval::undo(IntervalModel& interval) const
+void LoadOnlyLayerInInterval::undo(IntervalModel& interval) const
 {
   RemoveProcess(interval, m_createdProcessId);
 }
 
 Process::ProcessModel&
-LoadOnlyProcessInInterval::redo(IntervalModel& interval, const score::DocumentContext& ctx) const
+LoadOnlyLayerInInterval::redo(IntervalModel& interval, const score::DocumentContext& ctx) const
 {
   // Create process model
   JSONWriter r{m_data};
@@ -151,12 +151,12 @@ LoadOnlyProcessInInterval::redo(IntervalModel& interval, const score::DocumentCo
   return *proc;
 }
 
-void LoadOnlyProcessInInterval::serializeImpl(DataStreamInput& s) const
+void LoadOnlyLayerInInterval::serializeImpl(DataStreamInput& s) const
 {
   s << m_path << m_data << m_createdProcessId;
 }
 
-void LoadOnlyProcessInInterval::deserializeImpl(DataStreamOutput& s)
+void LoadOnlyLayerInInterval::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_path >> m_data >> m_createdProcessId;
 }

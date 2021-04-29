@@ -245,5 +245,8 @@ void replacePathPart(const ObjectPath& src, const ObjectPath& target, ObjectPath
 
   // OPTIMIZEME
   v.erase(v.begin(), v.begin() + src_v.size());
-  v.insert(v.begin(), tgt_v.begin(), tgt_v.end());
+  if(!tgt_v.empty())
+  {
+    v.insert(v.begin(), tgt_v.begin(), tgt_v.end());
+  }
 }

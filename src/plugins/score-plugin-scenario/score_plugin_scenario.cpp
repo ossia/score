@@ -179,7 +179,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_scenario::factor
       FW<Scenario::DropHandler,
          Scenario::MessageDropHandler,
          Scenario::DropScenario,
-         Scenario::DropScore,
+         Scenario::DropScoreInScenario,
          Scenario::DropProcessInScenario,
          Scenario::DropPresetInScenario,
          Scenario::DropLayerInScenario
@@ -188,6 +188,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_scenario::factor
          Scenario::DropProcessInInterval,
          Scenario::DropPresetInInterval,
          Scenario::DropLayerInInterval,
+         Scenario::DropScoreInInterval,
          Scenario::AutomationDropHandler>,
       FW<Inspector::InspectorWidgetFactory
          , ScenarioInspectorWidgetFactoryWrapper

@@ -6,7 +6,7 @@ namespace Scenario
 {
 namespace Command
 {
-LoadProcessInInterval::LoadProcessInInterval(
+LoadLayerInInterval::LoadLayerInInterval(
     const Scenario::IntervalModel& interval,
     const rapidjson::Value& dat)
     : m_addProcessCommand{interval, getStrongId(interval.processes), dat}
@@ -14,7 +14,7 @@ LoadProcessInInterval::LoadProcessInInterval(
 {
 }
 
-void LoadProcessInInterval::undo(const score::DocumentContext& ctx) const
+void LoadLayerInInterval::undo(const score::DocumentContext& ctx) const
 {
   auto& interval = m_addProcessCommand.intervalPath().find(ctx);
 
@@ -26,7 +26,7 @@ void LoadProcessInInterval::undo(const score::DocumentContext& ctx) const
   m_addProcessCommand.undo(ctx);
 }
 
-void LoadProcessInInterval::redo(const score::DocumentContext& ctx) const
+void LoadLayerInInterval::redo(const score::DocumentContext& ctx) const
 {
   auto& interval = m_addProcessCommand.intervalPath().find(ctx);
 
@@ -46,22 +46,22 @@ void LoadProcessInInterval::redo(const score::DocumentContext& ctx) const
   }
 }
 
-const Path<Scenario::IntervalModel>& LoadProcessInInterval::intervalPath() const
+const Path<Scenario::IntervalModel>& LoadLayerInInterval::intervalPath() const
 {
   return m_addProcessCommand.intervalPath();
 }
 
-const Id<Process::ProcessModel>& LoadProcessInInterval::processId() const
+const Id<Process::ProcessModel>& LoadLayerInInterval::processId() const
 {
   return m_addProcessCommand.processId();
 }
 
-void LoadProcessInInterval::serializeImpl(DataStreamInput& s) const
+void LoadLayerInInterval::serializeImpl(DataStreamInput& s) const
 {
   s << m_addProcessCommand.serialize() << m_addedSlot;
 }
 
-void LoadProcessInInterval::deserializeImpl(DataStreamOutput& s)
+void LoadLayerInInterval::deserializeImpl(DataStreamOutput& s)
 {
   QByteArray b;
   s >> b >> m_addedSlot;
@@ -69,7 +69,7 @@ void LoadProcessInInterval::deserializeImpl(DataStreamOutput& s)
   m_addProcessCommand.deserialize(b);
 }
 
-LoadProcessInInterval::~LoadProcessInInterval() { }
+LoadLayerInInterval::~LoadLayerInInterval() { }
 
 AddProcessInNewBoxMacro::~AddProcessInNewBoxMacro() { }
 }

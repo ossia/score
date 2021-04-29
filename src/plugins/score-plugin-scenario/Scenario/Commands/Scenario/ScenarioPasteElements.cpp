@@ -38,6 +38,29 @@
 #include <unordered_map>
 namespace Scenario
 {
+std::vector<Process::CableData> cableDataFromCablesJson(const rapidjson::Document::ConstArray& arr)
+{
+  std::vector<Process::CableData> cables;
+
+  cables.reserve(arr.Size());
+  for (const auto& element : arr)
+  {
+    Process::CableData cd;
+    if (element.IsObject() && element.HasMember("ObjectName"))
+    {
+      cd <<= JsonValue{element};
+      cables.emplace_back(std::move(cd));
+    }
+    else if(element.IsArray())
+    {
+      cd <<= JsonValue{element.GetArray()[1]};
+      cables.emplace_back(cd);
+    }
+  }
+
+  return cables;
+}
+
 namespace Command
 {
 ScenarioPasteElements::ScenarioPasteElements(

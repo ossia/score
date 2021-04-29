@@ -34,13 +34,13 @@ namespace Scenario
 {
 namespace Command
 {
-class SCORE_PLUGIN_SCENARIO_EXPORT LoadProcessInInterval final : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT LoadLayerInInterval final : public score::Command
 {
-  SCORE_COMMAND_DECL(CommandFactoryName(), LoadProcessInInterval, "Load a process in an interval")
+  SCORE_COMMAND_DECL(CommandFactoryName(), LoadLayerInInterval, "Load a process in an interval")
 
 public:
-  LoadProcessInInterval(const IntervalModel& interval, const rapidjson::Value& dat);
-  ~LoadProcessInInterval();
+  LoadLayerInInterval(const IntervalModel& interval, const rapidjson::Value& dat);
+  ~LoadLayerInInterval();
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
@@ -51,7 +51,7 @@ public:
 private:
   void serializeImpl(DataStreamInput& s) const override;
   void deserializeImpl(DataStreamOutput& s) override;
-  LoadOnlyProcessInInterval m_addProcessCommand;
+  LoadOnlyLayerInInterval m_addProcessCommand;
   bool m_addedSlot{};
 };
 

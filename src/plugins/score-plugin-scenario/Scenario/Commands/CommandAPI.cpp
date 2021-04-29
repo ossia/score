@@ -141,7 +141,7 @@ Process::ProcessModel* Macro::createProcessInNewSlot(
 Process::ProcessModel*
 Macro::loadProcessInSlot(const IntervalModel& interval, const rapidjson::Value& procdata)
 {
-  auto process_cmd = new LoadProcessInInterval{interval, procdata};
+  auto process_cmd = new LoadLayerInInterval{interval, procdata};
   m.submit(process_cmd);
   auto it = interval.processes.find(process_cmd->processId());
   if (it != interval.processes.end())

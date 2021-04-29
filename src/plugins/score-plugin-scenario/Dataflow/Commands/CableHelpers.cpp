@@ -10,6 +10,20 @@
 
 namespace Dataflow
 {
+static bool startsWith(const ObjectPath& object, const ObjectPath& parent)
+{
+  if (object.vec().size() < parent.vec().size())
+    return false;
+
+  for (std::size_t i = 0; i < parent.vec().size(); i++)
+  {
+    if (!(object.vec()[i] == parent.vec()[i]))
+      return false;
+  }
+
+  return true;
+}
+
 std::vector<Process::Cable*>
 getCablesInChildObjects(QObjectList objs, const score::DocumentContext& ctx)
 {
@@ -75,6 +89,42 @@ SerializedCables saveCables(QObjectList objs, const score::DocumentContext& ctx)
   return cables;
 }
 
+SerializedCables serializedCablesFromCableJson(
+    const ObjectPath& old_path,
+    const ObjectPath& new_path,
+    const rapidjson::Document::Array& arr)
+{
+  SerializedCables cables;
+
+  cables.reserve(arr.Size());
+  for (const auto& element : arr)
+  {
+    Process::CableData cd;
+    if (element.IsObject() && element.HasMember("ObjectName"))
+    {
+      Id<Process::Cable> id;
+      id <<= JsonValue{element["id"]};
+      cd <<= JsonValue{element};
+
+      if (auto& p = cd.source.unsafePath(); startsWith(p, old_path))
+        replacePathPart(old_path, new_path, p);
+
+      if (auto& p = cd.sink.unsafePath(); startsWith(p, old_path))
+        replacePathPart(old_path, new_path, p);
+
+      cables.emplace_back(std::move(id), std::move(cd));
+    }
+  }
+
+  return cables;
+}
+SerializedCables serializedCablesFromCableJson(
+    const ObjectPath& old_path,
+    const rapidjson::Document::Array& arr)
+{
+  return serializedCablesFromCableJson(old_path, ObjectPath{}, arr);
+}
+
 void removeCables(const SerializedCables& cables, const score::DocumentContext& ctx)
 {
   Scenario::ScenarioDocumentModel& doc
@@ -97,19 +147,6 @@ void removeCables(const SerializedCables& cables, const score::DocumentContext& 
   }
 }
 
-static bool startsWith(const ObjectPath& object, const ObjectPath& parent)
-{
-  if (object.vec().size() < parent.vec().size())
-    return false;
-
-  for (std::size_t i = 0; i < parent.vec().size(); i++)
-  {
-    if (!(object.vec()[i] == parent.vec()[i]))
-      return false;
-  }
-
-  return true;
-}
 
 void restoreCables(const SerializedCables& cables, const score::DocumentContext& ctx)
 {
@@ -150,5 +187,6 @@ void loadCables(
 
   Dataflow::restoreCables(cables, ctx);
 }
+
 
 }

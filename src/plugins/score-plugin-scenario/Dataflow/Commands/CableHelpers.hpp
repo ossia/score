@@ -21,6 +21,18 @@ getCablesInChildObjects(QObjectList objs, const score::DocumentContext& ctx);
 SCORE_PLUGIN_SCENARIO_EXPORT
 SerializedCables saveCables(QObjectList objs, const score::DocumentContext& ctx);
 
+//! Converts a cable array loaded directly from a .score to a SerializedCables array,
+//! used for dropping a .score in another
+SCORE_PLUGIN_SCENARIO_EXPORT
+SerializedCables serializedCablesFromCableJson(
+    const ObjectPath& old_path,
+    const ObjectPath& new_path,
+    const rapidjson::Document::Array& arr);
+SCORE_PLUGIN_SCENARIO_EXPORT
+SerializedCables serializedCablesFromCableJson(
+    const ObjectPath& old_path,
+    const rapidjson::Document::Array& arr);
+
 //! Remove cables in that set
 SCORE_PLUGIN_SCENARIO_EXPORT
 void removeCables(const SerializedCables& cbls, const score::DocumentContext& ctx);

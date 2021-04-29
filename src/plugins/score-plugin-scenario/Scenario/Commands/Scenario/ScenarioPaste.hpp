@@ -5,6 +5,9 @@
 
 namespace Scenario
 {
+
+std::vector<Process::CableData> cableDataFromCablesJson(const rapidjson::Document::ConstArray& arr);
+
 struct ScenarioBeingCopied
 {
   ScenarioBeingCopied(
@@ -53,21 +56,7 @@ struct ScenarioBeingCopied
     }
     {
       const auto& json_arr = obj["Cables"].GetArray();
-      cables.reserve(json_arr.Size());
-      for (const auto& element : json_arr)
-      {
-        Process::CableData cd;
-        if (element.IsObject() && element.HasMember("ObjectName"))
-        {
-          cd <<= JsonValue{obj["Data"]};
-          cables.emplace_back(std::move(cd));
-        }
-        else if(element.IsArray())
-        {
-          cd <<= JsonValue{element.GetArray()[1]};
-          cables.emplace_back(cd);
-        }
-      }
+      cables = cableDataFromCablesJson(json_arr);
     }
 
     // We generate identifiers for the forthcoming elements

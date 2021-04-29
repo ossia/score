@@ -66,11 +66,11 @@ private:
   Id<Process::ProcessModel> m_createdProcessId{};
 };
 
-class SCORE_PLUGIN_SCENARIO_EXPORT LoadOnlyProcessInInterval final : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT LoadOnlyLayerInInterval final : public score::Command
 {
-  SCORE_COMMAND_DECL(CommandFactoryName(), LoadOnlyProcessInInterval, "Load a process")
+  SCORE_COMMAND_DECL(CommandFactoryName(), LoadOnlyLayerInInterval, "Load a process")
 public:
-  LoadOnlyProcessInInterval(
+  LoadOnlyLayerInInterval(
       const IntervalModel& cst,
       Id<Process::ProcessModel> idToUse,
       const rapidjson::Value& obj);

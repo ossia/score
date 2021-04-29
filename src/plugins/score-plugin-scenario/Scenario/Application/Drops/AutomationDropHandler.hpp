@@ -90,11 +90,11 @@ private:
   bool drop(const Scenario::ScenarioPresenter&, QPointF pos, const QMimeData& mime) override;
 };
 
-class DropScore final : public GhostIntervalDropHandler
+class DropScoreInScenario final : public GhostIntervalDropHandler
 {
   SCORE_CONCRETE("63fc2b70-79b2-4bf8-a1f6-c148b8eceba8")
 public:
-  DropScore();
+  DropScoreInScenario();
 
 private:
   bool drop(const Scenario::ScenarioPresenter&, QPointF pos, const QMimeData& mime) override;
@@ -143,6 +143,21 @@ public:
 class DropProcessInInterval final : public IntervalDropHandler
 {
   SCORE_CONCRETE("08f5aec5-3a42-45c8-b3db-aa45a851dd09")
+
+  bool drop(
+      const score::DocumentContext& ctx,
+      const Scenario::IntervalModel&,
+      QPointF p,
+      const QMimeData& mime) override;
+};
+
+
+/**
+ * @brief What happens when a .score file is dropped in an interval.
+ */
+class DropScoreInInterval final : public IntervalDropHandler
+{
+  SCORE_CONCRETE("46cb9918-fe25-4123-ab61-68ce3939b80a")
 
   bool drop(
       const score::DocumentContext& ctx,
