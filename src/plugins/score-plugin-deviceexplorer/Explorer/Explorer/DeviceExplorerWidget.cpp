@@ -368,12 +368,11 @@ void DeviceExplorerWidget::buildGUI()
   m_columnCBox = new QComboBox(this);
   m_nameLEdit = new ExplorerSearchLineEdit(*this);
 
-  connect(
-      m_columnCBox,
-      SignalUtils::QComboBox_currentIndexChanged_int(),
-      this,
-      &DeviceExplorerWidget::filterChanged);
-  connect(m_nameLEdit, &QLineEdit::textEdited, this, &DeviceExplorerWidget::filterChanged);
+  connect(m_columnCBox, SignalUtils::QComboBox_currentIndexChanged_int(),
+          m_nameLEdit, [this] {
+    m_proxyModel->setColumn((Explorer::Column)m_columnCBox->currentIndex());
+    m_nameLEdit->search();
+  });
 
   auto hLayout = new score::MarginLess<QHBoxLayout>;
   hLayout->setSpacing(0);
@@ -1223,26 +1222,6 @@ void DeviceExplorerWidget::addAddress(InsertMode insert)
     }
     updateActions();
   }
-}
-
-void DeviceExplorerWidget::filterChanged()
-{
-  SCORE_ASSERT(m_proxyModel);
-  SCORE_ASSERT(m_nameLEdit);
-
-  QString pattern = m_nameLEdit->text();
-#if QT_VERSION < QT_VERSION_CHECK(5, 12, 0)
-  QRegExp::PatternSyntax syntax = QRegExp::WildcardUnix;
-  // RegExp; //Wildcard; //WildcardUnix; //?
-  // See http://qt-project.org/doc/qt-5/QRegExptml#PatternSyntax-enum
-
-  QRegExp regExp(pattern, Qt::CaseInsensitive, syntax);
-
-  m_proxyModel->setFilterRegExp(regExp);
-#else
-  m_proxyModel->setFilterWildcard(pattern);
-#endif
-  m_proxyModel->setColumn((Explorer::Column)m_columnCBox->currentIndex());
 }
 
 DeviceExplorerWidget* findDeviceExplorerWidgetInstance(const score::GUIApplicationContext& ctx) noexcept

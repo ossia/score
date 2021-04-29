@@ -32,6 +32,7 @@ class AddressDialog;
 
 namespace Explorer
 {
+class ExplorerSearchLineEdit;
 class AddressItemModel;
 class ListeningHandler;
 class DeviceEditDialog;
@@ -82,8 +83,6 @@ private:
   void findUsage();
 
   // Answer to user interaction
-  void filterChanged();
-
   void updateActions();
   void updateAddressView();
 
@@ -121,7 +120,7 @@ private:
   QAction* m_findUsageAction{};
 
   QComboBox* m_columnCBox{};
-  QLineEdit* m_nameLEdit{};
+  ExplorerSearchLineEdit* m_nameLEdit{};
 
   std::unique_ptr<CommandDispatcher<>> m_cmdDispatcher;
 
