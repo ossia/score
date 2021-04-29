@@ -146,8 +146,8 @@ void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
   wheelCount = 0;
   m_lastwheel = t;
 #endif
-  QPoint d = event->angleDelta();
-  QPointF delta = {d.x() / 8., d.y() / 8.};
+  QPoint angleDelta = event->angleDelta();
+  QPointF delta = {angleDelta.x() / 8., angleDelta.y() / 8.};
   if (m_hZoom)
   {
     QPoint pos =
@@ -173,9 +173,39 @@ void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
     return;
   }
 
-  this->horizontalScrollBar()->setValue(this->horizontalScrollBar()->value() + event->pixelDelta().x() / 2.);
-  this->verticalScrollBar()->setValue(this->verticalScrollBar()->value() + event->pixelDelta().y() / 2.);
+  const auto pixDelta = event->pixelDelta();
 
+  const auto hsb = this->horizontalScrollBar();
+  const auto vsb = this->verticalScrollBar();
+  if(pixDelta != QPoint{})
+  {
+    hsb->setValue(hsb->value() + event->pixelDelta().x() / 2.);
+    vsb->setValue(vsb->value() + event->pixelDelta().y() / 2.);
+  }
+  else if(angleDelta != QPoint{})
+  {
+    struct MyWheelEvent : public QWheelEvent
+    {
+      MyWheelEvent(const QWheelEvent& other) : QWheelEvent{other}
+      {
+  #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+        p.ry() /= 4.;
+        pixelD.ry() /= 4.;
+        angleD /= 4.;
+        qt4D /= 4.;
+  #else
+        this->m_angleDelta.ry() /= 4.;
+        this->m_pixelDelta.ry() /= 4.;
+  #endif
+      }
+    };
+    MyWheelEvent e{*event};
+
+    if (qAbs(event->angleDelta().x()) > qAbs(event->angleDelta().y()))
+      QCoreApplication::sendEvent(hsb, &e);
+    else
+      QCoreApplication::sendEvent(vsb, &e);
+  }
   if (m_opengl)
     viewport()->update();
 }

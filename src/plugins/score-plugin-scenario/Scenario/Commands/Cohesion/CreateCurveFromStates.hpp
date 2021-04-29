@@ -112,7 +112,7 @@ private:
 class SCORE_PLUGIN_SCENARIO_EXPORT CreateInterpolationFromStates final
     : public CreateProcessAndLayers
 {
-  SCORE_COMMAND_DECL(
+  SCORE_ COMMAND_DECL(
       CommandFactoryName(),
       CreateInterpolationFromStates,
       "CreateInterpolationFromStates")
