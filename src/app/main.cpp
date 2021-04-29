@@ -20,6 +20,8 @@ extern "C"  __declspec(dllimport) LONG __stdcall NtSetTimerResolution(ULONG Desi
 #include <ossia/detail/thread.hpp>
 #include <score/widgets/MessageBox.hpp>
 
+#include <clocale>
+
 #include <QPixmapCache>
 #include <QItemSelection>
 #include <QSurfaceFormat>

@@ -134,6 +134,7 @@ void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
   m_hZoom = pressedModifier == Qt::ControlModifier;
   m_vZoom = pressedModifier == Qt::ShiftModifier;
 
+#if !defined(__APPLE__)
   auto t = std::chrono::steady_clock::now();
   static int wheelCount = 0;
 
@@ -144,6 +145,7 @@ void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
   }
   wheelCount = 0;
   m_lastwheel = t;
+#endif
   QPoint d = event->angleDelta();
   QPointF delta = {d.x() / 8., d.y() / 8.};
   if (m_hZoom)
@@ -170,23 +172,9 @@ void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
     verticalZoom(delta, mapToScene(pos));
     return;
   }
-  struct MyWheelEvent : public QWheelEvent
-  {
-    MyWheelEvent(const QWheelEvent& other) : QWheelEvent{other}
-    {
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-      p.ry() /= 4.;
-      pixelD.ry() /= 4.;
-      angleD /= 4.;
-      qt4D /= 4.;
-#else
-      this->m_angleDelta.ry() /= 4.;
-      this->m_pixelDelta.ry() /= 4.;
-#endif
-    }
-  };
-  MyWheelEvent e{*event};
-  QGraphicsView::wheelEvent(&e);
+
+  this->horizontalScrollBar()->setValue(this->horizontalScrollBar()->value() + event->pixelDelta().x() / 2.);
+  this->verticalScrollBar()->setValue(this->verticalScrollBar()->value() + event->pixelDelta().y() / 2.);
 
   if (m_opengl)
     viewport()->update();
