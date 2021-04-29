@@ -13,7 +13,7 @@
 class QMenu;
 namespace score
 {
-class DocumentContext;
+struct DocumentContext;
 }
 namespace ossia
 {
