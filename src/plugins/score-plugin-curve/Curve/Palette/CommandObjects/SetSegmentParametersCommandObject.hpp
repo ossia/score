@@ -4,6 +4,7 @@
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <score/tools/std/Optional.hpp>
 
+#include <ossia/detail/flat_map.hpp>
 #include <QPoint>
 
 namespace score
@@ -37,6 +38,6 @@ private:
 
   Curve::StateBase* m_state{};
   QPointF m_originalPress;
-  QMap<Id<Curve::SegmentModel>, std::pair<std::optional<double>, std::optional<double>>> m_orig;
+  ossia::flat_map<Id<Curve::SegmentModel>, std::pair<std::optional<double>, std::optional<double>>> m_orig;
 };
 }
