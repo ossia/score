@@ -33,6 +33,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_dataflow::factor
          Dataflow::InletInspectorFactory,
          Dataflow::OutletInspectorFactory
       >,
+      FW<Scenario::IntervalDropHandler, Dataflow::DropPortInInterval>,
       FW<Scenario::DropHandler, Dataflow::DropPortInScenario>,
       FW<Process::PortFactory,
          Dataflow::ControlInletFactory,

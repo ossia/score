@@ -66,4 +66,35 @@ bool DropPortInScenario::drop(
 
   return false;
 }
+
+bool DropPortInInterval::drop(const score::DocumentContext& ctx, const Scenario::IntervalModel& interval, QPointF p, const QMimeData& mime)
+{
+  if (mime.formats().contains(score::mime::port()))
+  {
+    auto base_port = Dataflow::PortItem::clickedPort;
+    if (!base_port || base_port->port().type() != Process::PortType::Message
+        || qobject_cast<const Process::Outlet*>(&base_port->port()))
+      return false;
+
+    auto port = dynamic_cast<Dataflow::AutomatablePortItem*>(base_port);
+    if (!port)
+      return false;
+
+    Scenario::Command::Macro m{
+        new Scenario::Command::DropProcessInIntervalMacro, ctx};
+    auto ok = port->on_createAutomation(
+        interval, [&](score::Command* cmd) { m.submit(cmd); }, ctx);
+    if (!ok)
+    {
+      return false;
+    }
+
+    m.showRack(interval);
+    m.commit();
+    return true;
+  }
+
+  return false;
+}
+
 }

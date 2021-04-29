@@ -1,7 +1,7 @@
 #pragma once
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
-
+#include <Scenario/Application/Drops/AutomationDropHandler.hpp>
 namespace Dataflow
 {
 class DropPortInScenario final : public Scenario::GhostIntervalDropHandler
@@ -15,4 +15,19 @@ private:
   bool canDrop(const QMimeData& mime) const noexcept override;
   bool drop(const Scenario::ScenarioPresenter&, QPointF pos, const QMimeData& mime) override;
 };
+
+/**
+ * @brief What happens when a port is dropped to an interval
+ */
+class DropPortInInterval final : public Scenario::IntervalDropHandler
+{
+  SCORE_CONCRETE("30147c87-2dfb-458d-9474-b0ee46897b51")
+
+  bool drop(
+      const score::DocumentContext& ctx,
+      const Scenario::IntervalModel&,
+      QPointF p,
+      const QMimeData& mime) override;
+};
+
 }

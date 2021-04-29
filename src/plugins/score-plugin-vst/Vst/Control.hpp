@@ -67,7 +67,7 @@ public:
 
   void setupMenu(QMenu& menu, const score::DocumentContext& ctx) override;
   bool on_createAutomation(
-      Scenario::IntervalModel& cst,
+      const Scenario::IntervalModel& cst,
       std::function<void(score::Command*)> macro,
       const score::DocumentContext& ctx) override;
 };

@@ -133,7 +133,7 @@ void AutomatablePortItem::on_createAutomation(const score::DocumentContext& ctx)
 }
 
 bool AutomatablePortItem::on_createAutomation(
-    Scenario::IntervalModel& cst,
+    const Scenario::IntervalModel& cst,
     std::function<void(score::Command*)> macro,
     const score::DocumentContext& ctx)
 {

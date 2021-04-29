@@ -467,13 +467,11 @@ public:
         magneticDropPort->dropEvent(ev);
         magneticDropPort->m_diam = 8;
         magneticDropPort->update();
+        return true;
       }
-      return true;
     }
-    else
-    {
-      return QObject::eventFilter(watched, event);
-    }
+
+    return QObject::eventFilter(watched, event);
   }
 };
 
