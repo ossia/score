@@ -339,6 +339,7 @@ AudioOutlet::AudioOutlet(Id<Process::Port> c, QObject* parent)
 {
   setName("Audio out");
   gainInlet->setName("Gain");
+  gainInlet->setDomain(ossia::domain{ossia::domain_base<float>{0., 1.}});
   panInlet->setName("Pan");
 }
 
