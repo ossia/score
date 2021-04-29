@@ -68,7 +68,7 @@ public:
  * Explorer::DeviceExplorerModel, as well as for serialization of devices.
  */
 using Node = TreeNode<DeviceExplorerNode>;
-using NodePath = TreePath<Device::Node>;
+using NodePath = TreePath;
 
 // TODO reflist may be a better name.
 using FreeNode = std::pair<State::Address, Device::Node>;

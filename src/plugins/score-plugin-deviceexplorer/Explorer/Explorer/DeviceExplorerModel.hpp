@@ -151,8 +151,6 @@ public:
       int column,
       const QModelIndex& parent) override;
 
-  QModelIndex convertPathToIndex(const Device::NodePath& path);
-
   SelectedNodes uniqueSelectedNodes(
       const QModelIndexList& indexes) const; // Note : filters so that only parents are given.
   void checkAndLoadDevice(Device::Node n);

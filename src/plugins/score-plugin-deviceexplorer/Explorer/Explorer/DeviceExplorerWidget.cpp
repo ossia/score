@@ -38,6 +38,7 @@
 #include <score/model/tree/InvisibleRootNode.hpp>
 #include <score/model/tree/TreeNode.hpp>
 #include <score/model/tree/TreeNodeSerialization.hpp>
+#include <score/model/tree/TreeViewExpandState.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/tools/std/Optional.hpp>
@@ -108,6 +109,8 @@ static const Device::DeviceSettings* getDevice(const Device::Node& n)
 
 struct ExplorerSearchLineEdit final : public score::SearchLineEdit
 {
+  using ExpandState = score::TreeViewExpandState<Device::Node, Device::NodePath>;
+  ExpandState m_expandState;
 public:
   ExplorerSearchLineEdit(DeviceExplorerWidget& parent)
       : score::SearchLineEdit{&parent}, m_widget{parent}
@@ -125,19 +128,34 @@ public:
       return;
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    if (text() != m->filterRegExp().pattern())
-    {
-      m->setFilterRegExp(QRegExp(text(), Qt::CaseInsensitive, QRegExp::FixedString));
+    const QString& current_filter = m->filterRegExp().pattern();
 #else
-    if (text() != m->filterRegularExpression().pattern())
+    const QString& current_filter = m->filterRegularExpression().pattern();
+#endif
+    const QString& new_filter = text();
+
+    if(current_filter.isEmpty())
     {
-      m->setFilterFixedString(text());
+      m_expandState.save(m, v);
+    }
+
+    if (new_filter != current_filter)
+    {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+      m->setFilterRegExp(QRegExp(new_filter, Qt::CaseInsensitive, QRegExp::FixedString));
+#else
+      m->setFilterFixedString(new_filter);
       m->setFilterCaseSensitivity(Qt::CaseInsensitive);
 #endif
-      if (text().isEmpty())
-        v->collapseAll();
+      if (new_filter.isEmpty())
+      {
+        // Restore the indices
+        m_expandState.restore(m, v);
+      }
       else
+      {
         v->expandAll();
+      }
     }
   }
 

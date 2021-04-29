@@ -900,19 +900,6 @@ void DeviceExplorerModel::checkAndLoadDevice(Device::DeviceSettings deviceSettin
   dialog->show();
 }
 
-QModelIndex DeviceExplorerModel::convertPathToIndex(const Device::NodePath& path)
-{
-  QModelIndex iter;
-  const int pathSize = path.size();
-
-  for (int i = 0; i < pathSize; ++i)
-  {
-    iter = index(path.at(i), 0, iter);
-  }
-
-  return iter;
-}
-
 void DeviceExplorerModel::debug_printPath(const Device::NodePath& path)
 {
   const int pathSize = path.size();

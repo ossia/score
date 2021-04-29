@@ -1,5 +1,7 @@
 #pragma once
 #include <QAbstractItemModel>
+#include <score_lib_base_export.h>
+
 /**
  * @brief Base implementation of a tree for QAbstractItemModel
  *
@@ -7,13 +9,36 @@
  * shared between item models that uses the NodeType.
  */
 // TESTME
-template <typename NodeType>
-class TreeNodeBasedItemModel : public QAbstractItemModel
+class TreePath;
+class SCORE_LIB_BASE_EXPORT TreeModel : public QAbstractItemModel
 {
 public:
-  using node_type = NodeType;
-
   using QAbstractItemModel::QAbstractItemModel;
+  //! idx: should be the root index of the view
+  template<typename F>
+  void iterate(const QModelIndex & idx, const F& f)
+  {
+    if (idx.isValid())
+      f(idx);
+
+    if (!hasChildren(idx))
+      return;
+
+    const int rows = rowCount(idx);
+    for (int i = 0; i < rows; ++i)
+      iterate(this->index(i, 0, idx), f);
+  }
+
+  QModelIndex convertPathToIndex(const TreePath& path) const;
+};
+
+template <typename NodeType>
+class TreeNodeBasedItemModel : public TreeModel
+{
+public:
+  using TreeModel::TreeModel;
+
+  using node_type = NodeType;
   virtual ~TreeNodeBasedItemModel() = default;
   virtual NodeType& rootNode() = 0;
   virtual const NodeType& rootNode() const = 0;

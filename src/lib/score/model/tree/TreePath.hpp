@@ -29,7 +29,6 @@ enum class InsertMode
 
 // Sadly we can't have a non-const interface
 // because of QList<Node*> in Node::children...
-template <typename T>
 class TreePath : public std::vector<int>
 {
 private:
@@ -53,6 +52,7 @@ public:
     }
   }
 
+  template <typename T>
   TreePath(const T& node)
   {
     // We have to take care of the root node.
@@ -72,6 +72,7 @@ public:
     this->insert(this->begin(), val);
   }
 
+  template <typename T>
   const T* toNode(const T* iter) const
   {
     const int pathSize = size();
@@ -91,6 +92,7 @@ public:
     return iter;
   }
 
+  template <typename T>
   T* toNode(T* iter) const
   {
     const int pathSize = size();
@@ -111,29 +113,34 @@ public:
   }
 };
 
-template <typename T>
-struct TSerializer<DataStream, TreePath<T>> : TSerializer<DataStream, std::vector<int>>
+template <>
+struct is_custom_serialized<TreePath> : std::true_type
 {
-  static void readFrom(DataStream::Serializer& s, const TreePath<T>& path)
+};
+
+template<>
+struct TSerializer<DataStream, TreePath> : TSerializer<DataStream, std::vector<int>>
+{
+  static void readFrom(DataStream::Serializer& s, const TreePath& path)
   {
      TSerializer<DataStream, std::vector<int>>::readFrom(s, static_cast<const std::vector<int>&>(path));
   }
 
-  static void writeTo(DataStream::Deserializer& s, TreePath<T>& path)
+  static void writeTo(DataStream::Deserializer& s, TreePath& path)
   {
     TSerializer<DataStream, std::vector<int>>::writeTo(s, static_cast<std::vector<int>&>(path));
   }
 };
 
-template <typename T>
-struct TSerializer<JSONObject, TreePath<T>>
+template<>
+struct TSerializer<JSONObject, TreePath>
 {
-  static void readFrom(JSONObject::Serializer& s, const TreePath<T>& path)
+  static void readFrom(JSONObject::Serializer& s, const TreePath& path)
   {
     s.obj[s.strings.Path] = static_cast<const std::vector<int>&>(path);
   }
 
-  static void writeTo(JSONObject::Deserializer& s, TreePath<T>& path)
+  static void writeTo(JSONObject::Deserializer& s, TreePath& path)
   {
     static_cast<std::vector<int>&>(path) <<= s.obj[s.strings.Path];
   }

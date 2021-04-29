@@ -3,6 +3,21 @@
 #include <score/model/tree/InvisibleRootNode.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+#include <score/model/tree/TreeNodeItemModel.hpp>
+#include <score/model/tree/TreePath.hpp>
+
+QModelIndex TreeModel::convertPathToIndex(const TreePath& path) const
+{
+  QModelIndex iter;
+  const int pathSize = path.size();
+
+  for (int i = 0; i < pathSize; ++i)
+  {
+    iter = index(path.at(i), 0, iter);
+  }
+
+  return iter;
+}
 
 template <>
 SCORE_LIB_BASE_EXPORT void DataStreamReader::read(const InvisibleRootNode&)
