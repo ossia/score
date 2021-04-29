@@ -31,7 +31,7 @@
 #include <Scenario/Document/ScenarioRemover.hpp>
 #include <Scenario/Document/Tempo/TempoFactory.hpp>
 #include <Scenario/ExecutionChecker/CSPCoherencyCheckerList.hpp>
-#include <Scenario/Inspector/Interpolation/InterpolationInspectorWidget.hpp>
+// #include <Scenario/Inspector/Interpolation/InterpolationInspectorWidget.hpp>
 #include <Scenario/Inspector/Interval/IntervalInspectorFactory.hpp>
 #include <Scenario/Inspector/ObjectTree/ObjectItemModel.hpp>
 #include <Scenario/Inspector/ScenarioInspectorWidgetFactoryWrapper.hpp>
@@ -60,7 +60,7 @@
 #include <QPainterPath>
 #include <score_plugin_library.hpp>
 
-#include <Interpolation/InterpolationFactory.hpp>
+// #include <Interpolation/InterpolationFactory.hpp>
 #include <LocalTree/ScenarioComponent.hpp>
 #include <score_plugin_scenario.hpp>
 #include <score_plugin_scenario_commands_files.hpp>
@@ -68,7 +68,7 @@
 
 #include <utility>
 
-W_OBJECT_IMPL(Interpolation::Presenter)
+// W_OBJECT_IMPL(Interpolation::Presenter)
 score_plugin_scenario::score_plugin_scenario()
 {
   using namespace Scenario;
@@ -154,12 +154,13 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_scenario::factor
   using namespace Scenario::Command;
   return instantiate_factories<
       score::ApplicationContext,
-      FW<Process::ProcessModelFactory,
-         ScenarioFactory,
-         Scenario::TempoFactory,
-         Interpolation::InterpolationFactory>,
+      FW<Process::ProcessModelFactory
+         , ScenarioFactory
+         , Scenario::TempoFactory
+//       , Interpolation::InterpolationFactory
+      >,
       FW<Process::LayerFactory,
-         Interpolation::InterpolationLayerFactory,
+//         Interpolation::InterpolationLayerFactory,
          Scenario::TempoLayerFactory>,
       FW<MoveEventFactoryInterface, MoveEventClassicFactory>,
       FW<DisplayedElementsToolPaletteFactory,
@@ -181,16 +182,18 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_scenario::factor
          Scenario::DropScore,
          Scenario::DropProcessInScenario,
          Scenario::DropPresetInScenario,
-         Scenario::DropLayerInScenario>,
+         Scenario::DropLayerInScenario
+      >,
       FW<Scenario::IntervalDropHandler,
          Scenario::DropProcessInInterval,
          Scenario::DropPresetInInterval,
          Scenario::DropLayerInInterval,
          Scenario::AutomationDropHandler>,
-      FW<Inspector::InspectorWidgetFactory,
-         ScenarioInspectorWidgetFactoryWrapper,
-         Interpolation::StateInspectorFactory,
-         Interpolation::InspectorFactory>,
+      FW<Inspector::InspectorWidgetFactory
+         , ScenarioInspectorWidgetFactoryWrapper
+//          , Interpolation::StateInspectorFactory
+//          , Interpolation::InspectorFactory
+      >,
       FW<score::ValidityChecker, ScenarioValidityChecker>,
 
       FW<LocalTree::ProcessComponentFactory, LocalTree::ScenarioComponentFactory>,
@@ -209,7 +212,7 @@ std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_scenario::mak
   using namespace Scenario;
   using namespace Dataflow;
   using namespace Scenario::Command;
-  using namespace Interpolation;
+  //using namespace Interpolation;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       CommandFactoryName(), CommandGeneratorMap{}};
 

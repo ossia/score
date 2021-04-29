@@ -21,6 +21,7 @@ bool DropPortInScenario::canDrop(const QMimeData& mime) const noexcept
   }
   return false;
 }
+
 bool DropPortInScenario::drop(
     const Scenario::ScenarioPresenter& pres,
     QPointF pos,

@@ -134,7 +134,7 @@ void CreateGradient::deserializeImpl(DataStreamOutput& s)
   CreateProcessAndLayers::deserializeImpl(s);
   s >> m_address >> m_tween;
 }
-
+/*
 CreateInterpolationFromStates::CreateInterpolationFromStates(
     const IntervalModel& interval,
     const std::vector<SlotPath>& slotList,
@@ -177,7 +177,7 @@ void CreateInterpolationFromStates::deserializeImpl(DataStreamOutput& s)
   CreateProcessAndLayers::deserializeImpl(s);
   s >> m_address >> m_start >> m_end >> m_tween;
 }
-
+*/
 CreateProcessAndLayers::CreateProcessAndLayers(
     const IntervalModel& interval,
     const std::vector<SlotPath>& slotList,

@@ -241,7 +241,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Expression/SimpleExpressionEditorWidget.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/ExpressionValidator.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/ExtendedMetadataWidget.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Interpolation/InterpolationInspectorWidget.hpp"
+  # "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Interpolation/InterpolationInspectorWidget.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/MetadataWidget.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/ScenarioInspectorWidgetFactoryWrapper.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/State/StateInspectorWidget.hpp"
@@ -320,20 +320,20 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/tests/helpers/ForwardDeclaration.hpp"
 
 
-  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationProcess.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationView.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationColors.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationFactory.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationPresenter.hpp"
-
-  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/ChangeAddress.hpp"
-
-  "${CMAKE_CURRENT_SOURCE_DIR}/InterpState/InterpStateProcess.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/InterpState/InterpStateView.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/InterpState/InterpStateColors.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/InterpState/InterpStateFactory.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/InterpState/InterpStatePresenter.hpp"
-
+  # "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationProcess.hpp"
+  # "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationView.hpp"
+  # "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationColors.hpp"
+  # "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationFactory.hpp"
+  # "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationPresenter.hpp"
+  #
+  # "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/ChangeAddress.hpp"
+  #
+  # "${CMAKE_CURRENT_SOURCE_DIR}/InterpState/InterpStateProcess.hpp"
+  # "${CMAKE_CURRENT_SOURCE_DIR}/InterpState/InterpStateView.hpp"
+  # "${CMAKE_CURRENT_SOURCE_DIR}/InterpState/InterpStateColors.hpp"
+  # "${CMAKE_CURRENT_SOURCE_DIR}/InterpState/InterpStateFactory.hpp"
+  # "${CMAKE_CURRENT_SOURCE_DIR}/InterpState/InterpStatePresenter.hpp"
+  #
   "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/CreateModulation.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/EditConnection.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/LoadCables.hpp"
@@ -584,7 +584,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/TimeSync/TimeSyncInspectorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/TimeSync/TriggerInspectorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/TimeSync/TimeSyncSummaryWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Interpolation/InterpolationInspectorWidget.cpp"
+# "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Interpolation/InterpolationInspectorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Expression/ExpressionEditorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Expression/SimpleExpressionEditorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/ScenarioInspectorWidgetFactoryWrapper.cpp"
@@ -603,14 +603,14 @@ set(SRCS ${SRCS}
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_scenario.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/ChangeAddress.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationColors.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationProcess.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationView.cpp"
-
-"${CMAKE_CURRENT_SOURCE_DIR}/InterpState/InterpStateColors.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/InterpState/InterpStateProcess.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/InterpState/InterpStateView.cpp"
+# "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/ChangeAddress.cpp"
+# "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationColors.cpp"
+# "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationProcess.cpp"
+# "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationView.cpp"
+#
+# "${CMAKE_CURRENT_SOURCE_DIR}/InterpState/InterpStateColors.cpp"
+# "${CMAKE_CURRENT_SOURCE_DIR}/InterpState/InterpStateProcess.cpp"
+# "${CMAKE_CURRENT_SOURCE_DIR}/InterpState/InterpStateView.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/EditConnection.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/CableHelpers.cpp"

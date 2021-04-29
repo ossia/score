@@ -7,11 +7,12 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <State/Address.hpp>
 
+#include <Curve/CurveModel.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 
-#include <Interpolation/InterpolationProcess.hpp>
+//#include <Interpolation/InterpolationProcess.hpp>
 
 #include <utility>
 #include <vector>
@@ -107,7 +108,7 @@ private:
   QColor m_start{}, m_end{};
   bool m_tween{};
 };
-
+/*
 class SCORE_PLUGIN_SCENARIO_EXPORT CreateInterpolationFromStates final
     : public CreateProcessAndLayers
 {
@@ -136,5 +137,6 @@ private:
   ossia::value m_start{}, m_end{};
   bool m_tween{};
 };
+*/
 }
 }
