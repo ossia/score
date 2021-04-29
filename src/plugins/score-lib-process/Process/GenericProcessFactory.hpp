@@ -1,7 +1,7 @@
 #pragma once
 #include <Process/ProcessFactory.hpp>
 
-#include <score/tools/Debug.hpp>
+#include <score/tools/SafeCast.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 
 namespace Process
