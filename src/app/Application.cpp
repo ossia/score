@@ -459,14 +459,16 @@ Application::Application(int& argc, char** argv) : QObject{nullptr}
 
 #if !defined(__EMSCRIPTEN__)
   QSettings s;
-  double zoom = s.value("Skin/Zoom").toDouble();
-  if(zoom != 1.)
+  if(s.contains("Skin/Zoom"))
   {
-    zoom = qBound(0.1, zoom, 10.);
-    qputenv("QT_SCALE_FACTOR", QString("%1").arg(zoom).toLatin1());
+    double zoom = s.value("Skin/Zoom").toDouble();
+    if(zoom != 1.)
+    {
+      zoom = qBound(1.0, zoom, 10.);
+      qputenv("QT_SCALE_FACTOR", QString("%1").arg(zoom).toLatin1());
+    }
   }
 #endif
-
 
   m_app = createApplication(m_applicationSettings, argc, argv);
 
@@ -484,14 +486,16 @@ Application::Application(
 
 #if !defined(__EMSCRIPTEN__)
   QSettings s;
-  double zoom = s.value("Skin/Zoom").toDouble();
-  if(zoom != 1.)
+  if(s.contains("Skin/Zoom"))
   {
-    zoom = qBound(1., zoom, 10.);
-    qputenv("QT_SCALE_FACTOR", QString("%1").arg(zoom).toLatin1());
+    double zoom = s.value("Skin/Zoom").toDouble();
+    if(zoom != 1.)
+    {
+      zoom = qBound(1.0, zoom, 10.);
+      qputenv("QT_SCALE_FACTOR", QString("%1").arg(zoom).toLatin1());
+    }
   }
 #endif
-
 
   m_app = createApplication(m_applicationSettings, argc, argv);
 }
