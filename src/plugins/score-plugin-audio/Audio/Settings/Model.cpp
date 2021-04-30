@@ -1,4 +1,5 @@
 #include <Audio/Settings/Model.hpp>
+#include <Audio/DummyInterface.hpp>
 namespace Audio::Settings
 {
 namespace Parameters
@@ -72,6 +73,11 @@ void Model::setDriver(Audio::AudioFactory::ConcreteKey val)
   {
     val = Parameters::Driver.def;
     iface = factories.get(val);
+    if (!iface)
+    {
+      val = DummyFactory::static_concreteKey();
+      iface = factories.get(val);
+    }
   }
 
   if (val == m_Driver)
