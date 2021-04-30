@@ -9,12 +9,19 @@
 struct VideoNode::Rendered : RenderedNode
 {
   using RenderedNode::RenderedNode;
+  std::unique_ptr<GPUVideoDecoder> gpu;
+  std::shared_ptr<video_decoder> decoder;
   std::vector<AVFrame*> framesToFree;
   AVPixelFormat current_format = AVPixelFormat(-1);
+  int current_width{}, current_height{};
   QElapsedTimer t;
 
-  Rendered(const NodeModel& node) noexcept
+  Rendered(const VideoNode& node) noexcept
     : RenderedNode{node}
+    , decoder{node.decoder} // TODO clone. But how to do for camera, etc. ?
+    , current_format{decoder->pixel_format}
+    , current_width{decoder->width}
+    , current_height{decoder->height}
   {
 
   }
@@ -26,13 +33,117 @@ struct VideoNode::Rendered : RenderedNode
       decoder.release_frame(frame);
   }
 
+  void createGpuDecoder()
+  {
+    auto& model = (VideoNode&)(node);
+    auto& filter = model.filter;
+    switch (current_format)
+    {
+      case AV_PIX_FMT_YUV420P:
+        gpu = std::make_unique<YUV420Decoder>(model, *decoder);
+        break;
+      case AV_PIX_FMT_YUVJ422P:
+      case AV_PIX_FMT_YUV422P:
+        gpu = std::make_unique<YUV422Decoder>(model, *decoder);
+        break;
+      case AV_PIX_FMT_UYVY422:
+        gpu = std::make_unique<UYVY422Decoder>(model, *decoder);
+        break;
+      case AV_PIX_FMT_YUYV422:
+        gpu = std::make_unique<YUYV422Decoder>(model, *decoder);
+        break;
+      case AV_PIX_FMT_RGB0:
+      case AV_PIX_FMT_RGBA:
+        gpu = std::make_unique<RGB0Decoder>(QRhiTexture::RGBA8, model, *decoder, filter);
+        break;
+      case AV_PIX_FMT_BGR0:
+      case AV_PIX_FMT_BGRA:
+        gpu = std::make_unique<RGB0Decoder>(QRhiTexture::BGRA8, model, *decoder, filter);
+        break;
+  #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(56, 19, 100)
+      case AV_PIX_FMT_GRAYF32LE:
+      case AV_PIX_FMT_GRAYF32BE:
+        gpu = std::make_unique<RGB0Decoder>(QRhiTexture::R32F, model, *decoder, filter);
+        break;
+  #endif
+      case AV_PIX_FMT_GRAY8:
+        gpu = std::make_unique<RGB0Decoder>(QRhiTexture::R8, model, *decoder, filter);
+        break;
+      default:
+      {
+        // try to read format as a 4cc
+        std::string_view fourcc{(const char*) &current_format, 4};
+
+        if(fourcc == "Hap1")
+          gpu = std::make_unique<HAPDefaultDecoder>(QRhiTexture::BC1, model, *decoder, filter);
+        else if(fourcc == "Hap5")
+          gpu = std::make_unique<HAPDefaultDecoder>(QRhiTexture::BC3, model, *decoder, filter);
+        else if(fourcc == "HapY")
+          gpu = std::make_unique<HAPDefaultDecoder>(QRhiTexture::BC3, model, *decoder, HAPDefaultDecoder::ycocg_filter + filter);
+        else if(fourcc == "HapM")
+          gpu = std::make_unique<HAPMDecoder>(model, *decoder, filter);
+        else if(fourcc == "HapA")
+          gpu = std::make_unique<HAPDefaultDecoder>(QRhiTexture::BC4, model, *decoder, filter);
+        else if(fourcc == "Hap7")
+          gpu = std::make_unique<HAPDefaultDecoder>(QRhiTexture::BC7, model, *decoder, filter);
+
+        if(!gpu)
+        {
+          qDebug() << "Unhandled pixel format: " << av_get_pix_fmt_name(current_format);
+          gpu = std::make_unique<EmptyDecoder>(model);
+        }
+        break;
+      }
+    }
+  }
+
+  void setupGpuDecoder(Renderer& r)
+  {
+    if(gpu)
+    {
+      gpu->release(r, *this);
+      for (auto sampler : m_samplers)
+      {
+        delete sampler.sampler;
+      }
+      m_samplers.clear();
+
+      delete m_p.pipeline;
+      m_p.pipeline = nullptr;
+    }
+    createGpuDecoder();
+
+    if(gpu)
+    {
+      gpu->init(r, *this);
+      m_p = score::gfx::buildPipeline(r, node.mesh(), node.m_vertexS, node.m_fragmentS, m_rt, m_processUBO, m_materialUBO, m_samplers);
+    }
+  }
+
+  void checkFormat(Renderer& r, AVPixelFormat fmt, int w, int h)
+  {
+    // TODO won't work if VK is threaded and there are multiple windows
+    if(!gpu || fmt != current_format || w != current_width || h != current_height)
+    {
+      current_format = fmt;
+      current_width = w;
+      current_height = h;
+      setupGpuDecoder(r);
+    }
+  }
+
   void customInit(Renderer& renderer) override
   {
     defaultShaderMaterialInit(renderer);
 
-    auto& nodem = static_cast<const VideoNode&>(node);
-    if(nodem.gpu)
-      nodem.gpu->init(renderer, *this);
+    if(!gpu)
+    {
+      createGpuDecoder();
+    }
+    if(gpu)
+    {
+      gpu->init(renderer, *this);
+    }
   }
 
   // TODO if we have multiple renderers for the same video, we must always keep
@@ -86,10 +197,10 @@ struct VideoNode::Rendered : RenderedNode
     {
       if (auto frame = decoder.dequeue_frame())
       {
-        nodem.checkFormat(static_cast<AVPixelFormat>(frame->format), frame->width, frame->height);
-        if(nodem.gpu)
+        checkFormat(renderer, static_cast<AVPixelFormat>(frame->format), frame->width, frame->height);
+        if(gpu)
         {
-          nodem.gpu->exec(renderer, *this, res, *frame);
+          gpu->exec(renderer, *this, res, *frame);
         }
 
         int64_t ts = frame->best_effort_timestamp;
@@ -106,117 +217,27 @@ struct VideoNode::Rendered : RenderedNode
 
   void customRelease(Renderer& r) override
   {
-    auto& nodem = static_cast<const VideoNode&>(node);
-    if(nodem.gpu)
-      nodem.gpu->release(r, *this);
+    if(gpu)
+      gpu->release(r, *this);
   }
 
 };
 
 VideoNode::VideoNode(std::shared_ptr<video_decoder> dec, std::optional<double> nativeTempo, QString f)
     : decoder{std::move(dec)}
-    , current_format{decoder->pixel_format}
     , nativeTempo{nativeTempo}
     , filter{f}
 {
-    initGpuDecoder();
-
     output.push_back(new Port{this, {}, Types::Image, {}});
 }
 
-void VideoNode::initGpuDecoder()
-{
-  switch (current_format)
-  {
-    case AV_PIX_FMT_YUV420P:
-      gpu = std::make_unique<YUV420Decoder>(*this, *decoder);
-      break;
-    case AV_PIX_FMT_YUVJ422P:
-    case AV_PIX_FMT_YUV422P:
-      gpu = std::make_unique<YUV422Decoder>(*this, *decoder);
-      break;
-    case AV_PIX_FMT_UYVY422:
-      gpu = std::make_unique<UYVY422Decoder>(*this, *decoder);
-      break;
-    case AV_PIX_FMT_YUYV422:
-      gpu = std::make_unique<YUYV422Decoder>(*this, *decoder);
-      break;
-    case AV_PIX_FMT_RGB0:
-    case AV_PIX_FMT_RGBA:
-      gpu = std::make_unique<RGB0Decoder>(QRhiTexture::RGBA8, *this, *decoder, filter);
-      break;
-    case AV_PIX_FMT_BGR0:
-    case AV_PIX_FMT_BGRA:
-      gpu = std::make_unique<RGB0Decoder>(QRhiTexture::BGRA8, *this, *decoder, filter);
-      break;
-#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(56, 19, 100)
-    case AV_PIX_FMT_GRAYF32LE:
-    case AV_PIX_FMT_GRAYF32BE:
-      gpu = std::make_unique<RGB0Decoder>(QRhiTexture::R32F, *this, *decoder, filter);
-      break;
-#endif
-    case AV_PIX_FMT_GRAY8:
-      gpu = std::make_unique<RGB0Decoder>(QRhiTexture::R8, *this, *decoder, filter);
-      break;
-    default:
-    {
-      // try to read format as a 4cc
-      std::string_view fourcc{(const char*) &current_format, 4};
-
-      if(fourcc == "Hap1")
-        gpu = std::make_unique<HAPDefaultDecoder>(QRhiTexture::BC1, *this, *decoder, filter);
-      else if(fourcc == "Hap5")
-        gpu = std::make_unique<HAPDefaultDecoder>(QRhiTexture::BC3, *this, *decoder, filter);
-      else if(fourcc == "HapY")
-        gpu = std::make_unique<HAPDefaultDecoder>(QRhiTexture::BC3, *this, *decoder, HAPDefaultDecoder::ycocg_filter + filter);
-      else if(fourcc == "HapM")
-        gpu = std::make_unique<HAPMDecoder>(*this, *decoder, filter);
-      else if(fourcc == "HapA")
-        gpu = std::make_unique<HAPDefaultDecoder>(QRhiTexture::BC4, *this, *decoder, filter);
-      else if(fourcc == "Hap7")
-        gpu = std::make_unique<HAPDefaultDecoder>(QRhiTexture::BC7, *this, *decoder, filter);
-
-      if(!gpu)
-      {
-        qDebug() << "Unhandled pixel format: " << av_get_pix_fmt_name(current_format);
-        gpu = std::make_unique<EmptyDecoder>(*this);
-      }
-      break;
-    }
-  }
-}
-
-void VideoNode::checkFormat(AVPixelFormat fmt, int w, int h)
-{
-    // TODO won't work if VK is threaded and there are multiple windows
-    if(fmt != current_format || w != current_width || h != current_height)
-    {
-        if(gpu)
-        {
-            for(auto& r : this->renderedNodes)
-                r.second->releaseWithoutRenderTarget(*r.first);
-        }
-        current_format = fmt;
-        current_width = w;
-        current_height = h;
-        initGpuDecoder();
-
-        if(gpu)
-        {
-            for(auto& r : this->renderedNodes)
-                r.second->init(*r.first);
-        }
-    }
-}
 
 const Mesh& VideoNode::mesh() const noexcept { return this->m_mesh; }
 
 VideoNode::~VideoNode() { }
 
 score::gfx::NodeRenderer* VideoNode::createRenderer() const noexcept {
-    auto r = new Rendered{*this};
-    r->current_format = current_format;
-    return r;
+    return new Rendered{*this};
 }
 
 

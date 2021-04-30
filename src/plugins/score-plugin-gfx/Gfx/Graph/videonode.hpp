@@ -12,9 +12,6 @@
 struct SCORE_PLUGIN_GFX_EXPORT VideoNode : NodeModel
 {
   std::shared_ptr<video_decoder> decoder;
-  std::unique_ptr<GPUVideoDecoder> gpu;
-  AVPixelFormat current_format = AVPixelFormat(-1);
-  int current_width{}, current_height{};
   std::atomic_bool seeked{};
   std::optional<double> nativeTempo;
   QString filter;
@@ -24,8 +21,6 @@ struct SCORE_PLUGIN_GFX_EXPORT VideoNode : NodeModel
             , std::optional<double> nativeTempo
             , QString f = {});
 
-  void initGpuDecoder();
-  void checkFormat(AVPixelFormat fmt, int w, int h);
 
   const Mesh& mesh() const noexcept override;
 
