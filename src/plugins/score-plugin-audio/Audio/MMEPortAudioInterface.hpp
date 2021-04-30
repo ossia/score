@@ -1,5 +1,11 @@
 #pragma once
 #include <Audio/AudioInterface.hpp>
+#include <Audio/Settings/Model.hpp>
+#include <Audio/PortAudioInterface.hpp>
+
+#include <score/widgets/SignalUtils.hpp>
+#include <QComboBox>
+#include <QFormLayout>
 
 namespace Audio
 {
@@ -15,7 +21,79 @@ public:
 
   ~MMEFactory() override { }
   bool available() const noexcept override { return true; }
-  void initialize(Audio::Settings::Model& set, const score::ApplicationContext& ctx) override { }
+  void initialize(Audio::Settings::Model& set, const score::ApplicationContext& ctx) override
+  {
+    auto device_in = ossia::find_if(devices, [&] (const PortAudioCard& dev) {
+      return dev.raw_name == set.getCardIn() && dev.hostapi != paInDevelopment;
+    });
+    auto device_out = ossia::find_if(devices, [&] (const PortAudioCard& dev) {
+      return dev.raw_name == set.getCardOut() && dev.hostapi != paInDevelopment;
+    });
+
+    if(device_in == devices.end() || device_out == devices.end())
+    {
+      auto device_in = ossia::find_if(devices, [&] (const PortAudioCard& dev) {
+        return dev.raw_name == "Microsoft Sound Mapper - Input";
+      });
+      auto device_out = ossia::find_if(devices, [&] (const PortAudioCard& dev) {
+        return dev.raw_name == "Microsoft Sound Mapper - Output";
+      });
+
+      if(device_in != devices.end() && device_out != devices.end())
+      {
+        set.setCardIn(device_in->raw_name);
+        set.setCardOut(device_out->raw_name);
+        set.setDefaultIn(device_in->inputChan);
+        set.setDefaultOut(device_out->outputChan);
+        set.setRate(device_out->rate);
+      }
+      else
+      {
+        auto device_in = ossia::find_if(devices, [&] (const PortAudioCard& dev) {
+          return dev.inputChan > 0;
+        });
+        auto device_out = ossia::find_if(devices, [&] (const PortAudioCard& dev) {
+          return dev.outputChan > 0;
+        });
+         if(device_in != devices.end())
+         {
+           set.setCardIn(device_in->raw_name);
+           set.setDefaultIn(device_in->inputChan);
+         }
+         else
+         {
+           set.setCardIn("");
+           set.setDefaultIn(0);
+         }
+
+         if(device_out != devices.end())
+         {
+           set.setCardOut(device_out->raw_name);
+           set.setDefaultOut(device_out->outputChan);
+           set.setRate(device_out->rate);
+         }
+         else
+         {
+           set.setCardOut("");
+           set.setDefaultOut(0);
+           set.setRate(44100);
+         }
+      }
+
+      set.changed();
+    }
+    else
+    {
+      if(device_out != devices.end())
+      {
+        set.setDefaultIn(device_out->inputChan);
+        set.setDefaultOut(device_out->outputChan);
+        set.setRate(device_out->rate);
+
+        set.changed();
+      }
+    }
+  }
 
   void rescan()
   {
@@ -42,7 +120,8 @@ public:
               dev_idx,
               dev->maxInputChannels,
               dev->maxOutputChannels,
-              hostapi->type});
+              hostapi->type,
+              dev->defaultSampleRate});
         }
         break;
       }

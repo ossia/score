@@ -51,7 +51,8 @@ public:
               dev_idx,
               dev->maxInputChannels,
               dev->maxOutputChannels,
-              hostapi->type});
+              hostapi->type,
+              dev->defaultSampleRate});
         }
       }
     }

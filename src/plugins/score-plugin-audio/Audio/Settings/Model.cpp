@@ -65,10 +65,13 @@ Audio::AudioFactory::ConcreteKey Model::getDriver() const
 void Model::setDriver(Audio::AudioFactory::ConcreteKey val)
 {
   // Reset to default in case of invalid parameters.
-  auto& factories = score::AppContext().interfaces<AudioFactoryList>();
-  if (!factories.get(val))
+  auto& ctx = score::AppContext();
+  auto& factories = ctx.interfaces<AudioFactoryList>();
+  auto iface = factories.get(val);
+  if (!iface)
   {
     val = Parameters::Driver.def;
+    iface = factories.get(val);
   }
 
   if (val == m_Driver)
@@ -100,6 +103,7 @@ void Model::setDriver(Audio::AudioFactory::ConcreteKey val)
     s.setValue(Parameters::BufferSize.key, QVariant::fromValue(m_BufferSize));
   }
 #endif
+  iface->initialize(*this, ctx);
 }
 
 int Model::getRate() const
