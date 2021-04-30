@@ -17,6 +17,7 @@ class SDLFactory final : public AudioFactory
 public:
   ~SDLFactory() override { }
   bool available() const noexcept override { return true; }
+  void initialize(Audio::Settings::Model& set, const score::ApplicationContext& ctx) override { }
 
   QString prettyName() const override { return QObject::tr("SDL"); };
   std::unique_ptr<ossia::audio_engine>

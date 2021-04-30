@@ -37,6 +37,15 @@ void ApplicationPlugin::initialize()
 {
   auto& set = context.settings<Audio::Settings::Model>();
 
+  // First validate the current audio settings
+
+  auto& engines = score::GUIAppContext().interfaces<Audio::AudioFactoryList>();
+
+  if (auto dev = engines.get(set.getDriver()))
+  {
+    dev->initialize(set, this->context);
+  }
+
   con(set,
       &Audio::Settings::Model::changed,
       this,

@@ -36,6 +36,7 @@ public:
 
   ~ASIOFactory() override { }
   bool available() const noexcept override { return true; }
+  void initialize(Audio::Settings::Model& set, const score::ApplicationContext& ctx) override { }
 
   void rescan()
   {

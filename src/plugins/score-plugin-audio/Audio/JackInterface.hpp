@@ -34,6 +34,7 @@ public:
   ~JackFactory() override;
 
   bool available() const noexcept override;
+  void initialize(Audio::Settings::Model& set, const score::ApplicationContext& ctx) override { }
 
   QString prettyName() const override { return QObject::tr("JACK"); }
   std::unique_ptr<ossia::audio_engine>

@@ -32,6 +32,7 @@ public:
 
   virtual bool available() const noexcept = 0;
   virtual QString prettyName() const = 0;
+  virtual void initialize(Audio::Settings::Model& set, const score::ApplicationContext& ctx) = 0;
   virtual std::unique_ptr<ossia::audio_engine>
   make_engine(const Audio::Settings::Model& settings, const score::ApplicationContext& ctx) = 0;
   virtual QWidget* make_settings(

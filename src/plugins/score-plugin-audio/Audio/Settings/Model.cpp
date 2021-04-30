@@ -10,7 +10,7 @@ SETTINGS_PARAMETER_IMPL(Driver)
 #if defined(_WIN32)
       Audio::AudioFactory::ConcreteKey
   {
-    score::uuids::string_generator::compute("d98fca36-4e50-4802-a825-2fa213f95265")
+    score::uuids::string_generator::compute("afcd9c64-0367-4fa1-b2bb-ee65b1c5e5a7")
   } // WASAPI
 #elif defined(__APPLE__)
       Audio::AudioFactory::ConcreteKey
@@ -38,7 +38,7 @@ SETTINGS_PARAMETER_IMPL(InputNames){QStringLiteral("Audio/InputNames"), {}};
 SETTINGS_PARAMETER_IMPL(OutputNames){QStringLiteral("Audio/OutputNames"), {}};
 SETTINGS_PARAMETER_IMPL(CardIn){QStringLiteral("Audio/CardIn"), ""};
 SETTINGS_PARAMETER_IMPL(CardOut){QStringLiteral("Audio/CardOut"), ""};
-SETTINGS_PARAMETER_IMPL(BufferSize){QStringLiteral("Audio/BufferSize"), 64};
+SETTINGS_PARAMETER_IMPL(BufferSize){QStringLiteral("Audio/BufferSize"), 512};
 SETTINGS_PARAMETER_IMPL(Rate){QStringLiteral("Audio/SamplingRate"), 44100};
 SETTINGS_PARAMETER_IMPL(DefaultIn){QStringLiteral("Audio/DefaultIn"), 2};
 SETTINGS_PARAMETER_IMPL(DefaultOut){QStringLiteral("Audio/DefaultOut"), 2};

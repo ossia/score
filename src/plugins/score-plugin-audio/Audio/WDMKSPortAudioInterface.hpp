@@ -1,5 +1,6 @@
 #pragma once
 #include <Audio/AudioInterface.hpp>
+#include <Audio/Settings/Model.hpp>
 #include <Audio/PortAudioInterface.hpp>
 
 namespace Audio
@@ -15,6 +16,37 @@ public:
 
   ~WDMKSFactory() override { }
   bool available() const noexcept override { return true; }
+  void initialize(Audio::Settings::Model& set, const score::ApplicationContext& ctx) override
+  {
+    auto device_in = ossia::find_if(devices, [&] (const PortAudioCard& dev) {
+      return dev.raw_name == set.getCardIn() && dev.hostapi != paInDevelopment;
+    });
+    auto device_out = ossia::find_if(devices, [&] (const PortAudioCard& dev) {
+      return dev.raw_name == set.getCardOut() && dev.hostapi != paInDevelopment;
+    });
+
+    if(device_in == devices.end() || device_out == devices.end())
+    {
+      set.setCardIn(devices.back().raw_name);
+      set.setCardOut(devices.back().raw_name);
+      set.setDefaultIn(devices.back().inputChan);
+      set.setDefaultOut(devices.back().outputChan);
+      set.setRate(devices.back().rate);
+
+      set.changed();
+    }
+    else
+    {
+      if(device_out != devices.end())
+      {
+        set.setDefaultIn(device_out->inputChan);
+        set.setDefaultOut(device_out->outputChan);
+        set.setRate(device_out->rate);
+
+        set.changed();
+      }
+    }
+  }
 
   void rescan()
   {
@@ -41,7 +73,8 @@ public:
                 dev_idx,
                 dev->maxInputChannels,
                 dev->maxOutputChannels,
-                hostapi->type});
+                hostapi->type,
+                dev->defaultSampleRate});
           }
         }
       }

@@ -18,6 +18,7 @@ public:
   ALSAFactory();
   ~ALSAFactory() override;
 
+  void initialize(Audio::Settings::Model& set, const score::ApplicationContext& ctx) override { }
   void rescan();
 
   bool available() const noexcept override { return true; }

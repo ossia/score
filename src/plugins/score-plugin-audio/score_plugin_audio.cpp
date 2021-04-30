@@ -57,11 +57,6 @@ score_plugin_audio::score_plugin_audio()
   auto sym = (decltype(snd_lib_error_set_handler)*)dlsym(asound, "snd_lib_error_set_handler");
   sym(asound_error);
 #endif
-
-  QVariant v = QVariant::fromValue(Audio::AudioFactory::ConcreteKey{});
-  QByteArray b;
-  QDataStream s{&b, QIODevice::WriteOnly};
-  v.save(s);
 }
 
 score_plugin_audio::~score_plugin_audio() { }

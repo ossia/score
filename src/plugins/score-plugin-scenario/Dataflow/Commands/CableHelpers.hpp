@@ -1,6 +1,6 @@
 #pragma once
 #include <Process/Dataflow/Cable.hpp>
-
+#include <ossia/detail/json.hpp>
 #include <score_plugin_scenario_export.h>
 
 //! MOVEME process
