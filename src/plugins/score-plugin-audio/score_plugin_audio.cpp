@@ -85,27 +85,27 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_audio::factories
          ,
          Audio::JackFactory
 #endif
-#if defined(OSSIA_AUDIO_PULSEAUDIO)
-         ,
-         Audio::PulseAudioFactory
-#endif
+// #if defined(OSSIA_AUDIO_PULSEAUDIO)
+//          ,
+//          Audio::PulseAudioFactory
+// #endif
 #if defined(OSSIA_AUDIO_PORTAUDIO)
 #if __has_include(<pa_asio.h>)
          ,
          Audio::ASIOFactory
 #endif
-#if __has_include(<pa_win_wdmks.h>)
-         ,
-         Audio::WDMKSFactory
-#endif
+//#if __has_include(<pa_win_wdmks.h>)
+//         ,
+//         Audio::WDMKSFactory
+//#endif
 #if __has_include(<pa_win_wasapi.h>)
          ,
          Audio::WASAPIFactory
 #endif
-#if __has_include(<pa_win_wmme.h>)
-         ,
-         Audio::MMEFactory
-#endif
+//#if __has_include(<pa_win_wmme.h>)
+//         ,
+//         Audio::MMEFactory
+//#endif
 #if __has_include(<pa_linux_alsa.h>)
          ,
          Audio::ALSAFactory
