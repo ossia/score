@@ -31,8 +31,8 @@ struct SCORE_PLUGIN_GFX_EXPORT Graph
 
   ~Graph();
 
-private:
   std::vector<OutputNode*> outputs;
+private:
   std::vector<std::shared_ptr<Renderer>> renderers;
 
   std::vector<std::shared_ptr<Window>> unused_windows;

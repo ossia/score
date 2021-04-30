@@ -209,7 +209,7 @@ void Graph::setVSyncCallback(std::function<void ()> cb)
   }
   else
   {
-
+    vsync_callback = [] { };
   }
 }
 

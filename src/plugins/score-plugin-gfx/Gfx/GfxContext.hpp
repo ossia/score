@@ -358,18 +358,8 @@ public:
     m_api = defaultGraphicsAPI();
 
     m_graph = new Graph;
-    m_graph->setVSyncCallback([this] { updateGraph(); });
-#if defined(SCORE_THREADED_GFX)
-    if (m_api == Vulkan)
-    {
-      //:startTimer(16);
-      moveToThread(&m_thread);
-      m_thread.start();
-    }
-#endif
-    QMetaObject::invokeMethod(
-        this, [this] { startTimer(16); }, Qt::QueuedConnection);
   }
+
 
   ~gfx_window_context()
   {
@@ -410,9 +400,9 @@ public:
       m_graph->removeNode(it->second.impl.get());
       recompute_graph();
     }
-    nodes.erase(it);
 
-    recompute_graph();
+    nodes.erase(it);
+    recompute_graph(); // TODO wut
   }
 
   void recompute_edges()
@@ -442,8 +432,34 @@ public:
   }
   void recompute_graph()
   {
+    if(m_timer != -1)
+      killTimer(m_timer);
+    m_timer = -1;
+    m_graph->setVSyncCallback({ });
+
     recompute_edges();
     m_graph->setupOutputs(m_api);
+
+    if(m_graph->outputs.size() > 1)
+    {
+      QMetaObject::invokeMethod(
+            this,
+            [this] { m_timer = startTimer(16); },
+      Qt::QueuedConnection);
+    }
+    else
+    {
+#if defined(SCORE_THREADED_GFX)
+      if (m_api == Vulkan)
+      {
+        //:startTimer(16);
+        moveToThread(&m_thread);
+        m_thread.start();
+      }
+#endif
+      m_graph->setVSyncCallback([this] { updateGraph(); });
+    }
+
     must_recompute = false;
   }
 
@@ -516,6 +532,8 @@ public:
   ossia::flat_set<std::pair<port_index, port_index>> new_edges;
   ossia::flat_set<std::pair<port_index, port_index>> edges;
   std::atomic_bool edges_changed{};
+
+  int m_timer{-1};
 };
 
 }

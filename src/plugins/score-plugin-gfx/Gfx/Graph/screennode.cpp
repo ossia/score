@@ -110,9 +110,9 @@ ScreenNode::ScreenNode(bool embedded, bool fullScreen)
 // anyways, which must be running before everything (else QVulkanInstance crashes)
 ScreenNode::ScreenNode(std::shared_ptr<Window> w)
   : OutputNode{}
+  , window{std::move(w)}
   , m_embedded{false}
   , m_ownsWindow{false}
-  , window{std::move(w)}
 {
   window->showFullScreen();
 }

@@ -26,7 +26,12 @@ public:
     node_id = context->ui->register_node(std::unique_ptr<NodeModel>{node});
   }
 
-  void push_texture(port_index idx) { context->setEdge(idx, port_index{this->node_id, 0}); }
+  void push_texture(port_index idx)
+  {
+    port_index source = idx;
+    port_index sink = port_index{this->node_id, 0};
+    context->setEdge(source, sink);
+  }
 
   virtual ~gfx_parameter_base() { context->ui->unregister_node(node_id); }
 };
