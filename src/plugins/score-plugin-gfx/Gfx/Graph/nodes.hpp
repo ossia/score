@@ -3,8 +3,9 @@
 #include "renderstate.hpp"
 #include "uniforms.hpp"
 
+#include <score_plugin_gfx_export.h>
 class Window;
-struct OutputNode : NodeModel
+struct SCORE_PLUGIN_GFX_EXPORT OutputNode : NodeModel
 {
   static const constexpr auto filter = R"_(#version 450
     layout(location = 0) in vec2 v_texcoord;
@@ -18,7 +19,7 @@ struct OutputNode : NodeModel
     }
     )_";
 
-  virtual ~OutputNode() { }
+  virtual ~OutputNode();
 
   const TexturedTriangle& m_mesh = TexturedTriangle::instance();
 

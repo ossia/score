@@ -25,6 +25,8 @@
 #include <QOffscreenSurface>
 #include <QWindow>
 
+OutputNode::~OutputNode() { }
+
 void OutputNode::updateGraphicsAPI(GraphicsApi)
 {
 

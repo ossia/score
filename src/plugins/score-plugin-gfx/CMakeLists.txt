@@ -127,6 +127,7 @@ set(SRCS
     Gfx/Graph/phongnode.cpp
 
     Gfx/GfxApplicationPlugin.cpp
+    Gfx/GfxContext.cpp
     Gfx/GfxDevice.cpp
     Gfx/TexturePort.cpp
     Gfx/ShaderProgram.cpp
