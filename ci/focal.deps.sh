@@ -16,7 +16,7 @@ sudo apt-get install \
     --allow-downgrades \
     --allow-remove-essential \
     --allow-unauthenticated \
-     binutils gcc-10 g++-10 clang-10 clang++-10 \
+     binutils gcc-10 g++-10 \
      libasound-dev \
      ninja-build cmake \
      libfftw3-dev \
@@ -27,9 +27,7 @@ sudo apt-get install \
      libglu1-mesa-dev libglu1-mesa libgles2-mesa-dev \
      libavahi-compat-libdnssd-dev libsamplerate0-dev \
      portaudio19-dev \
-     libavcodec-dev libavdevice-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev \
-     libclang-10-dev libclang-common-10-dev \
-     lib32gcc-s1 lib32stdc++6 libc6-i386
+     libavcodec-dev libavdevice-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev
 
 
 sudo snap remove cmake
