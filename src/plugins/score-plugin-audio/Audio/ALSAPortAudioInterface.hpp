@@ -48,6 +48,7 @@ public:
   ~PulseAudioFactory() override;
 
   bool available() const noexcept override;
+  void initialize(Audio::Settings::Model& set, const score::ApplicationContext& ctx) override{}
   QString prettyName() const override;
   std::unique_ptr<ossia::audio_engine>
   make_engine(const Audio::Settings::Model& set, const score::ApplicationContext& ctx) override;
