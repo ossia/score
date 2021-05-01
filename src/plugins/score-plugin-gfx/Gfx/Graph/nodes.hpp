@@ -37,6 +37,7 @@ struct OutputNode : NodeModel
       std::function<void()> onResize
       ) = 0;
 
+  virtual void updateGraphicsAPI(GraphicsApi);
   virtual void destroyOutput() = 0;
   virtual RenderState* renderState() const = 0;
 
@@ -151,6 +152,7 @@ struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
       std::function<void()> onResize
       ) override;
   void destroyOutput() override;
+  void updateGraphicsAPI(GraphicsApi) override;
 
   RenderState* renderState() const override;
   score::gfx::NodeRenderer* createRenderer() const noexcept override;
@@ -160,4 +162,3 @@ private:
   bool m_fullScreen{};
   bool m_ownsWindow{};
 };
-

@@ -29,9 +29,12 @@ SETTINGS_PARAMETER_IMPL(GraphicsApi)
   QStringLiteral("score_plugin_gfx/GraphicsApi"), GraphicsApis{}.OpenGL
 };
 
+SETTINGS_PARAMETER_IMPL(Rate){QStringLiteral("score_plugin_gfx/Rate"), 60.0};
+SETTINGS_PARAMETER_IMPL(VSync){QStringLiteral("score_plugin_gfx/VSync"), true};
+
 static auto list()
 {
-  return std::tie(GraphicsApi);
+  return std::tie(GraphicsApi, Rate, VSync);
 }
 }
 
@@ -82,6 +85,8 @@ GraphicsApi Model::graphicsApiEnum() const noexcept
 }
 
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, GraphicsApi)
+SCORE_SETTINGS_PARAMETER_CPP(double, Model, Rate)
+SCORE_SETTINGS_PARAMETER_CPP(bool, Model, VSync)
 
 
 }

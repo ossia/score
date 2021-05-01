@@ -116,6 +116,7 @@ DocumentPlugin::DocumentPlugin(
     Id<score::DocumentPlugin> id,
     QObject* parent)
     : score::DocumentPlugin{ctx, std::move(id), "Gfx::DocumentPlugin", parent}
+    , context{ctx}
 {
   auto& exec_plug = ctx.plugin<Execution::DocumentPlugin>();
   exec_plug.registerAction(exec);

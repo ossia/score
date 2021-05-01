@@ -19,6 +19,8 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
     : score::GlobalSettingsPresenter{m, v, parent}
 {
   SETTINGS_PRESENTER(GraphicsApi);
+  SETTINGS_PRESENTER(Rate);
+  SETTINGS_PRESENTER(VSync);
 }
 
 QString Presenter::settingsName()

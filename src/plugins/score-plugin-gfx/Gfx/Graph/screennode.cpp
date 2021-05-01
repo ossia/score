@@ -25,6 +25,10 @@
 #include <QOffscreenSurface>
 #include <QWindow>
 
+void OutputNode::updateGraphicsAPI(GraphicsApi)
+{
+
+}
 
 static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
 {
@@ -250,6 +254,17 @@ void ScreenNode::destroyOutput()
 
   if(m_ownsWindow)
     window.reset();
+}
+
+void ScreenNode::updateGraphicsAPI(GraphicsApi api)
+{
+  if(!window)
+    return;
+
+  if(window->api != api)
+  {
+    destroyOutput();
+  }
 }
 
 RenderState* ScreenNode::renderState() const

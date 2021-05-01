@@ -13,6 +13,8 @@ public:
   View();
 
   SETTINGS_UI_COMBOBOX_HPP(GraphicsApi)
+  SETTINGS_UI_DOUBLE_SPINBOX_HPP(Rate)
+  SETTINGS_UI_TOGGLE_HPP(VSync)
 
 private:
   QWidget* getWidget() override;

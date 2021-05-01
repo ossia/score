@@ -6,6 +6,8 @@
 #include <score/widgets/SignalUtils.hpp>
 
 #include <QComboBox>
+#include <QSpinBox>
+#include <QCheckBox>
 
 #include <Gfx/Settings/Model.hpp>
 #include <Gfx/Settings/Presenter.hpp>
@@ -22,6 +24,9 @@ View::View()
 
   auto lay = m_widg->layout();
   SETTINGS_UI_COMBOBOX_SETUP("Graphics API", GraphicsApi, GraphicsApis{});
+  SETTINGS_UI_DOUBLE_SPINBOX_SETUP("Rate (if no VSync)", Rate);
+  m_Rate->setRange(1., 1000.);
+  SETTINGS_UI_TOGGLE_SETUP("VSync", VSync);
 }
 
 QWidget* View::getWidget()
@@ -30,5 +35,7 @@ QWidget* View::getWidget()
 }
 
 SETTINGS_UI_COMBOBOX_IMPL(GraphicsApi)
+SETTINGS_UI_DOUBLE_SPINBOX_IMPL(Rate)
+SETTINGS_UI_TOGGLE_IMPL(VSync)
 
 }

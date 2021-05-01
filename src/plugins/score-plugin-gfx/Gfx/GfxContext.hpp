@@ -8,14 +8,13 @@
 #include <Gfx/Graph/graph.hpp>
 #include <Gfx/Settings/Model.hpp>
 #include <score/application/ApplicationContext.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/tools/Bind.hpp>
 #include <QGuiApplication>
 #include <concurrentqueue.h>
+#include <ossia/detail/logger.hpp>
 namespace Gfx
 {
-inline GraphicsApi defaultGraphicsAPI()
-{
-  return score::AppContext().settings<Gfx::Settings::Model>().graphicsApiEnum();
-}
 using port_index = ossia::gfx::port_index;
 
 using gfx_input = std::variant<ossia::value, ossia::audio_vector>;
@@ -336,7 +335,7 @@ struct gfx_view_node
 
 class gfx_window_context : public QObject
 {
-  GraphicsApi m_api{};
+  const score::DocumentContext& m_context;
   int32_t index{};
 
   ossia::fast_hash_map<int32_t, gfx_view_node> nodes;
@@ -350,12 +349,20 @@ class gfx_window_context : public QObject
 public:
   moodycamel::ConcurrentQueue<gfx_message> tick_messages;
 
-  gfx_window_context()
+  gfx_window_context(const score::DocumentContext& ctx)
+    : m_context{ctx}
   {
     new_edges.container.reserve(100);
     edges.container.reserve(100);
 
-    m_api = defaultGraphicsAPI();
+
+    auto& settings = m_context.app.settings<Gfx::Settings::Model>();
+    con(settings, &Gfx::Settings::Model::GraphicsApiChanged,
+        this, &gfx_window_context::recompute_graph);
+    con(settings, &Gfx::Settings::Model::RateChanged,
+        this, &gfx_window_context::recompute_graph);
+    con(settings, &Gfx::Settings::Model::VSyncChanged,
+        this, &gfx_window_context::recompute_graph);
 
     m_graph = new Graph;
   }
@@ -430,6 +437,7 @@ public:
       m_graph->edges.push_back(e);
     }
   }
+
   void recompute_graph()
   {
     if(m_timer != -1)
@@ -438,26 +446,39 @@ public:
     m_graph->setVSyncCallback({ });
 
     recompute_edges();
-    m_graph->setupOutputs(m_api);
 
-    if(m_graph->outputs.size() > 1)
-    {
-      QMetaObject::invokeMethod(
-            this,
-            [this] { m_timer = startTimer(16); },
-      Qt::QueuedConnection);
-    }
-    else
+
+    auto& settings = m_context.app.settings<Gfx::Settings::Model>();
+    auto api = settings.graphicsApiEnum();
+
+    m_graph->setupOutputs(api);
+
+    const bool vsync = settings.getVSync() && m_graph->outputs.size() == 1;
+
+    // rate in fps
+    double rate = m_context.app.settings<Gfx::Settings::Model>().getRate();
+    rate = 1000. / qBound(1.0, rate, 1000.);
+
+    if(vsync)
     {
 #if defined(SCORE_THREADED_GFX)
-      if (m_api == Vulkan)
+      if (api == Vulkan)
       {
-        //:startTimer(16);
+        //:startTimer(rate);
         moveToThread(&m_thread);
         m_thread.start();
       }
 #endif
       m_graph->setVSyncCallback([this] { updateGraph(); });
+    }
+    else
+    {
+      QMetaObject::invokeMethod(
+            this,
+            [this, rate] {
+        m_timer = startTimer(rate);
+      },
+      Qt::QueuedConnection);
     }
 
     must_recompute = false;

@@ -22,11 +22,17 @@ class Model : public score::SettingsDelegateModel
 {
   W_OBJECT(Model)
 
-  QString m_GraphicsApi;
+  QString m_GraphicsApi{};
+  double m_Rate{};
+  bool m_VSync{};
 
 public:
   Model(QSettings& set, const score::ApplicationContext& ctx);
 
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_GFX_EXPORT, double, Rate)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_GFX_EXPORT, bool, VSync)
+
+public:
   GraphicsApi graphicsApiEnum() const noexcept;
   QString getGraphicsApi() const;
   void setGraphicsApi(QString);
@@ -35,4 +41,6 @@ public:
 };
 
 SCORE_SETTINGS_PARAMETER(Model, GraphicsApi)
+SCORE_SETTINGS_PARAMETER(Model, Rate)
+SCORE_SETTINGS_PARAMETER(Model, VSync)
 }

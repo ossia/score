@@ -12,9 +12,10 @@ class Window : public QWindow
 {
 public:
   explicit Window(GraphicsApi graphicsApi)
+    : api{graphicsApi}
   {
     // Tell the platform plugin what we want.
-    switch (graphicsApi)
+    switch (api)
     {
       case OpenGL:
 #if QT_CONFIG(opengl)
@@ -40,6 +41,7 @@ public:
   {
   }
 
+  GraphicsApi api{};
   std::function<void()> onWindowReady;
   std::function<void()> onUpdate;
   std::function<void(QRhiCommandBuffer&)> onRender;

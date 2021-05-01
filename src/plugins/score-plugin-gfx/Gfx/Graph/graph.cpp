@@ -91,6 +91,7 @@ void Graph::setupOutputs(GraphicsApi graphicsApi)
 
   for (auto output : outputs)
   {
+    output->updateGraphicsAPI(graphicsApi);
     if (!output->canRender())
     {
       auto onReady = [=] {
@@ -112,7 +113,17 @@ void Graph::setupOutputs(GraphicsApi graphicsApi)
       };
 
       // TODO only works for one output !!
-      output->createOutput(graphicsApi, onReady, vsync_callback, onResize);
+      output->createOutput(graphicsApi, onReady, [this] {
+              switch(this->outputs.size())
+              {
+                case 1:
+                  if(this->vsync_callback)
+                    this->vsync_callback();
+                  break;
+                default:
+                  break;
+              }
+          }, onResize);
     }
     else
     {
@@ -194,23 +205,7 @@ void Graph::setVSyncCallback(std::function<void ()> cb)
   // TODO thread safety if vulkan uses a thread ?
   // If we have more than one output, then instead we sync them with
   // a simple timer, as they may have drastically different vsync rates.
-  if(cb)
-  {
-    vsync_callback = [this, callback = std::move(cb)] {
-        switch(this->outputs.size())
-        {
-          case 1:
-            callback();
-            break;
-          default:
-            break;
-        }
-    };
-  }
-  else
-  {
-    vsync_callback = [] { };
-  }
+  vsync_callback = cb;
 }
 
 static void createNodeRenderer(score::gfx::Node& node, Renderer& r)
