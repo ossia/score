@@ -1,7 +1,6 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Process/Focus/FocusDispatcher.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -12,6 +11,7 @@
 
 #include <QTimer>
 
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Spline/Model.hpp>
 #include <Spline/Presenter.hpp>
 #include <Spline/View.hpp>
@@ -23,10 +23,13 @@ Presenter::Presenter(
     View* view,
     const Process::Context& ctx,
     QObject* parent)
-    : LayerPresenter{layer, view, ctx, parent}, m_view{view}
+    : LayerPresenter{layer, view, ctx, parent}
+    , m_view{view}
 {
   putToFront();
-  con(layer, &ProcessModel::splineChanged, this, [&] { m_view->setSpline(layer.spline()); });
+  con(layer, &ProcessModel::splineChanged, this, [&] {
+    m_view->setSpline(layer.spline());
+  });
 
   m_view->setSpline(layer.spline());
   connect(m_view, &View::changed, this, [&] {
@@ -36,8 +39,11 @@ Presenter::Presenter(
     context().context.dispatcher.commit();
   });
 
-  connect(m_view, &View::pressed, this, [&] { m_context.context.focusDispatcher.focus(this); });
-  connect(m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
+  connect(m_view, &View::pressed, this, [&] {
+    m_context.context.focusDispatcher.focus(this);
+  });
+  connect(
+      m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
 
   if (auto itv = Scenario::closestParentInterval(layer.parent()))
   {

@@ -12,7 +12,8 @@
 namespace score
 {
 UndoPanelDelegate::UndoPanelDelegate(const GUIApplicationContext& ctx)
-    : PanelDelegate{ctx}, m_widget{new QWidget}
+    : PanelDelegate{ctx}
+    , m_widget{new QWidget}
 {
   m_widget->setLayout(new score::MarginLess<QVBoxLayout>);
   m_widget->setObjectName("HistoryExplorer");

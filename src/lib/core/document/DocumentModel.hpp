@@ -25,7 +25,8 @@ struct ApplicationContext;
  * Drawbridge between the application and a model given by a plugin.
  * Contains all the "saveable" data.
  */
-class SCORE_LIB_BASE_EXPORT DocumentModel final : public IdentifiedObject<DocumentModel>
+class SCORE_LIB_BASE_EXPORT DocumentModel final
+    : public IdentifiedObject<DocumentModel>
 {
   W_OBJECT(DocumentModel)
   friend class Document;
@@ -45,7 +46,8 @@ public:
   void addPluginModel(DocumentPlugin* m);
   const std::vector<DocumentPlugin*>& pluginModels() { return m_pluginModels; }
 
-  void pluginModelsChanged() E_SIGNAL(SCORE_LIB_BASE_EXPORT, pluginModelsChanged)
+  void pluginModelsChanged()
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, pluginModelsChanged)
 
 private:
   void loadDocumentAsJson(
@@ -58,6 +60,7 @@ private:
       DocumentDelegateFactory& fact);
 
   std::vector<DocumentPlugin*> m_pluginModels;
-  DocumentDelegateModel* m_model{}; // note : this *has* to be last due to init order
+  DocumentDelegateModel*
+      m_model{}; // note : this *has* to be last due to init order
 };
 }

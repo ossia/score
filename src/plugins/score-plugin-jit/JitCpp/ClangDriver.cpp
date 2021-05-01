@@ -10,12 +10,13 @@
 #include "cc1_main.cpp"
 #endif
 
-#include <JitCpp/ClangDriver.hpp>
-
 #include <score/tools/File.hpp>
 
 #include <QCryptographicHash>
 #include <QStandardPaths>
+
+#include <JitCpp/ClangDriver.hpp>
+
 #include <sstream>
 
 namespace Jit
@@ -88,7 +89,7 @@ ClangCC1Driver::compileTranslationUnit(
   flags_vec.push_back("-o");
   flags_vec.push_back(preproc);
   flags_vec.push_back(cpp);
-/*
+  /*
   {
     Timer t;
     llvm::Error err = compileCppToBitcodeFile(flags_vec);
@@ -127,7 +128,7 @@ ClangCC1Driver::compileTranslationUnit(
     flags_vec.push_back(cpp);
 
     std::cerr << "Original option dump ! \n";
-    for(const auto& arg : flags_vec)
+    for (const auto& arg : flags_vec)
     {
       std::cerr << arg << " ";
     }

@@ -2,10 +2,10 @@
 #include <score/plugins/ProjectSettings/ProjectSettingsModel.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 
+#include <libremidi/api.hpp>
 #include <score_plugin_protocols_export.h>
 
 #include <verdigris>
-#include <libremidi/api.hpp>
 
 namespace Protocols::Settings
 {

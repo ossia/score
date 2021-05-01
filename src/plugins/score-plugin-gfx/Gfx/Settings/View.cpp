@@ -1,17 +1,17 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
+#include <Gfx/Settings/Model.hpp>
+#include <Gfx/Settings/Presenter.hpp>
+#include <Gfx/Settings/View.hpp>
+
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/widgets/FormWidget.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
+#include <QCheckBox>
 #include <QComboBox>
 #include <QSpinBox>
-#include <QCheckBox>
-
-#include <Gfx/Settings/Model.hpp>
-#include <Gfx/Settings/Presenter.hpp>
-#include <Gfx/Settings/View.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Gfx::Settings::View)

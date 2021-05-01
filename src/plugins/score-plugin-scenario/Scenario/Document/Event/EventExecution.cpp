@@ -2,9 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Process/ExecutionContext.hpp>
-#include <Scenario/Document/Event/EventExecution.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Execution/score2OSSIA.hpp>
 
 #include <score/tools/Bind.hpp>
 
@@ -12,6 +9,9 @@
 #include <ossia/editor/expression/expression.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
 
+#include <Scenario/Document/Event/EventExecution.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
 #include <wobjectimpl.h>
 
 #include <exception>
@@ -24,12 +24,19 @@ EventComponent::EventComponent(
     const Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
-    : Execution::Component{ctx, id, "Executor::Event", nullptr}, m_score_event{&element}
+    : Execution::Component{ctx, id, "Executor::Event", nullptr}
+    , m_score_event{&element}
 {
-  con(element, &Scenario::EventModel::conditionChanged, this, [this](const auto& expr) {
-    auto exp_ptr = std::make_shared<ossia::expression_ptr>(this->makeExpression());
-    this->in_exec([e = m_ossia_event, exp_ptr] { e->set_expression(std::move(*exp_ptr)); });
-  });
+  con(element,
+      &Scenario::EventModel::conditionChanged,
+      this,
+      [this](const auto& expr) {
+        auto exp_ptr
+            = std::make_shared<ossia::expression_ptr>(this->makeExpression());
+        this->in_exec([e = m_ossia_event, exp_ptr] {
+          e->set_expression(std::move(*exp_ptr));
+        });
+      });
 }
 
 void EventComponent::cleanup()

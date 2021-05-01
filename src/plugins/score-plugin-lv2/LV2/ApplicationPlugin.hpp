@@ -1,23 +1,25 @@
 #pragma once
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
-
-#include <verdigris>
 #include <LV2/Context.hpp>
 
-#include <lilv/lilvmm.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
 
 #include <ossia/detail/hash_map.hpp>
 
 #include <QProcess>
 
+#include <lilv/lilvmm.hpp>
+
 #include <thread>
+#include <verdigris>
 
 namespace LV2
 {
 struct HostContext;
 struct GlobalContext;
 
-class ApplicationPlugin : public QObject, public score::ApplicationPlugin
+class ApplicationPlugin
+    : public QObject
+    , public score::ApplicationPlugin
 {
   W_OBJECT(ApplicationPlugin)
 public:

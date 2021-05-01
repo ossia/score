@@ -1,7 +1,6 @@
 #pragma once
-#include <Scenario/Document/State/StateModel.hpp>
-
 #include <RemoteControl/DocumentPlugin.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 
 namespace RemoteControl
 {

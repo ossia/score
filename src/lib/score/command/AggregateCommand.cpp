@@ -4,12 +4,12 @@
 
 #include <score/application/ApplicationComponents.hpp>
 #include <score/application/ApplicationContext.hpp>
+#include <score/document/DocumentContext.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
-#include <boost/range/adaptor/reversed.hpp>
-
 #include <core/document/Document.hpp>
-#include <score/document/DocumentContext.hpp>
+
+#include <boost/range/adaptor/reversed.hpp>
 namespace score
 {
 AggregateCommand::~AggregateCommand()

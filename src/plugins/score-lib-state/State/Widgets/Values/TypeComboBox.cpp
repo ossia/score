@@ -24,7 +24,8 @@ void TypeComboBox::set(ossia::val_type t)
     setCurrentIndex(this->count() - 1);
 }
 
-TypeComboBox::TypeComboBox(QWidget* parent) : QComboBox{parent}
+TypeComboBox::TypeComboBox(QWidget* parent)
+    : QComboBox{parent}
 {
   auto& arr = State::convert::ValuePrettyTypesArray();
   const int n = arr.size();
@@ -35,9 +36,11 @@ TypeComboBox::TypeComboBox(QWidget* parent) : QComboBox{parent}
   }
   addItem(arr[n - 1], QVariant::fromValue(ossia::val_type::NONE));
 
-  connect(this, SignalUtils::QComboBox_currentIndexChanged_int(), this, [=](int i) {
-    changed(this->itemData(i).value<ossia::val_type>());
-  });
+  connect(
+      this,
+      SignalUtils::QComboBox_currentIndexChanged_int(),
+      this,
+      [=](int i) { changed(this->itemData(i).value<ossia::val_type>()); });
 }
 
 TypeComboBox::~TypeComboBox() { }

@@ -94,7 +94,10 @@ public:
   }
 
   // Load without creating presenter and view
-  Document(const QString& name, DocumentDelegateFactory& type, QObject* parent);
+  Document(
+      const QString& name,
+      DocumentDelegateFactory& type,
+      QObject* parent);
 
 private:
   // These are to be constructed by DocumentBuilder.

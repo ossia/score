@@ -14,7 +14,7 @@ namespace Video
 AVFrame* FrameQueue::newFrame() noexcept
 {
   AVFrame* f{};
-  if(released.try_dequeue(f))
+  if (released.try_dequeue(f))
     return f;
   return av_frame_alloc();
 }
@@ -30,8 +30,9 @@ AVFrame* FrameQueue::dequeue() noexcept
   AVFrame* prev_f{};
 
   // We only want the latest frame
-  while(available.try_dequeue(f)) {
-    if(prev_f)
+  while (available.try_dequeue(f))
+  {
+    if (prev_f)
       release(prev_f);
     prev_f = f;
   }

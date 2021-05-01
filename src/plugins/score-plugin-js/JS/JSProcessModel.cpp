@@ -33,7 +33,11 @@ ProcessModel::ProcessModel(
     const QString& data,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    : Process::ProcessModel{
+        duration,
+        id,
+        Metadata<ObjectKey_k, ProcessModel>::get(),
+        parent}
 {
   if (data.isEmpty())
   {
@@ -70,17 +74,18 @@ bool ProcessModel::validate(const QString& script) const noexcept
   const auto trimmed = script.trimmed();
   const QByteArray data = trimmed.toUtf8();
 
-  auto path = score::locateFilePath(trimmed, score::IDocument::documentContext(*this));
+  auto path = score::locateFilePath(
+      trimmed, score::IDocument::documentContext(*this));
 
   if (QFileInfo::exists(path))
   {
-    return (bool) m_cache.get(*this, path.toUtf8(), true);
+    return (bool)m_cache.get(*this, path.toUtf8(), true);
   }
   else
   {
-    if(!data.startsWith("import"))
-        return false;
-    return (bool) m_cache.get(*this, data, false);
+    if (!data.startsWith("import"))
+      return false;
+    return (bool)m_cache.get(*this, data, false);
   }
 }
 
@@ -98,7 +103,8 @@ void ProcessModel::setScript(const QString& script)
   const auto trimmed = script.trimmed();
   const QByteArray data = trimmed.toUtf8();
 
-  auto path = score::locateFilePath(trimmed, score::IDocument::documentContext(*this));
+  auto path = score::locateFilePath(
+      trimmed, score::IDocument::documentContext(*this));
 
   if (QFileInfo{path}.exists())
   {
@@ -125,12 +131,12 @@ void ProcessModel::setScript(const QString& script)
         });
 
     */
-    if(!setQmlData(path.toUtf8(), true))
+    if (!setQmlData(path.toUtf8(), true))
       return;
   }
   else
   {
-    if(!setQmlData(data, false))
+    if (!setQmlData(data, false))
       return;
   }
 
@@ -182,7 +188,7 @@ bool ProcessModel::setQmlData(const QByteArray& data, bool isFile)
     }
   }
 
-  if(m_isFile)
+  if (m_isFile)
   {
     const auto name = QFileInfo{data}.baseName();
     metadata().setName(name);
@@ -210,7 +216,8 @@ Script* ProcessModel::currentObject() const noexcept
 ComponentCache::ComponentCache() { }
 ComponentCache::~ComponentCache() { }
 
-Script* ComponentCache::tryGet(const QByteArray& str, bool isFile) const noexcept
+Script*
+ComponentCache::tryGet(const QByteArray& str, bool isFile) const noexcept
 {
   QByteArray content;
   QFile f{str};
@@ -224,7 +231,8 @@ Script* ComponentCache::tryGet(const QByteArray& str, bool isFile) const noexcep
     content = str;
   }
 
-  auto it = ossia::find_if(m_map, [&](const auto& k) { return k.key == content; });
+  auto it
+      = ossia::find_if(m_map, [&](const auto& k) { return k.key == content; });
   if (it != m_map.end())
   {
     return it->object.get();
@@ -235,7 +243,10 @@ Script* ComponentCache::tryGet(const QByteArray& str, bool isFile) const noexcep
   }
 }
 
-Script* ComponentCache::get(const ProcessModel& process, const QByteArray& str, bool isFile) noexcept
+Script* ComponentCache::get(
+    const ProcessModel& process,
+    const QByteArray& str,
+    bool isFile) noexcept
 {
   QFile f;
   QByteArray content;
@@ -250,7 +261,8 @@ Script* ComponentCache::get(const ProcessModel& process, const QByteArray& str, 
     content = str;
   }
 
-  auto it = ossia::find_if(m_map, [&](const auto& k) { return k.key == content; });
+  auto it
+      = ossia::find_if(m_map, [&](const auto& k) { return k.key == content; });
   if (it != m_map.end())
   {
     return it->object.get();
@@ -287,7 +299,8 @@ Script* ComponentCache::get(const ProcessModel& process, const QByteArray& str, 
       if (m_map.size() > 5)
         m_map.erase(m_map.begin());
 
-      m_map.emplace_back(Cache{str, std::move(comp), std::unique_ptr<JS::Script>(script)});
+      m_map.emplace_back(
+          Cache{str, std::move(comp), std::unique_ptr<JS::Script>(script)});
       return script;
     }
     else

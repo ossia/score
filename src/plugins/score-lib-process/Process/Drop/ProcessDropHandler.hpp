@@ -36,18 +36,21 @@ public:
   ProcessDropHandler();
   ~ProcessDropHandler() override;
 
-  std::vector<ProcessDrop>
-  getDrops(const QMimeData& mime, const score::DocumentContext& ctx) const noexcept;
+  std::vector<ProcessDrop> getDrops(
+      const QMimeData& mime,
+      const score::DocumentContext& ctx) const noexcept;
 
   virtual QSet<QString> mimeTypes() const noexcept;
   virtual QSet<QString> fileExtensions() const noexcept;
 
 protected:
-  virtual std::vector<ProcessDrop>
-  drop(const QMimeData& mime, const score::DocumentContext& ctx) const noexcept;
+  virtual std::vector<ProcessDrop> drop(
+      const QMimeData& mime,
+      const score::DocumentContext& ctx) const noexcept;
 
-  virtual std::vector<ProcessDrop>
-  dropData(const std::vector<DroppedFile>& data, const score::DocumentContext& ctx) const noexcept;
+  virtual std::vector<ProcessDrop> dropData(
+      const std::vector<DroppedFile>& data,
+      const score::DocumentContext& ctx) const noexcept;
 };
 
 class SCORE_LIB_PROCESS_EXPORT ProcessDropHandlerList final
@@ -56,9 +59,11 @@ class SCORE_LIB_PROCESS_EXPORT ProcessDropHandlerList final
 public:
   ~ProcessDropHandlerList() override;
 
-  std::vector<ProcessDropHandler::ProcessDrop>
-  getDrop(const QMimeData& mime, const score::DocumentContext& ctx) const noexcept;
+  std::vector<ProcessDropHandler::ProcessDrop> getDrop(
+      const QMimeData& mime,
+      const score::DocumentContext& ctx) const noexcept;
 
-  static std::optional<TimeVal> getMaxDuration(const std::vector<ProcessDropHandler::ProcessDrop>&);
+  static std::optional<TimeVal>
+  getMaxDuration(const std::vector<ProcessDropHandler::ProcessDrop>&);
 };
 }

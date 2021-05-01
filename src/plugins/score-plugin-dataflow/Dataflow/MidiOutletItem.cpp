@@ -28,7 +28,8 @@ void MidiOutletFactory::setupOutletInspector(
     auto& set = dev.settings();
     if (set.protocol == midi_uuid)
     {
-      const auto& midi_set = set.deviceSpecificSettings.value<Protocols::MIDISpecificSettings>();
+      const auto& midi_set = set.deviceSpecificSettings
+                                 .value<Protocols::MIDISpecificSettings>();
       if (midi_set.io == Protocols::MIDISpecificSettings::IO::Out)
         midiDevices.push_back(set.name);
     }

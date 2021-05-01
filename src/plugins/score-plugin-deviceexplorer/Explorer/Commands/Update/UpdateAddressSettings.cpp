@@ -20,7 +20,8 @@ UpdateAddressSettings::UpdateAddressSettings(
     const DeviceDocumentPlugin& devplug,
     const Device::NodePath& node,
     const Device::AddressSettings& parameters)
-    : m_node(node), m_newParameters(parameters)
+    : m_node(node)
+    , m_newParameters(parameters)
 {
   auto n = m_node.toNode(&devplug.rootNode());
   SCORE_ASSERT(n);

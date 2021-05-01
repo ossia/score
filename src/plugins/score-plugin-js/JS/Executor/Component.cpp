@@ -4,17 +4,17 @@
 
 #include "JSAPIWrapper.hpp"
 
+#include <Execution/DocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <JS/ConsolePanel.hpp>
 #include <JS/JSProcessModel.hpp>
 #include <JS/Qml/Metatypes.hpp>
-#include <Scenario/Execution/score2OSSIA.hpp>
 
+#include <score/serialization/AnySerialization.hpp>
+#include <score/serialization/MapSerialization.hpp>
 #include <score/tools/Bind.hpp>
 
 #include <ossia-qt/invoke.hpp>
-#include <score/serialization/AnySerialization.hpp>
-#include <score/serialization/MapSerialization.hpp>
 #include <ossia-qt/js_utilities.hpp>
 #include <ossia-qt/time.hpp>
 #include <ossia/dataflow/port.hpp>
@@ -27,7 +27,7 @@
 #include <QQmlComponent>
 #include <QQmlContext>
 
-#include <Execution/DocumentPlugin.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
 
 #include <vector>
 
@@ -42,7 +42,9 @@ public:
 
   void setScript(const QString& val);
 
-  void run(const ossia::token_request& t, ossia::exec_state_facade) noexcept override;
+  void
+  run(const ossia::token_request& t,
+      ossia::exec_state_facade) noexcept override;
 
   ossia::execution_state& m_st;
   QQmlEngine* m_engine{};
@@ -103,12 +105,18 @@ struct js_process final : public ossia::node_process
   void transport_impl(ossia::time_value date) override
   {
     QMetaObject::invokeMethod(
-        js().m_object, "transport", Qt::DirectConnection, Q_ARG(QVariant, double(date.impl)));
+        js().m_object,
+        "transport",
+        Qt::DirectConnection,
+        Q_ARG(QVariant, double(date.impl)));
   }
   void offset_impl(ossia::time_value date) override
   {
     QMetaObject::invokeMethod(
-        js().m_object, "offset", Qt::DirectConnection, Q_ARG(QVariant, double(date.impl)));
+        js().m_object,
+        "offset",
+        Qt::DirectConnection,
+        Q_ARG(QVariant, double(date.impl)));
   }
 };
 Component::Component(
@@ -129,7 +137,10 @@ Component::Component(
   m_ossia_process = proc;
 
   on_scriptChange(element.qmlData());
-  con(element, &JS::ProcessModel::qmlDataChanged, this, &Component::on_scriptChange);
+  con(element,
+      &JS::ProcessModel::qmlDataChanged,
+      this,
+      &Component::on_scriptChange);
   SCORE_TODO_("Reinstate JS panel live scripting");
   /*
   if (!node->m_object)
@@ -182,12 +193,17 @@ void Component::on_scriptChange(const QString& script)
           }
           else
           {
-            auto ctrl = qobject_cast<Process::ControlInlet*>(process().inlets()[idx]);
+            auto ctrl = qobject_cast<Process::ControlInlet*>(
+                process().inlets()[idx]);
             SCORE_ASSERT(ctrl);
             connect(
-                ctrl, &Process::ControlInlet::valueChanged, this, [=](const ossia::value& val) {
+                ctrl,
+                &Process::ControlInlet::valueChanged,
+                this,
+                [=](const ossia::value& val) {
                   this->in_exec([proc, val, idx] {
-                    proc->setControl(idx, val.apply(ossia::qt::ossia_to_qvariant{}));
+                    proc->setControl(
+                        idx, val.apply(ossia::qt::ossia_to_qvariant{}));
                   });
                 });
             controlSetups.push_back([proc, val = ctrl->value(), idx] {
@@ -255,7 +271,10 @@ void Component::on_scriptChange(const QString& script)
   m_oldOutlets = process().outlets();
 }
 
-js_node::js_node(ossia::execution_state& st) : m_st{st} { }
+js_node::js_node(ossia::execution_state& st)
+    : m_st{st}
+{
+}
 
 void js_node::setupComponent(QQmlComponent& c)
 {
@@ -331,7 +350,9 @@ void js_node::setScript(const QString& val)
     if (!errs.empty())
     {
       ossia::logger().error(
-          "Uncaught exception at line {} : {}", errs[0].line(), errs[0].toString().toStdString());
+          "Uncaught exception at line {} : {}",
+          errs[0].line(),
+          errs[0].toString().toStdString());
     }
     else
     {
@@ -346,7 +367,9 @@ void js_node::setScript(const QString& val)
     if (!errs.empty())
     {
       ossia::logger().error(
-          "Uncaught exception at line {} : {}", errs[0].line(), errs[0].toString().toStdString());
+          "Uncaught exception at line {} : {}",
+          errs[0].line(),
+          errs[0].toString().toStdString());
     }
     else
     {
@@ -355,7 +378,9 @@ void js_node::setScript(const QString& val)
   }
 }
 
-void js_node::run(const ossia::token_request& tk, ossia::exec_state_facade estate) noexcept
+void js_node::run(
+    const ossia::token_request& tk,
+    ossia::exec_state_facade estate) noexcept
 {
   if (!m_engine || !m_object)
     return;
@@ -409,8 +434,8 @@ void js_node::run(const ossia::token_request& tk, ossia::exec_state_facade estat
         // TODO why not js_value_outbound_visitor ? it makes more sense.
         auto qvar = val.value.apply(ossia::qt::ossia_to_qvariant{});
         m_valInlets[i].first->setValue(qvar);
-        m_valInlets[i].first->addValue(
-            QVariant::fromValue(ValueMessage{(double)val.timestamp, std::move(qvar)}));
+        m_valInlets[i].first->addValue(QVariant::fromValue(
+            ValueMessage{(double)val.timestamp, std::move(qvar)}));
       }
     }
   }
@@ -443,11 +468,9 @@ void js_node::run(const ossia::token_request& tk, ossia::exec_state_facade estat
   m_tickCall[1] = m_engine->toScriptValue(estate);
 
   auto res = tick.call(m_tickCall);
-  if(res.isError())
+  if (res.isError())
   {
-    qDebug() << "JS Error at "
-             << res.property("lineNumber").toInt()
-             << ": "
+    qDebug() << "JS Error at " << res.property("lineNumber").toInt() << ": "
              << res.toString();
   }
 
@@ -459,7 +482,8 @@ void js_node::run(const ossia::token_request& tk, ossia::exec_state_facade estat
       dat.write_value(ossia::qt::qt_to_ossia{}(v), estate.physical_start(tk));
     for (auto& v : m_valOutlets[i].first->values)
     {
-      dat.write_value(ossia::qt::qt_to_ossia{}(std::move(v.value)), v.timestamp);
+      dat.write_value(
+          ossia::qt::qt_to_ossia{}(std::move(v.value)), v.timestamp);
     }
     m_valOutlets[i].first->clear();
   }

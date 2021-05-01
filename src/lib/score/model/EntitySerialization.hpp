@@ -3,7 +3,6 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
-
 template <typename T>
 void JSONReader::readFrom(const score::Entity<T>& obj)
 {
@@ -108,8 +107,8 @@ struct TSerializer<JSONObject, score::Entity<T>>
       }
       // TODO we use id -1, there should be a better way... for now it will
       // work since id's begin at 1.
-      auto comp
-          = new score::JSONSerializedComponents{Id<score::Component>{-1}, std::move(vec), &obj};
+      auto comp = new score::JSONSerializedComponents{
+          Id<score::Component>{-1}, std::move(vec), &obj};
       obj.components().add(comp);
     }
 #endif
@@ -170,7 +169,8 @@ struct ArrayEntitySerializer
   {
     for (const auto& json_vref : s.base.GetArray())
     {
-      auto proc = deserialize_interface(lst, JSONObject::Deserializer{json_vref}, parent);
+      auto proc = deserialize_interface(
+          lst, JSONObject::Deserializer{json_vref}, parent);
       if (proc)
       {
         success(proc);
@@ -193,10 +193,12 @@ struct TSerializer<JSONObject, std::vector<T*, Alloc>> : ArrayEntitySerializer
 };
 
 template <typename T, std::size_t N>
-struct TSerializer<DataStream, boost::container::small_vector<T*, N>> : ArrayEntitySerializer
+struct TSerializer<DataStream, boost::container::small_vector<T*, N>>
+    : ArrayEntitySerializer
 {
 };
 template <typename T, std::size_t N>
-struct TSerializer<JSONObject, boost::container::small_vector<T*, N>> : ArrayEntitySerializer
+struct TSerializer<JSONObject, boost::container::small_vector<T*, N>>
+    : ArrayEntitySerializer
 {
 };

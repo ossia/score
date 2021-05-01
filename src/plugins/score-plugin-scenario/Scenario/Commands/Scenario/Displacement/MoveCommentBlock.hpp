@@ -1,13 +1,14 @@
 #pragma once
 
 #include <Process/TimeValue.hpp>
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/tools/Unused.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 
 namespace Scenario
 {
@@ -16,7 +17,10 @@ namespace Command
 {
 class MoveCommentBlock final : public score::Command
 {
-  SCORE_COMMAND_DECL(CommandFactoryName(), MoveCommentBlock, "Move a comment block")
+  SCORE_COMMAND_DECL(
+      CommandFactoryName(),
+      MoveCommentBlock,
+      "Move a comment block")
 public:
   MoveCommentBlock(
       const ProcessModel& scenarPath,

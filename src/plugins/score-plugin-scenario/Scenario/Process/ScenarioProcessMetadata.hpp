@@ -21,4 +21,5 @@ PROCESS_METADATA(
     {},
     {},
     {},
-    Process::ProcessFlags::SupportsTemporal | Process::ProcessFlags::PutInNewSlot)
+    Process::ProcessFlags::SupportsTemporal
+        | Process::ProcessFlags::PutInNewSlot)

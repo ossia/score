@@ -4,12 +4,13 @@
 
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
-#include <Scenario/Document/Interval/LayerData.hpp>
 
 #include <score/graphics/GraphicsItem.hpp>
 
 #include <QGraphicsScene>
 #include <QPointer>
+
+#include <Scenario/Document/Interval/LayerData.hpp>
 
 namespace Scenario
 {

@@ -10,7 +10,10 @@ W_OBJECT_IMPL(Curve::PointModel)
 namespace Curve
 {
 PointModel::PointModel(const Id<PointModel>& id, QObject* parent)
-    : IdentifiedObject<PointModel>{id, QStringLiteral("CurvePointModel"), parent}
+    : IdentifiedObject<PointModel>{
+        id,
+        QStringLiteral("CurvePointModel"),
+        parent}
 {
 }
 

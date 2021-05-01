@@ -5,9 +5,9 @@
 #include "renderstate.hpp"
 #include "uniforms.hpp"
 
-#include <ossia/detail/math.hpp>
+#include <Gfx/Qt5CompatPush> // clang-format: keep
 
-#include <Gfx/Qt5CompatPush>
+#include <ossia/detail/math.hpp>
 namespace Gfx
 {
 struct Image
@@ -96,11 +96,14 @@ struct ImagesNode : NodeModel
       auto& rhi = *renderer.state.rhi;
       for (const Gfx::Image& img : n.images)
       {
-        for(const QImage& frame : img.frames)
+        for (const QImage& frame : img.frames)
         {
           const QSize sz = frame.size();
           auto tex = rhi.newTexture(
-              QRhiTexture::BGRA8, QSize{sz.width(), sz.height()}, 1, QRhiTexture::Flag{});
+              QRhiTexture::BGRA8,
+              QSize{sz.width(), sz.height()},
+              1,
+              QRhiTexture::Flag{});
 
           tex->create();
           textures.push_back(tex);
@@ -116,12 +119,14 @@ struct ImagesNode : NodeModel
             QRhiSampler::Repeat);
 
         sampler->create();
-        auto tex = textures.empty() ? renderer.m_emptyTexture : textures.front();
+        auto tex
+            = textures.empty() ? renderer.m_emptyTexture : textures.front();
         m_samplers.push_back({sampler, tex});
       }
     }
 
-    void customUpdate(Renderer& renderer, QRhiResourceUpdateBatch& res) override
+    void
+    customUpdate(Renderer& renderer, QRhiResourceUpdateBatch& res) override
     {
       if (textures.empty())
         return;
@@ -132,7 +137,7 @@ struct ImagesNode : NodeModel
         int k = 0;
         for (int i = 0, N = n.images.size(); i < N; i++)
         {
-          for(const auto& frame : n.images[i].frames)
+          for (const auto& frame : n.images[i].frames)
           {
             res.uploadTexture(textures[k], frame);
             k++;
@@ -143,11 +148,13 @@ struct ImagesNode : NodeModel
 
       if (prev_ubo.currentImageIndex != n.ubo.currentImageIndex)
       {
-        if(!textures.empty())
+        if (!textures.empty())
         {
-          auto idx = ossia::clamp(int(n.ubo.currentImageIndex), int(0), int(textures.size()) - 1);
+          auto idx = ossia::clamp(
+              int(n.ubo.currentImageIndex), int(0), int(textures.size()) - 1);
           qDebug() << idx;
-          score::gfx::replaceTexture(*m_p.srb, m_samplers[0].sampler, textures[idx]);
+          score::gfx::replaceTexture(
+              *m_p.srb, m_samplers[0].sampler, textures[idx]);
         }
         prev_ubo.currentImageIndex = n.ubo.currentImageIndex;
       }
@@ -174,7 +181,8 @@ struct ImagesNode : NodeModel
 
   const TexturedTriangle& m_mesh = TexturedTriangle::instance();
   std::vector<Gfx::Image> images;
-  ImagesNode(std::vector<Gfx::Image> dec) : images{std::move(dec)}
+  ImagesNode(std::vector<Gfx::Image> dec)
+      : images{std::move(dec)}
   {
     std::tie(m_vertexS, m_fragmentS) = makeShaders(vertex, filter);
     input.push_back(new Port{this, &ubo.currentImageIndex, Types::Int, {}});
@@ -188,7 +196,10 @@ struct ImagesNode : NodeModel
   virtual ~ImagesNode() { m_materialData.release(); }
 
   const Mesh& mesh() const noexcept override { return this->m_mesh; }
-  score::gfx::NodeRenderer* createRenderer() const noexcept override { return new Rendered{*this}; }
+  score::gfx::NodeRenderer* createRenderer() const noexcept override
+  {
+    return new Rendered{*this};
+  }
 };
 
-#include <Gfx/Qt5CompatPop>
+#include <Gfx/Qt5CompatPop> // clang-format: keep

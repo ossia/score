@@ -1,8 +1,8 @@
 #pragma once
 #include <Process/ProcessFactory.hpp>
 
-#include <score/tools/SafeCast.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+#include <score/tools/SafeCast.hpp>
 
 namespace Process
 {
@@ -21,13 +21,22 @@ private:
   {
     return Metadata<ConcreteKey_k, Model_T>::get();
   }
-  QString prettyName() const override { return Metadata<PrettyName_k, Model_T>::get(); }
-  QString category() const override { return Metadata<Category_k, Model_T>::get(); }
+  QString prettyName() const override
+  {
+    return Metadata<PrettyName_k, Model_T>::get();
+  }
+  QString category() const override
+  {
+    return Metadata<Category_k, Model_T>::get();
+  }
   Descriptor descriptor(QString) const override
   {
     return Metadata<Process::Descriptor_k, Model_T>::get();
   }
-  ProcessFlags flags() const override { return Metadata<ProcessFlags_k, Model_T>::get(); }
+  ProcessFlags flags() const override
+  {
+    return Metadata<ProcessFlags_k, Model_T>::get();
+  }
 
   Model_T* make(
       const TimeVal& duration,
@@ -36,8 +45,10 @@ private:
       const score::DocumentContext& ctx,
       QObject* parent) final override;
 
-  Model_T* load(const VisitorVariant& vis, const score::DocumentContext& ctx, QObject* parent)
-      final override;
+  Model_T* load(
+      const VisitorVariant& vis,
+      const score::DocumentContext& ctx,
+      QObject* parent) final override;
 };
 
 template <typename Model_T>
@@ -48,8 +59,12 @@ Model_T* ProcessFactory_T<Model_T>::make(
     const score::DocumentContext& ctx,
     QObject* parent)
 {
-  if constexpr (
-      std::is_constructible_v<Model_T, TimeVal, QString, Id<Process::ProcessModel>, QObject*>)
+  if constexpr (std::is_constructible_v<
+                    Model_T,
+                    TimeVal,
+                    QString,
+                    Id<Process::ProcessModel>,
+                    QObject*>)
     return new Model_T{duration, data, id, parent};
   else if constexpr (std::is_constructible_v<
                          Model_T,
@@ -98,7 +113,7 @@ private:
 
   std::optional<double> recommendedHeight() const noexcept override
   {
-    if constexpr(bool(LayerPresenter_T::recommendedHeight))
+    if constexpr (bool(LayerPresenter_T::recommendedHeight))
     {
       return LayerPresenter_T::recommendedHeight;
     }
@@ -115,8 +130,12 @@ private:
                       const Model_T&,
                       const Process::Context&,
                       QGraphicsItem*>)
-      return new LayerView_T{safe_cast<const Model_T&>(viewmodel), context, parent};
-    else if constexpr (std::is_constructible_v<LayerView_T, const Model_T&, QGraphicsItem*>)
+      return new LayerView_T{
+          safe_cast<const Model_T&>(viewmodel), context, parent};
+    else if constexpr (std::is_constructible_v<
+                           LayerView_T,
+                           const Model_T&,
+                           QGraphicsItem*>)
       return new LayerView_T{safe_cast<const Model_T&>(viewmodel), parent};
     else
       return new LayerView_T{parent};
@@ -129,7 +148,10 @@ private:
       QObject* parent) const final override
   {
     return new LayerPresenter_T{
-        safe_cast<const Model_T&>(lm), safe_cast<LayerView_T*>(v), context, parent};
+        safe_cast<const Model_T&>(lm),
+        safe_cast<LayerView_T*>(v),
+        context,
+        parent};
   }
 
   bool matches(const UuidKey<Process::ProcessModel>& p) const override
@@ -150,8 +172,9 @@ private:
 };
 
 template <typename Model_T>
-class LayerFactory_T<Model_T, default_t, default_t, default_t> : // final :
-                                                                 public Process::LayerFactory
+class LayerFactory_T<Model_T, default_t, default_t, default_t>
+    : // final :
+      public Process::LayerFactory
 {
 public:
   virtual ~LayerFactory_T() = default;
@@ -169,5 +192,6 @@ private:
 };
 
 template <typename Model_T>
-using GenericDefaultLayerFactory = LayerFactory_T<Model_T, default_t, default_t, default_t>;
+using GenericDefaultLayerFactory
+    = LayerFactory_T<Model_T, default_t, default_t, default_t>;
 }

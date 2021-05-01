@@ -4,11 +4,12 @@
 #include <Device/Node/DeviceNode.hpp>
 #include <Process/TimeValue.hpp>
 #include <Recording/Commands/Record.hpp>
-#include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
 #include <State/Address.hpp>
 
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/tools/std/HashMap.hpp>
+
+#include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
 
 #include <chrono>
 #include <memory>
@@ -72,14 +73,17 @@ RecordListening GetAddressesToRecord(
         Explorer::DeviceExplorerModel& m_explorer);
 */
 // The selected addresses and all their children
-RecordListening GetAddressesToRecordRecursive(Explorer::DeviceExplorerModel& explorer);
+RecordListening
+GetAddressesToRecordRecursive(Explorer::DeviceExplorerModel& explorer);
 
 Box CreateBox(RecordContext&);
 
-inline double GetTimeDifferenceInDouble(std::chrono::steady_clock::time_point start)
+inline double
+GetTimeDifferenceInDouble(std::chrono::steady_clock::time_point start)
 {
   using namespace std::chrono;
-  return duration_cast<microseconds>(steady_clock::now() - start).count() / 1000.;
+  return duration_cast<microseconds>(steady_clock::now() - start).count()
+         / 1000.;
 }
 inline TimeVal GetTimeDifference(std::chrono::steady_clock::time_point start)
 {
@@ -94,10 +98,10 @@ inline TimeVal GetTimeDifference(std::chrono::steady_clock::time_point start)
  */
 constexpr int ReasonableUpdateInterval(int numberOfCurves)
 {
-  return numberOfCurves < 10
-             ? 8
-             : numberOfCurves < 50
-                   ? 16
-                   : numberOfCurves < 100 ? 100 : numberOfCurves < 1000 ? 1000 : 5000;
+  return numberOfCurves < 10     ? 8
+         : numberOfCurves < 50   ? 16
+         : numberOfCurves < 100  ? 100
+         : numberOfCurves < 1000 ? 1000
+                                 : 5000;
 }
 }

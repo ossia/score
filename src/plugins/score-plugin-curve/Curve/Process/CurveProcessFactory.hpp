@@ -16,7 +16,9 @@ template <
     typename LayerView_T,
     typename CurveColors_T,
     typename HeaderDelegate_T>
-class CurveLayerFactory_T final : public Process::LayerFactory, public StyleInterface
+class CurveLayerFactory_T final
+    : public Process::LayerFactory
+    , public StyleInterface
 {
 public:
   virtual ~CurveLayerFactory_T() = default;

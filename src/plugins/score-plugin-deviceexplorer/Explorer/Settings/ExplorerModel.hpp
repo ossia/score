@@ -12,10 +12,14 @@ struct DeviceLogLevel
   QString logNothing{"Nothing"};
   QString logUnfolded{"Unfolded"};
   QString logEverything{"Everything"};
-  operator QStringList() const { return {logNothing, logUnfolded, logEverything}; }
+  operator QStringList() const
+  {
+    return {logNothing, logUnfolded, logEverything};
+  }
 };
 
-class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT Model : public score::SettingsDelegateModel
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT Model
+    : public score::SettingsDelegateModel
 {
   W_OBJECT(Model)
 
@@ -25,8 +29,14 @@ class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT Model : public score::SettingsDelegateM
 public:
   Model(QSettings& set, const score::ApplicationContext& ctx);
 
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, bool, LocalTree)
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, QString, LogLevel)
+  SCORE_SETTINGS_PARAMETER_HPP(
+      SCORE_PLUGIN_DEVICEEXPLORER_EXPORT,
+      bool,
+      LocalTree)
+  SCORE_SETTINGS_PARAMETER_HPP(
+      SCORE_PLUGIN_DEVICEEXPLORER_EXPORT,
+      QString,
+      LogLevel)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, LogLevel)
@@ -46,7 +56,8 @@ UUID_METADATA(
 
 namespace Explorer::ProjectSettings
 {
-class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT Model final : public score::ProjectSettingsModel
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT Model final
+    : public score::ProjectSettingsModel
 {
   W_OBJECT(Model)
   SCORE_SERIALIZE_FRIENDS
@@ -67,9 +78,18 @@ public:
     vis.writeTo(*this);
   }
 
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, qreal, MidiImportRatio)
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, bool, RefreshOnStart)
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, bool, ReconnectOnStart)
+  SCORE_SETTINGS_PARAMETER_HPP(
+      SCORE_PLUGIN_DEVICEEXPLORER_EXPORT,
+      qreal,
+      MidiImportRatio)
+  SCORE_SETTINGS_PARAMETER_HPP(
+      SCORE_PLUGIN_DEVICEEXPLORER_EXPORT,
+      bool,
+      RefreshOnStart)
+  SCORE_SETTINGS_PARAMETER_HPP(
+      SCORE_PLUGIN_DEVICEEXPLORER_EXPORT,
+      bool,
+      ReconnectOnStart)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, MidiImportRatio)

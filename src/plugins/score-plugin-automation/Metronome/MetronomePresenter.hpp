@@ -12,7 +12,8 @@
 
 namespace Metronome
 {
-class LayerPresenter final : public Curve::CurveProcessPresenter<ProcessModel, LayerView>
+class LayerPresenter final
+    : public Curve::CurveProcessPresenter<ProcessModel, LayerView>
 {
   W_OBJECT(LayerPresenter)
 public:
@@ -24,7 +25,11 @@ public:
       QObject* parent)
       : CurveProcessPresenter{style, layer, view, context, parent}
   {
-    connect(m_view, &LayerView::dropReceived, this, &LayerPresenter::on_dropReceived);
+    connect(
+        m_view,
+        &LayerView::dropReceived,
+        this,
+        &LayerPresenter::on_dropReceived);
   }
 
 private:

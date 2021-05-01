@@ -12,7 +12,8 @@ W_OBJECT_IMPL(score::QGraphicsEnum);
 namespace score
 {
 
-QGraphicsEnum::QGraphicsEnum(QGraphicsItem* parent) : QGraphicsItem{parent}
+QGraphicsEnum::QGraphicsEnum(QGraphicsItem* parent)
+    : QGraphicsItem{parent}
 {
   this->setAcceptedMouseButtons(Qt::LeftButton);
   setRect({0, 0, 104, 44});
@@ -47,7 +48,7 @@ void QGraphicsEnum::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
   for (std::size_t i = 0; i < array.size(); i++)
   {
-    QRectF rect{2. + col * w, 2. + row * h, w,h};
+    QRectF rect{2. + col * w, 2. + row * h, w, h};
     if (rect.contains(event->pos()))
     {
       m_clicking = i;

@@ -3,7 +3,6 @@
 #include "RemoveStateProcess.hpp"
 
 #include <Process/ProcessList.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -11,6 +10,8 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/plugins/SerializableHelpers.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+
+#include <Scenario/Document/State/StateModel.hpp>
 namespace Scenario
 {
 namespace Command
@@ -19,7 +20,8 @@ namespace Command
 RemoveStateProcess::RemoveStateProcess(
     const Scenario::StateModel& state,
     Id<Process::ProcessModel> processId)
-    : m_path{state}, m_processId{std::move(processId)}
+    : m_path{state}
+    , m_processId{std::move(processId)}
 {
   auto& p = state.stateProcesses.at(m_processId);
   m_processUuid = p.concreteKey();

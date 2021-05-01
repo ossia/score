@@ -4,7 +4,9 @@
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Settings/ExplorerModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <LocalTree/Device/LocalProtocolFactory.hpp>
+#include <LocalTree/Device/LocalSpecificSettings.hpp>
+#include <LocalTree/IntervalComponent.hpp>
 
 #include <score/tools/Bind.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
@@ -15,15 +17,14 @@
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/local/local.hpp>
 
-#include <LocalTree/Device/LocalProtocolFactory.hpp>
-#include <LocalTree/Device/LocalSpecificSettings.hpp>
-#include <LocalTree/IntervalComponent.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
 LocalTree::DocumentPlugin::DocumentPlugin(
     const score::DocumentContext& ctx,
     Id<score::DocumentPlugin> id,
     QObject* parent)
-    : score::DocumentPlugin{ctx, std::move(id), "LocalTree::DocumentPlugin", parent}
+    : score::
+        DocumentPlugin{ctx, std::move(id), "LocalTree::DocumentPlugin", parent}
     , m_localDevice{std::make_unique<ossia::net::generic_device>(
           std::make_unique<ossia::net::multiplex_protocol>(),
           "score")}
@@ -85,7 +86,11 @@ void LocalTree::DocumentPlugin::create()
 
   auto& cstr = scenar->baseInterval();
   m_root = new Interval(
-      m_localDevice->get_root_node(), getStrongId(cstr.components()), cstr, context(), this);
+      m_localDevice->get_root_node(),
+      getStrongId(cstr.components()),
+      cstr,
+      context(),
+      this);
   cstr.components().add(m_root);
 }
 

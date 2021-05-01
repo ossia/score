@@ -3,24 +3,27 @@
 
 #include "DefaultClock.hpp"
 
+#include <Execution/BaseScenarioComponent.hpp>
+#include <Execution/Settings/ExecutorModel.hpp>
 #include <Process/ExecutionContext.hpp>
+
+#include <ossia/dataflow/execution_state.hpp>
+#include <ossia/dataflow/graph/graph_interface.hpp>
+#include <ossia/editor/scenario/execution_log.hpp>
+
+#include <QDebug>
+
 #include <Scenario/Document/Event/EventExecution.hpp>
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
 
-#include <ossia/dataflow/execution_state.hpp>
-#include <ossia/dataflow/graph/graph_interface.hpp>
-
-#include <QDebug>
-
-#include <Execution/BaseScenarioComponent.hpp>
-#include <Execution/Settings/ExecutorModel.hpp>
-#include <ossia/editor/scenario/execution_log.hpp>
-
 namespace Execution
 {
 DefaultClock::~DefaultClock() = default;
-DefaultClock::DefaultClock(const Context& ctx) : context{ctx} { }
+DefaultClock::DefaultClock(const Context& ctx)
+    : context{ctx}
+{
+}
 
 void DefaultClock::prepareExecution(const TimeVal& t, BaseScenarioElement& bs)
 {
@@ -35,7 +38,10 @@ void DefaultClock::prepareExecution(const TimeVal& t, BaseScenarioElement& bs)
 #if defined(OSSIA_EXECUTION_LOG)
     auto log = ossia::g_exec_log.init();
 #endif
-    context.executionQueue.enqueue([time = context.time(t), oc, g=context.execGraph,s=context.execState] {
+    context.executionQueue.enqueue([time = context.time(t),
+                                    oc,
+                                    g = context.execGraph,
+                                    s = context.execState] {
       // Send the first state
       oc->get_start_event().tick(ossia::Zero, ossia::Zero);
       g->state(*s);
@@ -90,10 +96,12 @@ void DefaultClock::stop(BaseScenarioElement& bs)
 ControlClockFactory::~ControlClockFactory() = default;
 
 ControlClock::ControlClock(const Execution::Context& ctx)
-    : Clock{ctx}, m_default{ctx}, m_clock{*scenario.baseInterval().OSSIAInterval(), 1.}
+    : Clock{ctx}
+    , m_default{ctx}
+    , m_clock{*scenario.baseInterval().OSSIAInterval(), 1.}
 {
-  m_clock.set_granularity(
-      std::chrono::microseconds(context.doc.app.settings<Settings::Model>().getRate() * 1000));
+  m_clock.set_granularity(std::chrono::microseconds(
+      context.doc.app.settings<Settings::Model>().getRate() * 1000));
 
   // TODO this should be the case also with other clocks
   m_clock.set_exec_status_callback([=](ossia::clock::exec_status c) {
@@ -108,7 +116,9 @@ ControlClock::ControlClock(const Execution::Context& ctx)
   });
 }
 
-void ControlClock::play_impl(const TimeVal& t, Execution::BaseScenarioElement& bs)
+void ControlClock::play_impl(
+    const TimeVal& t,
+    Execution::BaseScenarioElement& bs)
 {
   m_default.prepareExecution(t, bs);
   try
@@ -163,8 +173,8 @@ ControlClockFactory::makeTimeFunction(const score::DocumentContext& ctx) const
   // return &Engine::score_to_ossia::defaultTime;
 }
 
-Execution::reverse_time_function
-ControlClockFactory::makeReverseTimeFunction(const score::DocumentContext& ctx) const
+Execution::reverse_time_function ControlClockFactory::makeReverseTimeFunction(
+    const score::DocumentContext& ctx) const
 {
   SCORE_ABORT;
   return {};

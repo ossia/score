@@ -13,7 +13,8 @@ class CommandDispatcher final : public ICommandDispatcher
 {
 public:
   template <typename... Args>
-  CommandDispatcher(Args&&... args) : ICommandDispatcher{std::forward<Args&&>(args)...}
+  CommandDispatcher(Args&&... args)
+      : ICommandDispatcher{std::forward<Args&&>(args)...}
   {
   }
 

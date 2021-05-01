@@ -1,12 +1,13 @@
 #pragma once
 
-#include <Scenario/Commands/Interval/SetRigidity.hpp>
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <State/Expression.hpp>
 
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
+
+#include <Scenario/Commands/Interval/SetRigidity.hpp>
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 
 namespace Scenario
 {
@@ -22,7 +23,10 @@ public:
     return ::CommandFactoryName<Scenario_T>();
   }
   const CommandKey& key() const noexcept override { return static_key(); }
-  QString description() const override { return QObject::tr("Remove a trigger"); }
+  QString description() const override
+  {
+    return QObject::tr("Remove a trigger");
+  }
   static const CommandKey& static_key()
   {
     static const CommandKey kagi{
@@ -32,7 +36,10 @@ public:
 
   RemoveTrigger() = default;
 
-  RemoveTrigger(Path<TimeSyncModel>&& timeSyncPath) : m_path{std::move(timeSyncPath)} { }
+  RemoveTrigger(Path<TimeSyncModel>&& timeSyncPath)
+      : m_path{std::move(timeSyncPath)}
+  {
+  }
 
   void undo(const score::DocumentContext& ctx) const override
   {

@@ -1,14 +1,15 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TriggerView.hpp"
-#include <score/widgets/Pixmap.hpp>
+
 #include <score/model/Skin.hpp>
+#include <score/widgets/Pixmap.hpp>
 
 #include <QBitmap>
-#include <QGraphicsSceneMouseEvent>
-#include <QPainter>
 #include <QCursor>
+#include <QGraphicsSceneMouseEvent>
 #include <QGuiApplication>
+#include <QPainter>
 
 #include <wobjectimpl.h>
 
@@ -73,13 +74,17 @@ QRectF TriggerView::boundingRect() const
   return {0, 0, iconSize, iconSize};
 }
 
-void TriggerView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void TriggerView::paint(
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   const qreal sz = painter->device()->devicePixelRatioF() * iconSize;
   auto& pixmap = currentPixmap();
   if (&pixmap == &triggerSpriteSheet())
   {
-    painter->drawPixmap(QPointF{}, pixmap, QRectF{qreal(m_currentFrame), 0, sz, sz});
+    painter->drawPixmap(
+        QPointF{}, pixmap, QRectF{qreal(m_currentFrame), 0, sz, sz});
     nextFrame();
   }
   else
@@ -125,7 +130,6 @@ void TriggerView::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
   update();
   event->accept();
 }
-
 
 void TriggerView::dropEvent(QGraphicsSceneDragDropEvent* event)
 {

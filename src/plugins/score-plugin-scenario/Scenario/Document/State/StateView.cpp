@@ -7,9 +7,6 @@
 
 #include <Process/ProcessMimeSerialization.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Scenario/Application/Menus/ScenarioCopy.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Process/ScenarioInterface.hpp>
 
 #include <score/model/ColorReference.hpp>
 #include <score/widgets/MimeData.hpp>
@@ -22,6 +19,9 @@
 #include <QScreen>
 #include <qnamespace.h>
 
+#include <Scenario/Application/Menus/ScenarioCopy.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::StateView)
 namespace Scenario
@@ -89,7 +89,10 @@ QRectF StateView::boundingRect() const
   return {-radius, -radius, 2. * radius, 2. * radius};
 }
 
-void StateView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void StateView::paint(
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   painter->setRenderHint(QPainter::Antialiasing, true);
   auto& skin = Process::Style::instance();
@@ -107,7 +110,9 @@ void StateView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
   if (m_execPing.running())
   {
     const auto& nextPen = m_execPing.getNextPen(
-        skin.StateDot().color(), skin.EventHappened().color(), skin.StateDot().main.pen_cosmetic);
+        skin.StateDot().color(),
+        skin.EventHappened().color(),
+        skin.StateDot().main.pen_cosmetic);
     painter->setPen(nextPen);
     painter->setBrush(nextPen.brush());
     update();
@@ -183,7 +188,8 @@ void StateView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   if (event->buttons() & Qt::MiddleButton)
   {
-    if (auto si = dynamic_cast<Scenario::ScenarioInterface*>(presenter().model().parent()))
+    if (auto si = dynamic_cast<Scenario::ScenarioInterface*>(
+            presenter().model().parent()))
     {
       JSONReader r;
       copySelectedElementsToJson(
@@ -202,7 +208,8 @@ void StateView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     }
   }
   if (m_moving
-      || (event->buttonDownScreenPos(Qt::LeftButton) - event->screenPos()).manhattanLength()
+      || (event->buttonDownScreenPos(Qt::LeftButton) - event->screenPos())
+                 .manhattanLength()
              > QApplication::startDragDistance())
   {
     m_moving = true;

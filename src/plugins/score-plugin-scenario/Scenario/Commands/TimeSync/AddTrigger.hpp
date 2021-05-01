@@ -1,14 +1,15 @@
 #pragma once
 
-#include <Scenario/Commands/Interval/SetRigidity.hpp>
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <State/Expression.hpp>
 
 #include <score/command/Command.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+
+#include <Scenario/Commands/Interval/SetRigidity.hpp>
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 
 namespace Scenario
 {
@@ -34,7 +35,8 @@ public:
 
   AddTrigger() = default;
 
-  AddTrigger(const TimeSyncModel& tn) : m_path{tn}
+  AddTrigger(const TimeSyncModel& tn)
+      : m_path{tn}
   {
     Scenario_T* scenar = safe_cast<Scenario_T*>(tn.parent());
     for (const auto& cstrId : intervalsBeforeTimeSync(*scenar, tn.id()))

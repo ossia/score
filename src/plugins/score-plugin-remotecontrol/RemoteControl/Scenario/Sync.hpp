@@ -1,7 +1,6 @@
 #pragma once
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-
 #include <RemoteControl/DocumentPlugin.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 
 namespace RemoteControl
 {

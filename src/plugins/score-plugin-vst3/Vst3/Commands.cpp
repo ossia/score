@@ -1,6 +1,8 @@
 #include "Commands.hpp"
+
 #include <Vst3/Control.hpp>
 #include <Vst3/EffectModel.hpp>
+
 #include <score/model/path/PathSerialization.hpp>
 namespace vst3
 {
@@ -11,7 +13,9 @@ const CommandGroupKey& CommandFactoryName()
 }
 
 SetControl::SetControl(const ControlInlet& obj, float newval)
-    : m_path{obj}, m_old{obj.value()}, m_new{newval}
+    : m_path{obj}
+    , m_old{obj.value()}
+    , m_new{newval}
 {
 }
 
@@ -42,8 +46,13 @@ void SetControl::deserializeImpl(DataStreamOutput& stream)
   stream >> m_path >> m_old >> m_new;
 }
 
-CreateControl::CreateControl(const Model& obj, Steinberg::Vst::ParamID fxNum, float value)
-    : m_path{obj}, m_fxNum{fxNum}, m_val{value}
+CreateControl::CreateControl(
+    const Model& obj,
+    Steinberg::Vst::ParamID fxNum,
+    float value)
+    : m_path{obj}
+    , m_fxNum{fxNum}
+    , m_val{value}
 {
 }
 
@@ -72,11 +81,13 @@ void CreateControl::deserializeImpl(DataStreamOutput& stream)
 }
 
 RemoveControl::RemoveControl(const Model& obj, Id<Process::Port> id)
-    : m_path{obj}, m_id{std::move(id)}
+    : m_path{obj}
+    , m_id{std::move(id)}
 {
   auto& inlet = *obj.inlet(m_id);
   m_control = score::marshall<DataStream>(inlet);
-  m_cables = Dataflow::saveCables({&inlet}, score::IDocument::documentContext(obj));
+  m_cables
+      = Dataflow::saveCables({&inlet}, score::IDocument::documentContext(obj));
 }
 
 RemoveControl::~RemoveControl() { }
@@ -86,8 +97,8 @@ void RemoveControl::undo(const score::DocumentContext& ctx) const
   auto& vst = m_path.find(ctx);
   DataStreamWriter wr{m_control};
 
-  vst.on_addControl_impl(
-      qobject_cast<ControlInlet*>(Process::load_value_inlet(wr, &vst).release()));
+  vst.on_addControl_impl(qobject_cast<ControlInlet*>(
+      Process::load_value_inlet(wr, &vst).release()));
 
   Dataflow::restoreCables(m_cables, ctx);
 }

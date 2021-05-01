@@ -16,7 +16,8 @@
 
 namespace Patternist
 {
-class InspectorWidget final : public Process::InspectorWidgetDelegate_T<ProcessModel>
+class InspectorWidget final
+    : public Process::InspectorWidgetDelegate_T<ProcessModel>
 {
 public:
   explicit InspectorWidget(
@@ -70,7 +71,9 @@ public:
     con(m_channel, qOverload<int>(&QSpinBox::valueChanged), this, [&]() {
       m_dispatcher.submit<SetPatternChannel>(obj, m_channel.value());
     });
-    con(m_channel, &QSpinBox::editingFinished, this, [&]() { m_dispatcher.commit(); });
+    con(m_channel, &QSpinBox::editingFinished, this, [&]() {
+      m_dispatcher.commit();
+    });
 
     con(m_lanes, qOverload<int>(&QSpinBox::valueChanged), this, [&]() {
       int n = m_lanes.value();
@@ -92,12 +95,20 @@ public:
       m_dispatcher.submit<UpdatePattern>(obj, obj.currentPattern(), p);
     });
 
-    con(m_lanes, &QSpinBox::editingFinished, this, [&]() { m_dispatcher.commit(); });
-
-    con(m_currentPattern, qOverload<int>(&QSpinBox::valueChanged), this, [&]() {
-      m_dispatcher.submit<SetCurrentPattern>(obj, m_currentPattern.value());
+    con(m_lanes, &QSpinBox::editingFinished, this, [&]() {
+      m_dispatcher.commit();
     });
-    con(m_currentPattern, &QSpinBox::editingFinished, this, [&]() { m_dispatcher.commit(); });
+
+    con(m_currentPattern,
+        qOverload<int>(&QSpinBox::valueChanged),
+        this,
+        [&]() {
+          m_dispatcher.submit<SetCurrentPattern>(
+              obj, m_currentPattern.value());
+        });
+    con(m_currentPattern, &QSpinBox::editingFinished, this, [&]() {
+      m_dispatcher.commit();
+    });
 
     con(m_duration, qOverload<int>(&QSpinBox::valueChanged), this, [&]() {
       int n = m_duration.value();
@@ -116,7 +127,9 @@ public:
 
       m_dispatcher.submit<UpdatePattern>(obj, obj.currentPattern(), p);
     });
-    con(m_duration, &QSpinBox::editingFinished, this, [&]() { m_dispatcher.commit(); });
+    con(m_duration, &QSpinBox::editingFinished, this, [&]() {
+      m_dispatcher.commit();
+    });
 
     con(m_rate, &QDoubleSpinBox::editingFinished, this, [&]() {
       auto p = obj.patterns()[obj.currentPattern()];
@@ -142,7 +155,8 @@ private:
   QDoubleSpinBox m_rate;
 };
 class InspectorFactory final
-    : public Process::InspectorWidgetDelegateFactory_T<ProcessModel, InspectorWidget>
+    : public Process::
+          InspectorWidgetDelegateFactory_T<ProcessModel, InspectorWidget>
 {
   SCORE_CONCRETE("03d55730-fc4a-42a7-b573-35c330c5bad2")
 };

@@ -1,7 +1,7 @@
 #pragma once
-#include <Scenario/Document/State/StateModel.hpp>
-
 #include <LocalTree/LocalTreeComponent.hpp>
+
+#include <Scenario/Document/State/StateModel.hpp>
 
 namespace LocalTree
 {

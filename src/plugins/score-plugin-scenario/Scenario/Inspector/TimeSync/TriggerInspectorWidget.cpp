@@ -3,10 +3,6 @@
 #include "TriggerInspectorWidget.hpp"
 
 #include <Inspector/InspectorWidgetBase.hpp>
-#include <Scenario/Commands/TimeSync/SetTrigger.hpp>
-#include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Inspector/Expression/ExpressionEditorWidget.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/model/path/Path.hpp>
@@ -15,6 +11,11 @@
 
 #include <QPushButton>
 #include <QVBoxLayout>
+
+#include <Scenario/Commands/TimeSync/SetTrigger.hpp>
+#include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Inspector/Expression/ExpressionEditorWidget.hpp>
 
 namespace Scenario
 {
@@ -52,22 +53,34 @@ TriggerInspectorWidget::TriggerInspectorWidget(
 
   on_triggerActiveChanged();
 
-  connect(m_addTrigBtn, &QPushButton::released, this, &TriggerInspectorWidget::createTrigger);
+  connect(
+      m_addTrigBtn,
+      &QPushButton::released,
+      this,
+      &TriggerInspectorWidget::createTrigger);
 
-  connect(m_menu.deleteAction, &QAction::triggered, this, &TriggerInspectorWidget::removeTrigger);
-  con(m_menu, &ExpressionMenu::expressionChanged, this, [=](const QString& str) {
-    auto trig = State::parseExpression(str);
-    if (!trig)
-    {
-      trig = State::defaultTrueExpression();
-    }
+  connect(
+      m_menu.deleteAction,
+      &QAction::triggered,
+      this,
+      &TriggerInspectorWidget::removeTrigger);
+  con(m_menu,
+      &ExpressionMenu::expressionChanged,
+      this,
+      [=](const QString& str) {
+        auto trig = State::parseExpression(str);
+        if (!trig)
+        {
+          trig = State::defaultTrueExpression();
+        }
 
-    if (*trig != m_model.expression())
-    {
-      auto cmd = new Scenario::Command::SetTrigger{m_model, std::move(*trig)};
-      m_parent->commandDispatcher()->submit(cmd);
-    }
-  });
+        if (*trig != m_model.expression())
+        {
+          auto cmd
+              = new Scenario::Command::SetTrigger{m_model, std::move(*trig)};
+          m_parent->commandDispatcher()->submit(cmd);
+        }
+      });
   con(m_model,
       &TimeSyncModel::activeChanged,
       this,
@@ -91,7 +104,8 @@ void TriggerInspectorWidget::createTrigger()
   m_addTrigBtn->setVisible(false);
 
   auto cmd = m_triggerCommandFactory.make(
-      &Scenario::Command::TriggerCommandFactory::make_addTriggerCommand, m_model);
+      &Scenario::Command::TriggerCommandFactory::make_addTriggerCommand,
+      m_model);
   if (cmd)
     m_parent->commandDispatcher()->submit(cmd);
 }
@@ -102,7 +116,8 @@ void TriggerInspectorWidget::removeTrigger()
   m_addTrigBtn->setVisible(true);
 
   auto cmd = m_triggerCommandFactory.make(
-      &Scenario::Command::TriggerCommandFactory::make_removeTriggerCommand, m_model);
+      &Scenario::Command::TriggerCommandFactory::make_removeTriggerCommand,
+      m_model);
   if (cmd)
     m_parent->commandDispatcher()->submit(cmd);
 }

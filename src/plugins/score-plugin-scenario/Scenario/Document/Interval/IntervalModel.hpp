@@ -4,6 +4,7 @@
 #include <Process/Instantiations.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
+
 #include <Scenario/Document/Interval/ExecutionState.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
@@ -44,8 +45,9 @@ class StateModel;
 class TempoProcess;
 
 using TimeSignatureMap = ossia::flat_map<TimeVal, ossia::time_signature>;
-class SCORE_PLUGIN_SCENARIO_EXPORT IntervalModel final : public score::Entity<IntervalModel>,
-                                                         public Nano::Observer
+class SCORE_PLUGIN_SCENARIO_EXPORT IntervalModel final
+    : public score::Entity<IntervalModel>
+    , public Nano::Observer
 {
   W_OBJECT(IntervalModel)
 
@@ -74,8 +76,14 @@ public:
   ~IntervalModel();
 
   // Serialization
-  IntervalModel(DataStream::Deserializer& vis, const score::DocumentContext& ctx, QObject* parent);
-  IntervalModel(JSONObject::Deserializer& vis, const score::DocumentContext& ctx, QObject* parent);
+  IntervalModel(
+      DataStream::Deserializer& vis,
+      const score::DocumentContext& ctx,
+      QObject* parent);
+  IntervalModel(
+      JSONObject::Deserializer& vis,
+      const score::DocumentContext& ctx,
+      QObject* parent);
   IntervalModel(
       DataStream::Deserializer&& vis,
       const score::DocumentContext& ctx,
@@ -116,7 +124,8 @@ public:
   };
   ViewMode viewMode() const noexcept;
   void setViewMode(ViewMode v);
-  void viewModeChanged(ViewMode v) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, viewModeChanged, v)
+  void viewModeChanged(ViewMode v)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, viewModeChanged, v)
 
   // Full view properties:
   ZoomRatio zoom() const;
@@ -187,7 +196,10 @@ public:
   void addSignature(TimeVal t, ossia::time_signature sig);
   void removeSignature(TimeVal t);
   void setTimeSignatureMap(const TimeSignatureMap& map);
-  const TimeSignatureMap& timeSignatureMap() const noexcept { return m_signatures; }
+  const TimeSignatureMap& timeSignatureMap() const noexcept
+  {
+    return m_signatures;
+  }
 
   void hasTimeSignatureChanged(bool arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, hasTimeSignatureChanged, arg_1)
@@ -196,35 +208,41 @@ public:
 
   PROPERTY(
       bool,
-      timeSignature READ hasTimeSignature WRITE setHasTimeSignature NOTIFY hasTimeSignatureChanged)
+      timeSignature READ hasTimeSignature WRITE setHasTimeSignature NOTIFY
+          hasTimeSignatureChanged)
 
 public:
-  void requestHeightChange(double y) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, requestHeightChange, y)
+  void requestHeightChange(double y)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, requestHeightChange, y)
   void heightPercentageChanged(double arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, heightPercentageChanged, arg_1)
 
-  void dateChanged(const TimeVal& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dateChanged, arg_1)
+  void dateChanged(const TimeVal& arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dateChanged, arg_1)
 
-  void focusChanged(bool arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, focusChanged, arg_1)
+  void focusChanged(bool arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, focusChanged, arg_1)
   void executionStateChanged(Scenario::IntervalExecutionState arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executionStateChanged, arg_1)
 
-  void executionEvent(Scenario::IntervalExecutionEvent ev) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executionEvent, ev)
-
+  void executionEvent(Scenario::IntervalExecutionEvent ev)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executionEvent, ev)
 
   void smallViewVisibleChanged(bool fv)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, smallViewVisibleChanged, fv)
 
   void rackChanged(Scenario::Slot::RackView fv)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, rackChanged, fv)
-  void slotAdded(Scenario::SlotId arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, slotAdded, arg_1)
+  void slotAdded(Scenario::SlotId arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, slotAdded, arg_1)
   void slotRemoved(Scenario::SlotId arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, slotRemoved, arg_1)
   void slotResized(Scenario::SlotId arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, slotResized, arg_1)
   void slotsSwapped(int slot1, int slot2, Slot::RackView fv)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, slotsSwapped, slot1, slot2, fv)
-  void heightFinishedChanging() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, heightFinishedChanging)
+  void heightFinishedChanging()
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, heightFinishedChanging)
 
   void layerAdded(Scenario::SlotId arg_1, Id<Process::ProcessModel> arg_2)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, layerAdded, arg_1, arg_2)
@@ -233,12 +251,16 @@ public:
   void frontLayerChanged(int arg_1, OptionalId<Process::ProcessModel> arg_2)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, frontLayerChanged, arg_1, arg_2)
 
-  void mutedChanged(bool arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, mutedChanged, arg_1)
-  void executingChanged(bool arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executingChanged, arg_1)
+  void mutedChanged(bool arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, mutedChanged, arg_1)
+  void executingChanged(bool arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executingChanged, arg_1)
 
-  void busChanged(bool arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, busChanged, arg_1)
+  void busChanged(bool arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, busChanged, arg_1)
 
-  void graphalChanged(bool arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, graphalChanged, arg_1)
+  void graphalChanged(bool arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, graphalChanged, arg_1)
 
   PROPERTY(bool, muted READ muted WRITE setMuted NOTIFY mutedChanged)
   PROPERTY(bool, graphal READ graphal WRITE setGraphal NOTIFY graphalChanged)
@@ -287,7 +309,9 @@ SCORE_PLUGIN_SCENARIO_EXPORT
 bool isInFullView(const Process::ProcessModel& cstr) noexcept;
 
 SCORE_PLUGIN_SCENARIO_EXPORT
-bool isBus(const Scenario::IntervalModel& model, const score::DocumentContext& ctx) noexcept;
+bool isBus(
+    const Scenario::IntervalModel& model,
+    const score::DocumentContext& ctx) noexcept;
 
 SCORE_PLUGIN_SCENARIO_EXPORT
 QPointF newProcessPosition(const Scenario::IntervalModel& model) noexcept;

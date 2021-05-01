@@ -1,8 +1,12 @@
 #include "AudioApplicationPlugin.hpp"
 
+#include <Audio/AudioDevice.hpp>
+#include <Audio/AudioInterface.hpp>
+#include <Audio/AudioPreviewExecutor.hpp>
+#include <Audio/AudioTick.hpp>
+#include <Audio/Settings/Model.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Process/ExecutionAction.hpp>
-#include <Scenario/Application/ScenarioActions.hpp>
 
 #include <score/actions/ActionManager.hpp>
 #include <score/tools/Bind.hpp>
@@ -18,13 +22,13 @@
 
 #include <QToolBar>
 
-#include <Audio/AudioDevice.hpp>
-#include <Audio/AudioTick.hpp>
-#include <Audio/AudioInterface.hpp>
-#include <Audio/AudioPreviewExecutor.hpp>
-#include <Audio/Settings/Model.hpp>
+#include <Scenario/Application/ScenarioActions.hpp>
 
-SCORE_DECLARE_ACTION(RestartAudio, "Restart Audio", Common, QKeySequence::UnknownKey)
+SCORE_DECLARE_ACTION(
+    RestartAudio,
+    "Restart Audio",
+    Common,
+    QKeySequence::UnknownKey)
 namespace Audio
 {
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
@@ -55,14 +59,16 @@ void ApplicationPlugin::initialize()
 
 ApplicationPlugin::~ApplicationPlugin() { }
 
-void ApplicationPlugin::on_documentChanged(score::Document* olddoc, score::Document* newdoc)
+void ApplicationPlugin::on_documentChanged(
+    score::Document* olddoc,
+    score::Document* newdoc)
 {
   restart_engine();
 }
 
 void ApplicationPlugin::timerEvent(QTimerEvent*)
 {
-  if(audio)
+  if (audio)
     audio->gc();
 }
 
@@ -99,14 +105,18 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
       auto doc = context.currentDocument();
       if (!doc)
         return;
-      auto dev = (Dataflow::AudioDevice*) doc->plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice();
-      if(!dev)
+      auto dev = (Dataflow::AudioDevice*)doc
+                     ->plugin<Explorer::DeviceDocumentPlugin>()
+                     .list()
+                     .audioDevice();
+      if (!dev)
         return;
       auto p = dev->getProtocol();
-      if(!p)
+      if (!p)
         return;
 
-      auto root = ossia::net::find_node(dev->getDevice()->get_root_node(), "/out/main");
+      auto root = ossia::net::find_node(
+          dev->getDevice()->get_root_node(), "/out/main");
       if (root)
       {
         if (auto p = root->get_parameter())
@@ -117,13 +127,18 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
       }
     });
 
-    toolbars.emplace_back(bar, StringKey<score::Toolbar>("Audio"), Qt::BottomToolBarArea, 400);
+    toolbars.emplace_back(
+        bar, StringKey<score::Toolbar>("Audio"), Qt::BottomToolBarArea, 400);
   }
 
   e.actions.container.reserve(2);
   e.actions.add<Actions::RestartAudio>(m_audioEngineAct);
 
-  connect(m_audioEngineAct, &QAction::triggered, this, &ApplicationPlugin::restart_engine);
+  connect(
+      m_audioEngineAct,
+      &QAction::triggered,
+      this,
+      &ApplicationPlugin::restart_engine);
 
   return e;
 }
@@ -151,12 +166,15 @@ void ApplicationPlugin::stop_engine()
 {
   if (audio)
   {
-    for(auto d : context.docManager.documents())
+    for (auto d : context.docManager.documents())
     {
-      auto dev = (Dataflow::AudioDevice*) d->context().plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice();
-      if(dev)
+      auto dev = (Dataflow::AudioDevice*)d->context()
+                     .plugin<Explorer::DeviceDocumentPlugin>()
+                     .list()
+                     .audioDevice();
+      if (dev)
       {
-        if(auto proto = dev->getProtocol())
+        if (auto proto = dev->getProtocol())
         {
           proto->stop();
         }
@@ -172,12 +190,16 @@ void ApplicationPlugin::start_engine()
 {
   if (auto doc = this->currentDocument())
   {
-    auto dev = (Dataflow::AudioDevice*) doc->context().plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice();
+    auto dev = (Dataflow::AudioDevice*)doc->context()
+                   .plugin<Explorer::DeviceDocumentPlugin>()
+                   .list()
+                   .audioDevice();
     if (!dev)
       return;
 
     auto& set = this->context.settings<Audio::Settings::Model>();
-    auto& engines = score::GUIAppContext().interfaces<Audio::AudioFactoryList>();
+    auto& engines
+        = score::GUIAppContext().interfaces<Audio::AudioFactoryList>();
 
     if (auto dev = engines.get(set.getDriver()))
     {
@@ -199,7 +221,8 @@ void ApplicationPlugin::start_engine()
         score::warning(
             nullptr,
             tr("Audio error"),
-            tr("The desired audio settings could not be applied.\nPlease change "
+            tr("The desired audio settings could not be applied.\nPlease "
+               "change "
                "them."));
       }
     }
@@ -214,6 +237,5 @@ void ApplicationPlugin::start_engine()
     }
   }
 }
-
 
 }

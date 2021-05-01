@@ -20,6 +20,7 @@ public:
   void set(ossia::val_type t);
 
 public:
-  void changed(ossia::val_type arg_1) E_SIGNAL(SCORE_LIB_STATE_EXPORT, changed, arg_1)
+  void changed(ossia::val_type arg_1)
+      E_SIGNAL(SCORE_LIB_STATE_EXPORT, changed, arg_1)
 };
 }

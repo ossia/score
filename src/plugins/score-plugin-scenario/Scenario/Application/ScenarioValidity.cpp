@@ -3,6 +3,7 @@
 #include "ScenarioValidity.hpp"
 
 #include <Process/TimeValueSerialization.hpp>
+
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 
 namespace Scenario
@@ -38,20 +39,20 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
     SCORE_ASSERT(es->previousInterval() == interval.id());
 
     {
-    auto sev = scenar.findEvent(ss->eventId());
-    SCORE_ASSERT(sev);
-    auto eev = scenar.findEvent(es->eventId());
-    SCORE_ASSERT(eev);
+      auto sev = scenar.findEvent(ss->eventId());
+      SCORE_ASSERT(sev);
+      auto eev = scenar.findEvent(es->eventId());
+      SCORE_ASSERT(eev);
 
-    SCORE_ASSERT(sev != eev);
-    {
-      auto stn = scenar.findTimeSync(sev->timeSync());
-      SCORE_ASSERT(stn);
-      auto etn = scenar.findTimeSync(eev->timeSync());
-      SCORE_ASSERT(etn);
+      SCORE_ASSERT(sev != eev);
+      {
+        auto stn = scenar.findTimeSync(sev->timeSync());
+        SCORE_ASSERT(stn);
+        auto etn = scenar.findTimeSync(eev->timeSync());
+        SCORE_ASSERT(etn);
 
-      SCORE_ASSERT(stn != etn);
-    }
+        SCORE_ASSERT(stn != etn);
+      }
     }
 
     auto& dur = interval.duration;
@@ -60,14 +61,17 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
     SCORE_ASSERT(!dur.minDuration().infinite());
     // SCORE_ASSERT(dur.minDuration() >= 0_tv);
     SCORE_ASSERT(dur.minDuration() <= dur.maxDuration());
-    SCORE_ASSERT((dur.defaultDuration() <= dur.maxDuration()) || dur.isMaxInfinite());
+    SCORE_ASSERT(
+        (dur.defaultDuration() <= dur.maxDuration()) || dur.isMaxInfinite());
 
     for (auto& slot : interval.smallView())
     {
-      if(!slot.nodal)
+      if (!slot.nodal)
       {
         SCORE_ASSERT(slot.frontProcess);
-        SCORE_ASSERT(interval.processes.find(*slot.frontProcess) != interval.processes.end());
+        SCORE_ASSERT(
+            interval.processes.find(*slot.frontProcess)
+            != interval.processes.end());
       }
       else
       {
@@ -78,7 +82,7 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
     auto defaultDur = dur.defaultDuration();
     auto startStateDate = Scenario::startEvent(interval, scenar).date();
     auto endStateDate = Scenario::endEvent(interval, scenar).date();
-    if(!interval.graphal())
+    if (!interval.graphal())
     {
       SCORE_ASSERT(endStateDate - startStateDate == defaultDur);
     }
@@ -120,8 +124,9 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
       SCORE_ASSERT(cst->startState() == state.id());
     }
 
-    auto num = ossia::count_if(
-        scenar.events, [&](auto& ev) { return ossia::contains(ev.states(), state.id()); });
+    auto num = ossia::count_if(scenar.events, [&](auto& ev) {
+      return ossia::contains(ev.states(), state.id());
+    });
     SCORE_ASSERT(num == 1);
   }
 
@@ -145,8 +150,9 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
       SCORE_ASSERT(st->eventId() == event.id());
     }
 
-    auto num = ossia::count_if(
-        scenar.timeSyncs, [&](auto& ev) { return ossia::contains(ev.events(), event.id()); });
+    auto num = ossia::count_if(scenar.timeSyncs, [&](auto& ev) {
+      return ossia::contains(ev.events(), event.id());
+    });
     SCORE_ASSERT(num == 1);
   }
 
@@ -164,9 +170,9 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
 
   // Start event validation
   auto& startEvent = scenar.startEvent();
-  for(auto& state : startEvent.states())
+  for (auto& state : startEvent.states())
   {
-    if(auto itv = scenar.state(state).previousInterval())
+    if (auto itv = scenar.state(state).previousInterval())
     {
       SCORE_ASSERT(scenar.interval(*itv).graphal());
     }

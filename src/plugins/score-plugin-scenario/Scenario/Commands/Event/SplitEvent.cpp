@@ -2,12 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "SplitEvent.hpp"
 
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-
 #include <score/model/EntityMap.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/model/path/Path.hpp>
@@ -15,6 +9,12 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/RandomNameProvider.hpp>
+
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 
 #include <vector>
 
@@ -82,25 +82,30 @@ void SplitEvent::redo(const score::DocumentContext& ctx) const
 
 void SplitEvent::serializeImpl(DataStreamInput& s) const
 {
-  s << m_scenarioPath << m_originalEvent << m_newEvent << m_createdName << m_movingStates;
+  s << m_scenarioPath << m_originalEvent << m_newEvent << m_createdName
+    << m_movingStates;
 }
 
 void SplitEvent::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_scenarioPath >> m_originalEvent >> m_newEvent >> m_createdName >> m_movingStates;
+  s >> m_scenarioPath >> m_originalEvent >> m_newEvent >> m_createdName
+      >> m_movingStates;
 }
 
-SplitWholeEvent::SplitWholeEvent(const EventModel& path) : m_path{path}
+SplitWholeEvent::SplitWholeEvent(const EventModel& path)
+    : m_path{path}
 {
   SCORE_ASSERT(path.states().size() > 1);
   m_originalEvent = path.id();
   auto scenar = static_cast<Scenario::ProcessModel*>(path.parent());
-  m_newEvents = getStrongIdRange<Scenario::EventModel>(path.states().size() - 1, scenar->events);
+  m_newEvents = getStrongIdRange<Scenario::EventModel>(
+      path.states().size() - 1, scenar->events);
 }
 
 void SplitWholeEvent::undo(const score::DocumentContext& ctx) const
 {
-  auto& scenar = static_cast<Scenario::ProcessModel&>(*m_path.find(ctx).parent());
+  auto& scenar
+      = static_cast<Scenario::ProcessModel&>(*m_path.find(ctx).parent());
 
   auto& originalEvent = scenar.event(m_originalEvent);
   for (const auto& id : m_newEvents)
@@ -122,7 +127,8 @@ void SplitWholeEvent::undo(const score::DocumentContext& ctx) const
 
 void SplitWholeEvent::redo(const score::DocumentContext& ctx) const
 {
-  auto& scenar = static_cast<Scenario::ProcessModel&>(*m_path.find(ctx).parent());
+  auto& scenar
+      = static_cast<Scenario::ProcessModel&>(*m_path.find(ctx).parent());
   auto& originalEvent = scenar.event(m_originalEvent);
   auto& originalTS = scenar.timeSyncs.at(originalEvent.timeSync());
   auto originalStates = originalEvent.states();

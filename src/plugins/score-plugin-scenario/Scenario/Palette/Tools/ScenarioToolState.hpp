@@ -1,13 +1,13 @@
 #pragma once
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
-#include <Scenario/Palette/ScenarioPaletteBaseTransitions.hpp>
-#include <Scenario/Palette/ScenarioPoint.hpp>
-#include <Scenario/Palette/Tools/ObjectMapper.hpp>
-
 #include <score/model/Identifier.hpp>
 #include <score/statemachine/GraphicsSceneTool.hpp>
 
 #include <QGraphicsItem>
+
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+#include <Scenario/Palette/ScenarioPaletteBaseTransitions.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
+#include <Scenario/Palette/Tools/ObjectMapper.hpp>
 
 #include <chrono>
 
@@ -45,11 +45,14 @@ QList<Id<typename PresenterContainer::model_type>> getCollidingModels(
 namespace Scenario
 {
 template <typename ToolPalette_T>
-class ToolBase : public GraphicsSceneTool<Scenario::Point>, public ObjectMapper
+class ToolBase
+    : public GraphicsSceneTool<Scenario::Point>
+    , public ObjectMapper
 {
 public:
   ToolBase(const ToolPalette_T& palette)
-      : GraphicsSceneTool<Scenario::Point>{palette.scene()}, m_palette{palette}
+      : GraphicsSceneTool<Scenario::Point>{palette.scene()}
+      , m_palette{palette}
   {
   }
 

@@ -1,9 +1,9 @@
 #pragma once
-#include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactory.hpp>
-
 #include <score/plugins/InterfaceList.hpp>
 
 #include <ossia/detail/algorithms.hpp>
+
+#include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactory.hpp>
 
 namespace Scenario
 {

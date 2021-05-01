@@ -1,13 +1,15 @@
 #pragma once
 #include <score/model/tree/TreeNode.hpp>
 #include <score/model/tree/TreeNodeItemModel.hpp>
-#include <QTreeView>
+
 #include <QAbstractProxyModel>
+#include <QTreeView>
+
 #include <vector>
 
 namespace score
 {
-template<typename Node, typename NodePath>
+template <typename Node, typename NodePath>
 struct TreeViewExpandState
 {
   void save(QAbstractProxyModel* m, QTreeView* v)
@@ -15,10 +17,10 @@ struct TreeViewExpandState
     auto de = static_cast<TreeModel*>(m->sourceModel());
 
     m_expandedIndices.clear();
-    de->iterate(v->rootIndex(), [this, m, v] (const QModelIndex& index) {
+    de->iterate(v->rootIndex(), [this, m, v](const QModelIndex& index) {
       if (v->isExpanded(m->mapFromSource(index)))
       {
-        if(auto item = static_cast<Node*>(index.internalPointer()))
+        if (auto item = static_cast<Node*>(index.internalPointer()))
         {
           m_expandedIndices.push_back(NodePath{*item});
         }
@@ -32,10 +34,10 @@ struct TreeViewExpandState
 
     v->setUpdatesEnabled(false);
     v->collapseAll();
-    for(auto& path : m_expandedIndices)
+    for (auto& path : m_expandedIndices)
     {
       auto idx = de->convertPathToIndex(path);
-      if(idx.isValid())
+      if (idx.isValid())
       {
         v->expand(m->mapFromSource(idx));
       }

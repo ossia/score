@@ -1,9 +1,10 @@
 #pragma once
-#include <score/plugins/Interface.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
-#include <score/serialization/VisitorCommon.hpp>
-#include <score/plugins/UuidKeySerialization.hpp>
+
 #include <score/document/DocumentContext.hpp>
+#include <score/plugins/Interface.hpp>
+#include <score/plugins/UuidKeySerialization.hpp>
+#include <score/serialization/VisitorCommon.hpp>
 
 #include <QString>
 #include <QVariant>
@@ -25,10 +26,13 @@ class SCORE_LIB_DEVICE_EXPORT DeviceEnumerator : public QObject
 public:
   virtual ~DeviceEnumerator();
 
-  virtual void enumerate(std::function<void(const Device::DeviceSettings&)>) const = 0;
+  virtual void
+      enumerate(std::function<void(const Device::DeviceSettings&)>) const = 0;
 
-  void deviceAdded(const Device::DeviceSettings& s) E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, deviceAdded, s)
-  void deviceRemoved(const QString& s) E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, deviceRemoved, s)
+  void deviceAdded(const Device::DeviceSettings& s)
+      E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, deviceAdded, s)
+  void deviceRemoved(const QString& s)
+      E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, deviceRemoved, s)
 };
 
 class SCORE_LIB_DEVICE_EXPORT ProtocolFactory : public score::InterfaceBase
@@ -37,7 +41,8 @@ class SCORE_LIB_DEVICE_EXPORT ProtocolFactory : public score::InterfaceBase
 
 public:
   virtual ~ProtocolFactory();
-  struct StandardCategories {
+  struct StandardCategories
+  {
     static const constexpr auto osc = "OSC";
     static const constexpr auto audio = "Audio";
     static const constexpr auto video = "Video";
@@ -55,45 +60,45 @@ public:
   virtual int visualPriority() const noexcept;
 
   virtual DeviceEnumerator*
-  getEnumerator(
-      const score::DocumentContext& ctx
-  ) const = 0;
+  getEnumerator(const score::DocumentContext& ctx) const = 0;
 
-  virtual DeviceInterface*
-  makeDevice(
+  virtual DeviceInterface* makeDevice(
       const Device::DeviceSettings& settings,
-      const score::DocumentContext& ctx
-  ) = 0;
+      const score::DocumentContext& ctx)
+      = 0;
 
   virtual ProtocolSettingsWidget* makeSettingsWidget() = 0;
 
   virtual AddressDialog* makeAddAddressDialog(
       const Device::DeviceInterface& dev,
       const score::DocumentContext& ctx,
-      QWidget*
-  ) = 0;
+      QWidget*)
+      = 0;
   virtual AddressDialog* makeEditAddressDialog(
       const Device::AddressSettings&,
       const Device::DeviceInterface& dev,
       const score::DocumentContext& ctx,
-      QWidget*
-  ) = 0;
+      QWidget*)
+      = 0;
 
   virtual const Device::DeviceSettings& defaultSettings() const noexcept = 0;
 
   // Save
-  virtual void
-  serializeProtocolSpecificSettings(const QVariant& data, const VisitorVariant& visitor) const = 0;
+  virtual void serializeProtocolSpecificSettings(
+      const QVariant& data,
+      const VisitorVariant& visitor) const = 0;
 
   template <typename T>
-  void
-  serializeProtocolSpecificSettings_T(const QVariant& data, const VisitorVariant& visitor) const
+  void serializeProtocolSpecificSettings_T(
+      const QVariant& data,
+      const VisitorVariant& visitor) const
   {
     score::serialize_dyn(visitor, data.value<T>());
   }
 
   // Load
-  virtual QVariant makeProtocolSpecificSettings(const VisitorVariant& visitor) const = 0;
+  virtual QVariant
+  makeProtocolSpecificSettings(const VisitorVariant& visitor) const = 0;
 
   template <typename T>
   QVariant makeProtocolSpecificSettings_T(const VisitorVariant& vis) const
@@ -102,8 +107,9 @@ public:
   }
 
   // Returns true if the two devicesettings can coexist at the same time.
-  virtual bool
-  checkCompatibility(const Device::DeviceSettings& a, const Device::DeviceSettings& b) const noexcept = 0;
+  virtual bool checkCompatibility(
+      const Device::DeviceSettings& a,
+      const Device::DeviceSettings& b) const noexcept = 0;
 };
 }
 

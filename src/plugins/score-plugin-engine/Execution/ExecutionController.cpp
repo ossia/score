@@ -1,22 +1,13 @@
 #include "ExecutionController.hpp"
-#include <Execution/Transport/TransportInterface.hpp>
+
+#include <Audio/AudioApplicationPlugin.hpp>
 #include <Execution/Clock/ClockFactory.hpp>
 #include <Execution/DocumentPlugin.hpp>
 #include <Execution/Settings/ExecutorModel.hpp>
-
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Application/ScenarioActions.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Document/Interval/IntervalExecution.hpp>
-#include <Scenario/Execution/score2OSSIA.hpp>
-
+#include <Execution/Transport/TransportInterface.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/Explorer/DeviceExplorerWidget.hpp>
-
-#include <Audio/AudioApplicationPlugin.hpp>
 
 #include <score/actions/ActionManager.hpp>
 #include <score/tools/Bind.hpp>
@@ -25,11 +16,19 @@
 #include <core/application/ApplicationSettings.hpp>
 #include <core/presenter/DocumentManager.hpp>
 
+#include <ossia/dataflow/execution_state.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/state/state.hpp>
-#include <ossia/dataflow/execution_state.hpp>
 
 #include <QMainWindow>
+
+#include <Scenario/Application/ScenarioActions.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/Interval/IntervalExecution.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
 
 /**
  * Execution state-machine explanation:
@@ -106,33 +105,50 @@
 
 namespace Execution
 {
-ExecutionController::ExecutionController(const score::GUIApplicationContext& ctx)
-  : context{ctx}
-  , m_scenario{ctx.guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>()}
-  , m_actions{m_scenario.transportActions()}
+ExecutionController::ExecutionController(
+    const score::GUIApplicationContext& ctx)
+    : context{ctx}
+    , m_scenario{ctx.guiApplicationPlugin<
+          Scenario::ScenarioApplicationPlugin>()}
+    , m_actions{m_scenario.transportActions()}
 {
   if (ctx.applicationSettings.gui)
   {
     auto& acts = ctx.actions;
     using namespace Actions;
-    connect(acts.action<Play>().action(), &QAction::triggered,
-            this, &ExecutionController::request_play_local,
-            Qt::QueuedConnection);
+    connect(
+        acts.action<Play>().action(),
+        &QAction::triggered,
+        this,
+        &ExecutionController::request_play_local,
+        Qt::QueuedConnection);
 
-    connect(acts.action<PlayGlobal>().action(), &QAction::triggered,
-            this, &ExecutionController::request_play_global,
-            Qt::QueuedConnection);
+    connect(
+        acts.action<PlayGlobal>().action(),
+        &QAction::triggered,
+        this,
+        &ExecutionController::request_play_global,
+        Qt::QueuedConnection);
 
-    connect(acts.action<Stop>().action(), &QAction::triggered,
-            this, &ExecutionController::request_stop,
-            Qt::QueuedConnection);
+    connect(
+        acts.action<Stop>().action(),
+        &QAction::triggered,
+        this,
+        &ExecutionController::request_stop,
+        Qt::QueuedConnection);
 
-    connect(acts.action<Reinitialize>().action(), &QAction::triggered,
-            this, &ExecutionController::on_reinitialize,
-            Qt::QueuedConnection);
+    connect(
+        acts.action<Reinitialize>().action(),
+        &QAction::triggered,
+        this,
+        &ExecutionController::on_reinitialize,
+        Qt::QueuedConnection);
 
-    connect(&m_scenario.execution(), &Scenario::ScenarioExecution::playAtDate,
-            this, &ExecutionController::request_play_from_here);
+    connect(
+        &m_scenario.execution(),
+        &Scenario::ScenarioExecution::playAtDate,
+        this,
+        &ExecutionController::request_play_from_here);
   }
 }
 
@@ -148,7 +164,7 @@ TransportInterface& ExecutionController::transport() const noexcept
 
 void ExecutionController::request_play_global(bool b)
 {
-  if(b)
+  if (b)
   {
     this->m_requestLocalPlay = false;
     m_transport->requestPlay();
@@ -161,7 +177,7 @@ void ExecutionController::request_play_global(bool b)
 
 void ExecutionController::request_play_local(bool b)
 {
-  if(b)
+  if (b)
   {
     this->m_requestLocalPlay = true;
     m_transport->requestPlay();
@@ -186,17 +202,16 @@ void ExecutionController::request_stop()
   m_transport->requestStop();
 }
 
-
 void ExecutionController::trigger_play()
 {
-  if(!m_intervalsToPlay.empty())
+  if (!m_intervalsToPlay.empty())
   {
     m_actions.onPlayLocal();
-    for(auto& to_play : m_intervalsToPlay)
+    for (auto& to_play : m_intervalsToPlay)
       play_interval(to_play.interval, std::move(to_play.setup), to_play.t);
     m_intervalsToPlay.clear();
   }
-  else if(this->m_requestLocalPlay)
+  else if (this->m_requestLocalPlay)
   {
     m_actions.onPlayLocal();
     on_play_local(true);
@@ -238,12 +253,11 @@ void ExecutionController::trigger_reinitialize()
   this->m_requestLocalPlay = false;
 }
 
-
 void ExecutionController::on_play_global(bool b)
 {
   if (auto scenar = currentScenarioModel())
   {
-    if(b)
+    if (b)
     {
       play_interval(scenar->baseInterval(), {}, TimeVal::zero());
     }
@@ -258,7 +272,7 @@ void ExecutionController::on_play_local(bool b, ::TimeVal t)
 {
   if (auto scenar = currentScenarioPresenter())
   {
-    if(b)
+    if (b)
     {
       play_interval(scenar->displayedInterval(), {}, t);
     }
@@ -292,7 +306,6 @@ void ExecutionController::on_pause()
   }
 }
 
-
 void ExecutionController::on_transport(TimeVal t)
 {
   if (!m_clock)
@@ -307,14 +320,16 @@ void ExecutionController::on_transport(TimeVal t)
   if (settings.getTransportValueCompilation())
   {
     auto execState = m_clock->context.execState;
-    ctx.executionQueue.enqueue([execState, itv, time = m_clock->context.time(t)] {
-      itv->offset(time);
-      execState->commit();
-    });
+    ctx.executionQueue.enqueue(
+        [execState, itv, time = m_clock->context.time(t)] {
+          itv->offset(time);
+          execState->commit();
+        });
   }
   else
   {
-    ctx.executionQueue.enqueue([itv, time = m_clock->context.time(t)] { itv->transport(time); });
+    ctx.executionQueue.enqueue(
+        [itv, time = m_clock->context.time(t)] { itv->transport(time); });
   }
 }
 
@@ -385,7 +400,8 @@ void ExecutionController::request_play_from_here(TimeVal t)
 
 void ExecutionController::ensure_audio_engine()
 {
-  auto& audio_engine = this->context.guiApplicationPlugin<Audio::ApplicationPlugin>();
+  auto& audio_engine
+      = this->context.guiApplicationPlugin<Audio::ApplicationPlugin>();
   if (!audio_engine.audio)
   {
     if (this->context.mainWindow)
@@ -438,7 +454,7 @@ void ExecutionController::play_interval(
   {
     // Here we stop the listening when we start playing the scenario.
     // Get all the selected nodes
-    if(auto explorer = Explorer::try_deviceExplorerFromObject(*doc))
+    if (auto explorer = Explorer::try_deviceExplorerFromObject(*doc))
     {
       // Disable listening for everything
       if (explorer && !plugmodel->settings.getExecutionListening())
@@ -477,7 +493,7 @@ void ExecutionController::play_interval(
 
 TimeVal ExecutionController::execution_time() const
 {
-  if(m_clock)
+  if (m_clock)
   {
     auto& itv = m_clock->scenario.baseInterval().scoreInterval().duration;
     return TimeVal(itv.defaultDuration() * itv.playPercentage());
@@ -515,7 +531,7 @@ void ExecutionController::on_stop()
 
   // Send the end state
   auto doc = currentDocument();
-  if(doc)
+  if (doc)
   {
     auto plugmodel = doc->context().findPlugin<Execution::DocumentPlugin>();
 
@@ -539,10 +555,14 @@ void ExecutionController::on_stop()
   {
     auto clock = std::move(m_clock);
     m_clock.reset();
-    try {
+    try
+    {
       clock->stop();
-    }  catch (...) {
-      qDebug() << "Error while stopping the clock. There is likely an audio hardware issue.";
+    }
+    catch (...)
+    {
+      qDebug() << "Error while stopping the clock. There is likely an audio "
+                  "hardware issue.";
     }
   }
 
@@ -588,8 +608,10 @@ void ExecutionController::reset_edition()
   if (!scenar)
     return;
   scenar->baseInterval().reset();
-  scenar->baseInterval().executionEvent(Scenario::IntervalExecutionEvent::Finished);
-  auto procs = scenar->context().document.findChildren<Scenario::ProcessModel*>();
+  scenar->baseInterval().executionEvent(
+      Scenario::IntervalExecutionEvent::Finished);
+  auto procs
+      = scenar->context().document.findChildren<Scenario::ProcessModel*>();
   for (Scenario::ProcessModel* e : procs)
   {
     for (auto& itv : e->intervals)
@@ -624,7 +646,8 @@ void ExecutionController::on_reinitialize()
 
     // Disable listening for everything
     if (explorer)
-      if(!ctx.app.settings<Execution::Settings::Model>().getExecutionListening())
+      if (!ctx.app.settings<Execution::Settings::Model>()
+               .getExecutionListening())
         explorer->deviceModel().listening().stop();
 
     plugmodel->playStartState();
@@ -638,45 +661,61 @@ void ExecutionController::on_reinitialize()
   }
 }
 
-
 void ExecutionController::init_transport()
 {
-  if(m_transport)
+  if (m_transport)
     m_transport->teardown();
 
   auto& s = context.settings<Execution::Settings::Model>();
   m_transport = s.getTransport();
   SCORE_ASSERT(m_transport);
   m_transport->setup();
-  connect(m_transport, &Execution::TransportInterface::play,
-          this, &ExecutionController::trigger_play);
-  connect(m_transport, &Execution::TransportInterface::pause,
-          this, &ExecutionController::trigger_pause);
-  connect(m_transport, &Execution::TransportInterface::stop,
-          this, &ExecutionController::trigger_stop);
-  connect(m_transport, &Execution::TransportInterface::transport,
-          this, &ExecutionController::on_transport);
-
+  connect(
+      m_transport,
+      &Execution::TransportInterface::play,
+      this,
+      &ExecutionController::trigger_play);
+  connect(
+      m_transport,
+      &Execution::TransportInterface::pause,
+      this,
+      &ExecutionController::trigger_pause);
+  connect(
+      m_transport,
+      &Execution::TransportInterface::stop,
+      this,
+      &ExecutionController::trigger_stop);
+  connect(
+      m_transport,
+      &Execution::TransportInterface::transport,
+      this,
+      &ExecutionController::on_transport);
 
   auto& audio_settings = this->context.settings<Audio::Settings::Model>();
-  con(audio_settings, &Audio::Settings::Model::JackTransportChanged,
-      this, &ExecutionController::init_transport, Qt::UniqueConnection);
+  con(audio_settings,
+      &Audio::Settings::Model::JackTransportChanged,
+      this,
+      &ExecutionController::init_transport,
+      Qt::UniqueConnection);
 }
 
 Scenario::ScenarioDocumentModel* ExecutionController::currentScenarioModel()
 {
   if (auto doc = currentDocument())
   {
-    return score::IDocument::try_modelDelegate<Scenario::ScenarioDocumentModel>(*doc);
+    return score::IDocument::try_modelDelegate<
+        Scenario::ScenarioDocumentModel>(*doc);
   }
   return nullptr;
 }
 
-Scenario::ScenarioDocumentPresenter* ExecutionController::currentScenarioPresenter()
+Scenario::ScenarioDocumentPresenter*
+ExecutionController::currentScenarioPresenter()
 {
   if (auto doc = currentDocument())
   {
-    return score::IDocument::try_presenterDelegate<Scenario::ScenarioDocumentPresenter>(*doc);
+    return score::IDocument::try_presenterDelegate<
+        Scenario::ScenarioDocumentPresenter>(*doc);
   }
   return nullptr;
 }
@@ -686,11 +725,11 @@ score::Document* ExecutionController::currentDocument() const
   return context.documents.currentDocument();
 }
 
-std::unique_ptr<Execution::Clock> ExecutionController::makeClock(const Execution::Context& ctx)
+std::unique_ptr<Execution::Clock>
+ExecutionController::makeClock(const Execution::Context& ctx)
 {
   auto& s = context.settings<Execution::Settings::Model>();
   return s.makeClock(ctx);
 }
 
 }
-

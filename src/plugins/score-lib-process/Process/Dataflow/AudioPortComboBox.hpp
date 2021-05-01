@@ -1,8 +1,9 @@
 #pragma once
-#include <score/document/DocumentContext.hpp>
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Node/DeviceNode.hpp>
 #include <State/Address.hpp>
+
+#include <score/document/DocumentContext.hpp>
 
 #include <QComboBox>
 
@@ -16,7 +17,10 @@ class SCORE_LIB_PROCESS_EXPORT AudioPortComboBox final : public QComboBox
 {
   W_OBJECT(AudioPortComboBox)
 public:
-  AudioPortComboBox(const State::Address& rootAddress, const Device::Node& node, QWidget* parent);
+  AudioPortComboBox(
+      const State::Address& rootAddress,
+      const Device::Node& node,
+      QWidget* parent);
 
   void setAddress(const State::Address& addr);
 

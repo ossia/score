@@ -17,7 +17,10 @@ class ProcessModel;
 class SCORE_LIB_PROCESS_EXPORT ScriptDialog : public QDialog
 {
 public:
-  ScriptDialog(const std::string_view lang, const score::DocumentContext& ctx, QWidget* parent);
+  ScriptDialog(
+      const std::string_view lang,
+      const score::DocumentContext& ctx,
+      QWidget* parent);
 
   QSize sizeHint() const override { return {800, 300}; }
   QString text() const noexcept;
@@ -41,13 +44,22 @@ public:
       const Process_T& process,
       const score::DocumentContext& ctx,
       QWidget* parent)
-    : ScriptDialog{Spec_T::language, ctx, parent}, m_process{process}
+      : ScriptDialog{Spec_T::language, ctx, parent}
+      , m_process{process}
   {
     setText((m_process.*Property_T::get)());
-    con(m_process, &Process_T::errorMessage, this, &ProcessScriptEditDialog::setError);
-    con(m_process, &IdentifiedObjectAbstract::identified_object_destroying,
-        this, &QWidget::deleteLater);
-    con(m_process, Property_T::notify, this, &ProcessScriptEditDialog::setText);
+    con(m_process,
+        &Process_T::errorMessage,
+        this,
+        &ProcessScriptEditDialog::setError);
+    con(m_process,
+        &IdentifiedObjectAbstract::identified_object_destroying,
+        this,
+        &QWidget::deleteLater);
+    con(m_process,
+        Property_T::notify,
+        this,
+        &ProcessScriptEditDialog::setText);
   }
 
   void on_accepted() override
@@ -60,7 +72,8 @@ public:
       if (m_process.validate(this->text()))
       {
         CommandDispatcher<>{m_context.commandStack}.submit(
-              new score::StaticPropertyCommand<Property_T>{m_process, this->text()});
+            new score::StaticPropertyCommand<Property_T>{
+                m_process, this->text()});
       }
     }
   }

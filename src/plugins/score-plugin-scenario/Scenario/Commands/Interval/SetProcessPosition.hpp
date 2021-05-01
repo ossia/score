@@ -1,8 +1,8 @@
 #pragma once
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
+
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -19,7 +19,10 @@ namespace Command
 {
 class PutProcessBefore final : public score::Command
 {
-  SCORE_COMMAND_DECL(CommandFactoryName(), PutProcessBefore, "Set process position")
+  SCORE_COMMAND_DECL(
+      CommandFactoryName(),
+      PutProcessBefore,
+      "Set process position")
 
 public:
   // Put proc2 before proc
@@ -49,7 +52,10 @@ private:
 
 class PutStateProcessBefore final : public score::Command
 {
-  SCORE_COMMAND_DECL(CommandFactoryName(), PutStateProcessBefore, "Set process position")
+  SCORE_COMMAND_DECL(
+      CommandFactoryName(),
+      PutStateProcessBefore,
+      "Set process position")
 
 public:
   // Put proc2 before proc

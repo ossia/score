@@ -1,8 +1,9 @@
 #pragma once
 #include <Dataflow/Commands/CableHelpers.hpp>
 
-#include <pluginterfaces/vst/ivsteditcontroller.h>
 #include <score/command/Command.hpp>
+
+#include <pluginterfaces/vst/ivsteditcontroller.h>
 
 namespace Process
 {

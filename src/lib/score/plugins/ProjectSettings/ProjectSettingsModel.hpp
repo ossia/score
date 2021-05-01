@@ -5,7 +5,8 @@
 #include <score_lib_base_export.h>
 namespace score
 {
-class SCORE_LIB_BASE_EXPORT ProjectSettingsModel : public SerializableDocumentPlugin
+class SCORE_LIB_BASE_EXPORT ProjectSettingsModel
+    : public SerializableDocumentPlugin
 {
 public:
   using SerializableDocumentPlugin::SerializableDocumentPlugin;

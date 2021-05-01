@@ -5,10 +5,10 @@
 #include <core/view/Window.hpp>
 
 #include <QApplication>
+#include <QCommandLineParser>
+#include <QDebug>
 #include <QDir>
 #include <QDirIterator>
-#include <QDebug>
-#include <QCommandLineParser>
 //#include <QQuickWidget>
 #include <QThread>
 
@@ -35,18 +35,21 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
       this,
       &ApplicationPlugin::setupNode);
 
-
   {
     // Command-line option parsing
     QCommandLineParser parser;
 
     QCommandLineOption compile_node(
         "compile-node",
-        QCoreApplication::translate("jit", "Node to compile"), "Name", "");
+        QCoreApplication::translate("jit", "Node to compile"),
+        "Name",
+        "");
     parser.addOption(compile_node);
     QCommandLineOption compile_addon(
-          "compile-addon",
-          QCoreApplication::translate("jit", "Path to the addon to compile"), "Name", "");
+        "compile-addon",
+        QCoreApplication::translate("jit", "Path to the addon to compile"),
+        "Name",
+        "");
     parser.addOption(compile_addon);
 
     parser.parse(ctx.applicationSettings.arguments);
@@ -54,27 +57,29 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
     auto addon_to_compile = parser.value(compile_addon);
 
     qDebug() << node_to_compile << addon_to_compile;
-    if((!node_to_compile.isEmpty() || !addon_to_compile.isEmpty()))
+    if ((!node_to_compile.isEmpty() || !addon_to_compile.isEmpty()))
     {
-      if(QFile::exists(node_to_compile))
+      if (QFile::exists(node_to_compile))
       {
         con(m_compiler,
             &AddonCompiler::jobCompleted,
-            this, [this] (auto addon) {
-          registerAddon(addon);
-          exit(0);
-        });
+            this,
+            [this](auto addon) {
+              registerAddon(addon);
+              exit(0);
+            });
 
         setupNode(node_to_compile);
       }
-      else  if(QFile::exists(addon_to_compile))
+      else if (QFile::exists(addon_to_compile))
       {
         con(m_compiler,
             &AddonCompiler::jobCompleted,
-            this, [this] (auto addon) {
-          registerAddon(addon);
-          exit(0);
-        });
+            this,
+            [this](auto addon) {
+              registerAddon(addon);
+              exit(0);
+            });
 
         setupAddon(addon_to_compile);
       }
@@ -95,9 +100,10 @@ void ApplicationPlugin::rescanAddons()
   const auto& libpath = context.settings<Library::Settings::Model>().getPath();
   QString addons = libpath + "/Addons";
   m_addonsWatch.addPath(addons);
-  QDirIterator it{addons,
-                  QDir::Filter::Dirs | QDir::Filter::NoDotAndDotDot,
-                  QDirIterator::NoIteratorFlags};
+  QDirIterator it{
+      addons,
+      QDir::Filter::Dirs | QDir::Filter::NoDotAndDotDot,
+      QDirIterator::NoIteratorFlags};
   while (it.hasNext())
   {
     it.next();
@@ -115,9 +121,10 @@ void ApplicationPlugin::rescanNodes()
   QString nodes = libpath + "/Nodes";
   m_nodesWatch.addPath(nodes);
 
-  QDirIterator it{nodes,
-                  QDir::Filter::Files | QDir::Filter::NoDotAndDotDot,
-                  QDirIterator::Subdirectories};
+  QDirIterator it{
+      nodes,
+      QDir::Filter::Files | QDir::Filter::NoDotAndDotDot,
+      QDirIterator::Subdirectories};
   while (it.hasNext())
   {
     auto path = it.next();
@@ -163,9 +170,8 @@ void ApplicationPlugin::setupAddon(const QString& addon)
   flags.push_back("-I" + addon.toStdString());
   flags.push_back("-I" + addon_files_path.toStdString());
 
-  std::string id
-      = json["key"].toString().remove(QChar('-')).toStdString();
-  if(id.empty())
+  std::string id = json["key"].toString().remove(QChar('-')).toStdString();
+  if (id.empty())
   {
     id = addonFolderName.remove(QChar('-')).remove(QChar(' ')).toStdString();
   }
@@ -203,7 +209,8 @@ void ApplicationPlugin::setupNode(const QString& f)
             )_");
 
       qDebug() << "Registering JIT node" << f;
-      m_compiler.submitJob(uuid.toStdString(), node.toStdString(), {}, CompilerOptions{false});
+      m_compiler.submitJob(
+          uuid.toStdString(), node.toStdString(), {}, CompilerOptions{false});
     }
   }
 }

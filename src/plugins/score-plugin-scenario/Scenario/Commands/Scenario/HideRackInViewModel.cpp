@@ -2,17 +2,20 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "HideRackInViewModel.hpp"
 
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 
 namespace Scenario
 {
 namespace Command
 {
-HideRack::HideRack(const Scenario::IntervalModel& interval_vm) : m_path{interval_vm} { }
+HideRack::HideRack(const Scenario::IntervalModel& interval_vm)
+    : m_path{interval_vm}
+{
+}
 
 void HideRack::undo(const score::DocumentContext& ctx) const
 {

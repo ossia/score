@@ -33,7 +33,8 @@ void LayerView::widthChanged(qreal) { }
 
 MiniLayer::~MiniLayer() = default;
 
-LayerView::LayerView(QGraphicsItem* parent) : QGraphicsItem{parent}
+LayerView::LayerView(QGraphicsItem* parent)
+    : QGraphicsItem{parent}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setFlag(ItemClipsChildrenToShape, false);
@@ -57,7 +58,10 @@ QRectF LayerView::boundingRect() const
   return {0, 0, m_width, m_height};
 }
 
-void LayerView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void LayerView::paint(
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   paint_impl(painter);
 #if defined(SCORE_SCENARIO_DEBUG_RECTS)
@@ -155,7 +159,8 @@ void LayerView::dropEvent(QGraphicsSceneDragDropEvent* event)
   }
 }
 
-MiniLayer::MiniLayer(QGraphicsItem* parent) : QGraphicsItem{parent}
+MiniLayer::MiniLayer(QGraphicsItem* parent)
+    : QGraphicsItem{parent}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setFlag(ItemClipsChildrenToShape, true);
@@ -166,7 +171,10 @@ QRectF MiniLayer::boundingRect() const
   return {0, 0, m_width, m_height};
 }
 
-void MiniLayer::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void MiniLayer::paint(
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   paint_impl(painter);
 }

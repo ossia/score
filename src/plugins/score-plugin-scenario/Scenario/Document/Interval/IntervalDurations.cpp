@@ -6,11 +6,12 @@
 
 #include <Process/TimeValue.hpp>
 #include <Process/TimeValueSerialization.hpp>
-#include <Scenario/Document/ModelConsistency.hpp>
 
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+
+#include <Scenario/Document/ModelConsistency.hpp>
 
 #define TIME_TOLERANCE_MSEC 0.5
 #include <wobjectimpl.h>
@@ -43,8 +44,10 @@ void IntervalDurations::checkConsistency()
       || (isRigid() && minDuration() != maxDuration())); // a voir
 
   m_model.consistency.setValid(
-      minDuration() - TimeVal::fromMsecs(TIME_TOLERANCE_MSEC) <= m_defaultDuration
-      && maxDuration() + TimeVal::fromMsecs(TIME_TOLERANCE_MSEC) >= m_defaultDuration
+      minDuration() - TimeVal::fromMsecs(TIME_TOLERANCE_MSEC)
+          <= m_defaultDuration
+      && maxDuration() + TimeVal::fromMsecs(TIME_TOLERANCE_MSEC)
+             >= m_defaultDuration
       && m_defaultDuration.msec() + TIME_TOLERANCE_MSEC > 0);
 }
 
@@ -105,7 +108,8 @@ void IntervalDurations::setPlayPercentage(double arg)
 
   auto old = m_playPercentage;
 
-  if (m_defaultDuration * std::abs(arg - old) > TimeVal{std::chrono::milliseconds(16)})
+  if (m_defaultDuration * std::abs(arg - old)
+      > TimeVal{std::chrono::milliseconds(16)})
   {
     m_playPercentage = arg;
     playPercentageChanged(arg);
@@ -142,7 +146,9 @@ void IntervalDurations::setMaxInfinite(bool isMaxInfinite)
 }
 
 SCORE_PLUGIN_SCENARIO_EXPORT void
-IntervalDurations::Algorithms::setDurationInBounds(IntervalModel& cstr, const TimeVal& time)
+IntervalDurations::Algorithms::setDurationInBounds(
+    IntervalModel& cstr,
+    const TimeVal& time)
 {
   SCORE_ASSERT(time.impl >= 0);
   if (cstr.duration.defaultDuration() != time)
@@ -165,11 +171,14 @@ IntervalDurations::Algorithms::setDurationInBounds(IntervalModel& cstr, const Ti
 }
 
 SCORE_PLUGIN_SCENARIO_EXPORT void
-IntervalDurations::Algorithms::fixAllDurations(IntervalModel& cstr, const TimeVal& time)
+IntervalDurations::Algorithms::fixAllDurations(
+    IntervalModel& cstr,
+    const TimeVal& time)
 {
   SCORE_ASSERT(time.impl >= 0);
   auto& dur = cstr.duration;
-  if (dur.defaultDuration() != time || dur.minDuration() != time || dur.maxDuration() != time)
+  if (dur.defaultDuration() != time || dur.minDuration() != time
+      || dur.maxDuration() != time)
   {
     dur.m_defaultDuration = time;
     dur.m_minDuration = time;
@@ -187,7 +196,9 @@ IntervalDurations::Algorithms::fixAllDurations(IntervalModel& cstr, const TimeVa
 }
 
 SCORE_PLUGIN_SCENARIO_EXPORT void
-IntervalDurations::Algorithms::changeAllDurations(IntervalModel& cstr, const TimeVal& time)
+IntervalDurations::Algorithms::changeAllDurations(
+    IntervalModel& cstr,
+    const TimeVal& time)
 {
   SCORE_ASSERT(time.impl >= 0);
   auto& d = cstr.duration;
@@ -217,8 +228,9 @@ IntervalDurations::Algorithms::changeAllDurations(IntervalModel& cstr, const Tim
       //      TimeVal{std::nextafter(d.m_defaultDuration.msec(),
       //      d.m_defaultDuration.msec() * 2.)};
       d.m_maxDuration
-          = d.m_defaultDuration * 1.05; // TimeVal{std::nextafter(d.m_defaultDuration.msec(),
-                                        // d.m_defaultDuration.msec() * 2.)};
+          = d.m_defaultDuration
+            * 1.05; // TimeVal{std::nextafter(d.m_defaultDuration.msec(),
+                    // d.m_defaultDuration.msec() * 2.)};
 
     if (d.m_guiDuration < d.m_defaultDuration)
       d.m_guiDuration = time * 1.1;
@@ -236,7 +248,9 @@ IntervalDurations::Algorithms::changeAllDurations(IntervalModel& cstr, const Tim
 }
 
 SCORE_PLUGIN_SCENARIO_EXPORT void
-IntervalDurations::Algorithms::scaleAllDurations(IntervalModel& cstr, const TimeVal& time)
+IntervalDurations::Algorithms::scaleAllDurations(
+    IntervalModel& cstr,
+    const TimeVal& time)
 {
   if (cstr.duration.defaultDuration() != time)
   {
@@ -254,17 +268,17 @@ IntervalDurations::Algorithms::scaleAllDurations(IntervalModel& cstr, const Time
 template <>
 void DataStreamReader::read(const Scenario::IntervalDurations& durs)
 {
-  m_stream << durs.m_defaultDuration << durs.m_minDuration << durs.m_maxDuration
-           << durs.m_guiDuration << durs.m_speed << durs.m_rigidity << durs.m_isMinNull
-           << durs.m_isMaxInfinite;
+  m_stream << durs.m_defaultDuration << durs.m_minDuration
+           << durs.m_maxDuration << durs.m_guiDuration << durs.m_speed
+           << durs.m_rigidity << durs.m_isMinNull << durs.m_isMaxInfinite;
 }
 
 template <>
 void DataStreamWriter::write(Scenario::IntervalDurations& durs)
 {
-  m_stream >> durs.m_defaultDuration >> durs.m_minDuration >> durs.m_maxDuration
-      >> durs.m_guiDuration >> durs.m_speed >> durs.m_rigidity >> durs.m_isMinNull
-      >> durs.m_isMaxInfinite;
+  m_stream >> durs.m_defaultDuration >> durs.m_minDuration
+      >> durs.m_maxDuration >> durs.m_guiDuration >> durs.m_speed
+      >> durs.m_rigidity >> durs.m_isMinNull >> durs.m_isMaxInfinite;
 }
 
 template <>

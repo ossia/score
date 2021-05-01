@@ -32,10 +32,19 @@ class SCORE_PLUGIN_CURVE_EXPORT Model : public score::SettingsDelegateModel
 public:
   Model(QSettings& set, const score::ApplicationContext& ctx);
 
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_CURVE_EXPORT, int, SimplificationRatio)
+  SCORE_SETTINGS_PARAMETER_HPP(
+      SCORE_PLUGIN_CURVE_EXPORT,
+      int,
+      SimplificationRatio)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_CURVE_EXPORT, bool, Simplify)
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_CURVE_EXPORT, Curve::Settings::Mode, CurveMode)
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_CURVE_EXPORT, bool, PlayWhileRecording)
+  SCORE_SETTINGS_PARAMETER_HPP(
+      SCORE_PLUGIN_CURVE_EXPORT,
+      Curve::Settings::Mode,
+      CurveMode)
+  SCORE_SETTINGS_PARAMETER_HPP(
+      SCORE_PLUGIN_CURVE_EXPORT,
+      bool,
+      PlayWhileRecording)
 
 private:
   int m_SimplificationRatio{};

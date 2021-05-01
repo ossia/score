@@ -15,7 +15,9 @@
 
 namespace Scenario
 {
-ScenarioInspectorWidgetFactoryWrapper::~ScenarioInspectorWidgetFactoryWrapper() { }
+ScenarioInspectorWidgetFactoryWrapper::~ScenarioInspectorWidgetFactoryWrapper()
+{
+}
 
 QWidget* ScenarioInspectorWidgetFactoryWrapper::make(
     const InspectedObjects& sourceElements,
@@ -114,11 +116,14 @@ bool ScenarioInspectorWidgetFactoryWrapper::update(
   return true;
 }
 
-bool ScenarioInspectorWidgetFactoryWrapper::matches(const InspectedObjects& objects) const
+bool ScenarioInspectorWidgetFactoryWrapper::matches(
+    const InspectedObjects& objects) const
 {
   return std::any_of(objects.begin(), objects.end(), [](const QObject* obj) {
-    return dynamic_cast<const StateModel*>(obj) || dynamic_cast<const EventModel*>(obj)
-           || dynamic_cast<const TimeSyncModel*>(obj) || dynamic_cast<const IntervalModel*>(obj);
+    return dynamic_cast<const StateModel*>(obj)
+           || dynamic_cast<const EventModel*>(obj)
+           || dynamic_cast<const TimeSyncModel*>(obj)
+           || dynamic_cast<const IntervalModel*>(obj);
   });
 }
 }

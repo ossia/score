@@ -1,5 +1,6 @@
 #include "SoundDrop.hpp"
 
+#include <Audio/Settings/Model.hpp>
 #include <Media/AudioDecoder.hpp>
 #include <Media/Commands/ChangeAudioFile.hpp>
 #include <Media/Sound/SoundModel.hpp>
@@ -9,20 +10,21 @@
 #include <QMimeData>
 #include <QUrl>
 
-#include <Audio/Settings/Model.hpp>
-
 namespace Media
 {
 namespace Sound
 {
-DroppedAudioFiles::DroppedAudioFiles(const score::DocumentContext& ctx, const QMimeData& mime)
+DroppedAudioFiles::DroppedAudioFiles(
+    const score::DocumentContext& ctx,
+    const QMimeData& mime)
 {
   for (const auto& url : mime.urls())
   {
     QString filename = url.toLocalFile();
     if (!AudioFile::isSupported(QFile{filename}))
       continue;
-    auto& audioSettings = score::GUIAppContext().settings<Audio::Settings::Model>();
+    auto& audioSettings
+        = score::GUIAppContext().settings<Audio::Settings::Model>();
     AudioDecoder dec(audioSettings.getRate());
     if (auto info_opt = dec.probe(filename))
     {
@@ -55,11 +57,23 @@ QSet<QString> DropHandler::mimeTypes() const noexcept
 
 QSet<QString> DropHandler::fileExtensions() const noexcept
 {
-  return {"wav", "aif", "aiff", "flac", "ogg", "mp3", "ape", "wv", "m4a", "wma", "w64"};
+  return {
+      "wav",
+      "aif",
+      "aiff",
+      "flac",
+      "ogg",
+      "mp3",
+      "ape",
+      "wv",
+      "m4a",
+      "wma",
+      "w64"};
 }
 
-std::vector<Process::ProcessDropHandler::ProcessDrop>
-DropHandler::drop(const QMimeData& mime, const score::DocumentContext& ctx) const noexcept
+std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::drop(
+    const QMimeData& mime,
+    const score::DocumentContext& ctx) const noexcept
 {
   std::vector<Process::ProcessDropHandler::ProcessDrop> vec;
 
@@ -73,9 +87,8 @@ DropHandler::drop(const QMimeData& mime, const score::DocumentContext& ctx) cons
     p.creation.key = Metadata<ConcreteKey_k, Sound::ProcessModel>::get();
     p.creation.prettyName = QFileInfo{file.first}.baseName();
     p.duration = file.second;
-    p.setup = [f = std::move(file.first),
-               song_t = *p.duration,
-               &ctx](Process::ProcessModel& m, score::Dispatcher& disp) {
+    p.setup = [f = std::move(file.first), song_t = *p.duration, &ctx](
+                  Process::ProcessModel& m, score::Dispatcher& disp) {
       auto& proc = static_cast<Sound::ProcessModel&>(m);
       disp.submit(new Media::ChangeAudioFile{proc, std::move(f), ctx});
     };

@@ -1,11 +1,10 @@
 #pragma once
+#include <Nodal/Metadata.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
 
 #include <score/model/ObjectRemover.hpp>
-
-#include <Nodal/Metadata.hpp>
 
 namespace Nodal
 {
@@ -28,7 +27,8 @@ public:
 
   template <typename Impl>
   Model(Impl& vis, const score::DocumentContext& ctx, QObject* parent)
-      : Process::ProcessModel{vis, parent}, m_context{ctx}
+      : Process::ProcessModel{vis, parent}
+      , m_context{ctx}
   {
     vis.writeTo(*this);
     init();

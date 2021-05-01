@@ -17,7 +17,8 @@ class InspectorWidgetDelegate_T : public InspectorWidgetDelegate
 {
 public:
   InspectorWidgetDelegate_T(const Process_T& process, QWidget* parent)
-      : InspectorWidgetDelegate{parent}, m_process{process}
+      : InspectorWidgetDelegate{parent}
+      , m_process{process}
   {
   }
 

@@ -2,36 +2,36 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioSettingsView.hpp"
 
-#include <score/model/Skin.hpp>
-#include <score/serialization/JSONVisitor.hpp>
-#include <score/widgets/SignalUtils.hpp>
-#include <score/widgets/FormWidget.hpp>
-#include <score/widgets/MarginLess.hpp>
-#include <score/widgets/TimeSpinBox.hpp>
+#include <Library/LibrarySettings.hpp>
 
 #include <score/application/ApplicationContext.hpp>
-#include <Scenario/Settings/ScenarioSettingsModel.hpp>
-#include <Library/LibrarySettings.hpp>
+#include <score/model/Skin.hpp>
+#include <score/serialization/JSONVisitor.hpp>
+#include <score/widgets/FormWidget.hpp>
+#include <score/widgets/MarginLess.hpp>
+#include <score/widgets/SignalUtils.hpp>
+#include <score/widgets/TimeSpinBox.hpp>
 
 #include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDialog>
+#include <QDir>
 #include <QFileDialog>
 #include <QFormLayout>
-#include <QLineEdit>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonValue>
 #include <QLabel>
+#include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
 #include <QSpinBox>
 #include <QTextEdit>
 #include <QtColorWidgets/ColorWheel>
-#include <QJsonObject>
-#include <QJsonDocument>
-#include <QJsonValue>
-#include <QJsonArray>
-#include <QDir>
 
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <wobjectimpl.h>
 
 namespace Scenario
@@ -41,7 +41,7 @@ namespace Settings
 
 class ThemeDialog : public QDialog
 {
-    W_OBJECT(ThemeDialog)
+  W_OBJECT(ThemeDialog)
 
 public:
   QHBoxLayout layout;
@@ -54,19 +54,20 @@ public:
 
   void skinSaved(const QString& arg_1) W_SIGNAL(skinSaved, arg_1);
 
-  ThemeDialog(const QString& skinFile, QWidget* p) : QDialog{p}
+  ThemeDialog(const QString& skinFile, QWidget* p)
+      : QDialog{p}
   {
     setWindowTitle(tr("Edit skin"));
 
     layout.addWidget(&list);
     layout.addLayout(&sublay);
 
-    wheel.setMinimumSize(QSize{100,100});
+    wheel.setMinimumSize(QSize{100, 100});
     wheel.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     sublay.setWidget(0, QFormLayout::SpanningRole, &wheel);
 
-    sublay.addRow(tr("HEX"),&hexa);
-    sublay.addRow(tr("RGB"),&rgb);
+    sublay.addRow(tr("HEX"), &hexa);
+    sublay.addRow(tr("RGB"), &rgb);
     sublay.addWidget(&save);
     this->setLayout(&layout);
     score::Skin& s = score::Skin::instance();
@@ -77,44 +78,56 @@ public:
       list.addItem(new QListWidgetItem(p, col.second));
     }
 
-    connect(&list, &QListWidget::currentItemChanged, this, [&](QListWidgetItem* cur, auto prev) {
-      if (cur)
-        wheel.setColor(s.fromString(cur->text())->color());
-    });
+    connect(
+        &list,
+        &QListWidget::currentItemChanged,
+        this,
+        [&](QListWidgetItem* cur, auto prev) {
+          if (cur)
+            wheel.setColor(s.fromString(cur->text())->color());
+        });
 
-    connect(&wheel, &color_widgets::ColorWheel::colorChanged, this, [&](QColor c) {
-      if (list.currentItem())
-      {
-        if (auto brush = s.fromString(list.currentItem()->text()))
-          brush->reload(c);
-        QPixmap p{16, 16};
-        p.fill(c);
-        list.currentItem()->setIcon(p);
-        s.changed();
-        hexa.setText(c.name(QColor::HexRgb));
-        rgb.setText(QString("%1, %2, %3").arg(c.red()).arg(c.green()).arg(c.blue()));
-      }
-    });
+    connect(
+        &wheel, &color_widgets::ColorWheel::colorChanged, this, [&](QColor c) {
+          if (list.currentItem())
+          {
+            if (auto brush = s.fromString(list.currentItem()->text()))
+              brush->reload(c);
+            QPixmap p{16, 16};
+            p.fill(c);
+            list.currentItem()->setIcon(p);
+            s.changed();
+            hexa.setText(c.name(QColor::HexRgb));
+            rgb.setText(QString("%1, %2, %3")
+                            .arg(c.red())
+                            .arg(c.green())
+                            .arg(c.blue()));
+          }
+        });
 
-    connect(&hexa, &QLineEdit::textChanged, this, [this, &s](const QString& txt) {
-      auto item = list.currentItem();
-      if (!item)
-        return;
-      if (!QColor::isValidColor(txt))
-        return;
-      auto c = QColor(txt);
-      auto brush = s.fromString(item->text());
-      if (brush->color() != c)
-      {
-        QPixmap p{16, 16};
-        p.fill(c);
-        item->setIcon(p);
-        brush->reload(c);
-        rgb.setText(QString("%1, %2, %3").arg(c.red()).arg(c.green()).arg(c.blue()));
-        s.changed();
-        wheel.setColor(c);
-      }
-    });
+    connect(
+        &hexa, &QLineEdit::textChanged, this, [this, &s](const QString& txt) {
+          auto item = list.currentItem();
+          if (!item)
+            return;
+          if (!QColor::isValidColor(txt))
+            return;
+          auto c = QColor(txt);
+          auto brush = s.fromString(item->text());
+          if (brush->color() != c)
+          {
+            QPixmap p{16, 16};
+            p.fill(c);
+            item->setIcon(p);
+            brush->reload(c);
+            rgb.setText(QString("%1, %2, %3")
+                            .arg(c.red())
+                            .arg(c.green())
+                            .arg(c.blue()));
+            s.changed();
+            wheel.setColor(c);
+          }
+        });
 
     connect(&save, &QPushButton::clicked, this, [&] {
       auto f = QFileDialog::getSaveFileName(
@@ -129,7 +142,9 @@ public:
       QJsonObject obj;
       for (auto& col : score::Skin::instance().getColors())
       {
-       obj.insert(col.second, QJsonArray{col.first.red(), col.first.green(), col.first.blue() });
+        obj.insert(
+            col.second,
+            QJsonArray{col.first.red(), col.first.green(), col.first.blue()});
       }
 
       QJsonDocument doc;
@@ -155,19 +170,22 @@ View::View()
     m_skin = new QComboBox;
     m_skin->addItem("Default", ":/skin/DefaultSkin.json");
 
-    const QString skinPath = score::AppContext().settings<Library::Settings::Model>().getPath() + "/Skins/";
+    const QString skinPath
+        = score::AppContext().settings<Library::Settings::Model>().getPath()
+          + "/Skins/";
     QDir skinDir(skinPath, "*.json");
     auto skinList = skinDir.entryList();
-    for(const auto& skin: skinList)
+    for (const auto& skin : skinList)
     {
-      m_skin->addItem(skin, QVariant{skinPath+"/"+skin});
+      m_skin->addItem(skin, QVariant{skinPath + "/" + skin});
     }
 
     auto ls = new QPushButton{tr("Browse...")};
     ls->setMaximumWidth(100);
     connect(ls, &QPushButton::clicked, this, [=] {
-      auto f = QFileDialog::getOpenFileName(nullptr, tr("Load skin"), tr("*.json"));
-      if(!f.isEmpty())
+      auto f = QFileDialog::getOpenFileName(
+          nullptr, tr("Load skin"), tr("*.json"));
+      if (!f.isEmpty())
       {
         SkinChanged(f);
       }
@@ -178,8 +196,8 @@ View::View()
 
     connect(es, &QPushButton::clicked, this, [&] {
       QString skinToEditPath = m_skin->currentData().toString();
-      if(m_skin->currentText() == tr("Default"))
-          skinToEditPath = skinPath;
+      if (m_skin->currentText() == tr("Default"))
+        skinToEditPath = skinPath;
       ThemeDialog d{skinToEditPath, nullptr};
       connect(&d, &ThemeDialog::skinSaved, this, [&](const QString& skin) {
         SkinChanged(skin);
@@ -196,10 +214,14 @@ View::View()
 
     lay->addRow(tr("Skin"), subw);
 
-    connect(m_skin, SignalUtils::QComboBox_currentIndexChanged_int(), this, [=] (int index){
-      auto skinPath = m_skin->itemData(index).toString();
-      SkinChanged(skinPath);
-    });
+    connect(
+        m_skin,
+        SignalUtils::QComboBox_currentIndexChanged_int(),
+        this,
+        [=](int index) {
+          auto skinPath = m_skin->itemData(index).toString();
+          SkinChanged(skinPath);
+        });
   }
 
   {
@@ -229,7 +251,11 @@ View::View()
   m_zoomSpinBox->setMinimum(100);
   m_zoomSpinBox->setMaximum(200);
 
-  connect(m_zoomSpinBox, SignalUtils::QSpinBox_valueChanged_int(), this, &View::zoomChanged);
+  connect(
+      m_zoomSpinBox,
+      SignalUtils::QSpinBox_valueChanged_int(),
+      this,
+      &View::zoomChanged);
 
   m_zoomSpinBox->setSuffix(tr("%"));
 
@@ -250,9 +276,11 @@ View::View()
 
   // Default duration
   m_defaultDur = new score::TimeSpinBox;
-  connect(m_defaultDur, &score::TimeSpinBox::timeChanged, this, [=](const TimeVal& t) {
-    DefaultDurationChanged(t);
-  });
+  connect(
+      m_defaultDur,
+      &score::TimeSpinBox::timeChanged,
+      this,
+      [=](const TimeVal& t) { DefaultDurationChanged(t); });
   lay->addRow(tr("New score duration"), m_defaultDur);
 
   m_sequence = new QCheckBox{tr("Auto-Sequence"), m_widg};
@@ -280,7 +308,7 @@ void View::setSkin(const QString& val)
     else
     {
       m_skin->addItem(val, QVariant{val});
-      m_skin->setCurrentIndex(m_skin->count()-1);
+      m_skin->setCurrentIndex(m_skin->count() - 1);
     }
   }
 }
@@ -320,4 +348,3 @@ QWidget* View::getWidget()
 }
 }
 }
-

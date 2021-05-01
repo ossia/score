@@ -5,18 +5,20 @@
 #include "TimeSyncPresenter.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Document/VerticalExtent.hpp>
 
 #include <score/model/ModelMetadata.hpp>
+
+#include <ossia/detail/hash_map.hpp>
 
 #include <QBrush>
 #include <QCursor>
 #include <QGraphicsScene>
 #include <QPainter>
 #include <QPen>
-#include <ossia/detail/hash_map.hpp>
 #include <qnamespace.h>
+
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Document/VerticalExtent.hpp>
 
 class QStyleOptionGraphicsItem;
 class QWidget;
@@ -30,17 +32,17 @@ static ossia::fast_hash_map<QRgb, QPixmap> timeSyncPixmaps;
 const QPixmap& TimeSyncView::pixmap(const score::Brush& b)
 {
   auto col = b.color().rgba();
-  if(auto it = timeSyncPixmaps.find(col); it != timeSyncPixmaps.end())
+  if (auto it = timeSyncPixmaps.find(col); it != timeSyncPixmaps.end())
     return it->second;
 
   static QPainterPath p = [] {
-     QPainterPath p;
-  for(double i = 0; i < 1000.; i += 2.)
-  {
-    p.lineTo(0., i * 4 + 1);
-    p.moveTo(0., i * 4 + 2);
-  }
-  return p;
+    QPainterPath p;
+    for (double i = 0; i < 1000.; i += 2.)
+    {
+      p.lineTo(0., i * 4 + 1);
+      p.moveTo(0., i * 4 + 2);
+    }
+    return p;
   }();
 
   QPixmap pmap;
@@ -101,9 +103,8 @@ void TimeSyncView::paint(
   auto& skin = Process::Style::instance();
   painter->setRenderHint(QPainter::Antialiasing, false);
 
-  auto& pix = (isSelected())
-      ? pixmap(skin.TimenodeSelected())
-      : pixmap(*m_color);
+  auto& pix
+      = (isSelected()) ? pixmap(skin.TimenodeSelected()) : pixmap(*m_color);
 
   painter->drawTiledPixmap(-1, -1, 4, height, pix);
 

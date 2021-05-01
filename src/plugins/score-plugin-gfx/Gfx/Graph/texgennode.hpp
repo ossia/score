@@ -56,7 +56,7 @@ struct TexgenNode : NodeModel
     float position[2];
   } ubo;
 
-#include <Gfx/Qt5CompatPush>
+#include <Gfx/Qt5CompatPush> // clang-format: keep
   struct Rendered : RenderedNode
   {
     using RenderedNode::RenderedNode;
@@ -72,7 +72,8 @@ struct TexgenNode : NodeModel
       auto& n = static_cast<const TexgenNode&>(this->node);
       auto& rhi = *renderer.state.rhi;
       {
-        texture = rhi.newTexture(QRhiTexture::RGBA8, n.image.size(), 1, QRhiTexture::Flag{});
+        texture = rhi.newTexture(
+            QRhiTexture::RGBA8, n.image.size(), 1, QRhiTexture::Flag{});
 
         texture->create();
       }
@@ -90,12 +91,16 @@ struct TexgenNode : NodeModel
       }
     }
 
-    void customUpdate(Renderer& renderer, QRhiResourceUpdateBatch& res) override
+    void
+    customUpdate(Renderer& renderer, QRhiResourceUpdateBatch& res) override
     {
       auto& n = static_cast<const TexgenNode&>(this->node);
       if (func_t f = n.function.load())
       {
-        f(const_cast<uchar*>(n.image.bits()), n.image.width(), n.image.height(), t++);
+        f(const_cast<uchar*>(n.image.bits()),
+          n.image.width(),
+          n.image.height(),
+          t++);
         res.uploadTexture(texture, n.image);
       }
     }
@@ -131,7 +136,10 @@ struct TexgenNode : NodeModel
   std::atomic<func_t> function{};
 
   const Mesh& mesh() const noexcept override { return this->m_mesh; }
-  score::gfx::NodeRenderer* createRenderer() const noexcept override { return new Rendered{*this}; }
+  score::gfx::NodeRenderer* createRenderer() const noexcept override
+  {
+    return new Rendered{*this};
+  }
 };
 
-#include <Gfx/Qt5CompatPop>
+#include <Gfx/Qt5CompatPop> // clang-format: keep

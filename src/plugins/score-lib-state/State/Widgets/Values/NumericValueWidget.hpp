@@ -24,7 +24,8 @@ template <typename T>
 class NumericValueWidget final : public ValueWidget
 {
 public:
-  NumericValueWidget(T value, QWidget* parent = nullptr) : ValueWidget{parent}
+  NumericValueWidget(T value, QWidget* parent = nullptr)
+      : ValueWidget{parent}
   {
     auto lay = new score::MarginLess<QGridLayout>{this};
     m_valueSBox = new score::SpinBox<T>{this};
@@ -32,7 +33,10 @@ public:
     m_valueSBox->setValue(value);
   }
 
-  ossia::value value() const override { return ossia::value{m_valueSBox->value()}; }
+  ossia::value value() const override
+  {
+    return ossia::value{m_valueSBox->value()};
+  }
 
 private:
   score::SpinBox<T>* m_valueSBox{};
@@ -43,7 +47,8 @@ class NumericValueSetDialog final : public QDialog
 {
 public:
   using set_type = std::vector<T>;
-  NumericValueSetDialog(QWidget* parent) : QDialog{parent}
+  NumericValueSetDialog(QWidget* parent)
+      : QDialog{parent}
   {
     auto lay = new score::MarginLess<QVBoxLayout>{this};
     this->setLayout(lay);
@@ -53,7 +58,8 @@ public:
     connect(addbutton, &QPushButton::pressed, this, [=] { addRow({}); });
     lay->addWidget(addbutton);
 
-    auto buttonBox = new QDialogButtonBox{QDialogButtonBox::Ok | QDialogButtonBox::Cancel};
+    auto buttonBox = new QDialogButtonBox{
+        QDialogButtonBox::Ok | QDialogButtonBox::Cancel};
 
     lay->addWidget(buttonBox);
 
@@ -94,7 +100,9 @@ private:
     auto minus_b = new QPushButton{tr("-"), this};
     sub_lay->addWidget(minus_b);
 
-    connect(minus_b, &QPushButton::clicked, this, [this, i = m_rows.size()] { removeRow(i); });
+    connect(minus_b, &QPushButton::clicked, this, [this, i = m_rows.size()] {
+      removeRow(i);
+    });
 
     auto widg = new NumericValueWidget<T>{c, this};
     sub_lay->addWidget(widg);
@@ -126,7 +134,8 @@ public:
   using domain_type = ossia::domain_base<T>;
   using set_type = std::vector<T>;
 
-  NumericDomainWidget(QWidget* parent) : QWidget{parent}
+  NumericDomainWidget(QWidget* parent)
+      : QWidget{parent}
   {
     auto lay = new score::MarginLess<QHBoxLayout>{this};
     this->setLayout(lay);
@@ -143,8 +152,12 @@ public:
     m_min->setEnabled(false);
     m_max->setEnabled(false);
 
-    connect(m_minCB, &QCheckBox::stateChanged, this, [=](int st) { m_min->setEnabled(bool(st)); });
-    connect(m_maxCB, &QCheckBox::stateChanged, this, [=](int st) { m_max->setEnabled(bool(st)); });
+    connect(m_minCB, &QCheckBox::stateChanged, this, [=](int st) {
+      m_min->setEnabled(bool(st));
+    });
+    connect(m_maxCB, &QCheckBox::stateChanged, this, [=](int st) {
+      m_max->setEnabled(bool(st));
+    });
     auto pb = new QPushButton{tr("Values"), this};
     lay->addWidget(pb);
 

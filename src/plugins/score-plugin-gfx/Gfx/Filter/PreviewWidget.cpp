@@ -8,52 +8,34 @@ struct PreviewInputvisitor
 {
   int& img_count;
 
-  NodeModel* operator()(const isf::float_input& v)
-  {
-    return nullptr;
-  }
+  NodeModel* operator()(const isf::float_input& v) { return nullptr; }
 
-  NodeModel* operator()(const isf::long_input& v)
-  {
-    return nullptr;
-  }
+  NodeModel* operator()(const isf::long_input& v) { return nullptr; }
 
-  NodeModel* operator()(const isf::event_input& v)
-  {
-    return nullptr;
-  }
+  NodeModel* operator()(const isf::event_input& v) { return nullptr; }
 
-  NodeModel* operator()(const isf::bool_input& v)
-  {
-    return nullptr;
-  }
+  NodeModel* operator()(const isf::bool_input& v) { return nullptr; }
 
-  NodeModel* operator()(const isf::point2d_input& v)
-  {
-    return nullptr;
-  }
+  NodeModel* operator()(const isf::point2d_input& v) { return nullptr; }
 
-  NodeModel* operator()(const isf::point3d_input& v)
-  {
-    return nullptr;
-  }
+  NodeModel* operator()(const isf::point3d_input& v) { return nullptr; }
 
-  NodeModel* operator()(const isf::color_input& v)
-  {
-    return nullptr;
-  }
+  NodeModel* operator()(const isf::color_input& v) { return nullptr; }
 
   NodeModel* operator()(const isf::image_input& v)
   {
-    static std::array<Gfx::Image, 3> images
-    {
-      Gfx::Image{ QString{":/gfx/testcard-1.png"} , {QImage{":/gfx/testcard-1.png"} } },
-      Gfx::Image{ QString{":/gfx/testcard-2.jpeg"}, {QImage{":/gfx/testcard-2.jpeg"}} },
-      Gfx::Image{ QString{":/gfx/testcard-3.png"} , {QImage{":/gfx/testcard-3.png"} } },
+    static std::array<Gfx::Image, 3> images{
+        Gfx::Image{
+            QString{":/gfx/testcard-1.png"}, {QImage{":/gfx/testcard-1.png"}}},
+        Gfx::Image{
+            QString{":/gfx/testcard-2.jpeg"},
+            {QImage{":/gfx/testcard-2.jpeg"}}},
+        Gfx::Image{
+            QString{":/gfx/testcard-3.png"}, {QImage{":/gfx/testcard-3.png"}}},
     };
     auto image_node = new ImagesNode{{images[img_count]}};
     image_node->ubo.currentImageIndex = 0;
-    switch(img_count)
+    switch (img_count)
     {
       case 0:
         image_node->ubo.position[0] = 1.2;
@@ -76,23 +58,19 @@ struct PreviewInputvisitor
     return image_node;
   }
 
-  NodeModel* operator()(const isf::audio_input& v)
-  {
-    return nullptr;
-  }
+  NodeModel* operator()(const isf::audio_input& v) { return nullptr; }
 
-  NodeModel* operator()(const isf::audioFFT_input& v)
-  {
-    return nullptr;
-  }
+  NodeModel* operator()(const isf::audioFFT_input& v) { return nullptr; }
 };
 }
 
-ShaderPreviewWidget::ShaderPreviewWidget(const QString& path, QWidget* parent): QWidget{parent}
+ShaderPreviewWidget::ShaderPreviewWidget(const QString& path, QWidget* parent)
+    : QWidget{parent}
 {
   ShaderProgram program = programFromFragmentShaderPath(path, {});
 
-  if(const auto& [processed, error] = ProgramCache::instance().get(program); bool(processed))
+  if (const auto& [processed, error] = ProgramCache::instance().get(program);
+      bool(processed))
   {
     m_program = *std::move(processed);
     setup();
@@ -102,7 +80,10 @@ ShaderPreviewWidget::ShaderPreviewWidget(const QString& path, QWidget* parent): 
 void ShaderPreviewWidget::setup()
 {
   // Create our graph
-  m_isf = new ISFNode{m_program.descriptor, m_program.compiledVertex, m_program.compiledFragment};
+  m_isf = new ISFNode{
+      m_program.descriptor,
+      m_program.compiledVertex,
+      m_program.compiledFragment};
   auto window = new ScreenNode{true};
 
   m_graph.addNode(m_isf);
@@ -118,7 +99,7 @@ void ShaderPreviewWidget::setup()
   for (const isf::input& input : m_program.descriptor.inputs)
   {
     auto node = std::visit(PreviewInputvisitor{image_i}, input.data);
-    if(node)
+    if (node)
     {
       m_graph.addNode(node);
       m_previewInputs.push_back(node);
@@ -148,9 +129,8 @@ void ShaderPreviewWidget::setup()
 void ShaderPreviewWidget::timerEvent(QTimerEvent* event)
 {
   m_isf->standardUBO.frameIndex++;
-  m_isf->standardUBO.time += 16./1000.;
-  m_isf->standardUBO.timeDelta = 16./1000.;
+  m_isf->standardUBO.time += 16. / 1000.;
+  m_isf->standardUBO.timeDelta = 16. / 1000.;
   m_isf->standardUBO.progress += 0.002;
 }
 }
-

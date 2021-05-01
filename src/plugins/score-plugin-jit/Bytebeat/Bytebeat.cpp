@@ -1,6 +1,14 @@
 
 #include "Bytebeat.hpp"
 
+#include <Process/Dataflow/PortFactory.hpp>
+
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+
+#include <ossia/dataflow/execution_state.hpp>
+#include <ossia/dataflow/port.hpp>
+
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QPlainTextEdit>
@@ -10,18 +18,9 @@
 
 #include <JitCpp/Compiler/Driver.hpp>
 #include <JitCpp/EditScript.hpp>
-
-#include <Process/Dataflow/PortFactory.hpp>
-
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-
-#include <ossia/dataflow/execution_state.hpp>
-#include <ossia/dataflow/port.hpp>
+#include <wobjectimpl.h>
 
 #include <iostream>
-
-#include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Jit::BytebeatModel)
 namespace Jit
@@ -29,26 +28,28 @@ namespace Jit
 QString generateBytebeatFunction(QString bb)
 {
   QString computed = "(";
-  static const QRegularExpression cpp_comm_1("/\\*(.*?)\\*/", QRegularExpression::DotMatchesEverythingOption);
+  static const QRegularExpression cpp_comm_1(
+      "/\\*(.*?)\\*/", QRegularExpression::DotMatchesEverythingOption);
   static const QRegularExpression cpp_comm_2("//.*\n");
   bb.remove(cpp_comm_1);
   bb.remove(cpp_comm_2);
 
   int k = 0;
   auto lines = bb.split("\n");
-  for(auto& line : lines)
+  for (auto& line : lines)
   {
-    if(const auto simp = line.simplified(); !simp.isEmpty())
+    if (const auto simp = line.simplified(); !simp.isEmpty())
     {
       computed += QStringLiteral("double(signed_char(%1))+").arg(simp);
       k++;
     }
   }
 
-  if(k > 0 && computed.length() > 0)
+  if (k > 0 && computed.length() > 0)
   {
     computed.resize(computed.size() - 1);
-    computed.push_back(QString(") * double(%1)").arg(1. / (128 * k), 0, 'g', 20));
+    computed.push_back(
+        QString(") * double(%1)").arg(1. / (128 * k), 0, 'g', 20));
   }
   else
   {
@@ -72,8 +73,9 @@ void score_bytebeat(double* input, int size, int T)
     }
   }
 }
-)_").arg(computed);
-return res;
+)_")
+                 .arg(computed);
+  return res;
 }
 
 BytebeatModel::BytebeatModel(
@@ -87,15 +89,16 @@ BytebeatModel::BytebeatModel(
   audio_out->setPropagate(true);
   this->m_outlets.push_back(audio_out);
   init();
-  if(jitProgram.isEmpty())
-    setScript(Process::EffectProcessFactory_T<Jit::BytebeatModel>{}.customConstructionData());
+  if (jitProgram.isEmpty())
+    setScript(Process::EffectProcessFactory_T<Jit::BytebeatModel>{}
+                  .customConstructionData());
   else
     setScript(jitProgram);
 
   metadata().setInstanceName(*this);
 }
 
-BytebeatModel::~BytebeatModel() {}
+BytebeatModel::~BytebeatModel() { }
 
 BytebeatModel::BytebeatModel(JSONObject::Deserializer& vis, QObject* parent)
     : Process::ProcessModel{vis, parent}
@@ -127,7 +130,7 @@ BytebeatModel::BytebeatModel(DataStream::Deserializer&& vis, QObject* parent)
 
 void BytebeatModel::setScript(const QString& txt)
 {
-  if(m_text != txt)
+  if (m_text != txt)
   {
     m_text = txt;
     reload();
@@ -141,7 +144,7 @@ bool BytebeatModel::validate(const QString& txt) const noexcept
   return true;
 }
 
-void BytebeatModel::init() {}
+void BytebeatModel::init() { }
 
 QString BytebeatModel::prettyName() const noexcept
 {
@@ -167,7 +170,8 @@ void BytebeatModel::reload()
 
   try
   {
-    jit_factory = (*m_compiler)(fx_text.toStdString(), {}, CompilerOptions{true});
+    jit_factory
+        = (*m_compiler)(fx_text.toStdString(), {}, CompilerOptions{true});
     assert(jit_factory);
 
     if (!jit_factory)
@@ -188,40 +192,34 @@ void BytebeatModel::reload()
   changed();
 }
 
-class bytebeat_node
-    : public ossia::nonowning_graph_node
+class bytebeat_node : public ossia::nonowning_graph_node
 {
 public:
-  bytebeat_node()
-  {
-    m_outlets.push_back(&audio_out);
-  }
+  bytebeat_node() { m_outlets.push_back(&audio_out); }
 
-  void set_function(BytebeatFunction* func)
+  void set_function(BytebeatFunction* func) { this->func = func; }
+  void
+  run(const ossia::token_request& t,
+      ossia::exec_state_facade f) noexcept override
   {
-    this->func = func;
-  }
-  void run(const ossia::token_request& t, ossia::exec_state_facade f) noexcept override
-  {
-      ossia::audio_port& o = *audio_out;
-      o.samples.resize(2);
-      o.samples[0].resize(f.bufferSize());
-      double* data = o.samples[0].data();
-      int N = f.bufferSize();
+    ossia::audio_port& o = *audio_out;
+    o.samples.resize(2);
+    o.samples[0].resize(f.bufferSize());
+    double* data = o.samples[0].data();
+    int N = f.bufferSize();
 
-      if(func)
-      {
-        func(data, N, time);
-      }
-      time += N;
-      o.samples[1] = o.samples[0];
+    if (func)
+    {
+      func(data, N, time);
+    }
+    time += N;
+    o.samples[1] = o.samples[0];
   }
 
   int time = 0;
   BytebeatFunction* func = nullptr;
   ossia::audio_outlet audio_out;
 };
-
 
 BytebeatExecutor::BytebeatExecutor(
     Jit::BytebeatModel& proc,
@@ -233,25 +231,20 @@ BytebeatExecutor::BytebeatExecutor(
   auto bb = new bytebeat_node;
   this->node.reset(bb);
 
-  if(auto tgt = proc.factory.target<void(*)(double* , int , int )>())
+  if (auto tgt = proc.factory.target<void (*)(double*, int, int)>())
     bb->set_function(*tgt);
 
   m_ossia_process = std::make_shared<ossia::node_process>(node);
 
-  con(proc, &Jit::BytebeatModel::changed,
-      this, [this, &proc, bb] {
-        if(auto tgt = proc.factory.target<void(*)(double* , int , int )>())
-        {
-          in_exec([tgt, bb] {
-            bb->set_function(*tgt);
-          });
-        }
+  con(proc, &Jit::BytebeatModel::changed, this, [this, &proc, bb] {
+    if (auto tgt = proc.factory.target<void (*)(double*, int, int)>())
+    {
+      in_exec([tgt, bb] { bb->set_function(*tgt); });
+    }
   });
-
 }
 
-BytebeatExecutor::~BytebeatExecutor() {}
-
+BytebeatExecutor::~BytebeatExecutor() { }
 
 }
 
@@ -317,4 +310,3 @@ EffectProcessFactory_T<Jit::BytebeatModel>::descriptor(QString d) const
 }
 
 }
-

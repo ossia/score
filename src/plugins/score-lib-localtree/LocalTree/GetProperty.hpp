@@ -1,11 +1,10 @@
 #pragma once
+#include <LocalTree/BaseCallbackWrapper.hpp>
 #include <Process/TypeConversion.hpp>
 
 #include <ossia/network/base/node.hpp>
 
 #include <QObject>
-
-#include <LocalTree/BaseCallbackWrapper.hpp>
 
 namespace LocalTree
 {
@@ -16,10 +15,15 @@ struct GetPropertyWrapper final : public BaseProperty
   using model_t = typename Property::model_type;
   using param_t = typename Property::param_type;
   model_t& m_model;
-  using converter_t = ossia::qt_property_converter<typename Property::param_type>;
+  using converter_t
+      = ossia::qt_property_converter<typename Property::param_type>;
 
-  GetPropertyWrapper(ossia::net::parameter_base& param_addr, model_t& obj, QObject* context)
-      : BaseProperty{param_addr}, m_model{obj}
+  GetPropertyWrapper(
+      ossia::net::parameter_base& param_addr,
+      model_t& obj,
+      QObject* context)
+      : BaseProperty{param_addr}
+      , m_model{obj}
   {
     QObject::connect(
         &m_model,
@@ -49,7 +53,8 @@ struct GetPropertyWrapper final : public BaseProperty
 template <typename Property, typename Object>
 auto add_getProperty(ossia::net::node_base& n, Object& obj, QObject* context)
 {
-  constexpr const auto t = ossia::qt_property_converter<typename Property::param_type>::val;
+  constexpr const auto t
+      = ossia::qt_property_converter<typename Property::param_type>::val;
   auto node = n.create_child(Property::name);
   SCORE_ASSERT(node);
 

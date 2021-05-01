@@ -14,13 +14,16 @@ ProcessModel::ProcessModel(
     const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    : Process::
+        ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , outlet{Process::make_midi_outlet(Id<Process::Port>(0), this)}
 {
   Pattern pattern;
   pattern.length = 4;
-  pattern.lanes.push_back(Lane{{1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0}, 64});
-  pattern.lanes.push_back(Lane{{0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0}, 32});
+  pattern.lanes.push_back(
+      Lane{{1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0}, 64});
+  pattern.lanes.push_back(
+      Lane{{0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0}, 32});
   m_patterns.push_back(pattern);
   metadata().setInstanceName(*this);
   init();
@@ -167,7 +170,8 @@ void JSONWriter::write(Patternist::Pattern& proc)
 template <>
 void DataStreamReader::read(const Patternist::ProcessModel& proc)
 {
-  m_stream << *proc.outlet << proc.m_channel << proc.m_currentPattern << proc.m_patterns;
+  m_stream << *proc.outlet << proc.m_channel << proc.m_currentPattern
+           << proc.m_patterns;
 
   insertDelimiter();
 }

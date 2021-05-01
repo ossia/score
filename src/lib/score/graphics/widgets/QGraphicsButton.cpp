@@ -19,10 +19,12 @@ QGraphicsButton::QGraphicsButton(QGraphicsItem* parent)
 void QGraphicsButton::bang()
 {
   m_pressed = true;
-  QTimer::singleShot(32, this, [this] { m_pressed = false; update(); });
+  QTimer::singleShot(32, this, [this] {
+    m_pressed = false;
+    update();
+  });
   update();
 }
-
 
 void QGraphicsButton::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
@@ -49,21 +51,28 @@ void QGraphicsButton::paint(
   painter->setRenderHint(QPainter::Antialiasing, true);
 
   constexpr const double margin = 2.;
-  constexpr const  double backgroundRectWidth = 16.;
+  constexpr const double backgroundRectWidth = 16.;
 
   constexpr const double insideCircleWidth = 12.;
-  const double insideCircleOffset = margin + 0.5f * (backgroundRectWidth - insideCircleWidth);
+  const double insideCircleOffset
+      = margin + 0.5f * (backgroundRectWidth - insideCircleWidth);
 
   painter->setPen(skin.NoPen);
-  painter->setBrush(!m_pressed ? skin.Emphasis2.main.brush : skin.Base4.main.brush);
+  painter->setBrush(
+      !m_pressed ? skin.Emphasis2.main.brush : skin.Base4.main.brush);
 
-  painter->drawEllipse(QRectF{margin, margin, backgroundRectWidth, backgroundRectWidth});
+  painter->drawEllipse(
+      QRectF{margin, margin, backgroundRectWidth, backgroundRectWidth});
 
-  if(m_pressed)
+  if (m_pressed)
   {
     painter->setPen(skin.Emphasis2.main.pen2);
     painter->setBrush(skin.NoBrush);
-    painter->drawEllipse(QRectF{insideCircleOffset, insideCircleOffset, insideCircleWidth, insideCircleWidth});
+    painter->drawEllipse(QRectF{
+        insideCircleOffset,
+        insideCircleOffset,
+        insideCircleWidth,
+        insideCircleWidth});
   }
 
   painter->setRenderHint(QPainter::Antialiasing, false);

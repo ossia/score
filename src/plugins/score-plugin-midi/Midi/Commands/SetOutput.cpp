@@ -10,7 +10,9 @@ namespace Midi
 {
 
 SetChannel::SetChannel(const ProcessModel& model, int n)
-    : m_model{model}, m_old{model.channel()}, m_new{n}
+    : m_model{model}
+    , m_old{model.channel()}
+    , m_new{n}
 {
 }
 

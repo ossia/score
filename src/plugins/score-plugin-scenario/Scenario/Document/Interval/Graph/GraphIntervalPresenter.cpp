@@ -1,10 +1,6 @@
 #include "GraphIntervalPresenter.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/State/StatePresenter.hpp>
-#include <Scenario/Document/State/StateView.hpp>
 
 #include <score/graphics/PainterPath.hpp>
 
@@ -13,6 +9,10 @@
 #include <QPainterPathStroker>
 #include <QPen>
 
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/State/StatePresenter.hpp>
+#include <Scenario/Document/State/StateView.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::GraphalIntervalPresenter)
 
@@ -36,17 +36,25 @@ GraphalIntervalPresenter::GraphalIntervalPresenter(
     const StateView& end,
     const Process::Context& ctx,
     QGraphicsItem* parent)
-    : QGraphicsItem{parent}, m_model{model}, m_start{start}, m_end{end}, m_context{ctx}
+    : QGraphicsItem{parent}
+    , m_model{model}
+    , m_start{start}
+    , m_end{end}
+    , m_context{ctx}
 {
   resize();
   connect(&model.selection, &Selectable::changed, this, [this] { update(); });
-  connect(&model, &IntervalModel::executionEvent, this, [this] (IntervalExecutionEvent ev) {
-    if(ev == IntervalExecutionEvent::Playing)
-    {
-      m_execPing.start();
-      update();
-    }
-  });
+  connect(
+      &model,
+      &IntervalModel::executionEvent,
+      this,
+      [this](IntervalExecutionEvent ev) {
+        if (ev == IntervalExecutionEvent::Playing)
+        {
+          m_execPing.start();
+          update();
+        }
+      });
 }
 
 const Id<IntervalModel>& GraphalIntervalPresenter::id() const
@@ -127,7 +135,8 @@ void GraphalIntervalPresenter::resize()
         direct.setAngle(-angle + 45);
         m_path.moveTo(p2);
         m_path.lineTo(
-            {direct.p2().x() + 2 * std::abs(direct.p2().x() - p2.rx()), direct.p2().y()});
+            {direct.p2().x() + 2 * std::abs(direct.p2().x() - p2.rx()),
+             direct.p2().y()});
       }
     }
 
@@ -148,7 +157,8 @@ void GraphalIntervalPresenter::resize()
         direct.setAngle(-angle - 45);
         m_path.moveTo(p2);
         m_path.lineTo(
-            {direct.p2().x() + 2 * std::abs(direct.p2().x() - p2.rx()), direct.p2().y()});
+            {direct.p2().x() + 2 * std::abs(direct.p2().x() - p2.rx()),
+             direct.p2().y()});
       }
     }
   }
@@ -156,7 +166,8 @@ void GraphalIntervalPresenter::resize()
   update();
 }
 
-const score::Brush& GraphalIntervalPresenter::intervalColor(const Process::Style& skin) noexcept
+const score::Brush&
+GraphalIntervalPresenter::intervalColor(const Process::Style& skin) noexcept
 {
   if (Q_UNLIKELY(m_model.selection.get()))
   {
@@ -170,7 +181,8 @@ const score::Brush& GraphalIntervalPresenter::intervalColor(const Process::Style
   {
     return skin.IntervalWarning();
   }
-  else if (Q_UNLIKELY(m_model.executionState() == IntervalExecutionState::Disabled))
+  else if (Q_UNLIKELY(
+               m_model.executionState() == IntervalExecutionState::Disabled))
   {
     return skin.IntervalInvalid();
   }
@@ -193,7 +205,9 @@ void GraphalIntervalPresenter::paint(
   if (m_execPing.running())
   {
     const auto& nextPen = m_execPing.getNextPen(
-        brush.color(), style.IntervalPlayFill().color(), brush.main.pen2_dashdot_square_miter);
+        brush.color(),
+        style.IntervalPlayFill().color(),
+        brush.main.pen2_dashdot_square_miter);
     painter->setPen(nextPen);
     update();
   }
@@ -234,7 +248,8 @@ void GraphalIntervalPresenter::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   moved(event->scenePos());
 }
 
-void GraphalIntervalPresenter::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+void GraphalIntervalPresenter::mouseReleaseEvent(
+    QGraphicsSceneMouseEvent* event)
 {
   released(event->scenePos());
 }

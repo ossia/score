@@ -25,7 +25,7 @@ struct VisitorVariant;
 
 namespace Protocols
 {
-template<ossia::net::midi::midi_info::Type Type>
+template <ossia::net::midi::midi_info::Type Type>
 class MidiEnumerator : public Device::DeviceEnumerator
 {
 
@@ -35,7 +35,7 @@ class MidiEnumerator : public Device::DeviceEnumerator
     libremidi::observer::callbacks cb;
     if constexpr (Type == ossia::net::midi::midi_info::Type::Input)
     {
-      cb.input_added = [this] (int port, const std::string& device) {
+      cb.input_added = [this](int port, const std::string& device) {
         Device::DeviceSettings set;
         MIDISpecificSettings specif;
         set.name = QString::fromStdString(device);
@@ -53,7 +53,7 @@ class MidiEnumerator : public Device::DeviceEnumerator
     }
     else
     {
-      cb.output_added = [this] (int port, const std::string& device) {
+      cb.output_added = [this](int port, const std::string& device) {
         Device::DeviceSettings set;
         MIDISpecificSettings specif;
         set.name = QString::fromStdString(device);
@@ -73,18 +73,21 @@ class MidiEnumerator : public Device::DeviceEnumerator
   }
 
   libremidi::observer m_observer;
+
 public:
   MidiEnumerator()
-    : m_observer{libremidi::API::EMSCRIPTEN_WEBMIDI, make_callbacks()}
+      : m_observer{libremidi::API::EMSCRIPTEN_WEBMIDI, make_callbacks()}
   {
-
   }
 #endif
-  void enumerate(std::function<void(const Device::DeviceSettings&)> f) const override
+  void enumerate(
+      std::function<void(const Device::DeviceSettings&)> f) const override
   {
     try
     {
-      auto api = score::AppContext().settings<Protocols::Settings::Model>().getMidiApiAsEnum();
+      auto api = score::AppContext()
+                     .settings<Protocols::Settings::Model>()
+                     .getMidiApiAsEnum();
       auto vec = ossia::net::midi::midi_protocol::scan(api);
 
       for (auto& elt : vec)
@@ -132,7 +135,8 @@ QString MIDIInputProtocolFactory::category() const noexcept
   return StandardCategories::hardware;
 }
 
-Device::DeviceEnumerator* MIDIInputProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerator* MIDIInputProtocolFactory::getEnumerator(
+    const score::DocumentContext& ctx) const
 {
   return new MidiEnumerator<ossia::net::midi::midi_info::Type::Input>;
 }
@@ -144,7 +148,8 @@ Device::DeviceInterface* MIDIInputProtocolFactory::makeDevice(
   return new MIDIDevice{settings, ctx};
 }
 
-const Device::DeviceSettings& MIDIInputProtocolFactory::defaultSettings() const noexcept
+const Device::DeviceSettings&
+MIDIInputProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
@@ -179,7 +184,8 @@ Device::AddressDialog* MIDIInputProtocolFactory::makeEditAddressDialog(
   return nullptr;
 }
 
-QVariant MIDIInputProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
+QVariant MIDIInputProtocolFactory::makeProtocolSpecificSettings(
+    const VisitorVariant& visitor) const
 {
   return makeProtocolSpecificSettings_T<MIDISpecificSettings>(visitor);
 }
@@ -208,7 +214,8 @@ QString MIDIOutputProtocolFactory::category() const noexcept
   return StandardCategories::hardware;
 }
 
-Device::DeviceEnumerator* MIDIOutputProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerator* MIDIOutputProtocolFactory::getEnumerator(
+    const score::DocumentContext& ctx) const
 {
   return new MidiEnumerator<ossia::net::midi::midi_info::Type::Output>;
 }
@@ -220,7 +227,8 @@ Device::DeviceInterface* MIDIOutputProtocolFactory::makeDevice(
   return new MIDIDevice{settings, ctx};
 }
 
-const Device::DeviceSettings& MIDIOutputProtocolFactory::defaultSettings() const noexcept
+const Device::DeviceSettings&
+MIDIOutputProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
@@ -255,7 +263,8 @@ Device::AddressDialog* MIDIOutputProtocolFactory::makeEditAddressDialog(
   return nullptr;
 }
 
-QVariant MIDIOutputProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
+QVariant MIDIOutputProtocolFactory::makeProtocolSpecificSettings(
+    const VisitorVariant& visitor) const
 {
   return makeProtocolSpecificSettings_T<MIDISpecificSettings>(visitor);
 }

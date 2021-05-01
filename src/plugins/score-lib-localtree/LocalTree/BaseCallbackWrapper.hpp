@@ -1,7 +1,8 @@
 #pragma once
+#include <LocalTree/BaseProperty.hpp>
+
 #include <ossia/network/base/parameter.hpp>
 
-#include <LocalTree/BaseProperty.hpp>
 #include <score_lib_localtree_export.h>
 
 namespace LocalTree

@@ -1,14 +1,16 @@
 #include <Process/Script/ScriptWidget.hpp>
-#include <QCodeEditor>
-#include <QCXXHighlighter>
-#include <QGLSLHighlighter>
-#include <QJSHighlighter>
-#include <QGLSLCompleter>
-#include <QSyntaxStyle>
-#include <QMainWindow>
-#include <QFile>
+
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/tools/File.hpp>
+
+#include <QCXXHighlighter>
+#include <QCodeEditor>
+#include <QFile>
+#include <QGLSLCompleter>
+#include <QGLSLHighlighter>
+#include <QJSHighlighter>
+#include <QMainWindow>
+#include <QSyntaxStyle>
 
 namespace Process
 {
@@ -26,16 +28,20 @@ void setTabWidth(QTextEdit& edit, int spaceCount)
 #endif
 }
 
-std::pair<QStyleSyntaxHighlighter*, QCompleter*> getLanguageStyle(const std::string_view language)
+std::pair<QStyleSyntaxHighlighter*, QCompleter*>
+getLanguageStyle(const std::string_view language)
 {
-  auto init = [] (auto t) { t->setParent(score::GUIAppContext().mainWindow); return t; };
-  if(language == "glsl" || language == "Glsl" || language == "GLSL")
+  auto init = [](auto t) {
+    t->setParent(score::GUIAppContext().mainWindow);
+    return t;
+  };
+  if (language == "glsl" || language == "Glsl" || language == "GLSL")
   {
     static auto highlight = init(new QGLSLHighlighter);
     static auto completer = init(new QGLSLCompleter);
     return {highlight, completer};
   }
-  else if(language == "js" || language == "Js" || language == "JS")
+  else if (language == "js" || language == "Js" || language == "JS")
   {
     static auto highlight = init(new QJSHighlighter);
     return {highlight, nullptr};
@@ -51,7 +57,7 @@ QSyntaxStyle* getStyle()
 {
   static bool tried_to_load = false;
   static QSyntaxStyle style;
-  if(!tried_to_load)
+  if (!tried_to_load)
   {
     QFile fl(":/drakula.xml");
 

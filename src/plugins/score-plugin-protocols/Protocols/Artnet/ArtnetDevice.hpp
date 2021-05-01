@@ -10,7 +10,9 @@ class ArtnetDevice final : public Device::OwningDeviceInterface
 
   W_OBJECT(ArtnetDevice)
 public:
-  ArtnetDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx);
+  ArtnetDevice(
+      const Device::DeviceSettings& settings,
+      const score::DocumentContext& ctx);
   ~ArtnetDevice();
 
   bool reconnect() override;

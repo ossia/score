@@ -29,12 +29,19 @@ struct PluginDependencyGraph
 {
   struct GraphVertex
   {
-    GraphVertex() : addon{} { }
-    explicit GraphVertex(const score::Addon* add) : addon{add} { }
+    GraphVertex()
+        : addon{}
+    {
+    }
+    explicit GraphVertex(const score::Addon* add)
+        : addon{add}
+    {
+    }
     const score::Addon* addon{};
   };
 
-  using Graph = boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, GraphVertex>;
+  using Graph = boost::
+      adjacency_list<boost::vecS, boost::vecS, boost::directedS, GraphVertex>;
 
 public:
   explicit PluginDependencyGraph(const std::vector<score::Addon>& addons)
@@ -74,7 +81,8 @@ public:
     }
 
     if (!not_loaded.empty())
-      qDebug() << not_loaded.size() << "plugins were not loaded due to a dependency problem.";
+      qDebug() << not_loaded.size()
+               << "plugins were not loaded due to a dependency problem.";
 
     // Then do a topological sort, to detect cycles and to be able to iterate
     // easily afterwards.

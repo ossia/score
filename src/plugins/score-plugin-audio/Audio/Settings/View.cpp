@@ -1,15 +1,15 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <score/widgets/SignalUtils.hpp>
+#include <Audio/Settings/Model.hpp>
+#include <Audio/Settings/View.hpp>
+
 #include <score/widgets/FormWidget.hpp>
+#include <score/widgets/SignalUtils.hpp>
 
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFormLayout>
 #include <QLabel>
-
-#include <Audio/Settings/Model.hpp>
-#include <Audio/Settings/View.hpp>
 namespace Audio::Settings
 {
 View::View()
@@ -26,16 +26,22 @@ View::View()
   auto& list = score::GUIAppContext().interfaces<AudioFactoryList>();
   for (AudioFactory& drv : list)
   {
-    if(drv.available())
+    if (drv.available())
     {
-      m_Driver->addItem(drv.prettyName(), QVariant::fromValue(drv.concreteKey()));
+      m_Driver->addItem(
+          drv.prettyName(), QVariant::fromValue(drv.concreteKey()));
     }
   }
 
-  connect(m_Driver, SignalUtils::QComboBox_currentIndexChanged_int(), this, [this](int i) {
-    const auto key = m_Driver->itemData(i).value<AudioFactory::ConcreteKey>();
-    DriverChanged(key);
-  });
+  connect(
+      m_Driver,
+      SignalUtils::QComboBox_currentIndexChanged_int(),
+      this,
+      [this](int i) {
+        const auto key
+            = m_Driver->itemData(i).value<AudioFactory::ConcreteKey>();
+        DriverChanged(key);
+      });
 
   // Driver-specific things
   m_sw = new QWidget;

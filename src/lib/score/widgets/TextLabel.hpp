@@ -9,11 +9,20 @@ public:
 
   ~TextLabel() override;
 
-  TextLabel(QWidget* parent) : QLabel(parent) { setup(); }
+  TextLabel(QWidget* parent)
+      : QLabel(parent)
+  {
+    setup();
+  }
 
-  TextLabel(const QString& str) : TextLabel() { this->setText(str); }
+  TextLabel(const QString& str)
+      : TextLabel()
+  {
+    this->setText(str);
+  }
 
-  TextLabel(const QString& str, QWidget* parent) : QLabel{parent}
+  TextLabel(const QString& str, QWidget* parent)
+      : QLabel{parent}
   {
     setup();
     this->setText(str);

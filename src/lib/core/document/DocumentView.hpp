@@ -1,7 +1,8 @@
 #pragma once
 
-#include <verdigris>
 #include <score_lib_base_export.h>
+
+#include <verdigris>
 namespace score
 {
 class Document;
@@ -19,7 +20,10 @@ class SCORE_LIB_BASE_EXPORT DocumentView final : public QObject
 {
   W_OBJECT(DocumentView)
 public:
-  DocumentView(DocumentDelegateFactory& viewDelegate, const Document& doc, QObject* parent);
+  DocumentView(
+      DocumentDelegateFactory& viewDelegate,
+      const Document& doc,
+      QObject* parent);
 
   DocumentDelegateView& viewDelegate() const { return *m_view; }
 

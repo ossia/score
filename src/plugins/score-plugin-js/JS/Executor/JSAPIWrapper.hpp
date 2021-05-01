@@ -19,7 +19,8 @@ class ExecStateWrapper : public QObject
   W_OBJECT(ExecStateWrapper)
 public:
   ExecStateWrapper(ossia::execution_state& state, QObject* parent)
-      : QObject{parent}, devices{state}
+      : QObject{parent}
+      , devices{state}
   {
   }
   ~ExecStateWrapper() override;

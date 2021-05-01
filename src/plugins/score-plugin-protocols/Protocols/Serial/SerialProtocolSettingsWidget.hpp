@@ -8,7 +8,10 @@
 class QLineEdit;
 class QCodeEditor;
 class QWidget;
-namespace score { class ComboBox;}
+namespace score
+{
+class ComboBox;
+}
 
 namespace Protocols
 {

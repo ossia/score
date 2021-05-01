@@ -3,8 +3,6 @@
 #include "MessageItemModel.hpp"
 
 #include <Process/State/MessageNode.hpp>
-#include <Scenario/Commands/State/AddMessagesToState.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
 #include <State/Message.hpp>
 #include <State/MessageListSerialization.hpp>
 #include <State/ValueConversion.hpp>
@@ -17,8 +15,8 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <ossia/network/value/value_traits.hpp>
 #include <ossia-qt/name_utils.hpp>
+#include <ossia/network/value/value_traits.hpp>
 
 #include <QFile>
 #include <QFileInfo>
@@ -27,6 +25,8 @@
 #include <QString>
 #include <QUrl>
 
+#include <Scenario/Commands/State/AddMessagesToState.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Scenario::MessageItemModel)
@@ -34,7 +34,9 @@ namespace Scenario
 {
 class StateModel;
 MessageItemModel::MessageItemModel(const StateModel& sm, QObject* parent)
-    : TreeNodeBasedItemModel<Process::MessageNode>{parent}, stateModel{sm}, m_rootNode{}
+    : TreeNodeBasedItemModel<Process::MessageNode>{parent}
+    , stateModel{sm}
+    , m_rootNode{}
 {
   this->setObjectName("Scenario::MessageItemModel");
 }
@@ -68,7 +70,8 @@ int MessageItemModel::columnCount(const QModelIndex& parent) const
   return (int)Column::Count;
 }
 
-static QVariant nameColumnData(const MessageItemModel::node_type& node, int role)
+static QVariant
+nameColumnData(const MessageItemModel::node_type& node, int role)
 {
   if (role == Qt::DisplayRole || role == Qt::EditRole)
   {
@@ -129,7 +132,10 @@ QVariant MessageItemModel::data(const QModelIndex& index, int role) const
   return {};
 }
 
-QVariant MessageItemModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant MessageItemModel::headerData(
+    int section,
+    Qt::Orientation orientation,
+    int role) const
 {
   if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
   {
@@ -172,9 +178,10 @@ struct SelectedNodes
 QMimeData* MessageItemModel::mimeData(const QModelIndexList& indexes) const
 {
   SelectedNodes nodes;
-  ossia::transform(indexes, std::back_inserter(nodes.parents), [&](const QModelIndex& idx) {
-    return &nodeFromModelIndex(idx);
-  });
+  ossia::transform(
+      indexes, std::back_inserter(nodes.parents), [&](const QModelIndex& idx) {
+        return &nodeFromModelIndex(idx);
+      });
   nodes.parents = filterUniqueParents(nodes.parents);
 
   State::MessageList messages;
@@ -239,11 +246,13 @@ bool MessageItemModel::dropMimeData(
 
   if (data->hasFormat(score::mime::messagelist()))
   {
-    State::MessageList ml = MimeWriter<State::MessageList>{*data}.deserialize();
+    State::MessageList ml
+        = MimeWriter<State::MessageList>{*data}.deserialize();
 
     auto cmd = new Command::AddMessagesToState{stateModel, std::move(ml)};
 
-    CommandDispatcher<> disp(score::IDocument::documentContext(stateModel).commandStack);
+    CommandDispatcher<> disp(
+        score::IDocument::documentContext(stateModel).commandStack);
     beginResetModel();
     disp.submit(cmd);
     endResetModel();
@@ -254,7 +263,8 @@ bool MessageItemModel::dropMimeData(
     for (const auto& u : data->urls())
     {
       auto path = u.toLocalFile();
-      if (QFile f{path}; QFileInfo{f}.suffix() == "cues" && f.open(QIODevice::ReadOnly))
+      if (QFile f{path};
+          QFileInfo{f}.suffix() == "cues" && f.open(QIODevice::ReadOnly))
       {
         ossia::insert_at_end(ml, fromJson<State::MessageList>(f.readAll()));
       }
@@ -263,7 +273,9 @@ bool MessageItemModel::dropMimeData(
     if (!ml.empty())
     {
       auto cmd = new Command::AddMessagesToState{stateModel, ml};
-      CommandDispatcher<>{score::IDocument::documentContext(stateModel).commandStack}.submit(cmd);
+      CommandDispatcher<>{
+          score::IDocument::documentContext(stateModel).commandStack}
+          .submit(cmd);
     }
   }
   return false;
@@ -285,7 +297,8 @@ Qt::ItemFlags MessageItemModel::flags(const QModelIndex& index) const
 
   if (index.isValid())
   {
-    f |= Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | Qt::ItemIsEditable;
+    f |= Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled
+         | Qt::ItemIsEditable;
   }
   else
   {
@@ -294,7 +307,10 @@ Qt::ItemFlags MessageItemModel::flags(const QModelIndex& index) const
   return f;
 }
 
-bool MessageItemModel::setData(const QModelIndex& index, const QVariant& value_received, int role)
+bool MessageItemModel::setData(
+    const QModelIndex& index,
+    const QVariant& value_received,
+    int role)
 {
   if (!index.isValid())
     return false;
@@ -308,20 +324,22 @@ bool MessageItemModel::setData(const QModelIndex& index, const QVariant& value_r
 
   if (role == Qt::EditRole)
   {
-    switch(col)
+    switch (col)
     {
       case Column::Name:
       {
         QString name = value_received.toString();
         ossia::net::sanitize_name(name);
-        if(name.isEmpty())
+        if (name.isEmpty())
           return false;
 
         // TODO check that name is unique across brethren
         // TODO accessor
-        auto cmd = new Scenario::Command::RenameAddressInState{stateModel, address(n), {name, {}}};
+        auto cmd = new Scenario::Command::RenameAddressInState{
+            stateModel, address(n), {name, {}}};
 
-        CommandDispatcher<> disp(score::IDocument::documentContext(stateModel).commandStack);
+        CommandDispatcher<> disp(
+            score::IDocument::documentContext(stateModel).commandStack);
         beginResetModel();
         disp.submit(cmd);
         endResetModel();
@@ -338,10 +356,11 @@ bool MessageItemModel::setData(const QModelIndex& index, const QVariant& value_r
         {
           State::convert::convert(*current_val, value);
         }
-        auto cmd
-            = new Command::AddMessagesToState{stateModel, State::MessageList{{address(n), value}}};
+        auto cmd = new Command::AddMessagesToState{
+            stateModel, State::MessageList{{address(n), value}}};
 
-        CommandDispatcher<> disp(score::IDocument::documentContext(stateModel).commandStack);
+        CommandDispatcher<> disp(
+            score::IDocument::documentContext(stateModel).commandStack);
         beginResetModel();
         disp.submit(cmd);
         endResetModel();

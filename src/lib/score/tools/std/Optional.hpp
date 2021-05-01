@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/detail/optional.hpp>
+
 #include <qobjectdefs.h>
 
 // FIXME when we migrate entirely to Qt 6

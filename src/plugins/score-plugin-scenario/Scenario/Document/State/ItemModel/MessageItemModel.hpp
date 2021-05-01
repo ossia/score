@@ -61,11 +61,16 @@ public:
   int columnCount(const QModelIndex& parent) const override;
 
   QVariant data(const QModelIndex& index, int role) const override;
-  bool setData(const QModelIndex& index, const QVariant& value, int role) override;
+  bool
+  setData(const QModelIndex& index, const QVariant& value, int role) override;
 
-  QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
-  bool setHeaderData(int section, Qt::Orientation orientation, const QVariant& value, int role)
-      override;
+  QVariant headerData(int section, Qt::Orientation orientation, int role)
+      const override;
+  bool setHeaderData(
+      int section,
+      Qt::Orientation orientation,
+      const QVariant& value,
+      int role) override;
 
   QStringList mimeTypes() const override;
   QMimeData* mimeData(const QModelIndexList& indexes) const override;
@@ -89,12 +94,12 @@ public:
 
   const StateModel& stateModel;
 
-  using QAbstractItemModel::beginResetModel;
-  using QAbstractItemModel::endResetModel;
   using QAbstractItemModel::beginInsertRows;
-  using QAbstractItemModel::endInsertRows;
   using QAbstractItemModel::beginRemoveRows;
+  using QAbstractItemModel::beginResetModel;
+  using QAbstractItemModel::endInsertRows;
   using QAbstractItemModel::endRemoveRows;
+  using QAbstractItemModel::endResetModel;
 
 public:
   void userMessage(const State::Message& arg_1)

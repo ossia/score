@@ -19,7 +19,10 @@ namespace Recording
 struct RecordContext;
 // TODO for some reason we have to undo redo
 // to be able to send the curve at execution. Investigate why.
-class AutomationRecorder : public QObject, public RecordProvider, public Nano::Observer
+class AutomationRecorder
+    : public QObject
+    , public RecordProvider
+    , public Nano::Observer
 {
   W_OBJECT(AutomationRecorder)
 public:
@@ -44,7 +47,12 @@ private:
   void messageCallback(const State::Address& addr, const ossia::value& val);
   void parameterCallback(const State::Address& addr, const ossia::value& val);
 
-  bool finish(State::AddressAccessor addr, const RecordData& dat, const TimeVal& msecs, bool, int);
+  bool finish(
+      State::AddressAccessor addr,
+      const RecordData& dat,
+      const TimeVal& msecs,
+      bool,
+      int);
   const Curve::Settings::Model& m_settings;
   Curve::Settings::Mode m_recordingMode{};
   std::vector<QPointer<Device::DeviceInterface>> m_recordCallbackConnections;

@@ -38,16 +38,23 @@ public:
       , m_commandDispatcher{ctx.commandStack}
       , m_sm{m_context, m_curve}
   {
-    con(lm, &CurveProcessModel::curveChanged, this, &CurveProcessPresenter::parentGeometryChanged);
+    con(lm,
+        &CurveProcessModel::curveChanged,
+        this,
+        &CurveProcessPresenter::parentGeometryChanged);
 
     connect(m_view.impl, &Process::LayerView::pressed, this, [&]() {
       m_context.context.focusDispatcher.focus(this);
     });
 
-    con(m_curve, &Presenter::contextMenuRequested, this, &LayerPresenter::contextMenuRequested);
+    con(m_curve,
+        &Presenter::contextMenuRequested,
+        this,
+        &LayerPresenter::contextMenuRequested);
 
-    connect(
-        &m_curve.view(), &View::doubleClick, this, [this](QPointF pt) { m_sm.createPoint(pt); });
+    connect(&m_curve.view(), &View::doubleClick, this, [this](QPointF pt) {
+      m_sm.createPoint(pt);
+    });
 
     parentGeometryChanged();
     m_view->setCurveView(&m_curve.view());
@@ -120,7 +127,10 @@ public:
   }
 
   LayerView_T* view() { return m_view.impl; }
-  const Model_T& model() const { return static_cast<const Model_T&>(m_process); }
+  const Model_T& model() const
+  {
+    return static_cast<const Model_T&>(m_process);
+  }
 
 protected:
   graphics_item_ptr<LayerView_T> m_view;

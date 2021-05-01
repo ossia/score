@@ -9,7 +9,10 @@
 W_OBJECT_IMPL(Process::ProcessFocusManager)
 namespace Process
 {
-ProcessFocusManager::ProcessFocusManager(score::FocusManager& fmgr) : m_mgr{fmgr} { }
+ProcessFocusManager::ProcessFocusManager(score::FocusManager& fmgr)
+    : m_mgr{fmgr}
+{
+}
 ProcessFocusManager::~ProcessFocusManager() { }
 ProcessModel* ProcessFocusManager::focusedModel() const
 {
@@ -39,12 +42,16 @@ void ProcessFocusManager::focus(QPointer<Process::LayerPresenter> p)
 
   if (m_currentPresenter)
   {
-    m_currentModel = const_cast<Process::ProcessModel*>(&m_currentPresenter->model());
+    m_currentModel
+        = const_cast<Process::ProcessModel*>(&m_currentPresenter->model());
 
     sig_focusedViewModel(m_currentModel);
 
     m_deathConnection = connect(
-        m_currentModel, &IdentifiedObjectAbstract::identified_object_destroying, this, [=]() {
+        m_currentModel,
+        &IdentifiedObjectAbstract::identified_object_destroying,
+        this,
+        [=]() {
           sig_defocusedViewModel(nullptr);
           sig_defocusedPresenter(nullptr);
           focusNothing();

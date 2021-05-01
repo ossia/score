@@ -1,5 +1,9 @@
 #pragma once
 
+#include <Control/Widgets.hpp>
+#include <Effect/EffectLayer.hpp>
+#include <Effect/EffectLayout.hpp>
+#include <Engine/Node/Process.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
@@ -7,11 +11,6 @@
 
 #include <score/graphics/RectItem.hpp>
 #include <score/graphics/TextItem.hpp>
-
-#include <Control/Widgets.hpp>
-#include <Effect/EffectLayer.hpp>
-#include <Effect/EffectLayout.hpp>
-#include <Engine/Node/Process.hpp>
 
 #include <type_traits>
 
@@ -46,9 +45,11 @@ struct CustomUISetup
   template <std::size_t N>
   auto& getControl() noexcept
   {
-    constexpr int i = ossia::safe_nodes::info_functions<Info>::control_start + N;
+    constexpr int i
+        = ossia::safe_nodes::info_functions<Info>::control_start + N;
     constexpr const auto& ctrl = std::get<N>(Info::Metadata::controls);
-    using port_type = typename std::remove_reference_t<decltype(ctrl)>::port_type;
+    using port_type =
+        typename std::remove_reference_t<decltype(ctrl)>::port_type;
     return static_cast<port_type&>(*inlets[i]);
   }
 
@@ -64,9 +65,14 @@ struct CustomUISetup
       QGraphicsItem& parent,
       QObject& context,
       const Process::Context& doc)
-      : inlets{inlets}, process{process}, parent{parent}, context{context}, doc{doc}
+      : inlets{inlets}
+      , process{process}
+      , parent{parent}
+      , context{context}
+      , doc{doc}
   {
-    make(std::make_index_sequence<ossia::safe_nodes::info_functions<Info>::control_count>{});
+    make(std::make_index_sequence<
+         ossia::safe_nodes::info_functions<Info>::control_count>{});
   }
 };
 
@@ -76,7 +82,8 @@ struct AutoUISetup
   QGraphicsItem& parent;
   QObject& context;
   const Process::Context& doc;
-  const Process::PortFactoryList& portFactory = doc.app.interfaces<Process::PortFactoryList>();
+  const Process::PortFactoryList& portFactory
+      = doc.app.interfaces<Process::PortFactoryList>();
 
   std::size_t i = 0;
   std::size_t ctl_i = 0;
@@ -89,7 +96,10 @@ struct AutoUISetup
       QGraphicsItem& parent,
       QObject& context,
       const Process::Context& doc)
-      : inlets{inlets}, parent{parent}, context{context}, doc{doc}
+      : inlets{inlets}
+      , parent{parent}
+      , context{context}
+      , doc{doc}
   {
     i = ossia::safe_nodes::info_functions<Info>::control_start;
     ossia::for_each_in_tuple(Info::Metadata::controls, *this);
@@ -101,15 +111,22 @@ struct AutoUISetup
   {
     auto inlet = static_cast<Process::ControlInlet*>(inlets[i]);
     auto csetup = Process::controlSetup(
-        [](auto& factory, auto& inlet, const auto& doc, auto item, auto parent) {
-          return factory.makeItem(inlet, doc, item, parent);
-        },
-        [&](auto& factory, auto& inlet, const auto& doc, auto item, auto parent) {
+        [](auto& factory,
+           auto& inlet,
+           const auto& doc,
+           auto item,
+           auto parent) { return factory.makeItem(inlet, doc, item, parent); },
+        [&](auto& factory,
+            auto& inlet,
+            const auto& doc,
+            auto item,
+            auto parent) {
           return ctrl.make_item(ctrl, inlet, doc, item, parent);
         },
         [&](int j) { return controlRects[j].size(); },
         [&] { return ctrl.name; });
-    auto res = Process::createControl(ctl_i, csetup, *inlet, portFactory, doc, &parent, &context);
+    auto res = Process::createControl(
+        ctl_i, csetup, *inlet, portFactory, doc, &parent, &context);
     controlRects.push_back(res.itemRect);
     i++;
     ctl_i++;
@@ -125,7 +142,7 @@ public:
 private:
   std::optional<double> recommendedHeight() const noexcept override
   {
-    if constexpr(Info::Metadata::recommended_height > 0)
+    if constexpr (Info::Metadata::recommended_height > 0)
     {
       return Info::Metadata::recommended_height;
     }
@@ -173,7 +190,8 @@ private:
       {
         Control::CustomUISetup<Info>{lm.inlets(), lm, *view, *view, context};
       }
-      else if constexpr (ossia::safe_nodes::info_functions<Info>::control_count > 0)
+      else if constexpr (
+          ossia::safe_nodes::info_functions<Info>::control_count > 0)
       {
         Control::AutoUISetup{Info{}, lm.inlets(), *view, *view, context};
       }
@@ -191,9 +209,11 @@ private:
 
     if constexpr (HasCustomUI<Info>::value)
     {
-      Control::CustomUISetup<Info>{proc.inlets(), proc, *rootItem, *rootItem, ctx};
+      Control::CustomUISetup<Info>{
+          proc.inlets(), proc, *rootItem, *rootItem, ctx};
     }
-    else if constexpr (ossia::safe_nodes::info_functions<Info>::control_count > 0)
+    else if constexpr (
+        ossia::safe_nodes::info_functions<Info>::control_count > 0)
     {
       Control::AutoUISetup{Info{}, proc.inlets(), *rootItem, *rootItem, ctx};
     }

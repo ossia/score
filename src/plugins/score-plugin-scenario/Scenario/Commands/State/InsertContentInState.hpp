@@ -1,10 +1,12 @@
 #pragma once
 #include <Process/State/MessageNode.hpp>
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
+
 #include <ossia/detail/json.hpp>
+
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 
 namespace Scenario
 {
@@ -13,10 +15,15 @@ namespace Command
 {
 class InsertContentInState final : public score::Command
 {
-  SCORE_COMMAND_DECL(CommandFactoryName(), InsertContentInState, "Insert content in a state")
+  SCORE_COMMAND_DECL(
+      CommandFactoryName(),
+      InsertContentInState,
+      "Insert content in a state")
 
 public:
-  InsertContentInState(const rapidjson::Value& stateData, const Scenario::StateModel& state);
+  InsertContentInState(
+      const rapidjson::Value& stateData,
+      const Scenario::StateModel& state);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

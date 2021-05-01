@@ -12,10 +12,13 @@
 W_OBJECT_IMPL(Interpolation::View)
 namespace Interpolation
 {
-View::View(QGraphicsItem* parent) : Process::LayerView{parent}
+View::View(QGraphicsItem* parent)
+    : Process::LayerView{parent}
 {
   setZValue(1);
-  setFlags(ItemClipsToShape | ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
+  setFlags(
+      ItemClipsToShape | ItemClipsChildrenToShape | ItemIsSelectable
+      | ItemIsFocusable);
   setAcceptDrops(true);
 }
 

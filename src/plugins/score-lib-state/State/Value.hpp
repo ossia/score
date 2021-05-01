@@ -1,6 +1,6 @@
 #pragma once
+#include <score/serialization/DataStreamFwd.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <score/serialization/DataStreamFwd.hpp> 
 
 #include <ossia-qt/value_metatypes.hpp>
 #include <ossia/network/value/value.hpp>
@@ -20,7 +20,8 @@ using list_t = std::vector<ossia::value>;
 
 using Value = ossia::value;
 
-SCORE_LIB_STATE_EXPORT std::optional<ossia::value> parseValue(const std::string& str);
+SCORE_LIB_STATE_EXPORT std::optional<ossia::value>
+parseValue(const std::string& str);
 SCORE_LIB_STATE_EXPORT QDebug& operator<<(QDebug& s, const Value& m);
 }
 SCORE_SERIALIZE_DATASTREAM_DECLARE(SCORE_LIB_STATE_EXPORT, State::impulse);

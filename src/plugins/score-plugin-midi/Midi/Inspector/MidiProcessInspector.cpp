@@ -34,13 +34,14 @@ InspectorWidget::InspectorWidget(
       if (m_chan->value() != n)
         m_chan->setValue(n);
     });
-    connect(m_chan, SignalUtils::QSpinBox_valueChanged_int(), this, [&](int n) {
-      if (model.channel() != n)
-      {
-        CommandDispatcher<> d{doc.commandStack};
-        d.submit(new SetChannel{model, n});
-      }
-    });
+    connect(
+        m_chan, SignalUtils::QSpinBox_valueChanged_int(), this, [&](int n) {
+          if (model.channel() != n)
+          {
+            CommandDispatcher<> d{doc.commandStack};
+            d.submit(new SetChannel{model, n});
+          }
+        });
   }
 
   ///// RANGE /////

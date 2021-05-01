@@ -23,8 +23,8 @@ using network_context_ptr = std::shared_ptr<network_context>;
 namespace Explorer
 {
 class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final
-    : public score::SerializableDocumentPlugin,
-      public Nano::Observer
+    : public score::SerializableDocumentPlugin
+    , public Nano::Observer
 {
   W_OBJECT(DeviceDocumentPlugin)
   SCORE_SERIALIZE_FRIENDS
@@ -38,7 +38,10 @@ public:
 
   virtual ~DeviceDocumentPlugin();
   template <typename Impl>
-  DeviceDocumentPlugin(const score::DocumentContext& ctx, Impl& vis, QObject* parent)
+  DeviceDocumentPlugin(
+      const score::DocumentContext& ctx,
+      Impl& vis,
+      QObject* parent)
       : score::SerializableDocumentPlugin{ctx, vis, parent}
   {
     init();
@@ -85,11 +88,13 @@ private:
 
   mutable std::unique_ptr<Explorer::ListeningHandler> m_listening;
   DeviceExplorerModel* m_explorer{};
-  ossia::fast_hash_map<Device::DeviceInterface*, std::vector<QMetaObject::Connection>>
+  ossia::fast_hash_map<
+      Device::DeviceInterface*,
+      std::vector<QMetaObject::Connection>>
       m_connections;
 
   void asyncConnect(Device::DeviceInterface& newdev);
-   void timerEvent(QTimerEvent *event) override;
+  void timerEvent(QTimerEvent* event) override;
 
 public:
   NodeUpdateProxy updateProxy{*this};

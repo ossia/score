@@ -3,17 +3,18 @@
 #include "ScenarioFactory.hpp"
 
 #include <Process/Process.hpp>
-#include <Scenario/Process/MiniScenarioView.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/ScenarioPresenter.hpp>
-#include <Scenario/Process/ScenarioProcessMetadata.hpp>
-#include <Scenario/Process/ScenarioView.hpp>
 
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <Scenario/Process/MiniScenarioView.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Process/ScenarioPresenter.hpp>
+#include <Scenario/Process/ScenarioProcessMetadata.hpp>
+#include <Scenario/Process/ScenarioView.hpp>
 
 namespace Process
 {
@@ -29,7 +30,8 @@ class IntervalModel;
 
 //////
 
-ScenarioTemporalLayerFactory::ScenarioTemporalLayerFactory(Scenario::EditionSettings& e)
+ScenarioTemporalLayerFactory::ScenarioTemporalLayerFactory(
+    Scenario::EditionSettings& e)
     : m_editionSettings{e}
 {
 }
@@ -52,12 +54,14 @@ Process::MiniLayer* ScenarioTemporalLayerFactory::makeMiniLayer(
   return nullptr;
 }
 
-bool ScenarioTemporalLayerFactory::matches(const UuidKey<Process::ProcessModel>& p) const
+bool ScenarioTemporalLayerFactory::matches(
+    const UuidKey<Process::ProcessModel>& p) const
 {
   return p == Metadata<ConcreteKey_k, Scenario::ProcessModel>::get();
 }
 
-UuidKey<Process::ProcessModel> ScenarioTemporalLayerFactory::concreteKey() const noexcept
+UuidKey<Process::ProcessModel>
+ScenarioTemporalLayerFactory::concreteKey() const noexcept
 {
   return Metadata<ConcreteKey_k, Scenario::ProcessModel>::get();
 }
@@ -70,7 +74,8 @@ Process::LayerPresenter* ScenarioTemporalLayerFactory::makeLayerPresenter(
 {
   if (auto vm = dynamic_cast<const Scenario::ProcessModel*>(&lm))
   {
-    auto pres = new ScenarioPresenter{m_editionSettings, *vm, view, context, parent};
+    auto pres
+        = new ScenarioPresenter{m_editionSettings, *vm, view, context, parent};
     return pres;
   }
   return nullptr;

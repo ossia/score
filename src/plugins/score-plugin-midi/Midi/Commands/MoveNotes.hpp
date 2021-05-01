@@ -37,7 +37,10 @@ private:
 
 class ChangeNotesVelocity final : public score::Command
 {
-  SCORE_COMMAND_DECL(Midi::CommandFactoryName(), ChangeNotesVelocity, "Change velocity")
+  SCORE_COMMAND_DECL(
+      Midi::CommandFactoryName(),
+      ChangeNotesVelocity,
+      "Change velocity")
 public:
   ChangeNotesVelocity(
       const ProcessModel& model,

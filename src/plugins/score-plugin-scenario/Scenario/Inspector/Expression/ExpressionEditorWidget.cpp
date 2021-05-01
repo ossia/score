@@ -2,9 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ExpressionEditorWidget.hpp"
 
-#include <Scenario/Inspector/Expression/ExpressionMenu.hpp>
-#include <Scenario/Inspector/Expression/SimpleExpressionEditorWidget.hpp>
-
 #include <score/tools/std/Optional.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SetIcons.hpp>
@@ -12,13 +9,18 @@
 #include <QDebug>
 #include <QVBoxLayout>
 
+#include <Scenario/Inspector/Expression/ExpressionMenu.hpp>
+#include <Scenario/Inspector/Expression/SimpleExpressionEditorWidget.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::ExpressionEditorWidget)
 W_OBJECT_IMPL(Scenario::ExpressionMenu)
 namespace Scenario
 {
-ExpressionEditorWidget::ExpressionEditorWidget(const score::DocumentContext& doc, QWidget* parent)
-    : QWidget(parent), m_context{doc}
+ExpressionEditorWidget::ExpressionEditorWidget(
+    const score::DocumentContext& doc,
+    QWidget* parent)
+    : QWidget(parent)
+    , m_context{doc}
 {
   this->setObjectName("ExpressionEditorWidget");
   m_mainLayout = new score::MarginLess<QVBoxLayout>{this};
@@ -37,7 +39,8 @@ State::Expression ExpressionEditorWidget::expression()
     {
       SCORE_ASSERT(m_relations[1]->binOperator());
       State::Expression root;
-      State::Expression& op = root.emplace_back(*m_relations[1]->binOperator(), nullptr);
+      State::Expression& op
+          = root.emplace_back(*m_relations[1]->binOperator(), nullptr);
       op.emplace_back(m_relations[0]->relation(), &op);
       op.emplace_back(m_relations[1]->relation(), &op);
       return root;
@@ -223,8 +226,8 @@ QString ExpressionEditorWidget::currentExpr()
 
 void ExpressionEditorWidget::addNewTerm()
 {
-  auto relationEditor
-      = new SimpleExpressionEditorWidget{m_context, (int)m_relations.size(), this, m_menu};
+  auto relationEditor = new SimpleExpressionEditorWidget{
+      m_context, (int)m_relations.size(), this, m_menu};
   m_relations.push_back(relationEditor);
 
   m_mainLayout->addWidget(relationEditor);

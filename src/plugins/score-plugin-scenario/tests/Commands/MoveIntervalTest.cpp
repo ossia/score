@@ -18,8 +18,8 @@ public:
 private:
   void MoveCommandTest()
   {
-    Scenario::ProcessModel* scenar
-        = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
+    Scenario::ProcessModel* scenar = new ScenarioModel(
+        std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
 
     auto int_0_id = getStrongId(scenar->intervals());
     auto ev_0_id = getStrongId(scenar->events());

@@ -1,15 +1,16 @@
 #pragma once
 #include <Process/ProcessContext.hpp>
 #include <Process/Tools/ToolPalette.hpp>
+
+#include <score/statemachine/GraphicsSceneToolPalette.hpp>
+
+#include <QPoint>
+
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Palette/Tool.hpp>
 #include <Scenario/Palette/Tools/CreationToolState.hpp>
 #include <Scenario/Palette/Tools/PlayToolState.hpp>
 #include <Scenario/Palette/Tools/SmartTool.hpp>
-
-#include <score/statemachine/GraphicsSceneToolPalette.hpp>
-
-#include <QPoint>
 
 namespace score
 {
@@ -54,8 +55,9 @@ public:
   void activate(Scenario::Tool);
   void desactivate(Scenario::Tool);
 
-  QGraphicsItem*
-  itemAt(const Scenario::Point&, const std::vector<QGraphicsItem*>& ignore) const noexcept;
+  QGraphicsItem* itemAt(
+      const Scenario::Point&,
+      const std::vector<QGraphicsItem*>& ignore) const noexcept;
 
 private:
   Scenario::Point ScenePointToScenarioPoint(QPointF point);

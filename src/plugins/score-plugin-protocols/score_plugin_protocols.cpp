@@ -56,12 +56,14 @@ score_plugin_protocols::score_plugin_protocols()
 #if __has_include(<QQmlEngine>)
   qmlRegisterType<Protocols::Mapper>("Ossia", 1, 0, "Mapper");
 #endif
-  qRegisterMetaType<std::vector<ossia::net::node_base*>>("std::vector<ossia::net::node_base*>");
+  qRegisterMetaType<std::vector<ossia::net::node_base*>>(
+      "std::vector<ossia::net::node_base*>");
 }
 
 score_plugin_protocols::~score_plugin_protocols() { }
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_protocols::factories(
+std::vector<std::unique_ptr<score::InterfaceBase>>
+score_plugin_protocols::factories(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& key) const
 {
@@ -86,8 +88,9 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_protocols::facto
          Protocols::OSCQueryProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_MIDI)
-         , Protocols::MIDIInputProtocolFactory
-         , Protocols::MIDIOutputProtocolFactory
+         ,
+         Protocols::MIDIInputProtocolFactory,
+         Protocols::MIDIOutputProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_HTTP)
          ,
@@ -118,9 +121,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_protocols::facto
          Protocols::ArtnetProtocolFactory
 #endif
          >,
-      FW<score::SettingsDelegateFactory,
-         Protocols::Settings::Factory
-      >,
+      FW<score::SettingsDelegateFactory, Protocols::Settings::Factory>,
       FW<Library::LibraryInterface,
          Protocols::OSCLibraryHandler
 #if __has_include(<QQmlEngine>)

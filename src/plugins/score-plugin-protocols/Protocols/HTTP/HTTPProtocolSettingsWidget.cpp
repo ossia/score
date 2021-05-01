@@ -9,9 +9,9 @@
 #include <Process/Script/ScriptWidget.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
-#include <QCodeEditor>
 #include <score/widgets/TextLabel.hpp>
 
+#include <QCodeEditor>
 #include <QGridLayout>
 #include <QLabel>
 #include <QVariant>
@@ -64,7 +64,8 @@ Device::DeviceSettings HTTPProtocolSettingsWidget::getSettings() const
   return s;
 }
 
-void HTTPProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settings)
+void HTTPProtocolSettingsWidget::setSettings(
+    const Device::DeviceSettings& settings)
 {
   m_deviceNameEdit->setText(settings.name);
   HTTPSpecificSettings specific;

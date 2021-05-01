@@ -1,4 +1,6 @@
 #pragma once
+#include <ControlSurface/CommandFactory.hpp>
+#include <ControlSurface/Process.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
@@ -9,9 +11,6 @@
 #include <score/plugins/SerializableHelpers.hpp>
 #include <score/plugins/SerializableInterface.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
-
-#include <ControlSurface/CommandFactory.hpp>
-#include <ControlSurface/Process.hpp>
 
 namespace ControlSurface
 {
@@ -25,10 +24,15 @@ class AddControl : public score::Command
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), AddControl, "Add a control")
 public:
-  AddControl(const score::DocumentContext& ctx, Id<Process::Port> id, const Model& proc, const State::Message& p)
+  AddControl(
+      const score::DocumentContext& ctx,
+      Id<Process::Port> id,
+      const Model& proc,
+      const State::Message& p)
       : m_model{proc}
       , m_id{std::move(id)}
-      , m_addr{Explorer::makeFullAddressAccessorSettings(p.address, ctx, 0., 1.)}
+      , m_addr{
+            Explorer::makeFullAddressAccessorSettings(p.address, ctx, 0., 1.)}
   {
     m_addr.value = p.value;
   }
@@ -46,9 +50,15 @@ public:
   }
 
 private:
-  void serializeImpl(DataStreamInput& s) const override { s << m_model << m_id << m_addr; }
+  void serializeImpl(DataStreamInput& s) const override
+  {
+    s << m_model << m_id << m_addr;
+  }
 
-  void deserializeImpl(DataStreamOutput& s) override { s >> m_model >> m_id >> m_addr; }
+  void deserializeImpl(DataStreamOutput& s) override
+  {
+    s >> m_model >> m_id >> m_addr;
+  }
 
   Path<Model> m_model;
   Id<Process::Port> m_id;
@@ -71,8 +81,10 @@ public:
   {
     auto& proc = m_model.find(ctx);
 
-    static auto& cl = ctx.app.components.interfaces<Process::PortFactoryList>();
-    Process::Port* ctl = deserialize_interface(cl, DataStreamWriter{m_data}, &proc);
+    static auto& cl
+        = ctx.app.components.interfaces<Process::PortFactoryList>();
+    Process::Port* ctl
+        = deserialize_interface(cl, DataStreamWriter{m_data}, &proc);
 
     proc.setupControl(safe_cast<Process::ControlInlet*>(ctl), m_addr);
   }
@@ -84,9 +96,15 @@ public:
   }
 
 private:
-  void serializeImpl(DataStreamInput& s) const override { s << m_model << m_id << m_data; }
+  void serializeImpl(DataStreamInput& s) const override
+  {
+    s << m_model << m_id << m_data;
+  }
 
-  void deserializeImpl(DataStreamOutput& s) override { s >> m_model >> m_id >> m_data; }
+  void deserializeImpl(DataStreamOutput& s) override
+  {
+    s >> m_model >> m_id >> m_data;
+  }
 
   Path<Model> m_model;
   Id<Process::Port> m_id;

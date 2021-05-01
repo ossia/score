@@ -31,7 +31,7 @@ void loadCommandStack(
     {
       auto cmd = components.instantiateUndoCommand(elt);
 
-      if(redo_fun(cmd))
+      if (redo_fun(cmd))
       {
         stack.undoable().push(cmd);
       }
@@ -42,7 +42,7 @@ void loadCommandStack(
       }
     }
 
-    if(ok)
+    if (ok)
     {
       for (const auto& elt : redoStack)
       {

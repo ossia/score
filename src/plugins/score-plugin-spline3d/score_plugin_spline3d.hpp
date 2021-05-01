@@ -19,9 +19,9 @@
  *
  */
 class score_plugin_spline3d final
-    : public score::Plugin_QtInterface,
-    public score::FactoryInterface_QtInterface,
-    public score::CommandFactory_QtInterface
+    : public score::Plugin_QtInterface
+    , public score::FactoryInterface_QtInterface
+    , public score::CommandFactory_QtInterface
 {
   SCORE_PLUGIN_METADATA(1, "4296b41c-ab94-4165-8c1f-0418fa7fc2a4")
 
@@ -33,5 +33,6 @@ private:
   std::vector<std::unique_ptr<score::InterfaceBase>> factories(
       const score::ApplicationContext& ctx,
       const score::InterfaceKey& factoryName) const override;
-  std::pair<const CommandGroupKey, CommandGeneratorMap> make_commands() override;
+  std::pair<const CommandGroupKey, CommandGeneratorMap>
+  make_commands() override;
 };

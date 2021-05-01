@@ -3,14 +3,13 @@
 
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/serialization/VisitorInterface.hpp>
+
+#include <score_plugin_curve_export.h>
 
 #include <vector>
 #include <verdigris>
-
-#include <score/model/Identifier.hpp>
-
-#include <score_plugin_curve_export.h>
 
 class Selection;
 namespace ossia
@@ -30,7 +29,8 @@ public:
   Model(const Id<Model>&, QObject* parent);
 
   template <typename Impl>
-  Model(Impl& vis, QObject* parent) : IdentifiedObject{vis, parent}
+  Model(Impl& vis, QObject* parent)
+      : IdentifiedObject{vis, parent}
   {
     vis.writeTo(*this);
   }
@@ -63,6 +63,7 @@ public:
   double lastPointPos() const;
 
   std::optional<double> valueAt(double x) const noexcept;
+
 public:
   void segmentAdded(const SegmentModel* arg_1)
       E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, segmentAdded, arg_1)
@@ -70,7 +71,8 @@ public:
       SCORE_PLUGIN_CURVE_EXPORT,
       segmentRemoved,
       arg_1) // dangerous if async
-  void pointAdded(const Curve::PointModel* arg_1) E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, pointAdded, arg_1)
+  void pointAdded(const Curve::PointModel* arg_1)
+      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, pointAdded, arg_1)
   void pointRemoved(const Id<Curve::PointModel>& arg_1) E_SIGNAL(
       SCORE_PLUGIN_CURVE_EXPORT,
       pointRemoved,
@@ -107,7 +109,10 @@ struct SCORE_PLUGIN_CURVE_EXPORT CurveDomain
   CurveDomain(const ossia::domain& dom, const ossia::value&);
   CurveDomain(const ossia::domain& dom, double start, double end);
   CurveDomain(double start, double end)
-      : min{std::min(start, end)}, max{std::max(start, end)}, start{start}, end{end}
+      : min{std::min(start, end)}
+      , max{std::max(start, end)}
+      , start{start}
+      , end{end}
   {
   }
 

@@ -1,6 +1,8 @@
 #pragma once
 #include "ScenarioCreationState.hpp"
 
+#include <QFinalState>
+
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateEvent_State.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
@@ -14,12 +16,11 @@
 #include <Scenario/Palette/Transitions/StateTransitions.hpp>
 #include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
 
-#include <QFinalState>
-
 namespace Scenario
 {
 template <typename Scenario_T, typename ToolPalette_T>
-class Creation_FromNothing final : public CreationState<Scenario_T, ToolPalette_T>
+class Creation_FromNothing final
+    : public CreationState<Scenario_T, ToolPalette_T>
 {
 public:
   Creation_FromNothing(
@@ -27,12 +28,17 @@ public:
       const Scenario_T& scenarioPath,
       const score::CommandStackFacade& stack,
       QState* parent)
-      : CreationState<Scenario_T, ToolPalette_T>{stateMachine, stack, scenarioPath, parent}
+      : CreationState<Scenario_T, ToolPalette_T>{
+          stateMachine,
+          stack,
+          scenarioPath,
+          parent}
   {
     this->setObjectName("ScenarioCreation_FromNothing");
     using namespace Scenario::Command;
     auto finalState = new QFinalState{this};
-    QObject::connect(finalState, &QState::entered, [&]() { this->clearCreatedIds(); });
+    QObject::connect(
+        finalState, &QState::entered, [&]() { this->clearCreatedIds(); });
 
     auto mainState = new QState{this};
     mainState->setObjectName("Main state");
@@ -56,10 +62,12 @@ public:
       released->addTransition(finalState);
 
       // Release
-      score::make_transition<ReleaseOnAnything_Transition>(mainState, released);
+      score::make_transition<ReleaseOnAnything_Transition>(
+          mainState, released);
 
       // Pressed -> ...
-      score::make_transition<MoveOnNothing_Transition<Scenario_T>>(pressed, move_nothing, *this);
+      score::make_transition<MoveOnNothing_Transition<Scenario_T>>(
+          pressed, move_nothing, *this);
 
       /// MoveOnNothing -> ...
       // MoveOnNothing -> MoveOnNothing.
@@ -120,7 +128,8 @@ public:
       });
 
       // MoveOnEvent -> MoveOnEvent
-      score::make_transition<MoveOnEvent_Transition<Scenario_T>>(move_event, move_event, *this);
+      score::make_transition<MoveOnEvent_Transition<Scenario_T>>(
+          move_event, move_event, *this);
 
       // MoveOnEvent -> MoveOnTimeSync
       this->add_transition(move_event, move_timesync, [&]() {
@@ -153,8 +162,8 @@ public:
 
       // What happens in each state.
       QObject::connect(pressed, &QState::entered, [&]() {
-        this->currentPoint.date
-            = stateMachine.magnetic().getPosition(&stateMachine.model(), this->currentPoint.date);
+        this->currentPoint.date = stateMachine.magnetic().getPosition(
+            &stateMachine.model(), this->currentPoint.date);
         this->m_clickedPoint = this->currentPoint;
 
         this->clickedEvent = this->m_parentSM.model().startEvent().id();
@@ -168,13 +177,14 @@ public:
           return;
         }
 
-        this->currentPoint.date
-            = stateMachine.magnetic().getPosition(&stateMachine.model(), this->currentPoint.date);
+        this->currentPoint.date = stateMachine.magnetic().getPosition(
+            &stateMachine.model(), this->currentPoint.date);
 
         if (this->clickedEvent != this->m_parentSM.model().startEvent().id()
             && this->currentPoint.date <= this->m_clickedPoint.date)
         {
-          this->currentPoint.date = this->m_clickedPoint.date + TimeVal::fromMsecs(10);
+          this->currentPoint.date
+              = this->m_clickedPoint.date + TimeVal::fromMsecs(10);
         }
         else if (
             this->clickedEvent == this->m_parentSM.model().startEvent().id()
@@ -183,7 +193,8 @@ public:
           this->currentPoint.date = TimeVal::fromMsecs(10);
         }
 
-        Scenario::EditionSettings& settings = this->m_parentSM.editionSettings();
+        Scenario::EditionSettings& settings
+            = this->m_parentSM.editionSettings();
         this->m_dispatcher.template submit<MoveNewEvent>(
             this->m_scenario,
             this->createdIntervals.last(),
@@ -206,7 +217,9 @@ public:
         }
 
         this->m_dispatcher.template submit<MoveNewState>(
-            this->m_scenario, this->createdStates.last(), this->currentPoint.y);
+            this->m_scenario,
+            this->createdStates.last(),
+            this->currentPoint.y);
       });
 
       QObject::connect(move_event, &QState::entered, [&]() {
@@ -222,10 +235,13 @@ public:
         }
 
         this->m_dispatcher.template submit<MoveNewState>(
-            this->m_scenario, this->createdStates.last(), this->currentPoint.y);
+            this->m_scenario,
+            this->createdStates.last(),
+            this->currentPoint.y);
       });
 
-      QObject::connect(released, &QState::entered, this, &Creation_FromNothing::commit);
+      QObject::connect(
+          released, &QState::entered, this, &Creation_FromNothing::commit);
     }
 
     auto rollbackState = new QState{this};
@@ -233,7 +249,11 @@ public:
     score::make_transition<score::Cancel_Transition>(mainState, rollbackState);
     rollbackState->addTransition(finalState);
 
-    QObject::connect(rollbackState, &QState::entered, this, &Creation_FromNothing::rollback);
+    QObject::connect(
+        rollbackState,
+        &QState::entered,
+        this,
+        &Creation_FromNothing::rollback);
 
     this->setInitialState(mainState);
   }
@@ -260,7 +280,8 @@ private:
   {
     SCORE_ASSERT(bool(this->hoveredState));
 
-    const auto& state = this->m_parentSM.model().states.at(*this->hoveredState);
+    const auto& state
+        = this->m_parentSM.model().states.at(*this->hoveredState);
     if (!bool(state.previousInterval()))
     {
       createInitialState();

@@ -1,12 +1,12 @@
 #pragma once
 #include <Process/TimeValue.hpp>
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <tests/helpers/ForwardDeclaration.hpp>
 
 namespace Scenario
@@ -21,9 +21,13 @@ namespace Command
  */
 class SetMinDuration final : public score::Command
 {
-  SCORE_COMMAND_DECL(CommandFactoryName(), SetMinDuration, "Set interval minimum")
+  SCORE_COMMAND_DECL(
+      CommandFactoryName(),
+      SetMinDuration,
+      "Set interval minimum")
 public:
-  static const constexpr auto corresponding_member = &IntervalDurations::minDuration;
+  static const constexpr auto corresponding_member
+      = &IntervalDurations::minDuration;
 
   SetMinDuration(const IntervalModel& cst, TimeVal newval, bool isMinNull)
       : m_path{cst}

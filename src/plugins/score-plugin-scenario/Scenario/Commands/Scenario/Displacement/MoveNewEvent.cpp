@@ -2,13 +2,13 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MoveNewEvent.hpp"
 
-#include <Scenario/Commands/Scenario/Displacement/MoveEventOnCreationMeta.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
 #include <QByteArray>
+
+#include <Scenario/Commands/Scenario/Displacement/MoveEventOnCreationMeta.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 
 namespace Scenario
 {

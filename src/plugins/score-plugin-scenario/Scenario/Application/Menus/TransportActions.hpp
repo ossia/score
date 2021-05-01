@@ -26,6 +26,7 @@ public:
   void onPlayGlobal();
   void onPause();
   void onStop();
+
 private:
   void onPlay(bool b);
   const score::GUIApplicationContext& m_context;

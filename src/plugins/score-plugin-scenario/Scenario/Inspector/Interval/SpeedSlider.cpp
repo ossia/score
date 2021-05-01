@@ -1,22 +1,23 @@
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Inspector/Interval/SpeedSlider.hpp>
-
 #include <score/tools/Bind.hpp>
 #include <score/widgets/ControlWidgets.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/StyleSheets.hpp>
 #include <score/widgets/TextLabel.hpp>
 
+#include <QApplication>
 #include <QGridLayout>
 #include <QPushButton>
 #include <QSlider>
 #include <QWidget>
-#include <QApplication>
+
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Inspector/Interval/SpeedSlider.hpp>
 
 namespace Scenario
 {
 
-SpeedWidget::SpeedWidget(bool withButtons, bool showText, QWidget* parent) : QWidget{parent}
+SpeedWidget::SpeedWidget(bool withButtons, bool showText, QWidget* parent)
+    : QWidget{parent}
 {
   setObjectName("SpeedSlider");
 
@@ -49,7 +50,9 @@ SpeedWidget::SpeedWidget(bool withButtons, bool showText, QWidget* parent) : QWi
       pb->setFlat(true);
       pb->setContentsMargins(0, 0, 0, 0);
 
-      connect(pb, &QPushButton::clicked, this, [=] { m_slider->setSpeed(factor); });
+      connect(pb, &QPushButton::clicked, this, [=] {
+        m_slider->setSpeed(factor);
+      });
       lay->addWidget(pb, 1, btn_col++, 1, 1);
     }
   }

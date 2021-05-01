@@ -66,14 +66,16 @@ void CurveProcessModel::setCurve(Model* newCurve)
 
   setCurve_impl();
 
-  connect(m_curve, &Curve::Model::changed, this, &CurveProcessModel::curveChanged);
+  connect(
+      m_curve, &Curve::Model::changed, this, &CurveProcessModel::curveChanged);
 
   m_curve->changed();
 }
 
 TimeVal CurveProcessModel::contentDuration() const noexcept
 {
-  return TimeVal(duration().impl * double(std::max(1., m_curve->lastPointPos())));
+  return TimeVal(
+      duration().impl * double(std::max(1., m_curve->lastPointPos())));
 }
 
 void CurveProcessModel::setCurve_impl() { }

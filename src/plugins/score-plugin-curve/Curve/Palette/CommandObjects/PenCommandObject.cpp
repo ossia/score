@@ -50,8 +50,11 @@ QString::number(prev->following->val()) : QString("none"))
   }
 }
 */
-PenCommandObject::PenCommandObject(Presenter* presenter, const score::CommandStackFacade& stack)
-    : CommandObjectBase{presenter, stack}, m_segment{Id<SegmentModel>{}, nullptr}
+PenCommandObject::PenCommandObject(
+    Presenter* presenter,
+    const score::CommandStackFacade& stack)
+    : CommandObjectBase{presenter, stack}
+    , m_segment{Id<SegmentModel>{}, nullptr}
 {
 }
 
@@ -75,7 +78,7 @@ void PenCommandObject::move()
   auto& middleEnd = std::get<1>(segts_tpl);
   auto& segts = std::get<2>(segts_tpl);
 
-  if(std::abs(m_maxPress.x() - m_minPress.x()) < 1e-8)
+  if (std::abs(m_maxPress.x() - m_minPress.x()) < 1e-8)
     return;
 
   auto dat_base = m_segment.toSegmentData();
@@ -101,7 +104,8 @@ void PenCommandObject::move()
   segts.push_back(dat_base);
   SegmentData& dat = segts.back();
 
-  if (middle_begin_p && middle_end_p && segts[*middle_begin_p].id == segts[*middle_end_p].id)
+  if (middle_begin_p && middle_end_p
+      && segts[*middle_begin_p].id == segts[*middle_end_p].id)
   {
     segts[*middle_end_p].id = getSegmentId(segts);
     for (auto& seg : segts)
@@ -137,7 +141,8 @@ void PenCommandObject::release()
 {
   auto segts_tpl = filterSegments();
   // First handle the case of a single point
-  if (m_segment.points().size() == 1 || (std::abs(m_maxPress.x() - m_minPress.x()) < 1e-8))
+  if (m_segment.points().size() == 1
+      || (std::abs(m_maxPress.x() - m_minPress.x()) < 1e-8))
   {
     cancel();
   }
@@ -213,7 +218,8 @@ void PenCommandObject::release_n(seg_tuple&& segts_tpl)
 
   // Handle the case of the whole drawn curve being
   // contained in a single original segment
-  if (middle_begin_p && middle_end_p && segts[*middle_begin_p].id == segts[*middle_end_p].id)
+  if (middle_begin_p && middle_end_p
+      && segts[*middle_begin_p].id == segts[*middle_end_p].id)
   {
     auto& mb = segts[*middle_begin_p];
     auto& me = segts[*middle_end_p];
@@ -253,7 +259,10 @@ void PenCommandObject::release_n(seg_tuple&& segts_tpl)
   m_segment.reset();
 }
 
-std::tuple<std::optional<SegmentData>, std::optional<SegmentData>, std::vector<SegmentData>>
+std::tuple<
+    std::optional<SegmentData>,
+    std::optional<SegmentData>,
+    std::vector<SegmentData>>
 PenCommandObject::filterSegments()
 {
   auto x = m_state->currentPoint.x();

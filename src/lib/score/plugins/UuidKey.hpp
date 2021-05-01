@@ -3,8 +3,8 @@
 
 #include <score_lib_base_export.h>
 
-#include <stdexcept>
 #include <cstdint>
+#include <stdexcept>
 #include <string>
 
 class JSONObject;
@@ -27,7 +27,10 @@ public:
   static constexpr size_type static_size() noexcept { return 16; }
 
 public:
-  constexpr uuid() noexcept : data{{}} { }
+  constexpr uuid() noexcept
+      : data{{}}
+  {
+  }
 
   constexpr uuid(const uuid& other) noexcept
       : data{
@@ -52,7 +55,7 @@ public:
 
   constexpr uuid& operator=(const uuid& other) noexcept
   {
-    for(int i = 0; i < 16; i++)
+    for (int i = 0; i < 16; i++)
       data[i] = other.data[i];
     return *this;
   }
@@ -218,7 +221,8 @@ constexpr inline std::size_t hash_value(uuid const& u) noexcept
   std::size_t seed = 0;
   for (uuid::const_iterator i = u.begin(), e = u.end(); i != e; ++i)
   {
-    seed ^= static_cast<std::size_t>(*i) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    seed ^= static_cast<std::size_t>(*i) + 0x9e3779b9 + (seed << 6)
+            + (seed >> 2);
   }
 
   return seed;
@@ -333,7 +337,10 @@ private:
     }
   }
 
-  static constexpr unsigned char get_value(QChar c) { return get_value(c.toLatin1()); }
+  static constexpr unsigned char get_value(QChar c)
+  {
+    return get_value(c.toLatin1());
+  }
 
   static constexpr bool is_dash(char c) { return c == '-'; }
   static constexpr bool is_dash(QChar c) { return c.toLatin1() == '-'; }
@@ -351,11 +358,12 @@ using uuid_t = uuids::uuid;
 #define MSVC_BUGGY_CONSTEXPR constexpr
 #endif
 
-#define return_uuid(text)                                                                \
-  do                                                                                     \
-  {                                                                                      \
-    MSVC_BUGGY_CONSTEXPR const auto t = score::uuids::string_generator::compute((text)); \
-    return t;                                                                            \
+#define return_uuid(text)                                  \
+  do                                                       \
+  {                                                        \
+    MSVC_BUGGY_CONSTEXPR const auto t                      \
+        = score::uuids::string_generator::compute((text)); \
+    return t;                                              \
   } while (0)
 
 template <typename Tag>
@@ -368,15 +376,18 @@ class UuidKey : score::uuid_t
   // friend struct boost::hash<const this_type>;
   friend constexpr bool operator==(const this_type& lhs, const this_type& rhs)
   {
-    return static_cast<const score::uuid_t&>(lhs) == static_cast<const score::uuid_t&>(rhs);
+    return static_cast<const score::uuid_t&>(lhs)
+           == static_cast<const score::uuid_t&>(rhs);
   }
   friend constexpr bool operator!=(const this_type& lhs, const this_type& rhs)
   {
-    return static_cast<const score::uuid_t&>(lhs) != static_cast<const score::uuid_t&>(rhs);
+    return static_cast<const score::uuid_t&>(lhs)
+           != static_cast<const score::uuid_t&>(rhs);
   }
   friend constexpr bool operator<(const this_type& lhs, const this_type& rhs)
   {
-    return static_cast<const score::uuid_t&>(lhs) < static_cast<const score::uuid_t&>(rhs);
+    return static_cast<const score::uuid_t&>(lhs)
+           < static_cast<const score::uuid_t&>(rhs);
   }
 
 public:
@@ -386,7 +397,10 @@ public:
   constexpr UuidKey& operator=(const UuidKey& other) noexcept = default;
   constexpr UuidKey& operator=(UuidKey&& other) noexcept = default;
 
-  constexpr UuidKey(score::uuid_t other) noexcept : score::uuid_t(other) { }
+  constexpr UuidKey(score::uuid_t other) noexcept
+      : score::uuid_t(other)
+  {
+  }
 
   template <int N>
   explicit constexpr UuidKey(const char (&txt)[N])

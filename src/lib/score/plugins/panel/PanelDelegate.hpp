@@ -37,7 +37,7 @@ struct SCORE_LIB_BASE_EXPORT PanelStatus
   const int priority;            // Higher priority will come up first.
   const QString prettyName;      // Used in the header.
   const QIcon icon;              // Same
-  const QKeySequence shortcut;   // Keyboard shortcut to show or hide the panel.
+  const QKeySequence shortcut; // Keyboard shortcut to show or hide the panel.
 };
 
 /**

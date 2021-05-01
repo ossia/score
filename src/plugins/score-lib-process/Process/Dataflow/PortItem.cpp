@@ -53,8 +53,10 @@ struct Ellipses
     auto& skin = Process::Style::instance();
     static constexpr qreal smallRadius = 3.;
     static constexpr qreal largeRadius = 5.;
-    static constexpr QRectF smallEllipse{3., 3., 2. * smallRadius, 2. * smallRadius};
-    static constexpr QRectF largeEllipse{1., 1., 2. * largeRadius, 2. * largeRadius};
+    static constexpr QRectF smallEllipse{
+        3., 3., 2. * smallRadius, 2. * smallRadius};
+    static constexpr QRectF largeEllipse{
+        1., 1., 2. * largeRadius, 2. * largeRadius};
     const qreal dpi = qApp->devicePixelRatio();
     const qreal sz = dpi * 13.;
 
@@ -107,30 +109,73 @@ struct Ellipses
     DRAW_ELLIPSE(LargeEllipsesOut[2], midipen, midibrush, largeEllipse);
     DRAW_ELLIPSE(LargeEllipsesOut[3], texturepen, texturebrush, largeEllipse);
 
-    DRAW_ELLIPSE(SmallEllipsesInLight[0], audiopen_light, nobrush, smallEllipse);
-    DRAW_ELLIPSE(SmallEllipsesInLight[1], datapen_light, nobrush, smallEllipse);
-    DRAW_ELLIPSE(SmallEllipsesInLight[2], midipen_light, nobrush, smallEllipse);
-    DRAW_ELLIPSE(SmallEllipsesInLight[3], texturepen_light, nobrush, smallEllipse);
-    DRAW_ELLIPSE(SmallEllipsesOutLight[0], audiopen_light, audiobrush_light, smallEllipse);
-    DRAW_ELLIPSE(SmallEllipsesOutLight[1], datapen_light, databrush_light, smallEllipse);
-    DRAW_ELLIPSE(SmallEllipsesOutLight[2], midipen_light, midibrush_light, smallEllipse);
-    DRAW_ELLIPSE(SmallEllipsesOutLight[3], texturepen_light, texturebrush_light, smallEllipse);
+    DRAW_ELLIPSE(
+        SmallEllipsesInLight[0], audiopen_light, nobrush, smallEllipse);
+    DRAW_ELLIPSE(
+        SmallEllipsesInLight[1], datapen_light, nobrush, smallEllipse);
+    DRAW_ELLIPSE(
+        SmallEllipsesInLight[2], midipen_light, nobrush, smallEllipse);
+    DRAW_ELLIPSE(
+        SmallEllipsesInLight[3], texturepen_light, nobrush, smallEllipse);
+    DRAW_ELLIPSE(
+        SmallEllipsesOutLight[0],
+        audiopen_light,
+        audiobrush_light,
+        smallEllipse);
+    DRAW_ELLIPSE(
+        SmallEllipsesOutLight[1],
+        datapen_light,
+        databrush_light,
+        smallEllipse);
+    DRAW_ELLIPSE(
+        SmallEllipsesOutLight[2],
+        midipen_light,
+        midibrush_light,
+        smallEllipse);
+    DRAW_ELLIPSE(
+        SmallEllipsesOutLight[3],
+        texturepen_light,
+        texturebrush_light,
+        smallEllipse);
 
-    DRAW_ELLIPSE(LargeEllipsesInLight[0], audiopen_light, nobrush, largeEllipse);
-    DRAW_ELLIPSE(LargeEllipsesInLight[1], datapen_light, nobrush, largeEllipse);
-    DRAW_ELLIPSE(LargeEllipsesInLight[2], midipen_light, nobrush, largeEllipse);
-    DRAW_ELLIPSE(LargeEllipsesInLight[3], texturepen_light, nobrush, largeEllipse);
-    DRAW_ELLIPSE(LargeEllipsesOutLight[0], audiopen_light, audiobrush_light, largeEllipse);
-    DRAW_ELLIPSE(LargeEllipsesOutLight[1], datapen_light, databrush_light, largeEllipse);
-    DRAW_ELLIPSE(LargeEllipsesOutLight[2], midipen_light, midibrush_light, largeEllipse);
-    DRAW_ELLIPSE(LargeEllipsesOutLight[3], texturepen_light, texturebrush_light, largeEllipse);
+    DRAW_ELLIPSE(
+        LargeEllipsesInLight[0], audiopen_light, nobrush, largeEllipse);
+    DRAW_ELLIPSE(
+        LargeEllipsesInLight[1], datapen_light, nobrush, largeEllipse);
+    DRAW_ELLIPSE(
+        LargeEllipsesInLight[2], midipen_light, nobrush, largeEllipse);
+    DRAW_ELLIPSE(
+        LargeEllipsesInLight[3], texturepen_light, nobrush, largeEllipse);
+    DRAW_ELLIPSE(
+        LargeEllipsesOutLight[0],
+        audiopen_light,
+        audiobrush_light,
+        largeEllipse);
+    DRAW_ELLIPSE(
+        LargeEllipsesOutLight[1],
+        datapen_light,
+        databrush_light,
+        largeEllipse);
+    DRAW_ELLIPSE(
+        LargeEllipsesOutLight[2],
+        midipen_light,
+        midibrush_light,
+        largeEllipse);
+    DRAW_ELLIPSE(
+        LargeEllipsesOutLight[3],
+        texturepen_light,
+        texturebrush_light,
+        largeEllipse);
 
 #undef DRAW_ELLIPSE
   }
 };
 }
-const QPixmap&
-PortItem::portImage(Process::PortType t, bool inlet, bool small, bool light) noexcept
+const QPixmap& PortItem::portImage(
+    Process::PortType t,
+    bool inlet,
+    bool small,
+    bool light) noexcept
 {
   static const Ellipses ellipses;
   int n;
@@ -206,7 +251,10 @@ PortItem::portImage(Process::PortType t, bool inlet, bool small, bool light) noe
 }
 
 PortItem* PortItem::clickedPort;
-PortItem::PortItem(const Process::Port& p, const Process::Context& ctx, QGraphicsItem* parent)
+PortItem::PortItem(
+    const Process::Port& p,
+    const Process::Context& ctx,
+    QGraphicsItem* parent)
     : QGraphicsItem{parent}
     , m_context{ctx}
     , m_port{p}
@@ -219,9 +267,9 @@ PortItem::PortItem(const Process::Port& p, const Process::Context& ctx, QGraphic
   this->setAcceptDrops(true);
   this->setAcceptHoverEvents(true);
   this->setFlag(QGraphicsItem::ItemSendsScenePositionChanges, true);
-  if(!p.description().isEmpty())
+  if (!p.description().isEmpty())
     this->setToolTip(p.description());
-  else if(!p.exposed().isEmpty())
+  else if (!p.exposed().isEmpty())
     this->setToolTip(p.exposed());
 
   connect(&p, &QObject::destroyed, this, [] {
@@ -280,7 +328,10 @@ PortItem::PortItem(const Process::Port& p, const Process::Context& ctx, QGraphic
     }
 
     QObject::connect(
-        this, &Dataflow::PortItem::contextMenuRequested, this, [&](QPointF sp, QPoint p) {
+        this,
+        &Dataflow::PortItem::contextMenuRequested,
+        this,
+        [&](QPointF sp, QPoint p) {
           auto menu = new QMenu{};
           setupMenu(*menu, ctx);
           menu->exec(p);
@@ -334,9 +385,13 @@ QRectF PortItem::boundingRect() const
   constexpr auto max_diam = 13.;
   return {0., 0., max_diam, max_diam};
 }
-void PortItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void PortItem::paint(
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
-  const QPixmap& img = portImage(m_port.type(), m_inlet, m_diam == 8., m_highlight);
+  const QPixmap& img
+      = portImage(m_port.type(), m_inlet, m_diam == 8., m_highlight);
   painter->drawPixmap(0, 0, img);
 }
 
@@ -384,8 +439,10 @@ static void updateDragLineCoords(QGraphicsScene& scene, QPointF pt)
     for (int i = 0; i < count; i++)
     {
       auto port = closePorts[i];
-      auto port_center = port->mapToScene(((QGraphicsItem*)port)->boundingRect().center());
-      if (double length = QLineF{port_center, pt}.length(); length < cur_length)
+      auto port_center
+          = port->mapToScene(((QGraphicsItem*)port)->boundingRect().center());
+      if (double length = QLineF{port_center, pt}.length();
+          length < cur_length)
       {
         cur_length = length;
         cur_port = port;
@@ -408,7 +465,8 @@ static void updateDragLineCoords(QGraphicsScene& scene, QPointF pt)
 struct DragLine : QGraphicsLineItem
 {
 public:
-  DragLine(QLineF f) : QGraphicsLineItem{f}
+  DragLine(QLineF f)
+      : QGraphicsLineItem{f}
   {
     setPen(QPen(
         QBrush{qRgb(200, 200, 210)},
@@ -435,8 +493,10 @@ public:
     setLine(portDragLineCoords);
   }
 
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr)
-      override
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget = nullptr) override
   {
     painter->setRenderHint(QPainter::Antialiasing, true);
     QGraphicsLineItem::paint(painter, option, widget);
@@ -483,7 +543,8 @@ void PortItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   {
     QDrag* d{new QDrag{this}};
     QMimeData* m = new QMimeData;
-    portDragLineCoords = QLineF{scenePos() + QPointF{6., 6.}, event->scenePos() + QPointF{6., 6.}};
+    portDragLineCoords = QLineF{
+        scenePos() + QPointF{6., 6.}, event->scenePos() + QPointF{6., 6.}};
     portDragLine = new DragLine{portDragLineCoords};
 
     scene()->installEventFilter(drag_move_filter = new DragMoveFilter{});
@@ -563,7 +624,9 @@ void PortItem::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
   event->accept();
 }
 
-QVariant PortItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value)
+QVariant PortItem::itemChange(
+    QGraphicsItem::GraphicsItemChange change,
+    const QVariant& value)
 {
   switch (change)
   {

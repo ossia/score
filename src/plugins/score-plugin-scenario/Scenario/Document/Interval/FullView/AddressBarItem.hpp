@@ -1,10 +1,11 @@
 #pragma once
 #include <score/model/path/ObjectPath.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 
 #include <QGraphicsItem>
 #include <QList>
 #include <QRect>
+
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 
 #include <verdigris>
 
@@ -16,7 +17,9 @@ namespace Scenario
 {
 class IntervalModel;
 class ClickableLabelItem;
-class AddressBarItem final : public QObject, public QGraphicsItem
+class AddressBarItem final
+    : public QObject
+    , public QGraphicsItem
 {
   W_OBJECT(AddressBarItem)
   Q_INTERFACES(QGraphicsItem)
@@ -27,7 +30,10 @@ public:
   void setTargetObject(ObjectPath&&);
 
   QRectF boundingRect() const override;
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
 
 public:
   void needRedraw() W_SIGNAL(needRedraw);

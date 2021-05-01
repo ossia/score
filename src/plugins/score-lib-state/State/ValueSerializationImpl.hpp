@@ -26,7 +26,8 @@ struct TSerializer<JSONObject, ossia::value_variant_type>
     s.stream.StartObject();
     if ((quint64)var.which() != (quint64)var.npos)
     {
-      ossia::for_each_type(value_type_list{}, VariantJSONSerializer<var_t>{s, var});
+      ossia::for_each_type(
+          value_type_list{}, VariantJSONSerializer<var_t>{s, var});
     }
     s.stream.EndObject();
   }
@@ -35,7 +36,8 @@ struct TSerializer<JSONObject, ossia::value_variant_type>
   {
     if (!s.base.IsObject() || s.base.MemberCount() == 0)
       return;
-    ossia::for_each_type(value_type_list{}, VariantJSONDeserializer<var_t>{s, var});
+    ossia::for_each_type(
+        value_type_list{}, VariantJSONDeserializer<var_t>{s, var});
   }
 };
 

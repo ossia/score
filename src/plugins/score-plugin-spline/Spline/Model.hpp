@@ -22,11 +22,15 @@ class ProcessModel final : public Process::ProcessModel
   W_OBJECT(ProcessModel)
 
 public:
-  ProcessModel(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
+  ProcessModel(
+      const TimeVal& duration,
+      const Id<Process::ProcessModel>& id,
+      QObject* parent);
   ~ProcessModel() override;
 
   template <typename Impl>
-  ProcessModel(Impl& vis, QObject* parent) : Process::ProcessModel{vis, parent}
+  ProcessModel(Impl& vis, QObject* parent)
+      : Process::ProcessModel{vis, parent}
   {
     vis.writeTo(*this);
     init();
@@ -62,7 +66,8 @@ public:
 
   std::unique_ptr<Process::Outlet> outlet;
 
-  void addressChanged(const ::State::AddressAccessor& arg_1) W_SIGNAL(addressChanged, arg_1);
+  void addressChanged(const ::State::AddressAccessor& arg_1)
+      W_SIGNAL(addressChanged, arg_1);
   void tweenChanged(bool tween) W_SIGNAL(tweenChanged, tween);
   void unitChanged(const State::Unit& arg_1) W_SIGNAL(unitChanged, arg_1);
   void splineChanged() W_SIGNAL(splineChanged);
@@ -85,6 +90,8 @@ private:
 
   W_PROPERTY(bool, tween READ tween WRITE setTween NOTIFY tweenChanged)
 
-  W_PROPERTY(State::AddressAccessor, address READ address WRITE setAddress NOTIFY addressChanged)
+  W_PROPERTY(
+      State::AddressAccessor,
+      address READ address WRITE setAddress NOTIFY addressChanged)
 };
 }

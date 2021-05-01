@@ -1,5 +1,7 @@
 #include "DefaultEffectItem.hpp"
 
+#include <Control/Widgets.hpp>
+#include <Effect/EffectLayout.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/ProcessContext.hpp>
@@ -9,9 +11,6 @@
 #include <score/tools/Bind.hpp>
 
 #include <QGraphicsScene>
-
-#include <Control/Widgets.hpp>
-#include <Effect/EffectLayout.hpp>
 namespace Process
 {
 struct DefaultEffectItem::Port
@@ -24,10 +23,15 @@ DefaultEffectItem::DefaultEffectItem(
     const Process::ProcessModel& effect,
     const Process::Context& doc,
     QGraphicsItem* root)
-    : score::EmptyRectItem{root}, m_effect{effect}, m_ctx{doc}
+    : score::EmptyRectItem{root}
+    , m_effect{effect}
+    , m_ctx{doc}
 {
   QObject::connect(
-      &effect, &Process::ProcessModel::controlAdded, this, &DefaultEffectItem::on_controlAdded);
+      &effect,
+      &Process::ProcessModel::controlAdded,
+      this,
+      &DefaultEffectItem::on_controlAdded);
 
   QObject::connect(
       &effect,
@@ -67,15 +71,23 @@ DefaultEffectItem::DefaultEffectItem(
   updateRect();
 
   QObject::connect(
-      &effect, &Process::ProcessModel::inletsChanged, this, &DefaultEffectItem::reset);
+      &effect,
+      &Process::ProcessModel::inletsChanged,
+      this,
+      &DefaultEffectItem::reset);
   QObject::connect(
-      &effect, &Process::ProcessModel::outletsChanged, this, &DefaultEffectItem::reset);
+      &effect,
+      &Process::ProcessModel::outletsChanged,
+      this,
+      &DefaultEffectItem::reset);
 }
 
 DefaultEffectItem::~DefaultEffectItem() { }
 
 template <typename T>
-void DefaultEffectItem::setupPort(T& port, const Process::PortFactoryList& portFactory)
+void DefaultEffectItem::setupPort(
+    T& port,
+    const Process::PortFactoryList& portFactory)
 {
   int i = m_ports.size();
 
@@ -88,8 +100,8 @@ void DefaultEffectItem::setupPort(T& port, const Process::PortFactoryList& portF
       },
       [&](int j) { return m_ports[j].rect.size(); },
       [&] { return port.visualName(); });
-  auto [item, portItem, widg, lab, itemRect]
-      = Process::createControl(i, csetup, port, portFactory, m_ctx, this, this);
+  auto [item, portItem, widg, lab, itemRect] = Process::createControl(
+      i, csetup, port, portFactory, m_ctx, this, this);
   m_ports.push_back(Port{item, portItem, itemRect});
   updateRect();
 }

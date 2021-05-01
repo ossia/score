@@ -9,7 +9,7 @@ W_OBJECT_IMPL(score::QGraphicsCheckBox);
 
 namespace score
 {
-QGraphicsCheckBox::QGraphicsCheckBox( QGraphicsItem* parent)
+QGraphicsCheckBox::QGraphicsCheckBox(QGraphicsItem* parent)
 {
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointingHand);
@@ -55,18 +55,28 @@ void QGraphicsCheckBox::paint(
   constexpr const double insideBoxWidth = 6.;
 
   double positionCheckBox = (m_rect.width() - checkBoxWidth) * 0.5;
-  painter->fillRect(QRectF{positionCheckBox,positionCheckBox, checkBoxWidth, checkBoxWidth}, skin.Emphasis2.main.brush);
+  painter->fillRect(
+      QRectF{positionCheckBox, positionCheckBox, checkBoxWidth, checkBoxWidth},
+      skin.Emphasis2.main.brush);
 
-  if(m_toggled)
+  if (m_toggled)
   {
     double position = (m_rect.width() - insideBoxWidth) * 0.5;
     painter->setPen(skin.Base4.main.pen2);
-    painter->drawLine(position, position, position + insideBoxWidth, position + insideBoxWidth);
-    painter->drawLine(position, position + + insideBoxWidth, position + + insideBoxWidth, position);
+    painter->drawLine(
+        position,
+        position,
+        position + insideBoxWidth,
+        position + insideBoxWidth);
+    painter->drawLine(
+        position,
+        position + +insideBoxWidth,
+        position + +insideBoxWidth,
+        position);
   }
 
   painter->setRenderHint(QPainter::Antialiasing, false);
- }
+}
 
 QRectF QGraphicsCheckBox::boundingRect() const
 {

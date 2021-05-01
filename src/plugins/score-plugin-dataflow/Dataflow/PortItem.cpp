@@ -4,15 +4,12 @@
 #include <Dataflow/Commands/CreateModulation.hpp>
 #include <Dataflow/Commands/EditConnection.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
-#include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
-#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
-#include <State/MessageListSerialization.hpp>
-
 #include <Process/Commands/EditPort.hpp>
 #include <Process/ProcessContext.hpp>
+#include <State/MessageListSerialization.hpp>
 
-#include <score/selection/SelectionStack.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <score/selection/SelectionStack.hpp>
 
 #include <ossia/network/common/destination_qualifiers.hpp>
 #include <ossia/network/domain/domain.hpp>
@@ -21,6 +18,9 @@
 #include <QGraphicsSceneDragDropEvent>
 #include <QMenu>
 #include <QMimeData>
+
+#include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
+#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 
 namespace Dataflow
 {
@@ -82,9 +82,11 @@ void onCreateCable(
   Process::CableData cd;
   cd.type = Process::CableType::ImmediateGlutton;
   disp.submit<Dataflow::CreateCable>(
-        plug, getStrongId(plug.cables),
-        Process::CableType::ImmediateGlutton,
-        *source, *sink);
+      plug,
+      getStrongId(plug.cables),
+      Process::CableType::ImmediateGlutton,
+      *source,
+      *sink);
 }
 
 void onCreateCable(
@@ -95,23 +97,23 @@ void onCreateCable(
   onCreateCable(ctx, p1->port(), p2->port());
 }
 
-AutomatablePortItem::~AutomatablePortItem()
-{
-}
+AutomatablePortItem::~AutomatablePortItem() { }
 
-void AutomatablePortItem::setupMenu(QMenu& menu, const score::DocumentContext& ctx)
+void AutomatablePortItem::setupMenu(
+    QMenu& menu,
+    const score::DocumentContext& ctx)
 {
   auto act = menu.addAction(QObject::tr("Create automation"));
   QObject::connect(
       act,
       &QAction::triggered,
       this,
-      [this, &ctx] {
-    on_createAutomation(ctx);
-  }, Qt::QueuedConnection);
+      [this, &ctx] { on_createAutomation(ctx); },
+      Qt::QueuedConnection);
 }
 
-void AutomatablePortItem::on_createAutomation(const score::DocumentContext& ctx)
+void AutomatablePortItem::on_createAutomation(
+    const score::DocumentContext& ctx)
 {
   const QObject* obj = &m_port;
   while (obj)
@@ -119,7 +121,8 @@ void AutomatablePortItem::on_createAutomation(const score::DocumentContext& ctx)
     auto parent = obj->parent();
     if (auto cst = qobject_cast<Scenario::IntervalModel*>(parent))
     {
-      RedoMacroCommandDispatcher<Dataflow::CreateModulation> macro{ctx.commandStack};
+      RedoMacroCommandDispatcher<Dataflow::CreateModulation> macro{
+          ctx.commandStack};
       on_createAutomation(
           *cst, [&](auto cmd) { macro.submit(cmd); }, ctx);
       macro.commit();
@@ -149,10 +152,14 @@ bool AutomatablePortItem::on_createAutomation(
   auto& inlet = m_port;
 
   auto make_cmd = new Scenario::Command::AddOnlyProcessToInterval{
-      cst, Metadata<ConcreteKey_k, Automation::ProcessModel>::get(), QString{}, {}};
+      cst,
+      Metadata<ConcreteKey_k, Automation::ProcessModel>::get(),
+      QString{},
+      {}};
   macro(make_cmd);
 
-  auto lay_cmd = new Scenario::Command::AddLayerInNewSlot{cst, make_cmd->processId()};
+  auto lay_cmd
+      = new Scenario::Command::AddLayerInNewSlot{cst, make_cmd->processId()};
   macro(lay_cmd);
 
   auto dom = ctrl->domain();
@@ -160,7 +167,8 @@ bool AutomatablePortItem::on_createAutomation(
   auto max = dom.get().convert_max<float>();
 
   State::Unit unit = ctrl->address().qualifiers.get().unit;
-  auto& autom = safe_cast<Automation::ProcessModel&>(cst.processes.at(make_cmd->processId()));
+  auto& autom = safe_cast<Automation::ProcessModel&>(
+      cst.processes.at(make_cmd->processId()));
   macro(new Automation::SetUnit{autom, unit});
   macro(new Automation::SetMin{autom, min});
   macro(new Automation::SetMax{autom, max});
@@ -168,14 +176,15 @@ bool AutomatablePortItem::on_createAutomation(
   auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
 
   macro(new Dataflow::CreateCable{
-          plug, getStrongId(plug.cables),
-          Process::CableType::ImmediateGlutton,
-          *autom.outlet,
-          inlet});
+      plug,
+      getStrongId(plug.cables),
+      Process::CableType::ImmediateGlutton,
+      *autom.outlet,
+      inlet});
   return true;
 }
 
-void AutomatablePortItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
+void AutomatablePortItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   if (this->contains(event->pos()))
   {
@@ -185,14 +194,14 @@ void AutomatablePortItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         contextMenuRequested(event->scenePos(), event->screenPos());
         break;
       case Qt::LeftButton:
-        if(qApp->keyboardModifiers() & Qt::CTRL)
+        if (qApp->keyboardModifiers() & Qt::CTRL)
         {
           auto sel = this->m_context.selectionStack.currentSelection();
-          if(sel.size() == 1)
+          if (sel.size() == 1)
           {
-            if(auto item = qobject_cast<Process::Port*>(sel.at(0).data()))
+            if (auto item = qobject_cast<Process::Port*>(sel.at(0).data()))
             {
-              if(item != &this->m_port)
+              if (item != &this->m_port)
               {
                 onCreateCable(this->m_context, *item, this->m_port);
               }
@@ -204,7 +213,6 @@ void AutomatablePortItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     }
   }
   event->accept();
-
 }
 void AutomatablePortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
 {

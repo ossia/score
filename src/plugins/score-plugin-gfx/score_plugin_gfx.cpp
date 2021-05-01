@@ -1,35 +1,35 @@
 #include "score_plugin_gfx.hpp"
 
-#include <score/plugins/FactorySetup.hpp>
-
+#include <Gfx/CameraDevice.hpp>
 #include <Gfx/CommandFactory.hpp>
 #include <Gfx/Filter/Executor.hpp>
 #include <Gfx/Filter/Layer.hpp>
 #include <Gfx/Filter/Process.hpp>
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxDevice.hpp>
-#include <Gfx/CameraDevice.hpp>
 #include <Gfx/Images/Executor.hpp>
 #include <Gfx/Images/Inspector.hpp>
 #include <Gfx/Images/Layer.hpp>
 #include <Gfx/Images/Process.hpp>
+#include <Gfx/Settings/Factory.hpp>
 #include <Gfx/TexturePort.hpp>
-#include <Gfx/WindowDevice.hpp>
 #include <Gfx/Video/Executor.hpp>
 #include <Gfx/Video/Inspector.hpp>
 #include <Gfx/Video/Layer.hpp>
 #include <Gfx/Video/Process.hpp>
-#include <Gfx/Settings/Factory.hpp>
+#include <Gfx/WindowDevice.hpp>
+
+#include <score/plugins/FactorySetup.hpp>
 #if defined(HAS_SPOUT)
 #include <Gfx/SpoutDevice.hpp>
 #endif
 #if defined(HAS_FREENECT2)
 #include <Gfx/Kinect2Device.hpp>
 #endif
-#include <score_plugin_gfx_commands_files.hpp>
-#include <score_plugin_engine.hpp>
-
 #include <QWindow>
+
+#include <score_plugin_engine.hpp>
+#include <score_plugin_gfx_commands_files.hpp>
 score_plugin_gfx::score_plugin_gfx()
 {
 #if defined(HAS_FREENECT2)
@@ -52,16 +52,18 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_gfx::factories(
 {
   return instantiate_factories<
       score::ApplicationContext,
-      FW<Device::ProtocolFactory
-      , Gfx::WindowProtocolFactory
-      , Gfx::CameraProtocolFactory
+      FW<Device::ProtocolFactory,
+         Gfx::WindowProtocolFactory,
+         Gfx::CameraProtocolFactory
 #if defined(HAS_SPOUT)
-      , Gfx::SpoutProtocolFactory
+         ,
+         Gfx::SpoutProtocolFactory
 #endif
 #if defined(HAS_FREENECT2)
-  , Gfx::Kinect2ProtocolFactory
+         ,
+         Gfx::Kinect2ProtocolFactory
 #endif
-      >,
+         >,
       FW<Process::ProcessModelFactory,
          Gfx::Filter::ProcessFactory,
          Gfx::Video::ProcessFactory,
@@ -74,9 +76,10 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_gfx::factories(
          Gfx::Filter::ProcessExecutorComponentFactory,
          Gfx::Video::ProcessExecutorComponentFactory,
          Gfx::Images::ProcessExecutorComponentFactory>,
-      FW<Inspector::InspectorWidgetFactory,
-         Gfx::Video::InspectorFactory>,
-      FW<Process::PortFactory, Gfx::TextureInletFactory, Gfx::TextureOutletFactory>,
+      FW<Inspector::InspectorWidgetFactory, Gfx::Video::InspectorFactory>,
+      FW<Process::PortFactory,
+         Gfx::TextureInletFactory,
+         Gfx::TextureOutletFactory>,
       FW<Process::ProcessDropHandler,
          Gfx::Filter::DropHandler,
          Gfx::Video::DropHandler,
@@ -84,18 +87,18 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_gfx::factories(
       FW<Library::LibraryInterface,
          Gfx::Filter::LibraryHandler,
          Gfx::Video::LibraryHandler,
-         Gfx::Images::LibraryHandler>
-      , FW<score::SettingsDelegateFactory, Gfx::Settings::Factory>
-      >(ctx, key);
+         Gfx::Images::LibraryHandler>,
+      FW<score::SettingsDelegateFactory, Gfx::Settings::Factory>>(ctx, key);
 }
 
-score::GUIApplicationPlugin*
-score_plugin_gfx::make_guiApplicationPlugin(const score::GUIApplicationContext& app)
+score::GUIApplicationPlugin* score_plugin_gfx::make_guiApplicationPlugin(
+    const score::GUIApplicationContext& app)
 {
   return new Gfx::ApplicationPlugin{app};
 }
 
-std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_gfx::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap>
+score_plugin_gfx::make_commands()
 {
   using namespace Gfx;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{

@@ -3,10 +3,6 @@
 #include "ToolMenuActions.hpp"
 
 #include <Process/ExpandMode.hpp>
-#include <Scenario/Application/ScenarioActions.hpp>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Application/ScenarioEditionSettings.hpp>
-#include <Scenario/Palette/Tool.hpp>
 
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/Menu.hpp>
@@ -26,14 +22,22 @@
 #include <QVariant>
 #include <qnamespace.h>
 
+#include <Scenario/Application/ScenarioActions.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Application/ScenarioEditionSettings.hpp>
+#include <Scenario/Palette/Tool.hpp>
+
 class QObject;
 namespace Scenario
 {
 class ScenarioPresenter;
 
 template <typename Data>
-QAction*
-makeToolbarAction(const QString& name, QObject* parent, const Data& data, const QKeySequence& shortcut)
+QAction* makeToolbarAction(
+    const QString& name,
+    QObject* parent,
+    const Data& data,
+    const QKeySequence& shortcut)
 {
   auto act = new QAction{name, parent};
 
@@ -43,7 +47,7 @@ makeToolbarAction(const QString& name, QObject* parent, const Data& data, const 
   act->setShortcutContext(Qt::WindowShortcut);
   QString toolTip = name;
   QString sequence = shortcut.toString(QKeySequence::NativeText);
-  if(!sequence.isEmpty())
+  if (!sequence.isEmpty())
   {
     toolTip += " (" + sequence + ")";
   }
@@ -52,7 +56,8 @@ makeToolbarAction(const QString& name, QObject* parent, const Data& data, const 
   return act;
 }
 
-ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent) : m_parent{parent}
+ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
+    : m_parent{parent}
 {
   if (!parent->context.applicationSettings.gui)
     return;
@@ -62,7 +67,10 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent) : m_parent{p
 
   // SELECT AND MOVE
   m_selecttool = makeToolbarAction(
-      tr("Select and Move"), m_scenarioToolActionGroup, Scenario::Tool::Select, tr("S"));
+      tr("Select and Move"),
+      m_scenarioToolActionGroup,
+      Scenario::Tool::Select,
+      tr("S"));
   m_selecttool->setShortcuts({Qt::Key_S, Qt::Key_M});
   m_selecttool->setToolTip({"Select and Move (S, M)"});
   m_selecttool->setObjectName("Select");
@@ -81,8 +89,11 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent) : m_parent{p
   });
 
   // CREATE
-  m_createtool
-      = makeToolbarAction(tr("Create"), m_scenarioToolActionGroup, Scenario::Tool::Create, tr("C"));
+  m_createtool = makeToolbarAction(
+      tr("Create"),
+      m_scenarioToolActionGroup,
+      Scenario::Tool::Create,
+      tr("C"));
 
   setIcons(
       m_createtool,
@@ -97,8 +108,8 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent) : m_parent{p
   });
 
   // PLAY
-  m_playtool
-      = makeToolbarAction(tr("Play"), m_scenarioToolActionGroup, Scenario::Tool::Play, tr("P"));
+  m_playtool = makeToolbarAction(
+      tr("Play"), m_scenarioToolActionGroup, Scenario::Tool::Play, tr("P"));
   setIcons(
       m_playtool,
       QStringLiteral(":/icons/play_on.png"),
@@ -111,7 +122,8 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent) : m_parent{p
       m_parent->editionSettings().setTool(Scenario::Tool::Play);
   });
 
-  m_lockAction = makeToolbarAction(tr("Lock"), this, ExpandMode::CannotExpand, {});
+  m_lockAction
+      = makeToolbarAction(tr("Lock"), this, ExpandMode::CannotExpand, {});
   m_lockAction->setToolTip(tr("Lock (Shift)"));
   setIcons(
       m_lockAction,
@@ -121,33 +133,41 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent) : m_parent{p
       QStringLiteral(":/icons/clip_duration_disabled.png"));
 
   connect(m_lockAction, &QAction::toggled, this, [=](bool val) {
-    m_parent->editionSettings().setLockMode(val ? LockMode::Constrained : LockMode::Free);
+    m_parent->editionSettings().setLockMode(
+        val ? LockMode::Constrained : LockMode::Free);
   });
   if (parent->context.mainWindow)
     parent->context.mainWindow->addAction(m_lockAction);
 
   // SCALEMODE
-  m_scaleAction = makeToolbarAction(
-        tr("Scale"), this, ExpandMode::Scale, {});
+  m_scaleAction = makeToolbarAction(tr("Scale"), this, ExpandMode::Scale, {});
   m_scaleAction->setCheckable(true);
   m_scaleAction->setChecked(false);
   m_scaleAction->setToolTip(tr("Scale mode (Alt)"));
 
-  connect(m_scaleAction, &QAction::toggled, this, [=] (bool b) {
-    if(b)
+  connect(m_scaleAction, &QAction::toggled, this, [=](bool b) {
+    if (b)
       m_parent->editionSettings().setExpandMode(ExpandMode::Scale);
     else
       m_parent->editionSettings().setExpandMode(ExpandMode::GrowShrink);
   });
 
-  if(auto mainw = parent->context.documentTabWidget)
+  if (auto mainw = parent->context.documentTabWidget)
   {
     mainw->addAction(m_lockAction);
     mainw->addAction(m_scaleAction);
   }
 
-  connect(parent, &ScenarioApplicationPlugin::keyPressed, this, &ToolMenuActions::keyPressed);
-  connect(parent, &ScenarioApplicationPlugin::keyReleased, this, &ToolMenuActions::keyReleased);
+  connect(
+      parent,
+      &ScenarioApplicationPlugin::keyPressed,
+      this,
+      &ToolMenuActions::keyPressed);
+  connect(
+      parent,
+      &ScenarioApplicationPlugin::keyReleased,
+      this,
+      &ToolMenuActions::keyReleased);
 
   con(parent->editionSettings(),
       &Scenario::EditionSettings::toolChanged,
@@ -207,14 +227,13 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent) : m_parent{p
 
 void ToolMenuActions::makeGUIElements(score::GUIElements& ref)
 {
-  auto& scenario_proc_cond
-      = m_parent->context.actions
-            .condition<Process::EnableWhenFocusedProcessIs<Scenario::ProcessModel>>();
-  auto& scenario_iface_cond
-      = m_parent->context.actions
-            .condition<Process::EnableWhenFocusedProcessIs<Scenario::ScenarioInterface>>();
+  auto& scenario_proc_cond = m_parent->context.actions.condition<
+      Process::EnableWhenFocusedProcessIs<Scenario::ProcessModel>>();
+  auto& scenario_iface_cond = m_parent->context.actions.condition<
+      Process::EnableWhenFocusedProcessIs<Scenario::ScenarioInterface>>();
   auto& scenario_doc_cond
-      = m_parent->context.actions.condition<score::EnableWhenDocumentIs<ScenarioDocumentModel>>();
+      = m_parent->context.actions
+            .condition<score::EnableWhenDocumentIs<ScenarioDocumentModel>>();
 
   score::Menu& menu = m_parent->context.menus.get().at(score::Menus::Edit());
 
@@ -227,9 +246,10 @@ void ToolMenuActions::makeGUIElements(score::GUIElements& ref)
     bar->addSeparator();
     bar->addAction(m_lockAction);
     bar->addAction(m_scaleAction);
-    bar->setIconSize(QSize{24,24});
+    bar->setIconSize(QSize{24, 24});
 
-    ref.toolbars.emplace_back(bar, StringKey<score::Toolbar>("Tools"), Qt::TopToolBarArea, 800);
+    ref.toolbars.emplace_back(
+        bar, StringKey<score::Toolbar>("Tools"), Qt::TopToolBarArea, 800);
 
     menu.menu()->addSeparator();
     menu.menu()->addAction(m_selecttool);
@@ -286,11 +306,11 @@ void ToolMenuActions::setExpandMode(ExpandMode mode)
         m_scaleAction->setChecked(true);
 
       setIcons(
-            m_scaleAction,
-            QStringLiteral(":/icons/scale_content_on.png"),
-            QStringLiteral(":/icons/scale_content_hover.png"),
-            QStringLiteral(":/icons/scale_on.png"),
-            QStringLiteral(":/icons/scale_content_disabled.png"));
+          m_scaleAction,
+          QStringLiteral(":/icons/scale_content_on.png"),
+          QStringLiteral(":/icons/scale_content_hover.png"),
+          QStringLiteral(":/icons/scale_on.png"),
+          QStringLiteral(":/icons/scale_content_disabled.png"));
       break;
     }
     case ExpandMode::GrowShrink:
@@ -300,11 +320,11 @@ void ToolMenuActions::setExpandMode(ExpandMode mode)
         m_scaleAction->setChecked(false);
 
       setIcons(
-            m_scaleAction,
-            QStringLiteral(":/icons/scale_content_on.png"),
-            QStringLiteral(":/icons/scale_hover.png"),
-            QStringLiteral(":/icons/scale_on.png"),
-            QStringLiteral(":/icons/scale_disabled.png"));
+          m_scaleAction,
+          QStringLiteral(":/icons/scale_content_on.png"),
+          QStringLiteral(":/icons/scale_hover.png"),
+          QStringLiteral(":/icons/scale_on.png"),
+          QStringLiteral(":/icons/scale_disabled.png"));
       break;
     }
     case ExpandMode::CannotExpand:

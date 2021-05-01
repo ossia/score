@@ -130,7 +130,10 @@ template <>
 struct TSerializer<JSONObject, ossia::domain_base<ossia::impulse>>
 {
   using domain_t = ossia::domain_base<ossia::impulse>;
-  static void readFrom(JSONObject::Serializer& s, const domain_t& domain) { s.stream.Null(); }
+  static void readFrom(JSONObject::Serializer& s, const domain_t& domain)
+  {
+    s.stream.Null();
+  }
 
   static void writeTo(JSONObject::Deserializer& s, domain_t& domain) { }
 };
@@ -139,7 +142,10 @@ template <>
 struct TSerializer<JSONObject, ossia::domain_base<bool>>
 {
   using domain_t = ossia::domain_base<bool>;
-  static void readFrom(JSONObject::Serializer& s, const domain_t& domain) { s.stream.Null(); }
+  static void readFrom(JSONObject::Serializer& s, const domain_t& domain)
+  {
+    s.stream.Null();
+  }
 
   static void writeTo(JSONObject::Deserializer& s, domain_t& domain) { }
 };
@@ -380,7 +386,8 @@ struct TSerializer<JSONObject, ossia::domain_base_variant>
     s.stream.StartObject();
     if ((quint64)var.which() != (quint64)var.npos)
     {
-      ossia::for_each_type(value_type_list{}, VariantJSONSerializer<var_t>{s, var});
+      ossia::for_each_type(
+          value_type_list{}, VariantJSONSerializer<var_t>{s, var});
     }
     s.stream.EndObject();
   }
@@ -419,6 +426,7 @@ struct TSerializer<JSONObject, ossia::domain_base_variant>
   {
     if (!s.base.IsObject() || s.base.MemberCount() == 0)
       return;
-    ossia::for_each_type(value_type_list{}, VariantJSONDeserializer<var_t>{s, var});
+    ossia::for_each_type(
+        value_type_list{}, VariantJSONDeserializer<var_t>{s, var});
   }
 };

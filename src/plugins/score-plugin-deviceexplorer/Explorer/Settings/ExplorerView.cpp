@@ -4,8 +4,8 @@
 
 #include "ExplorerModel.hpp"
 
-#include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/FormWidget.hpp>
+#include <score/widgets/SignalUtils.hpp>
 
 #include <QCheckBox>
 #include <QFormLayout>
@@ -21,7 +21,9 @@ View::View()
   m_cb = new QCheckBox{tr("Enable local tree")};
   lay->addRow(m_cb);
 
-  connect(m_cb, &QCheckBox::stateChanged, this, [this] (int b) { localTreeChanged(b); });
+  connect(m_cb, &QCheckBox::stateChanged, this, [this](int b) {
+    localTreeChanged(b);
+  });
 }
 
 void View::setLocalTree(bool val)

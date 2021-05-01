@@ -32,33 +32,38 @@ EventModel& endEvent(const IntervalModel& cst, const Scenario_T& scenario)
 }
 
 template <typename Scenario_T>
-TimeSyncModel& startTimeSync(const IntervalModel& cst, const Scenario_T& scenario)
+TimeSyncModel&
+startTimeSync(const IntervalModel& cst, const Scenario_T& scenario)
 {
   return scenario.timeSync(startEvent(cst, scenario).timeSync());
 }
 
 template <typename Scenario_T>
-TimeSyncModel& endTimeSync(const IntervalModel& cst, const Scenario_T& scenario)
+TimeSyncModel&
+endTimeSync(const IntervalModel& cst, const Scenario_T& scenario)
 {
   return scenario.timeSync(endEvent(cst, scenario).timeSync());
 }
 
 // Events
 template <typename Scenario_T>
-const TimeSyncModel& parentTimeSync(const EventModel& ev, const Scenario_T& scenario)
+const TimeSyncModel&
+parentTimeSync(const EventModel& ev, const Scenario_T& scenario)
 {
   return scenario.timeSync(ev.timeSync());
 }
 
 template <typename Scenario_T>
-const TimeSyncModel& parentTimeSync(const Id<EventModel>& ev, const Scenario_T& scenario)
+const TimeSyncModel&
+parentTimeSync(const Id<EventModel>& ev, const Scenario_T& scenario)
 {
   return scenario.timeSync(scenario.event(ev).timeSync());
 }
 
 // States
 template <typename Scenario_T>
-const EventModel& parentEvent(const Id<StateModel>& st, const Scenario_T& scenario)
+const EventModel&
+parentEvent(const Id<StateModel>& st, const Scenario_T& scenario)
 {
   return scenario.event(scenario.state(st).eventId());
 }
@@ -70,13 +75,15 @@ const EventModel& parentEvent(const StateModel& st, const Scenario_T& scenario)
 }
 
 template <typename Scenario_T>
-const TimeSyncModel& parentTimeSync(const StateModel& st, const Scenario_T& scenario)
+const TimeSyncModel&
+parentTimeSync(const StateModel& st, const Scenario_T& scenario)
 {
   return parentTimeSync(parentEvent(st, scenario), scenario);
 }
 
 template <typename Scenario_T>
-const TimeSyncModel& parentTimeSync(const Id<StateModel>& st, const Scenario_T& scenario)
+const TimeSyncModel&
+parentTimeSync(const Id<StateModel>& st, const Scenario_T& scenario)
 {
   return parentTimeSync(parentEvent(st, scenario), scenario);
 }
@@ -89,21 +96,24 @@ const TimeSyncModel& parentTimeSync(const TimeSyncModel& st, const Scenario_T&)
 }
 
 template <typename Scenario_T>
-const IntervalModel& previousInterval(const StateModel& st, const Scenario_T& scenario)
+const IntervalModel&
+previousInterval(const StateModel& st, const Scenario_T& scenario)
 {
   SCORE_ASSERT(st.previousInterval());
   return scenario.interval(*st.previousInterval());
 }
 
 template <typename Scenario_T>
-const IntervalModel& nextInterval(const StateModel& st, const Scenario_T& scenario)
+const IntervalModel&
+nextInterval(const StateModel& st, const Scenario_T& scenario)
 {
   SCORE_ASSERT(st.nextInterval());
   return scenario.interval(*st.nextInterval());
 }
 
 template <typename Scenario_T>
-std::list<Id<IntervalModel>> nextIntervals(const EventModel& ev, const Scenario_T& scenario)
+std::list<Id<IntervalModel>>
+nextIntervals(const EventModel& ev, const Scenario_T& scenario)
 {
   std::list<Id<IntervalModel>> intervals;
   for (const Id<StateModel>& state : ev.states())
@@ -133,7 +143,8 @@ nextNonGraphIntervals(const EventModel& ev, const Scenario_T& scenario)
 }
 
 template <typename Scenario_T>
-std::list<Id<IntervalModel>> previousIntervals(const EventModel& ev, const Scenario_T& scenario)
+std::list<Id<IntervalModel>>
+previousIntervals(const EventModel& ev, const Scenario_T& scenario)
 {
   std::list<Id<IntervalModel>> intervals;
   for (const Id<StateModel>& state : ev.states())
@@ -218,7 +229,8 @@ bool isSingular(const IntervalModel& itv, const Scenario_T& scenario)
 }
 // TimeSyncs
 template <typename Scenario_T>
-std::list<Id<IntervalModel>> nextIntervals(const TimeSyncModel& tn, const Scenario_T& scenario)
+std::list<Id<IntervalModel>>
+nextIntervals(const TimeSyncModel& tn, const Scenario_T& scenario)
 {
   std::list<Id<IntervalModel>> intervals;
   for (const Id<EventModel>& event_id : tn.events())
@@ -247,7 +259,8 @@ nextNonGraphIntervals(const TimeSyncModel& tn, const Scenario_T& scenario)
 }
 
 template <typename Scenario_T>
-std::list<Id<IntervalModel>> previousIntervals(const TimeSyncModel& tn, const Scenario_T& scenario)
+std::list<Id<IntervalModel>>
+previousIntervals(const TimeSyncModel& tn, const Scenario_T& scenario)
 {
   std::list<Id<IntervalModel>> intervals;
   for (const Id<EventModel>& event_id : tn.events())
@@ -302,7 +315,8 @@ bool hasNextIntervals(const TimeSyncModel& tn, const Scenario_T& scenario)
 }
 
 template <typename Scenario_T>
-std::list<Id<StateModel>> states(const TimeSyncModel& tn, const Scenario_T& scenario)
+std::list<Id<StateModel>>
+states(const TimeSyncModel& tn, const Scenario_T& scenario)
 {
   std::list<Id<StateModel>> stateList;
   for (const Id<EventModel>& event_id : tn.events())

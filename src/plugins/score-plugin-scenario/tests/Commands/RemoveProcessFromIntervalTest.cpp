@@ -1,6 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Process/ProcessList.hpp>
+
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/RemoveProcessFromInterval.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
@@ -25,19 +26,21 @@ private:
     ProcessList plist(obj);
     plist.registerProcess(new ScenarioFactory);
 
-    IntervalModel* int_model
-        = new IntervalModel{Id<IntervalModel>{0}, Id<IntervalViewModel>{0}, qApp};
+    IntervalModel* int_model = new IntervalModel{
+        Id<IntervalModel>{0}, Id<IntervalViewModel>{0}, qApp};
     int_model->createRack(Id<RackModel>{656});
-    IntervalModel* int_model2
-        = new IntervalModel{Id<IntervalModel>{0}, Id<IntervalViewModel>{0}, int_model};
+    IntervalModel* int_model2 = new IntervalModel{
+        Id<IntervalModel>{0}, Id<IntervalViewModel>{0}, int_model};
     int_model2->createRack(Id<RackModel>{656});
 
     QVERIFY(int_model2->processes().size() == 0);
-    AddProcessToInterval cmd({{"IntervalModel", {}}, {"IntervalModel", 0}}, "Scenario");
+    AddProcessToInterval cmd(
+        {{"IntervalModel", {}}, {"IntervalModel", 0}}, "Scenario");
     cmd.redo(ctx);
     QVERIFY(int_model2->processes().size() == 1);
 
-    auto s0 = static_cast<Scenario::ProcessModel*>(int_model2->processes().front());
+    auto s0 = static_cast<Scenario::ProcessModel*>(
+        int_model2->processes().front());
 
     auto int_0_id = getStrongId(s0->intervals());
     auto ev_0_id = getStrongId(s0->events());
@@ -67,7 +70,8 @@ private:
     auto last_interval = s0->intervals().front();
     QVERIFY(last_interval->processes().size() == 1);
 
-    RemoveProcessFromInterval cmd3({{"IntervalModel", {}}, {"IntervalModel", 0}}, s0->id());
+    RemoveProcessFromInterval cmd3(
+        {{"IntervalModel", {}}, {"IntervalModel", 0}}, s0->id());
 
     cmd3.redo(ctx);
     QVERIFY(int_model2->processes().size() == 0);

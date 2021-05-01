@@ -42,7 +42,9 @@ Component::Component(
       notes.insert(to_note(data));
     }
 
-    in_exec([n = std::move(notes), midi]() mutable { midi->set_notes(std::move(n)); });
+    in_exec([n = std::move(notes), midi]() mutable {
+      midi->set_notes(std::move(n));
+    });
   };
   set_notes();
 
@@ -52,13 +54,17 @@ Component::Component(
   for (auto& note : element.notes)
   {
     QObject::connect(
-        &note, &Note::noteChanged, this, [&, midi, cur = to_note(note.noteData())]() mutable {
+        &note,
+        &Note::noteChanged,
+        this,
+        [&, midi, cur = to_note(note.noteData())]() mutable {
           auto old = cur;
           cur = to_note(note.noteData());
           in_exec([old, cur, midi] { midi->update_note(old, cur); });
         });
   }
-  QObject::connect(&element, &Midi::ProcessModel::notesChanged, this, set_notes);
+  QObject::connect(
+      &element, &Midi::ProcessModel::notesChanged, this, set_notes);
 }
 
 Component::~Component() { }
@@ -68,11 +74,15 @@ void Component::on_noteAdded(const Note& n)
   auto midi = std::dynamic_pointer_cast<midi_node>(node);
   in_exec([nd = to_note(n.noteData()), midi] { midi->add_note(nd); });
 
-  QObject::connect(&n, &Note::noteChanged, this, [&, midi, cur = to_note(n.noteData())]() mutable {
-    auto old = cur;
-    cur = to_note(n.noteData());
-    in_exec([old, cur, midi] { midi->update_note(old, cur); });
-  });
+  QObject::connect(
+      &n,
+      &Note::noteChanged,
+      this,
+      [&, midi, cur = to_note(n.noteData())]() mutable {
+        auto old = cur;
+        cur = to_note(n.noteData());
+        in_exec([old, cur, midi] { midi->update_note(old, cur); });
+      });
 }
 
 void Component::on_noteRemoved(const Note& n)

@@ -1,18 +1,18 @@
 #pragma once
+#include <Control/DefaultEffectItem.hpp>
+#include <Effect/EffectFactory.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessMetadata.hpp>
+#include <Process/Script/ScriptEditor.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/node_process.hpp>
 
-#include <Process/Script/ScriptEditor.hpp>
 #include <JitCpp/EditScript.hpp>
 
-#include <Control/DefaultEffectItem.hpp>
-#include <Effect/EffectFactory.hpp>
 #include <verdigris>
 
 namespace Jit
@@ -77,7 +77,8 @@ public:
 
   BytebeatFactory factory;
 
-  void errorMessage(int line, const QString& e) W_SIGNAL(errorMessage, line, e);
+  void errorMessage(int line, const QString& e)
+      W_SIGNAL(errorMessage, line, e);
 
   PROPERTY(QString, script READ script WRITE setScript NOTIFY scriptChanged)
 private:
@@ -111,8 +112,10 @@ using BytebeatEffectFactory = Process::EffectProcessFactory_T<BytebeatModel>;
 using BytebeatLayerFactory = Process::EffectLayerFactory_T<
     BytebeatModel,
     Process::DefaultEffectItem,
-    Process::ProcessScriptEditDialog<BytebeatModel, BytebeatModel::p_script, BytebeatLanguageSpec>
->;
+    Process::ProcessScriptEditDialog<
+        BytebeatModel,
+        BytebeatModel::p_script,
+        BytebeatLanguageSpec>>;
 
 class BytebeatExecutor final
     : public Execution::

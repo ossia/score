@@ -18,7 +18,9 @@ class SettingsDelegatePresenter : public QObject
 public:
   using SView = score::SettingsDelegateView<Model>;
   SettingsDelegatePresenter(Model& model, SView& view, QObject* parent)
-      : QObject{parent}, m_model{model}, m_view{view}
+      : QObject{parent}
+      , m_model{model}
+      , m_view{view}
   {
   }
 
@@ -49,22 +51,24 @@ protected:
   score::SettingsCommandDispatcher m_disp;
 };
 
-using GlobalSettingsPresenter = SettingsDelegatePresenter<SettingsDelegateModel>;
+using GlobalSettingsPresenter
+    = SettingsDelegatePresenter<SettingsDelegateModel>;
 using GlobalSettingsView = SettingsDelegateView<SettingsDelegateModel>;
 }
 
-#define DEFERRED_SETTINGS_PRESENTER(Control)                                     \
-  do                                                                             \
-  {                                                                              \
-    con(v, &View::Control##Changed, this, [&](auto val) {                        \
-      if (val != m.get##Control())                                               \
-      {                                                                          \
-        m_disp.submitDeferredCommand<SetModel##Control>(this->model(this), val); \
-      }                                                                          \
-    });                                                                          \
-                                                                                 \
-    con(m, &Model::Control##Changed, &v, &View::set##Control);                   \
-    v.set##Control(m.get##Control());                                            \
+#define DEFERRED_SETTINGS_PRESENTER(Control)                   \
+  do                                                           \
+  {                                                            \
+    con(v, &View::Control##Changed, this, [&](auto val) {      \
+      if (val != m.get##Control())                             \
+      {                                                        \
+        m_disp.submitDeferredCommand<SetModel##Control>(       \
+            this->model(this), val);                           \
+      }                                                        \
+    });                                                        \
+                                                               \
+    con(m, &Model::Control##Changed, &v, &View::set##Control); \
+    v.set##Control(m.get##Control());                          \
   } while (0)
 
 #define SETTINGS_PRESENTER(Control)                               \

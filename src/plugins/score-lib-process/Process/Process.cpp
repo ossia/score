@@ -61,7 +61,9 @@ ProcessModel::ProcessModel(
     , m_size{200, 100}
     , m_loops{false}
 {
-  con(metadata(), &score::ModelMetadata::NameChanged, this, [=] { prettyNameChanged(); });
+  con(metadata(), &score::ModelMetadata::NameChanged, this, [=] {
+    prettyNameChanged();
+  });
   // metadata().setInstanceName(*this);
 }
 
@@ -85,16 +87,22 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
   setDuration(newDuration);
 }
 
-ProcessModel::ProcessModel(DataStream::Deserializer& vis, QObject* parent) : Entity(vis, parent)
+ProcessModel::ProcessModel(DataStream::Deserializer& vis, QObject* parent)
+    : Entity(vis, parent)
 {
   vis.writeTo(*this);
-  con(metadata(), &score::ModelMetadata::NameChanged, this, [=] { prettyNameChanged(); });
+  con(metadata(), &score::ModelMetadata::NameChanged, this, [=] {
+    prettyNameChanged();
+  });
 }
 
-ProcessModel::ProcessModel(JSONObject::Deserializer& vis, QObject* parent) : Entity(vis, parent)
+ProcessModel::ProcessModel(JSONObject::Deserializer& vis, QObject* parent)
+    : Entity(vis, parent)
 {
   vis.writeTo(*this);
-  con(metadata(), &score::ModelMetadata::NameChanged, this, [=] { prettyNameChanged(); });
+  con(metadata(), &score::ModelMetadata::NameChanged, this, [=] {
+    prettyNameChanged();
+  });
 }
 
 QString ProcessModel::prettyName() const noexcept
@@ -102,7 +110,9 @@ QString ProcessModel::prettyName() const noexcept
   return metadata().getName();
 }
 
-void ProcessModel::setParentDuration(ExpandMode mode, const TimeVal& t) noexcept
+void ProcessModel::setParentDuration(
+    ExpandMode mode,
+    const TimeVal& t) noexcept
 {
   switch (mode)
   {
@@ -175,7 +185,8 @@ Process::Inlet* ProcessModel::inlet(const Id<Process::Port>& p) const noexcept
   return nullptr;
 }
 
-Process::Outlet* ProcessModel::outlet(const Id<Process::Port>& p) const noexcept
+Process::Outlet*
+ProcessModel::outlet(const Id<Process::Port>& p) const noexcept
 {
   for (auto e : m_outlets)
     if (e->id() == p)
@@ -193,7 +204,8 @@ void ProcessModel::loadPreset(const Preset& preset)
     const auto& id = arr[0].GetInt();
     ossia::value val = JsonValue{arr[1]}.to<ossia::value>();
 
-    auto it = ossia::find_if(m_inlets, [&](const auto& inl) { return inl->id().val() == id; });
+    auto it = ossia::find_if(
+        m_inlets, [&](const auto& inl) { return inl->id().val() == id; });
     if (it != m_inlets.end())
     {
       Process::Inlet& inlet = **it;
@@ -228,17 +240,12 @@ Preset ProcessModel::savePreset() const noexcept
   return p;
 }
 
-void ProcessModel::ancestorStartDateChanged()
-{
+void ProcessModel::ancestorStartDateChanged() { }
 
-}
+void ProcessModel::ancestorTempoChanged() { }
 
-void ProcessModel::ancestorTempoChanged()
-{
-
-}
-
-void ProcessModel::forEachControl(smallfun::function<void(ControlInlet&, const ossia::value&)> f) const
+void ProcessModel::forEachControl(
+    smallfun::function<void(ControlInlet&, const ossia::value&)> f) const
 {
   for (const auto& inlet : m_inlets)
   {

@@ -6,7 +6,8 @@
 #include <array>
 
 template <>
-SCORE_LIB_BASE_EXPORT void DataStreamReader::read(const std::array<float, 2>& obj)
+SCORE_LIB_BASE_EXPORT void
+DataStreamReader::read(const std::array<float, 2>& obj)
 {
   for (auto i = 0U; i < obj.size(); i++)
     m_stream << obj[i];
@@ -22,7 +23,8 @@ SCORE_LIB_BASE_EXPORT void DataStreamWriter::write(std::array<float, 2>& obj)
 }
 
 template <>
-SCORE_LIB_BASE_EXPORT void DataStreamReader::read(const std::array<float, 3>& obj)
+SCORE_LIB_BASE_EXPORT void
+DataStreamReader::read(const std::array<float, 3>& obj)
 {
   for (auto i = 0U; i < obj.size(); i++)
     m_stream << obj[i];
@@ -38,7 +40,8 @@ SCORE_LIB_BASE_EXPORT void DataStreamWriter::write(std::array<float, 3>& obj)
 }
 
 template <>
-SCORE_LIB_BASE_EXPORT void DataStreamReader::read(const std::array<float, 4>& obj)
+SCORE_LIB_BASE_EXPORT void
+DataStreamReader::read(const std::array<float, 4>& obj)
 {
   for (auto i = 0U; i < obj.size(); i++)
     m_stream << obj[i];

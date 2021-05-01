@@ -6,6 +6,23 @@
 #include <Process/LayerPresenter.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
+
+#include <score/application/ApplicationContext.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/document/DocumentInterface.hpp>
+#include <score/model/EntityMap.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/plugins/StringFactoryKey.hpp>
+#include <score/selection/Selection.hpp>
+#include <score/selection/SelectionStack.hpp>
+#include <score/tools/std/Optional.hpp>
+
+#include <QAction>
+#include <QMenu>
+#include <QPoint>
+
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
@@ -25,22 +42,6 @@
 #include <Scenario/Process/ScenarioPresenter.hpp>
 #include <Scenario/Process/ScenarioView.hpp>
 #include <Scenario/ViewCommands/PutLayerModelToFront.hpp>
-
-#include <score/application/ApplicationContext.hpp>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
-#include <score/document/DocumentContext.hpp>
-#include <score/document/DocumentInterface.hpp>
-#include <score/model/EntityMap.hpp>
-#include <score/model/Identifier.hpp>
-#include <score/plugins/StringFactoryKey.hpp>
-#include <score/selection/Selection.hpp>
-#include <score/selection/SelectionStack.hpp>
-#include <score/tools/std/Optional.hpp>
-
-#include <QAction>
-#include <QMenu>
-#include <QPoint>
 
 namespace Scenario
 {

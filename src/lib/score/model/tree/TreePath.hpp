@@ -3,8 +3,9 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
-#include <vector>
 #include <QModelIndex>
+
+#include <vector>
 template <typename T>
 using ref = T&;
 template <typename T>
@@ -36,13 +37,16 @@ private:
 
 public:
   TreePath() = default;
-  TreePath(const impl_type& other) : impl_type(other) { }
+  TreePath(const impl_type& other)
+      : impl_type(other)
+  {
+  }
 
   TreePath(QModelIndex index)
   {
     QModelIndex iter = index;
 
-    if(iter.isValid())
+    if (iter.isValid())
       reserve(4);
 
     while (iter.isValid())
@@ -67,10 +71,7 @@ public:
     }
   }
 
-  void prepend(int val)
-  {
-    this->insert(this->begin(), val);
-  }
+  void prepend(int val) { this->insert(this->begin(), val); }
 
   template <typename T>
   const T* toNode(const T* iter) const
@@ -118,21 +119,24 @@ struct is_custom_serialized<TreePath> : std::true_type
 {
 };
 
-template<>
-struct TSerializer<DataStream, TreePath> : TSerializer<DataStream, std::vector<int>>
+template <>
+struct TSerializer<DataStream, TreePath>
+    : TSerializer<DataStream, std::vector<int>>
 {
   static void readFrom(DataStream::Serializer& s, const TreePath& path)
   {
-     TSerializer<DataStream, std::vector<int>>::readFrom(s, static_cast<const std::vector<int>&>(path));
+    TSerializer<DataStream, std::vector<int>>::readFrom(
+        s, static_cast<const std::vector<int>&>(path));
   }
 
   static void writeTo(DataStream::Deserializer& s, TreePath& path)
   {
-    TSerializer<DataStream, std::vector<int>>::writeTo(s, static_cast<std::vector<int>&>(path));
+    TSerializer<DataStream, std::vector<int>>::writeTo(
+        s, static_cast<std::vector<int>&>(path));
   }
 };
 
-template<>
+template <>
 struct TSerializer<JSONObject, TreePath>
 {
   static void readFrom(JSONObject::Serializer& s, const TreePath& path)

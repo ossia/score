@@ -1,6 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Process/ProcessList.hpp>
+
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/AddRackToInterval.hpp>
 #include <Scenario/Commands/Interval/RemoveProcessFromInterval.hpp>
@@ -24,8 +25,8 @@ private:
     ProcessList* plist = new ProcessList{obj};
     plist->registerProcess(new ScenarioFactory);
 
-    IntervalModel* cstrModel
-        = new IntervalModel{Id<IntervalModel>{1}, Id<IntervalViewModel>{0}, qApp};
+    IntervalModel* cstrModel = new IntervalModel{
+        Id<IntervalModel>{1}, Id<IntervalViewModel>{0}, qApp};
 
     AddRackToInterval rackCmd(ObjectPath{{"IntervalModel", {1}}});
     rackCmd.redo(ctx);

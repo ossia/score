@@ -18,7 +18,8 @@ class ProcessModel;
 namespace Executor
 {
 class Component final
-    : public ::Execution::ProcessComponent_T<JS::ProcessModel, ossia::node_process>
+    : public ::Execution::
+          ProcessComponent_T<JS::ProcessModel, ossia::node_process>
 {
   COMPONENT_METADATA("c2737929-231e-4d57-9088-a2a3a8d3c24e")
 public:

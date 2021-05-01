@@ -1,10 +1,12 @@
 #include <ControlSurface/Remote.hpp>
 #include <Process/Dataflow/Port.hpp>
-#include <score/tools/Bind.hpp>
-#include <score/model/path/PathSerialization.hpp>
-#include <score/model/EntitySerialization.hpp>
-#include <score/plugins/SerializableHelpers.hpp>
 #include <State/ValueSerialization.hpp>
+
+#include <score/model/EntitySerialization.hpp>
+#include <score/model/path/PathSerialization.hpp>
+#include <score/plugins/SerializableHelpers.hpp>
+#include <score/tools/Bind.hpp>
+
 #include <ossia/detail/algorithms.hpp>
 
 namespace ControlSurface
@@ -23,9 +25,8 @@ struct RemoteMessages
     r.obj[score::StringConstant().Label] = process.metadata().getLabel();
 
     Process::Inlets controls;
-    process.forEachControl([&] (auto& inl, auto& val) {
-      controls.push_back(&inl);
-    });
+    process.forEachControl(
+        [&](auto& inl, auto& val) { controls.push_back(&inl); });
     r.obj["Controls"] = controls;
     r.stream.EndObject();
     return r.toString();
@@ -64,7 +65,7 @@ struct RemoteMessages
       return;
 
     auto ctrl_it = obj.FindMember("id");
-    if(ctrl_it == obj.MemberEnd())
+    if (ctrl_it == obj.MemberEnd())
       return;
 
     auto path = score::unmarshall<Path<Model>>(it->value);
@@ -73,23 +74,24 @@ struct RemoteMessages
 
     {
       Model* csp = path.try_find(doc);
-      if(!csp)
+      if (!csp)
         return;
       auto& cs = *csp;
 
       Id<Process::Inlet> id(ctrl_it->value.GetInt());
-      auto it = ossia::find_if(cs.inlets(), [&](const auto& inlet) {
-        return inlet->id() == id;
-      });
-      if(it == cs.inlets().end())
+      auto it = ossia::find_if(
+          cs.inlets(), [&](const auto& inlet) { return inlet->id() == id; });
+      if (it == cs.inlets().end())
         return;
 
       auto value_it = obj.FindMember("Value");
-      if(value_it == obj.MemberEnd())
+      if (value_it == obj.MemberEnd())
         return;
 
       auto v = score::unmarshall<ossia::value>(value_it->value);
-      if(Process::ControlInlet* inl = qobject_cast<Process::ControlInlet*>(*it)) {
+      if (Process::ControlInlet* inl
+          = qobject_cast<Process::ControlInlet*>(*it))
+      {
         inl->setValue(std::move(v));
       }
     }
@@ -102,23 +104,26 @@ Remote::Remote(
     const Id<score::Component>& id,
     QObject* parent_obj)
     : RemoteControl::ProcessComponent_T<Model>{
-        proc, doc, id, "ControlSurfaceComponent", parent_obj}
+        proc,
+        doc,
+        id,
+        "ControlSurfaceComponent",
+        parent_obj}
 {
-  con(proc, &Model::startExecution,
-      this, [this] {
+  con(proc, &Model::startExecution, this, [this] {
     RemoteControl::Handler h;
     RemoteMessages msgs{process()};
 
     h.setupDefaultHandler(msgs);
 
-    h.answers["ControlSurface"] =
-        [this, msgs](const rapidjson::Value& v, const RemoteControl::WSClient&) {
-      msgs.controlSurface(v, this->system().context());
-    };
+    h.answers["ControlSurface"]
+        = [this,
+           msgs](const rapidjson::Value& v, const RemoteControl::WSClient&) {
+            msgs.controlSurface(v, this->system().context());
+          };
 
-    process().forEachControl([&] (const Process::ControlInlet& inl, auto& val) {
-      con(inl, &Process::ControlInlet::valueChanged,
-          this, [this, &inl] {
+    process().forEachControl([&](const Process::ControlInlet& inl, auto& val) {
+      con(inl, &Process::ControlInlet::valueChanged, this, [this, &inl] {
         RemoteMessages msgs{process()};
         system().receiver.sendMessage(msgs.controlMessage(inl));
       });
@@ -127,17 +132,16 @@ Remote::Remote(
     system().receiver.addHandler(this, std::move(h));
   });
 
-  con(proc, &Model::stopExecution,
-      this, [this] {
+  con(proc, &Model::stopExecution, this, [this] {
     system().receiver.removeHandler(this);
 
-    process().forEachControl([this] (const Process::ControlInlet& inl, auto& val) {
-    QObject::disconnect(&inl, &Process::ControlInlet::valueChanged,
-                        this, nullptr);
-    });
+    process().forEachControl(
+        [this](const Process::ControlInlet& inl, auto& val) {
+          QObject::disconnect(
+              &inl, &Process::ControlInlet::valueChanged, this, nullptr);
+        });
   });
 }
-
 
 Remote::~Remote()
 {

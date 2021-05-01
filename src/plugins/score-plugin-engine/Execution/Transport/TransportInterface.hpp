@@ -1,13 +1,15 @@
 #pragma once
 #include <score/plugins/Interface.hpp>
 #include <score/plugins/InterfaceList.hpp>
+
 #include <ossia-qt/time_value.hpp>
 #include <ossia/dataflow/transport.hpp>
-#include <verdigris>
 
 #include <QObject>
 
 #include <score_plugin_engine_export.h>
+
+#include <verdigris>
 
 namespace Execution
 {
@@ -32,14 +34,11 @@ public:
   virtual void requestStop() = 0;
   virtual void requestTransport(ossia::time_value t) = 0;
 
-  void play()
-  E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, play);
-  void pause()
-  E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, pause);
-  void stop()
-  E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, stop);
+  void play() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, play);
+  void pause() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, pause);
+  void stop() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, stop);
   void transport(ossia::time_value t)
-  E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, transport, t);
+      E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, transport, t);
 };
 
 class SCORE_PLUGIN_ENGINE_EXPORT TransportInterfaceList final

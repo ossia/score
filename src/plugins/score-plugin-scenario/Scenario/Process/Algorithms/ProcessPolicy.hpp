@@ -11,7 +11,8 @@ namespace Scenario
 {
 class IntervalModel;
 class StateModel;
-SCORE_PLUGIN_SCENARIO_EXPORT void AddProcess(IntervalModel& interval, Process::ProcessModel*);
+SCORE_PLUGIN_SCENARIO_EXPORT void
+AddProcess(IntervalModel& interval, Process::ProcessModel*);
 
 // Does delete the process
 SCORE_PLUGIN_SCENARIO_EXPORT void

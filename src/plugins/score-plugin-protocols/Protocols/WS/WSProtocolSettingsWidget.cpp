@@ -36,7 +36,11 @@ WSProtocolSettingsWidget::WSProtocolSettingsWidget(QWidget* parent)
   m_codeEdit = Process::createScriptWidget("JS");
   checkForChanges(m_codeEdit);
 
-  connect(m_codeEdit, &QCodeEditor::editingFinished, this, &WSProtocolSettingsWidget::parseHost);
+  connect(
+      m_codeEdit,
+      &QCodeEditor::editingFinished,
+      this,
+      &WSProtocolSettingsWidget::parseHost);
 
   auto layout = new QGridLayout;
 
@@ -65,25 +69,30 @@ void WSProtocolSettingsWidget::parseHost()
 {
   auto engine = new QQmlEngine;
   auto comp = new QQmlComponent{engine};
-  connect(comp, &QQmlComponent::statusChanged, this, [=](QQmlComponent::Status status) {
-    switch (status)
-    {
-      case QQmlComponent::Status::Ready:
-      {
-        auto object = comp->create();
-        if (auto prop = object->property("host").toString(); !prop.isEmpty())
+  connect(
+      comp,
+      &QQmlComponent::statusChanged,
+      this,
+      [=](QQmlComponent::Status status) {
+        switch (status)
         {
-          m_addressNameEdit->setText(prop);
+          case QQmlComponent::Status::Ready:
+          {
+            auto object = comp->create();
+            if (auto prop = object->property("host").toString();
+                !prop.isEmpty())
+            {
+              m_addressNameEdit->setText(prop);
+            }
+            object->deleteLater();
+            break;
+          }
+          default:
+            qDebug() << status << comp->errorString();
         }
-        object->deleteLater();
-        break;
-      }
-      default:
-        qDebug() << status << comp->errorString();
-    }
-    comp->deleteLater();
-    engine->deleteLater();
-  });
+        comp->deleteLater();
+        engine->deleteLater();
+      });
 
   comp->setData(m_codeEdit->document()->toPlainText().toUtf8(), QUrl{});
 }
@@ -104,7 +113,8 @@ Device::DeviceSettings WSProtocolSettingsWidget::getSettings() const
   return s;
 }
 
-void WSProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settings)
+void WSProtocolSettingsWidget::setSettings(
+    const Device::DeviceSettings& settings)
 {
   m_deviceNameEdit->setText(settings.name);
   WSSpecificSettings specific;
@@ -113,7 +123,7 @@ void WSProtocolSettingsWidget::setSettings(const Device::DeviceSettings& setting
     specific = settings.deviceSpecificSettings.value<WSSpecificSettings>();
 
     m_addressNameEdit->setText(specific.address);
-    if(specific.text != m_codeEdit->toPlainText())
+    if (specific.text != m_codeEdit->toPlainText())
     {
       m_codeEdit->setPlainText(specific.text);
       parseHost();

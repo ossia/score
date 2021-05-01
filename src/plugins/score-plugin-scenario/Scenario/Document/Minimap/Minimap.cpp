@@ -1,7 +1,6 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Scenario/Document/Minimap/Minimap.hpp>
 
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/tools/Cursor.hpp>
@@ -14,12 +13,14 @@
 #include <QPainter>
 #include <QWidget>
 
+#include <Scenario/Document/Minimap/Minimap.hpp>
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Scenario::Minimap)
 namespace Scenario
 {
-Minimap::Minimap(QGraphicsView* vp) : m_viewport{vp}
+Minimap::Minimap(QGraphicsView* vp)
+    : m_viewport{vp}
 {
   this->setAcceptHoverEvents(true);
 }
@@ -90,12 +91,16 @@ QRectF Minimap::boundingRect() const
   return {0., 0., m_width, m_height};
 }
 
-void Minimap::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void Minimap::paint(
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   auto& sk = Process::Style::instance();
   painter->setRenderHint(QPainter::Antialiasing, false);
   painter->fillRect(
-      QRectF{m_leftHandle, 0., m_rightHandle - m_leftHandle, m_height}, sk.MinimapBrush());
+      QRectF{m_leftHandle, 0., m_rightHandle - m_leftHandle, m_height},
+      sk.MinimapBrush());
 
   painter->setPen(sk.MinimapPen());
   const double line_length = 4;
@@ -137,7 +142,8 @@ void Minimap::mousePressEvent(QGraphicsSceneMouseEvent* ev)
   }
 
   m_startPos = score::globalPos(m_viewport, ev);
-  m_relativeStartX = (ev->pos().x() - m_leftHandle) / (m_rightHandle - m_leftHandle);
+  m_relativeStartX
+      = (ev->pos().x() - m_leftHandle) / (m_rightHandle - m_leftHandle);
   m_startY = ev->pos().y();
 
   if (m_setCursor)

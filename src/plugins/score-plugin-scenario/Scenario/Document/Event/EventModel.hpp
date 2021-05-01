@@ -1,7 +1,5 @@
 #pragma once
 #include <Process/TimeValue.hpp>
-#include <Scenario/Document/Event/ExecutionStatus.hpp>
-#include <Scenario/Document/Metatypes.hpp>
 #include <State/Expression.hpp>
 
 #include <score/model/Component.hpp>
@@ -12,6 +10,8 @@
 #include <score/tools/Metadata.hpp>
 #include <score/tools/std/Optional.hpp>
 
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/Metatypes.hpp>
 #include <score_plugin_scenario_export.h>
 
 #include <verdigris>
@@ -30,7 +30,8 @@ class StateModel;
 class ScenarioInterface;
 class TimeSyncModel;
 
-class SCORE_PLUGIN_SCENARIO_EXPORT EventModel final : public score::Entity<EventModel>
+class SCORE_PLUGIN_SCENARIO_EXPORT EventModel final
+    : public score::Entity<EventModel>
 {
   W_OBJECT(EventModel)
 
@@ -48,7 +49,8 @@ public:
       QObject* parent);
 
   template <typename DeserializerVisitor>
-  EventModel(DeserializerVisitor&& vis, QObject* parent) : Entity{vis, parent}
+  EventModel(DeserializerVisitor&& vis, QObject* parent)
+      : Entity{vis, parent}
   {
     vis.writeTo(*this);
   }
@@ -73,13 +75,16 @@ public:
 
   void setCondition(const State::Expression& arg);
   void setDate(const TimeVal& date);
-  void setStatus(Scenario::ExecutionStatus status, const Scenario::ScenarioInterface&);
+  void setStatus(
+      Scenario::ExecutionStatus status,
+      const Scenario::ScenarioInterface&);
   void setOffsetBehavior(Scenario::OffsetBehavior);
 
   const QBrush& color(const Process::Style&) const noexcept;
 
 public:
-  void dateChanged(const TimeVal& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dateChanged, arg_1)
+  void dateChanged(const TimeVal& arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dateChanged, arg_1)
   void conditionChanged(const State::Expression& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, conditionChanged, arg_1)
   void statesChanged() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, statesChanged)
@@ -87,7 +92,9 @@ public:
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, statusChanged, status)
   void offsetBehaviorChanged(OffsetBehavior arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, offsetBehaviorChanged, arg_1)
-  void timeSyncChanged(Id<Scenario::TimeSyncModel> oldt, Id<Scenario::TimeSyncModel> newt)
+  void timeSyncChanged(
+      Id<Scenario::TimeSyncModel> oldt,
+      Id<Scenario::TimeSyncModel> newt)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, timeSyncChanged, oldt, newt)
 
 private:
@@ -101,7 +108,8 @@ private:
 
   W_PROPERTY(
       Scenario::OffsetBehavior,
-      offsetBehavior READ offsetBehavior WRITE setOffsetBehavior NOTIFY offsetBehaviorChanged,
+      offsetBehavior READ offsetBehavior WRITE setOffsetBehavior NOTIFY
+          offsetBehaviorChanged,
       W_Final)
 };
 }

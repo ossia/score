@@ -17,15 +17,26 @@ template <int N>
 struct NumberedEvent : public QEvent
 {
   static constexpr const int user_type = N;
-  NumberedEvent() : QEvent{QEvent::Type(QEvent::User + N)} { }
+  NumberedEvent()
+      : QEvent{QEvent::Type(QEvent::User + N)}
+  {
+  }
 };
 
 template <typename Element, int N>
 struct NumberedWithPath_Event final : public NumberedEvent<N>
 {
-  explicit NumberedWithPath_Event(const Path<Element>& p) : NumberedEvent<N>(), path(p) { }
+  explicit NumberedWithPath_Event(const Path<Element>& p)
+      : NumberedEvent<N>()
+      , path(p)
+  {
+  }
 
-  explicit NumberedWithPath_Event(Path<Element>&& p) : NumberedEvent<N>(), path(std::move(p)) { }
+  explicit NumberedWithPath_Event(Path<Element>&& p)
+      : NumberedEvent<N>()
+      , path(std::move(p))
+  {
+  }
 
   Path<Element> path;
 };
@@ -33,7 +44,11 @@ struct NumberedWithPath_Event final : public NumberedEvent<N>
 template <typename PointType>
 struct PositionedEvent : public QEvent
 {
-  PositionedEvent(const PointType& pt, QEvent::Type type) : QEvent{type}, point{pt} { }
+  PositionedEvent(const PointType& pt, QEvent::Type type)
+      : QEvent{type}
+      , point{pt}
+  {
+  }
 
   ~PositionedEvent() override = default;
 
@@ -60,7 +75,10 @@ template <typename State, typename T>
 class StateAwareTransition : public T
 {
 public:
-  explicit StateAwareTransition(State& state) : m_state{state} { }
+  explicit StateAwareTransition(State& state)
+      : m_state{state}
+  {
+  }
 
   State& state() const { return m_state; }
 
@@ -68,8 +86,13 @@ private:
   State& m_state;
 };
 
-template <typename Transition, typename SourceState, typename TargetState, typename... Args>
-Transition* make_transition(SourceState source, TargetState dest, Args&&... args)
+template <
+    typename Transition,
+    typename SourceState,
+    typename TargetState,
+    typename... Args>
+Transition*
+make_transition(SourceState source, TargetState dest, Args&&... args)
 {
   Transition* t = new Transition{std::forward<Args>(args)...};
   t->setTargetState(dest);

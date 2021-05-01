@@ -16,6 +16,5 @@ public:
 private:
   QString settingsName() override;
   QIcon settingsIcon() override;
-
 };
 }

@@ -87,6 +87,7 @@ public:
   double max{};
 
   void setRange(double min, double max) noexcept;
+
 protected:
   void paintEvent(QPaintEvent* event) override;
 };
@@ -97,7 +98,8 @@ struct SCORE_LIB_BASE_EXPORT ComboSlider : public score::IntSlider
 
 public:
   template <std::size_t N>
-  ComboSlider(const std::array<const char*, N>& arr, QWidget* parent) : score::IntSlider{parent}
+  ComboSlider(const std::array<const char*, N>& arr, QWidget* parent)
+      : score::IntSlider{parent}
   {
     array.reserve(N);
     for (auto str : arr)

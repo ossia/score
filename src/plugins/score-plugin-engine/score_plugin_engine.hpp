@@ -157,10 +157,11 @@
  * various protocols: OSC, MIDI, Minuit, HTTP, WebSocket...
  */
 
-class score_plugin_engine final : public score::ApplicationPlugin_QtInterface,
-                                  public score::FactoryList_QtInterface,
-                                  public score::FactoryInterface_QtInterface,
-                                  public score::Plugin_QtInterface
+class score_plugin_engine final
+    : public score::ApplicationPlugin_QtInterface
+    , public score::FactoryList_QtInterface
+    , public score::FactoryInterface_QtInterface
+    , public score::Plugin_QtInterface
 {
   SCORE_PLUGIN_METADATA(1, "d4758f8d-64ac-41b4-8aaf-1cbd6f3feb91")
 public:
@@ -171,7 +172,8 @@ private:
   score::GUIApplicationPlugin*
   make_guiApplicationPlugin(const score::GUIApplicationContext& app) override;
 
-  std::vector<std::unique_ptr<score::InterfaceListBase>> factoryFamilies() override;
+  std::vector<std::unique_ptr<score::InterfaceListBase>>
+  factoryFamilies() override;
 
   // Contains the OSC, MIDI, Minuit factories
   std::vector<std::unique_ptr<score::InterfaceBase>> factories(

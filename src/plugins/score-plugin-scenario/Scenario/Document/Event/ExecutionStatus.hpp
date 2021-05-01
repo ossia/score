@@ -43,7 +43,8 @@ struct ExecutionStatusProperty
   }
   const score::Brush& eventStatusColor(const Process::Style&) const noexcept;
   const score::Brush& stateStatusColor(const Process::Style&) const noexcept;
-  const score::Brush& conditionStatusColor(const Process::Style&) const noexcept;
+  const score::Brush&
+  conditionStatusColor(const Process::Style&) const noexcept;
 };
 }
 

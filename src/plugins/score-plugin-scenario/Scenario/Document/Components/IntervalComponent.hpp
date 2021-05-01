@@ -1,8 +1,8 @@
 #pragma once
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 
 namespace Scenario
 {
@@ -13,7 +13,8 @@ class IntervalComponent : public Component_T
 public:
   template <typename... Args>
   IntervalComponent(Scenario::IntervalModel& cst, Args&&... args)
-      : Component_T{std::forward<Args>(args)...}, m_interval{&cst}
+      : Component_T{std::forward<Args>(args)...}
+      , m_interval{&cst}
   {
   }
 
@@ -41,5 +42,6 @@ protected:
 };
 
 template <typename System_T>
-using GenericIntervalComponent = Scenario::IntervalComponent<score::GenericComponent<System_T>>;
+using GenericIntervalComponent
+    = Scenario::IntervalComponent<score::GenericComponent<System_T>>;
 }

@@ -1,10 +1,11 @@
 #pragma once
 
-#include <Scenario/Inspector/ExpressionValidator.hpp>
 #include <State/Expression.hpp>
 
 #include <QString>
 #include <QWidget>
+
+#include <Scenario/Inspector/ExpressionValidator.hpp>
 
 #include <verdigris>
 

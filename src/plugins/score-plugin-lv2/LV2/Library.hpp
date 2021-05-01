@@ -1,15 +1,17 @@
 #pragma once
-#include <Library/LibraryInterface.hpp>
-#include <Library/ProcessesItemModel.hpp>
 #include <LV2/ApplicationPlugin.hpp>
 #include <LV2/EffectModel.hpp>
+#include <Library/LibraryInterface.hpp>
+#include <Library/ProcessesItemModel.hpp>
 
 namespace LV2
 {
 class LibraryHandler final : public Library::LibraryInterface
 {
   SCORE_CONCRETE("570f0b92-a091-47ff-a5c3-a585e07df2bf")
-  void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx) override
+  void setup(
+      Library::ProcessesItemModel& model,
+      const score::GUIApplicationContext& ctx) override
   {
     const auto& key = LV2::ProcessFactory{}.concreteKey();
     QModelIndex node = model.find(key);
@@ -17,7 +19,8 @@ class LibraryHandler final : public Library::LibraryInterface
     {
       return;
     }
-    auto& parent = *reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
+    auto& parent
+        = *reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
 
     auto& plug = ctx.applicationPlugin<LV2::ApplicationPlugin>();
     auto& world = plug.lilv;
@@ -39,10 +42,16 @@ class LibraryHandler final : public Library::LibraryInterface
     for (auto& category : categories)
     {
       // Already sorted through the map
-      auto& cat = parent.emplace_back(Library::ProcessData{Process::ProcessData{{}, category.first, {}}, {}, {}}, &parent);
+      auto& cat = parent.emplace_back(
+          Library::ProcessData{
+              Process::ProcessData{{}, category.first, {}}, {}, {}},
+          &parent);
       for (auto& plug : category.second)
       {
-        Library::addToLibrary(cat, Library::ProcessData {Process::ProcessData{key, plug, plug}, {}, {}});
+        Library::addToLibrary(
+            cat,
+            Library::ProcessData{
+                Process::ProcessData{key, plug, plug}, {}, {}});
       }
     }
   }

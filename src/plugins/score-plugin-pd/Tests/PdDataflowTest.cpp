@@ -1,3 +1,5 @@
+#include <Pd/Executor/PdExecutor.hpp>
+
 #include <ossia/dataflow/dataflow.hpp>
 #include <ossia/editor/scenario/scenario.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
@@ -8,7 +10,7 @@
 #include <ossia/network/local/local.hpp>
 
 #include <QDebug>
-#include <Pd/Executor/PdExecutor.hpp>
+
 #include <z_libpd.h>
 
 #include <thread>
@@ -24,7 +26,7 @@ public:
     libpd_set_printhook([](const char* s) { qDebug() << "string: " << s; });
   }
 
-private :
+private:
   //  void test_pd()
   //  {
   //    using namespace ossia; using namespace ossia::net;
@@ -255,4 +257,4 @@ private :
   //  }
 };
 
-int main() {}
+int main() { }

@@ -24,10 +24,11 @@ namespace score
  * it should certainly be implemented here.
  *
  */
-class score_plugin_recording final : public score::Plugin_QtInterface,
-                                     public score::ApplicationPlugin_QtInterface,
-                                     public score::CommandFactory_QtInterface,
-                                     public score::FactoryInterface_QtInterface
+class score_plugin_recording final
+    : public score::Plugin_QtInterface
+    , public score::ApplicationPlugin_QtInterface
+    , public score::CommandFactory_QtInterface
+    , public score::FactoryInterface_QtInterface
 {
   SCORE_PLUGIN_METADATA(1, "659ba25e-97e5-40d9-8db8-f7a8537035ad")
 public:
@@ -38,7 +39,8 @@ private:
   score::GUIApplicationPlugin*
   make_guiApplicationPlugin(const score::GUIApplicationContext& app) override;
 
-  std::pair<const CommandGroupKey, CommandGeneratorMap> make_commands() override;
+  std::pair<const CommandGroupKey, CommandGeneratorMap>
+  make_commands() override;
 
   std::vector<score::PluginKey> required() const override;
 };

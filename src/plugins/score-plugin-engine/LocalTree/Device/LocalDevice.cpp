@@ -3,10 +3,9 @@
 #include "LocalDevice.hpp"
 
 #include <Explorer/DeviceLogging.hpp>
+#include <LocalTree/Device/LocalSpecificSettings.hpp>
 
 #include <score/document/DocumentContext.hpp>
-
-#include <LocalTree/Device/LocalSpecificSettings.hpp>
 #if defined(OSSIA_PROTOCOL_OSCQUERY)
 #include <ossia/network/oscquery/oscquery_server.hpp>
 #endif
@@ -23,7 +22,8 @@ LocalDevice::LocalDevice(
     ossia::net::device_base& dev,
     const score::DocumentContext& ctx,
     const Device::DeviceSettings& settings)
-    : DeviceInterface{settings}, m_dev{dev}
+    : DeviceInterface{settings}
+    , m_dev{dev}
 {
   m_capas.canRefreshTree = true;
   m_capas.canAddNode = false;
@@ -32,7 +32,8 @@ LocalDevice::LocalDevice(
   m_capas.canRemoveNode = false;
   m_capas.canSerialize = false;
 
-  auto& proto = dynamic_cast<ossia::net::multiplex_protocol&>(dev.get_protocol());
+  auto& proto
+      = dynamic_cast<ossia::net::multiplex_protocol&>(dev.get_protocol());
 
   m_proto = &proto;
   setLogging_impl(Device::get_cur_logging(isLogging()));
@@ -64,7 +65,8 @@ void LocalDevice::setRemoteSettings(const Device::DeviceSettings& settings)
     try
     {
       m_proto->expose_to(
-          std::make_unique<ossia::oscquery::oscquery_server_protocol>(set.oscPort, set.wsPort));
+          std::make_unique<ossia::oscquery::oscquery_server_protocol>(
+              set.oscPort, set.wsPort));
     }
     catch (...)
     {

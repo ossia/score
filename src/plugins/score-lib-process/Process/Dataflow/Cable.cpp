@@ -91,14 +91,16 @@ DataStreamReader::read<Process::CableData>(const Process::CableData& p)
   insertDelimiter();
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::CableData>(Process::CableData& p)
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamWriter::write<Process::CableData>(Process::CableData& p)
 {
   m_stream >> p.type >> p.source >> p.sink;
   checkDelimiter();
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::CableData>(const Process::CableData& p)
+SCORE_LIB_PROCESS_EXPORT void
+JSONReader::read<Process::CableData>(const Process::CableData& p)
 {
   stream.StartObject();
   obj["Type"] = (int)p.type;
@@ -107,7 +109,8 @@ SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::CableData>(const Process
   stream.EndObject();
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::CableData>(Process::CableData& p)
+SCORE_LIB_PROCESS_EXPORT void
+JSONWriter::write<Process::CableData>(Process::CableData& p)
 {
   p.type = (Process::CableType)obj["Type"].toInt();
   p.source <<= obj["Source"];
@@ -115,26 +118,30 @@ SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::CableData>(Process::Cab
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<Process::Cable>(const Process::Cable& p)
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamReader::read<Process::Cable>(const Process::Cable& p)
 {
   m_stream << p.toCableData();
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::Cable>(Process::Cable& p)
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamWriter::write<Process::Cable>(Process::Cable& p)
 {
   Process::CableData cd;
   m_stream >> cd;
   p.update(cd);
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::Cable>(const Process::Cable& p)
+SCORE_LIB_PROCESS_EXPORT void
+JSONReader::read<Process::Cable>(const Process::Cable& p)
 {
   obj["Type"] = (int)p.m_type;
   obj["Source"] = p.m_source;
   obj["Sink"] = p.m_sink;
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void JSONWriter::write<Process::Cable>(Process::Cable& p)
+SCORE_LIB_PROCESS_EXPORT void
+JSONWriter::write<Process::Cable>(Process::Cable& p)
 {
   p.m_type = (Process::CableType)obj["Type"].toInt();
   p.m_source <<= obj["Source"];

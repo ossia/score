@@ -1,55 +1,50 @@
 #pragma once
-#include <Vst3/EffectModel.hpp>
 #include <Process/Dataflow/TimeSignature.hpp>
+#include <Vst3/EffectModel.hpp>
 
 #include <ossia/dataflow/fx_node.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/port.hpp>
+#include <ossia/detail/logger.hpp>
 #include <ossia/detail/pod_vector.hpp>
 #include <ossia/editor/scenario/time_signature.hpp>
-#include <ossia/detail/logger.hpp>
+
 #include <public.sdk/source/vst/hosting/eventlist.h>
 #include <public.sdk/source/vst/hosting/parameterchanges.h>
 namespace vst3
 {
 
-class param_queue final
-    : public Steinberg::Vst::IParamValueQueue
+class param_queue final : public Steinberg::Vst::IParamValueQueue
 {
 public:
-  explicit param_queue(Steinberg::Vst::ParamID id): id{id} { }
+  explicit param_queue(Steinberg::Vst::ParamID id)
+      : id{id}
+  {
+  }
   ~param_queue() { }
 
   Steinberg::Vst::ParamID id{};
   ossia::small_vector<std::pair<int32_t, Steinberg::Vst::ParamValue>, 1> data;
   Steinberg::Vst::ParamValue lastValue{};
 
-  Steinberg::tresult queryInterface(const Steinberg::TUID _iid, void** obj) override
+  Steinberg::tresult
+  queryInterface(const Steinberg::TUID _iid, void** obj) override
   {
     return Steinberg::kResultOk;
   }
-  Steinberg::uint32 addRef() override
-  {
-    return 1;
-  }
-  Steinberg::uint32 release() override
-  {
-    return 1;
-  }
+  Steinberg::uint32 addRef() override { return 1; }
+  Steinberg::uint32 release() override { return 1; }
 
-  Steinberg::Vst::ParamID getParameterId() override
+  Steinberg::Vst::ParamID getParameterId() override { return id; }
+  Steinberg::int32 getPointCount() override { return data.size(); }
+  Steinberg::tresult getPoint(
+      Steinberg::int32 index,
+      Steinberg::int32& sampleOffset,
+      Steinberg::Vst::ParamValue& value) override
   {
-    return id;
-  }
-  Steinberg::int32 getPointCount() override
-  {
-    return data.size();
-  }
-  Steinberg::tresult getPoint(Steinberg::int32 index, Steinberg::int32& sampleOffset, Steinberg::Vst::ParamValue& value) override
-  {
-    if(index >= 0 && index < data.size())
+    if (index >= 0 && index < data.size())
       std::tie(sampleOffset, value) = data[index];
-    else if(index == -1)
+    else if (index == -1)
     {
       sampleOffset = 0;
       value = lastValue;
@@ -58,7 +53,10 @@ public:
     return Steinberg::kResultOk;
   }
 
-  Steinberg::tresult addPoint(Steinberg::int32 sampleOffset, Steinberg::Vst::ParamValue value, Steinberg::int32& index) override
+  Steinberg::tresult addPoint(
+      Steinberg::int32 sampleOffset,
+      Steinberg::Vst::ParamValue value,
+      Steinberg::int32& index) override
   {
     index = data.size();
     data.emplace_back(sampleOffset, value);
@@ -66,35 +64,28 @@ public:
   }
 };
 
-class param_changes final
-    : public Steinberg::Vst::IParameterChanges
+class param_changes final : public Steinberg::Vst::IParameterChanges
 {
 public:
   std::vector<param_queue> queues;
-  Steinberg::tresult queryInterface(const Steinberg::TUID _iid, void** obj) override
+  Steinberg::tresult
+  queryInterface(const Steinberg::TUID _iid, void** obj) override
   {
     return Steinberg::kResultOk;
   }
-  Steinberg::uint32 addRef() override
-  {
-    return 1;
-  }
-  Steinberg::uint32 release() override
-  {
-    return 1;
-  }
+  Steinberg::uint32 addRef() override { return 1; }
+  Steinberg::uint32 release() override { return 1; }
 
-  Steinberg::int32 getParameterCount () override
-  {
-    return queues.size();
-  }
+  Steinberg::int32 getParameterCount() override { return queues.size(); }
 
-  param_queue* getParameterData (Steinberg::int32 index) override
+  param_queue* getParameterData(Steinberg::int32 index) override
   {
     return &queues[index];
   }
 
-  param_queue* addParameterData (const Steinberg::Vst::ParamID& id, Steinberg::int32& index /*out*/) override
+  param_queue* addParameterData(
+      const Steinberg::Vst::ParamID& id,
+      Steinberg::int32& index /*out*/) override
   {
     index = queues.size();
     queues.emplace_back(id);
@@ -108,8 +99,8 @@ public:
   struct PluginHandle
   {
     explicit PluginHandle(const Plugin& p)
-      : component{p.component}
-      , processor{p.processor}
+        : component{p.component}
+        , processor{p.processor}
     {
       component->addRef();
       processor->addRef();
@@ -134,14 +125,15 @@ public:
   int m_totalEventIns{};
   int m_totalEventOuts{};
 
-
 protected:
-  explicit vst_node_base(const Plugin& ptr) : fx{std::move(ptr)}
+  explicit vst_node_base(const Plugin& ptr)
+      : fx{std::move(ptr)}
   {
     m_inlets.reserve(10);
     controls.reserve(10);
 
-    struct vis {
+    struct vis
+    {
       vst_node_base& self;
       void audioIn(const Steinberg::Vst::BusInfo& bus, int idx)
       {
@@ -170,8 +162,9 @@ protected:
     forEachBus(vis{*this}, *fx.component);
 
     if (auto err = fx.processor->setProcessing(true);
-        err != Steinberg::kResultOk && err != Steinberg::kNotImplemented) {
-      ossia::logger().warn("Couldn't set VST3 processing: {}",  err);
+        err != Steinberg::kResultOk && err != Steinberg::kNotImplemented)
+    {
+      ossia::logger().warn("Couldn't set VST3 processing: {}", err);
     }
 
     m_vstData.processMode = Steinberg::Vst::ProcessModes::kRealtime;
@@ -179,11 +172,11 @@ protected:
     m_vstData.numOutputs = m_audioOutputChannels.size();
     m_vstInput.resize(m_audioInputChannels.size());
     m_vstOutput.resize(m_audioOutputChannels.size());
-    for(int i = 0; i < m_audioInputChannels.size(); i++)
+    for (int i = 0; i < m_audioInputChannels.size(); i++)
     {
       m_vstInput[i].numChannels = m_audioInputChannels[i];
     }
-    for(int i = 0; i < m_audioOutputChannels.size(); i++)
+    for (int i = 0; i < m_audioOutputChannels.size(); i++)
     {
       m_vstOutput[i].numChannels = m_audioOutputChannels[i];
     }
@@ -200,8 +193,9 @@ protected:
   ~vst_node_base()
   {
     if (auto err = fx.processor->setProcessing(false);
-        err != Steinberg::kResultOk && err != Steinberg::kNotImplemented) {
-      ossia::logger().warn("Couldn't set VST3 processing: {}",  err);
+        err != Steinberg::kResultOk && err != Steinberg::kNotImplemented)
+    {
+      ossia::logger().warn("Couldn't set VST3 processing: {}", err);
     }
   }
 
@@ -215,7 +209,8 @@ protected:
 public:
   ossia::small_vector<vst_control, 16> controls;
 
-  std::size_t add_control(ossia::value_inlet* inlet, Steinberg::Vst::ParamID id, float v)
+  std::size_t
+  add_control(ossia::value_inlet* inlet, Steinberg::Vst::ParamID id, float v)
   {
     auto queue_idx = this->m_inputChanges.queues.size();
     this->m_inputChanges.queues.emplace_back(id);
@@ -260,11 +255,12 @@ public:
 
     int k = 0;
     int audioBusCount = m_audioInputChannels.size();
-    for(int i = audioBusCount; i < audioBusCount + m_totalEventIns; i++)
+    for (int i = audioBusCount; i < audioBusCount + m_totalEventIns; i++)
     {
       dispatchMidi(*m_inlets[i]->template target<ossia::midi_port>(), k++);
     }
-    m_vstData.inputEvents = (m_inputEvents.getEventCount() > 0) ? &m_inputEvents : nullptr;
+    m_vstData.inputEvents
+        = (m_inputEvents.getEventCount() > 0) ? &m_inputEvents : nullptr;
   }
 
   void dispatchMidi(ossia::midi_port& port, int index)
@@ -282,7 +278,7 @@ public:
     e.flags = VstEvent::kIsLive;
     for (libremidi::message& mess : ip)
     {
-      switch(mess.get_message_type())
+      switch (mess.get_message_type())
       {
         case libremidi::message_type::NOTE_ON:
           e.type = VstEvent::kNoteOnEvent;
@@ -316,7 +312,8 @@ public:
     }
   }
 
-  auto& preparePort(ossia::audio_port& port, int numChannels, std::size_t samples)
+  auto&
+  preparePort(ossia::audio_port& port, int numChannels, std::size_t samples)
   {
     auto& ip = port.samples;
     ip.resize(numChannels);
@@ -325,7 +322,8 @@ public:
     return ip;
   }
 
-  void setupTimeInfo(const ossia::token_request& tk, ossia::exec_state_facade st)
+  void
+  setupTimeInfo(const ossia::token_request& tk, ossia::exec_state_facade st)
   {
     using namespace Steinberg::Vst;
     using F = ProcessContext;
@@ -350,14 +348,10 @@ public:
     time_info.smpteOffsetSubframes = 0;
     time_info.frameRate = {};
     time_info.samplesToNextClock = 0;
-    time_info.state =
-        F::kPlaying |
-        F::kSystemTimeValid | F::kContTimeValid |
-        F::kProjectTimeMusicValid | F::kBarPositionValid |
-        F::kTempoValid | F::kTimeSigValid
-    ;
+    time_info.state = F::kPlaying | F::kSystemTimeValid | F::kContTimeValid
+                      | F::kProjectTimeMusicValid | F::kBarPositionValid
+                      | F::kTempoValid | F::kTimeSigValid;
   }
-
 
   Steinberg::Vst::ProcessData m_vstData;
   ossia::small_vector<Steinberg::Vst::AudioBusBuffers, 1> m_vstInput;
@@ -374,9 +368,10 @@ template <bool UseDouble>
 class vst_node final : public vst_node_base
 {
 public:
-  vst_node(Plugin dat, int sampleRate) : vst_node_base{std::move(dat)}
+  vst_node(Plugin dat, int sampleRate)
+      : vst_node_base{std::move(dat)}
   {
-    if constexpr(UseDouble)
+    if constexpr (UseDouble)
       m_vstData.symbolicSampleSize = Steinberg::Vst::kSample64;
     else
       m_vstData.symbolicSampleSize = Steinberg::Vst::kSample32;
@@ -462,11 +457,14 @@ public:
     */
   }
 
-  void run(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept override
+  void
+  run(const ossia::token_request& tk,
+      ossia::exec_state_facade st) noexcept override
   {
     if (!muted() && tk.date > tk.prev_date)
     {
-      const std::size_t samples = tk.physical_write_duration(st.modelToSamples());
+      const std::size_t samples
+          = tk.physical_write_duration(st.modelToSamples());
       this->setControls();
       this->setupTimeInfo(tk, st);
 
@@ -489,23 +487,23 @@ public:
     if constexpr (!UseDouble)
     {
       // Prepare buffers
-      if(m_totalAudioIns > 0 || m_totalAudioOuts > 0)
+      if (m_totalAudioIns > 0 || m_totalAudioOuts > 0)
       {
         float_v.resize(std::max(m_totalAudioIns, m_totalAudioOuts));
-        for(auto& v : float_v)
+        for (auto& v : float_v)
           v.resize(samples);
 
-        float** input {};
+        float** input{};
         float** output{};
 
         // Copy inputs
-        if(m_totalAudioIns > 0)
+        if (m_totalAudioIns > 0)
         {
           input = (float**)alloca(sizeof(float*) * m_totalAudioIns);
           int channel_k = 0;
           int float_k = 0;
 
-          for(int i = 0; i < m_audioInputChannels.size(); i++)
+          for (int i = 0; i < m_audioInputChannels.size(); i++)
           {
             const int numChannels = m_audioInputChannels[i];
             auto& port = *m_inlets[i]->template target<ossia::audio_port>();
@@ -515,9 +513,12 @@ public:
             vst_in.channelBuffers32 = input + channel_k;
             vst_in.silenceFlags = 0;
 
-            for(int k = 0; k < numChannels; k++)
+            for (int k = 0; k < numChannels; k++)
             {
-              std::copy_n(ip[k].data(), std::min(samples, ip[k].size()), float_v[float_k].data());
+              std::copy_n(
+                  ip[k].data(),
+                  std::min(samples, ip[k].size()),
+                  float_v[float_k].data());
               input[channel_k] = float_v[float_k].data();
               channel_k++;
               float_k++;
@@ -526,14 +527,14 @@ public:
         }
 
         // Prepare outputs
-        if(m_totalAudioOuts > 0)
+        if (m_totalAudioOuts > 0)
         {
           // copy audio data
           output = (float**)alloca(sizeof(float*) * m_totalAudioOuts);
 
           int channel_k = 0;
           int float_k = 0;
-          for(int i = 0; i < m_audioOutputChannels.size(); i++)
+          for (int i = 0; i < m_audioOutputChannels.size(); i++)
           {
             const int numChannels = m_audioOutputChannels[i];
             auto& port = *m_outlets[i]->template target<ossia::audio_port>();
@@ -542,7 +543,7 @@ public:
             Steinberg::Vst::AudioBusBuffers& vst_out = m_vstOutput[i];
             vst_out.channelBuffers32 = output + channel_k;
             vst_out.silenceFlags = 0;
-            for(int k = 0; k < numChannels; k++)
+            for (int k = 0; k < numChannels; k++)
             {
               output[channel_k] = float_v[float_k].data();
               channel_k++;
@@ -560,15 +561,16 @@ public:
       }
 
       // Copy the float outputs to the audio outlet buffer
-      if(m_totalAudioOuts > 0)
+      if (m_totalAudioOuts > 0)
       {
         int channel_k = 0;
         int float_k = 0;
-        for(int i = 0; i < m_audioOutputChannels.size(); i++)
+        for (int i = 0; i < m_audioOutputChannels.size(); i++)
         {
           const int numChannels = m_audioOutputChannels[i];
-          ossia::audio_port& port = *m_outlets[i]->template target<ossia::audio_port>();
-          for(int k = 0; k < numChannels; k++)
+          ossia::audio_port& port
+              = *m_outlets[i]->template target<ossia::audio_port>();
+          for (int k = 0; k < numChannels; k++)
           {
             auto& audio_out = port.samples[k];
             std::copy_n(float_v[float_k].data(), samples, audio_out.data());
@@ -588,12 +590,12 @@ public:
       double** output{};
 
       // Copy inputs
-      if(m_totalAudioIns > 0)
+      if (m_totalAudioIns > 0)
       {
         input = (double**)alloca(sizeof(double*) * m_totalAudioIns);
 
         int channel_k = 0;
-        for(int i = 0; i < m_audioInputChannels.size(); i++)
+        for (int i = 0; i < m_audioInputChannels.size(); i++)
         {
           const int numChannels = m_audioInputChannels[i];
           auto& port = *m_inlets[i]->template target<ossia::audio_port>();
@@ -602,7 +604,7 @@ public:
           Steinberg::Vst::AudioBusBuffers& vst_in = m_vstInput[i];
           vst_in.channelBuffers64 = input + channel_k;
           vst_in.silenceFlags = 0;
-          for(int k = 0; k < numChannels; k++)
+          for (int k = 0; k < numChannels; k++)
           {
             input[channel_k++] = ip[k].data();
           }
@@ -610,11 +612,11 @@ public:
       }
 
       // Prepare outputs
-      if(m_totalAudioOuts > 0)
+      if (m_totalAudioOuts > 0)
       {
         output = (double**)alloca(sizeof(double*) * m_totalAudioOuts);
         int channel_k = 0;
-        for(int i = 0; i < m_audioOutputChannels.size(); i++)
+        for (int i = 0; i < m_audioOutputChannels.size(); i++)
         {
           const int numChannels = m_audioOutputChannels[i];
           auto& port = *m_outlets[i]->template target<ossia::audio_port>();
@@ -623,7 +625,7 @@ public:
           Steinberg::Vst::AudioBusBuffers& vst_out = m_vstOutput[i];
           vst_out.channelBuffers64 = output + channel_k;
           vst_out.silenceFlags = 0;
-          for(int k = 0; k < numChannels; k++)
+          for (int k = 0; k < numChannels; k++)
           {
             output[channel_k++] = op[k].data();
           }
@@ -639,8 +641,11 @@ public:
     }
   }
 
-  struct dummy_t { };
-  std::conditional_t<!UseDouble, std::vector<ossia::float_vector>, dummy_t> float_v;
+  struct dummy_t
+  {
+  };
+  std::conditional_t<!UseDouble, std::vector<ossia::float_vector>, dummy_t>
+      float_v;
 };
 
 template <bool b1, typename... Args>

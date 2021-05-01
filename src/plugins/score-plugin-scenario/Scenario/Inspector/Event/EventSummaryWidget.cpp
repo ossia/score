@@ -2,16 +2,17 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "EventSummaryWidget.hpp"
 
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <score/widgets/SelectionButton.hpp>
 #include <State/Expression.hpp>
 
 #include <score/document/DocumentContext.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/widgets/MarginLess.hpp>
+#include <score/widgets/SelectionButton.hpp>
 #include <score/widgets/TextLabel.hpp>
 
 #include <QGridLayout>
+
+#include <Scenario/Document/Event/EventModel.hpp>
 
 namespace Scenario
 {
@@ -25,7 +26,8 @@ EventSummaryWidget::EventSummaryWidget(
 {
   auto mainLay = new score::MarginLess<QGridLayout>{this};
 
-  auto eventBtn = SelectionButton::make("", &object, *m_selectionDispatcher, this);
+  auto eventBtn
+      = SelectionButton::make("", &object, *m_selectionDispatcher, this);
 
   mainLay->addWidget(new TextLabel{object.metadata().getName()}, 0, 0, 1, 3);
   mainLay->addWidget(new TextLabel{object.date().toString()}, 0, 3, 1, 3);

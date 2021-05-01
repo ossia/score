@@ -2,9 +2,11 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "SetIcons.hpp"
 
-#include <score/widgets/Pixmap.hpp>
 #include <score/application/ApplicationContext.hpp>
+#include <score/widgets/Pixmap.hpp>
+
 #include <core/application/ApplicationSettings.hpp>
+
 #include <QDebug>
 #include <QFile>
 #include <QGuiApplication>
@@ -17,25 +19,28 @@ namespace std
 template <>
 struct hash<std::pair<QString, QString>>
 {
-  std::size_t operator()(const std::pair<QString, QString>& p) const noexcept { return qHash(p); }
+  std::size_t operator()(const std::pair<QString, QString>& p) const noexcept
+  {
+    return qHash(p);
+  }
 };
 
 template <>
 struct hash<std::tuple<QString, QString, QString, QString>>
 {
-  std::size_t operator()(const std::tuple<QString, QString, QString, QString>& p) const noexcept {
-    return
-          qHash(std::get<0>(p))
-        ^ qHash(std::get<1>(p))
-        ^ qHash(std::get<2>(p))
-        ^ qHash(std::get<3>(p))
-    ;
+  std::size_t operator()(
+      const std::tuple<QString, QString, QString, QString>& p) const noexcept
+  {
+    return qHash(std::get<0>(p)) ^ qHash(std::get<1>(p))
+           ^ qHash(std::get<2>(p)) ^ qHash(std::get<3>(p));
   }
 };
 }
 static auto& iconMap()
 {
-  static tsl::hopscotch_map<std::tuple<QString, QString, QString, QString>, QIcon> icons;
+  static tsl::
+      hopscotch_map<std::tuple<QString, QString, QString, QString>, QIcon>
+          icons;
   return icons;
 }
 
@@ -111,12 +116,19 @@ QIcon makeIcon(const QString& icon)
   return genIconFromPixmaps(icon, icon, icon);
 }
 
-QIcon makeIcons(const QString& iconOn, const QString& iconOff, const QString& iconDisabled)
+QIcon makeIcons(
+    const QString& iconOn,
+    const QString& iconOff,
+    const QString& iconDisabled)
 {
   return genIconFromPixmaps(iconOn, iconOff, iconDisabled);
 }
 
-QIcon makeIcons(const QString& iconOn, const QString& iconHover, const QString& iconOff, const QString& iconDisabled)
+QIcon makeIcons(
+    const QString& iconOn,
+    const QString& iconHover,
+    const QString& iconOff,
+    const QString& iconDisabled)
 {
   return genIconFromPixmaps(iconOn, iconHover, iconOff, iconDisabled);
 }
@@ -193,7 +205,7 @@ QPixmap get_pixmap(QString str)
 {
   QPixmap img;
   static const bool gui = score::AppContext().applicationSettings.gui;
-  if(!gui)
+  if (!gui)
     return img;
 
   if (qApp->devicePixelRatio() >= 2.0)
@@ -218,7 +230,7 @@ QImage get_image(QString str)
 {
   QImage img;
   static const bool gui = score::AppContext().applicationSettings.gui;
-  if(!gui)
+  if (!gui)
     return img;
 
   if (qApp->devicePixelRatio() >= 2.0)

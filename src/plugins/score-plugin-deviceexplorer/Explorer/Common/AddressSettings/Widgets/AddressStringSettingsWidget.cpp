@@ -55,12 +55,14 @@ void AddressStringSettingsWidget::setCanEditProperties(bool b)
   AddressSettingsWidget::setCanEditProperties(b);
 }
 
-void AddressStringSettingsWidget::setSettings(const Device::AddressSettings& settings)
+void AddressStringSettingsWidget::setSettings(
+    const Device::AddressSettings& settings)
 {
   setCommonSettings(settings);
   m_valueEdit->setText(State::convert::value<QString>(settings.value));
 
-  if (auto dom_p = settings.domain.get().v.target<ossia::domain_base<std::string>>())
+  if (auto dom_p
+      = settings.domain.get().v.target<ossia::domain_base<std::string>>())
     m_values->setValues(dom_p->values);
   else
     m_values->setValues(State::StringValueSetDialog::set_type{});

@@ -16,7 +16,8 @@ DocumentPlugin::DocumentPlugin(
     Id<DocumentPlugin> id,
     const QString& name,
     QObject* parent)
-    : IdentifiedObject<DocumentPlugin>{id, name, parent}, m_context{ctx}
+    : IdentifiedObject<DocumentPlugin>{id, name, parent}
+    , m_context{ctx}
 {
 }
 

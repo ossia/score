@@ -1,11 +1,12 @@
 #pragma once
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <State/Expression.hpp>
 
 #include <score/command/Command.hpp>
 #include <score/command/PropertyCommand.hpp>
 #include <score/model/path/Path.hpp>
+
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -17,7 +18,10 @@ namespace Command
 {
 class SCORE_PLUGIN_SCENARIO_EXPORT SetCondition final : public score::Command
 {
-  SCORE_COMMAND_DECL(CommandFactoryName(), SetCondition, "Set an Event's condition")
+  SCORE_COMMAND_DECL(
+      CommandFactoryName(),
+      SetCondition,
+      "Set an Event's condition")
 public:
   SetCondition(const EventModel& event, State::Expression&& condition);
   void undo(const score::DocumentContext& ctx) const override;
@@ -35,7 +39,10 @@ private:
 
 class SetOffsetBehavior final : public score::PropertyCommand
 {
-  SCORE_COMMAND_DECL(CommandFactoryName(), SetOffsetBehavior, "Set offset behavior")
+  SCORE_COMMAND_DECL(
+      CommandFactoryName(),
+      SetOffsetBehavior,
+      "Set offset behavior")
 public:
   SetOffsetBehavior(const EventModel& event, OffsetBehavior newval);
 };

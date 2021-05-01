@@ -18,9 +18,10 @@
  * A 2D X-Y automation
  *
  */
-class score_plugin_spline final : public score::Plugin_QtInterface,
-                                  public score::FactoryInterface_QtInterface,
-                                  public score::CommandFactory_QtInterface
+class score_plugin_spline final
+    : public score::Plugin_QtInterface
+    , public score::FactoryInterface_QtInterface
+    , public score::CommandFactory_QtInterface
 {
   SCORE_PLUGIN_METADATA(1, "cab4ef29-b641-4be0-83f8-5f90d0fcd575")
 
@@ -33,5 +34,6 @@ private:
       const score::ApplicationContext& ctx,
       const score::InterfaceKey& factoryName) const override;
 
-  std::pair<const CommandGroupKey, CommandGeneratorMap> make_commands() override;
+  std::pair<const CommandGroupKey, CommandGeneratorMap>
+  make_commands() override;
 };

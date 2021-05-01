@@ -20,7 +20,8 @@ public:
   virtual ~AggregateCommand();
 
   template <typename T>
-  AggregateCommand(T* cmd) : AggregateCommand{}
+  AggregateCommand(T* cmd)
+      : AggregateCommand{}
   {
     m_cmds.push_front(cmd);
   }

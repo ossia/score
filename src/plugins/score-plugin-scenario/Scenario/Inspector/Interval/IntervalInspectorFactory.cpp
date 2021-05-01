@@ -6,11 +6,12 @@
 
 #include <Inspector/InspectorWidgetList.hpp>
 #include <Process/ProcessList.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
+
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 
 class QObject;
 class QWidget;

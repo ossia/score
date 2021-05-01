@@ -2,11 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TransportActions.hpp"
 
-#include <Scenario/Application/ScenarioActions.hpp>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Inspector/Interval/SpeedSlider.hpp>
-
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/Menu.hpp>
 #include <score/actions/MenuManager.hpp>
@@ -23,6 +18,11 @@
 #include <QString>
 #include <QToolBar>
 #include <qnamespace.h>
+
+#include <Scenario/Application/ScenarioActions.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Inspector/Interval/SpeedSlider.hpp>
 class QMenu;
 
 namespace Scenario
@@ -88,7 +88,8 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
   m_stopAndInit->setObjectName("StopAndInit");
   m_stopAndInit->setShortcut(QKeySequence(QObject::tr("Ctrl+Return")));
   m_stopAndInit->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-  m_stopAndInit->setStatusTip("Stop execution of the score and send the initial state");
+  m_stopAndInit->setStatusTip(
+      "Stop execution of the score and send the initial state");
 
   setIcons(
       m_stopAndInit,
@@ -143,8 +144,8 @@ TransportActions::~TransportActions() { }
 
 void TransportActions::makeGUIElements(score::GUIElements& ref)
 {
-  auto& cond = m_context.actions
-                   .condition<score::EnableWhenDocumentIs<Scenario::ScenarioDocumentModel>>();
+  auto& cond = m_context.actions.condition<
+      score::EnableWhenDocumentIs<Scenario::ScenarioDocumentModel>>();
 
   // Put m_play m_stop and m_stopAndInit only for now in their own toolbar,
   // plus everything in the play menu
@@ -167,7 +168,10 @@ void TransportActions::makeGUIElements(score::GUIElements& ref)
     bar->addWidget(new Scenario::SpeedWidget{false, true, bar});
 
     ref.toolbars.emplace_back(
-        bar, StringKey<score::Toolbar>("Transport"), Qt::BottomToolBarArea, 200);
+        bar,
+        StringKey<score::Toolbar>("Transport"),
+        Qt::BottomToolBarArea,
+        200);
   }
 
   {
@@ -196,7 +200,7 @@ void TransportActions::makeGUIElements(score::GUIElements& ref)
 
 void TransportActions::onPlayLocal()
 {
-  if(!m_play)
+  if (!m_play)
     return;
 
   onPlay(true);
@@ -205,7 +209,7 @@ void TransportActions::onPlayLocal()
 
 void TransportActions::onPlayGlobal()
 {
-  if(!m_play)
+  if (!m_play)
     return;
 
   onPlay(true);
@@ -217,70 +221,73 @@ void TransportActions::onPause()
   onPlay(false);
 }
 
-
 void TransportActions::onPlay(bool b)
 {
   m_play->setText(b ? tr("Pause") : tr("Play"));
   m_play->setData(b); // True for "pause" state (i.e. currently playing),
   // false for "play" state (i.e. currently paused)
-  m_play->setStatusTip(b ? "Play the currently displayed interval" : "Pause execution");
+  m_play->setStatusTip(
+      b ? "Play the currently displayed interval" : "Pause execution");
 
   setIcons(
-        m_play,
-        !b ? QStringLiteral(":/icons/play_on.png") : QStringLiteral(":/icons/pause_on.png"),
-        !b ? QStringLiteral(":/icons/play_hover.png") : QStringLiteral(":/icons/pause_hover.png"),
-        !b ? QStringLiteral(":/icons/play_off.png") : QStringLiteral(":/icons/pause_off.png"),
-        !b ? QStringLiteral(":/icons/pause_disabled.png")
-           : QStringLiteral(":/icons/pause_disabled.png"));
+      m_play,
+      !b ? QStringLiteral(":/icons/play_on.png")
+         : QStringLiteral(":/icons/pause_on.png"),
+      !b ? QStringLiteral(":/icons/play_hover.png")
+         : QStringLiteral(":/icons/pause_hover.png"),
+      !b ? QStringLiteral(":/icons/play_off.png")
+         : QStringLiteral(":/icons/pause_off.png"),
+      !b ? QStringLiteral(":/icons/pause_disabled.png")
+         : QStringLiteral(":/icons/pause_disabled.png"));
 
   m_playGlobal->setText(b ? tr("Pause") : tr("Play (global)"));
   m_playGlobal->setData(b);
   setIcons(
-        m_playGlobal,
-        !b ? QStringLiteral(":/icons/play_glob_on.png")
-           : QStringLiteral(":/icons/pause_on.png"),
-        !b ? QStringLiteral(":/icons/play_glob_hover.png")
-           : QStringLiteral(":/icons/pause_hover.png"),
-        !b ? QStringLiteral(":/icons/play_glob_off.png")
-           : QStringLiteral(":/icons/pause_off.png"),
-        !b ? QStringLiteral(":/icons/play_glob_disabled.png")
-           : QStringLiteral(":/icons/pause_disabled.png"));
+      m_playGlobal,
+      !b ? QStringLiteral(":/icons/play_glob_on.png")
+         : QStringLiteral(":/icons/pause_on.png"),
+      !b ? QStringLiteral(":/icons/play_glob_hover.png")
+         : QStringLiteral(":/icons/pause_hover.png"),
+      !b ? QStringLiteral(":/icons/play_glob_off.png")
+         : QStringLiteral(":/icons/pause_off.png"),
+      !b ? QStringLiteral(":/icons/play_glob_disabled.png")
+         : QStringLiteral(":/icons/pause_disabled.png"));
 }
 
 void TransportActions::onStop()
 {
-  if(!m_play)
+  if (!m_play)
     return;
 
-   m_play->blockSignals(true);
-   m_playGlobal->blockSignals(true);
-   //        m_record->blockSignals(true);
+  m_play->blockSignals(true);
+  m_playGlobal->blockSignals(true);
+  //        m_record->blockSignals(true);
 
-   m_play->setEnabled(true);
-   m_play->setChecked(false);
-   m_play->setText(tr("Play"));
-   setIcons(
-       m_play,
-       QStringLiteral(":/icons/play_on.png"),
-       QStringLiteral(":/icons/play_hover.png"),
-       QStringLiteral(":/icons/play_off.png"),
-       QStringLiteral(":/icons/play_disabled.png"));
-   m_play->setData(false);
+  m_play->setEnabled(true);
+  m_play->setChecked(false);
+  m_play->setText(tr("Play"));
+  setIcons(
+      m_play,
+      QStringLiteral(":/icons/play_on.png"),
+      QStringLiteral(":/icons/play_hover.png"),
+      QStringLiteral(":/icons/play_off.png"),
+      QStringLiteral(":/icons/play_disabled.png"));
+  m_play->setData(false);
 
-   m_playGlobal->setEnabled(true);
-   m_playGlobal->setChecked(false);
-   m_playGlobal->setText(tr("Play (global)"));
-   setIcons(
-       m_playGlobal,
-       QStringLiteral(":/icons/play_glob_on.png"),
-       QStringLiteral(":/icons/play_glob_hover.png"),
-       QStringLiteral(":/icons/play_glob_off.png"),
-       QStringLiteral(":/icons/play_glob_disabled.png"));
-   m_playGlobal->setData(false);
-   //        m_record->setChecked(false);
+  m_playGlobal->setEnabled(true);
+  m_playGlobal->setChecked(false);
+  m_playGlobal->setText(tr("Play (global)"));
+  setIcons(
+      m_playGlobal,
+      QStringLiteral(":/icons/play_glob_on.png"),
+      QStringLiteral(":/icons/play_glob_hover.png"),
+      QStringLiteral(":/icons/play_glob_off.png"),
+      QStringLiteral(":/icons/play_glob_disabled.png"));
+  m_playGlobal->setData(false);
+  //        m_record->setChecked(false);
 
-   m_play->blockSignals(false);
-   m_playGlobal->blockSignals(false);
-   //        m_record->blockSignals(false);
- }
+  m_play->blockSignals(false);
+  m_playGlobal->blockSignals(false);
+  //        m_record->blockSignals(false);
+}
 }

@@ -1,7 +1,9 @@
 #pragma once
 #include <Process/TimeValue.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
+
 #include <ossia-qt/time.hpp>
+
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 
 namespace Scenario
 {
@@ -14,7 +16,10 @@ class MusicalGrid : public QObject
 {
   W_OBJECT(MusicalGrid)
 public:
-  MusicalGrid(Timebars& timebars) : timebars{timebars} { }
+  MusicalGrid(Timebars& timebars)
+      : timebars{timebars}
+  {
+  }
 
   Timebars& timebars;
   void setMeasures(const TimeSignatureMap& m) { m_measures = &m; }
@@ -31,7 +36,11 @@ public:
 
   void changed() W_SIGNAL(changed);
 
-  void compute(TimeVal timeDelta, ZoomRatio m_zoomRatio, QRectF sceneRect, TimeVal x0_time);
+  void compute(
+      TimeVal timeDelta,
+      ZoomRatio m_zoomRatio,
+      QRectF sceneRect,
+      TimeVal x0_time);
 
   const TimeSignatureMap* m_measures{};
 };

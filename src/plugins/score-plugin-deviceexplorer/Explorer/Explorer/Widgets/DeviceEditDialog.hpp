@@ -2,10 +2,11 @@
 
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
-#include <score_plugin_deviceexplorer_export.h>
 
 #include <QDialog>
 #include <QList>
+
+#include <score_plugin_deviceexplorer_export.h>
 
 #include <verdigris>
 
@@ -26,15 +27,22 @@ class DeviceEnumerator;
 namespace Explorer
 {
 class DeviceExplorerModel;
-class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceEditDialog final : public QDialog
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceEditDialog final
+    : public QDialog
 {
   W_OBJECT(DeviceEditDialog)
 
 public:
-  enum Mode {
-    Creating, Editing
+  enum Mode
+  {
+    Creating,
+    Editing
   };
-  explicit DeviceEditDialog(const DeviceExplorerModel& model, const Device::ProtocolFactoryList& pl, Mode mode, QWidget* parent);
+  explicit DeviceEditDialog(
+      const DeviceExplorerModel& model,
+      const Device::ProtocolFactoryList& pl,
+      Mode mode,
+      QWidget* parent);
   ~DeviceEditDialog();
 
   Device::DeviceSettings getSettings() const;
@@ -50,6 +58,7 @@ public:
   void setBrowserEnabled(bool);
 
   void updateValidity();
+
 private:
   void selectedProtocolChanged();
   void selectedDeviceChanged();
@@ -74,6 +83,5 @@ private:
 
   QString m_originalName{};
   int m_index{};
-
 };
 }

@@ -24,10 +24,12 @@
 namespace Scenario
 {
 
-OptionalId<EventModel>
-ObjectMapper::itemToEventId(const QGraphicsItem* pressedItem, const QObject* parentModel) noexcept
+OptionalId<EventModel> ObjectMapper::itemToEventId(
+    const QGraphicsItem* pressedItem,
+    const QObject* parentModel) noexcept
 {
-  const auto& event = static_cast<const EventView*>(pressedItem)->presenter().model();
+  const auto& event
+      = static_cast<const EventView*>(pressedItem)->presenter().model();
   return event.parent() == parentModel ? event.id() : OptionalId<EventModel>{};
 }
 
@@ -35,8 +37,9 @@ OptionalId<EventModel> ObjectMapper::itemToConditionId(
     const QGraphicsItem* pressedItem,
     const QObject* parentModel) noexcept
 {
-  const auto& event
-      = static_cast<const EventView*>(pressedItem->parentItem())->presenter().model();
+  const auto& event = static_cast<const EventView*>(pressedItem->parentItem())
+                          ->presenter()
+                          .model();
   return event.parent() == parentModel ? event.id() : OptionalId<EventModel>{};
 }
 
@@ -44,8 +47,10 @@ OptionalId<TimeSyncModel> ObjectMapper::itemToTimeSyncId(
     const QGraphicsItem* pressedItem,
     const QObject* parentModel) noexcept
 {
-  const auto& timesync = static_cast<const TimeSyncView*>(pressedItem)->presenter().model();
-  return timesync.parent() == parentModel ? timesync.id() : OptionalId<TimeSyncModel>{};
+  const auto& timesync
+      = static_cast<const TimeSyncView*>(pressedItem)->presenter().model();
+  return timesync.parent() == parentModel ? timesync.id()
+                                          : OptionalId<TimeSyncModel>{};
 }
 
 OptionalId<TimeSyncModel> ObjectMapper::itemToTriggerId(
@@ -53,30 +58,39 @@ OptionalId<TimeSyncModel> ObjectMapper::itemToTriggerId(
     const QObject* parentModel) noexcept
 {
   const auto& timesync
-      = static_cast<const TimeSyncView*>(pressedItem->parentItem())->presenter().model();
-  return timesync.parent() == parentModel ? timesync.id() : OptionalId<TimeSyncModel>{};
+      = static_cast<const TimeSyncView*>(pressedItem->parentItem())
+            ->presenter()
+            .model();
+  return timesync.parent() == parentModel ? timesync.id()
+                                          : OptionalId<TimeSyncModel>{};
 }
 
 OptionalId<IntervalModel> ObjectMapper::itemToIntervalId(
     const QGraphicsItem* pressedItem,
     const QObject* parentModel) noexcept
 {
-  const auto& interval = static_cast<const IntervalView*>(pressedItem)->presenter().model();
-  return interval.parent() == parentModel ? interval.id() : OptionalId<IntervalModel>{};
+  const auto& interval
+      = static_cast<const IntervalView*>(pressedItem)->presenter().model();
+  return interval.parent() == parentModel ? interval.id()
+                                          : OptionalId<IntervalModel>{};
 }
 
 OptionalId<IntervalModel> ObjectMapper::itemToGraphIntervalId(
     const QGraphicsItem* pressedItem,
     const QObject* parentModel) noexcept
 {
-  const auto& interval = static_cast<const GraphalIntervalPresenter*>(pressedItem)->model();
-  return interval.parent() == parentModel ? interval.id() : OptionalId<IntervalModel>{};
+  const auto& interval
+      = static_cast<const GraphalIntervalPresenter*>(pressedItem)->model();
+  return interval.parent() == parentModel ? interval.id()
+                                          : OptionalId<IntervalModel>{};
 }
 
-OptionalId<StateModel>
-ObjectMapper::itemToStateId(const QGraphicsItem* pressedItem, const QObject* parentModel) noexcept
+OptionalId<StateModel> ObjectMapper::itemToStateId(
+    const QGraphicsItem* pressedItem,
+    const QObject* parentModel) noexcept
 {
-  const auto& state = static_cast<const StateView*>(pressedItem)->presenter().model();
+  const auto& state
+      = static_cast<const StateView*>(pressedItem)->presenter().model();
 
   return state.parent() == parentModel ? state.id() : OptionalId<StateModel>{};
 }

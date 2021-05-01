@@ -1,9 +1,9 @@
 #pragma once
-#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Engine/Node/PdNode.hpp>
 
 #include <QPainter>
 
-#include <Engine/Node/PdNode.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 namespace Ui
 {
 
@@ -20,11 +20,14 @@ struct Node
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::Analyzer;
     static const constexpr auto description = "Visualize an input signal";
-    static const constexpr auto flags = Process::ProcessFlags::SupportsTemporal;
-    static const uuid_constexpr auto uuid = make_uuid("9906e563-ddeb-4ecd-908c-952baee2a0a5");
+    static const constexpr auto flags
+        = Process::ProcessFlags::SupportsTemporal;
+    static const uuid_constexpr auto uuid
+        = make_uuid("9906e563-ddeb-4ecd-908c-952baee2a0a5");
 
     static const constexpr value_in value_ins[]{"in"};
-    static const constexpr auto control_outs = std::make_tuple(Control::OutControl{"value"});
+    static const constexpr auto control_outs
+        = std::make_tuple(Control::OutControl{"value"});
   };
 
   using control_policy = ossia::safe_nodes::precise_tick;
@@ -39,7 +42,8 @@ struct Node
     {
       const auto& v = in.get_data().back();
       out_value[0] = std::vector<ossia::value>{
-          double(tk.prev_date.impl) / tk.parent_duration.impl, ossia::convert<float>(v.value)};
+          double(tk.prev_date.impl) / tk.parent_duration.impl,
+          ossia::convert<float>(v.value)};
     }
   }
 
@@ -51,40 +55,52 @@ struct Node
     float min = 0;
     float max = 1;
 
-    Layer(const Process::ProcessModel& process, const Process::Context& doc, QGraphicsItem* parent)
+    Layer(
+        const Process::ProcessModel& process,
+        const Process::Context& doc,
+        QGraphicsItem* parent)
         : Process::EffectLayerView{parent}
         , m_interval{Scenario::closestParentInterval(process.parent())}
     {
       if (m_interval)
       {
-        connect(m_interval, &Scenario::IntervalModel::executionEvent, this, [=] (Scenario::IntervalExecutionEvent ev){
-          switch(ev)
-          {
-            case Scenario::IntervalExecutionEvent::Playing:
-            case Scenario::IntervalExecutionEvent::Stopped:
-              reset();
-              break;
-            default:
-              break;
-          }
-        });
+        connect(
+            m_interval,
+            &Scenario::IntervalModel::executionEvent,
+            this,
+            [=](Scenario::IntervalExecutionEvent ev) {
+              switch (ev)
+              {
+                case Scenario::IntervalExecutionEvent::Playing:
+                case Scenario::IntervalExecutionEvent::Stopped:
+                  reset();
+                  break;
+                default:
+                  break;
+              }
+            });
 
-        auto out = static_cast<Process::ControlOutlet*>(process.outlets().front());
+        auto out
+            = static_cast<Process::ControlOutlet*>(process.outlets().front());
 
-        connect(out, &Process::ControlOutlet::valueChanged, this, [this](const ossia::value& v) {
-          auto& val = *v.target<std::vector<ossia::value>>();
-          float float_time = *val[0].target<float>();
-          float float_val = *val[1].target<float>();
+        connect(
+            out,
+            &Process::ControlOutlet::valueChanged,
+            this,
+            [this](const ossia::value& v) {
+              auto& val = *v.target<std::vector<ossia::value>>();
+              float float_time = *val[0].target<float>();
+              float float_val = *val[1].target<float>();
 
-          m_values.emplace_back(float_time, float_val);
+              m_values.emplace_back(float_time, float_val);
 
-          if (float_val < min)
-            min = float_val;
-          else if (float_val > max)
-            max = float_val;
+              if (float_val < min)
+                min = float_val;
+              else if (float_val > max)
+                max = float_val;
 
-          update();
-        });
+              update();
+            });
       }
     }
 

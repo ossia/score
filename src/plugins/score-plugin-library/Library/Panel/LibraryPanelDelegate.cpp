@@ -19,12 +19,13 @@
 namespace Library
 {
 UserPanel::UserPanel(const score::GUIApplicationContext& ctx)
-    : score::PanelDelegate{ctx}, m_widget{new SystemLibraryWidget{ctx, nullptr}}
+    : score::PanelDelegate{ctx}
+    , m_widget{new SystemLibraryWidget{ctx, nullptr}}
 {
-  m_widget->setStatusTip(
-      QObject::tr("This panel allows to browse medias and presets in the documents. \n"
-                  "Check for library updates on \n"
-                  "github.com/ossia/score-user-library"));
+  m_widget->setStatusTip(QObject::tr(
+      "This panel allows to browse medias and presets in the documents. \n"
+      "Check for library updates on \n"
+      "github.com/ossia/score-user-library"));
 }
 
 QWidget* UserPanel::widget()
@@ -47,7 +48,8 @@ const score::PanelStatus& UserPanel::defaultPanelStatus() const
 }
 
 ProjectPanel::ProjectPanel(const score::GUIApplicationContext& ctx)
-    : score::PanelDelegate{ctx}, m_widget{new ProjectLibraryWidget{ctx, nullptr}}
+    : score::PanelDelegate{ctx}
+    , m_widget{new ProjectLibraryWidget{ctx, nullptr}}
 {
   m_widget->setStatusTip(
       QObject::tr("This panel allows to browse the content of the folder of "
@@ -73,7 +75,9 @@ const score::PanelStatus& ProjectPanel::defaultPanelStatus() const
   return status;
 }
 
-void ProjectPanel::on_modelChanged(score::MaybeDocument oldm, score::MaybeDocument newm)
+void ProjectPanel::on_modelChanged(
+    score::MaybeDocument oldm,
+    score::MaybeDocument newm)
 {
   if (newm)
   {
@@ -86,13 +90,14 @@ void ProjectPanel::on_modelChanged(score::MaybeDocument oldm, score::MaybeDocume
 }
 
 ProcessPanel::ProcessPanel(const score::GUIApplicationContext& ctx)
-    : score::PanelDelegate{ctx}, m_widget{new ProcessWidget{ctx, nullptr}}
+    : score::PanelDelegate{ctx}
+    , m_widget{new ProcessWidget{ctx, nullptr}}
 {
-  m_widget->setStatusTip(
-        QObject::tr("This panel allows to list available processes, effects and plug-ins."));
+  m_widget->setStatusTip(QObject::tr(
+      "This panel allows to list available processes, effects and plug-ins."));
 }
 
-ProcessWidget &ProcessPanel::processWidget() const noexcept
+ProcessWidget& ProcessPanel::processWidget() const noexcept
 {
   return *(ProcessWidget*)m_widget;
 }

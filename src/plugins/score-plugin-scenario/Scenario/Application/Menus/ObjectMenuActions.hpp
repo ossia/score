@@ -1,11 +1,11 @@
 #pragma once
-#include <Scenario/Application/Menus/ObjectsActions/EventActions.hpp>
-#include <Scenario/Application/Menus/ObjectsActions/IntervalActions.hpp>
-
 #include <score/actions/Action.hpp>
 #include <score/actions/Menu.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/selection/Selection.hpp>
+
+#include <Scenario/Application/Menus/ObjectsActions/EventActions.hpp>
+#include <Scenario/Application/Menus/ObjectsActions/IntervalActions.hpp>
 
 namespace Scenario
 {
@@ -29,7 +29,8 @@ public:
 private:
   void copySelectedElementsToJson(JSONReader& r);
   void cutSelectedElementsToJson(JSONReader& r);
-  void pasteElements(const rapidjson::Value& obj, const Scenario::Point& origin);
+  void
+  pasteElements(const rapidjson::Value& obj, const Scenario::Point& origin);
   void pasteElementsAfter(
       const rapidjson::Value& obj,
       const Scenario::Point& origin,

@@ -2,12 +2,13 @@
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/ExecutionComponent.hpp>
 #include <Process/Process.hpp>
-#include <Scenario/Document/Components/IntervalComponent.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
 
 #include <score/model/ComponentHierarchy.hpp>
 
 #include <ossia/dataflow/nodes/state.hpp>
+
+#include <Scenario/Document/Components/IntervalComponent.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 
 namespace ossia
 {
@@ -21,7 +22,8 @@ class StateModel;
 
 namespace Execution
 {
-class SCORE_PLUGIN_SCENARIO_EXPORT StateComponentBase : public Execution::Component
+class SCORE_PLUGIN_SCENARIO_EXPORT StateComponentBase
+    : public Execution::Component
 {
   COMMON_COMPONENT_METADATA("b3905e79-2bd0-48bd-8654-8666455ceedd")
 public:
@@ -46,11 +48,13 @@ public:
       const Id<score::Component>& id,
       ProcessComponentFactory& factory,
       Process::ProcessModel& process);
-  ProcessComponent* make(const Id<score::Component>& id, Process::ProcessModel& process)
+  ProcessComponent*
+  make(const Id<score::Component>& id, Process::ProcessModel& process)
   {
     return nullptr;
   }
-  std::function<void()> removing(const Process::ProcessModel& e, ProcessComponent& c);
+  std::function<void()>
+  removing(const Process::ProcessModel& e, ProcessComponent& c);
 
   template <typename... Args>
   void added(Args&&...)
@@ -72,8 +76,9 @@ public:
     return m_model->stateProcesses;
   }
 
-  const score::hash_map<Id<Process::ProcessModel>, std::shared_ptr<ProcessComponent>>&
-  processes() const
+  const score::
+      hash_map<Id<Process::ProcessModel>, std::shared_ptr<ProcessComponent>>&
+      processes() const
   {
     return m_processes;
   }
@@ -82,13 +87,17 @@ public:
     SCORE_ASSERT(m_model);
     return *m_model;
   }
-  const std::shared_ptr<ossia::nodes::state_writer>& node() const { return m_node; }
+  const std::shared_ptr<ossia::nodes::state_writer>& node() const
+  {
+    return m_node;
+  }
 
 protected:
   QPointer<const Scenario::StateModel> m_model;
   std::shared_ptr<ossia::time_event> m_ev;
   std::shared_ptr<ossia::nodes::state_writer> m_node;
-  score::hash_map<Id<Process::ProcessModel>, std::shared_ptr<ProcessComponent>> m_processes;
+  score::hash_map<Id<Process::ProcessModel>, std::shared_ptr<ProcessComponent>>
+      m_processes;
 };
 
 class SCORE_PLUGIN_SCENARIO_EXPORT StateComponent final
@@ -97,7 +106,9 @@ class SCORE_PLUGIN_SCENARIO_EXPORT StateComponent final
 public:
   template <typename... Args>
   StateComponent(Args&&... args)
-      : PolymorphicComponentHierarchyManager{score::lazy_init_t{}, std::forward<Args>(args)...}
+      : PolymorphicComponentHierarchyManager{
+          score::lazy_init_t{},
+          std::forward<Args>(args)...}
   {
     init();
   }

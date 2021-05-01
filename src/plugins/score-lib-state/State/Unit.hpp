@@ -1,6 +1,6 @@
 #pragma once
+#include <score/serialization/DataStreamFwd.hpp>
 #include <score/serialization/VisitorInterface.hpp>
-#include <score/serialization/DataStreamFwd.hpp> 
 
 #include <QLatin1String>
 
@@ -28,8 +28,8 @@ public:
   Unit(const ossia::unit_t&) noexcept;
   Unit& operator=(const ossia::unit_t&) noexcept;
 
-  operator const ossia::unit_t &() const noexcept;
-  operator ossia::unit_t &() noexcept;
+  operator const ossia::unit_t&() const noexcept;
+  operator ossia::unit_t&() noexcept;
 
   bool operator==(const State::Unit& other) const noexcept;
   bool operator!=(const State::Unit& other) const noexcept;

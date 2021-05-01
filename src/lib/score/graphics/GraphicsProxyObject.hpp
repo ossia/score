@@ -2,10 +2,13 @@
 #include <QGraphicsItem>
 #include <QObject>
 #include <QPainter>
-class BaseGraphicsObject final : public QObject, public QGraphicsItem
+class BaseGraphicsObject final
+    : public QObject
+    , public QGraphicsItem
 {
 public:
-  BaseGraphicsObject(QGraphicsItem* parent = nullptr) : QGraphicsItem{parent}
+  BaseGraphicsObject(QGraphicsItem* parent = nullptr)
+      : QGraphicsItem{parent}
   {
     this->setFlag(QGraphicsItem::ItemHasNoContents, true);
   }
@@ -14,7 +17,10 @@ public:
 
   QRectF boundingRect() const override { return {}; }
 
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override
   {
   }
 

@@ -1,27 +1,27 @@
 #include "EffectModel.hpp"
 
-#include <Faust/Commands.hpp>
-#include <Faust/Utils.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionSetup.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/tools/Bind.hpp>
+#include <score/tools/DeleteAll.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/std/String.hpp>
-#include <score/tools/DeleteAll.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/nodes/faust/faust_node.hpp>
 
-#include <QFileInfo>
 #include <QDialog>
 #include <QDialogButtonBox>
+#include <QFileInfo>
 #include <QPlainTextEdit>
 #include <QTimer>
 #include <QVBoxLayout>
 
+#include <Faust/Commands.hpp>
+#include <Faust/Utils.hpp>
 #include <wobjectimpl.h>
 
 #if __has_include(<sndfile.h>)
@@ -35,7 +35,8 @@ namespace Process
 {
 
 template <>
-QString EffectProcessFactory_T<Faust::FaustEffectModel>::customConstructionData() const
+QString
+EffectProcessFactory_T<Faust::FaustEffectModel>::customConstructionData() const
 {
   return "process = _;";
 }
@@ -160,18 +161,29 @@ static bool faustIsMidi(llvm_dsp& dsp)
 
     // -- passive widgets
 
-    void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-        override
+    void addHorizontalBargraph(
+        const char* label,
+        FAUSTFLOAT* zone,
+        FAUSTFLOAT min,
+        FAUSTFLOAT max) override
     {
     }
-    void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-        override
+    void addVerticalBargraph(
+        const char* label,
+        FAUSTFLOAT* zone,
+        FAUSTFLOAT min,
+        FAUSTFLOAT max) override
     {
     }
 
     // -- soundfiles
 
-    void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) override { }
+    void addSoundfile(
+        const char* label,
+        const char* filename,
+        Soundfile** sf_zone) override
+    {
+    }
 
   } ui;
 
@@ -203,10 +215,11 @@ void FaustEffectModel::reloadFx(llvm_dsp_factory* fac, llvm_dsp* obj)
       toRemove.push_back(m_inlets[i]);
     }
     m_inlets.resize(ui.i);
-    for(auto inl : toRemove)
+    for (auto inl : toRemove)
       inl->deleteLater();
   }
-  else if ((!m_inlets.empty() || !m_outlets.empty()) && !had_dsp && !had_poly_dsp)
+  else if (
+      (!m_inlets.empty() || !m_outlets.empty()) && !had_dsp && !had_poly_dsp)
   {
     // loading - controls already exist but not linked to the dsp
     Faust::UpdateUI<decltype(*this), false> ui{*this};
@@ -228,9 +241,12 @@ void FaustEffectModel::reloadFx(llvm_dsp_factory* fac, llvm_dsp* obj)
   }
 }
 
-void FaustEffectModel::reloadMidi(ossia::nodes::custom_dsp_poly_factory* fac, ossia::nodes::custom_dsp_poly_effect* obj)
+void FaustEffectModel::reloadMidi(
+    ossia::nodes::custom_dsp_poly_factory* fac,
+    ossia::nodes::custom_dsp_poly_effect* obj)
 {
-  static std::vector<std::shared_ptr<ossia::nodes::custom_dsp_poly_factory>> dsp_poly_factories;
+  static std::vector<std::shared_ptr<ossia::nodes::custom_dsp_poly_factory>>
+      dsp_poly_factories;
   const bool had_dsp = bool(faust_object);
   const bool had_poly_dsp = bool(faust_poly_object);
   faust_poly_object.reset(obj);
@@ -254,10 +270,11 @@ void FaustEffectModel::reloadMidi(ossia::nodes::custom_dsp_poly_factory* fac, os
       toRemove.push_back(m_inlets[i]);
     }
     m_inlets.resize(ui.i);
-    for(auto inl : toRemove)
+    for (auto inl : toRemove)
       delete inl;
   }
-  else if ((!m_inlets.empty() || !m_outlets.empty()) && !had_poly_dsp && !had_dsp)
+  else if (
+      (!m_inlets.empty() || !m_outlets.empty()) && !had_poly_dsp && !had_dsp)
   {
     // Try to reuse controls
     Faust::UpdateUI<decltype(*this), false> ui{*this};
@@ -289,7 +306,7 @@ void FaustEffectModel::reload()
     return;
   }
 
-  if(QFile f{fx_text}; f.open(QIODevice::ReadOnly))
+  if (QFile f{fx_text}; f.open(QIODevice::ReadOnly))
   {
     QFileInfo fi{f};
     m_path = fi.absolutePath();
@@ -348,7 +365,8 @@ void FaustEffectModel::reload()
     deleteDSPFactory(fac);
     fac = nullptr;
     {
-      auto midi_fac = ossia::nodes::createCustomPolyDSPFactoryFromString("score", str, argc, argv, triple, err, -1);
+      auto midi_fac = ossia::nodes::createCustomPolyDSPFactoryFromString(
+          "score", str, argc, argv, triple, err, -1);
       auto midi_obj = midi_fac->createPolyDSPInstance(4, true, true);
       reloadMidi(midi_fac, midi_obj);
     }
@@ -399,7 +417,11 @@ void DataStreamWriter::write(Faust::FaustEffectModel& eff)
   m_stream >> eff.m_text >> eff.m_path;
   eff.reload();
   writePorts(
-      *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets, eff.m_outlets, &eff);
+      *this,
+      components.interfaces<Process::PortFactoryList>(),
+      eff.m_inlets,
+      eff.m_outlets,
+      &eff);
 }
 
 template <>
@@ -414,11 +436,15 @@ template <>
 void JSONWriter::write(Faust::FaustEffectModel& eff)
 {
   eff.m_text = obj["Text"].toString();
-  if(auto path_it = obj.tryGet("Path"))
+  if (auto path_it = obj.tryGet("Path"))
     eff.m_path = path_it->toString();
   eff.reload();
   writePorts(
-      *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets, eff.m_outlets, &eff);
+      *this,
+      components.interfaces<Process::PortFactoryList>(),
+      eff.m_inlets,
+      eff.m_outlets,
+      &eff);
 }
 
 namespace Execution
@@ -432,7 +458,7 @@ FaustEffectComponent::FaustEffectComponent(
     : ProcessComponent_T{proc, ctx, id, "FaustComponent", parent}
 {
   connect(&proc, &Faust::FaustEffectModel::changed, this, [=] {
-    for(auto& c : this->m_controlConnections)
+    for (auto& c : this->m_controlConnections)
       QObject::disconnect(c);
     m_controlConnections.clear();
 
@@ -484,8 +510,10 @@ void FaustEffectComponent::reload(Execution::Transaction& transaction)
 }
 
 // TODO reuse this code
-template<typename Node_T>
-void FaustEffectComponent::setupExecutionControls(const Node_T& node, int firstControlIndex)
+template <typename Node_T>
+void FaustEffectComponent::setupExecutionControls(
+    const Node_T& node,
+    int firstControlIndex)
 {
   auto& proc = process();
   auto& ctx = system();
@@ -493,61 +521,85 @@ void FaustEffectComponent::setupExecutionControls(const Node_T& node, int firstC
   for (std::size_t i = firstControlIndex, N = proc.inlets().size(); i < N; i++)
   {
     auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
-    *node->controls[i - firstControlIndex].second = ossia::convert<float>(inlet->value());
+    *node->controls[i - firstControlIndex].second
+        = ossia::convert<float>(inlet->value());
     auto inl = this->node->root_inputs()[i];
-    auto c = connect(inlet, &Process::ControlInlet::valueChanged, this, [this, inl](const ossia::value& v) {
-      system().executionQueue.enqueue([inl, val = v]() mutable {
-        inl->target<ossia::value_port>()->write_value(std::move(val), 0);
-      });
-    });
+    auto c = connect(
+        inlet,
+        &Process::ControlInlet::valueChanged,
+        this,
+        [this, inl](const ossia::value& v) {
+          system().executionQueue.enqueue([inl, val = v]() mutable {
+            inl->target<ossia::value_port>()->write_value(std::move(val), 0);
+          });
+        });
     m_controlConnections.push_back(c);
   }
 
   typename Node_T::weak_type weak_node = node;
-  auto c = con(ctx.doc.coarseUpdateTimer, &QTimer::timeout, this, [weak_node, firstControlIndex, &proc] {
-    if (auto node = weak_node.lock())
-    {
-      for (std::size_t i = firstControlIndex; i < proc.inlets().size(); i++)
-      {
-        auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
-        inlet->setValue(*node->controls[i - firstControlIndex].second);
-      }
-    }
-  });
+  auto c = con(
+      ctx.doc.coarseUpdateTimer,
+      &QTimer::timeout,
+      this,
+      [weak_node, firstControlIndex, &proc] {
+        if (auto node = weak_node.lock())
+        {
+          for (std::size_t i = firstControlIndex; i < proc.inlets().size();
+               i++)
+          {
+            auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
+            inlet->setValue(*node->controls[i - firstControlIndex].second);
+          }
+        }
+      });
 
   m_controlConnections.push_back(c);
 }
 
-template<typename Node_T>
-void FaustEffectComponent::setupExecutionControlOutlets(const Node_T& node, int firstControlIndex)
+template <typename Node_T>
+void FaustEffectComponent::setupExecutionControlOutlets(
+    const Node_T& node,
+    int firstControlIndex)
 {
   auto& proc = process();
   auto& ctx = system();
 
-  for (std::size_t i = firstControlIndex, N = proc.outlets().size(); i < N; i++)
+  for (std::size_t i = firstControlIndex, N = proc.outlets().size(); i < N;
+       i++)
   {
     auto outlet = static_cast<Process::ControlOutlet*>(proc.outlets()[i]);
-    *node->displays[i - firstControlIndex].second = ossia::convert<float>(outlet->value());
+    *node->displays[i - firstControlIndex].second
+        = ossia::convert<float>(outlet->value());
     auto outl = this->node->root_outputs()[i];
-    auto c = connect(outlet, &Process::ControlOutlet::valueChanged, this, [this, outl](const ossia::value& v) {
-      system().executionQueue.enqueue([outl, val = v]() mutable {
-        outl->target<ossia::value_port>()->write_value(std::move(val), 0);
-      });
-    });
+    auto c = connect(
+        outlet,
+        &Process::ControlOutlet::valueChanged,
+        this,
+        [this, outl](const ossia::value& v) {
+          system().executionQueue.enqueue([outl, val = v]() mutable {
+            outl->target<ossia::value_port>()->write_value(std::move(val), 0);
+          });
+        });
     m_controlConnections.push_back(c);
   }
 
   typename Node_T::weak_type weak_node = node;
-  auto c = con(ctx.doc.coarseUpdateTimer, &QTimer::timeout, this, [weak_node, firstControlIndex, &proc] {
-    if (auto node = weak_node.lock())
-    {
-      for (std::size_t i = firstControlIndex; i < proc.outlets().size(); i++)
-      {
-        auto outlet = static_cast<Process::ControlOutlet*>(proc.outlets()[i]);
-        outlet->setValue(*node->displays[i - firstControlIndex].second);
-      }
-    }
-  });
+  auto c = con(
+      ctx.doc.coarseUpdateTimer,
+      &QTimer::timeout,
+      this,
+      [weak_node, firstControlIndex, &proc] {
+        if (auto node = weak_node.lock())
+        {
+          for (std::size_t i = firstControlIndex; i < proc.outlets().size();
+               i++)
+          {
+            auto outlet
+                = static_cast<Process::ControlOutlet*>(proc.outlets()[i]);
+            outlet->setValue(*node->displays[i - firstControlIndex].second);
+          }
+        }
+      });
 
   m_controlConnections.push_back(c);
 }
@@ -562,7 +614,7 @@ void FaustEffectComponent::reloadSynth(Execution::Transaction& transaction)
   auto node = std::make_shared<faust_type>(proc.faust_poly_object);
   this->node = node;
 
-  if(!m_ossia_process)
+  if (!m_ossia_process)
     m_ossia_process = std::make_shared<ossia::node_process>(node);
   else
     ctx.setup.replace_node(m_ossia_process, node, transaction);
@@ -580,7 +632,7 @@ void FaustEffectComponent::reloadFx(Execution::Transaction& transaction)
   auto node = std::make_shared<faust_type>(proc.faust_object);
   this->node = node;
 
-  if(!m_ossia_process)
+  if (!m_ossia_process)
     m_ossia_process = std::make_shared<ossia::node_process>(node);
   else
     ctx.setup.replace_node(m_ossia_process, node, transaction);

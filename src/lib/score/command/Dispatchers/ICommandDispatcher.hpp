@@ -22,7 +22,10 @@ class ICommandDispatcher
 public:
   explicit ICommandDispatcher(const score::CommandStack& stack) = delete;
 
-  explicit ICommandDispatcher(const score::CommandStackFacade& stack) : m_stack{stack} { }
+  explicit ICommandDispatcher(const score::CommandStackFacade& stack)
+      : m_stack{stack}
+  {
+  }
 
   const score::CommandStackFacade& stack() const { return m_stack; }
 

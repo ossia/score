@@ -24,20 +24,26 @@ public:
       const Curve::ToolPalette& parentSM,
       View& view,
       QState* parent)
-      : CommonSelectionState{stack, &view, parent}, m_parentSM{parentSM}, m_view{view}
+      : CommonSelectionState{stack, &view, parent}
+      , m_parentSM{parentSM}
+      , m_view{view}
   {
   }
 
   const QPointF& initialPoint() const { return m_initialPoint; }
   const QPointF& movePoint() const { return m_movePoint; }
 
-  void on_pressAreaSelection() override { m_initialPoint = m_parentSM.scenePoint; }
+  void on_pressAreaSelection() override
+  {
+    m_initialPoint = m_parentSM.scenePoint;
+  }
 
   void on_moveAreaSelection() override
   {
     m_movePoint = m_parentSM.scenePoint;
-    auto rect = QRectF{m_view.mapFromScene(m_initialPoint), m_view.mapFromScene(m_movePoint)}
-                    .normalized();
+    auto rect
+        = QRectF{m_view.mapFromScene(m_initialPoint), m_view.mapFromScene(m_movePoint)}
+              .normalized();
 
     m_view.setSelectionArea(rect);
     setSelectionArea(rect);
@@ -82,8 +88,8 @@ private:
       }
     }
 
-    dispatcher.select(
-        filterSelections(sel, m_parentSM.model().selectedChildren(), multiSelection()));
+    dispatcher.select(filterSelections(
+        sel, m_parentSM.model().selectedChildren(), multiSelection()));
   }
 };
 }

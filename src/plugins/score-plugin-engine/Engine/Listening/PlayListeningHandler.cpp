@@ -2,13 +2,13 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "PlayListeningHandler.hpp"
 
-#include <Explorer/DeviceList.hpp>
-
 #include <Execution/DocumentPlugin.hpp>
+#include <Explorer/DeviceList.hpp>
 
 namespace Execution
 {
-PlayListeningHandler::PlayListeningHandler(const Execution::DocumentPlugin& docpl)
+PlayListeningHandler::PlayListeningHandler(
+    const Execution::DocumentPlugin& docpl)
     : m_executor{docpl}
 {
 }

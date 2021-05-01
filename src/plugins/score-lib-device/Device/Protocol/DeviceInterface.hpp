@@ -56,7 +56,9 @@ enum DeviceLogging : int8_t
   LogUnfolded,
   LogEverything
 };
-class SCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject, public Nano::Observer
+class SCORE_LIB_DEVICE_EXPORT DeviceInterface
+    : public QObject
+    , public Nano::Observer
 {
   W_OBJECT(DeviceInterface)
 
@@ -91,8 +93,9 @@ public:
   std::vector<State::Address> listening() const;
 
   virtual void addAddress(const Device::FullAddressSettings&);
-  virtual void
-  updateAddress(const State::Address& currentAddr, const Device::FullAddressSettings& newAddr);
+  virtual void updateAddress(
+      const State::Address& currentAddr,
+      const Device::FullAddressSettings& newAddr);
   void removeNode(const State::Address&);
 
   void sendMessage(const State::Address& addr, const ossia::value& v);
@@ -123,7 +126,8 @@ public:
 
 public:
   // These signals are emitted if a device changes from the inside
-  void pathAdded(const State::Address& arg_1) E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, pathAdded, arg_1)
+  void pathAdded(const State::Address& arg_1)
+      E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, pathAdded, arg_1)
   void pathUpdated(
       const State::Address& arg_1, // current address
       const Device::AddressSettings& arg_2)
@@ -135,12 +139,15 @@ public:
   void namespaceUpdated() E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, namespaceUpdated)
 
   // In case the device changed
-  void deviceChanged(ossia::net::device_base* old_dev, ossia::net::device_base* new_dev)
+  void deviceChanged(
+      ossia::net::device_base* old_dev,
+      ossia::net::device_base* new_dev)
       E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, deviceChanged, old_dev, new_dev)
 
   /* If logging is enabled, these two signals may be sent
    * when something happens */
-  void logInbound(const QString& arg_1) const E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, logInbound, arg_1)
+  void logInbound(const QString& arg_1) const
+      E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, logInbound, arg_1)
   void logOutbound(const QString& arg_1) const
       E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, logOutbound, arg_1)
 
@@ -161,7 +168,8 @@ protected:
       ossia::net::node_base& node,
       State::Address addr,
       std::vector<State::Address>&);
-  void renameListening_impl(const State::Address& parent, const QString& newName);
+  void
+  renameListening_impl(const State::Address& parent, const QString& newName);
   void setLogging_impl(DeviceLogging) const;
   void enableCallbacks();
   void disableCallbacks();
@@ -186,7 +194,10 @@ protected:
 
   using DeviceInterface::DeviceInterface;
 
-  ossia::net::device_base* getDevice() const final override { return m_dev.get(); }
+  ossia::net::device_base* getDevice() const final override
+  {
+    return m_dev.get();
+  }
 
   std::unique_ptr<ossia::net::device_base> m_dev;
   bool m_owned{true};
@@ -198,7 +209,8 @@ getNodeFromPath(const QStringList& path, ossia::net::device_base& dev);
 SCORE_LIB_DEVICE_EXPORT ossia::net::node_base*
 createNodeFromPath(const QStringList& path, ossia::net::device_base& dev);
 
-SCORE_LIB_DEVICE_EXPORT Device::Node ToDeviceExplorer(const ossia::net::node_base& node);
+SCORE_LIB_DEVICE_EXPORT Device::Node
+ToDeviceExplorer(const ossia::net::node_base& node);
 
 SCORE_LIB_DEVICE_EXPORT ossia::net::node_base*
 findNodeFromPath(const Device::Node& path, ossia::net::device_base& dev);

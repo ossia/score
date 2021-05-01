@@ -40,7 +40,8 @@ using MappingLayerFactory = Curve::CurveLayerFactory_T<
 score_plugin_mapping::score_plugin_mapping() = default;
 score_plugin_mapping::~score_plugin_mapping() = default;
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_mapping::factories(
+std::vector<std::unique_ptr<score::InterfaceBase>>
+score_plugin_mapping::factories(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& key) const
 {
@@ -50,11 +51,14 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_mapping::factori
       FW<Process::ProcessModelFactory, Mapping::MappingFactory>,
       FW<Process::LayerFactory, Mapping::MappingLayerFactory>,
       FW<Inspector::InspectorWidgetFactory, MappingInspectorFactory>,
-      FW<LocalTree::ProcessComponentFactory, LocalTree::MappingComponentFactory>,
-      FW<Execution::ProcessComponentFactory, Mapping::RecreateOnPlay::ComponentFactory>>(ctx, key);
+      FW<LocalTree::ProcessComponentFactory,
+         LocalTree::MappingComponentFactory>,
+      FW<Execution::ProcessComponentFactory,
+         Mapping::RecreateOnPlay::ComponentFactory>>(ctx, key);
 }
 
-std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_mapping::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap>
+score_plugin_mapping::make_commands()
 {
   using namespace Mapping;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{

@@ -1,4 +1,6 @@
 #pragma once
+#include <Control/DefaultEffectItem.hpp>
+#include <Effect/EffectFactory.hpp>
 #include <LV2/Context.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/GenericProcessFactory.hpp>
@@ -6,8 +8,6 @@
 
 #include <ossia/dataflow/node_process.hpp>
 
-#include <Control/DefaultEffectItem.hpp>
-#include <Effect/EffectFactory.hpp>
 #include <lilv/lilvmm.hpp>
 
 #include <verdigris>
@@ -47,7 +47,8 @@ public:
 
   ~Model() override;
   template <typename Impl>
-  Model(Impl& vis, QObject* parent) : ProcessModel{vis, parent}
+  Model(Impl& vis, QObject* parent)
+      : ProcessModel{vis, parent}
   {
     vis.writeTo(*this);
     reload();
@@ -69,7 +70,8 @@ public:
   mutable moodycamel::ReaderWriterQueue<Message> ui_events;     // from ui
   mutable moodycamel::ReaderWriterQueue<Message> plugin_events; // from plug-in
 
-  ossia::fast_hash_map<uint32_t, std::pair<Process::ControlInlet*, bool>> control_map;
+  ossia::fast_hash_map<uint32_t, std::pair<Process::ControlInlet*, bool>>
+      control_map;
   ossia::fast_hash_map<uint32_t, Process::ControlOutlet*> control_out_map;
 
 private:
@@ -95,7 +97,11 @@ public:
 
   void lazy_init() override;
 
-  void writeAtomToUi(uint32_t port_index, uint32_t type, uint32_t size, const void* body);
+  void writeAtomToUi(
+      uint32_t port_index,
+      uint32_t type,
+      uint32_t size,
+      const void* body);
 };
 }
 
@@ -108,6 +114,6 @@ QString EffectProcessFactory_T<LV2::Model>::customConstructionData() const;
 namespace LV2
 {
 using ProcessFactory = Process::EffectProcessFactory_T<Model>;
-using ExecutorFactory = Execution::ProcessComponentFactory_T<LV2EffectComponent>;
+using ExecutorFactory
+    = Execution::ProcessComponentFactory_T<LV2EffectComponent>;
 }
-

@@ -1,6 +1,6 @@
 #pragma once
-#include <score/model/IdentifiedObject.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/model/IdentifiedObject.hpp>
 #include <score/plugins/SerializableInterface.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 
@@ -20,7 +20,8 @@ namespace score
 /**
  * @brief Extend a document with custom data and systems.
  */
-class SCORE_LIB_BASE_EXPORT DocumentPlugin : public IdentifiedObject<DocumentPlugin>
+class SCORE_LIB_BASE_EXPORT DocumentPlugin
+    : public IdentifiedObject<DocumentPlugin>
 {
   W_OBJECT(DocumentPlugin)
 public:
@@ -35,8 +36,12 @@ public:
   const score::DocumentContext& context() const { return m_context; }
 
   template <typename Impl>
-  explicit DocumentPlugin(const score::DocumentContext& ctx, Impl& vis, QObject* parent)
-      : IdentifiedObject{vis, parent}, m_context{ctx}
+  explicit DocumentPlugin(
+      const score::DocumentContext& ctx,
+      Impl& vis,
+      QObject* parent)
+      : IdentifiedObject{vis, parent}
+      , m_context{ctx}
   {
   }
 

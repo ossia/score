@@ -7,10 +7,11 @@
 
 #include <verdigris>
 
-class score_plugin_vst final : public score::Plugin_QtInterface,
-                                 public score::FactoryInterface_QtInterface,
-                                 public score::ApplicationPlugin_QtInterface,
-                                 public score::CommandFactory_QtInterface
+class score_plugin_vst final
+    : public score::Plugin_QtInterface
+    , public score::FactoryInterface_QtInterface
+    , public score::ApplicationPlugin_QtInterface
+    , public score::CommandFactory_QtInterface
 {
   SCORE_PLUGIN_METADATA(1, "c3700a54-3dfe-4f9a-8e85-560810a178c1")
 
@@ -22,9 +23,11 @@ public:
       const score::ApplicationContext& ctx,
       const score::InterfaceKey& factoryName) const override;
 
-  std::pair<const CommandGroupKey, CommandGeneratorMap> make_commands() override;
+  std::pair<const CommandGroupKey, CommandGeneratorMap>
+  make_commands() override;
 
-  score::ApplicationPlugin* make_applicationPlugin(const score::ApplicationContext& app) override;
+  score::ApplicationPlugin*
+  make_applicationPlugin(const score::ApplicationContext& app) override;
   score::GUIApplicationPlugin*
   make_guiApplicationPlugin(const score::GUIApplicationContext& app) override;
 };

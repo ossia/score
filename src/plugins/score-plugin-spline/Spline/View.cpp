@@ -32,8 +32,14 @@ namespace Spline
 class CurveItem : public QGraphicsItem
 {
 public:
-  CurveItem(const ProcessModel& model, const score::DocumentContext& ctx, View& parent)
-      : QGraphicsItem{&parent}, m_view{parent}, m_model{model}, m_context{ctx}
+  CurveItem(
+      const ProcessModel& model,
+      const score::DocumentContext& ctx,
+      View& parent)
+      : QGraphicsItem{&parent}
+      , m_view{parent}
+      , m_model{model}
+      , m_context{ctx}
   {
     setFlag(ItemClipsToShape, false);
     setAcceptHoverEvents(true);
@@ -43,7 +49,10 @@ public:
 
   View& m_view;
 
-  QRectF boundingRect() const override { return QRectF(m_topLeft, m_bottomRight); }
+  QRectF boundingRect() const override
+  {
+    return QRectF(m_topLeft, m_bottomRight);
+  }
 
   QPointF point(double pos) const noexcept
   {
@@ -73,16 +82,23 @@ public:
 
       double biggestDim = std::max(rect.width(), rect.height());
       painter.drawLine(
-          -biggestDim * m_zoom, rect.height() / 2., biggestDim * m_zoom, rect.height() / 2.);
+          -biggestDim * m_zoom,
+          rect.height() / 2.,
+          biggestDim * m_zoom,
+          rect.height() / 2.);
       painter.drawLine(
-          rect.height() / 2., -biggestDim * m_zoom, rect.height() / 2., biggestDim * m_zoom);
+          rect.height() / 2.,
+          -biggestDim * m_zoom,
+          rect.height() / 2.,
+          biggestDim * m_zoom);
     }
 
     painter.setRenderHint(QPainter::Antialiasing, true);
 
     // Draw the curve
     {
-      QPen segmt = m_selectedCurve ? skin.skin.Base2.main.pen2 : skin.skin.Base4.main.pen2;
+      QPen segmt = m_selectedCurve ? skin.skin.Base2.main.pen2
+                                   : skin.skin.Base4.main.pen2;
       segmt.setWidthF(segmt.widthF() / m_zoom);
 
       painter.strokePath(m_curveShape, segmt);
@@ -111,8 +127,11 @@ public:
 
       {
         auto fp = mapToCanvas(m_spline.points[0]);
-        painter.drawEllipse(
-            QRectF{fp.x() - pointSize, fp.y() - pointSize, pointSize * 2., pointSize * 2.});
+        painter.drawEllipse(QRectF{
+            fp.x() - pointSize,
+            fp.y() - pointSize,
+            pointSize * 2.,
+            pointSize * 2.});
       }
 
       QPen purplePen = skin.skin.Emphasis3.darker.pen2_dotted_square_miter;
@@ -145,8 +164,11 @@ public:
         }
 
         painter.setPen(skin.TransparentPen());
-        painter.drawEllipse(
-            QRectF{p.x() - pointSize, p.y() - pointSize, pointSize * 2., pointSize * 2.});
+        painter.drawEllipse(QRectF{
+            p.x() - pointSize,
+            p.y() - pointSize,
+            pointSize * 2.,
+            pointSize * 2.});
       }
     }
 
@@ -184,12 +206,12 @@ public:
     // we take 16.6 as zoom ratio
     const double w = m_bottomRight.x() - m_topLeft.x();
     const double h = m_bottomRight.y() - m_topLeft.y();
-    if(w < 5 || h < 5)
+    if (w < 5 || h < 5)
       return;
 
     const double parent_w = parentRect.width();
     const double parent_h = parentRect.height();
-    if(parent_w < 5 || parent_h < 5)
+    if (parent_w < 5 || parent_h < 5)
       return;
 
     const double w_ratio = parent_w / w;
@@ -215,7 +237,8 @@ public:
   void updateSpline()
   {
     m_spl.set_points(
-        reinterpret_cast<const tsReal*>(m_spline.points.data()), m_spline.points.size());
+        reinterpret_cast<const tsReal*>(m_spline.points.data()),
+        m_spline.points.size());
 
     // Recompute the curve
     {
@@ -234,7 +257,6 @@ public:
         path.lineTo(pt);
         m_points.push_back(pt);
       }
-
 
       updateStroke();
       updatePlayPath();
@@ -257,7 +279,8 @@ public:
       auto& path = m_playShape;
       clearPainterPath(path);
 
-      std::size_t max = std::min(std::size_t(qBound(0.f, m_play, 1.f) * N), m_points.size());
+      std::size_t max = std::min(
+          std::size_t(qBound(0.f, m_play, 1.f) * N), m_points.size());
       if (max == 0)
         return;
 
@@ -352,7 +375,8 @@ public:
     auto res = menu->exec(e->screenPos());
     if (res == setCurveAct)
     {
-      auto dial = new GeneratorDialog{this->m_model, this->m_context, e->widget()};
+      auto dial
+          = new GeneratorDialog{this->m_model, this->m_context, e->widget()};
       dial->exec();
     }
     menu->deleteLater();
@@ -456,7 +480,7 @@ public:
     const auto newPos = mapFromCanvas(event->pos());
     std::size_t splitIndex = 0;
     const std::size_t N = m_spline.points.size();
-    if(N < 2)
+    if (N < 2)
     {
       m_spline.points.push_back(newPos);
       updateSpline();
@@ -470,16 +494,19 @@ public:
     {
       QPointF p0{newPos.x, newPos.y};
       QPointF p1{m_spline.points[i].x, m_spline.points[i].y};
-      QPointF p2{m_spline.points[i+1].x, m_spline.points[i+1].y};
+      QPointF p2{m_spline.points[i + 1].x, m_spline.points[i + 1].y};
       QLineF l1{p0, p1};
       QLineF l2{p0, p2};
 
-      const double num = std::abs((p2.x() - p1.x()) * (p1.y() - p0.y()) - (p1.x() - p0.x()) * (p2.y() - p1.y()));
-      const double denom = std::sqrt(std::pow(p2.x() - p1.x(), 2) + std::pow(p2.y() - p1.y(), 2));
+      const double num = std::abs(
+          (p2.x() - p1.x()) * (p1.y() - p0.y())
+          - (p1.x() - p0.x()) * (p2.y() - p1.y()));
+      const double denom = std::sqrt(
+          std::pow(p2.x() - p1.x(), 2) + std::pow(p2.y() - p1.y(), 2));
       const double point_to_line_distance = num / denom;
-      if(point_to_line_distance + l1.length() + l2.length() < dist_min)
+      if (point_to_line_distance + l1.length() + l2.length() < dist_min)
       {
-        dist_min = point_to_line_distance + l1.length() + l2.length() ;
+        dist_min = point_to_line_distance + l1.length() + l2.length();
         splitIndex = i;
       }
     }
@@ -535,7 +562,10 @@ public:
 };
 
 static_assert(std::is_same<tsReal, qreal>::value, "");
-View::View(const ProcessModel& m, const Process::Context& ctx, QGraphicsItem* parent)
+View::View(
+    const ProcessModel& m,
+    const Process::Context& ctx,
+    QGraphicsItem* parent)
     : LayerView{parent}
 {
   m_impl = new CurveItem{m, ctx, *this};
@@ -556,7 +586,8 @@ View::View(const ProcessModel& m, const Process::Context& ctx, QGraphicsItem* pa
   connect(item, &score::ZoomItem::recenter, this, &View::recenter);
   recenter();
 
-  this->setFlags(QGraphicsItem::ItemIsFocusable | QGraphicsItem::ItemClipsToShape);
+  this->setFlags(
+      QGraphicsItem::ItemIsFocusable | QGraphicsItem::ItemClipsToShape);
 }
 
 void View::setSpline(ossia::spline_data d)
@@ -582,7 +613,8 @@ void View::recenter()
 {
   m_impl->updateRect();
   m_impl->setZoomToFitRect(boundingRect());
-  auto childCenter = m_impl->mapRectToParent(m_impl->boundingRect()).center() - m_impl->pos();
+  auto childCenter = m_impl->mapRectToParent(m_impl->boundingRect()).center()
+                     - m_impl->pos();
   auto ourCenter = boundingRect().center();
   auto delta = ourCenter - childCenter;
 

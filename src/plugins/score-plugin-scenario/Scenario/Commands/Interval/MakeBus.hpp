@@ -1,11 +1,11 @@
 #pragma once
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-
 #include <score/command/Command.hpp>
 
 #include <ossia/detail/algorithms.hpp>
+
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
 namespace Scenario
 {
@@ -19,7 +19,10 @@ class SetBus final : public score::Command
   SCORE_COMMAND_DECL(CommandFactoryName(), SetBus, "Make an interval a bus")
 public:
   SetBus(const ScenarioDocumentModel& src, const IntervalModel& tgt, bool bus)
-      : m_doc{src}, m_itv{tgt}, m_old{ossia::contains(src.busIntervals, &tgt)}, m_new{bus}
+      : m_doc{src}
+      , m_itv{tgt}
+      , m_old{ossia::contains(src.busIntervals, &tgt)}
+      , m_new{bus}
   {
   }
 
@@ -43,8 +46,14 @@ public:
   }
 
 protected:
-  void serializeImpl(DataStreamInput& s) const override { s << m_doc << m_itv << m_old << m_new; }
-  void deserializeImpl(DataStreamOutput& s) override { s >> m_doc >> m_itv >> m_old >> m_new; }
+  void serializeImpl(DataStreamInput& s) const override
+  {
+    s << m_doc << m_itv << m_old << m_new;
+  }
+  void deserializeImpl(DataStreamOutput& s) override
+  {
+    s >> m_doc >> m_itv >> m_old >> m_new;
+  }
 
 private:
   Path<ScenarioDocumentModel> m_doc;

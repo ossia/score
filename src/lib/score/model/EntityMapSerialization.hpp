@@ -18,8 +18,11 @@ struct EntityMapSerializer
   }
 
   template <typename List, typename T>
-  static void
-  writeTo(DataStream::Deserializer& s, T& obj, const score::DocumentContext& ctx, QObject* parent)
+  static void writeTo(
+      DataStream::Deserializer& s,
+      T& obj,
+      const score::DocumentContext& ctx,
+      QObject* parent)
   {
     int32_t sz;
     s.m_stream >> sz;
@@ -43,8 +46,11 @@ struct EntityMapSerializer
     s.stream.EndArray();
   }
   template <typename List, typename T>
-  static void
-  writeTo(JSONObject::Deserializer&& s, T& obj, const score::DocumentContext& ctx, QObject* parent)
+  static void writeTo(
+      JSONObject::Deserializer&& s,
+      T& obj,
+      const score::DocumentContext& ctx,
+      QObject* parent)
   {
     auto& pl = s.components.interfaces<List>();
 

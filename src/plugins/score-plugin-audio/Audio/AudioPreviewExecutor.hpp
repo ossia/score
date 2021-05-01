@@ -2,8 +2,8 @@
 #include <Process/ExecutionAction.hpp>
 
 #include <ossia/dataflow/nodes/media.hpp>
-
 #include <ossia/detail/lockfree_queue.hpp>
+
 #include <score_plugin_audio_export.h>
 
 namespace ossia
@@ -15,7 +15,8 @@ class audio_protocol;
 namespace Audio
 {
 
-class SCORE_PLUGIN_AUDIO_EXPORT AudioPreviewExecutor : public Execution::ExecutionAction
+class SCORE_PLUGIN_AUDIO_EXPORT AudioPreviewExecutor
+    : public Execution::ExecutionAction
 {
   static inline AudioPreviewExecutor* m_instance{};
   SCORE_CONCRETE("333d0fab-a399-40e4-beea-c98ea79c10fa")

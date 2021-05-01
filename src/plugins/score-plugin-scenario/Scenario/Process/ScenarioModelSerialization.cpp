@@ -2,14 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioFactory.hpp"
 
-#include <Scenario/Application/ScenarioValidity.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-
 #include <score/document/DocumentContext.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/EntityMapSerialization.hpp>
@@ -23,6 +15,13 @@
 #include <score/tools/MapCopy.hpp>
 #include <score/tools/std/Optional.hpp>
 
+#include <Scenario/Application/ScenarioValidity.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <sys/types.h>
 
 template <>
@@ -100,7 +99,8 @@ void DataStreamWriter::write(Scenario::ProcessModel& scenario)
 
   for (; interval_count-- > 0;)
   {
-    auto interval = new Scenario::IntervalModel{*this, scenario.context(), &scenario};
+    auto interval
+        = new Scenario::IntervalModel{*this, scenario.context(), &scenario};
     scenario.intervals.add(interval);
   }
 
@@ -130,7 +130,8 @@ void DataStreamWriter::write(Scenario::ProcessModel& scenario)
 
   for (; state_count-- > 0;)
   {
-    auto stmodel = new Scenario::StateModel{*this, scenario.context(), &scenario};
+    auto stmodel
+        = new Scenario::StateModel{*this, scenario.context(), &scenario};
     scenario.states.add(stmodel);
   }
 
@@ -146,8 +147,10 @@ void DataStreamWriter::write(Scenario::ProcessModel& scenario)
   // Finally, we re-set the intervals before and after the states
   for (const Scenario::IntervalModel& interval : scenario.intervals)
   {
-    Scenario::SetPreviousInterval(scenario.states.at(interval.endState()), interval);
-    Scenario::SetNextInterval(scenario.states.at(interval.startState()), interval);
+    Scenario::SetPreviousInterval(
+        scenario.states.at(interval.endState()), interval);
+    Scenario::SetNextInterval(
+        scenario.states.at(interval.startState()), interval);
   }
 
   // Scenario::ScenarioValidityChecker::checkValidity(scenario);
@@ -197,7 +200,8 @@ void JSONWriter::write(Scenario::ProcessModel& scenario)
   const auto& timesyncs = obj["TimeNodes"].toArray();
   for (const auto& json_vref : timesyncs)
   {
-    auto tnmodel = new Scenario::TimeSyncModel{JSONObject::Deserializer{json_vref}, &scenario};
+    auto tnmodel = new Scenario::TimeSyncModel{
+        JSONObject::Deserializer{json_vref}, &scenario};
 
     scenario.timeSyncs.add(tnmodel);
   }
@@ -205,7 +209,8 @@ void JSONWriter::write(Scenario::ProcessModel& scenario)
   const auto& events = obj["Events"].toArray();
   for (const auto& json_vref : events)
   {
-    auto evmodel = new Scenario::EventModel{JSONObject::Deserializer{json_vref}, &scenario};
+    auto evmodel = new Scenario::EventModel{
+        JSONObject::Deserializer{json_vref}, &scenario};
     if (!evmodel->states().empty())
     {
       scenario.events.add(evmodel);
@@ -226,8 +231,8 @@ void JSONWriter::write(Scenario::ProcessModel& scenario)
   const auto& comments = obj["Comments"].toArray();
   for (const auto& json_vref : comments)
   {
-    auto cmtmodel
-        = new Scenario::CommentBlockModel{JSONObject::Deserializer{json_vref}, &scenario};
+    auto cmtmodel = new Scenario::CommentBlockModel{
+        JSONObject::Deserializer{json_vref}, &scenario};
 
     scenario.comments.add(cmtmodel);
   }
@@ -244,8 +249,10 @@ void JSONWriter::write(Scenario::ProcessModel& scenario)
   // Finally, we re-set the intervals before and after the states
   for (const Scenario::IntervalModel& interval : scenario.intervals)
   {
-    Scenario::SetPreviousInterval(scenario.states.at(interval.endState()), interval);
-    Scenario::SetNextInterval(scenario.states.at(interval.startState()), interval);
+    Scenario::SetPreviousInterval(
+        scenario.states.at(interval.endState()), interval);
+    Scenario::SetNextInterval(
+        scenario.states.at(interval.startState()), interval);
   }
 
   Scenario::ScenarioValidityChecker::checkValidity(scenario);

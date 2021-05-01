@@ -16,7 +16,8 @@
 #include <memory>
 namespace Protocols
 {
-HTTPDevice::HTTPDevice(const Device::DeviceSettings& settings) : OwningDeviceInterface{settings}
+HTTPDevice::HTTPDevice(const Device::DeviceSettings& settings)
+    : OwningDeviceInterface{settings}
 {
   m_capas.canRefreshTree = true;
   m_capas.canAddNode = false;
@@ -32,7 +33,8 @@ bool HTTPDevice::reconnect()
 
   try
   {
-    auto stgs = settings().deviceSpecificSettings.value<HTTPSpecificSettings>();
+    auto stgs
+        = settings().deviceSpecificSettings.value<HTTPSpecificSettings>();
 
     m_dev = std::make_unique<ossia::net::http_device>(
         std::make_unique<ossia::net::http_protocol>(stgs.text.toUtf8()),

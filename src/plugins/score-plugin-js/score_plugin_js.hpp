@@ -12,9 +12,10 @@
 #include <vector>
 #include <verdigris>
 
-class score_plugin_js final : public score::Plugin_QtInterface,
-                              public score::FactoryInterface_QtInterface,
-                              public score::CommandFactory_QtInterface
+class score_plugin_js final
+    : public score::Plugin_QtInterface
+    , public score::FactoryInterface_QtInterface
+    , public score::CommandFactory_QtInterface
 {
   SCORE_PLUGIN_METADATA(1, "0eb1db4b-a532-4961-ba1c-d9edbf08ef07")
 public:
@@ -28,5 +29,6 @@ private:
       const score::InterfaceKey& factoryName) const override;
 
   // CommandFactory_QtInterface interface
-  std::pair<const CommandGroupKey, CommandGeneratorMap> make_commands() override;
+  std::pair<const CommandGroupKey, CommandGeneratorMap>
+  make_commands() override;
 };

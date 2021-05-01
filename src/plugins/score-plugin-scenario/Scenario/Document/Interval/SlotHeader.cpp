@@ -5,13 +5,6 @@
 #include <Process/LayerView.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Scenario/Application/Menus/ScenarioCopy.hpp>
-#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Interval/IntervalPresenter.hpp>
-#include <Scenario/Document/Interval/IntervalView.hpp>
-#include <Scenario/Document/Interval/LayerData.hpp>
-#include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
 
 #include <score/model/path/PathSerialization.hpp>
 
@@ -21,10 +14,20 @@
 #include <QPainter>
 #include <QWidget>
 
+#include <Scenario/Application/Menus/ScenarioCopy.hpp>
+#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/IntervalPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalView.hpp>
+#include <Scenario/Document/Interval/LayerData.hpp>
+#include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
 #include <wobjectimpl.h>
 namespace Scenario
 {
-SlotHeader::SlotHeader(const IntervalPresenter& slotView, int slotIndex, QGraphicsItem* parent)
+SlotHeader::SlotHeader(
+    const IntervalPresenter& slotView,
+    int slotIndex,
+    QGraphicsItem* parent)
     : QGraphicsItem{parent}
     , m_presenter{slotView}
     , m_width{slotView.view()->boundingRect().width()}
@@ -52,12 +55,16 @@ QRectF SlotHeader::boundingRect() const
   return {0., 0., m_width, headerHeight()};
 }
 
-void SlotHeader::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void SlotHeader::paint(
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
   const auto& style = Process::Style::instance();
 
-  auto& brush = m_presenter.model().metadata().getColor().getBrush().darker300.brush;
+  auto& brush
+      = m_presenter.model().metadata().getColor().getBrush().darker300.brush;
   painter->fillRect(QRectF{0., 0., m_width, headerHeight() - 1}, brush);
   if (m_width > 20)
   {
@@ -100,10 +107,12 @@ void SlotHeader::mousePressEvent(QGraphicsSceneMouseEvent* event)
   else if (boundingRect().contains(event->pos()))
   {
     auto slt = m_presenter.getSlots()[m_slotIndex].getLayerSlot();
-    if(slt && slt->layers.size() > 1)
+    if (slt && slt->layers.size() > 1)
     {
-      if (const auto tip = dynamic_cast<const TemporalIntervalPresenter*>(&m_presenter))
-        tip->requestProcessSelectorMenu(m_slotIndex, event->screenPos(), event->scenePos());
+      if (const auto tip
+          = dynamic_cast<const TemporalIntervalPresenter*>(&m_presenter))
+        tip->requestProcessSelectorMenu(
+            m_slotIndex, event->screenPos(), event->scenePos());
     }
   }
   event->accept();
@@ -112,19 +121,19 @@ void SlotHeader::mousePressEvent(QGraphicsSceneMouseEvent* event)
 QByteArray SlotHeader::dragMimeData(bool temporal)
 {
   std::optional<Id<Process::ProcessModel>> proc_id;
-  if(temporal)
+  if (temporal)
   {
     proc_id = m_presenter.model().smallView()[m_slotIndex].frontProcess;
   }
   else
   {
     auto& slt = m_presenter.model().fullView()[m_slotIndex];
-    if(!slt.nodal)
+    if (!slt.nodal)
       proc_id = slt.process;
   }
 
   JSONReader r;
-  if(proc_id)
+  if (proc_id)
   {
     auto& proc = m_presenter.model().processes.at(*proc_id);
     r.stream.StartObject();
@@ -132,14 +141,16 @@ QByteArray SlotHeader::dragMimeData(bool temporal)
     r.obj["Path"] = score::IDocument::path(proc);
     r.obj["Duration"] = m_presenter.model().duration.defaultDuration().msec();
     r.obj["SlotIndex"] = m_slotIndex;
-    r.obj["View"] = temporal ? QStringLiteral("Small") : QStringLiteral("Full");
+    r.obj["View"]
+        = temporal ? QStringLiteral("Small") : QStringLiteral("Full");
     r.stream.EndObject();
   }
   else
   {
     r.stream.StartObject();
     r.obj["SlotIndex"] = m_slotIndex;
-    r.obj["View"] = temporal ? QStringLiteral("Small") : QStringLiteral("Full");
+    r.obj["View"]
+        = temporal ? QStringLiteral("Small") : QStringLiteral("Full");
     r.stream.EndObject();
   }
 
@@ -154,7 +165,8 @@ void SlotHeader::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   if (xpos >= 0 && xpos < 16 && slot_header_drag)
   {
     auto min_dist
-        = (event->screenPos() - event->buttonDownScreenPos(Qt::LeftButton)).manhattanLength()
+        = (event->screenPos() - event->buttonDownScreenPos(Qt::LeftButton))
+              .manhattanLength()
           >= QApplication::startDragDistance();
 
     if (min_dist)
@@ -166,12 +178,13 @@ void SlotHeader::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
       return;
     }
 
-    bool temporal = dynamic_cast<const TemporalIntervalPresenter*>(&m_presenter);
+    bool temporal
+        = dynamic_cast<const TemporalIntervalPresenter*>(&m_presenter);
     QMimeData* mime = new QMimeData;
     mime->setData(score::mime::layerdata(), dragMimeData(temporal));
     slot_header_drag->setMimeData(mime);
 
-    if(auto slt = m_presenter.getSlots()[m_slotIndex].getLayerSlot())
+    if (auto slt = m_presenter.getSlots()[m_slotIndex].getLayerSlot())
     {
       if (!slt->layers.empty())
       {
@@ -181,9 +194,11 @@ void SlotHeader::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
       }
     }
 
-    QObject::connect(slot_header_drag.get(), &QDrag::destroyed, &m_presenter, [p = &m_presenter] {
-      p->stopSlotDrag();
-    });
+    QObject::connect(
+        slot_header_drag.get(),
+        &QDrag::destroyed,
+        &m_presenter,
+        [p = &m_presenter] { p->stopSlotDrag(); });
 
     m_presenter.startSlotDrag(m_slotIndex, mapToParent(event->pos()));
     slot_header_drag->exec();
@@ -235,7 +250,10 @@ void SlotHeader::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
     unsetCursor();
 }
 
-SlotFooter::SlotFooter(const IntervalPresenter& slotView, int slotIndex, QGraphicsItem* parent)
+SlotFooter::SlotFooter(
+    const IntervalPresenter& slotView,
+    int slotIndex,
+    QGraphicsItem* parent)
     : QGraphicsItem{parent}
     , m_presenter{slotView}
     , m_width{slotView.view()->boundingRect().width()}
@@ -264,13 +282,18 @@ QRectF SlotFooter::boundingRect() const
   return {0., 0., m_width, footerHeight()};
 }
 
-void SlotFooter::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void SlotFooter::paint(
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
 
   auto& brush = m_presenter.model().metadata().getColor().getBrush();
-  painter->fillRect(QRectF{0., 0., m_width, footerHeight() - 1.}, brush.darker300.brush);
-  painter->fillRect(QRectF{0., footerHeight() - 1., m_width, 1.}, brush.lighter180.brush);
+  painter->fillRect(
+      QRectF{0., 0., m_width, footerHeight() - 1.}, brush.darker300.brush);
+  painter->fillRect(
+      QRectF{0., footerHeight() - 1., m_width, 1.}, brush.lighter180.brush);
 }
 
 void SlotFooter::setWidth(qreal width)
@@ -285,7 +308,8 @@ AmovibleSlotFooter::AmovibleSlotFooter(
     int slotIndex,
     QGraphicsItem* parent)
     : SlotFooter{slotView, slotIndex, parent}
-    , m_fullView{bool(qobject_cast<const FullViewIntervalPresenter*>(&m_presenter))}
+    , m_fullView{
+          bool(qobject_cast<const FullViewIntervalPresenter*>(&m_presenter))}
 {
   auto& skin = score::Skin::instance();
   this->setCursor(skin.CursorScaleV);
@@ -343,7 +367,8 @@ void FixedSlotFooter::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 }
 
 SlotDragOverlay::SlotDragOverlay(const IntervalPresenter& c, Slot::RackView v)
-    : interval{c}, view{v}
+    : interval{c}
+    , view{v}
 {
   this->setAcceptDrops(true);
   this->setZValue(9999);
@@ -388,11 +413,14 @@ void SlotDragOverlay::onDrag(QPointF pos)
   }
   else
   {
-    const int N = int(view == Slot::SmallView ? itv.smallView().size() : itv.fullView().size());
+    const int N = int(
+        view == Slot::SmallView ? itv.smallView().size()
+                                : itv.fullView().size());
     for (int i = 0; i < N; i++)
     {
-      const auto next_height
-          = itv.getSlotHeight({i, view}) + SlotHeader::headerHeight() + SlotFooter::footerHeight();
+      const auto next_height = itv.getSlotHeight({i, view})
+                               + SlotHeader::headerHeight()
+                               + SlotFooter::footerHeight();
       if (y > height - 2.5 && y < height + 2.5)
       {
         m_drawnRect = {0, height - 2.5, rect.width(), 5};
@@ -446,7 +474,9 @@ void SlotDragOverlay::dropEvent(QGraphicsSceneDragDropEvent* event)
   const auto rect = interval.view()->boundingRect();
   const auto& itv = interval.model();
   double height = 0.;
-  const int N = int(view == Slot::SmallView ? itv.smallView().size() : itv.fullView().size());
+  const int N = int(
+      view == Slot::SmallView ? itv.smallView().size()
+                              : itv.fullView().size());
 
   if (y <= height)
   {
@@ -464,8 +494,9 @@ void SlotDragOverlay::dropEvent(QGraphicsSceneDragDropEvent* event)
   {
     for (int i = 0; i < N; i++)
     {
-      const auto next_height
-          = itv.getSlotHeight({i, view}) + SlotHeader::headerHeight() + SlotFooter::footerHeight();
+      const auto next_height = itv.getSlotHeight({i, view})
+                               + SlotHeader::headerHeight()
+                               + SlotFooter::footerHeight();
       if (y > height - 2.5 && y < height + 2.5)
       {
         m_drawnRect = {0, height - 2.5, rect.width(), 5};

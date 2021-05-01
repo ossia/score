@@ -1,10 +1,9 @@
 #pragma once
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/PropertyCommand.hpp>
 
 #include <Interpolation/InterpolationProcess.hpp>
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 
 namespace Interpolation
 {
@@ -47,7 +46,10 @@ void ChangeInterpolationAddress(
 // MOVEME && should apply to both Interpolation and Automation
 class SetTween final : public score::PropertyCommand
 {
-  SCORE_COMMAND_DECL(Scenario::Command::CommandFactoryName(), SetTween, "Set interpolation tween")
+  SCORE_COMMAND_DECL(
+      Scenario::Command::CommandFactoryName(),
+      SetTween,
+      "Set interpolation tween")
 public:
   SetTween(const ProcessModel& path, bool newval)
       : score::PropertyCommand{std::move(path), "tween", newval}

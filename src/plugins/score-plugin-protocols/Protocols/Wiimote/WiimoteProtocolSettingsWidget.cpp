@@ -45,7 +45,8 @@ Device::DeviceSettings WiimoteProtocolSettingsWidget::getSettings() const
   return s;
 }
 
-void WiimoteProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settings)
+void WiimoteProtocolSettingsWidget::setSettings(
+    const Device::DeviceSettings& settings)
 {
   m_deviceNameEdit->setText(settings.name);
 }

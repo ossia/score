@@ -1,7 +1,7 @@
 #pragma once
-#include <Scenario/Document/Event/EventModel.hpp>
-
 #include <LocalTree/LocalTreeComponent.hpp>
+
+#include <Scenario/Document/Event/EventModel.hpp>
 
 namespace LocalTree
 {

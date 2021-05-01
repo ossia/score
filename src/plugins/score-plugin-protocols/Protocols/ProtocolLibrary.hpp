@@ -12,14 +12,14 @@
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
-#include <score/widgets/MessageBox.hpp>
-
 #include <score/serialization/AnySerialization.hpp>
 #include <score/serialization/MapSerialization.hpp>
+#include <score/widgets/MessageBox.hpp>
+
 #include <ossia-qt/js_utilities.hpp>
 
-#include <QMainWindow>
 #include <QFileInfo>
+#include <QMainWindow>
 #if __has_include(<QQmlEngine>)
 #include <QQmlComponent>
 #include <QQmlEngine>
@@ -58,15 +58,22 @@ class OSCLibraryHandler final : public Library::LibraryInterface
 {
   SCORE_CONCRETE("8d4c06e2-851b-4d5f-82f2-68056a50c370")
 
-  QSet<QString> acceptedFiles() const noexcept override { return {"touchosc", "json", "xml", "device"}; }
+  QSet<QString> acceptedFiles() const noexcept override
+  {
+    return {"touchosc", "json", "xml", "device"};
+  }
 
-  bool onDoubleClick(const QString& path, const score::DocumentContext& ctx) override
+  bool onDoubleClick(const QString& path, const score::DocumentContext& ctx)
+      override
   {
     Device::Node n{Device::DeviceSettings{}, nullptr};
-    bool ok =    (path.endsWith(".touchosc") && Device::loadDeviceFromTouchOSC(path, n))
-              || (path.endsWith(".json") && Device::loadDeviceFromScoreJSON(path, n))
+    bool ok = (path.endsWith(".touchosc")
+               && Device::loadDeviceFromTouchOSC(path, n))
+              || (path.endsWith(".json")
+                  && Device::loadDeviceFromScoreJSON(path, n))
               || (path.endsWith(".xml") && Device::loadDeviceFromXML(path, n))
-              || (path.endsWith(".device") && Device::loadDeviceFromScoreJSON(path, n));
+              || (path.endsWith(".device")
+                  && Device::loadDeviceFromScoreJSON(path, n));
     if (!ok)
       return false;
 
@@ -100,7 +107,8 @@ class QMLLibraryHandler final : public Library::LibraryInterface
 
   QSet<QString> acceptedFiles() const noexcept override { return {"qml"}; }
 
-  bool onDoubleClick(const QString& path, const score::DocumentContext& ctx) override
+  bool onDoubleClick(const QString& path, const score::DocumentContext& ctx)
+      override
   {
     QFile f(path);
     if (!f.open(QIODevice::ReadOnly))
@@ -123,15 +131,16 @@ class QMLLibraryHandler final : public Library::LibraryInterface
     {
       fact.insert(std::make_unique<Protocols::MapperProtocolFactory>());
       set.protocol = Protocols::MapperProtocolFactory::static_concreteKey();
-      set.deviceSpecificSettings = QVariant::fromValue(Protocols::MapperSpecificSettings{content});
+      set.deviceSpecificSettings
+          = QVariant::fromValue(Protocols::MapperSpecificSettings{content});
     }
 #if defined(OSSIA_PROTOCOL_SERIAL)
     else if (dynamic_cast<ossia::net::Serial*>(obj.get()))
     {
       fact.insert(std::make_unique<Protocols::SerialProtocolFactory>());
       set.protocol = Protocols::SerialProtocolFactory::static_concreteKey();
-      set.deviceSpecificSettings
-          = QVariant::fromValue(Protocols::SerialSpecificSettings{{}, content});
+      set.deviceSpecificSettings = QVariant::fromValue(
+          Protocols::SerialSpecificSettings{{}, content});
     }
 #endif
 #if defined(OSSIA_PROTOCOL_HTTP)
@@ -139,7 +148,8 @@ class QMLLibraryHandler final : public Library::LibraryInterface
     {
       fact.insert(std::make_unique<Protocols::HTTPProtocolFactory>());
       set.protocol = Protocols::HTTPProtocolFactory::static_concreteKey();
-      set.deviceSpecificSettings = QVariant::fromValue(Protocols::HTTPSpecificSettings{content});
+      set.deviceSpecificSettings
+          = QVariant::fromValue(Protocols::HTTPSpecificSettings{content});
     }
 #endif
 #if defined(OSSIA_PROTOCOL_WEBSOCKETS)
@@ -147,8 +157,9 @@ class QMLLibraryHandler final : public Library::LibraryInterface
     {
       fact.insert(std::make_unique<Protocols::WSProtocolFactory>());
       set.protocol = Protocols::WSProtocolFactory::static_concreteKey();
-      set.deviceSpecificSettings = QVariant::fromValue(Protocols::WSSpecificSettings{
-          QQmlProperty(obj.get(), "host").read().toString(), content});
+      set.deviceSpecificSettings
+          = QVariant::fromValue(Protocols::WSSpecificSettings{
+              QQmlProperty(obj.get(), "host").read().toString(), content});
     }
 #endif
 

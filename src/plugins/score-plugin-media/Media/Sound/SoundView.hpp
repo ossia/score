@@ -16,7 +16,9 @@ namespace Media
 namespace Sound
 {
 class ProcessModel;
-class LayerView final : public Process::LayerView, public Nano::Observer
+class LayerView final
+    : public Process::LayerView
+    , public Nano::Observer
 {
 public:
   explicit LayerView(const ProcessModel& model, QGraphicsItem* parent);

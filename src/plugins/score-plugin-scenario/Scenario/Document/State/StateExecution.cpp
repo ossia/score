@@ -3,16 +3,17 @@
 #include <Process/ControlMessage.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionSetup.hpp>
-#include <Scenario/Document/State/StateExecution.hpp>
-#include <Scenario/Execution/score2OSSIA.hpp>
 
 #include <ossia/dataflow/node_process.hpp>
-#include <ossia/dataflow/port.hpp>
 #include <ossia/dataflow/nodes/state.hpp>
+#include <ossia/dataflow/port.hpp>
 #include <ossia/detail/pod_vector.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
 
 #include <QDebug>
+
+#include <Scenario/Document/State/StateExecution.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
 
 namespace Execution
 {
@@ -56,11 +57,13 @@ StateComponentBase::StateComponentBase(
 {
   system().setup.register_node({}, {}, m_node);
 
-  connect(&element, &Scenario::StateModel::sig_statesUpdated, this, [this, &ctx] {
-    in_exec([n = m_node, x = Engine::score_to_ossia::state(*m_model, ctx)]() mutable {
-      n->data = std::move(x);
-    });
-  });
+  connect(
+      &element, &Scenario::StateModel::sig_statesUpdated, this, [this, &ctx] {
+        in_exec([n = m_node,
+                 x = Engine::score_to_ossia::state(*m_model, ctx)]() mutable {
+          n->data = std::move(x);
+        });
+      });
 
   connect(
       &element,
@@ -77,7 +80,9 @@ void StateComponentBase::updateControls()
   auto ossia_msgs = toOssiaControls(this->system().setup, state());
   if (!ossia_msgs.empty())
   {
-    in_exec([n = m_node, x = std::move(ossia_msgs)]() mutable { n->controls = std::move(x); });
+    in_exec([n = m_node, x = std::move(ossia_msgs)]() mutable {
+      n->controls = std::move(x);
+    });
   }
 }
 
@@ -117,7 +122,10 @@ ProcessComponent* StateComponentBase::make(
       auto cst = m_ev;
 
       QObject::connect(
-          &proc.selection, &Selectable::changed, plug.get(), [this, n = oproc->node](bool ok) {
+          &proc.selection,
+          &Selectable::changed,
+          plug.get(),
+          [this, n = oproc->node](bool ok) {
             in_exec([=] {
               if (n)
                 n->set_logging(ok);
@@ -151,14 +159,17 @@ ProcessComponent* StateComponentBase::make(
   return nullptr;
 }
 
-std::function<void()>
-StateComponentBase::removing(const Process::ProcessModel& e, ProcessComponent& c)
+std::function<void()> StateComponentBase::removing(
+    const Process::ProcessModel& e,
+    ProcessComponent& c)
 {
   auto it = m_processes.find(e.id());
   if (it != m_processes.end())
   {
     auto c_ptr = c.shared_from_this();
-    in_exec([cstr = m_ev, c_ptr] { cstr->remove_time_process(c_ptr->OSSIAProcessPtr().get()); });
+    in_exec([cstr = m_ev, c_ptr] {
+      cstr->remove_time_process(c_ptr->OSSIAProcessPtr().get());
+    });
     c.cleanup();
 
     return [=] { m_processes.erase(it); };

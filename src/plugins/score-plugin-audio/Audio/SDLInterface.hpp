@@ -1,11 +1,11 @@
 #pragma once
-#include <ossia/audio/sdl_protocol.hpp>
-
-#include <QWidget>
-
 #include <Audio/AudioInterface.hpp>
 #include <Audio/Settings/Model.hpp>
 #include <Audio/Settings/View.hpp>
+
+#include <ossia/audio/sdl_protocol.hpp>
+
+#include <QWidget>
 
 namespace Audio
 {
@@ -17,11 +17,16 @@ class SDLFactory final : public AudioFactory
 public:
   ~SDLFactory() override { }
   bool available() const noexcept override { return true; }
-  void initialize(Audio::Settings::Model& set, const score::ApplicationContext& ctx) override { }
+  void initialize(
+      Audio::Settings::Model& set,
+      const score::ApplicationContext& ctx) override
+  {
+  }
 
   QString prettyName() const override { return QObject::tr("SDL"); };
-  std::unique_ptr<ossia::audio_engine>
-  make_engine(const Audio::Settings::Model& set, const score::ApplicationContext& ctx) override
+  std::unique_ptr<ossia::audio_engine> make_engine(
+      const Audio::Settings::Model& set,
+      const score::ApplicationContext& ctx) override
   {
     int rate = set.getRate();
     int bs = set.getBufferSize();

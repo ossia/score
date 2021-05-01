@@ -6,10 +6,17 @@
 namespace score
 {
 
-Menu::Menu(QMenu* menu, StringKey<Menu> m) : m_impl{menu}, m_key{std::move(m)} { }
+Menu::Menu(QMenu* menu, StringKey<Menu> m)
+    : m_impl{menu}
+    , m_key{std::move(m)}
+{
+}
 
 Menu::Menu(QMenu* menu, StringKey<Menu> m, Menu::is_toplevel, int column)
-    : m_impl{menu}, m_key{std::move(m)}, m_col{column}, m_toplevel{true}
+    : m_impl{menu}
+    , m_key{std::move(m)}
+    , m_col{column}
+    , m_toplevel{true}
 {
 }
 

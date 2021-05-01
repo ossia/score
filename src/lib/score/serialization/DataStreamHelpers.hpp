@@ -13,41 +13,54 @@
 
 */
 #include <score/tools/Debug.hpp>
-#include <score_lib_base_export.h>
 
+#include <QByteArray>
+#include <QColor>
+#include <QDataStream>
+#include <QList>
+#include <QMap>
+#include <QPoint>
+#include <QPointF>
+#include <QPointer>
+#include <QRect>
+#include <QRectF>
+#include <QSize>
+#include <QSizeF>
 #include <QString>
 #include <QStringList>
-#include <QByteArray>
-#include <QDataStream>
+#include <QVariant>
 #include <QVector2D>
 #include <QVector3D>
 #include <QVector4D>
-#include <QPoint>
-#include <QPointF>
-#include <QSize>
-#include <QSizeF>
-#include <QRect>
-#include <QRectF>
-#include <QPointer>
 #include <QVector>
-#include <QList>
-#include <QMap>
-#include <QColor>
-#include <QVariant>
 
-#include <string>
+#include <score_lib_base_export.h>
+
 #include <memory>
+#include <string>
+
 #include <type_traits>
 
-template<typename T> struct is_shared_ptr : std::false_type {};
-template<typename T> struct is_shared_ptr<std::shared_ptr<T>> : std::true_type {};
-template<typename T>
+template <typename T>
+struct is_shared_ptr : std::false_type
+{
+};
+template <typename T>
+struct is_shared_ptr<std::shared_ptr<T>> : std::true_type
+{
+};
+template <typename T>
 static constexpr bool is_shared_ptr_v = is_shared_ptr<T>::value;
-template<typename T> struct is_qpointer : std::false_type {};
-template<typename T> struct is_qpointer<QPointer<T>> : std::true_type {};
-template<typename T>
+template <typename T>
+struct is_qpointer : std::false_type
+{
+};
+template <typename T>
+struct is_qpointer<QPointer<T>> : std::true_type
+{
+};
+template <typename T>
 static constexpr bool is_qpointer_v = is_qpointer<T>::value;
-
 
 #if defined(SCORE_DEBUG_DELIMITERS)
 #define SCORE_DEBUG_INSERT_DELIMITER \
@@ -100,7 +113,8 @@ struct is_QDataStreamSerializable : std::false_type
 template <class T>
 struct is_QDataStreamSerializable<
     T,
-    enable_if_QDataStreamSerializable<typename std::decay<T>::type>> : std::true_type
+    enable_if_QDataStreamSerializable<typename std::decay<T>::type>>
+    : std::true_type
 {
 };
 
@@ -109,8 +123,10 @@ SCORE_LIB_BASE_EXPORT QDataStream& operator<<(QDataStream& s, char c);
 SCORE_LIB_BASE_EXPORT QDataStream& operator>>(QDataStream& s, char& c);
 #endif
 
-SCORE_LIB_BASE_EXPORT QDataStream& operator<<(QDataStream& stream, const std::string& obj);
-SCORE_LIB_BASE_EXPORT QDataStream& operator>>(QDataStream& stream, std::string& obj);
+SCORE_LIB_BASE_EXPORT QDataStream&
+operator<<(QDataStream& stream, const std::string& obj);
+SCORE_LIB_BASE_EXPORT QDataStream&
+operator>>(QDataStream& stream, std::string& obj);
 
 #if (QT_VERSION < QT_VERSION_CHECK(5, 14, 0))
 template <typename T>
@@ -181,30 +197,43 @@ inline QDataStream& operator>>(QDataStream& s, std::size_t& val)
 #endif
 #endif
 
-
-
-
 template <typename T, std::enable_if_t<!std::is_enum_v<T>>* = nullptr>
 DataStreamInput& operator<<(DataStreamInput& s, const T& obj);
 
 template <typename T, std::enable_if_t<!std::is_enum_v<T>>* = nullptr>
 DataStreamOutput& operator>>(DataStreamOutput& s, T& obj);
 
-#define DATASTREAM_QT_BUILTIN(T)                              \
-OSSIA_INLINE                                                  \
-DataStreamInput& operator<<(DataStreamInput& s, const T& obj) \
-{ s.stream << obj; return s; }                                \
-OSSIA_INLINE                                                  \
-DataStreamOutput& operator>>(DataStreamOutput& s, T& obj)     \
-{ s.stream >> obj; return s; }
+#define DATASTREAM_QT_BUILTIN(T)                                \
+  OSSIA_INLINE                                                  \
+  DataStreamInput& operator<<(DataStreamInput& s, const T& obj) \
+  {                                                             \
+    s.stream << obj;                                            \
+    return s;                                                   \
+  }                                                             \
+  OSSIA_INLINE                                                  \
+  DataStreamOutput& operator>>(DataStreamOutput& s, T& obj)     \
+  {                                                             \
+    s.stream >> obj;                                            \
+    return s;                                                   \
+  }
 #define GET_MACRO(_1, _2, _3, _4, _5, _6, _7, _8, NAME, ...) NAME
-#define TO_TEMPLATE_ARGS8(M1, T1, M2, T2, M3, T3, M4, T4) M1 T1, M2 T2, M3 T3, M4 T4
+#define TO_TEMPLATE_ARGS8(M1, T1, M2, T2, M3, T3, M4, T4) \
+  M1 T1, M2 T2, M3 T3, M4 T4
 #define TO_TEMPLATE_ARGS6(M1, T1, M2, T2, M3, T3) M1 T1, M2 T2, M3 T3
 #define TO_TEMPLATE_ARGS4(M1, T1, M2, T2) M1 T1, M2 T2
 #define TO_TEMPLATE_ARGS2(M1, T1) M1 T1
 
 #define TO_TEMPLATE_ARGS(...) \
-  GET_MACRO(__VA_ARGS__,  TO_TEMPLATE_ARGS8,  TO_TEMPLATE_ARGS7,  TO_TEMPLATE_ARGS6,  TO_TEMPLATE_ARGS5, TO_TEMPLATE_ARGS4, TO_TEMPLATE_ARGS3, TO_TEMPLATE_ARGS2)(__VA_ARGS__)
+  GET_MACRO(                  \
+      __VA_ARGS__,            \
+      TO_TEMPLATE_ARGS8,      \
+      TO_TEMPLATE_ARGS7,      \
+      TO_TEMPLATE_ARGS6,      \
+      TO_TEMPLATE_ARGS5,      \
+      TO_TEMPLATE_ARGS4,      \
+      TO_TEMPLATE_ARGS3,      \
+      TO_TEMPLATE_ARGS2)      \
+  (__VA_ARGS__)
 
 #define TO_TEMPLATE_USES8(M1, T1, M2, T2, M3, T3, M4, T4) T1, T2, T3, T4
 #define TO_TEMPLATE_USES6(M1, T1, M2, T2, M3, T3) T1, T2, T3
@@ -212,14 +241,26 @@ DataStreamOutput& operator>>(DataStreamOutput& s, T& obj)     \
 #define TO_TEMPLATE_USES2(M1, T1) T1
 
 #define TO_TEMPLATE_USES(...) \
-  GET_MACRO(__VA_ARGS__,  TO_TEMPLATE_USES8,  TO_TEMPLATE_USES7,  TO_TEMPLATE_USES6,  TO_TEMPLATE_USES5, TO_TEMPLATE_USES4, TO_TEMPLATE_USES3, TO_TEMPLATE_USES2)(__VA_ARGS__)
+  GET_MACRO(                  \
+      __VA_ARGS__,            \
+      TO_TEMPLATE_USES8,      \
+      TO_TEMPLATE_USES7,      \
+      TO_TEMPLATE_USES6,      \
+      TO_TEMPLATE_USES5,      \
+      TO_TEMPLATE_USES4,      \
+      TO_TEMPLATE_USES3,      \
+      TO_TEMPLATE_USES2)      \
+  (__VA_ARGS__)
 
-#define DATASTREAM_QT_BUILTIN_T(T, ...) \
-  template<TO_TEMPLATE_ARGS(__VA_ARGS__)> OSSIA_INLINE                               \
-  DataStreamInput& operator<<(DataStreamInput& s, const T<TO_TEMPLATE_USES(__VA_ARGS__)>& obj) = delete; \
-  template<TO_TEMPLATE_ARGS(__VA_ARGS__)> OSSIA_INLINE                               \
-  DataStreamOutput& operator>>(DataStreamOutput& s, T<TO_TEMPLATE_USES(__VA_ARGS__)>& obj) = delete;
-
+#define DATASTREAM_QT_BUILTIN_T(T, ...)                                \
+  template <TO_TEMPLATE_ARGS(__VA_ARGS__)>                             \
+  OSSIA_INLINE DataStreamInput& operator<<(                            \
+      DataStreamInput& s, const T<TO_TEMPLATE_USES(__VA_ARGS__)>& obj) \
+      = delete;                                                        \
+  template <TO_TEMPLATE_ARGS(__VA_ARGS__)>                             \
+  OSSIA_INLINE DataStreamOutput& operator>>(                           \
+      DataStreamOutput& s, T<TO_TEMPLATE_USES(__VA_ARGS__)>& obj)      \
+      = delete;
 
 DATASTREAM_QT_BUILTIN(bool)
 DATASTREAM_QT_BUILTIN(char)
@@ -265,14 +306,16 @@ DATASTREAM_QT_BUILTIN_T(QVector, typename, T)
 #endif
 DATASTREAM_QT_BUILTIN_T(QMap, typename, K, typename, V)
 
+template <typename T, std::enable_if_t<std::is_enum_v<T>>* = nullptr>
+OSSIA_INLINE DataStreamInput& operator<<(DataStreamInput& s, const T& obj)
+{
+  s.stream << obj;
+  return s;
+}
 
-
-template<typename T, std::enable_if_t<std::is_enum_v<T>>* = nullptr>
-OSSIA_INLINE
-DataStreamInput& operator<<(DataStreamInput& s, const T& obj)
-{ s.stream << obj; return s; }
-
-template<typename T, std::enable_if_t<std::is_enum_v<T>>* = nullptr>
-OSSIA_INLINE
-DataStreamOutput& operator>>(DataStreamOutput& s, T& obj)
-{ s.stream >> obj; return s;}
+template <typename T, std::enable_if_t<std::is_enum_v<T>>* = nullptr>
+OSSIA_INLINE DataStreamOutput& operator>>(DataStreamOutput& s, T& obj)
+{
+  s.stream >> obj;
+  return s;
+}

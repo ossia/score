@@ -3,12 +3,11 @@
 #include "MIDIDevice.hpp"
 
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Protocols/MIDI/MIDISpecificSettings.hpp>
 #include <State/MessageListSerialization.hpp>
 
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <score/document/DocumentContext.hpp>
-
 #include <score/serialization/MimeVisitor.hpp>
 
 #include <ossia/network/base/device.hpp>
@@ -21,13 +20,16 @@
 
 namespace Protocols
 {
-MIDIDevice::MIDIDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
-  : OwningDeviceInterface{settings}
-  , m_ctx{ctx}
+MIDIDevice::MIDIDevice(
+    const Device::DeviceSettings& settings,
+    const score::DocumentContext& ctx)
+    : OwningDeviceInterface{settings}
+    , m_ctx{ctx}
 {
   using namespace ossia;
 
-  const auto set = settings.deviceSpecificSettings.value<MIDISpecificSettings>();
+  const auto set
+      = settings.deviceSpecificSettings.value<MIDISpecificSettings>();
   m_capas.canRefreshTree = true;
   m_capas.canSerialize = !set.createWholeTree;
   m_capas.hasCallbacks = false;
@@ -40,14 +42,16 @@ bool MIDIDevice::reconnect()
 {
   disconnect();
 
-  MIDISpecificSettings set = settings().deviceSpecificSettings.value<MIDISpecificSettings>();
+  MIDISpecificSettings set
+      = settings().deviceSpecificSettings.value<MIDISpecificSettings>();
 
   m_capas.canSerialize = !set.createWholeTree;
   try
   {
     auto& ctx = m_ctx.plugin<Explorer::DeviceDocumentPlugin>().asioContext;
 
-    auto proto = std::make_unique<ossia::net::midi::midi_protocol>(ctx, set.api);
+    auto proto
+        = std::make_unique<ossia::net::midi::midi_protocol>(ctx, set.api);
     bool res = proto->set_info(ossia::net::midi::midi_info(
         static_cast<ossia::net::midi::midi_info::Type>(set.io),
         set.endpoint.toStdString(),
@@ -55,7 +59,8 @@ bool MIDIDevice::reconnect()
     if (!res)
       return false;
 
-    auto dev = std::make_unique<ossia::net::midi::midi_device>(std::move(proto));
+    auto dev
+        = std::make_unique<ossia::net::midi::midi_device>(std::move(proto));
     dev->set_name(settings().name.toStdString());
     if (set.createWholeTree)
       dev->create_full_tree();
@@ -74,7 +79,8 @@ void MIDIDevice::disconnect()
 {
   if (connected())
   {
-    removeListening_impl(m_dev->get_root_node(), State::Address{m_settings.name, {}});
+    removeListening_impl(
+        m_dev->get_root_node(), State::Address{m_settings.name, {}});
   }
 
   m_callbacks.clear();
@@ -119,7 +125,8 @@ Device::Node MIDIDevice::refresh()
 
 bool MIDIDevice::isLearning() const
 {
-  auto& proto = static_cast<ossia::net::midi::midi_protocol&>(m_dev->get_protocol());
+  auto& proto
+      = static_cast<ossia::net::midi::midi_protocol&>(m_dev->get_protocol());
   return proto.learning();
 }
 
@@ -127,23 +134,34 @@ void MIDIDevice::setLearning(bool b)
 {
   if (!m_dev)
     return;
-  auto& proto = static_cast<ossia::net::midi::midi_protocol&>(m_dev->get_protocol());
+  auto& proto
+      = static_cast<ossia::net::midi::midi_protocol&>(m_dev->get_protocol());
   auto& dev = *m_dev;
   if (b)
   {
-    dev.on_node_created.connect<&DeviceInterface::nodeCreated>((DeviceInterface*)this);
-    dev.on_node_removing.connect<&DeviceInterface::nodeRemoving>((DeviceInterface*)this);
-    dev.on_node_renamed.connect<&DeviceInterface::nodeRenamed>((DeviceInterface*)this);
-    dev.on_parameter_created.connect<&DeviceInterface::addressCreated>((DeviceInterface*)this);
-    dev.on_attribute_modified.connect<&DeviceInterface::addressUpdated>((DeviceInterface*)this);
+    dev.on_node_created.connect<&DeviceInterface::nodeCreated>(
+        (DeviceInterface*)this);
+    dev.on_node_removing.connect<&DeviceInterface::nodeRemoving>(
+        (DeviceInterface*)this);
+    dev.on_node_renamed.connect<&DeviceInterface::nodeRenamed>(
+        (DeviceInterface*)this);
+    dev.on_parameter_created.connect<&DeviceInterface::addressCreated>(
+        (DeviceInterface*)this);
+    dev.on_attribute_modified.connect<&DeviceInterface::addressUpdated>(
+        (DeviceInterface*)this);
   }
   else
   {
-    dev.on_node_created.disconnect<&DeviceInterface::nodeCreated>((DeviceInterface*)this);
-    dev.on_node_removing.disconnect<&DeviceInterface::nodeRemoving>((DeviceInterface*)this);
-    dev.on_node_renamed.disconnect<&DeviceInterface::nodeRenamed>((DeviceInterface*)this);
-    dev.on_parameter_created.disconnect<&DeviceInterface::addressCreated>((DeviceInterface*)this);
-    dev.on_attribute_modified.disconnect<&DeviceInterface::addressUpdated>((DeviceInterface*)this);
+    dev.on_node_created.disconnect<&DeviceInterface::nodeCreated>(
+        (DeviceInterface*)this);
+    dev.on_node_removing.disconnect<&DeviceInterface::nodeRemoving>(
+        (DeviceInterface*)this);
+    dev.on_node_renamed.disconnect<&DeviceInterface::nodeRenamed>(
+        (DeviceInterface*)this);
+    dev.on_parameter_created.disconnect<&DeviceInterface::addressCreated>(
+        (DeviceInterface*)this);
+    dev.on_attribute_modified.disconnect<&DeviceInterface::addressUpdated>(
+        (DeviceInterface*)this);
   }
 
   proto.set_learning(b);

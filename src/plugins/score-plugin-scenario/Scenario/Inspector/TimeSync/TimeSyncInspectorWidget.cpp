@@ -3,11 +3,6 @@
 #include "TimeSyncInspectorWidget.hpp"
 
 #include <Process/Dataflow/ControlWidgets.hpp>
-#include <Scenario/Commands/TimeSync/SetAutoTrigger.hpp>
-#include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Inspector/MetadataWidget.hpp>
-#include <Scenario/Inspector/TimeSync/TriggerInspectorWidget.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -19,6 +14,11 @@
 #include <QCheckBox>
 #include <QToolButton>
 
+#include <Scenario/Commands/TimeSync/SetAutoTrigger.hpp>
+#include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Inspector/MetadataWidget.hpp>
+#include <Scenario/Inspector/TimeSync/TriggerInspectorWidget.hpp>
 #include <wobjectimpl.h>
 namespace Scenario
 {
@@ -81,7 +81,8 @@ class QuantificationWidget : public QComboBox
 
   W_OBJECT(QuantificationWidget)
 public:
-  QuantificationWidget(QWidget* parent = nullptr) : QComboBox{parent}
+  QuantificationWidget(QWidget* parent = nullptr)
+      : QComboBox{parent}
   {
     addItems(
         {tr("Free"),
@@ -94,12 +95,17 @@ public:
          tr("1/8   "),
          tr("1/16  "),
          tr("1/32  ")});
-    connect(this, qOverload<int>(&QComboBox::currentIndexChanged), this, [=](int idx) {
-      quantificationChanged(quantificationForIndex(idx));
-    });
+    connect(
+        this,
+        qOverload<int>(&QComboBox::currentIndexChanged),
+        this,
+        [=](int idx) { quantificationChanged(quantificationForIndex(idx)); });
   }
 
-  double quantification() const noexcept { return quantificationForIndex(currentIndex()); }
+  double quantification() const noexcept
+  {
+    return quantificationForIndex(currentIndex());
+  }
 
   void setQuantification(double d)
   {
@@ -149,14 +155,16 @@ TimeSyncInspectorWidget::TimeSyncInspectorWidget(
   setParent(parent);
 
   // metadata
-  m_metadata = new MetadataWidget{m_model.metadata(), ctx.commandStack, &m_model, this};
+  m_metadata = new MetadataWidget{
+      m_model.metadata(), ctx.commandStack, &m_model, this};
 
   m_metadata->setupConnections(m_model);
 
   addHeader(m_metadata);
 
   // default date
-  m_date = new TextLabel{tr("Default date: ") + m_model.date().toString(), this};
+  m_date
+      = new TextLabel{tr("Default date: ") + m_model.date().toString(), this};
 
   // Trigger
   {
@@ -177,14 +185,15 @@ to the root of a score.)_"));
     m_autotrigger->setWhatsThis(m_autotrigger->statusTip());
 
     m_autotrigger->setAutoRaise(true);
-    m_autotrigger->setIconSize(QSize{28,28});
+    m_autotrigger->setIconSize(QSize{28, 28});
     m_autotrigger->setCheckable(true);
     m_autotrigger->setChecked(object.autotrigger());
 
     m_btnLayout.addWidget(m_autotrigger);
     connect(m_autotrigger, &QAbstractButton::toggled, this, [&](bool t) {
       if (t != object.autotrigger())
-        CommandDispatcher<>{ctx.commandStack}.submit<Scenario::Command::SetAutoTrigger>(object, t);
+        CommandDispatcher<>{ctx.commandStack}
+            .submit<Scenario::Command::SetAutoTrigger>(object, t);
     });
     connect(&object, &TimeSyncModel::autotriggerChanged, this, [&](bool t) {
       if (t != m_autotrigger->isDown())
@@ -201,20 +210,21 @@ to the root of a score.)_"));
         QStringLiteral(":/icons/start_on_play_off.png")));
     m_isStart->setChecked(object.isStartPoint());
     m_isStart->setToolTip(tr("Start on play"));
-    m_isStart->setStatusTip(tr(R"_(If this is checked, this time sync will start automatically when
+    m_isStart->setStatusTip(
+        tr(R"_(If this is checked, this time sync will start automatically when
                                    entering this scenario.)_"));
     m_isStart->setWhatsThis(m_isStart->statusTip());
 
     m_isStart->setAutoRaise(true);
-    m_isStart->setIconSize(QSize{28,28});
+    m_isStart->setIconSize(QSize{28, 28});
     m_isStart->setCheckable(true);
     m_isStart->setChecked(object.isStartPoint());
 
     m_btnLayout.addWidget(m_isStart);
     connect(m_isStart, &QAbstractButton::toggled, this, [&](bool t) {
       if (t != object.isStartPoint())
-        CommandDispatcher<>{ctx.commandStack}.submit<Scenario::Command::SetTimeSyncIsStartPoint>(
-            object, t);
+        CommandDispatcher<>{ctx.commandStack}
+            .submit<Scenario::Command::SetTimeSyncIsStartPoint>(object, t);
     });
     connect(&object, &TimeSyncModel::startPointChanged, this, [&](bool t) {
       if (t != m_isStart->isChecked())
@@ -227,9 +237,12 @@ to the root of a score.)_"));
   musicalSync->setQuantification(m_model.musicalSync());
 
   QObject::connect(
-      musicalSync, &QuantificationWidget::quantificationChanged, this, [&ctx, &object](double v) {
-        CommandDispatcher<>{ctx.commandStack}.submit<Scenario::Command::SetTimeSyncMusicalSync>(
-            object, v);
+      musicalSync,
+      &QuantificationWidget::quantificationChanged,
+      this,
+      [&ctx, &object](double v) {
+        CommandDispatcher<>{ctx.commandStack}
+            .submit<Scenario::Command::SetTimeSyncMusicalSync>(object, v);
       });
 
   con(m_model,
@@ -238,10 +251,14 @@ to the root of a score.)_"));
       &QuantificationWidget::setQuantification);
 
   m_trigwidg = new TriggerInspectorWidget{
-      ctx, ctx.app.interfaces<Command::TriggerCommandFactoryList>(), m_model, this};
+      ctx,
+      ctx.app.interfaces<Command::TriggerCommandFactoryList>(),
+      m_model,
+      this};
   {
     QWidget* spacerWidget = new QWidget(this);
-    spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    spacerWidget->setSizePolicy(
+        QSizePolicy::Expanding, QSizePolicy::Preferred);
     spacerWidget->setVisible(true);
     m_btnLayout.addWidget(spacerWidget);
   }
@@ -250,12 +267,16 @@ to the root of a score.)_"));
 
   auto btns = new QWidget(this);
   btns->setLayout(&m_btnLayout);
-  updateAreaLayout({btns, m_date, musicalSync, new TextLabel{tr("Trigger")}, m_trigwidg});
+  updateAreaLayout(
+      {btns, m_date, musicalSync, new TextLabel{tr("Trigger")}, m_trigwidg});
 
   // display data
   updateDisplayedValues();
 
-  con(m_model, &TimeSyncModel::dateChanged, this, &TimeSyncInspectorWidget::on_dateChanged);
+  con(m_model,
+      &TimeSyncModel::dateChanged,
+      this,
+      &TimeSyncInspectorWidget::on_dateChanged);
 }
 
 void TimeSyncInspectorWidget::updateDisplayedValues()

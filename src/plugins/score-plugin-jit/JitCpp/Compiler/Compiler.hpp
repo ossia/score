@@ -1,16 +1,16 @@
 #pragma once
-#include <JitCpp/ClangDriver.hpp>
-#include <llvm/ExecutionEngine/Orc/ThreadSafeModule.h>
-#include <llvm/ExecutionEngine/Orc/LLJIT.h>
-
-#include <llvm/ExecutionEngine/Orc/ExecutionUtils.h>
-
 #include <QDebug>
+
+#include <JitCpp/ClangDriver.hpp>
+#include <llvm/ExecutionEngine/Orc/ExecutionUtils.h>
+#include <llvm/ExecutionEngine/Orc/LLJIT.h>
+#include <llvm/ExecutionEngine/Orc/ThreadSafeModule.h>
 namespace Jit
 {
 class JitCompiler
 {
   using ModulePtr_t = std::unique_ptr<llvm::Module>;
+
 public:
   JitCompiler(llvm::TargetMachine& targetMachine)
   {
@@ -21,23 +21,24 @@ public:
     sys::DynamicLibrary::LoadLibraryPermanently(nullptr);
 
     LLJIT& JIT = *m_jit;
-    auto &JD = JIT.getMainJITDylib();
+    auto& JD = JIT.getMainJITDylib();
 #if defined(SCORE_DEBUG)
     {
-       auto s = absoluteSymbols({ { m_mangler("atexit"), JITEvaluatedSymbol(pointerToJITTargetAddress(&::atexit), JITSymbolFlags::Exported)}});
-       (void)JD.define(std::move(s));
+      auto s = absoluteSymbols(
+          {{m_mangler("atexit"),
+            JITEvaluatedSymbol(
+                pointerToJITTargetAddress(&::atexit),
+                JITSymbolFlags::Exported)}});
+      (void)JD.define(std::move(s));
     }
 #endif
 
     (void)m_overrides.enable(JD, m_mangler);
 
     {
-      auto gen =
-          DynamicLibrarySearchGenerator::GetForCurrentProcess(
-            m_dl.getGlobalPrefix(),
-            [&](const SymbolStringPtr &S) {
-        return true;
-      });
+      auto gen = DynamicLibrarySearchGenerator::GetForCurrentProcess(
+          m_dl.getGlobalPrefix(),
+          [&](const SymbolStringPtr& S) { return true; });
       JD.addGenerator(std::move(*gen));
     }
     {
@@ -68,11 +69,14 @@ public:
   {
     using namespace llvm;
     using namespace llvm::orc;
-    auto module = m_driver.compileTranslationUnit(cppCode, flags, opts, *context.getContext());
+    auto module = m_driver.compileTranslationUnit(
+        cppCode, flags, opts, *context.getContext());
     if (!module)
       throw Exception{module.takeError()};
 
-    if (auto Err = m_jit->addIRModule(ThreadSafeModule(std::move(*module), context)); bool(Err))
+    if (auto Err
+        = m_jit->addIRModule(ThreadSafeModule(std::move(*module), context));
+        bool(Err))
       throw Err;
 
 #if LLVM_VERSION_MAJOR >= 11
@@ -93,15 +97,16 @@ public:
       return EntrySym.takeError();
 
     // Cast the entry point address to a function pointer.
-    auto *Entry = (Signature_t*)EntrySym->getAddress();
+    auto* Entry = (Signature_t*)EntrySym->getAddress();
     return std::function<Signature_t>(Entry);
   }
 
 private:
   ClangCC1Driver m_driver;
-  std::unique_ptr<llvm::orc::LLJIT> m_jit{std::move(llvm::orc::LLJITBuilder().create().get())};
+  std::unique_ptr<llvm::orc::LLJIT> m_jit{
+      std::move(llvm::orc::LLJITBuilder().create().get())};
 
-  const llvm::DataLayout &m_dl{m_jit->getDataLayout()};
+  const llvm::DataLayout& m_dl{m_jit->getDataLayout()};
   llvm::orc::MangleAndInterner m_mangler{m_jit->getExecutionSession(), m_dl};
   llvm::orc::LocalCXXRuntimeOverrides m_overrides;
 };

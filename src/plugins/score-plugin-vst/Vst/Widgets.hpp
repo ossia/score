@@ -1,11 +1,10 @@
 #pragma once
-#include <Vst/EffectModel.hpp>
+#include <Control/Widgets.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Vst/EffectModel.hpp>
 
 #include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/TextItem.hpp>
-
-#include <Control/Widgets.hpp>
 
 #include <verdigris>
 
@@ -22,16 +21,23 @@ class EffectItem final : public score::EmptyRectItem
   std::vector<std::pair<ControlInlet*, score::EmptyRectItem*>> controlItems;
 
 public:
-  EffectItem(const Model& effect, const Process::Context& doc, QGraphicsItem* root);
+  EffectItem(
+      const Model& effect,
+      const Process::Context& doc,
+      QGraphicsItem* root);
 
-  void setupInlet(const Model& fx, ControlInlet& inlet, const Process::Context& doc);
+  void setupInlet(
+      const Model& fx,
+      ControlInlet& inlet,
+      const Process::Context& doc);
 
 private:
   void updateRect();
 };
 
-class GraphicsSlider final : public QObject,
-                                public score::QGraphicsSliderBase<GraphicsSlider>
+class GraphicsSlider final
+    : public QObject
+    , public score::QGraphicsSliderBase<GraphicsSlider>
 {
   W_OBJECT(GraphicsSlider)
   Q_INTERFACES(QGraphicsItem)
@@ -68,7 +74,10 @@ private:
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
 };
 
 struct VSTFloatSlider : ossia::safe_nodes::control_in
@@ -86,6 +95,5 @@ struct VSTFloatSlider : ossia::safe_nodes::control_in
       QGraphicsItem* parent,
       QObject* context);
 };
-
 
 }

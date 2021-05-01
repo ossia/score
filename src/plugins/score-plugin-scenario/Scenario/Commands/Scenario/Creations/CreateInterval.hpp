@@ -1,6 +1,4 @@
 #pragma once
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
@@ -8,6 +6,7 @@
 
 #include <QString>
 
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <score_plugin_scenario_export.h>
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -31,7 +30,10 @@ namespace Command
  */
 class SCORE_PLUGIN_SCENARIO_EXPORT CreateInterval final : public score::Command
 {
-  SCORE_COMMAND_DECL(CommandFactoryName(), CreateInterval, "Create an interval")
+  SCORE_COMMAND_DECL(
+      CommandFactoryName(),
+      CreateInterval,
+      "Create an interval")
 public:
   CreateInterval(
       const Scenario::ProcessModel& scenarioPath,
@@ -45,7 +47,10 @@ public:
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 
-  const Id<IntervalModel>& createdInterval() const { return m_createdIntervalId; }
+  const Id<IntervalModel>& createdInterval() const
+  {
+    return m_createdIntervalId;
+  }
 
   const Id<StateModel>& startState() const { return m_startStateId; }
 

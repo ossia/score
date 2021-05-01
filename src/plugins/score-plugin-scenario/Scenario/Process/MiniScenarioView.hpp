@@ -8,7 +8,10 @@ namespace Scenario
 {
 class ProcessModel;
 class IntervalModel;
-class MiniScenarioView final : public QObject, public Process::MiniLayer, public Nano::Observer
+class MiniScenarioView final
+    : public QObject
+    , public Process::MiniLayer
+    , public Nano::Observer
 {
 public:
   MiniScenarioView(const Scenario::ProcessModel& sc, QGraphicsItem* p);

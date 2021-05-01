@@ -1,15 +1,16 @@
 #pragma once
 #include <Dataflow/Commands/EditConnection.hpp>
+
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/document/DocumentInterface.hpp>
+#include <score/model/ObjectRemover.hpp>
+
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Commands/Interval/RemoveProcessFromInterval.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateCommentBlock.hpp>
 #include <Scenario/Commands/State/RemoveStateProcess.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
-
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/document/DocumentInterface.hpp>
-#include <score/model/ObjectRemover.hpp>
 namespace Scenario
 {
 class ScenarioRemover final : public score::ObjectRemover

@@ -1,9 +1,9 @@
 #pragma once
+#include <score/serialization/JSONVisitor.hpp>
+
 #include <score_plugin_scenario_export.h>
 
 #include <vector>
-
-#include <score/serialization/JSONVisitor.hpp>
 class QJsonObject;
 class QObject;
 class Selection;
@@ -45,7 +45,9 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT CategorisedScenario
 void copyBaseInterval(JSONReader&, const IntervalModel&);
 
 SCORE_PLUGIN_SCENARIO_EXPORT
-void copySelectedScenarioElements(JSONReader&, const Scenario::ProcessModel& sm);
+void copySelectedScenarioElements(
+    JSONReader&,
+    const Scenario::ProcessModel& sm);
 
 SCORE_PLUGIN_SCENARIO_EXPORT
 void copyWholeScenario(JSONReader&, const Scenario::ProcessModel& sm);
@@ -75,7 +77,10 @@ void copyProcess(JSONReader&, const Process::ProcessModel&);
 // QJsonObject copySelectedScenarioElements(
 //        const BaseScenario& sm,
 //        QObject* parent);
-void copySelectedScenarioElements(JSONReader&, const BaseScenarioContainer& sm, QObject* parent);
+void copySelectedScenarioElements(
+    JSONReader&,
+    const BaseScenarioContainer& sm,
+    QObject* parent);
 
 void copySelectedElementsToJson(
     JSONReader&,

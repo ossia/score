@@ -21,20 +21,20 @@ void IntervalPixmaps::update(const Process::Style& style)
 
   QImage image(dash_width, pen_width, QImage::Format_ARGB32_Premultiplied);
 
-  for(auto& [pen, pixmap] : {
-      std::tie(dashPen, dashed),
-      std::tie(dashSelectedPen, dashedSelected),
-      std::tie(dashDropTargetPen, dashedDropTarget),
-      std::tie(dashWarningPen, dashedWarning),
-      std::tie(dashLoopPen, dashedInvalid),
-      std::tie(dashMutedPen, dashedMuted)
-    })
+  for (auto& [pen, pixmap] :
+       {std::tie(dashPen, dashed),
+        std::tie(dashSelectedPen, dashedSelected),
+        std::tie(dashDropTargetPen, dashedDropTarget),
+        std::tie(dashWarningPen, dashedWarning),
+        std::tie(dashLoopPen, dashedInvalid),
+        std::tie(dashMutedPen, dashedMuted)})
   {
     image.fill(Qt::transparent);
     QPainter p;
     p.begin(&image);
     p.setPen(pen);
-    p.drawLine(QPointF{0, pen_width / 2.}, QPointF{dash_width, pen_width / 2.});
+    p.drawLine(
+        QPointF{0, pen_width / 2.}, QPointF{dash_width, pen_width / 2.});
     p.end();
 
     pixmap = QPixmap::fromImage(image);
@@ -53,7 +53,8 @@ void IntervalPixmaps::update(const Process::Style& style)
       QPainter p;
       p.begin(&image);
       p.setPen(dashPlayPen);
-      p.drawLine(QPointF{0, pen_width / 2.}, QPointF{dash_width, pen_width / 2.});
+      p.drawLine(
+          QPointF{0, pen_width / 2.}, QPointF{dash_width, pen_width / 2.});
       p.end();
 
       playDashed[i] = QPixmap::fromImage(image);

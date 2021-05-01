@@ -2,12 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MoveEventMeta.hpp"
 
-#include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
-#include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/PathSerialization.hpp>
@@ -15,6 +9,12 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 
 #include <QByteArray>
+
+#include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
+#include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 
 namespace Scenario
 {
@@ -36,7 +36,9 @@ MoveEventMeta::MoveEventMeta(
     , m_moveEventImplementation(
           score::AppContext()
               .interfaces<MoveEventList>()
-              .get(score::AppContext(), MoveEventFactoryInterface::Strategy::MOVE)
+              .get(
+                  score::AppContext(),
+                  MoveEventFactoryInterface::Strategy::MOVE)
               .make(scenar, m_eventId, std::move(newDate), mode, lm))
 {
   auto& ev = scenar.event(m_eventId);
@@ -66,7 +68,9 @@ MoveEventMeta::MoveEventMeta(
     , m_moveEventImplementation(
           score::AppContext()
               .interfaces<MoveEventList>()
-              .get(score::AppContext(), MoveEventFactoryInterface::Strategy::MOVE)
+              .get(
+                  score::AppContext(),
+                  MoveEventFactoryInterface::Strategy::MOVE)
               .make(scenar, m_eventId, std::move(newDate), mode, lm))
 {
   m_oldY = scenar.state(*m_stateId).heightPercentage();
@@ -105,8 +109,9 @@ void MoveEventMeta::update(
   {
     static const auto& appctx = score::AppContext();
     static const auto& mevlist = appctx.interfaces<MoveEventList>();
-    m_moveEventImplementation = mevlist.get(appctx, MoveEventFactoryInterface::Strategy::MOVE)
-                                    .make(scenar, eventId, newDate, mode, lock);
+    m_moveEventImplementation
+        = mevlist.get(appctx, MoveEventFactoryInterface::Strategy::MOVE)
+              .make(scenar, eventId, newDate, mode, lock);
     m_lock = lock;
   }
   m_newY = y;
@@ -130,8 +135,9 @@ void MoveEventMeta::update(
   {
     static const auto& appctx = score::AppContext();
     static const auto& mevlist = appctx.interfaces<MoveEventList>();
-    m_moveEventImplementation = mevlist.get(appctx, MoveEventFactoryInterface::Strategy::MOVE)
-                                    .make(scenar, eventId, newDate, mode, lock);
+    m_moveEventImplementation
+        = mevlist.get(appctx, MoveEventFactoryInterface::Strategy::MOVE)
+              .make(scenar, eventId, newDate, mode, lock);
     m_lock = lock;
     m_expand = mode;
   }
@@ -152,14 +158,16 @@ void MoveEventMeta::deserializeImpl(DataStreamOutput& s)
   QByteArray cmdData;
   int e;
   int l;
-  s >> m_scenario >> m_eventId >> m_stateId >> e >> l >> m_oldY >> m_newY >> cmdData;
+  s >> m_scenario >> m_eventId >> m_stateId >> e >> l >> m_oldY >> m_newY
+      >> cmdData;
   m_expand = (ExpandMode)e;
   m_lock = (LockMode)l;
 
   m_moveEventImplementation
       = score::AppContext()
             .interfaces<MoveEventList>()
-            .get(score::AppContext(), MoveEventFactoryInterface::Strategy::MOVE)
+            .get(
+                score::AppContext(), MoveEventFactoryInterface::Strategy::MOVE)
             .make(m_lock);
 
   m_moveEventImplementation->deserialize(cmdData);
@@ -186,8 +194,10 @@ void MoveEventMeta::updateY(Scenario::ProcessModel& scenar, double y) const
   if (stp)
   {
     auto& st = *stp;
-    bool hasPrevious = st.previousInterval() && !scenar.interval(*st.previousInterval()).graphal();
-    bool hasNext = st.nextInterval() && !scenar.interval(*st.nextInterval()).graphal();
+    bool hasPrevious = st.previousInterval()
+                       && !scenar.interval(*st.previousInterval()).graphal();
+    bool hasNext
+        = st.nextInterval() && !scenar.interval(*st.nextInterval()).graphal();
     if (!hasPrevious && !hasNext)
     {
       st.setHeightPercentage(y);
@@ -212,8 +222,15 @@ MoveTopEventMeta::MoveTopEventMeta(
     , m_moveEventImplementation(
           score::AppContext()
               .interfaces<MoveEventList>()
-              .get(score::AppContext(), MoveEventFactoryInterface::Strategy::MOVE)
-              .make(scenarioPath, m_eventId, std::move(newDate), mode, LockMode::Free))
+              .get(
+                  score::AppContext(),
+                  MoveEventFactoryInterface::Strategy::MOVE)
+              .make(
+                  scenarioPath,
+                  m_eventId,
+                  std::move(newDate),
+                  mode,
+                  LockMode::Free))
 {
 }
 
@@ -245,7 +262,8 @@ void MoveTopEventMeta::deserializeImpl(DataStreamOutput& s)
   m_moveEventImplementation
       = score::AppContext()
             .interfaces<MoveEventList>()
-            .get(score::AppContext(), MoveEventFactoryInterface::Strategy::MOVE)
+            .get(
+                score::AppContext(), MoveEventFactoryInterface::Strategy::MOVE)
             .make(LockMode::Free);
 
   m_moveEventImplementation->deserialize(cmdData);
@@ -259,7 +277,8 @@ void MoveTopEventMeta::update(
     ExpandMode mode,
     LockMode lm)
 {
-  m_moveEventImplementation->update(scenar, eventId, newDate, y, mode, LockMode::Free);
+  m_moveEventImplementation->update(
+      scenar, eventId, newDate, y, mode, LockMode::Free);
 }
 }
 }

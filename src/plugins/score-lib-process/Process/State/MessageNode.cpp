@@ -15,16 +15,23 @@
 namespace Process
 {
 
-bool operator==(const Process::ProcessStateData& lhs, const Process::ProcessStateData& rhs)
+bool operator==(
+    const Process::ProcessStateData& lhs,
+    const Process::ProcessStateData& rhs)
 {
   return lhs.process == rhs.process && lhs.value == rhs.value;
 }
 
-bool operator==(const Process::StateNodeData& lhs, const Process::StateNodeData& rhs)
+bool operator==(
+    const Process::StateNodeData& lhs,
+    const Process::StateNodeData& rhs)
 {
-  return lhs.name.name == rhs.name.name && lhs.name.qualifiers == rhs.name.qualifiers
-         && lhs.values.previousProcessValues == rhs.values.previousProcessValues
-         && lhs.values.followingProcessValues == rhs.values.followingProcessValues
+  return lhs.name.name == rhs.name.name
+         && lhs.name.qualifiers == rhs.name.qualifiers
+         && lhs.values.previousProcessValues
+                == rhs.values.previousProcessValues
+         && lhs.values.followingProcessValues
+                == rhs.values.followingProcessValues
          && lhs.values.priorities == rhs.values.priorities
          && lhs.values.userValue == rhs.values.userValue;
 }
@@ -54,23 +61,27 @@ std::optional<ossia::value> StateNodeData::value() const
 
 bool StateNodeValues::empty() const
 {
-  return previousProcessValues.empty() && followingProcessValues.empty() && !userValue;
+  return previousProcessValues.empty() && followingProcessValues.empty()
+         && !userValue;
 }
 
 bool StateNodeValues::hasValue(const std::vector<ProcessStateData>& vec)
 {
-  return std::any_of(vec.cbegin(), vec.cend(), [](const auto& pv) { return bool(pv.value); });
+  return std::any_of(
+      vec.cbegin(), vec.cend(), [](const auto& pv) { return bool(pv.value); });
 }
 
 bool StateNodeValues::hasValue() const
 {
-  return hasValue(previousProcessValues) || hasValue(followingProcessValues) || bool(userValue);
+  return hasValue(previousProcessValues) || hasValue(followingProcessValues)
+         || bool(userValue);
 }
 
 std::vector<ProcessStateData>::const_iterator
 StateNodeValues::value(const std::vector<ProcessStateData>& vec)
 {
-  return std::find_if(vec.cbegin(), vec.cend(), [](const auto& pv) { return bool(pv.value); });
+  return std::find_if(
+      vec.cbegin(), vec.cend(), [](const auto& pv) { return bool(pv.value); });
 }
 
 std::optional<ossia::value> StateNodeValues::value() const
@@ -161,7 +172,8 @@ State::Message message(const Process::MessageNode& node)
 }
 
 // TESTME
-static void flatten_rec(State::MessageList& ml, const Process::MessageNode& node)
+static void
+flatten_rec(State::MessageList& ml, const Process::MessageNode& node)
 {
   if (node.hasValue())
   {
@@ -181,7 +193,8 @@ State::MessageList flatten(const Process::MessageNode& n)
   return ml;
 }
 
-static void getUserMessages_rec(State::MessageList& ml, const Process::MessageNode& node)
+static void
+getUserMessages_rec(State::MessageList& ml, const Process::MessageNode& node)
 {
   if (node.hasValue() && node.values.userValue)
   {
@@ -201,16 +214,18 @@ State::MessageList getUserMessages(const MessageNode& n)
   return ml;
 }
 
-std::vector<Process::MessageNode*>
-try_getNodesFromAddress(Process::MessageNode& root, const State::AddressAccessor& addr)
+std::vector<Process::MessageNode*> try_getNodesFromAddress(
+    Process::MessageNode& root,
+    const State::AddressAccessor& addr)
 {
   std::vector<Process::MessageNode*> vec;
   if (addr.address.device.isEmpty())
     return vec;
 
   // Find first node
-  auto first_node_it = ossia::find_if(
-      root, [&](const auto& cld) { return cld.displayName() == addr.address.device; });
+  auto first_node_it = ossia::find_if(root, [&](const auto& cld) {
+    return cld.displayName() == addr.address.device;
+  });
   if (first_node_it == root.end())
     return vec;
 
@@ -223,8 +238,9 @@ try_getNodesFromAddress(Process::MessageNode& root, const State::AddressAccessor
     const QString& node_name{addr.address.path[i]};
 
     auto& nd = *node;
-    auto child_it = ossia::find_if(
-        nd, [&](const Process::MessageNode& cld) { return cld.name.name == node_name; });
+    auto child_it = ossia::find_if(nd, [&](const Process::MessageNode& cld) {
+      return cld.name.name == node_name;
+    });
 
     if (child_it != nd.end())
     {
@@ -253,15 +269,17 @@ try_getNodesFromAddress(Process::MessageNode& root, const State::AddressAccessor
   return vec;
 }
 
-Process::MessageNode*
-try_getNodeFromAddress(Process::MessageNode& root, const State::AddressAccessor& addr)
+Process::MessageNode* try_getNodeFromAddress(
+    Process::MessageNode& root,
+    const State::AddressAccessor& addr)
 {
   if (addr.address.device.isEmpty())
     return nullptr;
 
   // Find first node
-  auto first_node_it = ossia::find_if(
-      root, [&](const auto& cld) { return cld.displayName() == addr.address.device; });
+  auto first_node_it = ossia::find_if(root, [&](const auto& cld) {
+    return cld.displayName() == addr.address.device;
+  });
   if (first_node_it == root.end())
     return nullptr;
 
@@ -274,8 +292,9 @@ try_getNodeFromAddress(Process::MessageNode& root, const State::AddressAccessor&
     const QString& node_name{addr.address.path[i]};
 
     auto& nd = *node;
-    auto child_it = ossia::find_if(
-        nd, [&](const Process::MessageNode& cld) { return cld.name.name == node_name; });
+    auto child_it = ossia::find_if(nd, [&](const Process::MessageNode& cld) {
+      return cld.name.name == node_name;
+    });
 
     if (child_it != nd.end())
     {
@@ -293,7 +312,8 @@ try_getNodeFromAddress(Process::MessageNode& root, const State::AddressAccessor&
 
     auto& n = *node;
     auto child_it = ossia::find_if(n, [&](const Process::MessageNode& cld) {
-      return cld.name.name == node_name && cld.name.qualifiers == addr.qualifiers;
+      return cld.name.name == node_name
+             && cld.name.qualifiers == addr.qualifiers;
     });
 
     return child_it != n.end() ? &*child_it : nullptr;
@@ -304,7 +324,8 @@ try_getNodeFromAddress(Process::MessageNode& root, const State::AddressAccessor&
 
 QDebug operator<<(QDebug d, const ProcessStateData& mess)
 {
-  d << "{" << mess.process << State::convert::toPrettyString(*mess.value) << "}";
+  d << "{" << mess.process << State::convert::toPrettyString(*mess.value)
+    << "}";
   return d;
 }
 
@@ -315,8 +336,8 @@ QDebug operator<<(QDebug d, const StateNodeData& mess)
       << State::convert::toPrettyString(*mess.values.userValue)
       << mess.values.followingProcessValues;
   else
-    d << mess.name << mess.values.previousProcessValues << "-- no user value --"
-      << mess.values.followingProcessValues;
+    d << mess.name << mess.values.previousProcessValues
+      << "-- no user value --" << mess.values.followingProcessValues;
   return d;
 }
 }

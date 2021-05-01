@@ -4,11 +4,6 @@
 
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Process/TimeValue.hpp>
-#include <Scenario/Document/Event/ExecutionStatus.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Document/VerticalExtent.hpp>
-#include <Scenario/Process/ScenarioInterface.hpp>
 #include <State/Expression.hpp>
 
 #include <score/document/DocumentInterface.hpp>
@@ -18,6 +13,11 @@
 
 #include <QObject>
 
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Document/VerticalExtent.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::EventModel)
 namespace Scenario
@@ -58,7 +58,9 @@ void EventModel::setDate(const TimeVal& date)
   }
 }
 
-void EventModel::setStatus(ExecutionStatus status, const ScenarioInterface& scenar)
+void EventModel::setStatus(
+    ExecutionStatus status,
+    const ScenarioInterface& scenar)
 {
   if (m_status.get() == status)
     return;

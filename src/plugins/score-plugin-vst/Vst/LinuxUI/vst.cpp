@@ -1,6 +1,6 @@
 #include <Vst/EffectModel.hpp>
-#include <Vst/Window.hpp>
 #include <Vst/Widgets.hpp>
+#include <Vst/Window.hpp>
 #include <Vst/vst-compat.hpp>
 
 namespace vst
@@ -36,7 +36,8 @@ void Window::setup_rect(QWidget* container, int width, int height)
   container->setBaseSize({width, height});
 }
 
-Window::Window(const Model& e, const score::DocumentContext& ctx) : m_model{e}
+Window::Window(const Model& e, const score::DocumentContext& ctx)
+    : m_model{e}
 {
   if (!e.fx)
     throw std::runtime_error("Cannot create UI");

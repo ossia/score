@@ -1,24 +1,27 @@
 #include "Executor.hpp"
 
+#include <Gfx/GfxApplicationPlugin.hpp>
+#include <Gfx/GfxContext.hpp>
+#include <Gfx/GfxExec.hpp>
+#include <Gfx/Graph/videonode.hpp>
+#include <Gfx/Video/Process.hpp>
 #include <Process/ExecutionContext.hpp>
 
 #include <score/document/DocumentContext.hpp>
 
 #include <ossia/dataflow/port.hpp>
 
-#include <Gfx/GfxApplicationPlugin.hpp>
-#include <Gfx/GfxContext.hpp>
-#include <Gfx/GfxExec.hpp>
-#include <Gfx/Graph/videonode.hpp>
-#include <Gfx/Video/Process.hpp>
-
 namespace Gfx::Video
 {
 class video_node final : public gfx_exec_node
 {
 public:
-  video_node(const std::shared_ptr<video_decoder>& dec, std::optional<double> tempo, GfxExecutionAction& ctx)
-      : gfx_exec_node{ctx}, m_decoder{dec->clone()}
+  video_node(
+      const std::shared_ptr<video_decoder>& dec,
+      std::optional<double> tempo,
+      GfxExecutionAction& ctx)
+      : gfx_exec_node{ctx}
+      , m_decoder{dec->clone()}
   {
     auto n = std::make_unique<VideoNode>(m_decoder, tempo);
     impl = n.get();
@@ -38,6 +41,7 @@ public:
   video_decoder& decoder() const noexcept { return *m_decoder; }
 
   VideoNode* impl{};
+
 private:
   std::shared_ptr<video_decoder> m_decoder;
 };
@@ -52,22 +56,22 @@ public:
     auto& vnode = static_cast<video_node&>(*node);
     // TODO should be a "seek" info in what goes from decoder to renderer instead...
 
-    if(!this->m_loops)
+    if (!this->m_loops)
     {
       vnode.decoder().seek(this->m_start_offset.impl + date.impl);
     }
     else
     {
-      vnode.decoder().seek(this->m_start_offset.impl + ((date.impl - this->m_start_offset.impl) % this->m_loop_duration.impl));
+      vnode.decoder().seek(
+          this->m_start_offset.impl
+          + ((date.impl - this->m_start_offset.impl)
+             % this->m_loop_duration.impl));
     }
 
     vnode.impl->seeked = true;
   }
 
-  void transport_impl(ossia::time_value date) override
-  {
-    offset_impl(date);
-  }
+  void transport_impl(ossia::time_value date) override { offset_impl(date); }
 
   void start() override { static_cast<video_node&>(*node).decoder().seek(0); }
   void stop() override { static_cast<video_node&>(*node).decoder().seek(0); }
@@ -85,10 +89,10 @@ ProcessExecutorComponent::ProcessExecutorComponent(
   if (element.decoder())
   {
     std::optional<double> tempo;
-    if(!element.ignoreTempo())
+    if (!element.ignoreTempo())
       tempo = element.nativeTempo();
-    auto n
-        = std::make_shared<video_node>(element.decoder(), tempo, ctx.doc.plugin<DocumentPlugin>().exec);
+    auto n = std::make_shared<video_node>(
+        element.decoder(), tempo, ctx.doc.plugin<DocumentPlugin>().exec);
 
     n->root_outputs().push_back(new ossia::texture_outlet);
 

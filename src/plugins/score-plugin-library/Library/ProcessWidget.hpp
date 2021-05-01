@@ -23,12 +23,9 @@ public:
   ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* parent);
   ~ProcessWidget();
 
-  ProcessesItemModel& processModel() const noexcept
-  { return *m_processModel; }
-  const ProcessTreeView& processView() const noexcept
-  { return m_tv; }
-  ProcessTreeView& processView() noexcept
-  { return m_tv; }
+  ProcessesItemModel& processModel() const noexcept { return *m_processModel; }
+  const ProcessTreeView& processView() const noexcept { return m_tv; }
+  ProcessTreeView& processView() noexcept { return m_tv; }
 
 private:
   ProcessesItemModel* m_processModel{};

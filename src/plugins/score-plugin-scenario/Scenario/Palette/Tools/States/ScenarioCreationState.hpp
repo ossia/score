@@ -1,6 +1,13 @@
 #pragma once
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
+
+#include <score/command/Dispatchers/MultiOngoingCommandDispatcher.hpp>
+#include <score/document/DocumentInterface.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
+
+#include <QDebug>
+
 #include <Scenario/Commands/Scenario/Creations/CreateInterval.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateInterval_State.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event.hpp>
@@ -16,12 +23,6 @@
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <Scenario/Tools/elementFindingHelper.hpp>
 
-#include <score/command/Dispatchers/MultiOngoingCommandDispatcher.hpp>
-#include <score/document/DocumentInterface.hpp>
-#include <score/selection/SelectionDispatcher.hpp>
-
-#include <QDebug>
-
 namespace Scenario
 {
 
@@ -30,7 +31,8 @@ class StrongQState : public QState
 {
 public:
   static constexpr auto value() { return Value; }
-  StrongQState(QState* parent) : QState{parent}
+  StrongQState(QState* parent)
+      : QState{parent}
   {
     this->setObjectName(debug_StateMachineIDs<Value>());
   }
@@ -67,7 +69,9 @@ public:
       const score::CommandStackFacade& stack,
       const Scenario_T& scenarioPath,
       QState* parent)
-      : CreationStateBase<Scenario_T>{scenarioPath, parent}, m_parentSM{sm}, m_dispatcher{stack}
+      : CreationStateBase<Scenario_T>{scenarioPath, parent}
+      , m_parentSM{sm}
+      , m_dispatcher{stack}
   {
   }
 
@@ -79,7 +83,8 @@ protected:
       const bool graphal = isCreatingGraph();
       const bool differentParents
           = Scenario::parentEvent(originalState, m_parentSM.model()).timeSync()
-            != Scenario::parentEvent(*this->hoveredState, m_parentSM.model()).timeSync();
+            != Scenario::parentEvent(*this->hoveredState, m_parentSM.model())
+                   .timeSync();
 
       if (graphal && differentParents)
       {
@@ -116,14 +121,19 @@ protected:
       const bool differentParents
           = Scenario::parentEvent(originalState, m_parentSM.model()).timeSync()
             != m_parentSM.model().event(*this->hoveredEvent).timeSync();
-      const bool timeIsInOrder = getDate(m_parentSM.model(), originalState)
-                                 < getDate(m_parentSM.model(), *this->hoveredEvent);
+      const bool timeIsInOrder
+          = getDate(m_parentSM.model(), originalState)
+            < getDate(m_parentSM.model(), *this->hoveredEvent);
       // make sure the hovered corresponding timesync dont have a date prior to
       // original state date
       if ((graphal || timeIsInOrder) && differentParents)
       {
         auto cmd = new Scenario::Command::CreateInterval_State{
-            this->m_scenario, originalState, *this->hoveredEvent, this->currentPoint.y, graphal};
+            this->m_scenario,
+            originalState,
+            *this->hoveredEvent,
+            this->currentPoint.y,
+            graphal};
 
         m_dispatcher.submit(cmd);
 
@@ -141,8 +151,9 @@ protected:
       const bool differentParents
           = Scenario::parentEvent(originalState, m_parentSM.model()).timeSync()
             != *this->hoveredTimeSync;
-      const bool timeIsInOrder = getDate(m_parentSM.model(), originalState)
-                                 < getDate(m_parentSM.model(), *this->hoveredTimeSync);
+      const bool timeIsInOrder
+          = getDate(m_parentSM.model(), originalState)
+            < getDate(m_parentSM.model(), *this->hoveredTimeSync);
       // make sure the hovered corresponding timesync dont have a date prior to
       // original state date
       if ((graphal || timeIsInOrder) && differentParents)
@@ -216,7 +227,8 @@ protected:
 
     if (!this->createdIntervals.empty())
     {
-      const auto& cst = m_parentSM.model().intervals.at(this->createdIntervals.last());
+      const auto& cst
+          = m_parentSM.model().intervals.at(this->createdIntervals.last());
       if (!cst.processes.empty())
       {
         // In case of the presence of a sequence, we
@@ -226,7 +238,8 @@ protected:
       }
     }
 
-    auto& device_explorer = ctx.template plugin<Explorer::DeviceDocumentPlugin>().explorer();
+    auto& device_explorer
+        = ctx.template plugin<Explorer::DeviceDocumentPlugin>().explorer();
 
     State::MessageList messages = getSelectionSnapshot(device_explorer);
     if (messages.empty())
@@ -239,7 +252,8 @@ protected:
   template <typename DestinationState, typename Function>
   void add_transition(QState* from, DestinationState* to, Function&& fun)
   {
-    using transition_type = Transition_T<Scenario_T, DestinationState::value()>;
+    using transition_type
+        = Transition_T<Scenario_T, DestinationState::value()>;
     auto trans = score::make_transition<transition_type>(from, to, *this);
     trans->setObjectName(QString::number(DestinationState::value()));
     QObject::connect(trans, &transition_type::triggered, this, fun);
@@ -248,7 +262,8 @@ protected:
   void commit()
   {
     this->makeSnapshot();
-    this->m_dispatcher.template commit<Scenario::Command::CreationMetaCommand>();
+    this->m_dispatcher
+        .template commit<Scenario::Command::CreationMetaCommand>();
 
     // Select all the created elements
     Selection sel;
@@ -280,7 +295,8 @@ protected:
       }
     }
 
-    score::SelectionDispatcher d{this->m_parentSM.context().context.selectionStack};
+    score::SelectionDispatcher d{
+        this->m_parentSM.context().context.selectionStack};
     d.select(sel);
     this->clearCreatedIds();
   }
@@ -293,7 +309,8 @@ protected:
 
   inline bool isCreatingGraph() const noexcept
   {
-    return this->m_parentSM.editionSettings().tool() == Scenario::Tool::CreateGraph;
+    return this->m_parentSM.editionSettings().tool()
+           == Scenario::Tool::CreateGraph;
   }
 
   const ToolPalette_T& m_parentSM;

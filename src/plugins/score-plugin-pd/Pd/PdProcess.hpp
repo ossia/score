@@ -1,4 +1,5 @@
 #pragma once
+#include <Pd/PdMetadata.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
 #include <Process/WidgetLayer/WidgetLayerPresenter.hpp>
@@ -9,8 +10,6 @@
 #include <score/selection/Selection.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 
-#include <Pd/PdMetadata.hpp>
-
 #include <ossia/network/dataspace/dataspace.hpp>
 #include <ossia/network/domain/domain.hpp>
 namespace Pd
@@ -20,15 +19,15 @@ const QString& locatePdBinary() noexcept;
 
 struct PatchSpec
 {
-  struct Control {
-    QString name; // Pretty name
+  struct Control
+  {
+    QString name;   // Pretty name
     QString remote; // Name used for send/receive
     QString type;
     QString widget;
     QString unit;
     ossia::value defaultv;
     ossia::domain domain;
-
   };
   std::vector<Control> receives, sends;
 };

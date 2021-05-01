@@ -13,7 +13,8 @@ namespace isf
 {
 namespace
 {
-static constexpr struct glsl45_t {
+static constexpr struct glsl45_t
+{
   static constexpr auto defaultVertexShader = R"_(#version 450
 
 layout(location = 0) in vec2 position;
@@ -105,7 +106,8 @@ layout(std140, binding = 1) uniform process_t {
 
 } GLSL45;
 
-static constexpr struct glsl3_t {
+static constexpr struct glsl3_t
+{
   static constexpr auto defaultVertexShader = R"_(#version 330
 in vec2 position;
 uniform vec2 RENDERSIZE;
@@ -150,13 +152,19 @@ uniform int PASSINDEX;
 } GLSL3;
 }
 
-
-parser::parser(std::string vert, std::string frag, int glslVersion, ShaderType t)
-    : m_sourceVertex{std::move(vert)}, m_sourceFragment{std::move(frag)}, m_version{glslVersion}
+parser::parser(
+    std::string vert,
+    std::string frag,
+    int glslVersion,
+    ShaderType t)
+    : m_sourceVertex{std::move(vert)}
+    , m_sourceFragment{std::move(frag)}
+    , m_version{glslVersion}
 {
   static const auto is_isf = [](const std::string& str) {
     bool has_isf
-        = (str.find("isf") != std::string::npos || str.find("ISF") != std::string::npos
+        = (str.find("isf") != std::string::npos
+           || str.find("ISF") != std::string::npos
            || str.find("IMG_") != std::string::npos
            || str.find("\"INPUTS\":") != std::string::npos);
     if (!has_isf)
@@ -164,8 +172,9 @@ parser::parser(std::string vert, std::string frag, int glslVersion, ShaderType t
 
     return str[0] == '/' && str[1] == '*';
   };
-  static const auto is_shadertoy
-      = [](const std::string& str) { return str.find("void mainImage(") != std::string::npos; };
+  static const auto is_shadertoy = [](const std::string& str) {
+    return str.find("void mainImage(") != std::string::npos;
+  };
   static const auto is_glslsandbox = [](const std::string& str) {
     return str.find("uniform float time;") != std::string::npos
            || str.find("glslsandbox") != std::string::npos;
@@ -248,7 +257,8 @@ static void parse_input_base(input& inp, const sajson::value& v)
 }
 
 template <std::size_t N>
-static std::array<double, N> parse_input_impl(sajson::value& v, std::array<double, N>)
+static std::array<double, N>
+parse_input_impl(sajson::value& v, std::array<double, N>)
 {
   if (v.get_type() == sajson::TYPE_ARRAY && v.get_length() >= N)
   {
@@ -377,7 +387,9 @@ static void parse_input(long_input& inp, const sajson::value& v)
     inp.values.resize(min_size);
 }
 
-template <typename Input_T, typename std::enable_if_t<Input_T::has_minmax::value>* = nullptr>
+template <
+    typename Input_T,
+    typename std::enable_if_t<Input_T::has_minmax::value>* = nullptr>
 static void parse_input(Input_T& inp, const sajson::value& v)
 {
   std::size_t N = v.get_length();
@@ -403,7 +415,9 @@ static void parse_input(Input_T& inp, const sajson::value& v)
   }
 }
 
-template <typename Input_T, typename std::enable_if_t<Input_T::has_default::value>* = nullptr>
+template <
+    typename Input_T,
+    typename std::enable_if_t<Input_T::has_default::value>* = nullptr>
 static void parse_input(Input_T& inp, const sajson::value& v)
 {
   std::size_t N = v.get_length();
@@ -461,11 +475,14 @@ static const std::unordered_map<std::string, root_fun>& root_parse{[] {
     i.insert({"bool", [](const auto& s) { return parse<bool_input>(s); }});
     i.insert({"event", [](const auto& s) { return parse<event_input>(s); }});
     i.insert({"image", [](const auto& s) { return parse<image_input>(s); }});
-    i.insert({"point2D", [](const auto& s) { return parse<point2d_input>(s); }});
-    i.insert({"point3D", [](const auto& s) { return parse<point3d_input>(s); }});
+    i.insert(
+        {"point2D", [](const auto& s) { return parse<point2d_input>(s); }});
+    i.insert(
+        {"point3D", [](const auto& s) { return parse<point3d_input>(s); }});
     i.insert({"color", [](const auto& s) { return parse<color_input>(s); }});
     i.insert({"audio", [](const auto& s) { return parse<audio_input>(s); }});
-    i.insert({"audioFFT", [](const auto& s) { return parse<audioFFT_input>(s); }});
+    i.insert(
+        {"audioFFT", [](const auto& s) { return parse<audioFFT_input>(s); }});
 
     return i;
   }()};
@@ -483,7 +500,8 @@ static const std::unordered_map<std::string, root_fun>& root_parse{[] {
                     auto k = obj.find_object_key(sajson::literal("TYPE"));
                     if (k != obj.get_length())
                     {
-                      auto inp = input_parse.find(obj.get_object_value(k).as_string());
+                      auto inp = input_parse.find(
+                          obj.get_object_value(k).as_string());
                       if (inp != input_parse.end())
                         d.inputs.push_back((inp->second)(obj));
                     }
@@ -504,31 +522,45 @@ static const std::unordered_map<std::string, root_fun>& root_parse{[] {
                   {
                     // PASS object
                     pass p;
-                    if (auto target_k = obj.find_object_key(sajson::literal("TARGET")); target_k != obj.get_length())
+                    if (auto target_k
+                        = obj.find_object_key(sajson::literal("TARGET"));
+                        target_k != obj.get_length())
                     {
                       p.target = obj.get_object_value(target_k).as_string();
                     }
 
-                    if (auto persistent_k = obj.find_object_key(sajson::literal("PERSISTENT")); persistent_k != obj.get_length())
+                    if (auto persistent_k
+                        = obj.find_object_key(sajson::literal("PERSISTENT"));
+                        persistent_k != obj.get_length())
                     {
                       p.persistent
-                          = obj.get_object_value(persistent_k).get_type() == sajson::TYPE_TRUE;
+                          = obj.get_object_value(persistent_k).get_type()
+                            == sajson::TYPE_TRUE;
                     }
 
-                    if (auto float_k = obj.find_object_key(sajson::literal("FLOAT")); float_k != obj.get_length())
+                    if (auto float_k
+                        = obj.find_object_key(sajson::literal("FLOAT"));
+                        float_k != obj.get_length())
                     {
                       p.float_storage
-                          = obj.get_object_value(float_k).get_type() == sajson::TYPE_TRUE;
+                          = obj.get_object_value(float_k).get_type()
+                            == sajson::TYPE_TRUE;
                     }
 
-                    if (auto width_k = obj.find_object_key(sajson::literal("WIDTH")); width_k != obj.get_length())
+                    if (auto width_k
+                        = obj.find_object_key(sajson::literal("WIDTH"));
+                        width_k != obj.get_length())
                     {
-                      p.width_expression = obj.get_object_value(width_k).as_string();
+                      p.width_expression
+                          = obj.get_object_value(width_k).as_string();
                     }
 
-                    if (auto height_k = obj.find_object_key(sajson::literal("HEIGHT")); height_k != obj.get_length())
+                    if (auto height_k
+                        = obj.find_object_key(sajson::literal("HEIGHT"));
+                        height_k != obj.get_length())
                     {
-                      p.height_expression = obj.get_object_value(height_k).as_string();
+                      p.height_expression
+                          = obj.get_object_value(height_k).as_string();
                     }
 
                     d.passes.push_back(std::move(p));
@@ -568,9 +600,18 @@ struct create_val_visitor_450
   return_type operator()(const point2d_input&) { return {"vec2", false}; }
   return_type operator()(const point3d_input&) { return {"vec3", false}; }
   return_type operator()(const color_input&) { return {"vec4", false}; }
-  return_type operator()(const image_input&) { return {"uniform sampler2D", true}; }
-  return_type operator()(const audio_input&) { return {"uniform sampler2D", true}; }
-  return_type operator()(const audioFFT_input&) { return {"uniform sampler2D", true}; }
+  return_type operator()(const image_input&)
+  {
+    return {"uniform sampler2D", true};
+  }
+  return_type operator()(const audio_input&)
+  {
+    return {"uniform sampler2D", true};
+  }
+  return_type operator()(const audioFFT_input&)
+  {
+    return {"uniform sampler2D", true};
+  }
 };
 
 void parser::parse_isf()
@@ -590,12 +631,13 @@ void parser::parse_isf()
   auto doc = sajson::parse(
       sajson::dynamic_allocation(),
       sajson::mutable_string_view(
-          (end - start - 2), const_cast<char*>(m_sourceFragment.data()) + start + 2));
+          (end - start - 2),
+          const_cast<char*>(m_sourceFragment.data()) + start + 2));
   if (!doc.is_valid())
   {
     std::stringstream err;
-    err << "JSON error: '" << doc.get_error_message() << "' at L" << doc.get_error_line() << ":"
-        << doc.get_error_column();
+    err << "JSON error: '" << doc.get_error_message() << "' at L"
+        << doc.get_error_line() << ":" << doc.get_error_column();
     throw invalid_file{err.str()};
   }
 
@@ -631,7 +673,8 @@ void parser::parse_isf()
       {
         m_vertex = GLSL3.defaultVertexShader;
       }
-      else if(m_sourceVertex.find("isf_vertShaderInit()") != std::string::npos)
+      else if (
+          m_sourceVertex.find("isf_vertShaderInit()") != std::string::npos)
       {
         m_vertex = GLSL3.vertexPrelude;
         m_vertex += m_sourceVertex;
@@ -665,7 +708,8 @@ void parser::parse_isf()
           m_vertex = GLSL45.defaultVertexShader;
           simpleVS = true;
         }
-        else if(m_sourceVertex.find("isf_vertShaderInit()") != std::string::npos)
+        else if (
+            m_sourceVertex.find("isf_vertShaderInit()") != std::string::npos)
         {
           m_vertex = GLSL45.vertexPrelude;
         }
@@ -687,7 +731,8 @@ void parser::parse_isf()
         material_ubos += "layout(std140, binding = 2) uniform material_t {\n";
         for (const isf::input& val : d.inputs)
         {
-          auto [text, isSampler] = std::visit(create_val_visitor_450{}, val.data);
+          auto [text, isSampler]
+              = std::visit(create_val_visitor_450{}, val.data);
 
           if (isSampler)
           {
@@ -712,9 +757,9 @@ void parser::parse_isf()
           }
         }
 
-        for(const isf::pass& p : d.passes)
+        for (const isf::pass& p : d.passes)
         {
-          if(p.target != "")
+          if (p.target != "")
           {
             samplers += "layout(binding = ";
             samplers += std::to_string(binding);
@@ -734,7 +779,7 @@ void parser::parse_isf()
         material_ubos += samplers;
       }
 
-      if(!simpleVS)
+      if (!simpleVS)
       {
         m_vertex += material_ubos;
         m_vertex += GLSL45.vertexInitFunc;
@@ -746,7 +791,7 @@ void parser::parse_isf()
   }
 
   // Add the actual vert / frag code
-  if(!simpleVS)
+  if (!simpleVS)
     m_vertex += m_sourceVertex;
   m_fragment += fragWithoutISF;
 
@@ -788,24 +833,29 @@ void parser::parse_shadertoy()
 
   m_fragment += m_sourceFragment;
 
-  m_fragment = std::regex_replace(m_fragment, std::regex("iGlobalTime"), "TIME");       // float
-  m_fragment = std::regex_replace(m_fragment, std::regex("iGlobalDelta"), "TIMEDELTA"); // float
+  m_fragment = std::regex_replace(
+      m_fragment, std::regex("iGlobalTime"), "TIME"); // float
+  m_fragment = std::regex_replace(
+      m_fragment, std::regex("iGlobalDelta"), "TIMEDELTA"); // float
+  m_fragment = std::regex_replace(
+      m_fragment, std::regex("iGlobalFrame"), "FRAMEINDEX"); // float -> int
   m_fragment
-      = std::regex_replace(m_fragment, std::regex("iGlobalFrame"), "FRAMEINDEX"); // float -> int
-  m_fragment = std::regex_replace(m_fragment, std::regex("iDate"), "DATE");       // vec4
-  m_fragment = std::regex_replace(m_fragment, std::regex("iSampleRate"), "SAMPLERATE"); // float
-  m_fragment
-      = std::regex_replace(m_fragment, std::regex("iResolution"), "RENDERSIZE"); // vec3 -> vec2
+      = std::regex_replace(m_fragment, std::regex("iDate"), "DATE"); // vec4
+  m_fragment = std::regex_replace(
+      m_fragment, std::regex("iSampleRate"), "SAMPLERATE"); // float
+  m_fragment = std::regex_replace(
+      m_fragment, std::regex("iResolution"), "RENDERSIZE"); // vec3 -> vec2
 
-  m_fragment = std::regex_replace(m_fragment, std::regex("iMouse"), "MOUSE"); // vec4
   m_fragment
-      = std::regex_replace(m_fragment, std::regex("iChannelTime"), "CHANNELTIME"); // float[4]
+      = std::regex_replace(m_fragment, std::regex("iMouse"), "MOUSE"); // vec4
+  m_fragment = std::regex_replace(
+      m_fragment, std::regex("iChannelTime"), "CHANNELTIME"); // float[4]
   m_fragment = std::regex_replace(
       m_fragment,
       std::regex("iChannelResolution"),
       "CHANNELRESOLUTION"); // vec3[4]
-  m_fragment
-      = std::regex_replace(m_fragment, std::regex("iChannel0"), "CHANNEL"); // sampler2D / 3D
+  m_fragment = std::regex_replace(
+      m_fragment, std::regex("iChannel0"), "CHANNEL"); // sampler2D / 3D
 
   m_fragment +=
       R"_(
@@ -837,7 +887,8 @@ void parser::parse_glsl_sandbox()
   m_fragment += m_sourceFragment;
 
   m_fragment = std::regex_replace(m_fragment, std::regex("time"), "TIME");
-  m_fragment = std::regex_replace(m_fragment, std::regex("resolution"), "RENDERSIZE");
+  m_fragment
+      = std::regex_replace(m_fragment, std::regex("resolution"), "RENDERSIZE");
   m_fragment = std::regex_replace(m_fragment, std::regex("mouse"), "MOUSE");
 
   m_vertex =

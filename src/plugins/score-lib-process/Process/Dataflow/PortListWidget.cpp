@@ -26,13 +26,17 @@ PortListWidget::PortListWidget(
     const Process::ProcessModel& proc,
     const score::DocumentContext& ctx,
     QWidget* parent)
-    : QWidget{parent}, m_process{proc}, m_ctx{ctx}
+    : QWidget{parent}
+    , m_process{proc}
+    , m_ctx{ctx}
 {
   setLayout(new Inspector::Layout);
   reload();
 
   con(proc, &Process::ProcessModel::inletsChanged, this, [this] { reload(); });
-  con(proc, &Process::ProcessModel::outletsChanged, this, [this] { reload(); });
+  con(proc, &Process::ProcessModel::outletsChanged, this, [this] {
+    reload();
+  });
 }
 
 void PortListWidget::reload()
@@ -122,7 +126,9 @@ void PortWidgetSetup::setupControl(
 
   QObject::connect(advBtn, &QToolButton::clicked, sw, [=] {
     sw->setVisible(!sw->isVisible());
-    advBtn->setArrowType(advBtn->arrowType() == Qt::RightArrow ? Qt::DownArrow : Qt::RightArrow);
+    advBtn->setArrowType(
+        advBtn->arrowType() == Qt::RightArrow ? Qt::DownArrow
+                                              : Qt::RightArrow);
   });
   sw->setVisible(false);
 
@@ -155,7 +161,9 @@ void PortWidgetSetup::setupControl(
 
   QObject::connect(advBtn, &QToolButton::clicked, sw, [=] {
     sw->setVisible(!sw->isVisible());
-    advBtn->setArrowType(advBtn->arrowType() == Qt::RightArrow ? Qt::DownArrow : Qt::RightArrow);
+    advBtn->setArrowType(
+        advBtn->arrowType() == Qt::RightArrow ? Qt::DownArrow
+                                              : Qt::RightArrow);
   });
   sw->setVisible(false);
 
@@ -172,12 +180,16 @@ QWidget* PortWidgetSetup::makeAddressWidget(
   auto edit = new AddressAccessorEditWidget{ctx, parent};
   edit->setAddress(port.address());
 
-  QObject::connect(&port, &Port::addressChanged, edit, [edit](const State::AddressAccessor& addr) {
-    if (addr != edit->address().address)
-    {
-      edit->setAddress(addr);
-    }
-  });
+  QObject::connect(
+      &port,
+      &Port::addressChanged,
+      edit,
+      [edit](const State::AddressAccessor& addr) {
+        if (addr != edit->address().address)
+        {
+          edit->setAddress(addr);
+        }
+      });
 
   QObject::connect(
       edit,

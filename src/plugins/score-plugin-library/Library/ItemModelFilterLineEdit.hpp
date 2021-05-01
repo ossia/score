@@ -12,8 +12,13 @@ namespace Library
 struct ItemModelFilterLineEdit final : public score::SearchLineEdit
 {
 public:
-  ItemModelFilterLineEdit(QSortFilterProxyModel& proxy, QTreeView& tv, QWidget* p)
-      : score::SearchLineEdit{p}, m_proxy{proxy}, m_view{tv}
+  ItemModelFilterLineEdit(
+      QSortFilterProxyModel& proxy,
+      QTreeView& tv,
+      QWidget* p)
+      : score::SearchLineEdit{p}
+      , m_proxy{proxy}
+      , m_view{tv}
   {
     connect(this, &QLineEdit::textEdited, this, [=] { search(); });
   }

@@ -1,10 +1,11 @@
 #include "ApplicationPlugin.hpp"
 
-#include <Media/Effect/Settings/Model.hpp>
-#include <LV2/Context.hpp>
-#include <LV2/EffectModel.hpp>
+#include <Audio/AudioDevice.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <LV2/Context.hpp>
+#include <LV2/EffectModel.hpp>
+#include <Media/Effect/Settings/Model.hpp>
 
 #include <score/tools/Bind.hpp>
 
@@ -16,10 +17,8 @@
 #include <QJsonObject>
 #include <QProcess>
 
-#include <Audio/AudioDevice.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(LV2::ApplicationPlugin)
-
 
 namespace LV2
 {
@@ -59,7 +58,8 @@ uint32_t port_index(SuilController controller, const char* symbol)
   auto n = lilv_new_uri(p.lilv.me, symbol);
   auto port = lilv_plugin_get_port_by_symbol(fx.plugin, n);
   lilv_node_free(n);
-  return port ? lilv_port_get_index(fx.plugin, port) : LV2UI_INVALID_PORT_INDEX;
+  return port ? lilv_port_get_index(fx.plugin, port)
+              : LV2UI_INVALID_PORT_INDEX;
 }
 }
 
@@ -69,7 +69,11 @@ namespace LV2
 ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
     : score::ApplicationPlugin{app}
     , lv2_context{std::make_unique<LV2::GlobalContext>(64, lv2_host_context)}
-    , lv2_host_context{lv2_context.get(), nullptr, lv2_context->features(), lilv}
+    , lv2_host_context{
+          lv2_context.get(),
+          nullptr,
+          lv2_context->features(),
+          lilv}
 {
   static int argc{0};
   static char** argv{nullptr};
@@ -82,10 +86,7 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
       = suil_host_new(LV2::on_uiMessage, LV2::port_index, nullptr, nullptr);
 }
 
-void ApplicationPlugin::initialize()
-{
-}
-
+void ApplicationPlugin::initialize() { }
 
 ApplicationPlugin::~ApplicationPlugin()
 {

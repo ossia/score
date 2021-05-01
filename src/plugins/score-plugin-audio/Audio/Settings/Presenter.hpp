@@ -1,8 +1,8 @@
 #pragma once
+#include <Audio/AudioInterface.hpp>
+
 #include <score/plugins/ProjectSettings/ProjectSettingsPresenter.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
-
-#include <Audio/AudioInterface.hpp>
 namespace Audio::Settings
 {
 class Model;

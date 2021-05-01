@@ -1,5 +1,6 @@
 #include "score_plugin_vst.hpp"
 
+#include <Library/LibraryInterface.hpp>
 #include <Vst/Control.hpp>
 #include <Vst/EffectModel.hpp>
 #include <Vst/Executor.hpp>
@@ -7,7 +8,6 @@
 #include <Vst/Settings.hpp>
 #include <Vst/Widgets.hpp>
 #include <Vst/Window.hpp>
-#include <Library/LibraryInterface.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
 #include <score/plugins/InterfaceList.hpp>
@@ -25,13 +25,12 @@ namespace vst
 using LayerFactory = Process::EffectLayerFactory_T<Model, EffectItem, Window>;
 }
 
-score_plugin_vst::score_plugin_vst()
-{
-}
+score_plugin_vst::score_plugin_vst() { }
 
 score_plugin_vst::~score_plugin_vst() { }
 
-std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_vst::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap>
+score_plugin_vst::make_commands()
 {
   using namespace vst;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
@@ -50,8 +49,8 @@ score_plugin_vst::make_applicationPlugin(const score::ApplicationContext& app)
   return new vst::ApplicationPlugin{app};
 }
 
-score::GUIApplicationPlugin*
-score_plugin_vst::make_guiApplicationPlugin(const score::GUIApplicationContext& app)
+score::GUIApplicationPlugin* score_plugin_vst::make_guiApplicationPlugin(
+    const score::GUIApplicationContext& app)
 {
   return new vst::GUIApplicationPlugin{app};
 }
@@ -62,25 +61,12 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_vst::factories(
 {
   return instantiate_factories<
       score::ApplicationContext,
-      FW<Process::ProcessModelFactory,
-        vst::VSTEffectFactory
-      >,
-      FW<Process::LayerFactory,
-        vst::LayerFactory
-      >,
-      FW<Library::LibraryInterface,
-        vst::LibraryHandler
-      >,
-      FW<Process::PortFactory,
-        vst::ControlPortFactory
-      >,
-      FW<Execution::ProcessComponentFactory,
-         vst::ExecutorFactory
-      >,
-      FW<Media::Settings::PluginSettingsTab,
-         vst::SettingsWidget
-      >
-      >(ctx, key);
+      FW<Process::ProcessModelFactory, vst::VSTEffectFactory>,
+      FW<Process::LayerFactory, vst::LayerFactory>,
+      FW<Library::LibraryInterface, vst::LibraryHandler>,
+      FW<Process::PortFactory, vst::ControlPortFactory>,
+      FW<Execution::ProcessComponentFactory, vst::ExecutorFactory>,
+      FW<Media::Settings::PluginSettingsTab, vst::SettingsWidget>>(ctx, key);
 }
 
 #include <score/plugins/PluginInstances.hpp>

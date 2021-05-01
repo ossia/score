@@ -6,10 +6,6 @@
 #include <Process/ExpandMode.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
-#include <Scenario/Document/Interval/IntervalDurations.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Interval/Slot.hpp>
-#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -21,6 +17,11 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/MapSerialization.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+
+#include <Scenario/Document/Interval/IntervalDurations.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 
 #include <functional>
 #include <map>
@@ -36,7 +37,9 @@ InsertContentInInterval::InsertContentInInterval(
     const rapidjson::Value& sourceInterval,
     const IntervalModel& targetInterval,
     ExpandMode mode)
-    : m_source{clone(sourceInterval)}, m_target{std::move(targetInterval)}, m_mode{mode}
+    : m_source{clone(sourceInterval)}
+    , m_target{std::move(targetInterval)}
+    , m_mode{mode}
 {
   // Generate new ids for each cloned process.
   const auto& target_processes = targetInterval.processes;
@@ -53,7 +56,8 @@ InsertContentInInterval::InsertContentInInterval(
   {
     auto obj = processes[i].GetObject();
     Id<Process::ProcessModel> newId = getStrongId(curIds);
-    Id<Process::ProcessModel> oldId = Id<Process::ProcessModel>(obj["id"].GetInt());
+    Id<Process::ProcessModel> oldId
+        = Id<Process::ProcessModel>(obj["id"].GetInt());
     obj["id"] = newId.val();
     processes[i] = std::move(obj);
     m_processIds.insert({oldId, newId});
@@ -95,11 +99,13 @@ void InsertContentInInterval::redo(const score::DocumentContext& ctx) const
       // Resize the processes according to the new interval.
       if (m_mode == ExpandMode::Scale)
       {
-        newproc->setParentDuration(ExpandMode::Scale, trg_interval.duration.defaultDuration());
+        newproc->setParentDuration(
+            ExpandMode::Scale, trg_interval.duration.defaultDuration());
       }
       else if (m_mode == ExpandMode::GrowShrink)
       {
-        newproc->setParentDuration(ExpandMode::ForceGrow, trg_interval.duration.defaultDuration());
+        newproc->setParentDuration(
+            ExpandMode::ForceGrow, trg_interval.duration.defaultDuration());
       }
     }
     else

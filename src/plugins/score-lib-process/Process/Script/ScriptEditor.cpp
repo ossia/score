@@ -1,4 +1,5 @@
 #include "ScriptEditor.hpp"
+
 #include "MultiScriptEditor.hpp"
 #include "ScriptWidget.hpp"
 
@@ -9,11 +10,16 @@
 #include <QPushButton>
 #include <QTabWidget>
 #include <QVBoxLayout>
+
 #include <frozen/map.h>
 namespace Process
 {
-ScriptDialog::ScriptDialog(const std::string_view language, const score::DocumentContext& ctx, QWidget* parent)
-    : QDialog{parent}, m_context{ctx}
+ScriptDialog::ScriptDialog(
+    const std::string_view language,
+    const score::DocumentContext& ctx,
+    QWidget* parent)
+    : QDialog{parent}
+    , m_context{ctx}
 {
   this->setBaseSize(800, 300);
   this->setWindowFlag(Qt::WindowCloseButtonHint, false);
@@ -32,12 +38,14 @@ ScriptDialog::ScriptDialog(const std::string_view language, const score::Documen
   lay->setStretch(0, 3);
   lay->setStretch(1, 1);
   auto bbox = new QDialogButtonBox{
-      QDialogButtonBox::Ok | QDialogButtonBox::Reset | QDialogButtonBox::Close, this};
+      QDialogButtonBox::Ok | QDialogButtonBox::Reset | QDialogButtonBox::Close,
+      this};
   bbox->button(QDialogButtonBox::Ok)->setText(tr("Compile"));
   bbox->button(QDialogButtonBox::Reset)->setText(tr("Clear log"));
-  connect(bbox->button(QDialogButtonBox::Reset), &QPushButton::clicked, this, [=] {
-    m_error->clear();
-  });
+  connect(
+      bbox->button(QDialogButtonBox::Reset), &QPushButton::clicked, this, [=] {
+        m_error->clear();
+      });
   lay->addWidget(bbox);
 
   connect(bbox, &QDialogButtonBox::accepted, this, &ScriptDialog::on_accepted);
@@ -62,15 +70,11 @@ void ScriptDialog::setError(int line, const QString& str)
   m_error->setPlainText(str);
 }
 
-
-
-
-
-
-
-
-MultiScriptDialog::MultiScriptDialog(const score::DocumentContext& ctx, QWidget* parent)
-    : QDialog{parent}, m_context{ctx}
+MultiScriptDialog::MultiScriptDialog(
+    const score::DocumentContext& ctx,
+    QWidget* parent)
+    : QDialog{parent}
+    , m_context{ctx}
 {
   this->setBaseSize(800, 300);
   this->setWindowFlag(Qt::WindowCloseButtonHint, false);
@@ -88,20 +92,29 @@ MultiScriptDialog::MultiScriptDialog(const score::DocumentContext& ctx, QWidget*
   lay->addWidget(m_error);
 
   auto bbox = new QDialogButtonBox{
-      QDialogButtonBox::Ok | QDialogButtonBox::Reset | QDialogButtonBox::Close, this};
+      QDialogButtonBox::Ok | QDialogButtonBox::Reset | QDialogButtonBox::Close,
+      this};
 
   lay->addWidget(bbox);
 
   bbox->button(QDialogButtonBox::Ok)->setText(tr("Compile"));
   bbox->button(QDialogButtonBox::Reset)->setText(tr("Clear log"));
-  connect(bbox->button(QDialogButtonBox::Reset), &QPushButton::clicked, this, [=] {
-    m_error->clear();
-  });
-  connect(bbox, &QDialogButtonBox::accepted, this, &MultiScriptDialog::on_accepted);
+  connect(
+      bbox->button(QDialogButtonBox::Reset), &QPushButton::clicked, this, [=] {
+        m_error->clear();
+      });
+  connect(
+      bbox,
+      &QDialogButtonBox::accepted,
+      this,
+      &MultiScriptDialog::on_accepted);
   connect(bbox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 }
 
-void MultiScriptDialog::addTab(const QString &name, const QString &text, const std::string_view language)
+void MultiScriptDialog::addTab(
+    const QString& name,
+    const QString& text,
+    const std::string_view language)
 {
   auto textedit = createScriptWidget(language);
   textedit->setText(text);
@@ -114,7 +127,7 @@ std::vector<QString> MultiScriptDialog::text() const noexcept
 {
   std::vector<QString> vec;
   vec.reserve(m_editors.size());
-  for(const auto& tab : m_editors)
+  for (const auto& tab : m_editors)
     vec.push_back(tab.textedit->document()->toPlainText());
   return vec;
 }

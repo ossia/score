@@ -1,10 +1,12 @@
 #pragma once
 #include <Process/TimeValue.hpp>
+
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 
-#include <memory>
-#include <functional>
 #include <score_plugin_engine_export.h>
+
+#include <functional>
+#include <memory>
 namespace Scenario
 {
 class IntervalModel;
@@ -20,8 +22,8 @@ struct Context;
 class Clock;
 class TransportInterface;
 class BaseScenarioElement;
-using exec_setup_fun
-    = std::function<void(const Execution::Context&, Execution::BaseScenarioElement&)>;
+using exec_setup_fun = std::function<
+    void(const Execution::Context&, Execution::BaseScenarioElement&)>;
 class SCORE_PLUGIN_ENGINE_EXPORT ExecutionController : public QObject
 {
 public:
@@ -54,7 +56,6 @@ public:
   void request_stop();
 
 private:
-
   // If the transport interface answers: these functions will "press" the Play, etc...
   // buttons programmatically to put them in the right state, and start the playback
   void trigger_play();
@@ -105,6 +106,5 @@ private:
   bool m_playing{false};
   bool m_paused{false};
   bool m_requestLocalPlay{};
-
 };
 }

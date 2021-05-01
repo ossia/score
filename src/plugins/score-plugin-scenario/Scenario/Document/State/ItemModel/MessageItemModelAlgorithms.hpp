@@ -18,8 +18,13 @@ enum class ProcessPosition
 };
 
 // User messages
-void updateTreeWithMessageList(Process::MessageNode& rootNode, State::MessageList lst);
-void renameAddress(Process::MessageNode& rootNode, const State::AddressAccessor& oldAddr, const State::AddressAccessor& newAddr);
+void updateTreeWithMessageList(
+    Process::MessageNode& rootNode,
+    State::MessageList lst);
+void renameAddress(
+    Process::MessageNode& rootNode,
+    const State::AddressAccessor& oldAddr,
+    const State::AddressAccessor& newAddr);
 
 // Messages from a process
 void updateTreeWithMessageList(
@@ -33,13 +38,17 @@ void updateTreeWithRemovedProcess(
     const Id<Process::ProcessModel>& proc,
     ProcessPosition pos);
 
-void updateTreeWithRemovedInterval(Process::MessageNode& rootNode, ProcessPosition pos);
+void updateTreeWithRemovedInterval(
+    Process::MessageNode& rootNode,
+    ProcessPosition pos);
 
 void updateTreeWithRemovedUserMessage(
     Process::MessageNode& rootNode,
     const State::AddressAccessor&);
 
-void updateTreeWithRemovedNode(Process::MessageNode& rootNode, const State::AddressAccessor& addr);
+void updateTreeWithRemovedNode(
+    Process::MessageNode& rootNode,
+    const State::AddressAccessor& addr);
 
 void removeAllUserMessages(Process::MessageNode& rootNode);
 
@@ -48,21 +57,22 @@ Process::MessageNode* getNthChild(Process::MessageNode& rootNode, int n);
 int getChildIndex(Process::MessageNode& rootNode, Process::MessageNode* n);
 }
 
-
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 namespace Scenario
 {
 // User messages
-inline
-void updateModelWithMessageList(MessageItemModel& model, State::MessageList lst)
+inline void
+updateModelWithMessageList(MessageItemModel& model, State::MessageList lst)
 {
   model.beginResetModel();
   updateTreeWithMessageList(model.rootNode(), std::move(lst));
   model.endResetModel();
 }
 
-inline
-void renameAddress(MessageItemModel& model, const State::AddressAccessor& oldAddr, const State::AddressAccessor& newAddr)
+inline void renameAddress(
+    MessageItemModel& model,
+    const State::AddressAccessor& oldAddr,
+    const State::AddressAccessor& newAddr)
 {
   model.beginResetModel();
   renameAddress(model.rootNode(), oldAddr, newAddr);
@@ -70,8 +80,7 @@ void renameAddress(MessageItemModel& model, const State::AddressAccessor& oldAdd
 }
 
 // Messages from a process
-inline
-void updateModelWithMessageList(
+inline void updateModelWithMessageList(
     MessageItemModel& model,
     State::MessageList lst,
     const Id<Process::ProcessModel>& proc,
@@ -82,8 +91,7 @@ void updateModelWithMessageList(
   model.endResetModel();
 }
 
-inline
-void updateModelWithRemovedProcess(
+inline void updateModelWithRemovedProcess(
     MessageItemModel& model,
     const Id<Process::ProcessModel>& proc,
     ProcessPosition pos)
@@ -93,16 +101,15 @@ void updateModelWithRemovedProcess(
   model.endResetModel();
 }
 
-inline
-void updateModelWithRemovedInterval(MessageItemModel& model, ProcessPosition pos)
+inline void
+updateModelWithRemovedInterval(MessageItemModel& model, ProcessPosition pos)
 {
   model.beginResetModel();
   updateTreeWithRemovedInterval(model.rootNode(), pos);
   model.endResetModel();
 }
 
-inline
-void updateModelWithRemovedUserMessage(
+inline void updateModelWithRemovedUserMessage(
     MessageItemModel& model,
     const State::AddressAccessor& addr)
 {
@@ -111,16 +118,16 @@ void updateModelWithRemovedUserMessage(
   model.endResetModel();
 }
 
-inline
-void updateModelWithRemovedNode(MessageItemModel& model, const State::AddressAccessor& addr)
+inline void updateModelWithRemovedNode(
+    MessageItemModel& model,
+    const State::AddressAccessor& addr)
 {
   model.beginResetModel();
   updateTreeWithRemovedNode(model.rootNode(), addr);
   model.endResetModel();
 }
 
-inline
-void removeAllUserMessages(MessageItemModel& model)
+inline void removeAllUserMessages(MessageItemModel& model)
 {
   model.beginResetModel();
   removeAllUserMessages(model.rootNode());

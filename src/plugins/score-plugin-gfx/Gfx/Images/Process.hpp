@@ -1,14 +1,13 @@
 #pragma once
+#include <Gfx/CommandFactory.hpp>
+#include <Gfx/Graph/imagenode.hpp>
+#include <Gfx/Images/Metadata.hpp>
 #include <Library/LibraryInterface.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
 
 #include <score/command/PropertyCommand.hpp>
-
-#include <Gfx/CommandFactory.hpp>
-#include <Gfx/Graph/imagenode.hpp>
-#include <Gfx/Images/Metadata.hpp>
 namespace Gfx::Images
 {
 class Model final : public Process::ProcessModel
@@ -18,11 +17,15 @@ class Model final : public Process::ProcessModel
   W_OBJECT(Model)
 
 public:
-    constexpr bool hasExternalUI() { return false; }
-  Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
+  constexpr bool hasExternalUI() { return false; }
+  Model(
+      const TimeVal& duration,
+      const Id<Process::ProcessModel>& id,
+      QObject* parent);
 
   template <typename Impl>
-  Model(Impl& vis, QObject* parent) : Process::ProcessModel{vis, parent}
+  Model(Impl& vis, QObject* parent)
+      : Process::ProcessModel{vis, parent}
   {
     vis.writeTo(*this);
   }
@@ -34,7 +37,9 @@ public:
   void addImage(const Image& im);
   void removeImage(int i);
   void imagesChanged() W_SIGNAL(imagesChanged);
-  PROPERTY(std::vector<Image>, images READ images WRITE setImages NOTIFY imagesChanged)
+  PROPERTY(
+      std::vector<Image>,
+      images READ images WRITE setImages NOTIFY imagesChanged)
 
 private:
   QString prettyName() const noexcept override;

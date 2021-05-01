@@ -47,9 +47,11 @@ class MaxRangeSpinBox : public SpinBox::spinbox_type
 {
 public:
   template <typename... Args>
-  MaxRangeSpinBox(Args&&... args) : SpinBox::spinbox_type{std::forward<Args>(args)...}
+  MaxRangeSpinBox(Args&&... args)
+      : SpinBox::spinbox_type{std::forward<Args>(args)...}
   {
-    this->setMinimum(std::numeric_limits<typename SpinBox::value_type>::lowest());
+    this->setMinimum(
+        std::numeric_limits<typename SpinBox::value_type>::lowest());
     this->setMaximum(std::numeric_limits<typename SpinBox::value_type>::max());
     this->setAlignment(Qt::AlignRight);
   }
@@ -74,7 +76,8 @@ class SpinBox<double> final : public MaxRangeSpinBox<TemplatedSpinBox<double>>
 {
 public:
   template <typename... Args>
-  SpinBox(Args&&... args) : MaxRangeSpinBox{std::forward<Args>(args)...}
+  SpinBox(Args&&... args)
+      : MaxRangeSpinBox{std::forward<Args>(args)...}
   {
     setDecimals(5);
   }
@@ -84,7 +87,8 @@ class SpinBox<float> final : public MaxRangeSpinBox<TemplatedSpinBox<float>>
 {
 public:
   template <typename... Args>
-  SpinBox(Args&&... args) : MaxRangeSpinBox{std::forward<Args>(args)...}
+  SpinBox(Args&&... args)
+      : MaxRangeSpinBox{std::forward<Args>(args)...}
   {
     setDecimals(5);
   }

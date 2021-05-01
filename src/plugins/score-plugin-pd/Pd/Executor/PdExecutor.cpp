@@ -1,23 +1,24 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Pd/Executor/PdExecutor.hpp>
+#include <Pd/IncludeLibpd.hpp>
+#include <Pd/PdProcess.hpp>
 #include <Process/Dataflow/Port.hpp>
 
 #include <score/serialization/AnySerialization.hpp>
 #include <score/serialization/MapSerialization.hpp>
+
 #include <ossia-qt/js_utilities.hpp>
 #include <ossia/audio/audio_parameter.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/node_process.hpp>
+#include <ossia/dataflow/nodes/sound.hpp>
 #include <ossia/dataflow/port.hpp>
+#include <ossia/detail/math.hpp>
 #include <ossia/editor/state/message.hpp>
 #include <ossia/editor/state/state.hpp>
-#include <ossia/detail/math.hpp>
-#include <ossia/dataflow/nodes/sound.hpp>
 
 #include <QFileInfo>
 
-#include <Pd/Executor/PdExecutor.hpp>
-#include <Pd/PdProcess.hpp>
-#include <Pd/IncludeLibpd.hpp>
 #include <vector>
 namespace Pd
 {
@@ -27,11 +28,11 @@ thread_local PdGraphNode* m_currentInstance{};
 struct ossia_to_pd_value
 {
   const char* mess{};
-  void operator()() const {}
+  void operator()() const { }
 
   void just_add_values(const ossia::value& value) const noexcept
   {
-    switch(value.get_type())
+    switch (value.get_type())
     {
       case ossia::val_type::INT:
         libpd_add_float(value.get<int>());
@@ -64,7 +65,7 @@ struct ossia_to_pd_value
         libpd_add_float(value.get<ossia::vec4f>()[3]);
         break;
       case ossia::val_type::LIST:
-        for(auto& v : value.get<std::vector<ossia::value>>())
+        for (auto& v : value.get<std::vector<ossia::value>>())
           just_add_values(v);
         break;
       case ossia::val_type::IMPULSE:
@@ -78,7 +79,7 @@ struct ossia_to_pd_value
   {
     // TODO improve that
     libpd_start_message(v.size());
-    for(auto& value : v)
+    for (auto& value : v)
     {
       just_add_values(value);
     }
@@ -164,7 +165,9 @@ PdGraphNode::PdGraphNode(
     const Pd::PatchSpec& spec,
     bool midi_in,
     bool midi_out)
-    : m_audioIns{audio_inputs}, m_audioOuts{audio_outputs}, m_file{file}
+    : m_audioIns{audio_inputs}
+    , m_audioOuts{audio_outputs}
+    , m_file{file}
 {
   for (const auto& port : spec.receives)
   {
@@ -307,15 +310,16 @@ PdGraphNode::PdGraphNode(
   libpd_set_controlchangehook([](int channel, int controller, int value) {
     if (auto v = m_currentInstance->get_midi_out())
     {
-      v->messages.push_back(
-          libremidi::message::control_change(channel, controller, value + 8192));
+      v->messages.push_back(libremidi::message::control_change(
+          channel, controller, value + 8192));
     }
   });
 
   libpd_set_programchangehook([](int channel, int value) {
     if (auto v = m_currentInstance->get_midi_out())
     {
-      v->messages.push_back(libremidi::message::program_change(channel, value));
+      v->messages.push_back(
+          libremidi::message::program_change(channel, value));
     }
   });
   libpd_set_pitchbendhook([](int channel, int value) {
@@ -523,7 +527,7 @@ class pd_process final : public ossia::node_process
 {
 public:
   using ossia::node_process::node_process;
-  void start() override {}
+  void start() override { }
 };
 
 Component::Component(
@@ -571,24 +575,31 @@ Component::Component(
       element.midiOutput());
   node = pdnode;
 
-  for(int i = pdnode->m_firstInMessage, N = pdnode->root_inputs().size(); i < N; i++)
+  for (int i = pdnode->m_firstInMessage, N = pdnode->root_inputs().size();
+       i < N;
+       i++)
   {
-    if(const Process::ControlInlet* inlet = qobject_cast<Process::ControlInlet*>(element.inlets()[i]))
+    if (const Process::ControlInlet* inlet
+        = qobject_cast<Process::ControlInlet*>(element.inlets()[i]))
     {
       auto inl = pdnode->root_inputs()[i];
-      inlet->value().apply(ossia_to_pd_value{pdnode->m_inmess[i - pdnode->m_firstInMessage].c_str()});
-      auto c = connect(inlet, &Process::ControlInlet::valueChanged,
-                       this, [this, inl](const ossia::value& v) {
-        system().executionQueue.enqueue([inl, val = v]() mutable {
-          inl->target<ossia::value_port>()->write_value(std::move(val), 0);
-        });
-      });
+      inlet->value().apply(ossia_to_pd_value{
+          pdnode->m_inmess[i - pdnode->m_firstInMessage].c_str()});
+      auto c = connect(
+          inlet,
+          &Process::ControlInlet::valueChanged,
+          this,
+          [this, inl](const ossia::value& v) {
+            system().executionQueue.enqueue([inl, val = v]() mutable {
+              inl->target<ossia::value_port>()->write_value(std::move(val), 0);
+            });
+          });
     }
   }
 
   m_ossia_process = std::make_shared<pd_process>(node);
 }
 
-Component::~Component() {}
+Component::~Component() { }
 
 }

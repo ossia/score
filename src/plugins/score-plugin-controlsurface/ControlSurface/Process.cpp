@@ -6,18 +6,23 @@
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 
-#include <ossia/network/common/destination_qualifiers.hpp>
+#include <score/serialization/MapSerialization.hpp>
+
 #include <ossia/network/base/node_attributes.hpp>
+#include <ossia/network/common/destination_qualifiers.hpp>
 #include <ossia/network/dataspace/dataspace.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
-#include <score/serialization/MapSerialization.hpp>
+
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(ControlSurface::Model)
 namespace ControlSurface
 {
 
-Model::Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
+Model::Model(
+    const TimeVal& duration,
+    const Id<Process::ProcessModel>& id,
+    QObject* parent)
     : Process::ProcessModel{duration, id, "ControlSurfaceProcess", parent}
 {
   metadata().setInstanceName(*this);
@@ -84,11 +89,12 @@ Process::ControlInlet* makeControlFromType(
   // TODO make better widgets if we have more information.
 
   auto& unit = addr.address.qualifiers.get().unit.v;
-  if(unit.target<ossia::color_u>())
+  if (unit.target<ossia::color_u>())
   {
     return new Process::HSVSlider{id, parent};
   }
-  if(unit.target<ossia::position_u>() && addr.value.get_type() == ossia::val_type::VEC2F)
+  if (unit.target<ossia::position_u>()
+      && addr.value.get_type() == ossia::val_type::VEC2F)
   {
     return new Process::XYSlider{id, parent};
   }
@@ -113,7 +119,9 @@ Process::ControlInlet* makeControlFromType(
   }
 }
 
-void Model::setupControl(Process::ControlInlet* ctl, const State::AddressAccessor& addr)
+void Model::setupControl(
+    Process::ControlInlet* ctl,
+    const State::AddressAccessor& addr)
 {
   int32_t id = ctl->id().val();
   m_outputAddresses[id] = addr;
@@ -123,7 +131,9 @@ void Model::setupControl(Process::ControlInlet* ctl, const State::AddressAccesso
   controlAdded(ctl->id());
 }
 
-void Model::addControl(const Id<Process::Port>& id, const Device::FullAddressAccessorSettings& msg)
+void Model::addControl(
+    const Id<Process::Port>& id,
+    const Device::FullAddressAccessorSettings& msg)
 {
   auto ctl = makeControlFromType(id, msg, this);
   // ctl->setAddress(msg.address);
@@ -185,7 +195,8 @@ void Model::removeControl(const Id<Process::Port>& m_id)
 {
   m_outputAddresses.erase(m_id.val());
 
-  auto it = ossia::find_if(inlets(), [&](const auto& inlet) { return inlet->id() == m_id; });
+  auto it = ossia::find_if(
+      inlets(), [&](const auto& inlet) { return inlet->id() == m_id; });
   SCORE_ASSERT(it != inlets().end());
   controlRemoved(**it);
   auto ptr = *it;

@@ -16,7 +16,9 @@ class ChangeSteps final : public score::Command
   SCORE_COMMAND_DECL(Media::CommandFactoryName(), ChangeSteps, "Change steps")
 public:
   ChangeSteps(const Media::Step::Model& model, const ossia::float_vector& cur)
-      : m_model{model}, m_old{model.steps()}, m_new{cur}
+      : m_model{model}
+      , m_old{model.steps()}
+      , m_new{cur}
   {
   }
 
@@ -35,9 +37,15 @@ public:
     m_new = std::move(cur);
   }
 
-  void serializeImpl(DataStreamInput& s) const override { s << m_model << m_old << m_new; }
+  void serializeImpl(DataStreamInput& s) const override
+  {
+    s << m_model << m_old << m_new;
+  }
 
-  void deserializeImpl(DataStreamOutput& s) override { s >> m_model >> m_old >> m_new; }
+  void deserializeImpl(DataStreamOutput& s) override
+  {
+    s >> m_model >> m_old >> m_new;
+  }
 
 private:
   Path<Media::Step::Model> m_model;
@@ -46,19 +54,31 @@ private:
 
 class SetStepCount final : public score::PropertyCommand
 {
-  SCORE_COMMAND_DECL(Media::CommandFactoryName(), SetStepCount, "Set step count")
+  SCORE_COMMAND_DECL(
+      Media::CommandFactoryName(),
+      SetStepCount,
+      "Set step count")
 public:
   SetStepCount(const Step::Model& path, std::size_t newval)
-      : score::PropertyCommand{std::move(path), "stepCount", QVariant::fromValue(newval)}
+      : score::PropertyCommand{
+          std::move(path),
+          "stepCount",
+          QVariant::fromValue(newval)}
   {
   }
 };
 class SetStepDuration final : public score::PropertyCommand
 {
-  SCORE_COMMAND_DECL(Media::CommandFactoryName(), SetStepDuration, "Set step duration")
+  SCORE_COMMAND_DECL(
+      Media::CommandFactoryName(),
+      SetStepDuration,
+      "Set step duration")
 public:
   SetStepDuration(const Step::Model& path, std::size_t newval)
-      : score::PropertyCommand{std::move(path), "stepDuration", QVariant::fromValue(newval)}
+      : score::PropertyCommand{
+          std::move(path),
+          "stepDuration",
+          QVariant::fromValue(newval)}
   {
   }
 };

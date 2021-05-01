@@ -1,14 +1,14 @@
 #pragma once
+#include <Gfx/Video/Process.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 
-#include <Gfx/Video/Process.hpp>
-
 namespace Gfx::Video
 {
-class InspectorWidget final : public Process::InspectorWidgetDelegate_T<Gfx::Video::Model>
+class InspectorWidget final
+    : public Process::InspectorWidgetDelegate_T<Gfx::Video::Model>
 {
 public:
   explicit InspectorWidget(

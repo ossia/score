@@ -10,8 +10,15 @@
 struct RenderedISFNode;
 struct ISFNode : score::gfx::ProcessNode
 {
-  ISFNode(const isf::descriptor& desc, const QShader& vert, const QShader& frag);
-  ISFNode(const isf::descriptor& desc, const QShader& vert, const QShader& frag, const Mesh* mesh);
+  ISFNode(
+      const isf::descriptor& desc,
+      const QShader& vert,
+      const QShader& frag);
+  ISFNode(
+      const isf::descriptor& desc,
+      const QShader& vert,
+      const QShader& frag,
+      const Mesh* mesh);
 
   virtual ~ISFNode();
   const Mesh& mesh() const noexcept;

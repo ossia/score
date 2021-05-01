@@ -24,7 +24,8 @@ QString MinuitProtocolFactory::category() const noexcept
   return StandardCategories::osc;
 }
 
-Device::DeviceEnumerator* MinuitProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerator*
+MinuitProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
   return nullptr;
 }
@@ -41,7 +42,8 @@ Device::DeviceInterface* MinuitProtocolFactory::makeDevice(
   return new MinuitDevice{settings};
 }
 
-const Device::DeviceSettings& MinuitProtocolFactory::defaultSettings() const noexcept
+const Device::DeviceSettings&
+MinuitProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
@@ -59,7 +61,8 @@ Device::ProtocolSettingsWidget* MinuitProtocolFactory::makeSettingsWidget()
   return new MinuitProtocolSettingsWidget;
 }
 
-QVariant MinuitProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
+QVariant MinuitProtocolFactory::makeProtocolSpecificSettings(
+    const VisitorVariant& visitor) const
 {
   return makeProtocolSpecificSettings_T<MinuitSpecificSettings>(visitor);
 }

@@ -1,17 +1,17 @@
 #pragma once
+#include <Gfx/GfxDevice.hpp>
+#include <Gfx/GfxExecContext.hpp>
+#include <Gfx/Graph/videonode.hpp>
+#include <Video/FrameQueue.hpp>
+
+#include <ossia/detail/lockfree_queue.hpp>
+#include <ossia/gfx/texture_parameter.hpp>
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/protocol.hpp>
-#include <ossia/gfx/texture_parameter.hpp>
-
-#include <QLineEdit>
-
-#include <Video/FrameQueue.hpp>
-#include <Gfx/GfxExecContext.hpp>
-#include <Gfx/GfxDevice.hpp>
-#include <Gfx/Graph/videonode.hpp>
-#include <ossia/detail/lockfree_queue.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_node.hpp>
+
+#include <QLineEdit>
 
 class QComboBox;
 namespace libfreenect2
@@ -47,25 +47,33 @@ struct kinect2_camera
 
 private:
   void loop();
-  void process(libfreenect2::Frame* colorFrame, libfreenect2::Frame* irFrame, libfreenect2::Frame* depthFrame);
+  void process(
+      libfreenect2::Frame* colorFrame,
+      libfreenect2::Frame* irFrame,
+      libfreenect2::Frame* depthFrame);
 
-  libfreenect2::Freenect2Device *m_dev{};
-  libfreenect2::PacketPipeline *m_pipeline{};
+  libfreenect2::Freenect2Device* m_dev{};
+  libfreenect2::PacketPipeline* m_pipeline{};
   libfreenect2::SyncMultiFrameListener* m_listener{};
   std::thread m_thread;
   std::atomic_bool m_running{};
   int types{};
 };
 
-class kinect2_decoder  : public ::Video::VideoInterface
+class kinect2_decoder : public ::Video::VideoInterface
 {
   ::Video::FrameQueue& queue;
 
 public:
   const QString filter;
-  kinect2_decoder(::Video::FrameQueue& queue, int width, int height, AVPixelFormat format, QString filter)
-    : queue{queue}
-    , filter{filter}
+  kinect2_decoder(
+      ::Video::FrameQueue& queue,
+      int width,
+      int height,
+      AVPixelFormat format,
+      QString filter)
+      : queue{queue}
+      , filter{filter}
   {
     this->width = width;
     this->height = height;
@@ -76,23 +84,15 @@ public:
     this->flicks_per_dts = 0;
   }
 
-  ~kinect2_decoder()
-  {
-    queue.drain();
-  }
+  ~kinect2_decoder() { queue.drain(); }
 
-  AVFrame* dequeue_frame() noexcept override
-  {
-    return queue.dequeue();
-  }
+  AVFrame* dequeue_frame() noexcept override { return queue.dequeue(); }
 
   void release_frame(AVFrame* frame) noexcept override
   {
     return queue.release(frame);
   }
 };
-
-
 
 class kinect2_protocol : public ossia::net::protocol_base
 {
@@ -119,7 +119,10 @@ public:
   int32_t node_id{};
   VideoNode* node{};
 
-  kinect2_parameter(const std::shared_ptr<kinect2_decoder>& dec, ossia::net::node_base& n, GfxExecutionAction& ctx)
+  kinect2_parameter(
+      const std::shared_ptr<kinect2_decoder>& dec,
+      ossia::net::node_base& n,
+      GfxExecutionAction& ctx)
       : ossia::gfx::texture_input_parameter{n}
       , context{&ctx}
       , decoder{dec}
@@ -133,10 +136,7 @@ public:
     context->setEdge(port_index{this->node_id, 0}, idx);
   }
 
-  virtual ~kinect2_parameter()
-  {
-    context->ui->unregister_node(node_id);
-  }
+  virtual ~kinect2_parameter() { context->ui->unregister_node(node_id); }
 };
 
 class kinect2_node : public ossia::net::node_base
@@ -146,14 +146,21 @@ class kinect2_node : public ossia::net::node_base
   std::unique_ptr<kinect2_parameter> m_parameter;
 
 public:
-  kinect2_node(const std::shared_ptr<kinect2_decoder>& settings, GfxExecutionAction& ctx, ossia::net::device_base& dev, std::string name)
+  kinect2_node(
+      const std::shared_ptr<kinect2_decoder>& settings,
+      GfxExecutionAction& ctx,
+      ossia::net::device_base& dev,
+      std::string name)
       : m_device{dev}
       , m_parameter{std::make_unique<kinect2_parameter>(settings, *this, ctx)}
   {
     m_name = std::move(name);
   }
 
-  kinect2_parameter* get_parameter() const override { return m_parameter.get(); }
+  kinect2_parameter* get_parameter() const override
+  {
+    return m_parameter.get();
+  }
 
 private:
   ossia::net::device_base& get_device() const override { return m_device; }
@@ -165,7 +172,8 @@ private:
   }
   bool remove_parameter() override { return false; }
 
-  std::unique_ptr<ossia::net::node_base> make_child(const std::string& name) override
+  std::unique_ptr<ossia::net::node_base>
+  make_child(const std::string& name) override
   {
     return {};
   }
@@ -175,7 +183,11 @@ private:
 class kinect2_device : public ossia::net::generic_device
 {
 public:
-  kinect2_device(const kinect2_settings& settings, GfxExecutionAction& ctx, std::unique_ptr<kinect2_protocol> proto, std::string name);
+  kinect2_device(
+      const kinect2_settings& settings,
+      GfxExecutionAction& ctx,
+      std::unique_ptr<kinect2_protocol> proto,
+      std::string name);
 };
 }
 
@@ -199,10 +211,12 @@ class Kinect2ProtocolFactory final : public Device::ProtocolFactory
   SCORE_CONCRETE("1056df8a-f20c-40e4-995e-f18ffda3a16a")
   QString prettyName() const noexcept override;
   QString category() const noexcept override;
-  Device::DeviceEnumerator* getEnumerator(const score::DocumentContext& ctx) const override;
+  Device::DeviceEnumerator*
+  getEnumerator(const score::DocumentContext& ctx) const override;
 
-  Device::DeviceInterface*
-  makeDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx) override;
+  Device::DeviceInterface* makeDevice(
+      const Device::DeviceSettings& settings,
+      const score::DocumentContext& ctx) override;
   const Device::DeviceSettings& defaultSettings() const noexcept override;
   Device::AddressDialog* makeAddAddressDialog(
       const Device::DeviceInterface& dev,
@@ -216,13 +230,16 @@ class Kinect2ProtocolFactory final : public Device::ProtocolFactory
 
   Device::ProtocolSettingsWidget* makeSettingsWidget() override;
 
-  QVariant makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
+  QVariant
+  makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
 
-  void serializeProtocolSpecificSettings(const QVariant& data, const VisitorVariant& visitor)
-      const override;
+  void serializeProtocolSpecificSettings(
+      const QVariant& data,
+      const VisitorVariant& visitor) const override;
 
-  bool checkCompatibility(const Device::DeviceSettings& a, const Device::DeviceSettings& b)
-      const noexcept override;
+  bool checkCompatibility(
+      const Device::DeviceSettings& a,
+      const Device::DeviceSettings& b) const noexcept override;
 };
 
 class Kinect2Device final : public GfxInputDevice
@@ -231,6 +248,7 @@ class Kinect2Device final : public GfxInputDevice
 public:
   using GfxInputDevice::GfxInputDevice;
   ~Kinect2Device();
+
 private:
   bool reconnect() override;
   ossia::net::device_base* getDevice() const override { return m_dev.get(); }
@@ -254,7 +272,6 @@ private:
 };
 
 }
-
 
 Q_DECLARE_METATYPE(Gfx::Kinect2Settings)
 W_REGISTER_ARGTYPE(Gfx::Kinect2Settings)

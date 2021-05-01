@@ -4,6 +4,7 @@
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Process/TimeValue.hpp>
 #include <Process/TimeValueSerialization.hpp>
+
 #include <Scenario/Application/Drops/AutomationDropHandler.hpp>
 #include <Scenario/Application/Drops/MessageDropHandler.hpp>
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
@@ -32,13 +33,6 @@
 #include <Scenario/Document/Tempo/TempoFactory.hpp>
 #include <Scenario/ExecutionChecker/CSPCoherencyCheckerList.hpp>
 // #include <Scenario/Inspector/Interpolation/InterpolationInspectorWidget.hpp>
-#include <Scenario/Inspector/Interval/IntervalInspectorFactory.hpp>
-#include <Scenario/Inspector/ObjectTree/ObjectItemModel.hpp>
-#include <Scenario/Inspector/ScenarioInspectorWidgetFactoryWrapper.hpp>
-#include <Scenario/Library/SlotLibraryHandler.hpp>
-#include <Scenario/Process/ScenarioExecution.hpp>
-#include <Scenario/Process/ScenarioFactory.hpp>
-#include <Scenario/Settings/ScenarioSettingsFactory.hpp>
 #include <State/Message.hpp>
 #include <State/Unit.hpp>
 #include <State/Value.hpp>
@@ -58,10 +52,19 @@
 #include <QList>
 #include <QMetaType>
 #include <QPainterPath>
+
+#include <Scenario/Inspector/Interval/IntervalInspectorFactory.hpp>
+#include <Scenario/Inspector/ObjectTree/ObjectItemModel.hpp>
+#include <Scenario/Inspector/ScenarioInspectorWidgetFactoryWrapper.hpp>
+#include <Scenario/Library/SlotLibraryHandler.hpp>
+#include <Scenario/Process/ScenarioExecution.hpp>
+#include <Scenario/Process/ScenarioFactory.hpp>
+#include <Scenario/Settings/ScenarioSettingsFactory.hpp>
 #include <score_plugin_library.hpp>
 
 // #include <Interpolation/InterpolationFactory.hpp>
 #include <LocalTree/ScenarioComponent.hpp>
+
 #include <score_plugin_scenario.hpp>
 #include <score_plugin_scenario_commands_files.hpp>
 #include <wobjectimpl.h>
@@ -112,14 +115,15 @@ score_plugin_scenario::score_plugin_scenario()
 
 score_plugin_scenario::~score_plugin_scenario() = default;
 
-score::GUIApplicationPlugin*
-score_plugin_scenario::make_guiApplicationPlugin(const score::GUIApplicationContext& app)
+score::GUIApplicationPlugin* score_plugin_scenario::make_guiApplicationPlugin(
+    const score::GUIApplicationContext& app)
 {
   using namespace Scenario;
   return new ScenarioApplicationPlugin{app};
 }
 
-std::vector<std::unique_ptr<score::InterfaceListBase>> score_plugin_scenario::factoryFamilies()
+std::vector<std::unique_ptr<score::InterfaceListBase>>
+score_plugin_scenario::factoryFamilies()
 {
   using namespace Scenario;
   using namespace Scenario::Command;
@@ -136,17 +140,21 @@ std::vector<std::unique_ptr<score::InterfaceListBase>> score_plugin_scenario::fa
 }
 
 template <>
-struct FactoryBuilder<score::GUIApplicationContext, Scenario::ScenarioTemporalLayerFactory>
+struct FactoryBuilder<
+    score::GUIApplicationContext,
+    Scenario::ScenarioTemporalLayerFactory>
 {
   static auto make(const score::GUIApplicationContext& ctx)
   {
     using namespace Scenario;
     auto& appPlugin = ctx.guiApplicationPlugin<ScenarioApplicationPlugin>();
-    return std::make_unique<ScenarioTemporalLayerFactory>(appPlugin.editionSettings());
+    return std::make_unique<ScenarioTemporalLayerFactory>(
+        appPlugin.editionSettings());
   }
 };
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_scenario::factories(
+std::vector<std::unique_ptr<score::InterfaceBase>>
+score_plugin_scenario::factories(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& key) const
 {
@@ -154,19 +162,19 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_scenario::factor
   using namespace Scenario::Command;
   return instantiate_factories<
       score::ApplicationContext,
-      FW<Process::ProcessModelFactory
-         , ScenarioFactory
-         , Scenario::TempoFactory
-//       , Interpolation::InterpolationFactory
-      >,
+      FW<Process::ProcessModelFactory, ScenarioFactory, Scenario::TempoFactory
+         //       , Interpolation::InterpolationFactory
+         >,
       FW<Process::LayerFactory,
-//         Interpolation::InterpolationLayerFactory,
+         //         Interpolation::InterpolationLayerFactory,
          Scenario::TempoLayerFactory>,
       FW<MoveEventFactoryInterface, MoveEventClassicFactory>,
       FW<DisplayedElementsToolPaletteFactory,
          BaseScenarioDisplayedElementsToolPaletteFactory,
          ScenarioDisplayedElementsToolPaletteFactory>,
-      FW<TriggerCommandFactory, ScenarioTriggerCommandFactory, BaseScenarioTriggerCommandFactory>,
+      FW<TriggerCommandFactory,
+         ScenarioTriggerCommandFactory,
+         BaseScenarioTriggerCommandFactory>,
       FW<DisplayedElementsProvider,
          DefaultDisplayedElementsProvider,
          ScenarioDisplayedElementsProvider,
@@ -182,23 +190,24 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_scenario::factor
          Scenario::DropScoreInScenario,
          Scenario::DropProcessInScenario,
          Scenario::DropPresetInScenario,
-         Scenario::DropLayerInScenario
-      >,
+         Scenario::DropLayerInScenario>,
       FW<Scenario::IntervalDropHandler,
          Scenario::DropProcessInInterval,
          Scenario::DropPresetInInterval,
          Scenario::DropLayerInInterval,
          Scenario::DropScoreInInterval,
          Scenario::AutomationDropHandler>,
-      FW<Inspector::InspectorWidgetFactory
-         , ScenarioInspectorWidgetFactoryWrapper
-//          , Interpolation::StateInspectorFactory
-//          , Interpolation::InspectorFactory
-      >,
+      FW<Inspector::InspectorWidgetFactory,
+         ScenarioInspectorWidgetFactoryWrapper
+         //          , Interpolation::StateInspectorFactory
+         //          , Interpolation::InspectorFactory
+         >,
       FW<score::ValidityChecker, ScenarioValidityChecker>,
 
-      FW<LocalTree::ProcessComponentFactory, LocalTree::ScenarioComponentFactory>,
-      FW<Execution::ProcessComponentFactory, Execution::ScenarioComponentFactory>,
+      FW<LocalTree::ProcessComponentFactory,
+         LocalTree::ScenarioComponentFactory>,
+      FW<Execution::ProcessComponentFactory,
+         Execution::ScenarioComponentFactory>,
       FW<Library::LibraryInterface,
          Scenario::SlotLibraryHandler,
          Scenario::ScenarioLibraryHandler>,
@@ -208,7 +217,8 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_scenario::factor
       FW<score::ObjectRemover, Scenario::ScenarioRemover>>(ctx, key);
 }
 
-std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_scenario::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap>
+score_plugin_scenario::make_commands()
 {
   using namespace Scenario;
   using namespace Dataflow;
@@ -224,7 +234,8 @@ std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_scenario::mak
   return cmds;
 }
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_scenario::guiFactories(
+std::vector<std::unique_ptr<score::InterfaceBase>>
+score_plugin_scenario::guiFactories(
     const score::GUIApplicationContext& ctx,
     const score::InterfaceKey& key) const
 {

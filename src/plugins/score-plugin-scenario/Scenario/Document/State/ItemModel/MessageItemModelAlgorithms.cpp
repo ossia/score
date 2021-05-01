@@ -69,15 +69,19 @@ static Process::MessageNode* try_getNodeFromString_impl(
   return nullptr;
 }
 
-static Process::MessageNode*
-try_getNodeFromString(Process::MessageNode& n, const State::AddressAccessor& addr)
+static Process::MessageNode* try_getNodeFromString(
+    Process::MessageNode& n,
+    const State::AddressAccessor& addr)
 {
   for (auto& child : n)
   {
     if (child.displayName() == addr.address.device)
     {
       return try_getNodeFromString_impl(
-          child, addr.address.path.begin(), addr.address.path.end(), addr.qualifiers);
+          child,
+          addr.address.path.begin(),
+          addr.address.path.end(),
+          addr.qualifiers);
     }
   }
   return nullptr;
@@ -116,7 +120,8 @@ static bool match(Process::MessageNode& node, const State::Message& mess)
   {
     if (n->name.name == path.at(i))
     {
-      if (i == imax - 1 && !n->parent()->parent() && mess.address.qualifiers == n->name.qualifiers)
+      if (i == imax - 1 && !n->parent()->parent()
+          && mess.address.qualifiers == n->name.qualifiers)
       {
         return true;
       }
@@ -137,7 +142,8 @@ static void updateNode(
     const ossia::value& val,
     const Id<Process::ProcessModel>& proc)
 {
-  auto it = ossia::find_if(vec, [&](auto& data) { return data.process == proc; });
+  auto it
+      = ossia::find_if(vec, [&](auto& data) { return data.process == proc; });
   if (it != vec.end())
   {
     it->value = val;
@@ -157,7 +163,9 @@ static void rec_delete(Process::MessageNode& node)
     if (parent)
     {
       auto it = std::find_if(
-          parent->begin(), parent->end(), [&](const auto& other) { return &node == &other; });
+          parent->begin(), parent->end(), [&](const auto& other) {
+            return &node == &other;
+          });
       if (it != parent->end())
       {
         parent->erase(it);
@@ -179,7 +187,8 @@ static bool nodePruneAction_impl(
   {
     // We just remove the element
     // corresponding to this process.
-    auto it = ossia::find_if(vec, [&](const auto& data) { return data.process == proc; });
+    auto it = ossia::find_if(
+        vec, [&](const auto& data) { return data.process == proc; });
 
     if (it != vec.end())
     {
@@ -213,13 +222,19 @@ static void nodePruneAction(
     case ProcessPosition::Previous:
     {
       deleteMe &= nodePruneAction_impl(
-          node, proc, node.values.previousProcessValues, node.values.followingProcessValues);
+          node,
+          proc,
+          node.values.previousProcessValues,
+          node.values.followingProcessValues);
       break;
     }
     case ProcessPosition::Following:
     {
       deleteMe &= nodePruneAction_impl(
-          node, proc, node.values.followingProcessValues, node.values.previousProcessValues);
+          node,
+          proc,
+          node.values.followingProcessValues,
+          node.values.previousProcessValues);
       break;
     }
     default:
@@ -294,8 +309,10 @@ static void rec_updateTree(
   cleanupNode(node);
 }
 
-static bool
-match(const State::AddressAccessorHead& cur_node, const State::AddressAccessor& mess, int i)
+static bool match(
+    const State::AddressAccessorHead& cur_node,
+    const State::AddressAccessor& mess,
+    int i)
 {
   if (i == 0)
   {
@@ -307,11 +324,13 @@ match(const State::AddressAccessorHead& cur_node, const State::AddressAccessor& 
   }
   else
   {
-    return mess.address.path.back() == cur_node.name && mess.qualifiers == cur_node.qualifiers;
+    return mess.address.path.back() == cur_node.name
+           && mess.qualifiers == cur_node.qualifiers;
   }
 }
 
-static State::AddressAccessorHead get_at(const State::AddressAccessor& mess, int i)
+static State::AddressAccessorHead
+get_at(const State::AddressAccessor& mess, int i)
 {
   if (i == 0)
   {
@@ -330,16 +349,19 @@ static State::AddressAccessorHead get_at(const State::AddressAccessor& mess, int
 // TODO another one to refactor with merges
 // MergeFun takes a state node value and modifies it.
 template <typename MergeFun>
-static void
-merge_impl(Process::MessageNode& base, const State::AddressAccessor& addr, MergeFun merge)
+static void merge_impl(
+    Process::MessageNode& base,
+    const State::AddressAccessor& addr,
+    MergeFun merge)
 {
   const auto path_n = addr.address.path.size() + 1;
 
   Process::MessageNode* node = &base;
   for (int i = 0; i < path_n; i++)
   {
-    auto it = ossia::find_if(
-        *node, [&](const auto& cur_node) { return match(cur_node.name, addr, i); });
+    auto it = ossia::find_if(*node, [&](const auto& cur_node) {
+      return match(cur_node.name, addr, i);
+    });
 
     if (it == node->end())
     {
@@ -350,8 +372,8 @@ merge_impl(Process::MessageNode& base, const State::AddressAccessor& addr, Merge
         Process::MessageNode* newNode{};
         if (k < path_n - 1)
         {
-          newNode
-              = &parentnode->emplace_back(Process::StateNodeData{get_at(addr, k), {}}, nullptr);
+          newNode = &parentnode->emplace_back(
+              Process::StateNodeData{get_at(addr, k), {}}, nullptr);
         }
         else
         {
@@ -379,16 +401,19 @@ merge_impl(Process::MessageNode& base, const State::AddressAccessor& addr, Merge
   }
 }
 
-static void
-rename_impl(Process::MessageNode& base, const State::AddressAccessor& old_addr, const State::AddressAccessor& new_addr)
+static void rename_impl(
+    Process::MessageNode& base,
+    const State::AddressAccessor& old_addr,
+    const State::AddressAccessor& new_addr)
 {
   const auto path_n = old_addr.address.path.size() + 1;
 
   Process::MessageNode* node = &base;
   for (int i = 0; i < path_n; i++)
   {
-    auto it = ossia::find_if(
-        *node, [&](const auto& cur_node) { return match(cur_node.name, old_addr, i); });
+    auto it = ossia::find_if(*node, [&](const auto& cur_node) {
+      return match(cur_node.name, old_addr, i);
+    });
 
     if (it != node->end())
     {
@@ -396,7 +421,7 @@ rename_impl(Process::MessageNode& base, const State::AddressAccessor& old_addr, 
 
       if (i == path_n - 1)
       {
-        if(new_addr.address.path.empty())
+        if (new_addr.address.path.empty())
           node->name.name = new_addr.address.device;
         else
           node->name.name = new_addr.address.path.back();
@@ -407,12 +432,15 @@ rename_impl(Process::MessageNode& base, const State::AddressAccessor& old_addr, 
   }
 }
 
-void updateTreeWithMessageList(Process::MessageNode& rootNode, State::MessageList lst)
+void updateTreeWithMessageList(
+    Process::MessageNode& rootNode,
+    State::MessageList lst)
 {
   for (const auto& mess : lst)
   {
-    merge_impl(
-        rootNode, mess.address, [&](auto& nodeValues) { nodeValues.userValue = mess.value; });
+    merge_impl(rootNode, mess.address, [&](auto& nodeValues) {
+      nodeValues.userValue = mess.value;
+    });
   }
 }
 
@@ -443,20 +471,21 @@ void updateTreeWithMessageList(
   // Handle the remaining messages
   for (const auto& mess : lst)
   {
-    merge_impl(rootNode, mess.address, [&](Process::StateNodeValues& nodeValues) {
-      switch (pos)
-      {
-        case ProcessPosition::Previous:
-          nodeValues.previousProcessValues.push_back({proc, mess.value});
-          break;
-        case ProcessPosition::Following:
-          nodeValues.followingProcessValues.push_back({proc, mess.value});
-          break;
-        default:
-          SCORE_ABORT;
-          break;
-      }
-    });
+    merge_impl(
+        rootNode, mess.address, [&](Process::StateNodeValues& nodeValues) {
+          switch (pos)
+          {
+            case ProcessPosition::Previous:
+              nodeValues.previousProcessValues.push_back({proc, mess.value});
+              break;
+            case ProcessPosition::Following:
+              nodeValues.followingProcessValues.push_back({proc, mess.value});
+              break;
+            default:
+              SCORE_ABORT;
+              break;
+          }
+        });
   }
 }
 
@@ -500,13 +529,15 @@ static void nodePruneAction(Process::MessageNode& node, ProcessPosition pos)
     case ProcessPosition::Previous:
     {
       node.values.previousProcessValues.clear();
-      deleteMe &= !node.values.userValue && node.values.followingProcessValues.empty();
+      deleteMe &= !node.values.userValue
+                  && node.values.followingProcessValues.empty();
       break;
     }
     case ProcessPosition::Following:
     {
       node.values.followingProcessValues.clear();
-      deleteMe &= !node.values.userValue && node.values.previousProcessValues.empty();
+      deleteMe &= !node.values.userValue
+                  && node.values.previousProcessValues.empty();
       break;
     }
     default:
@@ -532,7 +563,9 @@ static void rec_pruneTree(Process::MessageNode& node, ProcessPosition pos)
   cleanupNode(node);
 }
 
-void updateTreeWithRemovedInterval(Process::MessageNode& rootNode, ProcessPosition pos)
+void updateTreeWithRemovedInterval(
+    Process::MessageNode& rootNode,
+    ProcessPosition pos)
 {
   for (auto& child : rootNode)
   {
@@ -552,7 +585,8 @@ void updateTreeWithRemovedUserMessage(
     node->values.userValue = std::optional<ossia::value>{};
 
     // If it is empty, delete it.
-    if (node->values.previousProcessValues.empty() && node->values.followingProcessValues.empty()
+    if (node->values.previousProcessValues.empty()
+        && node->values.followingProcessValues.empty()
         && node->childCount() == 0)
     {
       rec_delete(*node);
@@ -583,15 +617,19 @@ static bool rec_cleanup(Process::MessageNode& node)
     }
   }
 
-  auto remove_it = ossia::remove_if(
-      node, [&](const auto& child) { return toRemove.find(&child) != toRemove.end(); });
+  auto remove_it = ossia::remove_if(node, [&](const auto& child) {
+    return toRemove.find(&child) != toRemove.end();
+  });
   node.erase(remove_it, node.end());
 
-  return node.values.previousProcessValues.empty() && node.values.followingProcessValues.empty()
+  return node.values.previousProcessValues.empty()
+         && node.values.followingProcessValues.empty()
          && node.childCount() == 0;
 }
 
-void updateTreeWithRemovedNode(Process::MessageNode& rootNode, const State::AddressAccessor& addr)
+void updateTreeWithRemovedNode(
+    Process::MessageNode& rootNode,
+    const State::AddressAccessor& addr)
 {
   // Find the message node
   Process::MessageNode* node_ptr = try_getNodeFromString(rootNode, addr);
@@ -605,7 +643,8 @@ void updateTreeWithRemovedNode(Process::MessageNode& rootNode, const State::Addr
     // If it is empty, delete it
     rec_cleanup(node);
 
-    if (node.values.previousProcessValues.empty() && node.values.followingProcessValues.empty()
+    if (node.values.previousProcessValues.empty()
+        && node.values.followingProcessValues.empty()
         && node.childCount() == 0)
     {
       rec_delete(node);
@@ -656,7 +695,8 @@ int countNodes(Process::MessageNode& rootNode)
   return n;
 }
 
-static Process::MessageNode* rec_getNthChild(Process::MessageNode& rootNode, int& n)
+static Process::MessageNode*
+rec_getNthChild(Process::MessageNode& rootNode, int& n)
 {
   for (auto& child : rootNode)
   {
@@ -676,7 +716,10 @@ Process::MessageNode* getNthChild(Process::MessageNode& rootNode, int n)
   return rec_getNthChild(rootNode, n);
 }
 
-static void rec_getChildIndex(Process::MessageNode& rootNode, Process::MessageNode* n, int& idx)
+static void rec_getChildIndex(
+    Process::MessageNode& rootNode,
+    Process::MessageNode* n,
+    int& idx)
 {
   for (auto& child : rootNode)
   {
@@ -695,7 +738,10 @@ int getChildIndex(Process::MessageNode& rootNode, Process::MessageNode* node)
   return n;
 }
 
-void renameAddress(Process::MessageNode& rootNode, const State::AddressAccessor& oldAddr, const State::AddressAccessor& newAddr)
+void renameAddress(
+    Process::MessageNode& rootNode,
+    const State::AddressAccessor& oldAddr,
+    const State::AddressAccessor& newAddr)
 {
   rename_impl(rootNode, oldAddr, newAddr);
 }

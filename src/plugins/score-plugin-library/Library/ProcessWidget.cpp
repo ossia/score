@@ -46,7 +46,9 @@ public:
 
     if (d)
     {
-      if (auto f = score::GUIAppContext().interfaces<Process::ProcessFactoryList>().get(d->key))
+      if (auto f = score::GUIAppContext()
+                       .interfaces<Process::ProcessFactoryList>()
+                       .get(d->key))
       {
         setVisible(true);
         auto desc = f->descriptor(QString{/*TODO pass customdata ?*/});
@@ -100,7 +102,9 @@ public:
   QLabel m_tags;
 };
 
-ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* parent)
+ProcessWidget::ProcessWidget(
+    const score::GUIApplicationContext& ctx,
+    QWidget* parent)
     : QWidget{parent}
     , m_processModel{new ProcessesItemModel{ctx, this}}
     , m_presetModel{new PresetItemModel{ctx, this}}
@@ -117,7 +121,8 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
     auto processFilterProxy = new RecursiveFilterProxy{this};
     processFilterProxy->setSourceModel(m_processModel);
     processFilterProxy->setFilterKeyColumn(0);
-    slay->addWidget(new ItemModelFilterLineEdit{*processFilterProxy, m_tv, this});
+    slay->addWidget(
+        new ItemModelFilterLineEdit{*processFilterProxy, m_tv, this});
     slay->addWidget(&m_tv, 3);
     m_tv.setModel(processFilterProxy);
     m_tv.setStatusTip(statusTip());

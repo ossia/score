@@ -6,11 +6,13 @@
 #include "ArtnetSpecificSettings.hpp"
 
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/widgets/SignalUtils.hpp>
-#include <QObject>
-#include <QFormLayout>
+
 #include <QDialogButtonBox>
+#include <QFormLayout>
+#include <QObject>
 
 namespace Protocols
 {
@@ -25,7 +27,8 @@ QString ArtnetProtocolFactory::category() const noexcept
   return StandardCategories::lights;
 }
 
-Device::DeviceEnumerator* ArtnetProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerator*
+ArtnetProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
   return nullptr;
 }
@@ -37,7 +40,8 @@ Device::DeviceInterface* ArtnetProtocolFactory::makeDevice(
   return new ArtnetDevice{settings, ctx};
 }
 
-const Device::DeviceSettings& ArtnetProtocolFactory::defaultSettings() const noexcept
+const Device::DeviceSettings&
+ArtnetProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings& settings = [&]() {
     Device::DeviceSettings s;
@@ -56,7 +60,8 @@ Device::ProtocolSettingsWidget* ArtnetProtocolFactory::makeSettingsWidget()
   return new ArtnetProtocolSettingsWidget;
 }
 
-QVariant ArtnetProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
+QVariant ArtnetProtocolFactory::makeProtocolSpecificSettings(
+    const VisitorVariant& visitor) const
 {
   return makeProtocolSpecificSettings_T<ArtnetSpecificSettings>(visitor);
 }

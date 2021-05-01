@@ -1,8 +1,9 @@
 #pragma once
+#include <Audio/AudioInterface.hpp>
+
 #include <score/plugins/ProjectSettings/ProjectSettingsModel.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 
-#include <Audio/AudioInterface.hpp>
 #include <score_plugin_audio_export.h>
 
 #include <verdigris>
@@ -10,10 +11,12 @@
 namespace Audio::Settings
 {
 
-enum class ExternalTransport : int8_t {
-  None = 0, Client = 1, Master = 2
+enum class ExternalTransport : int8_t
+{
+  None = 0,
+  Client = 1,
+  Master = 2
 };
-
 
 class SCORE_PLUGIN_AUDIO_EXPORT Model : public score::SettingsDelegateModel
 {
@@ -49,9 +52,18 @@ public:
   Model(QSettings& set, const score::ApplicationContext& ctx);
 
   void changed() E_SIGNAL(SCORE_PLUGIN_AUDIO_EXPORT, changed)
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_AUDIO_EXPORT, Audio::AudioFactory::ConcreteKey, Driver)
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_AUDIO_EXPORT, QStringList, InputNames)
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_AUDIO_EXPORT, QStringList, OutputNames)
+  SCORE_SETTINGS_PARAMETER_HPP(
+      SCORE_PLUGIN_AUDIO_EXPORT,
+      Audio::AudioFactory::ConcreteKey,
+      Driver)
+  SCORE_SETTINGS_PARAMETER_HPP(
+      SCORE_PLUGIN_AUDIO_EXPORT,
+      QStringList,
+      InputNames)
+  SCORE_SETTINGS_PARAMETER_HPP(
+      SCORE_PLUGIN_AUDIO_EXPORT,
+      QStringList,
+      OutputNames)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_AUDIO_EXPORT, QString, CardIn)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_AUDIO_EXPORT, QString, CardOut)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_AUDIO_EXPORT, int, BufferSize)
@@ -60,7 +72,10 @@ public:
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_AUDIO_EXPORT, int, DefaultOut)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_AUDIO_EXPORT, bool, AutoStereo)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_AUDIO_EXPORT, bool, AutoConnect)
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_AUDIO_EXPORT, Audio::Settings::ExternalTransport, JackTransport)
+  SCORE_SETTINGS_PARAMETER_HPP(
+      SCORE_PLUGIN_AUDIO_EXPORT,
+      Audio::Settings::ExternalTransport,
+      JackTransport)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, Driver)

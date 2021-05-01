@@ -20,7 +20,9 @@ namespace Scenario
 class IntervalModel;
 namespace Command
 {
-void InterpolateStates(const std::vector<const IntervalModel*>&, const score::CommandStackFacade&);
+void InterpolateStates(
+    const std::vector<const IntervalModel*>&,
+    const score::CommandStackFacade&);
 }
 
 struct value_size
@@ -31,7 +33,10 @@ struct value_size
     return N;
   }
 
-  std::size_t operator()(const std::vector<ossia::value>& arr) { return arr.size(); }
+  std::size_t operator()(const std::vector<ossia::value>& arr)
+  {
+    return arr.size();
+  }
 
   std::size_t operator()() { return 0; }
 
@@ -49,7 +54,9 @@ struct get_curve_domain
   const Device::Node& rootNode;
 
   template <std::size_t N>
-  Curve::CurveDomain operator()(const std::array<float, N>& start, const std::array<float, N>& end)
+  Curve::CurveDomain operator()(
+      const std::array<float, N>& start,
+      const std::array<float, N>& end)
   {
     SCORE_ASSERT(!idx.empty());
     const auto i = idx[0];
@@ -71,12 +78,14 @@ struct get_curve_domain
     return d;
   }
 
-  Curve::CurveDomain
-  operator()(const std::vector<ossia::value>& start, const std::vector<ossia::value>& end)
+  Curve::CurveDomain operator()(
+      const std::vector<ossia::value>& start,
+      const std::vector<ossia::value>& end)
   {
     SCORE_ASSERT(!idx.empty());
     const auto i = (std::size_t)idx[0];
-    Curve::CurveDomain d{ossia::convert<double>(start[i]), ossia::convert<double>(end[i])};
+    Curve::CurveDomain d{
+        ossia::convert<double>(start[i]), ossia::convert<double>(end[i])};
 
     if (auto node = Device::try_getNodeFromAddress(rootNode, address.address))
     {
@@ -109,9 +118,16 @@ struct get_curve_domain
     return d;
   }
 
-  Curve::CurveDomain operator()(ossia::impulse start, ossia::impulse end) { return {}; }
+  Curve::CurveDomain operator()(ossia::impulse start, ossia::impulse end)
+  {
+    return {};
+  }
 
-  Curve::CurveDomain operator()(const std::string& start, const std::string& end) { return {}; }
+  Curve::CurveDomain
+  operator()(const std::string& start, const std::string& end)
+  {
+    return {};
+  }
 
   template <typename T, typename U>
   Curve::CurveDomain operator()(const T& start, const U& end)
@@ -125,16 +141,18 @@ struct get_start_end
   const ossia::destination_index& idx;
 
   template <std::size_t N>
-  std::pair<double, double>
-  operator()(const std::array<float, N>& start, const std::array<float, N>& end)
+  std::pair<double, double> operator()(
+      const std::array<float, N>& start,
+      const std::array<float, N>& end)
   {
     SCORE_ASSERT(!idx.empty());
     const auto i = idx[0];
     return {(double)start[i], (double)end[i]};
   }
 
-  std::pair<double, double>
-  operator()(const std::vector<ossia::value>& start, const std::vector<ossia::value>& end)
+  std::pair<double, double> operator()(
+      const std::vector<ossia::value>& start,
+      const std::vector<ossia::value>& end)
   {
     SCORE_ASSERT(!idx.empty());
     const auto i = idx[0];
@@ -147,12 +165,14 @@ struct get_start_end
     return {(double)start, (double)end};
   }
 
-  std::pair<double, double> operator()(ossia::impulse start, ossia::impulse end)
+  std::pair<double, double>
+  operator()(ossia::impulse start, ossia::impulse end)
   {
     return {0., 1.};
   }
 
-  std::pair<double, double> operator()(const std::string& start, const std::string& end)
+  std::pair<double, double>
+  operator()(const std::string& start, const std::string& end)
   {
     return {0., 1.};
   }

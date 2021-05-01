@@ -1,13 +1,15 @@
 #include "Preset.hpp"
 
 #include <Process/ProcessList.hpp>
+
 #include <score/serialization/JSONVisitor.hpp>
 
 namespace Process
 {
 
-std::shared_ptr<Preset>
-Preset::fromJson(const ProcessFactoryList& procs, const QByteArray& obj) noexcept
+std::shared_ptr<Preset> Preset::fromJson(
+    const ProcessFactoryList& procs,
+    const QByteArray& obj) noexcept
 {
   rapidjson::Document doc;
   Process::Preset p;

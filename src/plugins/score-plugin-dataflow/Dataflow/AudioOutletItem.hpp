@@ -12,18 +12,23 @@ namespace Dataflow
 class SCORE_PLUGIN_DATAFLOW_EXPORT AudioOutletItem : public AutomatablePortItem
 {
 public:
-  AudioOutletItem(Process::Port& p, const Process::Context& ctx, QGraphicsItem* parent);
+  AudioOutletItem(
+      Process::Port& p,
+      const Process::Context& ctx,
+      QGraphicsItem* parent);
   ~AudioOutletItem() override;
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
-  QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
+  QVariant
+  itemChange(GraphicsItemChange change, const QVariant& value) override;
 
   QPointer<score::ArrowDialog> m_subView{};
 };
 
-struct SCORE_PLUGIN_DATAFLOW_EXPORT AudioOutletFactory final : public AutomatablePortFactory
+struct SCORE_PLUGIN_DATAFLOW_EXPORT AudioOutletFactory final
+    : public AutomatablePortFactory
 {
   using Model_T = Process::AudioOutlet;
   UuidKey<Process::Port> concreteKey() const noexcept override
@@ -55,21 +60,27 @@ struct SCORE_PLUGIN_DATAFLOW_EXPORT AudioOutletFactory final : public Automatabl
   }
 };
 
-class SCORE_PLUGIN_DATAFLOW_EXPORT MinMaxFloatOutletItem : public AutomatablePortItem
+class SCORE_PLUGIN_DATAFLOW_EXPORT MinMaxFloatOutletItem
+    : public AutomatablePortItem
 {
 public:
-  MinMaxFloatOutletItem(Process::Port& p, const Process::Context& ctx, QGraphicsItem* parent);
+  MinMaxFloatOutletItem(
+      Process::Port& p,
+      const Process::Context& ctx,
+      QGraphicsItem* parent);
   ~MinMaxFloatOutletItem() override;
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
-  QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
+  QVariant
+  itemChange(GraphicsItemChange change, const QVariant& value) override;
 
   QPointer<score::ArrowDialog> m_subView{};
 };
 
-struct SCORE_PLUGIN_DATAFLOW_EXPORT MinMaxFloatOutletFactory final : public AutomatablePortFactory
+struct SCORE_PLUGIN_DATAFLOW_EXPORT MinMaxFloatOutletFactory final
+    : public AutomatablePortFactory
 {
   using Model_T = Process::MinMaxFloatOutlet;
   UuidKey<Process::Port> concreteKey() const noexcept override

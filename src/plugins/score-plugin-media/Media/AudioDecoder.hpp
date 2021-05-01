@@ -2,8 +2,8 @@
 #include <Media/AudioArray.hpp>
 #include <Process/TimeValue.hpp>
 
-#include <ossia/detail/optional.hpp>
 #include <ossia/detail/flicks.hpp>
+#include <ossia/detail/optional.hpp>
 
 #include <QThread>
 
@@ -26,7 +26,8 @@ struct AudioInfo
   // Duration
   TimeVal duration() const noexcept
   {
-    return TimeVal::fromMsecs(1000. * (double(length) / double(rate)) * (tempo / ossia::root_tempo));
+    return TimeVal::fromMsecs(
+        1000. * (double(length) / double(rate)) * (tempo / ossia::root_tempo));
   }
 };
 
@@ -54,7 +55,8 @@ public:
   void newData() W_SIGNAL(newData);
   void finishedDecoding(audio_handle hdl) W_SIGNAL(finishedDecoding, hdl);
 
-  void startDecode(QString str, audio_handle hdl) W_SIGNAL(startDecode, str, hdl);
+  void startDecode(QString str, audio_handle hdl)
+      W_SIGNAL(startDecode, str, hdl);
 
 public:
   void on_startDecode(QString, audio_handle hdl);

@@ -9,7 +9,10 @@
 
 namespace Automation
 {
-StateInspectorFactory::StateInspectorFactory() : InspectorWidgetFactory{} { }
+StateInspectorFactory::StateInspectorFactory()
+    : InspectorWidgetFactory{}
+{
+}
 
 QWidget* StateInspectorFactory::make(
     const InspectedObjects& sourceElements,

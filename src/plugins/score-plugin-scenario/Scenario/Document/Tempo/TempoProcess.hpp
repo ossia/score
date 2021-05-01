@@ -37,12 +37,16 @@ public:
 
   std::unique_ptr<Process::Inlet> inlet;
 
-  TempoProcess(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
+  TempoProcess(
+      const TimeVal& duration,
+      const Id<Process::ProcessModel>& id,
+      QObject* parent);
   ~TempoProcess() override;
   void init();
 
   template <typename Impl>
-  TempoProcess(Impl& vis, QObject* parent) : CurveProcessModel{vis, parent}
+  TempoProcess(Impl& vis, QObject* parent)
+      : CurveProcessModel{vis, parent}
   {
     vis.writeTo(*this);
     init();

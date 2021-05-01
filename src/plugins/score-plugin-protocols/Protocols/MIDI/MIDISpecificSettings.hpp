@@ -1,7 +1,7 @@
 #pragma once
-#include <libremidi/api.hpp>
-
 #include <QString>
+
+#include <libremidi/api.hpp>
 
 #include <verdigris>
 

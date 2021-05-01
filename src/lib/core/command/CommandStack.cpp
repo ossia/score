@@ -211,7 +211,10 @@ void CommandStack::validateDocument() const
   m_checker();
 }
 
-CommandStackFacade::CommandStackFacade(CommandStack& stack) : m_stack{stack} { }
+CommandStackFacade::CommandStackFacade(CommandStack& stack)
+    : m_stack{stack}
+{
+}
 
 const DocumentContext& CommandStackFacade::context() const
 {

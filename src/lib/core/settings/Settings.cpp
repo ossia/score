@@ -31,7 +31,8 @@ void Settings::setupView()
   m_settingsView = new SettingsView<SettingsDelegateModel>(nullptr);
   m_settingsView->setWindowTitle(QObject::tr("Settings"));
   m_settingsView->setMinimumWidth(1000);
-  m_settingsPresenter = new SettingsPresenter<SettingsDelegateModel>(m_settingsView, nullptr);
+  m_settingsPresenter
+      = new SettingsPresenter<SettingsDelegateModel>(m_settingsView, nullptr);
 }
 
 void Settings::setupSettingsPlugin(
@@ -78,7 +79,8 @@ void ProjectSettings::setupView()
 {
   m_settingsView = new SettingsView<ProjectSettingsModel>(nullptr);
   m_settingsView->setWindowTitle(QObject::tr("Project Settings"));
-  m_settingsPresenter = new SettingsPresenter<ProjectSettingsModel>(m_settingsView, nullptr);
+  m_settingsPresenter
+      = new SettingsPresenter<ProjectSettingsModel>(m_settingsView, nullptr);
 }
 
 void ProjectSettings::setup(const DocumentContext& ctx)
@@ -94,7 +96,8 @@ void ProjectSettings::setup(const DocumentContext& ctx)
 
       if (m_settingsView)
       {
-        auto plug = ctx.app.interfaces<DocumentPluginFactoryList>().get(p->concreteKey().impl());
+        auto plug = ctx.app.interfaces<DocumentPluginFactoryList>().get(
+            p->concreteKey().impl());
         if (!plug)
           continue;
         auto& plugin = *static_cast<ProjectSettingsFactory*>(plug);

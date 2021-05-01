@@ -9,15 +9,16 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/DeleteAll.hpp>
 #include <score/tools/File.hpp>
-#include <ossia/detail/flat_map.hpp>
-#include <ossia/network/dataspace/dataspace_visitors.hpp>
-#include <ossia/network/common/complex_type.hpp>
-#include <ossia/network/base/parameter_data.hpp>
 
-#include <QFile>
-#include <QRegularExpression>
-#include <QProcess>
+#include <ossia/detail/flat_map.hpp>
+#include <ossia/network/base/parameter_data.hpp>
+#include <ossia/network/common/complex_type.hpp>
+#include <ossia/network/dataspace/dataspace_visitors.hpp>
+
 #include <QDirIterator>
+#include <QFile>
+#include <QProcess>
+#include <QRegularExpression>
 #include <QSettings>
 
 #include <wobjectimpl.h>
@@ -36,35 +37,67 @@ PatchSpec::Control parseControlSpec(QString var)
   ctl.remote = var;
 
   std::optional<ossia::value> min_domain{}, max_domain{};
-  enum { unknown, type, range, min, max, unit, widget, defaultv } next_is{};
-  for(int i = 1; i < splitted.size(); i++)
+  enum
   {
-    switch(next_is) {
+    unknown,
+    type,
+    range,
+    min,
+    max,
+    unit,
+    widget,
+    defaultv
+  } next_is{};
+  for (int i = 1; i < splitted.size(); i++)
+  {
+    switch (next_is)
+    {
       case unknown:
-        if(splitted[i] == "@type")
-        { next_is = type; break; }
-        if(splitted[i] == "@range")
-        { next_is = range; break; }
-        if(splitted[i] == "@min")
-        { next_is = min; break; }
-        if(splitted[i] == "@max")
-        { next_is = max; break; }
-        if(splitted[i] == "@unit")
-        { next_is = unit; break; }
-        if(splitted[i] == "@widget")
-        { next_is = widget; break; }
-        if(splitted[i] == "@default")
-        { next_is = defaultv; break; }
+        if (splitted[i] == "@type")
+        {
+          next_is = type;
+          break;
+        }
+        if (splitted[i] == "@range")
+        {
+          next_is = range;
+          break;
+        }
+        if (splitted[i] == "@min")
+        {
+          next_is = min;
+          break;
+        }
+        if (splitted[i] == "@max")
+        {
+          next_is = max;
+          break;
+        }
+        if (splitted[i] == "@unit")
+        {
+          next_is = unit;
+          break;
+        }
+        if (splitted[i] == "@widget")
+        {
+          next_is = widget;
+          break;
+        }
+        if (splitted[i] == "@default")
+        {
+          next_is = defaultv;
+          break;
+        }
         break;
       case type:
         ctl.type = splitted[i];
         next_is = unknown;
         break;
       case range:
-        if(i < splitted.size() - 1)
+        if (i < splitted.size() - 1)
         {
           min_domain = splitted[i].toDouble();
-          max_domain = splitted[i+1].toDouble();
+          max_domain = splitted[i + 1].toDouble();
           i++;
         }
         next_is = unknown;
@@ -92,7 +125,7 @@ PatchSpec::Control parseControlSpec(QString var)
     }
   }
 
-  if(min_domain && max_domain)
+  if (min_domain && max_domain)
     ctl.domain = ossia::make_domain(*min_domain, *max_domain);
 
   return ctl;
@@ -100,98 +133,130 @@ PatchSpec::Control parseControlSpec(QString var)
 
 auto initFuncMap()
 {
-  using InletFunc = std::function<Process::Inlet*(const PatchSpec::Control& , const Id<Process::Port>& , QObject*)>;
+  using InletFunc = std::function<Process::Inlet*(
+      const PatchSpec::Control&, const Id<Process::Port>&, QObject*)>;
   ossia::flat_map<QString, InletFunc> widgetFuncMap{
-    {"floatslider", [] (const PatchSpec::Control& ctl, const Id<Process::Port>& id, QObject* parent) -> Process::Inlet* {
-        const auto [dom_min, dom_max] = ossia::get_float_minmax(ctl.domain);
-        float min{dom_min ? *dom_min : 0.f};
-        float max{dom_max ? *dom_max : 1.f};
-        float init{ossia::convert<float>(ctl.defaultv)};
-        return new Process::FloatSlider{min, max, init, ctl.name, id, parent};
-      }
-    },
-    {"logfloatslider", [] (const PatchSpec::Control& ctl, const Id<Process::Port>& id, QObject* parent) -> Process::Inlet* {
-        const auto [dom_min, dom_max] = ossia::get_float_minmax(ctl.domain);
-        float min{dom_min ? *dom_min : 0.f};
-        float max{dom_max ? *dom_max : 1.f};
-        float init{ossia::convert<float>(ctl.defaultv)};
-        return new Process::LogFloatSlider{min, max, init, ctl.name, id, parent};
-      }
-    },
-    {"intslider", [] (const PatchSpec::Control& ctl, const Id<Process::Port>& id, QObject* parent) -> Process::Inlet* {
-        const auto [dom_min, dom_max] = ossia::get_float_minmax(ctl.domain);
-        int min{dom_min ? int(*dom_min) : 0};
-        int max{dom_max ? int(*dom_max) : 127};
-        int init{ossia::convert<int>(ctl.defaultv)};
-        return new Process::IntSlider{min, max, init, ctl.name, id, parent};
-      }
-    },
-    {"intspinbox", [] (const PatchSpec::Control& ctl, const Id<Process::Port>& id, QObject* parent) -> Process::Inlet* {
-        const auto [dom_min, dom_max] = ossia::get_float_minmax(ctl.domain);
-        int min{dom_min ? int(*dom_min) : 0};
-        int max{dom_max ? int(*dom_max) : 127};
-        int init{ossia::convert<int>(ctl.defaultv)};
-        return new Process::IntSpinBox{min, max, init, ctl.name, id, parent};
-      }
-    },
-    {"toggle", [] (const PatchSpec::Control& ctl, const Id<Process::Port>& id, QObject* parent) -> Process::Inlet* {
-         return new Process::Toggle{ossia::convert<bool>(ctl.defaultv), ctl.name, id, parent};
-      }
-    },
-    {"lineedit", [] (const PatchSpec::Control& ctl, const Id<Process::Port>& id, QObject* parent) -> Process::Inlet* {
-        const std::string& init = ossia::convert<std::string>(ctl.defaultv);
-        return new Process::LineEdit{
-          QString::fromUtf8(init.c_str(), init.size()), ctl.name, id, parent};
-      }
-    },
-    {"combobox", [] (const PatchSpec::Control& ctl, const Id<Process::Port>& id, QObject* parent) -> Process::Inlet* {
-        std::vector<std::pair<QString, ossia::value>> choices;
-         return new Process::ComboBox{choices, ctl.defaultv, ctl.name, id, parent};
-      }
-    },
-    {"button", [] (const PatchSpec::Control& ctl, const Id<Process::Port>& id, QObject* parent) -> Process::Inlet* {
+      {"floatslider",
+       [](const PatchSpec::Control& ctl,
+          const Id<Process::Port>& id,
+          QObject* parent) -> Process::Inlet* {
+         const auto [dom_min, dom_max] = ossia::get_float_minmax(ctl.domain);
+         float min{dom_min ? *dom_min : 0.f};
+         float max{dom_max ? *dom_max : 1.f};
+         float init{ossia::convert<float>(ctl.defaultv)};
+         return new Process::FloatSlider{min, max, init, ctl.name, id, parent};
+       }},
+      {"logfloatslider",
+       [](const PatchSpec::Control& ctl,
+          const Id<Process::Port>& id,
+          QObject* parent) -> Process::Inlet* {
+         const auto [dom_min, dom_max] = ossia::get_float_minmax(ctl.domain);
+         float min{dom_min ? *dom_min : 0.f};
+         float max{dom_max ? *dom_max : 1.f};
+         float init{ossia::convert<float>(ctl.defaultv)};
+         return new Process::LogFloatSlider{
+             min, max, init, ctl.name, id, parent};
+       }},
+      {"intslider",
+       [](const PatchSpec::Control& ctl,
+          const Id<Process::Port>& id,
+          QObject* parent) -> Process::Inlet* {
+         const auto [dom_min, dom_max] = ossia::get_float_minmax(ctl.domain);
+         int min{dom_min ? int(*dom_min) : 0};
+         int max{dom_max ? int(*dom_max) : 127};
+         int init{ossia::convert<int>(ctl.defaultv)};
+         return new Process::IntSlider{min, max, init, ctl.name, id, parent};
+       }},
+      {"intspinbox",
+       [](const PatchSpec::Control& ctl,
+          const Id<Process::Port>& id,
+          QObject* parent) -> Process::Inlet* {
+         const auto [dom_min, dom_max] = ossia::get_float_minmax(ctl.domain);
+         int min{dom_min ? int(*dom_min) : 0};
+         int max{dom_max ? int(*dom_max) : 127};
+         int init{ossia::convert<int>(ctl.defaultv)};
+         return new Process::IntSpinBox{min, max, init, ctl.name, id, parent};
+       }},
+      {"toggle",
+       [](const PatchSpec::Control& ctl,
+          const Id<Process::Port>& id,
+          QObject* parent) -> Process::Inlet* {
+         return new Process::Toggle{
+             ossia::convert<bool>(ctl.defaultv), ctl.name, id, parent};
+       }},
+      {"lineedit",
+       [](const PatchSpec::Control& ctl,
+          const Id<Process::Port>& id,
+          QObject* parent) -> Process::Inlet* {
+         const std::string& init = ossia::convert<std::string>(ctl.defaultv);
+         return new Process::LineEdit{
+             QString::fromUtf8(init.c_str(), init.size()),
+             ctl.name,
+             id,
+             parent};
+       }},
+      {"combobox",
+       [](const PatchSpec::Control& ctl,
+          const Id<Process::Port>& id,
+          QObject* parent) -> Process::Inlet* {
+         std::vector<std::pair<QString, ossia::value>> choices;
+         return new Process::ComboBox{
+             choices, ctl.defaultv, ctl.name, id, parent};
+       }},
+      {"button",
+       [](const PatchSpec::Control& ctl,
+          const Id<Process::Port>& id,
+          QObject* parent) -> Process::Inlet* {
          return new Process::Button{ctl.name, id, parent};
-      }
-    },
-    {"hsvslider", [] (const PatchSpec::Control& ctl, const Id<Process::Port>& id, QObject* parent) -> Process::Inlet* {
-        return new Process::HSVSlider{ossia::vec4f{}, ctl.name, id, parent};
-      }
-    },
-    {"xyslider", [] (const PatchSpec::Control& ctl, const Id<Process::Port>& id, QObject* parent) -> Process::Inlet* {
-        return new Process::XYSlider{ossia::vec2f{}, ctl.name, id, parent};
-      }
-    },
-    {"multislider", [] (const PatchSpec::Control& ctl, const Id<Process::Port>& id, QObject* parent) -> Process::Inlet* {
-        return new Process::MultiSlider{std::vector<ossia::value>{}, ctl.name, id, parent};
-      }
-    }
-  };
+       }},
+      {"hsvslider",
+       [](const PatchSpec::Control& ctl,
+          const Id<Process::Port>& id,
+          QObject* parent) -> Process::Inlet* {
+         return new Process::HSVSlider{ossia::vec4f{}, ctl.name, id, parent};
+       }},
+      {"xyslider",
+       [](const PatchSpec::Control& ctl,
+          const Id<Process::Port>& id,
+          QObject* parent) -> Process::Inlet* {
+         return new Process::XYSlider{ossia::vec2f{}, ctl.name, id, parent};
+       }},
+      {"multislider",
+       [](const PatchSpec::Control& ctl,
+          const Id<Process::Port>& id,
+          QObject* parent) -> Process::Inlet* {
+         return new Process::MultiSlider{
+             std::vector<ossia::value>{}, ctl.name, id, parent};
+       }}};
   return widgetFuncMap;
 }
-Process::Inlet* makeInletFromSpec(const PatchSpec::Control& ctl, const Id<Process::Port>& id, QObject* parent)
+Process::Inlet* makeInletFromSpec(
+    const PatchSpec::Control& ctl,
+    const Id<Process::Port>& id,
+    QObject* parent)
 {
   static const auto& widgetFuncMap = initFuncMap();
   Process::Inlet* inl{};
   auto param = ossia::default_parameter_for_type(ctl.unit.toStdString());
-  if(!param)
+  if (!param)
     param = ossia::default_parameter_for_type(ctl.type.toStdString());
-  if(auto it = widgetFuncMap.find(ctl.widget); it != widgetFuncMap.end())
+  if (auto it = widgetFuncMap.find(ctl.widget); it != widgetFuncMap.end())
   {
     inl = it->second(ctl, id, parent);
   }
-  else if(param)
+  else if (param)
   {
-    if(param->unit)
+    if (param->unit)
     {
       auto dataspace = ossia::get_dataspace_text(param->unit);
-      if(dataspace == "color")
+      if (dataspace == "color")
         inl = widgetFuncMap.at("hsvslider")(ctl, id, parent);
-      else if(dataspace == "position")
+      else if (dataspace == "position")
         inl = widgetFuncMap.at("xyslider")(ctl, id, parent);
     }
     else
     {
-      switch(ossia::underlying_type(param->type))
+      switch (ossia::underlying_type(param->type))
       {
         case ossia::val_type::FLOAT:
           inl = widgetFuncMap.at("floatslider")(ctl, id, parent);
@@ -223,7 +288,7 @@ Process::Inlet* makeInletFromSpec(const PatchSpec::Control& ctl, const Id<Proces
     }
   }
 
-  if(!inl)
+  if (!inl)
   {
     inl = new Process::ValueInlet{id, parent};
   }
@@ -237,7 +302,7 @@ static bool checkIfBinaryIsInPath(const QString& binary)
   findProcess.start("which", {binary});
   findProcess.setReadChannel(QProcess::ProcessChannel::StandardOutput);
 
-  if(!findProcess.waitForFinished())
+  if (!findProcess.waitForFinished())
     return {};
 
   QFileInfo check_file(findProcess.readAll().trimmed());
@@ -255,23 +320,23 @@ static QString readKeyFromRegistry(const QString& path, const QString& key)
 #endif
 const QString& locatePdBinary() noexcept
 {
-  static const QString pdbinary = [] () -> QString {
+  static const QString pdbinary = []() -> QString {
 #if __APPLE__
     {
       const auto& applist = QDir{"/Applications"}.entryList();
-      if(applist.contains("Pd-l2ork.app"))
+      if (applist.contains("Pd-l2ork.app"))
       {
         QString pd_path = "/Applications/Pd-l2ork.app/Contents/MacOS/nwjs";
-        if(QFile::exists(pd_path))
+        if (QFile::exists(pd_path))
           return pd_path;
       }
 
-      for(const auto& app : applist)
+      for (const auto& app : applist)
       {
-        if(app.startsWith("Pd-"))
+        if (app.startsWith("Pd-"))
         {
           QString pd_path = "/Applications/" + app + "/Contents/MacOS/Pd";
-          if(QFile::exists(pd_path))
+          if (QFile::exists(pd_path))
             return pd_path;
         }
       }
@@ -279,38 +344,58 @@ const QString& locatePdBinary() noexcept
 #endif
 
 #if _WIN32
-    if(QFile::exists("c:\\Program Files\\Purr Data\\bin\\pd.exe"))
+    if (QFile::exists("c:\\Program Files\\Purr Data\\bin\\pd.exe"))
       return "c:\\Program Files\\Purr Data\\bin\\pd.exe";
-    else if(QFile::exists("c:\\Program Files (x86)\\Purr Data\\bin\\pd.exe"))
+    else if (QFile::exists("c:\\Program Files (x86)\\Purr Data\\bin\\pd.exe"))
       return "c:\\Program Files (x86)\\Purr Data\\bin\\pd.exe";
 
-    if(QFile::exists("c:\\Program Files\\Pd\\bin\\pd.exe"))
+    if (QFile::exists("c:\\Program Files\\Pd\\bin\\pd.exe"))
       return "c:\\Program Files\\Pd\\bin\\pd.exe";
-    else if(QFile::exists("c:\\Program Files (x86)\\Pd\\bin\\pd.exe"))
+    else if (QFile::exists("c:\\Program Files (x86)\\Pd\\bin\\pd.exe"))
       return "c:\\Program Files (x86)\\Pd\\bin\\pd.exe";
-    else if(QString k = readKeyFromRegistry("HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\pd.exe", "64"); !k.isEmpty())
+    else if (QString k = readKeyFromRegistry(
+                 "HKEY_LOCAL_"
+                 "MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\App "
+                 "Paths\\pd.exe",
+                 "64");
+             !k.isEmpty())
       return k + "\\bin";
-    else if(QString k = readKeyFromRegistry("HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\pd.exe", "32"); !k.isEmpty())
+    else if (QString k = readKeyFromRegistry(
+                 "HKEY_LOCAL_"
+                 "MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\App "
+                 "Paths\\pd.exe",
+                 "32");
+             !k.isEmpty())
       return k + "\\bin";
-    else if(QString k = readKeyFromRegistry("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\pd.exe", "64"); !k.isEmpty())
+    else if (QString k = readKeyFromRegistry(
+                 "HKEY_CURRENT_"
+                 "USER\\Software\\Microsoft\\Windows\\CurrentVersion\\App "
+                 "Paths\\pd.exe",
+                 "64");
+             !k.isEmpty())
       return k + "\\bin";
-    else if(QString k = readKeyFromRegistry("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\pd.exe", "32"); !k.isEmpty())
+    else if (QString k = readKeyFromRegistry(
+                 "HKEY_CURRENT_"
+                 "USER\\Software\\Microsoft\\Windows\\CurrentVersion\\App "
+                 "Paths\\pd.exe",
+                 "32");
+             !k.isEmpty())
       return k + "\\bin";
 #else
-    if(QFile::exists("/usr/bin/purr-data"))
+    if (QFile::exists("/usr/bin/purr-data"))
       return "/usr/bin/purr-data";
-    else if(QFile::exists("/usr/local/bin/purr-data"))
+    else if (QFile::exists("/usr/local/bin/purr-data"))
       return "/usr/local/bin/purr-data";
 
-    else if(QFile::exists("/usr/bin/pd"))
+    else if (QFile::exists("/usr/bin/pd"))
       return "/usr/bin/pd";
-    else if(QFile::exists("/usr/local/bin/pd"))
+    else if (QFile::exists("/usr/local/bin/pd"))
       return "/usr/local/bin/pd";
 #endif
 
-    if(checkIfBinaryIsInPath("purr-data"))
+    if (checkIfBinaryIsInPath("purr-data"))
       return "purr-data";
-    if(checkIfBinaryIsInPath("pd"))
+    if (checkIfBinaryIsInPath("pd"))
       return "pd";
 
     return {};
@@ -320,13 +405,14 @@ const QString& locatePdBinary() noexcept
 
 ProcessModel::ProcessModel(
     const TimeVal& duration,
-      const QString& pdpatch,
+    const QString& pdpatch,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : Process::ProcessModel{duration,
-                            id,
-                            Metadata<ObjectKey_k, ProcessModel>::get(),
-                            parent}
+    : Process::ProcessModel{
+        duration,
+        id,
+        Metadata<ObjectKey_k, ProcessModel>::get(),
+        parent}
 {
   metadata().setInstanceName(*this);
   setScript(pdpatch);
@@ -338,7 +424,7 @@ bool ProcessModel::hasExternalUI() const noexcept
   return !pathToPd.isEmpty();
 }
 
-ProcessModel::~ProcessModel() {}
+ProcessModel::~ProcessModel() { }
 
 int ProcessModel::audioInputs() const
 {
@@ -399,7 +485,7 @@ void ProcessModel::setMidiOutput(bool midiOutput)
 void ProcessModel::setScript(const QString& script)
 {
   m_script = score::locateFilePath(
-        script, score::IDocument::documentContext(*this));
+      script, score::IDocument::documentContext(*this));
   QFile f(m_script);
   if (f.open(QIODevice::ReadOnly))
   {
@@ -458,7 +544,7 @@ void ProcessModel::setScript(const QString& script)
 
     {
       static const QRegularExpression midi_regex{
-        "(midiiout|noteout|controlout)"};
+          "(midiiout|noteout|controlout)"};
       auto m = midi_regex.match(patch);
       if (m.hasMatch())
       {
@@ -471,14 +557,16 @@ void ProcessModel::setScript(const QString& script)
     }
 
     {
-      static const QRegularExpression recv_regex{R"_((r|receive)\s+\\\$0-(.*?)(,\s+f\s+[0-9]+)?;)_", QRegularExpression::DotMatchesEverythingOption};
+      static const QRegularExpression recv_regex{
+          R"_((r|receive)\s+\\\$0-(.*?)(,\s+f\s+[0-9]+)?;)_",
+          QRegularExpression::DotMatchesEverythingOption};
       auto it = recv_regex.globalMatch(patch);
       while (it.hasNext())
       {
         const auto& m = it.next();
         if (m.hasMatch())
         {
-          if(const auto var = m.captured(2); !var.isEmpty())
+          if (const auto var = m.captured(2); !var.isEmpty())
           {
             PatchSpec::Control ctl = parseControlSpec(var);
 
@@ -492,14 +580,16 @@ void ProcessModel::setScript(const QString& script)
     }
 
     {
-      static const QRegularExpression send_regex{R"_((s|send)\s+\\\$0-(.*?)(,\s+f\s+[0-9]+)?;)_", QRegularExpression::DotMatchesEverythingOption};
+      static const QRegularExpression send_regex{
+          R"_((s|send)\s+\\\$0-(.*?)(,\s+f\s+[0-9]+)?;)_",
+          QRegularExpression::DotMatchesEverythingOption};
       auto it = send_regex.globalMatch(patch);
       while (it.hasNext())
       {
         const auto& m = it.next();
         if (m.hasMatch())
         {
-          if(const auto var = m.captured(2); !var.isEmpty())
+          if (const auto var = m.captured(2); !var.isEmpty())
           {
             PatchSpec::Control ctl = parseControlSpec(var);
 

@@ -2,8 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionFunctions.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Execution/score2OSSIA.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/detail/apply.hpp>
@@ -16,12 +14,16 @@
 #include <ossia/editor/state/state.hpp>
 #include <ossia/network/value/value.hpp>
 
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
+
 class NodeNotFoundException : public std::runtime_error
 {
 public:
   NodeNotFoundException(const State::Address& n)
       : std::runtime_error{
-          "Address: '" + n.toString().toStdString() + "' not found in actual tree."}
+          "Address: '" + n.toString().toStdString()
+          + "' not found in actual tree."}
   {
   }
 };
@@ -88,15 +90,17 @@ void state(
   */
 }
 
-ossia::state state(const Scenario::StateModel& score_state, const Execution::Context& ctx)
+ossia::state
+state(const Scenario::StateModel& score_state, const Execution::Context& ctx)
 {
   ossia::state s;
   Engine::score_to_ossia::state(s, score_state, ctx);
   return s;
 }
 
-static ossia::destination
-expressionAddress(const State::Address& addr, const ossia::execution_state& devlist)
+static ossia::destination expressionAddress(
+    const State::Address& addr,
+    const ossia::execution_state& devlist)
 {
   auto n = Execution::findNode(devlist, addr);
   if (n)
@@ -113,8 +117,9 @@ expressionAddress(const State::Address& addr, const ossia::execution_state& devl
   }
 }
 
-static ossia::expressions::expression_atom::val_t
-expressionOperand(const State::RelationMember& relm, const ossia::execution_state& list)
+static ossia::expressions::expression_atom::val_t expressionOperand(
+    const State::RelationMember& relm,
+    const ossia::execution_state& list)
 {
   using namespace eggs::variants;
 
@@ -149,7 +154,9 @@ expressionAtom(const State::Relation& rel, const ossia::execution_state& dev)
   using namespace eggs::variants;
 
   return ossia::expressions::make_expression_atom(
-      expressionOperand(rel.lhs, dev), rel.op, expressionOperand(rel.rhs, dev));
+      expressionOperand(rel.lhs, dev),
+      rel.op,
+      expressionOperand(rel.rhs, dev));
 }
 
 static ossia::expression_ptr
@@ -157,19 +164,25 @@ expressionPulse(const State::Pulse& rel, const ossia::execution_state& dev)
 {
   using namespace eggs::variants;
 
-  return ossia::expressions::make_expression_pulse(expressionAddress(rel.address, dev));
+  return ossia::expressions::make_expression_pulse(
+      expressionAddress(rel.address, dev));
 }
 
 template <typename T>
-ossia::expression_ptr
-expression(const State::Expression& e, const ossia::execution_state& list, const T&)
+ossia::expression_ptr expression(
+    const State::Expression& e,
+    const ossia::execution_state& list,
+    const T&)
 {
   const struct
   {
     const State::Expression& expr;
     const ossia::execution_state& devlist;
 
-    ossia::expression_ptr operator()() const { return T::default_expression(); }
+    ossia::expression_ptr operator()() const
+    {
+      return T::default_expression();
+    }
 
     ossia::expression_ptr operator()(const State::Relation& rel) const
     {
@@ -185,7 +198,9 @@ expression(const State::Expression& e, const ossia::execution_state& list, const
       const auto& lhs = expr.childAt(0);
       const auto& rhs = expr.childAt(1);
       return ossia::expressions::make_expression_composition(
-          condition_expression(lhs, devlist), rel, condition_expression(rhs, devlist));
+          condition_expression(lhs, devlist),
+          rel,
+          condition_expression(rhs, devlist));
     }
     ossia::expression_ptr operator()(const State::UnaryOperator) const
     {
@@ -214,8 +229,9 @@ expression(const State::Expression& e, const ossia::execution_state& list, const
   return ossia::apply(visitor, e.impl());
 }
 
-ossia::expression_ptr
-condition_expression(const State::Expression& e, const ossia::execution_state& list)
+ossia::expression_ptr condition_expression(
+    const State::Expression& e,
+    const ossia::execution_state& list)
 {
   struct def_cond
   {
@@ -226,8 +242,9 @@ condition_expression(const State::Expression& e, const ossia::execution_state& l
   };
   return expression(e, list, def_cond{});
 }
-ossia::expression_ptr
-trigger_expression(const State::Expression& e, const ossia::execution_state& list)
+ossia::expression_ptr trigger_expression(
+    const State::Expression& e,
+    const ossia::execution_state& list)
 {
   struct def_trig
   {

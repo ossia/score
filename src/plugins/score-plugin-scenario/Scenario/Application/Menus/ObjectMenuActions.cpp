@@ -6,27 +6,6 @@
 #include "TextDialog.hpp"
 
 #include <Process/ProcessList.hpp>
-#include <Scenario/Application/ScenarioActions.hpp>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Application/ScenarioEditionSettings.hpp>
-#include <Scenario/Commands/Cohesion/DoForSelectedIntervals.hpp>
-#include <Scenario/Commands/Interval/InsertContentInInterval.hpp>
-#include <Scenario/Commands/Scenario/Encapsulate.hpp>
-#include <Scenario/Commands/Scenario/ScenarioPasteContent.hpp>
-#include <Scenario/Commands/Scenario/ScenarioPasteElements.hpp>
-#include <Scenario/Commands/Scenario/ScenarioPasteElementsAfter.hpp>
-#include <Scenario/Commands/State/InsertContentInState.hpp>
-#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-#include <Scenario/Document/ScenarioRemover.hpp>
-#include <Scenario/Palette/ScenarioPoint.hpp>
-#include <Scenario/Process/Algorithms/ContainersAccessors.hpp>
-#include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/ScenarioPresenter.hpp>
-#include <Scenario/Process/ScenarioSelection.hpp>
-#include <Scenario/Process/ScenarioView.hpp>
 
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/Menu.hpp>
@@ -52,11 +31,35 @@
 #include <QMenu>
 #include <qnamespace.h>
 
+#include <Scenario/Application/ScenarioActions.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Application/ScenarioEditionSettings.hpp>
+#include <Scenario/Commands/Cohesion/DoForSelectedIntervals.hpp>
+#include <Scenario/Commands/Interval/InsertContentInInterval.hpp>
+#include <Scenario/Commands/Scenario/Encapsulate.hpp>
+#include <Scenario/Commands/Scenario/ScenarioPasteContent.hpp>
+#include <Scenario/Commands/Scenario/ScenarioPasteElements.hpp>
+#include <Scenario/Commands/Scenario/ScenarioPasteElementsAfter.hpp>
+#include <Scenario/Commands/State/InsertContentInState.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Document/ScenarioRemover.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
+#include <Scenario/Process/Algorithms/ContainersAccessors.hpp>
+#include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Process/ScenarioPresenter.hpp>
+#include <Scenario/Process/ScenarioSelection.hpp>
+#include <Scenario/Process/ScenarioView.hpp>
+
 namespace Scenario
 {
 
 ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
-    : m_parent{parent}, m_eventActions{parent}, m_cstrActions{parent}
+    : m_parent{parent}
+    , m_eventActions{parent}
+    , m_cstrActions{parent}
 {
   if (!parent->context.applicationSettings.gui)
     return;
@@ -173,7 +176,8 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
     auto sm = focusedScenarioModel(m_parent->currentDocument()->context());
     SCORE_ASSERT(sm);
 
-    Scenario::mergeTimeSyncs(*sm, m_parent->currentDocument()->context().commandStack);
+    Scenario::mergeTimeSyncs(
+        *sm, m_parent->currentDocument()->context().commandStack);
   });
 
   // Merge events
@@ -183,7 +187,8 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
     if (!sm)
       return;
 
-    Scenario::mergeEvents(*sm, m_parent->currentDocument()->context().commandStack);
+    Scenario::mergeEvents(
+        *sm, m_parent->currentDocument()->context().commandStack);
   });
 
   // Encapsulate
@@ -192,7 +197,8 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
     auto sm = focusedScenarioModel(m_parent->currentDocument()->context());
     SCORE_ASSERT(sm);
 
-    Scenario::EncapsulateInScenario(*sm, m_parent->currentDocument()->context().commandStack);
+    Scenario::EncapsulateInScenario(
+        *sm, m_parent->currentDocument()->context().commandStack);
   });
 
   // Decapsulate
@@ -201,7 +207,8 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
     auto sm = focusedScenarioModel(m_parent->currentDocument()->context());
     SCORE_ASSERT(sm);
 
-    Scenario::DecapsulateScenario(*sm, m_parent->currentDocument()->context().commandStack);
+    Scenario::DecapsulateScenario(
+        *sm, m_parent->currentDocument()->context().commandStack);
   });
 
   // Duplicate
@@ -210,7 +217,8 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
     auto sm = focusedScenarioModel(m_parent->currentDocument()->context());
     SCORE_ASSERT(sm);
 
-    Scenario::Duplicate(*sm, m_parent->currentDocument()->context().commandStack);
+    Scenario::Duplicate(
+        *sm, m_parent->currentDocument()->context().commandStack);
   });
 
   // Selection actions
@@ -253,7 +261,9 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
 
   if (parent->context.mainWindow)
   {
-    auto doc = parent->context.mainWindow->centralWidget()->findChild<QWidget*>("Documents");
+    auto doc
+        = parent->context.mainWindow->centralWidget()->findChild<QWidget*>(
+            "Documents");
     SCORE_ASSERT(doc);
     doc->addAction(m_removeElements);
     doc->addAction(m_pasteElements);
@@ -267,16 +277,16 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
   auto& actions = e.actions;
   auto& base_menus = m_parent->context.menus.get();
 
-  auto& scenariofocus_cond
-      = m_parent->context.actions
-            .condition<Process::EnableWhenFocusedProcessIs<Scenario::ProcessModel>>();
-  auto& scenariomodel_cond = m_parent->context.actions.condition<EnableWhenScenarioModelObject>();
+  auto& scenariofocus_cond = m_parent->context.actions.condition<
+      Process::EnableWhenFocusedProcessIs<Scenario::ProcessModel>>();
+  auto& scenariomodel_cond
+      = m_parent->context.actions.condition<EnableWhenScenarioModelObject>();
   auto& scenarioiface_cond
-      = m_parent->context.actions.condition<EnableWhenScenarioInterfaceObject>();
-
-  auto& scenariodocument_cond
       = m_parent->context.actions
-            .condition<score::EnableWhenDocumentIs<Scenario::ScenarioDocumentModel>>();
+            .condition<EnableWhenScenarioInterfaceObject>();
+
+  auto& scenariodocument_cond = m_parent->context.actions.condition<
+      score::EnableWhenDocumentIs<Scenario::ScenarioDocumentModel>>();
 
   actions.add<Actions::RemoveElements>(m_removeElements);
   actions.add<Actions::CopyContent>(m_copyContent);
@@ -333,7 +343,8 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
   scenariodocument_cond.add<Actions::GoToParent>();
 }
 
-void ObjectMenuActions::setupContextMenu(Process::LayerContextMenuManager& ctxm)
+void ObjectMenuActions::setupContextMenu(
+    Process::LayerContextMenuManager& ctxm)
 {
   using namespace Process;
   LayerContextMenu scenario_model
@@ -343,7 +354,8 @@ void ObjectMenuActions::setupContextMenu(Process::LayerContextMenuManager& ctxm)
 
   // Used for scenario model
   scenario_model.functions.push_back(
-      [this](QMenu& menu, QPoint, QPointF scenePoint, const LayerContext& ctx) {
+      [this](
+          QMenu& menu, QPoint, QPointF scenePoint, const LayerContext& ctx) {
         auto& scenario = *safe_cast<const ScenarioPresenter*>(&ctx.presenter);
         auto sel = ctx.context.selectionStack.currentSelection();
         if (Scenario::selectionHasScenarioElements(sel))
@@ -367,7 +379,8 @@ void ObjectMenuActions::setupContextMenu(Process::LayerContextMenuManager& ctxm)
         connect(pasteElements, &QAction::triggered, [&, scenePoint]() {
           this->pasteElements(
               readJson(QApplication::clipboard()->text().toUtf8()),
-              scenario.toScenarioPoint(scenario.view().mapFromScene(scenePoint)));
+              scenario.toScenarioPoint(
+                  scenario.view().mapFromScene(scenePoint)));
         });
         menu.addAction(pasteElements);
 
@@ -400,7 +413,8 @@ void ObjectMenuActions::copySelectedElementsToJson(JSONReader& r)
   const auto& ctx = m_parent->currentDocument()->context();
   if (auto si = focusedScenarioInterface(ctx))
   {
-    return Scenario::copySelectedElementsToJson(r, *const_cast<ScenarioInterface*>(si), ctx);
+    return Scenario::copySelectedElementsToJson(
+        r, *const_cast<ScenarioInterface*>(si), ctx);
   }
 }
 
@@ -422,11 +436,13 @@ void ObjectMenuActions::cutSelectedElementsToJson(JSONReader& r)
   }
 }
 
-void ObjectMenuActions::pasteElements(const rapidjson::Value& obj, const Scenario::Point& origin)
+void ObjectMenuActions::pasteElements(
+    const rapidjson::Value& obj,
+    const Scenario::Point& origin)
 {
   if (!obj.IsObject() || obj.MemberCount() == 0)
     return;
-  if(!obj.HasMember("TimeNodes"))
+  if (!obj.HasMember("TimeNodes"))
     return;
 
   // TODO check for unnecessary uses of focusedProcessModel after
@@ -449,7 +465,7 @@ void ObjectMenuActions::pasteElementsAfter(
 {
   if (!obj.IsObject() || obj.MemberCount() == 0)
     return;
-  if(!obj.HasMember("TimeNodes"))
+  if (!obj.HasMember("TimeNodes"))
     return;
 
   // TODO check for unnecessary uses of focusedProcessModel after
@@ -466,7 +482,8 @@ void ObjectMenuActions::pasteElementsAfter(
   if (auto ts = furthestHierarchicallySelectedTimeSync(*sp))
   {
     // TODO is there a way to compute the actual scale ?
-    auto cmd = new Command::ScenarioPasteElementsAfter{sp->model(), *ts, obj, 1.0};
+    auto cmd
+        = new Command::ScenarioPasteElementsAfter{sp->model(), *ts, obj, 1.0};
     dispatcher().submit(cmd);
   }
 }
@@ -477,14 +494,16 @@ static void writeJsonToScenario(
     const ObjectMenuActions& self,
     const rapidjson::Value& obj)
 {
-  MacroCommandDispatcher<Command::ScenarioPasteContent> dispatcher{self.dispatcher().stack()};
+  MacroCommandDispatcher<Command::ScenarioPasteContent> dispatcher{
+      self.dispatcher().stack()};
   auto selectedIntervals = selectedElements(getIntervals(scen));
   auto expandMode = self.appPlugin()->editionSettings().expandMode();
   for (const rapidjson::Value& json_vref : obj["Intervals"].GetArray())
   {
     for (const auto& interval : selectedIntervals)
     {
-      auto cmd = new Scenario::Command::InsertContentInInterval{json_vref, *interval, expandMode};
+      auto cmd = new Scenario::Command::InsertContentInInterval{
+          json_vref, *interval, expandMode};
 
       dispatcher.submit(cmd);
     }
@@ -504,7 +523,8 @@ static void writeJsonToScenario(
   dispatcher.commit();
 }
 
-void ObjectMenuActions::writeJsonToSelectedElements(const rapidjson::Value& obj)
+void ObjectMenuActions::writeJsonToSelectedElements(
+    const rapidjson::Value& obj)
 {
   if (!obj.IsObject() || obj.MemberCount() == 0)
     return;
@@ -548,7 +568,8 @@ ScenarioDocumentPresenter* ObjectMenuActions::getScenarioDocPresenter() const
 
 CommandDispatcher<> ObjectMenuActions::dispatcher() const
 {
-  CommandDispatcher<> disp{m_parent->currentDocument()->context().commandStack};
+  CommandDispatcher<> disp{
+      m_parent->currentDocument()->context().commandStack};
   return disp;
 }
 }

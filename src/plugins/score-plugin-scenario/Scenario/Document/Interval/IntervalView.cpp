@@ -3,22 +3,22 @@
 #include <Process/Dataflow/CableItem.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Scenario/Application/Menus/ScenarioCopy.hpp>
-#include <Scenario/Document/Interval/IntervalHeader.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Interval/IntervalPresenter.hpp>
-#include <Scenario/Document/Interval/IntervalView.hpp>
-#include <Scenario/Document/Interval/IntervalPixmaps.hpp>
-#include <Scenario/Process/ScenarioInterface.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
 
 #include <score/widgets/MimeData.hpp>
 
+#include <QApplication>
 #include <QCursor>
 #include <QDrag>
-#include <QApplication>
 #include <QMimeData>
 
+#include <Scenario/Application/Menus/ScenarioCopy.hpp>
+#include <Scenario/Document/Interval/IntervalHeader.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/IntervalPixmaps.hpp>
+#include <Scenario/Document/Interval/IntervalPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalView.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::IntervalView)
 namespace Scenario
@@ -195,10 +195,12 @@ void IntervalView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   if (qApp->keyboardModifiers() & Qt::ALT)
   {
-    if (auto si = dynamic_cast<Scenario::ScenarioInterface*>(presenter().model().parent()))
+    if (auto si = dynamic_cast<Scenario::ScenarioInterface*>(
+            presenter().model().parent()))
     {
       JSONReader r;
-      copySelectedElementsToJson(r, *const_cast<ScenarioInterface*>(si), m_presenter.context());
+      copySelectedElementsToJson(
+          r, *const_cast<ScenarioInterface*>(si), m_presenter.context());
 
       if (!r.empty())
       {
@@ -232,7 +234,8 @@ void IntervalView::setWarning(bool warning)
   m_warning = warning;
 }
 
-const score::Brush& IntervalView::intervalColor(const Process::Style& skin) const
+const score::Brush&
+IntervalView::intervalColor(const Process::Style& skin) const
 {
   if (Q_UNLIKELY(m_dropTarget))
   {
@@ -246,7 +249,9 @@ const score::Brush& IntervalView::intervalColor(const Process::Style& skin) cons
   {
     return skin.IntervalWarning();
   }
-  else if (Q_UNLIKELY(!m_validInterval || m_state == IntervalExecutionState::Disabled))
+  else if (Q_UNLIKELY(
+               !m_validInterval
+               || m_state == IntervalExecutionState::Disabled))
   {
     return skin.IntervalInvalid();
   }
@@ -260,7 +265,8 @@ const score::Brush& IntervalView::intervalColor(const Process::Style& skin) cons
   }
 }
 
-const QPixmap& IntervalView::intervalDashedPixmap(const Process::Style& skin) const
+const QPixmap&
+IntervalView::intervalDashedPixmap(const Process::Style& skin) const
 {
   auto& pixmaps = intervalPixmaps(skin);
   if (Q_UNLIKELY(m_dropTarget))
@@ -275,7 +281,9 @@ const QPixmap& IntervalView::intervalDashedPixmap(const Process::Style& skin) co
   {
     return pixmaps.dashedWarning;
   }
-  else if (Q_UNLIKELY(!m_validInterval || m_state == IntervalExecutionState::Disabled))
+  else if (Q_UNLIKELY(
+               !m_validInterval
+               || m_state == IntervalExecutionState::Disabled))
   {
     return pixmaps.dashedInvalid;
   }
@@ -291,7 +299,8 @@ const QPixmap& IntervalView::intervalDashedPixmap(const Process::Style& skin) co
 
 void IntervalView::updateCounterPos()
 {
-  m_counterItem.setPos(defaultWidth() - m_counterItem.boundingRect().width() - 5, 5);
+  m_counterItem.setPos(
+      defaultWidth() - m_counterItem.boundingRect().width() - 5, 5);
 }
 
 void IntervalView::setExecutionState(IntervalExecutionState s)

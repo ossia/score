@@ -1,10 +1,10 @@
 #pragma once
-#include <Scenario/Document/Components/ScenarioComponent.hpp>
-
 #include <LocalTree/EventComponent.hpp>
 #include <LocalTree/IntervalComponent.hpp>
 #include <LocalTree/StateComponent.hpp>
 #include <LocalTree/TimeSyncComponent.hpp>
+
+#include <Scenario/Document/Components/ScenarioComponent.hpp>
 
 namespace LocalTree
 {
@@ -49,5 +49,6 @@ using ScenarioComponent = HierarchicalScenarioComponent<
     TimeSync,
     State>;
 
-using ScenarioComponentFactory = LocalTree::ProcessComponentFactory_T<ScenarioComponent>;
+using ScenarioComponentFactory
+    = LocalTree::ProcessComponentFactory_T<ScenarioComponent>;
 }

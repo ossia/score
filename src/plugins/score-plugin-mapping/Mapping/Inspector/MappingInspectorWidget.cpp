@@ -31,7 +31,8 @@ InspectorWidget::InspectorWidget(
     const ProcessModel& mappingModel,
     const score::DocumentContext& doc,
     QWidget* parent)
-    : InspectorWidgetDelegate_T{mappingModel, parent}, m_dispatcher{doc.commandStack}
+    : InspectorWidgetDelegate_T{mappingModel, parent}
+    , m_dispatcher{doc.commandStack}
 {
   using namespace Device;
   setObjectName("MappingInspectorWidget");
@@ -75,8 +76,14 @@ InspectorWidget::InspectorWidget(
     minmaxlay->addRow(tr("Min"), m_sourceMin);
     minmaxlay->addRow(tr("Max"), m_sourceMax);
 
-    con(process(), &ProcessModel::sourceMinChanged, m_sourceMin, &QDoubleSpinBox::setValue);
-    con(process(), &ProcessModel::sourceMaxChanged, m_sourceMax, &QDoubleSpinBox::setValue);
+    con(process(),
+        &ProcessModel::sourceMinChanged,
+        m_sourceMin,
+        &QDoubleSpinBox::setValue);
+    con(process(),
+        &ProcessModel::sourceMaxChanged,
+        m_sourceMax,
+        &QDoubleSpinBox::setValue);
 
     connect(
         m_sourceMin,
@@ -124,8 +131,14 @@ InspectorWidget::InspectorWidget(
     minmaxlay->addRow(tr("Min"), m_targetMin);
     minmaxlay->addRow(tr("Max"), m_targetMax);
 
-    con(process(), &ProcessModel::targetMinChanged, m_targetMin, &QDoubleSpinBox::setValue);
-    con(process(), &ProcessModel::targetMaxChanged, m_targetMax, &QDoubleSpinBox::setValue);
+    con(process(),
+        &ProcessModel::targetMinChanged,
+        m_targetMin,
+        &QDoubleSpinBox::setValue);
+    con(process(),
+        &ProcessModel::targetMaxChanged,
+        m_targetMax,
+        &QDoubleSpinBox::setValue);
 
     connect(
         m_targetMin,
@@ -142,7 +155,8 @@ InspectorWidget::InspectorWidget(
   this->setLayout(lay);
 }
 
-void InspectorWidget::on_sourceAddressChange(const Device::FullAddressAccessorSettings& newAddr)
+void InspectorWidget::on_sourceAddressChange(
+    const Device::FullAddressAccessorSettings& newAddr)
 {
   // Various checks
   if (newAddr.address == process().sourceAddress())
@@ -175,7 +189,8 @@ void InspectorWidget::on_sourceMaxValueChanged()
   }
 }
 
-void InspectorWidget::on_targetAddressChange(const Device::FullAddressAccessorSettings& newAddr)
+void InspectorWidget::on_targetAddressChange(
+    const Device::FullAddressAccessorSettings& newAddr)
 {
   // Various checks
   if (newAddr.address == process().targetAddress())

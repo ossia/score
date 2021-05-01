@@ -3,6 +3,12 @@
 #include "StandardCreationPolicy.hpp"
 
 #include <Process/TimeValue.hpp>
+
+#include <score/document/DocumentContext.hpp>
+#include <score/model/EntityMap.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/tools/std/Optional.hpp>
+
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -12,11 +18,6 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-
-#include <score/document/DocumentContext.hpp>
-#include <score/model/EntityMap.hpp>
-#include <score/model/Identifier.hpp>
-#include <score/tools/std/Optional.hpp>
 
 namespace Scenario
 {
@@ -39,7 +40,9 @@ CommentBlockModel& ScenarioCreate<CommentBlockModel>::redo(
   return *comment;
 }
 
-void ScenarioCreate<TimeSyncModel>::undo(const Id<TimeSyncModel>& id, Scenario::ProcessModel& s)
+void ScenarioCreate<TimeSyncModel>::undo(
+    const Id<TimeSyncModel>& id,
+    Scenario::ProcessModel& s)
 {
   s.timeSyncs.remove(id);
 }
@@ -55,7 +58,9 @@ TimeSyncModel& ScenarioCreate<TimeSyncModel>::redo(
   return *timeSync;
 }
 
-void ScenarioCreate<EventModel>::undo(const Id<EventModel>& id, Scenario::ProcessModel& s)
+void ScenarioCreate<EventModel>::undo(
+    const Id<EventModel>& id,
+    Scenario::ProcessModel& s)
 {
   auto& ev = s.event(id);
   s.timeSync(ev.timeSync()).removeEvent(id);
@@ -75,7 +80,9 @@ EventModel& ScenarioCreate<EventModel>::redo(
   return *ev;
 }
 
-void ScenarioCreate<StateModel>::undo(const Id<StateModel>& id, Scenario::ProcessModel& s)
+void ScenarioCreate<StateModel>::undo(
+    const Id<StateModel>& id,
+    Scenario::ProcessModel& s)
 {
   auto& state = s.state(id);
   auto& ev = s.event(state.eventId());
@@ -99,7 +106,9 @@ StateModel& ScenarioCreate<StateModel>::redo(
   return *state;
 }
 
-void ScenarioCreate<IntervalModel>::undo(const Id<IntervalModel>& id, Scenario::ProcessModel& s)
+void ScenarioCreate<IntervalModel>::undo(
+    const Id<IntervalModel>& id,
+    Scenario::ProcessModel& s)
 {
   auto& cst = s.intervals.at(id);
 
@@ -137,7 +146,8 @@ IntervalModel& ScenarioCreate<IntervalModel>::redo(
   }
   else
   {
-    IntervalDurations::Algorithms::fixAllDurations(*interval, eev.date() - sev.date());
+    IntervalDurations::Algorithms::fixAllDurations(
+        *interval, eev.date() - sev.date());
   }
   interval->setStartDate(sev.date());
 

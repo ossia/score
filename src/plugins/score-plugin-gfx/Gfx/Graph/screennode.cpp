@@ -1,7 +1,6 @@
+#include "graph.hpp"
 #include "nodes.hpp"
 #include "window.hpp"
-#include "graph.hpp"
-
 
 #include <QtGui/private/qrhinull_p.h>
 
@@ -27,10 +26,7 @@
 
 OutputNode::~OutputNode() { }
 
-void OutputNode::updateGraphicsAPI(GraphicsApi)
-{
-
-}
+void OutputNode::updateGraphicsAPI(GraphicsApi) { }
 
 static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
 {
@@ -102,12 +98,11 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
   return state;
 }
 
-
 ScreenNode::ScreenNode(bool embedded, bool fullScreen)
-  : OutputNode{}
-  , m_embedded{embedded}
-  , m_fullScreen{fullScreen}
-  , m_ownsWindow{true}
+    : OutputNode{}
+    , m_embedded{embedded}
+    , m_fullScreen{fullScreen}
+    , m_ownsWindow{true}
 {
   input.push_back(new Port{this, {}, Types::Image, {}});
 }
@@ -115,10 +110,10 @@ ScreenNode::ScreenNode(bool embedded, bool fullScreen)
 // Used for the EGL full screen case where we just have a single window
 // anyways, which must be running before everything (else QVulkanInstance crashes)
 ScreenNode::ScreenNode(std::shared_ptr<Window> w)
-  : OutputNode{}
-  , window{std::move(w)}
-  , m_embedded{false}
-  , m_ownsWindow{false}
+    : OutputNode{}
+    , window{std::move(w)}
+    , m_embedded{false}
+    , m_ownsWindow{false}
 {
   window->showFullScreen();
 }
@@ -134,12 +129,12 @@ void ScreenNode::startRendering()
 {
   if (window)
   {
-    window->onRender = [this] (QRhiCommandBuffer& commands) {
-    if (auto r = window->state.renderer)
-    {
-      window->m_canRender = r->renderedNodes.size() > 1;
-      r->render(commands);
-    }
+    window->onRender = [this](QRhiCommandBuffer& commands) {
+      if (auto r = window->state.renderer)
+      {
+        window->m_canRender = r->renderedNodes.size() > 1;
+        r->render(commands);
+      }
     };
   }
 }
@@ -155,7 +150,7 @@ void ScreenNode::stopRendering()
   if (window)
   {
     window->m_canRender = false;
-    window->onRender = [] (QRhiCommandBuffer&) {};
+    window->onRender = [](QRhiCommandBuffer&) {};
     ////window->state.hasSwapChain = false;
   }
 }
@@ -167,18 +162,19 @@ void ScreenNode::setRenderer(Renderer* r)
 
 Renderer* ScreenNode::renderer() const
 {
-  if(window)
+  if (window)
     return window->state.renderer;
   else
     return nullptr;
 }
 
-void ScreenNode::createOutput(GraphicsApi graphicsApi,
-                              std::function<void ()> onReady,
-                              std::function<void ()> onUpdate,
-                              std::function<void ()> onResize)
+void ScreenNode::createOutput(
+    GraphicsApi graphicsApi,
+    std::function<void()> onReady,
+    std::function<void()> onUpdate,
+    std::function<void()> onResize)
 {
-  if(m_ownsWindow)
+  if (m_ownsWindow)
     window = std::make_shared<Window>(graphicsApi);
 
 #if QT_CONFIG(vulkan)
@@ -186,9 +182,9 @@ void ScreenNode::createOutput(GraphicsApi graphicsApi,
     window->setVulkanInstance(staticVulkanInstance());
 #endif
   window->onUpdate = std::move(onUpdate);
-  window->onWindowReady = [this, graphicsApi, onReady=std::move(onReady)] {
+  window->onWindowReady = [this, graphicsApi, onReady = std::move(onReady)] {
     window->state = createRenderState(*window, graphicsApi);
-    if(window->state.rhi)
+    if (window->state.rhi)
     {
       swapChain = window->state.rhi->newSwapChain();
       window->swapChain = swapChain;
@@ -203,7 +199,8 @@ void ScreenNode::createOutput(GraphicsApi graphicsApi,
       // swapChain->setDepthStencil(state.renderBuffer);
       swapChain->setSampleCount(1);
       swapChain->setFlags({});
-      window->state.renderPassDescriptor = swapChain->newCompatibleRenderPassDescriptor();
+      window->state.renderPassDescriptor
+          = swapChain->newCompatibleRenderPassDescriptor();
       swapChain->setRenderPassDescriptor(window->state.renderPassDescriptor);
 
       onReady();
@@ -211,7 +208,7 @@ void ScreenNode::createOutput(GraphicsApi graphicsApi,
   };
   window->onResize = std::move(onResize);
 
-  if(!m_embedded)
+  if (!m_embedded)
   {
     /*
     if(window->isExposed())
@@ -220,7 +217,7 @@ void ScreenNode::createOutput(GraphicsApi graphicsApi,
     }
     */
 
-    if(m_fullScreen)
+    if (m_fullScreen)
     {
       window->showFullScreen();
     }
@@ -234,7 +231,7 @@ void ScreenNode::createOutput(GraphicsApi graphicsApi,
 
 void ScreenNode::destroyOutput()
 {
-  if(!window)
+  if (!window)
     return;
 
   auto& s = window->state;
@@ -254,16 +251,16 @@ void ScreenNode::destroyOutput()
   delete s.surface;
   s.surface = nullptr;
 
-  if(m_ownsWindow)
+  if (m_ownsWindow)
     window.reset();
 }
 
 void ScreenNode::updateGraphicsAPI(GraphicsApi api)
 {
-  if(!window)
+  if (!window)
     return;
 
-  if(window->api != api)
+  if (window->api != api)
   {
     destroyOutput();
   }
@@ -271,7 +268,7 @@ void ScreenNode::updateGraphicsAPI(GraphicsApi api)
 
 RenderState* ScreenNode::renderState() const
 {
-  if(window && window->swapChain)
+  if (window && window->swapChain)
     return &window->state;
   return nullptr;
 }
@@ -283,7 +280,7 @@ public:
   TextureRenderTarget createRenderTarget(const RenderState& state) override
   {
     auto& self = static_cast<const ScreenNode&>(this->node);
-    if(self.swapChain)
+    if (self.swapChain)
     {
       m_rt.renderTarget = self.swapChain->currentFrameRenderTarget();
       m_rt.renderPass = state.renderPassDescriptor;

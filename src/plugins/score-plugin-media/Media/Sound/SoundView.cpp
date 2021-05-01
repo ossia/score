@@ -1,10 +1,11 @@
 #include "SoundView.hpp"
-#include <Media/Sound/SoundModel.hpp>
-#include <Media/Sound/QImagePool.hpp>
-#include <Media/RMSData.hpp>
 
-#include <score/tools/std/Invoke.hpp>
+#include <Media/RMSData.hpp>
+#include <Media/Sound/QImagePool.hpp>
+#include <Media/Sound/SoundModel.hpp>
+
 #include <score/tools/ThreadPool.hpp>
+#include <score/tools/std/Invoke.hpp>
 
 #include <QGraphicsView>
 #include <QScrollBar>
@@ -12,9 +13,9 @@
 namespace Media::Sound
 {
 LayerView::LayerView(const ProcessModel& m, QGraphicsItem* parent)
-  : Process::LayerView{parent}
-  , m_cpt{new WaveformComputer{}}
-  , m_model{m}
+    : Process::LayerView{parent}
+    , m_cpt{new WaveformComputer{}}
+    , m_model{m}
 {
   setCacheMode(NoCache);
   setFlag(ItemClipsToShape, true);
@@ -27,26 +28,29 @@ LayerView::LayerView(const ProcessModel& m, QGraphicsItem* parent)
         this,
         &Media::Sound::LayerView::scrollValueChanged);
   }
-  connect(m_cpt, &WaveformComputer::ready,
-          this, [=](QVector<QImage*> img, ComputedWaveform wf) {
-    {
-      QImagePool::instance().giveBack(m_images);
-      m_images = std::move(img);
-
-      // We display the image at the device ratio of the view
-      auto view = ::getView(*this);
-      if (view)
-      {
-        for (auto image : m_images)
+  connect(
+      m_cpt,
+      &WaveformComputer::ready,
+      this,
+      [=](QVector<QImage*> img, ComputedWaveform wf) {
         {
-          image->setDevicePixelRatio(view->devicePixelRatioF());
-        }
-      }
-    }
-    m_wf = wf;
+          QImagePool::instance().giveBack(m_images);
+          m_images = std::move(img);
 
-    update();
-  });
+          // We display the image at the device ratio of the view
+          auto view = ::getView(*this);
+          if (view)
+          {
+            for (auto image : m_images)
+            {
+              image->setDevicePixelRatio(view->devicePixelRatioF());
+            }
+          }
+        }
+        m_wf = wf;
+
+        update();
+      });
 }
 
 LayerView::~LayerView()
@@ -64,7 +68,8 @@ void LayerView::setData(const std::shared_ptr<AudioFile>& data)
   if (m_data)
   {
     QObject::disconnect(&m_data->rms(), nullptr, this, nullptr);
-    m_data->on_finishedDecoding.disconnect<&LayerView::on_finishedDecoding>(*this);
+    m_data->on_finishedDecoding.disconnect<&LayerView::on_finishedDecoding>(
+        *this);
   }
 
   SCORE_ASSERT(data);
@@ -79,8 +84,14 @@ void LayerView::setData(const std::shared_ptr<AudioFile>& data)
         this,
         &LayerView::on_finishedDecoding,
         Qt::QueuedConnection);
-    connect(&m_data->rms(), &RMSData::newData, this, &LayerView::on_newData, Qt::QueuedConnection);
-    m_data->on_finishedDecoding.connect<&LayerView::on_finishedDecoding>(*this);
+    connect(
+        &m_data->rms(),
+        &RMSData::newData,
+        this,
+        &LayerView::on_newData,
+        Qt::QueuedConnection);
+    m_data->on_finishedDecoding.connect<&LayerView::on_finishedDecoding>(
+        *this);
     on_newData();
   }
   m_sampleRate = data->sampleRate();
@@ -88,24 +99,23 @@ void LayerView::setData(const std::shared_ptr<AudioFile>& data)
 
 void LayerView::recompute() const
 {
-  if(Q_UNLIKELY(!m_data))
+  if (Q_UNLIKELY(!m_data))
     return;
 
-  if(auto view = getView(*this))
+  if (auto view = getView(*this))
   {
     WaveformRequest req{
-      m_data,
-      m_zoom,
-      m_tempoRatio,
-      QSizeF{width(), height()},
-      view->devicePixelRatioF(),
-      mapFromScene(view->mapToScene(0, 0)).x(),
-      mapFromScene(view->mapToScene(view->width(), 0)).x(),
-      m_model.startOffset(),
-      m_model.loopDuration(),
-      m_model.loops(),
-      m_frontColors
-    };
+        m_data,
+        m_zoom,
+        m_tempoRatio,
+        QSizeF{width(), height()},
+        view->devicePixelRatioF(),
+        mapFromScene(view->mapToScene(0, 0)).x(),
+        mapFromScene(view->mapToScene(view->width(), 0)).x(),
+        m_model.startOffset(),
+        m_model.loopDuration(),
+        m_model.loops(),
+        m_frontColors};
     m_cpt->recompute(std::move(req));
   }
   m_recomputed = true;
@@ -122,7 +132,7 @@ void LayerView::setFrontColors(bool b)
 
 void LayerView::setTempoRatio(double r)
 {
-  if(r != m_tempoRatio)
+  if (r != m_tempoRatio)
   {
     m_tempoRatio = r;
     recompute();

@@ -1,6 +1,4 @@
 #pragma once
-#include <PackageManager/PluginItemModel.hpp>
-
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
 
 #include <QGridLayout>
@@ -10,6 +8,8 @@
 #include <QTabWidget>
 #include <QTableView>
 #include <QWidget>
+
+#include <PackageManager/PluginItemModel.hpp>
 
 #include <verdigris>
 class QObject;

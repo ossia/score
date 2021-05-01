@@ -1,9 +1,9 @@
 #pragma once
-#include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
-
 #include <Execution/Settings/ExecutorModel.hpp>
 #include <Execution/Settings/ExecutorPresenter.hpp>
 #include <Execution/Settings/ExecutorView.hpp>
+
+#include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 
 namespace Execution
 {

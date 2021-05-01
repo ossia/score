@@ -1,6 +1,7 @@
 #pragma once
 #include <Process/LayerView.hpp>
 #include <Process/ZoomHelper.hpp>
+
 #include <ossia/detail/flat_map.hpp>
 
 namespace Video
@@ -17,6 +18,7 @@ public:
   ~View() override;
 
   void setZoom(ZoomRatio r);
+
 private:
   void onPathChanged(const QString& str);
   void widthChanged(qreal) override;

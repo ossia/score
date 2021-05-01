@@ -15,11 +15,17 @@ namespace Explorer
 class DeviceDocumentPlugin;
 namespace Command
 {
-class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT LoadDevice final : public score::Command
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT LoadDevice final
+    : public score::Command
 {
-  SCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), LoadDevice, "Load a device")
+  SCORE_COMMAND_DECL(
+      DeviceExplorerCommandFactoryName(),
+      LoadDevice,
+      "Load a device")
 public:
-  LoadDevice(const DeviceDocumentPlugin& devplug, const Device::DeviceSettings& set);
+  LoadDevice(
+      const DeviceDocumentPlugin& devplug,
+      const Device::DeviceSettings& set);
   LoadDevice(const DeviceDocumentPlugin& devplug, Device::Node&& node);
 
   void undo(const score::DocumentContext& ctx) const override;
@@ -35,7 +41,10 @@ private:
 
 class ReloadWholeDevice final : public score::Command
 {
-  SCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), ReloadWholeDevice, "Reload a device")
+  SCORE_COMMAND_DECL(
+      DeviceExplorerCommandFactoryName(),
+      ReloadWholeDevice,
+      "Reload a device")
 public:
   ReloadWholeDevice(
       const DeviceDocumentPlugin& devplug,

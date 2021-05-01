@@ -1,3 +1,8 @@
+#include <Control/DefaultEffectItem.hpp>
+#include <Effect/EffectLayout.hpp>
+#include <Gfx/Video/Presenter.hpp>
+#include <Gfx/Video/Process.hpp>
+#include <Gfx/Video/View.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/Style/Pixmaps.hpp>
@@ -8,12 +13,6 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
-#include <Control/DefaultEffectItem.hpp>
-#include <Effect/EffectLayout.hpp>
-#include <Gfx/Video/Presenter.hpp>
-#include <Gfx/Video/Process.hpp>
-#include <Gfx/Video/View.hpp>
-
 namespace Gfx::Video
 {
 struct Presenter::Port
@@ -22,8 +21,13 @@ struct Presenter::Port
   Dataflow::PortItem* port;
   QRectF rect;
 };
-Presenter::Presenter(const Model& layer, View* view, const Process::Context& ctx, QObject* parent)
-    : Process::LayerPresenter{layer, view, ctx, parent}, m_view{view}
+Presenter::Presenter(
+    const Model& layer,
+    View* view,
+    const Process::Context& ctx,
+    QObject* parent)
+    : Process::LayerPresenter{layer, view, ctx, parent}
+    , m_view{view}
 {
   auto& portFactory = ctx.app.interfaces<Process::PortFactoryList>();
   for (auto& e : layer.inlets())
@@ -82,8 +86,8 @@ void Presenter::setupInlet(
       },
       [&](int j) { return m_ports[j].rect.size(); },
       [&] { return port.name(); });
-  auto [item, portItem, widg, lab, itemRect]
-      = Process::createControl(i, csetup, port, portFactory, doc, m_view, this);
+  auto [item, portItem, widg, lab, itemRect] = Process::createControl(
+      i, csetup, port, portFactory, doc, m_view, this);
 
   m_ports.push_back(Port{item, portItem, itemRect});
   // TODO updateRect();
@@ -98,13 +102,14 @@ void Presenter::setupInlet(
 void Presenter::on_drop(const QPointF& pos, const QMimeData& md)
 {
   auto drops = Video::DropHandler{}.getDrops(md, this->context().context);
-  if(drops.empty())
+  if (drops.empty())
     return;
 
   auto& video = drops[0];
 
   CommandDispatcher<> disp{m_context.context.commandStack};
-  disp.submit<ChangeVideo>(static_cast<const Video::Model&>(model()), video.creation.customData);
+  disp.submit<ChangeVideo>(
+      static_cast<const Video::Model&>(model()), video.creation.customData);
 }
 
 }

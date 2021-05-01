@@ -98,7 +98,6 @@ UUID_METADATA(
     Process::MultiSlider,
     "25de6d71-1554-4fe1-bf3f-9cbf12bdadeb")
 
-
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT,
     Process::Port,
@@ -183,7 +182,11 @@ struct SCORE_LIB_PROCESS_EXPORT Toggle : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(Toggle)
   using control_type = WidgetFactory::Toggle;
-  Toggle(bool init, const QString& name, Id<Process::Port> id, QObject* parent);
+  Toggle(
+      bool init,
+      const QString& name,
+      Id<Process::Port> id,
+      QObject* parent);
   ~Toggle();
 
   using Process::ControlInlet::ControlInlet;
@@ -209,7 +212,11 @@ struct SCORE_LIB_PROCESS_EXPORT LineEdit : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(LineEdit)
   using control_type = WidgetFactory::LineEdit;
-  LineEdit(QString init, const QString& name, Id<Process::Port> id, QObject* parent);
+  LineEdit(
+      QString init,
+      const QString& name,
+      Id<Process::Port> id,
+      QObject* parent);
   ~LineEdit();
 
   using Process::ControlInlet::ControlInlet;
@@ -282,7 +289,11 @@ struct SCORE_LIB_PROCESS_EXPORT HSVSlider : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(HSVSlider)
   using control_type = WidgetFactory::HSVSlider;
-  HSVSlider(ossia::vec4f init, const QString& name, Id<Process::Port> id, QObject* parent);
+  HSVSlider(
+      ossia::vec4f init,
+      const QString& name,
+      Id<Process::Port> id,
+      QObject* parent);
   ~HSVSlider();
 
   void setupExecution(ossia::inlet&) const noexcept override;
@@ -295,7 +306,11 @@ struct SCORE_LIB_PROCESS_EXPORT XYSlider : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(XYSlider)
   using control_type = WidgetFactory::XYSlider;
-  XYSlider(ossia::vec2f init, const QString& name, Id<Process::Port> id, QObject* parent);
+  XYSlider(
+      ossia::vec2f init,
+      const QString& name,
+      Id<Process::Port> id,
+      QObject* parent);
   ~XYSlider();
 
   auto getMin() const noexcept { return ossia::vec2f{0., 0.}; }
@@ -303,21 +318,21 @@ struct SCORE_LIB_PROCESS_EXPORT XYSlider : public Process::ControlInlet
   using Process::ControlInlet::ControlInlet;
 };
 
-
 struct SCORE_LIB_PROCESS_EXPORT MultiSlider : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(MultiSlider)
   using control_type = WidgetFactory::MultiSlider;
-  MultiSlider(ossia::value init, const QString& name, Id<Process::Port> id, QObject* parent);
+  MultiSlider(
+      ossia::value init,
+      const QString& name,
+      Id<Process::Port> id,
+      QObject* parent);
   ~MultiSlider();
 
   ossia::value getMin() const noexcept;
   ossia::value getMax() const noexcept;
   using Process::ControlInlet::ControlInlet;
 };
-
-
-
 
 // Outlets
 

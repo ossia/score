@@ -69,10 +69,12 @@ template <typename Context_T>
 struct ToolPalette_T final : public ToolPalette
 {
   ToolPalette_T(Context_T& ctx, Presenter& pres)
-      : ToolPalette{ctx.context, pres}, m_inputDisp{pres.view(), *this, ctx}
+      : ToolPalette{ctx.context, pres}
+      , m_inputDisp{pres.view(), *this, ctx}
   {
   }
 
-  ToolPaletteInputDispatcher<Curve::Tool, ToolPalette, Context_T, View> m_inputDisp;
+  ToolPaletteInputDispatcher<Curve::Tool, ToolPalette, Context_T, View>
+      m_inputDisp;
 };
 }

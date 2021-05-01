@@ -19,7 +19,8 @@ struct Node
         = "Metronome which is not synced to the parent quantization settings";
 
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const uuid_constexpr auto uuid = make_uuid("50439197-521E-4ED0-A3B7-EDD8DEAEAC93");
+    static const uuid_constexpr auto uuid
+        = make_uuid("50439197-521E-4ED0-A3B7-EDD8DEAEAC93");
 
     static const constexpr value_out value_outs[]{"out"};
 
@@ -44,7 +45,8 @@ struct Node
     }
   }
 
-  static constexpr ossia::time_value next_date(ossia::time_value cur_date, int64_t period)
+  static constexpr ossia::time_value
+  next_date(ossia::time_value cur_date, int64_t period)
   {
     return ossia::time_value{(int64_t)(period * (1 + cur_date.impl / period))};
   }
@@ -60,11 +62,14 @@ struct Node
   {
     if (tk.date > tk.prev_date)
     {
-      const auto period = get_period(val, quantif, freq, tk.tempo, st.sampleRate());
+      const auto period
+          = get_period(val, quantif, freq, tk.tempo, st.sampleRate());
       const auto next = next_date(tk.prev_date, period);
       if (tk.in_range(next))
       {
-        res.write_value(ossia::impulse{}, tk.to_physical_time_in_tick(next, st.modelToSamples()));
+        res.write_value(
+            ossia::impulse{},
+            tk.to_physical_time_in_tick(next, st.modelToSamples()));
       }
     }
   }

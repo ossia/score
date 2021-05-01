@@ -2,8 +2,21 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DisplayedElementsPresenter.hpp"
 
+#include <Magnetism/MagnetismAdjuster.hpp>
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
+
+#include <score/graphics/GraphicsProxyObject.hpp>
+#include <score/model/EntityMap.hpp>
+#include <score/model/IdentifiedObjectMap.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/tools/Bind.hpp>
+#include <score/tools/std/Optional.hpp>
+
+#include <ossia/detail/algorithms.hpp>
+
+#include <QGuiApplication>
+
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
@@ -27,19 +40,6 @@
 #include <Scenario/Document/TimeSync/TimeSyncView.hpp>
 #include <Scenario/Document/TimeSync/TriggerView.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-
-#include <score/graphics/GraphicsProxyObject.hpp>
-#include <score/model/EntityMap.hpp>
-#include <score/model/IdentifiedObjectMap.hpp>
-#include <score/model/Identifier.hpp>
-#include <score/tools/Bind.hpp>
-#include <score/tools/std/Optional.hpp>
-
-#include <ossia/detail/algorithms.hpp>
-
-#include <QGuiApplication>
-
-#include <Magnetism/MagnetismAdjuster.hpp>
 #include <wobjectimpl.h>
 
 #include <tuple>
@@ -50,7 +50,8 @@ namespace Scenario
 {
 class DisplayedElementsModel;
 
-DisplayedElementsPresenter::DisplayedElementsPresenter(ScenarioDocumentPresenter& parent)
+DisplayedElementsPresenter::DisplayedElementsPresenter(
+    ScenarioDocumentPresenter& parent)
     : QObject{&parent}
     , BaseScenarioPresenter<
           DisplayedElementsModel,
@@ -82,12 +83,13 @@ BaseGraphicsObject& DisplayedElementsPresenter::view() const
   return m_model.view().baseItem();
 }
 
-void DisplayedElementsPresenter::on_displayedIntervalChanged(const IntervalModel& m)
+void DisplayedElementsPresenter::on_displayedIntervalChanged(
+    const IntervalModel& m)
 {
   double cur_zoom = m.zoom();
-  if(cur_zoom <= 0)
+  if (cur_zoom <= 0)
   {
-    if(m_intervalPresenter)
+    if (m_intervalPresenter)
     {
       cur_zoom = m_intervalPresenter->model().zoom();
     }
@@ -105,7 +107,12 @@ void DisplayedElementsPresenter::on_displayedIntervalChanged(const IntervalModel
   auto& ctx = m_model.context();
   auto& provider = ctx.app.interfaces<DisplayedElementsProviderList>();
   DisplayedElementsPresenterContainer elts = provider.make(
-      &DisplayedElementsProvider::make_presenters, cur_zoom, m, ctx, &m_model.view().baseItem(), this);
+      &DisplayedElementsProvider::make_presenters,
+      cur_zoom,
+      m,
+      ctx,
+      &m_model.view().baseItem(),
+      this);
   m_intervalPresenter = elts.interval;
   m_startStatePresenter = elts.startState;
   m_endStatePresenter = elts.endState;
@@ -120,13 +127,21 @@ void DisplayedElementsPresenter::on_displayedIntervalChanged(const IntervalModel
           this,
           &DisplayedElementsPresenter::on_displayedIntervalDurationChanged));
   m_connections.push_back(
-      con(m_intervalPresenter->model(), &IntervalModel::heightFinishedChanging, this, [&]() {
-        on_displayedIntervalHeightChanged(m_intervalPresenter->view()->height());
-      }));
+      con(m_intervalPresenter->model(),
+          &IntervalModel::heightFinishedChanging,
+          this,
+          [&]() {
+            on_displayedIntervalHeightChanged(
+                m_intervalPresenter->view()->height());
+          }));
 
-  m_connections.push_back(
-      connect(m_intervalPresenter, &FullViewIntervalPresenter::heightChanged, this, [&]() {
-        on_displayedIntervalHeightChanged(m_intervalPresenter->view()->height());
+  m_connections.push_back(connect(
+      m_intervalPresenter,
+      &FullViewIntervalPresenter::heightChanged,
+      this,
+      [&]() {
+        on_displayedIntervalHeightChanged(
+            m_intervalPresenter->view()->height());
       }));
 
   auto elements = std::make_tuple(
@@ -140,12 +155,15 @@ void DisplayedElementsPresenter::on_displayedIntervalChanged(const IntervalModel
 
   ossia::for_each_in_tuple(elements, [&](auto elt) {
     using elt_t = std::remove_reference_t<decltype(*elt)>;
-    m_connections.push_back(
-        connect(elt, &elt_t::pressed, &m_model, &ScenarioDocumentPresenter::pressed));
-    m_connections.push_back(
-        connect(elt, &elt_t::moved, &m_model, &ScenarioDocumentPresenter::moved));
-    m_connections.push_back(
-        connect(elt, &elt_t::released, &m_model, &ScenarioDocumentPresenter::released));
+    m_connections.push_back(connect(
+        elt, &elt_t::pressed, &m_model, &ScenarioDocumentPresenter::pressed));
+    m_connections.push_back(connect(
+        elt, &elt_t::moved, &m_model, &ScenarioDocumentPresenter::moved));
+    m_connections.push_back(connect(
+        elt,
+        &elt_t::released,
+        &m_model,
+        &ScenarioDocumentPresenter::released));
   });
 
   elts.startState->view()->disableOverlay();
@@ -172,7 +190,7 @@ void DisplayedElementsPresenter::showInterval()
   if (!rack.empty())
   {
     const auto& front = rack.front();
-    if(auto* slot = front.getLayerSlot())
+    if (auto* slot = front.getLayerSlot())
     {
       auto& procs = slot->layers;
       if (!procs.empty())
@@ -188,7 +206,8 @@ void DisplayedElementsPresenter::on_zoomRatioChanged(ZoomRatio r)
 {
   if (!m_intervalPresenter)
     return;
-  updateLength(m_intervalPresenter->model().duration.defaultDuration().toPixels(r));
+  updateLength(
+      m_intervalPresenter->model().duration.defaultDuration().toPixels(r));
 
   m_intervalPresenter->on_zoomRatioChanged(r);
 }
@@ -292,10 +311,7 @@ void DisplayedElementsPresenter::remove()
   m_endNodePresenter = nullptr;
 }
 
-void DisplayedElementsPresenter::setSnapLine(TimeVal t, bool enabled)
-{
-
-}
+void DisplayedElementsPresenter::setSnapLine(TimeVal t, bool enabled) { }
 
 void DisplayedElementsPresenter::updateLength(double length)
 {

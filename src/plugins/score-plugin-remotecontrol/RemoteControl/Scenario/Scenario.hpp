@@ -1,12 +1,11 @@
 #pragma once
-#include <Scenario/Document/Components/ScenarioComponent.hpp>
-
 #include <QMetaObject>
 
 #include <RemoteControl/Scenario/Event.hpp>
 #include <RemoteControl/Scenario/Interval.hpp>
 #include <RemoteControl/Scenario/State.hpp>
 #include <RemoteControl/Scenario/Sync.hpp>
+#include <Scenario/Document/Components/ScenarioComponent.hpp>
 
 namespace RemoteControl
 {

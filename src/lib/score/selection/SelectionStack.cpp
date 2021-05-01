@@ -24,9 +24,7 @@ void Selection::removeDuplicates()
   std::unique(begin(), end());
 }
 
-Selectable::Selectable()
-{
-}
+Selectable::Selectable() { }
 
 Selectable::~Selectable()
 {
@@ -52,14 +50,12 @@ namespace score
 
 SelectionStack::SelectionStack()
 {
-  connect(this, &SelectionStack::pushNewSelection, this, &SelectionStack::push);
+  connect(
+      this, &SelectionStack::pushNewSelection, this, &SelectionStack::push);
   m_unselectable.push(Selection{});
 }
 
-SelectionStack::~SelectionStack()
-{
-
-}
+SelectionStack::~SelectionStack() { }
 
 bool SelectionStack::canUnselect() const
 {

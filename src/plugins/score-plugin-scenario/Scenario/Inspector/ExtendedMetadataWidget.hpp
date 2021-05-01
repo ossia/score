@@ -26,7 +26,8 @@ public:
   void dataChanged() W_SIGNAL(dataChanged);
 
 private:
-  std::pair<QLabel*, QLineEdit*> makeRow(const QString& l, const QString& r, int row);
+  std::pair<QLabel*, QLineEdit*>
+  makeRow(const QString& l, const QString& r, int row);
 
   void insertRow(const QString& label, int row);
 

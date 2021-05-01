@@ -5,11 +5,12 @@
 
 #include <ossia/detail/flat_map.hpp>
 #include <ossia/detail/hash_map.hpp>
+
 #include <unordered_map>
 
 struct MapSerializer
 {
-  template<typename Map_T>
+  template <typename Map_T>
   static void readFrom(DataStream::Serializer& s, const Map_T& obj)
   {
     auto& st = s.stream();
@@ -20,7 +21,7 @@ struct MapSerializer
     }
   }
 
-  template<typename Map_T>
+  template <typename Map_T>
   static void writeTo(DataStream::Deserializer& s, Map_T& obj)
   {
     obj.clear();
@@ -37,7 +38,7 @@ struct MapSerializer
     }
   }
 
-  template<typename Map_T>
+  template <typename Map_T>
   static void readFrom(JSONObject::Serializer& s, const Map_T& obj)
   {
     s.stream.StartArray();
@@ -51,13 +52,13 @@ struct MapSerializer
     s.stream.EndArray();
   }
 
-  template<typename Map_T>
+  template <typename Map_T>
   static void writeTo(JSONObject::Deserializer& s, Map_T& obj)
   {
     obj.clear();
 
     const auto& arr = s.base.GetArray();
-    for(const auto& elt : arr)
+    for (const auto& elt : arr)
     {
       const auto& pair = elt.GetArray();
       typename Map_T::key_type key;
@@ -97,7 +98,6 @@ struct TSerializer<JSONObject, ska::flat_hash_map<T, U>> : MapSerializer
 {
 };
 #endif
-
 
 template <typename T, typename U>
 struct TSerializer<DataStream, ossia::flat_map<T, U>>

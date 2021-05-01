@@ -23,8 +23,12 @@ struct IntervalPixmaps
   std::array<QPixmap, 25> playDashed;
 
   int loadIndex{};
-  static void
-  drawDashes(qreal from, qreal to, QPainter& p, const QRectF& visibleRect, const QPixmap& pixmap);
+  static void drawDashes(
+      qreal from,
+      qreal to,
+      QPainter& p,
+      const QRectF& visibleRect,
+      const QPixmap& pixmap);
 };
 
 IntervalPixmaps& intervalPixmaps(const Process::Style& style);

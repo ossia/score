@@ -1,6 +1,19 @@
 
 #include "Texgen.hpp"
 
+#include <Gfx/GfxApplicationPlugin.hpp>
+#include <Gfx/GfxContext.hpp>
+#include <Gfx/GfxExec.hpp>
+#include <Gfx/Graph/texgennode.hpp>
+#include <Gfx/TexturePort.hpp>
+#include <Process/Dataflow/PortFactory.hpp>
+
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+
+#include <ossia/dataflow/execution_state.hpp>
+#include <ossia/dataflow/port.hpp>
+
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QPlainTextEdit>
@@ -10,24 +23,9 @@
 
 #include <JitCpp/Compiler/Driver.hpp>
 #include <JitCpp/EditScript.hpp>
-
-#include <Process/Dataflow/PortFactory.hpp>
-
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-
-#include <ossia/dataflow/execution_state.hpp>
-#include <ossia/dataflow/port.hpp>
-
-#include <Gfx/GfxApplicationPlugin.hpp>
-#include <Gfx/GfxContext.hpp>
-#include <Gfx/GfxExec.hpp>
-#include <Gfx/TexturePort.hpp>
-#include <Gfx/Graph/texgennode.hpp>
+#include <wobjectimpl.h>
 
 #include <iostream>
-
-#include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Jit::TexgenModel)
 namespace Jit
@@ -44,13 +42,14 @@ TexgenModel::TexgenModel(
   auto audio_out = new Gfx::TextureOutlet{Id<Process::Port>{0}, this};
   this->m_outlets.push_back(audio_out);
   init();
-  if(jitProgram.isEmpty())
-    setScript(Process::EffectProcessFactory_T<Jit::TexgenModel>{}.customConstructionData());
+  if (jitProgram.isEmpty())
+    setScript(Process::EffectProcessFactory_T<Jit::TexgenModel>{}
+                  .customConstructionData());
   else
     setScript(jitProgram);
 }
 
-TexgenModel::~TexgenModel() {}
+TexgenModel::~TexgenModel() { }
 
 TexgenModel::TexgenModel(JSONObject::Deserializer& vis, QObject* parent)
     : Process::ProcessModel{vis, parent}
@@ -82,7 +81,7 @@ TexgenModel::TexgenModel(DataStream::Deserializer&& vis, QObject* parent)
 
 void TexgenModel::setScript(const QString& txt)
 {
-  if(m_text != txt)
+  if (m_text != txt)
   {
     m_text = txt;
     reload();
@@ -90,7 +89,7 @@ void TexgenModel::setScript(const QString& txt)
   }
 }
 
-void TexgenModel::init() {}
+void TexgenModel::init() { }
 
 QString TexgenModel::prettyName() const noexcept
 {
@@ -122,7 +121,8 @@ void TexgenModel::reload()
 
   try
   {
-    jit_factory = (*m_compiler)(fx_text.toStdString(), {}, CompilerOptions{true});
+    jit_factory
+        = (*m_compiler)(fx_text.toStdString(), {}, CompilerOptions{true});
     assert(jit_factory);
 
     if (!jit_factory)
@@ -143,7 +143,6 @@ void TexgenModel::reload()
   changed();
 }
 
-
 class texgen_node final : public Gfx::gfx_exec_node
 {
 public:
@@ -158,10 +157,7 @@ public:
     id = exec_context->ui->register_node(std::move(n));
   }
 
-  void set_function(TexgenFunction* func)
-  {
-    gfxNode->function = func;
-  }
+  void set_function(TexgenFunction* func) { gfxNode->function = func; }
 
   ~texgen_node()
   {
@@ -182,25 +178,22 @@ TexgenExecutor::TexgenExecutor(
   auto bb = new texgen_node{ctx.doc.plugin<Gfx::DocumentPlugin>().exec};
   this->node.reset(bb);
 
-  if(auto tgt = proc.factory.target<void(*)(unsigned char* rgb, int width, int height, int t)>())
+  if (auto tgt = proc.factory.target<void (*)(
+                     unsigned char* rgb, int width, int height, int t)>())
     bb->set_function(*tgt);
 
   m_ossia_process = std::make_shared<ossia::node_process>(node);
 
-  con(proc, &Jit::TexgenModel::changed,
-      this, [this, &proc, bb] {
-        if(auto tgt = proc.factory.target<void(*)(unsigned char* rgb, int width, int height, int t)>())
-        {
-          in_exec([tgt, bb] {
-            bb->set_function(*tgt);
-          });
-        }
+  con(proc, &Jit::TexgenModel::changed, this, [this, &proc, bb] {
+    if (auto tgt = proc.factory.target<void (*)(
+                       unsigned char* rgb, int width, int height, int t)>())
+    {
+      in_exec([tgt, bb] { bb->set_function(*tgt); });
+    }
   });
-
 }
 
-TexgenExecutor::~TexgenExecutor() {}
-
+TexgenExecutor::~TexgenExecutor() { }
 
 }
 
@@ -278,4 +271,3 @@ EffectProcessFactory_T<Jit::TexgenModel>::descriptor(QString d) const
 }
 
 }
-

@@ -6,10 +6,6 @@
 
 #include <Process/Process.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>
-#include <Scenario/Document/Event/ExecutionStatus.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <Scenario/Process/ScenarioInterface.hpp>
 #include <State/Message.hpp>
 
 #include <score/document/DocumentContext.hpp>
@@ -21,6 +17,10 @@
 #include <QAbstractItemModel>
 #include <QObject>
 
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Scenario::StateModel)
@@ -51,14 +51,26 @@ StateModel::~StateModel()
 
 void StateModel::init()
 {
-  con(*m_messageItemModel, &QAbstractItemModel::modelReset, this, &StateModel::statesUpdated_slt);
-  con(*m_messageItemModel, &QAbstractItemModel::dataChanged, this, &StateModel::statesUpdated_slt);
+  con(*m_messageItemModel,
+      &QAbstractItemModel::modelReset,
+      this,
+      &StateModel::statesUpdated_slt);
+  con(*m_messageItemModel,
+      &QAbstractItemModel::dataChanged,
+      this,
+      &StateModel::statesUpdated_slt);
   con(*m_messageItemModel,
       &QAbstractItemModel::rowsInserted,
       this,
       &StateModel::statesUpdated_slt);
-  con(*m_messageItemModel, &QAbstractItemModel::rowsMoved, this, &StateModel::statesUpdated_slt);
-  con(*m_messageItemModel, &QAbstractItemModel::rowsRemoved, this, &StateModel::statesUpdated_slt);
+  con(*m_messageItemModel,
+      &QAbstractItemModel::rowsMoved,
+      this,
+      &StateModel::statesUpdated_slt);
+  con(*m_messageItemModel,
+      &QAbstractItemModel::rowsRemoved,
+      this,
+      &StateModel::statesUpdated_slt);
 }
 
 double StateModel::heightPercentage() const

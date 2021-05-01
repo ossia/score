@@ -21,15 +21,15 @@ SCORE_SERALIZE_DATASTREAM_DEFINE(Device::FullAddressAccessorSettings)
 template <>
 void DataStreamReader::read(const Device::AddressSettingsCommon& n)
 {
-  m_stream << n.value << n.domain << n.ioType << n.clipMode << n.unit << n.repetitionFilter
-           << n.extendedAttributes;
+  m_stream << n.value << n.domain << n.ioType << n.clipMode << n.unit
+           << n.repetitionFilter << n.extendedAttributes;
 }
 
 template <>
 void DataStreamWriter::write(Device::AddressSettingsCommon& n)
 {
-  m_stream >> n.value >> n.domain >> n.ioType >> n.clipMode >> n.unit >> n.repetitionFilter
-      >> n.extendedAttributes;
+  m_stream >> n.value >> n.domain >> n.ioType >> n.clipMode >> n.unit
+      >> n.repetitionFilter >> n.extendedAttributes;
 }
 
 template <>
@@ -41,7 +41,7 @@ void JSONReader::read(const Device::AddressSettingsCommon& n)
 
   obj[strings.ClipMode] = Device::ClipModeStringMap()[n.clipMode];
 
-  if(n.unit.get())
+  if (n.unit.get())
     obj[strings.Unit] = State::prettyUnitText(n.unit);
 
   obj[strings.RepetitionFilter] = static_cast<bool>(n.repetitionFilter);
@@ -50,31 +50,34 @@ void JSONReader::read(const Device::AddressSettingsCommon& n)
   obj[strings.Value] = n.value;
   obj[strings.Domain] = n.domain;
 
-  if(!n.extendedAttributes.empty())
+  if (!n.extendedAttributes.empty())
     obj[strings.Extended] = n.extendedAttributes;
 }
 
 template <>
 void JSONWriter::write(Device::AddressSettingsCommon& n)
 {
-  if(auto iot = obj.tryGet(strings.ioType))
+  if (auto iot = obj.tryGet(strings.ioType))
     n.ioType = Device::AccessModeText().key(iot->toString());
-  n.clipMode = Device::ClipModeStringMap().key(obj[strings.ClipMode].toString());
+  n.clipMode
+      = Device::ClipModeStringMap().key(obj[strings.ClipMode].toString());
 
-  if(auto unit = obj.tryGet(strings.Unit))
+  if (auto unit = obj.tryGet(strings.Unit))
     n.unit = ossia::parse_pretty_unit(unit->toString().toStdString());
 
-  n.repetitionFilter = (ossia::repetition_filter)obj[strings.RepetitionFilter].toBool();
+  n.repetitionFilter
+      = (ossia::repetition_filter)obj[strings.RepetitionFilter].toBool();
 
   n.value <<= obj[strings.Value];
   n.domain <<= obj[strings.Domain];
 
-  if(auto ext = obj.tryGet(strings.Extended))
+  if (auto ext = obj.tryGet(strings.Extended))
     n.extendedAttributes <<= *ext;
 }
 
 template <>
-SCORE_LIB_DEVICE_EXPORT void DataStreamReader::read(const Device::AddressSettings& n)
+SCORE_LIB_DEVICE_EXPORT void
+DataStreamReader::read(const Device::AddressSettings& n)
 {
   readFrom(static_cast<const Device::AddressSettingsCommon&>(n));
   m_stream << n.name;
@@ -83,7 +86,8 @@ SCORE_LIB_DEVICE_EXPORT void DataStreamReader::read(const Device::AddressSetting
 }
 
 template <>
-SCORE_LIB_DEVICE_EXPORT void DataStreamWriter::write(Device::AddressSettings& n)
+SCORE_LIB_DEVICE_EXPORT void
+DataStreamWriter::write(Device::AddressSettings& n)
 {
   writeTo(static_cast<Device::AddressSettingsCommon&>(n));
   m_stream >> n.name;
@@ -108,7 +112,8 @@ SCORE_LIB_DEVICE_EXPORT void JSONWriter::write(Device::AddressSettings& n)
 }
 
 template <>
-SCORE_LIB_DEVICE_EXPORT void DataStreamReader::read(const Device::FullAddressSettings& n)
+SCORE_LIB_DEVICE_EXPORT void
+DataStreamReader::read(const Device::FullAddressSettings& n)
 {
   readFrom(static_cast<const Device::AddressSettingsCommon&>(n));
   m_stream << n.address;
@@ -117,7 +122,8 @@ SCORE_LIB_DEVICE_EXPORT void DataStreamReader::read(const Device::FullAddressSet
 }
 
 template <>
-SCORE_LIB_DEVICE_EXPORT void DataStreamWriter::write(Device::FullAddressSettings& n)
+SCORE_LIB_DEVICE_EXPORT void
+DataStreamWriter::write(Device::FullAddressSettings& n)
 {
   writeTo(static_cast<Device::AddressSettingsCommon&>(n));
   m_stream >> n.address;
@@ -126,7 +132,8 @@ SCORE_LIB_DEVICE_EXPORT void DataStreamWriter::write(Device::FullAddressSettings
 }
 
 template <>
-SCORE_LIB_DEVICE_EXPORT void JSONReader::read(const Device::FullAddressSettings& n)
+SCORE_LIB_DEVICE_EXPORT void
+JSONReader::read(const Device::FullAddressSettings& n)
 {
   stream.StartObject();
   readFrom(static_cast<const Device::AddressSettingsCommon&>(n));
@@ -142,21 +149,24 @@ SCORE_LIB_DEVICE_EXPORT void JSONWriter::write(Device::FullAddressSettings& n)
 }
 
 template <>
-SCORE_LIB_DEVICE_EXPORT void DataStreamReader::read(const Device::FullAddressAccessorSettings& n)
+SCORE_LIB_DEVICE_EXPORT void
+DataStreamReader::read(const Device::FullAddressAccessorSettings& n)
 {
-  m_stream << n.value << n.domain << n.ioType << n.clipMode << n.repetitionFilter
-           << n.extendedAttributes << n.address;
+  m_stream << n.value << n.domain << n.ioType << n.clipMode
+           << n.repetitionFilter << n.extendedAttributes << n.address;
 }
 
 template <>
-SCORE_LIB_DEVICE_EXPORT void DataStreamWriter::write(Device::FullAddressAccessorSettings& n)
+SCORE_LIB_DEVICE_EXPORT void
+DataStreamWriter::write(Device::FullAddressAccessorSettings& n)
 {
-  m_stream >> n.value >> n.domain >> n.ioType >> n.clipMode >> n.repetitionFilter
-      >> n.extendedAttributes >> n.address;
+  m_stream >> n.value >> n.domain >> n.ioType >> n.clipMode
+      >> n.repetitionFilter >> n.extendedAttributes >> n.address;
 }
 
 template <>
-SCORE_LIB_DEVICE_EXPORT void JSONReader::read(const Device::FullAddressAccessorSettings& n)
+SCORE_LIB_DEVICE_EXPORT void
+JSONReader::read(const Device::FullAddressAccessorSettings& n)
 {
   stream.StartObject();
   // Metadata
@@ -176,12 +186,15 @@ SCORE_LIB_DEVICE_EXPORT void JSONReader::read(const Device::FullAddressAccessorS
 }
 
 template <>
-SCORE_LIB_DEVICE_EXPORT void JSONWriter::write(Device::FullAddressAccessorSettings& n)
+SCORE_LIB_DEVICE_EXPORT void
+JSONWriter::write(Device::FullAddressAccessorSettings& n)
 {
   n.ioType = Device::AccessModeText().key(obj[strings.ioType].toString());
-  n.clipMode = Device::ClipModeStringMap().key(obj[strings.ClipMode].toString());
+  n.clipMode
+      = Device::ClipModeStringMap().key(obj[strings.ClipMode].toString());
 
-  n.repetitionFilter = (ossia::repetition_filter)obj[strings.RepetitionFilter].toBool();
+  n.repetitionFilter
+      = (ossia::repetition_filter)obj[strings.RepetitionFilter].toBool();
 
   n.value <<= obj[strings.Value];
   n.domain <<= obj[strings.Domain];

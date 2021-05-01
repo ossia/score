@@ -1,5 +1,8 @@
 #pragma once
 
+#include <Gfx/GfxContext.hpp>
+#include <Gfx/GfxDevice.hpp>
+#include <Gfx/GfxExecContext.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <State/ValueConversion.hpp>
 
@@ -7,16 +10,15 @@
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/port.hpp>
 
-#include <Gfx/GfxContext.hpp>
-#include <Gfx/GfxDevice.hpp>
-#include <Gfx/GfxExecContext.hpp>
 #include <score_plugin_gfx_export.h>
 
 namespace Gfx
 {
 
 template <typename Vector>
-int64_t index_of(Vector&& v, const typename std::remove_reference_t<Vector>::value_type& t)
+int64_t index_of(
+    Vector&& v,
+    const typename std::remove_reference_t<Vector>::value_type& t)
 {
   if (auto it = ossia::find(v, t); it != v.end())
   {
@@ -25,7 +27,8 @@ int64_t index_of(Vector&& v, const typename std::remove_reference_t<Vector>::val
   return -1;
 }
 
-class SCORE_PLUGIN_GFX_EXPORT gfx_exec_node : public ossia::nonowning_graph_node
+class SCORE_PLUGIN_GFX_EXPORT gfx_exec_node
+    : public ossia::nonowning_graph_node
 {
 public:
   struct control
@@ -36,7 +39,10 @@ public:
   };
   std::vector<control> controls;
   GfxExecutionAction* exec_context{};
-  gfx_exec_node(GfxExecutionAction& e_ctx) : exec_context{&e_ctx} { }
+  gfx_exec_node(GfxExecutionAction& e_ctx)
+      : exec_context{&e_ctx}
+  {
+  }
 
   control& add_control()
   {
@@ -89,6 +95,5 @@ struct con_unvalidated
     }
   }
 };
-
 
 }

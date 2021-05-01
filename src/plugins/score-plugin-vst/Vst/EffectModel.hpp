@@ -1,15 +1,14 @@
 #pragma once
-#include <Vst/Loader.hpp>
+#include <Control/DefaultEffectItem.hpp>
+#include <Effect/EffectFactory.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
+#include <Vst/Loader.hpp>
 
 #include <score/tools/std/Invoke.hpp>
 
 #include <ossia/detail/hash_map.hpp>
-
-#include <Control/DefaultEffectItem.hpp>
-#include <Effect/EffectFactory.hpp>
 
 #include <verdigris>
 namespace vst
@@ -31,7 +30,11 @@ PROCESS_METADATA(
     {},
     {},
     Process::ProcessFlags::ExternalEffect)
-UUID_METADATA(, Process::Port, vst::ControlInlet, "e523bc44-8599-4a04-94c1-04ce0d1a692a")
+UUID_METADATA(
+    ,
+    Process::Port,
+    vst::ControlInlet,
+    "e523bc44-8599-4a04-94c1-04ce0d1a692a")
 DESCRIPTION_METADATA(, vst::Model, "")
 namespace vst
 {
@@ -41,9 +44,15 @@ struct AEffectWrapper
   AEffect* fx{};
   VstTimeInfo info;
 
-  AEffectWrapper(AEffect* f) noexcept : fx{f} { }
+  AEffectWrapper(AEffect* f) noexcept
+      : fx{f}
+  {
+  }
 
-  auto getParameter(int32_t index) const noexcept { return fx->getParameter(fx, index); }
+  auto getParameter(int32_t index) const noexcept
+  {
+    return fx->getParameter(fx, index);
+  }
   auto setParameter(int32_t index, float p) const noexcept
   {
     return fx->setParameter(fx, index, p);
@@ -65,7 +74,8 @@ struct AEffectWrapper
     {
       fx->dispatcher(fx, effStopProcess, 0, 0, nullptr, 0.f);
       fx->dispatcher(fx, effMainsChanged, 0, 0, nullptr, 0.f);
-      score::invoke([fx = fx] { fx->dispatcher(fx, effClose, 0, 0, nullptr, 0.f); });
+      score::invoke(
+          [fx = fx] { fx->dispatcher(fx, effClose, 0, 0, nullptr, 0.f); });
     }
   }
 };
@@ -88,7 +98,8 @@ public:
 
   ~Model() override;
   template <typename Impl>
-  Model(Impl& vis, QObject* parent) : ProcessModel{vis, parent}
+  Model(Impl& vis, QObject* parent)
+      : ProcessModel{vis, parent}
   {
     init();
     vis.writeTo(*this);

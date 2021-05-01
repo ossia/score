@@ -25,7 +25,8 @@ QString ControlMessage::name(const score::DocumentContext& ctx) const noexcept
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(const Process::ControlMessage& mess)
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamReader::read(const Process::ControlMessage& mess)
 {
   readFrom(mess.port);
   readFrom(mess.value);
@@ -33,7 +34,8 @@ SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(const Process::ControlMessa
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::ControlMessage& mess)
+SCORE_LIB_PROCESS_EXPORT void
+JSONReader::read(const Process::ControlMessage& mess)
 {
   stream.StartObject();
   obj[strings.Address] = mess.port;
@@ -42,7 +44,8 @@ SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::ControlMessage& me
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::ControlMessage& mess)
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamWriter::write(Process::ControlMessage& mess)
 {
   writeTo(mess.port);
   writeTo(mess.value);

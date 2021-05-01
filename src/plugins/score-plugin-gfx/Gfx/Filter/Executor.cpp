@@ -1,12 +1,5 @@
 #include "Executor.hpp"
 
-#include <Process/Dataflow/Port.hpp>
-#include <Process/ExecutionContext.hpp>
-
-#include <score/document/DocumentContext.hpp>
-
-#include <ossia/dataflow/port.hpp>
-
 #include <Gfx/Filter/Process.hpp>
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxContext.hpp>
@@ -14,12 +7,22 @@
 #include <Gfx/Graph/filternode.hpp>
 #include <Gfx/Graph/isfnode.hpp>
 #include <Gfx/TexturePort.hpp>
+#include <Process/Dataflow/Port.hpp>
+#include <Process/ExecutionContext.hpp>
+
+#include <score/document/DocumentContext.hpp>
+
+#include <ossia/dataflow/port.hpp>
 namespace Gfx::Filter
 {
 class filter_node final : public gfx_exec_node
 {
 public:
-  filter_node(const isf::descriptor& isf, const QShader& vert, const QShader& frag, GfxExecutionAction& ctx)
+  filter_node(
+      const isf::descriptor& isf,
+      const QShader& vert,
+      const QShader& frag,
+      GfxExecutionAction& ctx)
       : gfx_exec_node{ctx}
   {
     auto n = std::make_unique<ISFNode>(isf, vert, frag);
@@ -45,9 +48,10 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     const auto& desc = shader.descriptor;
 
     auto n = std::make_shared<filter_node>(
-          desc,
-          shader.compiledVertex, shader.compiledFragment,
-          ctx.doc.plugin<DocumentPlugin>().exec);
+        desc,
+        shader.compiledVertex,
+        shader.compiledFragment,
+        ctx.doc.plugin<DocumentPlugin>().exec);
     int i = 0;
     std::weak_ptr<gfx_exec_node> weak_node = n;
     for (auto& ctl : element.inlets())
@@ -60,7 +64,10 @@ ProcessExecutorComponent::ProcessExecutorComponent(
         p.changed = true;         // we will send the first value
 
         QObject::connect(
-            ctrl, &Process::ControlInlet::valueChanged, this, con_unvalidated{ctx, i, weak_node});
+            ctrl,
+            &Process::ControlInlet::valueChanged,
+            this,
+            con_unvalidated{ctx, i, weak_node});
         i++;
       }
       else if (auto ctrl = dynamic_cast<Process::AudioInlet*>(ctl))

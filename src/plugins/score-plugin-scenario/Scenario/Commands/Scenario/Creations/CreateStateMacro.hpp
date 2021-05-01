@@ -1,7 +1,7 @@
 #pragma once
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-
 #include <score/command/AggregateCommand.hpp>
+
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 
 namespace Scenario
 {

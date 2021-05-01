@@ -10,7 +10,8 @@ W_OBJECT_IMPL(score::FixedTabWidget)
 namespace score
 {
 
-FixedTabWidget::FixedTabWidget() noexcept : m_buttons{new QToolBar}
+FixedTabWidget::FixedTabWidget() noexcept
+    : m_buttons{new QToolBar}
 {
   m_layout.setContentsMargins(10, 10, 10, 10);
   m_layout.setSpacing(6);
@@ -29,7 +30,8 @@ FixedTabWidget::FixedTabWidget() noexcept : m_buttons{new QToolBar}
   m_actGrp = new QActionGroup{m_buttons};
   m_actGrp->setExclusive(true);
 #if QT_VERSION > QT_VERSION_CHECK(5, 14, 0)
-  m_actGrp->setExclusionPolicy(QActionGroup::ExclusionPolicy::ExclusiveOptional);
+  m_actGrp->setExclusionPolicy(
+      QActionGroup::ExclusionPolicy::ExclusiveOptional);
 #endif
 }
 
@@ -56,7 +58,8 @@ void FixedTabWidget::setTab(int index)
   m_actGrp->actions()[index]->trigger();
 }
 
-std::pair<int, QAction*> FixedTabWidget::addTab(QWidget* widg, const PanelStatus& v)
+std::pair<int, QAction*>
+FixedTabWidget::addTab(QWidget* widg, const PanelStatus& v)
 {
   int idx = m_stack.addWidget(widg);
 

@@ -12,11 +12,19 @@ namespace Media
 namespace Merger
 {
 
-Model::Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
-    : Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+Model::Model(
+    const TimeVal& duration,
+    const Id<Process::ProcessModel>& id,
+    QObject* parent)
+    : Process::ProcessModel{
+        duration,
+        id,
+        Metadata<ObjectKey_k, ProcessModel>::get(),
+        parent}
 {
   m_outlets.push_back(
-      Process::make_audio_outlet(Id<Process::Port>(std::numeric_limits<int16_t>::max()), this)
+      Process::make_audio_outlet(
+          Id<Process::Port>(std::numeric_limits<int16_t>::max()), this)
           .release());
   setInCount(8);
   metadata().setInstanceName(*this);
@@ -41,7 +49,8 @@ void Model::setInCount(int s)
       for (int i = 0; i < (m_inCount - old); i++)
       {
         m_inlets.push_back(
-            Process::make_audio_inlet(Id<Process::Port>(int(old + i)), this).release());
+            Process::make_audio_inlet(Id<Process::Port>(int(old + i)), this)
+                .release());
       }
     }
     else if (old > m_inCount)

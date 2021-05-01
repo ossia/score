@@ -4,8 +4,6 @@
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionSetup.hpp>
 #include <Process/Process.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Tempo/TempoProcess.hpp>
 
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph_edge.hpp>
@@ -13,8 +11,11 @@
 #include <ossia/dataflow/port.hpp>
 #include <ossia/detail/pod_vector.hpp>
 #include <ossia/editor/curve/curve.hpp>
-#include <ossia/editor/scenario/time_process.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
+#include <ossia/editor/scenario/time_process.hpp>
+
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Tempo/TempoProcess.hpp>
 
 namespace Execution
 {
@@ -41,8 +42,8 @@ tempoCurve(const Scenario::IntervalModel& itv, const Execution::Context& ctx)
     auto segt_data = curve.sortedSegments();
     if (segt_data.size() != 0)
     {
-      t = std::move(
-          *Engine::score_to_ossia::curve<int64_t, double>(scale_x, scale_y, segt_data, {}));
+      t = std::move(*Engine::score_to_ossia::curve<int64_t, double>(
+          scale_x, scale_y, segt_data, {}));
     }
 
     return {std::optional<ossia::tempo_curve>{std::move(t)}, proc};
@@ -52,8 +53,9 @@ tempoCurve(const Scenario::IntervalModel& itv, const Execution::Context& ctx)
     return {};
   }
 }
-inline std::optional<ossia::time_signature_map>
-timeSignatureMap(const Scenario::IntervalModel& itv, const Execution::Context& ctx)
+inline std::optional<ossia::time_signature_map> timeSignatureMap(
+    const Scenario::IntervalModel& itv,
+    const Execution::Context& ctx)
 {
   if (itv.hasTimeSignature())
   {
@@ -194,7 +196,8 @@ struct RecomputePropagate
   {
 
     // TODO find a better way !
-    auto port_index = std::distance(proc.outlets().begin(), ossia::find(proc.outlets(), outlet));
+    auto port_index = std::distance(
+        proc.outlets().begin(), ossia::find(proc.outlets(), outlet));
 
     system.executionQueue.enqueue([cst_node_weak = this->cst_node_weak,
                                    g_weak = this->g_weak,
@@ -237,12 +240,19 @@ struct ReconnectOutlets
     {
       if (auto o = qobject_cast<Process::AudioOutlet*>(outlet))
       {
-        QObject::disconnect(o, &Process::AudioOutlet::propagateChanged, &component, nullptr);
+        QObject::disconnect(
+            o, &Process::AudioOutlet::propagateChanged, &component, nullptr);
         QObject::connect(
             o,
             &Process::AudioOutlet::propagateChanged,
             &component,
-            RecomputePropagate{component.system(), proc, fw_node, oproc_weak, g_weak, outlet});
+            RecomputePropagate{
+                component.system(),
+                proc,
+                fw_node,
+                oproc_weak,
+                g_weak,
+                outlet});
       }
     }
   }
@@ -262,10 +272,10 @@ struct HandleNodeChange
   {
 
     commands->push_back([cst_node_weak = this->cst_node_weak,
-                        g_weak = this->g_weak,
-                        propagated = propagatedOutlets(proc.outlets()),
-                        old_node,
-                        new_node] {
+                         g_weak = this->g_weak,
+                         propagated = propagatedOutlets(proc.outlets()),
+                         old_node,
+                         new_node] {
       auto cst_node = cst_node_weak.lock();
       if (!cst_node)
         return;

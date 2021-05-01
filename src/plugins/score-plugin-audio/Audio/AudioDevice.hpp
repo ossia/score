@@ -22,10 +22,12 @@ class AudioProtocolFactory final : public Device::ProtocolFactory
   SCORE_CONCRETE("2835e6da-9b55-4029-9802-e1c817acbdc1")
   QString prettyName() const noexcept override;
   QString category() const noexcept override;
-  Device::DeviceEnumerator* getEnumerator(const score::DocumentContext& ctx) const override;
+  Device::DeviceEnumerator*
+  getEnumerator(const score::DocumentContext& ctx) const override;
 
-  Device::DeviceInterface*
-  makeDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx) override;
+  Device::DeviceInterface* makeDevice(
+      const Device::DeviceSettings& settings,
+      const score::DocumentContext& ctx) override;
   const Device::DeviceSettings& defaultSettings() const noexcept override;
   Device::AddressDialog* makeAddAddressDialog(
       const Device::DeviceInterface& dev,
@@ -39,16 +41,20 @@ class AudioProtocolFactory final : public Device::ProtocolFactory
 
   Device::ProtocolSettingsWidget* makeSettingsWidget() override;
 
-  QVariant makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
+  QVariant
+  makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
 
-  void serializeProtocolSpecificSettings(const QVariant& data, const VisitorVariant& visitor)
-      const override;
+  void serializeProtocolSpecificSettings(
+      const QVariant& data,
+      const VisitorVariant& visitor) const override;
 
-  bool checkCompatibility(const Device::DeviceSettings& a, const Device::DeviceSettings& b)
-      const noexcept override;
+  bool checkCompatibility(
+      const Device::DeviceSettings& a,
+      const Device::DeviceSettings& b) const noexcept override;
 };
 
-class SCORE_PLUGIN_AUDIO_EXPORT AudioDevice final : public Device::DeviceInterface
+class SCORE_PLUGIN_AUDIO_EXPORT AudioDevice final
+    : public Device::DeviceInterface
 {
   W_OBJECT(AudioDevice)
 public:
@@ -69,7 +75,8 @@ public:
 
 private:
   using Device::DeviceInterface::refresh;
-  void setupNode(ossia::net::node_base&, const ossia::extended_attributes& attr);
+  void
+  setupNode(ossia::net::node_base&, const ossia::extended_attributes& attr);
   Device::Node refresh() override;
   void disconnect() override;
   ossia::audio_protocol* m_protocol{};

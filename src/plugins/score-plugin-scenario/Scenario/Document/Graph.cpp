@@ -2,18 +2,10 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Graph.hpp"
 
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <Scenario/Process/Algorithms/ContainersAccessors.hpp>
-#include <Scenario/Process/ScenarioInterface.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-
 #include <score/model/ModelMetadata.hpp>
 
 #include <ossia/detail/pod_vector.hpp>
 
-#include <QTimer>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/breadth_first_search.hpp>
 #include <boost/graph/connected_components.hpp>
@@ -22,6 +14,15 @@
 #include <boost/graph/tiernan_all_cycles.hpp>
 #include <boost/graph/topological_sort.hpp>
 #include <boost/range/iterator_range.hpp>
+
+#include <QTimer>
+
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/Algorithms/ContainersAccessors.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 namespace Scenario
 {
 /*
@@ -51,11 +52,12 @@ struct CycleDetector
 
   ossia::small_vector<IntervalModel*, 4> this_path_itvs;
   CycleDetector(const Scenario::ProcessModel& scenar, bool& cycles)
-      : scenario{scenar}, cycles{cycles}
+      : scenario{scenar}
+      , cycles{cycles}
   {
   }
 
-  template<typename T>
+  template <typename T>
   bool allIntersectGraphal(T& a, T& b)
   {
     ossia::small_vector<Id<IntervalModel>, 4> intersect;
@@ -65,7 +67,8 @@ struct CycleDetector
     b.sort([](const auto& lhs, const auto& rhs) {
       return lhs.val() < rhs.val();
     });
-    std::set_intersection(a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(intersect));
+    std::set_intersection(
+        a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(intersect));
 
     for (const auto& itv : intersect)
     {
@@ -104,7 +107,7 @@ struct CycleDetector
     //}
   }
 
-  template<typename T>
+  template <typename T>
   bool anyIntersectGraphal(T& a, T& b)
   {
     ossia::small_vector<Id<IntervalModel>, 4> intersect;
@@ -114,7 +117,8 @@ struct CycleDetector
     b.sort([](const auto& lhs, const auto& rhs) {
       return lhs.val() < rhs.val();
     });
-    std::set_intersection(a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(intersect));
+    std::set_intersection(
+        a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(intersect));
 
     bool ok = false;
     for (const auto& itv : intersect)
@@ -126,7 +130,7 @@ struct CycleDetector
       }
     }
 
-    if(ok)
+    if (ok)
     {
       for (const auto& itv : intersect)
       {
@@ -190,7 +194,8 @@ struct CycleDetector
   }
 };
 
-TimenodeGraph::TimenodeGraph(const Scenario::ProcessModel& scenar) : m_scenario{scenar}
+TimenodeGraph::TimenodeGraph(const Scenario::ProcessModel& scenar)
+    : m_scenario{scenar}
 {
   for (auto& tn : scenar.getTimeSyncs())
   {
@@ -247,13 +252,16 @@ void TimenodeGraph::recompute()
 
 void TimenodeGraph::writeGraphviz()
 {
-  auto get_name = [](auto* elt) { return elt->metadata().getName().toStdString(); };
+  auto get_name
+      = [](auto* elt) { return elt->metadata().getName().toStdString(); };
 
   std::stringstream s;
   boost::write_graphviz(
       s,
       m_graph,
-      [&](auto& out, const auto& v) { out << "[label=\"" << get_name(this->m_graph[v]) << "\"]"; },
+      [&](auto& out, const auto& v) {
+        out << "[label=\"" << get_name(this->m_graph[v]) << "\"]";
+      },
       [&](auto& out, const auto& v) {
         out << "[label=\"" << get_name(this->m_graph[v]) << "\"]";
       });
@@ -316,7 +324,8 @@ bool TimenodeGraphComponents::isInMain(const IntervalModel& c) const
   auto rs = &scenario.startTimeSync();
 
   auto it = ossia::find_if(comps, [&](const auto& comp) {
-    return ossia::contains(comp.syncs, rs) && ossia::contains(comp.intervals, &c);
+    return ossia::contains(comp.syncs, rs)
+           && ossia::contains(comp.intervals, &c);
   });
   return it != comps.end();
 }
@@ -324,8 +333,9 @@ bool TimenodeGraphComponents::isInMain(const IntervalModel& c) const
 const TimenodeGraphConnectedComponent&
 TimenodeGraphComponents::component(const Scenario::TimeSyncModel& c) const
 {
-  auto it
-      = ossia::find_if(comps, [&](const auto& comp) { return ossia::contains(comp.syncs, &c); });
+  auto it = ossia::find_if(comps, [&](const auto& comp) {
+    return ossia::contains(comp.syncs, &c);
+  });
   SCORE_ASSERT(it != comps.end());
   return *it;
 }

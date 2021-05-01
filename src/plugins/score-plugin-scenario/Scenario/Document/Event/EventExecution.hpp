@@ -1,9 +1,10 @@
 #pragma once
 #include <Process/ExecutionComponent.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
 
 #include <ossia/editor/expression/expression.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
+
+#include <Scenario/Document/Event/EventModel.hpp>
 
 #include <verdigris>
 namespace ossia
@@ -13,7 +14,8 @@ class time_event;
 
 namespace Execution
 {
-class SCORE_PLUGIN_SCENARIO_EXPORT EventComponent final : public Execution::Component
+class SCORE_PLUGIN_SCENARIO_EXPORT EventComponent final
+    : public Execution::Component
 {
   W_OBJECT(EventComponent)
   COMMON_COMPONENT_METADATA("02c41de0-3a8c-44da-ae03-68a0ca26a7d0")
@@ -36,10 +38,7 @@ public:
       ossia::time_event::offset_behavior b);
 
   std::shared_ptr<ossia::time_event> OSSIAEvent() const;
-  const Scenario::EventModel* scoreEvent() const
-  {
-    return m_score_event;
-  }
+  const Scenario::EventModel* scoreEvent() const { return m_score_event; }
 
 public:
   void happened() W_SIGNAL(happened);

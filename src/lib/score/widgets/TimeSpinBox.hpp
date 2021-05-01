@@ -1,6 +1,8 @@
 #pragma once
-#include <QWidget>
 #include <ossia-qt/time.hpp>
+
+#include <QWidget>
+
 #include <score_lib_base_export.h>
 
 class QStyleOptionFrame;
@@ -36,7 +38,8 @@ public:
   void setMaximumTime(ossia::time_value t);
   void setTime(ossia::time_value t);
   ossia::time_value time() const noexcept;
-  void timeChanged(ossia::time_value t) E_SIGNAL(SCORE_LIB_BASE_EXPORT, timeChanged, t)
+  void timeChanged(ossia::time_value t)
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, timeChanged, t)
   void editingFinished() E_SIGNAL(SCORE_LIB_BASE_EXPORT, editingFinished)
   void wheelEvent(QWheelEvent* event) override;
 

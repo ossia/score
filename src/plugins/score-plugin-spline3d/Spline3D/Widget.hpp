@@ -7,12 +7,11 @@ using Widget = GeneratorDialog;
 
 }
 
-
 /*
-#include <QWidget>
-#include <QDialog>
-
 #include <Gfx/Graph/graph.hpp>
+
+#include <QDialog>
+#include <QWidget>
 namespace Spline3D
 {
 class Widget

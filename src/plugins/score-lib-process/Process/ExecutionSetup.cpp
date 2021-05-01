@@ -11,16 +11,16 @@
 #include <ossia/dataflow/graph_edge.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/port.hpp>
-
-#include <ossia/network/common/destination_qualifiers.hpp>
 #include <ossia/editor/scenario/time_process.hpp>
+#include <ossia/network/common/destination_qualifiers.hpp>
 
 namespace Execution
 {
 
 static auto enqueue_in_context(SetupContext& self) noexcept
 {
-  return [&self](auto&& f) { self.context.executionQueue.enqueue(std::move(f)); };
+  return
+      [&self](auto&& f) { self.context.executionQueue.enqueue(std::move(f)); };
 }
 
 static auto enqueue_in_vector(Transaction& vec) noexcept
@@ -28,18 +28,23 @@ static auto enqueue_in_vector(Transaction& vec) noexcept
   return [&vec](auto&& f) { vec.push_back(std::move(f)); };
 }
 
-ossia::net::node_base* findNode(const ossia::execution_state& st, const State::Address& addr)
+ossia::net::node_base*
+findNode(const ossia::execution_state& st, const State::Address& addr)
 {
   auto& devs = st.edit_devices();
-  auto dev_p = ossia::find_if(
-      devs, [d = addr.device.toStdString()](auto& dev) { return dev->get_name() == d; });
+  auto dev_p
+      = ossia::find_if(devs, [d = addr.device.toStdString()](auto& dev) {
+          return dev->get_name() == d;
+        });
   if (dev_p == devs.end())
     return nullptr;
-  return ossia::net::find_node((*dev_p)->get_root_node(), addr.path.join("/").toStdString());
+  return ossia::net::find_node(
+      (*dev_p)->get_root_node(), addr.path.join("/").toStdString());
 }
 
-std::optional<ossia::destination>
-makeDestination(const ossia::execution_state& devices, const State::AddressAccessor& addr)
+std::optional<ossia::destination> makeDestination(
+    const ossia::execution_state& devices,
+    const State::AddressAccessor& addr)
 {
   auto n = findNode(devices, addr.address);
   if (!n)
@@ -66,7 +71,9 @@ void SetupContext::on_cableRemoved(const Process::Cable& c)
   if (it != m_cables.end())
   {
     context.executionQueue.enqueue(
-        [cable = it->second, graph = context.execGraph] { graph->disconnect(cable); });
+        [cable = it->second, graph = context.execGraph] {
+          graph->disconnect(cable);
+        });
   }
 }
 
@@ -145,7 +152,9 @@ void SetupContext::connectCable(Process::Cable& cable)
 
     m_cables[cable.id()] = edge;
     context.executionQueue.enqueue(
-        [edge, graph = context.execGraph]() mutable { graph->connect(std::move(edge)); });
+        [edge, graph = context.execGraph]() mutable {
+          graph->connect(std::move(edge));
+        });
   }
 }
 
@@ -211,7 +220,8 @@ void SetupContext::register_node_impl(
 
     for (std::size_t i = 0; i < n_outlets; i++)
     {
-      register_outlet_impl(*proc_outlets[i], node->root_outputs()[i], node, exec);
+      register_outlet_impl(
+          *proc_outlets[i], node->root_outputs()[i], node, exec);
     }
   }
 }
@@ -269,7 +279,8 @@ void set_destination_impl(
       {
         s->unregister_port(*port);
         port->address = {};
-        if (ossia::value_port* dat = port->template target<ossia::value_port>())
+        if (ossia::value_port* dat
+            = port->template target<ossia::value_port>())
         {
           dat->type = {};
           dat->index = {};
@@ -289,7 +300,8 @@ void set_destination_impl(
       append([=] {
         s->unregister_port(*port);
         port->address = p;
-        if (ossia::value_port* dat = port->template target<ossia::value_port>())
+        if (ossia::value_port* dat
+            = port->template target<ossia::value_port>())
         {
           if (qual.unit)
             dat->type = qual.unit;
@@ -319,7 +331,8 @@ void set_destination_impl(
       append([=, p = *path]() mutable {
         s->unregister_port(*port);
         port->address = std::move(p);
-        if (ossia::value_port* dat = port->template target<ossia::value_port>())
+        if (ossia::value_port* dat
+            = port->template target<ossia::value_port>())
         {
           dat->type = {};
           dat->index.clear();
@@ -333,7 +346,8 @@ void set_destination_impl(
       append([=] {
         s->unregister_port(*port);
         port->address = {};
-        if (ossia::value_port* dat = port->template target<ossia::value_port>())
+        if (ossia::value_port* dat
+            = port->template target<ossia::value_port>())
         {
           dat->type = {};
           dat->index.clear();
@@ -379,7 +393,8 @@ void SetupContext::register_node(
     const Process::Outlets& proc_outlets,
     const std::shared_ptr<ossia::graph_node>& node)
 {
-  register_node_impl(proc_inlets, proc_outlets, node, enqueue_in_context(*this));
+  register_node_impl(
+      proc_inlets, proc_outlets, node, enqueue_in_context(*this));
 }
 
 void SetupContext::register_node(
@@ -431,9 +446,10 @@ void SetupContext::register_outlet_impl(
 
   outlets.insert({&proc_port, std::make_pair(node, ossia_port)});
 
-  proc_port.mapExecution(*ossia_port, [&](Process::Inlet& model_inl, ossia::inlet& ossia_inl) {
-    register_inlet_impl(model_inl, &ossia_inl, node, impl);
-  });
+  proc_port.mapExecution(
+      *ossia_port, [&](Process::Inlet& model_inl, ossia::inlet& ossia_inl) {
+        register_inlet_impl(model_inl, &ossia_inl, node, impl);
+      });
 
   // Unneeded : the execution_state only needs inlets to be registered,
   // in order to set up data value queues from the network thread
@@ -463,10 +479,11 @@ void SetupContext::unregister_inlet(
     if (ossia_port_it != inlets.end())
     {
       std::weak_ptr<ossia::execution_state> ws = context.execState;
-      context.executionQueue.enqueue([ws, ossia_port = ossia_port_it.value().second] {
-        if (auto state = ws.lock())
-          state->unregister_port(*ossia_port);
-      });
+      context.executionQueue.enqueue(
+          [ws, ossia_port = ossia_port_it.value().second] {
+            if (auto state = ws.lock())
+              state->unregister_port(*ossia_port);
+          });
 
       inlets.erase(ossia_port_it);
     }
@@ -558,7 +575,7 @@ void SetupContext::replace_node(
     const std::shared_ptr<ossia::graph_node>& node,
     Transaction& commands)
 {
-  commands.push_back([p=process,n=node] () mutable {
+  commands.push_back([p = process, n = node]() mutable {
     using namespace std;
     swap(p->node, n);
   });

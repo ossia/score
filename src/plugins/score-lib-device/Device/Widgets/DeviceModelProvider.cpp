@@ -6,8 +6,8 @@ DeviceModelProvider::~DeviceModelProvider() { }
 
 DeviceModelProviderList::~DeviceModelProviderList() { }
 
-DeviceModelProvider*
-DeviceModelProviderList::getBestProvider(const score::DocumentContext& ctx) const noexcept
+DeviceModelProvider* DeviceModelProviderList::getBestProvider(
+    const score::DocumentContext& ctx) const noexcept
 {
   if (!empty())
     return &*begin();

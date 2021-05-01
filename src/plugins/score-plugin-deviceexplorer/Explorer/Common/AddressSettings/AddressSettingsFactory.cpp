@@ -16,7 +16,8 @@ namespace Explorer
 using AddressIntSettingsWidget = AddressNumericSettingsWidget<int>;
 using AddressFloatSettingsWidget = AddressNumericSettingsWidget<float>;
 
-AddressSettingsWidget* AddressSettingsFactory::operator()(ossia::val_type valueType) const
+AddressSettingsWidget*
+AddressSettingsFactory::operator()(ossia::val_type valueType) const
 {
   switch (valueType)
   {

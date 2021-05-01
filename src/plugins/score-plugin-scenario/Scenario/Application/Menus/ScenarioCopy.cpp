@@ -4,15 +4,6 @@
 
 #include <Dataflow/Commands/CableHelpers.hpp>
 #include <Process/Dataflow/Cable.hpp>
-#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Process/Algorithms/ContainersAccessors.hpp>
-#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
 
 #include <score/document/DocumentContext.hpp>
 #include <score/model/EntityMap.hpp>
@@ -27,6 +18,16 @@
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/ptr_set.hpp>
 #include <ossia/detail/thread.hpp>
+
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Process/Algorithms/ContainersAccessors.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 
 #include <vector>
 namespace Scenario
@@ -50,12 +51,15 @@ bool verifyAndUpdateIfChildOf(ObjectPath& path, const ObjectPath& parent)
 }
 
 template <typename T>
-bool verifyAndUpdateIfChildOf(Process::CableData& path, const std::vector<Path<T>>& vec)
+bool verifyAndUpdateIfChildOf(
+    Process::CableData& path,
+    const std::vector<Path<T>>& vec)
 {
   bool source_ok = false;
   for (const auto& parent : vec)
   {
-    if (verifyAndUpdateIfChildOf(path.source.unsafePath(), parent.unsafePath()))
+    if (verifyAndUpdateIfChildOf(
+            path.source.unsafePath(), parent.unsafePath()))
     {
       source_ok = true;
       break;
@@ -112,22 +116,28 @@ Dataflow::SerializedCables cablesToCopy(
 }
 
 template <typename Scenario_T>
-void copySelected(JSONReader& r, const Scenario_T& sm, CategorisedScenario& cs, QObject* parent)
+void copySelected(
+    JSONReader& r,
+    const Scenario_T& sm,
+    CategorisedScenario& cs,
+    QObject* parent)
 {
   std::vector<Path<Scenario::IntervalModel>> itv_paths;
   for (const IntervalModel* interval : cs.selectedIntervals)
   {
-    auto start_it = ossia::find_if(cs.selectedStates, [&](const StateModel* state) {
-      return state->id() == interval->startState();
-    });
+    auto start_it
+        = ossia::find_if(cs.selectedStates, [&](const StateModel* state) {
+            return state->id() == interval->startState();
+          });
     if (start_it == cs.selectedStates.end())
     {
       cs.selectedStates.push_back(&sm.state(interval->startState()));
     }
 
-    auto end_it = ossia::find_if(cs.selectedStates, [&](const StateModel* state) {
-      return state->id() == interval->endState();
-    });
+    auto end_it
+        = ossia::find_if(cs.selectedStates, [&](const StateModel* state) {
+            return state->id() == interval->endState();
+          });
     if (end_it == cs.selectedStates.end())
     {
       cs.selectedStates.push_back(&sm.state(interval->endState()));
@@ -138,9 +148,10 @@ void copySelected(JSONReader& r, const Scenario_T& sm, CategorisedScenario& cs, 
 
   for (const StateModel* state : cs.selectedStates)
   {
-    auto ev_it = ossia::find_if(cs.selectedEvents, [&](const EventModel* event) {
-      return state->eventId() == event->id();
-    });
+    auto ev_it
+        = ossia::find_if(cs.selectedEvents, [&](const EventModel* event) {
+            return state->eventId() == event->id();
+          });
     if (ev_it == cs.selectedEvents.end())
     {
       cs.selectedEvents.push_back(&sm.event(state->eventId()));
@@ -151,9 +162,10 @@ void copySelected(JSONReader& r, const Scenario_T& sm, CategorisedScenario& cs, 
   }
   for (const EventModel* event : cs.selectedEvents)
   {
-    auto tn_it = ossia::find_if(cs.selectedTimeSyncs, [&](const TimeSyncModel* tn) {
-      return tn->id() == event->timeSync();
-    });
+    auto tn_it
+        = ossia::find_if(cs.selectedTimeSyncs, [&](const TimeSyncModel* tn) {
+            return tn->id() == event->timeSync();
+          });
     if (tn_it == cs.selectedTimeSyncs.end())
     {
       cs.selectedTimeSyncs.push_back(&sm.timeSync(event->timeSync()));
@@ -166,12 +178,15 @@ void copySelected(JSONReader& r, const Scenario_T& sm, CategorisedScenario& cs, 
   copiedTimeSyncs.reserve(cs.selectedTimeSyncs.size());
   for (const auto& tn : cs.selectedTimeSyncs)
   {
-    auto clone_tn = new TimeSyncModel(DataStreamWriter{score::marshall<DataStream>(*tn)}, nullptr);
+    auto clone_tn = new TimeSyncModel(
+        DataStreamWriter{score::marshall<DataStream>(*tn)}, nullptr);
     auto events = clone_tn->events();
     for (const auto& event : events)
     {
-      auto absent = ossia::none_of(
-          cs.selectedEvents, [&](const EventModel* ev) { return ev->id() == event; });
+      auto absent
+          = ossia::none_of(cs.selectedEvents, [&](const EventModel* ev) {
+              return ev->id() == event;
+            });
       if (absent)
         clone_tn->removeEvent(event);
     }
@@ -183,12 +198,15 @@ void copySelected(JSONReader& r, const Scenario_T& sm, CategorisedScenario& cs, 
   copiedEvents.reserve(cs.selectedEvents.size());
   for (const auto& ev : cs.selectedEvents)
   {
-    auto clone_ev = new EventModel(DataStreamWriter{score::marshall<DataStream>(*ev)}, nullptr);
+    auto clone_ev = new EventModel(
+        DataStreamWriter{score::marshall<DataStream>(*ev)}, nullptr);
     auto states = clone_ev->states();
     for (const auto& state : states)
     {
-      auto absent = ossia::none_of(
-          cs.selectedStates, [&](const StateModel* st) { return st->id() == state; });
+      auto absent
+          = ossia::none_of(cs.selectedStates, [&](const StateModel* st) {
+              return st->id() == state;
+            });
       if (absent)
         clone_ev->removeState(state);
     }
@@ -201,8 +219,8 @@ void copySelected(JSONReader& r, const Scenario_T& sm, CategorisedScenario& cs, 
   copiedStates.reserve(cs.selectedStates.size());
   for (const StateModel* st : cs.selectedStates)
   {
-    auto clone_st
-        = new StateModel(DataStreamWriter{score::marshall<DataStream>(*st)}, ctx, parent);
+    auto clone_st = new StateModel(
+        DataStreamWriter{score::marshall<DataStream>(*st)}, ctx, parent);
 
     // NOTE : we must not serialize the state with their previous / next
     // interval
@@ -278,13 +296,18 @@ void copyWholeScenario(JSONReader& r, const Scenario::ProcessModel& sm)
   r.stream.EndObject();
 }
 
-void copySelectedScenarioElements(JSONReader& r, const Scenario::ProcessModel& sm)
+void copySelectedScenarioElements(
+    JSONReader& r,
+    const Scenario::ProcessModel& sm)
 {
   CategorisedScenario cat{sm};
   return copySelectedScenarioElements(r, sm, cat);
 }
 
-void copySelectedScenarioElements(JSONReader& r, const BaseScenarioContainer& sm, QObject* parent)
+void copySelectedScenarioElements(
+    JSONReader& r,
+    const BaseScenarioContainer& sm,
+    QObject* parent)
 {
   CategorisedScenario cat{sm};
 
@@ -296,7 +319,8 @@ void copySelectedScenarioElements(JSONReader& r, const BaseScenarioContainer& sm
 CategorisedScenario::CategorisedScenario() { }
 
 template <typename Vector>
-std::vector<const typename Vector::value_type*> selectedElementsVec(const Vector& in)
+std::vector<const typename Vector::value_type*>
+selectedElementsVec(const Vector& in)
 {
   std::vector<const typename Vector::value_type*> out;
   for (const auto& elt : in)
@@ -346,11 +370,13 @@ CategorisedScenario::CategorisedScenario(const Selection& sm)
   {
     if (auto st = dynamic_cast<const Scenario::StateModel*>(elt.data()))
       selectedStates.push_back(st);
-    else if (auto itv = dynamic_cast<const Scenario::IntervalModel*>(elt.data()))
+    else if (
+        auto itv = dynamic_cast<const Scenario::IntervalModel*>(elt.data()))
       selectedIntervals.push_back(itv);
     else if (auto ev = dynamic_cast<const Scenario::EventModel*>(elt.data()))
       selectedEvents.push_back(ev);
-    else if (auto ts = dynamic_cast<const Scenario::TimeSyncModel*>(elt.data()))
+    else if (
+        auto ts = dynamic_cast<const Scenario::TimeSyncModel*>(elt.data()))
       selectedTimeSyncs.push_back(ts);
   }
 }
@@ -365,17 +391,21 @@ void copySelectedElementsToJson(
   {
     return copySelectedScenarioElements(r, *sm);
   }
-  else if (auto bsm = dynamic_cast<const Scenario::BaseScenarioContainer*>(&si))
+  else if (
+      auto bsm = dynamic_cast<const Scenario::BaseScenarioContainer*>(&si))
   {
     return copySelectedScenarioElements(r, *bsm, si_obj);
   }
   else
   {
     // Full-view copy
-    auto& bem = score::IDocument::modelDelegate<Scenario::ScenarioDocumentModel>(ctx.document);
+    auto& bem
+        = score::IDocument::modelDelegate<Scenario::ScenarioDocumentModel>(
+            ctx.document);
     if (!bem.baseScenario().selectedChildren().empty())
     {
-      return copySelectedScenarioElements(r, bem.baseScenario(), &bem.baseScenario());
+      return copySelectedScenarioElements(
+          r, bem.baseScenario(), &bem.baseScenario());
     }
   }
 }

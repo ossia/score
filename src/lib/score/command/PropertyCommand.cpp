@@ -6,12 +6,14 @@ score::PropertyCommand::~PropertyCommand() = default;
 
 void score::PropertyCommand::undo(const score::DocumentContext& ctx) const
 {
-  m_path.find<QObject>(ctx).setProperty(m_property.toUtf8().constData(), m_old);
+  m_path.find<QObject>(ctx).setProperty(
+      m_property.toUtf8().constData(), m_old);
 }
 
 void score::PropertyCommand::redo(const score::DocumentContext& ctx) const
 {
-  m_path.find<QObject>(ctx).setProperty(m_property.toUtf8().constData(), m_new);
+  m_path.find<QObject>(ctx).setProperty(
+      m_property.toUtf8().constData(), m_new);
 }
 
 void score::PropertyCommand::serializeImpl(DataStreamInput& s) const

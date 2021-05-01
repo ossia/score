@@ -3,6 +3,9 @@
 #include <Process/LayerModel.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
+
+#include <core/command/CommandStack.hpp>
+
 #include <Scenario/Commands/Interval/AddLayerModelToSlot.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/AddRackToInterval.hpp>
@@ -11,8 +14,6 @@
 #include <Scenario/Document/Interval/Rack/RackModel.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Process/ScenarioFactory.hpp>
-
-#include <core/command/CommandStack.hpp>
 
 using namespace score;
 using namespace Scenario::Command;
@@ -31,10 +32,11 @@ private:
     plist->registerProcess(new ScenarioFactory);
 
     // Setup
-    IntervalModel* interval
-        = new IntervalModel{Id<IntervalModel>{0}, Id<IntervalViewModel>{0}, qApp};
+    IntervalModel* interval = new IntervalModel{
+        Id<IntervalModel>{0}, Id<IntervalViewModel>{0}, qApp};
 
-    auto cmd_proc = new AddProcessToInterval({{"IntervalModel", {0}}}, "Scenario");
+    auto cmd_proc
+        = new AddProcessToInterval({{"IntervalModel", {0}}}, "Scenario");
     stack.redoAndPush(cmd_proc);
     auto procId = cmd_proc->m_createdProcessId;
 
@@ -42,7 +44,8 @@ private:
     stack.redoAndPush(cmd_rack);
     auto rackId = cmd_rack->m_createdRackId;
 
-    auto cmd_slot = new AddSlotToRack(ObjectPath{{"IntervalModel", {0}}, {"RackModel", rackId}});
+    auto cmd_slot = new AddSlotToRack(
+        ObjectPath{{"IntervalModel", {0}}, {"RackModel", rackId}});
     auto slotId = cmd_slot->m_createdSlotId;
     stack.redoAndPush(cmd_slot);
 

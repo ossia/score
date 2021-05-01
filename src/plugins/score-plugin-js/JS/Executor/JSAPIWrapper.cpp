@@ -4,10 +4,10 @@
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
-#include <Scenario/Execution/score2OSSIA.hpp>
 
 #include <score/serialization/AnySerialization.hpp>
 #include <score/serialization/MapSerialization.hpp>
+
 #include <ossia-qt/js_utilities.hpp>
 #include <ossia/dataflow/audio_port.hpp>
 #include <ossia/dataflow/dataflow.hpp>
@@ -18,6 +18,7 @@
 #include <ossia/detail/apply.hpp>
 #include <ossia/network/value/value.hpp>
 
+#include <Scenario/Execution/score2OSSIA.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(JS::ExecStateWrapper)
 namespace JS
@@ -53,7 +54,8 @@ const ossia::destination_t& ExecStateWrapper::find_address(const QString& str)
 
   // Split in devices
   auto dev = ossia::find_if(
-      devices.exec_devices(), [devname = str.mid(0, d).toStdString()](const auto& dev) {
+      devices.exec_devices(),
+      [devname = str.mid(0, d).toStdString()](const auto& dev) {
         return dev->get_name() == devname;
       });
 
@@ -68,7 +70,8 @@ const ossia::destination_t& ExecStateWrapper::find_address(const QString& str)
       }
     }
 
-    auto node = ossia::net::find_node((*dev)->get_root_node(), str.mid(d + 1).toStdString());
+    auto node = ossia::net::find_node(
+        (*dev)->get_root_node(), str.mid(d + 1).toStdString());
     if (node)
     {
       if (auto addr = node->get_parameter())

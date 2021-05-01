@@ -1,20 +1,24 @@
 #include "Process.hpp"
 
+#include <Gfx/Graph/node.hpp>
+#include <Gfx/Graph/nodes.hpp>
+#include <Gfx/TexturePort.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 
 #include <QFileInfo>
 #include <QImageReader>
-#include <Gfx/Graph/node.hpp>
-#include <Gfx/Graph/nodes.hpp>
-#include <Gfx/TexturePort.hpp>
+
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Gfx::Images::Model)
 namespace Gfx::Images
 {
 
-Model::Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
+Model::Model(
+    const TimeVal& duration,
+    const Id<Process::ProcessModel>& id,
+    QObject* parent)
     : Process::ProcessModel{duration, id, "gfxProcess", parent}
 {
   metadata().setInstanceName(*this);
@@ -32,7 +36,8 @@ Model::Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObje
     auto scale = new Process::XYSlider{Id<Process::Port>(3), this};
     scale->setName(tr("Scale"));
     scale->setValue(ossia::vec2f{1., 1.});
-    scale->setDomain(ossia::make_domain(ossia::vec2f{0.01, 0.01}, ossia::vec2f{10., 10.}));
+    scale->setDomain(
+        ossia::make_domain(ossia::vec2f{0.01, 0.01}, ossia::vec2f{10., 10.}));
     m_inlets.push_back(scale);
   }
 
@@ -46,11 +51,11 @@ void Model::setImages(const std::vector<Image>& f)
   m_images = f;
 
   int count = 0;
-  for(const auto& img : m_images)
+  for (const auto& img : m_images)
     count += img.frames.size();
 
   auto spinbox = safe_cast<Process::IntSpinBox*>(m_inlets[0]);
-  if(!f.empty())
+  if (!f.empty())
     spinbox->setDomain(ossia::make_domain(int(0), int(count) - 1));
   else
     spinbox->setDomain(ossia::make_domain(int(0), int(0)));
@@ -80,8 +85,8 @@ QSet<QString> DropHandler::fileExtensions() const noexcept
 
 static bool isSupportedImage(const QFileInfo& filepath)
 {
-    static const auto set = DropHandler{}.fileExtensions();
-    return set.contains(filepath.completeSuffix().toLower());
+  static const auto set = DropHandler{}.fileExtensions();
+  return set.contains(filepath.completeSuffix().toLower());
 }
 
 static std::optional<Image> readImage(const QString& filename)
@@ -92,17 +97,17 @@ static std::optional<Image> readImage(const QString& filename)
 
   QImageReader reader{filename};
   std::vector<QImage> frames;
-  while(reader.canRead())
+  while (reader.canRead())
   {
     QImage img = reader.read();
 
-    if(img.isNull() || img.size() == QSize{})
+    if (img.isNull() || img.size() == QSize{})
       continue;
 
     frames.push_back(std::move(img));
   }
 
-  if(frames.empty())
+  if (frames.empty())
     return {};
 
   return Image{filename, std::move(frames)};
@@ -114,25 +119,26 @@ std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::drop(
 {
   std::vector<Process::ProcessDropHandler::ProcessDrop> vec;
 
-  if(!data.hasUrls())
-      return vec;
+  if (!data.hasUrls())
+    return vec;
 
   Process::ProcessDropHandler::ProcessDrop p;
   p.creation.key = Metadata<ConcreteKey_k, Gfx::Images::Model>::get();
-  p.setup = [files=data.urls()](Process::ProcessModel& m, score::Dispatcher& disp) {
-      auto& proc = static_cast<Gfx::Images::Model&>(m);
-      std::vector<Image> images;
+  p.setup = [files = data.urls()](
+                Process::ProcessModel& m, score::Dispatcher& disp) {
+    auto& proc = static_cast<Gfx::Images::Model&>(m);
+    std::vector<Image> images;
 
-      for (const auto& url : files)
+    for (const auto& url : files)
+    {
+      if (auto img = readImage(url.toLocalFile()))
       {
-        if(auto img = readImage(url.toLocalFile()))
-        {
-          images.push_back(*std::move(img));
-        }
+        images.push_back(*std::move(img));
       }
+    }
 
-      if(!images.empty())
-        disp.submit(new ChangeImages{proc, std::move(images)});
+    if (!images.empty())
+      disp.submit(new ChangeImages{proc, std::move(images)});
   };
   vec.push_back(std::move(p));
   return vec;
@@ -149,7 +155,7 @@ template <>
 void DataStreamWriter::write(Gfx::Image& proc)
 {
   m_stream >> proc.path;
-  if(auto img = Gfx::Images::readImage(proc.path))
+  if (auto img = Gfx::Images::readImage(proc.path))
     proc = *std::move(img);
 }
 
@@ -167,7 +173,7 @@ void JSONWriter::write(Gfx::Image& proc)
 {
   const auto& obj = base.GetObject();
   proc.path = obj["Path"].GetString();
-  if(auto img = Gfx::Images::readImage(proc.path))
+  if (auto img = Gfx::Images::readImage(proc.path))
     proc = *std::move(img);
 }
 

@@ -1,12 +1,11 @@
 ﻿#pragma once
+#include <ControlSurface/Process.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/ExecutionSetup.hpp>
 
 #include <ossia/dataflow/node_process.hpp>
 #include <ossia/dataflow/safe_nodes/executor.hpp>
-
-#include <ControlSurface/Process.hpp>
 
 namespace ossia
 {
@@ -46,7 +45,8 @@ public:
       auto& ctl = controls[i];
       if (ctl.second)
       {
-        m_outlets[i]->target<ossia::value_port>()->write_value(std::move(*ctl.first), 0);
+        m_outlets[i]->target<ossia::value_port>()->write_value(
+            std::move(*ctl.first), 0);
         ctl.second = false;
       }
     }
@@ -69,14 +69,15 @@ struct con_unvalidated
   {
     if (auto node = weak_node.lock())
     {
-      ctx.executionQueue.enqueue(
-          ossia::control_surface_node::control_updater{node->controls[i], val});
+      ctx.executionQueue.enqueue(ossia::control_surface_node::control_updater{
+          node->controls[i], val});
     }
   }
 };
 
 class ProcessExecutorComponent final
-    : public Execution::ProcessComponent_T<ControlSurface::Model, ossia::node_process>
+    : public Execution::
+          ProcessComponent_T<ControlSurface::Model, ossia::node_process>
 {
   COMPONENT_METADATA("bab572b1-37eb-4f32-8f72-d5b79b65cfe9")
 public:
@@ -85,12 +86,9 @@ public:
       const ::Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent)
-      : Execution::ProcessComponent_T<ControlSurface::Model, ossia::node_process>{
-          element,
-          ctx,
-          id,
-          "ControlSurface",
-          parent}
+      : Execution::ProcessComponent_T<
+          ControlSurface::Model,
+          ossia::node_process>{element, ctx, id, "ControlSurface", parent}
   {
     std::shared_ptr<ossia::control_surface_node> node
         = std::make_shared<ossia::control_surface_node>();
@@ -115,7 +113,10 @@ public:
 
       std::weak_ptr<ossia::control_surface_node> weak_node = node;
       QObject::connect(
-          ctrl, &Process::ControlInlet::valueChanged, this, con_unvalidated{ctx, i, weak_node});
+          ctrl,
+          &Process::ControlInlet::valueChanged,
+          this,
+          con_unvalidated{ctx, i, weak_node});
       i++;
     }
   }

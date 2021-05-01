@@ -17,7 +17,8 @@
 #include <QString>
 #include <QToolBar>
 
-score::UndoApplicationPlugin::UndoApplicationPlugin(const score::GUIApplicationContext& app)
+score::UndoApplicationPlugin::UndoApplicationPlugin(
+    const score::GUIApplicationContext& app)
     : score::GUIApplicationPlugin{app}
     , m_undoAction{new QAction{"Undo", nullptr}}
     , m_redoAction{new QAction{"Redo", nullptr}}
@@ -34,8 +35,9 @@ score::UndoApplicationPlugin::UndoApplicationPlugin(const score::GUIApplicationC
       QStringLiteral(":/icons/prev_off.png"),
       QStringLiteral(":/icons/prev_disabled.png"));
 
-  QObject::connect(
-      m_undoAction, &QAction::triggered, [&]() { currentDocument()->commandStack().undo(); });
+  QObject::connect(m_undoAction, &QAction::triggered, [&]() {
+    currentDocument()->commandStack().undo();
+  });
 
   m_redoAction->setShortcut(QKeySequence::Redo);
   m_redoAction->setEnabled(false);
@@ -49,13 +51,15 @@ score::UndoApplicationPlugin::UndoApplicationPlugin(const score::GUIApplicationC
       QStringLiteral(":/icons/next_off.png"),
       QStringLiteral(":/icons/next_disabled.png"));
 
-  QObject::connect(
-      m_redoAction, &QAction::triggered, [&]() { currentDocument()->commandStack().redo(); });
+  QObject::connect(m_redoAction, &QAction::triggered, [&]() {
+    currentDocument()->commandStack().redo();
+  });
 }
 
 score::UndoApplicationPlugin::~UndoApplicationPlugin()
 {
-  Foreach(m_connections, [](auto connection) { QObject::disconnect(connection); });
+  Foreach(
+      m_connections, [](auto connection) { QObject::disconnect(connection); });
 }
 
 void score::UndoApplicationPlugin::on_documentChanged(
@@ -65,7 +69,8 @@ void score::UndoApplicationPlugin::on_documentChanged(
   using namespace score;
 
   // Cleanup
-  Foreach(m_connections, [](auto connection) { QObject::disconnect(connection); });
+  Foreach(
+      m_connections, [](auto connection) { QObject::disconnect(connection); });
   m_connections.clear();
 
   if (!newDoc)
@@ -80,17 +85,21 @@ void score::UndoApplicationPlugin::on_documentChanged(
   // Redo the connections
   // TODO maybe use conditions for this ?
   auto stack = &newDoc->commandStack();
-  m_connections.push_back(QObject::connect(
-      stack, &CommandStack::canUndoChanged, [&](bool b) { m_undoAction->setEnabled(b); }));
-  m_connections.push_back(QObject::connect(
-      stack, &CommandStack::canRedoChanged, [&](bool b) { m_redoAction->setEnabled(b); }));
-
   m_connections.push_back(
-      QObject::connect(stack, &CommandStack::undoTextChanged, [&](const QString& s) {
-        m_undoAction->setText(QObject::tr("Undo ") + s);
+      QObject::connect(stack, &CommandStack::canUndoChanged, [&](bool b) {
+        m_undoAction->setEnabled(b);
       }));
   m_connections.push_back(
-      QObject::connect(stack, &CommandStack::redoTextChanged, [&](const QString& s) {
+      QObject::connect(stack, &CommandStack::canRedoChanged, [&](bool b) {
+        m_redoAction->setEnabled(b);
+      }));
+
+  m_connections.push_back(QObject::connect(
+      stack, &CommandStack::undoTextChanged, [&](const QString& s) {
+        m_undoAction->setText(QObject::tr("Undo ") + s);
+      }));
+  m_connections.push_back(QObject::connect(
+      stack, &CommandStack::redoTextChanged, [&](const QString& s) {
         m_redoAction->setText(QObject::tr("Redo ") + s);
       }));
 

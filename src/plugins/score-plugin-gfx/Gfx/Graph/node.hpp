@@ -1,17 +1,18 @@
 #pragma once
-#include <ossia/detail/packed_struct.hpp>
 #include "mesh.hpp"
 #include "renderstate.hpp"
 #include "uniforms.hpp"
 
 #include <ossia/detail/flat_map.hpp>
+#include <ossia/detail/packed_struct.hpp>
+
+#include <score_plugin_gfx_export.h>
 
 #include <algorithm>
 #include <optional>
 #include <vector>
 
 #include <unordered_map>
-#include <score_plugin_gfx_export.h>
 
 namespace score::gfx
 {
@@ -23,7 +24,8 @@ struct Edge;
 struct Renderer;
 struct AudioTexture
 {
-  std::unordered_map<Renderer*, std::pair<QRhiSampler*, QRhiTexture*>> samplers;
+  std::unordered_map<Renderer*, std::pair<QRhiSampler*, QRhiTexture*>>
+      samplers;
 
   std::vector<float> data;
   int channels{};
@@ -41,7 +43,9 @@ struct Port
 
 struct Edge
 {
-  Edge(Port* source, Port* sink) : source{source}, sink{sink}
+  Edge(Port* source, Port* sink)
+      : source{source}
+      , sink{sink}
   {
     source->edges.push_back(this);
     sink->edges.push_back(this);
@@ -52,7 +56,8 @@ struct Edge
     if (auto it = std::find(source->edges.begin(), source->edges.end(), this);
         it != source->edges.end())
       source->edges.erase(it);
-    if (auto it = std::find(sink->edges.begin(), sink->edges.end(), this); it != sink->edges.end())
+    if (auto it = std::find(sink->edges.begin(), sink->edges.end(), this);
+        it != sink->edges.end())
       sink->edges.erase(it);
   }
 
@@ -81,7 +86,8 @@ struct Sampler
   QRhiTexture* texture{};
 };
 
-struct TextureRenderTarget {
+struct TextureRenderTarget
+{
   QRhiTexture* texture{};
   QRhiRenderPassDescriptor* renderPass{};
   QRhiRenderTarget* renderTarget{};
@@ -121,7 +127,7 @@ packed_struct ProcessUBO
 };
 end_packed_struct
 
-packed_struct ModelCameraUBO
+    packed_struct ModelCameraUBO
 {
   float mvp[16]{};
   float mv[16]{};
@@ -132,7 +138,9 @@ packed_struct ModelCameraUBO
 };
 end_packed_struct
 
-static_assert(sizeof(ModelCameraUBO) == sizeof(float) * (16 + 16 + 16 + 16 + 16 + 9));
+    static_assert(
+        sizeof(ModelCameraUBO)
+        == sizeof(float) * (16 + 16 + 16 + 16 + 16 + 9));
 struct Renderer;
 class RenderedNode;
 
@@ -144,15 +152,9 @@ class SCORE_PLUGIN_GFX_EXPORT Node
   friend class NodeRenderer;
 
 public:
-  explicit Node()
-  {
+  explicit Node() { }
 
-  }
-
-  virtual ~Node()
-  {
-
-  }
+  virtual ~Node() { }
 
   virtual NodeRenderer* createRenderer() const noexcept = 0;
   virtual const Mesh& mesh() const noexcept = 0;
@@ -164,8 +166,7 @@ public:
   bool addedToGraph{};
 };
 
-class SCORE_PLUGIN_GFX_EXPORT ProcessNode
-    : public Node
+class SCORE_PLUGIN_GFX_EXPORT ProcessNode : public Node
 {
 public:
   using Node::Node;
@@ -184,7 +185,11 @@ public:
   virtual TextureRenderTarget createRenderTarget(const RenderState& state) = 0;
   virtual void init(Renderer& renderer) = 0;
   virtual void update(Renderer& renderer, QRhiResourceUpdateBatch& res) = 0;
-  virtual void runPass(Renderer&, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch& updateBatch) = 0;
+  virtual void runPass(
+      Renderer&,
+      QRhiCommandBuffer& commands,
+      QRhiResourceUpdateBatch& updateBatch)
+      = 0;
   virtual void release(Renderer&) = 0;
   virtual void releaseWithoutRenderTarget(Renderer&) = 0;
 };
@@ -193,33 +198,33 @@ SCORE_PLUGIN_GFX_EXPORT
 TextureRenderTarget createRenderTarget(const RenderState& state, QSize sz);
 
 SCORE_PLUGIN_GFX_EXPORT
-void replaceTexture(QRhiShaderResourceBindings&, QRhiSampler* sampler, QRhiTexture* newTexture);
+void replaceTexture(
+    QRhiShaderResourceBindings&,
+    QRhiSampler* sampler,
+    QRhiTexture* newTexture);
 
 SCORE_PLUGIN_GFX_EXPORT
 Pipeline buildPipeline(
-      const Renderer& renderer,
-      const Mesh& mesh,
-      const QShader& vertexS, const QShader& fragmentS,
-      const TextureRenderTarget& rt,
-      QRhiBuffer* processUBO,
-      QRhiBuffer* materialUBO,
-      const std::vector<Sampler>& samplers);
+    const Renderer& renderer,
+    const Mesh& mesh,
+    const QShader& vertexS,
+    const QShader& fragmentS,
+    const TextureRenderTarget& rt,
+    QRhiBuffer* processUBO,
+    QRhiBuffer* materialUBO,
+    const std::vector<Sampler>& samplers);
 }
 
-class SCORE_PLUGIN_GFX_EXPORT RenderedNode
-    : public score::gfx::NodeRenderer
+class SCORE_PLUGIN_GFX_EXPORT RenderedNode : public score::gfx::NodeRenderer
 {
 public:
   RenderedNode(const NodeModel& node) noexcept
-    : NodeRenderer{}
-    , node{node}
+      : NodeRenderer{}
+      , node{node}
   {
-
   }
 
   virtual ~RenderedNode() { }
-
-
 
   const NodeModel& node;
 
@@ -256,16 +261,17 @@ public:
   void release(Renderer&);
   void releaseWithoutRenderTarget(Renderer&);
 
-  virtual void runPass(Renderer&, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch& updateBatch);
-
+  virtual void runPass(
+      Renderer&,
+      QRhiCommandBuffer& commands,
+      QRhiResourceUpdateBatch& updateBatch);
 
   void defaultShaderMaterialInit(Renderer& renderer);
   QRhiGraphicsPipeline* pipeline() const { return m_p.pipeline; }
   QRhiShaderResourceBindings* resources() const { return m_p.srb; }
 };
 
-class SCORE_PLUGIN_GFX_EXPORT NodeModel
-    : public score::gfx::ProcessNode
+class SCORE_PLUGIN_GFX_EXPORT NodeModel : public score::gfx::ProcessNode
 {
   friend class RenderedNode;
 

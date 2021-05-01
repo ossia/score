@@ -13,7 +13,8 @@
 
 namespace Device
 {
-class SCORE_LIB_DEVICE_EXPORT NodeBasedItemModel : public TreeNodeBasedItemModel<Device::Node>
+class SCORE_LIB_DEVICE_EXPORT NodeBasedItemModel
+    : public TreeNodeBasedItemModel<Device::Node>
 {
 public:
   using TreeNodeBasedItemModel<Device::Node>::TreeNodeBasedItemModel;
@@ -87,7 +88,8 @@ public:
   }
 };
 
-SCORE_LIB_DEVICE_EXPORT Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
+SCORE_LIB_DEVICE_EXPORT Device::FullAddressAccessorSettings
+makeFullAddressAccessorSettings(
     const State::AddressAccessor& mess,
     const Device::NodeBasedItemModel& ctx,
     ossia::value min,

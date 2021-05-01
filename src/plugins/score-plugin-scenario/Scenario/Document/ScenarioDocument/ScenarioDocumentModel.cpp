@@ -3,12 +3,6 @@
 
 #include "ScenarioDocumentModel.hpp"
 
-#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
-#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Document/Tempo/TempoProcess.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Settings/ScenarioSettingsModel.hpp>
-
 #include <score/model/IdentifierDebug.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
@@ -16,6 +10,11 @@
 #include <QDebug>
 #include <QFileInfo>
 
+#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/Tempo/TempoProcess.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Scenario::ScenarioDocumentModel)
@@ -34,7 +33,8 @@ ScenarioDocumentModel::ScenarioDocumentModel(
 {
   auto& itv = m_baseScenario->interval();
   // Set default durations
-  auto dur = ctx.app.settings<Scenario::Settings::Model>().getDefaultDuration();
+  auto dur
+      = ctx.app.settings<Scenario::Settings::Model>().getDefaultDuration();
 
   itv.duration.setRigid(false);
 
@@ -53,7 +53,10 @@ ScenarioDocumentModel::ScenarioDocumentModel(
 
   // Create the root scenario
   AddOnlyProcessToInterval cmd1{
-      itv, Metadata<ConcreteKey_k, Scenario::ProcessModel>::get(), QString{}, QPointF{}};
+      itv,
+      Metadata<ConcreteKey_k, Scenario::ProcessModel>::get(),
+      QString{},
+      QPointF{}};
   cmd1.redo(ctx);
   itv.processes.begin()->setSlotHeight(1500);
 
@@ -71,11 +74,14 @@ void ScenarioDocumentModel::init()
   auto& itv = m_baseScenario->interval();
   auto& doc_metadata = m_context.document.metadata();
 
-  connect(&doc_metadata, &score::DocumentMetadata::fileNameChanged,
-          this, [&](const QString& newName) {
-    QFileInfo info(newName);
-    itv.metadata().setName(info.baseName());
-  });
+  connect(
+      &doc_metadata,
+      &score::DocumentMetadata::fileNameChanged,
+      this,
+      [&](const QString& newName) {
+        QFileInfo info(newName);
+        itv.metadata().setName(info.baseName());
+      });
 }
 
 void ScenarioDocumentModel::finishLoading()
@@ -95,7 +101,8 @@ void ScenarioDocumentModel::finishLoading()
     }
     else
     {
-      qWarning() << "Could not find either source or sink for cable " << cbl->id() << src << snk;
+      qWarning() << "Could not find either source or sink for cable "
+                 << cbl->id() << src << snk;
       delete cbl;
     }
   }
@@ -117,7 +124,8 @@ void ScenarioDocumentModel::finishLoading()
       }
       else
       {
-        qWarning() << "Could not find either source or sink for cable " << cbl->id() << src << snk;
+        qWarning() << "Could not find either source or sink for cable "
+                   << cbl->id() << src << snk;
         delete cbl;
       }
     }
@@ -128,9 +136,11 @@ void ScenarioDocumentModel::finishLoading()
   for (auto itv : this->busIntervals)
   {
     const_cast<IntervalModel*>(itv)->busChanged(true);
-    connect(itv, &Scenario::IntervalModel::identified_object_destroying, this, [=] {
-      removeBus(itv);
-    });
+    connect(
+        itv,
+        &Scenario::IntervalModel::identified_object_destroying,
+        this,
+        [=] { removeBus(itv); });
   }
 }
 
@@ -151,9 +161,11 @@ void ScenarioDocumentModel::addBus(const Scenario::IntervalModel* itv)
   {
     busIntervals.push_back(itv);
     const_cast<IntervalModel*>(itv)->busChanged(true);
-    connect(itv, &Scenario::IntervalModel::identified_object_destroying, this, [=] {
-      removeBus(itv);
-    });
+    connect(
+        itv,
+        &Scenario::IntervalModel::identified_object_destroying,
+        this,
+        [=] { removeBus(itv); });
     busesChanged();
   }
 }

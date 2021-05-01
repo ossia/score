@@ -36,7 +36,9 @@ class TimeSyncComponent;
 class BaseScenarioRefContainer
 {
 public:
-  BaseScenarioRefContainer(Scenario::IntervalModel& interval, Scenario::ScenarioInterface& s);
+  BaseScenarioRefContainer(
+      Scenario::IntervalModel& interval,
+      Scenario::ScenarioInterface& s);
 
   BaseScenarioRefContainer(
       Scenario::IntervalModel& interval,

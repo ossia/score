@@ -1,30 +1,33 @@
 #pragma once
+#include <Media/Effect/Settings/Model.hpp>
 #include <Vst3/EffectModel.hpp>
 #include <Vst3/UI/WindowContainer.hpp>
 
 #include <score/application/ApplicationContext.hpp>
-#include <Media/Effect/Settings/Model.hpp>
 
-#include <pluginterfaces/gui/iplugview.h>
-
+#include <QDialog>
 #include <QResizeEvent>
 #include <QWindow>
-#include <QDialog>
 
+#include <pluginterfaces/gui/iplugview.h>
 
 namespace vst3
 {
 
-WindowContainer createVstWindowContainer(Window& parentWindow, const Model& e, const score::DocumentContext& ctx);
+WindowContainer createVstWindowContainer(
+    Window& parentWindow,
+    const Model& e,
+    const score::DocumentContext& ctx);
 
 class Window : public QDialog
 {
   const Model& m_model;
   WindowContainer container;
+
 public:
   Window(const Model& e, const score::DocumentContext& ctx, QWidget* parent)
-    : QDialog{parent}
-    , m_model{e}
+      : QDialog{parent}
+      , m_model{e}
   {
     Steinberg::IPlugView& view = *e.fx.view;
 
@@ -32,10 +35,14 @@ public:
 
     container = createVstWindowContainer(*this, e, ctx);
 
-    bool ontop = score::AppContext().settings<Media::Settings::Model>().getVstAlwaysOnTop();
+    bool ontop = score::AppContext()
+                     .settings<Media::Settings::Model>()
+                     .getVstAlwaysOnTop();
     if (ontop)
     {
-      setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint | Qt::WindowCloseButtonHint);
+      setWindowFlags(
+          windowFlags() | Qt::WindowStaysOnTopHint
+          | Qt::WindowCloseButtonHint);
     }
     else
     {
@@ -50,7 +57,7 @@ public:
   {
     Steinberg::IPlugView& view = *m_model.fx.view;
     container.setSizeFromUser(view, event->size(), *this);
-/*
+    /*
     QDialog::resizeEvent(event);
 
     Steinberg::IPlugView& view = *m_model.fx.view;
@@ -70,11 +77,10 @@ public:
       */
   }
 
-
   void closeEvent(QCloseEvent* event)
   {
     QPointer<Window> p(this);
-    if(auto view = m_model.fx.view)
+    if (auto view = m_model.fx.view)
       view->removed();
 
     const_cast<QWidget*&>(m_model.externalUI) = nullptr;
@@ -82,6 +88,5 @@ public:
     if (p)
       QDialog::closeEvent(event);
   }
-
 };
 }

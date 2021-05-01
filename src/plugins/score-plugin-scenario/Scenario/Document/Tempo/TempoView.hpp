@@ -3,6 +3,7 @@
 #include <Curve/Process/CurveProcessPresenter.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/LayerPresenter.hpp>
+
 #include <Scenario/Document/Tempo/TempoProcess.hpp>
 
 namespace Scenario
@@ -11,10 +12,13 @@ namespace Scenario
 class TempoView final : public Process::LayerView
 {
 public:
-  explicit TempoView(QGraphicsItem* parent) : Process::LayerView{parent}
+  explicit TempoView(QGraphicsItem* parent)
+      : Process::LayerView{parent}
   {
     setZValue(1);
-    setFlags(ItemClipsToShape | ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
+    setFlags(
+        ItemClipsToShape | ItemClipsChildrenToShape | ItemIsSelectable
+        | ItemIsFocusable);
     setAcceptDrops(true);
   }
 
@@ -40,7 +44,8 @@ private:
   Curve::View* m_curveView{};
 };
 
-class TempoPresenter final : public Curve::CurveProcessPresenter<TempoProcess, TempoView>
+class TempoPresenter final
+    : public Curve::CurveProcessPresenter<TempoProcess, TempoView>
 {
 public:
   explicit TempoPresenter(

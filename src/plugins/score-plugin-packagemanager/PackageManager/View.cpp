@@ -5,7 +5,6 @@
 #include "Presenter.hpp"
 
 #include <Library/LibrarySettings.hpp>
-#include <PackageManager/FileDownloader.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
@@ -15,19 +14,19 @@
 #include <QFile>
 #include <QGridLayout>
 #include <QHeaderView>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QJsonArray>
 #include <QMessageBox>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QStandardPaths>
 #include <QTemporaryFile>
-#include <zipdownloader.hpp>
 
-#include <QJsonDocument>
-#include <wobjectimpl.h>
+#include <PackageManager/FileDownloader.hpp>
 #include <score_git_info.hpp>
+#include <wobjectimpl.h>
+#include <zipdownloader.hpp>
 
 W_OBJECT_IMPL(PM::PluginSettingsView)
 namespace PM
@@ -218,7 +217,6 @@ void PluginSettingsView::on_message(QNetworkReply* rep)
     m_progress->setHidden(true);
   }
   rep->deleteLater();
-
 }
 
 void PluginSettingsView::install()
@@ -236,11 +234,11 @@ void PluginSettingsView::install()
 
   m_progress->setVisible(true);
 
-  if(addon.kind == "addon")
+  if (addon.kind == "addon")
     installAddon(addon);
-  else if(addon.kind == "sdk")
+  else if (addon.kind == "sdk")
     installSDK(addon);
-  else if(addon.kind == "media")
+  else if (addon.kind == "media")
     installLibrary(addon);
 }
 
@@ -252,126 +250,127 @@ void PluginSettingsView::installAddon(const RemotePackage& addon)
     return;
   }
 
-  const QString addons_path{score::AppContext()
-        .settings<Library::Settings::Model>()
-        .getPath()
-        + "/Addons"};
+  const QString addons_path{
+      score::AppContext().settings<Library::Settings::Model>().getPath()
+      + "/Addons"};
   zdl::download_and_extract(
-        addon.file,
-        QDir{addons_path}.absolutePath(),
-        [=] (const std::vector<QString>& res) {
-    m_progress->setHidden(true);
-    if(res.empty())
-      return;
-    // We want the extracted folder to have the name of the addon
-    {
-      QDir addons_dir{addons_path};
-      QFileInfo a_file(res[0]);
-      auto d = a_file.dir();
-      auto old_d = d;
-      while (d.cdUp() && !d.isRoot())
-      {
-        if (d == addons_dir)
+      addon.file,
+      QDir{addons_path}.absolutePath(),
+      [=](const std::vector<QString>& res) {
+        m_progress->setHidden(true);
+        if (res.empty())
+          return;
+        // We want the extracted folder to have the name of the addon
         {
-          addons_dir.rename(old_d.dirName(), addon.raw_name);
-          break;
+          QDir addons_dir{addons_path};
+          QFileInfo a_file(res[0]);
+          auto d = a_file.dir();
+          auto old_d = d;
+          while (d.cdUp() && !d.isRoot())
+          {
+            if (d == addons_dir)
+            {
+              addons_dir.rename(old_d.dirName(), addon.raw_name);
+              break;
+            }
+            old_d = d;
+          }
         }
-        old_d = d;
-      }
-    }
 
-    QMessageBox::information(
-          m_widget,
-          tr("Addon downloaded"),
-          tr("The addon %1 has been succesfully installed in :\n"
-             "%2\n\n"
-             "It will be built and enabled shortly.\nCheck the message "
-             "console for errors if nothing happens.")
-          .arg(addon.name)
-          .arg(QFileInfo(addons_path).absoluteFilePath()));
-  },
-  [=] {
-    m_progress->setHidden(true);
-    QMessageBox::warning(
-          m_widget,
-          tr("Download failed"),
-          tr("The package %1 could not be downloaded.").arg(addon.name));
-  });
+        QMessageBox::information(
+            m_widget,
+            tr("Addon downloaded"),
+            tr("The addon %1 has been succesfully installed in :\n"
+               "%2\n\n"
+               "It will be built and enabled shortly.\nCheck the message "
+               "console for errors if nothing happens.")
+                .arg(addon.name)
+                .arg(QFileInfo(addons_path).absoluteFilePath()));
+      },
+      [=] {
+        m_progress->setHidden(true);
+        QMessageBox::warning(
+            m_widget,
+            tr("Download failed"),
+            tr("The package %1 could not be downloaded.").arg(addon.name));
+      });
 }
 
 void PluginSettingsView::installSDK(const RemotePackage& addon)
 {
   QString version = SCORE_TAG_NO_V;
   constexpr const char* platform =
-    #if defined(_WIN32)
+#if defined(_WIN32)
       "windows"
-    #elif defined(__APPLE__)
+#elif defined(__APPLE__)
       "mac"
-    #else
+#else
       "linux"
-    #endif
-  ;
+#endif
+      ;
 
-  const QString lib_path{score::AppContext()
-        .settings<Library::Settings::Model>()
-        .getPath()};
+  const QString lib_path{
+      score::AppContext().settings<Library::Settings::Model>().getPath()};
   const QString sdk_path{lib_path + "/SDK/" + version};
   QDir{lib_path}.mkpath(sdk_path);
 
-  const QUrl sdk_url =
-      QString("https://github.com/ossia/score/releases/download/%1/%2-sdk.zip")
-      .arg(SCORE_TAG)
-      .arg(platform);
+  const QUrl sdk_url
+      = QString(
+            "https://github.com/ossia/score/releases/download/%1/%2-sdk.zip")
+            .arg(SCORE_TAG)
+            .arg(platform);
 
   zdl::download_and_extract(
-        sdk_url,
-        QFileInfo{sdk_path}.absoluteFilePath(),
-        [=] (const std::vector<QString>& res) {
-    m_progress->setHidden(true);
-    if(res.empty())
-      return;
+      sdk_url,
+      QFileInfo{sdk_path}.absoluteFilePath(),
+      [=](const std::vector<QString>& res) {
+        m_progress->setHidden(true);
+        if (res.empty())
+          return;
 
-    QMessageBox::information(
-          m_widget,
-          tr("SDK downloaded"),
-          tr("The SDK has been succesfully installed in the user library."));
-  },
-  [this] {
-    m_progress->setHidden(true);
-    QMessageBox::warning(
-          m_widget,
-          tr("Download failed"),
-          tr("The SDK could not be downloaded."));
-  });
+        QMessageBox::information(
+            m_widget,
+            tr("SDK downloaded"),
+            tr("The SDK has been succesfully installed in the user library."));
+      },
+      [this] {
+        m_progress->setHidden(true);
+        QMessageBox::warning(
+            m_widget,
+            tr("Download failed"),
+            tr("The SDK could not be downloaded."));
+      });
 }
 
 void PluginSettingsView::installLibrary(const RemotePackage& addon)
 {
-  const QString destination{score::AppContext()
-        .settings<Library::Settings::Model>()
-        .getPath() + "/Media/" + addon.raw_name};
+  const QString destination{
+      score::AppContext().settings<Library::Settings::Model>().getPath()
+      + "/Media/" + addon.raw_name};
 
   QDir{}.mkpath(destination);
 
   zdl::download_and_extract(
-        addon.file,
-        QFileInfo{destination}.absoluteFilePath(),
-        [=] (const std::vector<QString>& res) {
-    m_progress->setHidden(true);
-    if(res.empty())
-      return;
+      addon.file,
+      QFileInfo{destination}.absoluteFilePath(),
+      [=](const std::vector<QString>& res) {
+        m_progress->setHidden(true);
+        if (res.empty())
+          return;
 
-    QMessageBox::information(
-          m_widget,
-          tr("Package downloaded"),
-          tr("The package %1 has been succesfully installed in the user library.").arg(addon.name));
-  },
-  [=] {
-    m_progress->setHidden(true);
-    QMessageBox::warning(
-          m_widget,
-          tr("Download failed"),
-          tr("The package %1 could not be downloaded.").arg(addon.name));
-  });
+        QMessageBox::information(
+            m_widget,
+            tr("Package downloaded"),
+            tr("The package %1 has been succesfully installed in the user "
+               "library.")
+                .arg(addon.name));
+      },
+      [=] {
+        m_progress->setHidden(true);
+        QMessageBox::warning(
+            m_widget,
+            tr("Download failed"),
+            tr("The package %1 could not be downloaded.").arg(addon.name));
+      });
 }
 }

@@ -1,4 +1,5 @@
 #include <score/tools/ThreadPool.hpp>
+
 #include <thread>
 #if __has_include(<sys/resource.h>)
 #include <sys/resource.h>
@@ -6,19 +7,17 @@
 
 namespace score
 {
-ThreadPool::ThreadPool()
-{
-}
+ThreadPool::ThreadPool() { }
 
 ThreadPool::~ThreadPool()
 {
-  if(m_threads)
+  if (m_threads)
   {
-    for(int i = 0; i < m_numThreads; i++)
+    for (int i = 0; i < m_numThreads; i++)
     {
       m_threads[i].quit();
     }
-    for(int i = 0; i < m_numThreads; i++)
+    for (int i = 0; i < m_numThreads; i++)
     {
       m_threads[i].wait();
     }
@@ -27,29 +26,30 @@ ThreadPool::~ThreadPool()
   }
 }
 
-ThreadPool& ThreadPool::instance() {
+ThreadPool& ThreadPool::instance()
+{
   static ThreadPool threads;
   return threads;
 }
 
 QThread* ThreadPool::acquireThread()
 {
-  if(!m_threads)
+  if (!m_threads)
   {
     m_numThreads = std::thread::hardware_concurrency();
-    if(m_numThreads > 2)
+    if (m_numThreads > 2)
       m_numThreads = m_numThreads / 2;
-    if(m_numThreads < 2)
+    if (m_numThreads < 2)
       m_numThreads = 2;
     m_threads = std::make_unique<QThread[]>(m_numThreads);
 
-    for(int i = 0; i < m_numThreads; i++)
+    for (int i = 0; i < m_numThreads; i++)
     {
 #if __has_include(<sys/resource.h>)
       ::rlimit lim{0, 0};
       getrlimit(RLIMIT_STACK, &lim);
 
-      if(lim.rlim_cur > m_threads[i].stackSize())
+      if (lim.rlim_cur > m_threads[i].stackSize())
         m_threads[i].setStackSize(lim.rlim_cur);
 #endif
       m_threads[i].start();
@@ -60,7 +60,7 @@ QThread* ThreadPool::acquireThread()
   QThread& t = m_threads[m_currentThread];
   m_currentThread++;
   m_currentThread = m_currentThread % m_numThreads;
-  m_inFlight ++;
+  m_inFlight++;
   return &t;
 }
 
@@ -68,13 +68,13 @@ void ThreadPool::releaseThread()
 {
   m_inFlight--;
 
-  if(m_inFlight == 0)
+  if (m_inFlight == 0)
   {
-    for(int i = 0; i < m_numThreads; i++)
+    for (int i = 0; i < m_numThreads; i++)
     {
       m_threads[i].quit();
     }
-    for(int i = 0; i < m_numThreads; i++)
+    for (int i = 0; i < m_numThreads; i++)
     {
       m_threads[i].wait();
     }

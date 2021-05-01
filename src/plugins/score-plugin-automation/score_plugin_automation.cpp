@@ -44,7 +44,8 @@ template <typename Layer_T>
 class MinMaxHeaderDelegate final : public Process::DefaultHeaderDelegate
 {
 public:
-  using model_t = std::remove_reference_t<decltype(std::declval<Layer_T>().model())>;
+  using model_t
+      = std::remove_reference_t<decltype(std::declval<Layer_T>().model())>;
   MinMaxHeaderDelegate(
       const Process::ProcessModel& m,
       const Process::Context& doc)
@@ -61,7 +62,8 @@ public:
     auto& style = Process::Style::instance();
     const auto& model = static_cast<model_t&>(m_model);
 
-    const QPen& pen = m_sel ? style.IntervalHeaderTextPen() : textPen(style, model);
+    const QPen& pen
+        = m_sel ? style.IntervalHeaderTextPen() : textPen(style, model);
 
     QString txt = model.prettyName();
     txt += "  Min: ";
@@ -84,8 +86,10 @@ using AutomationLayerFactory = Curve::CurveLayerFactory_T<
 namespace Gradient
 {
 using GradientFactory = Process::ProcessFactory_T<Gradient::ProcessModel>;
-using GradientLayerFactory
-    = Process::LayerFactory_T<Gradient::ProcessModel, Gradient::Presenter, Gradient::View>;
+using GradientLayerFactory = Process::LayerFactory_T<
+    Gradient::ProcessModel,
+    Gradient::Presenter,
+    Gradient::View>;
 }
 
 namespace Metronome
@@ -102,7 +106,8 @@ using MetronomeLayerFactory = Curve::CurveLayerFactory_T<
 score_plugin_automation::score_plugin_automation() = default;
 score_plugin_automation::~score_plugin_automation() = default;
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_automation::factories(
+std::vector<std::unique_ptr<score::InterfaceBase>>
+score_plugin_automation::factories(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& key) const
 {
@@ -123,7 +128,8 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_automation::fact
          Gradient::InspectorFactory,
          Metronome::InspectorFactory>,
 
-      FW<LocalTree::ProcessComponentFactory, LocalTree::AutomationComponentFactory>,
+      FW<LocalTree::ProcessComponentFactory,
+         LocalTree::AutomationComponentFactory>,
 
       FW<Execution::ProcessComponentFactory,
          //, Interpolation::Executor::ComponentFactory,
@@ -133,7 +139,8 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_automation::fact
          Metronome::RecreateOnPlay::ComponentFactory>>(ctx, key);
 }
 
-std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_automation::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap>
+score_plugin_automation::make_commands()
 {
   using namespace Automation;
   using namespace Gradient;

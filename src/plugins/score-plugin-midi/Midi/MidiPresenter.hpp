@@ -12,7 +12,9 @@ namespace Midi
 class NoteView;
 class View;
 class Note;
-class Presenter final : public Process::LayerPresenter, public Nano::Observer
+class Presenter final
+    : public Process::LayerPresenter
+    , public Nano::Observer
 {
 public:
   explicit Presenter(
@@ -41,7 +43,6 @@ public:
   void on_noteScaled(const Note& note, double newScale);
   void on_requestVelocityChange(const Note& note, double velocityDelta);
   void on_velocityChangeFinished();
-
 
 private:
   void updateNote(NoteView&);

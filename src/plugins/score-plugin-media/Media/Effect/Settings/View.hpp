@@ -1,18 +1,18 @@
 #pragma once
+#include <score/plugins/Interface.hpp>
+#include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/ProjectSettings/ProjectSettingsView.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
-#include <score/plugins/InterfaceList.hpp>
-#include <score/plugins/Interface.hpp>
-#include <verdigris>
+
 #include <score_plugin_media_export.h>
+
+#include <verdigris>
 
 class QTabWidget;
 
-
 namespace Media::Settings
 {
-class View
-    : public score::GlobalSettingsView
+class View : public score::GlobalSettingsView
 {
   W_OBJECT(View)
 public:

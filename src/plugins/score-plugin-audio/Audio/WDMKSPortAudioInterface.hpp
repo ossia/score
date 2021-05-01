@@ -1,12 +1,14 @@
 #pragma once
 #include <Audio/AudioInterface.hpp>
-#include <Audio/Settings/Model.hpp>
 #include <Audio/PortAudioInterface.hpp>
+#include <Audio/Settings/Model.hpp>
 
 namespace Audio
 {
 #if __has_include(<pa_win_wdmks.h>)
-class WDMKSFactory final : public QObject, public AudioFactory
+class WDMKSFactory final
+    : public QObject
+    , public AudioFactory
 {
   SCORE_CONCRETE("d98fca36-4e50-4802-a825-2fa213f95265")
 public:
@@ -16,16 +18,19 @@ public:
 
   ~WDMKSFactory() override { }
   bool available() const noexcept override { return true; }
-  void initialize(Audio::Settings::Model& set, const score::ApplicationContext& ctx) override
+  void initialize(
+      Audio::Settings::Model& set,
+      const score::ApplicationContext& ctx) override
   {
-    auto device_in = ossia::find_if(devices, [&] (const PortAudioCard& dev) {
+    auto device_in = ossia::find_if(devices, [&](const PortAudioCard& dev) {
       return dev.raw_name == set.getCardIn() && dev.hostapi != paInDevelopment;
     });
-    auto device_out = ossia::find_if(devices, [&] (const PortAudioCard& dev) {
-      return dev.raw_name == set.getCardOut() && dev.hostapi != paInDevelopment;
+    auto device_out = ossia::find_if(devices, [&](const PortAudioCard& dev) {
+      return dev.raw_name == set.getCardOut()
+             && dev.hostapi != paInDevelopment;
     });
 
-    if(device_in == devices.end() || device_out == devices.end())
+    if (device_in == devices.end() || device_out == devices.end())
     {
       set.setCardIn(devices.back().raw_name);
       set.setCardOut(devices.back().raw_name);
@@ -37,7 +42,7 @@ public:
     }
     else
     {
-      if(device_out != devices.end())
+      if (device_out != devices.end())
       {
         set.setDefaultIn(device_out->inputChan);
         set.setDefaultOut(device_out->outputChan);
@@ -53,7 +58,8 @@ public:
     devices.clear();
     PortAudioScope portaudio;
 
-    devices.push_back(PortAudioCard{{}, {}, QObject::tr("No device"), -1, 0, 0, {}});
+    devices.push_back(
+        PortAudioCard{{}, {}, QObject::tr("No device"), -1, 0, 0, {}});
     for (int i = 0; i < Pa_GetHostApiCount(); i++)
     {
       auto hostapi = Pa_GetHostApiInfo(i);
@@ -64,7 +70,7 @@ public:
           auto dev_idx = Pa_HostApiDeviceIndexToDeviceIndex(i, card);
           auto dev = Pa_GetDeviceInfo(dev_idx);
           auto raw_name = QString::fromUtf8(Pa_GetDeviceInfo(dev_idx)->name);
-          if(dev->maxOutputChannels > 0)
+          if (dev->maxOutputChannels > 0)
           {
             devices.push_back(PortAudioCard{
                 "WDMKS",
@@ -82,8 +88,9 @@ public:
   }
 
   QString prettyName() const override { return QObject::tr("WDMKS"); }
-  std::unique_ptr<ossia::audio_engine>
-  make_engine(const Audio::Settings::Model& set, const score::ApplicationContext& ctx) override
+  std::unique_ptr<ossia::audio_engine> make_engine(
+      const Audio::Settings::Model& set,
+      const score::ApplicationContext& ctx) override
   {
     return std::make_unique<ossia::portaudio_engine>(
         "ossia score",
@@ -98,8 +105,8 @@ public:
 
   void setCard(QComboBox* combo, QString val)
   {
-    auto dev_it
-        = ossia::find_if(devices, [&](const PortAudioCard& d) { return d.raw_name == val; });
+    auto dev_it = ossia::find_if(
+        devices, [&](const PortAudioCard& d) { return d.raw_name == val; });
     if (dev_it != devices.end())
     {
       combo->setCurrentIndex(dev_it->out_index);
@@ -138,15 +145,22 @@ public:
       auto update_dev = [=, &m, &m_disp](const PortAudioCard& dev) {
         if (dev.raw_name != m.getCardOut())
         {
-          m_disp.submitDeferredCommand<Audio::Settings::SetModelCardIn>(m, dev.raw_name);
-          m_disp.submitDeferredCommand<Audio::Settings::SetModelCardOut>(m, dev.raw_name);
-          m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultIn>(m, dev.inputChan);
-          m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultOut>(m, dev.outputChan);
+          m_disp.submitDeferredCommand<Audio::Settings::SetModelCardIn>(
+              m, dev.raw_name);
+          m_disp.submitDeferredCommand<Audio::Settings::SetModelCardOut>(
+              m, dev.raw_name);
+          m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultIn>(
+              m, dev.inputChan);
+          m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultOut>(
+              m, dev.outputChan);
         }
       };
 
       QObject::connect(
-          card_list, SignalUtils::QComboBox_currentIndexChanged_int(), &v, [=](int i) {
+          card_list,
+          SignalUtils::QComboBox_currentIndexChanged_int(),
+          &v,
+          [=](int i) {
             auto& device = devices[card_list->itemData(i).toInt()];
             update_dev(device);
           });
@@ -167,7 +181,9 @@ public:
     addBufferSizeWidget(*w, m, v);
     addSampleRateWidget(*w, m, v);
 
-    con(m, &Model::changed, w, [=, &m] { setCard(card_list, m.getCardOut()); });
+    con(m, &Model::changed, w, [=, &m] {
+      setCard(card_list, m.getCardOut());
+    });
     return w;
   }
 };

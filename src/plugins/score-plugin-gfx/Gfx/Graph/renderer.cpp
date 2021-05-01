@@ -2,7 +2,7 @@
 
 #include "mesh.hpp"
 
-#include <Gfx/Qt5CompatPush>
+#include <Gfx/Qt5CompatPush> // clang-format: keep
 MeshBuffers Renderer::initMeshBuffer(const Mesh& mesh)
 {
   if (auto it = m_vertexBuffers.find(&mesh); it != m_vertexBuffers.end())
@@ -10,7 +10,9 @@ MeshBuffers Renderer::initMeshBuffer(const Mesh& mesh)
 
   auto& rhi = *state.rhi;
   auto mesh_buf = rhi.newBuffer(
-      QRhiBuffer::Immutable, QRhiBuffer::VertexBuffer, mesh.vertexArray.size() * sizeof(float));
+      QRhiBuffer::Immutable,
+      QRhiBuffer::VertexBuffer,
+      mesh.vertexArray.size() * sizeof(float));
   mesh_buf->create();
 
   QRhiBuffer* idx_buf{};
@@ -32,17 +34,16 @@ MeshBuffers Renderer::initMeshBuffer(const Mesh& mesh)
 void Renderer::init()
 {
   ready = false;
-  if(!state.rhi)
+  if (!state.rhi)
     return;
   auto& rhi = *state.rhi;
 
   m_rendererUBO = rhi.newBuffer(
-      QRhiBuffer::Dynamic,
-      QRhiBuffer::UniformBuffer,
-      sizeof(ScreenUBO));
+      QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(ScreenUBO));
   m_rendererUBO->create();
 
-  m_emptyTexture = rhi.newTexture(QRhiTexture::RGBA8, QSize{1, 1}, 1, QRhiTexture::Flag{});
+  m_emptyTexture = rhi.newTexture(
+      QRhiTexture::RGBA8, QSize{1, 1}, 1, QRhiTexture::Flag{});
   m_emptyTexture->create();
 }
 
@@ -104,8 +105,10 @@ QRhiTexture* Renderer::textureTargetForInputPort(Port& port)
 
   auto renderedNode = source_node->renderedNodes[this];
   auto it = textureTargets.find(renderedNode);
-  if(it == textureTargets.end()) {
-    qDebug() << "! warning ! output texture requested but not existing." << typeid(renderedNode).name();
+  if (it == textureTargets.end())
+  {
+    qDebug() << "! warning ! output texture requested but not existing."
+             << typeid(renderedNode).name();
     return texture;
   }
 
@@ -115,7 +118,7 @@ QRhiTexture* Renderer::textureTargetForInputPort(Port& port)
 void Renderer::createRenderTarget(score::gfx::NodeRenderer& node)
 {
   auto tg = node.createRenderTarget(state);
-  if(tg.texture)
+  if (tg.texture)
     textureTargets[&node] = tg.texture;
   else
     qDebug() << typeid(node).name() << "does not have a texture ! ";
@@ -123,7 +126,8 @@ void Renderer::createRenderTarget(score::gfx::NodeRenderer& node)
 
 void Renderer::createRenderTargets()
 {
-  for (auto node : renderedNodes) {
+  for (auto node : renderedNodes)
+  {
     createRenderTarget(*node);
   }
 }
@@ -182,13 +186,15 @@ void Renderer::update(QRhiResourceUpdateBatch& res)
   {
     for (auto [mesh, buf] : buffersToUpload)
     {
-      res.uploadStaticBuffer(buf.mesh, 0, buf.mesh->size(), mesh->vertexArray.data());
+      res.uploadStaticBuffer(
+          buf.mesh, 0, buf.mesh->size(), mesh->vertexArray.data());
       if (buf.index)
-        res.uploadStaticBuffer(buf.index, 0, buf.index->size(), mesh->indexArray.data());
+        res.uploadStaticBuffer(
+            buf.index, 0, buf.index->size(), mesh->indexArray.data());
     }
 
     buffersToUpload.clear();
   }
 }
 
-#include <Gfx/Qt5CompatPop>
+#include <Gfx/Qt5CompatPop> // clang-format: keep

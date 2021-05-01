@@ -12,7 +12,8 @@
 #include <QVariant>
 
 score::DocumentBackupManager::DocumentBackupManager(score::Document& doc)
-    : QObject{&doc}, m_doc{doc}
+    : QObject{&doc}
+    , m_doc{doc}
 {
   m_modelFile.open();
 
@@ -59,7 +60,8 @@ void score::DocumentBackupManager::updateBackupData()
   auto existing_files = s.value("score/docs").toMap();
   existing_files.insert(
       crashDataFile().fileName(),
-      QVariant::fromValue(qMakePair(m_doc.metadata().fileName(), crashCommandFile().fileName())));
+      QVariant::fromValue(qMakePair(
+          m_doc.metadata().fileName(), crashCommandFile().fileName())));
   s.setValue("score/docs", existing_files);
 #endif
 }

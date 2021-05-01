@@ -15,7 +15,8 @@
 
 namespace Gradient
 {
-class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Process::ProcessModel
+class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
+    : public Process::ProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Gradient::ProcessModel)
@@ -23,11 +24,15 @@ class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Process::Proces
   W_OBJECT(ProcessModel)
 
 public:
-  ProcessModel(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
+  ProcessModel(
+      const TimeVal& duration,
+      const Id<Process::ProcessModel>& id,
+      QObject* parent);
   ~ProcessModel() override;
 
   template <typename Impl>
-  ProcessModel(Impl& vis, QObject* parent) : Process::ProcessModel{vis, parent}
+  ProcessModel(Impl& vis, QObject* parent)
+      : Process::ProcessModel{vis, parent}
   {
     vis.writeTo(*this);
     init();
@@ -49,8 +54,10 @@ public:
   std::unique_ptr<Process::Outlet> outlet;
 
 public:
-  void tweenChanged(bool tween) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, tweenChanged, tween)
-  void gradientChanged() E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, gradientChanged)
+  void tweenChanged(bool tween)
+      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, tweenChanged, tween)
+  void gradientChanged()
+      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, gradientChanged)
 
   PROPERTY(bool, tween READ tween WRITE setTween NOTIFY tweenChanged)
 private:

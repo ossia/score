@@ -1,22 +1,23 @@
 #include <Vst3/ApplicationPlugin.hpp>
 
-#include <score/tools/Bind.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <QApplication>
-#include <QWebSocket>
-#include <QWebSocketServer>
 #include <QDir>
 #include <QDirIterator>
-#include <QSettings>
-#include <QJsonDocument>
 #include <QJsonArray>
-#include <QJsonValue>
+#include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonValue>
+#include <QSettings>
 #include <QTimer>
+#include <QWebSocket>
+#include <QWebSocketServer>
+
+#include <wobjectimpl.h>
 
 #include <sstream>
-#include <wobjectimpl.h>
 
 W_OBJECT_IMPL(vst3::ApplicationPlugin)
 
@@ -29,57 +30,37 @@ Q_DECLARE_METATYPE(std::vector<vst3::AvailablePlugin>)
 W_REGISTER_ARGTYPE(std::vector<vst3::AvailablePlugin>)
 
 template <>
-void DataStreamReader::read<VST3::Hosting::ClassInfo>(const VST3::Hosting::ClassInfo& pp)
+void DataStreamReader::read<VST3::Hosting::ClassInfo>(
+    const VST3::Hosting::ClassInfo& pp)
 {
   auto& p = const_cast<VST3::Hosting::ClassInfo&>(pp);
   auto& d = p.get();
-  m_stream
-      << d.classID.toString()
-      << d.cardinality
-      << d.category
-      << d.name
-      << d.vendor
-      << d.version
-      << d.sdkVersion
-      << d.subCategories
-      << (const uint32_t&) d.classFlags
-  ;
+  m_stream << d.classID.toString() << d.cardinality << d.category << d.name
+           << d.vendor << d.version << d.sdkVersion << d.subCategories
+           << (const uint32_t&)d.classFlags;
 }
 template <>
-void DataStreamWriter::write<VST3::Hosting::ClassInfo>(VST3::Hosting::ClassInfo& p)
+void DataStreamWriter::write<VST3::Hosting::ClassInfo>(
+    VST3::Hosting::ClassInfo& p)
 {
   auto& d = p.get();
   std::string clsid;
-  m_stream
-      >> clsid
-      >> d.cardinality
-      >> d.category
-      >> d.name
-      >> d.vendor
-      >> d.version
-      >> d.sdkVersion
-      >> d.subCategories
-      >> (uint32_t&) d.classFlags
-  ;
+  m_stream >> clsid >> d.cardinality >> d.category >> d.name >> d.vendor
+      >> d.version >> d.sdkVersion >> d.subCategories
+      >> (uint32_t&)d.classFlags;
   d.classID.fromString(clsid);
 }
 
 template <>
-void DataStreamReader::read<vst3::AvailablePlugin>(const vst3::AvailablePlugin& p)
+void DataStreamReader::read<vst3::AvailablePlugin>(
+    const vst3::AvailablePlugin& p)
 {
-  m_stream << p.path
-           << p.name
-           << p.classInfo
-           << p.isValid;
+  m_stream << p.path << p.name << p.classInfo << p.isValid;
 }
 template <>
 void DataStreamWriter::write<vst3::AvailablePlugin>(vst3::AvailablePlugin& p)
 {
-    m_stream
-        >> p.path
-        >> p.name
-        >> p.classInfo
-        >> p.isValid;
+  m_stream >> p.path >> p.name >> p.classInfo >> p.isValid;
 }
 namespace vst3
 {
@@ -92,7 +73,8 @@ static const constexpr auto default_filter = "*.vst3";
 static const constexpr auto default_path{"/usr/lib/vst3"};
 static const constexpr auto default_filter = "*.vst3";
 #elif defined(_WIN32)
-static const constexpr auto default_path = "C:\\Program Files\\Common Files\\VST3";
+static const constexpr auto default_path
+    = "C:\\Program Files\\Common Files\\VST3";
 static const constexpr auto default_filter = "*.vst3";
 #else
 static const constexpr auto default_path = "";
@@ -100,8 +82,8 @@ static const constexpr auto default_filter = "";
 #endif
 }
 ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& ctx)
-  : score::ApplicationPlugin{ctx}
-  , m_wsServer("vst3-notification-server", QWebSocketServer::NonSecureMode)
+    : score::ApplicationPlugin{ctx}
+    , m_wsServer("vst3-notification-server", QWebSocketServer::NonSecureMode)
 {
   qRegisterMetaType<AvailablePlugin>();
   qRegisterMetaType<std::vector<AvailablePlugin>>();
@@ -117,10 +99,11 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& ctx)
     if (!ws)
       return;
 
-    connect(ws, &QWebSocket::textMessageReceived, this, [=](const QString& txt) {
-      processIncomingMessage(txt);
-      ws->deleteLater();
-    });
+    connect(
+        ws, &QWebSocket::textMessageReceived, this, [=](const QString& txt) {
+          processIncomingMessage(txt);
+          ws->deleteLater();
+        });
   });
 }
 
@@ -153,10 +136,10 @@ void ApplicationPlugin::rescan(const QStringList& paths)
   for (const QString& dir : paths)
   {
     QDirIterator it(
-          dir,
-          QStringList{default_filter},
-          QDir::Dirs,
-          QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
+        dir,
+        QStringList{default_filter},
+        QDir::Dirs,
+        QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
     while (it.hasNext())
       newPlugins.insert(it.next());
   }
@@ -190,10 +173,11 @@ void ApplicationPlugin::rescan(const QStringList& paths)
 #if defined(__APPLE__)
     {
       QString bundle_vstpuppet = qApp->applicationDirPath() + "/ossia-score-vst3puppet.app/Contents/MacOS/ossia-score-vst3puppet";
-      if(QFile::exists(bundle_vstpuppet))
+      if (QFile::exists(bundle_vstpuppet))
         proc->setProgram(bundle_vstpuppet);
       else
-        proc->setProgram(qApp->applicationDirPath() + "/ossia-score-vst3puppet");
+        proc->setProgram(
+            qApp->applicationDirPath() + "/ossia-score-vst3puppet");
     }
 #else
     proc->setProgram("ossia-score-vst3puppet");
@@ -228,7 +212,6 @@ void ApplicationPlugin::rescan(const QStringList& paths)
   */
 }
 
-
 void ApplicationPlugin::processIncomingMessage(const QString& txt)
 {
   QJsonDocument doc = QJsonDocument::fromJson(txt.toUtf8());
@@ -239,22 +222,23 @@ void ApplicationPlugin::processIncomingMessage(const QString& txt)
     addVST(obj["Path"].toString(), obj);
     int id = obj["Request"].toInt();
 
-    if(id >= 0 && id < m_processes.size())
+    if (id >= 0 && id < m_processes.size())
     {
       if (m_processes[id].process)
       {
         m_processes[id].process->close();
-        if (m_processes[id].process->state() == QProcess::ProcessState::NotRunning)
+        if (m_processes[id].process->state()
+            == QProcess::ProcessState::NotRunning)
         {
           m_processes[id] = {};
         }
         else
         {
           connect(
-                m_processes[id].process.get(),
-                qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
-                this,
-                [this, id] { m_processes[id] = {}; });
+              m_processes[id].process.get(),
+              qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
+              this,
+              [this, id] { m_processes[id] = {}; });
         }
       }
     }
@@ -280,13 +264,14 @@ void ApplicationPlugin::addInvalidVST(const QString& path)
   vstChanged();
 }
 
-VST3::Hosting::ClassInfo::SubCategories parseSubCategories (const std::string& str) noexcept
+VST3::Hosting::ClassInfo::SubCategories
+parseSubCategories(const std::string& str) noexcept
 {
   std::vector<std::string> vec;
-  std::stringstream stream (str);
+  std::stringstream stream(str);
   std::string item;
-  while (std::getline (stream, item, '|'))
-    vec.emplace_back (move (item));
+  while (std::getline(stream, item, '|'))
+    vec.emplace_back(move(item));
   return vec;
 }
 
@@ -301,7 +286,7 @@ void ApplicationPlugin::addVST(const QString& path, const QJsonObject& obj)
   const auto& classes = obj["Classes"].toArray();
   i.classInfo.reserve(classes.size());
 
-  for(const QJsonValue& v : classes)
+  for (const QJsonValue& v : classes)
   {
     const QJsonObject& obj = v.toObject();
     i.classInfo.resize(i.classInfo.size() + 1);
@@ -314,7 +299,8 @@ void ApplicationPlugin::addVST(const QString& path, const QJsonObject& obj)
     cls.get().vendor = obj["Vendor"].toString().toStdString();
     cls.get().version = obj["Version"].toString().toStdString();
     cls.get().sdkVersion = obj["SDKVersion"].toString().toStdString();
-    cls.get().subCategories = parseSubCategories(obj["Subcategories"].toString().toStdString());
+    cls.get().subCategories
+        = parseSubCategories(obj["Subcategories"].toString().toStdString());
     cls.get().classFlags = obj["Version"].toDouble();
   }
 
@@ -327,11 +313,12 @@ void ApplicationPlugin::addVST(const QString& path, const QJsonObject& obj)
   vstChanged();
 }
 
-VST3::Hosting::Module::Ptr ApplicationPlugin::getModule(const std::string& path)
+VST3::Hosting::Module::Ptr
+ApplicationPlugin::getModule(const std::string& path)
 {
   std::string err;
   auto it = modules.find(path);
-  if(it != modules.end())
+  if (it != modules.end())
   {
     return it->second;
   }

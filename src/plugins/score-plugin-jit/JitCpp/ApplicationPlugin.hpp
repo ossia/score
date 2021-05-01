@@ -10,8 +10,9 @@
 namespace Jit
 {
 
-struct ApplicationPlugin final : public QObject,
-                                 public score::GUIApplicationPlugin
+struct ApplicationPlugin final
+    : public QObject
+    , public score::GUIApplicationPlugin
 {
   ApplicationPlugin(const score::GUIApplicationContext& ctx);
 

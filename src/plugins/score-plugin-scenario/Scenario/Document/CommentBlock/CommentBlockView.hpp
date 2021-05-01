@@ -1,9 +1,9 @@
 #pragma once
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
-
 #include <QGraphicsItem>
 #include <QObject>
 #include <QPointF>
+
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 
 #include <verdigris>
 namespace score
@@ -14,7 +14,9 @@ class TextItem;
 namespace Scenario
 {
 class CommentBlockPresenter;
-class CommentBlockView final : public QObject, public QGraphicsItem
+class CommentBlockView final
+    : public QObject
+    , public QGraphicsItem
 {
 public:
   CommentBlockView(CommentBlockPresenter& presenter, QGraphicsItem* parent);
@@ -24,7 +26,10 @@ public:
 
   const CommentBlockPresenter& presenter() const { return m_presenter; }
 
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
 
   QRectF boundingRect() const override;
 

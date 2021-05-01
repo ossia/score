@@ -16,7 +16,8 @@ ProcessModel::ProcessModel(
     const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    : Process::
+        ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , outlet{Process::make_midi_outlet(Id<Process::Port>(0), this)}
 {
   m_range = {60, 71};
@@ -89,9 +90,9 @@ void ProcessModel::setDurationAndScale(const TimeVal& newDuration) noexcept
 
 void ProcessModel::setDurationAndGrow(const TimeVal& newDuration) noexcept
 {
-  if(duration() == newDuration)
+  if (duration() == newDuration)
     return;
-  if(newDuration == TimeVal::zero())
+  if (newDuration == TimeVal::zero())
     return;
   auto ratio = double(duration().impl) / newDuration.impl;
 
@@ -104,9 +105,9 @@ void ProcessModel::setDurationAndGrow(const TimeVal& newDuration) noexcept
 
 void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 {
-  if(duration() == newDuration)
+  if (duration() == newDuration)
     return;
-  if(newDuration == TimeVal::zero())
+  if (newDuration == TimeVal::zero())
     return;
 
   auto ratio = double(duration().impl) / newDuration.impl;
@@ -208,7 +209,8 @@ void JSONWriter::write(Midi::Note& n)
 template <>
 void DataStreamReader::read(const Midi::ProcessModel& proc)
 {
-  m_stream << *proc.outlet << proc.channel() << proc.m_range.first << proc.m_range.second;
+  m_stream << *proc.outlet << proc.channel() << proc.m_range.first
+           << proc.m_range.second;
 
   const auto& notes = proc.notes;
 

@@ -49,8 +49,10 @@ public:
       Inspector::Layout& lay,
       QWidget* parent);
 
-  static QWidget*
-  makeAddressWidget(const Process::Port& port, const score::DocumentContext& ctx, QWidget* parent);
+  static QWidget* makeAddressWidget(
+      const Process::Port& port,
+      const score::DocumentContext& ctx,
+      QWidget* parent);
 
 private:
   static void setupImpl(

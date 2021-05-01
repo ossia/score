@@ -1,7 +1,7 @@
 #pragma once
-#include <ossia/detail/string_map.hpp>
-
 #include <Control/Widgets.hpp>
+
+#include <ossia/detail/string_map.hpp>
 
 #include <array>
 namespace Control
@@ -39,19 +39,20 @@ static const constexpr std::array<std::pair<const char*, float>, 13> notes{
      {"Dotted 16th", 3. / 32.},
      {"Dotted 32th", 3. / 64.}}};
 
-static const constexpr std::array<std::pair<const char*, float>, 12> nonnull_notes{
-    {{"Whole", 1.},
-     {"Half", 1. / 2.},
-     {"4th", 1. / 4.},
-     {"8th", 1. / 8.},
-     {"16th", 1. / 16.},
-     {"32th", 1. / 32.},
-     {"64th", 1. / 64.},
-     {"Dotted Half", 3. / 4.},
-     {"Dotted 4th", 3. / 8.},
-     {"Dotted 8th", 3. / 16.},
-     {"Dotted 16th", 3. / 32.},
-     {"Dotted 32th", 3. / 64.}}};
+static const constexpr std::array<std::pair<const char*, float>, 12>
+    nonnull_notes{
+        {{"Whole", 1.},
+         {"Half", 1. / 2.},
+         {"4th", 1. / 4.},
+         {"8th", 1. / 8.},
+         {"16th", 1. / 16.},
+         {"32th", 1. / 32.},
+         {"64th", 1. / 64.},
+         {"Dotted Half", 3. / 4.},
+         {"Dotted 4th", 3. / 8.},
+         {"Dotted 8th", 3. / 16.},
+         {"Dotted 16th", 3. / 32.},
+         {"Dotted 32th", 3. / 64.}}};
 
 static const constexpr std::array<std::pair<const char*, int>, 5> arpeggios{
     {{"Forward", 0}, {"Backward", 1}, {"F->B", 2}, {"B->F", 3}, {"Chord", 4}}};
@@ -87,7 +88,14 @@ static constexpr auto WaveformChooser()
       "Waveform",
       0U,
       ossia::make_array(
-          "Sin", "Triangle", "Saw", "Square", "Sample & Hold", "Noise 1", "Noise 2", "Noise 3"),
+          "Sin",
+          "Triangle",
+          "Saw",
+          "Square",
+          "Sample & Hold",
+          "Noise 1",
+          "Noise 2",
+          "Noise 3"),
       std::array<const char*, 16>{
           ":/icons/wave_sin_off.png",
           ":/icons/wave_sin_on.png",
@@ -116,7 +124,8 @@ enum LoopMode
 };
 constexpr auto LoopChooser()
 {
-  return Control::make_enum("Loop", 0U, ossia::make_array("Play", "Record", "Overdub", "Stop"));
+  return Control::make_enum(
+      "Loop", 0U, ossia::make_array("Play", "Record", "Overdub", "Stop"));
 }
 constexpr LoopMode GetLoopMode(std::string_view str) noexcept
 {
@@ -133,20 +142,24 @@ constexpr LoopMode GetLoopMode(std::string_view str) noexcept
 
 constexpr auto QuantificationChooser()
 {
-  return Control::ComboBox<float, std::size(notes)>("Quantification", 2, notes);
+  return Control::ComboBox<float, std::size(notes)>(
+      "Quantification", 2, notes);
 }
 constexpr auto ArpeggioChooser()
 {
-  return Control::ComboBox<int, std::size(arpeggios)>("Arpeggios", 0, arpeggios);
+  return Control::ComboBox<int, std::size(arpeggios)>(
+      "Arpeggios", 0, arpeggios);
 }
 
 constexpr auto MusicalDurationChooser()
 {
-  return Control::ComboBox<float, std::size(nonnull_notes)>("Duration", 2, nonnull_notes);
+  return Control::ComboBox<float, std::size(nonnull_notes)>(
+      "Duration", 2, nonnull_notes);
 }
 constexpr auto DurationChooser()
 {
-  return Control::ComboBox<float, std::size(durations)>("Duration", 2, durations);
+  return Control::ComboBox<float, std::size(durations)>(
+      "Duration", 2, durations);
 }
 constexpr auto FreqSlider()
 {

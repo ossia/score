@@ -2,7 +2,8 @@
 #include <Dataflow/PortItem.hpp>
 namespace Dataflow
 {
-struct SCORE_PLUGIN_DATAFLOW_EXPORT MidiOutletFactory final : public AutomatablePortFactory
+struct SCORE_PLUGIN_DATAFLOW_EXPORT MidiOutletFactory final
+    : public AutomatablePortFactory
 {
   using Model_T = Process::MidiOutlet;
   UuidKey<Process::Port> concreteKey() const noexcept override

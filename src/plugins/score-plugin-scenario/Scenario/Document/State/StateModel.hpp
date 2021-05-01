@@ -1,11 +1,6 @@
 #pragma once
 #include <Process/Instantiations.hpp>
 #include <Process/Process.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/Event/ExecutionStatus.hpp>
-#include <Scenario/Document/Metatypes.hpp>
-#include <Scenario/Document/State/ItemModel/ControlItemModel.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 
 #include <score/model/Component.hpp>
 #include <score/model/EntityImpl.hpp>
@@ -16,6 +11,11 @@
 #include <score/tools/Metadata.hpp>
 #include <score/tools/std/Optional.hpp>
 
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/Metatypes.hpp>
+#include <Scenario/Document/State/ItemModel/ControlItemModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <nano_signal_slot.hpp>
 #include <score_plugin_scenario_export.h>
 
@@ -46,15 +46,19 @@ private:
   ProcessStateDataInterface* m_proc;
 
 public:
-  ProcessStateWrapper(ProcessStateDataInterface* proc) : m_proc{proc} { }
+  ProcessStateWrapper(ProcessStateDataInterface* proc)
+      : m_proc{proc}
+  {
+  }
   ~ProcessStateWrapper() override;
 
   ProcessStateDataInterface& process() const { return *m_proc; }
 };
 
 // Model for the graphical state in a scenario.
-class SCORE_PLUGIN_SCENARIO_EXPORT StateModel final : public score::Entity<StateModel>,
-                                                      public Nano::Observer
+class SCORE_PLUGIN_SCENARIO_EXPORT StateModel final
+    : public score::Entity<StateModel>
+    , public Nano::Observer
 {
   W_OBJECT(StateModel)
 
@@ -75,9 +79,15 @@ public:
   ~StateModel() override;
 
   // Load
-  template <typename DeserializerVisitor, enable_if_deserializer<DeserializerVisitor>* = nullptr>
-  StateModel(DeserializerVisitor&& vis, const score::DocumentContext& ctx, QObject* parent)
-      : Entity{vis, parent}, m_context{ctx}
+  template <
+      typename DeserializerVisitor,
+      enable_if_deserializer<DeserializerVisitor>* = nullptr>
+  StateModel(
+      DeserializerVisitor&& vis,
+      const score::DocumentContext& ctx,
+      QObject* parent)
+      : Entity{vis, parent}
+      , m_context{ctx}
   {
     vis.writeTo(*this);
     init();
@@ -103,7 +113,10 @@ public:
 
   ProcessVector& previousProcesses() { return m_previousProcesses; }
   ProcessVector& followingProcesses() { return m_nextProcesses; }
-  const ProcessVector& previousProcesses() const { return m_previousProcesses; }
+  const ProcessVector& previousProcesses() const
+  {
+    return m_previousProcesses;
+  }
   const ProcessVector& followingProcesses() const { return m_nextProcesses; }
 
   void setStatus(ExecutionStatus);
@@ -114,15 +127,18 @@ public:
   bool empty() const { return !messages().rootNode().hasChild(0); }
 
 public:
-  void sig_statesUpdated() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sig_statesUpdated)
+  void sig_statesUpdated()
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sig_statesUpdated)
   void sig_controlMessagesUpdated()
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sig_controlMessagesUpdated)
 
-  void heightPercentageChanged() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, heightPercentageChanged)
+  void heightPercentageChanged()
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, heightPercentageChanged)
   void statusChanged(Scenario::ExecutionStatus arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, statusChanged, arg_1)
 
-  void eventChanged(Id<Scenario::EventModel> oldev, Id<Scenario::EventModel> newev)
+  void
+  eventChanged(Id<Scenario::EventModel> oldev, Id<Scenario::EventModel> newev)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, eventChanged, oldev, newev)
 
 private:

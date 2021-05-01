@@ -18,8 +18,7 @@
 
 namespace PM
 {
-LocalPackagesModel::LocalPackagesModel(
-    const score::ApplicationContext& ctx)
+LocalPackagesModel::LocalPackagesModel(const score::ApplicationContext& ctx)
 {
   auto registerAddon = [this](const QString& p) {
     QFileInfo path{p};
@@ -58,10 +57,8 @@ LocalPackagesModel::LocalPackagesModel(
   }
 }
 
-QModelIndex LocalPackagesModel::index(
-    int row,
-    int column,
-    const QModelIndex& parent) const
+QModelIndex
+LocalPackagesModel::index(int row, int column, const QModelIndex& parent) const
 {
   if (row >= (int)m_vec.size() || row < 0)
     return {};

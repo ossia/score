@@ -1,6 +1,5 @@
 #pragma once
 #include <Process/ExpandMode.hpp>
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
@@ -8,6 +7,8 @@
 #include <score/tools/std/HashMap.hpp>
 
 #include <ossia/detail/json.hpp>
+
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -21,9 +22,13 @@ class IntervalModel;
 
 namespace Command
 {
-class SCORE_PLUGIN_SCENARIO_EXPORT InsertContentInInterval final : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT InsertContentInInterval final
+    : public score::Command
 {
-  SCORE_COMMAND_DECL(CommandFactoryName(), InsertContentInInterval, "Insert content in a interval")
+  SCORE_COMMAND_DECL(
+      CommandFactoryName(),
+      InsertContentInInterval,
+      "Insert content in a interval")
 public:
   InsertContentInInterval(
       const rapidjson::Value& sourceInterval,
@@ -42,7 +47,8 @@ private:
   Path<IntervalModel> m_target;
   ExpandMode m_mode{ExpandMode::GrowShrink};
 
-  score::hash_map<Id<Process::ProcessModel>, Id<Process::ProcessModel>> m_processIds;
+  score::hash_map<Id<Process::ProcessModel>, Id<Process::ProcessModel>>
+      m_processIds;
 };
 }
 }

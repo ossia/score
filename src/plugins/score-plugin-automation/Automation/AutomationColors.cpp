@@ -6,7 +6,8 @@
 
 namespace Automation
 {
-Colors::Colors(const score::Skin& s) : m_style{s.Tender1, s.Tender2, s.Tender1, s.Tender2, s.Gray}
+Colors::Colors(const score::Skin& s)
+    : m_style{s.Tender1, s.Tender2, s.Tender1, s.Tender2, s.Gray}
 {
   m_style.init(s);
 }

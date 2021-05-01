@@ -1,7 +1,6 @@
 #include <Device/Node/DeviceNode.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <JS/ConsolePanel.hpp>
-#include <Scenario/Application/ScenarioActions.hpp>
 
 #include <score/actions/Action.hpp>
 #include <score/actions/ActionManager.hpp>
@@ -19,6 +18,7 @@
 #include <RemoteControl/DocumentPlugin.hpp>
 #include <RemoteControl/Scenario/Scenario.hpp>
 #include <RemoteControl/Settings/Model.hpp>
+#include <Scenario/Application/ScenarioActions.hpp>
 namespace RemoteControl
 {
 using namespace std::literals;
@@ -26,7 +26,8 @@ DocumentPlugin::DocumentPlugin(
     const score::DocumentContext& doc,
     Id<score::DocumentPlugin> id,
     QObject* parent)
-    : score::DocumentPlugin{doc, std::move(id), "RemoteControl::DocumentPlugin", parent}
+    : score::
+        DocumentPlugin{doc, std::move(id), "RemoteControl::DocumentPlugin", parent}
     , receiver{doc, 10212}
 {
   auto& set = m_context.app.settings<Settings::Model>();
@@ -47,18 +48,17 @@ DocumentPlugin::DocumentPlugin(
       },
       Qt::QueuedConnection);
 
-  con(doc.coarseUpdateTimer, &QTimer::timeout,
-      this, &DocumentPlugin::heartbeat);
+  con(doc.coarseUpdateTimer,
+      &QTimer::timeout,
+      this,
+      &DocumentPlugin::heartbeat);
 }
 
-DocumentPlugin::~DocumentPlugin()
-{
-
-}
+DocumentPlugin::~DocumentPlugin() { }
 
 void DocumentPlugin::heartbeat()
 {
-  if(receiver.clients().size() == 0)
+  if (receiver.clients().size() == 0)
     return;
 
   JSONReader r;
@@ -66,9 +66,9 @@ void DocumentPlugin::heartbeat()
 
   r.stream.Key("Intervals");
   r.stream.StartArray();
-  for(auto& it : this->m_intervals)
+  for (auto& it : this->m_intervals)
   {
-    if(*it.second.progress > 0.)
+    if (*it.second.progress > 0.)
     {
       r.stream.StartObject();
 
@@ -94,11 +94,8 @@ void DocumentPlugin::heartbeat()
 
 void DocumentPlugin::registerInterval(Scenario::IntervalModel& m)
 {
-  m_intervals[m.id().val()] = IntervalData{
-      &m,
-      &m.duration.playPercentage(),
-      m
-  };
+  m_intervals[m.id().val()]
+      = IntervalData{&m, &m.duration.playPercentage(), m};
 }
 
 void DocumentPlugin::unregisterInterval(Scenario::IntervalModel& m)
@@ -143,70 +140,84 @@ Receiver::Receiver(const score::DocumentContext& doc, quint16 port)
 {
   if (m_server.listen(QHostAddress::Any, port))
   {
-    connect(&m_server, &QWebSocketServer::newConnection, this, &Receiver::onNewConnection);
+    connect(
+        &m_server,
+        &QWebSocketServer::newConnection,
+        this,
+        &Receiver::onNewConnection);
   }
 
-  m_answers.insert(std::make_pair("Trigger", [&](const rapidjson::Value& obj, const WSClient&) {
-    auto it = obj.FindMember("Path");
-    if (it == obj.MemberEnd())
-      return;
+  m_answers.insert(std::make_pair(
+      "Trigger", [&](const rapidjson::Value& obj, const WSClient&) {
+        auto it = obj.FindMember("Path");
+        if (it == obj.MemberEnd())
+          return;
 
-    auto path = score::unmarshall<Path<Scenario::TimeSyncModel>>(it->value);
-    if (!path.valid())
-      return;
+        auto path
+            = score::unmarshall<Path<Scenario::TimeSyncModel>>(it->value);
+        if (!path.valid())
+          return;
 
-    if(Scenario::TimeSyncModel* tn = path.try_find(doc))
-      tn->triggeredByGui();
-    else
-      qDebug() << "warning: tried to trigger a non-existing trigger";
-  }));
+        if (Scenario::TimeSyncModel* tn = path.try_find(doc))
+          tn->triggeredByGui();
+        else
+          qDebug() << "warning: tried to trigger a non-existing trigger";
+      }));
 
-  m_answers.insert(std::make_pair("Message", [this](const rapidjson::Value& obj, const WSClient&) {
-    // The message is stored at the "root" level of the json.
-    auto it = obj.FindMember(score::StringConstant().Address);
-    if (it == obj.MemberEnd())
-      return;
+  m_answers.insert(std::make_pair(
+      "Message", [this](const rapidjson::Value& obj, const WSClient&) {
+        // The message is stored at the "root" level of the json.
+        auto it = obj.FindMember(score::StringConstant().Address);
+        if (it == obj.MemberEnd())
+          return;
 
-    auto message = score::unmarshall<::State::Message>(obj);
-    m_dev.updateProxy.updateRemoteValue(message.address.address, message.value);
-  }));
-
-  m_answers.insert(std::make_pair("Play", [&](const rapidjson::Value&, const WSClient&) {
-    doc.app.actions.action<Actions::Play>().action()->trigger();
-  }));
-  m_answers.insert(std::make_pair("Pause", [&](const rapidjson::Value&, const WSClient&) {
-    doc.app.actions.action<Actions::Play>().action()->trigger();
-  }));
-  m_answers.insert(std::make_pair("Stop", [&](const rapidjson::Value&, const WSClient&) {
-    doc.app.actions.action<Actions::Stop>().action()->trigger();
-  }));
-  m_answers.insert(std::make_pair("Transport", [&](const rapidjson::Value& v, const WSClient&) {
-    if(v.IsObject())
-    {
-      if(auto it = v.FindMember("Milliseconds"); it != v.MemberEnd())
-      {
-        if(it->value.IsNumber())
-        {
-           double ms = it->value.GetDouble();
-
-           auto& ctrl = doc.app.guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
-           ctrl.execution().playAtDate(TimeVal::fromMsecs(ms));
-        }
-      }
-    }
-  }));
-
-  m_answers.insert(std::make_pair("Console", [&](const rapidjson::Value& obj, const WSClient&) {
-    auto it = obj.FindMember("Code");
-    if (it == obj.MemberEnd())
-      return;
-    const auto& str = JsonValue{it->value}.toString();
-    auto& console = doc.app.panel<JS::PanelDelegate>();
-    console.engine().evaluate(str);
-  }));
+        auto message = score::unmarshall<::State::Message>(obj);
+        m_dev.updateProxy.updateRemoteValue(
+            message.address.address, message.value);
+      }));
 
   m_answers.insert(
-      std::make_pair("EnableListening", [&](const rapidjson::Value& obj, const WSClient& c) {
+      std::make_pair("Play", [&](const rapidjson::Value&, const WSClient&) {
+        doc.app.actions.action<Actions::Play>().action()->trigger();
+      }));
+  m_answers.insert(
+      std::make_pair("Pause", [&](const rapidjson::Value&, const WSClient&) {
+        doc.app.actions.action<Actions::Play>().action()->trigger();
+      }));
+  m_answers.insert(
+      std::make_pair("Stop", [&](const rapidjson::Value&, const WSClient&) {
+        doc.app.actions.action<Actions::Stop>().action()->trigger();
+      }));
+  m_answers.insert(std::make_pair(
+      "Transport", [&](const rapidjson::Value& v, const WSClient&) {
+        if (v.IsObject())
+        {
+          if (auto it = v.FindMember("Milliseconds"); it != v.MemberEnd())
+          {
+            if (it->value.IsNumber())
+            {
+              double ms = it->value.GetDouble();
+
+              auto& ctrl = doc.app.guiApplicationPlugin<
+                  Scenario::ScenarioApplicationPlugin>();
+              ctrl.execution().playAtDate(TimeVal::fromMsecs(ms));
+            }
+          }
+        }
+      }));
+
+  m_answers.insert(std::make_pair(
+      "Console", [&](const rapidjson::Value& obj, const WSClient&) {
+        auto it = obj.FindMember("Code");
+        if (it == obj.MemberEnd())
+          return;
+        const auto& str = JsonValue{it->value}.toString();
+        auto& console = doc.app.panel<JS::PanelDelegate>();
+        console.engine().evaluate(str);
+      }));
+
+  m_answers.insert(std::make_pair(
+      "EnableListening", [&](const rapidjson::Value& obj, const WSClient& c) {
         auto it = obj.FindMember(score::StringConstant().Address);
         if (it == obj.MemberEnd())
           return;
@@ -222,8 +233,8 @@ Receiver::Receiver(const score::DocumentContext& doc, quint16 port)
         }
       }));
 
-  m_answers.insert(
-      std::make_pair("DisableListening", [&](const rapidjson::Value& obj, const WSClient&) {
+  m_answers.insert(std::make_pair(
+      "DisableListening", [&](const rapidjson::Value& obj, const WSClient&) {
         auto it = obj.FindMember(score::StringConstant().Address);
         if (it == obj.MemberEnd())
           return;
@@ -246,10 +257,9 @@ Receiver::~Receiver()
     delete c.socket;
 }
 
-
 void Receiver::addHandler(QObject* context, Handler&& handler)
 {
-  if(handler.onAdded)
+  if (handler.onAdded)
   {
     handler.onAdded(m_clients);
   }
@@ -259,17 +269,15 @@ void Receiver::addHandler(QObject* context, Handler&& handler)
 
 void Receiver::removeHandler(QObject* context)
 {
-  for(auto& [c, h] : m_handlers)
+  for (auto& [c, h] : m_handlers)
   {
-    if(c == context)
-      if(h.onRemoved)
+    if (c == context)
+      if (h.onRemoved)
         h.onRemoved(m_clients);
   }
 
-  ossia::remove_erase_if(m_handlers,
-                         [context] (const auto& p) {
-    return p.first == context;
-  });
+  ossia::remove_erase_if(
+      m_handlers, [context](const auto& p) { return p.first == context; });
 }
 
 void Receiver::registerSync(Path<Scenario::TimeSyncModel> tn)
@@ -283,7 +291,8 @@ void Receiver::registerSync(Path<Scenario::TimeSyncModel> tn)
   r.stream.StartObject();
   r.obj[score::StringConstant().Message] = "TriggerAdded"sv;
   r.obj[score::StringConstant().Path] = tn;
-  r.obj[score::StringConstant().Name] = tn.find(m_dev.context()).metadata().getName();
+  r.obj[score::StringConstant().Name]
+      = tn.find(m_dev.context()).metadata().getName();
   r.stream.EndObject();
   const auto& json = r.toString();
   for (auto client : m_clients)
@@ -315,13 +324,21 @@ void Receiver::onNewConnection()
 {
   WSClient client{m_server.nextPendingConnection()};
 
-  connect(client.socket, &QWebSocket::textMessageReceived, this, [=](const auto& b) {
-    this->processTextMessage(b, client);
-  });
-  connect(client.socket, &QWebSocket::binaryMessageReceived, this, [=](const auto& b) {
-    this->processBinaryMessage(b, client);
-  });
-  connect(client.socket, &QWebSocket::disconnected, this, &Receiver::socketDisconnected);
+  connect(
+      client.socket,
+      &QWebSocket::textMessageReceived,
+      this,
+      [=](const auto& b) { this->processTextMessage(b, client); });
+  connect(
+      client.socket,
+      &QWebSocket::binaryMessageReceived,
+      this,
+      [=](const auto& b) { this->processBinaryMessage(b, client); });
+  connect(
+      client.socket,
+      &QWebSocket::disconnected,
+      this,
+      &Receiver::socketDisconnected);
 
   {
     JSONReader r;
@@ -340,16 +357,17 @@ void Receiver::onNewConnection()
       r.stream.StartObject();
       r.obj[score::StringConstant().Message] = "TriggerAdded"sv;
       r.obj[score::StringConstant().Path] = path;
-      r.obj[score::StringConstant().Name] = path.find(m_dev.context()).metadata().getName();
+      r.obj[score::StringConstant().Name]
+          = path.find(m_dev.context()).metadata().getName();
       r.stream.EndObject();
 
       client.socket->sendTextMessage(r.toString());
     }
   }
 
-  for(auto& [c,h] : m_handlers)
+  for (auto& [c, h] : m_handlers)
   {
-    if(h.onClientConnection)
+    if (h.onClientConnection)
       h.onClientConnection(client);
   }
 
@@ -377,16 +395,14 @@ void Receiver::processBinaryMessage(QByteArray message, const WSClient& w)
 
   auto mess = JsonValue{it->value}.toString();
 
-  if (auto it = m_answers.find(mess);
-      it != m_answers.end())
+  if (auto it = m_answers.find(mess); it != m_answers.end())
   {
     it->second(wr.base, w);
   }
 
-  for(auto& [c,h] : m_handlers)
+  for (auto& [c, h] : m_handlers)
   {
-    if (auto it = h.answers.find(mess);
-        it != h.answers.end())
+    if (auto it = h.answers.find(mess); it != h.answers.end())
     {
       it->second(wr.base, w);
     }
@@ -395,7 +411,7 @@ void Receiver::processBinaryMessage(QByteArray message, const WSClient& w)
 
 void Receiver::sendMessage(const QString& str)
 {
-  for(auto& clt : m_clients)
+  for (auto& clt : m_clients)
   {
     clt.socket->sendTextMessage(str);
   }
@@ -409,9 +425,9 @@ void Receiver::socketDisconnected()
   {
     WSClient clt{pClient};
 
-    for(auto& [c,h] : m_handlers)
+    for (auto& [c, h] : m_handlers)
     {
-      if(h.onClientDisconnection)
+      if (h.onClientDisconnection)
         h.onClientDisconnection(clt);
     }
 
@@ -430,7 +446,9 @@ void Receiver::socketDisconnected()
   }
 }
 
-void Receiver::on_valueUpdated(const ::State::Address& addr, const ossia::value& v)
+void Receiver::on_valueUpdated(
+    const ::State::Address& addr,
+    const ossia::value& v)
 {
   auto it = m_listenedAddresses.find(addr);
   if (it != m_listenedAddresses.end())

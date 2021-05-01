@@ -27,11 +27,13 @@ struct Pattern
 
   bool operator==(const Pattern& other) const noexcept
   {
-    return length == other.length && division == other.division && lanes == other.lanes;
+    return length == other.length && division == other.division
+           && lanes == other.lanes;
   }
 };
 
-class SCORE_PLUGIN_MIDI_EXPORT ProcessModel final : public Process::ProcessModel
+class SCORE_PLUGIN_MIDI_EXPORT ProcessModel final
+    : public Process::ProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
   W_OBJECT(ProcessModel)
@@ -44,7 +46,8 @@ public:
       QObject* parent);
 
   template <typename Impl>
-  explicit ProcessModel(Impl& vis, QObject* parent) : Process::ProcessModel{vis, parent}
+  explicit ProcessModel(Impl& vis, QObject* parent)
+      : Process::ProcessModel{vis, parent}
   {
     vis.writeTo(*this);
     init();
@@ -71,10 +74,14 @@ public:
   void currentPatternChanged(int arg_1) W_SIGNAL(currentPatternChanged, arg_1);
   void patternsChanged() W_SIGNAL(patternsChanged);
 
-  PROPERTY(int, channel READ channel WRITE setChannel NOTIFY channelChanged, W_Final)
   PROPERTY(
       int,
-      currentPattern READ currentPattern WRITE setCurrentPattern NOTIFY currentPatternChanged,
+      channel READ channel WRITE setChannel NOTIFY channelChanged,
+      W_Final)
+  PROPERTY(
+      int,
+      currentPattern READ currentPattern WRITE setCurrentPattern NOTIFY
+          currentPatternChanged,
       W_Final)
 private:
   void setDurationAndScale(const TimeVal& newDuration) noexcept override;

@@ -1,8 +1,9 @@
 #pragma once
 #include <Process/TimeValue.hpp>
 
-#include <functional>
 #include <score_lib_process_export.h>
+
+#include <functional>
 
 namespace Process
 {

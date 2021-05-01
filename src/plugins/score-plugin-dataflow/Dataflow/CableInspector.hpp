@@ -20,7 +20,10 @@ class CableWidget final : public Inspector::InspectorWidgetBase
   score::SelectionDispatcher m_selectionDispatcher;
 
 public:
-  CableWidget(const Process::Cable& cable, const score::DocumentContext& ctx, QWidget* parent);
+  CableWidget(
+      const Process::Cable& cable,
+      const score::DocumentContext& ctx,
+      QWidget* parent);
 };
 
 class CableInspectorFactory final : public Inspector::InspectorWidgetFactory

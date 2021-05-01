@@ -4,7 +4,10 @@
 #include <RemoteControl/Settings/Model.hpp>
 class QCheckBox;
 
-namespace score{ class FormWidget;}
+namespace score
+{
+class FormWidget;
+}
 namespace RemoteControl
 {
 namespace Settings

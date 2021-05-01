@@ -3,7 +3,6 @@
 #include "ConditionView.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
 
 #include <QCursor>
 #include <QGraphicsSceneMouseEvent>
@@ -13,6 +12,7 @@
 #include <QVector>
 #include <qnamespace.h>
 
+#include <Scenario/Document/Event/EventModel.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::ConditionView)
 namespace Scenario
@@ -25,14 +25,16 @@ static const QPainterPath conditionTrianglePath{[] {
   s.setJoinStyle(Qt::RoundJoin);
   s.setWidth(2);
 
-  p.addPolygon(QVector<QPointF>{QPointF(25, 5), QPointF(25, 21), QPointF(32, 14)});
+  p.addPolygon(
+      QVector<QPointF>{QPointF(25, 5), QPointF(25, 21), QPointF(32, 14)});
   p.closeSubpath();
 
   return (p + s.createStroke(p)).simplified();
 }()};
 
 ConditionView::ConditionView(const EventModel& model, QGraphicsItem* parent)
-    : QGraphicsItem{parent}, m_model{model}
+    : QGraphicsItem{parent}
+    , m_model{model}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   setFlag(ItemStacksBehindParent, true);
@@ -44,7 +46,11 @@ QRectF ConditionView::boundingRect() const
 {
   constexpr qreal m_width = 40.;
   constexpr double penWidth = 0.;
-  return QRectF{-penWidth, -penWidth, m_width + penWidth, m_height + ConditionCHeight + penWidth};
+  return QRectF{
+      -penWidth,
+      -penWidth,
+      m_width + penWidth,
+      m_height + ConditionCHeight + penWidth};
 }
 
 void ConditionView::paint(
@@ -56,8 +62,10 @@ void ConditionView::paint(
   painter->setRenderHint(QPainter::Antialiasing, true);
 
   const score::Brush& col
-      = !m_selected ? ExecutionStatusProperty{m_model.status()}.conditionStatusColor(style)
-                    : style.IntervalSelected();
+      = !m_selected
+            ? ExecutionStatusProperty{m_model.status()}.conditionStatusColor(
+                style)
+            : style.IntervalSelected();
 
   painter->setPen(style.ConditionPen(col));
   painter->setBrush(style.NoBrush());
@@ -92,12 +100,15 @@ void ConditionView::setHeight(qreal newH)
   m_height = newH;
 
   m_Cpath = QPainterPath();
-  static constexpr const QSizeF conditionCSize{ConditionCHeight, ConditionCHeight};
+  static constexpr const QSizeF conditionCSize{
+      ConditionCHeight, ConditionCHeight};
 
   const auto brect = boundingRect();
   QRectF rect(brect.topLeft(), conditionCSize);
   QRectF bottomRect(
-      QPointF(brect.bottomLeft().x(), brect.bottomLeft().y() - ConditionCHeight), conditionCSize);
+      QPointF(
+          brect.bottomLeft().x(), brect.bottomLeft().y() - ConditionCHeight),
+      conditionCSize);
 
   m_Cpath.moveTo(brect.width() / 2., 2.);
   m_Cpath.arcTo(rect, 60., 120.);

@@ -2,7 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "SetTrigger.hpp"
 
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <State/Expression.hpp>
 
 #include <score/model/path/Path.hpp>
@@ -10,13 +9,16 @@
 #include <score/model/tree/TreeNode.hpp>
 #include <score/model/tree/TreeNodeSerialization.hpp>
 
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+
 namespace Scenario
 {
 namespace Command
 {
 
 SetTrigger::SetTrigger(const TimeSyncModel& tn, State::Expression trigger)
-    : m_path{std::move(tn)}, m_trigger(std::move(trigger))
+    : m_path{std::move(tn)}
+    , m_trigger(std::move(trigger))
 {
   m_previousTrigger = tn.expression();
 }

@@ -1,17 +1,21 @@
 #include "NodalIntervalView.hpp"
 
-#include <QGraphicsSceneDragDropEvent>
-
 #include <score/graphics/ZoomItem.hpp>
+
+#include <QGraphicsSceneDragDropEvent>
 namespace Scenario
 {
 
-NodalIntervalView::NodalIntervalView(NodalIntervalView::ItemsToShow sh, const IntervalModel& model, const Process::Context& ctx, QGraphicsItem* parent)
-  : score::EmptyRectItem{parent}
-  , m_model{model}
-  , m_context{ctx}
-  , m_itemsToShow{sh}
-  , m_container{new score::EmptyRectItem{this}}
+NodalIntervalView::NodalIntervalView(
+    NodalIntervalView::ItemsToShow sh,
+    const IntervalModel& model,
+    const Process::Context& ctx,
+    QGraphicsItem* parent)
+    : score::EmptyRectItem{parent}
+    , m_model{model}
+    , m_context{ctx}
+    , m_itemsToShow{sh}
+    , m_container{new score::EmptyRectItem{this}}
 {
   setAcceptDrops(true);
   setAcceptedMouseButtons(Qt::AllButtons);
@@ -20,24 +24,26 @@ NodalIntervalView::NodalIntervalView(NodalIntervalView::ItemsToShow sh, const In
   const TimeVal r = m_model.duration.defaultDuration();
   for (auto& proc : m_model.processes)
   {
-    if(m_itemsToShow == ItemsToShow::OnlyEffects && !(proc.flags() & Process::ProcessFlags::TimeIndependent))
+    if (m_itemsToShow == ItemsToShow::OnlyEffects
+        && !(proc.flags() & Process::ProcessFlags::TimeIndependent))
       continue;
     auto item = new Process::NodeItem{proc, m_context, m_container};
     item->setParentDuration(r);
     m_nodeItems.push_back(item);
   }
   m_model.processes.added.connect<&NodalIntervalView::on_processAdded>(*this);
-  m_model.processes.removing.connect<&NodalIntervalView::on_processRemoving>(*this);
+  m_model.processes.removing.connect<&NodalIntervalView::on_processRemoving>(
+      *this);
 
   con(
-        model,
-        &IntervalModel::executionEvent,
-        this,
-        [=] (IntervalExecutionEvent ev) {
-    if(ev == IntervalExecutionEvent::Finished)
-      on_playPercentageChanged(0., TimeVal{});
-  },
-  Qt::QueuedConnection);
+      model,
+      &IntervalModel::executionEvent,
+      this,
+      [=](IntervalExecutionEvent ev) {
+        if (ev == IntervalExecutionEvent::Finished)
+          on_playPercentageChanged(0., TimeVal{});
+      },
+      Qt::QueuedConnection);
 
   {
     // Zoom handling
@@ -47,24 +53,23 @@ NodalIntervalView::NodalIntervalView(NodalIntervalView::ItemsToShow sh, const In
     // TODO proper zooming is done in log space
     connect(item, &score::ZoomItem::zoom, this, [this] {
       auto zoom = m_container->scale();
-      if(zoom < 1 && zoom * 1.2 > 1)
+      if (zoom < 1 && zoom * 1.2 > 1)
         zoom = 1;
       else
         zoom = qBound(0.001, zoom * 1.2, 1000.);
       m_container->setScale(zoom);
     });
-    connect(item, &score::ZoomItem::dezoom,
-            this, [this] {
+    connect(item, &score::ZoomItem::dezoom, this, [this] {
       auto zoom = m_container->scale();
-      if(zoom < 1 && zoom / 1.2 > 1)
+      if (zoom < 1 && zoom / 1.2 > 1)
         zoom = 1;
       else
         zoom = qBound(0.001, zoom / 1.2, 1000.);
       m_container->setScale(zoom);
     });
 
-    connect(item, &score::ZoomItem::recenter,
-            this, &NodalIntervalView::recenter);
+    connect(
+        item, &score::ZoomItem::recenter, this, &NodalIntervalView::recenter);
   }
 }
 
@@ -78,7 +83,8 @@ void NodalIntervalView::recenter()
   double z = std::min(1., std::min(w_ratio, h_ratio));
   m_container->setScale(z);
 
-  auto childCenter = m_container->mapRectToParent(childRect).center() - m_container->pos();
+  auto childCenter
+      = m_container->mapRectToParent(childRect).center() - m_container->pos();
   auto ourCenter = parentRect.center();
   auto delta = ourCenter - childCenter;
 
@@ -93,7 +99,7 @@ NodalIntervalView::~NodalIntervalView()
 void NodalIntervalView::on_drop(QPointF pos, const QMimeData* data)
 {
   m_context.app.interfaces<Scenario::IntervalDropHandlerList>().drop(
-        m_context, m_model, pos, *data);
+      m_context, m_model, pos, *data);
 }
 
 void NodalIntervalView::on_playPercentageChanged(double t, TimeVal parent_dur)
@@ -107,7 +113,8 @@ void NodalIntervalView::on_playPercentageChanged(double t, TimeVal parent_dur)
 
 void NodalIntervalView::on_processAdded(const Process::ProcessModel& proc)
 {
-  if(m_itemsToShow == ItemsToShow::OnlyEffects && !(proc.flags() & Process::ProcessFlags::TimeIndependent))
+  if (m_itemsToShow == ItemsToShow::OnlyEffects
+      && !(proc.flags() & Process::ProcessFlags::TimeIndependent))
     return;
 
   // The reason for this loop sucks a bit.
@@ -156,7 +163,7 @@ QRectF NodalIntervalView::enclosingRect() const noexcept
   if (m_nodeItems.empty())
     return {};
   double x0{std::numeric_limits<double>::max()}, y0{x0},
-  x1{std::numeric_limits<double>::lowest()}, y1{x1};
+      x1{std::numeric_limits<double>::lowest()}, y1{x1};
 
   for (QGraphicsItem* item : m_nodeItems)
   {
@@ -220,5 +227,3 @@ void NodalIntervalView::mouseReleaseEvent(QGraphicsSceneMouseEvent* e)
   mouseMoveEvent(e);
 }
 }
-
-

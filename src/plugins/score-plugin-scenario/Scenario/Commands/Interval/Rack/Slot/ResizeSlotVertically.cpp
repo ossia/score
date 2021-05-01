@@ -3,12 +3,12 @@
 
 #include "ResizeSlotVertically.hpp"
 
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Process/Algorithms/Accessors.hpp>
-
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 
 namespace Scenario
 {
@@ -19,7 +19,8 @@ ResizeSlotVertically::ResizeSlotVertically(
     const IntervalModel& cst,
     const SlotPath& slotPath,
     double newSize)
-    : m_path{slotPath}, m_newSize{newSize}
+    : m_path{slotPath}
+    , m_newSize{newSize}
 {
   m_originalSize = cst.getSlotHeight(m_path);
 }
@@ -28,7 +29,8 @@ ResizeSlotVertically::ResizeSlotVertically(
     const IntervalModel& cst,
     SlotPath&& slotPath,
     double newSize)
-    : m_path{slotPath}, m_newSize{newSize}
+    : m_path{slotPath}
+    , m_newSize{newSize}
 {
   m_originalSize = cst.getSlotHeight(m_path);
 }

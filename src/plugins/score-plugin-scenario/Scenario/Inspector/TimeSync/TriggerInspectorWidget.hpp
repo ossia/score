@@ -1,9 +1,10 @@
 #pragma once
 
-#include <Scenario/Inspector/Expression/ExpressionMenu.hpp>
 #include <State/Expression.hpp>
 
 #include <QWidget>
+
+#include <Scenario/Inspector/Expression/ExpressionMenu.hpp>
 
 namespace score
 {

@@ -1,9 +1,9 @@
 #pragma once
+#include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
+
 #include <PackageManager/Model.hpp>
 #include <PackageManager/Presenter.hpp>
 #include <PackageManager/View.hpp>
-
-#include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 
 namespace PM
 {

@@ -3,6 +3,7 @@
 #include <Media/Libav.hpp>
 #if SCORE_HAS_LIBAV
 #include <Video/VideoInterface.hpp>
+
 #include <score_plugin_media_export.h>
 
 extern "C"
@@ -11,12 +12,11 @@ extern "C"
 #include <libswscale/swscale.h>
 }
 
-
-#include <QObject>
 #include <QImage>
+#include <QObject>
 
-#include <verdigris>
 #include <cinttypes>
+#include <verdigris>
 
 namespace Video
 {
@@ -30,10 +30,10 @@ public:
   ~VideoThumbnailer();
 
   void requestThumbnails(int64_t req, QVector<int64_t> flicks)
-  E_SIGNAL(SCORE_PLUGIN_MEDIA_EXPORT, requestThumbnails, req, flicks)
+      E_SIGNAL(SCORE_PLUGIN_MEDIA_EXPORT, requestThumbnails, req, flicks)
 
   void thumbnailReady(int64_t req, int64_t flicks, QImage thumb)
-  E_SIGNAL(SCORE_PLUGIN_MEDIA_EXPORT, thumbnailReady, req, flicks, thumb)
+      E_SIGNAL(SCORE_PLUGIN_MEDIA_EXPORT, thumbnailReady, req, flicks, thumb)
 
   QImage process(int64_t flicks);
 

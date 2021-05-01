@@ -25,13 +25,19 @@ namespace Dataflow
 {
 bool CableItem::g_cables_enabled = true;
 
-static bool canCreateCable(const Process::Cable& c, Process::DataflowManager& plug)
+static bool
+canCreateCable(const Process::Cable& c, Process::DataflowManager& plug)
 {
   auto it = plug.cables().find(&c);
   return it == plug.cables().end() || it->second == nullptr;
 }
-CableItem::CableItem(const Process::Cable& c, const Process::Context& ctx, QGraphicsItem* parent)
-    : QGraphicsItem{parent}, m_cable{c}, m_context{ctx}
+CableItem::CableItem(
+    const Process::Cable& c,
+    const Process::Context& ctx,
+    QGraphicsItem* parent)
+    : QGraphicsItem{parent}
+    , m_cable{c}
+    , m_context{ctx}
 {
   auto& plug = ctx.dataflow;
   this->setCursor(Qt::CrossCursor);
@@ -121,7 +127,10 @@ bool CableItem::contains(const QPointF& point) const
   // return m_path.contains(point);
 }
 
-void CableItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void CableItem::paint(
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   if (m_p1 && m_p2)
   {
@@ -212,7 +221,8 @@ void CableItem::resize()
 
 void CableItem::check()
 {
-  if (g_cables_enabled && m_p1 && m_p2 && m_p1->isVisible() && m_p2->isVisible())
+  if (g_cables_enabled && m_p1 && m_p2 && m_p1->isVisible()
+      && m_p2->isVisible())
   {
     if (!isEnabled())
     {

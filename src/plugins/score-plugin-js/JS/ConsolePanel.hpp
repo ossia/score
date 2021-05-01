@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Engine/ApplicationPlugin.hpp>
 #include <Explorer/Commands/Add/AddAddress.hpp>
 #include <Explorer/Commands/Add/AddDevice.hpp>
 #include <Explorer/Commands/Add/LoadDevice.hpp>
@@ -7,10 +8,6 @@
 #include <JS/Commands/ScriptMacro.hpp>
 #include <Protocols/OSC/OSCProtocolFactory.hpp>
 #include <Protocols/OSC/OSCSpecificSettings.hpp>
-#include <Scenario/Application/ScenarioActions.hpp>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Commands/CommandAPI.hpp>
-#include <Scenario/Process/Algorithms/Accessors.hpp>
 
 #include <score/actions/ActionManager.hpp>
 #include <score/application/GUIApplicationContext.hpp>
@@ -32,7 +29,10 @@
 #include <QScrollBar>
 #include <QVBoxLayout>
 
-#include <Engine/ApplicationPlugin.hpp>
+#include <Scenario/Application/ScenarioActions.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Commands/CommandAPI.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <wobjectimpl.h>
 namespace JS
 {
@@ -50,7 +50,9 @@ public:
 
   void createOSCDevice(QString name, QString host, int in, int out)
   {
-    auto doc = ctx(); if (!doc) return;
+    auto doc = ctx();
+    if (!doc)
+      return;
     auto& plug = doc->plugin<Explorer::DeviceDocumentPlugin>();
     Device::DeviceSettings set;
     set.name = name;
@@ -66,7 +68,9 @@ public:
 
   void createAddress(QString addr, QString type)
   {
-    auto doc = ctx(); if (!doc) return;
+    auto doc = ctx();
+    if (!doc)
+      return;
     auto a = State::Address::fromString(addr);
     if (!a)
       return;
@@ -77,7 +81,8 @@ public:
     Device::FullAddressSettings set;
     set.address = *a;
 
-    const ossia::net::parameter_data* t = ossia::default_parameter_for_type(type.toStdString());
+    const ossia::net::parameter_data* t
+        = ossia::default_parameter_for_type(type.toStdString());
     if (t)
     {
       set.unit = t->unit;
@@ -100,7 +105,9 @@ public:
 
   void automate(QObject* interval, QString addr)
   {
-    auto doc = ctx(); if (!doc) return;
+    auto doc = ctx();
+    if (!doc)
+      return;
     auto itv = qobject_cast<Scenario::IntervalModel*>(interval);
     if (!itv)
       return;
@@ -112,14 +119,18 @@ public:
 
   void undo()
   {
-    auto doc = ctx(); if (!doc) return;
+    auto doc = ctx();
+    if (!doc)
+      return;
     doc->document.commandStack().undo();
   }
   W_SLOT(undo)
 
   void redo()
   {
-    auto doc = ctx(); if (!doc) return;
+    auto doc = ctx();
+    if (!doc)
+      return;
     doc->document.commandStack().redo();
   }
   W_SLOT(redo)
@@ -139,7 +150,10 @@ public:
   }
   W_SLOT(find)
 
-  QObject* document() { return score::GUIAppContext().documents.currentDocument(); }
+  QObject* document()
+  {
+    return score::GUIAppContext().documents.currentDocument();
+  }
   W_SLOT(document)
 
   /// Execution ///
@@ -147,37 +161,45 @@ public:
   void play(QObject* obj)
   {
     auto plug
-        = score::GUIAppContext().findGuiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
+        = score::GUIAppContext()
+              .findGuiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
     if (!plug)
       return;
 
     if (auto itv = qobject_cast<Scenario::IntervalModel*>(obj))
     {
-      plug->execution().playInterval(&Scenario::parentScenario(*itv), itv->id());
+      plug->execution().playInterval(
+          &Scenario::parentScenario(*itv), itv->id());
     }
     else if (auto state = qobject_cast<Scenario::StateModel*>(obj))
     {
-      plug->execution().playState(&Scenario::parentScenario(*state), state->id());
+      plug->execution().playState(
+          &Scenario::parentScenario(*state), state->id());
     }
   }
   W_SLOT(play)
 
   void stop()
   {
-    auto plug = score::GUIAppContext().findGuiApplicationPlugin<Engine::ApplicationPlugin>();
-    if(plug)
+    auto plug = score::GUIAppContext()
+                    .findGuiApplicationPlugin<Engine::ApplicationPlugin>();
+    if (plug)
       plug->execution().request_stop();
   }
   W_SLOT(stop)
 };
 
-class PanelDelegate final : public QObject, public score::PanelDelegate
+class PanelDelegate final
+    : public QObject
+    , public score::PanelDelegate
 {
 public:
   PanelDelegate(const score::GUIApplicationContext& ctx)
-      : score::PanelDelegate{ctx}, m_widget{new QWidget}
+      : score::PanelDelegate{ctx}
+      , m_widget{new QWidget}
   {
-    m_engine.globalObject().setProperty("Score", m_engine.newQObject(new EditJsContext));
+    m_engine.globalObject().setProperty(
+        "Score", m_engine.newQObject(new EditJsContext));
     auto lay = new QVBoxLayout;
     m_widget->setLayout(lay);
     m_edit = new QPlainTextEdit{m_widget};
@@ -194,7 +216,8 @@ public:
       {
         evaluate(txt);
         m_lineEdit->clear();
-        m_edit->verticalScrollBar()->setValue(m_edit->verticalScrollBar()->maximum());
+        m_edit->verticalScrollBar()->setValue(
+            m_edit->verticalScrollBar()->maximum());
       }
     });
   }
@@ -209,7 +232,7 @@ public:
     {
       m_edit->appendPlainText("ERROR: " + res.toString() + "\n");
     }
-    else if(!res.isUndefined())
+    else if (!res.isUndefined())
     {
       m_edit->appendPlainText(res.toString() + "\n");
     }
@@ -242,7 +265,8 @@ class PanelDelegateFactory final : public score::PanelDelegateFactory
 {
   SCORE_CONCRETE("6060a63c-26b1-4ec6-a468-27e72530ac69")
 
-  std::unique_ptr<score::PanelDelegate> make(const score::GUIApplicationContext& ctx) override
+  std::unique_ptr<score::PanelDelegate>
+  make(const score::GUIApplicationContext& ctx) override
   {
     return std::make_unique<PanelDelegate>(ctx);
   }

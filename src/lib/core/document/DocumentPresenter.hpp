@@ -2,8 +2,9 @@
 
 #include <QObject>
 
-#include <verdigris>
 #include <score_lib_base_export.h>
+
+#include <verdigris>
 class Selection;
 namespace score
 {

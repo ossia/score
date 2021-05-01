@@ -10,7 +10,9 @@ namespace Explorer::Settings
 {
 namespace Parameters
 {
-SETTINGS_PARAMETER_IMPL(LocalTree){QStringLiteral("score_plugin_LocalTree"), true};
+SETTINGS_PARAMETER_IMPL(LocalTree){
+    QStringLiteral("score_plugin_LocalTree"),
+    true};
 SETTINGS_PARAMETER_IMPL(LogLevel){
     QStringLiteral("score_plugin_engine/LogLevel"),
     DeviceLogLevel{}.logEverything};
@@ -32,7 +34,10 @@ SCORE_SETTINGS_PARAMETER_CPP(QString, Model, LogLevel)
 
 namespace Explorer::ProjectSettings
 {
-Model::Model(const score::DocumentContext& ctx, Id<DocumentPlugin> id, QObject* parent)
+Model::Model(
+    const score::DocumentContext& ctx,
+    Id<DocumentPlugin> id,
+    QObject* parent)
     : ProjectSettingsModel{ctx, id, "ExplorerSettings", parent}
 {
 }
@@ -46,13 +51,15 @@ SCORE_PROJECTSETTINGS_PARAMETER_CPP(bool, Model, ReconnectOnStart)
 template <>
 void DataStreamReader::read(const Explorer::ProjectSettings::Model& model)
 {
-  m_stream << model.m_MidiImportRatio << model.m_RefreshOnStart << model.m_ReconnectOnStart;
+  m_stream << model.m_MidiImportRatio << model.m_RefreshOnStart
+           << model.m_ReconnectOnStart;
 }
 
 template <>
 void DataStreamWriter::write(Explorer::ProjectSettings::Model& model)
 {
-  m_stream >> model.m_MidiImportRatio >> model.m_RefreshOnStart >> model.m_ReconnectOnStart;
+  m_stream >> model.m_MidiImportRatio >> model.m_RefreshOnStart
+      >> model.m_ReconnectOnStart;
 }
 
 template <>

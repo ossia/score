@@ -3,11 +3,6 @@
 #include "CreateInterval.hpp"
 
 #include <Process/Process.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
 
 #include <score/model/EntityMap.hpp>
 #include <score/model/Identifier.hpp>
@@ -18,6 +13,12 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/RandomNameProvider.hpp>
+
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 
 #include <vector>
 
@@ -55,7 +56,8 @@ void CreateInterval::undo(const score::DocumentContext& ctx) const
   {
     auto& sst = scenar.states.at(m_startStateId);
     if (sst.previousInterval())
-      scenar.intervals.at(*sst.previousInterval()).requestHeightChange(m_startStatePos);
+      scenar.intervals.at(*sst.previousInterval())
+          .requestHeightChange(m_startStatePos);
     else
       sst.setHeightPercentage(m_startStatePos);
   }
@@ -68,7 +70,12 @@ void CreateInterval::redo(const score::DocumentContext& ctx) const
   auto& est = scenar.states.at(m_endStateId);
 
   ScenarioCreate<IntervalModel>::redo(
-      m_createdIntervalId, sst, est, sst.heightPercentage(), m_graphal, scenar);
+      m_createdIntervalId,
+      sst,
+      est,
+      sst.heightPercentage(),
+      m_graphal,
+      scenar);
 
   auto& itv = scenar.intervals.at(m_createdIntervalId);
   itv.metadata().setName(m_createdName);
@@ -78,14 +85,14 @@ void CreateInterval::redo(const score::DocumentContext& ctx) const
 
 void CreateInterval::serializeImpl(DataStreamInput& s) const
 {
-  s << m_path << m_createdName << m_createdIntervalId << m_startStateId << m_endStateId
-    << m_startStatePos << m_endStatePos << m_graphal;
+  s << m_path << m_createdName << m_createdIntervalId << m_startStateId
+    << m_endStateId << m_startStatePos << m_endStatePos << m_graphal;
 }
 
 void CreateInterval::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_path >> m_createdName >> m_createdIntervalId >> m_startStateId >> m_endStateId
-      >> m_startStatePos >> m_endStatePos >> m_graphal;
+  s >> m_path >> m_createdName >> m_createdIntervalId >> m_startStateId
+      >> m_endStateId >> m_startStatePos >> m_endStatePos >> m_graphal;
 }
 }
 }

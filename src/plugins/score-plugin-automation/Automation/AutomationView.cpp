@@ -15,10 +15,13 @@
 W_OBJECT_IMPL(Automation::LayerView)
 namespace Automation
 {
-LayerView::LayerView(QGraphicsItem* parent) : Process::LayerView{parent}
+LayerView::LayerView(QGraphicsItem* parent)
+    : Process::LayerView{parent}
 {
   setZValue(1);
-  setFlags(ItemClipsToShape | ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
+  setFlags(
+      ItemClipsToShape | ItemClipsChildrenToShape | ItemIsSelectable
+      | ItemIsFocusable);
   setAcceptDrops(true);
 }
 

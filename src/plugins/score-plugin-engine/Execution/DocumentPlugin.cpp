@@ -4,13 +4,12 @@
 
 #include "BaseScenarioComponent.hpp"
 
+#include <Audio/AudioApplicationPlugin.hpp>
+#include <Audio/AudioDevice.hpp>
+#include <Audio/Settings/Model.hpp>
+#include <Engine/ApplicationPlugin.hpp>
+#include <Execution/Settings/ExecutorModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Scenario/Application/ScenarioActions.hpp>
-#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Document/Interval/IntervalExecution.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Document/State/StateExecution.hpp>
-#include <Scenario/Execution/score2OSSIA.hpp>
 
 #include <score/actions/ActionManager.hpp>
 #include <score/model/ComponentUtils.hpp>
@@ -21,6 +20,7 @@
 #include <core/document/DocumentModel.hpp>
 
 #include <ossia/audio/audio_protocol.hpp>
+#include <ossia/dataflow/bench_map.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph_edge.hpp>
@@ -29,14 +29,15 @@
 #include <ossia/detail/logger.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/network/common/path.hpp>
-#include <ossia/dataflow/bench_map.hpp>
+
 #include <QCoreApplication>
 
-#include <Audio/AudioApplicationPlugin.hpp>
-#include <Audio/AudioDevice.hpp>
-#include <Audio/Settings/Model.hpp>
-#include <Engine/ApplicationPlugin.hpp>
-#include <Execution/Settings/ExecutorModel.hpp>
+#include <Scenario/Application/ScenarioActions.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/Interval/IntervalExecution.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/State/StateExecution.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
 #include <wobjectimpl.h>
 W_REGISTER_ARGTYPE(ossia::bench_map)
 W_OBJECT_IMPL(Execution::DocumentPlugin)
@@ -53,7 +54,8 @@ DocumentPlugin::DocumentPlugin(
     , m_gcQueue(1024)
     , m_ctx
 {
-  ctx, m_created, {}, {}, m_execQueue, m_editionQueue, m_gcQueue, m_setup_ctx, execGraph, execState
+  ctx, m_created, {}, {}, m_execQueue, m_editionQueue, m_gcQueue, m_setup_ctx,
+      execGraph, execState
 #if (__cplusplus > 201703L) && !defined(_MSC_VER)
       ,
   {
@@ -74,18 +76,23 @@ DocumentPlugin::DocumentPlugin(
   {
     audio_device = new Dataflow::AudioDevice(
         {Dataflow::AudioProtocolFactory::static_concreteKey(), "audio", {}});
-    ctx.plugin<Explorer::DeviceDocumentPlugin>().list().setAudioDevice(audio_device);
+    ctx.plugin<Explorer::DeviceDocumentPlugin>().list().setAudioDevice(
+        audio_device);
   }
 
-  devs.list().apply([this] (auto& d) { on_deviceAdded(&d); });
-  con(devs.list(), &Device::DeviceList::deviceAdded, this, &DocumentPlugin::on_deviceAdded);
+  devs.list().apply([this](auto& d) { on_deviceAdded(&d); });
+  con(devs.list(),
+      &Device::DeviceList::deviceAdded,
+      this,
+      &DocumentPlugin::on_deviceAdded);
   con(devs.list(), &Device::DeviceList::deviceRemoved, this, [=](auto* dev) {
     if (auto d = dev->getDevice())
       unregisterDevice(d);
   });
 
   auto& model = ctx.model<Scenario::ScenarioDocumentModel>();
-  model.cables.mutable_added.connect<&SetupContext::on_cableCreated>(m_setup_ctx);
+  model.cables.mutable_added.connect<&SetupContext::on_cableCreated>(
+      m_setup_ctx);
   model.cables.removing.connect<&SetupContext::on_cableRemoved>(m_setup_ctx);
 
   con(
@@ -99,9 +106,17 @@ DocumentPlugin::DocumentPlugin(
       Qt::QueuedConnection);
 
   connect(
-      this, &DocumentPlugin::finished, this, &DocumentPlugin::on_finished, Qt::DirectConnection);
+      this,
+      &DocumentPlugin::finished,
+      this,
+      &DocumentPlugin::on_finished,
+      Qt::DirectConnection);
   connect(
-      this, &DocumentPlugin::sig_bench, this, &DocumentPlugin::slot_bench, Qt::QueuedConnection);
+      this,
+      &DocumentPlugin::sig_bench,
+      this,
+      &DocumentPlugin::slot_bench,
+      Qt::QueuedConnection);
 }
 
 DocumentPlugin::~DocumentPlugin()
@@ -133,7 +148,8 @@ void DocumentPlugin::on_finished()
       while (m_editionQueue.try_dequeue(cmd))
         cmd();
       GCCommand gc;
-      while (m_gcQueue.try_dequeue(gc)) ;
+      while (m_gcQueue.try_dequeue(gc))
+        ;
     }
   }
 
@@ -169,18 +185,19 @@ void DocumentPlugin::timerEvent(QTimerEvent* event)
   while (m_editionQueue.try_dequeue(cmd))
     cmd();
   GCCommand gc;
-  while (m_gcQueue.try_dequeue(gc)) ;
+  while (m_gcQueue.try_dequeue(gc))
+    ;
 }
 
 void DocumentPlugin::registerDevice(ossia::net::device_base* d)
 {
-  if(execState)
+  if (execState)
     execState->register_device(d);
 }
 
 void DocumentPlugin::unregisterDevice(ossia::net::device_base* d)
 {
-  if(execState)
+  if (execState)
     execState->unregister_device(d);
 }
 
@@ -188,7 +205,8 @@ void DocumentPlugin::makeGraph()
 {
   using namespace ossia;
   const score::DocumentContext& ctx = m_ctx.doc;
-  auto& devlist = ctx.plugin<Explorer::DeviceDocumentPlugin>().list().devices();
+  auto& devlist
+      = ctx.plugin<Explorer::DeviceDocumentPlugin>().list().devices();
   auto& audiosettings = ctx.app.settings<Audio::Settings::Model>();
 
   static const Execution::Settings::SchedulingPolicies sched_t;
@@ -209,8 +227,10 @@ void DocumentPlugin::makeGraph()
 
   execState->bufferSize = audiosettings.getBufferSize();
   execState->sampleRate = audiosettings.getRate();
-  execState->modelToSamplesRatio = audiosettings.getRate() / ossia::flicks_per_second<double>;
-  execState->samplesToModelRatio = ossia::flicks_per_second<double> / audiosettings.getRate();
+  execState->modelToSamplesRatio
+      = audiosettings.getRate() / ossia::flicks_per_second<double>;
+  execState->samplesToModelRatio
+      = ossia::flicks_per_second<double> / audiosettings.getRate();
   execState->samples_since_start = 0;
   execState->start_date = 0; // TODO set it in the first callback
   execState->cur_date = execState->start_date;
@@ -276,7 +296,8 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
 
   for (auto ctl : model.statesWithControls)
   {
-    auto state_comp = score::findComponent<Execution::StateComponentBase>(ctl->components());
+    auto state_comp = score::findComponent<Execution::StateComponentBase>(
+        ctl->components());
     if (state_comp)
     {
       state_comp->updateControls();
@@ -315,7 +336,10 @@ void DocumentPlugin::on_documentClosing()
   if (m_base.active())
   {
     m_base.baseInterval().stop();
-    m_ctx.context().doc.app.guiApplicationPlugin<Engine::ApplicationPlugin>().execution().request_stop();
+    m_ctx.context()
+        .doc.app.guiApplicationPlugin<Engine::ApplicationPlugin>()
+        .execution()
+        .request_stop();
     clear();
   }
 
@@ -334,17 +358,17 @@ BaseScenarioElement& DocumentPlugin::baseScenario()
 
 void DocumentPlugin::playStartState()
 {
-  auto scenar = score::IDocument::try_get<Scenario::ScenarioDocumentModel>(this->m_context.document);
+  auto scenar = score::IDocument::try_get<Scenario::ScenarioDocumentModel>(
+      this->m_context.document);
   if (!scenar)
     return;
   auto& sm = scenar->baseScenario().startState();
 
   // FIXME that does not look thread-safe at all !
   // what if devices are being added/removed in the exec thread !
-  if(execState)
+  if (execState)
   {
-    auto state
-        = Engine::score_to_ossia::state(sm, this->context());
+    auto state = Engine::score_to_ossia::state(sm, this->context());
     state.launch();
   }
   else
@@ -354,8 +378,9 @@ void DocumentPlugin::playStartState()
 
     // Fill its devices
     auto& devs = this->context().doc.plugin<Explorer::DeviceDocumentPlugin>();
-    devs.list().apply([this] (auto& dev) {
-      if (auto d = dev.getDevice()) {
+    devs.list().apply([this](auto& dev) {
+      if (auto d = dev.getDevice())
+      {
         execState->register_device(d);
       }
     });
@@ -374,12 +399,15 @@ bool DocumentPlugin::isPlaying() const
 
 const ExecutionController& DocumentPlugin::executionController() const noexcept
 {
-  return this->context().doc.app.guiApplicationPlugin<Engine::ApplicationPlugin>().execution();
+  return this->context()
+      .doc.app.guiApplicationPlugin<Engine::ApplicationPlugin>()
+      .execution();
 }
 
 ossia::audio_protocol& DocumentPlugin::audioProto()
 {
-  return static_cast<ossia::audio_protocol&>(audio_device->getDevice()->get_protocol());
+  return static_cast<ossia::audio_protocol&>(
+      audio_device->getDevice()->get_protocol());
 }
 
 void DocumentPlugin::runAllCommands() const
@@ -418,13 +446,17 @@ void DocumentPlugin::on_deviceAdded(Device::DeviceInterface* dev)
 {
   if (auto d = dev->getDevice())
   {
-    connect(dev, &Device::DeviceInterface::deviceChanged,
-            this, [=](ossia::net::device_base* old_dev, ossia::net::device_base* new_dev) {
-      if (old_dev)
-        unregisterDevice(old_dev);
-      if (new_dev)
-        registerDevice(new_dev);
-    });
+    connect(
+        dev,
+        &Device::DeviceInterface::deviceChanged,
+        this,
+        [=](ossia::net::device_base* old_dev,
+            ossia::net::device_base* new_dev) {
+          if (old_dev)
+            unregisterDevice(old_dev);
+          if (new_dev)
+            registerDevice(new_dev);
+        });
     registerDevice(d);
   }
 }

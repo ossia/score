@@ -1,8 +1,8 @@
 #pragma once
+#include <QGraphicsItem>
+
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
-
-#include <QGraphicsItem>
 
 #include <verdigris>
 
@@ -12,7 +12,10 @@ class IntervalPresenter;
 class SlotHeader final : public QGraphicsItem
 {
 public:
-  SlotHeader(const IntervalPresenter& slotView, int slotIndex, QGraphicsItem* parent);
+  SlotHeader(
+      const IntervalPresenter& slotView,
+      int slotIndex,
+      QGraphicsItem* parent);
 
   const IntervalPresenter& presenter() const { return m_presenter; }
   static const constexpr int Type = ItemType::SlotHeader;
@@ -25,7 +28,10 @@ public:
   static constexpr double menuWidth() { return 16.; }
 
   QRectF boundingRect() const override;
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
 
   void setWidth(qreal width);
   void setMini(bool b);
@@ -49,7 +55,10 @@ private:
 class SlotFooter : public QGraphicsItem
 {
 public:
-  SlotFooter(const IntervalPresenter& slotView, int slotIndex, QGraphicsItem* parent);
+  SlotFooter(
+      const IntervalPresenter& slotView,
+      int slotIndex,
+      QGraphicsItem* parent);
 
   const IntervalPresenter& presenter() const { return m_presenter; }
   static const constexpr int Type = ItemType::SlotFooter;
@@ -60,7 +69,10 @@ public:
   static constexpr double footerHeight() { return 13.; }
 
   QRectF boundingRect() const override;
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
 
   void setWidth(qreal width);
 
@@ -72,7 +84,10 @@ public:
 class AmovibleSlotFooter final : public SlotFooter
 {
 public:
-  AmovibleSlotFooter(const IntervalPresenter& slotView, int slotIndex, QGraphicsItem* parent);
+  AmovibleSlotFooter(
+      const IntervalPresenter& slotView,
+      int slotIndex,
+      QGraphicsItem* parent);
 
 private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;
@@ -93,7 +108,9 @@ private:
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final override;
 };
 
-class SlotDragOverlay final : public QObject, public QGraphicsItem
+class SlotDragOverlay final
+    : public QObject
+    , public QGraphicsItem
 {
   W_OBJECT(SlotDragOverlay)
 public:
@@ -103,7 +120,10 @@ public:
   Slot::RackView view;
   QRectF boundingRect() const override;
 
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
 
   void dropBefore(int slot) W_SIGNAL(dropBefore, slot);
   void dropIn(int slot) W_SIGNAL(dropIn, slot);

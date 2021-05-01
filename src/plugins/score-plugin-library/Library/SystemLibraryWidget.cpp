@@ -15,7 +15,9 @@
 
 namespace Library
 {
-SystemLibraryWidget::SystemLibraryWidget(const score::GUIApplicationContext& ctx, QWidget* parent)
+SystemLibraryWidget::SystemLibraryWidget(
+    const score::GUIApplicationContext& ctx,
+    QWidget* parent)
     : QWidget{parent}
     , m_model{new FileSystemModel{ctx, this}}
     , m_proxy{new QSortFilterProxyModel{this}}
@@ -25,12 +27,12 @@ SystemLibraryWidget::SystemLibraryWidget(const score::GUIApplicationContext& ctx
   m_proxy->setRecursiveFilteringEnabled(true);
 #endif
 
-  setStatusTip(
-      QObject::tr("This panel shows the system library.\n"
-                  "It is present by default in your user's Documents folder, \n"
-                  "in a subfolder named ossia score library."
-                  "A user-provided library is available on : \n"
-                  "github.com/ossia/score-user-library"));
+  setStatusTip(QObject::tr(
+      "This panel shows the system library.\n"
+      "It is present by default in your user's Documents folder, \n"
+      "in a subfolder named ossia score library."
+      "A user-provided library is available on : \n"
+      "github.com/ossia/score-user-library"));
   auto lay = new score::MarginLess<QVBoxLayout>;
 
   this->setLayout(lay);
@@ -91,14 +93,18 @@ SystemLibraryWidget::SystemLibraryWidget(const score::GUIApplicationContext& ctx
     auto& settings = ctx.settings<Library::Settings::Model>();
     il->reset = [this, &settings] { setRoot(settings.getPath()); };
     il->reset();
-    con(settings, &Library::Settings::Model::PathChanged, this, [=] { il->reset(); });
+    con(settings, &Library::Settings::Model::PathChanged, this, [=] {
+      il->reset();
+    });
   });
 #else
   QTimer::singleShot(1000, [this, &ctx] {
     auto& settings = ctx.settings<Library::Settings::Model>();
     auto reset = [this, &settings] { setRoot(settings.getPath()); };
     reset();
-    con(settings, &Library::Settings::Model::PathChanged, this, [=] { reset(); });
+    con(settings, &Library::Settings::Model::PathChanged, this, [=] {
+      reset();
+    });
   });
 #endif
 }

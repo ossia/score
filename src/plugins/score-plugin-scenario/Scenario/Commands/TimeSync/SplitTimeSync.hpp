@@ -1,13 +1,13 @@
 #pragma once
 
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/tools/std/Optional.hpp>
 
 #include <QVector>
+
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -22,7 +22,9 @@ class SplitTimeSync final : public score::Command
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), SplitTimeSync, "Desynchronize")
 public:
-  SplitTimeSync(const TimeSyncModel& path, std::vector<Id<EventModel>> eventsInNewTimeSync);
+  SplitTimeSync(
+      const TimeSyncModel& path,
+      std::vector<Id<EventModel>> eventsInNewTimeSync);
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 
@@ -43,7 +45,9 @@ class SCORE_PLUGIN_SCENARIO_EXPORT SplitWholeSync final : public score::Command
   SCORE_COMMAND_DECL(CommandFactoryName(), SplitWholeSync, "Desynchronize")
 public:
   SplitWholeSync(const TimeSyncModel& path);
-  SplitWholeSync(const TimeSyncModel& path, std::vector<Id<TimeSyncModel>> new_ids);
+  SplitWholeSync(
+      const TimeSyncModel& path,
+      std::vector<Id<TimeSyncModel>> new_ids);
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 

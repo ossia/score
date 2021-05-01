@@ -20,6 +20,5 @@ public:
   ~Remote();
 };
 
-
 using RemoteFactory = RemoteControl::ProcessComponentFactory_T<Remote>;
 }

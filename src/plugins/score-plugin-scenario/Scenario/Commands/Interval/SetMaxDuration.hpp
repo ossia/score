@@ -1,12 +1,12 @@
 #pragma once
 #include <Process/TimeValue.hpp>
 #include <Process/TimeValueSerialization.hpp>
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
 
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <tests/helpers/ForwardDeclaration.hpp>
 
 namespace Scenario
@@ -21,7 +21,10 @@ namespace Command
  */
 class SetMaxDuration final : public score::Command
 {
-  SCORE_COMMAND_DECL(CommandFactoryName(), SetMaxDuration, "Set interval maximum")
+  SCORE_COMMAND_DECL(
+      CommandFactoryName(),
+      SetMaxDuration,
+      "Set interval maximum")
 public:
   static const constexpr auto corresponding_member
       = &IntervalDurations::maxDuration; // used by state machine

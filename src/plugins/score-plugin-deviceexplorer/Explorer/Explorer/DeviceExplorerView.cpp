@@ -21,7 +21,6 @@
 #include <QSettings>
 #include <QString>
 
-
 W_REGISTER_ARGTYPE(QItemSelection)
 
 #include <wobjectimpl.h>
@@ -34,7 +33,9 @@ const QString HeaderViewSetting("DeviceExplorerView/HeaderView");
 
 namespace Explorer
 {
-DeviceExplorerView::DeviceExplorerView(QWidget* parent) : QTreeView(parent), m_hasProxy(false)
+DeviceExplorerView::DeviceExplorerView(QWidget* parent)
+    : QTreeView(parent)
+    , m_hasProxy(false)
 {
   setAllColumnsShowFocus(true);
 
@@ -72,9 +73,12 @@ QModelIndexList DeviceExplorerView::selectedDraggableIndexes() const
 {
   QModelIndexList indexes = selectedIndexes();
   auto m = QTreeView::model();
-  auto isNotDragEnabled
-      = [m](const QModelIndex& index) { return !(m->flags(index) & Qt::ItemIsDragEnabled); };
-  indexes.erase(std::remove_if(indexes.begin(), indexes.end(), isNotDragEnabled), indexes.end());
+  auto isNotDragEnabled = [m](const QModelIndex& index) {
+    return !(m->flags(index) & Qt::ItemIsDragEnabled);
+  };
+  indexes.erase(
+      std::remove_if(indexes.begin(), indexes.end(), isNotDragEnabled),
+      indexes.end());
   return indexes;
 }
 
@@ -197,13 +201,18 @@ void DeviceExplorerView::initActions()
 
   for (int i = 0; i < n; ++i)
   {
-    QAction* a
-        = new QAction(model()->headerData(i, Qt::Horizontal, Qt::DisplayRole).toString(), this);
+    QAction* a = new QAction(
+        model()->headerData(i, Qt::Horizontal, Qt::DisplayRole).toString(),
+        this);
     a->setCheckable(true);
 
     a->setChecked(!isColumnHidden(i));
 
-    connect(a, &QAction::toggled, this, &DeviceExplorerView::columnVisibilityChanged);
+    connect(
+        a,
+        &QAction::toggled,
+        this,
+        &DeviceExplorerView::columnVisibilityChanged);
     m_actions.append(a);
   }
 }
@@ -234,7 +243,10 @@ void DeviceExplorerView::keyPressEvent(QKeyEvent* k)
   }
 }
 
-void DeviceExplorerView::rowsInserted(const QModelIndex& parent, int start, int end)
+void DeviceExplorerView::rowsInserted(
+    const QModelIndex& parent,
+    int start,
+    int end)
 {
   QTreeView::rowsInserted(parent, start, end);
   created(parent, start, end);
@@ -317,7 +329,8 @@ void DeviceExplorerView::setSelectedIndex(const QModelIndex& index)
   else
   {
     return setCurrentIndex(
-        static_cast<const QAbstractProxyModel*>(QTreeView::model())->mapFromSource(index));
+        static_cast<const QAbstractProxyModel*>(QTreeView::model())
+            ->mapFromSource(index));
   }
 }
 void DeviceExplorerView::paintEvent(QPaintEvent* event)

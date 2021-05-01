@@ -1,7 +1,9 @@
 #pragma once
 #include <QWidget>
-#include <string_view>
+
 #include <score_lib_process_export.h>
+
+#include <string_view>
 class QCodeEditor;
 namespace Process
 {

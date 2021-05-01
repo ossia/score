@@ -31,7 +31,8 @@ struct Context;
  *
  * Interface to make processes, like Scenario, Automation...
  */
-class SCORE_LIB_PROCESS_EXPORT ProcessModelFactory : public score::InterfaceBase
+class SCORE_LIB_PROCESS_EXPORT ProcessModelFactory
+    : public score::InterfaceBase
 {
   SCORE_INTERFACE(ProcessModel, "507ae654-f3b8-4aae-afc3-7ab8e1a3a86f")
 public:
@@ -52,8 +53,10 @@ public:
       QObject* parent)
       = 0;
 
-  virtual Process::ProcessModel*
-  load(const VisitorVariant&, const score::DocumentContext& ctx, QObject* parent)
+  virtual Process::ProcessModel* load(
+      const VisitorVariant&,
+      const score::DocumentContext& ctx,
+      QObject* parent)
       = 0;
 };
 
@@ -80,11 +83,14 @@ public:
   virtual Process::MiniLayer*
   makeMiniLayer(const Process::ProcessModel&, QGraphicsItem* parent) const;
 
-  virtual score::ResizeableItem*
-  makeItem(const Process::ProcessModel&, const Process::Context& ctx, QGraphicsItem* parent) const;
+  virtual score::ResizeableItem* makeItem(
+      const Process::ProcessModel&,
+      const Process::Context& ctx,
+      QGraphicsItem* parent) const;
 
-  virtual bool hasExternalUI(const Process::ProcessModel& proc, const score::DocumentContext& ctx)
-      const noexcept;
+  virtual bool hasExternalUI(
+      const Process::ProcessModel& proc,
+      const score::DocumentContext& ctx) const noexcept;
   virtual QWidget* makeExternalUI(
       const Process::ProcessModel&,
       const score::DocumentContext& ctx,
@@ -94,8 +100,9 @@ public:
       const ProcessModel& model,
       const Process::Context& ctx,
       QGraphicsItem* parent) const;
-  virtual FooterDelegate*
-  makeFooterDelegate(const ProcessModel& model, const Process::Context& ctx) const;
+  virtual FooterDelegate* makeFooterDelegate(
+      const ProcessModel& model,
+      const Process::Context& ctx) const;
 
   bool matches(const Process::ProcessModel& p) const;
   virtual bool matches(const UuidKey<Process::ProcessModel>&) const = 0;

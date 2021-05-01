@@ -74,33 +74,36 @@ void setupDefaultSettings(QSettings&, const T& tuple, Model& model)
 
 #define SETTINGS_PARAMETER_IMPL(Name) const score::sp<Model::p_##Name> Name
 
-#define SCORE_SETTINGS_COMMAND(ModelType, Name)                                          \
-  struct Set##ModelType##Name final : public score::SettingsCommand<ModelType::p_##Name> \
-  {                                                                                      \
-    static constexpr const bool is_deferred = false;                                     \
-    SCORE_SETTINGS_COMMAND_DECL(Set##ModelType##Name)                                    \
+#define SCORE_SETTINGS_COMMAND(ModelType, Name)            \
+  struct Set##ModelType##Name final                        \
+      : public score::SettingsCommand<ModelType::p_##Name> \
+  {                                                        \
+    static constexpr const bool is_deferred = false;       \
+    SCORE_SETTINGS_COMMAND_DECL(Set##ModelType##Name)      \
   };
 
-#define SCORE_SETTINGS_PARAMETER(ModelType, Name) SCORE_SETTINGS_COMMAND(ModelType, Name)
+#define SCORE_SETTINGS_PARAMETER(ModelType, Name) \
+  SCORE_SETTINGS_COMMAND(ModelType, Name)
 
-#define SCORE_SETTINGS_DEFERRED_COMMAND(ModelType, Name)                                 \
-  struct Set##ModelType##Name final : public score::SettingsCommand<ModelType::p_##Name> \
-  {                                                                                      \
-    static constexpr const bool is_deferred = true;                                      \
-    SCORE_SETTINGS_COMMAND_DECL(Set##ModelType##Name)                                    \
+#define SCORE_SETTINGS_DEFERRED_COMMAND(ModelType, Name)   \
+  struct Set##ModelType##Name final                        \
+      : public score::SettingsCommand<ModelType::p_##Name> \
+  {                                                        \
+    static constexpr const bool is_deferred = true;        \
+    SCORE_SETTINGS_COMMAND_DECL(Set##ModelType##Name)      \
   };
 
 #define SCORE_SETTINGS_DEFERRED_PARAMETER(ModelType, Name) \
   SCORE_SETTINGS_DEFERRED_COMMAND(ModelType, Name)
 
-#define SCORE_SETTINGS_PARAMETER_HPP(Export, Type, Name)                        \
-public:                                                                         \
-  Type get##Name() const;                                                       \
-  void set##Name(Type);                                                         \
-  void Name##Changed(Type arg) E_SIGNAL2(Export##S, Export, Name##Changed, arg) \
-      PROPERTY(Type, Name READ get##Name WRITE set##Name NOTIFY Name##Changed)  \
+#define SCORE_SETTINGS_PARAMETER_HPP(Export, Type, Name)                  \
+public:                                                                   \
+  Type get##Name() const;                                                 \
+  void set##Name(Type);                                                   \
+  void Name##Changed(Type arg)                                            \
+      E_SIGNAL2(Export##S, Export, Name##Changed, arg) PROPERTY(          \
+          Type, Name READ get##Name WRITE set##Name NOTIFY Name##Changed) \
 private:
-
 
 #if !defined(__EMSCRIPTEN__)
 #define SCORE_SETTINGS_PARAMETER_CPP(Type, ModelType, Name)          \
@@ -118,17 +121,17 @@ private:
     Name##Changed(val);                                              \
   }
 #else
-#define SCORE_SETTINGS_PARAMETER_CPP(Type, ModelType, Name)          \
-  Type ModelType::get##Name() const { return m_##Name; }             \
-                                                                     \
-  void ModelType::set##Name(Type val)                                \
-  {                                                                  \
-    if (val == m_##Name)                                             \
-      return;                                                        \
-                                                                     \
-    m_##Name = val;                                                  \
-                                                                     \
-    Name##Changed(val);                                              \
+#define SCORE_SETTINGS_PARAMETER_CPP(Type, ModelType, Name) \
+  Type ModelType::get##Name() const { return m_##Name; }    \
+                                                            \
+  void ModelType::set##Name(Type val)                       \
+  {                                                         \
+    if (val == m_##Name)                                    \
+      return;                                               \
+                                                            \
+    m_##Name = val;                                         \
+                                                            \
+    Name##Changed(val);                                     \
   }
 #endif
 

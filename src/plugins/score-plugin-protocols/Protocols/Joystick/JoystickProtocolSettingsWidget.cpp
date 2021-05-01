@@ -6,8 +6,9 @@
 
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
-#include <ossia/protocols/joystick/joystick_protocol.hpp>
 #include <score/widgets/ComboBox.hpp>
+
+#include <ossia/protocols/joystick/joystick_protocol.hpp>
 
 #include <QFormLayout>
 #include <QPushButton>
@@ -43,7 +44,8 @@ Device::DeviceSettings JoystickProtocolSettingsWidget::getSettings() const
   return s;
 }
 
-void JoystickProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settings)
+void JoystickProtocolSettingsWidget::setSettings(
+    const Device::DeviceSettings& settings)
 {
   m_settings = settings;
   m_deviceNameEdit->setText(settings.name);

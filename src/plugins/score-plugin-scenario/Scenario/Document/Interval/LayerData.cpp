@@ -1,16 +1,20 @@
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
 #include <Process/Process.hpp>
-#include <Scenario/Document/Interval/LayerData.hpp>
 
 #include <score/graphics/RectItem.hpp>
 #include <score/tools/Debug.hpp>
 
 #include <QPainter>
 
+#include <Scenario/Document/Interval/LayerData.hpp>
+
 namespace Scenario
 {
-LayerData::LayerData(const Process::ProcessModel* m) : m_model(m) { }
+LayerData::LayerData(const Process::ProcessModel* m)
+    : m_model(m)
+{
+}
 
 void LayerData::cleanup()
 {
@@ -42,8 +46,8 @@ void LayerData::addView(
   auto view = factory.makeLayerView(*m_model, context, container);
 
   double startX = m_model->flags() & Process::ProcessFlags::HandlesLooping
-      ? 0.
-      : -m_model->startOffset().toPixels(zoomRatio);
+                      ? 0.
+                      : -m_model->startOffset().toPixels(zoomRatio);
   view->setPos(startX, 0.);
 
   auto presenter = factory.makeLayerPresenter(*m_model, view, context, parent);
@@ -132,15 +136,22 @@ void LayerData::on_zoomRatioChanged(
     QGraphicsItem* parentItem,
     QObject* parent)
 {
-  updateLoops(ctx, r, parent_width, parent_default_width, slot_height, parentItem, parent);
+  updateLoops(
+      ctx,
+      r,
+      parent_width,
+      parent_default_width,
+      slot_height,
+      parentItem,
+      parent);
 
   for (const auto& p : m_layers)
   {
     p.presenter->on_zoomRatioChanged(r);
 
     double startX = m_model->flags() & Process::ProcessFlags::HandlesLooping
-        ? 0.
-        : -m_model->startOffset().toPixels(r);
+                        ? 0.
+                        : -m_model->startOffset().toPixels(r);
     p.view->setPos(startX, 0.);
   }
 }
@@ -174,14 +185,17 @@ void LayerData::updateLoops(
 {
   auto f = ctx.processList.findDefaultFactory(m_model->concreteKey());
   SCORE_ASSERT(f);
-  if (m_model->loops() && !(m_model->flags() & Process::ProcessFlags::HandlesLooping))
+  if (m_model->loops()
+      && !(m_model->flags() & Process::ProcessFlags::HandlesLooping))
   {
     const auto view_width = m_model->loopDuration().toPixels(r);
     constexpr double min_view_width = 10.;
     // TODO here it should be different between fullview and temporal
     // (parent_width vs default_width)
     auto num_views
-        = (view_width < min_view_width) ? 1 : std::max((int)1, (int)std::ceil(parent_width / view_width));
+        = (view_width < min_view_width)
+              ? 1
+              : std::max((int)1, (int)std::ceil(parent_width / view_width));
     num_views = qBound(1, num_views, 500);
 
     if ((int)m_layers.size() < num_views)
@@ -202,11 +216,18 @@ void LayerData::updateLoops(
     // Update sizes for everyone
     for (int i = 0; i < int(m_layers.size()); i++)
     {
-      setupView(m_layers[i], i, parent_width, parent_default_width, view_width, slot_height);
+      setupView(
+          m_layers[i],
+          i,
+          parent_width,
+          parent_default_width,
+          view_width,
+          slot_height);
     }
 
     if (!m_layers.empty())
-      m_layers.front().container->setFlag(QGraphicsItem::ItemHasNoContents, false);
+      m_layers.front().container->setFlag(
+          QGraphicsItem::ItemHasNoContents, false);
     else
       SCORE_SOFT_ASSERT(!"Missing layer view !");
   }
@@ -223,10 +244,17 @@ void LayerData::updateLoops(
     }
 
     // Update sizes for first layer
-    setupView(m_layers.front(), 0, parent_width, parent_default_width, parent_width, slot_height);
+    setupView(
+        m_layers.front(),
+        0,
+        parent_width,
+        parent_default_width,
+        parent_width,
+        slot_height);
 
     if (!m_layers.empty())
-      m_layers.front().container->setFlag(QGraphicsItem::ItemHasNoContents, true);
+      m_layers.front().container->setFlag(
+          QGraphicsItem::ItemHasNoContents, true);
     else
       SCORE_SOFT_ASSERT(!"Missing layer view !");
   }
@@ -303,16 +331,29 @@ QPixmap LayerData::pixmap() const noexcept
   return {};
 }
 
-void LayerData::disconnect(const Process::ProcessModel& proc, QObject& intervalPresenter)
+void LayerData::disconnect(
+    const Process::ProcessModel& proc,
+    QObject& intervalPresenter)
 {
-  QObject::disconnect(&proc, &Process::ProcessModel::loopsChanged, &intervalPresenter, nullptr);
   QObject::disconnect(
-        &proc, &Process::ProcessModel::startOffsetChanged, &intervalPresenter, nullptr);
+      &proc,
+      &Process::ProcessModel::loopsChanged,
+      &intervalPresenter,
+      nullptr);
   QObject::disconnect(
-        &proc, &Process::ProcessModel::loopDurationChanged, &intervalPresenter, nullptr);
+      &proc,
+      &Process::ProcessModel::startOffsetChanged,
+      &intervalPresenter,
+      nullptr);
+  QObject::disconnect(
+      &proc,
+      &Process::ProcessModel::loopDurationChanged,
+      &intervalPresenter,
+      nullptr);
 }
 
-LayerRectItem::LayerRectItem(QGraphicsItem* parent) : score::ResizeableItem{parent}
+LayerRectItem::LayerRectItem(QGraphicsItem* parent)
+    : score::ResizeableItem{parent}
 {
   // this->setFlag(ItemHasNoContents, true);
 }

@@ -1,10 +1,10 @@
 #pragma once
-#include <Vst/ApplicationPlugin.hpp>
-
 #include <Media/Effect/Settings/Model.hpp>
 #include <Media/Effect/Settings/View.hpp>
+#include <Vst/ApplicationPlugin.hpp>
 
 #include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
+
 #include <verdigris>
 
 class QListWidget;
@@ -12,8 +12,7 @@ class QListWidget;
 namespace vst
 {
 
-class SettingsWidget
-    : public Media::Settings::PluginSettingsTab
+class SettingsWidget : public Media::Settings::PluginSettingsTab
 {
   W_OBJECT(SettingsWidget)
   SCORE_CONCRETE("849b6420-cdc9-47c3-9cac-74897336a77a")
@@ -39,6 +38,5 @@ private:
   score::SettingsCommandDispatcher m_disp;
   Model& model(SettingsWidget* self);
 };
-
 
 }

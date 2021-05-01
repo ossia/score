@@ -6,12 +6,6 @@
 #include "TemporalIntervalPresenter.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/Interval/IntervalHeader.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Interval/IntervalPixmaps.hpp>
-#include <Scenario/Document/Interval/IntervalPresenter.hpp>
-#include <Scenario/Document/Interval/IntervalView.hpp>
 
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/graphics/PainterPath.hpp>
@@ -24,6 +18,12 @@
 #include <QStyleOption>
 #include <qnamespace.h>
 
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Interval/IntervalHeader.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/IntervalPixmaps.hpp>
+#include <Scenario/Document/Interval/IntervalPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalView.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::TemporalIntervalView)
 class QGraphicsSceneHoverEvent;
@@ -167,21 +167,28 @@ void TemporalIntervalView::drawPlayDashedPath(
     return;
 
   double actual_min = std::max(min_w, visibleRect.left());
-  double actual_max = std::min(infinite() ? def_w : max_w, visibleRect.right());
+  double actual_max
+      = std::min(infinite() ? def_w : max_w, visibleRect.right());
 
   auto& pixmaps = intervalPixmaps(skin);
 
   // waiting
   const int idx = m_waiting ? skin.skin.PulseIndex : 0;
-  IntervalPixmaps::drawDashes(actual_min, actual_max, p, visibleRect, pixmaps.playDashed[idx]);
+  IntervalPixmaps::drawDashes(
+      actual_min, actual_max, p, visibleRect, pixmaps.playDashed[idx]);
 
   // played
   IntervalPixmaps::drawDashes(
-      actual_min, std::min(actual_max, play_w), p, visibleRect, pixmaps.playDashed.back());
+      actual_min,
+      std::min(actual_max, play_w),
+      p,
+      visibleRect,
+      pixmaps.playDashed.back());
 
   p.setPen(skin.IntervalPlayLinePen(skin.IntervalPlayFill()));
 
-  p.drawLine(QPointF{actual_min, -0.5}, QPointF{std::min(actual_max, play_w), -0.5});
+  p.drawLine(
+      QPointF{actual_min, -0.5}, QPointF{std::min(actual_max, play_w), -0.5});
 }
 
 void TemporalIntervalView::updatePlayPaths()
@@ -221,7 +228,10 @@ void TemporalIntervalView::updatePlayPaths()
   }
 }
 
-void TemporalIntervalView::paint(QPainter* p, const QStyleOptionGraphicsItem* so, QWidget*)
+void TemporalIntervalView::paint(
+    QPainter* p,
+    const QStyleOptionGraphicsItem* so,
+    QWidget*)
 {
   auto view = ::getView(*this);
   if (!view)
@@ -230,15 +240,19 @@ void TemporalIntervalView::paint(QPainter* p, const QStyleOptionGraphicsItem* so
   const auto rect = boundingRect();
 
   QPointF sceneDrawableTopLeft = view->mapToScene(-10, 0);
-  QPointF sceneDrawableBottomRight = view->mapToScene(view->width() + 10, view->height() + 10);
+  QPointF sceneDrawableBottomRight
+      = view->mapToScene(view->width() + 10, view->height() + 10);
   QPointF itemDrawableTopLeft = this->mapFromScene(sceneDrawableTopLeft);
-  QPointF itemDrawableBottomRight = this->mapFromScene(sceneDrawableBottomRight);
+  QPointF itemDrawableBottomRight
+      = this->mapFromScene(sceneDrawableBottomRight);
 
   itemDrawableTopLeft.rx() = std::max(itemDrawableTopLeft.x(), 0.);
   itemDrawableTopLeft.ry() = std::max(itemDrawableTopLeft.y(), 0.);
 
-  itemDrawableBottomRight.rx() = std::min(itemDrawableBottomRight.x(), rect.width());
-  itemDrawableBottomRight.ry() = std::min(itemDrawableBottomRight.y(), rect.height());
+  itemDrawableBottomRight.rx()
+      = std::min(itemDrawableBottomRight.x(), rect.width());
+  itemDrawableBottomRight.ry()
+      = std::min(itemDrawableBottomRight.y(), rect.height());
   if (itemDrawableTopLeft.x() > rect.width())
   {
     return;
@@ -251,15 +265,20 @@ void TemporalIntervalView::paint(QPainter* p, const QStyleOptionGraphicsItem* so
   painter.setRenderHint(QPainter::Antialiasing, false);
   auto& skin = Process::Style::instance();
 
-  const QRectF visibleRect = QRectF{itemDrawableTopLeft, itemDrawableBottomRight};
+  const QRectF visibleRect
+      = QRectF{itemDrawableTopLeft, itemDrawableBottomRight};
   auto& c = presenter().model();
   if (c.smallViewVisible())
   {
     // Background
-    itemDrawableBottomRight.rx() = std::min(itemDrawableBottomRight.x(), m_defaultWidth);
-    const auto backgroundRect = QRectF{itemDrawableTopLeft + QPointF{0.5, 2.}, itemDrawableBottomRight + QPointF{-0.5, -2.}};
+    itemDrawableBottomRight.rx()
+        = std::min(itemDrawableBottomRight.x(), m_defaultWidth);
+    const auto backgroundRect = QRectF{
+        itemDrawableTopLeft + QPointF{0.5, 2.},
+        itemDrawableBottomRight + QPointF{-0.5, -2.}};
 
-    auto brush = m_presenter.model().metadata().getColor().getBrush().main.brush;
+    auto brush
+        = m_presenter.model().metadata().getColor().getBrush().main.brush;
     auto col = brush.color();
     col.setAlphaF(0.6);
     brush.setColor(col);

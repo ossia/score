@@ -59,7 +59,9 @@ private:
       for (int i = 0; i < root.childCount(); i++)
       {
         SCORE_ASSERT(&root.children().at(i) != &root_copy.children().at(i));
-        SCORE_ASSERT(root.children().at(i).which() == root_copy.children().at(i).which());
+        SCORE_ASSERT(
+            root.children().at(i).which()
+            == root_copy.children().at(i).which());
       }
     }
 
@@ -80,7 +82,9 @@ private:
       for (int i = 0; i < root.childCount(); i++)
       {
         SCORE_ASSERT(&root.children().at(i) != &root_copy.children().at(i));
-        SCORE_ASSERT(root.children().at(i).which() == root_copy.children().at(i).which());
+        SCORE_ASSERT(
+            root.children().at(i).which()
+            == root_copy.children().at(i).which());
       }
     }
 
@@ -120,7 +124,10 @@ private:
     Device::Node root;
 
     Device::DeviceSettings dev_base{
-        UuidKey<Device::ProtocolFactory>{"85783b8d-454d-4326-a070-9666d2534eff"}, "ADevice", {}};
+        UuidKey<Device::ProtocolFactory>{
+            "85783b8d-454d-4326-a070-9666d2534eff"},
+        "ADevice",
+        {}};
     auto& dev = root.emplace_back(std::move(dev_base), nullptr);
 
     SCORE_ASSERT(root.childCount() == 1);
@@ -130,7 +137,8 @@ private:
 
     auto& dev_2 = root.emplace_back(
         Device::DeviceSettings{
-            UuidKey<Device::ProtocolFactory>{"85783b8d-454d-4326-a070-9666d2534eff"},
+            UuidKey<Device::ProtocolFactory>{
+                "85783b8d-454d-4326-a070-9666d2534eff"},
             "OtherDevice",
             {}},
         nullptr);
@@ -158,14 +166,18 @@ private:
       for (int i = 0; i < root.childCount(); i++)
       {
         SCORE_ASSERT(&root.children().at(i) != &root_copy.children().at(i));
-        SCORE_ASSERT(root.children().at(i).which() == root_copy.children().at(i).which());
+        SCORE_ASSERT(
+            root.children().at(i).which()
+            == root_copy.children().at(i).which());
       }
 
       SCORE_ASSERT(root_copy.childAt(0).childCount() == 0);
       SCORE_ASSERT(root_copy.childAt(1).childCount() == 1);
 
-      SCORE_ASSERT(root_copy.childAt(1).childAt(0).is<Device::AddressSettings>());
-      SCORE_ASSERT(root_copy.childAt(1).childAt(0).parent() == &root_copy.childAt(1));
+      SCORE_ASSERT(
+          root_copy.childAt(1).childAt(0).is<Device::AddressSettings>());
+      SCORE_ASSERT(
+          root_copy.childAt(1).childAt(0).parent() == &root_copy.childAt(1));
     }
   }
 
@@ -174,7 +186,8 @@ private:
     auto& anySer = score::anySerializers();
     anySer.emplace(
         std::string("instanceBounds"),
-        std::make_unique<score::any_serializer_t<ossia::net::instance_bounds>>());
+        std::make_unique<
+            score::any_serializer_t<ossia::net::instance_bounds>>());
     anySer.emplace(
         std::string("description"),
         std::make_unique<score::any_serializer_t<ossia::net::description>>());
@@ -182,13 +195,15 @@ private:
         std::string("priority"),
         std::make_unique<score::any_serializer_t<ossia::net::priority>>());
     anySer.emplace(
-        std::string("tags"), std::make_unique<score::any_serializer_t<ossia::net::tags>>());
+        std::string("tags"),
+        std::make_unique<score::any_serializer_t<ossia::net::tags>>());
     anySer.emplace(
         std::string("refreshRate"),
         std::make_unique<score::any_serializer_t<ossia::net::refresh_rate>>());
     anySer.emplace(
         std::string("valueStepSize"),
-        std::make_unique<score::any_serializer_t<ossia::net::value_step_size>>());
+        std::make_unique<
+            score::any_serializer_t<ossia::net::value_step_size>>());
     score::testing::MockApplication app;
     ossia::extended_attributes s;
     {
@@ -219,7 +234,10 @@ private:
   {
     Device::Node root;
     Device::DeviceSettings dev_base{
-        UuidKey<Device::ProtocolFactory>{"85783b8d-454d-4326-a070-9666d2534eff"}, "ADevice", {}};
+        UuidKey<Device::ProtocolFactory>{
+            "85783b8d-454d-4326-a070-9666d2534eff"},
+        "ADevice",
+        {}};
     auto& dev = root.emplace_back(std::move(dev_base), nullptr);
 
     Device::Node child(Device::AddressSettings{}, &dev);
@@ -239,8 +257,8 @@ private:
           ossia::value(std::array<float, 4>{})})
     {
       s.value = val;
-      auto out
-          = DataStreamWriter::unmarshall<Device::AddressSettings>(DataStreamReader::marshall(s));
+      auto out = DataStreamWriter::unmarshall<Device::AddressSettings>(
+          DataStreamReader::marshall(s));
       QVERIFY(out == s);
     }
 
@@ -248,8 +266,8 @@ private:
     ossia::net::set_description(s, std::string("something"));
     ossia::net::set_priority(s, 1234);
 
-    auto out
-        = DataStreamWriter::unmarshall<Device::AddressSettings>(DataStreamReader::marshall(s));
+    auto out = DataStreamWriter::unmarshall<Device::AddressSettings>(
+        DataStreamReader::marshall(s));
     QVERIFY(out == s);
   }
 };

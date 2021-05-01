@@ -1,9 +1,10 @@
 #pragma once
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Process/TimeValue.hpp>
-#include <Scenario/Palette/Tool.hpp>
 
 #include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
+
+#include <Scenario/Palette/Tool.hpp>
 
 class QCheckBox;
 class QGridLayout;

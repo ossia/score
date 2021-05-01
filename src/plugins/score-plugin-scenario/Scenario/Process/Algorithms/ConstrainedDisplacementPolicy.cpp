@@ -20,7 +20,8 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
     return;
   auto tn_id = draggedElements[0];
   auto& tn = scenario.timeSyncs.at(tn_id);
-  const auto& intervalsBefore = Scenario::previousNonGraphIntervals(tn, scenario);
+  const auto& intervalsBefore
+      = Scenario::previousNonGraphIntervals(tn, scenario);
   const auto& intervalsAfter = Scenario::nextNonGraphIntervals(tn, scenario);
   QObjectList processesToSave;
 
@@ -70,8 +71,8 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
 
   if (!processesToSave.empty())
   {
-    elementsProperties.cables
-        = Dataflow::saveCables(processesToSave, score::IDocument::documentContext(scenario));
+    elementsProperties.cables = Dataflow::saveCables(
+        processesToSave, score::IDocument::documentContext(scenario));
   }
 
   // 2. Rescale deltaTime
@@ -80,7 +81,8 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
   {
     dt = -min;
   }
-  else if (max != TimeVal{TimeVal::infinity} && dt > TimeVal::zero() && dt > max)
+  else if (
+      max != TimeVal{TimeVal::infinity} && dt > TimeVal::zero() && dt > max)
   {
     dt = max;
   }

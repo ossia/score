@@ -47,7 +47,8 @@ struct MimeReader<Process::ProcessData> : public MimeDataReader
   using MimeDataReader::MimeDataReader;
   void serialize(const Process::ProcessData& lst) const
   {
-    m_mime.setData(score::mime::processdata(), DataStreamReader::marshall(lst));
+    m_mime.setData(
+        score::mime::processdata(), DataStreamReader::marshall(lst));
   }
 };
 

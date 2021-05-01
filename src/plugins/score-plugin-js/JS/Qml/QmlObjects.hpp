@@ -3,8 +3,9 @@
 #include <Process/Dataflow/WidgetInlets.hpp>
 #include <State/Domain.hpp>
 
-#include <ossia/network/domain/domain.hpp>
 #include <score/tools/Debug.hpp>
+
+#include <ossia/network/domain/domain.hpp>
 
 #include <QJSValue>
 #include <QObject>
@@ -28,7 +29,13 @@ public:
   virtual Process::Inlet* make(Id<Process::Port>&& id, QObject*) = 0;
   virtual bool is_control() const { return false; }
 
-  W_INLINE_PROPERTY_CREF(QString, address, {}, address, setAddress, addressChanged)
+  W_INLINE_PROPERTY_CREF(
+      QString,
+      address,
+      {},
+      address,
+      setAddress,
+      addressChanged)
 };
 
 class Outlet : public QObject
@@ -40,7 +47,13 @@ public:
   virtual ~Outlet() override;
   virtual Process::Outlet* make(Id<Process::Port>&& id, QObject*) = 0;
 
-  W_INLINE_PROPERTY_CREF(QString, address, {}, address, setAddress, addressChanged)
+  W_INLINE_PROPERTY_CREF(
+      QString,
+      address,
+      {},
+      address,
+      setAddress,
+      addressChanged)
 };
 
 struct ValueMessage
@@ -132,7 +145,8 @@ public:
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    return new Process::IntSlider{m_min, m_max, m_init, objectName(), id, parent};
+    return new Process::IntSlider{
+        m_min, m_max, m_init, objectName(), id, parent};
   }
 
   W_INLINE_PROPERTY_VALUE(int, init, {0}, init, setInit, initChanged)
@@ -151,7 +165,8 @@ public:
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    return new Process::Enum{m_choices, {}, current(), objectName(), id, parent};
+    return new Process::Enum{
+        m_choices, {}, current(), objectName(), id, parent};
   }
 
   auto getValues() const { return choices(); }
@@ -166,7 +181,13 @@ public:
   }
 
   W_INLINE_PROPERTY_VALUE(int, index, {}, index, setIndex, indexChanged)
-  W_INLINE_PROPERTY_CREF(QStringList, choices, {}, choices, setChoices, choicesChanged)
+  W_INLINE_PROPERTY_CREF(
+      QStringList,
+      choices,
+      {},
+      choices,
+      setChoices,
+      choicesChanged)
 };
 
 class Toggle : public ValueInlet
@@ -182,7 +203,13 @@ public:
     return new Process::Toggle{m_checked, objectName(), id, parent};
   }
 
-  W_INLINE_PROPERTY_VALUE(bool, checked, {}, checked, setChecked, checkedChanged)
+  W_INLINE_PROPERTY_VALUE(
+      bool,
+      checked,
+      {},
+      checked,
+      setChecked,
+      checkedChanged)
 };
 
 class LineEdit : public ValueInlet
@@ -370,7 +397,9 @@ class Script : public QObject
 {
   W_OBJECT(Script)
   W_CLASSINFO("DefaultProperty", "data")
-  W_CLASSINFO("qt_QmlJSWrapperFactoryMethod", "_q_createJSWrapper(QV4::ExecutionEngine*)")
+  W_CLASSINFO(
+      "qt_QmlJSWrapperFactoryMethod",
+      "_q_createJSWrapper(QV4::ExecutionEngine*)")
 
 public:
   QQmlListProperty<QObject> data() noexcept
@@ -409,10 +438,26 @@ private:
 };
 }
 
-inline QDataStream& operator<<(QDataStream& i, const JS::MidiMessage& sel) { SCORE_ABORT; return i; }
-inline QDataStream& operator>>(QDataStream& i, JS::MidiMessage& sel) { SCORE_ABORT; return i; }
-inline QDataStream& operator<<(QDataStream& i, const JS::ValueMessage& sel) { SCORE_ABORT; return i; }
-inline QDataStream& operator>>(QDataStream& i, JS::ValueMessage& sel) { SCORE_ABORT; return i; }
+inline QDataStream& operator<<(QDataStream& i, const JS::MidiMessage& sel)
+{
+  SCORE_ABORT;
+  return i;
+}
+inline QDataStream& operator>>(QDataStream& i, JS::MidiMessage& sel)
+{
+  SCORE_ABORT;
+  return i;
+}
+inline QDataStream& operator<<(QDataStream& i, const JS::ValueMessage& sel)
+{
+  SCORE_ABORT;
+  return i;
+}
+inline QDataStream& operator>>(QDataStream& i, JS::ValueMessage& sel)
+{
+  SCORE_ABORT;
+  return i;
+}
 Q_DECLARE_METATYPE(JS::ValueInlet*)
 Q_DECLARE_METATYPE(JS::ValueOutlet*)
 Q_DECLARE_METATYPE(JS::AudioInlet*)

@@ -26,8 +26,12 @@ static const QPolygonF ellipsePath{[] {
   p.addEllipse(ellipse);
   return p.simplified().toFillPolygon();
 }()};
-PointView::PointView(const PointModel* model, const Curve::Style& style, QGraphicsItem* parent)
-    : QGraphicsItem{parent}, m_style{style}
+PointView::PointView(
+    const PointModel* model,
+    const Curve::Style& style,
+    QGraphicsItem* parent)
+    : QGraphicsItem{parent}
+    , m_style{style}
 {
   this->setZValue(2);
   this->setCursor(Qt::CrossCursor);
@@ -43,7 +47,10 @@ void PointView::setModel(const PointModel* model)
   m_model = model;
   if (m_model)
   {
-    con(m_model->selection, &Selectable::changed, this, &PointView::setSelected);
+    con(m_model->selection,
+        &Selectable::changed,
+        this,
+        &PointView::setSelected);
   }
 }
 
@@ -63,7 +70,10 @@ QRectF PointView::boundingRect() const
   return {-gripSize, -gripSize, 2. * gripSize, 2. * gripSize};
 }
 
-void PointView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void PointView::paint(
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   painter->setRenderHint(QPainter::Antialiasing, true);
   if (!m_selected)

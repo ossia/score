@@ -17,14 +17,20 @@
 namespace Library
 {
 
-PresetItemModel::PresetItemModel(const score::GUIApplicationContext& ctx, QObject* parent)
+PresetItemModel::PresetItemModel(
+    const score::GUIApplicationContext& ctx,
+    QObject* parent)
     : QAbstractItemModel{parent}
 {
   presets.reserve(500);
   auto& procs = ctx.interfaces<Process::ProcessFactoryList>();
-  const QString& userLibDir = ctx.settings<Library::Settings::Model>().getPath();
+  const QString& userLibDir
+      = ctx.settings<Library::Settings::Model>().getPath();
   QDirIterator it(
-      userLibDir, QStringList{"*.scorepreset"}, QDir::Files, QDirIterator::Subdirectories);
+      userLibDir,
+      QStringList{"*.scorepreset"},
+      QDir::Files,
+      QDirIterator::Subdirectories);
 
   while (it.hasNext())
   {
@@ -32,7 +38,9 @@ PresetItemModel::PresetItemModel(const score::GUIApplicationContext& ctx, QObjec
   }
 }
 
-void PresetItemModel::registerPreset(const Process::ProcessFactoryList& procs, const QString& path)
+void PresetItemModel::registerPreset(
+    const Process::ProcessFactoryList& procs,
+    const QString& path)
 {
   QFile f{path};
   if (!f.open(QIODevice::ReadOnly))
@@ -41,15 +49,17 @@ void PresetItemModel::registerPreset(const Process::ProcessFactoryList& procs, c
   if (auto p = Process::Preset::fromJson(procs, score::mapAsByteArray(f)))
   {
     auto it = std::lower_bound(
-        presets.begin(), presets.end(), *p, [](const auto& lhs, const auto& rhs) {
-          return lhs.key < rhs.key;
-        });
+        presets.begin(),
+        presets.end(),
+        *p,
+        [](const auto& lhs, const auto& rhs) { return lhs.key < rhs.key; });
 
     presets.insert(it, std::move(*p));
   }
 }
 
-QModelIndex PresetItemModel::index(int row, int column, const QModelIndex& parent) const
+QModelIndex
+PresetItemModel::index(int row, int column, const QModelIndex& parent) const
 {
   return createIndex(row, column, nullptr);
 }
@@ -102,7 +112,8 @@ static bool updatePresetFilename(Process::Preset& preset, QString old = {})
 
   const auto& procs = ctx.interfaces<Process::ProcessFactoryList>();
   const auto& desc = (*procs.get(preset.key.key)).descriptor(""); // TODO
-  const QString& userLibDir = ctx.settings<Library::Settings::Model>().getPath();
+  const QString& userLibDir
+      = ctx.settings<Library::Settings::Model>().getPath();
   const QString& presetFolder = userLibDir + "/Presets/" + desc.prettyName;
   QDir{}.mkpath(presetFolder);
   QString presetPath = presetFolder + "/" + preset.name + ".scorepreset";
@@ -134,7 +145,10 @@ static bool updatePresetFilename(Process::Preset& preset, QString old = {})
   return true;
 }
 
-bool PresetItemModel::setData(const QModelIndex& index, const QVariant& value, int role)
+bool PresetItemModel::setData(
+    const QModelIndex& index,
+    const QVariant& value,
+    int role)
 {
   if (!index.isValid())
     return false;
@@ -167,8 +181,9 @@ bool PresetItemModel::dropMimeData(
     const QModelIndex& parent)
 {
   const auto& ctx = score::GUIAppContext();
-  const rapidjson::Document jsondoc = readJson(data->data(score::mime::layerdata()));
-  if(!jsondoc.HasMember("Path"))
+  const rapidjson::Document jsondoc
+      = readJson(data->data(score::mime::layerdata()));
+  if (!jsondoc.HasMember("Path"))
     return false;
   auto obj = JsonValue{jsondoc}["Path"].to<Path<Process::ProcessModel>>();
   auto doc = ctx.docManager.currentDocument();
@@ -188,7 +203,9 @@ bool PresetItemModel::dropMimeData(
       presets.begin(),
       presets.end(),
       preset,
-      [](const Process::Preset& lhs, const Process::Preset& rhs) { return lhs.key < rhs.key; });
+      [](const Process::Preset& lhs, const Process::Preset& rhs) {
+        return lhs.key < rhs.key;
+      });
 
   presets.insert(it, std::move(preset));
   // endInsertRows();
@@ -243,7 +260,9 @@ Qt::ItemFlags PresetItemModel::flags(const QModelIndex& index) const
   return f;
 }
 
-bool PresetFilterProxy::filterAcceptsRow(int srcRow, const QModelIndex& srcParent) const
+bool PresetFilterProxy::filterAcceptsRow(
+    int srcRow,
+    const QModelIndex& srcParent) const
 {
   PresetItemModel* model = safe_cast<PresetItemModel*>(sourceModel());
   return model->presets[srcRow].key.key == currentFilter;

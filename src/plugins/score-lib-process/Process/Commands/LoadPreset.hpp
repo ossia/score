@@ -11,11 +11,16 @@ namespace Process
 class ProcessModel;
 class SCORE_LIB_PROCESS_EXPORT LoadPreset final : public score::Command
 {
-  SCORE_COMMAND_DECL(Process::CommandFactoryName(), LoadPreset, "Set a control")
+  SCORE_COMMAND_DECL(
+      Process::CommandFactoryName(),
+      LoadPreset,
+      "Set a control")
 
 public:
   LoadPreset(const Process::ProcessModel& obj, Process::Preset newval)
-      : m_path{obj}, m_old{obj.savePreset()}, m_new{std::move(newval)}
+      : m_path{obj}
+      , m_old{obj.savePreset()}
+      , m_new{std::move(newval)}
   {
   }
 

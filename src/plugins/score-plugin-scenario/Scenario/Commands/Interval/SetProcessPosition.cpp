@@ -2,10 +2,10 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "SetProcessPosition.hpp"
 
+#include <score/model/path/PathSerialization.hpp>
+
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-
-#include <score/model/path/PathSerialization.hpp>
 
 namespace Scenario
 {
@@ -15,7 +15,9 @@ PutProcessBefore::PutProcessBefore(
     const IntervalModel& cst,
     std::optional<Id<Process::ProcessModel>> proc,
     Id<Process::ProcessModel> proc2)
-    : m_path{cst}, m_proc{std::move(proc)}, m_proc2{std::move(proc2)}
+    : m_path{cst}
+    , m_proc{std::move(proc)}
+    , m_proc2{std::move(proc2)}
 {
   auto& id_map = cst.processes.map();
   auto& hash = id_map.m_map;
@@ -25,7 +27,8 @@ PutProcessBefore::PutProcessBefore(
   auto it2_hash = hash.find(proc2);
   SCORE_ASSERT(it2_hash != hash.end());
 
-  std::list<Process::ProcessModel*>::const_iterator it2_order = it2_hash.value().second;
+  std::list<Process::ProcessModel*>::const_iterator it2_order
+      = it2_hash.value().second;
   auto next = it2_order++;
   if (next != seq.end())
   {
@@ -102,7 +105,9 @@ PutStateProcessBefore::PutStateProcessBefore(
     const StateModel& cst,
     std::optional<Id<Process::ProcessModel>> proc,
     Id<Process::ProcessModel> proc2)
-    : m_path{cst}, m_proc{std::move(proc)}, m_proc2{std::move(proc2)}
+    : m_path{cst}
+    , m_proc{std::move(proc)}
+    , m_proc2{std::move(proc2)}
 {
   auto& id_map = cst.stateProcesses.map();
   auto& hash = id_map.m_map;
@@ -112,7 +117,8 @@ PutStateProcessBefore::PutStateProcessBefore(
   auto it2_hash = hash.find(proc2);
   SCORE_ASSERT(it2_hash != hash.end());
 
-  std::list<Process::ProcessModel*>::const_iterator it2_order = it2_hash.value().second;
+  std::list<Process::ProcessModel*>::const_iterator it2_order
+      = it2_hash.value().second;
   auto next = it2_order++;
   if (next != seq.end())
   {

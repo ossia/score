@@ -56,7 +56,7 @@ void MoveNotes::redo(const score::DocumentContext& ctx) const
 
 void MoveNotes::update(unused_t, unused_t, int note_delta, double t_delta)
 {
-  for(int i = 0, N = m_before.size(); i < N; i++)
+  for (int i = 0, N = m_before.size(); i < N; i++)
   {
     auto& data = m_before[i].second;
     m_after[i].second.setPitch(qBound(0, data.pitch() + note_delta, 127));

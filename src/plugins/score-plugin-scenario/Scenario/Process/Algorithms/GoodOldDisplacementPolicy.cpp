@@ -2,6 +2,14 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "GoodOldDisplacementPolicy.hpp"
 
+#include <score/model/EntityMap.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/model/path/Path.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/tools/std/Optional.hpp>
+
+#include <QDebug>
+
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -10,14 +18,6 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Tools/dataStructures.hpp>
-
-#include <score/model/EntityMap.hpp>
-#include <score/model/Identifier.hpp>
-#include <score/model/path/Path.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/tools/std/Optional.hpp>
-
-#include <QDebug>
 
 template <typename T>
 class Reader;
@@ -34,7 +34,8 @@ void GoodOldDisplacementPolicy::computeDisplacement(
   // this old behavior supports only the move of one timesync
   if (draggedElements.length() != 1)
   {
-    qDebug() << "WARNING : computeDisplacement called with empty element list !";
+    qDebug()
+        << "WARNING : computeDisplacement called with empty element list !";
     // move nothing, nothing to undo or redo
     return;
   }
@@ -59,7 +60,9 @@ void GoodOldDisplacementPolicy::computeDisplacement(
       {
         TimenodeProperties t;
         t.oldDate = curTimeSync.date();
-        tn_it = elementsProperties.timesyncs.emplace(curTimeSyncId, std::move(t)).first;
+        tn_it
+            = elementsProperties.timesyncs.emplace(curTimeSyncId, std::move(t))
+                  .first;
       }
 
       // put the new date
@@ -67,7 +70,7 @@ void GoodOldDisplacementPolicy::computeDisplacement(
       val.newDate = val.oldDate + deltaTime;
     }
 
-    beforeComputingIntervals:
+  beforeComputingIntervals:
     // Make a list of the intervals that need to be resized
     TimeVal maxNegativeDelta = TimeVal::zero();
     for (const auto& curTimeSyncId : timeSyncsToTranslate)
@@ -89,7 +92,8 @@ void GoodOldDisplacementPolicy::computeDisplacement(
               continue;
             // if timesync NOT already in element properties, create new
             // element properties and set old values
-            auto cur_interval_it = elementsProperties.intervals.find(curIntervalId);
+            auto cur_interval_it
+                = elementsProperties.intervals.find(curIntervalId);
             if (cur_interval_it == elementsProperties.intervals.end())
             {
               IntervalProperties c{curInterval, false};
@@ -99,20 +103,24 @@ void GoodOldDisplacementPolicy::computeDisplacement(
               c.oldMax = curInterval.duration.maxDuration();
 
               {
-                const auto& date = Scenario::startEvent(curInterval, scenario).date();
-                const auto& endDate = Scenario::endEvent(curInterval, scenario).date();
+                const auto& date
+                    = Scenario::startEvent(curInterval, scenario).date();
+                const auto& endDate
+                    = Scenario::endEvent(curInterval, scenario).date();
 
                 TimeVal defaultDuration = endDate - date;
                 SCORE_ASSERT(defaultDuration == c.oldDefault);
               }
-              cur_interval_it
-                  = elementsProperties.intervals.emplace(curIntervalId, std::move(c)).first;
+              cur_interval_it = elementsProperties.intervals
+                                    .emplace(curIntervalId, std::move(c))
+                                    .first;
 
               for (auto& proc : curInterval.processes)
                 processesToSave.append(&proc);
             }
 
-            auto& curIntervalStartEvent = Scenario::startEvent(curInterval, scenario);
+            auto& curIntervalStartEvent
+                = Scenario::startEvent(curInterval, scenario);
             auto& startTnodeId = curIntervalStartEvent.timeSync();
 
             // compute default duration
@@ -129,14 +137,16 @@ void GoodOldDisplacementPolicy::computeDisplacement(
               date = curIntervalStartEvent.date();
             }
 
-            const auto& endDate = elementsProperties.timesyncs[curTimeSyncId].newDate;
+            const auto& endDate
+                = elementsProperties.timesyncs[curTimeSyncId].newDate;
 
             TimeVal newDefaultDuration = endDate - date;
-            if(newDefaultDuration < maxNegativeDelta)
+            if (newDefaultDuration < maxNegativeDelta)
             {
               maxNegativeDelta = newDefaultDuration;
             }
-            TimeVal deltaBounds = newDefaultDuration - curInterval.duration.defaultDuration();
+            TimeVal deltaBounds
+                = newDefaultDuration - curInterval.duration.defaultDuration();
 
             auto& val = cur_interval_it.value();
             val.newMin = curInterval.duration.minDuration() + deltaBounds;
@@ -147,7 +157,7 @@ void GoodOldDisplacementPolicy::computeDisplacement(
         }
       }
 
-      if(maxNegativeDelta.impl < 0)
+      if (maxNegativeDelta.impl < 0)
       {
         elementsProperties = std::move(orig);
         return;
@@ -167,8 +177,8 @@ void GoodOldDisplacementPolicy::computeDisplacement(
 
     if (!processesToSave.empty())
     {
-      elementsProperties.cables
-          = Dataflow::saveCables(processesToSave, score::IDocument::documentContext(scenario));
+      elementsProperties.cables = Dataflow::saveCables(
+          processesToSave, score::IDocument::documentContext(scenario));
     }
   }
 }
@@ -181,8 +191,10 @@ void GoodOldDisplacementPolicy::getRelatedTimeSyncs(
   if (firstTimeSyncMovedId.val() == Scenario::startId_val)
     return;
 
-  auto it
-      = std::find(translatedTimeSyncs.begin(), translatedTimeSyncs.end(), firstTimeSyncMovedId);
+  auto it = std::find(
+      translatedTimeSyncs.begin(),
+      translatedTimeSyncs.end(),
+      firstTimeSyncMovedId);
   if (it == translatedTimeSyncs.end())
   {
     translatedTimeSyncs.push_back(firstTimeSyncMovedId);
@@ -207,7 +219,8 @@ void GoodOldDisplacementPolicy::getRelatedTimeSyncs(
         {
           const auto& endStateId = itv.endState();
           const auto& endTnId
-              = scenario.events.at(scenario.state(endStateId).eventId()).timeSync();
+              = scenario.events.at(scenario.state(endStateId).eventId())
+                    .timeSync();
           getRelatedTimeSyncs(scenario, endTnId, translatedTimeSyncs);
         }
       }

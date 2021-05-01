@@ -5,7 +5,6 @@
 
 #include <Process/TimeValue.hpp>
 #include <Process/TimeValueSerialization.hpp>
-#include <Scenario/Document/VerticalExtent.hpp>
 #include <State/Expression.hpp>
 
 #include <score/model/Identifier.hpp>
@@ -17,26 +16,33 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/std/Optional.hpp>
 
+#include <Scenario/Document/VerticalExtent.hpp>
+
 template <>
-SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(const Scenario::TimeSyncModel& timesync)
+SCORE_PLUGIN_SCENARIO_EXPORT void
+DataStreamReader::read(const Scenario::TimeSyncModel& timesync)
 {
-  m_stream << timesync.m_date << timesync.m_events << timesync.m_musicalSync << timesync.m_active
-           << timesync.m_autotrigger << timesync.m_startPoint << timesync.m_expression;
+  m_stream << timesync.m_date << timesync.m_events << timesync.m_musicalSync
+           << timesync.m_active << timesync.m_autotrigger
+           << timesync.m_startPoint << timesync.m_expression;
 
   insertDelimiter();
 }
 
 template <>
-SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(Scenario::TimeSyncModel& timesync)
+SCORE_PLUGIN_SCENARIO_EXPORT void
+DataStreamWriter::write(Scenario::TimeSyncModel& timesync)
 {
-  m_stream >> timesync.m_date >> timesync.m_events >> timesync.m_musicalSync >> timesync.m_active
-      >> timesync.m_autotrigger >> timesync.m_startPoint >> timesync.m_expression;
+  m_stream >> timesync.m_date >> timesync.m_events >> timesync.m_musicalSync
+      >> timesync.m_active >> timesync.m_autotrigger >> timesync.m_startPoint
+      >> timesync.m_expression;
 
   checkDelimiter();
 }
 
 template <>
-SCORE_PLUGIN_SCENARIO_EXPORT void JSONReader::read(const Scenario::TimeSyncModel& timesync)
+SCORE_PLUGIN_SCENARIO_EXPORT void
+JSONReader::read(const Scenario::TimeSyncModel& timesync)
 {
   obj[strings.Date] = timesync.date();
   obj[strings.Events] = timesync.m_events;
@@ -48,7 +54,8 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONReader::read(const Scenario::TimeSyncModel
 }
 
 template <>
-SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(Scenario::TimeSyncModel& timesync)
+SCORE_PLUGIN_SCENARIO_EXPORT void
+JSONWriter::write(Scenario::TimeSyncModel& timesync)
 {
   timesync.m_date <<= obj[strings.Date];
   timesync.m_events <<= obj[strings.Events];

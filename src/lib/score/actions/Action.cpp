@@ -21,7 +21,10 @@ void EnableActionIfDocument::action(ActionManager& mgr, MaybeDocument doc)
   setEnabled(mgr, bool(doc));
 }
 
-ActionCondition::ActionCondition(StringKey<ActionCondition> k) : m_key{std::move(k)} { }
+ActionCondition::ActionCondition(StringKey<ActionCondition> k)
+    : m_key{std::move(k)}
+{
+}
 
 ActionCondition::~ActionCondition() { }
 
@@ -42,7 +45,8 @@ void ActionCondition::setEnabled(ActionManager& mgr, bool b)
 }
 
 ActionGroup::ActionGroup(QString prettyName, ActionGroupKey key)
-    : m_name{std::move(prettyName)}, m_key{std::move(key)}
+    : m_name{std::move(prettyName)}
+    , m_key{std::move(key)}
 {
 }
 

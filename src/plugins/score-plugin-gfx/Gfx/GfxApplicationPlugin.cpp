@@ -1,17 +1,18 @@
 #include "GfxApplicationPlugin.hpp"
 
+#include "GfxExec.hpp"
+
+#include <Execution/DocumentPlugin.hpp>
+#include <Gfx/CameraDevice.hpp>
+#include <Gfx/GfxParameter.hpp>
+
 #include <score/tools/IdentifierGeneration.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
+
 #include <ossia/dataflow/port.hpp>
-
-#include <Execution/DocumentPlugin.hpp>
-
-#include <Gfx/GfxParameter.hpp>
-#include <Gfx/CameraDevice.hpp>
-#include "GfxExec.hpp"
 namespace Gfx
 {
 
@@ -21,8 +22,9 @@ gfx_exec_node::~gfx_exec_node()
     delete ctl.value;
 }
 
-
-void gfx_exec_node::run(const ossia::token_request& tk, ossia::exec_state_facade) noexcept
+void gfx_exec_node::run(
+    const ossia::token_request& tk,
+    ossia::exec_state_facade) noexcept
 {
   {
     // Copy all the UI controls
@@ -55,7 +57,8 @@ void gfx_exec_node::run(const ossia::token_request& tk, ossia::exec_state_facade
           assert(port_idx != -1);
           {
             exec_context->setEdge(
-                  port_index{src_gfx->id, port_idx}, port_index{this->id, inlet_i});
+                port_index{src_gfx->id, port_idx},
+                port_index{this->id, inlet_i});
           }
         }
       }
@@ -63,36 +66,37 @@ void gfx_exec_node::run(const ossia::token_request& tk, ossia::exec_state_facade
 
     switch (inlet->which())
     {
-    case ossia::value_port::which:
-    {
-      auto& p = inlet->cast<ossia::value_port>();
+      case ossia::value_port::which:
+      {
+        auto& p = inlet->cast<ossia::value_port>();
 
-      for (ossia::timed_value& val : p.get_data())
-      {
-        msg.inputs[inlet_i].push_back(std::move(val.value));
-      }
-      break;
-    }
-    case ossia::texture_port::which:
-    {
-      if(auto in = inlet->address.target<ossia::net::parameter_base*>())
-      {
-        // TODO remove this dynamic_cast. maybe target should have
-        // audio_parameter / texture_parameter / midi_parameter ... cases
-        // does not scale though
-        if(auto cam = dynamic_cast<ossia::gfx::texture_input_parameter*>(*in))
+        for (ossia::timed_value& val : p.get_data())
         {
-          cam->pull_texture({this->id, inlet_i});
+          msg.inputs[inlet_i].push_back(std::move(val.value));
         }
+        break;
       }
-      break;
-    }
-    case ossia::audio_port::which:
-    {
-      auto& p = inlet->cast<ossia::audio_port>();
-      msg.inputs[inlet_i].push_back(std::move(p.samples));
-      break;
-    }
+      case ossia::texture_port::which:
+      {
+        if (auto in = inlet->address.target<ossia::net::parameter_base*>())
+        {
+          // TODO remove this dynamic_cast. maybe target should have
+          // audio_parameter / texture_parameter / midi_parameter ... cases
+          // does not scale though
+          if (auto cam
+              = dynamic_cast<ossia::gfx::texture_input_parameter*>(*in))
+          {
+            cam->pull_texture({this->id, inlet_i});
+          }
+        }
+        break;
+      }
+      case ossia::audio_port::which:
+      {
+        auto& p = inlet->cast<ossia::audio_port>();
+        msg.inputs[inlet_i].push_back(std::move(p.samples));
+        break;
+      }
     }
 
     inlet_i++;
@@ -109,7 +113,6 @@ void gfx_exec_node::run(const ossia::token_request& tk, ossia::exec_state_facade
 
   exec_context->ui->tick_messages.enqueue(std::move(msg));
 }
-
 
 DocumentPlugin::DocumentPlugin(
     const score::DocumentContext& ctx,
@@ -131,8 +134,8 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& app)
 
 void ApplicationPlugin::on_createdDocument(score::Document& doc)
 {
-  doc.model().addPluginModel(
-      new DocumentPlugin{doc.context(), getStrongId(doc.model().pluginModels()), &doc.model()});
+  doc.model().addPluginModel(new DocumentPlugin{
+      doc.context(), getStrongId(doc.model().pluginModels()), &doc.model()});
 }
 
 }

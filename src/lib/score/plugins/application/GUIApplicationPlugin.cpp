@@ -20,11 +20,16 @@ namespace score
 
 ApplicationPlugin::~ApplicationPlugin() = default;
 
-ApplicationPlugin::ApplicationPlugin(const ApplicationContext& ctx) : context{ctx} { }
+ApplicationPlugin::ApplicationPlugin(const ApplicationContext& ctx)
+    : context{ctx}
+{
+}
 
 void ApplicationPlugin::initialize() { }
 
-GUIApplicationPlugin::GUIApplicationPlugin(const score::GUIApplicationContext& app) : context{app}
+GUIApplicationPlugin::GUIApplicationPlugin(
+    const score::GUIApplicationContext& app)
+    : context{app}
 {
 }
 
@@ -49,7 +54,11 @@ bool GUIApplicationPlugin::handleStartup()
 
 void GUIApplicationPlugin::prepareNewDocument() { }
 
-void GUIApplicationPlugin::on_documentChanged(score::Document* olddoc, score::Document* newdoc) { }
+void GUIApplicationPlugin::on_documentChanged(
+    score::Document* olddoc,
+    score::Document* newdoc)
+{
+}
 
 void GUIApplicationPlugin::on_activeWindowChanged() { }
 

@@ -66,11 +66,18 @@ public:
   {
   }
 
-  ObjectPath(std::initializer_list<ObjectIdentifier> lst) noexcept : m_objectIdentifiers(lst) { }
+  ObjectPath(std::initializer_list<ObjectIdentifier> lst) noexcept
+      : m_objectIdentifiers(lst)
+  {
+  }
 
-  ObjectPath(const ObjectPath& obj) noexcept : m_objectIdentifiers{obj.m_objectIdentifiers} { }
+  ObjectPath(const ObjectPath& obj) noexcept
+      : m_objectIdentifiers{obj.m_objectIdentifiers}
+  {
+  }
 
-  ObjectPath(ObjectPath&& obj) noexcept : m_objectIdentifiers{std::move(obj.m_objectIdentifiers)}
+  ObjectPath(ObjectPath&& obj) noexcept
+      : m_objectIdentifiers{std::move(obj.m_objectIdentifiers)}
   {
   }
 
@@ -88,8 +95,9 @@ public:
     return *this;
   }
 
-  static ObjectPath
-  pathBetweenObjects(const QObject* const parent_obj, const QObject* target_object);
+  static ObjectPath pathBetweenObjects(
+      const QObject* const parent_obj,
+      const QObject* target_object);
 
   /**
    * @brief find the object described by the ObjectPath
@@ -110,7 +118,8 @@ public:
     }
     else // Load it by hand
     {
-      auto ptr = safe_cast<typename std::remove_const<T>::type*>(find_impl(ctx));
+      auto ptr
+          = safe_cast<typename std::remove_const<T>::type*>(find_impl(ctx));
       m_cache = ptr;
       return *ptr;
     }
@@ -132,7 +141,8 @@ public:
       }
       else // Load it by hand
       {
-        auto ptr = static_cast<typename std::remove_const<T>::type*>(find_impl_unsafe(ctx));
+        auto ptr = static_cast<typename std::remove_const<T>::type*>(
+            find_impl_unsafe(ctx));
         m_cache = ptr;
         return ptr;
       }
@@ -143,7 +153,10 @@ public:
     }
   }
 
-  const ObjectIdentifierVector& vec() const noexcept { return m_objectIdentifiers; }
+  const ObjectIdentifierVector& vec() const noexcept
+  {
+    return m_objectIdentifiers;
+  }
 
   ObjectIdentifierVector& vec() noexcept { return m_objectIdentifiers; }
 
@@ -160,8 +173,10 @@ private:
   mutable QPointer<QObject> m_cache;
 };
 
-SCORE_LIB_BASE_EXPORT void
-replacePathPart(const ObjectPath& src, const ObjectPath& target, ObjectPath& toChange);
+SCORE_LIB_BASE_EXPORT void replacePathPart(
+    const ObjectPath& src,
+    const ObjectPath& target,
+    ObjectPath& toChange);
 inline uint qHash(const ObjectPath& obj, uint seed)
 {
   return qHash(obj.toString(), seed);
@@ -180,4 +195,3 @@ struct SCORE_LIB_BASE_EXPORT hash<ObjectPath>
   std::size_t operator()(const ObjectPath& path) const;
 };
 }
-

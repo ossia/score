@@ -1,4 +1,5 @@
 #include "Loader.hpp"
+
 #include <stdexcept>
 
 #if defined(_WIN32)
@@ -22,7 +23,8 @@ struct WinLoader
 
   static PluginEntryProc getMain(void* module)
   {
-    auto mainProc = (PluginEntryProc)GetProcAddress((HMODULE)module, "PluginMain");
+    auto mainProc
+        = (PluginEntryProc)GetProcAddress((HMODULE)module, "PluginMain");
     if (!mainProc)
       mainProc = (PluginEntryProc)GetProcAddress((HMODULE)module, "main");
     return mainProc;
@@ -34,11 +36,12 @@ struct AppleLoader
 {
   static void* load(const char* name)
   {
-    CFStringRef fileNameString = CFStringCreateWithCString(nullptr, name, kCFStringEncodingUTF8);
+    CFStringRef fileNameString
+        = CFStringCreateWithCString(nullptr, name, kCFStringEncodingUTF8);
     if (fileNameString == 0)
       throw std::runtime_error("Couldn't load plug-in" + std::string(name));
-    CFURLRef url
-        = CFURLCreateWithFileSystemPath(nullptr, fileNameString, kCFURLPOSIXPathStyle, false);
+    CFURLRef url = CFURLCreateWithFileSystemPath(
+        nullptr, fileNameString, kCFURLPOSIXPathStyle, false);
     CFRelease(fileNameString);
     if (url == 0)
       throw std::runtime_error("Couldn't load plug-in" + std::string(name));
@@ -75,7 +78,8 @@ struct LinuxLoader
     if (!module)
     {
       throw std::runtime_error(
-          "Couldn't load plug-in" + std::string(name) + ": " + std::string(dlerror()));
+          "Couldn't load plug-in" + std::string(name) + ": "
+          + std::string(dlerror()));
     }
     return module;
   }
@@ -94,7 +98,8 @@ using PluginLoader = LinuxLoader;
 #endif
 
 Module::Module(std::string fileName)
-    : path{fileName}, module{PluginLoader::load(fileName.c_str())}
+    : path{fileName}
+    , module{PluginLoader::load(fileName.c_str())}
 {
 }
 

@@ -18,7 +18,10 @@ class ProcessModel;
 struct ComponentCache
 {
 public:
-  JS::Script* get(const JS::ProcessModel& process, const QByteArray& str, bool isFile) noexcept;
+  JS::Script*
+  get(const JS::ProcessModel& process,
+      const QByteArray& str,
+      bool isFile) noexcept;
   JS::Script* tryGet(const QByteArray& str, bool isFile) const noexcept;
   ComponentCache();
   ~ComponentCache();
@@ -48,7 +51,8 @@ public:
       QObject* parent);
 
   template <typename Impl>
-  explicit ProcessModel(Impl& vis, QObject* parent) : Process::ProcessModel{vis, parent}
+  explicit ProcessModel(Impl& vis, QObject* parent)
+      : Process::ProcessModel{vis, parent}
   {
     vis.writeTo(*this);
   }
@@ -63,7 +67,8 @@ public:
   ~ProcessModel() override;
 
   bool validate(const QString& str) const noexcept;
-  void errorMessage(int arg_1, const QString& arg_2) const W_SIGNAL(errorMessage, arg_1, arg_2);
+  void errorMessage(int arg_1, const QString& arg_2) const
+      W_SIGNAL(errorMessage, arg_1, arg_2);
   void scriptOk() W_SIGNAL(scriptOk);
   void scriptChanged(const QString& arg_1) W_SIGNAL(scriptChanged, arg_1);
 

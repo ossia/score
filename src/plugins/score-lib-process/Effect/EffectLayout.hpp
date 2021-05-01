@@ -18,7 +18,8 @@ static const constexpr int MaxRowsInEffect = 5;
 // TODO not very efficient since it recomputes everything every time...
 // Does a grid layout with maximum N rows per column.
 template <typename F>
-QPointF currentWigetPos(int controlIndex, F getControlSize) noexcept(noexcept(getControlSize(0)))
+QPointF currentWigetPos(int controlIndex, F getControlSize) noexcept(
+    noexcept(getControlSize(0)))
 {
   int N = MaxRowsInEffect * (controlIndex / MaxRowsInEffect);
   qreal x = 0;
@@ -66,8 +67,10 @@ auto controlSetup(Args&&... args)
   {
     return controlSetup(
         std::forward<Args>(args)...,
-        [](const Process::PortFactoryList& portFactory, Process::Port& port)
-            -> Process::PortFactory& { return *portFactory.get(port.concreteKey()); });
+        [](const Process::PortFactoryList& portFactory,
+           Process::Port& port) -> Process::PortFactory& {
+          return *portFactory.get(port.concreteKey());
+        });
   }
   else
   {
@@ -93,16 +96,18 @@ auto createControl(
   auto portItem = setup.createPort(fact, port, doc, item, parent);
 
   // Create the label
-  auto lab = new score::SimpleTextItem{Process::portBrush(port.type()).main, item};
+  auto lab
+      = new score::SimpleTextItem{Process::portBrush(port.type()).main, item};
   if (auto name = setup.name(); name.size() > 0)
     lab->setText(std::move(name));
   else
     lab->setText(QObject::tr("Control"));
 
   QObject::connect(
-      &port, &Process::ControlInlet::nameChanged, item, [=](const QString& txt) {
-        lab->setText(txt);
-      });
+      &port,
+      &Process::ControlInlet::nameChanged,
+      item,
+      [=](const QString& txt) { lab->setText(txt); });
 
   // Create the control
   QGraphicsItem* widg = setup.createControl(fact, port, doc, item, parent);

@@ -1,9 +1,8 @@
 #pragma once
 #include <ossia/detail/small_vector.hpp>
+#include <ossia/detail/span.hpp>
 
 #include <private/qrhi_p.h>
-
-#include <ossia/detail/span.hpp>
 #include <score_plugin_gfx_export.h>
 
 struct SCORE_PLUGIN_GFX_EXPORT Mesh
@@ -17,8 +16,10 @@ struct SCORE_PLUGIN_GFX_EXPORT Mesh
 
   Mesh();
   virtual ~Mesh();
-  virtual void setupBindings(QRhiBuffer& vtxData, QRhiBuffer* idxData, QRhiCommandBuffer& cb)
-      const noexcept = 0;
+  virtual void setupBindings(
+      QRhiBuffer& vtxData,
+      QRhiBuffer* idxData,
+      QRhiCommandBuffer& cb) const noexcept = 0;
   virtual const char* defaultVertexShader() const noexcept = 0;
 
 private:
@@ -33,13 +34,16 @@ struct PlainMesh : Mesh
   PlainMesh(gsl::span<const float> vtx, int count)
   {
     vertexInputBindings.push_back({2 * sizeof(float)});
-    vertexAttributeBindings.push_back({0, 0, QRhiVertexInputAttribute::Float2, 0});
+    vertexAttributeBindings.push_back(
+        {0, 0, QRhiVertexInputAttribute::Float2, 0});
     vertexArray = vtx;
     vertexCount = count;
   }
 
-  void setupBindings(QRhiBuffer& vtxData, QRhiBuffer* idxData, QRhiCommandBuffer& cb)
-      const noexcept override
+  void setupBindings(
+      QRhiBuffer& vtxData,
+      QRhiBuffer* idxData,
+      QRhiCommandBuffer& cb) const noexcept override
   {
     const QRhiCommandBuffer::VertexInput bindings[] = {{&vtxData, 0}};
 
@@ -72,14 +76,18 @@ struct TexturedMesh : Mesh
   {
     vertexInputBindings.push_back({2 * sizeof(float)});
     vertexInputBindings.push_back({2 * sizeof(float)});
-    vertexAttributeBindings.push_back({0, 0, QRhiVertexInputAttribute::Float2, 0});
-    vertexAttributeBindings.push_back({1, 1, QRhiVertexInputAttribute::Float2, 0});
+    vertexAttributeBindings.push_back(
+        {0, 0, QRhiVertexInputAttribute::Float2, 0});
+    vertexAttributeBindings.push_back(
+        {1, 1, QRhiVertexInputAttribute::Float2, 0});
     vertexArray = vtx;
     vertexCount = count;
   }
 
-  void setupBindings(QRhiBuffer& vtxData, QRhiBuffer* idxData, QRhiCommandBuffer& cb)
-      const noexcept override
+  void setupBindings(
+      QRhiBuffer& vtxData,
+      QRhiBuffer* idxData,
+      QRhiCommandBuffer& cb) const noexcept override
   {
     const QRhiCommandBuffer::VertexInput bindings[]
         = {{&vtxData, 0}, {&vtxData, 3 * 2 * sizeof(float)}};
@@ -113,25 +121,34 @@ struct TexturedMesh : Mesh
 
 struct TextureNormalMesh : Mesh
 {
-  TextureNormalMesh(gsl::span<const float> vtx, gsl::span<const unsigned int> idx, int count)
+  TextureNormalMesh(
+      gsl::span<const float> vtx,
+      gsl::span<const unsigned int> idx,
+      int count)
   {
     vertexInputBindings.push_back({8 * sizeof(float)});
     // int binding, int location, Format format, quint32 offset
-    vertexAttributeBindings.push_back({0, 0, QRhiVertexInputAttribute::Float3, 0});
-    vertexAttributeBindings.push_back({0, 1, QRhiVertexInputAttribute::Float3, 3 * sizeof(float)});
-    vertexAttributeBindings.push_back({0, 2, QRhiVertexInputAttribute::Float2, 6 * sizeof(float)});
+    vertexAttributeBindings.push_back(
+        {0, 0, QRhiVertexInputAttribute::Float3, 0});
+    vertexAttributeBindings.push_back(
+        {0, 1, QRhiVertexInputAttribute::Float3, 3 * sizeof(float)});
+    vertexAttributeBindings.push_back(
+        {0, 2, QRhiVertexInputAttribute::Float2, 6 * sizeof(float)});
 
     vertexArray = vtx;
     indexArray = idx;
     vertexCount = count;
   }
 
-  void setupBindings(QRhiBuffer& vtxData, QRhiBuffer* idxData, QRhiCommandBuffer& cb)
-      const noexcept override
+  void setupBindings(
+      QRhiBuffer& vtxData,
+      QRhiBuffer* idxData,
+      QRhiCommandBuffer& cb) const noexcept override
   {
     const QRhiCommandBuffer::VertexInput bindings[] = {{&vtxData, 0}};
 
-    cb.setVertexInput(0, 1, bindings, idxData, 0, QRhiCommandBuffer::IndexUInt32);
+    cb.setVertexInput(
+        0, 1, bindings, idxData, 0, QRhiCommandBuffer::IndexUInt32);
   }
 
   const char* defaultVertexShader() const noexcept override
@@ -191,7 +208,10 @@ struct PlainTriangle final : PlainMesh
 {
   static const constexpr float data[] = {-1, -1, 3, -1, -1, 3};
 
-  PlainTriangle() : PlainMesh{data, 3} { }
+  PlainTriangle()
+      : PlainMesh{data, 3}
+  {
+  }
 
   static const PlainTriangle& instance() noexcept
   {
@@ -217,7 +237,10 @@ struct TexturedTriangle final : TexturedMesh
       ((1 % 2) * 2.),
   };
 
-  TexturedTriangle() : TexturedMesh{data, 3} { }
+  TexturedTriangle()
+      : TexturedMesh{data, 3}
+  {
+  }
 
   static const TexturedTriangle& instance() noexcept
   {

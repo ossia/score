@@ -33,8 +33,8 @@ enum ProcessFlags : int64_t
   HandlesLooping = 32,
 
   SupportsLasting = SupportsTemporal | TimeIndependent,
-  ExternalEffect  = SupportsTemporal | TimeIndependent | RequiresCustomData,
-  SupportsAll     = SupportsTemporal | TimeIndependent | SupportsState
+  ExternalEffect = SupportsTemporal | TimeIndependent | RequiresCustomData,
+  SupportsAll = SupportsTemporal | TimeIndependent | SupportsState
 };
 
 /**

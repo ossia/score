@@ -4,6 +4,8 @@
 #include <score/command/CommandData.hpp>
 
 score::CommandData::CommandData(const score::Command& cmd)
-    : parentKey{cmd.parentKey()}, commandKey{cmd.key()}, data{cmd.serialize()}
+    : parentKey{cmd.parentKey()}
+    , commandKey{cmd.key()}
+    , data{cmd.serialize()}
 {
 }

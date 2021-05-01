@@ -1,7 +1,7 @@
 #pragma once
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-
 #include <LocalTree/LocalTreeComponent.hpp>
+
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 
 namespace LocalTree
 {

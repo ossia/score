@@ -12,7 +12,8 @@ namespace Process
 class PortFactoryList;
 struct Context;
 
-class SCORE_LIB_PROCESS_EXPORT DefaultEffectItem final : public score::EmptyRectItem
+class SCORE_LIB_PROCESS_EXPORT DefaultEffectItem final
+    : public score::EmptyRectItem
 {
 public:
   DefaultEffectItem(
@@ -21,8 +22,12 @@ public:
       QGraphicsItem* root);
   ~DefaultEffectItem();
 
-  void setupInlet(Process::ControlInlet& inlet, const Process::PortFactoryList& portFactory);
-  void setupOutlet(Process::ControlOutlet& inlet, const Process::PortFactoryList& portFactory);
+  void setupInlet(
+      Process::ControlInlet& inlet,
+      const Process::PortFactoryList& portFactory);
+  void setupOutlet(
+      Process::ControlOutlet& inlet,
+      const Process::PortFactoryList& portFactory);
 
 private:
   template <typename T>

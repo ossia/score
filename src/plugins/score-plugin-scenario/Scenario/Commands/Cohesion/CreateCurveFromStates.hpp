@@ -1,16 +1,17 @@
 #pragma once
 #include <Automation/AutomationProcessMetadata.hpp>
+#include <Curve/CurveModel.hpp>
 #include <Process/ProcessList.hpp>
+#include <State/Address.hpp>
+
+#include <score/application/ApplicationContext.hpp>
+#include <score/command/Command.hpp>
+#include <score/model/Identifier.hpp>
+
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <State/Address.hpp>
-
-#include <Curve/CurveModel.hpp>
-#include <score/application/ApplicationContext.hpp>
-#include <score/command/Command.hpp>
-#include <score/model/Identifier.hpp>
 
 //#include <Interpolation/InterpolationProcess.hpp>
 
@@ -34,7 +35,8 @@ namespace Command
 {
 
 // MOVEME
-class SCORE_PLUGIN_SCENARIO_EXPORT CreateProcessAndLayers : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT CreateProcessAndLayers
+    : public score::Command
 {
 public:
   CreateProcessAndLayers() = default;
@@ -46,7 +48,10 @@ public:
       UuidKey<Process::ProcessModel> key);
 
   void undo(const score::DocumentContext& ctx) const final override;
-  const Id<Process::ProcessModel>& processId() const { return m_addProcessCmd.processId(); }
+  const Id<Process::ProcessModel>& processId() const
+  {
+    return m_addProcessCmd.processId();
+  }
 
 protected:
   void serializeImpl(DataStreamInput& s) const override;
@@ -56,7 +61,8 @@ protected:
   std::vector<Scenario::Command::AddLayerModelToSlot> m_slotsCmd;
 };
 
-class SCORE_PLUGIN_SCENARIO_EXPORT CreateAutomationFromStates final : public CreateProcessAndLayers
+class SCORE_PLUGIN_SCENARIO_EXPORT CreateAutomationFromStates final
+    : public CreateProcessAndLayers
 {
   SCORE_COMMAND_DECL(
       CommandFactoryName(),
@@ -84,9 +90,13 @@ private:
   bool m_tween{};
 };
 
-class SCORE_PLUGIN_SCENARIO_EXPORT CreateGradient final : public CreateProcessAndLayers
+class SCORE_PLUGIN_SCENARIO_EXPORT CreateGradient final
+    : public CreateProcessAndLayers
 {
-  SCORE_COMMAND_DECL(CommandFactoryName(), CreateGradient, "CreateGradientFromStates")
+  SCORE_COMMAND_DECL(
+      CommandFactoryName(),
+      CreateGradient,
+      "CreateGradientFromStates")
 public:
   CreateGradient(
       const IntervalModel& interval,

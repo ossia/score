@@ -21,8 +21,7 @@ struct SCORE_PLUGIN_MEDIA_EXPORT VideoMetadata
   double dts_per_flicks{};
 };
 
-struct SCORE_PLUGIN_MEDIA_EXPORT VideoInterface
-    : VideoMetadata
+struct SCORE_PLUGIN_MEDIA_EXPORT VideoInterface : VideoMetadata
 {
   virtual ~VideoInterface();
   virtual AVFrame* dequeue_frame() noexcept = 0;

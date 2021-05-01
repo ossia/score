@@ -1,4 +1,5 @@
 #pragma once
+#include <Audio/Settings/Model.hpp>
 #include <Media/Step/Commands.hpp>
 #include <Media/Step/View.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
@@ -8,8 +9,6 @@
 #include <score/tools/Bind.hpp>
 
 #include <ossia/detail/math.hpp>
-
-#include <Audio/Settings/Model.hpp>
 namespace Media
 {
 namespace Step
@@ -30,7 +29,9 @@ public:
     putToFront();
     auto& m = static_cast<const Step::Model&>(model);
 
-    connect(view, &View::pressed, this, [&] { m_context.context.focusDispatcher.focus(this); });
+    connect(view, &View::pressed, this, [&] {
+      m_context.context.focusDispatcher.focus(this);
+    });
 
     connect(view, &View::change, this, [&](std::size_t num, float v) {
       updateSteps(m, m_disp, num, v);
@@ -38,19 +39,26 @@ public:
 
     connect(view, &View::released, this, [&] { m_disp.commit(); });
 
-    connect(m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
+    connect(
+        m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
 
     con(m, &Step::Model::stepsChanged, this, [&] { m_view->update(); });
     con(m, &Step::Model::stepCountChanged, this, [&] { m_view->update(); });
-    con(m, &Step::Model::stepDurationChanged, this, [&] { on_zoomRatioChanged(m_ratio); });
+    con(m, &Step::Model::stepDurationChanged, this, [&] {
+      on_zoomRatioChanged(m_ratio);
+    });
 
-    auto& audio_settings = context().context.app.settings<Audio::Settings::Model>();
+    auto& audio_settings
+        = context().context.app.settings<Audio::Settings::Model>();
     con(audio_settings, &Audio::Settings::Model::RateChanged, this, [&] {
       on_zoomRatioChanged(m_ratio);
     });
   }
 
-  void setWidth(qreal width, qreal defaultWidth) override { m_view->setWidth(width); }
+  void setWidth(qreal width, qreal defaultWidth) override
+  {
+    m_view->setWidth(width);
+  }
   void setHeight(qreal val) override { m_view->setHeight(val); }
 
   void putToFront() override { m_view->setVisible(true); }
@@ -59,7 +67,9 @@ public:
 
   void on_zoomRatioChanged(ZoomRatio r) override
   {
-    auto samplerate = 0.001 * context().context.app.settings<Audio::Settings::Model>().getRate();
+    auto samplerate
+        = 0.001
+          * context().context.app.settings<Audio::Settings::Model>().getRate();
     m_ratio = r;
     auto& m = static_cast<const Step::Model&>(m_process);
     auto v = TimeVal::fromMsecs(m.stepDuration() / samplerate).toPixels(r);

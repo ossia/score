@@ -9,8 +9,8 @@
 
 #include <score/graphics/ArrowDialog.hpp>
 #include <score/widgets/MarginLess.hpp>
-#include <score/widgets/TextLabel.hpp>
 #include <score/widgets/SetIcons.hpp>
+#include <score/widgets/TextLabel.hpp>
 
 #include <QCheckBox>
 #include <QGraphicsScene>
@@ -38,7 +38,10 @@ public:
 
   QRectF boundingRect() const override { return {0, 0, 50, 35}; }
 
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override
   {
     auto& skin = score::Skin::instance();
     ArrowDialog::paint(painter, option, widget);
@@ -70,19 +73,21 @@ void AudioOutletFactory::setupOutletInspector(
   auto cb = new QCheckBox{QObject::tr("Propagate"), parent};
   cb->setChecked(outlet.propagate());
   lay.addRow(cb);
-  QObject::connect(cb, &QCheckBox::toggled, &outlet, [&ctx, &out = outlet](auto ok) {
-    if (ok != out.propagate())
-    {
-      CommandDispatcher<> d{ctx.commandStack};
-      d.submit<Process::SetPropagate>(out, ok);
-    }
-  });
-  QObject::connect(&outlet, &Process::AudioOutlet::propagateChanged, cb, [=](bool p) {
-    if (p != cb->isChecked())
-    {
-      cb->setChecked(p);
-    }
-  });
+  QObject::connect(
+      cb, &QCheckBox::toggled, &outlet, [&ctx, &out = outlet](auto ok) {
+        if (ok != out.propagate())
+        {
+          CommandDispatcher<> d{ctx.commandStack};
+          d.submit<Process::SetPropagate>(out, ok);
+        }
+      });
+  QObject::connect(
+      &outlet, &Process::AudioOutlet::propagateChanged, cb, [=](bool p) {
+        if (p != cb->isChecked())
+        {
+          cb->setChecked(p);
+        }
+      });
 }
 
 AudioOutletItem::AudioOutletItem(
@@ -105,7 +110,9 @@ void AudioOutletItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
     if (!m_subView)
     {
       m_subView = new AudioOutletMiniPanel{
-          safe_cast<const Process::AudioOutlet&>(m_port), m_context, this->scene()};
+          safe_cast<const Process::AudioOutlet&>(m_port),
+          m_context,
+          this->scene()};
       this->scene()->addItem(m_subView);
       m_subView->setPos(this->mapToScene(0, -42));
     }
@@ -129,8 +136,9 @@ void AudioOutletItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   AutomatablePortItem::mouseReleaseEvent(event);
 }
 
-QVariant
-AudioOutletItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value)
+QVariant AudioOutletItem::itemChange(
+    QGraphicsItem::GraphicsItemChange change,
+    const QVariant& value)
 {
   switch (change)
   {
@@ -163,7 +171,10 @@ public:
 
   QRectF boundingRect() const override { return {0, 0, 50, 35}; }
 
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override
   {
     auto& skin = score::Skin::instance();
     ArrowDialog::paint(painter, option, widget);
@@ -192,7 +203,8 @@ void MinMaxFloatOutletFactory::setupOutletInspector(
   advBtn->setIcon(makeIcon(QStringLiteral(":/icons/port_message.png")));
   hl->addWidget(advBtn);
 
-  auto port_widg = Process::PortWidgetSetup::makeAddressWidget(port, ctx, parent);
+  auto port_widg
+      = Process::PortWidgetSetup::makeAddressWidget(port, ctx, parent);
   lay.addRow(widg, port_widg);
 }
 
@@ -215,7 +227,9 @@ void MinMaxFloatOutletItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
     if (!m_subView)
     {
       m_subView = new MinMaxFloatOutletMiniPanel{
-          safe_cast<const Process::MinMaxFloatOutlet&>(m_port), m_context, this->scene()};
+          safe_cast<const Process::MinMaxFloatOutlet&>(m_port),
+          m_context,
+          this->scene()};
       m_subView->setPos(this->mapToScene(0, -42));
     }
     else
@@ -238,8 +252,9 @@ void MinMaxFloatOutletItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   AutomatablePortItem::mouseReleaseEvent(event);
 }
 
-QVariant
-MinMaxFloatOutletItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value)
+QVariant MinMaxFloatOutletItem::itemChange(
+    QGraphicsItem::GraphicsItemChange change,
+    const QVariant& value)
 {
   switch (change)
   {

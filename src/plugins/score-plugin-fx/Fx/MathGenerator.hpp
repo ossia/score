@@ -1,5 +1,6 @@
 #pragma once
 #include <Engine/Node/PdNode.hpp>
+
 #include <ossia/math/math_expression.hpp>
 
 #include <numeric>
@@ -7,9 +8,11 @@ namespace Nodes
 {
 
 static void mathItem(
-    const std::
-        tuple<Control::LineEdit, Control::FloatSlider, Control::FloatSlider, Control::FloatSlider>&
-            controls,
+    const std::tuple<
+        Control::LineEdit,
+        Control::FloatSlider,
+        Control::FloatSlider,
+        Control::FloatSlider>& controls,
     Process::LineEdit& edit,
     Process::FloatSlider& a,
     Process::FloatSlider& b,
@@ -20,14 +23,16 @@ static void mathItem(
     const Process::Context& doc)
 {
   using namespace Process;
-  const Process::PortFactoryList& portFactory = doc.app.interfaces<Process::PortFactoryList>();
+  const Process::PortFactoryList& portFactory
+      = doc.app.interfaces<Process::PortFactoryList>();
 
   const auto c0 = 10;
 
   auto c0_bg = new score::BackgroundItem{&parent};
   c0_bg->setRect({0., 0., 300., 200.});
 
-  auto edit_item = makeControl(std::get<0>(controls), edit, parent, context, doc, portFactory);
+  auto edit_item = makeControl(
+      std::get<0>(controls), edit, parent, context, doc, portFactory);
   edit_item.control.setTextWidth(280);
   edit_item.root.setPos(c0, 40);
   /*
@@ -37,11 +42,14 @@ static void mathItem(
   ((QGraphicsProxyWidget&)edit_item.control).widget()->setMaximumWidth(200);
   */
 
-  auto a_item = makeControl(std::get<1>(controls), a, parent, context, doc, portFactory);
+  auto a_item = makeControl(
+      std::get<1>(controls), a, parent, context, doc, portFactory);
   a_item.root.setPos(c0, 5);
-  auto b_item = makeControl(std::get<2>(controls), b, parent, context, doc, portFactory);
+  auto b_item = makeControl(
+      std::get<2>(controls), b, parent, context, doc, portFactory);
   b_item.root.setPos(c0 + 70, 5);
-  auto c_item = makeControl(std::get<3>(controls), c, parent, context, doc, portFactory);
+  auto c_item = makeControl(
+      std::get<3>(controls), c, parent, context, doc, portFactory);
   c_item.root.setPos(c0 + 140, 5);
 }
 
@@ -62,7 +70,8 @@ struct Node
           "Available variables: a,b,c, t (samples), dt (delta), pos (position "
           "in parent)\n"
           "See the documentation at http://www.partow.net/programming/exprtk";
-    static const uuid_constexpr auto uuid = make_uuid("d757bd0d-c0a1-4aec-bf72-945b722ab85b");
+    static const uuid_constexpr auto uuid
+        = make_uuid("d757bd0d-c0a1-4aec-bf72-945b722ab85b");
 
     static const constexpr value_out value_outs[]{"out"};
 
@@ -146,17 +155,19 @@ struct Node
         = "Generate an audio signal from a math expression.\n"
           "Available variables: a,b,c, t (samples), fs (sampling frequency)\n"
           "See the documentation at http://www.partow.net/programming/exprtk";
-    static const uuid_constexpr auto uuid = make_uuid("eae294b3-afeb-4fba-bbe4-337998d3748a");
+    static const uuid_constexpr auto uuid
+        = make_uuid("eae294b3-afeb-4fba-bbe4-337998d3748a");
 
     static const constexpr audio_out audio_outs[]{"out"};
 
     static const constexpr auto controls = std::make_tuple(
-        Control::LineEdit("Expression (ExprTK)",
-             "var phi := 2 * pi * (20 + a * 500) / fs;\n"
-             "m1[0] += phi;\n"
-             "\n"
-             "out[0] := b * cos(m1[0]);\n"
-             "out[1] := b * cos(m1[0]);\n"),
+        Control::LineEdit(
+            "Expression (ExprTK)",
+            "var phi := 2 * pi * (20 + a * 500) / fs;\n"
+            "m1[0] += phi;\n"
+            "\n"
+            "out[0] := b * cos(m1[0]);\n"
+            "out[1] := b * cos(m1[0]);\n"),
         Control::FloatSlider("Param (a)", 0., 1., 0.5),
         Control::FloatSlider("Param (b)", 0., 1., 0.5),
         Control::FloatSlider("Param (c)", 0., 1., 0.5));
@@ -192,7 +203,7 @@ struct Node
     void reset_symbols(std::size_t N)
     {
       // TODO allow to set how many channels
-      if(N == cur_out.size())
+      if (N == cur_out.size())
         return;
 
       expr.remove_vector("out");
@@ -242,7 +253,7 @@ struct Node
       const int chans = 2;
       self.reset_symbols(chans);
       output.samples.resize(chans);
-      for(int j = 0; j < chans; j++)
+      for (int j = 0; j < chans; j++)
       {
         auto& out = output.samples[j];
         out.resize(st.bufferSize());
@@ -261,7 +272,7 @@ struct Node
         self.expr.value();
 
         // Apply the output
-        for(int j = 0; j < chans; j++)
+        for (int j = 0; j < chans; j++)
         {
           output.samples[j][start + i] = self.cur_out[j];
         }

@@ -15,11 +15,14 @@ Presenter::Presenter(
     View* view,
     const Process::Context& ctx,
     QObject* parent)
-    : LayerPresenter{layer, view, ctx, parent}, m_view{view}
+    : LayerPresenter{layer, view, ctx, parent}
+    , m_view{view}
 {
   putToFront();
 
-  connect(m_view, &View::pressed, this, [&]() { m_context.context.focusDispatcher.focus(this); });
+  connect(m_view, &View::pressed, this, [&]() {
+    m_context.context.focusDispatcher.focus(this);
+  });
   connect(m_view, &View::toggled, this, [&](int lane, int index) {
     auto cur = layer.patterns()[layer.currentPattern()];
     bool b = cur.lanes[lane].pattern[index];

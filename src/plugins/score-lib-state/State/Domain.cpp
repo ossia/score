@@ -14,14 +14,18 @@ SCORE_SERALIZE_DATASTREAM_DEFINE(State::Domain)
 namespace State
 {
 
-Domain::Domain() noexcept : domain{std::make_unique<ossia::domain>()} { }
+Domain::Domain() noexcept
+    : domain{std::make_unique<ossia::domain>()}
+{
+}
 
 Domain::Domain(const Domain& other) noexcept
     : domain{std::make_unique<ossia::domain>(*other.domain)}
 {
 }
 
-Domain::Domain(Domain&& other) noexcept : domain{std::move(other.domain)}
+Domain::Domain(Domain&& other) noexcept
+    : domain{std::move(other.domain)}
 {
   other.domain = std::make_unique<ossia::domain>();
 }
@@ -71,12 +75,12 @@ ossia::domain& Domain::get() noexcept
   return *domain;
 }
 
-Domain::operator const ossia::domain &() const noexcept
+Domain::operator const ossia::domain&() const noexcept
 {
   return *domain;
 }
 
-Domain::operator ossia::domain &() noexcept
+Domain::operator ossia::domain&() noexcept
 {
   return *domain;
 }

@@ -1,13 +1,13 @@
 #include <score/graphics/widgets/QGraphicsCombo.hpp>
-#include <score/tools/Cursor.hpp>
 #include <score/model/Skin.hpp>
+#include <score/tools/Cursor.hpp>
 
 #include <ossia/detail/math.hpp>
 
-#include <QGraphicsSceneMouseEvent>
 #include <QApplication>
-#include <QScreen>
+#include <QGraphicsSceneMouseEvent>
 #include <QPainter>
+#include <QScreen>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::QGraphicsCombo);
@@ -94,7 +94,8 @@ struct DefaultComboImpl
   static inline double currentDelta{};
   static inline QRectF currentGeometry{};
 
-  static void mousePressEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
+  static void
+  mousePressEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
   {
     currentDelta = 0.;
     if (event->button() == Qt::LeftButton)
@@ -108,7 +109,8 @@ struct DefaultComboImpl
     event->accept();
   }
 
-  static void mouseMoveEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
+  static void
+  mouseMoveEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
   {
     if ((event->buttons() & Qt::LeftButton) && self.m_grab)
     {
@@ -149,7 +151,8 @@ struct DefaultComboImpl
     event->accept();
   }
 
-  static void mouseReleaseEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
+  static void
+  mouseReleaseEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
   {
     if (event->button() == Qt::LeftButton)
     {
@@ -175,7 +178,7 @@ struct DefaultComboImpl
       self.sliderReleased();
     }
     else if (event->button() == Qt::RightButton)
-    {/*
+    { /*
       QTimer::singleShot(0, [&, pos = event->scenePos()] {
         auto w = new ComboBoxWithEnter;
         w->addItems(self.array);
@@ -210,7 +213,8 @@ struct DefaultComboImpl
   }
 };
 
-QGraphicsCombo::QGraphicsCombo(QGraphicsItem* parent) : QGraphicsItem{parent}
+QGraphicsCombo::QGraphicsCombo(QGraphicsItem* parent)
+    : QGraphicsItem{parent}
 {
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorSpin);

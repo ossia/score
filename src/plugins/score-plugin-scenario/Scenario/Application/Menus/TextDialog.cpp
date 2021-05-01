@@ -9,7 +9,8 @@
 class QWidget;
 namespace Scenario
 {
-TextDialog::TextDialog(const QString& s, QWidget* parent) : QDialog{parent}
+TextDialog::TextDialog(const QString& s, QWidget* parent)
+    : QDialog{parent}
 {
   this->setLayout(new QGridLayout);
   auto textEdit = new QTextEdit;

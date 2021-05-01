@@ -3,11 +3,6 @@
 
 #include "score_plugin_audio.hpp"
 
-#include <score/plugins/FactorySetup.hpp>
-#include <score/plugins/InterfaceList.hpp>
-#include <score/plugins/StringFactoryKey.hpp>
-#include <score/plugins/UuidKeySerialization.hpp>
-
 #include <Audio/ALSAPortAudioInterface.hpp>
 #include <Audio/ASIOPortAudioInterface.hpp>
 #include <Audio/AudioApplicationPlugin.hpp>
@@ -23,15 +18,27 @@
 #include <Audio/Settings/Factory.hpp>
 #include <Audio/WASAPIPortAudioInterface.hpp>
 #include <Audio/WDMKSPortAudioInterface.hpp>
+
+#include <score/plugins/FactorySetup.hpp>
+#include <score/plugins/InterfaceList.hpp>
+#include <score/plugins/StringFactoryKey.hpp>
+#include <score/plugins/UuidKeySerialization.hpp>
+
 #include <wobjectimpl.h>
 
 #include <ossia-config.hpp>
 
-#if OSSIA_AUDIO_PORTAUDIO && defined(__linux__) && __has_include(<alsa/asoundlib.h>)
+#if OSSIA_AUDIO_PORTAUDIO && defined(__linux__) \
+    && __has_include(<alsa/asoundlib.h>)
 #include <alsa/asoundlib.h>
-static
-void asound_error(const char *file, int line, const char *function, int err, const char *fmt, ...) {
-
+static void asound_error(
+    const char* file,
+    int line,
+    const char* function,
+    int err,
+    const char* fmt,
+    ...)
+{
 }
 #endif
 
@@ -40,8 +47,10 @@ score_plugin_audio::score_plugin_audio()
   qRegisterMetaType<Audio::Settings::ExternalTransport>("ExternalTransport");
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-  qRegisterMetaTypeStreamOperators<Audio::AudioFactory::ConcreteKey>("AudioKey");
-  qRegisterMetaTypeStreamOperators<Audio::Settings::ExternalTransport>("ExternalTransport");
+  qRegisterMetaTypeStreamOperators<Audio::AudioFactory::ConcreteKey>(
+      "AudioKey");
+  qRegisterMetaTypeStreamOperators<Audio::Settings::ExternalTransport>(
+      "ExternalTransport");
 #endif
 
 #if OSSIA_AUDIO_JACK
@@ -52,27 +61,31 @@ score_plugin_audio::score_plugin_audio()
     // std::cerr << "JACK INFO: " << str << std::endl;
   });
 #endif
-#if OSSIA_AUDIO_PORTAUDIO && defined(__linux__) && __has_include(<alsa/asoundlib.h>)
+#if OSSIA_AUDIO_PORTAUDIO && defined(__linux__) \
+    && __has_include(<alsa/asoundlib.h>)
   auto asound = dlopen("libasound.so.2", RTLD_LAZY | RTLD_LOCAL);
-  auto sym = (decltype(snd_lib_error_set_handler)*)dlsym(asound, "snd_lib_error_set_handler");
+  auto sym = (decltype(snd_lib_error_set_handler)*)dlsym(
+      asound, "snd_lib_error_set_handler");
   sym(asound_error);
 #endif
 }
 
 score_plugin_audio::~score_plugin_audio() { }
 
-score::GUIApplicationPlugin*
-score_plugin_audio::make_guiApplicationPlugin(const score::GUIApplicationContext& app)
+score::GUIApplicationPlugin* score_plugin_audio::make_guiApplicationPlugin(
+    const score::GUIApplicationContext& app)
 {
   return new Audio::ApplicationPlugin{app};
 }
 
-std::vector<std::unique_ptr<score::InterfaceListBase>> score_plugin_audio::factoryFamilies()
+std::vector<std::unique_ptr<score::InterfaceListBase>>
+score_plugin_audio::factoryFamilies()
 {
   return make_ptr_vector<score::InterfaceListBase, Audio::AudioFactoryList>();
 }
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_audio::factories(
+std::vector<std::unique_ptr<score::InterfaceBase>>
+score_plugin_audio::factories(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& key) const
 {

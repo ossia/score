@@ -17,9 +17,13 @@ namespace Explorer
 class DeviceDocumentPlugin;
 namespace Command
 {
-class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddAddress final : public score::Command
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddAddress final
+    : public score::Command
 {
-  SCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), AddAddress, "Add an address")
+  SCORE_COMMAND_DECL(
+      DeviceExplorerCommandFactoryName(),
+      AddAddress,
+      "Add an address")
 public:
   AddAddress(
       const DeviceDocumentPlugin& devplug,
@@ -41,11 +45,17 @@ private:
   Device::AddressSettings m_addressSettings;
 };
 
-class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddWholeAddress final : public score::Command
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddWholeAddress final
+    : public score::Command
 {
-  SCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), AddWholeAddress, "Add an address")
+  SCORE_COMMAND_DECL(
+      DeviceExplorerCommandFactoryName(),
+      AddWholeAddress,
+      "Add an address")
 public:
-  AddWholeAddress(const DeviceDocumentPlugin& devplug, const Device::FullAddressSettings& addr);
+  AddWholeAddress(
+      const DeviceDocumentPlugin& devplug,
+      const Device::FullAddressSettings& addr);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

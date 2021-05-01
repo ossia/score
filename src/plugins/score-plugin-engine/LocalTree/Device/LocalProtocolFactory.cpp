@@ -6,12 +6,11 @@
 #include "LocalProtocolSettingsWidget.hpp"
 
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <LocalTree/Device/LocalSpecificSettings.hpp>
+#include <LocalTree/LocalTreeDocumentPlugin.hpp>
 
 #include <QDebug>
 #include <QObject>
-
-#include <LocalTree/Device/LocalSpecificSettings.hpp>
-#include <LocalTree/LocalTreeDocumentPlugin.hpp>
 namespace Device
 {
 class DeviceInterface;
@@ -31,7 +30,8 @@ QString LocalProtocolFactory::category() const noexcept
   return StandardCategories::util;
 }
 
-Device::DeviceEnumerator* LocalProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerator*
+LocalProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
   return nullptr;
 }
@@ -67,7 +67,8 @@ const Device::DeviceSettings& LocalProtocolFactory::static_defaultSettings()
   return settings;
 }
 
-const Device::DeviceSettings& LocalProtocolFactory::defaultSettings() const noexcept
+const Device::DeviceSettings&
+LocalProtocolFactory::defaultSettings() const noexcept
 {
   return static_defaultSettings();
 }
@@ -77,7 +78,8 @@ Device::ProtocolSettingsWidget* LocalProtocolFactory::makeSettingsWidget()
   return new LocalProtocolSettingsWidget;
 }
 
-QVariant LocalProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
+QVariant LocalProtocolFactory::makeProtocolSpecificSettings(
+    const VisitorVariant& visitor) const
 {
   return makeProtocolSpecificSettings_T<LocalSpecificSettings>(visitor);
 }

@@ -1,12 +1,12 @@
 #pragma once
-#include <Scenario/Document/Interval/Slot.hpp>
-#include <Scenario/Palette/ScenarioPoint.hpp>
-
 #include <score/model/path/Path.hpp>
 #include <score/statemachine/StateMachineUtils.hpp>
 
 #include <QPointF>
 #include <QState>
+
+#include <Scenario/Document/Interval/Slot.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
 
 namespace Scenario
 {
@@ -20,7 +20,8 @@ class StateBase : public QState
 {
 public:
   StateBase(const Scenario_T& scenar, QState* parent)
-      : QState{parent}, m_scenario{const_cast<Scenario_T&>(scenar)}
+      : QState{parent}
+      , m_scenario{const_cast<Scenario_T&>(scenar)}
   {
   }
 
@@ -58,7 +59,10 @@ protected:
 class SCORE_PLUGIN_SCENARIO_EXPORT SlotState : public QState
 {
 public:
-  SlotState(QState* parent) : QState{parent} { }
+  SlotState(QState* parent)
+      : QState{parent}
+  {
+  }
   ~SlotState() override;
 
   SlotPath currentSlot;

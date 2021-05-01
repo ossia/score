@@ -22,7 +22,12 @@ ProcessComponent::ProcessComponent(
     const Id<score::Component>& id,
     const QString& name,
     QObject* parent)
-    : Process::GenericProcessComponent<const Context>{proc, ctx, id, name, parent}
+    : Process::GenericProcessComponent<const Context>{
+        proc,
+        ctx,
+        id,
+        name,
+        parent}
 {
 }
 

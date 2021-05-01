@@ -2,13 +2,14 @@
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Process/ExecutionContext.hpp>
-#include <Scenario/Execution/score2OSSIA.hpp>
 
 #include <score/tools/Bind.hpp>
 
 #include <ossia/dataflow/nodes/step.hpp>
 #include <ossia/detail/pod_vector.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
+
+#include <Scenario/Execution/score2OSSIA.hpp>
 namespace Execution
 {
 
@@ -30,9 +31,18 @@ StepComponent::StepComponent(
   node->dur = ossia::time_value{int64_t(element.stepDuration())};
 
   recompute();
-  con(element, &Media::Step::Model::stepsChanged, this, &StepComponent::recompute);
-  con(element, &Media::Step::Model::minChanged, this, &StepComponent::recompute);
-  con(element, &Media::Step::Model::maxChanged, this, &StepComponent::recompute);
+  con(element,
+      &Media::Step::Model::stepsChanged,
+      this,
+      &StepComponent::recompute);
+  con(element,
+      &Media::Step::Model::minChanged,
+      this,
+      &StepComponent::recompute);
+  con(element,
+      &Media::Step::Model::maxChanged,
+      this,
+      &StepComponent::recompute);
   con(element, &Media::Step::Model::stepDurationChanged, this, [=] {
     in_exec([node, dur = process().stepDuration()]() mutable {
       node->dur = ossia::time_value{int64_t(dur)};
@@ -49,8 +59,9 @@ void StepComponent::recompute()
   {
     val = min + (1. - val) * (max - min);
   }
-  in_exec([n = std::dynamic_pointer_cast<ossia::nodes::step>(OSSIAProcess().node),
-           vec = std::move(v)]() mutable { n->values = std::move(vec); });
+  in_exec(
+      [n = std::dynamic_pointer_cast<ossia::nodes::step>(OSSIAProcess().node),
+       vec = std::move(v)]() mutable { n->values = std::move(vec); });
 }
 
 StepComponent::~StepComponent() { }

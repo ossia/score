@@ -9,17 +9,20 @@ extern "C"
 }
 
 #include <ossia/detail/lockfree_queue.hpp>
+
 #include <score_plugin_media_export.h>
 
 #include <atomic>
 #include <mutex>
 #include <string>
 #include <thread>
+
 #include <condition_variable>
 
 namespace Video
 {
-struct ReadFrame {
+struct ReadFrame
+{
   AVFrame* frame{};
   int error{};
 };
@@ -80,6 +83,9 @@ private:
   std::atomic_bool m_running{};
 };
 
-ReadFrame readVideoFrame(AVCodecContext* codecContext, const AVPacket* pkt, AVFrame* frame);
+ReadFrame readVideoFrame(
+    AVCodecContext* codecContext,
+    const AVPacket* pkt,
+    AVFrame* frame);
 }
 #endif

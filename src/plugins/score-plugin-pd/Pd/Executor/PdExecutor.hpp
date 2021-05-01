@@ -1,8 +1,8 @@
 #pragma once
 #define PDINSTANCE
 struct _pdinstance;
-#include <Pd/PdProcess.hpp>
 #include <Explorer/DeviceList.hpp>
+#include <Pd/PdProcess.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/ExecutionContext.hpp>
 
@@ -52,7 +52,8 @@ public:
   ossia::midi_port* get_midi_out() const;
 
   void
-  run(const ossia::token_request& t, ossia::exec_state_facade e) noexcept override;
+  run(const ossia::token_request& t,
+      ossia::exec_state_facade e) noexcept override;
   void add_dzero(std::string& s) const;
 
   _pdinstance* m_instance{};

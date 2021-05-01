@@ -4,15 +4,20 @@
 
 #include <score_lib_base_export.h>
 
-namespace score {
+namespace score
+{
 class SCORE_LIB_BASE_EXPORT ComboBox : public QComboBox
 {
 public:
-    ComboBox (QWidget* parent): QComboBox(parent)
-    {
-      setDisabled(true);
-      connect(this, qOverload<int>(&QComboBox::currentIndexChanged),
-              this, [&](int index){this->setEnabled(index != -1);});
-    }
+  ComboBox(QWidget* parent)
+      : QComboBox(parent)
+  {
+    setDisabled(true);
+    connect(
+        this,
+        qOverload<int>(&QComboBox::currentIndexChanged),
+        this,
+        [&](int index) { this->setEnabled(index != -1); });
+  }
 };
 }

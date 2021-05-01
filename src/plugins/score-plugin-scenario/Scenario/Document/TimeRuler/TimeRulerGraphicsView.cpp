@@ -3,7 +3,6 @@
 #include "TimeRulerGraphicsView.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 
@@ -12,13 +11,17 @@
 #include <QOpenGLWidget>
 #include <QWheelEvent>
 
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+
 namespace Scenario
 {
 
-TimeRulerGraphicsView::TimeRulerGraphicsView(QGraphicsScene* scene) : QGraphicsView{scene}
+TimeRulerGraphicsView::TimeRulerGraphicsView(QGraphicsScene* scene)
+    : QGraphicsView{scene}
 {
   setRenderHints(
-      QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing);
+      QPainter::Antialiasing | QPainter::SmoothPixmapTransform
+      | QPainter::TextAntialiasing);
 
   setAlignment(Qt::AlignTop | Qt::AlignLeft);
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -42,10 +45,12 @@ TimeRulerGraphicsView::TimeRulerGraphicsView(QGraphicsScene* scene) : QGraphicsV
 #endif
 }
 
-MinimapGraphicsView::MinimapGraphicsView(QGraphicsScene* s) : TimeRulerGraphicsView{s}
+MinimapGraphicsView::MinimapGraphicsView(QGraphicsScene* s)
+    : TimeRulerGraphicsView{s}
 {
   setRenderHints(
-      QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing);
+      QPainter::Antialiasing | QPainter::SmoothPixmapTransform
+      | QPainter::TextAntialiasing);
   setSceneRect({0, 0, 2000, 100});
   setFixedHeight(20);
   setFrameStyle(0);

@@ -56,10 +56,11 @@
  *
  */
 
-class score_lib_process final : public score::Plugin_QtInterface,
-                                public score::FactoryList_QtInterface,
-                                public score::CommandFactory_QtInterface,
-                                public score::ApplicationPlugin_QtInterface
+class score_lib_process final
+    : public score::Plugin_QtInterface
+    , public score::FactoryList_QtInterface
+    , public score::CommandFactory_QtInterface
+    , public score::ApplicationPlugin_QtInterface
 {
   SCORE_PLUGIN_METADATA(1, "bca574b4-2534-441f-9db1-32eb9a1325c7")
 
@@ -68,7 +69,9 @@ public:
   ~score_lib_process() override;
 
 private:
-  std::vector<std::unique_ptr<score::InterfaceListBase>> factoryFamilies() override;
+  std::vector<std::unique_ptr<score::InterfaceListBase>>
+  factoryFamilies() override;
 
-  std::pair<const CommandGroupKey, CommandGeneratorMap> make_commands() override;
+  std::pair<const CommandGroupKey, CommandGeneratorMap>
+  make_commands() override;
 };

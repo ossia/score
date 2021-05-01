@@ -23,8 +23,8 @@ class DocumentPluginFactory;
  *   This happens after the object has been constructed.
  */
 class SCORE_LIB_BASE_EXPORT SerializableDocumentPlugin
-    : public DocumentPlugin,
-      public SerializableInterface<DocumentPluginFactory>
+    : public DocumentPlugin
+    , public SerializableInterface<DocumentPluginFactory>
 {
   W_OBJECT(SerializableDocumentPlugin)
 public:

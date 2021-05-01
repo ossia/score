@@ -5,8 +5,10 @@
 #include "window.hpp"
 
 #include <score/tools/Debug.hpp>
+
 #include <QVulkanInstance>
-static void graphwalk(score::gfx::Node* node, std::vector<score::gfx::Node*>& list)
+static void
+graphwalk(score::gfx::Node* node, std::vector<score::gfx::Node*>& list)
 {
   for (auto inputs : node->input)
   {
@@ -26,17 +28,18 @@ QVulkanInstance* staticVulkanInstance()
 {
   static bool vulkanInstanceCreated = false;
   static bool vulkanInstanceInvalid = false;
-  if(vulkanInstanceInvalid)
+  if (vulkanInstanceInvalid)
     return nullptr;
 
   static QVulkanInstance vulkanInstance;
-  if(vulkanInstanceCreated)
+  if (vulkanInstanceCreated)
     return &vulkanInstance;
 
 #if !defined(NDEBUG)
   vulkanInstance.setLayers({"VK_LAYER_KHRONOS_validation"});
 #endif
-  vulkanInstance.setExtensions(QByteArrayList() << "VK_KHR_get_physical_device_properties2");
+  vulkanInstance.setExtensions(
+      QByteArrayList() << "VK_KHR_get_physical_device_properties2");
 
   if (!vulkanInstance.create())
   {
@@ -48,13 +51,12 @@ QVulkanInstance* staticVulkanInstance()
 }
 #endif
 
-
 void Graph::setupOutputs(GraphicsApi graphicsApi)
 {
 #if QT_CONFIG(vulkan)
   if (graphicsApi == Vulkan)
   {
-    if(!staticVulkanInstance())
+    if (!staticVulkanInstance())
     {
       qWarning("Failed to create Vulkan instance, switching to OpenGL");
       graphicsApi = OpenGL;
@@ -113,21 +115,25 @@ void Graph::setupOutputs(GraphicsApi graphicsApi)
       };
 
       // TODO only works for one output !!
-      output->createOutput(graphicsApi, onReady, [this] {
-              switch(this->outputs.size())
-              {
-                case 1:
-                  if(this->vsync_callback)
-                    this->vsync_callback();
-                  break;
-                default:
-                  break;
-              }
-          }, onResize);
+      output->createOutput(
+          graphicsApi,
+          onReady,
+          [this] {
+            switch (this->outputs.size())
+            {
+              case 1:
+                if (this->vsync_callback)
+                  this->vsync_callback();
+                break;
+              default:
+                break;
+            }
+          },
+          onResize);
     }
     else
     {
-      if(auto rs = output->renderState())
+      if (auto rs = output->renderState())
       {
         renderers.push_back(createRenderer(output, *rs));
       }
@@ -200,7 +206,7 @@ void Graph::relinkGraph()
   }
 }
 
-void Graph::setVSyncCallback(std::function<void ()> cb)
+void Graph::setVSyncCallback(std::function<void()> cb)
 {
   // TODO thread safety if vulkan uses a thread ?
   // If we have more than one output, then instead we sync them with
@@ -219,7 +225,8 @@ static void createNodeRenderer(score::gfx::Node& node, Renderer& r)
   node.renderedNodes[&r] = rn;
 }
 
-std::shared_ptr<Renderer> Graph::createRenderer(OutputNode* output, RenderState state)
+std::shared_ptr<Renderer>
+Graph::createRenderer(OutputNode* output, RenderState state)
 {
   auto ptr = std::make_shared<Renderer>();
   for (auto& node : nodes)

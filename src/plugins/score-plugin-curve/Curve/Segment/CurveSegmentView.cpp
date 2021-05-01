@@ -29,7 +29,8 @@ SegmentView::SegmentView(
     const SegmentModel* model,
     const Curve::Style& style,
     QGraphicsItem* parent)
-    : QGraphicsItem{parent}, m_style{style}
+    : QGraphicsItem{parent}
+    , m_style{style}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setZValue(1);
@@ -43,16 +44,26 @@ void SegmentView::setModel(const SegmentModel* model)
 {
   if (m_model)
   {
-    disconnect(&m_model->selection, &Selectable::changed, this, &SegmentView::setSelected);
-    disconnect(m_model, &SegmentModel::dataChanged, this, &SegmentView::updatePoints);
+    disconnect(
+        &m_model->selection,
+        &Selectable::changed,
+        this,
+        &SegmentView::setSelected);
+    disconnect(
+        m_model, &SegmentModel::dataChanged, this, &SegmentView::updatePoints);
   }
 
   m_model = model;
 
   if (m_model)
   {
-    connect(&m_model->selection, &Selectable::changed, this, &SegmentView::setSelected);
-    connect(m_model, &SegmentModel::dataChanged, this, &SegmentView::updatePoints);
+    connect(
+        &m_model->selection,
+        &Selectable::changed,
+        this,
+        &SegmentView::setSelected);
+    connect(
+        m_model, &SegmentModel::dataChanged, this, &SegmentView::updatePoints);
 
     setSelected(m_model->selection.get());
   }
@@ -94,9 +105,13 @@ bool SegmentView::contains(const QPointF& pt) const
   return m_strokedShape.contains(pt);
 }
 
-void SegmentView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void SegmentView::paint(
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
-  painter->setRenderHint(QPainter::RenderHint::Antialiasing, m_enabled && m_rect.width() > 10);
+  painter->setRenderHint(
+      QPainter::RenderHint::Antialiasing, m_enabled && m_rect.width() > 10);
   painter->strokePath(m_unstrokedShape, *m_pen);
   painter->setRenderHint(QPainter::RenderHint::Antialiasing, false);
 }
@@ -151,17 +166,17 @@ void SegmentView::updatePoints()
   {
     // Get the length of the segment to scale.
     double len = m_model->end().x() - m_model->start().x();
-    if(len <= 1e-16)
+    if (len <= 1e-16)
       len = 1e-16;
     double startx = m_model->start().x() * m_rect.width() / len;
     double scalex = m_rect.width() / len;
 
     if (m_enabled)
-      m_model->updateData(
-          ossia::clamp(m_rect.width(), 2., 75.)); // Set the number of required points here.
+      m_model->updateData(ossia::clamp(
+          m_rect.width(), 2., 75.)); // Set the number of required points here.
     else
-      m_model->updateData(
-          ossia::clamp(m_rect.width(), 2., 10.)); // Set the number of required points here.
+      m_model->updateData(ossia::clamp(
+          m_rect.width(), 2., 10.)); // Set the number of required points here.
     const auto& pts = m_model->data();
 
     const auto rect_height = m_rect.height();
@@ -169,15 +184,16 @@ void SegmentView::updatePoints()
     if (!pts.empty())
     {
       auto first = pts.front();
-      auto first_scaled = QPointF{first.x() * scalex - startx, (1. - first.y()) * rect_height};
+      auto first_scaled = QPointF{
+          first.x() * scalex - startx, (1. - first.y()) * rect_height};
 
       m_unstrokedShape = QPainterPath{first_scaled};
       int n = pts.size();
       for (int i = 1; i < n; i++)
       {
         auto next = pts[i];
-        m_unstrokedShape.lineTo(
-            QPointF{next.x() * scalex - startx, (1. - next.y()) * rect_height});
+        m_unstrokedShape.lineTo(QPointF{
+            next.x() * scalex - startx, (1. - next.y()) * rect_height});
       }
     }
   }

@@ -1,29 +1,24 @@
+#include <Control/DefaultEffectItem.hpp>
+#include <Effect/EffectLayer.hpp>
+#include <Effect/EffectPainting.hpp>
 #include <Process/Commands/Properties.hpp>
 #include <Process/Dataflow/NodeItem.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
+#include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessList.hpp>
-#include <Process/Style/ScenarioStyle.hpp>
-#include <Process/Process.hpp>
 #include <Process/Style/Pixmaps.hpp>
-
-#include <QPainter>
-
-#include <Effect/EffectLayer.hpp>
-
-
+#include <Process/Style/ScenarioStyle.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
-#include <score/graphics/TextItem.hpp>
-#include <score/selection/SelectionDispatcher.hpp>
-#include <score/tools/Bind.hpp>
 #include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/TextItem.hpp>
 #include <score/model/Skin.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
 #include <score/tools/Bind.hpp>
 
 #include <QCursor>
@@ -32,9 +27,6 @@
 #include <QPainter>
 #include <QTimer>
 
-#include <Control/DefaultEffectItem.hpp>
-#include <Effect/EffectLayer.hpp>
-#include <Effect/EffectPainting.hpp>
 #include <wobjectimpl.h>
 
 namespace Process
@@ -77,7 +69,7 @@ NodeItem::NodeItem(
   // Title
   const auto& pixmaps = Process::Pixmaps::instance();
   m_fold = new score::QGraphicsPixmapToggle{
-      pixmaps.unroll_small, pixmaps.roll_small,  this};
+      pixmaps.unroll_small, pixmaps.roll_small, this};
   m_fold->setState(true);
 
   m_uiButton = Process::makeExternalUIButton(process, ctx, this, this);
@@ -90,12 +82,15 @@ NodeItem::NodeItem(
   else
     m_label->setText(process.prettyShortName());
 
-  con(process.metadata(), &score::ModelMetadata::LabelChanged, this, [&](const QString& label) {
-    if (!label.isEmpty())
-      m_label->setText(label);
-    else
-      m_label->setText(process.prettyShortName());
-  });
+  con(process.metadata(),
+      &score::ModelMetadata::LabelChanged,
+      this,
+      [&](const QString& label) {
+        if (!label.isEmpty())
+          m_label->setText(label);
+        else
+          m_label->setText(process.prettyShortName());
+      });
   con(process, &Process::ProcessModel::loopsChanged, this, [&] {
     updateZoomRatio();
   });
@@ -116,22 +111,31 @@ NodeItem::NodeItem(
 
   resetInlets();
   resetOutlets();
-  connect(&process, &Process::ProcessModel::inletsChanged, this, &NodeItem::resetInlets);
-  connect(&process, &Process::ProcessModel::outletsChanged, this, &NodeItem::resetOutlets);
+  connect(
+      &process,
+      &Process::ProcessModel::inletsChanged,
+      this,
+      &NodeItem::resetInlets);
+  connect(
+      &process,
+      &Process::ProcessModel::outletsChanged,
+      this,
+      &NodeItem::resetOutlets);
 
-  connect(m_fold, &score::QGraphicsPixmapToggle::toggled, this, [=] (bool b) {
-    if(b)
+  connect(m_fold, &score::QGraphicsPixmapToggle::toggled, this, [=](bool b) {
+    if (b)
     {
       createContentItem();
     }
     else
     {
-      if(m_presenter)
+      if (m_presenter)
       {
-        QPointer<Process::LayerView> oldView = static_cast<Process::LayerView*>(m_fx);
+        QPointer<Process::LayerView> oldView
+            = static_cast<Process::LayerView*>(m_fx);
         delete m_presenter;
         m_presenter = nullptr;
-        if(oldView)
+        if (oldView)
           delete oldView;
         m_fx = nullptr;
       }
@@ -142,17 +146,19 @@ NodeItem::NodeItem(
       }
 
       double port_h = std::max(m_inlets.size() * 12., m_outlets.size() * 12.);
-      m_contentSize = QSizeF{TitleWithUiX0 + m_label->boundingRect().width() + 6, port_h};
+      m_contentSize = QSizeF{
+          TitleWithUiX0 + m_label->boundingRect().width() + 6, port_h};
     }
     QTimer::singleShot(1, this, [this] { updateSize(); });
   });
 
   updateSize();
 
-  ::bind(process, Process::ProcessModel::p_position{}, this, [this](QPointF p) {
-    if (p != pos())
-      setPos(p);
-  });
+  ::bind(
+      process, Process::ProcessModel::p_position{}, this, [this](QPointF p) {
+        if (p != pos())
+          setPos(p);
+      });
 
   // TODO review the resizing heuristic...
   if (m_presenter)
@@ -164,14 +170,14 @@ NodeItem::NodeItem(
   }
 }
 
-
 void NodeItem::resetInlets()
 {
   qDeleteAll(m_inlets);
   m_inlets.clear();
   const qreal x = InletX0;
   qreal y = InletY0;
-  auto& portFactory = score::GUIAppContext().interfaces<Process::PortFactoryList>();
+  auto& portFactory
+      = score::GUIAppContext().interfaces<Process::PortFactoryList>();
   for (Process::Inlet* port : m_model.inlets())
   {
     if (port->hidden)
@@ -189,10 +195,10 @@ void NodeItem::resetInlets()
 
 void NodeItem::updateTitlePos()
 {
-  if(m_inlets.empty())
+  if (m_inlets.empty())
   {
     m_fold->setPos({FoldX0, FoldY0});
-    if(m_uiButton)
+    if (m_uiButton)
     {
       m_uiButton->setPos({UiX0, UiY0});
       m_label->setPos({TitleWithUiX0, TitleY0});
@@ -205,7 +211,7 @@ void NodeItem::updateTitlePos()
   else
   {
     m_fold->setPos({FoldX0 + InletX0, FoldY0});
-    if(m_uiButton)
+    if (m_uiButton)
     {
       m_uiButton->setPos({UiX0 + InletX0, UiY0});
       m_label->setPos({TitleWithUiX0 + InletX0, TitleY0});
@@ -224,7 +230,8 @@ void NodeItem::resetOutlets()
   const qreal x = m_contentSize.width() + OutletX0;
   qreal y = OutletY0;
 
-  auto& portFactory = score::AppContext().interfaces<Process::PortFactoryList>();
+  auto& portFactory
+      = score::AppContext().interfaces<Process::PortFactoryList>();
   for (Process::Outlet* port : m_model.outlets())
   {
     if (port->hidden)
@@ -238,7 +245,10 @@ void NodeItem::resetOutlets()
   }
 }
 
-QSizeF NodeItem::size() const noexcept { return m_contentSize; }
+QSizeF NodeItem::size() const noexcept
+{
+  return m_contentSize;
+}
 
 void NodeItem::setSelected(bool s)
 {
@@ -258,21 +268,21 @@ QRectF NodeItem::boundingRect() const
   double y = -TitleHeight;
   double w = m_contentSize.width();
   const double h = m_contentSize.height() + TitleHeight + FooterHeight;
-  if(!m_inlets.empty())
+  if (!m_inlets.empty())
   {
-      x -= LeftSideWidth;
-      w += LeftSideWidth;
+    x -= LeftSideWidth;
+    w += LeftSideWidth;
   }
   //if(!m_outlets.empty())
   {
-      w += RightSideWidth;
+    w += RightSideWidth;
   }
   return {x, y, w, h};
 }
 
 void NodeItem::createContentItem()
 {
-  if(m_fx)
+  if (m_fx)
     return;
 
   auto& ctx = m_context;
@@ -284,7 +294,11 @@ void NodeItem::createContentItem()
     if (auto fx = factory->makeItem(model, ctx, this))
     {
       m_fx = fx;
-      connect(fx, &score::ResizeableItem::sizeChanged, this, &NodeItem::updateSize);
+      connect(
+          fx,
+          &score::ResizeableItem::sizeChanged,
+          this,
+          &NodeItem::updateSize);
     }
     else if (auto fx = factory->makeLayerView(model, ctx, this))
     {
@@ -307,7 +321,9 @@ void NodeItem::createContentItem()
   // Positions / size
   m_fx->setPos({0, 0});
 
-  double w = std::max(TitleWithUiX0 + m_label->boundingRect().width() + 6, m_contentSize.width());
+  double w = std::max(
+      TitleWithUiX0 + m_label->boundingRect().width() + 6,
+      m_contentSize.width());
   w = std::max(100., w);
   double h = std::max(10., m_contentSize.height());
   m_contentSize = QSizeF{w, h};
@@ -321,9 +337,10 @@ void NodeItem::updateSize()
   //if (sz != m_contentSize || !m_fx)
   {
     prepareGeometryChange();
-    if(m_fx)
+    if (m_fx)
     {
-      double w = std::max(TitleWithUiX0 + m_label->boundingRect().width() + 6, sz.width());
+      double w = std::max(
+          TitleWithUiX0 + m_label->boundingRect().width() + 6, sz.width());
       w = std::max(100., w);
       double h = std::max(10., sz.height());
       m_contentSize = QSizeF{w, h};
@@ -389,7 +406,7 @@ NodeItem::~NodeItem()
 
 void NodeItem::setParentDuration(TimeVal r)
 {
-  if(r != m_parentDuration)
+  if (r != m_parentDuration)
   {
     m_parentDuration = r;
     updateZoomRatio();
@@ -399,7 +416,7 @@ void NodeItem::setParentDuration(TimeVal r)
 void NodeItem::setPlayPercentage(float f, TimeVal parent_dur)
 {
   // Comes from the interval -> if we are looping we make a small modulo of it
-  if(m_model.loops())
+  if (m_model.loops())
   {
     auto loopDur = m_model.loopDuration().impl;
     double playdur = f * parent_dur.impl;
@@ -409,16 +426,25 @@ void NodeItem::setPlayPercentage(float f, TimeVal parent_dur)
   update({0., 14., m_contentSize.width() * f, 14.});
 }
 
-qreal NodeItem::width() const noexcept { return m_contentSize.width(); }
+qreal NodeItem::width() const noexcept
+{
+  return m_contentSize.width();
+}
 
-qreal NodeItem::height() const { return TitleHeight + m_contentSize.height() + FooterHeight; }
+qreal NodeItem::height() const
+{
+  return TitleHeight + m_contentSize.height() + FooterHeight;
+}
 
-const ProcessModel& NodeItem::model() const noexcept { return m_model; }
+const ProcessModel& NodeItem::model() const noexcept
+{
+  return m_model;
+}
 
 void NodeItem::updateZoomRatio() const noexcept
 {
   const auto dur = m_model.loops() ? m_model.loopDuration() : m_parentDuration;
-  if(m_presenter)
+  if (m_presenter)
   {
     m_presenter->on_zoomRatioChanged(dur.impl / m_contentSize.width());
     // TODO investigate why this is necessary for scenario:
@@ -428,10 +454,14 @@ void NodeItem::updateZoomRatio() const noexcept
 
 bool NodeItem::isInSelectionCorner(QPointF p, QRectF r) const
 {
-  return (p.x() - r.x()) > (r.width() - 10.) && (p.y() - r.y()) > (r.height() - 10.);
+  return (p.x() - r.x()) > (r.width() - 10.)
+         && (p.y() - r.y()) > (r.height() - 10.);
 }
 
-void NodeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void NodeItem::paint(
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   auto& style = Process::Style::instance();
   const auto& skin = style.skin;
@@ -441,11 +471,9 @@ void NodeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
 
   const auto& bset = skin.Emphasis5;
   const auto& fillbrush = skin.Emphasis5;
-  const auto& brush = m_selected
-      ? skin.Base2.darker
-      : m_hover
-        ? bset.lighter
-        : bset.main;
+  const auto& brush = m_selected ? skin.Base2.darker
+                      : m_hover  ? bset.lighter
+                                 : bset.main;
   const auto& pen = brush.pen2_solid_round_round;
 
   painter->setRenderHint(QPainter::Antialiasing, true);
@@ -458,12 +486,12 @@ void NodeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
 
   painter->setRenderHint(QPainter::Antialiasing, false);
 
-
   // Exec
   if (m_playPercentage != 0.)
   {
     painter->setPen(style.IntervalPlayFill().main.pen1_solid_flat_miter);
-    painter->drawLine(QPointF{0., 0.}, QPointF{width() * m_playPercentage, 0.});
+    painter->drawLine(
+        QPointF{0., 0.}, QPointF{width() * m_playPercentage, 0.});
   }
 
   // Resizing handle
@@ -519,14 +547,17 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   {
     case Interaction::Resize:
     {
-      const auto sz = origNodeSize + QSizeF{p.x() - origp.x(), p.y() - origp.y()};
-      m_context.dispatcher.submit<Process::ResizeNode>(m_model, sz.expandedTo({10, 10}));
+      const auto sz
+          = origNodeSize + QSizeF{p.x() - origp.x(), p.y() - origp.y()};
+      m_context.dispatcher.submit<Process::ResizeNode>(
+          m_model, sz.expandedTo({10, 10}));
       updateSize();
       break;
     }
     case Interaction::Move:
     {
-      m_context.dispatcher.submit<Process::MoveNode>(m_model, m_model.position() + (p - origp));
+      m_context.dispatcher.submit<Process::MoveNode>(
+          m_model, m_model.position() + (p - origp));
       break;
     }
   }
@@ -568,7 +599,7 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
   {
     unsetCursor();
   }
-   event->accept();
+  event->accept();
 }
 
 void NodeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)

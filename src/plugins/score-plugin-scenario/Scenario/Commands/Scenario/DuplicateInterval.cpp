@@ -1,12 +1,12 @@
 #include "DuplicateInterval.hpp"
 
-#include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
-
 #include <score/document/ChangeId.hpp>
 #include <score/model/EntitySerialization.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 namespace Scenario::Command
 {
 
@@ -48,7 +48,8 @@ void DuplicateInterval::redo(const score::DocumentContext& ctx) const
   auto scenar = safe_cast<Scenario::ProcessModel*>(root.parent());
 
   auto obj = score::marshall<DataStream>(root);
-  auto interval = new Scenario::IntervalModel{DataStream::Deserializer{obj}, ctx, scenar};
+  auto interval = new Scenario::IntervalModel{
+      DataStream::Deserializer{obj}, ctx, scenar};
   score::IDocument::changeObjectId(*interval, m_createdId);
 
   interval->setStartState(m_cmdStart.createdState());

@@ -9,7 +9,8 @@
 #include <QVBoxLayout>
 namespace score
 {
-HSeparator::HSeparator(QWidget* parent) : QWidget{parent}
+HSeparator::HSeparator(QWidget* parent)
+    : QWidget{parent}
 {
   this->setLayout(new score::MarginLess<QVBoxLayout>);
   auto f = new QFrame;
@@ -24,7 +25,8 @@ HSeparator::HSeparator(QWidget* parent) : QWidget{parent}
 
 HSeparator::~HSeparator() = default;
 
-VSeparator::VSeparator(QWidget* parent) : QWidget{parent}
+VSeparator::VSeparator(QWidget* parent)
+    : QWidget{parent}
 {
   this->setLayout(new score::MarginLess<QHBoxLayout>);
   auto f = new QFrame;

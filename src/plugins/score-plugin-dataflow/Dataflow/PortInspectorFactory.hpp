@@ -3,6 +3,7 @@
 #include <Inspector/InspectorLayout.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/PortListWidget.hpp>
+
 #include <score/document/DocumentContext.hpp>
 
 namespace Dataflow
@@ -11,7 +12,10 @@ namespace Dataflow
 class PortTooltip final : public QWidget
 {
 public:
-  PortTooltip(const score::DocumentContext& ctx, const Process::Inlet& port, QWidget* parent)
+  PortTooltip(
+      const score::DocumentContext& ctx,
+      const Process::Inlet& port,
+      QWidget* parent)
       : QWidget{parent}
   {
     auto lay = new Inspector::Layout{this};
@@ -28,7 +32,10 @@ public:
       Process::PortWidgetSetup::setupAlone(port, ctx, *lay, this);
     }
   }
-  PortTooltip(const score::DocumentContext& ctx, const Process::Outlet& port, QWidget* parent)
+  PortTooltip(
+      const score::DocumentContext& ctx,
+      const Process::Outlet& port,
+      QWidget* parent)
       : QWidget{parent}
   {
     auto lay = new Inspector::Layout{this};
@@ -47,20 +54,25 @@ public:
   }
 };
 
-
 class SCORE_PLUGIN_DATAFLOW_EXPORT InletInspectorFactory final
     : public Inspector::InspectorWidgetFactory
 {
   SCORE_CONCRETE("1e7166bb-278a-49ce-b6a9-d662b8cd8dd2")
 public:
-  InletInspectorFactory() : InspectorWidgetFactory{} { }
+  InletInspectorFactory()
+      : InspectorWidgetFactory{}
+  {
+  }
 
   QWidget* make(
       const InspectedObjects& sourceElements,
       const score::DocumentContext& doc,
       QWidget* parent) const override
   {
-    return new PortTooltip{doc, safe_cast<const Process::Inlet&>(*sourceElements.first()), parent};
+    return new PortTooltip{
+        doc,
+        safe_cast<const Process::Inlet&>(*sourceElements.first()),
+        parent};
   }
 
   bool matches(const InspectedObjects& objects) const override
@@ -73,15 +85,21 @@ class SCORE_PLUGIN_DATAFLOW_EXPORT OutletInspectorFactory final
 {
   SCORE_CONCRETE("2479a7a1-8dbc-49d5-a146-3d29d5106cba")
 public:
-    public:
-  OutletInspectorFactory() : InspectorWidgetFactory{} { }
+public:
+  OutletInspectorFactory()
+      : InspectorWidgetFactory{}
+  {
+  }
 
   QWidget* make(
       const InspectedObjects& sourceElements,
       const score::DocumentContext& doc,
       QWidget* parent) const override
   {
-    return new PortTooltip{doc, safe_cast<const Process::Outlet&>(*sourceElements.first()), parent};
+    return new PortTooltip{
+        doc,
+        safe_cast<const Process::Outlet&>(*sourceElements.first()),
+        parent};
   }
 
   bool matches(const InspectedObjects& objects) const override

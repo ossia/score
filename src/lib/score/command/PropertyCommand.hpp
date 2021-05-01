@@ -68,7 +68,9 @@ public:
 
   template <typename U>
   PropertyCommand_T(const model_t& obj, U&& newval)
-      : m_path{obj}, m_old{(obj.*T::get)()}, m_new{std::forward<U>(newval)}
+      : m_path{obj}
+      , m_old{(obj.*T::get)()}
+      , m_new{std::forward<U>(newval)}
   {
   }
 
@@ -91,16 +93,23 @@ public:
   }
 
 private:
-  void serializeImpl(DataStreamInput& s) const final override { s << m_path << m_old << m_new; }
+  void serializeImpl(DataStreamInput& s) const final override
+  {
+    s << m_path << m_old << m_new;
+  }
 
-  void deserializeImpl(DataStreamOutput& s) final override { s >> m_path >> m_old >> m_new; }
+  void deserializeImpl(DataStreamOutput& s) final override
+  {
+    s >> m_path >> m_old >> m_new;
+  }
 
   Path<model_t> m_path;
   param_t m_old, m_new;
 };
 
 template <typename T>
-struct StaticPropertyCommand : score::PropertyCommand_T<T>::template command<void>::type
+struct StaticPropertyCommand
+    : score::PropertyCommand_T<T>::template command<void>::type
 {
   using score::PropertyCommand_T<T>::template command<void>::type::type;
 };

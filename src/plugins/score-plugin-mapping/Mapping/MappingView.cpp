@@ -14,10 +14,13 @@
 W_OBJECT_IMPL(Mapping::LayerView)
 namespace Mapping
 {
-LayerView::LayerView(QGraphicsItem* parent) : Process::LayerView{parent}
+LayerView::LayerView(QGraphicsItem* parent)
+    : Process::LayerView{parent}
 {
   setZValue(1);
-  this->setFlags(ItemClipsToShape | ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
+  this->setFlags(
+      ItemClipsToShape | ItemClipsChildrenToShape | ItemIsSelectable
+      | ItemIsFocusable);
 }
 
 void LayerView::paint_impl(QPainter* painter) const { }

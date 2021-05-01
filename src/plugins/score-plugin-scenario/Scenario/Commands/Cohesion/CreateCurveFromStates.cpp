@@ -8,9 +8,6 @@
 #include <Curve/Segment/Power/PowerSegment.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
-#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
-#include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <State/ValueSerialization.hpp>
 
 #include <score/application/ApplicationContext.hpp>
@@ -28,6 +25,9 @@
 #include <QByteArray>
 
 #include <Color/GradientModel.hpp>
+#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
+#include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 
 namespace Scenario
 {
@@ -45,7 +45,7 @@ CreateAutomationFromStates::CreateAutomationFromStates(
     , m_dom{dom}
     , m_tween(tween)
 {
-  if(m_dom.max - m_dom.min < 0.000001)
+  if (m_dom.max - m_dom.min < 0.000001)
     m_dom.max = m_dom.max + 1.;
 }
 
@@ -53,15 +53,16 @@ void CreateAutomationFromStates::redo(const score::DocumentContext& ctx) const
 {
   m_addProcessCmd.redo(ctx);
   auto& cstr = m_addProcessCmd.intervalPath().find(ctx);
-  auto& autom
-      = safe_cast<Automation::ProcessModel&>(cstr.processes.at(m_addProcessCmd.processId()));
+  auto& autom = safe_cast<Automation::ProcessModel&>(
+      cstr.processes.at(m_addProcessCmd.processId()));
   autom.setAddress(m_address);
   autom.curve().clear();
   autom.setTween(m_tween);
 
   // Add a segment
   auto segment = new Curve::DefaultCurveSegmentModel{
-      Id<Curve::SegmentModel>{score::id_generator::getFirstId()}, &autom.curve()};
+      Id<Curve::SegmentModel>{score::id_generator::getFirstId()},
+      &autom.curve()};
 
   double fact = 1. / (m_dom.max - m_dom.min);
   segment->setStart({0., (m_dom.start - m_dom.min) * fact});
@@ -110,7 +111,8 @@ void CreateGradient::redo(const score::DocumentContext& ctx) const
 {
   m_addProcessCmd.redo(ctx);
   auto& cstr = m_addProcessCmd.intervalPath().find(ctx);
-  auto& autom = safe_cast<Gradient::ProcessModel&>(cstr.processes.at(m_addProcessCmd.processId()));
+  auto& autom = safe_cast<Gradient::ProcessModel&>(
+      cstr.processes.at(m_addProcessCmd.processId()));
   autom.outlet->setAddress(m_address);
   autom.setTween(m_tween);
 
@@ -183,7 +185,12 @@ CreateProcessAndLayers::CreateProcessAndLayers(
     const std::vector<SlotPath>& slotList,
     Id<Process::ProcessModel> procId,
     UuidKey<Process::ProcessModel> key)
-    : m_addProcessCmd{std::move(interval), std::move(procId), std::move(key), QString{}, QPointF{}}
+    : m_addProcessCmd{
+        std::move(interval),
+        std::move(procId),
+        std::move(key),
+        QString{},
+        QPointF{}}
 {
   m_slotsCmd.reserve(slotList.size());
   for (const auto& elt : slotList)

@@ -1,16 +1,17 @@
 #pragma once
-#include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/DefaultGraphicsSliderImpl.hpp>
+#include <score/graphics/GraphicWidgets.hpp>
 #include <score/widgets/DoubleSpinBox.hpp>
 #include <score/widgets/SignalUtils.hpp>
+
 #include <QGraphicsProxyWidget>
 
 namespace score
 {
 template <typename T>
 QGraphicsSliderBase<T>::QGraphicsSliderBase(QGraphicsItem* parent)
-  : QGraphicsItem{parent}
-  , impl{new RightClickImpl}
+    : QGraphicsItem{parent}
+    , impl{new RightClickImpl}
 {
   this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
@@ -44,7 +45,7 @@ double QGraphicsSliderBase<T>::getHandleX() const
 template <typename T>
 QRectF QGraphicsSliderBase<T>::sliderRect() const
 {
-  return QRectF{0,0,m_rect.width(), 8};
+  return QRectF{0, 0, m_rect.width(), 8};
 }
 
 template <typename T>

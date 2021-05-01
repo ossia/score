@@ -35,11 +35,15 @@ private:                                                              \
       m_##Control->setText(val);       \
   }
 
-namespace score { class FormWidget; }
+namespace score
+{
+class FormWidget;
+}
 class QCheckBox;
 namespace Library::Settings
 {
-class SCORE_PLUGIN_LIBRARY_EXPORT Model final : public score::SettingsDelegateModel
+class SCORE_PLUGIN_LIBRARY_EXPORT Model final
+    : public score::SettingsDelegateModel
 {
   W_OBJECT(Model)
   QString m_Path;

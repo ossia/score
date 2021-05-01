@@ -11,8 +11,8 @@ struct indirect_iterator
   using self_type = indirect_iterator;
   using iterator = self_type;
   using const_iterator = self_type;
-  using value_type
-      = std::remove_reference_t<decltype(*std::declval<typename base_iterator_t::value_type>())>;
+  using value_type = std::remove_reference_t<decltype(
+      *std::declval<typename base_iterator_t::value_type>())>;
   using reference = value_type&;
   using pointer = value_type*;
   using iterator_category = std::forward_iterator_tag;
@@ -51,7 +51,8 @@ struct indirect_ptr_iterator
   using self_type = indirect_ptr_iterator;
   using iterator = self_type;
   using const_iterator = self_type;
-  using value_type = std::remove_reference_t<decltype(*std::declval<base_iterator_t>())>;
+  using value_type
+      = std::remove_reference_t<decltype(*std::declval<base_iterator_t>())>;
   using reference = value_type&;
   using pointer = value_type*;
   using iterator_category = std::forward_iterator_tag;
@@ -169,7 +170,8 @@ class IndirectArray
 public:
   using value_type = T;
   template <typename... Args>
-  IndirectArray(Args&&... args) : array{{std::forward<Args>(args)...}}
+  IndirectArray(Args&&... args)
+      : array{{std::forward<Args>(args)...}}
   {
   }
 

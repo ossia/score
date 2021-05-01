@@ -23,7 +23,8 @@ InspectorWidget::InspectorWidget(
     const ProcessModel& automationModel,
     const score::DocumentContext& doc,
     QWidget* parent)
-    : InspectorWidgetDelegate_T{automationModel, parent}, m_dispatcher{doc.commandStack}
+    : InspectorWidgetDelegate_T{automationModel, parent}
+    , m_dispatcher{doc.commandStack}
 {
   using namespace Device;
   setObjectName("InterpolationInspectorWidget");
@@ -52,9 +53,11 @@ InspectorWidget::InspectorWidget(
       m_lineEdit,
       &AddressAccessorEditWidget::setAddress);
 
-  connect(m_lineEdit, &AddressAccessorEditWidget::addressChanged, this, [this](const auto& addr) {
-    this->on_addressChange(addr.address);
-  });
+  connect(
+      m_lineEdit,
+      &AddressAccessorEditWidget::addressChanged,
+      this,
+      [this](const auto& addr) { this->on_addressChange(addr.address); });
 
   vlay->addRow(tr("Address"), m_lineEdit);
 
@@ -63,7 +66,8 @@ InspectorWidget::InspectorWidget(
   vlay->addRow(m_tween);
   m_tween->setChecked(process().tween());
   con(process(), &ProcessModel::tweenChanged, m_tween, &QCheckBox::setChecked);
-  connect(m_tween, &QCheckBox::toggled, this, &InspectorWidget::on_tweenChanged);
+  connect(
+      m_tween, &QCheckBox::toggled, this, &InspectorWidget::on_tweenChanged);
 
   this->setLayout(vlay);
 }
@@ -117,7 +121,10 @@ void StateInspectorWidget::on_stateChanged()
   m_label->setText(txt);
 }
 
-StateInspectorFactory::StateInspectorFactory() : InspectorWidgetFactory{} { }
+StateInspectorFactory::StateInspectorFactory()
+    : InspectorWidgetFactory{}
+{
+}
 
 QWidget* StateInspectorFactory::make(
     const InspectedObjects& sourceElements,

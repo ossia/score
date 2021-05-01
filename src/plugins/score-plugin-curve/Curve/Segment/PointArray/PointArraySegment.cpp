@@ -73,10 +73,10 @@ void PointArraySegment::updateData(int numInterp) const
     m_data.reserve(m_points.size());
 
     double length = max_x - min_x;
-    if(std::abs(length) < 1e-12)
+    if (std::abs(length) < 1e-12)
       length = 1e-12;
     double amplitude = max_y - min_y;
-    if(std::abs(amplitude) < 1e-12)
+    if (std::abs(amplitude) < 1e-12)
       amplitude = 1e-12;
 
     // Scale all the points between 0 / 1 in <->
@@ -85,7 +85,8 @@ void PointArraySegment::updateData(int numInterp) const
     for (const auto& elt : m_points)
     {
       m_data.push_back(
-          {(m_end.x() - m_start.x()) * (elt.first - min_x) / length + m_start.x(),
+          {(m_end.x() - m_start.x()) * (elt.first - min_x) / length
+               + m_start.x(),
            (elt.second - min_y) / amplitude});
     }
   }

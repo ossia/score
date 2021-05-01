@@ -21,7 +21,8 @@ Device::AddressSettings AddressListSettingsWidget::getSettings() const
   return settings;
 }
 
-void AddressListSettingsWidget::setSettings(const Device::AddressSettings& settings)
+void AddressListSettingsWidget::setSettings(
+    const Device::AddressSettings& settings)
 {
   setCommonSettings(settings);
 }

@@ -31,16 +31,17 @@ QString WSProtocolFactory::category() const noexcept
 {
   return StandardCategories::web;
 }
-Device::DeviceEnumerator* WSProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerator*
+WSProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
   return new LibraryDeviceEnumerator{
-    "Ossia.WebSockets",
-    {"*.qml"},
-    WSProtocolFactory::static_concreteKey(),
-        [] (const QByteArray& arr) {
-      return QVariant::fromValue(WSSpecificSettings{{}, arr});
-    },
-    ctx};
+      "Ossia.WebSockets",
+      {"*.qml"},
+      WSProtocolFactory::static_concreteKey(),
+      [](const QByteArray& arr) {
+        return QVariant::fromValue(WSSpecificSettings{{}, arr});
+      },
+      ctx};
 }
 
 Device::DeviceInterface* WSProtocolFactory::makeDevice(
@@ -50,7 +51,8 @@ Device::DeviceInterface* WSProtocolFactory::makeDevice(
   return new WSDevice{settings};
 }
 
-const Device::DeviceSettings& WSProtocolFactory::defaultSettings() const noexcept
+const Device::DeviceSettings&
+WSProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
@@ -68,7 +70,8 @@ Device::ProtocolSettingsWidget* WSProtocolFactory::makeSettingsWidget()
   return new WSProtocolSettingsWidget;
 }
 
-QVariant WSProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
+QVariant WSProtocolFactory::makeProtocolSpecificSettings(
+    const VisitorVariant& visitor) const
 {
   return makeProtocolSpecificSettings_T<WSSpecificSettings>(visitor);
 }

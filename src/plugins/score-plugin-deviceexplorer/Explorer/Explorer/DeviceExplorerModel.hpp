@@ -1,10 +1,11 @@
 #pragma once
-#include <score/document/DocumentContext.hpp>
 #include <Device/ItemModels/NodeBasedItemModel.hpp>
 #include <Device/Node/DeviceNode.hpp>
 #include <Explorer/Explorer/Column.hpp>
 #include <State/Message.hpp>
 #include <State/Value.hpp>
+
+#include <score/document/DocumentContext.hpp>
 
 #include <QAbstractItemModel>
 #include <QString>
@@ -91,22 +92,33 @@ public:
   int addDevice(const Device::Node& deviceNode);
   void updateDevice(const QString& name, const Device::DeviceSettings& dev);
 
-  void
-  addAddress(Device::Node* parentNode, const Device::AddressSettings& addressSettings, int row);
-  void updateAddress(Device::Node* node, const Device::AddressSettings& addressSettings);
+  void addAddress(
+      Device::Node* parentNode,
+      const Device::AddressSettings& addressSettings,
+      int row);
+  void updateAddress(
+      Device::Node* node,
+      const Device::AddressSettings& addressSettings);
 
   void addNode(Device::Node* parentNode, Device::Node&& child, int row);
 
-  void updateValue(Device::Node* n, const State::AddressAccessor& addr, const ossia::value& v);
+  void updateValue(
+      Device::Node* n,
+      const State::AddressAccessor& addr,
+      const ossia::value& v);
 
   // Checks if the settings can be added; if not,
   // trigger a dialog to edit them as wanted.
   // Returns true if the device is to be added, false if
   // it should not be added.
   bool checkDeviceInstantiatable(const Device::DeviceSettings& n) const;
-  bool checkDeviceEditable(const QString& originalName, const Device::DeviceSettings& n) const;
+  bool checkDeviceEditable(
+      const QString& originalName,
+      const Device::DeviceSettings& n) const;
 
-  bool checkAddressInstantiatable(Device::Node& parent, const Device::AddressSettings& addr);
+  bool checkAddressInstantiatable(
+      Device::Node& parent,
+      const Device::AddressSettings& addr);
 
   bool checkAddressEditable(
       Device::Node& parent,
@@ -124,15 +136,26 @@ public:
   int columnCount(const QModelIndex& parent) const override;
 
   QVariant data(const QModelIndex& index, int role) const override;
-  QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+  QVariant headerData(int section, Qt::Orientation orientation, int role)
+      const override;
 
   Qt::ItemFlags flags(const QModelIndex& index) const override;
 
-  bool setData(const QModelIndex& index, const QVariant& value, int role) override;
-  bool setHeaderData(int, Qt::Orientation, const QVariant&, int = Qt::EditRole) override;
+  bool
+  setData(const QModelIndex& index, const QVariant& value, int role) override;
+  bool setHeaderData(int, Qt::Orientation, const QVariant&, int = Qt::EditRole)
+      override;
 
-  void editData(const Device::NodePath& path, Column column, const ossia::value& value, int role);
-  void editData(Device::Node& n, Column column, const ossia::value& value, int role);
+  void editData(
+      const Device::NodePath& path,
+      Column column,
+      const ossia::value& value,
+      int role);
+  void editData(
+      Device::Node& n,
+      Column column,
+      const ossia::value& value,
+      int role);
 
   Qt::DropActions supportedDropActions() const override;
   Qt::DropActions supportedDragActions() const override;
@@ -151,12 +174,14 @@ public:
       int column,
       const QModelIndex& parent) override;
 
-  SelectedNodes uniqueSelectedNodes(
-      const QModelIndexList& indexes) const; // Note : filters so that only parents are given.
+  SelectedNodes uniqueSelectedNodes(const QModelIndexList& indexes)
+      const; // Note : filters so that only parents are given.
   void checkAndLoadDevice(Device::Node n);
   void checkAndLoadDevice(Device::DeviceSettings n);
+
 public:
-  void nodeChanged(Device::Node* n) E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, nodeChanged, n)
+  void nodeChanged(Device::Node* n)
+      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, nodeChanged, n)
 
 protected:
   void debug_printPath(const Device::NodePath& path);
@@ -178,7 +203,8 @@ private:
 SCORE_PLUGIN_DEVICEEXPLORER_EXPORT State::MessageList
 getSelectionSnapshot(DeviceExplorerModel& model);
 
-SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel& deviceExplorerFromObject(const QObject&);
+SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel&
+deviceExplorerFromObject(const QObject&);
 SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel*
 try_deviceExplorerFromObject(const QObject&);
 SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel*

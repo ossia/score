@@ -34,7 +34,8 @@ Device::AddressSettings AddressCharSettingsWidget::getDefaultSettings() const
   return {};
 }
 
-void AddressCharSettingsWidget::setSettings(const Device::AddressSettings& settings)
+void AddressCharSettingsWidget::setSettings(
+    const Device::AddressSettings& settings)
 {
   setCommonSettings(settings);
   m_valueEdit->setValue(settings.value);

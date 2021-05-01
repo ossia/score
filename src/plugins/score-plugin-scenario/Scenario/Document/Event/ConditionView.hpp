@@ -1,13 +1,12 @@
 #pragma once
-#include <Scenario/Document/Event/ExecutionStatus.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
-
 #include <score/model/ColorReference.hpp>
 
 #include <QGraphicsItem>
 #include <QPainterPath>
 #include <QRect>
 
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <score_plugin_scenario_export.h>
 
 #include <verdigris>
@@ -15,7 +14,9 @@
 namespace Scenario
 {
 class EventModel;
-class SCORE_PLUGIN_SCENARIO_EXPORT ConditionView final : public QObject, public QGraphicsItem
+class SCORE_PLUGIN_SCENARIO_EXPORT ConditionView final
+    : public QObject
+    , public QGraphicsItem
 {
   W_OBJECT(ConditionView)
   Q_INTERFACES(QGraphicsItem)
@@ -23,7 +24,10 @@ public:
   ConditionView(const EventModel& m, QGraphicsItem* parent);
 
   QRectF boundingRect() const override;
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
   void changeHeight(qreal newH);
 
   void setSelected(bool selected);

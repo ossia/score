@@ -17,10 +17,10 @@
 #include <QRegularExpression>
 #endif
 
+#include <Audio/Settings/Model.hpp>
+
 #include <QDebug>
 #include <QFileInfo>
-
-#include <Audio/Settings/Model.hpp>
 
 #define DR_WAV_NO_STDIO
 #include <dr_wav.h>
@@ -42,7 +42,8 @@ static int64_t readSampleRate(QFile& file)
     return -1;
   }
   drwav w{};
-  ok = drwav_init_memory(&w, data, file.size(), &ossia::drwav_handle::drwav_allocs);
+  ok = drwav_init_memory(
+      &w, data, file.size(), &ossia::drwav_handle::drwav_allocs);
   if (!ok)
   {
     return -1;
@@ -59,7 +60,8 @@ static int64_t readSampleRate(QFile& file)
 // expensive?
 static DecodingMethod needsDecoding(const QString& path, int rate)
 {
-  if (path.endsWith("wav", Qt::CaseInsensitive) || path.endsWith("w64", Qt::CaseInsensitive))
+  if (path.endsWith("wav", Qt::CaseInsensitive)
+      || path.endsWith("w64", Qt::CaseInsensitive))
   {
     QFile f(path);
     auto sr = readSampleRate(f);
@@ -90,7 +92,8 @@ void AudioFile::load(const QString& path, const QString& abspath)
   m_originalFile = path;
   m_file = abspath;
 
-  const auto& audioSettings = score::GUIAppContext().settings<Audio::Settings::Model>();
+  const auto& audioSettings
+      = score::GUIAppContext().settings<Audio::Settings::Model>();
   const auto rate = audioSettings.getRate();
 
   switch (needsDecoding(m_file, rate))
@@ -106,12 +109,16 @@ void AudioFile::load(const QString& path, const QString& abspath)
   }
 }
 
-void AudioFile::load(const QString& path, const QString& abspath, DecodingMethod d)
+void AudioFile::load(
+    const QString& path,
+    const QString& abspath,
+    DecodingMethod d)
 {
   m_originalFile = path;
   m_file = abspath;
 
-  const auto& audioSettings = score::GUIAppContext().settings<Audio::Settings::Model>();
+  const auto& audioSettings
+      = score::GUIAppContext().settings<Audio::Settings::Model>();
   const auto rate = audioSettings.getRate();
 
   switch (d)
@@ -132,8 +139,14 @@ int64_t AudioFile::decodedSamples() const
   struct
   {
     int64_t operator()() const noexcept { return 0; }
-    int64_t operator()(const libav_ptr& r) const noexcept { return r->decoder.decoded; }
-    int64_t operator()(const mmap_ptr& r) const noexcept { return r.wav.totalPCMFrameCount(); }
+    int64_t operator()(const libav_ptr& r) const noexcept
+    {
+      return r->decoder.decoded;
+    }
+    int64_t operator()(const mmap_ptr& r) const noexcept
+    {
+      return r.wav.totalPCMFrameCount();
+    }
   } _;
   return ossia::apply(_, m_impl);
 }
@@ -142,12 +155,14 @@ bool AudioFile::isSupported(const QFile& file)
 {
   return file.exists()
          && file.fileName().contains(
-      #if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
-        QRegularExpression(".(wav|aif|aiff|flac|ogg|mp3|m4a)", QRegularExpression::CaseInsensitiveOption)
-      #else
-        QRegExp(".(wav|aif|aiff|flac|ogg|mp3|m4a)", Qt::CaseInsensitive)
-      #endif
-        );
+#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
+             QRegularExpression(
+                 ".(wav|aif|aiff|flac|ogg|mp3|m4a)",
+                 QRegularExpression::CaseInsensitiveOption)
+#else
+             QRegExp(".(wav|aif|aiff|flac|ogg|mp3|m4a)", Qt::CaseInsensitive)
+#endif
+         );
 }
 
 int64_t AudioFile::samples() const
@@ -160,7 +175,10 @@ int64_t AudioFile::samples() const
       const auto& samples = r->handle->data;
       return samples.size() > 0 ? samples[0].size() : 0;
     }
-    int64_t operator()(const mmap_ptr& r) const noexcept { return r.wav.totalPCMFrameCount(); }
+    int64_t operator()(const mmap_ptr& r) const noexcept
+    {
+      return r.wav.totalPCMFrameCount();
+    }
   } _;
   return ossia::apply(_, m_impl);
 }
@@ -170,8 +188,14 @@ int64_t AudioFile::channels() const
   struct
   {
     int64_t operator()() const noexcept { return 0; }
-    int64_t operator()(const libav_ptr& r) const noexcept { return r->handle->data.size(); }
-    int64_t operator()(const mmap_ptr& r) const noexcept { return r.wav.channels(); }
+    int64_t operator()(const libav_ptr& r) const noexcept
+    {
+      return r->handle->data.size();
+    }
+    int64_t operator()(const mmap_ptr& r) const noexcept
+    {
+      return r.wav.channels();
+    }
   } _;
   return ossia::apply(_, m_impl);
 }
@@ -247,11 +271,13 @@ struct FrameComputer
 
       float* floats{};
       int num_elems = buffer_size * channels;
-      if(num_elems > 10000) {
+      if (num_elems > 10000)
+      {
         data_cache.resize(num_elems);
         floats = data_cache.data();
       }
-      else {
+      else
+      {
         floats = (float*)alloca(sizeof(float) * num_elems);
       }
 
@@ -329,24 +355,35 @@ struct SingleFrameComputer
   }
 };
 
-void AudioFile::ViewHandle::frame(int64_t start_frame, ossia::small_vector<float, 8>& out) noexcept
+void AudioFile::ViewHandle::frame(
+    int64_t start_frame,
+    ossia::small_vector<float, 8>& out) noexcept
 {
   SingleFrameComputer _{start_frame, out};
   ossia::apply(_, *this);
 }
 
-void AudioFile::ViewHandle::absmax_frame(int64_t start_frame, int64_t end_frame, ossia::small_vector<float, 8>& out) noexcept
+void AudioFile::ViewHandle::absmax_frame(
+    int64_t start_frame,
+    int64_t end_frame,
+    ossia::small_vector<float, 8>& out) noexcept
 {
   struct AbsMax
   {
     static float init(float v) noexcept { return v; }
-    float operator()(float f1, float f2) const noexcept { return abs_max(f1, f2); }
+    float operator()(float f1, float f2) const noexcept
+    {
+      return abs_max(f1, f2);
+    }
   };
   FrameComputer<AbsMax, float> _{start_frame, end_frame, out, {}};
   ossia::apply(_, *this);
 }
 
-void AudioFile::ViewHandle::minmax_frame(int64_t start_frame, int64_t end_frame, ossia::small_vector<std::pair<float, float>, 8>& out) noexcept
+void AudioFile::ViewHandle::minmax_frame(
+    int64_t start_frame,
+    int64_t end_frame,
+    ossia::small_vector<std::pair<float, float>, 8>& out) noexcept
 {
   struct MinMax
   {
@@ -357,7 +394,8 @@ void AudioFile::ViewHandle::minmax_frame(int64_t start_frame, int64_t end_frame,
     }
   };
 
-  FrameComputer<MinMax, std::pair<float, float>> _{start_frame, end_frame, out, {}};
+  FrameComputer<MinMax, std::pair<float, float>> _{
+      start_frame, end_frame, out, {}};
   ossia::apply(_, *this);
 }
 
@@ -390,7 +428,8 @@ void AudioFile::load_ffmpeg(int rate)
           &AudioDecoder::newData,
           this,
           [=] {
-            const auto& r = *eggs::variants::get<std::shared_ptr<LibavReader>>(m_impl);
+            const auto& r
+                = *eggs::variants::get<std::shared_ptr<LibavReader>>(m_impl);
             std::vector<gsl::span<const audio_sample>> samples;
             auto& handle = r.handle->data;
             const auto decoded = r.decoder.decoded;
@@ -398,7 +437,8 @@ void AudioFile::load_ffmpeg(int rate)
             for (auto& channel : handle)
             {
               samples.emplace_back(
-                  channel.data(), gsl::span<ossia::audio_sample>::size_type(decoded));
+                  channel.data(),
+                  gsl::span<ossia::audio_sample>::size_type(decoded));
             }
             m_rms->decode(samples);
 
@@ -411,7 +451,8 @@ void AudioFile::load_ffmpeg(int rate)
           &AudioDecoder::finishedDecoding,
           this,
           [=] {
-            const auto& r = *eggs::variants::get<std::shared_ptr<LibavReader>>(m_impl);
+            const auto& r
+                = *eggs::variants::get<std::shared_ptr<LibavReader>>(m_impl);
             std::vector<gsl::span<const audio_sample>> samples;
             auto& handle = r.handle->data;
             auto decoded = r.decoder.decoded;
@@ -419,7 +460,8 @@ void AudioFile::load_ffmpeg(int rate)
             for (auto& channel : handle)
             {
               samples.emplace_back(
-                  channel.data(), gsl::span<ossia::audio_sample>::size_type(decoded));
+                  channel.data(),
+                  gsl::span<ossia::audio_sample>::size_type(decoded));
             }
             m_rms->decodeLast(samples);
 
@@ -499,7 +541,8 @@ void AudioFile::load_drwav()
       m_file,
       r.wav.channels(),
       r.wav.sampleRate(),
-      TimeVal::fromMsecs(1000. * r.wav.totalPCMFrameCount() / r.wav.sampleRate()));
+      TimeVal::fromMsecs(
+          1000. * r.wav.totalPCMFrameCount() / r.wav.sampleRate()));
 
   if (!m_rms->exists())
   {
@@ -519,13 +562,17 @@ void AudioFile::load_drwav()
 
 AudioFileManager::AudioFileManager() noexcept
 {
-  auto& audioSettings = score::GUIAppContext().settings<Audio::Settings::Model>();
-  con(audioSettings, &Audio::Settings::Model::RateChanged, this, [this](auto newRate) {
-    for (auto& [k, v] : m_handles)
-    {
-      v->updateSampleRate(newRate);
-    }
-  });
+  auto& audioSettings
+      = score::GUIAppContext().settings<Audio::Settings::Model>();
+  con(audioSettings,
+      &Audio::Settings::Model::RateChanged,
+      this,
+      [this](auto newRate) {
+        for (auto& [k, v] : m_handles)
+        {
+          v->updateSampleRate(newRate);
+        }
+      });
 }
 
 AudioFileManager::~AudioFileManager() noexcept { }
@@ -557,7 +604,10 @@ AudioFile::ViewHandle::ViewHandle(const AudioFile::Handle& handle)
   {
     view_impl_t& self;
     void operator()() const noexcept { }
-    void operator()(const libav_ptr& r) const noexcept { self = LibavView{r->data}; }
+    void operator()(const libav_ptr& r) const noexcept
+    {
+      self = LibavView{r->data};
+    }
     void operator()(const mmap_ptr& r) const noexcept
     {
       if (r.wav)

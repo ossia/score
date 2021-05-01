@@ -4,6 +4,7 @@
 #include <core/document/Document.hpp>
 
 #include <QFileInfo>
+
 #include <string_view>
 
 namespace score
@@ -11,7 +12,9 @@ namespace score
 
 //! Will also look where the save file is located.
 //! TODO in the future also look in a "common" library folder.
-inline QString locateFilePath(const QString& filename, const score::DocumentContext& ctx) noexcept
+inline QString locateFilePath(
+    const QString& filename,
+    const score::DocumentContext& ctx) noexcept
 {
   const QFileInfo info{filename};
   QString path = filename;
@@ -31,7 +34,7 @@ inline QString locateFilePath(const QString& filename, const score::DocumentCont
 inline QByteArray mapAsByteArray(QFile& f) noexcept
 {
   const auto sz = f.size();
-  if(auto data = f.map(0, sz))
+  if (auto data = f.map(0, sz))
   {
     return QByteArray::fromRawData(reinterpret_cast<const char*>(data), sz);
   }
@@ -44,7 +47,7 @@ inline QByteArray mapAsByteArray(QFile& f) noexcept
 inline std::string_view mapAsStringView(QFile& f) noexcept
 {
   const auto sz = f.size();
-  if(auto data = f.map(0, sz))
+  if (auto data = f.map(0, sz))
   {
     return std::string_view(reinterpret_cast<const char*>(data), sz);
   }
@@ -57,7 +60,7 @@ inline std::string_view mapAsStringView(QFile& f) noexcept
 inline QString readFileAsQString(QFile& f) noexcept
 {
   const auto sz = f.size();
-  if(auto data = f.map(0, sz))
+  if (auto data = f.map(0, sz))
   {
     auto str = QString::fromUtf8(reinterpret_cast<const char*>(data), sz);
     f.unmap(data);

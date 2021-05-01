@@ -2,9 +2,9 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MidiNoteView.hpp"
 
+#include <Midi/MidiPresenter.hpp>
 #include <Midi/MidiStyle.hpp>
 #include <Midi/MidiView.hpp>
-#include <Midi/MidiPresenter.hpp>
 
 #include <QCursor>
 #include <QGraphicsSceneMouseEvent>
@@ -14,10 +14,10 @@ namespace Midi
 {
 
 NoteView::NoteView(const Note& n, Presenter& p, View* parent)
-  : QGraphicsItem{parent}
-  , note{n}
-  , m_presenter{p}
-  , m_action{None}
+    : QGraphicsItem{parent}
+    , note{n}
+    , m_presenter{p}
+    , m_action{None}
 {
   this->setFlag(QGraphicsItem::ItemIsSelectable, true);
   this->setFlag(QGraphicsItem::ItemIsMovable, true);
@@ -25,7 +25,10 @@ NoteView::NoteView(const Note& n, Presenter& p, View* parent)
   this->setAcceptHoverEvents(true);
 }
 
-void NoteView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void NoteView::paint(
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   static const MidiStyle s;
 
@@ -33,7 +36,8 @@ void NoteView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
 
   if (m_width <= 1.2)
   {
-    painter->setPen(this->isSelected() ? s.noteSelectedBasePen : s.noteBasePen);
+    painter->setPen(
+        this->isSelected() ? s.noteSelectedBasePen : s.noteBasePen);
     painter->drawLine(0, 0, 0, m_height - 1.5);
   }
   else
@@ -56,7 +60,9 @@ QPointF NoteView::closestPos(QPointF newPos) const noexcept
 
   newPos.setX(qMin(rect.right(), qMax(newPos.x(), rect.left())));
   // Snap to grid : we round y to the closest multiple of 127
-  auto bounded = (qBound(rect.top(), newPos.y() - note_height * 0.45, rect.bottom())) / height;
+  auto bounded
+      = (qBound(rect.top(), newPos.y() - note_height * 0.45, rect.bottom()))
+        / height;
   int note = qBound(min, int(max - bounded * count), max);
 
   newPos.setY(height - (note - min + 1) * note_height);
@@ -79,7 +85,9 @@ QRectF NoteView::computeRect() const noexcept
   return rect;
 }
 
-QVariant NoteView::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value)
+QVariant NoteView::itemChange(
+    QGraphicsItem::GraphicsItemChange change,
+    const QVariant& value)
 {
   switch (change)
   {
@@ -119,7 +127,7 @@ void NoteView::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
   }
   else
   {
-    if(qApp->keyboardModifiers() == Qt::ShiftModifier)
+    if (qApp->keyboardModifiers() == Qt::ShiftModifier)
     {
       auto& skin = score::Skin::instance();
       this->setCursor(skin.CursorSpin);
@@ -182,12 +190,13 @@ void NoteView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   if (canEdit())
   {
-    switch(m_action)
+    switch (m_action)
     {
       case Move:
         this->setPos(closestPos(
-            noteview_origpoint + event->scenePos() - event->buttonDownScenePos(Qt::LeftButton)));
-         m_presenter.on_noteChanged(*this);
+            noteview_origpoint + event->scenePos()
+            - event->buttonDownScenePos(Qt::LeftButton)));
+        m_presenter.on_noteChanged(*this);
         break;
       case Scale:
         this->setWidth(std::max(2., event->pos().x()));
@@ -196,7 +205,10 @@ void NoteView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
         m_presenter.on_duplicate();
         break;
       case ChangeVelocity:
-        m_presenter.on_requestVelocityChange(note, event->buttonDownScenePos(Qt::LeftButton).y() - event->scenePos().y());
+        m_presenter.on_requestVelocityChange(
+            note,
+            event->buttonDownScenePos(Qt::LeftButton).y()
+                - event->scenePos().y());
         break;
       case None:
         break;
@@ -209,23 +221,28 @@ void NoteView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   if (canEdit())
   {
-    switch(m_action)
+    switch (m_action)
     {
       case Move:
         this->setPos(closestPos(
-            noteview_origpoint + event->scenePos() - event->buttonDownScenePos(Qt::LeftButton)));
-         m_presenter.on_noteChanged(*this);
-         m_presenter.on_noteChangeFinished(*this);
+            noteview_origpoint + event->scenePos()
+            - event->buttonDownScenePos(Qt::LeftButton)));
+        m_presenter.on_noteChanged(*this);
+        m_presenter.on_noteChangeFinished(*this);
         break;
       case Scale:
         this->setWidth(std::max(2., event->pos().x()));
-        m_presenter.on_noteScaled(note, m_width / ((View*)parentItem())->defaultWidth());
+        m_presenter.on_noteScaled(
+            note, m_width / ((View*)parentItem())->defaultWidth());
         break;
       case Duplicate:
         m_presenter.on_duplicate();
         break;
       case ChangeVelocity:
-        m_presenter.on_requestVelocityChange(note, event->buttonDownScenePos(Qt::LeftButton).y() - event->scenePos().y());
+        m_presenter.on_requestVelocityChange(
+            note,
+            event->buttonDownScenePos(Qt::LeftButton).y()
+                - event->scenePos().y());
         m_presenter.on_velocityChangeFinished();
         break;
       case None:

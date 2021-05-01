@@ -2,6 +2,13 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "StandardRemovalPolicy.hpp"
 
+#include <score/model/EntityMap.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/tools/MapCopy.hpp>
+#include <score/tools/std/Optional.hpp>
+
+#include <QDebug>
+
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
@@ -11,17 +18,11 @@
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
-#include <score/model/EntityMap.hpp>
-#include <score/model/Identifier.hpp>
-#include <score/tools/MapCopy.hpp>
-#include <score/tools/std/Optional.hpp>
-
-#include <QDebug>
-
 namespace Scenario
 {
-static void
-removeEventFromTimeSync(Scenario::ProcessModel& scenario, const Id<EventModel>& eventId)
+static void removeEventFromTimeSync(
+    Scenario::ProcessModel& scenario,
+    const Id<EventModel>& eventId)
 {
   // We have to make a copy else the iterator explodes.
   auto timesyncs = shallow_copy(scenario.timeSyncs.map());
@@ -62,7 +63,9 @@ void StandardRemovalPolicy::removeInterval(
   }
 }
 
-void StandardRemovalPolicy::removeState(Scenario::ProcessModel& scenario, StateModel& state)
+void StandardRemovalPolicy::removeState(
+    Scenario::ProcessModel& scenario,
+    StateModel& state)
 {
   if (!state.previousInterval() && !state.nextInterval())
   {
@@ -90,7 +93,9 @@ void StandardRemovalPolicy::removeEventStatesAndIntervals(
   removeEventFromTimeSync(scenario, eventId);
 }
 
-void StandardRemovalPolicy::removeComment(Scenario::ProcessModel& scenario, CommentBlockModel& cmt)
+void StandardRemovalPolicy::removeComment(
+    Scenario::ProcessModel& scenario,
+    CommentBlockModel& cmt)
 {
   scenario.comments.remove(&cmt);
 }

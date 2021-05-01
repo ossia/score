@@ -10,7 +10,9 @@ class ProcessModel;
 class CommentBlockModel;
 namespace StandardRemovalPolicy
 {
-void removeInterval(Scenario::ProcessModel& scenario, const Id<IntervalModel>& intervalId);
+void removeInterval(
+    Scenario::ProcessModel& scenario,
+    const Id<IntervalModel>& intervalId);
 
 void removeState(Scenario::ProcessModel& scenario, StateModel& state);
 

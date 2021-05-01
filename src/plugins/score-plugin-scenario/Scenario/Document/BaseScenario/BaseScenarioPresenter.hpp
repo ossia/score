@@ -1,18 +1,21 @@
 #pragma once
 
+#include <score/tools/std/IndirectContainer.hpp>
+
 #include <Scenario/Document/Event/EventPresenter.hpp>
 #include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
 
-#include <score/tools/std/IndirectContainer.hpp>
-
 template <typename Model_T, typename IntervalPresenter_T>
 class BaseScenarioPresenter
 {
 public:
-  BaseScenarioPresenter(const Model_T& model) : m_model{model} { }
+  BaseScenarioPresenter(const Model_T& model)
+      : m_model{model}
+  {
+  }
 
   virtual ~BaseScenarioPresenter() = default;
 
@@ -36,7 +39,8 @@ public:
     return {m_startNodePresenter, m_endNodePresenter};
   }
 
-  const Scenario::EventPresenter& event(const Id<Scenario::EventModel>& id) const
+  const Scenario::EventPresenter&
+  event(const Id<Scenario::EventModel>& id) const
   {
     if (id == m_model.startEvent().id())
       return *m_startEventPresenter;
@@ -44,7 +48,8 @@ public:
       return *m_endEventPresenter;
     SCORE_ABORT;
   }
-  const Scenario::TimeSyncPresenter& timeSync(const Id<Scenario::TimeSyncModel>& id) const
+  const Scenario::TimeSyncPresenter&
+  timeSync(const Id<Scenario::TimeSyncModel>& id) const
   {
     if (id == m_model.startTimeSync().id())
       return *m_startNodePresenter;
@@ -52,13 +57,15 @@ public:
       return *m_endNodePresenter;
     SCORE_ABORT;
   }
-  const IntervalPresenter_T& interval(const Id<Scenario::IntervalModel>& id) const
+  const IntervalPresenter_T&
+  interval(const Id<Scenario::IntervalModel>& id) const
   {
     if (id == m_model.interval().id())
       return *m_intervalPresenter;
     SCORE_ABORT;
   }
-  const Scenario::StatePresenter& state(const Id<Scenario::StateModel>& id) const
+  const Scenario::StatePresenter&
+  state(const Id<Scenario::StateModel>& id) const
   {
     if (id == m_model.startState().id())
       return *m_startStatePresenter;
@@ -67,9 +74,15 @@ public:
     SCORE_ABORT;
   }
 
-  const Scenario::TimeSyncModel& startTimeSync() const { return m_startNodePresenter->model(); }
+  const Scenario::TimeSyncModel& startTimeSync() const
+  {
+    return m_startNodePresenter->model();
+  }
 
-  IntervalPresenter_T* intervalPresenter() const { return m_intervalPresenter; }
+  IntervalPresenter_T* intervalPresenter() const
+  {
+    return m_intervalPresenter;
+  }
 
 protected:
   const Model_T& m_model;

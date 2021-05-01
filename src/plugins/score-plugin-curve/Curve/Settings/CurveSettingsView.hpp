@@ -6,7 +6,10 @@
 #include <verdigris>
 class QCheckBox;
 class QDoubleSpinBox;
-namespace score{ class FormWidget;}
+namespace score
+{
+class FormWidget;
+}
 
 namespace Curve
 {
@@ -27,8 +30,10 @@ public:
 public:
   void simplificationRatioChanged(double arg_1)
       E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, simplificationRatioChanged, arg_1);
-  void simplifyChanged(bool arg_1) E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, simplifyChanged, arg_1);
-  void modeChanged(Mode arg_1) E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, modeChanged, arg_1);
+  void simplifyChanged(bool arg_1)
+      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, simplifyChanged, arg_1);
+  void modeChanged(Mode arg_1)
+      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, modeChanged, arg_1);
   void playWhileRecordingChanged(bool arg_1)
       E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, playWhileRecordingChanged, arg_1);
 

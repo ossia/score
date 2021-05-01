@@ -14,13 +14,17 @@
 
 namespace Curve
 {
-SetSegmentParameters::SetSegmentParameters(const Model& curve, SegmentParameterMap&& parameters)
-    : m_model{curve}, m_new{std::move(parameters)}
+SetSegmentParameters::SetSegmentParameters(
+    const Model& curve,
+    SegmentParameterMap&& parameters)
+    : m_model{curve}
+    , m_new{std::move(parameters)}
 {
   for (auto it = m_new.cbegin(); it != m_new.cend(); ++it)
   {
     const auto& seg = curve.segments().at(it->first);
-    m_old.insert({it->first, {seg.verticalParameter(), seg.horizontalParameter()}});
+    m_old.insert(
+        {it->first, {seg.verticalParameter(), seg.horizontalParameter()}});
   }
 }
 

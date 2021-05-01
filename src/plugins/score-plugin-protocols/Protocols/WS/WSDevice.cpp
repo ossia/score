@@ -15,7 +15,8 @@
 
 namespace Protocols
 {
-WSDevice::WSDevice(const Device::DeviceSettings& settings) : OwningDeviceInterface{settings}
+WSDevice::WSDevice(const Device::DeviceSettings& settings)
+    : OwningDeviceInterface{settings}
 {
   m_capas.canRefreshTree = true;
   m_capas.canAddNode = false;

@@ -1,12 +1,13 @@
 #include <Library/FileSystemModel.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <Scenario/Library/SlotLibraryHandler.hpp>
 #include <State/MessageListSerialization.hpp>
 
 #include <score/model/tree/TreeNodeSerialization.hpp>
 
 #include <QMimeData>
+
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Library/SlotLibraryHandler.hpp>
 namespace Scenario
 {
 
@@ -70,12 +71,13 @@ bool SlotLibraryHandler::onDrop(
   auto file = model.fileInfo(parent);
 
   auto json = readJson(mime.data(score::mime::layerdata()));
-  if(!json.HasMember("Path") || !json.HasMember("Duration"))
+  if (!json.HasMember("Path") || !json.HasMember("Duration"))
     return false;
 
   QString path = file.isDir() ? file.absoluteFilePath() : file.absolutePath();
 
-  auto basename = JsonValue{json["Process"]["Metadata"]["ScriptingName"]}.toString();
+  auto basename
+      = JsonValue{json["Process"]["Metadata"]["ScriptingName"]}.toString();
   if (basename.isEmpty())
     basename = "Process";
 
@@ -110,7 +112,8 @@ bool ScenarioLibraryHandler::onDrop(
   if (mime.hasFormat(score::mime::scenariodata()))
   {
     auto file = model.fileInfo(parent);
-    QString path = file.isDir() ? file.absoluteFilePath() : file.absolutePath();
+    QString path
+        = file.isDir() ? file.absoluteFilePath() : file.absolutePath();
 
     auto obj = readJson(mime.data(score::mime::scenariodata()));
     const auto& states = obj["States"].GetArray();
@@ -145,7 +148,8 @@ bool ScenarioLibraryHandler::onDrop(
   else if (mime.hasFormat(score::mime::messagelist()))
   {
     auto file = model.fileInfo(parent);
-    QString path = file.isDir() ? file.absoluteFilePath() : file.absolutePath();
+    QString path
+        = file.isDir() ? file.absoluteFilePath() : file.absolutePath();
 
     QString filename = addUniqueSuffix(path + "/Messages.cues");
     if (QFile f(filename); f.open(QIODevice::WriteOnly))

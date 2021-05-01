@@ -1,5 +1,6 @@
 #pragma once
 #include <cinttypes>
+
 #include <type_traits>
 
 // Check
@@ -20,16 +21,31 @@ struct is_template<T<Args...>> : std::true_type
 {
 };
 
-template <template <class, auto, auto...> class T, class Arg1, auto Arg2, auto... Arg3>
+template <
+    template <class, auto, auto...>
+    class T,
+    class Arg1,
+    auto Arg2,
+    auto... Arg3>
 struct is_template<T<Arg1, Arg2, Arg3...>> : std::true_type
 {
 };
-template <template <auto, class, class...> class T, auto Arg1, class Arg2, class... Arg3>
+template <
+    template <auto, class, class...>
+    class T,
+    auto Arg1,
+    class Arg2,
+    class... Arg3>
 struct is_template<T<Arg1, Arg2, Arg3...>> : std::true_type
 {
 };
 
-template <template <class, auto, class> class T, class Arg1, auto Arg2, class Arg3>
+template <
+    template <class, auto, class>
+    class T,
+    class Arg1,
+    auto Arg2,
+    class Arg3>
 struct is_template<T<Arg1, Arg2, Arg3>> : std::true_type
 {
 };
@@ -56,7 +72,12 @@ template <
 struct is_template<T<Arg1, Arg2, Arg3, Arg4, Arg5>> : std::true_type
 {
 };
-template <template <auto, class, auto> class T, auto Arg1, class Arg2, auto Arg3>
+template <
+    template <auto, class, auto>
+    class T,
+    auto Arg1,
+    class Arg2,
+    auto Arg3>
 struct is_template<T<Arg1, Arg2, Arg3>> : std::true_type
 {
 };
@@ -92,8 +113,8 @@ struct is_template<T<A1, A2, A3, A4, A5, A6, A7, A8>> : std::true_type
 
 // TODO check where this causes a conflict with gcc
 #if defined(__clang__) || defined(_MSC_VER)
-template <template<class, std::size_t> class T, class X, std::size_t u>
-struct is_template<T<X,u>> : std::true_type
+template <template <class, std::size_t> class T, class X, std::size_t u>
+struct is_template<T<X, u>> : std::true_type
 {
 };
 #endif

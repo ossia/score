@@ -1,4 +1,6 @@
 #pragma once
+#include <Control/DefaultEffectItem.hpp>
+#include <Effect/EffectFactory.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
@@ -10,11 +12,9 @@
 
 #include <QDialog>
 
-#include <Control/DefaultEffectItem.hpp>
-#include <Effect/EffectFactory.hpp>
-
-#include <verdigris>
 #include <iostream> // needed by poly-llvm-dsp.h...
+#include <verdigris>
+
 #include <faust/dsp/poly-llvm-dsp.h>
 namespace Faust
 {
@@ -63,7 +63,8 @@ public:
   ~FaustEffectModel();
 
   template <typename Impl>
-  FaustEffectModel(Impl& vis, QObject* parent) : Process::ProcessModel{vis, parent}
+  FaustEffectModel(Impl& vis, QObject* parent)
+      : Process::ProcessModel{vis, parent}
   {
     vis.writeTo(*this);
     init();
@@ -89,14 +90,17 @@ public:
   void changed() W_SIGNAL(changed);
   void textChanged(const QString& str) W_SIGNAL(textChanged, str);
 
-  void errorMessage(int line, const QString& e) W_SIGNAL(errorMessage, line, e);
+  void errorMessage(int line, const QString& e)
+      W_SIGNAL(errorMessage, line, e);
 
   PROPERTY(QString, text READ text WRITE setText NOTIFY textChanged)
 private:
   void init();
   void reload();
   void reloadFx(llvm_dsp_factory* fac, llvm_dsp* obj);
-  void reloadMidi(ossia::nodes::custom_dsp_poly_factory* fac, ossia::nodes::custom_dsp_poly_effect* obj);
+  void reloadMidi(
+      ossia::nodes::custom_dsp_poly_factory* fac,
+      ossia::nodes::custom_dsp_poly_effect* obj);
   QString m_text;
   QString m_path;
   QString m_declareName;
@@ -106,7 +110,9 @@ private:
 namespace Process
 {
 template <>
-QString EffectProcessFactory_T<Faust::FaustEffectModel>::customConstructionData() const;
+QString
+EffectProcessFactory_T<Faust::FaustEffectModel>::customConstructionData()
+    const;
 
 template <>
 Process::Descriptor
@@ -124,13 +130,17 @@ using FaustEffectFactory = Process::EffectProcessFactory_T<FaustEffectModel>;
 using LayerFactory = Process::EffectLayerFactory_T<
     FaustEffectModel,
     Process::DefaultEffectItem,
-    Process::ProcessScriptEditDialog<FaustEffectModel, FaustEffectModel::p_text, LanguageSpec>>;
+    Process::ProcessScriptEditDialog<
+        FaustEffectModel,
+        FaustEffectModel::p_text,
+        LanguageSpec>>;
 }
 
 namespace Execution
 {
 class FaustEffectComponent final
-    : public Execution::ProcessComponent_T<Faust::FaustEffectModel, ossia::node_process>
+    : public Execution::
+          ProcessComponent_T<Faust::FaustEffectModel, ossia::node_process>
 {
   W_OBJECT(FaustEffectComponent)
   COMPONENT_METADATA("eb4f83af-5ddc-4f2f-9426-6f8a599a1e96")
@@ -149,12 +159,13 @@ private:
   void reloadSynth(Execution::Transaction&);
   void reloadFx(Execution::Transaction&);
 
-  template<typename Node_T>
+  template <typename Node_T>
   void setupExecutionControls(const Node_T&, int firstControlIndex);
-  template<typename Node_T>
+  template <typename Node_T>
   void setupExecutionControlOutlets(const Node_T&, int firstControlIndex);
 
   std::vector<QMetaObject::Connection> m_controlConnections;
 };
-using FaustEffectComponentFactory = Execution::ProcessComponentFactory_T<FaustEffectComponent>;
+using FaustEffectComponentFactory
+    = Execution::ProcessComponentFactory_T<FaustEffectComponent>;
 }

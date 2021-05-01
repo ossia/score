@@ -11,27 +11,6 @@
 #include <Process/LayerPresenter.hpp>
 #include <Process/Process.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Scenario/Application/Drops/AutomationDropHandler.hpp>
-#include <Scenario/Application/Menus/ObjectMenuActions.hpp>
-#include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
-#include <Scenario/Application/ScenarioActions.hpp>
-#include <Scenario/Application/ScenarioEditionSettings.hpp>
-#include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
-#include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Interval/LayerData.hpp>
-#include <Scenario/Document/Interval/Slot.hpp>
-#include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Palette/Tool.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/ScenarioPresenter.hpp>
 
 #include <score/actions/Menu.hpp>
 #include <score/document/DocumentInterface.hpp>
@@ -56,6 +35,27 @@
 #include <QMenu>
 #include <qnamespace.h>
 
+#include <Scenario/Application/Drops/AutomationDropHandler.hpp>
+#include <Scenario/Application/Menus/ObjectMenuActions.hpp>
+#include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
+#include <Scenario/Application/ScenarioActions.hpp>
+#include <Scenario/Application/ScenarioEditionSettings.hpp>
+#include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/LayerData.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
+#include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Palette/Tool.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Process/ScenarioPresenter.hpp>
 #include <string.h>
 #include <wobjectimpl.h>
 
@@ -67,33 +67,44 @@ ScenarioExecution::ScenarioExecution() { }
 ScenarioExecution::~ScenarioExecution() { }
 void test_parse_expr_full();
 
-ScenarioApplicationPlugin::ScenarioApplicationPlugin(const score::GUIApplicationContext& ctx)
+ScenarioApplicationPlugin::ScenarioApplicationPlugin(
+    const score::GUIApplicationContext& ctx)
     : GUIApplicationPlugin{ctx}
 {
   auto app = QCoreApplication::instance();
   if (auto guiapp = qobject_cast<QGuiApplication*>(app))
   {
-    connect(guiapp, &QGuiApplication::applicationStateChanged, this, [&](Qt::ApplicationState st) {
-      editionSettings().setDefault();
-    });
+    connect(
+        guiapp,
+        &QGuiApplication::applicationStateChanged,
+        this,
+        [&](Qt::ApplicationState st) { editionSettings().setDefault(); });
   }
 
   // Register conditions for the actions enablement
   using namespace score;
   using namespace Process;
-  ctx.actions.onFocusChange(std::make_shared<EnableWhenFocusedProcessIs<ProcessModel>>());
-  ctx.actions.onFocusChange(std::make_shared<EnableWhenFocusedProcessIs<ScenarioInterface>>());
-  ctx.actions.onDocumentChange(std::make_shared<EnableWhenDocumentIs<ScenarioDocumentModel>>());
+  ctx.actions.onFocusChange(
+      std::make_shared<EnableWhenFocusedProcessIs<ProcessModel>>());
+  ctx.actions.onFocusChange(
+      std::make_shared<EnableWhenFocusedProcessIs<ScenarioInterface>>());
+  ctx.actions.onDocumentChange(
+      std::make_shared<EnableWhenDocumentIs<ScenarioDocumentModel>>());
 
-  ctx.actions.onSelectionChange(std::make_shared<EnableWhenSelectionContains<IntervalModel>>());
-  ctx.actions.onSelectionChange(std::make_shared<EnableWhenSelectionContains<EventModel>>());
-  ctx.actions.onSelectionChange(std::make_shared<EnableWhenSelectionContains<StateModel>>());
-  ctx.actions.onSelectionChange(std::make_shared<EnableWhenSelectionContains<TimeSyncModel>>());
+  ctx.actions.onSelectionChange(
+      std::make_shared<EnableWhenSelectionContains<IntervalModel>>());
+  ctx.actions.onSelectionChange(
+      std::make_shared<EnableWhenSelectionContains<EventModel>>());
+  ctx.actions.onSelectionChange(
+      std::make_shared<EnableWhenSelectionContains<StateModel>>());
+  ctx.actions.onSelectionChange(
+      std::make_shared<EnableWhenSelectionContains<TimeSyncModel>>());
 
   auto on_sm = std::make_shared<EnableWhenScenarioModelObject>();
   ctx.actions.onSelectionChange(on_sm);
   ctx.actions.onFocusChange(on_sm);
-  auto on_instant_si = std::make_shared<EnableWhenScenarioInterfaceInstantObject>();
+  auto on_instant_si
+      = std::make_shared<EnableWhenScenarioInterfaceInstantObject>();
   ctx.actions.onSelectionChange(on_instant_si);
   ctx.actions.onFocusChange(on_instant_si);
   auto on_si = std::make_shared<EnableWhenScenarioInterfaceObject>();
@@ -128,13 +139,13 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(const score::GUIApplication
         {
           for (const auto& port : plug->context().dataflow.ports())
           {
-            if(port.second)
+            if (port.second)
               port.second->resetPortVisible();
           }
 
           for (auto& cable : plug->context().dataflow.cables())
           {
-            if(cable.second)
+            if (cable.second)
               cable.second->check();
           }
         }
@@ -207,8 +218,8 @@ void ScenarioApplicationPlugin::initialize()
   // Needs a delayed init because it scans all the registered factories
   {
     auto& droppers = context.interfaces<Scenario::DropHandlerList>();
-    auto dropper
-        = (DropProcessInScenario*)droppers.get(DropProcessInScenario::static_concreteKey());
+    auto dropper = (DropProcessInScenario*)droppers.get(
+        DropProcessInScenario::static_concreteKey());
     SCORE_ASSERT(dropper);
     dropper->init();
   }
@@ -218,7 +229,8 @@ void ScenarioApplicationPlugin::initialize()
   {
     auto& pw = const_cast<Inspector::InspectorWidgetList&>(
         context.interfaces<Inspector::InspectorWidgetList>());
-    pw.insert(std::make_unique<Process::DefaultInspectorWidgetDelegateFactory>());
+    pw.insert(
+        std::make_unique<Process::DefaultInspectorWidgetDelegateFactory>());
   }
 }
 
@@ -249,7 +261,8 @@ auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements
 
 ScenarioApplicationPlugin::~ScenarioApplicationPlugin() = default;
 
-void ScenarioApplicationPlugin::on_presenterDefocused(Process::LayerPresenter* pres)
+void ScenarioApplicationPlugin::on_presenterDefocused(
+    Process::LayerPresenter* pres)
 {
   // We set the currently focused view model to a "select" state
   // to prevent problems.
@@ -258,7 +271,8 @@ void ScenarioApplicationPlugin::on_presenterDefocused(Process::LayerPresenter* p
   disconnect(m_contextMenuConnection);
 }
 
-void ScenarioApplicationPlugin::on_presenterFocused(Process::LayerPresenter* pres)
+void ScenarioApplicationPlugin::on_presenterFocused(
+    Process::LayerPresenter* pres)
 {
   // Generic stuff
   disconnect(m_contextMenuConnection);
@@ -288,11 +302,17 @@ void ScenarioApplicationPlugin::on_presenterFocused(Process::LayerPresenter* pre
   auto s_pres = dynamic_cast<ScenarioPresenter*>(pres);
   if (s_pres)
   {
-    m_keyPressConnection = connect(s_pres, &ScenarioPresenter::keyPressed,
-                                   this, &ScenarioApplicationPlugin::keyPressed);
+    m_keyPressConnection = connect(
+        s_pres,
+        &ScenarioPresenter::keyPressed,
+        this,
+        &ScenarioApplicationPlugin::keyPressed);
 
-    m_keyReleaseConnection = connect(s_pres, &ScenarioPresenter::keyReleased,
-                                     this, &ScenarioApplicationPlugin::keyReleased);
+    m_keyReleaseConnection = connect(
+        s_pres,
+        &ScenarioPresenter::keyReleased,
+        this,
+        &ScenarioApplicationPlugin::keyReleased);
 
     auto& select_act = context.actions.action<Actions::SelectTool>();
     select_act.action()->trigger();
@@ -315,7 +335,9 @@ void ScenarioApplicationPlugin::on_documentChanged(
     return;
 
   // Load cables
-  auto& model = score::IDocument::modelDelegate<Scenario::ScenarioDocumentModel>(*newdoc);
+  auto& model
+      = score::IDocument::modelDelegate<Scenario::ScenarioDocumentModel>(
+          *newdoc);
   model.finishLoading();
   // TODO do htis on restore
 
@@ -353,12 +375,13 @@ void ScenarioApplicationPlugin::on_documentChanged(
         = IDocument::presenterDelegate<ScenarioDocumentPresenter>(*newdoc);
     if (pres)
     {
-      FullViewIntervalPresenter* cst_pres = pres->presenters().intervalPresenter();
+      FullViewIntervalPresenter* cst_pres
+          = pres->presenters().intervalPresenter();
 
       if (cst_pres && !cst_pres->getSlots().empty())
       {
         auto& firstSlot = cst_pres->getSlots().front();
-        if(auto slt = firstSlot.getLayerSlot())
+        if (auto slt = firstSlot.getLayerSlot())
         {
           auto p = slt->layers.front().mainPresenter();
           if (p)
@@ -404,13 +427,15 @@ void ScenarioApplicationPlugin::prepareNewDocument()
   }
 }
 
-Process::ProcessFocusManager* ScenarioApplicationPlugin::processFocusManager() const
+Process::ProcessFocusManager*
+ScenarioApplicationPlugin::processFocusManager() const
 {
   if (auto doc = currentDocument())
   {
     if (auto pres = doc->presenter())
     {
-      auto bem = dynamic_cast<ScenarioDocumentPresenter*>(pres->presenterDelegate());
+      auto bem = dynamic_cast<ScenarioDocumentPresenter*>(
+          pres->presenterDelegate());
       if (bem)
       {
         return &bem->focusManager();

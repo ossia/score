@@ -19,14 +19,19 @@ class SettingsPresenter;
  *
  * Reimplement in order to provide custom user settings for the plug-in.
  */
-class SCORE_LIB_BASE_EXPORT SettingsDelegateFactory : public score::InterfaceBase
+class SCORE_LIB_BASE_EXPORT SettingsDelegateFactory
+    : public score::InterfaceBase
 {
-  SCORE_INTERFACE(SettingsDelegateFactory, "f18653bc-7ca9-44aa-a08b-4188d086b46e")
+  SCORE_INTERFACE(
+      SettingsDelegateFactory,
+      "f18653bc-7ca9-44aa-a08b-4188d086b46e")
 
 public:
   virtual ~SettingsDelegateFactory();
-  GlobalSettingsPresenter*
-  makePresenter(score::SettingsDelegateModel& m, score::GlobalSettingsView& v, QObject* parent);
+  GlobalSettingsPresenter* makePresenter(
+      score::SettingsDelegateModel& m,
+      score::GlobalSettingsView& v,
+      QObject* parent);
 
   virtual GlobalSettingsView* makeView() = 0;
 
@@ -41,7 +46,8 @@ protected:
       = 0;
 };
 
-using SettingsDelegateFactoryList = InterfaceList<score::SettingsDelegateFactory>;
+using SettingsDelegateFactoryList
+    = InterfaceList<score::SettingsDelegateFactory>;
 
 template <typename Model_T, typename Presenter_T, typename View_T>
 class SettingsDelegateFactory_T : public SettingsDelegateFactory
@@ -59,13 +65,15 @@ class SettingsDelegateFactory_T : public SettingsDelegateFactory
       score::GlobalSettingsView& v,
       QObject* parent) override
   {
-    return new Presenter_T{safe_cast<Model_T&>(m), safe_cast<View_T&>(v), parent};
+    return new Presenter_T{
+        safe_cast<Model_T&>(m), safe_cast<View_T&>(v), parent};
   }
 };
 
-#define SCORE_DECLARE_SETTINGS_FACTORY(Factory, Model, Presenter, View, Uuid)           \
-  class Factory final : public score::SettingsDelegateFactory_T<Model, Presenter, View> \
-  {                                                                                     \
-    SCORE_CONCRETE(Uuid)                                                                \
+#define SCORE_DECLARE_SETTINGS_FACTORY(Factory, Model, Presenter, View, Uuid) \
+  class Factory final                                                         \
+      : public score::SettingsDelegateFactory_T<Model, Presenter, View>       \
+  {                                                                           \
+    SCORE_CONCRETE(Uuid)                                                      \
   };
 }

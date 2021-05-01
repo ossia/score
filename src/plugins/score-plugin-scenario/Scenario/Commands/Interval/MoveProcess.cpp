@@ -1,11 +1,6 @@
 #include "MoveProcess.hpp"
 
 #include <Dataflow/Commands/CableHelpers.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
-#include <Scenario/Process/ScenarioInterface.hpp>
-#include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/ChangeId.hpp>
@@ -16,6 +11,12 @@
 
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/pod_vector.hpp>
+
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
 namespace Scenario::Command
 {
@@ -71,7 +72,8 @@ static void moveProcess(
 
     EraseProcess(src, proc.id());
 
-    for (auto it = slots_to_remove.rbegin(); it != slots_to_remove.rend(); ++it)
+    for (auto it = slots_to_remove.rbegin(); it != slots_to_remove.rend();
+         ++it)
       src.removeSlot(*it);
   }
 
@@ -119,11 +121,13 @@ void MoveProcess::redo(const score::DocumentContext& ctx) const
 
 void MoveProcess::serializeImpl(DataStreamInput& s) const
 {
-  s << m_src << m_tgt << m_oldId << m_newId << m_oldSmall << m_oldFull << m_oldPos << m_addedSlot;
+  s << m_src << m_tgt << m_oldId << m_newId << m_oldSmall << m_oldFull
+    << m_oldPos << m_addedSlot;
 }
 
 void MoveProcess::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_src >> m_tgt >> m_oldId >> m_newId >> m_oldSmall >> m_oldFull >> m_oldPos >> m_addedSlot;
+  s >> m_src >> m_tgt >> m_oldId >> m_newId >> m_oldSmall >> m_oldFull
+      >> m_oldPos >> m_addedSlot;
 }
 }

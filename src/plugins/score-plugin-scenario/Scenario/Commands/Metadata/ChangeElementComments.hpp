@@ -1,9 +1,9 @@
 #pragma once
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
+
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 
 namespace Scenario
 {
@@ -14,23 +14,29 @@ class ChangeElementComments final : public score::Command
 {
   // No SCORE_COMMAND here since it's a template.
 public:
-  const CommandGroupKey& parentKey() const noexcept override { return CommandFactoryName(); }
+  const CommandGroupKey& parentKey() const noexcept override
+  {
+    return CommandFactoryName();
+  }
   static const CommandKey& static_key() noexcept
   {
-    QString name = QString("ChangeElementComments_") + Metadata<ObjectKey_k, T>::get();
+    QString name
+        = QString("ChangeElementComments_") + Metadata<ObjectKey_k, T>::get();
     static const CommandKey kagi{std::move(name)};
     return kagi;
   }
   const CommandKey& key() const noexcept override { return static_key(); }
   QString description() const override
   {
-    return QObject::tr("Change %1 comments").arg(Metadata<Description_k, T>::get());
+    return QObject::tr("Change %1 comments")
+        .arg(Metadata<Description_k, T>::get());
   }
 
   ChangeElementComments() = default;
 
   ChangeElementComments(const T& obj, QString newComments)
-      : m_path{obj}, m_newComments{std::move(newComments)}
+      : m_path{obj}
+      , m_newComments{std::move(newComments)}
   {
     m_oldComments = obj.metadata().getComment();
   }

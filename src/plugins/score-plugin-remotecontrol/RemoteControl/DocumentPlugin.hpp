@@ -4,13 +4,13 @@
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score/tools/std/StringHash.hpp>
 
-#include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/flat_map.hpp>
-#include <nano_observer.hpp>
+#include <ossia/detail/hash_map.hpp>
 
 #include <QtWebSockets/QWebSocket>
 #include <QtWebSockets/QWebSocketServer>
 
+#include <nano_observer.hpp>
 #include <score_plugin_remotecontrol_export.h>
 template <typename T>
 class TreeNode;
@@ -43,7 +43,10 @@ struct WSClient
 
 struct Handler
 {
-  ossia::flat_map<QString, std::function<void(const rapidjson::Value&, const WSClient&)>> answers;
+  ossia::flat_map<
+      QString,
+      std::function<void(const rapidjson::Value&, const WSClient&)>>
+      answers;
 
   std::function<void(const std::vector<WSClient>&)> onAdded;
   std::function<void(const std::vector<WSClient>&)> onRemoved;
@@ -53,32 +56,34 @@ struct Handler
   /**
    * @brief Helper function to set handlers from a pair of init / deinit functions
    */
-  template<typename T>
+  template <typename T>
   void setupDefaultHandler(T msgs)
   {
-    onAdded = [msgs] (const std::vector<RemoteControl::WSClient>& clts) {
+    onAdded = [msgs](const std::vector<RemoteControl::WSClient>& clts) {
       auto msg = msgs.initMessage();
-      for(auto& clt : clts)
+      for (auto& clt : clts)
         clt.socket->sendTextMessage(msg);
     };
-    onRemoved = [msgs] (const std::vector<RemoteControl::WSClient>& clts) {
+    onRemoved = [msgs](const std::vector<RemoteControl::WSClient>& clts) {
       auto msg = msgs.deinitMessage();
-      for(auto& clt : clts)
+      for (auto& clt : clts)
         clt.socket->sendTextMessage(msg);
     };
 
-    onClientConnection = [msgs] (const RemoteControl::WSClient& clt) {
+    onClientConnection = [msgs](const RemoteControl::WSClient& clt) {
       auto msg = msgs.initMessage();
       clt.socket->sendTextMessage(msg);
     };
-    onClientDisconnection = [msgs] (const RemoteControl::WSClient& clt) {
+    onClientDisconnection = [msgs](const RemoteControl::WSClient& clt) {
       auto msg = msgs.deinitMessage();
       clt.socket->sendTextMessage(msg);
     };
   }
 };
 
-struct SCORE_PLUGIN_REMOTECONTROL_EXPORT Receiver : public QObject, public Nano::Observer
+struct SCORE_PLUGIN_REMOTECONTROL_EXPORT Receiver
+    : public QObject
+    , public Nano::Observer
 {
 public:
   explicit Receiver(const score::DocumentContext& doc, quint16 port);
@@ -100,8 +105,7 @@ public:
 
   void socketDisconnected();
 
-  const std::vector<WSClient>& clients() const noexcept
-  { return m_clients; }
+  const std::vector<WSClient>& clients() const noexcept { return m_clients; }
 
 private:
   void on_valueUpdated(const ::State::Address& addr, const ossia::value& v);
@@ -112,16 +116,23 @@ private:
   Explorer::DeviceDocumentPlugin& m_dev;
   std::list<Path<Scenario::TimeSyncModel>> m_activeSyncs;
 
-  score::hash_map<QString, std::function<void(const rapidjson::Value&, const WSClient&)>> m_answers;
+  score::hash_map<
+      QString,
+      std::function<void(const rapidjson::Value&, const WSClient&)>>
+      m_answers;
   score::hash_map<::State::Address, WSClient> m_listenedAddresses;
 
   std::vector<std::pair<QObject*, Handler>> m_handlers;
 };
 
-class SCORE_PLUGIN_REMOTECONTROL_EXPORT DocumentPlugin : public score::DocumentPlugin
+class SCORE_PLUGIN_REMOTECONTROL_EXPORT DocumentPlugin
+    : public score::DocumentPlugin
 {
 public:
-  DocumentPlugin(const score::DocumentContext& doc, Id<score::DocumentPlugin> id, QObject* parent);
+  DocumentPlugin(
+      const score::DocumentContext& doc,
+      Id<score::DocumentPlugin> id,
+      QObject* parent);
   ~DocumentPlugin();
 
   void heartbeat();

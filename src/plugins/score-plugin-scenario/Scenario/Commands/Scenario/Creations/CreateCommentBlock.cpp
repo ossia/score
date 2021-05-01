@@ -3,12 +3,13 @@
 #include "CreateCommentBlock.hpp"
 
 #include <Process/TimeValueSerialization.hpp>
-#include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
-#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
 
 #include <score/model/path/PathSerialization.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+
+#include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
+#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 
 namespace Scenario
 {
@@ -18,7 +19,9 @@ CreateCommentBlock::CreateCommentBlock(
     const Scenario::ProcessModel& scenar,
     TimeVal date,
     double yPosition)
-    : m_path{scenar}, m_date{std::move(date)}, m_y{yPosition}
+    : m_path{scenar}
+    , m_date{std::move(date)}
+    , m_y{yPosition}
 {
   m_id = getStrongId(scenar.comments);
 }
@@ -48,7 +51,9 @@ void CreateCommentBlock::deserializeImpl(DataStreamOutput& s)
 RemoveCommentBlock::RemoveCommentBlock(
     const Scenario::ProcessModel& sc,
     const Scenario::CommentBlockModel& cb)
-    : m_path{sc}, m_id{cb.id()}, m_block{score::marshall<DataStream>(cb)}
+    : m_path{sc}
+    , m_id{cb.id()}
+    , m_block{score::marshall<DataStream>(cb)}
 {
 }
 

@@ -17,8 +17,8 @@
 #include <score/serialization/AnySerialization.hpp>
 #include <score/tools/std/HashMap.hpp>
 
-#include <ossia/network/base/node_attributes.hpp>
 #include <ossia/audio/audio_parameter.hpp>
+#include <ossia/network/base/node_attributes.hpp>
 
 #include <score_plugin_deviceexplorer_commands_files.hpp>
 struct audio_mapping_attr
@@ -88,7 +88,8 @@ score_plugin_deviceexplorer::factoryFamilies()
       Explorer::ListeningHandlerFactoryList>();
 }
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_deviceexplorer::factories(
+std::vector<std::unique_ptr<score::InterfaceBase>>
+score_plugin_deviceexplorer::factories(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& key) const
 {
@@ -103,12 +104,14 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_deviceexplorer::
 }
 
 score::GUIApplicationPlugin*
-score_plugin_deviceexplorer::make_guiApplicationPlugin(const score::GUIApplicationContext& app)
+score_plugin_deviceexplorer::make_guiApplicationPlugin(
+    const score::GUIApplicationContext& app)
 {
   return new Explorer::ApplicationPlugin{app};
 }
 
-std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_deviceexplorer::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap>
+score_plugin_deviceexplorer::make_commands()
 {
   using namespace Explorer::Command;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{

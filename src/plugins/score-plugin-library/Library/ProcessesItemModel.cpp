@@ -16,7 +16,9 @@
 namespace Library
 {
 
-ProcessesItemModel::ProcessesItemModel(const score::GUIApplicationContext& ctx, QObject* parent)
+ProcessesItemModel::ProcessesItemModel(
+    const score::GUIApplicationContext& ctx,
+    QObject* parent)
     : TreeNodeBasedItemModel<ProcessNode>{parent}
 {
   auto& procs = ctx.interfaces<Process::ProcessFactoryList>();
@@ -31,12 +33,16 @@ ProcessesItemModel::ProcessesItemModel(const score::GUIApplicationContext& ctx, 
     ProcessData p;
 
     auto& cat = m_root.emplace_back(
-        ProcessData{{{}, e.first, {}}, Process::getCategoryIcon(e.first), {}, {}}, &m_root);
+        ProcessData{
+            {{}, e.first, {}}, Process::getCategoryIcon(e.first), {}, {}},
+        &m_root);
 
     for (auto p : e.second)
     {
       cat.emplace_back(
-          ProcessData{{p->concreteKey(), p->prettyName(), {}}, QIcon{}, {}, {}}, &cat);
+          ProcessData{
+              {p->concreteKey(), p->prettyName(), {}}, QIcon{}, {}, {}},
+          &cat);
     }
   }
 
@@ -48,7 +54,8 @@ ProcessesItemModel::ProcessesItemModel(const score::GUIApplicationContext& ctx, 
   }
 }
 
-QModelIndex ProcessesItemModel::find(const Process::ProcessModelFactory::ConcreteKey& k)
+QModelIndex
+ProcessesItemModel::find(const Process::ProcessModelFactory::ConcreteKey& k)
 {
   for (auto& cat : m_root)
   {
@@ -94,7 +101,10 @@ QVariant ProcessesItemModel::data(const QModelIndex& index, int role) const
   return QVariant{};
 }
 
-QVariant ProcessesItemModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant ProcessesItemModel::headerData(
+    int section,
+    Qt::Orientation orientation,
+    int role) const
 {
   return {};
 }
@@ -135,13 +145,21 @@ Qt::DropActions ProcessesItemModel::supportedDragActions() const
 
 ProcessNode& addToLibrary(ProcessNode& parent, ProcessData&& data)
 {
-  const struct {
-    bool operator()(const QString& lhs, const Library::ProcessData& rhs) const noexcept
-    { return QString::compare(lhs, rhs.prettyName, Qt::CaseInsensitive) < 0; }
-    bool operator()(const  Library::ProcessData& lhs, const QString& rhs) const noexcept
-    { return QString::compare(lhs.prettyName, rhs, Qt::CaseInsensitive) < 0; }
+  const struct
+  {
+    bool operator()(const QString& lhs, const Library::ProcessData& rhs)
+        const noexcept
+    {
+      return QString::compare(lhs, rhs.prettyName, Qt::CaseInsensitive) < 0;
+    }
+    bool operator()(const Library::ProcessData& lhs, const QString& rhs)
+        const noexcept
+    {
+      return QString::compare(lhs.prettyName, rhs, Qt::CaseInsensitive) < 0;
+    }
   } nameSort;
-  return ossia::emplace_sorted(parent, data.prettyName, nameSort, std::move(data), &parent);
+  return ossia::emplace_sorted(
+      parent, data.prettyName, nameSort, std::move(data), &parent);
 }
 
 }

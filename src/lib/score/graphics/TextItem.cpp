@@ -15,7 +15,8 @@ W_OBJECT_IMPL(score::QGraphicsTextButton)
 namespace score
 {
 
-TextItem::TextItem(QString text, QGraphicsItem* parent) : QGraphicsTextItem{text, parent}
+TextItem::TextItem(QString text, QGraphicsItem* parent)
+    : QGraphicsTextItem{text, parent}
 {
   this->setFlag(QGraphicsItem::ItemIsFocusable);
   this->setDefaultTextColor(Qt::white);
@@ -27,7 +28,8 @@ void TextItem::focusOutEvent(QFocusEvent* event)
 }
 
 SimpleTextItem::SimpleTextItem(const score::BrushSet& col, QGraphicsItem* p)
-    : QGraphicsItem{p}, m_color{&col}
+    : QGraphicsItem{p}
+    , m_color{&col}
 {
   setFont(score::Skin::instance().Medium8Pt);
 }

@@ -15,7 +15,8 @@ namespace Spline3D
 namespace RecreateOnPlay
 {
 class Component final
-    : public ::Execution::ProcessComponent_T<Spline3D::ProcessModel, ossia::node_process>
+    : public ::Execution::
+          ProcessComponent_T<Spline3D::ProcessModel, ossia::node_process>
 {
   COMPONENT_METADATA("438137a8-e551-4e82-9f8b-0d0a47f8a676")
 public:

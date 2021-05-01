@@ -21,7 +21,6 @@
 namespace Device
 {
 
-
 bool loadDeviceFromScoreJSON(const rapidjson::Document& json, Node& node)
 {
   if (!json.IsObject())
@@ -29,7 +28,7 @@ bool loadDeviceFromScoreJSON(const rapidjson::Document& json, Node& node)
     return false;
   }
 
-  if(!json.HasMember("Device"))
+  if (!json.HasMember("Device"))
   {
     return false;
   }

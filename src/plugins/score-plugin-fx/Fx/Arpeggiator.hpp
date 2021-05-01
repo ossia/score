@@ -1,7 +1,7 @@
 #pragma once
-#include <ossia/detail/flat_map.hpp>
-
 #include <Engine/Node/PdNode.hpp>
+
+#include <ossia/detail/flat_map.hpp>
 
 namespace Nodes
 {
@@ -18,7 +18,8 @@ struct Node
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::MidiEffect;
     static const constexpr auto description = "Arpeggiator";
-    static const uuid_constexpr auto uuid = make_uuid("0b98c7cd-f831-468f-81e3-706d6a97d705");
+    static const uuid_constexpr auto uuid
+        = make_uuid("0b98c7cd-f831-468f-81e3-706d6a97d705");
 
     static const constexpr midi_in midi_ins[]{"in"};
     static const constexpr midi_out midi_outs[]{"out"};
@@ -56,12 +57,14 @@ struct Node
         case 2:
           arpeggiate(2);
           arpeggio.insert(arpeggio.end(), arpeggio.begin(), arpeggio.end());
-          std::reverse(arpeggio.begin() + notes.container.size(), arpeggio.end());
+          std::reverse(
+              arpeggio.begin() + notes.container.size(), arpeggio.end());
           break;
         case 3:
           arpeggiate(2);
           arpeggio.insert(arpeggio.end(), arpeggio.begin(), arpeggio.end());
-          std::reverse(arpeggio.begin(), arpeggio.begin() + notes.container.size());
+          std::reverse(
+              arpeggio.begin(), arpeggio.begin() + notes.container.size());
           break;
         case 4:
           arpeggio.clear();
@@ -101,11 +104,11 @@ struct Node
       for (std::size_t j = 0; j < orig_size; j++)
       {
         auto copy = arpeggio[j];
-        for (auto it = copy.begin(); it != copy.end(); )
+        for (auto it = copy.begin(); it != copy.end();)
         {
           auto& note = *it;
           int res = note.first + 12 * i;
-          if(res >= 0.f && res <= 127.f)
+          if (res >= 0.f && res <= 127.f)
           {
             note.first = res;
             ++it;
@@ -154,11 +157,10 @@ struct Node
     }
 
     // Update the arpeggio itself
-    const bool mustUpdateArpeggio =
-        msgs.size() > 0 ||
-        octave != self.previous_octave ||
-        arpeggio != self.previous_arpeggio;
-    if(mustUpdateArpeggio)
+    const bool mustUpdateArpeggio = msgs.size() > 0
+                                    || octave != self.previous_octave
+                                    || arpeggio != self.previous_arpeggio;
+    if (mustUpdateArpeggio)
     {
       self.update();
     }
@@ -168,7 +170,8 @@ struct Node
       if (!self.previous_chord.empty())
       {
         for (auto& note : self.previous_chord)
-          out.messages.push_back(libremidi::message::note_off(1, note.first, 0));
+          out.messages.push_back(
+              libremidi::message::note_off(1, note.first, 0));
         self.previous_chord.clear();
       }
 
@@ -179,7 +182,8 @@ struct Node
       self.index = 0;
 
     // Play the next note / chord if we're on a quantification marker
-    if (auto date = tk.get_physical_quantification_date(quantif, st.modelToSamples()))
+    if (auto date
+        = tk.get_physical_quantification_date(quantif, st.modelToSamples()))
     {
       // Finish previous notes
       for (auto& note : self.previous_chord)
@@ -193,7 +197,8 @@ struct Node
 
       for (auto& note : chord)
       {
-        out.messages.push_back(libremidi::message::note_on(1, note.first, note.second));
+        out.messages.push_back(
+            libremidi::message::note_on(1, note.first, note.second));
         out.messages.back().timestamp = *date;
       }
 

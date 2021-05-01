@@ -14,8 +14,8 @@ class AddRackToIntervalTest : public QObject
 private:
   void CreateRackTest()
   {
-    IntervalModel* interval
-        = new IntervalModel{Id<IntervalModel>{0}, Id<IntervalViewModel>{0}, qApp};
+    IntervalModel* interval = new IntervalModel{
+        Id<IntervalModel>{0}, Id<IntervalViewModel>{0}, qApp};
 
     QCOMPARE((int)interval->rackes().size(), 0);
     AddRackToInterval cmd(ObjectPath{{"IntervalModel", {0}}});

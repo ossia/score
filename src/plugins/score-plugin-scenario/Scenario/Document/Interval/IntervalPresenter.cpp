@@ -7,11 +7,6 @@
 
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
-#include <Scenario/Document/Interval/IntervalDurations.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Interval/LayerData.hpp>
-#include <Scenario/Document/Interval/Temporal/Braces/LeftBrace.hpp>
-#include <Scenario/Document/ModelConsistency.hpp>
 
 #include <score/model/EntityMap.hpp>
 #include <score/model/Identifier.hpp>
@@ -22,6 +17,11 @@
 #include <QDebug>
 #include <qnamespace.h>
 
+#include <Scenario/Document/Interval/IntervalDurations.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/LayerData.hpp>
+#include <Scenario/Document/Interval/Temporal/Braces/LeftBrace.hpp>
+#include <Scenario/Document/ModelConsistency.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::IntervalPresenter)
 namespace Scenario
@@ -33,12 +33,12 @@ IntervalPresenter::IntervalPresenter(
     IntervalHeader* header,
     const Process::Context& ctx,
     QObject* parent)
-  : QObject{parent}
-  , m_model{model}
-  , m_zoomRatio{zoom}
-  , m_view{view}
-  , m_header{header}
-  , m_context{ctx}
+    : QObject{parent}
+    , m_model{model}
+    , m_zoomRatio{zoom}
+    , m_view{view}
+    , m_header{header}
+    , m_context{ctx}
 {
   auto& interval = m_model;
   m_header->setParentItem(m_view);
@@ -46,25 +46,38 @@ IntervalPresenter::IntervalPresenter(
   // m_header->hide();
   // m_header->setPos(0, -m_header->headerHeight());
 
-  con(interval.duration, &IntervalDurations::minNullChanged, this, [&](bool b) {
-    updateBraces();
-  });
-  con(interval.duration, &IntervalDurations::minDurationChanged, this, [&](const TimeVal& val) {
-    on_minDurationChanged(val);
-    updateChildren();
-  });
-  con(interval.duration, &IntervalDurations::maxDurationChanged, this, [&](const TimeVal& val) {
-    on_maxDurationChanged(val);
-    updateChildren();
-  });
+  con(interval.duration,
+      &IntervalDurations::minNullChanged,
+      this,
+      [&](bool b) { updateBraces(); });
+  con(interval.duration,
+      &IntervalDurations::minDurationChanged,
+      this,
+      [&](const TimeVal& val) {
+        on_minDurationChanged(val);
+        updateChildren();
+      });
+  con(interval.duration,
+      &IntervalDurations::maxDurationChanged,
+      this,
+      [&](const TimeVal& val) {
+        on_maxDurationChanged(val);
+        updateChildren();
+      });
 
   con(interval,
       &IntervalModel::heightPercentageChanged,
       this,
       &IntervalPresenter::heightPercentageChanged);
 
-  con(interval.consistency, &ModelConsistency::validChanged, m_view, &IntervalView::setValid);
-  con(interval.consistency, &ModelConsistency::warningChanged, m_view, &IntervalView::setWarning);
+  con(interval.consistency,
+      &ModelConsistency::validChanged,
+      m_view,
+      &IntervalView::setValid);
+  con(interval.consistency,
+      &ModelConsistency::warningChanged,
+      m_view,
+      &IntervalView::setWarning);
 }
 
 IntervalPresenter::~IntervalPresenter() { }
@@ -102,7 +115,9 @@ void IntervalPresenter::on_minDurationChanged(const TimeVal& min)
 void IntervalPresenter::on_maxDurationChanged(const TimeVal& max)
 {
   auto x = max.toPixels(m_zoomRatio);
-  m_view->setMaxWidth(m_model.duration.isMaxInfinite(), m_model.duration.isMaxInfinite() ? -1 : x);
+  m_view->setMaxWidth(
+      m_model.duration.isMaxInfinite(),
+      m_model.duration.isMaxInfinite() ? -1 : x);
   m_view->rightBrace().setX(x + 2);
   updateBraces();
 }
@@ -117,11 +132,11 @@ double IntervalPresenter::on_playPercentageChanged(double t)
 
 void IntervalPresenter::updateAllSlots() const
 {
-  for(auto& proc : this->m_slots)
+  for (auto& proc : this->m_slots)
   {
-    if(auto p = proc.getLayerSlot())
+    if (auto p = proc.getLayerSlot())
     {
-      for(auto& lay : p->layers)
+      for (auto& lay : p->layers)
       {
         lay.parentGeometryChanged();
       }

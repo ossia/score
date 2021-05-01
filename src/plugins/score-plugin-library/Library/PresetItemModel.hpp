@@ -19,17 +19,21 @@ class PresetItemModel final : public QAbstractItemModel
 public:
   PresetItemModel(const score::GUIApplicationContext& ctx, QObject* parent);
 
-  void registerPreset(const Process::ProcessFactoryList& procs, const QString& path);
+  void registerPreset(
+      const Process::ProcessFactoryList& procs,
+      const QString& path);
 
 private:
-  QModelIndex index(int row, int column, const QModelIndex& parent) const override;
+  QModelIndex
+  index(int row, int column, const QModelIndex& parent) const override;
 
   QModelIndex parent(const QModelIndex& child) const override;
   int rowCount(const QModelIndex& parent) const override;
   int columnCount(const QModelIndex& parent) const override;
   QVariant data(const QModelIndex& index, int role) const override;
 
-  bool setData(const QModelIndex& index, const QVariant& value, int role) override;
+  bool
+  setData(const QModelIndex& index, const QVariant& value, int role) override;
 
   bool dropMimeData(
       const QMimeData* data,
@@ -63,6 +67,7 @@ public:
   UuidKey<Process::ProcessModel> currentFilter{};
 
 private:
-  bool filterAcceptsRow(int srcRow, const QModelIndex& srcParent) const override;
+  bool
+  filterAcceptsRow(int srcRow, const QModelIndex& srcParent) const override;
 };
 }

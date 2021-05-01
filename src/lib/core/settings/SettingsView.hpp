@@ -20,7 +20,8 @@ template <typename Model>
 class SettingsView final : public QDialog
 {
 public:
-  SettingsView(QWidget* parent) : QDialog{parent}
+  SettingsView(QWidget* parent)
+      : QDialog{parent}
   {
     {
       auto centerWidg = new QWidget{this};
@@ -43,8 +44,10 @@ public:
         m_stackedWidget,
         &QStackedWidget::setCurrentIndex);
 
-    connect(m_buttons, &QDialogButtonBox::accepted, this, &SettingsView::accept);
-    connect(m_buttons, &QDialogButtonBox::rejected, this, &SettingsView::reject);
+    connect(
+        m_buttons, &QDialogButtonBox::accepted, this, &SettingsView::accept);
+    connect(
+        m_buttons, &QDialogButtonBox::rejected, this, &SettingsView::reject);
   }
   void addSettingsView(SettingsDelegateView<Model>* view)
   {
@@ -68,7 +71,8 @@ private:
   QListWidget* m_settingsList{new QListWidget{this}};
   QStackedWidget* m_stackedWidget{new QStackedWidget{this}};
 
-  QDialogButtonBox* m_buttons{
-      new QDialogButtonBox{QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this}};
+  QDialogButtonBox* m_buttons{new QDialogButtonBox{
+      QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
+      this}};
 };
 }

@@ -1,31 +1,38 @@
 #include <Gfx/GfxContext.hpp>
-
-#include <ossia/detail/flicks.hpp>
-#include <ossia/network/value/value_conversion.hpp>
 #include <Gfx/Graph/graph.hpp>
 #include <Gfx/Settings/Model.hpp>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/Bind.hpp>
-#include <QGuiApplication>
+
+#include <ossia/detail/flicks.hpp>
 #include <ossia/detail/logger.hpp>
+#include <ossia/network/value/value_conversion.hpp>
+
+#include <QGuiApplication>
 namespace Gfx
 {
 
 gfx_window_context::gfx_window_context(const score::DocumentContext& ctx)
-  : m_context{ctx}
+    : m_context{ctx}
 {
   new_edges.container.reserve(100);
   edges.container.reserve(100);
 
-
   auto& settings = m_context.app.settings<Gfx::Settings::Model>();
-  con(settings, &Gfx::Settings::Model::GraphicsApiChanged,
-      this, &gfx_window_context::recompute_graph);
-  con(settings, &Gfx::Settings::Model::RateChanged,
-      this, &gfx_window_context::recompute_graph);
-  con(settings, &Gfx::Settings::Model::VSyncChanged,
-      this, &gfx_window_context::recompute_graph);
+  con(settings,
+      &Gfx::Settings::Model::GraphicsApiChanged,
+      this,
+      &gfx_window_context::recompute_graph);
+  con(settings,
+      &Gfx::Settings::Model::RateChanged,
+      this,
+      &gfx_window_context::recompute_graph);
+  con(settings,
+      &Gfx::Settings::Model::VSyncChanged,
+      this,
+      &gfx_window_context::recompute_graph);
 
   m_graph = new Graph;
 }
@@ -41,7 +48,8 @@ gfx_window_context::~gfx_window_context()
   delete m_graph;
 }
 
-int32_t gfx_window_context::register_node(std::unique_ptr<score::gfx::ProcessNode> node)
+int32_t gfx_window_context::register_node(
+    std::unique_ptr<score::gfx::ProcessNode> node)
 {
   auto next = index;
   m_graph->addNode(node.get());
@@ -102,13 +110,12 @@ void gfx_window_context::recompute_edges()
 
 void gfx_window_context::recompute_graph()
 {
-  if(m_timer != -1)
+  if (m_timer != -1)
     killTimer(m_timer);
   m_timer = -1;
-  m_graph->setVSyncCallback({ });
+  m_graph->setVSyncCallback({});
 
   recompute_edges();
-
 
   auto& settings = m_context.app.settings<Gfx::Settings::Model>();
   auto api = settings.graphicsApiEnum();
@@ -121,7 +128,7 @@ void gfx_window_context::recompute_graph()
   double rate = m_context.app.settings<Gfx::Settings::Model>().getRate();
   rate = 1000. / qBound(1.0, rate, 1000.);
 
-  if(vsync)
+  if (vsync)
   {
 #if defined(SCORE_THREADED_GFX)
     if (api == Vulkan)
@@ -136,11 +143,9 @@ void gfx_window_context::recompute_graph()
   else
   {
     QMetaObject::invokeMethod(
-          this,
-          [this, rate] {
-      m_timer = startTimer(rate);
-    },
-    Qt::QueuedConnection);
+        this,
+        [this, rate] { m_timer = startTimer(rate); },
+        Qt::QueuedConnection);
   }
 
   must_recompute = false;
@@ -161,7 +166,10 @@ void gfx_window_context::update_inputs()
     gfx_view_node& node;
     port_index sink{};
 
-    void operator()(ossia::value&& v) const noexcept { node.process(sink.port, std::move(v)); }
+    void operator()(ossia::value&& v) const noexcept
+    {
+      node.process(sink.port, std::move(v));
+    }
 
     void operator()(ossia::audio_vector&& v) const noexcept
     {
@@ -238,9 +246,18 @@ void gfx_view_node::process(int32_t port, const ossia::value& v)
       if (!v.empty())
         val = ossia::convert<float>(v[0]);
     }
-    void operator()(ossia::vec2f& val) const noexcept { val = ossia::convert<ossia::vec2f>(v); }
-    void operator()(ossia::vec3f& val) const noexcept { val = ossia::convert<ossia::vec3f>(v); }
-    void operator()(ossia::vec4f& val) const noexcept { val = ossia::convert<ossia::vec4f>(v); }
+    void operator()(ossia::vec2f& val) const noexcept
+    {
+      val = ossia::convert<ossia::vec2f>(v);
+    }
+    void operator()(ossia::vec3f& val) const noexcept
+    {
+      val = ossia::convert<ossia::vec3f>(v);
+    }
+    void operator()(ossia::vec4f& val) const noexcept
+    {
+      val = ossia::convert<ossia::vec4f>(v);
+    }
     void operator()(image& val) const noexcept { }
   };
 
@@ -439,7 +456,7 @@ void gfx_view_node::process(int32_t port, const ossia::value& v)
     }
     void operator()(const std::vector<ossia::value>& v) const noexcept
     {
-      if(v.empty())
+      if (v.empty())
         return;
 
       switch (type)
@@ -498,7 +515,7 @@ void gfx_view_node::process(int32_t port, const ossia::audio_vector& v)
   tex.data.clear();
   // if(tex.fixedSize)
   {
-    // TODO
+      // TODO
 
   } // else
   {
@@ -507,7 +524,7 @@ void gfx_view_node::process(int32_t port, const ossia::audio_vector& v)
     float* sample = tex.data.data();
     for (auto& chan : v)
     {
-      for(int i = 0, N = chan.size(); i < N; ++i, ++sample)
+      for (int i = 0, N = chan.size(); i < N; ++i, ++sample)
         *sample = chan[i];
     }
   }

@@ -36,7 +36,10 @@ private:
   FocusManager& m_mgr;
 
 public:
-  FocusFacade(FocusManager& mgr) : m_mgr{mgr} { }
+  FocusFacade(FocusManager& mgr)
+      : m_mgr{mgr}
+  {
+  }
 
   const IdentifiedObjectAbstract* get() const { return m_mgr.get(); }
 };

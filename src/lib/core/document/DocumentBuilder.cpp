@@ -20,8 +20,8 @@
 
 #include <QByteArray>
 #include <QDebug>
-#include <QObject>
 #include <QDir>
+#include <QObject>
 #include <QString>
 #include <QVariant>
 
@@ -30,7 +30,8 @@
 namespace score
 {
 DocumentBuilder::DocumentBuilder(QObject* parentPresenter, QWidget* parentView)
-    : m_parentPresenter{parentPresenter}, m_parentView{parentView}
+    : m_parentPresenter{parentPresenter}
+    , m_parentView{parentView}
 {
 }
 
@@ -40,36 +41,43 @@ Document* DocumentBuilder::newDocument(
     const Id<DocumentModel>& id,
     DocumentDelegateFactory& doctype)
 {
-  QString docName = "Untitled." + RandomNameProvider::generateShortRandomName();
+  QString docName
+      = "Untitled." + RandomNameProvider::generateShortRandomName();
 
   // FIXME we can't access Library::Settings::Model here :'(
 #if !defined(__EMSCRIPTEN__)
   QSettings set;
-  if(auto library = set.value("Library/Path").toString(); QDir{library}.exists())
+  if (auto library = set.value("Library/Path").toString();
+      QDir{library}.exists())
   {
     auto templateDocument = QString{"%1/default.score"}.arg(library);
-    if(QFile::exists(templateDocument))
+    if (QFile::exists(templateDocument))
     {
-      try {
+      try
+      {
         auto doc = loadDocument(ctx, templateDocument, doctype);
         doc->metadata().setFileName(docName);
         //doc->metadata().set({});
         doc->model().setId(id);
         // TODO cables ?!
         return doc;
-      } catch(...) {
-
+      }
+      catch (...)
+      {
       }
     }
   }
 #endif
-  auto doc = new Document{docName, id, doctype, m_parentView, m_parentPresenter};
+  auto doc
+      = new Document{docName, id, doctype, m_parentView, m_parentPresenter};
 
   for (auto& projectsettings : ctx.interfaces<DocumentPluginFactoryList>())
   {
     if (auto fact = dynamic_cast<ProjectSettingsFactory*>(&projectsettings))
       doc->model().addPluginModel(fact->makeModel(
-          doc->context(), getStrongId(doc->model().pluginModels()), &doc->model()));
+          doc->context(),
+          getStrongId(doc->model().pluginModels()),
+          &doc->model()));
   }
 
   m_backupManager = new DocumentBackupManager{*doc};
@@ -148,7 +156,8 @@ Document* DocumentBuilder::restoreDocument(
     // Restoring behaves just like loading : we reload what was loaded
     // (potentially a blank document which is saved at the beginning, once
     // every plug-in has been loaded)
-    doc = new Document{filename, docData, doctype, m_parentView, m_parentPresenter};
+    doc = new Document{
+        filename, docData, doctype, m_parentView, m_parentPresenter};
     for (auto& appPlug : ctx.guiApplicationPlugins())
     {
       appPlug->on_loadedDocument(*doc);
@@ -163,15 +172,23 @@ Document* DocumentBuilder::restoreDocument(
 
     // We restore the pre-crash command stack.
     DataStream::Deserializer writer(cmdData);
-    loadCommandStack(ctx.components, writer, doc->commandStack(), [doc](score::Command* cmd) {
-      try {
-        cmd->redo(doc->context());
-        return true;
-      }  catch (...) {
-        qDebug() << "Error while replaying: " << cmd->key().toString().c_str() << cmd->description();
-        return false;
-      }
-    });
+    loadCommandStack(
+        ctx.components,
+        writer,
+        doc->commandStack(),
+        [doc](score::Command* cmd) {
+          try
+          {
+            cmd->redo(doc->context());
+            return true;
+          }
+          catch (...)
+          {
+            qDebug() << "Error while replaying: "
+                     << cmd->key().toString().c_str() << cmd->description();
+            return false;
+          }
+        });
 
     m_backupManager = new DocumentBackupManager{*doc};
     m_backupManager->saveModelData(docData); // Reuse the same data

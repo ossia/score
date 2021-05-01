@@ -9,7 +9,9 @@
 namespace Patternist
 {
 class View;
-class Presenter final : public Process::LayerPresenter, public Nano::Observer
+class Presenter final
+    : public Process::LayerPresenter
+    , public Nano::Observer
 {
 public:
   explicit Presenter(

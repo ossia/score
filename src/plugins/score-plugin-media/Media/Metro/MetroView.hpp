@@ -15,7 +15,8 @@ class View final : public Process::LayerView
 {
   W_OBJECT(View)
 public:
-  explicit View(QGraphicsItem* parent) : Process::LayerView{parent}
+  explicit View(QGraphicsItem* parent)
+      : Process::LayerView{parent}
   {
     setFlag(QGraphicsItem::ItemClipsToShape);
   }

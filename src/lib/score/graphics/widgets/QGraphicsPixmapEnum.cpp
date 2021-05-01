@@ -5,13 +5,14 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 
-#include <wobjectimpl.h>
 #include <cmath>
+#include <wobjectimpl.h>
 
 namespace score
 {
 
-QGraphicsPixmapEnum::QGraphicsPixmapEnum(QGraphicsItem* parent) : QGraphicsEnum{parent}
+QGraphicsPixmapEnum::QGraphicsPixmapEnum(QGraphicsItem* parent)
+    : QGraphicsEnum{parent}
 {
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointingHand);

@@ -19,13 +19,16 @@ struct Node
           "in parent), x (value)\n"
           "See the documentation at http://www.partow.net/programming/exprtk";
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const uuid_constexpr auto uuid = make_uuid("ae84e8b6-74ff-4259-aeeb-305d95cdfcab");
+    static const uuid_constexpr auto uuid
+        = make_uuid("ae84e8b6-74ff-4259-aeeb-305d95cdfcab");
 
     static const constexpr value_in value_ins[]{"in"};
     static const constexpr value_out value_outs[]{"out"};
 
     static const constexpr auto controls = std::make_tuple(
-        Control::LineEdit("Expression (ExprTK)", "cos(t) + log(pos * (1+abs(x)) / dt)"),
+        Control::LineEdit(
+            "Expression (ExprTK)",
+            "cos(t) + log(pos * (1+abs(x)) / dt)"),
         Control::FloatSlider("Param (a)", 0., 1., 0.5),
         Control::FloatSlider("Param (b)", 0., 1., 0.5),
         Control::FloatSlider("Param (c)", 0., 1., 0.5));
@@ -115,18 +118,21 @@ struct Node
           "\n"
           "x (value), px (previous value)\n"
           "See the documentation at http://www.partow.net/programming/exprtk";
-    static const uuid_constexpr auto uuid = make_uuid("13e1f4b0-1c2c-40e6-93ad-dfc91aac5335");
+    static const uuid_constexpr auto uuid
+        = make_uuid("13e1f4b0-1c2c-40e6-93ad-dfc91aac5335");
 
     static const constexpr audio_in audio_ins[]{"in"};
     static const constexpr audio_out audio_outs[]{"out"};
 
     static const constexpr auto controls = std::make_tuple(
-        Control::LineEdit("Expression (ExprTK)", "var n := x[];\n"
-                          "\n"
-                          "for (var i := 0; i < n; i += 1) {\n"
-                          "  var dist := tan(x[i]*log(1 + 200 * a));\n"
-                          "  out[i] := clamp(0, dist, 1);\n"
-                          "}\n"),
+        Control::LineEdit(
+            "Expression (ExprTK)",
+            "var n := x[];\n"
+            "\n"
+            "for (var i := 0; i < n; i += 1) {\n"
+            "  var dist := tan(x[i]*log(1 + 200 * a));\n"
+            "  out[i] := clamp(0, dist, 1);\n"
+            "}\n"),
         Control::FloatSlider("Param (a)", 0., 1., 0.5),
         Control::FloatSlider("Param (b)", 0., 1., 0.5),
         Control::FloatSlider("Param (c)", 0., 1., 0.5));
@@ -167,7 +173,7 @@ struct Node
 
     void reset_symbols(std::size_t N)
     {
-      if(N == cur_in.size())
+      if (N == cur_in.size())
         return;
 
       expr.remove_vector("x");
@@ -227,13 +233,14 @@ struct Node
       if (input.samples.empty())
         return;
 
-      const auto min_count = std::min((int64_t)input.samples[0].size() - start, count);
+      const auto min_count
+          = std::min((int64_t)input.samples[0].size() - start, count);
 
       const int chans = input.samples.size();
       self.reset_symbols(chans);
       output.samples.resize(chans);
 
-      for(int j = 0; j < chans; j++)
+      for (int j = 0; j < chans; j++)
       {
         auto& out = output.samples[j];
         out.resize(st.bufferSize());
@@ -246,7 +253,7 @@ struct Node
       const auto start_sample = (tk.prev_date * samplesRatio).impl;
       for (int64_t i = 0; i < min_count; i++)
       {
-        for(int j = 0; j < chans; j++)
+        for (int j = 0; j < chans; j++)
         {
           self.cur_in[j] = input.samples[j][start + i];
         }
@@ -256,7 +263,7 @@ struct Node
         self.expr.value();
 
         // Apply the output
-        for(int j = 0; j < chans; j++)
+        for (int j = 0; j < chans; j++)
         {
           output.samples[j][start + i] = self.cur_out[j];
         }

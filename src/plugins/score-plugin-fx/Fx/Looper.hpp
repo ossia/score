@@ -14,14 +14,14 @@ struct Node
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::AudioEffect;
     static const constexpr auto description = "Loop audio";
-    static const uuid_constexpr auto uuid = make_uuid("a0ad4227-ac3d-448b-a19b-19581ed4e2c6");
+    static const uuid_constexpr auto uuid
+        = make_uuid("a0ad4227-ac3d-448b-a19b-19581ed4e2c6");
     static const constexpr double recommended_height = 65;
 
     static const constexpr auto controls = std::make_tuple(
         Control::Widgets::LoopChooser(),
         Control::Widgets::QuantificationChooser(),
-        Control::Toggle("Passthrough", true)
-    );
+        Control::Toggle("Passthrough", true));
     static const constexpr audio_in audio_ins[]{"in"};
     static const constexpr audio_out audio_outs[]{"out"};
   };
@@ -113,14 +113,12 @@ struct Node
         stop(p1, p2, tk, state, modelRatio);
         break;
       case Control::Widgets::LoopMode::Record:
-        echoRecord
-            ? record(p1, p2, tk, state, modelRatio)
-            : record_noecho(p1, p2, tk, state, modelRatio);
+        echoRecord ? record(p1, p2, tk, state, modelRatio)
+                   : record_noecho(p1, p2, tk, state, modelRatio);
         break;
       case Control::Widgets::LoopMode::Overdub:
-        echoRecord
-            ? overdub(p1, p2, tk, state, modelRatio)
-            : overdub_noecho(p1, p2, tk, state, modelRatio);
+        echoRecord ? overdub(p1, p2, tk, state, modelRatio)
+                   : overdub_noecho(p1, p2, tk, state, modelRatio);
         break;
     }
   }
@@ -365,7 +363,6 @@ struct Node
     state.playbackPos += N;
   }
 
-
   static void item(
       Process::Enum& mode,
       Process::ComboBox& quantif,
@@ -376,27 +373,43 @@ struct Node
       const Process::Context& doc)
   {
     using namespace Process;
-    const Process::PortFactoryList& portFactory = doc.app.interfaces<Process::PortFactoryList>();
+    const Process::PortFactoryList& portFactory
+        = doc.app.interfaces<Process::PortFactoryList>();
     const auto c0 = 10;
     const auto c1 = 220;
 
     auto c0_bg = new score::BackgroundItem{&parent};
     c0_bg->setRect({0., 0., 340., 60});
-    auto mode_item
-        = makeControlNoText(std::get<0>(Metadata::controls), mode, parent, context, doc, portFactory);
+    auto mode_item = makeControlNoText(
+        std::get<0>(Metadata::controls),
+        mode,
+        parent,
+        context,
+        doc,
+        portFactory);
     mode_item.root.setPos(c0, 10);
     mode_item.control.setPos({4, 0});
     mode_item.control.setRect({0, 0, 200, 30});
     mode_item.port.setPos({-8, 10});
 
     auto quant_item = makeControlNoText(
-        std::get<1>(Metadata::controls), quantif, parent, context, doc, portFactory);
+        std::get<1>(Metadata::controls),
+        quantif,
+        parent,
+        context,
+        doc,
+        portFactory);
     quant_item.root.setPos(c1, 10);
     quant_item.control.setPos({10, 0});
     quant_item.port.setPos({-3, 4});
 
-    auto echo_item
-        = makeControl(std::get<2>(Metadata::controls), echo, parent, context, doc, portFactory);
+    auto echo_item = makeControl(
+        std::get<2>(Metadata::controls),
+        echo,
+        parent,
+        context,
+        doc,
+        portFactory);
     echo_item.root.setPos(c1, 35);
     echo_item.control.setPos({10, 0});
     echo_item.port.setPos({-3, 4});

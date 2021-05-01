@@ -14,7 +14,7 @@
 #include <score/graphics/widgets/QGraphicsPixmapEnum.hpp>
 #include <score/graphics/widgets/QGraphicsPixmapToggle.hpp>
 #include <score/graphics/widgets/QGraphicsSelectablePixmapToggle.hpp>
-#include <score/graphics/widgets/QGraphicsSliderBase.hpp>
 #include <score/graphics/widgets/QGraphicsSlider.hpp>
+#include <score/graphics/widgets/QGraphicsSliderBase.hpp>
 #include <score/graphics/widgets/QGraphicsToggle.hpp>
 #include <score/graphics/widgets/QGraphicsXYChooser.hpp>

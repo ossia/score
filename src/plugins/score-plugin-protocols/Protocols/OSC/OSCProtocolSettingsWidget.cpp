@@ -91,7 +91,7 @@ Device::Node OSCProtocolSettingsWidget::getDevice() const
   Device::loadDeviceFromScoreJSON(readJson(json), n);
 
   // Re-apply our original settings which may have been overwritten
-  if(auto dev = n.target<Device::DeviceSettings>())
+  if (auto dev = n.target<Device::DeviceSettings>())
   {
     *dev = set;
   }
@@ -99,7 +99,8 @@ Device::Node OSCProtocolSettingsWidget::getDevice() const
   return n;
 }
 
-void OSCProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settings)
+void OSCProtocolSettingsWidget::setSettings(
+    const Device::DeviceSettings& settings)
 {
   m_deviceNameEdit->setText(settings.name);
 

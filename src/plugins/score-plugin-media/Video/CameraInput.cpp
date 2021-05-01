@@ -12,7 +12,9 @@ extern "C"
 
 #include <QDebug>
 #include <QElapsedTimer>
+
 #include <fmt/format.h>
+
 #include <functional>
 namespace Video
 {
@@ -27,14 +29,19 @@ CameraInput::~CameraInput() noexcept
   close_file();
 }
 
-bool CameraInput::load(const std::string& inputKind, const std::string& inputDevice, int w, int h, double fps) noexcept
+bool CameraInput::load(
+    const std::string& inputKind,
+    const std::string& inputDevice,
+    int w,
+    int h,
+    double fps) noexcept
 {
   close_file();
   m_inputKind = inputKind;
   m_inputDevice = inputDevice;
 
   auto ifmt = av_find_input_format(m_inputKind.c_str());
-  if(ifmt)
+  if (ifmt)
   {
     qDebug() << ifmt->name << ifmt->long_name;
     return true;
@@ -47,12 +54,12 @@ bool CameraInput::load(const std::string& inputKind, const std::string& inputDev
 
 bool CameraInput::start() noexcept
 {
-  if(m_running)
+  if (m_running)
     return false;
 
   auto ifmt = av_find_input_format(m_inputKind.c_str());
   if (!ifmt)
-      return false;
+    return false;
 
   m_formatContext = avformat_alloc_context();
   m_formatContext->flags |= AVFMT_FLAG_NONBLOCK;
@@ -64,7 +71,9 @@ bool CameraInput::start() noexcept
   av_dict_set(&options, "input_format", format.c_str(), 0); // this one seems failing
   av_dict_set(&options, "video_size", fmt::format("{}x{}", w, h).c_str(), 0);
   */
-  if (avformat_open_input(&m_formatContext, m_inputDevice.c_str(), ifmt, nullptr) != 0)
+  if (avformat_open_input(
+          &m_formatContext, m_inputDevice.c_str(), ifmt, nullptr)
+      != 0)
   {
     close_file();
     return false;
@@ -132,7 +141,7 @@ void CameraInput::close_file() noexcept
     m_formatContext = nullptr;
   }
 
-  if(m_rescale)
+  if (m_rescale)
   {
     sws_freeContext(m_rescale);
     m_rescale = nullptr;
@@ -181,15 +190,22 @@ AVFrame* CameraInput::read_frame_impl() noexcept
   return res;
 }
 
-
 void CameraInput::init_scaler() noexcept
 {
   // Allocate a rescale context
-  qDebug() << "allocating a rescaler for format" << av_get_pix_fmt_name(this->pixel_format);
+  qDebug() << "allocating a rescaler for format"
+           << av_get_pix_fmt_name(this->pixel_format);
   m_rescale = sws_getContext(
-        this->width, this->height, this->pixel_format,
-        this->width, this->height, AV_PIX_FMT_RGBA,
-        SWS_FAST_BILINEAR, NULL, NULL, NULL);
+      this->width,
+      this->height,
+      this->pixel_format,
+      this->width,
+      this->height,
+      AV_PIX_FMT_RGBA,
+      SWS_FAST_BILINEAR,
+      NULL,
+      NULL,
+      NULL);
   pixel_format = AV_PIX_FMT_RGBA;
 }
 
@@ -227,8 +243,7 @@ bool CameraInput::open_stream() noexcept
         height = codecpar->height;
         fps = av_q2d(m_formatContext->streams[i]->avg_frame_rate);
 
-
-        switch(pixel_format)
+        switch (pixel_format)
         {
           // Supported formats for gpu decoding
           case AV_PIX_FMT_YUV420P:
@@ -295,7 +310,7 @@ bool CameraInput::enqueue_frame(const AVPacket* pkt, AVFrame** frame) noexcept
     {
       got_picture_ptr = 1;
 
-      if(m_rescale)
+      if (m_rescale)
       {
         // alloc an rgb frame
         auto m_rgb = av_frame_alloc();
@@ -305,9 +320,14 @@ bool CameraInput::enqueue_frame(const AVPacket* pkt, AVFrame** frame) noexcept
         av_frame_get_buffer(m_rgb, 0);
 
         // 2. Resize
-        sws_scale(m_rescale, (*frame)->data, (*frame)->linesize,
-                  0, this->height,
-                  m_rgb->data, m_rgb->linesize);
+        sws_scale(
+            m_rescale,
+            (*frame)->data,
+            (*frame)->linesize,
+            0,
+            this->height,
+            m_rgb->data,
+            m_rgb->linesize);
 
         av_frame_free(frame);
         *frame = m_rgb;

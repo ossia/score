@@ -4,7 +4,6 @@
 #include <Library/LibrarySettings.hpp>
 #include <Media/MediaFileHandle.hpp>
 #include <Process/ExecutionContext.hpp>
-#include <Scenario/Execution/score2OSSIA.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/tools/Bind.hpp>
@@ -15,6 +14,8 @@
 #include <ossia/editor/scenario/time_value.hpp>
 
 #include <QApplication>
+
+#include <Scenario/Execution/score2OSSIA.hpp>
 
 namespace ossia::nodes
 {
@@ -45,7 +46,10 @@ public:
       const ossia::small_vector<audio_sample*, 8>& lo,
       int64_t hi_dur,
       int64_t lo_dur)
-      : hi_sound{hi}, lo_sound{lo}, hi_dur{hi_dur}, lo_dur{lo_dur}
+      : hi_sound{hi}
+      , lo_sound{lo}
+      , hi_dur{hi_dur}
+      , lo_dur{lo_dur}
   {
     m_outlets.push_back(&audio_out);
     m_outlets.push_back(&bang_out);
@@ -66,8 +70,10 @@ public:
 
             if (hi_dur > 0)
             {
-              bang_out.target<value_port>()->write_value(ossia::impulse{}, hi_start_sample);
-              in_flight.push_back({&hi_sound, 0, hi_dur, hi_start_sample, 0, 0});
+              bang_out.target<value_port>()->write_value(
+                  ossia::impulse{}, hi_start_sample);
+              in_flight.push_back(
+                  {&hi_sound, 0, hi_dur, hi_start_sample, 0, 0});
             }
           },
           [&](int64_t lo_start_sample) {
@@ -79,64 +85,74 @@ public:
 
             if (lo_dur > 0)
             {
-              bang_out.target<value_port>()->write_value(ossia::impulse{}, lo_start_sample);
-              in_flight.push_back({&lo_sound, 0, lo_dur, lo_start_sample, 0, 0});
+              bang_out.target<value_port>()->write_value(
+                  ossia::impulse{}, lo_start_sample);
+              in_flight.push_back(
+                  {&lo_sound, 0, lo_dur, lo_start_sample, 0, 0});
             }
           });
     }
 
     auto& ap = audio_out.target<audio_port>()->samples;
 
-    auto render_sound = [&ap, &tk, &st](
-                            const int64_t fade_total,
-                            int64_t& fade_remaining,
-                            int64_t& pos,
-                            const int64_t dur,
-                            const int64_t start_sample,
-                            const ossia::small_vector<audio_sample*, 8>& sound) {
-      bool finished = false;
+    auto render_sound =
+        [&ap, &tk, &st](
+            const int64_t fade_total,
+            int64_t& fade_remaining,
+            int64_t& pos,
+            const int64_t dur,
+            const int64_t start_sample,
+            const ossia::small_vector<audio_sample*, 8>& sound) {
+          bool finished = false;
 
-      ap.resize(2);
-      ap[0].resize(st.bufferSize());
-      ap[1].resize(st.bufferSize());
+          ap.resize(2);
+          ap[0].resize(st.bufferSize());
+          ap[1].resize(st.bufferSize());
 
-      const float* const src = sound[0] + pos;
+          const float* const src = sound[0] + pos;
 
-      const auto tick_start = st.physical_start(tk);
+          const auto tick_start = st.physical_start(tk);
 
-      int64_t count = st.bufferSize() - tick_start - start_sample;
-      if (pos + count < dur)
-      {
-        pos += count;
-      }
-      else
-      {
-        count = dur - pos;
-        finished = true;
-      }
+          int64_t count = st.bufferSize() - tick_start - start_sample;
+          if (pos + count < dur)
+          {
+            pos += count;
+          }
+          else
+          {
+            count = dur - pos;
+            finished = true;
+          }
 
-      auto fade_remaining_prev = fade_remaining;
-      for (auto dst : {ap[0].data(), ap[1].data()})
-      {
-        fade_remaining = fade_remaining_prev;
-        double* start = dst + tick_start + start_sample;
-        for (int i = 0; i < count; i++)
-        {
-          const double fade = (fade_total == 0 ? 1. : double(--fade_remaining) / fade_total);
+          auto fade_remaining_prev = fade_remaining;
+          for (auto dst : {ap[0].data(), ap[1].data()})
+          {
+            fade_remaining = fade_remaining_prev;
+            double* start = dst + tick_start + start_sample;
+            for (int i = 0; i < count; i++)
+            {
+              const double fade
+                  = (fade_total == 0 ? 1.
+                                     : double(--fade_remaining) / fade_total);
 
-          start[i] += src[i] * fade;
-        }
-      }
+              start[i] += src[i] * fade;
+            }
+          }
 
-      finished |= fade_total > 0 && fade_remaining <= 0;
+          finished |= fade_total > 0 && fade_remaining <= 0;
 
-      return finished;
-    };
+          return finished;
+        };
 
     for (auto it = in_flight.begin(); it != in_flight.end();)
     {
       bool finished = render_sound(
-          it->fade_total, it->fade_remaining, it->pos, it->dur, it->start_sample, *it->samples);
+          it->fade_total,
+          it->fade_remaining,
+          it->pos,
+          it->dur,
+          it->start_sample,
+          *it->samples);
 
       if (it->start_sample != 0)
         it->start_sample = 0;
@@ -159,10 +175,14 @@ namespace Execution
 struct MetronomeSounds
 {
   const QString root
-      = score::AppContext().settings<Library::Settings::Model>().getPath() + "/Util/";
+      = score::AppContext().settings<Library::Settings::Model>().getPath()
+        + "/Util/";
   const std::unique_ptr<Media::AudioFile> tick{[this] {
     auto f = std::make_unique<Media::AudioFile>();
-    f->load(root + "/metro_tick.wav", root + "/metro_tick.wav", Media::DecodingMethod::Libav);
+    f->load(
+        root + "/metro_tick.wav",
+        root + "/metro_tick.wav",
+        Media::DecodingMethod::Libav);
 
     while (f->samples() != f->decodedSamples())
     {
@@ -173,7 +193,10 @@ struct MetronomeSounds
   }()};
   const std::unique_ptr<Media::AudioFile> tock{[this] {
     auto f = std::make_unique<Media::AudioFile>();
-    f->load(root + "/metro_tock.wav", root + "/metro_tock.wav", Media::DecodingMethod::Libav);
+    f->load(
+        root + "/metro_tock.wav",
+        root + "/metro_tock.wav",
+        Media::DecodingMethod::Libav);
 
     while (f->samples() != f->decodedSamples())
     {
@@ -208,11 +231,16 @@ MetroComponent::MetroComponent(
   static const MetronomeSounds sounds;
   if (sounds)
   {
-    const auto& tick_sound{sounds.tick_handle.target<Media::AudioFile::LibavView>()->data};
-    const auto& tock_sound{sounds.tock_handle.target<Media::AudioFile::LibavView>()->data};
+    const auto& tick_sound{
+        sounds.tick_handle.target<Media::AudioFile::LibavView>()->data};
+    const auto& tock_sound{
+        sounds.tock_handle.target<Media::AudioFile::LibavView>()->data};
 
     auto node = std::make_shared<ossia::nodes::audio_metronome>(
-        tick_sound, tock_sound, sounds.tick->decodedSamples(), sounds.tock->decodedSamples());
+        tick_sound,
+        tock_sound,
+        sounds.tick->decodedSamples(),
+        sounds.tock->decodedSamples());
 
     this->node = node;
     m_ossia_process = std::make_shared<ossia::node_process>(node);

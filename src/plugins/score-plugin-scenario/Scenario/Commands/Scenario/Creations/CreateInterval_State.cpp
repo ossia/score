@@ -2,18 +2,18 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CreateInterval_State.hpp"
 
-#include <Scenario/Commands/Scenario/Creations/CreateInterval.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-
 #include <score/model/EntityMap.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/RandomNameProvider.hpp>
 
 #include <QByteArray>
+
+#include <Scenario/Commands/Scenario/Creations/CreateInterval.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 
 #include <vector>
 
@@ -59,7 +59,8 @@ void CreateInterval_State::redo(const score::DocumentContext& ctx) const
 
 void CreateInterval_State::serializeImpl(DataStreamInput& s) const
 {
-  s << m_newState << m_createdName << m_command.serialize() << m_endEvent << m_stateY;
+  s << m_newState << m_createdName << m_command.serialize() << m_endEvent
+    << m_stateY;
 }
 
 void CreateInterval_State::deserializeImpl(DataStreamOutput& s)

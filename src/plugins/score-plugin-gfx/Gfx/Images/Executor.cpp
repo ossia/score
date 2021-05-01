@@ -1,5 +1,10 @@
 #include "Executor.hpp"
 
+#include <Gfx/GfxApplicationPlugin.hpp>
+#include <Gfx/GfxContext.hpp>
+#include <Gfx/GfxExec.hpp>
+#include <Gfx/Graph/imagenode.hpp>
+#include <Gfx/Images/Process.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/ExecutionContext.hpp>
 
@@ -7,18 +12,13 @@
 
 #include <ossia/dataflow/port.hpp>
 
-#include <Gfx/GfxApplicationPlugin.hpp>
-#include <Gfx/GfxContext.hpp>
-#include <Gfx/GfxExec.hpp>
-#include <Gfx/Graph/imagenode.hpp>
-#include <Gfx/Images/Process.hpp>
-
 namespace Gfx::Images
 {
 class image_node final : public gfx_exec_node
 {
 public:
-  image_node(const std::vector<Image>& dec, GfxExecutionAction& ctx) : gfx_exec_node{ctx}
+  image_node(const std::vector<Image>& dec, GfxExecutionAction& ctx)
+      : gfx_exec_node{ctx}
   {
     id = exec_context->ui->register_node(std::make_unique<ImagesNode>(dec));
   }
@@ -39,7 +39,8 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     QObject* parent)
     : ProcessComponent_T{element, ctx, id, "gfxExecutorComponent", parent}
 {
-  auto n = std::make_shared<image_node>(element.images(), ctx.doc.plugin<DocumentPlugin>().exec);
+  auto n = std::make_shared<image_node>(
+      element.images(), ctx.doc.plugin<DocumentPlugin>().exec);
 
   for (int i = 0; i < 4; i++)
   {
@@ -48,7 +49,11 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     *p.value = ctrl->value(); // TODO does this make sense ?
     p.changed = true;         // we will send the first value
 
-    QObject::connect(ctrl, &Process::ControlInlet::valueChanged, this, con_unvalidated{ctx, i, n});
+    QObject::connect(
+        ctrl,
+        &Process::ControlInlet::valueChanged,
+        this,
+        con_unvalidated{ctx, i, n});
   }
 
   n->root_outputs().push_back(new ossia::texture_outlet);

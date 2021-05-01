@@ -64,7 +64,8 @@ public:
   Cable(Id<Cable> c, QObject* parent);
 
   template <typename T>
-  Cable(T&& vis, QObject* parent) : IdentifiedObject{vis, parent}
+  Cable(T&& vis, QObject* parent)
+      : IdentifiedObject{vis, parent}
   {
     vis.writeTo(*this);
   }
@@ -82,7 +83,8 @@ public:
   void resetCache() const noexcept override;
 
 public:
-  void typeChanged(CableType type) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, typeChanged, type)
+  void typeChanged(CableType type)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, typeChanged, type)
 
 private:
   CableType m_type{};

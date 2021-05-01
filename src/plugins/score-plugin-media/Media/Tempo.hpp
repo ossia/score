@@ -1,6 +1,8 @@
 #pragma once
 #include <Process/Process.hpp>
+
 #include <score_plugin_media_export.h>
+
 #include <optional>
 
 namespace Media

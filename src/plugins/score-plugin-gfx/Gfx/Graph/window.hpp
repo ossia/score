@@ -4,15 +4,15 @@
 #include "scene.hpp"
 
 #include <QPlatformSurfaceEvent>
-#include <QWindow>
 #include <QTimer>
+#include <QWindow>
 #include <QtGui/private/qrhigles2_p.h>
 
 class Window : public QWindow
 {
 public:
   explicit Window(GraphicsApi graphicsApi)
-    : api{graphicsApi}
+      : api{graphicsApi}
   {
     // Tell the platform plugin what we want.
     switch (api)
@@ -37,24 +37,19 @@ public:
     }
   }
 
-  ~Window()
-  {
-  }
+  ~Window() { }
 
   GraphicsApi api{};
   std::function<void()> onWindowReady;
   std::function<void()> onUpdate;
   std::function<void(QRhiCommandBuffer&)> onRender;
   std::function<void()> onResize;
-  void init()
-  {
-    onWindowReady();
-  }
+  void init() { onWindowReady(); }
 
-#include <Gfx/Qt5CompatPush>
+#include <Gfx/Qt5CompatPush> // clang-format: keep
   void resizeSwapChain()
   {
-    if(swapChain)
+    if (swapChain)
     {
       m_hasSwapChain = swapChain->createOrResize();
       state.size = swapChain->currentPixelSize();
@@ -71,7 +66,7 @@ public:
       swapChain->destroy();
     }
   }
-#include <Gfx/Qt5CompatPop>
+#include <Gfx/Qt5CompatPop> // clang-format: keep
 
   void render()
   {
@@ -141,7 +136,8 @@ public:
 
       auto buf = swapChain->currentFrameCommandBuffer();
       auto batch = state.rhi->nextResourceUpdateBatch();
-      buf->beginPass(swapChain->currentFrameRenderTarget(), Qt::black, {1.0f, 0}, batch);
+      buf->beginPass(
+          swapChain->currentFrameRenderTarget(), Qt::black, {1.0f, 0}, batch);
       buf->endPass();
 
       state.rhi->endFrame(swapChain, {});
@@ -151,7 +147,7 @@ public:
 
   void exposeEvent(QExposeEvent*) override
   {
-    if(!onWindowReady)
+    if (!onWindowReady)
     {
       return;
     }
@@ -162,9 +158,11 @@ public:
       resizeSwapChain();
     }
 
-    const QSize surfaceSize = m_hasSwapChain ? swapChain->surfacePixelSize() : QSize();
+    const QSize surfaceSize
+        = m_hasSwapChain ? swapChain->surfacePixelSize() : QSize();
 
-    if ((!isExposed() || (m_hasSwapChain && surfaceSize.isEmpty())) && m_running)
+    if ((!isExposed() || (m_hasSwapChain && surfaceSize.isEmpty()))
+        && m_running)
       m_notExposed = true;
 
     if (isExposed() && m_running && m_notExposed && !surfaceSize.isEmpty())

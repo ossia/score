@@ -5,9 +5,9 @@
 #include <score/plugins/UuidKey.hpp>
 #include <score/tools/Debug.hpp>
 
-#include <QGuiApplication>
 #include <QGraphicsItem>
 #include <QGraphicsView>
+#include <QGuiApplication>
 
 void deleteGraphicsObject(QGraphicsObject* item)
 {
@@ -60,7 +60,10 @@ QGraphicsView* getView(const QPainter& painter)
 QImage newImage(double logical_w, double logical_h)
 {
   double ratio = qApp->devicePixelRatio();
-  QImage img(logical_w * ratio, logical_h * ratio, QImage::Format_ARGB32_Premultiplied);
+  QImage img(
+      logical_w * ratio,
+      logical_h * ratio,
+      QImage::Format_ARGB32_Premultiplied);
   img.setDevicePixelRatio(ratio);
   img.fill(Qt::transparent);
   return img;

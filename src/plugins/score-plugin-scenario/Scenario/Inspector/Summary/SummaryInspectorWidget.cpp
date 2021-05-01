@@ -3,6 +3,7 @@
 #include "SummaryInspectorWidget.hpp"
 
 #include <Inspector/InspectorSectionWidget.hpp>
+
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
@@ -11,7 +12,6 @@
 #include <Scenario/Inspector/Interval/IntervalSummaryWidget.hpp>
 #include <Scenario/Inspector/TimeSync/TimeSyncSummaryWidget.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
-
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::SummaryInspectorWidget)
 namespace Scenario
@@ -29,7 +29,8 @@ SummaryInspectorWidget::SummaryInspectorWidget(
   setObjectName("SummaryInspectorWidget");
   setParent(parent);
 
-  m_itvSection = new Inspector::InspectorSectionWidget{tr("Intervals"), false, this};
+  m_itvSection
+      = new Inspector::InspectorSectionWidget{tr("Intervals"), false, this};
   m_properties.push_back(m_itvSection);
 
   for (auto c : intervals)
@@ -39,7 +40,8 @@ SummaryInspectorWidget::SummaryInspectorWidget(
     m_itvs.push_back(w);
   }
 
-  m_syncSection = new Inspector::InspectorSectionWidget{tr("Syncs"), false, this};
+  m_syncSection
+      = new Inspector::InspectorSectionWidget{tr("Syncs"), false, this};
   m_properties.push_back(m_syncSection);
   for (auto t : timesyncs)
   {
@@ -48,7 +50,8 @@ SummaryInspectorWidget::SummaryInspectorWidget(
     m_syncs.push_back(w);
   }
 
-  m_evSection = new Inspector::InspectorSectionWidget{tr("Events"), false, this};
+  m_evSection
+      = new Inspector::InspectorSectionWidget{tr("Events"), false, this};
   m_properties.push_back(m_evSection);
   for (auto ev : events)
   {
@@ -62,7 +65,8 @@ SummaryInspectorWidget::SummaryInspectorWidget(
 
 SummaryInspectorWidget::~SummaryInspectorWidget() { }
 
-void SummaryInspectorWidget::update(const QList<const IdentifiedObjectAbstract*>& sourceElements)
+void SummaryInspectorWidget::update(
+    const QList<const IdentifiedObjectAbstract*>& sourceElements)
 {
   ossia::flat_set<const EventModel*> events;
   ossia::flat_set<const TimeSyncModel*> timesyncs;
@@ -105,7 +109,9 @@ void SummaryInspectorWidget::update(const QList<const IdentifiedObjectAbstract*>
   auto cur_itv = m_itvs;
   for (auto ev : events)
   {
-    if (ossia::any_of(cur_events, [=](EventSummaryWidget* w) { return &w->event == ev; }))
+    if (ossia::any_of(cur_events, [=](EventSummaryWidget* w) {
+          return &w->event == ev;
+        }))
     {
       continue;
     }
@@ -115,7 +121,8 @@ void SummaryInspectorWidget::update(const QList<const IdentifiedObjectAbstract*>
   }
   for (auto w : cur_events)
   {
-    auto it = ossia::find_if(events, [=](const EventModel* e) { return e == &w->event; });
+    auto it = ossia::find_if(
+        events, [=](const EventModel* e) { return e == &w->event; });
     if (it == events.end())
     {
       ossia::remove_one(m_evs, w);
@@ -125,7 +132,9 @@ void SummaryInspectorWidget::update(const QList<const IdentifiedObjectAbstract*>
 
   for (auto sn : timesyncs)
   {
-    if (ossia::any_of(cur_sync, [=](TimeSyncSummaryWidget* w) { return &w->sync == sn; }))
+    if (ossia::any_of(cur_sync, [=](TimeSyncSummaryWidget* w) {
+          return &w->sync == sn;
+        }))
     {
       continue;
     }
@@ -135,7 +144,8 @@ void SummaryInspectorWidget::update(const QList<const IdentifiedObjectAbstract*>
   }
   for (auto w : cur_sync)
   {
-    auto it = ossia::find_if(timesyncs, [=](const TimeSyncModel* e) { return e == &w->sync; });
+    auto it = ossia::find_if(
+        timesyncs, [=](const TimeSyncModel* e) { return e == &w->sync; });
     if (it == timesyncs.end())
     {
       ossia::remove_one(m_syncs, w);
@@ -145,7 +155,9 @@ void SummaryInspectorWidget::update(const QList<const IdentifiedObjectAbstract*>
 
   for (auto itv : intervals)
   {
-    if (ossia::any_of(cur_itv, [=](IntervalSummaryWidget* w) { return &w->interval == itv; }))
+    if (ossia::any_of(cur_itv, [=](IntervalSummaryWidget* w) {
+          return &w->interval == itv;
+        }))
     {
       continue;
     }
@@ -155,7 +167,8 @@ void SummaryInspectorWidget::update(const QList<const IdentifiedObjectAbstract*>
   }
   for (auto w : cur_itv)
   {
-    auto it = ossia::find_if(intervals, [=](const IntervalModel* e) { return e == &w->interval; });
+    auto it = ossia::find_if(
+        intervals, [=](const IntervalModel* e) { return e == &w->interval; });
     if (it == intervals.end())
     {
       ossia::remove_one(m_itvs, w);

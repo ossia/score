@@ -17,7 +17,8 @@
 
 namespace State
 {
-CharValueWidget::CharValueWidget(QChar value, QWidget* parent) : ValueWidget{parent}
+CharValueWidget::CharValueWidget(QChar value, QWidget* parent)
+    : ValueWidget{parent}
 {
   auto lay = new score::MarginLess<QGridLayout>{this};
   m_value = new QLineEdit;
@@ -40,7 +41,8 @@ ossia::value CharValueWidget::value() const
   return ossia::value{txt.length() > 0 ? txt[0].toLatin1() : char{}};
 }
 
-CharValueSetDialog::CharValueSetDialog(QWidget* parent) : QDialog{parent}
+CharValueSetDialog::CharValueSetDialog(QWidget* parent)
+    : QDialog{parent}
 {
   auto lay = new score::MarginLess<QVBoxLayout>{this};
   this->setLayout(lay);
@@ -50,7 +52,8 @@ CharValueSetDialog::CharValueSetDialog(QWidget* parent) : QDialog{parent}
   connect(addbutton, &QPushButton::pressed, this, [=] { addRow('a'); });
   lay->addWidget(addbutton);
 
-  auto buttonBox = new QDialogButtonBox{QDialogButtonBox::Ok | QDialogButtonBox::Cancel};
+  auto buttonBox
+      = new QDialogButtonBox{QDialogButtonBox::Ok | QDialogButtonBox::Cancel};
 
   lay->addWidget(buttonBox);
 
@@ -92,7 +95,9 @@ void CharValueSetDialog::addRow(char c)
   auto minus_b = new QPushButton{tr("-"), this};
   sub_lay->addWidget(minus_b);
 
-  connect(minus_b, &QPushButton::clicked, this, [this, i = m_rows.size()] { removeRow(i); });
+  connect(minus_b, &QPushButton::clicked, this, [this, i = m_rows.size()] {
+    removeRow(i);
+  });
 
   auto widg = new CharValueWidget{QChar(c), this};
   sub_lay->addWidget(widg);
@@ -112,7 +117,8 @@ void CharValueSetDialog::removeRow(std::size_t i)
   }
 }
 
-CharDomainWidget::CharDomainWidget(QWidget* parent) : QWidget{parent}
+CharDomainWidget::CharDomainWidget(QWidget* parent)
+    : QWidget{parent}
 {
   auto lay = new score::MarginLess<QHBoxLayout>{this};
   this->setLayout(lay);

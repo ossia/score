@@ -5,8 +5,6 @@
 #include "Model.hpp"
 #include "View.hpp"
 
-#include <PackageManager/FileDownloader.hpp>
-
 #include <score/command/Command.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
 #include <score/widgets/SetIcons.hpp>
@@ -17,6 +15,7 @@
 #include <QStandardItemModel>
 #include <QStyle>
 
+#include <PackageManager/FileDownloader.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(PM::PluginSettingsPresenter)
 namespace score
@@ -51,9 +50,11 @@ PluginSettingsPresenter::PluginSettingsPresenter(
       &QItemSelectionModel::currentRowChanged,
       this,
       [&](const QModelIndex& current, const QModelIndex& previous) {
-        RemotePackage& addon = ps_model.remotePlugins.addons().at(current.row());
+        RemotePackage& addon
+            = ps_model.remotePlugins.addons().at(current.row());
 
-        ps_view.installButton().setEnabled(addon.file != QUrl{} || addon.kind == "sdk");
+        ps_view.installButton().setEnabled(
+            addon.file != QUrl{} || addon.kind == "sdk");
       });
 
   ps_view.installButton().setEnabled(false);

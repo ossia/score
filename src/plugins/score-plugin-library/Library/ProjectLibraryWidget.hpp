@@ -14,7 +14,9 @@ namespace Library
 class ProjectLibraryWidget : public QWidget
 {
 public:
-  ProjectLibraryWidget(const score::GUIApplicationContext& ctx, QWidget* parent);
+  ProjectLibraryWidget(
+      const score::GUIApplicationContext& ctx,
+      QWidget* parent);
   ~ProjectLibraryWidget();
 
   void setRoot(score::DocumentMetadata& meta);

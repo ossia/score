@@ -4,12 +4,11 @@
 #include <Automation/Commands/SetAutomationMax.hpp>
 #include <Dataflow/Commands/CreateModulation.hpp>
 #include <Dataflow/Commands/EditConnection.hpp>
+#include <Effect/EffectLayout.hpp>
+#include <Engine/Node/CommonWidgets.hpp>
+#include <Process/Style/Pixmaps.hpp>
 #include <Vst/Commands.hpp>
 #include <Vst/Control.hpp>
-#include <Process/Style/Pixmaps.hpp>
-#include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
-#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
@@ -19,8 +18,9 @@
 
 #include <QGraphicsScene>
 
-#include <Effect/EffectLayout.hpp>
-#include <Engine/Node/CommonWidgets.hpp>
+#include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
+#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(vst::GraphicsSlider)
@@ -87,23 +87,30 @@ EffectItem::EffectItem(
 {
   rootItem = root;
 
-  if(!effect.fx)
+  if (!effect.fx)
     return;
-  if(!effect.fx->fx)
+  if (!effect.fx->fx)
     return;
 
   using namespace Control::Widgets;
   QObject::connect(
-      &effect, &Process::ProcessModel::controlAdded, this, [&](const Id<Process::Port>& id) {
+      &effect,
+      &Process::ProcessModel::controlAdded,
+      this,
+      [&](const Id<Process::Port>& id) {
         auto inlet = safe_cast<ControlInlet*>(effect.inlet(id));
         setupInlet(effect, *inlet, doc);
       });
 
   QObject::connect(
-      &effect, &Process::ProcessModel::controlRemoved, this, [&](const Process::Port& port) {
+      &effect,
+      &Process::ProcessModel::controlRemoved,
+      this,
+      [&](const Process::Port& port) {
         auto inlet = qobject_cast<const ControlInlet*>(&port);
         SCORE_ASSERT(inlet);
-        auto it = ossia::find_if(controlItems, [&](auto p) { return p.first == inlet; });
+        auto it = ossia::find_if(
+            controlItems, [&](auto p) { return p.first == inlet; });
         if (it != controlItems.end())
         {
           delete it->second;
@@ -112,8 +119,9 @@ EffectItem::EffectItem(
           for (; it != controlItems.end(); ++it, ++i)
           {
             score::EmptyRectItem* rect = it->second;
-            QPointF pos = Process::currentWigetPos(
-                i, [&](int j) { return controlItems[j].second->boundingRect().size(); });
+            QPointF pos = Process::currentWigetPos(i, [&](int j) {
+              return controlItems[j].second->boundingRect().size();
+            });
 
             rect->setPos(pos);
           }
@@ -122,7 +130,9 @@ EffectItem::EffectItem(
       });
 
   const bool isSynth = effect.fx->fx->flags & effFlagsIsSynth;
-  for (std::size_t i = VST_FIRST_CONTROL_INDEX(isSynth); i < effect.inlets().size(); i++)
+  for (std::size_t i = VST_FIRST_CONTROL_INDEX(isSynth);
+       i < effect.inlets().size();
+       i++)
   {
     auto inlet = safe_cast<ControlInlet*>(effect.inlets()[i]);
     setupInlet(effect, *inlet, doc);
@@ -144,7 +154,11 @@ void EffectItem::setupInlet(
       [](auto& factory, auto& inlet, const auto& doc, auto item, auto parent) {
         return factory.makeItem(inlet, doc, item, parent);
       },
-      [&](auto& factory, auto& inlet, const auto& doc, auto item, auto parent) {
+      [&](auto& factory,
+          auto& inlet,
+          const auto& doc,
+          auto item,
+          auto parent) {
         return VSTFloatSlider::make_item(fx.fx->fx, inlet, doc, item, parent);
       },
       [&](int j) { return controlItems[j].second->boundingRect().size(); },
@@ -155,19 +169,26 @@ void EffectItem::setupInlet(
       });
 
   // TODO useless, find a way to remove
-  static const auto& portFactory = score::GUIAppContext().interfaces<Process::PortFactoryList>();
-  auto ctl = Process::createControl(i, csetup, inlet, portFactory, doc, this, this);
+  static const auto& portFactory
+      = score::GUIAppContext().interfaces<Process::PortFactoryList>();
+  auto ctl
+      = Process::createControl(i, csetup, inlet, portFactory, doc, this, this);
 
   if (fx.fx->fx->numParams >= 10)
   {
     const auto& pixmaps = Process::Pixmaps::instance();
-    auto rm_item = new score::QGraphicsPixmapButton{pixmaps.close_on, pixmaps.close_off, ctl.item};
-    connect(rm_item, &score::QGraphicsPixmapButton::clicked, this, [&doc, &fx, id = inlet.id()] {
-      QTimer::singleShot(0, [&doc, &fx, id] {
-        CommandDispatcher<> disp{doc.commandStack};
-        disp.submit<RemoveControl>(fx, id);
-      });
-    });
+    auto rm_item = new score::QGraphicsPixmapButton{
+        pixmaps.close_on, pixmaps.close_off, ctl.item};
+    connect(
+        rm_item,
+        &score::QGraphicsPixmapButton::clicked,
+        this,
+        [&doc, &fx, id = inlet.id()] {
+          QTimer::singleShot(0, [&doc, &fx, id] {
+            CommandDispatcher<> disp{doc.commandStack};
+            disp.submit<RemoveControl>(fx, id);
+          });
+        });
 
     rm_item->setPos(8., 16.);
   }
@@ -195,14 +216,16 @@ QWidget* VSTFloatSlider::make_widget(
   sl->max = 1.;
   sl->setValue(ossia::convert<double>(inlet.value()));
 
-  QObject::connect(sl, &score::ValueDoubleSlider::sliderMoved, context, [=, &inlet, &ctx] {
-    sl->moving = true;
-    ctx.dispatcher.submit<SetControl>(inlet, sl->value());
-  });
-  QObject::connect(sl, &score::ValueDoubleSlider::sliderReleased, context, [&ctx, sl]() {
-    ctx.dispatcher.commit();
-    sl->moving = false;
-  });
+  QObject::connect(
+      sl, &score::ValueDoubleSlider::sliderMoved, context, [=, &inlet, &ctx] {
+        sl->moving = true;
+        ctx.dispatcher.submit<SetControl>(inlet, sl->value());
+      });
+  QObject::connect(
+      sl, &score::ValueDoubleSlider::sliderReleased, context, [&ctx, sl]() {
+        ctx.dispatcher.commit();
+        sl->moving = false;
+      });
 
   QObject::connect(&inlet, &ControlInlet::valueChanged, sl, [=](float val) {
     if (!sl->moving)
@@ -221,10 +244,11 @@ QGraphicsItem* VSTFloatSlider::make_item(
   auto sl = new GraphicsSlider{fx, inlet.fxNum, parent};
   sl->setValue(ossia::convert<double>(inlet.value()));
 
-  QObject::connect(sl, &GraphicsSlider::sliderMoved, context, [=, &inlet, &ctx] {
-    sl->moving = true;
-    ctx.dispatcher.submit<SetControl>(inlet, sl->value());
-  });
+  QObject::connect(
+      sl, &GraphicsSlider::sliderMoved, context, [=, &inlet, &ctx] {
+        sl->moving = true;
+        ctx.dispatcher.submit<SetControl>(inlet, sl->value());
+      });
   QObject::connect(sl, &GraphicsSlider::sliderReleased, context, [&ctx, sl]() {
     ctx.dispatcher.commit();
     sl->moving = false;

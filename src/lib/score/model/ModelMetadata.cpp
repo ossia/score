@@ -4,14 +4,13 @@
 #include "ModelMetadata.hpp"
 
 #include <score/model/IdentifiedObject.hpp>
+#include <score/serialization/AnySerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
-
-#include <score/serialization/AnySerialization.hpp>
 #include <score/serialization/MapSerialization.hpp>
+
 #include <ossia-qt/js_utilities.hpp>
 #include <ossia/network/base/name_validation.hpp>
-
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::ModelMetadata)
@@ -168,7 +167,8 @@ SCORE_LIB_BASE_EXPORT void DataStreamWriter::write(score::ColorRef& md)
 }
 
 template <>
-SCORE_LIB_BASE_EXPORT void DataStreamReader::read(const score::ModelMetadata& md)
+SCORE_LIB_BASE_EXPORT void
+DataStreamReader::read(const score::ModelMetadata& md)
 {
   m_stream << md.m_scriptingName << md.m_comment << md.m_color << md.m_label
            << md.m_touchedName;

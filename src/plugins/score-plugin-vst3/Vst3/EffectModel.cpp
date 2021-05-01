@@ -1,18 +1,22 @@
 
 #include "EffectModel.hpp"
+
 #include "Node.hpp"
 
-#include <Vst3/ApplicationPlugin.hpp>
-#include <Vst3/Control.hpp>
-#include <Vst3/Executor.hpp>
+#include <Audio/Settings/Model.hpp>
+#include <Execution/DocumentPlugin.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Vst3/ApplicationPlugin.hpp>
+#include <Vst3/Control.hpp>
+#include <Vst3/DataStream.hpp>
+#include <Vst3/Executor.hpp>
+#include <Vst3/UI/Window.hpp>
 
-#include <score/tools/std/String.hpp>
+#include <score/model/ComponentUtils.hpp>
 #include <score/tools/DeleteAll.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
-#include <score/model/ComponentUtils.hpp>
+#include <score/tools/std/String.hpp>
 
 #include <ossia-qt/invoke.hpp>
 #include <ossia/detail/math.hpp>
@@ -21,25 +25,22 @@
 #include <QInputDialog>
 #include <QTimer>
 
-#include <Audio/Settings/Model.hpp>
-#include <Audio/Settings/Model.hpp>
-#include <Execution/DocumentPlugin.hpp>
-#include <Vst3/UI/Window.hpp>
-#include <Vst3/DataStream.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <cmath>
-#include <public.sdk/source/vst/hosting/module.h>
+#include <pluginterfaces/vst/ivstprocesscontext.h>
 #include <websocketpp/base64/base64.hpp>
 #include <wobjectimpl.h>
-#include <pluginterfaces/vst/ivstprocesscontext.h>
 
 #include <memory>
 #include <set>
+
+#include <public.sdk/source/vst/hosting/module.h>
 W_OBJECT_IMPL(vst3::Model)
 namespace Process
 {
 template <>
 QString EffectProcessFactory_T<vst3::Model>::customConstructionData() const
-{/*
+{ /*
   auto& app = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
   QStringList vsts;
   vsts.reserve(app.vst_infos.size());
@@ -72,7 +73,8 @@ QString EffectProcessFactory_T<vst3::Model>::customConstructionData() const
 }
 
 template <>
-Process::Descriptor EffectProcessFactory_T<vst3::Model>::descriptor(QString d) const
+Process::Descriptor
+EffectProcessFactory_T<vst3::Model>::descriptor(QString d) const
 {
   Process::Descriptor desc;
   /*
@@ -116,7 +118,6 @@ Process::Descriptor EffectProcessFactory_T<vst3::Model>::descriptor(QString d) c
 namespace vst3
 {
 
-
 Model::Model(
     TimeVal t,
     const QString& path,
@@ -125,7 +126,7 @@ Model::Model(
     : ProcessModel{t, id, "VST", parent}
 {
   auto identifier = splitWithoutEmptyParts(path, "/::/");
-  if(identifier.size() == 2)
+  if (identifier.size() == 2)
   {
     m_vstPath = identifier[0];
     m_className = identifier[1];
@@ -169,13 +170,14 @@ void Model::removeControl(Steinberg::Vst::ParamID fxNum)
 
 void Model::on_addControl(const Steinberg::Vst::ParameterInfo& v)
 {
-  if(controls.find(v.id) != controls.end())
+  if (controls.find(v.id) != controls.end())
   {
     return;
   }
 
   SCORE_ASSERT(controls.find(v.id) == controls.end());
-  auto ctrl = new ControlInlet{Id<Process::Port>(getStrongId(inlets()).val()), this};
+  auto ctrl
+      = new ControlInlet{Id<Process::Port>(getStrongId(inlets()).val()), this};
   ctrl->hidden = true;
   ctrl->fxNum = v.id;
   ctrl->setValue(v.defaultNormalizedValue);
@@ -186,7 +188,8 @@ void Model::on_addControl(const Steinberg::Vst::ParameterInfo& v)
 
 void Model::removeControl(const Id<Process::Port>& id)
 {
-  auto it = ossia::find_if(m_inlets, [&](const auto& inl) { return inl->id() == id; });
+  auto it = ossia::find_if(
+      m_inlets, [&](const auto& inl) { return inl->id() == id; });
 
   SCORE_ASSERT(it != m_inlets.end());
   auto ctrl = safe_cast<ControlInlet*>(*it);
@@ -206,9 +209,7 @@ ControlInlet* Model::getControl(const Id<Process::Port>& p) const
   return nullptr;
 }
 
-void Model::init()
-{
-}
+void Model::init() { }
 
 void Model::on_addControl_impl(ControlInlet* ctrl)
 {
@@ -220,12 +221,15 @@ void Model::on_addControl_impl(ControlInlet* ctrl)
 void Model::initControl(ControlInlet* ctrl)
 {
   ctrl->setValue(fx.controller->getParamNormalized(ctrl->fxNum));
-  connect(ctrl, &vst3::ControlInlet::valueChanged,
-          this, [this, i = ctrl->fxNum](float newval) {
-    auto& c = *fx.controller;
-    if (std::abs(newval - c.getParamNormalized(i)) > 0.0001)
-      c.setParamNormalized(i, newval);
-  });
+  connect(
+      ctrl,
+      &vst3::ControlInlet::valueChanged,
+      this,
+      [this, i = ctrl->fxNum](float newval) {
+        auto& c = *fx.controller;
+        if (std::abs(newval - c.getParamNormalized(i)) > 0.0001)
+          c.setParamNormalized(i, newval);
+      });
 
   SCORE_ASSERT(controls.find(ctrl->fxNum) == controls.end());
   controls.insert({ctrl->fxNum, ctrl});
@@ -245,7 +249,6 @@ void Model::reloadControls()
   */
 }
 
-
 void Model::closePlugin()
 {
   if (fx)
@@ -263,16 +266,24 @@ void Model::closePlugin()
   metadata().setLabel("Dead VST");
 }
 
-
 void Model::initFx()
 {
   auto& ctx = score::IDocument::documentContext(*this);
   auto& p = ctx.app.applicationPlugin<vst3::ApplicationPlugin>();
   auto& media = ctx.app.settings<Audio::Settings::Model>();
 
-  try {
-    this->fx.load(*this, p, m_vstPath.toStdString(), m_className.toStdString(), media.getRate(), 4096);
-  } catch(std::exception& e) {
+  try
+  {
+    this->fx.load(
+        *this,
+        p,
+        m_vstPath.toStdString(),
+        m_className.toStdString(),
+        media.getRate(),
+        4096);
+  }
+  catch (std::exception& e)
+  {
     qDebug() << e.what();
     this->fx = {};
     return;
@@ -284,22 +295,24 @@ void Model::initFx()
   /// this->fx.controller->setComponentState(...);
 }
 
-
-struct BusActivationVisitor {
+struct BusActivationVisitor
+{
   Plugin& fx;
 
   void audioIn(const Steinberg::Vst::BusInfo& bus, int idx)
   {
     if (bus.flags & Steinberg::Vst::BusInfo::kDefaultActive)
     {
-      fx.component->activateBus(Steinberg::Vst::kAudio, Steinberg::Vst::kInput, idx, true);
+      fx.component->activateBus(
+          Steinberg::Vst::kAudio, Steinberg::Vst::kInput, idx, true);
     }
   }
   void eventIn(const Steinberg::Vst::BusInfo& bus, int idx)
   {
     if (bus.flags & Steinberg::Vst::BusInfo::kDefaultActive)
     {
-      fx.component->activateBus(Steinberg::Vst::kEvent, Steinberg::Vst::kInput, idx, true);
+      fx.component->activateBus(
+          Steinberg::Vst::kEvent, Steinberg::Vst::kInput, idx, true);
     }
   }
 
@@ -307,7 +320,8 @@ struct BusActivationVisitor {
   {
     if (bus.flags & Steinberg::Vst::BusInfo::kDefaultActive)
     {
-      fx.component->activateBus(Steinberg::Vst::kAudio, Steinberg::Vst::kOutput, idx, true);
+      fx.component->activateBus(
+          Steinberg::Vst::kAudio, Steinberg::Vst::kOutput, idx, true);
     }
   }
 
@@ -315,12 +329,14 @@ struct BusActivationVisitor {
   {
     if (bus.flags & Steinberg::Vst::BusInfo::kDefaultActive)
     {
-      fx.component->activateBus(Steinberg::Vst::kEvent, Steinberg::Vst::kOutput, idx, true);
+      fx.component->activateBus(
+          Steinberg::Vst::kEvent, Steinberg::Vst::kOutput, idx, true);
     }
   }
 };
 
-struct PortCreationVisitor {
+struct PortCreationVisitor
+{
   Model& model;
   Plugin& fx;
 
@@ -348,11 +364,12 @@ struct PortCreationVisitor {
   {
     BusActivationVisitor{fx}.audioOut(bus, idx);
 
-    auto port = new Process::AudioOutlet(Id<Process::Port>{outlet_i++}, &model);
+    auto port
+        = new Process::AudioOutlet(Id<Process::Port>{outlet_i++}, &model);
     port->setName(fromString(bus.name));
     model.m_outlets.push_back(port);
 
-    if(idx == 0)
+    if (idx == 0)
       port->setPropagate(true);
   }
 
@@ -376,16 +393,17 @@ void Model::create()
 
   forEachBus(PortCreationVisitor{*this, fx}, *fx.component);
 
-  if(fx.controller)
+  if (fx.controller)
   {
     fx.loadProcessorStateToController();
 
     const int numParams = fx.controller->getParameterCount();
-    if(numParams < VST_DEFAULT_PARAM_NUMBER_CUTOFF || !fx.view)
+    if (numParams < VST_DEFAULT_PARAM_NUMBER_CUTOFF || !fx.view)
     {
       Steinberg::Vst::ParameterInfo p;
-      for(int i = 0; i < numParams; i++) {
-        if(fx.controller->getParameterInfo(i, p) == Steinberg::kResultOk)
+      for (int i = 0; i < numParams; i++)
+      {
+        if (fx.controller->getParameterInfo(i, p) == Steinberg::kResultOk)
         {
           on_addControl(p);
         }
@@ -410,9 +428,9 @@ void Model::load()
 
   // fx.loadProcessorStateToController();
 
-  for(auto*inlet : this->m_inlets)
+  for (auto* inlet : this->m_inlets)
   {
-    if(auto ctl = qobject_cast<ControlInlet*>(inlet))
+    if (auto ctl = qobject_cast<ControlInlet*>(inlet))
     {
       initControl(ctl);
     }
@@ -421,7 +439,7 @@ void Model::load()
 
 QByteArray Model::readProcessorState() const
 {
-  if(fx.component)
+  if (fx.component)
   {
     QByteArray vstData;
     QDataStream str{&vstData, QIODevice::ReadWrite};
@@ -437,7 +455,7 @@ QByteArray Model::readProcessorState() const
 
 QByteArray Model::readControllerState() const
 {
-  if(fx.controller)
+  if (fx.controller)
   {
     QByteArray vstData;
     QDataStream str{&vstData, QIODevice::ReadWrite};
@@ -453,7 +471,7 @@ QByteArray Model::readControllerState() const
 
 void Model::writeState()
 {
-  if(fx.component)
+  if (fx.component)
   {
     // First reload the processor state into the processor.
     {
@@ -463,18 +481,17 @@ void Model::writeState()
       fx.component->setState(&stream);
 
       // Then into the controller
-      if(fx.controller)
+      if (fx.controller)
       {
         QDataStream str{m_savedProcessorState};
         Vst3DataStream stream{str};
         fx.controller->setComponentState(&stream);
-
       }
       m_savedProcessorState = {};
     }
 
     // Then reload the controller-specific data
-    if(fx.controller)
+    if (fx.controller)
     {
       {
         QDataStream str{m_savedControllerState};
@@ -501,9 +518,9 @@ struct InputCopier
   vst3::param_changes m_outputChanges;
 
   InputCopier(const vst3::Plugin& p)
-    : component{p.component}
-    , processor{p.processor}
-    , controller{p.controller}
+      : component{p.component}
+      , processor{p.processor}
+      , controller{p.controller}
   {
     m_vstData.processMode = Steinberg::Vst::ProcessModes::kRealtime;
     m_vstData.numInputs = 0;
@@ -519,7 +536,7 @@ struct InputCopier
 
     m_vstData.processContext = nullptr;
 
-    for(int i = 0, N = controller->getParameterCount(); i < N; i++)
+    for (int i = 0, N = controller->getParameterCount(); i < N; i++)
     {
       Steinberg::Vst::ParameterInfo inf;
       controller->getParameterInfo(i, inf);
@@ -533,7 +550,6 @@ struct InputCopier
   }
 };
 
-
 void syncVST3ControllerToProcessor(const vst3::Model& eff)
 {
   // The main "data" to save is the one that is part of the Component.
@@ -542,7 +558,7 @@ void syncVST3ControllerToProcessor(const vst3::Model& eff)
   // And in that case the processor's copy of the controls isn't updated, and we save old values.
   // Thus we have to sync the processor with the controller in that case.
 
-  if(auto comp = score::findComponent<vst3::Executor>(eff.components()))
+  if (auto comp = score::findComponent<vst3::Executor>(eff.components()))
     return;
 
   // TODO do something more fine-grained.
@@ -556,7 +572,8 @@ void DataStreamReader::read(const vst3::Model& eff)
 {
   syncVST3ControllerToProcessor(eff);
 
-  m_stream << eff.m_vstPath << eff.m_className << eff.readProcessorState() << eff.readControllerState();
+  m_stream << eff.m_vstPath << eff.m_className << eff.readProcessorState()
+           << eff.readControllerState();
   readPorts(*this, eff.m_inlets, eff.m_outlets);
   insertDelimiter();
 }
@@ -564,10 +581,15 @@ void DataStreamReader::read(const vst3::Model& eff)
 template <>
 void DataStreamWriter::write(vst3::Model& eff)
 {
-  m_stream >> eff.m_vstPath >> eff.m_className >> eff.m_savedProcessorState >> eff.m_savedControllerState;
+  m_stream >> eff.m_vstPath >> eff.m_className >> eff.m_savedProcessorState
+      >> eff.m_savedControllerState;
 
   writePorts(
-      *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets, eff.m_outlets, &eff);
+      *this,
+      components.interfaces<Process::PortFactoryList>(),
+      eff.m_inlets,
+      eff.m_outlets,
+      &eff);
 
   eff.load();
   checkDelimiter();
@@ -602,8 +624,11 @@ void JSONWriter::write(vst3::Model& eff)
   }
 
   writePorts(
-      *this, components.interfaces<Process::PortFactoryList>(),
-        eff.m_inlets, eff.m_outlets, &eff);
+      *this,
+      components.interfaces<Process::PortFactoryList>(),
+      eff.m_inlets,
+      eff.m_outlets,
+      &eff);
 
   eff.load();
 }

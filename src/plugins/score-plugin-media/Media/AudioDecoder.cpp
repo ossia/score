@@ -1,7 +1,7 @@
 #include "AudioDecoder.hpp"
 
-#include <Media/Sound/SoundModel.hpp>
 #include <Media/Libav.hpp>
+#include <Media/Sound/SoundModel.hpp>
 
 #include <score/tools/Debug.hpp>
 
@@ -31,7 +31,8 @@ W_OBJECT_IMPL(Media::AudioDecoder)
 namespace
 {
 using namespace Media;
-static const constexpr std::size_t dynamic_channels = std::numeric_limits<std::size_t>::max();
+static const constexpr std::size_t dynamic_channels
+    = std::numeric_limits<std::size_t>::max();
 
 template <typename SampleFormat, int N>
 constexpr audio_sample convert_sample(SampleFormat i);
@@ -49,9 +50,11 @@ template <>
 constexpr audio_sample convert_sample<int32_t, 24>(int32_t i)
 {
   if constexpr (std::is_same_v<audio_sample, float>)
-    return ((int32_t)i >> 8) / ((audio_sample)std::numeric_limits<int32_t>::max() / 256.f);
+    return ((int32_t)i >> 8)
+           / ((audio_sample)std::numeric_limits<int32_t>::max() / 256.f);
   else
-    return ((int32_t)i >> 8) / ((audio_sample)std::numeric_limits<int32_t>::max() / 256.);
+    return ((int32_t)i >> 8)
+           / ((audio_sample)std::numeric_limits<int32_t>::max() / 256.);
 }
 
 template <>
@@ -72,13 +75,21 @@ constexpr audio_sample convert_sample<double, 64>(double i)
   return i;
 }
 
-template <typename SampleFormat, std::size_t Channels, std::size_t SampleSize, bool Planar>
+template <
+    typename SampleFormat,
+    std::size_t Channels,
+    std::size_t SampleSize,
+    bool Planar>
 struct Decoder;
 
 template <typename SampleFormat, std::size_t SampleSize>
 struct Decoder<SampleFormat, 1, SampleSize, true>
 {
-  void operator()(audio_array& data, std::size_t curpos, uint8_t** buf, std::size_t n)
+  void operator()(
+      audio_array& data,
+      std::size_t curpos,
+      uint8_t** buf,
+      std::size_t n)
   {
     auto dat = reinterpret_cast<SampleFormat*>(buf[0]);
     for (std::size_t j = 0; j < n; j++)
@@ -91,7 +102,11 @@ struct Decoder<SampleFormat, 1, SampleSize, true>
 template <typename SampleFormat, std::size_t Channels, std::size_t SampleSize>
 struct Decoder<SampleFormat, Channels, SampleSize, false>
 {
-  void operator()(audio_array& data, std::size_t curpos, uint8_t** buf, std::size_t n)
+  void operator()(
+      audio_array& data,
+      std::size_t curpos,
+      uint8_t** buf,
+      std::size_t n)
   {
     auto dat = reinterpret_cast<SampleFormat*>(buf[0]);
 
@@ -112,14 +127,19 @@ struct Decoder<SampleFormat, Channels, SampleSize, false>
 template <typename SampleFormat, std::size_t Channels, std::size_t SampleSize>
 struct Decoder<SampleFormat, Channels, SampleSize, true>
 {
-  void operator()(audio_array& data, std::size_t curpos, uint8_t** buf, std::size_t n)
+  void operator()(
+      audio_array& data,
+      std::size_t curpos,
+      uint8_t** buf,
+      std::size_t n)
   {
     auto dat = reinterpret_cast<SampleFormat**>(buf);
     for (std::size_t chan = 0; chan < Channels; chan++)
     {
       for (std::size_t j = 0; j < n; j++)
       {
-        data[chan][curpos + j] = convert_sample<SampleFormat, SampleSize>(dat[chan][j]);
+        data[chan][curpos + j]
+            = convert_sample<SampleFormat, SampleSize>(dat[chan][j]);
       }
     }
   }
@@ -129,7 +149,11 @@ template <typename SampleFormat, std::size_t SampleSize>
 struct Decoder<SampleFormat, dynamic_channels, SampleSize, false>
 {
   std::size_t Channels{};
-  void operator()(audio_array& data, std::size_t curpos, uint8_t** buf, std::size_t n)
+  void operator()(
+      audio_array& data,
+      std::size_t curpos,
+      uint8_t** buf,
+      std::size_t n)
   {
     auto dat = reinterpret_cast<SampleFormat*>(buf[0]);
 
@@ -151,14 +175,19 @@ template <typename SampleFormat, std::size_t SampleSize>
 struct Decoder<SampleFormat, dynamic_channels, SampleSize, true>
 {
   std::size_t Channels{};
-  void operator()(audio_array& data, std::size_t curpos, uint8_t** buf, std::size_t n)
+  void operator()(
+      audio_array& data,
+      std::size_t curpos,
+      uint8_t** buf,
+      std::size_t n)
   {
     auto dat = reinterpret_cast<SampleFormat**>(buf);
     for (std::size_t chan = 0; chan < Channels; chan++)
     {
       for (std::size_t j = 0; j < n; j++)
       {
-        data[chan][curpos + j] = convert_sample<SampleFormat, SampleSize>(dat[chan][j]);
+        data[chan][curpos + j]
+            = convert_sample<SampleFormat, SampleSize>(dat[chan][j]);
       }
     }
   }
@@ -394,10 +423,15 @@ struct AVFormatContext;
 struct AVFrame;
 namespace Media
 {
-AudioDecoder::AudioDecoder(int rate) : convertedSampleRate{rate}
+AudioDecoder::AudioDecoder(int rate)
+    : convertedSampleRate{rate}
 {
   connect(
-      this, &AudioDecoder::startDecode, this, &AudioDecoder::on_startDecode, Qt::QueuedConnection);
+      this,
+      &AudioDecoder::startDecode,
+      this,
+      &AudioDecoder::on_startDecode,
+      Qt::QueuedConnection);
 }
 
 AudioDecoder::~AudioDecoder()
@@ -434,8 +468,10 @@ struct AVFrame_Free
 #endif
   }
 };
-using AVFormatContext_ptr = std::unique_ptr<AVFormatContext, AVFormatContext_Free>;
-using AVCodecContext_ptr = std::unique_ptr<AVCodecContext, AVCodecContext_Free>;
+using AVFormatContext_ptr
+    = std::unique_ptr<AVFormatContext, AVFormatContext_Free>;
+using AVCodecContext_ptr
+    = std::unique_ptr<AVCodecContext, AVCodecContext_Free>;
 using AVFrame_ptr = std::unique_ptr<AVFrame, AVFrame_Free>;
 
 AVFormatContext_ptr open_audio(const QString& path)
@@ -443,13 +479,15 @@ AVFormatContext_ptr open_audio(const QString& path)
 #if SCORE_HAS_LIBAV
   AVFormatContext* fmt_ctx_ptr{};
   auto l1 = path.toUtf8();
-  auto ret = avformat_open_input(&fmt_ctx_ptr, l1.constData(), nullptr, nullptr);
+  auto ret
+      = avformat_open_input(&fmt_ctx_ptr, l1.constData(), nullptr, nullptr);
   if (ret != 0)
   {
     char err[100]{0};
     av_make_error_string(err, 100, ret);
     throw std::runtime_error(
-        "Couldn't open file: " + std::string(l1.constData()) + " => " + std::string(err));
+        "Couldn't open file: " + std::string(l1.constData()) + " => "
+        + std::string(err));
   }
 
   return AVFormatContext_ptr{fmt_ctx_ptr};
@@ -578,8 +616,8 @@ void AudioDecoder::decode(const QString& path, audio_handle hdl)
   data.resize(info.channels);
 
   if (convertedSampleRate != fileSampleRate)
-    info.max_arr_length
-        = av_rescale_rnd(info.max_arr_length, convertedSampleRate, fileSampleRate, AV_ROUND_UP);
+    info.max_arr_length = av_rescale_rnd(
+        info.max_arr_length, convertedSampleRate, fileSampleRate, AV_ROUND_UP);
 
   for (auto& c : data)
   {
@@ -630,7 +668,8 @@ void AudioDecoder::decodeFrame(Decoder dec, audio_array& data, AVFrame& frame)
 
   if (convertedSampleRate != fileSampleRate)
   {
-    auto new_len = av_rescale_rnd(frame.nb_samples, convertedSampleRate, fileSampleRate, AV_ROUND_UP);
+    auto new_len = av_rescale_rnd(
+        frame.nb_samples, convertedSampleRate, fileSampleRate, AV_ROUND_UP);
 
     if (decoded + new_len > max_samples)
     {
@@ -652,7 +691,11 @@ void AudioDecoder::decodeFrame(Decoder dec, audio_array& data, AVFrame& frame)
       audio_sample* in_ptr = tmp[i].data();
 
       res = swr_convert(
-          resampler[i], (uint8_t**)&out_ptr, new_len, (const uint8_t**)&in_ptr, frame.nb_samples);
+          resampler[i],
+          (uint8_t**)&out_ptr,
+          new_len,
+          (const uint8_t**)&in_ptr,
+          frame.nb_samples);
     }
     decoded += res;
   }
@@ -671,7 +714,10 @@ void AudioDecoder::decodeFrame(Decoder dec, audio_array& data, AVFrame& frame)
 }
 
 template <typename Decoder>
-void AudioDecoder::decodeRemaining(Decoder dec, audio_array& data, AVFrame& frame)
+void AudioDecoder::decodeRemaining(
+    Decoder dec,
+    audio_array& data,
+    AVFrame& frame)
 {
 #if SCORE_HAS_LIBAV
   const std::size_t channels = data.size();
@@ -682,7 +728,12 @@ void AudioDecoder::decodeRemaining(Decoder dec, audio_array& data, AVFrame& fram
     {
       audio_sample* out_ptr = data[i].data() + decoded;
 
-      res = swr_convert(resampler[i], (uint8_t**)&out_ptr, data[i].size() - decoded, nullptr, 0);
+      res = swr_convert(
+          resampler[i],
+          (uint8_t**)&out_ptr,
+          data[i].size() - decoded,
+          nullptr,
+          0);
     }
     decoded += res;
   }
@@ -759,7 +810,7 @@ void AudioDecoder::on_startDecode(QString path, audio_handle hdl)
       throw std::runtime_error("Couldn't create decoder");
 
     // init resampling
-    if(convertedSampleRate != fileSampleRate)
+    if (convertedSampleRate != fileSampleRate)
     {
       for (std::size_t i = 0; i < channels; ++i)
       {

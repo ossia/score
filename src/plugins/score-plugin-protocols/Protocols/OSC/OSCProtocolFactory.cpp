@@ -32,18 +32,20 @@ QString OSCProtocolFactory::category() const noexcept
   return StandardCategories::osc;
 }
 
-Device::DeviceEnumerator* OSCProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerator*
+OSCProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
   return new LibraryDeviceEnumerator{
-    "9a42de4b-f6eb-4bca-9564-01b975f601b9",
-    {"*.json", "*.device", "*.touchosc", "*.xml"},
-    OSCProtocolFactory::static_concreteKey(),
-        [] (const QByteArray& arr) {
-      auto copy = arr;
-      copy.detach();
-      return QVariant::fromValue(OSCSpecificSettings{9996, 9997, "127.0.0.1", std::nullopt, std::move(copy)});
-    },
-    ctx};
+      "9a42de4b-f6eb-4bca-9564-01b975f601b9",
+      {"*.json", "*.device", "*.touchosc", "*.xml"},
+      OSCProtocolFactory::static_concreteKey(),
+      [](const QByteArray& arr) {
+        auto copy = arr;
+        copy.detach();
+        return QVariant::fromValue(OSCSpecificSettings{
+            9996, 9997, "127.0.0.1", std::nullopt, std::move(copy)});
+      },
+      ctx};
 }
 
 Device::DeviceInterface* OSCProtocolFactory::makeDevice(
@@ -53,7 +55,8 @@ Device::DeviceInterface* OSCProtocolFactory::makeDevice(
   return new OSCDevice{settings, ctx};
 }
 
-const Device::DeviceSettings& OSCProtocolFactory::defaultSettings() const noexcept
+const Device::DeviceSettings&
+OSCProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
@@ -71,7 +74,8 @@ Device::ProtocolSettingsWidget* OSCProtocolFactory::makeSettingsWidget()
   return new OSCProtocolSettingsWidget;
 }
 
-QVariant OSCProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
+QVariant OSCProtocolFactory::makeProtocolSpecificSettings(
+    const VisitorVariant& visitor) const
 {
   return makeProtocolSpecificSettings_T<OSCSpecificSettings>(visitor);
 }
@@ -89,6 +93,7 @@ bool OSCProtocolFactory::checkCompatibility(
 {
   auto a_p = a.deviceSpecificSettings.value<OSCSpecificSettings>();
   auto b_p = b.deviceSpecificSettings.value<OSCSpecificSettings>();
-  return a.name != b.name && a_p.deviceListeningPort != b_p.deviceListeningPort && a_p.scoreListeningPort != b_p.scoreListeningPort;
+  return a.name != b.name && a_p.deviceListeningPort != b_p.deviceListeningPort
+         && a_p.scoreListeningPort != b_p.scoreListeningPort;
 }
 }

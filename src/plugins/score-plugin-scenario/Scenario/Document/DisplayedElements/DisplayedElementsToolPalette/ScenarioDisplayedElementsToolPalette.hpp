@@ -1,14 +1,15 @@
 #pragma once
 #include <Process/Tools/ToolPalette.hpp>
-#include <Scenario/Document/BaseScenario/BaseElementContext.hpp>
-#include <Scenario/Palette/ScenarioPoint.hpp>
-#include <Scenario/Palette/Tool.hpp>
-#include <Scenario/Palette/Tools/SmartTool.hpp>
 
 #include <score/document/DocumentContext.hpp>
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
 
 #include <QPoint>
+
+#include <Scenario/Document/BaseScenario/BaseElementContext.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
+#include <Scenario/Palette/Tool.hpp>
+#include <Scenario/Palette/Tools/SmartTool.hpp>
 
 class BaseGraphicsObject;
 
@@ -30,7 +31,8 @@ class DisplayedElementsModel;
 class DisplayedElementsPresenter;
 class ScenarioDocumentPresenter;
 
-class ScenarioDisplayedElementsToolPalette final : public GraphicsSceneToolPalette
+class ScenarioDisplayedElementsToolPalette final
+    : public GraphicsSceneToolPalette
 {
 public:
   ScenarioDisplayedElementsToolPalette(

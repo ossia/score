@@ -13,7 +13,8 @@ template <typename Layout>
 class MarginLess final : public Layout
 {
 public:
-  MarginLess(QWidget* widg) : Layout{widg}
+  MarginLess(QWidget* widg)
+      : Layout{widg}
   {
     this->setContentsMargins(0, 0, 0, 0);
     this->setSpacing(4);

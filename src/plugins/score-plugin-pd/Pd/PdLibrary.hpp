@@ -5,15 +5,17 @@
 #include <Pd/PdProcess.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
 
+#include <QDirIterator>
 #include <QFileInfo>
 #include <QTimer>
-#include <QDirIterator>
 
 #include <unordered_map>
 
 namespace Pd
 {
-class LibraryHandler final : public QObject, public Library::LibraryInterface
+class LibraryHandler final
+    : public QObject
+    , public Library::LibraryInterface
 {
   SCORE_CONCRETE("01ffc109-9cb3-4c5a-9cdd-d9fd38fe5e17")
 
@@ -22,7 +24,9 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
   QDirIterator iterator{QString{}};
   Library::Subcategories categories;
 
-  void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx) override
+  void setup(
+      Library::ProcessesItemModel& model,
+      const score::GUIApplicationContext& ctx) override
   {
     // TODO relaunch whenever library path changes...
     const auto& key = Metadata<ConcreteKey_k, ProcessModel>::get();
@@ -30,18 +34,19 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
     if (node == QModelIndex{})
       return;
 
-    categories.parent = reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
+    categories.parent
+        = reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
 
     // We use the parent folder as category...
-    categories.libraryFolder.setPath(ctx.settings<Library::Settings::Model>().getPath());
+    categories.libraryFolder.setPath(
+        ctx.settings<Library::Settings::Model>().getPath());
 
     iterator.~QDirIterator();
     new (&iterator) QDirIterator{
-      categories.libraryFolder.absolutePath(),
-      {"*.pd"},
-      QDir::NoFilter,
-      QDirIterator::Subdirectories | QDirIterator::FollowSymlinks
-    };
+        categories.libraryFolder.absolutePath(),
+        {"*.pd"},
+        QDir::NoFilter,
+        QDirIterator::Subdirectories | QDirIterator::FollowSymlinks};
 
     next();
   }
@@ -60,9 +65,7 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
     Library::ProcessData pdata;
     pdata.prettyName = file.baseName();
     pdata.key = Metadata<ConcreteKey_k, Pd::ProcessModel>::get();
-    pdata.customData = [&] {
-      return file.absoluteFilePath();
-    }();
+    pdata.customData = [&] { return file.absoluteFilePath(); }();
 
     categories.add(file, std::move(pdata));
   }

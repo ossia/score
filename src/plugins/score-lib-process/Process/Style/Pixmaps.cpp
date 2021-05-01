@@ -49,7 +49,8 @@ Pixmaps::Pixmaps() noexcept
     , stop{score::get_pixmap(":/icons/stop_off.png").scaled(15, 15)}
 
     , unroll{score::get_pixmap(":/icons/rack_button_off.png")}
-    , unroll_selected{score::get_pixmap(":/icons/rack_button_off_selected.png")}
+    , unroll_selected{score::get_pixmap(
+          ":/icons/rack_button_off_selected.png")}
     , roll{score::get_pixmap(":/icons/rack_button_on.png")}
     , roll_selected{score::get_pixmap(":/icons/rack_button_on_selected.png")}
 

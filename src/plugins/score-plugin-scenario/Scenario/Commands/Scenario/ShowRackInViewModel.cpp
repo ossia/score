@@ -2,17 +2,19 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ShowRackInViewModel.hpp"
 
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 
 namespace Scenario
 {
 namespace Command
 {
-ShowRack::ShowRack(const IntervalModel& vm) : m_intervalViewPath{vm}, m_old{vm.smallViewVisible()}
+ShowRack::ShowRack(const IntervalModel& vm)
+    : m_intervalViewPath{vm}
+    , m_old{vm.smallViewVisible()}
 {
 }
 

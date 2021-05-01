@@ -1,19 +1,21 @@
 #pragma once
-#include <Scenario/Document/Components/IntervalComponent.hpp>
+#include <LocalTree/LocalTreeComponent.hpp>
+#include <LocalTree/ProcessComponent.hpp>
 
 #include <score/model/ComponentHierarchy.hpp>
 
-#include <LocalTree/LocalTreeComponent.hpp>
-#include <LocalTree/ProcessComponent.hpp>
+#include <Scenario/Document/Components/IntervalComponent.hpp>
 
 namespace LocalTree
 {
 class SCORE_PLUGIN_SCENARIO_EXPORT IntervalBase
-    : public Component<Scenario::GenericIntervalComponent<const score::DocumentContext>>
+    : public Component<
+          Scenario::GenericIntervalComponent<const score::DocumentContext>>
 {
   COMMON_COMPONENT_METADATA("11d928b5-eaeb-471c-b3b7-dc453180b10f")
 public:
-  using parent_t = Component<Scenario::GenericIntervalComponent<const score::DocumentContext>>;
+  using parent_t = Component<
+      Scenario::GenericIntervalComponent<const score::DocumentContext>>;
   using model_t = Process::ProcessModel;
   using component_t = LocalTree::ProcessComponent;
   using component_factory_t = LocalTree::ProcessComponentFactory;
@@ -30,9 +32,11 @@ public:
       const Id<score::Component>& id,
       ProcessComponentFactory& factory,
       Process::ProcessModel& process);
-  ProcessComponent* make(const Id<score::Component>& id, Process::ProcessModel& process);
+  ProcessComponent*
+  make(const Id<score::Component>& id, Process::ProcessModel& process);
 
-  bool removing(const Process::ProcessModel& cst, const ProcessComponent& comp);
+  bool
+  removing(const Process::ProcessModel& cst, const ProcessComponent& comp);
   template <typename... Args>
   void added(Args&&...)
   {
@@ -52,7 +56,8 @@ class SCORE_PLUGIN_SCENARIO_EXPORT Interval final
 public:
   template <typename... Args>
   Interval(Args&&... args)
-      : score::PolymorphicComponentHierarchy<IntervalBase>{std::forward<Args>(args)...}
+      : score::PolymorphicComponentHierarchy<IntervalBase>{
+          std::forward<Args>(args)...}
   {
   }
   ~Interval();

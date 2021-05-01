@@ -1,12 +1,12 @@
 #pragma once
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
+
 #include <QDirIterator>
 
 namespace Protocols
 {
 
-class LibraryDeviceEnumerator
-    : public Device::DeviceEnumerator
+class LibraryDeviceEnumerator : public Device::DeviceEnumerator
 {
 public:
   std::string m_pattern;
@@ -22,6 +22,7 @@ public:
 
   void next();
 
-  void enumerate(std::function<void(const Device::DeviceSettings&)> onDevice) const override;
+  void enumerate(std::function<void(const Device::DeviceSettings&)> onDevice)
+      const override;
 };
 }

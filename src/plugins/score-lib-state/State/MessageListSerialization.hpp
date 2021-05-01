@@ -31,6 +31,7 @@ struct MimeWriter<State::MessageList> : public MimeDataWriter
   using MimeDataWriter::MimeDataWriter;
   State::MessageList deserialize()
   {
-    return fromJson<State::MessageList>(m_mime.data(score::mime::messagelist()));
+    return fromJson<State::MessageList>(
+        m_mime.data(score::mime::messagelist()));
   }
 };

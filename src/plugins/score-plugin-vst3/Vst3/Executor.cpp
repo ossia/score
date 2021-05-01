@@ -1,10 +1,9 @@
 #include "Executor.hpp"
 
-#include <Vst3/Node.hpp>
-#include <Vst3/Control.hpp>
-
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionSetup.hpp>
+#include <Vst3/Control.hpp>
+#include <Vst3/Node.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/fx_node.hpp>
@@ -27,14 +26,18 @@ void Executor::setupNode(Node_T& node)
 
   for (auto model_inlet : inlets)
   {
-    if(auto ctrl = qobject_cast<vst3::ControlInlet*>(model_inlet))
+    if (auto ctrl = qobject_cast<vst3::ControlInlet*>(model_inlet))
     {
-      auto queue_idx = node->add_control(new ossia::value_inlet, ctrl->fxNum, ctrl->value());
-      connect(ctrl, &vst3::ControlInlet::valueChanged,
-              this, [queue_idx, node] (float v) {
-        qDebug() << v;
-        node->set_control(queue_idx, v);
-      });
+      auto queue_idx = node->add_control(
+          new ossia::value_inlet, ctrl->fxNum, ctrl->value());
+      connect(
+          ctrl,
+          &vst3::ControlInlet::valueChanged,
+          this,
+          [queue_idx, node](float v) {
+            qDebug() << v;
+            node->set_control(queue_idx, v);
+          });
     }
   }
 
@@ -54,9 +57,10 @@ void Executor::setupNode(Node_T& node)
 
           Execution::Transaction commands{system()};
 
-          commands.push_back([n, inlet, val = ctrl->value(), num = ctrl->fxNum] {
-            n->add_control(inlet, num, val);
-          });
+          commands.push_back(
+              [n, inlet, val = ctrl->value(), num = ctrl->fxNum] {
+                n->add_control(inlet, num, val);
+              });
 
           setup.register_inlet(*ctrl, inlet, n, commands);
 
@@ -71,8 +75,10 @@ void Executor::setupNode(Node_T& node)
         if (auto n = wp.lock())
         {
           Execution::SetupContext& setup = system().context().setup;
-          in_exec([n, num = static_cast<const vst3::ControlInlet&>(port).fxNum] {
-            auto it = ossia::find_if(n->controls, [&](auto& c) { return c.idx == num; });
+          in_exec([n,
+                   num = static_cast<const vst3::ControlInlet&>(port).fxNum] {
+            auto it = ossia::find_if(
+                n->controls, [&](auto& c) { return c.idx == num; });
             if (it != n->controls.end())
             {
               ossia::value_port* port = it->port;
@@ -99,10 +105,10 @@ Executor::Executor(
     QObject* parent)
     : ProcessComponent_T{proc, ctx, id, "VST3Component", parent}
 {
-  if (!proc.fx )
+  if (!proc.fx)
     throw std::runtime_error("Unable to load VST");
 
-  if(proc.fx.supportsDouble)
+  if (proc.fx.supportsDouble)
   {
     auto n = vst3::make_vst_fx<true>(proc.fx, ctx.execState->sampleRate);
     setupNode(n);

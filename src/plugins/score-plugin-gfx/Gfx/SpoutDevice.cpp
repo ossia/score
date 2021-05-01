@@ -1,35 +1,31 @@
-#include <Spout/SpoutSender.h>
 #include "SpoutDevice.hpp"
 
+#include <Gfx/GfxApplicationPlugin.hpp>
+#include <Gfx/GfxExecContext.hpp>
+#include <Gfx/GfxParameter.hpp>
+#include <Gfx/Graph/nodes.hpp>
+#include <Gfx/Graph/renderer.hpp>
 #include <State/MessageListSerialization.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
 #include <score/serialization/MimeVisitor.hpp>
 
 #include <ossia-qt/name_utils.hpp>
-
-#include <QFormLayout>
-#include <QMenu>
-#include <QMimeData>
-#include <QtGui/private/qrhigles2_p_p.h>
-
-#include <Gfx/GfxApplicationPlugin.hpp>
-#include <wobjectimpl.h>
-
-#include <QTimer>
-
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/protocol.hpp>
 
+#include <QFormLayout>
 #include <QLineEdit>
+#include <QMenu>
+#include <QMimeData>
+#include <QTimer>
+#include <QtGui/private/qrhigles2_p_p.h>
 
-#include <Gfx/Graph/renderer.hpp>
-#include <Gfx/GfxExecContext.hpp>
-#include <Gfx/GfxParameter.hpp>
-#include <Gfx/Graph/nodes.hpp>
+#include <Spout/SpoutSender.h>
+#include <wobjectimpl.h>
 W_OBJECT_IMPL(Gfx::SpoutDevice)
 
-#include <Gfx/Qt5CompatPush>
+#include <Gfx/Qt5CompatPush> // clang-format: keep
 
 namespace Gfx
 {
@@ -58,8 +54,7 @@ struct SpoutNode : OutputNode
       GraphicsApi graphicsApi,
       std::function<void()> onReady,
       std::function<void()> onUpdate,
-      std::function<void()> onResize
-      ) override;
+      std::function<void()> onResize) override;
   void destroyOutput() override;
 
   RenderState* renderState() const override;
@@ -71,8 +66,11 @@ class spout_device : public ossia::net::device_base
   gfx_node_base root;
 
 public:
-  spout_device(std::unique_ptr<ossia::net::protocol_base> proto, std::string name)
-      : ossia::net::device_base{std::move(proto)}, root{*this, new SpoutNode, name}
+  spout_device(
+      std::unique_ptr<ossia::net::protocol_base> proto,
+      std::string name)
+      : ossia::net::device_base{std::move(proto)}
+      , root{*this, new SpoutNode, name}
   {
   }
 
@@ -81,27 +79,26 @@ public:
 };
 }
 
-
 namespace Gfx
 {
 
-  QTimer* timer_unsafe{};
+QTimer* timer_unsafe{};
 
 SpoutNode::SpoutNode()
-  : OutputNode{}
+    : OutputNode{}
 {
   input.push_back(new Port{this, {}, Types::Image, {}});
   timer_unsafe = new QTimer;
-  QObject::connect(timer_unsafe, &QTimer::timeout,
-                   [this] {
-    if(m_update)
+  QObject::connect(timer_unsafe, &QTimer::timeout, [this] {
+    if (m_update)
       m_update();
 
-    if(m_renderer && m_renderState) {
+    if (m_renderer && m_renderState)
+    {
       auto rhi = m_renderState->rhi;
-      QRhiCommandBuffer *cb{};
+      QRhiCommandBuffer* cb{};
       if (rhi->beginOffscreenFrame(&cb) != QRhi::FrameOpSuccess)
-          return;
+        return;
 
       m_renderer->render(*cb);
 
@@ -109,7 +106,7 @@ SpoutNode::SpoutNode()
         rhi->makeThreadLocalNativeContextCurrent();
         static bool b = m_spout->CreateSender("ossia score", 1280, 720);
 
-        if(b)
+        if (b)
         {
           auto tex = dynamic_cast<QGles2Texture*>(m_texture)->texture;
           m_spout->SendTexture(tex, GL_TEXTURE_2D, 1280, 720);
@@ -124,10 +121,7 @@ SpoutNode::SpoutNode()
   });
 }
 
-SpoutNode::~SpoutNode()
-{
-
-}
+SpoutNode::~SpoutNode() { }
 bool SpoutNode::canRender() const
 {
   return bool(m_spout);
@@ -135,7 +129,7 @@ bool SpoutNode::canRender() const
 
 void SpoutNode::startRendering()
 {
-  qDebug() << "startRendering: " ;
+  qDebug() << "startRendering: ";
   timer_unsafe->start(16);
   /*
   if (window)
@@ -151,7 +145,7 @@ void SpoutNode::startRendering()
 }
 
 void SpoutNode::onRendererChange()
-{/*
+{ /*
   if (window)
     if (auto r = window->state.renderer)
       window->canRender = r->renderedNodes.size() > 1;
@@ -160,7 +154,7 @@ void SpoutNode::onRendererChange()
 
 void SpoutNode::stopRendering()
 {
-  qDebug() << "stopRendering: " ;
+  qDebug() << "stopRendering: ";
   timer_unsafe->stop();
   /*
   if (window)
@@ -183,10 +177,10 @@ Renderer* SpoutNode::renderer() const
 }
 
 void SpoutNode::createOutput(
-      GraphicsApi graphicsApi,
-      std::function<void ()> onReady,
-      std::function<void()> onUpdate,
-      std::function<void ()> onResize)
+    GraphicsApi graphicsApi,
+    std::function<void()> onReady,
+    std::function<void()> onUpdate,
+    std::function<void()> onResize)
 {
   m_spout = std::make_shared<SpoutSender>();
   m_renderState = std::make_shared<RenderState>();
@@ -195,20 +189,21 @@ void SpoutNode::createOutput(
   m_renderState->surface = QRhiGles2InitParams::newFallbackSurface();
   QRhiGles2InitParams params;
   params.fallbackSurface = m_renderState->surface;
-#include <Gfx/Qt5CompatPop>
+#include <Gfx/Qt5CompatPop> // clang-format: keep
   m_renderState->rhi = QRhi::create(QRhi::OpenGLES2, &params, {});
-#include <Gfx/Qt5CompatPush>
+#include <Gfx/Qt5CompatPush> // clang-format: keep
   m_renderState->size = QSize(1280, 720);
 
   auto rhi = m_renderState->rhi;
   m_texture = rhi->newTexture(
-                       QRhiTexture::RGBA8,
-                       m_renderState->size,
-                       1,
-                       QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);
+      QRhiTexture::RGBA8,
+      m_renderState->size,
+      1,
+      QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);
   m_texture->create();
-  m_renderTarget = rhi->newTextureRenderTarget({ m_texture });
-  m_renderState->renderPassDescriptor = m_renderTarget->newCompatibleRenderPassDescriptor();
+  m_renderTarget = rhi->newTextureRenderTarget({m_texture});
+  m_renderState->renderPassDescriptor
+      = m_renderTarget->newCompatibleRenderPassDescriptor();
   m_renderTarget->setRenderPassDescriptor(m_renderState->renderPassDescriptor);
   m_renderTarget->create();
 
@@ -217,7 +212,7 @@ void SpoutNode::createOutput(
 
 void SpoutNode::destroyOutput()
 {
-  if(m_spout)
+  if (m_spout)
     m_spout->ReleaseSender();
   m_spout.reset();
 }
@@ -245,10 +240,6 @@ score::gfx::NodeRenderer* SpoutNode::createRenderer() const noexcept
   return new SpoutRenderer{*this};
 }
 
-
-
-
-
 SpoutDevice::~SpoutDevice() { }
 
 bool SpoutDevice::reconnect()
@@ -263,7 +254,7 @@ bool SpoutDevice::reconnect()
       m_protocol = new gfx_protocol_base{plug->exec};
       m_dev = std::make_unique<spout_device>(
           std::unique_ptr<ossia::net::protocol_base>(m_protocol),
-                m_settings.name.toStdString());
+          m_settings.name.toStdString());
     }
     // TODOengine->reload(&proto);
 
@@ -291,7 +282,8 @@ QString SpoutProtocolFactory::category() const noexcept
   return StandardCategories::video;
 }
 
-Device::DeviceEnumerator* SpoutProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerator*
+SpoutProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
   return nullptr;
 }
@@ -303,7 +295,8 @@ Device::DeviceInterface* SpoutProtocolFactory::makeDevice(
   return new SpoutDevice(settings, ctx);
 }
 
-const Device::DeviceSettings& SpoutProtocolFactory::defaultSettings() const noexcept
+const Device::DeviceSettings&
+SpoutProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
@@ -336,7 +329,8 @@ Device::ProtocolSettingsWidget* SpoutProtocolFactory::makeSettingsWidget()
   return new SpoutSettingsWidget;
 }
 
-QVariant SpoutProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
+QVariant SpoutProtocolFactory::makeProtocolSpecificSettings(
+    const VisitorVariant& visitor) const
 {
   return {};
 }
@@ -354,7 +348,8 @@ bool SpoutProtocolFactory::checkCompatibility(
   return a.name != b.name;
 }
 
-SpoutSettingsWidget::SpoutSettingsWidget(QWidget* parent) : ProtocolSettingsWidget(parent)
+SpoutSettingsWidget::SpoutSettingsWidget(QWidget* parent)
+    : ProtocolSettingsWidget(parent)
 {
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
 
@@ -385,4 +380,4 @@ void SpoutSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 }
 
 }
-#include <Gfx/Qt5CompatPop>
+#include <Gfx/Qt5CompatPop> // clang-format: keep

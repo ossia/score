@@ -1,11 +1,11 @@
 #pragma once
-#include <QLineEdit>
-#include <Gfx/GfxDevice.hpp>
-
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+#include <Gfx/GfxDevice.hpp>
+
+#include <QLineEdit>
 
 namespace Gfx
 {
@@ -15,10 +15,12 @@ class SpoutProtocolFactory final : public Device::ProtocolFactory
   SCORE_CONCRETE("ddf45db7-9eaf-453c-8fc0-86ccdf21677c")
   QString prettyName() const noexcept override;
   QString category() const noexcept override;
-  Device::DeviceEnumerator* getEnumerator(const score::DocumentContext& ctx) const override;
+  Device::DeviceEnumerator*
+  getEnumerator(const score::DocumentContext& ctx) const override;
 
-  Device::DeviceInterface*
-  makeDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx) override;
+  Device::DeviceInterface* makeDevice(
+      const Device::DeviceSettings& settings,
+      const score::DocumentContext& ctx) override;
   const Device::DeviceSettings& defaultSettings() const noexcept override;
   Device::AddressDialog* makeAddAddressDialog(
       const Device::DeviceInterface& dev,
@@ -32,20 +34,23 @@ class SpoutProtocolFactory final : public Device::ProtocolFactory
 
   Device::ProtocolSettingsWidget* makeSettingsWidget() override;
 
-  QVariant makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
+  QVariant
+  makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
 
-  void serializeProtocolSpecificSettings(const QVariant& data, const VisitorVariant& visitor)
-      const override;
+  void serializeProtocolSpecificSettings(
+      const QVariant& data,
+      const VisitorVariant& visitor) const override;
 
-  bool checkCompatibility(const Device::DeviceSettings& a, const Device::DeviceSettings& b)
-      const noexcept override;
+  bool checkCompatibility(
+      const Device::DeviceSettings& a,
+      const Device::DeviceSettings& b) const noexcept override;
 };
 
 class SpoutDevice final : public GfxOutputDevice
 {
   W_OBJECT(SpoutDevice)
 public:
-    using GfxOutputDevice::GfxOutputDevice;
+  using GfxOutputDevice::GfxOutputDevice;
   ~SpoutDevice();
 
 private:

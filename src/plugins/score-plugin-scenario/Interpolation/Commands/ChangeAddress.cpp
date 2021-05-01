@@ -1,10 +1,5 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
-#include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <Scenario/Process/ScenarioInterface.hpp>
 #include <State/ValueSerialization.hpp>
 
 #include <score/model/path/PathSerialization.hpp>
@@ -12,6 +7,11 @@
 #include <ossia/network/common/destination_qualifiers.hpp>
 
 #include <Interpolation/Commands/ChangeAddress.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
 
 namespace Interpolation
 {
@@ -59,14 +59,14 @@ void ChangeAddress::redo(const score::DocumentContext& ctx) const
 
 void ChangeAddress::serializeImpl(DataStreamInput& s) const
 {
-  s << m_path << m_oldAddr << m_newAddr << m_oldUnit << m_newUnit << m_oldStart << m_newStart
-    << m_oldEnd << m_newEnd;
+  s << m_path << m_oldAddr << m_newAddr << m_oldUnit << m_newUnit << m_oldStart
+    << m_newStart << m_oldEnd << m_newEnd;
 }
 
 void ChangeAddress::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_path >> m_oldAddr >> m_newAddr >> m_oldUnit >> m_newUnit >> m_oldStart >> m_newStart
-      >> m_oldEnd >> m_newEnd;
+  s >> m_path >> m_oldAddr >> m_newAddr >> m_oldUnit >> m_newUnit >> m_oldStart
+      >> m_newStart >> m_oldEnd >> m_newEnd;
 }
 
 void ChangeInterpolationAddress(
@@ -92,7 +92,8 @@ void ChangeInterpolationAddress(
     auto cst = dynamic_cast<Scenario::IntervalModel*>(proc.parent());
     if (!cst)
       return;
-    auto parent_scenario = dynamic_cast<Scenario::ScenarioInterface*>(cst->parent());
+    auto parent_scenario
+        = dynamic_cast<Scenario::ScenarioInterface*>(cst->parent());
     if (!parent_scenario)
       return;
 
@@ -101,18 +102,22 @@ void ChangeInterpolationAddress(
 
     auto& ss = Scenario::startState(*cst, *parent_scenario);
     auto& es = Scenario::endState(*cst, *parent_scenario);
-    const auto snodes = Process::try_getNodesFromAddress(ss.messages().rootNode(), addr);
-    const auto enodes = Process::try_getNodesFromAddress(es.messages().rootNode(), addr);
+    const auto snodes
+        = Process::try_getNodesFromAddress(ss.messages().rootNode(), addr);
+    const auto enodes
+        = Process::try_getNodesFromAddress(es.messages().rootNode(), addr);
 
     for (const Process::MessageNode* lhs : snodes)
     {
       if (!lhs->hasValue())
         continue;
-      if (lhs->name.qualifiers.get().accessors != addr.qualifiers.get().accessors)
+      if (lhs->name.qualifiers.get().accessors
+          != addr.qualifiers.get().accessors)
         continue;
 
       auto it = ossia::find_if(enodes, [&](auto rhs) {
-        return (lhs->name.qualifiers == rhs->name.qualifiers) && rhs->hasValue();
+        return (lhs->name.qualifiers == rhs->name.qualifiers)
+               && rhs->hasValue();
       });
 
       if (it != enodes.end())

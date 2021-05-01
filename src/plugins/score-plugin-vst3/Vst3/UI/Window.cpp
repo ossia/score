@@ -1,6 +1,6 @@
-#include <Vst3/UI/Window.hpp>
 #include <Vst3/UI/Linux/PlugFrame.hpp>
 #include <Vst3/UI/PlugFrame.hpp>
+#include <Vst3/UI/Window.hpp>
 
 namespace vst3
 {
@@ -18,10 +18,12 @@ WindowContainer createVstWindowContainer(
   int w = r.getWidth();
   int h = r.getHeight();
 
-  if(w < 5) w = 640;
-  if(h < 5) h = 480;
+  if (w < 5)
+    w = 640;
+  if (h < 5)
+    h = 480;
 
-  if(view.canResize() == Steinberg::kResultTrue)
+  if (view.canResize() == Steinberg::kResultTrue)
   {
     parentWindow.resize(QSize{w, h});
   }

@@ -4,7 +4,10 @@
 
 #include <verdigris>
 class QCheckBox;
-namespace score{ class FormWidget;}
+namespace score
+{
+class FormWidget;
+}
 namespace Explorer::Settings
 {
 class View : public score::GlobalSettingsView

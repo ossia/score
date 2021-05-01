@@ -1,13 +1,14 @@
 #pragma once
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/State/StatePresenter.hpp>
-#include <Scenario/Document/State/StateView.hpp>
 
 #include <QGraphicsItem>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 #include <QPen>
+
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/State/StatePresenter.hpp>
+#include <Scenario/Document/State/StateView.hpp>
 
 namespace Scenario
 {
@@ -15,7 +16,7 @@ class CrossOverlay : public QGraphicsItem
 {
 public:
   CrossOverlay(StateView* parent)
-    : QGraphicsItem{parent}
+      : QGraphicsItem{parent}
   {
     this->setAcceptHoverEvents(true);
     auto& skin = score::Skin::instance();
@@ -23,15 +24,16 @@ public:
   }
 
   static const constexpr int Type = ItemType::StateOverlay;
-  int type() const final override
-  { return Type; }
+  int type() const final override { return Type; }
 
-  QRectF boundingRect() const override
-  { return {-1, -1, 16, 16}; }
+  QRectF boundingRect() const override { return {-1, -1, 16, 16}; }
 
   virtual const score::Brush& brush() const noexcept = 0;
 
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override
   {
     painter->setRenderHint(QPainter::Antialiasing, true);
 
@@ -46,16 +48,17 @@ public:
     const auto small_rad = m_big ? 4. : 2.;
 
     const auto l1
-        = m_big ? QLineF{QPointF{15 - small_rad, 0}, QPointF{15 - small_rad, 2 * small_rad}}
-                      .translated(-2, 1)
-                : QLineF{QPointF{15 - small_rad, 0}, QPointF{15 - small_rad, 2 * small_rad}}
-                      .translated(-4, 2);
+        = m_big
+              ? QLineF{QPointF{15 - small_rad, 0}, QPointF{15 - small_rad, 2 * small_rad}}
+                    .translated(-2, 1)
+              : QLineF{QPointF{15 - small_rad, 0}, QPointF{15 - small_rad, 2 * small_rad}}
+                    .translated(-4, 2);
     const auto l2
         = m_big
-              ? QLineF{QPointF{15 - 2 * small_rad, small_rad}, QPointF{15, small_rad}}.translated(
-                  -2, 1)
-              : QLineF{QPointF{15 - 2 * small_rad, small_rad}, QPointF{15, small_rad}}.translated(
-                  -4, 2);
+              ? QLineF{QPointF{15 - 2 * small_rad, small_rad}, QPointF{15, small_rad}}
+                    .translated(-2, 1)
+              : QLineF{QPointF{15 - 2 * small_rad, small_rad}, QPointF{15, small_rad}}
+                    .translated(-4, 2);
 
     painter->drawLine(l1.translated(1, 1));
     painter->drawLine(l2.translated(1, 1));
@@ -191,15 +194,16 @@ private:
   }
 };
 
-struct StateOverlays {
+struct StateOverlays
+{
   StateOverlays(StateView* v)
-  : m_overlay{v}
-  , m_graphOverlay{v}
-  , m_sequenceOverlay{v}
+      : m_overlay{v}
+      , m_graphOverlay{v}
+      , m_sequenceOverlay{v}
   {
     m_overlay.setPos(1, -14);
     m_graphOverlay.setPos(1, 6);
-    if(v->presenter().model().nextInterval())
+    if (v->presenter().model().nextInterval())
     {
       m_sequenceOverlay.setVisible(false);
       m_sequenceOverlay.setEnabled(false);

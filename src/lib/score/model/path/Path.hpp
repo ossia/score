@@ -8,7 +8,8 @@
 template <typename T, typename U>
 struct in_relationship
 {
-  static const constexpr bool value = std::is_base_of<T, U>::value || std::is_base_of<U, T>::value;
+  static const constexpr bool value
+      = std::is_base_of<T, U>::value || std::is_base_of<U, T>::value;
 };
 
 // These forward declarations are required
@@ -59,7 +60,10 @@ class Path
     return lhs.m_impl != rhs.m_impl;
   }
 
-  friend uint qHash(const Path& obj, uint seed) noexcept { return qHash(obj.m_impl, seed); }
+  friend uint qHash(const Path& obj, uint seed) noexcept
+  {
+    return qHash(obj.m_impl, seed);
+  }
 
   template <typename U>
   friend class Path;
@@ -76,10 +80,19 @@ public:
     UnsafeDynamicCreation() = default;
   };
 
-  Path(const ObjectPath& obj, UnsafeDynamicCreation) noexcept : m_impl{obj.vec()} { }
-  Path(ObjectPath&& obj, UnsafeDynamicCreation) noexcept : m_impl{std::move(obj.vec())} { }
+  Path(const ObjectPath& obj, UnsafeDynamicCreation) noexcept
+      : m_impl{obj.vec()}
+  {
+  }
+  Path(ObjectPath&& obj, UnsafeDynamicCreation) noexcept
+      : m_impl{std::move(obj.vec())}
+  {
+  }
 
-  Path(const Object& obj) noexcept : Path(score::IDocument::path(obj)) { }
+  Path(const Object& obj) noexcept
+      : Path(score::IDocument::path(obj))
+  {
+  }
 
   ~Path() = default;
 
@@ -147,24 +160,34 @@ public:
 
   // TODO do the same for ids
   // TODO make it work only for upcasts
-  template <typename U, std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
-  Path(const Path<U>& other) noexcept : m_impl{other.m_impl.vec()}
+  template <
+      typename U,
+      std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
+  Path(const Path<U>& other) noexcept
+      : m_impl{other.m_impl.vec()}
   {
   }
 
-  template <typename U, std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
-  Path(Path<U>&& other) noexcept : m_impl{std::move(other.m_impl.vec())}
+  template <
+      typename U,
+      std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
+  Path(Path<U>&& other) noexcept
+      : m_impl{std::move(other.m_impl.vec())}
   {
   }
 
-  template <typename U, std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
+  template <
+      typename U,
+      std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
   Path& operator=(const Path<U>& other) noexcept
   {
     m_impl = other.m_impl;
     return *this;
   }
 
-  template <typename U, std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
+  template <
+      typename U,
+      std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
   Path& operator=(Path<U>&& other) noexcept
   {
     m_impl = std::move(other.m_impl);
@@ -196,10 +219,22 @@ public:
   bool valid() const noexcept { return !m_impl.vec().empty(); }
 
 private:
-  Path(const ObjectPath& path) noexcept : m_impl{path.vec()} { }
-  Path(ObjectPath&& path) noexcept : m_impl{std::move(path.vec())} { }
-  Path(const std::vector<ObjectIdentifier>& vec) noexcept : m_impl{vec} { }
-  Path(std::vector<ObjectIdentifier>&& vec) noexcept : m_impl{std::move(vec)} { }
+  Path(const ObjectPath& path) noexcept
+      : m_impl{path.vec()}
+  {
+  }
+  Path(ObjectPath&& path) noexcept
+      : m_impl{std::move(path.vec())}
+  {
+  }
+  Path(const std::vector<ObjectIdentifier>& vec) noexcept
+      : m_impl{vec}
+  {
+  }
+  Path(std::vector<ObjectIdentifier>&& vec) noexcept
+      : m_impl{std::move(vec)}
+  {
+  }
 
   ObjectPath m_impl;
 };

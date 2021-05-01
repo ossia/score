@@ -32,7 +32,10 @@ LayerFactoryList::~LayerFactoryList() { }
 class DefaultLayerView final : public LayerView
 {
 public:
-  DefaultLayerView(QGraphicsItem* parent) : LayerView(parent) { }
+  DefaultLayerView(QGraphicsItem* parent)
+      : LayerView(parent)
+  {
+  }
   void paint_impl(QPainter* p) const override
   {
     QTextOption o;
@@ -53,19 +56,27 @@ public:
       Process::LayerView* v,
       const Context& ctx,
       QObject* parent)
-      : LayerPresenter{model, v, ctx, parent}, m_view{v}
+      : LayerPresenter{model, v, ctx, parent}
+      , m_view{v}
   {
     auto vi = dynamic_cast<DefaultLayerView*>(v);
     vi->m_txt = model.metadata().getName();
-    connect(&model.metadata(), &score::ModelMetadata::NameChanged, this, [=](auto t) {
-      vi->m_txt = t;
-      vi->update();
-    });
+    connect(
+        &model.metadata(),
+        &score::ModelMetadata::NameChanged,
+        this,
+        [=](auto t) {
+          vi->m_txt = t;
+          vi->update();
+        });
   }
 
   ~DefaultLayerPresenter() override { }
 
-  void setWidth(qreal width, qreal defaultWidth) override { m_view->setWidth(width); }
+  void setWidth(qreal width, qreal defaultWidth) override
+  {
+    m_view->setWidth(width);
+  }
   void setHeight(qreal height) override { m_view->setHeight(height); }
 
   void putToFront() override { m_view->setVisible(true); }
@@ -91,8 +102,9 @@ LayerView* LayerFactory::makeLayerView(
   return new DefaultLayerView{parent};
 }
 
-Process::MiniLayer*
-LayerFactory::makeMiniLayer(const ProcessModel& view, QGraphicsItem* parent) const
+Process::MiniLayer* LayerFactory::makeMiniLayer(
+    const ProcessModel& view,
+    QGraphicsItem* parent) const
 {
   return nullptr;
 }
@@ -105,8 +117,9 @@ score::ResizeableItem* LayerFactory::makeItem(
   return nullptr;
 }
 
-bool LayerFactory::hasExternalUI(const ProcessModel&, const score::DocumentContext& ctx)
-    const noexcept
+bool LayerFactory::hasExternalUI(
+    const ProcessModel&,
+    const score::DocumentContext& ctx) const noexcept
 {
   return false;
 }
@@ -118,8 +131,9 @@ HeaderDelegate* LayerFactory::makeHeaderDelegate(
 {
   return new DefaultHeaderDelegate{model, ctx};
 }
-FooterDelegate*
-LayerFactory::makeFooterDelegate(const ProcessModel& model, const Process::Context& ctx) const
+FooterDelegate* LayerFactory::makeFooterDelegate(
+    const ProcessModel& model,
+    const Process::Context& ctx) const
 {
   return new DefaultFooterDelegate{model, ctx};
 }
@@ -151,12 +165,14 @@ ProcessFactoryList::object_type* ProcessFactoryList::loadMissing(
   return nullptr;
 }
 
-LayerFactory* LayerFactoryList::findDefaultFactory(const ProcessModel& proc) const
+LayerFactory*
+LayerFactoryList::findDefaultFactory(const ProcessModel& proc) const
 {
   return findDefaultFactory(proc.concreteKey());
 }
 
-LayerFactory* LayerFactoryList::findDefaultFactory(const UuidKey<ProcessModel>& proc) const
+LayerFactory*
+LayerFactoryList::findDefaultFactory(const UuidKey<ProcessModel>& proc) const
 {
   for (auto& fac : *this)
   {

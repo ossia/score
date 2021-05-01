@@ -8,6 +8,8 @@
 namespace Patternist
 {
 using ProcessFactory = Process::ProcessFactory_T<Patternist::ProcessModel>;
-using LayerFactory
-    = Process::LayerFactory_T<Patternist::ProcessModel, Patternist::Presenter, Patternist::View>;
+using LayerFactory = Process::LayerFactory_T<
+    Patternist::ProcessModel,
+    Patternist::Presenter,
+    Patternist::View>;
 }

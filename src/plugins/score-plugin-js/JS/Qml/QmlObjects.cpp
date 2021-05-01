@@ -26,7 +26,10 @@ auto disregard_me_2 = &JS::MidiMessage::staticMetaObject;
 namespace JS
 {
 
-ValueInlet::ValueInlet(QObject* parent) : Inlet{parent} { }
+ValueInlet::ValueInlet(QObject* parent)
+    : Inlet{parent}
+{
+}
 
 ValueInlet::~ValueInlet() { }
 
@@ -43,7 +46,10 @@ void ValueInlet::setValue(QVariant value)
   m_value = value;
 }
 
-ControlInlet::ControlInlet(QObject* parent) : Inlet{parent} { }
+ControlInlet::ControlInlet(QObject* parent)
+    : Inlet{parent}
+{
+}
 
 ControlInlet::~ControlInlet() { }
 
@@ -60,7 +66,10 @@ void ControlInlet::setValue(QVariant value)
   m_value = value;
 }
 
-ValueOutlet::ValueOutlet(QObject* parent) : Outlet{parent} { }
+ValueOutlet::ValueOutlet(QObject* parent)
+    : Outlet{parent}
+{
+}
 
 ValueOutlet::~ValueOutlet() { }
 
@@ -82,7 +91,10 @@ void ValueOutlet::addValue(qreal timestamp, QVariant t)
   values.push_back({timestamp, std::move(t)});
 }
 
-AudioInlet::AudioInlet(QObject* parent) : Inlet{parent} { }
+AudioInlet::AudioInlet(QObject* parent)
+    : Inlet{parent}
+{
+}
 
 AudioInlet::~AudioInlet() { }
 
@@ -96,7 +108,10 @@ void AudioInlet::setAudio(const QVector<QVector<double>>& audio)
   m_audio = audio;
 }
 
-AudioOutlet::AudioOutlet(QObject* parent) : Outlet{parent} { }
+AudioOutlet::AudioOutlet(QObject* parent)
+    : Outlet{parent}
+{
+}
 
 AudioOutlet::~AudioOutlet() { }
 
@@ -105,11 +120,17 @@ const QVector<QVector<double>>& AudioOutlet::audio() const
   return m_audio;
 }
 
-MidiInlet::MidiInlet(QObject* parent) : Inlet{parent} { }
+MidiInlet::MidiInlet(QObject* parent)
+    : Inlet{parent}
+{
+}
 
 MidiInlet::~MidiInlet() { }
 
-MidiOutlet::MidiOutlet(QObject* parent) : Outlet{parent} { }
+MidiOutlet::MidiOutlet(QObject* parent)
+    : Outlet{parent}
+{
+}
 
 MidiOutlet::~MidiOutlet() { }
 

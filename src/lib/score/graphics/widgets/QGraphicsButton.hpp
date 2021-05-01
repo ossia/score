@@ -1,17 +1,18 @@
 #pragma once
 #include <score/graphics/widgets/Constants.hpp>
 
-#include <QObject>
 #include <QGraphicsItem>
-#include <verdigris>
+#include <QObject>
 
 #include <score_lib_base_export.h>
+
+#include <verdigris>
 
 namespace score
 {
 class SCORE_LIB_BASE_EXPORT QGraphicsButton final
-    : public QObject,
-      public QGraphicsItem
+    : public QObject
+    , public QGraphicsItem
 {
   W_OBJECT(QGraphicsButton)
   Q_INTERFACES(QGraphicsItem)
@@ -30,7 +31,9 @@ private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   QRectF boundingRect() const override;
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
 };
 }
-

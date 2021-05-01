@@ -16,6 +16,7 @@ public:
   MessageDropHandler();
 
 private:
-  bool drop(const ScenarioPresenter&, QPointF drop, const QMimeData& mime) override;
+  bool
+  drop(const ScenarioPresenter&, QPointF drop, const QMimeData& mime) override;
 };
 }

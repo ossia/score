@@ -1,16 +1,18 @@
 #pragma once
 #include <QObject>
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#include <JS/Qml/Metatypes.hpp>
+
+#include <ossia-qt/time.hpp>
+#include <ossia/dataflow/graph_node.hpp>
+#include <ossia/dataflow/token_request.hpp>
+
+#include <QMatrix4x4>
 #include <QVector2D>
 #include <QVector3D>
 #include <QVector4D>
-#include <QMatrix4x4>
-#include <verdigris>
 
-#include <JS/Qml/Metatypes.hpp>
-#include <ossia/dataflow/graph_node.hpp>
-#include <ossia/dataflow/token_request.hpp>
-#include <ossia-qt/time.hpp>
+#include <verdigris>
 
 namespace JS
 {
@@ -18,152 +20,149 @@ void registerQmlValueTypeProvider();
 
 class Vec2fValueType
 {
-    QVector2D v;
-    W_GADGET(Vec2fValueType)
+  QVector2D v;
+  W_GADGET(Vec2fValueType)
 public:
+  QString toString() const;
+  W_INVOKABLE(toString)
 
-    QString toString() const;
-    W_INVOKABLE(toString)
+  qreal x() const;
+  qreal y() const;
+  void setX(qreal);
+  void setY(qreal);
 
-    qreal x() const;
-    qreal y() const;
-    void setX(qreal);
-    void setY(qreal);
+  qreal dotProduct(const QVector2D& vec) const;
+  W_INVOKABLE(dotProduct)
 
-    qreal dotProduct(const QVector2D &vec) const;
-    W_INVOKABLE(dotProduct)
+  QVector2D times(const QVector2D& vec) const;
+  W_INVOKABLE(times, (const QVector2D&))
+  QVector2D times(qreal scalar) const;
+  W_INVOKABLE(times, (qreal))
 
-    QVector2D times(const QVector2D &vec) const;
-    W_INVOKABLE(times, (const QVector2D&))
-    QVector2D times(qreal scalar) const;
-    W_INVOKABLE(times, (qreal))
+  QVector2D plus(const QVector2D& vec) const;
+  W_INVOKABLE(plus)
+  QVector2D minus(const QVector2D& vec) const;
+  W_INVOKABLE(minus)
+  QVector2D normalized() const;
+  W_INVOKABLE(normalized)
+  qreal length() const;
+  W_INVOKABLE(length)
 
-    QVector2D plus(const QVector2D &vec) const;
-    W_INVOKABLE(plus)
-    QVector2D minus(const QVector2D &vec) const;
-    W_INVOKABLE(minus)
-    QVector2D normalized() const;
-    W_INVOKABLE(normalized)
-    qreal length() const;
-    W_INVOKABLE(length)
+  QVector3D toVector3d() const;
+  W_INVOKABLE(toVector3d)
+  QVector4D toVector4d() const;
+  W_INVOKABLE(toVector4d)
 
-    QVector3D toVector3d() const;
-    W_INVOKABLE(toVector3d)
-    QVector4D toVector4d() const;
-    W_INVOKABLE(toVector4d)
+  bool fuzzyEquals(const QVector2D& vec, qreal epsilon) const;
+  W_INVOKABLE(fuzzyEquals, (const QVector2D&, qreal))
+  bool fuzzyEquals(const QVector2D& vec) const;
+  W_INVOKABLE(fuzzyEquals, (const QVector2D&))
 
-    bool fuzzyEquals(const QVector2D &vec, qreal epsilon) const;
-    W_INVOKABLE(fuzzyEquals, (const QVector2D &, qreal))
-    bool fuzzyEquals(const QVector2D &vec) const;
-    W_INVOKABLE(fuzzyEquals, (const QVector2D &))
-
-    W_PROPERTY(qreal, x READ x WRITE setX FINAL)
-    W_PROPERTY(qreal, y READ y WRITE setY FINAL)
+  W_PROPERTY(qreal, x READ x WRITE setX FINAL)
+  W_PROPERTY(qreal, y READ y WRITE setY FINAL)
 };
 
 class Vec3fValueType
 {
-    QVector3D v;
-    W_GADGET(Vec3fValueType)
+  QVector3D v;
+  W_GADGET(Vec3fValueType)
 public:
-    QString toString() const;
-    W_INVOKABLE(toString)
+  QString toString() const;
+  W_INVOKABLE(toString)
 
-    qreal x() const;
-    qreal y() const;
-    qreal z() const;
-    void setX(qreal);
-    void setY(qreal);
-    void setZ(qreal);
+  qreal x() const;
+  qreal y() const;
+  qreal z() const;
+  void setX(qreal);
+  void setY(qreal);
+  void setZ(qreal);
 
-    QVector3D crossProduct(const QVector3D &vec) const;
-    W_INVOKABLE(crossProduct)
-    qreal dotProduct(const QVector3D &vec) const;
-    W_INVOKABLE(dotProduct)
+  QVector3D crossProduct(const QVector3D& vec) const;
+  W_INVOKABLE(crossProduct)
+  qreal dotProduct(const QVector3D& vec) const;
+  W_INVOKABLE(dotProduct)
 
-    QVector3D times(const QVector3D &vec) const;
-    W_INVOKABLE(times, (const QVector3D&))
-    QVector3D times(const QMatrix4x4 &m) const;
-    W_INVOKABLE(times, (const QMatrix4x4&))
-    QVector3D times(qreal scalar) const;
-    W_INVOKABLE(times, (qreal))
+  QVector3D times(const QVector3D& vec) const;
+  W_INVOKABLE(times, (const QVector3D&))
+  QVector3D times(const QMatrix4x4& m) const;
+  W_INVOKABLE(times, (const QMatrix4x4&))
+  QVector3D times(qreal scalar) const;
+  W_INVOKABLE(times, (qreal))
 
-    QVector3D plus(const QVector3D &vec) const;
-    W_INVOKABLE(plus)
-    QVector3D minus(const QVector3D &vec) const;
-    W_INVOKABLE(minus)
-    QVector3D normalized() const;
-    W_INVOKABLE(normalized)
-    qreal length() const;
-    W_INVOKABLE(length)
+  QVector3D plus(const QVector3D& vec) const;
+  W_INVOKABLE(plus)
+  QVector3D minus(const QVector3D& vec) const;
+  W_INVOKABLE(minus)
+  QVector3D normalized() const;
+  W_INVOKABLE(normalized)
+  qreal length() const;
+  W_INVOKABLE(length)
 
-    QVector2D toVector2d() const;
-    W_INVOKABLE(toVector2d)
-    QVector4D toVector4d() const;
-    W_INVOKABLE(toVector4d)
+  QVector2D toVector2d() const;
+  W_INVOKABLE(toVector2d)
+  QVector4D toVector4d() const;
+  W_INVOKABLE(toVector4d)
 
-    bool fuzzyEquals(const QVector3D &vec, qreal epsilon) const;
-    W_INVOKABLE(fuzzyEquals, (const QVector3D &, qreal))
-    bool fuzzyEquals(const QVector3D &vec) const;
-    W_INVOKABLE(fuzzyEquals, (const QVector3D &))
+  bool fuzzyEquals(const QVector3D& vec, qreal epsilon) const;
+  W_INVOKABLE(fuzzyEquals, (const QVector3D&, qreal))
+  bool fuzzyEquals(const QVector3D& vec) const;
+  W_INVOKABLE(fuzzyEquals, (const QVector3D&))
 
-    W_PROPERTY(qreal, x READ x WRITE setX FINAL)
-    W_PROPERTY(qreal, y READ y WRITE setY FINAL)
-    W_PROPERTY(qreal, z READ z WRITE setZ FINAL)
+  W_PROPERTY(qreal, x READ x WRITE setX FINAL)
+  W_PROPERTY(qreal, y READ y WRITE setY FINAL)
+  W_PROPERTY(qreal, z READ z WRITE setZ FINAL)
 };
 
 class Vec4fValueType
 {
-    QVector4D v;
-    W_GADGET(Vec4fValueType)
+  QVector4D v;
+  W_GADGET(Vec4fValueType)
 public:
+  QString toString() const;
+  W_INVOKABLE(toString)
 
-    QString toString() const;
-    W_INVOKABLE(toString)
+  qreal x() const;
+  qreal y() const;
+  qreal z() const;
+  qreal w() const;
+  void setX(qreal);
+  void setY(qreal);
+  void setZ(qreal);
+  void setW(qreal);
 
-    qreal x() const;
-    qreal y() const;
-    qreal z() const;
-    qreal w() const;
-    void setX(qreal);
-    void setY(qreal);
-    void setZ(qreal);
-    void setW(qreal);
+  qreal dotProduct(const QVector4D& vec) const;
+  W_INVOKABLE(dotProduct)
 
+  QVector4D times(const QVector4D& vec) const;
+  W_INVOKABLE(times, (const QVector4D&))
+  QVector4D times(const QMatrix4x4& m) const;
+  W_INVOKABLE(times, (const QMatrix4x4&))
+  QVector4D times(qreal scalar) const;
+  W_INVOKABLE(times, (qreal))
 
-    qreal dotProduct(const QVector4D &vec) const;
-    W_INVOKABLE(dotProduct)
+  QVector4D plus(const QVector4D& vec) const;
+  W_INVOKABLE(plus)
+  QVector4D minus(const QVector4D& vec) const;
+  W_INVOKABLE(minus)
+  QVector4D normalized() const;
+  W_INVOKABLE(normalized)
+  qreal length() const;
+  W_INVOKABLE(length)
 
-    QVector4D times(const QVector4D &vec) const;
-    W_INVOKABLE(times, (const QVector4D&))
-    QVector4D times(const QMatrix4x4 &m) const;
-    W_INVOKABLE(times, (const QMatrix4x4&))
-    QVector4D times(qreal scalar) const;
-    W_INVOKABLE(times, (qreal))
+  QVector2D toVector2d() const;
+  W_INVOKABLE(toVector2d)
+  QVector3D toVector3d() const;
+  W_INVOKABLE(toVector3d)
 
-    QVector4D plus(const QVector4D &vec) const;
-    W_INVOKABLE(plus)
-    QVector4D minus(const QVector4D &vec) const;
-    W_INVOKABLE(minus)
-    QVector4D normalized() const;
-    W_INVOKABLE(normalized)
-    qreal length() const;
-    W_INVOKABLE(length)
+  bool fuzzyEquals(const QVector4D& vec, qreal epsilon) const;
+  W_INVOKABLE(fuzzyEquals, (const QVector4D&, qreal))
+  bool fuzzyEquals(const QVector4D& vec) const;
+  W_INVOKABLE(fuzzyEquals, (const QVector4D&))
 
-    QVector2D toVector2d() const;
-    W_INVOKABLE(toVector2d)
-    QVector3D toVector3d() const;
-    W_INVOKABLE(toVector3d)
-
-    bool fuzzyEquals(const QVector4D &vec, qreal epsilon) const;
-    W_INVOKABLE(fuzzyEquals, (const QVector4D &, qreal))
-    bool fuzzyEquals(const QVector4D &vec) const;
-    W_INVOKABLE(fuzzyEquals, (const QVector4D &))
-
-    W_PROPERTY(qreal, x READ x WRITE setX FINAL)
-    W_PROPERTY(qreal, y READ y WRITE setY FINAL)
-    W_PROPERTY(qreal, z READ z WRITE setZ FINAL)
-    W_PROPERTY(qreal, w READ w WRITE setW FINAL)
+  W_PROPERTY(qreal, x READ x WRITE setX FINAL)
+  W_PROPERTY(qreal, y READ y WRITE setY FINAL)
+  W_PROPERTY(qreal, z READ z WRITE setZ FINAL)
+  W_PROPERTY(qreal, w READ w WRITE setW FINAL)
 };
 
 class TokenRequestValueType
@@ -171,7 +170,6 @@ class TokenRequestValueType
   ossia::token_request req;
   W_GADGET(TokenRequestValueType)
 public:
-
   double previous_date() const noexcept;
   double date() const noexcept;
   double parent_duration() const noexcept;
@@ -215,7 +213,8 @@ public:
   double get_quantification_date(double ratio) const noexcept;
   W_INVOKABLE(get_quantification_date)
 
-  double get_physical_quantification_date(double rate, double ratio) const noexcept;
+  double
+  get_physical_quantification_date(double rate, double ratio) const noexcept;
   W_INVOKABLE(get_physical_quantification_date)
 
   void reduce_end_time(double time) noexcept;
@@ -233,7 +232,9 @@ public:
   W_PROPERTY(double, speed READ speed FINAL)
   W_PROPERTY(double, tempo READ tempo FINAL)
 
-  W_PROPERTY(double, musical_start_last_signature READ musical_start_last_signature FINAL)
+  W_PROPERTY(
+      double,
+      musical_start_last_signature READ musical_start_last_signature FINAL)
   W_PROPERTY(double, musical_start_last_bar READ musical_start_last_bar FINAL)
   W_PROPERTY(double, musical_start_position READ musical_start_position FINAL)
   W_PROPERTY(double, musical_end_last_bar READ musical_end_last_bar FINAL)
@@ -248,7 +249,6 @@ class ExecutionStateValueType
   ossia::exec_state_facade req;
   W_GADGET(ExecutionStateValueType)
 public:
-
   int sample_rate() const noexcept;
   int buffer_size() const noexcept;
   double model_to_physical() const noexcept;

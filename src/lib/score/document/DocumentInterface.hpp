@@ -25,7 +25,8 @@ namespace IDocument
  */
 SCORE_LIB_BASE_EXPORT Document* documentFromObject(const QObject* obj);
 SCORE_LIB_BASE_EXPORT Document* documentFromObject(const QObject& obj);
-SCORE_LIB_BASE_EXPORT const DocumentContext& documentContext(const QObject& obj);
+SCORE_LIB_BASE_EXPORT const DocumentContext&
+documentContext(const QObject& obj);
 
 /**
  * @brief pathFromDocument
@@ -42,7 +43,8 @@ SCORE_LIB_BASE_EXPORT ObjectPath unsafe_path(const QObject& obj);
 //// Various getters ////
 
 // Presenter of a document plugin.
-SCORE_LIB_BASE_EXPORT DocumentDelegatePresenter* presenterDelegate_generic(const Document& d);
+SCORE_LIB_BASE_EXPORT DocumentDelegatePresenter*
+presenterDelegate_generic(const Document& d);
 
 template <typename T>
 T* presenterDelegate(const Document& d)
@@ -55,7 +57,8 @@ T* presenterDelegate(const Document& d)
 
 template <
     typename T,
-    std::enable_if_t<std::is_base_of<DocumentDelegatePresenter, T>::value>* = nullptr>
+    std::enable_if_t<
+        std::is_base_of<DocumentDelegatePresenter, T>::value>* = nullptr>
 T* get(const Document& d)
 {
   return presenterDelegate<T>(d);
@@ -69,7 +72,8 @@ T* try_presenterDelegate(const Document& d)
 
 template <
     typename T,
-    std::enable_if_t<std::is_base_of<DocumentDelegatePresenter, T>::value>* = nullptr>
+    std::enable_if_t<
+        std::is_base_of<DocumentDelegatePresenter, T>::value>* = nullptr>
 T* try_get(const Document& d)
 {
   return try_presenterDelegate<T>(d);
@@ -77,7 +81,8 @@ T* try_get(const Document& d)
 
 // Model of a document plugin
 // First if we are sure
-SCORE_LIB_BASE_EXPORT DocumentDelegateModel& modelDelegate_generic(const Document& d);
+SCORE_LIB_BASE_EXPORT DocumentDelegateModel&
+modelDelegate_generic(const Document& d);
 
 template <typename T>
 T& modelDelegate(const Document& d)
@@ -87,7 +92,8 @@ T& modelDelegate(const Document& d)
 
 template <
     typename T,
-    std::enable_if_t<std::is_base_of<DocumentDelegateModel, T>::value>* = nullptr>
+    std::enable_if_t<
+        std::is_base_of<DocumentDelegateModel, T>::value>* = nullptr>
 T& get(const Document& d)
 {
   return modelDelegate<T>(d);
@@ -103,7 +109,8 @@ T* try_modelDelegate(const Document& d)
 
 template <
     typename T,
-    std::enable_if_t<std::is_base_of<DocumentDelegateModel, T>::value>* = nullptr>
+    std::enable_if_t<
+        std::is_base_of<DocumentDelegateModel, T>::value>* = nullptr>
 T* try_get(const Document& d)
 {
   return try_modelDelegate<T>(d);

@@ -10,17 +10,24 @@ struct ProcessIdentifier
 {
   UuidKey<Process::ProcessModel> key;
   QString effect;
-  friend bool operator==(const ProcessIdentifier& lhs, const ProcessIdentifier& rhs) noexcept
+  friend bool operator==(
+      const ProcessIdentifier& lhs,
+      const ProcessIdentifier& rhs) noexcept
   {
     return lhs.key == rhs.key && lhs.effect == rhs.effect;
   }
-  friend bool operator!=(const ProcessIdentifier& lhs, const ProcessIdentifier& rhs) noexcept
+  friend bool operator!=(
+      const ProcessIdentifier& lhs,
+      const ProcessIdentifier& rhs) noexcept
   {
     return !(lhs == rhs);
   }
-  friend bool operator<(const ProcessIdentifier& lhs, const ProcessIdentifier& rhs) noexcept
+  friend bool operator<(
+      const ProcessIdentifier& lhs,
+      const ProcessIdentifier& rhs) noexcept
   {
-    return lhs.key < rhs.key || (lhs.key == rhs.key && lhs.effect < rhs.effect);
+    return lhs.key < rhs.key
+           || (lhs.key == rhs.key && lhs.effect < rhs.effect);
   }
 };
 
@@ -30,8 +37,9 @@ struct SCORE_LIB_PROCESS_EXPORT Preset
   ProcessIdentifier key;
   QByteArray data;
 
-  static std::shared_ptr<Process::Preset>
-  fromJson(const Process::ProcessFactoryList& procs, const QByteArray& obj) noexcept;
+  static std::shared_ptr<Process::Preset> fromJson(
+      const Process::ProcessFactoryList& procs,
+      const QByteArray& obj) noexcept;
 
   QByteArray toJson() const noexcept;
 
@@ -39,7 +47,10 @@ struct SCORE_LIB_PROCESS_EXPORT Preset
   {
     return lhs.name == rhs.name && lhs.key == rhs.key && lhs.data == rhs.data;
   }
-  friend bool operator!=(const Preset& lhs, const Preset& rhs) noexcept { return !(lhs == rhs); }
+  friend bool operator!=(const Preset& lhs, const Preset& rhs) noexcept
+  {
+    return !(lhs == rhs);
+  }
   friend bool operator<(const Preset& lhs, const Preset& rhs) noexcept
   {
     return lhs.key < rhs.key;

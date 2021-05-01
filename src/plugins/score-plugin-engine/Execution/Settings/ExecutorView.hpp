@@ -1,11 +1,14 @@
 #pragma once
-#include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
-
 #include <Execution/Settings/ExecutorModel.hpp>
+
+#include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
 
 #include <verdigris>
 
-namespace score {class FormWidget;}
+namespace score
+{
+class FormWidget;
+}
 
 namespace Execution
 {

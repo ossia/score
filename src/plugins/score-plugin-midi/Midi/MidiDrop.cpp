@@ -46,25 +46,28 @@ std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::dropData(
           for (MidiTrack& t : song.tracks)
           {
             Process::ProcessDropHandler::ProcessDrop p;
-            p.creation.key = Metadata<ConcreteKey_k, Midi::ProcessModel>::get();
+            p.creation.key
+                = Metadata<ConcreteKey_k, Midi::ProcessModel>::get();
             p.creation.prettyName = QFileInfo{filename}.baseName();
             p.duration = TimeVal::fromMsecs(song.durationInMs);
-            p.setup = [track = std::move(t),
-                       song_t = song.durationInMs] (Process::ProcessModel& m, score::Dispatcher& disp) mutable {
+            p.setup = [track = std::move(t), song_t = song.durationInMs](
+                          Process::ProcessModel& m,
+                          score::Dispatcher& disp) mutable {
               auto& midi = static_cast<Midi::ProcessModel&>(m);
 
               // If we drop in an existing interval, time must be rescaled
               TimeVal actualDuration = m.duration();
               const double ratio = song_t / actualDuration.msec();
-              if(ratio != 1.)
+              if (ratio != 1.)
               {
-               for (auto& note : track.notes)
-               {
-                 note.setStart(ratio * note.start());
-                 note.setDuration(ratio * note.duration());
-               }
+                for (auto& note : track.notes)
+                {
+                  note.setStart(ratio * note.start());
+                  note.setDuration(ratio * note.duration());
+                }
               }
-              disp.submit(new Midi::ReplaceNotes{midi, track.notes, track.min, track.max, actualDuration});
+              disp.submit(new Midi::ReplaceNotes{
+                  midi, track.notes, track.min, track.max, actualDuration});
             };
             vec.push_back(std::move(p));
           }
@@ -116,7 +119,8 @@ MidiTrack::parse(const QMimeData& mime, const score::DocumentContext& ctx)
   return {};
 }
 
-MidiTrack::MidiSong MidiTrack::parse(const QByteArray& dat, const score::DocumentContext& ctx)
+MidiTrack::MidiSong
+MidiTrack::parse(const QByteArray& dat, const score::DocumentContext& ctx)
 {
   MidiSong m;
 

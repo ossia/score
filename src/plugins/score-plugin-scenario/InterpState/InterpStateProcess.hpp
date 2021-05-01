@@ -25,7 +25,8 @@ PROCESS_METADATA(
     Process::ProcessFlags::SupportsTemporal)
 namespace InterpState
 {
-class SCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final : public Curve::CurveProcessModel
+class SCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final
+    : public Curve::CurveProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(InterpState::ProcessModel)
@@ -33,12 +34,16 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final : public Curve::CurveProce
   W_OBJECT(ProcessModel)
 
 public:
-  ProcessModel(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
+  ProcessModel(
+      const TimeVal& duration,
+      const Id<Process::ProcessModel>& id,
+      QObject* parent);
 
   ~ProcessModel() override;
 
   template <typename Impl>
-  ProcessModel(Impl& vis, QObject* parent) : CurveProcessModel{vis, parent}
+  ProcessModel(Impl& vis, QObject* parent)
+      : CurveProcessModel{vis, parent}
   {
     vis.writeTo(*this);
   }

@@ -1,5 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <score/model/path/Path.hpp>
+
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/Rack/RackModel.hpp>
@@ -8,13 +10,14 @@
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
-#include <score/model/path/Path.hpp>
-
 class IntervalModelTests : public QObject
 {
   Q_OBJECT
 public:
-  IntervalModelTests() : QObject{} { }
+  IntervalModelTests()
+      : QObject{}
+  {
+  }
 
 private:
   void CreateSlotTest()
@@ -35,7 +38,8 @@ private:
   {
     /////
     {
-      IntervalModel model{Id<IntervalModel>{0}, Id<IntervalViewModel>{0}, this};
+      IntervalModel model{
+          Id<IntervalModel>{0}, Id<IntervalViewModel>{0}, this};
       auto content_id = getStrongId(model.rackes());
       model.createRack(content_id);
       auto rack = model.rack(content_id);
@@ -48,7 +52,8 @@ private:
 
     //////
     {
-      IntervalModel model{Id<IntervalModel>{0}, Id<IntervalViewModel>{0}, this};
+      IntervalModel model{
+          Id<IntervalModel>{0}, Id<IntervalViewModel>{0}, this};
       auto content_id = getStrongId(model.rackes());
       model.createRack(content_id);
       auto rack = model.rack(content_id);
@@ -67,7 +72,8 @@ private:
   {
     IntervalModel i0{Id<IntervalModel>{0}, Id<IntervalViewModel>{0}, qApp};
     i0.setObjectName("OriginalInterval");
-    auto s0 = new ScenarioModel{std::chrono::seconds(15), Id<ProcessModel>{0}, &i0};
+    auto s0 = new ScenarioModel{
+        std::chrono::seconds(15), Id<ProcessModel>{0}, &i0};
 
     auto int_0_id = getStrongId(s0->intervals());
     auto ev_0_id = getStrongId(s0->events());
@@ -96,9 +102,11 @@ private:
         ev_2_id);
 
     auto i1 = s0->interval(int_0_id);
-    auto s1 = new ScenarioModel{std::chrono::seconds(15), Id<ProcessModel>{0}, i1};
+    auto s1
+        = new ScenarioModel{std::chrono::seconds(15), Id<ProcessModel>{0}, i1};
     (void)s1;
-    auto s2 = new ScenarioModel{std::chrono::seconds(15), Id<ProcessModel>{1}, i1};
+    auto s2
+        = new ScenarioModel{std::chrono::seconds(15), Id<ProcessModel>{1}, i1};
 
     ObjectPath p{
         {"OriginalInterval", {0}},

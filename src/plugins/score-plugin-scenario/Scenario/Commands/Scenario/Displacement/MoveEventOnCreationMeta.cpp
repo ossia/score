@@ -4,15 +4,15 @@
 
 #include "MoveEventFactoryInterface.hpp"
 
-#include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
-#include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
-
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
 #include <QByteArray>
+
+#include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
+#include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
 
 namespace Scenario
 {
@@ -30,8 +30,15 @@ MoveEventOnCreationMeta::MoveEventOnCreationMeta(
     , m_moveEventImplementation(
           score::AppContext()
               .interfaces<MoveEventList>()
-              .get(score::AppContext(), MoveEventFactoryInterface::Strategy::CREATION)
-              .make(scenarioPath, std::move(eventId), std::move(newDate), mode, LockMode::Free))
+              .get(
+                  score::AppContext(),
+                  MoveEventFactoryInterface::Strategy::CREATION)
+              .make(
+                  scenarioPath,
+                  std::move(eventId),
+                  std::move(newDate),
+                  mode,
+                  LockMode::Free))
 {
 }
 
@@ -66,7 +73,9 @@ void MoveEventOnCreationMeta::deserializeImpl(DataStreamOutput& qDataStream)
   m_moveEventImplementation
       = score::AppContext()
             .interfaces<MoveEventList>()
-            .get(score::AppContext(), MoveEventFactoryInterface::Strategy::CREATION)
+            .get(
+                score::AppContext(),
+                MoveEventFactoryInterface::Strategy::CREATION)
             .make(LockMode::Free);
 
   m_moveEventImplementation->deserialize(cmdData);
@@ -80,7 +89,8 @@ void MoveEventOnCreationMeta::update(
     ExpandMode mode,
     LockMode lm)
 {
-  m_moveEventImplementation->update(scenario, eventId, newDate, y, mode, LockMode::Free);
+  m_moveEventImplementation->update(
+      scenario, eventId, newDate, y, mode, LockMode::Free);
 }
 }
 }

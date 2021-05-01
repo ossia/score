@@ -12,7 +12,8 @@
 
 namespace Automation
 {
-class LayerPresenter final : public Curve::CurveProcessPresenter<ProcessModel, LayerView>
+class LayerPresenter final
+    : public Curve::CurveProcessPresenter<ProcessModel, LayerView>
 {
   W_OBJECT(LayerPresenter)
 public:
@@ -25,12 +26,21 @@ public:
       : CurveProcessPresenter{style, layer, view, context, parent}
   {
     // TODO instead have a prettyNameChanged signal.
-    con(layer, &ProcessModel::tweenChanged, this, &LayerPresenter::on_tweenChanges);
+    con(layer,
+        &ProcessModel::tweenChanged,
+        this,
+        &LayerPresenter::on_tweenChanges);
 
-    connect(m_view, &LayerView::dropReceived, this, &LayerPresenter::on_dropReceived);
+    connect(
+        m_view,
+        &LayerView::dropReceived,
+        this,
+        &LayerPresenter::on_dropReceived);
 
     on_tweenChanges(layer.tween());
-    con(layer.curve(), &Curve::Model::curveReset, this, [&] { on_tweenChanges(layer.tween()); });
+    con(layer.curve(), &Curve::Model::curveReset, this, [&] {
+      on_tweenChanges(layer.tween());
+    });
   }
 
 private:

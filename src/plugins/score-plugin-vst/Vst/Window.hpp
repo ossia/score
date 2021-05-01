@@ -1,11 +1,13 @@
 #pragma once
 #include <Vst/EffectModel.hpp>
+
 #include <QDialog>
 
-#include <verdigris>
 #include <memory>
+#include <verdigris>
 
-namespace vst {
+namespace vst
+{
 
 class Window final : public QDialog
 {

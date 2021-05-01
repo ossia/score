@@ -1,4 +1,5 @@
 #include <Gfx/Settings/Model.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Gfx::Settings::Model)
 namespace Gfx::Settings
@@ -24,10 +25,9 @@ namespace Parameters
 #endif
 */
 
-SETTINGS_PARAMETER_IMPL(GraphicsApi)
-{
-  QStringLiteral("score_plugin_gfx/GraphicsApi"), GraphicsApis{}.OpenGL
-};
+SETTINGS_PARAMETER_IMPL(GraphicsApi){
+    QStringLiteral("score_plugin_gfx/GraphicsApi"),
+    GraphicsApis{}.OpenGL};
 
 SETTINGS_PARAMETER_IMPL(Rate){QStringLiteral("score_plugin_gfx/Rate"), 60.0};
 SETTINGS_PARAMETER_IMPL(VSync){QStringLiteral("score_plugin_gfx/VSync"), true};
@@ -38,7 +38,8 @@ static auto list()
 }
 }
 
-Gfx::Settings::GraphicsApis::operator QStringList() const noexcept {
+Gfx::Settings::GraphicsApis::operator QStringList() const noexcept
+{
   QStringList lst;
 #ifndef QT_NO_OPENGL
   lst += OpenGL;
@@ -66,15 +67,15 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
 GraphicsApi Model::graphicsApiEnum() const noexcept
 {
   const auto apis = GraphicsApis{};
-  if(m_GraphicsApi == apis.Vulkan)
+  if (m_GraphicsApi == apis.Vulkan)
   {
     return Vulkan;
   }
-  else if(m_GraphicsApi == apis.Metal)
+  else if (m_GraphicsApi == apis.Metal)
   {
     return Metal;
   }
-  else if(m_GraphicsApi == apis.D3D11)
+  else if (m_GraphicsApi == apis.D3D11)
   {
     return D3D11;
   }
@@ -87,6 +88,5 @@ GraphicsApi Model::graphicsApiEnum() const noexcept
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, GraphicsApi)
 SCORE_SETTINGS_PARAMETER_CPP(double, Model, Rate)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, VSync)
-
 
 }

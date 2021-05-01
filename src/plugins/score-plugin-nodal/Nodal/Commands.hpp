@@ -1,5 +1,7 @@
 #pragma once
 #include <Dataflow/Commands/CableHelpers.hpp>
+#include <Nodal/CommandFactory.hpp>
+#include <Nodal/Process.hpp>
 #include <Process/ProcessList.hpp>
 
 #include <score/application/ApplicationContext.hpp>
@@ -7,9 +9,6 @@
 #include <score/command/PropertyCommand.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/plugins/SerializableHelpers.hpp>
-
-#include <Nodal/CommandFactory.hpp>
-#include <Nodal/Process.hpp>
 
 namespace Nodal
 {
@@ -33,7 +32,10 @@ public:
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 
-  const Id<Process::ProcessModel>& nodeId() const noexcept { return m_createdNodeId; }
+  const Id<Process::ProcessModel>& nodeId() const noexcept
+  {
+    return m_createdNodeId;
+  }
 
 protected:
   void serializeImpl(DataStreamInput&) const override;
@@ -52,14 +54,17 @@ class RemoveNode final : public score::Command
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), RemoveNode, "Remove a node")
 public:
-  RemoveNode(const Nodal::Model& p, const Process::ProcessModel& n) : m_path{p}, m_id{n.id()}
+  RemoveNode(const Nodal::Model& p, const Process::ProcessModel& n)
+      : m_path{p}
+      , m_id{n.id()}
   {
     // Save the node
     DataStream::Serializer s1{&m_block};
     s1.readFrom(n);
 
     m_cables = Dataflow::saveCables(
-        {const_cast<Process::ProcessModel*>(&n)}, score::IDocument::documentContext(p));
+        {const_cast<Process::ProcessModel*>(&n)},
+        score::IDocument::documentContext(p));
   }
 
 private:

@@ -2,6 +2,7 @@
 
 #include "lv2_atom_helpers.hpp"
 
+#include <Execution/DocumentPlugin.hpp>
 #include <LV2/ApplicationPlugin.hpp>
 #include <LV2/Context.hpp>
 #include <LV2/Node.hpp>
@@ -25,7 +26,6 @@
 #include <QListWidget>
 #include <QUrl>
 
-#include <Execution/DocumentPlugin.hpp>
 #include <cmath>
 #include <wobjectimpl.h>
 
@@ -46,7 +46,8 @@ std::optional<Lilv::Plugin> find_lv2_plugin(Lilv::World& world, QString path)
   }
 
   auto old_str = path;
-  const bool isFile = QFile(QUrl(path).toString(QUrl::PreferLocalFile)).exists();
+  const bool isFile
+      = QFile(QUrl(path).toString(QUrl::PreferLocalFile)).exists();
   if (isFile)
   {
     if (*path.rbegin() != '/')
@@ -81,7 +82,8 @@ std::optional<Lilv::Plugin> find_lv2_plugin(Lilv::World& world, QString path)
 
 struct LV2PluginChooserDialog : public QDialog
 {
-  LV2PluginChooserDialog(Lilv::World& world, QWidget* parent) : QDialog{parent}
+  LV2PluginChooserDialog(Lilv::World& world, QWidget* parent)
+      : QDialog{parent}
   {
     this->setLayout(&m_lay);
     this->window()->setWindowTitle(QObject::tr("Select a LV2 plug-in"));
@@ -163,7 +165,9 @@ namespace Process
 template <>
 QString EffectProcessFactory_T<LV2::Model>::customConstructionData() const
 {
-  auto& world = score::AppComponents().applicationPlugin<LV2::ApplicationPlugin>().lilv;
+  auto& world = score::AppComponents()
+                    .applicationPlugin<LV2::ApplicationPlugin>()
+                    .lilv;
 
   LV2::LV2PluginChooserDialog dial{world, nullptr};
   dial.exec();
@@ -171,10 +175,12 @@ QString EffectProcessFactory_T<LV2::Model>::customConstructionData() const
 }
 
 template <>
-Process::Descriptor EffectProcessFactory_T<LV2::Model>::descriptor(QString d) const
+Process::Descriptor
+EffectProcessFactory_T<LV2::Model>::descriptor(QString d) const
 {
   Process::Descriptor desc;
-  auto& app_plug = score::AppComponents().applicationPlugin<LV2::ApplicationPlugin>();
+  auto& app_plug
+      = score::AppComponents().applicationPlugin<LV2::ApplicationPlugin>();
   auto& host = app_plug.lv2_host_context;
   if (auto plug = LV2::find_lv2_plugin(app_plug.lilv, d))
   {
@@ -262,7 +268,8 @@ Model::Model(
     const QString& path,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : ProcessModel{t, id, "LV2Effect", parent}, m_effectPath{path}
+    : ProcessModel{t, id, "LV2Effect", parent}
+    , m_effectPath{path}
 {
   reload();
 }
@@ -292,7 +299,11 @@ bool Model::hasExternalUI() const noexcept
   LILV_FOREACH(uis, u, the_uis)
   {
     const LilvUI* this_ui = lilv_uis_get(the_uis, u);
-    if (lilv_ui_is_supported(this_ui, suil_ui_supported, native_ui_type, &effectContext.ui_type))
+    if (lilv_ui_is_supported(
+            this_ui,
+            suil_ui_supported,
+            native_ui_type,
+            &effectContext.ui_type))
     {
       return true;
     }
@@ -303,9 +314,11 @@ bool Model::hasExternalUI() const noexcept
 
 void Model::readPlugin()
 {
-  auto& app_plug = score::AppComponents().applicationPlugin<LV2::ApplicationPlugin>();
+  auto& app_plug
+      = score::AppComponents().applicationPlugin<LV2::ApplicationPlugin>();
   auto& h = app_plug.lv2_host_context;
-  ossia::float_vector fInControls, fOutControls, fParamMin, fParamMax, fParamInit, fOtherControls;
+  ossia::float_vector fInControls, fOutControls, fParamMin, fParamMax,
+      fParamInit, fOtherControls;
 
   LV2Data data{h, effectContext};
 
@@ -326,7 +339,8 @@ void Model::readPlugin()
   fParamMin.resize(num_ports);
   fParamMax.resize(num_ports);
   fParamInit.resize(num_ports);
-  data.effect.plugin.get_port_ranges_float(fParamMin.data(), fParamMax.data(), fParamInit.data());
+  data.effect.plugin.get_port_ranges_float(
+      fParamMin.data(), fParamMax.data(), fParamInit.data());
 
   auto old_inlets = score::clearAndDeleteLater(m_inlets);
   auto old_outlets = score::clearAndDeleteLater(m_outlets);
@@ -337,7 +351,8 @@ void Model::readPlugin()
   // AUDIO
   if (audio_in_size > 0)
   {
-    m_inlets.push_back(new Process::AudioInlet{Id<Process::Port>{in_id++}, this});
+    m_inlets.push_back(
+        new Process::AudioInlet{Id<Process::Port>{in_id++}, this});
   }
 
   if (audio_out_size > 0)
@@ -350,7 +365,8 @@ void Model::readPlugin()
   // CV
   for (std::size_t i = 0; i < cv_size; i++)
   {
-    m_inlets.push_back(new Process::AudioInlet{Id<Process::Port>{in_id++}, this});
+    m_inlets.push_back(
+        new Process::AudioInlet{Id<Process::Port>{in_id++}, this});
   }
 
   // MIDI
@@ -394,13 +410,17 @@ void Model::readPlugin()
 
     control_map.insert({port_id, {port, false}});
     connect(
-        port, &Process::ControlInlet::valueChanged, this, [this, port_id](const ossia::value& v) {
+        port,
+        &Process::ControlInlet::valueChanged,
+        this,
+        [this, port_id](const ossia::value& v) {
           if (effectContext.ui_instance)
           {
             auto& writing = control_map[port_id].second;
             writing = true;
             float f = ossia::convert<float>(v);
-            suil_instance_port_event(effectContext.ui_instance, port_id, sizeof(float), 0, &f);
+            suil_instance_port_event(
+                effectContext.ui_instance, port_id, sizeof(float), 0, &f);
             writing = false;
           }
         });
@@ -413,8 +433,9 @@ void Model::readPlugin()
   {
     auto port = new Process::ControlOutlet{Id<Process::Port>{out_id++}, this};
     port->hidden = true;
-    port->setDomain(State::Domain{ossia::make_domain(fParamMin[port_id], fParamMax[port_id])});
-    if(std::isnan(fParamInit[port_id]))
+    port->setDomain(State::Domain{
+        ossia::make_domain(fParamMin[port_id], fParamMax[port_id])});
+    if (std::isnan(fParamInit[port_id]))
     {
       port->setValue(fParamMin[port_id]);
     }
@@ -454,7 +475,8 @@ void Model::reload()
   if (path.isEmpty())
     return;
 
-  auto& app_plug = score::AppComponents().applicationPlugin<LV2::ApplicationPlugin>();
+  auto& app_plug
+      = score::AppComponents().applicationPlugin<LV2::ApplicationPlugin>();
   auto& world = app_plug.lilv;
 
   if (auto plug = find_lv2_plugin(world, path))
@@ -463,7 +485,7 @@ void Model::reload()
     effectContext.plugin.me = *plug;
     readPlugin();
     QString name = plug->get_name().as_string();
-    if(name.isEmpty())
+    if (name.isEmpty())
       name = path.split("/").back();
     metadata().setName(name);
     metadata().setLabel(name);
@@ -567,7 +589,8 @@ void LV2EffectComponent::lazy_init()
   if (!proc.effectContext.instance)
     return;
 
-  auto& host = ctx.context().doc.app.applicationPlugin<LV2::ApplicationPlugin>();
+  auto& host
+      = ctx.context().doc.app.applicationPlugin<LV2::ApplicationPlugin>();
   on_finish of;
   of.self = shared_from_this();
 
@@ -579,13 +602,18 @@ void LV2EffectComponent::lazy_init()
   for (std::size_t i = proc.m_controlInStart; i < proc.inlets().size(); i++)
   {
     auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
-    node->fInControls[i - proc.m_controlInStart] = ossia::convert<float>(inlet->value());
+    node->fInControls[i - proc.m_controlInStart]
+        = ossia::convert<float>(inlet->value());
     auto inl = node->root_inputs()[i];
-    connect(inlet, &Process::ControlInlet::valueChanged, this, [this, inl](const ossia::value& v) {
-      system().executionQueue.enqueue([inl, val = v]() mutable {
-        inl->target<ossia::value_port>()->write_value(std::move(val), 0);
-      });
-    });
+    connect(
+        inlet,
+        &Process::ControlInlet::valueChanged,
+        this,
+        [this, inl](const ossia::value& v) {
+          system().executionQueue.enqueue([inl, val = v]() mutable {
+            inl->target<ossia::value_port>()->write_value(std::move(val), 0);
+          });
+        });
   }
 
   this->node = node;
@@ -611,7 +639,8 @@ void LV2EffectComponent::writeAtomToUi(
   }
 
   {
-    uint8_t* data = reinterpret_cast<uint8_t*>(ev.body.data() + sizeof(LV2_Atom));
+    uint8_t* data
+        = reinterpret_cast<uint8_t*>(ev.body.data() + sizeof(LV2_Atom));
 
     auto b = (const uint8_t*)body;
     for (uint32_t i = 0; i < size; i++)

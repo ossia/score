@@ -1,19 +1,22 @@
 #include "Process.hpp"
 
-#include <Process/Dataflow/Port.hpp>
-#include <Process/Dataflow/WidgetInlets.hpp>
-
 #include <Gfx/Graph/node.hpp>
 #include <Gfx/Graph/nodes.hpp>
 #include <Gfx/TexturePort.hpp>
 #include <Media/Tempo.hpp>
+#include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/WidgetInlets.hpp>
+
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Gfx::Video::Model)
 namespace Gfx::Video
 {
 
-Model::Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
+Model::Model(
+    const TimeVal& duration,
+    const Id<Process::ProcessModel>& id,
+    QObject* parent)
     : Process::ProcessModel{duration, id, "VideoProcess", parent}
     , m_nativeTempo{120}
 {
@@ -71,7 +74,6 @@ void Model::setIgnoreTempo(bool t)
   }
 }
 
-
 QSet<QString> DropHandler::mimeTypes() const noexcept
 {
   return {}; // TODO
@@ -98,10 +100,11 @@ std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::dropData(
       Process::ProcessDropHandler::ProcessDrop p;
       p.creation.key = Metadata<ConcreteKey_k, Gfx::Video::Model>::get();
       p.creation.customData = filename;
-      p.setup = [str = filename](Process::ProcessModel& m, score::Dispatcher& disp) {
-        auto& video = static_cast<Gfx::Video::Model&>(m);
-        disp.submit(new ChangeVideo{video, str});
-      };
+      p.setup =
+          [str = filename](Process::ProcessModel& m, score::Dispatcher& disp) {
+            auto& video = static_cast<Gfx::Video::Model&>(m);
+            disp.submit(new ChangeVideo{video, str});
+          };
       vec.push_back(std::move(p));
     }
   }

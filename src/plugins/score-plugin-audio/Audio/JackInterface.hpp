@@ -16,7 +16,8 @@ W_REGISTER_ARGTYPE(ossia::transport_status)
 class QFormLayout;
 namespace Audio
 {
-namespace Settings {
+namespace Settings
+{
 class Model;
 class View;
 }
@@ -34,11 +35,16 @@ public:
   ~JackFactory() override;
 
   bool available() const noexcept override;
-  void initialize(Audio::Settings::Model& set, const score::ApplicationContext& ctx) override { }
+  void initialize(
+      Audio::Settings::Model& set,
+      const score::ApplicationContext& ctx) override
+  {
+  }
 
   QString prettyName() const override { return QObject::tr("JACK"); }
-  std::unique_ptr<ossia::audio_engine>
-  make_engine(const Audio::Settings::Model& set, const score::ApplicationContext& ctx) override;
+  std::unique_ptr<ossia::audio_engine> make_engine(
+      const Audio::Settings::Model& set,
+      const score::ApplicationContext& ctx) override;
 
   std::shared_ptr<ossia::jack_client> acquireClient();
 
@@ -55,9 +61,10 @@ public:
       QWidget* parent) override;
 
   void transportStateChanged(ossia::transport_status st)
-  E_SIGNAL(SCORE_PLUGIN_AUDIO_EXPORT, transportStateChanged, st);
+      E_SIGNAL(SCORE_PLUGIN_AUDIO_EXPORT, transportStateChanged, st);
 
   ossia::tick_transport_info currentTransportInfo;
+
 private:
   jack_transport_state_t m_prevState{};
 };

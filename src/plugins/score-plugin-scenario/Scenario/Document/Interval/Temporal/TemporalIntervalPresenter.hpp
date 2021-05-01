@@ -1,6 +1,5 @@
 #pragma once
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
-
 #include <score_plugin_scenario_export.h>
 
 #include <verdigris>
@@ -20,13 +19,17 @@ class TemporalIntervalHeader;
 class TemporalIntervalView;
 struct SlotPresenter;
 class NodalIntervalView;
-class SCORE_PLUGIN_SCENARIO_EXPORT TemporalIntervalPresenter final : public IntervalPresenter
+class SCORE_PLUGIN_SCENARIO_EXPORT TemporalIntervalPresenter final
+    : public IntervalPresenter
 {
   W_OBJECT(TemporalIntervalPresenter)
 
 public:
   using view_type = TemporalIntervalView;
-  const auto& id() const { return IntervalPresenter::id(); } // To please boost::const_mem_fun
+  const auto& id() const
+  {
+    return IntervalPresenter::id();
+  } // To please boost::const_mem_fun
 
   TemporalIntervalPresenter(
       ZoomRatio zoom,
@@ -52,8 +55,10 @@ public:
   void requestProcessSelectorMenu(int slot, QPoint pos, QPointF sp) const;
 
 public:
-  void intervalHoverEnter() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalHoverEnter)
-  void intervalHoverLeave() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalHoverLeave)
+  void intervalHoverEnter()
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalHoverEnter)
+  void intervalHoverLeave()
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalHoverLeave)
 
 private:
   double rackHeight() const;
@@ -86,7 +91,6 @@ private:
   void setHeaderWidth(const LayerSlotPresenter& slot, double w);
   void setHeaderWidth(const NodalSlotPresenter& slot, double w);
   void createNodalSlot();
-
 
   bool m_handles{true};
 };

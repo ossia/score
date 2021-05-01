@@ -1,9 +1,9 @@
 #include "WindowDevice.hpp"
+
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxParameter.hpp>
 #include <Gfx/Graph/nodes.hpp>
 #include <Gfx/Graph/window.hpp>
-
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
@@ -11,10 +11,10 @@
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/protocol.hpp>
 
-#include <QLineEdit>
 #include <QFormLayout>
-#include <QMenu>
 #include <QGuiApplication>
+#include <QLineEdit>
+#include <QMenu>
 
 #include <wobjectimpl.h>
 
@@ -22,11 +22,10 @@ W_OBJECT_IMPL(Gfx::WindowDevice)
 
 namespace Gfx
 {
-static
-ScreenNode* createScreenNode()
+static ScreenNode* createScreenNode()
 {
   const auto& settings = score::AppContext().applicationSettings;
-  if(settings.autoplay || !settings.gui)
+  if (settings.autoplay || !settings.gui)
   //if(QGuiApplication::platformName().toLower().contains("gl"))
   {
     return new ScreenNode{false, true};
@@ -52,9 +51,11 @@ class gfx_device : public ossia::net::device_base
   gfx_node_base root;
 
 public:
-  gfx_device(std::unique_ptr<ossia::net::protocol_base> proto, std::string name)
-      : ossia::net::device_base{std::move(proto)},
-        root{*this, createScreenNode(), name}
+  gfx_device(
+      std::unique_ptr<ossia::net::protocol_base> proto,
+      std::string name)
+      : ossia::net::device_base{std::move(proto)}
+      , root{*this, createScreenNode(), name}
   {
   }
 
@@ -79,12 +80,14 @@ void WindowDevice::setupContextMenu(QMenu& menu) const
           if (!w->isVisible())
           {
             showhide->setText(tr("Show"));
-            connect(showhide, &QAction::triggered, w.get(), [w] { w->show(); });
+            connect(
+                showhide, &QAction::triggered, w.get(), [w] { w->show(); });
           }
           else
           {
             showhide->setText(tr("Hide"));
-            connect(showhide, &QAction::triggered, w.get(), [w] { w->hide(); });
+            connect(
+                showhide, &QAction::triggered, w.get(), [w] { w->hide(); });
           }
           menu.addAction(showhide);
         }
@@ -133,7 +136,8 @@ QString WindowProtocolFactory::category() const noexcept
   return StandardCategories::video;
 }
 
-Device::DeviceEnumerator* WindowProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerator*
+WindowProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
   return nullptr;
 }
@@ -145,7 +149,8 @@ Device::DeviceInterface* WindowProtocolFactory::makeDevice(
   return new WindowDevice{settings, ctx};
 }
 
-const Device::DeviceSettings& WindowProtocolFactory::defaultSettings() const noexcept
+const Device::DeviceSettings&
+WindowProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
@@ -178,7 +183,8 @@ Device::ProtocolSettingsWidget* WindowProtocolFactory::makeSettingsWidget()
   return new WindowSettingsWidget;
 }
 
-QVariant WindowProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
+QVariant WindowProtocolFactory::makeProtocolSpecificSettings(
+    const VisitorVariant& visitor) const
 {
   return {};
 }
@@ -196,7 +202,8 @@ bool WindowProtocolFactory::checkCompatibility(
   return a.name != b.name;
 }
 
-WindowSettingsWidget::WindowSettingsWidget(QWidget* parent) : ProtocolSettingsWidget(parent)
+WindowSettingsWidget::WindowSettingsWidget(QWidget* parent)
+    : ProtocolSettingsWidget(parent)
 {
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
   checkForChanges(m_deviceNameEdit);

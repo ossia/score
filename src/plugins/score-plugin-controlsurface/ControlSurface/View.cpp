@@ -12,10 +12,12 @@ namespace ControlSurface
 {
 
 View::View(QGraphicsItem* parent)
-  : LayerView{parent}
+    : LayerView{parent}
 {
   setZValue(1);
-  this->setFlags(ItemClipsToShape | ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
+  this->setFlags(
+      ItemClipsToShape | ItemClipsChildrenToShape | ItemIsSelectable
+      | ItemIsFocusable);
 }
 
 View::~View() { }
@@ -31,7 +33,6 @@ void View::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 void View::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
 {
   ev->accept();
-
 }
 
 void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
@@ -55,7 +56,7 @@ void View::dragMoveEvent(QGraphicsSceneDragDropEvent* event) { }
 void View::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
   Mime<State::MessageList>::Deserializer des(*event->mimeData());
-  if(event->mimeData()->hasFormat(score::mime::messagelist()))
+  if (event->mimeData()->hasFormat(score::mime::messagelist()))
   {
     auto list = des.deserialize();
     if (!list.empty())

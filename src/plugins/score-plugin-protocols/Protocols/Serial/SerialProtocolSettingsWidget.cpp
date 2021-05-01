@@ -3,19 +3,19 @@
 
 #include <ossia/detail/config.hpp>
 #if defined(OSSIA_PROTOCOL_SERIAL)
+#include "SerialProtocolFactory.hpp"
 #include "SerialProtocolSettingsWidget.hpp"
 #include "SerialSpecificSettings.hpp"
-#include "SerialProtocolFactory.hpp"
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <Process/Script/ScriptWidget.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
-#include <QCodeEditor>
-#include <score/widgets/Layout.hpp>
 #include <score/widgets/ComboBox.hpp>
+#include <score/widgets/Layout.hpp>
 #include <score/widgets/TextLabel.hpp>
 
+#include <QCodeEditor>
 #include <QLineEdit>
 #include <QVariant>
 namespace Protocols
@@ -79,7 +79,8 @@ Device::DeviceSettings SerialProtocolSettingsWidget::getSettings() const
   return s;
 }
 
-void SerialProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settings)
+void SerialProtocolSettingsWidget::setSettings(
+    const Device::DeviceSettings& settings)
 {
   m_name->setText(settings.name);
   SerialSpecificSettings specific;

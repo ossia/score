@@ -1,12 +1,12 @@
 #include "CableHelpers.hpp"
 
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-
 #include <score/model/IdentifierDebug.hpp>
 
 #include <ossia/detail/ptr_set.hpp>
 
 #include <QDebug>
+
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
 namespace Dataflow
 {
@@ -56,7 +56,8 @@ getCablesInChildObjects(QObjectList objs, const score::DocumentContext& ctx)
 
   return cables;
 }
-SerializedCables saveCables(QObjectList objs, const score::DocumentContext& ctx)
+SerializedCables
+saveCables(QObjectList objs, const score::DocumentContext& ctx)
 {
   SerializedCables cables;
 
@@ -125,7 +126,9 @@ SerializedCables serializedCablesFromCableJson(
   return serializedCablesFromCableJson(old_path, ObjectPath{}, arr);
 }
 
-void removeCables(const SerializedCables& cables, const score::DocumentContext& ctx)
+void removeCables(
+    const SerializedCables& cables,
+    const score::DocumentContext& ctx)
 {
   Scenario::ScenarioDocumentModel& doc
       = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
@@ -147,8 +150,9 @@ void removeCables(const SerializedCables& cables, const score::DocumentContext& 
   }
 }
 
-
-void restoreCables(const SerializedCables& cables, const score::DocumentContext& ctx)
+void restoreCables(
+    const SerializedCables& cables,
+    const score::DocumentContext& ctx)
 {
   Scenario::ScenarioDocumentModel& doc
       = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
@@ -187,6 +191,5 @@ void loadCables(
 
   Dataflow::restoreCables(cables, ctx);
 }
-
 
 }

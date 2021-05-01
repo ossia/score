@@ -7,5 +7,6 @@
 namespace Midi
 {
 using ProcessFactory = Process::ProcessFactory_T<Midi::ProcessModel>;
-using LayerFactory = Process::LayerFactory_T<Midi::ProcessModel, Midi::Presenter, Midi::View>;
+using LayerFactory
+    = Process::LayerFactory_T<Midi::ProcessModel, Midi::Presenter, Midi::View>;
 }

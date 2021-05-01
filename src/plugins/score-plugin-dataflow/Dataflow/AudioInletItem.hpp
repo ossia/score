@@ -3,7 +3,8 @@
 namespace Dataflow
 {
 
-struct SCORE_PLUGIN_DATAFLOW_EXPORT AudioInletFactory final : public AutomatablePortFactory
+struct SCORE_PLUGIN_DATAFLOW_EXPORT AudioInletFactory final
+    : public AutomatablePortFactory
 {
   using Model_T = Process::AudioInlet;
   UuidKey<Process::Port> concreteKey() const noexcept override

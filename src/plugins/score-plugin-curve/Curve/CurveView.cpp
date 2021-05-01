@@ -24,7 +24,8 @@ static QRectF getTextRect(const QString& txt)
   return lay.boundingRect(txt);
 }
 
-View::View(QGraphicsItem* parent) noexcept : QGraphicsItem{parent}
+View::View(QGraphicsItem* parent) noexcept
+    : QGraphicsItem{parent}
 {
   this->setFlags(ItemIsFocusable);
   this->setZValue(1);
@@ -32,7 +33,10 @@ View::View(QGraphicsItem* parent) noexcept : QGraphicsItem{parent}
 
 View::~View() { }
 
-void View::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void View::paint(
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   if (m_selectArea != QRectF{})
   {
@@ -120,8 +124,9 @@ void View::setValueTooltip(QPointF pos, const QString& s) noexcept
     // Compute position
     auto textrect = getTextRect(m_tooltip);
 
-    QPointF pos
-        = QPointF{m_tooltipPos.x() * m_defaultW, (1. - m_tooltipPos.y()) * m_rect.height()};
+    QPointF pos = QPointF{
+        m_tooltipPos.x() * m_defaultW,
+        (1. - m_tooltipPos.y()) * m_rect.height()};
     pos += {10., 10.};
     if (pos.x() + textrect.width() > 0.95 * m_defaultW)
     {

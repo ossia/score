@@ -12,7 +12,8 @@ ScenarioComponentBase::ScenarioComponentBase(
     const score::DocumentContext& sys,
     QObject* parent_obj)
     : ProcessComponent_T<
-        Scenario::ProcessModel>{parent, scenario, sys, id, "ScenarioComponent", parent_obj}
+        Scenario::
+            ProcessModel>{parent, scenario, sys, id, "ScenarioComponent", parent_obj}
     , m_intervalsNode{*node().create_child("intervals")}
     , m_eventsNode{*node().create_child("events")}
     , m_timeSyncsNode{*node().create_child("syncs")}

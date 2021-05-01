@@ -1,10 +1,10 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <score/model/tree/InvisibleRootNode.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/JSONVisitor.hpp>
 #include <score/model/tree/TreeNodeItemModel.hpp>
 #include <score/model/tree/TreePath.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
 
 QModelIndex TreeModel::convertPathToIndex(const TreePath& path) const
 {

@@ -1,18 +1,21 @@
 #pragma once
+#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
+
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
 #include <Scenario/Commands/Event/SetCondition.hpp>
 #include <Scenario/Commands/Scenario/Deletions/RemoveSelection.hpp>
 #include <Scenario/Commands/TimeSync/RemoveTrigger.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
-#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
-
 namespace Scenario
 {
 namespace Command
 {
 template <typename T>
-void setupRemoveMacro(const Scenario::ProcessModel& scenar, Selection sel, T& macro)
+void setupRemoveMacro(
+    const Scenario::ProcessModel& scenar,
+    Selection sel,
+    T& macro)
 {
   switch (sel.size())
   {

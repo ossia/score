@@ -65,7 +65,8 @@ public:
       QObject* context);
 };
 
-class SCORE_LIB_PROCESS_EXPORT PortFactoryList final : public score::InterfaceList<PortFactory>
+class SCORE_LIB_PROCESS_EXPORT PortFactoryList final
+    : public score::InterfaceList<PortFactory>
 {
 public:
   using object_type = Process::Port;
@@ -94,10 +95,16 @@ private:
 };
 
 SCORE_LIB_PROCESS_EXPORT
-void readPorts(DataStreamReader& wr, const Process::Inlets& ins, const Process::Outlets& outs);
+void readPorts(
+    DataStreamReader& wr,
+    const Process::Inlets& ins,
+    const Process::Outlets& outs);
 
 SCORE_LIB_PROCESS_EXPORT
-void readPorts(JSONReader& obj, const Process::Inlets& ins, const Process::Outlets& outs);
+void readPorts(
+    JSONReader& obj,
+    const Process::Inlets& ins,
+    const Process::Outlets& outs);
 
 SCORE_LIB_PROCESS_EXPORT
 void writePorts(

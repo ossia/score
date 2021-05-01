@@ -10,7 +10,10 @@ namespace State
 {
 class AddressFragmentLineEdit;
 }
-namespace score { class ComboBox;}
+namespace score
+{
+class ComboBox;
+}
 class QCheckBox;
 class QRadioButton;
 class QWidget;

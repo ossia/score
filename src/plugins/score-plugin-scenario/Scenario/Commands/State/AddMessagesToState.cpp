@@ -5,9 +5,6 @@
 #include <Process/ControlMessage.hpp>
 #include <Process/Process.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
 
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
@@ -15,6 +12,10 @@
 #include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/MapSerialization.hpp>
+
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 
 namespace Scenario
 {
@@ -29,7 +30,7 @@ RenameAddressInState::RenameAddressInState(
     , m_oldName{old}
     , m_newName{old}
 {
-  if(!m_newName.address.path.isEmpty())
+  if (!m_newName.address.path.isEmpty())
     m_newName.address.path.back() = name.name;
   else
     m_newName.address.device = name.name;
@@ -85,21 +86,25 @@ AddMessagesToState::AddMessagesToState(
   for (const ProcessStateWrapper& prevProc : state.previousProcesses())
   {
     const auto& processModel = prevProc.process().process();
-    m_previousBackup.insert({processModel.id(), prevProc.process().messages()});
+    m_previousBackup.insert(
+        {processModel.id(), prevProc.process().messages()});
 
     auto lst = prevProc.process().setMessages(messages, m_oldState);
 
-    updateTreeWithMessageList(m_newState, lst, processModel.id(), ProcessPosition::Previous);
+    updateTreeWithMessageList(
+        m_newState, lst, processModel.id(), ProcessPosition::Previous);
   }
 
   for (const ProcessStateWrapper& nextProc : state.followingProcesses())
   {
     const auto& processModel = nextProc.process().process();
-    m_followingBackup.insert({processModel.id(), nextProc.process().messages()});
+    m_followingBackup.insert(
+        {processModel.id(), nextProc.process().messages()});
 
     auto lst = nextProc.process().setMessages(messages, m_oldState);
 
-    updateTreeWithMessageList(m_newState, lst, processModel.id(), ProcessPosition::Following);
+    updateTreeWithMessageList(
+        m_newState, lst, processModel.id(), ProcessPosition::Following);
   }
 
   // TODO one day there will also be State functions that will perform
@@ -138,12 +143,14 @@ void AddMessagesToState::redo(const score::DocumentContext& ctx) const
 
 void AddMessagesToState::serializeImpl(DataStreamInput& d) const
 {
-  d << m_path << m_oldState << m_newState << m_previousBackup << m_followingBackup;
+  d << m_path << m_oldState << m_newState << m_previousBackup
+    << m_followingBackup;
 }
 
 void AddMessagesToState::deserializeImpl(DataStreamOutput& d)
 {
-  d >> m_path >> m_oldState >> m_newState >> m_previousBackup >> m_followingBackup;
+  d >> m_path >> m_oldState >> m_newState >> m_previousBackup
+      >> m_followingBackup;
 }
 
 AddControlMessagesToState::AddControlMessagesToState(

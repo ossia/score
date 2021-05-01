@@ -1,5 +1,6 @@
 #pragma once
 #include <QAbstractItemModel>
+
 #include <score_lib_base_export.h>
 
 /**
@@ -15,8 +16,8 @@ class SCORE_LIB_BASE_EXPORT TreeModel : public QAbstractItemModel
 public:
   using QAbstractItemModel::QAbstractItemModel;
   //! idx: should be the root index of the view
-  template<typename F>
-  void iterate(const QModelIndex & idx, const F& f)
+  template <typename F>
+  void iterate(const QModelIndex& idx, const F& f)
   {
     if (idx.isValid())
       f(idx);
@@ -77,7 +78,8 @@ public:
     return createIndex(rowParent, 0, parentNode);
   }
 
-  QModelIndex index(int row, int column, const QModelIndex& parent) const final override
+  QModelIndex
+  index(int row, int column, const QModelIndex& parent) const final override
   {
     if (!hasIndex(row, column, parent))
       return QModelIndex();

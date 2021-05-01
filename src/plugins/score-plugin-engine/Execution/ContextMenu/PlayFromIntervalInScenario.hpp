@@ -1,7 +1,7 @@
 #pragma once
 #include <Process/TimeValue.hpp>
-#include <Scenario/Document/Graph.hpp>
 
+#include <Scenario/Document/Graph.hpp>
 #include <tsl/hopscotch_set.h>
 
 namespace Execution

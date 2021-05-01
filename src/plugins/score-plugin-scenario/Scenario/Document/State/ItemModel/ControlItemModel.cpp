@@ -1,8 +1,6 @@
 #include "ControlItemModel.hpp"
 
 #include <Process/ControlMessage.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
 #include <State/ValueConversion.hpp>
 
 #include <score/document/DocumentContext.hpp>
@@ -10,6 +8,9 @@
 #include <ossia/network/value/value_traits.hpp>
 
 #include <QMimeData>
+
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 
 namespace Scenario
 {
@@ -37,7 +38,8 @@ QVariant valueColumnData(const Process::ControlMessage& ctrl, int role)
 }
 
 ControlItemModel::ControlItemModel(Scenario::StateModel& ctx, QObject* parent)
-    : QAbstractItemModel{parent}, m_state{ctx}
+    : QAbstractItemModel{parent}
+    , m_state{ctx}
 {
 }
 
@@ -52,7 +54,8 @@ ControlItemModel::~ControlItemModel()
   }
 }
 
-void ControlItemModel::replaceWith(const std::vector<Process::ControlMessage>& c)
+void ControlItemModel::replaceWith(
+    const std::vector<Process::ControlMessage>& c)
 {
   bool wasEmpty = m_msgs.empty();
   bool isEmpty = c.empty();
@@ -82,7 +85,8 @@ void ControlItemModel::addMessages(
 {
   for (auto&& item : std::move(vec))
   {
-    auto it = ossia::find_if(cur, [&](auto& ctl) { return ctl.port == item.port; });
+    auto it = ossia::find_if(
+        cur, [&](auto& ctl) { return ctl.port == item.port; });
     if (it == cur.end())
     {
       cur.push_back(std::move(item));
@@ -94,7 +98,8 @@ void ControlItemModel::addMessages(
   }
 }
 
-QModelIndex ControlItemModel::index(int row, int column, const QModelIndex& parent) const
+QModelIndex
+ControlItemModel::index(int row, int column, const QModelIndex& parent) const
 {
   return createIndex(row, column, nullptr);
 }

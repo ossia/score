@@ -1,12 +1,15 @@
 #pragma once
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
+
 #include <verdigris>
 
-namespace score {class FormWidget;}
+namespace score
+{
+class FormWidget;
+}
 namespace Gfx::Settings
 {
-class View
-    : public score::GlobalSettingsView
+class View : public score::GlobalSettingsView
 {
   W_OBJECT(View)
 public:

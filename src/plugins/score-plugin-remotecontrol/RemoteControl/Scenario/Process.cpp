@@ -8,7 +8,12 @@ RemoteControl::ProcessComponent::ProcessComponent(
     const Id<score::Component>& id,
     const QString& name,
     QObject* parent)
-    : Process::GenericProcessComponent<DocumentPlugin>{process, doc, id, name, parent}
+    : Process::GenericProcessComponent<DocumentPlugin>{
+        process,
+        doc,
+        id,
+        name,
+        parent}
 {
 }
 

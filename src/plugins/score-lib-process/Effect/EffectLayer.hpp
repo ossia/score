@@ -22,7 +22,8 @@ private:
   void contextMenuEvent(QGraphicsSceneContextMenuEvent* ev) override;
 };
 
-class SCORE_LIB_PROCESS_EXPORT EffectLayerPresenter final : public Process::LayerPresenter
+class SCORE_LIB_PROCESS_EXPORT EffectLayerPresenter final
+    : public Process::LayerPresenter
 {
   W_OBJECT(EffectLayerPresenter)
 public:

@@ -1,8 +1,8 @@
 #pragma once
 #include <score/model/Skin.hpp>
+#include <score/serialization/DataStreamFwd.hpp>
 #include <score/tools/Debug.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <score/serialization/DataStreamFwd.hpp>
 
 #include <QColor>
 
@@ -21,9 +21,15 @@ namespace score
  */
 struct SCORE_LIB_BASE_EXPORT ColorRef
 {
-  friend bool operator==(ColorRef lhs, ColorRef rhs) { return lhs.ref == rhs.ref; }
+  friend bool operator==(ColorRef lhs, ColorRef rhs)
+  {
+    return lhs.ref == rhs.ref;
+  }
 
-  friend bool operator!=(ColorRef lhs, ColorRef rhs) { return lhs.ref != rhs.ref; }
+  friend bool operator!=(ColorRef lhs, ColorRef rhs)
+  {
+    return lhs.ref != rhs.ref;
+  }
 
 public:
   constexpr ColorRef() noexcept = default;
@@ -32,9 +38,15 @@ public:
   constexpr ColorRef& operator=(const ColorRef& other) noexcept = default;
   constexpr ColorRef& operator=(ColorRef&& other) noexcept = default;
 
-  ColorRef(Brush Skin::*s) : ref{&(score::Skin::instance().*s)} { }
+  ColorRef(Brush Skin::*s)
+      : ref{&(score::Skin::instance().*s)}
+  {
+  }
 
-  constexpr ColorRef(const Brush* col) noexcept : ref{col} { }
+  constexpr ColorRef(const Brush* col) noexcept
+      : ref{col}
+  {
+  }
 
   void setColor(Brush Skin::*s) noexcept
   {
@@ -48,7 +60,10 @@ public:
     return *ref;
   }
 
-  QString name() const noexcept { return score::Skin::instance().toString(ref); }
+  QString name() const noexcept
+  {
+    return score::Skin::instance().toString(ref);
+  }
 
   static std::optional<ColorRef> ColorFromString(const QString&) noexcept;
   static std::optional<ColorRef> SimilarColor(QColor other) noexcept;

@@ -3,9 +3,6 @@
 #include "FullViewIntervalHeader.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
-#include <Scenario/Document/Interval/IntervalHeader.hpp>
-#include <Scenario/Document/Interval/IntervalView.hpp>
 
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/tools/Bind.hpp>
@@ -15,6 +12,9 @@
 #include <QPainter>
 #include <QPoint>
 
+#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalHeader.hpp>
+#include <Scenario/Document/Interval/IntervalView.hpp>
 #include <cmath>
 
 class QGraphicsItem;
@@ -29,7 +29,8 @@ static constexpr qreal fullViewHeaderBarY = 2.;
 FullViewIntervalHeader::FullViewIntervalHeader(
     const score::DocumentContext& ctx,
     QGraphicsItem* parent)
-    : IntervalHeader{parent}, m_bar{ctx, this}
+    : IntervalHeader{parent}
+    , m_bar{ctx, this}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setFlag(QGraphicsItem::ItemClipsChildrenToShape, false);
@@ -68,7 +69,8 @@ void FullViewIntervalHeader::paint(
   // Note: if the interval always has its pos() in (0; 0), we can
   // safely remove the call to mapToScene.
 
-  const double text_left = view->mapFromScene(mapToScene(QPointF{fullViewHeaderBarX, 0.})).x();
+  const double text_left
+      = view->mapFromScene(mapToScene(QPointF{fullViewHeaderBarX, 0.})).x();
   const double text_right = text_left + textWidth;
   double x = fullViewHeaderBarX;
   const constexpr double min_x = fullViewHeaderBarX;

@@ -1,6 +1,6 @@
-#include <score/graphics/widgets/QGraphicsIntSlider.hpp>
 #include <score/graphics/DefaultGraphicsSliderImpl.hpp>
 #include <score/graphics/GraphicsSliderBaseImpl.hpp>
+#include <score/graphics/widgets/QGraphicsIntSlider.hpp>
 #include <score/model/Skin.hpp>
 
 #include <ossia/detail/math.hpp>
@@ -12,9 +12,11 @@ W_OBJECT_IMPL(score::QGraphicsIntSlider);
 
 namespace score
 {
-template void QGraphicsSliderBase<QGraphicsIntSlider>::setRect(const QRectF& r);
+template void
+QGraphicsSliderBase<QGraphicsIntSlider>::setRect(const QRectF& r);
 
-QGraphicsIntSlider::QGraphicsIntSlider(QGraphicsItem* parent) : QGraphicsSliderBase{parent}
+QGraphicsIntSlider::QGraphicsIntSlider(QGraphicsItem* parent)
+    : QGraphicsSliderBase{parent}
 {
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointingHand);
@@ -47,7 +49,8 @@ void QGraphicsIntSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
   }
 
   const auto srect = sliderRect();
-  double curPos = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
+  double curPos
+      = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
   int res = std::floor(m_min + curPos * (m_max - m_min));
   if (res != m_value)
   {
@@ -64,7 +67,8 @@ void QGraphicsIntSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   if (m_grab)
   {
     const auto srect = sliderRect();
-    double curPos = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
+    double curPos
+        = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
     int res = std::floor(m_min + curPos * (m_max - m_min));
     if (res != m_value)
     {
@@ -80,7 +84,8 @@ void QGraphicsIntSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   if (m_grab)
   {
-    double curPos = ossia::clamp(event->pos().x() / sliderRect().width(), 0., 1.);
+    double curPos
+        = ossia::clamp(event->pos().x() / sliderRect().width(), 0., 1.);
     int res = std::floor(m_min + curPos * (m_max - m_min));
     if (res != m_value)
     {
@@ -99,7 +104,11 @@ void QGraphicsIntSlider::paint(
     QWidget* widget)
 {
   DefaultGraphicsSliderImpl::paint(
-      *this, score::Skin::instance(), QString::number(value()), painter, widget);
+      *this,
+      score::Skin::instance(),
+      QString::number(value()),
+      painter,
+      widget);
 }
 
 double QGraphicsIntSlider::getHandleX() const

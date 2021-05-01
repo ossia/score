@@ -12,16 +12,16 @@
 
 #include <Process/Dataflow/PortFactory.hpp>
 
-#include <score/tools/DeleteAll.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/tools/DeleteAll.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/port.hpp>
 
-#include <iostream>
-
 #include <wobjectimpl.h>
+
+#include <iostream>
 W_OBJECT_IMPL(Jit::JitEffectModel)
 
 namespace Jit
@@ -35,13 +35,14 @@ JitEffectModel::JitEffectModel(
     : Process::ProcessModel{t, id, "Jit", parent}
 {
   init();
-  if(jitProgram.isEmpty())
-    setScript(Process::EffectProcessFactory_T<Jit::JitEffectModel>{}.customConstructionData());
+  if (jitProgram.isEmpty())
+    setScript(Process::EffectProcessFactory_T<Jit::JitEffectModel>{}
+                  .customConstructionData());
   else
     setScript(jitProgram);
 }
 
-JitEffectModel::~JitEffectModel() {}
+JitEffectModel::~JitEffectModel() { }
 
 JitEffectModel::JitEffectModel(JSONObject::Deserializer& vis, QObject* parent)
     : Process::ProcessModel{vis, parent}
@@ -79,7 +80,7 @@ bool JitEffectModel::validate(const QString& txt) const noexcept
 
 void JitEffectModel::setScript(const QString& txt)
 {
-  if(m_text != txt)
+  if (m_text != txt)
   {
     m_text = txt;
     reload();
@@ -87,7 +88,7 @@ void JitEffectModel::setScript(const QString& txt)
   }
 }
 
-void JitEffectModel::init() {}
+void JitEffectModel::init() { }
 
 QString JitEffectModel::prettyName() const noexcept
 {
@@ -111,7 +112,7 @@ struct inlet_vis
 
   Process::Inlet* operator()(const ossia::value_port& p) const noexcept
   {
-    if(!p.is_event)
+    if (!p.is_event)
     {
       auto i = new Process::ValueInlet{getStrongId(self.inlets()), &self};
       return i;
@@ -170,7 +171,8 @@ void JitEffectModel::reload()
   NodeFactory jit_factory;
   try
   {
-    jit_factory = (*m_compiler)(fx_text.toStdString(), {}, CompilerOptions{false});
+    jit_factory
+        = (*m_compiler)(fx_text.toStdString(), {}, CompilerOptions{false});
 
     if (!jit_factory)
       return;
@@ -199,7 +201,6 @@ void JitEffectModel::reload()
 
   auto inls = score::clearAndDeleteLater(m_inlets);
   auto outls = score::clearAndDeleteLater(m_outlets);
-
 
   for (ossia::inlet* port : jit_object->root_inputs())
   {
@@ -332,7 +333,6 @@ Execution::JitEffectComponent::JitEffectComponent(
     : ProcessComponent_T{proc, ctx, id, "JitComponent", parent}
 {
   auto reset = [this, &proc, &ctx] {
-
     if (proc.factory)
     {
       this->node.reset(proc.factory());
@@ -343,29 +343,28 @@ Execution::JitEffectComponent::JitEffectComponent(
         for (std::size_t i = 0; i < proc.inlets().size(); i++)
         {
           auto inlet = dynamic_cast<Process::ControlInlet*>(proc.inlets()[i]);
-          if(!inlet)
+          if (!inlet)
             continue;
 
           auto inl = node->root_inputs()[i];
           inl->target<ossia::value_port>()->write_value(inlet->value(), {});
-          connect(inlet, &Process::ControlInlet::valueChanged,
-                  this, [this, inl] (const ossia::value& v) {
-
-            system().executionQueue.enqueue([inl, val = v]() mutable {
-              inl->target<ossia::value_port>()->write_value(
-                  std::move(val), 1);
-            });
-
-          });
+          connect(
+              inlet,
+              &Process::ControlInlet::valueChanged,
+              this,
+              [this, inl](const ossia::value& v) {
+                system().executionQueue.enqueue([inl, val = v]() mutable {
+                  inl->target<ossia::value_port>()->write_value(
+                      std::move(val), 1);
+                });
+              });
         }
       }
     }
   };
   reset();
-  con(proc, &Jit::JitEffectModel::changed,
-      this, reset);
-
+  con(proc, &Jit::JitEffectModel::changed, this, reset);
 }
 
-JitEffectComponent::~JitEffectComponent() {}
+JitEffectComponent::~JitEffectComponent() { }
 }

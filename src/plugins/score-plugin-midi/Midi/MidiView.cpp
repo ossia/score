@@ -20,7 +20,8 @@ namespace Midi
 {
 
 static const MidiStyle style;
-View::View(QGraphicsItem* parent) : Process::LayerView{parent}
+View::View(QGraphicsItem* parent)
+    : Process::LayerView{parent}
 {
   this->setAcceptHoverEvents(true);
   this->setAcceptDrops(true);
@@ -84,11 +85,15 @@ void View::heightChanged(qreal h)
       const qreal width = std::max(v->width(), 800) * 2;
 
       {
-        QRectF* white_rects = (QRectF*)alloca((sizeof(QRectF) * visibleCount()));
+        QRectF* white_rects
+            = (QRectF*)alloca((sizeof(QRectF) * visibleCount()));
         int max_white = 0;
         const auto draw_bg_white = [&](int i) {
-          white_rects[max_white++]
-              = QRectF{0, rect.height() + note_height * (m_min - i - 1) - 1, width, note_height};
+          white_rects[max_white++] = QRectF{
+              0,
+              rect.height() + note_height * (m_min - i - 1) - 1,
+              width,
+              note_height};
         };
         for_white_notes(draw_bg_white);
         p.setBrush(style.lightBrush);
@@ -101,8 +106,7 @@ void View::heightChanged(qreal h)
         for (int i = m_min; i <= m_max; i++)
         {
           const float y = rect.height() + note_height * (m_min - i - 1) - 1;
-          lines[max_lines++]
-              = QLineF{0, y, width, y};
+          lines[max_lines++] = QLineF{0, y, width, y};
         }
 
         p.setPen(style.darkPen);
@@ -119,7 +123,11 @@ void View::heightChanged(qreal h)
             "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
         const auto draw_text = [&](int i) {
           text_painter.drawText(
-              QRectF{4., rect.height() + note_height * (m_min - i - 1) - 1, width, note_height},
+              QRectF{
+                  4.,
+                  rect.height() + note_height * (m_min - i - 1) - 1,
+                  width,
+                  note_height},
               texts[i % 12],
               QTextOption{Qt::AlignVCenter});
         };
@@ -131,7 +139,7 @@ void View::heightChanged(qreal h)
       }
       else
       {
-        if(!m_textCache.isNull())
+        if (!m_textCache.isNull())
         {
           m_textCache = QPixmap{};
         }
@@ -185,7 +193,7 @@ void View::paint_impl(QPainter* p) const
       if (p->device()->devicePixelRatioF() == 1.)
       {
         m_fragmentCache.clear();
-        while(x - next_w < proc_w)
+        while (x - next_w < proc_w)
         {
           m_fragmentCache.push_back(QPainter::PixmapFragment{
               x,
@@ -202,20 +210,21 @@ void View::paint_impl(QPainter* p) const
         }
 
         p->drawPixmapFragments(
-            m_fragmentCache.data(),
-            m_fragmentCache.size(),
-            m_bgCache);
+            m_fragmentCache.data(), m_fragmentCache.size(), m_bgCache);
       }
       else
       {
-        while(x - next_w < proc_w)
+        while (x - next_w < proc_w)
         {
-          p->drawPixmap(QPointF{x, 0}, m_bgCache, QRectF{text_w, 0., next_w, (double)m_bgCache.height()});
+          p->drawPixmap(
+              QPointF{x, 0},
+              m_bgCache,
+              QRectF{text_w, 0., next_w, (double)m_bgCache.height()});
           x += next_w / dpi;
         }
       }
 
-      if(left < 30 && !m_textCache.isNull())
+      if (left < 30 && !m_textCache.isNull())
       {
         p->drawPixmap(QPointF{}, m_textCache);
       }
@@ -305,7 +314,8 @@ NoteData View::noteAtPos(QPointF point) const
       1
           + int(
               m_max
-              - (qMin(rect.bottom(), qMax(point.y(), rect.top())) / rect.height())
+              - (qMin(rect.bottom(), qMax(point.y(), rect.top()))
+                 / rect.height())
                     * visibleCount()),
       m_max);
 

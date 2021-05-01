@@ -38,7 +38,8 @@ Device::AddressSettings AddressBoolSettingsWidget::getDefaultSettings() const
   return {};
 }
 
-void AddressBoolSettingsWidget::setSettings(const Device::AddressSettings& settings)
+void AddressBoolSettingsWidget::setSettings(
+    const Device::AddressSettings& settings)
 {
   setCommonSettings(settings);
   m_cb->setCurrentIndex(State::convert::value<bool>(settings.value));

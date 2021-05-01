@@ -2,10 +2,11 @@
 
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
+
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 
 namespace Scenario
 {

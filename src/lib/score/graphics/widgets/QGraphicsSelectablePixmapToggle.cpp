@@ -14,11 +14,11 @@ QGraphicsSelectablePixmapToggle::QGraphicsSelectablePixmapToggle(
     QPixmap released,
     QPixmap released_selected,
     QGraphicsItem* parent)
-  : QGraphicsPixmapItem{released, parent}
-  , m_pressed{std::move(pressed)}
-  , m_pressed_selected{std::move(pressed_selected)}
-  , m_released{std::move(released)}
-  , m_released_selected{std::move(released_selected)}
+    : QGraphicsPixmapItem{released, parent}
+    , m_pressed{std::move(pressed)}
+    , m_pressed_selected{std::move(pressed_selected)}
+    , m_released{std::move(released)}
+    , m_released_selected{std::move(released_selected)}
 {
   // TODO https://bugreports.qt.io/browse/QTBUG-77970
   setShapeMode(QGraphicsPixmapItem::BoundingRectShape);
@@ -30,8 +30,8 @@ void QGraphicsSelectablePixmapToggle::toggle()
 {
   m_toggled = !m_toggled;
   setPixmap(
-        m_toggled ? (m_selected ? m_pressed_selected : m_pressed)
-                  : (m_selected ? m_released_selected : m_released));
+      m_toggled ? (m_selected ? m_pressed_selected : m_pressed)
+                : (m_selected ? m_released_selected : m_released));
 }
 
 void QGraphicsSelectablePixmapToggle::setSelected(bool selected)
@@ -40,8 +40,8 @@ void QGraphicsSelectablePixmapToggle::setSelected(bool selected)
   {
     m_selected = selected;
     setPixmap(
-          m_toggled ? (m_selected ? m_pressed_selected : m_pressed)
-                    : (m_selected ? m_released_selected : m_released));
+        m_toggled ? (m_selected ? m_pressed_selected : m_pressed)
+                  : (m_selected ? m_released_selected : m_released));
   }
 }
 
@@ -51,27 +51,30 @@ void QGraphicsSelectablePixmapToggle::setState(bool toggled)
   {
     m_toggled = toggled;
     setPixmap(
-          m_toggled ? (m_selected ? m_pressed_selected : m_pressed)
-                    : (m_selected ? m_released_selected : m_released));
+        m_toggled ? (m_selected ? m_pressed_selected : m_pressed)
+                  : (m_selected ? m_released_selected : m_released));
   }
 }
 
-void QGraphicsSelectablePixmapToggle::mousePressEvent(QGraphicsSceneMouseEvent* event)
+void QGraphicsSelectablePixmapToggle::mousePressEvent(
+    QGraphicsSceneMouseEvent* event)
 {
   m_toggled = !m_toggled;
   setPixmap(
-        m_toggled ? (m_selected ? m_pressed_selected : m_pressed)
-                  : (m_selected ? m_released_selected : m_released));
+      m_toggled ? (m_selected ? m_pressed_selected : m_pressed)
+                : (m_selected ? m_released_selected : m_released));
   toggled(m_toggled);
   event->accept();
 }
 
-void QGraphicsSelectablePixmapToggle::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+void QGraphicsSelectablePixmapToggle::mouseMoveEvent(
+    QGraphicsSceneMouseEvent* event)
 {
   event->accept();
 }
 
-void QGraphicsSelectablePixmapToggle::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+void QGraphicsSelectablePixmapToggle::mouseReleaseEvent(
+    QGraphicsSceneMouseEvent* event)
 {
   event->accept();
 }

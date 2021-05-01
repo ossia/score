@@ -1,14 +1,15 @@
 #pragma once
 #include <Process/Tools/ToolPalette.hpp>
+
+#include <score/statemachine/GraphicsSceneToolPalette.hpp>
+
+#include <QPoint>
+
 #include <Scenario/Document/BaseScenario/BaseElementContext.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Palette/Tool.hpp>
 #include <Scenario/Palette/Tools/SmartTool.hpp>
 #include <Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp>
-
-#include <score/statemachine/GraphicsSceneToolPalette.hpp>
-
-#include <QPoint>
 class BaseGraphicsObject;
 namespace Scenario
 {
@@ -23,7 +24,8 @@ class MoveEventInBaseScenario_StateWrapper;
 class MoveTimeSyncInBaseScenario_StateWrapper;
 class ScenarioDocumentPresenter;
 
-class BaseScenarioDisplayedElementsToolPalette final : public GraphicsSceneToolPalette
+class BaseScenarioDisplayedElementsToolPalette final
+    : public GraphicsSceneToolPalette
 {
 public:
   BaseScenarioDisplayedElementsToolPalette(ScenarioDocumentPresenter& pres);

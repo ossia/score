@@ -1,8 +1,8 @@
 #pragma once
+#include <score/command/Command.hpp>
+
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
-
-#include <score/command/Command.hpp>
 
 namespace Process
 {

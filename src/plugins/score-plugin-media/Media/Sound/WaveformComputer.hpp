@@ -4,9 +4,9 @@
 
 #include <score/tools/Debug.hpp>
 
+#include <QImage>
 #include <QObject>
 #include <QVector>
-#include <QImage>
 
 #include <memory>
 #include <verdigris>
@@ -59,11 +59,10 @@ public:
   void stop();
 
 public:
-  void recompute(WaveformRequest req)
-  W_SIGNAL(recompute, req);
+  void recompute(WaveformRequest req) W_SIGNAL(recompute, req);
 
   void ready(QVector<QImage*> img, ComputedWaveform wf)
-  W_SIGNAL(ready, img, wf);
+      W_SIGNAL(ready, img, wf);
 
 private:
   friend struct WaveformComputerImpl;
@@ -71,9 +70,9 @@ private:
   void on_recompute(WaveformRequest&& req, int64_t n);
   void timerEvent(QTimerEvent* event) override;
 
-
   std::atomic_int64_t m_redraw_count = std::numeric_limits<int64_t>::lowest();
-  std::chrono::steady_clock::time_point last_request = std::chrono::steady_clock::now();
+  std::chrono::steady_clock::time_point last_request
+      = std::chrono::steady_clock::now();
 
   WaveformRequest m_currentRequest;
 
@@ -81,13 +80,32 @@ private:
   int64_t m_processed_n{-1};
 };
 
-
 }
 
-inline QDataStream& operator<<(QDataStream& i, const Media::Sound::WaveformRequest& sel) { SCORE_ABORT; return i; }
-inline QDataStream& operator>>(QDataStream& i, Media::Sound::WaveformRequest& sel) { SCORE_ABORT; return i; }
-inline QDataStream& operator<<(QDataStream& i, const Media::Sound::ComputedWaveform& sel) { SCORE_ABORT; return i; }
-inline QDataStream& operator>>(QDataStream& i, Media::Sound::ComputedWaveform& sel) { SCORE_ABORT; return i; }
+inline QDataStream&
+operator<<(QDataStream& i, const Media::Sound::WaveformRequest& sel)
+{
+  SCORE_ABORT;
+  return i;
+}
+inline QDataStream&
+operator>>(QDataStream& i, Media::Sound::WaveformRequest& sel)
+{
+  SCORE_ABORT;
+  return i;
+}
+inline QDataStream&
+operator<<(QDataStream& i, const Media::Sound::ComputedWaveform& sel)
+{
+  SCORE_ABORT;
+  return i;
+}
+inline QDataStream&
+operator>>(QDataStream& i, Media::Sound::ComputedWaveform& sel)
+{
+  SCORE_ABORT;
+  return i;
+}
 Q_DECLARE_METATYPE(Media::Sound::WaveformRequest)
 W_REGISTER_ARGTYPE(Media::Sound::WaveformRequest)
 Q_DECLARE_METATYPE(Media::Sound::ComputedWaveform)

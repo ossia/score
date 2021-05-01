@@ -7,9 +7,6 @@
 
 #include <Process/Style/Pixmaps.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Scenario/Document/Interval/IntervalHeader.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
 
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/graphics/GraphicsSliderBaseImpl.hpp>
@@ -25,6 +22,9 @@
 #include <QPoint>
 #include <QTextLayout>
 
+#include <Scenario/Document/Interval/IntervalHeader.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
 #include <cmath>
 #include <wobjectimpl.h>
 
@@ -46,7 +46,8 @@ TemporalIntervalHeader::TemporalIntervalHeader(TemporalIntervalPresenter& pres)
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setAcceptDrops(true);
   this->setAcceptHoverEvents(true);
-  this->setAcceptedMouseButtons(Qt::LeftButton); // needs to be enabled for dblclick
+  this->setAcceptedMouseButtons(
+      Qt::LeftButton); // needs to be enabled for dblclick
   this->setFlags(
       QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemClipsToShape
       | QGraphicsItem::ItemClipsChildrenToShape | ItemStacksBehindParent);
@@ -113,7 +114,9 @@ void TemporalIntervalHeader::paint(
 
   const auto p = QPointF{
       m_previous_x + rack_button_offset,
-      std::round(-1. + (IntervalHeader::headerHeight() - m_textRectCache.height()) / 2.)};
+      std::round(
+          -1.
+          + (IntervalHeader::headerHeight() - m_textRectCache.height()) / 2.)};
 
   if (moved)
     updateButtons();
@@ -123,13 +126,15 @@ void TemporalIntervalHeader::paint(
     auto& style = Process::Style::instance();
     painter->setRenderHint(QPainter::Antialiasing, true);
     painter->setPen(style.NoPen());
-    painter->setBrush(itv.muted() ? style.MutedIntervalHeaderBackground() : style.SlotHeader());
+    painter->setBrush(
+        itv.muted() ? style.MutedIntervalHeaderBackground()
+                    : style.SlotHeader());
 
     painter->drawPolygon(m_poly);
     painter->setRenderHint(QPainter::Antialiasing, false);
   }
 
-   painter->drawPixmap(p, m_line);
+  painter->drawPixmap(p, m_line);
   // painter->setPen(Qt::red);
   // painter->setBrush(Qt::transparent);
   // painter->drawPath(shape());
@@ -197,11 +202,17 @@ void TemporalIntervalHeader::updateOverlay()
   else if (!hadRackButton && needsRackButton)
   {
     m_rackButton = new score::QGraphicsSelectablePixmapToggle{
-        pixmaps.roll, pixmaps.roll_selected, pixmaps.unroll, pixmaps.unroll_selected, this};
+        pixmaps.roll,
+        pixmaps.roll_selected,
+        pixmaps.unroll,
+        pixmaps.unroll_selected,
+        this};
 
-    connect(m_rackButton, &score::QGraphicsSelectablePixmapToggle::toggled, &m_presenter, [=] {
-      ((TemporalIntervalPresenter&)m_presenter).changeRackState();
-    });
+    connect(
+        m_rackButton,
+        &score::QGraphicsSelectablePixmapToggle::toggled,
+        &m_presenter,
+        [=] { ((TemporalIntervalPresenter&)m_presenter).changeRackState(); });
 
     m_rackButton->setSelected(overlayVisible);
     m_overlay = true;
@@ -215,13 +226,18 @@ void TemporalIntervalHeader::updateOverlay()
   }
   else if (!hadMute && needsMute)
   {
-    m_mute = new score::QGraphicsPixmapToggle{pixmaps.muted, pixmaps.unmuted, this};
+    m_mute = new score::QGraphicsPixmapToggle{
+        pixmaps.muted, pixmaps.unmuted, this};
     if (itv.muted())
       m_mute->toggle();
-    connect(m_mute, &score::QGraphicsPixmapToggle::toggled, &m_presenter, [&itv](bool b) {
-      ((IntervalModel&)itv).setMuted(b);
+    connect(
+        m_mute,
+        &score::QGraphicsPixmapToggle::toggled,
+        &m_presenter,
+        [&itv](bool b) { ((IntervalModel&)itv).setMuted(b); });
+    con(itv, &IntervalModel::mutedChanged, m_mute, [=](bool b) {
+      m_mute->setState(b);
     });
-    con(itv, &IntervalModel::mutedChanged, m_mute, [=](bool b) { m_mute->setState(b); });
   }
 
   /// Add process ///
@@ -252,7 +268,8 @@ void TemporalIntervalHeader::updateOverlay()
     m_speed->min = -1.;
     m_speed->max = 5.;
     m_speed->setRect({0., 0., 60., headerHeight() * 0.8});
-    m_speed->setValue((durations.speed() - m_speed->min) / (m_speed->max - m_speed->min));
+    m_speed->setValue(
+        (durations.speed() - m_speed->min) / (m_speed->max - m_speed->min));
     connect(
         m_speed,
         &score::QGraphicsSlider::sliderMoved,
@@ -296,7 +313,8 @@ void TemporalIntervalHeader::setLabel(const QString& label)
   on_textChanged();
 }
 
-void TemporalIntervalHeader::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
+void TemporalIntervalHeader::mouseDoubleClickEvent(
+    QGraphicsSceneMouseEvent* event)
 {
   doubleClicked();
 }
@@ -320,7 +338,8 @@ void TemporalIntervalHeader::updateShape() noexcept
   if (m_speed)
     buttons_width += m_speed->boundingRect().width();
 
-  m_poly << QPointF{0., qreal(IntervalHeader::headerHeight()) - 0.5} << QPointF{5., 0.}
+  m_poly << QPointF{0., qreal(IntervalHeader::headerHeight()) - 0.5}
+         << QPointF{5., 0.}
          << QPointF{m_previous_x + text_width + buttons_width, 0.}
          << QPointF{
                 m_previous_x + text_width + buttons_width + 5.,
@@ -345,7 +364,8 @@ void TemporalIntervalHeader::on_textChanged()
   const auto& model = m_presenter.model().metadata();
   const auto& label = model.getLabel();
   const auto& name = model.getName();
-  const auto& text = m_state != State::Hidden ? (label.isEmpty() ? name : label) : label;
+  const auto& text
+      = m_state != State::Hidden ? (label.isEmpty() ? name : label) : label;
   if (text.isEmpty())
   {
     m_textRectCache = {};

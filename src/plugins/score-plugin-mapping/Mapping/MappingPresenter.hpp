@@ -9,7 +9,8 @@
 
 namespace Mapping
 {
-class LayerPresenter final : public Curve::CurveProcessPresenter<ProcessModel, LayerView>
+class LayerPresenter final
+    : public Curve::CurveProcessPresenter<ProcessModel, LayerView>
 {
   W_OBJECT(LayerPresenter)
 public:

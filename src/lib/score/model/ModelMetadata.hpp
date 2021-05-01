@@ -35,7 +35,9 @@ public:
   template <typename T>
   void setInstanceName(const T& t) noexcept
   {
-    setName(QString("%1.%2").arg(Metadata<PrettyName_k, T>::get()).arg(t.id().val()));
+    setName(QString("%1.%2")
+                .arg(Metadata<PrettyName_k, T>::get())
+                .arg(t.id().val()));
     m_touchedName = false;
   }
 
@@ -45,14 +47,20 @@ public:
   void setColor(ColorRef) noexcept;
   void setLabel(const QString&) noexcept;
 
-  void NameChanged(const QString& arg) E_SIGNAL(SCORE_LIB_BASE_EXPORT, NameChanged, arg)
-  void CommentChanged(const QString& arg) E_SIGNAL(SCORE_LIB_BASE_EXPORT, CommentChanged, arg)
-  void ColorChanged(score::ColorRef arg) E_SIGNAL(SCORE_LIB_BASE_EXPORT, ColorChanged, arg)
-  void LabelChanged(const QString& arg) E_SIGNAL(SCORE_LIB_BASE_EXPORT, LabelChanged, arg)
+  void NameChanged(const QString& arg)
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, NameChanged, arg)
+  void CommentChanged(const QString& arg)
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, CommentChanged, arg)
+  void ColorChanged(score::ColorRef arg)
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, ColorChanged, arg)
+  void LabelChanged(const QString& arg)
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, LabelChanged, arg)
   void metadataChanged() E_SIGNAL(SCORE_LIB_BASE_EXPORT, metadataChanged)
 
   PROPERTY(QString, name READ getName WRITE setName NOTIFY NameChanged)
-  PROPERTY(QString, comment READ getComment WRITE setComment NOTIFY CommentChanged)
+  PROPERTY(
+      QString,
+      comment READ getComment WRITE setComment NOTIFY CommentChanged)
   PROPERTY(ColorRef, color READ getColor WRITE setColor NOTIFY ColorChanged)
   PROPERTY(QString, label READ getLabel WRITE setLabel NOTIFY LabelChanged)
 
@@ -64,7 +72,6 @@ private:
   bool m_touchedName{};
 };
 }
-
 
 Q_DECLARE_METATYPE(score::ModelMetadata*)
 W_REGISTER_ARGTYPE(score::ModelMetadata*)

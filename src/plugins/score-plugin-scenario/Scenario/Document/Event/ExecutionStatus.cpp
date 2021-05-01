@@ -8,8 +8,8 @@
 
 namespace Scenario
 {
-const score::Brush&
-ExecutionStatusProperty::eventStatusColor(const Process::Style& col) const noexcept
+const score::Brush& ExecutionStatusProperty::eventStatusColor(
+    const Process::Style& col) const noexcept
 {
   switch (status)
   {
@@ -28,8 +28,8 @@ ExecutionStatusProperty::eventStatusColor(const Process::Style& col) const noexc
   }
 }
 
-const score::Brush&
-ExecutionStatusProperty::stateStatusColor(const Process::Style& col) const noexcept
+const score::Brush& ExecutionStatusProperty::stateStatusColor(
+    const Process::Style& col) const noexcept
 {
   switch (status)
   {
@@ -48,8 +48,8 @@ ExecutionStatusProperty::stateStatusColor(const Process::Style& col) const noexc
   }
 }
 
-const score::Brush&
-ExecutionStatusProperty::conditionStatusColor(const Process::Style& col) const noexcept
+const score::Brush& ExecutionStatusProperty::conditionStatusColor(
+    const Process::Style& col) const noexcept
 {
   switch (status)
   {

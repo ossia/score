@@ -4,12 +4,13 @@
 
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
-#include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 
 #include <score/command/AggregateCommand.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
+
+#include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 
 namespace Scenario
 {
@@ -19,7 +20,8 @@ class StateModel;
 namespace Command
 {
 
-class SCORE_PLUGIN_SCENARIO_EXPORT MoveEventMeta final : public SerializableMoveEvent
+class SCORE_PLUGIN_SCENARIO_EXPORT MoveEventMeta final
+    : public SerializableMoveEvent
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), MoveEventMeta, "Move an event")
 
@@ -79,7 +81,8 @@ private:
   std::unique_ptr<SerializableMoveEvent> m_moveEventImplementation{};
 };
 
-class SCORE_PLUGIN_SCENARIO_EXPORT MoveTopEventMeta final : public SerializableMoveEvent
+class SCORE_PLUGIN_SCENARIO_EXPORT MoveTopEventMeta final
+    : public SerializableMoveEvent
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), MoveTopEventMeta, "Move an event")
 
@@ -140,7 +143,10 @@ private:
 
 class MoveIntervalMacro final : public score::AggregateCommand
 {
-  SCORE_COMMAND_DECL(CommandFactoryName(), MoveIntervalMacro, "Move an interval")
+  SCORE_COMMAND_DECL(
+      CommandFactoryName(),
+      MoveIntervalMacro,
+      "Move an interval")
 };
 
 class MoveStateMacro final : public score::AggregateCommand

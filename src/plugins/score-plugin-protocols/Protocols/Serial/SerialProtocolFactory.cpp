@@ -7,9 +7,9 @@
 #include "SerialProtocolFactory.hpp"
 
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <Protocols/LibraryDeviceEnumerator.hpp>
 #include <Protocols/Serial/SerialProtocolSettingsWidget.hpp>
 #include <Protocols/Serial/SerialSpecificSettings.hpp>
-#include <Protocols/LibraryDeviceEnumerator.hpp>
 
 #include <ossia/network/base/device.hpp>
 
@@ -27,16 +27,17 @@ QString SerialProtocolFactory::category() const noexcept
   return StandardCategories::hardware;
 }
 
-Device::DeviceEnumerator* SerialProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerator*
+SerialProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
   return new LibraryDeviceEnumerator{
-    "Ossia.Serial",
-    {"*.qml"},
-    SerialProtocolFactory::static_concreteKey(),
-        [] (const QByteArray& arr) {
-      return QVariant::fromValue(SerialSpecificSettings{{}, arr});
-    },
-    ctx};
+      "Ossia.Serial",
+      {"*.qml"},
+      SerialProtocolFactory::static_concreteKey(),
+      [](const QByteArray& arr) {
+        return QVariant::fromValue(SerialSpecificSettings{{}, arr});
+      },
+      ctx};
 }
 
 Device::DeviceInterface* SerialProtocolFactory::makeDevice(
@@ -46,7 +47,8 @@ Device::DeviceInterface* SerialProtocolFactory::makeDevice(
   return new SerialDevice{settings};
 }
 
-const Device::DeviceSettings& SerialProtocolFactory::defaultSettings() const noexcept
+const Device::DeviceSettings&
+SerialProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
@@ -64,7 +66,8 @@ Device::ProtocolSettingsWidget* SerialProtocolFactory::makeSettingsWidget()
   return new SerialProtocolSettingsWidget;
 }
 
-QVariant SerialProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
+QVariant SerialProtocolFactory::makeProtocolSpecificSettings(
+    const VisitorVariant& visitor) const
 {
   return makeProtocolSpecificSettings_T<SerialSpecificSettings>(visitor);
 }

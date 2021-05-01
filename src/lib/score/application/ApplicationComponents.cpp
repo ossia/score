@@ -43,7 +43,8 @@ ApplicationComponentsData::~ApplicationComponentsData()
   const auto& static_plugs = score::staticPlugins();
   for (auto& elt : addons)
   {
-    if (elt.plugin && ossia::find(static_plugs, elt.plugin) == static_plugs.end())
+    if (elt.plugin
+        && ossia::find(static_plugs, elt.plugin) == static_plugs.end())
     {
       if (auto obj = dynamic_cast<QObject*>(elt.plugin))
       {
@@ -58,7 +59,8 @@ ApplicationComponentsData::~ApplicationComponentsData()
   addons.clear();
 }
 
-Command* ApplicationComponents::instantiateUndoCommand(const CommandData& cmd) const
+Command*
+ApplicationComponents::instantiateUndoCommand(const CommandData& cmd) const
 {
   auto it = m_data.commands.find(cmd.parentKey);
   if (it != m_data.commands.end())
@@ -71,7 +73,8 @@ Command* ApplicationComponents::instantiateUndoCommand(const CommandData& cmd) c
   }
 
 #if defined(SCORE_DEBUG)
-  qDebug() << "ALERT: Command" << cmd.parentKey.toString() << "::" << cmd.commandKey.toString()
+  qDebug() << "ALERT: Command" << cmd.parentKey.toString()
+           << "::" << cmd.commandKey.toString()
            << "could not be instantiated.";
   SCORE_ABORT;
 #else

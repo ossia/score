@@ -46,7 +46,8 @@ namespace score
 {
 View::~View() { }
 
-static void setTitle(View& view, const score::Document* document, bool save_state) noexcept
+static void
+setTitle(View& view, const score::Document* document, bool save_state) noexcept
 {
   QString title;
 
@@ -122,7 +123,10 @@ public:
 class TitleBar : public QWidget
 {
 public:
-  TitleBar() { setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed); }
+  TitleBar()
+  {
+    setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+  }
 
   void setText(const QString& txt)
   {
@@ -144,7 +148,8 @@ private:
   QString m_text;
 };
 
-View::View(QObject* parent) : QMainWindow{}
+View::View(QObject* parent)
+    : QMainWindow{}
 {
   setAutoFillBackground(false);
   setObjectName("View");
@@ -158,14 +163,18 @@ View::View(QObject* parent) : QMainWindow{}
   auto leftLabel = new TitleBar;
   leftTabs = new FixedTabWidget;
 
-  connect(leftTabs, &FixedTabWidget::actionTriggered, this, [=](QAction* act, bool b) {
-    leftLabel->setText(act->text());
-  });
+  connect(
+      leftTabs,
+      &FixedTabWidget::actionTriggered,
+      this,
+      [=](QAction* act, bool b) { leftLabel->setText(act->text()); });
   ((QVBoxLayout*)leftTabs->layout())->insertWidget(0, topleftToolbar);
   ((QVBoxLayout*)leftTabs->layout())->insertWidget(1, leftLabel);
   rightSplitter = new RectSplitter{Qt::Vertical};
   auto rect = QGuiApplication::primaryScreen()->availableGeometry();
-  this->resize(static_cast<int>(rect.width() * 0.75), static_cast<int>(rect.height() * 0.75));
+  this->resize(
+      static_cast<int>(rect.width() * 0.75),
+      static_cast<int>(rect.height() * 0.75));
 
   auto totalWidg = new RectSplitter;
   totalWidg->setContentsMargins(0, 0, 0, 0);
@@ -262,12 +271,15 @@ View::View(QObject* parent) : QMainWindow{}
             &document.commandStack(),
             &score::CommandStack::saveIndexChanged,
             this,
-            [this, doc = &document](bool state) { setTitle(*this, doc, !state); });
+            [this, doc = &document](bool state) {
+              setTitle(*this, doc, !state);
+            });
       },
       Qt::QueuedConnection);
 
   connect(centralTabs, &QTabWidget::tabCloseRequested, this, [&](int index) {
-    closeRequested(m_documents.at(centralTabs->widget(index))->document().model().id());
+    closeRequested(
+        m_documents.at(centralTabs->widget(index))->document().model().id());
   });
 }
 void View::setPresenter(Presenter* p)
@@ -350,7 +362,8 @@ void View::allPanelsAdded()
     {
       rightSplitter->insertWidget(1, panel.widget());
 
-      auto act = bottomTabs->addAction(rightSplitter->widget(1), panel.defaultPanelStatus());
+      auto act = bottomTabs->addAction(
+          rightSplitter->widget(1), panel.defaultPanelStatus());
       bottomTabs->actionGroup()->removeAction(act);
       act->setChecked(true);
       connect(act, &QAction::toggled, this, [splitter](bool ok) {
@@ -388,7 +401,6 @@ void View::addTopToolbar(QToolBar* b)
   b->setFloatable(false);
   b->setMovable(false);
   topleftToolbar->layout()->addWidget(b);
-
 }
 
 void View::closeDocument(DocumentView* doc)
@@ -443,7 +455,8 @@ void View::changeEvent(QEvent* ev)
   if (m_presenter)
     if (ev->type() == QEvent::ActivationChange)
     {
-      for (GUIApplicationPlugin* ctrl : m_presenter->applicationContext().guiApplicationPlugins())
+      for (GUIApplicationPlugin* ctrl :
+           m_presenter->applicationContext().guiApplicationPlugins())
       {
         ctrl->on_activeWindowChanged();
       }

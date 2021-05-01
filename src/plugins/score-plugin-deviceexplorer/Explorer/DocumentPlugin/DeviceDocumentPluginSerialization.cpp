@@ -7,6 +7,7 @@
 
 #include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/serialization/VariantSerialization.hpp>
+
 #include <ossia-qt/invoke.hpp>
 
 template <>

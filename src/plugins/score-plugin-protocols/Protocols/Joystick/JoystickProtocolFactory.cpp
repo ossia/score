@@ -4,6 +4,7 @@
 #include "JoystickDevice.hpp"
 #include "JoystickProtocolSettingsWidget.hpp"
 #include "JoystickSpecificSettings.hpp"
+
 #include <ossia/protocols/joystick/joystick_protocol.hpp>
 
 #include <QObject>
@@ -13,9 +14,11 @@ namespace Protocols
 class JoystickEnumerator : public Device::DeviceEnumerator
 {
 public:
-  void enumerate(std::function<void(const Device::DeviceSettings&)> f) const override
+  void enumerate(
+      std::function<void(const Device::DeviceSettings&)> f) const override
   {
-    const unsigned int joystick_count = ossia::net::joystick_info::get_joystick_count();
+    const unsigned int joystick_count
+        = ossia::net::joystick_info::get_joystick_count();
 
     for (unsigned int i = 0; i < joystick_count; ++i)
     {
@@ -46,7 +49,8 @@ QString JoystickProtocolFactory::category() const noexcept
   return StandardCategories::hardware;
 }
 
-Device::DeviceEnumerator* JoystickProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerator*
+JoystickProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
   return new JoystickEnumerator;
 }
@@ -58,7 +62,8 @@ Device::DeviceInterface* JoystickProtocolFactory::makeDevice(
   return new JoystickDevice{settings, ctx};
 }
 
-const Device::DeviceSettings& JoystickProtocolFactory::defaultSettings() const noexcept
+const Device::DeviceSettings&
+JoystickProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings& settings = [&]() {
     Device::DeviceSettings s;
@@ -77,7 +82,8 @@ Device::ProtocolSettingsWidget* JoystickProtocolFactory::makeSettingsWidget()
   return new JoystickProtocolSettingsWidget;
 }
 
-QVariant JoystickProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
+QVariant JoystickProtocolFactory::makeProtocolSpecificSettings(
+    const VisitorVariant& visitor) const
 {
   return makeProtocolSpecificSettings_T<JoystickSpecificSettings>(visitor);
 }

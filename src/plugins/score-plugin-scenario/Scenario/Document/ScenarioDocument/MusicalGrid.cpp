@@ -1,10 +1,9 @@
 #include "MusicalGrid.hpp"
 
-#include <Scenario/Document/Interval/FullView/TimeSignatureItem.hpp>
-#include <Scenario/Document/Interval/FullView/Timebar.hpp>
-
 #include <QLineF>
 
+#include <Scenario/Document/Interval/FullView/TimeSignatureItem.hpp>
+#include <Scenario/Document/Interval/FullView/Timebar.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::MusicalGrid)
 
@@ -31,8 +30,10 @@ ossia::bar_time timeToMetrics(MusicalGrid& grid, TimeVal x0_time)
       const auto sig_upper = prev_sig.upper;
       const auto sig_lower = prev_sig.lower;
       int64_t this_bar_date = it->first.impl;
-      auto [quarters, qrem] = std::div((this_bar_date - prev_bar_date), ossia::quarter_duration<int64_t>);
-      auto [bars, brem] = std::div(quarters, (4. * double(sig_upper) / sig_lower));
+      auto [quarters, qrem] = std::div(
+          (this_bar_date - prev_bar_date), ossia::quarter_duration<int64_t>);
+      auto [bars, brem]
+          = std::div(quarters, (4. * double(sig_upper) / sig_lower));
 
       //int32_t quarters = (this_bar_date - prev_bar_date) / ossia::quarter_duration<int64_t>;
       //int32_t bars = quarters / (4. * double(sig_upper) / sig_lower);
@@ -40,11 +41,12 @@ ossia::bar_time timeToMetrics(MusicalGrid& grid, TimeVal x0_time)
       start.bars += bars;
       // If the signature change falls on "not a previous bar",
       // we increment the bar counter
-      if(qrem != 0 || brem != 0) {
+      if (qrem != 0 || brem != 0)
+      {
         start.bars += 1;
       }
 
-      if(bars * (4. * double(sig_upper) / sig_lower))
+      if (bars * (4. * double(sig_upper) / sig_lower))
         prev_bar_date = this_bar_date;
       prev_sig = it->second;
     }
@@ -53,17 +55,23 @@ ossia::bar_time timeToMetrics(MusicalGrid& grid, TimeVal x0_time)
     const auto sig_upper = last_before->second.upper;
     const auto sig_lower = last_before->second.lower;
     int64_t flicks_since_last_sig = (x0_time.impl - last_before->first.impl);
-    int64_t quarters_since_last_sig = flicks_since_last_sig / ossia::quarter_duration<int64_t>;
-    int64_t bars = quarters_since_last_sig / (4. * double(sig_upper) / sig_lower);
+    int64_t quarters_since_last_sig
+        = flicks_since_last_sig / ossia::quarter_duration<int64_t>;
+    int64_t bars
+        = quarters_since_last_sig / (4. * double(sig_upper) / sig_lower);
     start.bars += bars;
-    start.quarters = quarters_since_last_sig - bars * (4. * double(sig_upper) / sig_lower);
-    start.semiquavers = (flicks_since_last_sig - quarters_since_last_sig * ossia::quarter_duration<int64_t>)
-                        / (ossia::quarter_duration<int64_t> / 4);
-    start.cents = (flicks_since_last_sig
-                   - quarters_since_last_sig
-                         * ossia::quarter_duration<
-                             int64_t> - start.semiquavers * (ossia::quarter_duration<int64_t> / 4))
-                  / (ossia::quarter_duration<int64_t> / 400);
+    start.quarters = quarters_since_last_sig
+                     - bars * (4. * double(sig_upper) / sig_lower);
+    start.semiquavers
+        = (flicks_since_last_sig
+           - quarters_since_last_sig * ossia::quarter_duration<int64_t>)
+          / (ossia::quarter_duration<int64_t> / 4);
+    start.cents
+        = (flicks_since_last_sig
+           - quarters_since_last_sig
+                 * ossia::quarter_duration<
+                     int64_t> - start.semiquavers * (ossia::quarter_duration<int64_t> / 4))
+          / (ossia::quarter_duration<int64_t> / 400);
   }
   return start;
 }
@@ -170,7 +178,8 @@ void computeAll(
   auto addNewMain = [&](double new_bar_x_pos, TimeVal prev_t, TimeVal cur_t) {
     //qDebug() << " !!! adding main bar" << new_bar_x_pos;
     bars.positions.push_back(QLineF(new_bar_x_pos, y0, new_bar_x_pos, y1));
-    grid.mainPositions.push_back({new_bar_x_pos, timeToMetrics(grid, cur_t), increment});
+    grid.mainPositions.push_back(
+        {new_bar_x_pos, timeToMetrics(grid, cur_t), increment});
     magneticTimings.push_back(cur_t);
 
     TimeVal sub_increment_t{};
@@ -178,7 +187,8 @@ void computeAll(
     if (increment.bars == 1)
     {
       // We display the quarter notes
-      sub_increment_t = TimeVal(ossia::quarter_duration<double> * 4. / prev_sig.lower);
+      sub_increment_t
+          = TimeVal(ossia::quarter_duration<double> * 4. / prev_sig.lower);
       sub_increment_px = sub_increment_t.toPixels(zoom);
     }
     else
@@ -199,7 +209,7 @@ void computeAll(
 
       TimeVal sub_bar_t = prev_t + sub_increment_t;
       //double pos = prev_bar_x_pos;
-      while(sub_bar_t < cur_t)
+      while (sub_bar_t < cur_t)
       {
         double kp = sub_bar_t.toPixels(zoom);
         sub.positions.push_back(QLineF(kp, y0, kp, y1));
@@ -258,7 +268,8 @@ void computeAll(
       // Time signature change
       last_sig_change_it = next;
 
-      auto [p2, inc, main_division] = computeDurations(last_sig_change_it->second, zoom);
+      auto [p2, inc, main_division]
+          = computeDurations(last_sig_change_it->second, zoom);
       increment = inc;
       division = main_division;
       division_px = main_division / zoom;
@@ -338,7 +349,11 @@ QDebug operator<<(QDebug d, MusicalGrid::timings t)
   return d;
 }
 */
-void MusicalGrid::compute(TimeVal timeDelta, ZoomRatio zoom, QRectF sceneRect, TimeVal x0_time)
+void MusicalGrid::compute(
+    TimeVal timeDelta,
+    ZoomRatio zoom,
+    QRectF sceneRect,
+    TimeVal x0_time)
 {
   SCORE_ASSERT(m_measures);
   auto& measures = *m_measures;
@@ -355,15 +370,19 @@ void MusicalGrid::compute(TimeVal timeDelta, ZoomRatio zoom, QRectF sceneRect, T
   if (last_signature_change == measures.end())
     return;
 
-  const auto [pow2, inc, main_div_source] = computeDurations(last_signature_change->second, zoom);
+  const auto [pow2, inc, main_div_source]
+      = computeDurations(last_signature_change->second, zoom);
 
   const TimeVal main_division = TimeVal(main_div_source);
 
-  const int64_t q = std::floor((x0_time - last_signature_change->first).impl / main_div_source);
-  const int64_t first_main_delim_local = last_signature_change->first.impl + q * main_div_source;
+  const int64_t q = std::floor(
+      (x0_time - last_signature_change->first).impl / main_div_source);
+  const int64_t first_main_delim_local
+      = last_signature_change->first.impl + q * main_div_source;
 
   // Where we start counting from
-  const TimeVal first_main_delim = TimeVal(first_main_delim_local - timeDelta.impl);
+  const TimeVal first_main_delim
+      = TimeVal(first_main_delim_local - timeDelta.impl);
 
   computeAll(
       *this,
@@ -375,13 +394,17 @@ void MusicalGrid::compute(TimeVal timeDelta, ZoomRatio zoom, QRectF sceneRect, T
       inc,
       sceneRect);
 
-  std::sort(timebars.magneticTimings.begin(), timebars.magneticTimings.end());//, [] (auto t1, auto t2) { return t1 < t2});
-  std::unique(timebars.magneticTimings.begin(), timebars.magneticTimings.end());
+  std::sort(
+      timebars.magneticTimings.begin(),
+      timebars.magneticTimings
+          .end()); //, [] (auto t1, auto t2) { return t1 < t2});
+  std::unique(
+      timebars.magneticTimings.begin(), timebars.magneticTimings.end());
   for (auto& [v, _1, _2] : mainPositions)
     v -= x0_time.toPixels(zoom) + 100;
   // for (auto& [v, _1, _2] : subPositions)
   //   v -= x0_time.toPixels(zoom) + 100;
-/*
+  /*
   {
     qDebug(" =================== ");
     for(int i = 0; i < std::min((int)mainPositions.size(), 3); i++)

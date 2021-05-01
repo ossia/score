@@ -20,11 +20,11 @@ QString WiimoteProtocolFactory::category() const noexcept
   return StandardCategories::hardware;
 }
 
-Device::DeviceEnumerator* WiimoteProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerator*
+WiimoteProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
   return nullptr;
 }
-
 
 Device::DeviceInterface* WiimoteProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings,
@@ -33,7 +33,8 @@ Device::DeviceInterface* WiimoteProtocolFactory::makeDevice(
   return new WiimoteDevice{settings, ctx};
 }
 
-const Device::DeviceSettings& WiimoteProtocolFactory::defaultSettings() const noexcept
+const Device::DeviceSettings&
+WiimoteProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings& settings = [&]() {
     Device::DeviceSettings s;
@@ -52,7 +53,8 @@ Device::ProtocolSettingsWidget* WiimoteProtocolFactory::makeSettingsWidget()
   return new WiimoteProtocolSettingsWidget;
 }
 
-QVariant WiimoteProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
+QVariant WiimoteProtocolFactory::makeProtocolSpecificSettings(
+    const VisitorVariant& visitor) const
 {
   return makeProtocolSpecificSettings_T<WiimoteSpecificSettings>(visitor);
 }

@@ -9,19 +9,22 @@
 
 #include <ossia-qt/name_utils.hpp>
 #include <ossia/detail/logger.hpp>
-#include <ossia/network/common/destination_qualifiers.hpp>
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/parameter.hpp>
 #include <ossia/network/base/protocol.hpp>
+#include <ossia/network/common/destination_qualifiers.hpp>
 #include <ossia/network/common/network_logger.hpp>
+
 #include <QMenu>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Device::DeviceInterface)
 namespace Device
 {
 struct DeviceSettings;
 
-static void ToAddress_rec(State::Address& addr, const ossia::net::node_base* cur, int N)
+static void
+ToAddress_rec(State::Address& addr, const ossia::net::node_base* cur, int N)
 {
   if (auto padre = cur->get_parent())
   {
@@ -46,7 +49,8 @@ static State::Address ToAddress(const ossia::net::node_base& node)
   return addr;
 }
 
-ossia::net::node_base* findNodeFromPath(const QStringList& path, ossia::net::device_base& dev)
+ossia::net::node_base*
+findNodeFromPath(const QStringList& path, ossia::net::device_base& dev)
 {
   using namespace ossia;
   // Find the relevant node to add in the device
@@ -58,7 +62,8 @@ ossia::net::node_base* findNodeFromPath(const QStringList& path, ossia::net::dev
       node = cld;
     else
     {
-      qDebug() << "looking for" << path << " -- last found: " << node->get_name() << "\n";
+      qDebug() << "looking for" << path
+               << " -- last found: " << node->get_name() << "\n";
       return {};
     }
   }
@@ -77,7 +82,8 @@ static void getPath(small_node_vec& v, const Device::Node* cur)
   v.push_back(cur);
 }
 
-ossia::net::node_base* findNodeFromPath(const Device::Node& path, ossia::net::device_base& dev)
+ossia::net::node_base*
+findNodeFromPath(const Device::Node& path, ossia::net::device_base& dev)
 {
   using namespace ossia;
   // Find the relevant node to add in the device
@@ -95,8 +101,9 @@ ossia::net::node_base* findNodeFromPath(const Device::Node& path, ossia::net::de
         node = cld;
       else
       {
-        qDebug() << "looking for" << Device::address(path).address << " " << i << " " << vec.size()
-                 << " " << vec[i]->displayName() << " -- last found: " << node->get_name() << "\n";
+        qDebug() << "looking for" << Device::address(path).address << " " << i
+                 << " " << vec.size() << " " << vec[i]->displayName()
+                 << " -- last found: " << node->get_name() << "\n";
         return {};
       }
     }
@@ -108,7 +115,8 @@ ossia::net::node_base* findNodeFromPath(const Device::Node& path, ossia::net::de
   }
 }
 
-static Device::AddressSettings ToAddressSettings(const ossia::net::node_base& node)
+static Device::AddressSettings
+ToAddressSettings(const ossia::net::node_base& node)
 {
   Device::AddressSettings s;
   const auto& addr = node.get_parameter();
@@ -141,15 +149,17 @@ static Device::AddressSettings ToAddressSettings(const ossia::net::node_base& no
   return s;
 }
 
-static void
-updateOSSIAAddress(const Device::FullAddressSettings& settings, ossia::net::parameter_base& addr)
+static void updateOSSIAAddress(
+    const Device::FullAddressSettings& settings,
+    ossia::net::parameter_base& addr)
 {
   SCORE_ASSERT(settings.ioType);
   addr.set_access(*settings.ioType);
 
   addr.set_bounding(settings.clipMode);
 
-  addr.set_repetition_filter(ossia::repetition_filter(settings.repetitionFilter));
+  addr.set_repetition_filter(
+      ossia::repetition_filter(settings.repetitionFilter));
 
   addr.set_value_type(settings.value.get_type());
 
@@ -162,8 +172,9 @@ updateOSSIAAddress(const Device::FullAddressSettings& settings, ossia::net::para
   addr.get_node().set_extended_attributes(settings.extendedAttributes);
 }
 
-static void
-createOSSIAAddress(const Device::FullAddressSettings& settings, ossia::net::node_base& node)
+static void createOSSIAAddress(
+    const Device::FullAddressSettings& settings,
+    ossia::net::node_base& node)
 {
   if (!settings.value.v)
     return;
@@ -183,7 +194,8 @@ Device::Node ToDeviceExplorer(const ossia::net::node_base& ossia_node)
     // 2. Recurse on the children
     for (const auto& ossia_child : cld)
     {
-      if (!ossia::net::get_hidden(*ossia_child) && !ossia::net::get_zombie(*ossia_child))
+      if (!ossia::net::get_hidden(*ossia_child)
+          && !ossia::net::get_zombie(*ossia_child))
       {
         auto child_n = ToDeviceExplorer(*ossia_child);
         child_n.setParent(&score_node);
@@ -194,7 +206,8 @@ Device::Node ToDeviceExplorer(const ossia::net::node_base& ossia_node)
   return score_node;
 }
 
-ossia::net::node_base* createNodeFromPath(const QStringList& path, ossia::net::device_base& dev)
+ossia::net::node_base*
+createNodeFromPath(const QStringList& path, ossia::net::device_base& dev)
 {
   using namespace ossia;
   // Find the relevant node to add in the device
@@ -213,8 +226,10 @@ ossia::net::node_base* createNodeFromPath(const QStringList& path, ossia::net::d
         SCORE_ASSERT(newNode);
         if (path_k != newNode->get_name())
         {
-          qDebug() << "Warning! " << path[k] << " was requested as node name but backend converted to  "
-                   << newNode->get_name().c_str() << "was obtained. Check for special characters.";
+          qDebug() << "Warning! " << path[k]
+                   << " was requested as node name but backend converted to  "
+                   << newNode->get_name().c_str()
+                   << "was obtained. Check for special characters.";
           parentnode->remove_child(*newNode);
           return nullptr;
           /*
@@ -260,8 +275,9 @@ void DeviceInterface::addAddress(const FullAddressSettings& settings)
   if (auto dev = getDevice())
   {
     // Create the node. It is added into the device.
-    ossia::net::node_base* node = createNodeFromPath(settings.address.path, *dev);
-    if(node)
+    ossia::net::node_base* node
+        = createNodeFromPath(settings.address.path, *dev);
+    if (node)
     {
       // Populate the node with a parameter (if it isn't a no_value_t).
       createOSSIAAddress(settings, *node);
@@ -283,7 +299,10 @@ QMimeData* DeviceInterface::mimeData() const
 
 void DeviceInterface::setupContextMenu(QMenu&) const { }
 
-DeviceInterface::DeviceInterface(Device::DeviceSettings s) : m_settings(std::move(s)) { }
+DeviceInterface::DeviceInterface(Device::DeviceSettings s)
+    : m_settings(std::move(s))
+{
+}
 
 DeviceInterface::~DeviceInterface() { }
 
@@ -299,7 +318,8 @@ const QString& DeviceInterface::name() const
 
 void DeviceInterface::addNode(const Device::Node& n)
 {
-  auto full = Device::FullAddressSettings::make<Device::FullAddressSettings::as_parent>(
+  auto full = Device::FullAddressSettings::make<
+      Device::FullAddressSettings::as_parent>(
       n.get<Device::AddressSettings>(), Device::address(*n.parent()));
 
   // Add in the device implementation
@@ -363,7 +383,8 @@ void DeviceInterface::updateSettings(const Device::DeviceSettings& newsettings)
         this,
         &Device::DeviceInterface::deviceChanged,
         this,
-        [this, con_handle, data = std::move(score_device)](auto oldd, auto newd) {
+        [this, con_handle, data = std::move(score_device)](
+            auto oldd, auto newd) {
           if (newd)
           {
             recreate(std::move(data));
@@ -428,7 +449,9 @@ void DeviceInterface::updateAddress(
   }
 }
 
-void DeviceInterface::removeListening_impl(ossia::net::node_base& node, State::Address addr)
+void DeviceInterface::removeListening_impl(
+    ossia::net::node_base& node,
+    State::Address addr)
 {
   // Find & remove our callback
   auto it = m_callbacks.find(addr);
@@ -482,7 +505,9 @@ bool is_parent(const State::Address& parent, const State::Address& child)
   return true;
 }
 
-void DeviceInterface::renameListening_impl(const State::Address& parent, const QString& newName)
+void DeviceInterface::renameListening_impl(
+    const State::Address& parent,
+    const QString& newName)
 {
   // Store the elements that are renamed
   std::vector<std::pair<State::Address, callback_pair>> saved_elts;
@@ -505,8 +530,9 @@ void DeviceInterface::renameListening_impl(const State::Address& parent, const Q
   for (auto&& p : std::move(saved_elts))
   {
     p.second.first->replace_callback(
-        p.second.second,
-        [this, addr = p.first](const ossia::value& val) { valueUpdated(addr, val); });
+        p.second.second, [this, addr = p.first](const ossia::value& val) {
+          valueUpdated(addr, val);
+        });
     m_callbacks.insert(std::move(p));
   }
 }
@@ -516,28 +542,42 @@ namespace
 struct in_sink final : public spdlog::sinks::sink
 {
   const DeviceInterface& m_dev;
-  in_sink(const DeviceInterface& dev) : m_dev{dev} { }
+  in_sink(const DeviceInterface& dev)
+      : m_dev{dev}
+  {
+  }
   void log(const spdlog::details::log_msg& msg) override
   {
-    m_dev.logInbound(QString::fromLatin1(msg.payload.data(), msg.payload.size()));
+    m_dev.logInbound(
+        QString::fromLatin1(msg.payload.data(), msg.payload.size()));
   }
 
   void flush() override { }
   void set_pattern(const std::string& pattern) override { }
-  void set_formatter(std::unique_ptr<spdlog::formatter> sink_formatter) override { }
+  void
+  set_formatter(std::unique_ptr<spdlog::formatter> sink_formatter) override
+  {
+  }
 };
 struct out_sink final : public spdlog::sinks::sink
 {
   const DeviceInterface& m_dev;
-  out_sink(const DeviceInterface& dev) : m_dev{dev} { }
+  out_sink(const DeviceInterface& dev)
+      : m_dev{dev}
+  {
+  }
   void log(const spdlog::details::log_msg& msg) override
   {
-    m_dev.logOutbound(QString::fromLatin1(msg.payload.data(), msg.payload.size()));
+    m_dev.logOutbound(
+        QString::fromLatin1(msg.payload.data(), msg.payload.size()));
   }
 
   void flush() override { }
   void set_pattern(const std::string& pattern) override { }
-  void set_formatter(std::unique_ptr<spdlog::formatter> sink_formatter) override { }
+  void
+  set_formatter(std::unique_ptr<spdlog::formatter> sink_formatter) override
+  {
+  }
 };
 }
 void DeviceInterface::setLogging_impl(DeviceLogging b) const
@@ -554,10 +594,10 @@ void DeviceInterface::setLogging_impl(DeviceLogging b) const
       case DeviceLogging::LogEverything:
       {
         ossia::net::network_logger logger;
-        logger.inbound_logger
-            = std::make_shared<spdlog::logger>("in_logger", std::make_shared<in_sink>(*this));
-        logger.outbound_logger
-            = std::make_shared<spdlog::logger>("out_logger", std::make_shared<out_sink>(*this));
+        logger.inbound_logger = std::make_shared<spdlog::logger>(
+            "in_logger", std::make_shared<in_sink>(*this));
+        logger.outbound_logger = std::make_shared<spdlog::logger>(
+            "out_logger", std::make_shared<out_sink>(*this));
 
         logger.inbound_logger->set_pattern("%v");
         logger.inbound_logger->set_level(spdlog::level::info);
@@ -569,10 +609,10 @@ void DeviceInterface::setLogging_impl(DeviceLogging b) const
       case DeviceLogging::LogUnfolded:
       {
         ossia::net::network_logger logger;
-        logger.inbound_listened_logger
-            = std::make_shared<spdlog::logger>("in_logger", std::make_shared<in_sink>(*this));
-        logger.outbound_listened_logger
-            = std::make_shared<spdlog::logger>("out_logger", std::make_shared<out_sink>(*this));
+        logger.inbound_listened_logger = std::make_shared<spdlog::logger>(
+            "in_logger", std::make_shared<in_sink>(*this));
+        logger.outbound_listened_logger = std::make_shared<spdlog::logger>(
+            "out_logger", std::make_shared<out_sink>(*this));
 
         logger.inbound_listened_logger->set_pattern("%v");
         logger.inbound_listened_logger->set_level(spdlog::level::info);
@@ -595,9 +635,12 @@ void DeviceInterface::enableCallbacks()
       dev->on_node_created.connect<&DeviceInterface::nodeCreated>(this);
       dev->on_node_removing.connect<&DeviceInterface::nodeRemoving>(this);
       dev->on_node_renamed.connect<&DeviceInterface::nodeRenamed>(this);
-      dev->on_parameter_created.connect<&DeviceInterface::addressCreated>(this);
-      dev->on_parameter_removing.connect<&DeviceInterface::addressRemoved>(this);
-      dev->on_attribute_modified.connect<&DeviceInterface::addressUpdated>(this);
+      dev->on_parameter_created.connect<&DeviceInterface::addressCreated>(
+          this);
+      dev->on_parameter_removing.connect<&DeviceInterface::addressRemoved>(
+          this);
+      dev->on_attribute_modified.connect<&DeviceInterface::addressUpdated>(
+          this);
     }
     m_callbacksEnabled = true;
   }
@@ -613,9 +656,12 @@ void DeviceInterface::disableCallbacks()
       dev->on_node_created.disconnect<&DeviceInterface::nodeCreated>(this);
       dev->on_node_removing.disconnect<&DeviceInterface::nodeRemoving>(this);
       dev->on_node_renamed.disconnect<&DeviceInterface::nodeRenamed>(this);
-      dev->on_parameter_created.disconnect<&DeviceInterface::addressCreated>(this);
-      dev->on_parameter_removing.disconnect<&DeviceInterface::addressRemoved>(this);
-      dev->on_attribute_modified.disconnect<&DeviceInterface::addressUpdated>(this);
+      dev->on_parameter_created.disconnect<&DeviceInterface::addressCreated>(
+          this);
+      dev->on_parameter_removing.disconnect<&DeviceInterface::addressRemoved>(
+          this);
+      dev->on_attribute_modified.disconnect<&DeviceInterface::addressUpdated>(
+          this);
     }
     m_callbacksEnabled = false;
   }
@@ -646,7 +692,7 @@ void DeviceInterface::removeNode(const State::Address& address)
     return;
   if (auto dev = getDevice())
   {
-    if(auto node = findNodeFromPath(address.path, *dev))
+    if (auto node = findNodeFromPath(address.path, *dev))
     {
       auto parent = node->get_parent();
       if (parent->has_child(*node))
@@ -703,7 +749,8 @@ Device::Node DeviceInterface::refresh()
   return device_node;
 }
 
-std::optional<ossia::value> DeviceInterface::refresh(const State::Address& address)
+std::optional<ossia::value>
+DeviceInterface::refresh(const State::Address& address)
 {
   if (auto dev = getDevice())
   {
@@ -747,7 +794,8 @@ Device::Node DeviceInterface::getNode(const State::Address& address)
   return {};
 }
 
-Device::Node DeviceInterface::getNodeWithoutChildren(const State::Address& address)
+Device::Node
+DeviceInterface::getNodeWithoutChildren(const State::Address& address)
 {
   if (auto dev = getDevice())
   {
@@ -801,9 +849,11 @@ void DeviceInterface::setListening(const State::Address& addr, bool b)
       if (cb_it == m_callbacks.end())
       {
         m_callbacks.insert(
-            {addr, {ossia_addr, ossia_addr->add_callback([=](const ossia::value& val) {
-                      valueUpdated(addr, val);
-                    })}});
+            {addr,
+             {ossia_addr,
+              ossia_addr->add_callback([=](const ossia::value& val) {
+                valueUpdated(addr, val);
+              })}});
       }
 
       valueUpdated(addr, ossia_addr->value());
@@ -836,7 +886,8 @@ std::vector<State::Address> DeviceInterface::listening() const
   return addrs;
 }
 
-void DeviceInterface::addToListening(const std::vector<State::Address>& addresses)
+void DeviceInterface::addToListening(
+    const std::vector<State::Address>& addresses)
 {
   if (!connected())
     return;
@@ -848,11 +899,13 @@ void DeviceInterface::addToListening(const std::vector<State::Address>& addresse
   }
 }
 
-void DeviceInterface::sendMessage(const State::Address& addr, const ossia::value& v)
+void DeviceInterface::sendMessage(
+    const State::Address& addr,
+    const ossia::value& v)
 {
   if (auto dev = getDevice())
   {
-    if(auto node = findNodeFromPath(addr.path, *dev))
+    if (auto node = findNodeFromPath(addr.path, *dev))
     {
       auto addr = node->get_parameter();
       if (addr)
@@ -925,7 +978,9 @@ void DeviceInterface::nodeRemoving(const ossia::net::node_base& n)
   pathRemoved(ToAddress(n));
 }
 
-void DeviceInterface::nodeRenamed(const ossia::net::node_base& node, std::string old_name)
+void DeviceInterface::nodeRenamed(
+    const ossia::net::node_base& node,
+    std::string old_name)
 {
   if (!node.get_parent())
     return;
@@ -948,9 +1003,12 @@ void DeviceInterface::addressCreated(const ossia::net::parameter_base& addr)
   pathUpdated(currentAddress, as);
 }
 
-void DeviceInterface::addressUpdated(const ossia::net::node_base& node, ossia::string_view key)
+void DeviceInterface::addressUpdated(
+    const ossia::net::node_base& node,
+    ossia::string_view key)
 {
-  const bool hidden = (ossia::net::get_zombie(node) || ossia::net::get_hidden(node));
+  const bool hidden
+      = (ossia::net::get_zombie(node) || ossia::net::get_hidden(node));
 
   State::Address currentAddress = ToAddress(node);
   if (hidden)

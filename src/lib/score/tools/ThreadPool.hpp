@@ -1,6 +1,8 @@
 #pragma once
-#include <score_lib_base_export.h>
 #include <QThread>
+
+#include <score_lib_base_export.h>
+
 #include <memory>
 namespace score
 {

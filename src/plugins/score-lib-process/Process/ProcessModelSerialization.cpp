@@ -16,35 +16,42 @@
 #include <score/serialization/JSONVisitor.hpp>
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(const Process::ProcessData& process)
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamReader::read(const Process::ProcessData& process)
 {
   m_stream << process.key << process.prettyName << process.customData;
 }
 
 // We only load the members of the process here.
 template <>
-SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::ProcessData& process)
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamWriter::write(Process::ProcessData& process)
 {
   m_stream >> process.key >> process.prettyName >> process.customData;
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(const Process::ProcessModel& process)
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamReader::read(const Process::ProcessModel& process)
 {
-  m_stream << process.m_duration << process.m_slotHeight << process.m_startOffset
-           << process.m_loopDuration << process.m_position << process.m_size << process.m_loops;
+  m_stream << process.m_duration << process.m_slotHeight
+           << process.m_startOffset << process.m_loopDuration
+           << process.m_position << process.m_size << process.m_loops;
 }
 
 // We only load the members of the process here.
 template <>
-SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::ProcessModel& process)
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamWriter::write(Process::ProcessModel& process)
 {
-  m_stream >> process.m_duration >> process.m_slotHeight >> process.m_startOffset
-      >> process.m_loopDuration >> process.m_position >> process.m_size >> process.m_loops;
+  m_stream >> process.m_duration >> process.m_slotHeight
+      >> process.m_startOffset >> process.m_loopDuration >> process.m_position
+      >> process.m_size >> process.m_loops;
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::ProcessModel& process)
+SCORE_LIB_PROCESS_EXPORT void
+JSONReader::read(const Process::ProcessModel& process)
 {
   obj[strings.Duration] = process.duration();
   obj[strings.Height] = process.getSlotHeight();

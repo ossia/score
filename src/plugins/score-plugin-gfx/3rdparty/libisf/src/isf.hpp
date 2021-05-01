@@ -1,12 +1,12 @@
 #pragma once
+#include <isf_export.h>
+
 #include <array>
 #include <optional>
 #include <stdexcept>
 #include <string>
 #include <variant>
 #include <vector>
-
-#include <isf_export.h>
 
 namespace isf
 {

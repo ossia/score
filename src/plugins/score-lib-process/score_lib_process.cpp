@@ -1,3 +1,5 @@
+#include <LocalTree/ProcessComponent.hpp>
+#include <Magnetism/MagnetismAdjuster.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/DocumentPlugin.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
@@ -10,10 +12,8 @@
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
 
-#include <LocalTree/ProcessComponent.hpp>
-#include <Magnetism/MagnetismAdjuster.hpp>
-
 #include <QGraphicsScene>
+
 #include <score_lib_process.hpp>
 #include <score_lib_process_commands_files.hpp>
 namespace Process
@@ -22,11 +22,14 @@ DataflowManager::DataflowManager() { }
 
 DataflowManager::~DataflowManager() { }
 
-Dataflow::CableItem* DataflowManager::createCable(const Process::Cable& cable, const Process::Context& m_context, QGraphicsScene* scene)
+Dataflow::CableItem* DataflowManager::createCable(
+    const Process::Cable& cable,
+    const Process::Context& m_context,
+    QGraphicsScene* scene)
 {
   auto ptr = &cable;
   auto it = m_cableMap.find(ptr);
-  if(it == m_cableMap.end())
+  if (it == m_cableMap.end())
   {
     auto item = new Dataflow::CableItem{*ptr, m_context, nullptr};
     m_cableMap.insert({ptr, item});
@@ -34,7 +37,7 @@ Dataflow::CableItem* DataflowManager::createCable(const Process::Cable& cable, c
       scene->addItem(item);
     return item;
   }
-  else if(it->second == nullptr)
+  else if (it->second == nullptr)
   {
     auto item = new Dataflow::CableItem{*ptr, m_context, nullptr};
     it.value() = item;
@@ -57,7 +60,8 @@ score_lib_process::score_lib_process()
 }
 score_lib_process::~score_lib_process() = default;
 
-std::vector<std::unique_ptr<score::InterfaceListBase>> score_lib_process::factoryFamilies()
+std::vector<std::unique_ptr<score::InterfaceListBase>>
+score_lib_process::factoryFamilies()
 {
   return make_ptr_vector<
       score::InterfaceListBase,
@@ -71,7 +75,8 @@ std::vector<std::unique_ptr<score::InterfaceListBase>> score_lib_process::factor
       LocalTree::ProcessComponentFactoryList>();
 }
 
-std::pair<const CommandGroupKey, CommandGeneratorMap> score_lib_process::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap>
+score_lib_process::make_commands()
 {
   using namespace Process;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{

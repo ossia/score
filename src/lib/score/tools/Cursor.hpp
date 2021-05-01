@@ -8,8 +8,8 @@
 #include <QGuiApplication>
 #endif
 
-#include <QMouseEvent>
 #include <QGraphicsSceneMouseEvent>
+#include <QMouseEvent>
 #include <QPointF>
 #include <QWidget>
 
@@ -23,7 +23,8 @@ inline void setCursorPos(QPointF pos) noexcept
   ppos.x = pos.x();
   ppos.y = pos.y();
 
-  CGEventRef e = CGEventCreateMouseEvent(nullptr, kCGEventMouseMoved, ppos, kCGMouseButtonLeft);
+  CGEventRef e = CGEventCreateMouseEvent(
+      nullptr, kCGEventMouseMoved, ppos, kCGMouseButtonLeft);
   CGEventPost(kCGHIDEventTap, e);
   CFRelease(e);
 #else
@@ -45,7 +46,8 @@ inline void moveCursorPos(QPointF pos) noexcept
   ppos.x = pos.x();
   ppos.y = pos.y();
 
-  CGEventRef e = CGEventCreateMouseEvent(nullptr, kCGEventMouseMoved, ppos, kCGMouseButtonLeft);
+  CGEventRef e = CGEventCreateMouseEvent(
+      nullptr, kCGEventMouseMoved, ppos, kCGMouseButtonLeft);
   CGEventPost(kCGHIDEventTap, e);
   CFRelease(e);
 #else
@@ -93,7 +95,7 @@ void showCursor();
 
 inline void hideCursor(bool hasCursor)
 {
-  if(QGuiApplication::overrideCursor())
+  if (QGuiApplication::overrideCursor())
     QGuiApplication::changeOverrideCursor(QCursor(Qt::BlankCursor));
   else
     QGuiApplication::setOverrideCursor(QCursor(Qt::BlankCursor));

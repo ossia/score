@@ -2,16 +2,16 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "SplitTimeSync.hpp"
 
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Document/VerticalExtent.hpp>
-#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-
 #include <score/model/EntityMap.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Document/VerticalExtent.hpp>
+#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 
 #include <vector>
 
@@ -23,7 +23,8 @@ namespace Command
 SplitTimeSync::SplitTimeSync(
     const TimeSyncModel& path,
     std::vector<Id<EventModel>> eventsInNewTimeSync)
-    : m_path{path}, m_eventsInNewTimeSync(std::move(eventsInNewTimeSync))
+    : m_path{path}
+    , m_eventsInNewTimeSync(std::move(eventsInNewTimeSync))
 {
   m_originalTimeSyncId = path.id();
 
@@ -33,7 +34,8 @@ SplitTimeSync::SplitTimeSync(
 
 void SplitTimeSync::undo(const score::DocumentContext& ctx) const
 {
-  auto& scenar = static_cast<Scenario::ProcessModel&>(*m_path.find(ctx).parent());
+  auto& scenar
+      = static_cast<Scenario::ProcessModel&>(*m_path.find(ctx).parent());
   auto& originalTN = scenar.timeSync(m_originalTimeSyncId);
   auto& newTN = scenar.timeSync(m_newTimeSyncId);
 
@@ -49,12 +51,13 @@ void SplitTimeSync::undo(const score::DocumentContext& ctx) const
 
 void SplitTimeSync::redo(const score::DocumentContext& ctx) const
 {
-  auto& scenar = static_cast<Scenario::ProcessModel&>(*m_path.find(ctx).parent());
+  auto& scenar
+      = static_cast<Scenario::ProcessModel&>(*m_path.find(ctx).parent());
   auto& originalTN = scenar.timeSync(m_originalTimeSyncId);
 
   // TODO set the correct position here.
-  TimeSyncModel& tn
-      = ScenarioCreate<TimeSyncModel>::redo(m_newTimeSyncId, originalTN.date(), scenar);
+  TimeSyncModel& tn = ScenarioCreate<TimeSyncModel>::redo(
+      m_newTimeSyncId, originalTN.date(), scenar);
 
   tn.expression() = originalTN.expression();
   tn.setActive(originalTN.active());
@@ -68,31 +71,39 @@ void SplitTimeSync::redo(const score::DocumentContext& ctx) const
 
 void SplitTimeSync::serializeImpl(DataStreamInput& s) const
 {
-  s << m_path << m_originalTimeSyncId << m_eventsInNewTimeSync << m_newTimeSyncId;
+  s << m_path << m_originalTimeSyncId << m_eventsInNewTimeSync
+    << m_newTimeSyncId;
 }
 
 void SplitTimeSync::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_path >> m_originalTimeSyncId >> m_eventsInNewTimeSync >> m_newTimeSyncId;
+  s >> m_path >> m_originalTimeSyncId >> m_eventsInNewTimeSync
+      >> m_newTimeSyncId;
 }
 
-SplitWholeSync::SplitWholeSync(const TimeSyncModel& path) : m_path{path}
+SplitWholeSync::SplitWholeSync(const TimeSyncModel& path)
+    : m_path{path}
 {
   SCORE_ASSERT(path.events().size() > 1);
   m_originalTimeSync = path.id();
   auto scenar = static_cast<Scenario::ProcessModel*>(path.parent());
-  m_newTimeSyncs
-      = getStrongIdRange<Scenario::TimeSyncModel>(path.events().size() - 1, scenar->timeSyncs);
+  m_newTimeSyncs = getStrongIdRange<Scenario::TimeSyncModel>(
+      path.events().size() - 1, scenar->timeSyncs);
 }
 
-SplitWholeSync::SplitWholeSync(const TimeSyncModel& path, std::vector<Id<TimeSyncModel>> new_ids)
-    : m_path{path}, m_originalTimeSync{path.id()}, m_newTimeSyncs{std::move(new_ids)}
+SplitWholeSync::SplitWholeSync(
+    const TimeSyncModel& path,
+    std::vector<Id<TimeSyncModel>> new_ids)
+    : m_path{path}
+    , m_originalTimeSync{path.id()}
+    , m_newTimeSyncs{std::move(new_ids)}
 {
 }
 
 void SplitWholeSync::undo(const score::DocumentContext& ctx) const
 {
-  auto& scenar = static_cast<Scenario::ProcessModel&>(*m_path.find(ctx).parent());
+  auto& scenar
+      = static_cast<Scenario::ProcessModel&>(*m_path.find(ctx).parent());
 
   auto& originalTN = scenar.timeSync(m_originalTimeSync);
   for (const auto& id : m_newTimeSyncs)
@@ -112,7 +123,8 @@ void SplitWholeSync::undo(const score::DocumentContext& ctx) const
 
 void SplitWholeSync::redo(const score::DocumentContext& ctx) const
 {
-  auto& scenar = static_cast<Scenario::ProcessModel&>(*m_path.find(ctx).parent());
+  auto& scenar
+      = static_cast<Scenario::ProcessModel&>(*m_path.find(ctx).parent());
   auto& originalTN = scenar.timeSync(m_originalTimeSync);
 
   auto originalEvents = originalTN.events();
@@ -121,7 +133,8 @@ void SplitWholeSync::redo(const score::DocumentContext& ctx) const
   for (const auto& id : m_newTimeSyncs)
   {
     // TODO set the correct position here.
-    TimeSyncModel& tn = ScenarioCreate<TimeSyncModel>::redo(id, originalTN.date(), scenar);
+    TimeSyncModel& tn
+        = ScenarioCreate<TimeSyncModel>::redo(id, originalTN.date(), scenar);
 
     tn.expression() = originalTN.expression();
     tn.setActive(originalTN.active());

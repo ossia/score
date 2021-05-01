@@ -1,5 +1,6 @@
 #pragma once
 #include <score/serialization/DataStreamFwd.hpp>
+
 #include <score_lib_state_export.h>
 
 #include <memory>
@@ -26,8 +27,8 @@ public:
   Domain(const ossia::domain&) noexcept;
   Domain& operator=(const ossia::domain&) noexcept;
 
-  operator const ossia::domain &() const noexcept;
-  operator ossia::domain &() noexcept;
+  operator const ossia::domain&() const noexcept;
+  operator ossia::domain&() noexcept;
 
   bool operator==(const State::Domain& other) const noexcept;
   bool operator!=(const State::Domain& other) const noexcept;

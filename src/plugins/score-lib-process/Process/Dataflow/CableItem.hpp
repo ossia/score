@@ -20,14 +20,19 @@ struct Context;
 namespace Dataflow
 {
 class PortItem;
-class SCORE_LIB_PROCESS_EXPORT CableItem final : public QObject, public QGraphicsItem
+class SCORE_LIB_PROCESS_EXPORT CableItem final
+    : public QObject
+    , public QGraphicsItem
 {
   W_OBJECT(CableItem)
   Q_INTERFACES(QGraphicsItem)
 
 public:
   static bool g_cables_enabled;
-  CableItem(const Process::Cable& c, const Process::Context& ctx, QGraphicsItem* parent = nullptr);
+  CableItem(
+      const Process::Cable& c,
+      const Process::Context& ctx,
+      QGraphicsItem* parent = nullptr);
   ~CableItem() override;
   const Id<Process::Cable>& id() const { return m_cable.id(); }
   const Process::Cable& model() const { return m_cable; }
@@ -47,7 +52,10 @@ public:
 
 private:
   QRectF boundingRect() const override;
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
   QPainterPath shape() const override;
   QPainterPath opaqueArea() const override;
   bool contains(const QPointF& point) const override;

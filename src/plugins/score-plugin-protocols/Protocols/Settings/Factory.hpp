@@ -1,9 +1,9 @@
 #pragma once
-#include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
-
 #include <Protocols/Settings/Model.hpp>
 #include <Protocols/Settings/Presenter.hpp>
 #include <Protocols/Settings/View.hpp>
+
+#include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 namespace Protocols::Settings
 {
 SCORE_DECLARE_SETTINGS_FACTORY(

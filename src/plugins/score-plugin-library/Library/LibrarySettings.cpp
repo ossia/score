@@ -4,9 +4,9 @@
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/SettingsCommand.hpp>
 #include <score/tools/Bind.hpp>
+#include <score/widgets/FormWidget.hpp>
 #include <score/widgets/MessageBox.hpp>
 #include <score/widgets/SetIcons.hpp>
-#include <score/widgets/FormWidget.hpp>
 
 #include <QApplication>
 #include <QDir>

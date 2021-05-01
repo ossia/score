@@ -1,20 +1,20 @@
 #pragma once
 #if __has_include(<score_plugin_gfx.hpp>)
 #define SCORE_JIT_HAS_TEXGEN 1
+#include <Control/DefaultEffectItem.hpp>
+#include <Effect/EffectFactory.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessMetadata.hpp>
+#include <Process/Script/ScriptEditor.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/node_process.hpp>
 
-#include <Process/Script/ScriptEditor.hpp>
 #include <JitCpp/EditScript.hpp>
 
-#include <Control/DefaultEffectItem.hpp>
-#include <Effect/EffectFactory.hpp>
 #include <verdigris>
 
 namespace Jit
@@ -78,7 +78,8 @@ public:
 
   TexgenFactory factory;
 
-  void errorMessage(int line, const QString& e) W_SIGNAL(errorMessage, line, e);
+  void errorMessage(int line, const QString& e)
+      W_SIGNAL(errorMessage, line, e);
 
   PROPERTY(QString, script READ script WRITE setScript NOTIFY scriptChanged)
 private:
@@ -112,8 +113,10 @@ using TexgenEffectFactory = Process::EffectProcessFactory_T<TexgenModel>;
 using TexgenLayerFactory = Process::EffectLayerFactory_T<
     TexgenModel,
     Process::DefaultEffectItem,
-    Process::ProcessScriptEditDialog<TexgenModel, TexgenModel::p_script, TexgenLanguageSpec>
->;
+    Process::ProcessScriptEditDialog<
+        TexgenModel,
+        TexgenModel::p_script,
+        TexgenLanguageSpec>>;
 
 class TexgenExecutor final
     : public Execution::

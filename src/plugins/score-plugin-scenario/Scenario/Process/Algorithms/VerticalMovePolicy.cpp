@@ -1,6 +1,12 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
+#include <score/model/EntityMap.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/tools/std/Optional.hpp>
+
+#include <ossia/detail/flat_set.hpp>
+
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -11,12 +17,6 @@
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioPresenter.hpp>
-
-#include <score/model/EntityMap.hpp>
-#include <score/model/Identifier.hpp>
-#include <score/tools/std/Optional.hpp>
-
-#include <ossia/detail/flat_set.hpp>
 
 #include <limits>
 
@@ -44,7 +44,10 @@ void updateTimeSyncExtent(TimeSyncPresenter& tn)
   tn.setExtent({min, max});
 }
 
-void updateEventExtent(ScenarioPresenter& pres, EventPresenter& ev, double view_height)
+void updateEventExtent(
+    ScenarioPresenter& pres,
+    EventPresenter& ev,
+    double view_height)
 {
   if (view_height <= 2.)
     return;

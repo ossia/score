@@ -17,7 +17,8 @@ void DataStreamReader::read(const Mapping::ProcessModel& autom)
   m_stream << *autom.inlet << *autom.outlet;
   readFrom(autom.curve());
 
-  m_stream << autom.sourceMin() << autom.sourceMax() << autom.targetMin() << autom.targetMax();
+  m_stream << autom.sourceMin() << autom.sourceMax() << autom.targetMin()
+           << autom.targetMax();
 
   insertDelimiter();
 }

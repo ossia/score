@@ -7,7 +7,9 @@
 #include <score/serialization/StdVariantSerialization.hpp>
 
 JSON_METADATA(Protocols::Artnet::SingleCapability, "SingleCapability")
-JSON_METADATA(std::vector<Protocols::Artnet::RangeCapability>, "RangeCapabilities")
+JSON_METADATA(
+    std::vector<Protocols::Artnet::RangeCapability>,
+    "RangeCapabilities")
 
 template <>
 void DataStreamReader::read(const Protocols::Artnet::SingleCapability& n)
@@ -28,9 +30,9 @@ void JSONReader::read(const Protocols::Artnet::SingleCapability& n)
 {
   stream.StartObject();
   obj["Type"] = n.type;
-  if(!n.comment.isEmpty())
+  if (!n.comment.isEmpty())
     obj["Comment"] = n.comment;
-  if(!n.effectName.isEmpty())
+  if (!n.effectName.isEmpty())
     obj["EffectName"] = n.comment;
   stream.EndObject();
 }
@@ -39,9 +41,9 @@ template <>
 void JSONWriter::write(Protocols::Artnet::SingleCapability& n)
 {
   n.type <<= obj["Type"];
-  if(auto val = obj.tryGet("Comment"))
+  if (auto val = obj.tryGet("Comment"))
     n.comment <<= *val;
-  if(auto val = obj.tryGet("EffectName"))
+  if (auto val = obj.tryGet("EffectName"))
     n.effectName <<= *val;
 }
 
@@ -66,9 +68,9 @@ void JSONReader::read(const Protocols::Artnet::RangeCapability& n)
 {
   stream.StartObject();
   obj["Type"] = n.type;
-  if(!n.comment.isEmpty())
+  if (!n.comment.isEmpty())
     obj["Comment"] = n.comment;
-  if(!n.effectName.isEmpty())
+  if (!n.effectName.isEmpty())
     obj["EffectName"] = n.comment;
 
   obj["Range"] = n.range;
@@ -79,9 +81,9 @@ template <>
 void JSONWriter::write(Protocols::Artnet::RangeCapability& n)
 {
   n.type <<= obj["Type"];
-  if(auto val = obj.tryGet("Comment"))
+  if (auto val = obj.tryGet("Comment"))
     n.comment <<= *val;
-  if(auto val = obj.tryGet("EffectName"))
+  if (auto val = obj.tryGet("EffectName"))
     n.effectName <<= *val;
 
   n.range <<= obj["Range"];
@@ -119,7 +121,6 @@ void JSONWriter::write(Protocols::Artnet::Channel& n)
   n.capabilities <<= obj["Capabilities"];
 }
 
-
 template <>
 void DataStreamReader::read(const Protocols::Artnet::Fixture& n)
 {
@@ -149,9 +150,9 @@ template <>
 void JSONWriter::write(Protocols::Artnet::Fixture& n)
 {
   n.fixtureName <<= obj["Name"];
-  n.modeName    <<= obj["Mode"];
-  n.address     <<= obj["Address"];
-  n.controls    <<= obj["Channels"];
+  n.modeName <<= obj["Mode"];
+  n.address <<= obj["Address"];
+  n.controls <<= obj["Channels"];
 }
 
 template <>

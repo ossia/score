@@ -1,15 +1,14 @@
 #pragma once
-#include <ossia/network/value/value.hpp>
-#include <ossia/gfx/port_index.hpp>
-#include <ossia/dataflow/token_request.hpp>
-#include <ossia/dataflow/nodes/media.hpp>
-#include <ossia/detail/hash_map.hpp>
-#include <ossia/detail/flat_set.hpp>
-
 #include <Gfx/Graph/node.hpp>
 
-#include <concurrentqueue.h>
+#include <ossia/dataflow/nodes/media.hpp>
+#include <ossia/dataflow/token_request.hpp>
+#include <ossia/detail/flat_set.hpp>
+#include <ossia/detail/hash_map.hpp>
+#include <ossia/gfx/port_index.hpp>
+#include <ossia/network/value/value.hpp>
 
+#include <concurrentqueue.h>
 #include <score_plugin_gfx_export.h>
 
 class Graph;
@@ -47,6 +46,7 @@ class SCORE_PLUGIN_GFX_EXPORT gfx_window_context : public QObject
 {
   friend class gfx_exec_node;
   friend class GfxExecutionAction;
+
 public:
   explicit gfx_window_context(const score::DocumentContext& ctx);
   ~gfx_window_context();

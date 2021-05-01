@@ -1,8 +1,9 @@
 #include "View.hpp"
 
+#include <score/widgets/FormWidget.hpp>
+
 #include <QCheckBox>
 #include <QFormLayout>
-#include <score/widgets/FormWidget.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(RemoteControl::Settings::View)

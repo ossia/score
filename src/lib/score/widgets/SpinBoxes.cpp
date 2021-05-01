@@ -1,18 +1,19 @@
 #include "SpinBoxes.hpp"
+
 #include "TimeSpinBox.hpp"
 
-#include <score/tools/Cursor.hpp>
 #include <score/model/Skin.hpp>
+#include <score/tools/Cursor.hpp>
 
-#include <ossia/detail/flicks.hpp>
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/flicks.hpp>
 
+#include <QLineEdit>
 #include <QPainter>
 #include <QStyleOptionComplex>
 #include <QTime>
-#include <cmath>
 
-#include <QLineEdit>
+#include <cmath>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::TimeSpinBox)
 namespace score
@@ -26,8 +27,10 @@ static const constexpr int minuteStart = 70;
 
 static constexpr const auto barDuration = 4 * ossia::quarter_duration<int64_t>;
 static constexpr const auto quarterDuration = ossia::quarter_duration<int64_t>;
-static constexpr const auto semiquaverDuration = ossia::quarter_duration<int64_t> / 4;
-static constexpr const auto centDuration = ossia::quarter_duration<int64_t> / 400;
+static constexpr const auto semiquaverDuration
+    = ossia::quarter_duration<int64_t> / 4;
+static constexpr const auto centDuration
+    = ossia::quarter_duration<int64_t> / 400;
 
 struct BarSpinBox
 {
@@ -69,11 +72,10 @@ struct BarSpinBox
   {
     auto& m_barTime = self.m_barTime;
     return QString{"%1 . %2 . %3 . %4"}
-    .arg(m_barTime.bars)
-    .arg(m_barTime.quarters)
-    .arg(m_barTime.semiquavers)
-    .arg(m_barTime.cents, 2, 10, QChar('0'))
-    ;
+        .arg(m_barTime.bars)
+        .arg(m_barTime.quarters)
+        .arg(m_barTime.semiquavers)
+        .arg(m_barTime.cents, 2, 10, QChar('0'));
   }
 
   static std::optional<int64_t> parseText(QString str) noexcept
@@ -83,12 +85,12 @@ struct BarSpinBox
     check.replace(QRegularExpression("[0-9]"), "");
     check.replace(' ', "");
     check.replace('.', "");
-    if(!check.isEmpty())
+    if (!check.isEmpty())
       return {};
 
     int64_t time{};
     auto splitted = str.split(".");
-    if(splitted.empty())
+    if (splitted.empty())
       return {};
 
     int cents = 0;
@@ -98,19 +100,23 @@ struct BarSpinBox
     // Bar cents
 
     auto it = splitted.rbegin();
-    if(it != splitted.rend()) {
+    if (it != splitted.rend())
+    {
       cents = it->toInt();
       ++it;
     }
-    if(it != splitted.rend()) {
+    if (it != splitted.rend())
+    {
       semiquavers = it->toInt();
       ++it;
     }
-    if(it != splitted.rend()) {
+    if (it != splitted.rend())
+    {
       quarters = it->toInt();
       ++it;
     }
-    if(it != splitted.rend()) {
+    if (it != splitted.rend())
+    {
       bars = it->toInt();
       ++it;
     }
@@ -167,16 +173,20 @@ struct BarSpinBox
     switch (self.m_grab)
     {
       case TimeSpinBox::Bar:
-        self.m_flicks = self.m_origFlicks + subdivDelta * 4 * ossia::quarter_duration<int64_t>;
+        self.m_flicks = self.m_origFlicks
+                        + subdivDelta * 4 * ossia::quarter_duration<int64_t>;
         break;
       case TimeSpinBox::Quarter:
-        self.m_flicks = self.m_origFlicks + subdivDelta * ossia::quarter_duration<int64_t>;
+        self.m_flicks = self.m_origFlicks
+                        + subdivDelta * ossia::quarter_duration<int64_t>;
         break;
       case TimeSpinBox::Semiquaver:
-        self.m_flicks = self.m_origFlicks + subdivDelta * ossia::quarter_duration<int64_t> / 4;
+        self.m_flicks = self.m_origFlicks
+                        + subdivDelta * ossia::quarter_duration<int64_t> / 4;
         break;
       case TimeSpinBox::Cent:
-        self.m_flicks = self.m_origFlicks + subdivDelta * ossia::quarter_duration<int64_t> / 400;
+        self.m_flicks = self.m_origFlicks
+                        + subdivDelta * ossia::quarter_duration<int64_t> / 400;
         break;
       default:
         break;
@@ -200,7 +210,10 @@ struct SecondSpinBox
   TimeSpinBox& self;
   void paint(QPainter& p, QRect text_rect)
   {
-    QTime t = QTime(0, 0, 0, 0).addMSecs(self.time().impl / ossia::flicks_per_millisecond<double>);
+    QTime t
+        = QTime(0, 0, 0, 0)
+              .addMSecs(
+                  self.time().impl / ossia::flicks_per_millisecond<double>);
     const auto w = text_rect.width();
     const auto cent_start = w - millisecondStart;
     const auto sq_start = w - secondStart;
@@ -227,20 +240,22 @@ struct SecondSpinBox
 
   QString text() const noexcept
   {
-    QTime t = QTime(0, 0, 0, 0).addMSecs(self.time().impl / ossia::flicks_per_millisecond<double>);
+    QTime t
+        = QTime(0, 0, 0, 0)
+              .addMSecs(
+                  self.time().impl / ossia::flicks_per_millisecond<double>);
     return QString{"%1:%2:%3.%4"}
-    .arg(t.hour(), 2, 10, QChar('0'))
-    .arg(t.minute(), 2, 10, QChar('0'))
-    .arg(t.second(), 2, 10, QChar('0'))
-    .arg(t.msec(), 3, 10, QChar('0'))
-    ;
+        .arg(t.hour(), 2, 10, QChar('0'))
+        .arg(t.minute(), 2, 10, QChar('0'))
+        .arg(t.second(), 2, 10, QChar('0'))
+        .arg(t.msec(), 3, 10, QChar('0'));
   }
 
   static std::optional<int64_t> parseText(QString str) noexcept
   {
     str.remove(' ');
     auto t = QTime::fromString(str, "hh:mm:ss.zzz");
-    if(!t.isValid())
+    if (!t.isValid())
       return {};
 
     int64_t flicks{};
@@ -296,18 +311,22 @@ struct SecondSpinBox
     {
       case TimeSpinBox::Bar: // Hour
         self.m_flicks = self.m_origFlicks
-                        + subdivDelta * 3600 * 1000 * ossia::flicks_per_millisecond<int64_t>;
+                        + subdivDelta * 3600 * 1000
+                              * ossia::flicks_per_millisecond<int64_t>;
         break;
       case TimeSpinBox::Quarter: // Minute
-        self.m_flicks
-            = self.m_origFlicks + subdivDelta * 60 * 1000 * ossia::flicks_per_millisecond<int64_t>;
+        self.m_flicks = self.m_origFlicks
+                        + subdivDelta * 60 * 1000
+                              * ossia::flicks_per_millisecond<int64_t>;
         break;
       case TimeSpinBox::Semiquaver: // Second
         self.m_flicks
-            = self.m_origFlicks + subdivDelta * 1000 * ossia::flicks_per_millisecond<int64_t>;
+            = self.m_origFlicks
+              + subdivDelta * 1000 * ossia::flicks_per_millisecond<int64_t>;
         break;
       case TimeSpinBox::Cent: // ms
-        self.m_flicks = self.m_origFlicks + subdivDelta * ossia::flicks_per_millisecond<int64_t>;
+        self.m_flicks = self.m_origFlicks
+                        + subdivDelta * ossia::flicks_per_millisecond<int64_t>;
         break;
       default:
         break;
@@ -331,15 +350,9 @@ struct FlicksSpinBox
   TimeSpinBox& self;
   void paint(QPainter& p, QRect text_rect) { }
 
-  QString text() const noexcept
-  {
-    return QString{"%1"}.arg(self.m_flicks);
-  }
+  QString text() const noexcept { return QString{"%1"}.arg(self.m_flicks); }
 
-  static std::optional<int64_t> parseText(QString str) noexcept
-  {
-    return {};
-  }
+  static std::optional<int64_t> parseText(QString str) noexcept { return {}; }
 
   void mousePress(QRect text_rect, QMouseEvent* event) { }
 
@@ -351,7 +364,8 @@ struct FlicksSpinBox
 static std::vector<TimeSpinBox*> spinBoxes;
 TimeSpinBox::TimeMode globalTimeMode = TimeSpinBox::TimeMode::Bars;
 
-TimeSpinBox::TimeSpinBox(QWidget* parent) : QWidget(parent)
+TimeSpinBox::TimeSpinBox(QWidget* parent)
+    : QWidget(parent)
 {
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorSpin);
@@ -392,10 +406,12 @@ void TimeSpinBox::updateTime()
   const int64_t bars = m_flicks / (barDuration);
   const int64_t quarters = (m_flicks - (bars * barDuration)) / quarterDuration;
   const int64_t semiquavers
-      = (m_flicks - (bars * barDuration) - (quarters * quarterDuration)) / semiquaverDuration;
-  const int64_t cents = (m_flicks - (bars * barDuration) - (quarters * quarterDuration)
-                         - (semiquavers * semiquaverDuration))
-                        / centDuration;
+      = (m_flicks - (bars * barDuration) - (quarters * quarterDuration))
+        / semiquaverDuration;
+  const int64_t cents
+      = (m_flicks - (bars * barDuration) - (quarters * quarterDuration)
+         - (semiquavers * semiquaverDuration))
+        / centDuration;
   m_barTime.bars = bars;
   m_barTime.quarters = quarters;
   m_barTime.semiquavers = semiquavers;
@@ -493,7 +509,7 @@ void TimeSpinBox::mouseDoubleClickEvent(QMouseEvent* event)
   le->setGeometry(this->rect());
   le->setParent(this);
   le->show();
-  switch(m_mode)
+  switch (m_mode)
   {
     case Bars:
       le->setText(BarSpinBox{*this}.text());
@@ -508,10 +524,9 @@ void TimeSpinBox::mouseDoubleClickEvent(QMouseEvent* event)
   le->setAlignment(Qt::AlignRight);
   le->selectAll();
 
-  connect(le, &QLineEdit::editingFinished,
-          this, [this, le] {
+  connect(le, &QLineEdit::editingFinished, this, [this, le] {
     std::optional<int64_t> flicks;
-    switch(m_mode)
+    switch (m_mode)
     {
       case Bars:
         flicks = BarSpinBox{*this}.parseText(le->text());
@@ -524,7 +539,8 @@ void TimeSpinBox::mouseDoubleClickEvent(QMouseEvent* event)
         break;
     }
 
-    if(flicks && *flicks != m_flicks) {
+    if (flicks && *flicks != m_flicks)
+    {
       m_flicks = *flicks;
       updateTime();
       timeChanged({this->m_flicks});
@@ -541,7 +557,10 @@ void TimeSpinBox::initStyleOption(QStyleOptionFrame* option) const noexcept
   option->initFrom(this);
   option->rect = contentsRect();
   constexpr bool frame = true;
-  option->lineWidth = frame ? style()->pixelMetric(QStyle::PM_DefaultFrameWidth, option, this) : 0;
+  option->lineWidth
+      = frame
+            ? style()->pixelMetric(QStyle::PM_DefaultFrameWidth, option, this)
+            : 0;
   option->midLineWidth = 0;
   option->state |= QStyle::State_Sunken;
 #ifdef QT_KEYPAD_NAVIGATION

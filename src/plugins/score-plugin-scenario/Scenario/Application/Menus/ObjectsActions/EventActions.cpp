@@ -3,16 +3,6 @@
 #include "EventActions.hpp"
 
 #include <Process/ProcessContext.hpp>
-#include <Scenario/Application/ScenarioActions.hpp>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Commands/Event/SetCondition.hpp>
-#include <Scenario/Commands/TimeSync/AddTrigger.hpp>
-#include <Scenario/Commands/TimeSync/RemoveTrigger.hpp>
-#include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Process/Algorithms/Accessors.hpp>
 
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/MenuManager.hpp>
@@ -27,11 +17,23 @@
 #include <QMenu>
 #include <QSet>
 #include <QToolBar>
+
+#include <Scenario/Application/ScenarioActions.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Commands/Event/SetCondition.hpp>
+#include <Scenario/Commands/TimeSync/AddTrigger.hpp>
+#include <Scenario/Commands/TimeSync/RemoveTrigger.hpp>
+#include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 namespace Scenario
 {
 EventActions::EventActions(ScenarioApplicationPlugin* parent)
     : m_parent{parent}
-    , m_triggerCommandFactory{parent->context.interfaces<Command::TriggerCommandFactoryList>()}
+    , m_triggerCommandFactory{
+          parent->context.interfaces<Command::TriggerCommandFactoryList>()}
 {
   if (!parent->context.applicationSettings.gui)
     return;
@@ -39,7 +41,11 @@ EventActions::EventActions(ScenarioApplicationPlugin* parent)
 
   /// Add Trigger ///
   m_addTrigger = new QAction{tr("Enable trigger"), this};
-  connect(m_addTrigger, &QAction::triggered, this, &EventActions::addTriggerToTimeSync);
+  connect(
+      m_addTrigger,
+      &QAction::triggered,
+      this,
+      &EventActions::addTriggerToTimeSync);
   m_addTrigger->setEnabled(false);
 
   m_addTrigger->setToolTip(tr("Enable trigger"));
@@ -52,12 +58,17 @@ EventActions::EventActions(ScenarioApplicationPlugin* parent)
 
   /// Remove Trigger ///
   m_removeTrigger = new QAction{tr("Disable trigger"), this};
-  connect(m_removeTrigger, &QAction::triggered, this, &EventActions::removeTriggerFromTimeSync);
+  connect(
+      m_removeTrigger,
+      &QAction::triggered,
+      this,
+      &EventActions::removeTriggerFromTimeSync);
   m_removeTrigger->setEnabled(false);
 
   /// Add Condition ///
   m_addCondition = new QAction{tr("Add Condition"), this};
-  connect(m_addCondition, &QAction::triggered, this, &EventActions::addCondition);
+  connect(
+      m_addCondition, &QAction::triggered, this, &EventActions::addCondition);
   m_addCondition->setEnabled(false);
 
   m_addCondition->setToolTip(tr("Add Condition"));
@@ -70,7 +81,11 @@ EventActions::EventActions(ScenarioApplicationPlugin* parent)
 
   /// Remove Condition ///
   m_removeCondition = new QAction{tr("Remove Condition"), this};
-  connect(m_removeCondition, &QAction::triggered, this, &EventActions::removeCondition);
+  connect(
+      m_removeCondition,
+      &QAction::triggered,
+      this,
+      &EventActions::removeCondition);
   m_removeCondition->setEnabled(false);
 }
 
@@ -89,16 +104,15 @@ void EventActions::makeGUIElements(score::GUIElements& ref)
   ref.actions.add<Actions::AddCondition>(m_addCondition);
   ref.actions.add<Actions::RemoveCondition>(m_removeCondition);
 
-  auto& cond = m_parent->context.actions.condition<EnableWhenScenarioInterfaceInstantObject>();
+  auto& cond = m_parent->context.actions
+                   .condition<EnableWhenScenarioInterfaceInstantObject>();
   cond.add<Actions::AddTrigger>();
   cond.add<Actions::RemoveTrigger>();
   cond.add<Actions::AddCondition>();
   cond.add<Actions::RemoveCondition>();
 }
 
-void EventActions::setupContextMenu(Process::LayerContextMenuManager& ctxm)
-{
-}
+void EventActions::setupContextMenu(Process::LayerContextMenuManager& ctxm) { }
 
 void EventActions::addTriggerToTimeSync()
 {
@@ -167,7 +181,8 @@ void EventActions::addCondition()
   const EventModel& ev = *selectedEvents.front();
   if (ev.condition() == State::Expression{})
   {
-    auto cmd = new Scenario::Command::SetCondition{ev, State::defaultTrueExpression()};
+    auto cmd = new Scenario::Command::SetCondition{
+        ev, State::defaultTrueExpression()};
     dispatcher().submit(cmd);
   }
 }
@@ -240,7 +255,8 @@ void EventActions::removeTriggerFromTimeSync()
 
 CommandDispatcher<> EventActions::dispatcher()
 {
-  CommandDispatcher<> disp{m_parent->currentDocument()->context().commandStack};
+  CommandDispatcher<> disp{
+      m_parent->currentDocument()->context().commandStack};
   return disp;
 }
 }

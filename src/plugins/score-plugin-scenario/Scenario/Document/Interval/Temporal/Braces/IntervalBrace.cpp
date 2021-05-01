@@ -3,19 +3,23 @@
 #include "IntervalBrace.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Scenario/Document/Interval/IntervalPresenter.hpp>
-#include <Scenario/Document/Interval/IntervalView.hpp>
 
 #include <QCursor>
 #include <QPainter>
+
+#include <Scenario/Document/Interval/IntervalPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalView.hpp>
 
 namespace Scenario
 {
 LeftBraceView::~LeftBraceView() { }
 
 RightBraceView::~RightBraceView() { }
-IntervalBrace::IntervalBrace(const IntervalView& parentCstr, QGraphicsItem* parent)
-    : QGraphicsItem(), m_parent{parentCstr}
+IntervalBrace::IntervalBrace(
+    const IntervalView& parentCstr,
+    QGraphicsItem* parent)
+    : QGraphicsItem()
+    , m_parent{parentCstr}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   auto& skin = score::Skin::instance();

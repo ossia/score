@@ -17,7 +17,8 @@ template <typename T>
 class MetaContextMenu;
 struct LayerContext;
 
-using ContextMenuFun = std::function<void(QMenu&, QPoint, QPointF, const Process::LayerContext&)>;
+using ContextMenuFun = std::function<
+    void(QMenu&, QPoint, QPointF, const Process::LayerContext&)>;
 class SCORE_LIB_PROCESS_EXPORT LayerContextMenu
 {
 public:
@@ -27,7 +28,9 @@ public:
 
   std::vector<ContextMenuFun> functions;
 
-  void build(QMenu& m, QPoint pt, QPointF ptf, const Process::LayerContext& proc) const;
+  void
+  build(QMenu& m, QPoint pt, QPointF ptf, const Process::LayerContext& proc)
+      const;
 
 private:
   StringKey<LayerContextMenu> m_key;

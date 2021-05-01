@@ -62,12 +62,16 @@ public:
   const ProcessModel& model() const noexcept;
   const Id<ProcessModel>& modelId() const noexcept;
 
-  virtual void
-  fillContextMenu(QMenu&, QPoint pos, QPointF scenepos, const LayerContextMenuManager&);
+  virtual void fillContextMenu(
+      QMenu&,
+      QPoint pos,
+      QPointF scenepos,
+      const LayerContextMenuManager&);
 
   virtual GraphicsShapeItem* makeSlotHeaderDelegate();
 
   static constexpr bool recommendedHeight = false;
+
 public:
   void contextMenuRequested(const QPoint& arg_1, const QPointF& arg_2)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, contextMenuRequested, arg_1, arg_2)

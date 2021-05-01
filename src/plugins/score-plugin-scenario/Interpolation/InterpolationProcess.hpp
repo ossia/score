@@ -56,14 +56,16 @@ public:
 
   ::State::MessageList messages() const override;
 
-  ::State::MessageList
-  setMessages(const ::State::MessageList&, const Process::MessageNode&) override;
+  ::State::MessageList setMessages(
+      const ::State::MessageList&,
+      const Process::MessageNode&) override;
 
 private:
   Point m_point{};
 };
 
-class SCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final : public Curve::CurveProcessModel
+class SCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final
+    : public Curve::CurveProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Interpolation::ProcessModel)
@@ -71,7 +73,10 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final : public Curve::CurveProce
   W_OBJECT(ProcessModel)
 
 public:
-  ProcessModel(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
+  ProcessModel(
+      const TimeVal& duration,
+      const Id<Process::ProcessModel>& id,
+      QObject* parent);
 
   ~ProcessModel();
 
@@ -115,7 +120,8 @@ public:
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, startChanged, arg_1)
   void endChanged(const ossia::value& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, endChanged, arg_1)
-  void tweenChanged(bool tween) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, tweenChanged, tween)
+  void tweenChanged(bool tween)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, tweenChanged, tween)
 
 private:
   //// ProcessModel ////
@@ -143,6 +149,8 @@ private:
 
   W_PROPERTY(ossia::value, start READ start WRITE setStart NOTIFY startChanged)
 
-  W_PROPERTY(State::AddressAccessor, address READ address WRITE setAddress NOTIFY addressChanged)
+  W_PROPERTY(
+      State::AddressAccessor,
+      address READ address WRITE setAddress NOTIFY addressChanged)
 };
 }

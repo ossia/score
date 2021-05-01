@@ -6,7 +6,10 @@
 namespace Process
 {
 
-void readPorts(DataStreamReader& wr, const Process::Inlets& ins, const Process::Outlets& outs)
+void readPorts(
+    DataStreamReader& wr,
+    const Process::Inlets& ins,
+    const Process::Outlets& outs)
 {
   wr.m_stream << ins;
   wr.m_stream << outs;
@@ -38,7 +41,10 @@ void writePorts(
       [&](auto* port) { outs.push_back(safe_cast<Process::Outlet*>(port)); },
       [&] { SCORE_ABORT; });
 }
-void readPorts(JSONReader& obj, const Process::Inlets& ins, const Process::Outlets& outs)
+void readPorts(
+    JSONReader& obj,
+    const Process::Inlets& ins,
+    const Process::Outlets& outs)
 {
   obj.obj["Inlets"] = ins;
   obj.obj["Outlets"] = outs;

@@ -1,6 +1,6 @@
 #pragma once
-#include <Vst3/EffectModel.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
+#include <Vst3/EffectModel.hpp>
 
 #include <ossia/dataflow/node_process.hpp>
 

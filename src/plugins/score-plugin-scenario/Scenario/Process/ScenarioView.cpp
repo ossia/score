@@ -4,8 +4,6 @@
 
 #include <Process/LayerView.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
-#include <Scenario/Application/Menus/ScenarioCopy.hpp>
-#include <Scenario/Process/ScenarioPresenter.hpp>
 
 #include <QApplication>
 #include <QColor>
@@ -17,13 +15,17 @@
 #include <QPen>
 #include <qnamespace.h>
 
+#include <Scenario/Application/Menus/ScenarioCopy.hpp>
+#include <Scenario/Process/ScenarioPresenter.hpp>
 #include <wobjectimpl.h>
 
 namespace Scenario
 {
-ScenarioView::ScenarioView(QGraphicsItem* parent) : LayerView{parent}
+ScenarioView::ScenarioView(QGraphicsItem* parent)
+    : LayerView{parent}
 {
-  this->setFlags(ItemIsSelectable | ItemIsFocusable | ItemClipsChildrenToShape);
+  this->setFlags(
+      ItemIsSelectable | ItemIsFocusable | ItemClipsChildrenToShape);
   setAcceptDrops(true);
 
   this->setZValue(1);
@@ -43,10 +45,12 @@ void ScenarioView::paint_impl(QPainter* painter) const
   if (m_selectArea != QRectF{})
   {
     painter->setCompositionMode(QPainter::CompositionMode_Xor);
-    painter->setPen(QPen{QColor{0, 0, 0, 127}, 2, Qt::DashLine, Qt::SquareCap, Qt::BevelJoin});
+    painter->setPen(QPen{
+        QColor{0, 0, 0, 127}, 2, Qt::DashLine, Qt::SquareCap, Qt::BevelJoin});
     painter->setBrush(Qt::transparent);
     painter->drawRect(m_selectArea);
-    painter->setCompositionMode(QPainter::CompositionMode::CompositionMode_SourceOver);
+    painter->setCompositionMode(
+        QPainter::CompositionMode::CompositionMode_SourceOver);
   }
 
   if (m_snapLine)
@@ -67,11 +71,15 @@ void ScenarioView::paint_impl(QPainter* painter) const
     painter->drawEllipse(rec.bottomRight(), 3., 3.);
     painter->setRenderHint(QPainter::Antialiasing, false);
 
-    painter->drawText(rec.adjusted(5, -15, 0, -3), Qt::TextDontClip, m_dragText);
+    painter->drawText(
+        rec.adjusted(5, -15, 0, -3), Qt::TextDontClip, m_dragText);
   }
 }
 
-void ScenarioView::drawDragLine(QPointF left, QPointF right, const QString& txt)
+void ScenarioView::drawDragLine(
+    QPointF left,
+    QPointF right,
+    const QString& txt)
 {
   m_dragLine = QRectF(left, right);
   m_dragText = txt;
@@ -96,7 +104,7 @@ void ScenarioView::movedAsked(const QPointF& p)
 
 void ScenarioView::setSnapLine(std::optional<double> s)
 {
-  if(m_snapLine != s)
+  if (m_snapLine != s)
   {
     m_snapLine = s;
     update();
@@ -106,7 +114,8 @@ void ScenarioView::setSnapLine(std::optional<double> s)
 void ScenarioView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   m_moving = false;
-  if (event->button() == Qt::LeftButton && !(qApp->keyboardModifiers() & Qt::ALT))
+  if (event->button() == Qt::LeftButton
+      && !(qApp->keyboardModifiers() & Qt::ALT))
   {
     pressed(event->scenePos());
   }
@@ -132,7 +141,8 @@ void ScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   else
   {
     if (m_moving
-        || (event->buttonDownScreenPos(Qt::LeftButton) - event->screenPos()).manhattanLength()
+        || (event->buttonDownScreenPos(Qt::LeftButton) - event->screenPos())
+                   .manhattanLength()
                > QApplication::startDragDistance())
     {
       m_moving = true;

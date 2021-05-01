@@ -6,9 +6,10 @@
 
 #include <QDialog>
 #include <QWidget>
-#include <verdigris>
 
 #include <score_lib_device_export.h>
+
+#include <verdigris>
 
 class QLineEdit;
 class QComboBox;
@@ -17,8 +18,7 @@ class QCodeEditor;
 class QCheckBox;
 namespace Device
 {
-class SCORE_LIB_DEVICE_EXPORT ProtocolSettingsWidget
-    : public QWidget
+class SCORE_LIB_DEVICE_EXPORT ProtocolSettingsWidget : public QWidget
 {
   W_OBJECT(ProtocolSettingsWidget)
 public:

@@ -5,7 +5,8 @@
 W_OBJECT_IMPL(Jit::AddonCompiler)
 #if defined(__linux__) && LLVM_VERSION_MAJOR <= 10
 #include <score_plugin_jit_export.h>
-SCORE_PLUGIN_JIT_EXPORT int atexit (void (*__func) (void)) __THROW {
+SCORE_PLUGIN_JIT_EXPORT int atexit(void (*__func)(void)) __THROW
+{
   return 0;
 }
 #endif
@@ -58,7 +59,7 @@ void AddonCompiler::on_job(
     qDebug() << "Calling compiler...";
     auto jitedFn = (*ctx.back())(cpp, flags, opts);
 
-    if(!jitedFn)
+    if (!jitedFn)
     {
       qDebug() << "could not compile plug-in: no factory";
       return;

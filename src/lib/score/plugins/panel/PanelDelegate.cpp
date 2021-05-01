@@ -21,8 +21,16 @@ PanelStatus::PanelStatus(
     , icon{[&icon] {
       QIcon ico;
       ico.addFile(":/icons/" + icon + "_on.png", {}, QIcon::Mode::Active);
-      ico.addFile(":/icons/" + icon + "_on.png", {}, QIcon::Mode::Normal, QIcon::State::On);
-      ico.addFile(":/icons/" + icon + "_off.png", {}, QIcon::Mode::Normal, QIcon::State::Off);
+      ico.addFile(
+          ":/icons/" + icon + "_on.png",
+          {},
+          QIcon::Mode::Normal,
+          QIcon::State::On);
+      ico.addFile(
+          ":/icons/" + icon + "_off.png",
+          {},
+          QIcon::Mode::Normal,
+          QIcon::State::Off);
       ico.addFile(":/icons/" + icon + "_on.png", {}, QIcon::Mode::Selected);
       return ico;
     }()}
@@ -30,7 +38,10 @@ PanelStatus::PanelStatus(
 {
 }
 
-PanelDelegate::PanelDelegate(const GUIApplicationContext& ctx) : m_context{ctx} { }
+PanelDelegate::PanelDelegate(const GUIApplicationContext& ctx)
+    : m_context{ctx}
+{
+}
 
 PanelDelegate::~PanelDelegate() = default;
 

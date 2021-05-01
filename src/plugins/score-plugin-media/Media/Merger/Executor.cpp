@@ -1,10 +1,11 @@
 #include "Executor.hpp"
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Scenario/Execution/score2OSSIA.hpp>
 
 #include <ossia/dataflow/nodes/merger.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
+
+#include <Scenario/Execution/score2OSSIA.hpp>
 namespace Execution
 {
 

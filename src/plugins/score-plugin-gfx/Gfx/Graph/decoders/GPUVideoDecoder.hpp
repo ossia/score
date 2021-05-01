@@ -4,7 +4,6 @@
 #include <Gfx/Graph/renderer.hpp>
 #include <Gfx/Graph/renderstate.hpp>
 #include <Gfx/Graph/uniforms.hpp>
-
 #include <Video/VideoInterface.hpp>
 
 extern "C"
@@ -18,25 +17,35 @@ using video_decoder = ::Video::VideoInterface;
 
 struct GPUVideoDecoder
 {
-  virtual ~GPUVideoDecoder() {}
-  virtual void init(Renderer& r, RenderedNode& rendered)  = 0;
-  virtual void exec(Renderer&, RenderedNode& rendered, QRhiResourceUpdateBatch& res, AVFrame& frame) = 0;
+  virtual ~GPUVideoDecoder() { }
+  virtual void init(Renderer& r, RenderedNode& rendered) = 0;
+  virtual void exec(
+      Renderer&,
+      RenderedNode& rendered,
+      QRhiResourceUpdateBatch& res,
+      AVFrame& frame)
+      = 0;
   virtual void release(Renderer&, RenderedNode& rendered) = 0;
 
-  static inline
-  QRhiTextureSubresourceUploadDescription createTextureUpload(uint8_t* pixels, int w, int h, int bytesPerPixel, int stride)
+  static inline QRhiTextureSubresourceUploadDescription createTextureUpload(
+      uint8_t* pixels,
+      int w,
+      int h,
+      int bytesPerPixel,
+      int stride)
   {
     QRhiTextureSubresourceUploadDescription subdesc;
 
     const int rowBytes = w * bytesPerPixel;
-    if(rowBytes == stride)
+    if (rowBytes == stride)
     {
-      subdesc.setData(QByteArray::fromRawData(reinterpret_cast<const char*>(pixels), rowBytes * h));
+      subdesc.setData(QByteArray::fromRawData(
+          reinterpret_cast<const char*>(pixels), rowBytes * h));
     }
     else
     {
       QByteArray data{w * h, Qt::Uninitialized};
-      for(int r = 0; r < h; r++)
+      for (int r = 0; r < h; r++)
       {
         const char* input = reinterpret_cast<const char*>(pixels + stride * r);
         char* output = data.data() + rowBytes * r;
@@ -58,22 +67,24 @@ struct EmptyDecoder : GPUVideoDecoder
   )_";
 
   EmptyDecoder(NodeModel& n)
-    : node{n}
-  { }
+      : node{n}
+  {
+  }
 
   NodeModel& node;
   void init(Renderer& r, RenderedNode& rendered) override
   {
-    std::tie(node.m_vertexS, node.m_fragmentS) = makeShaders(node.mesh().defaultVertexShader(), hashtag_no_filter);
+    std::tie(node.m_vertexS, node.m_fragmentS)
+        = makeShaders(node.mesh().defaultVertexShader(), hashtag_no_filter);
   }
 
-  void exec(Renderer&, RenderedNode& rendered, QRhiResourceUpdateBatch& res, AVFrame& frame) override
+  void exec(
+      Renderer&,
+      RenderedNode& rendered,
+      QRhiResourceUpdateBatch& res,
+      AVFrame& frame) override
   {
   }
 
-  void release(Renderer&, RenderedNode& n) override
-  {
-  }
+  void release(Renderer&, RenderedNode& n) override { }
 };
-
-

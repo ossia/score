@@ -19,7 +19,9 @@ W_OBJECT_IMPL(Scenario::ExtendedMetadataWidget)
 namespace Scenario
 {
 
-ExtendedMetadataWidget::ExtendedMetadataWidget(const QVariantMap& map, QWidget* parent)
+ExtendedMetadataWidget::ExtendedMetadataWidget(
+    const QVariantMap& map,
+    QWidget* parent)
     : QWidget{parent}
 {
   m_layout = new score::MarginLess<QFormLayout>(this);
@@ -31,7 +33,9 @@ ExtendedMetadataWidget::ExtendedMetadataWidget(const QVariantMap& map, QWidget* 
       this,
       [=]() {
         QString txt = QInputDialog::getText(
-            this, tr("Property name?"), tr("Enter a name for the new property:"));
+            this,
+            tr("Property name?"),
+            tr("Enter a name for the new property:"));
         if (!txt.isEmpty())
         {
           insertRow(txt, m_widgets.size());
@@ -78,12 +82,20 @@ ExtendedMetadataWidget::makeRow(const QString& l, const QString& r, int row)
   left->setContextMenuPolicy(Qt::ActionsContextMenu);
   auto remove_act = new QAction{tr("Remove"), left};
   connect(
-      remove_act, &QAction::triggered, this, [=] { on_rowRemoved(row); }, Qt::QueuedConnection);
+      remove_act,
+      &QAction::triggered,
+      this,
+      [=] { on_rowRemoved(row); },
+      Qt::QueuedConnection);
   left->addAction(remove_act);
 
   auto right = new QLineEdit{r};
   connect(
-      right, &QLineEdit::editingFinished, this, [=] { on_rowChanged(row); }, Qt::QueuedConnection);
+      right,
+      &QLineEdit::editingFinished,
+      this,
+      [=] { on_rowChanged(row); },
+      Qt::QueuedConnection);
 
   return std::make_pair(left, right);
 }

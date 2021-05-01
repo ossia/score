@@ -1,6 +1,6 @@
-#include <score/graphics/widgets/QGraphicsSlider.hpp>
 #include <score/graphics/DefaultGraphicsSliderImpl.hpp>
 #include <score/graphics/GraphicsSliderBaseImpl.hpp>
+#include <score/graphics/widgets/QGraphicsSlider.hpp>
 #include <score/model/Skin.hpp>
 
 #include <QGraphicsSceneMouseEvent>
@@ -12,7 +12,8 @@ namespace score
 {
 template void QGraphicsSliderBase<QGraphicsSlider>::setRect(const QRectF& r);
 
-QGraphicsSlider::QGraphicsSlider(QGraphicsItem* parent) : QGraphicsSliderBase{parent}
+QGraphicsSlider::QGraphicsSlider(QGraphicsItem* parent)
+    : QGraphicsSliderBase{parent}
 {
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointingHand);

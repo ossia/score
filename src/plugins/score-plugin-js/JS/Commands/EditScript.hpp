@@ -1,10 +1,12 @@
 #pragma once
 #include <JS/Commands/JSCommandFactory.hpp>
 #include <JS/JSProcessModel.hpp>
+
 #include <Scenario/Commands/ScriptEditCommand.hpp>
 namespace JS
 {
-class EditJSScript : public Scenario::EditScript<JS::ProcessModel, JS::ProcessModel::p_script>
+class EditJSScript
+    : public Scenario::EditScript<JS::ProcessModel, JS::ProcessModel::p_script>
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), EditJSScript, "Edit a script")
 public:

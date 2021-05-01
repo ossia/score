@@ -12,8 +12,10 @@ struct Node
     static const constexpr auto author = "ossia score";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::Other;
-    static const constexpr auto description = "Shows all the available widgets";
-    static const uuid_constexpr auto uuid = make_uuid("887507d3-8a56-4634-9ee3-a25d38050335");
+    static const constexpr auto description
+        = "Shows all the available widgets";
+    static const uuid_constexpr auto uuid
+        = make_uuid("887507d3-8a56-4634-9ee3-a25d38050335");
 
     static const constexpr value_in value_ins[]{"in1", "in2"};
     static const constexpr value_out value_outs[]{"out1", "out2"};

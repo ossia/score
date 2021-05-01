@@ -9,13 +9,13 @@
 #include <State/Widgets/UnitWidget.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/serialization/AnySerialization.hpp>
+#include <score/serialization/MapSerialization.hpp>
 #include <score/widgets/DoubleSlider.hpp>
 #include <score/widgets/IntSlider.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
-#include <score/serialization/AnySerialization.hpp>
-#include <score/serialization/MapSerialization.hpp>
 #include <ossia-qt/metatypes.hpp>
 #include <ossia/network/base/node_attributes.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
@@ -35,7 +35,10 @@ W_OBJECT_IMPL(Explorer::AddressValueWidget)
 
 namespace Explorer
 {
-AddressItemModel::AddressItemModel(QObject* parent) : QAbstractItemModel{parent} { }
+AddressItemModel::AddressItemModel(QObject* parent)
+    : QAbstractItemModel{parent}
+{
+}
 
 void AddressItemModel::setState(
     DeviceExplorerModel* model,
@@ -59,7 +62,10 @@ void AddressItemModel::clear()
   endResetModel();
 }
 
-bool AddressItemModel::setData(const QModelIndex& index, const QVariant& value, int role)
+bool AddressItemModel::setData(
+    const QModelIndex& index,
+    const QVariant& value,
+    int role)
 {
   namespace onet = ossia::net;
   if (index.column() != 1)
@@ -89,7 +95,8 @@ bool AddressItemModel::setData(const QModelIndex& index, const QVariant& value, 
 
         // Note : if we want to disable remote updating, we have to do it
         // here (e.g. if this becomes a settings)
-        m_model->deviceModel().updateProxy.updateRemoteValue(m_settings.address, after.value);
+        m_model->deviceModel().updateProxy.updateRemoteValue(
+            m_settings.address, after.value);
         return true;
       }
       else
@@ -100,21 +107,24 @@ bool AddressItemModel::setData(const QModelIndex& index, const QVariant& value, 
 
         // We may have to convert types.
         const ossia::value& orig = before.value;
-        if (copy.v.which() != orig.v.which() && !State::convert::convert(orig, copy))
+        if (copy.v.which() != orig.v.which()
+            && !State::convert::convert(orig, copy))
           return false;
 
         after.value = copy;
 
         // Note : if we want to disable remote updating, we have to do it
         // here (e.g. if this becomes a settings)
-        m_model->deviceModel().updateProxy.updateRemoteValue(m_settings.address, copy);
+        m_model->deviceModel().updateProxy.updateRemoteValue(
+            m_settings.address, copy);
         return true;
       }
     }
 
     case Rows::Type:
     {
-      after.value = ossia::convert(before.value, value.value<ossia::val_type>());
+      after.value
+          = ossia::convert(before.value, value.value<ossia::val_type>());
       break;
     }
 
@@ -132,7 +142,8 @@ bool AddressItemModel::setData(const QModelIndex& index, const QVariant& value, 
 
         // We may have to convert types.
         const ossia::value& orig = before.value;
-        if (copy.v.which() != orig.v.which() && !State::convert::convert(orig, copy))
+        if (copy.v.which() != orig.v.which()
+            && !State::convert::convert(orig, copy))
           return false;
 
         after.domain.get().set_min(copy);
@@ -153,7 +164,8 @@ bool AddressItemModel::setData(const QModelIndex& index, const QVariant& value, 
 
         // We may have to convert types.
         const ossia::value& orig = before.value;
-        if (copy.v.which() != orig.v.which() && !State::convert::convert(orig, copy))
+        if (copy.v.which() != orig.v.which()
+            && !State::convert::convert(orig, copy))
           return false;
 
         after.domain.get().set_max(copy);
@@ -172,8 +184,9 @@ bool AddressItemModel::setData(const QModelIndex& index, const QVariant& value, 
     }
     case Rows::Repetition:
     {
-      after.repetitionFilter
-          = value.toInt() != 0 ? ossia::repetition_filter::ON : ossia::repetition_filter::OFF;
+      after.repetitionFilter = value.toInt() != 0
+                                   ? ossia::repetition_filter::ON
+                                   : ossia::repetition_filter::OFF;
       break;
     }
     case Rows::Unit:
@@ -219,7 +232,8 @@ bool AddressItemModel::setData(const QModelIndex& index, const QVariant& value, 
     }
   }
 
-  auto node = (Device::Node*)m_model->convertPathToIndex(m_path).internalPointer();
+  auto node
+      = (Device::Node*)m_model->convertPathToIndex(m_path).internalPointer();
   if (!node)
     return false;
 
@@ -227,12 +241,14 @@ bool AddressItemModel::setData(const QModelIndex& index, const QVariant& value, 
     return false;
 
   CommandDispatcher<> disp{m_model->commandStack()};
-  disp.submit(new Explorer::Command::UpdateAddressSettings{m_model->deviceModel(), m_path, after});
+  disp.submit(new Explorer::Command::UpdateAddressSettings{
+      m_model->deviceModel(), m_path, after});
 
   return true;
 }
 
-QModelIndex AddressItemModel::index(int row, int column, const QModelIndex& parent) const
+QModelIndex
+AddressItemModel::index(int row, int column, const QModelIndex& parent) const
 {
   if (parent == QModelIndex{})
   {
@@ -262,7 +278,8 @@ int AddressItemModel::columnCount(const QModelIndex&) const
   return 2;
 }
 
-QVariant AddressItemModel::valueColumnData(const State::Value& val, int role) const
+QVariant
+AddressItemModel::valueColumnData(const State::Value& val, int role) const
 {
   if (role == Qt::DisplayRole || role == Qt::EditRole)
   {
@@ -386,19 +403,23 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
             return valueColumnData(m_settings.value, role);
           case Rows::Type:
           {
-            return State::convert::ValuePrettyTypesArray()[(int)m_settings.value.get_type()];
+            return State::convert::ValuePrettyTypesArray()
+                [(int)m_settings.value.get_type()];
           }
           case Rows::Min:
           {
-            return valueColumnData(ossia::get_min(m_settings.domain.get()), role);
+            return valueColumnData(
+                ossia::get_min(m_settings.domain.get()), role);
           }
           case Rows::Max:
           {
-            return valueColumnData(ossia::get_max(m_settings.domain.get()), role);
+            return valueColumnData(
+                ossia::get_max(m_settings.domain.get()), role);
           }
           case Rows::Values:
           {
-            return valueColumnData(ossia::get_values(m_settings.domain.get()), role);
+            return valueColumnData(
+                ossia::get_values(m_settings.domain.get()), role);
           }
           case Rows::Unit:
           {
@@ -406,8 +427,9 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
           }
           case Rows::Access:
           {
-            return bool(m_settings.ioType) ? Device::AccessModeText()[*m_settings.ioType]
-                                           : tr("None");
+            return bool(m_settings.ioType)
+                       ? Device::AccessModeText()[*m_settings.ioType]
+                       : tr("None");
           }
           case Rows::Bounding:
           {
@@ -415,8 +437,9 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
           }
           case Rows::Repetition:
           {
-            return m_settings.repetitionFilter == ossia::repetition_filter::ON ? tr("Filtered")
-                                                                               : tr("Unfiltered");
+            return m_settings.repetitionFilter == ossia::repetition_filter::ON
+                       ? tr("Filtered")
+                       : tr("Unfiltered");
           }
           default:
           {
@@ -427,7 +450,8 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
               std::advance(it, idx);
               if (it->first == onet::text_description())
               {
-                return QString::fromStdString(ossia::any_cast<onet::description>(it->second));
+                return QString::fromStdString(
+                    ossia::any_cast<onet::description>(it->second));
               }
               else if (it->first == onet::text_tags())
               {
@@ -440,20 +464,25 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
               }
               else if (it->first == onet::text_default_value())
               {
-                const auto& v = ossia::any_cast<onet::default_value_attribute::type>(it->second);
+                const auto& v
+                    = ossia::any_cast<onet::default_value_attribute::type>(
+                        it->second);
                 return valueColumnData(v, role);
               }
               else if (it->first == onet::text_refresh_rate())
               {
-                return ossia::any_cast<onet::refresh_rate_attribute::type>(it->second);
+                return ossia::any_cast<onet::refresh_rate_attribute::type>(
+                    it->second);
               }
               else if (it->first == onet::text_value_step_size())
               {
-                return ossia::any_cast<onet::value_step_size_attribute::type>(it->second);
+                return ossia::any_cast<onet::value_step_size_attribute::type>(
+                    it->second);
               }
               else if (it->first == onet::text_priority())
               {
-                return ossia::any_cast<onet::priority_attribute::type>(it->second);
+                return ossia::any_cast<onet::priority_attribute::type>(
+                    it->second);
               }
             }
             return {};
@@ -487,7 +516,8 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
         case Rows::Max:
           return QVariant::fromValue(ossia::get_max(m_settings.domain.get()));
         case Rows::Values:
-          return QVariant::fromValue(ossia::get_values(m_settings.domain.get()));
+          return QVariant::fromValue(
+              ossia::get_values(m_settings.domain.get()));
         default:
         {
           int idx = index.row() - Rows::Count;
@@ -497,28 +527,34 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
             std::advance(it, idx);
             if (it->first == onet::text_description())
             {
-              return QString::fromStdString(ossia::any_cast<onet::description>(it->second));
+              return QString::fromStdString(
+                  ossia::any_cast<onet::description>(it->second));
             }
             else if (it->first == onet::text_tags())
             {
-              return QVariant::fromValue(ossia::any_cast<onet::tags>(it->second));
+              return QVariant::fromValue(
+                  ossia::any_cast<onet::tags>(it->second));
             }
             else if (it->first == onet::text_default_value())
             {
               return QVariant::fromValue(
-                  ossia::any_cast<onet::default_value_attribute::type>(it->second));
+                  ossia::any_cast<onet::default_value_attribute::type>(
+                      it->second));
             }
             else if (it->first == onet::text_refresh_rate())
             {
-              return ossia::any_cast<onet::refresh_rate_attribute::type>(it->second);
+              return ossia::any_cast<onet::refresh_rate_attribute::type>(
+                  it->second);
             }
             else if (it->first == onet::text_value_step_size())
             {
-              return ossia::any_cast<onet::value_step_size_attribute::type>(it->second);
+              return ossia::any_cast<onet::value_step_size_attribute::type>(
+                  it->second);
             }
             else if (it->first == onet::text_priority())
             {
-              return ossia::any_cast<onet::priority_attribute::type>(it->second);
+              return ossia::any_cast<onet::priority_attribute::type>(
+                  it->second);
             }
           }
           return {};
@@ -537,8 +573,9 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
       switch (index.row())
       {
         case Rows::Repetition:
-          return m_settings.repetitionFilter == ossia::repetition_filter::ON ? Qt::Checked
-                                                                             : Qt::Unchecked;
+          return m_settings.repetitionFilter == ossia::repetition_filter::ON
+                     ? Qt::Checked
+                     : Qt::Unchecked;
         case Rows::Value:
         {
           if (auto b = m_settings.value.target<bool>())
@@ -607,7 +644,10 @@ Qt::ItemFlags AddressItemModel::flags(const QModelIndex& index) const
   return f;
 }
 
-AddressItemDelegate::AddressItemDelegate(QObject* parent) : QStyledItemDelegate(parent) { }
+AddressItemDelegate::AddressItemDelegate(QObject* parent)
+    : QStyledItemDelegate(parent)
+{
+}
 
 AddressItemDelegate::~AddressItemDelegate() { }
 
@@ -622,7 +662,9 @@ void AddressItemDelegate::paint(
 class SliderValueWidget final : public AddressValueWidget
 {
 public:
-  SliderValueWidget(int min, int max, QWidget* parent) : AddressValueWidget{parent}, m_slider{this}
+  SliderValueWidget(int min, int max, QWidget* parent)
+      : AddressValueWidget{parent}
+      , m_slider{this}
   {
     m_slider.setOrientation(Qt::Horizontal);
     m_slider.setRange(min, max);
@@ -632,11 +674,14 @@ public:
     m_edit.setContentsMargins(0, 0, 0, 0);
     this->setFocusProxy(&m_edit);
 
-    connect(&m_slider, &score::IntSlider::valueChanged, this, [=](int v) { m_edit.setValue(v); });
-
-    connect(&m_edit, SignalUtils::QSpinBox_valueChanged_int(), this, [=](int v) {
-      m_slider.setValue(v);
+    connect(&m_slider, &score::IntSlider::valueChanged, this, [=](int v) {
+      m_edit.setValue(v);
     });
+
+    connect(
+        &m_edit, SignalUtils::QSpinBox_valueChanged_int(), this, [=](int v) {
+          m_slider.setValue(v);
+        });
 
     m_lay.addWidget(&m_slider);
     m_lay.addWidget(&m_edit);
@@ -644,7 +689,10 @@ public:
 
   ossia::value get() const override { return m_slider.value(); }
 
-  void set(ossia::value t) override { m_slider.setValue(ossia::convert<int>(t)); }
+  void set(ossia::value t) override
+  {
+    m_slider.setValue(ossia::convert<int>(t));
+  }
 
 private:
   score::MarginLess<QHBoxLayout> m_lay{this};
@@ -656,7 +704,8 @@ class DoubleSliderValueWidget final : public AddressValueWidget
 {
 public:
   DoubleSliderValueWidget(double min, double max, QWidget* parent)
-      : AddressValueWidget{parent}, m_slider{this}
+      : AddressValueWidget{parent}
+      , m_slider{this}
   {
     m_slider.setOrientation(Qt::Horizontal);
     m_edit.setRange(min, max);
@@ -665,13 +714,16 @@ public:
     m_edit.setContentsMargins(0, 0, 0, 0);
     this->setFocusProxy(&m_edit);
 
-    connect(&m_slider, &score::DoubleSlider::valueChanged, this, [=](double v) {
-      m_edit.setValue(min + v * (max - min));
-    });
+    connect(
+        &m_slider, &score::DoubleSlider::valueChanged, this, [=](double v) {
+          m_edit.setValue(min + v * (max - min));
+        });
 
-    connect(&m_edit, SignalUtils::QDoubleSpinBox_valueChanged_double(), this, [=](double v) {
-      m_slider.setValue((v - min) / (max - min));
-    });
+    connect(
+        &m_edit,
+        SignalUtils::QDoubleSpinBox_valueChanged_double(),
+        this,
+        [=](double v) { m_slider.setValue((v - min) / (max - min)); });
 
     m_lay.addWidget(&m_slider);
     m_lay.addWidget(&m_edit);
@@ -679,7 +731,10 @@ public:
 
   ossia::value get() const override { return m_edit.value(); }
 
-  void set(ossia::value t) override { m_edit.setValue(ossia::convert<float>(t)); }
+  void set(ossia::value t) override
+  {
+    m_edit.setValue(ossia::convert<float>(t));
+  }
 
 private:
   score::MarginLess<QHBoxLayout> m_lay{this};
@@ -690,7 +745,8 @@ private:
 class ListValueWidget final : public AddressValueWidget
 {
 public:
-  ListValueWidget(QWidget* parent) : AddressValueWidget{parent}
+  ListValueWidget(QWidget* parent)
+      : AddressValueWidget{parent}
   {
     m_edit.setContentsMargins(0, 0, 0, 0);
     this->setFocusProxy(&m_edit);
@@ -705,7 +761,10 @@ public:
     return std::vector<ossia::value>{};
   }
 
-  void set(ossia::value t) override { m_edit.setText(State::convert::toPrettyString(t)); }
+  void set(ossia::value t) override
+  {
+    m_edit.setText(State::convert::toPrettyString(t));
+  }
 
 private:
   score::MarginLess<QHBoxLayout> m_lay{this};
@@ -747,7 +806,8 @@ struct make_dataspace
   AddressValueWidget* operator()() { return nullptr; }
 };
 
-AddressValueWidget* make_value_widget(Device::FullAddressSettings addr, QWidget* parent)
+AddressValueWidget*
+make_value_widget(Device::FullAddressSettings addr, QWidget* parent)
 {
   if (auto widg = ossia::apply(make_dataspace{}, addr.unit.get().v))
     return widg;
@@ -762,7 +822,8 @@ AddressValueWidget* make_value_widget(Device::FullAddressSettings addr, QWidget*
         return new DoubleSliderValueWidget{
             ossia::convert<float>(min), ossia::convert<float>(max), parent};
       case ossia::val_type::INT:
-        return new SliderValueWidget{ossia::convert<int>(min), ossia::convert<int>(max), parent};
+        return new SliderValueWidget{
+            ossia::convert<int>(min), ossia::convert<int>(max), parent};
       default:
         break;
     }
@@ -779,7 +840,8 @@ AddressValueWidget* make_value_widget(Device::FullAddressSettings addr, QWidget*
   return nullptr;
 }
 
-AddressValueWidget* make_min_widget(Device::FullAddressSettings addr, QWidget* parent)
+AddressValueWidget*
+make_min_widget(Device::FullAddressSettings addr, QWidget* parent)
 {
   switch (addr.value.get_type())
   {
@@ -792,7 +854,8 @@ AddressValueWidget* make_min_widget(Device::FullAddressSettings addr, QWidget* p
   return nullptr;
 }
 
-AddressValueWidget* make_max_widget(Device::FullAddressSettings addr, QWidget* parent)
+AddressValueWidget*
+make_max_widget(Device::FullAddressSettings addr, QWidget* parent)
 {
   switch (addr.value.get_type())
   {
@@ -869,7 +932,9 @@ QWidget* AddressItemDelegate::createEditor(
   return QStyledItemDelegate::createEditor(parent, option, index);
 }
 
-void AddressItemDelegate::setEditorData(QWidget* editor, const QModelIndex& index) const
+void AddressItemDelegate::setEditorData(
+    QWidget* editor,
+    const QModelIndex& index) const
 {
   if (index.column() == 0)
   {
@@ -884,7 +949,8 @@ void AddressItemDelegate::setEditorData(QWidget* editor, const QModelIndex& inde
       if (auto cb = qobject_cast<State::TypeComboBox*>(editor))
       {
         auto cur = index.data(Qt::EditRole).toInt();
-        if (cur >= 0 && cur < (int)State::convert::ValuePrettyTypesArray().size())
+        if (cur >= 0
+            && cur < (int)State::convert::ValuePrettyTypesArray().size())
           cb->set((ossia::val_type)cur);
         return;
       }

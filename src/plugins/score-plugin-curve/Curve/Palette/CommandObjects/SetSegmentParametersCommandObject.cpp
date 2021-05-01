@@ -21,7 +21,8 @@ namespace Curve
 SetSegmentParametersCommandObject::SetSegmentParametersCommandObject(
     const Model& m,
     const score::CommandStackFacade& stack)
-    : m_model{m}, m_dispatcher{stack}
+    : m_model{m}
+    , m_dispatcher{stack}
 {
 }
 
@@ -43,15 +44,21 @@ void SetSegmentParametersCommandObject::press()
 void SetSegmentParametersCommandObject::move()
 {
   const constexpr double amplitude = 2.;
-  const double vampl = amplitude * (m_state->currentPoint.y() - m_originalPress.y());
-  const double hampl = amplitude * (m_state->currentPoint.x() - m_originalPress.x());
+  const double vampl
+      = amplitude * (m_state->currentPoint.y() - m_originalPress.y());
+  const double hampl
+      = amplitude * (m_state->currentPoint.x() - m_originalPress.x());
   auto clicked_orig = m_orig[m_state->clickedSegmentId];
-  double newVertical = clicked_orig.first ? clamp(*clicked_orig.first + vampl, -1., 1.) : 0.;
-  double newHorizontal = clicked_orig.second ? clamp(*clicked_orig.second + hampl, -1., 1.) : 0.;
+  double newVertical
+      = clicked_orig.first ? clamp(*clicked_orig.first + vampl, -1., 1.) : 0.;
+  double newHorizontal = clicked_orig.second
+                             ? clamp(*clicked_orig.second + hampl, -1., 1.)
+                             : 0.;
 
   if (qApp->keyboardModifiers() & Qt::ALT)
   {
-    SegmentParameterMap map{{m_state->clickedSegmentId, {newVertical, newHorizontal}}};
+    SegmentParameterMap map{
+        {m_state->clickedSegmentId, {newVertical, newHorizontal}}};
 
     for (auto& sel : m_model.segments())
     {
@@ -68,7 +75,9 @@ void SetSegmentParametersCommandObject::move()
   else
   {
     m_dispatcher.submit(
-        m_model, SegmentParameterMap{{m_state->clickedSegmentId, {newVertical, newHorizontal}}});
+        m_model,
+        SegmentParameterMap{
+            {m_state->clickedSegmentId, {newVertical, newHorizontal}}});
   }
 }
 

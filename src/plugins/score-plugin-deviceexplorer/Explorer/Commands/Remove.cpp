@@ -20,12 +20,14 @@ class DeviceDocumentPlugin;
 namespace Command
 {
 Remove::Remove(const DeviceDocumentPlugin& devplug, Device::NodePath&& path)
-    : m_device{false}, m_cmd{new RemoveAddress{devplug, std::move(path)}}
+    : m_device{false}
+    , m_cmd{new RemoveAddress{devplug, std::move(path)}}
 {
 }
 
 Remove::Remove(const DeviceDocumentPlugin& devplug, const Device::Node& node)
-    : m_device{true}, m_cmd{new LoadDevice{devplug, Device::Node{node}}}
+    : m_device{true}
+    , m_cmd{new LoadDevice{devplug, Device::Node{node}}}
 {
 }
 

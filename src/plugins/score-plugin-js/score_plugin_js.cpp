@@ -4,6 +4,7 @@
 
 #include "JS/Commands/JSCommandFactory.hpp"
 
+#include <Execution/DocumentPlugin.hpp>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <JS/ConsolePanel.hpp>
 #include <JS/Executor/Component.hpp>
@@ -26,7 +27,6 @@
 #include <QQmlListProperty>
 #include <QTimer>
 
-#include <Execution/DocumentPlugin.hpp>
 #include <score_plugin_js_commands_files.hpp>
 #include <wobjectimpl.h>
 
@@ -34,19 +34,27 @@ W_OBJECT_IMPL(JS::EditJsContext)
 
 namespace JS
 {
-class LibraryHandler final : public QObject, public Library::LibraryInterface
+class LibraryHandler final
+    : public QObject
+    , public Library::LibraryInterface
 {
   SCORE_CONCRETE("5231ea8b-da66-4c6f-9e34-d9a79cbc494a")
 
-  QSet<QString> acceptedFiles() const noexcept override { return {"js", "qml"}; }
+  QSet<QString> acceptedFiles() const noexcept override
+  {
+    return {"js", "qml"};
+  }
 
-  static inline const QRegularExpression scoreImport{"import Score [0-9].[0-9]"};
+  static inline const QRegularExpression scoreImport{
+      "import Score [0-9].[0-9]"};
 
   QDir libraryFolder;
   QDirIterator iterator{QString{}};
   Library::ProcessNode* parent{};
 
-  void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx) override
+  void setup(
+      Library::ProcessesItemModel& model,
+      const score::GUIApplicationContext& ctx) override
   {
     // TODO relaunch whenever library path changes...
     const auto& key = Metadata<ConcreteKey_k, JS::ProcessModel>::get();
@@ -61,11 +69,10 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
 
     iterator.~QDirIterator();
     new (&iterator) QDirIterator{
-      libraryFolder.absolutePath(),
-      {"*.js", "*.qml"},
-      QDir::NoFilter,
-      QDirIterator::Subdirectories | QDirIterator::FollowSymlinks
-    };
+        libraryFolder.absolutePath(),
+        {"*.js", "*.qml"},
+        QDir::NoFilter,
+        QDirIterator::Subdirectories | QDirIterator::FollowSymlinks};
 
     next();
   }
@@ -85,11 +92,15 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
     Library::ProcessData pdata;
     pdata.prettyName = file.baseName();
     pdata.key = Metadata<ConcreteKey_k, JS::ProcessModel>::get();
-    pdata.customData = [&] { QFile f(file.absoluteFilePath()); f.open(QIODevice::ReadOnly); return f.readAll(); }();
+    pdata.customData = [&] {
+      QFile f(file.absoluteFilePath());
+      f.open(QIODevice::ReadOnly);
+      return f.readAll();
+    }();
 
     {
       auto matches = scoreImport.match(pdata.customData);
-      if(matches.hasMatch())
+      if (matches.hasMatch())
       {
         parent->emplace_back(std::move(pdata), parent);
       }
@@ -101,7 +112,10 @@ class DropHandler final : public Process::ProcessDropHandler
 {
   SCORE_CONCRETE("ad3a575a-f4a8-4a89-bb7e-bfd85f3430fe")
 
-  QSet<QString> fileExtensions() const noexcept override { return {"js", "qml"}; }
+  QSet<QString> fileExtensions() const noexcept override
+  {
+    return {"js", "qml"};
+  }
 
   std::vector<Process::ProcessDropHandler::ProcessDrop> dropData(
       const std::vector<DroppedFile>& data,
@@ -162,10 +176,12 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_js::factories(
       FW<score::PanelDelegateFactory, JS::PanelDelegateFactory>,
       FW<Library::LibraryInterface, JS::LibraryHandler>,
       FW<Process::ProcessDropHandler, JS::DropHandler>,
-      FW<Execution::ProcessComponentFactory, JS::Executor::ComponentFactory>>(ctx, key);
+      FW<Execution::ProcessComponentFactory, JS::Executor::ComponentFactory>>(
+      ctx, key);
 }
 
-std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_js::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap>
+score_plugin_js::make_commands()
 {
   using namespace JS;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{

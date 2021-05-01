@@ -2,16 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "RemoveSelection.hpp"
 
-#include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
-#include <Scenario/Process/Algorithms/StandardRemovalPolicy.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-
 #include <score/document/DocumentContext.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/EntitySerialization.hpp>
@@ -28,11 +18,23 @@
 #include <QList>
 #include <QSet>
 
+#include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+#include <Scenario/Process/Algorithms/StandardRemovalPolicy.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+
 namespace Scenario
 {
 namespace Command
 {
-RemoveSelection::RemoveSelection(const Scenario::ProcessModel& scenar, Selection sel)
+RemoveSelection::RemoveSelection(
+    const Scenario::ProcessModel& scenar,
+    Selection sel)
     : m_path{scenar}
 {
   // Serialize all the events and intervals and timesyncs and states and
@@ -121,7 +123,8 @@ RemoveSelection::RemoveSelection(const Scenario::ProcessModel& scenar, Selection
   l.reserve(sel.size());
   for (const QPointer<IdentifiedObjectAbstract>& p : sel)
     l.push_back(p.data());
-  m_cables = Dataflow::saveCables(l, score::IDocument::documentContext(scenar));
+  m_cables
+      = Dataflow::saveCables(l, score::IDocument::documentContext(scenar));
 
   // Serialize ALL the things
   for (const QPointer<IdentifiedObjectAbstract>& ptr : sel)
@@ -273,8 +276,10 @@ void RemoveSelection::undo(const score::DocumentContext& ctx) const
       // We have to make a copy at each iteration since each iteration
       // might add a timesync.
       auto timesyncs_in_scenar = shallow_copy(scenar.timeSyncs.map());
-      auto scenar_timesync_it
-          = std::find(timesyncs_in_scenar.begin(), timesyncs_in_scenar.end(), event->timeSync());
+      auto scenar_timesync_it = std::find(
+          timesyncs_in_scenar.begin(),
+          timesyncs_in_scenar.end(),
+          event->timeSync());
       if (scenar_timesync_it != timesyncs_in_scenar.end())
       {
         // We can add our event to the scenario.
@@ -404,8 +409,8 @@ void RemoveSelection::redo(const score::DocumentContext& ctx) const
 
 void RemoveSelection::serializeImpl(DataStreamInput& s) const
 {
-  s << m_path << m_cleanedEvents << m_cleanedTimeSyncs << m_removedIntervals << m_removedStates
-    << m_removedComments;
+  s << m_path << m_cleanedEvents << m_cleanedTimeSyncs << m_removedIntervals
+    << m_removedStates << m_removedComments;
 
   s << (int32_t)m_cmds_set_rigidity.size();
   for (const auto& cmd : m_cmds_set_rigidity)
@@ -419,8 +424,8 @@ void RemoveSelection::serializeImpl(DataStreamInput& s) const
 void RemoveSelection::deserializeImpl(DataStreamOutput& s)
 {
   int32_t n;
-  s >> m_path >> m_cleanedEvents >> m_cleanedTimeSyncs >> m_removedIntervals >> m_removedStates
-      >> m_removedComments >> n;
+  s >> m_path >> m_cleanedEvents >> m_cleanedTimeSyncs >> m_removedIntervals
+      >> m_removedStates >> m_removedComments >> n;
 
   m_cmds_set_rigidity.resize(n);
   for (int i = 0; i < n; i++)

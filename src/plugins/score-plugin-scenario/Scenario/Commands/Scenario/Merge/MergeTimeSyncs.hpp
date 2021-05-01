@@ -1,11 +1,5 @@
 #pragma once
 
-#include <Scenario/Commands/Scenario/Displacement/MoveEvent.hpp>
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Process/Algorithms/GoodOldDisplacementPolicy.hpp>
-#include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
 #include <State/Expression.hpp>
 
 #include <score/command/Command.hpp>
@@ -14,6 +8,13 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/model/tree/TreeNode.hpp>
 #include <score/tools/Unused.hpp>
+
+#include <Scenario/Commands/Scenario/Displacement/MoveEvent.hpp>
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Process/Algorithms/GoodOldDisplacementPolicy.hpp>
+#include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 //#include <Scenario/Application/ScenarioValidity.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
@@ -35,8 +36,10 @@ public:
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 
-  void
-  update(unused_t scenar, const Id<TimeSyncModel>& clickedTn, const Id<TimeSyncModel>& hoveredTn);
+  void update(
+      unused_t scenar,
+      const Id<TimeSyncModel>& clickedTn,
+      const Id<TimeSyncModel>& hoveredTn);
 
 protected:
   void serializeImpl(DataStreamInput& s) const override;

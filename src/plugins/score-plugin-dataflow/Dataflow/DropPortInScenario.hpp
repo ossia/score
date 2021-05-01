@@ -1,7 +1,8 @@
 #pragma once
 #include <Process/Drop/ProcessDropHandler.hpp>
-#include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
+
 #include <Scenario/Application/Drops/AutomationDropHandler.hpp>
+#include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
 namespace Dataflow
 {
 class DropPortInScenario final : public Scenario::GhostIntervalDropHandler
@@ -13,7 +14,10 @@ public:
 
 private:
   bool canDrop(const QMimeData& mime) const noexcept override;
-  bool drop(const Scenario::ScenarioPresenter&, QPointF pos, const QMimeData& mime) override;
+  bool drop(
+      const Scenario::ScenarioPresenter&,
+      QPointF pos,
+      const QMimeData& mime) override;
 };
 
 /**

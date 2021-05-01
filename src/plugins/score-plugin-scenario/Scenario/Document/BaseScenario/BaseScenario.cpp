@@ -3,12 +3,6 @@
 #include "BaseScenario.hpp"
 
 #include <Process/TimeValueSerialization.hpp>
-#include <Scenario/Commands/MoveBaseEvent.hpp>
-#include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
@@ -18,6 +12,12 @@
 
 #include <ossia/detail/algorithms.hpp>
 
+#include <Scenario/Commands/MoveBaseEvent.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <wobjectimpl.h>
 
 #include <tuple>
@@ -59,8 +59,9 @@ bool BaseScenario::focused() const
   return res;
 }
 
-const QVector<Id<IntervalModel>>
-intervalsBeforeTimeSync(const BaseScenario& scen, const Id<TimeSyncModel>& timeSyncId)
+const QVector<Id<IntervalModel>> intervalsBeforeTimeSync(
+    const BaseScenario& scen,
+    const Id<TimeSyncModel>& timeSyncId)
 {
   if (timeSyncId == scen.endTimeSync().id())
   {

@@ -47,7 +47,8 @@ ProcessModel::ProcessModel(
   m_min = 0.;
   m_max = 1.;
 
-  auto s1 = new Curve::DefaultCurveSegmentModel(Id<Curve::SegmentModel>(1), m_curve);
+  auto s1 = new Curve::DefaultCurveSegmentModel(
+      Id<Curve::SegmentModel>(1), m_curve);
   s1->setStart({0., 0.0});
   s1->setEnd({1., 1.});
 
@@ -74,7 +75,10 @@ void ProcessModel::init()
   outlet->setName("Out");
   m_outlets.push_back(outlet.get());
   connect(
-      outlet.get(), &Process::Port::addressChanged, this, [=](const State::AddressAccessor& arg) {
+      outlet.get(),
+      &Process::Port::addressChanged,
+      this,
+      [=](const State::AddressAccessor& arg) {
         addressChanged(arg.address);
         prettyNameChanged();
         m_curve->changed();

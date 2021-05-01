@@ -1,9 +1,10 @@
 #pragma once
 
+#include <Process/ExpandMode.hpp>
+
 #include <score/actions/Action.hpp>
 #include <score/actions/Menu.hpp>
 #include <score/selection/Selection.hpp>
-#include <Process/ExpandMode.hpp>
 
 namespace score
 {

@@ -12,7 +12,9 @@ namespace Explorer
 {
 PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
     : score::PanelDelegate{ctx}
-    , m_widget{new DeviceExplorerWidget{ctx.interfaces<Device::ProtocolFactoryList>(), nullptr}}
+    , m_widget{new DeviceExplorerWidget{
+          ctx.interfaces<Device::ProtocolFactoryList>(),
+          nullptr}}
 
 {
   m_widget->setStatusTip(
@@ -39,7 +41,9 @@ const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
   return status;
 }
 
-void PanelDelegate::on_modelChanged(score::MaybeDocument oldm, score::MaybeDocument newm)
+void PanelDelegate::on_modelChanged(
+    score::MaybeDocument oldm,
+    score::MaybeDocument newm)
 {
   // DeviceExplorerModel ownership goes to document plugin
   if (oldm)

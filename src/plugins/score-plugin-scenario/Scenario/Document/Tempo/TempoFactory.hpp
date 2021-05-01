@@ -3,6 +3,7 @@
 #include <Curve/Process/CurveProcessFactory.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/HeaderDelegate.hpp>
+
 #include <Scenario/Document/Tempo/TempoProcess.hpp>
 #include <Scenario/Document/Tempo/TempoView.hpp>
 namespace Scenario

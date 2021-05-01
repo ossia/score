@@ -3,8 +3,8 @@
 #include <llvm/Bitcode/BitcodeReader.h>
 #include <llvm/IR/Module.h>
 #include <llvm/Support/Error.h>
-#include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/FileSystem.h>
+#include <llvm/Support/MemoryBuffer.h>
 
 #include <chrono>
 #include <iostream>
@@ -15,7 +15,8 @@ namespace Jit
 struct Exception final : std::runtime_error
 {
   using std::runtime_error::runtime_error;
-  Exception(llvm::Error E) : std::runtime_error{"JIT error"}
+  Exception(llvm::Error E)
+      : std::runtime_error{"JIT error"}
   {
     llvm::handleAllErrors(std::move(E), [&](const llvm::ErrorInfoBase& EI) {
       m_err = EI.message();

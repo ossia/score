@@ -26,7 +26,8 @@ static auto initHsvColors = [] {
   {
     for (int i = 0; i < 100; i++)
     {
-      const QRgb col = QColor::fromHsvF(double(i) / 100., double(j) / 100., 1.).rgba();
+      const QRgb col
+          = QColor::fromHsvF(double(i) / 100., double(j) / 100., 1.).rgba();
       hsvColors[i][j] = col;
     }
   }
@@ -81,7 +82,8 @@ void QGraphicsHSVChooser::paint(
   painter->drawImage(QPointF{0, 0}, hs_zone);
   painter->drawImage(QPointF{110, 0}, v_zone);
 
-  const auto color = QColor::fromRgbF(m_value[0], m_value[1], m_value[2]).toHsv();
+  const auto color
+      = QColor::fromRgbF(m_value[0], m_value[1], m_value[2]).toHsv();
   auto x = color.hsvHueF() * 100.;
   auto y = color.hsvSaturationF() * 100.;
   auto val_y = color.valueF() * 100.;

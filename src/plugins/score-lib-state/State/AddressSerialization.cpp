@@ -39,27 +39,31 @@ SCORE_LIB_STATE_EXPORT void DataStreamWriter::write(State::Address& a)
 template <>
 SCORE_LIB_STATE_EXPORT void JSONWriter::write(State::Address& a)
 {
-  auto addr = State::parseAddress(QString::fromUtf8(base.GetString(), base.GetStringLength()));
+  auto addr = State::parseAddress(
+      QString::fromUtf8(base.GetString(), base.GetStringLength()));
   if (addr)
     a = *std::move(addr);
 }
 
 /// AddressQualifiers ///
 template <>
-SCORE_LIB_STATE_EXPORT void DataStreamReader::read(const ossia::destination_qualifiers& a)
+SCORE_LIB_STATE_EXPORT void
+DataStreamReader::read(const ossia::destination_qualifiers& a)
 {
   m_stream << a.accessors << a.unit;
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void JSONReader::read(const ossia::destination_qualifiers& a)
+SCORE_LIB_STATE_EXPORT void
+JSONReader::read(const ossia::destination_qualifiers& a)
 {
   obj[strings.Accessors] = a.accessors;
   obj[strings.Unit] = State::prettyUnitText(a.unit);
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void DataStreamWriter::write(ossia::destination_qualifiers& a)
+SCORE_LIB_STATE_EXPORT void
+DataStreamWriter::write(ossia::destination_qualifiers& a)
 {
   m_stream >> a.accessors >> a.unit;
 }
@@ -72,19 +76,22 @@ SCORE_LIB_STATE_EXPORT void JSONWriter::write(ossia::destination_qualifiers& a)
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void DataStreamReader::read(const State::DestinationQualifiers& a)
+SCORE_LIB_STATE_EXPORT void
+DataStreamReader::read(const State::DestinationQualifiers& a)
 {
   m_stream << a.get();
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void JSONReader::read(const State::DestinationQualifiers& a)
+SCORE_LIB_STATE_EXPORT void
+JSONReader::read(const State::DestinationQualifiers& a)
 {
   read(a.get());
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void DataStreamWriter::write(State::DestinationQualifiers& a)
+SCORE_LIB_STATE_EXPORT void
+DataStreamWriter::write(State::DestinationQualifiers& a)
 {
   m_stream >> a.get();
 }
@@ -97,7 +104,8 @@ SCORE_LIB_STATE_EXPORT void JSONWriter::write(State::DestinationQualifiers& a)
 
 /// AddressAccessor ///
 template <>
-SCORE_LIB_STATE_EXPORT void DataStreamReader::read(const State::AddressAccessor& rel)
+SCORE_LIB_STATE_EXPORT void
+DataStreamReader::read(const State::AddressAccessor& rel)
 {
   m_stream << rel.address << rel.qualifiers;
 
@@ -112,7 +120,8 @@ SCORE_LIB_STATE_EXPORT void JSONReader::read(const State::AddressAccessor& rel)
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void DataStreamWriter::write(State::AddressAccessor& rel)
+SCORE_LIB_STATE_EXPORT void
+DataStreamWriter::write(State::AddressAccessor& rel)
 {
   m_stream >> rel.address >> rel.qualifiers;
 
@@ -122,15 +131,16 @@ SCORE_LIB_STATE_EXPORT void DataStreamWriter::write(State::AddressAccessor& rel)
 template <>
 SCORE_LIB_STATE_EXPORT void JSONWriter::write(State::AddressAccessor& rel)
 {
-  auto addr
-      = State::parseAddressAccessor(QString::fromUtf8(base.GetString(), base.GetStringLength()));
+  auto addr = State::parseAddressAccessor(
+      QString::fromUtf8(base.GetString(), base.GetStringLength()));
   if (addr)
     rel = *std::move(addr);
 }
 
 /// AddressAccessorHead ///
 template <>
-SCORE_LIB_STATE_EXPORT void DataStreamReader::read(const State::AddressAccessorHead& rel)
+SCORE_LIB_STATE_EXPORT void
+DataStreamReader::read(const State::AddressAccessorHead& rel)
 {
   m_stream << rel.name << rel.qualifiers;
 
@@ -138,14 +148,16 @@ SCORE_LIB_STATE_EXPORT void DataStreamReader::read(const State::AddressAccessorH
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void JSONReader::read(const State::AddressAccessorHead& rel)
+SCORE_LIB_STATE_EXPORT void
+JSONReader::read(const State::AddressAccessorHead& rel)
 {
   obj[strings.Name] = rel.name;
   readFrom(rel.qualifiers);
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void DataStreamWriter::write(State::AddressAccessorHead& rel)
+SCORE_LIB_STATE_EXPORT void
+DataStreamWriter::write(State::AddressAccessorHead& rel)
 {
   m_stream >> rel.name >> rel.qualifiers;
 

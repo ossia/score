@@ -4,9 +4,6 @@
 
 #include <Process/ProcessList.hpp>
 #include <Process/TimeValueSerialization.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/EntitySerialization.hpp>
@@ -16,11 +13,16 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/MapSerialization.hpp>
 
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <score_plugin_scenario_export.h>
 
 namespace Scenario
 {
-IntervalSaveData::IntervalSaveData(const Scenario::IntervalModel& interval, bool saveIntemporal)
+IntervalSaveData::IntervalSaveData(
+    const Scenario::IntervalModel& interval,
+    bool saveIntemporal)
     : intervalPath{interval}
 {
   processes.reserve(interval.processes.size());
@@ -73,7 +75,8 @@ void IntervalSaveData::reload(Scenario::IntervalModel& interval) const
   for (auto& sourceproc : processes)
   {
     DataStream::Deserializer des{sourceproc};
-    auto proc = deserialize_interface(procsfactories, des, interval.context(), &interval);
+    auto proc = deserialize_interface(
+        procsfactories, des, interval.context(), &interval);
     if (proc)
       AddProcess(interval, proc);
     else
@@ -142,8 +145,7 @@ DataStreamReader::read(const Scenario::IntervalProperties& intervalProperties)
 {
   m_stream << intervalProperties.oldDate << intervalProperties.oldDefault
            << intervalProperties.oldMin << intervalProperties.newMin
-           << intervalProperties.oldMax << intervalProperties.newMax
-  ;
+           << intervalProperties.oldMax << intervalProperties.newMax;
 
   readFrom(static_cast<const Scenario::IntervalSaveData&>(intervalProperties));
 
@@ -155,9 +157,8 @@ SCORE_PLUGIN_SCENARIO_EXPORT void
 DataStreamWriter::write(Scenario::IntervalProperties& intervalProperties)
 {
   m_stream >> intervalProperties.oldDate >> intervalProperties.oldDefault
-           >> intervalProperties.oldMin >> intervalProperties.newMin
-           >> intervalProperties.oldMax >> intervalProperties.newMax
-  ;
+      >> intervalProperties.oldMin >> intervalProperties.newMin
+      >> intervalProperties.oldMax >> intervalProperties.newMax;
   writeTo(static_cast<Scenario::IntervalSaveData&>(intervalProperties));
   checkDelimiter();
 }

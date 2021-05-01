@@ -3,7 +3,6 @@
 #include "CommentBlockView.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Scenario/Document/CommentBlock/CommentBlockPresenter.hpp>
 
 #include <score/graphics/TextItem.hpp>
 
@@ -13,11 +12,15 @@
 #include <QTextDocument>
 #include <QWidget>
 
+#include <Scenario/Document/CommentBlock/CommentBlockPresenter.hpp>
 #include <cmath>
 namespace Scenario
 {
-CommentBlockView::CommentBlockView(CommentBlockPresenter& presenter, QGraphicsItem* parent)
-    : QGraphicsItem{parent}, m_presenter{presenter}
+CommentBlockView::CommentBlockView(
+    CommentBlockPresenter& presenter,
+    QGraphicsItem* parent)
+    : QGraphicsItem{parent}
+    , m_presenter{presenter}
 {
   this->setParentItem(parent);
   this->setZValue(ZPos::Comment);
@@ -25,10 +28,15 @@ CommentBlockView::CommentBlockView(CommentBlockPresenter& presenter, QGraphicsIt
 
   m_textItem = new score::TextItem{"", this};
 
-  connect(m_textItem->document(), &QTextDocument::contentsChanged, this, [&]() {
-    this->prepareGeometryChange();
-  });
-  connect(m_textItem, &score::TextItem::focusOut, this, &CommentBlockView::focusOut);
+  connect(
+      m_textItem->document(), &QTextDocument::contentsChanged, this, [&]() {
+        this->prepareGeometryChange();
+      });
+  connect(
+      m_textItem,
+      &score::TextItem::focusOut,
+      this,
+      &CommentBlockView::focusOut);
   focusOut();
 }
 

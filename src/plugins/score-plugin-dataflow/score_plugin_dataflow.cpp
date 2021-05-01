@@ -22,7 +22,8 @@ score_plugin_dataflow::score_plugin_dataflow() { }
 
 score_plugin_dataflow::~score_plugin_dataflow() { }
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_dataflow::factories(
+std::vector<std::unique_ptr<score::InterfaceBase>>
+score_plugin_dataflow::factories(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& key) const
 {
@@ -31,8 +32,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_dataflow::factor
       FW<Inspector::InspectorWidgetFactory,
          Dataflow::CableInspectorFactory,
          Dataflow::InletInspectorFactory,
-         Dataflow::OutletInspectorFactory
-      >,
+         Dataflow::OutletInspectorFactory>,
       FW<Scenario::IntervalDropHandler, Dataflow::DropPortInInterval>,
       FW<Scenario::DropHandler, Dataflow::DropPortInScenario>,
       FW<Process::PortFactory,
@@ -58,8 +58,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_dataflow::factor
          Dataflow::WidgetInletFactory<Process::HSVSlider>,
          Dataflow::WidgetInletFactory<Process::XYSlider>,
          Dataflow::WidgetInletFactory<Process::MultiSlider>,
-         Dataflow::WidgetOutletFactory<Process::Bargraph>
-      >>(ctx, key);
+         Dataflow::WidgetOutletFactory<Process::Bargraph>>>(ctx, key);
 }
 
 #include <score/plugins/PluginInstances.hpp>

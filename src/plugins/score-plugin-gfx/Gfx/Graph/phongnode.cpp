@@ -58,7 +58,8 @@ void main()
     fragColor = vec4(color, materialDiffuse.a);
 })_";
 
-PhongNode::PhongNode(const Mesh* mesh) : m_mesh{mesh}
+PhongNode::PhongNode(const Mesh* mesh)
+    : m_mesh{mesh}
 {
   QMatrix4x4 model;
   QMatrix4x4 projection;
@@ -69,7 +70,8 @@ PhongNode::PhongNode(const Mesh* mesh) : m_mesh{mesh}
   QMatrix4x4 mvp = projection * mv;
   QMatrix3x3 norm = model.normalMatrix();
 
-  std::tie(m_vertexS, m_fragmentS) = makeShaders(mesh->defaultVertexShader(), frag);
+  std::tie(m_vertexS, m_fragmentS)
+      = makeShaders(mesh->defaultVertexShader(), frag);
   const int sz = sizeof(ModelCameraUBO);
   m_materialData.reset(new char[sz]);
   std::fill_n(m_materialData.get(), sz, 0);
@@ -101,7 +103,9 @@ struct RenderedPhongNode : RenderedNode
 
   void customInit(Renderer& renderer) override { }
 
-  void customUpdate(Renderer& renderer, QRhiResourceUpdateBatch& res) override { }
+  void customUpdate(Renderer& renderer, QRhiResourceUpdateBatch& res) override
+  {
+  }
 
   void customRelease(Renderer& renderer) override { }
 };

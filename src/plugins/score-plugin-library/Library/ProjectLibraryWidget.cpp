@@ -24,9 +24,9 @@ ProjectLibraryWidget::ProjectLibraryWidget(
     , m_proxy{new RecursiveFilterProxy{this}}
 {
   auto lay = new score::MarginLess<QVBoxLayout>;
-  setStatusTip(
-      QObject::tr("This panel shows the project library.\n"
-                  "It lists the files in the folder where the score is saved."));
+  setStatusTip(QObject::tr(
+      "This panel shows the project library.\n"
+      "It lists the files in the folder where the score is saved."));
 
   this->setLayout(lay);
 

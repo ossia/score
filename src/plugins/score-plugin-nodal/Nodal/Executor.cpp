@@ -1,9 +1,9 @@
 #include "Executor.hpp"
 
+#include <Nodal/Process.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionSetup.hpp>
-#include <Scenario/Document/Interval/IntervalExecutionHelpers.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -13,13 +13,16 @@
 #include <ossia/dataflow/port.hpp>
 #include <ossia/detail/flat_set.hpp>
 
-#include <Nodal/Process.hpp>
+#include <Scenario/Document/Interval/IntervalExecutionHelpers.hpp>
 namespace ossia
 {
 
 struct node_graph_process final : public looping_process<node_graph_process>
 {
-  node_graph_process() { node = std::make_shared<ossia::nodes::forward_node>(); }
+  node_graph_process()
+  {
+    node = std::make_shared<ossia::nodes::forward_node>();
+  }
 
   void state_impl(const ossia::token_request& req)
   {
@@ -30,8 +33,9 @@ struct node_graph_process final : public looping_process<node_graph_process>
     node->requested_tokens.push_back(req);
   }
 
-  void
-  add_process(std::shared_ptr<ossia::time_process>&& p, std::shared_ptr<ossia::graph_node>&& n)
+  void add_process(
+      std::shared_ptr<ossia::time_process>&& p,
+      std::shared_ptr<ossia::graph_node>&& n)
   {
     nodes.insert(std::move(n));
     processes.insert(std::move(p));
@@ -159,18 +163,24 @@ struct AddNode
 void NodalExecutorBase::unreg(const RegisteredNode& fx)
 {
   system().setup.unregister_node_soft(
-      fx.comp->process().inlets(), fx.comp->process().outlets(), fx.comp->node);
+      fx.comp->process().inlets(),
+      fx.comp->process().outlets(),
+      fx.comp->node);
 }
 
-void NodalExecutorBase::reg(const RegisteredNode& fx, Execution::Transaction& vec)
+void NodalExecutorBase::reg(
+    const RegisteredNode& fx,
+    Execution::Transaction& vec)
 {
   auto& proc = fx.comp->process();
-  system().setup.register_node(proc.inlets(), proc.outlets(), fx.comp->node, vec);
+  system().setup.register_node(
+      proc.inlets(), proc.outlets(), fx.comp->node, vec);
 
   auto reconnectOutlets = Execution::ReconnectOutlets<NodalExecutorBase>{
       *this, this->node, proc, fx.comp->OSSIAProcessPtr(), system().execGraph};
 
-  connect(&proc, &Process::ProcessModel::outletsChanged, this, reconnectOutlets);
+  connect(
+      &proc, &Process::ProcessModel::outletsChanged, this, reconnectOutlets);
   reconnectOutlets();
 
   vec.push_back(AddNode{
@@ -194,7 +204,8 @@ Execution::ProcessComponent* NodalExecutorBase::make(
     auto child_p = comp->OSSIAProcessPtr();
     if (child_n && child_p)
     {
-      auto p = std::dynamic_pointer_cast<ossia::node_graph_process>(m_ossia_process);
+      auto p = std::dynamic_pointer_cast<ossia::node_graph_process>(
+          m_ossia_process);
       commands.push_back([child_n = std::move(child_n),
                           child_p = std::move(child_p),
                           p = std::move(p)]() mutable {
@@ -210,12 +221,14 @@ Execution::ProcessComponent* NodalExecutorBase::make(
 
 void NodalExecutorBase::added(::Execution::ProcessComponent& e) { }
 
-std::function<void()>
-NodalExecutorBase::removing(const Process::ProcessModel& e, ::Execution::ProcessComponent& c)
+std::function<void()> NodalExecutorBase::removing(
+    const Process::ProcessModel& e,
+    ::Execution::ProcessComponent& c)
 {
   Execution::Transaction commands{system()};
 
-  auto it = ossia::find_if(m_nodes, [&](const auto& v) { return v.first == e.id(); });
+  auto it = ossia::find_if(
+      m_nodes, [&](const auto& v) { return v.first == e.id(); });
   if (it == m_nodes.end())
     return {};
 
@@ -223,12 +236,14 @@ NodalExecutorBase::removing(const Process::ProcessModel& e, ::Execution::Process
 
   unreg(this_fx);
 
-  auto p = std::dynamic_pointer_cast<ossia::node_graph_process>(m_ossia_process);
+  auto p
+      = std::dynamic_pointer_cast<ossia::node_graph_process>(m_ossia_process);
   auto child_p = c.OSSIAProcessPtr();
   auto child_n = c.node;
-  commands.push_back([child_n = std::move(child_n),
-                      child_p = std::move(child_p),
-                      p = std::move(p)] { p->remove_process(child_p, child_n); });
+  commands.push_back(
+      [child_n = std::move(child_n),
+       child_p = std::move(child_p),
+       p = std::move(p)] { p->remove_process(child_p, child_n); });
 
   commands.run_all();
 

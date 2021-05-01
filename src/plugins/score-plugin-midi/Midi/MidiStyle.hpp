@@ -14,7 +14,7 @@ struct MidiStyle
     for (std::size_t i = 0; i < std::size(paintedNoteBrush); i++)
     {
       auto orange = baseOrange;
-      orange.setHslF(hue, 0.2 + 1.5 *  i / 256., lightness);
+      orange.setHslF(hue, 0.2 + 1.5 * i / 256., lightness);
       paintedNoteBrush[i].setColor(orange);
       paintedNoteBrush[i].setStyle(Qt::SolidPattern);
     }
@@ -31,7 +31,8 @@ struct MidiStyle
   }();
 
   const QPen selectionPen = [] {
-    QPen pen{QColor{0, 0, 0, 127}, 2, Qt::DashLine, Qt::SquareCap, Qt::BevelJoin};
+    QPen pen{
+        QColor{0, 0, 0, 127}, 2, Qt::DashLine, Qt::SquareCap, Qt::BevelJoin};
     pen.setCosmetic(true);
     return pen;
   }();

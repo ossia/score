@@ -1,6 +1,7 @@
 #include "DropPortInScenario.hpp"
 
 #include <Dataflow/PortItem.hpp>
+
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Process/ScenarioPresenter.hpp>
@@ -39,7 +40,8 @@ bool DropPortInScenario::drop(
       return false;
 
     Scenario::Command::Macro m{
-        new Scenario::Command::AddProcessInNewBoxMacro, pres.context().context};
+        new Scenario::Command::AddProcessInNewBoxMacro,
+        pres.context().context};
 
     // Create a box.
     const Scenario::ProcessModel& scenar = pres.model();
@@ -53,7 +55,9 @@ bool DropPortInScenario::drop(
 
     // Create process
     auto ok = port->on_createAutomation(
-        interval, [&](score::Command* cmd) { m.submit(cmd); }, pres.context().context);
+        interval,
+        [&](score::Command* cmd) { m.submit(cmd); },
+        pres.context().context);
     if (!ok)
     {
       return false;
@@ -68,7 +72,11 @@ bool DropPortInScenario::drop(
   return false;
 }
 
-bool DropPortInInterval::drop(const score::DocumentContext& ctx, const Scenario::IntervalModel& interval, QPointF p, const QMimeData& mime)
+bool DropPortInInterval::drop(
+    const score::DocumentContext& ctx,
+    const Scenario::IntervalModel& interval,
+    QPointF p,
+    const QMimeData& mime)
 {
   if (mime.formats().contains(score::mime::port()))
   {

@@ -1,15 +1,14 @@
 #pragma once
-#include <Vst3/Plugin.hpp>
+#include <Control/DefaultEffectItem.hpp>
+#include <Effect/EffectFactory.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
+#include <Vst3/Plugin.hpp>
 
 #include <score/tools/std/Invoke.hpp>
 
 #include <ossia/detail/hash_map.hpp>
-
-#include <Control/DefaultEffectItem.hpp>
-#include <Effect/EffectFactory.hpp>
 
 #include <verdigris>
 #define VST_DEFAULT_PARAM_NUMBER_CUTOFF 10
@@ -33,7 +32,11 @@ PROCESS_METADATA(
     {},
     {},
     Process::ProcessFlags::ExternalEffect)
-UUID_METADATA(, Process::Port, vst3::ControlInlet, "82b24dd8-fbc0-43a6-adfa-7bb29ca48660")
+UUID_METADATA(
+    ,
+    Process::Port,
+    vst3::ControlInlet,
+    "82b24dd8-fbc0-43a6-adfa-7bb29ca48660")
 DESCRIPTION_METADATA(, vst3::Model, "VST")
 namespace vst3
 {
@@ -58,7 +61,8 @@ public:
 
   ~Model() override;
   template <typename Impl>
-  Model(Impl& vis, QObject* parent) : ProcessModel{vis, parent}
+  Model(Impl& vis, QObject* parent)
+      : ProcessModel{vis, parent}
   {
     init();
     vis.writeTo(*this);

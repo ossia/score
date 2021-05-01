@@ -1,13 +1,16 @@
-#include <Media/Tempo.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Tempo/TempoProcess.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Curve/CurveModel.hpp>
+#include <Media/Tempo.hpp>
+
 #include <ossia/detail/flicks.hpp>
+
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/Tempo/TempoProcess.hpp>
 namespace Media
 {
 
-static double getRootTempo(const QObject& obj) noexcept {
+static double getRootTempo(const QObject& obj) noexcept
+{
   auto& ctx = score::IDocument::documentContext(obj);
   auto& root_itv = ctx.model<Scenario::ScenarioDocumentModel>().baseInterval();
   double speed = root_itv.duration.speed();
@@ -16,32 +19,33 @@ static double getRootTempo(const QObject& obj) noexcept {
 
 static constexpr double tempoCurveToTempo(double t) noexcept
 {
-  return Scenario::TempoProcess::min + t * (Scenario::TempoProcess::max - Scenario::TempoProcess::min);
+  return Scenario::TempoProcess::min
+         + t * (Scenario::TempoProcess::max - Scenario::TempoProcess::min);
 }
 
 double tempoAtStartDate(const Process::ProcessModel& m) noexcept
 {
   double tempo = [&] {
     auto parent = m.parent();
-    while(parent)
+    while (parent)
     {
-      if(auto itv = qobject_cast<Scenario::IntervalModel*>(parent))
+      if (auto itv = qobject_cast<Scenario::IntervalModel*>(parent))
       {
         auto [tempo_itv, delta] = Scenario::closestParentWithTempo(itv);
-        if(tempo_itv)
+        if (tempo_itv)
         {
           using namespace ossia;
           Curve::Model& tempo_curve = tempo_itv->tempoCurve()->curve();
-          if(const auto& dur = tempo_itv->tempoCurve()->duration(); dur > 0_tv)
-            if(auto d = tempo_curve.valueAt(double(delta.impl) / dur.impl))
+          if (const auto& dur = tempo_itv->tempoCurve()->duration();
+              dur > 0_tv)
+            if (auto d = tempo_curve.valueAt(double(delta.impl) / dur.impl))
               return tempoCurveToTempo(*d);
             else
               return getRootTempo(*tempo_itv);
+          else if (auto d = tempo_curve.valueAt(0.))
+            return tempoCurveToTempo(*d);
           else
-            if(auto d = tempo_curve.valueAt(0.))
-              return tempoCurveToTempo(*d);
-            else
-              return getRootTempo(*tempo_itv);
+            return getRootTempo(*tempo_itv);
         }
         else
         {
@@ -58,7 +62,7 @@ double tempoAtStartDate(const Process::ProcessModel& m) noexcept
     return getRootTempo(m);
   }();
 
-  if(tempo > 0.1)
+  if (tempo > 0.1)
     return tempo;
   else
     return ossia::root_tempo;

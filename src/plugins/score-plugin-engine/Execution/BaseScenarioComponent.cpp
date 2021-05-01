@@ -5,17 +5,6 @@
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Process/ExecutionContext.hpp>
-#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Document/Event/EventExecution.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/Interval/IntervalDurations.hpp>
-#include <Scenario/Document/Interval/IntervalExecution.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/State/StateExecution.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncExecution.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Execution/score2OSSIA.hpp>
 
 #include <score/document/DocumentInterface.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
@@ -29,6 +18,17 @@
 #include <ossia/editor/scenario/time_value.hpp>
 #include <ossia/editor/state/state.hpp>
 
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/Event/EventExecution.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Interval/IntervalDurations.hpp>
+#include <Scenario/Document/Interval/IntervalExecution.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/State/StateExecution.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncExecution.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
 #include <wobjectimpl.h>
 
 #include <vector>
@@ -37,7 +37,8 @@ W_OBJECT_IMPL(Execution::BaseScenarioElement)
 namespace Execution
 {
 BaseScenarioElement::BaseScenarioElement(const Context& ctx, QObject* parent)
-    : QObject{nullptr}, m_ctx{ctx}
+    : QObject{nullptr}
+    , m_ctx{ctx}
 {
 }
 
@@ -78,26 +79,38 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
       element.endEvent(), m_ctx, newId(element.endEvent()), this);
 
   m_ossia_startState = std::make_shared<StateComponent>(
-      element.startState(), main_start_event, m_ctx, newId(element.startState()), this);
+      element.startState(),
+      main_start_event,
+      m_ctx,
+      newId(element.startState()),
+      this);
   m_ossia_endState = std::make_shared<StateComponent>(
-      element.endState(), main_end_event, m_ctx, newId(element.endState()), this);
+      element.endState(),
+      main_end_event,
+      m_ctx,
+      newId(element.endState()),
+      this);
 
   m_ossia_interval = std::make_shared<IntervalComponent>(
       element.interval(), m_ctx, newId(element.interval()), this);
 
-  m_ossia_startTimeSync->onSetup(main_start_node, m_ossia_startTimeSync->makeTrigger());
-  m_ossia_endTimeSync->onSetup(main_end_node, m_ossia_endTimeSync->makeTrigger());
+  m_ossia_startTimeSync->onSetup(
+      main_start_node, m_ossia_startTimeSync->makeTrigger());
+  m_ossia_endTimeSync->onSetup(
+      main_end_node, m_ossia_endTimeSync->makeTrigger());
   m_ossia_startEvent->onSetup(
       main_start_event,
       m_ossia_startEvent->makeExpression(),
-      (ossia::time_event::offset_behavior)element.startEvent().offsetBehavior());
+      (ossia::time_event::offset_behavior)element.startEvent()
+          .offsetBehavior());
   m_ossia_endEvent->onSetup(
       main_end_event,
       m_ossia_endEvent->makeExpression(),
       (ossia::time_event::offset_behavior)element.endEvent().offsetBehavior());
   m_ossia_startState->onSetup();
   m_ossia_endState->onSetup();
-  m_ossia_interval->onSetup(m_ossia_interval, main_interval, m_ossia_interval->makeDurations());
+  m_ossia_interval->onSetup(
+      m_ossia_interval, main_interval, m_ossia_interval->makeDurations());
 
   for (auto dev : m_ctx.execState->edit_devices())
   {
@@ -109,7 +122,8 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
         {
           auto node = main_interval->node;
           m_ctx.executionQueue.enqueue([=] {
-            static_cast<ossia::nodes::interval*>(node.get())->audio_out.address = param;
+            static_cast<ossia::nodes::interval*>(node.get())->audio_out.address
+                = param;
           });
           break;
         }

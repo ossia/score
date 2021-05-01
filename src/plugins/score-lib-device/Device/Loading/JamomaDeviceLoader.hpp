@@ -11,5 +11,6 @@ namespace Device
  *
  * The node has to be the device node.
  */
-SCORE_LIB_DEVICE_EXPORT bool loadDeviceFromXML(const QString& filePath, Device::Node& node);
+SCORE_LIB_DEVICE_EXPORT bool
+loadDeviceFromXML(const QString& filePath, Device::Node& node);
 }

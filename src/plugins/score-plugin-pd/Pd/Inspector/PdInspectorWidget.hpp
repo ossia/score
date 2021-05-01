@@ -1,4 +1,7 @@
 #pragma once
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <Pd/Commands/EditPd.hpp>
+#include <Pd/PdProcess.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 
@@ -10,10 +13,6 @@
 #include <QLineEdit>
 #include <QSpinBox>
 #include <QVBoxLayout>
-
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <Pd/Commands/EditPd.hpp>
-#include <Pd/PdProcess.hpp>
 namespace Pd
 {
 

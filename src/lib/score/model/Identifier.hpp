@@ -67,13 +67,20 @@ public:
   using value_type = impl;
   explicit id_base_t() noexcept { }
 
-  id_base_t(const id_base_t& other) noexcept : m_id{other.m_id} { }
+  id_base_t(const id_base_t& other) noexcept
+      : m_id{other.m_id}
+  {
+  }
 
-  id_base_t(id_base_t&& other) noexcept : m_id{std::move(other.m_id)} { }
+  id_base_t(id_base_t&& other) noexcept
+      : m_id{std::move(other.m_id)}
+  {
+  }
   template <typename other>
   id_base_t(
       const id_base_t<other, impl>& oid,
-      typename std::enable_if<std::is_base_of_v<tag, other>>::type* = 0) noexcept
+      typename std::enable_if<
+          std::is_base_of_v<tag, other>>::type* = 0) noexcept
       : m_id{oid.val()}
   {
   }
@@ -81,7 +88,8 @@ public:
   template <typename other>
   id_base_t(
       id_base_t&& oid,
-      typename std::enable_if<std::is_base_of_v<tag, other>>::type* = 0) noexcept
+      typename std::enable_if<
+          std::is_base_of_v<tag, other>>::type* = 0) noexcept
       : m_id{oid.val()}
   {
   }
@@ -102,9 +110,16 @@ public:
 
   // TODO check if when an id is returned by value,
   // the pointer gets copied correctly
-  explicit id_base_t(value_type val) noexcept : m_id{std::move(val)} { }
+  explicit id_base_t(value_type val) noexcept
+      : m_id{std::move(val)}
+  {
+  }
 
-  explicit id_base_t(tag& element) noexcept : m_ptr{&element}, m_id{element.id()} { }
+  explicit id_base_t(tag& element) noexcept
+      : m_ptr{&element}
+      , m_id{element.id()}
+  {
+  }
 
   id_base_t& operator=(tag& element) noexcept
   {
@@ -157,7 +172,10 @@ namespace std
 template <typename tag>
 struct hash<Id<tag>>
 {
-  std::size_t operator()(const Id<tag>& id) const { return std::hash<int32_t>{}(id.val()); }
+  std::size_t operator()(const Id<tag>& id) const
+  {
+    return std::hash<int32_t>{}(id.val());
+  }
 };
 }
 template <typename T>

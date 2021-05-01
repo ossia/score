@@ -26,5 +26,5 @@ PluginSettingsModel::PluginSettingsModel(
 {
 }
 
-PluginSettingsModel::~PluginSettingsModel() {}
+PluginSettingsModel::~PluginSettingsModel() { }
 }

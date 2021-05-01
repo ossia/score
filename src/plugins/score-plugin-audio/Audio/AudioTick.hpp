@@ -4,10 +4,9 @@
 #include <score/application/ApplicationContext.hpp>
 
 #include <ossia/audio/audio_engine.hpp>
+#include <ossia/audio/audio_tick.hpp>
 
 #include <score_plugin_audio_export.h>
-
-#include <ossia/audio/audio_tick.hpp>
 
 namespace Audio
 {

@@ -54,7 +54,8 @@ static void loadRestorableDocumentData(
     data_file.open(QFile::ReadOnly);
     command_file.open(QFile::ReadOnly);
 
-    arr.push_back({command_filename.first, data_file.readAll(), command_file.readAll()});
+    arr.push_back(
+        {command_filename.first, data_file.readAll(), command_file.readAll()});
 
     data_file.close();
     data_file.remove(); // Note: maybe we don't want to remove them that early?
@@ -64,7 +65,8 @@ static void loadRestorableDocumentData(
   }
 }
 
-std::vector<score::RestorableDocument> score::DocumentBackups::restorableDocuments()
+std::vector<score::RestorableDocument>
+score::DocumentBackups::restorableDocuments()
 {
   std::vector<score::RestorableDocument> arr;
 
@@ -79,7 +81,8 @@ std::vector<score::RestorableDocument> score::DocumentBackups::restorableDocumen
     if (file1.isEmpty())
       continue;
 
-    loadRestorableDocumentData(file1, existing_files[file1].value<QPair<QString, QString>>(), arr);
+    loadRestorableDocumentData(
+        file1, existing_files[file1].value<QPair<QString, QString>>(), arr);
   }
 
   s.setValue("score/docs", QMap<QString, QVariant>{});

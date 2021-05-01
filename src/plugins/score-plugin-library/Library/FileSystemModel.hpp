@@ -53,7 +53,8 @@ public:
     // **floppy drive noises buzzing in the background**
     {
       auto copy = types;
-      for(auto t : copy) {
+      for (auto t : copy)
+      {
         types.insert(t.toUpper());
       }
     }
@@ -75,8 +76,8 @@ public:
 
   Qt::ItemFlags flags(const QModelIndex& index) const override
   {
-    Qt::ItemFlags f
-        = Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
+    Qt::ItemFlags f = Qt::ItemIsEnabled | Qt::ItemIsSelectable
+                      | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
 
     if (!isDir(index))
       f |= Qt::ItemIsEditable;

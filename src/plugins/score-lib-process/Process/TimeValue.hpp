@@ -1,16 +1,15 @@
 #pragma once
 #include <Process/ZoomHelper.hpp>
-#include <score/serialization/IsTemplate.hpp>
+
 #include <score/serialization/DataStreamFwd.hpp>
+#include <score/serialization/IsTemplate.hpp>
 
 #include <ossia-qt/time_value.hpp>
 #include <ossia/detail/flicks.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
 
 #include <cmath>
-
 #include <flicks.h>
-
 #include <score_lib_process_export.h>
 
 #include <chrono>
@@ -34,7 +33,10 @@ struct SCORE_LIB_PROCESS_EXPORT TimeVal : ossia::time_value
     return time;
   }
 
-  constexpr TimeVal() noexcept : time_value{0} { }
+  constexpr TimeVal() noexcept
+      : time_value{0}
+  {
+  }
 
   ~TimeVal() = default;
   constexpr TimeVal(const TimeVal&) = default;
@@ -42,8 +44,14 @@ struct SCORE_LIB_PROCESS_EXPORT TimeVal : ossia::time_value
   constexpr TimeVal& operator=(const TimeVal&) = default;
   constexpr TimeVal& operator=(TimeVal&&) noexcept = default;
 
-  constexpr TimeVal(ossia::time_value v) noexcept : time_value{v} { }
-  explicit constexpr TimeVal(int64_t v) noexcept : time_value{v} { }
+  constexpr TimeVal(ossia::time_value v) noexcept
+      : time_value{v}
+  {
+  }
+  explicit constexpr TimeVal(int64_t v) noexcept
+      : time_value{v}
+  {
+  }
 
   static constexpr TimeVal zero() noexcept { return TimeVal{time_value{}}; }
 
@@ -51,8 +59,10 @@ struct SCORE_LIB_PROCESS_EXPORT TimeVal : ossia::time_value
 
   template <
       typename Duration,
-      std::enable_if_t<std::is_class<typename Duration::period>::value>* = nullptr>
-  constexpr TimeVal(Duration&& dur) noexcept : time_value{util::flicks_cast(dur).count()}
+      std::enable_if_t<
+          std::is_class<typename Duration::period>::value>* = nullptr>
+  constexpr TimeVal(Duration&& dur) noexcept
+      : time_value{util::flicks_cast(dur).count()}
   {
   }
 
@@ -95,7 +105,10 @@ struct SCORE_LIB_PROCESS_EXPORT TimeVal : ossia::time_value
     return *this;
   }
 
-  constexpr time_value operator*(time_value d) const noexcept { return time_value{impl * d.impl}; }
+  constexpr time_value operator*(time_value d) const noexcept
+  {
+    return time_value{impl * d.impl};
+  }
 
   constexpr time_value operator*(double d) const noexcept
   {
@@ -103,7 +116,10 @@ struct SCORE_LIB_PROCESS_EXPORT TimeVal : ossia::time_value
     res.impl *= d;
     return res;
   }
-  constexpr time_value operator*(int64_t d) const noexcept { return time_value{impl * d}; }
+  constexpr time_value operator*(int64_t d) const noexcept
+  {
+    return time_value{impl * d};
+  }
 
   operator bool() const noexcept = delete;
 
@@ -140,29 +156,65 @@ struct SCORE_LIB_PROCESS_EXPORT TimeVal : ossia::time_value
     impl = msecs * ossia::flicks_per_millisecond<double>;
   }
 
-  constexpr bool operator==(TimeVal other) const noexcept { return impl == other.impl; }
+  constexpr bool operator==(TimeVal other) const noexcept
+  {
+    return impl == other.impl;
+  }
 
-  constexpr bool operator!=(TimeVal other) const noexcept { return impl != other.impl; }
+  constexpr bool operator!=(TimeVal other) const noexcept
+  {
+    return impl != other.impl;
+  }
 
-  constexpr bool operator>(TimeVal other) const noexcept { return impl > other.impl; }
+  constexpr bool operator>(TimeVal other) const noexcept
+  {
+    return impl > other.impl;
+  }
 
-  constexpr bool operator>=(TimeVal other) const noexcept { return impl >= other.impl; }
+  constexpr bool operator>=(TimeVal other) const noexcept
+  {
+    return impl >= other.impl;
+  }
 
-  constexpr bool operator<(TimeVal other) const noexcept { return impl < other.impl; }
+  constexpr bool operator<(TimeVal other) const noexcept
+  {
+    return impl < other.impl;
+  }
 
-  constexpr bool operator<=(TimeVal other) const noexcept { return impl <= other.impl; }
+  constexpr bool operator<=(TimeVal other) const noexcept
+  {
+    return impl <= other.impl;
+  }
 
-  constexpr bool operator==(time_value other) const noexcept { return impl == other.impl; }
+  constexpr bool operator==(time_value other) const noexcept
+  {
+    return impl == other.impl;
+  }
 
-  constexpr bool operator!=(time_value other) const noexcept { return impl != other.impl; }
+  constexpr bool operator!=(time_value other) const noexcept
+  {
+    return impl != other.impl;
+  }
 
-  constexpr bool operator>(time_value other) const noexcept { return impl > other.impl; }
+  constexpr bool operator>(time_value other) const noexcept
+  {
+    return impl > other.impl;
+  }
 
-  constexpr bool operator>=(time_value other) const noexcept { return impl >= other.impl; }
+  constexpr bool operator>=(time_value other) const noexcept
+  {
+    return impl >= other.impl;
+  }
 
-  constexpr bool operator<(time_value other) const noexcept { return impl < other.impl; }
+  constexpr bool operator<(time_value other) const noexcept
+  {
+    return impl < other.impl;
+  }
 
-  constexpr bool operator<=(time_value other) const noexcept { return impl <= other.impl; }
+  constexpr bool operator<=(time_value other) const noexcept
+  {
+    return impl <= other.impl;
+  }
 };
 
 inline const TimeVal& max(const TimeVal& lhs, const TimeVal& rhs) noexcept

@@ -51,14 +51,20 @@ struct GUIApplicationContext : public score::ApplicationContext
    *
    * @see score::GUIApplicationPlugin
    */
-  const auto& applicationPlugins() const { return components.applicationPlugins(); }
+  const auto& applicationPlugins() const
+  {
+    return components.applicationPlugins();
+  }
 
   /**
    * @brief List of all the gui application-wide plug-ins
    *
    * @see score::GUIApplicationPlugin
    */
-  const auto& guiApplicationPlugins() const { return components.guiApplicationPlugins(); }
+  const auto& guiApplicationPlugins() const
+  {
+    return components.guiApplicationPlugins();
+  }
 
   /**
    * @brief Access a specific application plug-in instance.

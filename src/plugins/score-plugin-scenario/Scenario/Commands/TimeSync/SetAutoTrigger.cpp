@@ -2,9 +2,9 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "SetAutoTrigger.hpp"
 
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-
 #include <score/model/path/PathSerialization.hpp>
+
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 
 namespace Scenario
 {
@@ -12,7 +12,9 @@ namespace Command
 {
 
 SetAutoTrigger::SetAutoTrigger(const TimeSyncModel& tn, bool b)
-    : m_path{std::move(tn)}, m_old{tn.autotrigger()}, m_new{b}
+    : m_path{std::move(tn)}
+    , m_old{tn.autotrigger()}
+    , m_new{b}
 {
 }
 

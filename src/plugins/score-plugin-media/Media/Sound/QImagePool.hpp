@@ -1,12 +1,12 @@
 #pragma once
 #include <score/tools/Debug.hpp>
 
-#include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/hash.hpp>
+#include <ossia/detail/hash_map.hpp>
 
-#include <QVector>
 #include <QDebug>
 #include <QImage>
+#include <QVector>
 
 #include <chrono>
 #include <mutex>
@@ -149,7 +149,8 @@ struct QImagePool
       }
     }
 
-    qDebug() << QString("%1 images: %2 megabytes ; hit/miss ratio : %3 / %4 = %5")
+    qDebug() << QString(
+                    "%1 images: %2 megabytes ; hit/miss ratio : %3 / %4 = %5")
                     .arg(images)
                     .arg(bytes / (1024 * 1024))
                     .arg(hit)

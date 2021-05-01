@@ -3,9 +3,6 @@
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/ProcessContext.hpp>
 #include <Process/ZoomHelper.hpp>
-#include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
-#include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
-#include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
 
 #include <score/plugins/documentdelegate/DocumentDelegatePresenter.hpp>
 #include <score/selection/Selection.hpp>
@@ -14,6 +11,10 @@
 
 #include <QPoint>
 #include <QRect>
+
+#include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
+#include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
 
 #include <memory>
 #include <verdigris>
@@ -32,7 +33,8 @@ namespace Process
 {
 class MiniLayer;
 }
-namespace Library {
+namespace Library
+{
 struct ProcessData;
 }
 namespace Scenario
@@ -100,9 +102,12 @@ public:
   bool isNodal() const noexcept;
 
 public:
-  void pressed(QPointF arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1)
-  void moved(QPointF arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1)
-  void released(QPointF arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, released, arg_1)
+  void pressed(QPointF arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1)
+  void moved(QPointF arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1)
+  void released(QPointF arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, released, arg_1)
   void escPressed() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, escPressed)
 
   void setFocusedPresenter(QPointer<Process::LayerPresenter> arg_1)

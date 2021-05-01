@@ -15,7 +15,8 @@ template <typename Widget>
 class WidgetWrapper final : public QWidget
 {
 public:
-  explicit WidgetWrapper(QWidget* parent) : QWidget{parent}
+  explicit WidgetWrapper(QWidget* parent)
+      : QWidget{parent}
   {
     setContentsMargins(0, 0, 0, 0);
     m_lay = new score::MarginLess<QGridLayout>{this};
@@ -23,7 +24,7 @@ public:
 
   void setWidget(Widget* widg)
   {
-    if(m_widget)
+    if (m_widget)
       delete m_widget;
 
     m_widget = widg;

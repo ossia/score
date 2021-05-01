@@ -1,8 +1,9 @@
 #include "MergeEvents.hpp"
 
-#include <score/model/EntitySerialization.hpp>
-#include <core/document/Document.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/model/EntitySerialization.hpp>
+
+#include <core/document/Document.hpp>
 
 namespace Scenario
 {
@@ -49,8 +50,8 @@ MergeEvents::MergeEvents(
 
   if (m_movingEventId != m_destinationEventId)
   {
-    m_mergeTimeSyncsCommand
-        = new MergeTimeSyncs{scenario, mergedEvent.timeSync(), destEvent.timeSync()};
+    m_mergeTimeSyncsCommand = new MergeTimeSyncs{
+        scenario, mergedEvent.timeSync(), destEvent.timeSync()};
   }
 }
 
@@ -120,12 +121,17 @@ void MergeEvents::redo(const score::DocumentContext& ctx) const
   scenar.events.remove(m_movingEventId);
 }
 
-void MergeEvents::update(unused_t, const Id<EventModel>&, const Id<EventModel>&) { }
+void MergeEvents::update(
+    unused_t,
+    const Id<EventModel>&,
+    const Id<EventModel>&)
+{
+}
 
 void MergeEvents::serializeImpl(DataStreamInput& s) const
 {
-  s << m_scenarioPath << m_movingEventId << m_destinationEventId << m_serializedEvent
-    << bool(m_mergeTimeSyncsCommand);
+  s << m_scenarioPath << m_movingEventId << m_destinationEventId
+    << m_serializedEvent << bool(m_mergeTimeSyncsCommand);
   if (m_mergeTimeSyncsCommand)
     s << m_mergeTimeSyncsCommand->serialize();
 }
@@ -134,7 +140,8 @@ void MergeEvents::deserializeImpl(DataStreamOutput& s)
 {
   bool hasCmd{};
 
-  s >> m_scenarioPath >> m_movingEventId >> m_destinationEventId >> m_serializedEvent >> hasCmd;
+  s >> m_scenarioPath >> m_movingEventId >> m_destinationEventId
+      >> m_serializedEvent >> hasCmd;
 
   if (hasCmd)
   {

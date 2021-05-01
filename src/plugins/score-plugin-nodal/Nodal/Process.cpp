@@ -1,5 +1,6 @@
 #include "Process.hpp"
 
+#include <Nodal/Commands.hpp>
 #include <Process/ProcessList.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -8,7 +9,6 @@
 #include <score/model/EntitySerialization.hpp>
 #include <score/tools/std/Invoke.hpp>
 
-#include <Nodal/Commands.hpp>
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Nodal::Model)
@@ -77,7 +77,8 @@ bool NodeRemover::remove(const Selection& s, const score::DocumentContext& ctx)
       if (auto parent = qobject_cast<Model*>(model->parent()))
       {
         auto f = [&ctx, parent, model] {
-          CommandDispatcher<>{ctx.commandStack}.submit<RemoveNode>(*parent, *model);
+          CommandDispatcher<>{ctx.commandStack}.submit<RemoveNode>(
+              *parent, *model);
         };
         score::invoke(f);
         return true;

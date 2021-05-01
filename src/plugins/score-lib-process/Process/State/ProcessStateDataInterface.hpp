@@ -33,7 +33,10 @@ public:
    * @return nothing if the process doesn't have any "settable" address.
    * Else it returns the addresses that may change.
    */
-  virtual std::vector<State::AddressAccessor> matchingAddresses() { return {}; }
+  virtual std::vector<State::AddressAccessor> matchingAddresses()
+  {
+    return {};
+  }
 
   /**
    * @brief messages The current messages in this point of the process.
@@ -46,8 +49,9 @@ public:
    * Should return the actual new state of the process.
    *
    */
-  virtual State::MessageList
-  setMessages(const State::MessageList& newMessages, const Process::MessageNode& currentState)
+  virtual State::MessageList setMessages(
+      const State::MessageList& newMessages,
+      const Process::MessageNode& currentState)
   {
     return messages();
   }

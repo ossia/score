@@ -6,10 +6,11 @@
 
 #include <QObject>
 
-class score_plugin_pd final : public score::Plugin_QtInterface,
-                             public score::FactoryInterface_QtInterface,
-                             public score::CommandFactory_QtInterface,
-                             public score::ApplicationPlugin_QtInterface
+class score_plugin_pd final
+    : public score::Plugin_QtInterface
+    , public score::FactoryInterface_QtInterface
+    , public score::CommandFactory_QtInterface
+    , public score::ApplicationPlugin_QtInterface
 {
 public:
   score_plugin_pd();

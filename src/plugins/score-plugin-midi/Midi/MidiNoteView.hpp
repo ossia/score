@@ -7,8 +7,7 @@ namespace Midi
 {
 class View;
 class Presenter;
-class NoteView final
-    : public QGraphicsItem
+class NoteView final : public QGraphicsItem
 {
   Q_INTERFACES(QGraphicsItem)
 public:
@@ -35,14 +34,18 @@ public:
   }
 
   QRectF boundingRect() const override { return {0, 0, m_width, m_height}; }
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
 
   QRectF computeRect() const noexcept;
   QPointF closestPos(QPointF note) const noexcept;
 
 private:
   bool canEdit() const;
-  QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
+  QVariant
+  itemChange(GraphicsItemChange change, const QVariant& value) override;
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
   void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
@@ -55,7 +58,8 @@ private:
   float m_width{};
   float m_height{};
 
-  enum Action {
+  enum Action
+  {
     None,
     Move,
     Scale,

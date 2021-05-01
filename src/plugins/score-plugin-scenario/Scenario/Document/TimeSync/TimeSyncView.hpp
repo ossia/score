@@ -1,11 +1,10 @@
 #pragma once
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
-#include <Scenario/Document/VerticalExtent.hpp>
-
 #include <score/graphics/TextItem.hpp>
 
 #include <QGraphicsItem>
 
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+#include <Scenario/Document/VerticalExtent.hpp>
 #include <score_plugin_scenario_export.h>
 class QGraphicsSceneMouseEvent;
 class QPainter;
@@ -27,7 +26,10 @@ public:
 
   const TimeSyncPresenter& presenter() const { return m_presenter; }
 
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
 
   // QGraphicsItem interface
   QRectF boundingRect() const override

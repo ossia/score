@@ -2,17 +2,18 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "PutLayerModelToFront.hpp"
 
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
+
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 
 namespace Scenario
 {
 PutLayerModelToFront::PutLayerModelToFront(
     SlotPath&& slotPath,
     const Id<Process::ProcessModel>& pid)
-    : m_slotPath{std::move(slotPath)}, m_pid{pid}
+    : m_slotPath{std::move(slotPath)}
+    , m_pid{pid}
 {
   // FIXME this assert crashes if there is only one process in the slot
   // SCORE_ASSERT(m_slotPath.index == Slot::SmallView);

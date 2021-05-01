@@ -1,22 +1,21 @@
 #include "DataflowClock.hpp"
 
+#include <Audio/AudioApplicationPlugin.hpp>
+#include <Audio/AudioTick.hpp>
+#include <Audio/Settings/Model.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
+#include <Execution/ExecutionTick.hpp>
+#include <Execution/Settings/ExecutorModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Process/ExecutionAction.hpp>
-#include <Scenario/Document/Interval/IntervalExecution.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
 #include <ossia/audio/audio_parameter.hpp>
 #include <ossia/audio/audio_protocol.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/detail/flicks.hpp>
 
-
-#include <Audio/AudioApplicationPlugin.hpp>
-#include <Audio/Settings/Model.hpp>
-#include <Audio/AudioTick.hpp>
-#include <Execution/ExecutionTick.hpp>
-#include <Execution/Settings/ExecutorModel.hpp>
+#include <Scenario/Document/Interval/IntervalExecution.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <flicks.h>
 namespace Dataflow
 {
@@ -28,9 +27,7 @@ Clock::Clock(const Execution::Context& ctx)
 {
 }
 
-Clock::~Clock()
-{
-}
+Clock::~Clock() { }
 
 void Clock::play_impl(const TimeVal& t, Execution::BaseScenarioElement& bs)
 {
@@ -104,12 +101,14 @@ bool Clock::paused() const
   return m_paused;
 }
 
-std::unique_ptr<Execution::Clock> ClockFactory::make(const Execution::Context& ctx)
+std::unique_ptr<Execution::Clock>
+ClockFactory::make(const Execution::Context& ctx)
 {
   return std::make_unique<Clock>(ctx);
 }
 
-Execution::time_function ClockFactory::makeTimeFunction(const score::DocumentContext& ctx) const
+Execution::time_function
+ClockFactory::makeTimeFunction(const score::DocumentContext& ctx) const
 {
   return [=](const TimeVal& v) -> ossia::time_value {
     return v;

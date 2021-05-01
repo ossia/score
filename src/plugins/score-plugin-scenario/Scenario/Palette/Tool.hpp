@@ -5,18 +5,18 @@ namespace Scenario
 {
 enum class Tool : uint8_t
 {
-  Disabled      ,
-  Create        ,
-  CreateGraph   ,
+  Disabled,
+  Create,
+  CreateGraph,
   CreateSequence,
-  Select        ,
-  Play          ,
-  Playing       ,
+  Select,
+  Play,
+  Playing,
 };
 
 inline constexpr bool isCreationTool(Tool t) noexcept
 {
-  switch(t)
+  switch (t)
   {
     case Tool::Create:
     case Tool::CreateGraph:

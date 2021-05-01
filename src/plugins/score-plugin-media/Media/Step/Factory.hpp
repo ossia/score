@@ -8,9 +8,13 @@
 namespace Media::Step
 {
 using ProcessFactory = Process::ProcessFactory_T<Step::Model>;
-struct LayerFactory : Process::LayerFactory_T<Step::Model, Step::Presenter, Step::View>
+struct LayerFactory
+    : Process::LayerFactory_T<Step::Model, Step::Presenter, Step::View>
 {
 public:
-  score::ResizeableItem* makeItem(const Process::ProcessModel&, const Process::Context& ctx, QGraphicsItem* parent) const override;
+  score::ResizeableItem* makeItem(
+      const Process::ProcessModel&,
+      const Process::Context& ctx,
+      QGraphicsItem* parent) const override;
 };
 }

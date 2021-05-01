@@ -1,8 +1,9 @@
 #pragma once
+#include <Engine/Node/PdNode.hpp>
+
 #include <ossia/detail/flicks.hpp>
 #include <ossia/detail/math.hpp>
 
-#include <Engine/Node/PdNode.hpp>
 #include <rnd/random.hpp>
 
 #include <array>
@@ -100,7 +101,8 @@ struct Node
     static const constexpr auto kind = Process::ProcessCategory::Generator;
     static const constexpr auto description = "Low-frequency oscillator";
     static const constexpr double recommended_height = 130.;
-    static const uuid_constexpr auto uuid = make_uuid("0697b807-f588-49b5-926c-f97701edd0d8");
+    static const uuid_constexpr auto uuid
+        = make_uuid("0697b807-f588-49b5-926c-f97701edd0d8");
 
     static const constexpr value_out value_outs[]{"out"};
 
@@ -140,7 +142,8 @@ struct Node
       ossia::exec_state_facade st,
       State& s)
   {
-    constexpr const double sine_ratio = ossia::two_pi / ossia::flicks_per_second<double>;
+    constexpr const double sine_ratio
+        = ossia::two_pi / ossia::flicks_per_second<double>;
     const auto& waveform_map = Control::Widgets::waveformMap();
     const auto elapsed = tk.model_read_duration().impl;
 
@@ -176,8 +179,9 @@ struct Node
 
       using namespace Control::Widgets;
 
-      const auto add_val
-          = [&](auto new_val) { out.write_value(ampl * new_val + offset, st.physical_start(tk)); };
+      const auto add_val = [&](auto new_val) {
+        out.write_value(ampl * new_val + offset, st.physical_start(tk));
+      };
       switch (it->second)
       {
         case Sin:
@@ -209,7 +213,8 @@ struct Node
           add_val(std::normal_distribution<float>(0.f, 1.f)(s.rd));
           break;
         case Noise3:
-          add_val(std::clamp(std::cauchy_distribution<float>(0.f, 1.f)(s.rd), 0.f, 1.f));
+          add_val(std::clamp(
+              std::cauchy_distribution<float>(0.f, 1.f)(s.rd), 0.f, 1.f));
           break;
       }
     }
@@ -233,7 +238,8 @@ struct Node
       const Process::Context& doc)
   {
     using namespace Process;
-    const Process::PortFactoryList& portFactory = doc.app.interfaces<Process::PortFactoryList>();
+    const Process::PortFactoryList& portFactory
+        = doc.app.interfaces<Process::PortFactoryList>();
     const auto h = 60;
     const auto w = 50;
 
@@ -248,17 +254,32 @@ struct Node
     auto c2_bg = new score::BackgroundItem{&parent};
     c2_bg->setRect({270., 0., 60., 130.});
 
-    auto freq_item
-        = makeControl(std::get<0>(Metadata::controls), freq, parent, context, doc, portFactory);
+    auto freq_item = makeControl(
+        std::get<0>(Metadata::controls),
+        freq,
+        parent,
+        context,
+        doc,
+        portFactory);
     freq_item.root.setPos(c0, 0);
 
     auto quant_item = makeControlNoText(
-        std::get<8>(Metadata::controls), quantif, parent, context, doc, portFactory);
+        std::get<8>(Metadata::controls),
+        quantif,
+        parent,
+        context,
+        doc,
+        portFactory);
     quant_item.root.setPos(90, 25);
     quant_item.port.setPos(-10, 2);
 
     auto type_item = makeControlNoText(
-        std::get<7>(Metadata::controls), type, parent, context, doc, portFactory);
+        std::get<7>(Metadata::controls),
+        type,
+        parent,
+        context,
+        doc,
+        portFactory);
     type_item.root.setPos(c0, h);
     type_item.control.rows = 2;
     type_item.control.columns = 4;
@@ -266,28 +287,58 @@ struct Node
     type_item.control.setPos(10, 0);
     type_item.port.setPos(0, 17);
 
-    auto ampl_item
-        = makeControl(std::get<1>(Metadata::controls), ampl, parent, context, doc, portFactory);
+    auto ampl_item = makeControl(
+        std::get<1>(Metadata::controls),
+        ampl,
+        parent,
+        context,
+        doc,
+        portFactory);
     ampl_item.root.setPos(c1, 0);
 
     auto ampl_fine_item = makeControl(
-        std::get<2>(Metadata::controls), ampl_fine, parent, context, doc, portFactory);
+        std::get<2>(Metadata::controls),
+        ampl_fine,
+        parent,
+        context,
+        doc,
+        portFactory);
     ampl_fine_item.root.setPos(c1 + w, 0);
 
-    auto offset_item
-        = makeControl(std::get<3>(Metadata::controls), offset, parent, context, doc, portFactory);
+    auto offset_item = makeControl(
+        std::get<3>(Metadata::controls),
+        offset,
+        parent,
+        context,
+        doc,
+        portFactory);
     offset_item.root.setPos(c1, h);
 
     auto offset_fine_item = makeControl(
-        std::get<4>(Metadata::controls), offset_fine, parent, context, doc, portFactory);
+        std::get<4>(Metadata::controls),
+        offset_fine,
+        parent,
+        context,
+        doc,
+        portFactory);
     offset_fine_item.root.setPos(c1 + w, h);
 
-    auto jitter_item
-        = makeControl(std::get<5>(Metadata::controls), jitter, parent, context, doc, portFactory);
+    auto jitter_item = makeControl(
+        std::get<5>(Metadata::controls),
+        jitter,
+        parent,
+        context,
+        doc,
+        portFactory);
     jitter_item.root.setPos(c2 + w, 0);
 
-    auto phase_item
-        = makeControl(std::get<6>(Metadata::controls), phase, parent, context, doc, portFactory);
+    auto phase_item = makeControl(
+        std::get<6>(Metadata::controls),
+        phase,
+        parent,
+        context,
+        doc,
+        portFactory);
     phase_item.root.setPos(c2 + w, h);
   }
 

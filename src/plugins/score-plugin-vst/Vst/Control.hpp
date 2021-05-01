@@ -17,21 +17,28 @@ class ControlInlet final : public Process::Inlet
   SCORE_SERIALIZE_FRIENDS
 public:
   MODEL_METADATA_IMPL(ControlInlet)
-  ControlInlet(Id<Process::Port> c, QObject* parent) : Inlet{std::move(c), parent} { }
+  ControlInlet(Id<Process::Port> c, QObject* parent)
+      : Inlet{std::move(c), parent}
+  {
+  }
 
-  ControlInlet(DataStream::Deserializer& vis, QObject* parent) : Inlet{vis, parent}
+  ControlInlet(DataStream::Deserializer& vis, QObject* parent)
+      : Inlet{vis, parent}
   {
     vis.writeTo(*this);
   }
-  ControlInlet(JSONObject::Deserializer& vis, QObject* parent) : Inlet{vis, parent}
+  ControlInlet(JSONObject::Deserializer& vis, QObject* parent)
+      : Inlet{vis, parent}
   {
     vis.writeTo(*this);
   }
-  ControlInlet(DataStream::Deserializer&& vis, QObject* parent) : Inlet{vis, parent}
+  ControlInlet(DataStream::Deserializer&& vis, QObject* parent)
+      : Inlet{vis, parent}
   {
     vis.writeTo(*this);
   }
-  ControlInlet(JSONObject::Deserializer&& vis, QObject* parent) : Inlet{vis, parent}
+  ControlInlet(JSONObject::Deserializer&& vis, QObject* parent)
+      : Inlet{vis, parent}
   {
     vis.writeTo(*this);
   }

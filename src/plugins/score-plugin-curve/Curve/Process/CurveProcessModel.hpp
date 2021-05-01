@@ -6,7 +6,8 @@
 
 namespace Curve
 {
-class SCORE_PLUGIN_CURVE_EXPORT CurveProcessModel : public Process::ProcessModel
+class SCORE_PLUGIN_CURVE_EXPORT CurveProcessModel
+    : public Process::ProcessModel
 {
   W_OBJECT(CurveProcessModel)
 public:

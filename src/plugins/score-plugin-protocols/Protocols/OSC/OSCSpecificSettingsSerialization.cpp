@@ -10,14 +10,16 @@ void DataStreamReader::read(const Protocols::OSCSpecificSettings& n)
 {
   // TODO put it in the right order before 1.0 final.
   // TODO same for minuit, etc..
-  m_stream << n.scoreListeningPort << n.deviceListeningPort << n.host << n.rate << n.jsonToLoad;
+  m_stream << n.scoreListeningPort << n.deviceListeningPort << n.host << n.rate
+           << n.jsonToLoad;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Protocols::OSCSpecificSettings& n)
 {
-  m_stream >> n.scoreListeningPort >> n.deviceListeningPort >> n.host >> n.rate >> n.jsonToLoad;
+  m_stream >> n.scoreListeningPort >> n.deviceListeningPort >> n.host >> n.rate
+      >> n.jsonToLoad;
   checkDelimiter();
 }
 

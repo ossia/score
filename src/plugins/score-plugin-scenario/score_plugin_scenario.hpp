@@ -55,11 +55,12 @@ class InterfaceListBase;
 class PanelFactory;
 } // namespace score
 
-class score_plugin_scenario final : public score::ApplicationPlugin_QtInterface,
-                                    public score::CommandFactory_QtInterface,
-                                    public score::FactoryList_QtInterface,
-                                    public score::FactoryInterface_QtInterface,
-                                    public score::Plugin_QtInterface
+class score_plugin_scenario final
+    : public score::ApplicationPlugin_QtInterface
+    , public score::CommandFactory_QtInterface
+    , public score::FactoryList_QtInterface
+    , public score::FactoryInterface_QtInterface
+    , public score::Plugin_QtInterface
 {
   SCORE_PLUGIN_METADATA(1, "8439ef6c-90c3-4e08-8185-6a0f3c87f8b4")
 public:
@@ -70,9 +71,11 @@ private:
   score::GUIApplicationPlugin*
   make_guiApplicationPlugin(const score::GUIApplicationContext& app) override;
 
-  std::pair<const CommandGroupKey, CommandGeneratorMap> make_commands() override;
+  std::pair<const CommandGroupKey, CommandGeneratorMap>
+  make_commands() override;
 
-  std::vector<std::unique_ptr<score::InterfaceListBase>> factoryFamilies() override;
+  std::vector<std::unique_ptr<score::InterfaceListBase>>
+  factoryFamilies() override;
 
   std::vector<std::unique_ptr<score::InterfaceBase>> factories(
       const score::ApplicationContext&,

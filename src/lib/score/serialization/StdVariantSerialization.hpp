@@ -1,9 +1,9 @@
 #pragma once
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+#include <score/tools/Metadata.hpp>
 
 #include <ossia/detail/for_each.hpp>
-#include <score/tools/Metadata.hpp>
 
 #include <variant>
 
@@ -40,7 +40,11 @@
 template <typename T>
 struct StdVariantDataStreamSerializer
 {
-  StdVariantDataStreamSerializer(DataStream::Serializer& s_p, const T& var_p) : s{s_p}, var{var_p} { }
+  StdVariantDataStreamSerializer(DataStream::Serializer& s_p, const T& var_p)
+      : s{s_p}
+      , var{var_p}
+  {
+  }
 
   DataStream::Serializer& s;
   const T& var;
@@ -69,8 +73,13 @@ void StdVariantDataStreamSerializer<T>::operator()()
 template <typename T>
 struct StdVariantDataStreamDeserializer
 {
-  StdVariantDataStreamDeserializer(DataStream::Deserializer& s_p, quint64 which_p, T& var_p)
-      : s{s_p}, which{which_p}, var{var_p}
+  StdVariantDataStreamDeserializer(
+      DataStream::Deserializer& s_p,
+      quint64 which_p,
+      T& var_p)
+      : s{s_p}
+      , which{which_p}
+      , var{var_p}
   {
   }
 
@@ -104,7 +113,8 @@ struct TSerializer<DataStream, std::variant<Args...>>
   {
     s.stream() << (quint64)var.index();
 
-    ossia::for_each_type<Args...>(StdVariantDataStreamSerializer<var_t>{s, var});
+    ossia::for_each_type<Args...>(
+        StdVariantDataStreamSerializer<var_t>{s, var});
 
     s.insertDelimiter();
   }
@@ -114,7 +124,8 @@ struct TSerializer<DataStream, std::variant<Args...>>
     quint64 which;
     s.stream() >> which;
 
-    ossia::for_each_type<Args...>(StdVariantDataStreamDeserializer<var_t>{s, which, var});
+    ossia::for_each_type<Args...>(
+        StdVariantDataStreamDeserializer<var_t>{s, which, var});
     s.checkDelimiter();
   }
 };
@@ -138,7 +149,11 @@ struct TSerializer<DataStream, std::variant<Args...>>
 template <typename T>
 struct StdVariantJSONSerializer
 {
-  StdVariantJSONSerializer(JSONObject::Serializer& s_p, const T& var_p) : s{s_p}, var{var_p} { }
+  StdVariantJSONSerializer(JSONObject::Serializer& s_p, const T& var_p)
+      : s{s_p}
+      , var{var_p}
+  {
+  }
   JSONObject::Serializer& s;
   const T& var;
 
@@ -165,7 +180,11 @@ void StdVariantJSONSerializer<T>::operator()()
 template <typename T>
 struct StdVariantJSONDeserializer
 {
-  StdVariantJSONDeserializer(JSONObject::Deserializer& s_p, T& var_p) : s{s_p}, var{var_p} { }
+  StdVariantJSONDeserializer(JSONObject::Deserializer& s_p, T& var_p)
+      : s{s_p}
+      , var{var_p}
+  {
+  }
   JSONObject::Deserializer& s;
   T& var;
 

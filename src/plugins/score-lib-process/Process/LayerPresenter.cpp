@@ -24,22 +24,29 @@ LayerPresenter::LayerPresenter(
     const LayerView* view,
     const Context& ctx,
     QObject* parent)
-    : QObject{parent}, m_context{ctx, *this}, m_process{model}
+    : QObject{parent}
+    , m_context{ctx, *this}
+    , m_process{model}
 {
-  connect(view, &LayerView::presetDropReceived, this, &LayerPresenter::handlePresetDrop);
+  connect(
+      view,
+      &LayerView::presetDropReceived,
+      this,
+      &LayerPresenter::handlePresetDrop);
 }
 
 void LayerPresenter::handlePresetDrop(const QPointF&, const QMimeData& mime)
 {
   auto data = mime.data(score::mime::processpreset());
-  auto& procs = m_context.context.app.interfaces<Process::ProcessFactoryList>();
+  auto& procs
+      = m_context.context.app.interfaces<Process::ProcessFactoryList>();
   if (auto preset = Process::Preset::fromJson(procs, data))
   {
     // TODO effect
     if (preset->key.key == m_process.concreteKey())
     {
-      CommandDispatcher<>{m_context.context.commandStack}.submit<Process::LoadPreset>(
-          m_process, *preset);
+      CommandDispatcher<>{m_context.context.commandStack}
+          .submit<Process::LoadPreset>(m_process, *preset);
     }
   }
 }

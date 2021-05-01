@@ -8,7 +8,8 @@ namespace Execution
 {
 
 class StepComponent final
-    : public ::Execution::ProcessComponent_T<Media::Step::Model, ossia::node_process>
+    : public ::Execution::
+          ProcessComponent_T<Media::Step::Model, ossia::node_process>
 {
   COMPONENT_METADATA("5b9c03cb-d062-40ee-b2a2-88279b088d4d")
 public:
@@ -25,5 +26,6 @@ public:
 private:
 };
 
-using StepComponentFactory = ::Execution::ProcessComponentFactory_T<StepComponent>;
+using StepComponentFactory
+    = ::Execution::ProcessComponentFactory_T<StepComponent>;
 }

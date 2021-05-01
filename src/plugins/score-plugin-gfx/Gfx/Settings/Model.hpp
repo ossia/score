@@ -1,11 +1,12 @@
 #pragma once
+#include <Gfx/Graph/renderstate.hpp>
+
 #include <score/plugins/ProjectSettings/ProjectSettingsModel.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 
-#include <Gfx/Graph/renderstate.hpp>
-#include <verdigris>
-
 #include <score_plugin_gfx_export.h>
+
+#include <verdigris>
 namespace Gfx::Settings
 {
 
@@ -36,8 +37,14 @@ public:
   GraphicsApi graphicsApiEnum() const noexcept;
   QString getGraphicsApi() const;
   void setGraphicsApi(QString);
-  void GraphicsApiChanged(QString arg) E_SIGNAL(SCORE_PLUGIN_GFX_EXPORT, GraphicsApiChanged, arg)
-  PROPERTY(QString, GraphicsApi, &Model::getGraphicsApi, &Model::setGraphicsApi, &Model::GraphicsApiChanged)
+  void GraphicsApiChanged(QString arg)
+      E_SIGNAL(SCORE_PLUGIN_GFX_EXPORT, GraphicsApiChanged, arg)
+  PROPERTY(
+      QString,
+      GraphicsApi,
+      &Model::getGraphicsApi,
+      &Model::setGraphicsApi,
+      &Model::GraphicsApiChanged)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, GraphicsApi)

@@ -5,9 +5,10 @@
 
 #include <verdigris>
 
-class score_plugin_library : public score::Plugin_QtInterface,
-                             public score::FactoryInterface_QtInterface,
-                             public score::FactoryList_QtInterface
+class score_plugin_library
+    : public score::Plugin_QtInterface
+    , public score::FactoryInterface_QtInterface
+    , public score::FactoryList_QtInterface
 {
   SCORE_PLUGIN_METADATA(1, "f019a413-0ffd-417f-966a-a824548aca79")
 public:
@@ -18,5 +19,6 @@ private:
   std::vector<std::unique_ptr<score::InterfaceBase>> guiFactories(
       const score::GUIApplicationContext&,
       const score::InterfaceKey& factoryName) const override;
-  std::vector<std::unique_ptr<score::InterfaceListBase>> factoryFamilies() override;
+  std::vector<std::unique_ptr<score::InterfaceListBase>>
+  factoryFamilies() override;
 };

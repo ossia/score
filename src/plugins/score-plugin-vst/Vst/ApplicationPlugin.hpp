@@ -1,17 +1,16 @@
 #pragma once
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
-
-#include <verdigris>
 #include <Vst/Loader.hpp>
 
-#include <QElapsedTimer>
-#include <QWebSocketServer>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
 
 #include <ossia/detail/hash_map.hpp>
 
+#include <QElapsedTimer>
 #include <QProcess>
+#include <QWebSocketServer>
 
 #include <thread>
+#include <verdigris>
 namespace vst
 {
 struct VSTInfo
@@ -62,10 +61,11 @@ public:
   std::vector<ScanningProcess> m_processes;
 
   QWebSocketServer m_wsServer;
-
 };
 
-class GUIApplicationPlugin : public QObject, public score::GUIApplicationPlugin
+class GUIApplicationPlugin
+    : public QObject
+    , public score::GUIApplicationPlugin
 {
 public:
   GUIApplicationPlugin(const score::GUIApplicationContext& app);

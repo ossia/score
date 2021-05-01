@@ -5,17 +5,6 @@
 
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Process/TimeValue.hpp>
-#include <Scenario/Commands/Event/SetCondition.hpp>
-#include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Inspector/Expression/ExpressionEditorWidget.hpp>
-#include <Scenario/Inspector/MetadataWidget.hpp>
-#include <score/widgets/SelectionButton.hpp>
-#include <Scenario/Inspector/TimeSync/TriggerInspectorWidget.hpp>
-#include <Scenario/Process/ScenarioInterface.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
 #include <State/Expression.hpp>
 
 #include <score/application/ApplicationContext.hpp>
@@ -30,6 +19,7 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/widgets/MarginLess.hpp>
+#include <score/widgets/SelectionButton.hpp>
 #include <score/widgets/Separator.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/TextLabel.hpp>
@@ -39,6 +29,16 @@
 #include <QString>
 #include <QWidget>
 
+#include <Scenario/Commands/Event/SetCondition.hpp>
+#include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Inspector/Expression/ExpressionEditorWidget.hpp>
+#include <Scenario/Inspector/MetadataWidget.hpp>
+#include <Scenario/Inspector/TimeSync/TriggerInspectorWidget.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Scenario::EventInspectorWidget)
@@ -70,7 +70,8 @@ EventInspectorWidget::EventInspectorWidget(
 
   ////// HEADER
   // metadata
-  m_metadata = new MetadataWidget{object.metadata(), doc.commandStack, &object, this};
+  m_metadata
+      = new MetadataWidget{object.metadata(), doc.commandStack, &object, this};
   m_metadata->setupConnections(object);
   addHeader(m_metadata);
 
@@ -82,7 +83,10 @@ EventInspectorWidget::EventInspectorWidget(
   // timeSync
   auto timeSync = object.timeSync();
   auto tnBtn = SelectionButton::make(
-      tr("Parent Sync"), &scenar->timeSync(timeSync), m_selectionDispatcher, infoWidg);
+      tr("Parent Sync"),
+      &scenar->timeSync(timeSync),
+      m_selectionDispatcher,
+      infoWidg);
 
   infoLay->addWidget(tnBtn);
 
@@ -94,7 +98,8 @@ EventInspectorWidget::EventInspectorWidget(
   {
     auto expr_widg = new QWidget{this};
     expr_widg->setContentsMargins(0, 0, 0, 0);
-    auto expr_lay = new QHBoxLayout{expr_widg}; // new score::MarginLess<QHBoxLayout>{expr_widg};
+    auto expr_lay = new QHBoxLayout{
+        expr_widg}; // new score::MarginLess<QHBoxLayout>{expr_widg};
 
     m_exprEditor = new ExpressionEditorWidget{m_context, expr_widg};
     connect(
@@ -114,24 +119,29 @@ EventInspectorWidget::EventInspectorWidget(
 
     m_exprEditor->setMenu(m_menu.menu);
 
-    con(m_menu, &ExpressionMenu::expressionChanged, this, [=](const QString& str) {
-      if (!m_model)
-        return;
-      auto cond = State::parseExpression(str);
-      if (!cond)
-      {
-        cond = State::defaultTrueExpression();
-      }
+    con(m_menu,
+        &ExpressionMenu::expressionChanged,
+        this,
+        [=](const QString& str) {
+          if (!m_model)
+            return;
+          auto cond = State::parseExpression(str);
+          if (!cond)
+          {
+            cond = State::defaultTrueExpression();
+          }
 
-      if (*cond != m_model->condition())
-      {
-        auto cmd = new Scenario::Command::SetCondition{*m_model, std::move(*cond)};
-        m_commandDispatcher.submit(cmd);
-      }
-    });
+          if (*cond != m_model->condition())
+          {
+            auto cmd = new Scenario::Command::SetCondition{
+                *m_model, std::move(*cond)};
+            m_commandDispatcher.submit(cmd);
+          }
+        });
 
     connect(m_menu.deleteAction, &QAction::triggered, this, [=] {
-      auto cmd = new Scenario::Command::SetCondition{*m_model, State::Expression{}};
+      auto cmd
+          = new Scenario::Command::SetCondition{*m_model, State::Expression{}};
       m_commandDispatcher.submit(cmd);
     });
     expr_lay->addWidget(m_exprEditor);
@@ -143,22 +153,30 @@ EventInspectorWidget::EventInspectorWidget(
     auto w = new QWidget;
     auto l = new score::MarginLess<QFormLayout>{w};
     m_offsetBehavior = new QComboBox{w};
-    m_offsetBehavior->addItem(tr("True"), QVariant::fromValue(OffsetBehavior::True));
-    m_offsetBehavior->addItem(tr("False"), QVariant::fromValue(OffsetBehavior::False));
-    m_offsetBehavior->addItem(tr("Expression"), QVariant::fromValue(OffsetBehavior::Expression));
+    m_offsetBehavior->addItem(
+        tr("True"), QVariant::fromValue(OffsetBehavior::True));
+    m_offsetBehavior->addItem(
+        tr("False"), QVariant::fromValue(OffsetBehavior::False));
+    m_offsetBehavior->addItem(
+        tr("Expression"), QVariant::fromValue(OffsetBehavior::Expression));
 
     m_offsetBehavior->setCurrentIndex((int)object.offsetBehavior());
-    con(object, &EventModel::offsetBehaviorChanged, this, [=](OffsetBehavior b) {
-      m_offsetBehavior->setCurrentIndex((int)b);
-    });
+    con(object,
+        &EventModel::offsetBehaviorChanged,
+        this,
+        [=](OffsetBehavior b) { m_offsetBehavior->setCurrentIndex((int)b); });
     connect(
-        m_offsetBehavior, SignalUtils::QComboBox_currentIndexChanged_int(), this, [=](int idx) {
+        m_offsetBehavior,
+        SignalUtils::QComboBox_currentIndexChanged_int(),
+        this,
+        [=](int idx) {
           if (!m_model)
             return;
           if (idx != (int)m_model->offsetBehavior())
           {
             CommandDispatcher<> c{this->m_context.commandStack};
-            c.submit(new Command::SetOffsetBehavior{*m_model, (OffsetBehavior)idx});
+            c.submit(
+                new Command::SetOffsetBehavior{*m_model, (OffsetBehavior)idx});
           }
         });
 
@@ -204,7 +222,8 @@ void EventInspectorWidget::on_conditionReset()
 {
   if (!m_model)
     return;
-  auto cmd = new Scenario::Command::SetCondition{*m_model, State::Expression{}};
+  auto cmd
+      = new Scenario::Command::SetCondition{*m_model, State::Expression{}};
   m_commandDispatcher.submit(cmd);
 }
 }

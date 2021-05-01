@@ -1,10 +1,9 @@
 #pragma once
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
-
-#include <Gfx/Qt5CompatPush>
+#include <Gfx/Qt5CompatPush> // clang-format: keep
 struct YUYV422Decoder : GPUVideoDecoder
 {
-static const constexpr auto filter = R"_(#version 450
+  static const constexpr auto filter = R"_(#version 450
 
 layout(std140, binding = 0) uniform buf {
 mat4 clipSpaceCorrMatrix;
@@ -34,19 +33,25 @@ void main() {
 }
 )_";
 
-  YUYV422Decoder(NodeModel& n, video_decoder& d): node{n}, decoder{d} { }
+  YUYV422Decoder(NodeModel& n, video_decoder& d)
+      : node{n}
+      , decoder{d}
+  {
+  }
   NodeModel& node;
   video_decoder& decoder;
   void init(Renderer& r, RenderedNode& rendered) override
   {
     auto& rhi = *r.state.rhi;
 
-    std::tie(node.m_vertexS, node.m_fragmentS) = makeShaders(node.mesh().defaultVertexShader(), filter);
+    std::tie(node.m_vertexS, node.m_fragmentS)
+        = makeShaders(node.mesh().defaultVertexShader(), filter);
 
     const auto w = decoder.width, h = decoder.height;
     // Y
     {
-      auto tex = rhi.newTexture(QRhiTexture::RGBA8, {w/2, h}, 1, QRhiTexture::Flag{});
+      auto tex = rhi.newTexture(
+          QRhiTexture::RGBA8, {w / 2, h}, 1, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(
@@ -60,7 +65,11 @@ void main() {
     }
   }
 
-  void exec(Renderer&, RenderedNode& rendered, QRhiResourceUpdateBatch& res, AVFrame& frame) override
+  void exec(
+      Renderer&,
+      RenderedNode& rendered,
+      QRhiResourceUpdateBatch& res,
+      AVFrame& frame) override
   {
     setYPixels(rendered, res, frame.data[0], frame.linesize[0]);
   }
@@ -71,22 +80,26 @@ void main() {
       tex->deleteLater();
   }
 
-  void setYPixels(RenderedNode& rendered, QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept
+  void setYPixels(
+      RenderedNode& rendered,
+      QRhiResourceUpdateBatch& res,
+      uint8_t* pixels,
+      int stride) const noexcept
   {
     const auto w = decoder.width, h = decoder.height;
     auto y_tex = rendered.m_samplers[0].texture;
 
-    QRhiTextureUploadEntry entry{0, 0, createTextureUpload(pixels, w, h, 2, stride)};
+    QRhiTextureUploadEntry entry{
+        0, 0, createTextureUpload(pixels, w, h, 2, stride)};
 
     QRhiTextureUploadDescription desc{entry};
     res.uploadTexture(y_tex, desc);
   }
-
 };
 
 struct UYVY422Decoder : GPUVideoDecoder
 {
-static const constexpr auto filter = R"_(#version 450
+  static const constexpr auto filter = R"_(#version 450
 
 layout(std140, binding = 0) uniform buf {
 mat4 clipSpaceCorrMatrix;
@@ -130,19 +143,25 @@ void main() {
 }
 )_";
 
-  UYVY422Decoder(NodeModel& n, video_decoder& d): node{n}, decoder{d} { }
+  UYVY422Decoder(NodeModel& n, video_decoder& d)
+      : node{n}
+      , decoder{d}
+  {
+  }
   NodeModel& node;
   video_decoder& decoder;
   void init(Renderer& r, RenderedNode& rendered) override
   {
     auto& rhi = *r.state.rhi;
 
-    std::tie(node.m_vertexS, node.m_fragmentS) = makeShaders(node.mesh().defaultVertexShader(), filter);
+    std::tie(node.m_vertexS, node.m_fragmentS)
+        = makeShaders(node.mesh().defaultVertexShader(), filter);
 
     const auto w = decoder.width, h = decoder.height;
     // Y
     {
-      auto tex = rhi.newTexture(QRhiTexture::RGBA8, {w/2, h}, 1, QRhiTexture::Flag{});
+      auto tex = rhi.newTexture(
+          QRhiTexture::RGBA8, {w / 2, h}, 1, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(
@@ -156,7 +175,11 @@ void main() {
     }
   }
 
-  void exec(Renderer&, RenderedNode& rendered, QRhiResourceUpdateBatch& res, AVFrame& frame) override
+  void exec(
+      Renderer&,
+      RenderedNode& rendered,
+      QRhiResourceUpdateBatch& res,
+      AVFrame& frame) override
   {
     setYPixels(rendered, res, frame.data[0], frame.linesize[0]);
   }
@@ -167,17 +190,21 @@ void main() {
       tex->deleteLater();
   }
 
-  void setYPixels(RenderedNode& rendered, QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept
+  void setYPixels(
+      RenderedNode& rendered,
+      QRhiResourceUpdateBatch& res,
+      uint8_t* pixels,
+      int stride) const noexcept
   {
     const auto w = decoder.width, h = decoder.height;
     auto y_tex = rendered.m_samplers[0].texture;
 
-    QRhiTextureUploadEntry entry{0, 0, createTextureUpload(pixels, w, h, 2, stride)};
+    QRhiTextureUploadEntry entry{
+        0, 0, createTextureUpload(pixels, w, h, 2, stride)};
 
     QRhiTextureUploadDescription desc{entry};
     res.uploadTexture(y_tex, desc);
   }
-
 };
 
-#include <Gfx/Qt5CompatPop>
+#include <Gfx/Qt5CompatPop> // clang-format: keep

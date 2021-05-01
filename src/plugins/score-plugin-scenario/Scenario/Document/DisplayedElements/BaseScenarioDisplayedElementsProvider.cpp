@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "BaseScenarioDisplayedElementsProvider.hpp"
 
+#include <QObject>
+
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
 #include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
@@ -9,16 +11,16 @@
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
 
-#include <QObject>
-
 namespace Scenario
 {
-bool BaseScenarioDisplayedElementsProvider::matches(const IntervalModel& cst) const
+bool BaseScenarioDisplayedElementsProvider::matches(
+    const IntervalModel& cst) const
 {
   return dynamic_cast<BaseScenario*>(cst.parent());
 }
 
-DisplayedElementsContainer BaseScenarioDisplayedElementsProvider::make(IntervalModel& cst) const
+DisplayedElementsContainer
+BaseScenarioDisplayedElementsProvider::make(IntervalModel& cst) const
 {
   if (auto parent_base = dynamic_cast<BaseScenario*>(cst.parent()))
   {
@@ -37,7 +39,8 @@ DisplayedElementsContainer BaseScenarioDisplayedElementsProvider::make(IntervalM
   return {};
 }
 
-DisplayedElementsPresenterContainer BaseScenarioDisplayedElementsProvider::make_presenters(
+DisplayedElementsPresenterContainer
+BaseScenarioDisplayedElementsProvider::make_presenters(
     ZoomRatio zoom,
     const IntervalModel& m,
     const Process::Context& ctx,

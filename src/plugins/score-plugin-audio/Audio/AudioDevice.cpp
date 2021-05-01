@@ -1,18 +1,20 @@
 ﻿#include "AudioDevice.hpp"
+#include <Audio/AudioApplicationPlugin.hpp>
+#include <Audio/Settings/Model.hpp>
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/DeviceLogging.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
+#include <score/serialization/AnySerialization.hpp>
+#include <score/serialization/MapSerialization.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
-#include <score/serialization/AnySerialization.hpp>
-#include <score/serialization/MapSerialization.hpp>
 #include <ossia-qt/js_utilities.hpp>
+#include <ossia/audio/audio_engine.hpp>
 #include <ossia/audio/audio_parameter.hpp>
 #include <ossia/audio/audio_protocol.hpp>
-#include <ossia/audio/audio_engine.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>
 
@@ -25,8 +27,6 @@
 #include <QRadioButton>
 #include <QTableWidget>
 
-#include <Audio/AudioApplicationPlugin.hpp>
-#include <Audio/Settings/Model.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Dataflow::AudioDevice)
 namespace Dataflow
@@ -55,8 +55,9 @@ void AudioDevice::addAddress(const Device::FullAddressSettings& settings)
   if (auto dev = getDevice())
   {
     // Create the node. It is added into the device.
-    ossia::net::node_base* node = Device::createNodeFromPath(settings.address.path, *dev);
-    if(node)
+    ossia::net::node_base* node
+        = Device::createNodeFromPath(settings.address.path, *dev);
+    if (node)
       setupNode(*node, settings.extendedAttributes);
   }
 }
@@ -95,7 +96,9 @@ bool AudioDevice::reconnect()
   {
     auto& proto = static_cast<ossia::audio_protocol&>(m_dev.get_protocol());
 
-    auto& engine = score::GUIAppContext().guiApplicationPlugin<Audio::ApplicationPlugin>().audio;
+    auto& engine = score::GUIAppContext()
+                       .guiApplicationPlugin<Audio::ApplicationPlugin>()
+                       .audio;
     if (!engine)
       return false;
 
@@ -128,7 +131,9 @@ void AudioDevice::recreate(const Device::Node& n)
   }
 }
 
-void AudioDevice::setupNode(ossia::net::node_base& node, const ossia::extended_attributes& attr)
+void AudioDevice::setupNode(
+    ossia::net::node_base& node,
+    const ossia::extended_attributes& attr)
 {
   // TODO make sure that this function which modifies the tree
   // is done in the execution thread ...
@@ -139,23 +144,28 @@ void AudioDevice::setupNode(ossia::net::node_base& node, const ossia::extended_a
   auto kind = ossia::any_cast<std::string>(kind_it.value());
   if (kind == "in")
   {
-    auto chans = ossia::any_cast<ossia::audio_mapping>(attr.at("audio-mapping"));
+    auto chans
+        = ossia::any_cast<ossia::audio_mapping>(attr.at("audio-mapping"));
     if (!node.get_parameter())
-      node.set_parameter(std::make_unique<ossia::mapped_audio_parameter>(false, chans, node));
+      node.set_parameter(
+          std::make_unique<ossia::mapped_audio_parameter>(false, chans, node));
 
     // TODO update
   }
   else if (kind == "out")
   {
-    auto chans = ossia::any_cast<ossia::audio_mapping>(attr.at("audio-mapping"));
+    auto chans
+        = ossia::any_cast<ossia::audio_mapping>(attr.at("audio-mapping"));
     if (!node.get_parameter())
-      node.set_parameter(std::make_unique<ossia::mapped_audio_parameter>(true, chans, node));
+      node.set_parameter(
+          std::make_unique<ossia::mapped_audio_parameter>(true, chans, node));
   }
   else if (kind == "virtual")
   {
     auto chans = ossia::any_cast<int>(attr.at("audio-channels"));
     if (!node.get_parameter())
-      node.set_parameter(std::make_unique<ossia::virtual_audio_parameter>(chans, node));
+      node.set_parameter(
+          std::make_unique<ossia::virtual_audio_parameter>(chans, node));
   }
 
   auto x = node.get_extended_attributes();
@@ -181,7 +191,8 @@ QString AudioProtocolFactory::category() const noexcept
   return StandardCategories::audio;
 }
 
-Device::DeviceEnumerator* AudioProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerator*
+AudioProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
   return nullptr;
 }
@@ -210,7 +221,8 @@ Device::DeviceInterface* AudioProtocolFactory::makeDevice(
     return new Dataflow::AudioDevice(settings);
 }
 
-const Device::DeviceSettings& AudioProtocolFactory::defaultSettings() const noexcept
+const Device::DeviceSettings&
+AudioProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
@@ -238,11 +250,20 @@ public:
     m_layout.addRow(tr("Name"), &m_nameEdit);
     m_layout.addRow(tr("Channels"), &m_channels);
     m_layout.addRow(tr("Type"), &m_type);
-    m_layout.addRow(tr("Mapping\nRows: this parameter\nCols: sound card"), &m_mapping);
+    m_layout.addRow(
+        tr("Mapping\nRows: this parameter\nCols: sound card"), &m_mapping);
     m_layout.addWidget(&m_buttons);
 
-    connect(&m_buttons, &QDialogButtonBox::accepted, this, &AudioAddressDialog::accept);
-    connect(&m_buttons, &QDialogButtonBox::rejected, this, &AudioAddressDialog::reject);
+    connect(
+        &m_buttons,
+        &QDialogButtonBox::accepted,
+        this,
+        &AudioAddressDialog::accept);
+    connect(
+        &m_buttons,
+        &QDialogButtonBox::rejected,
+        this,
+        &AudioAddressDialog::reject);
 
     m_type.addItems({tr("In"), tr("Out"), tr("Virtual")});
     m_channels.setRange(1, 127);
@@ -264,7 +285,8 @@ public:
 
     m_mapping.setAlternatingRowColors(true);
     m_mapping.setCornerButtonEnabled(false);
-    m_mapping.horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    m_mapping.horizontalHeader()->setSectionResizeMode(
+        QHeaderView::ResizeToContents);
     m_mapping.horizontalHeader()->setSectionsClickable(false);
     m_mapping.horizontalHeader()->setSectionsMovable(false);
     m_mapping.horizontalHeader()->setDefaultAlignment(Qt::AlignCenter);
@@ -286,7 +308,8 @@ public:
       , m_channels{this}
       , m_mapping{this}
       , m_buttons{
-            QDialogButtonBox::StandardButton::Ok | QDialogButtonBox::StandardButton::Cancel,
+            QDialogButtonBox::StandardButton::Ok
+                | QDialogButtonBox::StandardButton::Cancel,
             this}
   {
     init();
@@ -327,7 +350,8 @@ public:
       auto it = addr.extendedAttributes.find("audio-mapping");
       if (it == addr.extendedAttributes.end())
         return;
-      const ossia::audio_mapping& mpng = ossia::any_cast<ossia::audio_mapping>(it->second);
+      const ossia::audio_mapping& mpng
+          = ossia::any_cast<ossia::audio_mapping>(it->second);
 
       for (std::size_t i = 0; i < m_checkboxes.size(); i++)
       {
@@ -476,7 +500,8 @@ Device::AddressDialog* AudioProtocolFactory::makeAddAddressDialog(
     const score::DocumentContext& ctx,
     QWidget* parent)
 {
-  return new AudioAddressDialog{(AudioDevice&)safe_cast<const AudioDevice&>(dev), ctx, parent};
+  return new AudioAddressDialog{
+      (AudioDevice&)safe_cast<const AudioDevice&>(dev), ctx, parent};
 }
 
 Device::AddressDialog* AudioProtocolFactory::makeEditAddressDialog(
@@ -494,7 +519,8 @@ Device::ProtocolSettingsWidget* AudioProtocolFactory::makeSettingsWidget()
   return new AudioSettingsWidget;
 }
 
-QVariant AudioProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
+QVariant AudioProtocolFactory::makeProtocolSpecificSettings(
+    const VisitorVariant& visitor) const
 {
   return {};
 }
@@ -512,7 +538,8 @@ bool AudioProtocolFactory::checkCompatibility(
   return a.name != b.name;
 }
 
-AudioSettingsWidget::AudioSettingsWidget(QWidget* parent) : ProtocolSettingsWidget(parent)
+AudioSettingsWidget::AudioSettingsWidget(QWidget* parent)
+    : ProtocolSettingsWidget(parent)
 {
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
   checkForChanges(m_deviceNameEdit);

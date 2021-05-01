@@ -1,9 +1,9 @@
 #include "Executor.hpp"
 
-#include <Vst/Control.hpp>
-#include <Vst/Node.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionSetup.hpp>
+#include <Vst/Control.hpp>
+#include <Vst/Node.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/fx_node.hpp>
@@ -25,12 +25,14 @@ void Executor::setupNode(Node_T& node)
   const auto& inlets = proc.inlets();
 
   constexpr bool isSynth = std::remove_reference_t<decltype(*node)>::synth;
-  for (std::size_t i = VST_FIRST_CONTROL_INDEX(isSynth); i < inlets.size(); i++)
+  for (std::size_t i = VST_FIRST_CONTROL_INDEX(isSynth); i < inlets.size();
+       i++)
   {
     auto ctrl = safe_cast<vst::ControlInlet*>(inlets[i]);
     auto inlet = new ossia::value_inlet;
 
-    node->controls.push_back({ctrl->fxNum, ctrl->value(), inlet->target<ossia::value_port>()});
+    node->controls.push_back(
+        {ctrl->fxNum, ctrl->value(), inlet->target<ossia::value_port>()});
     node->root_inputs().push_back(std::move(inlet));
   }
 
@@ -50,10 +52,12 @@ void Executor::setupNode(Node_T& node)
 
           Execution::Transaction commands{system()};
 
-          commands.push_back([n, inlet, val = ctrl->value(), num = ctrl->fxNum] {
-            n->controls.push_back({num, val, inlet->target<ossia::value_port>()});
-            n->root_inputs().push_back(inlet);
-          });
+          commands.push_back(
+              [n, inlet, val = ctrl->value(), num = ctrl->fxNum] {
+                n->controls.push_back(
+                    {num, val, inlet->target<ossia::value_port>()});
+                n->root_inputs().push_back(inlet);
+              });
 
           setup.register_inlet(*ctrl, inlet, n, commands);
 
@@ -68,8 +72,10 @@ void Executor::setupNode(Node_T& node)
         if (auto n = wp.lock())
         {
           Execution::SetupContext& setup = system().context().setup;
-          in_exec([n, num = static_cast<const vst::ControlInlet&>(port).fxNum] {
-            auto it = ossia::find_if(n->controls, [&](auto& c) { return c.idx == num; });
+          in_exec([n,
+                   num = static_cast<const vst::ControlInlet&>(port).fxNum] {
+            auto it = ossia::find_if(
+                n->controls, [&](auto& c) { return c.idx == num; });
             if (it != n->controls.end())
             {
               ossia::value_port* port = it->port;
@@ -105,13 +111,15 @@ Executor::Executor(
   {
     if (fx.flags & effFlagsIsSynth)
     {
-      auto n = vst::make_vst_fx<true, true>(proc.fx, ctx.execState->sampleRate);
+      auto n
+          = vst::make_vst_fx<true, true>(proc.fx, ctx.execState->sampleRate);
       setupNode(n);
       node = std::move(n);
     }
     else
     {
-      auto n = vst::make_vst_fx<true, false>(proc.fx, ctx.execState->sampleRate);
+      auto n
+          = vst::make_vst_fx<true, false>(proc.fx, ctx.execState->sampleRate);
       setupNode(n);
       node = std::move(n);
     }
@@ -120,13 +128,15 @@ Executor::Executor(
   {
     if (fx.flags & effFlagsIsSynth)
     {
-      auto n = vst::make_vst_fx<false, true>(proc.fx, ctx.execState->sampleRate);
+      auto n
+          = vst::make_vst_fx<false, true>(proc.fx, ctx.execState->sampleRate);
       setupNode(n);
       node = std::move(n);
     }
     else
     {
-      auto n = vst::make_vst_fx<false, false>(proc.fx, ctx.execState->sampleRate);
+      auto n
+          = vst::make_vst_fx<false, false>(proc.fx, ctx.execState->sampleRate);
       setupNode(n);
       node = std::move(n);
     }

@@ -2,12 +2,12 @@
 
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
-#include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 
+#include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <score_plugin_scenario_export.h>
 
 #include <memory>
@@ -21,9 +21,13 @@ class ProcessModel;
 namespace Command
 {
 
-class SCORE_PLUGIN_SCENARIO_EXPORT MoveEventOnCreationMeta final : public SerializableMoveEvent
+class SCORE_PLUGIN_SCENARIO_EXPORT MoveEventOnCreationMeta final
+    : public SerializableMoveEvent
 {
-  SCORE_COMMAND_DECL(CommandFactoryName(), MoveEventOnCreationMeta, "Move an event on creation")
+  SCORE_COMMAND_DECL(
+      CommandFactoryName(),
+      MoveEventOnCreationMeta,
+      "Move an event on creation")
 public:
   MoveEventOnCreationMeta(
       const Scenario::ProcessModel& scenarioPath,

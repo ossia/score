@@ -5,9 +5,6 @@
 #include "FullViewIntervalPresenter.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Interval/IntervalPixmaps.hpp>
-#include <Scenario/Document/Interval/IntervalView.hpp>
 
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/graphics/PainterPath.hpp>
@@ -17,6 +14,9 @@
 #include <QPainter>
 #include <qnamespace.h>
 
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/IntervalPixmaps.hpp>
+#include <Scenario/Document/Interval/IntervalView.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::FullViewIntervalView)
 
@@ -79,21 +79,28 @@ void FullViewIntervalView::drawPlayDashedPath(
     return;
 
   double actual_min = std::max(min_w, visibleRect.left());
-  double actual_max = std::min(infinite() ? gui_w : max_w, visibleRect.right());
+  double actual_max
+      = std::min(infinite() ? gui_w : max_w, visibleRect.right());
 
   auto& pixmaps = intervalPixmaps(skin);
 
   // waiting
   const int idx = m_waiting ? skin.skin.PulseIndex : 0;
-  IntervalPixmaps::drawDashes(actual_min, actual_max, p, visibleRect, pixmaps.playDashed[idx]);
+  IntervalPixmaps::drawDashes(
+      actual_min, actual_max, p, visibleRect, pixmaps.playDashed[idx]);
 
   // played
   IntervalPixmaps::drawDashes(
-      actual_min, std::min(actual_max, play_w), p, visibleRect, pixmaps.playDashed.back());
+      actual_min,
+      std::min(actual_max, play_w),
+      p,
+      visibleRect,
+      pixmaps.playDashed.back());
 
   p.setPen(skin.IntervalPlayLinePen(skin.IntervalPlayFill()));
 
-  p.drawLine(QPointF{actual_min, -0.5}, QPointF{std::min(actual_max, play_w), -0.5});
+  p.drawLine(
+      QPointF{actual_min, -0.5}, QPointF{std::min(actual_max, play_w), -0.5});
 }
 
 void FullViewIntervalView::updatePaths()
@@ -217,7 +224,7 @@ void FullViewIntervalView::setSelected(bool selected)
 
 void FullViewIntervalView::setSnapLine(std::optional<double> s)
 {
-  if(m_snapLine != s)
+  if (m_snapLine != s)
   {
     m_snapLine = s;
     update();
@@ -227,7 +234,10 @@ void FullViewIntervalView::setSnapLine(std::optional<double> s)
 QRectF FullViewIntervalView::boundingRect() const
 {
   return {
-      0, -3, qreal(std::max(defaultWidth(), m_guiWidth)) + 3, qreal(intervalAndRackHeight()) + 6};
+      0,
+      -3,
+      qreal(std::max(defaultWidth(), m_guiWidth)) + 3,
+      qreal(intervalAndRackHeight()) + 6};
 }
 
 void FullViewIntervalView::paint(
@@ -240,15 +250,19 @@ void FullViewIntervalView::paint(
     return;
 
   QPointF sceneDrawableTopLeft = view->mapToScene(-10, 0);
-  QPointF sceneDrawableBottomRight = view->mapToScene(view->width() + 10, view->height() + 10);
+  QPointF sceneDrawableBottomRight
+      = view->mapToScene(view->width() + 10, view->height() + 10);
   QPointF itemDrawableTopLeft = this->mapFromScene(sceneDrawableTopLeft);
-  QPointF itemDrawableBottomRight = this->mapFromScene(sceneDrawableBottomRight);
+  QPointF itemDrawableBottomRight
+      = this->mapFromScene(sceneDrawableBottomRight);
 
   itemDrawableTopLeft.rx() = std::max(itemDrawableTopLeft.x(), 0.);
   itemDrawableTopLeft.ry() = std::max(itemDrawableTopLeft.y(), 0.);
 
-  itemDrawableBottomRight.rx() = std::min(itemDrawableBottomRight.x(), boundingRect().width());
-  itemDrawableBottomRight.ry() = std::min(itemDrawableBottomRight.y(), boundingRect().height());
+  itemDrawableBottomRight.rx()
+      = std::min(itemDrawableBottomRight.x(), boundingRect().width());
+  itemDrawableBottomRight.ry()
+      = std::min(itemDrawableBottomRight.y(), boundingRect().height());
   if (itemDrawableTopLeft.x() > boundingRect().width())
   {
     return;
@@ -277,7 +291,8 @@ void FullViewIntervalView::paint(
 
   const auto& defaultColor = this->intervalColor(skin);
 
-  const auto visibleRect = QRectF{itemDrawableTopLeft, itemDrawableBottomRight};
+  const auto visibleRect
+      = QRectF{itemDrawableTopLeft, itemDrawableBottomRight};
   // drawPaths(painter, visibleRect, defaultColor, skin);
 
   // Drawing

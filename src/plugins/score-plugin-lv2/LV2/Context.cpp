@@ -1,7 +1,7 @@
 
-#include <LV2/Context.hpp>
-
 #include "lv2_atom_helpers.hpp"
+
+#include <LV2/Context.hpp>
 
 #include <score/tools/Debug.hpp>
 
@@ -27,7 +27,8 @@ struct WorkerData
   const void* data;
 };
 
-static LV2_URID do_uri_map(LV2_URI_Map_Callback_Data ptr, const char*, const char* val)
+static LV2_URID
+do_uri_map(LV2_URI_Map_Callback_Data ptr, const char*, const char* val)
 {
   auto& c = *static_cast<LV2::GlobalContext*>(ptr);
   auto& map = c.uri_map_left;
@@ -84,7 +85,8 @@ static const char* do_unmap(LV2_URID_Unmap_Handle ptr, LV2_URID val)
   }
 }
 
-static LV2_Worker_Status do_worker(LV2_Worker_Schedule_Handle ptr, uint32_t s, const void* data)
+static LV2_Worker_Status
+do_worker(LV2_Worker_Schedule_Handle ptr, uint32_t s, const void* data)
 {
   auto& c = *static_cast<LV2::GlobalContext*>(ptr);
   LV2::EffectContext* cur = c.host.current;
@@ -96,7 +98,9 @@ static LV2_Worker_Status do_worker(LV2_Worker_Schedule_Handle ptr, uint32_t s, c
     {
       w.work(
           cur->instance->lv2_handle,
-          [](LV2_Worker_Respond_Handle sub_h, uint32_t sub_s, const void* sub_d) {
+          [](LV2_Worker_Respond_Handle sub_h,
+             uint32_t sub_s,
+             const void* sub_d) {
             return LV2_WORKER_ERR_UNKNOWN;
             auto sub_c = static_cast<LV2::EffectContext*>(sub_h);
             sub_c->worker_data.resize(sub_s);
@@ -120,7 +124,8 @@ do_worker_state(LV2_Worker_Schedule_Handle ptr, uint32_t s, const void* data)
   return LV2_WORKER_ERR_UNKNOWN;
 }
 
-static int lv2_printf(LV2_Log_Handle handle, LV2_URID type, const char* format, ...)
+static int
+lv2_printf(LV2_Log_Handle handle, LV2_URID type, const char* format, ...)
 {
   va_list args;
   va_start(args, format);
@@ -129,13 +134,15 @@ static int lv2_printf(LV2_Log_Handle handle, LV2_URID type, const char* format, 
   return r;
 }
 
-static uint32_t do_event_ref(LV2_Event_Callback_Data callback_data, LV2_Event* event)
+static uint32_t
+do_event_ref(LV2_Event_Callback_Data callback_data, LV2_Event* event)
 {
   SCORE_TODO;
   return 0;
 }
 
-static uint32_t do_event_unref(LV2_Event_Callback_Data callback_data, LV2_Event* event)
+static uint32_t
+do_event_unref(LV2_Event_Callback_Data callback_data, LV2_Event* event)
 {
   SCORE_TODO;
   return 0;
@@ -204,7 +211,8 @@ GlobalContext::GlobalContext(int buffer_size, LV2::HostContext& host)
       map.map(map.handle, LV2_ATOM__Int),
       &host.midi_buffer_size});
 
-  options.push_back(LV2_Options_Option{LV2_OPTIONS_INSTANCE, 0, 0, 0, 0, nullptr});
+  options.push_back(
+      LV2_Options_Option{LV2_OPTIONS_INSTANCE, 0, 0, 0, 0, nullptr});
 
   options_feature.data = options.data();
 
@@ -222,7 +230,8 @@ GlobalContext::GlobalContext(int buffer_size, LV2::HostContext& host)
   // lv2_features.push_back(&state_thread_safe_restore_feature);
   lv2_features.push_back(&bounded);
   lv2_features.push_back(&pow2);
-  lv2_features.push_back(nullptr); // must be a null-terminated array per LV2 API.
+  lv2_features.push_back(
+      nullptr); // must be a null-terminated array per LV2 API.
 }
 
 void LV2::GlobalContext::loadPlugins()
@@ -238,11 +247,16 @@ void LV2::GlobalContext::loadPlugins()
   lv2_atom_forge_init(&host.forge, &map);
 }
 
-LV2Data::LV2Data(HostContext& h, EffectContext& ctx) : host{h}, effect{ctx}
+LV2Data::LV2Data(HostContext& h, EffectContext& ctx)
+    : host{h}
+    , effect{ctx}
 {
-  for (auto res : {effect.plugin.get_required_features(), effect.plugin.get_optional_features()})
+  for (auto res :
+       {effect.plugin.get_required_features(),
+        effect.plugin.get_optional_features()})
   {
-    std::cerr << effect.plugin.get_name().as_string() << " requires " << std::endl;
+    std::cerr << effect.plugin.get_name().as_string() << " requires "
+              << std::endl;
     auto it = res.begin();
     while (it)
     {
@@ -259,7 +273,8 @@ LV2Data::LV2Data(HostContext& h, EffectContext& ctx) : host{h}, effect{ctx}
   {
     Lilv::Port port = effect.plugin.get_port_by_index(i);
 
-    std::cerr << "Port : " << lilv_node_as_string(port.get_name()) << std::endl;
+    std::cerr << "Port : " << lilv_node_as_string(port.get_name())
+              << std::endl;
     auto cl = port.get_classes();
     auto beg = lilv_nodes_begin(cl);
     while (!lilv_nodes_is_end(cl, beg))

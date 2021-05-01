@@ -24,28 +24,37 @@ MinMaxFloatOutlet::MinMaxFloatOutlet(Id<Process::Port> c, QObject* parent)
 }
 MinMaxFloatOutlet::~MinMaxFloatOutlet() { }
 
-MinMaxFloatOutlet::MinMaxFloatOutlet(DataStream::Deserializer& vis, QObject* parent)
+MinMaxFloatOutlet::MinMaxFloatOutlet(
+    DataStream::Deserializer& vis,
+    QObject* parent)
     : ValueOutlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-MinMaxFloatOutlet::MinMaxFloatOutlet(JSONObject::Deserializer& vis, QObject* parent)
+MinMaxFloatOutlet::MinMaxFloatOutlet(
+    JSONObject::Deserializer& vis,
+    QObject* parent)
     : ValueOutlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-MinMaxFloatOutlet::MinMaxFloatOutlet(DataStream::Deserializer&& vis, QObject* parent)
+MinMaxFloatOutlet::MinMaxFloatOutlet(
+    DataStream::Deserializer&& vis,
+    QObject* parent)
     : ValueOutlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-MinMaxFloatOutlet::MinMaxFloatOutlet(JSONObject::Deserializer&& vis, QObject* parent)
+MinMaxFloatOutlet::MinMaxFloatOutlet(
+    JSONObject::Deserializer&& vis,
+    QObject* parent)
     : ValueOutlet{vis, parent}
 {
   vis.writeTo(*this);
 }
 
-void MinMaxFloatOutlet::forChildInlets(const smallfun::function<void(Inlet&)>& f) const noexcept
+void MinMaxFloatOutlet::forChildInlets(
+    const smallfun::function<void(Inlet&)>& f) const noexcept
 {
   /* TODO fix AutomationModel
   f(*minInlet);
@@ -68,7 +77,8 @@ void MinMaxFloatOutlet::mapExecution(
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamReader::read<Process::MinMaxFloatOutlet>(const Process::MinMaxFloatOutlet& p)
+DataStreamReader::read<Process::MinMaxFloatOutlet>(
+    const Process::MinMaxFloatOutlet& p)
 {
   // read((Process::Inlet&)p);
   m_stream << *p.minInlet << *p.maxInlet;
@@ -76,17 +86,20 @@ DataStreamReader::read<Process::MinMaxFloatOutlet>(const Process::MinMaxFloatOut
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::write<Process::MinMaxFloatOutlet>(Process::MinMaxFloatOutlet& p)
+DataStreamWriter::write<Process::MinMaxFloatOutlet>(
+    Process::MinMaxFloatOutlet& p)
 {
   static auto& il = components.interfaces<Process::PortFactoryList>();
 
-  p.minInlet.reset((Process::FloatSlider*)deserialize_interface(il, *this, &p));
-  p.maxInlet.reset((Process::FloatSlider*)deserialize_interface(il, *this, &p));
+  p.minInlet.reset(
+      (Process::FloatSlider*)deserialize_interface(il, *this, &p));
+  p.maxInlet.reset(
+      (Process::FloatSlider*)deserialize_interface(il, *this, &p));
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONReader::read<Process::MinMaxFloatOutlet>(const Process::MinMaxFloatOutlet& p)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::MinMaxFloatOutlet>(
+    const Process::MinMaxFloatOutlet& p)
 {
   // read((Process::Inlet&)p);
   obj["MinInlet"] = *p.minInlet;
@@ -101,10 +114,12 @@ JSONWriter::write<Process::MinMaxFloatOutlet>(Process::MinMaxFloatOutlet& p)
 
   {
     JSONWriter writer{obj["MinInlet"]};
-    p.minInlet.reset((Process::FloatSlider*)deserialize_interface(il, writer, &p));
+    p.minInlet.reset(
+        (Process::FloatSlider*)deserialize_interface(il, writer, &p));
   }
   {
     JSONWriter writer{obj["MaxInlet"]};
-    p.maxInlet.reset((Process::FloatSlider*)deserialize_interface(il, writer, &p));
+    p.maxInlet.reset(
+        (Process::FloatSlider*)deserialize_interface(il, writer, &p));
   }
 }

@@ -1,11 +1,12 @@
 #pragma once
 #include <score/graphics/widgets/Constants.hpp>
 
-#include <QObject>
 #include <QGraphicsItem>
-#include <verdigris>
+#include <QObject>
 
 #include <score_lib_base_export.h>
+
+#include <verdigris>
 
 namespace score
 {
@@ -14,20 +15,19 @@ struct RightClickImpl;
 template <typename T>
 struct SCORE_LIB_BASE_EXPORT QGraphicsSliderBase : public QGraphicsItem
 {
-    QGraphicsSliderBase(QGraphicsItem* parent);
-    ~QGraphicsSliderBase();
+  QGraphicsSliderBase(QGraphicsItem* parent);
+  ~QGraphicsSliderBase();
 
-    bool isInHandle(QPointF p);
-    double getHandleX() const;
-    QRectF sliderRect() const;
-    QRectF handleRect() const;
+  bool isInHandle(QPointF p);
+  double getHandleX() const;
+  QRectF sliderRect() const;
+  QRectF handleRect() const;
 
-    void setRect(const QRectF& r);
-    QRectF boundingRect() const override;
+  void setRect(const QRectF& r);
+  QRectF boundingRect() const override;
 
-    QRectF m_rect{defaultSliderSize};
-    RightClickImpl* impl{};
+  QRectF m_rect{defaultSliderSize};
+  RightClickImpl* impl{};
 };
-
 
 }

@@ -1,7 +1,6 @@
 #pragma once
-#include <Mapping/MappingModel.hpp>
-
 #include <LocalTree/ProcessComponent.hpp>
+#include <Mapping/MappingModel.hpp>
 
 namespace LocalTree
 {

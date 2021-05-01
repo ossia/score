@@ -2,14 +2,13 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CommentBlockPresenter.hpp"
 
-#include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
-#include <Scenario/Document/CommentBlock/CommentBlockView.hpp>
-
 #include <score/document/DocumentContext.hpp>
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/tools/Bind.hpp>
 
+#include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
+#include <Scenario/Document/CommentBlock/CommentBlockView.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::CommentBlockPresenter)
 
@@ -19,7 +18,9 @@ CommentBlockPresenter::CommentBlockPresenter(
     const CommentBlockModel& model,
     QGraphicsItem* parentView,
     QObject* parent)
-    : QObject{parent}, m_model{model}, m_view{new CommentBlockView{*this, parentView}}
+    : QObject{parent}
+    , m_model{model}
+    , m_view{new CommentBlockView{*this, parentView}}
 {
   con(m_model.selection,
       &Selectable::changed,

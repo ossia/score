@@ -1,25 +1,23 @@
 #include <Vst/Settings.hpp>
 
-#include <QListWidget>
-#include <QTableWidget>
-#include <QFormLayout>
-#include <QHBoxLayout>
-#include <QGridLayout>
-#include <QLabel>
-#include <QMenu>
-#include <QSplitter>
-#include <QHeaderView>
-#include <QPushButton>
 #include <QFileDialog>
+#include <QFormLayout>
+#include <QGridLayout>
+#include <QHBoxLayout>
+#include <QHeaderView>
+#include <QLabel>
+#include <QListWidget>
+#include <QMenu>
+#include <QPushButton>
+#include <QSplitter>
+#include <QTableWidget>
 
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(vst::SettingsWidget)
 namespace vst
 {
-SettingsWidget::SettingsWidget()
-{
-}
+SettingsWidget::SettingsWidget() { }
 
 void SettingsWidget::setVstPaths(QStringList val)
 {
@@ -65,42 +63,46 @@ QWidget* SettingsWidget::make(const score::ApplicationContext& ctx)
   auto vst_ok = new QTableWidget;
   vst_ok->verticalHeader()->setVisible(false);
   vst_ok->setColumnCount(2);
-  vst_ok->setColumnWidth(0,120);
+  vst_ok->setColumnWidth(0, 120);
   vst_ok->horizontalHeader()->setStretchLastSection(true);
   vst_ok->setHorizontalHeaderLabels({tr("Name"), tr("Path")});
 
   auto vst_bad = new QTableWidget;
   vst_bad->verticalHeader()->setVisible(false);
   vst_bad->setColumnCount(2);
-  vst_bad->setColumnWidth(0,120);
+  vst_bad->setColumnWidth(0, 120);
   vst_bad->horizontalHeader()->setStretchLastSection(true);
   vst_bad->setHorizontalHeaderLabels({tr("Name"), tr("Path")});
 
   m_VstPaths->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
-  connect(m_VstPaths, &QListWidget::customContextMenuRequested, this, [=](const QPoint& p) {
-    QMenu* m = new QMenu;
-    auto act = m->addAction("Remove");
-    connect(act, &QAction::triggered, this, [=] {
-      auto idx = m_VstPaths->currentRow();
+  connect(
+      m_VstPaths,
+      &QListWidget::customContextMenuRequested,
+      this,
+      [=](const QPoint& p) {
+        QMenu* m = new QMenu;
+        auto act = m->addAction("Remove");
+        connect(act, &QAction::triggered, this, [=] {
+          auto idx = m_VstPaths->currentRow();
 
-      if (idx >= 0 && idx < m_curitems.size())
-      {
-        m_VstPaths->takeItem(idx);
-        m_curitems.removeAt(idx);
-        VstPathsChanged(m_curitems);
-      }
-    });
+          if (idx >= 0 && idx < m_curitems.size())
+          {
+            m_VstPaths->takeItem(idx);
+            m_curitems.removeAt(idx);
+            VstPathsChanged(m_curitems);
+          }
+        });
 
-    m->exec(m_VstPaths->mapToGlobal(p));
-    m->deleteLater();
-  });
+        m->exec(m_VstPaths->mapToGlobal(p));
+        m->deleteLater();
+      });
 
   vstPathWidgetLayout->addRow(tr("VST paths"), m_VstPaths);
   vstPathWidgetLayout->addRow(button_lay);
 
   splitter->addWidget(vstPathWidget);
-  splitter->setStretchFactor(0,1);
-  splitter->setCollapsible(0,false);
+  splitter->setStretchFactor(0, 1);
+  splitter->setCollapsible(0, false);
 
   connect(pb, &QPushButton::clicked, this, [=] {
     auto path = QFileDialog::getExistingDirectory(splitter, tr("VST Path"));
@@ -111,9 +113,12 @@ QWidget* SettingsWidget::make(const score::ApplicationContext& ctx)
       VstPathsChanged(m_curitems);
     }
   });
-  auto& app_plug = score::GUIAppContext().applicationPlugin<vst::ApplicationPlugin>();
+  auto& app_plug
+      = score::GUIAppContext().applicationPlugin<vst::ApplicationPlugin>();
 
-  connect(rescan, &QPushButton::clicked, this, [&] { app_plug.rescanVSTs(m_curitems); });
+  connect(rescan, &QPushButton::clicked, this, [&] {
+    app_plug.rescanVSTs(m_curitems);
+  });
 
   auto reloadVSTs = [=, &app_plug] {
     vst_ok->clearContents();
@@ -127,15 +132,25 @@ QWidget* SettingsWidget::make(const score::ApplicationContext& ctx)
       if (plug.isValid)
       {
         auto row = vst_ok->rowCount();
-        vst_ok->setRowCount( row + 1);
-        vst_ok->setItem(row, 0, new QTableWidgetItem{plug.prettyName.isEmpty() ? plug.displayName : plug.prettyName});
+        vst_ok->setRowCount(row + 1);
+        vst_ok->setItem(
+            row,
+            0,
+            new QTableWidgetItem{
+                plug.prettyName.isEmpty() ? plug.displayName
+                                          : plug.prettyName});
         vst_ok->setItem(row, 1, new QTableWidgetItem{plug.path});
       }
       else
       {
         auto row = vst_bad->rowCount();
-        vst_bad->setRowCount( row + 1);
-        vst_bad->setItem(row, 0, new QTableWidgetItem{plug.prettyName.isEmpty() ? plug.displayName : plug.prettyName});
+        vst_bad->setRowCount(row + 1);
+        vst_bad->setItem(
+            row,
+            0,
+            new QTableWidgetItem{
+                plug.prettyName.isEmpty() ? plug.displayName
+                                          : plug.prettyName});
         vst_bad->setItem(row, 1, new QTableWidgetItem{plug.path});
       }
     }
@@ -153,9 +168,8 @@ QWidget* SettingsWidget::make(const score::ApplicationContext& ctx)
   vst_lay->addWidget(vst_bad, 1, 1, 1, 1);
 
   splitter->addWidget(vstWidget);
-  splitter->setStretchFactor(1,4);
-  splitter->setCollapsible(1,false);
-
+  splitter->setStretchFactor(1, 4);
+  splitter->setCollapsible(1, false);
 
   SETTINGS_PRESENTER(VstPaths);
 

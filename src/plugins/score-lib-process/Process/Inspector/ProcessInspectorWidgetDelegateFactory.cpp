@@ -11,8 +11,8 @@
 #include <score/tools/Bind.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SetIcons.hpp>
-#include <score/widgets/TimeSpinBox.hpp>
 #include <score/widgets/TextLabel.hpp>
+#include <score/widgets/TimeSpinBox.hpp>
 
 #include <QCheckBox>
 #include <QFormLayout>
@@ -40,7 +40,8 @@ QWidget* InspectorWidgetDelegateFactory::make(
   return nullptr;
 }
 
-bool InspectorWidgetDelegateFactory::matches(const InspectedObjects& objects) const
+bool InspectorWidgetDelegateFactory::matches(
+    const InspectedObjects& objects) const
 {
   if (objects.empty())
     return false;
@@ -109,10 +110,15 @@ public:
         auto so = new score::TimeSpinBox;
         so->setMinimumTime({});
         so->setTime(process.startOffset());
-        connect(so, &score::TimeSpinBox::timeChanged, this, [&](const ossia::time_value& t) {
-          if (t != process.startOffset())
-            CommandDispatcher<>{doc.commandStack}.submit<SetStartOffset>(process, t);
-        });
+        connect(
+            so,
+            &score::TimeSpinBox::timeChanged,
+            this,
+            [&](const ossia::time_value& t) {
+              if (t != process.startOffset())
+                CommandDispatcher<>{doc.commandStack}.submit<SetStartOffset>(
+                    process, t);
+            });
         con(process, &ProcessModel::startOffsetChanged, this, [so](TimeVal t) {
           if (t != so->time())
             so->setTime(t);
@@ -125,14 +131,22 @@ public:
         auto so = new score::TimeSpinBox;
         so->setMinimumTime(TimeVal::fromMsecs(10));
         so->setTime(process.loopDuration());
-        connect(so, &score::TimeSpinBox::timeChanged, this, [&](const ossia::time_value& t) {
-          if (t != process.loopDuration())
-            CommandDispatcher<>{doc.commandStack}.submit<SetLoopDuration>(process, t);
-        });
-        con(process, &ProcessModel::loopDurationChanged, this, [so](TimeVal t) {
-          if (t != so->time())
-            so->setTime(t);
-        });
+        connect(
+            so,
+            &score::TimeSpinBox::timeChanged,
+            this,
+            [&](const ossia::time_value& t) {
+              if (t != process.loopDuration())
+                CommandDispatcher<>{doc.commandStack}.submit<SetLoopDuration>(
+                    process, t);
+            });
+        con(process,
+            &ProcessModel::loopDurationChanged,
+            this,
+            [so](TimeVal t) {
+              if (t != so->time())
+                so->setTime(t);
+            });
         loop_lay->addRow(tr("Loop duration"), so);
       }
     }
@@ -145,7 +159,8 @@ public:
     {
       auto scroll = new QScrollArea;
       scroll->setFrameShape(QFrame::NoFrame);
-      scroll->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+      scroll->setSizePolicy(
+          QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
       scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
       scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
       scroll->setWidgetResizable(true);

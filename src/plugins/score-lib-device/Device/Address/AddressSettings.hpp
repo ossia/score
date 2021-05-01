@@ -39,12 +39,16 @@ struct SCORE_LIB_DEVICE_EXPORT AddressSettingsCommon
 
   ossia::extended_attributes extendedAttributes;
 
-  operator const ossia::extended_attributes &() const { return extendedAttributes; }
-  operator ossia::extended_attributes &() { return extendedAttributes; }
+  operator const ossia::extended_attributes&() const
+  {
+    return extendedAttributes;
+  }
+  operator ossia::extended_attributes&() { return extendedAttributes; }
 };
 
 // this one has only the name of the current node (e.g. 'a' for dev:/azazd/a)
-struct SCORE_LIB_DEVICE_EXPORT AddressSettings : public Device::AddressSettingsCommon
+struct SCORE_LIB_DEVICE_EXPORT AddressSettings
+    : public Device::AddressSettingsCommon
 {
   AddressSettings() noexcept;
   AddressSettings(const AddressSettings&) noexcept;
@@ -57,7 +61,8 @@ struct SCORE_LIB_DEVICE_EXPORT AddressSettings : public Device::AddressSettingsC
 };
 
 // This one has the whole path of the node in address
-struct SCORE_LIB_DEVICE_EXPORT FullAddressSettings : public Device::AddressSettingsCommon
+struct SCORE_LIB_DEVICE_EXPORT FullAddressSettings
+    : public Device::AddressSettingsCommon
 {
   FullAddressSettings() noexcept;
   FullAddressSettings(const FullAddressSettings&) noexcept;
@@ -73,11 +78,13 @@ struct SCORE_LIB_DEVICE_EXPORT FullAddressSettings : public Device::AddressSetti
   State::Address address;
 
   template <typename T>
-  SCORE_LIB_DEVICE_EXPORT static FullAddressSettings
-  make(const Device::AddressSettings& other, const State::Address& addr) noexcept;
+  SCORE_LIB_DEVICE_EXPORT static FullAddressSettings make(
+      const Device::AddressSettings& other,
+      const State::Address& addr) noexcept;
   template <typename T>
-  static FullAddressSettings
-  make(const Device::AddressSettings& other, const State::AddressAccessor& addr) noexcept
+  static FullAddressSettings make(
+      const Device::AddressSettings& other,
+      const State::AddressAccessor& addr) noexcept
   {
     return make<T>(other, addr.address);
   }
@@ -97,29 +104,33 @@ inline bool operator!=(
 {
   return !(lhs == rhs);
 }
-inline bool
-operator==(const Device::AddressSettings& lhs, const Device::AddressSettings& rhs) noexcept
+inline bool operator==(
+    const Device::AddressSettings& lhs,
+    const Device::AddressSettings& rhs) noexcept
 {
   return static_cast<const Device::AddressSettingsCommon&>(lhs)
              == static_cast<const Device::AddressSettingsCommon&>(rhs)
          && lhs.name == rhs.name;
 }
 
-inline bool
-operator!=(const Device::AddressSettings& lhs, const Device::AddressSettings& rhs) noexcept
+inline bool operator!=(
+    const Device::AddressSettings& lhs,
+    const Device::AddressSettings& rhs) noexcept
 {
   return !(lhs == rhs);
 }
-inline bool
-operator==(const Device::FullAddressSettings& lhs, const Device::FullAddressSettings& rhs) noexcept
+inline bool operator==(
+    const Device::FullAddressSettings& lhs,
+    const Device::FullAddressSettings& rhs) noexcept
 {
   return static_cast<const Device::AddressSettingsCommon&>(lhs)
              == static_cast<const Device::AddressSettingsCommon&>(rhs)
          && lhs.address == rhs.address;
 }
 
-inline bool
-operator!=(const Device::FullAddressSettings& lhs, const Device::FullAddressSettings& rhs) noexcept
+inline bool operator!=(
+    const Device::FullAddressSettings& lhs,
+    const Device::FullAddressSettings& rhs) noexcept
 {
   return !(lhs == rhs);
 }
@@ -129,8 +140,10 @@ struct SCORE_LIB_DEVICE_EXPORT FullAddressAccessorSettings
   FullAddressAccessorSettings() noexcept;
   FullAddressAccessorSettings(const FullAddressAccessorSettings&) noexcept;
   FullAddressAccessorSettings(FullAddressAccessorSettings&&) noexcept;
-  FullAddressAccessorSettings& operator=(const FullAddressAccessorSettings&) noexcept;
-  FullAddressAccessorSettings& operator=(FullAddressAccessorSettings&&) noexcept;
+  FullAddressAccessorSettings&
+  operator=(const FullAddressAccessorSettings&) noexcept;
+  FullAddressAccessorSettings&
+  operator=(FullAddressAccessorSettings&&) noexcept;
   ~FullAddressAccessorSettings() noexcept;
 
   FullAddressAccessorSettings(
@@ -139,7 +152,9 @@ struct SCORE_LIB_DEVICE_EXPORT FullAddressAccessorSettings
 
   explicit FullAddressAccessorSettings(FullAddressSettings&& f) noexcept;
 
-  FullAddressAccessorSettings(State::AddressAccessor&& addr, AddressSettingsCommon&& f) noexcept;
+  FullAddressAccessorSettings(
+      State::AddressAccessor&& addr,
+      AddressSettingsCommon&& f) noexcept;
 
   FullAddressAccessorSettings(
       const State::AddressAccessor& addr,
@@ -164,9 +179,15 @@ struct SCORE_LIB_DEVICE_EXPORT FullAddressAccessorSettings
 // switch in DeviceDocumentPluginSerialization (the node.impl() case).
 JSON_METADATA(Device::AddressSettings, "Address")
 
-SCORE_SERIALIZE_DATASTREAM_DECLARE(SCORE_LIB_DEVICE_EXPORT, Device::AddressSettings);
-SCORE_SERIALIZE_DATASTREAM_DECLARE(SCORE_LIB_DEVICE_EXPORT, Device::FullAddressSettings);
-SCORE_SERIALIZE_DATASTREAM_DECLARE(SCORE_LIB_DEVICE_EXPORT, Device::FullAddressAccessorSettings);
+SCORE_SERIALIZE_DATASTREAM_DECLARE(
+    SCORE_LIB_DEVICE_EXPORT,
+    Device::AddressSettings);
+SCORE_SERIALIZE_DATASTREAM_DECLARE(
+    SCORE_LIB_DEVICE_EXPORT,
+    Device::FullAddressSettings);
+SCORE_SERIALIZE_DATASTREAM_DECLARE(
+    SCORE_LIB_DEVICE_EXPORT,
+    Device::FullAddressAccessorSettings);
 
 Q_DECLARE_METATYPE(Device::AddressSettings)
 Q_DECLARE_METATYPE(Device::FullAddressSettings)

@@ -17,9 +17,11 @@ class ScenarioTriggerCommandFactory : public TriggerCommandFactory
 public:
   bool matches(const TimeSyncModel& tn) const override;
 
-  score::Command* make_addTriggerCommand(const TimeSyncModel& tn) const override;
+  score::Command*
+  make_addTriggerCommand(const TimeSyncModel& tn) const override;
 
-  score::Command* make_removeTriggerCommand(const TimeSyncModel& tn) const override;
+  score::Command*
+  make_removeTriggerCommand(const TimeSyncModel& tn) const override;
 };
 }
 }

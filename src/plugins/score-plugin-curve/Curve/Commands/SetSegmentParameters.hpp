@@ -6,6 +6,7 @@
 #include <score/model/path/Path.hpp>
 #include <score/tools/Unused.hpp>
 #include <score/tools/std/Optional.hpp>
+
 #include <ossia/detail/flat_map.hpp>
 
 #include <score_plugin_curve_export.h>
@@ -17,17 +18,25 @@ namespace Curve
 {
 class Model;
 class SegmentModel;
-using SegmentParameterMap = ossia::flat_map<Id<SegmentModel>, std::pair<double, double>>;
-class SCORE_PLUGIN_CURVE_EXPORT SetSegmentParameters final : public score::Command
+using SegmentParameterMap
+    = ossia::flat_map<Id<SegmentModel>, std::pair<double, double>>;
+class SCORE_PLUGIN_CURVE_EXPORT SetSegmentParameters final
+    : public score::Command
 {
-  SCORE_COMMAND_DECL(CommandFactoryName(), SetSegmentParameters, "Set segment parameters")
+  SCORE_COMMAND_DECL(
+      CommandFactoryName(),
+      SetSegmentParameters,
+      "Set segment parameters")
 public:
   SetSegmentParameters(const Model& model, SegmentParameterMap&& parameters);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 
-  void update(unused_t, SegmentParameterMap&& segments) { m_new = std::move(segments); }
+  void update(unused_t, SegmentParameterMap&& segments)
+  {
+    m_new = std::move(segments);
+  }
 
 protected:
   void serializeImpl(DataStreamInput& s) const override;
@@ -36,6 +45,9 @@ protected:
 private:
   Path<Model> m_model;
   SegmentParameterMap m_new;
-  ossia::flat_map<Id<SegmentModel>, std::pair<std::optional<double>, std::optional<double>>> m_old;
+  ossia::flat_map<
+      Id<SegmentModel>,
+      std::pair<std::optional<double>, std::optional<double>>>
+      m_old;
 };
 }

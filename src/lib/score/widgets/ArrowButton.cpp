@@ -1,8 +1,10 @@
 #include "ArrowButton.hpp"
 
 #include <score/widgets/SetIcons.hpp>
-#include <array>
+
 #include <wobjectimpl.h>
+
+#include <array>
 W_OBJECT_IMPL(score::ArrowButton)
 namespace score
 {
@@ -14,8 +16,8 @@ std::array<QString, 5> arrow_name = {
     "right" // RightArrow
 };
 ArrowButton::ArrowButton(Qt::ArrowType arrowType, QWidget* parent)
-  : QToolButton{parent}
-  , m_arrowType{Qt::NoArrow}
+    : QToolButton{parent}
+    , m_arrowType{Qt::NoArrow}
 {
   setArrowType(arrowType);
   setIconSize(QSize(8, 8));

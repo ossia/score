@@ -17,8 +17,16 @@
 #include <memory>
 #include <verdigris>
 
-inline QDataStream& operator<<(QDataStream& i, const ossia::bench_map& sel) { SCORE_ABORT; return i; }
-inline QDataStream& operator>>(QDataStream& i, ossia::bench_map& sel) { SCORE_ABORT; return i; }
+inline QDataStream& operator<<(QDataStream& i, const ossia::bench_map& sel)
+{
+  SCORE_ABORT;
+  return i;
+}
+inline QDataStream& operator>>(QDataStream& i, ossia::bench_map& sel)
+{
+  SCORE_ABORT;
+  return i;
+}
 Q_DECLARE_METATYPE(ossia::bench_map)
 namespace ossia
 {
@@ -45,11 +53,15 @@ class AudioDevice;
 namespace Execution
 {
 class ExecutionController;
-class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final : public score::DocumentPlugin
+class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final
+    : public score::DocumentPlugin
 {
   W_OBJECT(DocumentPlugin)
 public:
-  DocumentPlugin(const score::DocumentContext& ctx, Id<score::DocumentPlugin>, QObject* parent);
+  DocumentPlugin(
+      const score::DocumentContext& ctx,
+      Id<score::DocumentPlugin>,
+      QObject* parent);
 
   ~DocumentPlugin() override;
   void reload(Scenario::IntervalModel& doc);
@@ -70,7 +82,10 @@ public:
   void runAllCommands() const;
 
   void registerAction(ExecutionAction& act);
-  const std::vector<ExecutionAction*>& actions() const noexcept { return m_actions; }
+  const std::vector<ExecutionAction*>& actions() const noexcept
+  {
+    return m_actions;
+  }
 
   const Execution::Settings::Model& settings;
 

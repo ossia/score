@@ -13,8 +13,11 @@ namespace score
 class MissingCommandException : public std::runtime_error
 {
 public:
-  MissingCommandException(const CommandGroupKey& parent, const CommandKey& command)
-      : std::runtime_error{("Could not find " + command.toString() + " in " + parent.toString())}
+  MissingCommandException(
+      const CommandGroupKey& parent,
+      const CommandKey& command)
+      : std::runtime_error{(
+          "Could not find " + command.toString() + " in " + parent.toString())}
   {
   }
 };

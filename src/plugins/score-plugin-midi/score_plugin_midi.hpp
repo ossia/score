@@ -5,9 +5,10 @@
 
 #include <verdigris>
 
-class score_plugin_midi final : public score::Plugin_QtInterface,
-                                public score::FactoryInterface_QtInterface,
-                                public score::CommandFactory_QtInterface
+class score_plugin_midi final
+    : public score::Plugin_QtInterface
+    , public score::FactoryInterface_QtInterface
+    , public score::CommandFactory_QtInterface
 {
   SCORE_PLUGIN_METADATA(1, "0a964c0f-dd69-4e5a-9577-0ec5695690b0")
 public:
@@ -21,5 +22,6 @@ private:
       const score::InterfaceKey& factoryName) const override;
 
   // CommandFactory_QtInterface interface
-  std::pair<const CommandGroupKey, CommandGeneratorMap> make_commands() override;
+  std::pair<const CommandGroupKey, CommandGeneratorMap>
+  make_commands() override;
 };

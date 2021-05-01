@@ -1,11 +1,11 @@
 #pragma once
+#include <score/model/Identifier.hpp>
 #include <score/serialization/CommonTypes.hpp>
 #include <score/serialization/StringConstants.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 #include <score/serialization/VisitorTags.hpp>
-#include <score/model/Identifier.hpp>
-#include <score/tools/ForEach.hpp>
 #include <score/tools/Debug.hpp>
+#include <score/tools/ForEach.hpp>
 
 #include <ossia/detail/flat_set.hpp>
 #include <ossia/detail/json.hpp>
@@ -14,9 +14,9 @@
 #include <boost/container/small_vector.hpp>
 #include <boost/container/static_vector.hpp>
 
-#include <verdigris>
-
 #include <QDebug>
+
+#include <verdigris>
 
 template <typename T>
 class IdentifiedObject;
@@ -90,8 +90,14 @@ public:
   void readFrom(const IdentifiedObject<T>& obj);
 
   void readFrom(const QString& obj) noexcept { readFrom(obj.toUtf8()); }
-  void readFrom(const QByteArray& t) noexcept { stream.String(t.data(), t.size()); }
-  void readFrom(const std::string& t) noexcept { stream.String(t.data(), t.size()); }
+  void readFrom(const QByteArray& t) noexcept
+  {
+    stream.String(t.data(), t.size());
+  }
+  void readFrom(const std::string& t) noexcept
+  {
+    stream.String(t.data(), t.size());
+  }
   void readFrom(int64_t t) noexcept { stream.Int64(t); }
   void readFrom(int32_t t) noexcept { stream.Int(t); }
   void readFrom(uint64_t t) noexcept { stream.Uint64(t); }
@@ -119,11 +125,16 @@ public:
     }
     else
     {
-      if constexpr ((is_template<T>::value && !is_abstract_base<T>::value && !is_identified_object<T>::value) || is_custom_serialized<T>::value)
+      if constexpr (
+          (is_template<T>::value && !is_abstract_base<T>::value
+           && !is_identified_object<T>::value)
+          || is_custom_serialized<T>::value)
       {
         TSerializer<JSONObject, T>::readFrom(*this, obj);
       }
-      else if constexpr (is_identified_object<T>::value && !is_entity<T>::value && !is_abstract_base<T>::value && !is_custom_serialized<T>::value)
+      else if constexpr (
+          is_identified_object<T>::value && !is_entity<T>::value
+          && !is_abstract_base<T>::value && !is_custom_serialized<T>::value)
       {
         stream.StartObject();
         TSerializer<JSONObject, typename T::object_type>::readFrom(*this, obj);
@@ -135,7 +146,9 @@ public:
 
         stream.EndObject();
       }
-      else if constexpr (is_entity<T>::value && !is_abstract_base<T>::value && !is_custom_serialized<T>::value)
+      else if constexpr (
+          is_entity<T>::value && !is_abstract_base<T>::value
+          && !is_custom_serialized<T>::value)
       {
         stream.StartObject();
         TSerializer<JSONObject, typename T::entity_type>::readFrom(*this, obj);
@@ -146,7 +159,9 @@ public:
           read(obj);
         stream.EndObject();
       }
-      else if constexpr (!is_identified_object<T>::value && is_abstract_base<T>::value && !is_custom_serialized<T>::value)
+      else if constexpr (
+          !is_identified_object<T>::value && is_abstract_base<T>::value
+          && !is_custom_serialized<T>::value)
       {
         stream.StartObject();
         readFromAbstract(obj, [](JSONReader& sub, const T& obj) {
@@ -155,26 +170,32 @@ public:
         });
         stream.EndObject();
       }
-      else if constexpr (is_identified_object<T>::value && !is_entity<T>::value && is_abstract_base<T>::value && !is_custom_serialized<T>::value)
+      else if constexpr (
+          is_identified_object<T>::value && !is_entity<T>::value
+          && is_abstract_base<T>::value && !is_custom_serialized<T>::value)
       {
         stream.StartObject();
         readFromAbstract(obj, [](JSONReader& sub, const T& obj) {
           TSerializer<JSONObject, IdentifiedObject<T>>::readFrom(sub, obj);
 
-          if constexpr (is_custom_serialized<T>::value || is_template<T>::value)
+          if constexpr (
+              is_custom_serialized<T>::value || is_template<T>::value)
             TSerializer<JSONObject, T>::readFrom(sub, obj);
           else
             sub.read(obj);
         });
         stream.EndObject();
       }
-      else if constexpr (is_entity<T>::value && is_abstract_base<T>::value && !is_custom_serialized<T>::value)
+      else if constexpr (
+          is_entity<T>::value && is_abstract_base<T>::value
+          && !is_custom_serialized<T>::value)
       {
         stream.StartObject();
         readFromAbstract(obj, [](JSONReader& sub, const T& obj) {
           TSerializer<JSONObject, score::Entity<T>>::readFrom(sub, obj);
 
-          if constexpr (is_custom_serialized<T>::value || is_template<T>::value)
+          if constexpr (
+              is_custom_serialized<T>::value || is_template<T>::value)
             TSerializer<JSONObject, T>::readFrom(sub, obj);
           else
             sub.read(obj);
@@ -297,13 +318,22 @@ struct JSONReader::assigner
       *this = str.toUtf8();
     self.stream.EndArray();
   }
-  void operator=(const QLatin1String& t) const noexcept { self.stream.String(t.data(), t.size()); }
-  void operator=(const std::string& t) const noexcept { self.stream.String(t.data(), t.length()); }
+  void operator=(const QLatin1String& t) const noexcept
+  {
+    self.stream.String(t.data(), t.size());
+  }
+  void operator=(const std::string& t) const noexcept
+  {
+    self.stream.String(t.data(), t.length());
+  }
   void operator=(const std::string_view& t) const noexcept
   {
     self.stream.String(t.data(), t.length());
   }
-  void operator=(const QByteArray& t) const noexcept { self.stream.String(t.data(), t.length()); }
+  void operator=(const QByteArray& t) const noexcept
+  {
+    self.stream.String(t.data(), t.length());
+  }
   void operator=(const QVariantMap& t) const noexcept { SCORE_ABORT; }
 
   template <typename T>
@@ -322,19 +352,22 @@ struct JSONReader::assigner
   }
 };
 
-inline JSONReader::assigner JSONReader::fake_obj::operator[](std::string_view str) const noexcept
+inline JSONReader::assigner
+JSONReader::fake_obj::operator[](std::string_view str) const noexcept
 {
   self.stream.Key(str.data(), str.length());
   return assigner{self};
 }
-inline JSONReader::assigner JSONReader::fake_obj::operator[](const QString& str) const noexcept
+inline JSONReader::assigner
+JSONReader::fake_obj::operator[](const QString& str) const noexcept
 {
   const std::string& s = str.toStdString();
   self.stream.Key(s.data(), s.length());
   return assigner{self};
 }
 template <std::size_t N>
-inline JSONReader::assigner JSONReader::fake_obj::operator[](const char (&str)[N]) const noexcept
+inline JSONReader::assigner
+JSONReader::fake_obj::operator[](const char (&str)[N]) const noexcept
 {
   return (*this)[std::string_view(str, N - 1)];
 }
@@ -376,8 +409,14 @@ struct JsonValue
   {
     return JsonValue{obj[str]};
   }
-  JsonValue operator[](const std::string& str) const noexcept { return JsonValue{obj[str]}; }
-  JsonValue operator[](const QString& str) const noexcept { return (*this)[str.toStdString()]; }
+  JsonValue operator[](const std::string& str) const noexcept
+  {
+    return JsonValue{obj[str]};
+  }
+  JsonValue operator[](const QString& str) const noexcept
+  {
+    return (*this)[str.toStdString()];
+  }
   template <typename T>
   friend void operator<<=(T& t, const JsonValue& self);
 
@@ -428,7 +467,10 @@ public:
   template <typename T>
   void writeTo(T& obj)
   {
-    if constexpr ((is_template<T>::value && !is_abstract_base<T>::value && !is_identified_object<T>::value) || is_custom_serialized<T>::value)
+    if constexpr (
+        (is_template<T>::value && !is_abstract_base<T>::value
+         && !is_identified_object<T>::value)
+        || is_custom_serialized<T>::value)
     {
       TSerializer<JSONObject, T>::writeTo(*this, obj);
     }
@@ -452,8 +494,14 @@ public:
     {
       return JsonValue{ref[str]};
     }
-    JsonValue operator[](const std::string& str) const noexcept { return JsonValue{ref[str]}; }
-    JsonValue operator[](const QString& str) const noexcept { return (*this)[str.toStdString()]; }
+    JsonValue operator[](const std::string& str) const noexcept
+    {
+      return JsonValue{ref[str]};
+    }
+    JsonValue operator[](const QString& str) const noexcept
+    {
+      return (*this)[str.toStdString()];
+    }
     template <std::size_t N>
     std::optional<JsonValue> tryGet(const char (&str)[N]) const noexcept
     {
@@ -471,7 +519,10 @@ public:
     {
       return tryGet(str.toStdString());
     }
-    std::optional<JsonValue> constFind(const std::string& str) const noexcept { return tryGet(str); }
+    std::optional<JsonValue> constFind(const std::string& str) const noexcept
+    {
+      return tryGet(str);
+    }
     std::optional<JsonValue> constFind(const QString& str) const noexcept
     {
       return tryGet(str.toStdString());
@@ -531,7 +582,8 @@ template <typename T>
 struct TSerializer<JSONObject, IdentifiedObject<T>>
 {
   template <typename U>
-  static void readFrom(JSONObject::Serializer& s, const IdentifiedObject<U>& obj)
+  static void
+  readFrom(JSONObject::Serializer& s, const IdentifiedObject<U>& obj)
   {
     s.obj[s.strings.ObjectName] = obj.objectName();
     s.obj[s.strings.id] = obj.id().val();
@@ -578,7 +630,8 @@ struct ArraySerializer
   }
 
   template <typename Arg, std::size_t N>
-  static void readFrom(JSONObject::Serializer& s, const std::array<Arg, N>& vec)
+  static void
+  readFrom(JSONObject::Serializer& s, const std::array<Arg, N>& vec)
   {
     s.stream.StartArray();
     for (const auto& elt : vec)
@@ -602,7 +655,8 @@ struct ArraySerializer
   }
 
   template <std::size_t N>
-  static void readFrom(JSONObject::Serializer& s, const std::array<float, N>& vec)
+  static void
+  readFrom(JSONObject::Serializer& s, const std::array<float, N>& vec)
   {
     s.stream.StartArray();
     for (auto elt : vec)
@@ -675,7 +729,8 @@ struct ArraySerializer
   }
 
   template <template <typename... Args> typename T, typename... Args>
-  static void readFrom(JSONObject::Serializer& s, const T<std::string, Args...>& vec)
+  static void
+  readFrom(JSONObject::Serializer& s, const T<std::string, Args...>& vec)
   {
     s.stream.StartArray();
     for (const auto& elt : vec)
@@ -684,7 +739,8 @@ struct ArraySerializer
   }
 
   template <template <typename... Args> typename T, typename... Args>
-  static void writeTo(JSONObject::Deserializer& s, T<std::string, Args...>& vec)
+  static void
+  writeTo(JSONObject::Deserializer& s, T<std::string, Args...>& vec)
   {
     const auto& array = s.base.GetArray();
     vec.clear();
@@ -696,7 +752,8 @@ struct ArraySerializer
   }
 
   template <template <typename... Args> typename T, typename... Args>
-  static void readFrom(JSONObject::Serializer& s, const T<QString, Args...>& vec)
+  static void
+  readFrom(JSONObject::Serializer& s, const T<QString, Args...>& vec)
   {
     s.stream.StartArray();
     for (const auto& elt : vec)
@@ -766,7 +823,8 @@ struct ArraySerializer
   }
 
   template <template <typename... Args> typename T, typename... Args>
-  static void readFrom(JSONObject::Serializer& s, const T<int64_t, Args...>& vec)
+  static void
+  readFrom(JSONObject::Serializer& s, const T<int64_t, Args...>& vec)
   {
     s.stream.StartArray();
     for (auto elt : vec)
@@ -812,7 +870,8 @@ struct ArraySerializer
   }
 
   template <template <typename... Args> typename T, typename... Args>
-  static void readFrom(JSONObject::Serializer& s, const T<double, Args...>& vec)
+  static void
+  readFrom(JSONObject::Serializer& s, const T<double, Args...>& vec)
   {
     s.stream.StartArray();
     for (auto elt : vec)
@@ -841,7 +900,8 @@ struct ArraySerializer
       typename T,
       std::size_t N,
       typename... Args>
-  static void readFrom(JSONObject::Serializer& s, const T<int, N, Args...>& vec)
+  static void
+  readFrom(JSONObject::Serializer& s, const T<int, N, Args...>& vec)
   {
     s.stream.StartArray();
     for (auto elt : vec)
@@ -872,7 +932,8 @@ struct ArraySerializer
       typename T,
       std::size_t N,
       typename... Args>
-  static void readFrom(JSONObject::Serializer& s, const T<char, N, Args...>& vec)
+  static void
+  readFrom(JSONObject::Serializer& s, const T<char, N, Args...>& vec)
   {
     s.stream.StartArray();
     for (char elt : vec)
@@ -903,7 +964,8 @@ struct ArraySerializer
       typename T,
       std::size_t N,
       typename... Args>
-  static void readFrom(JSONObject::Serializer& s, const T<int64_t, N, Args...>& vec)
+  static void
+  readFrom(JSONObject::Serializer& s, const T<int64_t, N, Args...>& vec)
   {
     s.stream.StartArray();
     for (auto elt : vec)
@@ -934,7 +996,8 @@ struct ArraySerializer
       typename T,
       std::size_t N,
       typename... Args>
-  static void readFrom(JSONObject::Serializer& s, const T<float, N, Args...>& vec)
+  static void
+  readFrom(JSONObject::Serializer& s, const T<float, N, Args...>& vec)
   {
     s.stream.StartArray();
     for (auto elt : vec)
@@ -965,7 +1028,8 @@ struct ArraySerializer
       typename T,
       std::size_t N,
       typename... Args>
-  static void readFrom(JSONObject::Serializer& s, const T<double, N, Args...>& vec)
+  static void
+  readFrom(JSONObject::Serializer& s, const T<double, N, Args...>& vec)
   {
     s.stream.StartArray();
     for (auto elt : vec)
@@ -1008,12 +1072,14 @@ struct TSerializer<JSONObject, QList<Args...>> : ArraySerializer
 };
 
 template <typename T, std::size_t N, typename Alloc>
-struct TSerializer<JSONObject, boost::container::small_vector<T, N, Alloc>> : ArraySerializer
+struct TSerializer<JSONObject, boost::container::small_vector<T, N, Alloc>>
+    : ArraySerializer
 {
 };
 
 template <typename T, std::size_t N>
-struct TSerializer<JSONObject, boost::container::static_vector<T, N>> : ArraySerializer
+struct TSerializer<JSONObject, boost::container::static_vector<T, N>>
+    : ArraySerializer
 {
 };
 
@@ -1270,22 +1336,31 @@ template <typename T>
 struct TSerializer<JSONObject, Id<T>>
 {
   using type = Id<T>;
-  static void readFrom(JSONObject::Serializer& s, const type& obj) { s.stream.Int64(obj.val()); }
+  static void readFrom(JSONObject::Serializer& s, const type& obj)
+  {
+    s.stream.Int64(obj.val());
+  }
 
-  static void writeTo(JSONObject::Deserializer& s, type& obj) { obj.setVal(s.base.GetInt64()); }
+  static void writeTo(JSONObject::Deserializer& s, type& obj)
+  {
+    obj.setVal(s.base.GetInt64());
+  }
 };
 
 template <>
 struct SCORE_LIB_BASE_EXPORT TSerializer<DataStream, rapidjson::Document>
 {
-  static void readFrom(DataStream::Serializer& s, const rapidjson::Document& obj);
+  static void
+  readFrom(DataStream::Serializer& s, const rapidjson::Document& obj);
   static void writeTo(DataStream::Deserializer& s, rapidjson::Document& obj);
 };
 template <>
 struct SCORE_LIB_BASE_EXPORT TSerializer<DataStream, rapidjson::Value>
 {
-  static void readFrom(DataStream::Serializer& s, rapidjson::Value& obj) = delete;
-  static void writeTo(DataStream::Deserializer& s, rapidjson::Value& obj) = delete;
+  static void readFrom(DataStream::Serializer& s, rapidjson::Value& obj)
+      = delete;
+  static void writeTo(DataStream::Deserializer& s, rapidjson::Value& obj)
+      = delete;
 };
 
 namespace Process

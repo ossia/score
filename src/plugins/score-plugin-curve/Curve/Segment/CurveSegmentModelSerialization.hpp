@@ -7,5 +7,8 @@ class SegmentModel;
 class SegmentList;
 struct SegmentData;
 
-SegmentModel* createCurveSegment(const SegmentList& csl, const SegmentData& dat, QObject* parent);
+SegmentModel* createCurveSegment(
+    const SegmentList& csl,
+    const SegmentData& dat,
+    QObject* parent);
 }

@@ -23,11 +23,17 @@
 
 namespace Curve
 {
-SmartTool::SmartTool(Curve::ToolPalette& sm, const score::DocumentContext& context)
-    : CurveTool{sm}, m_co{&sm.presenter(), context.commandStack}
+SmartTool::SmartTool(
+    Curve::ToolPalette& sm,
+    const score::DocumentContext& context)
+    : CurveTool{sm}
+    , m_co{&sm.presenter(), context.commandStack}
 {
   m_state = new Curve::SelectionState{
-      context.selectionStack, m_parentSM, m_parentSM.presenter().view(), &localSM()};
+      context.selectionStack,
+      m_parentSM,
+      m_parentSM.presenter().view(),
+      &localSM()};
 
   localSM().setInitialState(m_state);
 
@@ -36,7 +42,8 @@ SmartTool::SmartTool(Curve::ToolPalette& sm, const score::DocumentContext& conte
 
     m_moveState->setObjectName("MovePointState");
 
-    score::make_transition<ClickOnPoint_Transition>(m_state, m_moveState, *m_moveState);
+    score::make_transition<ClickOnPoint_Transition>(
+        m_state, m_moveState, *m_moveState);
 
     m_moveState->addTransition(m_moveState, finishedState(), m_state);
 
@@ -82,7 +89,9 @@ void SmartTool::on_moved(QPointF scenePoint, Curve::Point curvePoint)
         [&](const SegmentView* segment) {
           localSM().postEvent(new MoveOnSegment_Event(curvePoint, segment));
         },
-        [&]() { localSM().postEvent(new MoveOnNothing_Event(curvePoint, nullptr)); });
+        [&]() {
+          localSM().postEvent(new MoveOnNothing_Event(curvePoint, nullptr));
+        });
   }
 }
 
@@ -107,6 +116,8 @@ void SmartTool::on_released(QPointF scenePoint, Curve::Point curvePoint)
         select(segment->model(), m_parentSM.model().selectedChildren());
         localSM().postEvent(new ReleaseOnSegment_Event(curvePoint, segment));
       },
-      [&]() { localSM().postEvent(new ReleaseOnNothing_Event(curvePoint, nullptr)); });
+      [&]() {
+        localSM().postEvent(new ReleaseOnNothing_Event(curvePoint, nullptr));
+      });
 }
 }

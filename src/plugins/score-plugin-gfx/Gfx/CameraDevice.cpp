@@ -1,5 +1,6 @@
 #include "CameraDevice.hpp"
 
+#include <Gfx/GfxApplicationPlugin.hpp>
 #include <State/MessageListSerialization.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
@@ -12,7 +13,6 @@
 #include <QMenu>
 #include <QMimeData>
 
-#include <Gfx/GfxApplicationPlugin.hpp>
 #include <wobjectimpl.h>
 extern "C"
 {
@@ -33,12 +33,15 @@ namespace Gfx
 static void enumerateDevices(std::function<void(CameraSettings, QString)> func)
 {
   REFGUID category = CLSID_VideoInputDeviceCategory;
-  IEnumMoniker *pEnum = nullptr;
+  IEnumMoniker* pEnum = nullptr;
   {
     // Create the System Device Enumerator.
-    ICreateDevEnum *pDevEnum;
-    HRESULT hr = CoCreateInstance(CLSID_SystemDeviceEnum, NULL,
-                                  CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pDevEnum));
+    ICreateDevEnum* pDevEnum;
+    HRESULT hr = CoCreateInstance(
+        CLSID_SystemDeviceEnum,
+        NULL,
+        CLSCTX_INPROC_SERVER,
+        IID_PPV_ARGS(&pDevEnum));
 
     if (SUCCEEDED(hr))
     {
@@ -46,13 +49,13 @@ static void enumerateDevices(std::function<void(CameraSettings, QString)> func)
       hr = pDevEnum->CreateClassEnumerator(category, &pEnum, 0);
       if (hr == S_FALSE)
       {
-        hr = VFW_E_NOT_FOUND;  // The category is empty. Treat as an error.
+        hr = VFW_E_NOT_FOUND; // The category is empty. Treat as an error.
       }
       pDevEnum->Release();
     }
   }
 
-  if(pEnum)
+  if (pEnum)
   {
     IMoniker* pMoniker = nullptr;
     while (pEnum->Next(1, &pMoniker, NULL) == S_OK)
@@ -60,7 +63,7 @@ static void enumerateDevices(std::function<void(CameraSettings, QString)> func)
       QString prettyName;
       CameraSettings settings;
       settings.input = "dshow";
-      IPropertyBag *pPropBag;
+      IPropertyBag* pPropBag;
       HRESULT hr = pMoniker->BindToStorage(0, 0, IID_PPV_ARGS(&pPropBag));
       if (FAILED(hr))
       {
@@ -93,7 +96,7 @@ static void enumerateDevices(std::function<void(CameraSettings, QString)> func)
         VariantClear(&var);
       }
 
-      if(!settings.device.isEmpty() && !prettyName.isEmpty())
+      if (!settings.device.isEmpty() && !prettyName.isEmpty())
       {
         func(settings, prettyName);
       }
@@ -108,17 +111,22 @@ static void enumerateDevices(std::function<void(CameraSettings, QString)> func)
   AVInputFormat* fmt = nullptr;
   while ((fmt = av_input_video_device_next(fmt)))
   {
-    AVDeviceInfoList *device_list = nullptr;
+    AVDeviceInfoList* device_list = nullptr;
     avdevice_list_input_sources(fmt, nullptr, nullptr, &device_list);
 
-    if(device_list)
+    if (device_list)
     {
-      for(int i = 0; i < device_list->nb_devices; i++)
+      for (int i = 0; i < device_list->nb_devices; i++)
       {
         auto dev = device_list->devices[i];
-        QString devname = QString("%1 (%2: %3)").arg(dev->device_name).arg(fmt->long_name).arg(fmt->name);
+        QString devname = QString("%1 (%2: %3)")
+                              .arg(dev->device_name)
+                              .arg(fmt->long_name)
+                              .arg(fmt->name);
         // TODO see AVDeviceCapabilitiesQuery and try to show some stream info ?
-        func({QString(fmt->name).split(",").front(), dev->device_name}, devname);
+        func(
+            {QString(fmt->name).split(",").front(), dev->device_name},
+            devname);
       }
       avdevice_free_list_devices(&device_list);
       device_list = nullptr;
@@ -126,7 +134,6 @@ static void enumerateDevices(std::function<void(CameraSettings, QString)> func)
   }
 }
 #endif
-
 
 CameraDevice::~CameraDevice() { }
 
@@ -137,15 +144,20 @@ bool CameraDevice::reconnect()
   try
   {
     auto set = this->settings().deviceSpecificSettings.value<CameraSettings>();
-    camera_settings ossia_stgs{set.input.toStdString(), set.device.toStdString(), set.size.width(), set.size.height(), set.fps};
+    camera_settings ossia_stgs{
+        set.input.toStdString(),
+        set.device.toStdString(),
+        set.size.width(),
+        set.size.height(),
+        set.fps};
     auto plug = m_ctx.findPlugin<DocumentPlugin>();
     if (plug)
     {
       m_protocol = new camera_protocol{plug->exec};
       m_dev = std::make_unique<camera_device>(
-            ossia_stgs,
-            std::unique_ptr<ossia::net::protocol_base>(m_protocol),
-            this->settings().name.toStdString());
+          ossia_stgs,
+          std::unique_ptr<ossia::net::protocol_base>(m_protocol),
+          this->settings().name.toStdString());
     }
     // TODOengine->reload(&proto);
 
@@ -163,14 +175,13 @@ bool CameraDevice::reconnect()
   return connected();
 }
 
-
-
 class CameraEnumerator : public Device::DeviceEnumerator
 {
 public:
-  void enumerate(std::function<void(const Device::DeviceSettings&)> f) const override
+  void enumerate(
+      std::function<void(const Device::DeviceSettings&)> f) const override
   {
-    enumerateDevices([&] (const CameraSettings& set, QString name) {
+    enumerateDevices([&](const CameraSettings& set, QString name) {
       Device::DeviceSettings s;
       s.name = name;
       s.protocol = CameraProtocolFactory::static_concreteKey();
@@ -190,7 +201,8 @@ QString CameraProtocolFactory::category() const noexcept
   return StandardCategories::video;
 }
 
-Device::DeviceEnumerator* CameraProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerator*
+CameraProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
   return new CameraEnumerator;
 }
@@ -202,7 +214,8 @@ Device::DeviceInterface* CameraProtocolFactory::makeDevice(
   return new CameraDevice(settings, ctx);
 }
 
-const Device::DeviceSettings& CameraProtocolFactory::defaultSettings() const noexcept
+const Device::DeviceSettings&
+CameraProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
@@ -237,7 +250,8 @@ Device::ProtocolSettingsWidget* CameraProtocolFactory::makeSettingsWidget()
   return new CameraSettingsWidget;
 }
 
-QVariant CameraProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
+QVariant CameraProtocolFactory::makeProtocolSpecificSettings(
+    const VisitorVariant& visitor) const
 {
   return makeProtocolSpecificSettings_T<CameraSettings>(visitor);
 }
@@ -256,7 +270,8 @@ bool CameraProtocolFactory::checkCompatibility(
   return a.name != b.name;
 }
 
-CameraSettingsWidget::CameraSettingsWidget(QWidget* parent) : ProtocolSettingsWidget(parent)
+CameraSettingsWidget::CameraSettingsWidget(QWidget* parent)
+    : ProtocolSettingsWidget(parent)
 {
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
   checkForChanges(m_deviceNameEdit);
@@ -287,7 +302,7 @@ void CameraSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 
   // Clean up the name a bit
   auto prettyName = settings.name;
-  if(!prettyName.isEmpty())
+  if (!prettyName.isEmpty())
   {
     prettyName = prettyName.split(':').front();
     prettyName = prettyName.split('(').front();
@@ -303,14 +318,16 @@ void CameraSettingsWidget::setSettings(const Device::DeviceSettings& settings)
 template <>
 void DataStreamReader::read(const Gfx::CameraSettings& n)
 {
-  m_stream << n.input << n.device << n.size.width() << n.size.height() << n.fps;
+  m_stream << n.input << n.device << n.size.width() << n.size.height()
+           << n.fps;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Gfx::CameraSettings& n)
 {
-  m_stream >> n.input >> n.device >> n.size.rwidth() >> n.size.rheight() >> n.fps;
+  m_stream >> n.input >> n.device >> n.size.rwidth() >> n.size.rheight()
+      >> n.fps;
   checkDelimiter();
 }
 

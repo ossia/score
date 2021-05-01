@@ -1,7 +1,7 @@
 #pragma once
-#include <Scenario/Process/ScenarioModel.hpp>
-
 #include <score/selection/Selection.hpp>
+
+#include <Scenario/Process/ScenarioModel.hpp>
 
 namespace Scenario
 {

@@ -10,9 +10,9 @@
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Process/TimeValue.hpp>
 
-#include <score/document/DocumentContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
+#include <score/document/DocumentContext.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/TextLabel.hpp>
 
@@ -57,13 +57,15 @@ PointInspectorWidget::PointInspectorWidget(
 
   connect(
       m_XBox,
-      static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+      static_cast<void (QDoubleSpinBox::*)(double)>(
+          &QDoubleSpinBox::valueChanged),
       this,
       &PointInspectorWidget::on_pointChanged);
 
   connect(
       m_XBox,
-      static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+      static_cast<void (QDoubleSpinBox::*)(double)>(
+          &QDoubleSpinBox::valueChanged),
       this,
       &PointInspectorWidget::on_editFinished);
 
@@ -119,7 +121,8 @@ PointInspectorWidget::PointInspectorWidget(
 
 void PointInspectorWidget::on_pointChanged(double d)
 {
-  Curve::Point pos{m_XBox->value() / m_xFactor, (m_YBox->value() - m_Ymin) / m_yFactor};
+  Curve::Point pos{
+      m_XBox->value() / m_xFactor, (m_YBox->value() - m_Ymin) / m_yFactor};
   m_dispatcher.submit<Curve::MovePoint>(
       *safe_cast<Curve::Model*>(m_model.parent()), m_model.id(), pos);
 }

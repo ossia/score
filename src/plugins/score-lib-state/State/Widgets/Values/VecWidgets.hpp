@@ -30,7 +30,8 @@ template <std::size_t N>
 class VecWidget final : public VecEditBase
 {
 public:
-  VecWidget(QWidget* parent) : VecEditBase{parent}
+  VecWidget(QWidget* parent)
+      : VecEditBase{parent}
   {
     auto lay = new QHBoxLayout;
     this->setLayout(lay);
@@ -82,7 +83,8 @@ public:
   using domain_type = ossia::vecf_domain<N>;
   using set_type = ossia::flat_set<float>;
 
-  VecDomainWidget(QWidget* parent) : QWidget{parent}
+  VecDomainWidget(QWidget* parent)
+      : QWidget{parent}
   {
     auto lay = new score::MarginLess<QFormLayout>{this};
     this->setLayout(lay);
@@ -99,7 +101,8 @@ public:
     lay->addWidget(m_max);
   }
 
-  static std::array<std::optional<float>, N> toOptional(const std::array<float, N>& f)
+  static std::array<std::optional<float>, N>
+  toOptional(const std::array<float, N>& f)
   {
     std::array<std::optional<float>, N> res;
     for (std::size_t i = 0; i < N; i++)
@@ -109,7 +112,8 @@ public:
     return res;
   }
 
-  static std::array<float, N> fromOptional(const std::array<std::optional<float>, N>& f)
+  static std::array<float, N>
+  fromOptional(const std::array<std::optional<float>, N>& f)
   {
     std::array<float, N> res;
     for (std::size_t i = 0; i < N; i++)

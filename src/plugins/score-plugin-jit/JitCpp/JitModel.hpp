@@ -1,19 +1,17 @@
 #pragma once
-#include <JitCpp/EditScript.hpp>
-
+#include <Control/DefaultEffectItem.hpp>
+#include <Effect/EffectFactory.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessMetadata.hpp>
+#include <Process/Script/ScriptEditor.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/node_process.hpp>
 
-#include <Process/Script/ScriptEditor.hpp>
-
-#include <Control/DefaultEffectItem.hpp>
-#include <Effect/EffectFactory.hpp>
+#include <JitCpp/EditScript.hpp>
 namespace Jit
 {
 class JitEffectModel;
@@ -78,9 +76,10 @@ public:
 
   NodeFactory factory;
 
-  void errorMessage(int line, const QString& e) W_SIGNAL(errorMessage, line, e);
+  void errorMessage(int line, const QString& e)
+      W_SIGNAL(errorMessage, line, e);
   PROPERTY(QString, script READ script WRITE setScript NOTIFY scriptChanged)
-  private:
+private:
   void init();
   void reload();
   QString m_text;
@@ -96,8 +95,10 @@ using JitEffectFactory = Process::EffectProcessFactory_T<Jit::JitEffectModel>;
 using LayerFactory = Process::EffectLayerFactory_T<
     JitEffectModel,
     Process::DefaultEffectItem,
-    Process::ProcessScriptEditDialog<JitEffectModel, JitEffectModel::p_script, LanguageSpec>
->;
+    Process::ProcessScriptEditDialog<
+        JitEffectModel,
+        JitEffectModel::p_script,
+        LanguageSpec>>;
 }
 
 namespace Process
@@ -133,5 +134,9 @@ using JitEffectComponentFactory
     = Execution::ProcessComponentFactory_T<JitEffectComponent>;
 }
 
-PROPERTY_COMMAND_T(Jit, EditScript, JitEffectModel::p_script, "Edit C++ script")
+PROPERTY_COMMAND_T(
+    Jit,
+    EditScript,
+    JitEffectModel::p_script,
+    "Edit C++ script")
 SCORE_COMMAND_DECL_T(Jit::EditScript)

@@ -2,11 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CreateEvent_State.hpp"
 
-#include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-
 #include <score/model/EntityMap.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
@@ -14,6 +9,11 @@
 #include <score/tools/RandomNameProvider.hpp>
 
 #include <QByteArray>
+
+#include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 
 #include <vector>
 
@@ -36,7 +36,8 @@ void CreateEvent_State::undo(const score::DocumentContext& ctx) const
 {
   m_command.undo(ctx);
 
-  ScenarioCreate<EventModel>::undo(m_newEvent, m_command.scenarioPath().find(ctx));
+  ScenarioCreate<EventModel>::undo(
+      m_newEvent, m_command.scenarioPath().find(ctx));
 }
 
 void CreateEvent_State::redo(const score::DocumentContext& ctx) const
@@ -44,7 +45,8 @@ void CreateEvent_State::redo(const score::DocumentContext& ctx) const
   auto& scenar = m_command.scenarioPath().find(ctx);
 
   // Create the event
-  ScenarioCreate<EventModel>::redo(m_newEvent, scenar.timeSync(m_timeSync), scenar);
+  ScenarioCreate<EventModel>::redo(
+      m_newEvent, scenar.timeSync(m_timeSync), scenar);
 
   scenar.events.at(m_newEvent).metadata().setName(m_createdName);
   // scenar.events.at(m_newEvent).setCondition(State::defaultFalseExpression());

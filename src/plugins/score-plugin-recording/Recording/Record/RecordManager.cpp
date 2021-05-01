@@ -23,17 +23,6 @@
 #include <Recording/Record/RecordAutomations/RecordAutomationParameterCallbackVisitor.hpp>
 #include <Recording/Record/RecordData.hpp>
 #include <Recording/Record/RecordManager.hpp>
-#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
-#include <Scenario/Commands/Interval/Rack/AddSlotToRack.hpp>
-#include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event_TimeSync.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
-#include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
-#include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Interval/Slot.hpp>
-#include <Scenario/Palette/ScenarioPoint.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
 
@@ -54,6 +43,18 @@
 #include <QApplication>
 #include <qnamespace.h>
 
+#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
+#include <Scenario/Commands/Interval/Rack/AddSlotToRack.hpp>
+#include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event_TimeSync.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
+#include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
+#include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+
 #include <utility>
 
 #include <type_traits>
@@ -67,11 +68,14 @@ W_OBJECT_IMPL(Recording::AutomationRecorder)
 namespace Recording
 {
 AutomationRecorder::AutomationRecorder(RecordContext& ctx)
-    : context{ctx}, m_settings{context.context.app.settings<Curve::Settings::Model>()}
+    : context{ctx}
+    , m_settings{context.context.app.settings<Curve::Settings::Model>()}
 {
 }
 
-bool AutomationRecorder::setup(const Box& box, const RecordListening& recordListening)
+bool AutomationRecorder::setup(
+    const Box& box,
+    const RecordListening& recordListening)
 {
   std::vector<std::vector<State::Address>> addresses;
   //// Creation of the curves ////
@@ -83,7 +87,8 @@ bool AutomationRecorder::setup(const Box& box, const RecordListening& recordList
     for (Device::Node* node : vec)
     {
       Device::AddressSettings& addr = node->get<Device::AddressSettings>();
-      addr.value.apply(RecordAutomationCreationVisitor{*node, box, addr, addresses, *this});
+      addr.value.apply(
+          RecordAutomationCreationVisitor{*node, box, addr, addresses, *this});
     }
   }
 
@@ -129,11 +134,13 @@ void AutomationRecorder::stop()
     {
       if (curve_mode == Curve::Settings::Mode::Parameter)
       {
-        dev->valueUpdated.disconnect<&AutomationRecorder::parameterCallback>(*this);
+        dev->valueUpdated.disconnect<&AutomationRecorder::parameterCallback>(
+            *this);
       }
       else
       {
-        dev->valueUpdated.disconnect<&AutomationRecorder::messageCallback>(*this);
+        dev->valueUpdated.disconnect<&AutomationRecorder::messageCallback>(
+            *this);
       }
     }
   }
@@ -155,7 +162,9 @@ void AutomationRecorder::stop()
   // Create commands for the state of each automation to send on
   // the network, and push them silently.
 
-  auto make_address = [](State::Address a, uint8_t i, ossia::unit_t u) -> State::AddressAccessor {
+  auto make_address = [](State::Address a,
+                         uint8_t i,
+                         ossia::unit_t u) -> State::AddressAccessor {
     return State::AddressAccessor{std::move(a), {i}, u};
   };
 
@@ -215,13 +224,15 @@ void AutomationRecorder::stop()
   }
 }
 
-void AutomationRecorder::messageCallback(const State::Address& addr, const ossia::value& val)
+void AutomationRecorder::messageCallback(
+    const State::Address& addr,
+    const ossia::value& val)
 {
   using namespace std::chrono;
   if (context.started())
   {
-    val.apply(
-        RecordAutomationSubsequentCallbackVisitor<MessagePolicy>{*this, addr, context.time()});
+    val.apply(RecordAutomationSubsequentCallbackVisitor<MessagePolicy>{
+        *this, addr, context.time()});
   }
   else
   {
@@ -231,13 +242,15 @@ void AutomationRecorder::messageCallback(const State::Address& addr, const ossia
   }
 }
 
-void AutomationRecorder::parameterCallback(const State::Address& addr, const ossia::value& val)
+void AutomationRecorder::parameterCallback(
+    const State::Address& addr,
+    const ossia::value& val)
 {
   using namespace std::chrono;
   if (context.started())
   {
-    val.apply(
-        RecordAutomationSubsequentCallbackVisitor<ParameterPolicy>{*this, addr, context.time()});
+    val.apply(RecordAutomationSubsequentCallbackVisitor<ParameterPolicy>{
+        *this, addr, context.time()});
   }
   else
   {
@@ -255,7 +268,8 @@ bool AutomationRecorder::finish(
     int simplifyRatio)
 {
   Curve::PointArraySegment& segt = recorded.segment;
-  if (segt.points().empty() || (segt.points().size() == 1 && segt.points().begin()->first == 0.))
+  if (segt.points().empty()
+      || (segt.points().size() == 1 && segt.points().begin()->first == 0.))
   {
     recorded.addLayCmd->undo(context.context);
     delete recorded.addLayCmd;
@@ -264,7 +278,8 @@ bool AutomationRecorder::finish(
     return false;
   }
 
-  auto& automation = *safe_cast<Automation::ProcessModel*>(recorded.curveModel.parent());
+  auto& automation
+      = *safe_cast<Automation::ProcessModel*>(recorded.curveModel.parent());
 
   // Here we add a last point equal to the latest recorded point
   {

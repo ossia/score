@@ -1,5 +1,5 @@
-#include <Vst/Window.hpp>
 #include <Media/Effect/Settings/Model.hpp>
+#include <Vst/Window.hpp>
 
 #include <wobjectimpl.h>
 
@@ -30,14 +30,20 @@ ERect Window::getRect(AEffect& e)
     return ERect{0, 0, w, h};
 }
 
-Window::Window(const Model& e, const score::DocumentContext& ctx, QWidget* parent)
+Window::Window(
+    const Model& e,
+    const score::DocumentContext& ctx,
+    QWidget* parent)
     : Window{e, ctx}
 {
   setAttribute(Qt::WA_DeleteOnClose, true);
 
-  connect(&ctx.coarseUpdateTimer, &QTimer::timeout,
-          this, &Window::refreshTimer,
-          Qt::UniqueConnection);
+  connect(
+      &ctx.coarseUpdateTimer,
+      &QTimer::timeout,
+      this,
+      &Window::refreshTimer,
+      Qt::UniqueConnection);
 
   bool ontop = ctx.app.settings<Media::Settings::Model>().getVstAlwaysOnTop();
   if (ontop)
@@ -53,7 +59,6 @@ void Window::refreshTimer()
 {
   if (auto eff = effect.lock())
     eff->fx->dispatcher(eff->fx, effEditIdle, 0, 0, nullptr, 0);
-
 }
 
 void Window::closeEvent(QCloseEvent* event)
@@ -77,6 +82,5 @@ void Window::resize(int w, int h)
 {
   setup_rect(this, w, h);
 }
-
 
 }

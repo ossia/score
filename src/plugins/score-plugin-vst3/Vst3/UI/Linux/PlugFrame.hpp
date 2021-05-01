@@ -1,14 +1,14 @@
 #pragma once
 #include <ossia/detail/algorithms.hpp>
 
+#include <QDebug>
+#include <QTimer>
+#include <QWindow>
+
 #include <pluginterfaces/gui/iplugview.h>
 
-#include <QWindow>
-#include <QTimer>
-#include <QDebug>
-
-#include <vector>
 #include <utility>
+#include <vector>
 
 namespace vst3
 {
@@ -27,10 +27,10 @@ public:
 
   std::vector<std::pair<Linux::ITimerHandler*, QTimer*>> timers;
 
-  tresult queryInterface (const TUID _iid, void** obj) override
+  tresult queryInterface(const TUID _iid, void** obj) override
   {
     using namespace Steinberg;
-    if(FUID::fromTUID(_iid)  == Linux::IRunLoop::iid)
+    if (FUID::fromTUID(_iid) == Linux::IRunLoop::iid)
     {
       *obj = static_cast<Linux::IRunLoop*>(this);
       return kResultOk;
@@ -39,58 +39,65 @@ public:
     return kResultFalse;
   }
 
-   uint32 addRef () override
-   {
-     return 1;
-   }
+  uint32 addRef() override { return 1; }
 
-   uint32 release () override
-   {
-     return 1;
-   }
+  uint32 release() override { return 1; }
 
-   tresult PLUGIN_API registerEventHandler (Linux::IEventHandler* handler, Linux::FileDescriptor fd) override {
+  tresult PLUGIN_API registerEventHandler(
+      Linux::IEventHandler* handler,
+      Linux::FileDescriptor fd) override
+  {
 
-     qDebug() << "registerEventHandler";
-     return Steinberg::kResultOk;
-   }
-   tresult PLUGIN_API unregisterEventHandler (Linux::IEventHandler* handler)  override {
+    qDebug() << "registerEventHandler";
+    return Steinberg::kResultOk;
+  }
+  tresult PLUGIN_API
+  unregisterEventHandler(Linux::IEventHandler* handler) override
+  {
 
-     qDebug() << "unregisterEventHandler";
-     return Steinberg::kResultOk;
-   }
+    qDebug() << "unregisterEventHandler";
+    return Steinberg::kResultOk;
+  }
 
-   tresult PLUGIN_API registerTimer (Linux::ITimerHandler* handler,
-                 Linux::TimerInterval milliseconds)  override {
+  tresult PLUGIN_API registerTimer(
+      Linux::ITimerHandler* handler,
+      Linux::TimerInterval milliseconds) override
+  {
 
-     auto t = new QTimer;
-     QObject::connect(t, &QTimer::timeout, [=] { handler->onTimer(); });
-     t->start(milliseconds);
-     timers.push_back({handler, t});
-     qDebug() << "registerTimer" << milliseconds;
-     return Steinberg::kResultOk;
-   }
-   tresult PLUGIN_API unregisterTimer (Linux::ITimerHandler* handler)  override {
+    auto t = new QTimer;
+    QObject::connect(t, &QTimer::timeout, [=] { handler->onTimer(); });
+    t->start(milliseconds);
+    timers.push_back({handler, t});
+    qDebug() << "registerTimer" << milliseconds;
+    return Steinberg::kResultOk;
+  }
+  tresult PLUGIN_API unregisterTimer(Linux::ITimerHandler* handler) override
+  {
 
-     auto t = ossia::find_if(timers, [=] (auto& p1) { return p1.first == handler; });
-     if(t != timers.end())
-     {
-       delete t->second;
-       timers.erase(t);
-     }
-     qDebug() << "unregisterTimer";
-     return Steinberg::kResultOk;
-   }
+    auto t = ossia::find_if(
+        timers, [=](auto& p1) { return p1.first == handler; });
+    if (t != timers.end())
+    {
+      delete t->second;
+      timers.erase(t);
+    }
+    qDebug() << "unregisterTimer";
+    return Steinberg::kResultOk;
+  }
 
-  QWindow &w;
-  PlugFrame(QWindow &w): w{w} { }
+  QWindow& w;
+  PlugFrame(QWindow& w)
+      : w{w}
+  {
+  }
 
-  tresult resizeView (Steinberg::IPlugView* view, Steinberg::ViewRect* newSize) override
+  tresult
+  resizeView(Steinberg::IPlugView* view, Steinberg::ViewRect* newSize) override
   {
     auto& r = *newSize;
     w.resize(QSize{r.getWidth(), r.getHeight()});
 
-    if(view->canResize())
+    if (view->canResize())
     {
       view->onSize(&r);
     }

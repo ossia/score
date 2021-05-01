@@ -12,7 +12,8 @@ MagnetismAdjuster::MagnetismAdjuster() noexcept { }
 
 MagnetismAdjuster::~MagnetismAdjuster() noexcept { }
 
-MagneticInfo MagnetismAdjuster::getPosition(const QObject* obj, TimeVal original) noexcept
+MagneticInfo
+MagnetismAdjuster::getPosition(const QObject* obj, TimeVal original) noexcept
 {
   // For all magnetism handlers registered,
   // find the one which is closest to the origin position
@@ -61,15 +62,17 @@ void MagnetismAdjuster::registerHandler(
     QObject* context,
     MagnetismHandler h) noexcept
 {
-  auto it = ossia::find_if(m_handlers, [&](auto& p) { return p.first == context; });
+  auto it = ossia::find_if(
+      m_handlers, [&](auto& p) { return p.first == context; });
   if (it == m_handlers.end())
     m_handlers.emplace_back(context, h);
 
-  if(context)
+  if (context)
   {
-    QObject::connect(context, &QObject::destroyed,
-            this, [=] {
-      qDebug() << "Warning: MagnetismAdjuster::registerHandler: unregistering happened in unnatural ways: " << context->objectName();
+    QObject::connect(context, &QObject::destroyed, this, [=] {
+      qDebug() << "Warning: MagnetismAdjuster::registerHandler: unregistering "
+                  "happened in unnatural ways: "
+               << context->objectName();
       unregisterHandler(context);
     });
   }
@@ -77,10 +80,11 @@ void MagnetismAdjuster::registerHandler(
 
 void MagnetismAdjuster::unregisterHandler(QObject* context) noexcept
 {
-  if(!context)
+  if (!context)
     return;
 
-  auto it = ossia::find_if(m_handlers, [&](auto& p) { return p.first == context; });
+  auto it = ossia::find_if(
+      m_handlers, [&](auto& p) { return p.first == context; });
   if (it != m_handlers.end())
   {
     m_handlers.erase(it);

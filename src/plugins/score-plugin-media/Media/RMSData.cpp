@@ -28,8 +28,8 @@ void RMSData::load(QString abspath, int channels, int rate, TimeVal duration)
   if (m_file.isOpen())
     m_file.close();
 
-  const auto cache
-      = QStandardPaths::standardLocations(QStandardPaths::StandardLocation::CacheLocation);
+  const auto cache = QStandardPaths::standardLocations(
+      QStandardPaths::StandardLocation::CacheLocation);
   if (cache.empty())
     throw std::runtime_error("No cache folder");
 
@@ -42,7 +42,8 @@ void RMSData::load(QString abspath, int channels, int rate, TimeVal duration)
   cache_dir.mkdir("waveforms");
   cache_dir.cd("waveforms");
 
-  m_file.setFileName(cache_dir.absoluteFilePath(hash.toBase64(QByteArray::Base64UrlEncoding)));
+  m_file.setFileName(cache_dir.absoluteFilePath(
+      hash.toBase64(QByteArray::Base64UrlEncoding)));
 
   if (m_file.exists())
   {
@@ -52,14 +53,17 @@ void RMSData::load(QString abspath, int channels, int rate, TimeVal duration)
     void* data = m_file.map(0, m_file.size());
     assert(data);
     this->header = reinterpret_cast<Header*>(data);
-    this->data = reinterpret_cast<rms_sample_t*>(((char*)data) + sizeof(Header));
+    this->data
+        = reinterpret_cast<rms_sample_t*>(((char*)data) + sizeof(Header));
 
     frames_count = (m_file.size() - sizeof(Header)) / sizeof(rms_sample_t);
     samples_count = frames_count * header->channels;
   }
   else
   {
-    m_ramData.reserve(duration.msec() * 0.001 * rate * channels * sizeof(rms_sample_t) + 1000);
+    m_ramData.reserve(
+        duration.msec() * 0.001 * rate * channels * sizeof(rms_sample_t)
+        + 1000);
     m_ramBuffer.setBuffer(&m_ramData);
     m_ramBuffer.open(QIODevice::ReadWrite);
     Header h;
@@ -69,7 +73,8 @@ void RMSData::load(QString abspath, int channels, int rate, TimeVal duration)
     m_ramBuffer.write((const char*)&h, sizeof(h));
 
     this->header = reinterpret_cast<Header*>(m_ramData.data());
-    this->data = reinterpret_cast<rms_sample_t*>(((char*)m_ramData.data()) + sizeof(Header));
+    this->data = reinterpret_cast<rms_sample_t*>(
+        ((char*)m_ramData.data()) + sizeof(Header));
   }
 }
 
@@ -78,12 +83,14 @@ bool RMSData::exists() const
   return m_exists;
 }
 
-void RMSData::decode(const std::vector<gsl::span<const ossia::audio_sample>>& audio)
+void RMSData::decode(
+    const std::vector<gsl::span<const ossia::audio_sample>>& audio)
 {
   computeRMS(audio, rms_buffer_size);
 }
 
-void RMSData::decodeLast(const std::vector<gsl::span<const ossia::audio_sample>>& audio)
+void RMSData::decodeLast(
+    const std::vector<gsl::span<const ossia::audio_sample>>& audio)
 {
   computeLastRMS(audio, rms_buffer_size);
 
@@ -131,7 +138,8 @@ double RMSData::sampleRateRatio(double expectedRate) const noexcept
   return header->sampleRate / expectedRate;
 }
 
-ossia::small_vector<float, 8> RMSData::frame(int64_t start_frame, int64_t end_frame) const noexcept
+ossia::small_vector<float, 8>
+RMSData::frame(int64_t start_frame, int64_t end_frame) const noexcept
 {
   ossia::small_vector<float, 8> sum;
   sum.resize(header->channels);
@@ -196,7 +204,10 @@ rms_sample_t RMSData::computeChannelRMS(
   return val * std::numeric_limits<rms_sample_t>::max();
 }
 
-void RMSData::computeChannelRMS(ossia::drwav_handle& wav, rms_sample_t* bytes, int64_t buffer_size)
+void RMSData::computeChannelRMS(
+    ossia::drwav_handle& wav,
+    rms_sample_t* bytes,
+    int64_t buffer_size)
 {
   const int channels = wav.channels();
   float* val = (float*)alloca(sizeof(float) * channels);
@@ -286,7 +297,8 @@ void RMSData::computeLastRMS(
   {
     for (int i = 0; i < channels; i++)
     {
-      bytes[i] = computeChannelRMS(audio[i], start_idx, max_frames - start_idx);
+      bytes[i]
+          = computeChannelRMS(audio[i], start_idx, max_frames - start_idx);
     }
     m_ramBuffer.write(reinterpret_cast<const char*>(bytes), len);
     start_idx += buffer_size;

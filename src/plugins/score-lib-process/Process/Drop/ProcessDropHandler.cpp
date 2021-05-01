@@ -19,11 +19,11 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandler::getDrops(
   // Try to extract data from the mime formats
   const auto& formats = mime.formats();
   auto commonFormats = mimeTypes().intersect(
-      #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-        formats.toSet()
-      #else
-        QSet<QString>(formats.begin(), formats.end())
-      #endif
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
+      formats.toSet()
+#else
+      QSet<QString>(formats.begin(), formats.end())
+#endif
   );
   if (!commonFormats.isEmpty())
   {
@@ -91,8 +91,9 @@ QSet<QString> ProcessDropHandler::fileExtensions() const noexcept
   return {};
 }
 
-std::vector<ProcessDropHandler::ProcessDrop>
-ProcessDropHandler::drop(const QMimeData& data, const score::DocumentContext& ctx) const noexcept
+std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandler::drop(
+    const QMimeData& data,
+    const score::DocumentContext& ctx) const noexcept
 {
   return {};
 }
@@ -119,15 +120,16 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandlerList::getDrop(
   return res;
 }
 
-std::optional<TimeVal>
-ProcessDropHandlerList::getMaxDuration(const std::vector<ProcessDropHandler::ProcessDrop>& res)
+std::optional<TimeVal> ProcessDropHandlerList::getMaxDuration(
+    const std::vector<ProcessDropHandler::ProcessDrop>& res)
 {
   using drop_t = Process::ProcessDropHandler::ProcessDrop;
   SCORE_ASSERT(!res.empty());
 
-  auto max_t = std::max_element(res.begin(), res.end(), [](const drop_t& l, const drop_t& r) {
-    return l.duration < r.duration;
-  });
+  auto max_t = std::max_element(
+      res.begin(), res.end(), [](const drop_t& l, const drop_t& r) {
+        return l.duration < r.duration;
+      });
 
   return max_t->duration;
 }

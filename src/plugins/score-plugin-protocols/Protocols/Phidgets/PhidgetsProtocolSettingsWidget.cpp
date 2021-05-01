@@ -3,15 +3,14 @@
 
 #include <ossia/detail/config.hpp>
 #if defined(OSSIA_PROTOCOL_PHIDGETS)
+#include "PhidgetsProtocolFactory.hpp"
 #include "PhidgetsProtocolSettingsWidget.hpp"
 #include "PhidgetsSpecificSettings.hpp"
-#include "PhidgetsProtocolFactory.hpp"
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
 #include <QCodeEditor>
-
 #include <QFormLayout>
 #include <QLineEdit>
 #include <QVariant>
@@ -46,7 +45,8 @@ Device::DeviceSettings PhidgetProtocolSettingsWidget::getSettings() const
   return s;
 }
 
-void PhidgetProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settings)
+void PhidgetProtocolSettingsWidget::setSettings(
+    const Device::DeviceSettings& settings)
 {
   m_name->setText(settings.name);
 }

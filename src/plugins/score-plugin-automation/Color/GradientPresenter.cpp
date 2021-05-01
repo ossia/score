@@ -19,7 +19,8 @@ Presenter::Presenter(
     View* view,
     const Process::Context& ctx,
     QObject* parent)
-    : LayerPresenter{layer, view, ctx, parent}, m_view{view}
+    : LayerPresenter{layer, view, ctx, parent}
+    , m_view{view}
 {
   putToFront();
   connect(&layer, &ProcessModel::gradientChanged, this, [&] {
@@ -39,7 +40,8 @@ Presenter::Presenter(
       prev--;
 
     new_grad.insert(std::make_pair(np, prev->second));
-    CommandDispatcher<>{context().context.commandStack}.submit<ChangeGradient>(layer, new_grad);
+    CommandDispatcher<>{context().context.commandStack}.submit<ChangeGradient>(
+        layer, new_grad);
   });
 
   connect(m_view, &View::movePoint, this, [&](double orig, double cur) {
@@ -51,7 +53,8 @@ Presenter::Presenter(
     auto col = it->second;
     new_grad.erase(it);
     new_grad.insert(std::make_pair(cur, col));
-    CommandDispatcher<>{context().context.commandStack}.submit<ChangeGradient>(layer, new_grad);
+    CommandDispatcher<>{context().context.commandStack}.submit<ChangeGradient>(
+        layer, new_grad);
   });
 
   connect(m_view, &View::removePoint, this, [&](double orig) {
@@ -61,7 +64,8 @@ Presenter::Presenter(
       return;
 
     new_grad.erase(it);
-    CommandDispatcher<>{context().context.commandStack}.submit<ChangeGradient>(layer, new_grad);
+    CommandDispatcher<>{context().context.commandStack}.submit<ChangeGradient>(
+        layer, new_grad);
   });
 
   connect(m_view, &View::setColor, this, [&](double pos, QColor col) {
@@ -71,11 +75,15 @@ Presenter::Presenter(
       return;
 
     *it = col;
-    CommandDispatcher<>{context().context.commandStack}.submit<ChangeGradient>(layer, new_grad);
+    CommandDispatcher<>{context().context.commandStack}.submit<ChangeGradient>(
+        layer, new_grad);
   });
 
-  connect(m_view, &View::pressed, this, [&] { m_context.context.focusDispatcher.focus(this); });
-  connect(m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
+  connect(m_view, &View::pressed, this, [&] {
+    m_context.context.focusDispatcher.focus(this);
+  });
+  connect(
+      m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
 }
 
 void Presenter::setWidth(qreal val, qreal defaultWidth)

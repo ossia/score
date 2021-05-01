@@ -5,11 +5,11 @@
 
 #include <State/ValueSerialization.hpp>
 
+#include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VariantSerialization.hpp>
-#include <score/model/tree/TreeNodeSerialization.hpp>
 
 SCORE_SERALIZE_DATASTREAM_DEFINE(State::Expression)
 template <>

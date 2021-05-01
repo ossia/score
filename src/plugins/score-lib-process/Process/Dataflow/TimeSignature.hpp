@@ -1,8 +1,9 @@
 #pragma once
+#include <score/serialization/DataStreamFwd.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <score/serialization/DataStreamFwd.hpp> 
-#include <ossia/editor/scenario/time_signature.hpp>
+
 #include <ossia-qt/time.hpp>
+#include <ossia/editor/scenario/time_signature.hpp>
 
 #include <string>
 #include <utility>
@@ -11,11 +12,12 @@
 #include <string_view>
 namespace Control
 {
-inline std::optional<ossia::time_signature> get_time_signature(const std::string_view& v)
+inline std::optional<ossia::time_signature>
+get_time_signature(const std::string_view& v)
 {
   constexpr const auto is_valid_denom = [](int denom) {
-    return denom == 1 || denom == 2 || denom == 4 || denom == 8 || denom == 16 || denom == 32
-           || denom == 64;
+    return denom == 1 || denom == 2 || denom == 4 || denom == 8 || denom == 16
+           || denom == 32 || denom == 64;
   };
 
   try

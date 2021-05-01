@@ -2,8 +2,9 @@
 #include "node.hpp"
 #include "renderer.hpp"
 
-#include <score_plugin_gfx_export.h>
 #include <ossia/detail/algorithms.hpp>
+
+#include <score_plugin_gfx_export.h>
 struct OutputNode;
 class Window;
 struct SCORE_PLUGIN_GFX_EXPORT Graph
@@ -32,6 +33,7 @@ struct SCORE_PLUGIN_GFX_EXPORT Graph
   ~Graph();
 
   std::vector<OutputNode*> outputs;
+
 private:
   std::vector<std::shared_ptr<Renderer>> renderers;
 

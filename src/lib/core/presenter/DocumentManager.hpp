@@ -42,7 +42,9 @@ protected:
 /**
  * @brief Owns the documents
  */
-class SCORE_LIB_BASE_EXPORT DocumentManager : public QObject, public DocumentList
+class SCORE_LIB_BASE_EXPORT DocumentManager
+    : public QObject
+    , public DocumentList
 {
   W_OBJECT(DocumentManager)
 public:
@@ -55,17 +57,21 @@ public:
   auto recentFiles() const { return m_recentFiles; }
 
   // Document management
-  Document* setupDocument(const score::GUIApplicationContext& ctx, score::Document* doc);
+  Document*
+  setupDocument(const score::GUIApplicationContext& ctx, score::Document* doc);
 
   template <typename... Args>
-  Document* newDocument(const score::GUIApplicationContext& ctx, Args&&... args)
+  Document*
+  newDocument(const score::GUIApplicationContext& ctx, Args&&... args)
   {
     prepareNewDocument(ctx);
-    return setupDocument(ctx, m_builder.newDocument(ctx, std::forward<Args>(args)...));
+    return setupDocument(
+        ctx, m_builder.newDocument(ctx, std::forward<Args>(args)...));
   }
 
   template <typename... Args>
-  Document* loadDocument(const score::GUIApplicationContext& ctx, Args&&... args)
+  Document*
+  loadDocument(const score::GUIApplicationContext& ctx, Args&&... args)
   {
     auto cur = currentDocument();
     if (cur && cur->virgin())
@@ -73,20 +79,23 @@ public:
       forceCloseDocument(ctx, *cur);
     }
     prepareNewDocument(ctx);
-    return setupDocument(ctx, m_builder.loadDocument(ctx, std::forward<Args>(args)...));
+    return setupDocument(
+        ctx, m_builder.loadDocument(ctx, std::forward<Args>(args)...));
   }
 
   template <typename... Args>
   void restoreDocument(const score::GUIApplicationContext& ctx, Args&&... args)
   {
     prepareNewDocument(ctx);
-    setupDocument(ctx, m_builder.restoreDocument(ctx, std::forward<Args>(args)...));
+    setupDocument(
+        ctx, m_builder.restoreDocument(ctx, std::forward<Args>(args)...));
   }
 
   // Restore documents after a crash
   void restoreDocuments(const score::GUIApplicationContext& ctx);
 
-  void setCurrentDocument(const score::GUIApplicationContext& ctx, Document* doc);
+  void
+  setCurrentDocument(const score::GUIApplicationContext& ctx, Document* doc);
 
   // Returns true if the document was closed.
   bool closeDocument(const score::GUIApplicationContext& ctx, Document&);
@@ -101,7 +110,8 @@ public:
   Document* loadStack(const score::GUIApplicationContext& ctx, const QString&);
 
   Document* loadFile(const score::GUIApplicationContext& ctx);
-  Document* loadFile(const score::GUIApplicationContext& ctx, const QString& filename);
+  Document*
+  loadFile(const score::GUIApplicationContext& ctx, const QString& filename);
 
   bool closeAllDocuments(const score::GUIApplicationContext& ctx);
 
@@ -111,7 +121,9 @@ public:
    * @brief checkAndUpdateJson
    * @return boolean indicating if the document is loadable
    */
-  static bool checkAndUpdateJson(rapidjson::Value&, const score::GUIApplicationContext& ctx);
+  static bool checkAndUpdateJson(
+      rapidjson::Value&,
+      const score::GUIApplicationContext& ctx);
 
 public:
   void documentChanged(score::Document* arg_1)
@@ -120,8 +132,10 @@ public:
 private:
   void prepareNewDocument(const score::GUIApplicationContext& ctx);
 
-  static bool
-  updateJson(rapidjson::Value& object, score::Version json_ver, score::Version score_ver);
+  static bool updateJson(
+      rapidjson::Value& object,
+      score::Version json_ver,
+      score::Version score_ver);
 
   void saveRecentFilesState();
 
@@ -138,5 +152,6 @@ SCORE_LIB_BASE_EXPORT
 Id<score::DocumentModel> getStrongId(const std::vector<score::Document*>& v);
 
 SCORE_LIB_BASE_EXPORT
-Id<score::DocumentPlugin> getStrongId(const std::vector<score::DocumentPlugin*>& v);
+Id<score::DocumentPlugin>
+getStrongId(const std::vector<score::DocumentPlugin*>& v);
 }

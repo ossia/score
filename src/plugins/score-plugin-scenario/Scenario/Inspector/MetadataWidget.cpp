@@ -4,8 +4,6 @@
 
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Scenario/Inspector/CommentEdit.hpp>
-#include <Scenario/Inspector/ExtendedMetadataWidget.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/model/ModelMetadata.hpp>
@@ -18,6 +16,8 @@
 #include <QtColorWidgets/color_palette_model.hpp>
 #include <QtColorWidgets/swatch.hpp>
 
+#include <Scenario/Inspector/CommentEdit.hpp>
+#include <Scenario/Inspector/ExtendedMetadataWidget.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::MetadataWidget)
 W_OBJECT_IMPL(Scenario::CommentEdit)
@@ -64,16 +64,18 @@ MetadataWidget::MetadataWidget(
   m_labelLine.setPlaceholderText(tr("Label"));
   m_labelLine.setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   m_metadataLayout.addWidget(&m_labelLine);
-  con(metadata, &score::ModelMetadata::LabelChanged, this, [=](const auto& str) {
-    m_labelLine.setText(str);
-  });
+  con(metadata,
+      &score::ModelMetadata::LabelChanged,
+      this,
+      [=](const auto& str) { m_labelLine.setText(str); });
 
   // comments
   m_comments.setMaximumHeight(50);
   m_comments.setPlaceholderText(tr("Comments"));
-  con(metadata, &score::ModelMetadata::CommentChanged, this, [=](const auto& str) {
-    m_comments.setText(str);
-  });
+  con(metadata,
+      &score::ModelMetadata::CommentChanged,
+      this,
+      [=](const auto& str) { m_comments.setText(str); });
 
   m_metadataLayout.addWidget(&m_comments);
 
@@ -102,7 +104,8 @@ MetadataWidget::MetadataWidget(
 
       if (idx == colors.size() - 1)
       {
-        const score::Brush& defaultBrush = Process::Style::instance().IntervalDefaultBackground();
+        const score::Brush& defaultBrush
+            = Process::Style::instance().IntervalDefaultBackground();
         colorChanged(&defaultBrush);
       }
       else if (idx >= 0 && idx < colors.size())
@@ -114,28 +117,36 @@ MetadataWidget::MetadataWidget(
       }
     });
 
-    con(metadata, &score::ModelMetadata::ColorChanged, this, [=](const score::ColorRef& str) {
-      auto palette = m_palette_widget->palette();
-      auto color = str.getBrush().color();
-      for (int i = 0; i < palette.count(); i++)
-      {
-        if (palette.colorAt(i) == color)
-        {
-          m_palette_widget->setSelected(i);
-          break;
-        }
-      }
-    });
+    con(metadata,
+        &score::ModelMetadata::ColorChanged,
+        this,
+        [=](const score::ColorRef& str) {
+          auto palette = m_palette_widget->palette();
+          auto color = str.getBrush().color();
+          for (int i = 0; i < palette.count(); i++)
+          {
+            if (palette.colorAt(i) == color)
+            {
+              m_palette_widget->setSelected(i);
+              break;
+            }
+          }
+        });
     m_metadataLayout.addWidget(m_palette_widget);
   }
 
-  con(m_labelLine, &QLineEdit::editingFinished, [=]() { labelChanged(m_labelLine.text()); });
+  con(m_labelLine, &QLineEdit::editingFinished, [=]() {
+    labelChanged(m_labelLine.text());
+  });
 
   con(m_comments, &CommentEdit::editingFinished, [=]() {
     commentsChanged(m_comments.toPlainText());
   });
 
-  con(metadata, &score::ModelMetadata::metadataChanged, this, &MetadataWidget::updateAsked);
+  con(metadata,
+      &score::ModelMetadata::metadataChanged,
+      this,
+      &MetadataWidget::updateAsked);
   updateAsked();
 }
 

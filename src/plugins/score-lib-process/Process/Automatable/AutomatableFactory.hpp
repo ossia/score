@@ -62,10 +62,12 @@ public:
   // TODO also have an interface that allows recording / piecewise construction
 };
 
-struct SCORE_LIB_PROCESS_EXPORT AutomatableFactoryList : score::InterfaceList<AutomatableFactory>
+struct SCORE_LIB_PROCESS_EXPORT AutomatableFactoryList
+    : score::InterfaceList<AutomatableFactory>
 {
   Process::ProcessModelFactory*
-  get(const score::ApplicationContext& ctx, const ossia::complex_type& t) const noexcept
+  get(const score::ApplicationContext& ctx,
+      const ossia::complex_type& t) const noexcept
   {
     for (auto& fact : *this)
     {

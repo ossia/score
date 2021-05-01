@@ -17,7 +17,10 @@ namespace Command
 {
 class UpdateDeviceSettings final : public score::Command
 {
-  SCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), UpdateDeviceSettings, "Update a device")
+  SCORE_COMMAND_DECL(
+      DeviceExplorerCommandFactoryName(),
+      UpdateDeviceSettings,
+      "Update a device")
 public:
   UpdateDeviceSettings(
       const DeviceDocumentPlugin& devplug,

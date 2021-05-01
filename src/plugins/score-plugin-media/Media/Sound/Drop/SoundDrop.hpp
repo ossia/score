@@ -9,7 +9,10 @@ struct DroppedAudioFiles
 {
   DroppedAudioFiles(const score::DocumentContext& ctx, const QMimeData& mime);
 
-  bool valid() const { return !files.empty() && maxDuration != TimeVal::zero(); }
+  bool valid() const
+  {
+    return !files.empty() && maxDuration != TimeVal::zero();
+  }
 
   TimeVal dropMaxDuration() const;
   TimeVal maxDuration = TimeVal::zero();
@@ -27,8 +30,9 @@ class DropHandler final : public Process::ProcessDropHandler
 
   QSet<QString> mimeTypes() const noexcept override;
   QSet<QString> fileExtensions() const noexcept override;
-  std::vector<ProcessDrop>
-  drop(const QMimeData& data, const score::DocumentContext& ctx) const noexcept override;
+  std::vector<ProcessDrop> drop(
+      const QMimeData& data,
+      const score::DocumentContext& ctx) const noexcept override;
 };
 
 }

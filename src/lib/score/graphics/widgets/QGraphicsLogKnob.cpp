@@ -1,5 +1,5 @@
-#include <score/graphics/widgets/QGraphicsLogKnob.hpp>
 #include <score/graphics/DefaultGraphicsKnobImpl.hpp>
+#include <score/graphics/widgets/QGraphicsLogKnob.hpp>
 #include <score/model/Skin.hpp>
 
 #include <QGraphicsSceneMouseEvent>
@@ -10,7 +10,8 @@ W_OBJECT_IMPL(score::QGraphicsLogKnob);
 namespace score
 {
 
-QGraphicsLogKnob::QGraphicsLogKnob(QGraphicsItem* parent) : QGraphicsItem{parent}
+QGraphicsLogKnob::QGraphicsLogKnob(QGraphicsItem* parent)
+    : QGraphicsItem{parent}
 {
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointingHand);
@@ -89,7 +90,8 @@ void QGraphicsLogKnob::paint(
   DefaultGraphicsKnobImpl::paint(
       *this,
       score::Skin::instance(),
-      QString::number(ossia::normalized_to_log(min, max - min, value()), 'f', 3),
+      QString::number(
+          ossia::normalized_to_log(min, max - min, value()), 'f', 3),
       painter,
       widget);
 }

@@ -1,11 +1,11 @@
 #pragma once
 #include <Gfx/Graph/graph.hpp>
+#include <Gfx/Graph/imagenode.hpp>
 #include <Gfx/Graph/isfnode.hpp>
 #include <Gfx/Graph/node.hpp>
 #include <Gfx/Graph/nodes.hpp>
 #include <Gfx/Graph/shadercache.hpp>
 #include <Gfx/Graph/window.hpp>
-#include <Gfx/Graph/imagenode.hpp>
 #include <Gfx/ShaderProgram.hpp>
 
 #include <QHBoxLayout>
@@ -15,7 +15,7 @@ struct ISFNode;
 namespace Gfx
 {
 
-class ShaderPreviewWidget: public QWidget
+class ShaderPreviewWidget : public QWidget
 {
 public:
   ShaderPreviewWidget(const QString& path, QWidget* parent = nullptr);

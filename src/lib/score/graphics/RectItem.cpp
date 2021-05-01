@@ -29,7 +29,10 @@ QRectF RectItem::boundingRect() const
   return m_rect;
 }
 
-void RectItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void RectItem::paint(
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   const auto& skin = score::Skin::instance();
 
@@ -69,11 +72,15 @@ void RectItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
-ResizeableItem::ResizeableItem(QGraphicsItem* parent) : QGraphicsItem{parent} { }
+ResizeableItem::ResizeableItem(QGraphicsItem* parent)
+    : QGraphicsItem{parent}
+{
+}
 
 ResizeableItem::~ResizeableItem() { }
 
-EmptyRectItem::EmptyRectItem(QGraphicsItem* parent) : ResizeableItem{parent}
+EmptyRectItem::EmptyRectItem(QGraphicsItem* parent)
+    : ResizeableItem{parent}
 {
   this->setFlag(ItemHasNoContents, true);
   this->setAcceptedMouseButtons({});
@@ -126,16 +133,13 @@ void EmptyRectItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   event->ignore();
 }
 
-BackgroundItem::BackgroundItem(QGraphicsItem *parent)
+BackgroundItem::BackgroundItem(QGraphicsItem* parent)
     : QGraphicsItem{parent}
 {
   setAcceptedMouseButtons({});
 }
 
-BackgroundItem::~BackgroundItem()
-{
-
-}
+BackgroundItem::~BackgroundItem() { }
 
 void BackgroundItem::paint(
     QPainter* painter,
@@ -180,7 +184,8 @@ void BackgroundItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   event->ignore();
 }
 
-EmptyItem::EmptyItem(QGraphicsItem* parent) : QGraphicsItem{parent}
+EmptyItem::EmptyItem(QGraphicsItem* parent)
+    : QGraphicsItem{parent}
 {
   setFlag(ItemHasNoContents, true);
 }
@@ -190,7 +195,10 @@ QRectF EmptyItem::boundingRect() const
   return {};
 }
 
-void EmptyItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void EmptyItem::paint(
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
 }
 

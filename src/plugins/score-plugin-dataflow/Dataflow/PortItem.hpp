@@ -33,7 +33,8 @@ public:
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 };
 
-class SCORE_PLUGIN_DATAFLOW_EXPORT AutomatablePortFactory : public Process::PortFactory
+class SCORE_PLUGIN_DATAFLOW_EXPORT AutomatablePortFactory
+    : public Process::PortFactory
 {
 public:
   ~AutomatablePortFactory() override = default;

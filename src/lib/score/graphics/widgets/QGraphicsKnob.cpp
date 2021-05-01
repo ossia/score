@@ -1,5 +1,5 @@
-#include <score/graphics/widgets/QGraphicsKnob.hpp>
 #include <score/graphics/DefaultGraphicsKnobImpl.hpp>
+#include <score/graphics/widgets/QGraphicsKnob.hpp>
 #include <score/model/Skin.hpp>
 
 #include <ossia/detail/math.hpp>
@@ -12,7 +12,8 @@ W_OBJECT_IMPL(score::QGraphicsKnob);
 namespace score
 {
 
-QGraphicsKnob::QGraphicsKnob(QGraphicsItem* parent) : QGraphicsItem{parent}
+QGraphicsKnob::QGraphicsKnob(QGraphicsItem* parent)
+    : QGraphicsItem{parent}
 {
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointingHand);

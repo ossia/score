@@ -2,18 +2,19 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioDocumentFactory.hpp"
 
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
-
 #include <score/serialization/VisitorCommon.hpp>
 
 #include <core/document/DocumentModel.hpp>
 
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
+
 namespace Scenario
 {
-score::DocumentDelegateView*
-ScenarioDocumentFactory::makeView(const score::DocumentContext& ctx, QObject* parent)
+score::DocumentDelegateView* ScenarioDocumentFactory::makeView(
+    const score::DocumentContext& ctx,
+    QObject* parent)
 {
   return new ScenarioDocumentView{ctx, parent};
 }

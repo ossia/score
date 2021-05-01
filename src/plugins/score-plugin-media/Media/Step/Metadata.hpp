@@ -22,6 +22,7 @@ PROCESS_METADATA(
     {},
     {},
     {std::vector<Process::PortType>{Process::PortType::Message}},
-    Process::ProcessFlags::SupportsTemporal | Process::ProcessFlags::PutInNewSlot)
+    Process::ProcessFlags::SupportsTemporal
+        | Process::ProcessFlags::PutInNewSlot)
 
 UNDO_NAME_METADATA(EMPTY_MACRO, Media::Step::Model, "Step sequencer")

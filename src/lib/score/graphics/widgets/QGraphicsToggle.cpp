@@ -12,9 +12,12 @@ W_OBJECT_IMPL(score::QGraphicsToggle);
 namespace score
 {
 
-QGraphicsToggle::QGraphicsToggle(const QString& textToggled, const QString& textUntoggled, QGraphicsItem* parent)
-  : m_textToggled(textToggled),
-    m_textUntoggled(textUntoggled)
+QGraphicsToggle::QGraphicsToggle(
+    const QString& textToggled,
+    const QString& textUntoggled,
+    QGraphicsItem* parent)
+    : m_textToggled(textToggled)
+    , m_textUntoggled(textUntoggled)
 {
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointingHand);
@@ -60,12 +63,14 @@ void QGraphicsToggle::paint(
   const double backgroundRectWidth = m_rect.width() - 2. * margin;
   const double backgroundRectHeight = m_rect.height() - 2. * margin;
 
-  painter->fillRect(QRectF{margin,margin, backgroundRectWidth, backgroundRectHeight}, skin.Emphasis2.main.brush);
+  painter->fillRect(
+      QRectF{margin, margin, backgroundRectWidth, backgroundRectHeight},
+      skin.Emphasis2.main.brush);
 
   painter->setPen(skin.Base4.main.pen1);
   painter->setFont(skin.Medium10Pt);
   painter->drawText(
-      QRectF{margin,margin, backgroundRectWidth, backgroundRectHeight},
+      QRectF{margin, margin, backgroundRectWidth, backgroundRectHeight},
       m_toggled ? m_textToggled : m_textUntoggled,
       QTextOption(Qt::AlignCenter));
 

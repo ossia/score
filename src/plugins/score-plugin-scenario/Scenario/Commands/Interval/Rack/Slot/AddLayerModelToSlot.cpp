@@ -4,7 +4,6 @@
 
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
-#include <Scenario/Document/Interval/Slot.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/EntityMap.hpp>
@@ -13,6 +12,8 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
+#include <Scenario/Document/Interval/Slot.hpp>
+
 #include <vector>
 
 namespace Scenario
@@ -20,15 +21,19 @@ namespace Scenario
 namespace Command
 {
 
-AddLayerModelToSlot::AddLayerModelToSlot(const SlotPath& slot, Id<Process::ProcessModel> process)
-    : m_slot{slot}, m_processId{std::move(process)}
+AddLayerModelToSlot::AddLayerModelToSlot(
+    const SlotPath& slot,
+    Id<Process::ProcessModel> process)
+    : m_slot{slot}
+    , m_processId{std::move(process)}
 {
 }
 
 AddLayerModelToSlot::AddLayerModelToSlot(
     const SlotPath& slot,
     const Process::ProcessModel& process)
-    : m_slot{slot}, m_processId{process.id()}
+    : m_slot{slot}
+    , m_processId{process.id()}
 {
 }
 

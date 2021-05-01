@@ -9,10 +9,12 @@ class WindowProtocolFactory final : public Device::ProtocolFactory
   SCORE_CONCRETE("5a181207-7d40-4ad8-814e-879fcdf8cc31")
   QString prettyName() const noexcept override;
   QString category() const noexcept override;
-  Device::DeviceEnumerator* getEnumerator(const score::DocumentContext& ctx) const override;
+  Device::DeviceEnumerator*
+  getEnumerator(const score::DocumentContext& ctx) const override;
 
-  Device::DeviceInterface*
-  makeDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx) override;
+  Device::DeviceInterface* makeDevice(
+      const Device::DeviceSettings& settings,
+      const score::DocumentContext& ctx) override;
   const Device::DeviceSettings& defaultSettings() const noexcept override;
   Device::AddressDialog* makeAddAddressDialog(
       const Device::DeviceInterface& dev,
@@ -26,13 +28,16 @@ class WindowProtocolFactory final : public Device::ProtocolFactory
 
   Device::ProtocolSettingsWidget* makeSettingsWidget() override;
 
-  QVariant makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
+  QVariant
+  makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
 
-  void serializeProtocolSpecificSettings(const QVariant& data, const VisitorVariant& visitor)
-      const override;
+  void serializeProtocolSpecificSettings(
+      const QVariant& data,
+      const VisitorVariant& visitor) const override;
 
-  bool checkCompatibility(const Device::DeviceSettings& a, const Device::DeviceSettings& b)
-      const noexcept override;
+  bool checkCompatibility(
+      const Device::DeviceSettings& a,
+      const Device::DeviceSettings& b) const noexcept override;
 };
 
 class WindowDevice final : public GfxOutputDevice

@@ -1,16 +1,18 @@
 #include "score_plugin_pd.hpp"
 
-#include <Pd/IncludeLibpd.hpp>
-
-#include <score/plugins/FactorySetup.hpp>
-#include <QDebug>
 #include <Pd/Commands/PdCommandFactory.hpp>
 #include <Pd/Executor/PdExecutor.hpp>
+#include <Pd/IncludeLibpd.hpp>
 #include <Pd/PdFactory.hpp>
 #include <Pd/PdLayer.hpp>
 #include <Pd/PdLibrary.hpp>
-#include <score_plugin_pd_commands_files.hpp>
+
+#include <score/plugins/FactorySetup.hpp>
+
+#include <QDebug>
+
 #include <score_plugin_deviceexplorer.hpp>
+#include <score_plugin_pd_commands_files.hpp>
 #include <score_plugin_scenario.hpp>
 std::pair<const CommandGroupKey, CommandGeneratorMap>
 score_plugin_pd::make_commands()
@@ -54,11 +56,12 @@ score_plugin_pd::score_plugin_pd()
 
 auto score_plugin_pd::required() const -> std::vector<score::PluginKey>
 {
-  return {score_plugin_scenario::static_key(),
-          score_plugin_deviceexplorer::static_key()};
+  return {
+      score_plugin_scenario::static_key(),
+      score_plugin_deviceexplorer::static_key()};
 }
 
-score_plugin_pd::~score_plugin_pd() {}
+score_plugin_pd::~score_plugin_pd() { }
 
 score::Version score_plugin_pd::version() const
 {

@@ -2,14 +2,14 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "SwapSlots.hpp"
 
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Settings/ScenarioSettingsModel.hpp>
-
-#include <score/document/DocumentContext.hpp>
 #include <score/application/ApplicationContext.hpp>
+#include <score/document/DocumentContext.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
 namespace Scenario
 {
@@ -20,7 +20,10 @@ ChangeSlotPosition::ChangeSlotPosition(
     Slot::RackView v,
     int first,
     int second)
-    : m_path{std::move(rack)}, m_view{v}, m_first{std::move(first)}, m_second{std::move(second)}
+    : m_path{std::move(rack)}
+    , m_view{v}
+    , m_first{std::move(first)}
+    , m_second{std::move(second)}
 {
 }
 
@@ -46,7 +49,11 @@ void ChangeSlotPosition::deserializeImpl(DataStreamOutput& s)
 }
 
 SlotCommand::SlotCommand(const IntervalModel& c)
-    : m_path{c}, m_old{c.smallView()}, m_new{m_old} { }
+    : m_path{c}
+    , m_old{c.smallView()}
+    , m_new{m_old}
+{
+}
 
 void SlotCommand::undo(const score::DocumentContext& ctx) const
 {
@@ -70,24 +77,32 @@ void SlotCommand::deserializeImpl(DataStreamOutput& s)
   s >> m_path >> m_old >> m_new;
 }
 
-MergeSlots::MergeSlots(const IntervalModel& rack, int first, int second) : SlotCommand{rack}
+MergeSlots::MergeSlots(const IntervalModel& rack, int first, int second)
+    : SlotCommand{rack}
 {
   auto& source = m_old[first];
   auto& target = m_new[second];
   target.frontProcess = source.frontProcess;
   target.processes.insert(
-      target.processes.end(), source.processes.begin(), source.processes.end());
+      target.processes.end(),
+      source.processes.begin(),
+      source.processes.end());
   m_new.erase(m_new.begin() + first);
 }
 
-MoveLayerInNewSlot::MoveLayerInNewSlot(const IntervalModel& rack, int first, int second)
+MoveLayerInNewSlot::MoveLayerInNewSlot(
+    const IntervalModel& rack,
+    int first,
+    int second)
     : SlotCommand{rack}
 {
   auto source = m_old[first];
   Scenario::Slot newSlot;
   newSlot.processes.push_back(*source.frontProcess);
   newSlot.frontProcess = *source.frontProcess;
-  newSlot.height = rack.context().app.settings<Scenario::Settings::Model>().getSlotHeight();
+  newSlot.height = rack.context()
+                       .app.settings<Scenario::Settings::Model>()
+                       .getSlotHeight();
 
   auto it = ossia::find(source.processes, *source.frontProcess);
   SCORE_ASSERT(it != source.processes.end());
@@ -113,7 +128,10 @@ MoveLayerInNewSlot::MoveLayerInNewSlot(const IntervalModel& rack, int first, int
   }
 }
 
-MergeLayerInSlot::MergeLayerInSlot(const IntervalModel& rack, int first, int second)
+MergeLayerInSlot::MergeLayerInSlot(
+    const IntervalModel& rack,
+    int first,
+    int second)
     : SlotCommand{rack}
 {
   auto source = m_old[first];

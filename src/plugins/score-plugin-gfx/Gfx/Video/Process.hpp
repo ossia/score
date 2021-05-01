@@ -1,14 +1,13 @@
 #pragma once
+#include <Gfx/CommandFactory.hpp>
+#include <Gfx/Video/Metadata.hpp>
 #include <Library/LibraryInterface.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
+#include <Video/VideoDecoder.hpp>
 
 #include <score/command/PropertyCommand.hpp>
-
-#include <Gfx/CommandFactory.hpp>
-#include <Gfx/Video/Metadata.hpp>
-#include <Video/VideoDecoder.hpp>
 namespace Gfx::Video
 {
 using video_decoder = ::Video::VideoDecoder;
@@ -19,17 +18,24 @@ class Model final : public Process::ProcessModel
   W_OBJECT(Model)
 
 public:
-  Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
+  Model(
+      const TimeVal& duration,
+      const Id<Process::ProcessModel>& id,
+      QObject* parent);
 
   template <typename Impl>
-  Model(Impl& vis, QObject* parent) : Process::ProcessModel{vis, parent}
+  Model(Impl& vis, QObject* parent)
+      : Process::ProcessModel{vis, parent}
   {
     vis.writeTo(*this);
   }
 
   ~Model() override;
 
-  const std::shared_ptr<video_decoder>& decoder() const noexcept { return m_decoder; }
+  const std::shared_ptr<video_decoder>& decoder() const noexcept
+  {
+    return m_decoder;
+  }
 
   QString path() const noexcept { return m_path; }
   void setPath(const QString& f);
@@ -46,14 +52,16 @@ public:
   PROPERTY(QString, path READ path WRITE setPath NOTIFY pathChanged)
   PROPERTY(
       double,
-      nativeTempo READ nativeTempo WRITE setNativeTempo NOTIFY nativeTempoChanged,
+      nativeTempo READ nativeTempo WRITE setNativeTempo NOTIFY
+          nativeTempoChanged,
       W_Final)
   PROPERTY(
       bool,
-      ignoreTempo READ ignoreTempo WRITE setIgnoreTempo NOTIFY ignoreTempoChanged,
+      ignoreTempo READ ignoreTempo WRITE setIgnoreTempo NOTIFY
+          ignoreTempoChanged,
       W_Final)
 
-  private:
+private:
   QString prettyName() const noexcept override;
 
   QString m_path;
@@ -86,7 +94,15 @@ class DropHandler final : public Process::ProcessDropHandler
 
 PROPERTY_COMMAND_T(Gfx, ChangeVideo, Video::Model::p_path, "Change video")
 SCORE_COMMAND_DECL_T(Gfx::ChangeVideo)
-PROPERTY_COMMAND_T(Gfx, ChangeTempo, Video::Model::p_nativeTempo, "Change video tempo")
+PROPERTY_COMMAND_T(
+    Gfx,
+    ChangeTempo,
+    Video::Model::p_nativeTempo,
+    "Change video tempo")
 SCORE_COMMAND_DECL_T(Gfx::ChangeTempo)
-PROPERTY_COMMAND_T(Gfx, ChangeIgnoreTempo, Video::Model::p_ignoreTempo, "Ignore video tempo")
+PROPERTY_COMMAND_T(
+    Gfx,
+    ChangeIgnoreTempo,
+    Video::Model::p_ignoreTempo,
+    "Ignore video tempo")
 SCORE_COMMAND_DECL_T(Gfx::ChangeIgnoreTempo)

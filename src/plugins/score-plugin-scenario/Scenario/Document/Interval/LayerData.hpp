@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/ZoomHelper.hpp>
+
 #include <score/graphics/RectItem.hpp>
 
 #include <QPoint>
@@ -37,7 +38,10 @@ public:
 private:
   QRectF boundingRect() const;
 
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget);
 
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event);
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event);
@@ -151,7 +155,8 @@ public:
 
   const std::vector<Layer>& layers() const noexcept { return m_layers; }
 
-  static void disconnect(const Process::ProcessModel& proc, QObject& intervalPresenter);
+  static void
+  disconnect(const Process::ProcessModel& proc, QObject& intervalPresenter);
 
 private:
   const Process::ProcessModel* m_model{};

@@ -26,16 +26,22 @@ rapidjson::Document toValue(const JSONReader& r) noexcept
 }
 
 JSONReader::JSONReader()
-    : obj{*this}, components{score::AppComponents()}, strings{score::StringConstant()}
+    : obj{*this}
+    , components{score::AppComponents()}
+    , strings{score::StringConstant()}
 {
 }
 
 JSONWriter::JSONWriter(const rapidjson::Value& o)
-    : base{o}, components{score::AppComponents()}, strings{score::StringConstant()}
+    : base{o}
+    , components{score::AppComponents()}
+    , strings{score::StringConstant()}
 {
 }
 JSONWriter::JSONWriter(const JsonValue& o)
-    : base{o.obj}, components{score::AppComponents()}, strings{score::StringConstant()}
+    : base{o.obj}
+    , components{score::AppComponents()}
+    , strings{score::StringConstant()}
 {
 }
 

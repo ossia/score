@@ -1,5 +1,6 @@
 #pragma once
-#include <Faust/FaustUtils.hpp>
+#include <Control/DefaultEffectItem.hpp>
+#include <Effect/EffectFactory.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/ExecutionContext.hpp>
@@ -12,8 +13,7 @@
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/node_process.hpp>
 
-#include <Control/DefaultEffectItem.hpp>
-#include <Effect/EffectFactory.hpp>
+#include <Faust/FaustUtils.hpp>
 
 namespace FaustDSP
 {
@@ -38,7 +38,10 @@ struct Metadata<Tags_k, FaustDSP::Fx<DSP>>
 template <typename DSP>
 struct Metadata<Process::ProcessFlags_k, FaustDSP::Fx<DSP>>
 {
-  static Process::ProcessFlags get() { return Process::ProcessFlags::SupportsAll; }
+  static Process::ProcessFlags get()
+  {
+    return Process::ProcessFlags::SupportsAll;
+  }
 };
 template <typename DSP>
 struct Metadata<Process::Descriptor_k, FaustDSP::Fx<DSP>>
@@ -76,24 +79,37 @@ template <typename T>
 struct Wrap final : UI
 {
   template <typename... Args>
-  Wrap(Args&&... args) : t{args...}
+  Wrap(Args&&... args)
+      : t{args...}
   {
   }
 
   T t;
   void openTabBox(const char* label) override { t.openTabBox(label); }
-  void openHorizontalBox(const char* label) override { t.openHorizontalBox(label); }
-  void openVerticalBox(const char* label) override { t.openVerticalBox(label); }
+  void openHorizontalBox(const char* label) override
+  {
+    t.openHorizontalBox(label);
+  }
+  void openVerticalBox(const char* label) override
+  {
+    t.openVerticalBox(label);
+  }
   void closeBox() override { t.closeBox(); }
   void declare(FAUSTFLOAT* zone, const char* key, const char* val) override
   {
     t.declare(zone, key, val);
   }
-  void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) override
+  void addSoundfile(
+      const char* label,
+      const char* filename,
+      Soundfile** sf_zone) override
   {
     t.addSoundfile(label, filename, sf_zone);
   }
-  void addButton(const char* label, FAUSTFLOAT* zone) override { t.addButton(label, zone); }
+  void addButton(const char* label, FAUSTFLOAT* zone) override
+  {
+    t.addButton(label, zone);
+  }
   void addCheckButton(const char* label, FAUSTFLOAT* zone) override
   {
     t.addCheckButton(label, zone);
@@ -128,13 +144,19 @@ struct Wrap final : UI
   {
     t.addNumEntry(label, zone, init, min, max, step);
   }
-  void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-      override
+  void addHorizontalBargraph(
+      const char* label,
+      FAUSTFLOAT* zone,
+      FAUSTFLOAT min,
+      FAUSTFLOAT max) override
   {
     t.addHorizontalBargraph(label, zone, min, max);
   }
-  void
-  addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) override
+  void addVerticalBargraph(
+      const char* label,
+      FAUSTFLOAT* zone,
+      FAUSTFLOAT min,
+      FAUSTFLOAT max) override
   {
     t.addVerticalBargraph(label, zone, min, max);
   }
@@ -165,12 +187,16 @@ public:
   ~Fx() override { }
 
   template <typename Impl>
-  Fx(Impl& vis, QObject* parent) : Process::ProcessModel{vis, parent}
+  Fx(Impl& vis, QObject* parent)
+      : Process::ProcessModel{vis, parent}
   {
     vis.writeTo(*this);
   }
 
-  QString prettyName() const noexcept override { return Metadata<PrettyName_k, Fx>::get(); }
+  QString prettyName() const noexcept override
+  {
+    return Metadata<PrettyName_k, Fx>::get();
+  }
 
   Process::Inlets& inlets() { return m_inlets; }
   Process::Outlets& outlets() { return m_outlets; }
@@ -181,7 +207,8 @@ public:
 };
 
 template <typename DSP>
-class Executor final : public Execution::ProcessComponent_T<Fx<DSP>, ossia::node_process>
+class Executor final
+    : public Execution::ProcessComponent_T<Fx<DSP>, ossia::node_process>
 {
 
 public:
@@ -191,7 +218,8 @@ public:
   {
   public:
     DSP dsp;
-    ossia::small_vector<std::pair<ossia::value_port*, FAUSTFLOAT*>, 8> controls;
+    ossia::small_vector<std::pair<ossia::value_port*, FAUSTFLOAT*>, 8>
+        controls;
     exec_node()
     {
       m_inlets.push_back(new ossia::audio_inlet);
@@ -200,7 +228,9 @@ public:
       dsp.buildUserInterface(&ex);
     }
 
-    void run(const ossia::token_request& tk, ossia::exec_state_facade) noexcept override
+    void
+    run(const ossia::token_request& tk,
+        ossia::exec_state_facade) noexcept override
     {
       ossia::nodes::faust_exec(*this, dsp, tk);
     }
@@ -215,11 +245,15 @@ public:
     return Metadata<ConcreteKey_k, Fx<DSP>>::get().impl();
   }
 
-  score::Component::Key key() const noexcept final override { return static_key(); }
+  score::Component::Key key() const noexcept final override
+  {
+    return static_key();
+  }
 
   bool key_match(score::Component::Key other) const noexcept final override
   {
-    return static_key() == other || Execution::ProcessComponent::base_key_match(other);
+    return static_key() == other
+           || Execution::ProcessComponent::base_key_match(other);
   }
 
   Executor(
@@ -245,9 +279,13 @@ public:
       *node->controls[i - 1].second = ossia::convert<double>(inlet->value());
       auto inl = this->node->inputs()[i];
       QObject::connect(
-          inlet, &Process::ControlInlet::valueChanged, this, [this, inl](const ossia::value& v) {
+          inlet,
+          &Process::ControlInlet::valueChanged,
+          this,
+          [this, inl](const ossia::value& v) {
             this->system().executionQueue.enqueue([inl, val = v]() mutable {
-              inl->data.template target<ossia::value_port>()->write_value(std::move(val), 0);
+              inl->data.template target<ossia::value_port>()->write_value(
+                  std::move(val), 0);
             });
           });
     }
@@ -273,7 +311,11 @@ struct TSerializer<DataStream, FaustDSP::Fx<DSP>>
   static void writeTo(DataStream::Deserializer& s, model_type& eff)
   {
     writePorts(
-        s, s.components.interfaces<Process::PortFactoryList>(), eff.inlets(), eff.outlets(), &eff);
+        s,
+        s.components.interfaces<Process::PortFactoryList>(),
+        eff.inlets(),
+        eff.outlets(),
+        &eff);
 
     s.checkDelimiter();
   }
@@ -314,7 +356,8 @@ template <typename DSP>
 using ProcessFactory = Process::ProcessFactory_T<Fx<DSP>>;
 
 template <typename DSP>
-using LayerFactory = Process::EffectLayerFactory_T<Fx<DSP>, Process::DefaultEffectItem>;
+using LayerFactory
+    = Process::EffectLayerFactory_T<Fx<DSP>, Process::DefaultEffectItem>;
 
 template <typename DSP>
 using ExecutorFactory = Execution::ProcessComponentFactory_T<Executor<DSP>>;

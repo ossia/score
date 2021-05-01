@@ -39,12 +39,15 @@ class DeviceEditDialog;
 class DeviceExplorerFilterProxyModel;
 class DeviceExplorerModel;
 class DeviceExplorerView;
-class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerWidget final : public QWidget
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerWidget final
+    : public QWidget
 {
   W_OBJECT(DeviceExplorerWidget)
 
 public:
-  explicit DeviceExplorerWidget(const Device::ProtocolFactoryList&, QWidget* parent);
+  explicit DeviceExplorerWidget(
+      const Device::ProtocolFactoryList&,
+      QWidget* parent);
 
   void setModel(DeviceExplorerModel* model);
   DeviceExplorerModel* model() const;
@@ -140,5 +143,6 @@ public:
 };
 
 SCORE_PLUGIN_DEVICEEXPLORER_EXPORT
-DeviceExplorerWidget* findDeviceExplorerWidgetInstance(const score::GUIApplicationContext& ctx) noexcept;
+DeviceExplorerWidget* findDeviceExplorerWidgetInstance(
+    const score::GUIApplicationContext& ctx) noexcept;
 }

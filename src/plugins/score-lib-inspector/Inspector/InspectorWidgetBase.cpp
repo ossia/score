@@ -44,7 +44,8 @@ InspectorWidgetBase::InspectorWidgetBase(
   scrollArea->setWidgetResizable(true);
   scrollArea->setFrameStyle(QFrame::NoFrame);
   scrollArea->setSizeAdjustPolicy(QScrollArea::AdjustToContents);
-  scrollArea->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+  scrollArea->setSizePolicy(
+      QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
   auto scrollAreaContentWidget = new QWidget;
   m_scrollAreaLayout = new QVBoxLayout{scrollAreaContentWidget};
   m_scrollAreaLayout->setSizeConstraint(QLayout::SetMinimumSize);
@@ -79,7 +80,8 @@ void InspectorWidgetBase::updateSectionsView(
   }
 }
 
-void InspectorWidgetBase::updateAreaLayout(std::initializer_list<QWidget*> contents)
+void InspectorWidgetBase::updateAreaLayout(
+    std::initializer_list<QWidget*> contents)
 {
   while (!m_scrollAreaLayout->isEmpty())
   {
@@ -96,7 +98,8 @@ void InspectorWidgetBase::updateAreaLayout(std::initializer_list<QWidget*> conte
   m_scrollAreaLayout->addStretch(1);
 }
 
-void InspectorWidgetBase::updateAreaLayout(const std::vector<QWidget*>& contents)
+void InspectorWidgetBase::updateAreaLayout(
+    const std::vector<QWidget*>& contents)
 {
   while (!m_scrollAreaLayout->isEmpty())
   {

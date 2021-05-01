@@ -1,14 +1,13 @@
 #pragma once
-#include <Scenario/Document/Interval/ExecutionState.hpp>
-#include <Scenario/Document/Interval/Temporal/Braces/LeftBrace.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
-
 #include <score/graphics/TextItem.hpp>
 #include <score/model/ColorInterpolator.hpp>
 
 #include <QGraphicsItem>
 #include <qnamespace.h>
 
+#include <Scenario/Document/Interval/ExecutionState.hpp>
+#include <Scenario/Document/Interval/Temporal/Braces/LeftBrace.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <score_plugin_scenario_export.h>
 
 #include <verdigris>
@@ -28,7 +27,9 @@ class IntervalPresenter;
 class LeftBraceView;
 class RightBraceView;
 class IntervalMenuOverlay;
-class SCORE_PLUGIN_SCENARIO_EXPORT IntervalView : public QObject, public QGraphicsItem
+class SCORE_PLUGIN_SCENARIO_EXPORT IntervalView
+    : public QObject
+    , public QGraphicsItem
 {
   W_OBJECT(IntervalView)
   Q_INTERFACES(QGraphicsItem)

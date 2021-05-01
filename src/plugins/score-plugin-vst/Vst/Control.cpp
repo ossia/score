@@ -2,23 +2,23 @@
 #include <Automation/Commands/SetAutomationMax.hpp>
 #include <Dataflow/Commands/EditConnection.hpp>
 #include <Inspector/InspectorLayout.hpp>
+#include <Process/Dataflow/PortListWidget.hpp>
 #include <Vst/Commands.hpp>
 #include <Vst/Control.hpp>
 #include <Vst/Widgets.hpp>
-#include <Process/Dataflow/PortListWidget.hpp>
-#include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
-#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/widgets/MarginLess.hpp>
-#include <score/widgets/TextLabel.hpp>
-#include <score/widgets/SetIcons.hpp>
 #include <score/tools/SafeCast.hpp>
+#include <score/widgets/MarginLess.hpp>
+#include <score/widgets/SetIcons.hpp>
+#include <score/widgets/TextLabel.hpp>
 
 #include <QMenu>
 #include <QToolButton>
 
+#include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
+#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(vst::ControlInlet)
 namespace vst
@@ -44,19 +44,23 @@ bool ControlPortItem::on_createAutomation(
       cst, Metadata<ConcreteKey_k, Automation::ProcessModel>::get(), {}, {}};
   macro(make_cmd);
 
-  auto lay_cmd = new Scenario::Command::AddLayerInNewSlot{cst, make_cmd->processId()};
+  auto lay_cmd
+      = new Scenario::Command::AddLayerInNewSlot{cst, make_cmd->processId()};
   macro(lay_cmd);
 
-  auto& autom = safe_cast<Automation::ProcessModel&>(cst.processes.at(make_cmd->processId()));
+  auto& autom = safe_cast<Automation::ProcessModel&>(
+      cst.processes.at(make_cmd->processId()));
   macro(new Automation::SetMin{autom, 0.});
   macro(new Automation::SetMax{autom, 1.});
 
   auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
 
   macro(new Dataflow::CreateCable{
-          plug, getStrongId(plug.cables),
-          Process::CableType::ImmediateGlutton,
-          *autom.outlet, port()});
+      plug,
+      getStrongId(plug.cables),
+      Process::CableType::ImmediateGlutton,
+      *autom.outlet,
+      port()});
   return true;
 }
 
@@ -67,7 +71,8 @@ UuidKey<Process::Port> ControlPortFactory::concreteKey() const noexcept
   return Metadata<ConcreteKey_k, ControlInlet>::get();
 }
 
-Process::Port* ControlPortFactory::load(const VisitorVariant& vis, QObject* parent)
+Process::Port*
+ControlPortFactory::load(const VisitorVariant& vis, QObject* parent)
 {
   return score::deserialize_dyn(vis, [&](auto&& deserializer) {
     return new ControlInlet{deserializer, parent};
@@ -119,7 +124,9 @@ static void setupVSTControl(
   Process::PortWidgetSetup::setupInLayout(inlet, ctx, *lay, sw);
   hl2->addLayout(lay);
 
-  QObject::connect(advBtn, &QToolButton::clicked, sw, [=] { sw->setVisible(!sw->isVisible()); });
+  QObject::connect(advBtn, &QToolButton::clicked, sw, [=] {
+    sw->setVisible(!sw->isVisible());
+  });
   sw->setVisible(false);
 
   vlay.addRow(widg, inlet_widget);
@@ -135,7 +142,8 @@ void ControlPortFactory::setupInletInspector(
 {
   auto& inl = safe_cast<const ControlInlet&>(port);
   auto proc = safe_cast<Model*>(port.parent());
-  auto widg = VSTFloatSlider::make_widget(proc->fx->fx, inl, ctx, parent, context);
+  auto widg
+      = VSTFloatSlider::make_widget(proc->fx->fx, inl, ctx, parent, context);
 
   setupVSTControl(inl, widg, ctx, lay, parent);
 }

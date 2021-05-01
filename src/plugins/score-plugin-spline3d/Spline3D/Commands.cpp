@@ -1,7 +1,9 @@
 #include "Commands.hpp"
-#include <Spline3D/Model.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/path/PathSerialization.hpp>
+
+#include <Spline3D/Model.hpp>
 
 namespace Spline3D
 {
@@ -11,8 +13,12 @@ const CommandGroupKey& CommandFactoryName()
   return key;
 }
 
-ChangeSpline::ChangeSpline(const ProcessModel& autom, const ossia::spline3d_data& newval)
-  : m_path{autom}, m_old{autom.spline()}, m_new{newval}
+ChangeSpline::ChangeSpline(
+    const ProcessModel& autom,
+    const ossia::spline3d_data& newval)
+    : m_path{autom}
+    , m_old{autom.spline()}
+    , m_new{newval}
 {
 }
 
@@ -26,7 +32,9 @@ void ChangeSpline::redo(const score::DocumentContext& ctx) const
   m_path.find(ctx).setSpline(m_new);
 }
 
-void ChangeSpline::update(const ProcessModel&, const ossia::spline3d_data& newval)
+void ChangeSpline::update(
+    const ProcessModel&,
+    const ossia::spline3d_data& newval)
 {
   m_new = newval;
 }
@@ -37,9 +45,14 @@ void ChangeSpline::update(const ProcessModel&, ossia::spline3d_data&& newval)
   swap(m_new, newval);
 }
 
-void ChangeSpline::serializeImpl(DataStreamInput& s) const { s << m_path << m_old << m_new; }
+void ChangeSpline::serializeImpl(DataStreamInput& s) const
+{
+  s << m_path << m_old << m_new;
+}
 
-void ChangeSpline::deserializeImpl(DataStreamOutput& s) { s >> m_path >> m_old >> m_new; }
-
+void ChangeSpline::deserializeImpl(DataStreamOutput& s)
+{
+  s >> m_path >> m_old >> m_new;
+}
 
 }

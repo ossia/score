@@ -17,18 +17,26 @@ struct UI : ::UI
 {
   Proc& fx;
 
-  UI(Proc& sfx) : fx{sfx} { }
+  UI(Proc& sfx)
+      : fx{sfx}
+  {
+  }
 
   void openTabBox(const char* label) override { }
   void openHorizontalBox(const char* label) override { }
   void openVerticalBox(const char* label) override { }
   void closeBox() override { }
   void declare(FAUSTFLOAT* zone, const char* key, const char* val) override { }
-  void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) override { }
+  void addSoundfile(
+      const char* label,
+      const char* filename,
+      Soundfile** sf_zone) override
+  {
+  }
 
   void addButton(const char* label, FAUSTFLOAT* zone) override
   {
-    if constexpr(Synth)
+    if constexpr (Synth)
     {
       using namespace std::literals;
       if (label == "Panic"sv || label == "gate"sv)
@@ -41,7 +49,8 @@ struct UI : ::UI
 
   void addCheckButton(const char* label, FAUSTFLOAT* zone) override
   {
-    auto inl = new Process::Toggle{bool(*zone), label, getStrongId(fx.inlets()), &fx};
+    auto inl = new Process::Toggle{
+        bool(*zone), label, getStrongId(fx.inlets()), &fx};
     fx.inlets().push_back(inl);
   }
 
@@ -53,14 +62,15 @@ struct UI : ::UI
       FAUSTFLOAT max,
       FAUSTFLOAT step) override
   {
-    if constexpr(Synth)
+    if constexpr (Synth)
     {
       using namespace std::literals;
       if (label == "gain"sv || label == "freq"sv || label == "sustain"sv)
         return;
     }
 
-    auto inl = new Process::FloatSlider{min, max, init, label, getStrongId(fx.inlets()), &fx};
+    auto inl = new Process::FloatSlider{
+        min, max, init, label, getStrongId(fx.inlets()), &fx};
     fx.inlets().push_back(inl);
   }
 
@@ -87,15 +97,22 @@ struct UI : ::UI
     addVerticalSlider(label, zone, init, min, max, step);
   }
 
-  void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-      override
+  void addHorizontalBargraph(
+      const char* label,
+      FAUSTFLOAT* zone,
+      FAUSTFLOAT min,
+      FAUSTFLOAT max) override
   {
-    auto inl = new Process::Bargraph{min, max, min, label, getStrongId(fx.outlets()), &fx};
+    auto inl = new Process::Bargraph{
+        min, max, min, label, getStrongId(fx.outlets()), &fx};
     fx.outlets().push_back(inl);
   }
 
-  void
-  addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) override
+  void addVerticalBargraph(
+      const char* label,
+      FAUSTFLOAT* zone,
+      FAUSTFLOAT min,
+      FAUSTFLOAT max) override
   {
     addHorizontalBargraph(label, zone, min, max);
   }
@@ -108,7 +125,10 @@ struct UpdateUI : ::UI
   std::size_t i = 1;
   std::size_t o = 1;
 
-  UpdateUI(Proc& sfx) : fx{sfx} { }
+  UpdateUI(Proc& sfx)
+      : fx{sfx}
+  {
+  }
 
   void openTabBox(const char* label) override { }
   void openHorizontalBox(const char* label) override { }
@@ -118,7 +138,12 @@ struct UpdateUI : ::UI
   {
     qDebug() << "UpdateUI: " << key << val;
   }
-  void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) override { }
+  void addSoundfile(
+      const char* label,
+      const char* filename,
+      Soundfile** sf_zone) override
+  {
+  }
 
   void addButton(const char* label, FAUSTFLOAT* zone) override
   {
@@ -171,7 +196,8 @@ struct UpdateUI : ::UI
     }
     else
     {
-      auto inl = new Process::Toggle{bool(*zone), label, getStrongId(fx.inlets()), &fx};
+      auto inl = new Process::Toggle{
+          bool(*zone), label, getStrongId(fx.inlets()), &fx};
       fx.inlets().push_back(inl);
       fx.controlAdded(inl->id());
     }
@@ -207,7 +233,8 @@ struct UpdateUI : ::UI
     }
     else
     {
-      auto inl = new Process::FloatSlider{min, max, init, label, getStrongId(fx.inlets()), &fx};
+      auto inl = new Process::FloatSlider{
+          min, max, init, label, getStrongId(fx.inlets()), &fx};
       fx.inlets().push_back(inl);
       fx.controlAdded(inl->id());
     }
@@ -236,8 +263,11 @@ struct UpdateUI : ::UI
     addVerticalSlider(label, zone, init, min, max, step);
   }
 
-  void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-      override
+  void addHorizontalBargraph(
+      const char* label,
+      FAUSTFLOAT* zone,
+      FAUSTFLOAT min,
+      FAUSTFLOAT max) override
   {
     if (o < fx.outlets().size())
     {
@@ -258,16 +288,19 @@ struct UpdateUI : ::UI
     }
     else
     {
-      auto inl = new Process::Bargraph{min, max, min, label, getStrongId(fx.outlets()), &fx};
+      auto inl = new Process::Bargraph{
+          min, max, min, label, getStrongId(fx.outlets()), &fx};
       fx.outlets().push_back(inl);
       fx.controlAdded(inl->id());
     }
     o++;
   }
 
-
-  void
-  addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) override
+  void addVerticalBargraph(
+      const char* label,
+      FAUSTFLOAT* zone,
+      FAUSTFLOAT min,
+      FAUSTFLOAT max) override
   {
     addHorizontalBargraph(label, zone, min, max);
   }

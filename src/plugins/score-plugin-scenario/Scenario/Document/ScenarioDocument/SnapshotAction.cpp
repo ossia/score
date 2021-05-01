@@ -8,8 +8,8 @@
 #include <QFile>
 #include <QGraphicsScene>
 #include <QMimeData>
-#include <QWidget>
 #include <QPainter>
+#include <QWidget>
 #if __has_include(<QSvgGenerator>)
 #include <QSvgGenerator>
 #endif
@@ -34,7 +34,8 @@ void SnapshotAction::takeScreenshot(QGraphicsScene& scene)
   p.setOutputDevice(&b);
   QPainter painter;
   painter.begin(&p);
-  painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+  painter.setRenderHints(
+      QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 
   scene.render(&painter, QRectF(0, 0, 1920, 1080), QRectF(0, 0, 1920, 1080));
   painter.end();

@@ -26,21 +26,28 @@ struct ColorInterpolator
     for (int i = 0; i < 60; i++)
     {
       const float t = float(i + 1) / 60.f;
-      const float L = ossia::easing::ease{}(col1.dataspace_value[0], col2.dataspace_value[0], t);
-      const float a = ossia::easing::ease{}(col1.dataspace_value[1], col2.dataspace_value[1], t);
-      const float b = ossia::easing::ease{}(col1.dataspace_value[2], col2.dataspace_value[2], t);
+      const float L = ossia::easing::ease{}(
+          col1.dataspace_value[0], col2.dataspace_value[0], t);
+      const float a = ossia::easing::ease{}(
+          col1.dataspace_value[1], col2.dataspace_value[1], t);
+      const float b = ossia::easing::ease{}(
+          col1.dataspace_value[2], col2.dataspace_value[2], t);
 
       ossia::rgb rgb{ossia::hunter_lab{L, a, b}};
       pens[i] = sourcePen;
       pens[i].setColor(QColor::fromRgbF(
-          rgb.dataspace_value[0], rgb.dataspace_value[1], rgb.dataspace_value[2]));
+          rgb.dataspace_value[0],
+          rgb.dataspace_value[1],
+          rgb.dataspace_value[2]));
     }
   }
 };
 
-static inline ossia::flat_map<std::tuple<QRgb, QRgb, double, Qt::PenStyle>, ColorInterpolator>
-    interpolators;
-static const ColorInterpolator& getInterpolator(QColor c1, QColor c2, const QPen& sp) noexcept
+static inline ossia::
+    flat_map<std::tuple<QRgb, QRgb, double, Qt::PenStyle>, ColorInterpolator>
+        interpolators;
+static const ColorInterpolator&
+getInterpolator(QColor c1, QColor c2, const QPen& sp) noexcept
 {
   auto k = std::make_tuple(c1.rgb(), c2.rgb(), sp.widthF(), sp.style());
   if (auto it = interpolators.find(k); it != interpolators.end())
@@ -52,7 +59,8 @@ static const ColorInterpolator& getInterpolator(QColor c1, QColor c2, const QPen
 }
 }
 
-const QPen& score::ColorBang::getNextPen(QColor c1, QColor c2, const QPen& pen) noexcept
+const QPen&
+score::ColorBang::getNextPen(QColor c1, QColor c2, const QPen& pen) noexcept
 {
   assert(pos > 0 && pos <= 59);
   return getInterpolator(c1, c2, pen).pens[pos--];

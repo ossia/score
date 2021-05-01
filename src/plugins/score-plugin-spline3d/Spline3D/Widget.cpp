@@ -1,13 +1,15 @@
 /*
-#include <Spline3D/Widget.hpp>
+#include <Gfx/Graph/mesh.hpp>
+#include <Gfx/Graph/window.hpp>
+
+#include <QPlatformSurfaceEvent>
+#include <QVBoxLayout>
+#include <QWindow>
 #include <QtGui/private/qrhi_p.h>
 #include <QtGui/private/qrhi_p_p.h>
 #include <QtGui/private/qrhigles2_p.h>
-#include <QVBoxLayout>
-#include <QWindow>
-#include <QPlatformSurfaceEvent>
-#include <Gfx/Graph/window.hpp>
-#include <Gfx/Graph/mesh.hpp>
+
+#include <Spline3D/Widget.hpp>
 
 namespace Spline3D
 {

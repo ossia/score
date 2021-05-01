@@ -1,11 +1,13 @@
-#include "GfxDevice.hpp"
 #include "TexturePort.hpp"
 
+#include "GfxDevice.hpp"
+
 #include <Device/Protocol/DeviceInterface.hpp>
-#include <Inspector/InspectorLayout.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <score/plugins/SerializableHelpers.hpp>
+#include <Inspector/InspectorLayout.hpp>
 #include <Process/Dataflow/AudioPortComboBox.hpp>
+
+#include <score/plugins/SerializableHelpers.hpp>
 
 #include <wobjectimpl.h>
 
@@ -25,19 +27,23 @@ TextureInlet::TextureInlet(Id<Process::Port> c, QObject* parent)
 {
 }
 
-TextureInlet::TextureInlet(DataStream::Deserializer& vis, QObject* parent) : Inlet{vis, parent}
+TextureInlet::TextureInlet(DataStream::Deserializer& vis, QObject* parent)
+    : Inlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-TextureInlet::TextureInlet(JSONObject::Deserializer& vis, QObject* parent) : Inlet{vis, parent}
+TextureInlet::TextureInlet(JSONObject::Deserializer& vis, QObject* parent)
+    : Inlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-TextureInlet::TextureInlet(DataStream::Deserializer&& vis, QObject* parent) : Inlet{vis, parent}
+TextureInlet::TextureInlet(DataStream::Deserializer&& vis, QObject* parent)
+    : Inlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-TextureInlet::TextureInlet(JSONObject::Deserializer&& vis, QObject* parent) : Inlet{vis, parent}
+TextureInlet::TextureInlet(JSONObject::Deserializer&& vis, QObject* parent)
+    : Inlet{vis, parent}
 {
   vis.writeTo(*this);
 }
@@ -49,19 +55,23 @@ TextureOutlet::TextureOutlet(Id<Process::Port> c, QObject* parent)
 {
 }
 
-TextureOutlet::TextureOutlet(DataStream::Deserializer& vis, QObject* parent) : Outlet{vis, parent}
+TextureOutlet::TextureOutlet(DataStream::Deserializer& vis, QObject* parent)
+    : Outlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-TextureOutlet::TextureOutlet(JSONObject::Deserializer& vis, QObject* parent) : Outlet{vis, parent}
+TextureOutlet::TextureOutlet(JSONObject::Deserializer& vis, QObject* parent)
+    : Outlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-TextureOutlet::TextureOutlet(DataStream::Deserializer&& vis, QObject* parent) : Outlet{vis, parent}
+TextureOutlet::TextureOutlet(DataStream::Deserializer&& vis, QObject* parent)
+    : Outlet{vis, parent}
 {
   vis.writeTo(*this);
 }
-TextureOutlet::TextureOutlet(JSONObject::Deserializer&& vis, QObject* parent) : Outlet{vis, parent}
+TextureOutlet::TextureOutlet(JSONObject::Deserializer&& vis, QObject* parent)
+    : Outlet{vis, parent}
 {
   vis.writeTo(*this);
 }
@@ -78,7 +88,7 @@ void TextureInletFactory::setupInletInspector(
   devices.push_back("");
 
   device.list().apply([&](Device::DeviceInterface& dev) {
-    if(dynamic_cast<GfxInputDevice*>(&dev))
+    if (dynamic_cast<GfxInputDevice*>(&dev))
     {
       auto& set = dev.settings();
       devices.push_back(set.name);
@@ -87,7 +97,6 @@ void TextureInletFactory::setupInletInspector(
 
   lay.addRow(Process::makeDeviceCombo(devices, port, ctx, parent));
 }
-
 
 void TextureOutletFactory::setupOutletInspector(
     const Process::Outlet& port,
@@ -101,7 +110,7 @@ void TextureOutletFactory::setupOutletInspector(
   devices.push_back("");
 
   device.list().apply([&](Device::DeviceInterface& dev) {
-    if(dynamic_cast<GfxOutputDevice*>(&dev))
+    if (dynamic_cast<GfxOutputDevice*>(&dev))
     {
       auto& set = dev.settings();
       devices.push_back(set.name);
@@ -133,8 +142,7 @@ void JSONWriter::write<Gfx::TextureInlet>(Gfx::TextureInlet& p)
 }
 
 template <>
-void
-DataStreamReader::read<Gfx::TextureOutlet>(const Gfx::TextureOutlet& p)
+void DataStreamReader::read<Gfx::TextureOutlet>(const Gfx::TextureOutlet& p)
 {
   // read((Process::Outlet&)p);
 }

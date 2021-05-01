@@ -15,7 +15,9 @@ class QObject;
 
 namespace Device
 {
-DeviceCompleter::DeviceCompleter(Device::NodeBasedItemModel& treemodel, QObject* parent)
+DeviceCompleter::DeviceCompleter(
+    Device::NodeBasedItemModel& treemodel,
+    QObject* parent)
     : QCompleter{parent}
 {
   setModel(&treemodel);

@@ -17,18 +17,21 @@ Component::Component(
     const ::Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
-    : ::Execution::ProcessComponent_T<Spline3D::ProcessModel, ossia::node_process>{
-        element,
-        ctx,
-        id,
-        "Executor::SplineComponent",
-        parent}
+    : ::Execution::
+        ProcessComponent_T<Spline3D::ProcessModel, ossia::node_process>{
+            element,
+            ctx,
+            id,
+            "Executor::SplineComponent",
+            parent}
 {
   auto node = std::make_shared<spline>();
   this->node = node;
   m_ossia_process = std::make_shared<ossia::node_process>(node);
 
-  con(element, &Spline3D::ProcessModel::splineChanged, this, [this] { this->recompute(); });
+  con(element, &Spline3D::ProcessModel::splineChanged, this, [this] {
+    this->recompute();
+  });
 
   recompute();
 }
@@ -37,12 +40,8 @@ Component::~Component() { }
 
 void Component::recompute()
 {
-  in_exec([
-          proc = std::dynamic_pointer_cast<spline>(OSSIAProcess().node)
-          , g = process().spline()
-          ] {
-    proc->set_spline(g);
-  });
+  in_exec([proc = std::dynamic_pointer_cast<spline>(OSSIAProcess().node),
+           g = process().spline()] { proc->set_spline(g); });
 }
 }
 }

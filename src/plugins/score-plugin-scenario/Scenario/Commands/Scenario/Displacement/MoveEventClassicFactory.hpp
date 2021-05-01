@@ -2,9 +2,10 @@
 
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
-#include <Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
 
 #include <score/model/Identifier.hpp>
+
+#include <Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
 
 template <typename Object>
 class Path;
@@ -31,8 +32,9 @@ class MoveEventClassicFactory final : public MoveEventFactoryInterface
 
   std::unique_ptr<SerializableMoveEvent> make(LockMode) override;
 
-  int priority(const score::ApplicationContext& ctx, MoveEventFactoryInterface::Strategy s)
-      const override
+  int priority(
+      const score::ApplicationContext& ctx,
+      MoveEventFactoryInterface::Strategy s) const override
   {
     if (s == MoveEventFactoryInterface::CREATION)
       return 1;

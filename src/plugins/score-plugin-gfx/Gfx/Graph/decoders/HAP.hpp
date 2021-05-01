@@ -1,9 +1,9 @@
 #pragma once
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
-#include <snappy.h>
-#include <hap/source/hap.h>
+#include <Gfx/Qt5CompatPush> // clang-format: keep
 
-#include <Gfx/Qt5CompatPush>
+#include <hap/source/hap.h>
+#include <snappy.h>
 struct HAPDecoder : GPUVideoDecoder
 {
   struct HAPSection
@@ -14,7 +14,7 @@ struct HAPDecoder : GPUVideoDecoder
 
       s.type = bytes[3];
 
-      if(bytes[0] == 0 && bytes[1] == 0 && bytes[2] == 0)
+      if (bytes[0] == 0 && bytes[1] == 0 && bytes[2] == 0)
       {
         // bytes 4,5,6,7 hold the size
         s.size += bytes[7] << 24;
@@ -40,10 +40,14 @@ struct HAPDecoder : GPUVideoDecoder
     const uint8_t* data{};
   };
 
-  void exec(Renderer&, RenderedNode& rendered, QRhiResourceUpdateBatch& res, AVFrame& frame) override
+  void exec(
+      Renderer&,
+      RenderedNode& rendered,
+      QRhiResourceUpdateBatch& res,
+      AVFrame& frame) override
   {
     auto section = HAPSection::read(frame.data[0]);
-    if(section.type == 0x0D)
+    if (section.type == 0x0D)
       return;
 
     switch (section.type >> 4)
@@ -57,8 +61,11 @@ struct HAPDecoder : GPUVideoDecoder
       case 0xC:
       {
 
-        HapDecodeCallback cb = [] (HapDecodeWorkFunction function, void *p, unsigned int count, void *info) {
-          for(int i = 0; i < count; i++)
+        HapDecodeCallback cb = [](HapDecodeWorkFunction function,
+                                  void* p,
+                                  unsigned int count,
+                                  void* info) {
+          for (int i = 0; i < count; i++)
             function(p, i);
         };
         void* ctx = nullptr;
@@ -66,9 +73,19 @@ struct HAPDecoder : GPUVideoDecoder
         unsigned long outBytes = buffer_size;
         unsigned long outBytesUsed{};
         unsigned int outFormat{};
-        auto r = HapDecode(frame.data[0], frame.linesize[0], 0, cb, ctx, output, outBytes, &outBytesUsed, &outFormat);
-        if(r == HapResult_No_Error)
-          setPixels_noEncoding(rendered, res, (const uint8_t*)output, outBytesUsed);
+        auto r = HapDecode(
+            frame.data[0],
+            frame.linesize[0],
+            0,
+            cb,
+            ctx,
+            output,
+            outBytes,
+            &outBytesUsed,
+            &outFormat);
+        if (r == HapResult_No_Error)
+          setPixels_noEncoding(
+              rendered, res, (const uint8_t*)output, outBytesUsed);
         else
           qDebug() << r;
         break;
@@ -76,7 +93,11 @@ struct HAPDecoder : GPUVideoDecoder
     }
   }
 
-  static void setPixels_noEncoding(RenderedNode& rendered, QRhiResourceUpdateBatch& res, const uint8_t* data_start, std::size_t size)
+  static void setPixels_noEncoding(
+      RenderedNode& rendered,
+      QRhiResourceUpdateBatch& res,
+      const uint8_t* data_start,
+      std::size_t size)
   {
     QRhiTextureSubresourceUploadDescription sub;
     sub.setData(QByteArray::fromRawData((const char*)data_start, size));
@@ -88,7 +109,11 @@ struct HAPDecoder : GPUVideoDecoder
     res.uploadTexture(y_tex, desc);
   }
 
-  static void setPixels_snappy(RenderedNode& rendered, QRhiResourceUpdateBatch& res, const uint8_t* data_start, std::size_t size)
+  static void setPixels_snappy(
+      RenderedNode& rendered,
+      QRhiResourceUpdateBatch& res,
+      const uint8_t* data_start,
+      std::size_t size)
   {
     size_t uncomp_size{};
     snappy::GetUncompressedLength((const char*)data_start, size, &uncomp_size);
@@ -113,10 +138,9 @@ struct HAPDecoder : GPUVideoDecoder
   }
 
   static constexpr int buffer_size = 1024 * 1024 * 16;
-  std::unique_ptr<char[]> m_buffer = std::make_unique<char[]>(1024 * 1024 * 16);
+  std::unique_ptr<char[]> m_buffer
+      = std::make_unique<char[]>(1024 * 1024 * 16);
 };
-
-
 
 struct HAPDefaultDecoder : HAPDecoder
 {
@@ -157,14 +181,20 @@ void main ()
   fragColor = processTexture(texture(y_tex, texcoord));
 })_");
 
-  static inline const QString ycocg_filter =  QStringLiteral("processed = processYCoCg(processed);\n");
+  static inline const QString ycocg_filter
+      = QStringLiteral("processed = processYCoCg(processed);\n");
 
-  HAPDefaultDecoder(QRhiTexture::Format fmt, NodeModel& n, video_decoder& d, QString f = "")
-    : format{fmt}
-    , node{n}
-    , decoder{d}
-    , filter{f}
-  { }
+  HAPDefaultDecoder(
+      QRhiTexture::Format fmt,
+      NodeModel& n,
+      video_decoder& d,
+      QString f = "")
+      : format{fmt}
+      , node{n}
+      , decoder{d}
+      , filter{f}
+  {
+  }
   QRhiTexture::Format format;
   NodeModel& node;
   video_decoder& decoder;
@@ -173,7 +203,8 @@ void main ()
   void init(Renderer& r, RenderedNode& rendered) override
   {
     auto& rhi = *r.state.rhi;
-    std::tie(node.m_vertexS, node.m_fragmentS) = makeShaders(node.mesh().defaultVertexShader(), QString(fragment).arg(filter));
+    std::tie(node.m_vertexS, node.m_fragmentS) = makeShaders(
+        node.mesh().defaultVertexShader(), QString(fragment).arg(filter));
 
     const auto w = decoder.width, h = decoder.height;
 
@@ -236,54 +267,65 @@ void main ()
 })_");
 
   HAPMDecoder(NodeModel& n, video_decoder& d, QString f = "")
-    : node{n}
-    , decoder{d}
-    , filter{f}
-  { }
+      : node{n}
+      , decoder{d}
+      , filter{f}
+  {
+  }
   NodeModel& node;
   video_decoder& decoder;
   QString filter;
   void init(Renderer& r, RenderedNode& rendered) override
   {
     auto& rhi = *r.state.rhi;
-    std::tie(node.m_vertexS, node.m_fragmentS) = makeShaders(node.mesh().defaultVertexShader(), QString(fragment).arg(filter));
+    std::tie(node.m_vertexS, node.m_fragmentS) = makeShaders(
+        node.mesh().defaultVertexShader(), QString(fragment).arg(filter));
 
     const auto w = decoder.width, h = decoder.height;
 
     // Color texture
     {
-      auto tex = rhi.newTexture(QRhiTexture::BC3, QSize{w, h}, 1, QRhiTexture::Flag{});
+      auto tex = rhi.newTexture(
+          QRhiTexture::BC3, QSize{w, h}, 1, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(
-            QRhiSampler::Linear,
-            QRhiSampler::Linear,
-            QRhiSampler::None,
-            QRhiSampler::ClampToEdge,
-            QRhiSampler::ClampToEdge);
+          QRhiSampler::Linear,
+          QRhiSampler::Linear,
+          QRhiSampler::None,
+          QRhiSampler::ClampToEdge,
+          QRhiSampler::ClampToEdge);
       sampler->create();
       rendered.m_samplers.push_back({sampler, tex});
     }
     // Alpha texture
     {
-      auto tex = rhi.newTexture(QRhiTexture::BC4, QSize{w, h}, 1, QRhiTexture::Flag{});
+      auto tex = rhi.newTexture(
+          QRhiTexture::BC4, QSize{w, h}, 1, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(
-            QRhiSampler::Linear,
-            QRhiSampler::Linear,
-            QRhiSampler::None,
-            QRhiSampler::ClampToEdge,
-            QRhiSampler::ClampToEdge);
+          QRhiSampler::Linear,
+          QRhiSampler::Linear,
+          QRhiSampler::None,
+          QRhiSampler::ClampToEdge,
+          QRhiSampler::ClampToEdge);
       sampler->create();
       rendered.m_samplers.push_back({sampler, tex});
     }
   }
 
-  void exec(Renderer&, RenderedNode& rendered, QRhiResourceUpdateBatch& res, AVFrame& frame) override
+  void exec(
+      Renderer&,
+      RenderedNode& rendered,
+      QRhiResourceUpdateBatch& res,
+      AVFrame& frame) override
   {
-    HapDecodeCallback cb = [] (HapDecodeWorkFunction function, void *p, unsigned int count, void *info) {
-      for(int i = 0; i < count; i++)
+    HapDecodeCallback cb = [](HapDecodeWorkFunction function,
+                              void* p,
+                              unsigned int count,
+                              void* info) {
+      for (int i = 0; i < count; i++)
         function(p, i);
     };
     void* ctx = nullptr;
@@ -291,18 +333,46 @@ void main ()
     unsigned long ycocg_outBytes = buffer_size;
     unsigned long ycocg_outBytesUsed{};
     unsigned int ycocg_outFormat{};
-    auto r = HapDecode(frame.data[0], frame.linesize[0], 0, cb, ctx, ycocg_output, ycocg_outBytes, &ycocg_outBytesUsed, &ycocg_outFormat);
-    if(r == HapResult_No_Error)
+    auto r = HapDecode(
+        frame.data[0],
+        frame.linesize[0],
+        0,
+        cb,
+        ctx,
+        ycocg_output,
+        ycocg_outBytes,
+        &ycocg_outBytesUsed,
+        &ycocg_outFormat);
+    if (r == HapResult_No_Error)
     {
       void* alpha_output = m_alphaBuffer.get();
       unsigned long alpha_outBytes = buffer_size;
       unsigned long alpha_outBytesUsed{};
       unsigned int alpha_outFormat{};
-      r = HapDecode(frame.data[0], frame.linesize[0], 1, cb, ctx, alpha_output, alpha_outBytes, &alpha_outBytesUsed, &alpha_outFormat);
-      if(r == HapResult_No_Error)
+      r = HapDecode(
+          frame.data[0],
+          frame.linesize[0],
+          1,
+          cb,
+          ctx,
+          alpha_output,
+          alpha_outBytes,
+          &alpha_outBytesUsed,
+          &alpha_outFormat);
+      if (r == HapResult_No_Error)
       {
-        setPixels(rendered, res, rendered.m_samplers[0].texture, (const uint8_t*)ycocg_output, ycocg_outBytesUsed);
-        setPixels(rendered, res, rendered.m_samplers[1].texture, (const uint8_t*)alpha_output, alpha_outBytesUsed);
+        setPixels(
+            rendered,
+            res,
+            rendered.m_samplers[0].texture,
+            (const uint8_t*)ycocg_output,
+            ycocg_outBytesUsed);
+        setPixels(
+            rendered,
+            res,
+            rendered.m_samplers[1].texture,
+            (const uint8_t*)alpha_output,
+            alpha_outBytesUsed);
       }
     }
     else
@@ -311,9 +381,12 @@ void main ()
     }
   }
 
-  static void setPixels(RenderedNode& rendered, QRhiResourceUpdateBatch& res,
-                        QRhiTexture* tex,
-                        const uint8_t* ycocg_start, std::size_t ycocg_size)
+  static void setPixels(
+      RenderedNode& rendered,
+      QRhiResourceUpdateBatch& res,
+      QRhiTexture* tex,
+      const uint8_t* ycocg_start,
+      std::size_t ycocg_size)
   {
     QRhiTextureSubresourceUploadDescription sub;
     sub.setData(QByteArray::fromRawData((const char*)ycocg_start, ycocg_size));
@@ -324,7 +397,8 @@ void main ()
     res.uploadTexture(tex, desc);
   }
 
-  std::unique_ptr<char[]> m_alphaBuffer = std::make_unique<char[]>(1024 * 1024 * 16);
+  std::unique_ptr<char[]> m_alphaBuffer
+      = std::make_unique<char[]>(1024 * 1024 * 16);
 };
 
-#include <Gfx/Qt5CompatPop>
+#include <Gfx/Qt5CompatPop> // clang-format: keep

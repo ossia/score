@@ -5,10 +5,10 @@
 
 // Needed under Win32 as lld does not seem to be able to link to stuff declared "__declspec(dllimport) extern"
 #if defined(_WIN32)
-  #if defined(EXTERN)
-    #undef EXTERN
-    #define EXTERN
-  #endif
+#if defined(EXTERN)
+#undef EXTERN
+#define EXTERN
+#endif
 #endif
 
 #include <z_libpd.h>

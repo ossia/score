@@ -1,14 +1,6 @@
 #pragma once
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
-#include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Instantiations.hpp>
-#include <Scenario/Process/ScenarioInterface.hpp>
-#include <Scenario/Process/ScenarioProcessMetadata.hpp>
 
 #include <score/model/EntityMap.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
@@ -22,6 +14,15 @@
 #include <QObject>
 #include <QVector>
 
+#include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Instantiations.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
+#include <Scenario/Process/ScenarioProcessMetadata.hpp>
+
 #include <verdigris>
 namespace Scenario
 {
@@ -30,8 +31,9 @@ struct TimenodeGraph;
 /**
  * @brief The core hierarchical and temporal process of score
  */
-class SCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final : public Process::ProcessModel,
-                                                        public ScenarioInterface
+class SCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final
+    : public Process::ProcessModel
+    , public ScenarioInterface
 {
   W_OBJECT(ProcessModel)
 
@@ -50,7 +52,8 @@ public:
       QObject* parent);
   template <typename Impl>
   ProcessModel(Impl& vis, const score::DocumentContext& ctx, QObject* parent)
-      : Process::ProcessModel{vis, parent}, m_context{ctx}
+      : Process::ProcessModel{vis, parent}
+      , m_context{ctx}
   {
     vis.writeTo(*this);
     init();
@@ -102,7 +105,8 @@ public:
     return ossia::ptr_find(states, id);
   }
 
-  IntervalModel& interval(const Id<IntervalModel>& intervalId) const final override
+  IntervalModel&
+  interval(const Id<IntervalModel>& intervalId) const final override
   {
     return intervals.at(intervalId);
   }
@@ -110,17 +114,24 @@ public:
   {
     return events.at(eventId);
   }
-  TimeSyncModel& timeSync(const Id<TimeSyncModel>& timeSyncId) const final override
+  TimeSyncModel&
+  timeSync(const Id<TimeSyncModel>& timeSyncId) const final override
   {
     return timeSyncs.at(timeSyncId);
   }
-  StateModel& state(const Id<StateModel>& stId) const final override { return states.at(stId); }
+  StateModel& state(const Id<StateModel>& stId) const final override
+  {
+    return states.at(stId);
+  }
   CommentBlockModel& comment(const Id<CommentBlockModel>& cmtId) const
   {
     return comments.at(cmtId);
   }
 
-  TimeSyncModel& startTimeSync() const { return timeSyncs.at(m_startTimeSyncId); }
+  TimeSyncModel& startTimeSync() const
+  {
+    return timeSyncs.at(m_startTimeSyncId);
+  }
 
   EventModel& startEvent() const { return events.at(m_startEventId); }
 
@@ -185,7 +196,8 @@ private:
 }
 // TODO this ought to go in Selection.hpp ?
 template <typename Vector>
-std::vector<const typename Vector::value_type*> selectedElements(const Vector& in)
+std::vector<const typename Vector::value_type*>
+selectedElements(const Vector& in)
 {
   std::vector<const typename Vector::value_type*> out;
   for (const auto& elt : in)
@@ -219,7 +231,9 @@ std::vector<const T*> filterSelectionByType(const Container& sel)
 namespace Scenario
 {
 SCORE_PLUGIN_SCENARIO_EXPORT const QVector<Id<IntervalModel>>
-intervalsBeforeTimeSync(const Scenario::ProcessModel&, const Id<TimeSyncModel>& timeSyncId);
+intervalsBeforeTimeSync(
+    const Scenario::ProcessModel&,
+    const Id<TimeSyncModel>& timeSyncId);
 
 inline auto& intervals(const Scenario::ProcessModel& scenar)
 {
@@ -241,33 +255,34 @@ inline auto& states(const Scenario::ProcessModel& scenar)
 template <>
 struct ElementTraits<Scenario::ProcessModel, IntervalModel>
 {
-  static const constexpr auto accessor
-      = static_cast<const score::EntityMap<IntervalModel>& (*)(const Scenario::ProcessModel&)>(
-          &intervals);
+  static const constexpr auto accessor = static_cast<const score::EntityMap<
+      IntervalModel>& (*)(const Scenario::ProcessModel&)>(&intervals);
 };
 template <>
 struct ElementTraits<Scenario::ProcessModel, EventModel>
 {
-  static const constexpr auto accessor
-      = static_cast<const score::EntityMap<EventModel>& (*)(const Scenario::ProcessModel&)>(
-          &events);
+  static const constexpr auto accessor = static_cast<
+      const score::EntityMap<EventModel>& (*)(const Scenario::ProcessModel&)>(
+      &events);
 };
 template <>
 struct ElementTraits<Scenario::ProcessModel, TimeSyncModel>
 {
-  static const constexpr auto accessor
-      = static_cast<const score::EntityMap<TimeSyncModel>& (*)(const Scenario::ProcessModel&)>(
-          &timeSyncs);
+  static const constexpr auto accessor = static_cast<const score::EntityMap<
+      TimeSyncModel>& (*)(const Scenario::ProcessModel&)>(&timeSyncs);
 };
 template <>
 struct ElementTraits<Scenario::ProcessModel, StateModel>
 {
-  static const constexpr auto accessor
-      = static_cast<const score::EntityMap<StateModel>& (*)(const Scenario::ProcessModel&)>(
-          &states);
+  static const constexpr auto accessor = static_cast<
+      const score::EntityMap<StateModel>& (*)(const Scenario::ProcessModel&)>(
+      &states);
 };
 }
-DESCRIPTION_METADATA(SCORE_PLUGIN_SCENARIO_EXPORT, Scenario::ProcessModel, "Scenario")
+DESCRIPTION_METADATA(
+    SCORE_PLUGIN_SCENARIO_EXPORT,
+    Scenario::ProcessModel,
+    "Scenario")
 
 Q_DECLARE_METATYPE(const Scenario::ProcessModel*)
 Q_DECLARE_METATYPE(Scenario::ProcessModel*)

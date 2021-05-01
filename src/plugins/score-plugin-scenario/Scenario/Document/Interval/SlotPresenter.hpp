@@ -2,14 +2,17 @@
 
 #include <Process/HeaderDelegate.hpp>
 #include <Process/LayerPresenter.hpp>
+
 #include <Scenario/Document/Interval/SlotHeader.hpp>
+
 #include <variant>
 
 namespace Scenario
 {
 class LayerData;
 class SlotHeader;
-struct LayerSlotPresenter {
+struct LayerSlotPresenter
+{
   SlotHeader* header{};
   Process::HeaderDelegate* headerDelegate{};
   SlotFooter* footer{};
@@ -34,7 +37,8 @@ struct LayerSlotPresenter {
 };
 
 class NodalIntervalView;
-struct NodalSlotPresenter {
+struct NodalSlotPresenter
+{
   SlotHeader* header{};
   SlotFooter* footer{};
   NodalIntervalView* view{};
@@ -42,7 +46,7 @@ struct NodalSlotPresenter {
   void cleanup();
 };
 
-struct SlotPresenter: std::variant<LayerSlotPresenter, NodalSlotPresenter>
+struct SlotPresenter : std::variant<LayerSlotPresenter, NodalSlotPresenter>
 {
   using variant::variant;
 
@@ -55,45 +59,45 @@ struct SlotPresenter: std::variant<LayerSlotPresenter, NodalSlotPresenter>
     return std::get_if<NodalSlotPresenter>((variant*)this);
   }
 
-  template<typename Layer, typename Nodal>
+  template <typename Layer, typename Nodal>
   auto visit(const Layer& lfun, const Nodal& nfun)
   {
-    struct {
+    struct
+    {
       const Layer& lfun;
       const Nodal& nfun;
-      void operator()(LayerSlotPresenter& pres) const {
-        return lfun(pres);
-      }
-      void operator()(NodalSlotPresenter& pres) const {
-        return nfun(pres);
-      }
+      void operator()(LayerSlotPresenter& pres) const { return lfun(pres); }
+      void operator()(NodalSlotPresenter& pres) const { return nfun(pres); }
     } visitor{lfun, nfun};
     return std::visit(visitor, (variant&)*this);
   }
 
-  template<typename Layer, typename Nodal>
+  template <typename Layer, typename Nodal>
   auto visit(const Layer& lfun, const Nodal& nfun) const
   {
-    struct {
+    struct
+    {
       const Layer& lfun;
       const Nodal& nfun;
-      void operator()(const LayerSlotPresenter& pres) const {
+      void operator()(const LayerSlotPresenter& pres) const
+      {
         return lfun(pres);
       }
-      void operator()(const NodalSlotPresenter& pres) const {
+      void operator()(const NodalSlotPresenter& pres) const
+      {
         return nfun(pres);
       }
     } visitor{lfun, nfun};
     return std::visit(visitor, (const variant&)*this);
   }
 
-  template<typename F>
+  template <typename F>
   auto visit(const F& fun)
   {
     return std::visit(fun, (variant&)*this);
   }
 
-  template<typename F>
+  template <typename F>
   auto visit(const F& fun) const
   {
     return std::visit(fun, (const variant&)*this);
@@ -101,9 +105,9 @@ struct SlotPresenter: std::variant<LayerSlotPresenter, NodalSlotPresenter>
 
   void cleanup(QGraphicsScene* sc)
   {
-    if(auto p = getLayerSlot())
+    if (auto p = getLayerSlot())
       p->cleanup(sc);
-    else if(auto p = getNodalSlot())
+    else if (auto p = getNodalSlot())
       p->cleanup();
   }
 };

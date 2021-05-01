@@ -11,7 +11,10 @@ const CommandGroupKey& CommandFactoryName();
 
 class ChangeSpline final : public score::Command
 {
-  SCORE_COMMAND_DECL(Spline3D::CommandFactoryName(), ChangeSpline, "Change 3D Spline")
+  SCORE_COMMAND_DECL(
+      Spline3D::CommandFactoryName(),
+      ChangeSpline,
+      "Change 3D Spline")
 public:
   ChangeSpline(const ProcessModel& autom, const ossia::spline3d_data& newval);
 

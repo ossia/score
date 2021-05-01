@@ -1,7 +1,5 @@
 #pragma once
 
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-
 #include <score/command/AggregateCommand.hpp>
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
@@ -10,6 +8,8 @@
 
 #include <QString>
 #include <QVector>
+
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -55,7 +55,8 @@ private:
   std::vector<Id<StateModel>> m_movingStates;
 };
 
-class SCORE_PLUGIN_SCENARIO_EXPORT SplitWholeEvent final : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT SplitWholeEvent final
+    : public score::Command
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), SplitWholeEvent, "Split an event")
 public:
@@ -76,7 +77,10 @@ private:
 
 class SplitStateMacro final : public score::AggregateCommand
 {
-  SCORE_COMMAND_DECL(CommandFactoryName(), SplitStateMacro, "Split state from node")
+  SCORE_COMMAND_DECL(
+      CommandFactoryName(),
+      SplitStateMacro,
+      "Split state from node")
 };
 }
 }

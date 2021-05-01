@@ -3,9 +3,9 @@
 #include <score/widgets/Pixmap.hpp>
 
 #include <QDrag>
-#include <QMouseEvent>
 #include <QGuiApplication>
 #include <QMimeData>
+#include <QMouseEvent>
 #include <QSortFilterProxyModel>
 
 #include <wobjectimpl.h>
@@ -18,11 +18,14 @@ Library::ProcessData* ProcessTreeView::dataFromViewIndex(QModelIndex idx)
   SCORE_ASSERT(idx.isValid());
   auto proxy = (QSortFilterProxyModel*)this->model();
   auto model_idx = proxy->mapToSource(idx);
-  auto data = reinterpret_cast<TreeNode<ProcessData>*>(model_idx.internalPointer());
+  auto data
+      = reinterpret_cast<TreeNode<ProcessData>*>(model_idx.internalPointer());
   return data;
 }
 
-void ProcessTreeView::selectionChanged(const QItemSelection& sel, const QItemSelection& desel)
+void ProcessTreeView::selectionChanged(
+    const QItemSelection& sel,
+    const QItemSelection& desel)
 {
   setDropIndicatorShown(true);
 
@@ -40,9 +43,12 @@ QModelIndexList ProcessTreeView::selectedDraggableIndexes() const
 {
   QModelIndexList indexes = selectedIndexes();
   auto m = QTreeView::model();
-  auto isNotDragEnabled
-      = [m](const QModelIndex& index) { return !(m->flags(index) & Qt::ItemIsDragEnabled); };
-  indexes.erase(std::remove_if(indexes.begin(), indexes.end(), isNotDragEnabled), indexes.end());
+  auto isNotDragEnabled = [m](const QModelIndex& index) {
+    return !(m->flags(index) & Qt::ItemIsDragEnabled);
+  };
+  indexes.erase(
+      std::remove_if(indexes.begin(), indexes.end(), isNotDragEnabled),
+      indexes.end());
   return indexes;
 }
 
@@ -71,13 +77,13 @@ void ProcessTreeView::startDrag(Qt::DropActions)
   }
 }
 
-void ProcessTreeView::mouseDoubleClickEvent(QMouseEvent *event)
+void ProcessTreeView::mouseDoubleClickEvent(QMouseEvent* event)
 {
   auto index = indexAt(event->pos());
-  if(index.isValid())
+  if (index.isValid())
   {
     auto data = dataFromViewIndex(index);
-    if(data->key != UuidKey<Process::ProcessModel>{})
+    if (data->key != UuidKey<Process::ProcessModel>{})
     {
       doubleClicked(*data);
       event->accept();

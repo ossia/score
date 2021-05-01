@@ -17,12 +17,13 @@ Component::Component(
     const ::Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
-    : ::Execution::ProcessComponent_T<Gradient::ProcessModel, ossia::node_process>{
-        element,
-        ctx,
-        id,
-        "Executor::GradientComponent",
-        parent}
+    : ::Execution::
+        ProcessComponent_T<Gradient::ProcessModel, ossia::node_process>{
+            element,
+            ctx,
+            id,
+            "Executor::GradientComponent",
+            parent}
 {
   auto node = std::make_shared<gradient>();
   this->node = node;
@@ -40,7 +41,9 @@ Component::Component(
       node->mustTween = b;
     });
   });
-  con(element, &Gradient::ProcessModel::gradientChanged, this, [this] { this->recompute(); });
+  con(element, &Gradient::ProcessModel::gradientChanged, this, [this] {
+    this->recompute();
+  });
 
   recompute();
 }
@@ -81,9 +84,10 @@ void Component::recompute()
   const Execution::Context& s = this->system();
   auto g = process().gradient();
 
-  s.executionQueue.enqueue([proc = std::dynamic_pointer_cast<gradient>(OSSIAProcess().node), g] {
-    proc->set_gradient(to_ossia_gradient(g));
-  });
+  s.executionQueue.enqueue(
+      [proc = std::dynamic_pointer_cast<gradient>(OSSIAProcess().node), g] {
+        proc->set_gradient(to_ossia_gradient(g));
+      });
 }
 }
 }

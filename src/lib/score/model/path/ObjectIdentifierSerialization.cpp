@@ -37,5 +37,6 @@ void JSONReader::read(const ObjectIdentifier& id)
 template <>
 void JSONWriter::write(ObjectIdentifier& id)
 {
-  id = ObjectIdentifier{obj[strings.ObjectName].toString(), obj[strings.ObjectId].toInt()};
+  id = ObjectIdentifier{
+      obj[strings.ObjectName].toString(), obj[strings.ObjectId].toInt()};
 }

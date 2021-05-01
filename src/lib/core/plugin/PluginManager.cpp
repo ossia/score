@@ -130,7 +130,8 @@ QStringList addonsDir()
 #if !defined(SCORE_DEPLOYMENT_BUILD)
   l << "addons";
 #endif
-  l << QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation).first()
+  l << QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation)
+               .first()
            + "/score/addons";
   return l;
 }
@@ -154,17 +155,20 @@ static bool isBlacklisted(const QString& str)
 
   if (!whitelist.isEmpty())
   {
-    if (ossia::none_of(whitelist, [&](const QString& wl) { return str.contains(wl); }))
+    if (ossia::none_of(
+            whitelist, [&](const QString& wl) { return str.contains(wl); }))
       return true;
   }
-  return ossia::any_of(blacklist, [&](const QString& bl) { return str.contains(bl); });
+  return ossia::any_of(
+      blacklist, [&](const QString& bl) { return str.contains(bl); });
 #else
   return false;
 #endif
 }
 
-std::pair<score::Plugin_QtInterface*, PluginLoadingError>
-loadPlugin(const QString& fileName, const std::vector<score::Addon>& availablePlugins)
+std::pair<score::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
+    const QString& fileName,
+    const std::vector<score::Addon>& availablePlugins)
 {
   using namespace score::PluginLoader;
 #if QT_CONFIG(library) && !defined(__EMSCRIPTEN__)
@@ -180,10 +184,12 @@ loadPlugin(const QString& fileName, const std::vector<score::Addon>& availablePl
 
   if (ptr)
   {
-    auto score_factory = ptr.symbol<decltype(&plugin_instance)>("plugin_instance");
+    auto score_factory
+        = ptr.symbol<decltype(&plugin_instance)>("plugin_instance");
     if (!score_factory)
     {
-      qDebug() << "Warning: plugin" << fileName << "is not a correct score plugin.";
+      qDebug() << "Warning: plugin" << fileName
+               << "is not a correct score plugin.";
 
       return std::make_pair(nullptr, PluginLoadingError::NotAPlugin);
     }
@@ -191,20 +197,22 @@ loadPlugin(const QString& fileName, const std::vector<score::Addon>& availablePl
     auto score_plugin = score_factory();
     if (!score_plugin)
     {
-      qDebug() << "Warning: plugin" << fileName << "is not a correct score plugin.";
+      qDebug() << "Warning: plugin" << fileName
+               << "is not a correct score plugin.";
 
       return std::make_pair(nullptr, PluginLoadingError::NotAPlugin);
     }
 
     // Check if the plugin is not already loaded
-    auto plug_it = ossia::find_if(availablePlugins, [&](const score::Addon& obj) {
-      return obj.plugin && (obj.plugin->key() == score_plugin->key());
-    });
+    auto plug_it
+        = ossia::find_if(availablePlugins, [&](const score::Addon& obj) {
+            return obj.plugin && (obj.plugin->key() == score_plugin->key());
+          });
 
     if (plug_it != availablePlugins.end())
     {
-      qDebug() << "Warning: plugin" << fileName << "was already loaded (" << plug_it->path
-               << "). Not reloading.";
+      qDebug() << "Warning: plugin" << fileName << "was already loaded ("
+               << plug_it->path << "). Not reloading.";
 
       return std::make_pair(nullptr, PluginLoadingError::AlreadyLoaded);
     }
@@ -223,7 +231,9 @@ loadPlugin(const QString& fileName, const std::vector<score::Addon>& availablePl
   return std::make_pair(nullptr, PluginLoadingError::UnknownError);
 }
 
-void loadPluginsInAllFolders(std::vector<score::Addon>& availablePlugins, QStringList additional)
+void loadPluginsInAllFolders(
+    std::vector<score::Addon>& availablePlugins,
+    QStringList additional)
 {
   using namespace score::PluginLoader;
 
@@ -296,7 +306,10 @@ std::optional<score::Addon> makeAddon(
       {"url", [&](QJsonValue v) { add.latestVersionAddress = v.toString(); }},
       {"short", [&](QJsonValue v) { add.shortDescription = v.toString(); }},
       {"long", [&](QJsonValue v) { add.longDescription = v.toString(); }},
-      {"key", [&](QJsonValue v) { add.key = UuidKey<Plugin>::fromString(v.toString()); }},
+      {"key",
+       [&](QJsonValue v) {
+         add.key = UuidKey<Plugin>::fromString(v.toString());
+       }},
       {"small", [&](QJsonValue v) { add.smallImage = QImage{v.toString()}; }},
       {"large", [&](QJsonValue v) { add.largeImage = QImage{v.toString()}; }}};
 
@@ -323,7 +336,8 @@ void loadAddonsInAllFolders(std::vector<score::Addon>& availablePlugins)
   for (const QString& pluginsFolder : addonsDir())
   {
     QDir pluginsDir{pluginsFolder};
-    for (const QString& dirName : pluginsDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot))
+    for (const QString& dirName :
+         pluginsDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot))
     {
       QString folder = pluginsFolder + "/" + dirName;
       QFile addonFile{folder + "/localaddon.json"};
@@ -334,7 +348,9 @@ void loadAddonsInAllFolders(std::vector<score::Addon>& availablePlugins)
       addonFile.open(QFile::ReadOnly);
 
       auto addon = makeAddon(
-          folder, QJsonDocument::fromJson(score::mapAsByteArray(addonFile)).object(), availablePlugins);
+          folder,
+          QJsonDocument::fromJson(score::mapAsByteArray(addonFile)).object(),
+          availablePlugins);
 
       if (addon)
         availablePlugins.push_back(std::move(*addon));

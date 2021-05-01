@@ -66,14 +66,16 @@ void ObjectLocker::unlock_impl()
 }
 
 LockHelper::LockHelper(QObject& model, ObjectLocker& locker)
-    : m_path{IDocument::unsafe_path(model)}, m_locker{locker}
+    : m_path{IDocument::unsafe_path(model)}
+    , m_locker{locker}
 {
   DataStream::Serializer ser{&m_serializedPath};
   ser.readFrom(m_path);
 }
 
 LockHelper::LockHelper(ObjectPath&& path, ObjectLocker& locker)
-    : m_path{std::move(path)}, m_locker{locker}
+    : m_path{std::move(path)}
+    , m_locker{locker}
 {
   DataStream::Serializer ser{&m_serializedPath};
   ser.readFrom(m_path);

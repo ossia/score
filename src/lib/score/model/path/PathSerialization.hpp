@@ -28,7 +28,10 @@ struct TSerializer<DataStream, Path<T>>
     s.readFrom(path.unsafePath());
   }
 
-  static void writeTo(DataStream::Deserializer& s, Path<T>& path) { s.writeTo(path.unsafePath()); }
+  static void writeTo(DataStream::Deserializer& s, Path<T>& path)
+  {
+    s.writeTo(path.unsafePath());
+  }
 };
 
 template <typename T>
@@ -39,5 +42,8 @@ struct TSerializer<JSONObject, Path<T>>
     s.readFrom(path.unsafePath());
   }
 
-  static void writeTo(JSONObject::Deserializer& s, Path<T>& path) { s.writeTo(path.unsafePath()); }
+  static void writeTo(JSONObject::Deserializer& s, Path<T>& path)
+  {
+    s.writeTo(path.unsafePath());
+  }
 };

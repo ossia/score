@@ -5,10 +5,6 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <Scenario/Commands/State/AddMessagesToState.hpp>
-#include <Scenario/Commands/State/SnapshotStatesMacro.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
 #include <State/Message.hpp>
 
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
@@ -19,6 +15,11 @@
 #include <score/selection/SelectionStack.hpp>
 
 #include <QList>
+
+#include <Scenario/Commands/State/AddMessagesToState.hpp>
+#include <Scenario/Commands/State/SnapshotStatesMacro.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 
 #include <vector>
 
@@ -39,8 +40,8 @@ void SnapshotParametersInStates(const score::DocumentContext& doc)
   }
 
   // Fetch the selected DeviceExplorer elements
-  State::MessageList messages
-      = Explorer::getSelectionSnapshot(Explorer::deviceExplorerFromContext(doc));
+  State::MessageList messages = Explorer::getSelectionSnapshot(
+      Explorer::deviceExplorerFromContext(doc));
   if (messages.empty())
     return;
 

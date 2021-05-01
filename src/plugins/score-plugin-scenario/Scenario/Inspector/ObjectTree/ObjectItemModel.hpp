@@ -23,16 +23,20 @@ namespace Scenario
 // TimeSync / event / state / state processes
 // or
 // Interval / processes
-class ObjectItemModel final : public QAbstractItemModel, public Nano::Observer
+class ObjectItemModel final
+    : public QAbstractItemModel
+    , public Nano::Observer
 {
   W_OBJECT(ObjectItemModel)
 public:
   ObjectItemModel(const score::DocumentContext& ctx, QObject* parent);
   void setSelected(QList<const IdentifiedObjectAbstract*> sel);
 
-  QModelIndex index(int row, int column, const QModelIndex& parent) const override;
+  QModelIndex
+  index(int row, int column, const QModelIndex& parent) const override;
   QModelIndex parent(const QModelIndex& child) const override;
-  QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+  QVariant headerData(int section, Qt::Orientation orientation, int role)
+      const override;
 
   int rowCount(const QModelIndex& parent) const override;
   int columnCount(const QModelIndex& parent) const override;
@@ -40,7 +44,8 @@ public:
   QVariant data(const QModelIndex& index, int role) const override;
   Qt::ItemFlags flags(const QModelIndex& index) const override;
 
-  bool setData(const QModelIndex& index, const QVariant& value, int role) override;
+  bool
+  setData(const QModelIndex& index, const QVariant& value, int role) override;
 
   QMimeData* mimeData(const QModelIndexList& indexes) const override;
   bool canDropMimeData(
@@ -96,7 +101,9 @@ public:
   bool updatingSelection{false};
 
 private:
-  void selectionChanged(const QItemSelection& selected, const QItemSelection& deselected) override;
+  void selectionChanged(
+      const QItemSelection& selected,
+      const QItemSelection& deselected) override;
 
   void contextMenuEvent(QContextMenuEvent* ev) override;
   const score::DocumentContext& m_ctx;
@@ -156,7 +163,10 @@ private:
 class SelectionStackWidget final : public QWidget
 {
 public:
-  SelectionStackWidget(score::SelectionStack& s, QWidget* parent, ObjectWidget* objects);
+  SelectionStackWidget(
+      score::SelectionStack& s,
+      QWidget* parent,
+      ObjectWidget* objects);
 
 private:
   QToolButton* m_prev{};
@@ -179,7 +189,8 @@ private:
   QWidget* widget() override;
   const score::PanelStatus& defaultPanelStatus() const override;
 
-  void on_modelChanged(score::MaybeDocument oldm, score::MaybeDocument newm) override;
+  void on_modelChanged(score::MaybeDocument oldm, score::MaybeDocument newm)
+      override;
   void setNewSelection(const Selection& sel) override;
 
   SizePolicyWidget* m_widget{};
@@ -193,7 +204,8 @@ class ObjectPanelDelegateFactory final : public score::PanelDelegateFactory
 {
   SCORE_CONCRETE("aea973e2-84aa-4b8a-b0f0-b6ce39b6f15a")
 
-  std::unique_ptr<score::PanelDelegate> make(const score::GUIApplicationContext& ctx) override
+  std::unique_ptr<score::PanelDelegate>
+  make(const score::GUIApplicationContext& ctx) override
   {
     return std::make_unique<ObjectPanelDelegate>(ctx);
   }

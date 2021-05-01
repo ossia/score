@@ -2,14 +2,15 @@
 
 #include "Widgets.hpp"
 
+#include <Audio/Settings/Model.hpp>
+#include <Execution/DocumentPlugin.hpp>
+#include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/PortFactory.hpp>
 #include <Vst/ApplicationPlugin.hpp>
 #include <Vst/Commands.hpp>
 #include <Vst/Control.hpp>
 #include <Vst/Loader.hpp>
 #include <Vst/Window.hpp>
-#include <Process/Dataflow/Port.hpp>
-#include <Process/Dataflow/PortFactory.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
 #include <score/tools/DeleteAll.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
@@ -21,8 +22,7 @@
 #include <QInputDialog>
 #include <QTimer>
 
-#include <Audio/Settings/Model.hpp>
-#include <Execution/DocumentPlugin.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <cmath>
 #include <websocketpp/base64/base64.hpp>
 #include <wobjectimpl.h>
@@ -38,7 +38,8 @@ namespace Process
 template <>
 QString EffectProcessFactory_T<vst::Model>::customConstructionData() const
 {
-  auto& app = score::GUIAppContext().applicationPlugin<vst::ApplicationPlugin>();
+  auto& app
+      = score::GUIAppContext().applicationPlugin<vst::ApplicationPlugin>();
   QStringList vsts;
   vsts.reserve(app.vst_infos.size());
   QMap<QString, int32_t> ids;
@@ -69,10 +70,12 @@ QString EffectProcessFactory_T<vst::Model>::customConstructionData() const
 }
 
 template <>
-Process::Descriptor EffectProcessFactory_T<vst::Model>::descriptor(QString d) const
+Process::Descriptor
+EffectProcessFactory_T<vst::Model>::descriptor(QString d) const
 {
   Process::Descriptor desc;
-  auto& app = score::GUIAppContext().applicationPlugin<vst::ApplicationPlugin>();
+  auto& app
+      = score::GUIAppContext().applicationPlugin<vst::ApplicationPlugin>();
 
   auto it = ossia::find_if(app.vst_infos, [=](const vst::VSTInfo& vst) {
     return vst.uniqueID == d.toInt();
@@ -91,7 +94,8 @@ Process::Descriptor EffectProcessFactory_T<vst::Model>::descriptor(QString d) co
         inlets.push_back(Process::PortType::Message);
       desc.inlets = std::move(inlets);
 
-      desc.outlets = {std::vector<Process::PortType>{Process::PortType::Audio}};
+      desc.outlets
+          = {std::vector<Process::PortType>{Process::PortType::Audio}};
     }
     else
     {
@@ -102,7 +106,8 @@ Process::Descriptor EffectProcessFactory_T<vst::Model>::descriptor(QString d) co
         inlets.push_back(Process::PortType::Message);
       desc.inlets = std::move(inlets);
 
-      desc.outlets = {std::vector<Process::PortType>{Process::PortType::Audio}};
+      desc.outlets
+          = {std::vector<Process::PortType>{Process::PortType::Audio}};
     }
   }
   return desc;
@@ -116,7 +121,8 @@ Model::Model(
     const QString& path,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : ProcessModel{t, id, "vst", parent}, m_effectId{path.toInt()}
+    : ProcessModel{t, id, "vst", parent}
+    , m_effectId{path.toInt()}
 {
   init();
   create();
@@ -160,7 +166,8 @@ void Model::removeControl(int fxNum)
 
 void Model::removeControl(const Id<Process::Port>& id)
 {
-  auto it = ossia::find_if(m_inlets, [&](const auto& inl) { return inl->id() == id; });
+  auto it = ossia::find_if(
+      m_inlets, [&](const auto& inl) { return inl->id() == id; });
 
   SCORE_ASSERT(it != m_inlets.end());
   auto ctrl = safe_cast<ControlInlet*>(*it);
@@ -183,18 +190,19 @@ ControlInlet* Model::getControl(const Id<Process::Port>& p) const
 
 void Model::init()
 {
-//  connect(this, &VSTEffectModel::addControl, this, &VSTEffectModel::on_addControl);
+  //  connect(this, &VSTEffectModel::addControl, this, &VSTEffectModel::on_addControl);
 }
 
 void Model::on_addControl(int i, float v)
 {
-  if(controls.find(i) != controls.end())
+  if (controls.find(i) != controls.end())
   {
     return;
   }
 
   SCORE_ASSERT(controls.find(i) == controls.end());
-  auto ctrl = new ControlInlet{Id<Process::Port>(getStrongId(inlets()).val()), this};
+  auto ctrl
+      = new ControlInlet{Id<Process::Port>(getStrongId(inlets()).val()), this};
   ctrl->hidden = true;
   ctrl->fxNum = i;
   ctrl->setValue(v);
@@ -218,10 +226,14 @@ void Model::on_addControl(int i, float v)
 
 void Model::on_addControl_impl(ControlInlet* ctrl)
 {
-  connect(ctrl, &ControlInlet::valueChanged, this, [this, i = ctrl->fxNum](float newval) {
-    if (std::abs(newval - fx->getParameter(i)) > 0.0001)
-      fx->setParameter(i, newval);
-  });
+  connect(
+      ctrl,
+      &ControlInlet::valueChanged,
+      this,
+      [this, i = ctrl->fxNum](float newval) {
+        if (std::abs(newval - fx->getParameter(i)) > 0.0001)
+          fx->setParameter(i, newval);
+      });
 
   {
     /*
@@ -329,7 +341,8 @@ intptr_t vst_host_callback(
             else
             {
               auto& ctx = score::IDocument::documentContext(*vst);
-              CommandDispatcher<>{ctx.commandStack}.submit<CreateControl>(*vst, index, opt);
+              CommandDispatcher<>{ctx.commandStack}.submit<CreateControl>(
+                  *vst, index, opt);
             }
           });
         }
@@ -382,7 +395,8 @@ intptr_t vst_host_callback(
     case audioMasterGetCurrentProcessLevel:
     {
       static const auto& context = score::GUIAppContext();
-      static const auto& plug = context.applicationPlugin<vst::ApplicationPlugin>();
+      static const auto& plug
+          = context.applicationPlugin<vst::ApplicationPlugin>();
       auto this_t = std::this_thread::get_id();
       if (this_t == plug.mainThreadId())
       {
@@ -456,7 +470,8 @@ void Model::closePlugin()
 
 AEffect* getPluginInstance(const QString& name)
 {
-  auto& app = score::GUIAppContext().applicationPlugin<vst::ApplicationPlugin>();
+  auto& app
+      = score::GUIAppContext().applicationPlugin<vst::ApplicationPlugin>();
 
   auto info_it = ossia::find_if(app.vst_infos, [&](const vst::VSTInfo& i) {
     return i.prettyName == name;
@@ -495,11 +510,11 @@ AEffect* getPluginInstance(const QString& name)
 }
 AEffect* getPluginInstance(int32_t id)
 {
-  auto& app = score::GUIAppContext().applicationPlugin<vst::ApplicationPlugin>();
+  auto& app
+      = score::GUIAppContext().applicationPlugin<vst::ApplicationPlugin>();
 
-  auto info_it = ossia::find_if(app.vst_infos, [&](const vst::VSTInfo& i) {
-    return i.uniqueID == id;
-  });
+  auto info_it = ossia::find_if(
+      app.vst_infos, [&](const vst::VSTInfo& i) { return i.uniqueID == id; });
   if (info_it != app.vst_infos.end())
   {
     auto it = app.vst_modules.find(info_it->uniqueID);
@@ -537,7 +552,8 @@ void Model::initFx()
   fx = std::make_shared<AEffectWrapper>(getPluginInstance(m_effectId));
   if (!fx->fx)
   {
-    fx = std::make_shared<AEffectWrapper>(getPluginInstance(metadata().getLabel()));
+    fx = std::make_shared<AEffectWrapper>(
+        getPluginInstance(metadata().getLabel()));
     if (!fx->fx)
     {
       qDebug() << "plugin was not created";
@@ -555,7 +571,8 @@ void Model::initFx()
   dispatch(effOpen);
 
   auto& app = ctx.applicationPlugin<vst::ApplicationPlugin>();
-  auto it = ossia::find_if(app.vst_infos, [=](auto& i) { return i.uniqueID == fx->fx->uniqueID; });
+  auto it = ossia::find_if(
+      app.vst_infos, [=](auto& i) { return i.uniqueID == fx->fx->uniqueID; });
   SCORE_ASSERT(it != app.vst_infos.end());
   metadata().setName(it->prettyName);
   metadata().setLabel(metadata().getName());
@@ -571,13 +588,16 @@ void Model::create()
 
   int inlet_i = 0;
 
-  m_inlets.push_back(new Process::AudioInlet(Id<Process::Port>{inlet_i++}, this));
+  m_inlets.push_back(
+      new Process::AudioInlet(Id<Process::Port>{inlet_i++}, this));
   if (fx->fx->flags & effFlagsIsSynth)
   {
-    m_inlets.push_back(new Process::MidiInlet(Id<Process::Port>{inlet_i++}, this));
+    m_inlets.push_back(
+        new Process::MidiInlet(Id<Process::Port>{inlet_i++}, this));
   }
 
-  if (fx->fx->numParams < VST_DEFAULT_PARAM_NUMBER_CUTOFF || !(fx->fx->flags & VstAEffectFlags::effFlagsHasEditor))
+  if (fx->fx->numParams < VST_DEFAULT_PARAM_NUMBER_CUTOFF
+      || !(fx->fx->flags & VstAEffectFlags::effFlagsHasEditor))
   {
     for (int i = 0; i < fx->fx->numParams; i++)
     {
@@ -601,15 +621,17 @@ void Model::load()
   }
 
   const bool isSynth = fx->fx->flags & effFlagsIsSynth;
-  for (std::size_t i = VST_FIRST_CONTROL_INDEX(isSynth); i < m_inlets.size(); i++)
+  for (std::size_t i = VST_FIRST_CONTROL_INDEX(isSynth); i < m_inlets.size();
+       i++)
   {
     auto inlet = safe_cast<ControlInlet*>(m_inlets[i]);
     int ctrl = inlet->fxNum;
 
-    connect(inlet, &ControlInlet::valueChanged, this, [this, ctrl](float newval) {
-      if (std::abs(newval - fx->getParameter(ctrl)) > 0.0001)
-        fx->setParameter(ctrl, newval);
-    });
+    connect(
+        inlet, &ControlInlet::valueChanged, this, [this, ctrl](float newval) {
+          if (std::abs(newval - fx->getParameter(ctrl)) > 0.0001)
+            fx->setParameter(ctrl, newval);
+        });
     controls.insert({ctrl, inlet});
   }
 }
@@ -675,7 +697,9 @@ void DataStreamWriter::write(vst::Model& eff)
             eff.fx->dispatch(effSetChunk, 0, chunk.size(), chunk.data(), 0.f);
 
             const bool isSynth = eff.fx->fx->flags & effFlagsIsSynth;
-            for (std::size_t i = VST_FIRST_CONTROL_INDEX(isSynth); i < eff.inlets().size(); i++)
+            for (std::size_t i = VST_FIRST_CONTROL_INDEX(isSynth);
+                 i < eff.inlets().size();
+                 i++)
             {
               auto inlet = safe_cast<vst::ControlInlet*>(eff.inlets()[i]);
               inlet->setValue(eff.fx->getParameter(inlet->fxNum));
@@ -706,7 +730,11 @@ void DataStreamWriter::write(vst::Model& eff)
   }
 
   writePorts(
-      *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets, eff.m_outlets, &eff);
+      *this,
+      components.interfaces<Process::PortFactoryList>(),
+      eff.m_inlets,
+      eff.m_outlets,
+      &eff);
 
   eff.load();
   checkDelimiter();
@@ -726,7 +754,8 @@ void JSONReader::read(const vst::Model& eff)
       auto res = eff.fx->dispatch(effGetChunk, 0, 0, &ptr, 0.f);
       if (ptr && res > 0)
       {
-        auto encoded = websocketpp::base64_encode((const unsigned char*)ptr, res);
+        auto encoded
+            = websocketpp::base64_encode((const unsigned char*)ptr, res);
         obj["Data"] = QString::fromStdString(encoded);
       }
     }
@@ -753,8 +782,10 @@ void JSONWriter::write(vst::Model& eff)
   {
     auto str = obj["Effect"].toString();
 
-    auto& app = score::GUIAppContext().applicationPlugin<vst::ApplicationPlugin>();
-    auto it = ossia::find_if(app.vst_infos, [&](const auto& i) { return i.path == str; });
+    auto& app
+        = score::GUIAppContext().applicationPlugin<vst::ApplicationPlugin>();
+    auto it = ossia::find_if(
+        app.vst_infos, [&](const auto& i) { return i.path == str; });
     if (it != app.vst_infos.end())
     {
       eff.m_effectId = it->uniqueID;
@@ -763,49 +794,60 @@ void JSONWriter::write(vst::Model& eff)
 
   QPointer<vst::Model> ptr = &eff;
 #if QT_VERSION < QT_VERSION_CHECK(5, 12, 0)
-  QTimer::singleShot(1000, &eff, [base_ptr = std::make_shared<rapidjson::Document>(clone(this->base)), ptr] {
-    auto& base = *base_ptr;
+  QTimer::singleShot(
+      1000,
+      &eff,
+      [base_ptr = std::make_shared<rapidjson::Document>(clone(this->base)),
+       ptr] {
+        auto& base = *base_ptr;
 #else
   QTimer::singleShot(1000, &eff, [base = clone(this->base), ptr] {
 #endif
-    if (!ptr)
-      return;
-    auto& eff = *ptr;
-    if (eff.fx)
-    {
-      if (eff.fx->fx->flags & effFlagsProgramChunks)
-      {
-        auto it = base.FindMember("Data");
-        if (it != base.MemberEnd())
+        if (!ptr)
+          return;
+        auto& eff = *ptr;
+        if (eff.fx)
         {
-          auto b64 = websocketpp::base64_decode(JsonValue{it->value}.toStdString());
-          eff.fx->dispatch(effSetChunk, 0, b64.size(), b64.data(), 0.f);
+          if (eff.fx->fx->flags & effFlagsProgramChunks)
+          {
+            auto it = base.FindMember("Data");
+            if (it != base.MemberEnd())
+            {
+              auto b64 = websocketpp::base64_decode(
+                  JsonValue{it->value}.toStdString());
+              eff.fx->dispatch(effSetChunk, 0, b64.size(), b64.data(), 0.f);
 
-          const bool isSynth = eff.fx->fx->flags & effFlagsIsSynth;
-          for (std::size_t i = VST_FIRST_CONTROL_INDEX(isSynth); i < eff.inlets().size(); i++)
+              const bool isSynth = eff.fx->fx->flags & effFlagsIsSynth;
+              for (std::size_t i = VST_FIRST_CONTROL_INDEX(isSynth);
+                   i < eff.inlets().size();
+                   i++)
+              {
+                auto inlet = safe_cast<vst::ControlInlet*>(eff.inlets()[i]);
+                inlet->setValue(eff.fx->getParameter(inlet->fxNum));
+              }
+            }
+          }
+          else
           {
-            auto inlet = safe_cast<vst::ControlInlet*>(eff.inlets()[i]);
-            inlet->setValue(eff.fx->getParameter(inlet->fxNum));
+            auto it = base.FindMember("Params");
+            if (it != base.MemberEnd())
+            {
+              const auto& arr = it->value.GetArray();
+              for (std::size_t i = 0; i < arr.Size(); i++)
+              {
+                eff.fx->setParameter(i, arr[i].GetDouble());
+              }
+            }
           }
         }
-      }
-      else
-      {
-        auto it = base.FindMember("Params");
-        if (it != base.MemberEnd())
-        {
-          const auto& arr = it->value.GetArray();
-          for (std::size_t i = 0; i < arr.Size(); i++)
-          {
-            eff.fx->setParameter(i, arr[i].GetDouble());
-          }
-        }
-      }
-    }
-  });
+      });
 
   writePorts(
-      *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets, eff.m_outlets, &eff);
+      *this,
+      components.interfaces<Process::PortFactoryList>(),
+      eff.m_inlets,
+      eff.m_outlets,
+      &eff);
 
   eff.load();
 }

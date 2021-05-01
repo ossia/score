@@ -1,11 +1,11 @@
 #pragma once
+#include <Control/DefaultEffectItem.hpp>
+#include <Effect/EffectFactory.hpp>
+#include <Pd/Inspector/PdInspectorWidget.hpp>
+#include <Pd/PdProcess.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/WidgetLayer/WidgetProcessFactory.hpp>
 
-#include <Pd/Inspector/PdInspectorWidget.hpp>
-#include <Pd/PdProcess.hpp>
-#include <Control/DefaultEffectItem.hpp>
-#include <Effect/EffectFactory.hpp>
 #include <QProcess>
 namespace Pd
 {
@@ -17,16 +17,22 @@ struct UiWrapper : public QWidget
       const ProcessModel& proc,
       const score::DocumentContext& ctx,
       QWidget* parent)
-    : m_model{&proc}
+      : m_model{&proc}
   {
     setGeometry(0, 0, 0, 0);
 
-    connect(&m_process, qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
-            this, &QWidget::deleteLater);
-    connect(&proc, &IdentifiedObjectAbstract::identified_object_destroying,
-            this, &QWidget::deleteLater);
+    connect(
+        &m_process,
+        qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
+        this,
+        &QWidget::deleteLater);
+    connect(
+        &proc,
+        &IdentifiedObjectAbstract::identified_object_destroying,
+        this,
+        &QWidget::deleteLater);
     const auto& bin = locatePdBinary();
-    if(!bin.isEmpty())
+    if (!bin.isEmpty())
     {
       m_process.start(bin, {proc.script()});
     }
@@ -35,7 +41,7 @@ struct UiWrapper : public QWidget
   void closeEvent(QCloseEvent* event) override
   {
     QPointer<UiWrapper> p(this);
-    if(m_model)
+    if (m_model)
     {
       const_cast<QWidget*&>(m_model->externalUI) = nullptr;
       m_model->externalUIVisible(false);
@@ -46,7 +52,7 @@ struct UiWrapper : public QWidget
 
   ~UiWrapper()
   {
-    if(m_model)
+    if (m_model)
     {
       const_cast<QWidget*&>(m_model->externalUI) = nullptr;
       m_model->externalUIVisible(false);

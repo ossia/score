@@ -1,11 +1,11 @@
 #pragma once
+#include <LocalTree/BaseProperty.hpp>
+
 #include <score/model/ModelMetadata.hpp>
 
 #include <ossia/network/base/node.hpp>
 
 #include <QDebug>
-
-#include <LocalTree/BaseProperty.hpp>
 namespace LocalTree
 {
 
@@ -20,7 +20,8 @@ public:
       ossia::net::node_base& parent,
       score::ModelMetadata& arg_metadata,
       QObject* context)
-      : metadata{arg_metadata}, node{*parent.create_child(arg_metadata.getName().toStdString())}
+      : metadata{arg_metadata}
+      , node{*parent.create_child(arg_metadata.getName().toStdString())}
   {
     /* // TODO do me with nano-signal-slot in device.hpp
     m_callbackIt =
@@ -53,7 +54,8 @@ public:
       }
     };
 
-    QObject::connect(&metadata, &score::ModelMetadata::NameChanged, context, setNameFun);
+    QObject::connect(
+        &metadata, &score::ModelMetadata::NameChanged, context, setNameFun);
 
     setNameFun(metadata.getName());
   }

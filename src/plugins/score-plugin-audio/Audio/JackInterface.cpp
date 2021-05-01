@@ -1,20 +1,21 @@
-#include <Audio/JackInterface.hpp>
 #include <Audio/AudioTick.hpp>
+#include <Audio/JackInterface.hpp>
+#include <Audio/Settings/Model.hpp>
+#include <Audio/Settings/View.hpp>
 
 #include <score/tools/Bind.hpp>
 #include <score/widgets/SignalUtils.hpp>
+
+#include <QCheckBox>
 #include <QDebug>
 #include <QFormLayout>
-#include <QListWidget>
 #include <QLabel>
-#include <QCheckBox>
-#include <QSpinBox>
+#include <QListWidget>
 #include <QPushButton>
+#include <QSpinBox>
 #include <QTimer>
 #include <QWidget>
 
-#include <Audio/Settings/Model.hpp>
-#include <Audio/Settings/View.hpp>
 #include <wobjectimpl.h>
 
 #include <thread>
@@ -31,18 +32,18 @@ class AddRemoveList : public QListWidget
   W_OBJECT(AddRemoveList)
   QString m_root;
   int m_editing = 0;
+
 public:
   AddRemoveList(const QString& root, const QStringList& data, QWidget* parent)
-    : QListWidget{parent}
-    , m_root{root}
+      : QListWidget{parent}
+      , m_root{root}
   {
     setAlternatingRowColors(true);
     setEditTriggers(QListWidget::DoubleClicked);
 
     replaceContent(data);
-    connect(this, &AddRemoveList::itemChanged,
-            this, [this] (auto item) {
-      if(m_editing != 0)
+    connect(this, &AddRemoveList::itemChanged, this, [this](auto item) {
+      if (m_editing != 0)
         return;
       on_itemChanged(item);
       changed();
@@ -52,13 +53,13 @@ public:
   void on_itemChanged(QListWidgetItem* item)
   {
     m_editing++;
-    start:
-    for(int i = 0; i < count(); i++)
+  start:
+    for (int i = 0; i < count(); i++)
     {
       auto other = this->item(i);
-      if(other != item)
+      if (other != item)
       {
-        if(other->text() == item->text())
+        if (other->text() == item->text())
         {
           item->setText(item->text() + "_");
           goto start;
@@ -79,7 +80,7 @@ public:
   void replaceContent(const QStringList& values)
   {
     clear();
-    for(auto& str : values)
+    for (auto& str : values)
     {
       auto item = new QListWidgetItem{str};
       item->setFlags(item->flags() | Qt::ItemFlag::ItemIsEditable);
@@ -92,7 +93,7 @@ public:
     QStringList c;
     const int n = count();
     c.reserve(n);
-    for(int i = 0; i < n; i++)
+    for (int i = 0; i < n; i++)
       c.push_back(item(i)->text());
     return c;
   }
@@ -100,10 +101,10 @@ public:
   bool sameContent(const QStringList& values)
   {
     const int n = count();
-    if(n != values.size())
+    if (n != values.size())
       return false;
-    for(int i = 0; i < n; i++)
-      if(item(i)->text() != values[i])
+    for (int i = 0; i < n; i++)
+      if (item(i)->text() != values[i])
         return false;
     return true;
   }
@@ -111,7 +112,7 @@ public:
   void on_add(const QString& name)
   {
     auto item = new QListWidgetItem{name};
-    item->setFlags(item->flags()|Qt::ItemFlag::ItemIsEditable);
+    item->setFlags(item->flags() | Qt::ItemFlag::ItemIsEditable);
     addItem(item);
     editItem(item);
     changed();
@@ -120,7 +121,7 @@ public:
   void on_remove()
   {
     const auto& selection = selectedItems();
-    for(auto item : selection)
+    for (auto item : selection)
     {
       removeItemWidget(item);
     }
@@ -129,19 +130,17 @@ public:
 
   void setCount(int i)
   {
-    while(count() < i)
+    while (count() < i)
     {
       on_add(m_root + QString::number(count()));
     }
-    while(count() > i)
+    while (count() > i)
     {
       delete takeItem(count() - 1);
     }
   }
 
-
-  void changed()
-  W_SIGNAL(changed);
+  void changed() W_SIGNAL(changed);
 };
 static void sanitize(AddRemoveList* changed, const AddRemoveList* other)
 {
@@ -149,11 +148,11 @@ static void sanitize(AddRemoveList* changed, const AddRemoveList* other)
   auto c1 = changed->content();
   auto c2 = other->content();
   int k = 0;
-  for(auto& e1 : c1)
+  for (auto& e1 : c1)
   {
-    for(auto& e2 : c2)
+    for (auto& e2 : c2)
     {
-      if(e1 == e2)
+      if (e1 == e2)
       {
         changed->fix(k);
         must_recheck = true;
@@ -163,7 +162,7 @@ static void sanitize(AddRemoveList* changed, const AddRemoveList* other)
     k++;
   }
 
-  if(must_recheck)
+  if (must_recheck)
     sanitize(changed, other);
 }
 }
@@ -171,10 +170,7 @@ static void sanitize(AddRemoveList* changed, const AddRemoveList* other)
 W_OBJECT_IMPL(Audio::AddRemoveList)
 namespace Audio
 {
-JackFactory::~JackFactory()
-{
-
-}
+JackFactory::~JackFactory() { }
 
 bool JackFactory::available() const noexcept
 {
@@ -196,14 +192,14 @@ try
 
   return clt;
 }
-catch(...)
+catch (...)
 {
   return {};
 }
 
-
-std::unique_ptr<ossia::audio_engine>
-JackFactory::make_engine(const Audio::Settings::Model& set, const score::ApplicationContext& ctx)
+std::unique_ptr<ossia::audio_engine> JackFactory::make_engine(
+    const Audio::Settings::Model& set,
+    const score::ApplicationContext& ctx)
 {
   static_assert(std::is_base_of_v<ossia::audio_engine, ossia::jack_engine>);
 
@@ -211,28 +207,30 @@ JackFactory::make_engine(const Audio::Settings::Model& set, const score::Applica
 
   ossia::jack_settings settings;
   settings.autoconnect = set.getAutoConnect();
-  settings.transport = static_cast<ossia::transport_mode>(set.getJackTransport());
-  for(auto& name : set.getInputNames())
+  settings.transport
+      = static_cast<ossia::transport_mode>(set.getJackTransport());
+  for (auto& name : set.getInputNames())
     settings.inputs.push_back(name.toStdString());
-  for(auto& name : set.getOutputNames())
+  for (auto& name : set.getOutputNames())
     settings.outputs.push_back(name.toStdString());
 
-  while(settings.inputs.size() < set.getDefaultIn())
+  while (settings.inputs.size() < set.getDefaultIn())
   {
     settings.inputs.push_back("in_" + std::to_string(settings.inputs.size()));
   }
-  while(settings.outputs.size() < set.getDefaultOut())
+  while (settings.outputs.size() < set.getDefaultOut())
   {
-    settings.outputs.push_back("out_" + std::to_string(settings.outputs.size()));
+    settings.outputs.push_back(
+        "out_" + std::to_string(settings.outputs.size()));
   }
 
   // ! Warning ! these functions are executed in the audio thread
-  settings.sync_function = [this] (jack_transport_state_t st, jack_position_t *) -> int
-  {
-    if(m_prevState != st)
+  settings.sync_function
+      = [this](jack_transport_state_t st, jack_position_t*) -> int {
+    if (m_prevState != st)
     {
       // warning! sending a queued signal may allocate
-      switch(st)
+      switch (st)
       {
         case jack_transport_state_t::JackTransportStopped:
         {
@@ -254,36 +252,38 @@ JackFactory::make_engine(const Audio::Settings::Model& set, const score::Applica
         }
         case jack_transport_state_t::JackTransportLooping:
           m_prevState = st;
-        {
-          return 1;
-        }
+          {
+            return 1;
+          }
         default:
-        // commented as not available in Debian buster / bullseye : case jack_transport_state_t::JackTransportNetStarting:
-        {
-          m_prevState = st;
-          return 1;
-        }
+          // commented as not available in Debian buster / bullseye : case jack_transport_state_t::JackTransportNetStarting:
+          {
+            m_prevState = st;
+            return 1;
+          }
       }
     }
     else
     {
-      if(m_prevState == jack_transport_state_t::JackTransportStarting)
+      if (m_prevState == jack_transport_state_t::JackTransportStarting)
       {
-        return Audio::execution_status.load() == ossia::transport_status::playing
-             ? 1
-             : 0;
+        return Audio::execution_status.load()
+                       == ossia::transport_status::playing
+                   ? 1
+                   : 0;
       }
     }
     return 1;
   };
-  settings.timebase_function = [&info=this->currentTransportInfo] (int frames, jack_position_t& pos)
-  {
-   // pos.frame += frames;
+  settings.timebase_function = [&info = this->currentTransportInfo](
+                                   int frames, jack_position_t& pos) {
+    // pos.frame += frames;
     pos.valid = jack_position_bits_t(JackPositionBBT | JackBBTFrameOffset);
 
     // Duration of a quarter note in flicks
     const double beat_duration = ossia::quarter_duration<double>;
-    const double ticks_per_beat = 1920.; // apparently some common value, 2*default midi PPQ (960)
+    const double ticks_per_beat
+        = 1920.; // apparently some common value, 2*default midi PPQ (960)
 
     pos.beats_per_bar = info.signature.upper;
     pos.beat_type = info.signature.lower;
@@ -293,7 +293,9 @@ JackFactory::make_engine(const Audio::Settings::Model& set, const score::Applica
     // FIXME speed is broken
     pos.bar = (info.date.impl / (4 * beat_duration));
     pos.beat = (info.date.impl - pos.bar * 4 * beat_duration) / beat_duration;
-    pos.tick = (info.date.impl - pos.bar * 4 * beat_duration - pos.beat * beat_duration) / ticks_per_beat;
+    pos.tick = (info.date.impl - pos.bar * 4 * beat_duration
+                - pos.beat * beat_duration)
+               / ticks_per_beat;
     pos.bar_start_tick = info.musical_start_last_bar * ticks_per_beat;
 
     // bar / beat are human-readable values, 1-based
@@ -303,9 +305,9 @@ JackFactory::make_engine(const Audio::Settings::Model& set, const score::Applica
     pos.bbt_offset = 0;
   };
 
-  return std::make_unique<ossia::jack_engine>(clt, set.getDefaultIn(), set.getDefaultOut(), settings);
+  return std::make_unique<ossia::jack_engine>(
+      clt, set.getDefaultIn(), set.getDefaultOut(), settings);
 }
-
 
 void JackFactory::setupSettingsWidget(
     QWidget* w,
@@ -326,9 +328,11 @@ void JackFactory::setupSettingsWidget(
   }
 #endif
 
-  if(WeakJack::instance().available() != 0)
+  if (WeakJack::instance().available() != 0)
   {
-    auto label = new QLabel{QObject::tr("JACK does not seem to be running.\nCheck that jackd is running and that /usr/lib/libjack.so exists.")};
+    auto label = new QLabel{
+        QObject::tr("JACK does not seem to be running.\nCheck that jackd is "
+                    "running and that /usr/lib/libjack.so exists.")};
     lay->addWidget(label);
     return;
   }
@@ -360,7 +364,8 @@ void JackFactory::setupSettingsWidget(
     lay->addRow(QObject::tr("Auto-connect ports"), autoconnect);
     QObject::connect(
         autoconnect, &QCheckBox::toggled, w, [=, &m, &m_disp](bool c) {
-          m_disp.submitDeferredCommand<Audio::Settings::SetModelAutoConnect>(m, c);
+          m_disp.submitDeferredCommand<Audio::Settings::SetModelAutoConnect>(
+              m, c);
         });
     autoconnect->setChecked(m.getAutoConnect());
   }
@@ -370,46 +375,60 @@ void JackFactory::setupSettingsWidget(
     transport->setCurrentIndex((int)m.getJackTransport());
     lay->addRow(QObject::tr("Enable JACK transport"), transport);
     QObject::connect(
-          transport, qOverload<int>(&QComboBox::currentIndexChanged), w, [=, &m, &m_disp](int c) {
-      m_disp.submitDeferredCommand<Audio::Settings::SetModelJackTransport>(m, static_cast<Audio::Settings::ExternalTransport>(c));
-    });
+        transport,
+        qOverload<int>(&QComboBox::currentIndexChanged),
+        w,
+        [=, &m, &m_disp](int c) {
+          m_disp.submitDeferredCommand<Audio::Settings::SetModelJackTransport>(
+              m, static_cast<Audio::Settings::ExternalTransport>(c));
+        });
   }
 
   auto in_ports = new AddRemoveList{"in_", m.getInputNames(), w};
   auto out_ports = new AddRemoveList{"out_", m.getOutputNames(), w};
   {
-    QObject::connect(in_ports, &AddRemoveList::changed, w, [=, &m, &m_disp] () {
+    QObject::connect(in_ports, &AddRemoveList::changed, w, [=, &m, &m_disp]() {
       sanitize(in_ports, out_ports);
-      m_disp.submitDeferredCommand<Audio::Settings::SetModelInputNames>(m, in_ports->content());
+      m_disp.submitDeferredCommand<Audio::Settings::SetModelInputNames>(
+          m, in_ports->content());
     });
   }
   {
-    QObject::connect(out_ports, &AddRemoveList::changed, w, [=, &m, &m_disp] () {
-      sanitize(out_ports, in_ports);
-      m_disp.submitDeferredCommand<Audio::Settings::SetModelOutputNames>(m, out_ports->content());
-    });
+    QObject::connect(
+        out_ports, &AddRemoveList::changed, w, [=, &m, &m_disp]() {
+          sanitize(out_ports, in_ports);
+          m_disp.submitDeferredCommand<Audio::Settings::SetModelOutputNames>(
+              m, out_ports->content());
+        });
   }
 
   auto in_count = new QSpinBox{w};
   {
     in_count->setRange(0, 1024);
     QObject::connect(
-        in_count, SignalUtils::QSpinBox_valueChanged_int(), w, [=, &m, &m_disp](int i) {
+        in_count,
+        SignalUtils::QSpinBox_valueChanged_int(),
+        w,
+        [=, &m, &m_disp](int i) {
           in_ports->setCount(i);
-          m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultIn>(m, i);
+          m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultIn>(
+              m, i);
         });
 
     in_count->setValue(m.getDefaultIn());
   }
 
-
   auto out_count = new QSpinBox{w};
   {
     out_count->setRange(0, 1024);
     QObject::connect(
-        out_count, SignalUtils::QSpinBox_valueChanged_int(), w, [=, &m, &m_disp](int i) {
+        out_count,
+        SignalUtils::QSpinBox_valueChanged_int(),
+        w,
+        [=, &m, &m_disp](int i) {
           out_ports->setCount(i);
-          m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultOut>(m, i);
+          m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultOut>(
+              m, i);
         });
 
     out_count->setValue(m.getDefaultOut());
@@ -441,12 +460,12 @@ void JackFactory::setupSettingsWidget(
     }
     {
       auto ports = m.getInputNames();
-      if(!in_ports->sameContent(ports))
+      if (!in_ports->sameContent(ports))
         in_ports->replaceContent(ports);
     }
     {
       auto ports = m.getOutputNames();
-      if(!out_ports->sameContent(ports))
+      if (!out_ports->sameContent(ports))
         out_ports->replaceContent(ports);
     }
     {
@@ -472,20 +491,23 @@ QWidget* JackFactory::make_settings(
   auto lay = new QFormLayout{w};
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
-  QTimer::singleShot(1000, w,
+  QTimer::singleShot(
+      1000,
+      w,
 #else
-  QTimer::singleShot(1000,
+  QTimer::singleShot(
+      1000,
 #endif
-  [=, &m, &v, &m_disp] {
-    try
-    {
-      setupSettingsWidget(w, lay, m, v, m_disp);
-    }
-    catch (...)
-    {
-      qDebug("Could not set up JACK !");
-    }
-  });
+      [=, &m, &v, &m_disp] {
+        try
+        {
+          setupSettingsWidget(w, lay, m, v, m_disp);
+        }
+        catch (...)
+        {
+          qDebug("Could not set up JACK !");
+        }
+      });
 
   return w;
 }

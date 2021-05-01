@@ -1,23 +1,27 @@
 #include "Process.hpp"
 
-#include <Process/Dataflow/Port.hpp>
-#include <Process/Dataflow/WidgetInlets.hpp>
-
-#include <QFileInfo>
-
+#include <Gfx/Filter/PreviewWidget.hpp>
 #include <Gfx/Graph/node.hpp>
 #include <Gfx/Graph/nodes.hpp>
 #include <Gfx/Graph/shadercache.hpp>
-#include <Gfx/Filter/PreviewWidget.hpp>
 #include <Gfx/TexturePort.hpp>
+#include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/WidgetInlets.hpp>
+
 #include <score/tools/DeleteAll.hpp>
+
+#include <QFileInfo>
+
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Gfx::Filter::Model)
 
 namespace Gfx::Filter
 {
-Model::Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
+Model::Model(
+    const TimeVal& duration,
+    const Id<Process::ProcessModel>& id,
+    QObject* parent)
     : Process::ProcessModel{duration, id, "gfxProcess", parent}
 {
   metadata().setInstanceName(*this);
@@ -60,7 +64,7 @@ Model::~Model() { }
 bool Model::validate(const ShaderProgram& txt) const noexcept
 {
   const auto& [_, error] = ProgramCache::instance().get(txt);
-  if(!error.isEmpty())
+  if (!error.isEmpty())
   {
     this->errorMessage(error);
     return false;
@@ -95,12 +99,12 @@ void Model::setFragment(QString f)
   programChanged(m_program);
 }
 
-
 void Model::setProgram(const ShaderProgram& f)
 {
   setVertex(f.vertex);
   setFragment(f.fragment);
-  if(const auto& [processed, error] = ProgramCache::instance().get(f); bool(processed))
+  if (const auto& [processed, error] = ProgramCache::instance().get(f);
+      bool(processed))
   {
     auto inls = score::clearAndDeleteLater(m_inlets);
     m_processedProgram = *processed;
@@ -119,11 +123,13 @@ QString Model::prettyName() const noexcept
 void Model::setupIsf(const isf::descriptor& desc)
 {
   {
-    auto& [shader, error] = ShaderCache::get(m_processedProgram.vertex.toLatin1(), QShader::Stage::VertexStage);
+    auto& [shader, error] = ShaderCache::get(
+        m_processedProgram.vertex.toLatin1(), QShader::Stage::VertexStage);
     SCORE_ASSERT(error.isEmpty());
   }
   {
-    auto& [shader, error] = ShaderCache::get(m_processedProgram.fragment.toLatin1(), QShader::Stage::FragmentStage);
+    auto& [shader, error] = ShaderCache::get(
+        m_processedProgram.fragment.toLatin1(), QShader::Stage::FragmentStage);
     SCORE_ASSERT(error.isEmpty());
   }
 
@@ -138,7 +144,12 @@ void Model::setupIsf(const isf::descriptor& desc)
     Process::Inlet* operator()(const float_input& v)
     {
       auto port = new Process::FloatSlider(
-          v.min, v.max, v.def, QString::fromStdString(input.name), Id<Process::Port>(i), &self);
+          v.min,
+          v.max,
+          v.def,
+          QString::fromStdString(input.name),
+          Id<Process::Port>(i),
+          &self);
 
       self.m_inlets.push_back(port);
       self.controlAdded(port->id());
@@ -150,7 +161,8 @@ void Model::setupIsf(const isf::descriptor& desc)
       std::vector<std::pair<QString, ossia::value>> alternatives;
       for (std::size_t i = 0; i < v.values.size() && i < v.labels.size(); i++)
       {
-        alternatives.emplace_back(QString::fromStdString(v.labels[i]), (int)v.values[i]);
+        alternatives.emplace_back(
+            QString::fromStdString(v.labels[i]), (int)v.values[i]);
       }
       auto port = new Process::ComboBox(
           std::move(alternatives),
@@ -165,8 +177,8 @@ void Model::setupIsf(const isf::descriptor& desc)
     }
     Process::Inlet* operator()(const event_input& v)
     {
-      auto port
-          = new Process::Button(QString::fromStdString(input.name), Id<Process::Port>(i), &self);
+      auto port = new Process::Button(
+          QString::fromStdString(input.name), Id<Process::Port>(i), &self);
 
       self.m_inlets.push_back(port);
       self.controlAdded(port->id());
@@ -175,7 +187,10 @@ void Model::setupIsf(const isf::descriptor& desc)
     Process::Inlet* operator()(const bool_input& v)
     {
       auto port = new Process::Toggle(
-          v.def, QString::fromStdString(input.name), Id<Process::Port>(i), &self);
+          v.def,
+          QString::fromStdString(input.name),
+          Id<Process::Port>(i),
+          &self);
 
       self.m_inlets.push_back(port);
       self.controlAdded(port->id());
@@ -189,7 +204,10 @@ void Model::setupIsf(const isf::descriptor& desc)
         std::copy_n(v.def->begin(), 2, init.begin());
       }
       auto port = new Process::XYSlider{
-          init, QString::fromStdString(input.name), Id<Process::Port>(i), &self};
+          init,
+          QString::fromStdString(input.name),
+          Id<Process::Port>(i),
+          &self};
 
       self.m_inlets.push_back(port);
       self.controlAdded(port->id());
@@ -213,7 +231,10 @@ void Model::setupIsf(const isf::descriptor& desc)
         std::copy_n(v.def->begin(), 4, init.begin());
       }
       auto port = new Process::HSVSlider(
-          init, QString::fromStdString(input.name), Id<Process::Port>(i), &self);
+          init,
+          QString::fromStdString(input.name),
+          Id<Process::Port>(i),
+          &self);
 
       self.m_inlets.push_back(port);
       self.controlAdded(port->id());
@@ -255,7 +276,8 @@ QSet<QString> LibraryHandler::acceptedFiles() const noexcept
   return {"frag", "glsl", "fs"};
 }
 
-QWidget* LibraryHandler::previewWidget(const QString& path, QWidget* parent) const noexcept
+QWidget* LibraryHandler::previewWidget(const QString& path, QWidget* parent)
+    const noexcept
 {
   return new ShaderPreviewWidget{path, parent};
 }
@@ -277,9 +299,8 @@ std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::dropData(
       p.creation.key = Metadata<ConcreteKey_k, Gfx::Filter::Model>::get();
       p.creation.prettyName = QFileInfo{filename}.baseName();
 
-      p.setup = [program = programFromFragmentShaderPath(filename, fragData)]
-                (Process::ProcessModel& m, score::Dispatcher& disp)
-      {
+      p.setup = [program = programFromFragmentShaderPath(filename, fragData)](
+                    Process::ProcessModel& m, score::Dispatcher& disp) {
         auto& fx = static_cast<Gfx::Filter::Model&>(m);
         disp.submit(new ChangeShader{fx, program});
       };

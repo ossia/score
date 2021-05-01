@@ -1,13 +1,12 @@
 #pragma once
+#include <Magnetism/MagnetismAdjuster.hpp>
 #include <Process/Style/Pixmaps.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Scenario/Commands/Signature/SignatureCommands.hpp>
-#include <Scenario/Document/Interval/FullView/Timebar.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Interval/IntervalPresenter.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/tools/Bind.hpp>
+
+#include <ossia/detail/algorithms.hpp>
 
 #include <QApplication>
 #include <QGraphicsItem>
@@ -17,8 +16,10 @@
 #include <QPainter>
 #include <QTextLayout>
 
-#include <Magnetism/MagnetismAdjuster.hpp>
-#include <ossia/detail/algorithms.hpp>
+#include <Scenario/Commands/Signature/SignatureCommands.hpp>
+#include <Scenario/Document/Interval/FullView/Timebar.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/IntervalPresenter.hpp>
 
 #include <verdigris>
 
@@ -29,14 +30,20 @@ class LineTextItem final : public QGraphicsTextItem
 {
   W_OBJECT(LineTextItem)
 public:
-  LineTextItem(QGraphicsItem* parent) noexcept : QGraphicsTextItem{parent}
+  LineTextItem(QGraphicsItem* parent) noexcept
+      : QGraphicsTextItem{parent}
   {
-    setFlags(QGraphicsItem::ItemIsFocusable | QGraphicsItem::ItemIsSelectable | flags());
+    setFlags(
+        QGraphicsItem::ItemIsFocusable | QGraphicsItem::ItemIsSelectable
+        | flags());
     setTextInteractionFlags(Qt::TextEditorInteraction);
     setDefaultTextColor(Qt::black);
   }
 
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override
   {
     painter->setRenderHint(QPainter::Antialiasing, true);
     painter->setPen(Qt::black);
@@ -93,11 +100,14 @@ public:
   void done(QString s) W_SIGNAL(done, s)
 };
 
-class TimeSignatureHandle : public QObject, public QGraphicsItem
+class TimeSignatureHandle
+    : public QObject
+    , public QGraphicsItem
 {
   W_OBJECT(TimeSignatureHandle)
 public:
-  TimeSignatureHandle(const IntervalModel& itv, QGraphicsItem* parent) : QGraphicsItem{parent}
+  TimeSignatureHandle(const IntervalModel& itv, QGraphicsItem* parent)
+      : QGraphicsItem{parent}
   {
     setFlag(ItemIsSelectable, true);
   }
@@ -106,14 +116,22 @@ public:
 
   QRectF boundingRect() const final override
   {
-    return {0., 0., std::max(20., 12. + m_rect.width()), std::max(20., 3. + m_rect.height())};
+    return {
+        0.,
+        0.,
+        std::max(20., 12. + m_rect.width()),
+        std::max(20., 3. + m_rect.height())};
   }
 
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override
   {
     if (m_visible)
     {
-      painter->drawPixmap(QPointF{0., 2.}, Process::Pixmaps::instance().metricHandle);
+      painter->drawPixmap(
+          QPointF{0., 2.}, Process::Pixmaps::instance().metricHandle);
       painter->drawPixmap(QPointF{10., 3.}, m_signature);
     }
   }
@@ -132,11 +150,13 @@ public:
   const TimeVal& time() const noexcept { return m_time; }
   const ossia::time_signature& signature() const noexcept { return m_sig; }
 
-  void move(double originalPos, double delta) W_SIGNAL(move, originalPos, delta);
+  void move(double originalPos, double delta)
+      W_SIGNAL(move, originalPos, delta);
   void press() W_SIGNAL(press);
   void release() W_SIGNAL(release);
   void remove() W_SIGNAL(remove);
-  void signatureChange(ossia::time_signature sig) W_SIGNAL(signatureChange, sig);
+  void signatureChange(ossia::time_signature sig)
+      W_SIGNAL(signatureChange, sig);
 
   bool pressed{};
 
@@ -162,7 +182,9 @@ protected:
       {
         double ratio = qApp->devicePixelRatio();
         auto m_line = QImage(
-            m_rect.width() * ratio, m_rect.height() * ratio, QImage::Format_ARGB32_Premultiplied);
+            m_rect.width() * ratio,
+            m_rect.height() * ratio,
+            QImage::Format_ARGB32_Premultiplied);
         m_line.setDevicePixelRatio(ratio);
         m_line.fill(Qt::transparent);
 
@@ -279,7 +301,9 @@ private:
   }
 };
 
-class TimeSignatureItem : public QObject, public QGraphicsItem
+class TimeSignatureItem
+    : public QObject
+    , public QGraphicsItem
 {
 public:
   TimeSignatureItem(const IntervalPresenter& itv, QGraphicsItem* parent)
@@ -317,11 +341,14 @@ public:
         m_origTime = handle->time();
         m_origSig = handle->signature();
       });
-      con(*handle, &TimeSignatureHandle::move, this, [=](double originalPos, double delta) {
-        assert(m_model);
-        if (handle->m_visible)
-          moveHandle(*handle, originalPos, delta);
-      });
+      con(*handle,
+          &TimeSignatureHandle::move,
+          this,
+          [=](double originalPos, double delta) {
+            assert(m_model);
+            if (handle->m_visible)
+              moveHandle(*handle, originalPos, delta);
+          });
       con(*handle, &TimeSignatureHandle::release, this, [=] {
         assert(m_model);
         if (handle->m_visible)
@@ -355,8 +382,9 @@ public:
 
           signatures.at(handle->time()) = sig;
 
-          m_itv.context().dispatcher.submit<Scenario::Command::SetTimeSignatures>(
-              *m_model, signatures);
+          m_itv.context()
+              .dispatcher.submit<Scenario::Command::SetTimeSignatures>(
+                  *m_model, signatures);
         },
         Qt::QueuedConnection);
 
@@ -480,7 +508,8 @@ private:
     }
   }
 
-  void moveHandle(TimeSignatureHandle& handle, double originalPos, double delta)
+  void
+  moveHandle(TimeSignatureHandle& handle, double originalPos, double delta)
   {
     const double x = originalPos + delta;
     // TODO what if we pass on top of another :|
@@ -507,7 +536,8 @@ private:
     handle.setX(new_time.toPixels(m_ratio));
     handle.setSignature(new_time, handle.signature());
 
-    m_itv.context().dispatcher.submit<Scenario::Command::SetTimeSignatures>(*m_model, signatures);
+    m_itv.context().dispatcher.submit<Scenario::Command::SetTimeSignatures>(
+        *m_model, signatures);
   }
 
   void removeHandle(TimeSignatureHandle& handle)
@@ -524,7 +554,10 @@ private:
 
   QRectF boundingRect() const final override { return {0., 0., m_width, 20.}; }
 
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override
   {
   }
 
@@ -532,7 +565,8 @@ private:
   {
     assert(m_model);
     auto signatures = m_model->timeSignatureMap();
-    signatures[TimeVal::fromPixels(pos.x(), m_ratio)] = ossia::time_signature{4, 4};
+    signatures[TimeVal::fromPixels(pos.x(), m_ratio)]
+        = ossia::time_signature{4, 4};
     CommandDispatcher<> disp{m_itv.context().commandStack};
     disp.submit<Scenario::Command::SetTimeSignatures>(*m_model, signatures);
   }
@@ -544,7 +578,9 @@ private:
 
     QMenu menu;
     auto act = menu.addAction("Add signature change");
-    connect(act, &QAction::triggered, this, [this, pos = event->pos()] { requestNewHandle(pos); });
+    connect(act, &QAction::triggered, this, [this, pos = event->pos()] {
+      requestNewHandle(pos);
+    });
 
     menu.exec(event->screenPos());
   }

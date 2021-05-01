@@ -1,24 +1,26 @@
 #pragma once
-#include <Spline3D/Commands.hpp>
 #include <Process/Script/ScriptEditor.hpp>
-#include <QDialog>
+
 #include <ossia/math/math_expression.hpp>
+
+#include <QDialog>
 #include <QDoubleSpinBox>
-#include <QHBoxLayout>
 #include <QFormLayout>
+#include <QHBoxLayout>
+
+#include <Spline3D/Commands.hpp>
 
 namespace Spline3D
 {
-class GeneratorDialog
-    : public Process::ScriptDialog
+class GeneratorDialog : public Process::ScriptDialog
 {
 public:
   GeneratorDialog(
-        const ProcessModel& model,
-        const score::DocumentContext& ctx,
-        QWidget* parent):
-    Process::ScriptDialog{"exprtk", ctx, parent}
-  , m_model{model}
+      const ProcessModel& model,
+      const score::DocumentContext& ctx,
+      QWidget* parent)
+      : Process::ScriptDialog{"exprtk", ctx, parent}
+      , m_model{model}
   {
     auto step = new QDoubleSpinBox{this};
     step->setRange(0.0001, 0.3);
@@ -30,10 +32,11 @@ public:
     auto controls = new QFormLayout;
     controls->addRow("Step (smaller is more precise)", step);
     lay->insertLayout(2, controls);
-    connect(step, qOverload<double>(&QDoubleSpinBox::valueChanged),
-            this, [=] (double step) {
-      m_step = step;
-    });
+    connect(
+        step,
+        qOverload<double>(&QDoubleSpinBox::valueChanged),
+        this,
+        [=](double step) { m_step = step; });
 
     expr.add_variable("t", t);
     expr.add_variable("x", x);
@@ -61,7 +64,7 @@ z := sin(7 * PI * t);
     else
     {
       ossia::spline3d_data data;
-      for(t = 0.; t < 1.; t += m_step)
+      for (t = 0.; t < 1.; t += m_step)
       {
         expr.value();
         data.points.push_back({x, y, z});

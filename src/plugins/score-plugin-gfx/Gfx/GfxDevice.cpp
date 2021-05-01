@@ -1,17 +1,21 @@
 #include "GfxDevice.hpp"
+
 #include "GfxParameter.hpp"
 
 #include <State/MessageListSerialization.hpp>
+
 #include <ossia/network/base/device.hpp>
 
 #include <QMimeData>
 
-
 namespace Gfx
 {
 
-GfxInputDevice::GfxInputDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
-  : Device::DeviceInterface{settings}, m_ctx{ctx}
+GfxInputDevice::GfxInputDevice(
+    const Device::DeviceSettings& settings,
+    const score::DocumentContext& ctx)
+    : Device::DeviceInterface{settings}
+    , m_ctx{ctx}
 {
   m_capas.canAddNode = false;
   m_capas.canRemoveNode = false;
@@ -38,8 +42,7 @@ QMimeData* GfxInputDevice::mimeData() const
   return mimeData;
 }
 
-void GfxInputDevice::addAddress(const Device::FullAddressSettings& settings)
-{
+void GfxInputDevice::addAddress(const Device::FullAddressSettings& settings) {
 }
 
 void GfxInputDevice::updateAddress(
@@ -48,15 +51,13 @@ void GfxInputDevice::updateAddress(
 {
 }
 
-void GfxInputDevice::disconnect()
-{
-}
+void GfxInputDevice::disconnect() { }
 
-void GfxInputDevice::recreate(const Device::Node& n)
-{
-}
+void GfxInputDevice::recreate(const Device::Node& n) { }
 
-void GfxInputDevice::setupNode(ossia::net::node_base& node, const ossia::extended_attributes& attr)
+void GfxInputDevice::setupNode(
+    ossia::net::node_base& node,
+    const ossia::extended_attributes& attr)
 {
 }
 
@@ -73,7 +74,8 @@ static Device::Node ToDeviceExplorer(const ossia::net::node_base& ossia_node)
     // 2. Recurse on the children
     for (const auto& ossia_child : cld)
     {
-      if (!ossia::net::get_hidden(*ossia_child) && !ossia::net::get_zombie(*ossia_child))
+      if (!ossia::net::get_hidden(*ossia_child)
+          && !ossia::net::get_zombie(*ossia_child))
       {
         auto child_n = ToDeviceExplorer(*ossia_child);
         child_n.setParent(&score_node);
@@ -102,8 +104,11 @@ Device::Node GfxInputDevice::refresh()
   return score_device;
 }
 
-GfxOutputDevice::GfxOutputDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
-  : Device::DeviceInterface{settings}, m_ctx{ctx}
+GfxOutputDevice::GfxOutputDevice(
+    const Device::DeviceSettings& settings,
+    const score::DocumentContext& ctx)
+    : Device::DeviceInterface{settings}
+    , m_ctx{ctx}
 {
   m_capas.canAddNode = false;
   m_capas.canRemoveNode = false;
@@ -140,15 +145,13 @@ void GfxOutputDevice::updateAddress(
 {
 }
 
-void GfxOutputDevice::disconnect()
-{
-}
+void GfxOutputDevice::disconnect() { }
 
-void GfxOutputDevice::recreate(const Device::Node& n)
-{
-}
+void GfxOutputDevice::recreate(const Device::Node& n) { }
 
-void GfxOutputDevice::setupNode(ossia::net::node_base& node, const ossia::extended_attributes& attr)
+void GfxOutputDevice::setupNode(
+    ossia::net::node_base& node,
+    const ossia::extended_attributes& attr)
 {
 }
 
@@ -156,6 +159,5 @@ Device::Node GfxOutputDevice::refresh()
 {
   return simple_refresh();
 }
-
 
 }

@@ -40,9 +40,9 @@ public:
 
   bool contains(const IdentifiedObjectAbstract& obj) const noexcept
   {
-    for(const auto& ptr : *this)
+    for (const auto& ptr : *this)
     {
-      if(ptr.data() == &obj)
+      if (ptr.data() == &obj)
         return true;
     }
     return false;
@@ -50,18 +50,15 @@ public:
 
   bool contains(const IdentifiedObjectAbstract* obj) const noexcept
   {
-    for(const auto& ptr : *this)
+    for (const auto& ptr : *this)
     {
-      if(ptr.data() == obj)
+      if (ptr.data() == obj)
         return true;
     }
     return false;
   }
 
-  void append(const IdentifiedObjectAbstract& obj)
-  {
-    append(&obj);
-  }
+  void append(const IdentifiedObjectAbstract& obj) { append(&obj); }
 
   void append(const IdentifiedObjectAbstract* obj)
   {
@@ -84,12 +81,14 @@ public:
 
   bool operator==(const Selection& other) const
   {
-    return static_cast<const base_type&>(*this) == static_cast<const base_type&>(other);
+    return static_cast<const base_type&>(*this)
+           == static_cast<const base_type&>(other);
   }
 
   bool operator!=(const Selection& other) const
   {
-    return static_cast<const base_type&>(*this) != static_cast<const base_type&>(other);
+    return static_cast<const base_type&>(*this)
+           != static_cast<const base_type&>(other);
   }
 
   QList<const IdentifiedObjectAbstract*> toList() const
@@ -152,8 +151,10 @@ Selection filterSelections(T* pressedModel, Selection sel, bool cumulation)
  * For instance if multiples rectangles are drawn with the mouse
  * with ctrl pressed.
  */
-inline Selection
-filterSelections(Selection& newSelection, const Selection& currentSelection, bool cumulation)
+inline Selection filterSelections(
+    Selection& newSelection,
+    const Selection& currentSelection,
+    bool cumulation)
 {
   if (cumulation)
   {
@@ -164,7 +165,13 @@ filterSelections(Selection& newSelection, const Selection& currentSelection, boo
   return newSelection;
 }
 
-inline QDataStream& operator<<(QDataStream& i, const Selection& sel) { return i; }
-inline QDataStream& operator>>(QDataStream& i, Selection& sel) { return i; }
+inline QDataStream& operator<<(QDataStream& i, const Selection& sel)
+{
+  return i;
+}
+inline QDataStream& operator>>(QDataStream& i, Selection& sel)
+{
+  return i;
+}
 Q_DECLARE_METATYPE(Selection)
 W_REGISTER_ARGTYPE(Selection)

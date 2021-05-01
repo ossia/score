@@ -4,6 +4,17 @@
 #include "score_plugin_engine.hpp"
 
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
+#include <Engine/ApplicationPlugin.hpp>
+#include <Engine/Listening/PlayListeningHandlerFactory.hpp>
+#include <Execution/Clock/ClockFactory.hpp>
+#include <Execution/Clock/DataflowClock.hpp>
+#include <Execution/Clock/DefaultClock.hpp>
+#include <Execution/Clock/ManualClock.hpp>
+#include <Execution/DocumentPlugin.hpp>
+#include <Execution/Settings/ExecutorFactory.hpp>
+#include <Execution/Transport/JackTransport.hpp>
+#include <Execution/Transport/TransportInterface.hpp>
+#include <LocalTree/Device/LocalProtocolFactory.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
@@ -14,17 +25,6 @@
 #include <ossia/editor/scenario/time_event.hpp>
 #include <ossia/network/base/device.hpp>
 
-#include <Engine/ApplicationPlugin.hpp>
-#include <Engine/Listening/PlayListeningHandlerFactory.hpp>
-#include <Execution/Clock/ClockFactory.hpp>
-#include <Execution/Clock/DataflowClock.hpp>
-#include <Execution/Clock/DefaultClock.hpp>
-#include <Execution/Clock/ManualClock.hpp>
-#include <Execution/Transport/TransportInterface.hpp>
-#include <Execution/Transport/JackTransport.hpp>
-#include <Execution/DocumentPlugin.hpp>
-#include <Execution/Settings/ExecutorFactory.hpp>
-#include <LocalTree/Device/LocalProtocolFactory.hpp>
 #include <score_plugin_deviceexplorer.hpp>
 #include <score_plugin_scenario.hpp>
 #include <wobjectimpl.h>
@@ -37,29 +37,31 @@ score_plugin_engine::score_plugin_engine()
   qRegisterMetaType<ossia::bench_map>("BenchMap");
   qRegisterMetaType<Execution::ClockFactory::ConcreteKey>("ClockKey");
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-  qRegisterMetaTypeStreamOperators<Execution::ClockFactory::ConcreteKey>("ClockKey");
+  qRegisterMetaTypeStreamOperators<Execution::ClockFactory::ConcreteKey>(
+      "ClockKey");
 #endif
 }
 
 score_plugin_engine::~score_plugin_engine() { }
 
-score::GUIApplicationPlugin*
-score_plugin_engine::make_guiApplicationPlugin(const score::GUIApplicationContext& app)
+score::GUIApplicationPlugin* score_plugin_engine::make_guiApplicationPlugin(
+    const score::GUIApplicationContext& app)
 {
   return new Engine::ApplicationPlugin{app};
 }
 
-std::vector<std::unique_ptr<score::InterfaceListBase>> score_plugin_engine::factoryFamilies()
+std::vector<std::unique_ptr<score::InterfaceListBase>>
+score_plugin_engine::factoryFamilies()
 {
   return make_ptr_vector<
-      score::InterfaceListBase
-      , Execution::ProcessComponentFactoryList
-      , Execution::ClockFactoryList
-      , Execution::TransportInterfaceList
-      >();
+      score::InterfaceListBase,
+      Execution::ProcessComponentFactoryList,
+      Execution::ClockFactoryList,
+      Execution::TransportInterfaceList>();
 }
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_engine::factories(
+std::vector<std::unique_ptr<score::InterfaceBase>>
+score_plugin_engine::factories(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& key) const
 {
@@ -69,14 +71,16 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_engine::factorie
   return instantiate_factories<
       score::ApplicationContext,
       FW<Device::ProtocolFactory, Protocols::LocalProtocolFactory>,
-      FW<Explorer::ListeningHandlerFactory, Execution::PlayListeningHandlerFactory>,
+      FW<Explorer::ListeningHandlerFactory,
+         Execution::PlayListeningHandlerFactory>,
       FW<score::SettingsDelegateFactory, Execution::Settings::Factory>,
-      FW<Execution::TransportInterface
-      , Execution::DirectTransport
+      FW<Execution::TransportInterface,
+         Execution::DirectTransport
 #if defined(OSSIA_AUDIO_JACK)
-      , Execution::JackTransport
+         ,
+         Execution::JackTransport
 #endif
-      >,
+         >,
       FW<Execution::ClockFactory
          // , Execution::ControlClockFactory
          ,
@@ -87,7 +91,9 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_engine::factorie
 
 auto score_plugin_engine::required() const -> std::vector<score::PluginKey>
 {
-  return {score_plugin_scenario::static_key(), score_plugin_deviceexplorer::static_key()};
+  return {
+      score_plugin_scenario::static_key(),
+      score_plugin_deviceexplorer::static_key()};
 }
 
 #include <score/plugins/PluginInstances.hpp>

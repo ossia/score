@@ -33,7 +33,11 @@ PhidgetDevice::PhidgetDevice(const Device::DeviceSettings& settings)
   m_capas.canRenameNode = false;
   m_capas.canSetProperties = false;
   connect(
-      this, &PhidgetDevice::sig_command, this, &PhidgetDevice::slot_command, Qt::QueuedConnection);
+      this,
+      &PhidgetDevice::sig_command,
+      this,
+      &PhidgetDevice::slot_command,
+      Qt::QueuedConnection);
 
   reconnect();
 }
@@ -53,7 +57,8 @@ bool PhidgetDevice::reconnect()
     // settings().deviceSpecificSettings.value<PhidgetSpecificSettings>();
 
     m_dev = std::make_unique<ossia::net::generic_device>(
-        std::make_unique<ossia::phidget_protocol>(), settings().name.toStdString());
+        std::make_unique<ossia::phidget_protocol>(),
+        settings().name.toStdString());
     deviceChanged(nullptr, m_dev.get());
     enableCallbacks();
     m_timer = startTimer(200);
@@ -91,7 +96,8 @@ void PhidgetDevice::slot_command()
 {
   if (m_dev)
   {
-    auto proto = dynamic_cast<ossia::phidget_protocol*>(&m_dev->get_protocol());
+    auto proto
+        = dynamic_cast<ossia::phidget_protocol*>(&m_dev->get_protocol());
     proto->run_commands();
   }
 }
@@ -100,7 +106,8 @@ void PhidgetDevice::timerEvent(QTimerEvent* event)
 {
   if (m_dev)
   {
-    auto proto = dynamic_cast<ossia::phidget_protocol*>(&m_dev->get_protocol());
+    auto proto
+        = dynamic_cast<ossia::phidget_protocol*>(&m_dev->get_protocol());
     proto->run_command();
   }
 }

@@ -2,10 +2,10 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MoveEventList.hpp"
 
+#include <qiterator.h>
+
 #include <Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
 #include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
-
-#include <qiterator.h>
 
 #include <stdexcept>
 
@@ -20,9 +20,10 @@ MoveEventFactoryInterface& MoveEventList::get(
     const score::ApplicationContext& ctx,
     MoveEventFactoryInterface::Strategy s) const
 {
-  auto it = std::max_element(begin(), end(), [&](const auto& e1, const auto& e2) {
-    return e1.priority(ctx, s) < e2.priority(ctx, s);
-  });
+  auto it
+      = std::max_element(begin(), end(), [&](const auto& e1, const auto& e2) {
+          return e1.priority(ctx, s) < e2.priority(ctx, s);
+        });
   if (it != end())
     return *it;
 

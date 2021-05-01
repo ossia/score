@@ -4,10 +4,10 @@
 
 #include <State/Value.hpp>
 
-#include <score/serialization/StringConstants.hpp>
-
 #include <score/serialization/AnySerialization.hpp>
 #include <score/serialization/MapSerialization.hpp>
+#include <score/serialization/StringConstants.hpp>
+
 #include <ossia-qt/js_utilities.hpp>
 #include <ossia/detail/apply.hpp>
 #include <ossia/network/value/value.hpp>
@@ -41,17 +41,18 @@ const std::array<const QString, 11> ValuePrettyTypes{
      QObject::tr("Char"),
      QObject::tr("Container")}};
 
-const std::array<std::pair<QString, ossia::val_type>, 10> ValuePrettyTypesPairArray{
-    {std::make_pair(QObject::tr("Impulse"), ossia::val_type::IMPULSE),
-     std::make_pair(QObject::tr("Int"), ossia::val_type::INT),
-     std::make_pair(QObject::tr("Float"), ossia::val_type::FLOAT),
-     std::make_pair(QObject::tr("Bool"), ossia::val_type::BOOL),
-     std::make_pair(QObject::tr("String"), ossia::val_type::STRING),
-     std::make_pair(QObject::tr("Char"), ossia::val_type::CHAR),
-     std::make_pair(QObject::tr("Vec2f"), ossia::val_type::VEC2F),
-     std::make_pair(QObject::tr("Vec3f"), ossia::val_type::VEC3F),
-     std::make_pair(QObject::tr("Vec4f"), ossia::val_type::VEC4F),
-     std::make_pair(QObject::tr("List"), ossia::val_type::LIST)}};
+const std::array<std::pair<QString, ossia::val_type>, 10>
+    ValuePrettyTypesPairArray{
+        {std::make_pair(QObject::tr("Impulse"), ossia::val_type::IMPULSE),
+         std::make_pair(QObject::tr("Int"), ossia::val_type::INT),
+         std::make_pair(QObject::tr("Float"), ossia::val_type::FLOAT),
+         std::make_pair(QObject::tr("Bool"), ossia::val_type::BOOL),
+         std::make_pair(QObject::tr("String"), ossia::val_type::STRING),
+         std::make_pair(QObject::tr("Char"), ossia::val_type::CHAR),
+         std::make_pair(QObject::tr("Vec2f"), ossia::val_type::VEC2F),
+         std::make_pair(QObject::tr("Vec3f"), ossia::val_type::VEC3F),
+         std::make_pair(QObject::tr("Vec4f"), ossia::val_type::VEC4F),
+         std::make_pair(QObject::tr("List"), ossia::val_type::LIST)}};
 
 template <>
 QVariant value(const ossia::value& val)
@@ -61,19 +62,34 @@ QVariant value(const ossia::value& val)
   public:
     using return_type = QVariant;
     return_type operator()() const { return QVariant{}; }
-    return_type operator()(const impulse&) const { return QVariant::fromValue(State::impulse{}); }
+    return_type operator()(const impulse&) const
+    {
+      return QVariant::fromValue(State::impulse{});
+    }
     return_type operator()(int i) const { return QVariant::fromValue(i); }
     return_type operator()(float f) const { return QVariant::fromValue(f); }
     return_type operator()(bool b) const { return QVariant::fromValue(b); }
-    return_type operator()(const QString& s) const { return QVariant::fromValue(s); }
+    return_type operator()(const QString& s) const
+    {
+      return QVariant::fromValue(s);
+    }
     return_type operator()(const std::string& s) const
     {
       return operator()(QString::fromStdString(s));
     }
-    return_type operator()(char c) const { return QVariant::fromValue(QChar(c)); }
+    return_type operator()(char c) const
+    {
+      return QVariant::fromValue(QChar(c));
+    }
     return_type operator()(vec2f t) const { return QVector2D{t[0], t[1]}; }
-    return_type operator()(vec3f t) const { return QVector3D{t[0], t[1], t[2]}; }
-    return_type operator()(vec4f t) const { return QVector4D{t[0], t[1], t[2], t[3]}; }
+    return_type operator()(vec3f t) const
+    {
+      return QVector3D{t[0], t[1], t[2]};
+    }
+    return_type operator()(vec4f t) const
+    {
+      return QVector4D{t[0], t[1], t[2], t[3]};
+    }
     return_type operator()(const list_t& t) const
     {
       QVariantList arr;
@@ -102,12 +118,18 @@ QString textualType(const ossia::value& val)
     return_type operator()(int i) const { return QStringLiteral("Int"); }
     return_type operator()(float f) const { return QStringLiteral("Float"); }
     return_type operator()(bool b) const { return QStringLiteral("Bool"); }
-    return_type operator()(const std::string& s) const { return QStringLiteral("String"); }
+    return_type operator()(const std::string& s) const
+    {
+      return QStringLiteral("String");
+    }
     return_type operator()(char c) const { return QStringLiteral("Char"); }
     return_type operator()(vec2f t) const { return QStringLiteral("Vec2f"); }
     return_type operator()(vec3f t) const { return QStringLiteral("Vec3f"); }
     return_type operator()(vec4f t) const { return QStringLiteral("Vec4f"); }
-    return_type operator()(const list_t& t) const { return QStringLiteral("List"); }
+    return_type operator()(const list_t& t) const
+    {
+      return QStringLiteral("List");
+    }
   };
 
   return ossia::apply(vis{}, val.v);
@@ -151,7 +173,10 @@ int value(const ossia::value& val)
     {
       return QLocale::c().toInt(QString::fromStdString(v));
     }
-    return_type operator()(char v) const { return QLocale::c().toInt(QString(v)); }
+    return_type operator()(char v) const
+    {
+      return QLocale::c().toInt(QString(v));
+    }
     return_type operator()(const vec2f& v) const { return 0; }
     return_type operator()(const vec3f& v) const { return 0; }
     return_type operator()(const vec4f& v) const { return 0; }
@@ -173,12 +198,18 @@ float value(const ossia::value& val)
     return_type operator()(int v) const { return v; }
     return_type operator()(float v) const { return v; }
     return_type operator()(bool v) const { return v; }
-    return_type operator()(const QString& v) const { return QLocale::c().toFloat(v); }
+    return_type operator()(const QString& v) const
+    {
+      return QLocale::c().toFloat(v);
+    }
     return_type operator()(const std::string& v) const
     {
       return operator()(QString::fromStdString(v));
     }
-    return_type operator()(char v) const { return QLocale::c().toFloat(QString(v)); }
+    return_type operator()(char v) const
+    {
+      return QLocale::c().toFloat(QString(v));
+    }
     return_type operator()(const vec2f& v) const { return 0; }
     return_type operator()(const vec3f& v) const { return 0; }
     return_type operator()(const vec4f& v) const { return 0; }
@@ -210,10 +241,13 @@ bool value(const ossia::value& val)
       auto& strings = score::StringConstant();
 
       auto& v = ve;
-      return v == strings.lowercase_true || v == strings.True || v == strings.lowercase_yes
-             || v == strings.Yes;
+      return v == strings.lowercase_true || v == strings.True
+             || v == strings.lowercase_yes || v == strings.Yes;
     }
-    return_type operator()(char v) const { return v == 't' || v == 'T' || v == 'y' || v == 'Y'; }
+    return_type operator()(char v) const
+    {
+      return v == 't' || v == 'T' || v == 'y' || v == 'Y';
+    }
     return_type operator()(const vec2f& v) const { return false; }
     return_type operator()(const vec3f& v) const { return false; }
     return_type operator()(const vec4f& v) const { return false; }
@@ -262,14 +296,21 @@ QString value(const ossia::value& val)
     return_type operator()(bool b) const
     {
       return QString::fromStdString(
-          b ? score::StringConstant().lowercase_true : score::StringConstant().lowercase_false);
+          b ? score::StringConstant().lowercase_true
+            : score::StringConstant().lowercase_false);
     }
-    return_type operator()(const std::string& s) const { return QString::fromStdString(s); }
+    return_type operator()(const std::string& s) const
+    {
+      return QString::fromStdString(s);
+    }
     return_type operator()(char c) const { return QChar(c); }
     return_type operator()(const vec2f& v) const { return {}; }
     return_type operator()(const vec3f& v) const { return {}; }
     return_type operator()(const vec4f& v) const { return {}; }
-    return_type operator()(const std::vector<ossia::value>& t) const { return {}; }
+    return_type operator()(const std::vector<ossia::value>& t) const
+    {
+      return {};
+    }
   } visitor{};
 
   return ossia::apply(visitor, val.v);
@@ -319,7 +360,10 @@ vec2f value(const ossia::value& val)
     return_type operator()(int i) const { return {{float(i)}}; }
     return_type operator()(float f) const { return {{f}}; }
     return_type operator()(bool b) const { return {{float(b)}}; }
-    return_type operator()(const std::string& s) const { return string_to_vec<2>(s); }
+    return_type operator()(const std::string& s) const
+    {
+      return string_to_vec<2>(s);
+    }
     return_type operator()(char c) const { return {}; }
     return_type operator()(const vec2f& v) const { return v; }
     return_type operator()(const vec3f& v) const { return {{v[0], v[1]}}; }
@@ -352,11 +396,17 @@ vec3f value(const ossia::value& val)
     return_type operator()(float f) const { return {{f}}; }
     return_type operator()(bool b) const { return {{float(b)}}; }
 
-    return_type operator()(const std::string& s) const { return string_to_vec<3>(s); }
+    return_type operator()(const std::string& s) const
+    {
+      return string_to_vec<3>(s);
+    }
     return_type operator()(char c) const { return {}; }
     return_type operator()(const vec2f& v) const { return {{v[0], v[1]}}; }
     return_type operator()(const vec3f& v) const { return v; }
-    return_type operator()(const vec4f& v) const { return {{v[0], v[1], v[2]}}; }
+    return_type operator()(const vec4f& v) const
+    {
+      return {{v[0], v[1], v[2]}};
+    }
     return_type operator()(const std::vector<ossia::value>& t) const
     {
       const std::size_t n = t.size();
@@ -384,10 +434,16 @@ vec4f value(const ossia::value& val)
     return_type operator()(int i) const { return {{float(i)}}; }
     return_type operator()(float f) const { return {{f}}; }
     return_type operator()(bool b) const { return {{float(b)}}; }
-    return_type operator()(const std::string& s) const { return string_to_vec<4>(s); }
+    return_type operator()(const std::string& s) const
+    {
+      return string_to_vec<4>(s);
+    }
     return_type operator()(char c) const { return {}; }
     return_type operator()(const vec2f& v) const { return {{v[0], v[1]}}; }
-    return_type operator()(const vec3f& v) const { return {{v[0], v[1], v[2]}}; }
+    return_type operator()(const vec3f& v) const
+    {
+      return {{v[0], v[1], v[2]}};
+    }
     return_type operator()(const vec4f& v) const { return v; }
     return_type operator()(const std::vector<ossia::value>& t) const
     {
@@ -430,9 +486,18 @@ list_t value(const ossia::value& val)
     }
     return_type operator()(char c) const { return {}; }
     return_type operator()(const vec2f& v) const { return {{v[0], v[1]}}; }
-    return_type operator()(const vec3f& v) const { return {{v[0], v[1], v[2]}}; }
-    return_type operator()(const vec4f& v) const { return {{v[0], v[1], v[2], v[3]}}; }
-    return_type operator()(const std::vector<ossia::value>& t) const { return t; }
+    return_type operator()(const vec3f& v) const
+    {
+      return {{v[0], v[1], v[2]}};
+    }
+    return_type operator()(const vec4f& v) const
+    {
+      return {{v[0], v[1], v[2], v[3]}};
+    }
+    return_type operator()(const std::vector<ossia::value>& t) const
+    {
+      return t;
+    }
   };
 
   return ossia::apply(vis{}, val.v);
@@ -473,7 +538,8 @@ QString toPrettyString(const ossia::value& val)
     QString operator()(bool b) const
     {
       return QString::fromStdString(
-          b ? score::StringConstant().lowercase_true : score::StringConstant().lowercase_false);
+          b ? score::StringConstant().lowercase_true
+            : score::StringConstant().lowercase_false);
     }
     QString operator()(const QString& s) const
     {
@@ -553,9 +619,12 @@ QString toPrettyString(const ossia::value& val)
     }
   };
 
-  try {
+  try
+  {
     return ossia::apply(vis{}, val.v);
-  } catch(std::exception& e) {
+  }
+  catch (std::exception& e)
+  {
     return e.what();
   }
 }
@@ -591,7 +660,8 @@ QString prettyType(ossia::val_type t)
   return ValuePrettyTypes[static_cast<int>(t)];
 }
 
-const std::array<std::pair<QString, ossia::val_type>, 10>& ValuePrettyTypesMap()
+const std::array<std::pair<QString, ossia::val_type>, 10>&
+ValuePrettyTypesMap()
 {
   return ValuePrettyTypesPairArray;
 }

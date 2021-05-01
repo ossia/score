@@ -22,15 +22,16 @@ class SizedWidget : public QWidget
 };
 
 PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
-    : score::PanelDelegate{ctx}, m_widget{new SizedWidget<200, 600>}
+    : score::PanelDelegate{ctx}
+    , m_widget{new SizedWidget<200, 600>}
 {
   new QVBoxLayout{m_widget};
   m_widget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
   m_widget->setMinimumHeight(400);
   m_widget->setMinimumWidth(200);
 
-  m_widget->setStatusTip(
-      QObject::tr("The inspector show information on the currently selected items."));
+  m_widget->setStatusTip(QObject::tr(
+      "The inspector show information on the currently selected items."));
 }
 
 QWidget* PanelDelegate::widget()
@@ -52,7 +53,9 @@ const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
   return status;
 }
 
-void PanelDelegate::on_modelChanged(score::MaybeDocument oldm, score::MaybeDocument newm)
+void PanelDelegate::on_modelChanged(
+    score::MaybeDocument oldm,
+    score::MaybeDocument newm)
 {
   using namespace score;
   delete m_inspectorPanel;
@@ -68,8 +71,10 @@ void PanelDelegate::on_modelChanged(score::MaybeDocument oldm, score::MaybeDocum
     SelectionStack& stack = newm->selectionStack;
 
     auto& fact = newm->app.interfaces<Inspector::InspectorWidgetList>();
-    m_inspectorPanel = new InspectorPanelWidget{fact, stack, lay, m_widget, m_widget};
-    m_widget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
+    m_inspectorPanel
+        = new InspectorPanelWidget{fact, stack, lay, m_widget, m_widget};
+    m_widget->setSizePolicy(
+        QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
   }
 }
 

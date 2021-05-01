@@ -28,7 +28,8 @@ W_REGISTER_ARGTYPE(QMap<QString, QByteArray>)
 W_OBJECT_IMPL(ZeroconfBrowser)
 
 ZeroconfBrowser::ZeroconfBrowser(const QString& service, QWidget* parent)
-    : QObject{parent}, m_dialog{new QDialog{parent}}
+    : QObject{parent}
+    , m_dialog{new QDialog{parent}}
 {
   QGridLayout* lay = new QGridLayout;
   m_dialog->setLayout(lay);
@@ -50,7 +51,9 @@ ZeroconfBrowser::ZeroconfBrowser(const QString& service, QWidget* parent)
   m_list->setSelectionMode(QAbstractItemView::SingleSelection);
   m_list->setModel(m_model);
 
-  connect(m_list, &QListView::doubleClicked, this, [=](const QModelIndex&) { accept(); });
+  connect(m_list, &QListView::doubleClicked, this, [=](const QModelIndex&) {
+    accept();
+  });
 
   lay->addWidget(m_list);
 
@@ -65,10 +68,13 @@ ZeroconfBrowser::ZeroconfBrowser(const QString& service, QWidget* parent)
 
   lay->addWidget(manualWidg);
 
-  auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+  auto buttonBox
+      = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 
-  connect(buttonBox, &QDialogButtonBox::accepted, this, &ZeroconfBrowser::accept);
-  connect(buttonBox, &QDialogButtonBox::rejected, this, &ZeroconfBrowser::reject);
+  connect(
+      buttonBox, &QDialogButtonBox::accepted, this, &ZeroconfBrowser::accept);
+  connect(
+      buttonBox, &QDialogButtonBox::rejected, this, &ZeroconfBrowser::reject);
 
   lay->addWidget(buttonBox);
 }
@@ -158,7 +164,8 @@ void ZeroconfBrowser::accept()
   {
     asio::io_service io_service;
     asio::ip::tcp::resolver resolver(io_service);
-    asio::ip::tcp::resolver::query query(ip.toStdString(), std::to_string(port));
+    asio::ip::tcp::resolver::query query(
+        ip.toStdString(), std::to_string(port));
     asio::ip::tcp::resolver::iterator iter = resolver.resolve(query);
     if (iter->endpoint().address().is_loopback())
     {

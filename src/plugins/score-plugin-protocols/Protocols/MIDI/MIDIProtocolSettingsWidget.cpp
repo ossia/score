@@ -2,19 +2,21 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MIDIProtocolSettingsWidget.hpp"
 
-#include "MIDISpecificSettings.hpp"
 #include "MIDIProtocolFactory.hpp"
+#include "MIDISpecificSettings.hpp"
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
-#include <score/widgets/ComboBox.hpp>
-#include <ossia-qt/name_utils.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
+
+#include <score/widgets/ComboBox.hpp>
+
+#include <ossia-qt/name_utils.hpp>
 
 #include <QCheckBox>
 #include <QDebug>
-#include <QRadioButton>
 #include <QFormLayout>
 #include <QLineEdit>
+#include <QRadioButton>
 #include <QString>
 #include <QVariant>
 
@@ -42,7 +44,8 @@ MIDIInputSettingsWidget::MIDIInputSettingsWidget(QWidget* parent)
 Device::DeviceSettings MIDIInputSettingsWidget::getSettings() const
 {
   Device::DeviceSettings s = m_current;
-  MIDISpecificSettings midi = s.deviceSpecificSettings.value<MIDISpecificSettings>();
+  MIDISpecificSettings midi
+      = s.deviceSpecificSettings.value<MIDISpecificSettings>();
   s.name = m_name->text();
   s.protocol = MIDIInputProtocolFactory::static_concreteKey();
   midi.createWholeTree = m_createWhole->isChecked();
@@ -52,13 +55,14 @@ Device::DeviceSettings MIDIInputSettingsWidget::getSettings() const
   return s;
 }
 
-void MIDIInputSettingsWidget::setSettings(const Device::DeviceSettings& settings)
+void MIDIInputSettingsWidget::setSettings(
+    const Device::DeviceSettings& settings)
 {
   m_current = settings;
 
   // Clean up the name a bit
   auto prettyName = settings.name;
-  if(!prettyName.isEmpty())
+  if (!prettyName.isEmpty())
   {
     prettyName = prettyName.split(':').front();
     ossia::net::sanitize_device_name(prettyName);
@@ -66,7 +70,6 @@ void MIDIInputSettingsWidget::setSettings(const Device::DeviceSettings& settings
   m_name->setText(prettyName);
 }
 }
-
 
 W_OBJECT_IMPL(Protocols::MIDIOutputSettingsWidget)
 
@@ -91,7 +94,8 @@ MIDIOutputSettingsWidget::MIDIOutputSettingsWidget(QWidget* parent)
 Device::DeviceSettings MIDIOutputSettingsWidget::getSettings() const
 {
   Device::DeviceSettings s = m_current;
-  MIDISpecificSettings midi = s.deviceSpecificSettings.value<MIDISpecificSettings>();
+  MIDISpecificSettings midi
+      = s.deviceSpecificSettings.value<MIDISpecificSettings>();
   s.name = m_name->text();
   s.protocol = MIDIOutputProtocolFactory::static_concreteKey();
   midi.createWholeTree = m_createWhole->isChecked();
@@ -101,13 +105,14 @@ Device::DeviceSettings MIDIOutputSettingsWidget::getSettings() const
   return s;
 }
 
-void MIDIOutputSettingsWidget::setSettings(const Device::DeviceSettings& settings)
+void MIDIOutputSettingsWidget::setSettings(
+    const Device::DeviceSettings& settings)
 {
   m_current = settings;
 
   // Clean up the name a bit
   auto prettyName = settings.name;
-  if(!prettyName.isEmpty())
+  if (!prettyName.isEmpty())
   {
     prettyName = prettyName.split(':').front();
     ossia::net::sanitize_device_name(prettyName);
@@ -116,7 +121,9 @@ void MIDIOutputSettingsWidget::setSettings(const Device::DeviceSettings& setting
 
   if (settings.deviceSpecificSettings.canConvert<MIDISpecificSettings>())
   {
-    m_createWhole->setChecked(settings.deviceSpecificSettings.value<MIDISpecificSettings>().createWholeTree);
+    m_createWhole->setChecked(
+        settings.deviceSpecificSettings.value<MIDISpecificSettings>()
+            .createWholeTree);
   }
 }
 

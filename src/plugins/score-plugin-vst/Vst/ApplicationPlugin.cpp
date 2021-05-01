@@ -1,12 +1,11 @@
 #include "ApplicationPlugin.hpp"
 
+#include <Audio/AudioDevice.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Media/Effect/Settings/Model.hpp>
 #include <Vst/EffectModel.hpp>
 #include <Vst/Loader.hpp>
-
-#include <QWebSocket>
-#include <Device/Protocol/DeviceInterface.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <score/tools/Bind.hpp>
 
@@ -17,8 +16,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QProcess>
+#include <QWebSocket>
 
-#include <Audio/AudioDevice.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(vst::ApplicationPlugin)
 
@@ -29,15 +28,15 @@ static bool vst_invalid_format = false;
 template <>
 void DataStreamReader::read<vst::VSTInfo>(const vst::VSTInfo& p)
 {
-  m_stream << p.path << p.prettyName << p.displayName << p.author << p.uniqueID << p.controls
-           << p.isSynth << p.isValid;
+  m_stream << p.path << p.prettyName << p.displayName << p.author << p.uniqueID
+           << p.controls << p.isSynth << p.isValid;
 }
 template <>
 void DataStreamWriter::write<vst::VSTInfo>(vst::VSTInfo& p)
 {
   if (!vst_invalid_format)
-    m_stream >> p.path >> p.prettyName >> p.displayName >> p.author >> p.uniqueID >> p.controls
-        >> p.isSynth >> p.isValid;
+    m_stream >> p.path >> p.prettyName >> p.displayName >> p.author
+        >> p.uniqueID >> p.controls >> p.isSynth >> p.isValid;
   if (m_stream.stream.status() != QDataStream::Status::Ok)
   {
     vst_invalid_format = true;
@@ -48,7 +47,6 @@ Q_DECLARE_METATYPE(vst::VSTInfo)
 W_REGISTER_ARGTYPE(vst::VSTInfo)
 Q_DECLARE_METATYPE(std::vector<vst::VSTInfo>)
 W_REGISTER_ARGTYPE(std::vector<vst::VSTInfo>)
-
 
 namespace vst
 {
@@ -71,10 +69,11 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
     if (!ws)
       return;
 
-    connect(ws, &QWebSocket::textMessageReceived, this, [=](const QString& txt) {
-      processIncomingMessage(txt);
-      ws->deleteLater();
-    });
+    connect(
+        ws, &QWebSocket::textMessageReceived, this, [=](const QString& txt) {
+          processIncomingMessage(txt);
+          ws->deleteLater();
+        });
   });
 }
 
@@ -97,9 +96,12 @@ void ApplicationPlugin::initialize()
   vstChanged();
 
   auto& set = context.settings<Media::Settings::Model>();
-  con(set, &Media::Settings::Model::VstPathsChanged, this, &ApplicationPlugin::rescanVSTs);
+  con(set,
+      &Media::Settings::Model::VstPathsChanged,
+      this,
+      &ApplicationPlugin::rescanVSTs);
 
-  if(qEnvironmentVariableIsEmpty("SCORE_DISABLE_AUDIOPLUGINS"))
+  if (qEnvironmentVariableIsEmpty("SCORE_DISABLE_AUDIOPLUGINS"))
     rescanVSTs(set.getVstPaths());
 }
 
@@ -162,7 +164,11 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
         newPlugins.insert(it.next());
     }
     {
-      QDirIterator it(dir, QStringList{"*.dylib"}, QDir::Files, QDirIterator::Subdirectories);
+      QDirIterator it(
+          dir,
+          QStringList{"*.dylib"},
+          QDir::Files,
+          QDirIterator::Subdirectories);
       while (it.hasNext())
       {
         auto path = it.next();
@@ -212,11 +218,15 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
 
 #if defined(__APPLE__)
     {
-      QString bundle_vstpuppet = qApp->applicationDirPath() + "/ossia-score-vstpuppet.app/Contents/MacOS/ossia-score-vstpuppet";
-      if(QFile::exists(bundle_vstpuppet))
+      QString bundle_vstpuppet
+          = qApp->applicationDirPath()
+            + "/ossia-score-vstpuppet.app/Contents/MacOS/"
+              "ossia-score-vstpuppet";
+      if (QFile::exists(bundle_vstpuppet))
         proc->setProgram(bundle_vstpuppet);
       else
-        proc->setProgram(qApp->applicationDirPath() + "/ossia-score-vstpuppet");
+        proc->setProgram(
+            qApp->applicationDirPath() + "/ossia-score-vstpuppet");
     }
 #else
     proc->setProgram("ossia-score-vstpuppet");
@@ -237,22 +247,23 @@ void ApplicationPlugin::processIncomingMessage(const QString& txt)
     addVST(obj["Path"].toString(), obj);
     int id = obj["Request"].toInt();
 
-    if(id >= 0 && id < m_processes.size())
+    if (id >= 0 && id < m_processes.size())
     {
       if (m_processes[id].process)
       {
         m_processes[id].process->close();
-        if (m_processes[id].process->state() == QProcess::ProcessState::NotRunning)
+        if (m_processes[id].process->state()
+            == QProcess::ProcessState::NotRunning)
         {
           m_processes[id] = {};
         }
         else
         {
           connect(
-                m_processes[id].process.get(),
-                qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
-                this,
-                [this, id] { m_processes[id] = {}; });
+              m_processes[id].process.get(),
+              qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
+              this,
+              [this, id] { m_processes[id] = {}; });
         }
       }
     }
@@ -310,7 +321,8 @@ ApplicationPlugin::~ApplicationPlugin()
   }
 }
 
-GUIApplicationPlugin::GUIApplicationPlugin(const score::GUIApplicationContext& app)
+GUIApplicationPlugin::GUIApplicationPlugin(
+    const score::GUIApplicationContext& app)
     : score::GUIApplicationPlugin{app}
 {
 }

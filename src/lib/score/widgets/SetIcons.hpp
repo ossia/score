@@ -20,14 +20,24 @@ SCORE_LIB_BASE_EXPORT void setIcons(
 
 SCORE_LIB_BASE_EXPORT QIcon makeIcon(const QString& icon);
 
-SCORE_LIB_BASE_EXPORT QIcon
-makeIcons(const QString& iconOn, const QString& iconOff, const QString& iconDisabled);
+SCORE_LIB_BASE_EXPORT QIcon makeIcons(
+    const QString& iconOn,
+    const QString& iconOff,
+    const QString& iconDisabled);
 
-SCORE_LIB_BASE_EXPORT QIcon
-makeIcons(const QString& iconOn, const QString& iconHover, const QString& iconOff, const QString& iconDisabled);
+SCORE_LIB_BASE_EXPORT QIcon makeIcons(
+    const QString& iconOn,
+    const QString& iconHover,
+    const QString& iconOff,
+    const QString& iconDisabled);
 
-SCORE_LIB_BASE_EXPORT QIcon
-genIconFromPixmaps(const QString& iconOn, const QString& iconOff, const QString& iconDisabled);
+SCORE_LIB_BASE_EXPORT QIcon genIconFromPixmaps(
+    const QString& iconOn,
+    const QString& iconOff,
+    const QString& iconDisabled);
 
-SCORE_LIB_BASE_EXPORT QIcon
-genIconFromPixmaps(const QString& iconOn, const QString& iconHover, const QString& iconOff, const QString& iconDisabled);
+SCORE_LIB_BASE_EXPORT QIcon genIconFromPixmaps(
+    const QString& iconOn,
+    const QString& iconHover,
+    const QString& iconOff,
+    const QString& iconDisabled);

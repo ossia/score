@@ -22,7 +22,8 @@ struct AddressSettings;
 struct DeviceSettings;
 
 class SCORE_LIB_DEVICE_EXPORT DeviceExplorerNode
-    : public score::VariantBasedNode<Device::DeviceSettings, Device::AddressSettings>
+    : public score::
+          VariantBasedNode<Device::DeviceSettings, Device::AddressSettings>
 {
   SCORE_SERIALIZE_FRIENDS
 
@@ -39,11 +40,13 @@ public:
   DeviceExplorerNode& operator=(const DeviceExplorerNode& t) = default;
   DeviceExplorerNode() = default;
   template <typename T>
-  DeviceExplorerNode(const T& t) : VariantBasedNode{t}
+  DeviceExplorerNode(const T& t)
+      : VariantBasedNode{t}
   {
   }
   template <typename T>
-  DeviceExplorerNode(T&& t) : VariantBasedNode{std::move(t)}
+  DeviceExplorerNode(T&& t)
+      : VariantBasedNode{std::move(t)}
   {
   }
 
@@ -88,7 +91,8 @@ SCORE_LIB_DEVICE_EXPORT State::Message message(const Device::Node& node);
  * Note : this one takes an output reference as an optimization
  * because of its use in DeviceExplorerModel::indexesToMime
  */
-SCORE_LIB_DEVICE_EXPORT void parametersList(const Node& treeNode, State::MessageList& ml);
+SCORE_LIB_DEVICE_EXPORT void
+parametersList(const Node& treeNode, State::MessageList& ml);
 
 // TODO have all these guys return references
 SCORE_LIB_DEVICE_EXPORT Device::Node&
@@ -103,9 +107,11 @@ SCORE_LIB_DEVICE_EXPORT Device::Node* getNodeFromString(
  */
 SCORE_LIB_DEVICE_EXPORT void dumpTree(const Device::Node& node, QString rec);
 
-SCORE_LIB_DEVICE_EXPORT Device::Node merge(Device::Node base, const State::MessageList& other);
+SCORE_LIB_DEVICE_EXPORT Device::Node
+merge(Device::Node base, const State::MessageList& other);
 
-SCORE_LIB_DEVICE_EXPORT void merge(Device::Node& base, const State::Message& message);
+SCORE_LIB_DEVICE_EXPORT void
+merge(Device::Node& base, const State::Message& message);
 
 // Generic algorithms for DeviceExplorerNode-like structures.
 template <typename Node_T, typename It>
@@ -152,6 +158,7 @@ bool operator<(const Device::Node& lhs, const Device::Node& rhs);
 }
 
 #if !defined(SCORE_ALL_UNITY) && !defined(__MINGW32__)
-extern template class SCORE_LIB_DEVICE_EXPORT TreeNode<Device::DeviceExplorerNode>;
+extern template class SCORE_LIB_DEVICE_EXPORT
+    TreeNode<Device::DeviceExplorerNode>;
 #endif
 W_REGISTER_ARGTYPE(Device::Node*)

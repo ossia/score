@@ -20,7 +20,8 @@ void SelectionDispatcher::select(const Selection& s)
 
 void SelectionDispatcher::select(const IdentifiedObjectAbstract& s)
 {
-  m_stack.pushNewSelection(Selection{const_cast<IdentifiedObjectAbstract*>(&s)});
+  m_stack.pushNewSelection(
+      Selection{const_cast<IdentifiedObjectAbstract*>(&s)});
 }
 
 score::SelectionStack& SelectionDispatcher::stack() const

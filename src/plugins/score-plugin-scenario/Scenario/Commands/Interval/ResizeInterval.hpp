@@ -9,7 +9,6 @@
 
 #include <score_plugin_scenario_export.h>
 
-
 namespace score
 {
 class Command;
@@ -55,7 +54,8 @@ class IntervalModel;
  * resizing rules. Hence, it **has** to be abstract in some way.
  *
  */
-class SCORE_PLUGIN_SCENARIO_EXPORT IntervalResizer : public score::InterfaceBase
+class SCORE_PLUGIN_SCENARIO_EXPORT IntervalResizer
+    : public score::InterfaceBase
 {
   SCORE_INTERFACE(IntervalResizer, "8db5b613-a9a8-4a49-9e89-6c07e7117518")
 public:
@@ -84,7 +84,8 @@ public:
   IntervalResizer* find(const IntervalModel& m) const
   {
     using val_t = decltype(*this->begin());
-    auto it = ossia::find_if(*this, [&](val_t& elt) { return elt.matches(m); });
+    auto it
+        = ossia::find_if(*this, [&](val_t& elt) { return elt.matches(m); });
     if (it != this->end())
       return &(*it);
     return nullptr;
@@ -94,7 +95,8 @@ public:
   score::Command* make(const IntervalModel& m, Args&&... args) const noexcept
   {
     using val_t = decltype(*this->begin());
-    auto it = ossia::find_if(*this, [&](val_t& elt) { return elt.matches(m); });
+    auto it
+        = ossia::find_if(*this, [&](val_t& elt) { return elt.matches(m); });
 
     return (it != this->end()) ? (*it).make(m, std::forward<Args>(args)...)
                                : (score::Command*)nullptr;
@@ -106,7 +108,8 @@ class ScenarioIntervalResizer final : public IntervalResizer
   SCORE_CONCRETE("1a91f756-da39-4d20-947a-ea08a80e7b8e")
 
   bool matches(const IntervalModel& m) const noexcept override;
-  score::Command* make(const IntervalModel& itv, TimeVal new_duration, ExpandMode, LockMode)
+  score::Command*
+  make(const IntervalModel& itv, TimeVal new_duration, ExpandMode, LockMode)
       const noexcept override;
   void update(
       score::Command& cmd,
@@ -120,7 +123,8 @@ class BaseScenarioIntervalResizer final : public IntervalResizer
   SCORE_CONCRETE("4b2ba7d3-2f93-43e0-a034-94c88b74f110")
 
   bool matches(const IntervalModel& m) const noexcept override;
-  score::Command* make(const IntervalModel& itv, TimeVal new_duration, ExpandMode, LockMode)
+  score::Command*
+  make(const IntervalModel& itv, TimeVal new_duration, ExpandMode, LockMode)
       const noexcept override;
   void update(
       score::Command& cmd,

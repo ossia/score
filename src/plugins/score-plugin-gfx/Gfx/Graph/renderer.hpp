@@ -62,5 +62,6 @@ struct SCORE_PLUGIN_GFX_EXPORT Renderer
   void createRenderTarget(score::gfx::NodeRenderer& node);
 
   ossia::flat_map<score::gfx::NodeRenderer*, QRhiTexture*> textureTargets;
-  ossia::small_vector<std::pair<const Mesh* const, MeshBuffers>, 4> buffersToUpload;
+  ossia::small_vector<std::pair<const Mesh* const, MeshBuffers>, 4>
+      buffersToUpload;
 };

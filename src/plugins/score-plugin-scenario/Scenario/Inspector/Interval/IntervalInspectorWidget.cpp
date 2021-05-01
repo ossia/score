@@ -4,7 +4,21 @@
 #include "IntervalInspectorWidget.hpp"
 
 #include <Inspector/InspectorLayout.hpp>
+
+#include <score/document/DocumentContext.hpp>
+#include <score/widgets/MarginLess.hpp>
+#include <score/widgets/SelectionButton.hpp>
+#include <score/widgets/Separator.hpp>
+#include <score/widgets/SetIcons.hpp>
+#include <score/widgets/StyleSheets.hpp>
+#include <score/widgets/TextLabel.hpp>
+
+#include <QCheckBox>
+#include <QToolBar>
+
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Commands/Cohesion/DoForSelectedIntervals.hpp>
+#include <Scenario/Commands/Cohesion/InterpolateStates.hpp>
 #include <Scenario/Commands/Interval/MakeBus.hpp>
 #include <Scenario/Commands/Signature/SignatureCommands.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -13,20 +27,7 @@
 #include <Scenario/Inspector/Interval/SpeedSlider.hpp>
 #include <Scenario/Inspector/Interval/Widgets/DurationSectionWidget.hpp>
 #include <Scenario/Inspector/MetadataWidget.hpp>
-#include <score/widgets/SelectionButton.hpp>
-#include <Scenario/Commands/Cohesion/DoForSelectedIntervals.hpp>
-#include <Scenario/Commands/Cohesion/InterpolateStates.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
-
-#include <score/document/DocumentContext.hpp>
-#include <score/widgets/MarginLess.hpp>
-#include <score/widgets/Separator.hpp>
-#include <score/widgets/SetIcons.hpp>
-#include <score/widgets/StyleSheets.hpp>
-#include <score/widgets/TextLabel.hpp>
-
-#include <QCheckBox>
-#include <QToolBar>
 
 namespace Scenario
 {
@@ -50,7 +51,8 @@ IntervalInspectorWidget::IntervalInspectorWidget(
   std::vector<QWidget*> parts;
   ////// HEADER
   // metadata
-  auto meta = new MetadataWidget{m_model.metadata(), ctx.commandStack, &m_model, this};
+  auto meta = new MetadataWidget{
+      m_model.metadata(), ctx.commandStack, &m_model, this};
 
   meta->setupConnections(m_model);
   addHeader(meta);
@@ -86,7 +88,8 @@ IntervalInspectorWidget::IntervalInspectorWidget(
 
   // Audio
   {
-    ScenarioDocumentModel& doc = get<ScenarioDocumentModel>(*documentFromObject(m_model));
+    ScenarioDocumentModel& doc
+        = get<ScenarioDocumentModel>(*documentFromObject(m_model));
     auto busWidg = new QToolButton{this};
 
     busWidg->setIcon(makeIcons(
@@ -109,7 +112,6 @@ IntervalInspectorWidget::IntervalInspectorWidget(
       }
     });
 
-
     btnLayout->addWidget(busWidg);
   }
 
@@ -131,9 +133,9 @@ IntervalInspectorWidget::IntervalInspectorWidget(
     connect(sigWidg, &QToolButton::toggled, this, [=](bool b) {
       if (b != this->m_model.hasTimeSignature())
       {
-        this->commandDispatcher()->submit<Command::SetHasTimeSignature>(m_model, b);
+        this->commandDispatcher()->submit<Command::SetHasTimeSignature>(
+            m_model, b);
       }
-
     });
     btnLayout->addWidget(sigWidg);
   }
@@ -157,7 +159,8 @@ IntervalInspectorWidget::IntervalInspectorWidget(
   }
   {
     QWidget* spacerWidget = new QWidget(this);
-    spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    spacerWidget->setSizePolicy(
+        QSizePolicy::Expanding, QSizePolicy::Preferred);
     spacerWidget->setVisible(true);
     btnLayout->addWidget(spacerWidget);
   }

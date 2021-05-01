@@ -1,7 +1,6 @@
 #pragma once
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
-
-#include <Gfx/Qt5CompatPush>
+#include <Gfx/Qt5CompatPush> // clang-format: keep
 struct RGB0Decoder : GPUVideoDecoder
 {
   static const constexpr auto rgb_filter = R"_(#version 450
@@ -27,13 +26,17 @@ struct RGB0Decoder : GPUVideoDecoder
       fragColor = processTexture(texture(y_tex, texcoord));
     })_";
 
-
-  RGB0Decoder(QRhiTexture::Format fmt, NodeModel& n, video_decoder& d, QString f = "")
-    : format{fmt}
-    , node{n}
-    , decoder{d}
-    , filter{f}
-  { }
+  RGB0Decoder(
+      QRhiTexture::Format fmt,
+      NodeModel& n,
+      video_decoder& d,
+      QString f = "")
+      : format{fmt}
+      , node{n}
+      , decoder{d}
+      , filter{f}
+  {
+  }
   QRhiTexture::Format format;
   NodeModel& node;
   video_decoder& decoder;
@@ -42,7 +45,8 @@ struct RGB0Decoder : GPUVideoDecoder
   void init(Renderer& r, RenderedNode& rendered) override
   {
     auto& rhi = *r.state.rhi;
-    std::tie(node.m_vertexS, node.m_fragmentS) = makeShaders(node.mesh().defaultVertexShader(), QString(rgb_filter).arg(filter));
+    std::tie(node.m_vertexS, node.m_fragmentS) = makeShaders(
+        node.mesh().defaultVertexShader(), QString(rgb_filter).arg(filter));
 
     const auto w = decoder.width, h = decoder.height;
 
@@ -61,7 +65,11 @@ struct RGB0Decoder : GPUVideoDecoder
     }
   }
 
-  void exec(Renderer&, RenderedNode& rendered, QRhiResourceUpdateBatch& res, AVFrame& frame) override
+  void exec(
+      Renderer&,
+      RenderedNode& rendered,
+      QRhiResourceUpdateBatch& res,
+      AVFrame& frame) override
   {
     setPixels(rendered, res, frame.data[0], frame.linesize[0]);
   }
@@ -72,12 +80,17 @@ struct RGB0Decoder : GPUVideoDecoder
       tex->deleteLater();
   }
 
-  void setPixels(RenderedNode& rendered, QRhiResourceUpdateBatch& res, uint8_t* pixels, int stride) const noexcept
+  void setPixels(
+      RenderedNode& rendered,
+      QRhiResourceUpdateBatch& res,
+      uint8_t* pixels,
+      int stride) const noexcept
   {
     const auto w = decoder.width, h = decoder.height;
     auto y_tex = rendered.m_samplers[0].texture;
 
-    QRhiTextureUploadEntry entry{0, 0, createTextureUpload(pixels, w, h, 4, stride)};
+    QRhiTextureUploadEntry entry{
+        0, 0, createTextureUpload(pixels, w, h, 4, stride)};
 
     QRhiTextureUploadDescription desc{entry};
     res.uploadTexture(y_tex, desc);

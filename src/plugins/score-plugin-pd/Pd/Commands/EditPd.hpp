@@ -9,7 +9,8 @@
 
 namespace Pd
 {
-class EditPdPath final : public Scenario::EditScript<Pd::ProcessModel, Pd::ProcessModel::p_script>
+class EditPdPath final
+    : public Scenario::EditScript<Pd::ProcessModel, Pd::ProcessModel::p_script>
 {
   SCORE_COMMAND_DECL(
       Pd::CommandFactoryName(),
@@ -17,7 +18,8 @@ class EditPdPath final : public Scenario::EditScript<Pd::ProcessModel, Pd::Proce
       "Edit path to Pd file")
 
 public:
-  using Scenario::EditScript<Pd::ProcessModel, Pd::ProcessModel::p_script>::EditScript;
+  using Scenario::EditScript<Pd::ProcessModel, Pd::ProcessModel::p_script>::
+      EditScript;
 };
 
 class SetAudioIns final : public score::PropertyCommand

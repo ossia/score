@@ -14,8 +14,7 @@
 namespace Spline3D
 {
 
-class ProcessModel final
-    : public Process::ProcessModel
+class ProcessModel final : public Process::ProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Spline3D::ProcessModel)
@@ -23,12 +22,16 @@ class ProcessModel final
   W_OBJECT(ProcessModel)
 
 public:
-    static constexpr bool hasExternalUI() noexcept { return true; }
-  ProcessModel(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
+  static constexpr bool hasExternalUI() noexcept { return true; }
+  ProcessModel(
+      const TimeVal& duration,
+      const Id<Process::ProcessModel>& id,
+      QObject* parent);
   ~ProcessModel() override;
 
   template <typename Impl>
-  ProcessModel(Impl& vis, QObject* parent) : Process::ProcessModel{vis, parent}
+  ProcessModel(Impl& vis, QObject* parent)
+      : Process::ProcessModel{vis, parent}
   {
     vis.writeTo(*this);
     init();
@@ -67,8 +70,7 @@ public:
   void addressChanged(const ::State::AddressAccessor& arg_1)
       W_SIGNAL(addressChanged, arg_1);
   void tweenChanged(bool tween) W_SIGNAL(tweenChanged, tween);
-  void unitChanged(const State::Unit& arg_1)
-      W_SIGNAL(unitChanged, arg_1);
+  void unitChanged(const State::Unit& arg_1) W_SIGNAL(unitChanged, arg_1);
   void splineChanged() W_SIGNAL(splineChanged);
 
 private:
@@ -76,7 +78,6 @@ private:
   void setDurationAndScale(const TimeVal& newDuration) noexcept override;
   void setDurationAndGrow(const TimeVal& newDuration) noexcept override;
   void setDurationAndShrink(const TimeVal& newDuration) noexcept override;
-
 
   TimeVal contentDuration() const noexcept override;
   void loadPreset(const Process::Preset& preset) override;
@@ -90,6 +91,8 @@ private:
 
   W_PROPERTY(bool, tween READ tween WRITE setTween NOTIFY tweenChanged)
 
-  W_PROPERTY(State::AddressAccessor, address READ address WRITE setAddress NOTIFY addressChanged)
+  W_PROPERTY(
+      State::AddressAccessor,
+      address READ address WRITE setAddress NOTIFY addressChanged)
 };
 }

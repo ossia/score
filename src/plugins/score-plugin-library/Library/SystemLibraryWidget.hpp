@@ -13,7 +13,9 @@ namespace Library
 class SystemLibraryWidget : public QWidget
 {
 public:
-  SystemLibraryWidget(const score::GUIApplicationContext& ctx, QWidget* parent);
+  SystemLibraryWidget(
+      const score::GUIApplicationContext& ctx,
+      QWidget* parent);
   ~SystemLibraryWidget();
 
   void setRoot(QString path);

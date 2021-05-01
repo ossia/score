@@ -6,7 +6,9 @@
 #include <verdigris>
 namespace score
 {
-class SCORE_LIB_BASE_EXPORT ResizeableItem : public QObject, public QGraphicsItem
+class SCORE_LIB_BASE_EXPORT ResizeableItem
+    : public QObject
+    , public QGraphicsItem
 {
   W_OBJECT(ResizeableItem)
 public:
@@ -26,8 +28,10 @@ public:
   void setRect(const QRectF& r);
   void setHighlight(bool);
   QRectF boundingRect() const final override;
-  void
-  paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) final override;
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) final override;
 
 public:
   void clicked() E_SIGNAL(SCORE_LIB_BASE_EXPORT, clicked)
@@ -51,7 +55,10 @@ public:
   EmptyRectItem(QGraphicsItem* parent);
   void setRect(const QRectF& r);
   QRectF boundingRect() const final override;
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
 
 private:
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
@@ -70,7 +77,10 @@ public:
   BackgroundItem(QGraphicsItem* parent);
   ~BackgroundItem();
 
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
   void setRect(const QRectF& r);
   QRectF boundingRect() const final override;
 
@@ -88,7 +98,10 @@ public:
 
 private:
   QRectF boundingRect() const override;
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
 };
 
 }

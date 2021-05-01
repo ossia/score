@@ -16,7 +16,10 @@ namespace Command
 {
 class CreationMetaCommand final : public score::AggregateCommand
 {
-  SCORE_COMMAND_DECL(CommandFactoryName(), CreationMetaCommand, "Create elements in scenario")
+  SCORE_COMMAND_DECL(
+      CommandFactoryName(),
+      CreationMetaCommand,
+      "Create elements in scenario")
 public:
   void undo(const score::DocumentContext& ctx) const override
   {
@@ -26,7 +29,8 @@ public:
     // TODO REFACTOR WITH SCENARIOROLLBACKSTRATEGY
     for (auto& cmd : boost::adaptors::reverse(m_cmds))
     {
-      if (cmd->key() == CreateInterval::static_key() || cmd->key() == CreateState::static_key()
+      if (cmd->key() == CreateInterval::static_key()
+          || cmd->key() == CreateState::static_key()
           || cmd->key() == CreateEvent_State::static_key()
           || cmd->key() == CreateInterval_State::static_key()
           || cmd->key() == CreateInterval_State_Event::static_key()

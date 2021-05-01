@@ -2,6 +2,12 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioDisplayedElementsProvider.hpp"
 
+#include <score/model/EntityMap.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/tools/std/Optional.hpp>
+
+#include <QObject>
+
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
 #include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
@@ -12,12 +18,6 @@
 #include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
-#include <score/model/EntityMap.hpp>
-#include <score/model/Identifier.hpp>
-#include <score/tools/std/Optional.hpp>
-
-#include <QObject>
-
 namespace Scenario
 {
 bool ScenarioDisplayedElementsProvider::matches(const IntervalModel& cst) const
@@ -25,9 +25,11 @@ bool ScenarioDisplayedElementsProvider::matches(const IntervalModel& cst) const
   return dynamic_cast<Scenario::ProcessModel*>(cst.parent());
 }
 
-DisplayedElementsContainer ScenarioDisplayedElementsProvider::make(IntervalModel& cst) const
+DisplayedElementsContainer
+ScenarioDisplayedElementsProvider::make(IntervalModel& cst) const
 {
-  if (auto parent_scenario = dynamic_cast<Scenario::ProcessModel*>(cst.parent()))
+  if (auto parent_scenario
+      = dynamic_cast<Scenario::ProcessModel*>(cst.parent()))
   {
     auto& sst = parent_scenario->states.at(cst.startState());
     auto& est = parent_scenario->states.at(cst.endState());
@@ -46,7 +48,8 @@ DisplayedElementsContainer ScenarioDisplayedElementsProvider::make(IntervalModel
   return {};
 }
 
-DisplayedElementsPresenterContainer ScenarioDisplayedElementsProvider::make_presenters(
+DisplayedElementsPresenterContainer
+ScenarioDisplayedElementsProvider::make_presenters(
     ZoomRatio zoom,
     const IntervalModel& m,
     const Process::Context& ctx,
@@ -78,9 +81,11 @@ bool DefaultDisplayedElementsProvider::matches(const IntervalModel& cst) const
   return dynamic_cast<Scenario::ScenarioInterface*>(cst.parent());
 }
 
-DisplayedElementsContainer DefaultDisplayedElementsProvider::make(IntervalModel& cst) const
+DisplayedElementsContainer
+DefaultDisplayedElementsProvider::make(IntervalModel& cst) const
 {
-  if (auto parent_scenario = dynamic_cast<Scenario::ScenarioInterface*>(cst.parent()))
+  if (auto parent_scenario
+      = dynamic_cast<Scenario::ScenarioInterface*>(cst.parent()))
   {
     auto& sst = parent_scenario->state(cst.startState());
     auto& est = parent_scenario->state(cst.endState());
@@ -99,7 +104,8 @@ DisplayedElementsContainer DefaultDisplayedElementsProvider::make(IntervalModel&
   return {};
 }
 
-DisplayedElementsPresenterContainer DefaultDisplayedElementsProvider::make_presenters(
+DisplayedElementsPresenterContainer
+DefaultDisplayedElementsProvider::make_presenters(
     ZoomRatio zoom,
     const IntervalModel& m,
     const Process::Context& ctx,

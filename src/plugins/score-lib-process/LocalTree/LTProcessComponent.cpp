@@ -11,7 +11,8 @@ LocalTree::ProcessComponent::ProcessComponent(
     const Id<score::Component>& id,
     const QString& name,
     QObject* parent)
-    : Component<Process::GenericProcessComponent<const score::DocumentContext>>{
+    : Component<
+        Process::GenericProcessComponent<const score::DocumentContext>>{
         parentNode,
         proc.metadata(),
         proc,
@@ -25,4 +26,5 @@ LocalTree::ProcessComponent::ProcessComponent(
 
 LocalTree::ProcessComponent::~ProcessComponent() = default;
 LocalTree::ProcessComponentFactory::~ProcessComponentFactory() = default;
-LocalTree::ProcessComponentFactoryList::~ProcessComponentFactoryList() = default;
+LocalTree::ProcessComponentFactoryList::~ProcessComponentFactoryList()
+    = default;

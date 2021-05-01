@@ -65,6 +65,7 @@ struct SCORE_LIB_BASE_EXPORT Brush
   void reload(QColor color) noexcept;
 
   struct Pair;
+
 private:
   Brush() noexcept;
   Brush(const Brush&) noexcept;
@@ -81,10 +82,9 @@ private:
 struct Brush::Pair
 {
   Pair(QString&& str, QColor&& c)
-    : first{std::move(str)}
-    , second{std::move(c)}
+      : first{std::move(str)}
+      , second{std::move(c)}
   {
-
   }
   QString first;
   Brush second;
@@ -206,6 +206,7 @@ public:
   int PulseIndex{};
 
   int LoadIndex{};
+
 public:
   void changed() E_SIGNAL(SCORE_LIB_BASE_EXPORT, changed)
 
@@ -213,7 +214,9 @@ private:
   void timerEvent(QTimerEvent* event) override;
   Skin() noexcept;
 
-  struct NoGUI { };
+  struct NoGUI
+  {
+  };
   explicit Skin(NoGUI);
 
   struct color_map;

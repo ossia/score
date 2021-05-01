@@ -53,10 +53,15 @@ Presenter::Presenter(
 
   auto& model = layer;
 
-  con(model, &ProcessModel::durationChanged, this, [&] {
-    for (auto note : m_notes)
-      updateNote(*note);
-  }, Qt::QueuedConnection);
+  con(
+      model,
+      &ProcessModel::durationChanged,
+      this,
+      [&] {
+        for (auto note : m_notes)
+          updateNote(*note);
+      },
+      Qt::QueuedConnection);
   con(model, &ProcessModel::notesNeedUpdate, this, [&] {
     for (auto note : m_notes)
       updateNote(*note);
@@ -102,7 +107,8 @@ Presenter::Presenter(
         new RemoveNotes{this->model(), selectedNotes()});
   });
 
-  connect(m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
+  connect(
+      m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
 
   for (auto& note : model.notes)
   {
@@ -160,7 +166,8 @@ void Presenter::fillContextMenu(
     if (!ok)
       return;
 
-    MacroCommandDispatcher<RescaleAllMidi> disp{context().context.commandStack};
+    MacroCommandDispatcher<RescaleAllMidi> disp{
+        context().context.commandStack};
     auto& doc = context().context.document.model();
     auto midi = doc.findChildren<Midi::ProcessModel*>();
     for (auto ptr : midi)
@@ -219,7 +226,7 @@ void Presenter::on_deselectOtherNotes()
 
 void Presenter::on_noteChanged(NoteView& v)
 {
-  if(!m_origMovePitch)
+  if (!m_origMovePitch)
   {
     m_origMovePitch = v.note.pitch();
     m_origMoveStart = v.note.start();
@@ -271,10 +278,13 @@ void Presenter::on_noteScaled(const Note& note, double newScale)
   }
 
   auto dt = newScale - note.duration();
-  CommandDispatcher<>{context().context.commandStack}.submit(new ScaleNotes{model(), notes, dt});
+  CommandDispatcher<>{context().context.commandStack}.submit(
+      new ScaleNotes{model(), notes, dt});
 }
 
-void Presenter::on_requestVelocityChange(const Note& note, double velocityDelta)
+void Presenter::on_requestVelocityChange(
+    const Note& note,
+    double velocityDelta)
 {
   auto notes = selectedNotes();
   auto it = ossia::find(notes, note.id());
@@ -286,9 +296,7 @@ void Presenter::on_requestVelocityChange(const Note& note, double velocityDelta)
   m_velocityDispatcher.submit(model(), notes, velocityDelta / 5.);
 }
 
-void Presenter::on_duplicate()
-{
-}
+void Presenter::on_duplicate() { }
 
 void Presenter::on_velocityChangeFinished()
 {
@@ -317,7 +325,8 @@ void Presenter::on_noteAdded(const Note& n)
 
 void Presenter::on_noteRemoving(const Note& n)
 {
-  auto it = ossia::find_if(m_notes, [&](const auto& other) { return &other->note == &n; });
+  auto it = ossia::find_if(
+      m_notes, [&](const auto& other) { return &other->note == &n; });
   if (it != m_notes.end())
   {
     delete *it;
@@ -345,7 +354,8 @@ void Presenter::on_drop(const QPointF& pos, const QMimeData& md)
     note.setStart(ratio * note.start());
     note.setDuration(ratio * note.duration());
   }
-  disp.submit<Midi::ReplaceNotes>(model(), track.notes, track.min, track.max, model().duration());
+  disp.submit<Midi::ReplaceNotes>(
+      model(), track.notes, track.min, track.max, model().duration());
 }
 
 std::vector<Id<Note>> Presenter::selectedNotes() const

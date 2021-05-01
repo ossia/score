@@ -18,7 +18,8 @@
 W_OBJECT_IMPL(score::SearchLineEdit)
 namespace score
 {
-SearchLineEdit::SearchLineEdit(QWidget* parent) : QLineEdit{parent}
+SearchLineEdit::SearchLineEdit(QWidget* parent)
+    : QLineEdit{parent}
 {
   setObjectName("SearchLineEdit");
   setPlaceholderText("Search");
@@ -45,7 +46,8 @@ const QPalette& transparentPalette()
 }
 
 ToggleButton::ToggleButton(std::array<QString, 2> alts, QWidget* parent)
-    : QPushButton{parent}, alternatives{alts}
+    : QPushButton{parent}
+    , alternatives{alts}
 {
   setCheckable(true);
 
@@ -108,7 +110,10 @@ constexpr double speedFromValue(double value)
   return value * 6. - 1.;
 }
 
-SpeedSlider::SpeedSlider(QWidget* parent) : DoubleSlider{parent} { }
+SpeedSlider::SpeedSlider(QWidget* parent)
+    : DoubleSlider{parent}
+{
+}
 
 double SpeedSlider::speed() const noexcept
 {
@@ -167,7 +172,10 @@ void SpeedSlider::mousePressEvent(QMouseEvent* ev)
         w->setValue(speed() * ossia::root_tempo);
 
         QObject::connect(
-            w, SignalUtils::QDoubleSpinBox_valueChanged_double(), &self, [=, &self](double v) {
+            w,
+            SignalUtils::QDoubleSpinBox_valueChanged_double(),
+            &self,
+            [=, &self](double v) {
               self.setValue(valueFromSpeed(v / ossia::root_tempo));
             });
       }
@@ -178,15 +186,20 @@ void SpeedSlider::mousePressEvent(QMouseEvent* ev)
         w->setValue(speed());
 
         QObject::connect(
-            w, SignalUtils::QDoubleSpinBox_valueChanged_double(), &self, [=, &self](double v) {
-              self.setValue(valueFromSpeed(v));
-            });
+            w,
+            SignalUtils::QDoubleSpinBox_valueChanged_double(),
+            &self,
+            [=, &self](double v) { self.setValue(valueFromSpeed(v)); });
       }
 
       w->show();
       w->move(pos.x(), pos.y());
       QTimer::singleShot(5, w, [w] { w->setFocus(); });
-      QObject::connect(w, &DoubleSpinboxWithEnter::editingFinished, w, &QObject::deleteLater);
+      QObject::connect(
+          w,
+          &DoubleSpinboxWithEnter::editingFinished,
+          w,
+          &QObject::deleteLater);
     });
   }
   ev->ignore();
@@ -195,7 +208,9 @@ void SpeedSlider::mousePressEvent(QMouseEvent* ev)
 void VolumeSlider::paintEvent(QPaintEvent*)
 {
   paintWithText(
-      "vol: " + QString::number(ossia::detail::LinearGainToDecibels(value()), 'f', 1) + " dB");
+      "vol: "
+      + QString::number(ossia::detail::LinearGainToDecibels(value()), 'f', 1)
+      + " dB");
 }
 
 void ValueDoubleSlider::setRange(double min, double max) noexcept
@@ -219,11 +234,13 @@ void ValueLogDoubleSlider::setRange(double min, double max) noexcept
 
 void ValueLogDoubleSlider::paintEvent(QPaintEvent* event)
 {
-  paintWithText(QString::number(ossia::normalized_to_log(min, max - min, value()), 'f', 3));
+  paintWithText(QString::number(
+      ossia::normalized_to_log(min, max - min, value()), 'f', 3));
 }
 
 ComboSlider::ComboSlider(const QStringList& arr, QWidget* parent)
-    : score::IntSlider{parent}, array{arr}
+    : score::IntSlider{parent}
+    , array{arr}
 {
 }
 

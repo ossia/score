@@ -1,9 +1,9 @@
+#include <Audio/Settings/Model.hpp>
 #include <Media/Sound/SoundModel.hpp>
+#include <Media/Tempo.hpp>
 
 #include <QRegularExpression>
 
-#include <Media/Tempo.hpp>
-#include <Audio/Settings/Model.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::Sound::ProcessModel)
 namespace Media
@@ -45,7 +45,8 @@ ProcessModel::ProcessModel(
     const QString& data,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    : Process::
+        ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , outlet{Process::make_audio_outlet(Id<Process::Port>(0), this)}
     , m_file{std::make_shared<AudioFile>()}
 {
@@ -57,12 +58,12 @@ ProcessModel::ProcessModel(
 
 ProcessModel::~ProcessModel() { }
 
-
 void ProcessModel::loadFile(const QString& file)
 {
   m_file->on_mediaChanged.disconnect<&ProcessModel::on_mediaChanged>(*this);
 
-  m_file = AudioFileManager::instance().get(file, score::IDocument::documentContext(*this));
+  m_file = AudioFileManager::instance().get(
+      file, score::IDocument::documentContext(*this));
 
   m_file->on_mediaChanged.connect<&ProcessModel::on_mediaChanged>(*this);
 }
@@ -100,7 +101,8 @@ const std::shared_ptr<AudioFile>& ProcessModel::file() const
 
 QString ProcessModel::prettyName() const noexcept
 {
-  return m_file->empty() ? Process::ProcessModel::prettyName() : m_file->fileName();
+  return m_file->empty() ? Process::ProcessModel::prettyName()
+                         : m_file->fileName();
 }
 
 int ProcessModel::upmixChannels() const noexcept
@@ -161,7 +163,8 @@ void ProcessModel::setStretchMode(ossia::audio_stretch_mode t)
 
 void ProcessModel::on_mediaChanged()
 {
-  auto& audio_settings = score::GUIAppContext().settings<Audio::Settings::Model>();
+  auto& audio_settings
+      = score::GUIAppContext().settings<Audio::Settings::Model>();
   if (audio_settings.getAutoStereo() && m_file->channels() == 1)
   {
     setUpmixChannels(2);
@@ -190,8 +193,9 @@ void ProcessModel::ancestorTempoChanged()
 template <>
 void DataStreamReader::read(const Media::Sound::ProcessModel& proc)
 {
-  m_stream << proc.m_file->originalFile() << *proc.outlet << proc.m_upmixChannels
-           << proc.m_startChannel << proc.m_mode << proc.m_nativeTempo;
+  m_stream << proc.m_file->originalFile() << *proc.outlet
+           << proc.m_upmixChannels << proc.m_startChannel << proc.m_mode
+           << proc.m_nativeTempo;
 
   insertDelimiter();
 }
@@ -204,7 +208,8 @@ void DataStreamWriter::write(Media::Sound::ProcessModel& proc)
   proc.loadFile(s);
   proc.outlet = load_audio_outlet(*this, &proc);
 
-  m_stream >> proc.m_upmixChannels >> proc.m_startChannel >> proc.m_mode >> proc.m_nativeTempo;
+  m_stream >> proc.m_upmixChannels >> proc.m_startChannel >> proc.m_mode
+      >> proc.m_nativeTempo;
   checkDelimiter();
 }
 
@@ -231,5 +236,6 @@ void JSONWriter::write(Media::Sound::ProcessModel& proc)
   proc.m_nativeTempo = obj["Tempo"].toDouble();
 
   if (int off = obj["StartOffset"].toInt(); off != 0)
-    proc.m_startOffset = TimeVal::fromMsecs(1000. * off / proc.file()->sampleRate());
+    proc.m_startOffset
+        = TimeVal::fromMsecs(1000. * off / proc.file()->sampleRate());
 }

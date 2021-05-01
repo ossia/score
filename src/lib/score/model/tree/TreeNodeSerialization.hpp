@@ -45,7 +45,7 @@ struct TSerializer<JSONObject, TreeNode<T>>
 
     s.readFrom(static_cast<const T&>(n));
 
-    if(n.childCount() > 0)
+    if (n.childCount() > 0)
       s.obj[s.strings.Children] = n.children();
 
     s.stream.EndObject();

@@ -1,8 +1,9 @@
 #include <score/tools/OpenGL.hpp>
+
+#include <QDebug>
 #include <QOffscreenSurface>
 #include <QOpenGLContext>
 #include <QOpenGLFunctions>
-#include <QDebug>
 
 namespace score
 {
@@ -22,16 +23,17 @@ GLCapabilities::GLCapabilities()
   shaderVersion = glShaderVersion();
 
 #endif
-  qDebug() << "Available GL context: " << major << minor << shaderVersion << type;
+  qDebug() << "Available GL context: " << major << minor << shaderVersion
+           << type;
 }
 
 int GLCapabilities::glShaderVersion() noexcept
 {
-  switch(type)
+  switch (type)
   {
     case QSurfaceFormat::OpenGLES:
     {
-      if(major >= 3)
+      if (major >= 3)
       {
         return major * 100 + minor * 10;
       }
@@ -42,13 +44,13 @@ int GLCapabilities::glShaderVersion() noexcept
     }
     case QSurfaceFormat::OpenGL:
     {
-      if(major >= 3 && minor >= 3)
+      if (major >= 3 && minor >= 3)
       {
         return major * 100 + minor * 10;
       }
-      else if(major == 3)
+      else if (major == 3)
       {
-        switch(minor)
+        switch (minor)
         {
           case 2:
             return 150;
@@ -58,9 +60,10 @@ int GLCapabilities::glShaderVersion() noexcept
             return 130;
         }
       }
-      else if(major == 2)
+      else if (major == 2)
       {
-        switch(minor) {
+        switch (minor)
+        {
           case 1:
             return 120;
           case 0:

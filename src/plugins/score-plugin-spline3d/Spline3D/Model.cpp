@@ -13,7 +13,8 @@ ProcessModel::ProcessModel(
     const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    : Process::
+        ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , outlet{Process::make_value_outlet(Id<Process::Port>(0), this)}
 {
   m_spline.points.push_back({0., 0., 0.});
@@ -37,7 +38,10 @@ void ProcessModel::init()
   outlet->setName("Out");
   m_outlets.push_back(outlet.get());
   connect(
-      outlet.get(), &Process::Port::addressChanged, this, [=](const State::AddressAccessor& arg) {
+      outlet.get(),
+      &Process::Port::addressChanged,
+      this,
+      [=](const State::AddressAccessor& arg) {
         addressChanged(arg);
         prettyNameChanged();
         unitChanged(arg.qualifiers.get().unit);

@@ -1,4 +1,8 @@
 BasedOnStyle: WebKit
+
+AllowAllArgumentsOnNextLine: true
+ReflowComments: false
+
 AccessModifierOffset: -2
 AlignAfterOpenBracket: AlwaysBreak
 AlignEscapedNewlinesLeft: true
@@ -35,7 +39,7 @@ BreakBeforeBraces: Allman
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializersBeforeComma: true
 BreakInheritanceList: BeforeComma
-ColumnLimit: 99
+ColumnLimit: 79
 CommentPragmas: '^ IWYU pragma:'
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
 ConstructorInitializerIndentWidth: 4
@@ -67,17 +71,17 @@ SpacesInContainerLiterals: true
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
 SpaceBeforeCpp11BracedList: false
-Standard: Cpp11
+Standard: c++20
 TabWidth: 2
 UseTab: Never
-
+CommentPragmas: '^ clang-format:'
 StatementMacros: ['E_SIGNAL', 'PROPERTY', 'W_SIGNAL', 'W_PROPERTY', 'W_SLOT']
 SortIncludes: true
 IncludeBlocks: Regroup
 IncludeCategories:
   - Regex:           '^"'
     Priority:        1
-  - Regex:           '^<(Scenario|Explorer|Protocols|Process|State|Device|Media|Midi|JS|Curve|Inspector|Automation|Dataflow|Fx|Library|Mapping|Loop|Recording|PluginSettings)'
+  - Regex:           '^<(Vst|Vst3|Audio|Magnetism|Control|ControlSurface|RemoteScenario|Explorer|Protocols|Process|State|Device|Media|Midi|JS|Curve|Inspector|Automation|Dataflow|Fx|Library|Mapping|Loop|Recording|PluginSettings|Gfx|Nodal|Pd|LV2|Mixer|Video|Effect|Execution|Engine|LocalTree)'
     Priority:        2
   - Regex:           '^<score/'
     Priority:        3

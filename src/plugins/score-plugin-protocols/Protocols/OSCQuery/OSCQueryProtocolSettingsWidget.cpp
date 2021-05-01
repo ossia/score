@@ -8,6 +8,7 @@
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <Protocols/RateWidget.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
+
 #include <score/widgets/Pixmap.hpp>
 
 #include <QAction>
@@ -71,13 +72,15 @@ Device::DeviceSettings OSCQueryProtocolSettingsWidget::getSettings() const
   return s;
 }
 
-void OSCQueryProtocolSettingsWidget::setSettings(const Device::DeviceSettings& settings)
+void OSCQueryProtocolSettingsWidget::setSettings(
+    const Device::DeviceSettings& settings)
 {
   m_deviceNameEdit->setText(settings.name);
   OSCQuerySpecificSettings OSCQuery;
   if (settings.deviceSpecificSettings.canConvert<OSCQuerySpecificSettings>())
   {
-    OSCQuery = settings.deviceSpecificSettings.value<OSCQuerySpecificSettings>();
+    OSCQuery
+        = settings.deviceSpecificSettings.value<OSCQuerySpecificSettings>();
     m_localHostEdit->setText(OSCQuery.host);
     m_rate->setRate(OSCQuery.rate);
   }

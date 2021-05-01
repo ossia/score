@@ -7,8 +7,9 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Protocols/HTTP/HTTPProtocolSettingsWidget.hpp>
 #include <Protocols/HTTP/HTTPSpecificSettings.hpp>
-#include <ossia/network/base/device.hpp>
 #include <Protocols/LibraryDeviceEnumerator.hpp>
+
+#include <ossia/network/base/device.hpp>
 
 namespace Protocols
 {
@@ -22,16 +23,17 @@ QString HTTPProtocolFactory::category() const noexcept
   return StandardCategories::web;
 }
 
-Device::DeviceEnumerator* HTTPProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
+Device::DeviceEnumerator*
+HTTPProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
   return new LibraryDeviceEnumerator{
-    "Ossia.Http",
-    {"*.qml"},
-    HTTPProtocolFactory::static_concreteKey(),
-        [] (const QByteArray& arr) {
-      return QVariant::fromValue(HTTPSpecificSettings{arr});
-    },
-    ctx};
+      "Ossia.Http",
+      {"*.qml"},
+      HTTPProtocolFactory::static_concreteKey(),
+      [](const QByteArray& arr) {
+        return QVariant::fromValue(HTTPSpecificSettings{arr});
+      },
+      ctx};
 }
 
 Device::DeviceInterface* HTTPProtocolFactory::makeDevice(
@@ -41,7 +43,8 @@ Device::DeviceInterface* HTTPProtocolFactory::makeDevice(
   return new HTTPDevice{settings};
 }
 
-const Device::DeviceSettings& HTTPProtocolFactory::defaultSettings() const noexcept
+const Device::DeviceSettings&
+HTTPProtocolFactory::defaultSettings() const noexcept
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
@@ -59,7 +62,8 @@ Device::ProtocolSettingsWidget* HTTPProtocolFactory::makeSettingsWidget()
   return new HTTPProtocolSettingsWidget;
 }
 
-QVariant HTTPProtocolFactory::makeProtocolSpecificSettings(const VisitorVariant& visitor) const
+QVariant HTTPProtocolFactory::makeProtocolSpecificSettings(
+    const VisitorVariant& visitor) const
 {
   return makeProtocolSpecificSettings_T<HTTPSpecificSettings>(visitor);
 }

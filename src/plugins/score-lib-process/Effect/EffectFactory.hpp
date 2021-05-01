@@ -1,11 +1,10 @@
 #pragma once
+#include <Effect/EffectLayer.hpp>
 #include <Process/LayerView.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
 
 #include <score/graphics/RectItem.hpp>
-
-#include <Effect/EffectLayer.hpp>
 
 namespace Process
 {
@@ -19,12 +18,21 @@ public:
   {
     return Metadata<ConcreteKey_k, Model_T>::get();
   }
-  QString prettyName() const override { return Metadata<PrettyName_k, Model_T>::get(); }
-  QString category() const override { return Metadata<Category_k, Model_T>::get(); }
+  QString prettyName() const override
+  {
+    return Metadata<PrettyName_k, Model_T>::get();
+  }
+  QString category() const override
+  {
+    return Metadata<Category_k, Model_T>::get();
+  }
 
   Descriptor descriptor(QString) const override;
 
-  ProcessFlags flags() const override { return Metadata<ProcessFlags_k, Model_T>::get(); }
+  ProcessFlags flags() const override
+  {
+    return Metadata<ProcessFlags_k, Model_T>::get();
+  }
 
   QString customConstructionData() const override;
 
@@ -38,8 +46,10 @@ public:
     return new Model_T{duration, data, id, parent};
   }
 
-  Model_T* load(const VisitorVariant& vis, const score::DocumentContext& ctx, QObject* parent)
-      final override
+  Model_T* load(
+      const VisitorVariant& vis,
+      const score::DocumentContext& ctx,
+      QObject* parent) final override
   {
     return score::deserialize_dyn(vis, [&](auto&& deserializer) {
       return new Model_T{deserializer, parent};
@@ -81,7 +91,10 @@ private:
       QObject* parent) const final override
   {
     auto pres = new EffectLayerPresenter{
-        safe_cast<const Model_T&>(lm), safe_cast<EffectLayerView*>(v), context, parent};
+        safe_cast<const Model_T&>(lm),
+        safe_cast<EffectLayerView*>(v),
+        context,
+        parent};
 
     auto rect = new score::EmptyRectItem{v};
     auto item = makeItem(lm, context, rect);
@@ -97,8 +110,9 @@ private:
     return new Item_T{safe_cast<const Model_T&>(proc), ctx, parent};
   }
 
-  bool hasExternalUI(const Process::ProcessModel& proc, const score::DocumentContext& ctx)
-      const noexcept override
+  bool hasExternalUI(
+      const Process::ProcessModel& proc,
+      const score::DocumentContext& ctx) const noexcept override
   {
     return ((Model_T&)proc).hasExternalUI();
   }

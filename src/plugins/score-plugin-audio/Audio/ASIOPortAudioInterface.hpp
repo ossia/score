@@ -1,15 +1,16 @@
 #pragma once
-#include <QPushButton>
-
 #include <Audio/AudioInterface.hpp>
 #include <Audio/PortAudioInterface.hpp>
 #include <Audio/Settings/Model.hpp>
-#include <score/command/Dispatchers/SettingsCommandDispatcher.hpp>
-#include <score/widgets/SignalUtils.hpp>
 #include <Audio/Settings/View.hpp>
+
+#include <score/command/Dispatchers/SettingsCommandDispatcher.hpp>
 #include <score/tools/Bind.hpp>
+#include <score/widgets/SignalUtils.hpp>
+
 #include <QComboBox>
 #include <QFormLayout>
+#include <QPushButton>
 
 #if __has_include(<pa_asio.h>)
 #include <pa_asio.h>
@@ -26,7 +27,9 @@
 namespace Audio
 {
 #if __has_include(<pa_asio.h>)
-class ASIOFactory final : public QObject, public AudioFactory
+class ASIOFactory final
+    : public QObject
+    , public AudioFactory
 {
   SCORE_CONCRETE("6b34c6dd-8201-448f-859c-d014f8d01448")
 public:
@@ -36,14 +39,19 @@ public:
 
   ~ASIOFactory() override { }
   bool available() const noexcept override { return true; }
-  void initialize(Audio::Settings::Model& set, const score::ApplicationContext& ctx) override { }
+  void initialize(
+      Audio::Settings::Model& set,
+      const score::ApplicationContext& ctx) override
+  {
+  }
 
   void rescan()
   {
     devices.clear();
     PortAudioScope portaudio;
 
-    devices.push_back(PortAudioCard{{}, {}, QObject::tr("No device"), -1, 0, 0, {}});
+    devices.push_back(
+        PortAudioCard{{}, {}, QObject::tr("No device"), -1, 0, 0, {}});
     for (int i = 0; i < Pa_GetHostApiCount(); i++)
     {
       auto hostapi = Pa_GetHostApiInfo(i);
@@ -70,8 +78,9 @@ public:
   }
 
   QString prettyName() const override { return QObject::tr("ASIO"); }
-  std::unique_ptr<ossia::audio_engine>
-  make_engine(const Audio::Settings::Model& set, const score::ApplicationContext& ctx) override
+  std::unique_ptr<ossia::audio_engine> make_engine(
+      const Audio::Settings::Model& set,
+      const score::ApplicationContext& ctx) override
   {
     return std::make_unique<ossia::portaudio_engine>(
         "ossia score",
@@ -86,8 +95,8 @@ public:
 
   void setCard(QComboBox* combo, QString val)
   {
-    auto dev_it
-        = ossia::find_if(devices, [&](const PortAudioCard& d) { return d.raw_name == val; });
+    auto dev_it = ossia::find_if(
+        devices, [&](const PortAudioCard& d) { return d.raw_name == val; });
     if (dev_it != devices.end())
     {
       combo->setCurrentIndex(dev_it->out_index);
@@ -126,15 +135,22 @@ public:
       auto update_dev = [=, &m, &m_disp](const PortAudioCard& dev) {
         if (dev.raw_name != m.getCardOut())
         {
-          m_disp.submitDeferredCommand<Audio::Settings::SetModelCardIn>(m, dev.raw_name);
-          m_disp.submitDeferredCommand<Audio::Settings::SetModelCardOut>(m, dev.raw_name);
-          m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultIn>(m, dev.inputChan);
-          m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultOut>(m, dev.outputChan);
+          m_disp.submitDeferredCommand<Audio::Settings::SetModelCardIn>(
+              m, dev.raw_name);
+          m_disp.submitDeferredCommand<Audio::Settings::SetModelCardOut>(
+              m, dev.raw_name);
+          m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultIn>(
+              m, dev.inputChan);
+          m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultOut>(
+              m, dev.outputChan);
         }
       };
 
       QObject::connect(
-          card_list, SignalUtils::QComboBox_currentIndexChanged_int(), &v, [=](int i) {
+          card_list,
+          SignalUtils::QComboBox_currentIndexChanged_int(),
+          &v,
+          [=](int i) {
             auto& device = devices[card_list->itemData(i).toInt()];
             update_dev(device);
           });
@@ -155,7 +171,8 @@ public:
     {
       lay->addWidget(show_ui);
       connect(show_ui, &QPushButton::clicked, this, [=] {
-        auto& dev = devices[card_list->itemData(card_list->currentIndex()).toInt()];
+        auto& dev
+            = devices[card_list->itemData(card_list->currentIndex()).toInt()];
         PortAudioScope portaudio;
         PaAsio_ShowControlPanel(dev.dev_idx, GetActiveWindow());
       });
@@ -164,7 +181,9 @@ public:
     addBufferSizeWidget(*w, m, v);
     addSampleRateWidget(*w, m, v);
 
-    con(m, &Model::changed, w, [=, &m] { setCard(card_list, m.getCardOut()); });
+    con(m, &Model::changed, w, [=, &m] {
+      setCard(card_list, m.getCardOut());
+    });
     return w;
   }
 };

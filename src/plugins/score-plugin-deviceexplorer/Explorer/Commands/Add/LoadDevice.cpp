@@ -17,12 +17,16 @@ namespace Explorer
 {
 namespace Command
 {
-LoadDevice::LoadDevice(const DeviceDocumentPlugin& devplug, const Device::DeviceSettings& set)
-  : LoadDevice{devplug, Device::Node{set, {}}}
+LoadDevice::LoadDevice(
+    const DeviceDocumentPlugin& devplug,
+    const Device::DeviceSettings& set)
+    : LoadDevice{devplug, Device::Node{set, {}}}
 {
 }
 
-LoadDevice::LoadDevice(const DeviceDocumentPlugin& devplug, Device::Node&& node)
+LoadDevice::LoadDevice(
+    const DeviceDocumentPlugin& devplug,
+    Device::Node&& node)
     : m_deviceNode(std::move(node))
 {
 }
@@ -53,7 +57,8 @@ ReloadWholeDevice::ReloadWholeDevice(
     const DeviceDocumentPlugin& devplug,
     Device::Node&& oldNode,
     Device::Node&& newNode)
-    : m_oldNode(std::move(oldNode)), m_newNode(std::move(newNode))
+    : m_oldNode(std::move(oldNode))
+    , m_newNode(std::move(newNode))
 {
 }
 

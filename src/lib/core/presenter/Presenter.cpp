@@ -71,7 +71,10 @@ Presenter::Presenter(
   // this dependency cycle.
 
   connect(
-      &m_context.docManager, &DocumentManager::documentChanged, &m_actions, &ActionManager::reset);
+      &m_context.docManager,
+      &DocumentManager::documentChanged,
+      &m_actions,
+      &ActionManager::reset);
 
   if (m_view)
     m_view->setPresenter(this);
@@ -129,7 +132,9 @@ void Presenter::setupGUI()
 
     for (auto& tb : toolbars)
     {
-      ossia::sort(tb.second, [](auto& lhs, auto& rhs) { return lhs.column() < rhs.column(); });
+      ossia::sort(tb.second, [](auto& lhs, auto& rhs) {
+        return lhs.column() < rhs.column();
+      });
     }
 
     {
@@ -156,11 +161,11 @@ void Presenter::setupGUI()
         }
 
         // TODO find a better design for that !
-        if(tb.key() == StringKey<score::Toolbar>("Audio"))
+        if (tb.key() == StringKey<score::Toolbar>("Audio"))
         {
-          if(!tb.toolbar()->actions().empty())
+          if (!tb.toolbar()->actions().empty())
           {
-            auto audio_engine_act =  tb.toolbar()->actions().back();
+            auto audio_engine_act = tb.toolbar()->actions().back();
             tb.toolbar()->removeAction(audio_engine_act);
             view()->bottomTabs->addAction(audio_engine_act);
           }

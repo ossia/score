@@ -14,7 +14,8 @@ namespace Media
 {
 namespace Sound
 {
-class InspectorWidget final : public Process::InspectorWidgetDelegate_T<Sound::ProcessModel>
+class InspectorWidget final
+    : public Process::InspectorWidgetDelegate_T<Sound::ProcessModel>
 {
 public:
   explicit InspectorWidget(

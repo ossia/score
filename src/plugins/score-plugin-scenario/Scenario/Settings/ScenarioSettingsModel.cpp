@@ -4,6 +4,7 @@
 
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/Skin.hpp>
 #include <score/plugins/InterfaceList.hpp>
@@ -23,17 +24,27 @@ namespace Settings
 namespace Parameters
 {
 SETTINGS_PARAMETER_IMPL(Skin){QStringLiteral("Skin/Skin"), "Default"};
-SETTINGS_PARAMETER_IMPL(DefaultEditor){QStringLiteral("Skin/DefaultEditor"), ""};
+SETTINGS_PARAMETER_IMPL(DefaultEditor){
+    QStringLiteral("Skin/DefaultEditor"),
+    ""};
 SETTINGS_PARAMETER_IMPL(GraphicZoom){QStringLiteral("Skin/Zoom"), 1};
 SETTINGS_PARAMETER_IMPL(SlotHeight){QStringLiteral("Skin/slotHeight"), 200};
 SETTINGS_PARAMETER_IMPL(DefaultDuration){
     QStringLiteral("Skin/defaultDuration"),
     TimeVal::fromMsecs(15000)};
-SETTINGS_PARAMETER_IMPL(SnapshotOnCreate){QStringLiteral("Scenario/SnapshotOnCreate"), false};
-SETTINGS_PARAMETER_IMPL(AutoSequence){QStringLiteral("Scenario/AutoSequence"), false};
+SETTINGS_PARAMETER_IMPL(SnapshotOnCreate){
+    QStringLiteral("Scenario/SnapshotOnCreate"),
+    false};
+SETTINGS_PARAMETER_IMPL(AutoSequence){
+    QStringLiteral("Scenario/AutoSequence"),
+    false};
 SETTINGS_PARAMETER_IMPL(TimeBar){QStringLiteral("Scenario/TimeBar"), true};
-SETTINGS_PARAMETER_IMPL(MeasureBars){QStringLiteral("Scenario/MeasureBars"), true};
-SETTINGS_PARAMETER_IMPL(MagneticMeasures){QStringLiteral("Scenario/MagneticMeasures"), true};
+SETTINGS_PARAMETER_IMPL(MeasureBars){
+    QStringLiteral("Scenario/MeasureBars"),
+    true};
+SETTINGS_PARAMETER_IMPL(MagneticMeasures){
+    QStringLiteral("Scenario/MagneticMeasures"),
+    true};
 
 static auto list()
 {
@@ -118,7 +129,8 @@ void Model::setDefaultEditor(QString val)
 
 #if !defined(__EMSCRIPTEN__)
   QSettings s;
-  s.setValue(Parameters::DefaultEditor.key, QVariant::fromValue(m_DefaultEditor));
+  s.setValue(
+      Parameters::DefaultEditor.key, QVariant::fromValue(m_DefaultEditor));
 #endif
 
   DefaultEditorChanged(val);
@@ -140,7 +152,8 @@ void Model::setDefaultDuration(TimeVal val)
 
 #if !defined(__EMSCRIPTEN__)
   QSettings s;
-  s.setValue(Parameters::DefaultDuration.key, QVariant::fromValue(m_DefaultDuration));
+  s.setValue(
+      Parameters::DefaultDuration.key, QVariant::fromValue(m_DefaultDuration));
 #endif
 
   DefaultDurationChanged(val);
@@ -155,12 +168,15 @@ SCORE_SETTINGS_PARAMETER_CPP(bool, Model, MeasureBars)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, MagneticMeasures)
 }
 
-double getNewLayerHeight(const score::ApplicationContext& ctx, const Process::ProcessModel& proc) noexcept
+double getNewLayerHeight(
+    const score::ApplicationContext& ctx,
+    const Process::ProcessModel& proc) noexcept
 {
   double h = 100;
-  const auto& fact = ctx.interfaces<Process::LayerFactoryList>().get(proc.concreteKey());
+  const auto& fact
+      = ctx.interfaces<Process::LayerFactoryList>().get(proc.concreteKey());
 
-  if(auto opt_h = fact->recommendedHeight())
+  if (auto opt_h = fact->recommendedHeight())
   {
     h = *opt_h;
   }

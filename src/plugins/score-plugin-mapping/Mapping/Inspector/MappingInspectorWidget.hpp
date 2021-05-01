@@ -36,11 +36,13 @@ public:
       QWidget* parent);
 
 private:
-  void on_sourceAddressChange(const Device::FullAddressAccessorSettings& newText);
+  void
+  on_sourceAddressChange(const Device::FullAddressAccessorSettings& newText);
   void on_sourceMinValueChanged();
   void on_sourceMaxValueChanged();
 
-  void on_targetAddressChange(const Device::FullAddressAccessorSettings& newText);
+  void
+  on_targetAddressChange(const Device::FullAddressAccessorSettings& newText);
   void on_targetMinValueChanged();
   void on_targetMaxValueChanged();
 

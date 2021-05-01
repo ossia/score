@@ -2,17 +2,17 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "JamomaDeviceLoader.hpp"
 
-#include <score/tools/std/StringHash.hpp>
 #include <score/tools/File.hpp>
+#include <score/tools/std/StringHash.hpp>
 
 #include <ossia/network/base/node_attributes.hpp>
 #include <ossia/network/domain/domain.hpp>
 
 #include <QDebug>
-#include <QFile>
+#include <QDomAttr>
 #include <QDomDocument>
 #include <QDomEntity>
-#include <QDomAttr>
+#include <QFile>
 
 namespace Device
 {
@@ -107,7 +107,8 @@ static ossia::value stringToOssiaVal(const QString& str, const QString& type)
   return val;
 }
 
-static ossia::value read_valueDefault(const QDomElement& dom_element, const QString& type)
+static ossia::value
+read_valueDefault(const QDomElement& dom_element, const QString& type)
 {
   if (dom_element.hasAttribute("valueDefault"))
   {
@@ -120,7 +121,8 @@ static ossia::value read_valueDefault(const QDomElement& dom_element, const QStr
   }
 }
 
-static std::optional<ossia::access_mode> read_service(const QDomElement& dom_element)
+static std::optional<ossia::access_mode>
+read_service(const QDomElement& dom_element)
 {
   using namespace score;
   if (dom_element.hasAttribute("service"))
@@ -141,7 +143,8 @@ else if(service == "")
   return std::nullopt;
 }
 
-static auto read_rangeBounds(const QDomElement& dom_element, const QString& type)
+static auto
+read_rangeBounds(const QDomElement& dom_element, const QString& type)
 {
   ossia::domain domain;
 
@@ -176,7 +179,8 @@ static auto read_rangeClipmode(const QDomElement& dom_element)
   return ossia::bounding_mode::FREE;
 }
 
-static void convertFromDomElement(const QDomElement& dom_element, Device::Node& parentNode)
+static void
+convertFromDomElement(const QDomElement& dom_element, Device::Node& parentNode)
 {
   QDomElement dom_child = dom_element.firstChildElement("");
   QString name;
@@ -202,7 +206,8 @@ static void convertFromDomElement(const QDomElement& dom_element, Device::Node& 
     ossia::net::set_priority(addr, dom_element.attribute("priority").toInt());
     auto rfl = dom_element.attribute("repetitionsFilter").toInt();
 
-    addr.repetitionFilter = rfl ? ossia::repetition_filter::ON : ossia::repetition_filter::OFF;
+    addr.repetitionFilter
+        = rfl ? ossia::repetition_filter::ON : ossia::repetition_filter::OFF;
 
     addr.domain = read_rangeBounds(dom_element, type);
     addr.clipMode = read_rangeClipmode(dom_element);

@@ -53,8 +53,9 @@ public:
   virtual void optimize() noexcept = 0;
 };
 
-SCORE_LIB_BASE_EXPORT void
-debug_types(const score::InterfaceBase* orig, const score::InterfaceBase* repl) noexcept;
+SCORE_LIB_BASE_EXPORT void debug_types(
+    const score::InterfaceBase* orig,
+    const score::InterfaceBase* repl) noexcept;
 /**
  * @brief InterfaceList Default implementation of InterfaceListBase
  *
@@ -137,7 +138,10 @@ public:
   auto size() const noexcept { return vec.size(); }
 
 protected:
-  ossia::fast_hash_map<typename FactoryType::ConcreteKey, std::unique_ptr<FactoryType>> map;
+  ossia::fast_hash_map<
+      typename FactoryType::ConcreteKey,
+      std::unique_ptr<FactoryType>>
+      map;
 
   std::vector<FactoryType*> vec;
 

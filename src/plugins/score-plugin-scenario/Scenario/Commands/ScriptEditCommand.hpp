@@ -3,9 +3,10 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
 #include <Process/Script/ScriptEditor.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
 #include <ossia/detail/algorithms.hpp>
+
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 namespace Scenario
 {
 struct SavedPort
@@ -22,15 +23,20 @@ public:
   using param_type = typename Property_T::param_type;
   using score::Command::Command;
   EditScript(const Process_T& model, param_type newScript)
-      : m_path{model}, m_newScript{std::move(newScript)}, m_oldScript{(model.*Property_T::get)()}
+      : m_path{model}
+      , m_newScript{std::move(newScript)}
+      , m_oldScript{(model.*Property_T::get)()}
   {
     m_oldCables = Dataflow::saveCables(
-        {const_cast<Process_T*>(&model)}, score::IDocument::documentContext(model));
+        {const_cast<Process_T*>(&model)},
+        score::IDocument::documentContext(model));
 
     for (auto& port : model.inlets())
-      m_oldInlets.emplace_back(SavedPort{port->name(), port->type(), port->saveData()});
+      m_oldInlets.emplace_back(
+          SavedPort{port->name(), port->type(), port->saveData()});
     for (auto& port : model.outlets())
-      m_oldOutlets.emplace_back(SavedPort{port->name(), port->type(), port->saveData()});
+      m_oldOutlets.emplace_back(
+          SavedPort{port->name(), port->type(), port->saveData()});
   }
 
 private:
@@ -73,7 +79,8 @@ private:
     {
       SCORE_ASSERT(!cable.unsafePath().vec().empty());
       auto cable_id = cable.unsafePath().vec().back().id();
-      auto it = ossia::find_if(cables, [cable_id](auto& c) { return c.first.val() == cable_id; });
+      auto it = ossia::find_if(
+          cables, [cable_id](auto& c) { return c.first.val() == cable_id; });
 
       SCORE_ASSERT(it != cables.end());
       SCORE_ASSERT(doc.cables.find(it->first) == doc.cables.end());
@@ -94,7 +101,8 @@ private:
     {
       SCORE_ASSERT(!cable.unsafePath().vec().empty());
       auto cable_id = cable.unsafePath().vec().back().id();
-      auto it = ossia::find_if(cables, [cable_id](auto& c) { return c.first.val() == cable_id; });
+      auto it = ossia::find_if(
+          cables, [cable_id](auto& c) { return c.first.val() == cable_id; });
 
       SCORE_ASSERT(it != cables.end());
       SCORE_ASSERT(doc.cables.find(it->first) == doc.cables.end());
@@ -115,10 +123,12 @@ private:
 
     // Try an optimistic matching. Type and name must match.
 
-    auto& doc = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
+    auto& doc
+        = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
 
     std::size_t min_inlets = std::min(m_oldInlets.size(), cmt.inlets().size());
-    std::size_t min_outlets = std::min(m_oldOutlets.size(), cmt.outlets().size());
+    std::size_t min_outlets
+        = std::min(m_oldOutlets.size(), cmt.outlets().size());
     for (std::size_t i = 0; i < min_inlets; i++)
     {
       auto new_p = cmt.inlets()[i];
@@ -146,12 +156,14 @@ private:
 
   void serializeImpl(DataStreamInput& s) const override
   {
-    s << m_path << m_newScript << m_oldScript << m_oldInlets << m_oldOutlets << m_oldCables;
+    s << m_path << m_newScript << m_oldScript << m_oldInlets << m_oldOutlets
+      << m_oldCables;
   }
 
   void deserializeImpl(DataStreamOutput& s) override
   {
-    s >> m_path >> m_newScript >> m_oldScript >> m_oldInlets >> m_oldOutlets >> m_oldCables;
+    s >> m_path >> m_newScript >> m_oldScript >> m_oldInlets >> m_oldOutlets
+        >> m_oldCables;
   }
 
   Path<Process_T> m_path;
@@ -172,7 +184,8 @@ struct is_custom_serialized<Scenario::SavedPort> : std::true_type
 template <>
 struct TSerializer<DataStream, Scenario::SavedPort>
 {
-  static void readFrom(DataStream::Serializer& s, const Scenario::SavedPort& tv)
+  static void
+  readFrom(DataStream::Serializer& s, const Scenario::SavedPort& tv)
   {
     s.stream() << tv.name << tv.type << tv.data;
   }

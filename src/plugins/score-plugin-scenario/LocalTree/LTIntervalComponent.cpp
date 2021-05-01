@@ -14,7 +14,8 @@ State::AddressAccessor value(const ossia::value& val)
 {
   if (val.get_type() == ossia::val_type::STRING)
   {
-    if (auto res = State::parseAddressAccessor(QString::fromStdString(*val.target<std::string>())))
+    if (auto res = State::parseAddressAccessor(
+            QString::fromStdString(*val.target<std::string>())))
       return *res;
   }
   return {};
@@ -45,7 +46,10 @@ struct qt_property_converter<State::AddressAccessor>
   {
     return t.toString().toStdString();
   }
-  static std::string convert(State::AddressAccessor&& t) { return t.toString().toStdString(); }
+  static std::string convert(State::AddressAccessor&& t)
+  {
+    return t.toString().toStdString();
+  }
 };
 
 template <>
@@ -94,13 +98,14 @@ public:
       {
         if (auto control = dynamic_cast<Process::ControlInlet*>(inlet))
         {
-          if(!inlet->exposed().isEmpty())
+          if (!inlet->exposed().isEmpty())
           {
             m_properties.push_back(add_property<Process::Inlet::p_address>(
-                                     this->node(), *inlet, inlet->exposed().toStdString(), this));
+                this->node(), *inlet, inlet->exposed().toStdString(), this));
             auto& port_node = m_properties.back()->addr.get_node();
-            m_properties.push_back(add_value_property<Process::ControlInlet::p_value>(
-                                     port_node, *control, "value", this));
+            m_properties.push_back(
+                add_value_property<Process::ControlInlet::p_value>(
+                    port_node, *control, "value", this));
           }
         }
       }
@@ -109,13 +114,14 @@ public:
       {
         if (auto control = dynamic_cast<Process::ControlOutlet*>(outlet))
         {
-          if(!outlet->exposed().isEmpty())
+          if (!outlet->exposed().isEmpty())
           {
             m_properties.push_back(add_property<Process::Outlet::p_address>(
-                                     this->node(), *outlet, outlet->exposed().toStdString(), this));
+                this->node(), *outlet, outlet->exposed().toStdString(), this));
             auto& port_node = m_properties.back()->addr.get_node();
-            m_properties.push_back(add_value_property<Process::ControlOutlet::p_value>(
-                                     port_node, *control, "value", this));
+            m_properties.push_back(
+                add_value_property<Process::ControlOutlet::p_value>(
+                    port_node, *control, "value", this));
           }
         }
       }
@@ -154,17 +160,21 @@ ProcessComponent* IntervalBase::make(
   return factory.make(id, m_processesNode, process, system(), this);
 }
 
-ProcessComponent*
-IntervalBase::make(const Id<score::Component>& id, Process::ProcessModel& process)
+ProcessComponent* IntervalBase::make(
+    const Id<score::Component>& id,
+    Process::ProcessModel& process)
 {
-  if(!process.metadata().getName().isEmpty())
+  if (!process.metadata().getName().isEmpty())
   {
-    return new DefaultProcessComponent{m_processesNode, process, system(), id, this};
+    return new DefaultProcessComponent{
+        m_processesNode, process, system(), id, this};
   }
   return nullptr;
 }
 
-bool IntervalBase::removing(const Process::ProcessModel& cst, const ProcessComponent& comp)
+bool IntervalBase::removing(
+    const Process::ProcessModel& cst,
+    const ProcessComponent& comp)
 {
   return true;
 }

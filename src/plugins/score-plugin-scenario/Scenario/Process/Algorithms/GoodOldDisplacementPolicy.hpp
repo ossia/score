@@ -1,12 +1,13 @@
 #pragma once
 
 #include <Process/TimeValue.hpp>
-#include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
 
 #include <score/model/Identifier.hpp>
 
 #include <QString>
 #include <QVector>
+
+#include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
 
 #include <vector>
 
@@ -18,8 +19,9 @@ class ProcessModel;
 class GoodOldDisplacementPolicy
 {
 public:
-  static void
-  init(Scenario::ProcessModel& scenario, const QVector<Id<TimeSyncModel>>& draggedElements)
+  static void init(
+      Scenario::ProcessModel& scenario,
+      const QVector<Id<TimeSyncModel>>& draggedElements)
   {
   }
 

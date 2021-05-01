@@ -8,33 +8,35 @@
 #include <score/tools/Cursor.hpp>
 
 #include <QGraphicsScene>
-#include <QGraphicsView>
 #include <QGraphicsSceneMouseEvent>
+#include <QGraphicsView>
 #include <QPainter>
 
 #include <Patternist/PatternModel.hpp>
-#include <wobjectimpl.h>
 #include <score_plugin_midi_export.h>
+#include <wobjectimpl.h>
 W_OBJECT_IMPL(Patternist::View)
-
 
 namespace Patternist
 {
 
 View::View(const Patternist::ProcessModel& model, QGraphicsItem* parent)
-    : LayerView{parent}, m_model{model}
+    : LayerView{parent}
+    , m_model{model}
 {
   setFlag(QGraphicsItem::ItemClipsToShape);
   setFlag(QGraphicsItem::ItemClipsChildrenToShape);
-  con(model, &Patternist::ProcessModel::patternsChanged, this, [=] { updateLanes(); });
-  con(model, &Patternist::ProcessModel::currentPatternChanged, this, [=] { updateLanes(); });
+  con(model, &Patternist::ProcessModel::patternsChanged, this, [=] {
+    updateLanes();
+  });
+  con(model, &Patternist::ProcessModel::currentPatternChanged, this, [=] {
+    updateLanes();
+  });
 
   updateLanes();
 }
 
-View::~View()
-{
-}
+View::~View() { }
 
 void View::updateLanes()
 {
@@ -55,11 +57,12 @@ void View::updateLanes()
       sl->setX(10);
       sl->setY(lane * 40);
 
-      connect(sl, &score::QGraphicsNoteChooser::sliderMoved, this, [this, sl, lane] {
-        noteChanged(lane, sl->value());
-      });
       connect(
-          sl, &score::QGraphicsNoteChooser::sliderReleased, this, [this] {
+          sl,
+          &score::QGraphicsNoteChooser::sliderMoved,
+          this,
+          [this, sl, lane] { noteChanged(lane, sl->value()); });
+      connect(sl, &score::QGraphicsNoteChooser::sliderReleased, this, [this] {
         noteChangeFinished();
       });
       m_lanes.push_back(sl);
@@ -98,7 +101,10 @@ void View::paint_impl(QPainter* painter) const
     for (int i = 0; i < cur_p.length; i++)
     {
       const QRectF rect{
-          x0 + i * (box_side + box_spacing), y0 + lane_height * lane, box_side, box_side};
+          x0 + i * (box_side + box_spacing),
+          y0 + lane_height * lane,
+          box_side,
+          box_side};
 
       if (l.pattern[i])
       {
@@ -111,7 +117,10 @@ void View::paint_impl(QPainter* painter) const
     for (int i = 0; i < cur_p.length; i++)
     {
       const QRectF rect{
-          x0 + i * (box_side + box_spacing), y0 + lane_height * lane, box_side, box_side};
+          x0 + i * (box_side + box_spacing),
+          y0 + lane_height * lane,
+          box_side,
+          box_side};
 
       if (!l.pattern[i])
       {
@@ -129,7 +138,10 @@ void View::mousePressEvent(QGraphicsSceneMouseEvent* event)
     for (int i = 0; i < cur_p.length; i++)
     {
       const QRectF rect{
-          x0 + i * (box_side + box_spacing), y0 + lane_height * lane, box_side, box_side};
+          x0 + i * (box_side + box_spacing),
+          y0 + lane_height * lane,
+          box_side,
+          box_side};
 
       if (rect.contains(event->pos()))
       {

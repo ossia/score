@@ -6,8 +6,9 @@
 
 #include <verdigris>
 
-class score_plugin_ui final : public score::FactoryInterface_QtInterface,
-                              public score::Plugin_QtInterface
+class score_plugin_ui final
+    : public score::FactoryInterface_QtInterface
+    , public score::Plugin_QtInterface
 {
   SCORE_PLUGIN_METADATA(1, "6946dfd3-72e7-4238-bba8-1229ee0cfe0b")
 public:

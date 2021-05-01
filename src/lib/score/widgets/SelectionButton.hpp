@@ -1,8 +1,8 @@
 #pragma once
 #include <score/selection/Selection.hpp>
 
-#include <QToolButton>
 #include <QString>
+#include <QToolButton>
 #include <QWidget>
 
 class QPushButton;
@@ -21,15 +21,20 @@ public:
       QWidget* parent);
 
   template <typename Obj>
-  static SelectionButton* make(Obj* obj, score::SelectionDispatcher& disp, QWidget* parent)
+  static SelectionButton*
+  make(Obj* obj, score::SelectionDispatcher& disp, QWidget* parent)
   {
     auto ptr = const_cast<std::remove_const_t<Obj>*>(obj);
-    return new SelectionButton{QString::number(*obj->id().val()), Selection{ptr}, disp, parent};
+    return new SelectionButton{
+        QString::number(*obj->id().val()), Selection{ptr}, disp, parent};
   }
 
   template <typename Obj>
-  static SelectionButton*
-  make(const QString& text, Obj* obj, score::SelectionDispatcher& disp, QWidget* parent)
+  static SelectionButton* make(
+      const QString& text,
+      Obj* obj,
+      score::SelectionDispatcher& disp,
+      QWidget* parent)
   {
     auto ptr = const_cast<std::remove_const_t<Obj>*>(obj);
     auto but = new SelectionButton{text, Selection{ptr}, disp, parent};

@@ -1,6 +1,6 @@
-#include <score/graphics/widgets/QGraphicsLogSlider.hpp>
 #include <score/graphics/DefaultGraphicsSliderImpl.hpp>
 #include <score/graphics/GraphicsSliderBaseImpl.hpp>
+#include <score/graphics/widgets/QGraphicsLogSlider.hpp>
 #include <score/model/Skin.hpp>
 
 #include <ossia/detail/math.hpp>
@@ -12,9 +12,11 @@ W_OBJECT_IMPL(score::QGraphicsLogSlider);
 
 namespace score
 {
-template void QGraphicsSliderBase<QGraphicsLogSlider>::setRect(const QRectF& r);
+template void
+QGraphicsSliderBase<QGraphicsLogSlider>::setRect(const QRectF& r);
 
-QGraphicsLogSlider::QGraphicsLogSlider(QGraphicsItem* parent) : QGraphicsSliderBase{parent}
+QGraphicsLogSlider::QGraphicsLogSlider(QGraphicsItem* parent)
+    : QGraphicsSliderBase{parent}
 {
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointingHand);
@@ -64,7 +66,8 @@ void QGraphicsLogSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   DefaultGraphicsSliderImpl::mouseReleaseEvent(*this, event);
 }
 
-void QGraphicsLogSlider::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
+void QGraphicsLogSlider::contextMenuEvent(
+    QGraphicsSceneContextMenuEvent* event)
 {
   event->accept();
 }
@@ -82,7 +85,8 @@ void QGraphicsLogSlider::paint(
   DefaultGraphicsSliderImpl::paint(
       *this,
       score::Skin::instance(),
-      QString::number(ossia::normalized_to_log(min, max - min, value()), 'f', 3),
+      QString::number(
+          ossia::normalized_to_log(min, max - min, value()), 'f', 3),
       painter,
       widget);
 }

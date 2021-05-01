@@ -1,8 +1,9 @@
 #include "score_plugin_media.hpp"
 
-#include <Media/Libav.hpp>
+#include <Library/LibraryInterface.hpp>
 #include <Media/Effect/Settings/Factory.hpp>
 #include <Media/Inspector/Factory.hpp>
+#include <Media/Libav.hpp>
 #include <Media/Merger/Executor.hpp>
 #include <Media/Merger/Factory.hpp>
 #include <Media/Merger/Inspector.hpp>
@@ -15,11 +16,7 @@
 #include <Media/Step/Executor.hpp>
 #include <Media/Step/Factory.hpp>
 #include <Media/Step/Inspector.hpp>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-
 #include <Mixer/MixerPanel.hpp>
-#include <wobjectimpl.h>
-#include <Library/LibraryInterface.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
 #include <score/plugins/InterfaceList.hpp>
@@ -29,6 +26,7 @@
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <score_plugin_media_commands_files.hpp>
 #include <wobjectimpl.h>
 
@@ -36,8 +34,8 @@
 extern "C"
 {
 #include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
 #include <libavdevice/avdevice.h>
+#include <libavformat/avformat.h>
 }
 #endif
 
@@ -61,7 +59,8 @@ score_plugin_media::score_plugin_media()
 
 score_plugin_media::~score_plugin_media() { }
 
-std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_media::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap>
+score_plugin_media::make_commands()
 {
   using namespace Media;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
@@ -82,7 +81,8 @@ score_plugin_media::factoryFamilies()
       Media::Settings::PluginSettingsFactoryList>();
 }
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories(
+std::vector<std::unique_ptr<score::InterfaceBase>>
+score_plugin_media::factories(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& key) const
 {
@@ -92,8 +92,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
          Media::Sound::ProcessFactory,
          Media::Step::ProcessFactory,
          Media::Metro::ProcessFactory,
-         Media::Merger::ProcessFactory
-         >,
+         Media::Merger::ProcessFactory>,
       FW<Inspector::InspectorWidgetFactory,
          Media::Sound::InspectorFactory,
          Media::Step::InspectorFactory
@@ -104,24 +103,17 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
          Media::Sound::LayerFactory,
          Media::Metro::LayerFactory,
          Media::Step::LayerFactory,
-         Media::Merger::LayerFactory
-         >,
-      FW<Library::LibraryInterface,
-         Media::Sound::LibraryHandler>,
-
+         Media::Merger::LayerFactory>,
+      FW<Library::LibraryInterface, Media::Sound::LibraryHandler>,
 
       FW<Execution::ProcessComponentFactory,
          Execution::SoundComponentFactory,
          Execution::StepComponentFactory,
          Execution::MetroComponentFactory,
-         Execution::MergerComponentFactory
-         >,
-      FW<Process::ProcessDropHandler,
-         Media::Sound::DropHandler
-         >,
+         Execution::MergerComponentFactory>,
+      FW<Process::ProcessDropHandler, Media::Sound::DropHandler>,
       FW<score::SettingsDelegateFactory, Media::Settings::Factory>,
-      FW<score::PanelDelegateFactory, Mixer::PanelDelegateFactory>
-      >(ctx, key);
+      FW<score::PanelDelegateFactory, Mixer::PanelDelegateFactory>>(ctx, key);
 }
 
 #include <score/plugins/PluginInstances.hpp>

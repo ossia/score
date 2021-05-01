@@ -22,7 +22,8 @@ public:
       E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, setColor, pos, arg_2);
   void movePoint(double old, double cur)
       E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, movePoint, old, cur);
-  void removePoint(double pos) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, removePoint, pos);
+  void removePoint(double pos)
+      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, removePoint, pos);
 
 private:
   void paint_impl(QPainter*) const override;

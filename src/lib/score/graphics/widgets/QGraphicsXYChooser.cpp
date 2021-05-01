@@ -29,7 +29,8 @@ void QGraphicsXYChooser::paint(
     const QStyleOptionGraphicsItem* option,
     QWidget* widget)
 {
-  painter->fillRect(QRectF{0, 0, 100, 100}, score::Skin::instance().Dark.main.brush);
+  painter->fillRect(
+      QRectF{0, 0, 100, 100}, score::Skin::instance().Dark.main.brush);
 
   auto x = m_value[0] * 100.;
   auto y = m_value[1] * 100.;

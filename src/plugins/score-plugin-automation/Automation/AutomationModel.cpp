@@ -38,13 +38,18 @@ void ProcessModel::init()
   outlet->setName("Out");
   m_outlets.push_back(outlet.get());
   connect(
-      outlet.get(), &Process::Port::addressChanged, this, [=](const State::AddressAccessor& arg) {
+      outlet.get(),
+      &Process::Port::addressChanged,
+      this,
+      [=](const State::AddressAccessor& arg) {
         addressChanged(arg);
         prettyNameChanged();
         unitChanged(arg.qualifiers.get().unit);
         m_curve->changed();
       });
-  connect(outlet.get(), &Process::Port::cablesChanged, this, [=] { prettyNameChanged(); });
+  connect(outlet.get(), &Process::Port::cablesChanged, this, [=] {
+    prettyNameChanged();
+  });
 }
 
 ProcessModel::ProcessModel(
@@ -52,14 +57,17 @@ ProcessModel::ProcessModel(
     const Id<Process::ProcessModel>& id,
     QObject* parent)
     : CurveProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
-    , outlet{std::make_unique<Process::MinMaxFloatOutlet>(Id<Process::Port>(0), this)}
+    , outlet{std::make_unique<Process::MinMaxFloatOutlet>(
+          Id<Process::Port>(0),
+          this)}
     , m_startState{new ProcessState{*this, 0., this}}
     , m_endState{new ProcessState{*this, 1., this}}
 {
   // Named shall be enough ?
   setCurve(new Curve::Model{Id<Curve::Model>(45345), this});
 
-  auto s1 = new Curve::DefaultCurveSegmentModel(Id<Curve::SegmentModel>(1), m_curve);
+  auto s1 = new Curve::DefaultCurveSegmentModel(
+      Id<Curve::SegmentModel>(1), m_curve);
   s1->setStart({0., 0.0});
   s1->setEnd({1., 1.});
 
@@ -105,9 +113,10 @@ QString ProcessModel::prettyName() const noexcept
         {
           name += " (" + process->prettyName() + ")";
         }
-        else if(auto port = qobject_cast<Process::Port*>(inlet_parent))
+        else if (auto port = qobject_cast<Process::Port*>(inlet_parent))
         {
-          if(auto process = qobject_cast<Process::ProcessModel*>(inlet_parent->parent()))
+          if (auto process
+              = qobject_cast<Process::ProcessModel*>(inlet_parent->parent()))
           {
             name += " (" + process->prettyName() + ")";
           }
@@ -171,7 +180,7 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
     return;
   }
 
-  if(newDuration <= TimeVal::zero())
+  if (newDuration <= TimeVal::zero())
   {
     setDuration(TimeVal::zero());
     m_curve->clear();
@@ -239,12 +248,16 @@ const ::State::AddressAccessor& ProcessModel::address() const
 
 double ProcessModel::min() const
 {
-  return *((Process::MinMaxFloatOutlet&)(*outlet)).minInlet->value().target<float>();
+  return *((Process::MinMaxFloatOutlet&)(*outlet))
+              .minInlet->value()
+              .target<float>();
 }
 
 double ProcessModel::max() const
 {
-  return *((Process::MinMaxFloatOutlet&)(*outlet)).maxInlet->value().target<float>();
+  return *((Process::MinMaxFloatOutlet&)(*outlet))
+              .maxInlet->value()
+              .target<float>();
 }
 
 void ProcessModel::setAddress(const ::State::AddressAccessor& arg)

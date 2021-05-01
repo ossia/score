@@ -4,8 +4,6 @@
 
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/EntityMap.hpp>
@@ -16,17 +14,22 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/MapCopy.hpp>
 
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+
 namespace Scenario
 {
 namespace Command
 {
-ClearInterval::ClearInterval(const IntervalModel& interval) : m_intervalSaveData{interval, true}
+ClearInterval::ClearInterval(const IntervalModel& interval)
+    : m_intervalSaveData{interval, true}
 {
   QObjectList l;
   for (auto& proc : interval.processes)
     l.push_back(&proc);
 
-  m_cables = Dataflow::saveCables(std::move(l), score::IDocument::documentContext(interval));
+  m_cables = Dataflow::saveCables(
+      std::move(l), score::IDocument::documentContext(interval));
 }
 
 void ClearInterval::undo(const score::DocumentContext& ctx) const

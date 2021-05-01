@@ -10,11 +10,16 @@ namespace Process
 {
 class SCORE_LIB_PROCESS_EXPORT SetControlValue final : public score::Command
 {
-  SCORE_COMMAND_DECL(Process::CommandFactoryName(), SetControlValue, "Set a control")
+  SCORE_COMMAND_DECL(
+      Process::CommandFactoryName(),
+      SetControlValue,
+      "Set a control")
 
 public:
   SetControlValue(const Process::ControlInlet& obj, ossia::value newval)
-      : m_path{obj}, m_old{obj.value()}, m_new{newval}
+      : m_path{obj}
+      , m_old{obj.value()}
+      , m_new{newval}
   {
   }
 
@@ -30,7 +35,10 @@ public:
     m_path.find(ctx).setValue(m_new);
   }
 
-  void update(const Process::ControlInlet& obj, ossia::value newval) { m_new = std::move(newval); }
+  void update(const Process::ControlInlet& obj, ossia::value newval)
+  {
+    m_new = std::move(newval);
+  }
 
 protected:
   void serializeImpl(DataStreamInput& stream) const final override
@@ -47,13 +55,19 @@ private:
   ossia::value m_old, m_new;
 };
 
-class SCORE_LIB_PROCESS_EXPORT SetControlOutletValue final : public score::Command
+class SCORE_LIB_PROCESS_EXPORT SetControlOutletValue final
+    : public score::Command
 {
-  SCORE_COMMAND_DECL(Process::CommandFactoryName(), SetControlOutletValue, "Set a control")
+  SCORE_COMMAND_DECL(
+      Process::CommandFactoryName(),
+      SetControlOutletValue,
+      "Set a control")
 
 public:
   SetControlOutletValue(const Process::ControlOutlet& obj, ossia::value newval)
-      : m_path{obj}, m_old{obj.value()}, m_new{newval}
+      : m_path{obj}
+      , m_old{obj.value()}
+      , m_new{newval}
   {
   }
 

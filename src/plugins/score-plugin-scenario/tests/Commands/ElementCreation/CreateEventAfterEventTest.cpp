@@ -15,8 +15,8 @@ public:
 private:
   void CreateTest()
   {
-    Scenario::ProcessModel* scenar
-        = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
+    Scenario::ProcessModel* scenar = new ScenarioModel(
+        std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
 
     CreateEventAfterEvent cmd(
         {

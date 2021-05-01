@@ -94,7 +94,10 @@ public:
 
   struct LibavReader
   {
-    LibavReader(int rate) noexcept : decoder{rate} { }
+    LibavReader(int rate) noexcept
+        : decoder{rate}
+    {
+    }
     AudioDecoder decoder;
     audio_handle handle;
     ossia::small_vector<audio_sample*, 8> data;
@@ -119,8 +122,14 @@ public:
   struct Handle : impl_t
   {
     using impl_t::impl_t;
-    Handle(mmap_ptr&& ptr) : impl_t{std::move(ptr)} { }
-    Handle(libav_ptr&& ptr) : impl_t{std::move(ptr)} { }
+    Handle(mmap_ptr&& ptr)
+        : impl_t{std::move(ptr)}
+    {
+    }
+    Handle(libav_ptr&& ptr)
+        : impl_t{std::move(ptr)}
+    {
+    }
     Handle& operator=(mmap_ptr&& ptr)
     {
       ((impl_t&)*this) = std::move(ptr);
@@ -139,9 +148,16 @@ public:
     using view_impl_t::view_impl_t;
     ViewHandle(const Handle&);
 
-    void frame(int64_t start_frame, ossia::small_vector<float, 8>& out) noexcept;
-    void absmax_frame(int64_t start_frame, int64_t end_frame, ossia::small_vector<float, 8>& out) noexcept;
-    void minmax_frame(int64_t start_frame, int64_t end_frame, ossia::small_vector<std::pair<float, float>, 8>& out) noexcept;
+    void
+    frame(int64_t start_frame, ossia::small_vector<float, 8>& out) noexcept;
+    void absmax_frame(
+        int64_t start_frame,
+        int64_t end_frame,
+        ossia::small_vector<float, 8>& out) noexcept;
+    void minmax_frame(
+        int64_t start_frame,
+        int64_t end_frame,
+        ossia::small_vector<std::pair<float, float>, 8>& out) noexcept;
   };
 
   // Note : this is a copy, because it's not thread safe.
@@ -172,7 +188,8 @@ public:
   ~AudioFileManager() noexcept;
 
   static AudioFileManager& instance() noexcept;
-  std::shared_ptr<AudioFile> get(const QString&, const score::DocumentContext&);
+  std::shared_ptr<AudioFile>
+  get(const QString&, const score::DocumentContext&);
 
 private:
   ossia::fast_hash_map<QString, std::shared_ptr<AudioFile>> m_handles;

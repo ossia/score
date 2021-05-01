@@ -1,47 +1,50 @@
 #include "score_plugin_vst3.hpp"
 
-#include <score/plugins/FactorySetup.hpp>
-
-#include <score_plugin_vst3_commands_files.hpp>
+#include <Vst3/ApplicationPlugin.hpp>
+#include <Vst3/Control.hpp>
 #include <Vst3/EffectModel.hpp>
 #include <Vst3/Executor.hpp>
 #include <Vst3/Library.hpp>
 #include <Vst3/Plugin.hpp>
-#include <Vst3/ApplicationPlugin.hpp>
-#include <Vst3/Control.hpp>
-#include <Vst3/Widgets.hpp>
 #include <Vst3/UI/Window.hpp>
+#include <Vst3/Widgets.hpp>
+
+#include <score/plugins/FactorySetup.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
+
+#include <score_plugin_vst3_commands_files.hpp>
 
 namespace vst3
 {
-using LayerFactory = Process::EffectLayerFactory_T<Model, VSTEffectItem, Window>;
+using LayerFactory
+    = Process::EffectLayerFactory_T<Model, VSTEffectItem, Window>;
 }
 score_plugin_vst3::score_plugin_vst3() { }
 
 score_plugin_vst3::~score_plugin_vst3() { }
 
-score::ApplicationPlugin* score_plugin_vst3::make_applicationPlugin(
-    const score::ApplicationContext& ctx)
+score::ApplicationPlugin*
+score_plugin_vst3::make_applicationPlugin(const score::ApplicationContext& ctx)
 {
   return new vst3::ApplicationPlugin{ctx};
 }
 
-std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_vst3::factories(
+std::vector<std::unique_ptr<score::InterfaceBase>>
+score_plugin_vst3::factories(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& key) const
 {
   return instantiate_factories<
-      score::ApplicationContext
-      , FW<Process::ProcessModelFactory, vst3::VSTEffectFactory>
-      , FW<Execution::ProcessComponentFactory, vst3::ExecutorFactory>
-      , FW<Library::LibraryInterface, vst3::LibraryHandler>
-      , FW<Process::PortFactory, vst3::VSTControlPortFactory>
-      , FW<Process::LayerFactory, vst3::LayerFactory>
-  >(ctx, key);
+      score::ApplicationContext,
+      FW<Process::ProcessModelFactory, vst3::VSTEffectFactory>,
+      FW<Execution::ProcessComponentFactory, vst3::ExecutorFactory>,
+      FW<Library::LibraryInterface, vst3::LibraryHandler>,
+      FW<Process::PortFactory, vst3::VSTControlPortFactory>,
+      FW<Process::LayerFactory, vst3::LayerFactory>>(ctx, key);
 }
 
-std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_vst3::make_commands()
+std::pair<const CommandGroupKey, CommandGeneratorMap>
+score_plugin_vst3::make_commands()
 {
   using namespace vst3;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{

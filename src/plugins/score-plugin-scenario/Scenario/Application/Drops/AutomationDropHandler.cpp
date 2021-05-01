@@ -5,6 +5,15 @@
 #include <Dataflow/Commands/CableHelpers.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
+
+#include <score/document/DocumentContext.hpp>
+
+#include <ossia/detail/thread.hpp>
+#include <ossia/network/value/value_traits.hpp>
+
+#include <QFileInfo>
+#include <QUrl>
+
 #include <Scenario/Commands/Cohesion/CreateCurves.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
@@ -15,14 +24,6 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioPresenter.hpp>
-
-#include <score/document/DocumentContext.hpp>
-
-#include <ossia/detail/thread.hpp>
-#include <ossia/network/value/value_traits.hpp>
-
-#include <QFileInfo>
-#include <QUrl>
 namespace Scenario
 {
 class DropProcessOnStateHelper
@@ -49,14 +50,19 @@ public:
         m_intervalY = sourceState.heightPercentage();
         // Everything will go in a single interval
         m_itv = &m.createIntervalAfter(
-            scenar, sourceState.id(), Scenario::Point{date + maxdur, m_intervalY});
+            scenar,
+            sourceState.id(),
+            Scenario::Point{date + maxdur, m_intervalY});
       }
       else
       {
         m_intervalY = sourceState.heightPercentage() + 0.1;
-        m_createdState = m.createState(scenar, parent_ev.id(), m_intervalY).id();
+        m_createdState
+            = m.createState(scenar, parent_ev.id(), m_intervalY).id();
         m_itv = &m.createIntervalAfter(
-            scenar, m_createdState, Scenario::Point{date + maxdur, m_intervalY});
+            scenar,
+            m_createdState,
+            Scenario::Point{date + maxdur, m_intervalY});
       }
     }
     else
@@ -69,7 +75,8 @@ public:
       else
       {
         m_intervalY = sourceState.heightPercentage() + 0.1;
-        m_createdState = m.createState(scenar, parent_ev.id(), m_intervalY).id();
+        m_createdState
+            = m.createState(scenar, parent_ev.id(), m_intervalY).id();
       }
     }
   }
@@ -84,7 +91,9 @@ public:
         // We create the first interval / process
         m_currentDate += duration;
         m_itv = &m_macro.createIntervalAfter(
-            m_scenar, m_createdState, Scenario::Point{m_currentDate, m_intervalY});
+            m_scenar,
+            m_createdState,
+            Scenario::Point{m_currentDate, m_intervalY});
         decltype(auto) proc = fun(m_macro, *m_itv);
         m_macro.showRack(*m_itv);
         return proc;
@@ -141,11 +150,13 @@ bool DropProcessOnState::drop(
     for (const auto& proc : res)
     {
       Process::ProcessModel* p = dropper.addProcess(
-          [&](Scenario::Command::Macro& m, const IntervalModel& itv) -> Process::ProcessModel* {
-            auto p
-                = m.createProcessInNewSlot(itv, proc.creation.key, proc.creation.customData, {});
+          [&](Scenario::Command::Macro& m,
+              const IntervalModel& itv) -> Process::ProcessModel* {
+            auto p = m.createProcessInNewSlot(
+                itv, proc.creation.key, proc.creation.customData, {});
             if (auto& name = proc.creation.prettyName; !name.isEmpty())
-              dropper.macro().submit(new Scenario::Command::ChangeElementName{*p, name});
+              dropper.macro().submit(
+                  new Scenario::Command::ChangeElementName{*p, name});
             return p;
           },
           proc.duration ? *proc.duration : t);
@@ -161,7 +172,8 @@ bool DropProcessOnState::drop(
       auto& itv = dropper.interval();
       if (!name.isEmpty())
       {
-        dropper.macro().submit(new Scenario::Command::ChangeElementName{itv, name});
+        dropper.macro().submit(
+            new Scenario::Command::ChangeElementName{itv, name});
       }
     }
     dropper.commit();
@@ -194,12 +206,14 @@ public:
       if (magnetic || pt.date <= scenar.event(y_state->eventId()).date())
       {
         // Create another state on that event and put the process afterwards
-        m_createdState = m.createState(scenar, y_state->eventId(), m_intervalY).id();
+        m_createdState
+            = m.createState(scenar, y_state->eventId(), m_intervalY).id();
       }
       else
       {
         auto& s = m.createState(scenar, y_state->eventId(), m_intervalY);
-        auto& i = m.createIntervalAfter(scenar, s.id(), {pt.date, m_intervalY});
+        auto& i
+            = m.createIntervalAfter(scenar, s.id(), {pt.date, m_intervalY});
         m_createdState = i.endState();
       }
     }
@@ -210,14 +224,16 @@ public:
         // We create from the event instead
         m_intervalY = pt.y;
         auto& s = m.createState(scenar, x_state->eventId(), m_intervalY);
-        auto& i = m.createIntervalAfter(scenar, s.id(), {pt.date, m_intervalY});
+        auto& i
+            = m.createIntervalAfter(scenar, s.id(), {pt.date, m_intervalY});
         m_createdState = i.endState();
       }
       else
       {
         m_intervalY = magnetic ? x_state->heightPercentage() : pt.y;
 
-        auto& i = m.createIntervalAfter(scenar, x_state->id(), {pt.date, m_intervalY});
+        auto& i = m.createIntervalAfter(
+            scenar, x_state->id(), {pt.date, m_intervalY});
         m_createdState = i.endState();
       }
     }
@@ -232,7 +248,9 @@ public:
     {
       // Everything will go in a single interval
       m_itv = &m.createIntervalAfter(
-          scenar, m_createdState, Scenario::Point{pt.date + maxdur, m_intervalY});
+          scenar,
+          m_createdState,
+          Scenario::Point{pt.date + maxdur, m_intervalY});
     }
   }
 
@@ -248,8 +266,11 @@ public:
       {
         // We already created the first interval / process
         auto last_state = m_itv->endState();
-        pt.date = Scenario::parentEvent(scenar.state(last_state), scenar).date() + duration;
-        m_itv = &m_macro.createIntervalAfter(scenar, last_state, {pt.date, m_intervalY});
+        pt.date
+            = Scenario::parentEvent(scenar.state(last_state), scenar).date()
+              + duration;
+        m_itv = &m_macro.createIntervalAfter(
+            scenar, last_state, {pt.date, m_intervalY});
         decltype(auto) proc = fun(m_macro, *m_itv);
         m_macro.showRack(*m_itv);
         return proc;
@@ -293,7 +314,9 @@ private:
 class DropProcessInIntervalHelper
 {
 public:
-  DropProcessInIntervalHelper(const Scenario::IntervalModel& interval, std::optional<TimeVal> maxdur)
+  DropProcessInIntervalHelper(
+      const Scenario::IntervalModel& interval,
+      std::optional<TimeVal> maxdur)
       : m_context{score::IDocument::documentContext(interval)}
       , m_macro{new Command::AddProcessInNewBoxMacro, m_context}
       , m_itv{interval}
@@ -302,7 +325,8 @@ public:
     if (interval.processes.empty() && maxdur)
     {
       if (auto resizer
-          = m_context.app.interfaces<Scenario::IntervalResizerList>().make(m_itv, *maxdur))
+          = m_context.app.interfaces<Scenario::IntervalResizerList>().make(
+              m_itv, *maxdur))
         m_macro.submit(resizer);
     }
   }
@@ -331,7 +355,8 @@ DropProcessInScenario::DropProcessInScenario() { }
 
 void DropProcessInScenario::init()
 {
-  const auto& handlers = score::GUIAppContext().interfaces<Process::ProcessDropHandlerList>();
+  const auto& handlers
+      = score::GUIAppContext().interfaces<Process::ProcessDropHandlerList>();
   for (auto& handler : handlers)
   {
     for (auto& type : handler.mimeTypes())
@@ -340,7 +365,10 @@ void DropProcessInScenario::init()
       m_acceptableSuffixes.push_back(ext);
   }
 }
-bool DropProcessInScenario::drop(const ScenarioPresenter& pres, QPointF pos, const QMimeData& mime)
+bool DropProcessInScenario::drop(
+    const ScenarioPresenter& pres,
+    QPointF pos,
+    const QMimeData& mime)
 {
   const auto& ctx = pres.context().context;
   const auto& handlers = ctx.app.interfaces<Process::ProcessDropHandlerList>();
@@ -355,11 +383,13 @@ bool DropProcessInScenario::drop(const ScenarioPresenter& pres, QPointF pos, con
     for (const auto& proc : res)
     {
       Process::ProcessModel* p = dropper.addProcess(
-          [&](Scenario::Command::Macro& m, const IntervalModel& itv) -> Process::ProcessModel* {
-            auto p
-                = m.createProcessInNewSlot(itv, proc.creation.key, proc.creation.customData, {});
+          [&](Scenario::Command::Macro& m,
+              const IntervalModel& itv) -> Process::ProcessModel* {
+            auto p = m.createProcessInNewSlot(
+                itv, proc.creation.key, proc.creation.customData, {});
             if (auto& name = proc.creation.prettyName; !name.isEmpty())
-              dropper.macro().submit(new Scenario::Command::ChangeElementName{*p, name});
+              dropper.macro().submit(
+                  new Scenario::Command::ChangeElementName{*p, name});
             return p;
           },
           proc.duration ? *proc.duration : t);
@@ -375,7 +405,8 @@ bool DropProcessInScenario::drop(const ScenarioPresenter& pres, QPointF pos, con
       auto& itv = dropper.interval();
       if (!name.isEmpty())
       {
-        dropper.macro().submit(new Scenario::Command::ChangeElementName{itv, name});
+        dropper.macro().submit(
+            new Scenario::Command::ChangeElementName{itv, name});
       }
     }
 
@@ -415,8 +446,10 @@ bool DropProcessInInterval::drop(
     for (const auto& proc : res)
     {
       auto p = dropper.addProcess(
-          [&](Scenario::Command::Macro& m, const IntervalModel& itv) -> Process::ProcessModel* {
-            return m.createProcessInNewSlot(itv, proc.creation.key, proc.creation.customData, pos);
+          [&](Scenario::Command::Macro& m,
+              const IntervalModel& itv) -> Process::ProcessModel* {
+            return m.createProcessInNewSlot(
+                itv, proc.creation.key, proc.creation.customData, pos);
           });
       if (p && proc.setup)
       {
@@ -436,14 +469,18 @@ DropScenario::DropScenario()
   m_acceptableSuffixes.push_back("scenario");
 }
 
-bool DropScenario::drop(const ScenarioPresenter& pres, QPointF pos, const QMimeData& mime)
+bool DropScenario::drop(
+    const ScenarioPresenter& pres,
+    QPointF pos,
+    const QMimeData& mime)
 {
   if (mime.hasUrls())
   {
     const auto& doc = pres.context().context;
     auto& sm = pres.model();
     auto path = mime.urls().first().toLocalFile();
-    if (QFile f{path}; QFileInfo{f}.suffix() == "scenario" && f.open(QIODevice::ReadOnly))
+    if (QFile f{path};
+        QFileInfo{f}.suffix() == "scenario" && f.open(QIODevice::ReadOnly))
     {
       CommandDispatcher<> d{doc.commandStack};
       d.submit(new Scenario::Command::ScenarioPasteElements(
@@ -461,14 +498,18 @@ DropScoreInScenario::DropScoreInScenario()
   m_acceptableSuffixes.push_back("scorebin");
 }
 
-bool DropScoreInScenario::drop(const ScenarioPresenter& pres, QPointF pos, const QMimeData& mime)
+bool DropScoreInScenario::drop(
+    const ScenarioPresenter& pres,
+    QPointF pos,
+    const QMimeData& mime)
 {
   if (mime.hasUrls())
   {
     const auto& doc = pres.context().context;
     auto& sm = pres.model();
     auto path = mime.urls().first().toLocalFile();
-    if (QFile f{path}; QFileInfo{f}.suffix() == "score" && f.open(QIODevice::ReadOnly))
+    if (QFile f{path};
+        QFileInfo{f}.suffix() == "score" && f.open(QIODevice::ReadOnly))
     {
       rapidjson::Document res;
       res.SetObject();
@@ -479,12 +520,12 @@ bool DropScoreInScenario::drop(const ScenarioPresenter& pres, QPointF pos, const
       // ScenarioPasteElements expects the cable address to start from the topmost interval in the copied
       // content
       res.AddMember("Cables", docobj["Cables"], res.GetAllocator());
-      for(auto& c : res["Cables"].GetArray())
+      for (auto& c : res["Cables"].GetArray())
       {
         auto source = c["Source"].GetArray();
         source.Erase(source.Begin());
         source.Erase(source.Begin());
-        auto sink= c["Sink"].GetArray();
+        auto sink = c["Sink"].GetArray();
         sink.Erase(sink.Begin());
         sink.Erase(sink.Begin());
       }
@@ -516,7 +557,8 @@ bool DropScoreInScenario::drop(const ScenarioPresenter& pres, QPointF pos, const
       }
 
       CommandDispatcher<> d{doc.commandStack};
-      d.submit(new Scenario::Command::ScenarioPasteElements(sm, res, pres.toScenarioPoint(pos)));
+      d.submit(new Scenario::Command::ScenarioPasteElements(
+          sm, res, pres.toScenarioPoint(pos)));
       return true;
     }
   }
@@ -530,7 +572,10 @@ DropLayerInScenario::DropLayerInScenario()
   m_acceptableSuffixes.push_back("layer");
 }
 
-bool DropLayerInScenario::drop(const ScenarioPresenter& pres, QPointF pos, const QMimeData& mime)
+bool DropLayerInScenario::drop(
+    const ScenarioPresenter& pres,
+    QPointF pos,
+    const QMimeData& mime)
 {
   rapidjson::Document json;
   QString filename;
@@ -554,7 +599,7 @@ bool DropLayerInScenario::drop(const ScenarioPresenter& pres, QPointF pos, const
 
   if (!json.IsObject() || json.MemberCount() == 0)
     return false;
-  if(!json.HasMember("Path") || !json.HasMember("Duration"))
+  if (!json.HasMember("Path") || !json.HasMember("Duration"))
     return false;
 
   Scenario::Command::Macro m{
@@ -575,14 +620,15 @@ bool DropLayerInScenario::drop(const ScenarioPresenter& pres, QPointF pos, const
   return true;
 }
 
-
-
 DropPresetInScenario::DropPresetInScenario()
 {
   m_acceptableSuffixes.push_back("scorepreset");
 }
 
-bool DropPresetInScenario::drop(const ScenarioPresenter& pres, QPointF pos, const QMimeData& mime)
+bool DropPresetInScenario::drop(
+    const ScenarioPresenter& pres,
+    QPointF pos,
+    const QMimeData& mime)
 {
   rapidjson::Document json;
   QString filename;
@@ -622,8 +668,6 @@ bool DropPresetInScenario::drop(const ScenarioPresenter& pres, QPointF pos, cons
   */
   return true;
 }
-
-
 
 void DropLayerInInterval::perform(
     const IntervalModel& interval,
@@ -686,7 +730,8 @@ void DropLayerInInterval::perform(
     auto new_path = score::IDocument::path(interval).unsafePath();
     auto cables = JsonValue{json["Cables"]}.to<Dataflow::SerializedCables>();
 
-    auto& document = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
+    auto& document
+        = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
 
     for (auto& c : cables)
     {
@@ -707,7 +752,8 @@ bool DropLayerInInterval::drop(
 {
   if (mime.formats().contains(score::mime::layerdata()))
   {
-    Scenario::Command::Macro m{new Scenario::Command::DropProcessInIntervalMacro, ctx};
+    Scenario::Command::Macro m{
+        new Scenario::Command::DropProcessInIntervalMacro, ctx};
 
     const auto json = readJson(mime.data(score::mime::layerdata()));
     perform(interval, ctx, m, json);
@@ -716,12 +762,14 @@ bool DropLayerInInterval::drop(
   }
   else if (mime.hasUrls())
   {
-    Scenario::Command::Macro m{new Scenario::Command::DropProcessInIntervalMacro, ctx};
+    Scenario::Command::Macro m{
+        new Scenario::Command::DropProcessInIntervalMacro, ctx};
     bool ok = false;
     for (const QUrl& u : mime.urls())
     {
       auto path = u.toLocalFile();
-      if (QFile f{path}; QFileInfo{f}.suffix() == "layer" && f.open(QIODevice::ReadOnly))
+      if (QFile f{path};
+          QFileInfo{f}.suffix() == "layer" && f.open(QIODevice::ReadOnly))
       {
         ok = true;
         perform(interval, ctx, m, readJson(f.readAll()));
@@ -737,8 +785,6 @@ bool DropLayerInInterval::drop(
 
   return false;
 }
-
-
 
 void DropPresetInInterval::perform(
     const IntervalModel& interval,
@@ -818,7 +864,8 @@ bool DropPresetInInterval::drop(
 {
   if (mime.formats().contains(score::mime::layerdata()))
   {
-    Scenario::Command::Macro m{new Scenario::Command::DropProcessInIntervalMacro, ctx};
+    Scenario::Command::Macro m{
+        new Scenario::Command::DropProcessInIntervalMacro, ctx};
 
     const auto json = readJson(mime.data(score::mime::layerdata()));
     perform(interval, ctx, m, json);
@@ -827,12 +874,14 @@ bool DropPresetInInterval::drop(
   }
   else if (mime.hasUrls())
   {
-    Scenario::Command::Macro m{new Scenario::Command::DropProcessInIntervalMacro, ctx};
+    Scenario::Command::Macro m{
+        new Scenario::Command::DropProcessInIntervalMacro, ctx};
     bool ok = false;
     for (const QUrl& u : mime.urls())
     {
       auto path = u.toLocalFile();
-      if (QFile f{path}; QFileInfo{f}.suffix() == "layer" && f.open(QIODevice::ReadOnly))
+      if (QFile f{path};
+          QFileInfo{f}.suffix() == "layer" && f.open(QIODevice::ReadOnly))
       {
         ok = true;
         perform(interval, ctx, m, readJson(f.readAll()));
@@ -848,7 +897,6 @@ bool DropPresetInInterval::drop(
 
   return false;
 }
-
 
 static void getAddressesRecursively(
     const Device::Node& node,
@@ -913,12 +961,17 @@ bool AutomationDropHandler::drop(
   }
 }
 
-bool DropScoreInInterval::drop(const score::DocumentContext& doc, const IntervalModel& interval, QPointF p, const QMimeData& mime)
+bool DropScoreInInterval::drop(
+    const score::DocumentContext& doc,
+    const IntervalModel& interval,
+    QPointF p,
+    const QMimeData& mime)
 {
   if (mime.hasUrls())
   {
     auto path = mime.urls().first().toLocalFile();
-    if (QFile f{path}; QFileInfo{f}.suffix() == "score" && f.open(QIODevice::ReadOnly))
+    if (QFile f{path};
+        QFileInfo{f}.suffix() == "score" && f.open(QIODevice::ReadOnly))
     {
       auto obj = readJson(f.readAll());
       auto& docobj = obj["Document"];
@@ -926,7 +979,7 @@ bool DropScoreInInterval::drop(const score::DocumentContext& doc, const Interval
       auto& itv = scenar["Constraint"];
 
       Scenario::Command::Macro m{new Command::DropProcessInIntervalMacro, doc};
-      for(auto& json : itv["Processes"].GetArray())
+      for (auto& json : itv["Processes"].GetArray())
       {
         rapidjson::Value v{rapidjson::kObjectType};
         v.AddMember("Process", json, obj.GetAllocator());
@@ -937,14 +990,16 @@ bool DropScoreInInterval::drop(const score::DocumentContext& doc, const Interval
       // Reload cables
       {
         ObjectPath old_path{
-          { "Scenario::ScenarioDocumentModel", 1 },
-          { "Scenario::BaseScenario", 0 },
-          { "Scenario::IntervalModel", 0 }
-        };
+            {"Scenario::ScenarioDocumentModel", 1},
+            {"Scenario::BaseScenario", 0},
+            {"Scenario::IntervalModel", 0}};
         auto new_path = score::IDocument::path(interval).unsafePath();
-        auto cables = Dataflow::serializedCablesFromCableJson(old_path, docobj["Cables"].GetArray());
+        auto cables = Dataflow::serializedCablesFromCableJson(
+            old_path, docobj["Cables"].GetArray());
 
-        auto& document = score::IDocument::get<Scenario::ScenarioDocumentModel>(doc.document);
+        auto& document
+            = score::IDocument::get<Scenario::ScenarioDocumentModel>(
+                doc.document);
         for (auto& c : cables)
         {
           c.first = getStrongId(document.cables);

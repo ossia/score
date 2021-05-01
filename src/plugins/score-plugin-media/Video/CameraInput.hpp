@@ -2,8 +2,8 @@
 #include <Media/Libav.hpp>
 #if SCORE_HAS_LIBAV
 
-#include <Video/VideoInterface.hpp>
 #include <Video/FrameQueue.hpp>
+#include <Video/VideoInterface.hpp>
 extern "C"
 {
 #include <libavformat/avformat.h>
@@ -11,6 +11,7 @@ extern "C"
 }
 
 #include <ossia/detail/lockfree_queue.hpp>
+
 #include <score_plugin_media_export.h>
 
 #include <atomic>
@@ -28,7 +29,12 @@ public:
   CameraInput() noexcept;
   ~CameraInput() noexcept;
 
-  bool load(const std::string& inputDevice, const std::string& format, int w, int h, double fps) noexcept;
+  bool load(
+      const std::string& inputDevice,
+      const std::string& format,
+      int w,
+      int h,
+      double fps) noexcept;
 
   bool start() noexcept;
   void stop() noexcept;

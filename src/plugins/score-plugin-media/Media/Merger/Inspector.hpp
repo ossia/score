@@ -6,9 +6,9 @@
 
 #include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/tools/Bind.hpp>
 #include <score/widgets/DoubleSlider.hpp>
 #include <score/widgets/SignalUtils.hpp>
-#include <score/tools/Bind.hpp>
 
 #include <QFormLayout>
 #include <QSpinBox>
@@ -20,15 +20,22 @@ namespace Merger
 class InspectorWidget final : public Process::InspectorWidgetDelegate_T<Model>
 {
 public:
-  explicit InspectorWidget(const Model& obj, const score::DocumentContext& doc, QWidget* parent)
-      : InspectorWidgetDelegate_T{obj, parent}, m_dispatcher{doc.dispatcher}, m_count{this}
+  explicit InspectorWidget(
+      const Model& obj,
+      const score::DocumentContext& doc,
+      QWidget* parent)
+      : InspectorWidgetDelegate_T{obj, parent}
+      , m_dispatcher{doc.dispatcher}
+      , m_count{this}
   {
     m_count.setRange(1, 24);
     m_count.setValue(obj.inCount());
 
     auto lay = new QFormLayout{this};
 
-    con(process(), &Model::inCountChanged, this, [&] { m_count.setValue(obj.inCount()); });
+    con(process(), &Model::inCountChanged, this, [&] {
+      m_count.setValue(obj.inCount());
+    });
 
     con(m_count, &QSpinBox::editingFinished, this, [&]() {
       m_dispatcher.submit<SetMergeInCount>(obj, m_count.value());

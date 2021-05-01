@@ -1,24 +1,25 @@
 #pragma once
 
 #define RELEASE 1
+#include <QString>
+
+#include <pluginterfaces/base/funknown.h>
+#include <pluginterfaces/gui/iplugview.h>
+#include <pluginterfaces/vst/ivstaudioprocessor.h>
+#include <pluginterfaces/vst/ivstcomponent.h>
+
+#include <public.sdk/source/vst/hosting/hostclasses.h>
 #include <public.sdk/source/vst/hosting/module.h>
 #include <public.sdk/source/vst/hosting/plugprovider.h>
-#include <public.sdk/source/vst/hosting/hostclasses.h>
-#include <pluginterfaces/base/funknown.h>
-#include <pluginterfaces/vst/ivstcomponent.h>
-#include <pluginterfaces/vst/ivstaudioprocessor.h>
-#include <pluginterfaces/gui/iplugview.h>
-
 #include <string_view>
-#include <QString>
 
 namespace vst3
 {
 class ApplicationPlugin;
 class Model;
 
-inline
-QString fromString(const Steinberg::Vst::String128& str) {
+inline QString fromString(const Steinberg::Vst::String128& str)
+{
 #if defined(_WIN32)
   return QString::fromWCharArray(str);
 #else
@@ -40,7 +41,8 @@ struct Plugin
       ApplicationPlugin& ctx,
       const std::string& path,
       const std::string& name,
-      double sr, int max_bs);
+      double sr,
+      int max_bs);
   operator bool() const noexcept { return component && processor; }
 
   std::string path;
@@ -51,9 +53,7 @@ struct Plugin
   Steinberg::IPlugView* view{};
 
   void loadAudioProcessor(ApplicationPlugin& ctx);
-  void loadEditController(
-      Model& model,
-      ApplicationPlugin& ctx);
+  void loadEditController(Model& model, ApplicationPlugin& ctx);
   void loadBuses();
 
   void loadProcessorStateToController();
@@ -63,54 +63,64 @@ struct Plugin
 
   bool supportsDouble{};
   bool hasUI{};
-  int audio_ins  = 0;
-  int event_ins  = 0;
+  int audio_ins = 0;
+  int event_ins = 0;
   int audio_outs = 0;
   int event_outs = 0;
 };
 
 #if __cpp_concepts >= 201907
-template<typename T>
-concept BusVisitor =
-requires (T&& vis) {
-    vis.audioIn(Steinberg::Vst::BusInfo{}, int{});
-    vis.audioOut(Steinberg::Vst::BusInfo{}, int{});
-    vis.eventIn(Steinberg::Vst::BusInfo{}, int{});
-    vis.eventOut(Steinberg::Vst::BusInfo{}, int{});
+template <typename T>
+concept BusVisitor = requires(T&& vis)
+{
+  vis.audioIn(Steinberg::Vst::BusInfo{}, int{});
+  vis.audioOut(Steinberg::Vst::BusInfo{}, int{});
+  vis.eventIn(Steinberg::Vst::BusInfo{}, int{});
+  vis.eventOut(Steinberg::Vst::BusInfo{}, int{});
 };
-void forEachBus(BusVisitor auto&& visitor, Steinberg::Vst::IComponent& component)
+void forEachBus(
+    BusVisitor auto&& visitor,
+    Steinberg::Vst::IComponent& component)
 #else
-template<typename T>
+template <typename T>
 void forEachBus(T&& visitor, Steinberg::Vst::IComponent& component)
 #endif
 {
-  const int audio_ins = component.getBusCount(Steinberg::Vst::kAudio, Steinberg::Vst::kInput);
-  const int event_ins = component.getBusCount(Steinberg::Vst::kEvent, Steinberg::Vst::kInput);
-  const int audio_outs = component.getBusCount(Steinberg::Vst::kAudio, Steinberg::Vst::kOutput);
-  const int event_outs = component.getBusCount(Steinberg::Vst::kEvent, Steinberg::Vst::kOutput);
+  const int audio_ins
+      = component.getBusCount(Steinberg::Vst::kAudio, Steinberg::Vst::kInput);
+  const int event_ins
+      = component.getBusCount(Steinberg::Vst::kEvent, Steinberg::Vst::kInput);
+  const int audio_outs
+      = component.getBusCount(Steinberg::Vst::kAudio, Steinberg::Vst::kOutput);
+  const int event_outs
+      = component.getBusCount(Steinberg::Vst::kEvent, Steinberg::Vst::kOutput);
 
   Steinberg::Vst::BusInfo bus;
-  for(int i = 0; i < audio_ins; i++)
+  for (int i = 0; i < audio_ins; i++)
   {
-    component.getBusInfo(Steinberg::Vst::kAudio, Steinberg::Vst::kInput, i, bus);
+    component.getBusInfo(
+        Steinberg::Vst::kAudio, Steinberg::Vst::kInput, i, bus);
     visitor.audioIn(bus, i);
   }
 
-  for(int i = 0; i < event_ins; i++)
+  for (int i = 0; i < event_ins; i++)
   {
-    component.getBusInfo(Steinberg::Vst::kEvent, Steinberg::Vst::kInput, i, bus);
+    component.getBusInfo(
+        Steinberg::Vst::kEvent, Steinberg::Vst::kInput, i, bus);
     visitor.eventIn(bus, i);
   }
 
-  for(int i = 0; i < audio_outs; i++)
+  for (int i = 0; i < audio_outs; i++)
   {
-    component.getBusInfo(Steinberg::Vst::kAudio, Steinberg::Vst::kOutput, i, bus);
+    component.getBusInfo(
+        Steinberg::Vst::kAudio, Steinberg::Vst::kOutput, i, bus);
     visitor.audioOut(bus, i);
   }
 
-  for(int i = 0; i < event_outs; i++)
+  for (int i = 0; i < event_outs; i++)
   {
-    component.getBusInfo(Steinberg::Vst::kEvent, Steinberg::Vst::kOutput, i, bus);
+    component.getBusInfo(
+        Steinberg::Vst::kEvent, Steinberg::Vst::kOutput, i, bus);
     visitor.eventOut(bus, i);
   }
 }

@@ -4,18 +4,19 @@
 
 #define SCORE_CONCRETE_COMPONENT_FACTORY(AbstractFactory, ConcreteFactory)
 
-#define SCORE_ABSTRACT_COMPONENT_FACTORY(Type)                                       \
-public:                                                                              \
-  static Q_DECL_RELAXED_CONSTEXPR score::InterfaceKey static_interfaceKey() noexcept \
-  {                                                                                  \
-    return static_cast<score::InterfaceKey>(Type::static_key().impl());              \
-  }                                                                                  \
-                                                                                     \
-  score::InterfaceKey interfaceKey() const noexcept final override                   \
-  {                                                                                  \
-    return static_interfaceKey();                                                    \
-  }                                                                                  \
-                                                                                     \
+#define SCORE_ABSTRACT_COMPONENT_FACTORY(Type)                          \
+public:                                                                 \
+  static Q_DECL_RELAXED_CONSTEXPR score::InterfaceKey                   \
+  static_interfaceKey() noexcept                                        \
+  {                                                                     \
+    return static_cast<score::InterfaceKey>(Type::static_key().impl()); \
+  }                                                                     \
+                                                                        \
+  score::InterfaceKey interfaceKey() const noexcept final override      \
+  {                                                                     \
+    return static_interfaceKey();                                       \
+  }                                                                     \
+                                                                        \
 private:
 
 namespace score
@@ -67,7 +68,8 @@ template <
     typename System_T,  // e.g. LocalTree::DocumentPlugin
     typename Factory_T, // e.g. ProcessComponentFactory
     typename DefaultFactory_T>
-class DefaultedGenericComponentFactoryList final : public score::InterfaceList<Factory_T>
+class DefaultedGenericComponentFactoryList final
+    : public score::InterfaceList<Factory_T>
 {
 public:
   template <typename... Args>

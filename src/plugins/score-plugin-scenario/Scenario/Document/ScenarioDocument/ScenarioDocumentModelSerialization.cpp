@@ -3,14 +3,15 @@
 #include "ScenarioDocumentModel.hpp"
 
 #include <Process/Dataflow/Cable.hpp>
-#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
 
 #include <score/model/EntityMapSerialization.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
 
 template <>
 void DataStreamReader::read(const Scenario::ScenarioDocumentModel& model)
@@ -40,7 +41,8 @@ void DataStreamReader::read(const Scenario::ScenarioDocumentModel& model)
 template <>
 void DataStreamWriter::write(Scenario::ScenarioDocumentModel& model)
 {
-  model.m_baseScenario = new Scenario::BaseScenario{*this, model.m_context, &model};
+  model.m_baseScenario
+      = new Scenario::BaseScenario{*this, model.m_context, &model};
 
   m_stream >> model.m_savedCables;
 
@@ -90,7 +92,8 @@ void JSONWriter::write(Scenario::ScenarioDocumentModel& model)
   }
 }
 
-void Scenario::ScenarioDocumentModel::serialize(const VisitorVariant& vis) const
+void Scenario::ScenarioDocumentModel::serialize(
+    const VisitorVariant& vis) const
 {
   serialize_dyn(vis, *this);
 }

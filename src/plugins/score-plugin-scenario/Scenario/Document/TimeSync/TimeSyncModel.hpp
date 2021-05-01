@@ -1,9 +1,6 @@
 #pragma once
 #include <Process/Dataflow/TimeSignature.hpp>
 #include <Process/TimeValue.hpp>
-#include <Scenario/Document/Event/ExecutionStatus.hpp>
-#include <Scenario/Document/Metatypes.hpp>
-#include <Scenario/Document/VerticalExtent.hpp>
 #include <State/Expression.hpp>
 
 #include <score/model/Component.hpp>
@@ -16,6 +13,9 @@
 
 #include <QObject>
 
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/Metatypes.hpp>
+#include <Scenario/Document/VerticalExtent.hpp>
 #include <score_plugin_scenario_export.h>
 
 #include <chrono>
@@ -28,7 +28,8 @@ namespace Scenario
 class EventModel;
 class ScenarioInterface;
 
-class SCORE_PLUGIN_SCENARIO_EXPORT TimeSyncModel final : public score::Entity<TimeSyncModel>
+class SCORE_PLUGIN_SCENARIO_EXPORT TimeSyncModel final
+    : public score::Entity<TimeSyncModel>
 {
   W_OBJECT(TimeSyncModel)
 
@@ -39,10 +40,14 @@ public:
   Selectable selection;
 
   /** The class **/
-  TimeSyncModel(const Id<TimeSyncModel>& id, const TimeVal& date, QObject* parent);
+  TimeSyncModel(
+      const Id<TimeSyncModel>& id,
+      const TimeVal& date,
+      QObject* parent);
 
   template <typename DeserializerVisitor>
-  TimeSyncModel(DeserializerVisitor&& vis, QObject* parent) : Entity{vis, parent}
+  TimeSyncModel(DeserializerVisitor&& vis, QObject* parent)
+      : Entity{vis, parent}
   {
     vis.writeTo(*this);
   }
@@ -78,7 +83,8 @@ public:
   bool waiting() const noexcept;
 
 public:
-  void dateChanged(const TimeVal& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dateChanged, arg_1)
+  void dateChanged(const TimeVal& arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dateChanged, arg_1)
 
   void newEvent(const Id<Scenario::EventModel>& eventId)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, newEvent, eventId)
@@ -89,20 +95,28 @@ public:
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, triggerChanged, arg_1)
   void activeChanged() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, activeChanged)
 
-  void autotriggerChanged(bool b) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, autotriggerChanged, b)
-  void startPointChanged(bool b) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, startPointChanged, b)
+  void autotriggerChanged(bool b)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, autotriggerChanged, b)
+  void startPointChanged(bool b)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, startPointChanged, b)
 
-  void triggeredByGui() const E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, triggeredByGui)
+  void triggeredByGui() const
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, triggeredByGui)
 
-  void waitingChanged(bool b) const E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, waitingChanged, b)
+  void waitingChanged(bool b) const
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, waitingChanged, b)
 
   double musicalSyncChanged(ossia::musical_sync sync)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, musicalSyncChanged, sync)
 
   PROPERTY(
       ossia::musical_sync,
-      musicalSync READ musicalSync WRITE setMusicalSync NOTIFY musicalSyncChanged)
-  PROPERTY(bool, startPoint READ isStartPoint WRITE setStartPoint NOTIFY startPointChanged)
+      musicalSync READ musicalSync WRITE setMusicalSync NOTIFY
+          musicalSyncChanged)
+  PROPERTY(
+      bool,
+      startPoint READ isStartPoint WRITE setStartPoint NOTIFY
+          startPointChanged)
 
 private:
   TimeVal m_date{std::chrono::seconds{0}};

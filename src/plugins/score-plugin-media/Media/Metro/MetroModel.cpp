@@ -8,8 +8,12 @@ W_OBJECT_IMPL(Media::Metro::Model)
 namespace Media::Metro
 {
 
-Model::Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
-    : Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+Model::Model(
+    const TimeVal& duration,
+    const Id<Process::ProcessModel>& id,
+    QObject* parent)
+    : Process::
+        ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , audio_outlet{Process::make_audio_outlet(Id<Process::Port>(0), this)}
     , bang_outlet{Process::make_value_outlet(Id<Process::Port>(1), this)}
 {

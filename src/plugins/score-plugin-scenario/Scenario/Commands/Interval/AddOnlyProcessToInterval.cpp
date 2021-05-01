@@ -4,13 +4,6 @@
 
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessList.hpp>
-#include <Scenario/Document/Interval/IntervalDurations.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
-#include <Scenario/Process/ScenarioInterface.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/ChangeId.hpp>
@@ -25,6 +18,14 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
+#include <Scenario/Document/Interval/IntervalDurations.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
+
 #include <vector>
 
 namespace Scenario
@@ -36,7 +37,12 @@ AddOnlyProcessToInterval::AddOnlyProcessToInterval(
     UuidKey<Process::ProcessModel> process,
     const QString& dat,
     QPointF pos)
-    : AddOnlyProcessToInterval{cst, getStrongId(cst.processes), process, dat, pos}
+    : AddOnlyProcessToInterval{
+        cst,
+        getStrongId(cst.processes),
+        process,
+        dat,
+        pos}
 {
 }
 
@@ -73,11 +79,13 @@ void AddOnlyProcessToInterval::undo(IntervalModel& interval) const
   RemoveProcess(interval, m_createdProcessId);
 }
 
-Process::ProcessModel&
-AddOnlyProcessToInterval::redo(IntervalModel& interval, const score::DocumentContext& ctx) const
+Process::ProcessModel& AddOnlyProcessToInterval::redo(
+    IntervalModel& interval,
+    const score::DocumentContext& ctx) const
 {
   // Create process model
-  auto fac = ctx.app.interfaces<Process::ProcessFactoryList>().get(m_processName);
+  auto fac
+      = ctx.app.interfaces<Process::ProcessFactoryList>().get(m_processName);
   SCORE_ASSERT(fac);
   auto proc = fac->make(
       interval.duration.defaultDuration(), // TODO should maybe be max ?
@@ -105,7 +113,9 @@ LoadOnlyLayerInInterval::LoadOnlyLayerInInterval(
     const IntervalModel& cst,
     Id<Process::ProcessModel> processId,
     const rapidjson::Value& dat)
-    : m_path{cst}, m_createdProcessId{std::move(processId)}, m_data{clone(dat)}
+    : m_path{cst}
+    , m_createdProcessId{std::move(processId)}
+    , m_data{clone(dat)}
 {
 }
 
@@ -124,13 +134,15 @@ void LoadOnlyLayerInInterval::undo(IntervalModel& interval) const
   RemoveProcess(interval, m_createdProcessId);
 }
 
-Process::ProcessModel&
-LoadOnlyLayerInInterval::redo(IntervalModel& interval, const score::DocumentContext& ctx) const
+Process::ProcessModel& LoadOnlyLayerInInterval::redo(
+    IntervalModel& interval,
+    const score::DocumentContext& ctx) const
 {
   // Create process model
   JSONWriter r{m_data};
   const auto& obj = r.obj[score::StringConstant().Process];
-  auto key = obj[score::StringConstant().uuid].to<UuidKey<Process::ProcessModel>>();
+  auto key
+      = obj[score::StringConstant().uuid].to<UuidKey<Process::ProcessModel>>();
 
   auto fac = ctx.app.interfaces<Process::ProcessFactoryList>().get(key);
   SCORE_ASSERT(fac);
@@ -178,12 +190,14 @@ DuplicateOnlyProcessToInterval::DuplicateOnlyProcessToInterval(
 {
 }
 
-void DuplicateOnlyProcessToInterval::undo(const score::DocumentContext& ctx) const
+void DuplicateOnlyProcessToInterval::undo(
+    const score::DocumentContext& ctx) const
 {
   undo(m_path.find(ctx));
 }
 
-void DuplicateOnlyProcessToInterval::redo(const score::DocumentContext& ctx) const
+void DuplicateOnlyProcessToInterval::redo(
+    const score::DocumentContext& ctx) const
 {
   redo(m_path.find(ctx), ctx);
 }
@@ -199,8 +213,8 @@ Process::ProcessModel& DuplicateOnlyProcessToInterval::redo(
 {
   // Create process model
   auto& pl = ctx.app.interfaces<Process::ProcessFactoryList>();
-  Process::ProcessModel* proc
-      = deserialize_interface(pl, DataStream::Deserializer{m_processData}, ctx, &interval);
+  Process::ProcessModel* proc = deserialize_interface(
+      pl, DataStream::Deserializer{m_processData}, ctx, &interval);
   score::IDocument::changeObjectId(*proc, m_createdProcessId);
 
   AddProcess(interval, proc);

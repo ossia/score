@@ -1,3 +1,4 @@
+#include <Effect/EffectLayer.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/PortItem.hpp>
@@ -5,6 +6,7 @@
 #include <Process/Process.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 
+#include <score/graphics/GraphicsItem.hpp>
 #include <score/graphics/YPos.hpp>
 #include <score/tools/Bind.hpp>
 
@@ -14,9 +16,6 @@
 #include <QPainter>
 #include <QTextLayout>
 #include <QTextLine>
-
-#include <Effect/EffectLayer.hpp>
-#include <score/graphics/GraphicsItem.hpp>
 namespace Process
 {
 QPixmap makeGlyphs(const QString& glyph, const QPen& pen)
@@ -70,10 +69,14 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(
     update();
   });
 
-  con(m_model, &Process::ProcessModel::inletsChanged, this, [=] { updatePorts(); });
+  con(m_model, &Process::ProcessModel::inletsChanged, this, [=] {
+    updatePorts();
+  });
   updatePorts();
 
-  con(m_model, &Process::ProcessModel::benchmark, this, [=](double d) { updateBench(d); });
+  con(m_model, &Process::ProcessModel::benchmark, this, [=](double d) {
+    updateBench(d);
+  });
   con(
       m_model.selection,
       &Selectable::changed,
@@ -107,7 +110,8 @@ void DefaultHeaderDelegate::updateBench(double d)
 void DefaultHeaderDelegate::updateText()
 {
   auto& style = Process::Style::instance();
-  const QPen& pen = m_sel ? style.IntervalHeaderTextPen() : textPen(style, m_model);
+  const QPen& pen
+      = m_sel ? style.IntervalHeaderTextPen() : textPen(style, m_model);
   if (&pen != m_lastPen || m_model.prettyName() != m_lastText)
   {
     m_line = makeGlyphs(m_model.prettyName(), pen);
@@ -117,11 +121,13 @@ void DefaultHeaderDelegate::updateText()
   }
 }
 
-const QPen&
-DefaultHeaderDelegate::textPen(Style& style, const Process::ProcessModel& model) const noexcept
+const QPen& DefaultHeaderDelegate::textPen(
+    Style& style,
+    const Process::ProcessModel& model) const noexcept
 {
   score::ModelMetadata* parent_col
-      = model.parent()->template findChild<score::ModelMetadata*>({}, Qt::FindDirectChildrenOnly);
+      = model.parent()->template findChild<score::ModelMetadata*>(
+          {}, Qt::FindDirectChildrenOnly);
   auto& b = parent_col->getColor().getBrush();
   if (&b == &style.IntervalDefaultBackground())
     return style.skin.HalfLight.main.pen_cosmetic;
@@ -156,7 +162,8 @@ void DefaultHeaderDelegate::updatePorts()
   m_portEndX = m_ui ? 10. : 0.;
   const auto& inlets = m_model.inlets();
 
-  auto& portFactory = score::AppContext().interfaces<Process::PortFactoryList>();
+  auto& portFactory
+      = score::AppContext().interfaces<Process::PortFactoryList>();
   for (Process::Inlet* port : inlets)
   {
     if (port->hidden)
@@ -209,7 +216,9 @@ DefaultFooterDelegate::DefaultFooterDelegate(
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorScaleV);
   setFlag(ItemHasNoContents, true);
-  con(model, &Process::ProcessModel::outletsChanged, this, [=] { updatePorts(); });
+  con(model, &Process::ProcessModel::outletsChanged, this, [=] {
+    updatePorts();
+  });
   updatePorts();
 }
 
@@ -244,7 +253,8 @@ void DefaultFooterDelegate::updatePorts()
   qDeleteAll(m_outPorts);
   m_outPorts.clear();
 
-  auto& portFactory = score::AppContext().interfaces<Process::PortFactoryList>();
+  auto& portFactory
+      = score::AppContext().interfaces<Process::PortFactoryList>();
 
   m_portEndX = 0.;
   for (Process::Outlet* port : m_model.outlets())
@@ -273,8 +283,11 @@ void DefaultFooterDelegate::paint(
   // painter->fillRect(boundingRect(), Qt::white);
 }
 
-FooterDelegate::FooterDelegate(const Process::ProcessModel& model, const Process::Context& context)
-    : m_model{model}, m_context{context}
+FooterDelegate::FooterDelegate(
+    const Process::ProcessModel& model,
+    const Process::Context& context)
+    : m_model{model}
+    , m_context{context}
 {
   setAcceptedMouseButtons(Qt::NoButton);
 }

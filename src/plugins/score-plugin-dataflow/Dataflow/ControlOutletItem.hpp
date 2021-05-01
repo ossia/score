@@ -3,7 +3,8 @@
 
 namespace Dataflow
 {
-struct SCORE_PLUGIN_DATAFLOW_EXPORT ControlOutletFactory final : public AutomatablePortFactory
+struct SCORE_PLUGIN_DATAFLOW_EXPORT ControlOutletFactory final
+    : public AutomatablePortFactory
 {
   using Model_T = Process::ControlOutlet;
   UuidKey<Process::Port> concreteKey() const noexcept override

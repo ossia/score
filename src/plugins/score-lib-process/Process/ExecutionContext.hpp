@@ -1,11 +1,10 @@
 #pragma once
 #include <Process/TimeValue.hpp>
 
+#include <ossia/detail/lockfree_queue.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
 
 #include <concurrentqueue.h>
-#include <ossia/detail/lockfree_queue.hpp>
-
 #include <score_lib_process_export.h>
 #include <smallfun.hpp>
 
@@ -64,16 +63,21 @@ class Model;
 }
 
 using time_function = smallfun::function<ossia::time_value(const TimeVal&)>;
-using reverse_time_function = smallfun::function<TimeVal(const ossia::time_value&)>;
+using reverse_time_function
+    = smallfun::function<TimeVal(const ossia::time_value&)>;
 using ExecutionCommand = smallfun::function<
     void(),
     128,
-    std::max((int)8, (int)std::max(alignof(std::function<void()>), alignof(double))),
+    std::max(
+        (int)8,
+        (int)std::max(alignof(std::function<void()>), alignof(double))),
     smallfun::Methods::Move>;
 using GCCommand = smallfun::function<
     void(),
     128 + 4 * 8,
-    std::max((int)8, (int)std::max(alignof(std::function<void()>), alignof(double))),
+    std::max(
+        (int)8,
+        (int)std::max(alignof(std::function<void()>), alignof(double))),
     smallfun::Methods::Move>;
 
 using ExecutionCommandQueue = ossia::spsc_queue<ExecutionCommand, 1024>;

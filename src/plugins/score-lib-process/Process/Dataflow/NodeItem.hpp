@@ -1,6 +1,6 @@
 #pragma once
-#include <Process/ZoomHelper.hpp>
 #include <Process/TimeValue.hpp>
+#include <Process/ZoomHelper.hpp>
 
 #include <score/model/Identifier.hpp>
 
@@ -34,7 +34,10 @@ class SCORE_LIB_PROCESS_EXPORT NodeItem
     , public QGraphicsItem
 {
 public:
-  NodeItem(const Process::ProcessModel& model, const Process::Context& ctx, QGraphicsItem* parent);
+  NodeItem(
+      const Process::ProcessModel& model,
+      const Process::Context& ctx,
+      QGraphicsItem* parent);
   const Id<Process::ProcessModel>& id() const noexcept;
   ~NodeItem();
 
@@ -53,7 +56,10 @@ private:
   void setSize(QSizeF sz);
 
   bool isInSelectionCorner(QPointF f, QRectF r) const;
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
@@ -73,8 +79,8 @@ private:
   void updateTitlePos();
   QRectF boundingRect() const final override;
 
-  static void paintNode(QPainter* painter, bool selected, bool hovered, QRectF rect);
-
+  static void
+  paintNode(QPainter* painter, bool selected, bool hovered, QRectF rect);
 
   // Title
   QGraphicsItem* m_uiButton{};

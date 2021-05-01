@@ -18,12 +18,17 @@ namespace Curve
 {
 class PointModel;
 struct Style;
-class SCORE_PLUGIN_CURVE_EXPORT PointView final : public QObject, public QGraphicsItem
+class SCORE_PLUGIN_CURVE_EXPORT PointView final
+    : public QObject
+    , public QGraphicsItem
 {
   W_OBJECT(PointView)
   Q_INTERFACES(QGraphicsItem)
 public:
-  PointView(const PointModel* model, const Curve::Style& style, QGraphicsItem* parent);
+  PointView(
+      const PointModel* model,
+      const Curve::Style& style,
+      QGraphicsItem* parent);
 
   const PointModel& model() const;
   const Id<PointModel>& id() const;
@@ -32,7 +37,10 @@ public:
   int type() const final override { return Type; }
 
   QRectF boundingRect() const override;
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
 
   void setSelected(bool selected);
 

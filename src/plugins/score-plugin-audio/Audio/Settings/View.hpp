@@ -1,14 +1,17 @@
 #pragma once
+#include <Audio/AudioInterface.hpp>
+
 #include <score/plugins/ProjectSettings/ProjectSettingsView.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
-
-#include <Audio/AudioInterface.hpp>
 
 #include <verdigris>
 class QStackedWidget;
 class QCheckBox;
 
-namespace score { class FormWidget;}
+namespace score
+{
+class FormWidget;
+}
 
 namespace Audio::Settings
 {
@@ -22,7 +25,8 @@ public:
 
   void setDriver(AudioFactory::ConcreteKey k);
   void setDriverWidget(QWidget* w);
-  void DriverChanged(AudioFactory::ConcreteKey arg_1) W_SIGNAL(DriverChanged, arg_1);
+  void DriverChanged(AudioFactory::ConcreteKey arg_1)
+      W_SIGNAL(DriverChanged, arg_1);
 
   void setBufferSize(int);
   void BufferSizeChanged(int arg) W_SIGNAL(BufferSizeChanged, arg)

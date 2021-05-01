@@ -4,25 +4,8 @@
 
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
-#include <Scenario/Commands/Event/SplitEvent.hpp>
-#include <Scenario/Commands/State/AddStateProcess.hpp>
-#include <Scenario/Commands/State/RemoveStateProcess.hpp>
-#include <Scenario/Commands/TimeSync/SplitTimeSync.hpp>
-#include <Scenario/DialogWidget/MessageTreeView.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Inspector/MetadataWidget.hpp>
-#include <score/widgets/SelectionButton.hpp>
-#include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Application/ScenarioActions.hpp>
 
-#include <Scenario/Commands/Cohesion/RefreshStates.hpp>
-#include <Scenario/Commands/Cohesion/SnapshotParameters.hpp>
-
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <score/actions/ActionManager.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -31,8 +14,8 @@
 #include <score/model/path/Path.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <score/actions/ActionManager.hpp>
 #include <score/widgets/MarginLess.hpp>
+#include <score/widgets/SelectionButton.hpp>
 #include <score/widgets/Separator.hpp>
 #include <score/widgets/SetIcons.hpp>
 #include <score/widgets/TextLabel.hpp>
@@ -44,6 +27,23 @@
 #include <QTableView>
 #include <QWidget>
 
+#include <Scenario/Application/ScenarioActions.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Commands/Cohesion/RefreshStates.hpp>
+#include <Scenario/Commands/Cohesion/SnapshotParameters.hpp>
+#include <Scenario/Commands/Event/SplitEvent.hpp>
+#include <Scenario/Commands/State/AddStateProcess.hpp>
+#include <Scenario/Commands/State/RemoveStateProcess.hpp>
+#include <Scenario/Commands/TimeSync/SplitTimeSync.hpp>
+#include <Scenario/DialogWidget/MessageTreeView.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Inspector/MetadataWidget.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+
 namespace Scenario
 {
 class MessageListProxy final : public QAbstractProxyModel
@@ -51,8 +51,12 @@ class MessageListProxy final : public QAbstractProxyModel
 
 public:
   using QAbstractProxyModel::QAbstractProxyModel;
-  MessageItemModel* source() const { return static_cast<MessageItemModel*>(sourceModel()); }
-  QModelIndex index(int row, int column, const QModelIndex& parent) const override
+  MessageItemModel* source() const
+  {
+    return static_cast<MessageItemModel*>(sourceModel());
+  }
+  QModelIndex
+  index(int row, int column, const QModelIndex& parent) const override
   {
     if (parent == QModelIndex{})
     {
@@ -73,7 +77,8 @@ public:
 
   QModelIndex parent(const QModelIndex& child) const override { return {}; }
 
-  QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const override
+  QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole)
+      const override
   {
     auto ptr = proxyIndex.internalPointer();
     if (!ptr)
@@ -137,7 +142,8 @@ public:
     return createIndex(row, sourceIndex.column(), idx);
   }
 
-  QVariant headerData(int section, Qt::Orientation orientation, int role) const override
+  QVariant
+  headerData(int section, Qt::Orientation orientation, int role) const override
   {
     if (orientation == Qt::Vertical)
       return {};
@@ -162,7 +168,8 @@ StateInspectorWidget::StateInspectorWidget(
   setObjectName("StateInspectorWidget");
   setParent(parent);
 
-  auto metadata = new MetadataWidget{m_model.metadata(), m_context.commandStack, &m_model, this};
+  auto metadata = new MetadataWidget{
+      m_model.metadata(), m_context.commandStack, &m_model, this};
   metadata->setupConnections(m_model);
   addHeader(metadata);
 
@@ -182,9 +189,13 @@ StateInspectorWidget::StateInspectorWidget(
     splitEvent->setStatusTip(tr("Split condition"));
 
     splitEvent->setAutoRaise(true);
-    splitEvent->setIconSize(QSize{28,28});
+    splitEvent->setIconSize(QSize{28, 28});
     m_btnLayout.addWidget(splitEvent);
-    connect(splitEvent, &QPushButton::clicked, this, &StateInspectorWidget::splitFromEvent);
+    connect(
+        splitEvent,
+        &QPushButton::clicked,
+        this,
+        &StateInspectorWidget::splitFromEvent);
   }
 
   {
@@ -198,11 +209,15 @@ StateInspectorWidget::StateInspectorWidget(
     desynchronize->setStatusTip(tr("Desynchronize"));
 
     desynchronize->setAutoRaise(true);
-    desynchronize->setIconSize(QSize{28,28});
+    desynchronize->setIconSize(QSize{28, 28});
 
     m_btnLayout.addWidget(desynchronize);
 
-    connect(desynchronize, &QPushButton::clicked, this, &StateInspectorWidget::splitFromNode);
+    connect(
+        desynchronize,
+        &QPushButton::clicked,
+        this,
+        &StateInspectorWidget::splitFromNode);
   }
   {
     auto snapshot = new QToolButton;
@@ -213,11 +228,11 @@ StateInspectorWidget::StateInspectorWidget(
         QStringLiteral(":/icons/snapshot_hover.png"),
         QStringLiteral(":/icons/snapshot_off.png"),
         QStringLiteral(":/icons/snapshot_disabled.png")));
-    snapshot->setIconSize(QSize{28,28});
+    snapshot->setIconSize(QSize{28, 28});
     snapshot->setAutoRaise(true);
 
     connect(snapshot, &QToolButton::clicked, this, [this] {
-        SnapshotParametersInStates(this->context());
+      SnapshotParametersInStates(this->context());
     });
     m_btnLayout.addWidget(snapshot);
   }
@@ -226,11 +241,11 @@ StateInspectorWidget::StateInspectorWidget(
     refresh->setShortcut(tr("Ctrl+U"));
     refresh->setToolTip(tr("Ctrl+U"));
     refresh->setIcon(makeIcons(
-                        QStringLiteral(":/icons/refresh_on.png"),
-                       QStringLiteral(":/icons/refresh_hover.png"),
-                        QStringLiteral(":/icons/refresh_off.png"),
-                        QStringLiteral(":/icons/refresh_disabled.png")));
-    refresh->setIconSize(QSize{28,28});
+        QStringLiteral(":/icons/refresh_on.png"),
+        QStringLiteral(":/icons/refresh_hover.png"),
+        QStringLiteral(":/icons/refresh_off.png"),
+        QStringLiteral(":/icons/refresh_disabled.png")));
+    refresh->setIconSize(QSize{28, 28});
     refresh->setAutoRaise(true);
 
     connect(refresh, &QToolButton::clicked, this, [this] {
@@ -245,15 +260,15 @@ StateInspectorWidget::StateInspectorWidget(
     //trigger->setShortcut(tr("Ctrl+U"));
     //trigger->setToolTip(tr("Ctrl+U"));
     trigger->setIcon(makeIcons(
-                        QStringLiteral(":/icons/trigger_on.png"),
-                       QStringLiteral(":/icons/trigger_hover.png"),
-                        QStringLiteral(":/icons/trigger_off.png"),
-                       QStringLiteral(":/icons/trigger_disabled.png")));
+        QStringLiteral(":/icons/trigger_on.png"),
+        QStringLiteral(":/icons/trigger_hover.png"),
+        QStringLiteral(":/icons/trigger_off.png"),
+        QStringLiteral(":/icons/trigger_disabled.png")));
     trigger->setAutoRaise(true);
-    trigger->setIconSize(QSize{28,28});
+    trigger->setIconSize(QSize{28, 28});
 
-    connect(trigger, &QToolButton::toggled, this, [this] (bool b) {
-      if(b)
+    connect(trigger, &QToolButton::toggled, this, [this](bool b) {
+      if (b)
       {
         auto& addTrig = context().app.actions.action<Actions::AddTrigger>();
         addTrig.action()->trigger();
@@ -273,22 +288,23 @@ StateInspectorWidget::StateInspectorWidget(
     //trigger->setShortcut(tr("Ctrl+U"));
     //trigger->setToolTip(tr("Ctrl+U"));
     condition->setIcon(makeIcons(
-                        QStringLiteral(":/icons/condition_on.png"),
-                         QStringLiteral(":/icons/condition_hover.png"),
-                        QStringLiteral(":/icons/condition_off.png"),
-                       QStringLiteral(":/icons/condition_disabled.png")));
-    condition->setIconSize(QSize{28,28});
+        QStringLiteral(":/icons/condition_on.png"),
+        QStringLiteral(":/icons/condition_hover.png"),
+        QStringLiteral(":/icons/condition_off.png"),
+        QStringLiteral(":/icons/condition_disabled.png")));
+    condition->setIconSize(QSize{28, 28});
     condition->setAutoRaise(true);
 
-    connect(condition, &QToolButton::toggled, this, [this] (bool b) {
-      if(b)
+    connect(condition, &QToolButton::toggled, this, [this](bool b) {
+      if (b)
       {
         auto& addTrig = context().app.actions.action<Actions::AddCondition>();
         addTrig.action()->trigger();
       }
       else
       {
-        auto& rmTrig = context().app.actions.action<Actions::RemoveCondition>();
+        auto& rmTrig
+            = context().app.actions.action<Actions::RemoveCondition>();
         rmTrig.action()->trigger();
       }
     });
@@ -315,7 +331,8 @@ StateInspectorWidget::StateInspectorWidget(
   */
   {
     QWidget* spacerWidget = new QWidget(this);
-    spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    spacerWidget->setSizePolicy(
+        QSizePolicy::Expanding, QSizePolicy::Preferred);
     spacerWidget->setVisible(true);
     m_btnLayout.addWidget(spacerWidget);
   }
@@ -340,7 +357,8 @@ StateInspectorWidget::StateInspectorWidget(
     auto lv = new QTableView{this};
     lv->verticalHeader()->hide();
     lv->horizontalHeader()->setCascadingSectionResizes(true);
-    lv->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    lv->horizontalHeader()->setSectionResizeMode(
+        QHeaderView::ResizeToContents);
     lv->horizontalHeader()->setStretchLastSection(true);
     lv->setAlternatingRowColors(true);
     lv->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
@@ -373,7 +391,8 @@ StateInspectorWidget::StateInspectorWidget(
     auto lv = new QTableView;
     lv->verticalHeader()->hide();
     lv->horizontalHeader()->setCascadingSectionResizes(true);
-    lv->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    lv->horizontalHeader()->setSectionResizeMode(
+        QHeaderView::ResizeToContents);
     lv->horizontalHeader()->setStretchLastSection(true);
     lv->setAlternatingRowColors(true);
     lv->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
@@ -394,7 +413,8 @@ void StateInspectorWidget::splitFromEvent()
     auto& parentEvent = scenar->events.at(m_model.eventId());
     if (parentEvent.states().size() > 1)
     {
-      auto cmd = new Scenario::Command::SplitEvent{*scenar, m_model.eventId(), {m_model.id()}};
+      auto cmd = new Scenario::Command::SplitEvent{
+          *scenar, m_model.eventId(), {m_model.id()}};
 
       m_commandDispatcher.submit(cmd);
     }
@@ -410,9 +430,11 @@ void StateInspectorWidget::splitFromNode()
     auto& tn = Scenario::parentTimeSync(m_model, *scenar);
     if (ev.states().size() > 1)
     {
-      MacroCommandDispatcher<Command::SplitStateMacro> disp{m_commandDispatcher.stack()};
+      MacroCommandDispatcher<Command::SplitStateMacro> disp{
+          m_commandDispatcher.stack()};
 
-      auto cmd = new Scenario::Command::SplitEvent{*scenar, m_model.eventId(), {m_model.id()}};
+      auto cmd = new Scenario::Command::SplitEvent{
+          *scenar, m_model.eventId(), {m_model.id()}};
       disp.submit(cmd);
       auto cmd2 = new Scenario::Command::SplitTimeSync{tn, {cmd->newEvent()}};
       disp.submit(cmd2);
@@ -422,7 +444,8 @@ void StateInspectorWidget::splitFromNode()
     {
       if (tn.events().size() > 1)
       {
-        auto cmd = new Scenario::Command::SplitTimeSync{tn, {m_model.eventId()}};
+        auto cmd
+            = new Scenario::Command::SplitTimeSync{tn, {m_model.eventId()}};
         m_commandDispatcher.submit(cmd);
       }
     }

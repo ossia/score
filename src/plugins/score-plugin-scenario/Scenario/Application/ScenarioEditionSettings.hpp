@@ -1,9 +1,9 @@
 #pragma once
 #include <Process/ExpandMode.hpp>
-#include <Scenario/Palette/Tool.hpp>
 
 #include <QObject>
 
+#include <Scenario/Palette/Tool.hpp>
 #include <score_plugin_scenario_export.h>
 
 #include <verdigris>
@@ -39,15 +39,20 @@ public:
 public:
   void expandModeChanged(ExpandMode expandMode)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, expandModeChanged, expandMode)
-  void toolChanged(Scenario::Tool tool) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, toolChanged, tool)
+  void toolChanged(Scenario::Tool tool)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, toolChanged, tool)
 
   void lockModeChanged(LockMode lockMode)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, lockModeChanged, lockMode)
 
   W_PROPERTY(Scenario::Tool, tool READ tool WRITE setTool NOTIFY toolChanged)
 
-  W_PROPERTY(LockMode, lockMode READ lockMode WRITE setLockMode NOTIFY lockModeChanged)
+  W_PROPERTY(
+      LockMode,
+      lockMode READ lockMode WRITE setLockMode NOTIFY lockModeChanged)
 
-  W_PROPERTY(ExpandMode, expandMode READ expandMode WRITE setExpandMode NOTIFY expandModeChanged)
+  W_PROPERTY(
+      ExpandMode,
+      expandMode READ expandMode WRITE setExpandMode NOTIFY expandModeChanged)
 };
 }

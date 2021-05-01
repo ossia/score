@@ -2,13 +2,13 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ExecutorModel.hpp"
 
-#include <Scenario/Execution/score2OSSIA.hpp>
-
-#include <score/application/ApplicationContext.hpp>
-
 #include <Execution/Clock/DataflowClock.hpp>
 #include <Execution/Clock/DefaultClock.hpp>
 #include <Execution/Transport/JackTransport.hpp>
+
+#include <score/application/ApplicationContext.hpp>
+
+#include <Scenario/Execution/score2OSSIA.hpp>
 #if defined(OSSIA_AUDIO_JACK)
 #include <Audio/JackInterface.hpp>
 #endif
@@ -35,14 +35,24 @@ SETTINGS_PARAMETER_IMPL(Merging){
 SETTINGS_PARAMETER_IMPL(Commit){
     QStringLiteral("score_plugin_engine/Commit"),
     CommitPolicies{}.Merged};
-SETTINGS_PARAMETER_IMPL(Tick){QStringLiteral("score_plugin_engine/Tick"), TickPolicies{}.Buffer};
-SETTINGS_PARAMETER_IMPL(Parallel){QStringLiteral("score_plugin_engine/Parallel"), false};
+SETTINGS_PARAMETER_IMPL(Tick){
+    QStringLiteral("score_plugin_engine/Tick"),
+    TickPolicies{}.Buffer};
+SETTINGS_PARAMETER_IMPL(Parallel){
+    QStringLiteral("score_plugin_engine/Parallel"),
+    false};
 SETTINGS_PARAMETER_IMPL(ExecutionListening){
     QStringLiteral("score_plugin_engine/ExecListening"),
     true};
-SETTINGS_PARAMETER_IMPL(Logging){QStringLiteral("score_plugin_engine/Logging"), false};
-SETTINGS_PARAMETER_IMPL(Bench){QStringLiteral("score_plugin_engine/Bench"), false};
-SETTINGS_PARAMETER_IMPL(ScoreOrder){QStringLiteral("score_plugin_engine/ScoreOrder"), false};
+SETTINGS_PARAMETER_IMPL(Logging){
+    QStringLiteral("score_plugin_engine/Logging"),
+    false};
+SETTINGS_PARAMETER_IMPL(Bench){
+    QStringLiteral("score_plugin_engine/Bench"),
+    false};
+SETTINGS_PARAMETER_IMPL(ScoreOrder){
+    QStringLiteral("score_plugin_engine/ScoreOrder"),
+    false};
 SETTINGS_PARAMETER_IMPL(ValueCompilation){
     QStringLiteral("score_plugin_engine/ValueCompilation"),
     true};
@@ -96,10 +106,12 @@ std::unique_ptr<Clock> Model::makeClock(const Execution::Context& ctx) const
 time_function Model::makeTimeFunction(const score::DocumentContext& ctx) const
 {
   auto it = m_clockFactories.get(m_Clock);
-  return it ? it->makeTimeFunction(ctx) : Dataflow::ClockFactory{}.makeTimeFunction(ctx);
+  return it ? it->makeTimeFunction(ctx)
+            : Dataflow::ClockFactory{}.makeTimeFunction(ctx);
 }
 
-reverse_time_function Model::makeReverseTimeFunction(const score::DocumentContext& ctx) const
+reverse_time_function
+Model::makeReverseTimeFunction(const score::DocumentContext& ctx) const
 {
   auto it = m_clockFactories.get(m_Clock);
   return it ? it->makeReverseTimeFunction(ctx)
@@ -109,18 +121,21 @@ reverse_time_function Model::makeReverseTimeFunction(const score::DocumentContex
 TransportInterface* Model::getTransport() const
 {
 #if defined(OSSIA_AUDIO_JACK)
-  if(m_audioSettings.getDriver() == Audio::JackFactory::static_concreteKey())
+  if (m_audioSettings.getDriver() == Audio::JackFactory::static_concreteKey())
   {
-    if(m_audioSettings.getJackTransport() != Audio::Settings::ExternalTransport::None)
+    if (m_audioSettings.getJackTransport()
+        != Audio::Settings::ExternalTransport::None)
     {
-      if(auto t = m_transportInterfaces.get(Execution::JackTransport::static_concreteKey()))
+      if (auto t = m_transportInterfaces.get(
+              Execution::JackTransport::static_concreteKey()))
       {
         return t;
       }
     }
   }
 #endif
-  return m_transportInterfaces.get(Execution::DirectTransport::static_concreteKey());
+  return m_transportInterfaces.get(
+      Execution::DirectTransport::static_concreteKey());
 }
 
 SCORE_SETTINGS_PARAMETER_CPP(ClockFactory::ConcreteKey, Model, Clock)

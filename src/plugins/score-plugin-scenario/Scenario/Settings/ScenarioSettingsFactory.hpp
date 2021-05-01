@@ -1,9 +1,9 @@
 #pragma once
+#include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
+
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <Scenario/Settings/ScenarioSettingsPresenter.hpp>
 #include <Scenario/Settings/ScenarioSettingsView.hpp>
-
-#include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 
 namespace Scenario
 {

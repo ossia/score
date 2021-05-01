@@ -2,16 +2,18 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioDropHandler.hpp"
 
-#include <Scenario/Process/ScenarioPresenter.hpp>
-#include <Scenario/Process/ScenarioView.hpp>
-
 #include <QFileInfo>
 #include <QUrl>
+
+#include <Scenario/Process/ScenarioPresenter.hpp>
+#include <Scenario/Process/ScenarioView.hpp>
 namespace Scenario
 {
 
-MagneticStates
-magneticStates(MagneticStates cur, Scenario::Point pt, const Scenario::ScenarioPresenter& pres)
+MagneticStates magneticStates(
+    MagneticStates cur,
+    Scenario::Point pt,
+    const Scenario::ScenarioPresenter& pres)
 {
   constexpr int magnetic = 10;
   const auto& scenario = pres.model();
@@ -19,9 +21,11 @@ magneticStates(MagneticStates cur, Scenario::Point pt, const Scenario::ScenarioP
   // Check if we keep the current magnetism
   if (cur.horizontal)
   {
-    const auto state_date = scenario.events.at(cur.horizontal->eventId()).date();
+    const auto state_date
+        = scenario.events.at(cur.horizontal->eventId()).date();
 
-    const double rel_y_distance = std::abs(cur.horizontal->heightPercentage() - pt.y);
+    const double rel_y_distance
+        = std::abs(cur.horizontal->heightPercentage() - pt.y);
     const double abs_y_distance = rel_y_distance * pres.view().height();
 
     if (abs_y_distance < magnetic && state_date < pt.date)
@@ -32,7 +36,8 @@ magneticStates(MagneticStates cur, Scenario::Point pt, const Scenario::ScenarioP
   else if (cur.vertical)
   {
     auto cur_date = Scenario::parentEvent(*cur.vertical, scenario).date();
-    const double abs_x_distance = std::abs((cur_date.impl - pt.date.impl) / pres.zoomRatio());
+    const double abs_x_distance
+        = std::abs((cur_date.impl - pt.date.impl) / pres.zoomRatio());
     if (abs_x_distance < magnetic)
     {
       return {cur.horizontal, cur.vertical, true};
@@ -48,7 +53,8 @@ magneticStates(MagneticStates cur, Scenario::Point pt, const Scenario::ScenarioP
   for (auto& ev : scenario.events)
     eventDates[ev.id()] = ev.date();
 
-  Scenario::StateModel* start_st = &scenario.states.at(start_ev.states().front());
+  Scenario::StateModel* start_st
+      = &scenario.states.at(start_ev.states().front());
 
   const ossia::time_value pt_msec = pt.date;
   StateModel* min_x_state = start_st;
@@ -95,17 +101,26 @@ magneticStates(MagneticStates cur, Scenario::Point pt, const Scenario::ScenarioP
 
 DropHandler::~DropHandler() { }
 
-bool DropHandler::dragEnter(const ScenarioPresenter&, QPointF pos, const QMimeData& mime)
+bool DropHandler::dragEnter(
+    const ScenarioPresenter&,
+    QPointF pos,
+    const QMimeData& mime)
 {
   return false;
 }
 
-bool DropHandler::dragMove(const ScenarioPresenter&, QPointF pos, const QMimeData& mime)
+bool DropHandler::dragMove(
+    const ScenarioPresenter&,
+    QPointF pos,
+    const QMimeData& mime)
 {
   return false;
 }
 
-bool DropHandler::dragLeave(const ScenarioPresenter&, QPointF pos, const QMimeData& mime)
+bool DropHandler::dragLeave(
+    const ScenarioPresenter&,
+    QPointF pos,
+    const QMimeData& mime)
 {
   return false;
 }
@@ -133,9 +148,10 @@ bool GhostIntervalDropHandler::dragMove(
 {
   if (!canDrop(mime))
   {
-    bool mimeTypes = ossia::any_of(m_acceptableMimeTypes, [&](const auto& mimeType) {
-      return mime.formats().contains(mimeType);
-    });
+    bool mimeTypes
+        = ossia::any_of(m_acceptableMimeTypes, [&](const auto& mimeType) {
+            return mime.formats().contains(mimeType);
+          });
 
     bool suffixes = false;
     for (auto& url : mime.urls())
@@ -143,8 +159,10 @@ bool GhostIntervalDropHandler::dragMove(
       if (url.isLocalFile())
       {
         const auto ext = QFileInfo{url.toLocalFile()}.suffix();
-        suffixes |= ossia::any_of(
-            m_acceptableSuffixes, [&](const auto& suffix) { return ext == suffix; });
+        suffixes
+            |= ossia::any_of(m_acceptableSuffixes, [&](const auto& suffix) {
+                 return ext == suffix;
+               });
         if (suffixes)
           break;
       }
@@ -163,7 +181,9 @@ bool GhostIntervalDropHandler::dragMove(
     {
       // TODO in the drop, handle the case where rel_t < 0 - else, negative
       // date + crash
-      pres.drawDragLine(*y_state, {Scenario::parentEvent(*y_state, pres.model()).date(), pt.y});
+      pres.drawDragLine(
+          *y_state,
+          {Scenario::parentEvent(*y_state, pres.model()).date(), pt.y});
     }
     else
     {
@@ -172,7 +192,8 @@ bool GhostIntervalDropHandler::dragMove(
   }
   else if (x_state)
   {
-    if (x_state->nextInterval() || x_state->eventId() == pres.model().startEvent().id())
+    if (x_state->nextInterval()
+        || x_state->eventId() == pres.model().startEvent().id())
     {
       pres.drawDragLine(*x_state, pt);
     }
@@ -204,8 +225,10 @@ bool GhostIntervalDropHandler::dragLeave(
 
 DropHandlerList::~DropHandlerList() { }
 
-bool DropHandlerList::dragEnter(const ScenarioPresenter& scen, QPointF drop, const QMimeData& mime)
-    const
+bool DropHandlerList::dragEnter(
+    const ScenarioPresenter& scen,
+    QPointF drop,
+    const QMimeData& mime) const
 {
   for (auto& fact : *this)
   {
@@ -216,8 +239,10 @@ bool DropHandlerList::dragEnter(const ScenarioPresenter& scen, QPointF drop, con
   return false;
 }
 
-bool DropHandlerList::dragMove(const ScenarioPresenter& scen, QPointF drop, const QMimeData& mime)
-    const
+bool DropHandlerList::dragMove(
+    const ScenarioPresenter& scen,
+    QPointF drop,
+    const QMimeData& mime) const
 {
   for (auto& fact : *this)
   {
@@ -228,8 +253,10 @@ bool DropHandlerList::dragMove(const ScenarioPresenter& scen, QPointF drop, cons
   return false;
 }
 
-bool DropHandlerList::dragLeave(const ScenarioPresenter& scen, QPointF drop, const QMimeData& mime)
-    const
+bool DropHandlerList::dragLeave(
+    const ScenarioPresenter& scen,
+    QPointF drop,
+    const QMimeData& mime) const
 {
   for (auto& fact : *this)
   {
@@ -240,8 +267,10 @@ bool DropHandlerList::dragLeave(const ScenarioPresenter& scen, QPointF drop, con
   return false;
 }
 
-bool DropHandlerList::drop(const ScenarioPresenter& scen, QPointF drop, const QMimeData& mime)
-    const
+bool DropHandlerList::drop(
+    const ScenarioPresenter& scen,
+    QPointF drop,
+    const QMimeData& mime) const
 {
   for (auto& fact : *this)
   {

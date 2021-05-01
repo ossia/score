@@ -23,7 +23,10 @@ public:
   QSize sizeHint() const override { return {800, 300}; }
   std::vector<QString> text() const noexcept;
 
-  void addTab(const QString& name, const QString& text, const std::string_view language);
+  void addTab(
+      const QString& name,
+      const QString& text,
+      const std::string_view language);
   void setText(int idx, const QString& str);
   void setError(const QString& str);
   void clearError();
@@ -33,7 +36,8 @@ protected:
 
   const score::DocumentContext& m_context;
   QTabWidget* m_tabs{};
-  struct EditorTab {
+  struct EditorTab
+  {
     QCodeEditor* textedit{};
   };
   std::vector<EditorTab> m_editors;
@@ -49,30 +53,33 @@ public:
       const Process_T& process,
       const score::DocumentContext& ctx,
       QWidget* parent)
-    : MultiScriptDialog{ctx, parent}, m_process{process}
+      : MultiScriptDialog{ctx, parent}
+      , m_process{process}
   {
     const auto& prop = (m_process.*Property_T::get)();
-    for(auto& [name, addr, lang] : param_type::specification)
+    for (auto& [name, addr, lang] : param_type::specification)
     {
       addTab(name, prop.*addr, lang);
     }
 
-    con(m_process, Property_T::notify,
-        this, [this] (const auto& prop) {
+    con(m_process, Property_T::notify, this, [this](const auto& prop) {
       int i = 0;
-      for(auto& [name, addr, lang] : param_type::specification)
+      for (auto& [name, addr, lang] : param_type::specification)
       {
         setText(i, prop.*addr);
         i++;
       }
     });
 
-    con(m_process, &Process_T::errorMessage,
-        this, &ProcessMultiScriptEditDialog::setError);
-    con(m_process, &IdentifiedObjectAbstract::identified_object_destroying,
-        this, &QWidget::deleteLater);
+    con(m_process,
+        &Process_T::errorMessage,
+        this,
+        &ProcessMultiScriptEditDialog::setError);
+    con(m_process,
+        &IdentifiedObjectAbstract::identified_object_destroying,
+        this,
+        &QWidget::deleteLater);
   }
-
 
   void on_accepted() override
   {
@@ -84,11 +91,11 @@ public:
       if (m_process.validate(this->text()))
       {
         CommandDispatcher<>{m_context.commandStack}.submit(
-              new score::StaticPropertyCommand<Property_T>{m_process, this->text()});
+            new score::StaticPropertyCommand<Property_T>{
+                m_process, this->text()});
       }
     }
   }
-
 
 protected:
   const Process_T& m_process;

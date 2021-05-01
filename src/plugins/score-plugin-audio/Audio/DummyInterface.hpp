@@ -1,13 +1,15 @@
 #pragma once
-#include <ossia/audio/dummy_protocol.hpp>
-
 #include <Audio/AudioInterface.hpp>
 #include <Audio/Settings/Model.hpp>
 #include <Audio/Settings/View.hpp>
+
 #include <score/tools/Bind.hpp>
+
+#include <ossia/audio/dummy_protocol.hpp>
+
 #include <QFormLayout>
-#include <QSlider>
 #include <QLabel>
+#include <QSlider>
 namespace Audio
 {
 
@@ -17,16 +19,26 @@ class DummyFactory final : public AudioFactory
 public:
   ~DummyFactory() override { }
   bool available() const noexcept override { return true; }
-  void initialize(Audio::Settings::Model& set, const score::ApplicationContext& ctx) override { }
-
-  QString prettyName() const override { return QObject::tr("Dummy (No audio)"); };
-  std::unique_ptr<ossia::audio_engine>
-  make_engine(const Audio::Settings::Model& set, const score::ApplicationContext& ctx) override
+  void initialize(
+      Audio::Settings::Model& set,
+      const score::ApplicationContext& ctx) override
   {
-    return std::make_unique<ossia::dummy_engine>(set.getRate(), set.getBufferSize());
   }
 
-  static void updateLabel(QLabel& l, int bs, int rate) {
+  QString prettyName() const override
+  {
+    return QObject::tr("Dummy (No audio)");
+  };
+  std::unique_ptr<ossia::audio_engine> make_engine(
+      const Audio::Settings::Model& set,
+      const score::ApplicationContext& ctx) override
+  {
+    return std::make_unique<ossia::dummy_engine>(
+        set.getRate(), set.getBufferSize());
+  }
+
+  static void updateLabel(QLabel& l, int bs, int rate)
+  {
     l.setText(QString{"%1 ms"}.arg(1e3 * double(bs) / rate, 0, 'f', 3));
   }
 
@@ -40,12 +52,11 @@ public:
     auto lay = new QFormLayout{w};
 
     auto timeLabel = new QLabel;
-    con(m, &Audio::Settings::Model::BufferSizeChanged,
-        timeLabel, [=, &m] (int b) {
-      updateLabel(*timeLabel, b, m.getRate());
-    });
-    con(m, &Audio::Settings::Model::RateChanged,
-        timeLabel, [=, &m] (int r) {
+    con(m,
+        &Audio::Settings::Model::BufferSizeChanged,
+        timeLabel,
+        [=, &m](int b) { updateLabel(*timeLabel, b, m.getRate()); });
+    con(m, &Audio::Settings::Model::RateChanged, timeLabel, [=, &m](int r) {
       updateLabel(*timeLabel, m.getBufferSize(), r);
     });
 
@@ -58,11 +69,11 @@ public:
       lay->addRow(QObject::tr("Buffer size"), cb);
       cb->setRange(16, 10000);
       cb->setValue(m.getBufferSize());
-      QObject::connect(cb, &QSlider::valueChanged,
-                       w, [cb, &v, &m, timeLabel] (int i) {
-        v.BufferSizeChanged(cb->value());
-        updateLabel(*timeLabel, i, m.getRate());
-      });
+      QObject::connect(
+          cb, &QSlider::valueChanged, w, [cb, &v, &m, timeLabel](int i) {
+            v.BufferSizeChanged(cb->value());
+            updateLabel(*timeLabel, i, m.getRate());
+          });
     }
 
     addSampleRateWidget(*w, m, v);

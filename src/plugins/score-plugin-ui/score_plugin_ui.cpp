@@ -2,9 +2,10 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "score_plugin_ui.hpp"
 
+#include <Engine/Node/PdNode.hpp>
+
 #include <score/plugins/FactorySetup.hpp>
 
-#include <Engine/Node/PdNode.hpp>
 #include <Ui/SignalDisplay.hpp>
 #include <score_plugin_engine.hpp>
 

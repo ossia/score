@@ -1,5 +1,11 @@
 #pragma once
 
+#include <score/command/Dispatchers/MultiOngoingCommandDispatcher.hpp>
+#include <score/locking/ObjectLocker.hpp>
+
+#include <QApplication>
+#include <QFinalState>
+
 #include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
 #include <Scenario/Commands/Scenario/Merge/MergeEvents.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
@@ -19,12 +25,6 @@
 #include <Scenario/Palette/Transitions/NothingTransitions.hpp>
 #include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
-
-#include <score/command/Dispatchers/MultiOngoingCommandDispatcher.hpp>
-#include <score/locking/ObjectLocker.hpp>
-
-#include <QApplication>
-#include <QFinalState>
 
 namespace Scenario
 {
@@ -56,7 +56,8 @@ public:
       mainState->setInitialState(pressed);
       released->addTransition(finalState);
 
-      auto t_pressed = score::make_transition<MoveOnAnything_Transition<Scenario::ProcessModel>>(
+      auto t_pressed = score::make_transition<
+          MoveOnAnything_Transition<Scenario::ProcessModel>>(
           pressed, moving, *this);
       QObject::connect(t_pressed, &QAbstractTransition::triggered, [&]() {
         auto& scenar = stateMachine.model();
@@ -96,8 +97,10 @@ public:
         this->m_endEventCanBeMerged = nextIntervals(eev, scenar).empty();
       });
 
-      score::make_transition<ReleaseOnAnything_Transition>(pressed, finalState);
-      score::make_transition<MoveOnAnything_Transition<Scenario::ProcessModel>>(
+      score::make_transition<ReleaseOnAnything_Transition>(
+          pressed, finalState);
+      score::make_transition<
+          MoveOnAnything_Transition<Scenario::ProcessModel>>(
           moving, moving, *this);
       score::make_transition<ReleaseOnAnything_Transition>(moving, released);
 
@@ -114,11 +117,11 @@ public:
 
         if (qApp->keyboardModifiers() & Qt::ShiftModifier)
         {
-          if(&sts == &scenario.startTimeSync())
+          if (&sts == &scenario.startTimeSync())
             return;
 
-          m_lastDate
-              = m_intervalInitialPoint.date + (this->currentPoint.date - m_initialClick.date);
+          m_lastDate = m_intervalInitialPoint.date
+                       + (this->currentPoint.date - m_initialClick.date);
           if (this->m_pressedPrevious)
             m_lastDate = std::max(m_lastDate, *this->m_pressedPrevious);
 
@@ -141,7 +144,8 @@ public:
             this->m_scenario,
             sev.id(),
             m_lastDate,
-            m_intervalInitialPoint.y + (this->currentPoint.y - m_initialClick.y),
+            m_intervalInitialPoint.y
+                + (this->currentPoint.y - m_initialClick.y),
             stateMachine.editionSettings().expandMode(),
             stateMachine.editionSettings().lockMode(),
             cst.startState());
@@ -159,7 +163,7 @@ public:
 
         if (qApp->keyboardModifiers() & Qt::ShiftModifier)
         {
-          if(&sts == &scenario.startTimeSync())
+          if (&sts == &scenario.startTimeSync())
             return;
 
           if (this->m_startEventCanBeMerged)
@@ -192,7 +196,10 @@ public:
   }
 
 private:
-  void rollback() { m_movingDispatcher.template rollback<DefaultRollbackStrategy>(); }
+  void rollback()
+  {
+    m_movingDispatcher.template rollback<DefaultRollbackStrategy>();
+  }
 
   void merge(const IntervalModel& cst, const StateModel& st, TimeVal date)
   {
@@ -210,7 +217,8 @@ private:
     toIgnore.push_back(sts_pres.view());
     toIgnore.push_back(&sts_pres.trigger());
     toIgnore.push_back(itv_pres.view());
-    QGraphicsItem* item = m_sm.itemAt({date, cst.heightPercentage()}, toIgnore);
+    QGraphicsItem* item
+        = m_sm.itemAt({date, cst.heightPercentage()}, toIgnore);
 
     if (auto stateToMerge = qgraphicsitem_cast<Scenario::StateView*>(item))
     {
@@ -218,15 +226,19 @@ private:
       this->m_movingDispatcher.template submit<Command::MergeEvents>(
           this->m_scenario,
           ev.id(),
-          Scenario::parentEvent(stateToMerge->presenter().model().id(), this->m_scenario).id());
+          Scenario::parentEvent(
+              stateToMerge->presenter().model().id(), this->m_scenario)
+              .id());
     }
-    else if (auto eventToMerge = qgraphicsitem_cast<Scenario::EventView*>(item))
+    else if (
+        auto eventToMerge = qgraphicsitem_cast<Scenario::EventView*>(item))
     {
       // this->rollback();
       this->m_movingDispatcher.template submit<Command::MergeEvents>(
           this->m_scenario, ev.id(), eventToMerge->presenter().model().id());
     }
-    else if (auto syncToMerge = qgraphicsitem_cast<Scenario::TimeSyncView*>(item))
+    else if (
+        auto syncToMerge = qgraphicsitem_cast<Scenario::TimeSyncView*>(item))
     {
       // this->rollback();
       this->m_movingDispatcher.template submit<Command::MergeTimeSyncs>(

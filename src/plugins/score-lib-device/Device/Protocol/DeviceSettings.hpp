@@ -1,11 +1,13 @@
 #pragma once
-#include <score/serialization/DataStreamFwd.hpp>
 #include <score/plugins/UuidKey.hpp>
+#include <score/serialization/DataStreamFwd.hpp>
 #include <score/tools/Metadata.hpp>
 
-#include <score_lib_device_export.h>
 #include <QString>
 #include <QVariant>
+
+#include <score_lib_device_export.h>
+
 #include <verdigris>
 namespace Device
 {
@@ -26,7 +28,9 @@ inline bool operator==(const DeviceSettings& lhs, const DeviceSettings& rhs)
 
 // See note in AddressSettings.hpp for Address / Device
 JSON_METADATA(Device::DeviceSettings, "Device")
-SCORE_SERIALIZE_DATASTREAM_DECLARE(SCORE_LIB_DEVICE_EXPORT, Device::DeviceSettings);
+SCORE_SERIALIZE_DATASTREAM_DECLARE(
+    SCORE_LIB_DEVICE_EXPORT,
+    Device::DeviceSettings);
 
 Q_DECLARE_METATYPE(Device::DeviceSettings)
 W_REGISTER_ARGTYPE(Device::DeviceSettings)

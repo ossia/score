@@ -17,8 +17,9 @@ auto make_ptr_vector() noexcept
   std::vector<std::unique_ptr<Base_T>> vec;
 
   vec.reserve(sizeof...(Args));
-  ossia::for_each_type_tagged<Args...>(
-      [&](auto tag) { vec.push_back(std::make_unique<typename decltype(tag)::type>()); });
+  ossia::for_each_type_tagged<Args...>([&](auto tag) {
+    vec.push_back(std::make_unique<typename decltype(tag)::type>());
+  });
 
   return vec;
 }
@@ -35,8 +36,9 @@ template <
     typename Factory_T>
 struct FactoryBuilder // sorry padre for I have sinned
 {
-  static auto make(const Context_T& ctx) {
-    if constexpr(std::is_constructible_v<Factory_T, const Context_T&>)
+  static auto make(const Context_T& ctx)
+  {
+    if constexpr (std::is_constructible_v<Factory_T, const Context_T&>)
       return std::make_unique<Factory_T>(ctx);
     else
       return std::make_unique<Factory_T>();
@@ -47,11 +49,15 @@ struct FactoryBuilder // sorry padre for I have sinned
  * @brief Fills an existing vector with factories instantiations
  */
 template <typename Context_T, typename Base_T, typename... Args>
-void fill_ptr_vector(const Context_T& context, std::vector<std::unique_ptr<Base_T>>& vec) noexcept
+void fill_ptr_vector(
+    const Context_T& context,
+    std::vector<std::unique_ptr<Base_T>>& vec) noexcept
 {
   vec.reserve(sizeof...(Args));
   ossia::for_each_type_tagged<Args...>([&](auto tag) {
-    vec.push_back(FactoryBuilder<Context_T, typename decltype(tag)::type>::make(context));
+    vec.push_back(
+        FactoryBuilder<Context_T, typename decltype(tag)::type>::make(
+            context));
   });
 }
 
@@ -123,7 +129,9 @@ using FW = FW_T<Factory_T, Args...>;
  * \endcode
  */
 template <typename Context_T, typename... Args>
-auto instantiate_factories(const Context_T& ctx, const score::InterfaceKey& key) noexcept
+auto instantiate_factories(
+    const Context_T& ctx,
+    const score::InterfaceKey& key) noexcept
 {
   std::vector<std::unique_ptr<score::InterfaceBase>> vec;
 

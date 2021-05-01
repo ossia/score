@@ -1,7 +1,7 @@
 #pragma once
-#include <Scenario/Document/DisplayedElements/DisplayedElementsContainer.hpp>
-
 #include <score/selection/Selection.hpp>
+
+#include <Scenario/Document/DisplayedElements/DisplayedElementsContainer.hpp>
 
 #include <tuple>
 

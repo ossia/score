@@ -4,7 +4,6 @@
 
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
@@ -12,6 +11,7 @@
 #include <score/tools/Unused.hpp>
 #include <score/tools/std/Optional.hpp>
 
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <score_plugin_scenario_export.h>
 
 struct DataStreamInput;

@@ -115,12 +115,15 @@ public:
     return *this;
   }
 
-  TreeNode(DataType data, TreeNode* parent) noexcept : DataType(std::move(data)), m_parent{parent}
+  TreeNode(DataType data, TreeNode* parent) noexcept
+      : DataType(std::move(data))
+      , m_parent{parent}
   {
   }
 
   // Clone
-  explicit TreeNode(TreeNode source, TreeNode* parent) noexcept : TreeNode{std::move(source)}
+  explicit TreeNode(TreeNode source, TreeNode* parent) noexcept
+      : TreeNode{std::move(source)}
   {
     m_parent = parent;
   }
@@ -169,11 +172,17 @@ public:
 
   TreeNode* parent() const noexcept { return m_parent; }
 
-  bool hasChild(std::size_t index) const noexcept { return m_children.size() > index; }
+  bool hasChild(std::size_t index) const noexcept
+  {
+    return m_children.size() > index;
+  }
 
   TreeNode& childAt(int index) noexcept { return child_at(m_children, index); }
 
-  const TreeNode& childAt(int index) const noexcept { return child_at(m_children, index); }
+  const TreeNode& childAt(int index) const noexcept
+  {
+    return child_at(m_children, index);
+  }
 
   // returns -1 if not found
   int indexOfChild(const TreeNode* child) const noexcept

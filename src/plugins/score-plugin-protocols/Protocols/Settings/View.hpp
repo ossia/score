@@ -6,7 +6,10 @@
 class QStackedWidget;
 class QCheckBox;
 
-namespace score { class FormWidget;}
+namespace score
+{
+class FormWidget;
+}
 
 namespace Protocols::Settings
 {

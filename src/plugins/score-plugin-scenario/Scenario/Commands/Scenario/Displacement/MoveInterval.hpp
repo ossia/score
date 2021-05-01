@@ -1,12 +1,13 @@
 #pragma once
 #include <Process/TimeValue.hpp>
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/tools/Unused.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -24,7 +25,10 @@ class MoveInterval final : public score::Command
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), MoveInterval, "Move a interval")
 public:
-  MoveInterval(const Scenario::ProcessModel& scenar, Id<IntervalModel> id, double y);
+  MoveInterval(
+      const Scenario::ProcessModel& scenar,
+      Id<IntervalModel> id,
+      double y);
 
   void update(unused_t, unused_t, double height) { m_newHeight = height; }
 

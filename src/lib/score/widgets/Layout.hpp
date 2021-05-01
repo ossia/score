@@ -15,7 +15,13 @@ public:
   void addRow(QString&& text, QWidget* widg)
   {
     const auto nextRow = rowCount();
-    addWidget(new QLabel{std::move(text)}, nextRow, 0, 1, 1, Qt::AlignHCenter | Qt::AlignTop);
+    addWidget(
+        new QLabel{std::move(text)},
+        nextRow,
+        0,
+        1,
+        1,
+        Qt::AlignHCenter | Qt::AlignTop);
     addWidget(widg, nextRow, 1, 1, 1);
   }
 };
@@ -27,7 +33,8 @@ namespace Inspector
 class Layout final : public QFormLayout
 {
 public:
-  Layout(QWidget* widg = nullptr) : QFormLayout{widg}
+  Layout(QWidget* widg = nullptr)
+      : QFormLayout{widg}
   {
     this->setContentsMargins(0, 0, 0, 0);
     this->setSpacing(3);
@@ -38,7 +45,8 @@ public:
 class VBoxLayout final : public QVBoxLayout
 {
 public:
-  VBoxLayout(QWidget* widg = nullptr) : QVBoxLayout{widg}
+  VBoxLayout(QWidget* widg = nullptr)
+      : QVBoxLayout{widg}
   {
     this->setContentsMargins(0, 0, 0, 0);
     this->setSpacing(3);
