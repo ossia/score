@@ -36,12 +36,12 @@ SETTINGS_PARAMETER_IMPL(Commit){
     QStringLiteral("score_plugin_engine/Commit"),
     CommitPolicies{}.Merged};
 SETTINGS_PARAMETER_IMPL(Tick){QStringLiteral("score_plugin_engine/Tick"), TickPolicies{}.Buffer};
-SETTINGS_PARAMETER_IMPL(Parallel){QStringLiteral("score_plugin_engine/Parallel"), true};
+SETTINGS_PARAMETER_IMPL(Parallel){QStringLiteral("score_plugin_engine/Parallel"), false};
 SETTINGS_PARAMETER_IMPL(ExecutionListening){
     QStringLiteral("score_plugin_engine/ExecListening"),
     true};
-SETTINGS_PARAMETER_IMPL(Logging){QStringLiteral("score_plugin_engine/Logging"), true};
-SETTINGS_PARAMETER_IMPL(Bench){QStringLiteral("score_plugin_engine/Bench"), true};
+SETTINGS_PARAMETER_IMPL(Logging){QStringLiteral("score_plugin_engine/Logging"), false};
+SETTINGS_PARAMETER_IMPL(Bench){QStringLiteral("score_plugin_engine/Bench"), false};
 SETTINGS_PARAMETER_IMPL(ScoreOrder){QStringLiteral("score_plugin_engine/ScoreOrder"), false};
 SETTINGS_PARAMETER_IMPL(ValueCompilation){
     QStringLiteral("score_plugin_engine/ValueCompilation"),

@@ -50,6 +50,11 @@ class ALSAWidget : public QWidget
 
   void rescanUI()
   {
+
+    QObject::disconnect(
+        card_list, SignalUtils::QComboBox_currentIndexChanged_int(),
+          this, &ALSAWidget::on_deviceIndexChanged);
+
     card_list->clear();
     m_factory.rescan();
 
@@ -65,8 +70,30 @@ class ALSAWidget : public QWidget
       card_list->addItem(card.pretty_name, (int)i);
       card.out_index = card_list->count() - 1;
     }
+
+    if (m_model.getCardOut().isEmpty())
+    {
+      if (!devices.empty())
+      {
+        updateDevice(devices.front());
+      }
+    }
+    else
+    {
+      setCard(card_list, m_model.getCardOut());
+    }
+
+    QObject::connect(
+        card_list, SignalUtils::QComboBox_currentIndexChanged_int(),
+          this, &ALSAWidget::on_deviceIndexChanged);
   }
 
+  void on_deviceIndexChanged(int i)
+  {
+    auto& devices = m_factory.devices;
+    auto& device = devices[card_list->itemData(i).toInt()];
+    updateDevice(device);
+  }
 public:
   ALSAWidget(
       ALSAFactory& fact,
@@ -101,28 +128,6 @@ public:
     {
       lay->addRow(QObject::tr("Device"), card_list);
       lay->addRow(rescan);
-
-      QObject::connect(
-          card_list, SignalUtils::QComboBox_currentIndexChanged_int(), &v, [this](int i) {
-            auto& devices = m_factory.devices;
-            auto& device = devices[card_list->itemData(i).toInt()];
-            updateDevice(device);
-          });
-
-      if (m.getCardOut().isEmpty())
-      {
-        if (!devices.empty())
-        {
-          updateDevice(devices.front());
-        }
-      }
-      else
-      {
-        setCard(card_list, m.getCardOut());
-      }
-    }
-
-    {
       lay->addWidget(informations);
       std::size_t dev_idx = card_list->itemData(card_list->currentIndex()).toInt();
       if (dev_idx < devices.size())
@@ -143,9 +148,39 @@ public:
   }
 };
 
-ALSAFactory::ALSAFactory() { }
+ALSAFactory::ALSAFactory()
+{
+  rescan();
+}
 
 ALSAFactory::~ALSAFactory() { }
+
+void ALSAFactory::initialize(Audio::Settings::Model& set, const score::ApplicationContext& ctx)
+{
+  auto device = ossia::find_if(devices, [&] (const PortAudioCard& dev) {
+    return dev.raw_name == set.getCardOut() && dev.hostapi != paInDevelopment;
+  });
+
+  if(device == devices.end())
+  {
+    for(const QString& default_device : {"pipewire", "pulse", "jack", "default", "sysdefault"})
+    {
+      auto default_dev = ossia::find_if(devices, [&] (const PortAudioCard& dev) {
+        return dev.raw_name == default_device;
+      });
+      if(default_dev != devices.end())
+      {
+        set.setCardIn(default_dev->raw_name);
+        set.setCardOut(default_dev->raw_name);
+        set.setDefaultIn(default_dev->inputChan);
+        set.setDefaultOut(default_dev->outputChan);
+        set.setRate(default_dev->rate);
+        set.changed();
+        return;
+      }
+    }
+  }
+}
 
 void ALSAFactory::rescan()
 {
