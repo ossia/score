@@ -1,5 +1,14 @@
 #include <Gfx/GfxContext.hpp>
 
+#include <ossia/detail/flicks.hpp>
+#include <ossia/network/value/value_conversion.hpp>
+#include <Gfx/Graph/graph.hpp>
+#include <Gfx/Settings/Model.hpp>
+#include <score/application/ApplicationContext.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/tools/Bind.hpp>
+#include <QGuiApplication>
+#include <ossia/detail/logger.hpp>
 namespace Gfx
 {
 

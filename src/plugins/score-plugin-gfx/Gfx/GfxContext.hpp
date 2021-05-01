@@ -1,19 +1,22 @@
 #pragma once
-#include <ossia/dataflow/nodes/media.hpp>
-#include <ossia/dataflow/token_request.hpp>
-#include <ossia/detail/flicks.hpp>
-#include <ossia/detail/hash_map.hpp>
-#include <ossia/network/value/value_conversion.hpp>
+#include <ossia/network/value/value.hpp>
 #include <ossia/gfx/port_index.hpp>
-#include <Gfx/Graph/graph.hpp>
-#include <Gfx/Settings/Model.hpp>
-#include <score/application/ApplicationContext.hpp>
-#include <score/document/DocumentContext.hpp>
-#include <score/tools/Bind.hpp>
-#include <QGuiApplication>
+#include <ossia/dataflow/token_request.hpp>
+#include <ossia/dataflow/nodes/media.hpp>
+#include <ossia/detail/hash_map.hpp>
+#include <ossia/detail/flat_set.hpp>
+
+#include <Gfx/Graph/node.hpp>
+
 #include <concurrentqueue.h>
-#include <ossia/detail/logger.hpp>
+
 #include <score_plugin_gfx_export.h>
+
+class Graph;
+namespace score
+{
+class DocumentContext;
+}
 namespace Gfx
 {
 using port_index = ossia::gfx::port_index;
