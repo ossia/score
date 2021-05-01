@@ -13,16 +13,16 @@ jobs:
       dist: bionic
       env: CONF=bionic CC=clang-10 CXX=clang++-10
 
-    - os: linux
-      dist: focal
-      env: CONF=focal CC=gcc-10 CXX=g++-10
-
-    - os: linux
-      dist: focal
-      env: CONF=focal CC=clang-10 CXX=clang++-10
+#    - os: linux
+#      dist: focal
+#      env: CONF=focal CC=gcc-10 CXX=g++-10
+#
+#    - os: linux
+#      dist: focal
+#      env: CONF=focal CC=clang-10 CXX=clang++-10
 
 before_install:
-- travis_wait 45 "./ci/$CONF.deps.sh"
+  - travis_wait 45 "./ci/$CONF.deps.sh"
 
 script:
-- travis_wait 45 "./ci/$CONF.build.sh"
+  - travis_wait 45 "./ci/$CONF.build.sh"
