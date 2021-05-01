@@ -23,6 +23,7 @@
 
 #include <QLineEdit>
 
+#include <Gfx/Graph/renderer.hpp>
 #include <Gfx/GfxExecContext.hpp>
 #include <Gfx/GfxParameter.hpp>
 #include <Gfx/Graph/nodes.hpp>
