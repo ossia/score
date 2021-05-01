@@ -26,6 +26,8 @@ struct PortAudioCard
 
   double rate{};
 
+  bool defaultDevice{};
+
   int in_index{-1};
   int out_index{-1};
 };

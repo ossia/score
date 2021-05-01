@@ -25,7 +25,62 @@ public:
 
   ~CoreAudioFactory() override { }
   bool available() const noexcept override { return true; }
-  void initialize(Audio::Settings::Model& set, const score::ApplicationContext& ctx) override { }
+  void initialize(Audio::Settings::Model& set, const score::ApplicationContext& ctx) override
+  {
+    auto device_in = ossia::find_if(devices, [&] (const PortAudioCard& dev) {
+      return dev.raw_name == set.getCardIn() && dev.hostapi != paInDevelopment;
+    });
+    auto device_out = ossia::find_if(devices, [&] (const PortAudioCard& dev) {
+      return dev.raw_name == set.getCardOut() && dev.hostapi != paInDevelopment;
+    });
+
+    if(device_in == devices.end() || device_out == devices.end())
+    {
+      auto default_device_in = ossia::find_if(devices, [&] (const PortAudioCard& dev) {
+        return dev.inputChan > 0 && dev.defaultDevice;
+      });
+      auto default_device_out = ossia::find_if(devices, [&] (const PortAudioCard& dev) {
+        return dev.outputChan > 0 && dev.defaultDevice;
+      });
+
+      if(default_device_in != devices.end())
+      {
+        set.setCardIn(default_device_in->raw_name);
+        set.setDefaultIn(default_device_in->inputChan);
+      }
+      else
+      {
+        set.setCardIn(devices.back().raw_name);
+        set.setDefaultIn(devices.back().inputChan);
+      }
+
+      if(default_device_out != devices.end())
+      {
+        set.setCardOut(default_device_out->raw_name);
+        set.setDefaultOut(default_device_out->outputChan);
+        set.setRate(default_device_out->rate);
+      }
+      else
+      {
+        set.setCardOut(devices.back().raw_name);
+        set.setDefaultOut(devices.back().outputChan);
+        set.setRate(devices.back().rate);
+      }
+
+      set.changed();
+    }
+    else
+    {
+      if(device_out != devices.end())
+      {
+        set.setDefaultIn(device_out->inputChan);
+        set.setDefaultOut(device_out->outputChan);
+        set.setRate(device_out->rate);
+
+        set.changed();
+      }
+    }
+  }
 
   void rescan()
   {
@@ -52,7 +107,8 @@ public:
               dev->maxInputChannels,
               dev->maxOutputChannels,
               hostapi->type,
-              dev->defaultSampleRate});
+              dev->defaultSampleRate,
+              hostapi->defaultInputDevice == dev_idx || hostapi->defaultOutputDevice == dev_idx});
         }
       }
     }
