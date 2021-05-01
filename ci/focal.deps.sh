@@ -27,7 +27,8 @@ sudo apt-get install \
      libavahi-compat-libdnssd-dev libsamplerate0-dev \
      portaudio19-dev \
      libavcodec-dev libavdevice-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev \
-     libclang-10-dev libclang-common-10-dev
+     libclang-10-dev libclang-common-10-dev \
+     lib32gcc-s1 lib32stdc++6 libc6-i386
 
 
 sudo snap remove cmake
