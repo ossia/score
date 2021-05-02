@@ -121,6 +121,7 @@ struct descriptor
   std::vector<std::string> categories;
   std::vector<input> inputs;
   std::vector<pass> passes;
+  std::vector<std::string> pass_targets;
 };
 
 class ISF_EXPORT parser

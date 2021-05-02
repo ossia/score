@@ -178,11 +178,7 @@ void Graph::relinkGraph()
           auto rn = node->renderedNodes[&r];
           if (!rn)
           {
-            rn = node->createRenderer();
-            if (node != model_nodes.back())
-            {
-              r.createRenderTarget(*rn);
-            }
+            rn = node->createRenderer(r);
             node->renderedNodes[&r] = rn;
             rn->init(r);
           }
@@ -216,7 +212,7 @@ void Graph::setVSyncCallback(std::function<void()> cb)
 
 static void createNodeRenderer(score::gfx::Node& node, Renderer& r)
 {
-  auto rn = node.createRenderer();
+  auto rn = node.createRenderer(r);
 
   // Register the node with the renderer
   r.renderedNodes.push_back(rn);
@@ -258,9 +254,6 @@ Graph::createRenderer(OutputNode* output, RenderState state)
       createNodeRenderer(*node, r);
     }
   }
-
-  // For each, we create a render target
-  r.createRenderTargets();
 
   output->onRendererChange();
   {

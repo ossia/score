@@ -1,8 +1,7 @@
 #pragma once
 #include <score/tools/Debug.hpp>
 
-#include <ossia/network/value/value.hpp>
-
+#include <ossia/network/value/vec.hpp>
 #include <QColor>
 
 #include <array>

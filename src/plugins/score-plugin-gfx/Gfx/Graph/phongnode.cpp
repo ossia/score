@@ -71,7 +71,7 @@ PhongNode::PhongNode(const Mesh* mesh)
   QMatrix3x3 norm = model.normalMatrix();
 
   std::tie(m_vertexS, m_fragmentS)
-      = makeShaders(mesh->defaultVertexShader(), frag);
+      = score::gfx::makeShaders(mesh->defaultVertexShader(), frag);
   const int sz = sizeof(ModelCameraUBO);
   m_materialData.reset(new char[sz]);
   std::fill_n(m_materialData.get(), sz, 0);
@@ -110,8 +110,8 @@ struct RenderedPhongNode : RenderedNode
   void customRelease(Renderer& renderer) override { }
 };
 
-score::gfx::NodeRenderer* PhongNode::createRenderer() const noexcept
+score::gfx::NodeRenderer* PhongNode::createRenderer(Renderer& r) const noexcept
 {
-  return NodeModel::createRenderer();
+  return NodeModel::createRenderer(r);
   // return new RenderedPhongNode{*this};
 }

@@ -262,7 +262,7 @@ const Mesh& VideoNode::mesh() const noexcept
 
 VideoNode::~VideoNode() { }
 
-score::gfx::NodeRenderer* VideoNode::createRenderer() const noexcept
+score::gfx::NodeRenderer* VideoNode::createRenderer(Renderer& r) const noexcept
 {
   return new Rendered{*this};
 }

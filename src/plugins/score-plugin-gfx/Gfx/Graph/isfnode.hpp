@@ -22,19 +22,22 @@ struct ISFNode : score::gfx::ProcessNode
 
   virtual ~ISFNode();
   const Mesh& mesh() const noexcept;
+  QSize computeTextureSize(const isf::pass& pass, QSize origSize);
 
-  score::gfx::NodeRenderer* createRenderer() const noexcept;
+  score::gfx::NodeRenderer* createRenderer(Renderer& r) const noexcept;
+
+  isf::descriptor descriptor;
 
   // Texture format: 1 row = 1 channel of N samples
   std::list<AudioTexture> audio_textures;
   std::unique_ptr<char[]> m_materialData;
 
 private:
+  friend struct SinglePassISFNode;
   friend struct RenderedISFNode;
   const Mesh* m_mesh{};
 
   QShader m_vertexS;
   QShader m_fragmentS;
-  isf::descriptor m_descriptor;
   int m_materialSize{};
 };

@@ -203,7 +203,7 @@ void main ()
   void init(Renderer& r, RenderedNode& rendered) override
   {
     auto& rhi = *r.state.rhi;
-    std::tie(node.m_vertexS, node.m_fragmentS) = makeShaders(
+    std::tie(node.m_vertexS, node.m_fragmentS) = score::gfx::makeShaders(
         node.mesh().defaultVertexShader(), QString(fragment).arg(filter));
 
     const auto w = decoder.width, h = decoder.height;
@@ -278,7 +278,7 @@ void main ()
   void init(Renderer& r, RenderedNode& rendered) override
   {
     auto& rhi = *r.state.rhi;
-    std::tie(node.m_vertexS, node.m_fragmentS) = makeShaders(
+    std::tie(node.m_vertexS, node.m_fragmentS) = score::gfx::makeShaders(
         node.mesh().defaultVertexShader(), QString(fragment).arg(filter));
 
     const auto w = decoder.width, h = decoder.height;

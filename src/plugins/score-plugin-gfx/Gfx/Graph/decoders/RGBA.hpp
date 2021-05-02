@@ -45,7 +45,7 @@ struct RGB0Decoder : GPUVideoDecoder
   void init(Renderer& r, RenderedNode& rendered) override
   {
     auto& rhi = *r.state.rhi;
-    std::tie(node.m_vertexS, node.m_fragmentS) = makeShaders(
+    std::tie(node.m_vertexS, node.m_fragmentS) = score::gfx::makeShaders(
         node.mesh().defaultVertexShader(), QString(rgb_filter).arg(filter));
 
     const auto w = decoder.width, h = decoder.height;

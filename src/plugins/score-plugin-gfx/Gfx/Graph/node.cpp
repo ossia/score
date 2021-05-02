@@ -19,155 +19,7 @@ FilterNode::~FilterNode() { }
 
 NodeModel::NodeModel() { }
 
-namespace score::gfx
-{
 #include <Gfx/Qt5CompatPush> // clang-format: keep
-TextureRenderTarget createRenderTarget(const RenderState& state, QSize sz)
-{
-  TextureRenderTarget ret;
-  ret.texture = state.rhi->newTexture(
-      QRhiTexture::RGBA8, sz, 1, QRhiTexture::RenderTarget);
-  ret.texture->create();
-
-  QRhiColorAttachment color0{ret.texture};
-
-  auto renderTarget = state.rhi->newTextureRenderTarget({color0});
-  SCORE_ASSERT(renderTarget);
-
-  auto renderPass = renderTarget->newCompatibleRenderPassDescriptor();
-  SCORE_ASSERT(renderPass);
-
-  renderTarget->setRenderPassDescriptor(renderPass);
-  SCORE_ASSERT(renderTarget->create());
-
-  ret.renderTarget = renderTarget;
-  ret.renderPass = renderPass;
-  return ret;
-}
-
-void replaceTexture(
-    QRhiShaderResourceBindings& srb,
-    QRhiSampler* sampler,
-    QRhiTexture* newTexture)
-{
-  std::vector<QRhiShaderResourceBinding> tmp;
-  tmp.assign(srb.cbeginBindings(), srb.cendBindings());
-  for (QRhiShaderResourceBinding& b : tmp)
-  {
-    if (b.data()->type == QRhiShaderResourceBinding::Type::SampledTexture)
-    {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
-      SCORE_ASSERT(b.data()->u.stex.count >= 1);
-      if (b.data()->u.stex.texSamplers[0].sampler == sampler)
-      {
-        b.data()->u.stex.texSamplers[0].tex = newTexture;
-      }
-#else
-      if (b.data()->u.stex.sampler == sampler)
-      {
-        b.data()->u.stex.tex = newTexture;
-      }
-#endif
-    }
-  }
-
-  srb.destroy();
-  srb.setBindings(tmp.begin(), tmp.end());
-  srb.create();
-}
-
-Pipeline buildPipeline(
-    const Renderer& renderer,
-    const Mesh& mesh,
-    const QShader& vertexS,
-    const QShader& fragmentS,
-    const TextureRenderTarget& rt,
-    QRhiBuffer* m_processUBO,
-    QRhiBuffer* m_materialUBO,
-    const std::vector<Sampler>& samplers)
-{
-  auto& rhi = *renderer.state.rhi;
-  auto ps = rhi.newGraphicsPipeline();
-  SCORE_ASSERT(ps);
-
-  QRhiGraphicsPipeline::TargetBlend premulAlphaBlend;
-  premulAlphaBlend.enable = true;
-  ps->setTargetBlends({premulAlphaBlend});
-
-  ps->setSampleCount(1);
-
-  ps->setDepthTest(false);
-  ps->setDepthWrite(false);
-  // m_ps->setCullMode(QRhiGraphicsPipeline::CullMode::Back);
-  // m_ps->setFrontFace(QRhiGraphicsPipeline::FrontFace::CCW);
-
-  ps->setShaderStages(
-      {{QRhiShaderStage::Vertex, vertexS},
-       {QRhiShaderStage::Fragment, fragmentS}});
-
-  QRhiVertexInputLayout inputLayout;
-  inputLayout.setBindings(
-      mesh.vertexInputBindings.begin(), mesh.vertexInputBindings.end());
-  inputLayout.setAttributes(
-      mesh.vertexAttributeBindings.begin(),
-      mesh.vertexAttributeBindings.end());
-  ps->setVertexInputLayout(inputLayout);
-
-  // Shader resource bindings
-  auto srb = rhi.newShaderResourceBindings();
-  SCORE_ASSERT(srb);
-
-  QVector<QRhiShaderResourceBinding> bindings;
-
-  const auto bindingStages = QRhiShaderResourceBinding::VertexStage
-                             | QRhiShaderResourceBinding::FragmentStage;
-
-  {
-    const auto rendererBinding = QRhiShaderResourceBinding::uniformBuffer(
-        0, bindingStages, renderer.m_rendererUBO);
-    bindings.push_back(rendererBinding);
-  }
-
-  {
-    const auto standardUniformBinding
-        = QRhiShaderResourceBinding::uniformBuffer(
-            1, bindingStages, m_processUBO);
-    bindings.push_back(standardUniformBinding);
-  }
-
-  // Bind materials
-  if (m_materialUBO)
-  {
-    const auto materialBinding = QRhiShaderResourceBinding::uniformBuffer(
-        2, bindingStages, m_materialUBO);
-    bindings.push_back(materialBinding);
-  }
-
-  // Bind samplers
-  int binding = 3;
-  for (auto sampler : samplers)
-  {
-    assert(sampler.texture);
-    bindings.push_back(QRhiShaderResourceBinding::sampledTexture(
-        binding,
-        QRhiShaderResourceBinding::VertexStage
-            | QRhiShaderResourceBinding::FragmentStage,
-        sampler.texture,
-        sampler.sampler));
-    binding++;
-  }
-  srb->setBindings(bindings.begin(), bindings.end());
-  SCORE_ASSERT(srb->create());
-
-  ps->setShaderResourceBindings(srb);
-
-  SCORE_ASSERT(rt.renderPass);
-  ps->setRenderPassDescriptor(rt.renderPass);
-
-  SCORE_ASSERT(ps->create());
-  return {ps, srb};
-}
-}
 
 TextureRenderTarget RenderedNode::createRenderTarget(const RenderState& state)
 {
@@ -177,7 +29,7 @@ TextureRenderTarget RenderedNode::createRenderTarget(const RenderState& state)
     sz = *true_sz;
   }
 
-  m_rt = score::gfx::createRenderTarget(state, sz);
+  m_rt = score::gfx::createRenderTarget(state, QRhiTexture::RGBA8, sz);
   return m_rt;
 }
 
@@ -189,42 +41,6 @@ std::optional<QSize> RenderedNode::renderTargetSize() const noexcept
 void RenderedNode::customInit(Renderer& renderer)
 {
   defaultShaderMaterialInit(renderer);
-}
-
-std::pair<QShader, QShader> makeShaders(QString vert, QString frag)
-{
-  auto [vertexS, vertexError]
-      = ShaderCache::get(vert.toUtf8(), QShader::VertexStage);
-  if (!vertexError.isEmpty())
-    qDebug() << vertexError;
-
-  auto [fragmentS, fragmentError]
-      = ShaderCache::get(frag.toUtf8(), QShader::FragmentStage);
-  if (!fragmentError.isEmpty())
-  {
-    qDebug() << fragmentError;
-    qDebug() << frag.toStdString().data();
-  }
-
-  if (!vertexS.isValid())
-    throw std::runtime_error("invalid vertex shader");
-  if (!fragmentS.isValid())
-    throw std::runtime_error("invalid fragment shader");
-
-  return {vertexS, fragmentS};
-}
-
-// TODO move to ShaderCache
-QShader makeCompute(QString compute)
-{
-  auto [computeS, computeError]
-      = ShaderCache::get(compute.toUtf8(), QShader::ComputeStage);
-  if (!computeError.isEmpty())
-    qDebug() << computeError;
-
-  if (!computeS.isValid())
-    throw std::runtime_error("invalid compute shader");
-  return computeS;
 }
 
 void NodeModel::setShaders(const QShader& vert, const QShader& frag)
@@ -303,6 +119,9 @@ void RenderedNode::defaultShaderMaterialInit(Renderer& renderer)
 
 void RenderedNode::init(Renderer& renderer)
 {
+  if(!m_rt.renderTarget)
+    createRenderTarget(renderer.state);
+
   auto& rhi = *renderer.state.rhi;
 
   const auto& mesh = node.mesh();
@@ -412,7 +231,7 @@ void RenderedNode::release(Renderer& r)
 
 NodeModel::~NodeModel() { }
 
-score::gfx::NodeRenderer* NodeModel::createRenderer() const noexcept
+score::gfx::NodeRenderer* NodeModel::createRenderer(Renderer& r) const noexcept
 {
   return new RenderedNode{*this};
 }

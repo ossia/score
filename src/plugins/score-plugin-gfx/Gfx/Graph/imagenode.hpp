@@ -184,7 +184,7 @@ struct ImagesNode : NodeModel
   ImagesNode(std::vector<Gfx::Image> dec)
       : images{std::move(dec)}
   {
-    std::tie(m_vertexS, m_fragmentS) = makeShaders(vertex, filter);
+    std::tie(m_vertexS, m_fragmentS) = score::gfx::makeShaders(vertex, filter);
     input.push_back(new Port{this, &ubo.currentImageIndex, Types::Int, {}});
     input.push_back(new Port{this, &ubo.opacity, Types::Float, {}});
     input.push_back(new Port{this, &ubo.position[0], Types::Vec2, {}});
@@ -196,7 +196,7 @@ struct ImagesNode : NodeModel
   virtual ~ImagesNode() { m_materialData.release(); }
 
   const Mesh& mesh() const noexcept override { return this->m_mesh; }
-  score::gfx::NodeRenderer* createRenderer() const noexcept override
+  score::gfx::NodeRenderer* createRenderer(Renderer& r) const noexcept override
   {
     return new Rendered{*this};
   }

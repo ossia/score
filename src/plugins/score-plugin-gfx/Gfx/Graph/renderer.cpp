@@ -59,7 +59,6 @@ void Renderer::release()
     delete bufs.second.index;
   }
 
-  textureTargets.clear();
   m_vertexBuffers.clear();
   buffersToUpload.clear();
 
@@ -82,8 +81,6 @@ void Renderer::maybeRebuild()
     // Now we have the nodes in the order in which they are going to
     // be processed
 
-    createRenderTargets();
-
     init();
 
     for (auto node : renderedNodes)
@@ -104,32 +101,13 @@ QRhiTexture* Renderer::textureTargetForInputPort(Port& port)
     return texture;
 
   auto renderedNode = source_node->renderedNodes[this];
-  auto it = textureTargets.find(renderedNode);
-  if (it == textureTargets.end())
-  {
-    qDebug() << "! warning ! output texture requested but not existing."
-             << typeid(renderedNode).name();
+  if (!renderedNode)
     return texture;
-  }
 
-  return it->second;
-}
-
-void Renderer::createRenderTarget(score::gfx::NodeRenderer& node)
-{
-  auto tg = node.createRenderTarget(state);
-  if (tg.texture)
-    textureTargets[&node] = tg.texture;
+  if (auto tex = renderedNode->renderTarget().texture)
+    return tex;
   else
-    qDebug() << typeid(node).name() << "does not have a texture ! ";
-}
-
-void Renderer::createRenderTargets()
-{
-  for (auto node : renderedNodes)
-  {
-    createRenderTarget(*node);
-  }
+    return texture;
 }
 
 void Renderer::render(QRhiCommandBuffer& commands)

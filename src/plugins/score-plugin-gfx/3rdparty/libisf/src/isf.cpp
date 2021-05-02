@@ -497,7 +497,7 @@ static const std::unordered_map<std::string, root_fun>& root_parse{[] {
                   auto obj = v.get_array_element(i);
                   if (obj.get_type() == sajson::TYPE_OBJECT)
                   {
-                    auto k = obj.find_object_key(sajson::literal("TYPE"));
+                    auto k = obj.find_object_key_insensitive(sajson::literal("TYPE"));
                     if (k != obj.get_length())
                     {
                       auto inp = input_parse.find(
@@ -523,14 +523,18 @@ static const std::unordered_map<std::string, root_fun>& root_parse{[] {
                     // PASS object
                     pass p;
                     if (auto target_k
-                        = obj.find_object_key(sajson::literal("TARGET"));
+                        = obj.find_object_key_insensitive(sajson::literal("TARGET"));
                         target_k != obj.get_length())
                     {
                       p.target = obj.get_object_value(target_k).as_string();
+                      if(!p.target.empty())
+                      {
+                        d.pass_targets.push_back(p.target);
+                      }
                     }
 
                     if (auto persistent_k
-                        = obj.find_object_key(sajson::literal("PERSISTENT"));
+                        = obj.find_object_key_insensitive(sajson::literal("PERSISTENT"));
                         persistent_k != obj.get_length())
                     {
                       p.persistent
@@ -539,7 +543,7 @@ static const std::unordered_map<std::string, root_fun>& root_parse{[] {
                     }
 
                     if (auto float_k
-                        = obj.find_object_key(sajson::literal("FLOAT"));
+                        = obj.find_object_key_insensitive(sajson::literal("FLOAT"));
                         float_k != obj.get_length())
                     {
                       p.float_storage
@@ -548,7 +552,7 @@ static const std::unordered_map<std::string, root_fun>& root_parse{[] {
                     }
 
                     if (auto width_k
-                        = obj.find_object_key(sajson::literal("WIDTH"));
+                        = obj.find_object_key_insensitive(sajson::literal("WIDTH"));
                         width_k != obj.get_length())
                     {
                       p.width_expression
@@ -556,7 +560,7 @@ static const std::unordered_map<std::string, root_fun>& root_parse{[] {
                     }
 
                     if (auto height_k
-                        = obj.find_object_key(sajson::literal("HEIGHT"));
+                        = obj.find_object_key_insensitive(sajson::literal("HEIGHT"));
                         height_k != obj.get_length())
                     {
                       p.height_expression
@@ -649,13 +653,22 @@ void parser::parse_isf()
   descriptor d;
   for (std::size_t i = 0; i < root.get_length(); i++)
   {
-    auto it = root_parse.find(root.get_object_key(i).as_string());
+    std::string key = root.get_object_key(i).as_string();
+    for(char& c : key) c = toupper(c);
+
+    auto it = root_parse.find(key);
     if (it != root_parse.end())
     {
       (it->second)(d, root.get_object_value(i));
     }
   }
   m_desc = d;
+
+  // There is always one pass at least
+  if(m_desc.passes.empty())
+  {
+    m_desc.passes.push_back(isf::pass{});
+  }
 
   // We start from empty strings.
 
@@ -757,20 +770,17 @@ void parser::parse_isf()
           }
         }
 
-        for (const isf::pass& p : d.passes)
+        for (const std::string& target : d.pass_targets)
         {
-          if (p.target != "")
-          {
-            samplers += "layout(binding = ";
-            samplers += std::to_string(binding);
-            samplers += ") uniform sampler2D ";
-            samplers += p.target;
-            samplers += ";\n";
+          samplers += "layout(binding = ";
+          samplers += std::to_string(binding);
+          samplers += ") uniform sampler2D ";
+          samplers += target;
+          samplers += ";\n";
 
-            material_ubos += "vec2 _" + p.target + "_imgRect;\n";
+          material_ubos += "vec2 _" + target + "_imgRect;\n";
 
-            binding++;
-          }
+          binding++;
         }
 
         material_ubos += "};\n";

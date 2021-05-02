@@ -127,7 +127,7 @@ struct TexgenNode : NodeModel
   TexgenNode()
   {
     image = QImage{QSize(640, 480), QImage::Format_ARGB32_Premultiplied};
-    std::tie(m_vertexS, m_fragmentS) = makeShaders(vertex, filter);
+    std::tie(m_vertexS, m_fragmentS) = score::gfx::makeShaders(vertex, filter);
     output.push_back(new Port{this, {}, Types::Image, {}});
   }
   virtual ~TexgenNode() { m_materialData.release(); }
@@ -136,7 +136,7 @@ struct TexgenNode : NodeModel
   std::atomic<func_t> function{};
 
   const Mesh& mesh() const noexcept override { return this->m_mesh; }
-  score::gfx::NodeRenderer* createRenderer() const noexcept override
+  score::gfx::NodeRenderer* createRenderer(Renderer& r) const noexcept override
   {
     return new Rendered{*this};
   }

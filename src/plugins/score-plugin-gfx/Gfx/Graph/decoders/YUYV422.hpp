@@ -45,7 +45,7 @@ void main() {
     auto& rhi = *r.state.rhi;
 
     std::tie(node.m_vertexS, node.m_fragmentS)
-        = makeShaders(node.mesh().defaultVertexShader(), filter);
+        = score::gfx::makeShaders(node.mesh().defaultVertexShader(), filter);
 
     const auto w = decoder.width, h = decoder.height;
     // Y
@@ -155,7 +155,7 @@ void main() {
     auto& rhi = *r.state.rhi;
 
     std::tie(node.m_vertexS, node.m_fragmentS)
-        = makeShaders(node.mesh().defaultVertexShader(), filter);
+        = score::gfx::makeShaders(node.mesh().defaultVertexShader(), filter);
 
     const auto w = decoder.width, h = decoder.height;
     // Y

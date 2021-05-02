@@ -71,6 +71,7 @@ set(HDRS
     Gfx/Graph/imagenode.hpp
     Gfx/Graph/texgennode.hpp
     Gfx/Graph/shadercache.hpp
+    Gfx/Graph/utils.hpp
     Gfx/Graph/decoders/GPUVideoDecoder.hpp
     Gfx/Graph/decoders/HAP.hpp
     Gfx/Graph/decoders/RGBA.hpp
@@ -125,6 +126,7 @@ set(SRCS
     Gfx/Graph/videonode.cpp
     Gfx/Graph/screennode.cpp
     Gfx/Graph/phongnode.cpp
+    Gfx/Graph/utils.cpp
 
     Gfx/GfxApplicationPlugin.cpp
     Gfx/GfxContext.cpp

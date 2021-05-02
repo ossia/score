@@ -276,13 +276,13 @@ RenderState* ScreenNode::renderState() const
 class WindowRenderer : public RenderedNode
 {
 public:
-  using RenderedNode::RenderedNode;
-  TextureRenderTarget createRenderTarget(const RenderState& state) override
+  WindowRenderer(const RenderState& state, const ScreenNode& parent)
+    : RenderedNode{parent}
   {
     auto& self = static_cast<const ScreenNode&>(this->node);
-    if (self.swapChain)
+    if (parent.swapChain)
     {
-      m_rt.renderTarget = self.swapChain->currentFrameRenderTarget();
+      m_rt.renderTarget = parent.swapChain->currentFrameRenderTarget();
       m_rt.renderPass = state.renderPassDescriptor;
     }
     else
@@ -291,11 +291,10 @@ public:
       m_rt.renderPass = nullptr;
       qDebug() << "Warning: swapchain not found in screenRenderTarget";
     }
-    return m_rt;
   }
 };
 
-score::gfx::NodeRenderer* ScreenNode::createRenderer() const noexcept
+score::gfx::NodeRenderer* ScreenNode::createRenderer(Renderer& r) const noexcept
 {
-  return new WindowRenderer{*this};
+  return new WindowRenderer{r.state, *this};
 }

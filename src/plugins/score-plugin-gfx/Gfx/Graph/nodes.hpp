@@ -46,7 +46,7 @@ protected:
   OutputNode()
   {
     std::tie(m_vertexS, m_fragmentS)
-        = makeShaders(m_mesh.defaultVertexShader(), filter);
+        = score::gfx::makeShaders(m_mesh.defaultVertexShader(), filter);
   }
   const Mesh& mesh() const noexcept override { return this->m_mesh; }
 };
@@ -72,7 +72,7 @@ struct ColorNode : NodeModel
   ColorNode()
   {
     std::tie(m_vertexS, m_fragmentS)
-        = makeShaders(m_mesh.defaultVertexShader(), filter);
+        = score::gfx::makeShaders(m_mesh.defaultVertexShader(), filter);
 
     input.push_back(new Port{this, {}, Types::Vec4, {}});
     // input.back()->value = ossia::vec4f{0.6, 0.3, 0.78, 1.};
@@ -99,7 +99,7 @@ struct NoiseNode : NodeModel
   NoiseNode()
   {
     std::tie(m_vertexS, m_fragmentS)
-        = makeShaders(m_mesh.defaultVertexShader(), filter);
+        = score::gfx::makeShaders(m_mesh.defaultVertexShader(), filter);
     output.push_back(new Port{this, {}, Types::Image, {}});
   }
   const Mesh& mesh() const noexcept override { return this->m_mesh; }
@@ -127,7 +127,7 @@ struct ProductNode : NodeModel
   ProductNode()
   {
     std::tie(m_vertexS, m_fragmentS)
-        = makeShaders(m_mesh.defaultVertexShader(), filter);
+        = score::gfx::makeShaders(m_mesh.defaultVertexShader(), filter);
     input.push_back(new Port{this, {}, Types::Image, {}});
     input.push_back(new Port{this, {}, Types::Image, {}});
     output.push_back(new Port{this, {}, Types::Image, {}});
@@ -162,7 +162,7 @@ struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
   void updateGraphicsAPI(GraphicsApi) override;
 
   RenderState* renderState() const override;
-  score::gfx::NodeRenderer* createRenderer() const noexcept override;
+  score::gfx::NodeRenderer* createRenderer(Renderer& r) const noexcept override;
 
 private:
   bool m_embedded{};
