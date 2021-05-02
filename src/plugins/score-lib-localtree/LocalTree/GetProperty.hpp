@@ -3,6 +3,7 @@
 #include <Process/TypeConversion.hpp>
 
 #include <ossia/network/base/node.hpp>
+#include <score/tools/Debug.hpp>
 
 #include <QObject>
 

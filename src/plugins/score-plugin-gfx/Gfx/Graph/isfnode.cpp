@@ -1,13 +1,13 @@
 #include "isfnode.hpp"
 
-#include <Gfx/Qt5CompatPush> // clang-format: keep
-
 #include <score/tools/Debug.hpp>
 
 #include <ossia/audio/fft.hpp>
 #include <ossia/math/math_expression.hpp>
 
 #include <boost/algorithm/string.hpp>
+#include <Gfx/Qt5CompatPush> // clang-format: keep
+
 namespace
 {
 struct input_size_vis

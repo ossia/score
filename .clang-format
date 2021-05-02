@@ -1,7 +1,10 @@
 BasedOnStyle: WebKit
 
 AllowAllArgumentsOnNextLine: true
+BreakConstructorInitializers: BeforeComma
+BreakInheritanceList: BeforeComma
 ReflowComments: false
+ConstructorInitializerAllOnOneLineOrOnePerLine: false
 
 AccessModifierOffset: -2
 AlignAfterOpenBracket: AlwaysBreak
@@ -38,10 +41,8 @@ BreakBeforeBinaryOperators: All
 BreakBeforeBraces: Allman
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializersBeforeComma: true
-BreakInheritanceList: BeforeComma
 ColumnLimit: 79
 CommentPragmas: '^ IWYU pragma:'
-ConstructorInitializerAllOnOneLineOrOnePerLine: true
 ConstructorInitializerIndentWidth: 4
 ContinuationIndentWidth: 4
 Cpp11BracedListStyle: true

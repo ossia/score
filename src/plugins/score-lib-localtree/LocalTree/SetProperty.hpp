@@ -3,6 +3,7 @@
 #include <Process/TypeConversion.hpp>
 
 #include <score/tools/std/Invoke.hpp>
+#include <score/tools/Debug.hpp>
 
 #include <ossia/network/base/node.hpp>
 
