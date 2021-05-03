@@ -66,15 +66,15 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::ProcessModel& process)
 {
   process.m_duration <<= obj[strings.Duration];
-  auto h_it = obj.constFind(strings.Height);
-  if (h_it != obj.constEnd())
-    process.m_slotHeight = obj[strings.Height].toDouble();
+
+  if (auto it = obj.tryGet(strings.Height))
+    process.m_slotHeight = it->toDouble();
   else
     process.m_slotHeight = 300;
 
-  process.m_startOffset <<= obj["StartOffset"];
-  process.m_loopDuration <<= obj["LoopDuration"];
-  process.m_position <<= obj["Pos"];
-  process.m_size <<= obj["Size"];
-  process.m_loops = obj["Loops"].toBool();
+  assign_with_default(process.m_startOffset, obj.tryGet("StartOffset"), TimeVal::zero());
+  assign_with_default(process.m_loopDuration, obj.tryGet("LoopDuration"), TimeVal::fromMsecs(1000));
+  assign_with_default(process.m_loops, obj.tryGet("Loops"), false);
+  assign_with_default(process.m_position, obj.tryGet("Pos"), QPointF{});
+  assign_with_default(process.m_size, obj.tryGet("Size"), QSize(200, 200));
 }

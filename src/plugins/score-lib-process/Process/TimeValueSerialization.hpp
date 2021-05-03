@@ -72,6 +72,13 @@ struct TSerializer<JSONObject, TimeVal>
                << s.base.GetUint64();
       tv.impl = ossia::time_value::infinity;
     }
+    /*
+    else if (s.base.IsDouble())
+    {
+      // Assuming old file format, which was in milliseconds
+      tv = TimeVal::fromMsecs(s.base.GetDouble());
+    }
+    */
     else
     {
       qDebug() << "Warning: could not load a TimeVal";

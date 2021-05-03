@@ -59,11 +59,33 @@ JSONWriter::write(Scenario::TimeSyncModel& timesync)
 {
   timesync.m_date <<= obj[strings.Date];
   timesync.m_events <<= obj[strings.Events];
-  timesync.m_musicalSync = obj["MusicalSync"].toDouble();
-  timesync.m_autotrigger = obj[strings.AutoTrigger].toBool();
-  timesync.m_startPoint = obj["Start"].toBool();
-  timesync.m_active = obj[strings.Active].toBool();
-  auto exprstr = obj[strings.Expression].toString();
-  if (auto expr = State::parseExpression(exprstr))
-    timesync.m_expression = *std::move(expr);
+
+  assign_with_default(timesync.m_musicalSync, obj.tryGet("MusicalSync"), 1.0);
+  assign_with_default(timesync.m_autotrigger, obj.tryGet("AutoTrigger"), false);
+  assign_with_default(timesync.m_startPoint, obj.tryGet("Start"), false);
+
+  if(auto trigger_it = obj.tryGet(strings.Trigger))
+  {
+    // old format
+    auto trigger_obj = trigger_it->toObject();
+    auto active_it = trigger_obj.FindMember("Active");
+    if(active_it != trigger_obj.MemberEnd())
+    {
+      timesync.m_active = active_it->value.GetBool();
+    }
+    auto expr_it = trigger_obj.FindMember("Expression");
+    if(expr_it != trigger_obj.MemberEnd())
+    {
+      timesync.m_expression <<= JsonValue{expr_it->value};
+    }
+  }
+  else
+  {
+    QString exprstr;
+    assign_with_default(exprstr, obj.tryGet(strings.Expression), "");
+    if (auto expr = State::parseExpression(exprstr))
+      timesync.m_expression = *std::move(expr);
+
+    assign_with_default(timesync.m_active, obj.tryGet("Active"), false);
+  }
 }

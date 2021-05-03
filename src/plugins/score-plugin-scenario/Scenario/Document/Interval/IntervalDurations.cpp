@@ -301,7 +301,7 @@ void JSONWriter::write(Scenario::IntervalDurations& durs)
   durs.m_minDuration <<= obj[strings.MinDuration];
   durs.m_maxDuration <<= obj[strings.MaxDuration];
 
-  durs.m_speed = obj["Speed"].toDouble();
+  assign_with_default(durs.m_speed, obj.tryGet("Speed"), 1.0);
   durs.m_rigidity = obj[strings.Rigidity].toBool();
   durs.m_isMinNull = obj[strings.MinNull].toBool();
   durs.m_isMaxInfinite = obj[strings.MaxInf].toBool();

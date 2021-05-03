@@ -1412,3 +1412,38 @@ QByteArray toJson(const T& t)
   reader.readFrom(t);
   return reader.toByteArray();
 }
+
+/*
+template<typename T>
+struct optional_assigner {
+  T& lhs;
+  bool set_default = false;
+  template<typename R>
+  void operator||(R&& rhs) const noexcept
+  {
+    if(set_default)
+      lhs = std::forward<R>(rhs);
+  }
+};
+template <typename T>
+inline auto operator<<=(T& t, const std::optional<JsonValue>& self)
+{
+  if(self)
+  {
+    JSONWriter w{self->obj};
+    w.writeTo(t);
+    return optional_assigner<T>{t, false};
+  }
+  else
+  {
+    return optional_assigner<T>{t, true};
+  }
+}
+*/
+
+#define assign_with_default(member, optional, alt_value) do { \
+  if (auto it = optional)  \
+    member <<= *it;  \
+  else  \
+    member = alt_value;  \
+  } while(0)

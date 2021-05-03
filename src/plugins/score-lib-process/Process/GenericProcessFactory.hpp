@@ -16,7 +16,6 @@ class ProcessFactory_T final : public Process::ProcessModelFactory
 public:
   virtual ~ProcessFactory_T() = default;
 
-private:
   UuidKey<Process::ProcessModel> concreteKey() const noexcept override
   {
     return Metadata<ConcreteKey_k, Model_T>::get();

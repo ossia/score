@@ -71,6 +71,59 @@
 
 #include <utility>
 
+/*
+class LoopProcessFactory final : public Process::ProcessModelFactory
+{
+public:
+
+private:
+  UuidKey<Process::ProcessModel> concreteKey() const noexcept override
+  {
+    return_uuid("995d41a8-0f10-4152-971d-e4c033579a02");
+  }
+  QString prettyName() const override
+  {
+    return Scenario::ScenarioFactory{}.prettyName();
+  }
+  QString category() const override
+  {
+    return Scenario::ScenarioFactory{}.category();
+  }
+  Process::Descriptor descriptor(QString str) const override
+  {
+    return Scenario::ScenarioFactory{}.descriptor(str);
+  }
+  Process::ProcessFlags flags() const override
+  {
+    return Scenario::ScenarioFactory{}.flags();
+  }
+
+  Scenario::ProcessModel* make(
+      const TimeVal& duration,
+      const QString& data,
+      const Id<Process::ProcessModel>& id,
+      const score::DocumentContext& ctx,
+      QObject* parent) final override
+  {
+    SCORE_ABORT;
+  }
+
+  Scenario::ProcessModel* load(
+      const VisitorVariant& vis,
+      const score::DocumentContext& ctx,
+      QObject* parent) final override
+  {
+    if(vis.identifier != JSONObject::type())
+    {
+      SCORE_ABORT;
+    }
+    auto& v = static_cast<JSONObject::Deserializer&>(vis.visitor);
+
+    return new Scenario::ProcessModel{v, ctx, parent};
+  }
+};
+*/
+
 // W_OBJECT_IMPL(Interpolation::Presenter)
 score_plugin_scenario::score_plugin_scenario()
 {
@@ -163,6 +216,7 @@ score_plugin_scenario::factories(
   return instantiate_factories<
       score::ApplicationContext,
       FW<Process::ProcessModelFactory, ScenarioFactory, Scenario::TempoFactory
+      //, LoopProcessFactory
          //       , Interpolation::InterpolationFactory
          >,
       FW<Process::LayerFactory,

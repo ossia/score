@@ -98,5 +98,12 @@ SCORE_LIB_STATE_EXPORT void DataStreamWriter::write(State::ExprData& expr)
 template <>
 SCORE_LIB_STATE_EXPORT void JSONWriter::write(State::ExprData& expr)
 {
-  expr.impl() <<= obj["Expression"];
+  if(auto it = obj.tryGet("Expression"))
+  {
+    expr.impl() <<= *it;
+  }
+  else if(auto it = obj.tryGet("RootNode")) // old format
+  {
+    expr.impl() <<= JsonValue{this->obj.ref};
+  }
 }

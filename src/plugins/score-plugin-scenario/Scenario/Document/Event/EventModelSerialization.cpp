@@ -43,7 +43,7 @@ JSONReader::read(const Scenario::EventModel& ev)
   obj[strings.TimeSync] = ev.m_timeSync;
   obj[strings.States] = ev.m_states;
 
-  obj[strings.Condition] = ev.m_condition;
+  obj[strings.Condition] = ev.m_condition.toString();
 
   obj[strings.Date] = ev.m_date;
   obj[strings.Offset] = (int32_t)ev.m_offset;
@@ -55,7 +55,20 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(Scenario::EventModel& ev)
   ev.m_timeSync <<= obj[strings.TimeSync];
   ev.m_states <<= obj[strings.States];
 
-  ev.m_condition <<= obj[strings.Condition];
+  if(auto it = obj.tryGet(strings.Condition))
+  {
+    if(it->isString())
+    {
+      QString exprstr = it->toString();
+      if (auto expr = State::parseExpression(exprstr))
+        ev.m_condition = *std::move(expr);
+    }
+    else
+    {
+      // old format
+      ev.m_condition <<= *it;
+    }
+  }
 
   ev.m_date <<= obj[strings.Date];
   ev.m_offset

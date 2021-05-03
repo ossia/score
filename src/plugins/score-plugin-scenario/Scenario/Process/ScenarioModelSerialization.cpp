@@ -185,75 +185,119 @@ void JSONWriter::write(Scenario::ProcessModel& scenario)
     scenario.outlet = Process::load_audio_outlet(writer, &scenario);
   }
 
-  scenario.m_startTimeSyncId <<= obj["StartTimeNodeId"];
-  scenario.m_startEventId <<= obj["StartEventId"];
-  scenario.m_startStateId <<= obj["StartStateId"];
-
-  const auto& intervals = obj["Constraints"].toArray();
-  for (const auto& json_vref : intervals)
+  if(obj["uuid"].toString() == "995d41a8-0f10-4152-971d-e4c033579a02")
   {
+    // Import old format: we convert the loop into a scenario with a graph
     auto interval = new Scenario::IntervalModel{
-        JSONObject::Deserializer{json_vref}, scenario.context(), &scenario};
+        JSONObject::Deserializer{obj["Constraint"]}, scenario.context(), &scenario};
+    auto start_sync = new Scenario::TimeSyncModel{
+        JSONObject::Deserializer{obj["StartTimeNode"]}, &scenario};
+    auto end_sync = new Scenario::TimeSyncModel{
+        JSONObject::Deserializer{obj["EndTimeNode"]}, &scenario};
+    auto start_ev = new Scenario::EventModel{
+        JSONObject::Deserializer{obj["StartEvent"]}, &scenario};
+    auto end_ev = new Scenario::EventModel{
+        JSONObject::Deserializer{obj["EndEvent"]}, &scenario};
+    auto start_st = new Scenario::StateModel{
+        JSONObject::Deserializer{obj["StartState"]}, scenario.context(), &scenario};
+    auto end_st = new Scenario::StateModel{
+        JSONObject::Deserializer{obj["EndState"]}, scenario.context(), &scenario};
+
     scenario.intervals.add(interval);
+    scenario.timeSyncs.add(start_sync);
+    scenario.timeSyncs.add(end_sync);
+    scenario.events.add(start_ev);
+    scenario.events.add(end_ev);
+    scenario.states.add(start_st);
+    scenario.states.add(end_st);
+
+    scenario.m_startTimeSyncId = start_sync->id();
+    scenario.m_startEventId = start_ev->id();
+    scenario.m_startStateId = start_st->id();
+
+    Scenario::SetPreviousInterval(*end_st, *interval);
+    Scenario::SetNextInterval(*start_st, *interval);
+
+    auto graph = new Scenario::IntervalModel{Id<Scenario::IntervalModel>(2), 0.0, scenario.context(), &scenario};
+    graph->setGraphal(true);
+    graph->setStartState(end_st->id());
+    graph->setEndState(start_st->id());
+    scenario.intervals.add(graph);
+
+    Scenario::SetPreviousInterval(*start_st, *graph);
+    Scenario::SetNextInterval(*end_st, *graph);
   }
-
-  const auto& timesyncs = obj["TimeNodes"].toArray();
-  for (const auto& json_vref : timesyncs)
+  else
   {
-    auto tnmodel = new Scenario::TimeSyncModel{
-        JSONObject::Deserializer{json_vref}, &scenario};
+    scenario.m_startTimeSyncId <<= obj["StartTimeNodeId"];
+    scenario.m_startEventId <<= obj["StartEventId"];
+    scenario.m_startStateId <<= obj["StartStateId"];
 
-    scenario.timeSyncs.add(tnmodel);
-  }
-
-  const auto& events = obj["Events"].toArray();
-  for (const auto& json_vref : events)
-  {
-    auto evmodel = new Scenario::EventModel{
-        JSONObject::Deserializer{json_vref}, &scenario};
-    if (!evmodel->states().empty())
+    const auto& intervals = obj["Constraints"].toArray();
+    for (const auto& json_vref : intervals)
     {
-      scenario.events.add(evmodel);
+      auto interval = new Scenario::IntervalModel{
+          JSONObject::Deserializer{json_vref}, scenario.context(), &scenario};
+      scenario.intervals.add(interval);
     }
-    else
-    {
-      auto& ts = scenario.timeSyncs.at(evmodel->timeSync());
-      ts.removeEvent(evmodel->id());
-      delete evmodel;
 
-      if (ts.events().empty())
+    const auto& timesyncs = obj["TimeNodes"].toArray();
+    for (const auto& json_vref : timesyncs)
+    {
+      auto tnmodel = new Scenario::TimeSyncModel{
+          JSONObject::Deserializer{json_vref}, &scenario};
+
+      scenario.timeSyncs.add(tnmodel);
+    }
+
+    const auto& events = obj["Events"].toArray();
+    for (const auto& json_vref : events)
+    {
+      auto evmodel = new Scenario::EventModel{
+          JSONObject::Deserializer{json_vref}, &scenario};
+      if (!evmodel->states().empty())
       {
-        scenario.timeSyncs.remove(&ts);
+        scenario.events.add(evmodel);
+      }
+      else
+      {
+        auto& ts = scenario.timeSyncs.at(evmodel->timeSync());
+        ts.removeEvent(evmodel->id());
+        delete evmodel;
+
+        if (ts.events().empty())
+        {
+          scenario.timeSyncs.remove(&ts);
+        }
       }
     }
+
+    const auto& comments = obj["Comments"].toArray();
+    for (const auto& json_vref : comments)
+    {
+      auto cmtmodel = new Scenario::CommentBlockModel{
+          JSONObject::Deserializer{json_vref}, &scenario};
+
+      scenario.comments.add(cmtmodel);
+    }
+
+    const auto& states = obj["States"].toArray();
+    for (const auto& json_vref : states)
+    {
+      auto stmodel = new Scenario::StateModel{
+          JSONObject::Deserializer{json_vref}, scenario.context(), &scenario};
+
+      scenario.states.add(stmodel);
+    }
+
+    // Finally, we re-set the intervals before and after the states
+    for (const Scenario::IntervalModel& interval : scenario.intervals)
+    {
+      Scenario::SetPreviousInterval(
+          scenario.states.at(interval.endState()), interval);
+      Scenario::SetNextInterval(
+          scenario.states.at(interval.startState()), interval);
+    }
   }
-
-  const auto& comments = obj["Comments"].toArray();
-  for (const auto& json_vref : comments)
-  {
-    auto cmtmodel = new Scenario::CommentBlockModel{
-        JSONObject::Deserializer{json_vref}, &scenario};
-
-    scenario.comments.add(cmtmodel);
-  }
-
-  const auto& states = obj["States"].toArray();
-  for (const auto& json_vref : states)
-  {
-    auto stmodel = new Scenario::StateModel{
-        JSONObject::Deserializer{json_vref}, scenario.context(), &scenario};
-
-    scenario.states.add(stmodel);
-  }
-
-  // Finally, we re-set the intervals before and after the states
-  for (const Scenario::IntervalModel& interval : scenario.intervals)
-  {
-    Scenario::SetPreviousInterval(
-        scenario.states.at(interval.endState()), interval);
-    Scenario::SetNextInterval(
-        scenario.states.at(interval.startState()), interval);
-  }
-
   Scenario::ScenarioValidityChecker::checkValidity(scenario);
 }

@@ -68,10 +68,26 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
     {
       if (!slot.nodal)
       {
-        SCORE_ASSERT(slot.frontProcess);
-        SCORE_ASSERT(
-            interval.processes.find(*slot.frontProcess)
-            != interval.processes.end());
+        bool missing_processes{};
+        for(auto& proc : slot.processes)
+        {
+          auto it = interval.processes.find(proc);
+          if(it == interval.processes.end())
+          {
+            missing_processes = true;
+          }
+        }
+
+        if(missing_processes)
+        {
+          const_cast<Scenario::IntervalModel&>(interval).clearSmallView();
+          break;
+        }
+        else
+        {
+          SCORE_ASSERT(slot.frontProcess);
+          SCORE_ASSERT(ossia::contains(slot.processes, *slot.frontProcess));
+        }
       }
       else
       {
@@ -84,7 +100,9 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
     auto endStateDate = Scenario::endEvent(interval, scenar).date();
     if (!interval.graphal())
     {
-      SCORE_ASSERT(endStateDate - startStateDate == defaultDur);
+      // If reloading an old score:
+      // (((endStateDate - startStateDate) - defaultDur) == TimeVal{1})
+      SCORE_ASSERT((endStateDate - startStateDate) == defaultDur);
     }
     /*
     if (dur.isRigid())

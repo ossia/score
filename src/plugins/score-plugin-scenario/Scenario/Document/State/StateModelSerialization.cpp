@@ -93,9 +93,12 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(Scenario::StateModel& s)
   s.m_messageItemModel = new Scenario::MessageItemModel{s, &s};
   s.messages() = obj[strings.Messages].to<Process::MessageNode>();
 
-  auto ctrls = obj["Controls"].to<std::vector<Process::ControlMessage>>();
   s.m_controlItemModel = new Scenario::ControlItemModel{s, &s};
-  s.m_controlItemModel->replaceWith(std::move(ctrls));
+  if(auto it = obj.tryGet("Controls"))
+  {
+    auto ctrls = it->to<std::vector<Process::ControlMessage>>();
+    s.m_controlItemModel->replaceWith(std::move(ctrls));
+  }
 
   // Processes plugins
   EntityMapSerializer::writeTo<Process::ProcessFactoryList>(

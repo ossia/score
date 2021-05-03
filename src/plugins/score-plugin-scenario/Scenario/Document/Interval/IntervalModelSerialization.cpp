@@ -85,7 +85,7 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(Scenario::Slot& slot)
   slot.processes <<= obj[strings.Processes];
   slot.frontProcess <<= obj[strings.Process];
   slot.height = obj[strings.Height].toDouble();
-  slot.nodal = obj["Nodal"].toBool();
+  assign_with_default(slot.nodal, obj.tryGet("Nodal"), false);
 }
 
 template <>
@@ -115,7 +115,7 @@ template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(Scenario::FullSlot& slot)
 {
   slot.process <<= obj[strings.Process];
-  slot.nodal = obj["Nodal"].toBool();
+  assign_with_default(slot.nodal, obj.tryGet("Nodal"), false);
 }
 
 template <>
@@ -354,17 +354,27 @@ JSONWriter::write(Scenario::IntervalModel& interval)
 
   writeTo(interval.duration);
 
-  interval.m_signatures <<= obj["Signatures"];
+  assign_with_default(interval.m_signatures, obj.tryGet("Signatures"), {});
 
   interval.m_startState <<= obj[strings.StartState];
   interval.m_endState <<= obj[strings.EndState];
 
   interval.m_date <<= obj[strings.StartDate];
   interval.m_heightPercentage = obj[strings.HeightPercentage].toDouble();
-  interval.m_nodalFullViewSlotHeight = obj["NodalSlotHeight"].toDouble();
-  interval.m_viewMode = static_cast<Scenario::IntervalModel::ViewMode>(
-      obj["ViewMode"].toInt());
 
+  assign_with_default(interval.m_nodalFullViewSlotHeight, obj.tryGet("NodalSlotHeight"), 100.);
+
+  {
+    int viewMode{};
+    assign_with_default(viewMode, obj.tryGet("ViewMode"), Scenario::IntervalModel::ViewMode::Temporal);
+    interval.m_viewMode = (Scenario::IntervalModel::ViewMode) viewMode;
+  }
+
+  {
+    bool sign{};
+    assign_with_default(sign, obj.tryGet("HasSignature"), false);
+    interval.m_hasSignature = sign;
+  }
   auto zit = obj.constFind(strings.Zoom);
   if (zit != obj.constEnd())
     interval.m_zoom = zit->toDouble();
@@ -372,5 +382,4 @@ JSONWriter::write(Scenario::IntervalModel& interval)
   if (cit != obj.constEnd() && cit->isDouble())
     interval.m_center <<= *cit;
 
-  interval.m_hasSignature = obj["HasSignature"].toBool();
 }

@@ -73,8 +73,8 @@ void JSONWriter::write(Process::StateNodeValues& val)
 {
   val.previousProcessValues <<= obj[strings.Previous];
   val.followingProcessValues <<= obj[strings.Following];
-  val.userValue <<= obj[strings.User];
-  val.priorities <<= obj[strings.Priorities];
+  assign_with_default(val.userValue, obj.tryGet(strings.User), {});
+  assign_with_default(val.priorities, obj.tryGet(strings.Priorities), {});
 }
 
 template <>

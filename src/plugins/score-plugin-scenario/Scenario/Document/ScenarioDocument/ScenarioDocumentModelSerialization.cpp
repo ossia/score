@@ -84,11 +84,14 @@ void JSONWriter::write(Scenario::ScenarioDocumentModel& model)
 
   auto& ctx = safe_cast<score::Document*>(model.parent()->parent())->context();
 
-  const auto& buses = obj["BusIntervals"].toArray();
-  for (const auto& bus : buses)
+  if(auto b = obj.tryGet("BusIntervals"))
   {
-    auto path = JsonValue{bus}.to<Path<Scenario::IntervalModel>>();
-    model.busIntervals.push_back(&path.find(ctx));
+    const auto& buses = b->toArray();
+    for (const auto& bus : buses)
+    {
+      auto path = JsonValue{bus}.to<Path<Scenario::IntervalModel>>();
+      model.busIntervals.push_back(&path.find(ctx));
+    }
   }
 }
 
