@@ -117,3 +117,8 @@ else()
 
   target_link_libraries(${PROJECT_NAME} PRIVATE SndFile::sndfile)
 endif()
+
+if(SCORE_FAUST_TESTER)
+  add_executable(FaustTester Tests/FaustTester.cpp)
+  target_link_libraries(FaustTester PRIVATE score_plugin_faust)
+endif()
