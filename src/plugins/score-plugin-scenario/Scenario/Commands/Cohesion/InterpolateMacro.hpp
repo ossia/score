@@ -54,10 +54,23 @@ public:
     {
       auto cmd_slot = new Scenario::Command::AddSlotToRack{interval};
       addCommand(cmd_slot);
+      slotsToUse.push_back({interval, 0});
     }
-
-    // Put everything in first slot
-    slotsToUse.push_back({interval, 0});
+    else
+    {
+      auto it = ossia::find_if(interval.smallView(), [] (auto& slt) { return !slt.nodal; });
+      if(it != interval.smallView().end())
+      {
+        int slot_index = it - interval.smallView().begin();
+        slotsToUse.push_back({interval, slot_index});
+      }
+      else
+      {
+        auto cmd_slot = new Scenario::Command::AddSlotToRack{interval};
+        addCommand(cmd_slot);
+        slotsToUse.push_back({interval, (int)interval.smallView().size()});
+      }
+    }
   }
 
   // No need to save this, it is useful only for construction.

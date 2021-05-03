@@ -8,6 +8,7 @@
 #include <State/UpdateAddress.hpp>
 
 #include <score/tools/ForEach.hpp>
+#include <score/tools/Debug.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/hash.hpp>
@@ -52,6 +53,7 @@ DestinationQualifiers&
 DestinationQualifiers::operator=(DestinationQualifiers&& other)
 {
   *qualifiers = std::move(*other.qualifiers);
+  other.qualifiers = std::make_unique<ossia::destination_qualifiers>();
   return *this;
 }
 

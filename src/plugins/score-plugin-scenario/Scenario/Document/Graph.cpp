@@ -165,7 +165,7 @@ struct CycleDetector
   {
     this_path_itvs.clear();
     bool has_non_graphal = false;
-    for (auto it = p.begin(), end = p.end(); it != end; ++it)
+    for (auto it = p.begin(); it != p.end(); ++it)
     {
       TimeSyncModel* this_ts = (TimeSyncModel*)g[*it];
       TimeSyncModel* next_ts = nullptr;

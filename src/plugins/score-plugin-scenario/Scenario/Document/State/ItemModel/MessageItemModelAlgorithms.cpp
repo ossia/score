@@ -255,8 +255,7 @@ static void nodeInsertAction(
     ProcessPosition pos)
 {
   auto it = msg.begin();
-  auto end = msg.end();
-  while (it != end)
+  while (it != msg.end())
   {
     const auto& mess = *it;
     if (match(node, mess))
