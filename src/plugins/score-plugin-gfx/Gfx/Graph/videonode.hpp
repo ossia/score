@@ -30,5 +30,6 @@ struct SCORE_PLUGIN_GFX_EXPORT VideoNode : NodeModel
 
   virtual ~VideoNode();
 
-  score::gfx::NodeRenderer* createRenderer(Renderer& r) const noexcept override;
+  score::gfx::NodeRenderer*
+  createRenderer(Renderer& r) const noexcept override;
 };

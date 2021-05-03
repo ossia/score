@@ -20,6 +20,7 @@ if("clang" STREQUAL "${CNINJA_COMPILER}" OR "gcc" STREQUAL "${CNINJA_COMPILER}")
       " -Wno-gnu-string-literal-operator-template"
       " -Wno-missing-braces"
       " -Werror=return-stack-address"
+      " -Werror=inconsistent-missing-override"
       " -Wmissing-field-initializers"
       " -Wno-gnu-statement-expression"
       " -Wno-four-char-constants"
@@ -42,7 +43,7 @@ if("clang" STREQUAL "${CNINJA_COMPILER}" OR "gcc" STREQUAL "${CNINJA_COMPILER}")
       " -Wpedantic"
       " -Werror=return-local-addr"
     )
-    
+
     # -Wcast-qual is nice but requires more work...
     # -Wzero-as-null-pointer-constant  is garbage
     # Too much clutter :set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wswitch-enum -Wshadow  -Wsuggest-attribute=const  -Wsuggest-attribute=pure ")

@@ -36,8 +36,8 @@ namespace Engine
 {
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
     : score::GUIApplicationPlugin{ctx}
-    , m_execution{ctx}
     , m_playActions{*this, ctx}
+    , m_execution{ctx}
 {
   if (ctx.applicationSettings.gui)
   {

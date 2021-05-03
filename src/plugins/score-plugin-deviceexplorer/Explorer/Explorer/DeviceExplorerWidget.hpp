@@ -65,7 +65,7 @@ public:
   ListeningManager& listeningManager() const { return *m_listeningManager; }
 
 private:
-  friend struct ExplorerSearchLineEdit;
+  friend class ExplorerSearchLineEdit;
   QSize sizeHint() const override;
   // User commands
   void edit();

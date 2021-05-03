@@ -107,7 +107,7 @@ static const Device::DeviceSettings* getDevice(const Device::Node& n)
   return nullptr;
 }
 
-struct ExplorerSearchLineEdit final : public score::SearchLineEdit
+class ExplorerSearchLineEdit final : public score::SearchLineEdit
 {
   using ExpandState
       = score::TreeViewExpandState<Device::Node, Device::NodePath>;

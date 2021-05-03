@@ -51,8 +51,8 @@ struct YUV420Decoder : GPUVideoDecoder
   void init(Renderer& r, RenderedNode& rendered) override
   {
     auto& rhi = *r.state.rhi;
-    std::tie(node.m_vertexS, node.m_fragmentS)
-        = score::gfx::makeShaders(node.mesh().defaultVertexShader(), yuv420_filter);
+    std::tie(node.m_vertexS, node.m_fragmentS) = score::gfx::makeShaders(
+        node.mesh().defaultVertexShader(), yuv420_filter);
     const auto w = decoder.width, h = decoder.height;
 
     // Y

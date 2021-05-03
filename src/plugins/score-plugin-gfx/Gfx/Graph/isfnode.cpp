@@ -1,11 +1,10 @@
 #include "isfnode.hpp"
+
 #include "renderedisfnode.hpp"
 
 #include <score/tools/Debug.hpp>
+
 #include <boost/algorithm/string/replace.hpp>
-
-
-#include <Gfx/Qt5CompatPush> // clang-format: keep
 
 namespace
 {
@@ -319,7 +318,6 @@ QSize ISFNode::computeTextureSize(const isf::pass& pass, QSize origSize)
   return res;
 }
 
-
 score::gfx::NodeRenderer* ISFNode::createRenderer(Renderer& r) const noexcept
 {
   /*
@@ -338,4 +336,3 @@ score::gfx::NodeRenderer* ISFNode::createRenderer(Renderer& r) const noexcept
 }
 
 RenderedISFNode::~RenderedISFNode() { }
-#include <Gfx/Qt5CompatPop> // clang-format: keep

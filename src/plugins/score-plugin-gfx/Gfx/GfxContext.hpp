@@ -11,10 +11,10 @@
 #include <concurrentqueue.h>
 #include <score_plugin_gfx_export.h>
 
-class Graph;
+struct Graph;
 namespace score
 {
-class DocumentContext;
+struct DocumentContext;
 }
 namespace Gfx
 {

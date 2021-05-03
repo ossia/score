@@ -61,7 +61,7 @@ public:
       QWidget* parent) override;
 
   void transportStateChanged(ossia::transport_status st)
-      E_SIGNAL(SCORE_PLUGIN_AUDIO_EXPORT, transportStateChanged, st);
+  E_SIGNAL(SCORE_PLUGIN_AUDIO_EXPORT, transportStateChanged, st)
 
   ossia::tick_transport_info currentTransportInfo;
 

@@ -46,8 +46,8 @@ void main()
   {
     auto& rhi = *r.state.rhi;
 
-    std::tie(node.m_vertexS, node.m_fragmentS)
-        = score::gfx::makeShaders(node.mesh().defaultVertexShader(), yuv420_filter);
+    std::tie(node.m_vertexS, node.m_fragmentS) = score::gfx::makeShaders(
+        node.mesh().defaultVertexShader(), yuv420_filter);
 
     const auto w = decoder.width, h = decoder.height;
     // Y

@@ -31,6 +31,10 @@ if(WIN32)
 endif()
 set(VST3_SDK_ROOT "${3RDPARTY_FOLDER}/vst3")
 
+# VST3 uses COM APIs which require no virtual dtors in interfaces
+if(NOT MSVC)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-non-virtual-dtor")
+endif()
 add_subdirectory("${VST3_SDK_ROOT}" "${CMAKE_BINARY_DIR}/vst3")
 # Source files
 set(HDRS

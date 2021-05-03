@@ -133,10 +133,7 @@ public:
   friend struct Renderer;
 
   TextureRenderTarget createRenderTarget(const RenderState& state);
-  TextureRenderTarget renderTarget() const noexcept override
-  {
-    return m_rt;
-  }
+  TextureRenderTarget renderTarget() const noexcept override { return m_rt; }
 
   std::optional<QSize> renderTargetSize() const noexcept override;
   // Render loop
@@ -148,7 +145,7 @@ public:
 
   virtual void customRelease(Renderer&);
   void release(Renderer&) override;
-  void releaseWithoutRenderTarget(Renderer&)  override;
+  void releaseWithoutRenderTarget(Renderer&) override;
 
   void runPass(
       Renderer&,
@@ -179,5 +176,3 @@ public:
 
   friend class RenderedNode;
 };
-
-

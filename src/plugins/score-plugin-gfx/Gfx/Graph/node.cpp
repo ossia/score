@@ -119,7 +119,7 @@ void RenderedNode::defaultShaderMaterialInit(Renderer& renderer)
 
 void RenderedNode::init(Renderer& renderer)
 {
-  if(!m_rt.renderTarget)
+  if (!m_rt.renderTarget)
     createRenderTarget(renderer.state);
 
   auto& rhi = *renderer.state.rhi;

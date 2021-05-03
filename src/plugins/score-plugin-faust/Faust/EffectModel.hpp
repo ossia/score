@@ -24,7 +24,7 @@ class FaustEffectModel;
 namespace ossia::nodes
 {
 struct custom_dsp_poly_factory;
-struct custom_dsp_poly_effect;
+class custom_dsp_poly_effect;
 }
 
 PROCESS_METADATA(

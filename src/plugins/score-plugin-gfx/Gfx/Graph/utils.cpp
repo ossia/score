@@ -1,12 +1,13 @@
 #include "utils.hpp"
+
 #include "renderer.hpp"
 #include "shadercache.hpp"
-
 
 namespace score::gfx
 {
 #include <Gfx/Qt5CompatPush> // clang-format: keep
-TextureRenderTarget createRenderTarget(const RenderState& state, QRhiTexture* tex)
+TextureRenderTarget
+createRenderTarget(const RenderState& state, QRhiTexture* tex)
 {
   TextureRenderTarget ret;
   ret.texture = tex;
@@ -27,10 +28,10 @@ TextureRenderTarget createRenderTarget(const RenderState& state, QRhiTexture* te
   return ret;
 }
 
-TextureRenderTarget createRenderTarget(const RenderState& state, QRhiTexture::Format fmt, QSize sz)
+TextureRenderTarget
+createRenderTarget(const RenderState& state, QRhiTexture::Format fmt, QSize sz)
 {
-  auto texture = state.rhi->newTexture(
-      fmt, sz, 1, QRhiTexture::RenderTarget);
+  auto texture = state.rhi->newTexture(fmt, sz, 1, QRhiTexture::RenderTarget);
   SCORE_ASSERT(texture->create());
   return createRenderTarget(state, texture);
 }
@@ -66,12 +67,14 @@ void replaceTexture(
   srb.create();
 }
 
-void replaceTexture(QRhiShaderResourceBindings& srb, QRhiTexture* old_tex, QRhiTexture* new_tex)
+void replaceTexture(
+    QRhiShaderResourceBindings& srb,
+    QRhiTexture* old_tex,
+    QRhiTexture* new_tex)
 {
   QVarLengthArray<QRhiShaderResourceBinding> bindings;
   for (auto it = srb.cbeginBindings(); it != srb.cendBindings(); ++it)
   {
-    const QRhiShaderResourceBinding& srb = *it;
     bindings.push_back(*it);
 
     auto& binding = *bindings.back().data();
@@ -185,12 +188,13 @@ QRhiShaderResourceBindings* createDefaultBindings(
 
     // For cases where we do multi-pass rendering, set "this pass"'s input texture
     // to an empty texture instead as we can't output to an input texture
-    if(actual_texture == rt.texture)
+    if (actual_texture == rt.texture)
       actual_texture = renderer.m_emptyTexture;
 
     bindings.push_back(QRhiShaderResourceBinding::sampledTexture(
         binding,
-        QRhiShaderResourceBinding::VertexStage | QRhiShaderResourceBinding::FragmentStage,
+        QRhiShaderResourceBinding::VertexStage
+            | QRhiShaderResourceBinding::FragmentStage,
         actual_texture,
         sampler.sampler));
     binding++;
@@ -212,7 +216,8 @@ Pipeline buildPipeline(
     const std::vector<Sampler>& samplers)
 {
   auto& rhi = *renderer.state.rhi;
-  auto bindings = createDefaultBindings(renderer, rt, m_processUBO, materialUBO, samplers);
+  auto bindings = createDefaultBindings(
+      renderer, rt, m_processUBO, materialUBO, samplers);
   return buildPipeline(renderer, mesh, vertexS, fragmentS, rt, bindings);
 }
 

@@ -74,8 +74,8 @@ struct EmptyDecoder : GPUVideoDecoder
   NodeModel& node;
   void init(Renderer& r, RenderedNode& rendered) override
   {
-    std::tie(node.m_vertexS, node.m_fragmentS)
-        = score::gfx::makeShaders(node.mesh().defaultVertexShader(), hashtag_no_filter);
+    std::tie(node.m_vertexS, node.m_fragmentS) = score::gfx::makeShaders(
+        node.mesh().defaultVertexShader(), hashtag_no_filter);
   }
 
   void exec(

@@ -59,5 +59,6 @@ struct SCORE_PLUGIN_GFX_EXPORT Renderer
 
   QRhiTexture* textureTargetForInputPort(Port& port);
 
-  ossia::small_vector<std::pair<const Mesh* const, MeshBuffers>, 4> buffersToUpload;
+  ossia::small_vector<std::pair<const Mesh* const, MeshBuffers>, 4>
+      buffersToUpload;
 };

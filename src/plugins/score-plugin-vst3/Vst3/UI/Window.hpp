@@ -29,8 +29,6 @@ public:
       : QDialog{parent}
       , m_model{e}
   {
-    Steinberg::IPlugView& view = *e.fx.view;
-
     setAttribute(Qt::WA_DeleteOnClose, true);
 
     container = createVstWindowContainer(*this, e, ctx);

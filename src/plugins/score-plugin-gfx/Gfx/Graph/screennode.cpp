@@ -277,7 +277,7 @@ class WindowRenderer : public RenderedNode
 {
 public:
   WindowRenderer(const RenderState& state, const ScreenNode& parent)
-    : RenderedNode{parent}
+      : RenderedNode{parent}
   {
     auto& self = static_cast<const ScreenNode&>(this->node);
     if (parent.swapChain)
@@ -294,7 +294,8 @@ public:
   }
 };
 
-score::gfx::NodeRenderer* ScreenNode::createRenderer(Renderer& r) const noexcept
+score::gfx::NodeRenderer*
+ScreenNode::createRenderer(Renderer& r) const noexcept
 {
   return new WindowRenderer{r.state, *this};
 }

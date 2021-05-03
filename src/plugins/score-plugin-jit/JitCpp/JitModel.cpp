@@ -332,7 +332,7 @@ Execution::JitEffectComponent::JitEffectComponent(
     QObject* parent)
     : ProcessComponent_T{proc, ctx, id, "JitComponent", parent}
 {
-  auto reset = [this, &proc, &ctx] {
+  auto reset = [this, &proc] {
     if (proc.factory)
     {
       this->node.reset(proc.factory());

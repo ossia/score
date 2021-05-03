@@ -539,8 +539,8 @@ class AddFixtureDialog : public QDialog
 public:
   AddFixtureDialog(ArtnetProtocolSettingsWidget& parent)
       : QDialog{&parent}
-      , m_buttons{QDialogButtonBox::StandardButton::Ok | QDialogButtonBox::StandardButton::Cancel, this}
       , m_name{this}
+      , m_buttons{QDialogButtonBox::StandardButton::Ok | QDialogButtonBox::StandardButton::Cancel, this}
   {
     this->setLayout(&m_layout);
     m_layout.addWidget(&m_availableFixtures);

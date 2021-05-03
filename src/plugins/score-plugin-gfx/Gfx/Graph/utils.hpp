@@ -3,7 +3,10 @@
 #include "mesh.hpp"
 #include "renderstate.hpp"
 #include "uniforms.hpp"
+
 #include <score_plugin_gfx_export.h>
+
+#include <unordered_map>
 
 namespace score::gfx
 {
@@ -13,7 +16,6 @@ class NodeModel;
 struct Port;
 struct Edge;
 struct Renderer;
-
 
 struct Sampler
 {
@@ -102,14 +104,12 @@ struct TextureRenderTarget
   }
 };
 
-
 namespace score::gfx
 {
 
 SCORE_PLUGIN_GFX_EXPORT
-TextureRenderTarget createRenderTarget(
-    const RenderState& state,
-    QRhiTexture* tex);
+TextureRenderTarget
+createRenderTarget(const RenderState& state, QRhiTexture* tex);
 
 SCORE_PLUGIN_GFX_EXPORT
 TextureRenderTarget createRenderTarget(
@@ -149,6 +149,9 @@ SCORE_PLUGIN_GFX_EXPORT
 QShader makeCompute(QString compt);
 
 SCORE_PLUGIN_GFX_EXPORT
-void replaceTexture(QRhiShaderResourceBindings& srb, QRhiTexture* old_tex, QRhiTexture* new_tex);
+void replaceTexture(
+    QRhiShaderResourceBindings& srb,
+    QRhiTexture* old_tex,
+    QRhiTexture* new_tex);
 
 }

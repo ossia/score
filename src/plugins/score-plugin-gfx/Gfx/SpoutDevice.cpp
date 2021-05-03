@@ -58,7 +58,8 @@ struct SpoutNode : OutputNode
   void destroyOutput() override;
 
   RenderState* renderState() const override;
-  score::gfx::NodeRenderer* createRenderer(Renderer& r) const noexcept override;
+  score::gfx::NodeRenderer*
+  createRenderer(Renderer& r) const noexcept override;
 };
 
 class spout_device : public ossia::net::device_base
@@ -226,7 +227,7 @@ class SpoutRenderer : public RenderedNode
 {
 public:
   SpoutRenderer(const RenderState& state, const SpoutNode& parent)
-    : RenderedNode{parent}
+      : RenderedNode{parent}
   {
     m_rt.renderTarget = parent.m_renderTarget;
     m_rt.renderPass = state.renderPassDescriptor;
