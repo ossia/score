@@ -5,7 +5,8 @@
 #include <Process/Commands/Properties.hpp>
 #include <Process/Dataflow/PortListWidget.hpp>
 #include <Process/Process.hpp>
-
+#include <Process/ProcessList.hpp>
+#include <Effect/EffectLayer.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/Bind.hpp>
@@ -72,13 +73,19 @@ public:
     f.setPixelSize(18);
     label->setFont(f);
     lay->addWidget(label);
-    if (!(process.flags() & ProcessFlags::TimeIndependent))
-    {
-      auto loop_w = new QWidget;
-      auto loop_lay = new QFormLayout(loop_w);
+    QWidget* loop_w{};
+    QFormLayout* loop_lay{};
+
+    auto initButtonsLayout = [&] {
+      loop_w = new QWidget;
+      loop_lay = new QFormLayout(loop_w);
       loop_lay->setContentsMargins(1, 1, 1, 1);
       loop_lay->setSpacing(2);
       lay->addWidget(loop_w);
+    };
+    if (!(process.flags() & ProcessFlags::TimeIndependent))
+    {
+      initButtonsLayout();
 
       // Loops
       {
@@ -149,6 +156,32 @@ public:
             });
         loop_lay->addRow(tr("Loop duration"), so);
       }
+    }
+
+    auto& processes = doc.app.interfaces<Process::LayerFactoryList>();
+    auto& fact = *processes.get(process.concreteKey());
+    if(fact.hasExternalUI(process, doc))
+    {
+      if(!loop_lay)
+        initButtonsLayout();
+
+      auto uiToggle = new QToolButton{};
+      uiToggle->setText("Edit process");
+      uiToggle->setAutoRaise(true);
+      uiToggle->setCheckable(true);
+      uiToggle->setChecked(bool(process.externalUI));
+
+      connect(uiToggle, &QToolButton::toggled,
+              this, [&process, &fact, &doc] (bool state) {
+        Process::setupExternalUI(process, fact, doc, state);
+      });
+      connect(&process, &ProcessModel::externalUIVisible,
+              uiToggle, [=] (bool v) {
+        QSignalBlocker block{uiToggle};
+        uiToggle->setChecked(v);
+      });
+
+      loop_lay->addWidget(uiToggle);
     }
 
     if (w)

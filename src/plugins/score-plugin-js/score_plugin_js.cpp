@@ -5,7 +5,6 @@
 #include "JS/Commands/JSCommandFactory.hpp"
 
 #include <Execution/DocumentPlugin.hpp>
-#include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <JS/ConsolePanel.hpp>
 #include <JS/Executor/Component.hpp>
 #include <JS/JSProcessFactory.hpp>
