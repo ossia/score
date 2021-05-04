@@ -57,6 +57,7 @@ public:
   QString prettyName() const noexcept override;
   QString prettyValue(double x, double y) const noexcept override;
 
+  TimeVal contentDuration() const noexcept override;
   ~ProcessModel() override;
 
   std::unique_ptr<Process::Inlet> inlet;

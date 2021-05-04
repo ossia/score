@@ -104,7 +104,12 @@ QString ProcessModel::prettyValue(double x, double y) const noexcept
              (x * (sourceMax() - sourceMin()) - sourceMin()), 'f', 3)
          + " -> "
          + QString::number(
-             (y * (targetMax() - targetMin()) - targetMin()), 'f', 3);
+        (y * (targetMax() - targetMin()) - targetMin()), 'f', 3);
+}
+
+TimeVal ProcessModel::contentDuration() const noexcept
+{
+  return duration();
 }
 
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration) noexcept

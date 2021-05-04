@@ -23,5 +23,14 @@ public:
       : CurveProcessPresenter{style, layer, view, context, parent}
   {
   }
+
+  void parentGeometryChanged() override
+  {
+    QRectF rect = m_view->boundingRect();
+    m_curve.view().setRect(rect);
+
+    m_curve.view().setDefaultWidth(rect.width());
+    m_curve.setRect(rect);
+  }
 };
 }

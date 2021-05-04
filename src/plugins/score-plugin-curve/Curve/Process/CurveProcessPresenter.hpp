@@ -105,11 +105,11 @@ public:
     parentGeometryChanged();
   }
 
-  void parentGeometryChanged() final override
+  void parentGeometryChanged() override
   {
     // Compute the rect with the duration of the process.
     QRectF rect = m_view->boundingRect(); // for the height
-    m_curve.view().setRect(rect);
+    m_curve.view().setRect(rect); // wtf
 
     const auto dw = m_process.duration().toPixels(m_zoomRatio);
     m_curve.view().setDefaultWidth(dw);

@@ -104,7 +104,9 @@ void View::setRect(const QRectF& theRect) noexcept
 {
   prepareGeometryChange();
   m_rect = theRect;
-  setVisible(m_rect.width() > 5);
+  const bool newVisible = m_rect.width() > 5;
+  if(newVisible != this->isVisible())
+    setVisible(newVisible);
   update();
 }
 
