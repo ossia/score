@@ -232,7 +232,6 @@ void AutomatablePortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
   clickedPort = nullptr;
 
   CommandDispatcher<> disp{ctx.commandStack};
-  qDebug() << mime.formats();
 
   if (mime.formats().contains(score::mime::nodelist()))
   {
