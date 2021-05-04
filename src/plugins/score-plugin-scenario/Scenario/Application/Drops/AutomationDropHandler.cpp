@@ -792,7 +792,6 @@ void DropPresetInInterval::perform(
     Scenario::Command::Macro& m,
     const rapidjson::Document& json)
 {
-  /*
   const auto pid = ossia::get_pid();
   bool same_doc = false;
   if (json.HasMember("PID") && json.HasMember("Document"))
@@ -853,7 +852,6 @@ void DropPresetInInterval::perform(
 
   // Finally we show the newly created rack
   m.showRack(interval);
-  */
 }
 
 bool DropPresetInInterval::drop(

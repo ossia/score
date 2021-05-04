@@ -247,10 +247,11 @@ score_plugin_scenario::factories(
          Scenario::DropLayerInScenario>,
       FW<Scenario::IntervalDropHandler,
          Scenario::DropProcessInInterval,
-         Scenario::DropPresetInInterval,
          Scenario::DropLayerInInterval,
          Scenario::DropScoreInInterval,
-         Scenario::AutomationDropHandler>,
+         Scenario::AutomationDropHandler,
+         Scenario::DropPresetInInterval
+      >,
       FW<Inspector::InspectorWidgetFactory,
          ScenarioInspectorWidgetFactoryWrapper
          //          , Interpolation::StateInspectorFactory
