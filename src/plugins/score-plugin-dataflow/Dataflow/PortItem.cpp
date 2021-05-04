@@ -4,6 +4,7 @@
 #include <Dataflow/Commands/CreateModulation.hpp>
 #include <Dataflow/Commands/EditConnection.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
+#include <Curve/Segment/Power/PowerSegment.hpp>
 #include <Process/Commands/EditPort.hpp>
 #include <Process/ProcessContext.hpp>
 #include <State/MessageListSerialization.hpp>
@@ -11,6 +12,7 @@
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/selection/SelectionStack.hpp>
 
+#include <Curve/Commands/UpdateCurve.hpp>
 #include <ossia/network/common/destination_qualifiers.hpp>
 #include <ossia/network/domain/domain.hpp>
 
@@ -162,9 +164,12 @@ bool AutomatablePortItem::on_createAutomation(
       = new Scenario::Command::AddLayerInNewSlot{cst, make_cmd->processId()};
   macro(lay_cmd);
 
+  auto val = ossia::convert<float>(ctrl->value());
+
   auto dom = ctrl->domain();
   auto min = dom.get().convert_min<float>();
   auto max = dom.get().convert_max<float>();
+  auto segt = Curve::flatCurveSegment(val, min, max);
 
   State::Unit unit = ctrl->address().qualifiers.get().unit;
   auto& autom = safe_cast<Automation::ProcessModel&>(
@@ -172,6 +177,7 @@ bool AutomatablePortItem::on_createAutomation(
   macro(new Automation::SetUnit{autom, unit});
   macro(new Automation::SetMin{autom, min});
   macro(new Automation::SetMax{autom, max});
+  macro(new Curve::UpdateCurve{autom.curve(), {std::move(segt)}});
 
   auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
 

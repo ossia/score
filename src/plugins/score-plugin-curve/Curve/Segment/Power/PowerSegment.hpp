@@ -39,8 +39,8 @@ struct SCORE_PLUGIN_CURVE_EXPORT PowerSegmentData
 
 class SCORE_PLUGIN_CURVE_EXPORT PowerSegment final : public SegmentModel
 {
-  MODEL_METADATA_IMPL(PowerSegment)
 public:
+  MODEL_METADATA_IMPL(PowerSegment)
   using data_type = PowerSegmentData;
   using SegmentModel::SegmentModel;
   PowerSegment(const SegmentData& dat, QObject* parent);
@@ -79,6 +79,9 @@ private:
   ossia::curve_segment<float> makeFloatFunction() const override;
   ossia::curve_segment<int> makeIntFunction() const override;
 };
+
+SCORE_PLUGIN_CURVE_EXPORT
+Curve::SegmentData flatCurveSegment(double val, double min, double max);
 }
 
 SCORE_SERIALIZE_DATASTREAM_DECLARE(, Curve::PowerSegmentData)

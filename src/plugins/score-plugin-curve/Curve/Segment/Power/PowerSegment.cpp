@@ -169,6 +169,21 @@ std::optional<double> PowerSegment::verticalParameter() const
     return std::log(gamma) / std::log(16.);
   }
 }
+
+SegmentData flatCurveSegment(double val, double min, double max)
+{
+  Curve::SegmentData segt;
+  segt.id = Id<SegmentModel>{0};
+  const double v = (val - min) / (max - min);
+  segt.start = Curve::Point{0., v};
+  segt.end = Curve::Point{1., v};
+  segt.previous = {};
+  segt.following = {};
+  segt.type = PowerSegment::static_concreteKey();
+  segt.specificSegmentData = QVariant::fromValue(PowerSegmentData{});
+  return segt;
+}
+
 }
 
 template <>
