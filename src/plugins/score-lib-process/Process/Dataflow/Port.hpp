@@ -2,7 +2,7 @@
 #include <Process/Dataflow/PortType.hpp>
 #include <State/Address.hpp>
 #include <State/Domain.hpp>
-
+#include <Device/Address/AddressSettings.hpp>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/plugins/SerializableInterface.hpp>
@@ -123,6 +123,9 @@ public:
   const QString& description() const noexcept;
 
   virtual PortType type() const noexcept = 0;
+
+  virtual Device::FullAddressAccessorSettings settings() const noexcept;
+  virtual void setSettings(const Device::FullAddressAccessorSettings& set) noexcept;
 
 public:
   void setName(const QString& customData);

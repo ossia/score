@@ -127,6 +127,18 @@ const QString& Port::description() const noexcept
   return m_description;
 }
 
+Device::FullAddressAccessorSettings Port::settings() const noexcept
+{
+  Device::FullAddressAccessorSettings set;
+  set.address = this->m_address;
+  return set;
+}
+
+void Port::setSettings(const Device::FullAddressAccessorSettings& set) noexcept
+{
+  setAddress(set.address);
+}
+
 const State::AddressAccessor& Port::address() const noexcept
 {
   return m_address;

@@ -31,6 +31,9 @@ public:
   MinMaxFloatOutlet(DataStream::Deserializer&& vis, QObject* parent);
   MinMaxFloatOutlet(JSONObject::Deserializer&& vis, QObject* parent);
 
+  Device::FullAddressAccessorSettings settings() const noexcept override;
+  void setSettings(const Device::FullAddressAccessorSettings& set) noexcept override;
+
   void forChildInlets(
       const smallfun::function<void(Inlet&)>& f) const noexcept override;
   void mapExecution(

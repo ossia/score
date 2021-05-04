@@ -53,8 +53,22 @@ MinMaxFloatOutlet::MinMaxFloatOutlet(
   vis.writeTo(*this);
 }
 
+Device::FullAddressAccessorSettings MinMaxFloatOutlet::settings() const noexcept
+{
+  auto set = ValueOutlet::settings();
+  set.domain = ossia::make_domain(this->minInlet->value(), this->maxInlet->value());
+  return set;
+}
+
+void MinMaxFloatOutlet::setSettings(const Device::FullAddressAccessorSettings& set) noexcept
+{
+  ValueOutlet::setSettings(set);
+  this->minInlet->setValue(set.domain.get().get_min());
+  this->maxInlet->setValue(set.domain.get().get_max());
+}
+
 void MinMaxFloatOutlet::forChildInlets(
-    const smallfun::function<void(Inlet&)>& f) const noexcept
+      const smallfun::function<void(Inlet&)>& f) const noexcept
 {
   /* TODO fix AutomationModel
   f(*minInlet);

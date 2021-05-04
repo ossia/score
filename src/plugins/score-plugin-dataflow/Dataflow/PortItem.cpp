@@ -232,6 +232,27 @@ void AutomatablePortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
   clickedPort = nullptr;
 
   CommandDispatcher<> disp{ctx.commandStack};
+  qDebug() << mime.formats();
+
+  if (mime.formats().contains(score::mime::nodelist()))
+  {
+    Mime<Device::FreeNodeList>::Deserializer des{mime};
+    Device::FreeNodeList nl = des.deserialize();
+
+    if(nl.empty())
+      return;
+
+    if(nl[0].first == m_port.address().address)
+      return;
+
+    if(nl[0].first.device.isEmpty())
+      return;
+
+    auto addr = nl[0].second.target<Device::AddressSettings>();
+    if(!addr)
+      return;
+    disp.submit(new Process::ChangePortSettings{m_port, {State::AddressAccessor{nl[0].first}, std::move(*addr)}});
+  }
   if (mime.formats().contains(score::mime::messagelist()))
   {
     Mime<State::MessageList>::Deserializer des{mime};

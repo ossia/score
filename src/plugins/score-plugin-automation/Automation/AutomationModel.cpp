@@ -37,8 +37,9 @@ void ProcessModel::init()
 {
   outlet->setName("Out");
   m_outlets.push_back(outlet.get());
+  auto& out = *(Process::MinMaxFloatOutlet*)outlet.get();
   connect(
-      outlet.get(),
+      &out,
       &Process::Port::addressChanged,
       this,
       [=](const State::AddressAccessor& arg) {
@@ -47,6 +48,20 @@ void ProcessModel::init()
         unitChanged(arg.qualifiers.get().unit);
         m_curve->changed();
       });
+  connect(
+        out.minInlet.get(),
+        &Process::FloatSlider::valueChanged,
+        this,
+        [=](const ossia::value& arg) {
+    minChanged(ossia::convert<float>(arg));
+  });
+  connect(
+        out.maxInlet.get(),
+        &Process::FloatSlider::valueChanged,
+        this,
+        [=](const ossia::value& arg) {
+    maxChanged(ossia::convert<float>(arg));
+  });
   connect(outlet.get(), &Process::Port::cablesChanged, this, [=] {
     prettyNameChanged();
   });
@@ -248,16 +263,12 @@ const ::State::AddressAccessor& ProcessModel::address() const
 
 double ProcessModel::min() const
 {
-  return *((Process::MinMaxFloatOutlet&)(*outlet))
-              .minInlet->value()
-              .target<float>();
+  return ossia::convert<float>(((Process::MinMaxFloatOutlet&)(*outlet)).minInlet->value());
 }
 
 double ProcessModel::max() const
 {
-  return *((Process::MinMaxFloatOutlet&)(*outlet))
-              .maxInlet->value()
-              .target<float>();
+  return ossia::convert<float>(((Process::MinMaxFloatOutlet&)(*outlet)).maxInlet->value());
 }
 
 void ProcessModel::setAddress(const ::State::AddressAccessor& arg)

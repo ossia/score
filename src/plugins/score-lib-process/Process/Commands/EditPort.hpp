@@ -2,6 +2,9 @@
 #include <Process/Commands/ProcessCommandFactory.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
+
+#include <Device/Address/AddressSettings.hpp>
+
 #include <State/Address.hpp>
 
 #include <score/command/Command.hpp>
@@ -11,6 +14,27 @@
 namespace Process
 {
 
+class SCORE_LIB_PROCESS_EXPORT ChangePortSettings final : public score::Command
+{
+  SCORE_COMMAND_DECL(
+      Process::CommandFactoryName(),
+      ChangePortSettings,
+      "Edit a node port")
+public:
+  ChangePortSettings(const Process::Port& p, Device::FullAddressAccessorSettings stgs);
+
+  void undo(const score::DocumentContext& ctx) const override;
+  void redo(const score::DocumentContext& ctx) const override;
+
+protected:
+  void serializeImpl(DataStreamInput& s) const override;
+  void deserializeImpl(DataStreamOutput& s) override;
+
+private:
+  Path<Process::Port> m_model;
+
+  Device::FullAddressAccessorSettings m_old, m_new;
+};
 class SCORE_LIB_PROCESS_EXPORT ChangePortAddress final : public score::Command
 {
   SCORE_COMMAND_DECL(
