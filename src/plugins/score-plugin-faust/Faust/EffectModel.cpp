@@ -349,9 +349,17 @@ void FaustEffectModel::reload()
     errorMessage(0, QString::fromStdString(err));
     qDebug() << "Faust error: " << err;
   }
+
   if (!fac)
   {
     // TODO mark as invalid, like JS
+    return;
+  }
+
+  // Foreign function API not supported with llvm_dsp
+  if(fac->getDSPCode().find("ffunction") != str.npos)
+  {
+    deleteDSPFactory(fac);
     return;
   }
 
