@@ -1,5 +1,4 @@
 #pragma once
-#include <Audio/Settings/Model.hpp>
 #include <Execution/Clock/ClockFactory.hpp>
 #include <Execution/Transport/TransportInterface.hpp>
 #include <Process/TimeValue.hpp>
@@ -80,7 +79,6 @@ class SCORE_PLUGIN_ENGINE_EXPORT Model : public score::SettingsDelegateModel
   bool m_TransportValueCompilation{};
 
   const ClockFactoryList& m_clockFactories;
-  const Audio::Settings::Model& m_audioSettings;
   const TransportInterfaceList& m_transportInterfaces;
 
 public:

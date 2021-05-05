@@ -1,6 +1,7 @@
 #include "ExecutionController.hpp"
 
 #include <Audio/AudioApplicationPlugin.hpp>
+#include <Audio/Settings/Model.hpp>
 #include <Execution/Clock/ClockFactory.hpp>
 #include <Execution/DocumentPlugin.hpp>
 #include <Execution/Settings/ExecutorModel.hpp>
