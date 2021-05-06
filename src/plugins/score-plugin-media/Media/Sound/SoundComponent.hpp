@@ -25,7 +25,6 @@ public:
   SoundComponent(
       Media::Sound::ProcessModel& element,
       const ::Execution::Context& ctx,
-      const Id<score::Component>& id,
       QObject* parent);
 
   void recompute();

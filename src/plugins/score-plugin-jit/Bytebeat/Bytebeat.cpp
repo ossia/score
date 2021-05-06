@@ -224,9 +224,8 @@ public:
 BytebeatExecutor::BytebeatExecutor(
     Jit::BytebeatModel& proc,
     const Execution::Context& ctx,
-    const Id<score::Component>& id,
     QObject* parent)
-    : ProcessComponent_T{proc, ctx, id, "JitComponent", parent}
+    : ProcessComponent_T{proc, ctx, "JitComponent", parent}
 {
   auto bb = new bytebeat_node;
   this->node.reset(bb);

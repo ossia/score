@@ -21,7 +21,6 @@ public:
   NodalExecutorBase(
       Model& element,
       const Execution::Context& ctx,
-      const Id<score::Component>& id,
       QObject* parent);
 
   ~NodalExecutorBase();
@@ -34,12 +33,11 @@ public:
   ossia::fast_hash_map<Id<Process::ProcessModel>, RegisteredNode> m_nodes;
 
   ::Execution::ProcessComponent* make(
-      const Id<score::Component>& id,
       Execution::ProcessComponentFactory& factory,
       Process::ProcessModel& process);
 
   ::Execution::ProcessComponent*
-  make(const Id<score::Component>& id, Process::ProcessModel& process)
+  make(Process::ProcessModel& process)
   {
     return nullptr;
   }
@@ -120,12 +118,11 @@ public:
   void add(Process::ProcessModel& model)
   {
     // Will return a factory for the given process if available
-    auto id = getStrongId(model.components());
     if (auto factory = m_componentFactory.factory(model))
     {
       // The subclass should provide this function to construct
       // the correct component relative to this process.
-      auto comp = this->make(id, *factory, model);
+      auto comp = this->make(*factory, model);
       if (comp)
       {
         model.components().add(comp);
@@ -135,7 +132,7 @@ public:
     }
     else
     {
-      auto comp = ParentComponent_T::make(id, model);
+      auto comp = ParentComponent_T::make(model);
       if (comp)
       {
         model.components().add(comp);
@@ -188,9 +185,8 @@ public:
   NodalExecutor(
       Nodal::Model& element,
       const ::Execution::Context& ctx,
-      const Id<score::Component>& id,
       QObject* parent)
-      : HierarchyManager{element, ctx, id, parent}
+      : HierarchyManager{element, ctx, parent}
   {
     // TODO passthrough ?
   }

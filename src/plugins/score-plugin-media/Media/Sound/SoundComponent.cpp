@@ -204,12 +204,11 @@ namespace Execution
 SoundComponent::SoundComponent(
     Media::Sound::ProcessModel& element,
     const Execution::Context& ctx,
-    const Id<score::Component>& id,
     QObject* parent)
     : Execution::ProcessComponent_T<
         Media::Sound::ProcessModel,
         ossia::
-            node_process>{element, ctx, id, "Executor::SoundComponent", parent}
+            node_process>{element, ctx, "Executor::SoundComponent", parent}
     , m_recomputer{*this}
 {
   Media::SoundComponentSetup{}.construct(*this);

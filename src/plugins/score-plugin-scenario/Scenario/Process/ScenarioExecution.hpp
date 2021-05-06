@@ -72,7 +72,6 @@ public:
   ScenarioComponentBase(
       Scenario::ProcessModel& proc,
       const Context& ctx,
-      const Id<score::Component>& id,
       QObject* parent);
   ~ScenarioComponentBase() override;
 
@@ -90,7 +89,7 @@ public:
   void stop() override;
 
   template <typename Component_T, typename Element>
-  Component_T* make(const Id<score::Component>& id, Element& elt);
+  Component_T* make(Element& elt);
 
   template <typename Component_T, typename Element, typename Fun>
   void removed(const Element& elt, const Component_T& comp, Fun f)
@@ -176,7 +175,6 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT ScenarioComponent final
   ScenarioComponent(
       Scenario::ProcessModel& proc,
       const Context& ctx,
-      const Id<score::Component>& id,
       QObject* parent);
 
   void lazy_init() override;

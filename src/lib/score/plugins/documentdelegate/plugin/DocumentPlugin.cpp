@@ -13,12 +13,12 @@ class Document;
 
 DocumentPlugin::DocumentPlugin(
     const score::DocumentContext& ctx,
-    Id<DocumentPlugin> id,
     const QString& name,
     QObject* parent)
-    : IdentifiedObject<DocumentPlugin>{id, name, parent}
-    , m_context{ctx}
+  : QObject{parent}
+  , m_context{ctx}
 {
+  setObjectName(name);
 }
 
 void DocumentPlugin::on_documentClosing() { }

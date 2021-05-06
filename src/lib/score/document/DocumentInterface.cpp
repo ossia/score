@@ -42,8 +42,12 @@ score::Document* score::IDocument::documentFromObject(const QObject& obj)
 
 ObjectPath score::IDocument::unsafe_path(QObject const* const& obj)
 {
-  return ObjectPath::pathBetweenObjects(
-      &documentFromObject(obj)->model().modelDelegate(), obj);
+  auto& doc = documentFromObject(obj)->model();
+  try {
+    return ObjectPath::pathBetweenObjects(&doc.modelDelegate(), obj);
+  }  catch (...) {
+    return ObjectPath::pathBetweenObjects(&doc, obj);
+  }
 }
 
 ObjectPath score::IDocument::unsafe_path(const QObject& obj)

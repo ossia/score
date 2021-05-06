@@ -14,12 +14,10 @@ using midi_node_process = ossia::nodes::midi_node_process;
 Component::Component(
     Midi::ProcessModel& element,
     const Execution::Context& ctx,
-    const Id<score::Component>& id,
     QObject* parent)
     : ::Execution::ProcessComponent_T<Midi::ProcessModel, ossia::node_process>{
         element,
         ctx,
-        id,
         "MidiComponent",
         parent}
 {

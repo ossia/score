@@ -461,9 +461,8 @@ namespace Execution
 FaustEffectComponent::FaustEffectComponent(
     Faust::FaustEffectModel& proc,
     const Execution::Context& ctx,
-    const Id<score::Component>& id,
     QObject* parent)
-    : ProcessComponent_T{proc, ctx, id, "FaustComponent", parent}
+    : ProcessComponent_T{proc, ctx, "FaustComponent", parent}
 {
   connect(&proc, &Faust::FaustEffectModel::changed, this, [=] {
     for (auto& c : this->m_controlConnections)

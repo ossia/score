@@ -41,11 +41,11 @@ T* findComponent(const score::Components& c) noexcept
   static_assert(T::is_unique, "Components must be unique to use getComponent");
 
   auto it = ossia::find_if(
-      c, [](auto& other) { return other.key_match(T::static_key()); });
+      c, [](auto& other) { return other->key_match(T::static_key()); });
 
   if (it != c.end())
   {
-    return static_cast<T*>(&*it);
+    return static_cast<T*>(*it);
   }
   else
   {

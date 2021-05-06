@@ -13,8 +13,7 @@ template <typename DocPlugin>
 auto& addDocumentPlugin(score::Document& doc)
 {
   auto& model = doc.model();
-  auto plug = new DocPlugin{
-      doc.context(), getStrongId(model.pluginModels()), &model};
+  auto plug = new DocPlugin{doc.context(), &model};
   model.addPluginModel(plug);
   return *plug;
 }

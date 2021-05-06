@@ -126,7 +126,6 @@ public:
   JitEffectComponent(
       Jit::JitEffectModel& proc,
       const Execution::Context& ctx,
-      const Id<score::Component>& id,
       QObject* parent);
   ~JitEffectComponent() override;
 };

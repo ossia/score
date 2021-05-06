@@ -68,7 +68,7 @@ class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT Model final
   bool m_ReconnectOnStart = false;
 
 public:
-  Model(const score::DocumentContext&, Id<DocumentPlugin> id, QObject* parent);
+  Model(const score::DocumentContext&, QObject* parent);
   ~Model() override;
 
   template <typename Impl>

@@ -362,8 +362,7 @@ private:
       // Maybe we could not deserialize it
       if (!comp)
       {
-        comp = Component_T::template make<component_t>(
-            getStrongId(element.components()), element);
+        comp = Component_T::template make<component_t>(element);
       }
 
       // We try to add it
@@ -379,8 +378,7 @@ private:
     {
       // We can just create a new component directly
       using map_t = MatchingComponent<elt_t, true>;
-      auto comp = Component_T::template make<typename map_t::type>(
-          getStrongId(element.components()), element);
+      auto comp = Component_T::template make<typename map_t::type>(element);
       if (comp)
       {
         element.components().add(comp);

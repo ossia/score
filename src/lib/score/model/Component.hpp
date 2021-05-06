@@ -22,22 +22,32 @@ struct lazy_init_t
  * \todo Document more.
  */
 class SCORE_LIB_BASE_EXPORT Component
-    : public IdentifiedObject<score::Component>
+    : public QObject
 {
   W_OBJECT(Component)
 public:
-  using IdentifiedObject<score::Component>::IdentifiedObject;
+  explicit Component(QObject* parent);
+  explicit Component(const QString& name, QObject* parent);
+  ~Component() override;
+
   virtual UuidKey<score::Component> key() const noexcept = 0;
   virtual bool key_match(UuidKey<score::Component> other) const noexcept = 0;
 
-  ~Component() override;
 };
 
 /**
  * \typedef Components
  * \brief A map tailored for storing of components.
  */
-using Components = EntityMap<score::Component>;
+struct SCORE_LIB_BASE_EXPORT Components : std::vector<score::Component*>
+{
+  void add(score::Component* t);
+  void remove(score::Component* t);
+  void erase(score::Component* t);
+  void add(score::Component& t);
+  void remove(score::Component& t);
+  void erase(score::Component& t);
+};
 
 /**
  * @brief A component that has a reference to a specific context object

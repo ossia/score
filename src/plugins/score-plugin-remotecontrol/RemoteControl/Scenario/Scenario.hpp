@@ -17,13 +17,12 @@ public:
   ScenarioBase(
       Scenario::ProcessModel& scenario,
       DocumentPlugin& doc,
-      const Id<score::Component>& id,
       QObject* parent_obj);
 
   template <typename Component_T, typename Element>
-  Component_T* make(const Id<score::Component>& id, Element& elt)
+  Component_T* make(Element& elt)
   {
-    return new Component_T{id, elt, system(), this};
+    return new Component_T{elt, system(), this};
   }
 
   template <typename... Args>

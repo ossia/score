@@ -28,9 +28,8 @@ private:
 };
 
 ProcessExecutorComponent::ProcessExecutorComponent(
-    Skeleton::Model& element, const Execution::Context& ctx,
-    const Id<score::Component>& id, QObject* parent)
-    : ProcessComponent_T{element, ctx, id, "SkeletonExecutorComponent", parent}
+    Skeleton::Model& element, const Execution::Context& ctx, QObject* parent)
+    : ProcessComponent_T{element, ctx, "SkeletonExecutorComponent", parent}
 {
   auto n = std::make_shared<Skeleton::node>();
   this->node = n;

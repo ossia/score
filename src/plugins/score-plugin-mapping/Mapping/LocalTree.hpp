@@ -10,7 +10,6 @@ class MappingComponent final : public ProcessComponent_T<Mapping::ProcessModel>
 
 public:
   MappingComponent(
-      const Id<score::Component>& id,
       ossia::net::node_base& parent,
       Mapping::ProcessModel& proc,
       const score::DocumentContext& ctx,
@@ -19,7 +18,6 @@ public:
           parent,
           proc,
           ctx,
-          id,
           "MappingComponent",
           parent_obj}
   {

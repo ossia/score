@@ -48,11 +48,10 @@ namespace Execution
 ScenarioComponentBase::ScenarioComponentBase(
     Scenario::ProcessModel& element,
     const Context& ctx,
-    const Id<score::Component>& id,
     QObject* parent)
     : ProcessComponent_T<
         Scenario::ProcessModel,
-        ossia::scenario>{element, ctx, id, "ScenarioComponent", nullptr}
+        ossia::scenario>{element, ctx, "ScenarioComponent", nullptr}
     , m_ctx{ctx}
     , m_graph{element}
 {
@@ -84,9 +83,8 @@ ScenarioComponentBase::~ScenarioComponentBase() { }
 ScenarioComponent::ScenarioComponent(
     Scenario::ProcessModel& proc,
     const Context& ctx,
-    const Id<score::Component>& id,
     QObject* parent)
-    : ScenarioComponentHierarchy{score::lazy_init_t{}, proc, ctx, id, parent}
+    : ScenarioComponentHierarchy{score::lazy_init_t{}, proc, ctx, parent}
 {
 }
 
@@ -344,12 +342,11 @@ static void ScenarioIntervalCallback(bool, ossia::time_value) { }
 template <>
 IntervalComponent*
 ScenarioComponentBase::make<IntervalComponent, Scenario::IntervalModel>(
-    const Id<score::Component>& id,
     Scenario::IntervalModel& cst)
 {
   // Create the mapping object
   std::shared_ptr<IntervalComponent> elt
-      = std::make_shared<IntervalComponent>(cst, m_ctx, id, this);
+      = std::make_shared<IntervalComponent>(cst, m_ctx,  this);
   m_ossia_intervals.insert({cst.id(), elt});
 
   // Find the elements related to this interval.
@@ -401,7 +398,6 @@ ScenarioComponentBase::make<IntervalComponent, Scenario::IntervalModel>(
 template <>
 StateComponent*
 ScenarioComponentBase::make<StateComponent, Scenario::StateModel>(
-    const Id<score::Component>& id,
     Scenario::StateModel& st)
 {
   auto& events = m_ossia_timeevents;
@@ -409,7 +405,7 @@ ScenarioComponentBase::make<StateComponent, Scenario::StateModel>(
   auto ossia_ev = events.at(st.eventId());
 
   auto elt = std::make_shared<StateComponent>(
-      st, ossia_ev->OSSIAEvent(), m_ctx, id, this);
+      st, ossia_ev->OSSIAEvent(), m_ctx, this);
 
   m_ctx.executionQueue.enqueue([elt] { elt->onSetup(); });
 
@@ -421,11 +417,10 @@ ScenarioComponentBase::make<StateComponent, Scenario::StateModel>(
 template <>
 EventComponent*
 ScenarioComponentBase::make<EventComponent, Scenario::EventModel>(
-    const Id<score::Component>& id,
     Scenario::EventModel& ev)
 {
   // Create the component
-  auto elt = std::make_shared<EventComponent>(ev, m_ctx, id, this);
+  auto elt = std::make_shared<EventComponent>(ev, m_ctx, this);
   m_ossia_timeevents.insert({ev.id(), elt});
 
   // Find the parent time sync for the new event
@@ -491,11 +486,10 @@ ScenarioComponentBase::make<EventComponent, Scenario::EventModel>(
 template <>
 TimeSyncComponent*
 ScenarioComponentBase::make<TimeSyncComponent, Scenario::TimeSyncModel>(
-    const Id<score::Component>& id,
     Scenario::TimeSyncModel& tn)
 {
   // Create the object
-  auto elt = std::make_shared<TimeSyncComponent>(tn, m_ctx, id, this);
+  auto elt = std::make_shared<TimeSyncComponent>(tn, m_ctx, this);
   m_ossia_timesyncs.insert({tn.id(), elt});
 
   bool must_add = false;

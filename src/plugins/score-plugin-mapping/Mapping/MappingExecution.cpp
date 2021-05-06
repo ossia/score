@@ -20,11 +20,10 @@ namespace RecreateOnPlay
 Component::Component(
     ::Mapping::ProcessModel& element,
     const ::Execution::Context& ctx,
-    const Id<score::Component>& id,
     QObject* parent)
     : ::Execution::ProcessComponent_T<
         Mapping::ProcessModel,
-        ossia::node_process>{element, ctx, id, "MappingElement", parent}
+        ossia::node_process>{element, ctx, "MappingElement", parent}
 {
   node = std::make_shared<ossia::nodes::mapping>();
   m_ossia_process = std::make_shared<ossia::node_process>(node);

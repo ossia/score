@@ -15,13 +15,11 @@ using gradient = ossia::nodes::gradient;
 Component::Component(
     ::Gradient::ProcessModel& element,
     const ::Execution::Context& ctx,
-    const Id<score::Component>& id,
     QObject* parent)
     : ::Execution::
         ProcessComponent_T<Gradient::ProcessModel, ossia::node_process>{
             element,
             ctx,
-            id,
             "Executor::GradientComponent",
             parent}
 {

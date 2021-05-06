@@ -33,7 +33,6 @@ class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final
 public:
   explicit DeviceDocumentPlugin(
       const score::DocumentContext& ctx,
-      Id<DocumentPlugin> id,
       QObject* parent);
 
   virtual ~DeviceDocumentPlugin();

@@ -22,9 +22,8 @@ namespace Execution
 EventComponent::EventComponent(
     const Scenario::EventModel& element,
     const Execution::Context& ctx,
-    const Id<score::Component>& id,
     QObject* parent)
-    : Execution::Component{ctx, id, "Executor::Event", nullptr}
+    : Execution::Component{ctx, "Executor::Event", nullptr}
     , m_score_event{&element}
 {
   con(element,

@@ -3,6 +3,7 @@
 #if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
 #include <QHashFunctions>
 #include <QString>
+#include <QByteArray>
 
 #include <functional>
 
@@ -15,6 +16,11 @@ template <>
 struct hash<QString>
 {
   std::size_t operator()(const QString& path) const { return qHash(path); }
+};
+template <>
+struct hash<QByteArray>
+{
+  std::size_t operator()(const QByteArray& id) const { return qHash(id); }
 };
 }
 #endif

@@ -16,12 +16,10 @@ namespace Execution
 StepComponent::StepComponent(
     Media::Step::Model& element,
     const Execution::Context& ctx,
-    const Id<score::Component>& id,
     QObject* parent)
     : Execution::ProcessComponent_T<Media::Step::Model, ossia::node_process>{
         element,
         ctx,
-        id,
         "Executor::StepComponent",
         parent}
 {

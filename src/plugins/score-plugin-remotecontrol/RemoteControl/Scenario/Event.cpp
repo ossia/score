@@ -5,11 +5,10 @@
 namespace RemoteControl
 {
 Event::Event(
-    const Id<score::Component>& id,
     Scenario::EventModel& event,
     DocumentPlugin& doc,
     QObject* parent_comp)
-    : Component{id, "EventComponent", parent_comp}
+    : Component{"EventComponent", parent_comp}
 {
   auto si = dynamic_cast<Scenario::ScenarioInterface*>(event.parent());
   connect(

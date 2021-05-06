@@ -23,9 +23,8 @@ namespace Execution
 TimeSyncComponent::TimeSyncComponent(
     const Scenario::TimeSyncModel& element,
     const Execution::Context& ctx,
-    const Id<score::Component>& id,
     QObject* parent)
-    : Execution::Component{ctx, id, "Executor::TimeSync", nullptr}
+    : Execution::Component{ctx, "Executor::TimeSync", nullptr}
     , m_score_node{&element}
 {
   con(element,

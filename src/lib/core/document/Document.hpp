@@ -115,6 +115,14 @@ private:
       QWidget* parentview,
       QObject* parent);
 
+  Document(
+      const QString& name,
+      const QByteArray& data,
+      SerializationIdentifier format,
+      DocumentDelegateFactory& type,
+      QWidget* parentview,
+      QObject* parent);
+
   // Restore
   Document(
       const QString& name,
@@ -124,6 +132,7 @@ private:
       QObject* parent);
 
   void loadModel(const QString& fileName, DocumentDelegateFactory& factory);
+  void loadModel(const QString& fileName, const QByteArray& data, SerializationIdentifier format, DocumentDelegateFactory& factory);
   void restoreModel(const QByteArray& data, DocumentDelegateFactory& factory);
   void init();
 

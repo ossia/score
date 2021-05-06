@@ -15,14 +15,13 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioComponentBase
 
 public:
   ScenarioComponentBase(
-      const Id<score::Component>& id,
       ossia::net::node_base& parent,
       Scenario::ProcessModel& scenario,
       const score::DocumentContext& doc,
       QObject* parent_obj);
 
   template <typename Component_T, typename Element>
-  Component_T* make(const Id<score::Component>& id, Element& elt);
+  Component_T* make(Element& elt);
 
   template <typename... Args>
   bool removing(Args&&...)

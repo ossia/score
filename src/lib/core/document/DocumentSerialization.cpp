@@ -119,12 +119,16 @@ QByteArray Document::saveAsByteArray()
     if (auto serializable_plugin
         = qobject_cast<SerializableDocumentPlugin*>(plugin))
     {
+      //static_assert(
+      //    is_identified_object<SerializableDocumentPlugin>::value, "");
+      //static_assert(
+      //    (is_identified_object<SerializableDocumentPlugin>::value
+      //     && !is_entity<SerializableDocumentPlugin>::value
+      //     && is_abstract_base<SerializableDocumentPlugin>::value
+      //     && !is_custom_serialized<SerializableDocumentPlugin>::value),
+      //    "");
       static_assert(
-          is_identified_object<SerializableDocumentPlugin>::value, "");
-      static_assert(
-          (is_identified_object<SerializableDocumentPlugin>::value
-           && !is_entity<SerializableDocumentPlugin>::value
-           && is_abstract_base<SerializableDocumentPlugin>::value
+          (is_abstract_base<SerializableDocumentPlugin>::value
            && !is_custom_serialized<SerializableDocumentPlugin>::value),
           "");
       QByteArray arr_before, arr_after;
@@ -159,6 +163,30 @@ Document::Document(
     , m_context{*this}
 {
   loadModel(fileName, factory);
+
+  if (parentview)
+  {
+    m_view = new DocumentView{factory, *this, parentview};
+    m_presenter
+        = new DocumentPresenter{m_context, factory, *m_model, *m_view, this};
+  }
+  init();
+}
+
+Document::Document(
+    const QString& fileName,
+    const QByteArray& data,
+    SerializationIdentifier format,
+    DocumentDelegateFactory& factory,
+    QWidget* parentview,
+    QObject* parent)
+  : QObject{parent}
+  , m_metadata{fileName}
+  , m_commandStack{*this}
+  , m_objectLocker{this}
+  , m_context{*this}
+{
+  loadModel(fileName, data, format, factory);
 
   if (parentview)
   {
@@ -213,15 +241,6 @@ void Document::loadModel(
     const QString& fileName,
     DocumentDelegateFactory& factory)
 {
-  std::allocator<DocumentModel> allocator;
-  m_model = allocator.allocate(1);
-  new (m_model) DocumentModel(this);
-
-  for (auto& appPlug : m_context.app.guiApplicationPlugins())
-  {
-    appPlug->on_initDocument(*this);
-  }
-
   if (fileName.indexOf(".scorebin") != -1)
   {
     QFile f(fileName);
@@ -229,7 +248,7 @@ void Document::loadModel(
     auto data = score::mapAsByteArray(f);
     SCORE_ASSERT(!data.isEmpty());
 
-    m_model->loadDocumentAsByteArray(m_context, data, factory);
+    loadModel(fileName, data, DataStream::type(), factory);
   }
   else if (fileName.indexOf(".score") != -1)
   {
@@ -238,15 +257,7 @@ void Document::loadModel(
     auto data = score::mapAsByteArray(f);
     if (!data.isEmpty())
     {
-      auto doc = readJson(data);
-      bool ok = DocumentManager::checkAndUpdateJson(doc, m_context.app);
-      if (!ok)
-      {
-        throw std::runtime_error(
-            "The save format is too old. Wait until the developers implement "
-            "loading of the older save format.");
-      }
-      m_model->loadDocumentAsJson(m_context, doc, factory);
+      loadModel(fileName, data, JSONObject::type(), factory);
     }
     else
     {
@@ -257,6 +268,44 @@ void Document::loadModel(
   {
     // Create a blank document
     factory.make(m_context, m_model->m_model, m_model);
+  }
+}
+
+void Document::loadModel(
+    const QString& fileName,
+    const QByteArray& data,
+    SerializationIdentifier format,
+    DocumentDelegateFactory& factory)
+{
+  std::allocator<DocumentModel> allocator;
+  m_model = allocator.allocate(1);
+  new (m_model) DocumentModel(this);
+
+  for (auto& appPlug : m_context.app.guiApplicationPlugins())
+  {
+    appPlug->on_initDocument(*this);
+  }
+
+  switch(format)
+  {
+    case DataStream::type():
+    {
+      m_model->loadDocumentAsByteArray(m_context, data, factory);
+      break;
+    }
+    case JSONObject::type():
+    {
+      auto doc = readJson(data);
+      bool ok = DocumentManager::checkAndUpdateJson(doc, m_context.app);
+      if (!ok)
+      {
+        throw std::runtime_error(
+              "The save format is too old. Wait until the developers implement "
+            "loading of the older save format.");
+      }
+      m_model->loadDocumentAsJson(m_context, doc, factory);
+      break;
+    }
   }
 }
 

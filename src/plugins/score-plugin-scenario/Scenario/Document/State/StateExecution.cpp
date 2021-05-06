@@ -47,9 +47,8 @@ StateComponentBase::StateComponentBase(
     const Scenario::StateModel& element,
     std::shared_ptr<ossia::time_event> ev,
     const Execution::Context& ctx,
-    const Id<score::Component>& id,
     QObject* parent)
-    : Execution::Component{ctx, id, "Executor::State", nullptr}
+    : Execution::Component{ctx, "Executor::State", nullptr}
     , m_model{&element}
     , m_ev{std::move(ev)}
     , m_node{std::make_shared<ossia::nodes::state_writer>(
@@ -103,14 +102,13 @@ void StateComponentBase::onDelete() const
 }
 
 ProcessComponent* StateComponentBase::make(
-    const Id<score::Component>& id,
     ProcessComponentFactory& fac,
     Process::ProcessModel& proc)
 {
   try
   {
     const Execution::Context& ctx = system();
-    auto plug = fac.make(proc, ctx, id, nullptr);
+    auto plug = fac.make(proc, ctx, nullptr);
     if (plug && plug->OSSIAProcessPtr())
     {
       auto oproc = plug->OSSIAProcessPtr();

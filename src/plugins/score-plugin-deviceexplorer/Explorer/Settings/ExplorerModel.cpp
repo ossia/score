@@ -36,9 +36,8 @@ namespace Explorer::ProjectSettings
 {
 Model::Model(
     const score::DocumentContext& ctx,
-    Id<DocumentPlugin> id,
     QObject* parent)
-    : ProjectSettingsModel{ctx, id, "ExplorerSettings", parent}
+    : ProjectSettingsModel{ctx, "ExplorerSettings", parent}
 {
 }
 Model::~Model() { }

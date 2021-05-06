@@ -9,7 +9,6 @@ namespace LocalTree
 {
 TimeSync::TimeSync(
     ossia::net::node_base& parent,
-    const Id<score::Component>& id,
     Scenario::TimeSyncModel& timeSync,
     const score::DocumentContext& doc,
     QObject* parent_comp)
@@ -17,7 +16,6 @@ TimeSync::TimeSync(
         parent,
         timeSync.metadata(),
         doc,
-        id,
         "TimeSyncComponent",
         parent_comp}
 {

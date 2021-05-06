@@ -11,7 +11,6 @@ class SCORE_PLUGIN_SCENARIO_EXPORT State final : public CommonComponent
 public:
   State(
       ossia::net::node_base& parent,
-      const Id<score::Component>& id,
       Scenario::StateModel& event,
       const score::DocumentContext& doc,
       QObject* parent_comp);

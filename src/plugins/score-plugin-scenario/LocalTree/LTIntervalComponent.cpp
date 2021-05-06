@@ -88,9 +88,8 @@ public:
       ossia::net::node_base& node,
       Process::ProcessModel& proc,
       const score::DocumentContext& doc,
-      const Id<score::Component>& id,
       QObject* parent)
-      : ProcessComponent{node, proc, doc, id, "ProcessComponent", parent}
+      : ProcessComponent{node, proc, doc, "ProcessComponent", parent}
   {
     try
     {
@@ -134,11 +133,10 @@ public:
 
 IntervalBase::IntervalBase(
     ossia::net::node_base& parent,
-    const Id<score::Component>& id,
     Scenario::IntervalModel& interval,
     const score::DocumentContext& doc,
     QObject* parent_comp)
-    : parent_t{parent, interval.metadata(), interval, doc, id, "IntervalComponent", parent_comp}
+    : parent_t{parent, interval.metadata(), interval, doc, "IntervalComponent", parent_comp}
     , m_processesNode{*node().create_child("processes")}
 {
   using namespace Scenario;
@@ -153,21 +151,19 @@ IntervalBase::IntervalBase(
 }
 
 ProcessComponent* IntervalBase::make(
-    const Id<score::Component>& id,
     ProcessComponentFactory& factory,
     Process::ProcessModel& process)
 {
-  return factory.make(id, m_processesNode, process, system(), this);
+  return factory.make(m_processesNode, process, system(), this);
 }
 
 ProcessComponent* IntervalBase::make(
-    const Id<score::Component>& id,
     Process::ProcessModel& process)
 {
   if (!process.metadata().getName().isEmpty())
   {
     return new DefaultProcessComponent{
-        m_processesNode, process, system(), id, this};
+        m_processesNode, process, system(), this};
   }
   return nullptr;
 }

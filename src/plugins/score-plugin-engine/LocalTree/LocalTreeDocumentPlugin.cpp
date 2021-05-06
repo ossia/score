@@ -21,10 +21,9 @@
 
 LocalTree::DocumentPlugin::DocumentPlugin(
     const score::DocumentContext& ctx,
-    Id<score::DocumentPlugin> id,
     QObject* parent)
     : score::
-        DocumentPlugin{ctx, std::move(id), "LocalTree::DocumentPlugin", parent}
+        DocumentPlugin{ctx, "LocalTree::DocumentPlugin", parent}
     , m_localDevice{std::make_unique<ossia::net::generic_device>(
           std::make_unique<ossia::net::multiplex_protocol>(),
           "score")}
@@ -87,11 +86,10 @@ void LocalTree::DocumentPlugin::create()
   auto& cstr = scenar->baseInterval();
   m_root = new Interval(
       m_localDevice->get_root_node(),
-      getStrongId(cstr.components()),
       cstr,
       context(),
       this);
-  cstr.components().add(m_root);
+  cstr.components().push_back(m_root);
 }
 
 void LocalTree::DocumentPlugin::cleanup()

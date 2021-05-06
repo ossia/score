@@ -15,11 +15,10 @@ using spline = ossia::nodes::spline;
 Component::Component(
     ::Spline::ProcessModel& element,
     const ::Execution::Context& ctx,
-    const Id<score::Component>& id,
     QObject* parent)
     : ::Execution::ProcessComponent_T<
         Spline::ProcessModel,
-        ossia::node_process>{element, ctx, id, "Executor::Component", parent}
+        ossia::node_process>{element, ctx, "Executor::Component", parent}
 {
   auto node = std::make_shared<spline>();
   this->node = node;

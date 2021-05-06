@@ -116,9 +116,8 @@ void gfx_exec_node::run(
 
 DocumentPlugin::DocumentPlugin(
     const score::DocumentContext& ctx,
-    Id<score::DocumentPlugin> id,
     QObject* parent)
-    : score::DocumentPlugin{ctx, std::move(id), "Gfx::DocumentPlugin", parent}
+    : score::DocumentPlugin{ctx, "Gfx::DocumentPlugin", parent}
     , context{ctx}
 {
   auto& exec_plug = ctx.plugin<Execution::DocumentPlugin>();
@@ -135,7 +134,7 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& app)
 void ApplicationPlugin::on_createdDocument(score::Document& doc)
 {
   doc.model().addPluginModel(new DocumentPlugin{
-      doc.context(), getStrongId(doc.model().pluginModels()), &doc.model()});
+      doc.context(), &doc.model()});
 }
 
 }

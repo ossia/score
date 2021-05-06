@@ -294,25 +294,24 @@ private:
 #endif
   {
     // Will return a factory for the given process if available
-    auto id = getStrongId(model.components());
     if (auto factory = m_componentFactory.factory(model))
     {
       // The subclass should provide this function to construct
       // the correct component relative to this process.
-      auto comp = ParentComponent_T::make(id, *factory, model);
+      auto comp = ParentComponent_T::make(*factory, model);
       if (comp)
       {
-        model.components().add(comp);
+        model.components().push_back(comp);
         m_children.emplace_back(ChildPair{&model, comp});
         ParentComponent_T::added(*comp);
       }
     }
     else
     {
-      auto comp = ParentComponent_T::make(id, model);
+      auto comp = ParentComponent_T::make(model);
       if (comp)
       {
-        model.components().add(comp);
+        model.components().push_back(comp);
         m_children.emplace_back(ChildPair{&model, comp});
         ParentComponent_T::added(*comp);
       }

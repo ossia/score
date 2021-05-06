@@ -98,9 +98,8 @@ void Executor::setupNode(Node_T& node)
 Executor::Executor(
     vst::Model& proc,
     const Execution::Context& ctx,
-    const Id<score::Component>& id,
     QObject* parent)
-    : ProcessComponent_T{proc, ctx, id, "Component", parent}
+    : ProcessComponent_T{proc, ctx, "Component", parent}
 {
   if (!proc.fx || !proc.fx->fx)
     throw std::runtime_error("Unable to load VST");

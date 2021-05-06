@@ -15,7 +15,6 @@ class SCORE_PLUGIN_GFX_EXPORT DocumentPlugin final
 public:
   DocumentPlugin(
       const score::DocumentContext& doc,
-      Id<score::DocumentPlugin> id,
       QObject* parent);
   ~DocumentPlugin() override;
 

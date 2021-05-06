@@ -122,12 +122,10 @@ struct js_process final : public ossia::node_process
 Component::Component(
     JS::ProcessModel& element,
     const ::Execution::Context& ctx,
-    const Id<score::Component>& id,
     QObject* parent)
     : ::Execution::ProcessComponent_T<JS::ProcessModel, ossia::node_process>{
         element,
         ctx,
-        id,
         "JSComponent",
         parent}
 {

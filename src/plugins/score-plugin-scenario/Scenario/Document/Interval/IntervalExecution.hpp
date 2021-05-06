@@ -81,7 +81,6 @@ public:
   IntervalComponentBase(
       Scenario::IntervalModel& score_cst,
       const Context& ctx,
-      const Id<score::Component>& id,
       QObject* parent);
   IntervalComponentBase(const IntervalComponentBase&) = delete;
   IntervalComponentBase(IntervalComponentBase&&) = delete;
@@ -104,11 +103,10 @@ public:
   void executionStopped();
 
   ProcessComponent* make(
-      const Id<score::Component>& id,
       ProcessComponentFactory& factory,
       Process::ProcessModel& process);
   ProcessComponent*
-  make(const Id<score::Component>& id, Process::ProcessModel& process)
+  make(Process::ProcessModel& process)
   {
     return nullptr;
   }

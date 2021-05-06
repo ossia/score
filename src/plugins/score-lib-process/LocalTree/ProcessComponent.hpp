@@ -21,7 +21,6 @@ public:
       ossia::net::node_base& node,
       Process::ProcessModel& proc,
       const score::DocumentContext& doc,
-      const Id<score::Component>& id,
       const QString& name,
       QObject* parent);
 
@@ -42,7 +41,6 @@ class SCORE_LIB_PROCESS_EXPORT ProcessComponentFactory
 public:
   virtual ~ProcessComponentFactory();
   virtual ProcessComponent* make(
-      const Id<score::Component>&,
       ossia::net::node_base& parent,
       Process::ProcessModel& proc,
       const score::DocumentContext& doc,
@@ -58,14 +56,12 @@ class ProcessComponentFactory_T
 public:
   using model_type = typename ProcessComponent_T::model_type;
   ProcessComponent* make(
-      const Id<score::Component>& id,
       ossia::net::node_base& parent,
       Process::ProcessModel& proc,
       const score::DocumentContext& doc,
       QObject* paren_objt) const override
   {
-    return new ProcessComponent_T{
-        id, parent, static_cast<model_type&>(proc), doc, paren_objt};
+    return new ProcessComponent_T{parent, static_cast<model_type&>(proc), doc, paren_objt};
   }
 };
 

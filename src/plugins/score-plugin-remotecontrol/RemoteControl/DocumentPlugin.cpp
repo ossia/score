@@ -24,10 +24,9 @@ namespace RemoteControl
 using namespace std::literals;
 DocumentPlugin::DocumentPlugin(
     const score::DocumentContext& doc,
-    Id<score::DocumentPlugin> id,
     QObject* parent)
     : score::
-        DocumentPlugin{doc, std::move(id), "RemoteControl::DocumentPlugin", parent}
+        DocumentPlugin{doc, "RemoteControl::DocumentPlugin", parent}
     , receiver{doc, 10212}
 {
   auto& set = m_context.app.settings<Settings::Model>();
@@ -116,7 +115,7 @@ void DocumentPlugin::create()
   auto& doc = m_context.document.model().modelDelegate();
   auto scenar = safe_cast<Scenario::ScenarioDocumentModel*>(&doc);
   auto& cstr = scenar->baseScenario().interval();
-  m_root = new Interval(getStrongId(cstr.components()), cstr, *this, this);
+  m_root = new Interval(cstr, *this, this);
   cstr.components().add(m_root);
 }
 

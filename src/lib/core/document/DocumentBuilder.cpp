@@ -76,7 +76,6 @@ Document* DocumentBuilder::newDocument(
     if (auto fact = dynamic_cast<ProjectSettingsFactory*>(&projectsettings))
       doc->model().addPluginModel(fact->makeModel(
           doc->context(),
-          getStrongId(doc->model().pluginModels()),
           &doc->model()));
   }
 
@@ -141,6 +140,53 @@ Document* DocumentBuilder::loadDocument(
     return nullptr;
   }
 }
+
+SCORE_LIB_BASE_EXPORT
+Document* DocumentBuilder::loadDocument(
+    const score::GUIApplicationContext& ctx,
+    QString filename,
+    QByteArray data,
+    SerializationIdentifier format,
+    DocumentDelegateFactory& doctype)
+{
+  Document* doc = nullptr;
+  auto& doclist = ctx.documents.documents();
+  try
+  {
+    doc = new Document{filename, data, format, doctype, m_parentView, m_parentPresenter};
+    for (auto& appPlug : ctx.guiApplicationPlugins())
+    {
+      appPlug->on_loadedDocument(*doc);
+    }
+
+    for (auto& appPlug : ctx.guiApplicationPlugins())
+    {
+      appPlug->on_createdDocument(*doc);
+    }
+
+    doclist.push_back(doc);
+
+    m_backupManager = new DocumentBackupManager{*doc};
+    m_backupManager->saveModelData(doc->saveAsByteArray());
+    setBackupManager(doc);
+
+    return doc;
+  }
+  catch (std::runtime_error& e)
+  {
+    if (m_parentView)
+      score::warning(m_parentView, QObject::tr("Error"), e.what());
+    else
+      qDebug() << "Error while loading: " << e.what();
+
+    if (!doclist.empty() && doclist.back() == doc)
+      doclist.pop_back();
+
+    delete doc;
+    return nullptr;
+  }
+}
+
 SCORE_LIB_BASE_EXPORT
 Document* DocumentBuilder::restoreDocument(
     const score::GUIApplicationContext& ctx,

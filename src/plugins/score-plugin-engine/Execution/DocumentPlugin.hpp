@@ -60,7 +60,6 @@ class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final
 public:
   DocumentPlugin(
       const score::DocumentContext& ctx,
-      Id<score::DocumentPlugin>,
       QObject* parent);
 
   ~DocumentPlugin() override;

@@ -91,11 +91,10 @@ struct IntervalMessages
 };
 
 IntervalBase::IntervalBase(
-    const Id<score::Component>& id,
     Scenario::IntervalModel& Interval,
     DocumentPlugin& doc,
     QObject* parent_comp)
-    : parent_t{Interval, doc, id, "IntervalComponent", parent_comp}
+    : parent_t{Interval, doc, "IntervalComponent", parent_comp}
 {
   doc.registerInterval(Interval);
   con(Interval,
@@ -170,11 +169,10 @@ IntervalBase::~IntervalBase()
 }
 
 ProcessComponent* IntervalBase::make(
-    const Id<score::Component>& id,
     ProcessComponentFactory& factory,
     Process::ProcessModel& process)
 {
-  return factory.make(process, system(), id, this);
+  return factory.make(process, system(), this);
 }
 
 bool IntervalBase::removing(

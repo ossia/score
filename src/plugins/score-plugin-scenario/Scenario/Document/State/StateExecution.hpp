@@ -37,7 +37,6 @@ public:
       const Scenario::StateModel& element,
       std::shared_ptr<ossia::time_event> ev,
       const Execution::Context& ctx,
-      const Id<score::Component>& id,
       QObject* parent);
 
   //! To be called from the GUI thread
@@ -45,11 +44,10 @@ public:
   void updateControls();
 
   ProcessComponent* make(
-      const Id<score::Component>& id,
       ProcessComponentFactory& factory,
       Process::ProcessModel& process);
   ProcessComponent*
-  make(const Id<score::Component>& id, Process::ProcessModel& process)
+  make(Process::ProcessModel& process)
   {
     return nullptr;
   }

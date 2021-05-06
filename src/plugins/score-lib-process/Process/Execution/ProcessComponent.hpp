@@ -53,7 +53,6 @@ public:
   ProcessComponent(
       Process::ProcessModel& proc,
       const Context& ctx,
-      const Id<score::Component>& id,
       const QString& name,
       QObject* parent);
 
@@ -114,7 +113,6 @@ public:
   virtual std::shared_ptr<ProcessComponent> make(
       Process::ProcessModel& proc,
       const Context& ctx,
-      const Id<score::Component>& id,
       QObject* parent) const = 0;
 };
 
@@ -129,13 +127,12 @@ public:
   std::shared_ptr<ProcessComponent> make(
       Process::ProcessModel& proc,
       const Context& ctx,
-      const Id<score::Component>& id,
       QObject* parent) const final override
   {
     try
     {
       auto comp = std::make_shared<ProcessComponent_T>(
-          static_cast<model_type&>(proc), ctx, id, parent);
+          static_cast<model_type&>(proc), ctx, parent);
       comp->lazy_init();
       return comp;
     }

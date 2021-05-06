@@ -533,9 +533,8 @@ public:
 Component::Component(
     Pd::ProcessModel& element,
     const ::Execution::Context& ctx,
-    const Id<score::Component>& id,
     QObject* parent)
-    : Execution::ProcessComponent{element, ctx, id, "PdComponent", parent}
+    : Execution::ProcessComponent{element, ctx, "PdComponent", parent}
 {
   QFileInfo f(element.script());
   if (!f.exists())

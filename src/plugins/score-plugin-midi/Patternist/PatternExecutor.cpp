@@ -57,11 +57,10 @@ public:
 Executor::Executor(
     Patternist::ProcessModel& element,
     const Execution::Context& ctx,
-    const Id<score::Component>& id,
     QObject* parent)
     : ::Execution::ProcessComponent_T<
         Patternist::ProcessModel,
-        ossia::node_process>{element, ctx, id, "PatternComponent", parent}
+        ossia::node_process>{element, ctx, "PatternComponent", parent}
 {
   auto node = std::make_shared<pattern_node>();
   node->channel = element.channel();

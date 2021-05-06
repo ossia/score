@@ -171,9 +171,8 @@ public:
 TexgenExecutor::TexgenExecutor(
     Jit::TexgenModel& proc,
     const Execution::Context& ctx,
-    const Id<score::Component>& id,
     QObject* parent)
-    : ProcessComponent_T{proc, ctx, id, "JitComponent", parent}
+    : ProcessComponent_T{proc, ctx, "JitComponent", parent}
 {
   auto bb = new texgen_node{ctx.doc.plugin<Gfx::DocumentPlugin>().exec};
   this->node.reset(bb);

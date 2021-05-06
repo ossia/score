@@ -21,7 +21,6 @@ public:
   ProcessComponent(
       Process::ProcessModel& proc,
       DocumentPlugin& doc,
-      const Id<score::Component>& id,
       const QString& name,
       QObject* parent);
 
@@ -44,7 +43,6 @@ public:
   virtual ProcessComponent* make(
       Process::ProcessModel& proc,
       DocumentPlugin& doc,
-      const Id<score::Component>&,
       QObject* paren_objt) const = 0;
 };
 
@@ -59,11 +57,10 @@ public:
   ProcessComponent* make(
       Process::ProcessModel& proc,
       DocumentPlugin& doc,
-      const Id<score::Component>& id,
       QObject* paren_objt) const final override
   {
     return new ProcessComponent_T{
-        static_cast<model_type&>(proc), doc, id, paren_objt};
+        static_cast<model_type&>(proc), doc, paren_objt};
   }
 };
 

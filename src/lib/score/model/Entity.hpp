@@ -6,13 +6,6 @@
 
 namespace score
 {
-
-template <typename T>
-Id<score::Component> newId(const score::Entity<T>& e)
-{
-  return getStrongId(e.components());
-}
-
 template <typename T>
 class EntityMapInserter<score::Entity<T>>
 {

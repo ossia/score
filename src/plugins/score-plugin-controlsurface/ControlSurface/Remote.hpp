@@ -15,7 +15,6 @@ public:
   Remote(
       Model& scenario,
       RemoteControl::DocumentPlugin& doc,
-      const Id<score::Component>& id,
       QObject* parent_obj);
   ~Remote();
 };

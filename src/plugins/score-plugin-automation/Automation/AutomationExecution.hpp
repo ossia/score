@@ -25,7 +25,6 @@ public:
   Component(
       Automation::ProcessModel& element,
       const ::Execution::Context& ctx,
-      const Id<score::Component>& id,
       QObject* parent);
 
   ~Component() override;

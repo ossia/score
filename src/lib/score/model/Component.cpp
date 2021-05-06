@@ -9,7 +9,7 @@
 #include <wobjectimpl.h>
 
 #if !defined(SCORE_ALL_UNITY)
-template class SCORE_LIB_BASE_EXPORT score::EntityMap<score::Component>;
+//template class SCORE_LIB_BASE_EXPORT score::EntityMap<score::Component>;
 #if defined(SCORE_SERIALIZABLE_COMPONENTS)
 template class SCORE_LIB_BASE_EXPORT
     tsl::hopscotch_map<UuidKey<score::SerializableComponent>, QByteArray>;
@@ -21,7 +21,41 @@ template class SCORE_LIB_BASE_EXPORT
 W_OBJECT_IMPL(score::Component)
 namespace score
 {
+Component::Component(QObject* parent): QObject{parent} {}
+Component::Component(const QString& name, QObject* parent): QObject{parent} { setObjectName(name); }
 Component::~Component() = default;
+
+void Components::add(Component* t)
+{
+  push_back(t);
+}
+
+void Components::remove(Component* t)
+{
+  ossia::remove_erase((std::vector<Component*>&)*this, t);
+  delete t;
+}
+
+void Components::erase(Component* t)
+{
+  ossia::remove_erase((std::vector<Component*>&)*this, t);
+}
+
+void Components::add(Component& t)
+{
+  add(&t);
+}
+
+void Components::remove(Component& t)
+{
+  remove(&t);
+}
+
+void Components::erase(Component& t)
+{
+  erase(&t);
+}
+
 #if defined(SCORE_SERIALIZABLE_COMPONENTS)
 DataStreamSerializedComponents::~DataStreamSerializedComponents() = default;
 JSONSerializedComponents::~JSONSerializedComponents() = default;

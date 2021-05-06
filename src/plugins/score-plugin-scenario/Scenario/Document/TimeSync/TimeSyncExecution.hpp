@@ -25,7 +25,6 @@ public:
   TimeSyncComponent(
       const Scenario::TimeSyncModel& element,
       const Execution::Context& ctx,
-      const Id<score::Component>& id,
       QObject* parent);
 
   void cleanup();

@@ -45,9 +45,8 @@ namespace Execution
 {
 DocumentPlugin::DocumentPlugin(
     const score::DocumentContext& ctx,
-    Id<score::DocumentPlugin> id,
     QObject* parent)
-    : score::DocumentPlugin{ctx, std::move(id), "OSSIADocumentPlugin", parent}
+    : score::DocumentPlugin{ctx, "OSSIADocumentPlugin", parent}
     , settings{ctx.app.settings<Execution::Settings::Model>()}
     , m_execQueue(1024)
     , m_editionQueue(1024)

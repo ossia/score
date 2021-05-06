@@ -15,13 +15,11 @@ using spline = ossia::nodes::spline3d;
 Component::Component(
     ::Spline3D::ProcessModel& element,
     const ::Execution::Context& ctx,
-    const Id<score::Component>& id,
     QObject* parent)
     : ::Execution::
         ProcessComponent_T<Spline3D::ProcessModel, ossia::node_process>{
             element,
             ctx,
-            id,
             "Executor::SplineComponent",
             parent}
 {

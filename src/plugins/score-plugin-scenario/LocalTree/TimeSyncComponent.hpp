@@ -11,7 +11,6 @@ class SCORE_PLUGIN_SCENARIO_EXPORT TimeSync final : public CommonComponent
 public:
   TimeSync(
       ossia::net::node_base& parent,
-      const Id<score::Component>& id,
       Scenario::TimeSyncModel& event,
       const score::DocumentContext& doc,
       QObject* parent_comp);

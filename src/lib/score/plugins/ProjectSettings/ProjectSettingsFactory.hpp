@@ -32,7 +32,6 @@ public:
 
   virtual ProjectSettingsModel* makeModel(
       const score::DocumentContext&,
-      Id<score::DocumentPlugin> id,
       QObject* parent)
       = 0;
 
@@ -65,10 +64,9 @@ class ProjectSettingsDelegateFactory_T : public ProjectSettingsFactory
 
   ProjectSettingsModel* makeModel(
       const score::DocumentContext& ctx,
-      Id<score::DocumentPlugin> id,
       QObject* parent) override
   {
-    return new Model_T(ctx, id, parent);
+    return new Model_T(ctx, parent);
   }
 
   score::ProjectSettingsView* makeView() override { return new View_T; }

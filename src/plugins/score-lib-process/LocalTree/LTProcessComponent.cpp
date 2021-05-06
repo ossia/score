@@ -8,7 +8,6 @@ LocalTree::ProcessComponent::ProcessComponent(
     ossia::net::node_base& parentNode,
     Process::ProcessModel& proc,
     const score::DocumentContext& doc,
-    const Id<score::Component>& id,
     const QString& name,
     QObject* parent)
     : Component<
@@ -17,7 +16,6 @@ LocalTree::ProcessComponent::ProcessComponent(
         proc.metadata(),
         proc,
         doc,
-        id,
         name,
         parent}
 {

@@ -48,11 +48,9 @@ namespace Explorer
 MODEL_METADATA_IMPL_CPP(DeviceDocumentPlugin)
 DeviceDocumentPlugin::DeviceDocumentPlugin(
     const score::DocumentContext& ctx,
-    Id<DocumentPlugin> id,
     QObject* parent)
     : score::SerializableDocumentPlugin{
         ctx,
-        std::move(id),
         "Explorer::DeviceDocumentPlugin",
         parent}
 {

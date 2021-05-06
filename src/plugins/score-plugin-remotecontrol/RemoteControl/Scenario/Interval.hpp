@@ -20,7 +20,6 @@ public:
   using component_factory_list_t = RemoteControl::ProcessComponentFactoryList;
 
   IntervalBase(
-      const Id<score::Component>& id,
       Scenario::IntervalModel& Interval,
       DocumentPlugin& doc,
       QObject* parent_comp);
@@ -28,11 +27,10 @@ public:
   ~IntervalBase();
 
   ProcessComponent* make(
-      const Id<score::Component>& id,
       ProcessComponentFactory& factory,
       Process::ProcessModel& process);
   ProcessComponent*
-  make(const Id<score::Component>& id, Process::ProcessModel& process)
+  make(Process::ProcessModel& process)
   {
     return nullptr;
   }

@@ -16,7 +16,6 @@ public:
   StepComponent(
       Media::Step::Model& element,
       const ::Execution::Context& ctx,
-      const Id<score::Component>& id,
       QObject* parent);
 
   void recompute();

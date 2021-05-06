@@ -15,7 +15,6 @@ namespace LocalTree
 
 State::State(
     ossia::net::node_base& parent,
-    const Id<score::Component>& id,
     Scenario::StateModel& state,
     const score::DocumentContext& doc,
     QObject* parent_comp)
@@ -23,7 +22,6 @@ State::State(
         parent,
         state.metadata(),
         doc,
-        id,
         "StateComponent",
         parent_comp}
 {

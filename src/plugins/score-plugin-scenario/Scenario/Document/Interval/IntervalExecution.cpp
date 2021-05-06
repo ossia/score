@@ -40,12 +40,10 @@ namespace Execution
 IntervalComponentBase::IntervalComponentBase(
     Scenario::IntervalModel& score_cst,
     const Context& ctx,
-    const Id<score::Component>& id,
     QObject* parent)
     : Scenario::GenericIntervalComponent<const Context>{
         score_cst,
         ctx,
-        id,
         "Executor::Interval",
         nullptr}
 {
@@ -402,14 +400,13 @@ void IntervalComponentBase::executionStopped()
 }
 
 ProcessComponent* IntervalComponentBase::make(
-    const Id<score::Component>& id,
     ProcessComponentFactory& fac,
     Process::ProcessModel& proc)
 {
   try
   {
     const Execution::Context& ctx = system();
-    auto plug = fac.make(proc, ctx, id, nullptr);
+    auto plug = fac.make(proc, ctx, nullptr);
     if (plug && plug->OSSIAProcessPtr())
     {
       const auto& oproc = plug->OSSIAProcessPtr();

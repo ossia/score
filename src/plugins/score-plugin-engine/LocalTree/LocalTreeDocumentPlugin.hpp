@@ -29,7 +29,6 @@ class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final
 public:
   DocumentPlugin(
       const score::DocumentContext& doc,
-      Id<score::DocumentPlugin> id,
       QObject* parent);
 
   ~DocumentPlugin();

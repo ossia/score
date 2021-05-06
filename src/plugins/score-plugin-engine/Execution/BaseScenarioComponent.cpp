@@ -69,30 +69,28 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
       m_ctx.time(element.interval().duration.maxDuration()));
 
   m_ossia_startTimeSync = std::make_shared<TimeSyncComponent>(
-      element.startTimeSync(), m_ctx, newId(element.startTimeSync()), this);
+      element.startTimeSync(), m_ctx, this);
   m_ossia_endTimeSync = std::make_shared<TimeSyncComponent>(
-      element.endTimeSync(), m_ctx, newId(element.endTimeSync()), this);
+      element.endTimeSync(), m_ctx, this);
 
   m_ossia_startEvent = std::make_shared<EventComponent>(
-      element.startEvent(), m_ctx, newId(element.startEvent()), this);
+      element.startEvent(), m_ctx, this);
   m_ossia_endEvent = std::make_shared<EventComponent>(
-      element.endEvent(), m_ctx, newId(element.endEvent()), this);
+      element.endEvent(), m_ctx, this);
 
   m_ossia_startState = std::make_shared<StateComponent>(
       element.startState(),
       main_start_event,
       m_ctx,
-      newId(element.startState()),
       this);
   m_ossia_endState = std::make_shared<StateComponent>(
       element.endState(),
       main_end_event,
       m_ctx,
-      newId(element.endState()),
       this);
 
   m_ossia_interval = std::make_shared<IntervalComponent>(
-      element.interval(), m_ctx, newId(element.interval()), this);
+      element.interval(), m_ctx, this);
 
   m_ossia_startTimeSync->onSetup(
       main_start_node, m_ossia_startTimeSync->makeTrigger());

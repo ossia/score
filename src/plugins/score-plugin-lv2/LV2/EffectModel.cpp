@@ -575,9 +575,8 @@ struct on_finish
 LV2EffectComponent::LV2EffectComponent(
     LV2::Model& proc,
     const Execution::Context& ctx,
-    const Id<score::Component>& id,
     QObject* parent)
-    : ProcessComponent_T{proc, ctx, id, "LV2Component", parent}
+    : ProcessComponent_T{proc, ctx, "LV2Component", parent}
 {
 }
 

@@ -11,7 +11,6 @@ class AutomationComponent final
 
 public:
   AutomationComponent(
-      const Id<score::Component>& id,
       ossia::net::node_base& parent,
       Automation::ProcessModel& proc,
       const score::DocumentContext& ctx,
@@ -20,7 +19,6 @@ public:
           parent,
           proc,
           ctx,
-          id,
           "AutomationComponent",
           parent_obj}
   {

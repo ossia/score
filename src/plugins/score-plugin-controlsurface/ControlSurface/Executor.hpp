@@ -84,11 +84,10 @@ public:
   ProcessExecutorComponent(
       ControlSurface::Model& element,
       const ::Execution::Context& ctx,
-      const Id<score::Component>& id,
       QObject* parent)
       : Execution::ProcessComponent_T<
           ControlSurface::Model,
-          ossia::node_process>{element, ctx, id, "ControlSurface", parent}
+          ossia::node_process>{element, ctx, "ControlSurface", parent}
   {
     std::shared_ptr<ossia::control_surface_node> node
         = std::make_shared<ossia::control_surface_node>();

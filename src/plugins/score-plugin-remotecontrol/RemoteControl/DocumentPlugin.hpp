@@ -131,7 +131,6 @@ class SCORE_PLUGIN_REMOTECONTROL_EXPORT DocumentPlugin
 public:
   DocumentPlugin(
       const score::DocumentContext& doc,
-      Id<score::DocumentPlugin> id,
       QObject* parent);
   ~DocumentPlugin();
 

@@ -6,10 +6,10 @@
 namespace Skeleton
 {
 LocalTreeProcessComponent::LocalTreeProcessComponent(
-    const Id<score::Component>& id, ossia::net::node_base& parent,
+    ossia::net::node_base& parent,
     Skeleton::Model& proc, const score::DocumentContext& sys, QObject* parent_obj)
     : LocalTree::ProcessComponent_T<Skeleton::Model>{
-          parent, proc, sys, id, "SkeletonComponent", parent_obj}
+          parent, proc, sys, "SkeletonComponent", parent_obj}
 {
 }
 

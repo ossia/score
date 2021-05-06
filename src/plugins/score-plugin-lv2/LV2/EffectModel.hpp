@@ -92,7 +92,6 @@ public:
   LV2EffectComponent(
       LV2::Model& proc,
       const Execution::Context& ctx,
-      const Id<score::Component>& id,
       QObject* parent);
 
   void lazy_init() override;

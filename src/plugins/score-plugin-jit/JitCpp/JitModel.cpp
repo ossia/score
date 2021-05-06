@@ -328,9 +328,8 @@ namespace Execution
 Execution::JitEffectComponent::JitEffectComponent(
     Jit::JitEffectModel& proc,
     const Execution::Context& ctx,
-    const Id<score::Component>& id,
     QObject* parent)
-    : ProcessComponent_T{proc, ctx, id, "JitComponent", parent}
+    : ProcessComponent_T{proc, ctx, "JitComponent", parent}
 {
   auto reset = [this, &proc] {
     if (proc.factory)

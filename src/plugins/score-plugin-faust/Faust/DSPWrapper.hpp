@@ -259,12 +259,10 @@ public:
   Executor(
       Fx<DSP>& proc,
       const Execution::Context& ctx,
-      const Id<score::Component>& id,
       QObject* parent)
       : Execution::ProcessComponent_T<Fx<DSP>, ossia::node_process>{
           proc,
           ctx,
-          id,
           "FaustComponent",
           parent}
   {

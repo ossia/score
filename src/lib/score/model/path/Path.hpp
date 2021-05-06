@@ -22,9 +22,9 @@ class IdentifiedObject;
 
 namespace score
 {
+class DocumentPlugin;
 namespace IDocument
 {
-
 template <typename T>
 Path<T> path(const IdentifiedObject<T>& obj);
 }

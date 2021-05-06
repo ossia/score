@@ -124,9 +124,8 @@ namespace Nodal
 NodalExecutorBase::NodalExecutorBase(
     Nodal::Model& element,
     const Execution::Context& ctx,
-    const Id<score::Component>& id,
     QObject* parent)
-    : ProcessComponent_T{element, ctx, id, "NodalExecutorComponent", parent}
+    : ProcessComponent_T{element, ctx, "NodalExecutorComponent", parent}
 {
   // TODO load node
   m_ossia_process = std::make_shared<ossia::node_graph_process>();
@@ -191,12 +190,11 @@ void NodalExecutorBase::reg(
 }
 
 Execution::ProcessComponent* NodalExecutorBase::make(
-    const Id<score::Component>& id,
     Execution::ProcessComponentFactory& factory,
     Process::ProcessModel& proc)
 {
   Execution::Transaction commands{system()};
-  auto comp = factory.make(proc, this->system(), id, this);
+  auto comp = factory.make(proc, this->system(), this);
   if (comp)
   {
     reg(m_nodes[proc.id()] = {comp}, commands);

@@ -6,7 +6,6 @@ namespace LocalTree
 {
 Event::Event(
     ossia::net::node_base& parent,
-    const Id<score::Component>& id,
     Scenario::EventModel& event,
     const score::DocumentContext& doc,
     QObject* parent_comp)
@@ -14,7 +13,6 @@ Event::Event(
         parent,
         event.metadata(),
         doc,
-        id,
         "EventComponent",
         parent_comp}
 {

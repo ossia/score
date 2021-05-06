@@ -12,12 +12,10 @@ namespace Execution
 MergerComponent::MergerComponent(
     Media::Merger::Model& element,
     const Execution::Context& ctx,
-    const Id<score::Component>& id,
     QObject* parent)
     : Execution::ProcessComponent_T<Media::Merger::Model, ossia::node_process>{
         element,
         ctx,
-        id,
         "Executor::MergerComponent",
         parent}
 {

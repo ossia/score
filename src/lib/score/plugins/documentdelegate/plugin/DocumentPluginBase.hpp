@@ -21,13 +21,12 @@ namespace score
  * @brief Extend a document with custom data and systems.
  */
 class SCORE_LIB_BASE_EXPORT DocumentPlugin
-    : public IdentifiedObject<DocumentPlugin>
+    : public QObject
 {
   W_OBJECT(DocumentPlugin)
 public:
   DocumentPlugin(
       const score::DocumentContext&,
-      Id<DocumentPlugin> id,
       const QString& name,
       QObject* parent);
 
@@ -40,7 +39,7 @@ public:
       const score::DocumentContext& ctx,
       Impl& vis,
       QObject* parent)
-      : IdentifiedObject{vis, parent}
+      : QObject{parent}
       , m_context{ctx}
   {
   }

@@ -219,12 +219,10 @@ struct MetronomeSounds
 MetroComponent::MetroComponent(
     Media::Metro::Model& element,
     const Execution::Context& ctx,
-    const Id<score::Component>& id,
     QObject* parent)
     : Execution::ProcessComponent_T<Media::Metro::Model, ossia::node_process>{
         element,
         ctx,
-        id,
         "Executor::MetroComponent",
         parent}
 {
