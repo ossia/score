@@ -1,7 +1,6 @@
 #pragma once
-class QByteArray;
-class QVariant;
 #include <score/model/Identifier.hpp>
+#include <score/serialization/VisitorInterface.hpp>
 
 #include <score_lib_base_export.h>
 namespace score

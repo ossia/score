@@ -1,4 +1,6 @@
 #pragma once
+#include <score/serialization/VisitorInterface.hpp>
+
 #include <QString>
 
 #include <score_lib_base_export.h>
