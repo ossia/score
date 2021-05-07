@@ -6,10 +6,12 @@
 
 #include <score/document/DocumentContext.hpp>
 
+#include <ossia/detail/algorithms.hpp>
+
 #include <wobjectimpl.h>
 
 #if !defined(SCORE_ALL_UNITY)
-//template class SCORE_LIB_BASE_EXPORT score::EntityMap<score::Component>;
+// template class SCORE_LIB_BASE_EXPORT score::EntityMap<score::Component>;
 #if defined(SCORE_SERIALIZABLE_COMPONENTS)
 template class SCORE_LIB_BASE_EXPORT
     tsl::hopscotch_map<UuidKey<score::SerializableComponent>, QByteArray>;
@@ -21,8 +23,15 @@ template class SCORE_LIB_BASE_EXPORT
 W_OBJECT_IMPL(score::Component)
 namespace score
 {
-Component::Component(QObject* parent): QObject{parent} {}
-Component::Component(const QString& name, QObject* parent): QObject{parent} { setObjectName(name); }
+Component::Component(QObject* parent)
+    : QObject{parent}
+{
+}
+Component::Component(const QString& name, QObject* parent)
+    : QObject{parent}
+{
+  setObjectName(name);
+}
 Component::~Component() = default;
 
 void Components::add(Component* t)
