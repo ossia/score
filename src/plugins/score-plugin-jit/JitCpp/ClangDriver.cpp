@@ -222,18 +222,7 @@ ClangCC1Driver::compileCppToBitcodeFile(const std::vector<std::string>& args)
       std::back_inserter(argsX),
       [](const std::string& s) { return s.c_str(); });
 
-  // Owned by cc1_main
-  auto diags = new clang::TextDiagnosticBuffer();
-
-  if (int res = cc1_main(argsX, "", nullptr, diags))
-  {
-    std::stringstream ss;
-    for (auto it = diags->err_begin(); it != diags->err_end(); ++it)
-      ss << "error : " << it->second << "\n";
-    return return_code_error(ss.str(), res);
-  }
-
-  return llvm::Error::success();
+  return cc1_main(argsX, "", nullptr);
 }
 
 }

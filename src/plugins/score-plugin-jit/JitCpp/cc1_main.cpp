@@ -47,6 +47,7 @@
 
 #include <cstdio>
 #include <iostream>
+#include <sstream>
 
 #ifdef CLANG_HAVE_RLIMITS
 #include <sys/resource.h>
@@ -213,11 +214,10 @@ static int PrintSupportedCPUs(std::string TargetStr)
   return 0;
 }
 
-int cc1_main(
+llvm::Error cc1_main(
     ArrayRef<const char*> Argv,
     const char* Argv0,
-    void* MainAddr,
-    DiagnosticConsumer* diagnostics)
+    void* MainAddr)
 {
   ensureSufficientStack();
 
@@ -252,9 +252,6 @@ int cc1_main(
     llvm::timeTraceProfilerInitialize(
         Clang->getFrontendOpts().TimeTraceGranularity, Argv0);
   }
-  // --print-supported-cpus takes priority over the actual compilation.
-  if (Clang->getFrontendOpts().PrintSupportedCPUs)
-    return PrintSupportedCPUs(Clang->getTargetOpts().Triple);
 
   // Infer the builtin include path if unspecified.
   if (Clang->getHeaderSearchOpts().UseBuiltinIncludes
@@ -263,9 +260,11 @@ int cc1_main(
         = CompilerInvocation::GetResourcesPath(Argv0, MainAddr);
 
   // Create the actual diagnostics engine.
+
+  auto diagnostics = new TextDiagnosticBuffer;
   Clang->createDiagnostics(diagnostics);
   if (!Clang->hasDiagnostics())
-    return 1;
+    return llvm::make_error<llvm::StringError>("No diagnostics", std::error_code(1, std::system_category()));
 
   // Set an error handler, so that any LLVM backend diagnostics go through our
   // error handler.
@@ -274,7 +273,7 @@ int cc1_main(
 
   DiagsBuffer->FlushDiagnostics(Clang->getDiagnostics());
   if (!Success)
-    return 1;
+    return llvm::make_error<llvm::StringError>("No diagnostics", std::error_code(1, std::system_category()));
 
   // Execute the frontend actions.
   {
@@ -287,6 +286,15 @@ int cc1_main(
   llvm::TimerGroup::printAll(llvm::errs());
   llvm::TimerGroup::clearAll();
 
+  std::stringstream ss;
+  for (auto it = diagnostics->err_begin(); it != diagnostics->err_end(); ++it)
+    ss << "error : " << it->second << "\n";
+
+  auto res = Success
+                 ? llvm::Error::success()
+                 : llvm::make_error<llvm::StringError>(ss.str(), std::error_code(1, std::system_category()));
+
+
   // Our error handler depends on the Diagnostics object, which we're
   // potentially about to delete. Uninstall the handler now so that any
   // later errors use the default handling behavior instead.
@@ -296,8 +304,7 @@ int cc1_main(
   if (Clang->getFrontendOpts().DisableFree)
   {
     llvm::BuryPointer(std::move(Clang));
-    return !Success;
+    return res;
   }
-
-  return !Success;
+  return res;
 }
