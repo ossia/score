@@ -350,15 +350,21 @@ public:
   void minDurationSpinboxChanged(ossia::time_value val)
   {
     using namespace Scenario::Command;
-    m_dispatcher.submit<SetMinDuration>(
-        m_model, val, !m_minNonNullBox->isChecked());
+    if(val < m_model.duration.defaultDuration())
+    {
+      m_dispatcher.submit<SetMinDuration>(
+          m_model, val, !m_minNonNullBox->isChecked());
+    }
   }
 
   void maxDurationSpinboxChanged(ossia::time_value val)
   {
     using namespace Scenario::Command;
-    m_dispatcher.submit<SetMaxDuration>(
-        m_model, val, !m_maxFiniteBox->isChecked());
+    if(val >= m_model.duration.defaultDuration())
+    {
+      m_dispatcher.submit<SetMaxDuration>(
+          m_model, val, !m_maxFiniteBox->isChecked());
+    }
   }
 
   const IntervalModel& m_model;
