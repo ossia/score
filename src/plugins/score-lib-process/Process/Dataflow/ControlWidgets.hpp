@@ -361,6 +361,54 @@ struct Toggle
   }
 };
 
+struct ImpulseButton
+{
+  template <typename T, typename Control_T>
+  static auto make_widget(
+      const T& slider,
+      const Control_T& inlet,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      QObject* context)
+  {
+    auto sl = new QPushButton{parent};
+    const auto& name = inlet.visualName();
+    sl->setText(name.isEmpty() ? QObject::tr("Bang") : name);
+    sl->setContentsMargins(0, 0, 0, 0);
+
+    auto& cinlet = const_cast<Control_T&>(inlet);
+    QObject::connect(sl, &QPushButton::pressed, context, [&cinlet] {
+      cinlet.valueChanged(ossia::impulse{});
+    });
+
+    return sl;
+  }
+
+  template <typename T, typename Control_T>
+  static QGraphicsItem* make_item(
+      const T& slider,
+      Control_T& inlet,
+      const score::DocumentContext& ctx,
+      QGraphicsItem* parent,
+      QObject* context)
+  {
+    auto toggle = new score::QGraphicsButton{nullptr};
+
+    QObject::connect(
+        toggle,
+        &score::QGraphicsButton::pressed,
+        context,
+        [=, &inlet, &ctx](bool pressed) {
+          if(pressed)
+          {
+            inlet.valueChanged(ossia::impulse{});
+          }
+        });
+
+    return toggle;
+  }
+};
+
 struct Button
 {
   template <typename T, typename Control_T>

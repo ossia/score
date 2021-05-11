@@ -17,6 +17,7 @@ struct ComboBox;
 struct LineEdit;
 struct Enum;
 struct Button;
+struct ImpulseButton;
 struct HSVSlider;
 struct XYSlider;
 struct MultiSlider;
@@ -81,6 +82,12 @@ UUID_METADATA(
     Process::Port,
     Process::Button,
     "feb87e84-e0d2-428f-96ff-a123ac964f59")
+
+UUID_METADATA(
+    SCORE_LIB_PROCESS_EXPORT,
+    Process::Port,
+    Process::ImpulseButton,
+    "7cd210d3-ebd1-4f71-9de6-cccfb639cbc3")
 
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT,
@@ -281,6 +288,16 @@ struct SCORE_LIB_PROCESS_EXPORT Button : public Process::ControlInlet
   using control_type = WidgetFactory::Button;
   Button(const QString& name, Id<Process::Port> id, QObject* parent);
   ~Button();
+
+  using Process::ControlInlet::ControlInlet;
+};
+
+struct SCORE_LIB_PROCESS_EXPORT ImpulseButton : public Process::ControlInlet
+{
+  MODEL_METADATA_IMPL(ImpulseButton)
+  using control_type = WidgetFactory::ImpulseButton;
+  ImpulseButton(const QString& name, Id<Process::Port> id, QObject* parent);
+  ~ImpulseButton();
 
   using Process::ControlInlet::ControlInlet;
 };

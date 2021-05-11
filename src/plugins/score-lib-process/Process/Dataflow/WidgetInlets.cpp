@@ -259,6 +259,17 @@ Button::Button(const QString& name, Id<Port> id, QObject* parent)
 
 Button::~Button() { }
 
+ImpulseButton::ImpulseButton(const QString& name, Id<Port> id, QObject* parent)
+    : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(ossia::impulse{});
+  setDomain(State::Domain{ossia::domain_base<ossia::impulse>{}});
+  setName(name);
+}
+
+ImpulseButton::~ImpulseButton() { }
+
 XYSlider::XYSlider(
     ossia::vec2f init,
     const QString& name,
@@ -552,6 +563,28 @@ JSONReader::read<Process::Button>(const Process::Button& p)
 template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONWriter::write<Process::Button>(Process::Button& p)
+{
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamReader::read<Process::ImpulseButton>(const Process::ImpulseButton& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamWriter::write<Process::ImpulseButton>(Process::ImpulseButton& p)
+{
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONReader::read<Process::ImpulseButton>(const Process::ImpulseButton& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONWriter::write<Process::ImpulseButton>(Process::ImpulseButton& p)
 {
 }
 

@@ -101,7 +101,7 @@ Process::ControlInlet* makeControlFromType(
   switch (addr.value.get_type())
   {
     case ossia::val_type::IMPULSE:
-      return new Process::Button{id, parent};
+      return new Process::ImpulseButton{id, parent};
     case ossia::val_type::INT:
       return new Process::IntSlider{id, parent};
     case ossia::val_type::FLOAT:

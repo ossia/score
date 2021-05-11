@@ -236,14 +236,7 @@ public:
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, domainChanged, d)
 
 public:
-  void setValue(const ossia::value& value)
-  {
-    if (value != m_value)
-    {
-      m_value = value;
-      valueChanged(value);
-    }
-  }
+  void setValue(const ossia::value& value);
   W_SLOT(setValue)
 
   void setDomain(const State::Domain& d)

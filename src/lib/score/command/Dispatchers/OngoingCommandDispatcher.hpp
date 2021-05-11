@@ -55,7 +55,7 @@ public:
   {
     if (m_cmd)
     {
-      SendStrategy::UndoRedo::send(stack(), m_cmd.release());
+      SendStrategy::Quiet::send(stack(), m_cmd.release());
       stack().enableActions();
     }
   }

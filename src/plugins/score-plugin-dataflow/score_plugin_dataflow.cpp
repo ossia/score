@@ -51,6 +51,7 @@ score_plugin_dataflow::factories(
          Dataflow::WidgetInletFactory<Process::IntSpinBox>,
          Dataflow::WidgetInletFactory<Process::Toggle>,
          Dataflow::WidgetInletFactory<Process::Button>,
+         Dataflow::WidgetInletFactory<Process::ImpulseButton>,
          Dataflow::WidgetInletFactory<Process::ChooserToggle>,
          Dataflow::WidgetInletFactory<Process::LineEdit>,
          Dataflow::WidgetInletFactory<Process::ComboBox>,

@@ -44,7 +44,7 @@ bool OSCDevice::reconnect()
         = settings().deviceSpecificSettings.value<OSCSpecificSettings>();
     using conf = ossia::net::osc_protocol_configuration;
     ossia::net::osc_protocol_configuration config;
-    config.mode = conf::CLIENT;
+    config.mode = conf::MIRROR;
     config.transport = conf::UDP;
     config.version = conf::OSC1_0;
     config.configuration = ossia::net::socket_configuration{

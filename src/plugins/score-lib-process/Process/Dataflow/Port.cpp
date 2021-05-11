@@ -301,6 +301,15 @@ void ControlInlet::loadData(const QByteArray& arr) noexcept
   Port::loadData(arr);
 }
 
+void ControlInlet::setValue(const ossia::value& value)
+{
+  if (value != m_value || m_value.get_type() == ossia::val_type::IMPULSE || value.get_type() == ossia::val_type::IMPULSE)
+  {
+    m_value = value;
+    valueChanged(value);
+  }
+}
+
 Outlet::~Outlet() { }
 
 Outlet::Outlet(Id<Process::Port> c, QObject* parent)
