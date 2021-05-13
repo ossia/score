@@ -12,9 +12,9 @@
 #include <QNetworkReply>
 
 #if defined(OSSIA_DNSSD)
-#include <asio/io_service.hpp>
-#include <asio/ip/basic_resolver.hpp>
-#include <asio/ip/tcp.hpp>
+#include <boost/asio/io_service.hpp>
+#include <boost/asio/ip/basic_resolver.hpp>
+#include <boost/asio/ip/tcp.hpp>
 #include <servus/listener.h>
 #include <servus/servus.h>
 #endif
@@ -96,16 +96,16 @@ private:
 
     try
     {
-      asio::io_service io_service;
+      boost::asio::io_service io_service;
 
-      asio::ip::tcp::resolver resolver(io_service);
-      asio::ip::tcp::resolver::iterator iter = resolver.resolve(
-          asio::ip::tcp::v4(),
+      boost::asio::ip::tcp::resolver resolver(io_service);
+      boost::asio::ip::tcp::resolver::iterator iter = resolver.resolve(
+          boost::asio::ip::tcp::v4(),
           ip,
           port,
-          asio::ip::resolver_base::numeric_service);
+          boost::asio::ip::resolver_base::numeric_service);
 
-      asio::ip::tcp::resolver::iterator end;
+      boost::asio::ip::tcp::resolver::iterator end;
       while (iter != end)
       {
         if (iter->endpoint().address().is_loopback())

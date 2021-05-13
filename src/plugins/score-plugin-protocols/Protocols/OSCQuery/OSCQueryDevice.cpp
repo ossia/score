@@ -17,9 +17,9 @@
 
 #include <QDebug>
 
-#include <asio/io_service.hpp>
-#include <asio/ip/basic_resolver.hpp>
-#include <asio/ip/tcp.hpp>
+#include <boost/asio/io_service.hpp>
+#include <boost/asio/ip/basic_resolver.hpp>
+#include <boost/asio/ip/tcp.hpp>
 #include <wobjectimpl.h>
 
 #include <memory>
@@ -45,10 +45,10 @@ bool resolve_ip(std::string host)
     else if (boost::starts_with(m_queryHost, "ws://"))
       m_queryHost.erase(m_queryHost.begin(), m_queryHost.begin() + 5);
 
-    asio::io_service io_service;
-    asio::ip::tcp::resolver resolver(io_service);
-    asio::ip::tcp::resolver::query query(m_queryHost, m_queryPort);
-    asio::ip::tcp::resolver::iterator iter = resolver.resolve(query);
+    boost::asio::io_service io_service;
+    boost::asio::ip::tcp::resolver resolver(io_service);
+    boost::asio::ip::tcp::resolver::query query(m_queryHost, m_queryPort);
+    boost::asio::ip::tcp::resolver::iterator iter = resolver.resolve(query);
     return true;
   }
   catch (const std::exception& e)
