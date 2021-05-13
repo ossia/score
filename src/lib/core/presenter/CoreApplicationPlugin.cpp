@@ -330,7 +330,7 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     {
       auto doc_act = new QAction(m_presenter.view());
       doc_act->setStatusTip(
-          tr("Open link to documentation https://ossia.github.io/score/"));
+          tr("Open link to documentation https://ossia.io/score-docs"));
       connect(
           doc_act, &QAction::triggered, this, &CoreApplicationPlugin::help);
       e.actions.add<Actions::Documentation>(doc_act);
@@ -352,9 +352,9 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     {
       auto forum_act = new QAction(m_presenter.view());
       forum_act->setStatusTip(
-          tr("Open link to ossia forum http://forum.ossia.io/"));
+          tr("Open link to ossia forum https://forum.ossia.io"));
       connect(forum_act, &QAction::triggered, this, [] {
-        QDesktopServices::openUrl(QUrl("http://forum.ossia.io/"));
+        QDesktopServices::openUrl(QUrl("https://forum.ossia.io"));
       });
       e.actions.add<Actions::Forum>(forum_act);
       about->addAction(forum_act);
