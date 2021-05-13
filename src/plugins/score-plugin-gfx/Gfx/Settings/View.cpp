@@ -12,6 +12,7 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QSpinBox>
+#include <QFormLayout>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Gfx::Settings::View)
@@ -20,7 +21,6 @@ namespace Gfx::Settings
 View::View()
 {
   m_widg = new score::FormWidget{tr("Graphics")};
-  auto& ctx = score::AppContext();
 
   auto lay = m_widg->layout();
   SETTINGS_UI_COMBOBOX_SETUP("Graphics API", GraphicsApi, GraphicsApis{});

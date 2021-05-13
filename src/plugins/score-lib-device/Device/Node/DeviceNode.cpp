@@ -19,7 +19,11 @@
 #include <vector>
 
 #if !defined(SCORE_ALL_UNITY)
+#if defined(_WIN32)
+template class TreeNode<Device::DeviceExplorerNode>;
+#else
 template class SCORE_LIB_DEVICE_EXPORT TreeNode<Device::DeviceExplorerNode>;
+#endif
 #endif
 namespace Device
 {

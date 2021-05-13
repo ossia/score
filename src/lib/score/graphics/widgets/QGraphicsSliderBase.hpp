@@ -13,7 +13,7 @@ namespace score
 
 struct RightClickImpl;
 template <typename T>
-struct SCORE_LIB_BASE_EXPORT QGraphicsSliderBase : public QGraphicsItem
+struct QGraphicsSliderBase : public QGraphicsItem
 {
   QGraphicsSliderBase(QGraphicsItem* parent);
   ~QGraphicsSliderBase();

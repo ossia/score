@@ -1393,6 +1393,7 @@ inline QByteArray jsonToByteArray(const rapidjson::Value& arr) noexcept
   return QByteArray(buf.GetString(), buf.GetSize());
 }
 
+SCORE_LIB_BASE_EXPORT
 rapidjson::Document toValue(const JSONReader&) noexcept;
 
 template <typename T>

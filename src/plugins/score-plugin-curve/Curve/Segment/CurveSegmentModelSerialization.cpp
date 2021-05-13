@@ -25,11 +25,17 @@
 #include <vector>
 
 #if !defined(SCORE_ALL_UNITY)
+#if defined(_WIN32)
+// template class IdContainer<Curve::SegmentModel>;
+template class IdContainer<Curve::PointView, Curve::PointModel>;
+template class IdContainer<Curve::SegmentView, Curve::SegmentModel>;
+#else
 // template class SCORE_PLUGIN_CURVE_EXPORT IdContainer<Curve::SegmentModel>;
 template class SCORE_PLUGIN_CURVE_EXPORT
     IdContainer<Curve::PointView, Curve::PointModel>;
 template class SCORE_PLUGIN_CURVE_EXPORT
     IdContainer<Curve::SegmentView, Curve::SegmentModel>;
+#endif
 #endif
 
 template <>

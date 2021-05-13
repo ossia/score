@@ -6,7 +6,7 @@
 
 namespace score
 {
-class SCORE_LIB_BASE_EXPORT ComboBox : public QComboBox
+class ComboBox : public QComboBox
 {
 public:
   ComboBox(QWidget* parent)
