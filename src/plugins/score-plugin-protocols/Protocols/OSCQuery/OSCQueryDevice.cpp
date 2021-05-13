@@ -101,8 +101,8 @@ void OSCQueryDevice::disconnect()
 {
   if (m_mirror)
   {
-    m_mirror->set_disconnect_callback([=] {});
-    m_mirror->set_fail_callback([=] {});
+    m_mirror->on_connection_closed.disconnect<&OSCQueryDevice::sig_disconnect>(*this);
+    m_mirror->on_connection_failure.disconnect<&OSCQueryDevice::sig_disconnect>(*this);
     m_mirror = nullptr;
   }
 
@@ -120,7 +120,7 @@ bool OSCQueryDevice::reconnect()
     // TODO update settings
     try
     {
-      m_mirror->reconnect();
+      m_mirror->connect();
       m_connected = true;
     }
     catch (std::exception& e)
@@ -203,8 +203,8 @@ void OSCQueryDevice::slot_createDevice()
     deviceChanged(nullptr, m_dev.get());
 
     p.set_command_callback([=] { sig_command(); });
-    p.set_disconnect_callback([=] { sig_disconnect(); });
-    p.set_fail_callback([=] { sig_disconnect(); });
+    p.on_connection_closed.connect<&OSCQueryDevice::sig_disconnect>(*this);
+    p.on_connection_failure.connect<&OSCQueryDevice::sig_disconnect>(*this);
 
     setLogging_impl(Device::get_cur_logging(isLogging()));
 

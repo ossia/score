@@ -341,9 +341,9 @@ public:
     m_engine = new QQmlEngine{this};
     m_component = new QQmlComponent{m_engine};
 
-    connect(
+    QObject::connect(
         this, &mapper_protocol::sig_push, this, &mapper_protocol::slot_push);
-    connect(
+    QObject::connect(
         this, &mapper_protocol::sig_recv, this, &mapper_protocol::slot_recv);
     con(m_devices,
         &observable_device_roots::rootsChanged,
@@ -353,7 +353,7 @@ public:
           reset_tree();
         });
 
-    connect(
+    QObject::connect(
         m_component,
         &QQmlComponent::statusChanged,
         this,
