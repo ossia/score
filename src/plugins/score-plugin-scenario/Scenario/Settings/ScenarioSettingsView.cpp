@@ -184,7 +184,7 @@ View::View()
     ls->setMaximumWidth(100);
     connect(ls, &QPushButton::clicked, this, [=] {
       auto f = QFileDialog::getOpenFileName(
-          nullptr, tr("Load skin"), tr("*.json"));
+          nullptr, tr("Load skin"), skinPath, tr("*.json"));
       if (!f.isEmpty())
       {
         SkinChanged(f);
