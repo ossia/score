@@ -166,8 +166,14 @@ public:
         initButtonsLayout();
 
       auto uiToggle = new QToolButton{};
-      uiToggle->setText("Edit process");
+      uiToggle->setIcon(makeIcons(
+          QStringLiteral(":/icons/new_window_on.png"),
+          QStringLiteral(":/icons/new_window_hover.png"),
+          QStringLiteral(":/icons/new_window_off.png"),
+          QStringLiteral(":/icons/new_window_off.png")));
+      uiToggle->setToolTip(tr("Edit process"));
       uiToggle->setAutoRaise(true);
+      uiToggle->setIconSize(QSize{28, 28});
       uiToggle->setCheckable(true);
       uiToggle->setChecked(bool(process.externalUI));
 

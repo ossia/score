@@ -658,5 +658,13 @@
         <file>icons/play_to_off@2x.png</file>
         <file>icons/play_to_on.png</file>
         <file>icons/play_to_on@2x.png</file>
+        <file>icons/new_window_disabled.png</file>
+        <file>icons/new_window_disabled@2x.png</file>
+        <file>icons/new_window_hover.png</file>
+        <file>icons/new_window_hover@2x.png</file>
+        <file>icons/new_window_off.png</file>
+        <file>icons/new_window_off@2x.png</file>
+        <file>icons/new_window_on.png</file>
+        <file>icons/new_window_on@2x.png</file>
     </qresource>
 </RCC>
