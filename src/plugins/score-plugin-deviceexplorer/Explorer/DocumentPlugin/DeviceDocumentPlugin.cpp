@@ -138,7 +138,7 @@ void DeviceDocumentPlugin::timerEvent(QTimerEvent* event)
   if (m_processMessages)
   {
     using work_guard
-        = boost::asio::executor_work_guard<asio::io_context::executor_type>;
+        = boost::asio::executor_work_guard<boost::asio::io_context::executor_type>;
 
     work_guard wg{asioContext->context.get_executor()};
     try
