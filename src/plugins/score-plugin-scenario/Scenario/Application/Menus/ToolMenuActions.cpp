@@ -112,10 +112,10 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
       tr("Play"), m_scenarioToolActionGroup, Scenario::Tool::Play, tr("P"));
   setIcons(
       m_playtool,
-      QStringLiteral(":/icons/play_on.png"),
-      QStringLiteral(":/icons/play_hover.png"),
-      QStringLiteral(":/icons/play_off.png"),
-      QStringLiteral(":/icons/play_disabled.png"));
+      QStringLiteral(":/icons/play_to_on.png"),
+      QStringLiteral(":/icons/play_to_hover.png"),
+      QStringLiteral(":/icons/play_to_off.png"),
+      QStringLiteral(":/icons/play_to_disabled.png"));
 
   connect(m_playtool, &QAction::triggered, this, [=](bool b) {
     if (b && m_parent->editionSettings().tool() != Scenario::Tool::Play)

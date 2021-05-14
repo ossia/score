@@ -650,5 +650,13 @@
         <file>icons/settings_graphics_off@2x.png</file>
         <file>icons/settings_graphics_on.png</file>
         <file>icons/settings_graphics_on@2x.png</file>
+        <file>icons/play_to_disabled.png</file>
+        <file>icons/play_to_disabled@2x.png</file>
+        <file>icons/play_to_hover.png</file>
+        <file>icons/play_to_hover@2x.png</file>
+        <file>icons/play_to_off.png</file>
+        <file>icons/play_to_off@2x.png</file>
+        <file>icons/play_to_on.png</file>
+        <file>icons/play_to_on@2x.png</file>
     </qresource>
 </RCC>
