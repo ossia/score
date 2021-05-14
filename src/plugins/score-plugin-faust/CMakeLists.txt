@@ -120,5 +120,7 @@ endif()
 
 if(SCORE_FAUST_TESTER)
   add_executable(FaustTester Tests/FaustTester.cpp)
+  target_compile_features(FaustTester PRIVATE cxx_std_20)
+  target_include_directories(FaustTester PRIVATE  ${FAUST_INCLUDE_DIR})
   target_link_libraries(FaustTester PRIVATE score_plugin_faust)
 endif()
