@@ -99,6 +99,10 @@ public:
       DocumentDelegateFactory& type,
       QObject* parent);
 
+
+  // Called once all the plug-ins, etc... of the document have been loaded
+  void ready();
+
 private:
   // These are to be constructed by DocumentBuilder.
   Document(

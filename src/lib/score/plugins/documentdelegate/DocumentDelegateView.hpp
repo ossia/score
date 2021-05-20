@@ -13,5 +13,7 @@ public:
   virtual ~DocumentDelegateView();
 
   virtual QWidget* getWidget() = 0;
+
+  virtual void ready() = 0;
 };
 }

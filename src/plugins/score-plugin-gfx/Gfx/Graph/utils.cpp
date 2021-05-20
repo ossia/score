@@ -215,7 +215,6 @@ Pipeline buildPipeline(
     QRhiBuffer* materialUBO,
     const std::vector<Sampler>& samplers)
 {
-  auto& rhi = *renderer.state.rhi;
   auto bindings = createDefaultBindings(
       renderer, rt, m_processUBO, materialUBO, samplers);
   return buildPipeline(renderer, mesh, vertexS, fragmentS, rt, bindings);

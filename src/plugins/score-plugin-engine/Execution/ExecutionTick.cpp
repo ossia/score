@@ -2,7 +2,7 @@
 #include <Execution/BaseScenarioComponent.hpp>
 #include <Execution/DocumentPlugin.hpp>
 #include <Execution/ExecutionController.hpp>
-#include <Execution/Transport/TransportInterface.hpp>
+#include <Transport/TransportInterface.hpp>
 
 #include <ossia/audio/audio_protocol.hpp>
 #include <ossia/dataflow/execution_state.hpp>

@@ -6,6 +6,7 @@
 #include <score/selection/Selection.hpp>
 #include <score/selection/SelectionStack.hpp>
 #include <score/tools/Bind.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 
 #include <core/document/Document.hpp>
 #include <core/document/DocumentBackupManager.hpp>
@@ -104,6 +105,13 @@ void Document::init()
   m_documentCoarseUpdateTimer.start();
 
   m_execTimer.setInterval(32);
+}
+
+
+void Document::ready()
+{
+  if(m_view)
+    m_view->viewDelegate().ready();
 }
 
 void Document::setBackupMgr(DocumentBackupManager* backupMgr)

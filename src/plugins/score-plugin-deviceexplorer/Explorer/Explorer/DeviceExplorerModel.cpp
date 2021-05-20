@@ -905,7 +905,7 @@ void DeviceExplorerModel::checkAndLoadDevice(Device::Node n)
         m_cmdQ.redoAndPush(cmd);
         dialog->deleteLater();
       });
-  connect(dialog, &QDialog::rejected, this, [this, dialog] {
+  connect(dialog, &QDialog::rejected, this, [dialog] {
     dialog->deleteLater();
   });
   dialog->show();
@@ -942,7 +942,7 @@ void DeviceExplorerModel::checkAndLoadDevice(
     m_cmdQ.redoAndPush(cmd);
     dialog->deleteLater();
   });
-  connect(dialog, &QDialog::rejected, this, [this, dialog] {
+  connect(dialog, &QDialog::rejected, this, [dialog] {
     dialog->deleteLater();
   });
   dialog->show();

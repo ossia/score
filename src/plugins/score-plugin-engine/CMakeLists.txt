@@ -92,7 +92,7 @@ target_link_libraries(${PROJECT_NAME}
         PUBLIC
           ${QT_PREFIX}::Core ${QT_PREFIX}::Widgets
           score_lib_base score_lib_device score_lib_process
-          score_plugin_library score_plugin_deviceexplorer
+          score_plugin_library score_plugin_deviceexplorer score_plugin_transport
           score_plugin_scenario
           score_plugin_audio
           ossia

@@ -45,6 +45,9 @@ SETTINGS_PARAMETER_IMPL(MeasureBars){
 SETTINGS_PARAMETER_IMPL(MagneticMeasures){
     QStringLiteral("Scenario/MagneticMeasures"),
     true};
+SETTINGS_PARAMETER_IMPL(ExecutionRefreshRate){
+    QStringLiteral("Scenario/ExecutionRefreshRate"),
+    true};
 
 static auto list()
 {
@@ -56,7 +59,11 @@ static auto list()
       DefaultDuration,
       SnapshotOnCreate,
       AutoSequence,
-      TimeBar);
+      TimeBar,
+      MeasureBars,
+      MagneticMeasures,
+      ExecutionRefreshRate
+      );
 }
 }
 
@@ -166,6 +173,7 @@ SCORE_SETTINGS_PARAMETER_CPP(bool, Model, AutoSequence)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, TimeBar)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, MeasureBars)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, MagneticMeasures)
+SCORE_SETTINGS_PARAMETER_CPP(int, Model, ExecutionRefreshRate)
 }
 
 double getNewLayerHeight(

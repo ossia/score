@@ -132,6 +132,7 @@ public:
   QRectF visibleSceneRect() const;
 
   void showRulers(bool);
+  void ready() override;
 
 public:
   void elementsScaleChanged(double arg_1)
@@ -142,6 +143,7 @@ public:
 private:
   void timerEvent(QTimerEvent* event) override;
   QWidget* m_widget{};
+  const score::DocumentContext& m_context;
   ScenarioScene m_scene;
   ProcessGraphicsView m_view;
   BaseGraphicsObject m_baseObject;

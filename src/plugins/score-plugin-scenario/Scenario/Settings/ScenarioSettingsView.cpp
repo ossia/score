@@ -287,11 +287,13 @@ View::View()
   connect(m_sequence, &QCheckBox::toggled, this, &View::AutoSequenceChanged);
   lay->addRow(m_sequence);
 
+  SETTINGS_UI_SPINBOX_SETUP("Execution Refresh Rate", ExecutionRefreshRate);
   SETTINGS_UI_TOGGLE_SETUP("Time Bar", TimeBar);
   SETTINGS_UI_TOGGLE_SETUP("Show musical metrics", MeasureBars);
   SETTINGS_UI_TOGGLE_SETUP("Magnetism on musical metrics", MagneticMeasures);
 }
 
+SETTINGS_UI_SPINBOX_IMPL(ExecutionRefreshRate)
 SETTINGS_UI_TOGGLE_IMPL(TimeBar)
 SETTINGS_UI_TOGGLE_IMPL(MeasureBars)
 SETTINGS_UI_TOGGLE_IMPL(MagneticMeasures)

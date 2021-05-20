@@ -1,6 +1,6 @@
 #pragma once
 #include <Execution/Clock/ClockFactory.hpp>
-#include <Execution/Transport/TransportInterface.hpp>
+#include <Transport/TransportInterface.hpp>
 #include <Process/TimeValue.hpp>
 
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
@@ -79,7 +79,7 @@ class SCORE_PLUGIN_ENGINE_EXPORT Model : public score::SettingsDelegateModel
   bool m_TransportValueCompilation{};
 
   const ClockFactoryList& m_clockFactories;
-  const TransportInterfaceList& m_transportInterfaces;
+  const Transport::TransportInterfaceList& m_transportInterfaces;
 
 public:
   Model(QSettings& set, const score::ApplicationContext& ctx);
@@ -91,7 +91,7 @@ public:
   reverse_time_function
   makeReverseTimeFunction(const score::DocumentContext&) const;
 
-  TransportInterface* getTransport() const;
+  Transport::TransportInterface* getTransport() const;
 
   SCORE_SETTINGS_PARAMETER_HPP(
       SCORE_PLUGIN_ENGINE_EXPORT,

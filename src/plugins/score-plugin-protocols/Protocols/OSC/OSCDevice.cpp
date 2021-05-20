@@ -47,8 +47,8 @@ bool OSCDevice::reconnect()
     config.mode = conf::MIRROR;
     config.version = conf::OSC1_0;
     config.transport = ossia::net::udp_configuration{{
-        {"0.0.0.0",  uint16_t(stgs.scoreListeningPort)},
-        {stgs.host.toStdString(), uint16_t(stgs.deviceListeningPort)}}};
+        ossia::net::receive_socket_configuration{"0.0.0.0",  uint16_t(stgs.scoreListeningPort)}
+      , ossia::net::send_socket_configuration{stgs.host.toStdString(), uint16_t(stgs.deviceListeningPort)}}};
 
     auto proto = ossia::net::make_osc_protocol(ctx, config);
 

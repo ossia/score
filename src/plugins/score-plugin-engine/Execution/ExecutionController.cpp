@@ -5,7 +5,8 @@
 #include <Execution/Clock/ClockFactory.hpp>
 #include <Execution/DocumentPlugin.hpp>
 #include <Execution/Settings/ExecutorModel.hpp>
-#include <Execution/Transport/TransportInterface.hpp>
+#include <Transport/DocumentPlugin.hpp>
+#include <Transport/TransportInterface.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/Explorer/DeviceExplorerWidget.hpp>
@@ -303,7 +304,12 @@ void ExecutionController::on_pause()
     m_paused = true;
 
     if (auto doc = currentDocument())
+    {
       doc->context().execTimer.stop();
+
+      if (auto transport_plug = doc->context().findPlugin<Transport::DocumentPlugin>())
+        transport_plug->pause();
+    }
   }
 }
 
@@ -332,6 +338,10 @@ void ExecutionController::on_transport(TimeVal t)
     ctx.executionQueue.enqueue(
         [itv, time = m_clock->context.time(t)] { itv->transport(time); });
   }
+
+  if (auto doc = currentDocument())
+    if (auto transport_plug = doc->context().findPlugin<Transport::DocumentPlugin>())
+      transport_plug->transport(t);
 }
 
 void ExecutionController::request_play_from_localtree(bool val)
@@ -436,8 +446,10 @@ void ExecutionController::play_interval(
   if (!doc)
     return;
 
-  auto plugmodel = doc->context().findPlugin<Execution::DocumentPlugin>();
-  if (!plugmodel)
+  auto& ctx = doc->context();
+
+  auto exec_plug = ctx.findPlugin<Execution::DocumentPlugin>();
+  if (!exec_plug)
     return;
 
   ensure_audio_engine();
@@ -458,7 +470,7 @@ void ExecutionController::play_interval(
     if (auto explorer = Explorer::try_deviceExplorerFromObject(*doc))
     {
       // Disable listening for everything
-      if (explorer && !plugmodel->settings.getExecutionListening())
+      if (explorer && !exec_plug->settings.getExecutionListening())
       {
         explorer->deviceModel().listening().stop();
       }
@@ -472,16 +484,16 @@ void ExecutionController::play_interval(
       }
     }
 
-    plugmodel->reload(cst);
+    exec_plug->reload(cst);
 
-    auto& c = plugmodel->context();
+    auto& c = exec_plug->context();
     m_clock = makeClock(c);
 
     if (setup_fun)
     {
-      plugmodel->runAllCommands();
-      setup_fun(c, plugmodel->baseScenario());
-      plugmodel->runAllCommands();
+      exec_plug->runAllCommands();
+      setup_fun(c, exec_plug->baseScenario());
+      exec_plug->runAllCommands();
     }
 
     m_clock->play(t);
@@ -489,7 +501,10 @@ void ExecutionController::play_interval(
   }
 
   m_playing = true;
-  doc->context().execTimer.start();
+  ctx.execTimer.start();
+
+  if (auto transport_plug = ctx.findPlugin<Transport::DocumentPlugin>())
+    transport_plug->play();
 }
 
 TimeVal ExecutionController::execution_time() const
@@ -509,18 +524,20 @@ void ExecutionController::on_record(::TimeVal t)
   // TODO have a on_exit handler to properly stop the scenario.
   if (auto scenar = currentScenarioModel())
   {
-    auto plugmodel = scenar->context().findPlugin<Execution::DocumentPlugin>();
-    if (!plugmodel)
-      return;
+    if (auto exec_plug = scenar->context().findPlugin<Execution::DocumentPlugin>())
+    {
+      // Listening isn't stopped here.
+      exec_plug->reload(scenar->baseInterval());
+      m_clock = makeClock(exec_plug->context());
+      m_clock->play(t);
 
-    // Listening isn't stopped here.
-    plugmodel->reload(scenar->baseInterval());
-    m_clock = makeClock(plugmodel->context());
-    m_clock->play(t);
+      scenar->context().execTimer.start();
+      m_playing = true;
+      m_paused = false;
 
-    scenar->context().execTimer.start();
-    m_playing = true;
-    m_paused = false;
+      if (auto transport_plug = scenar->context().findPlugin<Transport::DocumentPlugin>())
+        transport_plug->play();
+    }
   }
 }
 
@@ -534,9 +551,8 @@ void ExecutionController::on_stop()
   auto doc = currentDocument();
   if (doc)
   {
-    auto plugmodel = doc->context().findPlugin<Execution::DocumentPlugin>();
-
-    if (plugmodel)
+    auto& ctx = doc->context();
+    if (auto exec_plug = ctx.findPlugin<Execution::DocumentPlugin>())
     {
       if (wasplaying)
       {
@@ -545,7 +561,7 @@ void ExecutionController::on_stop()
         if (auto scenar = currentScenarioModel())
         {
           auto state = Engine::score_to_ossia::state(
-              scenar->baseScenario().endState(), plugmodel->context());
+              scenar->baseScenario().endState(), exec_plug->context());
           state.launch();
         }
       }
@@ -577,12 +593,15 @@ void ExecutionController::on_stop()
 
   if (doc)
   {
-    doc->context().execTimer.stop();
+    auto& ctx = doc->context();
+    ctx.execTimer.stop();
 
-    auto plugmodel = doc->context().findPlugin<Execution::DocumentPlugin>();
-    if (plugmodel)
+    if (auto transport_plug = ctx.findPlugin<Transport::DocumentPlugin>())
+      transport_plug->stop();
+
+    if (auto exec_plug = ctx.findPlugin<Execution::DocumentPlugin>())
     {
-      plugmodel->clear();
+      exec_plug->clear();
     }
     else
     {
@@ -639,8 +658,8 @@ void ExecutionController::on_reinitialize()
   {
     auto& ctx = scenar->context();
     auto& doc = ctx.document;
-    auto plugmodel = ctx.findPlugin<Execution::DocumentPlugin>();
-    if (!plugmodel)
+    auto exec_plug = ctx.findPlugin<Execution::DocumentPlugin>();
+    if (!exec_plug)
       return;
 
     auto explorer = Explorer::try_deviceExplorerFromObject(doc);
@@ -651,7 +670,7 @@ void ExecutionController::on_reinitialize()
                .getExecutionListening())
         explorer->deviceModel().listening().stop();
 
-    plugmodel->playStartState();
+    exec_plug->playStartState();
 
     // If we can we resume listening
     if (explorer)

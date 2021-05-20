@@ -5,6 +5,8 @@
 #include <Process/Dataflow/CableItem.hpp>
 #include <Process/Dataflow/PortItem.hpp>
 
+#include <Transport/DocumentPlugin.hpp>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/graphics/GraphicsProxyObject.hpp>
 #include <score/model/Skin.hpp>
@@ -54,6 +56,19 @@ W_OBJECT_IMPL(Scenario::ProcessGraphicsView)
 namespace Scenario
 {
 
+namespace
+{
+static int defaultEditorRefreshRate()
+{
+  const auto tcount = QThread::idealThreadCount();
+  if (tcount <= 4)
+    return 30;
+  else if (tcount <= 8)
+    return 16;
+  else
+    return 8;
+}
+}
 ProcessGraphicsView::ProcessGraphicsView(
     const score::GUIApplicationContext& ctx,
     QGraphicsScene* scene,
@@ -391,6 +406,7 @@ ScenarioDocumentView::ScenarioDocumentView(
     QObject* parent)
     : score::DocumentDelegateView{parent}
     , m_widget{new QWidget}
+    , m_context{ctx}
     , m_scene{m_widget}
     , m_view{ctx.app, &m_scene, m_widget}
     , m_timeRulerView{&m_timeRulerScene}
@@ -400,6 +416,8 @@ ScenarioDocumentView::ScenarioDocumentView(
     , m_minimap{&m_minimapView}
     , m_bar{&m_baseObject}
 {
+  auto& scenario_settings = ctx.app.settings<Scenario::Settings::Model>();
+
   con(ctx.document.commandStack(),
       &score::CommandStack::stackChanged,
       this,
@@ -446,7 +464,6 @@ ScenarioDocumentView::ScenarioDocumentView(
   // Time Ruler
 
   {
-    auto& settings = ctx.app.settings<Scenario::Settings::Model>();
 
     auto setupTimeRuler = [=](bool b) {
       delete m_timeRuler;
@@ -460,10 +477,10 @@ ScenarioDocumentView::ScenarioDocumentView(
       timeRulerChanged();
     };
 
-    con(settings, &Settings::Model::MeasureBarsChanged, this, [=](bool b) {
+    con(scenario_settings, &Settings::Model::MeasureBarsChanged, this, [=](bool b) {
       setupTimeRuler(b);
     });
-    setupTimeRuler(settings.getMeasureBars());
+    setupTimeRuler(scenario_settings.getMeasureBars());
   }
 
   // view layout
@@ -524,13 +541,7 @@ ScenarioDocumentView::ScenarioDocumentView(
     // m_timeRulerView.viewport()->setUpdatesEnabled(true);
     m_view.viewport()->setUpdatesEnabled(true);
 
-    const auto tcount = QThread::idealThreadCount();
-    if (tcount <= 4)
-      m_timer = startTimer(30);
-    else if (tcount <= 8)
-      m_timer = startTimer(16);
-    else
-      m_timer = startTimer(8);
+    m_timer = startTimer(defaultEditorRefreshRate());
   }
   else
 #endif
@@ -570,6 +581,30 @@ void ScenarioDocumentView::showRulers(bool b)
 {
   m_minimapView.setVisible(b);
   m_timeRulerView.setVisible(b);
+}
+
+void ScenarioDocumentView::ready()
+{
+  const bool opengl = m_context.app.applicationSettings.opengl;
+
+  if (opengl)
+  {
+    auto& scenario_settings = m_context.app.settings<Scenario::Settings::Model>();
+    auto& transport = m_context.plugin<Transport::DocumentPlugin>();
+    con(transport, &Transport::DocumentPlugin::play, this, [this, &scenario_settings] {
+      killTimer(m_timer);
+      const auto rate = scenario_settings.getExecutionRefreshRate();
+      if(rate <= 0)
+        return;
+
+      m_timer = startTimer(1000. / rate);
+    });
+
+    con(transport, &Transport::DocumentPlugin::stop, this, [this] {
+      killTimer(m_timer);
+      m_timer = startTimer(defaultEditorRefreshRate());
+    });
+  }
 }
 
 void ScenarioDocumentView::timerEvent(QTimerEvent* event)

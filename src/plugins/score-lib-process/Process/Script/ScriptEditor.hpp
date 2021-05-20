@@ -5,6 +5,7 @@
 #include <score/tools/Bind.hpp>
 
 #include <QDialog>
+#include <string_view>
 
 #include <score_lib_process_export.h>
 

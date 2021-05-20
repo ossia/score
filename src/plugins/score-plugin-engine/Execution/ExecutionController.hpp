@@ -15,12 +15,15 @@ class ScenarioDocumentPresenter;
 class ScenarioApplicationPlugin;
 class TransportActions;
 }
-
+namespace Transport
+{
+class TransportInterface;
+}
 namespace Execution
 {
+using TransportInterface = Transport::TransportInterface;
 struct Context;
 class Clock;
-class TransportInterface;
 class BaseScenarioElement;
 using exec_setup_fun = std::function<
     void(const Execution::Context&, Execution::BaseScenarioElement&)>;
@@ -93,7 +96,7 @@ private:
   Scenario::ScenarioApplicationPlugin& m_scenario;
   Scenario::TransportActions& m_actions;
   std::unique_ptr<Execution::Clock> m_clock;
-  Execution::TransportInterface* m_transport{};
+  Transport::TransportInterface* m_transport{};
 
   struct IntervalToPlay
   {

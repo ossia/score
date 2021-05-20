@@ -210,6 +210,8 @@ Document* DocumentManager::setupDocument(
           });
     }
     setCurrentDocument(ctx, doc);
+
+    doc->ready();
   }
   else
   {

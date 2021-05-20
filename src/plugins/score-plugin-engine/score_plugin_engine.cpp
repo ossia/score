@@ -13,7 +13,7 @@
 #include <Execution/DocumentPlugin.hpp>
 #include <Execution/Settings/ExecutorFactory.hpp>
 #include <Execution/Transport/JackTransport.hpp>
-#include <Execution/Transport/TransportInterface.hpp>
+#include <Transport/TransportInterface.hpp>
 #include <LocalTree/Device/LocalProtocolFactory.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 
@@ -56,8 +56,7 @@ score_plugin_engine::factoryFamilies()
   return make_ptr_vector<
       score::InterfaceListBase,
       Execution::ProcessComponentFactoryList,
-      Execution::ClockFactoryList,
-      Execution::TransportInterfaceList>();
+      Execution::ClockFactoryList>();
 }
 
 std::vector<std::unique_ptr<score::InterfaceBase>>
@@ -74,13 +73,11 @@ score_plugin_engine::factories(
       FW<Explorer::ListeningHandlerFactory,
          Execution::PlayListeningHandlerFactory>,
       FW<score::SettingsDelegateFactory, Execution::Settings::Factory>,
-      FW<Execution::TransportInterface,
-         Execution::DirectTransport
 #if defined(OSSIA_AUDIO_JACK)
-         ,
+      FW<Execution::TransportInterface,
          Execution::JackTransport
-#endif
          >,
+#endif
       FW<Execution::ClockFactory
          // , Execution::ControlClockFactory
          ,

@@ -84,7 +84,7 @@ static auto list()
 
 Model::Model(QSettings& set, const score::ApplicationContext& ctx)
     : m_clockFactories{ctx.interfaces<ClockFactoryList>()}
-    , m_transportInterfaces{ctx.interfaces<TransportInterfaceList>()}
+    , m_transportInterfaces{ctx.interfaces<Transport::TransportInterfaceList>()}
 {
   score::setupDefaultSettings(set, Parameters::list(), *this);
   // TODO
@@ -119,7 +119,7 @@ Model::makeReverseTimeFunction(const score::DocumentContext& ctx) const
             : Dataflow::ClockFactory{}.makeReverseTimeFunction(ctx);
 }
 
-TransportInterface* Model::getTransport() const
+Transport::TransportInterface* Model::getTransport() const
 {
 #if defined(OSSIA_AUDIO_JACK)
   auto& audioSettings = score::AppContext().settings<Audio::Settings::Model>();
@@ -137,7 +137,7 @@ TransportInterface* Model::getTransport() const
   }
 #endif
   return m_transportInterfaces.get(
-      Execution::DirectTransport::static_concreteKey());
+      Transport::DirectTransport::static_concreteKey());
 }
 
 SCORE_SETTINGS_PARAMETER_CPP(ClockFactory::ConcreteKey, Model, Clock)

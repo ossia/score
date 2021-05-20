@@ -1,11 +1,11 @@
 #pragma once
-#include <Execution/Transport/TransportInterface.hpp>
+#include <Transport/TransportInterface.hpp>
 
 #include <ossia/audio/jack_protocol.hpp>
 namespace Execution
 {
 #if defined(OSSIA_AUDIO_JACK)
-class JackTransport : public TransportInterface
+class JackTransport : public Transport::TransportInterface
 {
   SCORE_CONCRETE("c7fc1a0a-0d81-47d6-9216-6922af4fbc7b")
 

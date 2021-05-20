@@ -627,7 +627,7 @@ target_link_libraries(score_plugin_scenario
     score_lib_base
     score_lib_process score_lib_device score_lib_localtree score_plugin_deviceexplorer
     score_lib_state score_plugin_curve score_plugin_automation
-    score_lib_inspector score_plugin_library
+    score_lib_inspector score_plugin_library score_plugin_transport
     Threads::Threads)
 
 if(TARGET ${QT_PREFIX}::StateMachine)

@@ -32,6 +32,7 @@ public:
   void setDefaultDuration(const TimeVal& t);
   void setAutoSequence(bool);
   void setDefaultEditor(QString);
+  SETTINGS_UI_SPINBOX_HPP(ExecutionRefreshRate)
   SETTINGS_UI_TOGGLE_HPP(TimeBar)
   SETTINGS_UI_TOGGLE_HPP(MeasureBars)
   SETTINGS_UI_TOGGLE_HPP(MagneticMeasures)

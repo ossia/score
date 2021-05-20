@@ -22,7 +22,6 @@ namespace Execution
 {
 struct Context;
 class Clock;
-class TransportInterface;
 class BaseScenarioElement;
 }
 

@@ -9,6 +9,7 @@ if(CMAKE_SYSTEM_NAME MATCHES Emscripten)
   score-lib-process
 
   score-plugin-library
+  score-plugin-transport
 
   score-plugin-inspector
 
@@ -43,6 +44,7 @@ score-lib-localtree
 score-lib-process
 
 score-plugin-library
+score-plugin-transport
 
 score-plugin-inspector
 
