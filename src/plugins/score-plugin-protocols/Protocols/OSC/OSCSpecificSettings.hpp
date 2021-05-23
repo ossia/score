@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/detail/optional.hpp>
+#include <ossia/protocols/osc/osc_factory.hpp>
 
 #include <QString>
 
@@ -9,9 +10,7 @@ namespace Protocols
 {
 struct OSCSpecificSettings
 {
-  int deviceListeningPort{};
-  int scoreListeningPort{};
-  QString host;
+  ossia::net::osc_protocol_configuration configuration;
   std::optional<int> rate{};
 
   // Note: this one is not saved, it is only used

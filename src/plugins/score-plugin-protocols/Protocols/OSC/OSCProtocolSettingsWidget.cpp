@@ -13,9 +13,11 @@
 
 #include <score/widgets/MarginLess.hpp>
 
+#include <QComboBox>
 #include <QFormLayout>
 #include <QLineEdit>
 #include <QSpinBox>
+#include <QStackedLayout>
 #include <QVariant>
 
 #include <wobjectimpl.h>
@@ -23,40 +25,348 @@
 W_OBJECT_IMPL(Protocols::RateWidget)
 namespace Protocols
 {
+class UDPWidget : public QWidget
+{
+public:
+  UDPWidget(OSCProtocolSettingsWidget* parent)
+      : QWidget{parent}
+  {
+    auto layout = new QFormLayout{this};
+    layout->setContentsMargins(0, 0, 0, 0);
+
+    m_remotePort = new QSpinBox(this);
+    m_remotePort->setRange(0, 65535);
+    m_remotePort->setValue(9996);
+    parent->checkForChanges(m_remotePort);
+
+    m_localPort = new QSpinBox(this);
+    m_localPort->setRange(0, 65535);
+    m_localPort->setValue(9997);
+    parent->checkForChanges(m_localPort);
+
+    m_host = new QLineEdit(this);
+    m_host->setText("127.0.0.1");
+
+    layout->addRow(tr("Device listening port"), m_remotePort);
+    layout->addRow(tr("score listening port"), m_localPort);
+    layout->addRow(tr("Host"), m_host);
+  }
+
+  ossia::net::udp_configuration settings() const noexcept
+  {
+    ossia::net::udp_configuration conf;
+    conf.local = ossia::net::receive_socket_configuration{
+        "0.0.0.0", (uint16_t)m_localPort->value()};
+    conf.remote = ossia::net::send_socket_configuration{
+        m_host->text().toStdString(), (uint16_t)m_remotePort->value()};
+    return conf;
+  }
+
+  void setSettings(const ossia::net::udp_configuration& conf)
+  {
+    if (conf.remote)
+    {
+      m_remotePort->setValue(conf.remote->port);
+      m_host->setText(QString::fromStdString(conf.remote->host));
+    }
+    if (conf.local)
+    {
+      m_localPort->setValue(conf.local->port);
+    }
+  }
+
+private:
+  QSpinBox* m_localPort{};
+  QSpinBox* m_remotePort{};
+  QLineEdit* m_host{};
+};
+
+class TCPWidget : public QWidget
+{
+public:
+  TCPWidget(OSCProtocolSettingsWidget* parent)
+      : QWidget{parent}
+  {
+    auto layout = new QFormLayout{this};
+    layout->setContentsMargins(0, 0, 0, 0);
+
+    m_remotePort = new QSpinBox(this);
+    m_remotePort->setRange(0, 65535);
+    m_remotePort->setValue(9996);
+
+    m_host = new QLineEdit(this);
+    m_host->setText("127.0.0.1");
+
+    layout->addRow(tr("Port"), m_remotePort);
+    layout->addRow(tr("Host"), m_host);
+  }
+
+  ossia::net::tcp_configuration settings() const noexcept
+  {
+    ossia::net::tcp_configuration conf;
+    conf.port = m_remotePort->value();
+    conf.host = m_host->text().toStdString();
+    return conf;
+  }
+
+  void setSettings(const ossia::net::tcp_configuration& conf)
+  {
+    m_remotePort->setValue(conf.port);
+    m_host->setText(QString::fromStdString(conf.host));
+  }
+
+private:
+  QSpinBox* m_remotePort{};
+  QLineEdit* m_host{};
+};
+
+class UnixDatagramWidget : public QWidget
+{
+public:
+  UnixDatagramWidget(OSCProtocolSettingsWidget* parent)
+      : QWidget{parent}
+  {
+    auto layout = new QFormLayout{this};
+    layout->setContentsMargins(0, 0, 0, 0);
+
+    m_remotePort = new QLineEdit(this);
+    m_remotePort->setText("/tmp/ossia.a.socket");
+    parent->checkForChanges(m_remotePort);
+
+    m_localPort = new QLineEdit(this);
+    m_localPort->setText("/tmp/ossia.b.socket");
+
+    layout->addRow(tr("Input socket"), m_remotePort);
+    layout->addRow(tr("Output socket"), m_localPort);
+  }
+
+  ossia::net::unix_dgram_configuration settings() const noexcept
+  {
+    ossia::net::unix_dgram_configuration conf;
+    conf.local = ossia::net::receive_fd_configuration{
+        m_remotePort->text().toStdString()};
+    conf.remote
+        = ossia::net::send_fd_configuration{m_localPort->text().toStdString()};
+    return conf;
+  }
+
+  void setSettings(const ossia::net::unix_dgram_configuration& conf)
+  {
+    if (conf.remote)
+    {
+      m_localPort->setText(QString::fromStdString(conf.remote->fd));
+    }
+    if (conf.local)
+    {
+      m_remotePort->setText(QString::fromStdString(conf.local->fd));
+    }
+  }
+
+private:
+  QLineEdit* m_localPort{};
+  QLineEdit* m_remotePort{};
+};
+class UnixStreamWidget : public QWidget
+{
+public:
+  UnixStreamWidget(OSCProtocolSettingsWidget* parent)
+      : QWidget{parent}
+  {
+    auto layout = new QFormLayout{this};
+    layout->setContentsMargins(0, 0, 0, 0);
+
+    m_host = new QLineEdit(this);
+    m_host->setText("/tmp/ossia.socket");
+
+    layout->addRow(tr("Path"), m_host);
+  }
+
+  ossia::net::unix_stream_configuration settings() const noexcept
+  {
+    ossia::net::unix_stream_configuration conf;
+    conf.fd = m_host->text().toStdString();
+    return conf;
+  }
+
+  void setSettings(const ossia::net::unix_stream_configuration& conf)
+  {
+    m_host->setText(QString::fromStdString(conf.fd));
+  }
+
+private:
+  QLineEdit* m_host{};
+};
+class WebsocketClientWidget : public QWidget
+{
+public:
+  WebsocketClientWidget(OSCProtocolSettingsWidget* parent)
+      : QWidget{parent}
+  {
+    auto layout = new QFormLayout{this};
+    layout->setContentsMargins(0, 0, 0, 0);
+
+    m_host = new QLineEdit(this);
+    m_host->setText("ws://127.0.0.1:5567");
+
+    layout->addRow(tr("Url"), m_host);
+  }
+
+  ossia::net::ws_client_configuration settings() const noexcept
+  {
+    ossia::net::ws_client_configuration conf;
+    conf.url = m_host->text().toStdString();
+    return conf;
+  }
+
+  void setSettings(const ossia::net::ws_client_configuration& conf)
+  {
+    m_host->setText(QString::fromStdString(conf.url));
+  }
+
+private:
+  QLineEdit* m_host{};
+};
+
+class WebsocketServerWidget : public QWidget
+{
+public:
+  WebsocketServerWidget(OSCProtocolSettingsWidget* parent)
+      : QWidget{parent}
+  {
+    auto layout = new QFormLayout{this};
+    layout->setContentsMargins(0, 0, 0, 0);
+
+    m_remotePort = new QSpinBox(this);
+    m_remotePort->setRange(0, 65535);
+    m_remotePort->setValue(9996);
+    parent->checkForChanges(m_remotePort);
+
+    layout->addRow(tr("Port"), m_remotePort);
+  }
+
+  ossia::net::ws_server_configuration settings() const noexcept
+  {
+    ossia::net::ws_server_configuration conf;
+    conf.port = m_remotePort->value();
+    return conf;
+  }
+
+  void setSettings(const ossia::net::ws_server_configuration& conf)
+  {
+    m_remotePort->setValue(conf.port);
+  }
+
+private:
+  QSpinBox* m_remotePort{};
+};
+class SerialWidget : public QWidget
+{
+public:
+  SerialWidget(OSCProtocolSettingsWidget* parent)
+      : QWidget{parent}
+  {
+    auto layout = new QFormLayout{this};
+    layout->setContentsMargins(0, 0, 0, 0);
+
+    m_baudRate = new QSpinBox(this);
+    m_baudRate->setRange(0, 115200);
+    m_baudRate->setValue(9600);
+
+    m_host = new QLineEdit(this);
+    m_host->setText("/dev/ttyUSB0");
+
+    layout->addRow(tr("Host"), m_host);
+    layout->addRow(tr("Baud rate"), m_baudRate);
+  }
+
+  ossia::net::serial_configuration settings() const noexcept
+  {
+    ossia::net::serial_configuration conf;
+    conf.port = m_host->text().toStdString();
+    conf.baud_rate = m_baudRate->value();
+    return conf;
+  }
+
+  void setSettings(const ossia::net::serial_configuration& conf)
+  {
+    m_host->setText(QString::fromStdString(conf.port));
+    m_baudRate->setValue(conf.baud_rate);
+  }
+
+private:
+  QLineEdit* m_host{};
+  QSpinBox* m_baudRate{};
+};
+
+enum OscProtocols
+{
+  UDP = 0,
+  TCP = 1,
+  Serial = 2,
+  UnixDatagram = 3,
+  UnixStream = 4,
+  WSClient = 5,
+  WSServer = 6
+};
+
 OSCProtocolSettingsWidget::OSCProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
 {
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
+  m_deviceNameEdit->setText("OSCdevice");
   checkForChanges(m_deviceNameEdit);
 
-  m_portInputSBox = new QSpinBox(this);
-  m_portInputSBox->setRange(0, 65535);
-  checkForChanges(m_portInputSBox);
-
-  m_portOutputSBox = new QSpinBox(this);
-  m_portOutputSBox->setRange(0, 65535);
-  checkForChanges(m_portOutputSBox);
-
-  m_localHostEdit = new QLineEdit(this);
-
   m_rate = new RateWidget{this};
+  m_rate->setRate({});
+
+  m_transport = new QComboBox{this};
+  m_transport->addItems(
+      {"UDP",
+       "TCP",
+       "Serial port",
+       "Unix Datagram",
+       "Unix Stream",
+       "Websocket Client",
+       "Websocket Server"});
+  checkForChanges(m_transport);
+
+  m_oscVersion = new QComboBox{this};
+  m_oscVersion->addItems({"1.0", "1.1", "Extended"});
+  m_transportLayout = new QStackedLayout{};
+  m_transportLayout->setContentsMargins(0, 0, 0, 0);
+  m_udp = new UDPWidget{this};
+  m_transportLayout->addWidget(m_udp);
+
+  m_tcp = new TCPWidget{this};
+  m_transportLayout->addWidget(m_tcp);
+
+  m_serial = new SerialWidget{this};
+  m_transportLayout->addWidget(m_serial);
+
+  m_unix_dgram = new UnixDatagramWidget{this};
+  m_transportLayout->addWidget(m_unix_dgram);
+
+  m_unix_stream = new UnixStreamWidget{this};
+  m_transportLayout->addWidget(m_unix_stream);
+
+  m_ws_client = new WebsocketClientWidget{this};
+  m_transportLayout->addWidget(m_ws_client);
+
+  m_ws_server = new WebsocketServerWidget{this};
+  m_transportLayout->addWidget(m_ws_server);
+
+  connect(
+      m_transport,
+      qOverload<int>(&QComboBox::currentIndexChanged),
+      this,
+      [=](int idx) { m_transportLayout->setCurrentIndex(idx); });
 
   auto layout = new QFormLayout{this};
   layout->addRow(tr("Name"), m_deviceNameEdit);
-  layout->addRow(tr("Device listening port"), m_portInputSBox);
-  layout->addRow(tr("score listening port"), m_portOutputSBox);
-  layout->addRow(tr("Host"), m_localHostEdit);
-  layout->addRow(tr("Rate"), m_rate);
-  setDefaults();
-}
-
-void OSCProtocolSettingsWidget::setDefaults()
-{
-  m_deviceNameEdit->setText("OSCdevice");
-  m_portOutputSBox->setValue(9997);
-  m_portInputSBox->setValue(9996);
-  m_localHostEdit->setText("127.0.0.1");
-  m_rate->setRate({});
+  layout->addRow(tr("OSC Version"), m_oscVersion);
+  layout->addRow(tr("Rate limit"), m_rate);
+  layout->addRow(tr("Protocol"), m_transport);
+  layout->addRow(m_transportLayout);
 }
 
 Device::DeviceSettings OSCProtocolSettingsWidget::getSettings() const
@@ -66,9 +376,38 @@ Device::DeviceSettings OSCProtocolSettingsWidget::getSettings() const
   s.protocol = OSCProtocolFactory::static_concreteKey();
 
   OSCSpecificSettings osc = m_settings;
-  osc.host = m_localHostEdit->text();
-  osc.deviceListeningPort = m_portInputSBox->value();
-  osc.scoreListeningPort = m_portOutputSBox->value();
+  switch ((OscProtocols)m_transport->currentIndex())
+  {
+    case UDP:
+      osc.configuration.transport = m_udp->settings();
+      osc.configuration.mode = ossia::net::osc_protocol_configuration::MIRROR;
+      break;
+    case TCP:
+      osc.configuration.transport = m_tcp->settings();
+      osc.configuration.mode = ossia::net::osc_protocol_configuration::MIRROR;
+      break;
+    case Serial:
+      osc.configuration.transport = m_serial->settings();
+      osc.configuration.mode = ossia::net::osc_protocol_configuration::MIRROR;
+      break;
+    case UnixDatagram:
+      osc.configuration.transport = m_unix_dgram->settings();
+      osc.configuration.mode = ossia::net::osc_protocol_configuration::MIRROR;
+      break;
+    case UnixStream:
+      osc.configuration.transport = m_unix_stream->settings();
+      osc.configuration.mode = ossia::net::osc_protocol_configuration::MIRROR;
+      break;
+    case WSClient:
+      osc.configuration.transport = m_ws_client->settings();
+      osc.configuration.mode = ossia::net::osc_protocol_configuration::MIRROR;
+      break;
+    case WSServer:
+      osc.configuration.transport = m_ws_server->settings();
+      osc.configuration.mode = ossia::net::osc_protocol_configuration::HOST;
+      break;
+  }
+
   osc.rate = m_rate->rate();
   osc.jsonToLoad.clear();
 
@@ -107,10 +446,51 @@ void OSCProtocolSettingsWidget::setSettings(
   if (settings.deviceSpecificSettings.canConvert<OSCSpecificSettings>())
   {
     m_settings = settings.deviceSpecificSettings.value<OSCSpecificSettings>();
-    m_portInputSBox->setValue(m_settings.deviceListeningPort);
-    m_portOutputSBox->setValue(m_settings.scoreListeningPort);
-    m_localHostEdit->setText(m_settings.host);
+    m_oscVersion->setCurrentIndex(m_settings.configuration.version);
     m_rate->setRate(m_settings.rate);
+    struct vis
+    {
+      OSCProtocolSettingsWidget& self;
+      void operator()(const ossia::net::udp_configuration& conf) const
+      {
+        self.m_udp->setSettings(conf);
+        self.m_transport->setCurrentIndex(UDP);
+      }
+      void operator()(const ossia::net::tcp_configuration& conf) const
+      {
+        self.m_tcp->setSettings(conf);
+        self.m_transport->setCurrentIndex(TCP);
+      }
+      void operator()(const ossia::net::unix_dgram_configuration& conf) const
+      {
+        self.m_unix_dgram->setSettings(conf);
+        self.m_transport->setCurrentIndex(UnixDatagram);
+      }
+      void operator()(const ossia::net::unix_stream_configuration& conf) const
+      {
+        self.m_unix_stream->setSettings(conf);
+        self.m_transport->setCurrentIndex(UnixStream);
+      }
+      void operator()(const ossia::net::serial_configuration& conf) const
+      {
+        self.m_serial->setSettings(conf);
+        self.m_transport->setCurrentIndex(Serial);
+      }
+      void operator()(const ossia::net::ws_client_configuration& conf) const
+      {
+        self.m_ws_client->setSettings(conf);
+        self.m_transport->setCurrentIndex(WSClient);
+      }
+      void operator()(const ossia::net::ws_server_configuration& conf) const
+      {
+        self.m_ws_server->setSettings(conf);
+        self.m_transport->setCurrentIndex(WSServer);
+      }
+    };
+
+    using namespace std;
+    using namespace boost::variant2;
+    visit(vis{*this}, m_settings.configuration.transport);
   }
 }
 }

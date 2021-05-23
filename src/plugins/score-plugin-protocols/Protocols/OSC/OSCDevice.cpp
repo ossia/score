@@ -42,31 +42,28 @@ bool OSCDevice::reconnect()
 
     const OSCSpecificSettings& stgs
         = settings().deviceSpecificSettings.value<OSCSpecificSettings>();
-    using conf = ossia::net::osc_protocol_configuration;
-    ossia::net::osc_protocol_configuration config;
-    config.mode = conf::MIRROR;
-    config.version = conf::OSC1_0;
-    config.transport = ossia::net::udp_configuration{{
-        ossia::net::receive_socket_configuration{"0.0.0.0",  uint16_t(stgs.scoreListeningPort)}
-      , ossia::net::send_socket_configuration{stgs.host.toStdString(), uint16_t(stgs.deviceListeningPort)}}};
-
-    auto proto = ossia::net::make_osc_protocol(ctx, config);
-
-    if (stgs.rate)
+    if(auto proto = ossia::net::make_osc_protocol(ctx, stgs.configuration))
     {
-      auto rate = std::make_unique<ossia::net::rate_limiting_protocol>(
-          std::chrono::milliseconds{*stgs.rate}, std::move(proto));
-      m_dev = std::make_unique<ossia::net::generic_device>(
-          std::move(rate), settings().name.toStdString());
+      if (stgs.rate)
+      {
+        auto rate = std::make_unique<ossia::net::rate_limiting_protocol>(
+            std::chrono::milliseconds{*stgs.rate}, std::move(proto));
+        m_dev = std::make_unique<ossia::net::generic_device>(
+            std::move(rate), settings().name.toStdString());
+      }
+      else
+      {
+        m_dev = std::make_unique<ossia::net::generic_device>(
+            std::move(proto), settings().name.toStdString());
+      }
+
+      deviceChanged(nullptr, m_dev.get());
+      setLogging_impl(Device::get_cur_logging(isLogging()));
     }
     else
     {
-      m_dev = std::make_unique<ossia::net::generic_device>(
-          std::move(proto), settings().name.toStdString());
+      qDebug() << "Could not create OSC protocol";
     }
-
-    deviceChanged(nullptr, m_dev.get());
-    setLogging_impl(Device::get_cur_logging(isLogging()));
   }
   catch (std::exception& e)
   {

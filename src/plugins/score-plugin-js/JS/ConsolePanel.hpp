@@ -48,6 +48,7 @@ public:
     return score::GUIAppContext().currentDocument();
   }
 
+  /*
   void createOSCDevice(QString name, QString host, int in, int out)
   {
     auto doc = ctx();
@@ -65,7 +66,7 @@ public:
     m.commit();
   }
   W_SLOT(createOSCDevice)
-
+*/
   void createAddress(QString addr, QString type)
   {
     auto doc = ctx();
