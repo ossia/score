@@ -25,6 +25,7 @@
 W_OBJECT_IMPL(Protocols::RateWidget)
 namespace Protocols
 {
+using framing_type = decltype(ossia::net::osc_protocol_configuration::framing);
 class UDPWidget : public QWidget
 {
 public:
@@ -97,8 +98,18 @@ public:
     m_host = new QLineEdit(this);
     m_host->setText("127.0.0.1");
 
+    m_framing = new QComboBox{this};
+    m_framing->addItems({"Size prefixing", "SLIP"});
+    m_framing->setCurrentIndex(1);
+
     layout->addRow(tr("Port"), m_remotePort);
     layout->addRow(tr("Host"), m_host);
+    layout->addRow(tr("Framing"), m_framing);
+  }
+
+  framing_type framing() const noexcept
+  {
+    return (framing_type)m_framing->currentIndex();
   }
 
   ossia::net::tcp_configuration settings() const noexcept
@@ -109,14 +120,16 @@ public:
     return conf;
   }
 
-  void setSettings(const ossia::net::tcp_configuration& conf)
+  void setSettings(const ossia::net::osc_protocol_configuration& c, const ossia::net::tcp_configuration& conf)
   {
     m_remotePort->setValue(conf.port);
+    m_framing->setCurrentIndex(c.framing);
     m_host->setText(QString::fromStdString(conf.host));
   }
 
 private:
   QSpinBox* m_remotePort{};
+  QComboBox* m_framing{};
   QLineEdit* m_host{};
 };
 
@@ -178,7 +191,17 @@ public:
     m_host = new QLineEdit(this);
     m_host->setText("/tmp/ossia.socket");
 
+    m_framing = new QComboBox{this};
+    m_framing->addItems({"Size prefixing", "SLIP"});
+    m_framing->setCurrentIndex(1);
+
     layout->addRow(tr("Path"), m_host);
+    layout->addRow(tr("Framing"), m_framing);
+  }
+
+  framing_type framing() const noexcept
+  {
+    return (framing_type)m_framing->currentIndex();
   }
 
   ossia::net::unix_stream_configuration settings() const noexcept
@@ -188,12 +211,14 @@ public:
     return conf;
   }
 
-  void setSettings(const ossia::net::unix_stream_configuration& conf)
+  void setSettings(const ossia::net::osc_protocol_configuration& c, const ossia::net::unix_stream_configuration& conf)
   {
+    m_framing->setCurrentIndex(c.framing);
     m_host->setText(QString::fromStdString(conf.fd));
   }
 
 private:
+  QComboBox* m_framing{};
   QLineEdit* m_host{};
 };
 class WebsocketClientWidget : public QWidget
@@ -275,8 +300,18 @@ public:
     m_host = new QLineEdit(this);
     m_host->setText("/dev/ttyUSB0");
 
+    m_framing = new QComboBox{this};
+    m_framing->addItems({"Size prefixing", "SLIP"});
+    m_framing->setCurrentIndex(1);
+
     layout->addRow(tr("Host"), m_host);
     layout->addRow(tr("Baud rate"), m_baudRate);
+    layout->addRow(tr("Framing"), m_framing);
+  }
+
+  framing_type framing() const noexcept
+  {
+    return (framing_type)m_framing->currentIndex();
   }
 
   ossia::net::serial_configuration settings() const noexcept
@@ -287,8 +322,9 @@ public:
     return conf;
   }
 
-  void setSettings(const ossia::net::serial_configuration& conf)
+  void setSettings(const ossia::net::osc_protocol_configuration& c, const ossia::net::serial_configuration& conf)
   {
+    m_framing->setCurrentIndex(c.framing);
     m_host->setText(QString::fromStdString(conf.port));
     m_baudRate->setValue(conf.baud_rate);
   }
@@ -296,6 +332,7 @@ public:
 private:
   QLineEdit* m_host{};
   QSpinBox* m_baudRate{};
+  QComboBox* m_framing{};
 };
 
 enum OscProtocols
@@ -384,10 +421,12 @@ Device::DeviceSettings OSCProtocolSettingsWidget::getSettings() const
       break;
     case TCP:
       osc.configuration.transport = m_tcp->settings();
+      osc.configuration.framing = m_tcp->framing();
       osc.configuration.mode = ossia::net::osc_protocol_configuration::MIRROR;
       break;
     case Serial:
       osc.configuration.transport = m_serial->settings();
+      osc.configuration.framing = m_serial->framing();
       osc.configuration.mode = ossia::net::osc_protocol_configuration::MIRROR;
       break;
     case UnixDatagram:
@@ -396,6 +435,7 @@ Device::DeviceSettings OSCProtocolSettingsWidget::getSettings() const
       break;
     case UnixStream:
       osc.configuration.transport = m_unix_stream->settings();
+      osc.configuration.framing = m_unix_stream->framing();
       osc.configuration.mode = ossia::net::osc_protocol_configuration::MIRROR;
       break;
     case WSClient:
@@ -458,7 +498,7 @@ void OSCProtocolSettingsWidget::setSettings(
       }
       void operator()(const ossia::net::tcp_configuration& conf) const
       {
-        self.m_tcp->setSettings(conf);
+        self.m_tcp->setSettings(self.m_settings.configuration, conf);
         self.m_transport->setCurrentIndex(TCP);
       }
       void operator()(const ossia::net::unix_dgram_configuration& conf) const
@@ -468,12 +508,12 @@ void OSCProtocolSettingsWidget::setSettings(
       }
       void operator()(const ossia::net::unix_stream_configuration& conf) const
       {
-        self.m_unix_stream->setSettings(conf);
+        self.m_unix_stream->setSettings(self.m_settings.configuration, conf);
         self.m_transport->setCurrentIndex(UnixStream);
       }
       void operator()(const ossia::net::serial_configuration& conf) const
       {
-        self.m_serial->setSettings(conf);
+        self.m_serial->setSettings(self.m_settings.configuration, conf);
         self.m_transport->setCurrentIndex(Serial);
       }
       void operator()(const ossia::net::ws_client_configuration& conf) const
