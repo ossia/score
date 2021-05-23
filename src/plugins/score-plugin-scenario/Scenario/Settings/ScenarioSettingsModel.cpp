@@ -47,7 +47,7 @@ SETTINGS_PARAMETER_IMPL(MagneticMeasures){
     true};
 SETTINGS_PARAMETER_IMPL(ExecutionRefreshRate){
     QStringLiteral("Scenario/ExecutionRefreshRate"),
-    true};
+    60};
 
 static auto list()
 {
