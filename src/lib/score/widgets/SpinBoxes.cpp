@@ -4,6 +4,7 @@
 
 #include <score/model/Skin.hpp>
 #include <score/tools/Cursor.hpp>
+#include <score/tools/Debug.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/flicks.hpp>
