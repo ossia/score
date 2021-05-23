@@ -254,15 +254,21 @@ struct SecondSpinBox
   static std::optional<int64_t> parseText(QString str) noexcept
   {
     str.remove(' ');
-    auto t = QTime::fromString(str, "hh:mm:ss.zzz");
-    if (!t.isValid())
+    auto splitted = str.split(".");
+    if(splitted.size() == 0)
       return {};
 
+    auto hms = QTime::fromString(splitted[0], "H:m:s");
+    if (!hms.isValid())
+      return {};
+
+    int millisecs = splitted.size() > 1 ? splitted[1].toInt() : 0;
+
     int64_t flicks{};
-    flicks += t.hour() * 3600 * 1000 * ossia::flicks_per_millisecond<int64_t>;
-    flicks += t.minute() * 60 * 1000 * ossia::flicks_per_millisecond<int64_t>;
-    flicks += t.second() * 1000 * ossia::flicks_per_millisecond<int64_t>;
-    flicks += t.msec() * ossia::flicks_per_millisecond<int64_t>;
+    flicks += hms.hour() * 3600 * 1000 * ossia::flicks_per_millisecond<int64_t>;
+    flicks += hms.minute() * 60 * 1000 * ossia::flicks_per_millisecond<int64_t>;
+    flicks += hms.second() * 1000 * ossia::flicks_per_millisecond<int64_t>;
+    flicks += millisecs * ossia::flicks_per_millisecond<int64_t>;
     return flicks;
   }
 
@@ -388,9 +394,15 @@ void TimeSpinBox::setGlobalTimeMode(TimeSpinBox::TimeMode mode)
   }
 }
 
-void TimeSpinBox::setMinimumTime(ossia::time_value t) { }
+void TimeSpinBox::setMinimumTime(ossia::time_value t)
+{
+  SCORE_TODO;
+}
 
-void TimeSpinBox::setMaximumTime(ossia::time_value t) { }
+void TimeSpinBox::setMaximumTime(ossia::time_value t)
+{
+  SCORE_TODO;
+}
 
 void TimeSpinBox::setTime(ossia::time_value t)
 {
