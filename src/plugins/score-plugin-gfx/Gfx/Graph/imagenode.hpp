@@ -67,7 +67,8 @@ struct ImagesNode : NodeModel
     vec2 texcoord = vec2(v_texcoord.x, texcoordAdjust.y + texcoordAdjust.x * v_texcoord.y);
     texcoord = vec2(1) - ifactor * position + texcoord / factor;
     texcoord = texcoord / scale;
-    fragColor = texture(y_tex, texcoord) * opacity;
+    float actual = texcoord.x >= 0 && texcoord.x <= 1 && texcoord.y >= 0 && texcoord.y <= 1 ? 1.0f : 0.0f;
+    fragColor = texture(y_tex, texcoord) * opacity * actual;
   }
   )_";
 
@@ -115,8 +116,8 @@ struct ImagesNode : NodeModel
             QRhiSampler::Linear,
             QRhiSampler::Linear,
             QRhiSampler::None,
-            QRhiSampler::Repeat,
-            QRhiSampler::Repeat);
+            QRhiSampler::ClampToEdge,
+            QRhiSampler::ClampToEdge);
 
         sampler->create();
         auto tex
