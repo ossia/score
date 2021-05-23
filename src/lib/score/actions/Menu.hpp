@@ -1,7 +1,9 @@
 #pragma once
 #include <score/plugins/StringFactoryKey.hpp>
+#include <limits>
 
 #include <score_lib_base_export.h>
+
 class QMenu;
 namespace score
 {
