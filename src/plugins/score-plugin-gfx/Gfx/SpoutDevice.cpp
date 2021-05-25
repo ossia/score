@@ -3,8 +3,9 @@
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxExecContext.hpp>
 #include <Gfx/GfxParameter.hpp>
-#include <Gfx/Graph/nodes.hpp>
+#include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
+#include <Gfx/Graph/OutputNode.hpp>
 #include <State/MessageListSerialization.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
@@ -29,16 +30,16 @@ W_OBJECT_IMPL(Gfx::SpoutDevice)
 
 namespace Gfx
 {
-struct SpoutNode : OutputNode
+struct SpoutNode : score::gfx::OutputNode
 {
   SpoutNode();
   virtual ~SpoutNode();
 
-  Renderer* m_renderer{};
+  score::gfx::RenderList* m_renderer{};
   QRhiTexture* m_texture{};
   QRhiTextureRenderTarget* m_renderTarget{};
   std::function<void()> m_update;
-  std::shared_ptr<RenderState> m_renderState{};
+  std::shared_ptr<score::gfx::RenderState> m_renderState{};
   std::shared_ptr<SpoutSender> m_spout{};
   bool m_hasSender{};
 
@@ -47,19 +48,19 @@ struct SpoutNode : OutputNode
   bool canRender() const override;
   void stopRendering() override;
 
-  void setRenderer(Renderer* r) override;
-  Renderer* renderer() const override;
+  void setRenderer(score::gfx::RenderList* r) override;
+  score::gfx::RenderList* renderer() const override;
 
   void createOutput(
-      GraphicsApi graphicsApi,
+      score::gfx::GraphicsApi graphicsApi,
       std::function<void()> onReady,
       std::function<void()> onUpdate,
       std::function<void()> onResize) override;
   void destroyOutput() override;
 
-  RenderState* renderState() const override;
+  score::gfx::RenderState* renderState() const override;
   score::gfx::NodeRenderer*
-  createRenderer(Renderer& r) const noexcept override;
+  createRenderer(score::gfx::RenderList& r) const noexcept override;
 };
 
 class spout_device : public ossia::net::device_base
@@ -88,7 +89,7 @@ QTimer* timer_unsafe{};
 SpoutNode::SpoutNode()
     : OutputNode{}
 {
-  input.push_back(new Port{this, {}, Types::Image, {}});
+  input.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Image, {}});
   timer_unsafe = new QTimer;
   QObject::connect(timer_unsafe, &QTimer::timeout, [this] {
     if (m_update)
@@ -167,24 +168,24 @@ void SpoutNode::stopRendering()
   */
 }
 
-void SpoutNode::setRenderer(Renderer* r)
+void SpoutNode::setRenderer(score::gfx::RenderList* r)
 {
   m_renderer = r;
 }
 
-Renderer* SpoutNode::renderer() const
+score::gfx::RenderList* SpoutNode::renderer() const
 {
   return m_renderer;
 }
 
 void SpoutNode::createOutput(
-    GraphicsApi graphicsApi,
+    score::gfx::GraphicsApi graphicsApi,
     std::function<void()> onReady,
     std::function<void()> onUpdate,
     std::function<void()> onResize)
 {
   m_spout = std::make_shared<SpoutSender>();
-  m_renderState = std::make_shared<RenderState>();
+  m_renderState = std::make_shared<score::gfx::RenderState>();
   m_update = onUpdate;
 
   m_renderState->surface = QRhiGles2InitParams::newFallbackSurface();
@@ -218,23 +219,23 @@ void SpoutNode::destroyOutput()
   m_spout.reset();
 }
 
-RenderState* SpoutNode::renderState() const
+score::gfx::RenderState* SpoutNode::renderState() const
 {
   return m_renderState.get();
 }
 
-class SpoutRenderer : public RenderedNode
+class SpoutRenderer : public score::gfx::GenericNodeRenderer
 {
 public:
-  SpoutRenderer(const RenderState& state, const SpoutNode& parent)
-      : RenderedNode{parent}
+  SpoutRenderer(const score::gfx::RenderState& state, const SpoutNode& parent)
+      : GenericNodeRenderer{parent}
   {
     m_rt.renderTarget = parent.m_renderTarget;
     m_rt.renderPass = state.renderPassDescriptor;
   }
 };
 
-score::gfx::NodeRenderer* SpoutNode::createRenderer(Renderer& r) const noexcept
+score::gfx::NodeRenderer* SpoutNode::createRenderer(score::gfx::RenderList& r) const noexcept
 {
   return new SpoutRenderer{r.state, *this};
 }
