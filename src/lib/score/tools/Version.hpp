@@ -41,6 +41,6 @@ template <>
 struct hash<score::Version>
 {
 public:
-  auto operator()(const score::Version& s) const { return s.value(); }
+  std::size_t operator()(const score::Version& s) const { return s.value(); }
 };
 }

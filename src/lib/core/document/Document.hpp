@@ -146,7 +146,6 @@ private:
   SelectionStack m_selectionStack;
   ObjectLocker m_objectLocker;
   FocusManager m_focus;
-  QTimer m_documentUpdateTimer;
   QTimer m_documentCoarseUpdateTimer;
   QTimer m_execTimer;
   CommandStackFacade m_facade{m_commandStack};

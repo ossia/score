@@ -32,7 +32,6 @@ DocumentContext::DocumentContext(Document& d)
     , selectionStack{d.selectionStack()}
     , objectLocker{d.locker()}
     , focus{d.focusManager()}
-    , updateTimer{d.m_documentUpdateTimer}
     , coarseUpdateTimer{d.m_documentCoarseUpdateTimer}
     , execTimer{d.m_execTimer}
     , dispatcher{d.m_disp}
@@ -97,9 +96,6 @@ void Document::init()
         }
         m_presenter->setNewSelection(oldfiltered, filtered);
       });
-
-  m_documentUpdateTimer.setInterval(16);
-  m_documentUpdateTimer.start();
 
   m_documentCoarseUpdateTimer.setInterval(64);
   m_documentCoarseUpdateTimer.start();

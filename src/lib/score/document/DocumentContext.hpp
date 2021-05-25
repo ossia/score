@@ -22,7 +22,6 @@ struct SCORE_LIB_BASE_EXPORT DocumentContext
   score::SelectionStack& selectionStack;
   score::ObjectLocker& objectLocker;
   const score::FocusFacade focus;
-  QTimer& updateTimer;
   QTimer& coarseUpdateTimer;
   QTimer& execTimer;
 
