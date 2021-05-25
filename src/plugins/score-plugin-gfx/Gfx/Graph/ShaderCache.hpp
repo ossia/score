@@ -35,7 +35,7 @@ private:
                                        ? QShaderVersion::GlslEs
                                        : QShaderVersion::Flag{};
     baker.setGeneratedShaders({
-          {QShader::SpirvShader, 100},
+      {QShader::SpirvShader, 100},
           {QShader::GlslShader, QShaderVersion(m_caps.shaderVersion, glFlag)},
 #if defined(_WIN32)
           {QShader::HlslShader, QShaderVersion(50)},

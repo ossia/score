@@ -25,6 +25,7 @@ public:
   createRenderer(RenderList& r) const noexcept override;
 
   void seeked();
+
 private:
   struct Rendered;
   std::shared_ptr<Video::VideoInterface> m_decoder;

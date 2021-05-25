@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/detail/packed_struct.hpp>
+
 #include <cstdint>
 
 namespace score::gfx
@@ -50,6 +51,7 @@ packed_struct ScreenUBO
   float texcoordAdjust[2]{};
 
   float renderSize[2]{};
-}; end_packed_struct
+};
+end_packed_struct
 
 }

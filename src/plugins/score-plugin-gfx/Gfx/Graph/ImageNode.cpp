@@ -1,7 +1,7 @@
 #include <Gfx/Graph/ImageNode.hpp>
+#include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/RenderState.hpp>
-#include <Gfx/Graph/NodeRenderer.hpp>
 
 #include <ossia/detail/math.hpp>
 
@@ -63,7 +63,8 @@ void main ()
 ImagesNode::ImagesNode(std::vector<score::gfx::Image> dec)
     : images{std::move(dec)}
 {
-  std::tie(m_vertexS, m_fragmentS) = score::gfx::makeShaders(images_vertex_shader, images_fragment_shader);
+  std::tie(m_vertexS, m_fragmentS)
+      = score::gfx::makeShaders(images_vertex_shader, images_fragment_shader);
   input.push_back(new Port{this, &ubo.currentImageIndex, Types::Int, {}});
   input.push_back(new Port{this, &ubo.opacity, Types::Float, {}});
   input.push_back(new Port{this, &ubo.position[0], Types::Vec2, {}});
@@ -73,9 +74,15 @@ ImagesNode::ImagesNode(std::vector<score::gfx::Image> dec)
   m_materialData.reset((char*)&ubo);
 }
 
-ImagesNode::~ImagesNode() { m_materialData.release(); }
+ImagesNode::~ImagesNode()
+{
+  m_materialData.release();
+}
 
-const Mesh& ImagesNode::mesh() const noexcept  { return this->m_mesh; }
+const Mesh& ImagesNode::mesh() const noexcept
+{
+  return this->m_mesh;
+}
 
 #include <Gfx/Qt5CompatPush> // clang-format: keep
 class ImagesNode::Renderer : public GenericNodeRenderer
@@ -118,8 +125,7 @@ private:
           QRhiSampler::ClampToEdge);
 
       sampler->create();
-      auto tex
-          = textures.empty() ? renderer.m_emptyTexture : textures.front();
+      auto tex = textures.empty() ? renderer.m_emptyTexture : textures.front();
       m_samplers.push_back({sampler, tex});
     }
   }

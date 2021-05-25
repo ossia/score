@@ -1,7 +1,6 @@
-#include <Gfx/Graph/Utils.hpp>
-
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/ShaderCache.hpp>
+#include <Gfx/Graph/Utils.hpp>
 
 namespace score::gfx
 {

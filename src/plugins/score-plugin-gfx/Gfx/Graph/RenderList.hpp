@@ -1,6 +1,6 @@
 #pragma once
-#include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/CommonUBOs.hpp>
+#include <Gfx/Graph/Node.hpp>
 
 namespace score::gfx
 {
@@ -27,7 +27,6 @@ struct SCORE_PLUGIN_GFX_EXPORT RenderList
 
   using Buffers = std::pair<const Mesh* const, MeshBuffers>;
   ossia::small_vector<Buffers, 4> buffersToUpload;
-
 
   std::vector<score::gfx::Node*> nodes;
   std::vector<score::gfx::NodeRenderer*> renderedNodes;

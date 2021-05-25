@@ -13,6 +13,7 @@ struct ScreenNode;
 class Window : public QWindow
 {
   friend ScreenNode;
+
 public:
   explicit Window(GraphicsApi graphicsApi);
   ~Window();

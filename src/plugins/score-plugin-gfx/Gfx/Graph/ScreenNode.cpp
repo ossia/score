@@ -1,8 +1,9 @@
 #include <Gfx/Graph/Graph.hpp>
+#include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
 #include <Gfx/Graph/ScreenNode.hpp>
 #include <Gfx/Graph/Window.hpp>
-#include <Gfx/Graph/NodeRenderer.hpp>
+
 #include <score/gfx/Vulkan.hpp>
 
 #include <QtGui/private/qrhinull_p.h>
@@ -195,7 +196,8 @@ void ScreenNode::createOutput(
       m_swapChain->setFlags({});
       m_window->state.renderPassDescriptor
           = m_swapChain->newCompatibleRenderPassDescriptor();
-      m_swapChain->setRenderPassDescriptor(m_window->state.renderPassDescriptor);
+      m_swapChain->setRenderPassDescriptor(
+          m_window->state.renderPassDescriptor);
 
       onReady();
     }

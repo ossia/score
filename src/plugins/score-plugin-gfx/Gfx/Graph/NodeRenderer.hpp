@@ -32,7 +32,8 @@ public:
  * Used for the common case of a single pass node with a vertex & fragment shader,
  * samplers, and a single render target.
  */
-class SCORE_PLUGIN_GFX_EXPORT GenericNodeRenderer : public score::gfx::NodeRenderer
+class SCORE_PLUGIN_GFX_EXPORT GenericNodeRenderer
+    : public score::gfx::NodeRenderer
 {
 public:
   GenericNodeRenderer(const NodeModel& node) noexcept
@@ -72,7 +73,8 @@ public:
   virtual void customInit(RenderList& renderer);
   void init(RenderList& renderer) override;
 
-  virtual void customUpdate(RenderList& renderer, QRhiResourceUpdateBatch& res);
+  virtual void
+  customUpdate(RenderList& renderer, QRhiResourceUpdateBatch& res);
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
 
   virtual void customRelease(RenderList&);
@@ -88,6 +90,5 @@ public:
   QRhiGraphicsPipeline* pipeline() const { return m_p.pipeline; }
   QRhiShaderResourceBindings* resources() const { return m_p.srb; }
 };
-
 
 }

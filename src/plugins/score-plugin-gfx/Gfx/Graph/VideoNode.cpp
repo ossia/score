@@ -1,10 +1,10 @@
 #include <Gfx/Graph/VideoNode.hpp>
+#include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
 #include <Gfx/Graph/decoders/HAP.hpp>
 #include <Gfx/Graph/decoders/RGBA.hpp>
 #include <Gfx/Graph/decoders/YUV420.hpp>
 #include <Gfx/Graph/decoders/YUV422.hpp>
 #include <Gfx/Graph/decoders/YUYV422.hpp>
-#include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
 
 #include <ossia/detail/flicks.hpp>
 
@@ -179,7 +179,8 @@ struct VideoNode::Rendered : GenericNodeRenderer
   // is not enough
   double lastFrameTime{};
   double lastPlaybackTime{-1.};
-  void customUpdate(RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  void
+  customUpdate(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     auto& nodem = const_cast<VideoNode&>(static_cast<const VideoNode&>(node));
     auto& decoder = *nodem.m_decoder;
@@ -269,7 +270,8 @@ const Mesh& VideoNode::mesh() const noexcept
 
 VideoNode::~VideoNode() { }
 
-score::gfx::NodeRenderer* VideoNode::createRenderer(RenderList& r) const noexcept
+score::gfx::NodeRenderer*
+VideoNode::createRenderer(RenderList& r) const noexcept
 {
   return new Rendered{*this};
 }

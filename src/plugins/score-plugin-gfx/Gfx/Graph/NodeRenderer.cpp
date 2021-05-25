@@ -8,7 +8,8 @@ namespace score::gfx
 
 #include <Gfx/Qt5CompatPush> // clang-format: keep
 
-TextureRenderTarget GenericNodeRenderer::createRenderTarget(const RenderState& state)
+TextureRenderTarget
+GenericNodeRenderer::createRenderTarget(const RenderState& state)
 {
   auto sz = state.size;
   if (auto true_sz = renderTargetSize())
@@ -146,7 +147,9 @@ void GenericNodeRenderer::customUpdate(
 {
 }
 
-void GenericNodeRenderer::update(RenderList& renderer, QRhiResourceUpdateBatch& res)
+void GenericNodeRenderer::update(
+    RenderList& renderer,
+    QRhiResourceUpdateBatch& res)
 {
   res.updateDynamicBuffer(
       m_processUBO, 0, sizeof(ProcessUBO), &this->node.standardUBO);
@@ -215,7 +218,6 @@ void GenericNodeRenderer::release(RenderList& r)
   releaseWithoutRenderTarget(r);
   m_rt.release();
 }
-
 
 score::gfx::NodeRenderer::NodeRenderer() noexcept { }
 

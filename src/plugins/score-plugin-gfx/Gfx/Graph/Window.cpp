@@ -34,7 +34,10 @@ Window::Window(GraphicsApi graphicsApi)
 
 Window::~Window() { }
 
-void Window::init() { onWindowReady(); }
+void Window::init()
+{
+  onWindowReady();
+}
 
 #include <Gfx/Qt5CompatPush> // clang-format: keep
 void Window::resizeSwapChain()
@@ -151,8 +154,7 @@ void Window::exposeEvent(QExposeEvent*)
   const QSize surfaceSize
       = m_hasSwapChain ? m_swapChain->surfacePixelSize() : QSize();
 
-  if ((!isExposed() || (m_hasSwapChain && surfaceSize.isEmpty()))
-      && m_running)
+  if ((!isExposed() || (m_hasSwapChain && surfaceSize.isEmpty())) && m_running)
     m_notExposed = true;
 
   if (isExposed() && m_running && m_notExposed && !surfaceSize.isEmpty())

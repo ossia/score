@@ -16,7 +16,10 @@ PlainMesh::PlainMesh(gsl::span<const float> vtx, int count)
   vertexCount = count;
 }
 
-void PlainMesh::setupBindings(QRhiBuffer& vtxData, QRhiBuffer* idxData, QRhiCommandBuffer& cb) const noexcept
+void PlainMesh::setupBindings(
+    QRhiBuffer& vtxData,
+    QRhiBuffer* idxData,
+    QRhiCommandBuffer& cb) const noexcept
 {
   const QRhiCommandBuffer::VertexInput bindings[] = {{&vtxData, 0}};
 
@@ -54,7 +57,10 @@ TexturedMesh::TexturedMesh(gsl::span<const float> vtx, int count)
   vertexCount = count;
 }
 
-void TexturedMesh::setupBindings(QRhiBuffer& vtxData, QRhiBuffer* idxData, QRhiCommandBuffer& cb) const noexcept
+void TexturedMesh::setupBindings(
+    QRhiBuffer& vtxData,
+    QRhiBuffer* idxData,
+    QRhiCommandBuffer& cb) const noexcept
 {
   const QRhiCommandBuffer::VertexInput bindings[]
       = {{&vtxData, 0}, {&vtxData, 3 * 2 * sizeof(float)}};
@@ -85,7 +91,10 @@ void main()
 )_";
 }
 
-TextureNormalMesh::TextureNormalMesh(gsl::span<const float> vtx, gsl::span<const unsigned int> idx, int count)
+TextureNormalMesh::TextureNormalMesh(
+    gsl::span<const float> vtx,
+    gsl::span<const unsigned int> idx,
+    int count)
 {
   vertexInputBindings.push_back({8 * sizeof(float)});
   // int binding, int location, Format format, quint32 offset
@@ -101,7 +110,10 @@ TextureNormalMesh::TextureNormalMesh(gsl::span<const float> vtx, gsl::span<const
   vertexCount = count;
 }
 
-void TextureNormalMesh::setupBindings(QRhiBuffer& vtxData, QRhiBuffer* idxData, QRhiCommandBuffer& cb) const noexcept
+void TextureNormalMesh::setupBindings(
+    QRhiBuffer& vtxData,
+    QRhiBuffer* idxData,
+    QRhiCommandBuffer& cb) const noexcept
 {
   const QRhiCommandBuffer::VertexInput bindings[] = {{&vtxData, 0}};
 

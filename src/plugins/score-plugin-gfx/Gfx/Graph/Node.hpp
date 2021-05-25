@@ -1,9 +1,9 @@
 #pragma once
+#include <Gfx/Graph/CommonUBOs.hpp>
 #include <Gfx/Graph/Mesh.hpp>
 #include <Gfx/Graph/RenderState.hpp>
 #include <Gfx/Graph/Uniforms.hpp>
 #include <Gfx/Graph/Utils.hpp>
-#include <Gfx/Graph/CommonUBOs.hpp>
 
 #include <ossia/detail/flat_map.hpp>
 
@@ -64,7 +64,8 @@ public:
   explicit NodeModel();
   virtual ~NodeModel();
 
-  virtual score::gfx::NodeRenderer* createRenderer(RenderList& r) const noexcept;
+  virtual score::gfx::NodeRenderer*
+  createRenderer(RenderList& r) const noexcept;
 
   void setShaders(const QShader& vert, const QShader& frag);
 

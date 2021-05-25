@@ -69,7 +69,8 @@ struct RenderedISFNode : score::gfx::NodeRenderer
       QRhiResourceUpdateBatch& res) override;
 
 private:
-  std::pair<Pass, Pass> createPass(RenderList& renderer, PersistSampler target);
+  std::pair<Pass, Pass>
+  createPass(RenderList& renderer, PersistSampler target);
   void initPasses(RenderList& renderer);
 
   static std::vector<PersistSampler> initPassSamplers(

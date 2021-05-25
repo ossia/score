@@ -14,7 +14,8 @@ public:
   virtual ~ImagesNode();
 
   const Mesh& mesh() const noexcept override;
-  score::gfx::NodeRenderer* createRenderer(RenderList& r) const noexcept override;
+  score::gfx::NodeRenderer*
+  createRenderer(RenderList& r) const noexcept override;
 
   class Renderer;
   struct UBO
@@ -28,6 +29,5 @@ public:
 private:
   const TexturedTriangle& m_mesh = TexturedTriangle::instance();
   std::vector<score::gfx::Image> images;
-
 };
 }

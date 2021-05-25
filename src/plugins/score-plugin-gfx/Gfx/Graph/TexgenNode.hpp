@@ -1,10 +1,10 @@
 #pragma once
 
 #include <Gfx/Graph/Node.hpp>
+#include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/RenderState.hpp>
 #include <Gfx/Graph/Uniforms.hpp>
-#include <Gfx/Graph/NodeRenderer.hpp>
 
 namespace score::gfx
 {
@@ -140,7 +140,8 @@ struct TexgenNode : NodeModel
   std::atomic<func_t> function{};
 
   const Mesh& mesh() const noexcept override { return this->m_mesh; }
-  score::gfx::NodeRenderer* createRenderer(RenderList& r) const noexcept override
+  score::gfx::NodeRenderer*
+  createRenderer(RenderList& r) const noexcept override
   {
     return new Rendered{*this};
   }

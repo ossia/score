@@ -1,5 +1,5 @@
-#include <Gfx/Graph/PhongNode.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
+#include <Gfx/Graph/PhongNode.hpp>
 
 namespace score::gfx
 {
@@ -106,14 +106,16 @@ struct RenderedPhongNode : GenericNodeRenderer
 
   void customInit(RenderList& renderer) override { }
 
-  void customUpdate(RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  void
+  customUpdate(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
   }
 
   void customRelease(RenderList& renderer) override { }
 };
 
-score::gfx::NodeRenderer* PhongNode::createRenderer(RenderList& r) const noexcept
+score::gfx::NodeRenderer*
+PhongNode::createRenderer(RenderList& r) const noexcept
 {
   return NodeModel::createRenderer(r);
   // return new RenderedPhongNode{*this};

@@ -185,7 +185,6 @@ struct isf_input_port_vis
   }
 };
 
-
 ISFNode::ISFNode(
     const isf::descriptor& desc,
     const QShader& vert,

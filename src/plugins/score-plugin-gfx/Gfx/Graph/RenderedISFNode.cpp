@@ -167,7 +167,8 @@ TextureRenderTarget RenderedISFNode::renderTarget() const noexcept
   return m_passes.back().renderTarget;
 }
 
-std::pair<Pass, Pass> RenderedISFNode::createPass(RenderList& renderer, PersistSampler target)
+std::pair<Pass, Pass>
+RenderedISFNode::createPass(RenderList& renderer, PersistSampler target)
 {
   std::pair<Pass, Pass> ret;
   QRhi& rhi = *renderer.state.rhi;
@@ -263,14 +264,15 @@ void RenderedISFNode::init(RenderList& renderer)
 
   m_audioSamplers = initAudioTextures(renderer, n.m_audio_textures);
 
-  m_passSamplers
-      = initPassSamplers(n, renderer, cur_pos, renderer.state.size);
+  m_passSamplers = initPassSamplers(n, renderer, cur_pos, renderer.state.size);
 
   // Create the passes
   initPasses(renderer);
 }
 
-void RenderedISFNode::update(RenderList& renderer, QRhiResourceUpdateBatch& res)
+void RenderedISFNode::update(
+    RenderList& renderer,
+    QRhiResourceUpdateBatch& res)
 {
   // Update material
   if (m_materialUBO && m_materialSize > 0
@@ -294,8 +296,7 @@ void RenderedISFNode::update(RenderList& renderer, QRhiResourceUpdateBatch& res)
         {
           for (auto& pass : m_passes)
           {
-            score::gfx::replaceTexture(
-                *pass.p.srb, cur_texture, new_texture);
+            score::gfx::replaceTexture(*pass.p.srb, cur_texture, new_texture);
           }
         }
       }
@@ -386,7 +387,10 @@ void RenderedISFNode::release(RenderList& r)
   // TOOD m_lastPassRT.release();
 }
 
-void RenderedISFNode::runPass(RenderList& renderer, QRhiCommandBuffer& cb, QRhiResourceUpdateBatch& res)
+void RenderedISFNode::runPass(
+    RenderList& renderer,
+    QRhiCommandBuffer& cb,
+    QRhiResourceUpdateBatch& res)
 {
   // if(m_passes.empty())
   //   return RenderedNode::runPass(renderer, cb, res);
@@ -458,7 +462,10 @@ AudioTextureUpload::AudioTextureUpload()
 {
 }
 
-void AudioTextureUpload::process(AudioTexture& audio, QRhiResourceUpdateBatch& res, QRhiTexture* rhiTexture)
+void AudioTextureUpload::process(
+    AudioTexture& audio,
+    QRhiResourceUpdateBatch& res,
+    QRhiTexture* rhiTexture)
 {
   if (audio.fft)
   {
@@ -470,7 +477,10 @@ void AudioTextureUpload::process(AudioTexture& audio, QRhiResourceUpdateBatch& r
   }
 }
 
-void AudioTextureUpload::processTemporal(AudioTexture& audio, QRhiResourceUpdateBatch& res, QRhiTexture* rhiTexture)
+void AudioTextureUpload::processTemporal(
+    AudioTexture& audio,
+    QRhiResourceUpdateBatch& res,
+    QRhiTexture* rhiTexture)
 {
   if (m_scratchpad.size() < audio.data.size())
     m_scratchpad.resize(audio.data.size());
@@ -487,7 +497,10 @@ void AudioTextureUpload::processTemporal(AudioTexture& audio, QRhiResourceUpdate
   res.uploadTexture(rhiTexture, desc);
 }
 
-void AudioTextureUpload::processSpectral(AudioTexture& audio, QRhiResourceUpdateBatch& res, QRhiTexture* rhiTexture)
+void AudioTextureUpload::processSpectral(
+    AudioTexture& audio,
+    QRhiResourceUpdateBatch& res,
+    QRhiTexture* rhiTexture)
 {
   if (m_scratchpad.size() < audio.data.size())
     m_scratchpad.resize(audio.data.size() / 2);
@@ -514,7 +527,11 @@ void AudioTextureUpload::processSpectral(AudioTexture& audio, QRhiResourceUpdate
   res.uploadTexture(rhiTexture, desc);
 }
 
-void AudioTextureUpload::updateAudioTexture(AudioTexture& audio, RenderList& renderer, QRhiResourceUpdateBatch& res, std::vector<Pass>& passes)
+void AudioTextureUpload::updateAudioTexture(
+    AudioTexture& audio,
+    RenderList& renderer,
+    QRhiResourceUpdateBatch& res,
+    std::vector<Pass>& passes)
 {
   QRhi& rhi = *renderer.state.rhi;
   bool textureChanged = false;

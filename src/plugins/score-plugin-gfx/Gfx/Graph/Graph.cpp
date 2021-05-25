@@ -1,11 +1,11 @@
 #include <Gfx/Graph/Graph.hpp>
+#include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/Window.hpp>
-#include <Gfx/Graph/NodeRenderer.hpp>
 
-#include <score/tools/Debug.hpp>
 #include <score/gfx/Vulkan.hpp>
+#include <score/tools/Debug.hpp>
 
 namespace score::gfx
 {
@@ -118,7 +118,10 @@ void Graph::setupOutputs(GraphicsApi graphicsApi)
   }
 }
 
-const std::vector<OutputNode*>& Graph::outputs() const noexcept { return m_outputs; }
+const std::vector<OutputNode*>& Graph::outputs() const noexcept
+{
+  return m_outputs;
+}
 
 void Graph::relinkGraph()
 {
@@ -245,10 +248,7 @@ Graph::createRenderer(OutputNode* output, RenderState state)
   return ptr;
 }
 
-Graph::Graph()
-{
-
-}
+Graph::Graph() { }
 
 Graph::~Graph()
 {
@@ -263,7 +263,10 @@ Graph::~Graph()
   }
 }
 
-void Graph::addNode(Node* n) { m_nodes.push_back(n); }
+void Graph::addNode(Node* n)
+{
+  m_nodes.push_back(n);
+}
 
 void Graph::removeNode(Node* n)
 {
