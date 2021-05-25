@@ -359,8 +359,10 @@ void DataStreamWriter::write(ossia::net::unix_dgram_configuration& n)
 template <>
 void JSONReader::read(const ossia::net::unix_dgram_configuration& n)
 {
+  stream.StartObject();
   obj["Local"] = n.local;
   obj["Remote"] = n.remote;
+  stream.EndObject();
 }
 
 template <>
@@ -388,10 +390,12 @@ void DataStreamWriter::write(ossia::net::osc_protocol_configuration& n)
 template <>
 void JSONReader::read(const ossia::net::osc_protocol_configuration& n)
 {
+  stream.StartObject();
   obj["Mode"] = n.mode;
   obj["Version"] = n.version;
   obj["Framing"] = n.framing;
   obj["Transport"] = n.transport;
+  stream.EndObject();
 }
 
 template <>
@@ -400,7 +404,7 @@ void JSONWriter::write(ossia::net::osc_protocol_configuration& n)
   n.mode <<= obj["Mode"];
   n.version <<= obj["Version"];
   n.framing <<= obj["Framing"];
-  n.transport <<= obj["transport"];
+  n.transport <<= obj["Transport"];
 }
 
 
