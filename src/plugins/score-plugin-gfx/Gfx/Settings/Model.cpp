@@ -64,24 +64,24 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
   score::setupDefaultSettings(set, Parameters::list(), *this);
 }
 
-GraphicsApi Model::graphicsApiEnum() const noexcept
+score::gfx::GraphicsApi Model::graphicsApiEnum() const noexcept
 {
   const auto apis = GraphicsApis{};
   if (m_GraphicsApi == apis.Vulkan)
   {
-    return Vulkan;
+    return score::gfx::Vulkan;
   }
   else if (m_GraphicsApi == apis.Metal)
   {
-    return Metal;
+    return score::gfx::Metal;
   }
   else if (m_GraphicsApi == apis.D3D11)
   {
-    return D3D11;
+    return score::gfx::D3D11;
   }
   else
   {
-    return OpenGL;
+    return score::gfx::OpenGL;
   }
 }
 

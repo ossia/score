@@ -4,7 +4,7 @@
 #include <Gfx/GfxExecContext.hpp>
 #include <Gfx/GfxParameter.hpp>
 #include <Gfx/Graph/nodes.hpp>
-#include <Gfx/Graph/renderer.hpp>
+#include <Gfx/Graph/RenderList.hpp>
 #include <State/MessageListSerialization.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 

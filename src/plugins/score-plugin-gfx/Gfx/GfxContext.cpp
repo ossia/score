@@ -1,5 +1,5 @@
 #include <Gfx/GfxContext.hpp>
-#include <Gfx/Graph/graph.hpp>
+#include <Gfx/Graph/Graph.hpp>
 #include <Gfx/Settings/Model.hpp>
 
 #include <score/application/ApplicationContext.hpp>
@@ -34,7 +34,7 @@ gfx_window_context::gfx_window_context(const score::DocumentContext& ctx)
       this,
       &gfx_window_context::recompute_graph);
 
-  m_graph = new Graph;
+  m_graph = new score::gfx::Graph;
 }
 
 gfx_window_context::~gfx_window_context()
@@ -84,12 +84,8 @@ void gfx_window_context::unregister_node(int32_t idx)
 
 void gfx_window_context::recompute_edges()
 {
-  for (auto edge : m_graph->edges)
-  {
-    delete edge;
-  }
+  m_graph->clearEdges();
 
-  m_graph->edges.clear();
   for (auto edge : edges)
   {
     auto source_node_it = this->nodes.find(edge.first.node);
@@ -103,8 +99,7 @@ void gfx_window_context::recompute_edges()
     auto source_port = source_node_it->second.impl->output[edge.first.port];
     auto sink_port = sink_node_it->second.impl->input[edge.second.port];
 
-    auto e = new Edge{source_port, sink_port};
-    m_graph->edges.push_back(e);
+    m_graph->addEdge(source_port, sink_port);
   }
 }
 
@@ -122,7 +117,7 @@ void gfx_window_context::recompute_graph()
 
   m_graph->setupOutputs(api);
 
-  const bool vsync = settings.getVSync() && m_graph->outputs.size() == 1;
+  const bool vsync = settings.getVSync() && m_graph->outputs().size() == 1;
 
   // rate in fps
   double rate = m_context.app.settings<Gfx::Settings::Model>().getRate();
@@ -221,7 +216,7 @@ void gfx_window_context::timerEvent(QTimerEvent*)
 
 void gfx_view_node::process(const ossia::token_request& tk)
 {
-  ProcessUBO& UBO = impl->standardUBO;
+  score::gfx::ProcessUBO& UBO = impl->standardUBO;
   auto prev_time = UBO.time;
 
   UBO.time = tk.date.impl / ossia::flicks_per_second<double>;
@@ -237,6 +232,7 @@ void gfx_view_node::process(const ossia::token_request& tk)
 
 void gfx_view_node::process(int32_t port, const ossia::value& v)
 {
+  using namespace score::gfx;
   struct vec_visitor
   {
     const std::vector<ossia::value>& v;
@@ -508,8 +504,8 @@ void gfx_view_node::process(int32_t port, const ossia::audio_vector& v)
 
   assert(int(impl->input.size()) > port);
   auto& in = impl->input[port];
-  assert(in->type == Types::Audio);
-  AudioTexture& tex = *(AudioTexture*)in->value;
+  assert(in->type == score::gfx::Types::Audio);
+  score::gfx::AudioTexture& tex = *(score::gfx::AudioTexture*)in->value;
 
   tex.channels = v.size();
   tex.data.clear();

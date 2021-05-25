@@ -1,6 +1,6 @@
 #pragma once
 #include <Gfx/CommandFactory.hpp>
-#include <Gfx/Graph/imagenode.hpp>
+#include <Gfx/Graph/ImageNode.hpp>
 #include <Gfx/Images/Metadata.hpp>
 #include <Library/LibraryInterface.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
@@ -32,19 +32,19 @@ public:
 
   ~Model() override;
 
-  const std::vector<Image>& images() const noexcept { return m_images; }
-  void setImages(const std::vector<Image>& f);
-  void addImage(const Image& im);
+  const std::vector<score::gfx::Image>& images() const noexcept { return m_images; }
+  void setImages(const std::vector<score::gfx::Image>& f);
+  void addImage(const score::gfx::Image& im);
   void removeImage(int i);
   void imagesChanged() W_SIGNAL(imagesChanged);
   PROPERTY(
-      std::vector<Image>,
+      std::vector<score::gfx::Image>,
       images READ images WRITE setImages NOTIFY imagesChanged)
 
 private:
   QString prettyName() const noexcept override;
 
-  std::vector<Image> m_images;
+  std::vector<score::gfx::Image> m_images;
 };
 
 using ProcessFactory = Process::ProcessFactory_T<Gfx::Images::Model>;
@@ -108,6 +108,10 @@ private:
 */
 }
 
-W_REGISTER_ARGTYPE(Gfx::Image)
+namespace Gfx
+{
+using Image = score::gfx::Image;
+}
+W_REGISTER_ARGTYPE(score::gfx::Image)
 PROPERTY_COMMAND_T(Gfx, ChangeImages, Images::Model::p_images, "Change images")
 SCORE_COMMAND_DECL_T(Gfx::ChangeImages)

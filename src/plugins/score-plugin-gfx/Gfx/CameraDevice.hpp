@@ -1,7 +1,7 @@
 #pragma once
 #include <Gfx/GfxDevice.hpp>
 #include <Gfx/GfxExecContext.hpp>
-#include <Gfx/Graph/videonode.hpp>
+#include <Gfx/Graph/VideoNode.hpp>
 #include <Video/CameraInput.hpp>
 
 #include <ossia/gfx/texture_parameter.hpp>
@@ -55,7 +55,7 @@ class camera_parameter : public ossia::gfx::texture_input_parameter
 public:
   std::shared_ptr<::Video::CameraInput> camera;
   int32_t node_id{};
-  VideoNode* node{};
+  score::gfx::VideoNode* node{};
 
   camera_parameter(
       const camera_settings& settings,
@@ -73,8 +73,8 @@ public:
         settings.size[1],
         settings.fps);
 
-    node = new VideoNode(proto.camera, {});
-    node_id = context->ui->register_node(std::unique_ptr<VideoNode>(node));
+    node = new score::gfx::VideoNode(proto.camera, {});
+    node_id = context->ui->register_node(std::unique_ptr<score::gfx::VideoNode>(node));
   }
   void pull_texture(ossia::gfx::port_index idx) override
   {

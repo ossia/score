@@ -1,7 +1,6 @@
 #include "Process.hpp"
 
-#include <Gfx/Graph/node.hpp>
-#include <Gfx/Graph/nodes.hpp>
+#include <Gfx/Graph/Node.hpp>
 #include <Gfx/TexturePort.hpp>
 #include <Media/Tempo.hpp>
 #include <Process/Dataflow/Port.hpp>

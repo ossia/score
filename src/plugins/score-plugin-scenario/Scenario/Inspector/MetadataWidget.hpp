@@ -42,7 +42,6 @@ class Swatch;
 
 namespace Scenario
 {
-class ExtendedMetadataWidget;
 class CommentEdit;
 
 // TODO move me in Process

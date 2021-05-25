@@ -3,7 +3,7 @@
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxContext.hpp>
 #include <Gfx/GfxExec.hpp>
-#include <Gfx/Graph/imagenode.hpp>
+#include <Gfx/Graph/ImageNode.hpp>
 #include <Gfx/Images/Process.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/ExecutionContext.hpp>
@@ -20,7 +20,7 @@ public:
   image_node(const std::vector<Image>& dec, GfxExecutionAction& ctx)
       : gfx_exec_node{ctx}
   {
-    id = exec_context->ui->register_node(std::make_unique<ImagesNode>(dec));
+    id = exec_context->ui->register_node(std::make_unique<score::gfx::ImagesNode>(dec));
   }
 
   ~image_node()

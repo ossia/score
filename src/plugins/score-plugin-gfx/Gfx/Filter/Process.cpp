@@ -1,9 +1,8 @@
 #include "Process.hpp"
 
 #include <Gfx/Filter/PreviewWidget.hpp>
-#include <Gfx/Graph/node.hpp>
-#include <Gfx/Graph/nodes.hpp>
-#include <Gfx/Graph/shadercache.hpp>
+#include <Gfx/Graph/Node.hpp>
+#include <Gfx/Graph/ShaderCache.hpp>
 #include <Gfx/TexturePort.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
@@ -123,12 +122,12 @@ QString Model::prettyName() const noexcept
 void Model::setupIsf(const isf::descriptor& desc)
 {
   {
-    auto& [shader, error] = ShaderCache::get(
+    auto& [shader, error] = score::gfx::ShaderCache::get(
         m_processedProgram.vertex.toLatin1(), QShader::Stage::VertexStage);
     SCORE_ASSERT(error.isEmpty());
   }
   {
-    auto& [shader, error] = ShaderCache::get(
+    auto& [shader, error] = score::gfx::ShaderCache::get(
         m_processedProgram.fragment.toLatin1(), QShader::Stage::FragmentStage);
     SCORE_ASSERT(error.isEmpty());
   }

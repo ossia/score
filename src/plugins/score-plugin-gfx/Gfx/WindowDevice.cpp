@@ -2,8 +2,8 @@
 
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxParameter.hpp>
-#include <Gfx/Graph/nodes.hpp>
-#include <Gfx/Graph/window.hpp>
+#include <Gfx/Graph/ScreenNode.hpp>
+#include <Gfx/Graph/Window.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
@@ -22,13 +22,13 @@ W_OBJECT_IMPL(Gfx::WindowDevice)
 
 namespace Gfx
 {
-static ScreenNode* createScreenNode()
+static score::gfx::ScreenNode* createScreenNode()
 {
   const auto& settings = score::AppContext().applicationSettings;
   if (settings.autoplay || !settings.gui)
   //if(QGuiApplication::platformName().toLower().contains("gl"))
   {
-    return new ScreenNode{false, true};
+    return new score::gfx::ScreenNode{false, true};
 
     /*
     auto window = std::make_shared<Window>(defaultGraphicsAPI());
@@ -42,7 +42,7 @@ static ScreenNode* createScreenNode()
   else
 
   {
-    return new ScreenNode;
+    return new score::gfx::ScreenNode;
   }
 }
 
@@ -72,9 +72,9 @@ void WindowDevice::setupContextMenu(QMenu& menu) const
     auto p = m_dev.get()->get_root_node().get_parameter();
     if (auto param = safe_cast<gfx_parameter_base*>(p))
     {
-      if (auto s = safe_cast<ScreenNode*>(param->node))
+      if (auto s = safe_cast<score::gfx::ScreenNode*>(param->node))
       {
-        if (auto w = s->window)
+        if (const auto& w = s->window())
         {
           auto showhide = new QAction;
           if (!w->isVisible())

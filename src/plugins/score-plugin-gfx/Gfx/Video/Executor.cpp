@@ -3,7 +3,7 @@
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxContext.hpp>
 #include <Gfx/GfxExec.hpp>
-#include <Gfx/Graph/videonode.hpp>
+#include <Gfx/Graph/VideoNode.hpp>
 #include <Gfx/Video/Process.hpp>
 #include <Process/ExecutionContext.hpp>
 
@@ -23,7 +23,7 @@ public:
       : gfx_exec_node{ctx}
       , m_decoder{dec->clone()}
   {
-    auto n = std::make_unique<VideoNode>(m_decoder, tempo);
+    auto n = std::make_unique<score::gfx::VideoNode>(m_decoder, tempo);
     impl = n.get();
     id = exec_context->ui->register_node(std::move(n));
     m_decoder->seek(0);
@@ -40,7 +40,7 @@ public:
 
   video_decoder& decoder() const noexcept { return *m_decoder; }
 
-  VideoNode* impl{};
+  score::gfx::VideoNode* impl{};
 
 private:
   std::shared_ptr<video_decoder> m_decoder;
@@ -68,7 +68,7 @@ public:
              % this->m_loop_duration.impl));
     }
 
-    vnode.impl->seeked = true;
+    //vnode.impl->m_seeked = true;
   }
 
   void transport_impl(ossia::time_value date) override { offset_impl(date); }

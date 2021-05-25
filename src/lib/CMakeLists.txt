@@ -95,6 +95,8 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/document/ChangeId.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/document/DocumentContext.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/document/DocumentInterface.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/gfx/OpenGL.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/gfx/Vulkan.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/locking/ObjectLocker.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/model/ColorInterpolator.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/model/ColorReference.hpp"
@@ -207,7 +209,6 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/ForEach.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Bind.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/SafeCast.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/OpenGL.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Unused.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/ThreadPool.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Debug.hpp"
@@ -322,6 +323,9 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/IdentifierGeneration.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/command/CommandDataSerialization.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/score/gfx/OpenGL.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/gfx/Vulkan.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/Interface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/InterfaceList.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/SerializableInterface.cpp"
@@ -392,7 +396,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/std/String.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/RandomNameProvider.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/ThreadPool.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/score/tools/OpenGL.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/ArrowDialog.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/GraphicsItem.cpp"

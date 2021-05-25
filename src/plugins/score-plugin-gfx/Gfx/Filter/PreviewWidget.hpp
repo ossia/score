@@ -1,20 +1,19 @@
 #pragma once
-#include <Gfx/Graph/graph.hpp>
-#include <Gfx/Graph/imagenode.hpp>
-#include <Gfx/Graph/isfnode.hpp>
-#include <Gfx/Graph/node.hpp>
-#include <Gfx/Graph/nodes.hpp>
-#include <Gfx/Graph/shadercache.hpp>
-#include <Gfx/Graph/window.hpp>
+#include <Gfx/Graph/Graph.hpp>
+#include <Gfx/Graph/ImageNode.hpp>
+#include <Gfx/Graph/Node.hpp>
+#include <Gfx/Graph/ShaderCache.hpp>
+#include <Gfx/Graph/Window.hpp>
 #include <Gfx/ShaderProgram.hpp>
 
 #include <QHBoxLayout>
 #include <QOpenGLWidget>
-
-struct ISFNode;
+namespace score::gfx
+{
+class ISFNode;
+}
 namespace Gfx
 {
-
 class ShaderPreviewWidget : public QWidget
 {
 public:
@@ -24,9 +23,9 @@ private:
   void setup();
   void timerEvent(QTimerEvent* event) override;
 
-  Graph m_graph{};
+  score::gfx::Graph m_graph{};
   std::vector<score::gfx::Node*> m_previewInputs;
-  ISFNode* m_isf{};
+  score::gfx::ISFNode* m_isf{};
   ProcessedProgram m_program;
 };
 }

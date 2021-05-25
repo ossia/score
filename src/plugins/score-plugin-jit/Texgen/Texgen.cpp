@@ -4,7 +4,7 @@
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxContext.hpp>
 #include <Gfx/GfxExec.hpp>
-#include <Gfx/Graph/texgennode.hpp>
+#include <Gfx/Graph/TexgenNode.hpp>
 #include <Gfx/TexturePort.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 
@@ -146,13 +146,13 @@ void TexgenModel::reload()
 class texgen_node final : public Gfx::gfx_exec_node
 {
 public:
-  TexgenNode* gfxNode{};
+  score::gfx::TexgenNode* gfxNode{};
   texgen_node(Gfx::GfxExecutionAction& ctx)
       : gfx_exec_node{ctx}
   {
     root_outputs().push_back(new ossia::texture_outlet);
 
-    auto n = std::make_unique<TexgenNode>();
+    auto n = std::make_unique<score::gfx::TexgenNode>();
     gfxNode = n.get();
     id = exec_context->ui->register_node(std::move(n));
   }

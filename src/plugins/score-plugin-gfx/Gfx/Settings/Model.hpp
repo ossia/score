@@ -1,5 +1,5 @@
 #pragma once
-#include <Gfx/Graph/renderstate.hpp>
+#include <Gfx/Graph/RenderState.hpp>
 
 #include <score/plugins/ProjectSettings/ProjectSettingsModel.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
@@ -34,7 +34,7 @@ public:
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_GFX_EXPORT, bool, VSync)
 
 public:
-  GraphicsApi graphicsApiEnum() const noexcept;
+  score::gfx::GraphicsApi graphicsApiEnum() const noexcept;
   QString getGraphicsApi() const;
   void setGraphicsApi(QString);
   void GraphicsApiChanged(QString arg)

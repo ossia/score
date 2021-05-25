@@ -1,5 +1,8 @@
 #pragma once
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
+
+namespace score::gfx
+{
 #include <Gfx/Qt5CompatPush> // clang-format: keep
 struct RGB0Decoder : GPUVideoDecoder
 {
@@ -29,7 +32,7 @@ struct RGB0Decoder : GPUVideoDecoder
   RGB0Decoder(
       QRhiTexture::Format fmt,
       NodeModel& n,
-      video_decoder& d,
+      Video::VideoInterface& d,
       QString f = "")
       : format{fmt}
       , node{n}
@@ -39,10 +42,10 @@ struct RGB0Decoder : GPUVideoDecoder
   }
   QRhiTexture::Format format;
   NodeModel& node;
-  video_decoder& decoder;
+  Video::VideoInterface& decoder;
   QString filter;
 
-  void init(Renderer& r, RenderedNode& rendered) override
+  void init(RenderList& r, GenericNodeRenderer& rendered) override
   {
     auto& rhi = *r.state.rhi;
     std::tie(node.m_vertexS, node.m_fragmentS) = score::gfx::makeShaders(
@@ -66,22 +69,22 @@ struct RGB0Decoder : GPUVideoDecoder
   }
 
   void exec(
-      Renderer&,
-      RenderedNode& rendered,
+      RenderList&,
+      GenericNodeRenderer& rendered,
       QRhiResourceUpdateBatch& res,
       AVFrame& frame) override
   {
     setPixels(rendered, res, frame.data[0], frame.linesize[0]);
   }
 
-  void release(Renderer&, RenderedNode& n) override
+  void release(RenderList&, GenericNodeRenderer& n) override
   {
     for (auto [sampler, tex] : n.m_samplers)
       tex->deleteLater();
   }
 
   void setPixels(
-      RenderedNode& rendered,
+      GenericNodeRenderer& rendered,
       QRhiResourceUpdateBatch& res,
       uint8_t* pixels,
       int stride) const noexcept
@@ -96,3 +99,4 @@ struct RGB0Decoder : GPUVideoDecoder
     res.uploadTexture(y_tex, desc);
   }
 };
+}

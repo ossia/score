@@ -1,4 +1,6 @@
 #include <Gfx/Filter/PreviewWidget.hpp>
+#include <Gfx/Graph/ISFNode.hpp>
+#include <Gfx/Graph/ScreenNode.hpp>
 
 namespace Gfx
 {
@@ -8,32 +10,32 @@ struct PreviewInputvisitor
 {
   int& img_count;
 
-  NodeModel* operator()(const isf::float_input& v) { return nullptr; }
+  score::gfx::NodeModel* operator()(const isf::float_input& v) { return nullptr; }
 
-  NodeModel* operator()(const isf::long_input& v) { return nullptr; }
+  score::gfx::NodeModel* operator()(const isf::long_input& v) { return nullptr; }
 
-  NodeModel* operator()(const isf::event_input& v) { return nullptr; }
+  score::gfx::NodeModel* operator()(const isf::event_input& v) { return nullptr; }
 
-  NodeModel* operator()(const isf::bool_input& v) { return nullptr; }
+  score::gfx::NodeModel* operator()(const isf::bool_input& v) { return nullptr; }
 
-  NodeModel* operator()(const isf::point2d_input& v) { return nullptr; }
+  score::gfx::NodeModel* operator()(const isf::point2d_input& v) { return nullptr; }
 
-  NodeModel* operator()(const isf::point3d_input& v) { return nullptr; }
+  score::gfx::NodeModel* operator()(const isf::point3d_input& v) { return nullptr; }
 
-  NodeModel* operator()(const isf::color_input& v) { return nullptr; }
+  score::gfx::NodeModel* operator()(const isf::color_input& v) { return nullptr; }
 
-  NodeModel* operator()(const isf::image_input& v)
+  score::gfx::NodeModel* operator()(const isf::image_input& v)
   {
-    static std::array<Gfx::Image, 3> images{
-        Gfx::Image{
+    static std::array<score::gfx::Image, 3> images{
+        score::gfx::Image{
             QString{":/gfx/testcard-1.png"}, {QImage{":/gfx/testcard-1.png"}}},
-        Gfx::Image{
+        score::gfx::Image{
             QString{":/gfx/testcard-2.jpeg"},
             {QImage{":/gfx/testcard-2.jpeg"}}},
-        Gfx::Image{
+        score::gfx::Image{
             QString{":/gfx/testcard-3.png"}, {QImage{":/gfx/testcard-3.png"}}},
     };
-    auto image_node = new ImagesNode{{images[img_count]}};
+    auto image_node = new score::gfx::ImagesNode{{images[img_count]}};
     image_node->ubo.currentImageIndex = 0;
     switch (img_count)
     {
@@ -58,9 +60,9 @@ struct PreviewInputvisitor
     return image_node;
   }
 
-  NodeModel* operator()(const isf::audio_input& v) { return nullptr; }
+  score::gfx::NodeModel* operator()(const isf::audio_input& v) { return nullptr; }
 
-  NodeModel* operator()(const isf::audioFFT_input& v) { return nullptr; }
+  score::gfx::NodeModel* operator()(const isf::audioFFT_input& v) { return nullptr; }
 };
 }
 
@@ -80,18 +82,17 @@ ShaderPreviewWidget::ShaderPreviewWidget(const QString& path, QWidget* parent)
 void ShaderPreviewWidget::setup()
 {
   // Create our graph
-  m_isf = new ISFNode{
+  m_isf = new score::gfx::ISFNode{
       m_program.descriptor,
       m_program.compiledVertex,
       m_program.compiledFragment};
-  auto window = new ScreenNode{true};
+  auto window = new score::gfx::ScreenNode{true};
 
   m_graph.addNode(m_isf);
   m_graph.addNode(window);
 
   // Edge from filter to output
-  auto e = new Edge(m_isf->output[0], window->input[0]);
-  m_graph.edges.push_back(e);
+  m_graph.addEdge(m_isf->output[0], window->input[0]);
 
   // Edges from image nodes to image inputs
   int image_i = 0;
@@ -104,18 +105,18 @@ void ShaderPreviewWidget::setup()
       m_graph.addNode(node);
       m_previewInputs.push_back(node);
 
-      auto e = new Edge(node->output[0], m_isf->input[i]);
-      m_graph.edges.push_back(e);
+      m_graph.addEdge(node->output[0], m_isf->input[i]);
     }
     i++;
   }
 
-  m_graph.setupOutputs(GraphicsApi::OpenGL);
+  m_graph.setupOutputs(score::gfx::GraphicsApi::OpenGL);
 
   // UI setup
   auto lay = new QHBoxLayout(this);
-  SCORE_ASSERT(window->window);
-  auto widg = createWindowContainer(window->window.get(), this);
+  const auto& w = window->window();
+  SCORE_ASSERT(w);
+  auto widg = createWindowContainer(w.get(), this);
   widg->setMinimumWidth(300);
   widg->setMaximumWidth(300);
   widg->setMinimumHeight(200);

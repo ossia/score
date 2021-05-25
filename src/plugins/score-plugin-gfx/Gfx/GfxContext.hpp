@@ -1,5 +1,5 @@
 #pragma once
-#include <Gfx/Graph/node.hpp>
+#include <Gfx/Graph/Node.hpp>
 
 #include <ossia/dataflow/nodes/media.hpp>
 #include <ossia/dataflow/token_request.hpp>
@@ -10,8 +10,10 @@
 
 #include <concurrentqueue.h>
 #include <score_plugin_gfx_export.h>
-
+namespace score::gfx
+{
 struct Graph;
+}
 namespace score
 {
 struct DocumentContext;
@@ -68,7 +70,7 @@ private:
   int32_t index{};
   ossia::fast_hash_map<int32_t, gfx_view_node> nodes;
 
-  Graph* m_graph{};
+  score::gfx::Graph* m_graph{};
   QThread m_thread;
 
   moodycamel::ConcurrentQueue<gfx_message> tick_messages;

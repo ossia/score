@@ -4,6 +4,9 @@
 
 #include <hap/source/hap.h>
 #include <snappy.h>
+
+namespace score::gfx
+{
 struct HAPDecoder : GPUVideoDecoder
 {
   struct HAPSection
@@ -41,8 +44,8 @@ struct HAPDecoder : GPUVideoDecoder
   };
 
   void exec(
-      Renderer&,
-      RenderedNode& rendered,
+      RenderList&,
+      GenericNodeRenderer& rendered,
       QRhiResourceUpdateBatch& res,
       AVFrame& frame) override
   {
@@ -94,7 +97,7 @@ struct HAPDecoder : GPUVideoDecoder
   }
 
   static void setPixels_noEncoding(
-      RenderedNode& rendered,
+      GenericNodeRenderer& rendered,
       QRhiResourceUpdateBatch& res,
       const uint8_t* data_start,
       std::size_t size)
@@ -110,7 +113,7 @@ struct HAPDecoder : GPUVideoDecoder
   }
 
   static void setPixels_snappy(
-      RenderedNode& rendered,
+      GenericNodeRenderer& rendered,
       QRhiResourceUpdateBatch& res,
       const uint8_t* data_start,
       std::size_t size)
@@ -131,7 +134,7 @@ struct HAPDecoder : GPUVideoDecoder
     res.uploadTexture(y_tex, desc);
   }
 
-  void release(Renderer&, RenderedNode& n) override
+  void release(RenderList&, GenericNodeRenderer& n) override
   {
     for (auto [sampler, tex] : n.m_samplers)
       tex->deleteLater();
@@ -187,7 +190,7 @@ void main ()
   HAPDefaultDecoder(
       QRhiTexture::Format fmt,
       NodeModel& n,
-      video_decoder& d,
+      Video::VideoInterface& d,
       QString f = "")
       : format{fmt}
       , node{n}
@@ -197,10 +200,10 @@ void main ()
   }
   QRhiTexture::Format format;
   NodeModel& node;
-  video_decoder& decoder;
+  Video::VideoInterface& decoder;
   QString filter;
 
-  void init(Renderer& r, RenderedNode& rendered) override
+  void init(RenderList& r, GenericNodeRenderer& rendered) override
   {
     auto& rhi = *r.state.rhi;
     std::tie(node.m_vertexS, node.m_fragmentS) = score::gfx::makeShaders(
@@ -266,16 +269,16 @@ void main ()
   fragColor = processTexture(processYCoCg(ycocg, alpha));
 })_");
 
-  HAPMDecoder(NodeModel& n, video_decoder& d, QString f = "")
+  HAPMDecoder(NodeModel& n, Video::VideoInterface& d, QString f = "")
       : node{n}
       , decoder{d}
       , filter{f}
   {
   }
   NodeModel& node;
-  video_decoder& decoder;
+  Video::VideoInterface& decoder;
   QString filter;
-  void init(Renderer& r, RenderedNode& rendered) override
+  void init(RenderList& r, GenericNodeRenderer& rendered) override
   {
     auto& rhi = *r.state.rhi;
     std::tie(node.m_vertexS, node.m_fragmentS) = score::gfx::makeShaders(
@@ -316,8 +319,8 @@ void main ()
   }
 
   void exec(
-      Renderer&,
-      RenderedNode& rendered,
+      RenderList&,
+      GenericNodeRenderer& rendered,
       QRhiResourceUpdateBatch& res,
       AVFrame& frame) override
   {
@@ -382,7 +385,7 @@ void main ()
   }
 
   static void setPixels(
-      RenderedNode& rendered,
+      GenericNodeRenderer& rendered,
       QRhiResourceUpdateBatch& res,
       QRhiTexture* tex,
       const uint8_t* ycocg_start,
@@ -402,3 +405,4 @@ void main ()
 };
 
 #include <Gfx/Qt5CompatPop> // clang-format: keep
+}

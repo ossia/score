@@ -4,8 +4,7 @@
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxContext.hpp>
 #include <Gfx/GfxExec.hpp>
-#include <Gfx/Graph/filternode.hpp>
-#include <Gfx/Graph/isfnode.hpp>
+#include <Gfx/Graph/ISFNode.hpp>
 #include <Gfx/TexturePort.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/ExecutionContext.hpp>
@@ -25,7 +24,7 @@ public:
       GfxExecutionAction& ctx)
       : gfx_exec_node{ctx}
   {
-    auto n = std::make_unique<ISFNode>(isf, vert, frag);
+    auto n = std::make_unique<score::gfx::ISFNode>(isf, vert, frag);
 
     id = exec_context->ui->register_node(std::move(n));
   }

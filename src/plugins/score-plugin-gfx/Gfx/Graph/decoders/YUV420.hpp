@@ -1,5 +1,8 @@
 #pragma once
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
+
+namespace score::gfx
+{
 #include <Gfx/Qt5CompatPush> // clang-format: keep
 struct YUV420Decoder : GPUVideoDecoder
 {
@@ -39,16 +42,16 @@ struct YUV420Decoder : GPUVideoDecoder
     fragColor.b = dot(yuv, B_cf);
   })_";
 
-  YUV420Decoder(NodeModel& n, video_decoder& d)
+  YUV420Decoder(NodeModel& n, Video::VideoInterface& d)
       : node{n}
       , decoder{d}
   {
   }
 
   NodeModel& node;
-  video_decoder& decoder;
+  Video::VideoInterface& decoder;
 
-  void init(Renderer& r, RenderedNode& rendered) override
+  void init(RenderList& r, GenericNodeRenderer& rendered) override
   {
     auto& rhi = *r.state.rhi;
     std::tie(node.m_vertexS, node.m_fragmentS) = score::gfx::makeShaders(
@@ -105,8 +108,8 @@ struct YUV420Decoder : GPUVideoDecoder
   }
 
   void exec(
-      Renderer&,
-      RenderedNode& rendered,
+      RenderList&,
+      GenericNodeRenderer& rendered,
       QRhiResourceUpdateBatch& res,
       AVFrame& frame) override
   {
@@ -115,14 +118,14 @@ struct YUV420Decoder : GPUVideoDecoder
     setVPixels(rendered, res, frame.data[2], frame.linesize[2]);
   }
 
-  void release(Renderer&, RenderedNode& n) override
+  void release(RenderList&, GenericNodeRenderer& n) override
   {
     for (auto [sampler, tex] : n.m_samplers)
       tex->deleteLater();
   }
 
   void setYPixels(
-      RenderedNode& rendered,
+      GenericNodeRenderer& rendered,
       QRhiResourceUpdateBatch& res,
       uint8_t* pixels,
       int stride) const noexcept
@@ -138,7 +141,7 @@ struct YUV420Decoder : GPUVideoDecoder
   }
 
   void setUPixels(
-      RenderedNode& rendered,
+      GenericNodeRenderer& rendered,
       QRhiResourceUpdateBatch& res,
       uint8_t* pixels,
       int stride) const noexcept
@@ -154,7 +157,7 @@ struct YUV420Decoder : GPUVideoDecoder
   }
 
   void setVPixels(
-      RenderedNode& rendered,
+      GenericNodeRenderer& rendered,
       QRhiResourceUpdateBatch& res,
       uint8_t* pixels,
       int stride) const noexcept
@@ -170,3 +173,4 @@ struct YUV420Decoder : GPUVideoDecoder
 };
 
 #include <Gfx/Qt5CompatPop> // clang-format: keep
+}

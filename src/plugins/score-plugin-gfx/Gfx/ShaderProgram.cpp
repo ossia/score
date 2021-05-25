@@ -1,6 +1,6 @@
 #include "ShaderProgram.hpp"
 
-#include <Gfx/Graph/shadercache.hpp>
+#include <Gfx/Graph/ShaderCache.hpp>
 
 #include <ossia/detail/flat_map.hpp>
 
@@ -113,7 +113,7 @@ ProgramCache::get(const ShaderProgram& program) noexcept
 
       // Create QShader objects
       auto [vertexS, vertexError]
-          = ShaderCache::get(processed.vertex.toUtf8(), QShader::VertexStage);
+          = score::gfx::ShaderCache::get(processed.vertex.toUtf8(), QShader::VertexStage);
       if (!vertexError.isEmpty())
       {
         qDebug().noquote() << vertexError;
@@ -121,7 +121,7 @@ ProgramCache::get(const ShaderProgram& program) noexcept
         return {std::nullopt, "Vertex shader error: " + vertexError};
       }
 
-      auto [fragmentS, fragmentError] = ShaderCache::get(
+      auto [fragmentS, fragmentError] = score::gfx::ShaderCache::get(
           processed.fragment.toUtf8(), QShader::FragmentStage);
       if (!fragmentError.isEmpty())
       {

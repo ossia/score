@@ -55,23 +55,22 @@ set(HDRS
     Gfx/Images/Inspector.hpp
     Gfx/Images/Layer.hpp
 
-    Gfx/Graph/window.hpp
-    Gfx/Graph/renderstate.hpp
-    Gfx/Graph/scene.hpp
-    Gfx/Graph/nodes.hpp
-    Gfx/Graph/node.hpp
-    Gfx/Graph/filternode.hpp
-    Gfx/Graph/isfnode.hpp
-    Gfx/Graph/graph.hpp
-    Gfx/Graph/uniforms.hpp
-    Gfx/Graph/mesh.hpp
-    Gfx/Graph/renderer.hpp
-    Gfx/Graph/videonode.hpp
-    Gfx/Graph/phongnode.hpp
-    Gfx/Graph/imagenode.hpp
-    Gfx/Graph/texgennode.hpp
-    Gfx/Graph/shadercache.hpp
-    Gfx/Graph/utils.hpp
+    Gfx/Graph/Window.hpp
+    Gfx/Graph/RenderState.hpp
+    Gfx/Graph/Node.hpp
+    Gfx/Graph/ISFNode.hpp
+    Gfx/Graph/RenderedISFNode.hpp
+    Gfx/Graph/Graph.hpp
+    Gfx/Graph/Uniforms.hpp
+    Gfx/Graph/Mesh.hpp
+    Gfx/Graph/RenderList.hpp
+    Gfx/Graph/NodeRenderer.hpp
+    Gfx/Graph/VideoNode.hpp
+    Gfx/Graph/PhongNode.hpp
+    Gfx/Graph/ImageNode.hpp
+    Gfx/Graph/TexgenNode.hpp
+    Gfx/Graph/ShaderCache.hpp
+    Gfx/Graph/Utils.hpp
     Gfx/Graph/decoders/GPUVideoDecoder.hpp
     Gfx/Graph/decoders/HAP.hpp
     Gfx/Graph/decoders/RGBA.hpp
@@ -118,15 +117,20 @@ set(SRCS
     Gfx/Images/Executor.cpp
     Gfx/Images/Process.cpp
 
-    Gfx/Graph/node.cpp
-    Gfx/Graph/graph.cpp
-    Gfx/Graph/renderer.cpp
-    Gfx/Graph/mesh.cpp
-    Gfx/Graph/isfnode.cpp
-    Gfx/Graph/videonode.cpp
-    Gfx/Graph/screennode.cpp
-    Gfx/Graph/phongnode.cpp
-    Gfx/Graph/utils.cpp
+    Gfx/Graph/Node.cpp
+    Gfx/Graph/Graph.cpp
+    Gfx/Graph/RenderList.cpp
+    Gfx/Graph/Mesh.cpp
+    Gfx/Graph/ImageNode.cpp
+    Gfx/Graph/ISFNode.cpp
+    Gfx/Graph/RenderedISFNode.cpp
+    Gfx/Graph/VideoNode.cpp
+    Gfx/Graph/NodeRenderer.cpp
+    Gfx/Graph/OutputNode.cpp
+    Gfx/Graph/ScreenNode.cpp
+    Gfx/Graph/PhongNode.cpp
+    Gfx/Graph/Utils.cpp
+    Gfx/Graph/Window.cpp
 
     Gfx/GfxApplicationPlugin.cpp
     Gfx/GfxContext.cpp

@@ -1,31 +1,30 @@
 #pragma once
 
-#include <Gfx/Graph/node.hpp>
-#include <Gfx/Graph/renderer.hpp>
-#include <Gfx/Graph/renderstate.hpp>
-#include <Gfx/Graph/uniforms.hpp>
+#include <Gfx/Graph/Node.hpp>
+#include <Gfx/Graph/NodeRenderer.hpp>
+#include <Gfx/Graph/RenderList.hpp>
+#include <Gfx/Graph/RenderState.hpp>
 #include <Video/VideoInterface.hpp>
 
 extern "C"
 {
 #include <libavutil/pixdesc.h>
 }
-
+namespace score::gfx
+{
 // TODO the "model" nodes should have a first update step so that they
 // can share data across all renderers during a tick
-using video_decoder = ::Video::VideoInterface;
-
 struct GPUVideoDecoder
 {
   virtual ~GPUVideoDecoder() { }
-  virtual void init(Renderer& r, RenderedNode& rendered) = 0;
+  virtual void init(RenderList& r, GenericNodeRenderer& rendered) = 0;
   virtual void exec(
-      Renderer&,
-      RenderedNode& rendered,
+      RenderList&,
+      GenericNodeRenderer& rendered,
       QRhiResourceUpdateBatch& res,
       AVFrame& frame)
       = 0;
-  virtual void release(Renderer&, RenderedNode& rendered) = 0;
+  virtual void release(RenderList&, GenericNodeRenderer& rendered) = 0;
 
   static inline QRhiTextureSubresourceUploadDescription createTextureUpload(
       uint8_t* pixels,
@@ -72,19 +71,20 @@ struct EmptyDecoder : GPUVideoDecoder
   }
 
   NodeModel& node;
-  void init(Renderer& r, RenderedNode& rendered) override
+  void init(RenderList& r, GenericNodeRenderer& rendered) override
   {
     std::tie(node.m_vertexS, node.m_fragmentS) = score::gfx::makeShaders(
         node.mesh().defaultVertexShader(), hashtag_no_filter);
   }
 
   void exec(
-      Renderer&,
-      RenderedNode& rendered,
+      RenderList&,
+      GenericNodeRenderer& rendered,
       QRhiResourceUpdateBatch& res,
       AVFrame& frame) override
   {
   }
 
-  void release(Renderer&, RenderedNode& n) override { }
+  void release(RenderList&, GenericNodeRenderer& n) override { }
 };
+}

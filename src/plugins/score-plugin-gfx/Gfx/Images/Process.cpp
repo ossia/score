@@ -1,7 +1,6 @@
 #include "Process.hpp"
 
-#include <Gfx/Graph/node.hpp>
-#include <Gfx/Graph/nodes.hpp>
+#include <Gfx/Graph/Node.hpp>
 #include <Gfx/TexturePort.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
@@ -146,13 +145,13 @@ std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::drop(
 
 }
 template <>
-void DataStreamReader::read(const Gfx::Image& proc)
+void DataStreamReader::read(const score::gfx::Image& proc)
 {
   m_stream << proc.path;
 }
 
 template <>
-void DataStreamWriter::write(Gfx::Image& proc)
+void DataStreamWriter::write(score::gfx::Image& proc)
 {
   m_stream >> proc.path;
   if (auto img = Gfx::Images::readImage(proc.path))
@@ -160,7 +159,7 @@ void DataStreamWriter::write(Gfx::Image& proc)
 }
 
 template <>
-void JSONReader::read(const Gfx::Image& proc)
+void JSONReader::read(const score::gfx::Image& proc)
 {
   stream.StartObject();
   stream.Key("Path");
@@ -169,7 +168,7 @@ void JSONReader::read(const Gfx::Image& proc)
 }
 
 template <>
-void JSONWriter::write(Gfx::Image& proc)
+void JSONWriter::write(score::gfx::Image& proc)
 {
   const auto& obj = base.GetObject();
   proc.path = obj["Path"].GetString();
