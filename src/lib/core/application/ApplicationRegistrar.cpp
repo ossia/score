@@ -5,22 +5,17 @@
 #include "ApplicationSettings.hpp"
 
 #include <score/application/ApplicationComponents.hpp>
-#include <score/application/ApplicationContext.hpp>
 #include <score/command/CommandGeneratorMap.hpp>
 #include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/panel/PanelDelegateFactory.hpp>
 
-#include <core/document/Document.hpp>
-#include <core/presenter/DocumentManager.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/settings/Settings.hpp>
 #include <core/view/Window.hpp>
 
 #include <vector>
-
-#include <type_traits>
 
 namespace score
 {

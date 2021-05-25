@@ -3,8 +3,6 @@
 #include "Document.hpp"
 #include "DocumentModel.hpp"
 
-#include <score/application/ApplicationComponents.hpp>
-#include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/Identifier.hpp>
@@ -15,15 +13,11 @@
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/File.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <score/widgets/MessageBox.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
-#include <core/command/CommandStack.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>
 #include <core/presenter/DocumentManager.hpp>
@@ -37,11 +31,8 @@
 #include <QMetaType>
 #include <QPair>
 #include <QString>
-#include <QVariant>
 #include <QVector>
 #include <QWidget>
-
-#include <fmt/format.h>
 
 #include <stdexcept>
 #include <vector>

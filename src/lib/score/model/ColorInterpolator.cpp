@@ -4,7 +4,6 @@
 
 #include <ossia/detail/flat_map.hpp>
 #include <ossia/editor/curve/curve_segment/easing.hpp>
-#include <ossia/network/dataspace/color.hpp>
 #include <ossia/network/dataspace/value_with_unit.hpp>
 
 #include <QPen>

@@ -8,12 +8,8 @@ extern "C"
 }
 #include "CameraInput.hpp"
 
-#include <ossia/detail/flicks.hpp>
-
 #include <QDebug>
 #include <QElapsedTimer>
-
-#include <fmt/format.h>
 
 #include <functional>
 namespace Video

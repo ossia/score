@@ -5,7 +5,6 @@
 
 #include <score/tools/Debug.hpp>
 
-#include <QDebug>
 #include <QHash>
 
 #include <cmath>

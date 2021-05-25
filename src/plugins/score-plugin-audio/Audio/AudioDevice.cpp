@@ -6,8 +6,6 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
-#include <score/serialization/AnySerialization.hpp>
-#include <score/serialization/MapSerialization.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
@@ -16,7 +14,6 @@
 #include <ossia/audio/audio_parameter.hpp>
 #include <ossia/audio/audio_protocol.hpp>
 #include <ossia/network/generic/generic_device.hpp>
-#include <ossia/network/generic/generic_parameter.hpp>
 
 #include <QButtonGroup>
 #include <QComboBox>

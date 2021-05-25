@@ -7,7 +7,6 @@
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <score/plugins/panel/PanelDelegate.hpp>
-#include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <score/tools/exceptions/MissingCommand.hpp>
 #include <score/tools/std/String.hpp>
 

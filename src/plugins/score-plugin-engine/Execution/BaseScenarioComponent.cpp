@@ -6,32 +6,23 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Process/ExecutionContext.hpp>
 
-#include <score/document/DocumentInterface.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-
 #include <ossia/audio/audio_protocol.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/nodes/forward_node.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/scenario/time_sync.hpp>
-#include <ossia/editor/scenario/time_value.hpp>
 #include <ossia/editor/state/state.hpp>
 
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Event/EventExecution.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateExecution.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncExecution.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Execution/score2OSSIA.hpp>
 #include <wobjectimpl.h>
 
-#include <vector>
 W_OBJECT_IMPL(Execution::BaseScenarioElement)
 
 namespace Execution

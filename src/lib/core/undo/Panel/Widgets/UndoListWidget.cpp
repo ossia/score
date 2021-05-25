@@ -2,7 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "UndoListWidget.hpp"
 
-#include <score/command/Command.hpp>
 #include <score/tools/Bind.hpp>
 
 #include <core/command/CommandStack.hpp>

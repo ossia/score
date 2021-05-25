@@ -3,10 +3,7 @@
 #include "CommandStack.hpp"
 
 #include <score/application/ApplicationComponents.hpp>
-#include <score/application/ApplicationContext.hpp>
-#include <score/command/Command.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
-#include <score/plugins/StringFactoryKeySerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
 template <>

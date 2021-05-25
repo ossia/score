@@ -4,7 +4,6 @@
 
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
-#include <score/tools/std/Optional.hpp>
 
 #include <QString>
 

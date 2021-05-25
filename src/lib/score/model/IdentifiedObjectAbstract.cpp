@@ -2,8 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "IdentifiedObjectAbstract.hpp"
 
-#include <score/tools/std/HashMap.hpp>
-
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(IdentifiedObjectAbstract)
 IdentifiedObjectAbstract::~IdentifiedObjectAbstract()

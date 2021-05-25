@@ -1,8 +1,6 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <score/application/ApplicationComponents.hpp>
-#include <score/application/ApplicationContext.hpp>
-#include <score/application/GUIApplicationContext.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <score/tools/File.hpp>
@@ -11,9 +9,6 @@
 #include <core/plugin/PluginManager.hpp>
 
 #include <ossia/detail/algorithms.hpp>
-
-#include <boost/concept/usage.hpp>
-#include <boost/range/algorithm/find_if.hpp>
 
 #include <QCoreApplication>
 #include <QDir>

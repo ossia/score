@@ -9,8 +9,6 @@
 
 #include <ossia/detail/flat_map.hpp>
 
-#include <boost/assign/list_of.hpp>
-
 #include <QBrush>
 #include <QColor>
 #include <QGuiApplication>

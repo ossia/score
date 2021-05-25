@@ -1,6 +1,5 @@
 #include "ApplicationPlugin.hpp"
 
-#include <Audio/AudioDevice.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Media/Effect/Settings/Model.hpp>
@@ -8,8 +7,6 @@
 #include <Vst/Loader.hpp>
 
 #include <score/tools/Bind.hpp>
-
-#include <ossia/audio/audio_protocol.hpp>
 
 #include <QDirIterator>
 #include <QFileInfo>

@@ -8,7 +8,6 @@ namespace score
 class Document;
 class DocumentDelegateFactory;
 class DocumentDelegateView;
-class PanelView;
 
 /**
  * @brief The DocumentView class shows a document.

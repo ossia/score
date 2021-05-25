@@ -16,7 +16,6 @@
 #include <score/widgets/Pixmap.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
-#include <core/command/CommandStack.hpp>
 #include <core/command/CommandStackSerialization.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentBackups.hpp>
@@ -39,7 +38,6 @@
 #include <QStringList>
 
 #include <multi_index/hashed_index.hpp>
-#include <multi_index/identity.hpp>
 #include <multi_index/mem_fun.hpp>
 #include <multi_index/member.hpp>
 #include <multi_index_container.hpp>

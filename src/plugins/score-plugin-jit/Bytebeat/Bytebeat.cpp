@@ -6,18 +6,13 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
-#include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/port.hpp>
 
-#include <QDialog>
-#include <QDialogButtonBox>
 #include <QPlainTextEdit>
-#include <QPushButton>
 #include <QSyntaxStyle>
 #include <QVBoxLayout>
 
 #include <JitCpp/Compiler/Driver.hpp>
-#include <JitCpp/EditScript.hpp>
 #include <wobjectimpl.h>
 
 #include <iostream>

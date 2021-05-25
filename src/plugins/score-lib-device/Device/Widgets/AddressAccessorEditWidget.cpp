@@ -10,12 +10,10 @@
 #include <State/Widgets/UnitWidget.hpp>
 
 #include <score/document/DocumentContext.hpp>
-#include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SetIcons.hpp>
 
 #include <ossia/network/common/destination_qualifiers.hpp>
-#include <ossia/network/value/value.hpp>
 
 #include <QMenuView/qmenuview.h>
 #include <QVBoxLayout>

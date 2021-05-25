@@ -5,7 +5,6 @@
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
-#include <score/selection/Selection.hpp>
 
 #include <core/document/DocumentModel.hpp>
 class QObject;

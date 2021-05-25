@@ -2,12 +2,10 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DocumentBuilder.hpp"
 
-#include <score/application/ApplicationComponents.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/plugins/ProjectSettings/ProjectSettingsFactory.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/RandomNameProvider.hpp>
 #include <score/widgets/MessageBox.hpp>
 
@@ -19,11 +17,9 @@
 #include <core/view/Window.hpp>
 
 #include <QByteArray>
-#include <QDebug>
 #include <QDir>
 #include <QObject>
 #include <QString>
-#include <QVariant>
 
 #include <stdexcept>
 

@@ -4,11 +4,9 @@
 
 #include <ossia/detail/algorithms.hpp>
 
-#include <QEvent>
 #include <QGraphicsView>
 #include <QMouseEvent>
 #include <QPainter>
-#include <QPointer>
 namespace score
 {
 

@@ -6,11 +6,8 @@
 
 #include <QApplication>
 #include <QCommandLineParser>
-#include <QDebug>
 #include <QDir>
 #include <QDirIterator>
-//#include <QQuickWidget>
-#include <QThread>
 
 #include <JitCpp/ApplicationPlugin.hpp>
 #include <JitCpp/MetadataGenerator.hpp>

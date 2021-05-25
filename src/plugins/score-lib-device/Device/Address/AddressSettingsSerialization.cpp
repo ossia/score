@@ -5,8 +5,6 @@
 #include <Device/Address/ClipMode.hpp>
 #include <Device/Address/IOType.hpp>
 #include <State/Domain.hpp>
-#include <State/Value.hpp>
-#include <State/ValueSerialization.hpp>
 
 #include <score/serialization/AnySerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>

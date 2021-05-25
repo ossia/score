@@ -2,8 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <State/Address.hpp>
 #include <State/AddressParser.hpp>
-#include <State/Expression.hpp>
-#include <State/Relation.hpp>
 #include <State/Unit.hpp>
 #include <State/UpdateAddress.hpp>
 

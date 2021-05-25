@@ -5,7 +5,6 @@
 #include <Device/Node/DeviceNode.hpp>
 #include <State/Address.hpp>
 #include <State/Message.hpp>
-#include <State/Value.hpp>
 
 #include <ossia/network/common/destination_qualifiers.hpp>
 #include <ossia/network/domain/domain.hpp>

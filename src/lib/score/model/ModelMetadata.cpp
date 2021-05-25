@@ -4,10 +4,8 @@
 #include "ModelMetadata.hpp"
 
 #include <score/model/IdentifiedObject.hpp>
-#include <score/serialization/AnySerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
-#include <score/serialization/MapSerialization.hpp>
 
 #include <ossia-qt/js_utilities.hpp>
 #include <ossia/network/base/name_validation.hpp>

@@ -1,10 +1,8 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <score/application/ApplicationContext.hpp>
 #include <score/model/IdentifiedObjectAbstract.hpp>
 #include <score/model/path/ObjectIdentifier.hpp>
 #include <score/model/path/ObjectPath.hpp>
-#include <score/tools/std/Optional.hpp>
 
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
@@ -17,8 +15,6 @@
 #include <QObject>
 #include <QStringBuilder>
 #include <qnamespace.h>
-
-#include <sys/types.h>
 
 #include <stdexcept>
 #include <typeinfo>

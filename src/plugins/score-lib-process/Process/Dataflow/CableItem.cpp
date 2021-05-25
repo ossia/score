@@ -6,7 +6,6 @@
 #include <Process/ProcessContext.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 
-#include <score/document/DocumentContext.hpp>
 #include <score/graphics/PainterPath.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/selection/SelectionStack.hpp>
