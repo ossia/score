@@ -24,7 +24,7 @@ struct DocumentContext;
 }
 namespace ossia
 {
-class loop;
+class scenario;
 class time_interval;
 }
 namespace Scenario
@@ -80,6 +80,7 @@ public:
   static const constexpr bool is_unique = true;
   IntervalComponentBase(
       Scenario::IntervalModel& score_cst,
+      const std::shared_ptr<ossia::scenario>& scenar,
       const Context& ctx,
       QObject* parent);
   IntervalComponentBase(const IntervalComponentBase&) = delete;

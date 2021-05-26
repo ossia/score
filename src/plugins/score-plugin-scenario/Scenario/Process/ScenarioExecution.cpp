@@ -344,9 +344,12 @@ IntervalComponent*
 ScenarioComponentBase::make<IntervalComponent, Scenario::IntervalModel>(
     Scenario::IntervalModel& cst)
 {
+  std::shared_ptr<ossia::scenario> proc
+      = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
+
   // Create the mapping object
   std::shared_ptr<IntervalComponent> elt
-      = std::make_shared<IntervalComponent>(cst, m_ctx,  this);
+      = std::make_shared<IntervalComponent>(cst, proc, m_ctx, this);
   m_ossia_intervals.insert({cst.id(), elt});
 
   // Find the elements related to this interval.
@@ -371,12 +374,8 @@ ScenarioComponentBase::make<IntervalComponent, Scenario::IntervalModel>(
 
   elt->onSetup(elt, ossia_cst, dur);
 
-  // The adding of the time_interval has to be done in the edition thread.
-  std::shared_ptr<ossia::scenario> proc
-      = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
-
   m_ctx.executionQueue.enqueue(
-      [g = system().execGraph, proc, ossia_sev, ossia_eev, ossia_cst] {
+      [g = system().execGraph, proc, ossia_sev, ossia_eev, ossia_cst, prop=cst.outlet->propagate()] {
         if (auto sev = ossia_sev->OSSIAEvent())
           sev->next_time_intervals().push_back(ossia_cst);
         if (auto eev = ossia_eev->OSSIAEvent())
@@ -384,13 +383,16 @@ ScenarioComponentBase::make<IntervalComponent, Scenario::IntervalModel>(
 
         proc->add_time_interval(ossia_cst);
 
-        auto cable = ossia::make_edge(
-            ossia::immediate_glutton_connection{},
-            ossia_cst->node->root_outputs()[0],
-            proc->node->root_inputs()[0],
-            ossia_cst->node,
-            proc->node);
-        g->connect(cable);
+        if(prop)
+        {
+          auto cable = ossia::make_edge(
+              ossia::immediate_glutton_connection{},
+              ossia_cst->node->root_outputs()[0],
+              proc->node->root_inputs()[0],
+              ossia_cst->node,
+              proc->node);
+          g->connect(cable);
+        }
       });
   return elt.get();
 }

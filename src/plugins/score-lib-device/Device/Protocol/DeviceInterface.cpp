@@ -782,7 +782,7 @@ void DeviceInterface::request(const Device::Node& address)
   }
 }
 
-Device::Node DeviceInterface::getNode(const State::Address& address)
+Device::Node DeviceInterface::getNode(const State::Address& address) const
 {
   if (auto dev = getDevice())
   {
@@ -795,7 +795,7 @@ Device::Node DeviceInterface::getNode(const State::Address& address)
 }
 
 Device::Node
-DeviceInterface::getNodeWithoutChildren(const State::Address& address)
+DeviceInterface::getNodeWithoutChildren(const State::Address& address) const
 {
   if (auto dev = getDevice())
   {

@@ -101,8 +101,8 @@ public:
   void sendMessage(const State::Address& addr, const ossia::value& v);
 
   // Make a node from an inside path, if it has been added for instance.
-  Device::Node getNode(const State::Address&);
-  Device::Node getNodeWithoutChildren(const State::Address&);
+  Device::Node getNode(const State::Address&) const;
+  Device::Node getNodeWithoutChildren(const State::Address&) const;
 
   bool isLogging() const;
   void setLogging(DeviceLogging);

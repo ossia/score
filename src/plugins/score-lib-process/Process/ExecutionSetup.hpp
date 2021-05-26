@@ -190,9 +190,20 @@ struct SCORE_LIB_PROCESS_EXPORT SetupContext final
   score::hash_map<Id<Process::Cable>, std::shared_ptr<ossia::graph_edge>>
       m_cables;
 
+  struct RegisteredPorts
+  {
+    ossia::flat_map<Id<Process::Port>, QMetaObject::Connection> inlets;
+    ossia::flat_map<Id<Process::Port>, QMetaObject::Connection> outlets;
+    void clear() const noexcept
+    {
+      for(auto& con : inlets) QObject::disconnect(con.second);
+      for(auto& con : outlets) QObject::disconnect(con.second);
+    }
+  };
+
   score::hash_map<
       std::shared_ptr<ossia::graph_node>,
-      score::hash_map<Id<Process::Port>, QMetaObject::Connection>>
+      RegisteredPorts>
       runtime_connections;
   score::hash_map<const ossia::graph_node*, const Process::ProcessModel*>
       proc_map;

@@ -20,6 +20,7 @@
 #include <ossia/dataflow/nodes/forward_node.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
+#include <ossia/editor/scenario/scenario.hpp>
 
 #include <QDebug>
 
@@ -39,6 +40,7 @@ namespace Execution
 {
 IntervalComponentBase::IntervalComponentBase(
     Scenario::IntervalModel& score_cst,
+    const std::shared_ptr<ossia::scenario>& scenar,
     const Context& ctx,
     QObject* parent)
     : Scenario::GenericIntervalComponent<const Context>{
@@ -125,6 +127,48 @@ IntervalComponentBase::IntervalComponentBase(
             audio_out.pan = pan;
           });
       });
+
+  if(scenar)
+  {
+  con(*interval().outlet,
+      &Process::AudioOutlet::propagateChanged,
+      this,
+      [&, scenar](bool propag) {
+
+        if(m_ossia_interval)
+        {
+          std::weak_ptr<ossia::graph_interface> g = this->system().execGraph;
+          if(propag)
+          {
+            in_exec([g, cst=m_ossia_interval, scenar] {
+              if(auto graph = g.lock())
+              {
+                auto& cables = cst->node->root_outputs()[0]->cables();
+                SCORE_ASSERT(cables.size() == 0);
+                auto cable = ossia::make_edge(
+                    ossia::immediate_glutton_connection{},
+                    cst->node->root_outputs()[0],
+                    scenar->node->root_inputs()[0],
+                    cst->node,
+                    scenar->node);
+                graph->connect(cable);
+              }
+            });
+          }
+          else
+          {
+            in_exec([g, cst=m_ossia_interval] {
+              if(auto graph = g.lock())
+              {
+                auto& cables = cst->node->root_outputs()[0]->cables();
+                SCORE_ASSERT(cables.size() == 1);
+                graph->disconnect(cables.front());
+              }
+            });
+          }
+        }
+      });
+  }
   // TODO tempo, etc
 }
 
@@ -135,7 +179,9 @@ void IntervalComponent::init()
   if (m_interval)
   {
     if (interval().muted())
+    {
       OSSIAInterval()->mute(true);
+    }
     init_hierarchy();
 
     /* TODO put the include at the right place

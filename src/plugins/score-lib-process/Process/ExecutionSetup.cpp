@@ -168,7 +168,7 @@ void SetupContext::register_inlet_impl(
   SCORE_ASSERT(node);
   SCORE_ASSERT(ossia_port);
 
-  auto& runtime_connection = runtime_connections[node];
+  auto& runtime_connection = runtime_connections[node].inlets;
   auto& con = runtime_connection[proc_port.id()];
   QObject::disconnect(con);
   con = connect(
@@ -432,7 +432,7 @@ void SetupContext::register_outlet_impl(
 {
   SCORE_ASSERT(node);
   SCORE_ASSERT(ossia_port);
-  auto& runtime_connection = runtime_connections[node];
+  auto& runtime_connection = runtime_connections[node].outlets;
   auto& con = runtime_connection[proc_port.id()];
   QObject::disconnect(con);
   con = connect(
@@ -467,7 +467,7 @@ void SetupContext::unregister_inlet(
 {
   if (node)
   {
-    auto& runtime_connection = runtime_connections[node];
+    auto& runtime_connection = runtime_connections[node].inlets;
     auto it = runtime_connection.find(proc_port.id());
     if (it != runtime_connection.end())
     {
@@ -500,7 +500,7 @@ void SetupContext::unregister_outlet(
 {
   if (node)
   {
-    auto& runtime_connection = runtime_connections[node];
+    auto& runtime_connection = runtime_connections[node].outlets;
     auto it = runtime_connection.find(proc_port.id());
     if (it != runtime_connection.end())
     {
@@ -522,7 +522,7 @@ void SetupContext::unregister_inlet(
 {
   if (node)
   {
-    auto& runtime_connection = runtime_connections[node];
+    auto& runtime_connection = runtime_connections[node].inlets;
     auto it = runtime_connection.find(proc_port.id());
     if (it != runtime_connection.end())
     {
@@ -555,7 +555,7 @@ void SetupContext::unregister_outlet(
 {
   if (node)
   {
-    auto& runtime_connection = runtime_connections[node];
+    auto& runtime_connection = runtime_connections[node].outlets;
     auto it = runtime_connection.find(proc_port.id());
     if (it != runtime_connection.end())
     {
@@ -595,10 +595,7 @@ void SetupContext::unregister_node(
       node->clear();
     });
 
-    for (const auto& con : runtime_connections[node])
-    {
-      QObject::disconnect(con.second);
-    }
+    runtime_connections[node].clear();
     runtime_connections.erase(node);
 
     proc_map.erase(node.get());
@@ -625,10 +622,7 @@ void SetupContext::unregister_node(
       node->clear();
     });
 
-    for (const auto& con : runtime_connections[node])
-    {
-      QObject::disconnect(con.second);
-    }
+    runtime_connections[node].clear();
     runtime_connections.erase(node);
 
     proc_map.erase(node.get());
@@ -647,10 +641,7 @@ void SetupContext::unregister_node_soft(
 {
   if (node)
   {
-    for (const auto& con : runtime_connections[node])
-    {
-      QObject::disconnect(con.second);
-    }
+    runtime_connections[node].clear();
     runtime_connections.erase(node);
 
     proc_map.erase(node.get());

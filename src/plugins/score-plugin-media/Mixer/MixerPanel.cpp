@@ -3,6 +3,7 @@
 #include <Audio/AudioDevice.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Process/Commands/EditPort.hpp>
+#include <Process/Dataflow/AudioPortComboBox.hpp>
 
 #include <score/model/ComponentUtils.hpp>
 #include <score/model/Skin.hpp>
@@ -21,6 +22,7 @@
 #include <QPainter>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QComboBox>
 #include <QTabWidget>
 #include <QToolButton>
 #include <qlabel.h>
@@ -39,6 +41,7 @@ public:
   {
     setOrientation(Qt::Vertical);
     setMinimumSize(20, 50);
+    setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     setBorderWidth(0);
   }
   ~AudioSliderWidget() override { }
@@ -87,7 +90,7 @@ protected:
     const double hw = width() / 2.;
     const double w = hw * std::abs(ratio);
 
-    if (ratio <= 0)
+    if (ratio < 0)
     {
       p.drawRect(QRectF{hw - w, y, w, h});
       p.setPen(skin.SliderLine);
@@ -98,7 +101,7 @@ protected:
       p.setPen(skin.LightGray.main.pen0);
       p.drawText(rect(), "R  ", Qt::AlignRight | Qt::AlignVCenter);
     }
-    else
+    else if(ratio > 0)
     {
       p.drawRect(QRectF{hw, y, w, h});
       p.setPen(skin.SliderLine);
@@ -108,6 +111,15 @@ protected:
       p.setPen(skin.LightGray.main.pen0);
       p.drawText(rect(), "  L", Qt::AlignLeft | Qt::AlignVCenter);
       p.setPen(skin.SliderLine);
+      p.drawText(rect(), "R  ", Qt::AlignRight | Qt::AlignVCenter);
+    }
+    else if(ratio == 0)
+    {
+      p.drawRect(QRectF{hw, y, w, h});
+
+      p.setFont(skin.SansFontSmall);
+      p.setPen(skin.LightGray.main.pen0);
+      p.drawText(rect(), "  L", Qt::AlignLeft | Qt::AlignVCenter);
       p.drawText(rect(), "R  ", Qt::AlignRight | Qt::AlignVCenter);
     }
   }
@@ -166,6 +178,7 @@ class AudioBusWidget : public QWidget
 public:
   AudioBusWidget(
       const Scenario::IntervalModel* param,
+      const Dataflow::AudioDevice* dev,
       const score::DocumentContext& ctx,
       QWidget* parent)
       : QWidget{parent}
@@ -177,7 +190,7 @@ public:
       , m_model{param}
   {
     setMinimumSize(60, 140);
-    setMaximumSize(60, 140);
+    setMaximumSize(100, 400);
 
     m_title.setFlat(true);
 
@@ -198,14 +211,27 @@ public:
     m_panSlider.setToolTip("Pan control");
     m_panSlider.setWhatsThis(m_panSlider.whatsThis());
 
+    if(dev)
+    {
+      auto root = State::Address{"audio", {"out"}};
+      const auto& node = dev->getNode(root);
+      m_audioSelector = Process::makeAddressCombo(root, node, *param->outlet, ctx, parent);
+
+    }
+
     m_lay.addWidget(&m_title, 0, 0, 1, 2, Qt::AlignLeft);
     m_lay.addWidget(&m_gainSlider, 1, 0, 3, 1);
     m_lay.addWidget(&m_mute, 1, 1, 1, 1);
     m_lay.addWidget(&m_upmix, 2, 1, 1, 1);
     m_lay.addWidget(&m_propagate, 3, 1, 1, 1);
     m_lay.addWidget(&m_panSlider, 7, 0, 1, 2);
+    if(dev)
+    {
+      m_lay.addWidget(m_audioSelector, 8, 0, 1, 3);
+    }
     m_lay.setContentsMargins(3, 3, 3, 3);
     m_lay.setSpacing(4);
+    m_lay.setRowStretch(m_lay.rowCount(), 1);
 
     con(m_title, &QPushButton::clicked, this, [this] {
       score::SelectionDispatcher{m_context.selectionStack}.select(*m_model);
@@ -264,6 +290,7 @@ private:
   QPushButton m_mute{"M"};
   QPushButton m_upmix{"U"};
   QPushButton m_propagate{"P"};
+  QWidget* m_audioSelector{};
   const Scenario::IntervalModel* m_model{};
 };
 
@@ -303,6 +330,8 @@ public:
   score::MarginLess<QHBoxLayout> m_busLayout;
   std::vector<QWidget*> m_busWidgets;
 
+  Dataflow::AudioDevice* m_currentDevice{};
+
   MixerPanel(const score::DocumentContext& ctx, QWidget* parent)
       : QTabWidget{parent}
       , ctx{ctx}
@@ -339,17 +368,17 @@ public:
     m_busArea.setWidget(&m_busWidget);
     setup_tab(m_busArea);
 
-    this->addTab(&m_physicalInArea, "Physical\ninputs");
+    this->addTab(&m_physicalInArea, "Ins");
     m_physicalInArea.setWidget(&m_physicalInWidget);
     setup_tab(m_physicalInArea);
-    this->addTab(&m_physicalOutArea, "Physical\noutputs");
+    this->addTab(&m_physicalOutArea, "Outs");
     m_physicalOutArea.setWidget(&m_physicalOutWidget);
     setup_tab(m_physicalOutArea);
 
-    this->addTab(&m_mappingInArea, "Mapping\ninputs");
+    this->addTab(&m_mappingInArea, "Map ins");
     m_mappingInArea.setWidget(&m_mappingInWidget);
     setup_tab(m_mappingInArea);
-    this->addTab(&m_mappingOutArea, "Mapping\noutputs");
+    this->addTab(&m_mappingOutArea, "Map outs");
     m_mappingOutArea.setWidget(&m_mappingOutWidget);
     setup_tab(m_mappingOutArea);
 
@@ -363,6 +392,7 @@ public:
       auto dev = static_cast<Dataflow::AudioDevice*>(audio);
       connect(dev, &Dataflow::AudioDevice::changed, this, [=] {
         setupDevice(dev);
+        setupBuses();
       });
       setupDevice(dev);
     }
@@ -467,6 +497,8 @@ public:
 
     m_virtualWidget.setMinimumSize((proto.virtaudio.size()) * width, 150);
     m_virtualLayout.addStretch(1);
+
+    m_currentDevice = dev;
   }
 
   void setupBuses()
@@ -480,7 +512,7 @@ public:
     int i = 0;
     for (auto bus : plug.busIntervals)
     {
-      auto w = new AudioBusWidget{bus, ctx, &m_busWidget};
+      auto w = new AudioBusWidget{bus, m_currentDevice, ctx, &m_busWidget};
       m_busLayout.addWidget(w);
       m_busWidgets.push_back(w);
     }

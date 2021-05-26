@@ -81,7 +81,7 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
       this);
 
   m_ossia_interval = std::make_shared<IntervalComponent>(
-      element.interval(), m_ctx, this);
+      element.interval(), std::shared_ptr<ossia::scenario>{}, m_ctx, this);
 
   m_ossia_startTimeSync->onSetup(
       main_start_node, m_ossia_startTimeSync->makeTrigger());
