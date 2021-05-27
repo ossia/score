@@ -24,6 +24,7 @@ public:
   bool setup(const Box&, const RecordListening&) override;
   void stop() override;
 
+  int count() { return 1; }
 public:
   void firstMessageReceived() W_SIGNAL(firstMessageReceived);
 

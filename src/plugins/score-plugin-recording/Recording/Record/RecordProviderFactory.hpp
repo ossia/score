@@ -145,8 +145,7 @@ public:
     //// Start the record timer ////
     ctx.timer.stop();
     ctx.timer.setTimerType(Qt::PreciseTimer);
-    ctx.timer.setInterval(
-        16.66 * 4); // TODO ReasonableUpdateInterval(curve_count));
+    ctx.timer.setInterval(ReasonableUpdateInterval(recorder.count()));
     QObject::connect(&ctx.timer, &QTimer::timeout, this, [&, box]() {
       // Move end event by the current duration.
       auto& cur_date = box.interval.date();

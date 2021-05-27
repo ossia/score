@@ -32,6 +32,10 @@ public:
   bool setup(const Box&, const RecordListening&) override;
   void stop() override;
 
+  int count() {
+    return numeric_records.size() + vec2_records.size() + vec3_records.size() + vec4_records.size() + list_records.size();
+  }
+
   void commit();
 
   score::hash_map<State::Address, RecordData> numeric_records;
