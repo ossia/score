@@ -20,6 +20,8 @@
 #include <Fx/EmptyMapping.hpp>
 #include <Fx/Envelope.hpp>
 #include <Fx/FactorOracle.hpp>
+#include <Fx/FactorOracle2.hpp>
+#include <Fx/FactorOracle2MIDI.hpp>
 #include <Fx/Gain.hpp>
 #include <Fx/LFO.hpp>
 #include <Fx/Looper.hpp>
@@ -68,6 +70,8 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_fx::factories(
       Nodes::EmptyMidiMapping::Node,
       Nodes::EmptyAudioMapping::Node,
       Nodes::FactorOracle::Node,
+      Nodes::FactorOracle2::Node,
+      Nodes::FactorOracle2MIDI::Node,
       Nodes::PitchToValue::Node,
       Nodes::AudioLooper::Node>(ctx, key);
 }
