@@ -4,14 +4,18 @@
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Recording/Record/RecordTools.hpp>
 
+#include <core/document/DocumentView.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 #include <score/plugins/Interface.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 #include <score/tools/ObjectMatches.hpp>
 
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <score_plugin_recording_export.h>
 
 #include <verdigris>
+#include <QApplication>
 
 namespace Scenario
 {
@@ -65,7 +69,10 @@ public:
   void startTimer() W_SIGNAL(startTimer);
 
 public:
-  void on_startTimer() { timer.start(); };
+  void on_startTimer() {
+    context.document.view()->viewDelegate().getWidget()->setEnabled(false);
+    timer.start();
+  }
   W_SLOT(on_startTimer)
 };
 
@@ -142,11 +149,12 @@ public:
         16.66 * 4); // TODO ReasonableUpdateInterval(curve_count));
     QObject::connect(&ctx.timer, &QTimer::timeout, this, [&, box]() {
       // Move end event by the current duration.
+      auto& cur_date = box.interval.date();
       box.moveCommand.update(
           ctx.scenario,
           {},
           box.endEvent,
-          ctx.point.date + GetTimeDifference(ctx.firstValueTime),
+          cur_date + GetTimeDifference(ctx.firstValueTime),
           0,
           true);
 
@@ -166,13 +174,14 @@ public:
 
   void stop()
   {
-    auto& ctx = recorder.context;
+    RecordContext& ctx = recorder.context;
     ctx.timer.stop();
 
     recorder.stop();
 
     ctx.explorer.deviceModel().listening().restore(); // Commit
     ctx.dispatcher.commit();
+    ctx.context.document.view()->viewDelegate().getWidget()->setEnabled(true);
   }
 
 private:

@@ -92,7 +92,7 @@ public:
         theCmd->addCommand(cmd);
       }
 
-      SendStrategy::UndoRedo::send(stack(), theCmd);
+      SendStrategy::Quiet::send(stack(), theCmd);
       m_cmds.clear();
 
       stack().enableActions();
