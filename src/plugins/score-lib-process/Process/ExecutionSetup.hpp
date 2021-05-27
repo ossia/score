@@ -5,6 +5,7 @@
 #include <score/tools/std/HashMap.hpp>
 
 #include <ossia/detail/small_vector.hpp>
+#include <ossia/detail/flat_map.hpp>
 
 #include <QMetaObject>
 
