@@ -61,9 +61,6 @@ public:
   DefaultShaderMaterial m_material;
   int64_t materialChangedIndex{-1};
 
-  friend struct Graph;
-  friend struct RenderList;
-
   TextureRenderTarget createRenderTarget(const RenderState& state);
   TextureRenderTarget renderTarget() const noexcept override { return m_rt; }
 

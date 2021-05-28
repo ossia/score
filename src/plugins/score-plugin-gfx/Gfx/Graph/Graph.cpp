@@ -52,7 +52,7 @@ void Graph::createAllRenderLists(GraphicsApi graphicsApi)
   {
     renderer->release();
 
-    for (auto rn : renderer->renderedNodes)
+    for (auto rn : renderer->renderers)
       delete rn;
   }
 
@@ -132,7 +132,7 @@ void Graph::relinkGraph()
     r.nodes.clear();
     r.nodes.push_back(out);
 
-    r.renderedNodes.clear();
+    r.renderers.clear();
 
     auto& model_nodes = r.nodes;
     {
@@ -162,7 +162,7 @@ void Graph::relinkGraph()
             rn->init(r);
           }
           SCORE_ASSERT(rn);
-          r.renderedNodes.push_back(rn);
+          r.renderers.push_back(rn);
         }
       }
       else if (model_nodes.size() == 1)
@@ -172,7 +172,7 @@ void Graph::relinkGraph()
         rn->release(r);
       }
     }
-    r.output->onRendererChange();
+    r.output.onRendererChange();
   }
 }
 
@@ -189,7 +189,7 @@ static void createNodeRenderer(score::gfx::Node& node, RenderList& r)
   auto rn = node.createRenderer(r);
 
   // Register the node with the renderer
-  r.renderedNodes.push_back(rn);
+  r.renderers.push_back(rn);
 
   // Register the rendered nodes with their parents
   node.renderedNodes[&r] = rn;
@@ -198,15 +198,11 @@ static void createNodeRenderer(score::gfx::Node& node, RenderList& r)
 std::shared_ptr<RenderList>
 Graph::createRenderList(OutputNode* output, RenderState state)
 {
-  auto ptr = std::make_shared<RenderList>();
+  auto ptr = std::make_shared<RenderList>(*output, state);
   for (auto& node : m_nodes)
     node->addedToGraph = false;
 
   RenderList& r = *ptr;
-  r.output = output;
-  output->setRenderer(ptr.get());
-  r.state = std::move(state);
-
   auto& model_nodes = r.nodes;
   {
     model_nodes.push_back(output);
@@ -235,7 +231,7 @@ Graph::createRenderList(OutputNode* output, RenderState state)
 
     if (model_nodes.size() > 1)
     {
-      for (auto rn : r.renderedNodes)
+      for (auto rn : r.renderers)
         rn->init(r);
     }
   }

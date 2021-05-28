@@ -45,7 +45,7 @@ static_assert(sizeof(ModelCameraUBO) == sizeof(float) * (16 + 16 + 16 + 16 + 16 
 /**
  * @brief UBO shared across all entities shown on the same output.
  */
-packed_struct ScreenUBO
+packed_struct OutputUBO
 {
   float clipSpaceCorrMatrix[16]{};
   float texcoordAdjust[2]{};

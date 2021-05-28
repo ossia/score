@@ -4,7 +4,10 @@
 class QOffscreenSurface;
 namespace score::gfx
 {
-struct RenderList;
+class RenderList;
+/**
+ * @brief Available graphics APIs to use
+ */
 enum GraphicsApi
 {
   Null,
@@ -14,6 +17,10 @@ enum GraphicsApi
   Metal
 };
 class Window;
+
+/**
+ * @brief Global state associated to a rendering context.
+ */
 struct RenderState
 {
   QRhi* rhi{};

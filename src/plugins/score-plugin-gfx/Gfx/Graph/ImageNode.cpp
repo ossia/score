@@ -128,7 +128,7 @@ private:
           QRhiSampler::ClampToEdge);
 
       sampler->create();
-      auto tex = m_textures.empty() ? renderer.m_emptyTexture : m_textures.front();
+      auto tex = m_textures.empty() ? &renderer.emptyTexture() : m_textures.front();
       m_samplers.push_back({sampler, tex});
     }
   }

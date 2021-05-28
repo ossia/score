@@ -11,9 +11,17 @@
 
 namespace score::gfx
 {
+/**
+ * @brief Cache of baked QShader instances
+ */
 struct ShaderCache
 {
 public:
+  /**
+   * @brief Get a QShader from a source string.
+   *
+   * @return If there is an error message, it will be in the QString part of the pair.
+   */
   static const std::pair<QShader, QString>&
   get(const QByteArray& shader, QShader::Stage stage)
   {

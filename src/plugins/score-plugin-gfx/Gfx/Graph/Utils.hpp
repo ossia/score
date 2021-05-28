@@ -14,7 +14,7 @@ class Node;
 class NodeModel;
 struct Port;
 struct Edge;
-struct RenderList;
+class RenderList;
 
 struct Sampler
 {

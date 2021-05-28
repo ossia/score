@@ -159,7 +159,7 @@ QRhiShaderResourceBindings* createDefaultBindings(
 
   {
     const auto rendererBinding = QRhiShaderResourceBinding::uniformBuffer(
-        0, bindingStages, renderer.m_rendererUBO);
+        0, bindingStages, &renderer.outputUBO());
     bindings.push_back(rendererBinding);
   }
 
@@ -188,7 +188,7 @@ QRhiShaderResourceBindings* createDefaultBindings(
     // For cases where we do multi-pass rendering, set "this pass"'s input texture
     // to an empty texture instead as we can't output to an input texture
     if (actual_texture == rt.texture)
-      actual_texture = renderer.m_emptyTexture;
+      actual_texture = &renderer.emptyTexture();
 
     bindings.push_back(QRhiShaderResourceBinding::sampledTexture(
         binding,

@@ -134,7 +134,7 @@ void ScreenNode::startRendering()
     m_window->onRender = [this](QRhiCommandBuffer& commands) {
       if (auto r = m_window->state.renderer)
       {
-        m_window->m_canRender = r->renderedNodes.size() > 1;
+        m_window->m_canRender = r->renderers.size() > 1;
         r->render(commands);
       }
     };
@@ -145,8 +145,9 @@ void ScreenNode::onRendererChange()
 {
   if (m_window)
     if (auto r = m_window->state.renderer)
-      m_window->m_canRender = r->renderedNodes.size() > 1;
+      m_window->m_canRender = r->renderers.size() > 1;
 }
+
 void ScreenNode::stopRendering()
 {
   if (m_window)

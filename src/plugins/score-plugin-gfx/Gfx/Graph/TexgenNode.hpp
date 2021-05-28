@@ -115,13 +115,6 @@ struct TexgenNode : NodeModel
       texture = nullptr;
     }
 
-    /*
-    std::optional<QSize> renderTargetSize() const noexcept override
-    {
-      auto& decoder = *static_cast<const RGB0Node&>(node).decoder;
-      const auto w = decoder.width(), h = decoder.height();
-      return QSize{w, h};
-    }*/
     int t = 0;
   };
 

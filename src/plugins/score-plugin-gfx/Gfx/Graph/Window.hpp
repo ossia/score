@@ -9,6 +9,8 @@ struct ScreenNode;
 
 /**
  * @brief A platform window in which the content is going to be rendered
+ *
+ * Created by ScreenNode.
  */
 class Window : public QWindow
 {

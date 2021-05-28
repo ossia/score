@@ -26,7 +26,7 @@ VideoNodeRenderer::VideoNodeRenderer(const VideoNode& node) noexcept
 
 VideoNodeRenderer::~VideoNodeRenderer()
 {
-  auto& decoder = *static_cast<const VideoNode&>(node).m_decoder;
+  auto& decoder = *m_decoder;
   for (auto frame : m_framesToFree)
     decoder.release_frame(frame);
 }
@@ -233,7 +233,7 @@ void VideoNodeRenderer::update(RenderList& renderer, QRhiResourceUpdateBatch& re
       m_processUBO, 0, sizeof(ProcessUBO), &this->node.standardUBO);
 
   auto& nodem = const_cast<VideoNode&>(static_cast<const VideoNode&>(node));
-  auto& decoder = *nodem.m_decoder;
+  auto& decoder = *m_decoder;
   for (auto frame : m_framesToFree)
     decoder.release_frame(frame);
   m_framesToFree.clear();

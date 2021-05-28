@@ -4,7 +4,7 @@
 namespace score::gfx
 {
 /**
- * @brief This node is used for rendering to a window.
+ * @brief This node is used for rendering to a score::gfx::Window.
  */
 struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
 {

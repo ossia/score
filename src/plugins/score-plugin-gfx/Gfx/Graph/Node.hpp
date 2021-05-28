@@ -17,7 +17,7 @@
 
 namespace score::gfx
 {
-struct RenderList;
+class RenderList;
 struct Graph;
 class GenericNodeRenderer;
 class NodeRenderer;

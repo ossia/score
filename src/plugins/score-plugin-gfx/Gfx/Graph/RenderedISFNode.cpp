@@ -144,7 +144,7 @@ initAudioTextures(RenderList& renderer, std::list<AudioTexture>& textures)
         QRhiSampler::ClampToEdge);
     sampler->create();
 
-    samplers.push_back({sampler, renderer.m_emptyTexture});
+    samplers.push_back({sampler, &renderer.emptyTexture()});
     texture.samplers[&renderer] = {sampler, nullptr};
   }
   return samplers;
@@ -297,6 +297,7 @@ void RenderedISFNode::update(
           for (auto& pass : m_passes)
           {
             score::gfx::replaceTexture(*pass.p.srb, cur_texture, new_texture);
+            // TODO we must also update the texture size in the material.
           }
         }
       }
@@ -329,7 +330,7 @@ void RenderedISFNode::releaseWithoutRenderTarget(RenderList& r)
       {
         if (auto tex = it->second.texture)
         {
-          if (tex != r.m_emptyTexture)
+          if (tex != &r.emptyTexture())
             tex->deleteLater();
         }
       }
@@ -579,7 +580,7 @@ void AudioTextureUpload::updateAudioTexture(
       score::gfx::replaceTexture(
           *pass.p.srb,
           rhiSampler,
-          rhiTexture ? rhiTexture : renderer.m_emptyTexture);
+          rhiTexture ? rhiTexture : &renderer.emptyTexture());
   }
 
   if (rhiTexture)
