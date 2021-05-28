@@ -7,6 +7,9 @@
 
 namespace score::gfx
 {
+/**
+ * @brief Base class for HAP ((c) Vidvox) decoding
+ */
 struct HAPDecoder : GPUVideoDecoder
 {
   struct HAPSection
@@ -105,7 +108,7 @@ struct HAPDecoder : GPUVideoDecoder
 
     QRhiTextureUploadDescription desc{entry};
 
-    auto y_tex = m_samplers[0].texture;
+    auto y_tex = samplers[0].texture;
     res.uploadTexture(y_tex, desc);
   }
 
@@ -126,7 +129,7 @@ struct HAPDecoder : GPUVideoDecoder
 
     QRhiTextureUploadDescription desc{entry};
 
-    auto y_tex = m_samplers[0].texture;
+    auto y_tex = samplers[0].texture;
     res.uploadTexture(y_tex, desc);
   }
 
@@ -135,6 +138,9 @@ struct HAPDecoder : GPUVideoDecoder
       = std::make_unique<char[]>(1024 * 1024 * 16);
 };
 
+/**
+ * @brief Decodes HAP basic format.
+ */
 struct HAPDefaultDecoder : HAPDecoder
 {
   static inline const QString fragment = QStringLiteral(R"_(#version 450
@@ -209,13 +215,16 @@ void main ()
           QRhiSampler::ClampToEdge,
           QRhiSampler::ClampToEdge);
       sampler->create();
-      m_samplers.push_back({sampler, tex});
+      samplers.push_back({sampler, tex});
     }
 
     return shaders;
   }
 };
 
+/**
+ * @brief Decodes HAP-M (HAP + alpha channel)
+ */
 struct HAPMDecoder : HAPDecoder
 {
   static inline const QString fragment = QStringLiteral(R"_(#version 450
@@ -286,7 +295,7 @@ void main ()
           QRhiSampler::ClampToEdge,
           QRhiSampler::ClampToEdge);
       sampler->create();
-      m_samplers.push_back({sampler, tex});
+      samplers.push_back({sampler, tex});
     }
     // Alpha texture
     {
@@ -301,7 +310,7 @@ void main ()
           QRhiSampler::ClampToEdge,
           QRhiSampler::ClampToEdge);
       sampler->create();
-      m_samplers.push_back({sampler, tex});
+      samplers.push_back({sampler, tex});
     }
 
     return shaders;
@@ -354,12 +363,12 @@ void main ()
       {
         setPixels(
             res,
-            m_samplers[0].texture,
+            samplers[0].texture,
             (const uint8_t*)ycocg_output,
             ycocg_outBytesUsed);
         setPixels(
             res,
-            m_samplers[1].texture,
+            samplers[1].texture,
             (const uint8_t*)alpha_output,
             alpha_outBytesUsed);
       }

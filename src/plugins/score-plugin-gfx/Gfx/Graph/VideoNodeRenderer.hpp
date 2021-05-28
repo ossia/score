@@ -43,15 +43,16 @@ private:
   QRhiBuffer* m_processUBO{};
 
 
-  std::unique_ptr<GPUVideoDecoder> gpu;
-  std::shared_ptr<Video::VideoInterface> decoder;
-  std::vector<AVFrame*> framesToFree;
-  AVPixelFormat current_format = AVPixelFormat(-1);
-  int current_width{}, current_height{};
-  QElapsedTimer t;
+  std::unique_ptr<GPUVideoDecoder> m_gpu;
+  std::shared_ptr<Video::VideoInterface> m_decoder;
+  std::vector<AVFrame*> m_framesToFree;
+  AVPixelFormat m_currentFormat = AVPixelFormat(-1);
+  int m_currentWidth = 0;
+  int m_currentHeight = 0;
+  QElapsedTimer m_timer;
 
-  double lastFrameTime{};
-  double lastPlaybackTime{-1.};
+  double m_lastFrameTime{};
+  double m_lastPlaybackTime{-1.};
 };
 
 }

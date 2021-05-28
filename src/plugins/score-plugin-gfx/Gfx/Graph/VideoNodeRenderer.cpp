@@ -17,17 +17,17 @@ namespace score::gfx
 VideoNodeRenderer::VideoNodeRenderer(const VideoNode& node) noexcept
     : NodeRenderer{}
     , node{node}
-    , decoder{node.m_decoder} // TODO clone. But how to do for camera, etc. ?
-    , current_format{decoder->pixel_format}
-    , current_width{decoder->width}
-    , current_height{decoder->height}
+    , m_decoder{node.m_decoder} // TODO clone. But how to do for camera, etc. ?
+    , m_currentFormat{m_decoder->pixel_format}
+    , m_currentWidth{m_decoder->width}
+    , m_currentHeight{m_decoder->height}
 {
 }
 
 VideoNodeRenderer::~VideoNodeRenderer()
 {
   auto& decoder = *static_cast<const VideoNode&>(node).m_decoder;
-  for (auto frame : framesToFree)
+  for (auto frame : m_framesToFree)
     decoder.release_frame(frame);
 }
 
@@ -35,72 +35,72 @@ void VideoNodeRenderer::createGpuDecoder()
 {
   auto& model = (VideoNode&)(node);
   auto& filter = model.m_filter;
-  switch (current_format)
+  switch (m_currentFormat)
   {
     case AV_PIX_FMT_YUV420P:
-      gpu = std::make_unique<YUV420Decoder>(*decoder);
+      m_gpu = std::make_unique<YUV420Decoder>(*m_decoder);
       break;
     case AV_PIX_FMT_YUVJ422P:
     case AV_PIX_FMT_YUV422P:
-      gpu = std::make_unique<YUV422Decoder>(*decoder);
+      m_gpu = std::make_unique<YUV422Decoder>(*m_decoder);
       break;
     case AV_PIX_FMT_UYVY422:
-      gpu = std::make_unique<UYVY422Decoder>(*decoder);
+      m_gpu = std::make_unique<UYVY422Decoder>(*m_decoder);
       break;
     case AV_PIX_FMT_YUYV422:
-      gpu = std::make_unique<YUYV422Decoder>(*decoder);
+      m_gpu = std::make_unique<YUYV422Decoder>(*m_decoder);
       break;
     case AV_PIX_FMT_RGB0:
     case AV_PIX_FMT_RGBA:
-      gpu = std::make_unique<RGB0Decoder>(
-          QRhiTexture::RGBA8, *decoder, filter);
+      m_gpu = std::make_unique<RGB0Decoder>(
+          QRhiTexture::RGBA8, *m_decoder, filter);
       break;
     case AV_PIX_FMT_BGR0:
     case AV_PIX_FMT_BGRA:
-      gpu = std::make_unique<RGB0Decoder>(
-          QRhiTexture::BGRA8, *decoder, filter);
+      m_gpu = std::make_unique<RGB0Decoder>(
+          QRhiTexture::BGRA8, *m_decoder, filter);
       break;
 #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(56, 19, 100)
     case AV_PIX_FMT_GRAYF32LE:
     case AV_PIX_FMT_GRAYF32BE:
-      gpu = std::make_unique<RGB0Decoder>(
-          QRhiTexture::R32F, *decoder, filter);
+      m_gpu = std::make_unique<RGB0Decoder>(
+          QRhiTexture::R32F, *m_decoder, filter);
       break;
 #endif
     case AV_PIX_FMT_GRAY8:
-      gpu = std::make_unique<RGB0Decoder>(
-          QRhiTexture::R8, *decoder, filter);
+      m_gpu = std::make_unique<RGB0Decoder>(
+          QRhiTexture::R8, *m_decoder, filter);
       break;
     default:
     {
       // try to read format as a 4cc
-      std::string_view fourcc{(const char*)&current_format, 4};
+      std::string_view fourcc{(const char*)&m_currentFormat, 4};
 
       if (fourcc == "Hap1")
-        gpu = std::make_unique<HAPDefaultDecoder>(
-            QRhiTexture::BC1, *decoder, filter);
+        m_gpu = std::make_unique<HAPDefaultDecoder>(
+            QRhiTexture::BC1, *m_decoder, filter);
       else if (fourcc == "Hap5")
-        gpu = std::make_unique<HAPDefaultDecoder>(
-            QRhiTexture::BC3, *decoder, filter);
+        m_gpu = std::make_unique<HAPDefaultDecoder>(
+            QRhiTexture::BC3, *m_decoder, filter);
       else if (fourcc == "HapY")
-        gpu = std::make_unique<HAPDefaultDecoder>(
+        m_gpu = std::make_unique<HAPDefaultDecoder>(
             QRhiTexture::BC3,
-            *decoder,
+            *m_decoder,
             HAPDefaultDecoder::ycocg_filter + filter);
       else if (fourcc == "HapM")
-        gpu = std::make_unique<HAPMDecoder>(*decoder, filter);
+        m_gpu = std::make_unique<HAPMDecoder>(*m_decoder, filter);
       else if (fourcc == "HapA")
-        gpu = std::make_unique<HAPDefaultDecoder>(
-            QRhiTexture::BC4, *decoder, filter);
+        m_gpu = std::make_unique<HAPDefaultDecoder>(
+            QRhiTexture::BC4, *m_decoder, filter);
       else if (fourcc == "Hap7")
-        gpu = std::make_unique<HAPDefaultDecoder>(
-            QRhiTexture::BC7, *decoder, filter);
+        m_gpu = std::make_unique<HAPDefaultDecoder>(
+            QRhiTexture::BC7, *m_decoder, filter);
 
-      if (!gpu)
+      if (!m_gpu)
       {
         qDebug() << "Unhandled pixel format: "
-                 << av_get_pix_fmt_name(current_format);
-        gpu = std::make_unique<EmptyDecoder>();
+                 << av_get_pix_fmt_name(m_currentFormat);
+        m_gpu = std::make_unique<EmptyDecoder>();
       }
       break;
     }
@@ -109,17 +109,17 @@ void VideoNodeRenderer::createGpuDecoder()
 
 void VideoNodeRenderer::setupGpuDecoder(RenderList& r)
 {
-  if (gpu)
+  if (m_gpu)
   {
-    gpu->release(r);
+    m_gpu->release(r);
     delete m_p.pipeline;
     m_p.pipeline = nullptr;
   }
   createGpuDecoder();
 
-  if (gpu)
+  if (m_gpu)
   {
-    auto shaders = gpu->init(r);
+    auto shaders = m_gpu->init(r);
     m_p = score::gfx::buildPipeline(
         r,
         node.mesh(),
@@ -128,19 +128,19 @@ void VideoNodeRenderer::setupGpuDecoder(RenderList& r)
         m_rt,
         m_processUBO,
         nullptr,
-        gpu->m_samplers);
+        m_gpu->samplers);
   }
 }
 
 void VideoNodeRenderer::checkFormat(RenderList& r, AVPixelFormat fmt, int w, int h)
 {
   // TODO won't work if VK is threaded and there are multiple windows
-  if (!gpu || fmt != current_format || w != current_width
-      || h != current_height)
+  if (!m_gpu || fmt != m_currentFormat || w != m_currentWidth
+      || h != m_currentHeight)
   {
-    current_format = fmt;
-    current_width = w;
-    current_height = h;
+    m_currentFormat = fmt;
+    m_currentWidth = w;
+    m_currentHeight = h;
     setupGpuDecoder(r);
   }
 }
@@ -178,14 +178,14 @@ void VideoNodeRenderer::init(RenderList& renderer)
   m_processUBO->create();
 #include <Gfx/Qt5CompatPop> // clang-format: keep
 
-  if (!gpu)
+  if (!m_gpu)
   {
     createGpuDecoder();
   }
 
-  if (gpu)
+  if (m_gpu)
   {
-    auto shaders = gpu->init(renderer);
+    auto shaders = m_gpu->init(renderer);
     if (!m_p.pipeline)
     {
       // Build the pipeline
@@ -197,7 +197,7 @@ void VideoNodeRenderer::init(RenderList& renderer)
           m_rt,
           m_processUBO,
           nullptr,
-          gpu->m_samplers);
+          m_gpu->samplers);
     }
   }
 }
@@ -234,9 +234,9 @@ void VideoNodeRenderer::update(RenderList& renderer, QRhiResourceUpdateBatch& re
 
   auto& nodem = const_cast<VideoNode&>(static_cast<const VideoNode&>(node));
   auto& decoder = *nodem.m_decoder;
-  for (auto frame : framesToFree)
+  for (auto frame : m_framesToFree)
     decoder.release_frame(frame);
-  framesToFree.clear();
+  m_framesToFree.clear();
 
   // TODO
   auto mustReadFrame = [this, &decoder, &nodem] {
@@ -245,14 +245,14 @@ void VideoNodeRenderer::update(RenderList& renderer, QRhiResourceUpdateBatch& re
       tempoRatio = (*nodem.m_nativeTempo) / 120.;
 
     auto current_time = nodem.standardUBO.time * tempoRatio; // In seconds
-    auto next_frame_time = lastFrameTime;
+    auto next_frame_time = m_lastFrameTime;
 
     // pause
-    if (nodem.standardUBO.time == lastPlaybackTime)
+    if (nodem.standardUBO.time == m_lastPlaybackTime)
     {
       return false;
     }
-    lastPlaybackTime = nodem.standardUBO.time;
+    m_lastPlaybackTime = nodem.standardUBO.time;
 
     // what more can we do ?
     const double inv_fps
@@ -260,7 +260,7 @@ void VideoNodeRenderer::update(RenderList& renderer, QRhiResourceUpdateBatch& re
     next_frame_time += inv_fps;
 
     const bool we_are_late = current_time > next_frame_time;
-    const bool timer = t.elapsed() > (1000. * inv_fps);
+    const bool timer = m_timer.elapsed() > (1000. * inv_fps);
 
     //const bool we_are_in_advance = std::abs(current_time - next_frame_time) > (2. * inv_fps);
     //const bool seeked = nodem.seeked.exchange(false);
@@ -277,21 +277,21 @@ void VideoNodeRenderer::update(RenderList& renderer, QRhiResourceUpdateBatch& re
           static_cast<AVPixelFormat>(frame->format),
           frame->width,
           frame->height);
-      if (gpu)
+      if (m_gpu)
       {
-        gpu->exec(renderer, res, *frame);
+        m_gpu->exec(renderer, res, *frame);
       }
 
       int64_t ts = frame->best_effort_timestamp;
-      lastFrameTime
+      m_lastFrameTime
           = (decoder.flicks_per_dts * ts) / ossia::flicks_per_second<double>;
 
-      //qDebug() << lastFrameTime << node.standardUBO.time;
-      //qDebug() << (lastFrameTime - nodem.standardUBO.time);
+      //qDebug() << m_lastFrameTime << node.standardUBO.time;
+      //qDebug() << (m_lastFrameTime - nodem.standardUBO.time);
 
-      framesToFree.push_back(frame);
+      m_framesToFree.push_back(frame);
     }
-    t.restart();
+    m_timer.restart();
   }
 }
 
@@ -303,8 +303,8 @@ void VideoNodeRenderer::release(RenderList& r)
 
 void VideoNodeRenderer::releaseWithoutRenderTarget(RenderList& r)
 {
-  if (gpu)
-    gpu->release(r);
+  if (m_gpu)
+    m_gpu->release(r);
 
   delete m_processUBO;
   m_processUBO = nullptr;

@@ -51,7 +51,6 @@ void RenderList::init()
 
 void RenderList::release()
 {
-
   for (auto node : renderedNodes)
     node->release(*this);
 

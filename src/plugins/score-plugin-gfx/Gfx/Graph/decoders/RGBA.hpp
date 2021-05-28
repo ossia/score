@@ -48,9 +48,11 @@ struct RGB0Decoder : GPUVideoDecoder
     const auto w = decoder.width, h = decoder.height;
 
     {
+      // Create a texture
       auto tex = rhi.newTexture(format, QSize{w, h}, 1, QRhiTexture::Flag{});
       tex->create();
 
+      // Create a sampler
       auto sampler = rhi.newSampler(
           QRhiSampler::Linear,
           QRhiSampler::Linear,
@@ -58,7 +60,9 @@ struct RGB0Decoder : GPUVideoDecoder
           QRhiSampler::ClampToEdge,
           QRhiSampler::ClampToEdge);
       sampler->create();
-      m_samplers.push_back({sampler, tex});
+
+      // Store both
+      samplers.push_back({sampler, tex});
     }
 
     return score::gfx::makeShaders(TexturedTriangle::instance().defaultVertexShader(), QString(rgb_filter).arg(filter));
@@ -69,6 +73,7 @@ struct RGB0Decoder : GPUVideoDecoder
       QRhiResourceUpdateBatch& res,
       AVFrame& frame) override
   {
+    // Nothing particular, we just upload the whole buffer
     setPixels(res, frame.data[0], frame.linesize[0]);
   }
 
@@ -78,7 +83,7 @@ struct RGB0Decoder : GPUVideoDecoder
       int stride) const noexcept
   {
     const auto w = decoder.width, h = decoder.height;
-    auto y_tex = m_samplers[0].texture;
+    auto y_tex = samplers[0].texture;
 
     QRhiTextureUploadEntry entry{
         0, 0, createTextureUpload(pixels, w, h, 4, stride)};

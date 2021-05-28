@@ -4,6 +4,11 @@
 namespace score::gfx
 {
 #include <Gfx/Qt5CompatPush> // clang-format: keep
+/**
+ * @brief Decodes YUYV422 video.
+ *
+ * Core idea taken from https://gist.github.com/roxlu/7872352
+ */
 struct YUYV422Decoder : GPUVideoDecoder
 {
   static const constexpr auto filter = R"_(#version 450
@@ -18,7 +23,6 @@ layout(binding=3) uniform sampler2D u_tex;
 layout(location = 0) in vec2 v_texcoord;
 layout(location = 0) out vec4 fragColor;
 
-// See https://gist.github.com/roxlu/7872352
 const vec3 R_cf = vec3(1.164383,  0.000000,  1.596027);
 const vec3 G_cf = vec3(1.164383, -0.391762, -0.812968);
 const vec3 B_cf = vec3(1.164383,  2.017232,  0.000000);
@@ -60,7 +64,7 @@ void main() {
           QRhiSampler::ClampToEdge,
           QRhiSampler::ClampToEdge);
       sampler->create();
-      m_samplers.push_back({sampler, tex});
+      samplers.push_back({sampler, tex});
     }
 
     return score::gfx::makeShaders(TexturedTriangle::instance().defaultVertexShader(), filter);
@@ -80,7 +84,7 @@ void main() {
       int stride) const noexcept
   {
     const auto w = decoder.width, h = decoder.height;
-    auto y_tex = m_samplers[0].texture;
+    auto y_tex = samplers[0].texture;
 
     QRhiTextureUploadEntry entry{
         0, 0, createTextureUpload(pixels, w, h, 2, stride)};
@@ -90,6 +94,11 @@ void main() {
   }
 };
 
+/**
+ * @brief Decodes UYVY422 video, mostly used for NDI.
+ *
+ * The code and matrix coefficients are adapted from QtMultimedia.
+ */
 struct UYVY422Decoder : GPUVideoDecoder
 {
   static const constexpr auto filter = R"_(#version 450
@@ -116,7 +125,6 @@ const mat4 bt709 = mat4(
                     1.793f, -0.213f,  0.000f,   0.0f,
                     -0.5727f, 0.3007f, -1.1302, 1.0f);
 
-// This code was adapted from QtMultimedia
 void main() {
   vec2 texcoord = vec2(v_texcoord.x, tbuf.texcoordAdjust.y + tbuf.texcoordAdjust.x * v_texcoord.y);
 
@@ -159,7 +167,7 @@ void main() {
           QRhiSampler::ClampToEdge,
           QRhiSampler::ClampToEdge);
       sampler->create();
-      m_samplers.push_back({sampler, tex});
+      samplers.push_back({sampler, tex});
     }
 
     return score::gfx::makeShaders(TexturedTriangle::instance().defaultVertexShader(), filter);
@@ -179,7 +187,7 @@ void main() {
       int stride) const noexcept
   {
     const auto w = decoder.width, h = decoder.height;
-    auto y_tex = m_samplers[0].texture;
+    auto y_tex = samplers[0].texture;
 
     QRhiTextureUploadEntry entry{
         0, 0, createTextureUpload(pixels, w, h, 2, stride)};

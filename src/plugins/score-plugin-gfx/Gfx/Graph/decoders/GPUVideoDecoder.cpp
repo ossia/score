@@ -14,16 +14,16 @@ void GPUVideoDecoder::release(RenderList&)
 {
 #include <Gfx/Qt5CompatPush> // clang-format: keep
 
-  for (auto [sampler, tex] : m_samplers)
+  for (auto [sampler, tex] : samplers)
     tex->deleteLater();
 
 #include <Gfx/Qt5CompatPop> // clang-format: keep
 
-  for (auto sampler : m_samplers)
+  for (auto sampler : samplers)
   {
     delete sampler.sampler;
   }
-  m_samplers.clear();
+  samplers.clear();
 }
 
 QRhiTextureSubresourceUploadDescription GPUVideoDecoder::createTextureUpload(

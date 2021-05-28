@@ -4,10 +4,16 @@
 namespace score::gfx
 {
 #include <Gfx/Qt5CompatPush> // clang-format: keep
+
+/**
+ * @brief Decodes YUV422 videos.
+ *
+ * Adapted from YUV420 Roxlu code and
+ * softpixel.com/~cwright/programming/colorspace/yuv
+ */
+
 struct YUV422Decoder : GPUVideoDecoder
 {
-  // Taken from
-  // https://www.roxlu.com/2014/039/decoding-h264-and-yuv420p-playback
   static const constexpr auto yuv420_filter = R"_(#version 450
 
 layout(std140, binding = 0) uniform buf {
@@ -62,7 +68,7 @@ void main()
           QRhiSampler::ClampToEdge,
           QRhiSampler::ClampToEdge);
       sampler->create();
-      m_samplers.push_back({sampler, tex});
+      samplers.push_back({sampler, tex});
     }
 
     // U
@@ -78,7 +84,7 @@ void main()
           QRhiSampler::ClampToEdge,
           QRhiSampler::ClampToEdge);
       sampler->create();
-      m_samplers.push_back({sampler, tex});
+      samplers.push_back({sampler, tex});
     }
 
     // V
@@ -94,7 +100,7 @@ void main()
           QRhiSampler::ClampToEdge,
           QRhiSampler::ClampToEdge);
       sampler->create();
-      m_samplers.push_back({sampler, tex});
+      samplers.push_back({sampler, tex});
     }
 
     return score::gfx::makeShaders(
@@ -117,7 +123,7 @@ void main()
       int stride) const noexcept
   {
     const auto w = decoder.width, h = decoder.height;
-    auto y_tex = m_samplers[0].texture;
+    auto y_tex = samplers[0].texture;
 
     QRhiTextureUploadEntry entry{
         0, 0, createTextureUpload(pixels, w, h, 1, stride)};
@@ -132,7 +138,7 @@ void main()
       int stride) const noexcept
   {
     const auto w = decoder.width / 2, h = decoder.height / 2;
-    auto u_tex = m_samplers[1].texture;
+    auto u_tex = samplers[1].texture;
 
     QRhiTextureUploadEntry entry{
         0, 0, createTextureUpload(pixels, w, h, 1, stride)};
@@ -148,7 +154,7 @@ void main()
       int stride) const noexcept
   {
     const auto w = decoder.width / 2, h = decoder.height / 2;
-    auto v_tex = m_samplers[2].texture;
+    auto v_tex = samplers[2].texture;
 
     QRhiTextureUploadEntry entry{
         0, 0, createTextureUpload(pixels, w, h, 1, stride)};
