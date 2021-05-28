@@ -3,7 +3,6 @@
 #include <Device/Loading/ScoreDeviceLoader.hpp>
 #include <Device/Loading/TouchOSCDeviceLoader.hpp>
 #include <Device/Protocol/ProtocolList.hpp>
-#include <Explorer/Commands/Add/AddDevice.hpp>
 #include <Explorer/Commands/Add/LoadDevice.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/Widgets/DeviceEditDialog.hpp>

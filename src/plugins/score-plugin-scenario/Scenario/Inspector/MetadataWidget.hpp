@@ -17,9 +17,7 @@
 #include <Scenario/Commands/Metadata/ChangeElementComments.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementLabel.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
-#include <Scenario/Commands/Metadata/SetExtendedMetadata.hpp>
 #include <Scenario/Inspector/CommentEdit.hpp>
-#include <Scenario/Inspector/ExtendedMetadataWidget.hpp>
 
 #include <verdigris>
 

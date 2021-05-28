@@ -15,7 +15,6 @@ set(HDRS
   "RemoteControl/Scenario/State.hpp"
   "RemoteControl/Scenario/Sync.hpp"
   "RemoteControl/Scenario/Process.hpp"
-  "RemoteControl/Scenario/Loop.hpp"
   "RemoteControl/Scenario/Scenario.hpp"
   "RemoteControl/Scenario/Interval.hpp"
   "RemoteControl/Settings/Model.hpp"
@@ -34,7 +33,6 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Scenario/Process.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Scenario/Scenario.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Scenario/Loop.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Scenario/Interval.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Scenario/Event.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Scenario/Sync.cpp"

@@ -52,7 +52,6 @@ set(HDRS
     Gfx/Images/Executor.hpp
     Gfx/Images/Metadata.hpp
     Gfx/Images/Process.hpp
-    Gfx/Images/Inspector.hpp
     Gfx/Images/Layer.hpp
 
     Gfx/Graph/Window.hpp

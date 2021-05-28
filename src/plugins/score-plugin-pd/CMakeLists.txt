@@ -36,7 +36,6 @@ set(HDRS
 set(SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Pd/PdProcess.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Pd/Commands/PdCommandFactory.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Pd/Commands/EditPd.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Pd/Executor/PdExecutor.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Pd/Inspector/PdInspectorWidget.cpp"
 

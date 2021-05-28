@@ -27,7 +27,6 @@ set(HDRS
   Execution/Clock/ManualClock.hpp
   Execution/Clock/DefaultClock.hpp
 
-  Execution/Transport/TransportInterface.hpp
   Execution/Transport/JackTransport.hpp
 
   Engine/ApplicationPlugin.hpp
@@ -67,7 +66,6 @@ set(SRCS
   Execution/Clock/ClockFactory.cpp
   Execution/Clock/DefaultClock.cpp
 
-  Execution/Transport/TransportInterface.cpp
   Execution/Transport/JackTransport.cpp
 
   Execution/Settings/ExecutorModel.cpp

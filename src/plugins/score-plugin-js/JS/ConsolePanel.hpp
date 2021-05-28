@@ -2,7 +2,6 @@
 
 #include <Engine/ApplicationPlugin.hpp>
 #include <Explorer/Commands/Add/AddAddress.hpp>
-#include <Explorer/Commands/Add/AddDevice.hpp>
 #include <Explorer/Commands/Add/LoadDevice.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <JS/Commands/ScriptMacro.hpp>

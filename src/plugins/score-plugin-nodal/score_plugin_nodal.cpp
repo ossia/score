@@ -3,7 +3,6 @@
 #include <Nodal/CommandFactory.hpp>
 #include <Nodal/Executor.hpp>
 #include <Nodal/Layer.hpp>
-#include <Nodal/LocalTree.hpp>
 #include <Nodal/Process.hpp>
 #include <Process/DocumentPlugin.hpp>
 #include <Process/Style/ScenarioStyle.hpp>

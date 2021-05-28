@@ -10,7 +10,6 @@ find_package(${QT_VERSION} REQUIRED COMPONENTS Core Widgets Network Xml)
 set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DefaultProtocolFactory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Add/AddAddress.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Add/AddDevice.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Add/LoadDevice.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/DeviceExplorerCommandFactory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Remove.hpp"
@@ -71,7 +70,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DocumentPlugin/DeviceDocumentPluginSerialization.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Add/AddAddress.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Add/AddDevice.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Add/LoadDevice.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Remove/RemoveAddress.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Update/UpdateAddressSettings.cpp"

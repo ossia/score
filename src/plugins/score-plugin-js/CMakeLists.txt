@@ -24,7 +24,6 @@ set(HDRS
 
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/Component.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/JSAPIWrapper.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/ProcessScript.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/QmlObjects.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/ValueTypes.hpp"

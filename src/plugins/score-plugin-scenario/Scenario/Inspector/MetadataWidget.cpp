@@ -17,7 +17,6 @@
 #include <QtColorWidgets/swatch.hpp>
 
 #include <Scenario/Inspector/CommentEdit.hpp>
-#include <Scenario/Inspector/ExtendedMetadataWidget.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::MetadataWidget)
 W_OBJECT_IMPL(Scenario::CommentEdit)

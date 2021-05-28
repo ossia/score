@@ -16,7 +16,6 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolList.hpp>
 #include <Explorer/Commands/Add/AddAddress.hpp>
-#include <Explorer/Commands/Add/AddDevice.hpp>
 #include <Explorer/Commands/Add/LoadDevice.hpp>
 #include <Explorer/Commands/Remove.hpp>
 #include <Explorer/Commands/RemoveNodes.hpp>

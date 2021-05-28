@@ -8,7 +8,6 @@
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxDevice.hpp>
 #include <Gfx/Images/Executor.hpp>
-#include <Gfx/Images/Inspector.hpp>
 #include <Gfx/Images/Layer.hpp>
 #include <Gfx/Images/Process.hpp>
 #include <Gfx/Settings/Factory.hpp>
