@@ -255,5 +255,72 @@ QShader makeCompute(QString compute)
   return computeS;
 }
 
+void DefaultShaderMaterial::init(RenderList& renderer, const std::vector<Port*>& input, std::vector<Sampler>& samplers)
+{
+  auto& rhi = *renderer.state.rhi;
+
+  // Set up shader inputs
+  {
+    size = 0;
+    for (auto in : input)
+    {
+      switch (in->type)
+      {
+        case Types::Empty:
+          break;
+        case Types::Int:
+        case Types::Float:
+          size += 4;
+          break;
+        case Types::Vec2:
+          size += 8;
+          if (size % 8 != 0)
+            size += 4;
+          break;
+        case Types::Vec3:
+          while (size % 16 != 0)
+          {
+            size += 4;
+          }
+          size += 12;
+          break;
+        case Types::Vec4:
+          while (size % 16 != 0)
+          {
+            size += 4;
+          }
+          size += 16;
+          break;
+        case Types::Image:
+        {
+          auto sampler = rhi.newSampler(
+              QRhiSampler::Linear,
+              QRhiSampler::Linear,
+              QRhiSampler::None,
+              QRhiSampler::ClampToEdge,
+              QRhiSampler::ClampToEdge);
+          SCORE_ASSERT(sampler->create());
+
+          samplers.push_back(
+              {sampler, renderer.textureTargetForInputPort(*in)});
+          break;
+        }
+        case Types::Audio:
+          break;
+        case Types::Camera:
+          size += sizeof(ModelCameraUBO);
+          break;
+      }
+    }
+
+    if (size > 0)
+    {
+      buffer = rhi.newBuffer(
+          QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, size);
+      SCORE_ASSERT(buffer->create());
+    }
+  }
+}
+
 #include <Gfx/Qt5CompatPop> // clang-format: keep
 }

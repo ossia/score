@@ -13,6 +13,8 @@ struct RenderedISFNode;
 struct isf_input_port_vis;
 /**
  * @brief Data model for Interactive Shader Format filters.
+ *
+ * See https://isf.video
  */
 class ISFNode : public score::gfx::ProcessNode
 {

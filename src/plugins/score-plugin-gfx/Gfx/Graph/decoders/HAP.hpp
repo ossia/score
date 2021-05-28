@@ -45,7 +45,6 @@ struct HAPDecoder : GPUVideoDecoder
 
   void exec(
       RenderList&,
-      GenericNodeRenderer& rendered,
       QRhiResourceUpdateBatch& res,
       AVFrame& frame) override
   {
@@ -56,10 +55,10 @@ struct HAPDecoder : GPUVideoDecoder
     switch (section.type >> 4)
     {
       case 0xA:
-        setPixels_noEncoding(rendered, res, section.data, section.size);
+        setPixels_noEncoding(res, section.data, section.size);
         break;
       case 0xB:
-        setPixels_snappy(rendered, res, section.data, section.size);
+        setPixels_snappy(res, section.data, section.size);
         break;
       case 0xC:
       {
@@ -87,8 +86,7 @@ struct HAPDecoder : GPUVideoDecoder
             &outBytesUsed,
             &outFormat);
         if (r == HapResult_No_Error)
-          setPixels_noEncoding(
-              rendered, res, (const uint8_t*)output, outBytesUsed);
+          setPixels_noEncoding(res, (const uint8_t*)output, outBytesUsed);
         else
           qDebug() << r;
         break;
@@ -96,8 +94,7 @@ struct HAPDecoder : GPUVideoDecoder
     }
   }
 
-  static void setPixels_noEncoding(
-      GenericNodeRenderer& rendered,
+  void setPixels_noEncoding(
       QRhiResourceUpdateBatch& res,
       const uint8_t* data_start,
       std::size_t size)
@@ -108,12 +105,11 @@ struct HAPDecoder : GPUVideoDecoder
 
     QRhiTextureUploadDescription desc{entry};
 
-    auto y_tex = rendered.m_samplers[0].texture;
+    auto y_tex = m_samplers[0].texture;
     res.uploadTexture(y_tex, desc);
   }
 
-  static void setPixels_snappy(
-      GenericNodeRenderer& rendered,
+  void setPixels_snappy(
       QRhiResourceUpdateBatch& res,
       const uint8_t* data_start,
       std::size_t size)
@@ -130,14 +126,8 @@ struct HAPDecoder : GPUVideoDecoder
 
     QRhiTextureUploadDescription desc{entry};
 
-    auto y_tex = rendered.m_samplers[0].texture;
+    auto y_tex = m_samplers[0].texture;
     res.uploadTexture(y_tex, desc);
-  }
-
-  void release(RenderList&, GenericNodeRenderer& n) override
-  {
-    for (auto [sampler, tex] : n.m_samplers)
-      tex->deleteLater();
   }
 
   static constexpr int buffer_size = 1024 * 1024 * 16;
@@ -189,25 +179,22 @@ void main ()
 
   HAPDefaultDecoder(
       QRhiTexture::Format fmt,
-      NodeModel& n,
       Video::VideoInterface& d,
       QString f = "")
       : format{fmt}
-      , node{n}
       , decoder{d}
       , filter{f}
   {
   }
   QRhiTexture::Format format;
-  NodeModel& node;
   Video::VideoInterface& decoder;
   QString filter;
 
-  void init(RenderList& r, GenericNodeRenderer& rendered) override
+  std::pair<QShader, QShader> init(RenderList& r) override
   {
     auto& rhi = *r.state.rhi;
-    std::tie(node.m_vertexS, node.m_fragmentS) = score::gfx::makeShaders(
-        node.mesh().defaultVertexShader(), QString(fragment).arg(filter));
+    auto shaders = score::gfx::makeShaders(
+        TexturedTriangle::instance().defaultVertexShader(), QString(fragment).arg(filter));
 
     const auto w = decoder.width, h = decoder.height;
 
@@ -222,8 +209,10 @@ void main ()
           QRhiSampler::ClampToEdge,
           QRhiSampler::ClampToEdge);
       sampler->create();
-      rendered.m_samplers.push_back({sampler, tex});
+      m_samplers.push_back({sampler, tex});
     }
+
+    return shaders;
   }
 };
 
@@ -269,20 +258,18 @@ void main ()
   fragColor = processTexture(processYCoCg(ycocg, alpha));
 })_");
 
-  HAPMDecoder(NodeModel& n, Video::VideoInterface& d, QString f = "")
-      : node{n}
-      , decoder{d}
+  HAPMDecoder(Video::VideoInterface& d, QString f = "")
+      : decoder{d}
       , filter{f}
   {
   }
-  NodeModel& node;
   Video::VideoInterface& decoder;
   QString filter;
-  void init(RenderList& r, GenericNodeRenderer& rendered) override
+  std::pair<QShader, QShader> init(RenderList& r) override
   {
     auto& rhi = *r.state.rhi;
-    std::tie(node.m_vertexS, node.m_fragmentS) = score::gfx::makeShaders(
-        node.mesh().defaultVertexShader(), QString(fragment).arg(filter));
+    auto shaders = score::gfx::makeShaders(
+        TexturedTriangle::instance().defaultVertexShader(), QString(fragment).arg(filter));
 
     const auto w = decoder.width, h = decoder.height;
 
@@ -299,7 +286,7 @@ void main ()
           QRhiSampler::ClampToEdge,
           QRhiSampler::ClampToEdge);
       sampler->create();
-      rendered.m_samplers.push_back({sampler, tex});
+      m_samplers.push_back({sampler, tex});
     }
     // Alpha texture
     {
@@ -314,13 +301,14 @@ void main ()
           QRhiSampler::ClampToEdge,
           QRhiSampler::ClampToEdge);
       sampler->create();
-      rendered.m_samplers.push_back({sampler, tex});
+      m_samplers.push_back({sampler, tex});
     }
+
+    return shaders;
   }
 
   void exec(
       RenderList&,
-      GenericNodeRenderer& rendered,
       QRhiResourceUpdateBatch& res,
       AVFrame& frame) override
   {
@@ -365,15 +353,13 @@ void main ()
       if (r == HapResult_No_Error)
       {
         setPixels(
-            rendered,
             res,
-            rendered.m_samplers[0].texture,
+            m_samplers[0].texture,
             (const uint8_t*)ycocg_output,
             ycocg_outBytesUsed);
         setPixels(
-            rendered,
             res,
-            rendered.m_samplers[1].texture,
+            m_samplers[1].texture,
             (const uint8_t*)alpha_output,
             alpha_outBytesUsed);
       }
@@ -385,7 +371,6 @@ void main ()
   }
 
   static void setPixels(
-      GenericNodeRenderer& rendered,
       QRhiResourceUpdateBatch& res,
       QRhiTexture* tex,
       const uint8_t* ycocg_start,

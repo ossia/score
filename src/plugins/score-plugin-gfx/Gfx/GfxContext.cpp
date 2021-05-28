@@ -115,9 +115,9 @@ void gfx_window_context::recompute_graph()
   auto& settings = m_context.app.settings<Gfx::Settings::Model>();
   auto api = settings.graphicsApiEnum();
 
-  m_graph->setupOutputs(api);
+  m_graph->createAllRenderLists(api);
 
-  const bool vsync = settings.getVSync() && m_graph->outputs().size() == 1;
+  const bool vsync = settings.getVSync() && m_graph->canDoVSync();
 
   // rate in fps
   double rate = m_context.app.settings<Gfx::Settings::Model>().getRate();

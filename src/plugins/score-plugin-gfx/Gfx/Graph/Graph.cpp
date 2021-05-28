@@ -25,7 +25,7 @@ graphwalk(score::gfx::Node* node, std::vector<score::gfx::Node*>& list)
   }
 }
 
-void Graph::setupOutputs(GraphicsApi graphicsApi)
+void Graph::createAllRenderLists(GraphicsApi graphicsApi)
 {
 #if QT_CONFIG(vulkan)
   if (graphicsApi == Vulkan)
@@ -71,7 +71,7 @@ void Graph::setupOutputs(GraphicsApi graphicsApi)
     if (!output->canRender())
     {
       auto onReady = [=] {
-        m_renderers.push_back(createRenderer(output, *output->renderState()));
+        m_renderers.push_back(createRenderList(output, *output->renderState()));
       };
       auto onResize = [=] {
         for (std::shared_ptr<RenderList>& renderer : this->m_renderers)
@@ -84,7 +84,7 @@ void Graph::setupOutputs(GraphicsApi graphicsApi)
           // TODO shouldn't that be in that "if" above ? we only resize
           // one viewport at a time...
           renderer.reset();
-          renderer = createRenderer(output, *output->renderState());
+          renderer = createRenderList(output, *output->renderState());
         }
       };
 
@@ -109,18 +109,13 @@ void Graph::setupOutputs(GraphicsApi graphicsApi)
     {
       if (auto rs = output->renderState())
       {
-        m_renderers.push_back(createRenderer(output, *rs));
+        m_renderers.push_back(createRenderList(output, *rs));
       }
       // output->window->state.hasSwapChain = true;
     }
 
     output->startRendering();
   }
-}
-
-const std::vector<OutputNode*>& Graph::outputs() const noexcept
-{
-  return m_outputs;
 }
 
 void Graph::relinkGraph()
@@ -201,7 +196,7 @@ static void createNodeRenderer(score::gfx::Node& node, RenderList& r)
 }
 
 std::shared_ptr<RenderList>
-Graph::createRenderer(OutputNode* output, RenderState state)
+Graph::createRenderList(OutputNode* output, RenderState state)
 {
   auto ptr = std::make_shared<RenderList>();
   for (auto& node : m_nodes)

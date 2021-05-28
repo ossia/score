@@ -95,11 +95,13 @@ private:
 
   void customInit(RenderList& renderer) override
   {
-    defaultShaderMaterialInit(renderer);
+    m_material.init(renderer, node.input, m_samplers);
 
-    prev_ubo.currentImageIndex = -1;
+    m_prev_ubo.currentImageIndex = -1;
     auto& n = static_cast<const ImagesNode&>(this->node);
     auto& rhi = *renderer.state.rhi;
+
+    // Create GPU textures for each image
     for (const score::gfx::Image& img : n.images)
     {
       for (const QImage& frame : img.frames)
@@ -112,10 +114,11 @@ private:
             QRhiTexture::Flag{});
 
         tex->create();
-        textures.push_back(tex);
+        m_textures.push_back(tex);
       }
     }
 
+    // Create the sampler in which we are going to put the texture
     {
       auto sampler = rhi.newSampler(
           QRhiSampler::Linear,
@@ -125,7 +128,7 @@ private:
           QRhiSampler::ClampToEdge);
 
       sampler->create();
-      auto tex = textures.empty() ? renderer.m_emptyTexture : textures.front();
+      auto tex = m_textures.empty() ? renderer.m_emptyTexture : m_textures.front();
       m_samplers.push_back({sampler, tex});
     }
   }
@@ -133,10 +136,11 @@ private:
   void
   customUpdate(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
-    if (textures.empty())
+    if (m_textures.empty())
       return;
 
     auto& n = static_cast<const ImagesNode&>(this->node);
+    // If images haven't been uploaded yet, upload them.
     if (!m_uploaded)
     {
       int k = 0;
@@ -144,46 +148,41 @@ private:
       {
         for (const auto& frame : n.images[i].frames)
         {
-          res.uploadTexture(textures[k], frame);
+          res.uploadTexture(m_textures[k], frame);
           k++;
         }
       }
       m_uploaded = true;
     }
 
-    if (prev_ubo.currentImageIndex != n.ubo.currentImageIndex)
+    // If the current image being displayed by this renderer (in m_prev_ubo)
+    // is out of date with the image in the data model, we switch the texture
+    if (m_prev_ubo.currentImageIndex != n.ubo.currentImageIndex)
     {
-      if (!textures.empty())
+      if (!m_textures.empty())
       {
         auto idx = ossia::clamp(
-            int(n.ubo.currentImageIndex), int(0), int(textures.size()) - 1);
+            int(n.ubo.currentImageIndex), int(0), int(m_textures.size()) - 1);
 
         score::gfx::replaceTexture(
-            *m_p.srb, m_samplers[0].sampler, textures[idx]);
+            *m_p.srb, m_samplers[0].sampler, m_textures[idx]);
       }
-      prev_ubo.currentImageIndex = n.ubo.currentImageIndex;
+      m_prev_ubo.currentImageIndex = n.ubo.currentImageIndex;
     }
   }
 
   void customRelease(RenderList&) override
   {
-    for (auto tex : textures)
+    for (auto tex : m_textures)
     {
       tex->deleteLater();
     }
-    textures.clear();
+    m_textures.clear();
   }
 
-  struct ImagesNode::UBO prev_ubo;
-  std::vector<QRhiTexture*> textures;
+  struct ImagesNode::UBO m_prev_ubo;
+  std::vector<QRhiTexture*> m_textures;
   bool m_uploaded = false;
-  /*
-    std::optional<QSize> renderTargetSize() const noexcept override
-    {
-      auto& decoder = *static_cast<const RGB0Node&>(node).decoder;
-      const auto w = decoder.width(), h = decoder.height();
-      return QSize{w, h};
-    }*/
 };
 #include <Gfx/Qt5CompatPop> // clang-format: keep
 

@@ -31,26 +31,20 @@ struct RGB0Decoder : GPUVideoDecoder
 
   RGB0Decoder(
       QRhiTexture::Format fmt,
-      NodeModel& n,
       Video::VideoInterface& d,
       QString f = "")
       : format{fmt}
-      , node{n}
       , decoder{d}
       , filter{f}
   {
   }
   QRhiTexture::Format format;
-  NodeModel& node;
   Video::VideoInterface& decoder;
   QString filter;
 
-  void init(RenderList& r, GenericNodeRenderer& rendered) override
+  std::pair<QShader, QShader> init(RenderList& r) override
   {
     auto& rhi = *r.state.rhi;
-    std::tie(node.m_vertexS, node.m_fragmentS) = score::gfx::makeShaders(
-        node.mesh().defaultVertexShader(), QString(rgb_filter).arg(filter));
-
     const auto w = decoder.width, h = decoder.height;
 
     {
@@ -64,33 +58,27 @@ struct RGB0Decoder : GPUVideoDecoder
           QRhiSampler::ClampToEdge,
           QRhiSampler::ClampToEdge);
       sampler->create();
-      rendered.m_samplers.push_back({sampler, tex});
+      m_samplers.push_back({sampler, tex});
     }
+
+    return score::gfx::makeShaders(TexturedTriangle::instance().defaultVertexShader(), QString(rgb_filter).arg(filter));
   }
 
   void exec(
       RenderList&,
-      GenericNodeRenderer& rendered,
       QRhiResourceUpdateBatch& res,
       AVFrame& frame) override
   {
-    setPixels(rendered, res, frame.data[0], frame.linesize[0]);
-  }
-
-  void release(RenderList&, GenericNodeRenderer& n) override
-  {
-    for (auto [sampler, tex] : n.m_samplers)
-      tex->deleteLater();
+    setPixels(res, frame.data[0], frame.linesize[0]);
   }
 
   void setPixels(
-      GenericNodeRenderer& rendered,
       QRhiResourceUpdateBatch& res,
       uint8_t* pixels,
       int stride) const noexcept
   {
     const auto w = decoder.width, h = decoder.height;
-    auto y_tex = rendered.m_samplers[0].texture;
+    auto y_tex = m_samplers[0].texture;
 
     QRhiTextureUploadEntry entry{
         0, 0, createTextureUpload(pixels, w, h, 4, stride)};

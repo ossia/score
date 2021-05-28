@@ -23,7 +23,7 @@ class GenericNodeRenderer;
 class NodeRenderer;
 
 /**
- * @brief Root data model for visual nodes
+ * @brief Root data model for visual nodes.
  */
 class SCORE_PLUGIN_GFX_EXPORT Node
 {
@@ -31,11 +31,30 @@ public:
   explicit Node();
   virtual ~Node();
 
+  /**
+   * @brief Create a renderer in a given context for this node.
+   */
   virtual NodeRenderer* createRenderer(RenderList& r) const noexcept = 0;
+
+  /**
+   * @brief Mesh corresponding to this node.
+   */
   virtual const Mesh& mesh() const noexcept = 0;
 
+  /**
+   * @brief Input ports of that node.
+   */
   std::vector<Port*> input;
+  /**
+   * @brief Output ports of that node.
+   *
+   * Most of the time there will be a single image output.
+   */
   ossia::small_pod_vector<Port*, 1> output;
+
+  /**
+   * @brief Map associating each RenderList to a Renderer for this model.
+   */
   ossia::flat_map<RenderList*, score::gfx::NodeRenderer*> renderedNodes;
 
   bool addedToGraph{};
@@ -49,7 +68,16 @@ class SCORE_PLUGIN_GFX_EXPORT ProcessNode : public Node
 public:
   using Node::Node;
 
-  int64_t materialChanged{0};
+  /**
+   * @brief Used to notify a material change from the model to the renderers.
+   */
+  std::atomic_int64_t materialChanged{0};
+
+  /**
+   * @brief Every node matching with a score process will have such an UBO.
+   *
+   * It has useful informations, such as timing, sample rate, mouse position etc.
+   */
   ProcessUBO standardUBO{};
 };
 
@@ -69,6 +97,7 @@ public:
 
   void setShaders(const QShader& vert, const QShader& frag);
 
+protected:
   std::unique_ptr<char[]> m_materialData;
 
   QShader m_vertexS;

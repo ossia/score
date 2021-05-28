@@ -66,6 +66,7 @@ set(HDRS
     Gfx/Graph/RenderList.hpp
     Gfx/Graph/NodeRenderer.hpp
     Gfx/Graph/VideoNode.hpp
+    Gfx/Graph/VideoNodeRenderer.hpp
     Gfx/Graph/PhongNode.hpp
     Gfx/Graph/ImageNode.hpp
     Gfx/Graph/TexgenNode.hpp
@@ -117,6 +118,7 @@ set(SRCS
     Gfx/Images/Executor.cpp
     Gfx/Images/Process.cpp
 
+    Gfx/Graph/decoders/GPUVideoDecoder.cpp
     Gfx/Graph/Node.cpp
     Gfx/Graph/Graph.cpp
     Gfx/Graph/RenderList.cpp
@@ -125,6 +127,7 @@ set(SRCS
     Gfx/Graph/ISFNode.cpp
     Gfx/Graph/RenderedISFNode.cpp
     Gfx/Graph/VideoNode.cpp
+    Gfx/Graph/VideoNodeRenderer.cpp
     Gfx/Graph/NodeRenderer.cpp
     Gfx/Graph/OutputNode.cpp
     Gfx/Graph/ScreenNode.cpp

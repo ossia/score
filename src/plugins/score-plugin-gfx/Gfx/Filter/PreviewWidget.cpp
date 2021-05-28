@@ -110,7 +110,7 @@ void ShaderPreviewWidget::setup()
     i++;
   }
 
-  m_graph.setupOutputs(score::gfx::GraphicsApi::OpenGL);
+  m_graph.createAllRenderLists(score::gfx::GraphicsApi::OpenGL);
 
   // UI setup
   auto lay = new QHBoxLayout(this);

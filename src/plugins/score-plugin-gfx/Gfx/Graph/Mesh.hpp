@@ -14,10 +14,14 @@ struct SCORE_PLUGIN_GFX_EXPORT Mesh
 {
   explicit Mesh();
   virtual ~Mesh();
+
+  /** @brief Setup bindings according to the input triangle data */
   virtual void setupBindings(
       QRhiBuffer& vtxData,
       QRhiBuffer* idxData,
       QRhiCommandBuffer& cb) const noexcept = 0;
+
+  /** @brief A basic vertex shader that is going to work with this mesh. */
   virtual const char* defaultVertexShader() const noexcept = 0;
 
   ossia::small_vector<QRhiVertexInputBinding, 2> vertexInputBindings;

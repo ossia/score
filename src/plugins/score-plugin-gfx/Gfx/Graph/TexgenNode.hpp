@@ -71,7 +71,7 @@ struct TexgenNode : NodeModel
     QRhiTexture* texture{};
     void customInit(RenderList& renderer) override
     {
-      defaultShaderMaterialInit(renderer);
+      m_material.init(renderer, node.input, m_samplers);
 
       auto& n = static_cast<const TexgenNode&>(this->node);
       auto& rhi = *renderer.state.rhi;

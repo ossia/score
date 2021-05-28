@@ -156,4 +156,16 @@ void replaceTexture(
     QRhiTexture* old_tex,
     QRhiTexture* new_tex);
 
+struct SCORE_PLUGIN_GFX_EXPORT DefaultShaderMaterial
+{
+  void init(
+      RenderList& renderer,
+      const std::vector<Port*>& input,
+      std::vector<Sampler>& m_samplers);
+
+  QRhiBuffer* buffer{};
+  int size{};
+};
+
+
 }

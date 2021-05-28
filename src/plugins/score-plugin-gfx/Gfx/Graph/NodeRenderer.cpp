@@ -28,81 +28,13 @@ std::optional<QSize> GenericNodeRenderer::renderTargetSize() const noexcept
 
 void GenericNodeRenderer::customInit(RenderList& renderer)
 {
-  defaultShaderMaterialInit(renderer);
+  m_material.init(renderer, node.input, m_samplers);
 }
 
 void NodeModel::setShaders(const QShader& vert, const QShader& frag)
 {
   m_vertexS = vert;
   m_fragmentS = frag;
-}
-
-void GenericNodeRenderer::defaultShaderMaterialInit(RenderList& renderer)
-{
-  auto& rhi = *renderer.state.rhi;
-
-  auto& input = node.input;
-  // Set up shader inputs
-  {
-    m_materialSize = 0;
-    for (auto in : input)
-    {
-      switch (in->type)
-      {
-        case Types::Empty:
-          break;
-        case Types::Int:
-        case Types::Float:
-          m_materialSize += 4;
-          break;
-        case Types::Vec2:
-          m_materialSize += 8;
-          if (m_materialSize % 8 != 0)
-            m_materialSize += 4;
-          break;
-        case Types::Vec3:
-          while (m_materialSize % 16 != 0)
-          {
-            m_materialSize += 4;
-          }
-          m_materialSize += 12;
-          break;
-        case Types::Vec4:
-          while (m_materialSize % 16 != 0)
-          {
-            m_materialSize += 4;
-          }
-          m_materialSize += 16;
-          break;
-        case Types::Image:
-        {
-          auto sampler = rhi.newSampler(
-              QRhiSampler::Linear,
-              QRhiSampler::Linear,
-              QRhiSampler::None,
-              QRhiSampler::ClampToEdge,
-              QRhiSampler::ClampToEdge);
-          SCORE_ASSERT(sampler->create());
-
-          m_samplers.push_back(
-              {sampler, renderer.textureTargetForInputPort(*in)});
-          break;
-        }
-        case Types::Audio:
-          break;
-        case Types::Camera:
-          m_materialSize += sizeof(ModelCameraUBO);
-          break;
-      }
-    }
-
-    if (m_materialSize > 0)
-    {
-      m_materialUBO = rhi.newBuffer(
-          QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, m_materialSize);
-      SCORE_ASSERT(m_materialUBO->create());
-    }
-  }
 }
 
 void GenericNodeRenderer::init(RenderList& renderer)
@@ -136,7 +68,7 @@ void GenericNodeRenderer::init(RenderList& renderer)
         node.m_fragmentS,
         m_rt,
         m_processUBO,
-        m_materialUBO,
+        m_material.buffer,
         m_samplers);
   }
 }
@@ -154,11 +86,11 @@ void GenericNodeRenderer::update(
   res.updateDynamicBuffer(
       m_processUBO, 0, sizeof(ProcessUBO), &this->node.standardUBO);
 
-  if (m_materialUBO && m_materialSize > 0
+  if (m_material.buffer && m_material.size > 0
       && materialChangedIndex != node.materialChanged)
   {
     char* data = node.m_materialData.get();
-    res.updateDynamicBuffer(m_materialUBO, 0, m_materialSize, data);
+    res.updateDynamicBuffer(m_material.buffer, 0, m_material.size, data);
     materialChangedIndex = node.materialChanged;
   }
 
@@ -181,8 +113,8 @@ void GenericNodeRenderer::releaseWithoutRenderTarget(RenderList& r)
   delete m_processUBO;
   m_processUBO = nullptr;
 
-  delete m_materialUBO;
-  m_materialUBO = nullptr;
+  delete m_material.buffer;
+  m_material.buffer = nullptr;
 
   m_p.release();
 
