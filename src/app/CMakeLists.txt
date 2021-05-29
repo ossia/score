@@ -44,10 +44,7 @@ add_executable(${APPNAME} WIN32
 )
 #target_link_libraries(score-main PRIVATE ${APPNAME})
 
-set_target_properties(${APPNAME}
-  PROPERTIES
-    CXX_VISIBILITY_PRESET hidden
-    VISIBILITY_INLINES_HIDDEN 1)
+ossia_set_visibility(${APPNAME})
 
 target_include_directories(${APPNAME} PRIVATE "${3RDPARTY_FOLDER}/phantomstyle/src")
 

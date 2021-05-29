@@ -8,6 +8,10 @@ set_cache(SCORE_INSTALL_HEADERS ON)
 set_cache(OSSIA_STATIC_EXPORT ON)
 set_cache(CMAKE_INSTALL_MESSAGE NEVER)
 
+set_cache(CMAKE_C_VISIBILITY_PRESET default)
+set_cache(CMAKE_CXX_VISIBILITY_PRESET default)
+set_cache(CMAKE_VISIBILITY_INLINES_HIDDEN 0)
+
 add_linker_flags(" -Wl,--version-script,/score/cmake/Deployment/Linux/AppImage/version")
 
 # Note: libc++ does not export its symbols from its static lib which prevents usage with jit...

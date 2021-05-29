@@ -104,11 +104,6 @@ function(setup_score_common_lib_features TheTarget)
   if(SCORE_STATIC_PLUGINS)
     target_compile_definitions(${TheTarget} PRIVATE "${Target_upper}_EXPORTS")
   endif()
-  set_target_properties(${TheTarget} PROPERTIES
-    CXX_VISIBILITY_PRESET hidden
-    VISIBILITY_INLINES_HIDDEN 1
-  )
-
 
   if(OSSIA_STATIC_EXPORT)
     generate_export_header(${TheTarget} ALWAYS_EXPORT)
@@ -116,6 +111,8 @@ function(setup_score_common_lib_features TheTarget)
   else()
     generate_export_header(${TheTarget})
   endif()
+
+  ossia_set_visibility(${TheTarget})
 
   get_target_property(_srcDir ${TheTarget} SOURCE_DIR)
   get_target_property(_binDir ${TheTarget} BINARY_DIR)
