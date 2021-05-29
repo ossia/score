@@ -209,6 +209,15 @@ static int PrintSupportedCPUs(std::string TargetStr)
   return 0;
 }
 
+auto printErrors(TextDiagnosticBuffer& buf)
+{
+  std::stringstream ss;
+  for (auto it = buf.err_begin(); it != buf.err_end(); ++it)
+    ss << "error : " << it->second << "\n";
+
+  std::cerr << ss.str();
+  return ss.str();
+}
 llvm::Error cc1_main(
     ArrayRef<const char*> Argv,
     const char* Argv0,
@@ -256,8 +265,7 @@ llvm::Error cc1_main(
 
   // Create the actual diagnostics engine.
 
-  auto diagnostics = new TextDiagnosticBuffer;
-  Clang->createDiagnostics(diagnostics);
+  Clang->createDiagnostics(DiagsBuffer);
   if (!Clang->hasDiagnostics())
     return llvm::make_error<llvm::StringError>("No diagnostics", std::error_code(1, std::system_category()));
 
@@ -268,7 +276,7 @@ llvm::Error cc1_main(
 
   DiagsBuffer->FlushDiagnostics(Clang->getDiagnostics());
   if (!Success)
-    return llvm::make_error<llvm::StringError>("No diagnostics", std::error_code(1, std::system_category()));
+    return llvm::make_error<llvm::StringError>(printErrors(*DiagsBuffer), std::error_code(1, std::system_category()));
 
   // Execute the frontend actions.
   {
@@ -281,13 +289,9 @@ llvm::Error cc1_main(
   llvm::TimerGroup::printAll(llvm::errs());
   llvm::TimerGroup::clearAll();
 
-  std::stringstream ss;
-  for (auto it = diagnostics->err_begin(); it != diagnostics->err_end(); ++it)
-    ss << "error : " << it->second << "\n";
-
   auto res = Success
                  ? llvm::Error::success()
-                 : llvm::make_error<llvm::StringError>(ss.str(), std::error_code(1, std::system_category()));
+                 : llvm::make_error<llvm::StringError>(printErrors(*DiagsBuffer), std::error_code(1, std::system_category()));
 
 
   // Our error handler depends on the Diagnostics object, which we're
