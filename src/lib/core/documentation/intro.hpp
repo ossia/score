@@ -5,8 +5,8 @@
  * Welcome to the score code documentation.
  * <br><br>
  * Here is the documentation of core concepts used throughout the score code
- *base. <br> All the following concepts are sowewhat interdependents, hence
- *reading everything twice may be useful to get a clear mental picture. <br>
+ * base. <br> All the following concepts are sowewhat interdependents, hence
+ * reading everything twice may be useful to get a clear mental picture. <br>
  * * \ref Models
  * * \ref PluginsFactoriesAndInterfaces
  * * \ref ScoreInterfaces
@@ -16,7 +16,7 @@
  * * \ref ModelViewPresenter
  * * \ref StateMachines
  * * \ref CodingStyle
- *<br><br>
+ * <br><br>
  * Documentation of specific plug-ins and modules of the software:
  * <br>
  * * \ref State
@@ -27,7 +27,12 @@
  * * \ref Scenario
  * * \ref Curve
  * * \ref Automation
- *<br>
+ * * \ref Gfx
+ * <br><br>
+ * Guides for writing custom plug-ins:
+ * <br>
+ * * \ref GfxPlugins
+ * <br>
  * To contribute to score, it can also be useful to have a look at the
  * tutorial plug-in : https://github.com/ossia/score-addon-tutorial
  */

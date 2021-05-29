@@ -13,12 +13,12 @@ class GfxExecutionAction final : public Execution::ExecutionAction
 {
   SCORE_CONCRETE("06f48270-35a4-44d2-929a-e67b8e2904f5")
 public:
-  GfxExecutionAction(gfx_window_context& w)
+  GfxExecutionAction(GfxContext& w)
       : ui{&w}
   {
     prev_edges.reserve(100);
   }
-  gfx_window_context* ui{};
+  GfxContext* ui{};
 
   void startTick(const ossia::audio_tick_state& st) override { }
 

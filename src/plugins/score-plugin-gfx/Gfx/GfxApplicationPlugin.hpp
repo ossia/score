@@ -18,7 +18,7 @@ public:
       QObject* parent);
   ~DocumentPlugin() override;
 
-  gfx_window_context context;
+  GfxContext context;
   GfxExecutionAction exec{context};
 };
 

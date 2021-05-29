@@ -14,7 +14,7 @@
 namespace Gfx
 {
 
-gfx_window_context::gfx_window_context(const score::DocumentContext& ctx)
+GfxContext::GfxContext(const score::DocumentContext& ctx)
     : m_context{ctx}
 {
   new_edges.container.reserve(100);
@@ -24,20 +24,20 @@ gfx_window_context::gfx_window_context(const score::DocumentContext& ctx)
   con(settings,
       &Gfx::Settings::Model::GraphicsApiChanged,
       this,
-      &gfx_window_context::recompute_graph);
+      &GfxContext::recompute_graph);
   con(settings,
       &Gfx::Settings::Model::RateChanged,
       this,
-      &gfx_window_context::recompute_graph);
+      &GfxContext::recompute_graph);
   con(settings,
       &Gfx::Settings::Model::VSyncChanged,
       this,
-      &gfx_window_context::recompute_graph);
+      &GfxContext::recompute_graph);
 
   m_graph = new score::gfx::Graph;
 }
 
-gfx_window_context::~gfx_window_context()
+GfxContext::~GfxContext()
 {
 #if defined(SCORE_THREADED_GFX)
   if (m_thread.isRunning())
@@ -48,7 +48,7 @@ gfx_window_context::~gfx_window_context()
   delete m_graph;
 }
 
-int32_t gfx_window_context::register_node(
+int32_t GfxContext::register_node(
     std::unique_ptr<score::gfx::ProcessNode> node)
 {
   auto next = index;
@@ -61,7 +61,7 @@ int32_t gfx_window_context::register_node(
   return next;
 }
 
-void gfx_window_context::unregister_node(int32_t idx)
+void GfxContext::unregister_node(int32_t idx)
 {
   // Remove all edges involving that node
   for (auto it = this->edges.begin(); it != this->edges.end();)
@@ -82,7 +82,7 @@ void gfx_window_context::unregister_node(int32_t idx)
   recompute_graph(); // TODO wut
 }
 
-void gfx_window_context::recompute_edges()
+void GfxContext::recompute_edges()
 {
   m_graph->clearEdges();
 
@@ -103,7 +103,7 @@ void gfx_window_context::recompute_edges()
   }
 }
 
-void gfx_window_context::recompute_graph()
+void GfxContext::recompute_graph()
 {
   if (m_timer != -1)
     killTimer(m_timer);
@@ -146,18 +146,18 @@ void gfx_window_context::recompute_graph()
   must_recompute = false;
 }
 
-void gfx_window_context::recompute_connections()
+void GfxContext::recompute_connections()
 {
   recompute_edges();
   // m_graph->setupOutputs(m_api);
   m_graph->relinkGraph();
 }
 
-void gfx_window_context::update_inputs()
+void GfxContext::update_inputs()
 {
   struct node_vis
   {
-    gfx_window_context& self;
+    GfxContext& self;
     gfx_view_node& node;
     port_index sink{};
 
@@ -194,7 +194,7 @@ void gfx_window_context::update_inputs()
   }
 }
 
-void gfx_window_context::updateGraph()
+void GfxContext::updateGraph()
 {
   update_inputs();
 
@@ -209,7 +209,7 @@ void gfx_window_context::updateGraph()
   }
 }
 
-void gfx_window_context::timerEvent(QTimerEvent*)
+void GfxContext::timerEvent(QTimerEvent*)
 {
   updateGraph();
 }

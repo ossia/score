@@ -44,14 +44,14 @@ struct gfx_view_node
 
 class gfx_exec_node;
 class GfxExecutionAction;
-class SCORE_PLUGIN_GFX_EXPORT gfx_window_context : public QObject
+class SCORE_PLUGIN_GFX_EXPORT GfxContext : public QObject
 {
   friend class gfx_exec_node;
   friend class GfxExecutionAction;
 
 public:
-  explicit gfx_window_context(const score::DocumentContext& ctx);
-  ~gfx_window_context();
+  explicit GfxContext(const score::DocumentContext& ctx);
+  ~GfxContext();
 
   int32_t register_node(std::unique_ptr<score::gfx::ProcessNode> node);
   void unregister_node(int32_t idx);

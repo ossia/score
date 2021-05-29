@@ -15,13 +15,18 @@ class NodeModel;
 struct Port;
 struct Edge;
 class RenderList;
-
+/**
+ * @brief Stores a sampler and the texture currently associated with it.
+ */
 struct Sampler
 {
   QRhiSampler* sampler{};
   QRhiTexture* texture{};
 };
 
+/**
+ * @brief Data model for audio data being sent to the GPU
+ */
 struct AudioTexture
 {
   std::unordered_map<RenderList*, Sampler> samplers;
@@ -32,14 +37,27 @@ struct AudioTexture
   bool fft{};
 };
 
+/**
+ * @brief Port of a score::gfx::Node
+ */
 struct Port
 {
+  //! Parent node of the port
   score::gfx::Node* node{};
+
+  //! Pointer to the corresponding data.
   void* value{};
+
+  //! Type of the value
   Types type{};
+
+  //! Edges connected to that port.
   std::vector<Edge*> edges;
 };
 
+/**
+ * @brief Connection between two score::gfx::Port
+ */
 struct Edge
 {
   Edge(Port* source, Port* sink)
@@ -64,6 +82,9 @@ struct Edge
   Port* sink{};
 };
 
+/**
+ * @brief Useful abstraction for storing a graphics pipeline and associated resource bindings.
+ */
 struct Pipeline
 {
   QRhiGraphicsPipeline* pipeline{};
@@ -79,6 +100,9 @@ struct Pipeline
   }
 };
 
+/**
+ * @brief Useful abstraction for storing all the data related to a render target.
+ */
 struct TextureRenderTarget
 {
   QRhiTexture* texture{};
@@ -103,36 +127,64 @@ struct TextureRenderTarget
   }
 };
 
+/**
+ * @brief Image data and metadata.
+ */
 struct Image
 {
   QString path;
   std::vector<QImage> frames;
 };
 
+/**
+ * @brief Create a render target from a texture.
+ */
 SCORE_PLUGIN_GFX_EXPORT
 TextureRenderTarget
 createRenderTarget(const RenderState& state, QRhiTexture* tex);
 
+/**
+ * @brief Create a render target from a texture format and size.
+ *
+ * This function will also create a texture.
+ */
 SCORE_PLUGIN_GFX_EXPORT
 TextureRenderTarget createRenderTarget(
     const RenderState& state,
     QRhiTexture::Format fmt,
     QSize sz);
 
+/**
+ * @brief Replace the texture currently bound to a sampler.
+ */
 SCORE_PLUGIN_GFX_EXPORT
 void replaceTexture(
     QRhiShaderResourceBindings&,
     QRhiSampler* sampler,
     QRhiTexture* newTexture);
 
+/**
+ * @brief Replace a texture by another in a set of bindings.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+void replaceTexture(
+    QRhiShaderResourceBindings& srb,
+    QRhiTexture* old_tex,
+    QRhiTexture* new_tex);
+/**
+ * @brief Create bindings following the score conventions for shaders and materials.
+ */
 SCORE_PLUGIN_GFX_EXPORT
 QRhiShaderResourceBindings* createDefaultBindings(
     const RenderList& renderer,
     const TextureRenderTarget& rt,
-    QRhiBuffer* m_processUBO,
+    QRhiBuffer* processUBO,
     QRhiBuffer* materialUBO,
     const std::vector<Sampler>& samplers);
 
+/**
+ * @brief Create a render pipeline following the score conventions for shaders and materials.
+ */
 SCORE_PLUGIN_GFX_EXPORT
 Pipeline buildPipeline(
     const RenderList& renderer,
@@ -144,24 +196,33 @@ Pipeline buildPipeline(
     QRhiBuffer* materialUBO,
     const std::vector<Sampler>& samplers);
 
+/**
+ * @brief Get a pair of compiled vertex / fragment shaders from GLSL 4.5 sources.
+ *
+ * Note: this function will throw if a shader is invalid.
+ */
 SCORE_PLUGIN_GFX_EXPORT
 std::pair<QShader, QShader> makeShaders(QString vert, QString frag);
 
+/**
+ * @brief Compile a compute shader.
+ *
+ * Note: this function will throw if the shader is invalid.
+ */
 SCORE_PLUGIN_GFX_EXPORT
 QShader makeCompute(QString compt);
 
-SCORE_PLUGIN_GFX_EXPORT
-void replaceTexture(
-    QRhiShaderResourceBindings& srb,
-    QRhiTexture* old_tex,
-    QRhiTexture* new_tex);
-
+/**
+ * @brief Utility to represent a shader material following score conventions.
+ *
+ * The material is synthesized from the input ports.
+ */
 struct SCORE_PLUGIN_GFX_EXPORT DefaultShaderMaterial
 {
   void init(
       RenderList& renderer,
       const std::vector<Port*>& input,
-      std::vector<Sampler>& m_samplers);
+      std::vector<Sampler>& samplers);
 
   QRhiBuffer* buffer{};
   int size{};
