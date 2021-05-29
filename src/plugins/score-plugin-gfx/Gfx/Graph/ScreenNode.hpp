@@ -20,6 +20,11 @@ struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
   void setRenderer(RenderList* r) override;
   RenderList* renderer() const override;
 
+  void setScreen(QScreen*);
+  void setPosition(QPoint pos);
+  void setSize(QSize sz);
+  void setFullScreen(bool);
+
   void createOutput(
       GraphicsApi graphicsApi,
       std::function<void()> onReady,
@@ -38,6 +43,9 @@ private:
   class Renderer;
   std::shared_ptr<Window> m_window{};
   QRhiSwapChain* m_swapChain{};
+  QScreen* m_screen{};
+  std::optional<QPoint> m_pos{};
+  std::optional<QSize> m_sz{};
 
   bool m_embedded{};
   bool m_fullScreen{};

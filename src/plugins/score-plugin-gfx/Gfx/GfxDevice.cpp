@@ -114,7 +114,7 @@ GfxOutputDevice::GfxOutputDevice(
   m_capas.canRemoveNode = false;
   m_capas.canRenameNode = false;
   m_capas.canSetProperties = false;
-  m_capas.canRefreshTree = false;
+  m_capas.canRefreshTree = true;
   m_capas.canRefreshValue = false;
   m_capas.hasCallbacks = false;
   m_capas.canListen = false;

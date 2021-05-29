@@ -171,6 +171,49 @@ RenderList* ScreenNode::renderer() const
     return nullptr;
 }
 
+void ScreenNode::setScreen(QScreen* scr)
+{
+  m_screen = scr;
+  if(m_window)
+  {
+    m_window->setScreen(scr);
+  }
+}
+
+void ScreenNode::setPosition(QPoint pos)
+{
+  m_pos = pos;
+  if(m_window)
+  {
+    m_window->setPosition(pos);
+  }
+}
+
+void ScreenNode::setSize(QSize sz)
+{
+  m_sz = sz;
+  if(m_window)
+  {
+    m_window->setGeometry({m_window->position(), sz});
+  }
+}
+
+void ScreenNode::setFullScreen(bool b)
+{
+  m_fullScreen = b;
+  if(m_window)
+  {
+    if(b)
+    {
+      m_window->showFullScreen();
+    }
+    else
+    {
+      m_window->showNormal();
+    }
+  }
+}
+
 void ScreenNode::createOutput(
     GraphicsApi graphicsApi,
     std::function<void()> onReady,
@@ -214,13 +257,30 @@ void ScreenNode::createOutput(
     }
     */
 
+    if (m_screen)
+    {
+      m_window->setScreen(m_screen);
+    }
+
     if (m_fullScreen)
     {
       m_window->showFullScreen();
     }
     else
     {
-      m_window->resize(1280, 720);
+      if(m_pos)
+      {
+        m_window->setPosition(*m_pos);
+      }
+
+      if(!m_sz)
+      {
+        m_window->resize(1280, 720);
+      }
+      else
+      {
+        m_window->setGeometry({m_window->position(), *m_sz});
+      }
       m_window->show();
     }
   }

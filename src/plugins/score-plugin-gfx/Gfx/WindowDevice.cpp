@@ -5,9 +5,11 @@
 #include <Gfx/Graph/ScreenNode.hpp>
 #include <Gfx/Graph/Window.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
+#include <ossia/network/generic/generic_node.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
 
+#include <ossia-qt/invoke.hpp>
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/protocol.hpp>
 
@@ -46,21 +48,87 @@ static score::gfx::ScreenNode* createScreenNode()
   }
 }
 
-class gfx_device : public ossia::net::device_base
+class window_device : public ossia::net::device_base
 {
-  gfx_node_base root;
+  score::gfx::ScreenNode* m_screen{};
+  gfx_node_base m_root;
+  QObject m_qtContext;
 
 public:
-  gfx_device(
+  window_device(
       std::unique_ptr<ossia::net::protocol_base> proto,
       std::string name)
       : ossia::net::device_base{std::move(proto)}
-      , root{*this, createScreenNode(), name}
+      , m_screen{createScreenNode()}
+      , m_root{*this, m_screen, name}
   {
+    this->m_capabilities.change_tree = true;
+
+    {
+      auto screen_node = std::make_unique<ossia::net::generic_node>("screen", *this, m_root);
+      auto screen_param = screen_node->create_parameter(ossia::val_type::INT);
+      screen_param->set_domain(ossia::make_domain(int(0), int(100)));
+      screen_param->add_callback([this] (const ossia::value& v) {
+        if(auto val = v.target<int>())
+        {
+          ossia::qt::run_async(&m_qtContext, [screen=this->m_screen, scr=*val] {
+            const auto& cur_screens = qApp->screens();
+            if(scr >= 0 && scr < cur_screens.size())
+            {
+              screen->setScreen(cur_screens[scr]);
+            }
+          });
+        }
+      });
+      m_root.add_child(std::move(screen_node));
+    }
+
+    {
+      auto pos_node = std::make_unique<ossia::net::generic_node>("position", *this, m_root);
+      auto pos_param = pos_node->create_parameter(ossia::val_type::VEC2F);
+      pos_param->add_callback([this] (const ossia::value& v) {
+        if(auto val = v.target<ossia::vec2f>())
+        {
+          ossia::qt::run_async(&m_qtContext, [screen=this->m_screen, v=*val] {
+            screen->setPosition({(int)v[0], (int)v[1]});
+          });
+        }
+      });
+      m_root.add_child(std::move(pos_node));
+    }
+
+    {
+      auto size_node = std::make_unique<ossia::net::generic_node>("size", *this, m_root);
+      auto size_param = size_node->create_parameter(ossia::val_type::VEC2F);
+      size_param->push_value(ossia::vec2f{1280.f, 720.f});
+      size_param->add_callback([this] (const ossia::value& v) {
+        if(auto val = v.target<ossia::vec2f>())
+        {
+          ossia::qt::run_async(&m_qtContext, [screen=this->m_screen, v=*val] {
+            screen->setSize({(int)v[0], (int)v[1]});
+          });
+        }
+      });
+      m_root.add_child(std::move(size_node));
+    }
+
+    {
+      auto fs_node = std::make_unique<ossia::net::generic_node>("fullscreen", *this, m_root);
+      auto fs_param = fs_node->create_parameter(ossia::val_type::BOOL);
+      fs_param->add_callback([this] (const ossia::value& v) {
+        if(auto val = v.target<bool>())
+        {
+          ossia::qt::run_async(&m_qtContext, [screen=this->m_screen, v=*val] {
+            screen->setFullScreen(v);
+          });
+        }
+      });
+      m_root.add_child(std::move(fs_node));
+    }
   }
 
-  const gfx_node_base& get_root_node() const override { return root; }
-  gfx_node_base& get_root_node() override { return root; }
+  const gfx_node_base& get_root_node() const override { return m_root; }
+  gfx_node_base& get_root_node() override { return m_root; }
 };
 
 WindowDevice::~WindowDevice() { }
@@ -106,7 +174,7 @@ bool WindowDevice::reconnect()
     if (plug)
     {
       m_protocol = new gfx_protocol_base{plug->exec};
-      m_dev = std::make_unique<gfx_device>(
+      m_dev = std::make_unique<window_device>(
           std::unique_ptr<ossia::net::protocol_base>(m_protocol),
           m_settings.name.toStdString());
     }
