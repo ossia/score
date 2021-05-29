@@ -15,6 +15,7 @@
 #include <score_plugin_recording_export.h>
 
 #include <verdigris>
+#include <QWidget>
 #include <QApplication>
 
 namespace Scenario
