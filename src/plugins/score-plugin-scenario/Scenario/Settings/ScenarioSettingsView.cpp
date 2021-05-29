@@ -177,7 +177,9 @@ View::View()
     auto skinList = skinDir.entryList();
     for (const auto& skin : skinList)
     {
-      m_skin->addItem(skin, QVariant{skinPath + "/" + skin});
+      auto name = skin;
+      name.remove(".json");
+      m_skin->addItem(name, QVariant{skinPath + "/" + skin});
     }
 
     auto ls = new QPushButton{tr("Browse...")};
