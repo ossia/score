@@ -1,6 +1,7 @@
 #pragma once
 #include <Gfx/Graph/OutputNode.hpp>
 
+class QScreen;
 namespace score::gfx
 {
 /**

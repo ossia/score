@@ -27,6 +27,7 @@
 
 #include <QOffscreenSurface>
 #include <QWindow>
+#include <QScreen>
 
 namespace score::gfx
 {
