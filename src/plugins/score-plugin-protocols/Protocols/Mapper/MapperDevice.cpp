@@ -607,11 +607,24 @@ void mapper_parameter::connect(parameter_base& s, mapper_protocol& proto)
   s.get_node()
       .about_to_be_deleted.connect<&mapper_parameter::on_sourceRemoved>(*this);
   // TODO handle parameter removal from device -> some hash_map
-  callbacks[&s.get_node()]
-      = s.add_callback([this, param = &s, &proto](const ossia::value& v) {
-          if (!this->m_stop_callbacks)
-            proto.sig_recv(this, param, v);
-        });
+  auto it = callbacks.find(&s.get_node());
+  if(it == callbacks.end())
+  {
+    QPointer<mapper_protocol> proto_ptr = &proto;
+    callbacks[&s.get_node()]
+        = s.add_callback([this, param = &s, proto_ptr](const ossia::value& v) {
+            if (!this->m_stop_callbacks)
+            {
+              SCORE_ASSERT(proto_ptr);
+              proto_ptr->sig_recv(this, param, v);
+            }
+          });
+  }
+  else
+  {
+    qDebug() << "Warning ! callback for" << s.get_node().osc_address().c_str() << "already exists";
+    return;
+  }
 }
 
 }

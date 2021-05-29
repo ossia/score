@@ -7,7 +7,8 @@
 
 #include <QFileInfo>
 #include <QFileOpenEvent>
-
+#include <QThread>
+#include <QDebug>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(SafeQApplication)
 
@@ -81,20 +82,54 @@ void SafeQApplication::DebugOutput(
   fflush(out_file);
 }
 
+#if !defined(SCORE_DEBUG)
+bool SafeQApplication::notify(QObject *receiver, QEvent *event)
+{
+  try
+  {
+    return QApplication::notify(receiver, event);
+  }
+  catch (std::exception& e)
+  {
+    if(this->thread() != QThread::currentThread())
+    {
+      qDebug() << "Internal error: " << e.what();
+    }
+    else
+    {
+      inform(QObject::tr("Internal error: ") + e.what());
+    }
+  }
+  catch (...)
+  {
+    if(this->thread() != QThread::currentThread())
+    {
+      qDebug() << "Internal error: ";
+    }
+    else
+    {
+      inform(QObject::tr("Internal error: "));
+    }
+  }
+
+  return false;
+}
+#endif
+
 bool SafeQApplication::event(QEvent* ev)
 {
   switch ((int)ev->type())
   {
-    case QEvent::FileOpen:
-    {
-      auto loadString = static_cast<QFileOpenEvent*>(ev)->file();
-      fileOpened(loadString);
-      return true;
-    }
-    case score::PostedEventBase::static_type:
-    {
-      (*static_cast<score::PostedEventBase*>(ev))();
-      return true;
+  case QEvent::FileOpen:
+  {
+    auto loadString = static_cast<QFileOpenEvent*>(ev)->file();
+    fileOpened(loadString);
+    return true;
+  }
+  case score::PostedEventBase::static_type:
+  {
+    (*static_cast<score::PostedEventBase*>(ev))();
+    return true;
     }
     default:
       return QApplication::event(ev);

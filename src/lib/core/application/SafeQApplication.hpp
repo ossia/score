@@ -64,23 +64,7 @@ public:
     score::information(QApplication::activeWindow(), "", str);
   }
 
-  bool notify(QObject* receiver, QEvent* event) override
-  {
-    try
-    {
-      return QApplication::notify(receiver, event);
-    }
-    catch (std::exception& e)
-    {
-      inform(QObject::tr("Internal error: ") + e.what());
-    }
-    catch (...)
-    {
-      inform(QObject::tr("Internal error."));
-    }
-
-    return false;
-  }
+  bool notify(QObject* receiver, QEvent* event) override;
 #endif
 
   bool event(QEvent* ev) override;
