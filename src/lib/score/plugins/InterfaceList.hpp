@@ -6,6 +6,7 @@
 #include <score/tools/std/Pointer.hpp>
 
 #include <ossia/detail/hash_map.hpp>
+#include <nano_signal_slot.hpp>
 
 #include <score_lib_base_export.h>
 
@@ -111,6 +112,8 @@ public:
         score::debug_types(it->second.get(), result);
         it->second = std::move(pf);
       }
+
+      added(*vec.back());
     }
   }
 
@@ -136,6 +139,8 @@ public:
   auto empty() const noexcept { return vec.empty(); }
 
   auto size() const noexcept { return vec.size(); }
+
+  mutable Nano::Signal<void(const factory_type&)> added;
 
 protected:
   ossia::fast_hash_map<

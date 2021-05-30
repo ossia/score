@@ -1,5 +1,7 @@
 #include <JitCpp/Compiler/SectionMemoryManager.hpp>
 
+// thanks https://wiki.nervtech.org/doku.php?id=blog:2020:0425_jit_compiler_part5_improvements
+
 #define NOGDI
 #include <windows.h>
 // Map an "ImageBase" to a range of adresses that can throw.

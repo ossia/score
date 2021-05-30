@@ -22,6 +22,8 @@ ProcessesItemModel::ProcessesItemModel(
     : TreeNodeBasedItemModel<ProcessNode>{parent}
 {
   auto& procs = ctx.interfaces<Process::ProcessFactoryList>();
+  procs.added.connect<&ProcessesItemModel::on_newPlugin>(*this);
+
   std::map<QString, std::vector<Process::ProcessModelFactory*>> sorted;
   for (Process::ProcessModelFactory& proc : procs)
   {
@@ -47,10 +49,32 @@ ProcessesItemModel::ProcessesItemModel(
   }
 
   auto& lib_setup = ctx.interfaces<Library::LibraryInterfaceList>();
+  // TODO lib_setup.added.connect<&ProcessesItemModel::on_newPlugin>(*this);
   int k = 0;
   for (auto& lib : lib_setup)
   {
-    QTimer::singleShot(k++ * 100, [&] { lib.setup(*this, ctx); });
+    QTimer::singleShot(k++ * 100, this, [&] { lib.setup(*this, ctx); });
+  }
+}
+
+void ProcessesItemModel::on_newPlugin(const Process::ProcessModelFactory& fact)
+{
+  auto it = ossia::find_if(m_root, [&, cat = fact.category()] (ProcessData& container){
+    return container.prettyName == cat;
+  });
+  if(it != m_root.end())
+  {
+    auto dist = std::abs(std::distance(it, m_root.begin()));
+    auto& cat = m_root.childAt(dist);
+    cat.emplace_back(ProcessData{{fact.concreteKey(), fact.prettyName(), {}}, QIcon{}, {}, {}}, &cat);
+  }
+  else
+  {
+    auto& cat = m_root.emplace_back(
+        ProcessData{
+            {{}, fact.category(), {}}, Process::getCategoryIcon(fact.category()), {}, {}},
+        &m_root);
+    cat.emplace_back(ProcessData{{fact.concreteKey(), fact.prettyName(), {}}, QIcon{}, {}, {}}, &cat);
   }
 }
 

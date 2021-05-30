@@ -262,11 +262,12 @@ void GUIApplicationInterface::registerPlugin(Plugin_QtInterface& p)
     {
       auto p = static_cast<score::PanelDelegateFactory*>(panel_fac)->make(
           context);
-      p->setModel(std::nullopt);
+      p->setModel(std::nullopt); // TODO why not current document
       components.panels.push_back(std::move(p));
       presenter->view()->setupPanel(components.panels.back().get());
     }
   }
+
 }
 
 void GUIApplicationInterface::requestExit()
