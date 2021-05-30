@@ -64,8 +64,7 @@ void ProcessesItemModel::on_newPlugin(const Process::ProcessModelFactory& fact)
   });
   if(it != m_root.end())
   {
-    auto dist = std::abs(std::distance(it, m_root.begin()));
-    auto& cat = m_root.childAt(dist);
+    auto& cat = *it;
     cat.emplace_back(ProcessData{{fact.concreteKey(), fact.prettyName(), {}}, QIcon{}, {}, {}}, &cat);
   }
   else
