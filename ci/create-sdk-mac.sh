@@ -27,7 +27,6 @@ rsync -ar "$XCODE_MACOS_SDK/usr/include/" "$INCLUDE/"
 rsync -ar "$XCODE_TOOLCHAIN/usr/include/c++" "$INCLUDE/"
 
 # Copy clang lib headers
-export LLVM_VER=$(ls $XCODE_TOOLCHAIN/usr/lib/clang/)
+export LLVM_VER=$(ls $OSSIA_SDK/llvm-libs/lib/clang)
 mkdir -p "$LIB/clang/$LLVM_VER"
-rsync -ar "$XCODE_TOOLCHAIN/usr/lib/clang/$LLVM_VER/include" "$LIB/clang/$LLVM_VER/"
-
+rsync -ar "$OSSIA_SDK/llvm-libs/lib/clang/$LLVM_VER/include" "$LIB/clang/$LLVM_VER/"

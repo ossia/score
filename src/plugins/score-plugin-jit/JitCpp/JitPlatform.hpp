@@ -100,6 +100,7 @@ populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
 {
   args.push_back("-triple");
   args.push_back(llvm::sys::getDefaultTargetTriple());
+
   args.push_back("-target-cpu");
   args.push_back(llvm::sys::getHostCPUName().lower());
 
@@ -156,8 +157,10 @@ populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
   args.push_back("-fno-builtin");
 #endif
 
-  args.push_back("-fgnuc-version=10.0.1");
-
+  args.push_back("-fgnuc-version=4.2.1");
+#if defined(__APPLE__)
+  args.push_back("-fmax-type-align=16");
+#endif
   args.push_back("-mrelocation-model");
   args.push_back("pic");
   args.push_back("-pic-level");
@@ -219,7 +222,12 @@ populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
 
 static inline void populateDefinitions(std::vector<std::string>& args)
 {
-  args.push_back("-DASIO_STANDALONE=1");
+  #if defined(__APPLE__)
+  // needed because otherwise readerwriterqueue includes CoreFoundation.h ...
+  args.push_back("-DMOODYCAMEL_MAYBE_ALIGN_TO_CACHELINE=");
+  #endif
+  args.push_back("-DBOOST_MATH_DISABLE_FLOAT128=1");
+  args.push_back("-DBOOST_ASIO_DISABLE_CONCEPTS=1");
   args.push_back("-DBOOST_MULTI_INDEX_ENABLE_INVARIANT_CHECKING");
   args.push_back("-DBOOST_MULTI_INDEX_ENABLE_SAFE_MODE");
   args.push_back("-DQT_CORE_LIB");
@@ -379,6 +387,7 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
   args.push_back(sdk + "/lib/clang/" + llvm_lib_version);
 
 #if defined(_LIBCPP_VERSION)
+  args.push_back("-stdlib=libc++");
   args.push_back("-internal-isystem");
   args.push_back(sdk + "/include/c++/v1");
 #elif defined(_GLIBCXX_RELEASE)
