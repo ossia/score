@@ -320,6 +320,14 @@ namespace score
         label_y+=40;
       }
 
+      { // new version
+        InteractiveLabel* label = new InteractiveLabel{titleFont, qApp->tr("New version is available !"), "https://github.com/ossia/score/releases/latest/", this};
+        label->setPixmaps(score::get_pixmap(":/icons/version_off.png"),score::get_pixmap(":/icons/version_on.png"));
+        label->setOpenExternalLink(true);
+        label->setFixedWidth(600);
+        label->move(240,245);
+      }
+
       m_crashLabel = new InteractiveLabel{titleFont, qApp->tr("Reload your previously crashed work ?"), "", this};
       m_crashLabel->setPixmaps(score::get_pixmap(":/icons/reload_crash_off.png"),score::get_pixmap(":/icons/reload_crash_on.png"));
       m_crashLabel->move(150,460);

@@ -666,5 +666,9 @@
         <file>icons/new_window_off@2x.png</file>
         <file>icons/new_window_on.png</file>
         <file>icons/new_window_on@2x.png</file>
+        <file>icons/version_off.png</file>
+        <file>icons/version_off@2x.png</file>
+        <file>icons/version_on.png</file>
+        <file>icons/version_on@2x.png</file>
     </qresource>
 </RCC>
