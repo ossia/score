@@ -9,6 +9,11 @@
 #include <stdexcept>
 #include <string>
 
+// Yay for windows defining uuid_t macro
+#if defined(uuid_t)
+#undef uuid_t
+#endif
+
 class JSONObject;
 namespace score
 {

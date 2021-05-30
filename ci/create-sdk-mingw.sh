@@ -9,7 +9,8 @@ export INCLUDE="$DST/usr/include"
 export LIB="$DST/usr/lib"
 
 convert_path () {
-  cygpath -w "$1"
+  #cygpath -w "$1"
+  echo "$1"
 }
 
 mkdir -p "$INCLUDE"

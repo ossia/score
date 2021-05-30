@@ -207,10 +207,15 @@ populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
   else
   {
     args.push_back("-munwind-tables");
+
     args.push_back("-fcxx-exceptions");
     args.push_back("-fexceptions");
 #if defined(_WIN32)
-    args.push_back("-fseh-exceptions");
+  #if LLVM_VERSION_MAJOR < 12
+      args.push_back("-fseh-exceptions");
+  #else
+      args.push_back("-exception-model=seh");
+  #endif
 #endif
   }
   args.push_back("-faddrsig");
@@ -272,6 +277,11 @@ static inline void populateDefinitions(std::vector<std::string>& args)
   args.push_back("-D__STDC_CONSTANT_MACROS");
   args.push_back("-D__STDC_FORMAT_MACROS");
   args.push_back("-D__STDC_LIMIT_MACROS");
+  #if defined(FFTW_SINGLE_ONLY)
+  args.push_back("-DFFTW_SINGLE_ONLY");
+  #elif defined(FFTW_DOUBLE_ONLY)
+  args.push_back("-DFFTW_DOUBLE_ONLY");
+  #endif
 }
 
 static inline auto getPotentialTriples()

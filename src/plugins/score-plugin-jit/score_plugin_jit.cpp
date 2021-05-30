@@ -18,9 +18,15 @@
 #if defined(SCORE_JIT_HAS_TEXGEN)
 #include <score_plugin_gfx.hpp>
 #endif
+#if defined(_WIN32)
+#include <windows.h>
+#endif
 score_plugin_jit::score_plugin_jit()
 {
   using namespace llvm;
+  #if defined(_WIN32)
+    SetProcessDEPPolicy(0);
+  #endif
   sys::PrintStackTraceOnErrorSignal({});
 
   atexit(llvm_shutdown);

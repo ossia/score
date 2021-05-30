@@ -15,5 +15,6 @@ using tick_fun = ossia::audio_engine::fun_type;
 SCORE_PLUGIN_AUDIO_EXPORT
 tick_fun makePauseTick(const score::ApplicationContext& app);
 
+SCORE_PLUGIN_AUDIO_EXPORT
 extern std::atomic<ossia::transport_status> execution_status;
 }
