@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
-
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"
@@ -9,12 +7,12 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="64px"
-   height="64px"
-   viewBox="0 0 64 64"
+   width="24"
+   height="24"
+   viewBox="0 0 24 24"
    version="1.1"
    id="SVGRoot"
-   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
+   inkscape:version="1.0.2 (e86c870879, 2021-01-15, custom)"
    sodipodi:docname="contribute_on.svg"
    inkscape:export-filename="/home/alevy/dev/score/src/lib/resources/icons/contribute_on.png"
    inkscape:export-xdpi="48"
@@ -40,7 +38,8 @@
      inkscape:window-y="0"
      inkscape:window-maximized="1"
      inkscape:grid-bbox="true"
-     inkscape:snap-global="false">
+     inkscape:snap-global="false"
+     inkscape:document-rotation="0">
     <inkscape:grid
        type="xygrid"
        id="grid849" />
@@ -53,7 +52,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -64,7 +63,7 @@
      style="display:inline">
     <path
        sodipodi:type="star"
-       style="opacity:1;vector-effect:none;fill:#03c3dd;fill-opacity:1;fill-rule:nonzero;stroke:#03c3dd;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:1.5;stroke-opacity:1;paint-order:markers fill stroke"
+       style="opacity:1;vector-effect:none;fill:#03c3dd;fill-opacity:1;fill-rule:nonzero;stroke:#03c3dd;stroke-width:5.17491;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:1.5;stroke-opacity:1;paint-order:markers fill stroke"
        id="path838"
        sodipodi:sides="5"
        sodipodi:cx="32.901409"
@@ -77,8 +76,8 @@
        inkscape:rounded="0"
        inkscape:randomized="0"
        d="m 45.220659,47.47418 -11.649142,-5.91342 -10.579897,7.663995 2.024213,-12.90634 -10.55826,-7.693775 12.900174,-2.063138 4.054534,-12.419009 5.948533,11.631251 13.0641,0.01841 -9.223779,9.251645 z"
-       inkscape:transform-center-x="0.073541338"
-       inkscape:transform-center-y="-1.8281541"
-       transform="matrix(1.0456966,0.06976472,-0.06976472,1.0456966,-0.02551373,-3.0292445)" />
+       inkscape:transform-center-x="0.027219089"
+       inkscape:transform-center-y="-0.67171605"
+       transform="matrix(0.38703282,0.02563355,-0.02582129,0.38421882,0.14672903,-0.87075103)" />
   </g>
 </svg>

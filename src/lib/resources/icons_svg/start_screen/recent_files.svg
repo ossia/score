@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Generator: Adobe Illustrator 21.0.2, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"
@@ -13,12 +11,12 @@
    id="Calque_1"
    x="0px"
    y="0px"
-   viewBox="0 0 64.000001 64.000001"
+   viewBox="0 0 24 24"
    xml:space="preserve"
    sodipodi:docname="recent_files.svg"
-   width="64"
-   height="64"
-   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
+   width="24"
+   height="24"
+   inkscape:version="1.0.2 (e86c870879, 2021-01-15, custom)"
    inkscape:export-filename="/home/alevy/dev/score/src/lib/resources/icons/new_file_off.png"
    inkscape:export-xdpi="48"
    inkscape:export-ydpi="48"><metadata
@@ -38,13 +36,14 @@
    inkscape:window-height="1015"
    id="namedview13"
    showgrid="false"
-   inkscape:zoom="7.0316242"
-   inkscape:cx="44.827359"
-   inkscape:cy="12.146794"
+   inkscape:zoom="11.029358"
+   inkscape:cx="10.414937"
+   inkscape:cy="24.801153"
    inkscape:window-x="0"
    inkscape:window-y="0"
    inkscape:window-maximized="1"
-   inkscape:current-layer="layer1" />
+   inkscape:current-layer="layer1"
+   inkscape:document-rotation="0" />
 <style
    type="text/css"
    id="style2">
@@ -74,14 +73,20 @@
    id="layer1"
    inkscape:label="Icon"
    style="display:inline"
-   transform="translate(0,35.1)"><path
-     style="opacity:1;vector-effect:none;fill:none;fill-opacity:1;fill-rule:nonzero;stroke:#f0f0f0;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
-     d="m 40.807674,-30.502174 15.179,14.679 M 15.629146,14.094479 c 0.0026,-1.22378 0,-41.834826 0,-41.834826 0,-1.529791 1.128358,-2.761337 2.529762,-2.761355 l 22.648766,-4.72e-4 v 14.679 h 15.179 v 29.917653 c 0,1.529791 -1.128679,2.760874 -2.530083,2.760874 0,0 -34.112421,-0.0065 -35.297683,0 -1.185262,0.0065 -2.532377,-1.537094 -2.529762,-2.760874 z"
-     id="rect12"
-     inkscape:connector-curvature="0"
-     sodipodi:nodetypes="cczscccccszz" /><path
-     sodipodi:nodetypes="ccszzscc"
-     inkscape:connector-curvature="0"
-     id="path18"
-     d="m 48.350327,18.602304 v 2.958826 c 0,1.529791 -1.128679,2.760874 -2.530083,2.760874 0,0 -34.11242,-0.0065 -35.297683,0 -1.1852615,0.0065 -2.5323765,-1.537094 -2.5297615,-2.760874 0.0026,-1.22378 0,-41.834826 0,-41.834826 0,-1.529791 1.128358,-2.761337 2.5297615,-2.761355 l 3.324383,-2.36e-4"
-     style="opacity:1;vector-effect:none;fill:none;fill-opacity:1;fill-rule:nonzero;stroke:#f0f0f0;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal" /></g></svg>
+   transform="translate(0,35.1)"><g
+     id="g823"
+     transform="matrix(0.34655107,0,0,0.34731073,1.8593416,-24.710947)"
+     style="stroke:#f0f0f0;stroke-width:5.7648402;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"><path
+       style="fill:none;stroke:#f0f0f0;stroke-width:5.7648402;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 29.261657,-6.3616572 v 12 h 10"
+       id="path828"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccc"
+       inkscape:transform-center-x="0.27735967"
+       inkscape:transform-center-y="0.46661196" /></g><ellipse
+     style="fill:none;stroke:#f0f0f0;stroke-width:2;stroke-linecap:square;stroke-dashoffset:8.3824;stroke-opacity:1;paint-order:markers stroke fill;stroke-miterlimit:4;stroke-dasharray:none"
+     id="path16"
+     cx="12"
+     cy="-23.1"
+     rx="7"
+     ry="7.1070509" /></g></svg>
