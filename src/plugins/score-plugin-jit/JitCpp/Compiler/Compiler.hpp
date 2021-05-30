@@ -5,6 +5,7 @@
 #include <llvm/ExecutionEngine/Orc/ExecutionUtils.h>
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
 #include <llvm/ExecutionEngine/Orc/ThreadSafeModule.h>
+
 namespace Jit
 {
 class JitCompiler
@@ -12,80 +13,15 @@ class JitCompiler
   using ModulePtr_t = std::unique_ptr<llvm::Module>;
 
 public:
-  JitCompiler(llvm::TargetMachine& targetMachine)
-  {
-    using namespace llvm;
-    using namespace llvm::orc;
-    // Load own executable as dynamic library.
-    // Required for RTDyldMemoryManager::getSymbolAddressInProcess().
-    sys::DynamicLibrary::LoadLibraryPermanently(nullptr);
+  JitCompiler(llvm::TargetMachine& targetMachine);
 
-    LLJIT& JIT = *m_jit;
-    auto& JD = JIT.getMainJITDylib();
-#if defined(SCORE_DEBUG)
-    {
-      auto s = absoluteSymbols(
-          {{m_mangler("atexit"),
-            JITEvaluatedSymbol(
-                pointerToJITTargetAddress(&::atexit),
-                JITSymbolFlags::Exported)}});
-      (void)JD.define(std::move(s));
-    }
-#endif
+  ~JitCompiler();
 
-    (void)m_overrides.enable(JD, m_mangler);
-
-    {
-      auto gen = DynamicLibrarySearchGenerator::GetForCurrentProcess(
-          m_dl.getGlobalPrefix(),
-          [&](const SymbolStringPtr& S) { return true; });
-      JD.addGenerator(std::move(*gen));
-    }
-    {
-      // auto gen =
-      //     DynamicLibrarySearchGenerator::Load("/usr/lib/libc.so.6",
-      //       DL.getGlobalPrefix(),
-      //       [&](const SymbolStringPtr &S) {
-      //   return true;
-      // });
-      // JD.addGenerator(std::move(*gen));
-    }
-  }
-
-  ~JitCompiler()
-  {
-#if LLVM_VERSION_MAJOR >= 11
-    (void)m_jit->deinitialize(m_jit->getMainJITDylib());
-#else
-    m_jit->runDestructors();
-#endif
-  }
-
-  auto compile(
+  void compile(
       const std::string& cppCode,
       const std::vector<std::string>& flags,
       CompilerOptions opts,
-      llvm::orc::ThreadSafeContext& context)
-  {
-    using namespace llvm;
-    using namespace llvm::orc;
-    auto module = m_driver.compileTranslationUnit(
-        cppCode, flags, opts, *context.getContext());
-    if (!module)
-      throw Exception{module.takeError()};
-
-    if (auto Err
-        = m_jit->addIRModule(ThreadSafeModule(std::move(*module), context));
-        bool(Err))
-      throw Err;
-
-#if LLVM_VERSION_MAJOR >= 11
-    (void)m_jit->initialize(m_jit->getMainJITDylib());
-#else
-    m_jit->runConstructors();
-#endif
-    return std::move(*module);
-  }
+      llvm::orc::ThreadSafeContext& context);
 
   template <class Signature_t>
   llvm::Expected<std::function<Signature_t>> getFunction(std::string name)

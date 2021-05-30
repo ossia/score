@@ -61,6 +61,7 @@ set(HDRS
 )
 
 set(SRCS
+    JitCpp/Compiler/Compiler.cpp
     JitCpp/AddonCompiler.cpp
     JitCpp/JitModel.cpp
     JitCpp/ApplicationPlugin.cpp
