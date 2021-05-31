@@ -13,7 +13,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   gtar xhaf $SDK_ARCHIVE --strip-components=2 --directory /opt/ossia-sdk-x86_64/
   ls /opt/ossia-sdk-x86_64/
 )
-elif [[ "$OSTYPE" == "linux*" ]]; then
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
 (
   wget -nv https://github.com/ossia/sdk/releases/download/sdk21/sdk-linux.tar.xz
   tar xaf sdk-linux.tar.xz --strip-components=2 --directory /opt/ossia-sdk
