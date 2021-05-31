@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo "Running on OS: '$OS'"
+echo "Running on OSTYPE: '$OSTYPE'"
+echo "Running on OS_TYPE: '$OS_TYPE'"
 if [[ "$OSTYPE" == "darwin"* ]]; then
 (
   SDK_ARCHIVE=sdk-macOS.tar.gz
@@ -15,7 +18,7 @@ elif [[ "$OSTYPE" == "linux*" ]]; then
   wget -nv https://github.com/ossia/sdk/releases/download/sdk21/sdk-linux.tar.xz
   tar xaf sdk-linux.tar.xz --strip-components=2 --directory /opt/ossia-sdk
   rm -rf sdk-linux.tar.xz
-  sudo mkdir -p /opt/ossia-sdk 
+  sudo mkdir -p /opt/ossia-sdk
   sudo chown -R $(whoami) /opt/ossia-sdk
 )
 else
