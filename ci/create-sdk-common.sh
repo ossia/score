@@ -1,20 +1,22 @@
 #!/bin/bash -eux
 
 mkdir -p "$INCLUDE/qt"
-rsync -ar $(convert_path "$OSSIA_SDK/qt5-static/include/") $(convert_path "$INCLUDE/qt/")
+export INCLUDE_PATH=$(convert_path "$INCLUDE/")
+
+rsync -ar $(convert_path "$OSSIA_SDK/qt5-static/include/") "$INCLUDE_PATH/qt/"
 
 if [[ -d $(convert_path "$OSSIA_SDK/llvm-libs/include") ]]; then
-  rsync -ar $(convert_path "$OSSIA_SDK/llvm-libs/include/") $(convert_path "$INCLUDE/")
+  rsync -ar $(convert_path "$OSSIA_SDK/llvm-libs/include/") "$INCLUDE_PATH/"
 else
-  rsync -ar $(convert_path "$OSSIA_SDK/llvm/include/") $(convert_path "$INCLUDE/")
+  rsync -ar $(convert_path "$OSSIA_SDK/llvm/include/") "$INCLUDE_PATH/"
 fi
 
-rsync -ar "$OSSIA_SDK/ffmpeg/include/" "$INCLUDE/"
-rsync -ar "$OSSIA_SDK/fftw/include/" "$INCLUDE/"
-rsync -ar "$OSSIA_SDK/portaudio/include/" "$INCLUDE/"
+rsync -ar $(convert_path "$OSSIA_SDK/ffmpeg/include/") "$INCLUDE_PATH/"
+rsync -ar $(convert_path "$OSSIA_SDK/fftw/include/") "$INCLUDE_PATH/"
+rsync -ar $(convert_path "$OSSIA_SDK/portaudio/include/") "$INCLUDE_PATH/"
 
 if [[ -d "$OSSIA_SDK/openssl/include" ]]; then
-  rsync -ar "$OSSIA_SDK/openssl/include/" "$INCLUDE/"
+  rsync -ar $(convert_path "$OSSIA_SDK/openssl/include/") "$INCLUDE_PATH/"
 fi
 
 BOOST=$(find "$SCORE_DIR/3rdparty/libossia/3rdparty/" -maxdepth 2 -name boost -type d | sort | tail -1)
