@@ -10,6 +10,8 @@
 #include <QDir>
 #include <QIcon>
 
+#include <nano_observer.hpp>
+
 #include <score_plugin_library_export.h>
 
 #include <verdigris>
