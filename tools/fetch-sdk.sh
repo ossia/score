@@ -34,10 +34,10 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   ls "$SDK_DIR"
 
   # Then the score headers
-  # SCORE_SDK_ARCHIVE=mac-sdk.zip
-  # wget -nv "$LATEST_RELEASE/$SCORE_SDK_ARCHIVE" -O "$SCORE_SDK_ARCHIVE"
-  # mkdir -p "$HOME/Documents/ossia score library/SDK/"
-  # unzip -qq $SCORE_SDK_ARCHIVE -d "$HOME/Documents/ossia score library/SDK/$LATEST_TAG_NOV"
+  SCORE_SDK_ARCHIVE=mac-sdk.zip
+  wget -nv "$LATEST_RELEASE/$SCORE_SDK_ARCHIVE" -O "$SCORE_SDK_ARCHIVE"
+  mkdir -p "$HOME/Documents/ossia score library/SDK/"
+  unzip -qq $SCORE_SDK_ARCHIVE -d "$HOME/Documents/ossia score library/SDK/$LATEST_TAG_NOV"
 )
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
 (
@@ -65,10 +65,10 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
   ls "$SDK_DIR"
 
   # Then the score headers
-  # SCORE_SDK_ARCHIVE=linux-sdk.zip
-  # wget -nv "$LATEST_RELEASE/$SCORE_SDK_ARCHIVE" -O "$SCORE_SDK_ARCHIVE"
-  # mkdir -p "$HOME/Documents/ossia score library/SDK/"
-  # unzip -qq $SCORE_SDK_ARCHIVE -d "$HOME/Documents/ossia score library/SDK/$LATEST_TAG_NOV"
+  SCORE_SDK_ARCHIVE=linux-sdk.zip
+  wget -nv "$LATEST_RELEASE/$SCORE_SDK_ARCHIVE" -O "$SCORE_SDK_ARCHIVE"
+  mkdir -p "$HOME/Documents/ossia score library/SDK/"
+  unzip -qq $SCORE_SDK_ARCHIVE -d "$HOME/Documents/ossia score library/SDK/$LATEST_TAG_NOV"
 )
 else
 (
@@ -95,9 +95,9 @@ else
   )
 
   # Then the score headers
-  # SCORE_SDK_ARCHIVE=windows-sdk.zip
-  # wget -nv "$LATEST_RELEASE/$SCORE_SDK_ARCHIVE" -O "$SCORE_SDK_ARCHIVE"
-  # mkdir -p "$HOME/Documents/ossia score library/SDK/"
-  # 7z x $SCORE_SDK_ARCHIVE  -o"$HOME/Documents/ossia score library/SDK/$LATEST_TAG_NOV"
+  SCORE_SDK_ARCHIVE=windows-sdk.zip
+  wget -nv "$LATEST_RELEASE/$SCORE_SDK_ARCHIVE" -O "$SCORE_SDK_ARCHIVE"
+  mkdir -p "$HOME/Documents/ossia score library/SDK/"
+  7z x $SCORE_SDK_ARCHIVE  -o"$HOME/Documents/ossia score library/SDK/$LATEST_TAG_NOV"
 )
 fi

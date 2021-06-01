@@ -142,6 +142,40 @@ find_package(Qt5 5.9 REQUIRED COMPONENTS
   Qml
 )
 
+# ossia-config.hpp
+file(CONFIGURE
+  OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/ossia-config.hpp"
+  CONTENT "#pragma once
+  // ABI-breaking language features
+  #define OSSIA_SHARED_MUTEX_AVAILABLE
+
+  // Protocols supported by the build
+  #define OSSIA_PROTOCOL_AUDIO
+  #define OSSIA_PROTOCOL_MIDI
+  #define OSSIA_PROTOCOL_OSC
+  #define OSSIA_PROTOCOL_MINUIT
+  #define OSSIA_PROTOCOL_OSCQUERY
+  #define OSSIA_PROTOCOL_HTTP
+  #define OSSIA_PROTOCOL_WEBSOCKETS
+  #define OSSIA_PROTOCOL_SERIAL
+  /* #undef OSSIA_PROTOCOL_PHIDGETS */
+  /* #undef OSSIA_PROTOCOL_LEAPMOTION */
+  #define OSSIA_PROTOCOL_JOYSTICK
+  #define OSSIA_PROTOCOL_WIIMOTE
+  #define OSSIA_PROTOCOL_ARTNET
+
+  // Additional features
+  #define OSSIA_DNSSD
+  #define OSSIA_QT
+  #define OSSIA_QML
+  #define OSSIA_DATAFLOW
+  /* #undef OSSIA_C */
+  /* #undef OSSIA_QML_DEVICE */
+  /* #undef OSSIA_QML_SCORE */
+  #define OSSIA_EDITOR
+  #define OSSIA_PARALLEL
+")
+
 foreach(_lib ${SCORE_PLUGINS})
   string(TOLOWER "${_lib}" _lib_lc)
   string(REPLACE "_" "-" _lib_folder "${_lib_lc}")
