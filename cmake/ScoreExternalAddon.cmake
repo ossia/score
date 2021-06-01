@@ -77,7 +77,7 @@ function(setup_score_plugin)
     -fPIC
   )
   target_include_directories(score_lib_base INTERFACE "${SCORE_SDK}/include")
-  target_compile_definitions(score_lib_base
+  target_compile_definitions(score_lib_base INTERFACE
     BOOST_MATH_DISABLE_FLOAT128=1
     BOOST_ASIO_DISABLE_CONCEPTS=1
     BOOST_MULTI_INDEX_ENABLE_INVARIANT_CHECKING
@@ -218,6 +218,18 @@ elseif (has_std_1z_flag)
 endif ()
 
 target_compile_features(score_lib_base INTERFACE "${CXX_VERSION_FLAG}")
+
+target_compile_definitions(score_lib_base INTERFACE
+  BOOST_MATH_DISABLE_FLOAT128=1
+  BOOST_ASIO_DISABLE_CONCEPTS=1
+  BOOST_MULTI_INDEX_ENABLE_INVARIANT_CHECKING
+  BOOST_MULTI_INDEX_ENABLE_SAFE_MODE
+
+  RAPIDJSON_HAS_STDSTRING=1
+  # SCORE_DEBUG
+  TINYSPLINE_DOUBLE_PRECISION
+  FFTW_DOUBLE_ONLY
+)
 
 set(3RDPARTY_FOLDER "${SCORE_SOURCE_DIR}/3rdparty/")
 set(OSSIA_3RDPARTY_FOLDER "${SCORE_SOURCE_DIR}/3rdparty/libossia/3rdparty")
