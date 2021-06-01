@@ -191,7 +191,22 @@ foreach(_lib ${SCORE_PLUGINS})
   message(" - includeing  ${SCORE_SOURCE_DIR}/src/plugins/score-${_lib_folder}")
 endforeach()
 
-target_link_libraries(score_lib_base INTERFACE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::Qml Qt5::WidgetsPrivate Qt5::GuiPrivate Qt5::CorePrivate)
+target_link_libraries(score_lib_base
+  INTERFACE
+    Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::Qml Qt5::WidgetsPrivate Qt5::GuiPrivate Qt5::CorePrivate
+)
+
+if(APPLE)
+  target_link_libraries(score_lib_base
+    INTERFACE
+      -Wl,-undefined,dynamic_lookup
+  )
+else()
+  target_link_libraries(score_lib_base
+    INTERFACE
+      -Wl,--allow-shlib-undefined
+  )
+endif()
 
 foreach(_lib ${SCORE_PLUGINS})
   string(TOLOWER "${_lib}" _lib_lc)
