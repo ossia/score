@@ -159,7 +159,7 @@ endforeach()
 
 target_link_libraries(score_lib_base INTERFACE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::Qml Qt5::WidgetsPrivate Qt5::GuiPrivate Qt5::CorePrivate)
 
-foreach(_lib LIB_DEVICE LIB_INSPECTOR LIB_LOCALTREE LIB_PROCESS LIB_STATE PLUGIN_AUDIO PLUGIN_AUTOMATION PLUGIN_CURVE PLUGIN_DATAFLOW PLUGIN_DEVICEEXPLORER PLUGIN_ENGINE PLUGIN_GFX PLUGIN_JIT PLUGIN_JS PLUGIN_LIBRARY PLUGIN_MAPPING PLUGIN_MEDIA PLUGIN_MIDI PLUGIN_RECORDING PLUGIN_REMOTECONTROL PLUGIN_SCENARIO)
+foreach(_lib ${SCORE_PLUGINS})
   string(TOLOWER "${_lib}" _lib_lc)
   target_link_libraries(score_${_lib_lc} INTERFACE score_lib_base)
 endforeach()
