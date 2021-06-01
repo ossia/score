@@ -247,17 +247,20 @@ static inline void populateDefinitions(std::vector<std::string>& args)
   args.push_back("-DQT_SVG_LIB");
   args.push_back("-DQT_WEBSOCKETS_LIB");
   args.push_back("-DQT_WIDGETS_LIB");
+  args.push_back("-DQT_XML_LIB");
   args.push_back("-DRAPIDJSON_HAS_STDSTRING=1");
+#if defined(SCORE_DEBUG)
   args.push_back("-DSCORE_DEBUG");
+#endif
   args.push_back("-DSCORE_LIB_BASE");
   args.push_back("-DSCORE_LIB_DEVICE");
   args.push_back("-DSCORE_LIB_INSPECTOR");
   args.push_back("-DSCORE_LIB_LOCALTREE");
   args.push_back("-DSCORE_LIB_PROCESS");
   args.push_back("-DSCORE_LIB_STATE");
-  args.push_back("-DSCORE_ADDON_GFX");
-  args.push_back("-DSCORE_ADDON_REMOTECONTROL");
-  args.push_back("-DSCORE_ADDON_NODAL");
+  args.push_back("-DSCORE_PLUGIN_GFX");
+  args.push_back("-DSCORE_PLUGIN_REMOTECONTROL");
+  args.push_back("-DSCORE_PLUGIN_NODAL");
   args.push_back("-DSCORE_PLUGIN_AUDIO");
   args.push_back("-DSCORE_PLUGIN_AUTOMATION");
   args.push_back("-DSCORE_PLUGIN_CURVE");
@@ -270,7 +273,9 @@ static inline void populateDefinitions(std::vector<std::string>& args)
   args.push_back("-DSCORE_PLUGIN_PROTOCOLS");
   args.push_back("-DSCORE_PLUGIN_SCENARIO");
   args.push_back("-DSCORE_PLUGIN_MIDI");
+  args.push_back("-DSCORE_PLUGIN_PROTOCOLS");
   args.push_back("-DSCORE_PLUGIN_RECORDING");
+  args.push_back("-DSCORE_PLUGIN_TRANSPORT");
   // args.push_back("-DSCORE_STATIC_PLUGINS");
   args.push_back("-DTINYSPLINE_DOUBLE_PRECISION");
   args.push_back("-D_GNU_SOURCE");
