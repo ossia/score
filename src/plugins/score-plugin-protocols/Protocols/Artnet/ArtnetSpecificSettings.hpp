@@ -53,6 +53,8 @@ struct ArtnetSpecificSettings
 {
   std::vector<Artnet::Fixture> fixtures;
   int rate{20};
+  int universe{1};
+  enum { ArtNet, E131 } transport{ArtNet};
 };
 }
 

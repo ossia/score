@@ -10,8 +10,9 @@
 #include <score/document/DocumentContext.hpp>
 
 #include <ossia/network/generic/generic_device.hpp>
-#include <ossia/protocols/artnet/artnet_parameter.hpp>
 #include <ossia/protocols/artnet/artnet_protocol.hpp>
+#include <ossia/protocols/artnet/e131_protocol.hpp>
+#include <ossia/protocols/artnet/dmx_parameter.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Protocols::ArtnetDevice)
@@ -39,7 +40,7 @@ namespace
 {
 static void addArtnetFixture(
     ossia::net::generic_device& dev,
-    ossia::net::artnet_protocol& proto,
+    ossia::net::dmx_buffer& buffer,
     const Artnet::Fixture& fix)
 {
   // For each fixture, we'll create a node.
@@ -52,8 +53,8 @@ static void addArtnetFixture(
   for (auto& chan : fix.controls)
   {
     auto chan_node = fixt_node->create_child(chan.name.toStdString());
-    auto chan_param = std::make_unique<ossia::net::artnet_parameter>(
-        *chan_node, proto.buffer(), k);
+    auto chan_param = std::make_unique<ossia::net::dmx_parameter>(
+        *chan_node, buffer, k);
     auto& p = *chan_param;
     chan_node->set_parameter(std::move(chan_param));
     p.set_default_value(chan.defaultValue);
@@ -63,7 +64,7 @@ static void addArtnetFixture(
     struct chan_visitor
     {
       ossia::net::node_base& node;
-      ossia::net::artnet_protocol::dmx_buffer& buffer;
+      ossia::net::dmx_buffer& buffer;
       int k;
       void operator()(const Artnet::SingleCapability& v) const noexcept
       {
@@ -83,18 +84,18 @@ static void addArtnetFixture(
             name = capa.type.toStdString();
 
           auto cld = node.create_child(name);
-          auto cld_p = std::make_unique<ossia::net::artnet_parameter>(
+          auto cld_p = std::make_unique<ossia::net::dmx_parameter>(
               *cld, buffer, k, capa.range.first, capa.range.second);
           cld_p->set_value(int(capa.range.first));
           cld->set_parameter(std::move(cld_p));
 
-          assert(dynamic_cast<ossia::net::artnet_parameter*>(
-              cld->get_parameter()));
+          assert(
+              dynamic_cast<ossia::net::dmx_parameter*>(cld->get_parameter()));
           if (!capa.comment.isEmpty())
             ossia::net::set_description(*cld, capa.comment.toStdString());
         }
       }
-    } vis{*chan_node, proto.buffer(), k};
+    } vis{*chan_node, buffer, k};
 
     std::visit(vis, chan.capabilities);
 
@@ -111,21 +112,45 @@ bool ArtnetDevice::reconnect()
     const auto& set
         = m_settings.deviceSpecificSettings.value<ArtnetSpecificSettings>();
 
-    ossia::net::artnet_protocol_config conf;
+    ossia::net::dmx_config conf;
     conf.autocreate = set.fixtures.empty();
     conf.frequency = set.rate;
+    conf.universe = set.universe;
     auto& ctx = m_ctx.plugin<Explorer::DeviceDocumentPlugin>().asioContext;
-    auto artnet_proto
-        = std::make_unique<ossia::net::artnet_protocol>(ctx, conf);
-    auto& proto = *artnet_proto;
-    auto dev = std::make_unique<ossia::net::generic_device>(
-        std::move(artnet_proto), settings().name.toStdString());
 
-    for (auto& fixt : set.fixtures)
+    switch (set.transport)
     {
-      addArtnetFixture(*dev, proto, fixt);
+      case ArtnetSpecificSettings::ArtNet:
+      {
+        auto artnet_proto
+            = std::make_unique<ossia::net::artnet_protocol>(ctx, conf);
+        auto& proto = *artnet_proto;
+        auto dev = std::make_unique<ossia::net::generic_device>(
+            std::move(artnet_proto), settings().name.toStdString());
+
+        for (auto& fixt : set.fixtures)
+        {
+          addArtnetFixture(*dev, proto.buffer(), fixt);
+        }
+        m_dev = std::move(dev);
+        break;
+      }
+      case ArtnetSpecificSettings::E131:
+      {
+        auto artnet_proto
+            = std::make_unique<ossia::net::e131_protocol>(ctx, conf);
+        auto& proto = *artnet_proto;
+        auto dev = std::make_unique<ossia::net::generic_device>(
+            std::move(artnet_proto), settings().name.toStdString());
+
+        for (auto& fixt : set.fixtures)
+        {
+          addArtnetFixture(*dev, proto.buffer(), fixt);
+        }
+        m_dev = std::move(dev);
+        break;
+      }
     }
-    m_dev = std::move(dev);
     deviceChanged(nullptr, m_dev.get());
   }
   catch (const std::runtime_error& e)
