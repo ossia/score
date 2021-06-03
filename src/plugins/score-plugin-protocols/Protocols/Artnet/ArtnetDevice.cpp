@@ -116,6 +116,8 @@ bool ArtnetDevice::reconnect()
     conf.autocreate = set.fixtures.empty();
     conf.frequency = set.rate;
     conf.universe = set.universe;
+    conf.multicast = true;
+
     auto& ctx = m_ctx.plugin<Explorer::DeviceDocumentPlugin>().asioContext;
 
     switch (set.transport)
@@ -137,8 +139,12 @@ bool ArtnetDevice::reconnect()
       }
       case ArtnetSpecificSettings::E131:
       {
+        ossia::net::socket_configuration sock_conf;
+        sock_conf.host = set.host.toStdString();
+        sock_conf.port = ossia::net::e131_protocol::default_port;
+
         auto artnet_proto
-            = std::make_unique<ossia::net::e131_protocol>(ctx, conf);
+            = std::make_unique<ossia::net::e131_protocol>(ctx, conf, sock_conf);
         auto& proto = *artnet_proto;
         auto dev = std::make_unique<ossia::net::generic_device>(
             std::move(artnet_proto), settings().name.toStdString());

@@ -13,6 +13,9 @@
 
 #include <ossia/detail/flat_map.hpp>
 
+#include <boost/asio/ip/udp.hpp>
+#include <boost/asio/ip/host_name.hpp>
+
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QDirIterator>
@@ -652,13 +655,43 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
   m_deviceNameEdit->setText("Artnet");
 
+  m_host = new QComboBox{this};
+  {
+    {
+      boost::asio::io_context context;
+      using resolv = boost::asio::ip::udp::resolver;
+
+      resolv resolver{context};
+      resolv::query query(boost::asio::ip::host_name(), "");
+
+      for(auto it = resolver.resolve(query);
+          it != resolv::iterator();
+          ++it)
+      {
+        if(auto addr = it->endpoint().address(); addr.is_v4())
+        {
+          m_host->addItem(QString::fromStdString(addr.to_string()));
+        }
+      }
+    }
+  }
+
   m_rate = new QSpinBox{this};
   m_rate->setRange(0, 44);
   m_rate->setValue(20);
 
+  m_universe = new QSpinBox{this};
+  m_universe->setRange(1, 65539);
+
+  m_transport = new QComboBox{this};
+  m_transport->addItems({"ArtNet", "E1.31 (sACN)"});
+
   auto layout = new QFormLayout;
   layout->addRow(tr("Name"), m_deviceNameEdit);
   layout->addRow(tr("Rate (Hz)"), m_rate);
+  layout->addRow(tr("Universe"), m_universe);
+  layout->addRow(tr("Transport"), m_transport);
+  layout->addRow(tr("Interface"), m_host);
 
   m_fixturesWidget = new QTableWidget;
   layout->addRow(m_fixturesWidget);
@@ -748,7 +781,13 @@ Device::DeviceSettings ArtnetProtocolSettingsWidget::getSettings() const
 
   ArtnetSpecificSettings settings{};
   settings.fixtures = this->m_fixtures;
+  settings.host = this->m_host->currentText();
+  settings.transport = this->m_transport->currentIndex() == 0
+      ? ArtnetSpecificSettings::ArtNet
+      : ArtnetSpecificSettings::E131;
+
   settings.rate = this->m_rate->value();
+  settings.universe = this->m_universe->value();
   s.deviceSpecificSettings = QVariant::fromValue(settings);
 
   return s;

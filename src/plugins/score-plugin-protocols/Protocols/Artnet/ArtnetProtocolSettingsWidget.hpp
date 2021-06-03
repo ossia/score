@@ -31,7 +31,10 @@ public:
 private:
   void updateTable();
   QLineEdit* m_deviceNameEdit{};
+  QComboBox* m_host{};
   QSpinBox* m_rate{};
+  QSpinBox* m_universe{};
+  QComboBox* m_transport{};
   QTableWidget* m_fixturesWidget{};
   QPushButton* m_addFixture{};
   QPushButton* m_rmFixture{};
