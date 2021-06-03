@@ -189,6 +189,7 @@ public:
       , m_panSlider{this}
       , m_model{param}
   {
+    SCORE_ASSERT(!param->graphal());
     setMinimumSize(60, 140);
     setMaximumSize(100, 400);
 

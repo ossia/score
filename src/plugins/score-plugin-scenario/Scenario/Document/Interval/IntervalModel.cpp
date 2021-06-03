@@ -539,7 +539,11 @@ void IntervalModel::setGraphal(bool m)
 {
   if (m != m_graphal)
   {
+    SCORE_ASSERT(!m_graphal); // once an interval is set graphal it cannot go back
+    // TODO this should be a ctor thing instead...
     m_graphal = m;
+    inlet.reset();
+    outlet.reset();
     graphalChanged(m);
   }
 }

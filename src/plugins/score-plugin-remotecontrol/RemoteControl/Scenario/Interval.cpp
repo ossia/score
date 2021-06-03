@@ -83,6 +83,9 @@ struct IntervalMessages
       Scenario::IntervalModel* csp = path.try_find(doc);
       if (!csp)
         return;
+      if (csp->graphal())
+        return;
+
       auto& cs = *csp;
 
       cs.outlet->setGain(gain);

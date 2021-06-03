@@ -374,8 +374,9 @@ ScenarioComponentBase::make<IntervalComponent, Scenario::IntervalModel>(
 
   elt->onSetup(elt, ossia_cst, dur);
 
+  const bool prop = cst.graphal() ? false : cst.outlet->propagate();
   m_ctx.executionQueue.enqueue(
-      [g = system().execGraph, proc, ossia_sev, ossia_eev, ossia_cst, prop=cst.outlet->propagate()] {
+      [g = system().execGraph, proc, ossia_sev, ossia_eev, ossia_cst, prop] {
         if (auto sev = ossia_sev->OSSIAEvent())
           sev->next_time_intervals().push_back(ossia_cst);
         if (auto eev = ossia_eev->OSSIAEvent())
