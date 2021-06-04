@@ -124,6 +124,7 @@ AboutDialog::AboutDialog(QWidget* parent)
       "https://github.com/tessil/hopscotch-map", hopscotchmap_LICENSE};
   map["Pure Data"] = License{"http://msp.ucsd.edu/software.html", pd_LICENSE};
   map["libpd"] = License{"https://github.com/libpd/libpd", libpd_LICENSE};
+  map["libe131"] = License{"https://github.com/libpd/libpd", libe131_LICENSE};
 
   map["multi_index"] = License{
       "https://github.com/jcelerier/multi_index", multiindex_LICENSE};
