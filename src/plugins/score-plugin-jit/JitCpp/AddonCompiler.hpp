@@ -28,6 +28,7 @@ public:
       std::vector<std::string> flags,
       CompilerOptions opts) W_SIGNAL(submitJob, id, cpp, flags, opts);
   void jobCompleted(score::Plugin_QtInterface* p) W_SIGNAL(jobCompleted, p);
+  void jobFailed() W_SIGNAL(jobFailed);
   void on_job(
       std::string id,
       std::string cpp,

@@ -20,7 +20,7 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
       &QFileSystemWatcher::directoryChanged,
       this,
       [&](const QString& a) {
-        QTimer::singleShot(5000, [=] { rescanAddons(); });
+        QTimer::singleShot(5000, this, [=] { rescanAddons(); });
       });
   con(m_addonsWatch,
       &QFileSystemWatcher::fileChanged,
@@ -53,9 +53,9 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
     auto node_to_compile = parser.value(compile_node);
     auto addon_to_compile = parser.value(compile_addon);
 
-    qDebug() << node_to_compile << addon_to_compile;
     if ((!node_to_compile.isEmpty() || !addon_to_compile.isEmpty()))
     {
+      qDebug() << node_to_compile << addon_to_compile;
       if (QFile::exists(node_to_compile))
       {
         con(m_compiler,
@@ -75,11 +75,16 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
             this,
             [this](auto addon) {
               registerAddon(addon);
-              exit(0);
+              qApp->exit(0);
             });
 
         setupAddon(addon_to_compile);
       }
+      con(m_compiler,
+          &AddonCompiler::jobFailed,
+          this, [] {
+            qApp->exit(1);
+          });
     }
     else
     {

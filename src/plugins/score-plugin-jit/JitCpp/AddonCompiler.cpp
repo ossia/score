@@ -62,6 +62,7 @@ void AddonCompiler::on_job(
     if (!jitedFn)
     {
       qDebug() << "could not compile plug-in: no factory";
+      jobFailed();
       return;
     }
 
@@ -70,6 +71,7 @@ void AddonCompiler::on_job(
     if (!instance)
     {
       qDebug() << "could not compile plug-in: no instance";
+      jobFailed();
       return;
     }
     else
@@ -81,6 +83,7 @@ void AddonCompiler::on_job(
   catch (const std::runtime_error& e)
   {
     qDebug() << "could not compile plug-in: " << e.what();
+    jobFailed();
   }
 }
 
