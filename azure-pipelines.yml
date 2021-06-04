@@ -1,12 +1,14 @@
 trigger:
   branches:
     include:
-    - '*'
+      - "*"
   tags:
     include:
-    - '*'
+      - "*"
+    exclude:
+      - "continuous"
 pr:
-  - '*'
+  - "*"
 
 variables:
   isGitTag: $[startsWith(variables['Build.SourceBranch'], 'refs/tags/')]
@@ -19,153 +21,166 @@ stages:
       - job: Win32
         displayName: Win32
         pool:
-          vmImage: 'windows-2019'
+          vmImage: "windows-2019"
 
         steps:
-        - checkout: self
-          submodules: recursive
+          - checkout: self
+            submodules: recursive
 
-        - bash: |
-            source ci/win32.deps.sh
+          - bash: |
+              source ci/win32.deps.sh
 
-        - script: |
-            call ci/win32.build.cmd
+          - script: |
+              call ci/win32.build.cmd
 
-        - bash: |
-            source ci/win32.deploy.sh
+          - bash: |
+              source ci/win32.deploy.sh
 
-          displayName: Build
+            displayName: Build
 
-        - task: PublishPipelineArtifact@1
-          inputs:
-            targetPath: "$(Build.ArtifactStagingDirectory)"
-            artifactName: Windows
+          - task: PublishPipelineArtifact@1
+            inputs:
+              targetPath: "$(Build.ArtifactStagingDirectory)"
+              artifactName: Windows
 
       - job: Ubuntu
         displayName: Ubuntu
         pool:
-          vmImage: 'ubuntu-20.04'
+          vmImage: "ubuntu-20.04"
 
         steps:
-        - checkout: self
-          submodules: recursive
+          - checkout: self
+            submodules: recursive
 
-        - bash: |
-            source ci/ubuntu.deps.sh
-        - bash: |
-            source ci/ubuntu.build.sh
+          - bash: |
+              source ci/ubuntu.deps.sh
+          - bash: |
+              source ci/ubuntu.build.sh
 
       - job: AppImage
         displayName: AppImage
         pool:
-          vmImage: 'ubuntu-20.04'
+          vmImage: "ubuntu-20.04"
 
         steps:
-        - checkout: self
-          submodules: recursive
+          - checkout: self
+            submodules: recursive
 
-        - bash: |
-            source ci/appimage.deps.sh
-        - bash: |
-            source ci/appimage.build.sh
-        - bash: |
-            source ci/appimage.deploy.sh
+          - bash: |
+              source ci/appimage.deps.sh
+          - bash: |
+              source ci/appimage.build.sh
+          - bash: |
+              source ci/appimage.deploy.sh
 
-        - task: PublishPipelineArtifact@1
-          inputs:
-            targetPath: "$(Build.ArtifactStagingDirectory)/"
-            artifactName: Linux
+          - task: PublishPipelineArtifact@1
+            inputs:
+              targetPath: "$(Build.ArtifactStagingDirectory)/"
+              artifactName: Linux
 
       - job: macOS
         displayName: macOS
         pool:
-          vmImage: 'macos-10.15'
+          vmImage: "macos-10.15"
         variables:
           - group: macos
 
         steps:
-        - checkout: self
-          submodules: recursive
+          - checkout: self
+            submodules: recursive
 
-        - task: DownloadSecureFile@1
-          name: codesign
-          displayName: 'Download codesign certificate'
-          inputs:
-            secureFile: 'ossia-cert.p12'
+          - task: DownloadSecureFile@1
+            name: codesign
+            displayName: "Download codesign certificate"
+            inputs:
+              secureFile: "ossia-cert.p12"
 
-        - bash: |
-            source ci/osx-package.deps.sh
-          env:
-            MAC_CODESIGN_PASSWORD: $(codesign)
-            MAC_ALTOOL_PASSWORD: $(altool)
-        - bash: |
-            source ci/osx-package.build.sh
-        - bash: |
-            source ci/osx-package.deploy.sh
-          env:
-            MAC_CODESIGN_PASSWORD: $(codesign)
-            MAC_ALTOOL_PASSWORD: $(altool)
+          - bash: |
+              source ci/osx-package.deps.sh
+            env:
+              MAC_CODESIGN_PASSWORD: $(codesign)
+              MAC_ALTOOL_PASSWORD: $(altool)
+          - bash: |
+              source ci/osx-package.build.sh
+          - bash: |
+              source ci/osx-package.deploy.sh
+            env:
+              MAC_CODESIGN_PASSWORD: $(codesign)
+              MAC_ALTOOL_PASSWORD: $(altool)
 
-        - task: PublishPipelineArtifact@1
-          inputs:
-            targetPath: "$(Build.ArtifactStagingDirectory)"
-            artifactName: macOS
+          - task: PublishPipelineArtifact@1
+            inputs:
+              targetPath: "$(Build.ArtifactStagingDirectory)"
+              artifactName: macOS
 
       - job: Tarball
         displayName: Tarball
         pool:
-          vmImage: 'ubuntu-20.04'
+          vmImage: "ubuntu-20.04"
 
         steps:
-        - checkout: self
-          submodules: recursive
+          - checkout: self
+            submodules: recursive
 
-        - task: DownloadSecureFile@1
-          name: pubkey
-          displayName: 'Download CA certificate'
-          inputs:
-            secureFile: 'sign-ossia-travis.pub.asc'
-        - task: DownloadSecureFile@1
-          name: privkey
-          displayName: 'Download CA certificate'
-          inputs:
-            secureFile: 'sign-ossia-travis.priv.asc'
+          - task: DownloadSecureFile@1
+            name: pubkey
+            displayName: "Download CA certificate"
+            inputs:
+              secureFile: "sign-ossia-travis.pub.asc"
+          - task: DownloadSecureFile@1
+            name: privkey
+            displayName: "Download CA certificate"
+            inputs:
+              secureFile: "sign-ossia-travis.priv.asc"
 
-        - bash: |
-            source ci/tarball.build.sh
-        - bash: |
-            source ci/tarball.deploy.sh
+          - bash: |
+              source ci/tarball.build.sh
+          - bash: |
+              source ci/tarball.deploy.sh
 
-        - task: PublishPipelineArtifact@1
-          inputs:
-            targetPath: "$(Build.ArtifactStagingDirectory)"
-            artifactName: Source
+          - task: PublishPipelineArtifact@1
+            inputs:
+              targetPath: "$(Build.ArtifactStagingDirectory)"
+              artifactName: Source
 
   - stage: Upload
     jobs:
-    - job:
-      steps:
-      - checkout: none
+      - job:
+        steps:
+          - checkout: none
 
-      - task: DownloadPipelineArtifact@2
-        inputs:
-          source: 'current'
-          path: '$(System.DefaultWorkingDirectory)'
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              source: "current"
+              path: "$(System.DefaultWorkingDirectory)"
 
-      - bash: |
-          cd "$(System.DefaultWorkingDirectory)"
-          find . -type f -exec mv {} . \;
-          ls
+          - bash: |
+              cd "$(System.DefaultWorkingDirectory)"
+              find . -type f -exec mv {} . \;
+              ls
 
-      - task: GitHubRelease@1
-        condition: and(succeeded(), eq(variables.isGitTag, true))
-        inputs:
-          gitHubConnection: github.com_jcelerier
-          repositoryName: ossia/score
-          action: 'edit'
-          target: '$(Build.SourceVersion)'
-          tag: '$(gitTag)'
-          assets: '$(System.DefaultWorkingDirectory)/*'
-          tagSource: userSpecifiedTag
-          title: '$(gitTag)'
-          assetUploadMode: 'replace'
+          - task: GitHubRelease@1
+            inputs:
+              gitHubConnection: github.com_jcelerier
+              repositoryName: ossia/score
+              action: "edit"
+              target: "$(Build.SourceVersion)"
+              tag: "continuous"
+              assets: "$(System.DefaultWorkingDirectory)/*"
+              tagSource: userSpecifiedTag
+              title: "Continuous build"
+              assetUploadMode: "delete"
+              isPreRelease: true
+
+          - task: GitHubRelease@1
+            condition: and(succeeded(), eq(variables.isGitTag, true))
+            inputs:
+              gitHubConnection: github.com_jcelerier
+              repositoryName: ossia/score
+              action: "edit"
+              target: "$(Build.SourceVersion)"
+              tag: "$(gitTag)"
+              assets: "$(System.DefaultWorkingDirectory)/*"
+              tagSource: userSpecifiedTag
+              title: "$(gitTag)"
+              assetUploadMode: "replace"
