@@ -1,11 +1,19 @@
 #include <JitCpp/Compiler/Compiler.hpp>
-
+#include <map>
 #if defined(_WIN64)
 #include "SectionMemoryManager.cpp"
 #endif
 namespace Jit
 {
-
+struct GlobalAtExit {
+  int nextCompilerID{};
+  int currentCompiler{};
+  std::map<int, std::vector<void(*)()>> functions;
+} globalAtExit;
+static void jitAtExit(void(*f)())
+{
+  globalAtExit.functions[globalAtExit.currentCompiler].push_back(f);
+}
 JitCompiler::JitCompiler(llvm::TargetMachine& targetMachine)
 {
   using namespace llvm;
@@ -20,9 +28,7 @@ JitCompiler::JitCompiler(llvm::TargetMachine& targetMachine)
   {
     llvm::orc::SymbolMap RuntimeInterposes;
 
-#if defined(SCORE_DEBUG)
-    RuntimeInterposes[m_mangler("atexit")] = {pointerToJITTargetAddress(&::atexit), JITSymbolFlags::Exported};
-#endif
+    RuntimeInterposes[m_mangler("atexit")] = {pointerToJITTargetAddress(&jitAtExit), JITSymbolFlags::Exported};
 
 #if defined(_WIN64)
     RuntimeInterposes[m_mangler("_CxxThrowException")] = {pointerToJITTargetAddress(&SEHFrameHandler::RaiseSEHException), JITSymbolFlags::Exported};
@@ -47,6 +53,15 @@ JitCompiler::JitCompiler(llvm::TargetMachine& targetMachine)
 
 JitCompiler::~JitCompiler()
 {
+  m_atExitId = globalAtExit.currentCompiler;
+  // See https://lists.llvm.org/pipermail/llvm-dev/2017-December/119472.html for the order in which things must be done
+
+  for(auto func : globalAtExit.functions[m_atExitId])
+  {
+    (*func)();
+  }
+
+  // TODO __dso_handle deinit ?
 #if LLVM_VERSION_MAJOR >= 11
   (void)m_jit->deinitialize(m_jit->getMainJITDylib());
 #else
@@ -68,6 +83,9 @@ JitCompiler::compile(const std::string& cppCode, const std::vector<std::string>&
       = m_jit->addIRModule(ThreadSafeModule(std::move(*module), context));
       bool(Err))
     throw Err;
+
+  globalAtExit.currentCompiler = globalAtExit.nextCompilerID++;
+  m_atExitId = globalAtExit.currentCompiler;
 
 #if LLVM_VERSION_MAJOR >= 11
   (void)m_jit->initialize(m_jit->getMainJITDylib());

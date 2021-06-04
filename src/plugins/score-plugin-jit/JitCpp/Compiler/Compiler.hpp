@@ -45,5 +45,7 @@ private:
   const llvm::DataLayout& m_dl{m_jit->getDataLayout()};
   llvm::orc::MangleAndInterner m_mangler{m_jit->getExecutionSession(), m_dl};
   llvm::orc::LocalCXXRuntimeOverrides m_overrides;
+
+  int m_atExitId{};
 };
 }
