@@ -117,17 +117,20 @@ static AddonData loadAddon(const QString& addon)
   if (QFile f(addon + QDir::separator() + "addon.json"); f.open(QIODevice::ReadOnly))
   {
     qDebug() << "Loading addon info from: " << f.fileName();
+    f.setTextModeEnabled(true);
     data.addon_info = QJsonDocument::fromJson(f.readAll()).object();
   }
 
   if (QFile f(addon + QDir::separator() + "CMakeLists.txt"); f.open(QIODevice::ReadOnly))
   {
     qDebug() << "Loading CMake-based add-on: " << f.fileName();
+    // Needed because regex uses \n
+    f.setTextModeEnabled(true);
     loadCMakeAddon(addon, data, f.readAll());
   }
   else
   {
-    qDebug() << "Loading non-CMake-based add-on: " << f.fileName();
+    qDebug() << "Loading non-CMake-based add-on";
     loadBasicAddon(addon, data);
   }
 
