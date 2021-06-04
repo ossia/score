@@ -5,6 +5,7 @@
 #endif
 namespace Jit
 {
+// TODO investigate https://stackoverflow.com/questions/1839965/dynamically-creating-functions-in-c
 struct GlobalAtExit {
   int nextCompilerID{};
   int currentCompiler{};

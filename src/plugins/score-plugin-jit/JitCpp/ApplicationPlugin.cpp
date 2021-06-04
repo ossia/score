@@ -166,7 +166,10 @@ void ApplicationPlugin::setupAddon(const QString& addon)
   auto [json, cpp_files, files, flags] = loadAddon(addon);
 
   if (cpp_files.empty())
+  {
+    qDebug() << "Add-on has no cpp files";
     return;
+  }
 
   auto addon_files_path = generateAddonFiles(addonFolderName, addon, files);
   flags.push_back("-I" + addon.toStdString());
@@ -177,6 +180,8 @@ void ApplicationPlugin::setupAddon(const QString& addon)
   {
     id = addonFolderName.remove(QChar('-')).remove(QChar(' ')).toStdString();
   }
+
+  qDebug() << "Submittin JIT addon build job";
   m_compiler.submitJob(id, cpp_files, flags, CompilerOptions{false});
 }
 
