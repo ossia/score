@@ -32,7 +32,11 @@ JitCompiler::JitCompiler(llvm::TargetMachine& targetMachine)
     RuntimeInterposes[m_mangler("atexit")] = {pointerToJITTargetAddress(&jitAtExit), JITSymbolFlags::Exported};
 
 #if defined(_WIN64)
-    RuntimeInterposes[m_mangler("_CxxThrowException")] = {pointerToJITTargetAddress(&SEHFrameHandler::RaiseSEHException), JITSymbolFlags::Exported};
+    RuntimeInterposes[m_mangler("fprintf")] = {pointerToJITTargetAddress(&::fprintf), JITSymbolFlags::Exported};
+    RuntimeInterposes[m_mangler("vfprintf")] = {pointerToJITTargetAddress(&::vfprintf), JITSymbolFlags::Exported};
+    RuntimeInterposes[m_mangler("__mingw_vfprintf")] = {pointerToJITTargetAddress(&::vfprintf), JITSymbolFlags::Exported};
+
+    // RuntimeInterposes[m_mangler("_CxxThrowException")] = {pointerToJITTargetAddress(&SEHFrameHandler::RaiseSEHException), JITSymbolFlags::Exported};
 #endif
 
     if(!RuntimeInterposes.empty())
