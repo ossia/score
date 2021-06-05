@@ -223,3 +223,14 @@ endif()
 setup_score_plugin(${PROJECT_NAME})
 
 target_compile_options(${PROJECT_NAME} PRIVATE -std=c++2a)
+
+if(SCORE_INSTALL_HEADERS)
+  install(
+    FILES
+      Gfx/Qt5CompatPush
+      Gfx/Qt5CompatPop
+    DESTINATION include/score/Gfx
+    COMPONENT Devel
+    OPTIONAL
+  )
+endif()
