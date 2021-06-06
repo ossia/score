@@ -517,6 +517,9 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
   include("qt/QtSvg");
   include("qt/QtSql");
   include("qt/QtOpenGL");
+  include("qt/QtShaderTools");
+  include("qt/QtShaderTools/" + qt_version);
+  include("qt/QtShaderTools/" + qt_version + "/QtShaderTools");
   include("qt/QtSerialBus");
   include("qt/QtSerialPort");
 
