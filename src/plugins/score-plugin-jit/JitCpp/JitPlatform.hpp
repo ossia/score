@@ -172,8 +172,9 @@ populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
 
   args.push_back("-fvisibility-inlines-hidden");
 
-  // tls:
-  args.push_back("-ftls-model=local-exec");
+  // // tls:
+  // args.push_back("-ftls-model=local-exec");
+  args.push_back("-fno-emulated-tls");
 
   // if fsanitize:
   args.push_back("-mrelax-all");
@@ -252,6 +253,11 @@ static inline void populateDefinitions(std::vector<std::string>& args)
   args.push_back("-DQT_WIDGETS_LIB");
   args.push_back("-DQT_XML_LIB");
   args.push_back("-DRAPIDJSON_HAS_STDSTRING=1");
+
+  // TLS apparently not yet well supported by lljit - undefined references to
+  // ___emutls_add_address on macOS.
+  args.push_back("-DSPDLOG_NO_TLS=1");
+
 #if defined(SCORE_DEBUG)
   args.push_back("-DSCORE_DEBUG");
 #endif
