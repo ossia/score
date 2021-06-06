@@ -103,6 +103,7 @@ JitCompiler::~JitCompiler()
   {
     (*func)();
   }
+  globalAtExit.functions.erase(m_atExitId);
 
   // TODO __dso_handle deinit ?
 #if LLVM_VERSION_MAJOR >= 11

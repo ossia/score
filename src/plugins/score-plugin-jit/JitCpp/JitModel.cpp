@@ -164,7 +164,7 @@ void JitEffectModel::reload()
 
   m_compiler = std::make_unique<NodeCompiler>("score_graph_node_factory");
 
-  auto fx_text = m_text.toLocal8Bit();
+  auto fx_text = m_text.toUtf8();
   if (fx_text.isEmpty())
     return;
 

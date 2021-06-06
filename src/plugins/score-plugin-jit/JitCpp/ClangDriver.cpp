@@ -11,6 +11,7 @@
 #endif
 
 #include <score/tools/File.hpp>
+#include <ossia/detail/logger.hpp>
 
 #include <QCryptographicHash>
 #include <QStandardPaths>
@@ -18,7 +19,7 @@
 #include <JitCpp/ClangDriver.hpp>
 
 #include <sstream>
-
+#include <score_git_info.hpp>
 namespace Jit
 {
 
@@ -42,7 +43,7 @@ std::optional<QDir> ClangCC1Driver::bitcodeDatabase()
   if (caches.empty())
     return std::nullopt;
 
-  QDir dir{caches.front() + "/score-jit"};
+  QDir dir{caches.front() + "/score-jit/" GIT_COMMIT};
   if (!dir.exists())
     QDir::root().mkpath(dir.absolutePath());
 
@@ -89,7 +90,7 @@ ClangCC1Driver::compileTranslationUnit(
   flags_vec.push_back("-o");
   flags_vec.push_back(preproc);
   flags_vec.push_back(cpp);
-  /*
+
   {
     Timer t;
     llvm::Error err = compileCppToBitcodeFile(flags_vec);
@@ -99,7 +100,9 @@ ClangCC1Driver::compileTranslationUnit(
 
   const auto cache_dir = bitcodeDatabase();
 
+
   auto preproc_hash = hashFile(QString::fromStdString(preproc));
+  qDebug() << "Looking for: " << (preproc_hash + ".bc");
   {
     if (cache_dir && cache_dir->exists())
     {
@@ -111,37 +114,50 @@ ClangCC1Driver::compileTranslationUnit(
         if (fi.fileName() == preproc_hash + ".bc")
         {
           bitcodeFile = fi.absoluteFilePath().toStdString();
+
+          qDebug() << "Found JIT cache: " << bitcodeFile.c_str();
           break;
         }
       }
     }
   }
-*/
+
   // If there isn't a matching bitcode file, do the actual C++ -> bitcode
   // compilation
   if (bitcodeFile.empty())
   {
+    ossia::logger().info("JIT cache miss");
     bitcodeFile = replaceExtension(cpp, "bc");
     flags_vec.resize(flags_vec.size() - 5);
     flags_vec.push_back("-o");
     flags_vec.push_back(bitcodeFile);
     flags_vec.push_back(cpp);
 
-    std::cerr << "Original option dump ! \n";
-    for (const auto& arg : flags_vec)
+    if(qEnvironmentVariableIsSet("SCORE_JIT_OPTION_DUMP"))
     {
-      std::cerr << arg << " ";
+      std::cerr << "Original option dump ! \n";
+      for (const auto& arg : flags_vec)
+      {
+        if(arg.find(' ') != arg.npos)
+        {
+          std::cerr << "\"" << arg << "\" ";
+        }
+        else
+        {
+          std::cerr << arg << " ";
+        }
+      }
+      std::cerr << std::endl;
     }
-    std::cerr << std::endl;
     Timer t;
     llvm::Error err = compileCppToBitcodeFile(flags_vec);
     if (err)
       return std::move(err);
 
-    /* TODO FIX CACHE
     if (cache_dir && cache_dir->exists())
     {
       QFile f(QString::fromStdString(bitcodeFile));
+      qDebug() << "Copying: " << f.fileName() << " to " << (cache_dir->absolutePath() + "/" + preproc_hash + ".bc");
       if (!f.copy(cache_dir->absolutePath() + "/" + preproc_hash + ".bc"))
       {
         qDebug() << "Writing"
@@ -149,14 +165,13 @@ ClangCC1Driver::compileTranslationUnit(
                  << " : failed !";
       }
     }
-    */
   }
 
   // Load the bitcode
   Timer t;
   auto module = readModuleFromBitcodeFile(bitcodeFile, context);
 
-  llvm::sys::fs::remove(bitcodeFile);
+  //llvm::sys::fs::remove(bitcodeFile);
 
   if (!module)
   {

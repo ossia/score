@@ -260,12 +260,14 @@ static inline void populateDefinitions(std::vector<std::string>& args)
   // TLS apparently not yet well supported by lljit :
   // - undefined references to ___emutls_add_address
   // - MachO TLV relocations not yet supported
+#if __APPLE__
   args.push_back("-DSPDLOG_NO_TLS=1");
   args.push_back("-DMOODYCAMEL_NO_THREAD_LOCAL=1");
 
   args.push_back("-D__thread=__do_not_use_thread_local__");
   args.push_back("-Dthread_local=__do_not_use_thread_local__");
   args.push_back("-D_Thread_local=__do_not_use_thread_local__");
+#endif
 
 #if defined(SCORE_DEBUG)
   args.push_back("-DSCORE_DEBUG");
@@ -296,7 +298,7 @@ static inline void populateDefinitions(std::vector<std::string>& args)
   args.push_back("-DSCORE_PLUGIN_TRANSPORT");
   // args.push_back("-DSCORE_STATIC_PLUGINS");
   args.push_back("-DTINYSPLINE_DOUBLE_PRECISION");
-  args.push_back("-D_GNU_SOURCE");
+  args.push_back("-D_GNU_SOURCE=1");
   args.push_back("-D__STDC_CONSTANT_MACROS");
   args.push_back("-D__STDC_FORMAT_MACROS");
   args.push_back("-D__STDC_LIMIT_MACROS");
