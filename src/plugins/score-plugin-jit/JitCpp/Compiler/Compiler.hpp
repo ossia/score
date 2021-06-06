@@ -13,8 +13,7 @@ class JitCompiler
   using ModulePtr_t = std::unique_ptr<llvm::Module>;
 
 public:
-  JitCompiler(llvm::TargetMachine& targetMachine);
-
+  JitCompiler();
   ~JitCompiler();
 
   void compile(
@@ -39,11 +38,9 @@ public:
 
 private:
   ClangCC1Driver m_driver;
-  std::unique_ptr<llvm::orc::LLJIT> m_jit{
-      std::move(llvm::orc::LLJITBuilder().create().get())};
+  std::unique_ptr<llvm::orc::LLJIT> m_jit;
 
-  const llvm::DataLayout& m_dl{m_jit->getDataLayout()};
-  llvm::orc::MangleAndInterner m_mangler{m_jit->getExecutionSession(), m_dl};
+  llvm::orc::MangleAndInterner m_mangler;
   llvm::orc::LocalCXXRuntimeOverrides m_overrides;
 
   int m_atExitId{};

@@ -15,7 +15,44 @@ static void jitAtExit(void(*f)())
 {
   globalAtExit.functions[globalAtExit.currentCompiler].push_back(f);
 }
-JitCompiler::JitCompiler(llvm::TargetMachine& targetMachine)
+
+void setTargetOptions(llvm::TargetOptions& opts)
+{
+  opts.EmulatedTLS = false;
+
+  opts.UnsafeFPMath = true;
+  opts.NoInfsFPMath = true;
+  opts.NoNaNsFPMath = true;
+  opts.NoTrappingFPMath = true;
+  opts.NoSignedZerosFPMath = true;
+  opts.HonorSignDependentRoundingFPMathOption = false;
+  opts.EnableIPRA = true;
+  opts.setFPDenormalMode(llvm::DenormalMode::getPositiveZero());
+  opts.setFP32DenormalMode(llvm::DenormalMode::getPositiveZero());
+}
+
+static std::unique_ptr<llvm::orc::LLJIT> jitBuilder()
+{
+  auto JTMB = llvm::orc::JITTargetMachineBuilder::detectHost();
+  SCORE_ASSERT(JTMB);
+
+  llvm::orc::LLJITBuilder builder;
+  JTMB->setCodeGenOptLevel(llvm::CodeGenOpt::Aggressive);
+  setTargetOptions(JTMB->getOptions());
+
+  builder.setJITTargetMachineBuilder(std::move(*JTMB));
+  builder.setNumCompileThreads(4);
+
+  auto p = builder.create();
+  SCORE_ASSERT(p);
+  if(!p)
+    qDebug() << toString(p.takeError()).c_str();
+  SCORE_ASSERT(p.get());
+  return std::move(p.get());
+}
+JitCompiler::JitCompiler()
+    : m_jit{jitBuilder()}
+    , m_mangler{m_jit->getExecutionSession(), m_jit->getDataLayout()}
 {
   using namespace llvm;
   using namespace llvm::orc;
@@ -50,7 +87,7 @@ JitCompiler::JitCompiler(llvm::TargetMachine& targetMachine)
 
   {
     auto gen = DynamicLibrarySearchGenerator::GetForCurrentProcess(
-        m_dl.getGlobalPrefix(),
+        m_jit->getDataLayout().getGlobalPrefix(),
         [&](const SymbolStringPtr& S) { return true; });
     JD.addGenerator(std::move(*gen));
   }

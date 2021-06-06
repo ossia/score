@@ -6,41 +6,12 @@
 namespace Jit
 {
 
-struct EngineBuilder : llvm::EngineBuilder
-{
-  EngineBuilder()
-  {
-    setEmulatedTLS(false);
-    this->setOptLevel(llvm::CodeGenOpt::Aggressive);
-
-    llvm::TargetOptions opts;
-    opts.UnsafeFPMath = true;
-    opts.NoInfsFPMath = true;
-    opts.NoNaNsFPMath = true;
-    opts.NoTrappingFPMath = true;
-    opts.NoSignedZerosFPMath = true;
-    opts.HonorSignDependentRoundingFPMathOption = false;
-    opts.EnableIPRA = true;
-    opts.setFPDenormalMode(llvm::DenormalMode::getPositiveZero());
-    opts.setFP32DenormalMode(llvm::DenormalMode::getPositiveZero());
-
-    setTargetOptions(opts);
-  }
-
-  static EngineBuilder& instance()
-  {
-    static EngineBuilder e;
-    return e;
-  }
-};
-
 template <typename Fun_T>
 struct Driver
 {
   Driver(const std::string& fname)
       : X{0, nullptr}
       , ts_ctx{std::make_unique<llvm::LLVMContext>()}
-      , jit{*EngineBuilder::instance().selectTarget()}
       , factory_name{fname}
   {
   }
