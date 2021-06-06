@@ -1,0 +1,43 @@
+name: Linux distro build
+
+on: push
+
+jobs:
+  bullseye:
+    name: Debian Bullseye
+    runs-on: ubuntu-latest
+    container:
+      image: debian:bullseye
+
+    steps:
+      - name: Install git
+        run: |
+          apt-get update -qq
+          apt-get install -qq --force-yes git
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          submodules: "recursive"
+
+      - name: Dependencies
+        run: |
+          ./ci/bullseye.deps.sh
+
+      - name: Clone templates
+        run: |
+          for template in score-vfx-template score-device-template score-process-template score-audio-addon-template; do
+            git clone https://github.com/ossia-templates/$template
+            (
+             cd $template
+             ./init.sh $(echo $template | sed 's/score//;s/template//;s/addon//;s/-//g')
+             ./release.sh
+             mv score-* ../src/addons/
+            )
+          done
+
+          ls src/addons
+
+      - name: Build
+        run: |
+          ./ci/bullseye.build.sh
