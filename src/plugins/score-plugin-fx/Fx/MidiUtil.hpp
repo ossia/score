@@ -1,5 +1,5 @@
 #pragma once
-#include <Engine/Node/PdNode.hpp>
+#include <Engine/Node/SimpleApi.hpp>
 #undef slots
 #include <frozen/unordered_map.h>
 namespace Nodes::MidiUtil

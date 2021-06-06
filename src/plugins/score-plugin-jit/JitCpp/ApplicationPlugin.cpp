@@ -117,6 +117,7 @@ void ApplicationPlugin::rescanAddons()
     }
   }
 }
+
 void ApplicationPlugin::rescanNodes()
 {
   const auto& libpath = context.settings<Library::Settings::Model>().getPath();
@@ -125,20 +126,17 @@ void ApplicationPlugin::rescanNodes()
 
   QDirIterator it{
       nodes,
+      {"*.hpp", "*.cpp"},
       QDir::Filter::Files | QDir::Filter::NoDotAndDotDot,
       QDirIterator::Subdirectories};
   while (it.hasNext())
   {
     auto path = it.next();
     m_nodesWatch.addPath(path);
-    if (!m_nodesPaths.contains(path))
-    {
-      m_nodesPaths.insert(path);
-      setupAddon(path);
-    }
     setupNode(path);
   }
 }
+
 void ApplicationPlugin::initialize()
 {
   rescanNodes();

@@ -236,6 +236,8 @@ void PluginSettingsView::install()
 
   if (addon.kind == "addon")
     installAddon(addon);
+  else if (addon.kind == "nodes")
+    installAddon(addon);
   else if (addon.kind == "sdk")
     installSDK(addon);
   else if (addon.kind == "media")
@@ -250,19 +252,18 @@ void PluginSettingsView::installAddon(const RemotePackage& addon)
     return;
   }
 
-  const QString addons_path{
-      score::AppContext().settings<Library::Settings::Model>().getPath()
-      + "/Addons"};
+  const QString& libPath = score::AppContext().settings<Library::Settings::Model>().getPath();
+  const QString installPath{libPath + addon.kind == "addon" ? "/Addons" : "/Nodes"};
   zdl::download_and_extract(
       addon.file,
-      QDir{addons_path}.absolutePath(),
+      QDir{installPath}.absolutePath(),
       [=](const std::vector<QString>& res) {
         m_progress->setHidden(true);
         if (res.empty())
           return;
         // We want the extracted folder to have the name of the addon
         {
-          QDir addons_dir{addons_path};
+          QDir addons_dir{installPath};
           QFileInfo a_file(res[0]);
           auto d = a_file.dir();
           auto old_d = d;
@@ -285,7 +286,7 @@ void PluginSettingsView::installAddon(const RemotePackage& addon)
                "It will be built and enabled shortly.\nCheck the message "
                "console for errors if nothing happens.")
                 .arg(addon.name)
-                .arg(QFileInfo(addons_path).absoluteFilePath()));
+                .arg(QFileInfo(installPath).absoluteFilePath()));
       },
       [=] {
         m_progress->setHidden(true);

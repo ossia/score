@@ -29,7 +29,6 @@ struct ApplicationPlugin final
   QFileSystemWatcher m_addonsWatch;
   QFileSystemWatcher m_nodesWatch;
   QSet<QString> m_addonsPaths;
-  QSet<QString> m_nodesPaths;
   AddonCompiler m_compiler;
 };
 }
