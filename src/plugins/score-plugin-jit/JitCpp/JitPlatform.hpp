@@ -172,6 +172,9 @@ populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
 
   args.push_back("-fvisibility-inlines-hidden");
 
+  // tls:
+  args.push_back("-ftls-model=local-exec");
+
   // if fsanitize:
   args.push_back("-mrelax-all");
   args.push_back("-disable-llvm-verifier");
