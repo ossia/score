@@ -34,6 +34,9 @@ namespace Jit
 
 static inline std::string locateSDK()
 {
+  if(QString sdk = qgetenv("SCORE_JIT_SDK"); !sdk.isEmpty())
+    return sdk.toStdString();
+
   auto& ctx = score::AppContext().settings<Library::Settings::Model>();
   QString path = ctx.getPath() + "/SDK/";
 
@@ -173,7 +176,7 @@ populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
   args.push_back("-fvisibility-inlines-hidden");
 
   // // tls:
-  // args.push_back("-ftls-model=local-exec");
+  args.push_back("-ftls-model=local-exec");
   args.push_back("-fno-emulated-tls");
 
   // if fsanitize:
@@ -254,9 +257,15 @@ static inline void populateDefinitions(std::vector<std::string>& args)
   args.push_back("-DQT_XML_LIB");
   args.push_back("-DRAPIDJSON_HAS_STDSTRING=1");
 
-  // TLS apparently not yet well supported by lljit - undefined references to
-  // ___emutls_add_address on macOS.
+  // TLS apparently not yet well supported by lljit :
+  // - undefined references to ___emutls_add_address
+  // - MachO TLV relocations not yet supported
   args.push_back("-DSPDLOG_NO_TLS=1");
+  args.push_back("-DMOODYCAMEL_NO_THREAD_LOCAL=1");
+
+  args.push_back("-D__thread=__do_not_use_thread_local__");
+  args.push_back("-Dthread_local=__do_not_use_thread_local__");
+  args.push_back("-D_Thread_local=__do_not_use_thread_local__");
 
 #if defined(SCORE_DEBUG)
   args.push_back("-DSCORE_DEBUG");

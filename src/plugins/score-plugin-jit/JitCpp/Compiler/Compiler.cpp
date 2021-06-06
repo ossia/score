@@ -19,6 +19,7 @@ static void jitAtExit(void(*f)())
 void setTargetOptions(llvm::TargetOptions& opts)
 {
   opts.EmulatedTLS = false;
+  opts.ExplicitEmulatedTLS = false;
 
   opts.UnsafeFPMath = true;
   opts.NoInfsFPMath = true;
