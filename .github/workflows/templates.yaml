@@ -13,7 +13,7 @@ jobs:
       - name: Install git
         run: |
           apt-get update -qq
-          apt-get install -qq --force-yes git
+          apt-get install -qq --force-yes git rename perl
 
       - name: Checkout code
         uses: actions/checkout@v2
