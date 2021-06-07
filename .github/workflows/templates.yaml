@@ -1,19 +1,17 @@
-name: Linux distro build
+name: Template check
 
 on: push
 
 jobs:
-  bullseye:
-    name: Debian Bullseye
+  check:
+    name: Check templates
     runs-on: ubuntu-latest
-    container:
-      image: debian:bullseye
 
     steps:
       - name: Install git
         run: |
-          apt-get update -qq
-          apt-get install -qq --force-yes git rename perl
+          sudo apt-get update -qq
+          sudo apt-get install -qq --force-yes git rename perl
 
       - name: Checkout code
         uses: actions/checkout@v2
@@ -22,7 +20,7 @@ jobs:
 
       - name: Dependencies
         run: |
-          ./ci/bullseye.deps.sh
+          ./ci/ubuntu.deps.sh
 
       - name: Clone templates
         run: |
@@ -40,4 +38,4 @@ jobs:
 
       - name: Build
         run: |
-          ./ci/bullseye.build.sh
+          ./ci/ubuntu.build.sh
