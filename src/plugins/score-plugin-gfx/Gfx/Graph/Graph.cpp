@@ -158,7 +158,7 @@ void Graph::relinkGraph()
           }
           else
           {
-            rn->releaseWithoutRenderTarget(r);
+            rn->release(r);
             rn->init(r);
           }
           SCORE_ASSERT(rn);

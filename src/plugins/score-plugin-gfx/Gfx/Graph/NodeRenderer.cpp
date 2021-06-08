@@ -18,6 +18,9 @@ GenericNodeRenderer::createRenderTarget(const RenderState& state)
   }
 
   m_rt = score::gfx::createRenderTarget(state, QRhiTexture::RGBA8, sz);
+  m_rt.texture->setName("GenericNodeRenderer::m_rt.texture");
+  m_rt.renderPass->setName("GenericNodeRenderer::m_rt.renderPass");
+  m_rt.renderTarget->setName("GenericNodeRenderer::m_rt.renderTarget");
   return m_rt;
 }
 
@@ -50,10 +53,15 @@ void GenericNodeRenderer::init(RenderList& renderer)
     auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh);
     m_meshBuffer = mbuffer;
     m_idxBuffer = ibuffer;
+    if(m_meshBuffer)
+      m_meshBuffer->setName("GenericNodeRenderer::m_meshBuffer");
+    if(m_idxBuffer)
+      m_idxBuffer->setName("GenericNodeRenderer::m_idxBuffer");
   }
 
   m_processUBO = rhi.newBuffer(
       QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(ProcessUBO));
+  m_processUBO->setName("GenericNodeRenderer::m_processUBO");
   m_processUBO->create();
 
   customInit(renderer);
@@ -92,6 +100,24 @@ void GenericNodeRenderer::update(
     char* data = node.m_materialData.get();
     res.updateDynamicBuffer(m_material.buffer, 0, m_material.size, data);
     materialChangedIndex = node.materialChanged;
+  }
+
+  // Update input textures
+  {
+    int sampler_i = 0;
+    for (Port* in : this->node.input)
+    {
+      if (in->type == Types::Image)
+      {
+        auto new_texture = renderer.textureTargetForInputPort(*in);
+        auto cur_texture = m_samplers[sampler_i].texture;
+        if (new_texture != cur_texture)
+        {
+          score::gfx::replaceTexture(*this->m_p.srb, cur_texture, new_texture);
+        }
+        sampler_i++;
+      }
+    }
   }
 
   customUpdate(renderer, res);

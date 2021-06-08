@@ -106,6 +106,7 @@ Pipeline buildPipeline(
 {
   auto& rhi = *renderer.state.rhi;
   auto ps = rhi.newGraphicsPipeline();
+  ps->setName("buildPipeline::ps");
   SCORE_ASSERT(ps);
 
   QRhiGraphicsPipeline::TargetBlend premulAlphaBlend;
@@ -299,6 +300,7 @@ void DefaultShaderMaterial::init(RenderList& renderer, const std::vector<Port*>&
               QRhiSampler::None,
               QRhiSampler::ClampToEdge,
               QRhiSampler::ClampToEdge);
+          sampler->setName("DefaultShaderMaterial::sampler");
           SCORE_ASSERT(sampler->create());
 
           samplers.push_back(
@@ -317,6 +319,7 @@ void DefaultShaderMaterial::init(RenderList& renderer, const std::vector<Port*>&
     {
       buffer = rhi.newBuffer(
           QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, size);
+      buffer->setName("DefaultShaderMaterial::buffer");
       SCORE_ASSERT(buffer->create());
     }
   }

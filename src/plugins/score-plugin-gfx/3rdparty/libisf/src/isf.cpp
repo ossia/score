@@ -555,16 +555,44 @@ static const std::unordered_map<std::string, root_fun>& root_parse{[] {
                    = obj.find_object_key_insensitive(sajson::literal("WIDTH"));
                    width_k != obj.get_length())
                {
-                 p.width_expression
-                     = obj.get_object_value(width_k).as_string();
+                 auto t = obj.get_object_value(width_k).get_type();
+                 if(t == sajson::TYPE_STRING)
+                 {
+                   p.width_expression
+                       = obj.get_object_value(width_k).as_string();
+                 }
+                 else if(t == sajson::TYPE_DOUBLE)
+                 {
+                   p.width_expression
+                       = std::to_string(obj.get_object_value(width_k).get_double_value());
+                 }
+                 else if(t == sajson::TYPE_INTEGER)
+                 {
+                   p.width_expression
+                       = std::to_string(obj.get_object_value(width_k).get_integer_value());
+                 }
                }
 
                if (auto height_k = obj.find_object_key_insensitive(
                        sajson::literal("HEIGHT"));
                    height_k != obj.get_length())
                {
-                 p.height_expression
-                     = obj.get_object_value(height_k).as_string();
+                 auto t = obj.get_object_value(height_k).get_type();
+                 if(t == sajson::TYPE_STRING)
+                 {
+                   p.height_expression
+                       = obj.get_object_value(height_k).as_string();
+                 }
+                 else if(t == sajson::TYPE_DOUBLE)
+                 {
+                   p.height_expression
+                       = std::to_string(obj.get_object_value(height_k).get_double_value());
+                 }
+                 else if(t == sajson::TYPE_INTEGER)
+                 {
+                   p.height_expression
+                       = std::to_string(obj.get_object_value(height_k).get_integer_value());
+                 }
                }
 
                d.passes.push_back(std::move(p));

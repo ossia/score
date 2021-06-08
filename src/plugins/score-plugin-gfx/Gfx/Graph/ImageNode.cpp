@@ -113,6 +113,7 @@ private:
             1,
             QRhiTexture::Flag{});
 
+        tex->setName("ImagesNode::tex");
         tex->create();
         m_textures.push_back(tex);
       }
@@ -124,9 +125,10 @@ private:
           QRhiSampler::Linear,
           QRhiSampler::Linear,
           QRhiSampler::None,
-          QRhiSampler::ClampToEdge,
-          QRhiSampler::ClampToEdge);
+          QRhiSampler::Mirror,
+          QRhiSampler::Mirror);
 
+      sampler->setName("ImagesNode::sampler");
       sampler->create();
       auto tex = m_textures.empty() ? &renderer.emptyTexture() : m_textures.front();
       m_samplers.push_back({sampler, tex});
@@ -187,6 +189,146 @@ private:
 #include <Gfx/Qt5CompatPop> // clang-format: keep
 
 NodeRenderer* ImagesNode::createRenderer(RenderList& r) const noexcept
+{
+  return new Renderer{*this};
+}
+
+}
+
+
+namespace score::gfx
+{
+
+static const constexpr auto fullscreen_images_vertex_shader = R"_(#version 450
+layout(location = 0) in vec2 position;
+layout(location = 1) in vec2 texcoord;
+
+layout(binding = 3) uniform sampler2D y_tex;
+layout(location = 0) out vec2 v_texcoord;
+
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 texcoordAdjust;
+  vec2 renderSize;
+};
+
+out gl_PerVertex { vec4 gl_Position; };
+
+void main()
+{
+  v_texcoord = texcoord;
+  gl_Position = clipSpaceCorrMatrix * vec4(position.xy, 0.0, 1.);
+}
+)_";
+
+static const constexpr auto fullscreen_images_fragment_shader = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 texcoordAdjust;
+  vec2 renderSize;
+};
+
+layout(binding=3) uniform sampler2D y_tex;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main ()
+{
+  vec2 factor = textureSize(y_tex, 0) / renderSize;
+  vec2 ifactor = renderSize / textureSize(y_tex, 0);
+  vec2 texcoord = vec2(v_texcoord.x, texcoordAdjust.y + texcoordAdjust.x * v_texcoord.y);
+/*
+  texcoord = vec2(1) - ifactor * position + texcoord / factor;
+  texcoord = texcoord / scale;
+*/
+  fragColor = texture(y_tex, texcoord);
+}
+)_";
+FullScreenImageNode::FullScreenImageNode(QImage dec)
+    : m_image{std::move(dec)}
+{
+  std::tie(m_vertexS, m_fragmentS)
+      = score::gfx::makeShaders(fullscreen_images_vertex_shader, fullscreen_images_fragment_shader);
+  output.push_back(new Port{this, {}, Types::Image, {}});
+}
+
+FullScreenImageNode::~FullScreenImageNode()
+{
+}
+
+const Mesh& FullScreenImageNode::mesh() const noexcept
+{
+  return this->m_mesh;
+}
+
+#include <Gfx/Qt5CompatPush> // clang-format: keep
+class FullScreenImageNode::Renderer : public GenericNodeRenderer
+{
+public:
+  using GenericNodeRenderer::GenericNodeRenderer;
+
+private:
+  ~Renderer() { }
+
+  void customInit(RenderList& renderer) override
+  {
+    m_material.init(renderer, node.input, m_samplers);
+
+    auto& n = static_cast<const FullScreenImageNode&>(this->node);
+    auto& rhi = *renderer.state.rhi;
+
+    // Create GPU textures for the image
+    const QSize sz = n.m_image.size();
+    auto tex = rhi.newTexture(
+        QRhiTexture::BGRA8,
+        QSize{sz.width(), sz.height()},
+        1,
+        QRhiTexture::Flag{});
+
+    tex->setName("FullScreenImageNode::tex");
+    tex->create();
+    m_texture = tex;
+
+    // Create the sampler in which we are going to put the texture
+    {
+      auto sampler = rhi.newSampler(
+          QRhiSampler::Linear,
+          QRhiSampler::Linear,
+          QRhiSampler::None,
+          QRhiSampler::ClampToEdge,
+          QRhiSampler::ClampToEdge);
+
+      sampler->setName("FullScreenImageNode::sampler");
+      sampler->create();
+      m_samplers.push_back({sampler, m_texture});
+    }
+  }
+
+  void
+  customUpdate(RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  {
+    auto& n = static_cast<const FullScreenImageNode&>(this->node);
+    // If images haven't been uploaded yet, upload them.
+    if (!m_uploaded)
+    {
+      res.uploadTexture(m_texture, n.m_image);
+      m_uploaded = true;
+    }
+  }
+
+  void customRelease(RenderList&) override
+  {
+    m_texture->deleteLater();
+    m_texture = nullptr;
+  }
+
+  QRhiTexture* m_texture{};
+  bool m_uploaded = false;
+};
+#include <Gfx/Qt5CompatPop> // clang-format: keep
+
+NodeRenderer* FullScreenImageNode::createRenderer(RenderList& r) const noexcept
 {
   return new Renderer{*this};
 }

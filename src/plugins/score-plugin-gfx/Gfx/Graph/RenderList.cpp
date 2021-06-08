@@ -16,7 +16,9 @@ MeshBuffers RenderList::initMeshBuffer(const Mesh& mesh)
       QRhiBuffer::Immutable,
       QRhiBuffer::VertexBuffer,
       mesh.vertexArray.size() * sizeof(float));
+  mesh_buf->setName("RenderList::mesh_buf");
   mesh_buf->create();
+
 
   QRhiBuffer* idx_buf{};
   if (!mesh.indexArray.empty())
@@ -25,6 +27,7 @@ MeshBuffers RenderList::initMeshBuffer(const Mesh& mesh)
         QRhiBuffer::Immutable,
         QRhiBuffer::IndexBuffer,
         mesh.indexArray.size() * sizeof(unsigned int));
+    idx_buf->setName("RenderList::idx_buf");
     idx_buf->create();
   }
 
@@ -50,10 +53,12 @@ void RenderList::init()
 
   m_outputUBO = rhi.newBuffer(
       QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(OutputUBO));
+  m_outputUBO->setName("RenderList::m_outputUBO");
   m_outputUBO->create();
 
   m_emptyTexture = rhi.newTexture(
       QRhiTexture::RGBA8, QSize{1, 1}, 1, QRhiTexture::Flag{});
+  m_emptyTexture->setName("RenderList::m_emptyTexture");
   m_emptyTexture->create();
 }
 

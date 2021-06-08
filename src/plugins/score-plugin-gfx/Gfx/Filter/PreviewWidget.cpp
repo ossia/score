@@ -26,35 +26,12 @@ struct PreviewInputvisitor
 
   score::gfx::NodeModel* operator()(const isf::image_input& v)
   {
-    static std::array<score::gfx::Image, 3> images{
-        score::gfx::Image{
-            QString{":/gfx/testcard-1.png"}, {QImage{":/gfx/testcard-1.png"}}},
-        score::gfx::Image{
-            QString{":/gfx/testcard-2.jpeg"},
-            {QImage{":/gfx/testcard-2.jpeg"}}},
-        score::gfx::Image{
-            QString{":/gfx/testcard-3.png"}, {QImage{":/gfx/testcard-3.png"}}},
+    static std::array<QImage, 3> images{
+        QImage{":/gfx/testcard-1.png"},
+        QImage{":/gfx/testcard-2.jpeg"},
+        QImage{":/gfx/testcard-3.png"}
     };
-    auto image_node = new score::gfx::ImagesNode{{images[img_count]}};
-    image_node->ubo.currentImageIndex = 0;
-    switch (img_count)
-    {
-      case 0:
-        image_node->ubo.position[0] = 1.2;
-        image_node->ubo.position[1] = 1.2;
-        break;
-      case 1:
-        image_node->ubo.position[0] = 1.8;
-        image_node->ubo.position[1] = 1.8;
-        break;
-      case 2:
-        image_node->ubo.position[0] = 1.0;
-        image_node->ubo.position[1] = 1.0;
-        break;
-    }
-    image_node->ubo.scale[0] = 0.5;
-    image_node->ubo.scale[1] = 0.5;
-
+    auto image_node = new score::gfx::FullScreenImageNode{images[img_count]};
     img_count++;
     img_count = img_count % 3;
     return image_node;
@@ -133,5 +110,39 @@ void ShaderPreviewWidget::timerEvent(QTimerEvent* event)
   m_isf->standardUBO.time += 16. / 1000.;
   m_isf->standardUBO.timeDelta = 16. / 1000.;
   m_isf->standardUBO.progress += 0.002;
+
+  // OPTIMIZEME
+  {
+    // ISF nodes with two images inputs (transitions)
+    // generally have a "progress" uniform to indicate the
+    // progress of the transition ; try to leverage it to show the transition.
+    std::size_t progress_k = 0;
+    bool has_progress = false;
+    for(auto& input : m_isf->descriptor().inputs)
+    {
+      if(input.name == "progress")
+      {
+        has_progress = true;
+        break;
+      }
+      progress_k++;
+    }
+
+    if(has_progress)
+    {
+      if(m_isf->input.size() > progress_k)
+      {
+        if(m_isf->input[progress_k]->type == score::gfx::Types::Float)
+        {
+          static float progress = 0;
+          progress += 0.01;
+          if(progress >= 1.0)
+            progress = 0.;
+          *((float*)m_isf->input[progress_k]->value) = progress;
+        }
+      }
+      m_isf->materialChanged++;
+    }
+  }
 }
 }

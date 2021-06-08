@@ -128,7 +128,7 @@ public:
     QString res = qgetenv("SCORE_DISABLE_ALSA");
     if (res.isEmpty())
     {
-      QTimer::singleShot(1000, [this] { rescanUI(); });
+      QTimer::singleShot(1000, this, [this] { rescanUI(); });
     }
     connect(rescan, &QPushButton::clicked, this, &ALSAWidget::rescanUI);
 
