@@ -228,5 +228,16 @@ struct SCORE_PLUGIN_GFX_EXPORT DefaultShaderMaterial
   int size{};
 };
 
+/**
+ * @brief Resize the size of a texture to fit within GPU limts
+ */
+SCORE_PLUGIN_GFX_EXPORT
+QSize resizeTextureSize(QSize img, int min, int max) noexcept;
+
+/**
+ * @brief Resize a texture to fit within GPU limts
+ */
+SCORE_PLUGIN_GFX_EXPORT
+QImage resizeTexture(const QImage& img, int min, int max) noexcept;
 
 }

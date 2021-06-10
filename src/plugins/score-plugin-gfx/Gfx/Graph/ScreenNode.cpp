@@ -42,7 +42,8 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
     QRhiGles2InitParams params;
     params.fallbackSurface = state.surface;
     params.window = &window;
-    state.rhi = QRhi::create(QRhi::OpenGLES2, &params, {});
+
+    state.rhi = QRhi::create(QRhi::OpenGLES2, &params, QRhi::EnableDebugMarkers);
     state.size = window.size();
     return state;
   }
@@ -54,7 +55,7 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
     QRhiVulkanInitParams params;
     params.inst = window.vulkanInstance();
     params.window = &window;
-    state.rhi = QRhi::create(QRhi::Vulkan, &params, {});
+    state.rhi = QRhi::create(QRhi::Vulkan, &params, QRhi::EnableDebugMarkers);
     state.size = window.size();
     return state;
   }

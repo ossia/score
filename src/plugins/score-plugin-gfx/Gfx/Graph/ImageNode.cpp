@@ -99,7 +99,9 @@ private:
 
     m_prev_ubo.currentImageIndex = -1;
     auto& n = static_cast<const ImagesNode&>(this->node);
-    auto& rhi = *renderer.state.rhi;
+    QRhi& rhi = *renderer.state.rhi;
+    const int limits_min = rhi.resourceLimit(QRhi::ResourceLimit::TextureSizeMin);
+    const int limits_max = rhi.resourceLimit(QRhi::ResourceLimit::TextureSizeMax);
 
     // Create GPU textures for each image
     for (const score::gfx::Image& img : n.images)
@@ -109,7 +111,7 @@ private:
         const QSize sz = frame.size();
         auto tex = rhi.newTexture(
             QRhiTexture::BGRA8,
-            QSize{sz.width(), sz.height()},
+            resizeTextureSize(QSize{sz.width(), sz.height()}, limits_min, limits_max),
             1,
             QRhiTexture::Flag{});
 
@@ -145,12 +147,15 @@ private:
     // If images haven't been uploaded yet, upload them.
     if (!m_uploaded)
     {
+      const int limits_min = renderer.state.rhi->resourceLimit(QRhi::ResourceLimit::TextureSizeMin);
+      const int limits_max = renderer.state.rhi->resourceLimit(QRhi::ResourceLimit::TextureSizeMax);
+
       int k = 0;
       for (std::size_t i = 0, N = n.images.size(); i < N; i++)
       {
         for (const auto& frame : n.images[i].frames)
         {
-          res.uploadTexture(m_textures[k], frame);
+          res.uploadTexture(m_textures[k], resizeTexture(frame, limits_min, limits_max));
           k++;
         }
       }

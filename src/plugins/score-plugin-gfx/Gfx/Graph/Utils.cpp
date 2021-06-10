@@ -326,4 +326,68 @@ void DefaultShaderMaterial::init(RenderList& renderer, const std::vector<Port*>&
 }
 
 #include <Gfx/Qt5CompatPop> // clang-format: keep
+
+
+
+QSize resizeTextureSize(QSize sz, int min, int max) noexcept
+{
+  if(sz.width() >= min && sz.height() >= min && sz.width() <= max && sz.height() <= max)
+  {
+    return sz;
+  }
+  else
+  {
+    // To prevent division by zero
+    if(sz.width() < 1)
+    {
+      sz.rwidth() = 1;
+    }
+    if(sz.height() < 1)
+    {
+      sz.rheight() = 1;
+    }
+
+    // Rescale to max dimension by maintaining aspect ratio
+    if(sz.width() > max && sz.height() > max)
+    {
+      qreal factor = max / qreal(std::max(sz.width(), sz.height()));
+      sz.rwidth() *= factor;
+      sz.rheight() *= factor;
+    }
+    else if(sz.width() > max)
+    {
+      qreal factor = (qreal) max / sz.width();
+      sz.rwidth() *= factor;
+      sz.rheight() *= factor;
+    }
+    else if(sz.height() > max)
+    {
+      qreal factor = (qreal) max / sz.height();
+      sz.rwidth() *= factor;
+      sz.rheight() *= factor;
+    }
+
+    // In case we rescaled below min
+    if(sz.width() < min)
+    {
+      sz.rwidth() = min;
+    }
+    if(sz.height() < min)
+    {
+      sz.rheight() = min;
+    }
+  }
+  return sz;
+}
+
+QImage resizeTexture(const QImage& img, int min, int max) noexcept
+{
+  QSize sz = img.size();
+  QSize rescaled = resizeTextureSize(sz, min, max);
+  if(rescaled == sz || sz.width() == 0 || sz.height() == 0)
+    return img;
+
+  return img.scaled(rescaled, Qt::KeepAspectRatio);
+}
+
 }

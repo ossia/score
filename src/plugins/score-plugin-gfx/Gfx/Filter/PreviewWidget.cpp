@@ -27,9 +27,9 @@ struct PreviewInputvisitor
   score::gfx::NodeModel* operator()(const isf::image_input& v)
   {
     static std::array<QImage, 3> images{
-        QImage{":/gfx/testcard-1.png"},
-        QImage{":/gfx/testcard-2.jpeg"},
-        QImage{":/gfx/testcard-3.png"}
+        QImage{":/gfx/testcard-1.png"}.scaled(300, 200, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation),
+        QImage{":/gfx/testcard-2.jpeg"}.scaled(300, 200, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation),
+        QImage{":/gfx/testcard-3.png"}.scaled(300, 200, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation)
     };
     auto image_node = new score::gfx::FullScreenImageNode{images[img_count]};
     img_count++;
@@ -87,7 +87,7 @@ void ShaderPreviewWidget::setup()
     i++;
   }
 
-  m_graph.createAllRenderLists(score::gfx::GraphicsApi::OpenGL);
+  m_graph.createAllRenderLists(score::gfx::GraphicsApi::Vulkan);
 
   // UI setup
   auto lay = new QHBoxLayout(this);
