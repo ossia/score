@@ -234,3 +234,9 @@ if(SCORE_INSTALL_HEADERS)
     OPTIONAL
   )
 endif()
+
+if(SCORE_ISF_TESTER)
+add_executable(ISFTester tests/ISFTester.cpp)
+target_link_libraries(ISFTester PRIVATE score_plugin_gfx)
+endif()
+

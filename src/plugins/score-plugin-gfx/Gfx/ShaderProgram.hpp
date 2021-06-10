@@ -12,6 +12,7 @@
 #include <array>
 #include <optional>
 #include <verdigris>
+#include <score_plugin_gfx_export.h>
 namespace isf
 {
 struct descriptor;
@@ -19,7 +20,7 @@ struct descriptor;
 
 namespace Gfx
 {
-struct ShaderProgram
+struct SCORE_PLUGIN_GFX_EXPORT ShaderProgram
 {
   ShaderProgram() = default;
   ~ShaderProgram() = default;
@@ -124,7 +125,7 @@ struct ProcessedProgram : ShaderProgram
   QShader compiledFragment;
 };
 
-struct ProgramCache
+struct SCORE_PLUGIN_GFX_EXPORT ProgramCache
 {
   static ProgramCache& instance() noexcept;
   std::pair<std::optional<ProcessedProgram>, QString>
