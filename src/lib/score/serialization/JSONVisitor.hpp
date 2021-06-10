@@ -1373,16 +1373,8 @@ void JSONReader::read<Process::Inlet*>(Process::Inlet* const&) = delete;
 SCORE_LIB_BASE_EXPORT
 rapidjson::Document clone(const rapidjson::Value& val) noexcept;
 
-inline rapidjson::Document readJson(const QByteArray& arr)
-{
-  rapidjson::Document doc;
-  doc.Parse(arr.data(), arr.size());
-  if (doc.HasParseError())
-  {
-    qDebug() << "Invalid JSON document !";
-  }
-  return doc;
-}
+SCORE_LIB_BASE_EXPORT
+rapidjson::Document readJson(const QByteArray& arr);
 
 inline QByteArray jsonToByteArray(const rapidjson::Value& arr) noexcept
 {

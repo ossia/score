@@ -21,4 +21,4 @@ PROCESS_METADATA(
     {},
     {},
     {},
-    Process::ProcessFlags::SupportsAll | Process::ProcessFlags::PutInNewSlot)
+    Process::ProcessFlags::SupportsAll | Process::ProcessFlags::PutInNewSlot | Process::ProcessFlags::ControlSurface)

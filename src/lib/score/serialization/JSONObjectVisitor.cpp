@@ -18,6 +18,17 @@ rapidjson::Document clone(const rapidjson::Value& val) noexcept
   return v;
 }
 
+rapidjson::Document readJson(const QByteArray& arr)
+{
+  rapidjson::Document doc;
+  doc.Parse(arr.data(), arr.size());
+  if (doc.HasParseError())
+  {
+    qDebug() << "Invalid JSON document ! \n" << arr;
+  }
+  return doc;
+}
+
 rapidjson::Document toValue(const JSONReader& r) noexcept
 {
   rapidjson::Document doc;

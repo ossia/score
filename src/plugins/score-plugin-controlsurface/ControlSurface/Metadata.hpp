@@ -20,5 +20,5 @@ PROCESS_METADATA(
     (QStringList{}),                   // Tags
     {},                                // Inputs
     {},                                // Outputs
-    Process::ProcessFlags::SupportsAll // Flags
+    Process::ProcessFlags::SupportsAll | Process::ProcessFlags::ControlSurface
 )

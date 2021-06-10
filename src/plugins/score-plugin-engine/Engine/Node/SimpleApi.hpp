@@ -25,7 +25,7 @@ namespace Control
 struct Meta_base : public ossia::safe_nodes::base_metadata
 {
   static const constexpr Process::ProcessFlags flags
-      = Process::ProcessFlags::SupportsLasting;
+      = Process::ProcessFlags(Process::ProcessFlags::SupportsLasting | Process::ProcessFlags::ControlSurface);
 };
 
 template <typename Node>

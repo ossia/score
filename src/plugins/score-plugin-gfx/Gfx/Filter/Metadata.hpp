@@ -19,5 +19,5 @@ PROCESS_METADATA(
     (QStringList{"shader", "gfx"}),    // Tags
     {},                                // Inputs
     {},                                // Outputs
-    Process::ProcessFlags::SupportsAll // Flags
+    Process::ProcessFlags::SupportsAll | Process::ProcessFlags::ControlSurface // Flags
 )

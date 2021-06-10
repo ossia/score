@@ -30,10 +30,7 @@ public:
       ProcessComponentFactory& factory,
       Process::ProcessModel& process);
   ProcessComponent*
-  make(Process::ProcessModel& process)
-  {
-    return nullptr;
-  }
+  make(Process::ProcessModel& process);
 
   bool
   removing(const Process::ProcessModel& cst, const ProcessComponent& comp);

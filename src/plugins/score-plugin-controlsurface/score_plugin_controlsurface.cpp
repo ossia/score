@@ -27,9 +27,7 @@ score_plugin_controlsurface::factories(
       FW<Execution::ProcessComponentFactory,
          ControlSurface::ProcessExecutorComponentFactory>,
       FW<LocalTree::ProcessComponentFactory,
-         ControlSurface::LocalTreeProcessComponentFactory>,
-      FW<RemoteControl::ProcessComponentFactory,
-         ControlSurface::RemoteFactory>>(ctx, key);
+         ControlSurface::LocalTreeProcessComponentFactory>>(ctx, key);
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>
