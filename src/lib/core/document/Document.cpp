@@ -108,6 +108,10 @@ void Document::ready()
 {
   if(m_view)
     m_view->viewDelegate().ready();
+
+  m_backupMgr = new DocumentBackupManager{*this};
+  m_backupMgr->saveModelData(saveAsByteArray());
+  m_backupMgr->updateBackupData();
 }
 
 void Document::setBackupMgr(DocumentBackupManager* backupMgr)

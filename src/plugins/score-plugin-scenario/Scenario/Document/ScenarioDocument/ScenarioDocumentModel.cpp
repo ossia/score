@@ -86,6 +86,9 @@ void ScenarioDocumentModel::init()
 
 void ScenarioDocumentModel::finishLoading()
 {
+  // FIXME this is called on on_documentChanged.
+  // Should be called only once after load and restore instead
+
   // Load cables
   for (const auto& bytearray : qAsConst(m_savedCables))
   {
@@ -140,7 +143,8 @@ void ScenarioDocumentModel::finishLoading()
         itv,
         &Scenario::IntervalModel::identified_object_destroying,
         this,
-        [=] { removeBus(itv); });
+        &ScenarioDocumentModel::busDeleted,
+        Qt::UniqueConnection);
   }
 }
 
@@ -176,6 +180,15 @@ void ScenarioDocumentModel::removeBus(const Scenario::IntervalModel* itv)
   {
     ossia::remove_erase(busIntervals, itv);
     const_cast<IntervalModel*>(itv)->busChanged(false);
+    busesChanged();
+  }
+}
+
+void ScenarioDocumentModel::busDeleted(const IdentifiedObjectAbstract* itv)
+{
+  if (ossia::contains(busIntervals, itv))
+  {
+    ossia::remove_erase(busIntervals, itv);
     busesChanged();
   }
 }

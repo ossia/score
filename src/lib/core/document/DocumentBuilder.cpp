@@ -75,7 +75,6 @@ Document* DocumentBuilder::newDocument(
           &doc->model()));
   }
 
-  m_backupManager = new DocumentBackupManager{*doc};
   for (auto& appPlug : ctx.guiApplicationPlugins())
   {
     appPlug->on_newDocument(*doc);
@@ -85,10 +84,6 @@ Document* DocumentBuilder::newDocument(
   {
     appPlug->on_createdDocument(*doc);
   }
-
-  // First save
-  m_backupManager->saveModelData(doc->saveAsByteArray());
-  setBackupManager(doc);
 
   return doc;
 }
@@ -115,10 +110,6 @@ Document* DocumentBuilder::loadDocument(
     }
 
     doclist.push_back(doc);
-
-    m_backupManager = new DocumentBackupManager{*doc};
-    m_backupManager->saveModelData(doc->saveAsByteArray());
-    setBackupManager(doc);
 
     return doc;
   }
@@ -161,10 +152,6 @@ Document* DocumentBuilder::loadDocument(
     }
 
     doclist.push_back(doc);
-
-    m_backupManager = new DocumentBackupManager{*doc};
-    m_backupManager->saveModelData(doc->saveAsByteArray());
-    setBackupManager(doc);
 
     return doc;
   }
@@ -232,10 +219,6 @@ Document* DocumentBuilder::restoreDocument(
           }
         });
 
-    m_backupManager = new DocumentBackupManager{*doc};
-    m_backupManager->saveModelData(docData); // Reuse the same data
-    setBackupManager(doc);
-
     return doc;
   }
   catch (std::runtime_error& e)
@@ -251,12 +234,5 @@ Document* DocumentBuilder::restoreDocument(
     delete doc;
     return nullptr;
   }
-}
-
-void DocumentBuilder::setBackupManager(Document* doc)
-{
-  m_backupManager->updateBackupData();
-  doc->setBackupMgr(m_backupManager);
-  m_backupManager = nullptr;
 }
 }

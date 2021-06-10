@@ -62,6 +62,8 @@ public:
 
   void addBus(const IntervalModel*);
   void removeBus(const IntervalModel*);
+  void busDeleted(const IdentifiedObjectAbstract* itv);
+
   std::vector<const IntervalModel*> busIntervals;
   std::vector<const StateModel*> statesWithControls;
 

@@ -51,7 +51,5 @@ private:
 
   QObject* m_parentPresenter{};
   QWidget* m_parentView{};
-
-  DocumentBackupManager* m_backupManager{};
 };
 }
