@@ -12,6 +12,43 @@
 #define debug_vector_t std::vector
 #endif
 
+/*! \file FactorOracle2MIDI.h
+    \brief A file that contains the definitions of the classes needed for the creation of a Factor Oracle.
+
+    Three main classes: FactorOracle2MIDI, State and SingleTransition.
+*/
+/*! \fn void AddLetter(int i, const std::vector<T> word)
+    \brief Adds new transitions from state i-1 to state i.
+    \param T A vector where each position has all the suffix transitions directed to each state.
+    \param i The integer of the current state.
+    \param word The input template vector.
+*/
+/*! \fn int LengthCommonSuffix(int phi_one, int phi_two)
+ * https://www.researchgate.net/publication/220520646_An_Improved_Algorithm_for_Finding_Longest_Repeats_with_a_Modified_Factor_Oracle
+    \brief Finds the length of a common suffix ending at the position phi_one and phi_two by traversing the suffix links.
+    \param phi_one The position of the state.
+    \param phi_two The position of the state.
+    \return The length of the common suffix between two states
+*/
+/*! \fn int FindBetter(int i, T alpha, const std::vector<T> word)
+    \brief Finds the best suffix state where the longest repeated subsequence is found.
+    \param i The integer of the current state.
+    \param alpha The transition symbol.
+    \param word The input template vector.
+    \return A better state
+*/
+/*! \fn string FOGenerate(int& i, std::vector<T> v, float q)
+    \brief Generates the Factor Oracle improvisation.
+    \param i The integer of the current state.
+    \param v The sequence v.
+    \param q A float argument.
+    \return The factor oracle improvisation
+*/
+/*! \fn void FactorOracleStart(const std::vector<T> word)
+    \brief Starts the process of the Factor Oracle generation .
+    \param word The input template vector.
+*/
+
 namespace FactorOracle2MIDI
 {
 /** The class SingleTransition denotes the elements that belong to each transition
@@ -52,7 +89,7 @@ public:
 };
 
 template <class T>
-class FactorOracle
+class FactorOracle2MIDI
 {
 public:
   int phi, k, fo_iter, current_state = 1;
@@ -60,11 +97,9 @@ public:
   std::vector<State<T>> states_; /**< std::vector of all the states */
   std::vector<std::vector<int>>
       RevSuffix; /**< std::vector where each position has all the suffix transitions directed to each state */
-  FactorOracle()
+  FactorOracle2MIDI()
   {
-    // int len = word.size();
     this->states_.resize(2);
-    //SingleTransition statezero; /*!< Create state 0 */
     this->states_[0].state_ = 0;
     this->states_[0].lrs_ = 0;
     this->states_[0].suffix_transition_ = -1; /*!< S[0] = -1 */
@@ -72,90 +107,95 @@ public:
   }
   void AddLetter(int i, std::vector<T> word)
   {
-    //! A normal member taking four arguments and returning no value.
+    //! A normal member taking two arguments and returning no value.
     /*!
-              \param i an integer argument.
-              \param word a string argument.
-            */
-    this->states_.resize(i + 1);
-    this->RevSuffix.resize(i + 1);
-    T alpha = word[i - 1];
-    this->AddState(i - 1);
-    int statemplusone = i;
-    this->AddTransition(i - 1, i, alpha);
-    k = this->states_[i - 1].suffix_transition_; /*!< k = S[i-1] */
-    //std::cout << "statemplusone first: "<< statemplusone << endl;
-    phi = i - 1; /*!< phi_one = i-1 */
-    int flag = 0, iter = 0;
-    /**
-             * while k > -1 and delta(k,p[i]) is undefined
-             *      do delta(k, p[i]) <- i
-             *      phi_one = k
-             *      k = S[k]
-             * */
-    while (k > -1 && flag == 0)
+      \param i an integer argument.
+      \param word a template vector argument.
+    */
+    if (i != 0)
     {
-      while (iter < this->states_[k].transition_.size())
+      this->states_.resize(i + 1);
+      this->RevSuffix.resize(i + 1);
+      T alpha = word[i - 1];
+      this->AddState(i - 1);
+      int state_m_plus_one = i;
+      this->AddTransition(i - 1, i, alpha);
+      k = this->states_[i - 1].suffix_transition_; /*!< k = S[i-1] */
+      phi = i - 1;                                 /*!< phi_one = i-1 */
+      int flag = 0, iter = 0;
+      /**
+               * while k > -1 and delta(k,p[i]) is undefined
+               *      do delta(k, p[i]) <- i
+               *      phi_one = k
+               *      k = S[k]
+               * */
+      while (k > -1 && flag == 0)
       {
+        while (iter < this->states_[k].transition_.size())
+        {
+          if (this->states_[k].transition_[iter].symbol_ == alpha)
+          {
+            flag = 1;
+          }
+          iter++;
+        }
+        if (flag == 0)
+        {
+          this->AddTransition(k, state_m_plus_one, alpha);
+          phi = k;
+          k = this->states_[k].suffix_transition_;
+          iter = 0;
+        }
+      }
+      if (k == -1)
+      {
+        this->states_[state_m_plus_one].suffix_transition_ = 0;
+        this->states_[state_m_plus_one].lrs_ = 0;
+      }
+      else
+      {
+        flag = 0, iter = 0;
         if (this->states_[k].transition_[iter].symbol_ == alpha)
         {
           flag = 1;
-        }
-        iter++;
-      }
-      if (flag == 0)
-      {
-        this->AddTransition(k, statemplusone, alpha);
-        phi = k;
-        k = this->states_[k].suffix_transition_;
-        iter = 0;
-      }
-    }
-    if (k == -1)
-    {
-      this->states_[statemplusone].suffix_transition_ = 0;
-      this->states_[statemplusone].lrs_ = 0;
-    }
-    else
-    {
-      flag = 0, iter = 0;
-      if (this->states_[k].transition_[iter].symbol_ == alpha)
-      {
-        flag = 1;
-        this->states_[statemplusone].suffix_transition_
-            = this->states_[k].transition_[iter].last_state_;
-        this->states_[statemplusone].lrs_
-            = this->LengthCommonSuffix(
-                  phi, this->states_[statemplusone].suffix_transition_ - 1)
-              + 1;
-      }
-      while (iter < this->states_[k].transition_.size() && flag == 0)
-      {
-        if (this->states_[k].transition_[iter].symbol_ == alpha)
-        {
-
-          this->states_[statemplusone].suffix_transition_
+          this->states_[state_m_plus_one].suffix_transition_
               = this->states_[k].transition_[iter].last_state_;
-          this->states_[statemplusone].lrs_
+          this->states_[state_m_plus_one].lrs_
               = this->LengthCommonSuffix(
-                    phi, this->states_[statemplusone].suffix_transition_ - 1)
+                    phi,
+                    this->states_[state_m_plus_one].suffix_transition_ - 1)
                 + 1;
-          flag = 1;
         }
+        while (iter < this->states_[k].transition_.size() && flag == 0)
+        {
+          if (this->states_[k].transition_[iter].symbol_ == alpha)
+          {
 
-        iter++;
+            this->states_[state_m_plus_one].suffix_transition_
+                = this->states_[k].transition_[iter].last_state_;
+            this->states_[state_m_plus_one].lrs_
+                = this->LengthCommonSuffix(
+                      phi,
+                      this->states_[state_m_plus_one].suffix_transition_ - 1)
+                  + 1;
+            flag = 1;
+          }
+
+          iter++;
+        }
       }
+      T temp_word
+          = word[state_m_plus_one - this->states_[state_m_plus_one].lrs_ - 1];
+      k = this->FindBetter(state_m_plus_one, temp_word, word);
+      if (k != 0)
+      {
+        this->states_[state_m_plus_one].lrs_
+            = this->states_[state_m_plus_one].lrs_ + 1;
+        this->states_[state_m_plus_one].suffix_transition_ = k;
+      }
+      RevSuffix[this->states_[state_m_plus_one].suffix_transition_].push_back(
+          state_m_plus_one);
     }
-    T temp_word = word[statemplusone - this->states_[statemplusone].lrs_ - 1];
-    k = this->FindBetter(statemplusone, temp_word, word);
-    if (k != 0)
-    {
-      this->states_[statemplusone].lrs_
-          = this->states_[statemplusone].lrs_ + 1;
-      this->states_[statemplusone].suffix_transition_ = k;
-    }
-    RevSuffix[this->states_[statemplusone].suffix_transition_].push_back(
-        statemplusone);
   };
   int LengthCommonSuffix(int phi_one, int phi_two)
   {
@@ -174,14 +214,13 @@ public:
   };
   int FindBetter(int i, T alpha, std::vector<T> word)
   {
-    //! A normal member taking five arguments and returning an integer value.
+    //! A normal member taking three arguments and returning an integer value.
     /*!
-              \param RevSuffix a reference to a std::vector of std::vector of integers.
-              \param i an integer argument.
-              \param alpha a char argument.
-              \param word a string argument.
-              \return A better state
-            */
+      \param i an integer argument.
+      \param alpha a template symbol argument.
+      \param word a template vector argument.
+      \return A better state
+    */
 
     int len_t = this->RevSuffix[this->states_[i].suffix_transition_].size();
     int statei = this->states_[i].suffix_transition_;
@@ -207,20 +246,17 @@ public:
   };
   std::vector<T> FOGenerate(int& i, std::vector<T> v, float q)
   {
-    //! A normal member taking four arguments and returning a string value.
+    //! A normal member taking three arguments and returning a string value.
     /*!
-              \param i an integer argument.
-              \param v a string argument.
-              \param q a float argument.
-              \return The factor oracle improvisation
-            */
-    std::random_device
-        rd; ///Will be used to obtain a seed for the random number engine
-    std::mt19937 gen(
-        rd()); ///Standard mersenne_twister_engine seeded with rd()
+      \param i an integer argument.
+      \param v a template vector argument.
+      \param q a float argument.
+      \return The factor oracle improvisation
+    */
+    std::random_device rd;
+    std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis(0.0, 1.0);
     float u = dis(gen);
-    /// float u = (float)rand() / RAND_MAX;
     if (this->states_.size() == 2 || this->states_.size() == 1)
     {
       v.push_back(this->states_[0].transition_[0].symbol_);
@@ -241,10 +277,8 @@ public:
         int lenSuffix = this->states_[this->states_[i].suffix_transition_]
                             .transition_.size()
                         - 1;
-        std::random_device
-            rd; ///Will be used to obtain a seed for the random number engine
-        std::mt19937 gen(
-            rd()); ///Standard mersenne_twister_engine seeded with rd()
+        std::random_device rd;
+        std::mt19937 gen(rd());
         std::uniform_int_distribution<> dis_int(0, lenSuffix);
         int rand_alpha = dis_int(gen);
         T alpha = this->states_[this->states_[i].suffix_transition_]
@@ -266,8 +300,8 @@ public:
   {
     //! A normal member taking one argument and returning no value.
     /*!
-              \param word a string argument.
-            */
+      \param word a template argument.
+    */
     int len = word.size();
     this->states_.resize(2);
     this->states_[0].state_ = 0;
@@ -291,7 +325,6 @@ public:
   {
 
     std::vector<T> oracle = {};
-    std::cout << "len: " << len << std::endl;
     fo_iter = 1;
     for (int x = 0; x < len; x++)
     {
@@ -329,7 +362,7 @@ struct Node
 
   struct State
   {
-    ::FactorOracle2MIDI::FactorOracle<int> oracle;
+    ::FactorOracle2MIDI::FactorOracle2MIDI<int> oracle;
     int i = 0;
     debug_vector_t<libremidi::midi_bytes> sequence;
     debug_vector_t<libremidi::midi_bytes> midi_bytes;
@@ -357,27 +390,12 @@ struct Node
       self.oracle.AddLetter(
           self.oracle.current_state, self.oracle.input_values);
       self.oracle.current_state = self.oracle.current_state + 1;
-
-      std::cout << "current state: " << self.oracle.current_state << std::endl;
-      for (int i = 0; i < self.oracle.input_values.size() + 1; i++)
-      {
-
-        std::cout << "STATE[" << i << "]:\n"
-                  << "LRS: " << self.oracle.states_[i].lrs_ << "\n";
-        std::cout << "Suffix: " << self.oracle.states_[i].suffix_transition_
-                  << "\n";
-        std::cout << "Transitions: "
-                  << "\n";
-        std::cout << "\n";
-      }
     }
 
     if (!regen.get_data().empty())
     {
-      std::cout << self.oracle.input_values.empty() << std::endl;
       if (!self.oracle.input_values.empty())
       {
-        std::cout << "first not empty" << std::endl;
         std::vector<int> temp_vec = self.oracle.CallGenerate(seq_len, 0.6);
         //self.sequence = self.oracle.CallGenerate(seq_len, 0.6);
         self.midi_bytes.push_back({144, 0, 40});
@@ -390,7 +408,6 @@ struct Node
     {
       for (auto& bang : bangs.get_data())
       {
-        std::cout << "second not empty" << std::endl;
         self.sequence_idx = ossia::clamp<int64_t>(
             (int64_t)self.sequence_idx, 0, (int64_t)self.sequence.size() - 1);
         libremidi::message tmp;
