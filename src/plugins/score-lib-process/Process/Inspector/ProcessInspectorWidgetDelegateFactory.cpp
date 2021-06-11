@@ -159,8 +159,8 @@ public:
     }
 
     auto& processes = doc.app.interfaces<Process::LayerFactoryList>();
-    auto& fact = *processes.get(process.concreteKey());
-    if(fact.hasExternalUI(process, doc))
+
+    if(auto fact = processes.get(process.concreteKey()); fact && fact->hasExternalUI(process, doc))
     {
       if(!loop_lay)
         initButtonsLayout();
@@ -178,8 +178,8 @@ public:
       uiToggle->setChecked(bool(process.externalUI));
 
       connect(uiToggle, &QToolButton::toggled,
-              this, [&process, &fact, &doc] (bool state) {
-        Process::setupExternalUI(process, fact, doc, state);
+              this, [&process, fact, &doc] (bool state) {
+        Process::setupExternalUI(process, *fact, doc, state);
       });
       connect(&process, &ProcessModel::externalUIVisible,
               uiToggle, [=] (bool v) {

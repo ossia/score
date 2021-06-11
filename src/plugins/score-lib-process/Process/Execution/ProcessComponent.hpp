@@ -17,6 +17,10 @@
 #include <memory>
 #include <verdigris>
 
+#if __cpp_lib_concepts >= 202002L
+#include <concepts>
+#endif
+
 namespace ossia
 {
 class scenario;
@@ -117,6 +121,9 @@ public:
 };
 
 template <typename ProcessComponent_T>
+#if __cpp_lib_concepts >= 202002L
+requires std::constructible_from<ProcessComponent_T, typename ProcessComponent_T::model_type&, const Context&, QObject*>
+#endif
 class ProcessComponentFactory_T
     : public score::GenericComponentFactoryImpl<
           ProcessComponent_T,

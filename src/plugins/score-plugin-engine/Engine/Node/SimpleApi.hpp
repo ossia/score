@@ -10,7 +10,6 @@
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
-#include <ossia/dataflow/safe_nodes/node.hpp>
 #include <ossia/detail/for_each.hpp>
 
 #define make_uuid(text) score::uuids::string_generator::compute((text))
