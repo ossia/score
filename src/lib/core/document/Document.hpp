@@ -159,6 +159,7 @@ private:
 
   DocumentContext m_context;
 
+  QByteArray m_initialData{};
   bool m_virgin{false}; // Used to check if we can safely close it
   // if we want to load a document instead upon opening score.
 };

@@ -110,7 +110,17 @@ void Document::ready()
     m_view->viewDelegate().ready();
 
   m_backupMgr = new DocumentBackupManager{*this};
-  m_backupMgr->saveModelData(saveAsByteArray());
+  if(!m_initialData.isEmpty())
+  {
+    // when we load / restore from a crash, we reuse the original data in order to
+    // restore from the exact same state again in case of another crash
+    m_backupMgr->saveModelData(m_initialData);
+    m_initialData.clear();
+  }
+  else
+  {
+    m_backupMgr->saveModelData(saveAsByteArray());
+  }
   m_backupMgr->updateBackupData();
 }
 
