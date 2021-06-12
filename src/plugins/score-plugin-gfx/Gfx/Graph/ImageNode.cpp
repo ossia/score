@@ -54,7 +54,7 @@ void main ()
   vec2 factor = textureSize(y_tex, 0) / renderSize;
   vec2 ifactor = renderSize / textureSize(y_tex, 0);
   vec2 texcoord = vec2(v_texcoord.x, texcoordAdjust.y + texcoordAdjust.x * v_texcoord.y);
-  texcoord = vec2(1) - ifactor * position + texcoord / factor;
+  texcoord = vec2(1) - ifactor * vec2(position.x, 1. - position.y) + texcoord / factor;
   texcoord = texcoord / scale;
   float actual = texcoord.x >= 0 && texcoord.x <= 1 && texcoord.y >= 0 && texcoord.y <= 1 ? 1.0f : 0.0f;
   fragColor = texture(y_tex, texcoord) * opacity * actual;

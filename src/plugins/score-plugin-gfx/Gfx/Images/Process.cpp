@@ -29,8 +29,14 @@ Model::Model(
     opacity->setValue(1.);
     m_inlets.push_back(opacity);
   }
-  m_inlets.push_back(new Process::XYSlider{Id<Process::Port>(2), this});
-  m_inlets.back()->setName(tr("Position"));
+  {
+    auto pos = new Process::XYSlider{Id<Process::Port>(2), this};
+    pos->setName(tr("Position"));
+    pos->setDomain(
+      ossia::make_domain(ossia::vec2f{0.0, 1.0}, ossia::vec2f{1.0, 0.0}));
+
+    m_inlets.push_back(pos);
+  }
   {
     auto scale = new Process::XYSlider{Id<Process::Port>(3), this};
     scale->setName(tr("Scale"));
