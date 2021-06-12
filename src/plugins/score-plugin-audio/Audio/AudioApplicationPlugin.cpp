@@ -150,6 +150,14 @@ try
   stop_engine();
   start_engine();
 }
+catch (std::exception& e)
+{
+  score::warning(
+      context.documentTabWidget,
+      tr("Audio Error"),
+      tr("Warning: error while restarting the audio engine:\n%1")
+      .arg(e.what()));
+}
 catch (...)
 {
   score::warning(
