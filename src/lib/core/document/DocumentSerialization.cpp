@@ -201,6 +201,7 @@ Document::Document(
     , m_commandStack{*this}
     , m_objectLocker{this}
     , m_context{*this}
+    , m_initialData{data}
 {
   restoreModel(data, factory);
 

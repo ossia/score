@@ -82,8 +82,6 @@ public:
   void saveAsJson(JSONObject::Serializer& writer);
   QByteArray saveAsByteArray();
 
-  DocumentBackupManager* backupManager() const { return m_backupMgr; }
-
   void setBackupMgr(DocumentBackupManager* backupMgr);
 
   //! Indicates if the document has just been created and can be safely
@@ -159,7 +157,7 @@ private:
 
   DocumentContext m_context;
 
-  QByteArray m_initialData{};
+  std::optional<QByteArray> m_initialData{};
   bool m_virgin{false}; // Used to check if we can safely close it
   // if we want to load a document instead upon opening score.
 };
