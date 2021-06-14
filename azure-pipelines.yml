@@ -14,6 +14,8 @@ variables:
   isGitTag: $[startsWith(variables['Build.SourceBranch'], 'refs/tags/')]
   gitTag: $[replace(replace(variables['Build.SourceBranch'], 'refs/tags/', ''), 'refs/heads/', '')]
   gitTagNoV: $[replace(replace(replace(variables['Build.SourceBranch'], 'refs/tags/v', ''), 'refs/heads', ''), '/', '')]
+  isMaster: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
+
 
 stages:
   - stage: Build
@@ -160,6 +162,7 @@ stages:
               ls
 
           - task: GitHubRelease@1
+            condition: and(succeeded(), eq(variables.isMaster, true))
             inputs:
               gitHubConnection: github.com_jcelerier
               repositoryName: ossia/score
