@@ -93,6 +93,7 @@ public:
 private:
   ~Renderer() { }
 
+  TextureRenderTarget renderTargetForInput(const Port& p) override { return { }; }
   void customInit(RenderList& renderer) override
   {
     m_material.init(renderer, node.input, m_samplers);
@@ -276,6 +277,7 @@ public:
 private:
   ~Renderer() { }
 
+  TextureRenderTarget renderTargetForInput(const Port& p) override { return { }; }
   void customInit(RenderList& renderer) override
   {
     m_material.init(renderer, node.input, m_samplers);

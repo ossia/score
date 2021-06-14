@@ -22,26 +22,6 @@ namespace Gfx
 {
 using port_index = ossia::gfx::port_index;
 
-using gfx_input = std::variant<ossia::value, ossia::audio_vector>;
-
-struct gfx_message
-{
-  int32_t node_id{};
-  ossia::token_request token{};
-  std::vector<std::vector<gfx_input>> inputs;
-};
-
-//! Goes from ossia execution graph messages,
-//! to data in the shader uniforms / textures
-struct gfx_view_node
-{
-  std::unique_ptr<score::gfx::ProcessNode> impl;
-
-  void process(const ossia::token_request& tk);
-  void process(int32_t port, const ossia::value& v);
-  void process(int32_t port, const ossia::audio_vector& v);
-};
-
 class gfx_exec_node;
 class GfxExecutionAction;
 class SCORE_PLUGIN_GFX_EXPORT GfxContext : public QObject
@@ -50,10 +30,12 @@ class SCORE_PLUGIN_GFX_EXPORT GfxContext : public QObject
   friend class GfxExecutionAction;
 
 public:
+  using NodePtr = std::unique_ptr<score::gfx::Node>;
+
   explicit GfxContext(const score::DocumentContext& ctx);
   ~GfxContext();
 
-  int32_t register_node(std::unique_ptr<score::gfx::ProcessNode> node);
+  int32_t register_node(NodePtr node);
   void unregister_node(int32_t idx);
 
   void recompute_edges();
@@ -68,12 +50,12 @@ public:
 private:
   const score::DocumentContext& m_context;
   int32_t index{};
-  ossia::fast_hash_map<int32_t, gfx_view_node> nodes;
+  ossia::fast_hash_map<int32_t, NodePtr> nodes;
 
   score::gfx::Graph* m_graph{};
   QThread m_thread;
 
-  moodycamel::ConcurrentQueue<gfx_message> tick_messages;
+  moodycamel::ConcurrentQueue<score::gfx::Message> tick_messages;
 
   std::mutex edges_lock;
   ossia::flat_set<std::pair<port_index, port_index>> new_edges;

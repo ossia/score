@@ -105,6 +105,8 @@ static std::pair<std::vector<Sampler>, int> initInputSamplers(
         break;
       case Types::Image:
       {
+        SCORE_TODO;
+        /*
         auto sampler = rhi.newSampler(
             QRhiSampler::Linear,
             QRhiSampler::Linear,
@@ -124,6 +126,7 @@ static std::pair<std::vector<Sampler>, int> initInputSamplers(
         *(float*)(materialData + cur_pos + 4) = texture->pixelSize().height();
 
         cur_pos += 8;
+*/
         break;
       }
       default:
@@ -161,6 +164,13 @@ RenderedISFNode::RenderedISFNode(const ISFNode& node) noexcept
 {
 }
 
+TextureRenderTarget RenderedISFNode::renderTargetForInput(const Port& p)
+{
+  SCORE_TODO;
+  return { };
+}
+
+/*
 std::optional<QSize> RenderedISFNode::renderTargetSize() const noexcept
 {
   return {};
@@ -171,6 +181,7 @@ TextureRenderTarget RenderedISFNode::renderTarget() const noexcept
   SCORE_ASSERT(!m_passes.empty());
   return m_passes.back().renderTarget;
 }
+*/
 
 std::pair<Pass, Pass>
 RenderedISFNode::createPass(RenderList& renderer, PersistSampler target)
@@ -285,6 +296,10 @@ void RenderedISFNode::update(
     RenderList& renderer,
     QRhiResourceUpdateBatch& res)
 {
+  // PASSINDEX must be set to the last index
+  // FIXME
+  n.standardUBO.passIndex = m_passes.size() - 1;
+
   // Update material
   if (m_materialUBO && m_materialSize > 0
       && materialChangedIndex != n.materialChanged)
@@ -296,6 +311,8 @@ void RenderedISFNode::update(
 
   // Update input textures
   {
+    SCORE_TODO;
+    /*
     int sampler_i = 0;
     for (Port* in : n.input)
     {
@@ -314,6 +331,7 @@ void RenderedISFNode::update(
         sampler_i++;
       }
     }
+    */
   }
 
   // Update audio textures
@@ -408,17 +426,6 @@ void RenderedISFNode::runPass(
     QRhiCommandBuffer& cb,
     QRhiResourceUpdateBatch& res)
 {
-  // if(m_passes.empty())
-  //   return RenderedNode::runPass(renderer, cb, res);
-
-  // Update a first time everything
-
-  // PASSINDEX must be set to the last index
-  // FIXME
-  n.standardUBO.passIndex = m_passes.size() - 1;
-
-  update(renderer, res);
-
   auto updateBatch = &res;
 
   // Draw the passes

@@ -13,8 +13,11 @@ public:
   explicit NodeRenderer() noexcept;
   virtual ~NodeRenderer();
 
+  virtual TextureRenderTarget renderTargetForInput(const Port& input) = 0;
+  /*
   virtual std::optional<QSize> renderTargetSize() const noexcept = 0;
   virtual TextureRenderTarget renderTarget() const noexcept = 0;
+  */
   virtual void init(RenderList& renderer) = 0;
   virtual void update(RenderList& renderer, QRhiResourceUpdateBatch& res) = 0;
   virtual void runPass(
@@ -42,11 +45,12 @@ public:
   {
   }
 
+  TextureRenderTarget renderTargetForInput(const Port& p) override;
   virtual ~GenericNodeRenderer() { }
 
   const NodeModel& node;
 
-  TextureRenderTarget m_rt;
+  //TextureRenderTarget m_rt;
 
   std::vector<Sampler> m_samplers;
 
@@ -61,10 +65,12 @@ public:
   DefaultShaderMaterial m_material;
   int64_t materialChangedIndex{-1};
 
+  /*
   TextureRenderTarget createRenderTarget(const RenderState& state);
   TextureRenderTarget renderTarget() const noexcept override { return m_rt; }
 
   std::optional<QSize> renderTargetSize() const noexcept override;
+*/
   // Render loop
   virtual void customInit(RenderList& renderer);
   void init(RenderList& renderer) override;

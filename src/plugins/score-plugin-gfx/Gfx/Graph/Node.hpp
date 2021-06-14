@@ -5,13 +5,16 @@
 #include <Gfx/Graph/Uniforms.hpp>
 #include <Gfx/Graph/Utils.hpp>
 
+#include <ossia/dataflow/nodes/media.hpp>
 #include <ossia/detail/flat_map.hpp>
+#include <ossia/dataflow/token_request.hpp>
 
 #include <score_plugin_gfx_export.h>
 
 #include <algorithm>
 #include <optional>
 #include <vector>
+#include <variant>
 
 #include <unordered_map>
 
@@ -22,6 +25,14 @@ struct Graph;
 class GenericNodeRenderer;
 class NodeRenderer;
 
+using gfx_input = std::variant<ossia::value, ossia::audio_vector>;
+
+struct Message
+{
+  int32_t node_id{};
+  ossia::token_request token{};
+  std::vector<std::vector<gfx_input>> inputs;
+};
 /**
  * @brief Root data model for visual nodes.
  */
@@ -40,6 +51,11 @@ public:
    * @brief Mesh corresponding to this node.
    */
   virtual const Mesh& mesh() const noexcept = 0;
+
+  /**
+   * @brief Process a message from the execution engine
+   */
+  virtual void process(const Message& msg);
 
   /**
    * @brief Input ports of that node.
@@ -79,6 +95,11 @@ public:
    * It has useful informations, such as timing, sample rate, mouse position etc.
    */
   ProcessUBO standardUBO{};
+
+  void process(const Message& msg) override;
+  void process(const ossia::token_request& tk);
+  void process(int32_t port, const ossia::value& v);
+  void process(int32_t port, const ossia::audio_vector& v);
 };
 
 /**

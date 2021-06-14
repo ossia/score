@@ -11,23 +11,9 @@ class Window;
 /**
  * @brief Base class for sink nodes (QWindow, spout, syphon, NDI output, ...)
  */
-struct SCORE_PLUGIN_GFX_EXPORT OutputNode : NodeModel
+struct SCORE_PLUGIN_GFX_EXPORT OutputNode : score::gfx::Node
 {
-  static const constexpr auto filter = R"_(#version 450
-layout(location = 0) in vec2 v_texcoord;
-layout(location = 0) out vec4 fragColor;
-
-layout(binding = 3) uniform sampler2D tex;
-
-void main()
-{
-    fragColor = texture(tex, v_texcoord);
-}
-)_";
-
   virtual ~OutputNode();
-
-  const TexturedTriangle& m_mesh = TexturedTriangle::instance();
 
   virtual void setRenderer(RenderList*) = 0;
   virtual RenderList* renderer() const = 0;
@@ -50,6 +36,5 @@ void main()
 
 protected:
   explicit OutputNode();
-  const Mesh& mesh() const noexcept override { return this->m_mesh; }
 };
 }

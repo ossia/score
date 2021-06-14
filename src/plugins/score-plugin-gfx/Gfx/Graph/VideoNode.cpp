@@ -24,7 +24,7 @@ VideoNode::~VideoNode() { }
 score::gfx::NodeRenderer*
 VideoNode::createRenderer(RenderList& r) const noexcept
 {
-  return new VideoNodeRenderer{*this};
+  return nullptr;//new VideoNodeRenderer{*this};
 }
 
 void VideoNode::seeked()

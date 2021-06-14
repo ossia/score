@@ -18,7 +18,6 @@ public:
   void setupGpuDecoder(RenderList& r);
   void checkFormat(RenderList& r, AVPixelFormat fmt, int w, int h);
 
-  TextureRenderTarget createRenderTarget(const RenderState& state);
 
   void init(RenderList& renderer) override;
   void runPass(
@@ -30,8 +29,9 @@ public:
   void release(RenderList& r) override;
   void releaseWithoutRenderTarget(RenderList&) override;
 
-  TextureRenderTarget renderTarget() const noexcept override;
-  std::optional<QSize> renderTargetSize() const noexcept override;
+  //TextureRenderTarget createRenderTarget(const RenderState& state);
+  //TextureRenderTarget renderTarget() const noexcept override;
+  //std::optional<QSize> renderTargetSize() const noexcept override;
 
 private:
   const VideoNode& node;

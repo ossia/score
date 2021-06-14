@@ -8,6 +8,7 @@ namespace score::gfx
 
 #include <Gfx/Qt5CompatPush> // clang-format: keep
 
+/*
 TextureRenderTarget
 GenericNodeRenderer::createRenderTarget(const RenderState& state)
 {
@@ -28,6 +29,13 @@ std::optional<QSize> GenericNodeRenderer::renderTargetSize() const noexcept
 {
   return {};
 }
+*/
+
+TextureRenderTarget GenericNodeRenderer::renderTargetForInput(const Port& p)
+{
+  SCORE_TODO;
+  return { };
+}
 
 void GenericNodeRenderer::customInit(RenderList& renderer)
 {
@@ -42,8 +50,8 @@ void NodeModel::setShaders(const QShader& vert, const QShader& frag)
 
 void GenericNodeRenderer::init(RenderList& renderer)
 {
-  if (!m_rt.renderTarget)
-    createRenderTarget(renderer.state);
+  // if (!m_rt.renderTarget)
+  //   createRenderTarget(renderer.state);
 
   auto& rhi = *renderer.state.rhi;
 
@@ -74,7 +82,7 @@ void GenericNodeRenderer::init(RenderList& renderer)
         node.mesh(),
         node.m_vertexS,
         node.m_fragmentS,
-        m_rt,
+        renderer.renderTargetForOutput(*this->node.output[0]),
         m_processUBO,
         m_material.buffer,
         m_samplers);
@@ -103,6 +111,8 @@ void GenericNodeRenderer::update(
   }
 
   // Update input textures
+  /*
+
   {
     int sampler_i = 0;
     for (Port* in : this->node.input)
@@ -120,6 +130,7 @@ void GenericNodeRenderer::update(
     }
   }
 
+  */
   customUpdate(renderer, res);
 }
 
@@ -152,9 +163,8 @@ void GenericNodeRenderer::runPass(
     QRhiCommandBuffer& cb,
     QRhiResourceUpdateBatch& updateBatch)
 {
-  update(renderer, updateBatch);
-
-  cb.beginPass(m_rt.renderTarget, Qt::black, {1.0f, 0}, &updateBatch);
+  //auto m_rt = renderer.renderTargetForOutput(*this->node.output[0]);
+  //cb.beginPass(m_rt.renderTarget, Qt::black, {1.0f, 0}, &updateBatch);
   {
     const auto sz = renderer.state.size;
     cb.setGraphicsPipeline(pipeline());
@@ -168,13 +178,13 @@ void GenericNodeRenderer::runPass(
     cb.draw(node.mesh().vertexCount);
   }
 
-  cb.endPass();
+  //cb.endPass();
 }
 
 void GenericNodeRenderer::release(RenderList& r)
 {
   releaseWithoutRenderTarget(r);
-  m_rt.release();
+  //m_rt.release();
 }
 
 score::gfx::NodeRenderer::NodeRenderer() noexcept { }

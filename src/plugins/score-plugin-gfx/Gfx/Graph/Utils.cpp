@@ -294,6 +294,8 @@ void DefaultShaderMaterial::init(RenderList& renderer, const std::vector<Port*>&
           break;
         case Types::Image:
         {
+          SCORE_TODO;
+          /*
           auto sampler = rhi.newSampler(
               QRhiSampler::Linear,
               QRhiSampler::Linear,
@@ -305,6 +307,7 @@ void DefaultShaderMaterial::init(RenderList& renderer, const std::vector<Port*>&
 
           samplers.push_back(
               {sampler, renderer.textureTargetForInputPort(*in)});
+*/
           break;
         }
         case Types::Audio:

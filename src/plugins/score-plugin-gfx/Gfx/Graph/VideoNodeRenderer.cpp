@@ -144,7 +144,7 @@ void VideoNodeRenderer::checkFormat(RenderList& r, AVPixelFormat fmt, int w, int
     setupGpuDecoder(r);
   }
 }
-
+/*
 TextureRenderTarget VideoNodeRenderer::createRenderTarget(const RenderState& state)
 {
   auto sz = state.size;
@@ -156,12 +156,12 @@ TextureRenderTarget VideoNodeRenderer::createRenderTarget(const RenderState& sta
   m_rt = score::gfx::createRenderTarget(state, QRhiTexture::RGBA8, sz);
   return m_rt;
 }
-
+*/
 void VideoNodeRenderer::init(RenderList& renderer)
 {
-  if (!m_rt.renderTarget)
-    createRenderTarget(renderer.state);
-
+  // if (!m_rt.renderTarget)
+  //   createRenderTarget(renderer.state);
+  //
   auto& rhi = *renderer.state.rhi;
 
   const auto& mesh = node.mesh();
@@ -204,8 +204,6 @@ void VideoNodeRenderer::init(RenderList& renderer)
 
 void VideoNodeRenderer::runPass(RenderList& renderer, QRhiCommandBuffer& cb, QRhiResourceUpdateBatch& updateBatch)
 {
-  update(renderer, updateBatch);
-
   cb.beginPass(m_rt.renderTarget, Qt::black, {1.0f, 0}, &updateBatch);
   {
     const auto sz = renderer.state.size;
@@ -313,7 +311,7 @@ void VideoNodeRenderer::releaseWithoutRenderTarget(RenderList& r)
 
   m_meshBuffer = nullptr;
 }
-
+/*
 TextureRenderTarget VideoNodeRenderer::renderTarget() const noexcept
 {
   return m_rt;
@@ -323,4 +321,5 @@ std::optional<QSize> VideoNodeRenderer::renderTargetSize() const noexcept
 {
   return {};
 }
+*/
 }

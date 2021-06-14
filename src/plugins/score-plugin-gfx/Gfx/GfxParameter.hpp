@@ -15,18 +15,18 @@ protected:
   GfxExecutionAction* context{};
 
 public:
-  score::gfx::NodeModel* node{};
+  score::gfx::Node* node{};
   int32_t node_id{};
 
   gfx_parameter_base(
       ossia::net::node_base& n,
-      score::gfx::NodeModel* node,
+      score::gfx::Node* node,
       GfxExecutionAction* ctx)
       : texture_parameter{n}
       , context{ctx}
       , node{node}
   {
-    node_id = context->ui->register_node(std::unique_ptr<score::gfx::NodeModel>{node});
+    node_id = context->ui->register_node(std::unique_ptr<score::gfx::Node>{node});
   }
 
   void push_texture(port_index idx)
@@ -70,7 +70,7 @@ class gfx_node_base : public ossia::net::node_base
 public:
   gfx_node_base(
       ossia::net::device_base& dev,
-      score::gfx::NodeModel* gfxmodel,
+      score::gfx::Node* gfxmodel,
       std::string name)
       : m_device{dev}
       , m_parameter{std::make_unique<gfx_parameter_base>(

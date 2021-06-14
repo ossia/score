@@ -56,9 +56,10 @@ struct RenderedISFNode : score::gfx::NodeRenderer
   RenderedISFNode(const ISFNode& node) noexcept;
 
   virtual ~RenderedISFNode();
-  std::optional<QSize> renderTargetSize() const noexcept override;
-  TextureRenderTarget renderTarget() const noexcept override;
+  // std::optional<QSize> renderTargetSize() const noexcept override;
+  // TextureRenderTarget renderTarget() const noexcept override;
 
+  TextureRenderTarget renderTargetForInput(const Port& p) override;
   void init(RenderList& renderer) override;
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
   void releaseWithoutRenderTarget(RenderList& r) override;

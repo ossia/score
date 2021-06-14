@@ -97,13 +97,47 @@ void RenderList::maybeRebuild()
 
     init();
 
-    for (auto node : renderers)
-      node->init(*this);
+    // We init the nodes in reverse orders as
+    // the render targets of subsequent nodes must be initialized
+    for (auto it = renderers.rbegin(); it != renderers.rend(); ++it)
+    {
+      (*it)->init(*this);
+    }
 
     m_lastSize = outputSize;
   }
 }
 
+TextureRenderTarget RenderList::renderTargetForOutput(Port& port) noexcept
+{
+  auto missing = [this] {
+    SCORE_ASSERT(!this->renderers.empty());
+    auto output_renderer = this->renderers.back();
+    SCORE_ASSERT(this->output.input.size() > 0);
+    return output_renderer->renderTargetForInput(*this->output.input[0]);
+  };
+  if (port.edges.empty())
+    return missing();
+
+  SCORE_TODO_("what if there are multiple outputs for a node");
+  SCORE_TODO_("also we must check only the edges that are part of this output");
+  auto edge = port.edges[0];
+  auto sink_node = edge->sink->node;
+  if (!sink_node)
+    return missing();
+
+  auto renderer = sink_node->renderedNodes[this];
+  if (!renderer)
+    return missing();
+
+  if (auto tex = renderer->renderTargetForInput(*edge->sink);
+      tex.renderTarget && tex.renderPass)
+    return tex;
+  else
+    return missing();
+}
+
+/*
 QRhiTexture* RenderList::textureTargetForInputPort(Port& port)
 {
   QRhiTexture* texture = m_emptyTexture;
@@ -123,6 +157,7 @@ QRhiTexture* RenderList::textureTargetForInputPort(Port& port)
   else
     return texture;
 }
+*/
 
 void RenderList::render(QRhiCommandBuffer& commands)
 {
@@ -137,13 +172,72 @@ void RenderList::render(QRhiCommandBuffer& commands)
   auto updateBatch = state.rhi->nextResourceUpdateBatch();
   update(*updateBatch);
 
+  // For each texture input port
+  //  For all previous node
+  //   Update
+  //  Begin pass
+  //   For all previous node
+  //    Render
+  //  End pass
+
+  qDebug() << "Begin render";
+
+  for(auto node : this->nodes)
+  {
+    for(auto input : node->input)
+    {
+      if(input->type == Types::Image)
+      {
+        for(auto edge : input->edges)
+        {
+          auto src = edge->source;
+          SCORE_ASSERT(src);
+
+          SCORE_ASSERT(src->node->renderedNodes.find(this) != src->node->renderedNodes.end());
+          auto renderer = src->node->renderedNodes[this];
+
+
+          qDebug() << "update: " << typeid(*src->node).name();
+          renderer->update(*this, *updateBatch);
+        }
+
+        SCORE_ASSERT(node->renderedNodes.find(this) != node->renderedNodes.end());
+        auto m_rt = node->renderedNodes[this]->renderTargetForInput(*input);
+        SCORE_ASSERT(m_rt.renderTarget);
+        commands.beginPass(m_rt.renderTarget, Qt::black, {1.0f, 0}, updateBatch);
+
+        for(auto edge : input->edges)
+        {
+          auto src = edge->source;
+          SCORE_ASSERT(src);
+
+          SCORE_ASSERT(src->node->renderedNodes.find(this) != src->node->renderedNodes.end());
+          auto renderer = src->node->renderedNodes[this];
+
+          qDebug() << "runPass: " << typeid(*src->node).name();
+          renderer->runPass(*this, commands, *updateBatch);
+        }
+
+        commands.endPass();
+
+        if(node != &this->output)
+        {
+          qDebug() << "Update updatebatch";
+          updateBatch = state.rhi->nextResourceUpdateBatch();
+        }
+      }
+    }
+  }
+
+  qDebug() << "End render";
+/*
   for (std::size_t i = 0; i < renderers.size(); i++)
   {
     renderers[i]->runPass(*this, commands, *updateBatch);
 
     if (i < renderers.size() - 1)
       updateBatch = state.rhi->nextResourceUpdateBatch();
-  }
+  }*/
 }
 
 void RenderList::update(QRhiResourceUpdateBatch& res)

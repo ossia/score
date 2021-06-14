@@ -332,11 +332,14 @@ RenderState* ScreenNode::renderState() const
   return nullptr;
 }
 
-class ScreenNode::Renderer : public GenericNodeRenderer
+class ScreenNode::Renderer : public score::gfx::NodeRenderer
 {
 public:
+  TextureRenderTarget m_rt;
+
+  TextureRenderTarget renderTargetForInput(const Port& p) override { return m_rt; }
   Renderer(const RenderState& state, const ScreenNode& parent)
-      : GenericNodeRenderer{parent}
+      : score::gfx::NodeRenderer{}
   {
     if (parent.m_swapChain)
     {
@@ -350,11 +353,42 @@ public:
       qDebug() << "Warning: swapchain not found in screenRenderTarget";
     }
   }
+
+  /*
+  std::optional<QSize> renderTargetSize() const noexcept override
+  {
+    return  {};
+  }
+  TextureRenderTarget renderTarget() const noexcept override
+  {
+    return m_rt;
+  }
+  */
+  void init(RenderList& renderer) override
+  {
+  }
+  void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  {
+  }
+  void runPass(RenderList&, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch& updateBatch) override
+  {
+  }
+  void release(RenderList&) override
+  {
+  }
+  void releaseWithoutRenderTarget(RenderList&) override
+  {
+  }
 };
 
 score::gfx::NodeRenderer*
 ScreenNode::createRenderer(RenderList& r) const noexcept
 {
   return new Renderer{r.state, *this};
+}
+
+const Mesh& ScreenNode::mesh() const noexcept
+{
+  return TexturedTriangle::instance();
 }
 }

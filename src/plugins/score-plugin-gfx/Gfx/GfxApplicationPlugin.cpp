@@ -39,7 +39,7 @@ void gfx_exec_node::run(
       }
     }
   }
-  gfx_message msg;
+  score::gfx::Message msg;
   msg.node_id = id;
   msg.token = tk;
 
