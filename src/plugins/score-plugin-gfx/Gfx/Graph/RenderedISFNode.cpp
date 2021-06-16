@@ -1,5 +1,5 @@
 #include <Gfx/Graph/RenderedISFNode.hpp>
-
+#include <ossia/detail/algorithms.hpp>
 namespace score::gfx
 {
 
