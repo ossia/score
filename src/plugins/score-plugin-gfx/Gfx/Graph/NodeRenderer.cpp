@@ -8,56 +8,17 @@ namespace score::gfx
 
 #include <Gfx/Qt5CompatPush> // clang-format: keep
 
-/*
-TextureRenderTarget
-GenericNodeRenderer::createRenderTarget(const RenderState& state)
-{
-  auto sz = state.size;
-  if (auto true_sz = renderTargetSize())
-  {
-    sz = *true_sz;
-  }
-
-  m_rt = score::gfx::createRenderTarget(state, QRhiTexture::RGBA8, sz);
-  m_rt.texture->setName("GenericNodeRenderer::m_rt.texture");
-  m_rt.renderPass->setName("GenericNodeRenderer::m_rt.renderPass");
-  m_rt.renderTarget->setName("GenericNodeRenderer::m_rt.renderTarget");
-  return m_rt;
-}
-
-std::optional<QSize> GenericNodeRenderer::renderTargetSize() const noexcept
-{
-  return {};
-}
-*/
-
 TextureRenderTarget GenericNodeRenderer::renderTargetForInput(const Port& p)
 {
   SCORE_TODO;
   return { };
 }
 
-void GenericNodeRenderer::customInit(RenderList& renderer)
+void GenericNodeRenderer::defaultMeshInit(RenderList& renderer)
 {
-  m_material.init(renderer, node.input, m_samplers);
-}
-
-void NodeModel::setShaders(const QShader& vert, const QShader& frag)
-{
-  m_vertexS = vert;
-  m_fragmentS = frag;
-}
-
-void GenericNodeRenderer::init(RenderList& renderer)
-{
-  // if (!m_rt.renderTarget)
-  //   createRenderTarget(renderer.state);
-
-  auto& rhi = *renderer.state.rhi;
-
-  const auto& mesh = node.mesh();
   if (!m_meshBuffer)
   {
+    const auto& mesh = node.mesh();
     auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh);
     m_meshBuffer = mbuffer;
     m_idxBuffer = ibuffer;
@@ -66,38 +27,48 @@ void GenericNodeRenderer::init(RenderList& renderer)
     if(m_idxBuffer)
       m_idxBuffer->setName("GenericNodeRenderer::m_idxBuffer");
   }
+}
 
+void GenericNodeRenderer::defaultUBOInit(RenderList& renderer)
+{
+  auto& rhi = *renderer.state.rhi;
   m_processUBO = rhi.newBuffer(
       QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(ProcessUBO));
   m_processUBO->setName("GenericNodeRenderer::m_processUBO");
   m_processUBO->create();
+}
 
-  customInit(renderer);
-
-  if (!m_p.pipeline)
+void GenericNodeRenderer::defaultPassesInit(RenderList& renderer)
+{
+  for(Edge* edge : this->node.output[0]->edges)
   {
-    // Build the pipeline
-    m_p = score::gfx::buildPipeline(
-        renderer,
-        node.mesh(),
-        node.m_vertexS,
-        node.m_fragmentS,
-        renderer.renderTargetForOutput(*this->node.output[0]),
-        m_processUBO,
-        m_material.buffer,
-        m_samplers);
+    auto rt = renderer.renderTargetForOutput(*edge);
+    if(rt.renderTarget)
+    {
+      m_p.emplace_back(edge, score::gfx::buildPipeline(
+          renderer,
+          node.mesh(),
+          node.m_vertexS,
+          node.m_fragmentS,
+          rt,
+          m_processUBO,
+          m_material.buffer, m_samplers));
+    }
   }
 }
 
-void GenericNodeRenderer::customUpdate(
-    RenderList& renderer,
-    QRhiResourceUpdateBatch& res)
+
+void GenericNodeRenderer::init(RenderList& renderer)
 {
+  defaultMeshInit(renderer);
+  defaultUBOInit(renderer);
+
+  m_material.init(renderer, node.input, m_samplers);
+
+  defaultPassesInit(renderer);
 }
 
-void GenericNodeRenderer::update(
-    RenderList& renderer,
-    QRhiResourceUpdateBatch& res)
+void GenericNodeRenderer::defaultUBOUpdate(RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
   res.updateDynamicBuffer(
       m_processUBO, 0, sizeof(ProcessUBO), &this->node.standardUBO);
@@ -109,37 +80,17 @@ void GenericNodeRenderer::update(
     res.updateDynamicBuffer(m_material.buffer, 0, m_material.size, data);
     materialChangedIndex = node.materialChanged;
   }
-
-  // Update input textures
-  /*
-
-  {
-    int sampler_i = 0;
-    for (Port* in : this->node.input)
-    {
-      if (in->type == Types::Image)
-      {
-        auto new_texture = renderer.textureTargetForInputPort(*in);
-        auto cur_texture = m_samplers[sampler_i].texture;
-        if (new_texture != cur_texture)
-        {
-          score::gfx::replaceTexture(*this->m_p.srb, cur_texture, new_texture);
-        }
-        sampler_i++;
-      }
-    }
-  }
-
-  */
-  customUpdate(renderer, res);
 }
 
-void GenericNodeRenderer::customRelease(RenderList&) { }
-
-void GenericNodeRenderer::releaseWithoutRenderTarget(RenderList& r)
+void GenericNodeRenderer::update(
+    RenderList& renderer,
+    QRhiResourceUpdateBatch& res)
 {
-  customRelease(r);
+  defaultUBOUpdate(renderer, res);
+}
 
+void GenericNodeRenderer::defaultRelease(RenderList&)
+{
   for (auto sampler : m_samplers)
   {
     delete sampler.sampler;
@@ -153,22 +104,40 @@ void GenericNodeRenderer::releaseWithoutRenderTarget(RenderList& r)
   delete m_material.buffer;
   m_material.buffer = nullptr;
 
-  m_p.release();
+  for(auto& pass : m_p)
+    pass.second.release();
+  m_p.clear();
 
   m_meshBuffer = nullptr;
 }
 
-void GenericNodeRenderer::runPass(
+void NodeRenderer::runInitialPasses(
+    RenderList&,
+    QRhiCommandBuffer& commands,
+    QRhiResourceUpdateBatch*& res,
+    Edge& e)
+{
+
+}
+
+void NodeRenderer::runRenderPass(
+    RenderList&,
+    QRhiCommandBuffer& commands,
+    Edge& edge)
+{
+
+}
+void GenericNodeRenderer::runRenderPass(
     RenderList& renderer,
     QRhiCommandBuffer& cb,
-    QRhiResourceUpdateBatch& updateBatch)
+    Edge& edge)
 {
-  //auto m_rt = renderer.renderTargetForOutput(*this->node.output[0]);
-  //cb.beginPass(m_rt.renderTarget, Qt::black, {1.0f, 0}, &updateBatch);
+  auto it = ossia::find_if(m_p, [ptr=&edge] (const auto& p){ return p.first == ptr; });
+  SCORE_ASSERT(it != m_p.end());
   {
     const auto sz = renderer.state.size;
-    cb.setGraphicsPipeline(pipeline());
-    cb.setShaderResources(resources());
+    cb.setGraphicsPipeline(it->second.pipeline);
+    cb.setShaderResources(it->second.srb);
     cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
 
     assert(this->m_meshBuffer);
@@ -177,14 +146,11 @@ void GenericNodeRenderer::runPass(
 
     cb.draw(node.mesh().vertexCount);
   }
-
-  //cb.endPass();
 }
 
 void GenericNodeRenderer::release(RenderList& r)
 {
-  releaseWithoutRenderTarget(r);
-  //m_rt.release();
+  defaultRelease(r);
 }
 
 score::gfx::NodeRenderer::NodeRenderer() noexcept { }

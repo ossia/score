@@ -4,10 +4,10 @@
 
 #include <ossia/audio/fft.hpp>
 #include <ossia/math/math_expression.hpp>
+#include <ossia/detail/small_flat_map.hpp>
 
 namespace score::gfx
 {
-
 struct Pass
 {
   TextureRenderTarget renderTarget;
@@ -20,6 +20,7 @@ struct PersistSampler
   QRhiSampler* sampler{};
   QRhiTexture* textures[2]{nullptr, nullptr};
 };
+using PassOutput = std::variant<PersistSampler, TextureRenderTarget>;
 
 struct AudioTextureUpload
 {
@@ -40,11 +41,11 @@ struct AudioTextureUpload
       QRhiResourceUpdateBatch& res,
       QRhiTexture* rhiTexture);
 
-  void updateAudioTexture(
+  [[nodiscard]]
+  std::optional<Sampler> updateAudioTexture(
       AudioTexture& audio,
       RenderList& renderer,
-      QRhiResourceUpdateBatch& res,
-      std::vector<Pass>& passes);
+      QRhiResourceUpdateBatch& res);
 
 private:
   std::vector<float> m_scratchpad;
@@ -56,38 +57,57 @@ struct RenderedISFNode : score::gfx::NodeRenderer
   RenderedISFNode(const ISFNode& node) noexcept;
 
   virtual ~RenderedISFNode();
-  // std::optional<QSize> renderTargetSize() const noexcept override;
-  // TextureRenderTarget renderTarget() const noexcept override;
 
   TextureRenderTarget renderTargetForInput(const Port& p) override;
+
   void init(RenderList& renderer) override;
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
-  void releaseWithoutRenderTarget(RenderList& r) override;
   void release(RenderList& r) override;
-  void runPass(
-      RenderList& renderer,
-      QRhiCommandBuffer& cb,
-      QRhiResourceUpdateBatch& res) override;
+
+  void runInitialPasses(
+      RenderList&,
+      QRhiCommandBuffer& commands,
+      QRhiResourceUpdateBatch*& res,
+      Edge& edge) override;
+
+  void runRenderPass(
+      RenderList&,
+      QRhiCommandBuffer& commands,
+      Edge& edge) override;
 
 private:
-  std::pair<Pass, Pass>
-  createPass(RenderList& renderer, PersistSampler target);
-  void initPasses(RenderList& renderer);
+  ossia::small_flat_map<const Port*, TextureRenderTarget, 2> m_rts;
 
-  static std::vector<PersistSampler> initPassSamplers(
+  std::pair<Pass, Pass>
+  createPass(RenderList& renderer,  std::vector<PassOutput>& m_passSamplers, PassOutput target);
+  void initPasses(
+      const TextureRenderTarget& rt,
+      RenderList& renderer,
+      Edge& edge,
+      int& cur_pos,
+      QSize mainTexSize
+      );
+  PassOutput initPassSampler(
       ISFNode& n,
+      const isf::pass& pass,
+      const TextureRenderTarget& rt,
       RenderList& renderer,
       int& cur_pos,
-      QSize mainTexSize);
+      QSize mainTexSize,
+      bool last_pass);
 
-  std::vector<Pass> m_passes;
-  std::vector<Pass> m_altPasses;
+  struct Passes {
+    std::vector<Pass> passes;
+    std::vector<Pass> altPasses;
+    std::vector<PassOutput> samplers;
+  };
+
+  ossia::small_vector<std::pair<Edge*, Passes>, 2> m_passes;
 
   ISFNode& n;
 
   std::vector<Sampler> m_inputSamplers;
   std::vector<Sampler> m_audioSamplers;
-  std::vector<PersistSampler> m_passSamplers;
 
   QRhiBuffer* m_meshBuffer{};
   QRhiBuffer* m_idxBuffer{};

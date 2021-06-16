@@ -59,16 +59,13 @@ public:
    */
   void maybeRebuild();
 
-  TextureRenderTarget renderTargetForOutput(Port& port) noexcept;
-//  /**
-//   * @brief Obtain the texture corresponding to an input port.
-//   *
-//   * This is done by looking for the render target which corresponds to a given port.
-//   *
-//   * If it is not found, the empty 1x1 texture is returned.
-//   */
-//  QRhiTexture* textureTargetForInputPort(Port& port);
-//
+  /**
+   * @brief Obtain the texture corresponding to an output port.
+   *
+   * This is done by looking for the render target which corresponds to a given port.
+   */
+  TextureRenderTarget renderTargetForOutput(const Edge& edge) noexcept;
+
   /**
    * @brief Output node to which this RenderList is rendering to
    */

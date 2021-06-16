@@ -31,6 +31,12 @@ VideoNodeRenderer::~VideoNodeRenderer()
     decoder.release_frame(frame);
 }
 
+
+TextureRenderTarget VideoNodeRenderer::renderTargetForInput(const Port& input)
+{
+  return {};
+}
+
 void VideoNodeRenderer::createGpuDecoder()
 {
   auto& model = (VideoNode&)(node);
@@ -112,23 +118,36 @@ void VideoNodeRenderer::setupGpuDecoder(RenderList& r)
   if (m_gpu)
   {
     m_gpu->release(r);
-    delete m_p.pipeline;
-    m_p.pipeline = nullptr;
+
+    for(auto& p : m_p)
+    {
+      p.second.release();
+    }
+    m_p.clear();
   }
+
   createGpuDecoder();
 
   if (m_gpu)
   {
     auto shaders = m_gpu->init(r);
-    m_p = score::gfx::buildPipeline(
-        r,
-        node.mesh(),
-        std::move(shaders.first),
-        std::move(shaders.second),
-        m_rt,
-        m_processUBO,
-        nullptr,
-        m_gpu->samplers);
+    SCORE_ASSERT(m_p.empty());
+    for(Edge* edge : this->node.output[0]->edges)
+    {
+      auto rt = r.renderTargetForOutput(*edge);
+      if(rt.renderTarget)
+      {
+        m_p.emplace_back(edge, score::gfx::buildPipeline(
+              r,
+              node.mesh(),
+              shaders.first,
+              shaders.second,
+              rt,
+              m_processUBO,
+              nullptr,
+              m_gpu->samplers));
+      }
+    }
   }
 }
 
@@ -144,24 +163,9 @@ void VideoNodeRenderer::checkFormat(RenderList& r, AVPixelFormat fmt, int w, int
     setupGpuDecoder(r);
   }
 }
-/*
-TextureRenderTarget VideoNodeRenderer::createRenderTarget(const RenderState& state)
-{
-  auto sz = state.size;
-  if (auto true_sz = renderTargetSize())
-  {
-    sz = *true_sz;
-  }
 
-  m_rt = score::gfx::createRenderTarget(state, QRhiTexture::RGBA8, sz);
-  return m_rt;
-}
-*/
 void VideoNodeRenderer::init(RenderList& renderer)
 {
-  // if (!m_rt.renderTarget)
-  //   createRenderTarget(renderer.state);
-  //
   auto& rhi = *renderer.state.rhi;
 
   const auto& mesh = node.mesh();
@@ -186,25 +190,40 @@ void VideoNodeRenderer::init(RenderList& renderer)
   if (m_gpu)
   {
     auto shaders = m_gpu->init(renderer);
-    if (!m_p.pipeline)
+
+    SCORE_ASSERT(m_p.empty());
+    for(Edge* edge : this->node.output[0]->edges)
     {
-      // Build the pipeline
-      m_p = score::gfx::buildPipeline(
-          renderer,
-          node.mesh(),
-          shaders.first,
-          shaders.second,
-          m_rt,
-          m_processUBO,
-          nullptr,
-          m_gpu->samplers);
+      auto rt = renderer.renderTargetForOutput(*edge);
+      if(rt.renderTarget)
+      {
+        m_p.emplace_back(edge, score::gfx::buildPipeline(renderer, node.mesh(), shaders.first, shaders.second, rt, m_processUBO, nullptr, m_gpu->samplers));
+      }
     }
   }
 }
 
-void VideoNodeRenderer::runPass(RenderList& renderer, QRhiCommandBuffer& cb, QRhiResourceUpdateBatch& updateBatch)
+void VideoNodeRenderer::runRenderPass(RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge)
 {
-  cb.beginPass(m_rt.renderTarget, Qt::black, {1.0f, 0}, &updateBatch);
+  auto it = ossia::find_if(m_p, [ptr=&edge] (const auto& p){ return p.first == ptr; });
+  SCORE_ASSERT(it != m_p.end());
+  {
+    const auto sz = renderer.state.size;
+    cb.setGraphicsPipeline(it->second.pipeline);
+    cb.setShaderResources(it->second.srb);
+    cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
+
+    assert(this->m_meshBuffer);
+    assert(this->m_meshBuffer->usage().testFlag(QRhiBuffer::VertexBuffer));
+    node.mesh().setupBindings(*this->m_meshBuffer, this->m_idxBuffer, cb);
+
+    cb.draw(node.mesh().vertexCount);
+  }
+
+
+  //cb.beginPass(m_rt.renderTarget, Qt::black, {1.0f, 0}, &updateBatch);
+
+  /*
   {
     const auto sz = renderer.state.size;
     cb.setGraphicsPipeline(m_p.pipeline);
@@ -217,8 +236,9 @@ void VideoNodeRenderer::runPass(RenderList& renderer, QRhiCommandBuffer& cb, QRh
 
     cb.draw(node.mesh().vertexCount);
   }
+*/
 
-  cb.endPass();
+  //cb.endPass();
 }
 
 // TODO if we have multiple renderers for the same video, we must always keep
@@ -295,31 +315,17 @@ void VideoNodeRenderer::update(RenderList& renderer, QRhiResourceUpdateBatch& re
 
 void VideoNodeRenderer::release(RenderList& r)
 {
-  releaseWithoutRenderTarget(r);
-  m_rt.release();
-}
-
-void VideoNodeRenderer::releaseWithoutRenderTarget(RenderList& r)
-{
   if (m_gpu)
     m_gpu->release(r);
 
   delete m_processUBO;
   m_processUBO = nullptr;
 
-  m_p.release();
+  for(auto& p : m_p)
+    p.second.release();
+  m_p.clear();
 
   m_meshBuffer = nullptr;
 }
-/*
-TextureRenderTarget VideoNodeRenderer::renderTarget() const noexcept
-{
-  return m_rt;
-}
 
-std::optional<QSize> VideoNodeRenderer::renderTargetSize() const noexcept
-{
-  return {};
-}
-*/
 }

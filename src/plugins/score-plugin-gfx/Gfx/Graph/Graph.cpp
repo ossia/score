@@ -71,6 +71,7 @@ void Graph::createAllRenderLists(GraphicsApi graphicsApi)
     if (!output->canRender())
     {
       auto onReady = [=] {
+        if(output->canRender())
         m_renderers.push_back(createRenderList(output, *output->renderState()));
       };
       auto onResize = [=] {
@@ -79,12 +80,10 @@ void Graph::createAllRenderLists(GraphicsApi graphicsApi)
           if (renderer.get() == output->renderer())
           {
             renderer->release();
+            renderer.reset();
+            renderer = createRenderList(output, *output->renderState());
+            break;
           }
-
-          // TODO shouldn't that be in that "if" above ? we only resize
-          // one viewport at a time...
-          renderer.reset();
-          renderer = createRenderList(output, *output->renderState());
         }
       };
 
@@ -143,7 +142,6 @@ void Graph::relinkGraph()
         graphwalk(model_nodes[processed], model_nodes);
         processed++;
       }
-      std::reverse(model_nodes.begin(), model_nodes.end());
 
       if (model_nodes.size() > 1)
       {
@@ -153,6 +151,7 @@ void Graph::relinkGraph()
           if (!rn)
           {
             rn = node->createRenderer(r);
+            SCORE_ASSERT(rn);
             node->renderedNodes[&r] = rn;
             rn->init(r);
           }
@@ -214,10 +213,9 @@ Graph::createRenderList(OutputNode* output, RenderState state)
       graphwalk(model_nodes[processed], model_nodes);
       processed++;
     }
-    std::reverse(model_nodes.begin(), model_nodes.end());
 
     // Now we have the nodes in the order in which they are going to
-    // be processed
+    // be init'd (e.g. output node first to create the render targets)
     // We create renderers for each of them
     for (auto node : model_nodes)
     {
@@ -231,8 +229,8 @@ Graph::createRenderList(OutputNode* output, RenderState state)
 
     if (model_nodes.size() > 1)
     {
-      for (auto rn : r.renderers)
-        rn->init(r);
+      for (auto node : r.renderers)
+        node->init(r);
     }
   }
 

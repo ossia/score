@@ -126,7 +126,10 @@ ScreenNode::~ScreenNode() { }
 
 bool ScreenNode::canRender() const
 {
-  return bool(m_window);
+  // FIXME - Graph::onReady / Graph::onResize :
+  // swapchain is recreated even when size does not change at the
+  // beginning
+  return bool(m_window)/* && m_window->m_hasSwapChain */;
 }
 
 void ScreenNode::startRendering()
@@ -354,29 +357,16 @@ public:
     }
   }
 
-  /*
-  std::optional<QSize> renderTargetSize() const noexcept override
-  {
-    return  {};
-  }
-  TextureRenderTarget renderTarget() const noexcept override
-  {
-    return m_rt;
-  }
-  */
   void init(RenderList& renderer) override
   {
   }
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
   }
-  void runPass(RenderList&, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch& updateBatch) override
+  void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& e) override
   {
   }
   void release(RenderList&) override
-  {
-  }
-  void releaseWithoutRenderTarget(RenderList&) override
   {
   }
 };

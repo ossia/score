@@ -94,8 +94,10 @@ private:
   ~Renderer() { }
 
   TextureRenderTarget renderTargetForInput(const Port& p) override { return { }; }
-  void customInit(RenderList& renderer) override
+  void init(RenderList& renderer) override
   {
+    defaultMeshInit(renderer);
+    defaultUBOInit(renderer);
     m_material.init(renderer, node.input, m_samplers);
 
     m_prev_ubo.currentImageIndex = -1;
@@ -136,11 +138,15 @@ private:
       auto tex = m_textures.empty() ? &renderer.emptyTexture() : m_textures.front();
       m_samplers.push_back({sampler, tex});
     }
+
+    defaultPassesInit(renderer);
   }
 
   void
-  customUpdate(RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  update(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
+    defaultUBOUpdate(renderer, res);
+
     if (m_textures.empty())
       return;
 
@@ -172,20 +178,25 @@ private:
         auto idx = ossia::clamp(
             int(n.ubo.currentImageIndex), int(0), int(m_textures.size()) - 1);
 
-        score::gfx::replaceTexture(
-            *m_p.srb, m_samplers[0].sampler, m_textures[idx]);
+        for(auto& pass : m_p)
+        {
+          score::gfx::replaceTexture(
+              *pass.second.srb, m_samplers[0].sampler, m_textures[idx]);
+        }
       }
       m_prev_ubo.currentImageIndex = n.ubo.currentImageIndex;
     }
   }
 
-  void customRelease(RenderList&) override
+  void release(RenderList& r) override
   {
     for (auto tex : m_textures)
     {
       tex->deleteLater();
     }
     m_textures.clear();
+
+    defaultRelease(r);
   }
 
   struct ImagesNode::UBO m_prev_ubo;
@@ -278,8 +289,10 @@ private:
   ~Renderer() { }
 
   TextureRenderTarget renderTargetForInput(const Port& p) override { return { }; }
-  void customInit(RenderList& renderer) override
+  void init(RenderList& renderer) override
   {
+    defaultMeshInit(renderer);
+    defaultUBOInit(renderer);
     m_material.init(renderer, node.input, m_samplers);
 
     auto& n = static_cast<const FullScreenImageNode&>(this->node);
@@ -310,11 +323,14 @@ private:
       sampler->create();
       m_samplers.push_back({sampler, m_texture});
     }
+
+    defaultPassesInit(renderer);
   }
 
-  void
-  customUpdate(RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
+    defaultUBOUpdate(renderer, res);
+
     auto& n = static_cast<const FullScreenImageNode&>(this->node);
     // If images haven't been uploaded yet, upload them.
     if (!m_uploaded)
@@ -324,10 +340,12 @@ private:
     }
   }
 
-  void customRelease(RenderList&) override
+  void release(RenderList& r) override
   {
     m_texture->deleteLater();
     m_texture = nullptr;
+
+    defaultRelease(r);
   }
 
   QRhiTexture* m_texture{};

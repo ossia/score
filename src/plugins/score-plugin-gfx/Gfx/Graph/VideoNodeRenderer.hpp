@@ -14,30 +14,27 @@ public:
 
   ~VideoNodeRenderer();
 
+  TextureRenderTarget renderTargetForInput(const Port& input) override;
+
   void createGpuDecoder();
   void setupGpuDecoder(RenderList& r);
   void checkFormat(RenderList& r, AVPixelFormat fmt, int w, int h);
 
 
   void init(RenderList& renderer) override;
-  void runPass(
+  void runRenderPass(
       RenderList&,
       QRhiCommandBuffer& commands,
-      QRhiResourceUpdateBatch& updateBatch) override;
+      Edge& edge) override;
 
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
   void release(RenderList& r) override;
-  void releaseWithoutRenderTarget(RenderList&) override;
 
-  //TextureRenderTarget createRenderTarget(const RenderState& state);
-  //TextureRenderTarget renderTarget() const noexcept override;
-  //std::optional<QSize> renderTargetSize() const noexcept override;
 
 private:
   const VideoNode& node;
 
-  TextureRenderTarget m_rt;
-  Pipeline m_p;
+  std::vector<std::pair<Edge*, Pipeline>> m_p;
   QRhiBuffer* m_meshBuffer{};
   QRhiBuffer* m_idxBuffer{};
   QRhiBuffer* m_processUBO{};

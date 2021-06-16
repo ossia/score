@@ -69,8 +69,10 @@ struct TexgenNode : NodeModel
     ~Rendered() { }
 
     QRhiTexture* texture{};
-    void customInit(RenderList& renderer) override
+    void init(RenderList& renderer) override
     {
+      defaultMeshInit(renderer);
+      defaultUBOInit(renderer);
       m_material.init(renderer, node.input, m_samplers);
 
       auto& n = static_cast<const TexgenNode&>(this->node);
@@ -93,11 +95,13 @@ struct TexgenNode : NodeModel
         sampler->create();
         m_samplers.push_back({sampler, texture});
       }
+      defaultPassesInit(renderer);
     }
 
     void
-    customUpdate(RenderList& renderer, QRhiResourceUpdateBatch& res) override
+    update(RenderList& renderer, QRhiResourceUpdateBatch& res) override
     {
+      defaultUBOUpdate(renderer, res);
       auto& n = static_cast<const TexgenNode&>(this->node);
       if (func_t f = n.function.load())
       {
@@ -109,10 +113,12 @@ struct TexgenNode : NodeModel
       }
     }
 
-    void customRelease(RenderList&) override
+    void release(RenderList& r) override
     {
       texture->deleteLater();
       texture = nullptr;
+
+      defaultRelease(r);
     }
 
     int t = 0;

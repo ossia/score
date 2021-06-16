@@ -87,7 +87,7 @@ void ShaderPreviewWidget::setup()
     i++;
   }
 
-  m_graph.createAllRenderLists(score::gfx::GraphicsApi::Vulkan);
+  m_graph.createAllRenderLists(score::gfx::GraphicsApi::OpenGL);
 
   // UI setup
   auto lay = new QHBoxLayout(this);

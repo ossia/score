@@ -104,14 +104,6 @@ struct RenderedPhongNode : GenericNodeRenderer
 {
   using GenericNodeRenderer::GenericNodeRenderer;
 
-  void customInit(RenderList& renderer) override { }
-
-  void
-  customUpdate(RenderList& renderer, QRhiResourceUpdateBatch& res) override
-  {
-  }
-
-  void customRelease(RenderList& renderer) override { }
 };
 
 score::gfx::NodeRenderer*
