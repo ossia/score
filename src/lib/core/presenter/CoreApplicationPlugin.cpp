@@ -101,7 +101,7 @@ void CoreApplicationPlugin::openProjectSettings()
 
 void CoreApplicationPlugin::help()
 {
-  QDesktopServices::openUrl(QUrl("https://ossia.github.io/score"));
+  QDesktopServices::openUrl(QUrl("https://ossia.io/score-docs"));
 }
 
 void CoreApplicationPlugin::about()
