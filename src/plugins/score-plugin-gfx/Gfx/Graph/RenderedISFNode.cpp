@@ -188,7 +188,7 @@ TextureRenderTarget RenderedISFNode::renderTargetForInput(const Port& p)
 }
 
 std::pair<Pass, Pass>
-RenderedISFNode::createPass(RenderList& renderer, std::vector<PassOutput>& m_passSamplers, PassOutput target)
+RenderedISFNode::createPass(RenderList& renderer, ossia::small_vector<PassOutput, 1>& m_passSamplers, PassOutput target)
 {
   std::pair<Pass, Pass> ret;
   QRhi& rhi = *renderer.state.rhi;
@@ -209,6 +209,7 @@ RenderedISFNode::createPass(RenderList& renderer, std::vector<PassOutput>& m_pas
     {
       renderTarget
           = score::gfx::createRenderTarget(renderer.state, psampler->textures[0]);
+      m_innerPassTargets.push_back(renderTarget);
       renderTarget.texture->setName("ISFNode::createPass::renderTarget.texture");
       renderTarget.renderTarget->setName("ISFNode::createPass::renderTarget.renderTarget");
     }
@@ -253,6 +254,7 @@ RenderedISFNode::createPass(RenderList& renderer, std::vector<PassOutput>& m_pas
       ret.second.p = ret.first.p;
       ret.second.renderTarget
           = score::gfx::createRenderTarget(renderer.state, psampler->textures[1]);
+      m_innerPassTargets.push_back(ret.second.renderTarget);
       ret.second.renderTarget.texture->setName("ISFNode::createPass::ret.second.renderTarget.texture");
       ret.second.renderTarget.renderTarget->setName("ISFNode::createPass::ret.second.renderTarget.renderTarget");
 
@@ -327,6 +329,7 @@ void RenderedISFNode::init(RenderList& renderer)
   }
 
   // Create the samplers
+  SCORE_ASSERT(m_rts.empty());
   auto [samplers, cur_pos]
       = initInputSamplers(renderer, n.input, m_rts, n.m_material_data.get());
   m_inputSamplers = std::move(samplers);
@@ -402,11 +405,9 @@ void RenderedISFNode::release(RenderList& r)
 {
   // customRelease
   {
-    for (auto& rts : m_rts)
+    for (auto [edge, rt] : m_rts)
     {
-      rts.second.texture->deleteLater();
-      rts.second.renderPass->deleteLater();
-      rts.second.renderTarget->deleteLater();
+      rt.release();
     }
     m_rts.clear();
 
@@ -436,12 +437,11 @@ void RenderedISFNode::release(RenderList& r)
 
         const bool diffRt = pass.renderTarget.renderTarget != altpass.renderTarget.renderTarget;
         pass.p.release();
-        pass.renderTarget.release();
+
         pass.processUBO->deleteLater();
 
         if(diffRt)
         {
-          altpass.renderTarget.release();
           altpass.p.srb->release();
         }
 
@@ -451,11 +451,19 @@ void RenderedISFNode::release(RenderList& r)
           // TODO check texture deletion ???
           // texture isdeleted elsewxheree
         }
+        else
+        {
+          // It's the render target of another node, do not touch it
+        }
       }
     }
 
     m_passes.clear();
   }
+
+  for (auto rt : m_innerPassTargets)
+    rt.release();
+  m_innerPassTargets.clear();
 
   for (auto sampler : m_inputSamplers)
   {

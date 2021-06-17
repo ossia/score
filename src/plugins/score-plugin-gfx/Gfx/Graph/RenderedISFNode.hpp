@@ -79,7 +79,7 @@ private:
   ossia::small_flat_map<const Port*, TextureRenderTarget, 2> m_rts;
 
   std::pair<Pass, Pass>
-  createPass(RenderList& renderer,  std::vector<PassOutput>& m_passSamplers, PassOutput target);
+  createPass(RenderList& renderer,  ossia::small_vector<PassOutput, 1>& m_passSamplers, PassOutput target);
   void initPasses(
       const TextureRenderTarget& rt,
       RenderList& renderer,
@@ -97,9 +97,9 @@ private:
       bool last_pass);
 
   struct Passes {
-    std::vector<Pass> passes;
-    std::vector<Pass> altPasses;
-    std::vector<PassOutput> samplers;
+    ossia::small_vector<Pass, 1> passes;
+    ossia::small_vector<Pass, 1> altPasses;
+    ossia::small_vector<PassOutput, 1> samplers;
   };
 
   ossia::small_vector<std::pair<Edge*, Passes>, 2> m_passes;
@@ -108,6 +108,8 @@ private:
 
   std::vector<Sampler> m_inputSamplers;
   std::vector<Sampler> m_audioSamplers;
+
+  std::vector<TextureRenderTarget> m_innerPassTargets;
 
   QRhiBuffer* m_meshBuffer{};
   QRhiBuffer* m_idxBuffer{};

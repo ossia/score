@@ -2,6 +2,7 @@
 #include <Gfx/Graph/RenderList.hpp>
 
 #include <score/tools/Debug.hpp>
+#include <ossia/detail/algorithms.hpp>
 
 namespace score::gfx
 {

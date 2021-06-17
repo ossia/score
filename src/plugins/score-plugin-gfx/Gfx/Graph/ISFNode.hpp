@@ -37,7 +37,6 @@ public:
 
   const isf::descriptor& descriptor() const noexcept { return m_descriptor; }
 
-private:
   friend SinglePassISFNode;
   friend RenderedISFNode;
   friend isf_input_port_vis;

@@ -8,6 +8,7 @@
 #include <Gfx/Graph/decoders/YUYV422.hpp>
 
 #include <ossia/detail/flicks.hpp>
+#include <ossia/detail/algorithms.hpp>
 
 #include <QElapsedTimer>
 
