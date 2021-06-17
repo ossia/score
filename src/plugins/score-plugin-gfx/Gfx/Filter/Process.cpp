@@ -197,12 +197,18 @@ void Model::setupIsf(const isf::descriptor& desc)
     }
     Process::Inlet* operator()(const point2d_input& v)
     {
+      ossia::vec2f min{0., 0.};
+      ossia::vec2f max{1., 1.};
       ossia::vec2f init{0.5, 0.5};
       if (v.def)
-      {
         std::copy_n(v.def->begin(), 2, init.begin());
-      }
+      if (v.min)
+        std::copy_n(v.min->begin(), 2, min.begin());
+      if (v.max)
+        std::copy_n(v.max->begin(), 2, max.begin());
       auto port = new Process::XYSlider{
+          min,
+          max,
           init,
           QString::fromStdString(input.name),
           Id<Process::Port>(i),

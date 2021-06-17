@@ -328,10 +328,17 @@ struct SCORE_LIB_PROCESS_EXPORT XYSlider : public Process::ControlInlet
       const QString& name,
       Id<Process::Port> id,
       QObject* parent);
+  XYSlider(
+      ossia::vec2f min,
+      ossia::vec2f max,
+      ossia::vec2f init,
+      const QString& name,
+      Id<Process::Port> id,
+      QObject* parent);
   ~XYSlider();
 
-  auto getMin() const noexcept { return ossia::vec2f{0., 0.}; }
-  auto getMax() const noexcept { return ossia::vec2f{1., 1.}; }
+  auto getMin() const noexcept { return domain().get().convert_min<ossia::vec2f>(); }
+  auto getMax() const noexcept { return domain().get().convert_max<ossia::vec2f>(); }
   using Process::ControlInlet::ControlInlet;
 };
 

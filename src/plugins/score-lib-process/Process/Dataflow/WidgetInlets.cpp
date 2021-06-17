@@ -280,6 +280,22 @@ XYSlider::XYSlider(
   hidden = true;
   setValue(init);
   setName(name);
+  setDomain(ossia::make_domain(ossia::vec2f{0., 0.}, ossia::vec2f{1., 1.}));
+}
+
+XYSlider::XYSlider(
+    ossia::vec2f min,
+    ossia::vec2f max,
+    ossia::vec2f init,
+    const QString& name,
+    Id<Port> id,
+    QObject* parent)
+    : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(init);
+  setName(name);
+  setDomain(ossia::make_domain(min, max));
 }
 
 XYSlider::~XYSlider() { }
