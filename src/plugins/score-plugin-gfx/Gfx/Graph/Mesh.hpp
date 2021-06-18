@@ -119,4 +119,11 @@ struct SCORE_PLUGIN_GFX_EXPORT TexturedTriangle final : TexturedMesh
   explicit TexturedTriangle();
   static const TexturedTriangle& instance() noexcept;
 };
+
+
+struct MeshBuffers
+{
+  QRhiBuffer* mesh{};
+  QRhiBuffer* index{};
+};
 }

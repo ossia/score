@@ -7,7 +7,7 @@
 #include <score_plugin_gfx_export.h>
 namespace score::gfx
 {
-struct OutputNode;
+class OutputNode;
 class Window;
 /**
  * @brief Represents a graph of renderers.

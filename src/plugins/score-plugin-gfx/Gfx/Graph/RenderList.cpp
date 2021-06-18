@@ -194,20 +194,36 @@ void RenderList::render(QRhiCommandBuffer& commands)
 
           commands.beginPass(rt.renderTarget, Qt::black, {1.0f, 0}, updateBatch);
 
+          QRhiResourceUpdateBatch* res{};
           for(auto [edge, node] : prevRenderers)
           {
-            node->runRenderPass(*this, commands, *edge);
+            auto new_res = node->runRenderPass(*this, commands, *edge);
+
+            // Used for readbacks
+            if(res && new_res)
+            {
+              new_res->merge(res);
+              res->release();
+            }
+            else if(new_res && !res)
+            {
+              res = new_res;
+            }
           }
 
-          commands.endPass();
+          commands.endPass(res);
         }
 
-        if(node != &this->output)
-        {
+        if(node != &output)
           updateBatch = state.rhi->nextResourceUpdateBatch();
-        }
       }
     }
+  }
+
+  // Finally the output node may have some rendering to do too
+  {
+    auto output_renderer = static_cast<OutputNodeRenderer*>(this->output.renderedNodes.begin()->second);
+    output_renderer->finishFrame(*this, commands);
   }
 }
 

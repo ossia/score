@@ -70,7 +70,7 @@ struct RenderedISFNode : score::gfx::NodeRenderer
       QRhiResourceUpdateBatch*& res,
       Edge& edge) override;
 
-  void runRenderPass(
+  QRhiResourceUpdateBatch* runRenderPass(
       RenderList&,
       QRhiCommandBuffer& commands,
       Edge& edge) override;

@@ -1,22 +1,34 @@
 ﻿#pragma once
 #include <Gfx/Graph/Node.hpp>
+#include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderState.hpp>
 #include <Gfx/Graph/Uniforms.hpp>
 
 #include <score_plugin_gfx_export.h>
 namespace score::gfx
 {
+class SCORE_PLUGIN_GFX_EXPORT OutputNodeRenderer : public score::gfx::NodeRenderer
+{
+public:
+  virtual ~OutputNodeRenderer();
+  virtual void finishFrame(
+      RenderList&,
+      QRhiCommandBuffer& commands);
+};
 
 class Window;
 /**
  * @brief Base class for sink nodes (QWindow, spout, syphon, NDI output, ...)
  */
-struct SCORE_PLUGIN_GFX_EXPORT OutputNode : score::gfx::Node
+class SCORE_PLUGIN_GFX_EXPORT OutputNode : public score::gfx::Node
 {
+public:
   virtual ~OutputNode();
 
   virtual void setRenderer(RenderList*) = 0;
   virtual RenderList* renderer() const = 0;
+
+  virtual OutputNodeRenderer* createRenderer(RenderList& r) const noexcept = 0;
 
   virtual void startRendering() = 0;
   virtual void stopRendering() = 0;

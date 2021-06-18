@@ -682,7 +682,8 @@ void RenderedISFNode::runInitialPasses(
     updateBatch = renderer.state.rhi->nextResourceUpdateBatch();
   }
 }
-void RenderedISFNode::runRenderPass(
+
+QRhiResourceUpdateBatch* RenderedISFNode::runRenderPass(
     RenderList& renderer,
     QRhiCommandBuffer& cb,
     Edge& edge)
@@ -732,6 +733,8 @@ void RenderedISFNode::runRenderPass(
 
   using namespace std;
   swap(passes, altPasses);
+
+  return nullptr;
 }
 
 AudioTextureUpload::AudioTextureUpload()

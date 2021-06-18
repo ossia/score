@@ -35,7 +35,7 @@ struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
   void updateGraphicsAPI(GraphicsApi) override;
 
   RenderState* renderState() const override;
-  score::gfx::NodeRenderer*
+  score::gfx::OutputNodeRenderer*
   createRenderer(RenderList& r) const noexcept override;
 
   const std::shared_ptr<Window>& window() const noexcept { return m_window; }

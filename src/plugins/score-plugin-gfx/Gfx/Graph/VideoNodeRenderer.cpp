@@ -204,7 +204,7 @@ void VideoNodeRenderer::init(RenderList& renderer)
   }
 }
 
-void VideoNodeRenderer::runRenderPass(RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge)
+QRhiResourceUpdateBatch* VideoNodeRenderer::runRenderPass(RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge)
 {
   auto it = ossia::find_if(m_p, [ptr=&edge] (const auto& p){ return p.first == ptr; });
   SCORE_ASSERT(it != m_p.end());
@@ -220,26 +220,7 @@ void VideoNodeRenderer::runRenderPass(RenderList& renderer, QRhiCommandBuffer& c
 
     cb.draw(node.mesh().vertexCount);
   }
-
-
-  //cb.beginPass(m_rt.renderTarget, Qt::black, {1.0f, 0}, &updateBatch);
-
-  /*
-  {
-    const auto sz = renderer.state.size;
-    cb.setGraphicsPipeline(m_p.pipeline);
-    cb.setShaderResources(m_p.srb);
-    cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
-
-    assert(this->m_meshBuffer);
-    assert(this->m_meshBuffer->usage().testFlag(QRhiBuffer::VertexBuffer));
-    node.mesh().setupBindings(*this->m_meshBuffer, this->m_idxBuffer, cb);
-
-    cb.draw(node.mesh().vertexCount);
-  }
-*/
-
-  //cb.endPass();
+  return nullptr;
 }
 
 // TODO if we have multiple renderers for the same video, we must always keep

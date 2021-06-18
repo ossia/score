@@ -22,7 +22,7 @@ public:
 
 
   void init(RenderList& renderer) override;
-  void runRenderPass(
+  QRhiResourceUpdateBatch* runRenderPass(
       RenderList&,
       QRhiCommandBuffer& commands,
       Edge& edge) override;

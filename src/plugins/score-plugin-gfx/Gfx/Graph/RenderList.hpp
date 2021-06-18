@@ -5,13 +5,7 @@
 namespace score::gfx
 {
 
-struct MeshBuffers
-{
-  QRhiBuffer* mesh{};
-  QRhiBuffer* index{};
-};
-
-struct OutputNode;
+class OutputNode;
 /**
  * @brief List of nodes to be rendered to an output.
  *

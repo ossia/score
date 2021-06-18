@@ -23,7 +23,9 @@ public:
       QRhiCommandBuffer& commands,
       QRhiResourceUpdateBatch*& res,
       Edge& edge);
-  virtual void runRenderPass(
+
+  [[nodiscard]]
+  virtual QRhiResourceUpdateBatch* runRenderPass(
       RenderList&,
       QRhiCommandBuffer& commands,
       Edge& edge);
@@ -79,7 +81,7 @@ public:
   void defaultRelease(RenderList&);
   void release(RenderList&) override;
 
-  void runRenderPass(
+  QRhiResourceUpdateBatch* runRenderPass(
       RenderList&,
       QRhiCommandBuffer& commands,
       Edge& edge) override;

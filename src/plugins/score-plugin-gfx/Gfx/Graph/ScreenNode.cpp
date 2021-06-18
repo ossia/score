@@ -335,14 +335,14 @@ RenderState* ScreenNode::renderState() const
   return nullptr;
 }
 
-class ScreenNode::Renderer : public score::gfx::NodeRenderer
+class ScreenNode::Renderer : public score::gfx::OutputNodeRenderer
 {
 public:
   TextureRenderTarget m_rt;
 
   TextureRenderTarget renderTargetForInput(const Port& p) override { return m_rt; }
   Renderer(const RenderState& state, const ScreenNode& parent)
-      : score::gfx::NodeRenderer{}
+      : score::gfx::OutputNodeRenderer{}
   {
     if (parent.m_swapChain)
     {
@@ -363,15 +363,16 @@ public:
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
   }
-  void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& e) override
+  QRhiResourceUpdateBatch* runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& e) override
   {
+    return nullptr;
   }
   void release(RenderList&) override
   {
   }
 };
 
-score::gfx::NodeRenderer*
+score::gfx::OutputNodeRenderer*
 ScreenNode::createRenderer(RenderList& r) const noexcept
 {
   return new Renderer{r.state, *this};

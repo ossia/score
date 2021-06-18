@@ -23,10 +23,6 @@ void GenericNodeRenderer::defaultMeshInit(RenderList& renderer)
     auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh);
     m_meshBuffer = mbuffer;
     m_idxBuffer = ibuffer;
-    if(m_meshBuffer)
-      m_meshBuffer->setName("GenericNodeRenderer::m_meshBuffer");
-    if(m_idxBuffer)
-      m_idxBuffer->setName("GenericNodeRenderer::m_idxBuffer");
   }
 }
 
@@ -121,14 +117,14 @@ void NodeRenderer::runInitialPasses(
 
 }
 
-void NodeRenderer::runRenderPass(
+QRhiResourceUpdateBatch* NodeRenderer::runRenderPass(
     RenderList&,
     QRhiCommandBuffer& commands,
     Edge& edge)
 {
-
+  return nullptr;
 }
-void GenericNodeRenderer::runRenderPass(
+QRhiResourceUpdateBatch* GenericNodeRenderer::runRenderPass(
     RenderList& renderer,
     QRhiCommandBuffer& cb,
     Edge& edge)
@@ -147,6 +143,7 @@ void GenericNodeRenderer::runRenderPass(
 
     cb.draw(node.mesh().vertexCount);
   }
+  return nullptr;
 }
 
 void GenericNodeRenderer::release(RenderList& r)
