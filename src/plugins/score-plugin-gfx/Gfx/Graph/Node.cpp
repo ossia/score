@@ -24,12 +24,13 @@ NodeModel::createRenderer(RenderList& r) const noexcept
 {
   return new GenericNodeRenderer{*this};
 }
-
+/*
 void NodeModel::setShaders(const QShader& vert, const QShader& frag)
 {
   m_vertexS = vert;
   m_fragmentS = frag;
 }
+*/
 
 void ProcessNode::process(const ossia::token_request& tk)
 {

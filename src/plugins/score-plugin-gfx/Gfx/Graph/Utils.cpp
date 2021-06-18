@@ -144,7 +144,7 @@ Pipeline buildPipeline(
 QRhiShaderResourceBindings* createDefaultBindings(
     const RenderList& renderer,
     const TextureRenderTarget& rt,
-    QRhiBuffer* m_processUBO,
+    QRhiBuffer* processUBO,
     QRhiBuffer* materialUBO,
     const std::vector<Sampler>& samplers)
 {
@@ -164,10 +164,11 @@ QRhiShaderResourceBindings* createDefaultBindings(
     bindings.push_back(rendererBinding);
   }
 
+  if(processUBO)
   {
     const auto standardUniformBinding
         = QRhiShaderResourceBinding::uniformBuffer(
-            1, bindingStages, m_processUBO);
+            1, bindingStages, processUBO);
     bindings.push_back(standardUniformBinding);
   }
 
@@ -211,12 +212,12 @@ Pipeline buildPipeline(
     const QShader& vertexS,
     const QShader& fragmentS,
     const TextureRenderTarget& rt,
-    QRhiBuffer* m_processUBO,
+    QRhiBuffer* processUBO,
     QRhiBuffer* materialUBO,
     const std::vector<Sampler>& samplers)
 {
   auto bindings = createDefaultBindings(
-      renderer, rt, m_processUBO, materialUBO, samplers);
+      renderer, rt, processUBO, materialUBO, samplers);
   return buildPipeline(renderer, mesh, vertexS, fragmentS, rt, bindings);
 }
 

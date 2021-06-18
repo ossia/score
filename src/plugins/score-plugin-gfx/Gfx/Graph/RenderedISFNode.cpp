@@ -1,4 +1,5 @@
 #include <Gfx/Graph/RenderedISFNode.hpp>
+#include <Gfx/Graph/ShaderCache.hpp>
 #include <ossia/detail/algorithms.hpp>
 namespace score::gfx
 {
@@ -8,73 +9,58 @@ namespace score::gfx
 PassOutput RenderedISFNode::initPassSampler(
     ISFNode& n,
     const isf::pass& pass,
-    const TextureRenderTarget& rt,
     RenderList& renderer,
     int& cur_pos,
-    QSize mainTexSize,
-    bool last_pass)
+    QSize mainTexSize)
 {
   QRhi& rhi = *renderer.state.rhi;
-  if (last_pass)
-  {
-    if(pass.persistent)
-    {
-      SCORE_TODO;
-    }
+  // In all the other cases we create a custom render target
+  const auto fmt
+      = (pass.float_storage) ? QRhiTexture::RGBA32F : QRhiTexture::RGBA8;
+  auto sampler = rhi.newSampler(
+      QRhiSampler::Linear,
+      QRhiSampler::Linear,
+      QRhiSampler::None,
+      QRhiSampler::ClampToEdge,
+      QRhiSampler::ClampToEdge);
+  sampler->setName("ISFNode::initPassSamplers::sampler");
+  sampler->create();
 
-    return rt;
+  const QSize texSize
+      = (pass.width_expression.empty() && pass.height_expression.empty())
+            ? mainTexSize
+            : n.computeTextureSize(pass, mainTexSize);
+
+  auto tex = rhi.newTexture(fmt, texSize, 1, QRhiTexture::RenderTarget);
+  tex->setName("ISFNode::initPassSamplers::tex");
+  SCORE_ASSERT(tex->create());
+
+  if (!pass.target.empty())
+  {
+    // If the target has a name, it has an associated size variable
+    if (cur_pos % 8 != 0)
+      cur_pos += 4;
+
+    *(float*)(n.m_material_data.get() + cur_pos) = texSize.width();
+    *(float*)(n.m_material_data.get() + cur_pos + 4) = texSize.height();
+
+    cur_pos += 8;
+  }
+
+  // Persistent texture means that frame N can access the output of this pass at frame N-1,
+  // thus we need two textures, two render targets...
+
+  if (pass.persistent)
+  {
+    auto tex2 = rhi.newTexture(fmt, texSize, 1, QRhiTexture::RenderTarget);
+    tex2->setName("ISFNode::initPassSamplers::tex2");
+    SCORE_ASSERT(tex2->create());
+
+    return PersistSampler{sampler, tex, tex2};
   }
   else
   {
-
-    const auto fmt
-        = (pass.float_storage) ? QRhiTexture::RGBA32F : QRhiTexture::RGBA8;
-    auto sampler = rhi.newSampler(
-        QRhiSampler::Linear,
-        QRhiSampler::Linear,
-        QRhiSampler::None,
-        QRhiSampler::ClampToEdge,
-        QRhiSampler::ClampToEdge);
-    sampler->setName("ISFNode::initPassSamplers::sampler");
-    sampler->create();
-
-    const QSize texSize
-        = (pass.width_expression.empty() && pass.height_expression.empty())
-              ? mainTexSize
-              : n.computeTextureSize(pass, mainTexSize);
-
-    auto tex = rhi.newTexture(fmt, texSize, 1, QRhiTexture::RenderTarget);
-    tex->setName("ISFNode::initPassSamplers::tex");
-    SCORE_ASSERT(tex->create());
-
-
-    if (!pass.target.empty())
-    {
-      // If the target has a name, it has an associated size variable
-      if (cur_pos % 8 != 0)
-        cur_pos += 4;
-
-      *(float*)(n.m_material_data.get() + cur_pos) = texSize.width();
-      *(float*)(n.m_material_data.get() + cur_pos + 4) = texSize.height();
-
-      cur_pos += 8;
-    }
-
-    // Persistent texture means that frame N can access the output of this pass at frame N-1,
-    // thus we need two textures, two render targets...
-
-    if (pass.persistent)
-    {
-      auto tex2 = rhi.newTexture(fmt, texSize, 1, QRhiTexture::RenderTarget);
-      tex2->setName("ISFNode::initPassSamplers::tex2");
-      SCORE_ASSERT(tex2->create());
-
-      return PersistSampler{sampler, tex, tex2};
-    }
-    else
-    {
-      return PersistSampler{sampler, tex, tex};
-    }
+    return PersistSampler{sampler, tex, tex};
   }
 }
 
@@ -129,7 +115,6 @@ static std::pair<std::vector<Sampler>, int> initInputSamplers(
         sampler->setName("ISFNode::initInputSamplers::sampler");
         SCORE_ASSERT(sampler->create());
 
-        // TODO here we should handle the "high-quality" feature of isf
         auto rt = score::gfx::createRenderTarget(renderer.state, QRhiTexture::RGBA8, renderer.state.size);
         auto texture = rt.texture;
         samplers.push_back({sampler, texture});
@@ -188,6 +173,90 @@ TextureRenderTarget RenderedISFNode::renderTargetForInput(const Port& p)
 }
 
 std::pair<Pass, Pass>
+RenderedISFNode::createFinalPass(RenderList& renderer, ossia::small_vector<PassOutput, 1>& m_passSamplers, const TextureRenderTarget& renderTarget)
+{
+  std::pair<Pass, Pass> ret;
+  QRhi& rhi = *renderer.state.rhi;
+
+
+  static const constexpr auto vertex_shader = R"_(#version 450
+layout(location = 0) in vec2 position;
+layout(location = 1) in vec2 texcoord;
+
+layout(binding = 3) uniform sampler2D y_tex;
+layout(location = 0) out vec2 v_texcoord;
+
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 texcoordAdjust;
+  vec2 renderSize;
+};
+
+out gl_PerVertex { vec4 gl_Position; };
+
+void main()
+{
+  v_texcoord = texcoord;
+  gl_Position = clipSpaceCorrMatrix * vec4(position.xy, 0.0, 1.);
+}
+)_";
+
+  static const constexpr auto fragment_shader = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 texcoordAdjust;
+  vec2 renderSize;
+};
+
+layout(binding=3) uniform sampler2D y_tex;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main ()
+{
+  vec2 factor = textureSize(y_tex, 0) / renderSize;
+  vec2 ifactor = renderSize / textureSize(y_tex, 0);
+  vec2 texcoord = vec2(v_texcoord.x, texcoordAdjust.y + texcoordAdjust.x * v_texcoord.y);
+  fragColor = texture(y_tex, texcoord);
+}
+)_";
+
+  auto [vertexS, vertexError]
+      = score::gfx::ShaderCache::get(vertex_shader, QShader::VertexStage);
+  SCORE_ASSERT (vertexError.isEmpty());
+
+  auto [fragmentS, fragmentError] = score::gfx::ShaderCache::get(
+      fragment_shader, QShader::FragmentStage);
+  SCORE_ASSERT(fragmentError.isEmpty());
+
+  SCORE_ASSERT(vertexS.isValid() && fragmentS.isValid());
+
+
+  {
+    SCORE_ASSERT(!m_passSamplers.empty());
+    auto last_sampler = std::get_if<PersistSampler>(&m_passSamplers.back());
+    SCORE_ASSERT(last_sampler);
+    std::vector<Sampler> samplers{Sampler{last_sampler->sampler, last_sampler->textures[1]}};
+    // FIXME ! shouldn't we alternate between the input  textures at each run as soon as we have persistence ???
+    auto pip = score::gfx::buildPipeline(
+        renderer,
+        n.mesh(),
+        vertexS,
+        fragmentS,
+        renderTarget,
+        nullptr,
+        m_materialUBO,
+        samplers);
+    ret.first = Pass{renderTarget, pip, nullptr};
+  }
+
+  ret.second = ret.first;
+  return ret;
+}
+
+
+std::pair<Pass, Pass>
 RenderedISFNode::createPass(RenderList& renderer, ossia::small_vector<PassOutput, 1>& m_passSamplers, PassOutput target)
 {
   std::pair<Pass, Pass> ret;
@@ -244,7 +313,6 @@ RenderedISFNode::createPass(RenderList& renderer, ossia::small_vector<PassOutput
   if(auto rt = std::get_if<TextureRenderTarget>(&target))
   {
     ret.second = ret.first;
-
   }
   else if(auto psampler = std::get_if<PersistSampler>(&target))
   {
@@ -288,15 +356,35 @@ void RenderedISFNode::initPasses(const TextureRenderTarget& rt, RenderList& rend
   Passes passes;
 
   auto& model_passes = n.descriptor().passes;
+  SCORE_ASSERT(model_passes.size() > 0);
+
   for (auto& pass : model_passes)
   {
     const bool last_pass = &pass == &model_passes.back();
-    passes.samplers.push_back(initPassSampler(n, pass, rt, renderer, cur_pos, mainTexSize, last_pass));
+    if(last_pass && !pass.persistent)
+    {
+      // If the last pass is not persistent we render directly
+      // on the provided render target
+      passes.samplers.push_back(rt);
+    }
+    else
+    {
+      passes.samplers.push_back(initPassSampler(n, pass, renderer, cur_pos, mainTexSize));
+    }
   }
 
   for (auto& pass : passes.samplers)
   {
     const auto [p1, p2] = createPass(renderer, passes.samplers, pass);
+    passes.passes.push_back(p1);
+    passes.altPasses.push_back(p2);
+  }
+
+  if(model_passes.back().persistent)
+  {
+    // We have to add a last pass that will blit on the output render target
+    const auto [p1, p2] = createFinalPass(renderer, passes.samplers, rt);
+    passes.samplers.push_back(rt);
     passes.passes.push_back(p1);
     passes.altPasses.push_back(p2);
   }
@@ -330,6 +418,10 @@ void RenderedISFNode::init(RenderList& renderer)
 
   // Create the samplers
   SCORE_ASSERT(m_rts.empty());
+  SCORE_ASSERT(m_passes.empty());
+  SCORE_ASSERT(m_inputSamplers.empty());
+  SCORE_ASSERT(m_audioSamplers.empty());
+
   auto [samplers, cur_pos]
       = initInputSamplers(renderer, n.input, m_rts, n.m_material_data.get());
   m_inputSamplers = std::move(samplers);
@@ -352,8 +444,12 @@ void RenderedISFNode::update(
     RenderList& renderer,
     QRhiResourceUpdateBatch& res)
 {
+  SCORE_ASSERT(m_passes.size() > 0);
+
   // PASSINDEX must be set to the last index
   // FIXME
+
+  // FIXME should be -2 if last pass is persistent
   n.standardUBO.passIndex = m_passes.size() - 1;
 
   // Update material
@@ -393,10 +489,14 @@ void RenderedISFNode::update(
   {
     for (int i = 0, N = p.passes.size(); i < N; i++)
     {
-      n.standardUBO.passIndex = i;
+      auto& pass = p.passes[i];
+      if(pass.processUBO)
+      {
+        n.standardUBO.passIndex = i;
 
-      res.updateDynamicBuffer(
-          p.passes[i].processUBO, 0, sizeof(ProcessUBO), &this->n.standardUBO);
+        res.updateDynamicBuffer(
+            pass.processUBO, 0, sizeof(ProcessUBO), &this->n.standardUBO);
+      }
     }
   }
 }
@@ -438,7 +538,8 @@ void RenderedISFNode::release(RenderList& r)
         const bool diffRt = pass.renderTarget.renderTarget != altpass.renderTarget.renderTarget;
         pass.p.release();
 
-        pass.processUBO->deleteLater();
+        if(pass.processUBO)
+          pass.processUBO->deleteLater();
 
         if(diffRt)
         {
@@ -497,11 +598,13 @@ void RenderedISFNode::runInitialPasses(
 
   // Even with a single output if a node renders to two "edges"..
 
+  // Check if we just have one pass (thus nothing to render here).
   SCORE_ASSERT(!this->m_passes.empty());
   if(this->m_passes[0].second.passes.size() == 1)
   {
     return;
   }
+
   auto it = ossia::find_if(this->m_passes, [&] (auto& p) { return p.first == &edge; } );
   SCORE_ASSERT(it != this->m_passes.end());
   auto& [passes, altPasses, _] = it->second;

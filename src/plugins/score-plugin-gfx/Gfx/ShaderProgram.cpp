@@ -14,9 +14,9 @@ namespace
 void updateToGlsl45(ShaderProgram& program)
 {
   static const QRegularExpression out_expr{
-      R"_(^out\s+(\w+)\s+(\w+)\s*;)_", QRegularExpression::MultilineOption};
+      R"_(^out\s+(\w+)\s+(\w+)\s*(\[([0-9]+)\])?\s*;)_", QRegularExpression::MultilineOption};
   static const QRegularExpression in_expr{
-      R"_(^in\s+(\w+)\s+(\w+)\s*;)_", QRegularExpression::MultilineOption};
+      R"_(^in\s+(\w+)\s+(\w+)\s*(\[([0-9]+)\])?\s*;)_", QRegularExpression::MultilineOption};
 
   ossia::flat_map<QString, int> attributes_locations_map;
 
@@ -35,7 +35,22 @@ void updateToGlsl45(ShaderProgram& program)
 
       program.vertex.insert(
           match_idx, QString("layout(location = %1) ").arg(cur_location));
-      cur_location++;
+
+      int locationIncrease = 1;
+      if(match.lastCapturedIndex() == 4)
+      {
+        bool ok = false;
+        int arraySize = match.capturedView(4).toInt(&ok);
+        if(ok)
+        {
+          locationIncrease = arraySize;
+        }
+        else
+        {
+          arraySize = 1;
+        }
+      }
+      cur_location += locationIncrease;
 
       match_idx = program.vertex.indexOf(out_expr, match_idx + len);
     }
@@ -54,6 +69,7 @@ void updateToGlsl45(ShaderProgram& program)
 
       program.fragment.insert(
           match_idx, QString("layout(location = %1) ").arg(loc));
+      qDebug() << "fragment: " << QString("layout(location = %1) ").arg(loc);
 
       match_idx = program.fragment.indexOf(in_expr, match_idx + len);
     }

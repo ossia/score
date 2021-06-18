@@ -80,6 +80,9 @@ private:
 
   std::pair<Pass, Pass>
   createPass(RenderList& renderer,  ossia::small_vector<PassOutput, 1>& m_passSamplers, PassOutput target);
+
+  std::pair<Pass, Pass>
+  createFinalPass(RenderList& renderer,  ossia::small_vector<PassOutput, 1>& m_passSamplers, const TextureRenderTarget& target);
   void initPasses(
       const TextureRenderTarget& rt,
       RenderList& renderer,
@@ -87,14 +90,13 @@ private:
       int& cur_pos,
       QSize mainTexSize
       );
+
   PassOutput initPassSampler(
       ISFNode& n,
       const isf::pass& pass,
-      const TextureRenderTarget& rt,
       RenderList& renderer,
       int& cur_pos,
-      QSize mainTexSize,
-      bool last_pass);
+      QSize mainTexSize);
 
   struct Passes {
     ossia::small_vector<Pass, 1> passes;
