@@ -79,7 +79,7 @@ private:
   ossia::small_flat_map<const Port*, TextureRenderTarget, 2> m_rts;
 
   std::pair<Pass, Pass>
-  createPass(RenderList& renderer,  ossia::small_vector<PassOutput, 1>& m_passSamplers, PassOutput target);
+  createPass(RenderList& renderer,  ossia::small_vector<PassOutput, 1>& m_passSamplers, PassOutput target, bool previousPassIsPersistent);
 
   std::pair<Pass, Pass>
   createFinalPass(RenderList& renderer,  ossia::small_vector<PassOutput, 1>& m_passSamplers, const TextureRenderTarget& target);
@@ -103,6 +103,8 @@ private:
     ossia::small_vector<Pass, 1> altPasses;
     ossia::small_vector<PassOutput, 1> samplers;
   };
+
+  std::vector<Sampler> allSamplers(ossia::small_vector<PassOutput, 1>&, int mainOrAltPass) const noexcept;
 
   ossia::small_vector<std::pair<Edge*, Passes>, 2> m_passes;
 
