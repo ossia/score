@@ -122,7 +122,28 @@ ScreenNode::ScreenNode(std::shared_ptr<Window> w)
   m_window->showFullScreen();
 }
 
-ScreenNode::~ScreenNode() { }
+ScreenNode::~ScreenNode()
+{
+  if(m_swapChain)
+  {
+    m_swapChain->release();
+    delete m_swapChain;
+    if(m_window)
+    {
+      m_window->m_swapChain = nullptr;
+      m_window->m_hasSwapChain = false;
+    }
+  }
+
+  if(m_window)
+  {
+    delete m_window->state.renderPassDescriptor;
+    m_window->state.renderPassDescriptor = nullptr;
+    delete m_window->state.rhi;
+    m_window->state.rhi = nullptr;
+  }
+
+}
 
 bool ScreenNode::canRender() const
 {
@@ -357,6 +378,9 @@ public:
     }
   }
 
+  ~Renderer()
+  {
+  }
   void init(RenderList& renderer) override
   {
   }

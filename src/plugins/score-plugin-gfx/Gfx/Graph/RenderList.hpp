@@ -19,6 +19,7 @@ class SCORE_PLUGIN_GFX_EXPORT RenderList
 {
 public:
   explicit RenderList(OutputNode& output, const RenderState& state);
+  ~RenderList();
 
   /**
    * @brief Initialize data for this renderer.

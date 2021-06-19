@@ -127,9 +127,6 @@ void Graph::createAllRenderLists(GraphicsApi graphicsApi)
   for (auto& renderer : m_renderers)
   {
     renderer->release();
-
-    for (auto rn : renderer->renderers)
-      delete rn;
   }
 
   m_renderers.clear();
@@ -308,7 +305,9 @@ Graph::createRenderList(OutputNode* output, RenderState state)
   return ptr;
 }
 
-Graph::Graph() { }
+Graph::Graph() {
+
+}
 
 Graph::~Graph()
 {
@@ -321,6 +320,8 @@ Graph::~Graph()
   {
     out->destroyOutput();
   }
+
+  clearEdges();
 }
 
 void Graph::addNode(Node* n)

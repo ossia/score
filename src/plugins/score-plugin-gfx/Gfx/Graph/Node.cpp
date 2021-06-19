@@ -8,7 +8,13 @@ namespace score::gfx
 {
 Node::Node() { }
 
-Node::~Node() { }
+Node::~Node()
+{
+  for(auto port : input)
+    delete port;
+  for(auto port : output)
+    delete port;
+}
 
 void Node::process(const Message& msg)
 {

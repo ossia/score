@@ -28,7 +28,7 @@ int64_t index_of(
 }
 
 class SCORE_PLUGIN_GFX_EXPORT gfx_exec_node
-    : public ossia::nonowning_graph_node
+    : public ossia::graph_node
 {
 public:
   struct control

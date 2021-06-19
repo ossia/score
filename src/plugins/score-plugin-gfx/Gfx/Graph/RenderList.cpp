@@ -44,6 +44,15 @@ RenderList::RenderList(OutputNode& output, const RenderState& state)
   output.setRenderer(this);
 }
 
+RenderList::~RenderList()
+{
+  for (auto node : renderers)
+  {
+    delete node;
+  }
+  renderers.clear();
+}
+
 void RenderList::init()
 {
   m_ready = false;
