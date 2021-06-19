@@ -35,7 +35,7 @@ public:
   QFont font;
   QPen pen;
 
-  std::atomic_bool mustRerender{};
+  std::atomic_bool mustRerender{true};
 private:
   const TexturedQuad& m_mesh = TexturedQuad::instance();
 };
