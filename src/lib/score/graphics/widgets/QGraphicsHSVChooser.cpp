@@ -10,7 +10,11 @@ W_OBJECT_IMPL(score::QGraphicsHSVChooser);
 
 namespace score
 {
-QGraphicsHSVChooser::QGraphicsHSVChooser(QGraphicsItem* parent) { }
+
+QGraphicsHSVChooser::QGraphicsHSVChooser(QGraphicsItem* parent)
+: hs_zone{100, 100, QImage::Format_ARGB32}
+
+{ }
 
 void QGraphicsHSVChooser::setRect(const QRectF& r)
 {
@@ -39,14 +43,41 @@ static auto initHsvColors = [] {
   }
   return 0;
 }();
+
+static QImage& v_zone()
+{
+  static QImage v_zone = [] {
+    QImage v_zone{20, 100, QImage::Format_ARGB32};
+
+    {
+      auto img_data = v_zone.bits();
+      for (int j = 0; j < 100; j++)
+      {
+        const QRgb col = valueColors[j];
+        for (int i = 0; i < 20; i++)
+        {
+          img_data[0] = qBlue(col);
+          img_data[1] = qGreen(col);
+          img_data[2] = qRed(col);
+          img_data[3] = 255;
+          img_data += 4;
+        }
+      }
+    }
+
+    return v_zone;
+  }();
+  return v_zone;
+}
 }
 void QGraphicsHSVChooser::paint(
     QPainter* painter,
     const QStyleOptionGraphicsItem* option,
     QWidget* widget)
 {
-  static QImage hs_zone{100, 100, QImage::Format_ARGB32};
+  if(prev_v != v)
   {
+    // Redraw the hue chooser with the correct light intensity
     auto img_data = hs_zone.bits();
     for (int j = 0; j < 100; j++)
     {
@@ -60,27 +91,12 @@ void QGraphicsHSVChooser::paint(
         img_data += 4;
       }
     }
+    prev_v = v;
   }
 
-  static QImage v_zone{20, 100, QImage::Format_ARGB32};
-  {
-    auto img_data = v_zone.bits();
-    for (int j = 0; j < 100; j++)
-    {
-      const QRgb col = valueColors[j];
-      for (int i = 0; i < 20; i++)
-      {
-        img_data[0] = qBlue(col);
-        img_data[1] = qGreen(col);
-        img_data[2] = qRed(col);
-        img_data[3] = 255;
-        img_data += 4;
-      }
-    }
-  }
 
   painter->drawImage(QPointF{0, 0}, hs_zone);
-  painter->drawImage(QPointF{110, 0}, v_zone);
+  painter->drawImage(QPointF{110, 0}, v_zone());
 
   const auto color
       = QColor::fromRgbF(m_value[0], m_value[1], m_value[2]).toHsv();

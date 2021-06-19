@@ -18,11 +18,13 @@ class SCORE_LIB_BASE_EXPORT QGraphicsHSVChooser final
 {
   W_OBJECT(QGraphicsHSVChooser)
   Q_INTERFACES(QGraphicsItem)
+private:
   QRectF m_rect{0., 0., 140., 100.};
 
-private:
   double h{}, s{}, v{};
+  double prev_v{-1.};
   ossia::vec4f m_value{};
+  QImage hs_zone;
   bool m_grab{};
 
 public:
