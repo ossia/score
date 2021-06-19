@@ -140,6 +140,7 @@ Document::~Document()
   m_commandStack.blockSignals(true);
   m_selectionStack.blockSignals(true);
   m_focus.blockSignals(true);
+
   delete m_presenter;
   delete m_view;
   delete m_model;

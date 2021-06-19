@@ -363,6 +363,13 @@ void ScenarioDocumentPresenter::switchMode(bool nodal)
 
 ScenarioDocumentPresenter::~ScenarioDocumentPresenter()
 {
+  delete m_miniLayer;
+
+  delete m_nodal;
+  m_nodal = nullptr;
+
+  removeDisplayedIntervalPresenter();
+
   m_dataflow.cables().clear();
   m_dataflow.ports().clear();
 }
