@@ -117,6 +117,7 @@ Pipeline buildPipeline(
 
   ps->setDepthTest(false);
   ps->setDepthWrite(false);
+  ps->setTopology(QRhiGraphicsPipeline::TriangleStrip);
   // m_ps->setCullMode(QRhiGraphicsPipeline::CullMode::Back);
   // m_ps->setFrontFace(QRhiGraphicsPipeline::FrontFace::CCW);
 

@@ -54,6 +54,11 @@ set(HDRS
     Gfx/Images/Process.hpp
     Gfx/Images/Layer.hpp
 
+    Gfx/Text/Executor.hpp
+    Gfx/Text/Metadata.hpp
+    Gfx/Text/Process.hpp
+    Gfx/Text/Layer.hpp
+
     Gfx/Graph/Window.hpp
     Gfx/Graph/RenderState.hpp
     Gfx/Graph/Node.hpp
@@ -69,6 +74,7 @@ set(HDRS
     Gfx/Graph/PhongNode.hpp
     Gfx/Graph/ImageNode.hpp
     Gfx/Graph/TexgenNode.hpp
+    Gfx/Graph/TextNode.hpp
     Gfx/Graph/ShaderCache.hpp
     Gfx/Graph/Utils.hpp
     Gfx/Graph/decoders/GPUVideoDecoder.hpp
@@ -117,6 +123,9 @@ set(SRCS
     Gfx/Images/Executor.cpp
     Gfx/Images/Process.cpp
 
+    Gfx/Text/Executor.cpp
+    Gfx/Text/Process.cpp
+
     Gfx/Graph/decoders/GPUVideoDecoder.cpp
     Gfx/Graph/Node.cpp
     Gfx/Graph/Graph.cpp
@@ -130,6 +139,7 @@ set(SRCS
     Gfx/Graph/NodeRenderer.cpp
     Gfx/Graph/OutputNode.cpp
     Gfx/Graph/ScreenNode.cpp
+    Gfx/Graph/TextNode.cpp
     Gfx/Graph/PhongNode.cpp
     Gfx/Graph/Utils.cpp
     Gfx/Graph/Window.cpp

@@ -10,6 +10,9 @@
 #include <Gfx/Images/Executor.hpp>
 #include <Gfx/Images/Layer.hpp>
 #include <Gfx/Images/Process.hpp>
+#include <Gfx/Text/Executor.hpp>
+#include <Gfx/Text/Layer.hpp>
+#include <Gfx/Text/Process.hpp>
 #include <Gfx/Settings/Factory.hpp>
 #include <Gfx/TexturePort.hpp>
 #include <Gfx/Video/Executor.hpp>
@@ -66,14 +69,17 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_gfx::factories(
       FW<Process::ProcessModelFactory,
          Gfx::Filter::ProcessFactory,
          Gfx::Video::ProcessFactory,
+         Gfx::Text::ProcessFactory,
          Gfx::Images::ProcessFactory>,
       FW<Process::LayerFactory,
          Gfx::Filter::LayerFactory,
          Gfx::Video::LayerFactory,
+         Gfx::Text::LayerFactory,
          Gfx::Images::LayerFactory>,
       FW<Execution::ProcessComponentFactory,
          Gfx::Filter::ProcessExecutorComponentFactory,
          Gfx::Video::ProcessExecutorComponentFactory,
+         Gfx::Text::ProcessExecutorComponentFactory,
          Gfx::Images::ProcessExecutorComponentFactory>,
       FW<Inspector::InspectorWidgetFactory, Gfx::Video::InspectorFactory>,
       FW<Process::PortFactory,

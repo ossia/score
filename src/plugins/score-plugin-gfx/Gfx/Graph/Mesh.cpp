@@ -57,17 +57,6 @@ TexturedMesh::TexturedMesh(gsl::span<const float> vtx, int count)
   vertexCount = count;
 }
 
-void TexturedMesh::setupBindings(
-    QRhiBuffer& vtxData,
-    QRhiBuffer* idxData,
-    QRhiCommandBuffer& cb) const noexcept
-{
-  const QRhiCommandBuffer::VertexInput bindings[]
-      = {{&vtxData, 0}, {&vtxData, 3 * 2 * sizeof(float)}};
-
-  cb.setVertexInput(0, 2, bindings);
-}
-
 const char* TexturedMesh::defaultVertexShader() const noexcept
 {
   return R"_(#version 450
@@ -195,4 +184,39 @@ const TexturedTriangle& TexturedTriangle::instance() noexcept
   return t;
 }
 
+
+void TexturedTriangle::setupBindings(
+    QRhiBuffer& vtxData,
+    QRhiBuffer* idxData,
+    QRhiCommandBuffer& cb) const noexcept
+{
+  const QRhiCommandBuffer::VertexInput bindings[]
+      = {{&vtxData, 0},
+         {&vtxData, 3 * 2 * sizeof(float)}};
+
+  cb.setVertexInput(0, 2, bindings);
+}
+
+TexturedQuad::TexturedQuad()
+    : TexturedMesh{data, 4}
+{
+}
+
+const TexturedQuad& TexturedQuad::instance() noexcept
+{
+  static const TexturedQuad t;
+  return t;
+}
+
+void TexturedQuad::setupBindings(
+    QRhiBuffer& vtxData,
+    QRhiBuffer* idxData,
+    QRhiCommandBuffer& cb) const noexcept
+{
+  const QRhiCommandBuffer::VertexInput bindings[]
+      = {{&vtxData, 0},
+         {&vtxData, 4 * 2 * sizeof(float)}};
+
+  cb.setVertexInput(0, 2, bindings);
+}
 }

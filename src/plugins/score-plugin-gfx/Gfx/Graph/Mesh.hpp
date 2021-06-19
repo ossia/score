@@ -61,11 +61,6 @@ struct SCORE_PLUGIN_GFX_EXPORT TexturedMesh : Mesh
 {
   explicit TexturedMesh(gsl::span<const float> vtx, int count);
 
-  void setupBindings(
-      QRhiBuffer& vtxData,
-      QRhiBuffer* idxData,
-      QRhiCommandBuffer& cb) const noexcept override;
-
   const char* defaultVertexShader() const noexcept override;
 };
 
@@ -118,6 +113,38 @@ struct SCORE_PLUGIN_GFX_EXPORT TexturedTriangle final : TexturedMesh
 
   explicit TexturedTriangle();
   static const TexturedTriangle& instance() noexcept;
+
+  void setupBindings(
+      QRhiBuffer& vtxData,
+      QRhiBuffer* idxData,
+      QRhiCommandBuffer& cb) const noexcept override;
+};
+
+/**
+ * @brief A quad mesh with positions and texture coordinates.
+ *
+ */
+struct SCORE_PLUGIN_GFX_EXPORT TexturedQuad final : TexturedMesh
+{
+  static const constexpr float data[] = {
+      // positions
+      -1, -1,
+      +1, -1,
+      -1, +1,
+      +1, +1,
+      // tex coords
+      0, 0,
+      1, 0,
+      0, 1,
+      1, 1};
+
+  explicit TexturedQuad();
+  static const TexturedQuad& instance() noexcept;
+
+  void setupBindings(
+      QRhiBuffer& vtxData,
+      QRhiBuffer* idxData,
+      QRhiCommandBuffer& cb) const noexcept override;
 };
 
 
