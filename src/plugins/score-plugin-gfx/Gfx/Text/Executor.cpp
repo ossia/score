@@ -40,7 +40,7 @@ ProcessExecutorComponent::ProcessExecutorComponent(
 {
   auto n = std::make_shared<text_node>(ctx.doc.plugin<DocumentPlugin>().exec);
 
-  for (int i = 0; i < 6; i++)
+  for (int i = 0; i < 8; i++)
   {
     auto ctrl = qobject_cast<Process::ControlInlet*>(element.inlets()[i]);
     auto& p = n->add_control();

@@ -51,17 +51,32 @@ Model::Model(
     auto pos = new Process::XYSlider{Id<Process::Port>(4), this};
     pos->setName(tr("Position"));
     pos->setDomain(
-      ossia::make_domain(ossia::vec2f{-5.0, -5.0}, ossia::vec2f{5.0, 5.0}));
+      ossia::make_domain(ossia::vec2f{-5.0, 5.0}, ossia::vec2f{5.0,-5.0}));
 
     m_inlets.push_back(pos);
   }
+
+
   {
-    auto scale = new Process::XYSlider{Id<Process::Port>(5), this};
-    scale->setName(tr("Scale"));
-    scale->setValue(ossia::vec2f{1., 1.});
-    scale->setDomain(
-        ossia::make_domain(ossia::vec2f{0.01, 0.01}, ossia::vec2f{10., 10.}));
-    m_inlets.push_back(scale);
+    auto scaleX = new Process::FloatSlider{Id<Process::Port>(5), this};
+    scaleX->setName(tr("Scale X"));
+    scaleX->setValue(1.);
+    scaleX->setDomain(ossia::make_domain(-1., 10));
+    m_inlets.push_back(scaleX);
+  }
+  {
+    auto scaleY = new Process::FloatSlider{Id<Process::Port>(6), this};
+    scaleY->setName(tr("Scale Y"));
+    scaleY->setValue(1.);
+    scaleY->setDomain(ossia::make_domain(-1., 10));
+    m_inlets.push_back(scaleY);
+  }
+
+  {
+    auto color = new Process::HSVSlider{Id<Process::Port>(7), this};
+    color->setName(tr("Color"));
+    color->setValue(ossia::vec4f{1., 1., 1., 1.});
+    m_inlets.push_back(color);
   }
 
   m_outlets.push_back(new TextureOutlet{Id<Process::Port>(0), this});

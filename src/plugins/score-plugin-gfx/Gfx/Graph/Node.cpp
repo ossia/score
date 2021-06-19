@@ -348,11 +348,10 @@ void ProcessNode::process(const Message& msg)
   process(msg.token);
 
   int32_t p = 0;
-  for (const std::vector<gfx_input>& dat : msg.inputs)
+  for (const gfx_input& m : msg.input)
   {
     auto sink = ossia::gfx::port_index{msg.node_id, p};
-    for (const gfx_input& m : dat)
-      std::visit([this, sink] (const auto& v) { this->process(sink.port, v); }, std::move(m));
+    std::visit([this, sink] (const auto& v) { this->process(sink.port, v); }, std::move(m));
 
     p++;
   }

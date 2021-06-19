@@ -10,8 +10,8 @@ PROCESS_METADATA(
     ,
     Gfx::Text::Model,
     "88bd9718-2a36-42ba-8eab-da5f84e3978e",
-    "images",                          // Internal name
-    "Images",                          // Pretty name
+    "text",                            // Internal name
+    "Text",                            // Pretty name
     Process::ProcessCategory::Visual,  // Category
     "GFX",                             // Category
     "Display text",                    // Description

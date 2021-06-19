@@ -33,8 +33,8 @@ out gl_PerVertex { vec4 gl_Position; };
 
 void main()
 {
-  v_texcoord =  vec2(texcoord.x, texcoordAdjust.y + texcoordAdjust.x * texcoord.y);;
-  gl_Position = clipSpaceCorrMatrix * vec4(vec2(mat.position.x, 1. - mat.position.y) + mat.scale * position, 0.0, 1.);
+  v_texcoord = vec2(texcoord.x, texcoordAdjust.y + texcoordAdjust.x * texcoord.y);
+  gl_Position = clipSpaceCorrMatrix * vec4(mat.position + mat.scale * position, 0.0, 1.);
 }
 )_";
 
@@ -58,18 +58,7 @@ layout(location = 0) out vec4 fragColor;
 
 void main ()
 {
-/*
-  vec2 factor = textureSize(y_tex, 0) / renderSize;
-  vec2 ifactor = renderSize / textureSize(y_tex, 0);
-  vec2 texcoord = vec2(v_texcoord.x, texcoordAdjust.y + texcoordAdjust.x * v_texcoord.y);
-
-  texcoord = vec2(1) - ifactor * vec2(position.x, 1. - position.y) + texcoord / factor;
-
-  texcoord = texcoord / scale;
-*/
-  //vec2 texcoord = vec2(v_texcoord.x, texcoordAdjust.y + texcoordAdjust.x * v_texcoord.y);
   fragColor = texture(y_tex, v_texcoord) * mat.opacity;
-
 }
 )_";
 TextNode::TextNode()
@@ -113,16 +102,15 @@ private:
 
     if(m_img.size().isNull())
       m_img = QImage(sz, QImage::Format::Format_ARGB32_Premultiplied);
-    m_img.fill(Qt::blue);
+    m_img.fill(Qt::transparent);
     {
       QPainter p{&m_img};
       p.setRenderHint(QPainter::Antialiasing, true);
       p.setRenderHint(QPainter::TextAntialiasing, true);
 
       p.setFont(n.font);
-      p.setPen(Qt::white);
-      p.setBrush(Qt::white);
-      p.drawText(100, 100, sz.width() - 100, sz.height() - 100, 0, n.text);
+      p.setPen(n.pen);
+      p.drawText(10, 10, sz.width() - 20, sz.height() - 20, 0, n.text);
     }
 
     m_uploaded = false;
@@ -138,7 +126,7 @@ private:
     QRhi& rhi = *renderer.state.rhi;
 
     {
-      auto tex = rhi.newTexture(QRhiTexture::RGBA8, sz, 1, QRhiTexture::Flag{});
+      auto tex = rhi.newTexture(QRhiTexture::BGRA8, sz, 1, QRhiTexture::Flag{});
 
       tex->setName("TextNode::tex");
       tex->create();
@@ -216,16 +204,17 @@ void TextNode::process(const Message& msg)
   ProcessNode::process(msg.token);
 
   int32_t p = 0;
-  for (const std::vector<gfx_input>& dat : msg.inputs)
+  for (const gfx_input& m: msg.input)
   {
+    if(auto val = std::get_if<ossia::value>(&m))
+    {
     switch(p)
     {
       case 0:
       {
         // Text
-        for (const gfx_input& m : dat)
         {
-          text = QString::fromStdString(ossia::convert<std::string>(*std::get_if<ossia::value>(&m)));
+          text = QString::fromStdString(ossia::convert<std::string>(*val));
           mustRerender = true;
         }
         break;
@@ -233,9 +222,8 @@ void TextNode::process(const Message& msg)
       case 1:
       {
         // Font
-        for (const gfx_input& m : dat)
         {
-          font.setFamily(QString::fromStdString(ossia::convert<std::string>(*std::get_if<ossia::value>(&m))));
+          font.setFamily(QString::fromStdString(ossia::convert<std::string>(*val)));
           mustRerender = true;
         }
         break;
@@ -243,23 +231,51 @@ void TextNode::process(const Message& msg)
       case 2:
       {
         // Point size
-        for (const gfx_input& m : dat)
         {
-          font.setPointSizeF(ossia::convert<float>(*std::get_if<ossia::value>(&m)));
+          font.setPointSizeF(ossia::convert<float>(*val));
           mustRerender = true;
         }
         break;
       }
-      // Opacity, position and scale
-      case 3:
-      case 4:
-      case 5:
+
+      case 3: // Opacity
+      case 4: // Position
       {
         auto sink = ossia::gfx::port_index{msg.node_id, p - 3};
-        for (const gfx_input& m : dat)
           std::visit([this, sink] (const auto& v) { ProcessNode::process(sink.port, v); }, std::move(m));
         break;
       }
+
+      case 5: // Scale X
+      {
+        {
+          auto scale = ossia::convert<float>(*val);
+          this->ubo.scale[0] = scale;
+          this->materialChanged++;
+        }
+        break;
+      }
+      case 6: // Scale Y
+      {
+        {
+          auto scale = ossia::convert<float>(*val);
+          this->ubo.scale[1] = scale;
+          this->materialChanged++;
+        }
+        break;
+      }
+
+      case 7:
+      {
+        // Color
+        {
+          auto rgba = ossia::convert<ossia::vec4f>(*val);
+          pen.setColor(QColor::fromRgbF(rgba[0], rgba[1], rgba[2], rgba[3]));
+          mustRerender = true;
+        }
+        break;
+      }
+    }
     }
 
     p++;

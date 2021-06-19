@@ -23,13 +23,14 @@ public:
   struct UBO
   {
     float opacity{1.};
-    float ohno{};
+    float padding_std140_0{};
     float position[2]{0.5, 0.5};
     float scale[2]{1., 1.};
   } ubo;
 
   QString text;
   QFont font;
+  QPen pen;
 
   std::atomic_bool mustRerender{};
 private:
