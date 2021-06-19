@@ -83,6 +83,16 @@ NodeItem::NodeItem(
     m_label->setText(process.prettyShortName());
 
   con(process.metadata(),
+      &score::ModelMetadata::NameChanged,
+      this,
+      [&](const QString& label) {
+        if (!label.isEmpty())
+          m_label->setText(label);
+        else
+          m_label->setText(process.prettyShortName());
+      });
+
+  con(process.metadata(),
       &score::ModelMetadata::LabelChanged,
       this,
       [&](const QString& label) {
