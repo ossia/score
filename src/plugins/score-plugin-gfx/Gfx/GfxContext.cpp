@@ -34,6 +34,14 @@ GfxContext::GfxContext(const score::DocumentContext& ctx)
       &GfxContext::recompute_graph);
 
   m_graph = new score::gfx::Graph;
+
+  double rate = m_context.app.settings<Gfx::Settings::Model>().getRate();
+  rate = 1000. / qBound(1.0, rate, 1000.);
+
+  QMetaObject::invokeMethod(
+      this,
+      [this, rate] { m_timer = startTimer(rate); },
+      Qt::QueuedConnection);
 }
 
 GfxContext::~GfxContext()

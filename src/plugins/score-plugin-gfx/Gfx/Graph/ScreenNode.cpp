@@ -344,7 +344,9 @@ void ScreenNode::destroyOutput()
   s.surface = nullptr;
 
   if (m_ownsWindow)
+  {
     m_window.reset();
+  }
 }
 
 void ScreenNode::updateGraphicsAPI(GraphicsApi api)
