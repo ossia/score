@@ -125,23 +125,28 @@ std::pair<ossia::inlets, ossia::outlets> ProcessExecutorComponent::setup_node(Ex
   // 1. Create new inlet & outlet arrays
   ossia::inlets inls;
   ossia::outlets outls;
-  using control = gfx_exec_node::control;
-  std::vector<gfx_exec_node::control> controls;
+
+  std::vector<std::shared_ptr<gfx_exec_node::control>> controls;
   std::vector<Execution::ExecutionCommand> controlSetups;
 
-  int control_index = 0;
+  std::size_t control_index = 0;
   std::weak_ptr<gfx_exec_node> weak_node = n;
   for (auto& ctl : element.inlets())
   {
     if (auto ctrl = qobject_cast<Process::ControlInlet*>(ctl))
     {
       auto inletport = new ossia::value_inlet;
-      controls.push_back(control{new ossia::value{ctrl->value()}, &**inletport, true});
+      auto control = std::make_shared<gfx_exec_node::control>();
+      control->value = ctrl->value();
+      control->port = &**inletport;
+      control->changed = true;
+      controls.push_back(control);
 
       inls.push_back(inletport);
       ctl->setupExecution(*inletport);
 
       // TODO assert that we aren't going to connect twice
+      QObject::disconnect(ctrl, nullptr, this, nullptr);
       QObject::connect(
           ctrl,
           &Process::ControlInlet::valueChanged,
@@ -161,10 +166,8 @@ std::pair<ossia::inlets, ossia::outlets> ProcessExecutorComponent::setup_node(Ex
 
   outls.push_back(new ossia::texture_outlet);
   commands.push_back([n, inls, outls, controls] () mutable {
-                       SCORE_TODO;
                        for(auto& inl : n->root_inputs()) delete inl;
                        for(auto& outl : n->root_outputs()) delete outl;
-                       for(auto& ctl : n->controls) delete ctl.value;
 
                        using namespace std;
                        swap(n->root_inputs(), inls);

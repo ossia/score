@@ -46,6 +46,10 @@ RenderList::RenderList(OutputNode& output, const RenderState& state)
 
 RenderList::~RenderList()
 {
+  for (auto node : this->nodes)
+  {
+    node->renderedNodes.erase(this);
+  }
   for (auto node : renderers)
   {
     delete node;

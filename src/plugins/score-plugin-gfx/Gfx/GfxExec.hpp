@@ -33,21 +33,22 @@ class SCORE_PLUGIN_GFX_EXPORT gfx_exec_node
 public:
   struct control
   {
-    ossia::value* value{};
+    ossia::value value{};
     ossia::value_port* port{};
     bool changed{};
   };
-  std::vector<control> controls;
+  std::vector<std::shared_ptr<control>> controls;
   GfxExecutionAction* exec_context{};
   gfx_exec_node(GfxExecutionAction& e_ctx)
       : exec_context{&e_ctx}
   {
   }
 
-  control& add_control()
+  const std::shared_ptr<control>& add_control()
   {
     auto inletport = new ossia::value_inlet;
-    controls.push_back(control{new ossia::value, &**inletport, false});
+    controls.push_back(std::make_shared<control>());
+    controls.back()->port = &**inletport;
     m_inlets.push_back(inletport);
     return controls.back();
   }
@@ -72,25 +73,26 @@ public:
 
 struct control_updater
 {
-  gfx_exec_node::control& ctrl;
+  std::shared_ptr<gfx_exec_node::control> ctrl;
   ossia::value v;
 
   void operator()() noexcept
   {
-    *ctrl.value = std::move(v);
-    ctrl.changed = true;
+    ctrl->value = std::move(v);
+    ctrl->changed = true;
   }
 };
 
 struct con_unvalidated
 {
   const Execution::Context& ctx;
-  const int i;
+  const std::size_t i;
   std::weak_ptr<gfx_exec_node> weak_node;
   void operator()(const ossia::value& val)
   {
     if (auto node = weak_node.lock())
     {
+      SCORE_ASSERT(i < node->controls.size());
       ctx.executionQueue.enqueue(control_updater{node->controls[i], val});
     }
   }

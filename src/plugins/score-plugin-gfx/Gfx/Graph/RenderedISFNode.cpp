@@ -261,8 +261,7 @@ void main ()
     SCORE_ASSERT(!m_passSamplers.empty());
     auto last_sampler = std::get_if<PersistSampler>(&m_passSamplers.back());
     SCORE_ASSERT(last_sampler);
-    std::vector<Sampler> samplers{Sampler{last_sampler->sampler, last_sampler->textures[1]}};
-    // FIXME ! shouldn't we alternate between the input  textures at each run as soon as we have persistence ???
+
     auto pip = score::gfx::buildPipeline(
         renderer,
         n.mesh(),
@@ -271,11 +270,19 @@ void main ()
         renderTarget,
         nullptr,
         m_materialUBO,
-        samplers);
+        std::vector<Sampler>{Sampler{last_sampler->sampler, last_sampler->textures[1]}});
     ret.first = Pass{renderTarget, pip, nullptr};
+    ret.second = ret.first;
+
+    // Then we have to use the textures the "main" passes are rendering to
+    ret.second.p.srb = score::gfx::createDefaultBindings(
+      renderer,
+      ret.second.renderTarget,
+      nullptr,
+      m_materialUBO,
+      std::vector<Sampler>{Sampler{last_sampler->sampler, last_sampler->textures[0]}});
   }
 
-  ret.second = ret.first;
   return ret;
 }
 

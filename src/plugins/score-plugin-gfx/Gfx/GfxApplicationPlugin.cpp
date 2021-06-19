@@ -18,8 +18,7 @@ namespace Gfx
 
 gfx_exec_node::~gfx_exec_node()
 {
-  for (auto ctl : controls)
-    delete ctl.value;
+  controls.clear();
 }
 
 void gfx_exec_node::run(
@@ -32,10 +31,10 @@ void gfx_exec_node::run(
     for (int i = 0; i < n; i++)
     {
       auto& ctl = controls[i];
-      if (ctl.changed)
+      if (ctl->changed)
       {
-        ctl.port->write_value(std::move(*ctl.value), 0);
-        ctl.changed = false;
+        ctl->port->write_value(std::move(ctl->value), 0);
+        ctl->changed = false;
       }
     }
   }

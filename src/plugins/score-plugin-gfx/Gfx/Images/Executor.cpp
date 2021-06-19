@@ -41,12 +41,12 @@ ProcessExecutorComponent::ProcessExecutorComponent(
   auto n = std::make_shared<image_node>(
       element.images(), ctx.doc.plugin<DocumentPlugin>().exec);
 
-  for (int i = 0; i < 4; i++)
+  for (std::size_t i = 0; i < 4; i++)
   {
     auto ctrl = qobject_cast<Process::ControlInlet*>(element.inlets()[i]);
     auto& p = n->add_control();
-    *p.value = ctrl->value(); // TODO does this make sense ?
-    p.changed = true;         // we will send the first value
+    p->value = ctrl->value();
+    p->changed = true;
 
     QObject::connect(
         ctrl,

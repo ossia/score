@@ -183,7 +183,13 @@ bool Window::event(QEvent* e)
     case QEvent::PlatformSurface:
       if (static_cast<QPlatformSurfaceEvent*>(e)->surfaceEventType()
           == QPlatformSurfaceEvent::SurfaceAboutToBeDestroyed)
+      {
         releaseSwapChain();
+        m_running = false;
+        m_hasSwapChain = false;
+        m_notExposed = true;
+      }
+
       break;
 
     default:

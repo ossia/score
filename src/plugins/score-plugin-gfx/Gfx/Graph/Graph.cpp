@@ -152,29 +152,35 @@ void Graph::createAllRenderLists(GraphicsApi graphicsApi)
         {
           if (renderer.get() == output->renderer())
           {
-            renderer->release();
-            renderer.reset();
-            renderer = createRenderList(output, *output->renderState());
+            auto old_renderer = renderer;
+            auto new_renderer = createRenderList(output, *output->renderState());
+
+            old_renderer->release();
+
+            renderer = new_renderer;
+
+            old_renderer.reset();
             break;
           }
         }
       };
 
+      auto onUpdate = [this] {
+        switch (this->m_outputs.size())
+        {
+          case 1:
+            if (this->m_vsync_callback)
+              this->m_vsync_callback();
+            break;
+          default:
+            break;
+        }
+      };
       // TODO only works for one output !!
       output->createOutput(
           graphicsApi,
           onReady,
-          [this] {
-            switch (this->m_outputs.size())
-            {
-              case 1:
-                if (this->m_vsync_callback)
-                  this->m_vsync_callback();
-                break;
-              default:
-                break;
-            }
-          },
+          onUpdate,
           onResize);
     }
     else
