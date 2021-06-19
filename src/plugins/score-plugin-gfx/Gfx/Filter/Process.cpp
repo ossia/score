@@ -95,7 +95,7 @@ void Model::setFragment(QString f)
   m_processedProgram.fragment.clear();
   m_processedProgram.compiledFragment = QShader{};
 
-  programChanged(m_program);
+  fragmentChanged(f);
 }
 
 void Model::setProgram(const ShaderProgram& f)

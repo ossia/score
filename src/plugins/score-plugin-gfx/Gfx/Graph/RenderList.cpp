@@ -231,6 +231,8 @@ void RenderList::render(QRhiCommandBuffer& commands)
 
   // Finally the output node may have some rendering to do too
   {
+    SCORE_ASSERT(!this->output.renderedNodes.empty());
+    SCORE_ASSERT(dynamic_cast<OutputNodeRenderer*>(this->output.renderedNodes.begin()->second));
     auto output_renderer = static_cast<OutputNodeRenderer*>(this->output.renderedNodes.begin()->second);
     output_renderer->finishFrame(*this, commands);
   }

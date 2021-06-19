@@ -16,6 +16,12 @@ public:
       Model& element,
       const Execution::Context& ctx,
       QObject* parent);
+
+  void on_shaderChanged();
+  std::pair<ossia::inlets, ossia::outlets> setup_node(Execution::Transaction& transact);
+
+  Process::Inlets m_oldInlets;
+  Process::Outlets m_oldOutlets;
 };
 
 using ProcessExecutorComponentFactory

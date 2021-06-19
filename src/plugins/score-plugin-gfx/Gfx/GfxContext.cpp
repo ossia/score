@@ -74,11 +74,11 @@ void GfxContext::unregister_node(int32_t idx)
   if (it != nodes.end())
   {
     m_graph->removeNode(it->second.get());
-    recompute_graph();
-  }
 
-  nodes.erase(it);
-  recompute_graph(); // TODO wut
+    recompute_graph();
+
+    nodes.erase(it);
+  }
 }
 
 void GfxContext::recompute_edges()
@@ -147,9 +147,13 @@ void GfxContext::recompute_graph()
 
 void GfxContext::recompute_connections()
 {
+  recompute_graph();
+  // FIXME for more performance
+  /*
   recompute_edges();
   // m_graph->setupOutputs(m_api);
   m_graph->relinkGraph();
+  */
 }
 
 void GfxContext::update_inputs()

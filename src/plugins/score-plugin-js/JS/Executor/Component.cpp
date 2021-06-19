@@ -241,6 +241,7 @@ void Component::on_scriptChange(const QString& script)
 
   // Send the updates to the node
   commands.push_back([proc, script, inls, outls]() mutable {
+                       // FIXME memory leak ???
     proc->root_inputs() = std::move(inls);
     proc->root_outputs() = std::move(outls);
     proc->setScript(std::move(script));

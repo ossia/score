@@ -221,21 +221,21 @@ void Graph::relinkGraph()
             rn = node->createRenderer(r);
             SCORE_ASSERT(rn);
             node->renderedNodes[&r] = rn;
-            rn->init(r);
+            //rn->init(r);
           }
           else
           {
             rn->release(r);
-            rn->init(r);
+            //rn->init(r);
           }
           SCORE_ASSERT(rn);
           r.renderers.push_back(rn);
         }
 
-        // for (auto node : r.renderers)
-        // {
-        //   node->init(r);
-        // }
+        for (auto node : r.renderers)
+        {
+          node->init(r);
+        }
       }
       else if (model_nodes.size() == 1)
       {
