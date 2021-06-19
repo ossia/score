@@ -102,6 +102,8 @@ void QGraphicsHSVChooser::paint(
       = QColor::fromRgbF(m_value[0], m_value[1], m_value[2]).toHsv();
   auto x = color.hsvHueF() * 100.;
   auto y = color.hsvSaturationF() * 100.;
+  if(x < 0)
+    x = 0;
   auto val_y = color.valueF() * 100.;
 
   painter->setPen(score::Skin::instance().DarkGray.main.pen0);
