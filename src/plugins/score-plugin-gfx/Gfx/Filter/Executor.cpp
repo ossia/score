@@ -120,6 +120,7 @@ std::pair<ossia::inlets, ossia::outlets> ProcessExecutorComponent::setup_node(Ex
   auto& element = this->process();
 
   auto n = std::dynamic_pointer_cast<filter_node>(this->node);
+  int script_index = ++n->script_index;
 
 
   // 1. Create new inlet & outlet arrays
@@ -151,7 +152,7 @@ std::pair<ossia::inlets, ossia::outlets> ProcessExecutorComponent::setup_node(Ex
           ctrl,
           &Process::ControlInlet::valueChanged,
           this,
-          con_unvalidated{ctx, control_index, weak_node});
+          con_unvalidated{ctx, control_index, script_index, weak_node});
       control_index++;
     }
     else if (auto ctrl = qobject_cast<Process::AudioInlet*>(ctl))

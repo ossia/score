@@ -68,6 +68,7 @@ public:
   ~gfx_exec_node();
 
   int32_t id{-1};
+  std::atomic_int32_t script_index{0};
   void run(const ossia::token_request& tk, ossia::exec_state_facade) noexcept;
 };
 
@@ -87,11 +88,16 @@ struct con_unvalidated
 {
   const Execution::Context& ctx;
   const std::size_t i;
+  const int32_t script_index{};
   std::weak_ptr<gfx_exec_node> weak_node;
   void operator()(const ossia::value& val)
   {
     if (auto node = weak_node.lock())
     {
+      // Check for the case where the node controls have changed
+      // due to the script changing
+      if(script_index != node->script_index)
+        return;
       SCORE_ASSERT(i < node->controls.size());
       ctx.executionQueue.enqueue(control_updater{node->controls[i], val});
     }

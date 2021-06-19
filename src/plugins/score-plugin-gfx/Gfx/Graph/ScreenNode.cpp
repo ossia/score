@@ -158,7 +158,7 @@ void ScreenNode::startRendering()
   if (m_window)
   {
     m_window->onRender = [this](QRhiCommandBuffer& commands) {
-      if (auto r = m_window->state.renderer)
+      if (auto r = m_window->state.renderer.lock())
       {
         m_window->m_canRender = r->renderers.size() > 1;
         r->render(commands);
@@ -170,8 +170,16 @@ void ScreenNode::startRendering()
 void ScreenNode::onRendererChange()
 {
   if (m_window)
-    if (auto r = m_window->state.renderer)
+  {
+    if (auto r = m_window->state.renderer.lock())
+    {
       m_window->m_canRender = r->renderers.size() > 1;
+    }
+    else
+    {
+      m_window->m_canRender = false;
+    }
+  }
 }
 
 void ScreenNode::stopRendering()
@@ -180,11 +188,12 @@ void ScreenNode::stopRendering()
   {
     m_window->m_canRender = false;
     m_window->onRender = [](QRhiCommandBuffer&) {};
+    m_window->state.renderer = {};
     ////window->state.hasSwapChain = false;
   }
 }
 
-void ScreenNode::setRenderer(RenderList* r)
+void ScreenNode::setRenderer(std::shared_ptr<RenderList> r)
 {
   m_window->state.renderer = r;
 }
@@ -192,7 +201,7 @@ void ScreenNode::setRenderer(RenderList* r)
 RenderList* ScreenNode::renderer() const
 {
   if (m_window)
-    return m_window->state.renderer;
+    return m_window->state.renderer.lock().get();
   else
     return nullptr;
 }

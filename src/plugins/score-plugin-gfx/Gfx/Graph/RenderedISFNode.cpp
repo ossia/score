@@ -6,6 +6,22 @@ namespace score::gfx
 
 #include <Gfx/Qt5CompatPush> // clang-format: keep
 
+static void storeTextureRectUniform(char* buffer, int& cur_pos, QSize texSize)
+{
+  while (cur_pos % 16 != 0)
+  {
+    cur_pos += 4;
+  }
+
+  *(float*)(buffer + cur_pos + 0)  = 0.0f;
+  *(float*)(buffer + cur_pos + 4)  = 0.0f;
+  *(float*)(buffer + cur_pos + 8)  = texSize.width();
+  *(float*)(buffer + cur_pos + 12) = texSize.height();
+
+  cur_pos += 16;
+}
+
+RenderedISFNode::~RenderedISFNode() { }
 PassOutput RenderedISFNode::initPassSampler(
     ISFNode& n,
     const isf::pass& pass,
@@ -38,13 +54,7 @@ PassOutput RenderedISFNode::initPassSampler(
   if (!pass.target.empty())
   {
     // If the target has a name, it has an associated size variable
-    if (cur_pos % 8 != 0)
-      cur_pos += 4;
-
-    *(float*)(n.m_material_data.get() + cur_pos) = texSize.width();
-    *(float*)(n.m_material_data.get() + cur_pos + 4) = texSize.height();
-
-    cur_pos += 8;
+    storeTextureRectUniform(n.m_material_data.get(), cur_pos, texSize);
   }
 
   // Persistent texture means that frame N can access the output of this pass at frame N-1,
@@ -145,14 +155,8 @@ static std::pair<std::vector<Sampler>, int> initInputSamplers(
 
         m_rts[in] = std::move(rt);
 
-        if (cur_pos % 8 != 0)
-          cur_pos += 4;
-
-        *(float*)(materialData + cur_pos) = texture->pixelSize().width();
-        *(float*)(materialData + cur_pos + 4) = texture->pixelSize().height();
-
-        cur_pos += 8;
-
+        // Allocate some space for the vec4 _imgRect in the uniform
+        storeTextureRectUniform(materialData, cur_pos, renderer.state.size);
         break;
       }
       default:
@@ -200,8 +204,6 @@ std::pair<Pass, Pass>
 RenderedISFNode::createFinalPass(RenderList& renderer, ossia::small_vector<PassOutput, 1>& m_passSamplers, const TextureRenderTarget& renderTarget)
 {
   std::pair<Pass, Pass> ret;
-  QRhi& rhi = *renderer.state.rhi;
-
 
   static const constexpr auto vertex_shader = R"_(#version 450
 layout(location = 0) in vec2 position;
@@ -411,6 +413,8 @@ void RenderedISFNode::initPasses(const TextureRenderTarget& rt, RenderList& rend
     previousPassIsPersistent = model_passes[i].persistent;
   }
 
+  SCORE_ASSERT(passes.passes.size() == passes.samplers.size());
+
   if(previousPassIsPersistent)
   {
     // We have to add a last pass that will blit on the output render target
@@ -418,6 +422,8 @@ void RenderedISFNode::initPasses(const TextureRenderTarget& rt, RenderList& rend
     passes.samplers.push_back(rt);
     passes.passes.push_back(p1);
     passes.altPasses.push_back(p2);
+
+    SCORE_ASSERT(passes.passes.size() >= 2);
   }
 
   m_passes.emplace_back(&edge, std::move(passes));
@@ -461,8 +467,10 @@ void RenderedISFNode::init(RenderList& renderer)
 
   // Create the passes
 
+  int pos_before_passes = cur_pos;
   for(Edge* edge : n.output[0]->edges)
   {
+    cur_pos = pos_before_passes;
     auto rt = renderer.renderTargetForOutput(*edge);
     if(rt.renderTarget)
     {
@@ -874,6 +882,271 @@ std::optional<Sampler> AudioTextureUpload::updateAudioTexture(
     return {};
   }
 }
+
+#include <Gfx/Qt5CompatPop> // clang-format: keep
+}
+
+
+
+
+
+namespace score::gfx
+{
+
+#include <Gfx/Qt5CompatPush> // clang-format: keep
+SimpleRenderedISFNode::SimpleRenderedISFNode(const ISFNode& node) noexcept
+    : score::gfx::NodeRenderer{}
+    , n{const_cast<ISFNode&>(node)}
+{
+}
+
+TextureRenderTarget SimpleRenderedISFNode::renderTargetForInput(const Port& p)
+{
+  SCORE_ASSERT(m_rts.find(&p) != m_rts.end());
+  return m_rts[&p];
+}
+
+std::vector<Sampler> SimpleRenderedISFNode::allSamplers() const noexcept
+{
+  // Input ports
+  std::vector<Sampler> samplers = m_inputSamplers;
+
+  // Audio textures
+  samplers.insert(
+      samplers.end(), m_audioSamplers.begin(), m_audioSamplers.end());
+
+  return samplers;
+}
+
+void SimpleRenderedISFNode::initPass(const TextureRenderTarget& renderTarget, RenderList& renderer, Edge& edge)
+{
+  auto& model_passes = n.descriptor().passes;
+  SCORE_ASSERT(model_passes.size() == 1);
+
+  QRhi& rhi = *renderer.state.rhi;
+
+  QRhiBuffer* pubo{};
+  pubo = rhi.newBuffer(
+      QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(ProcessUBO));
+  pubo->setName("SimpleRenderedISFNode::createPass::pubo");
+  pubo->create();
+
+  // Create the main pass
+  auto pip = score::gfx::buildPipeline(
+      renderer,
+      n.mesh(),
+      n.m_vertexS,
+      n.m_fragmentS,
+      renderTarget,
+      pubo,
+      m_materialUBO,
+      allSamplers());
+  m_passes.emplace_back(&edge, Pass{renderTarget, pip, pubo});
+}
+
+void SimpleRenderedISFNode::init(RenderList& renderer)
+{
+  QRhi& rhi = *renderer.state.rhi;
+
+  // Create the mesh
+  {
+    const auto& mesh = n.mesh();
+    if (!m_meshBuffer)
+    {
+      auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh);
+      m_meshBuffer = mbuffer;
+      m_idxBuffer = ibuffer;
+    }
+  }
+
+  // Create the material UBO
+  m_materialSize = n.m_materialSize;
+  if (m_materialSize > 0)
+  {
+    m_materialUBO = rhi.newBuffer(
+        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, m_materialSize);
+    SCORE_ASSERT(m_materialUBO->create());
+  }
+
+  // Create the samplers
+  SCORE_ASSERT(m_rts.empty());
+  SCORE_ASSERT(m_passes.empty());
+  SCORE_ASSERT(m_inputSamplers.empty());
+  SCORE_ASSERT(m_audioSamplers.empty());
+
+  auto [samplers, cur_pos]
+      = initInputSamplers(renderer, n.input, m_rts, n.m_material_data.get());
+  m_inputSamplers = std::move(samplers);
+
+  m_audioSamplers = initAudioTextures(renderer, n.m_audio_textures);
+
+  // Create the passes
+
+  for(Edge* edge : n.output[0]->edges)
+  {
+    auto rt = renderer.renderTargetForOutput(*edge);
+    if(rt.renderTarget)
+    {
+      initPass(rt, renderer, *edge);
+    }
+  }
+}
+
+void SimpleRenderedISFNode::update(
+    RenderList& renderer,
+    QRhiResourceUpdateBatch& res)
+{
+  SCORE_ASSERT(m_passes.size() > 0);
+
+  n.standardUBO.passIndex = 0;
+
+  // Update material
+  if (m_materialUBO && m_materialSize > 0
+      && materialChangedIndex != n.materialChanged)
+  {
+    char* data = n.m_material_data.get();
+    res.updateDynamicBuffer(m_materialUBO, 0, m_materialSize, data);
+    materialChangedIndex = n.materialChanged;
+  }
+
+  // Update audio textures
+  for (auto& audio : n.m_audio_textures)
+  {
+    if(std::optional<Sampler> sampl = m_audioTex.updateAudioTexture(audio, renderer, res))
+    {
+      auto &[rhiSampler, tex] = *sampl;
+      for(auto& [e, pass] : m_passes)
+      {
+        score::gfx::replaceTexture(
+            *pass.p.srb,
+            rhiSampler,
+            tex ? tex : &renderer.emptyTexture());
+      }
+    }
+  }
+
+  // Update all the process UBOs
+
+  for(auto& [e, pass] : m_passes)
+  {
+    res.updateDynamicBuffer(
+        pass.processUBO, 0, sizeof(ProcessUBO), &this->n.standardUBO);
+  }
+}
+
+void SimpleRenderedISFNode::release(RenderList& r)
+{
+  // customRelease
+  {
+    for (auto [edge, rt] : m_rts)
+    {
+      rt.release();
+    }
+    m_rts.clear();
+
+    for (auto& texture : n.m_audio_textures)
+    {
+      auto it = texture.samplers.find(&r);
+      if (it != texture.samplers.end())
+      {
+        if (auto tex = it->second.texture)
+        {
+          if (tex != &r.emptyTexture())
+            tex->deleteLater();
+        }
+      }
+    }
+
+    for(auto& [edge, pass] : m_passes)
+    {
+      pass.p.release();
+
+      if(pass.processUBO)
+        pass.processUBO->deleteLater();
+    }
+
+    m_passes.clear();
+  }
+
+  for (auto sampler : m_inputSamplers)
+  {
+    delete sampler.sampler;
+    // texture isdeleted elsewxheree
+  }
+  m_inputSamplers.clear();
+  for (auto sampler : m_audioSamplers)
+  {
+    delete sampler.sampler;
+    // texture isdeleted elsewxheree
+  }
+  m_audioSamplers.clear();
+
+  delete m_materialUBO;
+  m_materialUBO = nullptr;
+
+  m_meshBuffer = nullptr;
+}
+
+void SimpleRenderedISFNode::runInitialPasses(
+    RenderList& renderer,
+    QRhiCommandBuffer& cb,
+    QRhiResourceUpdateBatch*& updateBatch,
+    Edge& edge)
+{
+}
+
+QRhiResourceUpdateBatch* SimpleRenderedISFNode::runRenderPass(
+    RenderList& renderer,
+    QRhiCommandBuffer& cb,
+    Edge& edge)
+{
+  auto it = ossia::find_if(this->m_passes, [&] (auto& p) { return p.first == &edge; } );
+  SCORE_ASSERT(it != this->m_passes.end());
+  auto& pass = it->second;
+
+  // Draw the last pass
+  {
+    SCORE_ASSERT(pass.renderTarget.renderTarget);
+    SCORE_ASSERT(pass.p.pipeline);
+    SCORE_ASSERT(pass.p.srb);
+    // TODO : combine all the uniforms..
+
+    auto pipeline = pass.p.pipeline;
+    auto srb = pass.p.srb;
+    auto texture = pass.renderTarget.texture;
+
+    // TODO need to free stuff
+    {
+      cb.setGraphicsPipeline(pipeline);
+      cb.setShaderResources(srb);
+
+      if (texture)
+      {
+        cb.setViewport(QRhiViewport(
+            0,
+            0,
+            texture->pixelSize().width(),
+            texture->pixelSize().height()));
+      }
+      else
+      {
+        const auto sz = renderer.state.size;
+        cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
+      }
+
+      assert(this->m_meshBuffer);
+      assert(this->m_meshBuffer->usage().testFlag(QRhiBuffer::VertexBuffer));
+      n.mesh().setupBindings(*this->m_meshBuffer, this->m_idxBuffer, cb);
+
+      cb.draw(n.mesh().vertexCount);
+    }
+  }
+
+  using namespace std;
+  return nullptr;
+}
+
+SimpleRenderedISFNode::~SimpleRenderedISFNode() { }
 
 #include <Gfx/Qt5CompatPop> // clang-format: keep
 }

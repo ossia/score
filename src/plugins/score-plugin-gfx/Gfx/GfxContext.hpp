@@ -48,6 +48,7 @@ public:
   void timerEvent(QTimerEvent*) override;
 
 private:
+  void run_commands();
   const score::DocumentContext& m_context;
   int32_t index{};
   ossia::fast_hash_map<int32_t, NodePtr> nodes;
@@ -55,6 +56,13 @@ private:
   score::gfx::Graph* m_graph{};
   QThread m_thread;
 
+  struct Command {
+    enum { ADD_NODE, REMOVE_NODE, RELINK } cmd{};
+    int32_t index{};
+    std::unique_ptr<score::gfx::Node> node;
+  };
+
+  moodycamel::ConcurrentQueue<Command> tick_commands;
   moodycamel::ConcurrentQueue<score::gfx::Message> tick_messages;
 
   std::mutex edges_lock;
@@ -63,7 +71,6 @@ private:
   std::atomic_bool edges_changed{};
 
   int m_timer{-1};
-  bool must_recompute = false;
 };
 
 }

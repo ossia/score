@@ -41,7 +41,6 @@ RenderList::RenderList(OutputNode& output, const RenderState& state)
     : output{output}
     , state{state}
 {
-  output.setRenderer(this);
 }
 
 RenderList::~RenderList()
@@ -126,8 +125,9 @@ void RenderList::maybeRebuild()
 TextureRenderTarget RenderList::renderTargetForOutput(const Edge& edge) noexcept
 {
   if (auto sink_node = edge.sink->node)
-    if (auto renderer = sink_node->renderedNodes[this])
+    if (auto it = sink_node->renderedNodes.find(this); it != sink_node->renderedNodes.end())
       {
+        auto renderer = it->second;
         auto tex = renderer->renderTargetForInput(*edge.sink);
         if(tex.renderTarget && tex.renderPass)
           return tex;
@@ -146,6 +146,9 @@ void RenderList::render(QRhiCommandBuffer& commands)
 
   // Check if the viewport has changed
   maybeRebuild();
+
+  SCORE_ASSERT(m_outputUBO);
+  SCORE_ASSERT(m_emptyTexture);
 
   auto updateBatch = state.rhi->nextResourceUpdateBatch();
   update(*updateBatch);
@@ -183,7 +186,7 @@ void RenderList::render(QRhiCommandBuffer& commands)
           SCORE_ASSERT(src);
 
           SCORE_ASSERT(src->node->renderedNodes.find(this) != src->node->renderedNodes.end());
-          auto renderer = src->node->renderedNodes[this];
+          NodeRenderer* renderer = src->node->renderedNodes.find(this)->second;
           prevRenderers.push_back({edge, renderer});
 
           renderer->update(*this, *updateBatch);
@@ -202,7 +205,7 @@ void RenderList::render(QRhiCommandBuffer& commands)
         // issues a clearBuffers command.
         {
           SCORE_ASSERT(node->renderedNodes.find(this) != node->renderedNodes.end());
-          auto rt = node->renderedNodes[this]->renderTargetForInput(*input);
+          auto rt = node->renderedNodes.find(this)->second->renderTargetForInput(*input);
           SCORE_ASSERT(rt.renderTarget);
 
           commands.beginPass(rt.renderTarget, Qt::black, {1.0f, 0}, updateBatch);

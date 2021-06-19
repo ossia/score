@@ -51,7 +51,7 @@ ProcessExecutorComponent::ProcessExecutorComponent(
         ctrl,
         &Process::ControlInlet::valueChanged,
         this,
-        con_unvalidated{ctx, i, n});
+        con_unvalidated{ctx, i, 0, n});
   }
 
   n->root_outputs().push_back(new ossia::texture_outlet);

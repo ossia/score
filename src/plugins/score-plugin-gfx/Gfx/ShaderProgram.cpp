@@ -69,7 +69,6 @@ void updateToGlsl45(ShaderProgram& program)
 
       program.fragment.insert(
           match_idx, QString("layout(location = %1) ").arg(loc));
-      qDebug() << "fragment: " << QString("layout(location = %1) ").arg(loc);
 
       match_idx = program.fragment.indexOf(in_expr, match_idx + len);
     }

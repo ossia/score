@@ -25,7 +25,7 @@ struct RenderState
 {
   QRhi* rhi{};
   QRhiRenderPassDescriptor* renderPassDescriptor{};
-  RenderList* renderer{};
+  std::weak_ptr<RenderList> renderer{};
 
   QOffscreenSurface* surface{};
   QSize size{};

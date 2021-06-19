@@ -25,7 +25,7 @@ class SCORE_PLUGIN_GFX_EXPORT OutputNode : public score::gfx::Node
 public:
   virtual ~OutputNode();
 
-  virtual void setRenderer(RenderList*) = 0;
+  virtual void setRenderer(std::shared_ptr<RenderList>) = 0;
   virtual RenderList* renderer() const = 0;
 
   virtual OutputNodeRenderer* createRenderer(RenderList& r) const noexcept = 0;

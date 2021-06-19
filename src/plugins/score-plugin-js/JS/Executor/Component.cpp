@@ -194,6 +194,8 @@ void Component::on_scriptChange(const QString& script)
             auto ctrl = qobject_cast<Process::ControlInlet*>(
                 process().inlets()[idx]);
             SCORE_ASSERT(ctrl);
+
+            disconnect(ctrl, nullptr, this, nullptr);
             connect(
                 ctrl,
                 &Process::ControlInlet::valueChanged,

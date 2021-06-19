@@ -87,7 +87,7 @@ layout(std140, binding = 1) uniform process_t {
 
   static constexpr auto defaultFunctions =
       R"_(
-#define TEX_DIMENSIONS(tex) _ ## tex ## _imgRect.xy
+#define TEX_DIMENSIONS(tex) _ ## tex ## _imgRect.zw
 //#define IMG_THIS_PIXEL(tex) texture(tex, isf_FragNormCoord * TEX_DIMENSIONS(tex))
 //#define IMG_THIS_NORM_PIXEL(tex) texture(tex, isf_FragNormCoord * TEX_DIMENSIONS(tex))
 //#define IMG_PIXEL(tex, coord) texture(tex, coord * TEX_DIMENSIONS(tex) / RENDERSIZE)
@@ -786,7 +786,7 @@ void parser::parse_isf()
             samplers += val.name;
             samplers += ";\n";
 
-            material_ubos += "vec2 _" + val.name + "_imgRect;\n";
+            material_ubos += "vec4 _" + val.name + "_imgRect;\n";
 
             binding++;
           }
@@ -807,7 +807,7 @@ void parser::parse_isf()
           samplers += target;
           samplers += ";\n";
 
-          material_ubos += "vec2 _" + target + "_imgRect;\n";
+          material_ubos += "vec4 _" + target + "_imgRect;\n";
 
           binding++;
         }
@@ -839,7 +839,7 @@ void parser::parse_isf()
   static const std::regex gl_FragColor("gl_FragColor");
   static const std::regex vv_Frag("vv_Frag");
 
-  m_fragment = std::regex_replace(m_fragment, img_size, "_$1_imgRect.xy");
+  m_fragment = std::regex_replace(m_fragment, img_size, "_$1_imgRect.zw");
   m_fragment = std::regex_replace(m_fragment, gl_FragColor, "isf_FragColor");
   m_fragment = std::regex_replace(m_fragment, vv_Frag, "isf_Frag");
 }

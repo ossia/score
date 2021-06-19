@@ -18,7 +18,7 @@ struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
   bool canRender() const override;
   void stopRendering() override;
 
-  void setRenderer(RenderList* r) override;
+  void setRenderer(std::shared_ptr<RenderList> r) override;
   RenderList* renderer() const override;
 
   void setScreen(QScreen*);

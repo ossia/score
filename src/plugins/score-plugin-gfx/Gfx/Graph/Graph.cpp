@@ -221,16 +221,20 @@ void Graph::relinkGraph()
       {
         for (auto node : model_nodes)
         {
-          auto rn = node->renderedNodes[&r];
-          if (!rn)
+          score::gfx::NodeRenderer* rn{};
+          auto it = node->renderedNodes.find(&r);
+          if(it == node->renderedNodes.end())
           {
             rn = node->createRenderer(r);
             SCORE_ASSERT(rn);
-            node->renderedNodes[&r] = rn;
+
+            node->renderedNodes.emplace(&r, rn);
             //rn->init(r);
           }
           else
           {
+            rn = it->second;
+            SCORE_ASSERT(rn);
             rn->release(r);
             //rn->init(r);
           }
@@ -245,8 +249,9 @@ void Graph::relinkGraph()
       }
       else if (model_nodes.size() == 1)
       {
-        auto rn = model_nodes[0]->renderedNodes[&r];
-        assert(rn);
+        SCORE_ASSERT(model_nodes[0]->renderedNodes.find(&r) != model_nodes[0]->renderedNodes.end());
+        auto rn = model_nodes[0]->renderedNodes.find(&r)->second;
+        SCORE_ASSERT(rn);
         rn->release(r);
       }
     }
@@ -270,13 +275,15 @@ static void createNodeRenderer(score::gfx::Node& node, RenderList& r)
   r.renderers.push_back(rn);
 
   // Register the rendered nodes with their parents
-  node.renderedNodes[&r] = rn;
+  SCORE_ASSERT(node.renderedNodes.find(&r) == node.renderedNodes.end());
+  node.renderedNodes.emplace(&r, rn);
 }
 
 std::shared_ptr<RenderList>
 Graph::createRenderList(OutputNode* output, RenderState state)
 {
   auto ptr = std::make_shared<RenderList>(*output, state);
+  output->setRenderer(ptr);
   for (auto& node : m_nodes)
     node->addedToGraph = false;
 

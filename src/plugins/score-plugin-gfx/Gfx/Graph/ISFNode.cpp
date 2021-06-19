@@ -51,7 +51,7 @@ struct isf_input_size_vis
 
   void operator()(const isf::image_input&) noexcept
   {
-    (*this)(isf::point2d_input{});
+    (*this)(isf::color_input{});
   }
 
   void operator()(const isf::audio_input&) noexcept { }
@@ -154,17 +154,19 @@ struct isf_input_port_vis
   {
     self.input.push_back(new Port{&self, {}, Types::Image, {}});
 
-    // Also add the vec2 imgRect uniform:
-    if (sz % 8 != 0)
+    // Also add the vec4 imgRect uniform:
+    while (sz % 16 != 0)
     {
       sz += 4;
       data += 4;
     }
 
-    *reinterpret_cast<float*>(data) = 640;
-    *reinterpret_cast<float*>(data + 4) = 480;
-    data += 2 * 4;
-    sz += 2 * 4;
+    *reinterpret_cast<float*>(data + 0) = 0.f;
+    *reinterpret_cast<float*>(data + 4) = 0.f;
+    *reinterpret_cast<float*>(data + 8) = 640.f;
+    *reinterpret_cast<float*>(data + 12) = 480.f;
+    data += 4 * 4;
+    sz += 4 * 4;
   }
 
   void operator()(const isf::audio_input& audio) noexcept
@@ -213,9 +215,9 @@ ISFNode::ISFNode(
     std::visit(sz_vis, input.data);
   }
 
-  // Size of the pass textures
+  // Size of the pass textures (vec4)
   for (int i = 0; i < desc.pass_targets.size(); i++)
-    sz_vis(isf::point2d_input{});
+    sz_vis(isf::color_input{});
 
   m_materialSize = sz_vis.sz;
 
@@ -236,16 +238,19 @@ ISFNode::ISFNode(
     int sz = visitor.sz;
     for (int i = 0; i < desc.pass_targets.size(); i++)
     {
-      if (sz % 8 != 0)
+      // Passes also need an _imgRect uniform
+      while (sz % 16 != 0)
       {
         sz += 4;
         data += 4;
       }
 
-      *reinterpret_cast<float*>(data) = 640;
-      *reinterpret_cast<float*>(data + 4) = 480;
-      data += 2 * 4;
-      sz += 2 * 4;
+      *reinterpret_cast<float*>(data + 0) = 0.f;
+      *reinterpret_cast<float*>(data + 4) = 0.f;
+      *reinterpret_cast<float*>(data + 8) = 640.f;
+      *reinterpret_cast<float*>(data + 12) = 480.f;
+      data += 4 * 4;
+      sz += 4 * 4;
     }
   }
 
@@ -317,20 +322,25 @@ QSize ISFNode::computeTextureSize(const isf::pass& pass, QSize origSize)
 
 score::gfx::NodeRenderer* ISFNode::createRenderer(RenderList& r) const noexcept
 {
-  /*
   switch(this->m_descriptor.passes.size())
   {
     case 0:
-      SCORE_ABORT;
+      return nullptr;
     case 1:
       if(!this->m_descriptor.passes[0].persistent)
-        return new SinglePassISFNode{*this};
+      {
+        return new SimpleRenderedISFNode{*this};
+      }
+      else
+      {
+        return new RenderedISFNode{*this};
+      }
       break;
     default:
+    {
+      return new RenderedISFNode{*this};
       break;
-  }*/
-  return new RenderedISFNode{*this};
+    }
+  }
 }
-
-RenderedISFNode::~RenderedISFNode() { }
 }
