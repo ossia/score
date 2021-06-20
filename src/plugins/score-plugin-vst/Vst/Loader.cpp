@@ -74,7 +74,7 @@ struct LinuxLoader
 {
   static void* load(const char* name)
   {
-    auto module = dlopen(name, RTLD_LAZY);
+    auto module = dlopen(name, RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND);
     if (!module)
     {
       throw std::runtime_error(
