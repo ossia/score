@@ -72,6 +72,9 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
           ws->deleteLater();
         });
   });
+
+  // VST idle update
+  startTimer(10, Qt::PreciseTimer);
 }
 
 void ApplicationPlugin::initialize()
@@ -141,6 +144,20 @@ void ApplicationPlugin::addVST(const QString& path, const QJsonObject& obj)
 
   qDebug() << "Loaded VST " << path << "successfully";
   vstChanged();
+}
+
+void ApplicationPlugin::registerRunningVST(Model* m)
+{
+  m_runningVSTs.push_back(m);
+}
+
+void ApplicationPlugin::unregisterRunningVST(Model* m)
+{
+  auto it = ossia::find(m_runningVSTs, m);
+  if(it != m_runningVSTs.end())
+  {
+    m_runningVSTs.erase(it);
+  }
 }
 
 void ApplicationPlugin::rescanVSTs(const QStringList& paths)
@@ -306,6 +323,17 @@ void ApplicationPlugin::scanVSTsEvent()
     {
       QTimer::singleShot(1000, this, &ApplicationPlugin::scanVSTsEvent);
       return;
+    }
+  }
+}
+
+void ApplicationPlugin::timerEvent(QTimerEvent* event)
+{
+  for(auto vst : m_runningVSTs)
+  {
+    if(vst->needIdle.exchange(false, std::memory_order_acquire))
+    {
+      vst->dispatch(effEditIdle);
     }
   }
 }

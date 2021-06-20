@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
+#include <Process/Dataflow/PortSerialization.hpp>
 #include <Process/TimeValue.hpp>
 #include <Process/TimeValueSerialization.hpp>
 

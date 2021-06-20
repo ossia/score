@@ -8,6 +8,7 @@
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
 #include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/PortSerialization.hpp>
 #include <State/Address.hpp>
 
 #include <score/document/DocumentInterface.hpp>

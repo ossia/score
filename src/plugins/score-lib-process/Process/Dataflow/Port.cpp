@@ -1,6 +1,7 @@
 #include "Port.hpp"
 
-#include "PortItem.hpp"
+#include <Process/Dataflow/PortItem.hpp>
+#include <Process/Dataflow/PortSerialization.hpp>
 
 #include <Control/Widgets.hpp>
 #include <Process/Dataflow/Cable.hpp>

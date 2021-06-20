@@ -1,6 +1,7 @@
 #include "Model.hpp"
 
 #include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/PortSerialization.hpp>
 
 #include <ossia/detail/pod_vector.hpp>
 

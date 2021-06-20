@@ -15,6 +15,8 @@
 #include <score/tools/MapCopy.hpp>
 #include <score/tools/std/Optional.hpp>
 
+#include <Process/Dataflow/PortSerialization.hpp>
+
 #include <Scenario/Application/ScenarioValidity.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>

@@ -636,12 +636,12 @@ void JSONWriter::write(vst3::Model& eff)
 template <>
 void DataStreamReader::read<vst3::ControlInlet>(const vst3::ControlInlet& p)
 {
-  m_stream << (uint32_t)p.fxNum;
+  m_stream << (uint32_t)p.fxNum << p.m_value;
 }
 template <>
 void DataStreamWriter::write<vst3::ControlInlet>(vst3::ControlInlet& p)
 {
-  m_stream >> (uint32_t&)p.fxNum;
+  m_stream >> (uint32_t&)p.fxNum >> p.m_value;
 }
 
 template <>

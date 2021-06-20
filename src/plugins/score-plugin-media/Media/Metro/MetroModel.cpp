@@ -1,6 +1,7 @@
 #include "MetroModel.hpp"
 
 #include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/PortSerialization.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::Metro::Model)

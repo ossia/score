@@ -1,4 +1,5 @@
 #include <Audio/Settings/Model.hpp>
+#include <Process/Dataflow/PortSerialization.hpp>
 #include <Media/Sound/SoundModel.hpp>
 #include <Media/Tempo.hpp>
 

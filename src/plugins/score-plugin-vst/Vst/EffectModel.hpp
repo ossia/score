@@ -123,16 +123,6 @@ public:
 
   void reloadControls();
 
-private:
-  QString getString(AEffectOpcodes op, int param);
-  void init();
-  void create();
-  void load();
-
-  std::string m_backup_chunk;
-  ossia::float_vector m_backup_float_data;
-  int32_t m_effectId{};
-
   auto dispatch(
       int32_t opcode,
       int32_t index = 0,
@@ -142,6 +132,18 @@ private:
   {
     return fx->dispatch(opcode, index, value, ptr, opt);
   }
+  std::atomic_bool needIdle{};
+private:
+  QString getString(AEffectOpcodes op, int param);
+  void setControlName(int fxnum, ControlInlet* ctrl);
+  void init();
+  void create();
+  void load();
+
+  std::string m_backup_chunk;
+  ossia::float_vector m_backup_float_data;
+  int32_t m_effectId{};
+
 
   void closePlugin();
   void initFx();

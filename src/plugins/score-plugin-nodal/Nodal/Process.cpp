@@ -2,6 +2,7 @@
 
 #include <Nodal/Commands.hpp>
 #include <Process/ProcessList.hpp>
+#include <Process/Dataflow/PortSerialization.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>

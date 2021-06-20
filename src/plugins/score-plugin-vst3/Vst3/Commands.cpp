@@ -2,6 +2,7 @@
 
 #include <Vst3/Control.hpp>
 #include <Vst3/EffectModel.hpp>
+#include <Process/Dataflow/PortSerialization.hpp>
 
 #include <score/model/path/PathSerialization.hpp>
 namespace vst3
@@ -97,8 +98,12 @@ void RemoveControl::undo(const score::DocumentContext& ctx) const
   auto& vst = m_path.find(ctx);
   DataStreamWriter wr{m_control};
 
-  vst.on_addControl_impl(qobject_cast<ControlInlet*>(
-      Process::load_value_inlet(wr, &vst).release()));
+  auto inlet = Process::load_inlet(wr, &vst).release();
+  SCORE_ASSERT(inlet);
+
+  auto vst_inlet = qobject_cast<ControlInlet*>(inlet);
+  SCORE_ASSERT(vst_inlet);
+  vst.on_addControl_impl(vst_inlet);
 
   Dataflow::restoreCables(m_cables, ctx);
 }

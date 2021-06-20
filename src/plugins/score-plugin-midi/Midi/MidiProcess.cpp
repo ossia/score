@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Midi/MidiProcess.hpp>
 #include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/PortSerialization.hpp>
 
 #include <score/model/EntityMapSerialization.hpp>
 

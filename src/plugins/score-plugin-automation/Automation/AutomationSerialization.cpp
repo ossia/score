@@ -4,6 +4,7 @@
 
 #include <Curve/CurveModel.hpp>
 #include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/PortSerialization.hpp>
 #include <State/Address.hpp>
 
 #include <score/serialization/DataStreamVisitor.hpp>

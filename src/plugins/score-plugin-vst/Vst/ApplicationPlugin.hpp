@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <Vst/Loader.hpp>
 
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
@@ -25,6 +25,7 @@ struct VSTInfo
   bool isValid{};
 };
 
+class Model;
 class ApplicationPlugin
     : public QObject
     , public score::ApplicationPlugin
@@ -39,6 +40,10 @@ public:
   void processIncomingMessage(const QString& txt);
   void addInvalidVST(const QString& path);
   void addVST(const QString& path, const QJsonObject& json);
+
+  // Used for idle timers
+  void registerRunningVST(vst::Model*);
+  void unregisterRunningVST(vst::Model*);
 
   void scanVSTsEvent();
 
@@ -60,7 +65,12 @@ public:
 
   std::vector<ScanningProcess> m_processes;
 
+  std::vector<vst::Model*> m_runningVSTs;
+
+private:
   QWebSocketServer m_wsServer;
+
+  void timerEvent(QTimerEvent* event) override;
 };
 
 class GUIApplicationPlugin

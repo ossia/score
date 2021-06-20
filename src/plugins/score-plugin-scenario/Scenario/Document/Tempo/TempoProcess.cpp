@@ -3,6 +3,7 @@
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/Linear/LinearSegment.hpp>
 #include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/PortSerialization.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::TempoProcess)

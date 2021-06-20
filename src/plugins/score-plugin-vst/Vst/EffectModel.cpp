@@ -116,6 +116,13 @@ EffectProcessFactory_T<vst::Model>::descriptor(QString d) const
 
 namespace vst
 {
+QString Model::getString(AEffectOpcodes op, int param)
+{
+  char paramName[512] = {0};
+  dispatch(op, param, 0, paramName);
+  return QString::fromUtf8(paramName);
+}
+
 Model::Model(
     TimeVal t,
     const QString& path,
@@ -130,6 +137,9 @@ Model::Model(
 
 Model::~Model()
 {
+  auto& app
+      = score::GUIAppContext().applicationPlugin<vst::ApplicationPlugin>();
+  app.unregisterRunningVST(this);
   closePlugin();
 }
 
@@ -147,7 +157,6 @@ bool Model::hasExternalUI() const noexcept
 
 void Model::removeControl(int fxNum)
 {
-  qDebug() << "removeControl(int) " << fxNum;
   auto it = controls.find(fxNum);
   SCORE_ASSERT(it != controls.end());
   auto ctrl = it->second;
@@ -190,7 +199,24 @@ ControlInlet* Model::getControl(const Id<Process::Port>& p) const
 
 void Model::init()
 {
+  auto& app
+      = score::GUIAppContext().applicationPlugin<vst::ApplicationPlugin>();
+  app.registerRunningVST(this);
   //  connect(this, &VSTEffectModel::addControl, this, &VSTEffectModel::on_addControl);
+}
+
+void Model::setControlName(int fxnum, ControlInlet* ctrl)
+{
+  auto name = getString(effGetParamName, fxnum);
+  auto label = getString(effGetParamLabel, fxnum);
+  // auto display = get_string(effGetParamDisplay, i);
+
+  // Get the name
+  QString str = name;
+  if (!label.isEmpty())
+    str += "(" + label + ")";
+
+  ctrl->setName(name);
 }
 
 void Model::on_addControl(int i, float v)
@@ -208,18 +234,7 @@ void Model::on_addControl(int i, float v)
   ctrl->setValue(v);
 
   // Metadata
-  {
-    auto name = getString(effGetParamName, i);
-    auto label = getString(effGetParamLabel, i);
-    // auto display = get_string(effGetParamDisplay, i);
-
-    // Get the nameq
-    QString str = name;
-    if (!label.isEmpty())
-      str += "(" + label + ")";
-
-    ctrl->setName(name);
-  }
+  setControlName(i, ctrl);
 
   on_addControl_impl(ctrl);
 }
@@ -254,6 +269,7 @@ void Model::on_addControl_impl(ControlInlet* ctrl)
   controlAdded(ctrl->id());
 }
 
+
 void Model::reloadControls()
 {
   if (!fx)
@@ -261,15 +277,9 @@ void Model::reloadControls()
 
   for (auto ctrl : controls)
   {
+    setControlName(ctrl.first, ctrl.second);
     ctrl.second->setValue(fx->getParameter(ctrl.first));
   }
-}
-
-QString Model::getString(AEffectOpcodes op, int param)
-{
-  char paramName[512] = {0};
-  dispatch(op, param, 0, paramName);
-  return QString::fromUtf8(paramName);
 }
 
 intptr_t vst_host_callback(
@@ -306,12 +316,20 @@ intptr_t vst_host_callback(
         result = 1;
         break;
       }
+
       case audioMasterNeedIdle:
+      {
+        effect->dispatcher(effect, effEditIdle, 0, 0, nullptr, 0);
+        result = 1;
         break;
+      }
 
       case audioMasterIdle:
-        effect->dispatcher(effect, effEditIdle, 0, 0, nullptr, 0);
+      {
+        reinterpret_cast<Model*>(effect->resvd1)->needIdle.store(true, std::memory_order_acquire);
+        result = 1;
         break;
+      }
 
       case audioMasterCurrentId:
         result = effect->uniqueID;
@@ -864,12 +882,12 @@ void JSONWriter::write(vst::Model& eff)
 template <>
 void DataStreamReader::read<vst::ControlInlet>(const vst::ControlInlet& p)
 {
-  m_stream << p.fxNum;
+  m_stream << p.fxNum << p.m_value;
 }
 template <>
 void DataStreamWriter::write<vst::ControlInlet>(vst::ControlInlet& p)
 {
-  m_stream >> p.fxNum;
+  m_stream >> p.fxNum >> p.m_value;
 }
 
 template <>
