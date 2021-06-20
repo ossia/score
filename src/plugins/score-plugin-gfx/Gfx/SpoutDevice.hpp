@@ -20,6 +20,7 @@ class SpoutProtocolFactory final : public Device::ProtocolFactory
 
   Device::DeviceInterface* makeDevice(
       const Device::DeviceSettings& settings,
+      const Explorer::DeviceDocumentPlugin& doc,
       const score::DocumentContext& ctx) override;
   const Device::DeviceSettings& defaultSettings() const noexcept override;
   Device::AddressDialog* makeAddAddressDialog(

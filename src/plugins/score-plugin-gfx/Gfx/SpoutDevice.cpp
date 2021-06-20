@@ -35,7 +35,7 @@ struct SpoutNode : score::gfx::OutputNode
   SpoutNode();
   virtual ~SpoutNode();
 
-  score::gfx::RenderList* m_renderer{};
+  std::weak_ptr<score::gfx::RenderList> m_renderer{};
   QRhiTexture* m_texture{};
   QRhiTextureRenderTarget* m_renderTarget{};
   std::function<void()> m_update;
@@ -48,7 +48,7 @@ struct SpoutNode : score::gfx::OutputNode
   bool canRender() const override;
   void stopRendering() override;
 
-  void setRenderer(score::gfx::RenderList* r) override;
+  void setRenderer(std::shared_ptr<score::gfx::RenderList> r) override;
   score::gfx::RenderList* renderer() const override;
 
   void createOutput(
@@ -59,7 +59,7 @@ struct SpoutNode : score::gfx::OutputNode
   void destroyOutput() override;
 
   score::gfx::RenderState* renderState() const override;
-  score::gfx::NodeRenderer*
+  score::gfx::OutputNodeRenderer*
   createRenderer(score::gfx::RenderList& r) const noexcept override;
 };
 
@@ -95,14 +95,15 @@ SpoutNode::SpoutNode()
     if (m_update)
       m_update();
 
-    if (m_renderer && m_renderState)
+    auto renderer = m_renderer.lock();
+    if (renderer && m_renderState)
     {
       auto rhi = m_renderState->rhi;
       QRhiCommandBuffer* cb{};
       if (rhi->beginOffscreenFrame(&cb) != QRhi::FrameOpSuccess)
         return;
 
-      m_renderer->render(*cb);
+      renderer->render(*cb);
 
       {
         rhi->makeThreadLocalNativeContextCurrent();
@@ -168,14 +169,14 @@ void SpoutNode::stopRendering()
   */
 }
 
-void SpoutNode::setRenderer(score::gfx::RenderList* r)
+void SpoutNode::setRenderer(std::shared_ptr<score::gfx::RenderList> r)
 {
   m_renderer = r;
 }
 
 score::gfx::RenderList* SpoutNode::renderer() const
 {
-  return m_renderer;
+  return m_renderer.lock().get();
 }
 
 void SpoutNode::createOutput(
@@ -224,11 +225,12 @@ score::gfx::RenderState* SpoutNode::renderState() const
   return m_renderState.get();
 }
 
-class SpoutRenderer : public score::gfx::GenericNodeRenderer
+class SpoutRenderer : public score::gfx::OutputNodeRenderer
 {
 public:
+  score::gfx::TextureRenderTarget m_rt;
   SpoutRenderer(const score::gfx::RenderState& state, const SpoutNode& parent)
-      : GenericNodeRenderer{parent}
+      : score::gfx::OutputNodeRenderer{}
   {
     m_rt.renderTarget = parent.m_renderTarget;
     m_rt.renderPass = state.renderPassDescriptor;
@@ -290,6 +292,7 @@ SpoutProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 
 Device::DeviceInterface* SpoutProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings,
+    const Explorer::DeviceDocumentPlugin& doc,
     const score::DocumentContext& ctx)
 {
   return new SpoutDevice(settings, ctx);

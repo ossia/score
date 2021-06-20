@@ -17,12 +17,12 @@ endif()
 
 add_subdirectory(3rdparty/libisf)
 
-if(WIN32)
-set(SPOUT_SRCS
-    Gfx/SpoutDevice.hpp
-    Gfx/SpoutDevice.cpp
-)
-endif()
+#if(WIN32)
+#set(SPOUT_SRCS
+#    Gfx/SpoutDevice.hpp
+#    Gfx/SpoutDevice.cpp
+#)
+#endif()
 
 find_package(freenect2)
 if(NOT "${freenect2_LIBRARIES}")
@@ -216,9 +216,9 @@ if(APPLE)
 endif()
 
 if(WIN32)
-  add_subdirectory("${3RDPARTY_FOLDER}/Spout" "${CMAKE_CURRENT_BINARY_DIR}/Spout")
-  target_link_libraries(${PROJECT_NAME} PRIVATE Spout)
-  target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_SPOUT)
+#   add_subdirectory("${3RDPARTY_FOLDER}/Spout" "${CMAKE_CURRENT_BINARY_DIR}/Spout")
+#   target_link_libraries(${PROJECT_NAME} PRIVATE Spout)
+#   target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_SPOUT)
 endif()
 
 if(freenect2_FOUND)
