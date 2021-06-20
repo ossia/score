@@ -318,11 +318,7 @@ void ScenarioDocumentPresenter::switchMode(bool nodal)
         displayedInterval(),
         context(),
         &view().baseItem()};
-    /*
-    view().view().setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    view().view().setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    view().view().setDragMode(QGraphicsView::ScrollHandDrag);
-*/
+
     view().view().setSceneRect(QRectF{0, 0, 10, 10});
     m_nodalDrop = connect(
         &view().view(),
@@ -346,6 +342,8 @@ void ScenarioDocumentPresenter::switchMode(bool nodal)
           if (act == recenter)
             recenterNodal();
         });
+
+    QTimer::singleShot(0, m_nodal, &NodalIntervalView::recenter);
   }
   else
   {
