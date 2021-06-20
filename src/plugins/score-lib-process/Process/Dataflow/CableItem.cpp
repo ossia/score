@@ -229,14 +229,14 @@ bool isPortActuallyVisible(QGraphicsItem* port)
   {
     do
     {
-      auto parentRect = parent->boundingRect();
+      const auto parentRect = parent->boundingRect();
 
       // Case of the empty rect
       if(parentRect.width() == 0.0 && parentRect.height() == 0.0)
         continue;
 
-      auto point = port->mapToItem(parent, QPointF{5., 5.});
-      if(!parent->boundingRect().contains(point))
+      const auto point = port->mapToItem(parent, QPointF{5., 5.});
+      if(!parentRect.contains(point))
       {
         return false;
       }

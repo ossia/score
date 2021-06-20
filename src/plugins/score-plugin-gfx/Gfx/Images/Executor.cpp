@@ -4,6 +4,7 @@
 #include <Gfx/GfxContext.hpp>
 #include <Gfx/GfxExec.hpp>
 #include <Gfx/Graph/ImageNode.hpp>
+#include <Gfx/Images/ImageListChooser.hpp>
 #include <Gfx/Images/Process.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/ExecutionContext.hpp>
@@ -17,10 +18,10 @@ namespace Gfx::Images
 class image_node final : public gfx_exec_node
 {
 public:
-  image_node(const std::vector<Image>& dec, GfxExecutionAction& ctx)
+  image_node(GfxExecutionAction& ctx)
       : gfx_exec_node{ctx}
   {
-    id = exec_context->ui->register_node(std::make_unique<score::gfx::ImagesNode>(dec));
+    id = exec_context->ui->register_node(std::make_unique<score::gfx::ImagesNode>());
   }
 
   ~image_node()
@@ -38,14 +39,15 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     QObject* parent)
     : ProcessComponent_T{element, ctx, "gfxExecutorComponent", parent}
 {
-  auto n = std::make_shared<image_node>(
-      element.images(), ctx.doc.plugin<DocumentPlugin>().exec);
+  auto n = std::make_shared<image_node>(ctx.doc.plugin<DocumentPlugin>().exec);
 
-  for (std::size_t i = 0; i < 4; i++)
+  // Normal controls
+  for (std::size_t i = 0; i < 6; i++)
   {
     auto ctrl = qobject_cast<Process::ControlInlet*>(element.inlets()[i]);
     auto& p = n->add_control();
     p->value = ctrl->value();
+    for(auto img : Gfx::getImages(p->value)) qDebug() << "init image: " << img.path << img.frames.size();
     p->changed = true;
 
     QObject::connect(
@@ -60,4 +62,9 @@ ProcessExecutorComponent::ProcessExecutorComponent(
   this->node = n;
   m_ossia_process = std::make_shared<ossia::node_process>(n);
 }
+
+ProcessExecutorComponent::~ProcessExecutorComponent()
+{
+}
+
 }

@@ -3,11 +3,33 @@
 #include <Gfx/Graph/ImageNode.hpp>
 #include <Gfx/Images/Metadata.hpp>
 #include <Library/LibraryInterface.hpp>
+#include <Process/Dataflow/Port.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
 
 #include <score/command/PropertyCommand.hpp>
+
+namespace Gfx
+{
+std::vector<score::gfx::Image> getImages(const ossia::value& val);
+ossia::value fromImageSet(const gsl::span<score::gfx::Image>& images);
+void releaseImages(std::vector<score::gfx::Image>& imgs);
+
+struct ImageCache
+{
+public:
+  std::optional<score::gfx::Image> acquire(const std::string& path);
+  void release(score::gfx::Image&& img);
+
+  static ImageCache& instance() noexcept;
+private:
+  std::unordered_map<std::string, std::pair<int, score::gfx::Image>> m_images;
+};
+}
+W_REGISTER_ARGTYPE(score::gfx::Image)
+
+
 namespace Gfx::Images
 {
 class Model final : public Process::ProcessModel
@@ -32,19 +54,17 @@ public:
 
   ~Model() override;
 
-  const std::vector<score::gfx::Image>& images() const noexcept { return m_images; }
-  void setImages(const std::vector<score::gfx::Image>& f);
-  void addImage(const score::gfx::Image& im);
-  void removeImage(int i);
-  void imagesChanged() W_SIGNAL(imagesChanged);
-  PROPERTY(
-      std::vector<score::gfx::Image>,
-      images READ images WRITE setImages NOTIFY imagesChanged)
-
+  //std::vector<score::gfx::Image> images() const noexcept;
+  //void setImages(const std::vector<score::gfx::Image>& f);
+  //  void imagesChanged() W_SIGNAL(imagesChanged);
+  //  PROPERTY(
+  //      std::vector<score::gfx::Image>,
+  //      images READ images WRITE setImages NOTIFY imagesChanged)
+  //
 private:
+  void on_imagesChanged(const ossia::value& v);
   QString prettyName() const noexcept override;
-
-  std::vector<score::gfx::Image> m_images;
+  std::vector<score::gfx::Image> m_currentImages;
 };
 
 using ProcessFactory = Process::ProcessFactory_T<Gfx::Images::Model>;
@@ -66,52 +86,5 @@ public:
       const QMimeData& mime,
       const score::DocumentContext& ctx) const noexcept override;
 };
-/*
-class AddImage final : public score::Command
-{
-  SCORE_ COMMAND_DECL(
-      CommandFactoryName(),
-      AddImage,
-      "Add Image")
-public:
-  ChangeSpline(
-      const ProcessModel& autom,
-      const ossia::spline_data& newval)
-      : m_path{autom}, m_old{autom.spline()}, m_new{newval}
-  {
-  }
 
-public:
-  void undo(const score::DocumentContext& ctx) const override
-  {
-    m_path.find(ctx).setSpline(m_old);
-  }
-  void redo(const score::DocumentContext& ctx) const override
-  {
-    m_path.find(ctx).setSpline(m_new);
-  }
-
-protected:
-  void serializeImpl(DataStreamInput& s) const override
-  {
-    s << m_path << m_old << m_new;
-  }
-  void deserializeImpl(DataStreamOutput& s) override
-  {
-    s >> m_path >> m_old >> m_new;
-  }
-
-private:
-  Path<ProcessModel> m_path;
-  ossia::spline_data m_old, m_new;
-};
-*/
 }
-
-namespace Gfx
-{
-using Image = score::gfx::Image;
-}
-W_REGISTER_ARGTYPE(score::gfx::Image)
-PROPERTY_COMMAND_T(Gfx, ChangeImages, Images::Model::p_images, "Change images")
-SCORE_COMMAND_DECL_T(Gfx::ChangeImages)

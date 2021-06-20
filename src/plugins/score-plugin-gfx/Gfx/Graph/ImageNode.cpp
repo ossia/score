@@ -2,7 +2,12 @@
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/RenderState.hpp>
+#include <ossia/network/value/value_conversion.hpp>
 
+#include <Gfx/Images/Process.hpp>
+
+
+#include <ossia/gfx/port_index.hpp>
 #include <ossia/detail/math.hpp>
 
 namespace score::gfx
@@ -60,8 +65,7 @@ void main ()
   fragColor = texture(y_tex, texcoord) * opacity * actual;
 }
 )_";
-ImagesNode::ImagesNode(std::vector<score::gfx::Image> dec)
-    : images{std::move(dec)}
+ImagesNode::ImagesNode()
 {
   std::tie(m_vertexS, m_fragmentS)
       = score::gfx::makeShaders(images_vertex_shader, images_fragment_shader);
@@ -74,8 +78,65 @@ ImagesNode::ImagesNode(std::vector<score::gfx::Image> dec)
   m_materialData.reset((char*)&ubo);
 }
 
+void ImagesNode::process(const Message& msg)
+{
+  ProcessNode::process(msg.token);
+
+  int32_t p = 0;
+  for (const gfx_input& m: msg.input)
+  {
+    if(auto val = std::get_if<ossia::value>(&m))
+    {
+      switch(p)
+      {
+        case 0: // Image index
+        case 1: // Opacity
+        case 2: // Position
+        {
+          auto sink = ossia::gfx::port_index{msg.node_id, p };
+          std::visit([this, sink] (const auto& v) { ProcessNode::process(sink.port, v); }, std::move(m));
+          break;
+        }
+
+        case 3: // X scale
+        {
+          {
+            auto scale = ossia::convert<float>(*val);
+            this->ubo.scale[0] = scale;
+            this->materialChanged++;
+          }
+          break;
+        }
+        case 4: // Scale Y
+        {
+          {
+            auto scale = ossia::convert<float>(*val);
+            this->ubo.scale[1] = scale;
+            this->materialChanged++;
+          }
+          break;
+        }
+
+        case 5: // Images
+        {
+          {
+            Gfx::releaseImages(images);
+            images = Gfx::getImages(*val);
+            ++this->imagesChanged;
+          }
+          break;
+        }
+      }
+    }
+
+    p++;
+  }
+
+}
+
 ImagesNode::~ImagesNode()
 {
+  Gfx::releaseImages(images);
   m_materialData.release();
 }
 
@@ -88,20 +149,15 @@ public:
 private:
   ~Renderer() { }
 
-  TextureRenderTarget renderTargetForInput(const Port& p) override { return { }; }
-  void init(RenderList& renderer) override
-  {
-    defaultMeshInit(renderer);
-    defaultUBOInit(renderer);
-    m_material.init(renderer, node.input, m_samplers);
+  int imagesChanged = -1;
 
-    m_prev_ubo.currentImageIndex = -1;
+  void recreateTextures(QRhi& rhi)
+  {
     auto& n = static_cast<const ImagesNode&>(this->node);
-    QRhi& rhi = *renderer.state.rhi;
+
     const int limits_min = rhi.resourceLimit(QRhi::ResourceLimit::TextureSizeMin);
     const int limits_max = rhi.resourceLimit(QRhi::ResourceLimit::TextureSizeMax);
 
-    // Create GPU textures for each image
     for (const score::gfx::Image& img : n.images)
     {
       for (const QImage& frame : img.frames)
@@ -118,6 +174,21 @@ private:
         m_textures.push_back(tex);
       }
     }
+
+  }
+
+  TextureRenderTarget renderTargetForInput(const Port& p) override { return { }; }
+  void init(RenderList& renderer) override
+  {
+    defaultMeshInit(renderer);
+    defaultUBOInit(renderer);
+    m_material.init(renderer, node.input, m_samplers);
+
+    m_prev_ubo.currentImageIndex = -1;
+    QRhi& rhi = *renderer.state.rhi;
+
+    // Create GPU textures for each image
+    recreateTextures(rhi);
 
     // Create the sampler in which we are going to put the texture
     {
@@ -142,32 +213,53 @@ private:
   {
     defaultUBOUpdate(renderer, res);
 
-    if (m_textures.empty())
-      return;
-
     auto& n = static_cast<const ImagesNode&>(this->node);
+    bool updateCurrentTexture = false;
+    if(n.imagesChanged > imagesChanged)
+    {
+      imagesChanged = n.imagesChanged;
+      for(auto tex : m_textures)
+      {
+        tex->deleteLater();
+      }
+      m_textures.clear();
+
+      recreateTextures(*renderer.state.rhi);
+      m_uploaded = false;
+    }
+
     // If images haven't been uploaded yet, upload them.
     if (!m_uploaded)
     {
       const int limits_min = renderer.state.rhi->resourceLimit(QRhi::ResourceLimit::TextureSizeMin);
       const int limits_max = renderer.state.rhi->resourceLimit(QRhi::ResourceLimit::TextureSizeMax);
 
-      int k = 0;
-      for (std::size_t i = 0, N = n.images.size(); i < N; i++)
+      std::size_t k = 0;
+      for (std::size_t i = 0, N = n.images.size(); i < N && k < m_textures.size(); i++)
       {
         for (const auto& frame : n.images[i].frames)
         {
-          res.uploadTexture(m_textures[k], resizeTexture(frame, limits_min, limits_max));
-          k++;
+          if(k < m_textures.size())
+          {
+            res.uploadTexture(m_textures[k], resizeTexture(frame, limits_min, limits_max));
+            k++;
+          }
+          else
+          {
+            break;
+          }
         }
       }
       m_uploaded = true;
+      updateCurrentTexture = true;
     }
+
 
     // If the current image being displayed by this renderer (in m_prev_ubo)
     // is out of date with the image in the data model, we switch the texture
-    if (m_prev_ubo.currentImageIndex != n.ubo.currentImageIndex)
+    if (updateCurrentTexture || m_prev_ubo.currentImageIndex != n.ubo.currentImageIndex)
     {
+      auto& sampler = m_samplers[0].sampler;
       if (!m_textures.empty())
       {
         auto idx = ossia::clamp(
@@ -176,7 +268,15 @@ private:
         for(auto& pass : m_p)
         {
           score::gfx::replaceTexture(
-              *pass.second.srb, m_samplers[0].sampler, m_textures[idx]);
+              *pass.second.srb, sampler, m_textures[idx]);
+        }
+      }
+      else
+      {
+        for(auto& pass : m_p)
+        {
+          score::gfx::replaceTexture(
+              *pass.second.srb, sampler, &renderer.emptyTexture());
         }
       }
       m_prev_ubo.currentImageIndex = n.ubo.currentImageIndex;

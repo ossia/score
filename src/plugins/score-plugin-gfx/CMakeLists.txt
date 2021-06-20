@@ -53,6 +53,7 @@ set(HDRS
     Gfx/Images/Metadata.hpp
     Gfx/Images/Process.hpp
     Gfx/Images/Layer.hpp
+    Gfx/Images/ImageListChooser.hpp
 
     Gfx/Text/Executor.hpp
     Gfx/Text/Metadata.hpp
@@ -122,6 +123,7 @@ set(SRCS
 
     Gfx/Images/Executor.cpp
     Gfx/Images/Process.cpp
+    Gfx/Images/ImageListChooser.cpp
 
     Gfx/Text/Executor.cpp
     Gfx/Text/Process.cpp

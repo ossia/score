@@ -110,29 +110,6 @@ auto createControl(
       [=](const QString& txt) { lab->setText(txt); });
 
   // Create the control
-  QGraphicsItem* widg = setup.createControl(fact, port, doc, item, parent);
-  widg->setParentItem(item);
-
-  // Layout the items
-  const qreal labelHeight = 10;
-  const qreal labelWidth = lab->boundingRect().width();
-  const auto wrect = widg->boundingRect();
-  const qreal widgetHeight = wrect.height();
-  const qreal widgetWidth = wrect.width();
-
-  auto h = std::max(20., (qreal)(widgetHeight + labelHeight + 7.));
-  auto w = std::max(90., std::max(25. + labelWidth, widgetWidth));
-
-  portItem->setPos(8., 4.);
-  lab->setPos(20., 2);
-  widg->setPos(18., labelHeight + 5.);
-
-  const auto itemRect = QRectF{0., 0, w, h};
-
-  QPointF pos = Process::currentWigetPos(i, setup.getControlSize);
-  item->setPos(pos);
-  item->setRect(itemRect);
-
   struct Controls
   {
     score::EmptyRectItem* item{};
@@ -141,7 +118,42 @@ auto createControl(
     score::SimpleTextItem* label{};
     QRectF itemRect;
   };
-  return Controls{item, portItem, widg, lab, itemRect};
+
+  if(QGraphicsItem* widg = setup.createControl(fact, port, doc, item, parent))
+  {
+    widg->setParentItem(item);
+
+    // Layout the items
+    const qreal labelHeight = 10;
+    const qreal labelWidth = lab->boundingRect().width();
+    const auto wrect = widg->boundingRect();
+    const qreal widgetHeight = wrect.height();
+    const qreal widgetWidth = wrect.width();
+
+    auto h = std::max(20., (qreal)(widgetHeight + labelHeight + 7.));
+    auto w = std::max(90., std::max(25. + labelWidth, widgetWidth));
+
+    portItem->setPos(8., 4.);
+    lab->setPos(20., 2);
+    widg->setPos(18., labelHeight + 5.);
+
+    const auto itemRect = QRectF{0., 0, w, h};
+
+    QPointF pos = Process::currentWigetPos(i, setup.getControlSize);
+    item->setPos(pos);
+    item->setRect(itemRect);
+
+    return Controls{item, portItem, widg, lab, itemRect};
+  }
+  else
+  {
+    QRectF itemRect{0., 0, 90., 20.};
+    QPointF pos = Process::currentWigetPos(i, setup.getControlSize);
+    item->setPos(pos);
+    item->setRect(itemRect);
+
+    return Controls{item, portItem, nullptr, lab, itemRect};
+  }
 }
 
 template <typename C, typename T>

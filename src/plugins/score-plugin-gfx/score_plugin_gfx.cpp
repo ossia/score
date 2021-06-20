@@ -20,6 +20,9 @@
 #include <Gfx/Video/Layer.hpp>
 #include <Gfx/Video/Process.hpp>
 #include <Gfx/WindowDevice.hpp>
+#include <Gfx/Images/ImageListChooser.hpp>
+
+#include <Dataflow/WidgetInletFactory.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
 #if defined(HAS_SPOUT)
@@ -83,6 +86,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_gfx::factories(
          Gfx::Images::ProcessExecutorComponentFactory>,
       FW<Inspector::InspectorWidgetFactory, Gfx::Video::InspectorFactory>,
       FW<Process::PortFactory,
+         Dataflow::WidgetInletFactory<Gfx::Images::ImageListChooser>,
          Gfx::TextureInletFactory,
          Gfx::TextureOutletFactory>,
       FW<Process::ProcessDropHandler,

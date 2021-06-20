@@ -3,6 +3,10 @@
 
 #include <ossia/dataflow/node_process.hpp>
 
+namespace Gfx
+{
+struct Image;
+}
 namespace Gfx::Images
 {
 class Model;
@@ -16,6 +20,8 @@ public:
       Model& element,
       const Execution::Context& ctx,
       QObject* parent);
+
+  ~ProcessExecutorComponent();
 };
 
 using ProcessExecutorComponentFactory

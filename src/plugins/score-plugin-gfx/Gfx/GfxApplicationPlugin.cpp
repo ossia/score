@@ -33,15 +33,15 @@ void gfx_exec_node::run(
       auto& ctl = controls[i];
       if (ctl->changed)
       {
-        ctl->port->write_value(std::move(ctl->value), 0);
+        ctl->port->write_value(ctl->value, 0);
         ctl->changed = false;
       }
     }
   }
+
   score::gfx::Message msg;
   msg.node_id = id;
   msg.token = tk;
-
   msg.input.resize(this->m_inlets.size());
   int inlet_i = 0;
   for (ossia::inlet* inlet : this->m_inlets)
@@ -71,6 +71,7 @@ void gfx_exec_node::run(
         if(!p.get_data().empty())
         {
           msg.input[inlet_i] = std::move(p.get_data().back().value);
+          p.get_data().clear();
         }
 
         break;

@@ -1,5 +1,6 @@
 #include "Process.hpp"
 
+#include <Gfx/Images/ImageListChooser.hpp>
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/TexturePort.hpp>
 #include <Process/Dataflow/Port.hpp>
@@ -7,10 +8,46 @@
 
 #include <QFileInfo>
 #include <QImageReader>
+#include <gsl/span>
 
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Gfx::Images::Model)
+namespace Gfx
+{
+ossia::value fromImageSet(const gsl::span<score::gfx::Image>& images)
+{
+  std::vector<ossia::value> v;
+  for(auto& img : images)
+  {
+    v.push_back(img.path.toStdString());
+  }
+  return v;
+}
+
+void releaseImages(std::vector<score::gfx::Image>& imgs)
+{
+  auto& cache = ImageCache::instance();
+  for(auto& img : imgs)
+    cache.release(std::move(img));
+  imgs.clear();
+}
+
+std::vector<score::gfx::Image> getImages(const ossia::value& val)
+{
+  auto& cache = ImageCache::instance();
+  std::vector<score::gfx::Image> imgs;
+  for(auto& img : ossia::convert<std::vector<ossia::value>>(val))
+  {
+    if(auto image = cache.acquire(ossia::convert<std::string>(img)))
+    {
+      imgs.push_back(std::move(*image));
+    }
+  }
+  return imgs;
+}
+}
+
 namespace Gfx::Images
 {
 
@@ -33,17 +70,31 @@ Model::Model(
     auto pos = new Process::XYSlider{Id<Process::Port>(2), this};
     pos->setName(tr("Position"));
     pos->setDomain(
-      ossia::make_domain(ossia::vec2f{0.0, 1.0}, ossia::vec2f{1.0, 0.0}));
+      ossia::make_domain(ossia::vec2f{-5.0, 5.0}, ossia::vec2f{5.0, -5.0}));
 
     m_inlets.push_back(pos);
   }
+
   {
-    auto scale = new Process::XYSlider{Id<Process::Port>(3), this};
-    scale->setName(tr("Scale"));
-    scale->setValue(ossia::vec2f{1., 1.});
-    scale->setDomain(
-        ossia::make_domain(ossia::vec2f{0.01, 0.01}, ossia::vec2f{10., 10.}));
-    m_inlets.push_back(scale);
+    auto scaleX = new Process::FloatSlider{Id<Process::Port>(3), this};
+    scaleX->setName(tr("Scale X"));
+    scaleX->setValue(1.);
+    scaleX->setDomain(ossia::make_domain(-1., 10));
+    m_inlets.push_back(scaleX);
+  }
+  {
+    auto scaleY = new Process::FloatSlider{Id<Process::Port>(4), this};
+    scaleY->setName(tr("Scale Y"));
+    scaleY->setValue(1.);
+    scaleY->setDomain(ossia::make_domain(-1., 10));
+    m_inlets.push_back(scaleY);
+  }
+
+
+  {
+    auto images = new ImageListChooser{{}, tr("Images"), Id<Process::Port>(5), this};
+    m_inlets.push_back(images);
+    connect(images, &ImageListChooser::valueChanged, this, &Model::on_imagesChanged);
   }
 
   m_outlets.push_back(new TextureOutlet{Id<Process::Port>(0), this});
@@ -51,21 +102,20 @@ Model::Model(
 
 Model::~Model() { }
 
-void Model::setImages(const std::vector<Image>& f)
+void Model::on_imagesChanged(const ossia::value& v)
 {
-  m_images = f;
-
+  auto imgs = getImages(safe_cast<ImageListChooser*>(inlets().back())->value());
   int count = 0;
-  for (const auto& img : m_images)
+  for (const auto& img : imgs)
     count += img.frames.size();
 
   auto spinbox = safe_cast<Process::IntSpinBox*>(m_inlets[0]);
-  if (!f.empty())
+  if (!imgs.empty())
     spinbox->setDomain(ossia::make_domain(int(0), int(count) - 1));
   else
     spinbox->setDomain(ossia::make_domain(int(0), int(0)));
 
-  imagesChanged();
+  releaseImages(imgs);
 }
 
 QString Model::prettyName() const noexcept
@@ -94,7 +144,7 @@ static bool isSupportedImage(const QFileInfo& filepath)
   return set.contains(filepath.completeSuffix().toLower());
 }
 
-static std::optional<Image> readImage(const QString& filename)
+static std::optional<score::gfx::Image> readImage(const QString& filename)
 {
   QFileInfo info{filename};
   if (!isSupportedImage(info))
@@ -115,7 +165,7 @@ static std::optional<Image> readImage(const QString& filename)
   if (frames.empty())
     return {};
 
-  return Image{filename, std::move(frames)};
+  return score::gfx::Image{filename, std::move(frames)};
 }
 
 std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::drop(
@@ -131,8 +181,8 @@ std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::drop(
   p.creation.key = Metadata<ConcreteKey_k, Gfx::Images::Model>::get();
   p.setup = [files = data.urls()](
                 Process::ProcessModel& m, score::Dispatcher& disp) {
-    auto& proc = static_cast<Gfx::Images::Model&>(m);
-    std::vector<Image> images;
+    auto& proc = static_cast<Model&>(m);
+    std::vector<score::gfx::Image> images;
 
     for (const auto& url : files)
     {
@@ -143,10 +193,47 @@ std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::drop(
     }
 
     if (!images.empty())
-      disp.submit(new ChangeImages{proc, std::move(images)});
+      disp.submit(new Process::SetControlValue{safe_cast<Process::ControlInlet&>(*proc.inlets().back()), fromImageSet(images)});
   };
   vec.push_back(std::move(p));
   return vec;
+}
+}
+namespace Gfx
+{
+
+std::optional<score::gfx::Image> ImageCache::acquire(const std::string& path)
+{
+  if(auto it = m_images.find(path); it != m_images.end())
+  {
+    it->second.first++;
+    return it->second.second;
+  }
+
+  if(auto img = Images::readImage(QString::fromStdString(path)))
+  {
+    auto [it, ok] = m_images.insert({path, {0, *std::move(img)}});
+    return it->second.second;
+  }
+  return {};
+}
+
+void ImageCache::release(score::gfx::Image&& img)
+{
+  if(auto it = m_images.find(img.path.toStdString()); it != m_images.end())
+  {
+    it->second.first--;
+    if(it->second.first <= 0)
+    {
+      m_images.erase(it);
+    }
+  }
+}
+
+ImageCache& ImageCache::instance() noexcept
+{
+  static ImageCache img;
+  return img;
 }
 
 }
@@ -187,7 +274,6 @@ void DataStreamReader::read(const Gfx::Images::Model& proc)
 {
   readPorts(*this, proc.m_inlets, proc.m_outlets);
 
-  m_stream << proc.m_images;
   insertDelimiter();
 }
 
@@ -201,7 +287,6 @@ void DataStreamWriter::write(Gfx::Images::Model& proc)
       proc.m_outlets,
       &proc);
 
-  m_stream >> proc.m_images;
   checkDelimiter();
 }
 
@@ -209,7 +294,6 @@ template <>
 void JSONReader::read(const Gfx::Images::Model& proc)
 {
   readPorts(*this, proc.m_inlets, proc.m_outlets);
-  obj["Images"] = proc.m_images;
 }
 
 template <>
@@ -221,5 +305,23 @@ void JSONWriter::write(Gfx::Images::Model& proc)
       proc.m_inlets,
       proc.m_outlets,
       &proc);
-  proc.m_images <<= obj["Images"];
+}
+
+template <> void
+DataStreamReader::read<Gfx::Images::ImageListChooser>(const Gfx::Images::ImageListChooser& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <> void
+DataStreamWriter::write<Gfx::Images::ImageListChooser>(Gfx::Images::ImageListChooser& p)
+{
+}
+template <>  void
+JSONReader::read<Gfx::Images::ImageListChooser>(const Gfx::Images::ImageListChooser& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <> void
+JSONWriter::write<Gfx::Images::ImageListChooser>(Gfx::Images::ImageListChooser& p)
+{
 }
