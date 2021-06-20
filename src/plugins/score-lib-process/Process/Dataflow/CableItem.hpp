@@ -68,5 +68,6 @@ private:
   QPointer<PortItem> m_p1, m_p2;
   QPainterPath m_path;
   Process::PortType m_type{};
+
 };
 }

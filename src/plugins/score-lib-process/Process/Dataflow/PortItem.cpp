@@ -634,7 +634,7 @@ QVariant PortItem::itemChange(
       for (auto cbl : cables)
       {
         if (cbl)
-          cbl->resize();
+          cbl->check();
       }
       break;
     case QGraphicsItem::ItemVisibleHasChanged:

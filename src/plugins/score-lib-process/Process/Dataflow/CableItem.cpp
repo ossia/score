@@ -218,10 +218,37 @@ void CableItem::resize()
   update();
 }
 
+bool isPortActuallyVisible(QGraphicsItem* port)
+{
+  if(!port)
+    return false;
+  if(!port->isVisible())
+    return false;
+
+  if(QGraphicsItem* parent = port->parentItem())
+  {
+    do
+    {
+      auto parentRect = parent->boundingRect();
+
+      // Case of the empty rect
+      if(parentRect.width() == 0.0 && parentRect.height() == 0.0)
+        continue;
+
+      auto point = port->mapToItem(parent, QPointF{5., 5.});
+      if(!parent->boundingRect().contains(point))
+      {
+        return false;
+      }
+
+    } while((parent = parent->parentItem()));
+  }
+  return true;
+}
+
 void CableItem::check()
 {
-  if (g_cables_enabled && m_p1 && m_p2 && m_p1->isVisible()
-      && m_p2->isVisible())
+  if (g_cables_enabled && isPortActuallyVisible(m_p1) && isPortActuallyVisible(m_p2))
   {
     if (!isEnabled())
     {
@@ -292,5 +319,6 @@ void CableItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   event->accept();
 }
+
 
 }
