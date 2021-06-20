@@ -79,6 +79,8 @@ private:
   void updateTitlePos();
   QRectF boundingRect() const final override;
 
+  double minimalContentWidth() const noexcept;
+  double minimalContentHeight() const noexcept;
   static void
   paintNode(QPainter* painter, bool selected, bool hovered, QRectF rect);
 

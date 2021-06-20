@@ -64,7 +64,7 @@ NodeItem::NodeItem(
   setAcceptedMouseButtons(Qt::LeftButton);
   setAcceptHoverEvents(true);
   setFlag(ItemIsFocusable, true);
-  setFlag(ItemClipsChildrenToShape, false);
+  setFlag(ItemClipsChildrenToShape, true);
 
   // Title
   const auto& pixmaps = Process::Pixmaps::instance();
@@ -155,9 +155,7 @@ NodeItem::NodeItem(
         m_fx = nullptr;
       }
 
-      double port_h = std::max(m_inlets.size() * 12., m_outlets.size() * 12.);
-      m_contentSize = QSizeF{
-          TitleWithUiX0 + m_label->boundingRect().width() + 6, port_h};
+      m_contentSize = QSizeF{minimalContentWidth(), minimalContentHeight()};
     }
     QTimer::singleShot(1, this, [this] { updateSize(); });
   });
@@ -331,28 +329,38 @@ void NodeItem::createContentItem()
   // Positions / size
   m_fx->setPos({0, 0});
 
-  double w = std::max(
-      TitleWithUiX0 + m_label->boundingRect().width() + 6,
-      m_contentSize.width());
-  w = std::max(100., w);
-  double h = std::max(10., m_contentSize.height());
+  double w = std::max(minimalContentWidth(), m_contentSize.width());
+  double h = std::max(minimalContentHeight(), m_contentSize.height());
   m_contentSize = QSizeF{w, h};
 
   updateTitlePos();
 }
 
+double NodeItem::minimalContentWidth() const noexcept
+{
+  return std::max(100.0, TitleWithUiX0 + m_label->boundingRect().width() + 6.);
+}
+double NodeItem::minimalContentHeight() const noexcept
+{
+  double h = 10.;
+  if(!m_inlets.empty())
+    h = std::max(h, m_inlets.back()->y() + 10.);
+  if(!m_outlets.empty())
+    h = std::max(h, m_outlets.back()->y() + 10.);
+  return h;
+}
+
 void NodeItem::updateSize()
 {
-  auto sz = m_fx ? m_fx->boundingRect().size() : QSizeF{100, 0};
+  auto sz = m_fx ? m_fx->boundingRect().size() : QSizeF{minimalContentWidth(), minimalContentHeight()};
+
   //if (sz != m_contentSize || !m_fx)
   {
     prepareGeometryChange();
     if (m_fx)
     {
-      double w = std::max(
-          TitleWithUiX0 + m_label->boundingRect().width() + 6, sz.width());
-      w = std::max(100., w);
-      double h = std::max(10., sz.height());
+      double w = std::max(minimalContentWidth(), sz.width());
+      double h = std::max(minimalContentHeight(), sz.height());
       m_contentSize = QSizeF{w, h};
     }
 
@@ -560,7 +568,7 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
       const auto sz
           = origNodeSize + QSizeF{p.x() - origp.x(), p.y() - origp.y()};
       m_context.dispatcher.submit<Process::ResizeNode>(
-          m_model, sz.expandedTo({10, 10}));
+          m_model, sz.expandedTo({minimalContentWidth(), minimalContentHeight()}));
       updateSize();
       break;
     }
