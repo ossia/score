@@ -138,9 +138,10 @@ void VideoNodeRenderer::setupGpuDecoder(RenderList& r)
       auto rt = r.renderTargetForOutput(*edge);
       if(rt.renderTarget)
       {
+        auto& mesh = TexturedTriangle::instance();
         m_p.emplace_back(edge, score::gfx::buildPipeline(
               r,
-              node.mesh(),
+              mesh,
               shaders.first,
               shaders.second,
               rt,
@@ -169,7 +170,7 @@ void VideoNodeRenderer::init(RenderList& renderer)
 {
   auto& rhi = *renderer.state.rhi;
 
-  const auto& mesh = node.mesh();
+  auto& mesh = TexturedTriangle::instance();
   if (!m_meshBuffer)
   {
     auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh);
@@ -198,7 +199,7 @@ void VideoNodeRenderer::init(RenderList& renderer)
       auto rt = renderer.renderTargetForOutput(*edge);
       if(rt.renderTarget)
       {
-        m_p.emplace_back(edge, score::gfx::buildPipeline(renderer, node.mesh(), shaders.first, shaders.second, rt, m_processUBO, nullptr, m_gpu->samplers));
+        m_p.emplace_back(edge, score::gfx::buildPipeline(renderer, mesh, shaders.first, shaders.second, rt, m_processUBO, nullptr, m_gpu->samplers));
       }
     }
   }
@@ -216,9 +217,11 @@ QRhiResourceUpdateBatch* VideoNodeRenderer::runRenderPass(RenderList& renderer, 
 
     assert(this->m_meshBuffer);
     assert(this->m_meshBuffer->usage().testFlag(QRhiBuffer::VertexBuffer));
-    node.mesh().setupBindings(*this->m_meshBuffer, this->m_idxBuffer, cb);
+    auto& mesh = TexturedTriangle::instance();
 
-    cb.draw(node.mesh().vertexCount);
+    mesh.setupBindings(*this->m_meshBuffer, this->m_idxBuffer, cb);
+
+    cb.draw(mesh.vertexCount);
   }
   return nullptr;
 }

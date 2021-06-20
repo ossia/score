@@ -21,7 +21,7 @@ namespace Protocols
 
 WiimoteDevice::WiimoteDevice(
     const Device::DeviceSettings& settings,
-    const score::DocumentContext& ctx)
+    const ossia::net::network_context_ptr& ctx)
     : OwningDeviceInterface{settings}
     , m_ctx{ctx}
 {
@@ -49,9 +49,8 @@ bool WiimoteDevice::reconnect()
   std::thread task{[&dialog, this]() {
     try
     {
-      auto& ctx = m_ctx.plugin<Explorer::DeviceDocumentPlugin>().asioContext;
       auto addr = std::make_unique<ossia::net::generic_device>(
-          std::make_unique<ossia::net::wiimote_protocol>(ctx, false),
+          std::make_unique<ossia::net::wiimote_protocol>(m_ctx, false),
           settings().name.toStdString());
 
       m_dev = std::move(addr);

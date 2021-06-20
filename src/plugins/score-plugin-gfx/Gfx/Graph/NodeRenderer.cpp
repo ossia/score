@@ -19,7 +19,7 @@ void GenericNodeRenderer::defaultMeshInit(RenderList& renderer)
 {
   if (!m_meshBuffer)
   {
-    const auto& mesh = node.mesh();
+    auto& mesh = TexturedTriangle::instance();
     auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh);
     m_meshBuffer = mbuffer;
     m_idxBuffer = ibuffer;
@@ -37,6 +37,7 @@ void GenericNodeRenderer::defaultUBOInit(RenderList& renderer)
 
 void GenericNodeRenderer::defaultPassesInit(RenderList& renderer)
 {
+  auto& mesh = TexturedTriangle::instance();
   for(Edge* edge : this->node.output[0]->edges)
   {
     auto rt = renderer.renderTargetForOutput(*edge);
@@ -44,7 +45,7 @@ void GenericNodeRenderer::defaultPassesInit(RenderList& renderer)
     {
       m_p.emplace_back(edge, score::gfx::buildPipeline(
           renderer,
-          node.mesh(),
+          mesh,
           node.m_vertexS,
           node.m_fragmentS,
           rt,
@@ -137,11 +138,12 @@ QRhiResourceUpdateBatch* GenericNodeRenderer::runRenderPass(
     cb.setShaderResources(it->second.srb);
     cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
 
+    auto& mesh = TexturedTriangle::instance();
     assert(this->m_meshBuffer);
     assert(this->m_meshBuffer->usage().testFlag(QRhiBuffer::VertexBuffer));
-    node.mesh().setupBindings(*this->m_meshBuffer, this->m_idxBuffer, cb);
+    mesh.setupBindings(*this->m_meshBuffer, this->m_idxBuffer, cb);
 
-    cb.draw(node.mesh().vertexCount);
+    cb.draw(mesh.vertexCount);
   }
   return nullptr;
 }

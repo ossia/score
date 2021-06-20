@@ -17,7 +17,6 @@ public:
   explicit TextNode();
   virtual ~TextNode();
 
-  const Mesh& mesh() const noexcept override;
   score::gfx::NodeRenderer*
   createRenderer(RenderList& r) const noexcept override;
 

@@ -61,7 +61,7 @@ DeviceDocumentPlugin::DeviceDocumentPlugin(
 DeviceDocumentPlugin::~DeviceDocumentPlugin()
 {
   m_processMessages = false;
-  asioContext->context.stop();
+  m_asioContext->context.stop();
   m_asioThread.join();
 }
 
@@ -81,7 +81,7 @@ struct print_node_rec
 
 void DeviceDocumentPlugin::init()
 {
-  asioContext = std::make_shared<ossia::net::network_context>();
+  m_asioContext = std::make_shared<ossia::net::network_context>();
   m_processMessages = true;
 #if defined(__EMSCRIPTEN__)
   startTimer(8);
@@ -89,7 +89,7 @@ void DeviceDocumentPlugin::init()
   m_asioThread = std::thread{[this] {
     while (m_processMessages)
     {
-      asioContext->run();
+      m_asioContext->run();
     }
   }};
 #endif
@@ -140,10 +140,10 @@ void DeviceDocumentPlugin::timerEvent(QTimerEvent* event)
     using work_guard
         = boost::asio::executor_work_guard<boost::asio::io_context::executor_type>;
 
-    work_guard wg{asioContext->context.get_executor()};
+    work_guard wg{m_asioContext->context.get_executor()};
     try
     {
-      asioContext->context.poll();
+      m_asioContext->context.poll();
     }
     catch (std::exception& e)
     {
@@ -181,7 +181,7 @@ DeviceDocumentPlugin::createDeviceFromNode(const Device::Node& node)
     // Instantiate a real device.
     auto proto = fact.get(node.get<Device::DeviceSettings>().protocol);
     auto newdev
-        = proto->makeDevice(node.get<Device::DeviceSettings>(), context());
+        = proto->makeDevice(node.get<Device::DeviceSettings>(), *this, context());
 
     if (!newdev)
       throw std::runtime_error("Null device");
@@ -222,7 +222,7 @@ DeviceDocumentPlugin::loadDeviceFromNode(const Device::Node& node)
     auto& fact = m_context.app.interfaces<Device::ProtocolFactoryList>();
     auto proto = fact.get(node.get<Device::DeviceSettings>().protocol);
     Device::DeviceInterface* newdev
-        = proto->makeDevice(node.get<Device::DeviceSettings>(), context());
+        = proto->makeDevice(node.get<Device::DeviceSettings>(), *this, context());
 
     if (!newdev)
       throw std::runtime_error("Null device");

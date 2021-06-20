@@ -196,6 +196,7 @@ AudioProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 
 Device::DeviceInterface* AudioProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings,
+    const Explorer::DeviceDocumentPlugin& plugin,
     const score::DocumentContext& ctx)
 {
   auto doc = ctx.findPlugin<Explorer::DeviceDocumentPlugin>();

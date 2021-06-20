@@ -212,6 +212,7 @@ WindowProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 
 Device::DeviceInterface* WindowProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings,
+    const Explorer::DeviceDocumentPlugin& plugin,
     const score::DocumentContext& ctx)
 {
   return new WindowDevice{settings, ctx};

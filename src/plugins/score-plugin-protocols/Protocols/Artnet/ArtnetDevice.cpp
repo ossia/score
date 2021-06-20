@@ -22,7 +22,7 @@ namespace Protocols
 
 ArtnetDevice::ArtnetDevice(
     const Device::DeviceSettings& settings,
-    const score::DocumentContext& ctx)
+    const ossia::net::network_context_ptr& ctx)
     : OwningDeviceInterface{settings}
     , m_ctx{ctx}
 {
@@ -118,14 +118,12 @@ bool ArtnetDevice::reconnect()
     conf.universe = set.universe;
     conf.multicast = true;
 
-    auto& ctx = m_ctx.plugin<Explorer::DeviceDocumentPlugin>().asioContext;
-
     switch (set.transport)
     {
       case ArtnetSpecificSettings::ArtNet:
       {
         auto artnet_proto
-            = std::make_unique<ossia::net::artnet_protocol>(ctx, conf);
+            = std::make_unique<ossia::net::artnet_protocol>(m_ctx, conf);
         auto& proto = *artnet_proto;
         auto dev = std::make_unique<ossia::net::generic_device>(
             std::move(artnet_proto), settings().name.toStdString());
@@ -144,7 +142,7 @@ bool ArtnetDevice::reconnect()
         sock_conf.port = ossia::net::e131_protocol::default_port;
 
         auto artnet_proto
-            = std::make_unique<ossia::net::e131_protocol>(ctx, conf, sock_conf);
+            = std::make_unique<ossia::net::e131_protocol>(m_ctx, conf, sock_conf);
         auto& proto = *artnet_proto;
         auto dev = std::make_unique<ossia::net::generic_device>(
             std::move(artnet_proto), settings().name.toStdString());

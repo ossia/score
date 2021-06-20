@@ -38,6 +38,7 @@ LocalProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 
 Device::DeviceInterface* LocalProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings,
+    const Explorer::DeviceDocumentPlugin& plugin,
     const score::DocumentContext& ctx)
 {
   qDebug() << "updating local" << settings.name;

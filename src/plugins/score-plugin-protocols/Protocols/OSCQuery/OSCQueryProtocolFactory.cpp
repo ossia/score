@@ -226,6 +226,7 @@ OSCQueryProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 
 Device::DeviceInterface* OSCQueryProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings,
+    const Explorer::DeviceDocumentPlugin& plugin,
     const score::DocumentContext& ctx)
 {
   return new OSCQueryDevice{settings};

@@ -48,11 +48,6 @@ public:
   virtual NodeRenderer* createRenderer(RenderList& r) const noexcept = 0;
 
   /**
-   * @brief Mesh corresponding to this node.
-   */
-  virtual const Mesh& mesh() const noexcept = 0;
-
-  /**
    * @brief Process a message from the execution engine
    */
   virtual void process(const Message& msg);
@@ -116,8 +111,6 @@ public:
 
   virtual score::gfx::NodeRenderer*
   createRenderer(RenderList& r) const noexcept;
-
-  void setShaders(const QShader& vert, const QShader& frag);
 
 protected:
   std::unique_ptr<char[]> m_materialData;

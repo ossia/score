@@ -29,6 +29,7 @@ class MIDIInputProtocolFactory final : public Device::ProtocolFactory
 
   Device::DeviceInterface* makeDevice(
       const Device::DeviceSettings& settings,
+      const Explorer::DeviceDocumentPlugin& plugin,
       const score::DocumentContext& ctx) override;
 
   const Device::DeviceSettings& defaultSettings() const noexcept override;
@@ -68,6 +69,7 @@ class MIDIOutputProtocolFactory final : public Device::ProtocolFactory
 
   Device::DeviceInterface* makeDevice(
       const Device::DeviceSettings& settings,
+      const Explorer::DeviceDocumentPlugin& plugin,
       const score::DocumentContext& ctx) override;
 
   const Device::DeviceSettings& defaultSettings() const noexcept override;

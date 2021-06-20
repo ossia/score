@@ -10,13 +10,13 @@ class JoystickDevice final : public Device::OwningDeviceInterface
 public:
   JoystickDevice(
       const Device::DeviceSettings& settings,
-      const score::DocumentContext& ctx);
+      const ossia::net::network_context_ptr& ctx);
   ~JoystickDevice();
 
   bool reconnect() override;
   void disconnect() override;
 
 private:
-  const score::DocumentContext& m_ctx;
+  const ossia::net::network_context_ptr& m_ctx;
 };
 }

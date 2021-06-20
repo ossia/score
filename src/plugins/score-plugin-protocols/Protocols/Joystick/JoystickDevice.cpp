@@ -16,7 +16,7 @@ namespace Protocols
 
 JoystickDevice::JoystickDevice(
     const Device::DeviceSettings& settings,
-    const score::DocumentContext& ctx)
+    const ossia::net::network_context_ptr& ctx)
     : OwningDeviceInterface{settings}
     , m_ctx{ctx}
 {
@@ -34,14 +34,13 @@ bool JoystickDevice::reconnect()
 {
   disconnect();
 
-  auto& ctx = m_ctx.plugin<Explorer::DeviceDocumentPlugin>().asioContext;
   auto stgs
       = settings().deviceSpecificSettings.value<JoystickSpecificSettings>();
   try
   {
     m_dev = std::make_unique<ossia::net::generic_device>(
         std::make_unique<ossia::net::joystick_protocol>(
-            ctx, stgs.spec.first, stgs.spec.second),
+            m_ctx, stgs.spec.first, stgs.spec.second),
         settings().name.toStdString());
     deviceChanged(nullptr, m_dev.get());
   }
@@ -56,7 +55,7 @@ bool JoystickDevice::reconnect()
       {
         m_dev = std::make_unique<ossia::net::generic_device>(
             std::make_unique<ossia::net::joystick_protocol>(
-                ctx, stgs.spec.first, stgs.spec.second),
+                m_ctx, stgs.spec.first, stgs.spec.second),
             settings().name.toStdString());
 
         // update the settings with the new spec...

@@ -12,14 +12,14 @@ class ArtnetDevice final : public Device::OwningDeviceInterface
 public:
   ArtnetDevice(
       const Device::DeviceSettings& settings,
-      const score::DocumentContext& ctx);
+      const ossia::net::network_context_ptr& ctx);
   ~ArtnetDevice();
 
   bool reconnect() override;
   void disconnect() override;
 
 private:
-  const score::DocumentContext& m_ctx;
+  const ossia::net::network_context_ptr& m_ctx;
 };
 }
 #endif

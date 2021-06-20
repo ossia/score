@@ -11,14 +11,14 @@ class WiimoteDevice final : public Device::OwningDeviceInterface
 public:
   WiimoteDevice(
       const Device::DeviceSettings& settings,
-      const score::DocumentContext& ctx);
+      const ossia::net::network_context_ptr& ctx);
   ~WiimoteDevice();
 
   bool reconnect() override;
   void disconnect() override;
 
 private:
-  const score::DocumentContext& m_ctx;
+  const ossia::net::network_context_ptr& m_ctx;
 };
 
 }

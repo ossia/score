@@ -363,6 +363,7 @@ void DocumentModel::loadDocumentAsByteArray(
     auto plug
         = deserialize_interface(plugin_factories, plug_writer, ctx, this);
 
+    qDebug() << plug;
     docs[i] = plug;
     if (plug)
     {

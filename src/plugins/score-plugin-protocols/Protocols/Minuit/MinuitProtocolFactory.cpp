@@ -37,6 +37,7 @@ int MinuitProtocolFactory::visualPriority() const noexcept
 
 Device::DeviceInterface* MinuitProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings,
+    const Explorer::DeviceDocumentPlugin& plugin,
     const score::DocumentContext& ctx)
 {
   return new MinuitDevice{settings};

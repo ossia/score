@@ -25,6 +25,8 @@ namespace ossia::net
 class node_base;
 class parameter_base;
 class device_base;
+struct network_context;
+using network_context_ptr = std::shared_ptr<network_context>;
 }
 namespace State
 {

@@ -79,11 +79,6 @@ ImagesNode::~ImagesNode()
   m_materialData.release();
 }
 
-const Mesh& ImagesNode::mesh() const noexcept
-{
-  return this->m_mesh;
-}
-
 #include <Gfx/Qt5CompatPush> // clang-format: keep
 class ImagesNode::Renderer : public GenericNodeRenderer
 {
@@ -268,11 +263,6 @@ FullScreenImageNode::FullScreenImageNode(QImage dec)
 
 FullScreenImageNode::~FullScreenImageNode()
 {
-}
-
-const Mesh& FullScreenImageNode::mesh() const noexcept
-{
-  return this->m_mesh;
 }
 
 #include <Gfx/Qt5CompatPush> // clang-format: keep

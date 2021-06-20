@@ -23,7 +23,7 @@ namespace Protocols
 
 OSCDevice::OSCDevice(
     const Device::DeviceSettings& settings,
-    const score::DocumentContext& ctx)
+    const ossia::net::network_context_ptr& ctx)
     : OwningDeviceInterface{settings}
     , m_ctx{ctx}
 {
@@ -38,11 +38,9 @@ bool OSCDevice::reconnect()
 
   try
   {
-    auto& ctx = m_ctx.plugin<Explorer::DeviceDocumentPlugin>().asioContext;
-
     const OSCSpecificSettings& stgs
         = settings().deviceSpecificSettings.value<OSCSpecificSettings>();
-    if(auto proto = ossia::net::make_osc_protocol(ctx, stgs.configuration))
+    if(auto proto = ossia::net::make_osc_protocol(m_ctx, stgs.configuration))
     {
       if (stgs.rate)
       {

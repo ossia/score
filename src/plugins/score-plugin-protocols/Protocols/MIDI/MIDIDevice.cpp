@@ -22,7 +22,7 @@ namespace Protocols
 {
 MIDIDevice::MIDIDevice(
     const Device::DeviceSettings& settings,
-    const score::DocumentContext& ctx)
+    const ossia::net::network_context_ptr& ctx)
     : OwningDeviceInterface{settings}
     , m_ctx{ctx}
 {
@@ -48,10 +48,8 @@ bool MIDIDevice::reconnect()
   m_capas.canSerialize = !set.createWholeTree;
   try
   {
-    auto& ctx = m_ctx.plugin<Explorer::DeviceDocumentPlugin>().asioContext;
-
     auto proto
-        = std::make_unique<ossia::net::midi::midi_protocol>(ctx, set.api);
+        = std::make_unique<ossia::net::midi::midi_protocol>(m_ctx, set.api);
     bool res = proto->set_info(ossia::net::midi::midi_info(
         static_cast<ossia::net::midi::midi_info::Type>(set.io),
         set.endpoint.toStdString(),

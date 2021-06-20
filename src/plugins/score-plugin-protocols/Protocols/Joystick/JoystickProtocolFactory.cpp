@@ -5,6 +5,7 @@
 #include "JoystickProtocolSettingsWidget.hpp"
 #include "JoystickSpecificSettings.hpp"
 
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <ossia/protocols/joystick/joystick_protocol.hpp>
 
 #include <QObject>
@@ -57,9 +58,10 @@ JoystickProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 
 Device::DeviceInterface* JoystickProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings,
+    const Explorer::DeviceDocumentPlugin& plugin,
     const score::DocumentContext& ctx)
 {
-  return new JoystickDevice{settings, ctx};
+  return new JoystickDevice{settings, plugin.networkContext()};
 }
 
 const Device::DeviceSettings&

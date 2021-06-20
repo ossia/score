@@ -76,6 +76,8 @@ public:
 
   void reconnect(const QString&);
 
+  const ossia::net::network_context_ptr& networkContext() const noexcept { return m_asioContext; }
+
 private:
   void initDevice(Device::DeviceInterface&);
   void on_valueUpdated(const State::Address& addr, const ossia::value& v);
@@ -84,6 +86,7 @@ private:
   Device::DeviceList m_list;
   std::atomic_bool m_processMessages{};
   std::thread m_asioThread;
+  ossia::net::network_context_ptr m_asioContext;
 
   mutable std::unique_ptr<Explorer::ListeningHandler> m_listening;
   DeviceExplorerModel* m_explorer{};
@@ -97,6 +100,5 @@ private:
 
 public:
   NodeUpdateProxy updateProxy{*this};
-  ossia::net::network_context_ptr asioContext;
 };
 }

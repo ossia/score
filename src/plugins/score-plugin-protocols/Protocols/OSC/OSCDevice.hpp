@@ -8,7 +8,7 @@ class OSCDevice final : public Device::OwningDeviceInterface
 public:
   OSCDevice(
       const Device::DeviceSettings& stngs,
-      const score::DocumentContext& ctx);
+      const ossia::net::network_context_ptr& ctx);
 
   bool reconnect() override;
   void recreate(const Device::Node&) final override;
@@ -17,6 +17,6 @@ public:
   void setLearning(bool) final override;
 
 private:
-  const score::DocumentContext& m_ctx;
+  const ossia::net::network_context_ptr& m_ctx;
 };
 }

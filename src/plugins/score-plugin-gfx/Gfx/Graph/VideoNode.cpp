@@ -14,11 +14,6 @@ VideoNode::VideoNode(
   output.push_back(new Port{this, {}, Types::Image, {}});
 }
 
-const Mesh& VideoNode::mesh() const noexcept
-{
-  return this->m_mesh;
-}
-
 VideoNode::~VideoNode() { }
 
 score::gfx::NodeRenderer*

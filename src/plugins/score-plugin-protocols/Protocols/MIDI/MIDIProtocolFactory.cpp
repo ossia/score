@@ -6,6 +6,7 @@
 #include "MIDIProtocolSettingsWidget.hpp"
 
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Protocols/MIDI/MIDISpecificSettings.hpp>
 #include <Protocols/Settings/Model.hpp>
 
@@ -143,9 +144,10 @@ Device::DeviceEnumerator* MIDIInputProtocolFactory::getEnumerator(
 
 Device::DeviceInterface* MIDIInputProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings,
+    const Explorer::DeviceDocumentPlugin& plugin,
     const score::DocumentContext& ctx)
 {
-  return new MIDIDevice{settings, ctx};
+  return new MIDIDevice{settings, plugin.networkContext()};
 }
 
 const Device::DeviceSettings&
@@ -222,9 +224,10 @@ Device::DeviceEnumerator* MIDIOutputProtocolFactory::getEnumerator(
 
 Device::DeviceInterface* MIDIOutputProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings,
+    const Explorer::DeviceDocumentPlugin& plugin,
     const score::DocumentContext& ctx)
 {
-  return new MIDIDevice{settings, ctx};
+  return new MIDIDevice{settings, plugin.networkContext()};
 }
 
 const Device::DeviceSettings&

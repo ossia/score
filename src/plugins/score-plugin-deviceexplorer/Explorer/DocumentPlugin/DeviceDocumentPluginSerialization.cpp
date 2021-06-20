@@ -60,14 +60,10 @@ void DataStreamWriter::write(Explorer::DeviceDocumentPlugin& plug)
   plug.m_explorer = new Explorer::DeviceExplorerModel{plug, &plug};
   // Here everything is loaded in m_loadingNode
 
-  // Run async because else the pointer to the plug-in is not set in the model
-  // and some device go look for it while loading for the asio_context
-  ossia::qt::run_async(&plug, [&plug, n = std::move(n)] {
-    for (const auto& node : n)
-    {
-      plug.updateProxy.loadDevice(node);
-    };
-  });
+  for (const auto& node : n)
+  {
+    plug.updateProxy.loadDevice(node);
+  }
 }
 
 template <>
@@ -82,12 +78,8 @@ void JSONWriter::write(Explorer::DeviceDocumentPlugin& plug)
   // Here we recreate the correct structures in term of devices,
   // given what's present in the node hierarchy
 
-  // Run async because else the pointer to the plug-in is not set in the model
-  // and some device go look for it while loading for the asio_context
-  ossia::qt::run_async(&plug, [&plug, n = std::move(n)] {
-    for (const auto& node : n)
-    {
-      plug.updateProxy.loadDevice(node);
-    };
-  });
+  for (const auto& node : n)
+  {
+    plug.updateProxy.loadDevice(node);
+  }
 }

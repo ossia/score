@@ -8,7 +8,7 @@ class MIDIDevice final : public Device::OwningDeviceInterface
 public:
   MIDIDevice(
       const Device::DeviceSettings& settings,
-      const score::DocumentContext& ctx);
+      const ossia::net::network_context_ptr& ctx);
 
   bool reconnect() override;
 
@@ -23,6 +23,6 @@ public:
   void setLearning(bool) final override;
 
 private:
-  const score::DocumentContext& m_ctx;
+  const ossia::net::network_context_ptr&  m_ctx;
 };
 }

@@ -14,7 +14,6 @@ public:
   explicit ImagesNode(std::vector<score::gfx::Image> dec);
   virtual ~ImagesNode();
 
-  const Mesh& mesh() const noexcept override;
   score::gfx::NodeRenderer*
   createRenderer(RenderList& r) const noexcept override;
 
@@ -37,7 +36,6 @@ public:
   explicit FullScreenImageNode(QImage dec);
   virtual ~FullScreenImageNode();
 
-  const Mesh& mesh() const noexcept override;
   score::gfx::NodeRenderer*
   createRenderer(RenderList& r) const noexcept override;
 

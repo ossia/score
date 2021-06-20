@@ -13,6 +13,10 @@
 
 struct VisitorVariant;
 
+namespace Explorer
+{
+class DeviceDocumentPlugin;
+}
 namespace Device
 {
 struct DeviceSettings;
@@ -64,6 +68,7 @@ public:
 
   virtual DeviceInterface* makeDevice(
       const Device::DeviceSettings& settings,
+      const Explorer::DeviceDocumentPlugin& plugin,
       const score::DocumentContext& ctx)
       = 0;
 

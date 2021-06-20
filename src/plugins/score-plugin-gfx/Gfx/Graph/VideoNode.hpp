@@ -19,7 +19,6 @@ public:
       std::optional<double> nativeTempo,
       QString f = {});
 
-  const Mesh& mesh() const noexcept override;
   virtual ~VideoNode();
 
   score::gfx::NodeRenderer*

@@ -7,6 +7,8 @@
 
 #include <QObject>
 
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
 namespace Protocols
 {
 
@@ -28,9 +30,10 @@ WiimoteProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 
 Device::DeviceInterface* WiimoteProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings,
+    const Explorer::DeviceDocumentPlugin& plugin,
     const score::DocumentContext& ctx)
 {
-  return new WiimoteDevice{settings, ctx};
+  return new WiimoteDevice{settings, plugin.networkContext()};
 }
 
 const Device::DeviceSettings&

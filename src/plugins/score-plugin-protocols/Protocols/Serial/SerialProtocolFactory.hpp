@@ -17,6 +17,7 @@ class SerialProtocolFactory final : public DefaultProtocolFactory
 
   Device::DeviceInterface* makeDevice(
       const Device::DeviceSettings& settings,
+      const Explorer::DeviceDocumentPlugin& plugin,
       const score::DocumentContext& ctx) override;
   const Device::DeviceSettings& defaultSettings() const noexcept override;
 

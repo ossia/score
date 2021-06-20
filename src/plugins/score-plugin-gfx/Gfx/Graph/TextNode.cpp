@@ -78,11 +78,6 @@ TextNode::~TextNode()
   m_materialData.release();
 }
 
-const Mesh& TextNode::mesh() const noexcept
-{
-  return this->m_mesh;
-}
-
 #include <Gfx/Qt5CompatPush> // clang-format: keep
 class TextNode::Renderer : public GenericNodeRenderer
 {

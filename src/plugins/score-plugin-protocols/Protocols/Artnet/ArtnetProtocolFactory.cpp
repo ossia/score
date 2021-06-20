@@ -5,6 +5,7 @@
 #include "ArtnetProtocolSettingsWidget.hpp"
 #include "ArtnetSpecificSettings.hpp"
 
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
 #include <score/application/ApplicationContext.hpp>
@@ -35,9 +36,10 @@ ArtnetProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 
 Device::DeviceInterface* ArtnetProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings,
+    const Explorer::DeviceDocumentPlugin& plugin,
     const score::DocumentContext& ctx)
 {
-  return new ArtnetDevice{settings, ctx};
+  return new ArtnetDevice{settings, plugin.networkContext()};
 }
 
 const Device::DeviceSettings&

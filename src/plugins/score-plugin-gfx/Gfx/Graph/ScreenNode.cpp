@@ -413,8 +413,4 @@ ScreenNode::createRenderer(RenderList& r) const noexcept
   return new Renderer{r.state, *this};
 }
 
-const Mesh& ScreenNode::mesh() const noexcept
-{
-  return TexturedTriangle::instance();
-}
 }

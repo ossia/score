@@ -41,7 +41,6 @@ struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
   const std::shared_ptr<Window>& window() const noexcept { return m_window; }
 
 private:
-  const Mesh& mesh() const noexcept override;
   class Renderer;
   std::shared_ptr<Window> m_window{};
   QRhiSwapChain* m_swapChain{};

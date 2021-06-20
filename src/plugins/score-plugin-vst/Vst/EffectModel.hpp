@@ -128,6 +128,9 @@ private:
   void init();
   void create();
   void load();
+
+  std::string m_backup_chunk;
+  ossia::float_vector m_backup_float_data;
   int32_t m_effectId{};
 
   auto dispatch(

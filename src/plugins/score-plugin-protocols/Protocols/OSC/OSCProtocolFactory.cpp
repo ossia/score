@@ -5,6 +5,7 @@
 #include "OSCDevice.hpp"
 
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Protocols/LibraryDeviceEnumerator.hpp>
 #include <Protocols/OSC/OSCProtocolSettingsWidget.hpp>
 #include <Protocols/OSC/OSCSpecificSettings.hpp>
@@ -132,9 +133,10 @@ OSCProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 
 Device::DeviceInterface* OSCProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings,
+    const Explorer::DeviceDocumentPlugin& plugin,
     const score::DocumentContext& ctx)
 {
-  return new OSCDevice{settings, ctx};
+  return new OSCDevice{settings, plugin.networkContext()};
 }
 
 const Device::DeviceSettings&
