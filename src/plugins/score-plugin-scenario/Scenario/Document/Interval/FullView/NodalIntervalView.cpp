@@ -99,7 +99,7 @@ NodalIntervalView::~NodalIntervalView()
 void NodalIntervalView::on_drop(QPointF pos, const QMimeData* data)
 {
   m_context.app.interfaces<Scenario::IntervalDropHandlerList>().drop(
-      m_context, m_model, pos, *data);
+      m_context, m_model, m_container->mapFromParent(pos), *data);
 }
 
 void NodalIntervalView::on_playPercentageChanged(double t, TimeVal parent_dur)
