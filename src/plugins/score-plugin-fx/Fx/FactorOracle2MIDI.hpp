@@ -350,7 +350,7 @@ struct Node
     static const constexpr auto description
         = "Factor Oracle algorithm ."; // TODO cite
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const constexpr auto uuid
+    static const uuid_constexpr auto uuid
         = make_uuid("C87B5326-56C2-4489-8E08-AA9E1EF27359");
 
     static const constexpr auto controls
