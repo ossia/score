@@ -96,9 +96,14 @@ VideoThumbnailer::VideoThumbnailer(QString path)
       width = m_codecContext->coded_width;
       height = m_codecContext->coded_height;
       if (height > 0 && width > 0)
+      {
         m_aspect = double(width) / height;
+      }
       else
-        m_aspect = 1.;
+      {
+        qDebug() << "VideoThumbnailer: invalid video: width or height is 0";
+        goto err;
+      }
 
       smallHeight = 55;
       smallWidth = smallHeight * m_aspect;

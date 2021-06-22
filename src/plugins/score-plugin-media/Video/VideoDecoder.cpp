@@ -401,49 +401,57 @@ bool VideoDecoder::open_stream() noexcept
     auto codecPar = stream->codecpar;
     if ((m_codec = avcodec_find_decoder(codecPar->codec_id)))
     {
-      if (stream->codecpar->codec_id == AV_CODEC_ID_HAP)
+      if(codecPar->width <= 0 || codecPar->height <= 0)
       {
-        // TODO this is a hack, we store the FOURCC in the format...
-        memcpy(&pixel_format, &stream->codecpar->codec_tag, 4);
-        width = codecPar->width;
-        height = codecPar->height;
-        fps = av_q2d(stream->avg_frame_rate);
-
-        m_codecContext = nullptr;
-        m_codec = nullptr;
-        res = true;
+        qDebug() << "VideoThumbnailer: invalid video: width or height is 0";
+        res = false;
       }
       else
       {
-        pixel_format = (AVPixelFormat)codecPar->format;
-        width = codecPar->width;
-        height = codecPar->height;
-        fps = av_q2d(stream->avg_frame_rate);
-        m_codecContext = stream->codec;
-        res = !(avcodec_open2(m_codecContext, m_codec, nullptr) < 0);
-
-        switch (pixel_format)
+        if (stream->codecpar->codec_id == AV_CODEC_ID_HAP)
         {
-          // Supported formats for gpu decoding
-          case AV_PIX_FMT_YUV420P:
-          case AV_PIX_FMT_YUVJ420P:
-          case AV_PIX_FMT_YUVJ422P:
-          case AV_PIX_FMT_YUV422P:
-          case AV_PIX_FMT_RGB0:
-          case AV_PIX_FMT_RGBA:
-          case AV_PIX_FMT_BGR0:
-          case AV_PIX_FMT_BGRA:
-#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(56, 19, 100)
-          case AV_PIX_FMT_GRAYF32LE:
-          case AV_PIX_FMT_GRAYF32BE:
-#endif
-          case AV_PIX_FMT_GRAY8:
-            break;
-          // Other formats get rgb'd
-          default:
+          // TODO this is a hack, we store the FOURCC in the format...
+          memcpy(&pixel_format, &stream->codecpar->codec_tag, 4);
+          width = codecPar->width;
+          height = codecPar->height;
+          fps = av_q2d(stream->avg_frame_rate);
+
+          m_codecContext = nullptr;
+          m_codec = nullptr;
+          res = true;
+        }
+        else
+        {
+          pixel_format = (AVPixelFormat)codecPar->format;
+          width = codecPar->width;
+          height = codecPar->height;
+          fps = av_q2d(stream->avg_frame_rate);
+          m_codecContext = stream->codec;
+          res = !(avcodec_open2(m_codecContext, m_codec, nullptr) < 0);
+
+          switch (pixel_format)
           {
-            init_scaler();
-            break;
+            // Supported formats for gpu decoding
+            case AV_PIX_FMT_YUV420P:
+            case AV_PIX_FMT_YUVJ420P:
+            case AV_PIX_FMT_YUVJ422P:
+            case AV_PIX_FMT_YUV422P:
+            case AV_PIX_FMT_RGB0:
+            case AV_PIX_FMT_RGBA:
+            case AV_PIX_FMT_BGR0:
+            case AV_PIX_FMT_BGRA:
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(56, 19, 100)
+            case AV_PIX_FMT_GRAYF32LE:
+            case AV_PIX_FMT_GRAYF32BE:
+#endif
+            case AV_PIX_FMT_GRAY8:
+              break;
+            // Other formats get rgb'd
+            default:
+            {
+              init_scaler();
+              break;
+            }
           }
         }
       }

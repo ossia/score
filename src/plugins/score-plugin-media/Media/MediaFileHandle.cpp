@@ -520,6 +520,7 @@ void AudioFile::load_drwav()
   bool ok = r.file->open(QIODevice::ReadOnly);
   if (!ok)
   {
+    qDebug() << "Cannot open file" << m_file;
     m_impl = Handle{};
     on_mediaChanged();
   }
@@ -527,12 +528,14 @@ void AudioFile::load_drwav()
   r.data = r.file->map(0, r.file->size());
   if (!r.data)
   {
+    qDebug() << "Cannot open file" << m_file;
     m_impl = Handle{};
     on_mediaChanged();
   }
   r.wav.open_memory(r.data, r.file->size());
-  if (!r.wav)
+  if (!r.wav || r.wav.channels() == 0 || r.wav.sampleRate() == 0)
   {
+    qDebug() << "Cannot open file" << m_file;
     m_impl = Handle{};
     on_mediaChanged();
   }

@@ -12,6 +12,7 @@
 #include <ossia/network/value/value_conversion.hpp>
 #include <score/graphics/RectItem.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <wobjectimpl.h>
 
 #include <Process/Commands/SetControlValue.hpp>
 namespace Gfx::Images
