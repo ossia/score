@@ -71,7 +71,8 @@ struct TexgenNode : NodeModel
     QRhiTexture* texture{};
     void init(RenderList& renderer) override
     {
-      defaultMeshInit(renderer);
+      const TexturedTriangle& mesh = TexturedTriangle::instance();
+      defaultMeshInit(renderer, mesh);
       defaultUBOInit(renderer);
       m_material.init(renderer, node.input, m_samplers);
 
@@ -95,7 +96,7 @@ struct TexgenNode : NodeModel
         sampler->create();
         m_samplers.push_back({sampler, texture});
       }
-      defaultPassesInit(renderer);
+      defaultPassesInit(renderer, mesh);
     }
 
     void

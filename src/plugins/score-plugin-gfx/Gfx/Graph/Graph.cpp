@@ -74,7 +74,7 @@ static void graphwalk(std::vector<score::gfx::Node*>& model_nodes)
   auto k = boost::add_vertex(model_nodes.front(), g);
   m[model_nodes.front()] = k;
 
-  int processed = 0;
+  std::size_t processed = 0;
   while (processed != model_nodes.size())
   {
     graphwalk(model_nodes[processed], model_nodes, g, m);

@@ -12,7 +12,24 @@
 
 namespace score::gfx
 {
+static int imageIndex(int idx, int size)
+{
+  if(size > 0)
+  {
+    idx %= size;
+    if(idx < 0)
+      idx += size;
 
+    SCORE_ASSERT(idx >= 0);
+    SCORE_ASSERT(idx < size);
+
+    return idx;
+  }
+  else
+  {
+    return 0;
+  }
+}
 static const constexpr auto images_vertex_shader = R"_(#version 450
 layout(location = 0) in vec2 position;
 layout(location = 1) in vec2 texcoord;
@@ -26,12 +43,18 @@ layout(std140, binding = 0) uniform renderer_t {
   vec2 renderSize;
 };
 
+layout(std140, binding = 2) uniform material_t {
+  int idx;
+  float opacity;
+  vec2 position;
+  vec2 scale;
+} mat;
 out gl_PerVertex { vec4 gl_Position; };
 
 void main()
 {
-  v_texcoord = texcoord;
-  gl_Position = clipSpaceCorrMatrix * vec4(position.xy, 0.0, 1.);
+  v_texcoord = vec2(texcoord.x, texcoordAdjust.y + texcoordAdjust.x * texcoord.y);
+  gl_Position = clipSpaceCorrMatrix * vec4(mat.position + mat.scale * position, 0.0, 1.);
 }
 )_";
 
@@ -47,7 +70,7 @@ layout(std140, binding = 2) uniform material_t {
   float opacity;
   vec2 position;
   vec2 scale;
-};
+} mat;
 
 layout(binding=3) uniform sampler2D y_tex;
 
@@ -56,13 +79,7 @@ layout(location = 0) out vec4 fragColor;
 
 void main ()
 {
-  vec2 factor = textureSize(y_tex, 0) / renderSize;
-  vec2 ifactor = renderSize / textureSize(y_tex, 0);
-  vec2 texcoord = vec2(v_texcoord.x, texcoordAdjust.y + texcoordAdjust.x * v_texcoord.y);
-  texcoord = vec2(1) - ifactor * vec2(position.x, 1. - position.y) + texcoord / factor;
-  texcoord = texcoord / scale;
-  float actual = texcoord.x >= 0 && texcoord.x <= 1 && texcoord.y >= 0 && texcoord.y <= 1 ? 1.0f : 0.0f;
-  fragColor = texture(y_tex, texcoord) * opacity * actual;
+  fragColor = texture(y_tex, v_texcoord) * mat.opacity;
 }
 )_";
 ImagesNode::ImagesNode()
@@ -90,6 +107,20 @@ void ImagesNode::process(const Message& msg)
       switch(p)
       {
         case 0: // Image index
+        {
+          auto sink = ossia::gfx::port_index{msg.node_id, p };
+          std::visit([this, sink] (const auto& v) { ProcessNode::process(sink.port, v); }, std::move(m));
+
+          if(linearImages.size() > 0)
+          {
+            const int idx = imageIndex(ubo.currentImageIndex, linearImages.size());
+            auto sz = linearImages[idx]->size();
+            ubo.imageSize[0] = sz.width();
+            ubo.imageSize[1] = sz.height();
+          }
+
+          break;
+        }
         case 1: // Opacity
         case 2: // Position
         {
@@ -120,8 +151,25 @@ void ImagesNode::process(const Message& msg)
         case 5: // Images
         {
           {
+            linearImages.clear();
             Gfx::releaseImages(images);
             images = Gfx::getImages(*val);
+            for(auto& img : images)
+            {
+              for(auto& frame : img.frames)
+              {
+                linearImages.push_back(&frame);
+              }
+            }
+
+            if(linearImages.size() > 0)
+            {
+              const int idx = imageIndex(ubo.currentImageIndex, linearImages.size());
+              auto sz = linearImages[idx]->size();
+              ubo.imageSize[0] = sz.width();
+              ubo.imageSize[1] = sz.height();
+            }
+
             ++this->imagesChanged;
           }
           break;
@@ -158,29 +206,26 @@ private:
     const int limits_min = rhi.resourceLimit(QRhi::ResourceLimit::TextureSizeMin);
     const int limits_max = rhi.resourceLimit(QRhi::ResourceLimit::TextureSizeMax);
 
-    for (const score::gfx::Image& img : n.images)
+    for (const QImage* frame : n.linearImages)
     {
-      for (const QImage& frame : img.frames)
-      {
-        const QSize sz = frame.size();
-        auto tex = rhi.newTexture(
-            QRhiTexture::BGRA8,
-            resizeTextureSize(QSize{sz.width(), sz.height()}, limits_min, limits_max),
-            1,
-            QRhiTexture::Flag{});
+      const QSize sz = frame->size();
+      auto tex = rhi.newTexture(
+          QRhiTexture::BGRA8,
+          resizeTextureSize(QSize{sz.width(), sz.height()}, limits_min, limits_max),
+          1,
+          QRhiTexture::Flag{});
 
-        tex->setName("ImagesNode::tex");
-        tex->create();
-        m_textures.push_back(tex);
-      }
+      tex->setName("ImagesNode::tex");
+      tex->create();
+      m_textures.push_back(tex);
     }
-
   }
 
   TextureRenderTarget renderTargetForInput(const Port& p) override { return { }; }
   void init(RenderList& renderer) override
   {
-    defaultMeshInit(renderer);
+    const TexturedQuad& mesh = TexturedQuad::instance();
+    defaultMeshInit(renderer, mesh);
     defaultUBOInit(renderer);
     m_material.init(renderer, node.input, m_samplers);
 
@@ -205,14 +250,12 @@ private:
       m_samplers.push_back({sampler, tex});
     }
 
-    defaultPassesInit(renderer);
+    defaultPassesInit(renderer, mesh);
   }
 
   void
   update(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
-    defaultUBOUpdate(renderer, res);
-
     auto& n = static_cast<const ImagesNode&>(this->node);
     bool updateCurrentTexture = false;
     if(n.imagesChanged > imagesChanged)
@@ -235,20 +278,10 @@ private:
       const int limits_max = renderer.state.rhi->resourceLimit(QRhi::ResourceLimit::TextureSizeMax);
 
       std::size_t k = 0;
-      for (std::size_t i = 0, N = n.images.size(); i < N && k < m_textures.size(); i++)
+      for (const QImage* frame : n.linearImages)
       {
-        for (const auto& frame : n.images[i].frames)
-        {
-          if(k < m_textures.size())
-          {
-            res.uploadTexture(m_textures[k], resizeTexture(frame, limits_min, limits_max));
-            k++;
-          }
-          else
-          {
-            break;
-          }
-        }
+        res.uploadTexture(m_textures[k], resizeTexture(*frame, limits_min, limits_max));
+        k++;
       }
       m_uploaded = true;
       updateCurrentTexture = true;
@@ -262,8 +295,7 @@ private:
       auto& sampler = m_samplers[0].sampler;
       if (!m_textures.empty())
       {
-        auto idx = ossia::clamp(
-            int(n.ubo.currentImageIndex), int(0), int(m_textures.size()) - 1);
+        const int idx = imageIndex(n.ubo.currentImageIndex, m_textures.size());
 
         for(auto& pass : m_p)
         {
@@ -281,6 +313,18 @@ private:
       }
       m_prev_ubo.currentImageIndex = n.ubo.currentImageIndex;
     }
+
+    defaultUBOUpdate(renderer, res);
+  }
+
+  QRhiResourceUpdateBatch* runRenderPass(
+      RenderList& renderer,
+      QRhiCommandBuffer& cb,
+      Edge& edge) override
+  {
+    auto& mesh = TexturedQuad::instance();
+    defaultRenderPass(renderer, mesh, cb, edge);
+    return nullptr;
   }
 
   void release(RenderList& r) override
@@ -377,7 +421,8 @@ private:
   TextureRenderTarget renderTargetForInput(const Port& p) override { return { }; }
   void init(RenderList& renderer) override
   {
-    defaultMeshInit(renderer);
+    const TexturedTriangle& mesh = TexturedTriangle::instance();
+    defaultMeshInit(renderer, mesh);
     defaultUBOInit(renderer);
     m_material.init(renderer, node.input, m_samplers);
 
@@ -410,7 +455,7 @@ private:
       m_samplers.push_back({sampler, m_texture});
     }
 
-    defaultPassesInit(renderer);
+    defaultPassesInit(renderer, mesh);
   }
 
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override
@@ -424,6 +469,16 @@ private:
       res.uploadTexture(m_texture, n.m_image);
       m_uploaded = true;
     }
+  }
+
+  QRhiResourceUpdateBatch* runRenderPass(
+      RenderList& renderer,
+      QRhiCommandBuffer& cb,
+      Edge& edge) override
+  {
+    auto& mesh = TexturedTriangle::instance();
+    defaultRenderPass(renderer, mesh, cb, edge);
+    return nullptr;
   }
 
   void release(RenderList& r) override

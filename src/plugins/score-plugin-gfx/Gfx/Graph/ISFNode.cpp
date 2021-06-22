@@ -216,7 +216,7 @@ ISFNode::ISFNode(
   }
 
   // Size of the pass textures (vec4)
-  for (int i = 0; i < desc.pass_targets.size(); i++)
+  for (std::size_t i = 0; i < desc.pass_targets.size(); i++)
     sz_vis(isf::color_input{});
 
   m_materialSize = sz_vis.sz;
@@ -236,7 +236,7 @@ ISFNode::ISFNode(
   {
     char* data = visitor.data;
     int sz = visitor.sz;
-    for (int i = 0; i < desc.pass_targets.size(); i++)
+    for (std::size_t i = 0; i < desc.pass_targets.size(); i++)
     {
       // Passes also need an _imgRect uniform
       while (sz % 16 != 0)

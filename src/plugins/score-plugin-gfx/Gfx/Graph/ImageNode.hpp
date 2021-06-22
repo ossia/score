@@ -24,15 +24,16 @@ public:
     float opacity{1.};
     float position[2]{0.5, 0.5};
     float scale[2]{1., 1.};
+    float imageSize[2]{1., 1.};
   } ubo;
 
   std::atomic_int imagesChanged{};
 
 private:
   void process(const Message& msg) override;
-  const TexturedQuad& m_mesh = TexturedQuad::instance();
 
   std::vector<score::gfx::Image> images;
+  std::vector<QImage*> linearImages;
 };
 struct FullScreenImageNode : NodeModel
 {
@@ -45,7 +46,6 @@ public:
 
   class Renderer;
 private:
-  const TexturedTriangle& m_mesh = TexturedTriangle::instance();
   QImage m_image;
 };
 }

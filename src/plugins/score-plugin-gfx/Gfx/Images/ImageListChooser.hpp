@@ -20,7 +20,6 @@ UUID_METADATA(
 
 namespace WidgetFactory
 {
-
 struct ImageListChooserItems
 {
   static QWidget* make_widget(
@@ -30,19 +29,6 @@ struct ImageListChooserItems
       QWidget* parent,
       QObject* context);
 
-  /*
-  struct LineEditItem : public QGraphicsTextItem
-  {
-    LineEditItem()
-    {
-      setTextInteractionFlags(Qt::TextEditorInteraction);
-      auto ctl = this->findChild<QWidgetTextControl*>();
-      if (ctl)
-      {
-        ctl->setAcceptRichText(false);
-      }
-    }
-  };*/
   static QGraphicsItem* make_item(
       const Gfx::Images::ImageListChooser& slider,
       const Gfx::Images::ImageListChooser& inlet,
@@ -50,8 +36,6 @@ struct ImageListChooserItems
       QGraphicsItem* parent,
       QObject* context);
 };
-
-
 }
 
 namespace Gfx::Images

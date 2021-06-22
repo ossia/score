@@ -70,7 +70,7 @@ struct HAPDecoder : GPUVideoDecoder
                                   void* p,
                                   unsigned int count,
                                   void* info) {
-          for (int i = 0; i < count; i++)
+          for (std::size_t i = 0; i < count; i++)
             function(p, i);
         };
         void* ctx = nullptr;
@@ -325,7 +325,7 @@ void main ()
                               void* p,
                               unsigned int count,
                               void* info) {
-      for (int i = 0; i < count; i++)
+      for (std::size_t i = 0; i < count; i++)
         function(p, i);
     };
     void* ctx = nullptr;

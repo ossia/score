@@ -151,6 +151,7 @@ static std::optional<score::gfx::Image> readImage(const QString& filename)
     return {};
 
   QImageReader reader{filename};
+  reader.setBackgroundColor(Qt::transparent);
   std::vector<QImage> frames;
   while (reader.canRead())
   {

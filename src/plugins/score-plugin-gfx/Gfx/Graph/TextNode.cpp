@@ -114,7 +114,8 @@ private:
   void init(RenderList& renderer) override
   {
     rerender();
-    defaultMeshInit(renderer);
+    const TexturedQuad& mesh = TexturedQuad::instance();
+    defaultMeshInit(renderer, mesh);
     defaultUBOInit(renderer);
     m_material.init(renderer, node.input, m_samplers);
 
@@ -144,7 +145,7 @@ private:
       m_samplers.push_back({sampler, tex});
     }
 
-    defaultPassesInit(renderer);
+    defaultPassesInit(renderer, mesh);
   }
 
   void
@@ -169,6 +170,16 @@ private:
 
       m_uploaded = true;
     }
+  }
+
+  QRhiResourceUpdateBatch* runRenderPass(
+      RenderList& renderer,
+      QRhiCommandBuffer& cb,
+      Edge& edge) override
+  {
+    auto& mesh = TexturedQuad::instance();
+    defaultRenderPass(renderer, mesh, cb, edge);
+    return nullptr;
   }
 
   void release(RenderList& r) override

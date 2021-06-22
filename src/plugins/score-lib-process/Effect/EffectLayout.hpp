@@ -147,8 +147,10 @@ auto createControl(
   }
   else
   {
-    QRectF itemRect{0., 0, 90., 20.};
+    QRectF itemRect{0., 0, 90., 30.};
     QPointF pos = Process::currentWigetPos(i, setup.getControlSize);
+    portItem->setPos(8., 4.);
+    lab->setPos(20., 2);
     item->setPos(pos);
     item->setRect(itemRect);
 

@@ -15,11 +15,10 @@ TextureRenderTarget GenericNodeRenderer::renderTargetForInput(const Port& p)
   return { };
 }
 
-void GenericNodeRenderer::defaultMeshInit(RenderList& renderer)
+void GenericNodeRenderer::defaultMeshInit(RenderList& renderer, const Mesh& mesh)
 {
   if (!m_meshBuffer)
   {
-    auto& mesh = TexturedTriangle::instance();
     auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh);
     m_meshBuffer = mbuffer;
     m_idxBuffer = ibuffer;
@@ -35,9 +34,8 @@ void GenericNodeRenderer::defaultUBOInit(RenderList& renderer)
   m_processUBO->create();
 }
 
-void GenericNodeRenderer::defaultPassesInit(RenderList& renderer)
+void GenericNodeRenderer::defaultPassesInit(RenderList& renderer, const Mesh& mesh)
 {
-  auto& mesh = TexturedTriangle::instance();
   for(Edge* edge : this->node.output[0]->edges)
   {
     auto rt = renderer.renderTargetForOutput(*edge);
@@ -58,12 +56,13 @@ void GenericNodeRenderer::defaultPassesInit(RenderList& renderer)
 
 void GenericNodeRenderer::init(RenderList& renderer)
 {
-  defaultMeshInit(renderer);
+  auto& mesh = TexturedTriangle::instance();
+  defaultMeshInit(renderer, mesh);
   defaultUBOInit(renderer);
 
   m_material.init(renderer, node.input, m_samplers);
 
-  defaultPassesInit(renderer);
+  defaultPassesInit(renderer, mesh);
 }
 
 void GenericNodeRenderer::defaultUBOUpdate(RenderList& renderer, QRhiResourceUpdateBatch& res)
@@ -125,8 +124,10 @@ QRhiResourceUpdateBatch* NodeRenderer::runRenderPass(
 {
   return nullptr;
 }
-QRhiResourceUpdateBatch* GenericNodeRenderer::runRenderPass(
+
+void GenericNodeRenderer::defaultRenderPass(
     RenderList& renderer,
+    const Mesh& mesh,
     QRhiCommandBuffer& cb,
     Edge& edge)
 {
@@ -138,13 +139,21 @@ QRhiResourceUpdateBatch* GenericNodeRenderer::runRenderPass(
     cb.setShaderResources(it->second.srb);
     cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
 
-    auto& mesh = TexturedTriangle::instance();
     assert(this->m_meshBuffer);
     assert(this->m_meshBuffer->usage().testFlag(QRhiBuffer::VertexBuffer));
     mesh.setupBindings(*this->m_meshBuffer, this->m_idxBuffer, cb);
 
     cb.draw(mesh.vertexCount);
   }
+}
+
+QRhiResourceUpdateBatch* GenericNodeRenderer::runRenderPass(
+    RenderList& renderer,
+    QRhiCommandBuffer& cb,
+    Edge& edge)
+{
+  auto& mesh = TexturedTriangle::instance();
+  defaultRenderPass(renderer, mesh, cb, edge);
   return nullptr;
 }
 

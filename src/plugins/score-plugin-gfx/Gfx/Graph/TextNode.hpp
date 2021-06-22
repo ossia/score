@@ -36,7 +36,6 @@ public:
 
   std::atomic_bool mustRerender{true};
 private:
-  const TexturedQuad& m_mesh = TexturedQuad::instance();
 };
 
 }

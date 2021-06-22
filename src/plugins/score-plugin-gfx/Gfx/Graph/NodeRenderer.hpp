@@ -70,9 +70,9 @@ public:
   int64_t materialChangedIndex{-1};
 
   // Render loop
-  void defaultMeshInit(RenderList& renderer);
+  void defaultMeshInit(RenderList& renderer, const Mesh& mesh);
   void defaultUBOInit(RenderList& renderer);
-  void defaultPassesInit(RenderList& renderer);
+  void defaultPassesInit(RenderList& renderer, const Mesh& mesh);
   void init(RenderList& renderer) override;
 
   void defaultUBOUpdate(RenderList& renderer, QRhiResourceUpdateBatch& res);
@@ -80,6 +80,12 @@ public:
 
   void defaultRelease(RenderList&);
   void release(RenderList&) override;
+
+  void defaultRenderPass(
+      RenderList&,
+      const Mesh& mesh,
+      QRhiCommandBuffer& commands,
+      Edge& edge);
 
   QRhiResourceUpdateBatch* runRenderPass(
       RenderList&,

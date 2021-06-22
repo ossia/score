@@ -2,7 +2,7 @@
 #include <score/document/DocumentContext.hpp>
 
 #include <QStandardItemModel>
-#include <QTableView>
+#include <QListView>
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -10,7 +10,7 @@
 #include <verdigris>
 
 #include <ossia/network/value/value_conversion.hpp>
-
+#include <score/graphics/RectItem.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 
 #include <Process/Commands/SetControlValue.hpp>
@@ -40,7 +40,7 @@ class EditableTable : public QWidget
 {
   W_OBJECT(EditableTable)
 public:
-  QTableView* table{};
+  QListView* table{};
   QStandardItemModel* model{};
 
   EditableTable(QWidget* parent = nullptr)
@@ -49,30 +49,22 @@ public:
     setContentsMargins(0, 0, 0, 0);
     auto lay = new QVBoxLayout{this};
     model = new QStandardItemModel{};
-    model->insertColumns(0, 2);
-    model->setHeaderData(0, Qt::Vertical, QObject::tr("Image"), Qt::DisplayRole);
-    model->setHeaderData(1, Qt::Vertical, QObject::tr("Path"), Qt::DisplayRole);
-    table = new QTableView;
+    model->insertColumns(0, 1);
+    model->setHorizontalHeaderLabels({tr("Path")});
+
+    table = new QListView;
+
     table->setModel(model);
     lay->addWidget(table);
 
     auto btn_lay = new QHBoxLayout;
     auto add = new QPushButton{tr("+")};
-    connect(add, &QPushButton::clicked, this, &EditableTable::addItems);
+    connect(add, &QPushButton::clicked, this, &EditableTable::on_addItems);
     auto rm = new QPushButton{tr("-")};
-    connect(add, &QPushButton::clicked, this, &EditableTable::removeItem);
+    connect(rm, &QPushButton::clicked, this, &EditableTable::on_removeItem);
     btn_lay->addWidget(add);
     btn_lay->addWidget(rm);
     lay->addLayout(btn_lay);
-  }
-
-  void addItems()
-  {
-    auto files = QFileDialog::getOpenFileNames(this, tr("Choose images..."), QString{}, QString{"Images (*.png *.jpg *.jpeg *.gif *.bmp *.tiff)"});
-    for(auto f : files)
-    {
-      addItem(f);
-    }
   }
 
   void addItem(QString f)
@@ -82,19 +74,6 @@ public:
     {
       auto path = new QStandardItem{f};
       model->insertRow(model->rowCount(), QList<QStandardItem*>{path});
-    }
-  }
-  void removeItem()
-  {
-    auto indices = table->selectionModel()->selectedIndexes();
-    std::vector<int> rows;
-    for(auto& index : indices)
-      rows.push_back(index.row());
-    std::sort(rows.begin(), rows.end());
-    for(auto it = rows.rbegin(); it != rows.rend(); ++it)
-    {
-      qDebug() << "removing row:" << *it;
-      model->removeRow(*it);
     }
   }
 
@@ -130,6 +109,29 @@ public:
 
   void itemsChanged() W_SIGNAL(itemsChanged);
 
+private:
+  void on_addItems()
+  {
+    auto files = QFileDialog::getOpenFileNames(this, tr("Choose images..."), QString{}, QString{"Images (*.png *.jpg *.jpeg *.gif *.bmp *.tiff)"});
+    for(auto f : files)
+    {
+      addItem(f);
+    }
+    itemsChanged();
+  }
+
+  void on_removeItem()
+  {
+    auto indices = table->selectionModel()->selectedIndexes();
+    ossia::flat_set<int> rows;
+    for(auto& index : indices)
+      rows.insert(index.row());
+    for(auto it = rows.rbegin(); it != rows.rend(); ++it)
+    {
+      model->removeRow(*it);
+    }
+    itemsChanged();
+  }
 };
 
 QWidget* WidgetFactory::ImageListChooserItems::make_widget(
@@ -166,36 +168,7 @@ QWidget* WidgetFactory::ImageListChooserItems::make_widget(
 
 QGraphicsItem* WidgetFactory::ImageListChooserItems::make_item(const Gfx::Images::ImageListChooser& slider, const Gfx::Images::ImageListChooser& inlet, const score::DocumentContext& ctx, QGraphicsItem* parent, QObject* context)
 {
-  return nullptr;
-  /*
-    auto sl = new LineEditItem{};
-    sl->setTextWidth(180.);
-    sl->setDefaultTextColor(QColor{"#E0B01E"});
-    sl->setCursor(Qt::IBeamCursor);
-
-  sl->setPlainText(
-      QString::fromStdString(ossia::convert<std::string>(inlet.value())));
-
-  auto doc = sl->document();
-  QObject::connect(
-      doc, &QTextDocument::contentsChanged, context, [=, &inlet, &ctx] {
-        auto cur_str = ossia::convert<std::string>(inlet.value());
-        if (cur_str != doc->toPlainText().toStdString())
-        {
-          CommandDispatcher<>{ctx.commandStack}
-              .submit<SetControlValue<Control_T>>(
-                  inlet, doc->toPlainText().toStdString());
-        }
-      });
-  QObject::connect(
-      &inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
-        auto str = QString::fromStdString(ossia::convert<std::string>(val));
-        if (str != doc->toPlainText())
-          doc->setPlainText(str);
-      });
-
-  return sl;
-  */
+  return nullptr;// new QGraphicsEllipseItem{QRectF{0,0,20,20}, parent};
 }
 
 W_OBJECT_IMPL(EditableTable)
