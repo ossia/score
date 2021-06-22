@@ -479,30 +479,28 @@ ReadFrame
 VideoDecoder::enqueue_frame(const AVPacket* pkt, AVFrame** frame) noexcept
 {
   ReadFrame read = readVideoFrame(m_codecContext, pkt, *frame);
-  if (read.frame)
+  if (read.frame && m_rescale)
   {
-    if (m_rescale)
-    {
-      // alloc an rgb frame
-      auto m_rgb = av_frame_alloc();
-      m_rgb->width = this->width;
-      m_rgb->height = this->height;
-      m_rgb->format = AV_PIX_FMT_RGBA;
-      av_frame_get_buffer(m_rgb, 0);
+    // alloc an rgb frame
+    auto rgb = get_new_frame();
+    rgb->width = this->width;
+    rgb->height = this->height;
+    rgb->format = AV_PIX_FMT_RGBA;
+    av_frame_get_buffer(rgb, 0);
 
-      // 2. Resize
-      sws_scale(
-          m_rescale,
-          (*frame)->data,
-          (*frame)->linesize,
-          0,
-          this->height,
-          m_rgb->data,
-          m_rgb->linesize);
+    // 2. Resize
+    sws_scale(
+        m_rescale,
+        (*frame)->data,
+        (*frame)->linesize,
+        0,
+        this->height,
+        rgb->data,
+        rgb->linesize);
 
-      av_frame_free(frame);
-      *frame = m_rgb;
-    }
+    av_frame_free(frame);
+    *frame = rgb;
+    read.frame = rgb;
   }
   return read;
 }
