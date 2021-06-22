@@ -126,9 +126,10 @@ private:
     ossia::flat_set<int> rows;
     for(auto& index : indices)
       rows.insert(index.row());
-    for(auto it = rows.rbegin(); it != rows.rend(); ++it)
+    for(auto& index : indices) 
     {
-      model->removeRow(*it);
+    // FIXME
+      model->removeRow(index.row());
     }
     itemsChanged();
   }
