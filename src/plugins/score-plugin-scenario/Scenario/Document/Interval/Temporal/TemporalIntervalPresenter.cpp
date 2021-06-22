@@ -1198,7 +1198,7 @@ void TemporalIntervalPresenter::requestProcessSelectorMenu(
 
 void TemporalIntervalPresenter::on_defaultDurationChanged(const TimeVal& val)
 {
-  const auto w = val.toPixels(m_zoomRatio);
+  const auto w = val.toPixelsRaw(m_zoomRatio);
   m_view->setDefaultWidth(w);
   m_view->updateCounterPos();
   m_header->setWidth(w - 20.);

@@ -130,6 +130,7 @@ private:
   void on_timeRulerScrollEvent(QPointF, QPointF);
   void on_horizontalPositionChanged(int dx);
   void on_minimapChanged(double l, double r);
+  void on_executionTimer();
   ZoomRatio computeZoom(double l, double r);
 
   void on_addProcessFromLibrary(const Library::ProcessData& dat);

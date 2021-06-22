@@ -106,7 +106,7 @@ const Id<IntervalModel>& IntervalPresenter::id() const
 
 void IntervalPresenter::on_minDurationChanged(const TimeVal& min)
 {
-  auto x = min.toPixels(m_zoomRatio);
+  auto x = min.toPixelsRaw(m_zoomRatio);
   m_view->setMinWidth(x);
   m_view->leftBrace().setX(x);
   updateBraces();
@@ -114,7 +114,7 @@ void IntervalPresenter::on_minDurationChanged(const TimeVal& min)
 
 void IntervalPresenter::on_maxDurationChanged(const TimeVal& max)
 {
-  auto x = max.toPixels(m_zoomRatio);
+  auto x = max.toPixelsRaw(m_zoomRatio);
   m_view->setMaxWidth(
       m_model.duration.isMaxInfinite(),
       m_model.duration.isMaxInfinite() ? -1 : x);

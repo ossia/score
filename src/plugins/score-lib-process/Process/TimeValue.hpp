@@ -143,6 +143,11 @@ struct SCORE_LIB_PROCESS_EXPORT TimeVal : ossia::time_value
     return (ratio > 0 && !infinite()) ? std::round(impl / ratio) : 0;
   }
 
+  constexpr double toPixelsRaw(ZoomRatio ratio) const noexcept
+  {
+    return (ratio > 0 && !infinite()) ? impl / ratio : 0;
+  }
+
   constexpr int64_t toSample(double sampleRate) const noexcept
   {
     return ossia::to_sample(*this, sampleRate);

@@ -225,21 +225,7 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
       Qt::QueuedConnection);
 
   // Execution timers
-  con(m_context.coarseUpdateTimer, &QTimer::timeout, this, [&] {
-    auto pctg = displayedInterval().duration.playPercentage();
-    if (auto p = presenters().intervalPresenter())
-    {
-      auto& itv = *p->view();
-      auto x = pctg * itv.defaultWidth() + itv.pos().x();
-      if (x != view().timeBar().x())
-        view().timeBar().setPos(x, 0);
-    }
-    else if (m_nodal)
-    {
-      m_nodal->on_playPercentageChanged(
-          pctg, displayedInterval().duration.defaultDuration());
-    }
-  });
+  con(m_context.coarseUpdateTimer, &QTimer::timeout, this, &ScenarioDocumentPresenter::on_executionTimer);
 
   // Nodal mode control
   if (auto tb
@@ -708,9 +694,29 @@ void ScenarioDocumentPresenter::on_minimapChanged(double l, double r)
       dur.impl
       * (view().visibleSceneRect().center().x() / dur.toPixels(newZoom))));
 
+  // Update the time bar if it's visible
+  on_executionTimer();
+
   m_zooming = false;
 
   m_updatingMinimap = false;
+}
+
+void ScenarioDocumentPresenter::on_executionTimer()
+{
+  auto pctg = displayedInterval().duration.playPercentage();
+  if (auto p = presenters().intervalPresenter())
+  {
+    auto& itv = *p->view();
+    auto x = pctg * itv.defaultWidth() + itv.pos().x();
+    if (x != view().timeBar().x())
+      view().timeBar().setPos(x, 0);
+  }
+  else if (m_nodal)
+  {
+    m_nodal->on_playPercentageChanged(
+        pctg, displayedInterval().duration.defaultDuration());
+  }
 }
 
 void ScenarioDocumentPresenter::updateRect(const QRectF& rect)
