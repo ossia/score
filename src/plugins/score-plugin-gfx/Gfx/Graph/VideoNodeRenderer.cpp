@@ -45,6 +45,7 @@ void VideoNodeRenderer::createGpuDecoder()
   switch (m_currentFormat)
   {
     case AV_PIX_FMT_YUV420P:
+    case AV_PIX_FMT_YUVJ420P:
       m_gpu = std::make_unique<YUV420Decoder>(*m_decoder);
       break;
     case AV_PIX_FMT_YUVJ422P:
