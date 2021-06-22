@@ -243,6 +243,7 @@ bool CameraInput::open_stream() noexcept
         {
           // Supported formats for gpu decoding
           case AV_PIX_FMT_YUV420P:
+          case AV_PIX_FMT_YUVJ420P:
           case AV_PIX_FMT_YUVJ422P:
           case AV_PIX_FMT_YUV422P:
           case AV_PIX_FMT_RGB0:
