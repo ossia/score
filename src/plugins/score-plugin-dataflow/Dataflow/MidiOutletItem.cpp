@@ -3,8 +3,11 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Inspector/InspectorLayout.hpp>
 #include <Process/Dataflow/AudioPortComboBox.hpp>
+
+#if defined(SCORE_PLUGIN_PROTOCOLS)
 #include <Protocols/MIDI/MIDIProtocolFactory.hpp>
 #include <Protocols/MIDI/MIDISpecificSettings.hpp>
+#endif
 
 #include <score/document/DocumentContext.hpp>
 
@@ -17,6 +20,7 @@ void MidiOutletFactory::setupOutletInspector(
     Inspector::Layout& lay,
     QObject* context)
 {
+#if defined(SCORE_PLUGIN_PROTOCOLS)
   static const MSVC_BUGGY_CONSTEXPR auto midi_uuid
       = Protocols::MIDIOutputProtocolFactory::static_concreteKey();
 
@@ -36,5 +40,6 @@ void MidiOutletFactory::setupOutletInspector(
   });
 
   lay.addRow(Process::makeDeviceCombo(midiDevices, port, ctx, parent));
+#endif
 }
 }

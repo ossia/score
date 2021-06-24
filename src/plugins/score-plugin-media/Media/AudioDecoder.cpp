@@ -776,12 +776,16 @@ void AudioDecoder::on_startDecode(QString path, audio_handle hdl)
 
     AVStream* stream{};
 
+    // Find the first audio stream
     for (std::size_t i = 0; i < fmt_ctx->nb_streams; i++)
     {
-      if (fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
+      if (fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO && !stream)
       {
         stream = fmt_ctx->streams[i];
-        break;
+      }
+      else
+      {
+        fmt_ctx->streams[i]->discard = AVDISCARD_ALL;
       }
     }
 
@@ -828,13 +832,25 @@ void AudioDecoder::on_startDecode(QString path, audio_handle hdl)
       }
     }
 
+    auto read_frame = [&]  (AVPacket& packet){
+      int ret{};
+      ret = av_read_frame(fmt_ctx.get(), &packet);
+
+      while(ret >= 0 && ret != AVERROR(EOF) && packet.stream_index != stream->index)
+      {
+        av_packet_unref(&packet);
+        ret = av_read_frame(fmt_ctx.get(), &packet);
+      }
+
+      return ret;
+    };
     // decoding
     eggs::variants::apply(
         [&](auto& dec) {
           AVPacket packet;
           AVFrame_ptr frame{av_frame_alloc()};
 
-          ret = av_read_frame(fmt_ctx.get(), &packet);
+          ret = read_frame(packet);
 
           debug_ffmpeg(ret, "av_read_frame");
           int update = 0;
@@ -860,13 +876,15 @@ void AudioDecoder::on_startDecode(QString path, audio_handle hdl)
                   }
                 }
 
-                ret = av_read_frame(fmt_ctx.get(), &packet);
+                av_packet_unref(&packet);
+                ret = read_frame(packet);
                 debug_ffmpeg(ret, "av_read_frame");
                 continue;
               }
               else if (ret == AVERROR(EAGAIN))
               {
-                ret = av_read_frame(fmt_ctx.get(), &packet);
+                av_packet_unref(&packet);
+                ret = read_frame(packet);
                 debug_ffmpeg(ret, "av_read_frame");
                 continue;
               }

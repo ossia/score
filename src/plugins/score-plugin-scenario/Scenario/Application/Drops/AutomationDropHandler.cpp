@@ -376,7 +376,6 @@ bool DropProcessInScenario::drop(
   if (auto res = handlers.getDrop(mime, ctx); !res.empty())
   {
     auto t = handlers.getMaxDuration(res).value_or(TimeVal::fromMsecs(10000.));
-
     DropProcessInScenarioHelper dropper(m_magnetic, pres, pos, t);
 
     score::Dispatcher_T disp{dropper.macro()};
