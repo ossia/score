@@ -55,9 +55,9 @@ int GLCapabilities::glShaderVersion() noexcept
           case 2:
             return 150;
           case 1:
-            return 140;
+            return 120; // Technically 140 but Rhi looks for 120
           case 0:
-            return 130;
+            return 120; // Technically 140 but Rhi looks for 120
         }
       }
       else if (major == 2)
