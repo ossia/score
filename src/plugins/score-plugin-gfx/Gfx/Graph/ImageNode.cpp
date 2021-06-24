@@ -226,7 +226,7 @@ private:
   {
     const TexturedQuad& mesh = TexturedQuad::instance();
     defaultMeshInit(renderer, mesh);
-    defaultUBOInit(renderer);
+    processUBOInit(renderer);
     m_material.init(renderer, node.input, m_samplers);
 
     m_prev_ubo.currentImageIndex = -1;
@@ -423,7 +423,7 @@ private:
   {
     const TexturedTriangle& mesh = TexturedTriangle::instance();
     defaultMeshInit(renderer, mesh);
-    defaultUBOInit(renderer);
+    processUBOInit(renderer);
     m_material.init(renderer, node.input, m_samplers);
 
     auto& n = static_cast<const FullScreenImageNode&>(this->node);

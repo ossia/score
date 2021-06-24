@@ -73,7 +73,7 @@ struct TexgenNode : NodeModel
     {
       const TexturedTriangle& mesh = TexturedTriangle::instance();
       defaultMeshInit(renderer, mesh);
-      defaultUBOInit(renderer);
+      processUBOInit(renderer);
       m_material.init(renderer, node.input, m_samplers);
 
       auto& n = static_cast<const TexgenNode&>(this->node);

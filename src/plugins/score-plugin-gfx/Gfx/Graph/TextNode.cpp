@@ -116,7 +116,7 @@ private:
     rerender();
     const TexturedQuad& mesh = TexturedQuad::instance();
     defaultMeshInit(renderer, mesh);
-    defaultUBOInit(renderer);
+    processUBOInit(renderer);
     m_material.init(renderer, node.input, m_samplers);
 
     QRhi& rhi = *renderer.state.rhi;

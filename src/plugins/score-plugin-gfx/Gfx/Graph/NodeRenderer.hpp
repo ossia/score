@@ -71,7 +71,7 @@ public:
 
   // Render loop
   void defaultMeshInit(RenderList& renderer, const Mesh& mesh);
-  void defaultUBOInit(RenderList& renderer);
+  void processUBOInit(RenderList& renderer);
   void defaultPassesInit(RenderList& renderer, const Mesh& mesh);
   void init(RenderList& renderer) override;
 

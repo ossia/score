@@ -25,7 +25,7 @@ void GenericNodeRenderer::defaultMeshInit(RenderList& renderer, const Mesh& mesh
   }
 }
 
-void GenericNodeRenderer::defaultUBOInit(RenderList& renderer)
+void GenericNodeRenderer::processUBOInit(RenderList& renderer)
 {
   auto& rhi = *renderer.state.rhi;
   m_processUBO = rhi.newBuffer(
@@ -58,7 +58,7 @@ void GenericNodeRenderer::init(RenderList& renderer)
 {
   auto& mesh = TexturedTriangle::instance();
   defaultMeshInit(renderer, mesh);
-  defaultUBOInit(renderer);
+  processUBOInit(renderer);
 
   m_material.init(renderer, node.input, m_samplers);
 
@@ -143,7 +143,10 @@ void GenericNodeRenderer::defaultRenderPass(
     assert(this->m_meshBuffer->usage().testFlag(QRhiBuffer::VertexBuffer));
     mesh.setupBindings(*this->m_meshBuffer, this->m_idxBuffer, cb);
 
-    cb.draw(mesh.vertexCount);
+    if(this->m_idxBuffer)
+      cb.drawIndexed(mesh.indexCount);
+    else
+      cb.draw(mesh.vertexCount);
   }
 }
 

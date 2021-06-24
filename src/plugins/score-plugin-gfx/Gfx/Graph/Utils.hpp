@@ -240,4 +240,12 @@ QSize resizeTextureSize(QSize img, int min, int max) noexcept;
 SCORE_PLUGIN_GFX_EXPORT
 QImage resizeTexture(const QImage& img, int min, int max) noexcept;
 
+inline void copyMatrix(const QMatrix4x4& mat, float* ptr) noexcept
+{
+  memcpy(ptr, mat.constData(), sizeof(float) * 16);
+}
+inline void copyMatrix(const QMatrix3x3& mat, float* ptr) noexcept
+{
+  memcpy(ptr, mat.constData(), sizeof(float) * 9);
+}
 }
