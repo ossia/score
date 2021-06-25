@@ -140,6 +140,7 @@ Model::~Model()
   auto& app
       = score::GUIAppContext().applicationPlugin<vst::ApplicationPlugin>();
   app.unregisterRunningVST(this);
+
   closePlugin();
 }
 
@@ -298,8 +299,7 @@ intptr_t vst_host_callback(
     {
       case audioMasterGetTime:
       {
-        auto vst = reinterpret_cast<Model*>(effect->resvd1);
-        if (vst)
+        if (auto vst = reinterpret_cast<Model*>(effect->resvd1))
         {
           result = reinterpret_cast<intptr_t>(&vst->fx->info);
         }
@@ -326,7 +326,8 @@ intptr_t vst_host_callback(
 
       case audioMasterIdle:
       {
-        reinterpret_cast<Model*>(effect->resvd1)->needIdle.store(true, std::memory_order_acquire);
+        if (auto vst = reinterpret_cast<Model*>(effect->resvd1))
+          vst->needIdle.store(true, std::memory_order_release);
         result = 1;
         break;
       }
@@ -337,18 +338,16 @@ intptr_t vst_host_callback(
 
       case audioMasterUpdateDisplay:
       {
-        auto vst = reinterpret_cast<Model*>(effect->resvd1);
-        if (vst)
+        if (auto vst = reinterpret_cast<Model*>(effect->resvd1))
         {
-          vst->reloadControls();
+          ossia::qt::run_async(vst, [=] { vst->reloadControls(); });
         }
         break;
       }
 
       case audioMasterAutomate:
       {
-        auto vst = reinterpret_cast<Model*>(effect->resvd1);
-        if (vst)
+        if (auto vst = reinterpret_cast<Model*>(effect->resvd1))
         {
           ossia::qt::run_async(vst, [=] {
             auto ctrl_it = vst->controls.find(index);
@@ -474,6 +473,8 @@ void Model::closePlugin()
 {
   if (fx)
   {
+    fx->fx->resvd1 = 0;
+    std::atomic_thread_fence(std::memory_order_seq_cst);
     if (externalUI)
     {
       auto w = reinterpret_cast<Window*>(externalUI);
