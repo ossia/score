@@ -599,6 +599,12 @@ struct WaveformComputerImpl
     if (infos.nchannels == 0)
       return;
 
+    if (data.decodedSamples() == 0)
+      return;
+    //auto& rms = data.rms();
+    //if (rms.frames_count == 0)
+    //  return;
+
     // Height of each channel
     infos.logical_h = request.layerSize.height() / (float)infos.nchannels;
     if (infos.logical_h < 1.)
@@ -610,10 +616,6 @@ struct WaveformComputerImpl
     // leftmost point
     infos.logical_x0 = std::max(std::floor(request.view_x0), 0.);
     infos.tempo_ratio = request.tempo_ratio;
-
-    auto& rms = data.rms();
-    if (rms.frames_count == 0)
-      return;
 
     // rightmost point
     const auto audioSampleRate = data.sampleRate();

@@ -37,6 +37,16 @@ template <typename SampleFormat, int N>
 constexpr audio_sample convert_sample(SampleFormat i);
 
 template <>
+constexpr audio_sample convert_sample<uint8_t, 8>(uint8_t i)
+{
+  // 0 -> 255 to -1 -> 1
+  if constexpr (std::is_same_v<ossia::audio_sample, float>)
+    return i / 127.f - 1.f;
+  else
+    return i / 127. - 1.;
+}
+
+template <>
 constexpr audio_sample convert_sample<int16_t, 16>(int16_t i)
 {
   if constexpr (std::is_same_v<audio_sample, float>)
@@ -251,19 +261,27 @@ using decoder_t = eggs::variant<
        Decoder<float,   8, 32, true>,
        Decoder<float,   8, 32, false>,*/
     Decoder<double, dynamic_channels, 64, true>,
-    Decoder<double, dynamic_channels, 64, false>
+    Decoder<double, dynamic_channels, 64, false>,
 
-    >;
+
+    Decoder<uint8_t, 1, 8, true>,
+    Decoder<uint8_t, 2, 8, true>,
+    Decoder<uint8_t, 2, 8, false>,
+    Decoder<uint8_t, dynamic_channels, 8, true>,
+    Decoder<uint8_t, dynamic_channels, 8, false>
+>;
 
 template <std::size_t N>
 decoder_t make_N_decoder(AVStream& stream)
 {
   const int size = stream.codecpar->bits_per_raw_sample;
 
-  if (size == 0 || size == 16 || size == 32)
+  if (size == 0 || size == 8 || size == 16 || size == 32)
   {
     switch ((AVSampleFormat)stream.codecpar->format)
     {
+      case AVSampleFormat::AV_SAMPLE_FMT_U8:
+        return Decoder<uint8_t, N, 8, false>{};
       case AVSampleFormat::AV_SAMPLE_FMT_S16:
         return Decoder<int16_t, N, 16, false>{};
       case AVSampleFormat::AV_SAMPLE_FMT_S32:
@@ -271,6 +289,8 @@ decoder_t make_N_decoder(AVStream& stream)
       case AVSampleFormat::AV_SAMPLE_FMT_FLT:
         return Decoder<float, N, 32, false>{};
 
+      case AVSampleFormat::AV_SAMPLE_FMT_U8P:
+        return Decoder<uint8_t, N, 8, true>{};
       case AVSampleFormat::AV_SAMPLE_FMT_S16P:
         return Decoder<int16_t, N, 16, true>{};
       case AVSampleFormat::AV_SAMPLE_FMT_S32P:
@@ -313,10 +333,12 @@ decoder_t make_dynamic_decoder(AVStream& stream)
   const int size = stream.codecpar->bits_per_raw_sample;
   const std::size_t channels = stream.codecpar->channels;
 
-  if (size == 0 || size == 16 || size == 32)
+  if (size == 0 || size == 8 || size == 16 || size == 32)
   {
     switch ((AVSampleFormat)stream.codecpar->format)
     {
+      case AVSampleFormat::AV_SAMPLE_FMT_U8:
+        return Decoder<uint8_t, dynamic_channels, 8, false>{channels};
       case AVSampleFormat::AV_SAMPLE_FMT_S16:
         return Decoder<int16_t, dynamic_channels, 16, false>{channels};
       case AVSampleFormat::AV_SAMPLE_FMT_S32:
@@ -324,6 +346,8 @@ decoder_t make_dynamic_decoder(AVStream& stream)
       case AVSampleFormat::AV_SAMPLE_FMT_FLT:
         return Decoder<float, dynamic_channels, 32, false>{channels};
 
+      case AVSampleFormat::AV_SAMPLE_FMT_U8P:
+        return Decoder<uint8_t, dynamic_channels, 8, true>{channels};
       case AVSampleFormat::AV_SAMPLE_FMT_S16P:
         return Decoder<int16_t, dynamic_channels, 16, true>{channels};
       case AVSampleFormat::AV_SAMPLE_FMT_S32P:
@@ -368,10 +392,13 @@ decoder_t make_N_decoder<1>(AVStream& stream)
 {
   const int size = stream.codecpar->bits_per_raw_sample;
 
-  if (size == 0 || size == 16 || size == 32)
+  if (size == 0 || size == 8 || size == 16 || size == 32)
   {
     switch ((AVSampleFormat)stream.codecpar->format)
     {
+      case AVSampleFormat::AV_SAMPLE_FMT_U8:
+      case AVSampleFormat::AV_SAMPLE_FMT_U8P:
+        return Decoder<uint8_t, 1, 8, true>{};
       case AVSampleFormat::AV_SAMPLE_FMT_S16:
       case AVSampleFormat::AV_SAMPLE_FMT_S16P:
         return Decoder<int16_t, 1, 16, true>{};

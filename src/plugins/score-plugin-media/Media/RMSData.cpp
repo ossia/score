@@ -21,7 +21,7 @@ static const constexpr auto rms_buffer_size = 64;
 RMSData::RMSData() { }
 
 void RMSData::load(QString abspath, int channels, int rate, TimeVal duration)
-{
+{/*
   this->header = nullptr;
   this->data = nullptr;
   this->m_exists = false;
@@ -75,7 +75,7 @@ void RMSData::load(QString abspath, int channels, int rate, TimeVal duration)
     this->header = reinterpret_cast<Header*>(m_ramData.data());
     this->data = reinterpret_cast<rms_sample_t*>(
         ((char*)m_ramData.data()) + sizeof(Header));
-  }
+  }*/
 }
 
 bool RMSData::exists() const
@@ -93,16 +93,16 @@ void RMSData::decodeLast(
     const std::vector<gsl::span<const ossia::audio_sample>>& audio)
 {
   computeLastRMS(audio, rms_buffer_size);
-
+  /*
   m_file.open(QIODevice::WriteOnly);
   m_file.write(m_ramData);
   m_file.flush();
-  m_file.close();
+  m_file.close();*/
   finishedDecoding();
 }
 
 void RMSData::decode(ossia::drwav_handle& audio)
-{
+{/*
   // store the data in interleaved format, it's much easier...
   const int64_t channels = audio.channels();
   if (channels > 0)
@@ -123,13 +123,13 @@ void RMSData::decode(ossia::drwav_handle& audio)
       samples_count += channels;
     }
   }
-
+*/
   newData();
-
+/*
   m_file.open(QIODevice::WriteOnly);
   m_file.write(m_ramData);
   m_file.flush();
-  m_file.close();
+  m_file.close();*/
   finishedDecoding();
 }
 
@@ -208,7 +208,7 @@ void RMSData::computeChannelRMS(
     ossia::drwav_handle& wav,
     rms_sample_t* bytes,
     int64_t buffer_size)
-{
+{/*
   const int channels = wav.channels();
   float* val = (float*)alloca(sizeof(float) * channels);
 
@@ -232,7 +232,7 @@ void RMSData::computeChannelRMS(
   for (int c = 0; c < channels; c++)
   {
     bytes[c] = val[c] * std::numeric_limits<rms_sample_t>::max();
-  }
+  }*/
 }
 
 void RMSData::computeRMS(
@@ -241,7 +241,7 @@ void RMSData::computeRMS(
 {
   if (audio.empty())
     return;
-
+/*
   // store the data in interleaved format, it's much easier...
   const int64_t channels = audio.size();
   const int64_t max_sample = audio.front().size();
@@ -262,7 +262,7 @@ void RMSData::computeRMS(
     frames_count++;
     samples_count += channels;
   }
-
+*/
   newData();
 }
 
@@ -272,7 +272,7 @@ void RMSData::computeLastRMS(
 {
   if (audio.empty())
     return;
-
+/*
   // store the data in interleaved format, it's much easier...
   const int channels = audio.size();
   const int64_t max_frames = audio.front().size();
@@ -305,7 +305,7 @@ void RMSData::computeLastRMS(
     frames_count++;
     samples_count += channels;
   }
-
+*/
   newData();
 }
 }
