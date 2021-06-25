@@ -852,19 +852,20 @@ void DeviceExplorerWidget::edit()
     if (!dial)
       return;
 
-    connect(dial, &QDialog::accepted, this, [this, dial, select, before] {
+    connect(dial, &QDialog::accepted, this, [this, dial, parent=select.parent(), path=Device::NodePath{select}, before] {
       auto stgs = dial->getSettings();
       // TODO do like for DeviceSettings
-      if (!model()->checkAddressEditable(*select.parent(), before, stgs))
+      if (!model()->checkAddressEditable(*parent, before, stgs))
         return;
 
       auto cmd = new Explorer::Command::UpdateAddressSettings{
-          model()->deviceModel(), Device::NodePath(select), stgs};
+          model()->deviceModel(), path, stgs};
 
       m_cmdDispatcher->submit(cmd);
       updateActions();
       dial->deleteLater();
     });
+
     connect(dial, &QDialog::rejected, this, [this, dial] {
       updateActions();
       dial->deleteLater();
