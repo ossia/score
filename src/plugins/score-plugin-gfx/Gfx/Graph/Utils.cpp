@@ -11,9 +11,15 @@ createRenderTarget(const RenderState& state, QRhiTexture* tex)
   TextureRenderTarget ret;
   ret.texture = tex;
 
+  ret.renderBuffer = state.rhi->newRenderBuffer(QRhiRenderBuffer::DepthStencil, tex->pixelSize(), 1);
+
+
+  ret.renderBuffer->create();
+
   QRhiColorAttachment color0{ret.texture};
 
-  auto renderTarget = state.rhi->newTextureRenderTarget({color0});
+
+  auto renderTarget = state.rhi->newTextureRenderTarget(QRhiTextureRenderTargetDescription(color0, ret.renderBuffer));
   SCORE_ASSERT(renderTarget);
 
   auto renderPass = renderTarget->newCompatibleRenderPassDescriptor();
@@ -24,6 +30,7 @@ createRenderTarget(const RenderState& state, QRhiTexture* tex)
 
   ret.renderTarget = renderTarget;
   ret.renderPass = renderPass;
+
   return ret;
 }
 
@@ -115,11 +122,11 @@ Pipeline buildPipeline(
 
   ps->setSampleCount(1);
 
-  ps->setDepthTest(false);
-  ps->setDepthWrite(false);
+  ps->setDepthTest(true);
+  ps->setDepthWrite(true);
   ps->setTopology(QRhiGraphicsPipeline::TriangleStrip);
-  // m_ps->setCullMode(QRhiGraphicsPipeline::CullMode::Back);
-  // m_ps->setFrontFace(QRhiGraphicsPipeline::FrontFace::CCW);
+  ps->setCullMode(QRhiGraphicsPipeline::CullMode::Back);
+  ps->setFrontFace(QRhiGraphicsPipeline::FrontFace::CCW);
 
   ps->setShaderStages(
       {{QRhiShaderStage::Vertex, vertexS},
