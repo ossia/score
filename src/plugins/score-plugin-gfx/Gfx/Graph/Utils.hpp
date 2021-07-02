@@ -106,6 +106,7 @@ struct Pipeline
 struct TextureRenderTarget
 {
   QRhiTexture* texture{};
+  QRhiRenderBuffer* renderBuffer{};
   QRhiRenderPassDescriptor* renderPass{};
   QRhiRenderTarget* renderTarget{};
 
@@ -117,6 +118,9 @@ struct TextureRenderTarget
     {
       delete texture;
       texture = nullptr;
+
+      delete renderBuffer;
+      renderBuffer = nullptr;
 
       delete renderPass;
       renderPass = nullptr;

@@ -75,6 +75,7 @@ set(HDRS
     Gfx/Graph/PhongNode.hpp
     Gfx/Graph/ImageNode.hpp
     Gfx/Graph/TexgenNode.hpp
+    Gfx/Graph/ScreenNode.hpp
     Gfx/Graph/TextNode.hpp
     Gfx/Graph/ShaderCache.hpp
     Gfx/Graph/Utils.hpp

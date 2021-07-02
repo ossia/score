@@ -270,7 +270,12 @@ void ScreenNode::createOutput(
       // TODO depth stencil, render buffer, etc ?
       m_swapChain = m_window->state.rhi->newSwapChain();
       m_window->m_swapChain = m_swapChain;
+      m_depthStencil = m_window->state.rhi->newRenderBuffer(QRhiRenderBuffer::DepthStencil,
+                                                   QSize(), // no need to set the size here, due to UsedWithSwapChainOnly
+                                                   1,
+                                                   QRhiRenderBuffer::UsedWithSwapChainOnly);
       m_swapChain->setWindow(m_window.get());
+      m_swapChain->setDepthStencil(m_depthStencil);
       m_swapChain->setSampleCount(1);
       m_swapChain->setFlags({});
       m_window->state.renderPassDescriptor

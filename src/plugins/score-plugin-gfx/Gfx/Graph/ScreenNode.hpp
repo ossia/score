@@ -44,6 +44,7 @@ private:
   class Renderer;
   std::shared_ptr<Window> m_window{};
   QRhiSwapChain* m_swapChain{};
+  QRhiRenderBuffer* m_depthStencil{};
   QScreen* m_screen{};
   std::optional<QPoint> m_pos{};
   std::optional<QSize> m_sz{};
