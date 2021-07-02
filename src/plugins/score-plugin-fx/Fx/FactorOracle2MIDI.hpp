@@ -368,7 +368,7 @@ struct Node
     debug_vector_t<libremidi::midi_bytes> midi_bytes;
     std::size_t sequence_idx{};
   };
-  ossia::value* buffer;
+
   using control_policy = ossia::safe_nodes::last_tick;
   static void
   run(const ossia::midi_port& input_midi,
