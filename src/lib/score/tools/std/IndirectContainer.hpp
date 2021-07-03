@@ -133,13 +133,29 @@ public:
   using ctnr_t::ctnr_t;
   using value_type = T;
 
-  auto begin() { return make_indirect_ptr_iterator(ctnr_t::begin()); }
-  auto end() { return make_indirect_ptr_iterator(ctnr_t::end()); }
-  auto begin() const { return make_indirect_ptr_iterator(ctnr_t::begin()); }
-  auto end() const { return make_indirect_ptr_iterator(ctnr_t::end()); }
-  auto cbegin() const { return make_indirect_ptr_iterator(ctnr_t::cbegin()); }
-  auto cend() const { return make_indirect_ptr_iterator(ctnr_t::cend()); }
-  auto size() const { return ctnr_t::size(); }
+  auto begin() noexcept { return make_indirect_ptr_iterator(ctnr_t::begin()); }
+  auto end() noexcept { return make_indirect_ptr_iterator(ctnr_t::end()); }
+  auto begin() const noexcept { return make_indirect_ptr_iterator(ctnr_t::begin()); }
+  auto end() const noexcept { return make_indirect_ptr_iterator(ctnr_t::end()); }
+
+  auto rbegin() noexcept { return make_indirect_ptr_iterator(ctnr_t::rbegin()); }
+  auto rend() noexcept { return make_indirect_ptr_iterator(ctnr_t::rend()); }
+  auto rbegin() const noexcept { return make_indirect_ptr_iterator(ctnr_t::rbegin()); }
+  auto rend() const noexcept { return make_indirect_ptr_iterator(ctnr_t::rend()); }
+
+  auto cbegin() const noexcept { return make_indirect_ptr_iterator(ctnr_t::cbegin()); }
+  auto cend() const noexcept { return make_indirect_ptr_iterator(ctnr_t::cend()); }
+
+  auto size() const noexcept { return ctnr_t::size(); }
+  auto empty() const noexcept { return ctnr_t::empty(); }
+
+  auto push_back(T* ptr) { return ctnr_t::push_back(ptr); }
+
+  auto& front() const noexcept { return *ctnr_t::front(); }
+  auto& back() const noexcept { return *ctnr_t::back(); }
+
+  auto& operator[](int pos) noexcept { return *ctnr_t::operator[](pos); }
+  auto& operator[](int pos) const noexcept { return *ctnr_t::operator[](pos); }
 };
 
 template <class Container>

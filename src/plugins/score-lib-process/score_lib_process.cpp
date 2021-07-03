@@ -7,6 +7,7 @@
 #include <Process/LayerPresenter.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessList.hpp>
+#include <Process/OfflineAction/OfflineAction.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
@@ -71,6 +72,7 @@ score_lib_process::factoryFamilies()
       Process::ProcessFactoryList,
       Process::ProcessDropHandlerList,
       Process::MagnetismAdjuster,
+      Process::OfflineActionList,
       Execution::ExecutionActionList,
       LocalTree::ProcessComponentFactoryList>();
 }

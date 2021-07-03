@@ -75,11 +75,14 @@ SCORE_LIB_BASE_EXPORT void debug_types(
  * An implementation of an interface shall never be inserted twice.
  */
 template <typename FactoryType>
-class InterfaceList : public score::InterfaceListBase
+class InterfaceList
+    : public score::InterfaceListBase
+    , public IndirectContainer<FactoryType>
 {
 public:
   using factory_type = FactoryType;
   using key_type = typename FactoryType::ConcreteKey;
+  using vector_type = IndirectContainer<FactoryType>;
   InterfaceList() = default;
   ~InterfaceList() = default;
 
@@ -99,7 +102,7 @@ public:
     {
       e.release();
       std::unique_ptr<factory_type> pf{result};
-      vec.push_back(pf.get());
+      vector_type::push_back(pf.get());
 
       auto k = pf->concreteKey();
       auto it = this->map.find(k);
@@ -113,7 +116,7 @@ public:
         it->second = std::move(pf);
       }
 
-      added(*vec.back());
+      added(vector_type::back());
     }
   }
 
@@ -124,22 +127,6 @@ public:
     return (it != this->map.end()) ? it->second.get() : nullptr;
   }
 
-  auto begin() noexcept { return make_indirect_iterator(vec.begin()); }
-  auto begin() const noexcept { return make_indirect_iterator(vec.begin()); }
-
-  auto cbegin() noexcept { return make_indirect_iterator(vec.cbegin()); }
-  auto cbegin() const noexcept { return make_indirect_iterator(vec.cbegin()); }
-
-  auto end() noexcept { return make_indirect_iterator(vec.end()); }
-  auto end() const noexcept { return make_indirect_iterator(vec.end()); }
-
-  auto cend() noexcept { return make_indirect_iterator(vec.cend()); }
-  auto cend() const noexcept { return make_indirect_iterator(vec.cend()); }
-
-  auto empty() const noexcept { return vec.empty(); }
-
-  auto size() const noexcept { return vec.size(); }
-
   mutable Nano::Signal<void(const factory_type&)> added;
 
 protected:
@@ -147,8 +134,6 @@ protected:
       typename FactoryType::ConcreteKey,
       std::unique_ptr<FactoryType>>
       map;
-
-  std::vector<FactoryType*> vec;
 
 private:
   void optimize() noexcept final override
