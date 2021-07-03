@@ -44,6 +44,7 @@
 
 #include <core/presenter/DocumentManager.hpp>
 
+#include <Process/OfflineAction/OfflineAction.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
@@ -1246,6 +1247,24 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
           c.submit<Scenario::Command::DuplicateOnlyProcessToInterval>(
               *itv, *proc);
         });
+      }
+
+      // Add actions for potential offline processings applicable to the selected process
+      auto& offline_actions = m_ctx.app.interfaces<Process::OfflineActionList>();
+      if(auto matching = offline_actions.actionsForProcess(proc->concreteKey());
+         !matching.empty())
+      {
+        m->addSeparator();
+
+        auto offline_menu = m->addMenu(tr("Offline processing"));
+        for(auto* offline_act : matching)
+        {
+          auto qact = offline_menu->addAction(offline_act->title());
+          connect(qact, &QAction::triggered,
+                  this, [offline_act, proc, &ctx=m_ctx] {
+            offline_act->apply(*proc, ctx);
+          }, Qt::QueuedConnection);
+        }
       }
     }
 

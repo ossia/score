@@ -29,6 +29,7 @@ class SCORE_LIB_PROCESS_EXPORT OfflineAction
 public:
   ~OfflineAction() override;
 
+  virtual QString title() const noexcept = 0;
   virtual UuidKey<Process::ProcessModel> target() const noexcept = 0;
   virtual void apply(Process::ProcessModel& proc, const score::DocumentContext&) = 0;
 };
