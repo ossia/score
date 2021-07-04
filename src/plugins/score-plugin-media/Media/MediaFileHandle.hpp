@@ -79,6 +79,9 @@ public:
 
   const RMSData& rms() const;
 
+  //! Get a copy of the audio array, as 32 bit floats, whatever the input format is
+  ossia::audio_array getAudioArray() const;
+
   Nano::Signal<void()> on_mediaChanged;
   Nano::Signal<void()> on_newData;
   Nano::Signal<void()> on_finishedDecoding;
@@ -194,6 +197,12 @@ public:
 private:
   ossia::fast_hash_map<QString, std::shared_ptr<AudioFile>> m_handles;
 };
+
+/**
+ * @brief Saves an audio file as .wav (in 32-bit float format)
+ */
+SCORE_PLUGIN_MEDIA_EXPORT
+void writeAudioArrayToFile(const QString& path, const ossia::audio_array& arr, int fs);
 }
 
 Q_DECLARE_METATYPE(std::shared_ptr<Media::AudioFile>)

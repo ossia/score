@@ -49,8 +49,18 @@ public:
     init();
   }
 
+
+  /**
+   * Will load a new audio file, load its tempo, etc
+   */
   void setFile(const QString& file);
-  void setFile(const AudioFile& file);
+
+  /**
+   * Forces the reloading of only the audio data in a new file.
+   * - Will not reload metadata such as tempo, etc.
+   * - Will still reload the file even if it's the same file name.
+   */
+  void setFileForced(const QString& file);
 
   std::shared_ptr<AudioFile>& file();
   const std::shared_ptr<AudioFile>& file() const;

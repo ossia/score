@@ -91,11 +91,10 @@ void ProjectLibraryWidget::setRoot(score::DocumentMetadata& meta)
       },
       Qt::QueuedConnection);
 
-  auto fi = QFileInfo{meta.fileName()};
-  if (fi.exists())
+
+  if(auto projectPath = meta.projectFolder(); !projectPath.isEmpty())
   {
-    auto path = fi.absolutePath();
-    setFilename(path);
+    setFilename(projectPath);
   }
   else
   {

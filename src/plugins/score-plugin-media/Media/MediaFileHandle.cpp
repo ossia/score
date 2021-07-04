@@ -21,6 +21,7 @@
 
 #include <QDebug>
 #include <QFileInfo>
+#include <QStorageInfo>
 
 #define DR_WAV_NO_STDIO
 #include <dr_wav.h>
@@ -41,6 +42,7 @@ static int64_t readSampleRate(QFile& file)
   {
     return -1;
   }
+
   drwav w{};
   ok = drwav_init_memory(
       &w, data, file.size(), &ossia::drwav_handle::drwav_allocs);
@@ -621,6 +623,114 @@ AudioFile::ViewHandle::ViewHandle(const AudioFile::Handle& handle)
   } _{*this};
 
   ossia::apply(_, handle);
+}
+
+ossia::audio_array AudioFile::getAudioArray() const
+{
+  struct
+  {
+    int64_t frames{};
+    ossia::audio_array out;
+
+    void operator()(const Media::AudioFile::LibavView& av) noexcept
+    {
+      const int channels = av.data.size();
+      out.resize(channels);
+      for(int i = 0; i < channels; i++)
+      {
+        out[i].assign(av.data[i], av.data[i] + frames);
+      }
+    }
+
+    void operator()(const Media::AudioFile::MmapView& av) noexcept
+    {
+      const int channels = av.wav.channels();
+      out.resize(channels);
+
+      auto data = std::make_unique<float[]>(frames * channels);
+      drwav_read_pcm_frames_f32(av.wav.wav(), frames, data.get());
+      for(int i = 0; i < channels; i++)
+      {
+        out[i].resize(frames);
+      }
+
+      for(int64_t i = 0; i < frames; i++)
+      {
+        for(int c = 0; c < channels; c++)
+        {
+          out[c][i] = data.get()[i * channels + c];
+        }
+      }
+    }
+
+  } vis{this->decodedSamples(), {}};
+
+  eggs::variants::apply(vis, this->handle());
+
+  return vis.out;
+}
+
+void writeAudioArrayToFile(const QString& path, const ossia::audio_array& arr, int fs)
+{
+  if(arr.empty())
+  {
+    qDebug() << "Not writing" << path << ": no data to write.";
+    return;
+  }
+
+  QFile f{path};
+  if(!f.open(QIODevice::WriteOnly))
+  {
+    qDebug() << "Not writing" << path << ": cannot open file for writing.";
+    return;
+  }
+
+  const int channels = arr.size();
+  const int64_t frames = arr[0].size();
+  const int64_t samples = frames * channels;
+  const int64_t data_bytes = samples * sizeof(float);
+  const int64_t header_bytes = 44;
+
+  // Let's try to not fill the hard drive
+  const int64_t minimum_disk_space = 2 * (header_bytes + data_bytes);
+  if(QStorageInfo(path).bytesAvailable() < minimum_disk_space)
+  {
+    qDebug() << "Not writing" << path << ": not enough disk space.";
+    return;
+  }
+
+  drwav_data_format format;
+  drwav wav;
+
+  format.container     = drwav_container_riff;
+  format.format        = DR_WAVE_FORMAT_IEEE_FLOAT;
+  format.channels      = arr.size();
+  format.sampleRate    = fs;
+  format.bitsPerSample = 32;
+
+  auto onWrite = [] (void* pUserData, const void* pData, size_t bytesToWrite) -> size_t {
+    auto& file = *(QFile*) pUserData;
+    return file.write(reinterpret_cast<const char*>(pData), bytesToWrite);
+  };
+
+  if(!drwav_init_write_sequential(&wav, &format, samples, onWrite, &f, &ossia::drwav_handle::drwav_allocs))
+  {
+    qDebug() << "Not writing" << path << ": could not initialize writer.";
+    return;
+  }
+
+  auto buffer = std::make_unique<float[]>(samples);
+  for(int64_t i = 0; i < frames; i++)
+  {
+    for(int c = 0; c < channels; c++)
+    {
+      buffer[i * channels + c] = arr[c][i];
+    }
+  }
+
+  drwav_write_pcm_frames(&wav, frames, buffer.get());
+  drwav_uninit(&wav);
+  f.flush();
 }
 
 }

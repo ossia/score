@@ -6,6 +6,7 @@
 #include <score_lib_base_export.h>
 
 #include <verdigris>
+class QDir;
 namespace score
 {
 /**
@@ -21,11 +22,13 @@ struct SCORE_LIB_BASE_EXPORT DocumentMetadata : public QObject
 
 public:
   using QObject::QObject;
-  DocumentMetadata(QString file);
-  QString fileName() const;
-  QString author() const;
-  QDateTime creation() const;
-  QDateTime lastEdition() const;
+  explicit DocumentMetadata(QString file) noexcept;
+  QString fileName() const noexcept;
+  QString author() const noexcept;
+  QDateTime creation() const noexcept;
+  QDateTime lastEdition() const noexcept;
+
+  QString projectFolder() const noexcept;
 
   void setFileName(QString fileName);
   void setAuthor(QString author);
@@ -59,4 +62,15 @@ public:
           lastEditionChanged,
       W_Final)
 };
+
+/**
+ * @brief Obtains a new file name in the project folder to save a processed file.
+ *
+ * e.g. if the source file is /tmp/foo.wav,
+ * the output may be
+ *
+ * /home/myself/Documents/My score project/Processed/foo-0003.wav
+ */
+SCORE_LIB_BASE_EXPORT
+QString newProcessedFilePath(const QString& sourceFile, const QDir& destination);
 }

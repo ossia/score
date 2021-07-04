@@ -93,4 +93,39 @@ void ChangeAudioFile::deserializeImpl(DataStreamOutput& s)
     m_resizeInterval = score::AppContext().instantiateUndoCommand(b);
   }
 }
+
+
+
+
+LoadProcessedAudioFile::LoadProcessedAudioFile(
+    const Sound::ProcessModel& model,
+    const QString& text)
+    : m_model{model}
+    , m_new{text}
+{
+  m_old = model.file()->originalFile();
+}
+
+void LoadProcessedAudioFile::undo(const score::DocumentContext& ctx) const
+{
+  auto& snd = m_model.find(ctx);
+  snd.setFileForced(m_old);
+}
+
+void LoadProcessedAudioFile::redo(const score::DocumentContext& ctx) const
+{
+  auto& snd = m_model.find(ctx);
+  snd.setFileForced(m_new);
+}
+
+void LoadProcessedAudioFile::serializeImpl(DataStreamInput& s) const
+{
+  s << m_model << m_old << m_new;
+}
+
+void LoadProcessedAudioFile::deserializeImpl(DataStreamOutput& s)
+{
+  score::CommandData b;
+  s >> m_model >> m_old >> m_new;
+}
 }

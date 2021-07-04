@@ -10,7 +10,7 @@
 namespace Media
 {
 
-class ChangeAudioFile final : public score::Command
+class SCORE_PLUGIN_MEDIA_EXPORT ChangeAudioFile final : public score::Command
 {
   SCORE_COMMAND_DECL(
       Media::CommandFactoryName(),
@@ -36,6 +36,30 @@ private:
   TimeVal m_newdur{};
   TimeVal m_oldloop{};
   score::Command* m_resizeInterval{};
+};
+
+
+class SCORE_PLUGIN_MEDIA_EXPORT LoadProcessedAudioFile final : public score::Command
+{
+  SCORE_COMMAND_DECL(
+      Media::CommandFactoryName(),
+      LoadProcessedAudioFile,
+      "Load processed audio file")
+public:
+  LoadProcessedAudioFile(
+      const Sound::ProcessModel&,
+      const QString& text);
+
+  void undo(const score::DocumentContext& ctx) const override;
+  void redo(const score::DocumentContext& ctx) const override;
+
+protected:
+  void serializeImpl(DataStreamInput& s) const override;
+  void deserializeImpl(DataStreamOutput& s) override;
+
+private:
+  Path<Sound::ProcessModel> m_model;
+  QString m_old, m_new;
 };
 }
 

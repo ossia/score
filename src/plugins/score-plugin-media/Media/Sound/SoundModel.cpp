@@ -90,6 +90,14 @@ void ProcessModel::setFile(const QString& file)
   }
 }
 
+void ProcessModel::setFileForced(const QString& file)
+{
+  loadFile(file);
+
+  on_mediaChanged();
+  prettyNameChanged();
+}
+
 std::shared_ptr<AudioFile>& ProcessModel::file()
 {
   return m_file;
