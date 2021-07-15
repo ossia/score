@@ -31,8 +31,10 @@ public:
   QGraphicsHSVChooser(QGraphicsItem* parent);
 
   void setRect(const QRectF& r);
-  void setValue(ossia::vec4f v);
-  ossia::vec4f value() const;
+  void setRgbaValue(ossia::vec4f v);
+  void setHsvValue(ossia::vec4f v);
+  ossia::vec4f rgbaValue() const;
+  ossia::vec4f hsvValue() const;
 
   bool moving = false;
 

@@ -877,7 +877,7 @@ struct HSVSlider
       QObject* context)
   {
     auto sl = new score::QGraphicsHSVChooser{nullptr};
-    sl->setValue(ossia::convert<ossia::vec4f>(inlet.value()));
+    sl->setRgbaValue(ossia::convert<ossia::vec4f>(inlet.value()));
 
     QObject::connect(
         sl,
@@ -886,7 +886,7 @@ struct HSVSlider
         [=, &inlet, &ctx] {
           sl->moving = true;
           ctx.dispatcher.submit<SetControlValue<Control_T>>(
-              inlet, sl->value());
+              inlet, sl->rgbaValue());
         });
     QObject::connect(
         sl,
@@ -900,7 +900,7 @@ struct HSVSlider
     QObject::connect(
         &inlet, &Control_T::valueChanged, sl, [=](ossia::value val) {
           if (!sl->moving)
-            sl->setValue(ossia::convert<ossia::vec4f>(val));
+            sl->setRgbaValue(ossia::convert<ossia::vec4f>(val));
         });
 
     return sl;

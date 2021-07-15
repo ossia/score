@@ -113,12 +113,16 @@ void QGraphicsHSVChooser::paint(
   painter->drawLine(QPointF{111., val_y}, QPointF{130., val_y});
 }
 
-std::array<float, 4> QGraphicsHSVChooser::value() const
+std::array<float, 4> QGraphicsHSVChooser::rgbaValue() const
 {
   return m_value;
 }
+std::array<float, 4> QGraphicsHSVChooser::hsvValue() const
+{
+  return std::array<float, 4>{float(h), float(s), float(v), 1.0};
+}
 
-void QGraphicsHSVChooser::setValue(std::array<float, 4> v)
+void QGraphicsHSVChooser::setRgbaValue(std::array<float, 4> v)
 {
   m_value = v;
   auto hsv = QColor::fromRgbF(v[0], v[1], v[2], v[3]).toHsv();
@@ -126,6 +130,20 @@ void QGraphicsHSVChooser::setValue(std::array<float, 4> v)
   this->h = hsv.hueF();
   this->s = hsv.saturationF();
   this->v = hsv.valueF();
+  update();
+}
+void QGraphicsHSVChooser::setHsvValue(std::array<float, 4> v)
+{
+  this->h = v[0];
+  this->s = v[1];
+  this->v = v[2];
+
+  auto rgb = QColor::fromHsvF(this->h, this->s, this->v);
+  m_value[0] = rgb.redF();
+  m_value[1] = rgb.greenF();
+  m_value[2] = rgb.blueF();
+  m_value[3] = 1.0f;
+
   update();
 }
 
