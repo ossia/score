@@ -24,7 +24,11 @@ struct WinLoader
   static PluginEntryProc getMain(void* module)
   {
     auto mainProc
-        = (PluginEntryProc)GetProcAddress((HMODULE)module, "PluginMain");
+        = (PluginEntryProc)GetProcAddress((HMODULE)module, "VSTPluginMain");
+    if (!mainProc)
+      mainProc = (PluginEntryProc)GetProcAddress((HMODULE)module, "PluginMain");
+    if (!mainProc)
+      mainProc = (PluginEntryProc)GetProcAddress((HMODULE)module, "main_plugin");
     if (!mainProc)
       mainProc = (PluginEntryProc)GetProcAddress((HMODULE)module, "main");
     return mainProc;
@@ -61,10 +65,19 @@ struct AppleLoader
   static PluginEntryProc getMain(void* module)
   {
     auto mainProc = (PluginEntryProc)CFBundleGetFunctionPointerForName(
-        (CFBundleRef)module, CFSTR("PluginMain"));
+        (CFBundleRef)module, CFSTR("VSTPluginMain"));
+    if (!mainProc)
+      mainProc = (PluginEntryProc)CFBundleGetFunctionPointerForName(
+          (CFBundleRef)module, CFSTR("PluginMain"));
+    if (!mainProc)
+      mainProc = (PluginEntryProc)CFBundleGetFunctionPointerForName(
+          (CFBundleRef)module, CFSTR("main_plugin"));
     if (!mainProc)
       mainProc = (PluginEntryProc)CFBundleGetFunctionPointerForName(
           (CFBundleRef)module, CFSTR("main_macho"));
+    if (!mainProc)
+      mainProc = (PluginEntryProc)CFBundleGetFunctionPointerForName(
+          (CFBundleRef)module, CFSTR("main"));
     return mainProc;
   }
 };
@@ -88,7 +101,11 @@ struct LinuxLoader
 
   static PluginEntryProc getMain(void* module)
   {
-    auto mainProc = (PluginEntryProc)dlsym(module, "PluginMain");
+    auto mainProc = (PluginEntryProc)dlsym(module, "VSTPluginMain");
+    if (!mainProc)
+      mainProc = (PluginEntryProc)dlsym(module, "PluginMain");
+    if (!mainProc)
+      mainProc = (PluginEntryProc)dlsym(module, "main_plugin");
     if (!mainProc)
       mainProc = (PluginEntryProc)dlsym(module, "main");
     return mainProc;

@@ -45,11 +45,18 @@ Window::Window(const Model& e, const score::DocumentContext& ctx)
   effect = e.fx;
   AEffect& fx = *e.fx->fx;
 
+  // Some effects need a first getRect here to initialize stuff
+  {
+    ERect* vstRect{};
+    fx.dispatcher(&fx, effEditGetRect, 0, 0, &vstRect, 0.f);
+  }
+
+  fx.dispatcher(&fx, effEditOpen, 0, 0, (void*)winId(), 0);
+
+  // And a second getRect to get the actual coordinates once open
   auto rect = getRect(fx);
   auto width = rect.right - rect.left;
   auto height = rect.bottom - rect.top;
-
-  fx.dispatcher(&fx, effEditOpen, 0, 0, (void*)winId(), 0);
   setup_rect(this, width, height);
 }
 }
