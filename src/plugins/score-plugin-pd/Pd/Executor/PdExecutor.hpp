@@ -1,6 +1,5 @@
 #pragma once
-#define PDINSTANCE
-struct _pdinstance;
+#include <Pd/PdInstance.hpp>
 #include <Explorer/DeviceList.hpp>
 #include <Pd/PdProcess.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
@@ -31,6 +30,7 @@ class PdGraphNode final : public ossia::graph_node
 {
 public:
   PdGraphNode(
+      std::shared_ptr<Instance> instance,
       ossia::string_view folder,
       ossia::string_view file,
       const Execution::Context& ctx,
@@ -56,8 +56,7 @@ public:
       ossia::exec_state_facade e) noexcept override;
   void add_dzero(std::string& s) const;
 
-  _pdinstance* m_instance{};
-  int m_dollarzero = 0;
+  std::shared_ptr<Instance> m_instance;
 
   std::size_t m_audioIns{};
   std::size_t m_audioOuts{};

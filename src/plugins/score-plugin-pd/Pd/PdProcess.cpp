@@ -22,9 +22,298 @@
 #include <QSettings>
 
 #include <wobjectimpl.h>
+#include <z_libpd.h>
 W_OBJECT_IMPL(Pd::ProcessModel)
 namespace Pd
 {
+Instance::Instance()
+{
+  instance = pdinstance_new();
+}
+
+Instance::~Instance()
+{
+  pdinstance_free(instance);
+}
+
+auto initTypeMap()
+{
+  ossia::flat_map<QString, ossia::val_type> widgetTypeMap{
+      {"floatslider", ossia::val_type::FLOAT},
+      {"logfloatslider", ossia::val_type::FLOAT},
+      {"intslider",ossia::val_type::INT},
+      {"intspinbox",ossia::val_type::INT},
+      {"toggle",ossia::val_type::BOOL},
+      {"lineedit",ossia::val_type::STRING},
+      {"combobox",ossia::val_type::STRING},
+      {"enum",ossia::val_type::STRING},
+      {"button", ossia::val_type::IMPULSE},
+      {"hsvslider", ossia::val_type::VEC4F},
+      {"xyslider", ossia::val_type::VEC2F},
+      {"multislider", ossia::val_type::LIST}};
+  return widgetTypeMap;
+}
+enum pd_thing_to_parse
+{
+  unknown,
+  type,
+  range,
+  min,
+  max,
+  unit,
+  widget,
+  defaultv
+};
+
+void parseControlTypeAttributes(PatchSpec::Control& ctl, const QStringList& args)
+{
+  pd_thing_to_parse next_is{};
+  // First look for the type
+    for (int i = 1; i < args.size(); i++)
+  {
+    switch (next_is)
+    {
+      default:
+      case unknown:
+        if (args[i] == "@type")
+        {
+          next_is = type;
+          break;
+        }
+        if (args[i] == "@unit")
+        {
+          next_is = unit;
+          break;
+        }
+        if (args[i] == "@widget")
+        {
+          next_is = widget;
+          break;
+        }
+        break;
+      case type:
+        ctl.type = args[i];
+        next_is = unknown;
+        break;
+      case unit:
+        ctl.unit = args[i];
+        next_is = unknown;
+        break;
+      case widget:
+        ctl.widget = args[i];
+        next_is = unknown;
+        break;
+    }
+  }
+
+  static const auto& widgetFuncMap = initTypeMap();
+  if (auto it = widgetFuncMap.find(ctl.widget); it != widgetFuncMap.end())
+  {
+    ctl.deduced_type = it->second;
+  }
+  else
+  {
+    if(auto param = ossia::default_parameter_for_type(ctl.unit.toStdString()))
+      ctl.deduced_type = ossia::underlying_type(param->type);
+    else if(auto param = ossia::default_parameter_for_type(ctl.type.toStdString()))
+      ctl.deduced_type = ossia::underlying_type(param->type);
+    else
+      ctl.deduced_type = ossia::val_type::FLOAT;
+  }
+}
+
+std::optional<ossia::value> parseControlValue(PatchSpec::Control& ctl, const QStringList& args, int& i)
+{
+  switch(*ctl.deduced_type)
+  {
+    case ossia::val_type::NONE:
+      return std::nullopt;
+    case ossia::val_type::BOOL:
+    {
+      auto str = args[i].toLower();
+      return bool(str.startsWith('t') || str.startsWith('y') || str == "1");
+    }
+    case ossia::val_type::IMPULSE:
+      return ossia::impulse{};
+    case ossia::val_type::FLOAT:
+    {
+      bool ok{true};
+      double v = args[i].toDouble(&ok);
+      if(ok)
+        return float(v);
+      break;
+    }
+    case ossia::val_type::INT:
+    {
+      bool ok{true};
+      int v = args[i].toInt(&ok);
+      if(ok)
+        return int(v);
+      break;
+    }
+    case ossia::val_type::CHAR:
+    {
+      bool ok{true};
+      int v = args[i].toInt(&ok);
+      if(ok)
+        return int(v);
+      break;
+    }
+    case ossia::val_type::VEC2F:
+      SCORE_TODO;
+      break;
+    case ossia::val_type::VEC3F:
+      SCORE_TODO;
+      break;
+    case ossia::val_type::VEC4F:
+      SCORE_TODO;
+      break;
+    case ossia::val_type::LIST:
+      SCORE_TODO;
+      break;
+    case ossia::val_type::STRING:
+      return args[i].toStdString();
+  }
+  return std::nullopt;
+}
+
+void parseControlDataRange(PatchSpec::Control& ctl, const QStringList& args, int& i, std::optional<ossia::value>& min_domain, std::optional<ossia::value>& max_domain, std::optional<ossia::domain>& domain)
+{
+  switch(*ctl.deduced_type)
+  {
+    case ossia::val_type::NONE:
+    case ossia::val_type::BOOL:
+    case ossia::val_type::IMPULSE:
+      break;
+    case ossia::val_type::FLOAT:
+    {
+      if (i < args.size() - 1)
+      {
+        bool ok{true};
+        min_domain = args[i].toDouble(&ok);
+        if(!ok) min_domain = std::nullopt;
+
+        i++;
+        ok = true;
+        max_domain = args[i].toDouble(&ok);
+        if(!ok) max_domain = std::nullopt;
+      }
+      break;
+    }
+    case ossia::val_type::INT:
+    {
+      if (i < args.size() - 1)
+      {
+        bool ok{true};
+        min_domain = args[i].toInt(&ok);
+        if(!ok) min_domain = std::nullopt;
+
+        i++;
+        ok = true;
+        max_domain = args[i].toInt(&ok);
+        if(!ok) max_domain = std::nullopt;
+      }
+      break;
+    }
+    case ossia::val_type::CHAR:
+    {
+      if (i < args.size() - 1)
+      {
+        bool ok{true};
+        min_domain = args[i].toInt(&ok);
+        if(!ok) min_domain = std::nullopt;
+
+        i++;
+        ok = true;
+        max_domain = args[i].toInt(&ok);
+        if(!ok) max_domain = std::nullopt;
+      }
+      break;
+    }
+    case ossia::val_type::VEC2F:
+      SCORE_TODO;
+      break;
+    case ossia::val_type::VEC3F:
+      SCORE_TODO;
+      break;
+    case ossia::val_type::VEC4F:
+      SCORE_TODO;
+      break;
+    case ossia::val_type::LIST:
+      SCORE_TODO;
+      break;
+    case ossia::val_type::STRING:
+    {
+      std::vector<std::string> vec;
+      while(i < args.size() && args[i][0] != '@')
+      {
+        vec.push_back(args[i].toStdString());
+        i++;
+      }
+      if(!vec.empty())
+      {
+        domain = ossia::domain_base<std::string>{std::move(vec)};
+      }
+      break;
+    }
+  }
+}
+void parseControlDataAttributes(PatchSpec::Control& ctl, const QStringList& args)
+{
+  pd_thing_to_parse next_is{};
+  std::optional<ossia::value> min_domain{}, max_domain{};
+  std::optional<ossia::domain> domain;
+  for (int i = 1; i < args.size(); i++)
+  {
+    switch (next_is)
+    {
+      default:
+      case unknown:
+        if (args[i] == "@range")
+        {
+          next_is = range;
+          break;
+        }
+        if (args[i] == "@min")
+        {
+          next_is = min;
+          break;
+        }
+        if (args[i] == "@max")
+        {
+          next_is = max;
+          break;
+        }
+        if (args[i] == "@default")
+        {
+          next_is = defaultv;
+          break;
+        }
+        break;
+      case range:
+        parseControlDataRange(ctl, args, i, min_domain, max_domain, domain);
+        next_is = unknown;
+        break;
+      case min:
+        min_domain = args[i].toDouble();
+        next_is = unknown;
+        break;
+      case max:
+        max_domain = args[i].toDouble();
+        next_is = unknown;
+        break;
+      case defaultv:
+        ctl.defaultv = args[i].toFloat();
+        next_is = unknown;
+        break;
+    }
+  }
+
+  if (domain)
+    ctl.domain = std::move(*domain);
+  else if (min_domain && max_domain)
+    ctl.domain = ossia::make_domain(*min_domain, *max_domain);
+}
 
 PatchSpec::Control parseControlSpec(QString var)
 {
@@ -36,97 +325,8 @@ PatchSpec::Control parseControlSpec(QString var)
   ctl.name = splitted.front();
   ctl.remote = var;
 
-  std::optional<ossia::value> min_domain{}, max_domain{};
-  enum
-  {
-    unknown,
-    type,
-    range,
-    min,
-    max,
-    unit,
-    widget,
-    defaultv
-  } next_is{};
-  for (int i = 1; i < splitted.size(); i++)
-  {
-    switch (next_is)
-    {
-      case unknown:
-        if (splitted[i] == "@type")
-        {
-          next_is = type;
-          break;
-        }
-        if (splitted[i] == "@range")
-        {
-          next_is = range;
-          break;
-        }
-        if (splitted[i] == "@min")
-        {
-          next_is = min;
-          break;
-        }
-        if (splitted[i] == "@max")
-        {
-          next_is = max;
-          break;
-        }
-        if (splitted[i] == "@unit")
-        {
-          next_is = unit;
-          break;
-        }
-        if (splitted[i] == "@widget")
-        {
-          next_is = widget;
-          break;
-        }
-        if (splitted[i] == "@default")
-        {
-          next_is = defaultv;
-          break;
-        }
-        break;
-      case type:
-        ctl.type = splitted[i];
-        next_is = unknown;
-        break;
-      case range:
-        if (i < splitted.size() - 1)
-        {
-          min_domain = splitted[i].toDouble();
-          max_domain = splitted[i + 1].toDouble();
-          i++;
-        }
-        next_is = unknown;
-        break;
-      case min:
-        min_domain = splitted[i].toDouble();
-        next_is = unknown;
-        break;
-      case max:
-        max_domain = splitted[i].toDouble();
-        next_is = unknown;
-        break;
-      case unit:
-        ctl.unit = splitted[i];
-        next_is = unknown;
-        break;
-      case widget:
-        ctl.widget = splitted[i];
-        next_is = unknown;
-        break;
-      case defaultv:
-        ctl.defaultv = splitted[i].toFloat();
-        next_is = unknown;
-        break;
-    }
-  }
-
-  if (min_domain && max_domain)
-    ctl.domain = ossia::make_domain(*min_domain, *max_domain);
+  parseControlTypeAttributes(ctl, splitted);
+  parseControlDataAttributes(ctl, splitted);
 
   return ctl;
 }
@@ -199,9 +399,15 @@ auto initFuncMap()
        [](const PatchSpec::Control& ctl,
           const Id<Process::Port>& id,
           QObject* parent) -> Process::Inlet* {
-         std::vector<std::pair<QString, ossia::value>> choices;
-         return new Process::ComboBox{
-             choices, ctl.defaultv, ctl.name, id, parent};
+         std::vector<std::string> choices;
+         if(auto dom = ctl.domain.v.target<ossia::domain_base<std::string>>())
+           choices = dom->values;
+         std::string defaultv;
+         if(auto v = ctl.defaultv.target<std::string>())
+           defaultv = *v;
+
+         return new Process::Enum{
+             choices, {}, defaultv, ctl.name, id, parent};
        }},
       {"button",
        [](const PatchSpec::Control& ctl,
@@ -228,6 +434,13 @@ auto initFuncMap()
          return new Process::MultiSlider{
              std::vector<ossia::value>{}, ctl.name, id, parent};
        }}};
+  widgetFuncMap["colorchooser"] = widgetFuncMap["hsvslider"];
+  widgetFuncMap["enum"] = widgetFuncMap["combobox"];
+  widgetFuncMap["text"] = widgetFuncMap["lineedit"];
+  widgetFuncMap["checkbox"] = widgetFuncMap["toggle"];
+  widgetFuncMap["bang"] = widgetFuncMap["button"];
+  widgetFuncMap["pulse"] = widgetFuncMap["button"];
+  widgetFuncMap["impulse"] = widgetFuncMap["button"];
   return widgetFuncMap;
 }
 Process::Inlet* makeInletFromSpec(
@@ -237,53 +450,56 @@ Process::Inlet* makeInletFromSpec(
 {
   static const auto& widgetFuncMap = initFuncMap();
   Process::Inlet* inl{};
-  auto param = ossia::default_parameter_for_type(ctl.unit.toStdString());
-  if (!param)
-    param = ossia::default_parameter_for_type(ctl.type.toStdString());
   if (auto it = widgetFuncMap.find(ctl.widget); it != widgetFuncMap.end())
   {
     inl = it->second(ctl, id, parent);
   }
-  else if (param)
+  else
   {
-    if (param->unit)
+    auto param = ossia::default_parameter_for_type(ctl.unit.toStdString());
+    if (!param)
+      param = ossia::default_parameter_for_type(ctl.type.toStdString());
+    if (param)
     {
-      auto dataspace = ossia::get_dataspace_text(param->unit);
-      if (dataspace == "color")
-        inl = widgetFuncMap.at("hsvslider")(ctl, id, parent);
-      else if (dataspace == "position")
-        inl = widgetFuncMap.at("xyslider")(ctl, id, parent);
-    }
-    else
-    {
-      switch (ossia::underlying_type(param->type))
+      if (param->unit)
       {
-        case ossia::val_type::FLOAT:
-          inl = widgetFuncMap.at("floatslider")(ctl, id, parent);
-          break;
-        case ossia::val_type::INT:
-          inl = widgetFuncMap.at("intslider")(ctl, id, parent);
-          break;
-        case ossia::val_type::CHAR:
-          inl = widgetFuncMap.at("intslider")(ctl, id, parent);
-          break;
-        case ossia::val_type::BOOL:
-          inl = widgetFuncMap.at("toggle")(ctl, id, parent);
-          break;
-        case ossia::val_type::IMPULSE:
-          inl = widgetFuncMap.at("button")(ctl, id, parent);
-          break;
-        case ossia::val_type::VEC2F:
-        case ossia::val_type::VEC3F:
-        case ossia::val_type::VEC4F:
-        case ossia::val_type::LIST:
-          inl = widgetFuncMap.at("multislider")(ctl, id, parent);
-          break;
-        case ossia::val_type::STRING:
-          inl = widgetFuncMap.at("lineedit")(ctl, id, parent);
-          break;
-        case ossia::val_type::NONE:
-          break;
+        auto dataspace = ossia::get_dataspace_text(param->unit);
+        if (dataspace == "color")
+          inl = widgetFuncMap.at("hsvslider")(ctl, id, parent);
+        else if (dataspace == "position")
+          inl = widgetFuncMap.at("xyslider")(ctl, id, parent);
+      }
+      else
+      {
+        switch (ossia::underlying_type(param->type))
+        {
+          case ossia::val_type::FLOAT:
+            inl = widgetFuncMap.at("floatslider")(ctl, id, parent);
+            break;
+          case ossia::val_type::INT:
+            inl = widgetFuncMap.at("intslider")(ctl, id, parent);
+            break;
+          case ossia::val_type::CHAR:
+            inl = widgetFuncMap.at("intslider")(ctl, id, parent);
+            break;
+          case ossia::val_type::BOOL:
+            inl = widgetFuncMap.at("toggle")(ctl, id, parent);
+            break;
+          case ossia::val_type::IMPULSE:
+            inl = widgetFuncMap.at("button")(ctl, id, parent);
+            break;
+          case ossia::val_type::VEC2F:
+          case ossia::val_type::VEC3F:
+          case ossia::val_type::VEC4F:
+          case ossia::val_type::LIST:
+            inl = widgetFuncMap.at("multislider")(ctl, id, parent);
+            break;
+          case ossia::val_type::STRING:
+            inl = widgetFuncMap.at("lineedit")(ctl, id, parent);
+            break;
+          case ossia::val_type::NONE:
+            break;
+        }
       }
     }
   }
@@ -415,6 +631,7 @@ ProcessModel::ProcessModel(
         parent}
 {
   metadata().setInstanceName(*this);
+  init();
   setScript(pdpatch);
 }
 
@@ -424,7 +641,11 @@ bool ProcessModel::hasExternalUI() const noexcept
   return !pathToPd.isEmpty();
 }
 
-ProcessModel::~ProcessModel() { }
+ProcessModel::~ProcessModel()
+{
+  pd_setinstance(m_instance->instance);
+  libpd_closefile(m_instance->file_handle);
+}
 
 int ProcessModel::audioInputs() const
 {
@@ -480,6 +701,11 @@ void ProcessModel::setMidiOutput(bool midiOutput)
 
   m_midiOutput = midiOutput;
   midiOutputChanged(m_midiOutput);
+}
+
+void ProcessModel::init()
+{
+  m_instance = std::make_shared<Instance>();
 }
 
 void ProcessModel::setScript(const QString& script)
@@ -606,9 +832,33 @@ void ProcessModel::setScript(const QString& script)
     inletsChanged();
     outletsChanged();
   }
+  // Create instance
+  pd_setinstance(m_instance->instance);
+
+  if(m_instance->file_handle)
+    libpd_closefile(m_instance->file_handle);
+
+  // Enable audio
+  // FIXME correct sample rate
+  libpd_init_audio(m_audioInputs, m_audioOutputs, 48000);
+
+  libpd_start_message(1);
+  libpd_add_float(1.0f);
+  libpd_finish_message("pd", "dsp");
+
+  // Open
+  QFileInfo fileinfo{f};
+  m_instance->file_handle = libpd_openfile(fileinfo.fileName().toUtf8().data(), fileinfo.canonicalPath().toUtf8().data());
+  m_instance->dollarzero = libpd_getdollarzero(m_instance->file_handle);
+
+  std::vector<float> temp_buff;
+  temp_buff.resize(libpd_blocksize() * (std::max(m_audioInputs, m_audioOutputs)));
+
+  libpd_process_raw(temp_buff.data(), temp_buff.data());
 
   scriptChanged(script);
 }
+
 
 const QString& ProcessModel::script() const
 {

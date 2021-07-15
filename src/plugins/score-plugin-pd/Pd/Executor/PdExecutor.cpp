@@ -155,6 +155,7 @@ struct libpd_list_wrapper
 };
 
 PdGraphNode::PdGraphNode(
+    std::shared_ptr<Instance> instance,
     ossia::string_view folder,
     ossia::string_view file,
     const Execution::Context& ctx,
@@ -165,7 +166,8 @@ PdGraphNode::PdGraphNode(
     const Pd::PatchSpec& spec,
     bool midi_in,
     bool midi_out)
-    : m_audioIns{audio_inputs}
+    : m_instance{instance}
+    , m_audioIns{audio_inputs}
     , m_audioOuts{audio_outputs}
     , m_file{file}
 {
@@ -188,20 +190,9 @@ PdGraphNode::PdGraphNode(
     circ.set_capacity(8192);
 
   // Create instance
-  m_instance = pdinstance_new();
-  pd_setinstance(m_instance);
-
-  // Enable audio
-  libpd_init_audio(m_audioIns, m_audioOuts, ctx.execState->sampleRate);
-
-  libpd_start_message(1);
-  libpd_add_float(1.0f);
-  libpd_finish_message("pd", "dsp");
+  pd_setinstance(m_instance->instance);
 
   // Open
-  auto handle = libpd_openfile(file.data(), folder.data());
-  m_dollarzero = libpd_getdollarzero(handle);
-
   for (auto& mess : m_inmess)
   {
     add_dzero(mess);
@@ -348,7 +339,6 @@ PdGraphNode::PdGraphNode(
 
 PdGraphNode::~PdGraphNode()
 {
-  pdinstance_free(m_instance);
 }
 
 ossia::outlet* PdGraphNode::get_outlet(const char* str) const
@@ -381,29 +371,15 @@ void PdGraphNode::run(
     ossia::exec_state_facade e) noexcept
 {
   // Setup
-  pd_setinstance(m_instance);
+  pd_setinstance(m_instance->instance);
   m_currentInstance = this;
-  libpd_init_audio(m_audioIns, m_audioOuts, e.sampleRate());
+  //libpd_init_audio(m_audioIns, m_audioOuts, e.sampleRate());
 
   const uint64_t bs = libpd_blocksize();
 
   // Clear audio inputs
-  ossia::fill(m_inbuf, 0.);
+  ossia::fill(m_inbuf, 0.f);
 
-  // Copy audio inputs
-  if (m_audioIns > 0)
-  {
-    for (std::size_t i = 0U;
-         i < std::min(m_audioIns, m_audio_inlet->samples.size());
-         i++)
-    {
-      std::copy_n(
-          m_audio_inlet->samples[i].begin(),
-          std::min(
-              (std::size_t)bs, (std::size_t)m_audio_inlet->samples[i].size()),
-          m_inbuf.begin() + i * bs);
-    }
-  }
 
   // Copy midi inputs
   if (m_midi_inlet)
@@ -461,6 +437,7 @@ void PdGraphNode::run(
   }
 
   // Compute number of samples to process
+  const std::size_t input_channels = std::min(m_audioIns, m_audio_inlet ? m_audio_inlet->samples.size() : 0);
   const uint64_t req_samples = t.physical_write_duration(e.modelToSamples());
   if (m_audioOuts == 0)
   {
@@ -472,8 +449,46 @@ void PdGraphNode::run(
         = std::max(bs, req_samples - m_prev_outbuf[0].size());
     while (additional_samples > 0)
     {
-      // TODO remove the first n samples of audio input so that it makes sense
+      std::size_t offset = m_prev_outbuf[0].size();
+      // Copy audio inputs
+      if (m_audioIns > 0)
+      {
+        for (std::size_t i = 0U;
+             i < input_channels;
+             i++)
+        {
+          auto& channel = m_audio_inlet->samples[i];
+          int64_t available_input_samples = channel.size();
+          available_input_samples -= offset;
+
+          if(available_input_samples > 0)
+          {
+            int64_t samples_to_copy = std::min(int64_t(bs), additional_samples);
+            if(samples_to_copy < available_input_samples)
+            {
+              SCORE_ASSERT(offset + samples_to_copy <= channel.size());
+              SCORE_ASSERT(i * bs + samples_to_copy <= m_inbuf.size());
+              std::copy_n(channel.begin() + offset, samples_to_copy, m_inbuf.begin() + i * bs);
+            }
+            else
+            {
+              SCORE_ASSERT(offset + available_input_samples <= channel.size());
+              SCORE_ASSERT(i * bs + available_input_samples <= m_inbuf.size());
+              std::copy_n(channel.begin() + offset, available_input_samples, m_inbuf.begin() + i * bs);
+              std::fill_n(m_inbuf.begin() + i * bs + available_input_samples, bs - available_input_samples, 0.f);
+            }
+          }
+          else
+          {
+            std::fill_n(m_inbuf.begin() + i * bs, bs, 0.f);
+          }
+        }
+      }
+
+      // Process
       libpd_process_raw(m_inbuf.data(), m_outbuf.data());
+
+      // Put the outputs back in the ring buffer
       for (std::size_t i = 0; i < m_audioOuts; ++i)
       {
         for (std::size_t j = 0; j < bs; j++)
@@ -520,7 +535,7 @@ void PdGraphNode::run(
 
 void PdGraphNode::add_dzero(std::string& s) const
 {
-  s = std::to_string(m_dollarzero) + "-" + s;
+  s = std::to_string(m_instance->dollarzero) + "-" + s;
 }
 
 class pd_process final : public ossia::node_process
@@ -562,6 +577,7 @@ Component::Component(
   }
 
   auto pdnode = std::make_shared<PdGraphNode>(
+      element.m_instance,
       f.canonicalPath().toStdString(),
       f.fileName().toStdString(),
       ctx,

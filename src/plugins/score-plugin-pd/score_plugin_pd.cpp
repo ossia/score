@@ -44,14 +44,6 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_pd::factories(
 score_plugin_pd::score_plugin_pd()
 {
   libpd_init();
-  // TODO should not be necessarey
-  libpd_init_audio(2, 2, 48000);
-
-  /*
-  libpd_set_printhook([](const char* s) { qDebug() << "string: " << s; });
-  libpd_set_floathook(
-      [](const char* s, float x) { qDebug() << "float: " << s << x; });
-  */
 }
 
 auto score_plugin_pd::required() const -> std::vector<score::PluginKey>

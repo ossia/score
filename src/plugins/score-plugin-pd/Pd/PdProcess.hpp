@@ -1,4 +1,5 @@
 #pragma once
+#include <Pd/PdInstance.hpp>
 #include <Pd/PdMetadata.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
@@ -28,6 +29,7 @@ struct PatchSpec
     QString unit;
     ossia::value defaultv;
     ossia::domain domain;
+    std::optional<ossia::val_type> deduced_type;
   };
   std::vector<Control> receives, sends;
 };
@@ -50,6 +52,7 @@ public:
   explicit ProcessModel(Impl& vis, QObject* parent)
       : Process::ProcessModel{vis, parent}
   {
+    init();
     vis.writeTo(*this);
   }
 
@@ -93,7 +96,9 @@ public:
       midiOutput READ midiOutput WRITE setMidiOutput NOTIFY midiOutputChanged)
 
   PROPERTY(QString, script READ script WRITE setScript NOTIFY scriptChanged)
+  std::shared_ptr<Instance> m_instance;
 private:
+  void init();
   QString m_script;
   PatchSpec m_spec;
   int m_audioInputs{0};
