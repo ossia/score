@@ -36,14 +36,17 @@ public:
     array.reserve(N);
     for (auto str : arr)
       array.push_back(str);
+    updateRect();
   }
   QGraphicsEnum(std::vector<QString> arr, QGraphicsItem* parent)
       : QGraphicsEnum{parent}
   {
     array = std::move(arr);
+    updateRect();
   }
   QGraphicsEnum(QGraphicsItem* parent);
 
+  void updateRect();
   void setRect(const QRectF& r);
   void setValue(int v);
   int value() const;

@@ -19,6 +19,33 @@ QGraphicsEnum::QGraphicsEnum(QGraphicsItem* parent)
   setRect({0, 0, 104, 44});
 }
 
+void QGraphicsEnum::updateRect()
+{
+  // Find the widest text
+  if(columns == 0 || this->array.size() == 0)
+    return;
+
+  auto& style = score::Skin::instance();
+
+  const QFont& textFont = style.MonoFontSmall;
+
+  QFontMetricsF metrics{textFont};
+  double maxW = 10.;
+  double maxH = this->array.size() > columns ? 44. : 30;
+
+  for(auto& value : this->array)
+  {
+    auto r = metrics.boundingRect(value);
+    maxW = std::max(r.width(), maxW);
+    maxH = std::max(r.height(), maxH);
+  }
+  maxW += 4.;
+  maxH += 4.;
+
+  const int computedRows = std::max(1.0, std::floor(this->array.size() / columns));
+  setRect({0, 0, maxW * columns, maxH * computedRows});
+}
+
 void QGraphicsEnum::setRect(const QRectF& r)
 {
   prepareGeometryChange();
