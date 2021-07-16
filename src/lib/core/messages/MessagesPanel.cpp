@@ -153,8 +153,6 @@ MessagesPanelDelegate::MessagesPanelDelegate(
     , m_itemModel{new LogMessagesItemModel{this}}
     , m_widget{new VisibilityNotifying<QListView>}
 {
-  g_messagesPanel = this;
-
   qInstallMessageHandler(LogToMessagePanel);
   m_widget->setModel(m_itemModel);
   m_widget->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
@@ -171,6 +169,8 @@ MessagesPanelDelegate::MessagesPanelDelegate(
           m_itemModel->clear();
         }
       });
+
+  g_messagesPanel = this;
 }
 
 VisibilityNotifying<QListView>* MessagesPanelDelegate::widget()
