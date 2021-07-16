@@ -44,7 +44,7 @@ int GLCapabilities::glShaderVersion() noexcept
     }
     case QSurfaceFormat::OpenGL:
     {
-      if (major >= 3 && minor >= 3)
+      if (major > 3 || (major == 3 && minor >= 3))
       {
         return major * 100 + minor * 10;
       }

@@ -4,6 +4,7 @@
 #include <Gfx/Graph/ScreenNode.hpp>
 #include <Gfx/Graph/Window.hpp>
 
+#include <score/gfx/OpenGL.hpp>
 #include <score/gfx/Vulkan.hpp>
 
 #include <QtGui/private/qrhinull_p.h>
@@ -42,6 +43,11 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
     QRhiGles2InitParams params;
     params.fallbackSurface = state.surface;
     params.window = &window;
+
+    score::GLCapabilities m_caps;
+    params.format.setMajorVersion(m_caps.major);
+    params.format.setMinorVersion(m_caps.minor);
+    params.format.setProfile(QSurfaceFormat::CoreProfile);
 
     state.rhi = QRhi::create(QRhi::OpenGLES2, &params, QRhi::EnableDebugMarkers);
     state.size = window.size();

@@ -152,6 +152,11 @@ static void setup_opengl()
 {
   {
   QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
+#if defined(__APPLE__)
+  fmt.setMajorVersion(3);
+  fmt.setMinorVersion(2);
+  fmt.setProfile(QSurfaceFormat::CoreProfile);
+#endif
   fmt.setSwapInterval(1);
   fmt.setDefaultFormat(fmt);
   }

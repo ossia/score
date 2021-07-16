@@ -59,7 +59,7 @@ MinimapGraphicsView::MinimapGraphicsView(QGraphicsScene* s)
   setBackgroundBrush(Process::Style::instance().MinimapBackground());
 
 #if defined(__APPLE__)
-  setRenderHints(0);
+  setRenderHints({});
   setOptimizationFlag(QGraphicsView::IndirectPainting, true);
 #endif
 }
