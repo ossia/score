@@ -35,6 +35,8 @@ extern "C"  __declspec(dllimport) LONG __stdcall NtSetTimerResolution(ULONG Desi
 */
 #if defined(__linux__)
 #include <dlfcn.h>
+
+#include <sys/resource.h>
 #endif
 
 #if defined(__SSE3__)
@@ -43,6 +45,9 @@ extern "C"  __declspec(dllimport) LONG __stdcall NtSetTimerResolution(ULONG Desi
 
 #if defined(__APPLE__)
 struct NSAutoreleasePool;
+
+#include <sys/resource.h>
+
 #include <CoreFoundation/CFNumber.h>
 #include <CoreFoundation/CFPreferences.h>
 void disableAppRestore()
@@ -224,6 +229,28 @@ static void setup_fftw()
 static void setup_fftw() { }
 #endif
 
+static void setup_limits()
+{
+#if __has_include(<sys/resource.h>)
+  constexpr int min_fds = 10000;
+  struct rlimit rlim;
+  if (getrlimit(RLIMIT_NOFILE, &rlim) != 0)
+    return;
+
+  if (rlim.rlim_cur != RLIM_INFINITY && rlim.rlim_cur < rlim_t(min_fds))
+  {
+    if (rlim.rlim_max == RLIM_INFINITY)
+      rlim.rlim_cur = min_fds;
+    else if (rlim.rlim_cur == rlim.rlim_max)
+      return;
+    else
+      rlim.rlim_cur = rlim.rlim_max;
+
+    setrlimit(RLIMIT_NOFILE, &rlim);
+  }
+#endif
+}
+
 int main(int argc, char** argv)
 {
 #if defined(__APPLE__)
@@ -231,6 +258,7 @@ int main(int argc, char** argv)
   qputenv("QT_MAC_WANTS_LAYER", "1");
 #endif
 
+  setup_limits();
   setup_x11();
   disable_denormals();
   setup_faust_path();
