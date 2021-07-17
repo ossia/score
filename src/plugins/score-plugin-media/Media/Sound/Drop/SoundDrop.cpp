@@ -18,7 +18,8 @@ DroppedAudioFiles::DroppedAudioFiles(
     const score::DocumentContext& ctx,
     const QMimeData& mime)
 {
-  for (const auto& url : mime.urls())
+  const auto& urls = mime.urls();
+  for (const auto& url : urls)
   {
     QString filename = url.toLocalFile();
     if (!AudioFile::isSupported(QFile{filename}))
