@@ -5,9 +5,9 @@
 
 #include <verdigris>
 
-namespace ossia::oscquery
+namespace ossia::oscquery_asio
 {
-class oscquery_mirror_protocol;
+class oscquery_mirror_asio_protocol;
 }
 namespace Protocols
 {
@@ -15,7 +15,8 @@ class OSCQueryDevice final : public Device::OwningDeviceInterface
 {
   W_OBJECT(OSCQueryDevice)
 public:
-  OSCQueryDevice(const Device::DeviceSettings& settings);
+  OSCQueryDevice(const Device::DeviceSettings& settings,
+                 const ossia::net::network_context_ptr& ctx);
 
   bool reconnect() override;
   void disconnect() override;
@@ -33,8 +34,10 @@ private:
   void slot_createDevice();
   W_SLOT(slot_createDevice);
 
-  ossia::oscquery::oscquery_mirror_protocol* m_mirror{};
+  using mirror_proto = ossia::oscquery_asio::oscquery_mirror_asio_protocol;
+  mirror_proto* m_mirror{};
   bool m_connected{};
   Device::DeviceSettings m_oldSettings;
+  const ossia::net::network_context_ptr& m_ctx;
 };
 }

@@ -6,13 +6,13 @@
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/DeviceLogging.hpp>
 #include <Protocols/OSCQuery/OSCQuerySpecificSettings.hpp>
-
+#include <ossia/protocols/oscquery/oscquery_mirror_asio.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>
 #include <ossia/network/local/local.hpp>
 #include <ossia/network/oscquery/oscquery_mirror.hpp>
 #include <ossia/network/rate_limiting_protocol.hpp>
-
+#include <ossia/network/context.hpp>
 #include <boost/algorithm/string.hpp>
 
 #include <QDebug>
@@ -61,8 +61,10 @@ bool resolve_ip(std::string host)
 }
 namespace Protocols
 {
-OSCQueryDevice::OSCQueryDevice(const Device::DeviceSettings& settings)
+OSCQueryDevice::OSCQueryDevice(const Device::DeviceSettings& settings,
+                               const ossia::net::network_context_ptr& ctx)
     : OwningDeviceInterface{settings}
+    , m_ctx{ctx}
 {
   m_capas.canRefreshTree = true;
   m_capas.asyncConnect = true;
@@ -106,7 +108,24 @@ void OSCQueryDevice::disconnect()
     m_mirror = nullptr;
   }
 
-  OwningDeviceInterface::disconnect();
+  // Taken from OwningDeviceInterface::disconnect
+  if (m_owned)
+  {
+    DeviceInterface::disconnect();
+    // TODO why not auto dev = m_dev; ... like in MIDIDevice ?
+    deviceChanged(m_dev.get(), nullptr);
+
+    if(m_dev)
+    {
+      m_dev->get_protocol().stop();
+      boost::asio::post(
+            m_ctx->context,
+            [dev = std::move(m_dev)] () mutable {
+        dev.reset();
+      });
+    }
+    m_dev.reset();
+  }
 }
 
 bool OSCQueryDevice::reconnect()
@@ -140,6 +159,7 @@ bool OSCQueryDevice::reconnect()
 
   disconnect();
 
+  // TODO put this in the io_context thread instead
   std::thread resolver([this, host = stgs.host.toStdString()] {
     bool ok = resolve_ip(host);
     if (ok)
@@ -147,6 +167,7 @@ bool OSCQueryDevice::reconnect()
       sig_createDevice();
     }
 
+    // FIXME the device could be deleted there !
     m_connected = false;
     connectionChanged(m_connected);
   });
@@ -166,10 +187,12 @@ void OSCQueryDevice::recreate(const Device::Node& n)
 
 void OSCQueryDevice::slot_command()
 {
+  /*
   if (m_mirror)
   {
     m_mirror->run_commands();
   }
+  */
 }
 
 void OSCQueryDevice::slot_createDevice()
@@ -181,10 +204,9 @@ void OSCQueryDevice::slot_createDevice()
   try
   {
     std::unique_ptr<ossia::net::protocol_base> ossia_settings
-        = std::make_unique<ossia::oscquery::oscquery_mirror_protocol>(
-            stgs.host.toStdString());
+        = std::make_unique<mirror_proto>(m_ctx, stgs.host.toStdString());
 
-    auto& p = static_cast<ossia::oscquery::oscquery_mirror_protocol&>(
+    auto& p = static_cast<mirror_proto&>(
         *ossia_settings);
     m_mirror = &p;
 
@@ -202,7 +224,7 @@ void OSCQueryDevice::slot_createDevice()
 
     deviceChanged(nullptr, m_dev.get());
 
-    p.set_command_callback([=] { sig_command(); });
+    //p.set_command_callback([=] { sig_command(); });
     p.on_connection_closed.connect<&OSCQueryDevice::sig_disconnect>(*this);
     p.on_connection_failure.connect<&OSCQueryDevice::sig_disconnect>(*this);
 

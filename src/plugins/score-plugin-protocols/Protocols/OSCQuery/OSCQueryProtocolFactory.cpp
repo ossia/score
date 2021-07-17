@@ -5,6 +5,7 @@
 #include "OSCQueryDevice.hpp"
 
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Protocols/OSCQuery/OSCQueryProtocolSettingsWidget.hpp>
 #include <Protocols/OSCQuery/OSCQuerySpecificSettings.hpp>
 
@@ -229,7 +230,7 @@ Device::DeviceInterface* OSCQueryProtocolFactory::makeDevice(
     const Explorer::DeviceDocumentPlugin& plugin,
     const score::DocumentContext& ctx)
 {
-  return new OSCQueryDevice{settings};
+  return new OSCQueryDevice{settings, plugin.networkContext()};
 }
 
 const Device::DeviceSettings&
