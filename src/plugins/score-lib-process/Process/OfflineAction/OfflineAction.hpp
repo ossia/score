@@ -1,7 +1,7 @@
 #pragma once
 #include <score/plugins/InterfaceList.hpp>
 #include <ossia/detail/small_vector.hpp>
-
+#include <unordered_map>
 #include <score_lib_process_export.h>
 namespace score
 {

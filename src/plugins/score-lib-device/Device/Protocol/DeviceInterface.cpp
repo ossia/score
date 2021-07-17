@@ -123,7 +123,7 @@ ToAddressSettings(const ossia::net::node_base& node)
 
   if (addr)
   {
-    addr->request_value();
+    //addr->request_value();
 
     s.name = QString::fromStdString(node.get_name());
     s.ioType = ossia::access_mode::BI; // addr->get_access();

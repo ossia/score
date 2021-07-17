@@ -1,6 +1,7 @@
 #include <Fx/FactorOracle2MIDI.hpp>
 
 #define CATCH_CONFIG_MAIN 1
+#if __has_include(<catch2/catch.hpp>)
 #include <catch2/catch.hpp>
 
 TEST_CASE("", ""){
@@ -81,3 +82,4 @@ TEST_CASE("", ""){
     REQUIRE(output.messages[0].bytes == libremidi::message::note_on(1, 64, 127).bytes);
   }
 }
+#endif
