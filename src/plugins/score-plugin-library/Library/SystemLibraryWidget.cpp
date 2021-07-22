@@ -54,7 +54,9 @@ SystemLibraryWidget::SystemLibraryWidget(
     m_preview.hide();
   }
 
-  connect(&m_tv, &QTreeView::pressed, this, [&](const QModelIndex& idx) {
+  auto sel = m_tv.selectionModel();
+
+  connect(sel, &QItemSelectionModel::currentRowChanged, this, [&](const QModelIndex& idx, const QModelIndex&) {
     m_preview.hide();
     auto doc = ctx.docManager.currentDocument();
     if (!doc)
