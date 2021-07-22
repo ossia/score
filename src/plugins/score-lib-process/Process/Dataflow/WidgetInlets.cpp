@@ -144,6 +144,23 @@ FloatSlider::FloatSlider(
 
 FloatSlider::~FloatSlider() { }
 
+FloatKnob::FloatKnob(
+    float min,
+    float max,
+    float init,
+    const QString& name,
+    Id<Port> id,
+    QObject* parent)
+  : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(init);
+  setDomain(ossia::make_domain(min, max));
+  setName(name);
+}
+
+FloatKnob::~FloatKnob() { }
+
 LogFloatSlider::LogFloatSlider(
     float min,
     float max,
@@ -363,6 +380,29 @@ JSONReader::read<Process::FloatSlider>(const Process::FloatSlider& p)
 template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONWriter::write<Process::FloatSlider>(Process::FloatSlider& p)
+{
+}
+
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamReader::read<Process::FloatKnob>(const Process::FloatKnob& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamWriter::write<Process::FloatKnob>(Process::FloatKnob& p)
+{
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONReader::read<Process::FloatKnob>(const Process::FloatKnob& p)
+{
+  read((const Process::ControlInlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONWriter::write<Process::FloatKnob>(Process::FloatKnob& p)
 {
 }
 

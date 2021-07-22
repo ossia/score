@@ -46,6 +46,7 @@ score_plugin_dataflow::factories(
          Dataflow::ControlOutletFactory,
          Dataflow::MinMaxFloatOutletFactory,
          Dataflow::WidgetInletFactory<Process::FloatSlider>,
+         Dataflow::WidgetInletFactory<Process::FloatKnob>,
          Dataflow::WidgetInletFactory<Process::LogFloatSlider>,
          Dataflow::WidgetInletFactory<Process::IntSlider>,
          Dataflow::WidgetInletFactory<Process::IntSpinBox>,
