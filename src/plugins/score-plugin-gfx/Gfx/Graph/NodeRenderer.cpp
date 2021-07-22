@@ -106,6 +106,8 @@ void GenericNodeRenderer::defaultRelease(RenderList&)
   m_p.clear();
 
   m_meshBuffer = nullptr;
+  m_particleOffsets = nullptr;
+  m_particleSpeeds = nullptr;
 }
 
 void NodeRenderer::runInitialPasses(

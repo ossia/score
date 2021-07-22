@@ -63,7 +63,8 @@ public:
 
   QRhiBuffer* m_meshBuffer{};
   QRhiBuffer* m_idxBuffer{};
-
+  QRhiBuffer* m_particleOffsets{};
+  QRhiBuffer* m_particleSpeeds{};
   QRhiBuffer* m_processUBO{};
 
   DefaultShaderMaterial m_material;
