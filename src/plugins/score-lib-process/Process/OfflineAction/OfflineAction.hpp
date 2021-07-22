@@ -49,7 +49,7 @@ public:
 
   OfflineActions actionsForProcess(const UuidKey<Process::ProcessModel>& key) const noexcept;
 
-  static const constexpr score::InterfaceKey static_interfaceKey() noexcept
+  static const MSVC_BUGGY_CONSTEXPR score::InterfaceKey static_interfaceKey() noexcept
   {
     return OfflineAction::static_interfaceKey();
   }
