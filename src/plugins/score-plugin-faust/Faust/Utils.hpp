@@ -7,13 +7,15 @@
 #include <ossia/dataflow/port.hpp>
 #include <ossia/network/domain/domain.hpp>
 
+#include <faust/gui/MetaDataUI.h>
+
 #include <QDebug>
 
 namespace Faust
 {
 
 template <typename Proc, bool Synth>
-struct UI : ::UI
+struct UI : ::UI, MetaDataUI
 {
   Proc& fx;
 
@@ -26,7 +28,10 @@ struct UI : ::UI
   void openHorizontalBox(const char* label) override { }
   void openVerticalBox(const char* label) override { }
   void closeBox() override { }
-  void declare(FAUSTFLOAT* zone, const char* key, const char* val) override { }
+  void declare(FAUSTFLOAT* zone, const char* key, const char* val) override
+  {
+    MetaDataUI::declare(zone, key, val);
+  }
   void addSoundfile(
       const char* label,
       const char* filename,
@@ -69,9 +74,17 @@ struct UI : ::UI
         return;
     }
 
-    auto inl = new Process::FloatSlider{
-        min, max, init, label, getStrongId(fx.inlets()), &fx};
-    fx.inlets().push_back(inl);
+    if(isKnob(zone))
+    {
+      auto inl = new Process::FloatKnob{
+          min, max, init, label, getStrongId(fx.inlets()), &fx};
+      fx.inlets().push_back(inl);
+    } else
+    {
+      auto inl = new Process::FloatSlider{
+          min, max, init, label, getStrongId(fx.inlets()), &fx};
+      fx.inlets().push_back(inl);
+    }
   }
 
   void addHorizontalSlider(
@@ -119,7 +132,7 @@ struct UI : ::UI
 };
 
 template <typename Proc, bool SetInit>
-struct UpdateUI : ::UI
+struct UpdateUI : ::UI, MetaDataUI
 {
   Proc& fx;
   std::size_t i = 1;
@@ -214,12 +227,45 @@ struct UpdateUI : ::UI
   {
     if (i < fx.inlets().size())
     {
-      if (auto inlet = dynamic_cast<Process::FloatSlider*>(fx.inlets()[i]))
+      if (Process::FloatSlider* slider{dynamic_cast<Process::FloatSlider*>(fx.inlets()[i])})
       {
-        inlet->setName(label);
-        inlet->setDomain(ossia::make_domain(min, max));
-        if constexpr (SetInit)
-          inlet->setValue(init);
+        if(isKnob(zone))
+        {
+          auto id = fx.inlets()[i]->id();
+          fx.controlRemoved(*fx.inlets()[i]);
+          delete fx.inlets()[i];
+
+          auto inl = new Process::FloatKnob{
+              min, max, init, label, getStrongId(fx.inlets()), &fx};
+          fx.inlets().push_back(inl);
+        }
+        else
+        {
+          slider->setName(label);
+          slider->setDomain(ossia::make_domain(min, max));
+          if constexpr (SetInit)
+              slider->setValue(init);
+        }
+      }
+      else if (Process::FloatKnob* knob{dynamic_cast<Process::FloatKnob*>(fx.inlets()[i])})
+      {
+        if (isKnob(zone))
+        {
+          slider->setName(label);
+          slider->setDomain(ossia::make_domain(min, max));
+          if constexpr (SetInit)
+              slider->setValue(init);
+        }
+        else
+        {
+          auto id = fx.inlets()[i]->id();
+          fx.controlRemoved(*fx.inlets()[i]);
+          delete fx.inlets()[i];
+
+          auto inl = new Process::FloatSlider{
+              min, max, init, label, getStrongId(fx.inlets()), &fx};
+          fx.inlets().push_back(inl);
+        }
       }
       else
       {
@@ -227,17 +273,36 @@ struct UpdateUI : ::UI
         fx.controlRemoved(*fx.inlets()[i]);
         delete fx.inlets()[i];
 
-        auto inl = new Process::FloatSlider{min, max, init, label, id, &fx};
-        fx.inlets()[i] = inl;
+        if(isKnob(zone))
+        {
+          auto inl = new Process::FloatKnob{
+              min, max, init, label, getStrongId(fx.inlets()), &fx};
+          fx.inlets().push_back(inl);
+        } else
+        {
+          auto inl = new Process::FloatSlider{
+              min, max, init, label, getStrongId(fx.inlets()), &fx};
+          fx.inlets().push_back(inl);
+        }
       }
     }
     else
     {
-      auto inl = new Process::FloatSlider{
-          min, max, init, label, getStrongId(fx.inlets()), &fx};
-      fx.inlets().push_back(inl);
-      fx.controlAdded(inl->id());
+      if(isKnob(zone))
+      {
+        auto inl = new Process::FloatKnob{
+            min, max, init, label, getStrongId(fx.inlets()), &fx};
+        fx.inlets().push_back(inl);
+        fx.controlAdded(inl->id());
+      } else
+      {
+        auto inl = new Process::FloatSlider{
+            min, max, init, label, getStrongId(fx.inlets()), &fx};
+        fx.inlets().push_back(inl);
+        fx.controlAdded(inl->id());
+      }
     }
+
     i++;
   }
 

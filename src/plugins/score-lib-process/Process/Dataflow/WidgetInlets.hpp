@@ -8,6 +8,7 @@
 namespace Process
 {
 struct FloatSlider;
+struct FloatKnob;
 struct LogFloatSlider;
 struct IntSlider;
 struct IntSpinBox;
@@ -29,6 +30,11 @@ UUID_METADATA(
     Process::Port,
     Process::FloatSlider,
     "af2b4fc3-aecb-4c15-a5aa-1c573a239925")
+UUID_METADATA(
+    SCORE_LIB_PROCESS_EXPORT,
+    Process::Port,
+    Process::FloatKnob,
+    "82427d27-084a-4ab6-9c4e-db83929a1200")
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT,
     Process::Port,
@@ -125,6 +131,24 @@ struct SCORE_LIB_PROCESS_EXPORT FloatSlider : public Process::ControlInlet
       Id<Process::Port> id,
       QObject* parent);
   ~FloatSlider();
+
+  auto getMin() const noexcept { return domain().get().convert_min<float>(); }
+  auto getMax() const noexcept { return domain().get().convert_max<float>(); }
+  using Process::ControlInlet::ControlInlet;
+};
+
+struct SCORE_LIB_PROCESS_EXPORT FloatKnob : public Process::ControlInlet
+{
+  MODEL_METADATA_IMPL(FloatKnob)
+      using control_type = WidgetFactory::FloatKnob;
+  FloatKnob(
+        float min,
+        float max,
+        float init,
+        const QString& name,
+        Id<Process::Port> id,
+        QObject* parent);
+  ~FloatKnob();
 
   auto getMin() const noexcept { return domain().get().convert_min<float>(); }
   auto getMax() const noexcept { return domain().get().convert_max<float>(); }
