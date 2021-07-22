@@ -35,8 +35,8 @@ extern "C"  __declspec(dllimport) LONG __stdcall NtSetTimerResolution(ULONG Desi
 */
 #if defined(__linux__)
 #include <dlfcn.h>
-
 #include <sys/resource.h>
+#define HAS_RLIMIT 1
 #endif
 
 #if defined(__SSE3__)
@@ -48,6 +48,7 @@ struct NSAutoreleasePool;
 
 #include <sys/resource.h>
 
+#define HAS_RLIMIT 1
 #include <CoreFoundation/CFNumber.h>
 #include <CoreFoundation/CFPreferences.h>
 void disableAppRestore()
@@ -118,7 +119,7 @@ static void disable_denormals()
 
 static void setup_faust_path()
 {
-  if(!qgetenv("FAUST_LIB_PATH").isEmpty())
+  if(!qEnvironmentVariableIsEmpty("FAUST_LIB_PATH"))
     return;
 
   auto path = ossia::get_exe_path();
@@ -236,7 +237,7 @@ static void setup_fftw() { }
 
 static void setup_limits()
 {
-#if __has_include(<sys/resource.h>)
+#if HAS_RLIMIT
   constexpr int min_fds = 10000;
   struct rlimit rlim;
   if (getrlimit(RLIMIT_NOFILE, &rlim) != 0)
