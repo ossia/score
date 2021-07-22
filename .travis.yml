@@ -25,4 +25,4 @@ before_install:
   - travis_wait 45 "./ci/$CONF.deps.sh"
 
 script:
-  - travis_wait 45 "./ci/$CONF.build.sh"
+  - "./ci/$CONF.build.sh"
