@@ -1,6 +1,7 @@
 #include <Gfx/Settings/Model.hpp>
-
+#include <score/gfx/Vulkan.hpp>
 #include <wobjectimpl.h>
+
 W_OBJECT_IMPL(Gfx::Settings::Model)
 namespace Gfx::Settings
 {
@@ -12,7 +13,7 @@ namespace Parameters
   return GraphicsApi::D3D11;
 #elif defined(Q_OS_DARWIN)
   return GraphicsApi::Metal;
-#elif QT_CONFIG(vulkan)
+#elif QT_HAS_VULKAN
   const QString platformName = QGuiApplication::platformName().toLower();
   if(platformName.contains("gl") || platformName.contains("wayland") || platformName.isEmpty())
   {
@@ -45,7 +46,7 @@ Gfx::Settings::GraphicsApis::operator QStringList() const noexcept
   lst += OpenGL;
 #endif
 
-#if QT_CONFIG(vulkan)
+#if QT_HAS_VULKAN
   lst += Vulkan;
 #endif
 

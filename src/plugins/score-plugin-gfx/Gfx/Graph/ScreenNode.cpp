@@ -14,7 +14,7 @@
 #include <QtGui/private/qrhigles2_p.h>
 #endif
 
-#if QT_CONFIG(vulkan)
+#if QT_HAS_VULKAN
 #include <QtGui/private/qrhivulkan_p.h>
 #endif
 
@@ -55,7 +55,7 @@ static RenderState createRenderState(QWindow& window, GraphicsApi graphicsApi)
   }
 #endif
 
-#if QT_CONFIG(vulkan)
+#if QT_HAS_VULKAN
   if (graphicsApi == Vulkan)
   {
     QRhiVulkanInitParams params;
@@ -264,7 +264,7 @@ void ScreenNode::createOutput(
   if (m_ownsWindow)
     m_window = std::make_shared<Window>(graphicsApi);
 
-#if QT_CONFIG(vulkan)
+#if QT_HAS_VULKAN
   if (graphicsApi == Vulkan)
     m_window->setVulkanInstance(staticVulkanInstance());
 #endif

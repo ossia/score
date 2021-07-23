@@ -103,7 +103,7 @@ static void graphwalk(std::vector<score::gfx::Node*>& model_nodes)
 
 void Graph::createAllRenderLists(GraphicsApi graphicsApi)
 {
-#if QT_CONFIG(vulkan)
+#if QT_HAS_VULKAN
   if (graphicsApi == Vulkan)
   {
     if (!staticVulkanInstance())

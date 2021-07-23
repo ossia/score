@@ -1,12 +1,10 @@
 #include <score/gfx/Vulkan.hpp>
 
-#if QT_CONFIG(vulkan) && __has_include(<vulkan/vulkan.h>)
+#if defined(QT_FEATURE_vulkan) && QT_CONFIG(vulkan) && __has_include(<vulkan/vulkan.h>)
 #include <QVulkanInstance>
-#endif
 
 namespace score::gfx
 {
-#if QT_CONFIG(vulkan) && __has_include(<vulkan/vulkan.h>)
 QVulkanInstance* staticVulkanInstance()
 {
   static bool created = false;
@@ -32,5 +30,5 @@ QVulkanInstance* staticVulkanInstance()
   created = true;
   return &instance;
 }
-#endif
 }
+#endif
