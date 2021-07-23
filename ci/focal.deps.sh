@@ -1,8 +1,5 @@
 #!/bin/bash -eux
 
-rm -rf /usr/local/cmake*
-ls /usr/local
-
 apt-get update -qq
 apt-get install -qq software-properties-common wget
 
@@ -27,6 +24,3 @@ apt-get install \
      libavahi-compat-libdnssd-dev libsamplerate0-dev \
      portaudio19-dev \
      libavcodec-dev libavdevice-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev
-
-
-snap remove cmake
