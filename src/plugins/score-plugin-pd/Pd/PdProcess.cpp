@@ -534,7 +534,7 @@ static QString readKeyFromRegistry(const QString& path, const QString& key)
   return settings.value(key).toString();
 }
 #endif
-const QString& locatePdBinary() noexcept
+const QString& locatePurrDataBinary() noexcept
 {
   static const QString pdbinary = []() -> QString {
 #if __APPLE__
@@ -546,6 +546,36 @@ const QString& locatePdBinary() noexcept
         if (QFile::exists(pd_path))
           return pd_path;
       }
+    }
+#endif
+
+#if _WIN32
+    if (QFile::exists("c:\\Program Files\\Purr Data\\bin\\pd.exe"))
+      return "c:\\Program Files\\Purr Data\\bin\\pd.exe";
+    else if (QFile::exists("c:\\Program Files (x86)\\Purr Data\\bin\\pd.exe"))
+      return "c:\\Program Files (x86)\\Purr Data\\bin\\pd.exe";
+#else
+    if (QFile::exists("/usr/bin/purr-data"))
+      return "/usr/bin/purr-data";
+    else if (QFile::exists("/usr/local/bin/purr-data"))
+      return "/usr/local/bin/purr-data";
+
+#endif
+
+    if (checkIfBinaryIsInPath("purr-data"))
+      return "purr-data";
+
+    return {};
+  }();
+  return pdbinary;
+}
+
+const QString& locatePdBinary() noexcept
+{
+  static const QString pdbinary = []() -> QString {
+#if __APPLE__
+    {
+      const auto& applist = QDir{"/Applications"}.entryList();
 
       for (const auto& app : applist)
       {
@@ -560,10 +590,6 @@ const QString& locatePdBinary() noexcept
 #endif
 
 #if _WIN32
-    if (QFile::exists("c:\\Program Files\\Purr Data\\bin\\pd.exe"))
-      return "c:\\Program Files\\Purr Data\\bin\\pd.exe";
-    else if (QFile::exists("c:\\Program Files (x86)\\Purr Data\\bin\\pd.exe"))
-      return "c:\\Program Files (x86)\\Purr Data\\bin\\pd.exe";
 
     if (QFile::exists("c:\\Program Files\\Pd\\bin\\pd.exe"))
       return "c:\\Program Files\\Pd\\bin\\pd.exe";
@@ -598,19 +624,12 @@ const QString& locatePdBinary() noexcept
              !k.isEmpty())
       return k + "\\bin";
 #else
-    if (QFile::exists("/usr/bin/purr-data"))
-      return "/usr/bin/purr-data";
-    else if (QFile::exists("/usr/local/bin/purr-data"))
-      return "/usr/local/bin/purr-data";
-
-    else if (QFile::exists("/usr/bin/pd"))
+    if (QFile::exists("/usr/bin/pd"))
       return "/usr/bin/pd";
     else if (QFile::exists("/usr/local/bin/pd"))
       return "/usr/local/bin/pd";
 #endif
 
-    if (checkIfBinaryIsInPath("purr-data"))
-      return "purr-data";
     if (checkIfBinaryIsInPath("pd"))
       return "pd";
 
