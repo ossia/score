@@ -54,6 +54,16 @@ int ProcessModel::channel() const noexcept
 
 void ProcessModel::setCurrentPattern(int n)
 {
+  if(n >= m_patterns.size())
+  {
+    auto pattern = m_patterns[m_currentPattern];
+    for(auto& lane : pattern.lanes)
+      std::fill(lane.pattern.begin(), lane.pattern.end(), false);
+
+    while(n >= m_patterns.size())
+        m_patterns.push_back(pattern);
+  }
+
   n = std::clamp(n, 0, (int)m_patterns.size());
   if (n != m_currentPattern)
   {

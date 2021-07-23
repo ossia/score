@@ -39,6 +39,8 @@ public:
 
     m_channel.setValue(obj.channel());
 
+    if(obj.currentPattern() >= obj.patterns().size())
+      return;
     const Pattern& pat = obj.patterns()[obj.currentPattern()];
     m_lanes.setValue(pat.lanes.size());
     m_duration.setValue(pat.length);
@@ -62,6 +64,9 @@ public:
       m_rate.setValue(pat.division);
     });
     con(process(), &ProcessModel::patternsChanged, this, [&] {
+      if(obj.currentPattern() >= obj.patterns().size())
+        return;
+
       const Pattern& pat = obj.patterns()[obj.currentPattern()];
       m_lanes.setValue(pat.lanes.size());
       m_duration.setValue(pat.length);
@@ -78,6 +83,9 @@ public:
     con(m_lanes, qOverload<int>(&QSpinBox::valueChanged), this, [&]() {
       int n = m_lanes.value();
       if (n <= 0)
+        return;
+
+      if(obj.currentPattern() >= obj.patterns().size())
         return;
 
       auto p = obj.patterns()[obj.currentPattern()];

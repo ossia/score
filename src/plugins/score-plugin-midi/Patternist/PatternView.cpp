@@ -40,7 +40,7 @@ View::~View() { }
 
 void View::updateLanes()
 {
-  if (m_model.currentPattern() > m_model.patterns().size())
+  if (m_model.currentPattern() >= m_model.patterns().size())
     return;
   auto& cur_p = m_model.patterns()[m_model.currentPattern()];
   if (cur_p.lanes.size() != m_lanes.size())
