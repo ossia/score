@@ -328,12 +328,15 @@ void JackFactory::setupSettingsWidget(
   }
 #endif
 
-  if (WeakJack::instance().available() != 0)
-  {
+  auto on_noJack = [&] {
     auto label = new QLabel{
         QObject::tr("JACK does not seem to be running.\nCheck that jackd is "
                     "running and that /usr/lib/libjack.so exists.")};
     lay->addWidget(label);
+  };
+  if (WeakJack::instance().available() != 0)
+  {
+    on_noJack();
     return;
   }
 
@@ -341,18 +344,24 @@ void JackFactory::setupSettingsWidget(
   if (!client)
   {
     m_client = (client = std::make_shared<ossia::jack_client>("ossia score"));
-    qDebug("Creating a jack client");
+  }
+
+  auto clt = client->client;
+  if(!clt)
+  {
+    on_noJack();
+    return;
   }
 
   {
-    auto rate = jack_get_sample_rate(*client);
+    auto rate = jack_get_sample_rate(clt);
     auto rate_label = new QLabel{QString::number(rate)};
     rate_label->setObjectName("Rate");
     lay->addRow(QObject::tr("Rate"), rate_label);
     m.setRate(rate);
   }
   {
-    auto bs = jack_get_buffer_size(*client);
+    auto bs = jack_get_buffer_size(clt);
     auto bs_label = new QLabel{QString::number(bs)};
     bs_label->setObjectName("BufferSize");
     lay->addRow(QObject::tr("Buffer size"), bs_label);
