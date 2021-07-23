@@ -111,6 +111,7 @@ private:
   void registerDevice(ossia::net::device_base*);
   void unregisterDevice(ossia::net::device_base*);
   void makeGraph();
+  void initExecState();
 
   mutable ExecutionCommandQueue m_execQueue;
   mutable EditionCommandQueue m_editionQueue;

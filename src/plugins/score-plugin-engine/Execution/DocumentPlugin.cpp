@@ -64,7 +64,7 @@ DocumentPlugin::DocumentPlugin(
 }
 , m_setup_ctx{m_ctx}, m_base{m_ctx, this}
 {
-  // makeGraph();
+  makeGraph();
   auto& devs = ctx.plugin<Explorer::DeviceDocumentPlugin>();
   local_device = devs.list().localDevice();
   if (auto dev = devs.list().audioDevice())
@@ -154,8 +154,18 @@ void DocumentPlugin::on_finished()
 
   clear();
 
-  /*
-  execState = std::make_unique<ossia::execution_state>();
+  initExecState();
+
+  for (auto& v : m_setup_ctx.runtime_connections)
+  {
+    v.second.clear();
+  }
+  m_setup_ctx.runtime_connections.clear();
+}
+
+void DocumentPlugin::initExecState()
+{
+  execState = std::make_shared<ossia::execution_state>();
   auto& devlist
       = score::DocumentPlugin::context().plugin<Explorer::DeviceDocumentPlugin>().list().devices();
   if (audio_device)
@@ -167,12 +177,6 @@ void DocumentPlugin::on_finished()
     registerDevice(dev->getDevice());
   }
   execState->apply_device_changes();
-  */
-  for (auto& v : m_setup_ctx.runtime_connections)
-  {
-    v.second.clear();
-  }
-  m_setup_ctx.runtime_connections.clear();
 }
 
 void DocumentPlugin::timerEvent(QTimerEvent* event)
@@ -201,8 +205,6 @@ void DocumentPlugin::makeGraph()
 {
   using namespace ossia;
   const score::DocumentContext& ctx = m_ctx.doc;
-  auto& devlist
-      = ctx.plugin<Explorer::DeviceDocumentPlugin>().list().devices();
   auto& audiosettings = ctx.app.settings<Audio::Settings::Model>();
 
   static const Execution::Settings::SchedulingPolicies sched_t;
@@ -219,7 +221,9 @@ void DocumentPlugin::makeGraph()
     execGraph->clear();
   execGraph.reset();
 
-  execState = std::make_shared<ossia::execution_state>();
+  execState.reset();
+
+  initExecState();
 
   execState->bufferSize = audiosettings.getBufferSize();
   execState->sampleRate = audiosettings.getRate();
@@ -230,15 +234,6 @@ void DocumentPlugin::makeGraph()
   execState->samples_since_start = 0;
   execState->start_date = 0; // TODO set it in the first callback
   execState->cur_date = execState->start_date;
-  if (audio_device)
-    execState->register_device(audio_device->getDevice());
-  if (local_device)
-    execState->register_device(local_device->getDevice());
-  for (auto dev : devlist)
-  {
-    registerDevice(dev->getDevice());
-  }
-  execState->apply_device_changes();
 
   ossia::graph_setup_options opt;
   opt.parallel = settings.getParallel();

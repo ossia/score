@@ -69,6 +69,7 @@ void state(
   // For all elements where IOType != Invalid,
   // we add the elements to the state.
 
+  SCORE_ASSERT(ctx.execState);
   auto& dl = *ctx.execState;
   score_state.messages().rootNode().visit([&](const auto& n) {
     const auto& val = n.value();
