@@ -43,8 +43,8 @@ jobs:
         uses: docker://ubuntu:bionic
         with:
           env:
-            - CC=clang-10
-            - CXX=clang++-10 
+            CC: clang-10
+            CXX: clang++-10 
           args:
             ./ci/bionic.build.sh
 
