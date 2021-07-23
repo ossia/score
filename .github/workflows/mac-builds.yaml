@@ -1,0 +1,22 @@
+name: macOS build
+
+on: push
+
+jobs:
+  brew:
+    name: macOS (Brew)
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - name: Dependencies
+        run: |
+          ./ci/osx-brew.deps.sh
+
+      - name: Build
+        run: |
+          ./ci/osx-brew.build.sh
