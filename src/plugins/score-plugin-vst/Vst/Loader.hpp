@@ -18,6 +18,8 @@ struct Module
   Module(std::string fileName);
   ~Module();
   PluginEntryProc getMain();
+
+  int use_count{};
 };
 
 #if defined(__APPLE__)

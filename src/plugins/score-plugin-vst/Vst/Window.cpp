@@ -51,9 +51,18 @@ Window::Window(
     setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint);
   }
   e.externalUIVisible(true);
+  e.fx->ui_opened = true;
 }
 
-Window::~Window() { }
+Window::~Window() {
+
+  if (auto eff = effect.lock())
+  {
+    if(eff->ui_opened)
+      eff->fx->dispatcher(eff->fx, effEditClose, 0, 0, nullptr, 0);
+    eff->ui_opened = false;
+  }
+}
 
 void Window::refreshTimer()
 {
@@ -65,7 +74,11 @@ void Window::closeEvent(QCloseEvent* event)
 {
   QPointer<Window> p(this);
   if (auto eff = effect.lock())
-    eff->fx->dispatcher(eff->fx, effEditClose, 0, 0, nullptr, 0);
+  {
+    if(eff->ui_opened)
+      eff->fx->dispatcher(eff->fx, effEditClose, 0, 0, nullptr, 0);
+    eff->ui_opened = false;
+  }
   const_cast<QWidget*&>(m_model.externalUI) = nullptr;
   m_model.externalUIVisible(false);
   if (p)

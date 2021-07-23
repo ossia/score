@@ -480,7 +480,8 @@ void Model::closePlugin()
       auto w = reinterpret_cast<Window*>(externalUI);
       delete w;
     }
-    fx = nullptr;
+
+    fx.reset();
   }
   auto old_inlets = score::clearAndDeleteLater(m_inlets);
   auto old_outlets = score::clearAndDeleteLater(m_outlets);
@@ -543,7 +544,16 @@ AEffect* getPluginInstance(int32_t id)
         it->second = new vst::Module{info_it->path.toStdString()};
       if (auto m = it->second->getMain())
       {
-        return m(vst_host_callback);
+        if(auto plug = m(vst_host_callback))
+        {
+          it->second->use_count++;
+          return plug;
+        }
+      }
+      if(it->second && it->second->use_count == 0)
+      {
+        delete it->second;
+        it->second = nullptr;
       }
     }
     else
@@ -566,6 +576,24 @@ AEffect* getPluginInstance(int32_t id)
   return nullptr;
 }
 
+
+void releasePluginInstance(int uid)
+{
+  auto& app
+      = score::GUIAppContext().applicationPlugin<vst::ApplicationPlugin>();
+
+  auto it = app.vst_modules.find(uid);
+  if (it != app.vst_modules.end())
+  {
+    SCORE_ASSERT (it->second);
+    it->second->use_count--;
+    if(it->second->use_count == 0)
+    {
+      delete it->second;
+      it->second = nullptr;
+    }
+  }
+}
 void Model::initFx()
 {
   fx = std::make_shared<AEffectWrapper>(getPluginInstance(m_effectId));
@@ -654,6 +682,22 @@ void Model::load()
     controls.insert({ctrl, inlet});
   }
 }
+
+AEffectWrapper::~AEffectWrapper()
+{
+  if (fx)
+  {
+    fx->dispatcher(fx, effStopProcess, 0, 0, nullptr, 0.f);
+    fx->dispatcher(fx, effMainsChanged, 0, 0, nullptr, 0.f);
+    score::invoke(
+          [fx = fx] {
+      int uid = fx->uniqueID;
+      fx->dispatcher(fx, effClose, 0, 0, nullptr, 0.f);
+      releasePluginInstance(uid);
+    });
+  }
+}
+
 }
 
 #define SCORE_DATASTREAM_IDENTIFY_VST_CHUNK int32_t(0xABABABAB)

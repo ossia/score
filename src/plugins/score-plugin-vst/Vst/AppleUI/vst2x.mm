@@ -63,8 +63,12 @@ Window::Window(const Model& e, const score::DocumentContext& ctx)
   //setWindowFlag(Qt::WindowMaximizeButtonHint, false);
   id superview = [[::NSView alloc] initWithFrame: NSMakeRect(rect.top, rect.left, rect.right, rect.bottom)];
 
-  eff->fx->dispatcher(eff->fx, effEditOpen, 0, 0, (void*)superview, 0);
-
+  int res = eff->fx->dispatcher(eff->fx, effEditOpen, 0, 0, (void*)superview, 0);
+  if(!res)
+  {
+    [pool release];
+    throw std::runtime_error("Cannot open UI");
+  }
   ERect* vstRect{};
 
   eff->fx->dispatcher(eff->fx, effEditGetRect, 0, 0, &vstRect, 0.0f);

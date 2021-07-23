@@ -43,6 +43,7 @@ struct AEffectWrapper
 {
   AEffect* fx{};
   VstTimeInfo info;
+  bool ui_opened{};
 
   AEffectWrapper(AEffect* f) noexcept
       : fx{f}
@@ -68,16 +69,7 @@ struct AEffectWrapper
     return fx->dispatcher(fx, opcode, index, value, ptr, opt);
   }
 
-  ~AEffectWrapper()
-  {
-    if (fx)
-    {
-      fx->dispatcher(fx, effStopProcess, 0, 0, nullptr, 0.f);
-      fx->dispatcher(fx, effMainsChanged, 0, 0, nullptr, 0.f);
-      score::invoke(
-          [fx = fx] { fx->dispatcher(fx, effClose, 0, 0, nullptr, 0.f); });
-    }
-  }
+  ~AEffectWrapper();
 };
 
 class CreateControl;
