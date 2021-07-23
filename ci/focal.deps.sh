@@ -1,5 +1,7 @@
 #!/bin/bash -eux
 
+echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+
 apt-get update -qq
 apt-get install -qq software-properties-common wget
 
