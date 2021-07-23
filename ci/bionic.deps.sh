@@ -1,16 +1,13 @@
 #!/bin/bash -eux
 
-rm -rf /usr/local/cmake*
-ls /usr/local
-
 apt-get update -qq
 apt-get install -qq software-properties-common wget
 
-apt purge --auto-remove cmake
 wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
 apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
 
 apt-get install -qq --force-yes \
+     gcc-8 g++-8 \
      binutils clang-10 clang++-10 \
      libasound-dev \
      ninja-build cmake \

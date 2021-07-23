@@ -12,7 +12,7 @@ apt-get install \
     --allow-downgrades \
     --allow-remove-essential \
     --allow-unauthenticated \
-     binutils gcc-10 g++-10 \
+     binutils gcc-10 g++-10 clang-10 clang++-10 \
      libasound-dev \
      ninja-build cmake \
      libfftw3-dev \
