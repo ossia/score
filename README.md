@@ -4,13 +4,13 @@
 
 [**ossia score**](https://ossia.io) is a ***sequencer*** for audio-visual artists, designed to create ***interactive*** shows.
 
-Sequence **OSC, MIDI, DMX, sound files** and more, between multiple software and hardware, create ***interactive*** and ***intermedia*** scores and ***script*** in JavaScript to customize your score.
+Sequence **OSC, MIDI, DMX, sound, video** and more, between multiple software and hardware, create ***interactive*** and ***intermedia*** scores and ***script*** with JavaScript, PureData or C++ to customize your score.
 
-Free, open source and runs on desktop, mobile and embedded.
+Free, open source and runs on desktop, mobile, web and embedded.
 
-Read more on https://ossia.io, come ask questions on the [forum](https://forum.ossia.io/c/score) or hang out in a [chat](https://gitter.im/ossia/score) with us, we will be happy to help you !
+Read more on [https://ossia.io](https://ossia.io), come ask questions on the [forum](https://forum.ossia.io/c/score) or hang out in our [chat](https://gitter.im/ossia/score), we will be happy to help you !
 
-### Download the [latest release here](https://github.com/ossia/score/releases/) and read the Releases section in this README.
+### Download the [latest release here](https://github.com/ossia/score/releases/) !
 
 ![ossia score screenshot](/docs/score.png?raw=true)
 
@@ -24,13 +24,14 @@ Releases are available for [Windows, Linux (via AppImage) and Mac OS X](https://
 
 ## Build status
 * Official Win/Mac/Linux releases: [![Azure Pipelines](https://img.shields.io/azure-devops/build/ossia/f914424f-63a4-43f7-b424-67c9dc58ae05/2)](https://dev.azure.com/ossia/libossia/_build?definitionId=2)
-* ArchLinux, OpenSUSE, Fedora, Debian: [![Linux distro build](https://github.com/ossia/score/workflows/Linux%20distro%20build/badge.svg)](https://github.com/ossia/score/actions?query=workflow%3A%22Linux+distro+build%22)
-* Ubuntu, macOS (with Brew): [![Travis Status](https://travis-ci.org/ossia/score.svg?branch=master)](https://travis-ci.org/ossia/score)
+* ArchLinux, OpenSUSE, Fedora, Debian, WASM, Raspberry Pi: [![Linux distro build](https://github.com/ossia/score/workflows/Linux%20distro%20build/badge.svg)](https://github.com/ossia/score/actions?query=workflow%3A%22Linux+distro+build%22)
+* Ubuntu Bionic, Focal on GCC, Clang: [![Ubuntu build](https://github.com/ossia/score/workflows/Ubuntu%20build/badge.svg)](https://github.com/ossia/score/actions?query=workflow%3A%22Ubuntu+build%22)
+* macOS (with Brew): [![macOS build](https://github.com/ossia/score/workflows/macOS%20build/badge.svg)](https://github.com/ossia/score/actions?query=workflow%3A%22macOS+build%22)
 * Windows (MSVC): [![Appveyor Status](https://ci.appveyor.com/api/projects/status/github/ossia/score?branch=master&svg=true)](https://ci.appveyor.com/project/JeanMichalCelerier/score) 
 * [![OpenHub](https://www.openhub.net/p/score/widgets/project_thin_badge?format=gif)](https://www.openhub.net/p/score)
 * ossia score uses [CppDepend](https://www.cppdepend.com/) to ensure consistent code quality improvements ; please check it out !
 
-In order to build score, follow the [instructions](https://github.com/ossia/score/wiki/Build-and-install).
+In order to build score, follow the [documentation](https://ossia.io/score-docs/development/build-from-source.html).
 
 ## Contributing
 
