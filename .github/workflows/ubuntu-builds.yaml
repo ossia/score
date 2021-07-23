@@ -6,50 +6,40 @@ jobs:
   bionic_gcc:
     name: Ubuntu (Bionic, GCC 10)
     runs-on: ubuntu-latest
-    container:
-      image: ubuntu:bionic
 
     steps:
-      - name: Install git
-        run: |
-          apt-get update -qq
-          apt-get install -qq --force-yes git
-
       - name: Checkout code
         uses: actions/checkout@v2
         with:
           submodules: 'recursive'
 
       - name: Dependencies
+        uses: docker://ubuntu:bionic
         run: |
           ./ci/bionic.deps.sh
 
       - name: Build
+        uses: docker://ubuntu:bionic
         run: |
           CC=gcc-10 CXX=g++-10 ./ci/bionic.build.sh
 
   bionic_clang:
     name: Ubuntu (Bionic, Clang 10)
     runs-on: ubuntu-latest
-    container:
-      image: ubuntu:bionic
 
     steps:
-      - name: Install git
-        run: |
-          apt-get update -qq
-          apt-get install -qq --force-yes git
-
       - name: Checkout code
         uses: actions/checkout@v2
         with:
           submodules: 'recursive'
 
       - name: Dependencies
+        uses: docker://ubuntu:bionic
         run: |
           ./ci/bionic.deps.sh
 
       - name: Build
+        uses: docker://ubuntu:bionic
         run: |
           CC=clang-10 CXX=clang++-10 ./ci/bionic.build.sh
 

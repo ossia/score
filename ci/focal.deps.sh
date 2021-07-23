@@ -1,16 +1,16 @@
 #!/bin/bash -eux
 
-sudo rm -rf /usr/local/cmake*
+rm -rf /usr/local/cmake*
 ls /usr/local
 
-sudo apt-get update -qq
-sudo apt-get install -qq software-properties-common wget
+apt-get update -qq
+apt-get install -qq software-properties-common wget
 
-sudo apt purge --auto-remove cmake
-wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
-sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ focal main'
+apt purge --auto-remove cmake
+wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
+apt-add-repository 'deb https://apt.kitware.com/ubuntu/ focal main'
 
-sudo apt-get install \
+apt-get install \
     --allow-change-held-packages \
     --allow-downgrades \
     --allow-remove-essential \
@@ -29,4 +29,4 @@ sudo apt-get install \
      libavcodec-dev libavdevice-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev
 
 
-sudo snap remove cmake
+snap remove cmake
