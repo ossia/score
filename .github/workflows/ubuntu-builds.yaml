@@ -13,7 +13,7 @@ jobs:
       - name: Install git
         run: |
           apt-get update -qq
-          apt-get instal -qq software-properties-common
+          apt-get install -qq software-properties-common
           add-apt-repository ppa:git-core/ppa
           apt-get update -qq
           apt-get install -qq --force-yes git
@@ -41,7 +41,7 @@ jobs:
       - name: Install git
         run: |
           apt-get update -qq
-          apt-get instal -qq software-properties-common
+          apt-get install -qq software-properties-common
           add-apt-repository ppa:git-core/ppa
           apt-get update -qq
           apt-get install -qq --force-yes git
