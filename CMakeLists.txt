@@ -20,11 +20,12 @@ endif()
 if(OSSIA_SDK)
   set(CMAKE_PREFIX_PATH
       "${OSSIA_SDK}"
+      "${OSSIA_SDK}/SDL2"
       "${OSSIA_SDK}/SDL2/cmake"
       "${OSSIA_SDK}/qt5-static-debug"
       "${OSSIA_SDK}/qt5-static"
-      "${OSSIA_SDK}/llvm-libs"
       "${OSSIA_SDK}/llvm"
+      "${OSSIA_SDK}/llvm-libs"
       "${OSSIA_SDK}/fftw"
       "${OSSIA_SDK}/zlib"
       "${OSSIA_SDK}/faust"

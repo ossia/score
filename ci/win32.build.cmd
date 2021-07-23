@@ -7,7 +7,6 @@ cmake -GNinja %BUILD_SOURCESDIRECTORY% ^
   -DCMAKE_CXX_COMPILER=c:/ossia-sdk/llvm/bin/clang++.exe ^
   -DOSSIA_SDK=c:\ossia-sdk ^
   -DCMAKE_INSTALL_PREFIX=install ^
-  -DCMAKE_PREFIX_PATH="c:/ossia-sdk/llvm;c:/ossia-sdk/qt5-static;c:/ossia-sdk/llvm-libs;c:/ossia-sdk/SDL2;c:/ossia-sdk" ^
   -DCMAKE_BUILD_TYPE=Release ^
   -DCMAKE_UNITY_BUILD=1 ^
   -DOSSIA_STATIC_EXPORT=1 ^
