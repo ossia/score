@@ -13,6 +13,7 @@ struct SerialSpecificSettings
 {
   QSerialPortInfo port;
   QString text;
+  int32_t rate{0};
 };
 }
 Q_DECLARE_METATYPE(Protocols::SerialSpecificSettings)

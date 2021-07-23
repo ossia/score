@@ -29,12 +29,19 @@ SerialProtocolSettingsWidget::SerialProtocolSettingsWidget(QWidget* parent)
   QLabel* portLabel = new TextLabel(tr("Port"), this);
   m_port = new score::ComboBox{this};
 
+  QLabel* rateLabel = new TextLabel(tr("Baud rate"), this);
+  m_rate = new score::ComboBox{this};
+  m_rate->setEditable(true);
+
   m_codeEdit = Process::createScriptWidget("JS");
 
   for (auto port : QSerialPortInfo::availablePorts())
-  {
     m_port->addItem(port.portName());
-  }
+
+
+  for (auto rate : QSerialPortInfo::standardBaudRates())
+    m_rate->addItem(QString::number(rate));
+
   QGridLayout* gLayout = new QGridLayout;
 
   gLayout->addWidget(deviceNameLabel, 0, 0, 1, 1);
@@ -42,6 +49,10 @@ SerialProtocolSettingsWidget::SerialProtocolSettingsWidget(QWidget* parent)
 
   gLayout->addWidget(portLabel, 1, 0, 1, 1);
   gLayout->addWidget(m_port, 1, 1, 1, 1);
+
+  gLayout->addWidget(rateLabel, 2, 0, 1, 1);
+  gLayout->addWidget(m_rate, 2, 1, 1, 1);
+
   gLayout->addWidget(m_codeEdit, 3, 0, 1, 2);
 
   setLayout(gLayout);
@@ -56,6 +67,7 @@ void SerialProtocolSettingsWidget::setDefaults()
   m_name->setText("newDevice");
   m_codeEdit->setPlainText("");
   m_port->setCurrentIndex(0);
+  m_rate->setCurrentText("9600");
 }
 
 Device::DeviceSettings SerialProtocolSettingsWidget::getSettings() const
@@ -66,12 +78,15 @@ Device::DeviceSettings SerialProtocolSettingsWidget::getSettings() const
 
   SerialSpecificSettings specific;
   for (auto port : QSerialPortInfo::availablePorts())
-  {
     if (port.portName() == m_port->currentText())
-    {
       specific.port = port;
+
+  for (auto rate : QSerialPortInfo::standardBaudRates())
+    if (rate == m_rate->currentText().toInt())
+    {
+      specific.rate = rate;
+      break;
     }
-  }
 
   specific.text = m_codeEdit->toPlainText();
 
@@ -88,7 +103,11 @@ void SerialProtocolSettingsWidget::setSettings(
   {
     specific = settings.deviceSpecificSettings.value<SerialSpecificSettings>();
 
+    int32_t rate{specific.rate};
+    if (rate == 0) rate = 9600;
+
     m_port->setCurrentText(specific.port.portName());
+    m_rate->setCurrentText(QString::number(rate));
     m_codeEdit->setPlainText(specific.text);
   }
 }

@@ -13,7 +13,7 @@
 template <>
 void DataStreamReader::read(const Protocols::SerialSpecificSettings& n)
 {
-  m_stream << n.port.serialNumber() << n.text;
+  m_stream << n.port.serialNumber() << n.text << n.rate;
   insertDelimiter();
 }
 
@@ -21,16 +21,14 @@ template <>
 void DataStreamWriter::write(Protocols::SerialSpecificSettings& n)
 {
   QString sn;
-  m_stream >> sn >> n.text;
+  m_stream >> sn >> n.text >> n.rate;
 
   for (const auto& port : QSerialPortInfo::availablePorts())
-  {
     if (port.serialNumber() == sn)
     {
       n.port = port;
       break;
     }
-  }
 
   checkDelimiter();
 }
@@ -40,6 +38,7 @@ void JSONReader::read(const Protocols::SerialSpecificSettings& n)
 {
   obj["Port"] = n.port.serialNumber();
   obj["Text"] = n.text;
+  obj["Rate"] = n.rate;
 }
 
 template <>
@@ -47,13 +46,13 @@ void JSONWriter::write(Protocols::SerialSpecificSettings& n)
 {
   auto sn = obj["Port"].toString();
   for (const auto& port : QSerialPortInfo::availablePorts())
-  {
     if (port.serialNumber() == sn)
     {
       n.port = port;
       break;
     }
-  }
+
   n.text = obj["Text"].toString();
+  n.rate = obj["Rate"].toInt();
 }
 #endif

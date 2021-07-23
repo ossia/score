@@ -39,7 +39,7 @@ bool SerialDevice::reconnect()
 
     m_dev = std::make_unique<ossia::net::serial_device>(
         std::make_unique<ossia::net::serial_protocol>(
-            stgs.text.toUtf8(), stgs.port),
+            stgs.text.toUtf8(), stgs.port, stgs.rate),
         settings().name.toStdString());
 
     deviceChanged(nullptr, m_dev.get());
