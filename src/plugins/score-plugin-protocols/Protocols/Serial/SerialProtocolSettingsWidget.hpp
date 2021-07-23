@@ -30,6 +30,7 @@ protected:
 protected:
   QLineEdit* m_name{};
   score::ComboBox* m_port{};
+  score::ComboBox* m_rate{};
   QTextEdit* m_codeEdit{};
 };
 }
