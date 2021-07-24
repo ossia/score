@@ -41,6 +41,8 @@ private:
   void keyPressEvent(QKeyEvent*) override;
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 
+  void updateBackground(double height);
+
   QPainterPath m_selectArea;
   double m_defaultW; // Covers the [ 0; 1 ] area
   int m_min{0}, m_max{127};

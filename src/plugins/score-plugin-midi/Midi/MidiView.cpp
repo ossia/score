@@ -35,6 +35,11 @@ View::~View() { }
 
 void View::heightChanged(qreal h)
 {
+  updateBackground(h);
+}
+
+void View::updateBackground(double h)
+{
   const double dpi = qApp->devicePixelRatio();
   QPixmap bg(100 * dpi, h * dpi);
   bg.setDevicePixelRatio(dpi);
@@ -165,6 +170,8 @@ void View::setRange(int min, int max)
 {
   m_min = min;
   m_max = max;
+
+  updateBackground(this->height());
   update();
 }
 
