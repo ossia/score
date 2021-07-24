@@ -243,8 +243,4 @@ void JSONWriter::write(Media::Sound::ProcessModel& proc)
   proc.m_startChannel = obj["Start"].toInt();
   proc.m_mode = (ossia::audio_stretch_mode)obj["Mode"].toInt();
   proc.m_nativeTempo = obj["Tempo"].toDouble();
-
-  if (int off = obj["StartOffset"].toInt(); off != 0)
-    proc.m_startOffset
-        = TimeVal::fromMsecs(1000. * off / proc.file()->sampleRate());
 }
