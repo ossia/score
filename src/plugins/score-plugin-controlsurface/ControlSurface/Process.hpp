@@ -4,6 +4,8 @@
 #include <Process/Process.hpp>
 #include <State/Message.hpp>
 
+#include <unordered_map>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <ossia/detail/hash_map.hpp>
 
 namespace Device
@@ -17,6 +19,63 @@ class ControlInlet;
 
 namespace ControlSurface
 {
+template<typename Identifier, typename Func>
+struct NodeObserver
+    : public QObject
+{
+  Explorer::DeviceExplorerModel& model;
+  Func f;
+
+  NodeObserver(Explorer::DeviceExplorerModel& explorer, Func fun)
+    : model{explorer}
+    , f{fun}
+  {
+    // TODO handle the case where the node isn't available / gets removed and added again...
+    connect(&explorer, &Explorer::DeviceExplorerModel::nodeChanged,
+            this, [this] (Device::Node* n) {
+      if(auto it = available.find(n); it != available.end()) {
+        f(n, it->second.id);
+      }
+    });
+  }
+
+  void listen(State::Address addr, Identifier identifier)
+  {
+    auto node = Device::try_getNodeFromAddress(model.rootNode(), addr);
+    if(node)
+    {
+      available[node] = {std::move(addr), std::move(identifier)};
+    }
+    else
+    {
+      missing.push_back({std::move(addr), std::move(identifier)});
+    }
+  }
+
+  void unlisten(const State::Address& addr)
+  {
+    auto it = ossia::find_if(available, [&] (const auto& pair) { return pair.second.accessor == addr; });
+    if(it != available.end())
+    {
+      available.erase(it);
+    }
+    else
+    {
+      auto it = ossia::find_if(missing, [&] (const auto& p) { return p.accessor == addr; });
+      if(it != missing.end())
+        missing.erase(it);
+    }
+  }
+
+  struct AvailableNode {
+    State::Address accessor;
+    Identifier id;
+  };
+
+  std::unordered_map<Device::Node*, AvailableNode> available;
+  std::vector<AvailableNode> missing;
+};
+
 class Model final : public Process::ProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
@@ -33,6 +92,7 @@ public:
   template <typename Impl>
   Model(Impl& vis, QObject* parent)
       : Process::ProcessModel{vis, parent}
+      , m_observer{Explorer::deviceExplorerFromObject(*parent), Apply{*this}}
   {
     vis.writeTo(*this);
   }
@@ -65,6 +125,13 @@ private:
   void setDurationAndShrink(const TimeVal& newDuration) noexcept override;
 
   address_map m_outputAddresses;
+
+  struct Apply {
+    ProcessModel& model;
+    void operator()(Device::Node*, int);
+  };
+
+  NodeObserver<int, Apply> m_observer;
 };
 
 using ProcessFactory = Process::ProcessFactory_T<ControlSurface::Model>;

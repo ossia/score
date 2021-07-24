@@ -931,23 +931,7 @@ struct XYSlider
   {
     auto sl = new score::QGraphicsXYChooser{nullptr};
     sl->setValue(ossia::convert<ossia::vec2f>(inlet.value()));
-    auto min = ossia::get_min(inlet.domain());
-    auto max = ossia::get_max(inlet.domain());
-    auto min_float = min.template target<float>();
-    auto max_float = max.template target<float>();
-    if(min_float && max_float)
-    {
-      sl->setRange({*min_float, *min_float}, {*max_float, *max_float});
-    }
-    else
-    {
-      auto min_vec2 = min.template target<ossia::vec2f>();
-      auto max_vec2 = max.template target<ossia::vec2f>();
-      if(min_vec2 && max_vec2)
-      {
-        sl->setRange(*min_vec2, *max_vec2);
-      }
-    }
+    bindVec2Domain(slider, inlet, *sl);
 
     QObject::connect(
         sl,
