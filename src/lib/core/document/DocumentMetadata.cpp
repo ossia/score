@@ -21,6 +21,18 @@ QString DocumentMetadata::fileName() const noexcept
   return m_fileName;
 }
 
+QString DocumentMetadata::documentName() const noexcept
+{
+  if(m_fileName.startsWith("Untitle"))
+    return m_fileName;
+
+  QFileInfo f{m_fileName};
+  if(!f.exists())
+    return m_fileName;
+
+  return f.baseName();
+}
+
 QString DocumentMetadata::author() const noexcept
 {
   return m_author;

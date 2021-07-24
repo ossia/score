@@ -24,6 +24,7 @@ public:
   using QObject::QObject;
   explicit DocumentMetadata(QString file) noexcept;
   QString fileName() const noexcept;
+  QString documentName() const noexcept;
   QString author() const noexcept;
   QDateTime creation() const noexcept;
   QDateTime lastEdition() const noexcept;
