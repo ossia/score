@@ -201,6 +201,10 @@ struct StateOverlays
       , m_graphOverlay{v}
       , m_sequenceOverlay{v}
   {
+    m_overlay.setZValue(1);
+    m_sequenceOverlay.setZValue(2);
+    m_graphOverlay.setZValue(3);
+
     m_overlay.setPos(1, -14);
     m_graphOverlay.setPos(1, 6);
     if (v->presenter().model().nextInterval())
@@ -210,7 +214,7 @@ struct StateOverlays
     }
     else
     {
-      m_sequenceOverlay.setPos(9, -4);
+      m_sequenceOverlay.setPos(7, -4);
     }
   }
 
