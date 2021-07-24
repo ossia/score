@@ -11,7 +11,9 @@
 #endif
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/local/local.hpp>
-
+#include <ossia/network/context.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <ossia-qt/invoke.hpp>
 #include <QDebug>
 
 #include <ossia-config.hpp>
@@ -23,6 +25,7 @@ LocalDevice::LocalDevice(
     const score::DocumentContext& ctx,
     const Device::DeviceSettings& settings)
     : DeviceInterface{settings}
+    , m_ctx{ctx}
     , m_dev{dev}
 {
   m_capas.canRefreshTree = true;
@@ -39,16 +42,53 @@ LocalDevice::LocalDevice(
   setLogging_impl(Device::get_cur_logging(isLogging()));
   // FIXME instead make the logging a property and bind to it.
 
-  setRemoteSettings(settings);
-
   enableCallbacks();
 }
 
 LocalDevice::~LocalDevice() { }
 
-void LocalDevice::setRemoteSettings(const Device::DeviceSettings& settings)
+void LocalDevice::exposeZeroconf()
 {
-  m_dev.set_name(settings.name.toStdString());
+  const auto& set = m_settings.deviceSpecificSettings.value<LocalSpecificSettings>();
+  ossia::net::zeroconf_server ws;
+  ossia::net::zeroconf_server osc;
+  try
+  {
+    ws = ossia::net::make_zeroconf_server(
+          m_dev.get_name(), "_oscjson._tcp", "", set.wsPort, 0);
+  }
+  catch (const std::exception& e)
+  {
+    ossia::logger().error("LocalDevice::createZeroconf: {}", e.what());
+  }
+  catch (...)
+  {
+    ossia::logger().error("LocalDevice::createZeroconf: error.");
+  }
+
+  try
+  {
+    osc = ossia::net::make_zeroconf_server(
+          m_dev.get_name(), "_osc._udp", "", set.oscPort, 0);
+  }
+  catch (const std::exception& e)
+  {
+    ossia::logger().error("LocalDevice::createZeroconf: {}", e.what());
+  }
+  catch (...)
+  {
+    ossia::logger().error("LocalDevice::createZeroconf: error.");
+  }
+
+  ossia::qt::run_async(this, [this, ws=std::move(ws), osc=std::move(osc)] () mutable {
+    if(m_oscqProto)
+      m_oscqProto->set_zeroconf_servers(std::move(ws), std::move(osc));
+  });
+}
+
+void LocalDevice::init()
+{
+  m_dev.set_name(m_settings.name.toStdString());
 
   if (!m_proto)
     return;
@@ -56,20 +96,24 @@ void LocalDevice::setRemoteSettings(const Device::DeviceSettings& settings)
 #if defined(OSSIA_PROTOCOL_OSCQUERY) && !defined(__EMSCRIPTEN__)
   try
   {
+    m_oscqProto = nullptr;
     m_proto->clear();
 
-    auto set = settings.deviceSpecificSettings.value<LocalSpecificSettings>();
+    auto set = m_settings.deviceSpecificSettings.value<LocalSpecificSettings>();
     set.wsPort = 9999;
     set.oscPort = 6666;
 
-    try
+    m_oscqProto = new ossia::oscquery::oscquery_server_protocol(set.oscPort, set.wsPort);
+    m_oscqProto->disable_zeroconf();
+    m_proto->expose_to(std::unique_ptr<ossia::oscquery::oscquery_server_protocol>(m_oscqProto));
+
+    if(auto plug = m_ctx.findPlugin<Explorer::DeviceDocumentPlugin>())
     {
-      m_proto->expose_to(
-          std::make_unique<ossia::oscquery::oscquery_server_protocol>(
-              set.oscPort, set.wsPort));
+      plug->networkContext()->context.post([=] { exposeZeroconf(); });
     }
-    catch (...)
+    else
     {
+      exposeZeroconf();
     }
   }
   catch (...)
@@ -88,7 +132,7 @@ void LocalDevice::disconnect()
 bool LocalDevice::reconnect()
 {
   m_callbacks.clear();
-  setRemoteSettings(settings());
+  init();
   return connected();
 }
 

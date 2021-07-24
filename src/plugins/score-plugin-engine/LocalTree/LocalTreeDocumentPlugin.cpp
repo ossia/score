@@ -19,6 +19,21 @@
 
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
+namespace LocalTree
+{
+Device::DeviceSettings defaultSettings(const score::DocumentContext& ctx)
+{
+  Device::DeviceSettings s;
+  s.protocol = Protocols::LocalProtocolFactory::static_concreteKey();
+  s.name = QString("score (%1)").arg(ctx.document.metadata().documentName());
+  Protocols::LocalSpecificSettings specif;
+  specif.oscPort = 6666;
+  specif.wsPort = 9999;
+  s.deviceSpecificSettings = QVariant::fromValue(specif);
+  return s;
+}
+}
+
 LocalTree::DocumentPlugin::DocumentPlugin(
     const score::DocumentContext& ctx,
     QObject* parent)
@@ -30,7 +45,7 @@ LocalTree::DocumentPlugin::DocumentPlugin(
     , m_localDeviceWrapper{
           *m_localDevice,
           ctx,
-          Protocols::LocalProtocolFactory::static_defaultSettings()}
+          defaultSettings(ctx)}
 {
 }
 
@@ -45,6 +60,8 @@ LocalTree::DocumentPlugin::~DocumentPlugin()
 
 void LocalTree::DocumentPlugin::init()
 {
+  m_localDeviceWrapper.init();
+
   auto& set = m_context.app.settings<Explorer::Settings::Model>();
   if (set.getLocalTree())
   {

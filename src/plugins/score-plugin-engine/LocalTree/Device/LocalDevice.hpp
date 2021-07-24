@@ -13,6 +13,10 @@ namespace net
 class device_base;
 class multiplex_protocol;
 }
+namespace oscquery
+{
+class oscquery_server_protocol;
+}
 }
 
 namespace Protocols
@@ -27,7 +31,7 @@ public:
 
   ~LocalDevice() override;
 
-  void setRemoteSettings(const Device::DeviceSettings&);
+  void init();
 
   ossia::net::device_base* getDevice() const override { return &m_dev; }
 
@@ -37,8 +41,13 @@ private:
 
   Device::Node refresh() override;
 
+  void exposeZeroconf();
+
+  const score::DocumentContext& m_ctx;
   ossia::net::device_base& m_dev;
   ossia::net::multiplex_protocol* m_proto{};
+  ossia::oscquery::oscquery_server_protocol* m_oscqProto{};
+
   using DeviceInterface::refresh;
 };
 }
