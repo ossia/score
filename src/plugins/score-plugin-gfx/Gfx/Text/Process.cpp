@@ -61,14 +61,14 @@ Model::Model(
     auto scaleX = new Process::FloatSlider{Id<Process::Port>(5), this};
     scaleX->setName(tr("Scale X"));
     scaleX->setValue(1.);
-    scaleX->setDomain(ossia::make_domain(-1., 10));
+    scaleX->setDomain(ossia::make_domain(-1., 10.));
     m_inlets.push_back(scaleX);
   }
   {
     auto scaleY = new Process::FloatSlider{Id<Process::Port>(6), this};
     scaleY->setName(tr("Scale Y"));
     scaleY->setValue(1.);
-    scaleY->setDomain(ossia::make_domain(-1., 10));
+    scaleY->setDomain(ossia::make_domain(-1., 10.));
     m_inlets.push_back(scaleY);
   }
 
