@@ -314,7 +314,7 @@ void Application::init()
   }
 
 #if defined(SCORE_SPLASH_SCREEN)
-  if (m_applicationSettings.gui)
+  if (m_applicationSettings.gui && m_applicationSettings.loadList.empty())
   {
     m_startScreen = new score::StartScreen{this->context().docManager.recentFiles()};
     m_startScreen->show();
