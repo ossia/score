@@ -333,6 +333,7 @@ void DocumentPlugin::on_documentClosing()
         .request_stop();
     clear();
   }
+  execState.reset();
 
   audioProto().stop();
 }
