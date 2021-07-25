@@ -21,6 +21,7 @@
 
 #include <QInputDialog>
 #include <QTimer>
+#include <QApplication>
 
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <cmath>
@@ -689,7 +690,7 @@ AEffectWrapper::~AEffectWrapper()
   {
     fx->dispatcher(fx, effStopProcess, 0, 0, nullptr, 0.f);
     fx->dispatcher(fx, effMainsChanged, 0, 0, nullptr, 0.f);
-    score::invoke(
+    ossia::qt::run_async(qApp,
           [fx = fx] {
       int uid = fx->uniqueID;
       fx->dispatcher(fx, effClose, 0, 0, nullptr, 0.f);

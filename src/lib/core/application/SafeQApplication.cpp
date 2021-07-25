@@ -12,11 +12,6 @@
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(SafeQApplication)
 
-namespace score
-{
-PostedEventBase::~PostedEventBase() = default;
-}
-
 SafeQApplication::~SafeQApplication() { }
 
 void SafeQApplication::DebugOutput(
@@ -126,12 +121,7 @@ bool SafeQApplication::event(QEvent* ev)
     fileOpened(loadString);
     return true;
   }
-  case score::PostedEventBase::static_type:
-  {
-    (*static_cast<score::PostedEventBase*>(ev))();
-    return true;
-    }
-    default:
-      return QApplication::event(ev);
+  default:
+    return QApplication::event(ev);
   }
 }

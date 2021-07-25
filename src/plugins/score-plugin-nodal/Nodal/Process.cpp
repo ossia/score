@@ -12,6 +12,7 @@
 
 #include <wobjectimpl.h>
 
+#include <QApplication>
 W_OBJECT_IMPL(Nodal::Model)
 namespace Nodal
 {
@@ -81,7 +82,7 @@ bool NodeRemover::remove(const Selection& s, const score::DocumentContext& ctx)
           CommandDispatcher<>{ctx.commandStack}.submit<RemoveNode>(
               *parent, *model);
         };
-        score::invoke(f);
+        ossia::qt::run_async(qApp, f);
         return true;
       }
     }

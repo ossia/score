@@ -8,6 +8,7 @@
 
 #include <score/tools/Bind.hpp>
 
+#include <QApplication>
 #include <QDirIterator>
 #include <QFileInfo>
 #include <QJsonDocument>

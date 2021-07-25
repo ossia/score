@@ -8,6 +8,8 @@
 #include <score/tools/std/Invoke.hpp>
 
 #include <ossia/network/base/node.hpp>
+
+#include <QApplication>
 namespace LocalTree
 {
 template <typename T>
@@ -54,7 +56,7 @@ struct PropertyWrapper final : public BaseCallbackWrapper
     addr.set_value(converter_t::convert((m_model.*Property::get)()));
     callbackIt = addr.add_callback(
         [=, m = QPointer<model_t>{&m_model}](const ossia::value& v) {
-          score::invoke([m, v] {
+          ossia::qt::run_async(qApp, [m, v] {
             if (m)
               ((*m).*Property::set)(::State::convert::value<param_t>(v));
           });
