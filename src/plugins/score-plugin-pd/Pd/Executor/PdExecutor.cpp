@@ -190,7 +190,7 @@ PdGraphNode::PdGraphNode(
     circ.set_capacity(8192);
 
   // Create instance
-  pd_setinstance(m_instance->instance);
+  libpd_set_instance(m_instance->instance);
 
   // Open
   for (auto& mess : m_inmess)
@@ -371,10 +371,9 @@ void PdGraphNode::run(
     ossia::exec_state_facade e) noexcept
 {
   // Setup
-  pd_setinstance(m_instance->instance);
+  libpd_set_instance(m_instance->instance);
   m_currentInstance = this;
   //libpd_init_audio(m_audioIns, m_audioOuts, e.sampleRate());
-
   const uint64_t bs = libpd_blocksize();
 
   // Clear audio inputs
@@ -511,21 +510,27 @@ void PdGraphNode::run(
 
     auto& ap = m_audio_outlet->samples;
     ap.resize(m_audioOuts);
-    for (std::size_t i = 0U; i < m_audioOuts; ++i)
+    if(req_samples > 0)
     {
-      ap[i].resize(std::max(uint64_t(ap[i].size()), uint64_t(t.offset.impl)));
-      for (std::size_t j = 0U; j < req_samples; j++)
+      for (std::size_t i = 0U; i < m_audioOuts; ++i)
       {
-        ap[i].push_back(m_prev_outbuf[i].front());
-        m_prev_outbuf[i].pop_front();
-      }
+        auto& channel = ap[i];
+        auto& circbuf = m_prev_outbuf[i];
+        const auto silence_samples = std::max(uint64_t(channel.size()), uint64_t(t.physical_start(e.modelToSamples())));
+        const auto total_samples = silence_samples + req_samples;
+        channel.reserve(total_samples);
+        channel.resize(silence_samples);
 
-      ossia::snd::do_fade(
-          t.start_discontinuous,
-          t.end_discontinuous,
-          ap[i],
-          t.offset.impl,
-          t.offset.impl + req_samples);
+        channel.insert(channel.end(), circbuf.begin(), circbuf.begin() + req_samples);
+        circbuf.erase_begin(req_samples);
+
+        ossia::snd::do_fade(
+              t.start_discontinuous,
+              t.end_discontinuous,
+              ap[i],
+              t.offset.impl,
+              t.offset.impl + req_samples);
+      }
     }
   }
 
