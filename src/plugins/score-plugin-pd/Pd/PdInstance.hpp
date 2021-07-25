@@ -12,6 +12,7 @@ struct Instance
   _pdinstance* instance{};
   void* file_handle{};
   int dollarzero = 0;
+  bool ui_open{};
 };
 
 }

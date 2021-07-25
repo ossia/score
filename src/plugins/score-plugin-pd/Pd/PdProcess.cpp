@@ -662,8 +662,18 @@ bool ProcessModel::hasExternalUI() const noexcept
 
 ProcessModel::~ProcessModel()
 {
-  pd_setinstance(m_instance->instance);
-  libpd_closefile(m_instance->file_handle);
+  libpd_set_instance(m_instance->instance);
+
+  if(m_instance->ui_open)
+  {
+    m_instance->ui_open = false;
+    libpd_stop_gui();
+  }
+
+  if(m_instance->file_handle)
+  {
+    libpd_closefile(m_instance->file_handle);
+  }
 }
 
 int ProcessModel::audioInputs() const
@@ -903,8 +913,10 @@ void DataStreamWriter::write(Pd::ProcessModel& proc)
 {
   checkDelimiter();
 
-  m_stream >> proc.m_script >> proc.m_audioInputs >> proc.m_audioOutputs
+  QString script;
+  m_stream >> script >> proc.m_audioInputs >> proc.m_audioOutputs
       >> proc.m_midiInput >> proc.m_midiOutput;
+  proc.setScript(script);
 
   writePorts(
       *this,
@@ -931,12 +943,14 @@ void JSONReader::read(const Pd::ProcessModel& proc)
 template <>
 void JSONWriter::write(Pd::ProcessModel& proc)
 {
-  proc.m_script = obj["Script"].toString();
+  proc.setScript(obj["Script"].toString());
   proc.m_audioInputs = obj["AudioInputs"].toInt();
   proc.m_audioOutputs = obj["AudioOutputs"].toInt();
   proc.m_midiInput = obj["MidiInput"].toBool();
   proc.m_midiOutput = obj["MidiOutput"].toBool();
 
+  // TODO what happens if the patch's inputs / outputs changed??
+  // Maybe there should be the "edit script" algorithm available in a more general way
   writePorts(
       *this,
       components.interfaces<Process::PortFactoryList>(),

@@ -87,6 +87,7 @@ struct UiWrapper : public QWidget
     {
       libpd_set_instance(m_instance->instance);
       libpd_start_gui(locatePdResourceFolder().toUtf8().constData());
+      m_instance->ui_open = true;
     }
     startTimer(8);
   }
@@ -103,13 +104,20 @@ struct UiWrapper : public QWidget
   void closeEvent(QCloseEvent* event) override
   {
     QPointer<UiWrapper> p(this);
+
+    if(m_instance->ui_open)
+    {
+      m_instance->ui_open = false;
+      libpd_set_instance(m_instance->instance);
+      libpd_stop_gui();
+    }
+
     if (m_model)
     {
       const_cast<QWidget*&>(m_model->externalUI) = nullptr;
-      //libpd_set_instance(m_model->m_instance.instance);
-      //libpd_stop_gui();
       m_model->externalUIVisible(false);
     }
+
     if (p)
     {
       QWidget::closeEvent(event);
@@ -118,11 +126,16 @@ struct UiWrapper : public QWidget
 
   ~UiWrapper()
   {
+    if(m_instance->ui_open)
+    {
+      m_instance->ui_open = false;
+      libpd_set_instance(m_instance->instance);
+      libpd_stop_gui();
+    }
+
     if (m_model)
     {
       const_cast<QWidget*&>(m_model->externalUI) = nullptr;
-      libpd_set_instance(m_instance->instance);
-      libpd_stop_gui();
       m_model->externalUIVisible(false);
     }
   }
