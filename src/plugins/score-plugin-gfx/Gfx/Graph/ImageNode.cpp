@@ -122,6 +122,12 @@ void ImagesNode::process(const Message& msg)
           break;
         }
         case 1: // Opacity
+        {
+          auto opacity = ossia::convert<float>(*val);
+          this->ubo.opacity = ossia::clamp(opacity, 0.f, 1.f);
+          this->materialChanged++;
+          break;
+        }
         case 2: // Position
         {
           auto sink = ossia::gfx::port_index{msg.node_id, p };

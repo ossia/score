@@ -245,6 +245,12 @@ void TextNode::process(const Message& msg)
       }
 
       case 3: // Opacity
+      {
+        auto opacity = ossia::convert<float>(*val);
+        this->ubo.opacity = ossia::clamp(opacity, 0.f, 1.f);
+        this->materialChanged++;
+        break;
+      }
       case 4: // Position
       {
         auto sink = ossia::gfx::port_index{msg.node_id, p - 3};
