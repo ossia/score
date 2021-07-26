@@ -80,7 +80,8 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
   suil_init(&argc, &argv, SUIL_ARG_NONE);
 
   if (qEnvironmentVariableIsEmpty("SCORE_DISABLE_AUDIOPLUGINS"))
-    lv2_context->loadPlugins();
+    if (qEnvironmentVariableIsEmpty("SCORE_DISABLE_LV2"))
+      lv2_context->loadPlugins();
 
   lv2_context->ui_host
       = suil_host_new(LV2::on_uiMessage, LV2::port_index, nullptr, nullptr);
