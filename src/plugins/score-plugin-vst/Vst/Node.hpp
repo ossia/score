@@ -58,29 +58,30 @@ public:
     }
   }
 
-  auto& prepareInput(std::size_t samples)
+  auto& prepareInput(int64_t offset, int64_t samples)
   {
+    const auto bs = offset + samples;
     auto& ip = m_inlets[0]->template target<ossia::audio_port>()->samples;
     switch (ip.size())
     {
       case 0:
       {
         ip.resize(2);
-        ip[0].resize(samples);
-        ip[1].resize(samples);
+        ip[0].resize(bs);
+        ip[1].resize(bs);
         break;
       }
       case 1:
       {
         ip.resize(2);
-        ip[0].resize(samples);
+        ip[0].resize(bs);
         ip[1].assign(ip[0].begin(), ip[0].end());
         break;
       }
       default:
       {
         for (auto& i : ip)
-          i.resize(samples);
+          i.resize(bs);
         break;
       }
     }
@@ -88,12 +89,13 @@ public:
     return ip;
   }
 
-  auto& prepareOutput(std::size_t samples)
+  auto& prepareOutput(int64_t offset, int64_t samples)
   {
+    const auto bs = offset + samples;
     auto& op = m_outlets[0]->template target<ossia::audio_port>()->samples;
     op.resize(2);
     for (auto& chan : op)
-      chan.resize(samples);
+      chan.resize(bs);
     return op;
   }
 
@@ -240,7 +242,7 @@ public:
   // since some plug-ins only store pointers to VstEvents struct,
   // which would go out of scope if this function was just called like this.
   template <typename Fun>
-  void dispatchMidi(Fun&& f)
+  void dispatchMidi(int64_t offset, Fun&& f)
   {
     // copy midi data
     auto& ip = static_cast<ossia::midi_inlet*>(m_inlets[1])->data.messages;
@@ -267,7 +269,7 @@ public:
 
       e.type = kVstMidiType;
       e.byteSize = sizeof(VstMidiEvent);
-      e.deltaFrames = mess.timestamp;
+      e.deltaFrames = mess.timestamp - offset;
       e.flags = kVstMidiEventIsRealtime;
 
       std::memcpy(
@@ -291,7 +293,9 @@ public:
   {
     if (!muted() && tk.date > tk.prev_date)
     {
-      const std::size_t samples
+      const int64_t offset
+          = tk.physical_start(st.modelToSamples());
+      const int64_t samples
           = tk.physical_write_duration(st.modelToSamples());
       this->setControls();
       this->setupTimeInfo(tk, st);
@@ -300,22 +304,22 @@ public:
       {
         if constexpr (IsSynth)
         {
-          dispatchMidi([=] { processDouble(samples); });
+          dispatchMidi(offset, [=] { processDouble(offset, samples); });
         }
         else
         {
-          processDouble(samples);
+          processDouble(offset, samples);
         }
       }
       else
       {
         if constexpr (IsSynth)
         {
-          dispatchMidi([=] { processFloat(samples); });
+          dispatchMidi(offset, [=] { processFloat(offset, samples); });
         }
         else
         {
-          processFloat(samples);
+          processFloat(offset, samples);
         }
       }
 
@@ -328,66 +332,91 @@ public:
     }
   }
 
-  void processFloat(std::size_t samples)
+  void processFloat(int64_t offset, int64_t samples)
   {
     if constexpr (!UseDouble)
     {
-      // copy audio data
-      auto& ip = m_inlets[0]->template cast<ossia::audio_port>().samples;
-      auto& op = m_outlets[0]->template cast<ossia::audio_port>().samples;
-      if (ip.size() < 2)
-        ip.resize(2);
+      SCORE_ASSERT(m_bs >= offset + samples);
 
-      float_v[0].assign(ip[0].begin(), ip[0].end());
-      float_v[1].assign(ip[1].begin(), ip[1].end());
+      const auto max_i = std::max(2, this->fx->fx->numInputs);
+      const auto max_o = std::max(2, this->fx->fx->numOutputs);
+      const auto max_io = std::max(max_i, max_o);
+
+      // prepare ossia::graph_node buffers
+      auto& ip = prepareInput(offset, samples);
+      SCORE_ASSERT(ip.size() >= 2);
+
+      auto& op = prepareOutput(offset, samples);
+      SCORE_ASSERT(op.size() >= 2);
+
+      // copy io
       float_v[0].resize(samples);
       float_v[1].resize(samples);
 
-      float* dummy = (float*)alloca(sizeof(float) * samples);
-      std::fill_n(dummy, samples, 0.f);
+      std::copy(ip[0].begin() + offset, ip[0].end(), float_v[0].begin());
+      std::copy(ip[1].begin() + offset, ip[1].end(), float_v[1].begin());
 
-      const auto max_io
-          = std::max(this->fx->fx->numOutputs, this->fx->fx->numInputs);
-      float** output = (float**)alloca(sizeof(float*) * std::max(2, max_io));
-      output[0] = float_v[0].data();
-      output[1] = float_v[1].data();
-      for (int i = 2; i < max_io; i++)
-        output[i] = dummy;
+      float** io = (float**)alloca(sizeof(float*) * max_io);
+      io[0] = float_v[0].data();
+      io[1] = float_v[1].data();
 
-      fx->fx->processReplacing(fx->fx, output, output, samples);
+      if(max_io > 2)
+      {
+        // Note that alloca has *function* scope, not block scope so it is
+        // freed at the end
+        float* dummy = (float*)alloca(sizeof(float) * m_bs);
+        std::fill_n(dummy, m_bs, 0.f);
 
-      op.clear();
-      op.emplace_back(float_v[0].begin(), float_v[0].end());
-      op.emplace_back(float_v[1].begin(), float_v[1].end());
+        for (int i = 2; i < max_io; i++)
+          io[i] = dummy;
+      }
+
+      fx->fx->processReplacing(fx->fx, io, io, samples);
+
+      std::copy(float_v[0].begin(), float_v[0].end(), op[0].begin() + offset);
+      std::copy(float_v[1].begin(), float_v[1].end(), op[1].begin() + offset);
+
       float_v[0].clear();
       float_v[1].clear();
     }
   }
 
-  void processDouble(std::size_t samples)
+  void processDouble(int64_t offset, int64_t samples)
   {
     if constexpr (UseDouble)
     {
+      SCORE_ASSERT(m_bs >= offset + samples);
+
+      const auto max_i = std::max(2, this->fx->fx->numInputs);
+      const auto max_o = std::max(2, this->fx->fx->numOutputs);
+      const auto max_io = std::max(max_i, max_o);
+
       // copy audio data
-      double* dummy = (double*)alloca(sizeof(double) * samples);
-      std::fill_n(dummy, samples, 0.);
+      auto& ip = prepareInput(offset, samples);
+      SCORE_ASSERT(ip.size() >= 2);
 
-      auto& ip = prepareInput(samples);
-      double** input = (double**)alloca(
-          sizeof(double*) * std::max(2, this->fx->fx->numInputs));
-      input[0] = ip[0].data();
-      input[1] = ip[1].data();
-      for (int i = 2; i < this->fx->fx->numInputs; i++)
-        input[i] = dummy;
+      auto& op = prepareOutput(offset, samples);
+      SCORE_ASSERT(op.size() >= 2);
 
-      auto& op = prepareOutput(samples);
-      double** output = (double**)alloca(
-          sizeof(double*) * std::max(2, this->fx->fx->numOutputs));
-      output[0] = op[0].data();
-      output[1] = op[1].data();
+      double** input = (double**)alloca(sizeof(double*) * max_i);
+      input[0] = ip[0].data() + offset;
+      input[1] = ip[1].data() + offset;
 
-      for (int i = 2; i < this->fx->fx->numOutputs; i++)
-        output[i] = dummy;
+      double** output = (double**)alloca(sizeof(double*) * max_o);
+      output[0] = op[0].data() + offset;
+      output[1] = op[1].data() + offset;
+
+      if(max_io > 2)
+      {
+        // Note that alloca has *function* scope, not block scope so it is
+        // freed at the end
+        double* dummy = (double*)alloca(sizeof(double) * m_bs);
+        std::fill_n(dummy, m_bs, 0.);
+        for (int i = 2; i < this->fx->fx->numInputs; i++)
+          input[i] = dummy;
+        for (int i = 2; i < this->fx->fx->numOutputs; i++)
+          output[i] = dummy;
+      }
 
       fx->fx->processDoubleReplacing(fx->fx, input, output, samples);
     }
