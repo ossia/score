@@ -87,7 +87,11 @@ struct LinuxLoader
 {
   static void* load(const char* name)
   {
+#if !(defined(__clang__) && __has_feature(address_sanitizer))
     auto module = dlopen(name, RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND);
+#else
+    auto module = dlopen(name, RTLD_NOW | RTLD_LOCAL);
+#endif
     if (!module)
     {
       throw std::runtime_error(

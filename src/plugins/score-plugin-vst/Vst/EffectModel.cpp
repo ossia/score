@@ -615,7 +615,8 @@ void Model::initFx()
   auto& ctx = score::GUIAppContext();
   auto& media = ctx.settings<Audio::Settings::Model>();
   dispatch(effSetSampleRate, 0, media.getRate(), nullptr, media.getRate());
-  dispatch(effSetBlockSize, 0, 4096, nullptr, 4096);
+  const int blockSize = media.getBufferSize();
+  dispatch(effSetBlockSize, 0, blockSize, nullptr, blockSize);
   dispatch(effOpen);
 
   auto& app = ctx.applicationPlugin<vst::ApplicationPlugin>();

@@ -127,8 +127,10 @@ class vst_node final : public vst_node_base
 {
 public:
   static constexpr bool synth = IsSynth;
-  vst_node(std::shared_ptr<AEffectWrapper> dat, int sampleRate)
+  int m_bs{};
+  vst_node(std::shared_ptr<AEffectWrapper> dat, int sampleRate, int bs)
       : vst_node_base{std::move(dat)}
+      , m_bs{bs}
   {
     // Midi or audio input
     m_inlets.push_back(new ossia::audio_inlet);
@@ -139,8 +141,7 @@ public:
     m_outlets.push_back(new ossia::audio_outlet);
 
     dispatch(effSetSampleRate, 0, sampleRate, nullptr, sampleRate);
-    dispatch(
-        effSetBlockSize, 0, 4096, nullptr, 4096); // Generalize what's in pd
+    dispatch(effSetBlockSize, 0, bs, nullptr, bs); // Generalize what's in pd
     dispatch(
         effSetProcessPrecision,
         0,
@@ -165,18 +166,21 @@ public:
     if constexpr (IsSynth)
     {
       // copy midi data
-      // should be 16 but some VSTs read a bit out of bounds apparently !
-      constexpr auto sz = sizeof(VstEvents) + sizeof(void*) * 16 * 2;
+      // should be 32 but some VSTs read a bit out of bounds apparently ! so we allocate a bit more memory
+      constexpr auto sz = sizeof(VstEvents) + sizeof(void*) * 32 * 2;
       VstEvents* events = (VstEvents*)alloca(sz);
-      events->numEvents = 16;
-
-      VstMidiEvent ev[16] = {};
       std::memset(events, 0, sz);
 
+      events->numEvents = 32;
+
+      VstMidiEvent ev[32] = {};
+
+      // All notes off
       for (int i = 0; i < 16; i++)
       {
         auto& e = ev[i];
         e.type = kVstMidiType;
+        e.flags = kVstMidiEventIsRealtime;
         e.byteSize = sizeof(VstMidiEvent);
 
         e.midiData[0] = (char)(uint8_t)176;
@@ -187,31 +191,47 @@ public:
         events->events[i] = reinterpret_cast<VstEvent*>(&e);
       }
 
+      // All sound off
+      for (int i = 0; i < 16; i++)
+      {
+        auto& e = ev[16 + i];
+        e.type = kVstMidiType;
+        e.flags = kVstMidiEventIsRealtime;
+        e.byteSize = sizeof(VstMidiEvent);
+
+        e.midiData[0] = (char)(uint8_t)176;
+        e.midiData[1] = (char)(uint8_t)121;
+        e.midiData[2] = 0;
+        e.midiData[3] = 0;
+
+        events->events[16 + i] = reinterpret_cast<VstEvent*>(&e);
+      }
+
       dispatch(effProcessEvents, 0, 0, events, 0.f);
 
       if constexpr (!UseDouble)
       {
-        constexpr int samples = 64;
-        float dummy[samples] = {0.f};
+        float* dummy = (float*)alloca(sizeof(float) * m_bs);
+        std::fill_n(dummy, m_bs, 0.f);
 
         float** output = (float**)alloca(
             sizeof(float*) * std::max(2, this->fx->fx->numOutputs));
         for (int i = 0; i < this->fx->fx->numOutputs; i++)
           output[i] = dummy;
 
-        fx->fx->processReplacing(fx->fx, output, output, samples);
+        fx->fx->processReplacing(fx->fx, output, output, m_bs);
       }
       else
       {
-        constexpr int samples = 64;
-        double dummy[samples] = {0.f};
+        double* dummy = (double*)alloca(sizeof(double) * m_bs);
+        std::fill_n(dummy, m_bs, 0.);
 
         double** output = (double**)alloca(
             sizeof(double*) * std::max(2, this->fx->fx->numOutputs));
         for (int i = 0; i < this->fx->fx->numOutputs; i++)
           output[i] = dummy;
 
-        fx->fx->processDoubleReplacing(fx->fx, output, output, samples);
+        fx->fx->processDoubleReplacing(fx->fx, output, output, m_bs);
       }
     }
   }

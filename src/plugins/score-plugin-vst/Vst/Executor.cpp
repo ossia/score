@@ -111,14 +111,14 @@ Executor::Executor(
     if (fx.flags & effFlagsIsSynth)
     {
       auto n
-          = vst::make_vst_fx<true, true>(proc.fx, ctx.execState->sampleRate);
+          = vst::make_vst_fx<true, true>(proc.fx, ctx.execState->sampleRate, ctx.execState->bufferSize);
       setupNode(n);
       node = std::move(n);
     }
     else
     {
       auto n
-          = vst::make_vst_fx<true, false>(proc.fx, ctx.execState->sampleRate);
+          = vst::make_vst_fx<true, false>(proc.fx, ctx.execState->sampleRate, ctx.execState->bufferSize);
       setupNode(n);
       node = std::move(n);
     }
@@ -128,14 +128,14 @@ Executor::Executor(
     if (fx.flags & effFlagsIsSynth)
     {
       auto n
-          = vst::make_vst_fx<false, true>(proc.fx, ctx.execState->sampleRate);
+          = vst::make_vst_fx<false, true>(proc.fx, ctx.execState->sampleRate, ctx.execState->bufferSize);
       setupNode(n);
       node = std::move(n);
     }
     else
     {
       auto n
-          = vst::make_vst_fx<false, false>(proc.fx, ctx.execState->sampleRate);
+          = vst::make_vst_fx<false, false>(proc.fx, ctx.execState->sampleRate, ctx.execState->bufferSize);
       setupNode(n);
       node = std::move(n);
     }
