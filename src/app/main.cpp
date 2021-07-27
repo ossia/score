@@ -256,7 +256,7 @@ static void setup_limits()
   }
 #endif
 }
-
+#include <QTimer>
 int main(int argc, char** argv)
 {
 #if defined(__APPLE__)
@@ -276,7 +276,7 @@ int main(int argc, char** argv)
   QPixmapCache::setCacheLimit(819200);
   Application app(argc, argv);
 
-  app.init();
+  QTimer::singleShot(1, &app, &Application::init);
 
   increase_timer_precision timerRes;
 

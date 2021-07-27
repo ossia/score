@@ -310,8 +310,20 @@ void Application::init()
     m_view->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
     m_view->showFullScreen();
 #endif
-
   }
+
+#if defined(__APPLE__)
+  {
+    if (m_applicationSettings.gui)
+    {
+      auto sqa = safe_cast<SafeQApplication*>(m_app);
+      if(auto file = sqa->fileToOpen; QFile::exists(file))
+      {
+        m_applicationSettings.loadList.push_back(file);
+      }
+    }
+  }
+#endif
 
 #if defined(SCORE_SPLASH_SCREEN)
   if (m_applicationSettings.gui && m_applicationSettings.loadList.empty())
@@ -365,8 +377,9 @@ void Application::initDocuments()
     }
   }
 
-  if (auto sqa = dynamic_cast<SafeQApplication*>(m_app))
+  if (m_applicationSettings.gui)
   {
+    auto sqa = safe_cast<SafeQApplication*>(m_app);
     connect(
         sqa, &SafeQApplication::fileOpened, this, [&](const QString& file) {
           m_presenter->documentManager().loadFile(ctx, file);

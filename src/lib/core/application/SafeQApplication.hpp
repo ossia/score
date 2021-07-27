@@ -71,4 +71,8 @@ public:
 
   void fileOpened(const QString& opened)
       E_SIGNAL(SCORE_LIB_BASE_EXPORT, fileOpened, opened)
+
+#if defined(__APPLE__)
+  QString fileToOpen;
+#endif
 };

@@ -118,6 +118,12 @@ bool SafeQApplication::event(QEvent* ev)
   case QEvent::FileOpen:
   {
     auto loadString = static_cast<QFileOpenEvent*>(ev)->file();
+#if defined(__APPLE__)
+    // Used for the case when the user double-clicks something
+    // with score not yet open, thus it's too early when the event
+    // is processed
+    this->fileToOpen = loadString;
+#endif
     fileOpened(loadString);
     return true;
   }
