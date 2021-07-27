@@ -416,6 +416,8 @@ void TimeSpinBox::setTime(ossia::time_value t)
 
 void TimeSpinBox::updateTime()
 {
+  if(m_flicks > ossia::time_value::infinite_min)
+    return;
   const int64_t bars = m_flicks / (barDuration);
   const int64_t quarters = (m_flicks - (bars * barDuration)) / quarterDuration;
   const int64_t semiquavers
