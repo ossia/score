@@ -34,14 +34,13 @@ public:
   void init();
 
   ossia::net::device_base* getDevice() const override { return &m_dev; }
+  ossia::oscquery::oscquery_server_protocol* oscqProto() { return m_oscqProto; }
 
 private:
   void disconnect() override;
   bool reconnect() override;
 
   Device::Node refresh() override;
-
-  void exposeZeroconf();
 
   const score::DocumentContext& m_ctx;
   ossia::net::device_base& m_dev;

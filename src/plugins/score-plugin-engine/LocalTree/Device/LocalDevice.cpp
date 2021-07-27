@@ -15,6 +15,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <ossia-qt/invoke.hpp>
 #include <QDebug>
+#include <QApplication>
 
 #include <ossia-config.hpp>
 
@@ -47,15 +48,14 @@ LocalDevice::LocalDevice(
 
 LocalDevice::~LocalDevice() { }
 
-void LocalDevice::exposeZeroconf()
+static void exposeZeroconf(std::string name, LocalSpecificSettings set, QPointer<LocalDevice> self)
 {
-  const auto& set = m_settings.deviceSpecificSettings.value<LocalSpecificSettings>();
   ossia::net::zeroconf_server ws;
   ossia::net::zeroconf_server osc;
   try
   {
     ws = ossia::net::make_zeroconf_server(
-          m_dev.get_name(), "_oscjson._tcp", "", set.wsPort, 0);
+          name, "_oscjson._tcp", "", set.wsPort, 0);
   }
   catch (const std::exception& e)
   {
@@ -69,7 +69,7 @@ void LocalDevice::exposeZeroconf()
   try
   {
     osc = ossia::net::make_zeroconf_server(
-          m_dev.get_name(), "_osc._udp", "", set.oscPort, 0);
+          name, "_osc._udp", "", set.oscPort, 0);
   }
   catch (const std::exception& e)
   {
@@ -80,9 +80,14 @@ void LocalDevice::exposeZeroconf()
     ossia::logger().error("LocalDevice::createZeroconf: error.");
   }
 
-  ossia::qt::run_async(this, [this, ws=std::move(ws), osc=std::move(osc)] () mutable {
-    if(m_oscqProto)
-      m_oscqProto->set_zeroconf_servers(std::move(ws), std::move(osc));
+  if(!self)
+    return;
+
+  ossia::qt::run_async(qApp, [self, ws=std::move(ws), osc=std::move(osc)] () mutable {
+    if(!self)
+      return;
+    if(auto proto = self->oscqProto())
+      proto->set_zeroconf_servers(std::move(ws), std::move(osc));
   });
 }
 
@@ -109,11 +114,12 @@ void LocalDevice::init()
 
     if(auto plug = m_ctx.findPlugin<Explorer::DeviceDocumentPlugin>())
     {
-      plug->networkContext()->context.post([=] { exposeZeroconf(); });
+      QPointer<LocalDevice> self;
+      plug->networkContext()->context.post([=, name = m_dev.get_name()] { exposeZeroconf(name, set, self); });
     }
     else
     {
-      exposeZeroconf();
+      exposeZeroconf(m_dev.get_name(), set, this);
     }
   }
   catch (...)
