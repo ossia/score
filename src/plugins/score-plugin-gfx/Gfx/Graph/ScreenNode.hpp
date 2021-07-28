@@ -40,6 +40,8 @@ struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
 
   const std::shared_ptr<Window>& window() const noexcept { return m_window; }
 
+  std::function<void(QPointF, QPointF)> onMouseMove;
+  std::function<void(int, const QString&)> onKey;
 private:
   class Renderer;
   std::shared_ptr<Window> m_window{};

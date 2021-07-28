@@ -3,6 +3,9 @@
 #include <QPlatformSurfaceEvent>
 #include <QTimer>
 #include <QtGui/private/qrhigles2_p.h>
+#include <wobjectimpl.h>
+
+W_OBJECT_IMPL(score::gfx::Window)
 namespace score::gfx
 {
 
@@ -180,6 +183,18 @@ bool Window::event(QEvent* e)
       render();
       break;
 
+    case QEvent::MouseMove:
+    {
+      auto ev = static_cast<QMouseEvent*>(e);
+      this->mouseMove(ev->screenPos(), ev->windowPos());
+      break;
+    }
+    case QEvent::KeyPress:
+    {
+      auto ev = static_cast<QKeyEvent*>(e);
+      this->key(ev->key(), ev->text());
+      break;
+    }
     case QEvent::PlatformSurface:
       if (static_cast<QPlatformSurfaceEvent*>(e)->surfaceEventType()
           == QPlatformSurfaceEvent::SurfaceAboutToBeDestroyed)

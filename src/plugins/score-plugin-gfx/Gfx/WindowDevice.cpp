@@ -17,6 +17,7 @@
 #include <QGuiApplication>
 #include <QLineEdit>
 #include <QMenu>
+#include <QScreen>
 
 #include <wobjectimpl.h>
 
@@ -110,6 +111,61 @@ public:
         }
       });
       m_root.add_child(std::move(size_node));
+    }
+
+    // Mouse input
+    {
+      auto node = std::make_unique<ossia::net::generic_node>("cursor", *this, m_root);
+      ossia::net::parameter_base* scaled_win{};
+      ossia::net::parameter_base* abs_win{};
+      {
+        auto scale_node = std::make_unique<ossia::net::generic_node>("scaled", *this, *node);
+        scaled_win = scale_node->create_parameter(ossia::val_type::VEC2F);
+        scaled_win->push_value(ossia::vec2f{0.f, 0.f});
+        node->add_child(std::move(scale_node));
+      }
+      {
+        auto abs_node = std::make_unique<ossia::net::generic_node>("absolute", *this, *node);
+        abs_win = abs_node->create_parameter(ossia::val_type::VEC2F);
+        abs_win->push_value(ossia::vec2f{0.f, 0.f});
+        node->add_child(std::move(abs_node));
+      }
+
+      m_screen->onMouseMove = [=] (QPointF screen , QPointF win){
+        if(const auto& w = m_screen->window())
+        {
+          auto sz = w->size();
+          scaled_win->push_value(ossia::vec2f{float(win.x() / sz.width()), float(win.y() / sz.height())});
+          abs_win->push_value(ossia::vec2f{float(win.x()), float(win.y())});
+        }
+      };
+
+      m_root.add_child(std::move(node));
+    }
+
+    // Keyboard input
+    {
+      auto node = std::make_unique<ossia::net::generic_node>("key", *this, m_root);
+      ossia::net::parameter_base* press_param{};
+      ossia::net::parameter_base* text_param{};
+      {
+        auto press_node = std::make_unique<ossia::net::generic_node>("code", *this, *node);
+        press_param = press_node->create_parameter(ossia::val_type::INT);
+        press_param->push_value(ossia::vec2f{0.f, 0.f});
+        node->add_child(std::move(press_node));
+      }
+      {
+        auto text_node = std::make_unique<ossia::net::generic_node>("text", *this, *node);
+        text_param = text_node->create_parameter(ossia::val_type::STRING);
+        node->add_child(std::move(text_node));
+      }
+
+      m_screen->onKey = [=] (int key, const QString& text) {
+        press_param->push_value(key);
+        text_param->push_value(text.toStdString());
+      };
+
+      m_root.add_child(std::move(node));
     }
 
     {
