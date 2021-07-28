@@ -10,7 +10,7 @@
 #include <score/tools/DeleteAll.hpp>
 #include <score/tools/File.hpp>
 
-#include <ossia/detail/flat_map.hpp>
+#include <ossia/detail/small_flat_map.hpp>
 #include <ossia/network/base/parameter_data.hpp>
 #include <ossia/network/common/complex_type.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
@@ -331,11 +331,11 @@ PatchSpec::Control parseControlSpec(QString var)
   return ctl;
 }
 
-auto initFuncMap()
+const auto& initFuncMap()
 {
   using InletFunc = std::function<Process::Inlet*(
       const PatchSpec::Control&, const Id<Process::Port>&, QObject*)>;
-  ossia::flat_map<QString, InletFunc> widgetFuncMap{
+  static ossia::static_flat_map<QString, InletFunc, 32> widgetFuncMap{
       {"floatslider",
        [](const PatchSpec::Control& ctl,
           const Id<Process::Port>& id,
