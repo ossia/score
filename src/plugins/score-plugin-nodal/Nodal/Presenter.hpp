@@ -34,6 +34,7 @@ public:
 
   void on_created(Process::ProcessModel& n);
   void on_removing(const Process::ProcessModel& n);
+  void on_drop(const QPointF& pos, const QMimeData& mime);
 
 private:
   IdContainer<Process::NodeItem, Process::ProcessModel> m_nodes;

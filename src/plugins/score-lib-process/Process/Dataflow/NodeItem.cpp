@@ -315,8 +315,6 @@ void NodeItem::createContentItem()
       m_contentSize = m_model.size();
       m_presenter->setWidth(m_contentSize.width(), m_contentSize.width());
       m_presenter->setHeight(m_contentSize.height());
-      m_presenter->on_zoomRatioChanged(1.);
-      m_presenter->parentGeometryChanged();
     }
   }
 
@@ -333,6 +331,8 @@ void NodeItem::createContentItem()
   double h = std::max(minimalContentHeight(), m_contentSize.height());
   m_contentSize = QSizeF{w, h};
 
+  updateSize();
+  updateZoomRatio();
   updateTitlePos();
 }
 

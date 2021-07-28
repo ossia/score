@@ -7,6 +7,7 @@
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <ossia/dataflow/node_chain_process.hpp>
 #include <ossia/dataflow/nodes/forward_node.hpp>
@@ -202,6 +203,44 @@ Execution::ProcessComponent* NodalExecutorBase::make(
     auto child_p = comp->OSSIAProcessPtr();
     if (child_n && child_p)
     {
+      // FIXME refactor with IntervalComponentBase to not duplicate
+      auto& oproc = child_p;
+      auto& n = child_n;
+
+      // Selection
+      QObject::connect(
+          &proc.selection,
+          &Selectable::changed,
+          comp.get(),
+          [this, n = oproc->node](bool ok) {
+            in_exec([=] {
+                      if (n)
+                        n->set_logging(ok);
+                    });
+          });
+      // Looping
+      oproc->set_loops(proc.loops());
+      con(proc,
+          &Process::ProcessModel::loopsChanged,
+          this,
+          [this, p = oproc](bool b) { in_exec([=] { p->set_loops(b); }); });
+
+      oproc->set_loop_duration(system().time(proc.loopDuration()));
+      con(proc,
+          &Process::ProcessModel::loopDurationChanged,
+          this,
+          [this, p = oproc](TimeVal t) {
+            in_exec([p, t = system().time(t)] { p->set_loop_duration(t); });
+          });
+
+      oproc->set_start_offset(system().time(proc.startOffset()));
+      con(proc,
+          &Process::ProcessModel::startOffsetChanged,
+          this,
+          [this, p = oproc](TimeVal t) {
+            in_exec([p, t = system().time(t)] { p->set_start_offset(t); });
+          });
+
       auto p = std::dynamic_pointer_cast<ossia::node_graph_process>(
           m_ossia_process);
       commands.push_back([child_n = std::move(child_n),

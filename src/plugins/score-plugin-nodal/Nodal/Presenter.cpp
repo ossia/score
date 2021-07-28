@@ -31,51 +31,7 @@ Presenter::Presenter(
 {
   bind(layer.nodes, *this);
 
-  connect(
-      view,
-      &View::dropReceived,
-      this,
-      [&](const QPointF& pos, const QMimeData& mime) {
-        const auto& ctx = context().context;
-        if (mime.hasFormat(score::mime::processdata()))
-        {
-          Mime<Process::ProcessData>::Deserializer des{mime};
-          Process::ProcessData p = des.deserialize();
-
-          auto cmd = new CreateNode(layer, pos, p.key, p.customData);
-          CommandDispatcher<> d{ctx.commandStack};
-          d.submit(cmd);
-        }
-        else
-        {
-          // TODO refactor with EffectProcessLayer
-          const auto& handlers
-              = ctx.app.interfaces<Process::ProcessDropHandlerList>();
-
-          if (auto res = handlers.getDrop(mime, ctx); !res.empty())
-          {
-            MacroCommandDispatcher<DropNodesMacro> cmd{ctx.commandStack};
-            score::Dispatcher_T disp{cmd};
-            for (const auto& proc : res)
-            {
-              auto& p = proc.creation;
-              // TODO fudge pos a bit
-              auto create = new CreateNode(layer, pos, p.key, p.customData);
-              cmd.submit(create);
-              if (auto fx = layer.nodes.find(create->nodeId());
-                  fx != layer.nodes.end())
-              {
-                if (proc.setup)
-                {
-                  proc.setup(*fx, disp);
-                }
-              }
-            }
-
-            cmd.commit();
-          }
-        }
-      });
+  connect(view, &View::dropReceived, this, &Presenter::on_drop);
 
   if (auto itv = Scenario::closestParentInterval(m_model.parent()))
   {
@@ -144,6 +100,50 @@ void Presenter::on_zoomRatioChanged(ZoomRatio ratio)
 }
 
 void Presenter::parentGeometryChanged() { }
+
+void Presenter::on_drop(const QPointF& pos, const QMimeData& mime)
+{
+  const auto& ctx = context().context;
+  auto& layer = m_model;
+  if (mime.hasFormat(score::mime::processdata()))
+  {
+    Mime<Process::ProcessData>::Deserializer des{mime};
+    Process::ProcessData p = des.deserialize();
+
+    auto cmd = new CreateNode(layer, pos, p.key, p.customData);
+    CommandDispatcher<> d{ctx.commandStack};
+    d.submit(cmd);
+  }
+  else
+  {
+    // TODO refactor with EffectProcessLayer
+    const auto& handlers
+        = ctx.app.interfaces<Process::ProcessDropHandlerList>();
+
+    if (auto res = handlers.getDrop(mime, ctx); !res.empty())
+    {
+      RedoMacroCommandDispatcher<DropNodesMacro> cmd{ctx.commandStack};
+      score::Dispatcher_T disp{cmd};
+      for (const auto& proc : res)
+      {
+        auto& p = proc.creation;
+        // TODO fudge pos a bit
+        auto create = new CreateNode(layer, pos, p.key, p.customData);
+        cmd.submit(create);
+        if (auto fx = layer.nodes.find(create->nodeId());
+            fx != layer.nodes.end())
+        {
+          if (proc.setup)
+          {
+            proc.setup(*fx, disp);
+          }
+        }
+      }
+
+      cmd.commit();
+    }
+  }
+}
 
 void Presenter::on_created(Process::ProcessModel& n)
 {
