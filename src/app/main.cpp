@@ -26,6 +26,11 @@ extern "C"  __declspec(dllimport) LONG __stdcall NtSetTimerResolution(ULONG Desi
 #include <QItemSelection>
 #include <QSurfaceFormat>
 #include <qnamespace.h>
+
+#ifndef QT_NO_OPENGL
+#include <QOpenGLContext>
+#include <QOffscreenSurface>
+#endif
 /*
 #if __has_include(<valgrind/callgrind.h>)
 #include <valgrind/callgrind.h>
@@ -151,43 +156,48 @@ static void setup_faust_path()
 
 static void setup_opengl()
 {
+#ifndef QT_NO_OPENGL
   {
-  QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
-#if defined(__APPLE__)
-  fmt.setMajorVersion(3);
-  fmt.setMinorVersion(2);
-  fmt.setProfile(QSurfaceFormat::CoreProfile);
-#endif
-  fmt.setSwapInterval(1);
-  fmt.setDefaultFormat(fmt);
+    std::vector<std::pair<int, int>> versions_to_test = {
+        { 4, 7 }, { 4, 6 }, { 4, 5 }, { 4, 4 }, { 4, 3 }, { 4, 2 }, { 4, 1 }, { 4, 0 },
+        { 3, 3 }, { 3, 2 }, { 3, 1 }, { 3, 0 },
+        { 2, 1 }, { 2, 0 }
+    };
+
+    QOffscreenSurface surf;
+    surf.create();
+
+    QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
+    fmt.setProfile(QSurfaceFormat::CoreProfile);
+    fmt.setSwapInterval(1);
+    bool ok = false;
+    for(auto [maj, min] : versions_to_test) {
+      fmt.setMajorVersion(maj);
+      fmt.setMinorVersion(min);
+
+      QOpenGLContext ctx;
+      ctx.setFormat(fmt);
+      if(ctx.create())
+      {
+        if(ctx.makeCurrent(&surf))
+        {
+          qDebug().nospace() << "Using highest available OpenGL version: " << ctx.format().majorVersion() << "." << ctx.format().minorVersion();
+          if(maj < 3 || (maj == 3 && min < 2))
+            qDebug() << "Warning ! This OpenGL version is too old for every feature to work correctly. Consider updating your graphics card.";
+
+          ok = true;
+          break;
+        }
+      }
+    }
+    if(!ok)
+    {
+      qDebug() << "OpenGL disabled, minimum version not supported";
+    }
+    fmt.setDefaultFormat(fmt);
   }
-  return;
-/*
-#if !defined(__EMSCRIPTEN__)
-  QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
-  fmt.setMajorVersion(4);
-  fmt.setMinorVersion(1);
-  fmt.setProfile(QSurfaceFormat::CoreProfile);
-
-  fmt.setDepthBufferSize(24);
-  fmt.setStencilBufferSize(0);
-  fmt.setRedBufferSize(8);
-  fmt.setGreenBufferSize(8);
-  fmt.setBlueBufferSize(8);
-  fmt.setAlphaBufferSize(8);
-
-  fmt.setRenderableType(QSurfaceFormat::OpenGL);
-  fmt.setSamples(0);
-  fmt.setSwapInterval(1);
-  fmt.setColorSpace(QSurfaceFormat::sRGBColorSpace);
-
-  fmt.setDefaultFormat(fmt);
-#else
-  QSurfaceFormat fmt;
-  fmt.setAlphaBufferSize(0);
-  fmt.setDefaultFormat(fmt);
 #endif
-*/
+  return;
 }
 
 static void setup_locale()
@@ -269,13 +279,13 @@ int main(int argc, char** argv)
   disable_denormals();
   setup_faust_path();
   setup_locale();
-  setup_opengl();
   setup_app_flags();
   setup_fftw();
 
   QPixmapCache::setCacheLimit(819200);
   Application app(argc, argv);
 
+  setup_opengl();
   QTimer::singleShot(1, &app, &Application::init);
 
   increase_timer_precision timerRes;

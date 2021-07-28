@@ -244,7 +244,7 @@ void Application::init()
   if(m_applicationSettings.gui && m_applicationSettings.opengl)
   {
     auto platform = QGuiApplication::platformName();
-    if(platform.contains("wayland"))
+    if(platform.contains(QStringLiteral("wayland")))
     {
       m_applicationSettings.opengl = false;
     }
