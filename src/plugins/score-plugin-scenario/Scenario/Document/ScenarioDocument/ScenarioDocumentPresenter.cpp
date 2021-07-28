@@ -354,7 +354,10 @@ ScenarioDocumentPresenter::~ScenarioDocumentPresenter()
 
   removeDisplayedIntervalPresenter();
 
+  for(auto& [cable, item] : m_dataflow.cables())
+    delete item;
   m_dataflow.cables().clear();
+  SCORE_ASSERT(m_dataflow.ports().empty());
   m_dataflow.ports().clear();
 }
 
