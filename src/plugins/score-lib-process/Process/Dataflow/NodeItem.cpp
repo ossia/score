@@ -77,8 +77,12 @@ NodeItem::NodeItem(
   auto& skin = score::Skin::instance();
   m_label = new score::SimpleTextItem{skin.Light.main, this};
 
+  qDebug() << process.metadata().getLabel() << process.prettyShortName();
+
   if (const auto& label = process.metadata().getLabel(); !label.isEmpty())
     m_label->setText(label);
+  else  if (const auto& name = process.metadata().getName(); !name.isEmpty())
+    m_label->setText(name);
   else
     m_label->setText(process.prettyShortName());
 
