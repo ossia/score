@@ -8,6 +8,11 @@ namespace Device
 {
 ProtocolFactory::~ProtocolFactory() = default;
 
+ProtocolFactory::Flags ProtocolFactory::flags() const noexcept
+{
+  return {};
+}
+
 int ProtocolFactory::visualPriority() const noexcept
 {
   return 0;

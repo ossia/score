@@ -32,6 +32,8 @@
 #include <State/Value.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
+
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/tree/InvisibleRootNode.hpp>
@@ -821,10 +823,25 @@ void DeviceExplorerWidget::edit()
 
     if (code == QDialog::Accepted)
     {
-      auto cmd = new Explorer::Command::UpdateDeviceSettings{
-          model()->deviceModel(), set.name, m_deviceDialog->getSettings()};
+      auto proto = m_protocolList.get(set.protocol);
+      if (!proto)
+        return;
+      auto flags = proto->flags();
+      if(flags & Device::ProtocolFactory::EditingReloadsEverything)
+      {
+        using namespace Command;
+        MacroCommandDispatcher<UpdateAndReloadMacro> disp{m_cmdDispatcher->stack()};
+        disp.submit(new Remove(model()->deviceModel(), select));
+        disp.submit(new LoadDevice(model()->deviceModel(), m_deviceDialog->getSettings()));
+        disp.commit();
+      }
+      else
+      {
+        auto cmd = new Explorer::Command::UpdateDeviceSettings{
+            model()->deviceModel(), set.name, m_deviceDialog->getSettings()};
 
-      m_cmdDispatcher->submit(cmd);
+        m_cmdDispatcher->submit(cmd);
+      }
     }
 
     updateActions();

@@ -56,6 +56,12 @@ public:
     static const constexpr auto util = "Utilities";
   };
 
+  enum Flags {
+    EditingReloadsEverything = (1 << 0)
+  };
+
+  virtual Flags flags() const noexcept;
+
   virtual QString prettyName() const noexcept = 0;
   virtual QString category() const noexcept = 0;
 

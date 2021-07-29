@@ -3,12 +3,10 @@
 #include <Explorer/Commands/DeviceExplorerCommandFactory.hpp>
 
 #include <score/command/Command.hpp>
+#include <score/command/AggregateCommand.hpp>
 #include <score/model/path/Path.hpp>
 
 #include <score_plugin_deviceexplorer_export.h>
-
-struct DataStreamInput;
-struct DataStreamOutput;
 
 namespace Explorer
 {
@@ -61,6 +59,14 @@ protected:
 private:
   Device::Node m_oldNode;
   Device::Node m_newNode;
+};
+
+class UpdateAndReloadMacro final : public score::AggregateCommand
+{
+  SCORE_COMMAND_DECL(
+      DeviceExplorerCommandFactoryName(),
+      UpdateAndReloadMacro,
+      "Reload a device")
 };
 }
 }

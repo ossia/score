@@ -59,15 +59,17 @@ void MIDIInputSettingsWidget::setSettings(
     const Device::DeviceSettings& settings)
 {
   m_current = settings;
+  const auto& s = m_current.deviceSpecificSettings.value<MIDISpecificSettings>();
+  m_createWhole->setChecked(s.createWholeTree);
 
   // Clean up the name a bit
-  auto prettyName = settings.name;
-  if (!prettyName.isEmpty())
+  auto pretty_name = settings.name;
+  if (!pretty_name.isEmpty())
   {
-    prettyName = prettyName.split(':').front();
-    ossia::net::sanitize_device_name(prettyName);
+    pretty_name = pretty_name.split(':').front();
+    ossia::net::sanitize_device_name(pretty_name);
   }
-  m_name->setText(prettyName);
+  m_name->setText(pretty_name);
 }
 }
 

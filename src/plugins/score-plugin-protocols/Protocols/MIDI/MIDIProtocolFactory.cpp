@@ -126,6 +126,11 @@ public:
   }
 };
 
+Device::ProtocolFactory::Flags MIDIInputProtocolFactory::flags() const noexcept
+{
+  return Device::ProtocolFactory::EditingReloadsEverything;
+}
+
 QString MIDIInputProtocolFactory::prettyName() const noexcept
 {
   return QObject::tr("MIDI Input");

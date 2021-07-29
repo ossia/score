@@ -22,6 +22,7 @@ class MIDIInputProtocolFactory final : public Device::ProtocolFactory
   SCORE_CONCRETE("f5e04ef0-16dd-4997-8f81-f5a04b8702bc")
 
   // Implement with OSSIA::Device
+  Device::ProtocolFactory::Flags flags() const noexcept override;
   QString prettyName() const noexcept override;
   QString category() const noexcept override;
   Device::DeviceEnumerator*

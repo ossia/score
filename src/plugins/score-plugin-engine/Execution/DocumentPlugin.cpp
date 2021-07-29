@@ -266,11 +266,18 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
   }
   clear();
 
-  const score::DocumentContext& ctx = m_ctx.doc;
+  const score::DocumentContext& ctx = m_context;
   auto& settings = ctx.app.settings<Execution::Settings::Model>();
 
   m_ctx.time = settings.makeTimeFunction(ctx);
   m_ctx.reverseTime = settings.makeReverseTimeFunction(ctx);
+
+  // Notify devices that they have to start running stuff, polling frames, etc.
+  auto& devs = m_context.plugin<Explorer::DeviceDocumentPlugin>();
+  devs.list().apply([this](const Device::DeviceInterface& d) {
+    if(auto dev = d.getDevice())
+      dev->get_protocol().start_execution();
+  });
 
   makeGraph();
 
@@ -320,6 +327,13 @@ void DocumentPlugin::clear()
     execGraph.reset();
     execState.reset();
   }
+
+  // Notify devices that they have to stop running stuff, polling frames, etc.
+  auto& devs = m_context.plugin<Explorer::DeviceDocumentPlugin>();
+  devs.list().apply([this](const Device::DeviceInterface& d) {
+    if(auto dev = d.getDevice())
+      dev->get_protocol().stop_execution();
+  });
 }
 
 void DocumentPlugin::on_documentClosing()
