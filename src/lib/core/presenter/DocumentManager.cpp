@@ -157,7 +157,7 @@ void DocumentManager::init(const score::GUIApplicationContext& ctx)
     m_recentFiles = new QRecentFilesMenu{tr("Recent files"), nullptr};
 
 #if !defined(__EMSCRIPTEN__)
-    QSettings settings("OSSIA", "score");
+    QSettings settings;
     m_recentFiles->restoreState(settings.value("RecentFiles").toByteArray());
     connect(
         m_recentFiles,
@@ -705,7 +705,7 @@ void DocumentManager::saveRecentFilesState()
 #if !defined(__EMSCRIPTEN__)
   if (m_recentFiles)
   {
-    QSettings settings("OSSIA", "score");
+    QSettings settings;
     settings.setValue("RecentFiles", m_recentFiles->saveState());
     m_recentFiles->saveState();
   }

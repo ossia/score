@@ -91,6 +91,15 @@ bool QRecentFilesMenu::restoreState(const QByteArray& state)
 
   stream >> m_files;
 
+  // Remove the files that cannot be found
+  for(auto it = m_files.begin(); it != m_files.end(); )
+  {
+    if(QFile::exists(*it))
+      ++it;
+    else
+      it = m_files.erase(it);
+  }
+
   updateRecentFileActions();
 
   return true;
