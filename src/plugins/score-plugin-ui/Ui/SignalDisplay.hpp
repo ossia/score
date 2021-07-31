@@ -34,7 +34,7 @@ struct Node
 
   static void
   run(const ossia::value_port& in,
-      ossia::safe_nodes::timed_vec<ossia::value>& out_value,
+      ossia::timed_vec<ossia::value>& out_value,
       ossia::token_request tk,
       ossia::exec_state_facade st)
   {

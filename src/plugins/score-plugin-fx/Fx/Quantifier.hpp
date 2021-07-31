@@ -46,10 +46,10 @@ struct Node
 
   static void
   run(const ossia::midi_port& p1,
-      const ossia::safe_nodes::timed_vec<float>& startq,
-      const ossia::safe_nodes::timed_vec<float>& tightness,
-      const ossia::safe_nodes::timed_vec<float>& dur,
-      const ossia::safe_nodes::timed_vec<float>& tempo_vec,
+      const ossia::timed_vec<float>& startq,
+      const ossia::timed_vec<float>& tightness,
+      const ossia::timed_vec<float>& dur,
+      const ossia::timed_vec<float>& tempo_vec,
       ossia::midi_port& p2,
       ossia::token_request tk,
       ossia::exec_state_facade st,

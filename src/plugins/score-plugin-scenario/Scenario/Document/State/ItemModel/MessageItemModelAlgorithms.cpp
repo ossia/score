@@ -293,7 +293,7 @@ static void rec_updateTree(
     ProcessPosition pos)
 {
   // If the message is in the tree, we add the process value.
-  int n = lst.size();
+  auto n = lst.size();
   nodeInsertAction(node, lst, proc, pos);
   if (lst.size() == n) // No nodes were added / updated
   {

@@ -1613,7 +1613,7 @@ INCLUDE_PATH           = \
    ../../3rdparty/libossia/3rdparty/asio/asio/include \
    ../../3rdparty/libossia/3rdparty/brigand/include \
    ../../3rdparty/libossia/3rdparty/chobo-shl/include \
-   ../../3rdparty/libossia/3rdparty/flat/include \
+   ../../3rdparty/libossia/3rdparty/flat \
    ../../3rdparty/libossia/3rdparty/fmt/include \
    ../../3rdparty/libossia/3rdparty/frozen/include \
    ../../3rdparty/libossia/3rdparty/hopscotch-map/include \

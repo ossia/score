@@ -107,7 +107,8 @@ target_compile_definitions(score_plugin_jit
 target_compile_options(score_plugin_jit PRIVATE -std=c++17)
 
 # Clang dependencies
-if(LLVM_VERSION VERSION_LESS "10.*" OR (UNIX AND NOT APPLE AND DEPLOYMENT_BUILD) OR OSSIA_SDK)
+find_library(CLANG_REWRITE_FRONTEND_LIB clangRewriteFrontend)
+if(LLVM_VERSION VERSION_LESS "10.*" OR (UNIX AND NOT APPLE AND DEPLOYMENT_BUILD AND ${CLANG_REWRITE_FRONTEND_LIB}) OR OSSIA_SDK)
   set(CLANG_LIBS
     clangARCMigrate
     clangBasic

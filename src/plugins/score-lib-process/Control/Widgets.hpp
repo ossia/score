@@ -14,7 +14,6 @@ struct OutControl final : ossia::safe_nodes::control_out
 {
   static const constexpr bool must_validate = false;
   using type = ossia::value;
-  using port_type = Process::ControlOutlet;
 
   template <std::size_t N>
   constexpr OutControl(const char (&name)[N])
@@ -46,7 +45,6 @@ struct FloatControl final
 {
   static const constexpr bool must_validate = false;
   using type = float;
-  using port_type = Process::FloatSlider;
   const float min{};
   const float max{};
   const float init{};
@@ -101,7 +99,6 @@ struct LogFloatControl final
 {
   static const constexpr bool must_validate = false;
   using type = float;
-  using port_type = Process::LogFloatSlider; // TODO BUG
   const float min{};
   const float max{};
   const float init{};
@@ -160,7 +157,6 @@ struct FloatDisplay final
 {
   static const constexpr bool must_validate = false;
   using type = float;
-  using port_type = Process::Bargraph;
   const float min{};
   const float max{};
   const float init{};
@@ -220,7 +216,6 @@ struct IntSlider final
     , WidgetFactory::IntSlider
 {
   using type = int;
-  using port_type = Process::IntSlider;
   const int min{};
   const int max{};
   const int init{};
@@ -272,7 +267,6 @@ struct IntSpinBox final
 {
   static const constexpr bool must_validate = false;
   using type = int;
-  using port_type = Process::IntSpinBox;
   const int min{};
   const int max{};
   const int init{};
@@ -328,7 +322,6 @@ struct Button final
   }
 
   using type = bool;
-  using port_type = Process::Toggle;
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
     return new Process::Button{
@@ -355,6 +348,44 @@ struct Button final
   }
 };
 
+struct ImpulseButton final
+    : ossia::safe_nodes::control_in
+    , WidgetFactory::ImpulseButton
+{
+  static const constexpr bool must_validate = false;
+  template <std::size_t N>
+  constexpr ImpulseButton(const char (&name)[N])
+      : ossia::safe_nodes::control_in{name}
+  {
+  }
+
+  using type = ossia::impulse;
+  auto create_inlet(Id<Process::Port> id, QObject* parent) const
+  {
+    return new Process::ImpulseButton{
+        QString::fromUtf8(name.data(), name.size()), id, parent};
+  }
+  auto create_inlet(DataStream::Deserializer& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::ImpulseButton>(id, parent);
+  }
+  auto create_inlet(JSONObject::Deserializer&& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::ImpulseButton>(id, parent);
+  }
+
+  ossia::impulse fromValue(const ossia::value& v) const
+  {
+    return {};
+  }
+  ossia::value toValue(const ossia::value& v) const { return ossia::impulse{}; }
+
+  void setup_exec(ossia::value_inlet& v) const
+  {
+    v->domain = ossia::domain_base<ossia::impulse>();
+  }
+};
+
 struct Toggle final
     : ossia::safe_nodes::control_in
     , WidgetFactory::Toggle
@@ -368,7 +399,6 @@ struct Toggle final
   }
 
   using type = bool;
-  using port_type = Process::Toggle;
   const bool init{};
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
@@ -412,7 +442,6 @@ struct ChooserToggle final
   {
   }
   using type = bool;
-  using port_type = Process::ChooserToggle;
   std::array<const char*, 2> alternatives;
   const bool init{};
 
@@ -466,7 +495,6 @@ struct LineEdit final
   }
 
   using type = std::string;
-  using port_type = Process::LineEdit;
   const QLatin1String init{};
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
@@ -491,7 +519,6 @@ struct ComboBox final
 {
   static const constexpr bool must_validate = false;
   using type = T;
-  using port_type = Process::ComboBox;
   const std::size_t init{};
   const std::array<std::pair<const char*, T>, N> values;
 
@@ -540,7 +567,6 @@ struct EnumBase
     , WidgetFactory::Enum
 {
   using type = std::string;
-  using port_type = Process::Enum;
   const std::size_t init{};
   const ArrT values;
   using Pixmaps_T = std::array<const char*, 2 * ArrT{}.size()>;

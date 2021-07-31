@@ -58,6 +58,7 @@ enum DeviceLogging : int8_t
   LogUnfolded,
   LogEverything
 };
+
 class SCORE_LIB_DEVICE_EXPORT DeviceInterface
     : public QObject
     , public Nano::Observer

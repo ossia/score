@@ -399,7 +399,7 @@ struct ImpulseButton
         toggle,
         &score::QGraphicsButton::pressed,
         context,
-        [=, &inlet, &ctx](bool pressed) {
+        [=, &inlet](bool pressed) {
           if(pressed)
           {
             inlet.valueChanged(ossia::impulse{});

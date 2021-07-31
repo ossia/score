@@ -274,7 +274,7 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
 
   // Notify devices that they have to start running stuff, polling frames, etc.
   auto& devs = m_context.plugin<Explorer::DeviceDocumentPlugin>();
-  devs.list().apply([this](const Device::DeviceInterface& d) {
+  devs.list().apply([](const Device::DeviceInterface& d) {
     if(auto dev = d.getDevice())
       dev->get_protocol().start_execution();
   });
@@ -330,7 +330,7 @@ void DocumentPlugin::clear()
 
   // Notify devices that they have to stop running stuff, polling frames, etc.
   auto& devs = m_context.plugin<Explorer::DeviceDocumentPlugin>();
-  devs.list().apply([this](const Device::DeviceInterface& d) {
+  devs.list().apply([](const Device::DeviceInterface& d) {
     if(auto dev = d.getDevice())
       dev->get_protocol().stop_execution();
   });

@@ -34,13 +34,13 @@ public:
   virtual void requestTransport(ossia::time_value t) = 0;
 
   void play()
-      E_SIGNAL(SCORE_PLUGIN_TRANSPORT_EXPORT, play);
+      E_SIGNAL(SCORE_PLUGIN_TRANSPORT_EXPORT, play)
   void pause()
-      E_SIGNAL(SCORE_PLUGIN_TRANSPORT_EXPORT, pause);
+      E_SIGNAL(SCORE_PLUGIN_TRANSPORT_EXPORT, pause)
   void stop()
-      E_SIGNAL(SCORE_PLUGIN_TRANSPORT_EXPORT, stop);
+      E_SIGNAL(SCORE_PLUGIN_TRANSPORT_EXPORT, stop)
   void transport(ossia::time_value t)
-      E_SIGNAL(SCORE_PLUGIN_TRANSPORT_EXPORT, transport, t);
+      E_SIGNAL(SCORE_PLUGIN_TRANSPORT_EXPORT, transport, t)
 };
 
 class SCORE_PLUGIN_TRANSPORT_EXPORT TransportInterfaceList final

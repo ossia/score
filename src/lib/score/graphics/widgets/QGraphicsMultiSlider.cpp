@@ -159,7 +159,7 @@ struct EventVisitor
   template <std::size_t N>
   void operator()(std::array<float, N>& v) const noexcept
   {
-    for (std::size_t i = 0; i < N; i++)
+    for (int64_t i = 0; i < int64_t(N); i++)
     {
       SliderWrapper<float> slider{self, {v[i]}};
       slider.m_grab = (self.m_grab == i);

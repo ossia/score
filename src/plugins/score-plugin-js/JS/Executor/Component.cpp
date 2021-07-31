@@ -398,9 +398,9 @@ void js_node::run(
 
   QEventLoop e;
   // Copy audio
-  for (int i = 0; i < m_audInlets.size(); i++)
+  for (std::size_t inl_i = 0; inl_i < m_audInlets.size(); inl_i++)
   {
-    auto& dat = m_audInlets[i].second->target<ossia::audio_port>()->samples;
+    auto& dat = m_audInlets[inl_i].second->target<ossia::audio_port>()->samples;
 
     const int dat_size = (int)dat.size();
     QVector<QVector<double>> audio(dat_size);
@@ -411,11 +411,11 @@ void js_node::run(
       for (int j = 0; j < dat_i_size; j++)
         audio[i][j] = dat[i][j];
     }
-    m_audInlets[i].first->setAudio(audio);
+    m_audInlets[inl_i].first->setAudio(audio);
   }
 
   // Copy values
-  for (int i = 0; i < m_valInlets.size(); i++)
+  for (std::size_t i = 0; i < m_valInlets.size(); i++)
   {
     auto& vp = *m_valInlets[i].second->target<ossia::value_port>();
     auto& dat = vp.get_data();
@@ -446,7 +446,7 @@ void js_node::run(
   }
 
   // Copy controls
-  for (int i = 0; i < m_ctrlInlets.size(); i++)
+  for (std::size_t i = 0; i < m_ctrlInlets.size(); i++)
   {
     auto& vp = *m_ctrlInlets[i].second->target<ossia::value_port>();
     auto& dat = vp.get_data();
@@ -460,7 +460,7 @@ void js_node::run(
   }
 
   // Copy midi
-  for (int i = 0; i < m_midInlets.size(); i++)
+  for (std::size_t i = 0; i < m_midInlets.size(); i++)
   {
     auto& dat = m_midInlets[i].second->target<ossia::midi_port>()->messages;
     m_midInlets[i].first->setMidi(dat);
@@ -479,7 +479,7 @@ void js_node::run(
              << res.toString();
   }
 
-  for (int i = 0; i < m_valOutlets.size(); i++)
+  for (std::size_t i = 0; i < m_valOutlets.size(); i++)
   {
     auto& dat = *m_valOutlets[i].second->target<ossia::value_port>();
     const auto& v = m_valOutlets[i].first->value();
@@ -493,7 +493,7 @@ void js_node::run(
     m_valOutlets[i].first->clear();
   }
 
-  for (int i = 0; i < m_midOutlets.size(); i++)
+  for (std::size_t i = 0; i < m_midOutlets.size(); i++)
   {
     auto& dat = *m_midOutlets[i].second->target<ossia::midi_port>();
     for (const auto& mess : m_midOutlets[i].first->midi())
@@ -510,7 +510,7 @@ void js_node::run(
   }
 
   auto tick_start = estate.physical_start(tk);
-  for (int out = 0; out < m_audOutlets.size(); out++)
+  for (std::size_t out = 0; out < m_audOutlets.size(); out++)
   {
     auto& src = m_audOutlets[out].first->audio();
     auto& snk = m_audOutlets[out].second->target<ossia::audio_port>()->samples;

@@ -341,9 +341,9 @@ struct Node
   using control_policy = ossia::safe_nodes::default_tick;
   static void
   run(const ossia::midi_port& midi_in,
-      const ossia::safe_nodes::timed_vec<std::string>& sc,
-      const ossia::safe_nodes::timed_vec<int>& base,
-      const ossia::safe_nodes::timed_vec<int>& transp,
+      const ossia::timed_vec<std::string>& sc,
+      const ossia::timed_vec<int>& base,
+      const ossia::timed_vec<int>& transp,
       ossia::midi_port& midi_out,
       ossia::token_request tk,
       ossia::exec_state_facade st,

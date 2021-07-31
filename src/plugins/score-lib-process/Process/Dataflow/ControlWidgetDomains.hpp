@@ -200,7 +200,7 @@ bindVec2Domain(const T& slider, Control_T& inlet, Widget_T& widget)
       {
         auto& min = *min_vec2;
         auto& max = *max_vec2;
-        for(int i = 0; i < min.size(); i++) {
+        for(std::size_t i = 0; i < min.size(); i++) {
         if (max[i] - min[i] == 0)
           max[i] = min[i] + 1;
         }

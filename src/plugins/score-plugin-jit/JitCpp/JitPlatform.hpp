@@ -550,7 +550,7 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
            "/3rdparty/libossia/3rdparty/bitset2",
            "/3rdparty/libossia/3rdparty/GSL/include",
            "/3rdparty/libossia/3rdparty/flat_hash_map",
-           "/3rdparty/libossia/3rdparty/flat/include",
+           "/3rdparty/libossia/3rdparty/flat",
            "/3rdparty/libossia/3rdparty/readerwriterqueue",
            "/3rdparty/libossia/3rdparty/concurrentqueue",
            "/3rdparty/libossia/3rdparty/SmallFunction/smallfun/include",
