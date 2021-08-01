@@ -2,7 +2,7 @@
 
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxContext.hpp>
-#include <Gfx/GfxExec.hpp>
+#include <Gfx/GfxExecNode.hpp>
 #include <Gfx/Graph/ImageNode.hpp>
 #include <Gfx/Images/ImageListChooser.hpp>
 #include <Gfx/Images/Process.hpp>
@@ -47,7 +47,7 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     auto ctrl = qobject_cast<Process::ControlInlet*>(element.inlets()[i]);
     auto& p = n->add_control();
     p->value = ctrl->value();
-    for(auto img : Gfx::getImages(p->value)) qDebug() << "init image: " << img.path << img.frames.size();
+
     p->changed = true;
 
     QObject::connect(

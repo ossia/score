@@ -2,7 +2,7 @@
 
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxContext.hpp>
-#include <Gfx/GfxExec.hpp>
+#include <Gfx/GfxExecNode.hpp>
 #include <Gfx/Graph/VideoNode.hpp>
 #include <Gfx/Video/Process.hpp>
 #include <Process/ExecutionContext.hpp>

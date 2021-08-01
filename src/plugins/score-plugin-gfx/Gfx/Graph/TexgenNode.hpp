@@ -65,7 +65,6 @@ struct TexgenNode : NodeModel
   {
     using GenericNodeRenderer::GenericNodeRenderer;
 
-    bool m_uploaded = false;
     ~Rendered() { }
 
     QRhiTexture* texture{};
@@ -124,8 +123,6 @@ struct TexgenNode : NodeModel
 
     int t = 0;
   };
-
-  const TexturedTriangle& m_mesh = TexturedTriangle::instance();
 
   QImage image;
   TexgenNode()

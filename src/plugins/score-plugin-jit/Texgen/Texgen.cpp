@@ -3,7 +3,7 @@
 
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxContext.hpp>
-#include <Gfx/GfxExec.hpp>
+#include <Gfx/GfxExecNode.hpp>
 #include <Gfx/Graph/TexgenNode.hpp>
 #include <Gfx/TexturePort.hpp>
 #include <Process/Dataflow/PortFactory.hpp>

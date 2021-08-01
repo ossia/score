@@ -15,6 +15,10 @@ public:
 
   virtual TextureRenderTarget renderTargetForInput(const Port& input) = 0;
 
+  //! Called when all the inbound nodes to a texture input have finished rendering.
+  //! Mainly useful to slip in a readback.
+  virtual void inputAboutToFinish(RenderList& renderer, const Port& p, QRhiResourceUpdateBatch*&);
+
   virtual void init(RenderList& renderer) = 0;
   virtual void update(RenderList& renderer, QRhiResourceUpdateBatch& res) = 0;
 
@@ -24,8 +28,7 @@ public:
       QRhiResourceUpdateBatch*& res,
       Edge& edge);
 
-  [[nodiscard]]
-  virtual QRhiResourceUpdateBatch* runRenderPass(
+  virtual void runRenderPass(
       RenderList&,
       QRhiCommandBuffer& commands,
       Edge& edge);
@@ -53,9 +56,6 @@ public:
   virtual ~GenericNodeRenderer() { }
 
   const NodeModel& node;
-
-  //TextureRenderTarget m_rt;
-
   std::vector<Sampler> m_samplers;
 
   // Pipeline
@@ -87,7 +87,7 @@ public:
       QRhiCommandBuffer& commands,
       Edge& edge);
 
-  QRhiResourceUpdateBatch* runRenderPass(
+  void runRenderPass(
       RenderList&,
       QRhiCommandBuffer& commands,
       Edge& edge) override;

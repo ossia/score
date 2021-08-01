@@ -2,7 +2,7 @@
 
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxContext.hpp>
-#include <Gfx/GfxExec.hpp>
+#include <Gfx/GfxExecNode.hpp>
 #include <Gfx/Graph/TextNode.hpp>
 #include <Gfx/Text/Process.hpp>
 #include <Process/Dataflow/Port.hpp>

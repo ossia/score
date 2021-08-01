@@ -411,9 +411,8 @@ public:
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
   }
-  QRhiResourceUpdateBatch* runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& e) override
+  void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& e) override
   {
-    return nullptr;
   }
   void release(RenderList&) override
   {

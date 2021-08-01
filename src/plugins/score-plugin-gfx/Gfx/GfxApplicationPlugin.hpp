@@ -1,6 +1,6 @@
 #pragma once
 #include <Gfx/GfxContext.hpp>
-#include <Gfx/GfxExec.hpp>
+#include <Gfx/GfxExecNode.hpp>
 
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>

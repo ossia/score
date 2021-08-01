@@ -72,6 +72,8 @@ void RenderList::init()
       QRhiTexture::RGBA8, QSize{1, 1}, 1, QRhiTexture::Flag{});
   m_emptyTexture->setName("RenderList::m_emptyTexture");
   m_emptyTexture->create();
+
+  m_lastSize = state.size;
 }
 
 void RenderList::release()
@@ -213,20 +215,17 @@ void RenderList::render(QRhiCommandBuffer& commands)
           QRhiResourceUpdateBatch* res{};
           for(auto [edge, node] : prevRenderers)
           {
-            auto new_res = node->runRenderPass(*this, commands, *edge);
-
-            // Used for readbacks
-            if(res && new_res)
-            {
-              new_res->merge(res);
-              res->release();
-            }
-            else if(new_res && !res)
-            {
-              res = new_res;
-            }
+            node->runRenderPass(*this, commands, *edge);
           }
 
+          // Allow the node to do some actions, for instance if a readback
+          // of a node's input is going to be needed.
+          {
+            SCORE_ASSERT(node->renderedNodes.find(this) != node->renderedNodes.end());
+            NodeRenderer* renderer = node->renderedNodes.find(this)->second;
+
+            renderer->inputAboutToFinish(*this, *input, res);
+          }
           commands.endPass(res);
         }
 

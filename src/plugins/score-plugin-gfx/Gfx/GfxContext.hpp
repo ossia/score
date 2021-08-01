@@ -22,11 +22,9 @@ namespace Gfx
 {
 using port_index = ossia::gfx::port_index;
 
-class gfx_exec_node;
 class GfxExecutionAction;
 class SCORE_PLUGIN_GFX_EXPORT GfxContext : public QObject
 {
-  friend class gfx_exec_node;
   friend class GfxExecutionAction;
 
 public:
@@ -45,10 +43,14 @@ public:
   void update_inputs();
   void updateGraph();
 
-  void timerEvent(QTimerEvent*) override;
+  void send_message(score::gfx::Message&& msg) noexcept {
+    tick_messages.enqueue(std::move(msg));
+  }
 
 private:
   void run_commands();
+
+  void timerEvent(QTimerEvent*) override;
   const score::DocumentContext& m_context;
   int32_t index{};
   ossia::fast_hash_map<int32_t, NodePtr> nodes;

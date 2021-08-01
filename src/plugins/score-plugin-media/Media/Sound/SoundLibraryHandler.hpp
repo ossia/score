@@ -10,8 +10,9 @@
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/Pixmap.hpp>
 
+#include <ossia-qt/invoke.hpp>
 #include <ossia/audio/audio_protocol.hpp>
-
+#include <score/tools/ThreadPool.hpp>
 #include <QFileInfo>
 #include <QHBoxLayout>
 #include <QLabel>

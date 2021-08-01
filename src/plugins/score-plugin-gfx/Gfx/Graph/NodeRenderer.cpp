@@ -117,12 +117,11 @@ void NodeRenderer::runInitialPasses(
 
 }
 
-QRhiResourceUpdateBatch* NodeRenderer::runRenderPass(
+void NodeRenderer::runRenderPass(
     RenderList&,
     QRhiCommandBuffer& commands,
     Edge& edge)
 {
-  return nullptr;
 }
 
 void GenericNodeRenderer::defaultRenderPass(
@@ -150,14 +149,13 @@ void GenericNodeRenderer::defaultRenderPass(
   }
 }
 
-QRhiResourceUpdateBatch* GenericNodeRenderer::runRenderPass(
+void GenericNodeRenderer::runRenderPass(
     RenderList& renderer,
     QRhiCommandBuffer& cb,
     Edge& edge)
 {
   auto& mesh = TexturedTriangle::instance();
   defaultRenderPass(renderer, mesh, cb, edge);
-  return nullptr;
 }
 
 void GenericNodeRenderer::release(RenderList& r)
@@ -168,6 +166,11 @@ void GenericNodeRenderer::release(RenderList& r)
 score::gfx::NodeRenderer::NodeRenderer() noexcept { }
 
 score::gfx::NodeRenderer::~NodeRenderer() { }
+
+void NodeRenderer::inputAboutToFinish(RenderList& renderer, const Port& p, QRhiResourceUpdateBatch*&)
+{
+
+}
 
 #include <Gfx/Qt5CompatPop> // clang-format: keep
 

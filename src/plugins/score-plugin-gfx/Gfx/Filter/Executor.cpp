@@ -3,7 +3,7 @@
 #include <Gfx/Filter/Process.hpp>
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxContext.hpp>
-#include <Gfx/GfxExec.hpp>
+#include <Gfx/GfxExecNode.hpp>
 #include <Gfx/Graph/ISFNode.hpp>
 #include <Gfx/TexturePort.hpp>
 #include <Process/Dataflow/Port.hpp>

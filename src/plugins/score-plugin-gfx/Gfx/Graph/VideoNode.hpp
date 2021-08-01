@@ -31,8 +31,6 @@ private:
   std::shared_ptr<Video::VideoInterface> m_decoder;
   std::optional<double> m_nativeTempo;
   QString m_filter;
-
-  const TexturedTriangle& m_mesh = TexturedTriangle::instance();
 };
 
 }

@@ -323,14 +323,13 @@ private:
     defaultUBOUpdate(renderer, res);
   }
 
-  QRhiResourceUpdateBatch* runRenderPass(
+  void runRenderPass(
       RenderList& renderer,
       QRhiCommandBuffer& cb,
       Edge& edge) override
   {
     auto& mesh = TexturedQuad::instance();
     defaultRenderPass(renderer, mesh, cb, edge);
-    return nullptr;
   }
 
   void release(RenderList& r) override
@@ -477,14 +476,13 @@ private:
     }
   }
 
-  QRhiResourceUpdateBatch* runRenderPass(
+  void runRenderPass(
       RenderList& renderer,
       QRhiCommandBuffer& cb,
       Edge& edge) override
   {
     auto& mesh = TexturedTriangle::instance();
     defaultRenderPass(renderer, mesh, cb, edge);
-    return nullptr;
   }
 
   void release(RenderList& r) override

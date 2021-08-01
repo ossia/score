@@ -93,7 +93,7 @@ set(HDRS
 
     Gfx/GfxApplicationPlugin.hpp
     Gfx/GfxContext.hpp
-    Gfx/GfxExec.hpp
+    Gfx/GfxExecNode.hpp
     Gfx/GfxExecContext.hpp
     Gfx/GfxParameter.hpp
     Gfx/GfxDevice.hpp
@@ -148,6 +148,7 @@ set(SRCS
     Gfx/Graph/Window.cpp
 
     Gfx/GfxApplicationPlugin.cpp
+    Gfx/GfxExecNode.cpp
     Gfx/GfxContext.cpp
     Gfx/GfxDevice.cpp
     Gfx/TexturePort.cpp

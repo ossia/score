@@ -27,6 +27,11 @@ class NodeRenderer;
 
 using gfx_input = std::variant<std::monostate, ossia::value, ossia::audio_vector>;
 
+/**
+ * @brief Messages sent from the execution thread to the rendering thread
+ *
+ * The input is the array of controls of the execution node.
+ */
 struct Message
 {
   int32_t node_id{};

@@ -698,7 +698,7 @@ void RenderedISFNode::runInitialPasses(
   }
 }
 
-QRhiResourceUpdateBatch* RenderedISFNode::runRenderPass(
+void RenderedISFNode::runRenderPass(
     RenderList& renderer,
     QRhiCommandBuffer& cb,
     Edge& edge)
@@ -748,8 +748,6 @@ QRhiResourceUpdateBatch* RenderedISFNode::runRenderPass(
 
   using namespace std;
   swap(passes, altPasses);
-
-  return nullptr;
 }
 
 AudioTextureUpload::AudioTextureUpload()
@@ -1095,7 +1093,7 @@ void SimpleRenderedISFNode::runInitialPasses(
 {
 }
 
-QRhiResourceUpdateBatch* SimpleRenderedISFNode::runRenderPass(
+void SimpleRenderedISFNode::runRenderPass(
     RenderList& renderer,
     QRhiCommandBuffer& cb,
     Edge& edge)
@@ -1141,9 +1139,6 @@ QRhiResourceUpdateBatch* SimpleRenderedISFNode::runRenderPass(
       cb.draw(n.mesh().vertexCount);
     }
   }
-
-  using namespace std;
-  return nullptr;
 }
 
 SimpleRenderedISFNode::~SimpleRenderedISFNode() { }
