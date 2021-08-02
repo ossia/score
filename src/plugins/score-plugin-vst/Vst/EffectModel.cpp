@@ -183,7 +183,6 @@ void Model::removeControl(const Id<Process::Port>& id)
   SCORE_ASSERT(it != m_inlets.end());
   auto ctrl = safe_cast<ControlInlet*>(*it);
 
-  qDebug() << "removeControl(id) " << ctrl->fxNum;
   controls.erase(ctrl->fxNum);
   m_inlets.erase(it);
 
@@ -204,7 +203,14 @@ void Model::init()
   auto& app
       = score::GUIAppContext().applicationPlugin<vst::ApplicationPlugin>();
   app.registerRunningVST(this);
-  //  connect(this, &VSTEffectModel::addControl, this, &VSTEffectModel::on_addControl);
+  //  connect(this, &Model::addControl, this, &Model::on_addControl);
+
+  connect(this, &Model::resetExecution, this, [this] {
+              for(auto [index, ctl]: this->controls)
+              {
+                fx->setParameter(index, ctl->value());
+              }
+          });
 }
 
 void Model::setControlName(int fxnum, ControlInlet* ctrl)
@@ -248,8 +254,7 @@ void Model::on_addControl_impl(ControlInlet* ctrl)
       &ControlInlet::valueChanged,
       this,
       [this, i = ctrl->fxNum](float newval) {
-        if (std::abs(newval - fx->getParameter(i)) > 0.0001)
-          fx->setParameter(i, newval);
+        on_controlChangedFromScore(i, newval);
       });
 
   {
@@ -269,6 +274,12 @@ void Model::on_addControl_impl(ControlInlet* ctrl)
   controls.insert({ctrl->fxNum, ctrl});
   SCORE_ASSERT(controls.find(ctrl->fxNum) != controls.end());
   controlAdded(ctrl->id());
+}
+
+void Model::on_controlChangedFromScore(int i, float newval)
+{
+  if (std::abs(newval - fx->getParameter(i)) > 0.0001)
+    fx->setParameter(i, newval);
 }
 
 
@@ -678,8 +689,7 @@ void Model::load()
 
     connect(
         inlet, &ControlInlet::valueChanged, this, [this, ctrl](float newval) {
-          if (std::abs(newval - fx->getParameter(ctrl)) > 0.0001)
-            fx->setParameter(ctrl, newval);
+          on_controlChangedFromScore(ctrl, newval);
         });
     controls.insert({ctrl, inlet});
   }

@@ -112,6 +112,7 @@ public:
   void on_addControl(int idx, float v);
   W_SLOT(on_addControl);
   void on_addControl_impl(ControlInlet* inl);
+  void on_controlChangedFromScore(int num, float newval);
 
   void reloadControls();
 

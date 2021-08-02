@@ -33,7 +33,7 @@ void Executor::setupNode(Node_T& node)
 
     node->controls.push_back(
         {ctrl->fxNum, ctrl->value(), inlet->target<ossia::value_port>()});
-    node->root_inputs().push_back(std::move(inlet));
+    node->root_inputs().push_back(inlet);
   }
 
   std::weak_ptr<std::remove_reference_t<decltype(*node)>> wp = node;

@@ -87,10 +87,13 @@ void GraphicsSlider::paint(
     QWidget* widget)
 {
   char str[256]{};
-  m_execValue = fx->getParameter(fx, num);
-  fx->dispatcher(fx, effGetParamDisplay, num, 0, str, m_execValue);
+  // Note that effGetParamDisplay will sometimes ignore the m_value argument
+  // and just return the value for the actual parameter, which may be different
+  // when executing...
+  fx->dispatcher(fx, effGetParamDisplay, num, 0, str, m_value);
 
-  m_hasExec = (m_execValue - m_value) > 0.0001;
+  m_execValue = fx->getParameter(fx, num);
+  m_hasExec = std::abs(m_execValue - m_value) > 0.0001;
   score::DefaultGraphicsSliderImpl::paint(
       *this, score::Skin::instance(), QString::fromUtf8(str), painter, widget);
 }
