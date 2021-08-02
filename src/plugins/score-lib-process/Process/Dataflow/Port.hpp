@@ -146,6 +146,8 @@ public:
   void cablesChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, cablesChanged)
   void addressChanged(const State::AddressAccessor& address)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, addressChanged, address)
+  void executionReset()
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, executionReset)
 
   PROPERTY(
       State::AddressAccessor,
@@ -232,12 +234,16 @@ public:
 public:
   void valueChanged(const ossia::value& v)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, valueChanged, v)
+  void executionValueChanged(const ossia::value& v)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, executionValueChanged, v)
   void domainChanged(const State::Domain& d)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, domainChanged, d)
 
 public:
   void setValue(const ossia::value& value);
   W_SLOT(setValue)
+
+  inline void setExecutionValue(const ossia::value& value){executionValueChanged(value);}
 
   void setDomain(const State::Domain& d)
   {
@@ -445,10 +451,17 @@ public:
 public:
   void valueChanged(const ossia::value& v)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, valueChanged, v)
+  void executionValueChanged(const ossia::value& v)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, executionValueChanged, v)
   void domainChanged(const State::Domain& d)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, domainChanged, d)
 
 public:
+  void setExecutionValue(const ossia::value& value)
+  {
+    executionValueChanged(value);
+  }
+
   void setValue(const ossia::value& value)
   {
     if (value != m_value)

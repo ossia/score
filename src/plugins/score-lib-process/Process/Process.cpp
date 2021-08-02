@@ -64,6 +64,12 @@ ProcessModel::ProcessModel(
   con(metadata(), &score::ModelMetadata::NameChanged, this, [=] {
     prettyNameChanged();
   });
+  connect(this, &Process::ProcessModel::resetExecution, this, [this] {
+        for(auto& p : this->m_inlets)
+          p->executionReset();
+        for(auto& p : this->m_outlets)
+          p->executionReset();
+      });
   // metadata().setInstanceName(*this);
 }
 

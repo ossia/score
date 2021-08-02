@@ -50,12 +50,16 @@ struct SliderWrapper
 {
   QGraphicsMultiSlider& parent;
   ValueAssigner<T> m_value{};
+  ValueAssigner<T> m_execValue{};
+
   QRectF rect{defaultSliderSize};
 
   RightClickImpl* impl{};
 
   double& min = parent.min;
   double& max = parent.max;
+
+  bool& m_hasExec{parent.m_hasExec};
 
   double unmap(double v) const noexcept { return (v - min) / (max - min); }
   double map(double v) const noexcept { return (v * (max - min)) + min; }
@@ -65,6 +69,7 @@ struct SliderWrapper
   bool m_grab{};
   // TODO refactor with QGraphicsSliderBase
   double getHandleX() const noexcept { return sliderRect().width() * m_value; }
+  double getExecHandleX() const noexcept { return sliderRect().width() * m_execValue; }
   QRectF sliderRect() const noexcept
   {
     return QRectF{rect.x(), rect.y(), rect.width(), 8};
@@ -78,6 +83,11 @@ struct SliderWrapper
     r.setWidth(std::max(0., getHandleX()));
     return r;
   }
+  QRectF execHandleRect() const noexcept
+  {
+    return {0,  6, getExecHandleX(), 2};
+  }
+
   QRectF boundingRect() const noexcept { return rect; }
 
   void update() const noexcept { parent.update(); }
@@ -101,7 +111,8 @@ struct PaintVisitor
   {
     for (std::size_t i = 0; i < N; i++)
     {
-      SliderWrapper<float> slider{self, {v[i]}};
+      // FIXME: exec Value isn't handled properly here.
+      SliderWrapper<float> slider{self, {v[i]}, {v[i]}};
       slider.rect.moveTop(i * (defaultSliderSize.height() + 4));
       DefaultGraphicsSliderImpl::paint(
           slider,
@@ -161,7 +172,8 @@ struct EventVisitor
   {
     for (int64_t i = 0; i < int64_t(N); i++)
     {
-      SliderWrapper<float> slider{self, {v[i]}};
+      // FIXME: exec Value isn't handled properly here.
+      SliderWrapper<float> slider{self, {v[i]}, {v[i]}};
       slider.m_grab = (self.m_grab == i);
       bool had_grab{slider.m_grab};
       slider.rect.moveTop(i * (defaultSliderSize.height() + 4));

@@ -20,8 +20,10 @@ struct QGraphicsSliderBase : public QGraphicsItem
 
   bool isInHandle(QPointF p);
   double getHandleX() const;
+  double getExecHandleX() const;
   QRectF sliderRect() const;
   QRectF handleRect() const;
+  QRectF execHandleRect() const;
 
   void setRect(const QRectF& r);
   QRectF boundingRect() const override;

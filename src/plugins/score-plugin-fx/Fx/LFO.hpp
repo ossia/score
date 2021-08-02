@@ -224,12 +224,12 @@ struct Node
 
   static void item(
       Process::LogFloatSlider& freq,
-      Process::FloatSlider& ampl,
-      Process::FloatSlider& ampl_fine,
-      Process::FloatSlider& offset,
-      Process::FloatSlider& offset_fine,
-      Process::FloatSlider& jitter,
-      Process::FloatSlider& phase,
+      Process::FloatKnob& ampl,
+      Process::FloatKnob& ampl_fine,
+      Process::FloatKnob& offset,
+      Process::FloatKnob& offset_fine,
+      Process::FloatKnob& jitter,
+      Process::FloatKnob& phase,
       Process::Enum& type,
       Process::ComboBox& quantif,
       const Process::ProcessModel& process,

@@ -20,12 +20,14 @@ class SCORE_LIB_BASE_EXPORT QGraphicsSlider final
   friend struct QGraphicsSliderBase<QGraphicsSlider>;
 
   double m_value{};
+  double m_execValue{};
 
 public:
   double min{}, max{};
 
 private:
   bool m_grab{};
+  bool m_hasExec{};
 
 public:
   QGraphicsSlider(QGraphicsItem* parent);
@@ -36,6 +38,8 @@ public:
   void setRange(double min, double max);
   void setValue(double v);
   double value() const;
+  void setExecutionValue(double v);
+  void resetExecution();
 
   bool moving = false;
 

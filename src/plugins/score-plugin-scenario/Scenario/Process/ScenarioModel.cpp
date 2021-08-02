@@ -93,6 +93,12 @@ void ProcessModel::init()
     for (auto& interval : intervals)
     {
       interval.reset();
+      interval.executionEvent(Scenario::IntervalExecutionEvent::Finished);
+    }
+
+    for (auto& ts : timeSyncs)
+    {
+      ts.setWaiting(false);
     }
 
     for (auto& event : events)

@@ -44,11 +44,13 @@ class GraphicsSlider final
   friend struct QGraphicsSliderBase<GraphicsSlider>;
 
   double m_value{};
+  double m_execValue{};
   AEffect* fx{};
   int num{};
 
 private:
   bool m_grab{};
+  bool m_hasExec{};
 
 public:
   static const constexpr double min = 0.;
@@ -61,6 +63,8 @@ public:
 
   void setValue(double v);
   double value() const;
+  void setExecutionValue(double v);
+  void resetExecution();
 
   bool moving = false;
 

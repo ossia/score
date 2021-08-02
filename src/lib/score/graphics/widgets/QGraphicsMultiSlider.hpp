@@ -30,6 +30,8 @@ public:
   double min{0.}, max{1.};
   int m_grab{-1};
   ossia::value m_value{};
+  ossia::value m_execValue{};
+  bool m_hasExec{};
   bool moving = false;
   RightClickImpl* impl{};
 
@@ -38,6 +40,8 @@ public:
   void setPoint(const QPointF& r);
   void setValue(ossia::value v);
   ossia::value value() const;
+  void setExecutionValue(double v);
+  void resetExecution();
 
   void setRange(const ossia::value& min, const ossia::value& max);
   void setRange(const ossia::domain& dom);

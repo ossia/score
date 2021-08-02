@@ -61,6 +61,8 @@ struct DefaultGraphicsSliderImpl
 
     // Draw handle
     painter->fillRect(self.handleRect(), skin.Base4);
+    if(self.m_hasExec)
+      painter->fillRect(self.execHandleRect(), skin.Base4.lighter180.brush);
     // painter->setPen(QPen(Qt::green, 1));
     // painter->setBrush(QBrush(Qt::transparent));
     // painter->drawRect(textrect);

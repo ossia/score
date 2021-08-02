@@ -357,7 +357,7 @@ public:
         = ossia::safe_nodes::info_functions<Info>::control_start;
 
     static_cast<Process::ControlInlet*>(m_inlets[start + i])
-        ->setValue(std::move(v));
+        ->setExecutionValue(std::move(v));
   }
 
   ossia::value controlOut(std::size_t i) const
@@ -378,7 +378,7 @@ public:
         = ossia::safe_nodes::info_functions<Info>::control_out_start;
 
     static_cast<Process::ControlOutlet*>(m_outlets[start + i])
-        ->setValue(std::move(v));
+        ->setExecutionValue(std::move(v));
   }
 
   ControlProcess(

@@ -555,7 +555,7 @@ void FaustEffectComponent::setupExecutionControls(
                i++)
           {
             auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
-            inlet->setValue(*node->controls[i - firstControlIndex].second);
+            inlet->setExecutionValue(*node->controls[i - firstControlIndex].second);
           }
         }
       });
@@ -603,7 +603,7 @@ void FaustEffectComponent::setupExecutionControlOutlets(
           {
             auto outlet
                 = static_cast<Process::ControlOutlet*>(proc.outlets()[i]);
-            outlet->setValue(*node->displays[i - firstControlIndex].second);
+            outlet->setExecutionValue(*node->displays[i - firstControlIndex].second);
           }
         }
       });

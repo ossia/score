@@ -144,6 +144,12 @@ struct FloatControl
             sl->setValue(norm.to01(ossia::convert<double>(val)));
           }
         });
+    QObject::connect(
+        &inlet, &Control_T::executionValueChanged, sl, [sl, norm](ossia::value val) {
+          sl->setExecutionValue(norm.to01(ossia::convert<double>(val)));
+        });
+    QObject::connect(
+        &inlet, &Control_T::executionReset, sl, &ControlUI::resetExecution);
 
     return sl;
   }
@@ -234,6 +240,12 @@ struct IntSlider
           if (!sl->moving)
             sl->setValue(ossia::convert<int>(val));
         });
+    QObject::connect(
+        &inlet, &Control_T::executionValueChanged, sl, [=](ossia::value val) {
+            sl->setExecutionValue(ossia::convert<int>(val));
+        });
+    QObject::connect(
+        &inlet, &Control_T::executionReset, sl, &score::QGraphicsIntSlider::resetExecution);
 
     return sl;
   }
@@ -304,6 +316,14 @@ struct IntSpinBox
             sl->setValue(ossia::convert<int>(val));
         });
 
+    QObject::connect(
+        &inlet, &Control_T::executionValueChanged, sl, [=](ossia::value val) {
+          if (!sl->moving)
+            sl->setExecutionValue(ossia::convert<int>(val));
+        });
+    QObject::connect(
+        &inlet, &Control_T::executionReset, sl, &score::QGraphicsIntSlider::resetExecution);
+
     return sl;
   }
 };
@@ -343,6 +363,7 @@ struct Toggle
       QObject* context)
   {
     auto cb = new score::QGraphicsCheckBox{nullptr};
+    cb->setState(ossia::convert<bool>(inlet.value()));
 
     QObject::connect(
         cb,
@@ -528,6 +549,7 @@ struct ChooserToggle
     const auto& alts = getAlternatives(control);
     SCORE_ASSERT(alts.size() == 2);
     auto toggle = new score::QGraphicsToggle{alts[0], alts[1], nullptr};
+    toggle->setState(ossia::convert<bool>(inlet.value()));
 
     QObject::connect(
         toggle,

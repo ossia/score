@@ -19,6 +19,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsLogKnob final
   friend struct DefaultGraphicsKnobImpl;
 
   double m_value{};
+  double m_execValue{};
   QRectF m_rect{defaultKnobSize};
 
 public:
@@ -26,6 +27,7 @@ public:
 
 private:
   bool m_grab{};
+  bool m_hasExec{};
 
 public:
   QGraphicsLogKnob(QGraphicsItem* parent);
@@ -37,6 +39,9 @@ public:
   void setRange(double min, double max);
   void setValue(double v);
   double value() const;
+  void setExecutionValue(double v);
+  void resetExecution();
+
   QRectF boundingRect() const override;
 
   bool moving = false;

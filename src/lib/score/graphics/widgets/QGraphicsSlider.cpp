@@ -32,6 +32,19 @@ void QGraphicsSlider::setValue(double v)
   update();
 }
 
+void QGraphicsSlider::setExecutionValue(double v)
+{
+  m_execValue = ossia::clamp(v, 0., 1.);
+  m_hasExec = true;
+  update();
+}
+
+void QGraphicsSlider::resetExecution()
+{
+  m_hasExec = false;
+  update();
+}
+
 double QGraphicsSlider::value() const
 {
   return m_value;
@@ -70,7 +83,7 @@ void QGraphicsSlider::paint(
   DefaultGraphicsSliderImpl::paint(
       *this,
       score::Skin::instance(),
-      QString::number(min + value() * (max - min), 'f', 3),
+      QString::number(min + m_value * (max - min), 'f', 3),
       painter,
       widget);
 }

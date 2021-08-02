@@ -42,6 +42,20 @@ void GraphicsSlider::setValue(double v)
   update();
 }
 
+
+void GraphicsSlider::setExecutionValue(double v)
+{
+  m_execValue = ossia::clamp(v, 0., 1.);
+  m_hasExec = true;
+  update();
+}
+
+void GraphicsSlider::resetExecution()
+{
+  m_hasExec = false;
+  update();
+}
+
 double GraphicsSlider::value() const
 {
   return m_value;
@@ -73,8 +87,10 @@ void GraphicsSlider::paint(
     QWidget* widget)
 {
   char str[256]{};
-  m_value = fx->getParameter(fx, num);
-  fx->dispatcher(fx, effGetParamDisplay, num, 0, str, m_value);
+  m_execValue = fx->getParameter(fx, num);
+  fx->dispatcher(fx, effGetParamDisplay, num, 0, str, m_execValue);
+
+  m_hasExec = (m_execValue - m_value) > 0.0001;
   score::DefaultGraphicsSliderImpl::paint(
       *this, score::Skin::instance(), QString::fromUtf8(str), painter, widget);
 }
@@ -258,6 +274,12 @@ QGraphicsItem* VSTFloatSlider::make_item(
     if (!sl->moving)
       sl->setValue(val);
   });
+
+  QObject::connect(
+      &inlet, &ControlInlet::executionValueChanged,
+      sl, &GraphicsSlider::setExecutionValue);
+  QObject::connect(
+      &inlet, &ControlInlet::executionReset, sl, &GraphicsSlider::resetExecution);
 
   return sl;
 }

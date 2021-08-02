@@ -60,8 +60,11 @@ public:
     }
   }
 
+  inline void setExecutionValue(float value) { executionValueChanged(value); }
+
 public:
   void valueChanged(float arg_1) W_SIGNAL(valueChanged, arg_1);
+  void executionValueChanged(float arg_1) W_SIGNAL(executionValueChanged, arg_1);
 
 private:
   float m_value{};

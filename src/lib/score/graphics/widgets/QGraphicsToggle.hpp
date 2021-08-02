@@ -24,8 +24,8 @@ class SCORE_LIB_BASE_EXPORT QGraphicsToggle final
 
 public:
   QGraphicsToggle(
-      const QString& textToggled,
       const QString& textUntoggled,
+      const QString& textToggled,
       QGraphicsItem* parent);
 
   void toggle();

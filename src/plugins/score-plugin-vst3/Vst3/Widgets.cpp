@@ -46,6 +46,19 @@ void VSTGraphicsSlider::setValue(double v)
   update();
 }
 
+void VSTGraphicsSlider::setExecutionValue(double v)
+{
+  m_execValue = ossia::clamp(v, 0., 1.);
+  m_hasExec = true;
+  update();
+}
+
+void VSTGraphicsSlider::resetExecution()
+{
+  m_hasExec = false;
+  update();
+}
+
 double VSTGraphicsSlider::value() const
 {
   return m_value;
@@ -187,6 +200,7 @@ void VSTEffectItem::setupInlet(
         [&doc, &fx, id = inlet.id()] {
           QTimer::singleShot(0, [&doc, &fx, id] {
             CommandDispatcher<> disp{doc.commandStack};
+            SCORE_TODO_("FIXME: implement vst3 control removal");
             // disp.submit<RemoveVSTControl>(fx, id);
           });
         });
@@ -263,121 +277,12 @@ QGraphicsItem* VSTFloatSlider::make_item(
           sl->setValue(val);
       });
 
+  QObject::connect(
+      &inlet, &vst3::ControlInlet::executionValueChanged,
+      sl, &VSTGraphicsSlider::setExecutionValue);
+
+  QObject::connect(
+      &inlet, &vst3::ControlInlet::executionReset, sl, &VSTGraphicsSlider::resetExecution);
   return sl;
 }
 }
-/*
-W_OBJECT_IMPL(vst3::VSTWindow)
-
-
-#if defined(HAS_VST2)
-#include "VSTWidgets.hpp"
-
-#include <Automation/AutomationModel.hpp>
-#include <Automation/Commands/SetAutomationMax.hpp>
-#include <Dataflow/Commands/CreateModulation.hpp>
-#include <Dataflow/Commands/EditConnection.hpp>
-#include <Effect/EffectLayout.hpp>
-#include <Engine/Node/CommonWidgets.hpp>
-#include <Media/Commands/VSTCommands.hpp>
-#include <Media/Effect/Settings/Model.hpp>
-#include <Media/Effect/VST/VSTControl.hpp>
-#include <Process/Style/Pixmaps.hpp>
-
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
-#include <score/graphics/DefaultGraphicsSliderImpl.hpp>
-#include <score/graphics/GraphicsSliderBaseImpl.hpp>
-#include <score/widgets/Pixmap.hpp>
-
-#include <QGraphicsScene>
-
-#include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
-#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <wobjectimpl.h>
-
-W_OBJECT_IMPL(vst3::VSTWindow)
-W_OBJECT_IMPL(vst3::VSTGraphicsSlider)
-ERect VSTWindow::getRect(Steinberg::Vst::IEditController& e)
-{
-  ERect* vstRect{};
-
-  e.dispatcher(&e, effEditGetRect, 0, 0, &vstRect, 0.f);
-
-  int16_t w{};
-  int16_t h{};
-  if (vstRect)
-  {
-    w = vstRect->right - vstRect->left;
-    h = vstRect->bottom - vstRect->top;
-  }
-
-  if (w <= 1)
-    w = 640;
-  if (h <= 1)
-    h = 480;
-
-  if (vstRect)
-    return ERect{vstRect->top, vstRect->left, vstRect->bottom, vstRect->right};
-  else
-    return ERect{0, 0, w, h};
-}
-
-bool VSTWindow::hasUI(Steinberg::Vst::IEditController& e)
-{
-  return e.flags & VstSteinberg::Vst::IEditControllerFlags::effFlagsHasEditor;
-}
-
-VSTWindow::VSTWindow(const Model& e, const score::DocumentContext& ctx, QWidget* parent)
-    : VSTWindow{e, ctx}
-{
-  setAttribute(Qt::WA_DeleteOnClose, true);
-  if (!m_defaultWidg)
-  {
-    connect(
-        &ctx.coarseUpdateTimer,
-        &QTimer::timeout,
-        this,
-        [=] {
-          if (auto eff = effect.lock())
-            eff->fx->dispatcher(eff->fx, effEditIdle, 0, 0, nullptr, 0);
-        },
-        Qt::UniqueConnection);
-  }
-
-  bool ontop = ctx.app.settings<Media::Settings::Model>().getVstAlwaysOnTop();
-  if (ontop)
-  {
-    setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint);
-  }
-  e.externalUIVisible(true);
-}
-
-VSTWindow::~VSTWindow() { }
-
-void VSTWindow::closeEvent(QCloseEvent* event)
-{
-  QPointer<VSTWindow> p(this);
-  if (auto eff = effect.lock())
-    eff->fx->dispatcher(eff->fx, effEditClose, 0, 0, nullptr, 0);
-  const_cast<QWidget*&>(m_model.externalUI) = nullptr;
-  m_model.externalUIVisible(false);
-  if (p)
-    QDialog::closeEvent(event);
-}
-
-void VSTWindow::resizeEvent(QResizeEvent* event)
-{
-  // setup_rect(this, event->size().width(), event->size().height());
-  QDialog::resizeEvent(event);
-}
-
-void VSTWindow::resize(int w, int h)
-{
-  setup_rect(this, w, h);
-}
-
-}
-#endif
-*/

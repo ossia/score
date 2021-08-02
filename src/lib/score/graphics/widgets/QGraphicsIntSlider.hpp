@@ -19,13 +19,16 @@ class SCORE_LIB_BASE_EXPORT QGraphicsIntSlider final
   Q_INTERFACES(QGraphicsItem)
   friend struct DefaultGraphicsSliderImpl;
   friend struct QGraphicsSliderBase<QGraphicsIntSlider>;
-  int m_value{}, m_min{}, m_max{};
+  int m_value{}, m_execValue{}, m_min{}, m_max{};
   bool m_grab{};
+  bool m_hasExec{};
 
 public:
   QGraphicsIntSlider(QGraphicsItem* parent);
 
   void setValue(int v);
+  void setExecutionValue(int v);
+  void resetExecution();
   void setRange(int min, int max);
   int value() const;
 
@@ -44,5 +47,6 @@ private:
       const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
   double getHandleX() const;
+  double getExecHandleX() const;
 };
 }

@@ -29,6 +29,19 @@ void QGraphicsIntSlider::setValue(int v)
   update();
 }
 
+void QGraphicsIntSlider::setExecutionValue(int v)
+{
+  m_execValue = ossia::clamp(v, m_min, m_max);
+  m_hasExec = true;
+  update();
+}
+
+void QGraphicsIntSlider::resetExecution()
+{
+  m_hasExec = false;
+  update();
+}
+
 void QGraphicsIntSlider::setRange(int min, int max)
 {
   m_min = min;
@@ -113,7 +126,16 @@ void QGraphicsIntSlider::paint(
 
 double QGraphicsIntSlider::getHandleX() const
 {
-  return sliderRect().width() * ((double(m_value) - m_min) / (m_max - m_min));
+  if(m_max != m_min)
+    return sliderRect().width() * ((double(m_value) - m_min) / (m_max - m_min));
+  return 0;
+}
+
+double QGraphicsIntSlider::getExecHandleX() const
+{
+  if(m_max != m_min)
+    return sliderRect().width() * ((double(m_execValue) - m_min) / (m_max - m_min));
+  return 0;
 }
 
 }

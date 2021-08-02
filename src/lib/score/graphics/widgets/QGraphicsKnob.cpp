@@ -39,6 +39,19 @@ void QGraphicsKnob::setValue(double v)
   update();
 }
 
+void QGraphicsKnob::setExecutionValue(double v)
+{
+  m_execValue = ossia::clamp(v, 0., 1.);
+  m_hasExec = true;
+  update();
+}
+
+void QGraphicsKnob::resetExecution()
+{
+  m_hasExec = false;
+  update();
+}
+
 double QGraphicsKnob::value() const
 {
   return m_value;

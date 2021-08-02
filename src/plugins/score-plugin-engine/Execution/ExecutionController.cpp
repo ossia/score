@@ -630,24 +630,6 @@ void ExecutionController::reset_edition()
   scenar->baseInterval().reset();
   scenar->baseInterval().executionEvent(
       Scenario::IntervalExecutionEvent::Finished);
-  auto procs
-      = scenar->context().document.findChildren<Scenario::ProcessModel*>();
-  for (Scenario::ProcessModel* e : procs)
-  {
-    for (auto& itv : e->intervals)
-    {
-      itv.reset();
-      itv.executionEvent(Scenario::IntervalExecutionEvent::Finished);
-    }
-    for (auto& ts : e->timeSyncs)
-    {
-      ts.setWaiting(false);
-    }
-    for (auto& ev : e->events)
-    {
-      ev.setStatus(Scenario::ExecutionStatus::Editing, *e);
-    }
-  }
 }
 
 void ExecutionController::on_reinitialize()

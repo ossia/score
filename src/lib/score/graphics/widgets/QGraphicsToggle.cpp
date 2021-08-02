@@ -13,8 +13,8 @@ namespace score
 {
 
 QGraphicsToggle::QGraphicsToggle(
-    const QString& textToggled,
     const QString& textUntoggled,
+    const QString& textToggled,
     QGraphicsItem* parent)
     : m_textToggled(textToggled)
     , m_textUntoggled(textUntoggled)

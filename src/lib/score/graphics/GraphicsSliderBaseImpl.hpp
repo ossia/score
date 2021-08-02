@@ -43,6 +43,12 @@ double QGraphicsSliderBase<T>::getHandleX() const
 }
 
 template <typename T>
+double QGraphicsSliderBase<T>::getExecHandleX() const
+{
+  return sliderRect().width() * static_cast<const T&>(*this).m_execValue;
+}
+
+template <typename T>
 QRectF QGraphicsSliderBase<T>::sliderRect() const
 {
   return QRectF{0, 0, m_rect.width(), 8};
@@ -54,12 +60,11 @@ QRectF QGraphicsSliderBase<T>::handleRect() const
   auto r = sliderRect();
   r.setWidth(std::max(0., static_cast<const T&>(*this).getHandleX()));
   return r;
-  /*
-  return {2, 2, std::max(0., getHandleX() - 2.), 6};
-  return {2, 12, std::max(0., getHandleX() - 2.), m_rect.height() - 14};
-  return sliderRect().adjusted(1, 10, -1, -1);//{2., 12., getHandleX(),
-  m_rect.height() - 13.};
-  */
+}
+template <typename T>
+QRectF QGraphicsSliderBase<T>::execHandleRect() const
+{
+  return {0,  6, static_cast<const T&>(*this).getExecHandleX(), 2};
 }
 
 template <typename T>

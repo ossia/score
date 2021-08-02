@@ -36,6 +36,19 @@ void QGraphicsLogSlider::setValue(double v)
   update();
 }
 
+void QGraphicsLogSlider::setExecutionValue(double v)
+{
+  m_execValue = ossia::clamp(v, 0., 1.);
+  m_hasExec = true;
+  update();
+}
+
+void QGraphicsLogSlider::resetExecution()
+{
+  m_hasExec = false;
+  update();
+}
+
 double QGraphicsLogSlider::value() const
 {
   return m_value;

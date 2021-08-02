@@ -81,8 +81,15 @@ struct DefaultGraphicsKnobImpl
 
     painter->drawLine(QPointF{x0, y0}, QPointF{x1, y1});
 
-    // Draw text
     painter->setPen(skin.Base4.lighter180.pen1);
+    if(self.m_hasExec)
+    {
+      const QRectF er = r.adjusted(1.5, 1.5, -1.5, -1.5);
+      const double valueSpan = -self.m_execValue * totalSpan;
+      painter->drawArc(er, start, valueSpan);
+    }
+
+    // Draw text
     painter->setFont(skin.Medium8Pt);
     painter->drawText(
         QRectF{0., srect.height() + textDelta, srect.width(), 10.},

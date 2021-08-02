@@ -15,8 +15,7 @@ struct OutControl final : ossia::safe_nodes::control_out
   static const constexpr bool must_validate = false;
   using type = ossia::value;
 
-  template <std::size_t N>
-  constexpr OutControl(const char (&name)[N])
+  constexpr OutControl(const char* name)
       : ossia::safe_nodes::control_out{name}
   {
   }
@@ -38,7 +37,7 @@ struct OutControl final : ossia::safe_nodes::control_out
   const ossia::value& toValue(const ossia::value& v) const { return v; }
 };
 
-template <typename T>
+template <typename Model_T, typename T>
 struct FloatControl final
     : ossia::safe_nodes::control_in
     , WidgetFactory::FloatControl<T, WidgetFactory::LinearNormalizer, true>
@@ -49,8 +48,7 @@ struct FloatControl final
   const float max{};
   const float init{};
 
-  template <std::size_t N>
-  constexpr FloatControl(const char (&name)[N], float v1, float v2, float v3)
+  constexpr FloatControl(const char* name, float v1, float v2, float v3)
       : ossia::safe_nodes::control_in{name}
       , min{v1}
       , max{v2}
@@ -63,7 +61,7 @@ struct FloatControl final
 
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
-    return new Process::FloatSlider{
+    return new Model_T{
         min,
         max,
         init,
@@ -73,11 +71,11 @@ struct FloatControl final
   }
   auto create_inlet(DataStream::Deserializer& id, QObject* parent) const
   {
-    return deserialize_known_interface<Process::FloatSlider>(id, parent);
+    return deserialize_known_interface<Model_T>(id, parent);
   }
   auto create_inlet(JSONObject::Deserializer&& id, QObject* parent) const
   {
-    return deserialize_known_interface<Process::FloatSlider>(id, parent);
+    return deserialize_known_interface<Model_T>(id, parent);
   }
 
   void setup_exec(ossia::value_inlet& v) const
@@ -92,7 +90,7 @@ struct FloatControl final
   ossia::value toValue(float v) const { return v; }
 };
 
-template <typename T>
+template <typename Model_T, typename T>
 struct LogFloatControl final
     : ossia::safe_nodes::control_in
     , WidgetFactory::FloatControl<T, WidgetFactory::LogNormalizer, true>
@@ -103,9 +101,8 @@ struct LogFloatControl final
   const float max{};
   const float init{};
 
-  template <std::size_t N>
   constexpr LogFloatControl(
-      const char (&name)[N],
+      const char* name,
       float v1,
       float v2,
       float v3)
@@ -121,7 +118,7 @@ struct LogFloatControl final
 
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
-    return new Process::LogFloatSlider{
+    return new Model_T{
         min,
         max,
         init,
@@ -131,11 +128,11 @@ struct LogFloatControl final
   }
   auto create_inlet(DataStream::Deserializer& id, QObject* parent) const
   {
-    return deserialize_known_interface<Process::LogFloatSlider>(id, parent);
+    return deserialize_known_interface<Model_T>(id, parent);
   }
   auto create_inlet(JSONObject::Deserializer&& id, QObject* parent) const
   {
-    return deserialize_known_interface<Process::LogFloatSlider>(id, parent);
+    return deserialize_known_interface<Model_T>(id, parent);
   }
 
   void setup_exec(ossia::value_inlet& v) const
@@ -161,8 +158,7 @@ struct FloatDisplay final
   const float max{};
   const float init{};
 
-  template <std::size_t N>
-  constexpr FloatDisplay(const char (&name)[N], float v1, float v2, float v3)
+  constexpr FloatDisplay(const char *name, float v1, float v2, float v3)
       : ossia::safe_nodes::control_out{name}
       , min{v1}
       , max{v2}
@@ -204,10 +200,11 @@ struct FloatDisplay final
   ossia::value toValue(float v) const { return v; }
 };
 
-using FloatSlider = FloatControl<score::QGraphicsSlider>;
-using FloatKnob = FloatControl<score::QGraphicsKnob>;
-using LogFloatSlider = LogFloatControl<score::QGraphicsLogSlider>;
-using LogFloatKnob = LogFloatControl<score::QGraphicsLogKnob>;
+using FloatSlider = FloatControl<Process::FloatSlider, score::QGraphicsSlider>;
+using FloatKnob = FloatControl<Process::FloatKnob, score::QGraphicsKnob>;
+using LogFloatSlider = LogFloatControl<Process::LogFloatSlider, score::QGraphicsLogSlider>;
+using LogFloatKnob = LogFloatControl<Process::LogFloatSlider, score::QGraphicsLogKnob>;
+// FIXME the process implementation is missing.
 
 using Bargraph = FloatDisplay<score::QGraphicsSlider>;
 
@@ -221,8 +218,7 @@ struct IntSlider final
   const int init{};
 
   static const constexpr bool must_validate = false;
-  template <std::size_t N>
-  constexpr IntSlider(const char (&name)[N], int v1, int v2, int v3)
+  constexpr IntSlider(const char* name, int v1, int v2, int v3)
       : ossia::safe_nodes::control_in{name}
       , min{v1}
       , max{v2}
@@ -274,8 +270,7 @@ struct IntSpinBox final
   int fromValue(const ossia::value& v) const { return ossia::convert<int>(v); }
   ossia::value toValue(int v) const { return v; }
 
-  template <std::size_t N>
-  constexpr IntSpinBox(const char (&name)[N], int v1, int v2, int v3)
+  constexpr IntSpinBox(const char* name, int v1, int v2, int v3)
       : ossia::safe_nodes::control_in{name}
       , min{v1}
       , max{v2}
@@ -315,8 +310,8 @@ struct Button final
     , WidgetFactory::Button
 {
   static const constexpr bool must_validate = false;
-  template <std::size_t N>
-  constexpr Button(const char (&name)[N])
+
+  constexpr Button(const char *name)
       : ossia::safe_nodes::control_in{name}
   {
   }
@@ -353,8 +348,7 @@ struct ImpulseButton final
     , WidgetFactory::ImpulseButton
 {
   static const constexpr bool must_validate = false;
-  template <std::size_t N>
-  constexpr ImpulseButton(const char (&name)[N])
+  constexpr ImpulseButton(const char* name)
       : ossia::safe_nodes::control_in{name}
   {
   }
@@ -391,8 +385,7 @@ struct Toggle final
     , WidgetFactory::Toggle
 {
   static const constexpr bool must_validate = false;
-  template <std::size_t N>
-  constexpr Toggle(const char (&name)[N], bool v1)
+  constexpr Toggle(const char* name, bool v1)
       : ossia::safe_nodes::control_in{name}
       , init{v1}
   {
@@ -431,9 +424,9 @@ struct ChooserToggle final
     , WidgetFactory::ChooserToggle
 {
   static const constexpr bool must_validate = false;
-  template <std::size_t N>
+
   constexpr ChooserToggle(
-      const char (&name)[N],
+      const char* name,
       std::array<const char*, 2> alt,
       bool v1)
       : ossia::safe_nodes::control_in{name}
@@ -478,10 +471,9 @@ struct LineEdit final
     , WidgetFactory::LineEdit
 {
   static const constexpr bool must_validate = false;
-  template <std::size_t N, std::size_t M>
-  constexpr LineEdit(const char (&name)[N], const char (&init)[M])
+  constexpr LineEdit(const char* name, const char* init)
       : ossia::safe_nodes::control_in{name}
-      , init{init, M - 1}
+      , init{init}
   {
   }
 
@@ -495,11 +487,11 @@ struct LineEdit final
   }
 
   using type = std::string;
-  const QLatin1String init{};
+  const std::string_view init{};
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
     return new Process::LineEdit{
-        init, QString::fromUtf8(name.data(), name.size()), id, parent};
+        init.data(), QString::fromUtf8(name.data(), name.size()), id, parent};
   }
   auto create_inlet(DataStream::Deserializer& id, QObject* parent) const
   {
@@ -523,8 +515,8 @@ struct ComboBox final
   const std::array<std::pair<const char*, T>, N> values;
 
   static constexpr auto count() { return N; }
-  template <std::size_t M, typename Arr>
-  constexpr ComboBox(const char (&name)[M], std::size_t in, Arr arr)
+
+  constexpr ComboBox(const char* name, std::size_t in, std::array<std::pair<const char*, T>, N> arr)
       : ossia::safe_nodes::control_in{name}
       , init{in}
       , values{arr}
@@ -561,21 +553,20 @@ struct ComboBox final
   void setup_exec(ossia::value_inlet& v) const { }
 };
 
-template <typename ArrT>
+template <std::size_t N>
 struct EnumBase
     : ossia::safe_nodes::control_in
     , WidgetFactory::Enum
 {
   using type = std::string;
   const std::size_t init{};
-  const ArrT values;
-  using Pixmaps_T = std::array<const char*, 2 * ArrT{}.size()>;
+  const std::array<const char*, N> values;
+  using Pixmaps_T = std::array<const char*, 2 * N>;
   Pixmaps_T pixmaps;
 
   const auto& getValues() const { return values; }
 
-  template <std::size_t N1>
-  constexpr EnumBase(const char (&name)[N1], std::size_t i, const ArrT& v)
+  constexpr EnumBase(const char* name, std::size_t i, const std::array<const char*, N>& v)
       : ossia::safe_nodes::control_in{name}
       , init{i}
       , values{v}
@@ -583,11 +574,10 @@ struct EnumBase
   {
   }
 
-  template <std::size_t N1>
   constexpr EnumBase(
-      const char (&name)[N1],
+      const char* name,
       std::size_t i,
-      const ArrT& v,
+      const std::array<const char*, N>& v,
       const Pixmaps_T& pixmaps)
       : ossia::safe_nodes::control_in{name}
       , init{i}
@@ -625,10 +615,23 @@ struct EnumBase
   void setup_exec(ossia::value_inlet& v) const { }
 };
 
-template <typename ArrT>
-struct Enum final : EnumBase<ArrT>
+template <std::size_t N>
+struct Enum final : EnumBase<N>
 {
-  using EnumBase<ArrT>::EnumBase;
+  constexpr Enum(const char* name, std::size_t i, const std::array<const char*, N>& v)
+      : EnumBase<N>{name, i, v}
+  {
+  }
+
+  constexpr Enum(
+      const char* name,
+      std::size_t i,
+      const std::array<const char*, N>& v,
+      const typename EnumBase<N>::Pixmaps_T& pixmaps)
+      : EnumBase<N>{name, i, v, pixmaps}
+  {
+  }
+
   static const constexpr bool must_validate = true;
   auto fromValue(const ossia::value& v) const
   {
@@ -644,10 +647,23 @@ struct Enum final : EnumBase<ArrT>
   }
 };
 
-template <typename ArrT>
-struct UnvalidatedEnum final : EnumBase<ArrT>
+template <std::size_t N>
+struct UnvalidatedEnum final : EnumBase<N>
 {
-  using EnumBase<ArrT>::EnumBase;
+  constexpr UnvalidatedEnum(const char* name, std::size_t i, const std::array<const char*, N>& v)
+      : EnumBase<N>{name, i, v}
+  {
+  }
+
+  constexpr UnvalidatedEnum(
+      const char* name,
+      std::size_t i,
+      const std::array<const char*, N>& v,
+      const typename EnumBase<N>::Pixmaps_T& pixmaps)
+      : EnumBase<N>{name, i, v, pixmaps}
+  {
+  }
+
   static const constexpr bool must_validate = false;
   auto fromValue(const ossia::value& v) const
   {
@@ -661,24 +677,105 @@ struct UnvalidatedEnum final : EnumBase<ArrT>
 template <typename T1, typename T2>
 constexpr auto make_enum(const T1& t1, std::size_t s, const T2& t2)
 {
-  return Control::Enum<T2>(t1, s, t2);
+  return Control::Enum<T2{}.size()>(t1, s, t2);
 }
 template <typename T1, typename T2, typename Pixmaps_T>
 constexpr auto
 make_enum(const T1& t1, std::size_t s, const T2& t2, const Pixmaps_T& pixmaps)
 {
-  return Control::Enum<T2>(t1, s, t2, pixmaps);
+  return Control::Enum<T2{}.size()>(t1, s, t2, pixmaps);
 }
 template <typename T1, typename T2>
 constexpr auto make_unvalidated_enum(const T1& t1, std::size_t s, const T2& t2)
 {
-  return Control::UnvalidatedEnum<T2>(t1, s, t2);
+  return Control::UnvalidatedEnum<T2{}.size()>(t1, s, t2);
 }
-/*
-template<std::size_t N1, std::size_t N2>
-Enum(const char (&name)[N1], std::size_t i, const std::array<const char*, N2>&
-v) -> Enum<std::array<const char*, N2>>;
-*/
+
+struct XYSlider final
+    : ossia::safe_nodes::control_in
+    , WidgetFactory::XYSlider
+{
+  static const constexpr bool must_validate = false;
+  constexpr XYSlider(const char* name, ossia::vec2f min, ossia::vec2f max, ossia::vec2f init = {})
+      : ossia::safe_nodes::control_in{name}
+      , min{min}
+      , max{max}
+      , init{init}
+  {
+  }
+  constexpr XYSlider(const char* name, float min, float max, float init = {})
+      : ossia::safe_nodes::control_in{name}
+      , min{min, min}
+      , max{max, max}
+      , init{init, init}
+  {
+  }
+
+  using type = ossia::vec2f;
+  const ossia::vec2f min, max, init{};
+  auto create_inlet(Id<Process::Port> id, QObject* parent) const
+  {
+    return new Process::XYSlider{
+        min, max, init, QString::fromUtf8(name.data(), name.size()), id, parent};
+  }
+  auto create_inlet(DataStream::Deserializer& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::XYSlider>(id, parent);
+  }
+  auto create_inlet(JSONObject::Deserializer&& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::XYSlider>(id, parent);
+  }
+
+  ossia::vec2f fromValue(const ossia::value& v) const
+  {
+    return ossia::convert<ossia::vec2f>(v);
+  }
+  ossia::value toValue(ossia::vec2f v) const { return v; }
+
+  void setup_exec(ossia::value_inlet& v) const
+  {
+    v->domain = ossia::vecf_domain<2>(min, max);
+  }
+};
+struct HSVSlider final
+    : ossia::safe_nodes::control_in
+    , WidgetFactory::HSVSlider
+{
+  static const constexpr bool must_validate = false;
+  constexpr HSVSlider(const char* name, ossia::vec4f init = {})
+      : ossia::safe_nodes::control_in{name}
+      , init{init}
+  {
+  }
+
+  using type = ossia::vec4f;
+  const ossia::vec4f  init{};
+  auto create_inlet(Id<Process::Port> id, QObject* parent) const
+  {
+    return new Process::HSVSlider{
+        init, QString::fromUtf8(name.data(), name.size()), id, parent};
+  }
+  auto create_inlet(DataStream::Deserializer& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::HSVSlider>(id, parent);
+  }
+  auto create_inlet(JSONObject::Deserializer&& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::HSVSlider>(id, parent);
+  }
+
+  ossia::vec4f fromValue(const ossia::value& v) const
+  {
+    return ossia::convert<ossia::vec4f>(v);
+  }
+  ossia::value toValue(ossia::vec4f v) const { return v; }
+
+  void setup_exec(ossia::value_inlet& v) const
+  {
+    v->type = ossia::rgba_u{};
+  }
+};
 
 // TODO RGBAEdit
 struct RGBAEdit final
