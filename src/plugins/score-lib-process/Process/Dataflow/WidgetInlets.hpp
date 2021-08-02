@@ -21,6 +21,7 @@ struct Button;
 struct ImpulseButton;
 struct HSVSlider;
 struct XYSlider;
+struct XYZSlider;
 struct MultiSlider;
 
 struct Bargraph;
@@ -105,6 +106,11 @@ UUID_METADATA(
     Process::Port,
     Process::XYSlider,
     "8093743c-584f-4bb9-97d4-6c7602f87116")
+UUID_METADATA(
+    SCORE_LIB_PROCESS_EXPORT,
+    Process::Port,
+    Process::XYZSlider,
+    "bae00244-cd93-4893-a4ad-71489adb3fa1")
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT,
     Process::Port,
@@ -363,6 +369,29 @@ struct SCORE_LIB_PROCESS_EXPORT XYSlider : public Process::ControlInlet
 
   auto getMin() const noexcept { return domain().get().convert_min<ossia::vec2f>(); }
   auto getMax() const noexcept { return domain().get().convert_max<ossia::vec2f>(); }
+  using Process::ControlInlet::ControlInlet;
+};
+
+struct SCORE_LIB_PROCESS_EXPORT XYZSlider : public Process::ControlInlet
+{
+  MODEL_METADATA_IMPL(XYZSlider)
+      using control_type = WidgetFactory::XYZSlider;
+  XYZSlider(
+        ossia::vec3f init,
+        const QString& name,
+        Id<Process::Port> id,
+        QObject* parent);
+  XYZSlider(
+        ossia::vec3f min,
+        ossia::vec3f max,
+        ossia::vec3f init,
+        const QString& name,
+        Id<Process::Port> id,
+        QObject* parent);
+  ~XYZSlider();
+
+  auto getMin() const noexcept { return domain().get().convert_min<ossia::vec3f>(); }
+  auto getMax() const noexcept { return domain().get().convert_max<ossia::vec3f>(); }
   using Process::ControlInlet::ControlInlet;
 };
 

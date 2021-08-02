@@ -787,15 +787,4 @@ struct RGBAEdit final
   std::array<float, 4> init{};
   void setup_exec(ossia::value_inlet& v) const { }
 };
-
-// TODO XYZEdit
-struct XYZEdit final
-    : ossia::safe_nodes::control_in
-    , WidgetFactory::XYZEdit
-{
-  static const constexpr bool must_validate = false;
-  using type = std::array<float, 3>;
-  std::array<float, 3> init{};
-  void setup_exec(ossia::value_inlet& v) const { }
-};
 }
