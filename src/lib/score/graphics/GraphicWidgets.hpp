@@ -18,3 +18,4 @@
 #include <score/graphics/widgets/QGraphicsSliderBase.hpp>
 #include <score/graphics/widgets/QGraphicsToggle.hpp>
 #include <score/graphics/widgets/QGraphicsXYChooser.hpp>
+#include <score/graphics/widgets/QGraphicsXYZChooser.hpp>

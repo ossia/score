@@ -459,6 +459,7 @@ struct Button
     return toggle;
   }
 };
+
 struct ChooserToggle
 {
   template <typename T>
@@ -849,11 +850,6 @@ struct RGBAEdit
   // TODO
 };
 
-struct XYZEdit
-{
-  // TODO
-};
-
 struct HSVSlider
 {
   template <typename T, typename Control_T>
@@ -953,6 +949,56 @@ struct XYSlider
           if (!sl->moving)
             sl->setValue(ossia::convert<ossia::vec2f>(val));
         });
+
+    return sl;
+  }
+};
+
+struct XYZSlider
+{
+  template <typename T, typename Control_T>
+  static auto make_widget(
+      const T& slider,
+      Control_T& inlet,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      QObject* context)
+  {
+    SCORE_TODO;
+    return nullptr; // TODO
+  }
+
+  template <typename T, typename Control_T>
+  static QGraphicsItem* make_item(
+      const T& slider,
+      Control_T& inlet,
+      const score::DocumentContext& ctx,
+      QGraphicsItem* parent,
+      QObject* context)
+  {
+    auto sl = new score::QGraphicsXYZChooser{nullptr};
+    sl->setValue(ossia::convert<ossia::vec3f>(inlet.value()));
+
+    QObject::connect(
+          sl,
+          &score::QGraphicsXYZChooser::sliderMoved,
+          context,
+          [=, &inlet, &ctx] {
+      sl->moving = true;
+      ctx.dispatcher.submit<SetControlValue<Control_T>>(
+            inlet, sl->value());
+    });
+    QObject::connect(
+          sl, &score::QGraphicsXYZChooser::sliderReleased, context, [&ctx, sl]() {
+      ctx.dispatcher.commit();
+      sl->moving = false;
+    });
+
+    QObject::connect(
+          &inlet, &Control_T::valueChanged, sl, [=](ossia::value val) {
+      if (!sl->moving)
+        sl->setValue(ossia::convert<ossia::vec3f>(val));
+    });
 
     return sl;
   }

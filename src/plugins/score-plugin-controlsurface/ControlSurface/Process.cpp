@@ -62,9 +62,10 @@ Process::ControlInlet* makeControlFromType(
     case ossia::val_type::STRING:
       return new Process::LineEdit{id, parent};
     case ossia::val_type::VEC2F:
-    case ossia::val_type::VEC3F:
     case ossia::val_type::VEC4F:
       return new Process::MultiSlider{id, parent};
+  case ossia::val_type::VEC3F:
+    return new Process::XYZSlider{id, parent};
     default:
       return new Process::ControlInlet(id, parent);
   }

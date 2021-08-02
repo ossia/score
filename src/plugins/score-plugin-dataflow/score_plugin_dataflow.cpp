@@ -59,6 +59,7 @@ score_plugin_dataflow::factories(
          Dataflow::WidgetInletFactory<Process::Enum>,
          Dataflow::WidgetInletFactory<Process::HSVSlider>,
          Dataflow::WidgetInletFactory<Process::XYSlider>,
+         Dataflow::WidgetInletFactory<Process::XYZSlider>,
          Dataflow::WidgetInletFactory<Process::MultiSlider>,
          Dataflow::WidgetOutletFactory<Process::Bargraph>>>(ctx, key);
 }
