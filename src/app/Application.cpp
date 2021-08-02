@@ -259,9 +259,11 @@ void Application::init()
 #endif
 
   std::vector<spdlog::sink_ptr> v;
+  /*
   try {
     v.push_back(std::make_shared<spdlog::sinks::stderr_sink_mt>());
   } catch (...) { }
+  */
   try {
     v.push_back(std::make_shared<ossia::qt::log_sink>());
   } catch (...) { }
