@@ -96,7 +96,7 @@ public:
 
   void setLargeView();
 
-  void startTimeBar(Scenario::IntervalModel& itv);
+  void startTimeBar();
   void stopTimeBar();
 
   bool isNodal() const noexcept;

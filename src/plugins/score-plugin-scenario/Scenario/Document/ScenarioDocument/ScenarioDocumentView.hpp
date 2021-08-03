@@ -40,6 +40,8 @@ namespace Scenario
 {
 class Minimap;
 class ScenarioScene;
+class IntervalDurations;
+class IntervalView;
 class TimeRuler;
 class SCORE_PLUGIN_SCENARIO_EXPORT ProcessGraphicsView final
     : public QGraphicsView
@@ -57,7 +59,13 @@ public:
 
   QPointer<score::ArrowDialog> currentPopup{};
 
+  IntervalDurations* currentTimebar{};
+  IntervalView* currentView{};
+  bool timebarPlaying{};
+  bool timebarVisible{};
+
 public:
+  void drawForeground(QPainter *painter, const QRectF &rect) override;
   void sizeChanged(const QSize& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sizeChanged, arg_1)
   void scrolled(int arg_1)
@@ -126,8 +134,6 @@ public:
 
   Minimap& minimap() { return m_minimap; }
 
-  TimeBar& timeBar() { return m_bar; }
-
   QRectF viewportRect() const;
   QRectF visibleSceneRect() const;
 
@@ -155,7 +161,6 @@ private:
   MinimapGraphicsView m_minimapView;
   Minimap m_minimap;
 
-  Scenario::TimeBar m_bar;
   int m_timer{};
 };
 }

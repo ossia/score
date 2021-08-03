@@ -134,7 +134,7 @@ public:
       QObject* parent);
   ~DocumentPlugin();
 
-  void heartbeat();
+  void timerEvent(QTimerEvent *event) override;
 
   void registerInterval(Scenario::IntervalModel& m);
   void unregisterInterval(Scenario::IntervalModel& m);

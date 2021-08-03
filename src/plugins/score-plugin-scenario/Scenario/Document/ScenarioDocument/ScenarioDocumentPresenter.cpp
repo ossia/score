@@ -297,7 +297,7 @@ void ScenarioDocumentPresenter::switchMode(bool nodal)
   view().view().setContextMenuPolicy(Qt::DefaultContextMenu);
   if (nodal)
   {
-    view().timeBar().hide();
+    view().view().timebarVisible = false;
 
     m_nodal = new NodalIntervalView{
         NodalIntervalView::AllItems,
@@ -334,6 +334,8 @@ void ScenarioDocumentPresenter::switchMode(bool nodal)
   else
   {
     createDisplayedIntervalPresenter(displayedInterval());
+    if(view().view().timebarPlaying)
+      startTimeBar();
   }
 
   /*
@@ -461,22 +463,22 @@ void ScenarioDocumentPresenter::setLargeView()
   view().minimap().setLargeView();
 }
 
-void ScenarioDocumentPresenter::startTimeBar(IntervalModel& itv)
+void ScenarioDocumentPresenter::startTimeBar()
 {
-  auto& bar = view().timeBar();
-  bar.setVisible(
-      context().app.settings<Scenario::Settings::Model>().getTimeBar()
-      && !m_nodal);
-  view().timeBar().playing = true;
-  view().timeBar().setInterval(&itv);
+  bool visible = context().app.settings<Scenario::Settings::Model>().getTimeBar();
+  visible &= !m_nodal;
+
+  view().view().currentTimebar = &displayedInterval().duration;
+  view().view().currentView = this->presenters().intervalPresenter()->view();
+  view().view().timebarPlaying = true;
+  view().view().timebarVisible = visible;
 }
 
 void ScenarioDocumentPresenter::stopTimeBar()
 {
-  auto& bar = view().timeBar();
-  bar.setVisible(false);
-  bar.playing = false;
-  bar.setInterval(nullptr);
+  view().view().currentTimebar = nullptr;
+  view().view().timebarPlaying = false;
+  view().view().timebarVisible = false;
 }
 
 bool ScenarioDocumentPresenter::isNodal() const noexcept
@@ -707,16 +709,9 @@ void ScenarioDocumentPresenter::on_minimapChanged(double l, double r)
 
 void ScenarioDocumentPresenter::on_executionTimer()
 {
-  auto pctg = displayedInterval().duration.playPercentage();
-  if (auto p = presenters().intervalPresenter())
+  if (m_nodal)
   {
-    auto& itv = *p->view();
-    auto x = pctg * itv.defaultWidth() + itv.pos().x();
-    if (x != view().timeBar().x())
-      view().timeBar().setPos(x, 0);
-  }
-  else if (m_nodal)
-  {
+    auto pctg = displayedInterval().duration.playPercentage();
     m_nodal->on_playPercentageChanged(
         pctg, displayedInterval().duration.defaultDuration());
   }
@@ -735,10 +730,7 @@ const Process::Context& ScenarioDocumentPresenter::context() const
 void ScenarioDocumentPresenter::updateTimeBar()
 {
   auto& set = m_context.app.settings<Settings::Model>();
-  auto& tb = view().timeBar();
-  tb.setVisible(
-      tb.playing && set.getTimeBar() && !m_nodal
-      && (&displayedInterval() == tb.interval()));
+  view().view().timebarVisible = view().view().timebarPlaying && set.getTimeBar() && !m_nodal && (&displayedInterval().duration == view().view().currentTimebar);
 }
 
 void ScenarioDocumentPresenter::updateMinimap()

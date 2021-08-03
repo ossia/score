@@ -47,15 +47,13 @@ DocumentPlugin::DocumentPlugin(
       },
       Qt::QueuedConnection);
 
-  con(doc.coarseUpdateTimer,
-      &QTimer::timeout,
-      this,
-      &DocumentPlugin::heartbeat);
+  // TODO put this as a setting instead
+  startTimer(100);
 }
 
 DocumentPlugin::~DocumentPlugin() { }
 
-void DocumentPlugin::heartbeat()
+void DocumentPlugin::timerEvent(QTimerEvent *event)
 {
   if (receiver.clients().size() == 0)
     return;

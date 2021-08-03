@@ -33,7 +33,7 @@ void Clock::play(const TimeVal& t)
     if (auto v = score::IDocument::get<Scenario::ScenarioDocumentPresenter>(
             context.doc.document))
     {
-      v->startTimeBar(scenario.baseInterval().interval());
+      v->startTimeBar();
     }
   }
   catch (const std::runtime_error& e)

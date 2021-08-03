@@ -39,6 +39,7 @@
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <Scenario/Document/ScenarioDocument/SnapshotAction.hpp>
+#include <Scenario/Document/Interval/FullView/FullViewIntervalView.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
 #if defined(SCORE_WEBSOCKETS)
@@ -121,6 +122,28 @@ QRectF ProcessGraphicsView::visibleRect() const noexcept
   return QRectF{
       this->mapToScene(QPoint{}),
       this->mapToScene(this->rect().bottomRight())};
+}
+
+void ProcessGraphicsView::drawForeground(QPainter* painter, const QRectF& rect)
+{
+  if(timebarVisible)
+  {
+    if (currentView)
+    {
+      auto pctg = currentTimebar->playPercentage();
+      auto x = pctg * currentView->defaultWidth();
+      double view_x = currentView->mapToScene(x, 0.).x();
+
+      auto top = mapToScene(QPoint{0, 0}).y();
+      auto bottom = mapToScene(QPoint{0, height()}).y();
+
+      static const QPen pen(QBrush(Qt::gray), 0);
+
+      painter->setPen(pen);
+      painter->drawLine(QPointF{view_x, top}, QPointF{view_x, bottom});
+    }
+
+  }
 }
 
 void ProcessGraphicsView::resizeEvent(QResizeEvent* ev)
@@ -414,7 +437,6 @@ ScenarioDocumentView::ScenarioDocumentView(
     , m_minimapScene{m_widget}
     , m_minimapView{&m_minimapScene}
     , m_minimap{&m_minimapView}
-    , m_bar{&m_baseObject}
 {
   auto& scenario_settings = ctx.app.settings<Scenario::Settings::Model>();
 
