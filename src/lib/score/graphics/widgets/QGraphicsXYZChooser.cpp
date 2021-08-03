@@ -14,14 +14,10 @@ namespace score
 {
 
 QGraphicsXYZChooser::QGraphicsXYZChooser(QGraphicsItem* parent)
-  : m_min{0.f, 0.f, 0.f}
-  , m_max{1.f, 1.f, 1.f}
 {
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointingHand);
-  prev_v[0] = 0.f;
-  prev_v[1] = 0.f;
-  prev_v[2] = 0.f;
+  setRange();
 }
 
 void QGraphicsXYZChooser::paint(
@@ -69,6 +65,9 @@ void QGraphicsXYZChooser::setRange(ossia::vec3f min, ossia::vec3f max)
 {
   m_min = min;
   m_max = max;
+  prev_v[0] = (m_value[0] - m_min[0]) / (m_max[0] - m_min[0]);
+  prev_v[1] = (m_value[1] - m_min[2]) / (m_max[1] - m_min[1]);
+  prev_v[2] = (m_value[2] - m_min[2]) / (m_max[2] - m_min[2]);
 }
 
 void QGraphicsXYZChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)

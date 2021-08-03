@@ -30,7 +30,8 @@ public:
 
   void setPoint(const QPointF& r);
   void setValue(ossia::vec3f v);
-  void setRange(ossia::vec3f min, ossia::vec3f max);
+  void setRange(ossia::vec3f min = {0.f, 0.f, 0.f},
+                ossia::vec3f max = {1.f, 1.f, 1.f});
   ossia::vec3f value() const;
 
   bool moving = false;
