@@ -29,7 +29,12 @@ void for_all_files(std::string_view root, std::function<void(std::string_view)> 
 {
   namespace fs = std::filesystem;
   using iterator = fs::recursive_directory_iterator;
-  for(auto it = iterator{root}; it != iterator{}; ++it)
+#if defined(_WIN32)
+  constexpr auto options = fs::directory_options::skip_permission_denied;
+#else
+  constexpr auto options = fs::directory_options::follow_directory_symlink | fs::directory_options::skip_permission_denied;
+#endif
+  for(auto it = iterator{root, options}, end = iterator{}; it != end; ++it)
   {
     const auto& path = it->path();
 #if defined(_WIN32)
