@@ -69,13 +69,16 @@ namespace
 #if defined(__APPLE__)
 static const constexpr auto default_path = "/Library/Audio/Plug-Ins/VST3";
 static const constexpr auto default_filter = "*.vst3";
+static const constexpr auto default_format = QDir::Dirs;
 #elif defined(__linux__)
 static const constexpr auto default_path{"/usr/lib/vst3"};
 static const constexpr auto default_filter = "*.vst3";
+static const constexpr auto default_format = QDir::Dirs;
 #elif defined(_WIN32)
 static const constexpr auto default_path
     = "C:\\Program Files\\Common Files\\VST3";
 static const constexpr auto default_filter = "*.vst3";
+static const constexpr auto default_format = QDir::Files;
 #else
 static const constexpr auto default_path = "";
 static const constexpr auto default_filter = "";
@@ -138,7 +141,7 @@ void ApplicationPlugin::rescan(const QStringList& paths)
     QDirIterator it(
         dir,
         QStringList{default_filter},
-        QDir::Dirs,
+        default_format,
         QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
     while (it.hasNext())
       newPlugins.insert(it.next());

@@ -23,22 +23,18 @@ public:
   Steinberg::uint32 addRef() override { return 1; }
   Steinberg::uint32 release() override { return 1; }
 
-  QWindow& w;
-  PlugFrame(QWindow& w)
+  QDialog& w;
+  WindowContainer wc;
+  PlugFrame(QDialog& w, WindowContainer& wc)
       : w{w}
+      , wc{wc}
   {
   }
 
   Steinberg::tresult
   resizeView(Steinberg::IPlugView* view, Steinberg::ViewRect* newSize) override
   {
-    auto& r = *newSize;
-
-    w.resize(QSize{r.getWidth(), r.getHeight()});
-    if (view->canResize() == Steinberg::kResultTrue)
-    {
-      view->onSize(&r);
-    }
+      wc.setSizeFromVst(*view, *newSize, w);
     return Steinberg::kResultOk;
   }
 };
