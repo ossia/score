@@ -1,4 +1,7 @@
 #pragma once
+#include <cstddef>
+
+#if defined(__linux__)
 #include <ossia/detail/algorithms.hpp>
 
 #include <QDebug>
@@ -19,7 +22,6 @@
 
 namespace vst3
 {
-#if defined(__linux__)
 namespace Linux = Steinberg::Linux;
 
 struct SocketPair {
@@ -279,5 +281,5 @@ public:
   }
 };
 
-#endif
 }
+#endif
