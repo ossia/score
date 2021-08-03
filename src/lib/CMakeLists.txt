@@ -210,6 +210,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Bind.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/SafeCast.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Unused.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/RecursiveWatch.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/ThreadPool.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Debug.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Version.hpp"
@@ -396,6 +397,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/std/String.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/RandomNameProvider.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/tools/RecursiveWatch.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/ThreadPool.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/ArrowDialog.cpp"

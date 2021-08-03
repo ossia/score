@@ -4,6 +4,7 @@
 
 #include <Library/LibraryInterface.hpp>
 #include <Library/LibrarySettings.hpp>
+#include <Library/ProcessWidget.hpp>
 #include <Library/Panel/LibraryPanelFactory.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
@@ -30,7 +31,7 @@ score_plugin_library::guiFactories(
          Library::UserPanelFactory,
          Library::ProjectPanelFactory,
          Library::ProcessPanelFactory>,
-      FW<Library::LibraryInterface, Library::LibraryDocumentLoader>,
+      FW<Library::LibraryInterface, Library::LibraryDocumentLoader, Library::PresetLibraryHandler>,
       FW<score::SettingsDelegateFactory, Library::Settings::Factory>>(
       ctx, key);
 }

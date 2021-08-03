@@ -28,6 +28,8 @@ public:
 
   virtual void
   setup(ProcessesItemModel& model, const score::GUIApplicationContext& ctx);
+  virtual void addPath(std::string_view);
+  virtual void removePath(std::string_view);
   virtual bool onDrop(
       FileSystemModel& model,
       const QMimeData& mime,

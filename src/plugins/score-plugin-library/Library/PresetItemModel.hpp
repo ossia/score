@@ -19,11 +19,8 @@ class PresetItemModel final : public QAbstractItemModel
 public:
   PresetItemModel(const score::GUIApplicationContext& ctx, QObject* parent);
 
-  void registerPreset(
-      const Process::ProcessFactoryList& procs,
-      const QString& path);
-
 private:
+  std::vector<Process::Preset>& presets;
   QModelIndex
   index(int row, int column, const QModelIndex& parent) const override;
 
@@ -52,8 +49,6 @@ private:
   Qt::DropActions supportedDragActions() const override;
   Qt::DropActions supportedDropActions() const override;
   Qt::ItemFlags flags(const QModelIndex& index) const override;
-
-  std::vector<Process::Preset> presets;
 
   friend class PresetFilterProxy;
 };

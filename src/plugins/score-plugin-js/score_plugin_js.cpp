@@ -21,7 +21,6 @@
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/tools/std/HashMap.hpp>
 
-#include <QDirIterator>
 #include <QFileInfo>
 #include <QQmlListProperty>
 #include <QTimer>
@@ -48,7 +47,6 @@ class LibraryHandler final
       "import Score [0-9].[0-9]"};
 
   QDir libraryFolder;
-  QDirIterator iterator{QString{}};
   Library::ProcessNode* parent{};
 
   void setup(
@@ -65,29 +63,11 @@ class LibraryHandler final
 
     // We use the parent folder as category...
     libraryFolder.setPath(ctx.settings<Library::Settings::Model>().getPath());
-
-    iterator.~QDirIterator();
-    new (&iterator) QDirIterator{
-        libraryFolder.absolutePath(),
-        {"*.js", "*.qml"},
-        QDir::NoFilter,
-        QDirIterator::Subdirectories | QDirIterator::FollowSymlinks};
-
-    next();
   }
 
-  void next()
+  void addPath(std::string_view path) override
   {
-    if (iterator.hasNext())
-    {
-      auto file = QFileInfo{iterator.next()};
-      registerScript(file);
-      QTimer::singleShot(1, this, &LibraryHandler::next);
-    }
-  }
-
-  void registerScript(const QFileInfo& file)
-  {
+    QFileInfo file{QString::fromUtf8(path.data(), path.length())};
     Library::ProcessData pdata;
     pdata.prettyName = file.baseName();
     pdata.key = Metadata<ConcreteKey_k, JS::ProcessModel>::get();

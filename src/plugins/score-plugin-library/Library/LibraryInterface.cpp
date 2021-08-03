@@ -19,6 +19,16 @@ void LibraryInterface::setup(
 {
 }
 
+void LibraryInterface::addPath(std::string_view)
+{
+
+}
+
+void LibraryInterface::removePath(std::string_view)
+{
+
+}
+
 QSet<QString> LibraryInterface::acceptedFiles() const noexcept
 {
   return {};

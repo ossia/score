@@ -120,7 +120,7 @@ OSCProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
   return new LibraryDeviceEnumerator{
       "9a42de4b-f6eb-4bca-9564-01b975f601b9",
-      {"*.json", "*.device", "*.touchosc", "*.xml"},
+      {"json", "device", "touchosc", "xml"},
       OSCProtocolFactory::static_concreteKey(),
       [](const QByteArray& arr) {
         auto copy = arr;

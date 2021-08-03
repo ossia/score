@@ -1,6 +1,8 @@
 #include "PresetItemModel.hpp"
 
 #include <Library/LibrarySettings.hpp>
+#include <Library/LibraryInterface.hpp>
+#include <Library/ProcessWidget.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
@@ -11,7 +13,6 @@
 
 #include <core/presenter/DocumentManager.hpp>
 
-#include <QDirIterator>
 #include <QFile>
 
 namespace Library
@@ -21,41 +22,8 @@ PresetItemModel::PresetItemModel(
     const score::GUIApplicationContext& ctx,
     QObject* parent)
     : QAbstractItemModel{parent}
+    , presets{static_cast<PresetLibraryHandler*>(ctx.interfaces<Library::LibraryInterfaceList>().get(PresetLibraryHandler::static_concreteKey()))->presets}
 {
-  presets.reserve(500);
-  auto& procs = ctx.interfaces<Process::ProcessFactoryList>();
-  const QString& userLibDir
-      = ctx.settings<Library::Settings::Model>().getPath();
-  QDirIterator it(
-      userLibDir,
-      QStringList{"*.scorepreset"},
-      QDir::Files,
-      QDirIterator::Subdirectories);
-
-  while (it.hasNext())
-  {
-    registerPreset(procs, it.next());
-  }
-}
-
-void PresetItemModel::registerPreset(
-    const Process::ProcessFactoryList& procs,
-    const QString& path)
-{
-  QFile f{path};
-  if (!f.open(QIODevice::ReadOnly))
-    return;
-
-  if (auto p = Process::Preset::fromJson(procs, score::mapAsByteArray(f)))
-  {
-    auto it = std::lower_bound(
-        presets.begin(),
-        presets.end(),
-        *p,
-        [](const auto& lhs, const auto& rhs) { return lhs.key < rhs.key; });
-
-    presets.insert(it, std::move(*p));
-  }
 }
 
 QModelIndex

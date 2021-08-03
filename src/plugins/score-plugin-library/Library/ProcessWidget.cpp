@@ -9,6 +9,7 @@
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/widgets/MarginLess.hpp>
+#include <score/tools/File.hpp>
 
 #include <QLabel>
 #include <QScrollArea>
@@ -155,5 +156,32 @@ ProcessWidget::ProcessWidget(
 }
 
 ProcessWidget::~ProcessWidget() { }
+
+QSet<QString> PresetLibraryHandler::acceptedFiles() const noexcept { return {"scorepreset"}; }
+
+void PresetLibraryHandler::setup(ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
+{
+  presets.reserve(500);
+  processes = &ctx.interfaces<Process::ProcessFactoryList>();
+}
+
+void PresetLibraryHandler::addPath(std::string_view path)
+{
+  QFile f{QString::fromUtf8(path.data(), path.length())};
+
+  if (!f.open(QIODevice::ReadOnly))
+    return;
+
+  if (auto p = Process::Preset::fromJson(*processes, score::mapAsByteArray(f)))
+  {
+    auto it = std::lower_bound(
+        presets.begin(),
+        presets.end(),
+        *p,
+        [](const auto& lhs, const auto& rhs) { return lhs.key < rhs.key; });
+
+    presets.insert(it, std::move(*p));
+  }
+}
 
 }

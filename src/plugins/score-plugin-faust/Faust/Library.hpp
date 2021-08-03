@@ -4,7 +4,6 @@
 #include <Library/ProcessesItemModel.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
 
-#include <QDirIterator>
 #include <QFileInfo>
 #include <QTimer>
 
@@ -29,8 +28,6 @@ class LibraryHandler final
   static inline const QRegularExpression descExpr{
       R"_(declare description "([a-zA-Z0-9.<>\(\):/~, _-]+)";)_"};
 
-  QDirIterator iterator{QString{}};
-
   Library::Subcategories categories;
 
   void setup(
@@ -49,26 +46,13 @@ class LibraryHandler final
     // We use the parent folder as category...
     categories.libraryFolder.setPath(
         ctx.settings<Library::Settings::Model>().getPath());
-
-    iterator.~QDirIterator();
-    new (&iterator) QDirIterator{
-        categories.libraryFolder.absolutePath(),
-        {"*.dsp"},
-        QDir::NoFilter,
-        QDirIterator::Subdirectories | QDirIterator::FollowSymlinks};
-
-    next();
   }
 
-  void next()
+  void addPath(std::string_view path) override
   {
-    if (iterator.hasNext())
-    {
-      if (auto file = QFileInfo{iterator.next()};
-          file.fileName() != "layout.dsp")
-        registerDSP(file);
-      QTimer::singleShot(1, this, &LibraryHandler::next);
-    }
+    QFileInfo file{QString::fromUtf8(path.data(), path.length())};
+    if (file.fileName() != "layout.dsp")
+      registerDSP(file);
   }
 
   void registerDSP(const QFileInfo& file)

@@ -66,8 +66,8 @@ struct UiWrapper : public QWidget
 */
 struct UiWrapper : public QWidget
 {
-  std::shared_ptr<Pd::Instance> m_instance;
   QPointer<const ProcessModel> m_model;
+  std::shared_ptr<Pd::Instance> m_instance;
   UiWrapper(
       const ProcessModel& proc,
       const score::DocumentContext& ctx,

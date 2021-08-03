@@ -15,7 +15,6 @@
 #include <ossia/network/common/complex_type.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 
-#include <QDirIterator>
 #include <QFile>
 #include <QProcess>
 #include <QRegularExpression>

@@ -36,7 +36,7 @@ WSProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
   return new LibraryDeviceEnumerator{
       "Ossia.WebSockets",
-      {"*.qml"},
+      {"qml"},
       WSProtocolFactory::static_concreteKey(),
       [](const QByteArray& arr) {
         return QVariant::fromValue(WSSpecificSettings{{}, arr});

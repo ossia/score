@@ -722,7 +722,7 @@ MapperProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
 {
   return new LibraryDeviceEnumerator{
       "Ossia.Mapper",
-      {"*.qml"},
+      {"qml"},
       MapperProtocolFactory::static_concreteKey(),
       [](const QByteArray& arr) {
         return QVariant::fromValue(MapperSpecificSettings{arr});

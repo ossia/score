@@ -1,12 +1,15 @@
 #include "ProcessesItemModel.hpp"
 
 #include <Library/LibraryInterface.hpp>
+#include <Library/LibrarySettings.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/tools/RecursiveWatch.hpp>
 
+#include <QElapsedTimer>
 #include <QIcon>
 #include <QMimeData>
 #include <QTimer>
@@ -48,13 +51,21 @@ ProcessesItemModel::ProcessesItemModel(
     }
   }
 
+  static score::RecursiveWatch w;
+  w.setWatchedFolder(ctx.settings<Library::Settings::Model>().getPath().toStdString());
   auto& lib_setup = ctx.interfaces<Library::LibraryInterfaceList>();
   // TODO lib_setup.added.connect<&ProcessesItemModel::on_newPlugin>(*this);
-  int k = 0;
   for (auto& lib : lib_setup)
   {
-    QTimer::singleShot(k++ * 100, this, [&] { lib.setup(*this, ctx); });
+    lib.setup(*this, ctx);
+    score::RecursiveWatch::Callbacks cbs;
+    cbs.added = [&lib] (std::string_view path) { lib.addPath(path); };
+    cbs.removed = [&lib] (std::string_view path) { lib.removePath(path); };
+    for(const QString& ext : lib.acceptedFiles())
+      w.registerWatch(ext.toStdString(), cbs);
   }
+
+  QTimer::singleShot(1, this, [] { w.scan(); });
 }
 
 void ProcessesItemModel::on_newPlugin(const Process::ProcessModelFactory& fact)

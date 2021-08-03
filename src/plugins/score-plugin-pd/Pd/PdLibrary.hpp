@@ -5,7 +5,6 @@
 #include <Pd/PdProcess.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
 
-#include <QDirIterator>
 #include <QFileInfo>
 #include <QTimer>
 
@@ -21,7 +20,6 @@ class LibraryHandler final
 
   QSet<QString> acceptedFiles() const noexcept override { return {"pd"}; }
 
-  QDirIterator iterator{QString{}};
   Library::Subcategories categories;
 
   void setup(
@@ -40,28 +38,11 @@ class LibraryHandler final
     // We use the parent folder as category...
     categories.libraryFolder.setPath(
         ctx.settings<Library::Settings::Model>().getPath());
-
-    iterator.~QDirIterator();
-    new (&iterator) QDirIterator{
-        categories.libraryFolder.absolutePath(),
-        {"*.pd"},
-        QDir::NoFilter,
-        QDirIterator::Subdirectories | QDirIterator::FollowSymlinks};
-
-    next();
   }
 
-  void next()
+  void addPath(std::string_view path) override
   {
-    if (iterator.hasNext())
-    {
-      registerPatch(QFileInfo{iterator.next()});
-      QTimer::singleShot(1, this, &LibraryHandler::next);
-    }
-  }
-
-  void registerPatch(const QFileInfo& file)
-  {
+    QFileInfo file{QString::fromUtf8(path.data(), path.length())};
     Library::ProcessData pdata;
     pdata.prettyName = file.baseName();
     pdata.key = Metadata<ConcreteKey_k, Pd::ProcessModel>::get();

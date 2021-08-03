@@ -11,7 +11,6 @@
 
 #include <ossia/audio/audio_protocol.hpp>
 
-#include <QDirIterator>
 #include <QFileInfo>
 #include <QJsonDocument>
 #include <QJsonObject>
