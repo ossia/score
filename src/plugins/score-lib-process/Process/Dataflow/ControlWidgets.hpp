@@ -978,6 +978,7 @@ struct XYZSlider
   {
     auto sl = new score::QGraphicsXYZChooser{nullptr};
     sl->setValue(ossia::convert<ossia::vec3f>(inlet.value()));
+    bindVec3Domain(slider, inlet, *sl);
 
     QObject::connect(
           sl,
