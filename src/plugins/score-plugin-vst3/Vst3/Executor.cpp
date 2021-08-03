@@ -35,7 +35,6 @@ void Executor::setupNode(Node_T& node)
           &vst3::ControlInlet::valueChanged,
           this,
           [queue_idx, node](float v) {
-            qDebug() << v;
             node->set_control(queue_idx, v);
           });
     }

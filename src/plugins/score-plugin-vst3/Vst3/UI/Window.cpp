@@ -1,7 +1,6 @@
 #include <Vst3/UI/Linux/PlugFrame.hpp>
 #include <Vst3/UI/PlugFrame.hpp>
 #include <Vst3/UI/Window.hpp>
-
 namespace vst3
 {
 WindowContainer createVstWindowContainer(
@@ -15,31 +14,26 @@ WindowContainer createVstWindowContainer(
 
   Steinberg::ViewRect r;
   view.getSize(&r);
-  int w = r.getWidth();
-  int h = r.getHeight();
+  wc.setSizeFromQt(view, r, parentWindow);
 
-  if (w < 5)
-    w = 640;
-  if (h < 5)
-    h = 480;
+  parentWindow.show();
+  wc.qwindow = parentWindow.windowHandle();
+  wc.container = nullptr;
 
-  if (view.canResize() == Steinberg::kResultTrue)
-  {
-    parentWindow.resize(QSize{w, h});
-  }
-  else
-  {
-    parentWindow.setFixedSize(QSize{w, h});
-  }
-
-  wc.qwindow = new QWindow;
-  wc.qwindow->resize(w, h);
-
-  wc.container = QWidget::createWindowContainer(wc.qwindow, &parentWindow);
-  wc.container->setGeometry(0, 0, w, h);
-
-  view.setFrame(new PlugFrame{*wc.qwindow});
+  view.setFrame(new PlugFrame{parentWindow, wc});
   view.attached((void*)wc.qwindow->winId(), currentPlatform());
+
+  QTimer::singleShot(16, &parentWindow, [&,wc] () mutable {
+    Steinberg::ViewRect r;
+    view.getSize(&r);
+    if(r.getWidth() != 0 && r.getHeight() != 0)
+    {
+      wc.setSizeFromQt(view, r, parentWindow);
+
+      view.onSize(&r);
+    }
+  });
+  //parentWindow.show();
 
   return wc;
 }

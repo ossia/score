@@ -28,15 +28,15 @@ struct WindowContainer
   auto setSizeFromQt(
       Steinberg::IPlugView& view,
       const Steinberg::ViewRect& r,
-      QDialog& parentWindow)
+      QDialog& parentWindow) const
   {
     int w = r.getWidth();
     int h = r.getHeight();
 
-    if (w < 5)
-      w = 640;
-    if (h < 5)
-      h = 480;
+    if(w == 0 || h == 0)
+    {
+      return std::make_pair(w, h);
+    }
 
     if (view.canResize() == Steinberg::kResultTrue)
     {
@@ -64,7 +64,6 @@ struct WindowContainer
       const QSize& sz,
       QDialog& parentWindow)
   {
-
     if (view.canResize() != Steinberg::kResultTrue)
     {
       return;
@@ -101,10 +100,11 @@ struct WindowContainer
     int w = r.getWidth();
     int h = r.getHeight();
 
-    if (w < 5)
-      w = 640;
-    if (h < 5)
-      h = 480;
+    if(w == 0 || h == 0)
+    {
+      view.onSize(&r);
+      return std::make_pair(w,h);
+    }
 
     if (view.canResize() == Steinberg::kResultTrue)
     {
