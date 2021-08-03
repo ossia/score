@@ -17,7 +17,7 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
 {
   arguments = cargs;
 
-#if defined(__linux__)
+#if defined(__linux__) || defined(_WIN32)
   opengl = true;
 #else
   opengl = false;

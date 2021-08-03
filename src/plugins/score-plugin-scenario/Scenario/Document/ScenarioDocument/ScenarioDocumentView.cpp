@@ -552,6 +552,8 @@ ScenarioDocumentView::ScenarioDocumentView(
     // m_timeRulerView.setViewport(new QOpenGLWidget);
     QGLFormat fmt;
     fmt.setSamples(4);
+    fmt.setSampleBuffers(true);
+    fmt.setSwapInterval(1);
     auto vp = new QGLWidget{fmt};
     m_view.setViewport(vp);
 
