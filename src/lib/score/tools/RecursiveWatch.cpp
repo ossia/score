@@ -31,12 +31,24 @@ void for_all_files(std::string_view root, std::function<void(std::string_view)> 
   using iterator = fs::recursive_directory_iterator;
   for(auto it = iterator{root}; it != iterator{}; ++it)
   {
-    if(it->path().filename().c_str()[0] == '.')
+    const auto& path = it->path();
+#if defined(_WIN32)
+    std::string path_str = path.generic_string();
+#else
+    std::string_view path_str = path.native();
+#endif
+    if(path_str.empty())
+      continue;
+    auto last_slash = path_str.find_last_of('/');
+    if(last_slash == path_str.npos || last_slash == path_str.length() - 1)
+      continue;
+    if(path_str[last_slash + 1] == '.')
     {
       it.disable_recursion_pending();
       continue;
     }
-    f(it->path().string());
+
+    f(path_str);
   }
 }
 #elif SCORE_HAS_FTS
