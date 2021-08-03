@@ -17,7 +17,7 @@
 #include <filesystem>
 #elif __has_include(<fts.h>)
 #include <fts.h>
-#DEFINE SCORE_HAS_FTS 1
+#define SCORE_HAS_FTS 1
 #else
 #error Platform missing a simple way to iterate directories.
 #endif
