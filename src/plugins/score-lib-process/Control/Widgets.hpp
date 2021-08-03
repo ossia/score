@@ -5,6 +5,7 @@
 
 #include <ossia/dataflow/port.hpp>
 #include <ossia/dataflow/safe_nodes/port.hpp>
+#include <ossia/detail/timed_vec.hpp>
 
 #include <score_lib_process_export.h>
 namespace Control
@@ -591,6 +592,14 @@ struct EnumBase
     return ossia::value{std::move(v)};
   }
 
+  ossia::value toValue(int v) const
+  {
+    if(v >= 0 && v < values.size())
+      return ossia::value{std::string(values[v])};
+    else
+      return ossia::value{};
+  }
+
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
     return new Process::Enum{
@@ -633,6 +642,83 @@ struct Enum final : EnumBase<N>
   }
 
   static const constexpr bool must_validate = true;
+
+  void convert(const ossia::timed_vec<std::string>& source, ossia::timed_vec<std::string>& sink) {
+    sink = source;
+  }
+
+  template<typename Sink>
+  void convert(const ossia::timed_vec<std::string>& source, ossia::timed_vec<Sink>& sink) {
+    sink.clear();
+    sink.container.reserve(source.size());
+    for(auto& [timestamp, value] : source) {
+      if(auto it = ossia::find(this->values, value); it != this->values.end()) {
+        sink[timestamp] = static_cast<Sink>(it - this->values.begin());
+      }
+    }
+  }
+  bool fromValue(const ossia::value& v, std::string& str) const
+  {
+    switch(v.get_type())
+    {
+      case ossia::val_type::INT:
+      {
+        int t = *v.target<int>();
+        if(t >= 0 && t < this->values.size())
+        {
+          str = this->values[t];
+          return true;
+        }
+        break;
+      }
+      case ossia::val_type::STRING:
+      {
+        auto t = v.target<std::string>();
+        if (auto it = ossia::find(this->values, *t); it != this->values.end())
+        {
+          str = *t;
+          return true;
+        }
+        break;
+      }
+      default:
+        break;
+    }
+
+    return false;
+  }
+  template<typename T>
+  bool fromValue(const ossia::value& v, T& integer_like) const
+  {
+    switch(v.get_type())
+    {
+      case ossia::val_type::INT:
+      {
+        int t = *v.target<int>();
+        if(t >= 0 && t < this->values.size())
+        {
+          integer_like = t;
+          return true;
+        }
+        break;
+      }
+      case ossia::val_type::STRING:
+      {
+        auto t = v.target<std::string>();
+        if (auto it = ossia::find(this->values, *t); it != this->values.end())
+        {
+          integer_like = it - this->values.begin();
+          return true;
+        }
+        break;
+      }
+      default:
+        break;
+    }
+
+    return false;
+  }
+
   auto fromValue(const ossia::value& v) const
   {
     auto t = v.target<std::string>();
