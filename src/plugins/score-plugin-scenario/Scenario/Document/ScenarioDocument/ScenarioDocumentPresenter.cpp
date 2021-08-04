@@ -469,7 +469,7 @@ void ScenarioDocumentPresenter::startTimeBar()
   visible &= !m_nodal;
 
   view().view().currentTimebar = &displayedInterval().duration;
-  view().view().currentView = this->presenters().intervalPresenter()->view();
+  view().view().currentView = m_nodal ? nullptr : this->presenters().intervalPresenter()->view();
   view().view().timebarPlaying = true;
   view().view().timebarVisible = visible;
 

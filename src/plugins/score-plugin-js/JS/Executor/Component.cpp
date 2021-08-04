@@ -18,6 +18,9 @@
 #include <ossia-qt/js_utilities.hpp>
 #include <ossia-qt/time.hpp>
 #include <ossia/dataflow/port.hpp>
+#include <ossia/dataflow/graph/graph_interface.hpp>
+#include <ossia/dataflow/graph_edge.hpp>
+#include <ossia/dataflow/graph_edge_helpers.hpp>
 #include <ossia/detail/logger.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/state/message.hpp>
@@ -158,10 +161,10 @@ void Component::on_scriptChange(const QString& script)
 {
   auto& setup = system().setup;
   Execution::Transaction commands{system()};
-  auto proc = std::dynamic_pointer_cast<js_node>(node);
+  auto old_node = std::dynamic_pointer_cast<js_node>(node);
 
   // 0. Unregister all the previous inlets / outlets
-  setup.unregister_node_soft(m_oldInlets, m_oldOutlets, node);
+  setup.unregister_node_soft(process().inlets(), process().outlets(), old_node, commands);
 
   // 1. Create new inlet & outlet arrays
   ossia::inlets inls;
@@ -201,13 +204,13 @@ void Component::on_scriptChange(const QString& script)
                 &Process::ControlInlet::valueChanged,
                 this,
                 [=](const ossia::value& val) {
-                  this->in_exec([proc, val, idx] {
-                    proc->setControl(
+                  this->in_exec([old_node, val, idx] {
+                    old_node->setControl(
                         idx, val.apply(ossia::qt::ossia_to_qvariant{}));
                   });
                 });
-            controlSetups.push_back([proc, val = ctrl->value(), idx] {
-              proc->setControl(idx, val.apply(ossia::qt::ossia_to_qvariant{}));
+            controlSetups.push_back([old_node, val = ctrl->value(), idx] {
+              old_node->setControl(idx, val.apply(ossia::qt::ossia_to_qvariant{}));
             });
           }
 
@@ -242,18 +245,17 @@ void Component::on_scriptChange(const QString& script)
   }
 
   // Send the updates to the node
-  commands.push_back([proc, script, inls, outls]() mutable {
-
-    for(auto& inl : proc->root_inputs()) delete inl;
-    for(auto& outl : proc->root_outputs()) delete outl;
-
-    using namespace std;
-    swap(proc->root_inputs(), inls);
-    swap(proc->root_outputs(), outls);
-    proc->setScript(std::move(script));
+  commands.push_back([old_node, script, inls, outls, g = system().execGraph] () mutable {
+    // Note: we need to do this because we try to keep the Javascript node around
+    // because it's slow to recreate.
+    // But this causes a lot of problems, it'd be better to do like e.g. the faust
+    // process and entirely recreate a new node, + call update node.
+    ossia::recabler{old_node, g, std::move(inls), std::move(outls)}();
+    old_node->setScript(std::move(script));
   });
 
   commands.commands.reserve(commands.commands.size() + controlSetups.size());
+  // OPTIMIZEME std::move algorithm
   for (auto& cmd : controlSetups)
     commands.commands.push_back(std::move(cmd));
   controlSetups.clear();
@@ -261,6 +263,7 @@ void Component::on_scriptChange(const QString& script)
   // Register the new inlets
   SCORE_ASSERT(process().inlets().size() == inls.size());
   SCORE_ASSERT(process().outlets().size() == outls.size());
+
   for (std::size_t i = 0; i < inls.size(); i++)
   {
     setup.register_inlet(*process().inlets()[i], inls[i], node, commands);
@@ -289,14 +292,7 @@ void js_node::setupComponent(QQmlComponent& c)
     m_object->setParent(m_engine);
     int input_i = 0;
     int output_i = 0;
-    m_jsInlets.clear();
-    m_ctrlInlets.clear();
-    m_valInlets.clear();
-    m_audInlets.clear();
-    m_midInlets.clear();
-    m_valOutlets.clear();
-    m_audOutlets.clear();
-    m_midOutlets.clear();
+
     for (auto n : m_object->children())
     {
       if (auto ctrl_in = qobject_cast<ControlInlet*>(n))
@@ -346,6 +342,18 @@ void js_node::setScript(const QString& val)
     m_execFuncs = new ExecStateWrapper{m_st, m_engine};
     m_engine->rootContext()->setContextProperty("Device", m_execFuncs);
   }
+
+  m_jsInlets.clear();
+  m_ctrlInlets.clear();
+  m_valInlets.clear();
+  m_audInlets.clear();
+  m_midInlets.clear();
+  m_valOutlets.clear();
+  m_audOutlets.clear();
+  m_midOutlets.clear();
+
+  delete m_object;
+  m_object = nullptr;
 
   if (val.trimmed().startsWith("import"))
   {

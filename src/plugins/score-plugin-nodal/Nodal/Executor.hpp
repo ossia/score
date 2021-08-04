@@ -65,7 +65,7 @@ public:
 
 private:
   void reg(const RegisteredNode& fx, Execution::Transaction& vec);
-  void unreg(const RegisteredNode& fx);
+  void unreg(const RegisteredNode& fx, Execution::Transaction& vec);
 };
 
 class HierarchyManager

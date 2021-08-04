@@ -60,7 +60,7 @@ void main() {
 
 Model::~Model() { }
 
-bool Model::validate(const ShaderProgram& txt) const noexcept
+bool Model::validate(const ShaderSource& txt) const noexcept
 {
   const auto& [_, error] = ProgramCache::instance().get(txt);
   if (!error.isEmpty())
@@ -69,11 +69,6 @@ bool Model::validate(const ShaderProgram& txt) const noexcept
     return false;
   }
   return true;
-}
-
-bool Model::validate(const std::vector<QString>& txt) const noexcept
-{
-  return validate(ShaderProgram{txt});
 }
 
 void Model::setVertex(QString f)
@@ -98,7 +93,7 @@ void Model::setFragment(QString f)
   fragmentChanged(f);
 }
 
-void Model::setProgram(const ShaderProgram& f)
+void Model::setProgram(const ShaderSource& f)
 {
   setVertex(f.vertex);
   setFragment(f.fragment);
@@ -318,13 +313,13 @@ std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::dropData(
 }
 
 template <>
-void DataStreamReader::read(const Gfx::ShaderProgram& p)
+void DataStreamReader::read(const Gfx::ShaderSource& p)
 {
   m_stream << p.vertex << p.fragment;
 }
 
 template <>
-void DataStreamWriter::write(Gfx::ShaderProgram& p)
+void DataStreamWriter::write(Gfx::ShaderSource& p)
 {
   m_stream >> p.vertex >> p.fragment;
 }
@@ -342,7 +337,7 @@ void DataStreamReader::read(const Gfx::Filter::Model& proc)
 template <>
 void DataStreamWriter::write(Gfx::Filter::Model& proc)
 {
-  Gfx::ShaderProgram s;
+  Gfx::ShaderSource s;
   m_stream >> s;
   proc.setProgram(s);
 
@@ -368,7 +363,7 @@ void JSONReader::read(const Gfx::Filter::Model& proc)
 template <>
 void JSONWriter::write(Gfx::Filter::Model& proc)
 {
-  Gfx::ShaderProgram s;
+  Gfx::ShaderSource s;
   s.vertex = obj["Vertex"].toString();
   s.fragment = obj["Fragment"].toString();
   proc.setProgram(s);

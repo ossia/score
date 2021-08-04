@@ -35,8 +35,7 @@ public:
 
   ~Model() override;
 
-  bool validate(const ShaderProgram& txt) const noexcept;
-  bool validate(const std::vector<QString>& txt) const noexcept;
+  bool validate(const ShaderSource& txt) const noexcept;
 
   const QString& vertex() const noexcept { return m_program.vertex; }
   void setVertex(QString f);
@@ -50,11 +49,11 @@ public:
       QString,
       fragment READ fragment WRITE setFragment NOTIFY fragmentChanged)
 
-  const ShaderProgram& program() const noexcept { return m_program; }
-  void setProgram(const ShaderProgram& f);
-  void programChanged(const ShaderProgram& f) W_SIGNAL(programChanged, f);
+  const ShaderSource& program() const noexcept { return m_program; }
+  void setProgram(const ShaderSource& f);
+  void programChanged(const ShaderSource& f) W_SIGNAL(programChanged, f);
   PROPERTY(
-      Gfx::ShaderProgram,
+      Gfx::ShaderSource,
       program READ program WRITE setProgram NOTIFY programChanged)
 
   const ProcessedProgram& processedProgram() const noexcept
@@ -69,7 +68,7 @@ private:
   //void setupNormalShader();
   QString prettyName() const noexcept override;
 
-  ShaderProgram m_program;
+  ShaderSource m_program;
   ProcessedProgram m_processedProgram;
 };
 

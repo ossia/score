@@ -160,12 +160,13 @@ struct AddNode
   }
 };
 
-void NodalExecutorBase::unreg(const RegisteredNode& fx)
+void NodalExecutorBase::unreg(const RegisteredNode& fx, Execution::Transaction& commands)
 {
   system().setup.unregister_node_soft(
       fx.comp->process().inlets(),
       fx.comp->process().outlets(),
-      fx.comp->node);
+      fx.comp->node,
+      commands);
 }
 
 void NodalExecutorBase::reg(
@@ -271,7 +272,7 @@ std::function<void()> NodalExecutorBase::removing(
 
   auto& this_fx = it->second;
 
-  unreg(this_fx);
+  unreg(this_fx, commands);
 
   auto p
       = std::dynamic_pointer_cast<ossia::node_graph_process>(m_ossia_process);

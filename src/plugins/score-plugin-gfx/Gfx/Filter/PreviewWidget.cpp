@@ -46,7 +46,7 @@ struct PreviewInputvisitor
 ShaderPreviewWidget::ShaderPreviewWidget(const QString& path, QWidget* parent)
     : QWidget{parent}
 {
-  ShaderProgram program = programFromFragmentShaderPath(path, {});
+  ShaderSource program = programFromFragmentShaderPath(path, {});
 
   if (const auto& [processed, error] = ProgramCache::instance().get(program);
       bool(processed))

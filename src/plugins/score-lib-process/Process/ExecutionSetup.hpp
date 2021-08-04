@@ -108,7 +108,8 @@ struct SCORE_LIB_PROCESS_EXPORT SetupContext final
   void unregister_node_soft(
       const Process::Inlets& inlets,
       const Process::Outlets& outlets,
-      const std::shared_ptr<ossia::graph_node>& node);
+      const std::shared_ptr<ossia::graph_node>& node,
+      Transaction& vec);
 
   void set_destination(
       const State::AddressAccessor& address,

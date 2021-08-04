@@ -31,25 +31,17 @@ void setTabWidth(QTextEdit& edit, int spaceCount)
 std::pair<QStyleSyntaxHighlighter*, QCompleter*>
 getLanguageStyle(const std::string_view language)
 {
-  auto init = [](auto t) {
-    t->setParent(score::GUIAppContext().mainWindow);
-    return t;
-  };
   if (language == "glsl" || language == "Glsl" || language == "GLSL")
   {
-    static auto highlight = init(new QGLSLHighlighter);
-    static auto completer = init(new QGLSLCompleter);
-    return {highlight, completer};
+    return {new QGLSLHighlighter, new QGLSLCompleter};
   }
   else if (language == "js" || language == "Js" || language == "JS")
   {
-    static auto highlight = init(new QJSHighlighter);
-    return {highlight, nullptr};
+    return {new QJSHighlighter, nullptr};
   }
   else // C, C++, ...
   {
-    static auto highlight = init(new QCXXHighlighter);
-    return {highlight, nullptr};
+    return {new QCXXHighlighter, nullptr};
   }
 }
 
@@ -75,12 +67,22 @@ QCodeEditor* createScriptWidget(const std::string_view language)
   auto edit = new QCodeEditor{};
 
   auto [highlight, complete] = getLanguageStyle(language);
-  edit->setHighlighter(highlight);
-  edit->setCompleter(complete);
+
+  if(highlight)
+  {
+    edit->setHighlighter(highlight);
+    highlight->setParent(edit);
+  }
+  if(complete)
+  {
+    edit->setCompleter(complete);
+    complete->setParent(edit);
+  }
 
   edit->setSyntaxStyle(getStyle());
 
   setTabWidth(*edit, 4);
+
   return edit;
 }
 }

@@ -12,6 +12,7 @@
 
 #include <score/document/DocumentContext.hpp>
 
+#include <ossia/dataflow/graph_edge_helpers.hpp>
 #include <ossia/dataflow/port.hpp>
 namespace Gfx::Filter
 {
@@ -88,7 +89,7 @@ void ProcessExecutorComponent::on_shaderChanged()
   auto n = std::dynamic_pointer_cast<filter_node>(this->node);
 
   // 0. Unregister all the previous inlets / outlets
-  setup.unregister_node_soft(m_oldInlets, m_oldOutlets, node);
+  setup.unregister_node_soft(m_oldInlets, m_oldOutlets, node, commands);
 
   // 1. Recreate ports
   auto [inls, outls] = setup_node(commands);
@@ -166,13 +167,14 @@ std::pair<ossia::inlets, ossia::outlets> ProcessExecutorComponent::setup_node(Ex
   }
 
   outls.push_back(new ossia::texture_outlet);
-  commands.push_back([n, inls, outls, controls] () mutable {
-                       for(auto& inl : n->root_inputs()) delete inl;
-                       for(auto& outl : n->root_outputs()) delete outl;
 
-                       using namespace std;
-                       swap(n->root_inputs(), inls);
-                       swap(n->root_outputs(), outls);
+  //! TODO the day we have audio outputs in some GFX node
+  //! propagate will need to be handled ; right now here
+  //! it will cut the sound
+  auto recable = std::shared_ptr<ossia::recabler>(new ossia::recabler{n, system().execGraph, std::move(inls), std::move(outls)});
+  commands.push_back([n, controls, recable] () mutable {
+                       (*recable)();
+
                        swap(n->controls, controls);
                      });
 

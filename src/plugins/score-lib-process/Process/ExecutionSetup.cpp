@@ -11,6 +11,7 @@
 #include <ossia/dataflow/graph_edge.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/port.hpp>
+#include <ossia/dataflow/for_each_port.hpp>
 #include <ossia/editor/scenario/time_process.hpp>
 #include <ossia/network/common/destination_qualifiers.hpp>
 
@@ -589,9 +590,17 @@ void SetupContext::unregister_node(
   if (node)
   {
     std::weak_ptr<ossia::graph_interface> wg = context.execGraph;
-    context.executionQueue.enqueue([wg, node] {
+    std::weak_ptr<ossia::execution_state> ws = context.execState;
+    context.executionQueue.enqueue([wg, ws, node] {
+      if (auto s = ws.lock())
+      {
+        ossia::for_each_inlet(*node, [&] (auto& p) { s->unregister_port(p); });
+        ossia::for_each_outlet(*node, [&] (auto& p) { s->unregister_port(p); });
+      }
+
       if (auto g = wg.lock())
         g->remove_node(node);
+
       node->clear();
     });
 
@@ -616,7 +625,14 @@ void SetupContext::unregister_node(
   if (node)
   {
     std::weak_ptr<ossia::graph_interface> wg = context.execGraph;
-    vec.push_back([wg, node] {
+    std::weak_ptr<ossia::execution_state> ws = context.execState;
+    vec.push_back([wg, ws, node] {
+      if (auto s = ws.lock())
+      {
+        ossia::for_each_inlet(*node, [&] (auto& p) { s->unregister_port(p); });
+        ossia::for_each_outlet(*node, [&] (auto& p) { s->unregister_port(p); });
+      }
+
       if (auto g = wg.lock())
         g->remove_node(node);
       node->clear();
@@ -637,10 +653,19 @@ void SetupContext::unregister_node(
 void SetupContext::unregister_node_soft(
     const Process::Inlets& proc_inlets,
     const Process::Outlets& proc_outlets,
-    const std::shared_ptr<ossia::graph_node>& node)
+    const std::shared_ptr<ossia::graph_node>& node,
+    Transaction& vec)
 {
   if (node)
   {
+    std::weak_ptr<ossia::execution_state> ws = context.execState;
+    vec.push_back([ws, node] {
+      if (auto s = ws.lock())
+      {
+        ossia::for_each_inlet(*node, [&] (auto& p) { s->unregister_port(p); });
+        ossia::for_each_outlet(*node, [&] (auto& p) { s->unregister_port(p); });
+      }
+    });
     runtime_connections[node].clear();
     runtime_connections.erase(node);
 

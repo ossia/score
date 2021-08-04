@@ -20,34 +20,35 @@ struct descriptor;
 
 namespace Gfx
 {
-struct SCORE_PLUGIN_GFX_EXPORT ShaderProgram
+struct SCORE_PLUGIN_GFX_EXPORT ShaderSource
 {
-  ShaderProgram() = default;
-  ~ShaderProgram() = default;
-  ShaderProgram(const ShaderProgram&) = default;
-  ShaderProgram(ShaderProgram&&) = default;
-  ShaderProgram(const QString& vert, const QString& frag)
+  ShaderSource() = default;
+  ~ShaderSource() = default;
+  ShaderSource(const ShaderSource&) = default;
+  ShaderSource(ShaderSource&&) = default;
+
+  ShaderSource(const QString& vert, const QString& frag)
       : vertex{vert}
       , fragment{frag}
   {
   }
 
-  ShaderProgram(const std::vector<QString>& vec)
+  ShaderSource(const std::vector<QString>& vec)
   {
     SCORE_ASSERT(vec.size() == 2);
     fragment = vec[0];
     vertex = vec[1];
   }
 
-  ShaderProgram(std::vector<QString>&& vec)
+  ShaderSource(std::vector<QString>&& vec)
   {
     SCORE_ASSERT(vec.size() == 2);
     fragment = std::move(vec[0]);
     vertex = std::move(vec[1]);
   }
 
-  ShaderProgram& operator=(const ShaderProgram&) = default;
-  ShaderProgram& operator=(ShaderProgram&&) = default;
+  ShaderSource& operator=(const ShaderSource&) = default;
+  ShaderSource& operator=(ShaderSource&&) = default;
 
   QString vertex;
   QString fragment;
@@ -55,56 +56,56 @@ struct SCORE_PLUGIN_GFX_EXPORT ShaderProgram
   struct MemberSpec
   {
     const QString name;
-    const QString ShaderProgram::*pointer;
+    const QString ShaderSource::*pointer;
     const std::string_view language{};
   };
 
   static const inline std::array<MemberSpec, 2> specification{
-      MemberSpec{QObject::tr("Fragment"), &ShaderProgram::fragment, "GLSL"},
-      MemberSpec{QObject::tr("Vertex"), &ShaderProgram::vertex, "GLSL"},
+      MemberSpec{QObject::tr("Fragment"), &ShaderSource::fragment, "GLSL"},
+      MemberSpec{QObject::tr("Vertex"), &ShaderSource::vertex, "GLSL"},
   };
 
-  friend QDebug& operator<<(QDebug& d, const ShaderProgram& sp)
+  friend QDebug& operator<<(QDebug& d, const ShaderSource& sp)
   {
     return (d << sp.vertex << sp.fragment);
   }
   friend bool
-  operator==(const ShaderProgram& lhs, const ShaderProgram& rhs) noexcept
+  operator==(const ShaderSource& lhs, const ShaderSource& rhs) noexcept
   {
     return lhs.vertex == rhs.vertex && lhs.fragment == rhs.fragment;
   }
   friend bool
-  operator!=(const ShaderProgram& lhs, const ShaderProgram& rhs) noexcept
+  operator!=(const ShaderSource& lhs, const ShaderSource& rhs) noexcept
   {
     return !(lhs == rhs);
   }
 
   friend bool operator==(
       const std::vector<QString>& lhs,
-      const ShaderProgram& rhs) noexcept
+      const ShaderSource& rhs) noexcept
   {
     SCORE_ASSERT(lhs.size() == 2);
-    return lhs[0] == rhs.*(ShaderProgram::specification[0].pointer)
-           && lhs[1] == rhs.*(ShaderProgram::specification[1].pointer);
+    return lhs[0] == rhs.*(ShaderSource::specification[0].pointer)
+           && lhs[1] == rhs.*(ShaderSource::specification[1].pointer);
   }
   friend bool operator!=(
       const std::vector<QString>& lhs,
-      const ShaderProgram& rhs) noexcept
+      const ShaderSource& rhs) noexcept
   {
     return !(lhs == rhs);
   }
 };
 
-ShaderProgram
+ShaderSource
 programFromFragmentShaderPath(const QString& fsFilename, QByteArray fsData);
 }
 
 namespace std
 {
 template <>
-struct hash<Gfx::ShaderProgram>
+struct hash<Gfx::ShaderSource>
 {
-  std::size_t operator()(const Gfx::ShaderProgram& program) const noexcept
+  std::size_t operator()(const Gfx::ShaderSource& program) const noexcept
   {
     constexpr const QtPrivate::QHashCombine combine;
     std::size_t seed{};
@@ -117,7 +118,7 @@ struct hash<Gfx::ShaderProgram>
 
 namespace Gfx
 {
-struct ProcessedProgram : ShaderProgram
+struct ProcessedProgram : ShaderSource
 {
   isf::descriptor descriptor;
 
@@ -129,14 +130,14 @@ struct SCORE_PLUGIN_GFX_EXPORT ProgramCache
 {
   static ProgramCache& instance() noexcept;
   std::pair<std::optional<ProcessedProgram>, QString>
-  get(const ShaderProgram& program) noexcept;
+  get(const ShaderSource& program) noexcept;
 
-  ossia::fast_hash_map<ShaderProgram, ProcessedProgram> programs;
+  ossia::fast_hash_map<ShaderSource, ProcessedProgram> programs;
 };
 
 }
 
-Q_DECLARE_METATYPE(Gfx::ShaderProgram)
-W_REGISTER_ARGTYPE(Gfx::ShaderProgram)
+Q_DECLARE_METATYPE(Gfx::ShaderSource)
+W_REGISTER_ARGTYPE(Gfx::ShaderSource)
 Q_DECLARE_METATYPE(Gfx::ProcessedProgram)
 W_REGISTER_ARGTYPE(Gfx::ProcessedProgram)
