@@ -18,6 +18,15 @@ file(GENERATE
     "#pragma once\n#include <score_lib_base_export.h>\n#define RND_EXPORT SCORE_LIB_BASE_EXPORT\n"
 )
 
+if(SCORE_INSTALL_HEADERS)
+  install(FILES
+        ${_binDir}/zipdownloader_export.h
+        ${_binDir}/rnd_export.h
+        DESTINATION include/score
+        COMPONENT Devel
+        OPTIONAL)
+endif()
+
 # Files & main target
 if(Qt5Core_VERSION_STRING)
   qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/resources/score.qrc")
