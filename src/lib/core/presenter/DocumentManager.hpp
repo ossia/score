@@ -73,8 +73,7 @@ public:
   Document*
   loadDocument(const score::GUIApplicationContext& ctx, Args&&... args)
   {
-    auto cur = currentDocument();
-    if (cur && cur->virgin())
+    if (auto cur = currentDocument(); cur && cur->virgin())
     {
       forceCloseDocument(ctx, *cur);
     }

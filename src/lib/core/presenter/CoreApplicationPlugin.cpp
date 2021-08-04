@@ -55,14 +55,14 @@ void CoreApplicationPlugin::load()
 
 void CoreApplicationPlugin::save()
 {
-  m_presenter.m_docManager.saveDocument(
-      *m_presenter.m_docManager.currentDocument());
+  if (auto doc = m_presenter.m_docManager.currentDocument())
+    m_presenter.m_docManager.saveDocument(*doc);
 }
 
 void CoreApplicationPlugin::saveAs()
 {
-  m_presenter.m_docManager.saveDocumentAs(
-      *m_presenter.m_docManager.currentDocument());
+  if (auto doc = m_presenter.m_docManager.currentDocument())
+    m_presenter.m_docManager.saveDocumentAs(*doc);
 }
 
 void CoreApplicationPlugin::close()
@@ -198,6 +198,7 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     auto& cond = context.actions.condition<EnableActionIfDocument>();
     {
       auto save_doc = new QAction(m_presenter.view());
+      save_doc->setDisabled(true);
       connect(
           save_doc, &QAction::triggered, this, &CoreApplicationPlugin::save);
       e.actions.add<Actions::Save>(save_doc);
@@ -207,6 +208,7 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
 
     {
       auto saveas_doc = new QAction(m_presenter.view());
+      saveas_doc->setDisabled(true);
       connect(
           saveas_doc,
           &QAction::triggered,
@@ -258,9 +260,11 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
 
     {
       auto close_act = new QAction(m_presenter.view());
+      close_act->setDisabled(true);
       connect(
           close_act, &QAction::triggered, this, &CoreApplicationPlugin::close);
       e.actions.add<Actions::Close>(close_act);
+      cond.add<Actions::Close>();
       file->addAction(close_act);
     }
 

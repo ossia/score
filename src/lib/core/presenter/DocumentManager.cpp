@@ -411,6 +411,9 @@ bool DocumentManager::saveStack()
 {
   if (!m_view)
     return false;
+  auto doc = currentDocument();
+  if(!doc)
+    return false;
   QFileDialog d{m_view, tr("Save Stack As")};
   d.setNameFilters({"*.stack"});
   d.setOption(QFileDialog::DontConfirmOverwrite, false);
@@ -431,8 +434,8 @@ bool DocumentManager::saveStack()
 
       f.reset();
       DataStream::Serializer ser(&f);
-      ser.readFrom(currentDocument()->id());
-      ser.readFrom(currentDocument()->commandStack());
+      ser.readFrom(doc->id());
+      ser.readFrom(doc->commandStack());
       f.commit();
     }
     return true;

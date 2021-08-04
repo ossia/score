@@ -42,10 +42,12 @@ auto selectedIntervalsInCurrentDocument(
 auto selectedIntervalsInCurrentDocument(
     const score::GUIApplicationContext& appContext)
 {
-  auto sel = appContext.documents.currentDocument()
-                 ->selectionStack()
-                 .currentSelection();
   QList<const Scenario::IntervalModel*> selected_elements;
+  auto doc = appContext.documents.currentDocument();
+  if(!doc)
+    return selected_elements;
+
+  auto sel = doc->selectionStack().currentSelection();
   for (auto obj : sel)
   {
     if (auto casted_obj
