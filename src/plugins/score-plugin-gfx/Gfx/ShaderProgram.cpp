@@ -179,6 +179,7 @@ ProgramCache::get(const ShaderProgram& program) noexcept
 
 namespace
 {
+static
 bool resolveGLSLIncludes(QByteArray& data, const QStringList& includes, QString rootPath, int iterations);
 
 static

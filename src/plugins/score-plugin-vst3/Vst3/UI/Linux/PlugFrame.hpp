@@ -13,6 +13,7 @@
 
 #include <utility>
 #include <vector>
+#include <memory>
 
 #include <Vst3/UI/WindowContainer.hpp>
 
