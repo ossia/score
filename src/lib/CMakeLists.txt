@@ -20,8 +20,8 @@ file(GENERATE
 
 if(SCORE_INSTALL_HEADERS)
   install(FILES
-        ${_binDir}/zipdownloader_export.h
-        ${_binDir}/rnd_export.h
+        ${CMAKE_CURRENT_BINARY_DIR}/zipdownloader_export.h
+        ${CMAKE_CURRENT_BINARY_DIR}/rnd_export.h
         DESTINATION include/score
         COMPONENT Devel
         OPTIONAL)
