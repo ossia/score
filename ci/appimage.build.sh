@@ -29,6 +29,11 @@ cp "$SOURCE_FOLDER/cmake/Deployment/Linux/AppImage/ossia-score.desktop" build/sc
 cp "$SOURCE_FOLDER/src/lib/resources/ossia-score.png" build/score.AppDir/
 cp "$SOURCE_FOLDER/src/lib/resources/ossia-score.png" build/score.AppDir/.DirIcon
 
+if [[ ! -f "build/score.AppDir/usr/bin/ossia-score" ]]; then
+  echo "Build failure, ossia-score main binary missing ! "
+  exit 1
+fi
+
 ./appimagetool-x86_64.AppImage -n "build/score.AppDir" "Score.AppImage"
 
 chmod a+rwx Score.AppImage
