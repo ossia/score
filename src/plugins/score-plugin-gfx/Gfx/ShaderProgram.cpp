@@ -1,10 +1,14 @@
 #include "ShaderProgram.hpp"
 
+#include <score/application/ApplicationContext.hpp>
 #include <Gfx/Graph/ShaderCache.hpp>
+#include <Library/LibrarySettings.hpp>
 
 #include <ossia/detail/flat_map.hpp>
 
 #include <QFile>
+#include <QDir>
+#include <QFileInfo>
 #include <QRegularExpression>
 namespace Gfx
 {
@@ -173,6 +177,101 @@ ProgramCache::get(const ShaderProgram& program) noexcept
   return {std::nullopt, "Unknown error"};
 }
 
+namespace
+{
+bool resolveGLSLIncludes(QByteArray& data, const QStringList& includes, QString rootPath, int iterations);
+
+static
+std::optional<QByteArray> resolveFile_relative(const QString& name, const QStringList& includes, const QString& rootPath, int iterations)
+{
+  QFile f{rootPath + "/" + name};
+  if(f.open(QIODevice::ReadOnly))
+  {
+    QByteArray res = f.readAll();
+    if(resolveGLSLIncludes(res, includes, QFileInfo{f}.absolutePath(), iterations))
+      return res;
+    return std::nullopt;
+  }
+  return {};
+}
+
+static
+std::optional<QByteArray> resolveFile_in_paths(const QString& name, const QStringList& includes, int iterations)
+{
+  for(auto& path : includes)
+  {
+    if(auto res = resolveFile_relative(name, includes, path, iterations))
+      return res;
+  }
+  return std::nullopt;
+}
+
+static
+std::optional<QByteArray> resolveFile_quotes(const QString& name, const QStringList& includes, const QString& rootPath, int iterations)
+{
+  if(auto res = resolveFile_relative(name, includes, rootPath, iterations))
+    return res;
+  if(auto res = resolveFile_in_paths(name, includes, iterations))
+    return res;
+  return std::nullopt;
+}
+
+static
+std::optional<QByteArray> resolveFile_brackets(const QString& name, const QStringList& includes, const QString& rootPath, int iterations)
+{
+  if(auto res = resolveFile_in_paths(name, includes, iterations))
+    return res;
+  return std::nullopt;
+}
+
+static
+bool resolveGLSLIncludes(QByteArray& data, const QStringList& includes, QString rootPath, int iterations)
+{
+  iterations++;
+  if(iterations > 30) {
+    qDebug() << "More than 30 iterations, shader include loop likely. Stopping.";
+    return false;
+  }
+  int idx = data.indexOf("#include");
+  if(idx == -1)
+    return true;
+
+  int end_line = data.indexOf('\n', idx);
+  int len = end_line - idx;
+  static QRegularExpression quoted_include{R"_(#include\s*"(.*)")_"};
+  auto cap = quoted_include.match(data.mid(idx, len)).capturedTexts();
+  if(cap.size() == 2) {
+    if(auto f = resolveFile_quotes(cap[1], includes, rootPath, iterations))
+    {
+      data.replace(idx, len, *f);
+    }
+    else
+    {
+      qDebug().noquote() << "Could not resolve: " << cap[0] << " while processing shader";
+      return false;
+    }
+  }
+  else
+  {
+    static QRegularExpression bracket_include{R"_(#include\s*<(.*)>)_"};
+    auto cap = bracket_include.match(data.mid(idx, len)).capturedTexts();
+    if(cap.size() == 2) {
+      if(auto f = resolveFile_brackets(cap[1], includes, rootPath, iterations))
+      {
+        data.replace(idx, len, *f);
+      }
+      else
+      {
+        qDebug().noquote() << "Could not resolve: " << cap[0] << " while processing shader";
+        return false;
+      }
+    }
+  }
+
+  return resolveGLSLIncludes(data, includes, rootPath, iterations);
+}
+}
+
 ShaderProgram
 programFromFragmentShaderPath(const QString& fsFilename, QByteArray fsData)
 {
@@ -182,7 +281,7 @@ programFromFragmentShaderPath(const QString& fsFilename, QByteArray fsData)
   vertexName.replace(".fs", ".vs");
 
   // If empty: will be using the ISF's default
-  QString vertexData;
+  QByteArray vertexData;
   if (vertexName != fsFilename)
   {
     if (QFile vertexFile{vertexName};
@@ -201,6 +300,21 @@ programFromFragmentShaderPath(const QString& fsFilename, QByteArray fsData)
     }
   }
 
+
+  // Resolve includes ; for now we have one hardcoded library...
+  QStringList shaderIncludePath;
+
+  // FIXME refactor that !
+  auto& lib_settings = score::AppContext().settings<Library::Settings::Model>();
+  auto lib_path = lib_settings.getPath();
+  if(QDir{}.exists(lib_path + "/Media/lygia/lygia-main"))
+  {
+    shaderIncludePath.append(lib_path + "/Media/lygia/lygia-main");
+  }
+
+  QFileInfo file{fsFilename};
+  resolveGLSLIncludes(fsData, shaderIncludePath, file.absolutePath(), 0);
+  resolveGLSLIncludes(vertexData, shaderIncludePath, file.absolutePath(), 0);
   return {vertexData, fsData};
 }
 }
