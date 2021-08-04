@@ -32,8 +32,8 @@ void QGraphicsXYZChooser::paint(
 
   auto [x, y, z] = m_value;
   x = 100. * (x - m_min[0]) / (m_max[0] - m_min[0]);
-  y = 100. * (y - m_min[1]) / (m_max[1] - m_min[1]);
-  z = 100. * (z - m_min[2]) / (m_max[2] - m_min[2]);
+  y = 100. * (1. - ((y - m_min[1]) / (m_max[1] - m_min[1])));
+  z = 100. * (1. - ((z - m_min[2]) / (m_max[2] - m_min[2])));
 
   painter->setPen(score::Skin::instance().DarkGray.main.pen0);
   painter->drawLine(QPointF{x, 0.}, QPointF{x, 100.});
@@ -76,11 +76,11 @@ void QGraphicsXYZChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)
   if (p.x() < 100.)
   {
     prev_v[0] = qBound(0., p.x() / 100., 1.);
-    prev_v[1] = qBound(0., p.y() / 100., 1.);
+    prev_v[1] = qBound(0., 1 - (p.y() / 100.), 1.);
   }
   else if (p.x() >= 110 && p.x() < 130)
   {
-    prev_v[2] = qBound(0., p.y() / 100., 1.);
+    prev_v[2] = qBound(0., 1 - (p.y() / 100.), 1.);
   }
   m_grab = true;
 
@@ -102,11 +102,11 @@ void QGraphicsXYZChooser::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     if (p.x() < 100.)
     {
       prev_v[0] = qBound(0., p.x() / 100., 1.);
-      prev_v[1] = qBound(0., p.y() / 100., 1.);
+      prev_v[1] = qBound(0., 1 - (p.y() / 100.), 1.);
     }
     else if (p.x() >= 110 && p.x() <= 130)
     {
-      prev_v[2] = qBound(0., p.y() / 100., 1.);
+      prev_v[2] = qBound(0., 1 - (p.y() / 100.), 1.);
     }
     m_grab = true;
 
@@ -129,11 +129,11 @@ void QGraphicsXYZChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     if (p.x() < 100.)
     {
       prev_v[0] = qBound(0., p.x() / 100., 1.);
-      prev_v[1] = qBound(0., p.y() / 100., 1.);
+      prev_v[1] = qBound(0., 1 - (p.y() / 100.), 1.);
     }
     else if (p.x() >= 110 && p.x() < 130)
     {
-      prev_v[2] = qBound(0., p.y() / 100., 1.);
+      prev_v[2] = qBound(0., 1 - (p.y() / 100.), 1.);
     }
 
     const ossia::vec3f newValue = scaledValue(prev_v[0], prev_v[1], prev_v[2]);

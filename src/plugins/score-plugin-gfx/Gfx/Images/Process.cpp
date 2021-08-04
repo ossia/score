@@ -70,7 +70,7 @@ Model::Model(
     auto pos = new Process::XYSlider{Id<Process::Port>(2), this};
     pos->setName(tr("Position"));
     pos->setDomain(
-      ossia::make_domain(ossia::vec2f{-5.0, 5.0}, ossia::vec2f{5.0, -5.0}));
+      ossia::make_domain(ossia::vec2f{-5.0, -5.0}, ossia::vec2f{5.0, 5.0}));
 
     m_inlets.push_back(pos);
   }

@@ -31,7 +31,7 @@ void QGraphicsXYChooser::paint(
 
   auto [x, y] = m_value;
   x = 100. * (x - m_min[0]) / (m_max[0] - m_min[0]);
-  y = 100. * (y - m_min[1]) / (m_max[1] - m_min[1]);
+  y = 100. * (1. - ((y - m_min[1]) / (m_max[1] - m_min[1])));
 
   painter->setPen(score::Skin::instance().DarkGray.main.pen0);
   painter->drawLine(QPointF{x, 0.}, QPointF{x, 100.});
@@ -67,7 +67,7 @@ void QGraphicsXYChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   const auto p = event->pos();
   float newX = qBound(0., p.x() / 100., 1.);
-  float newY = qBound(0., p.y() / 100., 1.);
+  float newY = qBound(0., 1. - (p.y() / 100.), 1.);
   m_grab = true;
 
   const ossia::vec2f newValue = scaledValue(newX, newY);
@@ -86,7 +86,7 @@ void QGraphicsXYChooser::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   {
     const auto p = event->pos();
     float newX = qBound(0., p.x() / 100., 1.);
-    float newY = qBound(0., p.y() / 100., 1.);
+    float newY = qBound(0., 1. - (p.y() / 100.), 1.);
     m_grab = true;
 
     const ossia::vec2f newValue = scaledValue(newX, newY);
@@ -106,7 +106,7 @@ void QGraphicsXYChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   {
     const auto p = event->pos();
     float newX = qBound(0., p.x() / 100., 1.);
-    float newY = qBound(0., p.y() / 100., 1.);
+    float newY = qBound(0., 1. - (p.y() / 100.), 1.);
     m_grab = true;
 
     const ossia::vec2f newValue = scaledValue(newX, newY);
