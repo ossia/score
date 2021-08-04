@@ -10,19 +10,19 @@
 namespace vst3
 {
 class Model;
-class Handler
+class ComponentHandler
     : virtual public Steinberg::Vst::IComponentHandler
     , virtual public Steinberg::Vst::IComponentHandler2
 {
   vst3::Model& m_model;
 
 public:
-  Handler(vst3::Model& fx)
+  ComponentHandler(vst3::Model& fx)
       : m_model{fx}
   {
   }
 
-  ~Handler() { qDebug() << "~Handler()"; }
+  ~ComponentHandler() { }
 
   Steinberg::tresult
   queryInterface(const Steinberg::TUID _iid, void** obj) override
@@ -50,7 +50,6 @@ public:
   {
     if (auto ctrl = m_model.controls.find(id); ctrl != m_model.controls.end())
     {
-      qDebug() << valueNormalized;
       ctrl->second->setValue(valueNormalized);
     }
     return Steinberg::kResultOk;

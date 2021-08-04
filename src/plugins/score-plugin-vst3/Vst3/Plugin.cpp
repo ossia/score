@@ -100,7 +100,7 @@ void Plugin::loadEditController(Model& model, ApplicationPlugin& ctx)
 
   // Connect the controller to the component... for... reasons
   {
-    controller->setComponentHandler(new Handler{model});
+    controller->setComponentHandler(new ComponentHandler{model});
     using namespace Steinberg;
     using namespace Steinberg::Vst;
     // TODO need disconnection

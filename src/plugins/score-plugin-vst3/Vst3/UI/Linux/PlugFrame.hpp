@@ -90,7 +90,7 @@ struct XcbConnection {
   }
 };
 
-struct Handler {
+struct SocketHandler {
   Linux::IEventHandler* handler{};
   QSocketNotifier* r_notifier{};
   QSocketNotifier* w_notifier{};
@@ -98,12 +98,12 @@ struct Handler {
   int fd{};
 };
 
-class GlobalHandlers : public QObject
+class GlobalSocketHandlers : public QObject
 {
   XcbConnection xcb;
   std::unordered_map<int, std::vector<Linux::IEventHandler*>> handlers;
 public:
-  GlobalHandlers()
+  GlobalSocketHandlers()
   {
     if(xcb.notifiers)
       xcb.notifiers->connect(this, [this] { on_xcb(); });
@@ -131,8 +131,8 @@ public:
         handlers.erase(it);
     }
   }
-  static GlobalHandlers& instance() {
-    static GlobalHandlers handlers;
+  static GlobalSocketHandlers& instance() {
+    static GlobalSocketHandlers handlers;
     return handlers;
   }
 };
@@ -148,7 +148,7 @@ public:
 
   std::vector<std::pair<Linux::ITimerHandler*, QTimer*>> timers;
 
-  std::vector<Handler> handlers;
+  std::vector<SocketHandler> handlers;
 
   tresult queryInterface(const TUID _iid, void** obj) override
   {
@@ -195,8 +195,8 @@ public:
     errnotifier->setEnabled(true);
     QObject::connect(errnotifier, &QSocketNotifier::activated, [=] { handler->onFDIsSet(fd); });
 
-    handlers.push_back(Handler{handler, readnotifier, writenotifier, errnotifier, fd});
-    GlobalHandlers::instance().registerHandler(handler, fd);
+    handlers.push_back(SocketHandler{handler, readnotifier, writenotifier, errnotifier, fd});
+    GlobalSocketHandlers::instance().registerHandler(handler, fd);
 
     return kResultTrue;
   }
@@ -213,7 +213,7 @@ public:
     {
       if(it->handler == handler)
       {
-        GlobalHandlers::instance().unregisterHandler(handler, it->fd);
+        GlobalSocketHandlers::instance().unregisterHandler(handler, it->fd);
         delete it->r_notifier;
         delete it->w_notifier;
         delete it->e_notifier;
@@ -266,7 +266,7 @@ public:
       delete timer.second;
     for(auto handler: handlers)
     {
-      GlobalHandlers::instance().unregisterHandler(handler.handler, handler.fd);
+      GlobalSocketHandlers::instance().unregisterHandler(handler.handler, handler.fd);
       delete handler.r_notifier;
       delete handler.w_notifier;
       delete handler.e_notifier;
