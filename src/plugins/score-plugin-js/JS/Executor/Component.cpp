@@ -245,12 +245,14 @@ void Component::on_scriptChange(const QString& script)
   }
 
   // Send the updates to the node
-  commands.push_back([old_node, script, inls, outls, g = system().execGraph] () mutable {
+  auto recable = std::shared_ptr<ossia::recabler>(new ossia::recabler{old_node, system().execGraph, inls, outls});
+  commands.push_back([old_node, script, recable] () mutable {
     // Note: we need to do this because we try to keep the Javascript node around
     // because it's slow to recreate.
     // But this causes a lot of problems, it'd be better to do like e.g. the faust
     // process and entirely recreate a new node, + call update node.
-    ossia::recabler{old_node, g, std::move(inls), std::move(outls)}();
+    (*recable)();
+
     old_node->setScript(std::move(script));
   });
 

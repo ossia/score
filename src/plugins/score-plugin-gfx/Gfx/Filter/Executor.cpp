@@ -171,7 +171,7 @@ std::pair<ossia::inlets, ossia::outlets> ProcessExecutorComponent::setup_node(Ex
   //! TODO the day we have audio outputs in some GFX node
   //! propagate will need to be handled ; right now here
   //! it will cut the sound
-  auto recable = std::shared_ptr<ossia::recabler>(new ossia::recabler{n, system().execGraph, std::move(inls), std::move(outls)});
+  auto recable = std::shared_ptr<ossia::recabler>(new ossia::recabler{n, system().execGraph, inls, outls});
   commands.push_back([n, controls, recable] () mutable {
                        (*recable)();
 
