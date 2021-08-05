@@ -86,6 +86,9 @@ public:
   const auto& events() const { return m_ossia_timeevents; }
   const auto& timeSyncs() const { return m_ossia_timesyncs; }
 
+  void playInterval(const Scenario::IntervalModel& itv);
+  void stopInterval(const Scenario::IntervalModel& itv);
+
   void stop() override;
 
   template <typename Component_T, typename Element>
@@ -149,15 +152,6 @@ protected:
   Scenario::ElementsProperties m_properties{};
 
   Scenario::TimenodeGraph m_graph;
-  /*
-  struct GhostInterval {
-    std::shared_ptr<ossia::time_interval> interval;
-    std::shared_ptr<ossia::time_event> end_event;
-  };
-
-  std::vector<GhostInterval> m_ghosts;
-  std::shared_ptr<ossia::time_event> m_ghost_start;
-  */
 };
 
 using ScenarioComponentHierarchy = HierarchicalScenarioComponent<

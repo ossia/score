@@ -8,6 +8,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
+#include <Scenario/Document/Interval/IntervalHeader.hpp>
 #include <Scenario/Palette/ScenarioPalette.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 namespace Scenario
@@ -49,24 +50,24 @@ void PlayToolState::on_pressed(
         m_exec.playState(&m_sm.model(), *id);
       break;
     }
+    case IntervalHeader::Type:
+      item = safe_cast<const IntervalHeader*>(item)->intervalView();
+      [[fallthrough]];
     case IntervalView::Type:
     {
       const auto& cst
           = safe_cast<const IntervalView*>(item)->presenter().model();
 
-      auto id = cst.parent() == &this->m_sm.model()
-                    ? cst.id()
-                    : OptionalId<IntervalModel>{};
-      if (id)
+      if (cst.parent() == &this->m_sm.model())
       {
         if (QApplication::keyboardModifiers() & Qt::AltModifier)
         {
-          m_exec.playInterval(&m_sm.model(), *id);
+          m_exec.playInterval(const_cast<IntervalModel*>(&cst));
         }
         else
         {
           m_exec.playFromIntervalAtDate(
-              &m_sm.model(), *id, scenarioPoint.date);
+              &m_sm.model(), cst.id(), scenarioPoint.date);
         }
       }
       break;

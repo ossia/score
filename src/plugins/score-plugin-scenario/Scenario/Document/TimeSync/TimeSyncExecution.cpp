@@ -13,6 +13,7 @@
 #include <ossia/editor/scenario/time_sync.hpp>
 #include <ossia/editor/state/state.hpp>
 
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
 
@@ -152,9 +153,27 @@ void TimeSyncComponent::updateTrigger()
 
 void TimeSyncComponent::updateTriggerTime()
 {
-  const auto sync = m_score_node->musicalSync();
-  this->in_exec([e = m_ossia_node, sync] {
-    e->set_sync_rate(sync, ossia::quarter_duration<double>);
+  ossia::musical_sync quantRate = m_score_node->musicalSync();
+  if(quantRate < 0)
+  {
+    if(auto parent = Scenario::closestParentInterval(m_score_node->parent()))
+    {
+      auto parent_metrics = Scenario::closestParentWithMusicalMetrics(parent);
+      if(parent_metrics.parent) {
+        quantRate = parent_metrics.parent->quantizationRate();
+      }
+      else if(parent_metrics.lastFound) {
+        // At worst we use the root interval's quantization rate
+        quantRate = parent_metrics.lastFound->quantizationRate();
+      }
+      if(quantRate < 0) {
+        quantRate = 0.;
+      }
+    }
+  }
+
+  this->in_exec([e = m_ossia_node, quantRate] {
+    e->set_sync_rate(quantRate);
   });
 }
 

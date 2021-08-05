@@ -94,9 +94,6 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
             m_view->update();
             break;
           case IntervalExecutionEvent::Stopped:
-            m_view->setExecuting(false);
-            head->setExecuting(false);
-            break;
           case IntervalExecutionEvent::Finished:
             m_view->setExecuting(false);
             head->setExecuting(false);

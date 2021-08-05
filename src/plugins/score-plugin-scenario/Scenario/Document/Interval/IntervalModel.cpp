@@ -238,6 +238,20 @@ void IntervalModel::setTimeSignatureMap(const TimeSignatureMap& map)
   }
 }
 
+ossia::musical_sync IntervalModel::quantizationRate() const noexcept
+{
+  return m_quantRate;
+}
+
+void IntervalModel::setQuantizationRate(ossia::musical_sync b)
+{
+  if(b != m_quantRate)
+  {
+    m_quantRate = b;
+    quantizationRateChanged(b);
+  }
+}
+
 const Id<StateModel>& IntervalModel::startState() const
 {
   return m_startState;
@@ -295,6 +309,7 @@ void IntervalModel::startExecution()
 }
 void IntervalModel::stopExecution()
 {
+  duration.setPlayPercentage(0);
   if (!m_hasSignature)
     duration.setSpeed(1.0);
 
@@ -302,6 +317,7 @@ void IntervalModel::stopExecution()
   {
     proc.stopExecution();
   }
+  setExecuting(false);
 }
 
 void IntervalModel::reset()
@@ -318,6 +334,7 @@ void IntervalModel::reset()
   }
 
   setExecutionState(IntervalExecutionState::Enabled);
+  setExecuting(false);
 }
 
 void IntervalModel::setHeightPercentage(double arg)
@@ -872,7 +889,7 @@ ParentTimeInfo closestParentWithMusicalMetrics(const IntervalModel* self)
 {
   TimeVal delta = TimeVal::zero();
   if (self->hasTimeSignature())
-    return {self, delta};
+    return {self, self, delta};
 
   delta += self->date();
   auto p = self->parent();
@@ -881,13 +898,15 @@ ParentTimeInfo closestParentWithMusicalMetrics(const IntervalModel* self)
     p = p->parent();
   }
 
+  const IntervalModel* lastFound = self;
   while (p)
   {
     if (auto pi = qobject_cast<const IntervalModel*>(p))
     {
+      lastFound = pi;
       if (pi->hasTimeSignature())
       {
-        return {pi, delta};
+        return {pi, pi, delta};
       }
       else
       {
@@ -902,14 +921,14 @@ ParentTimeInfo closestParentWithMusicalMetrics(const IntervalModel* self)
         p = p->parent();
     }
   }
-  return {};
+  return {nullptr, lastFound, {}};
 }
 
 ParentTimeInfo closestParentWithTempo(const IntervalModel* self)
 {
   TimeVal delta = TimeVal::zero();
   if (self->tempoCurve())
-    return {self, delta};
+    return {self, self, delta};
 
   delta += self->date();
   auto p = self->parent();
@@ -918,13 +937,15 @@ ParentTimeInfo closestParentWithTempo(const IntervalModel* self)
     p = p->parent();
   }
 
+  const IntervalModel* lastFound = self;;
   while (p)
   {
     if (auto pi = qobject_cast<const IntervalModel*>(p))
     {
+      lastFound = pi;
       if (pi->tempoCurve())
       {
-        return {pi, delta};
+        return {pi, pi, delta};
       }
       else
       {
@@ -940,7 +961,7 @@ ParentTimeInfo closestParentWithTempo(const IntervalModel* self)
     }
   }
 
-  return {};
+  return {nullptr, lastFound, {}};
 }
 
 QPointF newProcessPosition(const IntervalModel& cst) noexcept

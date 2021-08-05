@@ -76,6 +76,7 @@ public:
   int64_t channels() const;
 
   bool empty() const { return channels() == 0 || samples() == 0; }
+  bool finishedDecoding() const noexcept { return m_fullyDecoded; }
 
   const RMSData& rms() const;
 
@@ -180,6 +181,7 @@ private:
 
   RMSData* m_rms{};
   int m_sampleRate{};
+  bool m_fullyDecoded{};
 
   Handle m_impl;
 };

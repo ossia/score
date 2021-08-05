@@ -56,6 +56,8 @@ public:
       Scenario::IntervalModel&,
       exec_setup_fun setup = {},
       ::TimeVal t = ::TimeVal::zero());
+  void request_stop_interval(
+      Scenario::IntervalModel&);
   void request_stop();
 
 private:
@@ -74,6 +76,8 @@ private:
       exec_setup_fun setup = {},
       ::TimeVal t = ::TimeVal::zero());
 
+  void stop_interval(
+      Scenario::IntervalModel&);
   void ensure_audio_engine();
 
   void on_play_local(bool, ::TimeVal t);

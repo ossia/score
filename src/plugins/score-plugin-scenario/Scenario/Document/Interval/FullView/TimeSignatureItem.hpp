@@ -225,7 +225,7 @@ protected:
         &LineTextItem::done,
         this,
         [this, item](const QString& s) {
-          if (auto sig = Control::get_time_signature(s.toStdString()))
+          if (auto sig = ossia::get_time_signature(s.toStdString()))
           {
             signatureChange(*sig);
           }

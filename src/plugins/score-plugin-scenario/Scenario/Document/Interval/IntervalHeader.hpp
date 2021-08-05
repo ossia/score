@@ -26,6 +26,7 @@ public:
   int type() const final override { return Type; }
 
   void setIntervalView(IntervalView* view) { m_view = view; }
+  IntervalView* intervalView() const noexcept { return m_view; }
   static constexpr double headerHeight() { return IntervalHeaderHeight; }
 
   void setWidth(double width);

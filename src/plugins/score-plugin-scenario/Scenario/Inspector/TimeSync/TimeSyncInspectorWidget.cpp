@@ -10,6 +10,7 @@
 #include <score/widgets/SetIcons.hpp>
 #include <score/widgets/SpinBoxes.hpp>
 #include <score/widgets/TextLabel.hpp>
+#include <score/widgets/QuantificationWidget.hpp>
 
 #include <QCheckBox>
 #include <QToolButton>
@@ -22,127 +23,6 @@
 #include <wobjectimpl.h>
 namespace Scenario
 {
-class QuantificationWidget : public QComboBox
-{
-  static int indexForQuantification(double d) noexcept
-  {
-    if (d == 0.)
-      return 0;
-    if (d == 0.125)
-      return 1;
-    if (d == 0.250)
-      return 2;
-    if (d == 0.500)
-      return 3;
-    if (d == 1)
-      return 4;
-    if (d == 2)
-      return 5;
-    if (d == 4)
-      return 6;
-    if (d == 8)
-      return 7;
-    if (d == 16)
-      return 8;
-    if (d == 32)
-      return 9;
-
-    return 0;
-  }
-
-  static double quantificationForIndex(int d) noexcept
-  {
-    switch (d)
-    {
-      case 0:
-        return 0.;
-      case 1:
-        return 0.125;
-      case 2:
-        return 0.250;
-      case 3:
-        return 0.500;
-      case 4:
-        return 1.;
-      case 5:
-        return 2.;
-      case 6:
-        return 4.;
-      case 7:
-        return 8.;
-      case 8:
-        return 16.;
-      case 9:
-        return 32.;
-      default:
-        return 0.;
-    }
-  }
-
-  W_OBJECT(QuantificationWidget)
-public:
-  QuantificationWidget(QWidget* parent = nullptr)
-      : QComboBox{parent}
-  {
-    addItems(
-        {tr("Free"),
-         tr("8 bars"),
-         tr("4 bars"),
-         tr("2 bars"),
-         tr("1 bar "),
-         tr("1/2   "),
-         tr("1/4   "),
-         tr("1/8   "),
-         tr("1/16  "),
-         tr("1/32  ")});
-    connect(
-        this,
-        qOverload<int>(&QComboBox::currentIndexChanged),
-        this,
-        [=](int idx) { quantificationChanged(quantificationForIndex(idx)); });
-  }
-
-  double quantification() const noexcept
-  {
-    return quantificationForIndex(currentIndex());
-  }
-
-  void setQuantification(double d)
-  {
-    const auto idx = indexForQuantification(d);
-    if (idx != currentIndex())
-    {
-      setCurrentIndex(idx);
-      quantificationChanged(d);
-    }
-  }
-
-  void quantificationChanged(double d) W_SIGNAL(quantificationChanged, d);
-};
-W_OBJECT_IMPL(QuantificationWidget)
-
-class TimeSignatureWidget : public QLineEdit
-{
-public:
-  TimeSignatureWidget() { setContentsMargins(0, 0, 0, 0); }
-
-  void setSignature(std::optional<ossia::time_signature> t)
-  {
-    if (t)
-    {
-      setText(QString{"%1/%2"}.arg(t->upper).arg(t->lower));
-    }
-    else
-    {
-      setText(QString{"0/0"});
-    }
-  }
-
-  std::optional<ossia::time_signature> signature() const
-  {
-    return Control::get_time_signature(this->text().toStdString());
-  }
-};
 
 TimeSyncInspectorWidget::TimeSyncInspectorWidget(
     const TimeSyncModel& object,
@@ -233,12 +113,12 @@ to the root of a score.)_"));
   }
 
   // Synchronization
-  auto musicalSync = new QuantificationWidget{this};
+  auto musicalSync = new score::QuantificationWidget{this};
   musicalSync->setQuantification(m_model.musicalSync());
 
   QObject::connect(
       musicalSync,
-      &QuantificationWidget::quantificationChanged,
+      &score::QuantificationWidget::quantificationChanged,
       this,
       [&ctx, &object](double v) {
         CommandDispatcher<>{ctx.commandStack}
@@ -248,7 +128,7 @@ to the root of a score.)_"));
   con(m_model,
       &TimeSyncModel::musicalSyncChanged,
       musicalSync,
-      &QuantificationWidget::setQuantification);
+      &score::QuantificationWidget::setQuantification);
 
   m_trigwidg = new TriggerInspectorWidget{
       ctx,

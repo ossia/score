@@ -201,17 +201,16 @@ public:
     return m_signatures;
   }
 
+  ossia::musical_sync quantizationRate() const noexcept;
+  void setQuantizationRate(ossia::musical_sync b);
+
   void hasTimeSignatureChanged(bool arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, hasTimeSignatureChanged, arg_1)
   void timeSignaturesChanged(const TimeSignatureMap& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, timeSignaturesChanged, arg_1)
+  void quantizationRateChanged(ossia::musical_sync arg)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, quantizationRateChanged, arg)
 
-  PROPERTY(
-      bool,
-      timeSignature READ hasTimeSignature WRITE setHasTimeSignature NOTIFY
-          hasTimeSignatureChanged)
-
-public:
   void requestHeightChange(double y)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, requestHeightChange, y)
   void heightPercentageChanged(double arg_1)
@@ -269,6 +268,15 @@ public:
       heightPercentage READ heightPercentage WRITE setHeightPercentage NOTIFY
           heightPercentageChanged)
 
+  PROPERTY(
+      bool,
+      timeSignature READ hasTimeSignature WRITE setHasTimeSignature NOTIFY
+          hasTimeSignatureChanged)
+
+  PROPERTY(
+      ossia::musical_sync,
+      quantizationRate READ quantizationRate WRITE setQuantizationRate NOTIFY
+          quantizationRateChanged)
 private:
   void on_addProcess(Process::ProcessModel&);
   void on_removingProcess(const Process::ProcessModel&);
@@ -290,6 +298,7 @@ private:
   double m_heightPercentage{0.5};
 
   double m_nodalFullViewSlotHeight{100};
+  double m_quantRate{-1.0};
 
   ZoomRatio m_zoom{-1};
   TimeVal m_center{};
@@ -319,6 +328,7 @@ QPointF newProcessPosition(const Scenario::IntervalModel& model) noexcept;
 struct ParentTimeInfo
 {
   const IntervalModel* parent;
+  const IntervalModel* lastFound;
   TimeVal delta;
 };
 

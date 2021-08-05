@@ -58,6 +58,8 @@ Pixmaps::Pixmaps() noexcept
     , roll_small{score::get_pixmap(":/icons/rack_button_small_on.png")}
 
     , add{score::get_pixmap(":/icons/process_add_off.png")}
+    , interval_play{score::get_pixmap(":/icons/process_interval_play.png")}
+    , interval_stop{score::get_pixmap(":/icons/process_interval_stop.png")}
 
     , metricHandle{drawPath([](QPainterPath& path, double dpr) {
       path.lineTo(10 * dpr, 0);

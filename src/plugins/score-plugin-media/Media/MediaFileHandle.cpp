@@ -467,6 +467,7 @@ void AudioFile::load_ffmpeg(int rate)
             }
             m_rms->decodeLast(samples);
 
+            m_fullyDecoded = true;
             on_finishedDecoding();
           },
           Qt::QueuedConnection);
@@ -560,8 +561,9 @@ void AudioFile::load_drwav()
 
   m_impl = std::move(r);
 
-  on_finishedDecoding();
+  m_fullyDecoded = true;
   on_mediaChanged();
+  on_finishedDecoding();
   qDebug() << "AudioFileHandle::on_mediaChanged(): " << m_file;
 }
 

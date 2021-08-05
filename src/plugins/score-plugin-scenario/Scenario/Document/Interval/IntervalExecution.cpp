@@ -386,6 +386,10 @@ void IntervalComponent::slot_callback(bool running, ossia::time_value date)
     }
     interval().setExecuting(running);
   }
+  else
+  {
+    interval().setExecuting(false);
+  }
 }
 
 const std::shared_ptr<ossia::time_interval>&

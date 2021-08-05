@@ -39,6 +39,8 @@ struct SCORE_LIB_PROCESS_EXPORT Pixmaps
   const QPixmap roll_small;
 
   const QPixmap add;
+  const QPixmap interval_play;
+  const QPixmap interval_stop;
 
   const QPixmap metricHandle;
 

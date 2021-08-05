@@ -716,7 +716,7 @@ Process::MagneticInfo FullViewIntervalPresenter::magneticPosition(
     else
       o = o->parent();
   } while (!cur_model && o);
-  auto [model, timeDelta] = closestParentWithMusicalMetrics(&m_model);
+  auto [model, lastFound, timeDelta] = closestParentWithMusicalMetrics(&m_model);
 
   if (!o || !model)
     return {scenarioT, snapToScenario};
@@ -780,7 +780,7 @@ void FullViewIntervalPresenter::updateTimeBars()
   if (m_zoomRatio <= 0.)
     return;
 
-  auto [model, timeDelta] = closestParentWithMusicalMetrics(&m_model);
+  auto [model, lastFound, timeDelta] = closestParentWithMusicalMetrics(&m_model);
 
   this->m_timebars->timebar.setModel(model, timeDelta);
 

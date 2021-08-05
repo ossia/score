@@ -80,6 +80,74 @@ ScenarioComponentBase::ScenarioComponentBase(
 
 ScenarioComponentBase::~ScenarioComponentBase() { }
 
+void ScenarioComponentBase::playInterval(const Scenario::IntervalModel& itv)
+{
+  if(auto comp = this->m_ossia_intervals.find(itv.id()); comp != this->m_ossia_intervals.end())
+  {
+    auto& c = comp->second;
+    std::shared_ptr<ossia::scenario> proc
+        = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
+    auto& ossia_c = c->OSSIAInterval();
+
+    ossia::musical_sync quantRate = itv.quantizationRate();
+    if(quantRate < 0)
+    {
+      auto parent_metrics = Scenario::closestParentWithMusicalMetrics(&itv);
+      if(parent_metrics.parent) {
+        quantRate = parent_metrics.parent->quantizationRate();
+      } else if(parent_metrics.lastFound) {
+        // At worst we use the root interval's quantization rate
+        quantRate = parent_metrics.lastFound->quantizationRate();
+      }
+      if(quantRate < 0) {
+        quantRate = 0.;
+      }
+    }
+
+    in_exec([proc, ossia_c, rate = quantRate] {
+       // FIXME this is incorrect for sub-scenarios.
+       // We have to adjust with parent_metrics.delta !
+       proc->start_interval(*ossia_c, rate);
+   });
+
+    startIntervalExecution(itv.id());
+  }
+}
+
+void ScenarioComponentBase::stopInterval(const Scenario::IntervalModel& itv)
+{
+  if(auto comp = this->m_ossia_intervals.find(itv.id()); comp != this->m_ossia_intervals.end())
+  {
+    auto& c = comp->second;
+    std::shared_ptr<ossia::scenario> proc
+        = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
+    auto& ossia_c = c->OSSIAInterval();
+
+    ossia::musical_sync quantRate = itv.quantizationRate();
+    if(quantRate < 0)
+    {
+      auto parent_metrics = Scenario::closestParentWithMusicalMetrics(&itv);
+      if(parent_metrics.parent) {
+        quantRate = parent_metrics.parent->quantizationRate();
+      } else if(parent_metrics.lastFound) {
+        // At worst we use the root interval's quantization rate
+        quantRate = parent_metrics.lastFound->quantizationRate();
+      }
+      if(quantRate < 0) {
+        quantRate = 0.;
+      }
+    }
+
+    in_exec([proc, ossia_c, rate = quantRate] {
+              // FIXME this is incorrect for sub-scenarios.
+              // We have to adjust with parent_metrics.delta !
+              proc->stop_interval(*ossia_c, rate);
+            });
+
+    stopIntervalExecution(itv.id());
+  }
+}
+
 ScenarioComponent::ScenarioComponent(
     Scenario::ProcessModel& proc,
     const Context& ctx,

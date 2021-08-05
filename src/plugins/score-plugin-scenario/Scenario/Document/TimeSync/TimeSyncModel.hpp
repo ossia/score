@@ -123,7 +123,7 @@ private:
   State::Expression m_expression;
 
   EventIdVec m_events;
-  ossia::musical_sync m_musicalSync{1.};
+  ossia::musical_sync m_musicalSync{-1.};
   bool m_active{false};
   bool m_autotrigger{false};
   bool m_startPoint{false};

@@ -859,7 +859,7 @@ struct TimeSignatureValidator final : public QValidator
   using QValidator::QValidator;
   State validate(QString& str, int&) const override
   {
-    auto p = Control::get_time_signature(str.toStdString());
+    auto p = ossia::get_time_signature(str.toStdString());
     if (!p)
       return State::Invalid;
 

@@ -7,6 +7,7 @@
 
 #include <score/document/DocumentContext.hpp>
 #include <score/widgets/MarginLess.hpp>
+#include <score/widgets/QuantificationWidget.hpp>
 #include <score/widgets/SelectionButton.hpp>
 #include <score/widgets/Separator.hpp>
 #include <score/widgets/SetIcons.hpp>
@@ -170,6 +171,25 @@ IntervalInspectorWidget::IntervalInspectorWidget(
   auto speedWidg = new SpeedWidget{true, true, this};
   speedWidg->setInterval(m_model);
   lay->addRow(tr("Speed"), speedWidg);
+
+  // Quantization
+  {
+    auto quantiz = new score::QuantificationWidget{this};
+    quantiz->setQuantification(m_model.quantizationRate());
+
+    QObject::connect(
+        quantiz,
+        &score::QuantificationWidget::quantificationChanged,
+        this,
+        [&ctx, &object](double v) {
+          CommandDispatcher<>{ctx.commandStack}
+              .submit<Scenario::Command::SetIntervalQuantizationRate>(object, v);
+        });
+
+    connect(&m_model, &IntervalModel::quantizationRateChanged,
+            quantiz, &score::QuantificationWidget::setQuantification);
+    lay->addRow(tr("Quantization"), quantiz);
+  }
 
   // Durations
   auto& ctrl = ctx.app.guiApplicationPlugin<ScenarioApplicationPlugin>();

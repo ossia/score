@@ -670,5 +670,9 @@
         <file>icons/version_off@2x.png</file>
         <file>icons/version_on.png</file>
         <file>icons/version_on@2x.png</file>
+        <file>icons/process_interval_play.png</file>
+        <file>icons/process_interval_play@2x.png</file>
+        <file>icons/process_interval_stop.png</file>
+        <file>icons/process_interval_stop@2x.png</file>
     </qresource>
 </RCC>

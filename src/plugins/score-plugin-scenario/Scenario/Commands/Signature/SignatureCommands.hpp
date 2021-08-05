@@ -71,3 +71,12 @@ PROPERTY_COMMAND_T(
     IntervalModel::p_timeSignature,
     "Change time signature")
 SCORE_COMMAND_DECL_T(Scenario::Command::SetHasTimeSignature)
+
+
+PROPERTY_COMMAND_T(
+    Scenario::Command,
+    SetIntervalQuantizationRate,
+    IntervalModel::p_quantizationRate,
+    "Set quantization rate")
+SCORE_COMMAND_DECL_T(Scenario::Command::SetIntervalQuantizationRate)
+

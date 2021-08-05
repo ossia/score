@@ -69,6 +69,8 @@ private:
 
   score::QGraphicsSelectablePixmapToggle* m_rackButton{};
   score::QGraphicsPixmapToggle* m_mute{};
+  score::QGraphicsPixmapButton* m_play{};
+  score::QGraphicsPixmapButton* m_stop{};
   score::QGraphicsSlider* m_speed{};
   score::QGraphicsPixmapButton* m_add{};
   TemporalIntervalPresenter& m_presenter;

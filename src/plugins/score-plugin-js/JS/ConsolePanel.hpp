@@ -168,8 +168,7 @@ public:
 
     if (auto itv = qobject_cast<Scenario::IntervalModel*>(obj))
     {
-      plug->execution().playInterval(
-          &Scenario::parentScenario(*itv), itv->id());
+      plug->execution().playInterval(itv);
     }
     else if (auto state = qobject_cast<Scenario::StateModel*>(obj))
     {

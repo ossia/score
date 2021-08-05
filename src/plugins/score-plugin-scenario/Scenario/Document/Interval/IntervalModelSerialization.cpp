@@ -166,7 +166,9 @@ DataStreamReader::read(const Scenario::IntervalModel& interval)
            << interval.m_startState << interval.m_endState
 
            << interval.m_date << interval.m_heightPercentage
-           << interval.m_nodalFullViewSlotHeight << interval.m_zoom
+           << interval.m_nodalFullViewSlotHeight
+           << interval.m_quantRate
+           << interval.m_zoom
            << interval.m_center << interval.m_viewMode
            << interval.m_smallViewShown << interval.m_hasSignature;
 
@@ -224,7 +226,9 @@ DataStreamWriter::write(Scenario::IntervalModel& interval)
       >> interval.m_startState >> interval.m_endState
 
       >> interval.m_date >> interval.m_heightPercentage
-      >> interval.m_nodalFullViewSlotHeight >> interval.m_zoom
+      >> interval.m_nodalFullViewSlotHeight
+      >> interval.m_quantRate
+      >> interval.m_zoom
       >> interval.m_center >> vm >> sv >> hs;
   interval.m_viewMode = vm;
   interval.m_smallViewShown = sv;
@@ -274,6 +278,7 @@ JSONReader::read(const Scenario::IntervalModel& interval)
   obj[strings.StartDate] = interval.m_date;
   obj[strings.HeightPercentage] = interval.m_heightPercentage;
   obj["NodalSlotHeight"] = interval.m_nodalFullViewSlotHeight;
+  obj["QuantizationRate"] = interval.m_quantRate;
 
   obj[strings.Zoom] = interval.m_zoom;
   obj[strings.Center] = interval.m_center;
@@ -364,6 +369,7 @@ JSONWriter::write(Scenario::IntervalModel& interval)
   interval.m_heightPercentage = obj[strings.HeightPercentage].toDouble();
 
   assign_with_default(interval.m_nodalFullViewSlotHeight, obj.tryGet("NodalSlotHeight"), 100.);
+  assign_with_default(interval.m_quantRate, obj.tryGet("QuantizationRate"), 0.);
 
   {
     int viewMode{};

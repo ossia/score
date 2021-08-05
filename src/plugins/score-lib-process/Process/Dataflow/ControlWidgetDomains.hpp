@@ -179,7 +179,7 @@ template <typename T, typename Control_T, typename Widget_T>
 static void
 bindVec2Domain(const T& slider, Control_T& inlet, Widget_T& widget)
 {
-  auto update_range = [&slider, &widget, &inlet]
+  auto update_range = [&widget, &inlet]
   {
 
     auto min = ossia::get_min(inlet.domain());
@@ -225,7 +225,7 @@ template <typename T, typename Control_T, typename Widget_T>
 static void
 bindVec3Domain(const T& slider, Control_T& inlet, Widget_T& widget)
 {
-  auto update_range = [&slider, &widget, &inlet]
+  auto update_range = [&widget, &inlet]
   {
     auto min = ossia::get_min(inlet.domain());
     auto max = ossia::get_max(inlet.domain());

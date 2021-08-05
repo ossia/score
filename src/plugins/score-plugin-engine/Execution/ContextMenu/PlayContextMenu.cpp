@@ -145,9 +145,15 @@ PlayContextMenu::PlayContextMenu(
   con(exec_signals,
       &Scenario::ScenarioExecution::playInterval,
       this,
-      [&](const Scenario::ScenarioInterface* scenar,
-          const Id<IntervalModel>& id) {
-        plug.execution().request_play_interval(scenar->interval(id));
+      [&](IntervalModel* id) {
+        plug.execution().request_play_interval(*id);
+      });
+
+  con(exec_signals,
+      &Scenario::ScenarioExecution::stopInterval,
+      this,
+      [&](IntervalModel* id) {
+        plug.execution().request_stop_interval(*id);
       });
 
   con(exec_signals,

@@ -22,6 +22,7 @@
 #include <QPoint>
 #include <QTextLayout>
 
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Document/Interval/IntervalHeader.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
@@ -162,6 +163,16 @@ void TemporalIntervalHeader::updateButtons()
     m_add->setPos(pos, 0.);
     pos += interval_header_button_spacing;
   }
+  if (m_play)
+  {
+    m_play->setPos(pos, 0.);
+    pos += interval_header_button_spacing;
+  }
+  if (m_stop)
+  {
+    m_stop->setPos(pos, 0.);
+    pos += interval_header_button_spacing;
+  }
   if (m_speed)
     m_speed->setPos(pos, -1.);
 
@@ -171,12 +182,16 @@ void TemporalIntervalHeader::updateButtons()
 void TemporalIntervalHeader::updateOverlay()
 {
   auto& itv = m_presenter.model();
+  auto grand_parent = Scenario::closestParentInterval(itv.parent());
 
+  bool grand_parent_executing = grand_parent && grand_parent->executing();
   bool overlayVisible = m_selected || m_hovered;
 
   bool hadRackButton = m_rackButton;
   bool hadAdd = m_add;
   bool hadMute = m_mute;
+  bool hadPlay = m_play;
+  bool hadStop = m_stop;
   bool hadSpeed = m_speed;
 
   if (hadSpeed)
@@ -184,6 +199,8 @@ void TemporalIntervalHeader::updateOverlay()
 
   bool needsRackButton = !itv.processes.empty();
   bool needsMute = overlayVisible;
+  bool needsPlay= overlayVisible && grand_parent_executing;
+  bool needsStop= overlayVisible && grand_parent_executing;
   bool needsAdd = overlayVisible;
   bool needsSpeed = overlayVisible && m_executing;
 
@@ -255,6 +272,36 @@ void TemporalIntervalHeader::updateOverlay()
     });
   }
 
+  /// Play ///
+  if (hadPlay && !needsPlay)
+  {
+    delete m_play;
+    m_play = nullptr;
+  }
+  else if (!hadPlay && needsPlay)
+  {
+    m_play = new score::QGraphicsPixmapButton{
+        pixmaps.interval_play, pixmaps.interval_play, this};
+    connect(m_play, &score::QGraphicsPixmapButton::clicked, this, [this] { \
+      auto& ctx = this->m_presenter.context().app.guiApplicationPlugin<ScenarioApplicationPlugin>();
+      ctx.execution().playInterval(const_cast<IntervalModel*>(&this->m_presenter.model()));
+    });
+  }
+  if (hadStop && !needsStop)
+  {
+    delete m_stop;
+    m_stop = nullptr;
+  }
+  else if (!hadStop && needsStop)
+  {
+    m_stop = new score::QGraphicsPixmapButton{
+        pixmaps.interval_stop, pixmaps.interval_stop, this};
+    connect(m_stop, &score::QGraphicsPixmapButton::clicked, this, [this] { \
+      auto& ctx = this->m_presenter.context().app.guiApplicationPlugin<ScenarioApplicationPlugin>();
+              ctx.execution().stopInterval(const_cast<IntervalModel*>(&this->m_presenter.model()));
+            });
+  }
+
   /// Speed slider ///
   if (hadSpeed && !needsSpeed)
   {
@@ -286,7 +333,7 @@ void TemporalIntervalHeader::updateOverlay()
         });
   }
 
-  if (m_speed || m_add || m_mute || m_rackButton)
+  if (m_speed || m_add || m_play || m_stop || m_mute || m_rackButton)
   {
     updateButtons();
   }
@@ -334,6 +381,10 @@ void TemporalIntervalHeader::updateShape() noexcept
   if (m_mute)
     buttons_width += interval_header_button_spacing;
   if (m_add)
+    buttons_width += interval_header_button_spacing;
+  if (m_play)
+    buttons_width += interval_header_button_spacing;
+  if (m_stop)
     buttons_width += interval_header_button_spacing;
   if (m_speed)
     buttons_width += m_speed->boundingRect().width();

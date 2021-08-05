@@ -30,9 +30,11 @@ public:
   void playState(const ScenarioInterface* arg_1, Id<StateModel> arg_2)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, playState, arg_1, arg_2)
 
-  //! Play a single IntervalModel
-  void playInterval(const ScenarioInterface* arg_1, Id<IntervalModel> arg_2)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, playInterval, arg_1, arg_2)
+  //! Stop a single IntervalModel
+  void playInterval(IntervalModel* arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, playInterval, arg_1)
+  void stopInterval(IntervalModel* arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, stopInterval, arg_1)
 
   /**
    * @brief Play from a given point in a IntervalModel.

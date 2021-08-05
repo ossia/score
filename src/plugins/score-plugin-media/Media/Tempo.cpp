@@ -31,7 +31,7 @@ double tempoAtStartDate(const Process::ProcessModel& m) noexcept
     {
       if (auto itv = qobject_cast<Scenario::IntervalModel*>(parent))
       {
-        auto [tempo_itv, delta] = Scenario::closestParentWithTempo(itv);
+        auto [tempo_itv, lastFound, delta] = Scenario::closestParentWithTempo(itv);
         if (tempo_itv)
         {
           using namespace ossia;

@@ -13,6 +13,7 @@
 
 #include <score/actions/ActionManager.hpp>
 #include <score/tools/Bind.hpp>
+#include <score/model/ComponentUtils.hpp>
 #include <score/widgets/MessageBox.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
@@ -31,6 +32,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
+#include <Scenario/Process/ScenarioExecution.hpp>
 
 /**
  * Execution state-machine explanation:
@@ -197,6 +199,12 @@ void ExecutionController::request_play_interval(
 {
   m_intervalsToPlay.push_back({itv, std::move(setup), t});
   m_transport->requestPlay();
+}
+
+void ExecutionController::request_stop_interval(
+    Scenario::IntervalModel& itv)
+{
+  stop_interval(itv);
 }
 
 void ExecutionController::request_stop()
@@ -462,6 +470,19 @@ void ExecutionController::play_interval(
       m_clock->resume();
       m_paused = false;
     }
+    else
+    {
+      // We are playing an interval while we are already executing.
+      if(auto scenar = qobject_cast<Scenario::ProcessModel*>(cst.parent()))
+      {
+        auto exec_comp = score::findComponent<Execution::ScenarioComponentBase>(scenar->components());
+        if(exec_comp)
+        {
+          exec_comp->playInterval(cst);
+        }
+        return;
+      }
+    }
   }
   else
   {
@@ -507,6 +528,34 @@ void ExecutionController::play_interval(
     transport_plug->play();
 }
 
+void ExecutionController::stop_interval(
+    Scenario::IntervalModel& cst)
+{
+  auto doc = currentDocument();
+  if (!doc)
+    return;
+
+  auto& ctx = doc->context();
+
+  auto exec_plug = ctx.findPlugin<Execution::DocumentPlugin>();
+  if (!exec_plug)
+    return;
+
+  ensure_audio_engine();
+
+  if (m_playing)
+  {
+    // We are stopping an interval while we are already executing.
+    if(auto scenar = qobject_cast<Scenario::ProcessModel*>(cst.parent()))
+    {
+      auto exec_comp = score::findComponent<Execution::ScenarioComponentBase>(scenar->components());
+      if(exec_comp)
+      {
+        exec_comp->stopInterval(cst);
+      }
+    }
+  }
+}
 TimeVal ExecutionController::execution_time() const
 {
   if (m_clock)
