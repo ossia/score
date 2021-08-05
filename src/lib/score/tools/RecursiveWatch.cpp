@@ -69,7 +69,6 @@ void process_file(FTS* fts, FTSENT* curr, std::function<void(std::string_view)>&
 
     case FTS_DC:
     case FTS_DOT:
-    case FTS_NSOK:
       break;
 
     // Skip unwanted folders (.git, etc)
@@ -84,6 +83,7 @@ void process_file(FTS* fts, FTSENT* curr, std::function<void(std::string_view)>&
     }
 
     // Process our file
+    case FTS_NSOK:
     case FTS_F:
     {
       f(curr->fts_path);
