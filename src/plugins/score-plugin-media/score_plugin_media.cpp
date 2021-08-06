@@ -39,8 +39,6 @@ extern "C"
 }
 #endif
 
-W_OBJECT_IMPL(Media::Sound::AudioPreviewDecoder)
-
 score_plugin_media::score_plugin_media()
 {
 #if SCORE_HAS_LIBAV
