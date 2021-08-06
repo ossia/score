@@ -75,22 +75,25 @@ CableWidget::CableWidget(
 
   this->updateAreaLayout({&m_cableType, &m_portList});
 
-  auto lay = new QVBoxLayout{&m_portList};
-  auto& source = cable.source().find(ctx);
-  auto& sink = cable.sink().find(ctx);
+  auto source = cable.source().try_find(ctx);
+  auto sink = cable.sink().try_find(ctx);
+  if(!source || !sink)
+    qDebug("Warning ! showing a cable inspector while a process has been deleted");
+  return;
 
+  auto lay = new QVBoxLayout{&m_portList};
   {
     QString name = tr("Source");
-    fillPortName(name, source);
-    auto b = SelectionButton::make(name, &source, m_selectionDispatcher, this);
+    fillPortName(name, *source);
+    auto b = SelectionButton::make(name, source, m_selectionDispatcher, this);
     b->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     lay->addWidget(b);
   }
 
   {
     QString name = tr("Sink");
-    fillPortName(name, sink);
-    auto b = SelectionButton::make(name, &sink, m_selectionDispatcher, this);
+    fillPortName(name, *sink);
+    auto b = SelectionButton::make(name, sink, m_selectionDispatcher, this);
     b->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     lay->addWidget(b);
   }
