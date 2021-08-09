@@ -22,7 +22,7 @@ void ApplicationPlugin::on_createdDocument(score::Document& doc)
 
   Http_server Http_server;
 
-  Http_server.open_server();
+  // Http_server.open_server();
 }
 
 }
