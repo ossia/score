@@ -1,5 +1,4 @@
 *.zip
-build-*
 AppRun*
 *.AppImage
 *.txz
