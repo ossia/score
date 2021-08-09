@@ -35,7 +35,7 @@ Http_server::Http_server()
 
 Http_server::~Http_server()
 {
-     //ioc.stop();
+     ioc.stop();
      th.join();
 }
 
@@ -313,8 +313,13 @@ Http_server::open_server()
                 &Http_server::do_session,
                 this,
                 std::move(socket),
-                doc_root)}.detach();
+                doc_root)}.join();
+
+           // auto th1 = [this] {  this->do_session(std::move(socket), doc_root); };
+
         }
+
+        auto th = [this] { this->ioc.run(); };
     }
     catch (const std::exception& e)
     {
