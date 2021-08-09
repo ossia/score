@@ -7,8 +7,11 @@
 #include <core/document/DocumentModel.hpp>
 
 #include <RemoteControl/ApplicationPlugin.hpp>
+
 #include <RemoteControl/Controller/DocumentPlugin.hpp>
 #include <RemoteControl/Websockets/DocumentPlugin.hpp>
+
+#include <RemoteControl/Http_server.hpp>
 
 namespace RemoteControl
 {
@@ -22,6 +25,9 @@ void ApplicationPlugin::on_createdDocument(score::Document& doc)
   doc.model().addPluginModel(new WS::DocumentPlugin{doc.context(), &doc.model()});
   doc.model().addPluginModel(
       new Controller::DocumentPlugin{doc.context(), &doc.model()});
+
+  Http_server Http_server;
+  Http_server.open_server();
 }
 
 }

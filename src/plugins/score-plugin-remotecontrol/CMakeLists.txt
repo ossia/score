@@ -37,6 +37,8 @@ set(HDRS
 
   "${CMAKE_CURRENT_SOURCE_DIR}/i-score-remote/RemoteApplication.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_remotecontrol.hpp"
+
+  "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Http_server.hpp"
   )
 set(SRCS
 
@@ -57,12 +59,16 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/ApplicationPlugin.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Http_server.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_remotecontrol.cpp"
 )
 
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/build-wasm/ DESTINATION ${CMAKE_BINARY_DIR}/src/plugins/score-plugin-remotecontrol/CMakeFiles/score_plugin_remotecontrol.dir/RemoteControl/build-wasm/ )
+
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS} ${QRCS})
 
-target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_scenario score_plugin_js ${QT_PREFIX}::WebSockets)
+target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_scenario score_plugin_js ${QT_PREFIX}::WebSockets ossia)
 
 setup_score_plugin(${PROJECT_NAME})
 
