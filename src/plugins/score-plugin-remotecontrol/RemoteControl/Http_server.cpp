@@ -16,27 +16,21 @@
 #include <RemoteControl/Http_server.hpp>
 
 //------------------------------------------------------------------------------
-
+#include <QApplication>
 namespace RemoteControl
 {
 
 Http_server::Http_server()
-  : ioc{1}
 {
-    // auto th = [this] { this->ioc.run(); };
-
-    //th(&Http_server::open_server, this);
-
-    open_server();
-
-    //th = [this] { this->ioc.run(); };
-
+  m_docRoot = "/tmp";
+  m_serverThread = std::thread{[this] { open_server(); }};
 }
 
 Http_server::~Http_server()
 {
+     shutdown(m_listenSocket, SHUT_RDWR);
      ioc.stop();
-     th.join();
+     m_serverThread.join();
 }
 
 // Return a reasonable mime type based on the extension of a file.
@@ -221,8 +215,7 @@ Http_server::fail(beast::error_code ec, char const* what)
 // Handles an HTTP server connection
 void
 Http_server::do_session(
-    tcp::socket& socket,
-    std::shared_ptr<std::string const> const& doc_root)
+    tcp::socket& socket)
 {
     bool close = false;
     beast::error_code ec;
@@ -244,7 +237,7 @@ Http_server::do_session(
             return Http_server::fail(ec, "read");
 
         // Send the response
-        Http_server::handle_request(*doc_root, std::move(req), lambda);
+        Http_server::handle_request(m_docRoot, std::move(req), lambda);
         if(ec)
             return Http_server::fail(ec, "write");
         if(close)
@@ -291,15 +284,12 @@ Http_server::open_server()
 {
     try
     {
-        //std::string ip_address = get_ip_address();
-
-        // auto const address = net::ip::make_address(ip_address);
-        auto const address = net::ip::make_address("127.0.0.1");
+        auto const address = net::ip::make_address("0.0.0.0");
         auto const port = static_cast<unsigned short>(std::atoi("8080"));
-        auto const doc_root = std::make_shared<std::string>("./build-wasm/");
 
         // The acceptor receives incoming connections
         tcp::acceptor acceptor{ioc, {address, port}};
+        m_listenSocket = acceptor.native_handle();
         for(;;)
         {
             // This will receive the new connection
@@ -309,17 +299,8 @@ Http_server::open_server()
             acceptor.accept(socket);
 
             // Launch the session, transferring ownership of the socket
-            std::thread{std::bind(
-                &Http_server::do_session,
-                this,
-                std::move(socket),
-                doc_root)}.join();
-
-           // auto th1 = [this] {  this->do_session(std::move(socket), doc_root); };
-
+            do_session(socket);
         }
-
-        auto th = [this] { this->ioc.run(); };
     }
     catch (const std::exception& e)
     {
