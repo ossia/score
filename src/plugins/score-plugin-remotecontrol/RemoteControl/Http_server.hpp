@@ -43,7 +43,6 @@ namespace RemoteControl
 class Http_server
 {
 public:
-    std::thread th;
     net::io_context ioc;
 
     //std::thread th1;
@@ -122,8 +121,7 @@ public:
     // Handles an HTTP server connection
     void
     do_session(
-        tcp::socket& socket,
-        std::shared_ptr<std::string const> const& doc_root);
+        tcp::socket& socket);
 
     //------------------------------------------------------------------------------
 
@@ -134,5 +132,9 @@ public:
     int open_server();
 
     //void open_server_thread();
+    std::thread m_serverThread;
+    std::string m_docRoot;
+
+    int m_listenSocket{};
 };
 }
