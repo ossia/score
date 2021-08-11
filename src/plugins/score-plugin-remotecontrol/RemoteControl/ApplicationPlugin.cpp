@@ -11,7 +11,6 @@
 #include <RemoteControl/Controller/DocumentPlugin.hpp>
 #include <RemoteControl/Websockets/DocumentPlugin.hpp>
 
-#include <RemoteControl/Http_server.hpp>
 
 namespace RemoteControl
 {
