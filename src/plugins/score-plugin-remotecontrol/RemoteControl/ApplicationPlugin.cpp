@@ -6,7 +6,6 @@
 #include <RemoteControl/ApplicationPlugin.hpp>
 #include <RemoteControl/DocumentPlugin.hpp>
 
-#include <RemoteControl/Http_server.hpp>
 
 namespace RemoteControl
 {
@@ -19,10 +18,6 @@ void ApplicationPlugin::on_createdDocument(score::Document& doc)
 {
   doc.model().addPluginModel(new DocumentPlugin{
       doc.context(), &doc.model()});
-
-  Http_server Http_server;
-
-  // Http_server.open_server();
 }
 
 }
