@@ -22,8 +22,7 @@ namespace RemoteControl
 
 Http_server::Http_server()
 {
-  m_docRoot = "/tmp";
-  m_serverThread = std::thread{[this] { open_server(); }};
+  // m_docRoot = "/tmp";
 }
 
 Http_server::~Http_server()
@@ -122,6 +121,8 @@ Http_server::handle_request(
         return res;
     };
 
+    QDir::currentPath();
+
     // Returns a not found response
     auto const not_found =
     [&req](beast::string_view target)
@@ -130,7 +131,7 @@ Http_server::handle_request(
         res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
         res.set(http::field::content_type, "text/html");
         res.keep_alive(req.keep_alive());
-        res.body() = "The resource '" + std::string(target) + "' was not found.<br> Go to the following address : http://ip_address:port/remote.html.";
+        res.body() = "The resource '" + std::string(target) + "' was not found.<br> Current repository :" + QDir::currentPath().toUtf8().constData() +".<br> Go to the following address : http://ip_address:port/remote.html.";
         res.prepare_payload();
         return res;
     };
@@ -215,7 +216,8 @@ Http_server::fail(beast::error_code ec, char const* what)
 // Handles an HTTP server connection
 void
 Http_server::do_session(
-    tcp::socket& socket)
+    tcp::socket& socket,
+    std::shared_ptr<std::string const> const& doc_root)
 {
     bool close = false;
     beast::error_code ec;
@@ -237,7 +239,7 @@ Http_server::do_session(
             return Http_server::fail(ec, "read");
 
         // Send the response
-        Http_server::handle_request(m_docRoot, std::move(req), lambda);
+        Http_server::handle_request(*doc_root, std::move(req), lambda);
         if(ec)
             return Http_server::fail(ec, "write");
         if(close)
@@ -279,13 +281,23 @@ Http_server::get_ip_address()
 
 //------------------------------------------------------------------------------
 
+void
+Http_server::start_thread()
+{
+    m_serverThread = std::thread{[this] { open_server(); }};
+}
+
+//------------------------------------------------------------------------------
+
 int
 Http_server::open_server()
 {
     try
     {
-        auto const address = net::ip::make_address("0.0.0.0");
+        // auto const address = net::ip::make_address("0.0.0.0");
+        auto const address = net::ip::make_address("127.0.0.1");
         auto const port = static_cast<unsigned short>(std::atoi("8080"));
+        auto const m_docRoot = std::make_shared<std::string>("./src/plugins/score-plugin-remotecontrol/CMakeFiles/score_plugin_remotecontrol.dir/RemoteControl/build-wasm/");
 
         // The acceptor receives incoming connections
         tcp::acceptor acceptor{ioc, {address, port}};
@@ -299,7 +311,7 @@ Http_server::open_server()
             acceptor.accept(socket);
 
             // Launch the session, transferring ownership of the socket
-            do_session(socket);
+            do_session(socket, m_docRoot);
         }
     }
     catch (const std::exception& e)
