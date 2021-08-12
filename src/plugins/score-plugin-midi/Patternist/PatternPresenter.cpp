@@ -75,12 +75,13 @@ void Presenter::parentGeometryChanged() { }
 
 void Presenter::on_drop(const QPointF& pos, const QMimeData& md)
 {
-    auto patterns = parsePatternFiles(md);
-    if (patterns.empty())
-        return;
+  auto patterns = parsePatternFiles(md);
+  if (patterns.empty())
+    return;
 
-    CommandDispatcher<> disp{m_context.context.commandStack};
-    disp.submit<UpdatePattern>(
-        static_cast<const Patternist::ProcessModel&>(model()), 0, patterns[0]);
+  auto& model = static_cast<const Patternist::ProcessModel&>(this->model());
+  CommandDispatcher<> disp{m_context.context.commandStack};
+  qDebug() << model.currentPattern();
+  disp.submit<UpdatePattern>(model, model.currentPattern(), patterns[0]);
 }
 }

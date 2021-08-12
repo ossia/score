@@ -41,11 +41,11 @@ ProcessModel::ProcessModel(
     QObject* parent)
     : Patternist::ProcessModel{duration, id, parent}
 {
-  QFile f{customData};
-  if(auto data = score::mapAsByteArray(f); !data.isEmpty())
-    if(auto pat = parsePattern(data); pat.lanes.size() > 0) {
-      this->m_patterns = {std::move(pat)};
-  }
+
+  if(QFile f{customData}; f.open(QIODevice::ReadOnly))
+    if(auto data = score::mapAsByteArray(f); !data.isEmpty())
+      if(auto pat = parsePattern(data); pat.lanes.size() > 0)
+        this->m_patterns = {std::move(pat)};
 }
 
 void ProcessModel::init()

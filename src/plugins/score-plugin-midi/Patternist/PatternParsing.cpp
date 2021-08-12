@@ -1,4 +1,7 @@
 #include <Patternist/PatternParsing.hpp>
+#include <Process/ProcessMimeSerialization.hpp>
+#include <score/tools/File.hpp>
+
 #include <QRegularExpression>
 #include <QString>
 #include <QByteArray>
@@ -45,6 +48,21 @@ Pattern parsePattern(const QByteArray& data) noexcept
   return p;
 }
 
+Pattern parsePatternFile(const QString& path) noexcept
+{
+  QFile f{path};
+  if (!QFileInfo{f}.suffix().toLower().contains(QStringLiteral("pat")))
+    return {};
+
+  if (!f.open(QIODevice::ReadOnly))
+    return {};
+
+  auto res = parsePattern(score::mapAsByteArray(f));
+  if (!res.lanes.empty() && res.length > 0)
+    return res;
+  return {};
+}
+
 std::vector<Pattern> parsePatternFiles(const QMimeData& mime) noexcept
 {
   std::vector<Pattern> pat;
@@ -53,16 +71,22 @@ std::vector<Pattern> parsePatternFiles(const QMimeData& mime) noexcept
   {
     for (auto& url : mime.urls())
     {
-      QFile f(url.toLocalFile());
-      if (!QFileInfo{f}.suffix().toLower().contains("pat"))
-        continue;
-
-      if (!f.open(QIODevice::ReadOnly))
-        continue;
-
-      auto res = parsePattern(f.readAll());
-      if (!res.lanes.empty() && res.length > 0)
+      if(auto res = parsePatternFile(url.toLocalFile()); !res.lanes.empty())
+      {
         pat.push_back(std::move(res));
+      }
+    }
+  }
+  else if(mime.hasFormat(score::mime::processdata()))
+  {
+    Mime<Process::ProcessData>::Deserializer des{mime};
+    Process::ProcessData p = des.deserialize();
+    if(p.key == Metadata<ConcreteKey_k, Patternist::ProcessModel>::get())
+    {
+      if(auto res = parsePatternFile(p.customData); !res.lanes.empty())
+      {
+        pat.push_back(std::move(res));
+      }
     }
   }
 

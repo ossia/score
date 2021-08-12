@@ -51,7 +51,7 @@ class LibraryHandler final
     pdata.prettyName = file.baseName();
     pdata.key = Metadata<ConcreteKey_k, Patternist::ProcessModel>::get();
     pdata.author = "Drum Patterns";
-    pdata.customData = [&] { return file.absoluteFilePath(); }();
+    pdata.customData = file.absoluteFilePath();
     categories.add(file, std::move(pdata));
   }
 };
