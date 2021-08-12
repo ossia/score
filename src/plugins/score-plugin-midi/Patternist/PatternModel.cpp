@@ -1,9 +1,13 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <Patternist/PatternModel.hpp>
+#include <Patternist/PatternParsing.hpp>
+
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortSerialization.hpp>
 
-#include <Patternist/PatternModel.hpp>
+#include <score/tools/File.hpp>
+
 #include <cmath>
 #include <wobjectimpl.h>
 
@@ -28,6 +32,20 @@ ProcessModel::ProcessModel(
   m_patterns.push_back(pattern);
   metadata().setInstanceName(*this);
   init();
+}
+
+ProcessModel::ProcessModel(
+    const TimeVal& duration,
+    const QString& customData,
+    const Id<Process::ProcessModel>& id,
+    QObject* parent)
+    : Patternist::ProcessModel{duration, id, parent}
+{
+  QFile f{customData};
+  if(auto data = score::mapAsByteArray(f); !data.isEmpty())
+    if(auto pat = parsePattern(data); pat.lanes.size() > 0) {
+      this->m_patterns = {std::move(pat)};
+  }
 }
 
 void ProcessModel::init()
@@ -79,7 +97,7 @@ int ProcessModel::currentPattern() const noexcept
 
 void ProcessModel::setPattern(int n, Pattern p)
 {
-  m_patterns[n] = p;
+  m_patterns[n] = std::move(p);
   patternsChanged();
 }
 

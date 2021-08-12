@@ -1,12 +1,13 @@
 #include "PatternPresenter.hpp"
 
-#include "PatternView.hpp"
+#include <Patternist/Commands/PatternProperties.hpp>
+#include <Patternist/PatternParsing.hpp>
+#include <Patternist/PatternView.hpp>
 
 #include <Process/Focus/FocusDispatcher.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 
-#include <Patternist/Commands/PatternProperties.hpp>
 namespace Patternist
 {
 
@@ -19,6 +20,8 @@ Presenter::Presenter(
     , m_view{view}
 {
   putToFront();
+
+  connect(m_view, &View::dropReceived, this, &Presenter::on_drop);
 
   connect(m_view, &View::pressed, this, [&]() {
     m_context.context.focusDispatcher.focus(this);
@@ -70,4 +73,14 @@ void Presenter::on_zoomRatioChanged(ZoomRatio zr) { }
 
 void Presenter::parentGeometryChanged() { }
 
+void Presenter::on_drop(const QPointF& pos, const QMimeData& md)
+{
+    auto patterns = parsePatternFiles(md);
+    if (patterns.empty())
+        return;
+
+    CommandDispatcher<> disp{m_context.context.commandStack};
+    disp.submit<UpdatePattern>(
+        static_cast<const Patternist::ProcessModel&>(model()), 0, patterns[0]);
+}
 }

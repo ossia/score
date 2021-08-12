@@ -34,9 +34,11 @@ private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 
   const Patternist::ProcessModel& m_model;
 
   std::vector<score::QGraphicsNoteChooser*> m_lanes;
+
 };
 }

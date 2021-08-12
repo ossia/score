@@ -164,4 +164,11 @@ void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
+void View::dropEvent(QGraphicsSceneDragDropEvent* event)
+{
+  dropReceived(event->pos(), *event->mimeData());
+  event->accept();
 }
+
+}
+

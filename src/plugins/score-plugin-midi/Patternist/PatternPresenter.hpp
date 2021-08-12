@@ -32,6 +32,7 @@ public:
   void parentGeometryChanged() override;
 
 private:
-  View* m_view{};
+    void on_drop(const QPointF& pos, const QMimeData& md);
+    View* m_view{};
 };
 }

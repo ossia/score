@@ -50,7 +50,7 @@ std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::dropData(
                 = Metadata<ConcreteKey_k, Midi::ProcessModel>::get();
             p.creation.prettyName = QFileInfo{filename}.baseName();
             p.duration = TimeVal::fromMsecs(song.durationInMs);
-            p.setup = [track = std::move(t), song_t = song.durationInMs](
+            p.setup = [track = std::move(t), song_t = song.durationInMs] (
                           Process::ProcessModel& m,
                           score::Dispatcher& disp) mutable {
               auto& midi = static_cast<Midi::ProcessModel&>(m);

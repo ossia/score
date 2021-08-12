@@ -44,6 +44,11 @@ public:
       const TimeVal& duration,
       const Id<Process::ProcessModel>& id,
       QObject* parent);
+  explicit ProcessModel(
+      const TimeVal& duration,
+      const QString& custom,
+      const Id<Process::ProcessModel>& id,
+      QObject* parent);
 
   template <typename Impl>
   explicit ProcessModel(Impl& vis, QObject* parent)

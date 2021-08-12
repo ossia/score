@@ -13,6 +13,7 @@
 #include <Patternist/PatternExecutor.hpp>
 #include <Patternist/PatternFactory.hpp>
 #include <Patternist/PatternInspector.hpp>
+#include <Patternist/PatternLibrary.hpp>
 #include <score_plugin_midi_commands_files.hpp>
 
 score_plugin_midi::score_plugin_midi() = default;
@@ -32,7 +33,8 @@ score_plugin_midi::factories(
       FW<Execution::ProcessComponentFactory,
          Midi::Executor::ComponentFactory,
          Patternist::ExecutorFactory>,
-      FW<Process::ProcessDropHandler, Midi::DropHandler>,
+      FW<Library::LibraryInterface, Patternist::LibraryHandler>,
+      FW<Process::ProcessDropHandler, Midi::DropHandler, Patternist::DropHandler>,
       FW<Inspector::InspectorWidgetFactory,
          Midi::InspectorFactory,
          Patternist::InspectorFactory>>(ctx, key);
