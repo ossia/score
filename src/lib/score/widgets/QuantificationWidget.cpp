@@ -1,5 +1,5 @@
 #include <score/widgets/QuantificationWidget.hpp>
-
+#include <wobjectimpl.h>
 W_OBJECT_IMPL(score::QuantificationWidget)
 
 namespace score
