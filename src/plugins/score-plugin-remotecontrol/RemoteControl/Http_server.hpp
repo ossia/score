@@ -27,6 +27,10 @@
 #include <string>
 #include <thread>
 
+#ifdef _WIN32
+#define SHUT_RDWR 2
+#endif
+
 #include <QDir>
 #include <QHostAddress>
 #include <QNetworkInterface>
