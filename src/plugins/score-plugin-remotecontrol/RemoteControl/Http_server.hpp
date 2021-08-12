@@ -125,7 +125,8 @@ public:
     // Handles an HTTP server connection
     void
     do_session(
-        tcp::socket& socket);
+        tcp::socket& socket,
+        std::shared_ptr<std::string const> const& doc_root);
 
     //------------------------------------------------------------------------------
 
@@ -133,11 +134,20 @@ public:
 
     //------------------------------------------------------------------------------
 
-    int open_server();
+    void
+    start_thread();
+
+    //------------------------------------------------------------------------------
+
+    int
+    open_server();
+
+    //------------------------------------------------------------------------------
 
     //void open_server_thread();
     std::thread m_serverThread;
-    std::string m_docRoot;
+    //std::string m_docRoot;
+    //auto const m_docRoot = std::make_shared<std::string>("./build-wasm/");
 
     int m_listenSocket{};
 };
