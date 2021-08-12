@@ -15,6 +15,7 @@
 #include <ossia/editor/scenario/time_process.hpp>
 
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/Tempo/TempoProcess.hpp>
 
 namespace Execution
@@ -53,23 +54,16 @@ tempoCurve(const Scenario::IntervalModel& itv, const Execution::Context& ctx)
     return {};
   }
 }
-inline std::optional<ossia::time_signature_map> timeSignatureMap(
+inline ossia::time_signature_map timeSignatureMap(
     const Scenario::IntervalModel& itv,
     const Execution::Context& ctx)
 {
-  if (itv.hasTimeSignature())
+  ossia::time_signature_map ret;
+  for (const auto& [time, sig] : itv.timeSignatureMap())
   {
-    ossia::time_signature_map ret;
-    for (const auto& [time, sig] : itv.timeSignatureMap())
-    {
-      ret[ctx.time(time)] = sig;
-    }
-    return ret;
+    ret[ctx.time(time)] = sig;
   }
-  else
-  {
-    return std::nullopt;
-  }
+  return ret;
 }
 
 inline auto propagatedOutlets(const Process::Outlets& outlets) noexcept

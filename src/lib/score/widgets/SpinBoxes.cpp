@@ -1,10 +1,13 @@
 #include "SpinBoxes.hpp"
 
 #include "TimeSpinBox.hpp"
+#include "DoubleSpinBox.hpp"
 
 #include <score/model/Skin.hpp>
 #include <score/tools/Cursor.hpp>
 #include <score/tools/Debug.hpp>
+#include <score/widgets/ControlWidgets.hpp>
+#include <score/widgets/SignalUtils.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/flicks.hpp>
@@ -13,6 +16,7 @@
 #include <QPainter>
 #include <QStyleOptionComplex>
 #include <QTime>
+#include <QTimer>
 
 #include <cmath>
 #include <wobjectimpl.h>
@@ -369,7 +373,8 @@ struct FlicksSpinBox
 };
 
 static std::vector<TimeSpinBox*> spinBoxes;
-TimeSpinBox::TimeMode globalTimeMode = TimeSpinBox::TimeMode::Bars;
+static std::vector<SpeedSlider*> speedSliders;
+TimeMode globalTimeMode = TimeMode::Bars;
 
 TimeSpinBox::TimeSpinBox(QWidget* parent)
     : QWidget(parent)
@@ -377,22 +382,11 @@ TimeSpinBox::TimeSpinBox(QWidget* parent)
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorSpin);
   spinBoxes.push_back(this);
-  m_mode = globalTimeMode;
 }
 
 TimeSpinBox::~TimeSpinBox()
 {
   ossia::remove_one(spinBoxes, this);
-}
-
-void TimeSpinBox::setGlobalTimeMode(TimeSpinBox::TimeMode mode)
-{
-  globalTimeMode = mode;
-  for (auto sb : spinBoxes)
-  {
-    sb->m_mode = mode;
-    sb->update();
-  }
 }
 
 void TimeSpinBox::setMinimumTime(ossia::time_value t)
@@ -450,7 +444,7 @@ void TimeSpinBox::mousePressEvent(QMouseEvent* event)
 
   m_startPos = score::globalPos(event);
 
-  switch (m_mode)
+  switch (globalTimeMode)
   {
     case Bars:
       BarSpinBox{*this}.mousePress(text_rect, event);
@@ -474,7 +468,7 @@ void TimeSpinBox::mousePressEvent(QMouseEvent* event)
 
 void TimeSpinBox::mouseMoveEvent(QMouseEvent* event)
 {
-  switch (m_mode)
+  switch (globalTimeMode)
   {
     case Bars:
       BarSpinBox{*this}.mouseMove(event);
@@ -497,7 +491,7 @@ void TimeSpinBox::mouseMoveEvent(QMouseEvent* event)
 
 void TimeSpinBox::mouseReleaseEvent(QMouseEvent* event)
 {
-  switch (m_mode)
+  switch (globalTimeMode)
   {
     case Bars:
       BarSpinBox{*this}.mouseRelease(event);
@@ -524,7 +518,7 @@ void TimeSpinBox::mouseDoubleClickEvent(QMouseEvent* event)
   le->setGeometry(this->rect());
   le->setParent(this);
   le->show();
-  switch (m_mode)
+  switch (globalTimeMode)
   {
     case Bars:
       le->setText(BarSpinBox{*this}.text());
@@ -541,7 +535,7 @@ void TimeSpinBox::mouseDoubleClickEvent(QMouseEvent* event)
 
   connect(le, &QLineEdit::editingFinished, this, [this, le] {
     std::optional<int64_t> flicks;
-    switch (m_mode)
+    switch (globalTimeMode)
     {
       case Bars:
         flicks = BarSpinBox{*this}.parseText(le->text());
@@ -610,7 +604,7 @@ void TimeSpinBox::paintEvent(QPaintEvent* event)
   QFontMetrics fm = fontMetrics();
 
   const auto text_rect = rect().adjusted(2, 2, -4, -2);
-  switch (m_mode)
+  switch (globalTimeMode)
   {
     case Bars:
       BarSpinBox{*this}.paint(p, text_rect);
@@ -621,6 +615,138 @@ void TimeSpinBox::paintEvent(QPaintEvent* event)
     case Flicks:
       FlicksSpinBox{*this}.paint(p, text_rect);
       break;
+  }
+}
+
+
+
+/* Speed goes from -1 to 5 */
+static constexpr double valueFromSpeed(double speed)
+{
+  return (speed + 1.) / 6.;
+}
+static constexpr double speedFromValue(double value)
+{
+  return value * 6. - 1.;
+}
+
+SpeedSlider::SpeedSlider(QWidget* parent)
+    : DoubleSlider{parent}
+{
+  speedSliders.push_back(this);
+  setSpeed(1.0);
+}
+
+SpeedSlider::~SpeedSlider()
+{
+  ossia::remove_one(speedSliders, this);
+}
+
+double SpeedSlider::speed() const noexcept
+{
+  return std::round(1000 * speedFromValue(value())) / 1000;
+}
+
+void SpeedSlider::setSpeed(double v)
+{
+  setValue(valueFromSpeed(v));
+}
+
+void SpeedSlider::setTempo(double t)
+{
+  setValue(valueFromSpeed(t / ossia::root_tempo));
+}
+
+void SpeedSlider::paintEvent(QPaintEvent*)
+{
+  QString text;
+  text.reserve(16);
+  text += (globalTimeMode == TimeMode::Bars) ? "" : (showText) ? "speed: × " : "× ";
+
+  double v = speed();
+  if (globalTimeMode == TimeMode::Bars)
+  {
+    v *= ossia::root_tempo;
+    text += QString::number(v, 'f', 1);
+  }
+  else
+  {
+    text += QString::number(v, 'f', 2);
+  }
+
+  paintWithText(text);
+}
+
+void SpeedSlider::mousePressEvent(QMouseEvent* ev)
+{
+  if (ev->button() == Qt::LeftButton)
+    return DoubleSlider::mousePressEvent(ev);
+
+  if (qApp->keyboardModifiers() & Qt::CTRL)
+  {
+    setValue(valueFromSpeed(1.));
+  }
+  else
+  {
+    QTimer::singleShot(0, [this, pos=ev->globalPos()] { createPopup(pos); });
+  }
+  ev->ignore();
+}
+
+void SpeedSlider::createPopup(QPoint pos)
+{
+  auto w = new score::DoubleSpinboxWithEnter;
+  w->setWindowFlag(Qt::Tool);
+  w->setWindowFlag(Qt::FramelessWindowHint);
+  if (globalTimeMode == TimeMode::Bars)
+  {
+    w->setRange(20., 500.);
+    w->setDecimals(1);
+    w->setValue(speed() * ossia::root_tempo);
+
+    QObject::connect(
+        w,
+        SignalUtils::QDoubleSpinBox_valueChanged_double(),
+        this,
+        [=](double v) {
+          this->setValue(valueFromSpeed(v / ossia::root_tempo));
+        });
+  }
+  else
+  {
+    w->setRange(-1., 5.);
+    w->setDecimals(2);
+    w->setValue(speed());
+
+    QObject::connect(
+        w,
+        SignalUtils::QDoubleSpinBox_valueChanged_double(),
+        this,
+        [=](double v) { this->setValue(valueFromSpeed(v)); });
+  }
+
+  w->show();
+  w->move(pos.x(), pos.y());
+  QTimer::singleShot(5, w, [w] { w->setFocus(); });
+  QObject::connect(
+      w,
+      &DoubleSpinboxWithEnter::editingFinished,
+      w,
+      &QObject::deleteLater);
+}
+
+
+
+void setGlobalTimeMode(TimeMode mode)
+{
+  globalTimeMode = mode;
+  for (auto sb : spinBoxes)
+  {
+    sb->update();
+  }
+  for (auto sl : speedSliders)
+  {
+    sl->update();
   }
 }
 

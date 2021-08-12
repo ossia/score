@@ -171,7 +171,8 @@ public:
   void onSetup(
       std::shared_ptr<IntervalComponent>,
       std::shared_ptr<ossia::time_interval> ossia_cst,
-      interval_duration_data dur);
+      interval_duration_data dur,
+      bool executionRoot = false);
 
 public:
   void slot_callback(bool running, ossia::time_value date);

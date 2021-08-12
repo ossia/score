@@ -92,11 +92,6 @@ void SpeedWidget::setInterval(const IntervalModel& m)
     if (!qFuzzyCompare(s, m_slider->speed()))
       m_slider->setSpeed(s);
   });
-
-  ::bind(m, IntervalModel::p_timeSignature{}, this, [=](bool t) {
-    m_slider->tempo = t;
-    m_slider->update();
-  });
 }
 
 void SpeedWidget::unsetInterval()

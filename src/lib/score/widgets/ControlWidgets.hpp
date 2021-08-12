@@ -17,6 +17,7 @@ public:
   ToggleButton(std::array<const char*, 2> alt, QWidget* parent);
 
   ToggleButton(QStringList alt, QWidget* parent);
+  ~ToggleButton();
 
   std::array<QString, 2> alternatives;
 
@@ -28,6 +29,7 @@ struct SCORE_LIB_BASE_EXPORT ValueSlider : public score::IntSlider
 {
 public:
   using IntSlider::IntSlider;
+  ~ValueSlider();
   bool moving = false;
 
 protected:
@@ -37,10 +39,10 @@ protected:
 struct SCORE_LIB_BASE_EXPORT SpeedSlider : public score::DoubleSlider
 {
 public:
-  SpeedSlider(QWidget* parent = nullptr);
+  explicit SpeedSlider(QWidget* parent = nullptr);
+  ~SpeedSlider();
   bool moving = false;
   bool showText = true;
-  bool tempo = false;
 
   double speed() const noexcept;
   void setSpeed(double);
@@ -52,12 +54,15 @@ protected:
 
   void paintEvent(QPaintEvent* event) override;
   void mousePressEvent(QMouseEvent*) override;
+  void createPopup(QPoint pos);
 };
 
 struct SCORE_LIB_BASE_EXPORT VolumeSlider : public score::DoubleSlider
 {
 public:
   using DoubleSlider::DoubleSlider;
+  ~VolumeSlider();
+
   bool moving = false;
 
 protected:
@@ -68,6 +73,8 @@ struct SCORE_LIB_BASE_EXPORT ValueDoubleSlider : public score::DoubleSlider
 {
 public:
   using score::DoubleSlider::DoubleSlider;
+  ~ValueDoubleSlider();
+
   bool moving = false;
   double min{};
   double max{};
@@ -82,6 +89,8 @@ struct SCORE_LIB_BASE_EXPORT ValueLogDoubleSlider : public score::DoubleSlider
 {
 public:
   using score::DoubleSlider::DoubleSlider;
+  ~ValueLogDoubleSlider();
+
   bool moving = false;
   double min{};
   double max{};
@@ -107,6 +116,7 @@ public:
   }
 
   ComboSlider(const QStringList& arr, QWidget* parent);
+  ~ComboSlider();
 
   bool moving = false;
 
@@ -115,8 +125,4 @@ protected:
 };
 
 SCORE_LIB_BASE_EXPORT const QPalette& transparentPalette();
-static inline auto transparentStylesheet()
-{
-  return QStringLiteral("QWidget { background-color:transparent }");
-}
 }

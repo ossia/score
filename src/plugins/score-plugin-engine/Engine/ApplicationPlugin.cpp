@@ -95,6 +95,31 @@ void ApplicationPlugin::initialize()
     }
   }
 
+  if(m_musicalAct)
+  {
+    auto& settings = this->context.settings<Scenario::Settings::Model>();
+    m_musicalAct->setChecked(settings.getMeasureBars());
+    connect(m_musicalAct, &QAction::toggled, this, [this] (bool ok) {
+              auto& settings = this->context.settings<Scenario::Settings::Model>();
+              settings.setMeasureBars(ok);
+              settings.setMagneticMeasures(ok);
+              score::setGlobalTimeMode(
+                  ok ? score::TimeMode::Bars
+                     : score::TimeMode::Seconds);
+
+              //if (auto doc = this->currentDocument())
+              //{
+              //  auto& mod = doc->model().modelDelegate();
+              //  auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(&mod);
+              //  if (scenar)
+              //  {
+              //    auto& itv = scenar->baseInterval();
+              //    itv.setHasTimeSignature(ok);
+              //  }
+              //}
+            });
+  }
+
   m_execution.init_transport();
 }
 
@@ -184,36 +209,17 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     }
 
     {
-      auto musical_act = new QAction{tr("Enable musical mode"), this};
-      musical_act->setCheckable(true);
-      musical_act->setChecked(true);
-      musical_act->setStatusTip(tr("Enable musical mode"));
+      m_musicalAct = new QAction{tr("Enable musical mode"), this};
+      m_musicalAct->setCheckable(true);
+      m_musicalAct->setStatusTip(tr("Enable musical mode"));
       setIcons(
-          musical_act,
+          m_musicalAct,
           QStringLiteral(":/icons/music_on.png"),
           QStringLiteral(":/icons/music_hover.png"),
           QStringLiteral(":/icons/music_off.png"),
           QStringLiteral(":/icons/music_disabled.png"));
-      connect(musical_act, &QAction::toggled, this, [this](bool ok) {
-        auto& settings = this->context.settings<Scenario::Settings::Model>();
-        settings.setMeasureBars(ok);
-        settings.setMagneticMeasures(ok);
-        score::TimeSpinBox::setGlobalTimeMode(
-            ok ? score::TimeSpinBox::TimeMode::Bars
-               : score::TimeSpinBox::TimeMode::Seconds);
 
-        if (auto doc = this->currentDocument())
-        {
-          auto& mod = doc->model().modelDelegate();
-          auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(&mod);
-          if (scenar)
-          {
-            auto& itv = scenar->baseInterval();
-            itv.setHasTimeSignature(ok);
-          }
-        }
-      });
-      ui_toolbar->addAction(musical_act);
+      ui_toolbar->addAction(m_musicalAct);
     }
 
     {

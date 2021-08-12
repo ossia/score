@@ -99,7 +99,7 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
   m_ossia_startState->onSetup();
   m_ossia_endState->onSetup();
   m_ossia_interval->onSetup(
-      m_ossia_interval, main_interval, m_ossia_interval->makeDurations());
+      m_ossia_interval, main_interval, m_ossia_interval->makeDurations(), true);
 
   for (auto dev : m_ctx.execState->edit_devices())
   {

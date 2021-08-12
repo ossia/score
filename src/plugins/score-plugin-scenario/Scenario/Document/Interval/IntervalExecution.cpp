@@ -268,7 +268,8 @@ interval_duration_data IntervalComponentBase::makeDurations() const
 void IntervalComponent::onSetup(
     std::shared_ptr<IntervalComponent> self,
     std::shared_ptr<ossia::time_interval> ossia_cst,
-    interval_duration_data dur)
+    interval_duration_data dur,
+    bool root)
 {
   m_ossia_interval = ossia_cst;
 
@@ -293,8 +294,15 @@ void IntervalComponent::onSetup(
     auto tdata = tempoCurve(interval(), context());
     tempo_proc = tdata.second;
     m_ossia_interval->set_tempo_curve(std::move(tdata).first);
-    m_ossia_interval->set_time_signature_map(
-        timeSignatureMap(interval(), context()));
+
+    // We always set the time signature at the topmost interval in order to not have things explode
+    if(interval().hasTimeSignature() || root)
+    {
+      auto map = timeSignatureMap(interval(), context());
+      if(map.empty())
+        map[TimeVal::zero()] = ossia::time_signature{4,4};
+      m_ossia_interval->set_time_signature_map(std::move(map));
+    }
     m_ossia_interval->set_quarter_duration(
         ossia::quarter_duration<double>); // In our ideal musical world, a
                                           // "quarter" is half a logical second

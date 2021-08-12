@@ -294,6 +294,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/StyleSheets.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SpinBoxes.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SearchLineEdit.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/TimeMode.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/TimeSpinBox.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/TextLabel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/WidgetWrapper.hpp"

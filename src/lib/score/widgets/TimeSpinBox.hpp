@@ -1,4 +1,5 @@
 #pragma once
+#include <score/widgets/TimeMode.hpp>
 #include <ossia-qt/time.hpp>
 
 #include <QWidget>
@@ -25,14 +26,6 @@ class SCORE_LIB_BASE_EXPORT TimeSpinBox final : public QWidget
 public:
   TimeSpinBox(QWidget* parent = nullptr);
   ~TimeSpinBox();
-
-  enum TimeMode
-  {
-    Bars,
-    Seconds,
-    Flicks
-  };
-  static void setGlobalTimeMode(TimeMode);
 
   void setMinimumTime(ossia::time_value t);
   void setMaximumTime(ossia::time_value t);
@@ -71,8 +64,6 @@ private:
     Semiquaver,
     Cent
   } m_grab{None};
-
-  TimeMode m_mode{Bars};
 
   friend struct BarSpinBox;
   friend struct SecondSpinBox;

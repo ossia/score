@@ -81,6 +81,11 @@ ToggleButton::ToggleButton(QStringList alt, QWidget* parent)
 {
 }
 
+ToggleButton::~ToggleButton()
+{
+
+}
+
 void ToggleButton::paintEvent(QPaintEvent* event)
 {
   return QPushButton::paintEvent(event);
@@ -95,114 +100,20 @@ void ToggleButton::paintEvent(QPaintEvent* event)
   style()->drawControl(QStyle::CE_PushButton, &opt, &p, this);*/
 }
 
+ValueSlider::~ValueSlider()
+{
+
+}
+
 void ValueSlider::paintEvent(QPaintEvent* event)
 {
   paintWithText(QString::number(value()));
 }
 
-/* Speed goes from -1 to 5 */
-constexpr double valueFromSpeed(double speed)
+
+VolumeSlider::~VolumeSlider()
 {
-  return (speed + 1.) / 6.;
-}
-constexpr double speedFromValue(double value)
-{
-  return value * 6. - 1.;
-}
 
-SpeedSlider::SpeedSlider(QWidget* parent)
-    : DoubleSlider{parent}
-{
-}
-
-double SpeedSlider::speed() const noexcept
-{
-  return std::round(1000 * speedFromValue(value())) / 1000;
-}
-
-void SpeedSlider::setSpeed(double v)
-{
-  setValue(valueFromSpeed(v));
-}
-
-void SpeedSlider::setTempo(double t)
-{
-  setValue(valueFromSpeed(t / ossia::root_tempo));
-}
-
-void SpeedSlider::paintEvent(QPaintEvent*)
-{
-  QString text;
-  text.reserve(16);
-  text += (tempo) ? "" : (showText) ? "speed: × " : "× ";
-
-  double v = speed();
-  if (tempo)
-  {
-    v *= ossia::root_tempo;
-    text += QString::number(v, 'f', 1);
-  }
-  else
-  {
-    text += QString::number(v, 'f', 2);
-  }
-
-  paintWithText(text);
-}
-
-void SpeedSlider::mousePressEvent(QMouseEvent* ev)
-{
-  if (ev->button() == Qt::LeftButton)
-    return DoubleSlider::mousePressEvent(ev);
-
-  if (qApp->keyboardModifiers() & Qt::CTRL)
-  {
-    setValue(valueFromSpeed(1.));
-  }
-  else
-  {
-    QTimer::singleShot(0, [&, &self = *this, pos = ev->screenPos()] {
-      auto w = new score::DoubleSpinboxWithEnter;
-      w->setWindowFlag(Qt::Tool);
-      w->setWindowFlag(Qt::FramelessWindowHint);
-      if (tempo)
-      {
-        w->setRange(20., 500.);
-        w->setDecimals(1);
-        w->setValue(speed() * ossia::root_tempo);
-
-        QObject::connect(
-            w,
-            SignalUtils::QDoubleSpinBox_valueChanged_double(),
-            &self,
-            [=, &self](double v) {
-              self.setValue(valueFromSpeed(v / ossia::root_tempo));
-            });
-      }
-      else
-      {
-        w->setRange(-1., 5.);
-        w->setDecimals(2);
-        w->setValue(speed());
-
-        QObject::connect(
-            w,
-            SignalUtils::QDoubleSpinBox_valueChanged_double(),
-            &self,
-            [=, &self](double v) { self.setValue(valueFromSpeed(v)); });
-      }
-
-      w->show();
-      w->move(pos.x(), pos.y());
-      QTimer::singleShot(5, w, [w] { w->setFocus(); });
-      QObject::connect(
-          w,
-          &DoubleSpinboxWithEnter::editingFinished,
-          w,
-          &QObject::deleteLater);
-    });
-  }
-  ev->ignore();
 }
 
 void VolumeSlider::paintEvent(QPaintEvent*)
@@ -211,6 +122,11 @@ void VolumeSlider::paintEvent(QPaintEvent*)
       "vol: "
       + QString::number(ossia::detail::LinearGainToDecibels(value()), 'f', 1)
       + " dB");
+}
+
+ValueDoubleSlider::~ValueDoubleSlider()
+{
+
 }
 
 void ValueDoubleSlider::setRange(double min, double max) noexcept
@@ -223,6 +139,11 @@ void ValueDoubleSlider::setRange(double min, double max) noexcept
 void ValueDoubleSlider::paintEvent(QPaintEvent* event)
 {
   paintWithText(QString::number(min + value() * (max - min), 'f', 3));
+}
+
+ValueLogDoubleSlider::~ValueLogDoubleSlider()
+{
+
 }
 
 void ValueLogDoubleSlider::setRange(double min, double max) noexcept
@@ -242,6 +163,11 @@ ComboSlider::ComboSlider(const QStringList& arr, QWidget* parent)
     : score::IntSlider{parent}
     , array{arr}
 {
+}
+
+ComboSlider::~ComboSlider()
+{
+
 }
 
 void ComboSlider::paintEvent(QPaintEvent* event)

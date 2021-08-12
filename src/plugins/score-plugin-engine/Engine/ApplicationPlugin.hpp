@@ -68,5 +68,6 @@ private:
   Execution::ExecutionController m_execution;
 
   Scenario::SpeedWidget* m_speedSlider{};
+  QAction* m_musicalAct{};
 };
 }

@@ -46,10 +46,8 @@ protected:
 private:
   void updateValue(QPointF mousePos);
 
-  double m_value;
-
-  Qt::Orientation m_orientation;
-
-  double m_borderWidth;
+  double m_value{};
+  Qt::Orientation m_orientation{};
+  double m_borderWidth{};
 };
 }

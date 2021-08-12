@@ -486,7 +486,6 @@ ScenarioDocumentView::ScenarioDocumentView(
   // Time Ruler
 
   {
-
     auto setupTimeRuler = [=](bool b) {
       delete m_timeRuler;
       if (b)

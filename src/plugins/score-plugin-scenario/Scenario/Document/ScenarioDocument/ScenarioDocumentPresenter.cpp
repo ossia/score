@@ -168,7 +168,10 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
       tr.setZoomRatio(m_zoomRatio);
     tr.setWidth(view().viewWidth());
     if (auto p = m_scenarioPresenter.intervalPresenter())
+    {
       tr.setGrid(p->grid());
+      p->on_zoomRatioChanged(p->zoomRatio());
+    }
     on_horizontalPositionChanged(0);
   });
 
@@ -863,12 +866,6 @@ void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel* itv)
       }
     }
     switchMode(interval.viewMode() == IntervalModel::ViewMode::Nodal);
-  }
-
-  // Setup of the musical stuff
-  if (m_musicalAction)
-  {
-    m_musicalAction->setChecked(interval.hasTimeSignature());
   }
 }
 
