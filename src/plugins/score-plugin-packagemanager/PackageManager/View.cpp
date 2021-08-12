@@ -359,6 +359,26 @@ void PluginSettingsView::installLibrary(const RemotePackage& addon)
         if (res.empty())
           return;
 
+        // Often zip files contain a single, empty directory.
+        // In that case, we move everything up a level to make the library cleaner.
+        QDir dir{destination};
+        auto files = dir.entryList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot);
+        if(files.size() == 1)
+        {
+          auto child = files[0];
+          QFileInfo info{dir.absoluteFilePath(child)};
+          if(info.isDir()) {
+            dir.rename(child, "___score_tmp___");
+            QDir subdir{dir.absoluteFilePath("___score_tmp___")};
+
+            for(auto& entry : subdir.entryList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot)) {
+              dir.rename(QString{"___score_tmp___%1%2"}.arg(QDir::separator()).arg(entry), entry);
+            }
+
+            subdir.removeRecursively();
+          }
+        }
+
         QMessageBox::information(
             m_widget,
             tr("Package downloaded"),
