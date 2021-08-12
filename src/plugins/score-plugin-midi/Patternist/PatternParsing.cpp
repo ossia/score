@@ -14,7 +14,7 @@ namespace Patternist
 {
 Pattern parsePattern(const QByteArray& data) noexcept
 {
-  static const QRegularExpression exp{"[0-9][0-9] [-xX]+"};
+  static const QRegularExpression exp{QStringLiteral("[0-9][0-9] [-xX]+")};
   Pattern p;
 
   for(QString lane : data.split('\n'))

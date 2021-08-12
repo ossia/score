@@ -81,7 +81,6 @@ void Presenter::on_drop(const QPointF& pos, const QMimeData& md)
 
   auto& model = static_cast<const Patternist::ProcessModel&>(this->model());
   CommandDispatcher<> disp{m_context.context.commandStack};
-  qDebug() << model.currentPattern();
   disp.submit<UpdatePattern>(model, model.currentPattern(), patterns[0]);
 }
 }
