@@ -64,22 +64,52 @@ struct HostContext
   Lilv::Node control_class{make_node(LILV_URI_CONTROL_PORT)};
   Lilv::Node audio_class{make_node(LILV_URI_AUDIO_PORT)};
   Lilv::Node atom_class{make_node(LV2_ATOM__AtomPort)};
+  Lilv::Node atom_object_class{make_node(LV2_ATOM__Object)};
   Lilv::Node event_class{make_node(LILV_URI_EVENT_PORT)};
+  Lilv::Node midi_event_class{make_node(LILV_URI_MIDI_EVENT)};
   Lilv::Node cv_class{make_node(LV2_CORE__CVPort)};
   Lilv::Node work_interface{make_node(LV2_WORKER__interface)};
   Lilv::Node work_schedule{make_node(LV2_WORKER__schedule)};
+
+  Lilv::Node time_time_class{make_node(LV2_TIME__Time)};
+  Lilv::Node time_Position_class{make_node(LV2_TIME__Position)};
+  Lilv::Node time_rate_class{make_node(LV2_TIME__Rate)};
+  //Lilv::Node time_position_class{make_node(LV2_TIME__position)};
+  Lilv::Node time_barBeat_class{make_node(LV2_TIME__barBeat)};
+  Lilv::Node time_bar_class{make_node(LV2_TIME__bar)};
+  Lilv::Node time_beat_class{make_node(LV2_TIME__beat)};
+  Lilv::Node time_beatUnit_class{make_node(LV2_TIME__beatUnit)};
+  Lilv::Node time_beatsPerBar_class{make_node(LV2_TIME__beatsPerBar)};
+  Lilv::Node time_beatsPerMinute_class{make_node(LV2_TIME__beatsPerMinute)};
+  Lilv::Node time_frame_class{make_node(LV2_TIME__frame)};
+  Lilv::Node time_framesPerSecond_class{make_node(LV2_TIME__framesPerSecond)};
+  Lilv::Node time_speed_class{make_node(LV2_TIME__speed)};
 
   Lilv::Node optional_feature{make_node(LV2_CORE__optionalFeature)};
   Lilv::Node fixed_size{make_node(LV2_UI__fixedSize)};
   Lilv::Node no_user_resize{make_node(LV2_UI__noUserResize)};
 
   int32_t midi_buffer_size = 2048;
-  // Lilv::Node midi_event_class{make_node(LILV_URI_MIDI_EVENT)};
   LV2_URID midi_event_id{};
   LV2_URID atom_chunk_id{};
   LV2_URID atom_sequence_id{};
+  LV2_URID atom_object_id{};
   LV2_URID null_id{};
   LV2_URID atom_eventTransfer{};
+
+  LV2_URID time_Time_id{};
+  LV2_URID time_Position_id{};
+  LV2_URID time_rate_id{};
+  // LV2_URID time_position_id{};
+  LV2_URID time_barBeat_id{};
+  LV2_URID time_bar_id{};
+  LV2_URID time_beat_id{};
+  LV2_URID time_beatUnit_id{};
+  LV2_URID time_beatsPerBar_id{};
+  LV2_URID time_beatsPerMinute_id{};
+  LV2_URID time_frame_id{};
+  LV2_URID time_framesPerSecond_id{};
+  LV2_URID time_speed_id{};
 };
 
 struct EffectContext
@@ -168,6 +198,8 @@ struct LV2Data
       control_other_ports;
   ossia::small_vector<int, 2> midi_in_ports, midi_out_ports, midi_other_ports,
       cv_ports;
+
+  ossia::small_vector<int, 2> time_Position_ports{};
 };
 
 struct Message

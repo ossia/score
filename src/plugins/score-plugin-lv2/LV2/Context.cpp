@@ -242,8 +242,24 @@ void LV2::GlobalContext::loadPlugins()
   host.null_id = map.map(map.handle, "");
   host.midi_event_id = map.map(map.handle, LILV_URI_MIDI_EVENT);
   host.atom_sequence_id = map.map(map.handle, LV2_ATOM__Sequence);
+  host.atom_object_id = map.map(map.handle, LV2_ATOM__Object);
   host.atom_chunk_id = map.map(map.handle, LV2_ATOM__Chunk);
   host.atom_eventTransfer = map.map(map.handle, LV2_ATOM__eventTransfer);
+
+  host.time_Time_id = map.map(map.handle, LV2_TIME__Time);
+  host.time_Position_id = map.map(map.handle, LV2_TIME__Position);
+  host.time_rate_id = map.map(map.handle, LV2_TIME__Rate);
+  //host.time_position_id = map.map(map.handle, LV2_TIME__position);
+  host.time_barBeat_id = map.map(map.handle, LV2_TIME__barBeat);
+  host.time_bar_id = map.map(map.handle, LV2_TIME__bar);
+  host.time_beat_id = map.map(map.handle, LV2_TIME__beat);
+  host.time_beatUnit_id = map.map(map.handle, LV2_TIME__beatUnit);
+  host.time_beatsPerBar_id = map.map(map.handle, LV2_TIME__beatsPerBar);
+  host.time_beatsPerMinute_id = map.map(map.handle, LV2_TIME__beatsPerMinute);
+  host.time_frame_id = map.map(map.handle, LV2_TIME__frame);
+  host.time_framesPerSecond_id = map.map(map.handle, LV2_TIME__framesPerSecond);
+  host.time_speed_id = map.map(map.handle, LV2_TIME__speed);
+
   lv2_atom_forge_init(&host.forge, &map);
 }
 
@@ -265,7 +281,7 @@ LV2Data::LV2Data(HostContext& h, EffectContext& ctx)
         std::cerr << "Required uri: " << node.as_uri() << std::endl;
       it = res.next(it);
     }
-    std::cerr << std::endl << std::endl;
+    std::cerr << std::endl;
   }
 
   const auto numports = effect.plugin.get_num_ports();
@@ -273,17 +289,17 @@ LV2Data::LV2Data(HostContext& h, EffectContext& ctx)
   {
     Lilv::Port port = effect.plugin.get_port_by_index(i);
 
-    std::cerr << "Port : " << lilv_node_as_string(port.get_name())
-              << std::endl;
     auto cl = port.get_classes();
-    auto beg = lilv_nodes_begin(cl);
-    while (!lilv_nodes_is_end(cl, beg))
-    {
-      auto node = lilv_nodes_get(cl, beg);
-      std::cerr << " --> " << lilv_node_as_string(node) << std::endl;
-      beg = lilv_nodes_next(cl, beg);
-    }
-
+    auto debug_port = [&] {
+      qDebug() << "Port : " << lilv_node_as_string(port.get_name());
+      auto beg = lilv_nodes_begin(cl);
+      while (!lilv_nodes_is_end(cl, beg))
+      {
+        auto node = lilv_nodes_get(cl, beg);
+        qDebug() << " --> " << lilv_node_as_string(node);
+        beg = lilv_nodes_next(cl, beg);
+      }
+    };
     if (port.is_a(host.audio_class))
     {
       if (port.is_a(host.input_class))
@@ -297,23 +313,34 @@ LV2Data::LV2Data(HostContext& h, EffectContext& ctx)
       else
       {
         cv_ports.push_back(i);
-        qDebug() << "Audio port not input or output";
+        qDebug() << "LV2: Audio port not input or output" << i;
+        debug_port();
       }
     }
     else if (port.is_a(host.atom_class))
     {
       // TODO use  atom:supports midi:MidiEvent
-      if (port.is_a(host.input_class))
+      if(port.supports_event(host.midi_event_class))
       {
-        midi_in_ports.push_back(i);
+        if (port.is_a(host.input_class))
+        {
+          midi_in_ports.push_back(i);
+        }
+        else if (port.is_a(host.output_class))
+        {
+          midi_out_ports.push_back(i);
+        }
+        else
+        {
+          midi_other_ports.push_back(i);
+          qDebug() << "LV2: MIDI port not input or output" << i;
+          debug_port();
+        }
       }
-      else if (port.is_a(host.output_class))
+
+      if(port.supports_event(host.time_Position_class))
       {
-        midi_out_ports.push_back(i);
-      }
-      else
-      {
-        midi_other_ports.push_back(i);
+        time_Position_ports.push_back(i);
       }
     }
     else if (port.is_a(host.cv_class))
@@ -333,11 +360,15 @@ LV2Data::LV2Data(HostContext& h, EffectContext& ctx)
       else
       {
         control_other_ports.push_back(i);
+        qDebug() << "LV2: Control port not input or output" << i;
+        debug_port();
       }
     }
     else
     {
       control_other_ports.push_back(i);
+      qDebug() << "LV2: cannot categorize port" << i;
+      debug_port();
     }
   }
 }
