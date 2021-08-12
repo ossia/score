@@ -28,6 +28,12 @@ QStringList shaderIncludePaths()
   {
     shaderIncludePath.append(lib_path + "/Media/lygia/lygia-main");
   }
+  else if(QDir{}.exists(lib_path + "/Media/lygia"))
+  {
+    shaderIncludePath.append(lib_path + "/Media/lygia");
+  }
+
+
 
   return shaderIncludePath;
 }
