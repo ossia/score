@@ -25,8 +25,7 @@ void ApplicationPlugin::on_createdDocument(score::Document& doc)
   doc.model().addPluginModel(
       new Controller::DocumentPlugin{doc.context(), &doc.model()});
 
-  Http_server Http_server;
-  Http_server.open_server();
+  m_server.start_thread();
 }
 
 }
