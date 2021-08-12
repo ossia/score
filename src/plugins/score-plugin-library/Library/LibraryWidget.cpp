@@ -29,7 +29,7 @@ std::vector<LibraryInterface*> libraryInterface(const QString& path)
   }();
 
   std::vector<LibraryInterface*> libs;
-  auto [begin, end] = matches.equal_range(QFileInfo(path).suffix());
+  auto [begin, end] = matches.equal_range(QFileInfo(path).suffix().toLower());
 
   for (auto it = begin; it != end; ++it)
   {
