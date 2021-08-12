@@ -20,6 +20,7 @@ class Model final : public Process::ProcessModel
 public:
   Model(
       const TimeVal& duration,
+      const QString& path,
       const Id<Process::ProcessModel>& id,
       QObject* parent);
 

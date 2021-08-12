@@ -14,6 +14,7 @@ namespace Gfx::Video
 
 Model::Model(
     const TimeVal& duration,
+    const QString& path,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
     : Process::ProcessModel{duration, id, "VideoProcess", parent}
@@ -22,6 +23,7 @@ Model::Model(
   metadata().setInstanceName(*this);
   setLoops(true);
   setNativeTempo(Media::tempoAtStartDate(*this));
+  setPath(path);
 
   m_outlets.push_back(new TextureOutlet{Id<Process::Port>(0), this});
 }
@@ -99,11 +101,6 @@ std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::dropData(
       Process::ProcessDropHandler::ProcessDrop p;
       p.creation.key = Metadata<ConcreteKey_k, Gfx::Video::Model>::get();
       p.creation.customData = filename;
-      p.setup =
-          [str = filename](Process::ProcessModel& m, score::Dispatcher& disp) {
-            auto& video = static_cast<Gfx::Video::Model&>(m);
-            disp.submit(new ChangeVideo{video, str});
-          };
       vec.push_back(std::move(p));
     }
   }
