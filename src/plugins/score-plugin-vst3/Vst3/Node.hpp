@@ -329,7 +329,9 @@ public:
     using F = ProcessContext;
     Steinberg::Vst::ProcessContext& time_info = this->m_context;
     time_info.sampleRate = st.sampleRate();
-    time_info.projectTimeSamples = tk.date.impl;
+
+    // FIXME see note in vst_node_base::setupTimeInfo
+    time_info.projectTimeSamples = tk.start_date_to_physical(st.modelToSamples());
 
     time_info.systemTime = st.currentDate() - st.startDate();
     time_info.continousTimeSamples = time_info.projectTimeSamples; // TODO
