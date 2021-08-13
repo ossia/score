@@ -1011,7 +1011,10 @@ void ScenarioDocumentPresenter::setNewSelection(
 
     // We know by the presenter that all objects
     // in a given selection are in the same Process.
-    auto newProc = Process::parentProcess(*s.begin());
+    Process::ProcessModel* newProc = qobject_cast<Process::ProcessModel*>(*s.begin());
+    if(!newProc)
+      newProc = Process::parentProcess(*s.begin());
+
     if (process && newProc != process)
     {
       process->setSelection(Selection{});
