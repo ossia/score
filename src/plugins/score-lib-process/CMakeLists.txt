@@ -55,6 +55,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Tools/ToolPalette.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Tools/ProcessPanelGraphicsProxy.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Preset.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/PresetHelpers.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ZoomHelper.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Layer/LayerContextMenu.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/LoadPreset.hpp"

@@ -1,12 +1,14 @@
 #include <Gfx/Filter/PreviewWidget.hpp>
 #include <Gfx/Graph/ISFNode.hpp>
 #include <Gfx/Graph/ScreenNode.hpp>
+#include <Process/Preset.hpp>
+#include <ossia/network/value/value.hpp>
 
 namespace Gfx
 {
 namespace
 {
-struct PreviewInputvisitor
+struct PreviewInputVisitor
 {
   int& img_count;
 
@@ -41,6 +43,82 @@ struct PreviewInputvisitor
 
   score::gfx::NodeModel* operator()(const isf::audioFFT_input& v) { return nullptr; }
 };
+
+struct PreviewPresetVisitor
+{
+  score::gfx::ISFNode& node;
+  std::map<int, ossia::value>& controls;
+  int i{};
+  void operator()(const isf::float_input& v)
+  {
+    if(float* v = controls[i].target<float>())
+    {
+      (*(float*)node.input[i]->value) = *v;
+    }
+  }
+
+  void operator()(const isf::long_input& v)
+  {
+    if(int* v = controls[i].target<int>())
+    {
+      (*(int*)node.input[i]->value) = *v;
+    }
+  }
+
+  void operator()(const isf::event_input& v)
+  {
+  }
+
+  void operator()(const isf::bool_input& v)
+  {
+    if(bool* v = controls[i].target<bool>())
+    {
+      (*(int*)node.input[i]->value) = *v ? 1 : 0;
+    }
+  }
+
+  void operator()(const isf::point2d_input& v)
+  {
+    if(ossia::vec2f* v = controls[i].target<ossia::vec2f>())
+    {
+      (*(float*)node.input[i]->value) = (*v)[0];
+      (*((float*)node.input[i]->value + 1)) = (*v)[1];
+    }
+  }
+
+  void operator()(const isf::point3d_input& v)
+  {
+    if(ossia::vec3f* v = controls[i].target<ossia::vec3f>())
+    {
+      (*(float*)node.input[i]->value) = (*v)[0];
+      (*((float*)node.input[i]->value + 1)) = (*v)[1];
+      (*((float*)node.input[i]->value + 2)) = (*v)[2];
+    }
+  }
+
+  void operator()(const isf::color_input& v)
+  {
+    if(ossia::vec4f* v = controls[i].target<ossia::vec4f>())
+    {
+      (*(float*)node.input[i]->value) = (*v)[0];
+      (*((float*)node.input[i]->value + 1)) = (*v)[1];
+      (*((float*)node.input[i]->value + 2)) = (*v)[2];
+      (*((float*)node.input[i]->value + 3)) = (*v)[3];
+    }
+  }
+
+  void operator()(const isf::image_input& v)
+  {
+  }
+
+  void operator()(const isf::audio_input& v)
+  {
+  }
+
+  void operator()(const isf::audioFFT_input& v)
+  {
+  }
+};
 }
 
 ShaderPreviewWidget::ShaderPreviewWidget(const QString& path, QWidget* parent)
@@ -51,8 +129,42 @@ ShaderPreviewWidget::ShaderPreviewWidget(const QString& path, QWidget* parent)
   if (const auto& [processed, error] = ProgramCache::instance().get(program);
       bool(processed))
   {
+    m_program = *processed;
+    setup();
+  }
+}
+
+ShaderPreviewWidget::ShaderPreviewWidget(const Process::Preset& preset, QWidget* parent)
+{
+  const rapidjson::Document doc = readJson(preset.data);
+  if(!doc.IsObject())
+    return;
+  auto obj = doc.GetObject();
+  if(!obj.HasMember("Fragment") || !obj.HasMember("Vertex"))
+    return;
+  auto frag = obj["Fragment"].GetString();
+  auto vert = obj["Vertex"].GetString();
+  ShaderSource program{vert, frag};
+  if (const auto& [processed, error] = ProgramCache::instance().get(program);
+      bool(processed))
+  {
     m_program = *std::move(processed);
     setup();
+    if(m_isf)
+    {
+      std::map<int, ossia::value> controls;
+      for (const auto& arr : obj["Controls"].GetArray())
+      {
+        controls[arr[0].GetInt()] =  JsonValue{arr[1]}.to<ossia::value>();
+      }
+
+      int i = 0;
+      for (const isf::input& input : m_program.descriptor.inputs)
+      {
+        std::visit(PreviewPresetVisitor{*m_isf, controls, i}, input.data);
+        i++;
+      }
+    }
   }
 }
 
@@ -76,7 +188,7 @@ void ShaderPreviewWidget::setup()
   int i = 0;
   for (const isf::input& input : m_program.descriptor.inputs)
   {
-    auto node = std::visit(PreviewInputvisitor{image_i}, input.data);
+    auto node = std::visit(PreviewInputVisitor{image_i}, input.data);
     if (node)
     {
       m_graph.addNode(node);

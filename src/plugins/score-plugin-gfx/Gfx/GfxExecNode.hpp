@@ -98,7 +98,11 @@ struct con_unvalidated
       // due to the script changing
       if(script_index != node->script_index)
         return;
-      SCORE_ASSERT(i < node->controls.size());
+
+      // This can happen if we sent controls from the UI before the execution engine had the time to add them
+      // Note: ideally something should be fixed to make that fit with the case above
+      if(i >= node->controls.size())
+        return;
       ctx.executionQueue.enqueue(control_updater{node->controls[i], val});
     }
   }

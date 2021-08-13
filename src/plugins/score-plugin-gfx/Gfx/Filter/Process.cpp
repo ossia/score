@@ -5,6 +5,7 @@
 #include <Gfx/TexturePort.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
+#include <Process/PresetHelpers.hpp>
 
 #include <score/tools/DeleteAll.hpp>
 
@@ -119,6 +120,43 @@ void Model::setProgram(const ShaderSource& f)
     inletsChanged();
     programChanged(m_program);
   }
+}
+
+void Model::loadPreset(const Process::Preset& preset)
+{
+  const rapidjson::Document doc = readJson(preset.data);
+  if(!doc.IsObject())
+    return;
+  auto obj = doc.GetObject();
+  if(!obj.HasMember("Fragment") || !obj.HasMember("Vertex"))
+    return;
+  auto frag = obj["Fragment"].GetString();
+  auto vert = obj["Vertex"].GetString();
+  this->setProgram(ShaderSource{vert, frag});
+
+  auto controls = obj["Controls"].GetArray();
+  Process::loadFixedControls(controls, *this);
+}
+
+Process::Preset Model::savePreset() const noexcept
+{
+  Process::Preset p;
+  p.name = this->metadata().getName();
+  p.key.key = this->concreteKey();
+
+  JSONReader r;
+  {
+    r.stream.StartObject();
+    r.obj["Fragment"] = this->m_program.fragment;
+    r.obj["Vertex"] = this->m_program.vertex;
+
+    r.stream.Key("Controls");
+    Process::saveFixedControls(r, *this);
+    r.stream.EndObject();
+  }
+
+  p.data = r.toByteArray();
+  return p;
 }
 
 QString Model::prettyName() const noexcept

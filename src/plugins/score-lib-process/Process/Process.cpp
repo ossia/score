@@ -5,6 +5,7 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
+#include <Process/PresetHelpers.hpp>
 
 #include <score/model/EntitySerialization.hpp>
 #include <score/model/IdentifiedObject.hpp>
@@ -203,24 +204,7 @@ ProcessModel::outlet(const Id<Process::Port>& p) const noexcept
 void ProcessModel::loadPreset(const Preset& preset)
 {
   const rapidjson::Document doc = readJson(preset.data);
-  const auto& ctrls = doc.GetArray();
-
-  for (const auto& arr : ctrls)
-  {
-    const auto& id = arr[0].GetInt();
-    ossia::value val = JsonValue{arr[1]}.to<ossia::value>();
-
-    auto it = ossia::find_if(
-        m_inlets, [&](const auto& inl) { return inl->id().val() == id; });
-    if (it != m_inlets.end())
-    {
-      Process::Inlet& inlet = **it;
-      if (auto ctrl = qobject_cast<Process::ControlInlet*>(&inlet))
-      {
-        ctrl->setValue(val);
-      }
-    }
-  }
+  loadFixedControls(doc.GetArray(), *this);
 }
 
 Preset ProcessModel::savePreset() const noexcept
@@ -230,18 +214,7 @@ Preset ProcessModel::savePreset() const noexcept
   p.key.key = this->concreteKey();
 
   JSONReader r;
-  r.stream.StartArray();
-  for (const auto& inlet : m_inlets)
-  {
-    if (auto ctrl = qobject_cast<Process::ControlInlet*>(inlet))
-    {
-      r.stream.StartArray();
-      r.stream.Int(ctrl->id().val());
-      r.readFrom(ctrl->value());
-      r.stream.EndArray();
-    }
-  }
-  r.stream.EndArray();
+  saveFixedControls(r, *this);
   p.data = r.toByteArray();
   return p;
 }

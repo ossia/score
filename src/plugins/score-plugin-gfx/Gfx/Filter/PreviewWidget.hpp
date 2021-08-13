@@ -12,12 +12,17 @@ namespace score::gfx
 {
 class ISFNode;
 }
+namespace Process
+{
+class Preset;
+}
 namespace Gfx
 {
 class ShaderPreviewWidget : public QWidget
 {
 public:
   ShaderPreviewWidget(const QString& path, QWidget* parent = nullptr);
+  ShaderPreviewWidget(const Process::Preset& path, QWidget* parent = nullptr);
 
 private:
   void setup();

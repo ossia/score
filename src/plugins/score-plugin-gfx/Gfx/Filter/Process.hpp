@@ -67,6 +67,8 @@ public:
   void errorMessage(const QString& arg_2) const W_SIGNAL(errorMessage, arg_2);
 
 private:
+  void loadPreset(const Process::Preset& preset) override;
+  Process::Preset savePreset() const noexcept override;
   void setupIsf(const isf::descriptor& d);
   //void setupNormalShader();
   QString prettyName() const noexcept override;
