@@ -19,7 +19,7 @@
 W_OBJECT_IMPL(Curve::PointView)
 namespace Curve
 {
-static const qreal radius = 2.85;
+static const qreal radius = 4;
 static const QRectF ellipse{-radius, -radius, 2. * radius, 2. * radius};
 static const QPolygonF ellipsePath{[] {
   QPainterPath p;
