@@ -85,7 +85,7 @@ struct Node
 
         connect(
             out,
-            &Process::ControlOutlet::valueChanged,
+            &Process::ControlOutlet::executionValueChanged,
             this,
             [this](const ossia::value& v) {
               auto& val = *v.target<std::vector<ossia::value>>();
