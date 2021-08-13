@@ -165,7 +165,7 @@ Process::ProcessModel* Macro::loadProcessFromPreset(
     const IntervalModel& interval,
     const Process::Preset& preset)
 {
-  if(auto process = this->createProcess(interval, preset.key.key, preset.key.effect, {}))
+  if(auto process = this->createProcessInNewSlot(interval, preset.key.key, preset.key.effect, {}))
   {
     m.submit(new Process::LoadPreset{*process, preset});
     return process;
