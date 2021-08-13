@@ -9,7 +9,9 @@
 #include <score_lib_base_export.h>
 
 #include <verdigris>
+#include <functional>
 
+class QMimeData;
 namespace score
 {
 class SCORE_LIB_BASE_EXPORT QGraphicsSelectablePixmapToggle final
@@ -40,6 +42,28 @@ public:
 public:
   void toggled(bool arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, toggled, arg_1)
 
+protected:
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+};
+
+class SCORE_LIB_BASE_EXPORT QGraphicsDraggablePixmap final
+    : public QObject
+    , public QGraphicsPixmapItem
+{
+  W_OBJECT(QGraphicsDraggablePixmap)
+  Q_INTERFACES(QGraphicsItem)
+
+  const QPixmap m_pressed, m_pressed_selected, m_released, m_released_selected;
+
+public:
+  QGraphicsDraggablePixmap(
+      QPixmap pressed,
+      QPixmap released,
+      QGraphicsItem* parent);
+
+  std::function<void(QMimeData&)> createDrag;
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;

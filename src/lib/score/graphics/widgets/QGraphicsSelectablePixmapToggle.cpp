@@ -3,8 +3,12 @@
 
 #include <QGraphicsSceneMouseEvent>
 
+#include <QApplication>
+#include <QDrag>
+#include <QMimeData>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::QGraphicsSelectablePixmapToggle);
+W_OBJECT_IMPL(score::QGraphicsDraggablePixmap);
 
 namespace score
 {
@@ -76,6 +80,56 @@ void QGraphicsSelectablePixmapToggle::mouseMoveEvent(
 void QGraphicsSelectablePixmapToggle::mouseReleaseEvent(
     QGraphicsSceneMouseEvent* event)
 {
+  event->accept();
+}
+
+
+QGraphicsDraggablePixmap::QGraphicsDraggablePixmap(
+    QPixmap pressed,
+    QPixmap released,
+    QGraphicsItem* parent)
+    : QGraphicsPixmapItem{released, parent}
+    , m_pressed{std::move(pressed)}
+    , m_released{std::move(released)}
+{
+  // TODO https://bugreports.qt.io/browse/QTBUG-77970
+  setShapeMode(QGraphicsPixmapItem::BoundingRectShape);
+  auto& skin = score::Skin::instance();
+  setCursor(skin.CursorPointingHand);
+}
+
+
+void QGraphicsDraggablePixmap::mousePressEvent(
+    QGraphicsSceneMouseEvent* event)
+{
+  setPixmap(m_pressed);
+  event->accept();
+}
+
+void QGraphicsDraggablePixmap::mouseMoveEvent(
+    QGraphicsSceneMouseEvent* event)
+{
+  {
+    auto min_dist
+        = (event->screenPos() - event->buttonDownScreenPos(Qt::LeftButton)).manhattanLength() >= QApplication::startDragDistance();
+    if(min_dist && this->createDrag)
+    {
+      QMimeData* mime = new QMimeData;
+      this->createDrag(*mime);
+
+      auto drag = new QDrag{this};
+      drag->setMimeData(mime);
+      drag->exec();
+    }
+  }
+
+  event->accept();
+}
+
+void QGraphicsDraggablePixmap::mouseReleaseEvent(
+    QGraphicsSceneMouseEvent* event)
+{
+  setPixmap(m_released);
   event->accept();
 }
 }
