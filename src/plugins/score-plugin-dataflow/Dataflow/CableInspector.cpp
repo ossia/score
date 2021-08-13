@@ -77,9 +77,12 @@ CableWidget::CableWidget(
 
   auto source = cable.source().try_find(ctx);
   auto sink = cable.sink().try_find(ctx);
+
   if(!source || !sink)
+  {
     qDebug("Warning ! showing a cable inspector while a process has been deleted");
-  return;
+    return;
+  }
 
   auto lay = new QVBoxLayout{&m_portList};
   {
