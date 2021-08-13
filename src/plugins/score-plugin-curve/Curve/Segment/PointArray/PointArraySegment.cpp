@@ -9,6 +9,7 @@
 #include <Curve/Segment/Linear/LinearSegment.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
 
+#include <ossia/editor/curve/curve_segment/easing.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
@@ -276,6 +277,30 @@ std::vector<SegmentData> PointArraySegment::toPowerSegments() const
   }
 
   return vec;
+}
+template<typename T>
+struct point_array_executor
+{
+  ossia::flat_map<double, double> m_points;
+
+  T operator()(double ratio, T start, T end) {
+    auto it = m_points.lower_bound(ratio);
+    if(it != m_points.end())
+      return ossia::easing::ease{}(start, end, 1. - it->second);
+    return start;
+  }
+};
+
+ossia::curve_segment<double> PointArraySegment::makeDoubleFunction() const{
+  return point_array_executor<double>{m_points};
+}
+
+ossia::curve_segment<float> PointArraySegment::makeFloatFunction() const {
+  return point_array_executor<float>{m_points};
+}
+
+ossia::curve_segment<int> PointArraySegment::makeIntFunction() const {
+  return point_array_executor<int>{m_points};
 }
 
 void PointArraySegment::reset()
