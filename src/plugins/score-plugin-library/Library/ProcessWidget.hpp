@@ -54,5 +54,8 @@ private:
   PresetItemModel* m_presetModel{};
   ProcessTreeView m_tv;
   PresetListView m_lv;
+
+  QWidget m_preview;
+  QWidget* m_previewChild{};
 };
 }

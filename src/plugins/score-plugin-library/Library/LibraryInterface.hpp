@@ -8,6 +8,10 @@
 #include <score_plugin_library_export.h>
 class QAbstractItemModel;
 class QMimeData;
+namespace Process
+{
+struct Preset;
+}
 
 namespace Library
 {
@@ -25,6 +29,8 @@ public:
 
   virtual QWidget*
   previewWidget(const QString& path, QWidget* parent) const noexcept;
+  virtual QWidget*
+  previewWidget(const Process::Preset& preset, QWidget* parent) const noexcept;
 
   virtual void
   setup(ProcessesItemModel& model, const score::GUIApplicationContext& ctx);

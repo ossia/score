@@ -109,6 +109,7 @@ ProcessWidget::ProcessWidget(
     : QWidget{parent}
     , m_processModel{new ProcessesItemModel{ctx, this}}
     , m_presetModel{new PresetItemModel{ctx, this}}
+    , m_preview{this}
 {
   auto slay = new score::MarginLess<QVBoxLayout>{this};
   setLayout(slay);
@@ -139,19 +140,74 @@ ProcessWidget::ProcessWidget(
     slay->addWidget(&m_lv, 1);
   }
 
+  slay->addWidget(&m_preview);
+  {
+    auto previewLay = new score::MarginLess<QHBoxLayout>{&m_preview};
+    m_preview.setLayout(previewLay);
+    m_preview.hide();
+  }
+
   auto infoWidg = new InfoWidget{this};
   infoWidg->setStatusTip(statusTip());
   slay->addWidget(infoWidg, 1);
 
   connect(&m_tv, &ProcessTreeView::selected, this, [=](const auto& pdata) {
+    m_preview.hide();
+
+    // Update info widget
     infoWidg->setData(pdata);
+
+    // Update the filter
     if (pdata)
       presetFilterProxy->currentFilter = pdata->key;
     else
       presetFilterProxy->currentFilter = {};
     presetFilterProxy->invalidate();
+
+    // Update the preview
+    delete m_previewChild;
+    m_previewChild = nullptr;
+    if(pdata)
+    {
+      if(QFile::exists(pdata->customData))
+      {
+        for (auto lib : libraryInterface(pdata->customData))
+        {
+          if ((m_previewChild = lib->previewWidget(pdata->customData, &m_preview)))
+          {
+            m_preview.layout()->addWidget(m_previewChild);
+            m_preview.show();
+            break;
+          }
+        }
+      }
+    }
   });
 
+
+  auto preset_sel = m_lv.selectionModel();
+  connect(preset_sel, &QItemSelectionModel::currentRowChanged, this, [&](const QModelIndex& idx, const QModelIndex&) {
+            if(!idx.isValid())
+              return;
+            if(idx.row() >= m_presetModel->presets.size() || idx.row() < 0)
+              return;
+
+            m_preview.hide();
+            delete m_previewChild;
+            m_previewChild = nullptr;
+
+
+            const auto& preset = m_presetModel->presets[idx.row()];
+            for (auto& lib : score::GUIAppContext().interfaces<LibraryInterfaceList>())
+            {
+              if ((m_previewChild = lib.previewWidget(preset, &m_preview)))
+              {
+                m_preview.layout()->addWidget(m_previewChild);
+                m_preview.show();
+                break;
+              }
+            }
+          });
   m_lv.setMinimumHeight(100);
 }
 

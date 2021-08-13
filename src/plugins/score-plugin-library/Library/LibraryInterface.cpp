@@ -45,6 +45,12 @@ QWidget* LibraryInterface::previewWidget(const QString& path, QWidget* parent)
   return nullptr;
 }
 
+QWidget* LibraryInterface::previewWidget(const Process::Preset& path, QWidget* parent)
+    const noexcept
+{
+  return nullptr;
+}
+
 bool LibraryInterface::onDrop(
     FileSystemModel& model,
     const QMimeData& mime,

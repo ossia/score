@@ -19,8 +19,8 @@ class PresetItemModel final : public QAbstractItemModel
 public:
   PresetItemModel(const score::GUIApplicationContext& ctx, QObject* parent);
 
-private:
   std::vector<Process::Preset>& presets;
+private:
   QModelIndex
   index(int row, int column, const QModelIndex& parent) const override;
 
