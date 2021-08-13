@@ -3,9 +3,16 @@
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/Process.hpp>
 #include <Process/Style/Pixmaps.hpp>
+#include <Process/ProcessMimeSerialization.hpp>
+#include <Process/Dataflow/CableCopy.hpp>
 
 #include <score/graphics/GraphicWidgets.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/model/path/PathSerialization.hpp>
+#include <score/model/EntitySerialization.hpp>
+#include <core/document/Document.hpp>
 
+#include <ossia/detail/thread.hpp>
 #include <QMenu>
 
 #include <wobjectimpl.h>
@@ -176,5 +183,48 @@ QGraphicsItem* makeExternalUIButton(
     return ui_btn;
   }
   return nullptr;
+}
+
+QGraphicsItem* makePresetButton(
+    const ProcessModel& proc,
+    const score::DocumentContext& context,
+    QObject* self,
+    QGraphicsItem* root)
+{
+  auto& pixmaps = Process::Pixmaps::instance();
+  {
+    auto ui_btn = new score::QGraphicsDraggablePixmap{
+        pixmaps.preset_on, pixmaps.preset_off, root};
+    ui_btn->createDrag = [&proc] (QMimeData& mime) {
+
+      QByteArray data;
+      {
+        JSONReader r;
+        r.stream.StartObject();
+        copyProcess(r, proc);
+        r.obj["Path"] = score::IDocument::path(proc);
+        r.obj["View"] = QStringLiteral("Nodal");
+        r.stream.EndObject();
+        data = r.toByteArray();
+      }
+
+      mime.setData(score::mime::layerdata(), data);
+    };
+    return ui_btn;
+  }
+  return nullptr;
+}
+
+void copyProcess(JSONReader& r, const Process::ProcessModel& proc)
+{
+  const auto& ctx = score::IDocument::documentContext(proc);
+
+  std::vector<const Process::ProcessModel*> vp{&proc};
+  std::vector<Path<Process::ProcessModel>> vpath{proc};
+  // Object is not created here but in SlotHeader
+  r.obj["PID"] = ossia::get_pid();
+  r.obj["Document"] = ctx.document.id();
+  r.obj["Process"] = proc;
+  r.obj["Cables"] = Process::cablesToCopy(vp, vpath, ctx);
 }
 }

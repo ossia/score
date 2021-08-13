@@ -69,4 +69,14 @@ QGraphicsItem* makeExternalUIButton(
     const score::DocumentContext& ctx,
     QObject* self,
     QGraphicsItem* parent);
+
+SCORE_LIB_PROCESS_EXPORT
+QGraphicsItem* makePresetButton(
+    const Process::ProcessModel& proc,
+    const score::DocumentContext& ctx,
+    QObject* self,
+    QGraphicsItem* parent);
+
+SCORE_LIB_PROCESS_EXPORT
+void copyProcess(JSONReader& r, const Process::ProcessModel& proc);
 }

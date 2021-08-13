@@ -15,6 +15,9 @@ struct SCORE_LIB_PROCESS_EXPORT Pixmaps
   const QPixmap show_ui_off;
   const QPixmap show_ui_on;
 
+  const QPixmap preset_off;
+  const QPixmap preset_on;
+
   const QPixmap close_off;
   const QPixmap close_on;
 

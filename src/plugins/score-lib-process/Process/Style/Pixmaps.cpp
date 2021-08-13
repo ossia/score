@@ -33,6 +33,9 @@ Pixmaps::Pixmaps() noexcept
     : show_ui_off{score::get_pixmap(":/icons/undock_on.png")}
     , show_ui_on{score::get_pixmap(":/icons/undock_off.png")}
 
+    , preset_off{score::get_pixmap(":/icons/settings_effect_off.png").scaled(show_ui_off.size())}
+    , preset_on{score::get_pixmap(":/icons/settings_effect_on.png").scaled(show_ui_on.size())}
+
     , close_off{score::get_pixmap(":/icons/close_on.png")}
     , close_on{score::get_pixmap(":/icons/close_off.png")}
 

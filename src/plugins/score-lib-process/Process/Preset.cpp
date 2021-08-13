@@ -14,6 +14,14 @@ std::shared_ptr<Preset> Preset::fromJson(
   rapidjson::Document doc;
   Process::Preset p;
   doc.Parse(obj.data(), obj.size());
+  if(doc.HasParseError())
+    return {};
+
+  if(!doc.IsObject())
+    return {};
+
+  if(!doc.GetObject().HasMember("Key") || !doc.GetObject().HasMember("Preset"))
+    return {};
 
   JSONWriter wr{doc};
   const auto& k = wr.obj["Key"];
