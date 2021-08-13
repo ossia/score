@@ -346,7 +346,7 @@ PortItem::~PortItem()
   if (this == magneticDropPort)
     magneticDropPort = nullptr;
 
-  for (auto cable : cables)
+  for (const auto& cable : cables)
   {
     if (cable->source() == this)
       cable->setSource(nullptr);
@@ -541,7 +541,7 @@ void PortItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
   if (QLineF(pos(), event->pos()).length() > QApplication::startDragDistance())
   {
-    QDrag* d{new QDrag{this}};
+    QPointer<QDrag> d{new QDrag{this}};
     QMimeData* m = new QMimeData;
     portDragLineCoords = QLineF{
         scenePos() + QPointF{6., 6.}, event->scenePos() + QPointF{6., 6.}};
@@ -552,14 +552,40 @@ void PortItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     clickedPort = this;
     m->setData(score::mime::port(), {});
     d->setMimeData(m);
-    d->exec();
 
-    connect(d, &QDrag::destroyed, this, [this] {
-      scene()->removeEventFilter(drag_move_filter);
-      clickedPort = nullptr;
-      delete portDragLine;
-      delete drag_move_filter;
-    });
+    // NOTE ! from this point, one mustn't ever ever access any member from our PortItem.
+    // This is because some drag actions may remove the port, by
+    // e.g. moving the process somewhere else or something like that
+    // Thus we put stuff in a lambda to make sure that we only access what is necessary
+    [d, sc = this->scene(), self = this]
+    {
+      connect(d, &QDrag::destroyed, self, [sc] {
+        sc->removeEventFilter(drag_move_filter);
+        clickedPort = nullptr;
+        delete portDragLine;
+        portDragLine = nullptr;
+        delete drag_move_filter;
+        drag_move_filter = nullptr;
+      });
+
+      d->exec();
+      if(d)
+      {
+        delete d;
+      }
+      else
+      {
+        if(drag_move_filter)
+        {
+          sc->removeEventFilter(drag_move_filter);
+          clickedPort = nullptr;
+          delete portDragLine;
+          portDragLine = nullptr;
+          delete drag_move_filter;
+          drag_move_filter = nullptr;
+        }
+      }
+    }();
   }
 }
 
