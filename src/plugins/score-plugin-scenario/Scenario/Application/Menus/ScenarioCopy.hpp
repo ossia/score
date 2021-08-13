@@ -58,9 +58,6 @@ void copySelectedScenarioElements(
     const Scenario::ProcessModel& sm,
     CategorisedScenario& cat);
 
-SCORE_PLUGIN_SCENARIO_EXPORT
-void copyProcess(JSONReader&, const Process::ProcessModel&);
-
 /**
  * The parent should be in the object tree of the scenario.
  * This is because the StateModel needs acces to the command stack

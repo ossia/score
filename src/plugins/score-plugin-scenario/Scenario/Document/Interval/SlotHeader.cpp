@@ -5,6 +5,7 @@
 #include <Process/LayerView.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Effect/EffectLayer.hpp>
 
 #include <score/model/path/PathSerialization.hpp>
 
@@ -137,7 +138,7 @@ QByteArray SlotHeader::dragMimeData(bool temporal)
   {
     auto& proc = m_presenter.model().processes.at(*proc_id);
     r.stream.StartObject();
-    copyProcess(r, proc);
+    Process::copyProcess(r, proc);
     r.obj["Path"] = score::IDocument::path(proc);
     r.obj["Duration"] = m_presenter.model().duration.defaultDuration().msec();
     r.obj["SlotIndex"] = m_slotIndex;

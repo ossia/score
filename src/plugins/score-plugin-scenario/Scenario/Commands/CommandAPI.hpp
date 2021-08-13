@@ -91,6 +91,9 @@ public:
   Process::ProcessModel* loadProcessInSlot(
       const Scenario::IntervalModel& interval,
       const rapidjson::Value& procdata);
+  Process::ProcessModel* loadProcessFromPreset(
+      const IntervalModel& interval,
+      const Process::Preset& preset);
 
   void clearInterval(const Scenario::IntervalModel&);
 

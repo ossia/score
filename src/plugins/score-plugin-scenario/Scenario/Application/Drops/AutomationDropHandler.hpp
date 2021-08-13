@@ -4,6 +4,13 @@
 #include <QSet>
 
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
+#include <Scenario/Application/Drops/DropLayerInInterval.hpp>
+#include <Scenario/Application/Drops/DropLayerInScenario.hpp>
+#include <Scenario/Application/Drops/DropPresetInInterval.hpp>
+#include <Scenario/Application/Drops/DropPresetInScenario.hpp>
+#include <Scenario/Application/Drops/DropProcessInInterval.hpp>
+#include <Scenario/Application/Drops/DropProcessInScenario.hpp>
+
 namespace score
 {
 struct DocumentContext;
@@ -41,58 +48,6 @@ public:
   }
 };
 
-class DropProcessOnState
-{
-public:
-  bool drop(
-      const Scenario::StateModel&,
-      const Scenario::ProcessModel&,
-      const QMimeData& mime,
-      const score::DocumentContext& ctx);
-};
-class DropProcessInScenario final : public GhostIntervalDropHandler
-{
-  SCORE_CONCRETE("9a094988-b05f-4e10-8e0d-56e8d46e084d")
-
-public:
-  DropProcessInScenario();
-  void init();
-
-private:
-  bool drop(
-      const Scenario::ScenarioPresenter&,
-      QPointF pos,
-      const QMimeData& mime) override;
-};
-
-class DropLayerInScenario final : public GhostIntervalDropHandler
-{
-  SCORE_CONCRETE("0eb96d95-3f5f-4e7a-b806-d03d0ac88b48")
-
-public:
-  DropLayerInScenario();
-
-private:
-  bool drop(
-      const Scenario::ScenarioPresenter&,
-      QPointF pos,
-      const QMimeData& mime) override;
-};
-
-class DropPresetInScenario final : public GhostIntervalDropHandler
-{
-  SCORE_CONCRETE("bb137853-1bd9-4c38-a777-2d980771e567")
-
-public:
-  DropPresetInScenario();
-
-private:
-  bool drop(
-      const Scenario::ScenarioPresenter&,
-      QPointF pos,
-      const QMimeData& mime) override;
-};
-
 class DropScenario final : public GhostIntervalDropHandler
 {
   SCORE_CONCRETE("34961e8b-19a5-408f-af90-55f59ce8c58a")
@@ -117,57 +72,6 @@ private:
   bool drop(
       const Scenario::ScenarioPresenter&,
       QPointF pos,
-      const QMimeData& mime) override;
-};
-
-class DropLayerInInterval final : public IntervalDropHandler
-{
-  SCORE_CONCRETE("9df2eac6-6680-43cc-9634-60324416ba04")
-
-  bool drop(
-      const score::DocumentContext& ctx,
-      const Scenario::IntervalModel&,
-      QPointF p,
-      const QMimeData& mime) override;
-
-public:
-  static void perform(
-      const IntervalModel& interval,
-      const score::DocumentContext& doc,
-      Scenario::Command::Macro& m,
-      const rapidjson::Document& json);
-};
-
-class DropPresetInInterval final : public IntervalDropHandler
-{
-  SCORE_CONCRETE("93d1dd9d-5923-4bc2-8c52-cbe0677a3202")
-
-  bool drop(
-      const score::DocumentContext& ctx,
-      const Scenario::IntervalModel&,
-      QPointF p,
-      const QMimeData& mime) override;
-
-public:
-  static void perform(
-      const IntervalModel& interval,
-      const score::DocumentContext& doc,
-      Scenario::Command::Macro& m,
-      const rapidjson::Document& json);
-};
-
-/**
- * @brief The ProcessDropHandler class
- * Will create a blank process.
- */
-class DropProcessInInterval final : public IntervalDropHandler
-{
-  SCORE_CONCRETE("08f5aec5-3a42-45c8-b3db-aa45a851dd09")
-
-  bool drop(
-      const score::DocumentContext& ctx,
-      const Scenario::IntervalModel&,
-      QPointF p,
       const QMimeData& mime) override;
 };
 

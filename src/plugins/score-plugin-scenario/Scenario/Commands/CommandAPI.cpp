@@ -1,6 +1,7 @@
 #include <Dataflow/Commands/EditConnection.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 
+#include <Process/Commands/LoadPreset.hpp>
 #include <Scenario/Commands/Cohesion/CreateCurves.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/ResizeInterval.hpp>
@@ -157,6 +158,18 @@ Process::ProcessModel* Macro::loadProcessInSlot(
   auto it = interval.processes.find(process_cmd->processId());
   if (it != interval.processes.end())
     return &(*it);
+  return nullptr;
+}
+
+Process::ProcessModel* Macro::loadProcessFromPreset(
+    const IntervalModel& interval,
+    const Process::Preset& preset)
+{
+  if(auto process = this->createProcess(interval, preset.key.key, preset.key.effect, {}))
+  {
+    m.submit(new Process::LoadPreset{*process, preset});
+    return process;
+  }
   return nullptr;
 }
 

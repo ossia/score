@@ -4,6 +4,7 @@
 
 #include <Dataflow/Commands/CableHelpers.hpp>
 #include <Process/Dataflow/Cable.hpp>
+#include <Process/Dataflow/CableCopy.hpp>
 
 #include <score/document/DocumentContext.hpp>
 #include <score/model/EntityMap.hpp>
@@ -32,88 +33,6 @@
 #include <vector>
 namespace Scenario
 {
-// MOVEME
-bool verifyAndUpdateIfChildOf(ObjectPath& path, const ObjectPath& parent)
-{
-  auto parent_n = parent.vec().size();
-  auto path_n = path.vec().size();
-  if (parent_n >= path_n)
-    return false;
-  for (std::size_t i = 0; i < parent_n; i++)
-  {
-    if (!(path.vec()[i] == parent.vec()[i]))
-      return false;
-  }
-
-  SCORE_ASSERT(parent_n > 1);
-  path.vec().erase(path.vec().begin(), path.vec().begin() + parent_n - 1);
-  return true;
-}
-
-template <typename T>
-bool verifyAndUpdateIfChildOf(
-    Process::CableData& path,
-    const std::vector<Path<T>>& vec)
-{
-  bool source_ok = false;
-  for (const auto& parent : vec)
-  {
-    if (verifyAndUpdateIfChildOf(
-            path.source.unsafePath(), parent.unsafePath()))
-    {
-      source_ok = true;
-      break;
-    }
-  }
-  if (!source_ok)
-    return false;
-
-  for (const auto& parent : vec)
-  {
-    if (verifyAndUpdateIfChildOf(path.sink.unsafePath(), parent.unsafePath()))
-    {
-      return true;
-    }
-  }
-  // must not happen: the sink is already guaranteed to be a child of an
-  // interval since we look for all the inlets
-  SCORE_ABORT;
-}
-
-template <typename T>
-Dataflow::SerializedCables cablesToCopy(
-    const std::vector<T*>& array,
-    const std::vector<Path<std::remove_const_t<T>>>& siblings,
-    const score::DocumentContext& ctx)
-{
-  // For every cable, if both ends are in one of the elements or child elements
-  // currently selected, we copy them.
-  // Note: ids / cable paths have to be updated of course.
-  Dataflow::SerializedCables copiedCables;
-  ossia::ptr_set<Process::Inlet*> ins;
-  for (auto itv : array)
-  {
-    auto child_ins = itv->template findChildren<Process::Inlet*>();
-    ins.insert(child_ins.begin(), child_ins.end());
-  }
-
-  for (auto inl : ins)
-  {
-    for (const auto& c_inl : inl->cables())
-    {
-      if (Process::Cable* cable = c_inl.try_find(ctx))
-      {
-        auto cd = cable->toCableData();
-        if (verifyAndUpdateIfChildOf(cd, siblings))
-        {
-          copiedCables.push_back({cable->id(), cd});
-        }
-      }
-    }
-  }
-
-  return copiedCables;
-}
 
 template <typename Scenario_T>
 void copySelected(
@@ -238,7 +157,7 @@ void copySelected(
   r.obj["Events"] = copiedEvents;
   r.obj["TimeNodes"] = copiedTimeSyncs;
   r.obj["States"] = copiedStates;
-  r.obj["Cables"] = cablesToCopy(cs.selectedIntervals, itv_paths, ctx);
+  r.obj["Cables"] = Process::cablesToCopy(cs.selectedIntervals, itv_paths, ctx);
 
   for (auto elt : copiedTimeSyncs)
     delete elt;
@@ -246,19 +165,6 @@ void copySelected(
     delete elt;
   for (auto elt : copiedStates)
     delete elt;
-}
-
-void copyProcess(JSONReader& r, const Process::ProcessModel& proc)
-{
-  const auto& ctx = score::IDocument::documentContext(proc);
-
-  std::vector<const Process::ProcessModel*> vp{&proc};
-  std::vector<Path<Process::ProcessModel>> vpath{proc};
-  // Object is not created here but in SlotHeader
-  r.obj["PID"] = ossia::get_pid();
-  r.obj["Document"] = ctx.document.id();
-  r.obj["Process"] = proc;
-  r.obj["Cables"] = cablesToCopy(vp, vpath, ctx);
 }
 
 void copySelectedScenarioElements(
@@ -291,7 +197,7 @@ void copyWholeScenario(JSONReader& r, const Scenario::ProcessModel& sm)
   r.obj["Events"] = sm.events;
   r.obj["TimeNodes"] = sm.timeSyncs;
   r.obj["States"] = sm.states;
-  r.obj["Cables"] = cablesToCopy(itvs, itv_paths, ctx);
+  r.obj["Cables"] = Process::cablesToCopy(itvs, itv_paths, ctx);
   r.obj["Comments"] = sm.comments;
   r.stream.EndObject();
 }

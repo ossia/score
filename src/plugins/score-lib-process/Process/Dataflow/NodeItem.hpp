@@ -86,6 +86,7 @@ private:
 
   // Title
   QGraphicsItem* m_uiButton{};
+  QGraphicsItem* m_presetButton{};
   score::SimpleTextItem* m_label{};
 
   QSizeF m_contentSize{};

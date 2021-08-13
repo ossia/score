@@ -73,6 +73,7 @@ NodeItem::NodeItem(
   m_fold->setState(true);
 
   m_uiButton = Process::makeExternalUIButton(process, ctx, this, this);
+  m_presetButton = Process::makePresetButton(process, ctx, this, this);
 
   auto& skin = score::Skin::instance();
   m_label = new score::SimpleTextItem{skin.Light.main, this};
@@ -205,32 +206,24 @@ void NodeItem::resetInlets()
 
 void NodeItem::updateTitlePos()
 {
-  if (m_inlets.empty())
-  {
-    m_fold->setPos({FoldX0, FoldY0});
-    if (m_uiButton)
-    {
-      m_uiButton->setPos({UiX0, UiY0});
-      m_label->setPos({TitleWithUiX0, TitleY0});
-    }
-    else
-    {
-      m_label->setPos({TitleX0, TitleY0});
-    }
+  double x0 = FoldX0;
+  if (!m_inlets.empty())
+    x0 += InletX0;
+
+  m_fold->setPos({x0, FoldY0});
+  x0 += UiX0 - FoldX0 + 2;
+
+  if (m_uiButton) {
+    m_uiButton->setPos({x0, UiY0});
+    x0 += UiX0;
   }
-  else
-  {
-    m_fold->setPos({FoldX0 + InletX0, FoldY0});
-    if (m_uiButton)
-    {
-      m_uiButton->setPos({UiX0 + InletX0, UiY0});
-      m_label->setPos({TitleWithUiX0 + InletX0, TitleY0});
-    }
-    else
-    {
-      m_label->setPos({TitleX0 + InletX0, TitleY0});
-    }
+
+  if(m_presetButton) {
+    m_presetButton->setPos({x0, UiY0});
+    x0 += UiX0;
   }
+
+  m_label->setPos({x0, TitleY0});
 }
 
 void NodeItem::resetOutlets()

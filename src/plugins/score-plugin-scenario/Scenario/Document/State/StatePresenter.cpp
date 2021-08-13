@@ -25,6 +25,7 @@
 #include <QUrl>
 
 #include <Scenario/Application/Drops/AutomationDropHandler.hpp>
+#include <Scenario/Application/Drops/DropProcessOnState.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
@@ -135,7 +136,7 @@ void StatePresenter::handleDrop(const QMimeData& mime)
   else if (fmt.contains(score::mime::layerdata()))
   {
     const auto json = readJson(mime.data(score::mime::layerdata()));
-    if (!json.HasMember("Path") || !json.HasMember("Duration"))
+    if (!json.HasMember("Path"))
       return;
     const auto& obj
         = JsonValue{json["Path"]}.to<Path<Process::ProcessModel>>();
