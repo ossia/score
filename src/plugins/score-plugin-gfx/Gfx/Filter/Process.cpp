@@ -1,6 +1,5 @@
 #include "Process.hpp"
 
-#include <Gfx/Filter/PreviewWidget.hpp>
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/ShaderCache.hpp>
 #include <Gfx/TexturePort.hpp>
@@ -58,6 +57,19 @@ void main() {
   setProgram({QByteArray{}, defaultFrag});
 }
 
+Model::Model(
+    const TimeVal& duration,
+    const QString& init,
+    const Id<Process::ProcessModel>& id,
+    QObject* parent)
+    : Process::ProcessModel{duration, id, "gfxProcess", parent}
+{
+  metadata().setInstanceName(*this);
+  m_outlets.push_back(new TextureOutlet{Id<Process::Port>(0), this});
+
+  setProgram(programFromFragmentShaderPath(init, {}));
+}
+
 Model::~Model() { }
 
 bool Model::validate(const ShaderSource& txt) const noexcept
@@ -75,22 +87,22 @@ void Model::setVertex(QString f)
 {
   if (f == m_program.vertex)
     return;
-  m_program.vertex = f;
+  m_program.vertex = std::move(f);
   m_processedProgram.vertex.clear();
   m_processedProgram.compiledVertex = QShader{};
 
-  vertexChanged(f);
+  vertexChanged(m_program.vertex);
 }
 
 void Model::setFragment(QString f)
 {
   if (f == m_program.fragment)
     return;
-  m_program.fragment = f;
+  m_program.fragment = std::move(f);
   m_processedProgram.fragment.clear();
   m_processedProgram.compiledFragment = QShader{};
 
-  fragmentChanged(f);
+  fragmentChanged(m_program.fragment);
 }
 
 void Model::setProgram(const ShaderSource& f)
@@ -265,50 +277,6 @@ void Model::setupIsf(const isf::descriptor& desc)
     std::visit(input_vis{input, i, *this}, input.data);
     i++;
   }
-}
-QSet<QString> DropHandler::mimeTypes() const noexcept
-{
-  return {}; // TODO
-}
-
-QSet<QString> LibraryHandler::acceptedFiles() const noexcept
-{
-  return {"frag", "glsl", "fs"};
-}
-
-QWidget* LibraryHandler::previewWidget(const QString& path, QWidget* parent)
-    const noexcept
-{
-  return new ShaderPreviewWidget{path, parent};
-}
-
-QSet<QString> DropHandler::fileExtensions() const noexcept
-{
-  return {"frag", "glsl", "fs"};
-}
-
-std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::dropData(
-    const std::vector<DroppedFile>& data,
-    const score::DocumentContext& ctx) const noexcept
-{
-  std::vector<Process::ProcessDropHandler::ProcessDrop> vec;
-  {
-    for (const auto& [filename, fragData] : data)
-    {
-      Process::ProcessDropHandler::ProcessDrop p;
-      p.creation.key = Metadata<ConcreteKey_k, Gfx::Filter::Model>::get();
-      p.creation.prettyName = QFileInfo{filename}.baseName();
-
-      p.setup = [program = programFromFragmentShaderPath(filename, fragData)](
-                    Process::ProcessModel& m, score::Dispatcher& disp) {
-        auto& fx = static_cast<Gfx::Filter::Model&>(m);
-        disp.submit(new ChangeShader{fx, program});
-      };
-
-      vec.push_back(std::move(p));
-    }
-  }
-  return vec;
 }
 }
 

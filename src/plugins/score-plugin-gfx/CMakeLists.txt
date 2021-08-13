@@ -39,6 +39,7 @@ set(HDRS
     Gfx/Filter/Metadata.hpp
     Gfx/Filter/Process.hpp
     Gfx/Filter/Layer.hpp
+    Gfx/Filter/Library.hpp
     Gfx/Filter/PreviewWidget.hpp
 
     Gfx/Video/Executor.hpp
@@ -113,6 +114,7 @@ set(SRCS
     ${KINECT2_SRCS}
 
     Gfx/Filter/Executor.cpp
+    Gfx/Filter/Library.cpp
     Gfx/Filter/Process.cpp
     Gfx/Filter/PreviewWidget.cpp
 

@@ -2,8 +2,6 @@
 #include <Gfx/CommandFactory.hpp>
 #include <Gfx/Filter/Metadata.hpp>
 #include <Gfx/ShaderProgram.hpp>
-#include <Library/LibraryInterface.hpp>
-#include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
 
@@ -23,6 +21,11 @@ public:
 
   Model(
       const TimeVal& duration,
+      const Id<Process::ProcessModel>& id,
+      QObject* parent);
+  Model(
+      const TimeVal& duration,
+      const QString& init,
       const Id<Process::ProcessModel>& id,
       QObject* parent);
 
@@ -74,26 +77,6 @@ private:
 
 using ProcessFactory = Process::ProcessFactory_T<Gfx::Filter::Model>;
 
-class LibraryHandler final : public Library::LibraryInterface
-{
-  SCORE_CONCRETE("e62ed6f6-a2c1-4d27-a9c3-1c3bc576bfeb")
-
-  QSet<QString> acceptedFiles() const noexcept override;
-
-  QWidget*
-  previewWidget(const QString& path, QWidget* parent) const noexcept override;
-};
-
-class DropHandler final : public Process::ProcessDropHandler
-{
-  SCORE_CONCRETE("d1e16bba-4c53-4d24-8b6b-71b94daef68d")
-
-  QSet<QString> mimeTypes() const noexcept override;
-  QSet<QString> fileExtensions() const noexcept override;
-  std::vector<ProcessDrop> dropData(
-      const std::vector<DroppedFile>& data,
-      const score::DocumentContext& ctx) const noexcept override;
-};
 }
 
 #include <Scenario/Commands/ScriptEditCommand.hpp>
