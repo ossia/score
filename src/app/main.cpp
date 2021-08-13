@@ -159,7 +159,7 @@ static void setup_opengl()
 #ifndef QT_NO_OPENGL
   {
     std::vector<std::pair<int, int>> versions_to_test = {
-        { 4, 7 }, { 4, 6 }, { 4, 5 }, { 4, 4 }, { 4, 3 }, { 4, 2 }, { 4, 1 }, { 4, 0 },
+        { 4, 6 }, { 4, 5 }, { 4, 4 }, { 4, 3 }, { 4, 2 }, { 4, 1 }, { 4, 0 },
         { 3, 3 }, { 3, 2 }, { 3, 1 }, { 3, 0 },
         { 2, 1 }, { 2, 0 }
     };
