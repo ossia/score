@@ -112,27 +112,26 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
     return;
 
   auto ratio = double(duration().impl) / newDuration.impl;
-  auto inv_ratio = newDuration.impl / double(duration().impl);
 
-  std::vector<Id<Note>> toErase;
   for (Note& n : notes)
-  {
-    if (n.end() >= inv_ratio)
-    {
-      toErase.push_back(n.id());
-    }
-    else
-    {
-      n.scale(ratio);
-    }
-  }
+    n.scale(ratio);
 
-  for (auto& note : toErase)
-  {
-    notes.remove(note);
-  }
   notesChanged();
   setDuration(newDuration);
+}
+
+TimeVal ProcessModel::contentDuration() const noexcept
+{
+  double end_max{0.};
+  for (const Note& n : notes)
+  {
+    if(double n_end = n.start() + n.duration(); n_end > end_max)
+    {
+      end_max = n_end;
+    }
+  }
+
+  return TimeVal(this->duration().impl * end_max);
 }
 }
 

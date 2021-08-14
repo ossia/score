@@ -56,6 +56,7 @@ public:
   void rangeChanged(int arg_1, int arg_2) W_SIGNAL(rangeChanged, arg_1, arg_2);
 
 private:
+  TimeVal contentDuration() const noexcept override;
   void setDurationAndScale(const TimeVal& newDuration) noexcept override;
   void setDurationAndGrow(const TimeVal& newDuration) noexcept override;
   void setDurationAndShrink(const TimeVal& newDuration) noexcept override;
