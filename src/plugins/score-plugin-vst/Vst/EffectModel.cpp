@@ -597,12 +597,14 @@ void releasePluginInstance(int uid)
   auto it = app.vst_modules.find(uid);
   if (it != app.vst_modules.end())
   {
-    SCORE_ASSERT (it->second);
-    it->second->use_count--;
-    if(it->second->use_count == 0)
+    if(it->second)
     {
-      delete it->second;
-      it->second = nullptr;
+      it->second->use_count--;
+      if(it->second->use_count == 0)
+      {
+        delete it->second;
+        it->second = nullptr;
+      }
     }
   }
 }
