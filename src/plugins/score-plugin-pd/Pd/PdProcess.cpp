@@ -3,6 +3,7 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
+#include <Process/PresetHelpers.hpp>
 
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
@@ -892,6 +893,16 @@ void ProcessModel::setScript(const QString& script)
 const QString& ProcessModel::script() const
 {
   return m_script;
+}
+
+void ProcessModel::loadPreset(const Process::Preset& preset)
+{
+  Process::loadScriptProcessPreset<ProcessModel::p_script>(*this, preset);
+}
+
+Process::Preset ProcessModel::savePreset() const noexcept
+{
+  return Process::saveScriptProcessPreset(*this, this->m_script);
 }
 }
 
