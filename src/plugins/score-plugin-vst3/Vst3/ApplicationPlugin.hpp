@@ -110,6 +110,10 @@ public:
 
   void scanVSTsEvent();
 
+  const VST3::Hosting::ClassInfo* classInfo(const VST3::UID& uid) const noexcept;
+  QString pathForClass(const VST3::UID& uid) const noexcept;
+  std::optional<VST3::UID> uidForPathAndClassName(const QString& path, const QString& cls) const noexcept;
+
   struct ScanningProcess
   {
     QString path;

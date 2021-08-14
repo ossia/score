@@ -5,6 +5,7 @@
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
 #include <Vst3/Plugin.hpp>
+#include <public.sdk/source/vst/utility/uid.h>
 
 #include <score/tools/std/Invoke.hpp>
 
@@ -88,6 +89,9 @@ public:
   void reloadControls();
 
 private:
+  void loadPreset(const Process::Preset& preset) override;
+  Process::Preset savePreset() const noexcept override;
+
   void init();
   void create();
   void load();
@@ -97,7 +101,7 @@ private:
   void writeState();
 
   QString m_vstPath;
-  QString m_className;
+  VST3::UID m_uid{};
 
   QByteArray m_savedProcessorState;
   QByteArray m_savedControllerState;

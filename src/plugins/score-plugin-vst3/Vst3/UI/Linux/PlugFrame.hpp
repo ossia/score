@@ -147,6 +147,8 @@ public:
   using uint32 = Steinberg::uint32;
   using tresult = Steinberg::tresult;
 
+  QObject internalContextObject;
+
   std::vector<std::pair<Linux::ITimerHandler*, QTimer*>> timers;
 
   std::vector<SocketHandler> handlers;
@@ -186,15 +188,15 @@ public:
     auto readnotifier = new QSocketNotifier{fd, QSocketNotifier::Read};
     readnotifier->setEnabled(true);
     auto on_fd = [=] { handler->onFDIsSet(fd); };
-    QObject::connect(readnotifier, &QSocketNotifier::activated, on_fd);
+    QObject::connect(readnotifier, &QSocketNotifier::activated, &internalContextObject, on_fd);
 
     auto writenotifier = new QSocketNotifier{fd, QSocketNotifier::Write};
     writenotifier->setEnabled(true);
-    QObject::connect(writenotifier, &QSocketNotifier::activated, on_fd);
+    QObject::connect(writenotifier, &QSocketNotifier::activated, &internalContextObject, on_fd);
 
     auto errnotifier = new QSocketNotifier{fd, QSocketNotifier::Exception};
     errnotifier->setEnabled(true);
-    QObject::connect(errnotifier, &QSocketNotifier::activated, on_fd);
+    QObject::connect(errnotifier, &QSocketNotifier::activated, &internalContextObject, on_fd);
 
     handlers.push_back(SocketHandler{handler, readnotifier, writenotifier, errnotifier, fd});
     GlobalSocketHandlers::instance().registerHandler(handler, fd);

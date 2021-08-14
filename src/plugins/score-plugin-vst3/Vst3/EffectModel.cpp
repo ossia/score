@@ -120,16 +120,16 @@ namespace vst3
 
 Model::Model(
     TimeVal t,
-    const QString& path,
+    const QString& uid,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
     : ProcessModel{t, id, "VST", parent}
 {
-  auto identifier = splitWithoutEmptyParts(path, "/::/");
-  if (identifier.size() == 2)
+  if(auto id = VST3::UID::fromString(uid.toStdString()))
   {
-    m_vstPath = identifier[0];
-    m_className = identifier[1];
+    m_uid = *id;
+    auto& vst_plug = score::GUIAppContext().applicationPlugin<vst3::ApplicationPlugin>();
+    m_vstPath = vst_plug.pathForClass(m_uid);
   }
   init();
   create();
@@ -292,7 +292,7 @@ void Model::initFx()
         *this,
         p,
         m_vstPath.toStdString(),
-        m_className.toStdString(),
+        m_uid,
         media.getRate(),
         4096);
   }
@@ -303,7 +303,8 @@ void Model::initFx()
     return;
   }
 
-  metadata().setName(m_className);
+  if(auto info = p.classInfo(m_uid))
+    metadata().setName(QString::fromStdString(info->name()));
   metadata().setLabel(metadata().getName());
 
   /// this->fx.controller->setComponentState(...);
@@ -526,15 +527,50 @@ void Model::writeState()
     // Then reload the controller-specific data
     if (fx.controller)
     {
+      if(!m_savedControllerState.isEmpty())
       {
         QDataStream str{m_savedControllerState};
 
         Vst3DataStream stream{str};
 
+        fx.controller->setState(&stream);
+
         m_savedControllerState = {};
       }
     }
   }
+}
+
+
+void Model::loadPreset(const Process::Preset& preset)
+{
+  const rapidjson::Document doc = readJson(preset.data);
+  if(!doc.IsObject())
+    return;
+  auto obj = doc.GetObject();
+
+  if(auto it = obj.FindMember("Processor"); it != obj.MemberEnd())
+    m_savedProcessorState = QByteArray::fromBase64(JsonValue{it->value}.toByteArray());
+  if(auto it = obj.FindMember("Controller"); it != obj.MemberEnd())
+    m_savedControllerState = QByteArray::fromBase64(JsonValue{it->value}.toByteArray());
+
+  writeState();
+}
+
+Process::Preset Model::savePreset() const noexcept
+{
+  Process::Preset p;
+  p.name = this->metadata().getName();
+  p.key.key = this->concreteKey();
+  p.key.effect = QString::fromStdString(m_uid.toString());
+
+  JSONReader r;
+  r.stream.StartObject();
+  r.obj["Processor"] = readProcessorState().toBase64();
+  r.obj["Controller"] = readControllerState().toBase64();
+  r.stream.EndObject();
+  p.data = r.toByteArray();
+  return p;
 }
 
 }
@@ -605,7 +641,7 @@ void DataStreamReader::read(const vst3::Model& eff)
 {
   syncVST3ControllerToProcessor(eff);
 
-  m_stream << eff.m_vstPath << eff.m_className << eff.readProcessorState()
+  m_stream << QString::fromStdString(eff.m_uid.toString()) << eff.readProcessorState()
            << eff.readControllerState();
   readPorts(*this, eff.m_inlets, eff.m_outlets);
   insertDelimiter();
@@ -614,8 +650,12 @@ void DataStreamReader::read(const vst3::Model& eff)
 template <>
 void DataStreamWriter::write(vst3::Model& eff)
 {
-  m_stream >> eff.m_vstPath >> eff.m_className >> eff.m_savedProcessorState
-      >> eff.m_savedControllerState;
+  QString uid;
+  m_stream >> uid >> eff.m_savedProcessorState >> eff.m_savedControllerState;
+
+  eff.m_uid = *VST3::UID::fromString(uid.toStdString());
+  auto& vst_plug = this->components.applicationPlugin<vst3::ApplicationPlugin>();
+  eff.m_vstPath = vst_plug.pathForClass(eff.m_uid);
 
   writePorts(
       *this,
@@ -634,8 +674,7 @@ void JSONReader::read(const vst3::Model& eff)
   syncVST3ControllerToProcessor(eff);
 
   readPorts(*this, eff.m_inlets, eff.m_outlets);
-  obj["VstPath"] = eff.m_vstPath;
-  obj["ClassName"] = eff.m_className;
+  obj["UID"] = QString::fromStdString(eff.m_uid.toString());
   obj["State"] = eff.readProcessorState().toBase64();
   obj["UIState"] = eff.readControllerState().toBase64();
 }
@@ -643,8 +682,26 @@ void JSONReader::read(const vst3::Model& eff)
 template <>
 void JSONWriter::write(vst3::Model& eff)
 {
-  eff.m_vstPath <<= obj["VstPath"];
-  eff.m_className <<= obj["ClassName"];
+  auto& vst_plug = this->components.applicationPlugin<vst3::ApplicationPlugin>();
+  if(auto id = obj.tryGet("UID"))
+  {
+    eff.m_uid = *VST3::UID::fromString(id->toStdString());
+    eff.m_vstPath = vst_plug.pathForClass(eff.m_uid);
+  }
+  else
+  {
+    // Old format
+    QString m_vstPath, m_className;
+    m_vstPath <<= obj["VstPath"];
+    m_className <<= obj["ClassName"];
+    if(auto id = vst_plug.uidForPathAndClassName(m_vstPath, m_className))
+    {
+      eff.m_uid = *id;
+      // Note: we use a different path here because
+      // the VST may be in a different path that the one saved.
+      eff.m_vstPath = vst_plug.pathForClass(eff.m_uid);
+    }
+  }
 
   {
     QByteArray b;

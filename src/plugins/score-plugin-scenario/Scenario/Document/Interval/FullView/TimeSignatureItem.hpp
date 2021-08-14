@@ -5,6 +5,7 @@
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/tools/Bind.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 
@@ -180,13 +181,7 @@ protected:
 
       if (r.size() > 0)
       {
-        double ratio = qApp->devicePixelRatio();
-        auto m_line = QImage(
-            m_rect.width() * ratio,
-            m_rect.height() * ratio,
-            QImage::Format_ARGB32_Premultiplied);
-        m_line.setDevicePixelRatio(ratio);
-        m_line.fill(Qt::transparent);
+        auto m_line = newImage(m_rect.width(), m_rect.height());
 
         {
           QPainter p{&m_line};

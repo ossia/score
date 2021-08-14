@@ -34,6 +34,20 @@ createComponent(VST3::Hosting::Module& mdl, const std::string& name)
   throw vst_error("Couldn't create VST3 component ({})", mdl.getPath());
 }
 
+static Steinberg::Vst::IComponent*
+createComponent(VST3::Hosting::Module& mdl, const VST3::UID& cls)
+{
+  const auto& factory = mdl.getFactory();
+  Steinberg::Vst::IComponent* obj{};
+  factory.get()->createInstance(
+      cls.data(),
+      Steinberg::Vst::IComponent::iid,
+      reinterpret_cast<void**>(&obj));
+  return obj;
+
+  throw vst_error("Couldn't create VST3 component ({})", mdl.getPath());
+}
+
 void Plugin::loadAudioProcessor(ApplicationPlugin& ctx)
 {
   Steinberg::Vst::IAudioProcessor* processor_ptr = nullptr;
@@ -151,13 +165,17 @@ void Plugin::load(
     Model& model,
     ApplicationPlugin& ctx,
     const std::string& path,
-    const std::string& name,
+    const VST3::UID& uid,
     double sample_rate,
     int max_bs)
 {
   this->path = path;
   mdl = ctx.getModule(path);
-  component = createComponent(*mdl, name);
+  if(!mdl)
+    return;
+  component = createComponent(*mdl, uid);
+  if(!component)
+    return;
 
   if (component->initialize(&ctx.m_host) != Steinberg::kResultOk)
     throw vst_error("Couldn't initialize VST3 component ({})", path);

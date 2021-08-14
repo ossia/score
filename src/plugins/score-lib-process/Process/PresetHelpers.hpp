@@ -7,7 +7,8 @@
 namespace Process
 {
 
-inline void saveFixedControls(JSONReader& r, const Process::ProcessModel& proc)
+template<typename T = Process::ControlInlet>
+void saveFixedControls(JSONReader& r, const Process::ProcessModel& proc)
 {
   r.stream.StartArray();
   for (const auto& inlet : proc.inlets())
@@ -23,6 +24,7 @@ inline void saveFixedControls(JSONReader& r, const Process::ProcessModel& proc)
   r.stream.EndArray();
 }
 
+template<typename T = Process::ControlInlet>
 inline void loadFixedControls(const rapidjson::Document::ConstArray& ctrls, Process::ProcessModel& proc)
 {
   for (const auto& arr : ctrls)
@@ -35,7 +37,7 @@ inline void loadFixedControls(const rapidjson::Document::ConstArray& ctrls, Proc
     if (it != proc.inlets().end())
     {
       Process::Inlet& inlet = **it;
-      if (auto ctrl = qobject_cast<Process::ControlInlet*>(&inlet))
+      if (auto ctrl = qobject_cast<T*>(&inlet))
       {
         ctrl->setValue(val);
       }

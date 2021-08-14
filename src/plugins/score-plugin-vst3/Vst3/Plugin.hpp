@@ -40,7 +40,7 @@ struct Plugin
       Model& model,
       ApplicationPlugin& ctx,
       const std::string& path,
-      const std::string& name,
+      const VST3::UID& uid,
       double sr,
       int max_bs);
   operator bool() const noexcept { return component && processor; }

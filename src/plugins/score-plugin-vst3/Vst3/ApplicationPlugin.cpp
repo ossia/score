@@ -254,7 +254,6 @@ void ApplicationPlugin::processIncomingMessage(const QString& txt)
 
 void ApplicationPlugin::addInvalidVST(const QString& path)
 {
-  qDebug() << "vst3: invalid: " << path;
   AvailablePlugin i;
   i.path = path;
   i.name = "invalid";
@@ -280,7 +279,6 @@ parseSubCategories(const std::string& str) noexcept
 
 void ApplicationPlugin::addVST(const QString& path, const QJsonObject& obj)
 {
-  qDebug() << "vst3: valid: " << path;
   AvailablePlugin i;
   i.path = path;
   i.name = obj["Name"].toString();
@@ -292,10 +290,14 @@ void ApplicationPlugin::addVST(const QString& path, const QJsonObject& obj)
   for (const QJsonValue& v : classes)
   {
     const QJsonObject& obj = v.toObject();
+    const auto uid = VST3::UID::fromString(obj["UID"].toString().toStdString());
+    if(!uid)
+      continue;
+
     i.classInfo.resize(i.classInfo.size() + 1);
     VST3::Hosting::ClassInfo& cls = i.classInfo.back();
 
-    cls.get().classID.fromString(obj["UID"].toString().toStdString());
+    cls.get().classID = *uid;
     cls.get().cardinality = obj["Cardinality"].toInt();
     cls.get().category = obj["Category"].toString().toStdString();
     cls.get().name = obj["Name"].toString().toStdString();
@@ -307,12 +309,14 @@ void ApplicationPlugin::addVST(const QString& path, const QJsonObject& obj)
     cls.get().classFlags = obj["Version"].toDouble();
   }
 
+  if(i.classInfo.empty())
+    return;
+
   vst_infos.push_back(std::move(i));
 
   // write in the database
   QSettings{}.setValue("Effect/KnownVST3", QVariant::fromValue(vst_infos));
 
-  qDebug() << "Loaded VST " << path << "successfully";
   vstChanged();
 }
 
@@ -374,5 +378,48 @@ void ApplicationPlugin::scanVSTsEvent()
       return;
     }
   }
+}
+
+const VST3::Hosting::ClassInfo* ApplicationPlugin::classInfo(const VST3::UID& uid) const noexcept
+{
+  // OPTIMIZEME with a small id -> {plugin, class} cache
+  for(auto& plug : this->vst_infos)
+  {
+    for(auto& cls : plug.classInfo)
+    {
+      if(cls.ID() == uid)
+        return &cls;
+    }
+  }
+  return nullptr;
+}
+
+QString ApplicationPlugin::pathForClass(const VST3::UID& uid) const noexcept
+{
+  // OPTIMIZEME with the same cache than above
+  for(auto& plug : this->vst_infos)
+  {
+    for(auto& cls : plug.classInfo)
+    {
+      if(cls.ID() == uid)
+        return plug.path;
+    }
+  }
+  return {};
+}
+
+std::optional<VST3::UID> ApplicationPlugin::uidForPathAndClassName(
+    const QString& path,
+    const QString& cls) const noexcept
+{
+  auto it = ossia::find_if(this->vst_infos, [&] (auto& info) { return info.path == path; });
+  if(it == this->vst_infos.end())
+    return {};
+
+  auto cls_it = ossia::find_if(it->classInfo, [&, n = cls.toStdString()] (auto& info) { return info.name() == n; });
+  if(cls_it == it->classInfo.end())
+    return {};
+
+  return cls_it->ID();
 }
 }
