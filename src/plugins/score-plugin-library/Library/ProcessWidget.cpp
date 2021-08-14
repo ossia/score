@@ -159,9 +159,13 @@ ProcessWidget::ProcessWidget(
 
     // Update the filter
     if (pdata)
+    {
       presetFilterProxy->currentFilter = {pdata->key, pdata->customData};
+    }
     else
+    {
       presetFilterProxy->currentFilter = {};
+    }
     presetFilterProxy->invalidate();
 
     // Update the preview
@@ -198,6 +202,7 @@ ProcessWidget::ProcessWidget(
 
 
             const auto& preset = m_presetModel->presets[idx.row()];
+
             for (auto& lib : score::GUIAppContext().interfaces<LibraryInterfaceList>())
             {
               if ((m_previewChild = lib.previewWidget(preset, &m_preview)))

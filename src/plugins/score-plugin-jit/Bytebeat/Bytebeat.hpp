@@ -82,6 +82,8 @@ public:
 
   PROPERTY(QString, script READ script WRITE setScript NOTIFY scriptChanged)
 private:
+  void loadPreset(const Process::Preset& preset) override;
+  Process::Preset savePreset() const noexcept override;
   void init();
   void reload();
   QString m_text;

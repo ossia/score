@@ -74,7 +74,7 @@ class LibraryHandler final
     pdata.customData = [&] {
       QFile f(file.absoluteFilePath());
       f.open(QIODevice::ReadOnly);
-      return f.readAll();
+      return f.readAll().trimmed();
     }();
 
     {

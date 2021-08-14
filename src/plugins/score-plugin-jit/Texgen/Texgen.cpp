@@ -7,6 +7,7 @@
 #include <Gfx/Graph/TexgenNode.hpp>
 #include <Gfx/TexturePort.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
+#include <Process/PresetHelpers.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
@@ -141,6 +142,16 @@ void TexgenModel::reload()
 
   factory = std::move(jit_factory);
   changed();
+}
+
+void TexgenModel::loadPreset(const Process::Preset& preset)
+{
+  Process::loadScriptProcessPreset<TexgenModel::p_script>(*this, preset);
+}
+
+Process::Preset TexgenModel::savePreset() const noexcept
+{
+  return Process::saveScriptProcessPreset(*this, this->m_text);
 }
 
 class texgen_node final : public Gfx::gfx_exec_node

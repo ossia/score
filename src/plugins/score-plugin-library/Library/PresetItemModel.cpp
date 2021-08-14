@@ -241,7 +241,11 @@ bool PresetFilterProxy::filterAcceptsRow(
     const QModelIndex& srcParent) const
 {
   PresetItemModel* model = safe_cast<PresetItemModel*>(sourceModel());
-  return model->presets[srcRow].key == currentFilter;
+  if(model->presets[srcRow].key.key != currentFilter.key)
+    return false;
+  if(currentFilter.effect.isEmpty())
+    return true;
+  return model->presets[srcRow].key.effect == currentFilter.effect;
 }
 
 }

@@ -2,6 +2,7 @@
 #include "Bytebeat.hpp"
 
 #include <Process/Dataflow/PortFactory.hpp>
+#include <Process/PresetHelpers.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
@@ -187,6 +188,16 @@ void BytebeatModel::reload()
   changed();
 }
 
+void BytebeatModel::loadPreset(const Process::Preset& preset)
+{
+  Process::loadScriptProcessPreset<BytebeatModel::p_script>(*this, preset);
+}
+
+Process::Preset BytebeatModel::savePreset() const noexcept
+{
+  return Process::saveScriptProcessPreset(*this, this->m_text);
+}
+
 class bytebeat_node : public ossia::nonowning_graph_node
 {
 public:
@@ -302,5 +313,4 @@ EffectProcessFactory_T<Jit::BytebeatModel>::descriptor(QString d) const
 {
   return Metadata<Descriptor_k, Jit::BytebeatModel>::get();
 }
-
 }

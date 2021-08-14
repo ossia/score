@@ -25,7 +25,7 @@ void saveFixedControls(JSONReader& r, const Process::ProcessModel& proc)
 }
 
 template<typename T = Process::ControlInlet>
-inline void loadFixedControls(const rapidjson::Document::ConstArray& ctrls, Process::ProcessModel& proc)
+void loadFixedControls(const rapidjson::Document::ConstArray& ctrls, Process::ProcessModel& proc)
 {
   for (const auto& arr : ctrls)
   {
@@ -45,4 +45,27 @@ inline void loadFixedControls(const rapidjson::Document::ConstArray& ctrls, Proc
   }
 }
 
+template<typename T>
+Process::Preset saveScriptProcessPreset(const T& process, const QString& data)
+{
+  Process::Preset p;
+  p.name = process.metadata().getName();
+  p.key.key = Metadata<ConcreteKey_k, T>::get();
+  p.key.effect = data;
+
+  JSONReader r;
+  Process::saveFixedControls(r, process);
+
+  p.data = r.toByteArray();
+  return p;
+}
+
+template<typename ScriptProperty, typename T>
+void loadScriptProcessPreset(T& process, const Process::Preset& preset)
+{
+  const rapidjson::Document doc = readJson(preset.data);
+  if(!doc.IsArray())
+    return;
+  Process::loadFixedControls(doc.GetArray(), process);
+}
 }

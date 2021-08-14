@@ -7,6 +7,7 @@
 
 #include <JS/Qml/QmlObjects.hpp>
 #include <Process/Dataflow/Port.hpp>
+#include <Process/PresetHelpers.hpp>
 #include <State/Expression.hpp>
 
 #include <score/document/DocumentInterface.hpp>
@@ -313,6 +314,16 @@ Script* ComponentCache::get(
       return nullptr;
     }
   }
+}
+
+void ProcessModel::loadPreset(const Process::Preset& preset)
+{
+  Process::loadScriptProcessPreset<ProcessModel::p_script>(*this, preset);
+}
+
+Process::Preset ProcessModel::savePreset() const noexcept
+{
+  return Process::saveScriptProcessPreset(*this, this->m_qmlData);
 }
 
 }

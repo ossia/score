@@ -76,6 +76,8 @@ public:
 
   PROPERTY(QString, script READ script WRITE setScript NOTIFY scriptChanged)
 private:
+  void loadPreset(const Process::Preset& preset) override;
+  Process::Preset savePreset() const noexcept override;
   bool setQmlData(const QByteArray&, bool isFile);
 
   QString m_script;
