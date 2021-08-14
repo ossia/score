@@ -171,7 +171,6 @@ public:
   }
 
   uint32 addRef() override { return 1; }
-
   uint32 release() override { return 1; }
 
   tresult registerEventHandler (Linux::IEventHandler* handler, Linux::FileDescriptor fd) SMTG_OVERRIDE
@@ -186,15 +185,16 @@ public:
 
     auto readnotifier = new QSocketNotifier{fd, QSocketNotifier::Read};
     readnotifier->setEnabled(true);
-    QObject::connect(readnotifier, &QSocketNotifier::activated, [=] { handler->onFDIsSet(fd); });
+    auto on_fd = [=] { handler->onFDIsSet(fd); };
+    QObject::connect(readnotifier, &QSocketNotifier::activated, on_fd);
 
     auto writenotifier = new QSocketNotifier{fd, QSocketNotifier::Write};
     writenotifier->setEnabled(true);
-    QObject::connect(writenotifier, &QSocketNotifier::activated, [=] { handler->onFDIsSet(fd); });
+    QObject::connect(writenotifier, &QSocketNotifier::activated, on_fd);
 
     auto errnotifier = new QSocketNotifier{fd, QSocketNotifier::Exception};
     errnotifier->setEnabled(true);
-    QObject::connect(errnotifier, &QSocketNotifier::activated, [=] { handler->onFDIsSet(fd); });
+    QObject::connect(errnotifier, &QSocketNotifier::activated, on_fd);
 
     handlers.push_back(SocketHandler{handler, readnotifier, writenotifier, errnotifier, fd});
     GlobalSocketHandlers::instance().registerHandler(handler, fd);

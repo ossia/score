@@ -42,7 +42,7 @@ class CreateControl final : public score::Command
   SCORE_COMMAND_DECL(CommandFactoryName(), CreateControl, "Create a control")
 
 public:
-  CreateControl(const Model& obj, Steinberg::Vst::ParamID fxNum, float value);
+  CreateControl(const Model& obj, Steinberg::Vst::ParamID fxNum);
   virtual ~CreateControl();
   void undo(const score::DocumentContext& ctx) const final override;
   void redo(const score::DocumentContext& ctx) const final override;
@@ -53,10 +53,8 @@ protected:
 
 private:
   Path<Model> m_path;
-  uint32_t m_fxNum{};
+  Steinberg::Vst::ParamID m_fxNum{};
   static_assert(sizeof(Steinberg::Vst::ParamID) == sizeof(uint32_t));
-
-  float m_val{};
 };
 
 class RemoveControl final : public score::Command

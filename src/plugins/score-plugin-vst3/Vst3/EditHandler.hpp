@@ -1,6 +1,8 @@
 #pragma once
 #include <Vst3/Control.hpp>
 #include <Vst3/EffectModel.hpp>
+#include <Vst3/Commands.hpp>
+
 
 #include <QDebug>
 
@@ -22,7 +24,10 @@ public:
   {
   }
 
-  ~ComponentHandler() { }
+  ~ComponentHandler()
+  {
+
+  }
 
   Steinberg::tresult
   queryInterface(const Steinberg::TUID _iid, void** obj) override
@@ -41,6 +46,21 @@ public:
 
   Steinberg::tresult beginEdit(Steinberg::Vst::ParamID id) override
   {
+    // TODO implement ongoingdispatcher
+    if (auto ctrl = m_model.controls.find(id); ctrl == m_model.controls.end())
+    {
+      ossia::qt::run_async(
+        &m_model,
+        [&proc=m_model, id] {
+          if (auto ctrl = proc.controls.find(id); ctrl == proc.controls.end())
+          {
+            auto& ctx = score::IDocument::documentContext(proc);
+            CommandDispatcher<>{ctx.commandStack}.submit<CreateControl>(
+                proc, id);
+          }
+        }
+      );
+    }
     return Steinberg::kResultOk;
   }
 

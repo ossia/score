@@ -49,11 +49,9 @@ void SetControl::deserializeImpl(DataStreamOutput& stream)
 
 CreateControl::CreateControl(
     const Model& obj,
-    Steinberg::Vst::ParamID fxNum,
-    float value)
+    Steinberg::Vst::ParamID fxNum)
     : m_path{obj}
     , m_fxNum{fxNum}
-    , m_val{value}
 {
 }
 
@@ -61,24 +59,24 @@ CreateControl::~CreateControl() { }
 
 void CreateControl::undo(const score::DocumentContext& ctx) const
 {
-  // TODO
-  //m_path.find(ctx).removeControl(m_fxNum);
+  m_path.find(ctx).removeControl(m_fxNum);
 }
 
 void CreateControl::redo(const score::DocumentContext& ctx) const
 {
-  // TODO
-  //m_path.find(ctx).on_addControl(m_fxNum, m_val);
+  m_path.find(ctx).addControlFromEditor(m_fxNum);
 }
 
 void CreateControl::serializeImpl(DataStreamInput& stream) const
 {
-  stream << m_path << m_fxNum << m_val;
+  stream << m_path << static_cast<uint32_t>(m_fxNum);
 }
 
 void CreateControl::deserializeImpl(DataStreamOutput& stream)
 {
-  stream >> m_path >> m_fxNum >> m_val;
+  uint32_t fxNum;
+  stream >> m_path >> fxNum;
+  m_fxNum = fxNum;
 }
 
 RemoveControl::RemoveControl(const Model& obj, Id<Process::Port> id)

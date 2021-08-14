@@ -79,6 +79,8 @@ public:
   void removeControl(const Id<Process::Port>&);
   void removeControl(Steinberg::Vst::ParamID fxnum);
 
+  void addControlFromEditor(
+      Steinberg::Vst::ParamID id);
   void on_addControl(const Steinberg::Vst::ParameterInfo& v);
   void on_addControl_impl(ControlInlet* inl);
   void initControl(ControlInlet* inl);
@@ -89,6 +91,7 @@ private:
   void init();
   void create();
   void load();
+  void mapAllControls(int numParams);
   QByteArray readProcessorState() const;
   QByteArray readControllerState() const;
   void writeState();
@@ -98,6 +101,8 @@ private:
 
   QByteArray m_savedProcessorState;
   QByteArray m_savedControllerState;
+
+  ossia::fast_hash_map<Steinberg::Vst::ParamID, int32_t> m_paramToIndex;
 
   void closePlugin();
   void initFx();

@@ -168,6 +168,20 @@ void Model::removeControl(Steinberg::Vst::ParamID fxNum)
   delete ctrl;
 }
 
+void Model::addControlFromEditor(
+    Steinberg::Vst::ParamID id)
+{
+  auto it = m_paramToIndex.find(id);
+  if(it == m_paramToIndex.end())
+    return;
+
+  Steinberg::Vst::ParameterInfo p;
+  if(fx.controller->getParameterInfo(it->second, p) == Steinberg::kResultOk)
+  {
+    on_addControl(p);
+  }
+}
+
 void Model::on_addControl(const Steinberg::Vst::ParameterInfo& v)
 {
   if (controls.find(v.id) != controls.end())
@@ -383,6 +397,18 @@ struct PortCreationVisitor
   }
 };
 
+void Model::mapAllControls(int numParams)
+{
+  Steinberg::Vst::ParameterInfo p;
+  for (int i = 0; i < numParams; i++)
+  {
+    if (fx.controller->getParameterInfo(i, p) == Steinberg::kResultOk)
+    {
+      m_paramToIndex[p.id] = i;
+    }
+  }
+}
+
 void Model::create()
 {
   SCORE_ASSERT(!fx);
@@ -405,9 +431,14 @@ void Model::create()
       {
         if (fx.controller->getParameterInfo(i, p) == Steinberg::kResultOk)
         {
+          m_paramToIndex[p.id] = i;
           on_addControl(p);
         }
       }
+    }
+    else
+    {
+      mapAllControls(numParams);
     }
   }
 }
@@ -427,6 +458,8 @@ void Model::load()
   writeState();
 
   // fx.loadProcessorStateToController();
+
+  mapAllControls(fx.controller->getParameterCount());
 
   for (auto* inlet : this->m_inlets)
   {
