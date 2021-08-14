@@ -38,7 +38,7 @@ public:
       QWidget* widget)
   {
     painter->setRenderHint(QPainter::Antialiasing, true);
-    painter->setPen(score::Skin::instance().DarkGray.lighter.pen_cosmetic);
+    painter->setPen(score::Skin::instance().DarkGray.main.pen_cosmetic);
     painter->drawLines(positions.data(), positions.size());
   }
 
@@ -89,7 +89,7 @@ public:
   {
     painter->setRenderHint(QPainter::Antialiasing, true);
     painter->setPen(
-        score::Skin::instance().Background1.lighter180.pen_cosmetic);
+        score::Skin::instance().DarkGray.darker300.pen_cosmetic);
     painter->drawLines(positions.data(), positions.size());
   }
 
