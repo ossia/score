@@ -3,6 +3,8 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/Bind.hpp>
 
+#include <ossia/detail/algorithms.hpp>
+
 #include <QApplication>
 #include <QDir>
 #include <QDirIterator>
