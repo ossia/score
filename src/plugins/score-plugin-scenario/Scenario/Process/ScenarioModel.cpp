@@ -32,7 +32,11 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/ScenarioProcessMetadata.hpp>
+#include <Scenario/Application/Menus/ScenarioCopy.hpp>
 #include <wobjectimpl.h>
+#include <Scenario/Commands/Scenario/ScenarioPasteElements.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
+#include <Scenario/Commands/Scenario/Merge/MergeTimeSyncs.hpp>
 
 #include <vector>
 W_OBJECT_IMPL(Scenario::ProcessModel)
@@ -263,5 +267,34 @@ void ProcessModel::ancestorTempoChanged()
 {
   for (auto& itv : intervals)
     itv.ancestorTempoChanged();
+}
+
+void ProcessModel::loadPreset(const Process::Preset& preset)
+{
+  // TODO we must not paste but replace !
+  Scenario::Command::ScenarioPasteElements cmd{
+      *this, readJson(preset.data), Scenario::Point{}};
+  cmd.redo(score::IDocument::documentContext(*this));
+  for (TimeSyncModel& sync : timeSyncs)
+  {
+    if (&sync != &startTimeSync() && sync.date() == TimeVal::zero())
+    {
+      Scenario::Command::MergeTimeSyncs merge(*this, sync.id(), startTimeSync().id());
+      break;
+    }
+  }
+}
+
+Process::Preset ProcessModel::savePreset() const noexcept
+{
+  Process::Preset p;
+  p.name = this->metadata().getName();
+  p.key = {this->concreteKey(), {}};
+
+  JSONReader r;
+  copyWholeScenario(r, *this);
+
+  p.data = r.toByteArray();
+  return p;
 }
 }

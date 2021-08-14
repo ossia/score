@@ -169,6 +169,9 @@ public:
   Selection selectedChildren() const noexcept override;
 
 private:
+  void loadPreset(const Process::Preset& preset) override;
+  Process::Preset savePreset() const noexcept override;
+
   void setSelection(const Selection& s) const noexcept override;
   bool event(QEvent* e) override { return QObject::event(e); }
 
