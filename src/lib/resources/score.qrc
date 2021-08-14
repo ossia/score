@@ -674,5 +674,7 @@
         <file>icons/process_interval_play@2x.png</file>
         <file>icons/process_interval_stop.png</file>
         <file>icons/process_interval_stop@2x.png</file>
+        <file>icons/process_preset_icon.png</file>
+        <file>icons/process_preset_icon@2x.png</file>
     </qresource>
 </RCC>
