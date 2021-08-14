@@ -95,6 +95,9 @@ public:
 
   PROPERTY(QString, text READ text WRITE setText NOTIFY textChanged)
 private:
+  void loadPreset(const Process::Preset& preset) override;
+  Process::Preset savePreset() const noexcept override;
+
   void init();
   void reload();
   void reloadFx(llvm_dsp_factory* fac, llvm_dsp* obj);

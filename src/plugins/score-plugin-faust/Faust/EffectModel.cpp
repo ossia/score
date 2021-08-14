@@ -3,6 +3,7 @@
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionSetup.hpp>
+#include <Process/PresetHelpers.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/tools/Bind.hpp>
@@ -408,6 +409,16 @@ void FaustEffectModel::reload()
   inletsChanged();
   outletsChanged();
   changed();
+}
+
+void FaustEffectModel::loadPreset(const Process::Preset& preset)
+{
+  Process::loadScriptProcessPreset<FaustEffectModel::p_text>(*this, preset);
+}
+
+Process::Preset FaustEffectModel::savePreset() const noexcept
+{
+  return Process::saveScriptProcessPreset(*this, this->m_text);
 }
 
 }
