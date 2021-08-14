@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortSerialization.hpp>
+#include <Process/Dataflow/PrettyPortName.hpp>
 
 #include <score/tools/Bind.hpp>
 
@@ -43,18 +44,23 @@ void ProcessModel::init()
       copy.qualifiers = ossia::destination_qualifiers{{}, ossia::argb_u{}};
       outlet->setAddress(std::move(copy));
     }
+    prettyNameChanged();
   };
   con(*outlet, &Process::Outlet::addressChanged, this, update_invalid_address);
+  connect(outlet.get(), &Process::Port::cablesChanged, this, [=] { prettyNameChanged(); });
   update_invalid_address(outlet->address());
   m_outlets.push_back(outlet.get());
 }
 
 QString ProcessModel::prettyName() const noexcept
 {
-  auto res = address().toString();
-  if (!res.isEmpty())
-    return res;
-  return "Gradient";
+  auto& doc = score::IDocument::documentContext(*this);
+  if(auto name = Process::displayNameForPort(*outlet, doc);
+      !name.isEmpty())
+  {
+    return name;
+  }
+  return QStringLiteral("Gradient");
 }
 
 const ProcessModel::gradient_colors& ProcessModel::gradient() const

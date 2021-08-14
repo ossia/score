@@ -12,6 +12,7 @@
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/MinMaxFloatPort.hpp>
 #include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/PrettyPortName.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 #include <State/Address.hpp>
@@ -115,37 +116,14 @@ ProcessModel::ProcessModel(DataStream::Deserializer& vis, QObject* parent)
 
 QString ProcessModel::prettyName() const noexcept
 {
-  if (const auto& cables = outlet->cables(); !cables.empty())
+  auto& doc = score::IDocument::documentContext(*this);
+  if(auto name = Process::displayNameForPort(*outlet, doc);
+     !name.isEmpty())
   {
-    auto& doc = score::IDocument::documentContext(*this);
-    if (Process::Cable* cbl = cables.front().try_find(doc))
-      if (Process::Port* inlet = cbl->sink().try_find(doc))
-      {
-        QString name = inlet->name();
-        auto inlet_parent = inlet->parent();
-        auto process = qobject_cast<Process::ProcessModel*>(inlet_parent);
-        if (process)
-        {
-          name += " (" + process->prettyName() + ")";
-        }
-        else if (auto port = qobject_cast<Process::Port*>(inlet_parent))
-        {
-          if (auto process
-              = qobject_cast<Process::ProcessModel*>(inlet_parent->parent()))
-          {
-            name += " (" + process->prettyName() + ")";
-          }
-        }
-        return name;
-      }
+    return name;
   }
-  auto res = address().toString_unsafe();
-  if (!res.isEmpty())
-    return res;
 
-  // TODO we could use the customData of the port the automation is connected
-  // to if any
-  return "Automation";
+  return QStringLiteral("Automation");
 }
 
 QString ProcessModel::prettyValue(double x, double y) const noexcept

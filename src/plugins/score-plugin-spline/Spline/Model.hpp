@@ -74,13 +74,14 @@ public:
 
 private:
   //// ProcessModel ////
+  void loadPreset(const Process::Preset& preset) override;
+  Process::Preset savePreset() const noexcept override;
+
   void setDurationAndScale(const TimeVal& newDuration) noexcept override;
   void setDurationAndGrow(const TimeVal& newDuration) noexcept override;
   void setDurationAndShrink(const TimeVal& newDuration) noexcept override;
 
   TimeVal contentDuration() const noexcept override;
-  void loadPreset(const Process::Preset& preset) override;
-  Process::Preset savePreset() const noexcept override;
 
   ossia::spline_data m_spline;
 

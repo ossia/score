@@ -1,5 +1,6 @@
 #include "Port.hpp"
 
+#include <Process/Dataflow/PrettyPortName.hpp>
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/Dataflow/PortSerialization.hpp>
 
@@ -954,6 +955,40 @@ load_midi_outlet(DataStreamWriter& wr, QObject* parent)
 std::unique_ptr<MidiOutlet> load_midi_outlet(JSONWriter& wr, QObject* parent)
 {
   return load_port_t<MidiOutlet>(wr, parent);
+}
+
+QString displayNameForPort(const Process::Port& outlet, const score::DocumentContext& doc)
+{
+  // Try to look for a cable
+  if (const auto& cables = outlet.cables(); !cables.empty())
+  {
+    if (Process::Cable* cbl = cables.front().try_find(doc))
+      if (Process::Port* inlet = cbl->sink().try_find(doc))
+      {
+        QString name = inlet->name();
+        auto inlet_parent = inlet->parent();
+        auto process = qobject_cast<Process::ProcessModel*>(inlet_parent);
+        if (process)
+        {
+          name += " (" + process->prettyName() + ")";
+        }
+        else if (auto port = qobject_cast<Process::Port*>(inlet_parent))
+        {
+          if (auto process
+              = qobject_cast<Process::ProcessModel*>(inlet_parent->parent()))
+          {
+            name += " (" + process->prettyName() + ")";
+          }
+        }
+        return name;
+      }
+  }
+
+  // If no cable, use the address instead
+  auto res = outlet.address().toString_unsafe();
+  if (!res.isEmpty())
+    return res;
+  return {};
 }
 }
 

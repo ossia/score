@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortSerialization.hpp>
+#include <Process/Dataflow/PrettyPortName.hpp>
 
 #include <ossia/network/common/destination_qualifiers.hpp>
 
@@ -47,11 +48,18 @@ void ProcessModel::init()
         prettyNameChanged();
         unitChanged(arg.qualifiers.get().unit);
       });
+  connect(outlet.get(), &Process::Port::cablesChanged, this, [=] { prettyNameChanged(); });
 }
 
 QString ProcessModel::prettyName() const noexcept
 {
-  return address().toString();
+  auto& doc = score::IDocument::documentContext(*this);
+  if(auto name = Process::displayNameForPort(*outlet, doc);
+      !name.isEmpty())
+  {
+    return name;
+  }
+  return QStringLiteral("Spline 3D");
 }
 
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration) noexcept
