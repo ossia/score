@@ -22,6 +22,9 @@
 #include <ossia/detail/math.hpp>
 #include <ossia/detail/pod_vector.hpp>
 
+#include <pluginterfaces/vst/ivstaudioprocessor.h>
+#include <public.sdk/source/vst/hosting/module.h>
+
 #include <QInputDialog>
 #include <QTimer>
 
@@ -34,7 +37,6 @@
 #include <memory>
 #include <set>
 
-#include <public.sdk/source/vst/hosting/module.h>
 W_OBJECT_IMPL(vst3::Model)
 namespace Process
 {
@@ -77,40 +79,24 @@ Process::Descriptor
 EffectProcessFactory_T<vst3::Model>::descriptor(QString d) const
 {
   Process::Descriptor desc;
-  /*
-  auto& app = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
 
-  auto it = ossia::find_if(app.vst_infos, [=](const Media::ApplicationPlugin::vst_info& vst) {
-    return vst.uniqueID == d.toInt();
-  });
-  if (it != app.vst_infos.end())
+  auto& app = score::GUIAppContext().applicationPlugin<vst3::ApplicationPlugin>();
+  auto uid = VST3::UID::fromString(d.toStdString());
+  if(!uid)
+    return desc;
+  const auto& [plug, cls] = app.classInfo(*uid);
+
+  desc.prettyName = QString::fromStdString(cls->name());
+  desc.author = QString::fromStdString(cls->vendor());
+
+  if (ossia::contains(cls->subCategories(), Steinberg::Vst::PlugType::kInstrument))
   {
-    desc.prettyName = it->displayName;
-    desc.author = it->author;
-
-    if (it->isSynth)
-    {
-      desc.category = Process::ProcessCategory::Synth;
-
-      auto inlets = std::vector<Process::PortType>{Process::PortType::Midi};
-      for (int i = 0; i < it->controls; i++)
-        inlets.push_back(Process::PortType::Message);
-      desc.inlets = std::move(inlets);
-
-      desc.outlets = {std::vector<Process::PortType>{Process::PortType::Audio}};
-    }
-    else
-    {
-      desc.category = Process::ProcessCategory::AudioEffect;
-
-      auto inlets = std::vector<Process::PortType>{Process::PortType::Audio};
-      for (int i = 0; i < it->controls; i++)
-        inlets.push_back(Process::PortType::Message);
-      desc.inlets = std::move(inlets);
-
-      desc.outlets = {std::vector<Process::PortType>{Process::PortType::Audio}};
-    }
-  }*/
+    desc.category = Process::ProcessCategory::Synth;
+  }
+  else
+  {
+    desc.category = Process::ProcessCategory::AudioEffect;
+  }
   return desc;
 }
 }
@@ -303,7 +289,7 @@ void Model::initFx()
     return;
   }
 
-  if(auto info = p.classInfo(m_uid))
+  if(auto [plug, info] = p.classInfo(m_uid); info)
     metadata().setName(QString::fromStdString(info->name()));
   metadata().setLabel(metadata().getName());
 
@@ -653,7 +639,8 @@ void DataStreamWriter::write(vst3::Model& eff)
   QString uid;
   m_stream >> uid >> eff.m_savedProcessorState >> eff.m_savedControllerState;
 
-  eff.m_uid = *VST3::UID::fromString(uid.toStdString());
+  if(auto id = VST3::UID::fromString(uid.toStdString()))
+    eff.m_uid = *id;
   auto& vst_plug = this->components.applicationPlugin<vst3::ApplicationPlugin>();
   eff.m_vstPath = vst_plug.pathForClass(eff.m_uid);
 
@@ -685,7 +672,8 @@ void JSONWriter::write(vst3::Model& eff)
   auto& vst_plug = this->components.applicationPlugin<vst3::ApplicationPlugin>();
   if(auto id = obj.tryGet("UID"))
   {
-    eff.m_uid = *VST3::UID::fromString(id->toStdString());
+    if(auto uid = VST3::UID::fromString(id->toStdString()))
+      eff.m_uid = *uid;
     eff.m_vstPath = vst_plug.pathForClass(eff.m_uid);
   }
   else

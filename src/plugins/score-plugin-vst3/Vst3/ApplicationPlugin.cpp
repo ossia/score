@@ -48,7 +48,10 @@ void DataStreamWriter::write<VST3::Hosting::ClassInfo>(
   m_stream >> clsid >> d.cardinality >> d.category >> d.name >> d.vendor
       >> d.version >> d.sdkVersion >> d.subCategories
       >> (uint32_t&)d.classFlags;
-  d.classID.fromString(clsid);
+  if(auto id = VST3::UID::fromString(clsid))
+    d.classID = *id;
+  else
+    qDebug() << "Invalid VST3 UID:" << clsid.c_str();
 }
 
 template <>
@@ -380,7 +383,7 @@ void ApplicationPlugin::scanVSTsEvent()
   }
 }
 
-const VST3::Hosting::ClassInfo* ApplicationPlugin::classInfo(const VST3::UID& uid) const noexcept
+std::pair<const AvailablePlugin*, const VST3::Hosting::ClassInfo*> ApplicationPlugin::classInfo(const VST3::UID& uid) const noexcept
 {
   // OPTIMIZEME with a small id -> {plugin, class} cache
   for(auto& plug : this->vst_infos)
@@ -388,10 +391,10 @@ const VST3::Hosting::ClassInfo* ApplicationPlugin::classInfo(const VST3::UID& ui
     for(auto& cls : plug.classInfo)
     {
       if(cls.ID() == uid)
-        return &cls;
+        return {&plug, &cls};
     }
   }
-  return nullptr;
+  return {};
 }
 
 QString ApplicationPlugin::pathForClass(const VST3::UID& uid) const noexcept
