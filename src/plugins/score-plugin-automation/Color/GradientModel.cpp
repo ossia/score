@@ -117,6 +117,30 @@ TimeVal ProcessModel::contentDuration() const noexcept
 
   return TimeVal(duration().impl * lastPoint);
 }
+
+void ProcessModel::loadPreset(const Process::Preset& preset)
+{
+  m_colors.clear();
+
+  auto json = readJson(preset.data);
+  JSONWriter wr{json};
+  wr.writeTo(m_colors);
+  gradientChanged();
+}
+
+Process::Preset ProcessModel::savePreset() const noexcept
+{
+  Process::Preset p;
+  p.name = this->metadata().getName();
+  p.key = {this->concreteKey(), {}};
+
+  JSONReader r;
+  r.readFrom(m_colors);
+
+  p.data = r.toByteArray();
+  return p;
+}
+
 }
 
 template <>
