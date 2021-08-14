@@ -24,12 +24,15 @@ score::DocumentBackupManager::~DocumentBackupManager()
 {
 #if !defined(__EMSCRIPTEN__)
   QSettings s(OpenDocumentsFile::path(), QSettings::IniFormat);
-  auto existing_files = s.value("score/docs").toStringList();
-  existing_files.removeOne(crashDataFile().fileName());
+  QVariantMap existing_files = s.value("score/docs").toMap();
+  existing_files.remove(crashDataFile().fileName());
   s.setValue("score/docs", existing_files);
+  s.sync();
 
   QFile(crashDataFile().fileName()).remove();
   QFile(crashCommandFile().fileName()).remove();
+  if(existing_files.empty())
+    QFile(OpenDocumentsFile::path()).remove();
 #endif
 }
 
