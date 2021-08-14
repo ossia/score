@@ -20,6 +20,7 @@ file(GENERATE
 
 if(SCORE_INSTALL_HEADERS)
   install(FILES
+        ${3RDPARTY_FOLDER}/QCodeEditor
         ${CMAKE_CURRENT_BINARY_DIR}/zipdownloader_export.h
         ${CMAKE_CURRENT_BINARY_DIR}/rnd_export.h
         DESTINATION include/score
