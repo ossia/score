@@ -127,6 +127,8 @@ public:
   }
   std::atomic_bool needIdle{};
 private:
+  void loadPreset(const Process::Preset& preset) override;
+  Process::Preset savePreset() const noexcept override;
   QString getString(AEffectOpcodes op, int param);
   void setControlName(int fxnum, ControlInlet* ctrl);
   void init();
