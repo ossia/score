@@ -67,7 +67,7 @@ static bool isValidForFilename(const QString& name)
   if (name.isEmpty())
     return false;
 
-  for (QChar c : ",^@=+{}[]~!?:&*\"|#%<>$\"';`'")
+  for (QChar c : QStringLiteral(",^@=+{}[]~!?:&*\"|#%<>$\"';`'"))
     if (name.contains(c))
       return false;
 
@@ -241,7 +241,7 @@ bool PresetFilterProxy::filterAcceptsRow(
     const QModelIndex& srcParent) const
 {
   PresetItemModel* model = safe_cast<PresetItemModel*>(sourceModel());
-  return model->presets[srcRow].key.key == currentFilter;
+  return model->presets[srcRow].key == currentFilter;
 }
 
 }

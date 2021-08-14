@@ -151,7 +151,7 @@ ProcessWidget::ProcessWidget(
   infoWidg->setStatusTip(statusTip());
   slay->addWidget(infoWidg, 1);
 
-  connect(&m_tv, &ProcessTreeView::selected, this, [=](const auto& pdata) {
+  connect(&m_tv, &ProcessTreeView::selected, this, [=](const std::optional<Library::ProcessData>& pdata) {
     m_preview.hide();
 
     // Update info widget
@@ -159,7 +159,7 @@ ProcessWidget::ProcessWidget(
 
     // Update the filter
     if (pdata)
-      presetFilterProxy->currentFilter = pdata->key;
+      presetFilterProxy->currentFilter = {pdata->key, pdata->customData};
     else
       presetFilterProxy->currentFilter = {};
     presetFilterProxy->invalidate();

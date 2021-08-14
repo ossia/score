@@ -59,7 +59,7 @@ public:
   using QSortFilterProxyModel::invalidate;
   using QSortFilterProxyModel::QSortFilterProxyModel;
 
-  UuidKey<Process::ProcessModel> currentFilter{};
+  Process::ProcessIdentifier currentFilter{};
 
 private:
   bool
