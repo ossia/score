@@ -7,6 +7,53 @@
 namespace Nodes
 {
 
+template<typename State>
+static void setMathExpressionTiming(
+    State& self,
+    int64_t input_time,
+    int64_t prev_time,
+    int64_t parent_dur)
+{
+  self.cur_time = input_time;
+  self.cur_deltatime = (input_time - prev_time);
+  self.cur_pos = parent_dur > 0 ? double(input_time) / parent_dur: 0;
+}
+
+template<typename State>
+static void setMathExpressionTiming(
+    State& self,
+    ossia::time_value input_time,
+    ossia::time_value prev_time,
+    ossia::time_value parent_dur,
+    double modelToSamples)
+{
+  setMathExpressionTiming(self, input_time.impl * modelToSamples, prev_time.impl * modelToSamples, parent_dur.impl * modelToSamples);
+}
+
+template<typename State>
+static void setMathExpressionTiming(State& self, const ossia::token_request& tk, ossia::exec_state_facade st)
+{
+  setMathExpressionTiming(self, tk.date, tk.prev_date, tk.parent_duration, st.modelToSamples());
+}
+
+static void miniMathItem(
+    const std::tuple<Control::LineEdit>& controls,
+    Process::LineEdit& edit,
+    const Process::ProcessModel& process,
+    QGraphicsItem& parent,
+    QObject& context,
+    const Process::Context& doc)
+{
+  using namespace Process;
+  const Process::PortFactoryList& portFactory
+      = doc.app.interfaces<Process::PortFactoryList>();
+
+  auto edit_item = makeControlNoText(
+      std::get<0>(controls), edit, parent, context, doc, portFactory);
+  edit_item.control.setTextWidth(100);
+  edit_item.control.setPos(15, 0);
+}
+
 static void mathItem(
     const std::tuple<
         Control::LineEdit,
@@ -120,9 +167,7 @@ struct Node
     if (!self.expr.set_expression(expr))
       return;
 
-    self.cur_time = tk.date.impl;
-    self.cur_deltatime = tk.date.impl - tk.prev_date.impl;
-    self.cur_pos = tk.position();
+    setMathExpressionTiming(self, tk, st);
     self.p1 = a;
     self.p2 = b;
     self.p3 = c;

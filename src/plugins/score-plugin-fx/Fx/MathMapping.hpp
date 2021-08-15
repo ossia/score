@@ -58,6 +58,7 @@ struct Node
     double p1{}, p2{}, p3{};
     double m1{}, m2{}, m3{};
     ossia::math_expression expr;
+    int64_t last_value_time{};
 
     bool ok = false;
   };
@@ -77,12 +78,15 @@ struct Node
     if (!self.expr.set_expression(expr))
       return;
 
+    auto ratio = st.modelToSamples();
+    auto parent_dur = tk.parent_duration.impl * ratio;
     for (const ossia::timed_value& v : input.get_data())
     {
+      int64_t new_time = tk.prev_date.impl * ratio + v.timestamp;
+      setMathExpressionTiming(self, new_time, self.last_value_time, parent_dur);
+      self.last_value_time = new_time;
+
       self.cur_value = ossia::convert<double>(v.value);
-      self.cur_time = tk.date.impl;
-      self.cur_deltatime = tk.date.impl - tk.prev_date.impl;
-      self.cur_pos = tk.position();
       self.p1 = a;
       self.p2 = b;
       self.p3 = c;
@@ -279,6 +283,88 @@ struct Node
   }
 };
 }
+
+
+namespace MicroMapping
+{
+struct Node
+{
+  struct Metadata : Control::Meta_base
+  {
+    static const constexpr auto prettyName = "Micromap";
+    static const constexpr auto objectKey = "MicroMapping";
+    static const constexpr auto category = "Control";
+    static const constexpr auto author = "ossia score, ExprTK (Arash Partow)";
+    static const constexpr auto kind = Process::ProcessCategory::Mapping;
+    static const constexpr auto description
+        = "Applies a math expression to an input.";
+    static const constexpr auto tags = std::array<const char*, 0>{};
+    static const uuid_constexpr auto uuid
+        = make_uuid("25c64b87-a44a-4fed-9f60-0a48906fd3ec");
+
+    static const constexpr value_in value_ins[]{"in"};
+    static const constexpr value_out value_outs[]{"out"};
+
+    static const constexpr auto controls = std::make_tuple(
+        Control::LineEdit("Expression", "x / 127"));
+  };
+  struct State
+  {
+    State()
+    {
+      expr.add_variable("x", cur_value);
+      expr.add_variable("t", cur_time);
+      expr.add_variable("dt", cur_deltatime);
+      expr.add_variable("pos", cur_pos);
+      expr.add_constants();
+
+      expr.register_symbol_table();
+    }
+    double cur_value{};
+    double cur_time{};
+    double cur_deltatime{};
+    double cur_pos{};
+    ossia::math_expression expr;
+    int64_t last_value_time{};
+
+    bool ok = false;
+  };
+
+  using control_policy = ossia::safe_nodes::last_tick;
+  static void
+  run(const ossia::value_port& input,
+      const std::string& expr,
+      ossia::value_port& output,
+      const ossia::token_request& tk,
+      ossia::exec_state_facade st,
+      State& self)
+  {
+    if (!self.expr.set_expression(expr))
+      return;
+
+    auto ratio = st.modelToSamples();
+    auto parent_dur = tk.parent_duration.impl * ratio;
+    for (const ossia::timed_value& v : input.get_data())
+    {
+      int64_t new_time = tk.prev_date.impl * ratio + v.timestamp;
+      setMathExpressionTiming(self, new_time, self.last_value_time, parent_dur);
+      self.last_value_time = new_time;
+
+      self.cur_value = ossia::convert<double>(v.value);
+
+      auto res = self.expr.value();
+
+      output.write_value(res, v.timestamp);
+    }
+  }
+
+  template <typename... Args>
+  static void item(Args&&... args)
+  {
+    Nodes::miniMathItem(Metadata::controls, std::forward<Args>(args)...);
+  }
+};
+}
 }
 
 namespace Control
@@ -293,6 +379,10 @@ struct HasCustomUI<Nodes::MathAudioGenerator::Node> : std::true_type
 };
 template <>
 struct HasCustomUI<Nodes::MathMapping::Node> : std::true_type
+{
+};
+template <>
+struct HasCustomUI<Nodes::MicroMapping::Node> : std::true_type
 {
 };
 template <>

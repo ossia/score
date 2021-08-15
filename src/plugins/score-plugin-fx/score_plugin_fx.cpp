@@ -65,6 +65,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_fx::factories(
       Nodes::MathGenerator::Node,
       Nodes::MathAudioGenerator::Node,
       Nodes::MathMapping::Node,
+      Nodes::MicroMapping::Node,
       Nodes::MathAudioFilter::Node,
       Nodes::EmptyValueMapping::Node,
       Nodes::EmptyMidiMapping::Node,
