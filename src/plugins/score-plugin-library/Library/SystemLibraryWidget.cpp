@@ -101,7 +101,7 @@ SystemLibraryWidget::SystemLibraryWidget(
 #else
   QTimer::singleShot(1000, [this, &ctx] {
     auto& settings = ctx.settings<Library::Settings::Model>();
-    auto reset = [this, &settings] { setRoot(settings.getPath()); };
+    auto reset = [this, &settings] { setRoot(settings.getPackagesPath()); };
     reset();
     con(settings, &Library::Settings::Model::RootPathChanged, this, [=] {
       reset();
