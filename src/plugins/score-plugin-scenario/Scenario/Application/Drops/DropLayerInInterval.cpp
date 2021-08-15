@@ -98,6 +98,9 @@ void DropLayerInInterval::perform(
   if(json.HasMember("Cables"))
   {
     auto new_path = score::IDocument::path(interval).unsafePath();
+
+    // !!! FIXME this looks like it's not valid, use
+    // serializedCablesFromCableJson instead, no ?
     auto cables = JsonValue{json["Cables"]}.to<Dataflow::SerializedCables>();
 
     auto& document

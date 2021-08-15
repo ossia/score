@@ -192,4 +192,19 @@ void loadCables(
   Dataflow::restoreCables(cables, ctx);
 }
 
+void unstripCables(const ObjectPath& p, SerializedCables& cables)
+{
+  for (auto& c : cables)
+  {
+    c.second.source.unsafePath().vec().insert(
+        c.second.source.unsafePath().vec().begin(),
+        p.vec().begin(),
+        p.vec().end());
+    c.second.sink.unsafePath().vec().insert(
+        c.second.sink.unsafePath().vec().begin(),
+        p.vec().begin(),
+        p.vec().end());
+  }
+}
+
 }

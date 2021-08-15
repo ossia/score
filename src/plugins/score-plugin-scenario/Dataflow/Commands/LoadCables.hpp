@@ -19,17 +19,7 @@ public:
   LoadCables(const ObjectPath& p, const SerializedCables& c)
       : m_cables{c}
   {
-    for (auto& c : m_cables)
-    {
-      c.second.source.unsafePath().vec().insert(
-          c.second.source.unsafePath().vec().begin(),
-          p.vec().begin(),
-          p.vec().end());
-      c.second.sink.unsafePath().vec().insert(
-          c.second.sink.unsafePath().vec().begin(),
-          p.vec().begin(),
-          p.vec().end());
-    }
+    Dataflow::unstripCables(p, m_cables);
   }
 
   void undo(const score::DocumentContext& ctx) const override

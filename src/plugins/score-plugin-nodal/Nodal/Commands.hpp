@@ -4,6 +4,8 @@
 #include <Nodal/Process.hpp>
 #include <Process/ProcessList.hpp>
 
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/AggregateCommand.hpp>
 #include <score/command/PropertyCommand.hpp>
@@ -54,50 +56,16 @@ class RemoveNode final : public score::Command
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), RemoveNode, "Remove a node")
 public:
-  RemoveNode(const Nodal::Model& p, const Process::ProcessModel& n)
-      : m_path{p}
-      , m_id{n.id()}
-  {
-    // Save the node
-    DataStream::Serializer s1{&m_block};
-    s1.readFrom(n);
-
-    m_cables = Dataflow::saveCables(
-        {const_cast<Process::ProcessModel*>(&n)},
-        score::IDocument::documentContext(p));
-  }
+  RemoveNode(const Nodal::Model& p, const Process::ProcessModel& n);
 
 private:
-  void undo(const score::DocumentContext& ctx) const override
-  {
-    DataStream::Deserializer s{m_block};
-    auto& proc = m_path.find(ctx);
+  void undo(const score::DocumentContext& ctx) const override;
 
-    auto& fact = ctx.app.interfaces<Process::ProcessFactoryList>();
+  void redo(const score::DocumentContext& ctx) const override;
 
-    auto node = deserialize_interface(fact, s, ctx, &proc);
-    proc.nodes.add(node);
+  void serializeImpl(DataStreamInput& s) const override;
 
-    Dataflow::restoreCables(m_cables, ctx);
-  }
-
-  void redo(const score::DocumentContext& ctx) const override
-  {
-    Dataflow::removeCables(m_cables, ctx);
-
-    auto& proc = m_path.find(ctx);
-    proc.nodes.remove(m_id);
-  }
-
-  void serializeImpl(DataStreamInput& s) const override
-  {
-    s << m_path << m_id << m_block << m_cables;
-  }
-
-  void deserializeImpl(DataStreamOutput& s) override
-  {
-    s >> m_path >> m_id >> m_block >> m_cables;
-  }
+  void deserializeImpl(DataStreamOutput& s) override;
 
   Path<Nodal::Model> m_path;
   Id<Process::ProcessModel> m_id;
@@ -105,4 +73,22 @@ private:
   Dataflow::SerializedCables m_cables;
 };
 
+class ReplaceAllNodes final : public score::Command
+{
+  SCORE_COMMAND_DECL(CommandFactoryName(), ReplaceAllNodes, "Replace all nodes")
+public:
+  // Expected data format: see Nodal::Model::savePreset
+  ReplaceAllNodes(const Nodal::Model& p, const QByteArray& new_data);
+
+  void undo(const score::DocumentContext& ctx) const override;
+  void redo(const score::DocumentContext& ctx) const override;
+
+  void serializeImpl(DataStreamInput& s) const override;
+  void deserializeImpl(DataStreamOutput& s) override;
+
+private:
+  Path<Nodal::Model> m_path;
+  QByteArray m_old_block, m_new_block;
+  Dataflow::SerializedCables m_old_cables, m_new_cables;
+};
 }

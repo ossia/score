@@ -45,6 +45,9 @@ public:
   score::EntityMap<Process::ProcessModel> nodes;
 
 private:
+  void loadPreset(const Process::Preset& preset) override;
+  Process::Preset savePreset() const noexcept override;
+
   QString prettyName() const noexcept override;
 
   void setDurationAndScale(const TimeVal& newDuration) noexcept override;

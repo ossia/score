@@ -3,6 +3,7 @@
 #include <Nodal/Commands.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/Dataflow/PortSerialization.hpp>
+#include <Process/Dataflow/CableCopy.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -90,6 +91,31 @@ bool NodeRemover::remove(const Selection& s, const score::DocumentContext& ctx)
   return false;
 }
 
+void Model::loadPreset(const Process::Preset& preset)
+{
+  ReplaceAllNodes cmd{*this, preset.data};
+  cmd.redo(score::IDocument::documentContext(*this));
+}
+
+Process::Preset Model::savePreset() const noexcept
+{
+  Process::Preset p;
+  p.name = this->metadata().getName();
+  p.key = {this->concreteKey(), {}};
+
+  std::vector<const Process::ProcessModel*> vp{this};
+  std::vector<Path<Process::ProcessModel>> vpath{*this};
+  const auto& ctx = score::IDocument::documentContext(*this);
+
+  JSONReader r;
+  r.stream.StartObject();
+  r.obj["Nodes"] = this->nodes;
+  r.obj["Cables"] = Process::cablesToCopy(vp, vpath, ctx);
+  r.stream.EndObject();
+
+  p.data = r.toByteArray();
+  return p;
+}
 }
 
 template <>
@@ -122,7 +148,6 @@ void DataStreamWriter::write(Nodal::Model& process)
     auto proc = deserialize_interface(pl, *this, process.m_context, &process);
     if (proc)
     {
-      // TODO why isn't AddProcess used here ?!
       process.nodes.add(proc);
     }
     else

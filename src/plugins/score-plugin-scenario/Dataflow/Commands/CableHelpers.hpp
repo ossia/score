@@ -58,4 +58,13 @@ void loadCables(
     const ObjectPath& new_path,
     Dataflow::SerializedCables& cables,
     const score::DocumentContext& ctx);
+
+//! Add a prefix to a set of cables.
+//! This case is for when the cables's "prefix" path is empty.
+//! This is used for instance in LoadCables, ReplaceAllNodes, when dropping
+//! presets...
+SCORE_PLUGIN_SCENARIO_EXPORT
+void unstripCables(
+    const ObjectPath& new_path,
+    Dataflow::SerializedCables& cables);
 }
