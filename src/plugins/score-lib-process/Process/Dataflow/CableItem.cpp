@@ -306,7 +306,19 @@ QPainterPath CableItem::opaqueArea() const
 
 void CableItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  score::SelectionDispatcher{m_context.selectionStack}.select(m_cable);
+  if(!m_p1 || !m_p2)
+  {
+    event->ignore();
+    return;
+  }
+
+  score::SelectionDispatcher disp{m_context.selectionStack};
+  if(m_p1->contains(m_p1->mapFromScene(event->scenePos())))
+    disp.select(m_p1->port());
+  else if(m_p2->contains(m_p2->mapFromScene(event->scenePos())))
+    disp.select(m_p2->port());
+  else
+    disp.select(m_cable);
   event->accept();
 }
 
