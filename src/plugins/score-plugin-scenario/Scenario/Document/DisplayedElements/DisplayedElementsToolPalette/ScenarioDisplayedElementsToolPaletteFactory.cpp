@@ -15,11 +15,12 @@ namespace Scenario
 std::unique_ptr<GraphicsSceneToolPalette>
 ScenarioDisplayedElementsToolPaletteFactory::make(
     ScenarioDocumentPresenter& pres,
+    DisplayedElementsPresenter& presenters,
     const IntervalModel& interval,
     QGraphicsItem* parent)
 {
   return std::make_unique<ScenarioDisplayedElementsToolPalette>(
-      pres.displayedElements, pres, parent);
+      pres.displayedElements, presenters, pres, parent);
 }
 
 bool ScenarioDisplayedElementsToolPaletteFactory::matches(

@@ -33,16 +33,18 @@ ScenarioDisplayedElementsToolPalette::ScenePointToScenarioPoint(QPointF point)
 {
   return {
       TimeVal::fromPixels(point.x(), m_presenter.zoomRatio())
-          + m_presenter.presenters().startTimeSync().date(),
+      + m_presenters.startTimeSync().date(),
       0};
 }
 
 ScenarioDisplayedElementsToolPalette::ScenarioDisplayedElementsToolPalette(
     const DisplayedElementsModel& model,
+    DisplayedElementsPresenter& presenter,
     ScenarioDocumentPresenter& pres,
     QGraphicsItem* view)
     : GraphicsSceneToolPalette{*view->scene()}
     , m_model{model}
+    , m_presenters{presenter}
     , m_scenarioModel{*safe_cast<Scenario::ProcessModel*>(
           m_model.interval().parent())}
     , m_presenter{pres}
@@ -63,10 +65,9 @@ QGraphicsItem& ScenarioDisplayedElementsToolPalette::view() const
   return m_view;
 }
 
-DisplayedElementsPresenter&
-ScenarioDisplayedElementsToolPalette::presenter() const
+DisplayedElementsPresenter& ScenarioDisplayedElementsToolPalette::presenter() const
 {
-  return m_presenter.presenters();
+  return m_presenters;
 }
 
 const Scenario::ProcessModel&

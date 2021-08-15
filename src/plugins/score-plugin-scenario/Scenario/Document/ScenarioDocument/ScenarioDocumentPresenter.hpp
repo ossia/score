@@ -7,14 +7,14 @@
 #include <score/plugins/documentdelegate/DocumentDelegatePresenter.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
-#include <score/statemachine/GraphicsSceneToolPalette.hpp>
 
 #include <QPoint>
 #include <QRect>
 
 #include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
-#include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
+#include <Scenario/Document/ScenarioDocument/CentralIntervalDisplay.hpp>
+#include <Scenario/Document/ScenarioDocument/CentralNodalDisplay.hpp>
 
 #include <memory>
 #include <verdigris>
@@ -33,18 +33,16 @@ namespace Process
 {
 class MiniLayer;
 }
-namespace Library
-{
-struct ProcessData;
-}
 namespace Scenario
 {
 class DisplayedElementsPresenter;
 class IntervalModel;
 class ScenarioDocumentModel;
+class ScenarioDocumentPresenter;
 class ScenarioDocumentView;
 class TimeRulerPresenter;
 
+using CentralDisplay = std::variant<std::monostate, CentralIntervalDisplay, CentralNodalDisplay>;
 /**
  * @brief The ScenarioDocumentPresenter class
  *
@@ -57,6 +55,8 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentPresenter final
 {
   W_OBJECT(ScenarioDocumentPresenter)
   friend class DisplayedElementsPresenter;
+  friend class CentralIntervalDisplay;
+  friend class CentralNodalDisplay;
 
 public:
   ScenarioDocumentPresenter(
@@ -66,16 +66,16 @@ public:
       score::DocumentDelegateView& view);
   ~ScenarioDocumentPresenter() override;
 
-  IntervalModel& displayedInterval() const;
-  DisplayedElementsPresenter& presenters();
-  const ScenarioDocumentModel& model() const;
-  ScenarioDocumentView& view() const;
-  const Process::Context& context() const;
-  Process::ProcessFocusManager& focusManager() const;
+  IntervalModel& displayedInterval() const noexcept;
+  IntervalPresenter* displayedIntervalPresenter() const noexcept;
+  const ScenarioDocumentModel& model() const noexcept;
+  ScenarioDocumentView& view() const noexcept;
+  const Process::Context& context() const noexcept;
+  Process::ProcessFocusManager& focusManager() const noexcept;
 
   // The height in pixels of the displayed interval with its rack.
   // double height() const;
-  ZoomRatio zoomRatio() const;
+  ZoomRatio zoomRatio() const noexcept;
 
   void selectAll();
   void deselectAll();
@@ -87,10 +87,12 @@ public:
   void setNewSelection(const Selection& old, const Selection& s) override;
 
   void setDisplayedInterval(Scenario::IntervalModel* interval);
-  void createDisplayedIntervalPresenter(Scenario::IntervalModel& interval);
 
   void on_viewModelDefocused(const Process::ProcessModel* vm);
   void on_viewModelFocused(const Process::ProcessModel* vm);
+
+  void focusFrontProcess();
+  void goUpALevel();
 
   DisplayedElementsModel displayedElements;
 
@@ -121,26 +123,30 @@ private:
 
 private:
   void updateTimeBar();
+  void updateMinimap();
+  double computeReverseZoom(ZoomRatio r);
+  void switchMode(bool nodal);
+  void recenterNodal();
+
   void on_cableAdded(Process::Cable& c);
 
   void on_cableRemoving(const Process::Cable& c);
 
+  void on_timeRulerChanged();
   void on_horizontalZoom(QPointF, QPointF);
   void on_verticalZoom(QPointF, QPointF);
   void on_timeRulerScrollEvent(QPointF, QPointF);
+  void on_visibleRectChanged(const QRectF& c);
   void on_horizontalPositionChanged(int dx);
   void on_minimapChanged(double l, double r);
   void on_executionTimer();
+  void on_timelineModeSwitch(bool b);
   ZoomRatio computeZoom(double l, double r);
 
   void on_addProcessFromLibrary(const Library::ProcessData& dat);
 
-  void updateMinimap();
-  // double displayedDuration() const;
-
   Process::DataflowManager m_dataflow;
-  DisplayedElementsPresenter m_scenarioPresenter;
-
+  CentralDisplay m_centralDisplay;
   score::SelectionDispatcher m_selectionDispatcher;
   FocusDispatcher m_focusDispatcher;
   mutable Process::ProcessFocusManager m_focusManager;
@@ -148,27 +154,16 @@ private:
 
   Process::Context m_context;
 
-  // State machine
-  std::unique_ptr<GraphicsSceneToolPalette> m_stateMachine;
-
   ZoomRatio m_zoomRatio{-1};
   QMetaObject::Connection m_intervalConnection, m_durationConnection;
   Process::MiniLayer* m_miniLayer{};
 
+  QAction* m_timelineAction{};
+  QAction* m_musicalAction{};
+
   bool m_zooming{false};
   bool m_updatingMinimap{false};
   bool m_updatingView{false};
-
-  double computeReverseZoom(ZoomRatio r);
-
-  NodalIntervalView* m_nodal{};
-
-  QAction* m_timelineAction{};
-  QAction* m_musicalAction{};
-  void switchMode(bool nodal);
-  void removeDisplayedIntervalPresenter();
-  void recenterNodal();
-
-  QMetaObject::Connection m_nodalDrop, m_nodalContextMenu;
 };
+
 }

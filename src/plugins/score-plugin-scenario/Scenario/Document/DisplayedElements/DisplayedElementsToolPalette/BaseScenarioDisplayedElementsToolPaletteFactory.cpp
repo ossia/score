@@ -15,10 +15,11 @@ class ScenarioDocumentPresenter;
 std::unique_ptr<GraphicsSceneToolPalette>
 BaseScenarioDisplayedElementsToolPaletteFactory::make(
     ScenarioDocumentPresenter& pres,
+    DisplayedElementsPresenter& presenters,
     const IntervalModel& interval,
     QGraphicsItem* parent)
 {
-  return std::make_unique<BaseScenarioDisplayedElementsToolPalette>(pres);
+  return std::make_unique<BaseScenarioDisplayedElementsToolPalette>(pres, presenters);
 }
 
 bool BaseScenarioDisplayedElementsToolPaletteFactory::matches(

@@ -29,13 +29,6 @@ void PlayToolState::on_pressed(
   if (!item)
     return;
 
-  auto root = score::IDocument::get<ScenarioDocumentPresenter>(
-      m_sm.context().context.document);
-  SCORE_ASSERT(root);
-  auto root_itv = root->presenters().intervalPresenter();
-  auto itv_pt = root_itv->view()->mapFromScene(scenePoint);
-  auto global_time = TimeVal::fromPixels(itv_pt.x(), root_itv->zoomRatio());
-
   switch (item->type())
   {
     case StateView::Type:
@@ -74,8 +67,18 @@ void PlayToolState::on_pressed(
     }
       // TODO Play interval ? the code is already here.
     default:
-      m_exec.playAtDate(global_time);
+    {
+      auto root = score::IDocument::get<ScenarioDocumentPresenter>(
+          m_sm.context().context.document);
+      SCORE_ASSERT(root);
+      if(auto root_itv = root->displayedIntervalPresenter())
+      {
+        auto itv_pt = root_itv->view()->mapFromScene(scenePoint);
+        auto global_time = TimeVal::fromPixels(itv_pt.x(), root_itv->zoomRatio());
+        m_exec.playAtDate(global_time);
+      }
       break;
+    }
   }
 }
 

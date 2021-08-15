@@ -37,9 +37,12 @@ BaseScenarioDisplayedElementsToolPalette::ScenePointToScenarioPoint(
 // basescenario,
 // and one for the case where we're in a sub-scenario.
 BaseScenarioDisplayedElementsToolPalette::
-    BaseScenarioDisplayedElementsToolPalette(ScenarioDocumentPresenter& pres)
+    BaseScenarioDisplayedElementsToolPalette(
+        ScenarioDocumentPresenter& pres,
+        DisplayedElementsPresenter& presenters)
     : GraphicsSceneToolPalette{pres.view().scene()}
     , m_presenter{pres}
+    , m_presenters{presenters}
     , m_context{pres.context(), m_presenter}
     , m_magnetic{(Process::MagnetismAdjuster&)m_context.context.app
                      .interfaces<Process::MagnetismAdjuster>()}
@@ -56,7 +59,7 @@ BaseGraphicsObject& BaseScenarioDisplayedElementsToolPalette::view() const
 DisplayedElementsPresenter&
 BaseScenarioDisplayedElementsToolPalette::presenter() const
 {
-  return m_presenter.presenters();
+  return m_presenters;
 }
 
 const BaseScenario& BaseScenarioDisplayedElementsToolPalette::model() const

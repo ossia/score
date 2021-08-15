@@ -18,6 +18,7 @@ public:
 
   std::unique_ptr<GraphicsSceneToolPalette> make(
       ScenarioDocumentPresenter& pres,
+      DisplayedElementsPresenter& presenters,
       const IntervalModel& interval,
       QGraphicsItem* parent) override;
 };

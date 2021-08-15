@@ -54,6 +54,7 @@
 #include <Scenario/Document/Interval/FullView/NodalIntervalView.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/LayerData.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
 #include <Scenario/Document/Minimap/Minimap.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
@@ -66,17 +67,18 @@
 W_OBJECT_IMPL(Scenario::ScenarioDocumentPresenter)
 namespace Scenario
 {
-const ScenarioDocumentModel& ScenarioDocumentPresenter::model() const
+
+const ScenarioDocumentModel& ScenarioDocumentPresenter::model() const noexcept
 {
   return static_cast<const ScenarioDocumentModel&>(m_model);
 }
 
-ZoomRatio ScenarioDocumentPresenter::zoomRatio() const
+ZoomRatio ScenarioDocumentPresenter::zoomRatio() const noexcept
 {
   return m_zoomRatio;
 }
 
-ScenarioDocumentView& ScenarioDocumentPresenter::view() const
+ScenarioDocumentView& ScenarioDocumentPresenter::view() const noexcept
 {
   return safe_cast<ScenarioDocumentView&>(m_view);
 }
@@ -87,7 +89,6 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
     const score::DocumentDelegateModel& delegate_model,
     score::DocumentDelegateView& delegate_view)
     : DocumentDelegatePresenter{parent_presenter, delegate_model, delegate_view}
-    , m_scenarioPresenter{*this}
     , m_selectionDispatcher{ctx.selectionStack}
     , m_focusManager{ctx.document.focusManager()}
     , m_context{ctx, m_dataflow, m_focusDispatcher}
@@ -118,15 +119,9 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
       &ScenarioDocumentPresenter::on_windowSizeChanged,
       Qt::QueuedConnection);
 
-  con(view().view(),
-      &ProcessGraphicsView::visibleRectChanged,
-      this,
-      [&](QRectF rect) {
-        if (auto p = presenters().intervalPresenter())
-          p->on_visibleRectChanged(rect);
-        if (m_nodal)
-          m_nodal->setRect({0, 0, rect.width(), rect.height()});
-      });
+  con(view().view(), &ProcessGraphicsView::visibleRectChanged,
+      this, &ScenarioDocumentPresenter::on_visibleRectChanged);
+
   con(view().view(),
       &ProcessGraphicsView::horizontalZoom,
       this,
@@ -145,35 +140,12 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
       this,
       &ScenarioDocumentPresenter::setLargeView);
 
-  connect(
-      &m_scenarioPresenter,
-      &DisplayedElementsPresenter::requestFocusedPresenterChange,
-      &focusManager(),
-      static_cast<void (Process::ProcessFocusManager::*)(
-          QPointer<Process::LayerPresenter>)>(
-          &Process::ProcessFocusManager::focus));
-
   con(view().timeRuler(),
       &TimeRuler::drag,
       this,
       &ScenarioDocumentPresenter::on_timeRulerScrollEvent);
-  con(view(), &ScenarioDocumentView::timeRulerChanged, this, [this] {
-    auto& tr = view().timeRuler();
-    con(tr,
-        &TimeRuler::drag,
-        this,
-        &ScenarioDocumentPresenter::on_timeRulerScrollEvent);
-
-    if (m_zoomRatio > 0)
-      tr.setZoomRatio(m_zoomRatio);
-    tr.setWidth(view().viewWidth());
-    if (auto p = m_scenarioPresenter.intervalPresenter())
-    {
-      tr.setGrid(p->grid());
-      p->on_zoomRatioChanged(p->zoomRatio());
-    }
-    on_horizontalPositionChanged(0);
-  });
+  con(view(), &ScenarioDocumentView::timeRulerChanged,
+      this, &ScenarioDocumentPresenter::on_timeRulerChanged);
 
   con(view().minimap(),
       &Minimap::visibleRectChanged,
@@ -228,7 +200,8 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
       Qt::QueuedConnection);
 
   // Execution timers
-  con(m_context.coarseUpdateTimer, &QTimer::timeout, this, &ScenarioDocumentPresenter::on_executionTimer);
+  con(m_context.coarseUpdateTimer, &QTimer::timeout,
+      this, &ScenarioDocumentPresenter::on_executionTimer);
 
   // Nodal mode control
   if (auto tb
@@ -242,13 +215,8 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
     m_timelineAction = actions[0];
     SCORE_ASSERT(m_timelineAction);
 
-    connect(m_timelineAction, &QAction::toggled, this, [=](bool b) {
-      const bool nodal = !b;
-      if (nodal && !m_nodal)
-        switchMode(true);
-      else if (!nodal && m_nodal)
-        switchMode(false);
-    });
+    connect(m_timelineAction, &QAction::toggled,
+            this, &ScenarioDocumentPresenter::on_timelineModeSwitch);
 
     m_musicalAction = actions[1];
   }
@@ -262,6 +230,7 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
         &ScenarioDocumentPresenter::on_addProcessFromLibrary);
   }
 
+
   setDisplayedInterval(&model().baseInterval());
 
   model()
@@ -274,11 +243,16 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
 
 void ScenarioDocumentPresenter::recenterNodal()
 {
-  if (!m_nodal)
-    return;
+  struct {
+    void operator()(CentralIntervalDisplay& disp) const noexcept {
+    }
+    void operator()(CentralNodalDisplay& disp) const noexcept {
+      disp.recenter();
+    }
+    void operator()(std::monostate) const noexcept {}
+  } vis{};
 
-  const auto& nodes = m_nodal->enclosingRect();
-  view().view().centerOn(m_nodal->mapToScene(nodes.center()));
+  std::visit(vis, m_centralDisplay);
 }
 
 void ScenarioDocumentPresenter::switchMode(bool nodal)
@@ -287,56 +261,24 @@ void ScenarioDocumentPresenter::switchMode(bool nodal)
                           : IntervalModel::ViewMode::Temporal;
   displayedInterval().setViewMode(mode);
 
-  QObject::disconnect(m_nodalDrop);
-  QObject::disconnect(m_nodalContextMenu);
-  delete m_nodal;
-  m_nodal = nullptr;
-
-  removeDisplayedIntervalPresenter();
-
   view().view().setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
   view().view().setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
   view().view().setDragMode(QGraphicsView::NoDrag);
   view().view().setContextMenuPolicy(Qt::DefaultContextMenu);
+
+  // First clear the display
+  m_centralDisplay.emplace<std::monostate>();
+
+  // Then reconstruct depending on the mode we want
   if (nodal)
   {
     view().view().timebarVisible = false;
 
-    m_nodal = new NodalIntervalView{
-        NodalIntervalView::AllItems,
-        displayedInterval(),
-        context(),
-        &view().baseItem()};
-
-    view().view().setSceneRect(QRectF{0, 0, 10, 10});
-    m_nodalDrop = connect(
-        &view().view(),
-        &ProcessGraphicsView::dropRequested,
-        m_nodal,
-        [=](QPoint viewPos, const QMimeData* data) {
-          auto sp = view().view().mapToScene(viewPos);
-          auto ip = m_nodal->mapFromScene(sp);
-          m_nodal->on_drop(ip, data);
-        });
-
-    m_nodalContextMenu = con(
-        view().view(),
-        &ProcessGraphicsView::emptyContextMenuRequested,
-        this,
-        [this](const QPoint& pos) {
-          QMenu contextMenu(&view().view());
-          auto recenter = contextMenu.addAction(tr("Recenter"));
-
-          auto act = contextMenu.exec(view().view().mapToGlobal(pos));
-          if (act == recenter)
-            recenterNodal();
-        });
-
-    QTimer::singleShot(0, m_nodal, &NodalIntervalView::recenter);
+    m_centralDisplay.emplace<CentralNodalDisplay>(*this);
   }
   else
   {
-    createDisplayedIntervalPresenter(displayedInterval());
+    m_centralDisplay.emplace<CentralIntervalDisplay>(*this);
     if(view().view().timebarPlaying)
       startTimeBar();
   }
@@ -354,10 +296,7 @@ ScenarioDocumentPresenter::~ScenarioDocumentPresenter()
 {
   delete m_miniLayer;
 
-  delete m_nodal;
-  m_nodal = nullptr;
-
-  removeDisplayedIntervalPresenter();
+  m_centralDisplay.emplace<std::monostate>();
 
   for(auto& [cable, item] : m_dataflow.cables())
     delete item;
@@ -366,14 +305,17 @@ ScenarioDocumentPresenter::~ScenarioDocumentPresenter()
   m_dataflow.ports().clear();
 }
 
-IntervalModel& ScenarioDocumentPresenter::displayedInterval() const
+IntervalModel& ScenarioDocumentPresenter::displayedInterval() const noexcept
 {
   return displayedElements.interval();
 }
 
-DisplayedElementsPresenter& ScenarioDocumentPresenter::presenters()
+IntervalPresenter* ScenarioDocumentPresenter::displayedIntervalPresenter() const noexcept
 {
-  return m_scenarioPresenter;
+  auto itv_pres = std::get_if<CentralIntervalDisplay>(&m_centralDisplay);
+  if(!itv_pres)
+    return {};
+  return itv_pres->presenter.intervalPresenter();
 }
 
 void ScenarioDocumentPresenter::selectAll()
@@ -404,7 +346,18 @@ void ScenarioDocumentPresenter::setZoomRatio(ZoomRatio newRatio)
   m_zoomRatio = newRatio;
 
   view().timeRuler().setZoomRatio(newRatio);
-  m_scenarioPresenter.on_zoomRatioChanged(m_zoomRatio);
+
+  const struct {
+    ZoomRatio zoomRatio{};
+    void operator()(CentralIntervalDisplay& disp) const noexcept {
+      disp.presenter.on_zoomRatioChanged(zoomRatio);
+    }
+    void operator()(CentralNodalDisplay& disp) const noexcept {
+    }
+    void operator()(std::monostate) const noexcept {
+    }
+  } vis{m_zoomRatio};
+  std::visit(vis, m_centralDisplay);
 
   for (auto& cbl : m_dataflow.cables())
   {
@@ -456,6 +409,23 @@ void ScenarioDocumentPresenter::on_timeRulerScrollEvent(
   view().view().scrollHorizontal(previous.x() - current.x());
 }
 
+void ScenarioDocumentPresenter::on_visibleRectChanged(const QRectF& rect)
+{
+  struct {
+    const QRectF& rect;
+    void operator()(CentralIntervalDisplay& disp) const noexcept {
+      if (auto p = disp.presenter.intervalPresenter())
+        p->on_visibleRectChanged(rect);
+    }
+    void operator()(CentralNodalDisplay& disp) const noexcept {
+      disp.presenter->setRect({0, 0, rect.width(), rect.height()});
+    }
+    void operator()(std::monostate) const noexcept {}
+  } vis{rect};
+
+  std::visit(vis, this->m_centralDisplay);
+}
+
 void ScenarioDocumentPresenter::setLargeView()
 {
   auto& c = displayedInterval();
@@ -469,10 +439,11 @@ void ScenarioDocumentPresenter::setLargeView()
 void ScenarioDocumentPresenter::startTimeBar()
 {
   bool visible = context().app.settings<Scenario::Settings::Model>().getTimeBar();
-  visible &= !m_nodal;
+  auto itv_pres = std::get_if<CentralIntervalDisplay>(&m_centralDisplay);
+  visible &= bool(itv_pres);
 
   view().view().currentTimebar = &displayedInterval().duration;
-  view().view().currentView = m_nodal ? nullptr : this->presenters().intervalPresenter()->view();
+  view().view().currentView = itv_pres ? itv_pres->presenter.intervalPresenter()->view() : nullptr;
   view().view().timebarPlaying = true;
   view().view().timebarVisible = visible;
 
@@ -601,25 +572,18 @@ ZoomRatio ScenarioDocumentPresenter::computeZoom(double l, double r)
 void ScenarioDocumentPresenter::on_addProcessFromLibrary(
     const Library::ProcessData& dat)
 {
-  if (m_nodal)
-  {
-    Command::Macro m{new Command::DropProcessInIntervalMacro, m_context};
-    m.createProcessInNewSlot(displayedInterval(), dat.key, dat.customData);
-    m.commit();
-  }
-  else
-  {
-    auto sel = filterSelectionByType<IntervalModel>(
-        m_context.selectionStack.currentSelection());
-    if (sel.size() == 1)
-    {
-      const Scenario::IntervalModel& itv = *sel.front();
-
-      Command::Macro m{new Command::DropProcessInIntervalMacro, m_context};
-      m.createProcessInNewSlot(itv, dat.key, dat.customData);
-      m.commit();
+  const struct {
+    const Library::ProcessData& dat;
+    void operator()(CentralIntervalDisplay& disp) const noexcept {
+      disp.on_addProcessFromLibrary(dat);
     }
-  }
+    void operator()(CentralNodalDisplay& disp) const noexcept {
+      disp.on_addProcessFromLibrary(dat);
+    }
+    void operator()(std::monostate) const noexcept {
+    }
+  } vis{dat};
+  std::visit(vis, m_centralDisplay);
 }
 
 void ScenarioDocumentPresenter::on_viewReady()
@@ -643,8 +607,18 @@ void ScenarioDocumentPresenter::on_viewReady()
     if (!window_size_set)
       on_windowSizeChanged({});
 
-    if (auto p = m_scenarioPresenter.intervalPresenter())
-      p->on_visibleRectChanged(view().view().visibleRect());
+    const struct {
+      QRectF rect;
+      void operator()(CentralIntervalDisplay& disp) const noexcept {
+        disp.on_visibleRectChanged(rect);
+      }
+      void operator()(CentralNodalDisplay& disp) const noexcept {
+        disp.on_visibleRectChanged(rect);
+      }
+      void operator()(std::monostate) const noexcept {
+      }
+    } vis{view().view().visibleRect()};
+    std::visit(vis, m_centralDisplay);
   });
 }
 
@@ -668,6 +642,37 @@ void ScenarioDocumentPresenter::on_cableRemoving(const Process::Cable& c)
     delete it->second;
     m_dataflow.cables().erase(it);
   }
+}
+
+void ScenarioDocumentPresenter::on_timeRulerChanged()
+{
+  auto& tr = view().timeRuler();
+
+  qDebug(" HOW MANY TIMES ARE U CONNECTING => ");
+  con(tr,
+      &TimeRuler::drag,
+      this,
+      &ScenarioDocumentPresenter::on_timeRulerScrollEvent);
+
+  if (m_zoomRatio > 0)
+    tr.setZoomRatio(m_zoomRatio);
+  tr.setWidth(view().viewWidth());
+
+  struct {
+    Scenario::TimeRulerBase& tr;
+    void operator()(CentralIntervalDisplay& disp) const noexcept {
+      if (auto p = disp.presenter.intervalPresenter())
+      {
+        tr.setGrid(p->grid());
+        p->on_zoomRatioChanged(p->zoomRatio());
+      }
+    }
+    void operator()(CentralNodalDisplay& disp) const noexcept {}
+    void operator()(std::monostate) const noexcept {}
+  } vis{tr};
+  std::visit(vis, this->m_centralDisplay);
+
+  on_horizontalPositionChanged(0);
 }
 
 void ScenarioDocumentPresenter::on_minimapChanged(double l, double r)
@@ -721,12 +726,15 @@ void ScenarioDocumentPresenter::on_minimapChanged(double l, double r)
 
 void ScenarioDocumentPresenter::on_executionTimer()
 {
-  if (m_nodal)
-  {
-    auto pctg = displayedInterval().duration.playPercentage();
-    m_nodal->on_playPercentageChanged(
-        pctg, displayedInterval().duration.defaultDuration());
-  }
+}
+
+void ScenarioDocumentPresenter::on_timelineModeSwitch(bool b) {
+  const bool nodal = !b;
+  const bool m_nodal = std::get_if<CentralNodalDisplay>(&this->m_centralDisplay);
+  if (nodal && !m_nodal)
+    switchMode(true);
+  else if (!nodal && m_nodal)
+    switchMode(false);
 }
 
 void ScenarioDocumentPresenter::updateRect(const QRectF& rect)
@@ -734,7 +742,7 @@ void ScenarioDocumentPresenter::updateRect(const QRectF& rect)
   view().view().setSceneRect(rect);
 }
 
-const Process::Context& ScenarioDocumentPresenter::context() const
+const Process::Context& ScenarioDocumentPresenter::context() const noexcept
 {
   return m_context;
 }
@@ -742,7 +750,9 @@ const Process::Context& ScenarioDocumentPresenter::context() const
 void ScenarioDocumentPresenter::updateTimeBar()
 {
   auto& set = m_context.app.settings<Settings::Model>();
-  view().view().timebarVisible = view().view().timebarPlaying && set.getTimeBar() && !m_nodal && (&displayedInterval().duration == view().view().currentTimebar);
+  auto& gv = view().view();
+  const bool nodal = std::get_if<CentralNodalDisplay>(&this->m_centralDisplay);
+  gv.timebarVisible = gv.timebarPlaying && set.getTimeBar() && !nodal && (&displayedInterval().duration == gv.currentTimebar);
 }
 
 void ScenarioDocumentPresenter::updateMinimap()
@@ -869,42 +879,6 @@ void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel* itv)
   }
 }
 
-void ScenarioDocumentPresenter::removeDisplayedIntervalPresenter()
-{
-  m_scenarioPresenter.remove();
-}
-
-void ScenarioDocumentPresenter::createDisplayedIntervalPresenter(
-    IntervalModel& interval)
-{
-  // Setup of the state machine.
-  const auto& fact
-      = context().app.interfaces<DisplayedElementsToolPaletteFactoryList>();
-  m_stateMachine = fact.make(
-      &DisplayedElementsToolPaletteFactory::make,
-      *this,
-      interval,
-      &view().baseItem());
-
-  // Creation of the presenters
-  m_updatingView = true;
-  m_scenarioPresenter.on_displayedIntervalChanged(interval);
-  m_updatingView = false;
-  auto p = m_scenarioPresenter.intervalPresenter();
-  SCORE_ASSERT(p);
-  connect(
-      p,
-      &FullViewIntervalPresenter::intervalSelected,
-      this,
-      &ScenarioDocumentPresenter::setDisplayedInterval);
-
-  on_viewReady();
-  updateMinimap();
-  view().view().verticalScrollBar()->setValue(0);
-
-  view().timeRuler().setGrid(p->grid());
-}
-
 void ScenarioDocumentPresenter::on_viewModelDefocused(
     const Process::ProcessModel* vm)
 {
@@ -936,6 +910,49 @@ void ScenarioDocumentPresenter::on_viewModelFocused(
 
     m_focusedInterval = interval;
     m_focusedInterval->focusChanged(true);
+  }
+}
+
+void ScenarioDocumentPresenter::focusFrontProcess()
+{
+  // TODO this snippet is useful, put it somewhere in some Toolkit file.
+  auto itv_disp = std::get_if<CentralIntervalDisplay>(&m_centralDisplay);
+  if(!itv_disp)
+    return;
+  FullViewIntervalPresenter* cst_pres
+      = itv_disp->presenter.intervalPresenter();
+
+  if (cst_pres && !cst_pres->getSlots().empty())
+  {
+    auto& firstSlot = cst_pres->getSlots().front();
+    if (auto slt = firstSlot.getLayerSlot())
+    {
+      auto p = slt->layers.front().mainPresenter();
+      if (p)
+        focusManager().focus(p);
+    }
+  }
+}
+
+void ScenarioDocumentPresenter::goUpALevel()
+{
+  auto itv_disp = std::get_if<CentralIntervalDisplay>(&m_centralDisplay);
+  if(!itv_disp)
+    return;
+
+  const auto cst_pres = itv_disp->presenter.intervalPresenter();
+  if (cst_pres)
+  {
+    const QObject* itv = &cst_pres->model();
+    while (itv)
+    {
+      itv = itv->parent();
+      if (auto itv_ = qobject_cast<const IntervalModel*>(itv))
+      {
+        setDisplayedInterval(const_cast<IntervalModel*>(itv_));
+        return;
+      }
+    }
   }
 }
 
@@ -1058,7 +1075,7 @@ void ScenarioDocumentPresenter::setNewSelection(
   view().view().setFocus();
 }
 
-Process::ProcessFocusManager& ScenarioDocumentPresenter::focusManager() const
+Process::ProcessFocusManager& ScenarioDocumentPresenter::focusManager() const noexcept
 {
   return m_focusManager;
 }

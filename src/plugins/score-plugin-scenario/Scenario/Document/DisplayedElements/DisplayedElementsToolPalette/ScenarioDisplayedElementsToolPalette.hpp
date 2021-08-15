@@ -37,6 +37,7 @@ class ScenarioDisplayedElementsToolPalette final
 public:
   ScenarioDisplayedElementsToolPalette(
       const DisplayedElementsModel&,
+      DisplayedElementsPresenter&,
       ScenarioDocumentPresenter&,
       QGraphicsItem*);
 
@@ -58,6 +59,7 @@ public:
 private:
   Scenario::Point ScenePointToScenarioPoint(QPointF point);
   const DisplayedElementsModel& m_model;
+  DisplayedElementsPresenter& m_presenters;
   const Scenario::ProcessModel& m_scenarioModel;
   ScenarioDocumentPresenter& m_presenter;
   BaseElementContext m_context;

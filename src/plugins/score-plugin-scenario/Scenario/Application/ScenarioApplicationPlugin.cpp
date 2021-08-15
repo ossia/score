@@ -194,21 +194,7 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
           = IDocument::presenterDelegate<ScenarioDocumentPresenter>(*doc);
       if (!pres)
         return;
-
-      const auto cst_pres = pres->presenters().intervalPresenter();
-      if (cst_pres)
-      {
-        const QObject* itv = &cst_pres->model();
-        while (itv)
-        {
-          itv = itv->parent();
-          if (auto itv_ = qobject_cast<const IntervalModel*>(itv))
-          {
-            pres->setDisplayedInterval(const_cast<IntervalModel*>(itv_));
-            return;
-          }
-        }
-      }
+      pres->goUpALevel();
     });
   }
 }
@@ -370,24 +356,9 @@ void ScenarioApplicationPlugin::on_documentChanged(
   {
     // We focus by default the first process of the interval in full view
     // we're in
-    // TODO this snippet is useful, put it somewhere in some Toolkit file.
-    ScenarioDocumentPresenter* pres
-        = IDocument::presenterDelegate<ScenarioDocumentPresenter>(*newdoc);
-    if (pres)
+    if (auto pres = IDocument::presenterDelegate<ScenarioDocumentPresenter>(*newdoc))
     {
-      FullViewIntervalPresenter* cst_pres
-          = pres->presenters().intervalPresenter();
-
-      if (cst_pres && !cst_pres->getSlots().empty())
-      {
-        auto& firstSlot = cst_pres->getSlots().front();
-        if (auto slt = firstSlot.getLayerSlot())
-        {
-          auto p = slt->layers.front().mainPresenter();
-          if (p)
-            focusManager->focus(p);
-        }
-      }
+      pres->focusFrontProcess();
     }
   }
 

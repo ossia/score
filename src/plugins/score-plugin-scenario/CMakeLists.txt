@@ -198,6 +198,8 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Minimap/Minimap.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Graph.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ModelConsistency.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/CentralNodalDisplay.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/CentralIntervalDisplay.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ScenarioDocumentFactory.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp"
@@ -482,6 +484,8 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Graph.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseScenario/BaseScenario.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/CentralNodalDisplay.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/CentralIntervalDisplay.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ProcessFocusManager.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ZoomPolicy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/Widgets/ProgressBar.cpp"

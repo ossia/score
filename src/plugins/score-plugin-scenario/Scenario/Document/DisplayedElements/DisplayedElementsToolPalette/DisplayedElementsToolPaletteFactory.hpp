@@ -10,6 +10,7 @@ namespace Scenario
 {
 class IntervalModel;
 class ScenarioDocumentPresenter;
+class DisplayedElementsPresenter;
 
 class SCORE_PLUGIN_SCENARIO_EXPORT DisplayedElementsToolPaletteFactory
     : public score::InterfaceBase
@@ -24,6 +25,7 @@ public:
 
   bool matches(
       ScenarioDocumentPresenter& pres,
+      DisplayedElementsPresenter& presenters,
       const IntervalModel& interval,
       QGraphicsItem*) const
   {
@@ -32,6 +34,7 @@ public:
 
   virtual std::unique_ptr<GraphicsSceneToolPalette> make(
       ScenarioDocumentPresenter& pres,
+      DisplayedElementsPresenter& presenters,
       const IntervalModel& interval,
       QGraphicsItem* parent)
       = 0;

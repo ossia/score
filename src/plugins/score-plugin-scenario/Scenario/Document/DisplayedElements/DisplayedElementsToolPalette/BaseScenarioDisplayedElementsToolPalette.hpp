@@ -28,7 +28,9 @@ class BaseScenarioDisplayedElementsToolPalette final
     : public GraphicsSceneToolPalette
 {
 public:
-  BaseScenarioDisplayedElementsToolPalette(ScenarioDocumentPresenter& pres);
+  BaseScenarioDisplayedElementsToolPalette(
+      ScenarioDocumentPresenter& pres,
+      DisplayedElementsPresenter& presenters);
 
   BaseGraphicsObject& view() const;
   DisplayedElementsPresenter& presenter() const;
@@ -49,6 +51,7 @@ private:
   Scenario::Point ScenePointToScenarioPoint(QPointF point);
 
   ScenarioDocumentPresenter& m_presenter;
+  DisplayedElementsPresenter& m_presenters;
   BaseElementContext m_context;
   Process::MagnetismAdjuster& m_magnetic;
 
