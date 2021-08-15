@@ -80,7 +80,7 @@ protected:
 
 protected:
   QLineEdit* m_name{};
-  QCodeEditor* m_codeEdit{};
+  QTextEdit* m_codeEdit{};
 };
 }
 

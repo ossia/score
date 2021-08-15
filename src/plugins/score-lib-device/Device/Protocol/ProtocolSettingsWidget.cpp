@@ -36,10 +36,11 @@ void ProtocolSettingsWidget::checkForChanges(QSpinBox* w)
       this,
       &ProtocolSettingsWidget::changed);
 }
-void ProtocolSettingsWidget::checkForChanges(QCodeEditor* w)
+void ProtocolSettingsWidget::checkForChanges(QTextEdit* w)
 {
+  if(auto edit = qobject_cast<QCodeEditor*>(w))
   connect(
-      w,
+      edit,
       &QCodeEditor::editingFinished,
       this,
       &ProtocolSettingsWidget::changed);

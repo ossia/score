@@ -9,7 +9,7 @@
 #include <score_lib_process_export.h>
 
 class QPlainTextEdit;
-class QCodeEditor;
+class QTextEdit;
 class QTabWidget;
 
 namespace Process
@@ -38,7 +38,7 @@ protected:
   QTabWidget* m_tabs{};
   struct EditorTab
   {
-    QCodeEditor* textedit{};
+    QTextEdit* textedit{};
   };
   std::vector<EditorTab> m_editors;
   QPlainTextEdit* m_error{};

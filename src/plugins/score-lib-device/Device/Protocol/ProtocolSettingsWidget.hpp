@@ -14,7 +14,7 @@
 class QLineEdit;
 class QComboBox;
 class QSpinBox;
-class QCodeEditor;
+class QTextEdit;
 class QCheckBox;
 namespace Device
 {
@@ -33,7 +33,7 @@ protected:
   void checkForChanges(QLineEdit*);
   void checkForChanges(QComboBox*);
   void checkForChanges(QSpinBox*);
-  void checkForChanges(QCodeEditor*);
+  void checkForChanges(QTextEdit*);
   void checkForChanges(QCheckBox*);
 };
 

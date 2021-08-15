@@ -6,7 +6,7 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 class QLineEdit;
-class QCodeEditor;
+class QTextEdit;
 class QWidget;
 namespace score
 {
@@ -30,7 +30,7 @@ protected:
 protected:
   QLineEdit* m_name{};
   score::ComboBox* m_port{};
-  QCodeEditor* m_codeEdit{};
+  QTextEdit* m_codeEdit{};
 };
 }
 

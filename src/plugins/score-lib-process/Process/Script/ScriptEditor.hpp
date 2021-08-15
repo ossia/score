@@ -10,7 +10,7 @@
 #include <score_lib_process_export.h>
 
 class QPlainTextEdit;
-class QCodeEditor;
+class QTextEdit;
 class QTabWidget;
 namespace Process
 {
@@ -33,7 +33,7 @@ protected:
   virtual void on_accepted() = 0;
 
   const score::DocumentContext& m_context;
-  QCodeEditor* m_textedit{};
+  QTextEdit* m_textedit{};
   QPlainTextEdit* m_error{};
 };
 

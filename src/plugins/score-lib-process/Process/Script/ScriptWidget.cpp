@@ -62,7 +62,7 @@ QSyntaxStyle* getStyle()
 }
 }
 
-QCodeEditor* createScriptWidget(const std::string_view language)
+QTextEdit* createScriptWidget(const std::string_view language)
 {
   auto edit = new QCodeEditor{};
 

@@ -37,7 +37,7 @@ WSProtocolSettingsWidget::WSProtocolSettingsWidget(QWidget* parent)
   checkForChanges(m_codeEdit);
 
   connect(
-      m_codeEdit,
+      static_cast<QCodeEditor*>(m_codeEdit),
       &QCodeEditor::editingFinished,
       this,
       &WSProtocolSettingsWidget::parseHost);
