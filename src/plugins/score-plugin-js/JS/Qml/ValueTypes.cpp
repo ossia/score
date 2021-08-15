@@ -918,14 +918,14 @@ double TokenRequestValueType::get_physical_quantification_date(
   return -1;
 }
 
-void TokenRequestValueType::reduce_end_time(double time) noexcept
+void TokenRequestValueType::set_end_time(double time) noexcept
 {
-  return req.reduce_end_time({int64_t(time)});
+  return req.set_end_time({int64_t(time)});
 }
 
-void TokenRequestValueType::increase_start_time(double time) noexcept
+void TokenRequestValueType::set_start_time(double time) noexcept
 {
-  return req.increase_start_time({int64_t(time)});
+  return req.set_start_time({int64_t(time)});
 }
 
 bool TokenRequestValueType::unexpected_bar_change() const noexcept

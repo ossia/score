@@ -45,6 +45,7 @@ struct Node
       ossia::exec_state_facade st,
       State& state)
   {
+    using namespace ossia;
     const double modelRatio = st.modelToSamples();
 
     auto m = Control::Widgets::GetLoopMode(mode);
@@ -52,25 +53,37 @@ struct Node
     {
       if (quantif != 0)
       {
-        if (auto time = tk.get_quantification_date(1. / quantif))
+        if (auto time = tk.get_quantification_date(1. / quantif); time && time > tk.prev_date)
         {
-          // Finish what we were doing until the quantization date
+          if(time > tk.prev_date)
           {
-            auto sub_tk = tk;
-            sub_tk.reduce_end_time(*time);
-            action(p1, p2, sub_tk, state, modelRatio, echo);
+            // Finish what we were doing until the quantization date
+            {
+              auto sub_tk = tk;
+              sub_tk.set_end_time(*time - 1_tv);
+
+              action(p1, p2, sub_tk, state, modelRatio, echo);
+            }
+
+            // We can switch to the new mode
+            state.actualMode = m;
+            state.playbackPos = 0;
+
+            // Remaining of the tick
+            {
+              auto sub_tk = tk;
+              sub_tk.set_start_time(*time);
+
+              action(p1, p2, sub_tk, state, modelRatio, echo);
+            }
           }
-
-          // We can switch to the new mode
-          state.actualMode = m;
-          state.playbackPos = 0;
-
-          // Remaining of the tick
+          else
           {
-            auto sub_tk = tk;
-            sub_tk.increase_start_time(tk.date - *time);
+            // We can switch to the new mode
+            state.actualMode = m;
+            state.playbackPos = 0;
 
-            action(p1, p2, sub_tk, state, modelRatio, echo);
+            action(p1, p2, tk, state, modelRatio, echo);
           }
         }
         else

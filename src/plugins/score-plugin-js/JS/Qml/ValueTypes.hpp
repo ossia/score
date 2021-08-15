@@ -217,10 +217,10 @@ public:
   get_physical_quantification_date(double rate, double ratio) const noexcept;
   W_INVOKABLE(get_physical_quantification_date)
 
-  void reduce_end_time(double time) noexcept;
-  W_INVOKABLE(reduce_end_time)
-  void increase_start_time(double time) noexcept;
-  W_INVOKABLE(increase_start_time)
+  void set_end_time(double time) noexcept;
+  W_INVOKABLE(set_end_time)
+  void set_start_time(double time) noexcept;
+  W_INVOKABLE(set_start_time)
 
   bool unexpected_bar_change() const noexcept;
   W_INVOKABLE(unexpected_bar_change)
