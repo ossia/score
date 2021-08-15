@@ -168,6 +168,7 @@ Process::ProcessModel* Macro::loadProcessFromPreset(
   if(auto process = this->createProcessInNewSlot(interval, preset.key.key, preset.key.effect, {}))
   {
     m.submit(new Process::LoadPreset{*process, preset});
+    m.submit(new ChangeElementName{*process, preset.name});
     return process;
   }
   return nullptr;

@@ -62,7 +62,7 @@ bool DropPresetInScenario::drop(
   {
     m.loadProcessFromPreset(interval, *preset);
     m.showRack(interval);
-    m.submit(new Scenario::Command::ChangeElementName{interval, filename});
+    m.submit(new Scenario::Command::ChangeElementName{interval, preset->name});
     m.commit();
   }
 
