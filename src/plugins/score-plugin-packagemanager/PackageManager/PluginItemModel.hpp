@@ -30,7 +30,7 @@ struct RemotePackage
 
   QString raw_name;
   QString name;
-  QString version; // version of the add-on
+  int version{}; // version of the add-on
   QString target;  // version of score targeted by this version of the add-on
   QString
       kind;  // what kind of package it is (for now: "addon", "sdk", "library")

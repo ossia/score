@@ -28,7 +28,7 @@ LocalPackagesModel::LocalPackagesModel(const score::ApplicationContext& ctx)
     }
     else
     {
-      QFile addon{p + "/addon.json"};
+      QFile addon{p + "/package.json"};
       if (addon.open(QIODevice::ReadOnly))
       {
         auto add = RemotePackage::fromJson(
@@ -143,7 +143,7 @@ QVariant LocalPackagesModel::data(const QModelIndex& index, int role) const
       }
 
       break;
-    }
+    }/*
     case Qt::CheckStateRole:
     {
       if (column == Column::Name)
@@ -155,7 +155,7 @@ QVariant LocalPackagesModel::data(const QModelIndex& index, int role) const
         return QVariant{};
       }
       break;
-    }
+    }*/
   }
 
   return {};
@@ -163,11 +163,13 @@ QVariant LocalPackagesModel::data(const QModelIndex& index, int role) const
 
 Qt::ItemFlags LocalPackagesModel::flags(const QModelIndex& index) const
 {
-  Qt::ItemFlags flags = Qt::ItemIsEnabled;
-  if (index.column() == 0)
-    flags |= Qt::ItemIsUserCheckable;
+  return QAbstractItemModel::flags(index);
 
-  return flags;
+  // Qt::ItemFlags flags = Qt::ItemIsEnabled;
+  // if (index.column() == 0)
+  //   flags |= Qt::ItemIsUserCheckable;
+  //
+  // return flags;
 }
 
 QModelIndex RemotePackagesModel::index(
@@ -290,7 +292,7 @@ RemotePackage::fromJson(const QJsonObject& obj) noexcept
       {"src", [&](QJsonValue v) { add.file = v.toString(); }},
       {"name", [&](QJsonValue v) { add.name = v.toString(); }},
       {"raw_name", [&](QJsonValue v) { add.raw_name = v.toString(); }},
-      {"version", [&](QJsonValue v) { add.version = v.toString(); }},
+      {"version", [&](QJsonValue v) { add.version = v.toInt(); }},
       {"kind", [&](QJsonValue v) { add.kind = v.toString(); }},
       {"url", [&](QJsonValue v) { add.url = v.toString(); }},
       {"short", [&](QJsonValue v) { add.shortDescription = v.toString(); }},

@@ -41,6 +41,9 @@ private:
   void install();
   void on_message(QNetworkReply* rep);
 
+  void on_packageInstallSuccess(const RemotePackage& addon, const QDir& destination, const std::vector<QString>& res);
+  void on_packageInstallFailure(const RemotePackage& addon);
+
   QTabWidget* m_widget = new QTabWidget;
 
   QTableView* m_addonsOnSystem{new QTableView};

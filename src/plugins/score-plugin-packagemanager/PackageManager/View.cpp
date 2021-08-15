@@ -352,44 +352,72 @@ void PluginSettingsView::installLibrary(const RemotePackage& addon)
   zdl::download_and_extract(
       addon.file,
       QFileInfo{destination}.absoluteFilePath(),
-      [=](const std::vector<QString>& res) {
-        m_progress->setHidden(true);
-        if (res.empty())
-          return;
+      [=] (const std::vector<QString>& res) { on_packageInstallSuccess(addon, destination, res); },
+      [=] { on_packageInstallFailure(addon); });
+}
 
-        // Often zip files contain a single, empty directory.
-        // In that case, we move everything up a level to make the library cleaner.
-        QDir dir{destination};
-        auto files = dir.entryList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot);
-        if(files.size() == 1)
-        {
-          auto child = files[0];
-          QFileInfo info{dir.absoluteFilePath(child)};
-          if(info.isDir()) {
-            dir.rename(child, "___score_tmp___");
-            QDir subdir{dir.absoluteFilePath("___score_tmp___")};
+void PluginSettingsView::on_packageInstallSuccess(
+    const RemotePackage& addon,
+    const QDir& destination,
+    const std::vector<QString>& res)
+{
+  m_progress->setHidden(true);
+  if (res.empty())
+    return;
 
-            for(auto& entry : subdir.entryList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot)) {
-              dir.rename(QString{"___score_tmp___%1%2"}.arg(QDir::separator()).arg(entry), entry);
-            }
+  // Often zip files contain a single, empty directory.
+  // In that case, we move everything up a level to make the library cleaner.
+  QDir dir{destination};
+  auto files = dir.entryList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot);
+  if(files.size() == 1)
+  {
+    auto child = files[0];
+    QFileInfo info{dir.absoluteFilePath(child)};
+    if(info.isDir()) {
+      dir.rename(child, "___score_tmp___");
+      QDir subdir{dir.absoluteFilePath("___score_tmp___")};
 
-            subdir.removeRecursively();
-          }
-        }
+      for(auto& entry : subdir.entryList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot)) {
+        dir.rename(QString{"___score_tmp___%1%2"}.arg(QDir::separator()).arg(entry), entry);
+      }
 
-        QMessageBox::information(
-            m_widget,
-            tr("Package downloaded"),
-            tr("The package %1 has been succesfully installed in the user "
-               "library.")
-                .arg(addon.name));
-      },
-      [=] {
-        m_progress->setHidden(true);
-        QMessageBox::warning(
-            m_widget,
-            tr("Download failed"),
-            tr("The package %1 could not be downloaded.").arg(addon.name));
-      });
+      subdir.removeRecursively();
+    }
+  }
+
+  if(!dir.exists("package.json"))
+  {
+    QFile f{dir.absoluteFilePath("package.json")};
+    if(f.open(QIODevice::WriteOnly))
+    {
+      QJsonObject obj;
+      obj["name"] = addon.name;
+      obj["raw_name"] = addon.raw_name;
+      obj["version"] = addon.version;
+      obj["kind"] = addon.kind;
+      obj["url"] = addon.url;
+      obj["short"] = addon.shortDescription;
+      obj["long"] = addon.longDescription;
+      // TODO images
+      obj["key"] = QString{score::uuids::toByteArray(addon.key.impl())};
+
+      f.write(QJsonDocument{obj}.toJson());
+    }
+  }
+
+  QMessageBox::information(
+      m_widget,
+      tr("Package downloaded"),
+      tr("The package %1 has been succesfully installed in the user library.")
+          .arg(addon.name));
+}
+void PluginSettingsView::on_packageInstallFailure(
+    const RemotePackage& addon)
+{
+  m_progress->setHidden(true);
+  QMessageBox::warning(
+      m_widget,
+      tr("Download failed"),
+      tr("The package %1 could not be downloaded.").arg(addon.name));
 }
 }
