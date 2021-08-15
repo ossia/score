@@ -71,6 +71,11 @@ public:
 
   virtual ~ProcessModel();
 
+  // If the process can have multiple distinct implementations
+  // for which presets are incompatible, e.g. VST, Faust...
+  // This allows to differentiate them
+  virtual QString effect() const noexcept;
+
   // A user-friendly text to show to the users
   virtual QString prettyName() const noexcept;
   virtual QString prettyShortName() const noexcept = 0;

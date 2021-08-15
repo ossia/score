@@ -1,6 +1,7 @@
 #include <LocalTree/ProcessComponent.hpp>
 #include <Magnetism/MagnetismAdjuster.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
+#include <Process/ApplicationPlugin.hpp>
 #include <Process/DocumentPlugin.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/ExecutionAction.hpp>
@@ -10,7 +11,6 @@
 #include <Process/OfflineAction/OfflineAction.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
 
 #include <QGraphicsScene>
@@ -61,6 +61,13 @@ score_lib_process::score_lib_process()
 }
 score_lib_process::~score_lib_process() = default;
 
+
+score::ApplicationPlugin* score_lib_process::make_applicationPlugin(
+    const score::ApplicationContext& app)
+{
+  return new Process::ApplicationPlugin{app};
+}
+
 std::vector<std::unique_ptr<score::InterfaceListBase>>
 score_lib_process::factoryFamilies()
 {
@@ -93,3 +100,4 @@ score_lib_process::make_commands()
 
 #include <score/plugins/PluginInstances.hpp>
 SCORE_EXPORT_PLUGIN(score_lib_process)
+

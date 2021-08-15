@@ -79,6 +79,11 @@ ProcessModel::~ProcessModel()
   identified_object_destroying(this);
 }
 
+QString ProcessModel::effect() const noexcept
+{
+  return {};
+}
+
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration) noexcept
 {
   setDuration(newDuration);

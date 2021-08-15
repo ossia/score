@@ -102,6 +102,7 @@ QGraphicsDraggablePixmap::QGraphicsDraggablePixmap(
 void QGraphicsDraggablePixmap::mousePressEvent(
     QGraphicsSceneMouseEvent* event)
 {
+  m_didDrag = false;
   setPixmap(m_pressed);
   event->accept();
 }
@@ -114,6 +115,7 @@ void QGraphicsDraggablePixmap::mouseMoveEvent(
         = (event->screenPos() - event->buttonDownScreenPos(Qt::LeftButton)).manhattanLength() >= QApplication::startDragDistance();
     if(min_dist && this->createDrag)
     {
+      m_didDrag = true;
       QMimeData* mime = new QMimeData;
       this->createDrag(*mime);
 
@@ -129,6 +131,11 @@ void QGraphicsDraggablePixmap::mouseMoveEvent(
 void QGraphicsDraggablePixmap::mouseReleaseEvent(
     QGraphicsSceneMouseEvent* event)
 {
+  if(!m_didDrag && this->click)
+  {
+    this->click(event->screenPos());
+  }
+  m_didDrag = false;
   setPixmap(m_released);
   event->accept();
 }

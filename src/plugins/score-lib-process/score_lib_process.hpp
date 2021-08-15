@@ -74,4 +74,7 @@ private:
 
   std::pair<const CommandGroupKey, CommandGeneratorMap>
   make_commands() override;
+
+  score::ApplicationPlugin* make_applicationPlugin(const score::ApplicationContext& app) override;
+
 };

@@ -5,6 +5,10 @@
 #include <verdigris>
 
 class QAction;
+namespace score
+{
+class QGraphicsDraggablePixmap;
+}
 namespace Process
 {
 
@@ -71,7 +75,7 @@ QGraphicsItem* makeExternalUIButton(
     QGraphicsItem* parent);
 
 SCORE_LIB_PROCESS_EXPORT
-QGraphicsItem* makePresetButton(
+score::QGraphicsDraggablePixmap* makePresetButton(
     const Process::ProcessModel& proc,
     const score::DocumentContext& ctx,
     QObject* self,

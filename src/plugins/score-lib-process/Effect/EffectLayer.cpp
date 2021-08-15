@@ -3,6 +3,7 @@
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/Process.hpp>
 #include <Process/Style/Pixmaps.hpp>
+#include <Process/ApplicationPlugin.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
 #include <Process/Dataflow/CableCopy.hpp>
 
@@ -10,10 +11,12 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/model/EntitySerialization.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <core/document/Document.hpp>
 
 #include <ossia/detail/thread.hpp>
 #include <QMenu>
+#include <Process/Commands/LoadPreset.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Process::EffectLayerPresenter)
@@ -185,7 +188,7 @@ QGraphicsItem* makeExternalUIButton(
   return nullptr;
 }
 
-QGraphicsItem* makePresetButton(
+score::QGraphicsDraggablePixmap* makePresetButton(
     const ProcessModel& proc,
     const score::DocumentContext& context,
     QObject* self,
@@ -210,6 +213,31 @@ QGraphicsItem* makePresetButton(
 
       mime.setData(score::mime::layerdata(), data);
     };
+
+    ui_btn->click = [&proc, &context] (QPointF screenPos) {
+      auto& presets = context.app.applicationPlugin<Process::ApplicationPlugin>().presets;
+
+      std::vector<Process::Preset*> goodPresets;
+      const auto& k = proc.concreteKey();
+      const auto& e = proc.effect();
+      for(auto& preset : presets)
+      {
+        if(preset.key.key == k && preset.key.effect == e)
+          goodPresets.push_back(&preset);
+      }
+
+      auto menu = new QMenu;
+      for(auto p : goodPresets)
+      {
+        menu->addAction(p->name, menu, [p, &proc, &context] {
+          CommandDispatcher<> c{context.commandStack};
+          c.submit(new LoadPreset{proc, *p});
+        });
+      }
+      menu->exec(screenPos.toPoint());
+      menu->deleteLater();
+    };
+
     return ui_btn;
   }
   return nullptr;

@@ -64,9 +64,12 @@ public:
       QGraphicsItem* parent);
 
   std::function<void(QMimeData&)> createDrag;
+  std::function<void(QPointF)> click;
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+
+  bool m_didDrag{};
 };
 }
