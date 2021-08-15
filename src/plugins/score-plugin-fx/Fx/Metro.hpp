@@ -64,7 +64,7 @@ struct Node
     {
       const auto period
           = get_period(val, quantif, freq, tk.tempo, st.sampleRate());
-      const auto next = next_date(tk.prev_date, period);
+      const auto next = next_date(tk.prev_date, period * st.samplesToModel());
       if (tk.in_range(next))
       {
         res.write_value(
