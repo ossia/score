@@ -188,6 +188,11 @@ void BytebeatModel::reload()
   changed();
 }
 
+QString BytebeatModel::effect() const noexcept
+{
+  return m_text;
+}
+
 void BytebeatModel::loadPreset(const Process::Preset& preset)
 {
   Process::loadScriptProcessPreset<BytebeatModel::p_script>(*this, preset);

@@ -3,6 +3,7 @@
 #include <Library/LibrarySettings.hpp>
 #include <Library/LibraryInterface.hpp>
 #include <Library/ProcessWidget.hpp>
+#include <Process/ApplicationPlugin.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
@@ -22,7 +23,7 @@ PresetItemModel::PresetItemModel(
     const score::GUIApplicationContext& ctx,
     QObject* parent)
     : QAbstractItemModel{parent}
-    , presets{static_cast<PresetLibraryHandler*>(ctx.interfaces<Library::LibraryInterfaceList>().get(PresetLibraryHandler::static_concreteKey()))->presets}
+    , presets{ctx.applicationPlugin<Process::ApplicationPlugin>().presets}
 {
 }
 

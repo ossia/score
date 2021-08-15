@@ -895,6 +895,11 @@ const QString& ProcessModel::script() const
   return m_script;
 }
 
+QString ProcessModel::effect() const noexcept
+{
+  return m_script;
+}
+
 void ProcessModel::loadPreset(const Process::Preset& preset)
 {
   Process::loadScriptProcessPreset<ProcessModel::p_script>(*this, preset);

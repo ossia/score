@@ -144,6 +144,11 @@ void TexgenModel::reload()
   changed();
 }
 
+QString TexgenModel::effect() const noexcept
+{
+  return m_text;
+}
+
 void TexgenModel::loadPreset(const Process::Preset& preset)
 {
   Process::loadScriptProcessPreset<TexgenModel::p_script>(*this, preset);

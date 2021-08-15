@@ -198,6 +198,11 @@ ControlInlet* Model::getControl(const Id<Process::Port>& p) const
   return nullptr;
 }
 
+QString Model::effect() const noexcept
+{
+  return QString::number(this->m_effectId);
+}
+
 void Model::init()
 {
   auto& app
@@ -794,7 +799,7 @@ Process::Preset Model::savePreset() const noexcept
   Process::Preset p;
   p.name = this->metadata().getName();
   p.key.key = this->concreteKey();
-  p.key.effect = QString::number(this->m_effectId);
+  p.key.effect = this->effect();
 
   QByteArray data;
   {

@@ -98,6 +98,7 @@ public:
   }
 
   ControlInlet* getControl(const Id<Process::Port>& p) const;
+  QString effect() const noexcept override;
   QString prettyName() const noexcept override;
   bool hasExternalUI() const noexcept;
 

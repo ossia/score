@@ -90,6 +90,11 @@ bool ProcessModel::validate(const QString& script) const noexcept
   }
 }
 
+QString ProcessModel::effect() const noexcept
+{
+  return m_qmlData;
+}
+
 void ProcessModel::setScript(const QString& script)
 {
   /*

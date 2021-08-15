@@ -98,6 +98,7 @@ public:
   PROPERTY(QString, script READ script WRITE setScript NOTIFY scriptChanged)
   std::shared_ptr<Instance> m_instance;
 private:
+  QString effect() const noexcept override;
   void loadPreset(const Process::Preset& preset) override;
   Process::Preset savePreset() const noexcept override;
   void init();

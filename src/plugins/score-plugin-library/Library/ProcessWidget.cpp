@@ -5,6 +5,7 @@
 #include <Library/PresetItemModel.hpp>
 #include <Library/ProcessesItemModel.hpp>
 #include <Library/RecursiveFilterProxy.hpp>
+#include <Process/ApplicationPlugin.hpp>
 #include <Process/ProcessList.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
@@ -222,7 +223,7 @@ QSet<QString> PresetLibraryHandler::acceptedFiles() const noexcept { return {"sc
 
 void PresetLibraryHandler::setup(ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
 {
-  presets.reserve(500);
+  presetLib = &ctx.applicationPlugin<Process::ApplicationPlugin>();
   processes = &ctx.interfaces<Process::ProcessFactoryList>();
 }
 
@@ -235,13 +236,7 @@ void PresetLibraryHandler::addPath(std::string_view path)
 
   if (auto p = Process::Preset::fromJson(*processes, score::mapAsByteArray(f)))
   {
-    auto it = std::lower_bound(
-        presets.begin(),
-        presets.end(),
-        *p,
-        [](const auto& lhs, const auto& rhs) { return lhs.key < rhs.key; });
-
-    presets.insert(it, std::move(*p));
+    presetLib->addPreset(std::move(*p));
   }
 }
 

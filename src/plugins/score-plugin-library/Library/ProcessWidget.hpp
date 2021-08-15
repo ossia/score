@@ -15,6 +15,10 @@ namespace score
 {
 struct GUIApplicationContext;
 }
+namespace Process
+{
+class ApplicationPlugin;
+}
 namespace Library
 {
 class ProcessesItemModel;
@@ -34,9 +38,8 @@ class PresetLibraryHandler final
 
   void addPath(std::string_view path) override;
 
+  Process::ApplicationPlugin* presetLib{};
   const Process::ProcessFactoryList* processes{};
-public:
-  std::vector<Process::Preset> presets;
 };
 
 class SCORE_PLUGIN_LIBRARY_EXPORT ProcessWidget : public QWidget

@@ -411,6 +411,11 @@ void FaustEffectModel::reload()
   changed();
 }
 
+QString FaustEffectModel::effect() const noexcept
+{
+  return m_text;
+}
+
 void FaustEffectModel::loadPreset(const Process::Preset& preset)
 {
   Process::loadScriptProcessPreset<FaustEffectModel::p_text>(*this, preset);

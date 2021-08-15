@@ -54,7 +54,7 @@ public:
     reload();
   }
 
-  const QString& effect() const { return m_effectPath; }
+  QString effect() const noexcept override { return m_effectPath; }
 
   void setEffect(const QString& s) { m_effectPath = s; }
 

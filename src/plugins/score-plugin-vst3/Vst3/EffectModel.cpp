@@ -209,6 +209,11 @@ ControlInlet* Model::getControl(const Id<Process::Port>& p) const
   return nullptr;
 }
 
+QString Model::effect() const noexcept
+{
+  return QString::fromStdString(m_uid.toString());
+}
+
 void Model::init() { }
 
 void Model::on_addControl_impl(ControlInlet* ctrl)
@@ -541,6 +546,8 @@ void Model::loadPreset(const Process::Preset& preset)
     m_savedControllerState = QByteArray::fromBase64(JsonValue{it->value}.toByteArray());
 
   writeState();
+
+  // TODO set score controls ?
 }
 
 Process::Preset Model::savePreset() const noexcept
@@ -548,7 +555,7 @@ Process::Preset Model::savePreset() const noexcept
   Process::Preset p;
   p.name = this->metadata().getName();
   p.key.key = this->concreteKey();
-  p.key.effect = QString::fromStdString(m_uid.toString());
+  p.key.effect = this->effect();
 
   JSONReader r;
   r.stream.StartObject();
@@ -692,13 +699,17 @@ void JSONWriter::write(vst3::Model& eff)
   }
 
   {
-    QByteArray b;
+    {
+      QByteArray b;
+      b <<= obj["State"];
+      eff.m_savedProcessorState = QByteArray::fromBase64(b);
+    }
 
-    b <<= obj["State"];
-    eff.m_savedProcessorState = QByteArray::fromBase64(b);
-
-    b <<= obj["UIState"];
-    eff.m_savedControllerState = QByteArray::fromBase64(b);
+    {
+      QByteArray b;
+      b <<= obj["UIState"];
+      eff.m_savedControllerState = QByteArray::fromBase64(b);
+    }
   }
 
   writePorts(
