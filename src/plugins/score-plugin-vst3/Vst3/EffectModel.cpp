@@ -547,7 +547,13 @@ void Model::loadPreset(const Process::Preset& preset)
 
   writeState();
 
-  // TODO set score controls ?
+  for (auto* inlet : this->m_inlets)
+  {
+    if (auto ctl = qobject_cast<ControlInlet*>(inlet))
+    {
+      ctl->setValue(fx.controller->getParamNormalized(ctl->fxNum));
+    }
+  }
 }
 
 Process::Preset Model::savePreset() const noexcept
