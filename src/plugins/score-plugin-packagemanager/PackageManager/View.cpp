@@ -126,7 +126,7 @@ PluginSettingsView::PluginSettingsView()
     m_progress->setVisible(true);
 
     QNetworkRequest rqst{
-        QUrl("https://raw.githubusercontent.com/OSSIA/score-addons/master/"
+        QUrl("https://raw.githubusercontent.com/ossia/score-addons/master/"
              "addons.json")};
     mgr.get(rqst);
   });
@@ -252,8 +252,7 @@ void PluginSettingsView::installAddon(const RemotePackage& addon)
     return;
   }
 
-  const QString& libPath = score::AppContext().settings<Library::Settings::Model>().getPath();
-  const QString installPath{libPath + addon.kind == "addon" ? "/Addons" : "/Nodes"};
+  const QString& installPath = score::AppContext().settings<Library::Settings::Model>().getPackagesPath();
   zdl::download_and_extract(
       addon.file,
       QDir{installPath}.absolutePath(),
@@ -310,10 +309,9 @@ void PluginSettingsView::installSDK(const RemotePackage& addon)
 #endif
       ;
 
-  const QString lib_path{
-      score::AppContext().settings<Library::Settings::Model>().getPath()};
-  const QString sdk_path{lib_path + "/SDK/" + version};
-  QDir{lib_path}.mkpath(sdk_path);
+  const QString sdk_path{
+      score::AppContext().settings<Library::Settings::Model>().getSDKPath() + "/" + version};
+  QDir{}.mkpath(sdk_path);
 
   const QUrl sdk_url
       = QString(
@@ -346,8 +344,8 @@ void PluginSettingsView::installSDK(const RemotePackage& addon)
 void PluginSettingsView::installLibrary(const RemotePackage& addon)
 {
   const QString destination{
-      score::AppContext().settings<Library::Settings::Model>().getPath()
-      + "/Media/" + addon.raw_name};
+      score::AppContext().settings<Library::Settings::Model>().getPackagesPath()
+      + "/" + addon.raw_name};
 
   QDir{}.mkpath(destination);
 

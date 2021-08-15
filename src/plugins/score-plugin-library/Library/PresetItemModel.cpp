@@ -82,10 +82,9 @@ static bool updatePresetFilename(Process::Preset& preset, QString old = {})
   const auto& procs = ctx.interfaces<Process::ProcessFactoryList>();
   auto& factory = *procs.get(preset.key.key);
   const auto& desc = factory.descriptor(preset.key.effect); // TODO
-  const QString& userLibDir
-      = ctx.settings<Library::Settings::Model>().getPath();
+  QString presetFolder
+      = ctx.settings<Library::Settings::Model>().getUserPresetsPath();
 
-  QString presetFolder = userLibDir + "/Presets";
   presetFolder += "/" + factory.prettyName();
 
   // Put VST, etc. in subfolders
@@ -93,11 +92,11 @@ static bool updatePresetFilename(Process::Preset& preset, QString old = {})
     presetFolder += "/" + desc.prettyName;
 
   QDir{}.mkpath(presetFolder);
-  QString presetPath = presetFolder + "/" + preset.name + ".scorepreset";
+  QString presetPath = presetFolder + "/" + preset.name + ".scp";
 
   if (QFile::exists(presetPath))
   {
-    presetPath = presetFolder + "/" + preset.name + " (%1).scorepreset";
+    presetPath = presetFolder + "/" + preset.name + " (%1).scp";
 
     int idx = 1;
     while (QFile::exists(presetPath.arg(idx)))
@@ -115,7 +114,7 @@ static bool updatePresetFilename(Process::Preset& preset, QString old = {})
   if (!old.isEmpty())
   {
     // Remove the old file
-    const QString oldPath = presetFolder + "/" + old + ".scorepreset";
+    const QString oldPath = presetFolder + "/" + old + ".scp";
     QFile::remove(oldPath);
   }
 

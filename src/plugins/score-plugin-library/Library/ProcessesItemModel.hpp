@@ -1,7 +1,9 @@
 #pragma once
+#include <Library/LibrarySettings.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
 
+#include <score/application/ApplicationContext.hpp>
 #include <score/model/tree/TreeNode.hpp>
 #include <score/model/tree/TreeNodeItemModel.hpp>
 #include <score/tools/std/Optional.hpp>
@@ -46,6 +48,7 @@ public:
 
   ProcessesItemModel(const score::GUIApplicationContext& ctx, QObject* parent);
 
+  void rescan();
   QModelIndex find(const Process::ProcessModelFactory::ConcreteKey& k);
 
   ProcessNode& rootNode() override;
@@ -67,6 +70,7 @@ public:
   void on_newPlugin(const Process::ProcessModelFactory& fact);
 
 private:
+  const score::GUIApplicationContext& context;
   ProcessNode m_root;
 };
 
@@ -79,6 +83,17 @@ struct Subcategories
   Library::ProcessNode* parent{};
   QDir libraryFolder;
   std::unordered_map<QString, Library::ProcessNode*> categories;
+
+  void init(const QModelIndex& idx, const score::ApplicationContext& ctx)
+  {
+    categories.clear();
+    parent
+        = reinterpret_cast<Library::ProcessNode*>(idx.internalPointer());
+
+    // We use the parent folder as category...
+    libraryFolder.setPath(
+        ctx.settings<Library::Settings::Model>().getPackagesPath());
+  }
 
   void add(const QFileInfo& file, Library::ProcessData&& pdata)
   {

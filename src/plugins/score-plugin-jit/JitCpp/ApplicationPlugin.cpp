@@ -99,6 +99,8 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
 
 void ApplicationPlugin::rescanAddons()
 {
+  SCORE_TODO;
+  /*
   const auto& libpath = context.settings<Library::Settings::Model>().getPath();
   QString addons = libpath + "/Addons";
   m_addonsWatch.addPath(addons);
@@ -116,10 +118,13 @@ void ApplicationPlugin::rescanAddons()
       setupAddon(p);
     }
   }
+*/
 }
 
 void ApplicationPlugin::rescanNodes()
 {
+  SCORE_TODO;
+  /*
   const auto& libpath = context.settings<Library::Settings::Model>().getPath();
   QString nodes = libpath + "/Nodes";
   m_nodesWatch.addPath(nodes);
@@ -135,6 +140,7 @@ void ApplicationPlugin::rescanNodes()
     m_nodesWatch.addPath(path);
     setupNode(path);
   }
+  */
 }
 
 void ApplicationPlugin::initialize()

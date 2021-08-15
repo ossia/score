@@ -40,12 +40,7 @@ class LibraryHandler final
     if (node == QModelIndex{})
       return;
 
-    categories.parent
-        = reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
-
-    // We use the parent folder as category...
-    categories.libraryFolder.setPath(
-        ctx.settings<Library::Settings::Model>().getPath());
+    categories.init(node, ctx);
   }
 
   void addPath(std::string_view path) override

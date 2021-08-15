@@ -171,7 +171,7 @@ View::View()
     m_skin->addItem("Default", ":/skin/DefaultSkin.json");
 
     const QString skinPath
-        = score::AppContext().settings<Library::Settings::Model>().getPath()
+        = score::AppContext().settings<Library::Settings::Model>().getDefaultLibraryPath()
           + "/Skins/";
     QDir skinDir(skinPath, "*.json");
     auto skinList = skinDir.entryList();

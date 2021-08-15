@@ -38,6 +38,11 @@ public:
 
   void scan() const;
 
+  void reset()
+  {
+    m_root.clear();
+    m_watched.clear();
+  }
 private:
   std::string m_root;
   ossia::string_map<std::vector<Callbacks>> m_watched;

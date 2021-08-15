@@ -38,7 +38,7 @@ static inline std::string locateSDK()
     return sdk.toStdString();
 
   auto& ctx = score::AppContext().settings<Library::Settings::Model>();
-  QString path = ctx.getPath() + "/SDK/";
+  QString path = ctx.getSDKPath();
 
   if (QString libPath = path + QString(SCORE_TAG_NO_V) + "/usr";
       QDir(libPath + "/include/c++").exists())
@@ -90,10 +90,7 @@ static inline std::string locateSDK()
   }
   else
   {
-    auto libpath
-        = score::AppContext().settings<Library::Settings::Model>().getPath();
-    libpath += "/sdk";
-    return libpath.toStdString();
+    return ctx.getSDKPath().toStdString();
   }
 #endif
 }

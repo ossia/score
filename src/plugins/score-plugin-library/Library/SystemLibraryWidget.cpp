@@ -93,20 +93,20 @@ SystemLibraryWidget::SystemLibraryWidget(
 #if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
   QTimer::singleShot(1000, [this, il, &ctx] {
     auto& settings = ctx.settings<Library::Settings::Model>();
-    il->reset = [this, &settings] { setRoot(settings.getPath()); };
+    il->reset = [this, &settings] { setRoot(settings.getPackagesPath()); };
     il->reset();
-    con(settings, &Library::Settings::Model::PathChanged, this, [=] {
-      il->reset();
-    });
+    con(settings, &Library::Settings::Model::RootPathChanged, this, il->reset);
+    con(settings, &Library::Settings::Model::rescanLibrary, this, il->reset);
   });
 #else
   QTimer::singleShot(1000, [this, &ctx] {
     auto& settings = ctx.settings<Library::Settings::Model>();
     auto reset = [this, &settings] { setRoot(settings.getPath()); };
     reset();
-    con(settings, &Library::Settings::Model::PathChanged, this, [=] {
+    con(settings, &Library::Settings::Model::RootPathChanged, this, [=] {
       reset();
     });
+    con(settings, &Library::Settings::Model::rescanLibrary, this, [=] { reset(); });
   });
 #endif
 }

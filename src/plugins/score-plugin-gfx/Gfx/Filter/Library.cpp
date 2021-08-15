@@ -25,12 +25,7 @@ void LibraryHandler::setup(Library::ProcessesItemModel& model, const score::GUIA
   if (node == QModelIndex{})
     return;
 
-  categories.parent
-      = reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
-
-  // We use the parent folder as category...
-  categories.libraryFolder.setPath(
-      ctx.settings<Library::Settings::Model>().getPath());
+  categories.init(node, ctx);
 }
 
 void LibraryHandler::addPath(std::string_view path)

@@ -44,7 +44,7 @@ LocalPackagesModel::LocalPackagesModel(const score::ApplicationContext& ctx)
   };
 
   const QString addons_path
-      = ctx.settings<Library::Settings::Model>().getPath() + "/Addons";
+      = ctx.settings<Library::Settings::Model>().getPackagesPath();
   con(m_addonsWatch,
       &QFileSystemWatcher::directoryChanged,
       this,

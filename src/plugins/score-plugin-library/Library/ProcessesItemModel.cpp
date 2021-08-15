@@ -23,9 +23,19 @@ ProcessesItemModel::ProcessesItemModel(
     const score::GUIApplicationContext& ctx,
     QObject* parent)
     : TreeNodeBasedItemModel<ProcessNode>{parent}
+    , context{ctx}
 {
   auto& procs = ctx.interfaces<Process::ProcessFactoryList>();
   procs.added.connect<&ProcessesItemModel::on_newPlugin>(*this);
+
+  auto& lib = context.settings<Library::Settings::Model>();
+  con(lib, &Library::Settings::Model::rescanLibrary, this, &ProcessesItemModel::rescan);
+  rescan();
+}
+
+void ProcessesItemModel::rescan()
+{
+  auto& procs = context.interfaces<Process::ProcessFactoryList>();
 
   std::map<QString, std::vector<Process::ProcessModelFactory*>> sorted;
   for (Process::ProcessModelFactory& proc : procs)
@@ -33,6 +43,8 @@ ProcessesItemModel::ProcessesItemModel(
     sorted[proc.category()].push_back(&proc);
   }
 
+  beginResetModel();
+  m_root = ProcessNode{};
   for (auto& e : sorted)
   {
     ProcessData p;
@@ -50,14 +62,20 @@ ProcessesItemModel::ProcessesItemModel(
           &cat);
     }
   }
+  endResetModel();
+
+  auto& lib = context.settings<Library::Settings::Model>();
+
+  auto libpath = lib.getPackagesPath();
 
   static score::RecursiveWatch w;
-  w.setWatchedFolder(ctx.settings<Library::Settings::Model>().getPath().toStdString());
-  auto& lib_setup = ctx.interfaces<Library::LibraryInterfaceList>();
+  w.reset();
+  w.setWatchedFolder(libpath.toStdString());
+  auto& lib_setup = context.interfaces<Library::LibraryInterfaceList>();
   // TODO lib_setup.added.connect<&ProcessesItemModel::on_newPlugin>(*this);
   for (auto& lib : lib_setup)
   {
-    lib.setup(*this, ctx);
+    lib.setup(*this, context);
     score::RecursiveWatch::Callbacks cbs;
     cbs.added = [&lib] (std::string_view path) { lib.addPath(path); };
     cbs.removed = [&lib] (std::string_view path) { lib.removePath(path); };
@@ -65,7 +83,12 @@ ProcessesItemModel::ProcessesItemModel(
       w.registerWatch(ext.toStdString(), cbs);
   }
 
-  QTimer::singleShot(1, this, [] { w.scan(); });
+  if(!QDir{libpath}.exists())
+    return;
+
+  QTimer::singleShot(1, this, [] {
+                       w.scan();
+                     });
 }
 
 void ProcessesItemModel::on_newPlugin(const Process::ProcessModelFactory& fact)

@@ -21,7 +21,7 @@ LibraryDeviceEnumerator::LibraryDeviceEnumerator(
     , m_key{k}
     , m_createDeviceSettings{createDev}
 {
-  m_watch.setWatchedFolder(ctx.app.settings<Library::Settings::Model>().getPath().toStdString());
+  m_watch.setWatchedFolder(ctx.app.settings<Library::Settings::Model>().getPackagesPath().toStdString());
 
   score::RecursiveWatch::Callbacks cb;
   cb.added = [this] (std::string_view path) {
@@ -32,7 +32,7 @@ LibraryDeviceEnumerator::LibraryDeviceEnumerator(
     m_watch.registerWatch(e.toStdString(), cb);
 
   // Done delayed to leave the time to calling code to connect to deviceAdded, etc.
-  QTimer::singleShot(1, [this] { m_watch.scan(); });
+  QTimer::singleShot(1, this, [this] { m_watch.scan(); });
 }
 
 void LibraryDeviceEnumerator::next(std::string_view path)

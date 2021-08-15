@@ -175,7 +175,7 @@ namespace Execution
 struct MetronomeSounds
 {
   const QString root
-      = score::AppContext().settings<Library::Settings::Model>().getPath()
+      = score::AppContext().settings<Library::Settings::Model>().getDefaultLibraryPath()
         + "/Util/";
   const std::unique_ptr<Media::AudioFile> tick{[this] {
     auto f = std::make_unique<Media::AudioFile>();

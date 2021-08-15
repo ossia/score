@@ -61,7 +61,7 @@ bool DropPresetInInterval::drop(
     {
       auto path = u.toLocalFile();
       if (QFile f{path};
-          QFileInfo{f}.suffix() == "scorepreset" && f.open(QIODevice::ReadOnly))
+          QFileInfo{f}.suffix() == "scp" && f.open(QIODevice::ReadOnly))
       {
         ok = true;
         perform(interval, ctx, m, score::mapAsByteArray(f));

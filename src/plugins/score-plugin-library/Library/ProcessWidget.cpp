@@ -219,7 +219,7 @@ ProcessWidget::ProcessWidget(
 
 ProcessWidget::~ProcessWidget() { }
 
-QSet<QString> PresetLibraryHandler::acceptedFiles() const noexcept { return {"scorepreset"}; }
+QSet<QString> PresetLibraryHandler::acceptedFiles() const noexcept { return {"scp"}; }
 
 void PresetLibraryHandler::setup(ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
 {

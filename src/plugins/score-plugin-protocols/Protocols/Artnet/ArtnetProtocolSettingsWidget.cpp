@@ -199,7 +199,7 @@ using FixtureNode = TreeNode<FixtureData>;
 std::vector<QString> fixturesLibraryPaths()
 {
   auto libPath
-      = score::AppContext().settings<Library::Settings::Model>().getPath();
+      = score::AppContext().settings<Library::Settings::Model>().getPackagesPath();
   QDirIterator it{
       libPath,
       {"fixtures"},

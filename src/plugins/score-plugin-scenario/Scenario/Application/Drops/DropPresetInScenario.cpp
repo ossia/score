@@ -16,7 +16,7 @@ namespace Scenario
 
 DropPresetInScenario::DropPresetInScenario()
 {
-  m_acceptableSuffixes.push_back("scorepreset");
+  m_acceptableSuffixes.push_back("scp");
 }
 
 bool DropPresetInScenario::drop(
@@ -30,7 +30,7 @@ bool DropPresetInScenario::drop(
   if (mime.hasUrls())
   {
     if (QFile f{mime.urls()[0].toLocalFile()};
-        QFileInfo{f}.suffix() == "scorepreset" && f.open(QIODevice::ReadOnly))
+        QFileInfo{f}.suffix() == "scp" && f.open(QIODevice::ReadOnly))
     {
       filename = QFileInfo{f}.fileName();
       presetData = f.readAll();

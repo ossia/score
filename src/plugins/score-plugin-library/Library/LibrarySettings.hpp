@@ -46,15 +46,26 @@ class SCORE_PLUGIN_LIBRARY_EXPORT Model final
     : public score::SettingsDelegateModel
 {
   W_OBJECT(Model)
-  QString m_Path;
+  QString m_RootPath;
 
 public:
   Model(QSettings& set, const score::ApplicationContext& ctx);
 
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_LIBRARY_EXPORT, QString, Path)
+  QString getPackagesPath() const noexcept;
+  QString getDefaultLibraryPath() const noexcept;
+  QString getUserLibraryPath() const noexcept;
+  QString getUserPresetsPath() const noexcept;
+  QString getSDKPath() const noexcept;
+
+  void rescanLibrary()
+  E_SIGNAL(SCORE_PLUGIN_LIBRARY_EXPORT, rescanLibrary)
+
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_LIBRARY_EXPORT, QString, RootPath)
+private:
+  void firstTimeLibraryDownload();
 };
 
-SCORE_SETTINGS_PARAMETER(Model, Path)
+SCORE_SETTINGS_PARAMETER(Model, RootPath)
 
 class View : public score::GlobalSettingsView
 {
@@ -62,7 +73,7 @@ class View : public score::GlobalSettingsView
 public:
   View();
 
-  SETTINGS_UI_PATH_HPP(Path)
+  SETTINGS_UI_PATH_HPP(RootPath)
 
 private:
   QWidget* getWidget() override;

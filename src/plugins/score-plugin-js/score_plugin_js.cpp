@@ -46,8 +46,7 @@ class LibraryHandler final
   static inline const QRegularExpression scoreImport{
       "import Score [0-9].[0-9]"};
 
-  QDir libraryFolder;
-  Library::ProcessNode* parent{};
+  Library::Subcategories categories;
 
   void setup(
       Library::ProcessesItemModel& model,
@@ -59,10 +58,7 @@ class LibraryHandler final
     if (node == QModelIndex{})
       return;
 
-    parent = reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
-
-    // We use the parent folder as category...
-    libraryFolder.setPath(ctx.settings<Library::Settings::Model>().getPath());
+    categories.init(node, ctx);
   }
 
   void addPath(std::string_view path) override
@@ -81,7 +77,7 @@ class LibraryHandler final
       auto matches = scoreImport.match(pdata.customData);
       if (matches.hasMatch())
       {
-        parent->emplace_back(std::move(pdata), parent);
+        categories.add(file, std::move(pdata));
       }
     }
   }

@@ -14,7 +14,7 @@ class ISFNode;
 }
 namespace Process
 {
-class Preset;
+struct Preset;
 }
 namespace Gfx
 {

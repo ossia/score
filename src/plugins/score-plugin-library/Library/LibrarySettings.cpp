@@ -17,6 +17,7 @@
 #include <QStandardPaths>
 #include <QStyle>
 #include <QTimer>
+#include <QMessageBox>
 
 #include <wobjectimpl.h>
 #include <zipdownloader.hpp>
@@ -29,67 +30,100 @@ namespace Library::Settings
 
 namespace Parameters
 {
-SETTINGS_PARAMETER_IMPL(Path){QStringLiteral("Library/Path"), []() -> QString {
+SETTINGS_PARAMETER_IMPL(RootPath){QStringLiteral("Library/RootPath"), []() -> QString {
                                 auto paths = QStandardPaths::standardLocations(
                                     QStandardPaths::DocumentsLocation);
-                                return paths[0] + "/ossia score library";
+                                return paths[0] + "/ossia/score";
                               }()};
 
 static auto list()
 {
-  return std::tie(Path);
+  return std::tie(RootPath);
 }
 }
 
-static void initSystemLibrary(QDir& lib_folder)
+static void initUserLibrary(QDir userlib)
 {
-  lib_folder.mkpath(".");
-  lib_folder.mkpath("./System");
-  lib_folder.mkpath("./Scores");
-  lib_folder.mkpath("./Medias");
-  lib_folder.mkpath("./Presets");
-  lib_folder.mkpath("./Devices");
-  lib_folder.mkpath("./Cues");
-  lib_folder.mkpath("./Addons");
-  lib_folder.mkpath("./Shaders");
+  userlib.mkpath("./medias");
+  userlib.mkpath("./presets");
+  userlib.mkpath("./devices");
+  userlib.mkpath("./cues");
 }
 
 Model::Model(QSettings& set, const score::ApplicationContext& ctx)
 {
   score::setupDefaultSettings(set, Parameters::list(), *this);
 
-  QTimer::singleShot(5000, this, [this] {
-    auto lib_folder = getPath();
-    if (QDir dir{lib_folder}; !dir.exists())
-    {
-      initSystemLibrary(dir);
+  for(auto& path : {getPackagesPath(), getUserLibraryPath()})
+  {
+    QDir{path}.mkpath(".");
+  }
+  initUserLibrary(getUserLibraryPath());
 
-      auto dl = score::question(
-          qApp->activeWindow(),
-          tr("Download the user library ?"),
-          tr("The user library has not been found. \n"
-             "Do you want to download it from the internet ? \n\n"
-             "Note: you can always download it later from : \n"
-             "https://github.com/ossia/score-user-library"));
-      if (dl)
-      {
-        zdl::download_and_extract(
-            QUrl{"https://github.com/ossia/score-user-library/archive/"
-                 "master.zip"},
-            dir.absolutePath(),
-            [](const auto&) {},
-            [] {});
-      }
-    }
-  });
+  QTimer::singleShot(3000, this, &Model::firstTimeLibraryDownload);
 }
 
-SCORE_SETTINGS_PARAMETER_CPP(QString, Model, Path)
+QString Model::getPackagesPath() const noexcept
+{
+  return m_RootPath + "/packages";
+}
+
+QString Model::getDefaultLibraryPath() const noexcept
+{
+  return m_RootPath + "/packages/default";
+}
+
+QString Model::getUserLibraryPath() const noexcept
+{
+  return m_RootPath + "/packages/user";
+}
+
+QString Model::getUserPresetsPath() const noexcept
+{
+  return m_RootPath + "/packages/user/presets";
+}
+
+QString Model::getSDKPath() const noexcept
+{
+  return m_RootPath + "/sdk";
+}
+
+void Model::firstTimeLibraryDownload()
+{
+  QString lib_folder = getPackagesPath() + "/default";
+  QString lib_info = lib_folder + "/package.json";
+  if (QFile file{lib_info}; !file.exists())
+  {
+    auto dl = score::question(
+        qApp->activeWindow(),
+        tr("Download the user library ?"),
+        tr("The user library has not been found. \n"
+           "Do you want to download it from the internet ? \n\n"
+           "Note: you can always download it later from : \n"
+           "https://github.com/ossia/score-user-library"));
+
+    if (dl == QMessageBox::Yes)
+    {
+      zdl::download_and_extract(
+          QUrl{"https://github.com/ossia/score-user-library/archive/master.zip"},
+          getPackagesPath(),
+          [this] (const auto&) mutable {
+            QDir packages_dir{getPackagesPath()};
+            packages_dir.rename("score-user-library-master", "default");
+
+            rescanLibrary();
+          },
+          [] {});
+    }
+  }
+}
+
+SCORE_SETTINGS_PARAMETER_CPP(QString, Model, RootPath)
 
 Presenter::Presenter(Model& m, View& v, QObject* parent)
     : score::GlobalSettingsPresenter{m, v, parent}
 {
-  SETTINGS_PRESENTER(Path);
+  SETTINGS_PRESENTER(RootPath);
 }
 
 QString Presenter::settingsName()
@@ -111,10 +145,10 @@ View::View()
 
   auto lay = m_widg->layout();
 
-  SETTINGS_UI_PATH_SETUP("Default Path", Path);
+  SETTINGS_UI_PATH_SETUP("Default Path", RootPath);
 }
 
-SETTINGS_UI_PATH_IMPL(Path)
+SETTINGS_UI_PATH_IMPL(RootPath)
 QWidget* View::getWidget()
 {
   return m_widg;
