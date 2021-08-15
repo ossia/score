@@ -648,7 +648,6 @@ void ScenarioDocumentPresenter::on_timeRulerChanged()
 {
   auto& tr = view().timeRuler();
 
-  qDebug(" HOW MANY TIMES ARE U CONNECTING => ");
   con(tr,
       &TimeRuler::drag,
       this,

@@ -164,7 +164,7 @@ void NodalIntervalView::on_zoomRatioChanged(ZoomRatio ratio)
 QRectF NodalIntervalView::enclosingRect() const noexcept
 {
   if (m_nodeItems.empty())
-    return {};
+    return QRectF{-100., -100., 200., 200.};
   double x0{std::numeric_limits<double>::max()}, y0{x0},
       x1{std::numeric_limits<double>::lowest()}, y1{x1};
 
