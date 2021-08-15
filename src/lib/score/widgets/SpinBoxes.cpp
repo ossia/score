@@ -12,6 +12,7 @@
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/flicks.hpp>
 
+#include <QApplication>
 #include <QLineEdit>
 #include <QPainter>
 #include <QStyleOptionComplex>
