@@ -102,8 +102,7 @@ score_plugin_media::factories(
       FW<Process::LayerFactory,
          Media::Sound::LayerFactory,
          Media::Metro::LayerFactory,
-         Media::Step::LayerFactory,
-         Media::Merger::LayerFactory>,
+         Media::Step::LayerFactory>,
       FW<Library::LibraryInterface, Media::Sound::LibraryHandler>,
 
       FW<Execution::ProcessComponentFactory,

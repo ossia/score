@@ -52,17 +52,25 @@ void Model::setInCount(int s)
             Process::make_audio_inlet(Id<Process::Port>(int(old + i)), this)
                 .release());
       }
+      inletsChanged();
     }
     else if (old > m_inCount)
     {
+      // Save the inlets
+      ossia::small_pod_vector<Process::Inlet*, 8> old_ins;
       for (int i = m_inCount; i < old; i++)
-      {
-        delete m_inlets[i];
-      }
-      m_inlets.resize(m_inCount);
-    }
-    inletsChanged();
+        old_ins.push_back(m_inlets[i]);
 
+      // Remove them from the known inlets of this process, and notify
+      // (to delete views, etc. which must go before the data model)
+      m_inlets.resize(m_inCount);
+
+      inletsChanged();
+
+      // Finally delete the inlet models
+      for(auto* inl : old_ins)
+        delete inl;
+    }
     inCountChanged(s);
   }
 }

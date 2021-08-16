@@ -8,6 +8,5 @@ namespace Media
 namespace Merger
 {
 using ProcessFactory = Process::ProcessFactory_T<Merger::Model>;
-using LayerFactory = Process::GenericDefaultLayerFactory<Merger::Model>;
 }
 }
