@@ -7,11 +7,6 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-//------------------------------------------------------------------------------
-//
-// Example: HTTP server, synchronous
-//
-//------------------------------------------------------------------------------
 #pragma once
 
 #define BOOST_DATE_TIME_NO_LIB 1
@@ -36,6 +31,7 @@
 #include <QHostAddress>
 #include <QNetworkInterface>
 #include <QtDebug>
+#include <QApplication>
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
@@ -132,30 +128,30 @@ public:
 
     //------------------------------------------------------------------------------
 
+    // Get the IP address. It is an heuristic function
     std::string get_ip_address();
 
     //------------------------------------------------------------------------------
 
-    void
-    start_thread();
-
-    //------------------------------------------------------------------------------
-
-    int
-    open_server();
-
-    //------------------------------------------------------------------------------
-
+    // Set the IP address in the remote.html file
     void
     set_ip_address(std::string address);
 
     //------------------------------------------------------------------------------
 
-    //void open_server_thread();
-    std::thread m_serverThread;
-    //std::string m_docRoot;
-    //auto const m_docRoot = std::make_shared<std::string>("./build-wasm/");
+    // Launch the open_server function in a thread
+    void
+    start_thread();
 
+    //------------------------------------------------------------------------------
+
+    // Open a server using sockets
+    int
+    open_server();
+
+    //------------------------------------------------------------------------------
+
+    std::thread m_serverThread;
     int m_listenSocket{};
 };
 }
