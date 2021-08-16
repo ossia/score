@@ -7,16 +7,10 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-//------------------------------------------------------------------------------
-//
-// Example: HTTP server, synchronous
-//
-//------------------------------------------------------------------------------
-
 #include <RemoteControl/Http_server.hpp>
 
 //------------------------------------------------------------------------------
-#include <QApplication>
+
 namespace RemoteControl
 {
 
@@ -256,6 +250,7 @@ Http_server::do_session(
 
 //------------------------------------------------------------------------------
 
+// Get the IP address. It is an heuristic function
 std::string
 Http_server::get_ip_address()
 {
@@ -278,6 +273,7 @@ Http_server::get_ip_address()
 
 //------------------------------------------------------------------------------
 
+// Set the IP address in the remote.html file
 void
 Http_server::set_ip_address(std::string address)
 {
@@ -299,6 +295,7 @@ Http_server::set_ip_address(std::string address)
 
 //------------------------------------------------------------------------------
 
+// Launch the open_server function in a thread
 void
 Http_server::start_thread()
 {
@@ -307,6 +304,7 @@ Http_server::start_thread()
 
 //------------------------------------------------------------------------------
 
+// Open a server using sockets
 int
 Http_server::open_server()
 {
@@ -314,8 +312,6 @@ Http_server::open_server()
     {
         std::string string_address = get_ip_address();
         auto const address = net::ip::make_address(string_address);
-        //auto const address = net::ip::make_address("192.168.0.40");
-        //auto const address = net::ip::make_address("127.0.0.1");
         auto const port = static_cast<unsigned short>(std::atoi("8080"));
         auto const m_docRoot = std::make_shared<std::string>("./src/plugins/score-plugin-remotecontrol/CMakeFiles/score_plugin_remotecontrol.dir/RemoteControl/build-wasm/");
 
