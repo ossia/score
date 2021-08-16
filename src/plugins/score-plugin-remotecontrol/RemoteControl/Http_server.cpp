@@ -261,7 +261,7 @@ Http_server::get_ip_address()
         if (address.protocol() == QAbstractSocket::IPv4Protocol && address != localhost) {
             tmp_ip_address = address.toString().toUtf8().constData();
             qDebug() << "Address : " << address.toString();
-            if((tmp_ip_address.find("192.168")) == 0 || (tmp_ip_address.find("172.16")) == 0 ) {
+            if((tmp_ip_address.find("192.168")) == 0 || (tmp_ip_address.find("172.")) == 0 ) {
                 ip_address = tmp_ip_address;
                 qDebug() << "Address : " << address.toString();
             }
