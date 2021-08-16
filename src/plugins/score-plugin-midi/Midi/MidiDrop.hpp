@@ -19,6 +19,8 @@ public:
 
 struct MidiTrack
 {
+  QString name;
+
   std::vector<Midi::NoteData> notes;
   int min{127}, max{0};
 
