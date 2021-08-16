@@ -129,7 +129,7 @@ Http_server::handle_request(
         res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
         res.set(http::field::content_type, "text/html");
         res.keep_alive(req.keep_alive());
-        res.body() = "The resource '" + std::string(target) + "' was not found.<br> Go to the following address : http://ip_address:port/remote.html.";
+        res.body() = "The resource '" + std::string(target) + "' was not found.y<br> Go to the following address : http://ip_address:port/remote.html.";
         res.prepare_payload();
         return res;
     };
@@ -259,20 +259,42 @@ Http_server::do_session(
 std::string
 Http_server::get_ip_address()
 {
-    std::string ip_address;
-
-    QList<QHostAddress> list = QNetworkInterface::allAddresses();
-
-    for(int nIter=0; nIter<list.count(); nIter++)
-    {
-      if(!list[nIter].isLoopback())
-      {
-          if (list[nIter].protocol() == QAbstractSocket::IPv4Protocol ){
-              ip_address = list[nIter].toString().toUtf8().constData();
-          }
-      }
+    std::string ip_address = "127.0.0.1";
+    std::string tmp_ip_address;
+    const QHostAddress &localhost = QHostAddress(QHostAddress::LocalHost);
+    for (const QHostAddress &address: QNetworkInterface::allAddresses()) {
+        if (address.protocol() == QAbstractSocket::IPv4Protocol && address != localhost) {
+            tmp_ip_address = address.toString().toUtf8().constData();
+            qDebug() << "Address : " << address.toString();
+            if((tmp_ip_address.find("192.168")) == 0 || (tmp_ip_address.find("172.16")) == 0 ) {
+                ip_address = tmp_ip_address;
+                qDebug() << "Address : " << address.toString();
+            }
+        }
     }
+
     return ip_address;
+}
+
+//------------------------------------------------------------------------------
+
+void
+Http_server::set_ip_address(std::string address)
+{
+    std::rename("./src/plugins/score-plugin-remotecontrol/CMakeFiles/score_plugin_remotecontrol.dir/RemoteControl/build-wasm/remote.html",
+                "./src/plugins/score-plugin-remotecontrol/CMakeFiles/score_plugin_remotecontrol.dir/RemoteControl/build-wasm/remote.html~");
+
+    std::ifstream old_file("./src/plugins/score-plugin-remotecontrol/CMakeFiles/score_plugin_remotecontrol.dir/RemoteControl/build-wasm/remote.html~");
+    std::ofstream new_file("./src/plugins/score-plugin-remotecontrol/CMakeFiles/score_plugin_remotecontrol.dir/RemoteControl/build-wasm/remote.html");
+
+    std::string addr = "\"" + address + "\"";
+
+    for( std::string contents_of_file; std::getline(old_file, contents_of_file); ) {
+      std::string::size_type position = contents_of_file.find("%SCORE_IP_ADDRESS%");
+      if( position != std::string::npos )
+        contents_of_file = contents_of_file.replace(position, 18, addr);
+      new_file << contents_of_file << '\n';
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -290,10 +312,14 @@ Http_server::open_server()
 {
     try
     {
-        auto const address = net::ip::make_address("0.0.0.0");
-        // auto const address = net::ip::make_address("127.0.0.1");
+        std::string string_address = get_ip_address();
+        auto const address = net::ip::make_address(string_address);
+        //auto const address = net::ip::make_address("192.168.0.40");
+        //auto const address = net::ip::make_address("127.0.0.1");
         auto const port = static_cast<unsigned short>(std::atoi("8080"));
         auto const m_docRoot = std::make_shared<std::string>("./src/plugins/score-plugin-remotecontrol/CMakeFiles/score_plugin_remotecontrol.dir/RemoteControl/build-wasm/");
+
+        set_ip_address(string_address);
 
         // The acceptor receives incoming connections
         tcp::acceptor acceptor{ioc, {address, port}};
