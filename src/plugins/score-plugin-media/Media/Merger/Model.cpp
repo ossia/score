@@ -22,10 +22,11 @@ Model::Model(
         Metadata<ObjectKey_k, ProcessModel>::get(),
         parent}
 {
-  m_outlets.push_back(
-      Process::make_audio_outlet(
-          Id<Process::Port>(std::numeric_limits<int16_t>::max()), this)
-          .release());
+  auto out = Process::make_audio_outlet(
+      Id<Process::Port>(std::numeric_limits<int16_t>::max()), this);
+  out->setPropagate(true);
+  m_outlets.push_back(out.release());
+
   setInCount(8);
   metadata().setInstanceName(*this);
 }
