@@ -222,7 +222,8 @@ StateInspectorWidget::StateInspectorWidget(
   {
     auto snapshot = new QToolButton;
     snapshot->setShortcut(tr("Ctrl+L"));
-    snapshot->setToolTip(tr("Ctrl+L"));
+    snapshot->setToolTip(tr("Snapshot (Ctrl+L)"));
+    snapshot->setStatusTip(tr("Snapshot (Ctrl+L)"));
     snapshot->setIcon(makeIcons(
         QStringLiteral(":/icons/snapshot_on.png"),
         QStringLiteral(":/icons/snapshot_hover.png"),
@@ -239,7 +240,8 @@ StateInspectorWidget::StateInspectorWidget(
   {
     auto refresh = new QToolButton;
     refresh->setShortcut(tr("Ctrl+U"));
-    refresh->setToolTip(tr("Ctrl+U"));
+    refresh->setToolTip(tr("Refresh (Ctrl+U)"));
+    refresh->setStatusTip(tr("Refresh (Ctrl+U)"));
     refresh->setIcon(makeIcons(
         QStringLiteral(":/icons/refresh_on.png"),
         QStringLiteral(":/icons/refresh_hover.png"),
@@ -257,8 +259,8 @@ StateInspectorWidget::StateInspectorWidget(
     auto trigger = new QToolButton;
     trigger->setCheckable(true);
     trigger->setChecked(Scenario::parentTimeSync(m_model, *scenar).active());
-    //trigger->setShortcut(tr("Ctrl+U"));
-    //trigger->setToolTip(tr("Ctrl+U"));
+    trigger->setToolTip(tr("Trigger (T)"));
+    trigger->setStatusTip(tr("Trigger (T)"));
     trigger->setIcon(makeIcons(
         QStringLiteral(":/icons/trigger_on.png"),
         QStringLiteral(":/icons/trigger_hover.png"),
@@ -285,8 +287,8 @@ StateInspectorWidget::StateInspectorWidget(
     auto condition = new QToolButton;
     condition->setCheckable(true);
     condition->setChecked(Scenario::parentTimeSync(m_model, *scenar).active());
-    //trigger->setShortcut(tr("Ctrl+U"));
-    //trigger->setToolTip(tr("Ctrl+U"));
+    condition->setToolTip(tr("Condition (C)"));
+    condition->setStatusTip(tr("Condition (C)"));
     condition->setIcon(makeIcons(
         QStringLiteral(":/icons/condition_on.png"),
         QStringLiteral(":/icons/condition_hover.png"),
