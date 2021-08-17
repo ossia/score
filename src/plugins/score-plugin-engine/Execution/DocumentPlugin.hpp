@@ -71,6 +71,7 @@ public:
   BaseScenarioElement& baseScenario();
 
   void playStartState();
+  void playStopState();
 
   bool isPlaying() const;
 

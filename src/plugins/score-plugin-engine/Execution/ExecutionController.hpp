@@ -88,6 +88,10 @@ private:
    * @brief Stop execution and resend the start state
    */
   void on_reinitialize();
+
+  void stop_clock();
+  void send_end_state();
+  void reset_after_stop();
   void reset_edition();
 
 private:

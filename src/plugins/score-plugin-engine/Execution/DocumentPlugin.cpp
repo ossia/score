@@ -398,6 +398,23 @@ void DocumentPlugin::playStartState()
   }
 }
 
+void DocumentPlugin::playStopState()
+{
+  auto scenar = score::IDocument::try_get<Scenario::ScenarioDocumentModel>(
+      this->m_context.document);
+  if (!scenar)
+    return;
+  auto& sm = scenar->baseScenario().endState();
+
+  // FIXME that does not look thread-safe at all !
+  // what if devices are being added/removed in the exec thread !
+  if (execState)
+  {
+    auto state = Engine::score_to_ossia::state(sm, this->context());
+    state.launch();
+  }
+}
+
 bool DocumentPlugin::isPlaying() const
 {
   return m_base.active();

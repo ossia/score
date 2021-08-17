@@ -596,27 +596,16 @@ void ExecutionController::on_stop()
   m_playing = false;
   m_paused = false;
 
-  // Send the end state
-  auto doc = currentDocument();
-  if (doc)
-  {
-    auto& ctx = doc->context();
-    if (auto exec_plug = ctx.findPlugin<Execution::DocumentPlugin>())
-    {
-      if (wasplaying)
-      {
-        // TODO this is sent *after* init has been sent, we have to reverse it in on_init
-        // but before the thing is cleaned.
-        if (auto scenar = currentScenarioModel())
-        {
-          auto state = Engine::score_to_ossia::state(
-              scenar->baseScenario().endState(), exec_plug->context());
-          state.launch();
-        }
-      }
-    }
-  }
+  stop_clock();
 
+  if (wasplaying)
+    send_end_state();
+
+  reset_after_stop();
+}
+
+void ExecutionController::stop_clock()
+{
   if (m_clock)
   {
     auto clock = std::move(m_clock);
@@ -631,16 +620,23 @@ void ExecutionController::on_stop()
                   "hardware issue.";
     }
   }
+}
 
-  if (context.applicationSettings.gui)
+void ExecutionController::send_end_state()
+{
+  if (auto doc = currentDocument())
   {
-    if (auto w = Explorer::findDeviceExplorerWidgetInstance(context))
+    auto& ctx = doc->context();
+    if (auto exec_plug = ctx.findPlugin<Execution::DocumentPlugin>())
     {
-      w->setEditable(true);
+      exec_plug->playStopState();
     }
   }
 
-  if (doc)
+}
+void ExecutionController::reset_after_stop()
+{
+  if (auto doc = currentDocument())
   {
     auto& ctx = doc->context();
     ctx.execTimer.stop();
@@ -664,13 +660,22 @@ void ExecutionController::on_stop()
       if (explorer)
         explorer->deviceModel().listening().restore();
     }
-
-    QTimer::singleShot(50, this, &ExecutionController::reset_edition);
   }
+
+  QTimer::singleShot(50, this, &ExecutionController::reset_edition);
 }
 
 void ExecutionController::reset_edition()
 {
+  // Reset edition for the device explorer
+  if (context.applicationSettings.gui)
+  {
+    if (auto w = Explorer::findDeviceExplorerWidgetInstance(context))
+    {
+      w->setEditable(true);
+    }
+  }
+
   // FIXME uuuugh have an event in scenario instead (or better, move this
   // in process)
   auto scenar = currentScenarioModel();
@@ -701,14 +706,14 @@ void ExecutionController::on_reinitialize()
                .getExecutionListening())
         explorer->deviceModel().listening().stop();
 
-    exec_plug->playStartState();
-
     // If we can we resume listening
     if (explorer)
       if (!context.docManager.preparingNewDocument())
         explorer->deviceModel().listening().restore();
 
-    trigger_stop();
+    on_stop();
+
+    exec_plug->playStartState();
   }
 }
 
