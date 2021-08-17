@@ -79,7 +79,8 @@ layout(location = 0) out vec4 fragColor;
 
 void main ()
 {
-  fragColor = texture(y_tex, v_texcoord) * mat.opacity;
+  vec4 tex = texture(y_tex, v_texcoord);
+  fragColor = tex * tex.a * mat.opacity;
 }
 )_";
 ImagesNode::ImagesNode()
