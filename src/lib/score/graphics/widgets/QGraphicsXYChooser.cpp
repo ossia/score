@@ -47,8 +47,18 @@ ossia::vec2f QGraphicsXYChooser::scaledValue(float x, float y) const noexcept
 {
   return {
     m_min[0] + x * (m_max[0] - m_min[0]),
-    m_min[1] + y * (m_max[1] - m_min[1])
-  };
+    m_min[1] + y * (m_max[1] - m_min[1])};
+}
+
+void QGraphicsXYChooser::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
+{
+  m_value = ossia::vec2f{0., 0.};
+  m_grab = true;
+  sliderMoved();
+  sliderReleased();
+  m_grab = false;
+  update();
+  event->accept();
 }
 
 void QGraphicsXYChooser::setValue(ossia::vec2f v)

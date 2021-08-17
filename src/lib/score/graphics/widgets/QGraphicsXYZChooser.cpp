@@ -94,6 +94,17 @@ void QGraphicsXYZChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
+void QGraphicsXYZChooser::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
+{
+  m_value = ossia::vec3f{0., 0., 0.};
+  m_grab = true;
+  sliderMoved();
+  sliderReleased();
+  m_grab = false;
+  update();
+  event->accept();
+}
+
 void QGraphicsXYZChooser::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   if (m_grab)
