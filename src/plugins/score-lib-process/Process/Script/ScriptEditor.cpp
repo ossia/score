@@ -8,7 +8,6 @@
 #include <QFile>
 #include <QPlainTextEdit>
 #include <QPushButton>
-#include <QShortcut>
 #include <QTabWidget>
 #include <QVBoxLayout>
 
@@ -22,7 +21,6 @@ ScriptDialog::ScriptDialog(
     : QDialog{parent}
     , m_context{ctx}
 {
-  auto ctrl_enter = new QShortcut(QKeySequence(Qt::Key_Control + Qt::Key_Enter), this);
   this->setBaseSize(800, 300);
   this->setWindowFlag(Qt::WindowCloseButtonHint, false);
   auto lay = new QVBoxLayout{this};
@@ -50,7 +48,8 @@ ScriptDialog::ScriptDialog(
       });
   lay->addWidget(bbox);
 
-  connect(ctrl_enter, &QShortcut::activated, this, &ScriptDialog::on_accepted);
+  auto ce = qobject_cast<QCodeEditor*>(m_textedit);
+  connect(ce, &QCodeEditor::livecodeTrigger, this, &ScriptDialog::on_accepted);
   connect(bbox, &QDialogButtonBox::accepted, this, &ScriptDialog::on_accepted);
   connect(bbox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 }
@@ -79,7 +78,6 @@ MultiScriptDialog::MultiScriptDialog(
     : QDialog{parent}
     , m_context{ctx}
 {
-  auto ctrl_enter = new QShortcut(QKeySequence(Qt::Key_Control + Qt::Key_Enter), this);
   this->setBaseSize(800, 300);
   this->setWindowFlag(Qt::WindowCloseButtonHint, false);
   auto lay = new QVBoxLayout{this};
@@ -108,7 +106,6 @@ MultiScriptDialog::MultiScriptDialog(
         m_error->clear();
       });
 
-  connect(ctrl_enter, &QShortcut::activated, this, &MultiScriptDialog::on_accepted);
   connect(
       bbox,
       &QDialogButtonBox::accepted,
@@ -124,6 +121,8 @@ void MultiScriptDialog::addTab(
 {
   auto textedit = createScriptWidget(language);
   textedit->setText(text);
+  auto ce = qobject_cast<QCodeEditor*>(textedit);
+  connect(ce, &QCodeEditor::livecodeTrigger, this, &MultiScriptDialog::on_accepted);
 
   m_tabs->addTab(textedit, name);
   m_editors.push_back({textedit});
