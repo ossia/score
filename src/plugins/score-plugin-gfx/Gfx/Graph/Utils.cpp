@@ -114,6 +114,10 @@ Pipeline buildPipeline(
 
   QRhiGraphicsPipeline::TargetBlend premulAlphaBlend;
   premulAlphaBlend.enable = true;
+  premulAlphaBlend.srcColor = QRhiGraphicsPipeline::BlendFactor::SrcAlpha;
+  premulAlphaBlend.dstColor = QRhiGraphicsPipeline::BlendFactor::OneMinusSrcAlpha;
+  premulAlphaBlend.srcAlpha = QRhiGraphicsPipeline::BlendFactor::SrcAlpha;
+  premulAlphaBlend.dstAlpha = QRhiGraphicsPipeline::BlendFactor::OneMinusSrcAlpha;
   ps->setTargetBlends({premulAlphaBlend});
 
   ps->setSampleCount(1);
