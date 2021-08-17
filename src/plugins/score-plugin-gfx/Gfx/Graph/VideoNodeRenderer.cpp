@@ -243,6 +243,9 @@ void VideoNodeRenderer::update(RenderList& renderer, QRhiResourceUpdateBatch& re
 
   // TODO
   auto mustReadFrame = [this, &decoder, &nodem] {
+    if(!std::exchange(m_readFrame, true))
+      return true;
+
     double tempoRatio = 1.;
     if (nodem.m_nativeTempo)
       tempoRatio = (*nodem.m_nativeTempo) / 120.;

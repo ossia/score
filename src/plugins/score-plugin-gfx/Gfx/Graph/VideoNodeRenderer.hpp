@@ -50,6 +50,7 @@ private:
 
   double m_lastFrameTime{};
   double m_lastPlaybackTime{-1.};
+  bool m_readFrame{};
 };
 
 }

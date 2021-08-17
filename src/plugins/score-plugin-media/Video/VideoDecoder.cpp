@@ -491,6 +491,7 @@ VideoDecoder::enqueue_frame(const AVPacket* pkt, AVFrame** frame) noexcept
   {
     // alloc an rgb frame
     auto rgb = get_new_frame();
+    av_frame_copy_props(rgb, *frame);
     rgb->width = this->width;
     rgb->height = this->height;
     rgb->format = AV_PIX_FMT_RGBA;
