@@ -18,6 +18,7 @@ public:
   CrossOverlay(StateView* parent)
       : QGraphicsItem{parent}
   {
+    this->setFlag(ItemStacksBehindParent, true);
     this->setAcceptHoverEvents(true);
     auto& skin = score::Skin::instance();
     this->setCursor(skin.CursorPointingHand);
