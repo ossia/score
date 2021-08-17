@@ -48,13 +48,30 @@ layout(std140, binding = 2) uniform material_t {
   float opacity;
   vec2 position;
   vec2 scale;
+  vec2 imageSize;
 } mat;
 out gl_PerVertex { vec4 gl_Position; };
 
 void main()
 {
+  float viewportAspect = renderSize.x / renderSize.y;
+  float imageAspect = mat.imageSize.x / mat.imageSize.y;
+
+  vec2 pos = position;
+  // Aspect ratio
+  // Our mesh is: -1, -1;  1, -1;  -1, 1;  1, 1;
+
+  pos.x /= viewportAspect;
+  pos.y /= imageAspect;
+
+  // User scale
+  pos *= mat.scale;
+
+  // User displacement
+  pos += mat.position;
+
   v_texcoord = vec2(texcoord.x, texcoordAdjust.y + texcoordAdjust.x * texcoord.y);
-  gl_Position = clipSpaceCorrMatrix * vec4(mat.position + mat.scale * position, 0.0, 1.);
+  gl_Position = clipSpaceCorrMatrix * vec4(pos, 0.0, 1.);
 }
 )_";
 
@@ -70,6 +87,7 @@ layout(std140, binding = 2) uniform material_t {
   float opacity;
   vec2 position;
   vec2 scale;
+  vec2 imageSize;
 } mat;
 
 layout(binding=3) uniform sampler2D y_tex;
@@ -91,6 +109,7 @@ ImagesNode::ImagesNode()
   input.push_back(new Port{this, &ubo.opacity, Types::Float, {}});
   input.push_back(new Port{this, &ubo.position[0], Types::Vec2, {}});
   input.push_back(new Port{this, &ubo.scale[0], Types::Vec2, {}});
+  input.push_back(new Port{this, &ubo.imageSize[0], Types::Vec2, {}});
   output.push_back(new Port{this, {}, Types::Image, {}});
 
   m_materialData.reset((char*)&ubo);
