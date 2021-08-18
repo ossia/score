@@ -180,7 +180,6 @@ Http_server::handle_request(
         res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
         res.set(http::field::content_type, mime_type(path));
         res.content_length(size);
-        //res.keep_alive(req.keep_alive());
         res.keep_alive(false);
         return send(std::move(res));
     }
@@ -193,7 +192,6 @@ Http_server::handle_request(
     res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
     res.set(http::field::content_type, mime_type(path));
     res.content_length(size);
-    //res.keep_alive(req.keep_alive());
     res.keep_alive(false);
     return send(std::move(res));
 }
