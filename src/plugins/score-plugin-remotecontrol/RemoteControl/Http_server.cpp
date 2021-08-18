@@ -180,7 +180,8 @@ Http_server::handle_request(
         res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
         res.set(http::field::content_type, mime_type(path));
         res.content_length(size);
-        res.keep_alive(req.keep_alive());
+        //res.keep_alive(req.keep_alive());
+        res.keep_alive(false);
         return send(std::move(res));
     }
 
@@ -192,7 +193,8 @@ Http_server::handle_request(
     res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
     res.set(http::field::content_type, mime_type(path));
     res.content_length(size);
-    res.keep_alive(req.keep_alive());
+    //res.keep_alive(req.keep_alive());
+    res.keep_alive(false);
     return send(std::move(res));
 }
 
@@ -250,29 +252,6 @@ Http_server::do_session(
 
 //------------------------------------------------------------------------------
 
-// Get the IP address. It is an heuristic function
-std::string
-Http_server::get_ip_address()
-{
-    std::string ip_address = "127.0.0.1";
-    std::string tmp_ip_address;
-    const QHostAddress &localhost = QHostAddress(QHostAddress::LocalHost);
-    for (const QHostAddress &address: QNetworkInterface::allAddresses()) {
-        if (address.protocol() == QAbstractSocket::IPv4Protocol && address != localhost) {
-            tmp_ip_address = address.toString().toUtf8().constData();
-            qDebug() << "Address : " << address.toString();
-            if((tmp_ip_address.find("192.168")) == 0 || (tmp_ip_address.find("172.")) == 0 ) {
-                ip_address = tmp_ip_address;
-                qDebug() << "Address : " << address.toString();
-            }
-        }
-    }
-
-    return ip_address;
-}
-
-//------------------------------------------------------------------------------
-
 // Set the IP address in the remote.html file
 void
 Http_server::set_ip_address(std::string address)
@@ -310,15 +289,14 @@ Http_server::open_server()
 {
     try
     {
-        std::string string_address = get_ip_address();
-        auto const address = net::ip::make_address(string_address);
+        auto const address2 = net::ip::make_address("0.0.0.0");
         auto const port = static_cast<unsigned short>(std::atoi("8080"));
         auto const m_docRoot = std::make_shared<std::string>("./src/plugins/score-plugin-remotecontrol/CMakeFiles/score_plugin_remotecontrol.dir/RemoteControl/build-wasm/");
 
-        set_ip_address(string_address);
+        bool is_ip_address_set = false;
 
         // The acceptor receives incoming connections
-        tcp::acceptor acceptor{ioc, {address, port}};
+        tcp::acceptor acceptor{ioc, {address2, port}};
         m_listenSocket = acceptor.native_handle();
         for(;;)
         {
@@ -327,6 +305,13 @@ Http_server::open_server()
 
             // Block until we get a connection
             acceptor.accept(socket);
+
+            // Set ip address
+            if(!is_ip_address_set)
+            {
+                set_ip_address(socket.local_endpoint().address().to_string());
+                is_ip_address_set = true;
+            }
 
             // Launch the session, transferring ownership of the socket
             do_session(socket, m_docRoot);

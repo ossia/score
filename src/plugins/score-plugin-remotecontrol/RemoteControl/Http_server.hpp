@@ -128,11 +128,6 @@ public:
 
     //------------------------------------------------------------------------------
 
-    // Get the IP address. It is an heuristic function
-    std::string get_ip_address();
-
-    //------------------------------------------------------------------------------
-
     // Set the IP address in the remote.html file
     void
     set_ip_address(std::string address);
