@@ -22,6 +22,8 @@
 #include <string>
 #include <thread>
 #include <fstream>
+#include <Library/LibrarySettings.hpp>
+#include <score/application/ApplicationContext.hpp>
 
 #ifdef _WIN32
 #define SHUT_RDWR 2
@@ -42,16 +44,16 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 namespace RemoteControl
 {
-class Http_server
+class HttpServer
 {
 public:
     net::io_context ioc;
 
     //std::thread th1;
 
-    Http_server();
+    HttpServer();
 
-    ~Http_server();
+    ~HttpServer();
 
     //------------------------------------------------------------------------------
 
@@ -148,5 +150,6 @@ public:
 
     std::thread m_serverThread;
     int m_listenSocket{};
+    std::string buildWasmPath;
 };
 }

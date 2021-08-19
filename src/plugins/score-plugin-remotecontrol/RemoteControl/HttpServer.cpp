@@ -7,19 +7,19 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#include <RemoteControl/Http_server.hpp>
+#include <RemoteControl/HttpServer.hpp>
 
 //------------------------------------------------------------------------------
 
 namespace RemoteControl
 {
 
-Http_server::Http_server()
+HttpServer::HttpServer()
 {
   // m_docRoot = "/tmp";
 }
 
-Http_server::~Http_server()
+HttpServer::~HttpServer()
 {
      shutdown(m_listenSocket, SHUT_RDWR);
      ioc.stop();
@@ -28,7 +28,7 @@ Http_server::~Http_server()
 
 // Return a reasonable mime type based on the extension of a file.
 beast::string_view
-Http_server::mime_type(beast::string_view path)
+HttpServer::mime_type(beast::string_view path)
 {
     using beast::iequals;
     auto const ext = [&path]
@@ -65,7 +65,7 @@ Http_server::mime_type(beast::string_view path)
 // Append an HTTP rel-path to a local filesystem path.
 // The returned path is normalized for the platform.
 std::string
-Http_server::path_cat(
+HttpServer::path_cat(
     beast::string_view base,
     beast::string_view path)
 {
@@ -97,7 +97,7 @@ template<
     class Body, class Allocator,
     class Send>
 void
-Http_server::handle_request(
+HttpServer::handle_request(
     beast::string_view doc_root,
     http::request<Body, http::basic_fields<Allocator>>&& req,
     Send&& send)
@@ -200,14 +200,14 @@ Http_server::handle_request(
 
 // Report a failure
 void
-Http_server::fail(beast::error_code ec, char const* what)
+HttpServer::fail(beast::error_code ec, char const* what)
 {
     std::cerr << what << ": " << ec.message() << "\n";
 }
 
 // Handles an HTTP server connection
 void
-Http_server::do_session(
+HttpServer::do_session(
     tcp::socket& socket,
     std::shared_ptr<std::string const> const& doc_root)
 {
@@ -228,12 +228,12 @@ Http_server::do_session(
         if(ec == http::error::end_of_stream)
             break;
         if(ec)
-            return Http_server::fail(ec, "read");
+            return HttpServer::fail(ec, "read");
 
         // Send the response
-        Http_server::handle_request(*doc_root, std::move(req), lambda);
+        HttpServer::handle_request(*doc_root, std::move(req), lambda);
         if(ec)
-            return Http_server::fail(ec, "write");
+            return HttpServer::fail(ec, "write");
         if(close)
         {
             // This means we should close the connection, usually because
@@ -252,13 +252,13 @@ Http_server::do_session(
 
 // Set the IP address in the remote.html file
 void
-Http_server::set_ip_address(std::string address)
+HttpServer::set_ip_address(std::string address)
 {
-    std::rename("./src/plugins/score-plugin-remotecontrol/CMakeFiles/score_plugin_remotecontrol.dir/RemoteControl/build-wasm/remote.html",
-                "./src/plugins/score-plugin-remotecontrol/CMakeFiles/score_plugin_remotecontrol.dir/RemoteControl/build-wasm/remote.html~");
+    QDebug << "buildWasmPath :" << buildWasmPath;
+    std::rename(buildWasmPath + "remote.html", buildWasmPath + "remote.html~");
 
-    std::ifstream old_file("./src/plugins/score-plugin-remotecontrol/CMakeFiles/score_plugin_remotecontrol.dir/RemoteControl/build-wasm/remote.html~");
-    std::ofstream new_file("./src/plugins/score-plugin-remotecontrol/CMakeFiles/score_plugin_remotecontrol.dir/RemoteControl/build-wasm/remote.html");
+    std::ifstream old_file(buildWasmPath + "remote.html~");
+    std::ofstream new_file(buildWasmPath + "remote.html");
 
     std::string addr = "\"" + address + "\"";
 
@@ -274,7 +274,7 @@ Http_server::set_ip_address(std::string address)
 
 // Launch the open_server function in a thread
 void
-Http_server::start_thread()
+HttpServer::start_thread()
 {
     m_serverThread = std::thread{[this] { open_server(); }};
 }
@@ -283,13 +283,17 @@ Http_server::start_thread()
 
 // Open a server using sockets
 int
-Http_server::open_server()
+HttpServer::open_server()
 {
     try
     {
         auto const address2 = net::ip::make_address("0.0.0.0");
         auto const port = static_cast<unsigned short>(std::atoi("8080"));
-        auto const m_docRoot = std::make_shared<std::string>("./src/plugins/score-plugin-remotecontrol/CMakeFiles/score_plugin_remotecontrol.dir/RemoteControl/build-wasm/");
+        // auto const m_docRoot = std::make_shared<std::string>("./src/plugins/score-plugin-remotecontrol/CMakeFiles/score_plugin_remotecontrol.dir/RemoteControl/build-wasm/");
+        std::string packagesPath = score::AppContext().settings<Library::Settings::Model>().getPackagesPath().toUtf8().constData();
+        QDebug << "packagesPath :" << packagesPath;
+        buildWasmPath = packagesPath + "/build-wasm/";
+        auto const m_docRoot = std::make_shared<std::string>(buildWasmPath);
 
         bool is_ip_address_set = false;
 
