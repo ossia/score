@@ -14,6 +14,12 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& app)
 {
 }
 
+ApplicationPlugin::~ApplicationPlugin()
+{
+    std::remove((m_server.m_buildWasmPath + "remote.html").c_str());
+    std::rename((m_server.m_buildWasmPath + "remote.html~").c_str(), (m_server.m_buildWasmPath + "remote.html").c_str());
+}
+
 void ApplicationPlugin::on_createdDocument(score::Document& doc)
 {
   doc.model().addPluginModel(new DocumentPlugin{
