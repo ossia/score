@@ -99,6 +99,11 @@ void ApplicationPlugin::initialize()
   {
     auto& settings = this->context.settings<Scenario::Settings::Model>();
     m_musicalAct->setChecked(settings.getMeasureBars());
+
+    score::setGlobalTimeMode(
+        settings.getMeasureBars() ? score::TimeMode::Bars
+                                  : score::TimeMode::Seconds);
+
     connect(m_musicalAct, &QAction::toggled, this, [this] (bool ok) {
               auto& settings = this->context.settings<Scenario::Settings::Model>();
               settings.setMeasureBars(ok);
