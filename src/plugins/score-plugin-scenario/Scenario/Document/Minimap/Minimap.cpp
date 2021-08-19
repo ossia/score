@@ -62,6 +62,13 @@ void Minimap::modifyHandles(double l, double r)
   visibleRectChanged(m_leftHandle, m_rightHandle);
 }
 
+void Minimap::restoreHandles(double l, double r)
+{
+  m_leftHandle = std::max(0., l);
+  m_rightHandle = std::min(r, m_width);
+  visibleRectChanged(m_leftHandle, m_rightHandle);
+}
+
 void Minimap::setLargeView()
 {
   modifyHandles(0., m_width);

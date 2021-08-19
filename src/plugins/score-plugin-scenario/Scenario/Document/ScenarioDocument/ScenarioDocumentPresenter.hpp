@@ -127,6 +127,7 @@ private:
   double computeReverseZoom(ZoomRatio r);
   void switchMode(bool nodal);
   void recenterNodal();
+  void restoreZoom();
 
   void on_cableAdded(Process::Cable& c);
 
@@ -163,6 +164,7 @@ private:
 
   bool m_zooming{false};
   bool m_updatingMinimap{false};
+  bool m_reloadingMinimap{false};
   bool m_updatingView{false};
 };
 

@@ -386,7 +386,7 @@ JSONWriter::write(Scenario::IntervalModel& interval)
   if (zit != obj.constEnd())
     interval.m_zoom = zit->toDouble();
   auto cit = obj.constFind(strings.Center);
-  if (cit != obj.constEnd() && cit->isDouble())
+  if (cit != obj.constEnd() && cit->obj.IsNumber())
     interval.m_center <<= *cit;
 
 }

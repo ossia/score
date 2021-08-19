@@ -32,6 +32,9 @@ public:
   // This one sends visibleRectChanged
   void modifyHandles(double l, double r);
 
+  // Used when reloading because we don't want clamping to apply
+  void restoreHandles(double l, double r);
+
   void setLargeView();
   void zoomIn();
   void zoomOut();

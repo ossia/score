@@ -281,6 +281,7 @@ void ScenarioDocumentPresenter::switchMode(bool nodal)
     m_centralDisplay.emplace<CentralIntervalDisplay>(*this);
     if(view().view().timebarPlaying)
       startTimeBar();
+    QTimer::singleShot(0, this, [=] { restoreZoom(); });
   }
 
   /*
@@ -498,8 +499,15 @@ void ScenarioDocumentPresenter::on_windowSizeChanged(QSize sz)
 
 void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
 {
+  // Prevent loops
   if (m_updatingView)
     return;
+
+  // Don't update when in nodal (this breaks the zoom / position saving)
+  auto itv = std::get_if<CentralIntervalDisplay>(&m_centralDisplay);
+  if (!itv)
+    return;
+
   auto& c = displayedInterval();
   auto& gv = view().view();
 
@@ -539,8 +547,8 @@ void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
   view().timeRuler().setStartPoint(
       TimeVal::fromPixels(visible_scene_rect.x(), m_zoomRatio));
   const auto dur = c.duration.guiDuration();
-  c.setMidTime(
-      dur * (visible_scene_rect.center().x() / dur.toPixels(m_zoomRatio)));
+  double center_pixel_percentage = (visible_scene_rect.center().x() / dur.toPixels(m_zoomRatio));
+  c.setMidTime(dur * center_pixel_percentage);
 
   if (!m_updatingMinimap)
   {
@@ -586,23 +594,44 @@ void ScenarioDocumentPresenter::on_addProcessFromLibrary(
   std::visit(vis, m_centralDisplay);
 }
 
+void ScenarioDocumentPresenter::restoreZoom()
+{
+  if (auto z = displayedInterval().zoom(); z > 0)
+  {
+    auto& c = displayedInterval();
+
+    auto& minimap = view().minimap();
+    const auto viewWidth = view().viewWidth();
+    minimap.setWidth(viewWidth);
+
+    auto minimap_handle_width = computeReverseZoom(z);
+
+    // Take into account the 10px offset of the interval
+    // No matter the zoom level, there's always 10px
+    double minimap_offset_ratio = TimeVal::fromPixels(10., z) / c.duration.guiDuration();
+    double minimap_offset_pixels = minimap_offset_ratio * viewWidth / 2. + 1.;
+
+    minimap_handle_width -= minimap_offset_pixels;
+    const auto cstDur = displayedInterval().duration.guiDuration();
+    double handles_duration_ratio = (c.midTime() / c.duration.guiDuration());
+    double handle_center = handles_duration_ratio * viewWidth;
+    auto lx = handle_center - minimap_handle_width / 2./* - minimap_offset_pixels*/;
+
+    minimap.setMinDistance(2. * viewWidth / cstDur.impl);
+    m_reloadingMinimap = true;
+    minimap.restoreHandles(lx, lx + minimap_handle_width);
+    m_reloadingMinimap = false;
+  }
+  else
+  {
+    setLargeView();
+  }
+}
+
 void ScenarioDocumentPresenter::on_viewReady()
 {
-  QTimer::singleShot(0, [=] {
-    /*
-    auto z = displayedInterval().zoom();
-    if (z > 0)
-    {
-      auto& c = displayedInterval();
-      auto minimap_handle_width = computeReverseZoom(z);
-      auto rx = (c.midTime() / c.duration.guiDuration()) * view().minimap().width()
-                - minimap_handle_width / 2.;
-      view().minimap().modifyHandles(rx, rx + minimap_handle_width);
-    }
-    else*/
-    {
-      setLargeView();
-    }
+  QTimer::singleShot(0, this, [=] {
+    restoreZoom();
 
     if (!window_size_set)
       on_windowSizeChanged({});
@@ -710,11 +739,13 @@ void ScenarioDocumentPresenter::on_minimapChanged(double l, double r)
   view().timeRuler().setWidth(gv.width());
 
   // Save state in interval
-  c.setZoom(newZoom);
-  c.setMidTime(TimeVal(
-      dur.impl
-      * (view().visibleSceneRect().center().x() / dur.toPixels(newZoom))));
-
+  if(!m_reloadingMinimap)
+  {
+    c.setZoom(newZoom);
+    c.setMidTime(TimeVal(
+        dur.impl
+        * (view().visibleSceneRect().center().x() / dur.toPixels(newZoom))));
+  }
   // Update the time bar if it's visible
   on_executionTimer();
 
@@ -780,18 +811,16 @@ void ScenarioDocumentPresenter::updateMinimap()
   // Compute min handle spacing.
   // The maximum zoom in the main view should be 10 pixels for one millisecond.
   // Given the viewWidth and the guiDuration, compute the distance required.
-  minimap.setMinDistance(2 * viewWidth / cstDur.impl);
+  minimap.setMinDistance(2. * viewWidth / cstDur.impl);
 
   // Compute handle positions.
   const auto vp_x1 = visibleSceneRect.left();
   const auto vp_x2 = visibleSceneRect.right();
 
   const auto lh_x = viewWidth * (vp_x1 / cstWidth);
-  // minimap.setLeftHandle(lh_x);
-
   const auto rh_x = viewWidth * (vp_x2 / cstWidth);
+
   minimap.setHandles(lh_x, rh_x);
-  // minimap.setRightHandle(rh_x);
 }
 
 void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel* itv)
