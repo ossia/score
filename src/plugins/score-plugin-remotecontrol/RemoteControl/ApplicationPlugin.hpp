@@ -8,6 +8,7 @@ class ApplicationPlugin final : public score::GUIApplicationPlugin
 {
 public:
   ApplicationPlugin(const score::GUIApplicationContext& app);
+  ~ApplicationPlugin();
 
 protected:
   void on_createdDocument(score::Document& doc) override;
