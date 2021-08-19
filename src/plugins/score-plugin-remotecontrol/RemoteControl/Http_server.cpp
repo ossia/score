@@ -254,11 +254,11 @@ Http_server::do_session(
 void
 Http_server::set_ip_address(std::string address)
 {
-    std::rename("./src/plugins/score-plugin-remotecontrol/CMakeFiles/score_plugin_remotecontrol.dir/RemoteControl/build-wasm/remote.html",
-                "./src/plugins/score-plugin-remotecontrol/CMakeFiles/score_plugin_remotecontrol.dir/RemoteControl/build-wasm/remote.html~");
+    qDebug() << "buildWasmPath :" << QString::fromStdString(m_buildWasmPath);
+    std::rename((m_buildWasmPath + "remote.html").c_str(), (m_buildWasmPath + "remote.html~").c_str());
 
-    std::ifstream old_file("./src/plugins/score-plugin-remotecontrol/CMakeFiles/score_plugin_remotecontrol.dir/RemoteControl/build-wasm/remote.html~");
-    std::ofstream new_file("./src/plugins/score-plugin-remotecontrol/CMakeFiles/score_plugin_remotecontrol.dir/RemoteControl/build-wasm/remote.html");
+    std::ifstream old_file(m_buildWasmPath + "remote.html~");
+    std::ofstream new_file(m_buildWasmPath + "remote.html");
 
     std::string addr = "\"" + address + "\"";
 
@@ -289,7 +289,14 @@ Http_server::open_server()
     {
         auto const address2 = net::ip::make_address("0.0.0.0");
         auto const port = static_cast<unsigned short>(std::atoi("8080"));
+<<<<<<< HEAD:src/plugins/score-plugin-remotecontrol/RemoteControl/Http_server.cpp
         auto const m_docRoot = std::make_shared<std::string>("./src/plugins/score-plugin-remotecontrol/CMakeFiles/score_plugin_remotecontrol.dir/RemoteControl/build-wasm/");
+=======
+        std::string packagesPath = score::AppContext().settings<Library::Settings::Model>().getPackagesPath().toStdString();
+        qDebug() << "packagesPath :" << QString::fromStdString(packagesPath);
+        m_buildWasmPath = packagesPath + "/build-wasm/";
+        auto const m_docRoot = std::make_shared<std::string>(m_buildWasmPath);
+>>>>>>> c8b914cd2 (changes from the review):src/plugins/score-plugin-remotecontrol/RemoteControl/HttpServer.cpp
 
         bool is_ip_address_set = false;
 
