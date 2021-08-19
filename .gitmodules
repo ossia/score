@@ -44,3 +44,6 @@
 [submodule "3rdparty/hap"]
 	path = 3rdparty/hap
 	url = https://github.com/Vidvox/hap
+[submodule "3rdparty/qml-remote"]
+	path = 3rdparty/qml-remote
+	url = https://github.com/ossia/qml-remote.git

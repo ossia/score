@@ -47,7 +47,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_remotecontrol.cpp"
 )
 
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/build-wasm/ DESTINATION ${CMAKE_BINARY_DIR}/src/plugins/score-plugin-remotecontrol/CMakeFiles/score_plugin_remotecontrol.dir/RemoteControl/build-wasm/ )
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/build-wasm/ DESTINATION ${CMAKE_BINARY_DIR}/src/plugins/score-plugin-remotecontrol/CMakeFiles/score_plugin_remotecontrol.dir/RemoteControl/build-wasm/)
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS} ${QRCS})
 

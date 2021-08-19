@@ -18,6 +18,8 @@ void ApplicationPlugin::on_createdDocument(score::Document& doc)
 {
   doc.model().addPluginModel(new DocumentPlugin{
       doc.context(), &doc.model()});
+
+    m_server.start_thread();
 }
 
 }

@@ -1,5 +1,18 @@
 #include <score/widgets/QuantificationWidget.hpp>
 
+#include <QAbstractItemModel>
+#include <QAction>
+#include <QIcon>
+#include <QMenu>
+#include <QMouseEvent>
+#include <QString>
+#include <QVariant>
+#include <qnamespace.h>
+
+#include <wobjectimpl.h>
+
+Q_DECLARE_METATYPE(QModelIndex)
+
 W_OBJECT_IMPL(score::QuantificationWidget)
 
 namespace score

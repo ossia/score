@@ -7,11 +7,6 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-//------------------------------------------------------------------------------
-//
-// Example: HTTP server, synchronous
-//
-//------------------------------------------------------------------------------
 #pragma once
 
 #define BOOST_DATE_TIME_NO_LIB 1
@@ -26,10 +21,17 @@
 #include <memory>
 #include <string>
 #include <thread>
+#include <fstream>
+
+#ifdef _WIN32
+#define SHUT_RDWR 2
+#endif
 
 #include <QDir>
 #include <QHostAddress>
 #include <QNetworkInterface>
+#include <QtDebug>
+#include <QApplication>
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
@@ -121,20 +123,30 @@ public:
     // Handles an HTTP server connection
     void
     do_session(
-        tcp::socket& socket);
+        tcp::socket& socket,
+        std::shared_ptr<std::string const> const& doc_root);
 
     //------------------------------------------------------------------------------
 
-    std::string get_ip_address();
+    // Set the IP address in the remote.html file
+    void
+    set_ip_address(std::string address);
 
     //------------------------------------------------------------------------------
 
-    int open_server();
+    // Launch the open_server function in a thread
+    void
+    start_thread();
 
-    //void open_server_thread();
+    //------------------------------------------------------------------------------
+
+    // Open a server using sockets
+    int
+    open_server();
+
+    //------------------------------------------------------------------------------
+
     std::thread m_serverThread;
-    std::string m_docRoot;
-
     int m_listenSocket{};
 };
 }

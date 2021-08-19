@@ -7,23 +7,16 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-//------------------------------------------------------------------------------
-//
-// Example: HTTP server, synchronous
-//
-//------------------------------------------------------------------------------
-
 #include <RemoteControl/Http_server.hpp>
 
 //------------------------------------------------------------------------------
-#include <QApplication>
+
 namespace RemoteControl
 {
 
 Http_server::Http_server()
 {
-  m_docRoot = "/tmp";
-  m_serverThread = std::thread{[this] { open_server(); }};
+  // m_docRoot = "/tmp";
 }
 
 Http_server::~Http_server()
@@ -130,7 +123,7 @@ Http_server::handle_request(
         res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
         res.set(http::field::content_type, "text/html");
         res.keep_alive(req.keep_alive());
-        res.body() = "The resource '" + std::string(target) + "' was not found.<br> Go to the following address : http://ip_address:port/remote.html.";
+        res.body() = "The resource '" + std::string(target) + "' was not found.y<br> Go to the following address : http://ip_address:port/remote.html.";
         res.prepare_payload();
         return res;
     };
@@ -187,7 +180,7 @@ Http_server::handle_request(
         res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
         res.set(http::field::content_type, mime_type(path));
         res.content_length(size);
-        res.keep_alive(req.keep_alive());
+        res.keep_alive(false);
         return send(std::move(res));
     }
 
@@ -199,7 +192,7 @@ Http_server::handle_request(
     res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
     res.set(http::field::content_type, mime_type(path));
     res.content_length(size);
-    res.keep_alive(req.keep_alive());
+    res.keep_alive(false);
     return send(std::move(res));
 }
 
@@ -215,7 +208,8 @@ Http_server::fail(beast::error_code ec, char const* what)
 // Handles an HTTP server connection
 void
 Http_server::do_session(
-    tcp::socket& socket)
+    tcp::socket& socket,
+    std::shared_ptr<std::string const> const& doc_root)
 {
     bool close = false;
     beast::error_code ec;
@@ -237,7 +231,7 @@ Http_server::do_session(
             return Http_server::fail(ec, "read");
 
         // Send the response
-        Http_server::handle_request(m_docRoot, std::move(req), lambda);
+        Http_server::handle_request(*doc_root, std::move(req), lambda);
         if(ec)
             return Http_server::fail(ec, "write");
         if(close)
@@ -256,39 +250,51 @@ Http_server::do_session(
 
 //------------------------------------------------------------------------------
 
-std::string
-Http_server::get_ip_address()
+// Set the IP address in the remote.html file
+void
+Http_server::set_ip_address(std::string address)
 {
-    std::string ip_address;
+    std::rename("./src/plugins/score-plugin-remotecontrol/CMakeFiles/score_plugin_remotecontrol.dir/RemoteControl/build-wasm/remote.html",
+                "./src/plugins/score-plugin-remotecontrol/CMakeFiles/score_plugin_remotecontrol.dir/RemoteControl/build-wasm/remote.html~");
 
-    QList<QHostAddress> list = QNetworkInterface::allAddresses();
+    std::ifstream old_file("./src/plugins/score-plugin-remotecontrol/CMakeFiles/score_plugin_remotecontrol.dir/RemoteControl/build-wasm/remote.html~");
+    std::ofstream new_file("./src/plugins/score-plugin-remotecontrol/CMakeFiles/score_plugin_remotecontrol.dir/RemoteControl/build-wasm/remote.html");
 
-    for(int nIter=0; nIter<list.count(); nIter++)
-    {
-      if(!list[nIter].isLoopback())
-      {
-          if (list[nIter].protocol() == QAbstractSocket::IPv4Protocol ){
-              qDebug() << list[nIter].toString();
-              ip_address = list[nIter].toString().toUtf8().constData();
-          }
-      }
+    std::string addr = "\"" + address + "\"";
+
+    for( std::string contents_of_file; std::getline(old_file, contents_of_file); ) {
+      std::string::size_type position = contents_of_file.find("%SCORE_IP_ADDRESS%");
+      if( position != std::string::npos )
+        contents_of_file = contents_of_file.replace(position, 18, addr);
+      new_file << contents_of_file << '\n';
     }
-
-    return ip_address;
 }
 
 //------------------------------------------------------------------------------
 
+// Launch the open_server function in a thread
+void
+Http_server::start_thread()
+{
+    m_serverThread = std::thread{[this] { open_server(); }};
+}
+
+//------------------------------------------------------------------------------
+
+// Open a server using sockets
 int
 Http_server::open_server()
 {
     try
     {
-        auto const address = net::ip::make_address("0.0.0.0");
+        auto const address2 = net::ip::make_address("0.0.0.0");
         auto const port = static_cast<unsigned short>(std::atoi("8080"));
+        auto const m_docRoot = std::make_shared<std::string>("./src/plugins/score-plugin-remotecontrol/CMakeFiles/score_plugin_remotecontrol.dir/RemoteControl/build-wasm/");
+
+        bool is_ip_address_set = false;
 
         // The acceptor receives incoming connections
-        tcp::acceptor acceptor{ioc, {address, port}};
+        tcp::acceptor acceptor{ioc, {address2, port}};
         m_listenSocket = acceptor.native_handle();
         for(;;)
         {
@@ -298,8 +304,15 @@ Http_server::open_server()
             // Block until we get a connection
             acceptor.accept(socket);
 
+            // Set ip address
+            if(!is_ip_address_set)
+            {
+                set_ip_address(socket.local_endpoint().address().to_string());
+                is_ip_address_set = true;
+            }
+
             // Launch the session, transferring ownership of the socket
-            do_session(socket);
+            do_session(socket, m_docRoot);
         }
     }
     catch (const std::exception& e)
