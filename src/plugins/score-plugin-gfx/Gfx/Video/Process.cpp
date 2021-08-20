@@ -6,6 +6,7 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 
+#include <QFileInfo>
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Gfx::Video::Model)
@@ -40,11 +41,6 @@ void Model::setPath(const QString& f)
   m_decoder->load(m_path.toStdString(), 60.);
   setLoopDuration(TimeVal{m_decoder->duration()});
   pathChanged(f);
-}
-
-QString Model::prettyName() const noexcept
-{
-  return tr("Video");
 }
 
 double Model::nativeTempo() const noexcept
@@ -100,6 +96,7 @@ std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::dropData(
     {
       Process::ProcessDropHandler::ProcessDrop p;
       p.creation.key = Metadata<ConcreteKey_k, Gfx::Video::Model>::get();
+      p.creation.prettyName = QFileInfo{filename}.baseName();
       p.creation.customData = filename;
       vec.push_back(std::move(p));
     }

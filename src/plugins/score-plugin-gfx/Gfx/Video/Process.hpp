@@ -63,8 +63,6 @@ public:
       W_Final)
 
 private:
-  QString prettyName() const noexcept override;
-
   QString m_path;
   std::shared_ptr<video_decoder> m_decoder;
   double m_nativeTempo{};
