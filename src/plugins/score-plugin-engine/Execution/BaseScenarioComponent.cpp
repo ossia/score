@@ -105,6 +105,7 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
       (ossia::time_event::offset_behavior)element.endEvent().offsetBehavior());
 
   m_ossia_startState->onSetup();
+  main_start_node->set_start(true);
 
   // Important: we do not setup the end state in order to not have it
   // send its messages twice as this is already handled elsewhere in score.
