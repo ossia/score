@@ -160,6 +160,7 @@ HttpServer::handle_request(
     // Attempt to open the file
     beast::error_code ec;
     http::file_body::value_type body;
+
     body.open(path.c_str(), beast::file_mode::scan, ec);
 
     // Handle the case where the file doesn't exist
@@ -172,6 +173,21 @@ HttpServer::handle_request(
 
     // Cache the size since we need it after the move
     auto const size = body.size();
+
+    if ( req.target().find("remote.html") != std::string::npos )
+    {
+        qDebug() << "Path name:" << req.target().data();
+        QFile f(path.c_str());
+        f.open(QIODevice::ReadOnly);
+        QByteArray remote = f.readAll();
+        std::string string_remote = remote.toStdString();
+        qDebug() << QString::fromStdString(string_remote);
+        std::string::size_type position = string_remote.find("%SCORE_IP_ADDRESS%");
+        std::string address = "192.168.0.40";
+        std::string addr = "\"" + address + "\"";
+        string_remote = string_remote.replace(position, 18, addr);
+        qDebug() << QString::fromStdString(string_remote);
+    }
 
     // Respond to HEAD request
     if(req.method() == http::verb::head)
@@ -265,7 +281,10 @@ HttpServer::set_ip_address(std::string address)
     for( std::string contents_of_file; std::getline(old_file, contents_of_file); ) {
       std::string::size_type position = contents_of_file.find("%SCORE_IP_ADDRESS%");
       if( position != std::string::npos )
-        contents_of_file = contents_of_file.replace(position, 18, addr);
+      {
+        //contents_of_file = contents_of_file.replace(position, 18, addr);
+        contents_of_file = contents_of_file.replace(position, 18, "%SCORE_IP_ADDRESS%");
+      }
       new_file << contents_of_file << '\n';
     }
 }
