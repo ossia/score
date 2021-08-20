@@ -210,6 +210,10 @@ ReadFrame VideoDecoder::read_one_frame(AVFrame* frame, AVPacket& packet)
       = (m_formatContext->streams[m_stream]->codecpar->codec_id
          == AV_CODEC_ID_HAP);
   int res{};
+  if(hap && frame->buf[0])
+  {
+    av_buffer_unref(&frame->buf[0]);
+  }
   while ((res = av_read_frame(m_formatContext, &packet)) >= 0)
   {
     if (packet.stream_index == m_stream)
