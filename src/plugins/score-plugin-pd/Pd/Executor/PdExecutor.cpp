@@ -409,7 +409,7 @@ void PdGraphNode::run(
           libpd_aftertouch(mess.get_channel() - 1, mess.bytes[1]);
           break;
         case libremidi::message_type::PITCH_BEND:
-          libpd_pitchbend(mess.get_channel() - 1, mess.bytes[1] - 8192);
+          libpd_pitchbend(mess.get_channel() - 1, mess.bytes[2] * 128 + mess.bytes[1] - 8192);
           break;
         case libremidi::message_type::INVALID:
         default:
