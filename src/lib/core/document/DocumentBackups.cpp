@@ -55,6 +55,7 @@ static void loadRestorableDocumentData(
     data_file.open(QFile::ReadOnly);
     command_file.open(QFile::ReadOnly);
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
     auto it = ossia::find_if(arr, [&] (score::RestorableDocument& elt) { return elt.filePath == save_filename; });
     if(it == arr.end())
     {
@@ -76,6 +77,11 @@ static void loadRestorableDocumentData(
       }
     }
   }
+#else
+  // 5.9 did not suppoort fileTime
+  arr.push_back(
+      {save_filename, data_filename, command_filename, data_file.readAll(), command_file.readAll()});
+#endif
 }
 
 std::vector<score::RestorableDocument>
