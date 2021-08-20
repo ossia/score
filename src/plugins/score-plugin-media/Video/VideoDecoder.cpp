@@ -138,10 +138,13 @@ void VideoDecoder::buffer_thread() noexcept
       }
 
       if (m_framesToPlayer.size_approx() < (frames_to_buffer / 2))
+      {
         if (auto f = read_frame_impl())
         {
           m_framesToPlayer.enqueue(f);
         }
+        std::this_thread::sleep_for(std::chrono::milliseconds(4));
+      }
     }
   }
 }
@@ -171,18 +174,25 @@ void VideoDecoder::close_file() noexcept
 
 AVFrame* VideoDecoder::get_new_frame() noexcept
 {
+  std::atomic_thread_fence(std::memory_order::seq_cst);
   AVFrame* f{};
   if (m_releasedFrames.try_dequeue(f))
     return f;
-  return av_frame_alloc();
+
+  auto res = av_frame_alloc();
+  return res;
 }
 
+void free_frame(AVFrame* frame)
+{
+  av_frame_free(&frame);
+}
 void VideoDecoder::drain_frames() noexcept
 {
   AVFrame* frame{};
   while (m_framesToPlayer.try_dequeue(frame))
   {
-    av_frame_free(&frame);
+    free_frame(frame);
   }
 
   // TODO we must check that this is safe as the queue
@@ -190,7 +200,7 @@ void VideoDecoder::drain_frames() noexcept
   // enqueuing
   while (m_releasedFrames.try_dequeue(frame))
   {
-    av_frame_free(&frame);
+    free_frame(frame);
   }
 }
 
@@ -222,12 +232,17 @@ ReadFrame VideoDecoder::read_one_frame(AVFrame* frame, AVPacket& packet)
         frame->pkt_duration = packet.duration;
 
         //std::copy_n(packet.data, packet.size, frame->data[0]);
+        av_packet_unref(&packet);
+
         return {frame, 0};
       }
       else
       {
         SCORE_ASSERT(m_codecContext);
-        return enqueue_frame(&packet, &frame);
+        auto res = enqueue_frame(&packet, &frame);
+
+        av_packet_unref(&packet);
+        return res;
       }
 
       av_packet_unref(&packet);
@@ -240,6 +255,7 @@ ReadFrame VideoDecoder::read_one_frame(AVFrame* frame, AVPacket& packet)
     qDebug() << "Error while reading a frame: "
              << av_make_error_string(
                     global_errbuf, sizeof(global_errbuf), res);
+  av_packet_unref(&packet);
   return {nullptr, res};
 }
 
@@ -343,7 +359,7 @@ AVFrame* VideoDecoder::read_frame_impl() noexcept
 
     if (!res.frame)
     {
-      av_frame_free(&frame);
+      free_frame(frame);
       res.frame = nullptr;
     }
   }
