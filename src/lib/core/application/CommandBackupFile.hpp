@@ -34,9 +34,12 @@ class CommandBackupFile final : public QObject
 {
 public:
   CommandBackupFile(const score::CommandStack& stack, QObject* parent);
+  CommandBackupFile(const score::CommandStack& stack, const QByteArray& restored, QObject* parent);
   QString fileName() const;
 
 private:
+  void init_connections();
+
   void on_push();
   void on_undo();
   void on_redo();

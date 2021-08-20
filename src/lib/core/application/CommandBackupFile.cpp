@@ -30,8 +30,40 @@ CommandBackupFile::CommandBackupFile(
     , m_stack{stack}
     , m_backup{m_stack}
 {
+  init_connections();
+
   m_file.open();
 
+
+  // Initial backup so that the file is always in a loadable state.
+  commit();
+}
+
+CommandBackupFile::CommandBackupFile(
+    const CommandStack& stack,
+    const QByteArray& restored,
+    QObject* parent)
+    : QObject{parent}
+    , m_stack{stack}
+    , m_backup{m_stack}
+{
+  init_connections();
+
+  m_file.open();
+
+  m_file.resize(0);
+  m_file.reset();
+  m_file.write(restored);
+  m_file.flush();
+}
+
+QString CommandBackupFile::fileName() const
+{
+  return m_file.fileName();
+}
+
+void CommandBackupFile::init_connections()
+{
   // Set-up signals
   con(m_stack, &CommandStack::sig_push, this, &CommandBackupFile::on_push);
   con(m_stack, &CommandStack::sig_undo, this, &CommandBackupFile::on_undo);
@@ -41,13 +73,7 @@ CommandBackupFile::CommandBackupFile(
       this,
       &CommandBackupFile::on_indexChanged);
 
-  // Initial backup so that the file is always in a loadable state.
-  commit();
-}
 
-QString CommandBackupFile::fileName() const
-{
-  return m_file.fileName();
 }
 
 void CommandBackupFile::on_push()

@@ -11,6 +11,7 @@
 
 #include <core/command/CommandStackSerialization.hpp>
 #include <core/document/Document.hpp>
+#include <core/document/DocumentBackups.hpp>
 #include <core/document/DocumentBackupManager.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/presenter/Presenter.hpp>
@@ -173,9 +174,7 @@ Document* DocumentBuilder::loadDocument(
 SCORE_LIB_BASE_EXPORT
 Document* DocumentBuilder::restoreDocument(
     const score::GUIApplicationContext& ctx,
-    QString filename,
-    const QByteArray& docData,
-    const QByteArray& cmdData,
+    const score::RestorableDocument& restore,
     DocumentDelegateFactory& doctype)
 {
   Document* doc = nullptr;
@@ -186,7 +185,7 @@ Document* DocumentBuilder::restoreDocument(
     // (potentially a blank document which is saved at the beginning, once
     // every plug-in has been loaded)
     doc = new Document{
-        filename, docData, doctype, m_parentView, m_parentPresenter};
+        restore, doctype, m_parentView, m_parentPresenter};
     for (auto& appPlug : ctx.guiApplicationPlugins())
     {
       appPlug->on_loadedDocument(*doc);
@@ -200,7 +199,7 @@ Document* DocumentBuilder::restoreDocument(
     doclist.push_back(doc);
 
     // We restore the pre-crash command stack.
-    DataStream::Deserializer writer(cmdData);
+    DataStream::Deserializer writer(restore.commands);
     loadCommandStack(
         ctx.components,
         writer,

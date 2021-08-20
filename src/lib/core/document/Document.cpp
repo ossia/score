@@ -53,7 +53,7 @@ Document::Document(
     , m_metadata{name}
     , m_commandStack{*this}
     , m_objectLocker{this}
-    , m_backupMgr{new DocumentBackupManager{*this}}
+    , m_backupMgr{nullptr}
     , m_context{*this}
     , m_virgin{true}
 {
@@ -109,25 +109,22 @@ void Document::ready()
   if(m_view)
     m_view->viewDelegate().ready();
 
-  m_backupMgr = new DocumentBackupManager{*this};
   if(m_initialData)
   {
     // when we load / restore from a crash, we reuse the original data in order to
     // restore from the exact same state again in case of another crash
 
-    m_backupMgr->saveModelData(*m_initialData);
+    m_backupMgr = new DocumentBackupManager{*std::move(m_initialData), *this};
     m_initialData.reset();
+
+    // when we restore, we call updateBackupData later, when *all* documents are restored,
+    // in order to make sure that we don't loose data
   }
   else
   {
-    m_backupMgr->saveModelData(saveAsByteArray());
+    m_backupMgr = new DocumentBackupManager{saveAsByteArray(), *this};
+    m_backupMgr->updateBackupData();
   }
-  m_backupMgr->updateBackupData();
-}
-
-void Document::setBackupMgr(DocumentBackupManager* backupMgr)
-{
-  m_backupMgr = backupMgr;
 }
 
 Document::~Document()
@@ -146,7 +143,7 @@ Document::~Document()
   delete m_model;
 }
 
-const Id<DocumentModel>& Document::id() const
+const Id<DocumentModel>& Document::id() const noexcept
 {
   return m_model->id();
 }

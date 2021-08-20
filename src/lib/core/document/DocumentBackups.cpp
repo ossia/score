@@ -8,6 +8,7 @@
 #include <core/application/OpenDocumentsFile.hpp>
 
 #include <QApplication>
+#include <QDateTime>
 #include <QFile>
 #include <QIcon>
 #include <QMap>
@@ -41,27 +42,39 @@ bool score::DocumentBackups::canRestoreDocuments()
   return false;
 }
 
-template <typename T>
 static void loadRestorableDocumentData(
-    const QString& date_filename,
-    const QPair<QString, QString>& command_filename,
-    T& arr)
+    const QString& data_filename,
+    const QString& save_filename,
+    const QString& command_filename,
+    std::vector<score::RestorableDocument>& arr)
 {
-  QFile data_file{date_filename};
-  QFile command_file{command_filename.second};
+  QFile data_file{data_filename};
+  QFile command_file{command_filename};
   if (data_file.exists() && command_file.exists())
   {
     data_file.open(QFile::ReadOnly);
     command_file.open(QFile::ReadOnly);
 
-    arr.push_back(
-        {command_filename.first, data_file.readAll(), command_file.readAll()});
+    auto it = ossia::find_if(arr, [&] (score::RestorableDocument& elt) { return elt.filePath == save_filename; });
+    if(it == arr.end())
+    {
+      arr.push_back(
+          {save_filename, data_filename, command_filename, data_file.readAll(), command_file.readAll()});
+    }
+    else
+    {
+      // Compare dates
+      auto old_time = QFile{it->commandsPath}.fileTime(QFileDevice::FileModificationTime);
+      auto new_time = command_file.fileTime(QFileDevice::FileModificationTime);
 
-    data_file.close();
-    data_file.remove(); // Note: maybe we don't want to remove them that early?
-
-    command_file.close();
-    command_file.remove();
+      if(old_time < new_time)
+      {
+        it->docPath = data_filename;
+        it->commandsPath = command_filename;
+        it->doc = data_file.readAll();
+        it->commandsPath = command_file.readAll();
+      }
+    }
   }
 }
 
@@ -81,12 +94,9 @@ score::DocumentBackups::restorableDocuments()
     if (file1.isEmpty())
       continue;
 
-    loadRestorableDocumentData(
-        file1, existing_files[file1].value<QPair<QString, QString>>(), arr);
+    auto res = existing_files[file1].value<QPair<QString, QString>>();
+    loadRestorableDocumentData(file1, res.first, res.second, arr);
   }
-
-  s.setValue("score/docs", QMap<QString, QVariant>{});
-  s.sync();
 #endif
   return arr;
 }
@@ -97,15 +107,17 @@ SCORE_LIB_BASE_EXPORT void score::DocumentBackups::clear()
   if (OpenDocumentsFile::exists())
   {
     // Remove all the tmp files
-    QSettings s{score::OpenDocumentsFile::path(), QSettings::IniFormat};
-
-    const auto existing_files = s.value("score/docs").toMap();
-
-    for (auto it = existing_files.cbegin(); it != existing_files.cend(); ++it)
     {
-      QFile{it.key()}.remove();
-      auto files = it.value().value<QPair<QString, QString>>();
-      QFile{files.second}.remove();
+      QSettings s{score::OpenDocumentsFile::path(), QSettings::IniFormat};
+
+      const auto existing_files = s.value("score/docs").toMap();
+
+      for (auto it = existing_files.cbegin(); it != existing_files.cend(); ++it)
+      {
+        QFile{it.key()}.remove();
+        auto files = it.value().value<QPair<QString, QString>>();
+        QFile{files.second}.remove();
+      }
     }
 
     // Remove the file containing the map

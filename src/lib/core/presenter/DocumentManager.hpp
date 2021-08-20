@@ -18,6 +18,7 @@ namespace score
 class Document;
 struct ApplicationContext;
 class View;
+struct RestorableDocument;
 } // namespace score
 
 namespace score

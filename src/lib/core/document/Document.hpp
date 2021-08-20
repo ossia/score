@@ -6,6 +6,7 @@
 
 #include <core/command/CommandStack.hpp>
 #include <core/document/DocumentMetadata.hpp>
+#include <core/document/DocumentBackups.hpp>
 
 #include <ossia/detail/json.hpp>
 
@@ -55,34 +56,35 @@ class SCORE_LIB_BASE_EXPORT Document final : public QObject
 public:
   ~Document();
 
-  const DocumentMetadata& metadata() const { return m_metadata; }
-  DocumentMetadata& metadata() { return m_metadata; }
+  const DocumentMetadata& metadata() const noexcept { return m_metadata; }
+  DocumentMetadata& metadata() noexcept { return m_metadata; }
 
-  const Id<DocumentModel>& id() const;
+  const Id<DocumentModel>& id() const noexcept;
 
-  CommandStack& commandStack() { return m_commandStack; }
+  CommandStack& commandStack() noexcept { return m_commandStack; }
 
-  SelectionStack& selectionStack() { return m_selectionStack; }
+  SelectionStack& selectionStack() noexcept { return m_selectionStack; }
 
-  FocusManager& focusManager() { return m_focus; }
+  FocusManager& focusManager() noexcept { return m_focus; }
 
-  ObjectLocker& locker() { return m_objectLocker; }
+  ObjectLocker& locker() noexcept { return m_objectLocker; }
 
-  const DocumentContext& context() const { return m_context; }
+  const DocumentContext& context() const noexcept { return m_context; }
 
-  DocumentModel& model() const { return *m_model; }
+  DocumentModel& model() const noexcept { return *m_model; }
 
-  DocumentPresenter* presenter() const { return m_presenter; }
+  DocumentPresenter* presenter() const noexcept { return m_presenter; }
 
-  DocumentView* view() const { return m_view; }
+  DocumentView* view() const noexcept { return m_view; }
+
+  DocumentBackupManager* backupManager() const noexcept
+  { return m_backupMgr; }
 
   void saveDocumentModelAsJson(JSONObject::Serializer& writer);
   QByteArray saveDocumentModelAsByteArray();
 
   void saveAsJson(JSONObject::Serializer& writer);
   QByteArray saveAsByteArray();
-
-  void setBackupMgr(DocumentBackupManager* backupMgr);
 
   //! Indicates if the document has just been created and can be safely
   //! discarded.
@@ -127,8 +129,7 @@ private:
 
   // Restore
   Document(
-      const QString& name,
-      const QByteArray& data,
+      const score::RestorableDocument& data,
       DocumentDelegateFactory& type,
       QWidget* parentview,
       QObject* parent);
@@ -157,7 +158,7 @@ private:
 
   DocumentContext m_context;
 
-  std::optional<QByteArray> m_initialData{};
+  std::optional<score::RestorableDocument> m_initialData{};
   bool m_virgin{false}; // Used to check if we can safely close it
   // if we want to load a document instead upon opening score.
 };

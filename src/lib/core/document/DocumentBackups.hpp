@@ -13,6 +13,8 @@ namespace score
 struct RestorableDocument
 {
   QString filePath;
+  QString docPath;
+  QString commandsPath;
   QByteArray doc;
   QByteArray commands;
 };

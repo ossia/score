@@ -10,6 +10,7 @@ class DocumentBackupManager;
 class DocumentDelegateFactory;
 class DocumentModel;
 struct GUIApplicationContext;
+struct RestorableDocument;
 
 /**
  * @brief Methods to set-up documents.
@@ -41,9 +42,7 @@ public:
       score::DocumentDelegateFactory& doctype);
   Document* restoreDocument(
       const score::GUIApplicationContext& ctx,
-      QString filename,
-      const QByteArray& docData,
-      const QByteArray& cmdData,
+      const score::RestorableDocument& doc,
       score::DocumentDelegateFactory& doctype);
 
 private:

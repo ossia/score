@@ -9,6 +9,7 @@
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score/plugins/panel/PanelDelegate.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+#include <core/application/OpenDocumentsFile.hpp>
 #include <score/tools/File.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/std/Optional.hpp>
@@ -19,6 +20,7 @@
 #include <core/command/CommandStackSerialization.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentBackups.hpp>
+#include <core/document/DocumentBackupManager.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/view/QRecentFilesMenu.h>
@@ -717,15 +719,33 @@ void DocumentManager::saveRecentFilesState()
 
 void DocumentManager::restoreDocuments(const score::GUIApplicationContext& ctx)
 {
-  for (const RestorableDocument& backup :
-       DocumentBackups::restorableDocuments())
+  auto prev_docs = DocumentBackups::restorableDocuments();
+  for (const RestorableDocument& backup : prev_docs)
   {
     restoreDocument(
         ctx,
-        backup.filePath,
-        backup.doc,
-        backup.commands,
+        backup,
         *ctx.interfaces<DocumentDelegateList>().begin());
+  }
+
+  // All the documents have been reloaded successfully.
+
+  // Remove the ancient files
+  {
+    for(auto& doc : prev_docs)
+    {
+      QFile{doc.docPath}.remove();
+      QFile{doc.commandsPath}.remove();
+    }
+    QSettings s{score::OpenDocumentsFile::path(), QSettings::IniFormat};
+    s.setValue("score/docs", QMap<QString, QVariant>{});
+    s.sync();
+  }
+
+  // For all currently open documents, add the to the backed up list
+  for(auto* doc : m_documents)
+  {
+    doc->backupManager()->updateBackupData();
   }
 }
 

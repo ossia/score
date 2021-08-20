@@ -7,6 +7,7 @@ namespace score
 {
 class CommandBackupFile;
 class Document;
+struct RestorableDocument;
 
 /**
  * @brief Handles document backup to allow restoring if there is a crash.
@@ -34,7 +35,14 @@ class Document;
 class DocumentBackupManager final : public QObject
 {
 public:
-  explicit DocumentBackupManager(Document& doc);
+  /** Used when creating a new document or loading from disk,
+   * data is the document data.
+   */
+  explicit DocumentBackupManager(const QByteArray& data, Document& doc);
+
+  /** Used when restoring a document after the crash so that we can reuse the data
+   */
+  explicit DocumentBackupManager(const score::RestorableDocument& prev, Document& doc);
 
   ~DocumentBackupManager();
 

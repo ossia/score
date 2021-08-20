@@ -11,18 +11,41 @@
 #include <QSettings>
 #include <QVariant>
 
-score::DocumentBackupManager::DocumentBackupManager(score::Document& doc)
+score::DocumentBackupManager::DocumentBackupManager(
+    const QByteArray& data,
+    score::Document& doc)
     : QObject{&doc}
     , m_doc{doc}
 {
   m_modelFile.open();
+  m_modelFile.resize(0);
+  m_modelFile.reset();
+  m_modelFile.write(data);
+  m_modelFile.flush();
 
   m_commandFile = new CommandBackupFile{doc.commandStack(), this};
+}
+
+score::DocumentBackupManager::DocumentBackupManager(
+    const score::RestorableDocument& prev,
+    Document& doc)
+    : QObject{&doc}
+    , m_doc{doc}
+{
+  m_modelFile.open();
+  m_modelFile.resize(0);
+  m_modelFile.reset();
+  m_modelFile.write(prev.doc);
+  m_modelFile.flush();
+
+  m_commandFile = new CommandBackupFile{doc.commandStack(), prev.commands, this};
 }
 
 score::DocumentBackupManager::~DocumentBackupManager()
 {
 #if !defined(__EMSCRIPTEN__)
+  // If we are getting there, it means that we could close the document
+  // normally thus we can just remove the associated files
   QSettings s(OpenDocumentsFile::path(), QSettings::IniFormat);
   QVariantMap existing_files = s.value("score/docs").toMap();
   existing_files.remove(crashDataFile().fileName());
@@ -34,14 +57,6 @@ score::DocumentBackupManager::~DocumentBackupManager()
   if(existing_files.empty())
     QFile(OpenDocumentsFile::path()).remove();
 #endif
-}
-
-void score::DocumentBackupManager::saveModelData(const QByteArray& arr)
-{
-  m_modelFile.resize(0);
-  m_modelFile.reset();
-  m_modelFile.write(arr);
-  m_modelFile.flush();
 }
 
 QTemporaryFile& score::DocumentBackupManager::crashDataFile()

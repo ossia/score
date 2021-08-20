@@ -176,7 +176,6 @@ Document::Document(
   , m_commandStack{*this}
   , m_objectLocker{this}
   , m_context{*this}
-  , m_initialData{data}
 {
   loadModel(fileName, data, format, factory);
 
@@ -191,19 +190,18 @@ Document::Document(
 
 // Restore
 Document::Document(
-    const QString& fileName,
-    const QByteArray& data,
+    const score::RestorableDocument& data,
     DocumentDelegateFactory& factory,
     QWidget* parentview,
     QObject* parent)
     : QObject{parent}
-    , m_metadata{fileName}
+    , m_metadata{data.filePath}
     , m_commandStack{*this}
     , m_objectLocker{this}
     , m_context{*this}
     , m_initialData{data}
 {
-  restoreModel(data, factory);
+  restoreModel(data.doc, factory);
 
   if (parentview)
   {
