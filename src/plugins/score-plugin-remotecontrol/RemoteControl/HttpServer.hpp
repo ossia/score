@@ -152,5 +152,6 @@ public:
     std::thread m_serverThread;
     int m_listenSocket{};
     std::string m_buildWasmPath;
+    std::string m_ipAddress;
 };
 }

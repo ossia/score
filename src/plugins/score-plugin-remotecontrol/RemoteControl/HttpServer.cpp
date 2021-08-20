@@ -176,17 +176,16 @@ HttpServer::handle_request(
 
     if ( req.target().find("remote.html") != std::string::npos )
     {
-        qDebug() << "Path name:" << req.target().data();
+        // Load file
         QFile f(path.c_str());
         f.open(QIODevice::ReadOnly);
         QByteArray remote = f.readAll();
+
+        // Write ip address in the std::string
         std::string string_remote = remote.toStdString();
-        qDebug() << QString::fromStdString(string_remote);
         std::string::size_type position = string_remote.find("%SCORE_IP_ADDRESS%");
-        std::string address = "192.168.0.40";
-        std::string addr = "\"" + address + "\"";
+        std::string addr = "\"" + m_ipAddress + "\"";
         string_remote = string_remote.replace(position, 18, addr);
-        qDebug() << QString::fromStdString(string_remote);
     }
 
     // Respond to HEAD request
@@ -276,7 +275,7 @@ HttpServer::set_ip_address(std::string address)
     std::ifstream old_file(m_buildWasmPath + "remote.html~");
     std::ofstream new_file(m_buildWasmPath + "remote.html");
 
-    std::string addr = "\"" + address + "\"";
+    std::string addr = "\"" + m_ipAddress + "\"";
 
     for( std::string contents_of_file; std::getline(old_file, contents_of_file); ) {
       std::string::size_type position = contents_of_file.find("%SCORE_IP_ADDRESS%");
@@ -309,7 +308,6 @@ HttpServer::open_server()
         auto const address2 = net::ip::make_address("0.0.0.0");
         auto const port = static_cast<unsigned short>(std::atoi("8080"));
         std::string packagesPath = score::AppContext().settings<Library::Settings::Model>().getPackagesPath().toStdString();
-        qDebug() << "packagesPath :" << QString::fromStdString(packagesPath);
         m_buildWasmPath = packagesPath + "/build-wasm/";
         auto const m_docRoot = std::make_shared<std::string>(m_buildWasmPath);
 
@@ -329,7 +327,7 @@ HttpServer::open_server()
             // Set ip address
             if(!is_ip_address_set)
             {
-                set_ip_address(socket.local_endpoint().address().to_string());
+                m_ipAddress = socket.local_endpoint().address().to_string();
                 is_ip_address_set = true;
             }
 
