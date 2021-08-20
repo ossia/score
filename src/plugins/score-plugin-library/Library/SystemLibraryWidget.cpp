@@ -65,7 +65,7 @@ SystemLibraryWidget::SystemLibraryWidget(
     if(!idx.isValid())
       return;
     auto source = m_proxy->mapToSource(idx);
-    QFileInfo path = m_model->filePath(source);
+    QFileInfo path{m_model->filePath(source)};
 
     auto folder_path = path.isDir() ? path.absoluteFilePath() : path.absolutePath();
 
