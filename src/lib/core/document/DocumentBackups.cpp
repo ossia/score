@@ -5,6 +5,8 @@
 #include <score/tools/QMapHelper.hpp>
 #include <score/widgets/MessageBox.hpp>
 
+#include <ossia/detail/algorithms.hpp>
+
 #include <core/application/OpenDocumentsFile.hpp>
 
 #include <QApplication>
