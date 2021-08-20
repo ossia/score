@@ -31,6 +31,8 @@ ScenarioDocumentModel::ScenarioDocumentModel(
     , m_context{ctx}
     , m_baseScenario{new BaseScenario{Id<BaseScenario>{0}, ctx, this}}
 {
+  auto& tn = m_baseScenario->startTimeSync();
+  tn.setStartPoint(true);
   auto& itv = m_baseScenario->interval();
   // Set default durations
   auto dur

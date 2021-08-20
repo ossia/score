@@ -10,6 +10,7 @@
 
 #include <memory>
 #include <verdigris>
+#include <score_plugin_media_export.h>
 
 class QGraphicsView;
 namespace Media::Sound
@@ -49,7 +50,7 @@ struct ComputedWaveform
   int xf{};
 };
 
-struct WaveformComputer : public QObject
+struct SCORE_PLUGIN_MEDIA_EXPORT WaveformComputer : public QObject
 {
   W_OBJECT(WaveformComputer)
 public:
@@ -59,10 +60,11 @@ public:
   void stop();
 
 public:
-  void recompute(WaveformRequest req) W_SIGNAL(recompute, req);
+  void recompute(WaveformRequest req)
+  E_SIGNAL(SCORE_PLUGIN_MEDIA_EXPORT, recompute, req);
 
   void ready(QVector<QImage*> img, ComputedWaveform wf)
-      W_SIGNAL(ready, img, wf);
+  E_SIGNAL(SCORE_PLUGIN_MEDIA_EXPORT, ready, img, wf);
 
 private:
   friend struct WaveformComputerImpl;

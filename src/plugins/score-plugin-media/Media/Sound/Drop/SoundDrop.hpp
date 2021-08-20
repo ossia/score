@@ -5,7 +5,7 @@
 
 namespace Media::Sound
 {
-struct DroppedAudioFiles
+struct SCORE_PLUGIN_MEDIA_EXPORT DroppedAudioFiles
 {
   DroppedAudioFiles(const score::DocumentContext& ctx, const QMimeData& mime);
 

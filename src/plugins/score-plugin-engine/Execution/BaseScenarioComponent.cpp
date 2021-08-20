@@ -1,4 +1,4 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check
+﻿// This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
 #include "BaseScenarioComponent.hpp"
@@ -9,10 +9,12 @@
 #include <ossia/audio/audio_protocol.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/nodes/forward_node.hpp>
+#include <ossia/editor/scenario/scenario.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/scenario/time_sync.hpp>
 #include <ossia/editor/state/state.hpp>
+#include <ossia-qt/invoke.hpp>
 
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Event/EventExecution.hpp>
@@ -37,8 +39,12 @@ BaseScenarioElement::~BaseScenarioElement() { }
 
 void BaseScenarioElement::init(BaseScenarioRefContainer element)
 {
-  auto main_start_node = std::make_shared<ossia::time_sync>();
+  m_ossia_scenario = std::make_shared<ossia::scenario>();
+
+  auto main_start_node = m_ossia_scenario->get_start_time_sync();
   auto main_end_node = std::make_shared<ossia::time_sync>();
+  main_end_node->finished_evaluation.add_callback([this] (bool) { ossia::qt::run_async(this, [this] {finished(); }); });
+  m_ossia_scenario->add_time_sync(main_end_node);
 
   auto main_start_event = *main_start_node->emplace(
       main_start_node->get_time_events().begin(),
@@ -58,6 +64,7 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
       m_ctx.time(element.interval().duration.defaultDuration()),
       m_ctx.time(element.interval().duration.minDuration()),
       m_ctx.time(element.interval().duration.maxDuration()));
+  m_ossia_scenario->add_time_interval(main_interval);
 
   m_ossia_startTimeSync = std::make_shared<TimeSyncComponent>(
       element.startTimeSync(), m_ctx, this);
@@ -96,11 +103,18 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
       main_end_event,
       m_ossia_endEvent->makeExpression(),
       (ossia::time_event::offset_behavior)element.endEvent().offsetBehavior());
+
   m_ossia_startState->onSetup();
-  m_ossia_endState->onSetup();
+
+  // Important: we do not setup the end state in order to not have it
+  // send its messages twice as this is already handled elsewhere in score.
+  // (when we press stop manually)
+  // This should be refactored though, for now it's a bit ugly.
+  // m_ossia_endState->onSetup();
   m_ossia_interval->onSetup(
       m_ossia_interval, main_interval, m_ossia_interval->makeDurations(), true);
 
+  m_ossia_scenario->start();
   for (auto dev : m_ctx.execState->edit_devices())
   {
     if (dynamic_cast<ossia::audio_protocol*>(&dev->get_protocol()))
@@ -144,6 +158,12 @@ void BaseScenarioElement::cleanup()
   m_ossia_endEvent.reset();
   m_ossia_startTimeSync.reset();
   m_ossia_endTimeSync.reset();
+  m_ossia_scenario.reset();
+}
+
+ossia::scenario& BaseScenarioElement::baseScenario() const
+{
+  return *m_ossia_scenario;
 }
 
 IntervalComponent& BaseScenarioElement::baseInterval() const

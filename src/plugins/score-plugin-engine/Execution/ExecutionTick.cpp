@@ -9,12 +9,14 @@
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph/tick_setup.hpp>
 #include <ossia/editor/scenario/execution_log.hpp>
+#include <ossia/editor/scenario/scenario.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
 
 namespace Execution
 {
+
 namespace
 {
 struct AudioTickHelper
@@ -33,6 +35,7 @@ struct AudioTickHelper
             *plug.execState,
             *plug.execGraph,
             m_itv,
+            scenar.baseScenario(),
             plug.executionController().transport().transportUpdateFunction())}
       , m_plug{plug}
       , m_execQueue{plug.context().executionQueue}
@@ -188,6 +191,7 @@ Audio::tick_fun makeBenchmarkTick(
       *plug.execState,
       *plug.execGraph,
       *scenar.baseInterval().OSSIAInterval(),
+      scenar.baseScenario(),
       plug.executionController().transport().transportUpdateFunction());
 
   int i = 0;

@@ -10,6 +10,7 @@
 namespace ossia
 {
 struct time_value;
+class scenario;
 }
 
 namespace Scenario
@@ -104,11 +105,13 @@ public:
   StateComponent& startState() const;
   StateComponent& endState() const;
 
+  ossia::scenario& baseScenario() const;
 public:
   void finished() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, finished)
 
 private:
   const Context& m_ctx;
+  std::shared_ptr<ossia::scenario> m_ossia_scenario;
   std::shared_ptr<IntervalComponent> m_ossia_interval;
 
   std::shared_ptr<TimeSyncComponent> m_ossia_startTimeSync;
