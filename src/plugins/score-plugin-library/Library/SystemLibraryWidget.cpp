@@ -11,7 +11,10 @@
 
 #include <core/presenter/DocumentManager.hpp>
 
+#include <QMenu>
+#include <QApplication>
 #include <QVBoxLayout>
+#include <QDesktopServices>
 
 namespace Library
 {
@@ -56,10 +59,31 @@ SystemLibraryWidget::SystemLibraryWidget(
 
   auto sel = m_tv.selectionModel();
 
+  m_tv.setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
+  connect(&m_tv, &QTreeView::customContextMenuRequested, this, [&] (QPoint pos){
+    auto idx = m_tv.indexAt(pos);
+    if(!idx.isValid())
+      return;
+    auto source = m_proxy->mapToSource(idx);
+    QFileInfo path = m_model->filePath(source);
+
+    auto folder_path = path.isDir() ? path.absoluteFilePath() : path.absolutePath();
+
+    auto menu = new QMenu{&m_tv};
+    auto file_expl = menu->addAction(tr("Open in file explorer"));
+    connect(file_expl, &QAction::triggered, this, [=] {
+      QDesktopServices::openUrl(folder_path);
+    });
+    menu->exec(m_tv.mapToGlobal(pos));
+    menu->deleteLater();
+
+  });
   connect(sel, &QItemSelectionModel::currentRowChanged, this, [&](const QModelIndex& idx, const QModelIndex&) {
     m_preview.hide();
     auto doc = ctx.docManager.currentDocument();
     if (!doc)
+      return;
+    if (!idx.isValid())
       return;
 
     delete m_previewChild;
