@@ -193,8 +193,11 @@ void ALSAFactory::initialize(
       {
         set.setCardIn(default_dev->raw_name);
         set.setCardOut(default_dev->raw_name);
-        set.setDefaultIn(default_dev->inputChan);
-        set.setDefaultOut(default_dev->outputChan);
+        int num_in_chans = ossia::clamp(set.getDefaultIn(), 0, default_dev->inputChan);
+        int min_out_chans = std::min(2, default_dev->outputChan);
+        int num_out_chans = ossia::clamp(set.getDefaultOut(), min_out_chans, default_dev->outputChan);
+        set.setDefaultIn(num_in_chans);
+        set.setDefaultOut(num_out_chans);
         set.setRate(default_dev->rate);
         set.changed();
         return;
