@@ -250,8 +250,12 @@ void Application::init()
     }
     else
     {
+#if !defined(__arm__)
       QOpenGLContext ctx;
       m_applicationSettings.opengl = ctx.create();
+#else
+      m_applicationSettings.opengl = true;
+#endif
     }
   }
 #if defined(SCORE_STATIC_PLUGINS)

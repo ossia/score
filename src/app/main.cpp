@@ -157,6 +157,14 @@ static void setup_faust_path()
 static void setup_opengl()
 {
 #ifndef QT_NO_OPENGL
+#if defined(__arm__)
+  QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
+  fmt.setProfile(QSurfaceFormat::CoreProfile);
+  fmt.setSwapInterval(1);
+  fmt.setMajorVersion(3);
+  fmt.setMinorVersion(2);
+  fmt.setDefaultFormat(fmt);
+#else
   {
     std::vector<std::pair<int, int>> versions_to_test = {
         { 4, 6 }, { 4, 5 }, { 4, 4 }, { 4, 3 }, { 4, 2 }, { 4, 1 }, { 4, 0 },
@@ -197,6 +205,7 @@ static void setup_opengl()
     fmt.setDefaultFormat(fmt);
   }
 #endif
+#endif
   return;
 }
 
@@ -230,6 +239,7 @@ static void setup_app_flags()
   // https://github.com/ossia/score/issues/953
   // https://github.com/ossia/score/issues/1046
   QCoreApplication::setAttribute(Qt::AA_DontUseNativeDialogs);
+  QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts, false);
 #endif
 }
 
