@@ -174,7 +174,6 @@ void VideoDecoder::close_file() noexcept
 
 AVFrame* VideoDecoder::get_new_frame() noexcept
 {
-  std::atomic_thread_fence(std::memory_order::seq_cst);
   AVFrame* f{};
   if (m_releasedFrames.try_dequeue(f))
     return f;
