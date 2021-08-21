@@ -13,6 +13,7 @@ cmake $SCORE_DIR \
  -DCMAKE_BUILD_TYPE=Release \
  -DCMAKE_TOOLCHAIN_FILE=/opt/ossia-sdk-rpi/toolchain.cmake \
  -DOSSIA_SDK=/opt/ossia-sdk-rpi/pi/sysroot/opt/ossia-sdk-rpi \
+ -DDEPLOYMENT_BUILD=1 \
  -DCMAKE_INSTALL_PREFIX=install
 
 cmake --build .
@@ -20,7 +21,7 @@ cmake --build . --target install/strip
 
 (
   cd install
-  rm -rf include lib
+  rm -rf include lib share/doc
   mkdir lib
   cp /opt/ossia-sdk-rpi/cross-pi-gcc-10.2.0-2/arm-linux-gnueabihf/lib/libstdc++.so.6 lib/
   cp $SCORE_DIR/cmake/Deployment/Linux/Raspberry/* .
