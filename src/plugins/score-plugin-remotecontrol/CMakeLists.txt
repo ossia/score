@@ -25,6 +25,7 @@ set(HDRS
   "RemoteControl/DocumentPlugin.hpp"
   "i-score-remote/RemoteApplication.hpp"
   "score_plugin_remotecontrol.hpp"
+  "RemoteControl/HttpServer.hpp"
   )
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/Settings/Model.cpp"
@@ -41,12 +42,14 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/ApplicationPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/DocumentPlugin.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/RemoteControl/HttpServer.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_remotecontrol.cpp"
 )
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS} ${QRCS})
 
-target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_scenario score_plugin_js ${QT_PREFIX}::WebSockets)
+target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_scenario score_plugin_js ${QT_PREFIX}::WebSockets ossia)
 
 setup_score_plugin(${PROJECT_NAME})
 

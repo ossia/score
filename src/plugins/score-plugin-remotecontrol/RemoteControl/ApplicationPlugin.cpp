@@ -5,6 +5,8 @@
 
 #include <RemoteControl/ApplicationPlugin.hpp>
 #include <RemoteControl/DocumentPlugin.hpp>
+
+
 namespace RemoteControl
 {
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& app)
@@ -16,6 +18,8 @@ void ApplicationPlugin::on_createdDocument(score::Document& doc)
 {
   doc.model().addPluginModel(new DocumentPlugin{
       doc.context(), &doc.model()});
+
+    m_server.start_thread();
 }
 
 }

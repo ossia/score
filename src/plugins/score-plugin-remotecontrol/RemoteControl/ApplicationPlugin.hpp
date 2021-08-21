@@ -1,6 +1,7 @@
 #pragma once
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 
+#include <RemoteControl/HttpServer.hpp>
 namespace RemoteControl
 {
 class ApplicationPlugin final : public score::GUIApplicationPlugin
@@ -10,5 +11,6 @@ public:
 
 protected:
   void on_createdDocument(score::Document& doc) override;
+  HttpServer m_server;
 };
 }
