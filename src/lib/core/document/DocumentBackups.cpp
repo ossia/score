@@ -78,12 +78,12 @@ static void loadRestorableDocumentData(
         it->commandsPath = command_file.readAll();
       }
     }
-  }
 #else
-  // 5.9 did not suppoort fileTime
-  arr.push_back(
-      {save_filename, data_filename, command_filename, data_file.readAll(), command_file.readAll()});
+    // 5.9 did not suppoort fileTime
+    arr.push_back(
+        {save_filename, data_filename, command_filename, data_file.readAll(), command_file.readAll()});
 #endif
+  }
 }
 
 std::vector<score::RestorableDocument>
