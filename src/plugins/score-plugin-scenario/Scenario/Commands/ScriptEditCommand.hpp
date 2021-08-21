@@ -67,6 +67,8 @@ private:
 
     // Recreate the old cables
     Dataflow::restoreCables(m_oldCables, ctx);
+    cmt.inletsChanged();
+    cmt.outletsChanged();
   }
 
   static void restoreCables(
@@ -152,6 +154,9 @@ private:
         restoreCables(*new_p, doc, ctx, m_oldCables);
       }
     }
+
+    cmt.inletsChanged();
+    cmt.outletsChanged();
   }
 
   void serializeImpl(DataStreamInput& s) const override

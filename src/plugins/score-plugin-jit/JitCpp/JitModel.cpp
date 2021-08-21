@@ -362,7 +362,7 @@ Execution::JitEffectComponent::JitEffectComponent(
     }
   };
   reset();
-  con(proc, &Jit::JitEffectModel::changed, this, reset);
+  con(proc, &Jit::JitEffectModel::changed, this, reset, Qt::QueuedConnection);
 }
 
 JitEffectComponent::~JitEffectComponent() { }

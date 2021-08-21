@@ -74,7 +74,7 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     m_oldInlets = process().inlets();
     m_oldOutlets = process().outlets();
 
-    connect(&element, &Filter::Model::programChanged, this, &ProcessExecutorComponent::on_shaderChanged);
+    connect(&element, &Filter::Model::programChanged, this, &ProcessExecutorComponent::on_shaderChanged, Qt::QueuedConnection);
   }
   catch (...)
   {

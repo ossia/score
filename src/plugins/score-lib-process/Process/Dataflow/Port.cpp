@@ -295,12 +295,22 @@ ControlInlet::ControlInlet(JSONObject::Deserializer&& vis, QObject* parent)
 
 QByteArray ControlInlet::saveData() const noexcept
 {
-  return Port::saveData();
+  QByteArray arr;
+  {
+    QDataStream p{&arr, QIODevice::WriteOnly};
+    DataStreamInput ip{p};
+    ip << Port::saveData() << m_value;
+  }
+  return arr;
 }
 
 void ControlInlet::loadData(const QByteArray& arr) noexcept
 {
-  Port::loadData(arr);
+  QByteArray pdata;
+  QDataStream p{arr};
+  DataStreamOutput op{p};
+  op >> pdata >> m_value;
+  Port::loadData(pdata);
 }
 
 void ControlInlet::setValue(const ossia::value& value)

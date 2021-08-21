@@ -504,7 +504,7 @@ FaustEffectComponent::FaustEffectComponent(
     }
 
     commands.run_all();
-  });
+  }, Qt::QueuedConnection);
 
   Execution::Transaction commands{ctx};
   reload(commands);

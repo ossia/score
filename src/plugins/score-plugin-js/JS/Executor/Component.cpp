@@ -141,7 +141,7 @@ Component::Component(
   con(element,
       &JS::ProcessModel::qmlDataChanged,
       this,
-      &Component::on_scriptChange);
+      &Component::on_scriptChange, Qt::QueuedConnection);
   SCORE_TODO_("Reinstate JS panel live scripting");
   /*
   if (!node->m_object)
