@@ -110,9 +110,9 @@ public:
     time_info.samplePos = tk.start_date_to_physical(st.modelToSamples());
     time_info.sampleRate = st.sampleRate();
     time_info.nanoSeconds = st.currentDate() - st.startDate();
-    time_info.ppqPos = tk.musical_start_position * ppq_reference;
+    time_info.ppqPos = tk.musical_start_position;// * ppq_reference;
     time_info.tempo = tk.tempo;
-    time_info.barStartPos = tk.musical_start_last_bar * ppq_reference;
+    time_info.barStartPos = tk.musical_start_last_bar;// * ppq_reference;
     time_info.cycleStartPos = 0.;
     time_info.cycleEndPos = 0.;
     time_info.timeSigNumerator = tk.signature.upper;
