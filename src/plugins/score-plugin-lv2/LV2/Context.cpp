@@ -291,7 +291,7 @@ LV2Data::LV2Data(HostContext& h, EffectContext& ctx)
 
     auto cl = port.get_classes();
     auto debug_port = [&] {
-      qDebug() << "Port : " << lilv_node_as_string(port.get_name());
+      qDebug() << "Port "<<i<<" : " << lilv_node_as_string(port.get_name());
       auto beg = lilv_nodes_begin(cl);
       while (!lilv_nodes_is_end(cl, beg))
       {
@@ -319,7 +319,6 @@ LV2Data::LV2Data(HostContext& h, EffectContext& ctx)
     }
     else if (port.is_a(host.atom_class))
     {
-      // TODO use  atom:supports midi:MidiEvent
       if(port.supports_event(host.midi_event_class))
       {
         if (port.is_a(host.input_class))
@@ -335,6 +334,19 @@ LV2Data::LV2Data(HostContext& h, EffectContext& ctx)
           midi_other_ports.push_back(i);
           qDebug() << "LV2: MIDI port not input or output" << i;
           debug_port();
+        }
+      }
+      else
+      {
+        if (port.is_a(host.input_class))
+        {
+          qDebug() << "LV2: Atom input port not MIDI, not supported yet." << i;
+          //atom_in_ports.push_back(i);
+        }
+        else if (port.is_a(host.output_class))
+        {
+          qDebug() << "LV2: Atom output port not MIDI, not supported yet." << i;
+          //atom_out_ports.push_back(i);
         }
       }
 

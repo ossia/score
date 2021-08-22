@@ -29,17 +29,19 @@ void on_uiMessage(
     const void* buffer)
 {
   auto& fx = *(Model*)controller;
-
-  auto it = fx.control_map.find(port_index);
-  if (it == fx.control_map.end())
+  if(protocol == 0)
   {
-    qDebug() << fx.effect() << " (LV2): invalid write on port" << port_index;
-    return;
-  }
+    auto it = fx.control_map.find(port_index);
+    if (it == fx.control_map.end())
+    {
+      qDebug() << fx.effect() << " (LV2): invalid write on port" << port_index;
+      return;
+    }
 
-  // currently writing from score
-  if (it->second.second)
-    return;
+    // currently writing from score
+    if (it->second.second)
+      return;
+  }
 
   Message c{port_index, protocol, {}};
   c.body.resize(buffer_size);

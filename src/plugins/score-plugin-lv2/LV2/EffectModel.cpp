@@ -477,6 +477,7 @@ void Model::reload()
 
   auto& app_plug
       = score::AppComponents().applicationPlugin<LV2::ApplicationPlugin>();
+  hostContext = &app_plug.lv2_host_context;
   auto& world = app_plug.lilv;
 
   if (auto plug = find_lv2_plugin(world, path))
@@ -521,56 +522,87 @@ void JSONWriter::write(LV2::Model& eff)
 
 namespace LV2
 {
+struct on_start;
+struct on_finish;
+using lv2_node_t = lv2_node<on_start, on_finish>;
+
+struct on_start
+{
+  std::weak_ptr<LV2EffectComponent> self;
+  void operator()();
+};
+
 struct on_finish
 {
-  std::weak_ptr<Execution::ProcessComponent> self;
-  void operator()()
-  {
-    auto p = self.lock();
-    if (!p)
-      return;
+  std::weak_ptr<LV2EffectComponent> self;
+  void operator()();
+};
+void on_start::operator()()
+{
+  auto p = self.lock();
+  if (!p)
+    return;
+  auto nn = p->node;
+  if (!nn)
+    return;
+  auto& node = *static_cast<lv2_node_t*>(nn.get());
+  auto& proc = p->process().to_process_events;
 
-    p->in_edit([s = self] {
-      auto p = s.lock();
-
-      if (!p)
-        return;
-      auto nn = p->node;
-      if (!nn)
-        return;
-      auto& node = *static_cast<lv2_node<on_finish>*>(nn.get());
-
-      for (std::size_t k = 0; k < node.data.control_out_ports.size(); k++)
-      {
-        auto port = (uint32_t)node.data.control_out_ports[k];
-        float val = node.fOutControls[k];
-
-        auto cport = static_cast<Model&>(p->process()).control_out_map[port];
-        SCORE_ASSERT(cport);
-        cport->setValue(val);
-      }
-    });
-
-    /* TODO do the same thing than in jalv
-    for(auto& port : data.event_out_port)
+  LV2::Message msg;
+  while(proc.try_dequeue(msg)) {
+    for(int k = 0; k < node.m_atom_ins.size(); ++k)
     {
-      for (LV2_Evbuf_Iterator i = lv2_evbuf_begin(port->evbuf);
-           lv2_evbuf_is_valid(i);
-           i = lv2_evbuf_next(i)) {
-        // Get event from LV2 buffer
-        uint32_t frames, subframes, type, size;
-        uint8_t* body;
-        lv2_evbuf_get(i, &frames, &subframes, &type, &size, &body);
-
-        if (jalv->has_ui && !port->old_api) {
-          // Forward event to UI
-          writeAtomToUi(jalv, p, type, size, body);
-        }
+      if(node.data.midi_in_ports[k] == msg.index)
+      {
+        node.m_message_for_atom_ins[k].push_back(std::move(msg));
+        break;
       }
     }
-    */
   }
-};
+}
+void on_finish::operator()()
+{
+  auto p = self.lock();
+  if (!p)
+    return;
+
+  p->in_edit([s = self] {
+               auto p = s.lock();
+
+               if (!p)
+                 return;
+               auto nn = p->node;
+               if (!nn)
+                 return;
+               auto& node = *static_cast<lv2_node_t*>(nn.get());
+
+               for (std::size_t k = 0; k < node.data.control_out_ports.size(); k++)
+               {
+                 auto port = (uint32_t)node.data.control_out_ports[k];
+                 float val = node.fOutControls[k];
+
+                 auto cport = static_cast<Model&>(p->process()).control_out_map[port];
+                 SCORE_ASSERT(cport);
+                 cport->setValue(val);
+               }
+             });
+
+  auto nn = p->node;
+  if (!nn)
+    return;
+  auto& node = *static_cast<lv2_node_t*>(nn.get());
+
+  for(int k = 0; k < node.data.midi_out_ports.size(); ++k)
+  {
+    int port_index = node.data.midi_out_ports[k];
+    AtomBuffer& buf = node.m_atom_outs[k];
+
+    LV2_ATOM_SEQUENCE_FOREACH(&buf.buf->atoms, ev)
+    {
+      p->writeAtomToUi(port_index, ev->body);
+    }
+  }
+}
 
 LV2EffectComponent::LV2EffectComponent(
     LV2::Model& proc,
@@ -590,12 +622,15 @@ void LV2EffectComponent::lazy_init()
 
   auto& host
       = ctx.context().doc.app.applicationPlugin<LV2::ApplicationPlugin>();
+  on_start os;
   on_finish of;
-  of.self = shared_from_this();
+  os.self = std::dynamic_pointer_cast<LV2EffectComponent>(shared_from_this());
+  of.self = os.self;
 
-  auto node = std::make_shared<LV2::lv2_node<on_finish>>(
+  auto node = std::make_shared<LV2::lv2_node_t>(
       LV2::LV2Data{host.lv2_host_context, proc.effectContext},
       ctx.execState->sampleRate,
+      os,
       of);
 
   for (std::size_t i = proc.m_controlInStart; i < proc.inlets().size(); i++)
@@ -645,6 +680,20 @@ void LV2EffectComponent::writeAtomToUi(
     for (uint32_t i = 0; i < size; i++)
       data[i] = b[i];
   }
+
+  process().plugin_events.enqueue(std::move(ev));
+}
+
+void LV2EffectComponent::writeAtomToUi(uint32_t port_index, LV2_Atom& atom)
+{
+  auto& p = score::GUIAppContext().applicationPlugin<LV2::ApplicationPlugin>();
+
+  LV2::Message ev;
+  ev.index = port_index;
+  ev.protocol = p.lv2_host_context.atom_eventTransfer;
+  int message_bytes = sizeof(LV2_Atom) + atom.size;
+  ev.body.resize(message_bytes);
+  memcpy(ev.body.data(), &atom, message_bytes);
 
   process().plugin_events.enqueue(std::move(ev));
 }

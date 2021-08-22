@@ -200,6 +200,8 @@ struct LV2Data
       cv_ports;
 
   ossia::small_vector<int, 2> time_Position_ports{};
+
+  // ossia::small_vector<int, 2> atom_in_ports, atom_out_ports;
 };
 
 struct Message

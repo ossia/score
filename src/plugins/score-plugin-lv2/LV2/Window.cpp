@@ -157,13 +157,7 @@ Window::Window(
         }
         else if (ev.protocol == plug.lv2_host_context.atom_eventTransfer)
         {
-          qDebug() << "LV2: EventTransfer";
-          /* TODO
-        LV2_Evbuf_Iterator    e    = lv2_evbuf_end(port->evbuf);
-        const LV2_Atom* const atom = (const LV2_Atom*)body;
-        lv2_evbuf_write(&e, nframes, 0, atom->type, atom->size,
-                        (const uint8_t*)LV2_ATOM_BODY_CONST(atom));
-                        */
+          fx.to_process_events.enqueue(std::move(ev));
         }
         else
         {

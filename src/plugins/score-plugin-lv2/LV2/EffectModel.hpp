@@ -64,11 +64,13 @@ public:
 
   const LilvPlugin* plugin{};
   mutable LV2::EffectContext effectContext;
+  LV2::HostContext* hostContext{};
 
   std::size_t m_controlInStart{};
   std::size_t m_controlOutStart{};
-  mutable moodycamel::ReaderWriterQueue<Message> ui_events;     // from ui
+  mutable moodycamel::ReaderWriterQueue<Message> ui_events;     // from ui to score
   mutable moodycamel::ReaderWriterQueue<Message> plugin_events; // from plug-in
+  mutable moodycamel::ReaderWriterQueue<Message> to_process_events; // from score to process
 
   ossia::fast_hash_map<uint32_t, std::pair<Process::ControlInlet*, bool>>
       control_map;
@@ -101,6 +103,8 @@ public:
       uint32_t type,
       uint32_t size,
       const void* body);
+  void writeAtomToUi(
+      uint32_t port_index, LV2_Atom& atom);
 };
 }
 
