@@ -10,6 +10,8 @@
 #include <lilv/lilv.h>
 #include <lilv/lilvmm.hpp>
 
+#include <QApplication>
+#include <QTimer>
 #include <iostream>
 
 uint32_t LV2_Atom_Buffer::chunk_type;
@@ -91,27 +93,29 @@ do_worker(LV2_Worker_Schedule_Handle ptr, uint32_t s, const void* data)
   auto& c = *static_cast<LV2::GlobalContext*>(ptr);
   LV2::EffectContext* cur = c.host.current;
 
-  if (cur && cur->worker && !cur->worker_response)
+  if (cur && cur->worker)
   {
     auto& w = *cur->worker;
     if (w.work)
     {
-      w.work(
+      std::vector<char> cp;
+      cp.resize(s);
+      for(uint32_t i = 0; i < s; i ++) cp[i] = ((const char*)data)[i];
+      QTimer::singleShot(0, qApp, [cur, dat = std::move(cp)] {
+       cur->worker->work(
           cur->instance->lv2_handle,
           [](LV2_Worker_Respond_Handle sub_h,
              uint32_t sub_s,
              const void* sub_d) {
-            return LV2_WORKER_ERR_UNKNOWN;
             auto sub_c = static_cast<LV2::EffectContext*>(sub_h);
-            sub_c->worker_data.resize(sub_s);
-            std::copy_n((const char*)sub_d, sub_s, sub_c->worker_data.data());
+            std::vector<char> worker_data;
+            worker_data.resize(sub_s);
+            std::copy_n((const char*)sub_d, sub_s, worker_data.data());
+            sub_c->worker_datas.enqueue(std::move(worker_data));
 
-            sub_c->worker_response = true;
             return LV2_WORKER_SUCCESS;
-          },
-          cur,
-          s,
-          data);
+          }, cur, dat.size(), dat.data());
+                         });
       return LV2_WORKER_SUCCESS;
     }
   }

@@ -122,8 +122,7 @@ struct EffectContext
   const LilvNode* ui_type{};
   SuilInstance* ui_instance{};
 
-  std::vector<char> worker_data;
-  std::atomic_bool worker_response{false};
+  moodycamel::ReaderWriterQueue<std::vector<char>> worker_datas;
 };
 
 struct GlobalContext

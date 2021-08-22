@@ -350,14 +350,15 @@ struct lv2_node final : public ossia::graph_node
 
   void postProcess(int64_t offset)
   {
-    if (data.effect.worker && data.effect.worker_response
-        && data.effect.worker->work_response)
+    if (data.effect.worker->work_response)
     {
-      data.effect.worker->work_response(
-          data.effect.instance->lv2_handle,
-          data.effect.worker_data.size(),
-          data.effect.worker_data.data());
-      data.effect.worker_response = false;
+      std::vector<char> vec;
+      while(data.effect.worker_datas.try_dequeue(vec)) {
+        data.effect.worker->work_response(
+            data.effect.instance->lv2_handle,
+            vec.size(),
+            vec.data());
+      }
     }
 
     if (data.effect.worker && data.effect.worker->end_run)

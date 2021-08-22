@@ -149,11 +149,19 @@ Window::Window(
         {
           SCORE_ASSERT(ev.body.size() == sizeof(float));
 
-          auto port = fx.control_map.at(ev.index).first;
-          SCORE_ASSERT(port);
+          auto it = fx.control_map.find(ev.index);
+          if(it != fx.control_map.end())
+          {
+            auto port = fx.control_map.at(ev.index).first;
+            SCORE_ASSERT(port);
 
-          float f = *(float*)ev.body.data();
-          port->setValue(f);
+            float f = *(float*)ev.body.data();
+            port->setValue(f);
+          }
+          else
+          {
+            fx.to_process_events.enqueue(std::move(ev));
+          }
         }
         else if (ev.protocol == plug.lv2_host_context.atom_eventTransfer)
         {
@@ -168,6 +176,7 @@ Window::Window(
   });
 
   // Set initial control port values
+  // TODO not good, because not all available controls are created as score ports
   for (auto& e : fx.control_map)
   {
     float f = ossia::convert<float>(e.second.first->value());

@@ -394,38 +394,41 @@ void Model::readPlugin()
 
   m_controlInStart = in_id;
   // CONTROL
-  for (int port_id : data.control_in_ports)
+  // FIXME if(data.control_in_ports.size() < 10)
   {
-    Lilv::Port p = data.effect.plugin.get_port_by_index(port_id);
-    Lilv::Node n = p.get_name();
+    for (int port_id : data.control_in_ports)
+    {
+      Lilv::Port p = data.effect.plugin.get_port_by_index(port_id);
+      Lilv::Node n = p.get_name();
 
-    SCORE_ASSERT(!std::isnan(fParamInit[port_id]));
-    auto port = new Process::FloatSlider{
-        fParamMin[port_id],
-        fParamMax[port_id],
-        fParamInit[port_id],
-        QString::fromUtf8(n.as_string()),
-        Id<Process::Port>{in_id++},
-        this};
+      SCORE_SOFT_ASSERT(!std::isnan(fParamInit[port_id]));
+      auto port = new Process::FloatSlider{
+          fParamMin[port_id],
+          fParamMax[port_id],
+          fParamInit[port_id],
+          QString::fromUtf8(n.as_string()),
+          Id<Process::Port>{in_id++},
+          this};
 
-    control_map.insert({port_id, {port, false}});
-    connect(
-        port,
-        &Process::ControlInlet::valueChanged,
-        this,
-        [this, port_id](const ossia::value& v) {
-          if (effectContext.ui_instance)
-          {
-            auto& writing = control_map[port_id].second;
-            writing = true;
-            float f = ossia::convert<float>(v);
-            suil_instance_port_event(
-                effectContext.ui_instance, port_id, sizeof(float), 0, &f);
-            writing = false;
-          }
-        });
+      control_map.insert({port_id, {port, false}});
+      connect(
+          port,
+          &Process::ControlInlet::valueChanged,
+          this,
+          [this, port_id](const ossia::value& v) {
+            if (effectContext.ui_instance)
+            {
+              auto& writing = control_map[port_id].second;
+              writing = true;
+              float f = ossia::convert<float>(v);
+              suil_instance_port_event(
+                  effectContext.ui_instance, port_id, sizeof(float), 0, &f);
+              writing = false;
+            }
+          });
 
-    m_inlets.push_back(port);
+      m_inlets.push_back(port);
+    }
   }
 
   m_controlOutStart = in_id;
