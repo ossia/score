@@ -46,6 +46,7 @@ public:
 
 private:
   void customContextMenuEvent(const QPoint& p);
+  void startLearn();
 
   QLineEdit* m_lineEdit{};
   Device::FullAddressAccessorSettings m_address;

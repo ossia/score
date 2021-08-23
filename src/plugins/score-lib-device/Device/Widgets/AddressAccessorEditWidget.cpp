@@ -12,12 +12,16 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SetIcons.hpp>
+#include <ossia/network/value/format_value.hpp>
 
 #include <ossia/network/common/destination_qualifiers.hpp>
 
 #include <QMenuView/qmenuview.h>
 #include <QVBoxLayout>
 
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QListWidget>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Device::AddressAccessorEditWidget)
 namespace Device
@@ -149,22 +153,145 @@ void AddressAccessorEditWidget::dragEnterEvent(QDragEnterEvent* event)
   }
 }
 
+namespace
+{
+struct AddressComparator {
+  bool operator()(const State::Address& lhs, const State::Address& rhs) const noexcept
+{
+  return lhs.toString() < rhs.toString();
+}
+};
+
+class LearnWidget : public QListWidget {
+public:
+  using map_type = ossia::flat_map<::State::Address, ossia::value, AddressComparator> ;
+  Device::NodeBasedItemModel& m_model;
+  explicit LearnWidget(Device::NodeBasedItemModel& model, QWidget* parent = nullptr)
+      : QListWidget{parent}
+      , m_model{model}
+  {
+    connect(&model, &QAbstractItemModel::dataChanged, this, &LearnWidget::on_dataChanged);
+  }
+
+  void on_dataChanged(const QModelIndex& first, const QModelIndex& second)
+  {
+    auto& node = m_model.nodeFromModelIndex(first);
+    auto as = node.target<Device::AddressSettings>();
+    if(!as)
+      return;
+    auto addr = address(node);
+    if(addr.address.toString().isEmpty())
+    {
+      return;
+    }
+
+    auto it = messages.find(addr.address);
+    if(it == messages.end())
+    {
+      const auto& [emplaced_it, value] = messages.emplace(addr.address, as->value);
+      auto dist = std::distance(messages.begin(), emplaced_it);
+      this->insertItem(dist, new QListWidgetItem{textFromMessage(addr.address, as->value)});
+    }
+    else
+    {
+      auto dist = std::distance(messages.begin(), it);
+      it.underlying->second = as->value;
+      this->item(dist)->setText(textFromMessage(addr.address, as->value));
+    }
+  }
+
+  static QString textFromMessage(const ::State::Address& addr, const ossia::value& value)
+  {
+    return QStringLiteral("%1: %2").arg(addr.toString()).arg(QString::fromStdString(fmt::format("{}", value)));
+  }
+
+  map_type messages;
+};
+
+class LearnDialog : public QDialog {
+public:
+  QVBoxLayout m_layout;
+  LearnWidget m_learn;
+  QDialogButtonBox m_buttons;
+  LearnDialog(Device::NodeBasedItemModel& model, QWidget* parent = nullptr)
+      : QDialog{parent}
+      , m_layout{this}
+      , m_learn{model, this}
+      , m_buttons{QDialogButtonBox::StandardButton::Ok | QDialogButtonBox::StandardButton::Cancel}
+  {
+    m_layout.addWidget(&m_learn);
+    m_layout.addWidget(&m_buttons);
+    connect(
+        &m_buttons,
+        &QDialogButtonBox::accepted,
+        this,
+        &LearnDialog::on_accept);
+    connect(
+        &m_buttons,
+        &QDialogButtonBox::rejected,
+        this,
+        &LearnDialog::reject);
+  }
+
+  void on_accept()
+  {
+    auto selected = m_learn.currentRow();
+    if(selected >= 0 && selected < int(m_learn.messages.size()))
+    {
+      selectedAddress = &m_learn.messages.container[selected].first;
+      accept();
+    }
+    else
+    {
+      reject();
+    }
+  }
+
+  const State::Address* selectedAddress{};
+};
+}
+void AddressAccessorEditWidget::startLearn()
+{
+  auto dialog = new LearnDialog{*m_model};
+  dialog->exec();
+  if(dialog->selectedAddress)
+  {
+    const auto& node = Device::getNodeFromAddress(m_model->rootNode(), *dialog->selectedAddress);
+    setFullAddress(makeFullAddressAccessorSettings(node));
+
+    addressChanged(m_address);
+  }
+}
+
 void AddressAccessorEditWidget::customContextMenuEvent(const QPoint& p)
 {
   if (m_model)
   {
+    auto m = new QMenu;
+    // Allow to learn whenever a value change
+    auto act = m->addAction(tr("Learn"));
+    connect(act, &QAction::triggered, this, &AddressAccessorEditWidget::startLearn);
+
+    // Show the menu with all the device explorer nodes
     auto device_menu = new QMenuView{m_lineEdit};
+    device_menu->setTitle("Devices");
     device_menu->setModel(m_model);
+
+    m->addMenu(device_menu);
     connect(
         device_menu, &QMenuView::triggered, this, [&](const QModelIndex& m) {
-          setFullAddress(
-              makeFullAddressAccessorSettings(m_model->nodeFromModelIndex(m)));
+          if(m.isValid())
+            {
+              setFullAddress(
+                  makeFullAddressAccessorSettings(m_model->nodeFromModelIndex(m)));
 
-          addressChanged(m_address);
+              addressChanged(m_address);
+            }
         });
 
-    device_menu->exec(m_lineEdit->mapToGlobal(p));
-    delete device_menu;
+    m->exec(m_lineEdit->mapToGlobal(p));
+    m->deleteLater();
+    device_menu->deleteLater();
   }
 }
 
