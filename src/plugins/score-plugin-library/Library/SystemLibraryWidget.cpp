@@ -72,7 +72,7 @@ SystemLibraryWidget::SystemLibraryWidget(
     auto menu = new QMenu{&m_tv};
     auto file_expl = menu->addAction(tr("Open in file explorer"));
     connect(file_expl, &QAction::triggered, this, [=] {
-      QDesktopServices::openUrl(folder_path);
+      QDesktopServices::openUrl(QUrl::fromLocalFile(folder_path));
     });
     menu->exec(m_tv.mapToGlobal(pos));
     menu->deleteLater();
