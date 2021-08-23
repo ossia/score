@@ -13,6 +13,7 @@
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SetIcons.hpp>
 #include <ossia/network/value/format_value.hpp>
+#include <ossia/detail/flat_map.hpp>
 
 #include <ossia/network/common/destination_qualifiers.hpp>
 
