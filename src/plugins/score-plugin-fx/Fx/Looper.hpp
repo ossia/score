@@ -21,7 +21,10 @@ struct Node
     static const constexpr auto controls = std::make_tuple(
         Control::Widgets::LoopChooser(),
         Control::Widgets::QuantificationChooser(),
-        Control::Toggle("Passthrough", true));
+        Control::Toggle("Passthrough", true),
+        Control::Widgets::LoopPostActionChooser(),
+        Control::IntSpinBox("Bars", 0, 64, 4)
+        );
     static const constexpr audio_in audio_ins[]{"in"};
     static const constexpr audio_out audio_outs[]{"out"};
   };
@@ -30,28 +33,63 @@ struct Node
 
   struct State
   {
+    Control::Widgets::LoopMode quantizedPlayMode{Control::Widgets::LoopMode::Stop};
     Control::Widgets::LoopMode actualMode{Control::Widgets::LoopMode::Stop};
     ossia::audio_array audio;
     int64_t playbackPos{};
+    ossia::time_value recordStart{};
+    ossia::quarter_note recordStartBar{-1.};
+    ossia::quarter_note prevTickLastBar{0.};
+    int elapsedBars{-1};
+    bool isPostRecording{false};
   };
 
+  static void changeAction(const ossia::token_request& tk, State& state)
+  {
+    if(state.quantizedPlayMode == Control::Widgets::LoopMode::Record)
+    {
+      state.recordStart = tk.prev_date;
+      state.recordStartBar = tk.musical_start_position;
+      state.elapsedBars = -1;
+    }
+    else
+    {
+      state.recordStart = ossia::time_value{-1LL};
+      state.recordStartBar = -1.;
+      state.elapsedBars = -1;
+    }
+  }
+
+  static void checkPostAction(
+      const std::string& postaction,
+      int postaction_bars,
+      const ossia::token_request& tk,
+      State& st)
+  {
+
+  }
   static void
   run(const ossia::audio_port& p1,
       const std::string& mode,
       float quantif,
-      bool echo,
+      bool passthrough,
+      const std::string& postaction,
+      int postaction_bars,
       ossia::audio_port& p2,
       ossia::token_request tk,
       ossia::exec_state_facade st,
       State& state)
   {
+    if(tk.date == tk.prev_date)
+      return;
+
     using namespace ossia;
     const double modelRatio = st.modelToSamples();
 
     auto m = Control::Widgets::GetLoopMode(mode);
-    if (m != state.actualMode)
+    if (m != state.quantizedPlayMode)
     {
-      if (quantif != 0)
+      if (quantif != 0 && tk.prev_date != 0_tv)
       {
         if (auto time = tk.get_quantification_date(1. / quantif); time && time > tk.prev_date)
         {
@@ -62,10 +100,11 @@ struct Node
               auto sub_tk = tk;
               sub_tk.set_end_time(*time - 1_tv);
 
-              action(p1, p2, sub_tk, state, modelRatio, echo);
+              preAction(p1, p2, sub_tk, state, postaction, postaction_bars, modelRatio, passthrough);
             }
 
             // We can switch to the new mode
+            state.quantizedPlayMode = m;
             state.actualMode = m;
             state.playbackPos = 0;
 
@@ -74,36 +113,131 @@ struct Node
               auto sub_tk = tk;
               sub_tk.set_start_time(*time);
 
-              action(p1, p2, sub_tk, state, modelRatio, echo);
+              changeAction(sub_tk, state);
+              preAction(p1, p2, sub_tk, state, postaction, postaction_bars, modelRatio, passthrough);
             }
           }
           else
           {
             // We can switch to the new mode
+            state.quantizedPlayMode = m;
             state.actualMode = m;
             state.playbackPos = 0;
 
-            action(p1, p2, tk, state, modelRatio, echo);
+            changeAction(tk, state);
+            preAction(p1, p2, tk, state, postaction, postaction_bars, modelRatio, passthrough);
           }
         }
         else
         {
-          action(p1, p2, tk, state, modelRatio, echo);
+          // We cannot switch yet
+          preAction(p1, p2, tk, state, postaction, postaction_bars, modelRatio, passthrough);
         }
       }
       else
       {
-        // We can switch to the new mode
+        // No quantization, we can switch to the new mode
+        state.quantizedPlayMode = m;
         state.actualMode = m;
         state.playbackPos = 0;
 
-        action(p1, p2, tk, state, modelRatio, echo);
+        changeAction(tk, state);
+        preAction(p1, p2, tk, state, postaction, postaction_bars, modelRatio, passthrough);
       }
     }
     else
     {
-      action(p1, p2, tk, state, modelRatio, echo);
+      // No change
+      preAction(p1, p2, tk, state, postaction, postaction_bars, modelRatio, passthrough);
     }
+  }
+
+  static void preAction(
+      const ossia::audio_port& p1,
+      ossia::audio_port& p2,
+      ossia::token_request tk,
+      State& state,
+      const std::string& postaction,
+      int postaction_bars,
+      double modelRatio,
+      bool passthrough)
+  {
+    using namespace ossia;
+    if(state.recordStartBar == -1.)
+    {
+      action(p1, p2, tk, state, modelRatio, passthrough);
+    }
+    else
+    {
+      // If we are in the token request which steps into the bar in which
+      // we change because we are e.g. 4 bars after the recording started
+
+      // Change of bar at the first sample
+      if(tk.musical_start_last_bar != state.prevTickLastBar)
+      {
+        state.elapsedBars++;
+        if(state.elapsedBars >= postaction_bars)
+        {
+          state.actualMode = Control::Widgets::GetLoopMode(postaction);
+          state.recordStart = ossia::time_value{-1};
+          state.recordStartBar = -1.;
+          state.elapsedBars = -1;
+        }
+        action(p1, p2, tk, state, modelRatio, passthrough);
+      }
+
+      // Change of bar in the middle
+      else if(tk.musical_end_last_bar != tk.musical_start_last_bar)
+      {
+        state.elapsedBars++;
+        if(state.elapsedBars >= postaction_bars)
+        {
+          if(auto quant_date = tk.get_quantification_date(1.0))
+          {
+            ossia::time_value t = *quant_date;
+            if(t > tk.prev_date)
+            {
+              // Finish what we were doing until the quantization date
+              {
+                auto sub_tk = tk;
+                sub_tk.set_end_time(t - 1_tv);
+                action(p1, p2, sub_tk, state, modelRatio, passthrough);
+              }
+
+              // We can switch to the new mode
+              state.actualMode = Control::Widgets::GetLoopMode(postaction);
+              state.playbackPos = 0;
+
+              // Remaining of the tick
+              {
+                auto sub_tk = tk;
+                sub_tk.set_start_time(t);
+
+                action(p1, p2, sub_tk, state, modelRatio, passthrough);
+              }
+            }
+            else
+            {
+              qDebug("very weird");
+            }
+          }
+          else
+          {
+            qDebug("weird");
+          }
+          state.actualMode = Control::Widgets::GetLoopMode(postaction);
+          state.recordStart = ossia::time_value{-1};
+          state.recordStartBar = -1.;
+          state.elapsedBars = -1;
+        }
+      }
+      else
+      {
+        action(p1, p2, tk, state, modelRatio, passthrough);
+      }
+    }
+
+    state.prevTickLastBar = tk.musical_end_last_bar;
   }
 
   static void action(
@@ -380,6 +514,8 @@ struct Node
       Process::Enum& mode,
       Process::ComboBox& quantif,
       Process::Toggle& echo,
+      Process::Enum& playmode,
+      Process::IntSpinBox& playmode_bars,
       const Process::ProcessModel& process,
       QGraphicsItem& parent,
       QObject& context,

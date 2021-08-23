@@ -127,6 +127,11 @@ constexpr auto LoopChooser()
   return Control::make_enum(
       "Loop", 0U, ossia::make_array("Play", "Record", "Overdub", "Stop"));
 }
+constexpr auto LoopPostActionChooser()
+{
+  return Control::make_enum(
+      "Loop", 0U, ossia::make_array("Play", "Overdub"));
+}
 constexpr LoopMode GetLoopMode(std::string_view str) noexcept
 {
   if (str == "Play")
