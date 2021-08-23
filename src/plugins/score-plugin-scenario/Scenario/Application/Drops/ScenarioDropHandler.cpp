@@ -161,7 +161,7 @@ bool GhostIntervalDropHandler::dragMove(
         const auto ext = QFileInfo{url.toLocalFile()}.suffix();
         suffixes
             |= ossia::any_of(m_acceptableSuffixes, [&](const auto& suffix) {
-                 return ext == suffix;
+                 return ext.compare(suffix, Qt::CaseInsensitive) == 0;
                });
         if (suffixes)
           break;
