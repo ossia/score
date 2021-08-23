@@ -48,6 +48,7 @@ TimeSyncComponent::TimeSyncComponent(
       this,
       &TimeSyncComponent::updateTrigger);
 
+  // TODO startChanged
   con(element,
       &Scenario::TimeSyncModel::musicalSyncChanged,
       this,
