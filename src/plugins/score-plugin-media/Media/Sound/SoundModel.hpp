@@ -125,6 +125,4 @@ private:
   double m_nativeTempo{};
 };
 }
-
-std::optional<double> estimateTempo(const AudioFile& file);
 }

@@ -68,18 +68,6 @@ ExternalProject_Add(
 
 add_dependencies(${PROJECT_NAME} faustlibs)
 
-function(disable_var VAR)
-  if(${${VAR}})
-    set(${VAR}_prev "${${VAR}}" CACHE "" INTERNAL)
-  endif()
-  set(${VAR} 0 CACHE "" INTERNAL)
-endfunction()
-function(restore_var VAR)
-  if(${${VAR}_prev})
-    set(${VAR} "${${VAR}_prev}" CACHE "" INTERNAL)
-  endif()
-endfunction()
-
 if(WIN32)
   target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32)
 endif()
@@ -89,35 +77,9 @@ if(LLVM_INCLUDE_DIRS)
   target_include_directories(${PROJECT_NAME} PRIVATE ${LLVM_INCLUDE_DIRS})
 endif()
 
-find_path(SNDFILE_INCLUDE_DIR sndfile.h HINTS ${OSSIA_SDK}/sndfile/include)
-find_library(SNDFILE_LIBRARY sndfile HINTS ${OSSIA_SDK}/sndfile/lib)
-if(SNDFILE_INCLUDE_DIR AND SNDFILE_LIBRARY)
-  target_include_directories(${PROJECT_NAME} PRIVATE ${SNDFILE_INCLUDE_DIR})
-  target_link_libraries(${PROJECT_NAME} PRIVATE ${SNDFILE_LIBRARY})
-else()
-  include(FetchContent)
-  disable_var(BUILD_PROGRAMS)
-  disable_var(BUILD_EXAMPLES)
-  disable_var(ENABLE_PACKAGE_CONFIG)
-  disable_var(INSTALL_PKGCONFIG_MODULE)
-  disable_var(ENABLE_EXPERIMENTAL)
-  disable_var(BUILD_REGTEST)
-  disable_var(BUILD_TESTING)
-
-  FetchContent_Declare(
-    sndfile
-    GIT_REPOSITORY https://github.com/jcelerier/libsndfile
-    )
-  FetchContent_MakeAvailable(sndfile)
-  if(TARGET sndfile)
-    set_target_properties(sndfile PROPERTIES UNITY_BUILD 0)
-  endif()
-
-  restore_var(BUILD_TESTING)
-
+if(TARGET SndFile::sndfile)
   target_link_libraries(${PROJECT_NAME} PRIVATE SndFile::sndfile)
 endif()
-
 if(SCORE_FAUST_TESTER)
   add_executable(FaustTester Tests/FaustTester.cpp)
   target_compile_features(FaustTester PRIVATE cxx_std_20)

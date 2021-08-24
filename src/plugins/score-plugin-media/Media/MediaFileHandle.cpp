@@ -29,33 +29,6 @@
 namespace Media
 {
 
-static int64_t readSampleRate(QFile& file)
-{
-  bool ok = file.open(QIODevice::ReadOnly);
-  if (!ok)
-  {
-    return -1;
-  }
-
-  auto data = file.map(0, file.size());
-  if (!data)
-  {
-    return -1;
-  }
-
-  drwav w{};
-  ok = drwav_init_memory(
-      &w, data, file.size(), &ossia::drwav_handle::drwav_allocs);
-  if (!ok)
-  {
-    return -1;
-  }
-
-  auto sr = w.sampleRate;
-  drwav_uninit(&w);
-  return sr;
-}
-
 // TODO if it's smaller than e.g. 1 megabyte, it would be worth
 // loading it in memory entirely..
 // TODO might make sense to do resampling during execution if it's nott too
@@ -65,10 +38,19 @@ static DecodingMethod needsDecoding(const QString& path, int rate)
   if (path.endsWith("wav", Qt::CaseInsensitive)
       || path.endsWith("w64", Qt::CaseInsensitive))
   {
-    QFile f(path);
-    auto sr = readSampleRate(f);
-    if (sr == rate)
+    const auto& info = probe(path);
+
+    if (info->fileRate == rate)
       return DecodingMethod::Mmap;
+    else
+      return DecodingMethod::Libav;
+  }
+  else if(path.endsWith("aiff", Qt::CaseInsensitive)
+      || path.endsWith("aif", Qt::CaseInsensitive))
+  {
+    const auto& info = probe(path);
+    if (info->fileRate == rate)
+      return DecodingMethod::Sndfile;
     else
       return DecodingMethod::Libav;
   }
@@ -106,6 +88,9 @@ void AudioFile::load(const QString& path, const QString& abspath)
     case DecodingMethod::Mmap:
       load_drwav();
       break;
+    case DecodingMethod::Sndfile:
+      load_sndfile();
+      break;
     default:
       break;
   }
@@ -131,6 +116,9 @@ void AudioFile::load(
     case DecodingMethod::Mmap:
       load_drwav();
       break;
+    case DecodingMethod::Sndfile:
+      load_sndfile();
+      break;
     default:
       break;
   }
@@ -144,6 +132,10 @@ int64_t AudioFile::decodedSamples() const
     int64_t operator()(const libav_ptr& r) const noexcept
     {
       return r->decoder.decoded;
+    }
+    int64_t operator()(const sndfile_ptr& r) const noexcept
+    {
+      return r.decoder.decoded;
     }
     int64_t operator()(const mmap_ptr& r) const noexcept
     {
@@ -159,10 +151,10 @@ bool AudioFile::isSupported(const QFile& file)
          && file.fileName().contains(
 #if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
              QRegularExpression(
-                 ".(wav|aif|aiff|flac|ogg|mp3|m4a)",
+                 ".(wav|aif|aiff|flac|ogg|mp3|m4a|w64)",
                  QRegularExpression::CaseInsensitiveOption)
 #else
-             QRegExp(".(wav|aif|aiff|flac|ogg|mp3|m4a)", Qt::CaseInsensitive)
+             QRegExp(".(wav|aif|aiff|flac|ogg|mp3|m4a|w64)", Qt::CaseInsensitive)
 #endif
          );
 }
@@ -175,6 +167,11 @@ int64_t AudioFile::samples() const
     int64_t operator()(const libav_ptr& r) const noexcept
     {
       const auto& samples = r->handle->data;
+      return samples.size() > 0 ? samples[0].size() : 0;
+    }
+    int64_t operator()(const sndfile_ptr& r) const noexcept
+    {
+      const auto& samples = r.handle->data;
       return samples.size() > 0 ? samples[0].size() : 0;
     }
     int64_t operator()(const mmap_ptr& r) const noexcept
@@ -193,6 +190,10 @@ int64_t AudioFile::channels() const
     int64_t operator()(const libav_ptr& r) const noexcept
     {
       return r->handle->data.size();
+    }
+    int64_t operator()(const sndfile_ptr& r) const noexcept
+    {
+      return r.handle->data.size();
     }
     int64_t operator()(const mmap_ptr& r) const noexcept
     {
@@ -215,12 +216,25 @@ void AudioFile::updateSampleRate(int rate)
     case DecodingMethod::Libav:
       load_ffmpeg(rate);
       break;
+    case DecodingMethod::Sndfile:
+      load_ffmpeg(rate);
+      break;
     case DecodingMethod::Mmap:
       load_drwav();
       break;
     default:
       break;
   }
+}
+
+std::optional<double> AudioFile::knownTempo() const noexcept
+{
+  auto& db = AudioDecoder::database();
+  if(auto it = db.find(this->m_file); it != db.end())
+  {
+    return it->tempo;
+  }
+  return {};
 }
 
 template <typename Fun_T, typename T>
@@ -233,7 +247,7 @@ struct FrameComputer
 
   void operator()() const noexcept { }
 
-  void operator()(const AudioFile::LibavView& r) noexcept
+  void operator()(const AudioFile::RAMView& r) noexcept
   {
     const int channels = r.data.size();
     assert((int)sum.size() == channels);
@@ -325,7 +339,7 @@ struct SingleFrameComputer
 
   void operator()() const noexcept { }
 
-  void operator()(const AudioFile::LibavView& r) noexcept
+  void operator()(const AudioFile::RAMView& r) noexcept
   {
     const int channels = r.data.size();
     assert((int)sum.size() == channels);
@@ -414,7 +428,7 @@ void AudioFile::load_ffmpeg(int rate)
   {
     r.handle = std::make_shared<ossia::audio_data>();
 
-    auto info = AudioDecoder::probe(m_file);
+    auto info = probe(m_file);
     if (!info)
     {
       m_impl = Handle{};
@@ -478,20 +492,6 @@ void AudioFile::load_ffmpeg(int rate)
     m_sampleRate = rate;
 
     QFileInfo fi{f};
-    if (fi.completeSuffix() == "wav")
-    {
-      // Do a quick pass if it'as a wav file to check for ACID tags
-      if (f.open(QIODevice::ReadOnly))
-      {
-        if (auto data = f.map(0, f.size()))
-        {
-          ossia::drwav_handle h;
-          h.open_memory(data, f.size());
-
-          ptr->tempo = h.acid().tempo;
-        }
-      }
-    }
 
     // Assign pointers to the audio data
     r.data.resize(r.handle->data.size());
@@ -567,6 +567,51 @@ void AudioFile::load_drwav()
   qDebug() << "AudioFileHandle::on_mediaChanged(): " << m_file;
 }
 
+void AudioFile::load_sndfile()
+{
+  qDebug() << "AudioFileHandle::load_sndfile(): " << m_file;
+
+  // Loading with drwav is done when the file can be
+  // mmapped directly in to memory.
+
+  SndfileReader r;
+
+  r.handle = std::make_shared<ossia::audio_data>();
+  r.decoder.decode(m_file, r.handle);
+
+  m_rms->load(
+      m_file,
+      r.decoder.channels,
+      r.decoder.fileSampleRate,
+      TimeVal::fromMsecs(
+          1000. * r.decoder.decoded / r.decoder.fileSampleRate));
+
+  for (auto& channel : r.handle->data)
+  {
+    r.data.push_back(channel.data());
+  }
+
+  m_rms->newData();
+  m_rms->finishedDecoding();
+  /* FIXME
+  if (!m_rms->exists())
+  {
+    m_rms->decode(r.wav);
+  }
+  */
+
+  QFileInfo fi{m_file};
+  m_fileName = fi.fileName();
+  m_sampleRate = r.decoder.fileSampleRate;
+
+  m_impl = std::move(r);
+
+  m_fullyDecoded = true;
+  on_mediaChanged();
+  on_finishedDecoding();
+  qDebug() << "AudioFileHandle::on_mediaChanged(): " << m_file;
+}
+
 AudioFileManager::AudioFileManager() noexcept
 {
   auto& audioSettings
@@ -613,7 +658,11 @@ AudioFile::ViewHandle::ViewHandle(const AudioFile::Handle& handle)
     void operator()() const noexcept { }
     void operator()(const libav_ptr& r) const noexcept
     {
-      self = LibavView{r->data};
+      self = RAMView{r->data};
+    }
+    void operator()(const sndfile_ptr& r) const noexcept
+    {
+      self = RAMView{r.data};
     }
     void operator()(const mmap_ptr& r) const noexcept
     {
@@ -634,7 +683,7 @@ ossia::audio_array AudioFile::getAudioArray() const
     int64_t frames{};
     ossia::audio_array out;
 
-    void operator()(const Media::AudioFile::LibavView& av) noexcept
+    void operator()(const Media::AudioFile::RAMView& av) noexcept
     {
       const int channels = av.data.size();
       out.resize(channels);
@@ -733,6 +782,73 @@ void writeAudioArrayToFile(const QString& path, const ossia::audio_array& arr, i
   drwav_write_pcm_frames(&wav, frames, buffer.get());
   drwav_uninit(&wav);
   f.flush();
+}
+
+std::optional<AudioInfo> probe_drwav(const QFileInfo& fi)
+{
+  QFile f{fi.absoluteFilePath()};
+  // Do a quick pass if it'as a wav file to check for ACID tags
+  if (f.open(QIODevice::ReadOnly))
+  {
+    if (auto data = f.map(0, f.size()))
+    {
+      ossia::drwav_handle h;
+      h.open_memory(data, f.size());
+
+      AudioInfo info;
+      info.fileRate = h.sampleRate();
+      info.channels = h.channels();
+      info.fileLength = h.totalPCMFrameCount();
+      info.max_arr_length = h.totalPCMFrameCount();
+
+      if(h.acid().tempo > 0.0001)
+        info.tempo = h.acid().tempo;
+      else
+        info.tempo = estimateTempo(f.fileName());
+
+      return info;
+    }
+  }
+
+  return std::nullopt;
+}
+
+std::optional<AudioInfo> probe(const QString& path)
+{
+  // FIXME we have to reload everything when the sample rate changes !!
+  auto it = AudioDecoder::database().find(path);
+  if (it == AudioDecoder::database().end())
+  {
+    QFileInfo fi{path};
+    const auto& suffix = fi.completeSuffix().toLower();
+    if (suffix == "wav" || suffix == "w64")
+    {
+      if(auto ret = probe_drwav(path))
+      {
+        AudioDecoder::database().insert(path, *ret);
+        return ret;
+      }
+    }
+    else if (suffix == "aif" || suffix == "aiff")
+    {
+      if(auto ret = SndfileDecoder::do_probe(path))
+      {
+        AudioDecoder::database().insert(path, *ret);
+        return ret;
+      }
+    }
+
+    if(auto ret = AudioDecoder::do_probe(path))
+    {
+      AudioDecoder::database().insert(path, *ret);
+      return ret;
+    }
+    return std::nullopt;
+  }
+  else
+  {
+    return *it;
+  }
 }
 
 }

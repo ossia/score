@@ -9,26 +9,9 @@
 W_OBJECT_IMPL(Media::Sound::ProcessModel)
 namespace Media
 {
-std::optional<double> estimateTempo(const AudioFile& file)
+std::optional<double> estimateTempo(const QString& path)
 {
-  auto handle = file.unsafe_handle();
-  if (auto file = handle.target<AudioFile::mmap_ptr>())
-  {
-    const auto tempo = file->wav.acid().tempo;
-    if (tempo != 0.f)
-    {
-      return tempo;
-    }
-  }
-  else if (auto file = handle.target<AudioFile::libav_ptr>())
-  {
-    if ((*file)->tempo != 0.f)
-    {
-      return (*file)->tempo;
-    }
-  }
-
-  auto path = file.absoluteFileName();
+  // we live in a society
   static const QRegularExpression e{"([0-9]+) ?(bpm|BPM|Bpm)"};
   const auto res = e.match(path);
   if (res.hasMatch())
@@ -37,6 +20,11 @@ std::optional<double> estimateTempo(const AudioFile& file)
   }
 
   return {};
+}
+
+std::optional<double> estimateTempo(const AudioFile& file)
+{
+  return estimateTempo(file.absoluteFileName());
 }
 
 namespace Sound
@@ -75,7 +63,7 @@ void ProcessModel::setFile(const QString& file)
   {
     loadFile(file);
 
-    if (auto tempo = estimateTempo(*m_file))
+    if (auto tempo = m_file->knownTempo())
     {
       setNativeTempo(*tempo);
       setStretchMode(ossia::audio_stretch_mode::RubberBandPercussive);

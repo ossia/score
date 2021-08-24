@@ -1,5 +1,6 @@
 #pragma once
 #include <Media/AudioDecoder.hpp>
+#include <Media/SndfileDecoder.hpp>
 
 #include <score/tools/std/StringHash.hpp>
 
@@ -15,7 +16,6 @@
 
 #include <array>
 #include <verdigris>
-
 namespace score
 {
 struct DocumentContext;
@@ -44,7 +44,8 @@ enum class DecodingMethod
 {
   Invalid,
   Mmap,
-  Libav
+  Libav,
+  Sndfile
 };
 
 struct SCORE_PLUGIN_MEDIA_EXPORT AudioFile final : public QObject
@@ -96,21 +97,29 @@ public:
     ossia::drwav_handle wav;
   };
 
-  struct LibavReader
+  struct RAMReader
   {
-    LibavReader(int rate) noexcept
+    ossia::audio_handle handle;
+    ossia::small_vector<ossia::audio_sample*, 8> data;
+  };
+
+  struct LibavReader : RAMReader
+  {
+    explicit LibavReader(int rate) noexcept
         : decoder{rate}
     {
     }
     AudioDecoder decoder;
-    audio_handle handle;
-    ossia::small_vector<audio_sample*, 8> data;
-    float tempo{};
+  };
+  struct SndfileReader : RAMReader
+  {
+    SndfileDecoder decoder;
   };
 
   using libav_ptr = std::shared_ptr<LibavReader>;
   using mmap_ptr = MmapReader;
-  using impl_t = eggs::variant<mmap_ptr, libav_ptr>;
+  using sndfile_ptr = SndfileReader;
+  using impl_t = eggs::variant<mmap_ptr, libav_ptr, sndfile_ptr>;
 
   struct MmapView
   {
@@ -118,7 +127,7 @@ public:
     ossia::drwav_handle wav;
   };
 
-  struct LibavView
+  struct RAMView
   {
     ossia::small_vector<audio_sample*, 8> data;
   };
@@ -134,6 +143,10 @@ public:
         : impl_t{std::move(ptr)}
     {
     }
+    Handle(sndfile_ptr&& ptr)
+        : impl_t{std::move(ptr)}
+    {
+    }
     Handle& operator=(mmap_ptr&& ptr)
     {
       ((impl_t&)*this) = std::move(ptr);
@@ -144,9 +157,14 @@ public:
       ((impl_t&)*this) = std::move(ptr);
       return *this;
     }
+    Handle& operator=(sndfile_ptr&& ptr)
+    {
+      ((impl_t&)*this) = std::move(ptr);
+      return *this;
+    }
   };
 
-  using view_impl_t = eggs::variant<MmapView, LibavView>;
+  using view_impl_t = eggs::variant<MmapView, RAMView>;
   struct ViewHandle : view_impl_t
   {
     using view_impl_t::view_impl_t;
@@ -169,9 +187,12 @@ public:
 
   const Handle& unsafe_handle() const noexcept { return m_impl; }
 
+  std::optional<double> knownTempo() const noexcept;
 private:
+
   void load_ffmpeg(int rate);
   void load_drwav();
+  void load_sndfile();
 
   friend class SoundComponentSetup;
 
@@ -205,6 +226,14 @@ private:
  */
 SCORE_PLUGIN_MEDIA_EXPORT
 void writeAudioArrayToFile(const QString& path, const ossia::audio_array& arr, int fs);
+
+
+std::optional<double> estimateTempo(const AudioFile& file);
+std::optional<double> estimateTempo(const QString& filePath);
+
+std::optional<AudioInfo> probe(const QString& path);
+
+
 }
 
 Q_DECLARE_METATYPE(std::shared_ptr<Media::AudioFile>)

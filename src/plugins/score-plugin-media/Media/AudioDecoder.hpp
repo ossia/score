@@ -17,17 +17,29 @@ namespace Media
 {
 struct AudioInfo
 {
-  int32_t rate{};
+  int32_t fileRate{};
+  int32_t convertedRate{};
   int64_t channels{};
-  int64_t length{};
+  int64_t fileLength{};
+  int64_t convertedLength{};
   int64_t max_arr_length{};
-  double tempo{120.};
+  std::optional<double> tempo;
 
   // Duration
   TimeVal duration() const noexcept
   {
-    return TimeVal::fromMsecs(
-        1000. * (double(length) / double(rate)) * (tempo / ossia::root_tempo));
+    if(fileRate == 0 || fileLength == 0)
+      return TimeVal::zero();
+
+    if(tempo)
+    {
+      return TimeVal::fromMsecs(
+          1000. * (double(fileLength) / double(fileRate)) * (*tempo / ossia::root_tempo));
+    }
+    else
+    {
+      return TimeVal::fromMsecs(1000. * (double(fileLength) / double(fileRate)));
+    }
   }
 };
 
@@ -38,7 +50,7 @@ class AudioDecoder : public QObject
 public:
   AudioDecoder(int rate);
   ~AudioDecoder();
-  static std::optional<AudioInfo> probe(const QString& path);
+  static std::optional<AudioInfo> do_probe(const QString& path);
   void decode(const QString& path, audio_handle hdl);
 
   static std::optional<std::pair<AudioInfo, audio_array>>

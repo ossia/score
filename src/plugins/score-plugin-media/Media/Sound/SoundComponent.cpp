@@ -67,6 +67,19 @@ public:
 
         commands.run_all();
       }
+      void operator()(const Media::AudioFile::SndfileReader& r)
+          const noexcept
+      {
+        Execution::Transaction commands{component.system()};
+
+        auto node = std::make_shared<ossia::nodes::sound_ref>();
+        component.node = node;
+        component.m_ossia_process
+            = std::make_shared<ossia::sound_process>(node);
+        update_sndfile(node, r, component, commands);
+
+        commands.run_all();
+      }
       void operator()(const Media::AudioFile::MmapReader& r) const noexcept
       {
         Execution::Transaction commands{component.system()};
@@ -108,6 +121,32 @@ public:
         {
           n = std::make_shared<ossia::nodes::sound_ref>();
           update_ref(n, r, component, commands);
+          component.system().setup.unregister_node(
+              component.process(), old_node, commands);
+          component.system().setup.register_node(
+              component.process(), n, commands);
+          component.system().setup.replace_node(
+              component.OSSIAProcessPtr(), n, commands);
+          component.nodeChanged(old_node, n, &commands);
+        }
+
+        commands.run_all();
+      }
+      void operator()(const Media::AudioFile::SndfileReader& r)
+          const noexcept
+      {
+        Execution::Transaction commands{component.system()};
+        auto old_node = component.node;
+
+        if (auto n
+            = std::dynamic_pointer_cast<ossia::nodes::sound_ref>(old_node))
+        {
+          update_sndfile(n, r, component, commands);
+        }
+        else
+        {
+          n = std::make_shared<ossia::nodes::sound_ref>();
+          update_sndfile(n, r, component, commands);
           component.system().setup.unregister_node(
               component.process(), old_node, commands);
           component.system().setup.register_node(
@@ -173,6 +212,29 @@ public:
       n->set_resampler(std::move(*res));
       n->set_native_tempo(tempo);
     });
+  }
+
+  static void update_sndfile(
+      const std::shared_ptr<ossia::nodes::sound_ref>& n,
+      const Media::AudioFile::SndfileReader& r,
+      Execution::SoundComponent& component,
+      Execution::Transaction& commands)
+  {
+    auto& p = component.process();
+    commands.push_back([n,
+                        data = r.handle,
+                        channels = r.decoder.channels,
+                        sampleRate = r.decoder.convertedSampleRate,
+                        tempo = component.process().nativeTempo(),
+                        res = make_resampler(component.process()),
+                        upmix = p.upmixChannels(),
+                        start = p.startChannel()]() mutable {
+                         n->set_sound(std::move(data), channels, sampleRate);
+                         n->set_start(start);
+                         n->set_upmix(upmix);
+                         n->set_resampler(std::move(*res));
+                         n->set_native_tempo(tempo);
+                       });
   }
 
   static void update_mmap(

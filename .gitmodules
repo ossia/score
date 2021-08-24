@@ -44,3 +44,6 @@
 [submodule "3rdparty/hap"]
 	path = 3rdparty/hap
 	url = https://github.com/Vidvox/hap
+[submodule "3rdparty/libsndfile"]
+	path = 3rdparty/libsndfile
+	url = https://github.com/jcelerier/libsndfile

@@ -66,6 +66,7 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioDecoder.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/MediaFileHandle.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/RMSData.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/SndfileDecoder.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Mixer/MixerPanel.hpp"
 
@@ -108,6 +109,7 @@ set(SRCS
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/MediaFileHandle.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/RMSData.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/SndfileDecoder.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Tempo.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioDecoder.cpp"
 
@@ -187,6 +189,7 @@ target_link_libraries(${PROJECT_NAME}
   PRIVATE
     rubberband
     samplerate
+    sndfile
 )
 
 setup_score_plugin(${PROJECT_NAME})

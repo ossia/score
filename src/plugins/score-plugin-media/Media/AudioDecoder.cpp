@@ -516,59 +516,55 @@ AVFormatContext_ptr open_audio(const QString& path)
         + std::string(err));
   }
 
+  AVDictionaryEntry *tag = NULL;
+  while ((tag = av_dict_get(fmt_ctx_ptr->metadata, "", tag, AV_DICT_IGNORE_SUFFIX)))
+    qDebug() << tag->key << "=" << tag->value;
+
   return AVFormatContext_ptr{fmt_ctx_ptr};
 #else
   return {};
 #endif
 }
 
-std::optional<AudioInfo> AudioDecoder::probe(const QString& path)
+std::optional<AudioInfo> AudioDecoder::do_probe(const QString& path)
 {
-  auto it = database().find(path);
-  if (it == database().end())
-  {
 #if SCORE_HAS_LIBAV
-    auto fmt_ctx = open_audio(path);
+  auto fmt_ctx = open_audio(path);
 
-    if (avformat_find_stream_info(fmt_ctx.get(), nullptr) < 0)
-      return {};
+  if (avformat_find_stream_info(fmt_ctx.get(), nullptr) < 0)
+    return {};
 
-    for (std::size_t i = 0; i < fmt_ctx->nb_streams; i++)
+  for (std::size_t i = 0; i < fmt_ctx->nb_streams; i++)
+  {
+    if (fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
     {
-      if (fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
-      {
-        auto stream = fmt_ctx->streams[i];
-        AudioInfo info;
-        info.channels = stream->codecpar->channels;
-        if (info.channels == 0)
-          return {};
-        info.rate = stream->codecpar->sample_rate;
-        info.length = std::ceil(info.rate * read_length(path));
-        info.max_arr_length = info.length;
+      auto stream = fmt_ctx->streams[i];
+      AudioInfo info;
+      info.channels = stream->codecpar->channels;
+      if (info.channels == 0)
+        return {};
+      info.fileRate = stream->codecpar->sample_rate;
+      info.fileLength = std::ceil(info.fileRate * read_length(path));
+      info.max_arr_length = info.fileLength;
+      info.tempo = estimateTempo(path);
 
-        /*
+      /*
         if (info.rate != m_targetSampleRate)
         {
           info.length
               = av_rescale_rnd(info.length, m_targetSampleRate, info.rate,
         AV_ROUND_UP);
 
-          if (info.length > info.max_arr_length)
-            info.max_arr_length = info.length;
+        if (info.length > info.max_arr_length)
+          info.max_arr_length = info.length;
         }
-        */
+      */
 
-        database().insert(path, info);
-        return info;
-      }
+      return info;
     }
+  }
 #endif
-    return {};
-  }
-  else
-  {
-    return *it;
-  }
+  return {};
 }
 
 QHash<QString, AudioInfo>& AudioDecoder::database()
@@ -636,7 +632,7 @@ void AudioDecoder::decode(const QString& path, audio_handle hdl)
   }
 
   decoded = 0;
-  fileSampleRate = info.rate;
+  fileSampleRate = info.fileRate;
   channels = info.channels;
   auto& data = hdl->data;
   data.resize(info.channels);
@@ -663,13 +659,13 @@ void AudioDecoder::decode(const QString& path, audio_handle hdl)
 std::optional<std::pair<AudioInfo, audio_array>>
 AudioDecoder::decode_synchronous(const QString& path, int rate)
 {
-
-  AudioDecoder dec(rate);
-  auto res = dec.probe(path);
+  auto res = probe(path);
   if (!res)
     return std::nullopt;
 
-  dec.fileSampleRate = res->rate;
+  AudioDecoder dec(rate);
+
+  dec.fileSampleRate = res->fileRate;
   dec.channels = res->channels;
 
   auto hdl = std::make_shared<ossia::audio_data>();

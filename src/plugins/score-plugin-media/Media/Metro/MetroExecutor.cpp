@@ -211,8 +211,8 @@ struct MetronomeSounds
 
   operator bool() const noexcept
   {
-    return tick_handle.target<Media::AudioFile::LibavView>()
-           && tock_handle.target<Media::AudioFile::LibavView>();
+    return tick_handle.target<Media::AudioFile::RAMView>()
+           && tock_handle.target<Media::AudioFile::RAMView>();
   }
 };
 
@@ -230,9 +230,9 @@ MetroComponent::MetroComponent(
   if (sounds)
   {
     const auto& tick_sound{
-        sounds.tick_handle.target<Media::AudioFile::LibavView>()->data};
+        sounds.tick_handle.target<Media::AudioFile::RAMView>()->data};
     const auto& tock_sound{
-        sounds.tock_handle.target<Media::AudioFile::LibavView>()->data};
+        sounds.tock_handle.target<Media::AudioFile::RAMView>()->data};
 
     auto node = std::make_shared<ossia::nodes::audio_metronome>(
         tick_sound,

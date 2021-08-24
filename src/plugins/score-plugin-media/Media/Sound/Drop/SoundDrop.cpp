@@ -24,21 +24,13 @@ DroppedAudioFiles::DroppedAudioFiles(
     QString filename = url.toLocalFile();
     if (!AudioFile::isSupported(QFile{filename}))
       continue;
-    auto& audioSettings
-        = score::GUIAppContext().settings<Audio::Settings::Model>();
-    AudioDecoder dec(audioSettings.getRate());
-    if (auto info_opt = dec.probe(filename))
+
+    if(auto info_opt = probe(filename))
     {
       auto info = *info_opt;
-      if (info.channels > 0 && info.length > 0)
+      if (info.channels > 0 && info.fileLength > 0)
       {
-        const auto& file = AudioFileManager::instance().get(filename, ctx);
-
         auto dur = info.duration();
-        if (auto tempo = estimateTempo(*file))
-        {
-          AudioDecoder::database()[filename].tempo = *tempo;
-        }
         files.emplace_back(std::make_pair(filename, dur));
         maxDuration = std::max(maxDuration, dur);
       }
