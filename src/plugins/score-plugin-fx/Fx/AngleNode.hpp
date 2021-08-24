@@ -18,7 +18,7 @@ struct Node
     static const uuid_constexpr auto uuid
         = make_uuid("9b0e21ba-965a-4aa4-beeb-60cc5128c418");
 
-    static const constexpr value_in value_ins[]{"in"};
+    static const constexpr value_in value_ins[]{value_in{"in", false}};
     static const constexpr value_out value_outs[]{"out"};
   };
 

@@ -22,7 +22,7 @@ struct Node
     static const uuid_constexpr auto uuid
         = make_uuid("ae84e8b6-74ff-4259-aeeb-305d95cdfcab");
 
-    static const constexpr value_in value_ins[]{"in"};
+    static const constexpr value_in value_ins[]{value_in{"in", false}};
     static const constexpr value_out value_outs[]{"out"};
 
     static const constexpr auto controls = std::make_tuple(
@@ -302,7 +302,7 @@ struct Node
     static const uuid_constexpr auto uuid
         = make_uuid("25c64b87-a44a-4fed-9f60-0a48906fd3ec");
 
-    static const constexpr value_in value_ins[]{"in"};
+    static const constexpr value_in value_ins[]{value_in{"in", false}};
     static const constexpr value_out value_outs[]{"out"};
 
     static const constexpr auto controls = std::make_tuple(
@@ -313,6 +313,7 @@ struct Node
     State()
     {
       expr.add_variable("x", cur_value);
+      expr.add_variable("px", prev_value);
       expr.add_variable("t", cur_time);
       expr.add_variable("dt", cur_deltatime);
       expr.add_variable("pos", cur_pos);
@@ -321,6 +322,7 @@ struct Node
       expr.register_symbol_table();
     }
     double cur_value{};
+    double prev_value{};
     double cur_time{};
     double cur_deltatime{};
     double cur_pos{};
@@ -353,6 +355,8 @@ struct Node
       self.cur_value = ossia::convert<double>(v.value);
 
       auto res = self.expr.value();
+
+      self.prev_value = self.cur_value;
 
       output.write_value(res, v.timestamp);
     }
