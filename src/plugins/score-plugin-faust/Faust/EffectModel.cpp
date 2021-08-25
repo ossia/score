@@ -158,6 +158,10 @@ static bool faustIsMidi(llvm_dsp& dsp)
         FAUSTFLOAT max,
         FAUSTFLOAT step) override
     {
+      if (label == std::string("freq"))
+        freq = true;
+      if (label == std::string("gain"))
+        gain = true;
     }
 
     // -- passive widgets
