@@ -5,12 +5,17 @@
 
 class OpaqueString
 {
-  friend bool operator==(const OpaqueString& lhs, const OpaqueString& rhs)
+  friend bool operator==(const OpaqueString& lhs, const OpaqueString& rhs) noexcept
   {
     return lhs.impl == rhs.impl;
   }
 
-  friend bool operator<(const OpaqueString& lhs, const OpaqueString& rhs)
+  friend bool operator!=(const OpaqueString& lhs, const OpaqueString& rhs) noexcept
+  {
+    return lhs.impl != rhs.impl;
+  }
+
+  friend bool operator<(const OpaqueString& lhs, const OpaqueString& rhs) noexcept
   {
     return lhs.impl < rhs.impl;
   }
