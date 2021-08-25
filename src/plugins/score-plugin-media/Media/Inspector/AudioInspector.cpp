@@ -23,6 +23,7 @@ InspectorWidget::InspectorWidget(
 {
   m_start.setRange(0, 512);
   m_upmix.setRange(0, 512);
+  m_tempo.setRange(1., 600.);
   m_mode.addItems(
       {tr("Raw"),
        tr("Timestretch"),
