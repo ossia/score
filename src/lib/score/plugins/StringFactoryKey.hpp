@@ -15,7 +15,11 @@ public:
     return static_cast<const OpaqueString&>(lhs)
            == static_cast<const OpaqueString&>(rhs);
   }
-
+  friend bool operator!=(const StringKey& lhs, const StringKey& rhs) noexcept
+  {
+    return static_cast<const OpaqueString&>(lhs)
+           != static_cast<const OpaqueString&>(rhs);
+  }
   friend bool operator<(const StringKey& lhs, const StringKey& rhs) noexcept
   {
     return static_cast<const OpaqueString&>(lhs)
