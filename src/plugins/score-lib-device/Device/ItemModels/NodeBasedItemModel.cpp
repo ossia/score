@@ -12,7 +12,8 @@ Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
     const State::AddressAccessor& addr,
     const Device::NodeBasedItemModel& deviceexplorer,
     ossia::value min,
-    ossia::value max)
+    ossia::value max,
+    ossia::value val)
 {
   auto& newval = addr.address;
 
@@ -37,6 +38,7 @@ Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
   // If there is none, build with some default settings
   Device::FullAddressAccessorSettings s;
   s.address = addr;
+  s.value = std::move(val);
   s.domain = ossia::make_domain(std::move(min), std::move(max));
   return s;
 }

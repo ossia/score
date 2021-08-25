@@ -32,7 +32,7 @@ public:
       : m_model{proc}
       , m_id{std::move(id)}
       , m_addr{
-            Explorer::makeFullAddressAccessorSettings(p.address, ctx, 0., 1.)}
+            Explorer::makeFullAddressAccessorSettings(p.address, ctx, 0., 1., 0.5)}
   {
     m_addr.value = p.value;
   }

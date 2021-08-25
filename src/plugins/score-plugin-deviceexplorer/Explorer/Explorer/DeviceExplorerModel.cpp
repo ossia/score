@@ -1052,7 +1052,8 @@ Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
     const State::AddressAccessor& addr,
     const score::DocumentContext& ctx,
     ossia::value min,
-    ossia::value max)
+    ossia::value max,
+    ossia::value val)
 {
   // First try to find if there is a matching address
   // in the device explorer
@@ -1060,12 +1061,13 @@ Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
   if (deviceexplorer)
   {
     return Device::makeFullAddressAccessorSettings(
-        addr, *deviceexplorer, std::move(min), std::move(max));
+        addr, *deviceexplorer, std::move(min), std::move(max), std::move(val));
   }
 
   // If there is none, build with some default settings
   Device::FullAddressAccessorSettings s;
   s.address = addr;
+  s.value = std::move(val);
   s.domain = ossia::make_domain(std::move(min), std::move(max));
   return s;
 }

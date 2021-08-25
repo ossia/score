@@ -218,5 +218,6 @@ makeFullAddressAccessorSettings(
     const State::AddressAccessor& mess,
     const score::DocumentContext& ctx,
     ossia::value min,
-    ossia::value max);
+    ossia::value max,
+    ossia::value cur);
 }

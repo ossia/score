@@ -21,6 +21,7 @@
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/MapCopy.hpp>
 
+#include <ossia/detail/math.hpp>
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/network/domain/domain_base.hpp>
 
@@ -405,9 +406,9 @@ CurveDomain::CurveDomain(const ossia::domain& dom, const ossia::value& v)
     : min{ossia::convert<double>(dom.get_min())}
     , max{ossia::convert<double>(dom.get_max())}
 {
+  const auto val = State::convert::value<double>(v);
   if (min == 0. && max == 0.)
   {
-    const auto val = State::convert::value<double>(v);
     if (val > 0.)
       max = val;
     else if (val < 0.)
@@ -419,8 +420,8 @@ CurveDomain::CurveDomain(const ossia::domain& dom, const ossia::value& v)
   if (min == max)
     max += 1.;
 
-  start = std::min(min, max);
-  end = std::max(min, max);
+  start = ossia::clamp(val, min, max);
+  end = start;
 }
 
 CurveDomain::CurveDomain(const ossia::domain& dom, double start, double end)

@@ -93,7 +93,7 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
     if (m_model && res)
     {
       m_address
-          = Device::makeFullAddressAccessorSettings(*res, *m_model, 0., 1.);
+          = Device::makeFullAddressAccessorSettings(*res, *m_model, 0., 1., 0.5);
     }
     else if (res)
     {

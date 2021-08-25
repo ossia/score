@@ -34,7 +34,8 @@ ChangeAddress::ChangeAddress(
           newval,
           score::IDocument::documentContext(autom),
           0.,
-          1.))
+          1.,
+          0.5))
 {
   Curve::CurveDomain c(m_new.domain.get(), m_new.value);
   m_new.domain.get() = ossia::make_domain(c.min, c.max);

@@ -372,7 +372,7 @@ Macro::automate(const IntervalModel& cst, const QString& str)
   {
     auto& ctx = m.stack().context();
     auto fa = Explorer::makeFullAddressAccessorSettings(
-        *addr, ctx, ossia::value{}, ossia::value{});
+        *addr, ctx, ossia::value{}, ossia::value{}, ossia::value{});
 
     return CreateCurvesFromAddress(cst, std::move(fa), *this);
   }
