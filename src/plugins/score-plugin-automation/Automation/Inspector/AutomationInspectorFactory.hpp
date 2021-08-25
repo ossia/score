@@ -22,13 +22,3 @@ class InspectorFactory final
   SCORE_CONCRETE("7d61cbcb-7980-4d50-86c9-3d54a0299fc5")
 };
 }
-
-namespace Metronome
-{
-class InspectorFactory final
-    : public Process::
-          InspectorWidgetDelegateFactory_T<ProcessModel, InspectorWidget>
-{
-  SCORE_CONCRETE("4c7c9f7d-50ff-4443-ae85-d2c340e17c44")
-};
-}

@@ -5,7 +5,6 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 
 #include <Color/GradientModel.hpp>
-#include <Metronome/MetronomeModel.hpp>
 
 class QLabel;
 class QWidget;
@@ -73,27 +72,6 @@ private:
   void on_tweenChanged();
 
   QCheckBox* m_tween{};
-
-  CommandDispatcher<> m_dispatcher;
-};
-}
-
-namespace Metronome
-{
-class ProcessModel;
-class InspectorWidget final
-    : public Process::InspectorWidgetDelegate_T<Metronome::ProcessModel>
-{
-public:
-  explicit InspectorWidget(
-      const ProcessModel& object,
-      const score::DocumentContext& context,
-      QWidget* parent);
-
-private:
-  void on_addressChange(const Device::FullAddressAccessorSettings& newText);
-
-  Device::AddressAccessorEditWidget* m_lineEdit{};
 
   CommandDispatcher<> m_dispatcher;
 };

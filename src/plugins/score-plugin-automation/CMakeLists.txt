@@ -20,13 +20,6 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Color/GradientMetadata.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Color/GradientExecution.hpp"
 
-  "${CMAKE_CURRENT_SOURCE_DIR}/Metronome/MetronomeColors.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Metronome/MetronomeModel.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Metronome/MetronomePresenter.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Metronome/MetronomeView.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Metronome/MetronomeProcessMetadata.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Metronome/MetronomeExecution.hpp"
-
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Commands/AutomationCommandFactory.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Commands/ChangeAddress.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Commands/InitAutomation.hpp"
@@ -52,11 +45,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Color/GradientPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Color/GradientView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Color/GradientExecution.cpp"
-
-"${CMAKE_CURRENT_SOURCE_DIR}/Metronome/MetronomeColors.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Metronome/MetronomeModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Metronome/MetronomeView.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Metronome/MetronomeExecution.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Commands/InitAutomation.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Commands/ChangeAddress.cpp"

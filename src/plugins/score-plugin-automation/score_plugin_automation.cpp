@@ -29,15 +29,9 @@
 #include <Color/GradientModel.hpp>
 #include <Color/GradientPresenter.hpp>
 #include <Color/GradientView.hpp>
-#include <Metronome/MetronomeColors.hpp>
-#include <Metronome/MetronomeExecution.hpp>
-#include <Metronome/MetronomeModel.hpp>
-#include <Metronome/MetronomePresenter.hpp>
-#include <Metronome/MetronomeView.hpp>
 #include <score_plugin_automation_commands_files.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Automation::LayerPresenter)
-W_OBJECT_IMPL(Metronome::LayerPresenter)
 namespace Automation
 {
 template <typename Layer_T>
@@ -92,17 +86,6 @@ using GradientLayerFactory = Process::LayerFactory_T<
     Gradient::View>;
 }
 
-namespace Metronome
-{
-using MetronomeFactory = Process::ProcessFactory_T<Metronome::ProcessModel>;
-using MetronomeLayerFactory = Curve::CurveLayerFactory_T<
-    Metronome::ProcessModel,
-    Metronome::LayerPresenter,
-    Metronome::LayerView,
-    Metronome::Colors,
-    Automation::MinMaxHeaderDelegate<Metronome::LayerPresenter>>;
-}
-
 score_plugin_automation::score_plugin_automation() = default;
 score_plugin_automation::~score_plugin_automation() = default;
 
@@ -115,18 +98,15 @@ score_plugin_automation::factories(
       score::ApplicationContext,
       FW<Process::ProcessModelFactory,
          Automation::AutomationFactory,
-         Gradient::GradientFactory,
-         Metronome::MetronomeFactory>,
+         Gradient::GradientFactory>,
       FW<Process::LayerFactory,
          Automation::AutomationLayerFactory,
-         Gradient::GradientLayerFactory,
-         Metronome::MetronomeLayerFactory>,
+         Gradient::GradientLayerFactory>,
       FW<Inspector::InspectorWidgetFactory,
          Automation::StateInspectorFactory,
          Automation::PointInspectorFactory,
          Automation::InspectorFactory,
-         Gradient::InspectorFactory,
-         Metronome::InspectorFactory>,
+         Gradient::InspectorFactory>,
 
       FW<LocalTree::ProcessComponentFactory,
          LocalTree::AutomationComponentFactory>,
@@ -135,8 +115,7 @@ score_plugin_automation::factories(
          //, Interpolation::Executor::ComponentFactory,
 
          Automation::RecreateOnPlay::ComponentFactory,
-         Gradient::RecreateOnPlay::ComponentFactory,
-         Metronome::RecreateOnPlay::ComponentFactory>>(ctx, key);
+         Gradient::RecreateOnPlay::ComponentFactory>>(ctx, key);
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>
@@ -144,7 +123,6 @@ score_plugin_automation::make_commands()
 {
   using namespace Automation;
   using namespace Gradient;
-  using namespace Metronome;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       CommandFactoryName(), CommandGeneratorMap{}};
 
