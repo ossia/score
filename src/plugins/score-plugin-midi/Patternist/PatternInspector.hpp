@@ -165,8 +165,8 @@ public:
 
     con(m_rate, &QDoubleSpinBox::editingFinished, this, [&] {
       auto p = obj.patterns()[obj.currentPattern()];
-      if(p.division != m_duration.value())
-      p.division = m_duration.value();
+      if(p.division != m_rate.value())
+        p.division = m_rate.value();
       m_dispatcher.submit<UpdatePattern>(obj, obj.currentPattern(), p);
       m_dispatcher.commit();
     });
