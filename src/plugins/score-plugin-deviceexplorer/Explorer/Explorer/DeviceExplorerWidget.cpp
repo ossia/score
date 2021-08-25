@@ -1029,6 +1029,8 @@ void DeviceExplorerWidget::addDevice()
   }
 
   connect(m_deviceDialog, &QDialog::accepted, this, [this] {
+    if(!m_deviceDialog)
+      return;
     SCORE_ASSERT(model());
     auto node = m_deviceDialog->getDevice();
     auto& deviceSettings = *node.target<Device::DeviceSettings>();

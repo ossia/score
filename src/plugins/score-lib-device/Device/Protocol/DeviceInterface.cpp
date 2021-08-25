@@ -1001,6 +1001,7 @@ void DeviceInterface::addressCreated(const ossia::net::parameter_base& addr)
   State::Address currentAddress = ToAddress(addr.get_node());
   Device::AddressSettings as = ToAddressSettings(addr.get_node());
   pathUpdated(currentAddress, as);
+  setListening(currentAddress, true);
 }
 
 void DeviceInterface::addressUpdated(

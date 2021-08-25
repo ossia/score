@@ -103,7 +103,7 @@ private:
 
   DeviceExplorerView* m_ntView{};
   DeviceExplorerFilterProxyModel* m_proxyModel{};
-  DeviceEditDialog* m_deviceDialog{};
+  QPointer<DeviceEditDialog> m_deviceDialog{};
   AddressItemModel* m_addressModel{};
   QTableView* m_addressView{};
 
