@@ -96,6 +96,9 @@ std::optional<AudioInfo> SndfileDecoder::do_probe(const QString& path)
     return std::nullopt;
   }
 
+  if(info.frames >= std::numeric_limits<int32_t>::max())
+    return {};
+
   AudioInfo ret;
   ret.channels = info.channels;
   ret.fileLength = info.frames;
