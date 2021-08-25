@@ -43,7 +43,11 @@ public:
     }
     else
     {
-      SCORE_ASSERT(m_cmd->key() == TheCommand::static_key());
+      if(m_cmd->key() != TheCommand::static_key())
+      {
+        throw std::runtime_error("Ongoing command mismatch: current command " + m_cmd->key().toString() + " does not match new command " + TheCommand{}.key().toString());
+      }
+
       safe_cast<TheCommand*>(m_cmd.get())->update(std::forward<Args>(args)...);
       m_cmd->redo(stack().context());
     }

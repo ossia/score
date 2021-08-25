@@ -6,6 +6,7 @@
 #include <Process/LayerView.hpp>
 
 #include <score/graphics/GraphicsItem.hpp>
+#include <ossia/detail/algorithms.hpp>
 
 #include <QGraphicsScene>
 #include <QPointer>

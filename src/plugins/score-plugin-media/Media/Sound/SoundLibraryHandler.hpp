@@ -32,11 +32,9 @@ public:
   AudioPreviewWidget(const QString& path, QWidget* parent = nullptr)
       : QWidget{parent}
   {
-    return;
     // FIXME libav does not support rex2 format
     if(path.endsWith("rx2"))
       return;
-    auto& audio = score::GUIAppContext().settings<Audio::Settings::Model>();
 
     auto lay = new score::MarginLess<QHBoxLayout>{this};
     lay->setSpacing(8);

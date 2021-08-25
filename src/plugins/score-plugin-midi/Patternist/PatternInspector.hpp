@@ -59,29 +59,45 @@ public:
       m_currentPattern.setValue(c);
 
       const Pattern& pat = obj.patterns()[c];
+      m_lanes.blockSignals(true);
+      m_duration.blockSignals(true);
+      m_rate.blockSignals(true);
+
       m_lanes.setValue(pat.lanes.size());
       m_duration.setValue(pat.length);
       m_rate.setValue(pat.division);
+
+      m_lanes.blockSignals(false);
+      m_duration.blockSignals(false);
+      m_rate.blockSignals(false);
     });
     con(process(), &ProcessModel::patternsChanged, this, [&] {
       if(obj.currentPattern() >= obj.patterns().size())
         return;
 
       const Pattern& pat = obj.patterns()[obj.currentPattern()];
+      m_lanes.blockSignals(true);
+      m_duration.blockSignals(true);
+      m_rate.blockSignals(true);
+
       m_lanes.setValue(pat.lanes.size());
       m_duration.setValue(pat.length);
       m_rate.setValue(pat.division);
+
+      m_lanes.blockSignals(false);
+      m_duration.blockSignals(false);
+      m_rate.blockSignals(false);
     });
 
-    con(m_channel, qOverload<int>(&QSpinBox::valueChanged), this, [&]() {
-      m_dispatcher.submit<SetPatternChannel>(obj, m_channel.value());
+    con(m_channel, qOverload<int>(&QSpinBox::valueChanged), this, [&] (int v) {
+      if(v != obj.channel())
+        m_dispatcher.submit<SetPatternChannel>(obj, v);
     });
-    con(m_channel, &QSpinBox::editingFinished, this, [&]() {
+    con(m_channel, &QSpinBox::editingFinished, this, [&] {
       m_dispatcher.commit();
     });
 
-    con(m_lanes, qOverload<int>(&QSpinBox::valueChanged), this, [&]() {
-      int n = m_lanes.value();
+    con(m_lanes, qOverload<int>(&QSpinBox::valueChanged), this, [&] (int n) {
       if (n <= 0)
         return;
 
@@ -89,7 +105,11 @@ public:
         return;
 
       auto p = obj.patterns()[obj.currentPattern()];
-      if (n < p.lanes.size())
+      if (n == p.lanes.size())
+      {
+        return;
+      }
+      else if (n < p.lanes.size())
       {
         p.lanes.resize(n);
       }
@@ -110,9 +130,10 @@ public:
     con(m_currentPattern,
         qOverload<int>(&QSpinBox::valueChanged),
         this,
-        [&]() {
-          m_dispatcher.submit<SetCurrentPattern>(
-              obj, m_currentPattern.value());
+        [&] (int v) {
+          if(v != obj.currentPattern())
+            m_dispatcher.submit<SetCurrentPattern>(
+                obj, v);
         });
     con(m_currentPattern, &QSpinBox::editingFinished, this, [&]() {
       m_dispatcher.commit();
@@ -124,6 +145,9 @@ public:
         return;
 
       auto p = obj.patterns()[obj.currentPattern()];
+      if(p.length == n)
+        return;
+
       p.length = n;
       if (p.length > p.lanes[0].pattern.size())
       {
@@ -139,8 +163,9 @@ public:
       m_dispatcher.commit();
     });
 
-    con(m_rate, &QDoubleSpinBox::editingFinished, this, [&]() {
+    con(m_rate, &QDoubleSpinBox::editingFinished, this, [&] {
       auto p = obj.patterns()[obj.currentPattern()];
+      if(p.division != m_duration.value())
       p.division = m_duration.value();
       m_dispatcher.submit<UpdatePattern>(obj, obj.currentPattern(), p);
       m_dispatcher.commit();
