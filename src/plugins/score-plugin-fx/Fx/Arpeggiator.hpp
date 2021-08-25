@@ -36,10 +36,10 @@ struct Node
   {
     ossia::flat_map<byte, byte> notes;
     ossia::small_vector<chord, 10> arpeggio;
+    std::array<int8_t, 128> in_flight{};
 
     float previous_octave{};
     int previous_arpeggio{};
-    chord previous_chord;
     std::size_t index{};
 
     void update()
@@ -167,14 +167,10 @@ struct Node
 
     if (self.arpeggio.empty())
     {
-      if (!self.previous_chord.empty())
-      {
-        for (auto& note : self.previous_chord)
-          out.messages.push_back(
-              libremidi::message::note_off(1, note.first, 0));
-        self.previous_chord.clear();
-      }
-
+      const auto start = st.physical_start(tk);
+      for(int k = 0; k < 128; k++)
+        while(self.in_flight[k]-- > 0)
+          out.note_off(1, k, 0).timestamp = start;
       return;
     }
 
@@ -186,25 +182,21 @@ struct Node
         = tk.get_physical_quantification_date(quantif, st.modelToSamples()))
     {
       // Finish previous notes
-      for (auto& note : self.previous_chord)
-      {
-        out.note_off(1, note.first, 0).timestamp = *date;
-      }
-      self.previous_chord.clear();
+
+      for(int k = 0; k < 128; k++)
+        while(self.in_flight[k]-- > 0)
+          out.note_off(1, k, 0).timestamp = *date;
 
       // Start the next note in the chord
       auto& chord = self.arpeggio[self.index];
 
       for (auto& note : chord)
       {
-        out.messages.push_back(
-            libremidi::message::note_on(1, note.first, note.second));
-        out.messages.back().timestamp = *date;
+        self.in_flight[note.first]++;
+        out.note_on(1, note.first, note.second).timestamp = *date;
       }
 
       // New chord to stop
-      self.previous_chord = chord;
-
       self.index = (self.index + 1) % (self.arpeggio.size());
     }
   }
