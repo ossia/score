@@ -6,22 +6,22 @@
 template <typename Tag>
 class StringKey : OpaqueString
 {
+public:
   using this_type = StringKey<Tag>;
 
   friend struct std::hash<this_type>;
-  friend bool operator==(const this_type& lhs, const this_type& rhs)
+  friend bool operator==(const StringKey& lhs, const StringKey& rhs) noexcept
   {
     return static_cast<const OpaqueString&>(lhs)
            == static_cast<const OpaqueString&>(rhs);
   }
 
-  friend bool operator<(const this_type& lhs, const this_type& rhs)
+  friend bool operator<(const StringKey& lhs, const StringKey& rhs) noexcept
   {
     return static_cast<const OpaqueString&>(lhs)
            < static_cast<const OpaqueString&>(rhs);
   }
 
-public:
   using OpaqueString::OpaqueString;
 
   auto& toString() { return impl; }
