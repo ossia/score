@@ -442,7 +442,9 @@ void DeviceDocumentPlugin::on_valueUpdated(
     const State::Address& addr,
     const ossia::value& v)
 {
-  updateProxy.updateLocalValue(State::AddressAccessor{addr}, v);
+  ossia::qt::run_async(this, [this, aa = State::AddressAccessor{addr}, v] {
+    updateProxy.updateLocalValue(aa, v);
+  });
 }
 
 }
