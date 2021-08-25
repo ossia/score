@@ -16,6 +16,7 @@ extern "C"
 #include <mutex>
 #include <string>
 #include <thread>
+#include <vector>
 
 #include <condition_variable>
 
@@ -26,6 +27,11 @@ struct ReadFrame
   AVFrame* frame{};
   int error{};
 };
+struct FreeAVFrame {
+  void operator()(AVFrame* f) const noexcept { av_frame_free(&f); }
+};
+using AVFramePointer = std::unique_ptr<AVFrame, FreeAVFrame>;
+
 class SCORE_PLUGIN_MEDIA_EXPORT VideoDecoder final : public VideoInterface
 {
 public:
@@ -49,12 +55,12 @@ private:
   AVFrame* read_frame_impl() noexcept;
   bool open_stream() noexcept;
   void close_video() noexcept;
-  ReadFrame enqueue_frame(const AVPacket* pkt, AVFrame** frame) noexcept;
-  AVFrame* get_new_frame() noexcept;
+  ReadFrame enqueue_frame(const AVPacket* pkt, AVFramePointer frame) noexcept;
+  AVFramePointer get_new_frame() noexcept;
   void drain_frames() noexcept;
   void init_scaler() noexcept;
 
-  ReadFrame read_one_frame(AVFrame* frame, AVPacket& packet);
+  ReadFrame read_one_frame(AVFramePointer frame, AVPacket& packet);
 
   static const constexpr int frames_to_buffer = 16;
 
@@ -66,6 +72,8 @@ private:
 
   ossia::spsc_queue<AVFrame*, 16> m_framesToPlayer;
   ossia::spsc_queue<AVFrame*, 16> m_releasedFrames;
+
+  std::vector<AVFrame*> m_decodeThreadFrameBuffer;
 
   AVFormatContext* m_formatContext{};
   AVCodecContext* m_codecContext{};
@@ -81,6 +89,7 @@ private:
   std::atomic_int64_t m_dequeued = 0;
 
   std::atomic_bool m_running{};
+
 };
 
 ReadFrame readVideoFrame(

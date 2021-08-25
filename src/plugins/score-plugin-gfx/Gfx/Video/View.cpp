@@ -53,9 +53,12 @@ void View::onPathChanged(const QString& str)
 
   if (m_thumb)
   {
+    disconnect(m_thumb, &::Video::VideoThumbnailer::thumbnailReady, this, nullptr);
     oldThread = m_thumb->thread();
     m_thumb->deleteLater();
   }
+
+  m_images.clear();
 
   m_thumb = new ::Video::VideoThumbnailer{str};
   if (oldThread)
