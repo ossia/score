@@ -540,6 +540,7 @@ AudioSettingsWidget::AudioSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
 {
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
+  m_deviceNameEdit->setEnabled(false);
   checkForChanges(m_deviceNameEdit);
 
   auto layout = new QFormLayout;
