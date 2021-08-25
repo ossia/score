@@ -78,12 +78,12 @@ void Presenter::setHeight(qreal val)
 
 void Presenter::putToFront()
 {
-  m_view->setEnabled(true);
+  m_view->enable();
 }
 
 void Presenter::putBehind()
 {
-  m_view->setEnabled(false);
+  m_view->disable();
 }
 
 void Presenter::on_zoomRatioChanged(ZoomRatio r)

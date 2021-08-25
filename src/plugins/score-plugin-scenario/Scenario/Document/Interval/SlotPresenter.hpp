@@ -22,6 +22,8 @@ struct LayerSlotPresenter
   void cleanupHeaderFooter();
   void cleanup(QGraphicsScene* sc);
 
+  void putToFront(const Id<Process::ProcessModel>&);
+
   double headerHeight() const noexcept
   {
     if (!header)

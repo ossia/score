@@ -70,6 +70,7 @@ public:
     QPainter& painter = *p;
 
     // Draw the grid
+    if(m_enabled)
     {
       auto squarePen = skin.IntervalMuted().main.pen3_dashed_flat_miter;
       squarePen.setWidthF(1. / m_zoom);
@@ -97,8 +98,11 @@ public:
 
     // Draw the curve
     {
-      QPen segmt = m_selectedCurve ? skin.skin.Base2.main.pen2
-                                   : skin.skin.Base4.main.pen2;
+      QPen segmt = m_enabled
+                      ? m_selectedCurve
+                              ? skin.skin.Base2.main.pen2
+                              : skin.skin.Base4.main.pen2
+                      : skin.skin.Gray.main.pen1;
       segmt.setWidthF(segmt.widthF() / m_zoom);
 
       painter.strokePath(m_curveShape, segmt);
@@ -111,6 +115,7 @@ public:
     }
 
     // Draw the points
+    if(m_enabled)
     {
       const auto pts = m_spline.points.size();
       if (pts == 0 || pts > 100)
@@ -385,6 +390,12 @@ public:
 
   void mousePressEvent(QGraphicsSceneMouseEvent* e) override
   {
+    if(!m_enabled)
+    {
+      e->ignore();
+      return;
+    }
+
     auto btn = e->button();
     m_selectedCurve = false;
     if (btn == Qt::LeftButton)
@@ -544,6 +555,28 @@ public:
     }
     updateSpline();
   }
+
+  void enable()
+  {
+    m_enabled = true;
+
+    setEnabled(true);
+    setAcceptHoverEvents(true);
+    setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
+
+    update();
+  }
+
+  void disable()
+  {
+    m_enabled = false;
+
+    setEnabled(false);
+    setAcceptHoverEvents(false);
+    setAcceptedMouseButtons(Qt::NoButton);
+
+    update();
+  }
   const ProcessModel& m_model;
   const score::DocumentContext& m_context;
 
@@ -559,6 +592,7 @@ public:
   double m_zoom{10.};
   QPointF m_topLeft, m_bottomRight;
   float m_play{0.};
+  bool m_enabled{true};
   bool m_selectedCurve{};
 };
 
@@ -608,6 +642,16 @@ const ossia::spline_data& View::spline() const noexcept
 void View::setPlayPercentage(float p)
 {
   m_impl->setPlayPercentage(p);
+}
+
+void View::enable()
+{
+  m_impl->enable();
+}
+
+void View::disable()
+{
+  m_impl->disable();
 }
 
 void View::recenter()

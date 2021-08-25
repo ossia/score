@@ -26,6 +26,9 @@ public:
 
   void setPlayPercentage(float p);
 
+  void enable();
+  void disable();
+
   void recenter();
 
   void changed() W_SIGNAL(changed);

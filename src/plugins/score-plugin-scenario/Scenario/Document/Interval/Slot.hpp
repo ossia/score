@@ -87,22 +87,24 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT SlotPath
 
 struct SCORE_PLUGIN_SCENARIO_EXPORT SlotId
 {
-  SlotId() = default;
-  SlotId(const SlotId&) = default;
-  SlotId& operator=(const SlotId&) = default;
+  SlotId() noexcept = default;
+  SlotId(const SlotId&) noexcept = default;
+  SlotId& operator=(const SlotId&) noexcept = default;
+  SlotId(SlotId&&) noexcept = default;
+  SlotId& operator=(SlotId&&) noexcept = default;
 
-  SlotId(std::size_t p, Slot::RackView f)
+  SlotId(std::size_t p, Slot::RackView f) noexcept
       : index{(int)p}
       , view{f}
   {
   }
-  SlotId(int p, Slot::RackView f)
+  SlotId(int p, Slot::RackView f) noexcept
       : index{p}
       , view{f}
   {
   }
 
-  SlotId(const SlotPath& p)
+  SlotId(const SlotPath& p) noexcept
       : index{p.index}
       , view{p.full_view}
   {
@@ -111,16 +113,16 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT SlotId
   int index{};
   Slot::RackView view{};
 
-  bool fullView() const { return view == Slot::FullView; }
-  bool smallView() const { return view == Slot::SmallView; }
+  bool fullView() const noexcept { return view == Slot::FullView; }
+  bool smallView() const noexcept { return view == Slot::SmallView; }
 };
 }
 
-inline QDataStream& operator<<(QDataStream& i, const Scenario::SlotId& sel)
+inline QDataStream& operator<<(QDataStream& i, const Scenario::SlotId& sel) noexcept
 {
   return i;
 }
-inline QDataStream& operator>>(QDataStream& i, Scenario::SlotId& sel)
+inline QDataStream& operator>>(QDataStream& i, Scenario::SlotId& sel) noexcept
 {
   return i;
 }

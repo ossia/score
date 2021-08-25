@@ -206,7 +206,7 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
       on_rackChanged();
     }
   });
-  con(m_model, &IntervalModel::slotAdded, this, [=](const SlotId& s) {
+  con(m_model, &IntervalModel::slotAdded, this, [=](SlotId s) {
     if (s.smallView())
     {
       createSlot(s.index, m_model.smallView()[s.index]);
@@ -221,12 +221,12 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
           on_rackChanged();
       });
 
-  con(m_model, &IntervalModel::slotRemoved, this, [=](const SlotId& s) {
+  con(m_model, &IntervalModel::slotRemoved, this, [=](SlotId s) {
     if (s.smallView())
       on_slotRemoved(s.index);
   });
 
-  con(m_model, &IntervalModel::slotResized, this, [this](const SlotId& s) {
+  con(m_model, &IntervalModel::slotResized, this, [this](SlotId s) {
     if (s.smallView())
       this->updatePositions();
   });
@@ -234,14 +234,14 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
   con(m_model,
       &IntervalModel::layerAdded,
       this,
-      [=](SlotId s, Id<Process::ProcessModel> proc) {
+      [=](SlotId s, const Id<Process::ProcessModel>& proc) {
         if (s.smallView())
           createLayer(s.index, m_model.processes.at(proc));
       });
   con(m_model,
       &IntervalModel::layerRemoved,
       this,
-      [=](SlotId s, Id<Process::ProcessModel> proc) {
+      [=](SlotId s, const Id<Process::ProcessModel>& proc) {
         if (s.smallView())
           removeLayer(m_model.processes.at(proc));
       });
@@ -249,18 +249,22 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
       &IntervalModel::frontLayerChanged,
       this,
       [=](int pos, OptionalId<Process::ProcessModel> proc) {
+        if (pos >= (int)m_slots.size())
+          return;
+
         if (proc)
         {
+          auto slt = m_slots[pos].getLayerSlot();
+          if (slt)
+            slt->putToFront(*proc);
+
           on_layerModelPutToFront(pos, m_model.processes.at(*proc));
         }
         else
         {
-          if (pos < (int)m_slots.size())
-          {
-            auto slt = m_slots[pos].getLayerSlot();
-            if (slt)
-              slt->cleanupHeaderFooter();
-          }
+          auto slt = m_slots[pos].getLayerSlot();
+          if (slt)
+            slt->cleanupHeaderFooter();
         }
       });
 
@@ -721,9 +725,17 @@ void TemporalIntervalPresenter::createLayer(
             this,
             [=] { QObject::disconnect(con_id); });
     */
-    auto frontLayer = m_model.smallView().at(slot_i).frontProcess;
+    auto& slot = m_model.smallView().at(slot_i);
+    auto frontLayer = slot.frontProcess;
     if (frontLayer && (*frontLayer == proc.id()))
     {
+      if(slot_i < m_slots.size())
+      {
+        auto slt = m_slots[slot_i].getLayerSlot();
+        if (slt)
+          slt->putToFront(proc.id());
+      }
+
       on_layerModelPutToFront(slot_i, proc);
     }
     else
