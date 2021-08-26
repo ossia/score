@@ -301,8 +301,10 @@ int main(int argc, char** argv)
   QPixmapCache::setCacheLimit(819200);
   Application app(argc, argv);
 
+#if defined(__APPLE__)
   disableAppNap();
-
+#endif
+  
   setup_opengl();
   QTimer::singleShot(1, &app, &Application::init);
 
