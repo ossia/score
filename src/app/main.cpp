@@ -64,6 +64,9 @@ void disableAppRestore()
 
   CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication);
 }
+
+// Defined in mac_main.m
+extern "C" void disableAppNap();
 #endif
 
 static void setup_x11()
@@ -283,6 +286,7 @@ int main(int argc, char** argv)
 {
 #if defined(__APPLE__)
   disableAppRestore();
+  disableAppNap();
   qputenv("QT_MAC_WANTS_LAYER", "1");
 #endif
 
@@ -296,6 +300,8 @@ int main(int argc, char** argv)
 
   QPixmapCache::setCacheLimit(819200);
   Application app(argc, argv);
+
+  disableAppNap();
 
   setup_opengl();
   QTimer::singleShot(1, &app, &Application::init);

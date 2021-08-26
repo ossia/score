@@ -57,7 +57,7 @@ W_OBJECT_IMPL(Application)
 int qInitResources_score();
 #endif
 
-#if 1 || !defined(SCORE_DEBUG) && !defined(__EMSCRIPTEN__)
+#if !defined(SCORE_DEBUG) && !defined(__EMSCRIPTEN__)
 #define SCORE_SPLASH_SCREEN 1
 #endif
 #include <phantom/phantomstyle.h>

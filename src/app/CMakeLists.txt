@@ -89,6 +89,7 @@ endif()
 if(APPLE)
     find_library(CFLIB CoreFoundation)
     find_library(FLIB Foundation)
+    target_sources(${APPNAME} PRIVATE mac_main.m)
     target_link_libraries(${APPNAME} PRIVATE ${CFLIB} ${FLIB})
 
     if(DEPLOYMENT_BUILD)
