@@ -62,9 +62,15 @@ QSyntaxStyle* getStyle()
 }
 }
 
+
+
 QTextEdit* createScriptWidget(const std::string_view language)
 {
   auto edit = new QCodeEditor{};
+  auto font = QFont("Source Code Pro", 10);
+  font.setFixedPitch(true);
+  font.setHintingPreference(QFont::HintingPreference::PreferVerticalHinting);
+  edit->setFont(font);
 
   auto [highlight, complete] = getLanguageStyle(language);
 

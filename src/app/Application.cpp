@@ -94,6 +94,21 @@ static void setQApplicationSettings(QApplication& m_app)
   QFontDatabase::addApplicationFont(":/Montserrat-SemiBold.ttf"); // Montserrat
   QFontDatabase::addApplicationFont(":/Montserrat-Light.ttf"); // Montserrat
 
+  // Source Code Pro
+  QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-Black.ttf");
+  QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-BlackIt.ttf");
+  QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-Bold.ttf");
+  QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-BoldIt.ttf");
+  QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-ExtraLight.ttf");
+  QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-ExtraLightIt.ttf");
+  QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-Light.ttf");
+  QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-LightIt.ttf");
+  QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-It.ttf");
+  QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-Medium.ttf");
+  QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-MediumIt.ttf");
+  QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-Semibold.ttf");
+  QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-SemiboldIt.ttf");
+
   m_app.setStyle(new PhantomStyle);
 
   auto pal = qApp->palette();

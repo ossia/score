@@ -676,5 +676,19 @@
         <file>icons/process_interval_stop@2x.png</file>
         <file>icons/process_preset_icon.png</file>
         <file>icons/process_preset_icon@2x.png</file>
+        <file>fonts/sourcecodepro/SourceCodePro-Black.ttf</file>
+        <file>fonts/sourcecodepro/SourceCodePro-BlackIt.ttf</file>
+        <file>fonts/sourcecodepro/SourceCodePro-Bold.ttf</file>
+        <file>fonts/sourcecodepro/SourceCodePro-BoldIt.ttf</file>
+        <file>fonts/sourcecodepro/SourceCodePro-ExtraLight.ttf</file>
+        <file>fonts/sourcecodepro/SourceCodePro-ExtraLightIt.ttf</file>
+        <file>fonts/sourcecodepro/SourceCodePro-It.ttf</file>
+        <file>fonts/sourcecodepro/SourceCodePro-Light.ttf</file>
+        <file>fonts/sourcecodepro/SourceCodePro-LightIt.ttf</file>
+        <file>fonts/sourcecodepro/SourceCodePro-Medium.ttf</file>
+        <file>fonts/sourcecodepro/SourceCodePro-MediumIt.ttf</file>
+        <file>fonts/sourcecodepro/SourceCodePro-Regular.ttf</file>
+        <file>fonts/sourcecodepro/SourceCodePro-Semibold.ttf</file>
+        <file>fonts/sourcecodepro/SourceCodePro-SemiboldIt.ttf</file>
     </qresource>
 </RCC>

@@ -124,6 +124,7 @@ Skin::Skin() noexcept
   MonoFont.setFamilies({"APCCourier-Bold"});
   MonoFontSmall.setFamilies({"Ubuntu"});
 #endif
+  MonoFont.setFixedPitch(true);
 
   for (QFont* font : {&SansFont, &SansFontSmall, &MonoFont, &MonoFontSmall})
   {
