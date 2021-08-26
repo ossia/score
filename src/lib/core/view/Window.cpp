@@ -134,7 +134,9 @@ public:
 
   void paintEvent(QPaintEvent* ev) override
   {
-    static const QFont font("Ubuntu", 11, QFont::Bold);
+    static QFont font("Ubuntu", 11, QFont::Bold);
+    font.setHintingPreference(QFont::HintingPreference::PreferVerticalHinting);
+
     QPainter painter{this};
     painter.setFont(font);
     painter.drawText(rect(), Qt::AlignCenter, m_text);

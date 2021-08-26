@@ -121,6 +121,7 @@ static void setQApplicationSettings(QApplication& m_app)
   constexpr const int defaultFontSize = 10;
 
   QFont f("Ubuntu", defaultFontSize);
+  f.setHintingPreference(QFont::HintingPreference::PreferVerticalHinting);
   qApp->setFont(f);
 
   qApp->setPalette(pal);
