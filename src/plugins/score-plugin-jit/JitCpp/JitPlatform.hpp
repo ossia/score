@@ -40,7 +40,7 @@ static inline std::string locateSDK()
   auto& ctx = score::AppContext().settings<Library::Settings::Model>();
   QString path = ctx.getSDKPath();
 
-  if (QString libPath = path + QString(SCORE_TAG_NO_V) + "/usr";
+  if (QString libPath = QStringLiteral("%1/%2/usr").arg(path).arg(SCORE_TAG_NO_V);
       QDir(libPath + "/include/c++").exists())
   {
     return libPath.toStdString();

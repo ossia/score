@@ -99,26 +99,34 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
 
 void ApplicationPlugin::rescanAddons()
 {
-  SCORE_TODO;
-  /*
-  const auto& libpath = context.settings<Library::Settings::Model>().getPath();
-  QString addons = libpath + "/Addons";
+  QString addons = context.settings<Library::Settings::Model>().getPackagesPath();
   m_addonsWatch.addPath(addons);
   QDirIterator it{
       addons,
       QDir::Filter::Dirs | QDir::Filter::NoDotAndDotDot,
-      QDirIterator::NoIteratorFlags};
+          QDirIterator::NoIteratorFlags};
   while (it.hasNext())
   {
     it.next();
-    auto p = it.fileInfo().filePath();
+    QDir addon_dir = it.fileInfo().filePath();
+    auto p = addon_dir.absolutePath();
     if (!m_addonsPaths.contains(p))
     {
-      m_addonsPaths.insert(p);
-      setupAddon(p);
+      if(addon_dir.exists("addon.json"))
+      {
+        QFile addon_json{addon_dir.filePath("addon.json")};
+        if(addon_json.open(QIODevice::ReadOnly))
+        {
+          auto doc = QJsonDocument::fromJson(score::mapAsByteArray(addon_json));
+          if(doc.isObject() && doc.object()["kind"] == "addon")
+          {
+            m_addonsPaths.insert(p);
+            setupAddon(p);
+          }
+        }
+      }
     }
   }
-*/
 }
 
 void ApplicationPlugin::rescanNodes()
