@@ -1,12 +1,12 @@
 #pragma once
 #include <Media/Libav.hpp>
 #if SCORE_HAS_LIBAV
-
 #include <score_plugin_media_export.h>
 extern "C"
 {
 #include <libavformat/avformat.h>
 }
+#include <memory>
 
 namespace Video
 {
@@ -28,5 +28,20 @@ struct SCORE_PLUGIN_MEDIA_EXPORT VideoInterface : VideoMetadata
   virtual void release_frame(AVFrame* frame) noexcept = 0;
 };
 
+struct SCORE_PLUGIN_MEDIA_EXPORT ReadFrame
+{
+  AVFrame* frame{};
+  int error{};
+};
+struct SCORE_PLUGIN_MEDIA_EXPORT FreeAVFrame {
+  void operator()(AVFrame* f) const noexcept { av_frame_free(&f); }
+};
+using AVFramePointer = std::unique_ptr<AVFrame, FreeAVFrame>;
+
+
+ReadFrame readVideoFrame(
+    AVCodecContext* codecContext,
+    const AVPacket* pkt,
+    AVFrame* frame);
 }
 #endif

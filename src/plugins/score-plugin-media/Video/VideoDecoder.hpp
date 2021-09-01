@@ -2,6 +2,7 @@
 #include <Media/Libav.hpp>
 #if SCORE_HAS_LIBAV
 #include <Video/VideoInterface.hpp>
+#include <Video/FrameQueue.hpp>
 extern "C"
 {
 #include <libavformat/avformat.h>
@@ -22,16 +23,6 @@ extern "C"
 
 namespace Video
 {
-struct ReadFrame
-{
-  AVFrame* frame{};
-  int error{};
-};
-struct FreeAVFrame {
-  void operator()(AVFrame* f) const noexcept { av_frame_free(&f); }
-};
-using AVFramePointer = std::unique_ptr<AVFrame, FreeAVFrame>;
-
 class SCORE_PLUGIN_MEDIA_EXPORT VideoDecoder final : public VideoInterface
 {
 public:
@@ -56,11 +47,8 @@ private:
   bool open_stream() noexcept;
   void close_video() noexcept;
   ReadFrame enqueue_frame(const AVPacket* pkt, AVFramePointer frame) noexcept;
-  AVFramePointer get_new_frame() noexcept;
-  void drain_frames() noexcept;
-  void init_scaler() noexcept;
-
   ReadFrame read_one_frame(AVFramePointer frame, AVPacket& packet);
+  void init_scaler() noexcept;
 
   static const constexpr int frames_to_buffer = 16;
 
@@ -70,10 +58,7 @@ private:
   std::mutex m_condMut;
   std::condition_variable m_condVar;
 
-  ossia::spsc_queue<AVFrame*, 16> m_framesToPlayer;
-  ossia::spsc_queue<AVFrame*, 16> m_releasedFrames;
-
-  std::vector<AVFrame*> m_decodeThreadFrameBuffer;
+  FrameQueue m_frames;
 
   AVFormatContext* m_formatContext{};
   AVCodecContext* m_codecContext{};
@@ -83,18 +68,12 @@ private:
 
   int64_t m_duration{}; // in flicks
 
-  std::atomic<AVFrame*> m_discardUntil{};
   std::atomic_int64_t m_seekTo = -1;
   std::atomic_int64_t m_last_dequeued_dts = 0;
   std::atomic_int64_t m_dequeued = 0;
 
   std::atomic_bool m_running{};
-
 };
 
-ReadFrame readVideoFrame(
-    AVCodecContext* codecContext,
-    const AVPacket* pkt,
-    AVFrame* frame);
 }
 #endif

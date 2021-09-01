@@ -48,7 +48,8 @@ private:
   AVFrame* read_frame_impl() noexcept;
   bool open_stream() noexcept;
   void close_stream() noexcept;
-  bool enqueue_frame(const AVPacket* pkt, AVFrame** frame) noexcept;
+  ReadFrame enqueue_frame(const AVPacket* pkt, AVFramePointer frame) noexcept;
+  ReadFrame read_one_frame(AVFramePointer frame, AVPacket& packet);
   void init_scaler() noexcept;
 
   static const constexpr int frames_to_buffer = 1;

@@ -178,19 +178,12 @@ void main() {
       QRhiResourceUpdateBatch& res,
       AVFrame& frame) override
   {
-    setYPixels(res, frame.data[0], frame.linesize[0]);
-  }
-
-  void setYPixels(
-      QRhiResourceUpdateBatch& res,
-      uint8_t* pixels,
-      int stride) const noexcept
-  {
-    const auto w = decoder.width, h = decoder.height;
     auto y_tex = samplers[0].texture;
 
+    auto pixels = frame.data[0];
+    auto stride = frame.linesize[0];
     QRhiTextureUploadEntry entry{
-        0, 0, createTextureUpload(pixels, w, h, 2, stride)};
+        0, 0, createTextureUpload(pixels, frame.width, frame.height, 2, stride)};
 
     QRhiTextureUploadDescription desc{entry};
     res.uploadTexture(y_tex, desc);

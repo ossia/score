@@ -149,43 +149,49 @@ void CameraInput::close_file() noexcept
 
 AVFrame* CameraInput::read_frame_impl() noexcept
 {
-  AVFrame* res = nullptr;
+  ReadFrame res;
 
   if (m_stream != -1)
   {
-    AVFrame* frame = m_frames.newFrame();
     AVPacket packet;
     memset(&packet, 0, sizeof(AVPacket));
-    bool ok = false;
 
-    while (av_read_frame(m_formatContext, &packet) >= 0)
+    do
     {
-      if (packet.stream_index == m_stream)
+      res = read_one_frame(m_frames.newFrame(), packet);
+    } while (res.error == AVERROR(EAGAIN));
+  }
+  return res.frame;
+}
+
+ReadFrame CameraInput::read_one_frame(AVFramePointer frame, AVPacket& packet)
+{
+  int res{};
+  while ((res = av_read_frame(m_formatContext, &packet)) >= 0)
+  {
+    if (packet.stream_index == m_stream)
+    {
       {
-        if (enqueue_frame(&packet, &frame))
-        {
-          res = frame;
-          ok = true;
-        }
+        SCORE_ASSERT(m_codecContext);
+        auto res = enqueue_frame(&packet, std::move(frame));
 
         av_packet_unref(&packet);
-        packet = AVPacket{};
-        break;
+        return res;
       }
 
       av_packet_unref(&packet);
-      packet = AVPacket{};
+      break;
     }
 
-    if (!ok)
-    {
-      av_frame_free(&frame);
-      res = nullptr;
-    }
+    av_packet_unref(&packet);
   }
-  return res;
+  // if (res != 0 && res != AVERROR_EOF)
+  //   qDebug() << "Error while reading a frame: "
+  //            << av_make_error_string(
+  //                   global_errbuf, sizeof(global_errbuf), res);
+  av_packet_unref(&packet);
+  return {nullptr, res};
 }
-
 void CameraInput::init_scaler() noexcept
 {
   // Allocate a rescale context
@@ -289,51 +295,47 @@ void CameraInput::close_stream() noexcept
   m_stream = -1;
 }
 
-bool CameraInput::enqueue_frame(const AVPacket* pkt, AVFrame** frame) noexcept
+ReadFrame CameraInput::enqueue_frame(const AVPacket* pkt, AVFramePointer frame) noexcept
 {
-  int got_picture_ptr = 0;
-
-  if (m_codecContext && pkt && frame)
+  ReadFrame read = readVideoFrame(m_codecContext, pkt, frame.get());
+  if(!read.frame)
   {
-    int ret = avcodec_send_packet(m_codecContext, pkt);
-    if (ret < 0)
-      return ret == AVERROR_EOF ? 0 : ret;
-
-    ret = avcodec_receive_frame(m_codecContext, *frame);
-    if (ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF)
-      return ret;
-
-    if (ret >= 0)
-    {
-      got_picture_ptr = 1;
-
-      if (m_rescale)
-      {
-        // alloc an rgb frame
-        auto m_rgb = av_frame_alloc();
-        m_rgb->width = this->width;
-        m_rgb->height = this->height;
-        m_rgb->format = AV_PIX_FMT_RGBA;
-        av_frame_get_buffer(m_rgb, 0);
-
-        // 2. Resize
-        sws_scale(
-            m_rescale,
-            (*frame)->data,
-            (*frame)->linesize,
-            0,
-            this->height,
-            m_rgb->data,
-            m_rgb->linesize);
-
-        av_frame_free(frame);
-        *frame = m_rgb;
-        return true;
-      }
-    }
+    this->m_frames.enqueue_decoding_error(frame.release());
+    return read;
   }
 
-  return got_picture_ptr == 1;
+  if (m_rescale)
+  {
+    // alloc an rgb frame
+    auto rgb = m_frames.newFrame().release();
+    av_frame_copy_props(rgb, read.frame);
+    rgb->width = this->width;
+    rgb->height = this->height;
+    rgb->format = AV_PIX_FMT_RGBA;
+    av_frame_get_buffer(rgb, 0);
+
+    // 2. Resize
+    sws_scale(
+        m_rescale,
+        read.frame->data,
+        read.frame->linesize,
+        0,
+        this->height,
+        rgb->data,
+        rgb->linesize);
+
+    // 3. Free the old frame data
+    frame.reset();
+
+    // 4. Return the new frame
+    read.frame = rgb;
+  }
+  else
+  {
+    // it is already stored in "read" but well
+    read.frame = frame.release();
+  }
+  return read;
 }
 
 }

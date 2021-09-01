@@ -88,19 +88,8 @@ void VideoDecoder::seek(int64_t flicks)
 
 AVFrame* VideoDecoder::dequeue_frame() noexcept
 {
-  AVFrame* f{};
-  if (auto to_discard = m_discardUntil.exchange(nullptr))
-  {
-    while (m_framesToPlayer.try_dequeue(f) && f != to_discard)
-    {
-      m_releasedFrames.enqueue(f);
-    }
-
-    return to_discard;
-  }
-
-  m_framesToPlayer.try_dequeue(f);
-  if (f)
+  auto f = m_frames.discard_and_dequeue();
+  if(f)
   {
     m_last_dequeued_dts = f->pkt_dts;
   }
@@ -110,7 +99,7 @@ AVFrame* VideoDecoder::dequeue_frame() noexcept
 
 void VideoDecoder::release_frame(AVFrame* frame) noexcept
 {
-  m_releasedFrames.enqueue(frame);
+  m_frames.release(frame);
 }
 
 void VideoDecoder::buffer_thread() noexcept
@@ -125,7 +114,7 @@ void VideoDecoder::buffer_thread() noexcept
     {
       std::unique_lock lck{m_condMut};
       m_condVar.wait(lck, [&] {
-        return m_framesToPlayer.size_approx() < frames_to_buffer / 2
+        return m_frames.size() < frames_to_buffer / 2
                || !m_running.load(std::memory_order_acquire)
                || (m_seekTo != -1);
       });
@@ -137,11 +126,11 @@ void VideoDecoder::buffer_thread() noexcept
         seek_impl(seek);
       }
 
-      if (m_framesToPlayer.size_approx() < (frames_to_buffer / 2))
+      if (m_frames.size() < (frames_to_buffer / 2))
       {
         if (auto f = read_frame_impl())
         {
-          m_framesToPlayer.enqueue(f);
+          m_frames.enqueue(f);
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(4));
       }
@@ -169,63 +158,12 @@ void VideoDecoder::close_file() noexcept
   }
 
   // Remove frames that were in flight
-  drain_frames();
-}
-
-AVFramePointer VideoDecoder::get_new_frame() noexcept
-{
-  // We were working on a frame in this thread (e.g. during a seek, when retrying with EAGAIN..)
-  if (!m_decodeThreadFrameBuffer.empty())
-  {
-    AVFramePointer f{m_decodeThreadFrameBuffer.back()};
-    m_decodeThreadFrameBuffer.pop_back();
-    return f;
-  }
-
-  // Frames freed from the rendering thread
-  {
-    AVFrame* f{};
-    if (m_releasedFrames.try_dequeue(f))
-      return AVFramePointer{f};
-  }
-
-  // We actually need to allocate :throw_up_emoji:
-  {
-    auto res = av_frame_alloc();
-    return AVFramePointer{res};
-  }
+  m_frames.drain();
 }
 
 void free_frame(AVFrame* frame)
 {
   av_frame_free(&frame);
-}
-void VideoDecoder::drain_frames() noexcept
-{
-  {
-    AVFrame* frame{};
-    while (m_framesToPlayer.try_dequeue(frame))
-    {
-      free_frame(frame);
-    }
-  }
-
-  // TODO we must check that this is safe as the queue
-  // does not support dequeueing from the same thread as the
-  // enqueuing
-  {
-    AVFrame* frame{};
-    while (m_releasedFrames.try_dequeue(frame))
-    {
-      free_frame(frame);
-    }
-  }
-
-  for(auto f : m_decodeThreadFrameBuffer)
-  {
-    free_frame(f);
-  }
-  m_decodeThreadFrameBuffer.clear();
 }
 
 ReadFrame VideoDecoder::read_one_frame(AVFramePointer frame, AVPacket& packet)
@@ -339,7 +277,7 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
     // First flush the buffer or smth
     do
     {
-      r = read_one_frame(get_new_frame(), pkt);
+      r = read_one_frame(m_frames.newFrame(), pkt);
     } while (r.error == AVERROR(EAGAIN));
 
     if (r.error == AVERROR_EOF || !r.frame)
@@ -358,8 +296,8 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
 
   if (r.frame)
   {
-    m_framesToPlayer.enqueue(r.frame);
-    m_discardUntil = r.frame;
+    m_frames.set_discard_frame(r.frame);
+    m_frames.enqueue(r.frame);
   }
   else
   {
@@ -379,7 +317,7 @@ AVFrame* VideoDecoder::read_frame_impl() noexcept
 
     do
     {
-      res = read_one_frame(get_new_frame(), packet);
+      res = read_one_frame(m_frames.newFrame(), packet);
     } while (res.error == AVERROR(EAGAIN));
   }
   return res.frame;
@@ -524,14 +462,14 @@ VideoDecoder::enqueue_frame(const AVPacket* pkt, AVFramePointer frame) noexcept
   ReadFrame read = readVideoFrame(m_codecContext, pkt, frame.get());
   if(!read.frame)
   {
-    this->m_decodeThreadFrameBuffer.push_back(frame.release());
+    this->m_frames.enqueue_decoding_error(frame.release());
     return read;
   }
 
   if (m_rescale)
   {
     // alloc an rgb frame
-    auto rgb = get_new_frame().release();
+    auto rgb = m_frames.newFrame().release();
     av_frame_copy_props(rgb, read.frame);
     rgb->width = this->width;
     rgb->height = this->height;
