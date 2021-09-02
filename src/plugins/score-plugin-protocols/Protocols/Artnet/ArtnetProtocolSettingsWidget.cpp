@@ -656,6 +656,7 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   m_deviceNameEdit->setText("Artnet");
 
   m_host = new QComboBox{this};
+  m_host->setEditable(true);
   {
     {
       boost::asio::io_context context;
