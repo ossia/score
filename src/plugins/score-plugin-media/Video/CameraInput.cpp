@@ -7,9 +7,11 @@ extern "C"
 #include <libswscale/swscale.h>
 }
 #include "CameraInput.hpp"
+#include <score/tools/Debug.hpp>
 
 #include <QDebug>
 #include <QElapsedTimer>
+
 
 #include <functional>
 namespace Video
