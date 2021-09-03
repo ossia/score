@@ -10,6 +10,7 @@
 #include <QGraphicsItem>
 #include <QPainterPath>
 #include <QPoint>
+#include <QPointer>
 #include <QTextLayout>
 
 #include <Scenario/Document/TimeRuler/TimeRuler.hpp>
@@ -135,7 +136,7 @@ private:
   void setZoomRatio(double factor) final override;
   void setGrid(MusicalGrid& grid) final override;
 
-  MusicalGrid* m_grid{};
+  QPointer<MusicalGrid> m_grid{};
 
   QGraphicsView* m_viewport{};
 
