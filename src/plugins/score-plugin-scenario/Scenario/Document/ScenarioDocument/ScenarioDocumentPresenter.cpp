@@ -284,6 +284,21 @@ void ScenarioDocumentPresenter::switchMode(bool nodal)
     QTimer::singleShot(0, this, [=] { restoreZoom(); });
   }
 
+
+  {
+    const struct {
+      void operator()(CentralIntervalDisplay& disp) const noexcept {
+        disp.init();
+      }
+      void operator()(CentralNodalDisplay& disp) const noexcept {
+        disp.init();
+      }
+      void operator()(std::monostate) const noexcept {
+      }
+    } init_vis{};
+    std::visit(init_vis, m_centralDisplay);
+  }
+
   /*
   for(auto& cable : m_dataflow.cables())
   {

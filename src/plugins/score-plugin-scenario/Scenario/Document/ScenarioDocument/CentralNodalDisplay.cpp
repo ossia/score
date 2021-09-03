@@ -17,13 +17,17 @@ namespace Scenario
 CentralNodalDisplay::CentralNodalDisplay(ScenarioDocumentPresenter& p)
     : parent{p}
 {
-  auto& itv = p.displayedInterval();
-  auto& view = p.view();
+}
+
+void CentralNodalDisplay::init()
+{
+  auto& itv = parent.displayedInterval();
+  auto& view = parent.view();
   ProcessGraphicsView& gv = view.view();
   presenter = new NodalIntervalView{
       NodalIntervalView::AllItems,
       itv,
-      p.context(),
+      parent.context(),
       &view.baseItem()};
 
   view.view().setSceneRect(QRectF{0, 0, 10, 10});

@@ -19,15 +19,24 @@ CentralIntervalDisplay::CentralIntervalDisplay(ScenarioDocumentPresenter& p)
     : parent{p}
     , presenter{p}
 {
+}
+
+CentralIntervalDisplay::~CentralIntervalDisplay()
+{
+  presenter.remove();
+}
+
+void CentralIntervalDisplay::init()
+{
   auto& view = parent.view();
   auto& gv = view.view();
-  auto& interval = p.displayedElements.interval();
+  auto& interval = parent.displayedElements.interval();
   // Setup of the state machine.
   const auto& fact
       = parent.context().app.interfaces<DisplayedElementsToolPaletteFactoryList>();
   m_stateMachine = fact.make(
       &DisplayedElementsToolPaletteFactory::make,
-      p,
+      parent,
       presenter,
       interval,
       &view.baseItem());
@@ -49,15 +58,10 @@ CentralIntervalDisplay::CentralIntervalDisplay(ScenarioDocumentPresenter& p)
   QObject::connect(
       &presenter,
       &DisplayedElementsPresenter::requestFocusedPresenterChange,
-      &p.focusManager(),
+      &parent.focusManager(),
       static_cast<void (Process::ProcessFocusManager::*)(
           QPointer<Process::LayerPresenter>)>(
           &Process::ProcessFocusManager::focus));
-}
-
-CentralIntervalDisplay::~CentralIntervalDisplay()
-{
-  presenter.remove();
 }
 
 void CentralIntervalDisplay::on_addProcessFromLibrary(const Library::ProcessData& dat)

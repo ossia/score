@@ -16,6 +16,7 @@ public:
   explicit CentralNodalDisplay(ScenarioDocumentPresenter& p);
   ~CentralNodalDisplay();
 
+  void init();
   void recenter();
 
   void on_addProcessFromLibrary(const Library::ProcessData& dat);
