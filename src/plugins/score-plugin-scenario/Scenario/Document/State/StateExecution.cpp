@@ -51,7 +51,8 @@ StateComponentBase::StateComponentBase(
     : Execution::Component{ctx, "Executor::State", nullptr}
     , m_model{&element}
     , m_ev{std::move(ev)}
-    , m_node{std::make_shared<ossia::nodes::state_writer>(
+    , m_node{ossia::make_node<ossia::nodes::state_writer>(
+               *ctx.execState,
           Engine::score_to_ossia::state(element, ctx))}
 {
   system().setup.register_node({}, {}, m_node);

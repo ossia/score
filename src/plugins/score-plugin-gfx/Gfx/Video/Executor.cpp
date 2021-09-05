@@ -90,7 +90,7 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     std::optional<double> tempo;
     if (!element.ignoreTempo())
       tempo = element.nativeTempo();
-    auto n = std::make_shared<video_node>(
+    auto n = ossia::make_node<video_node>(*ctx.execState,
         element.decoder(), tempo, ctx.doc.plugin<DocumentPlugin>().exec);
 
     n->root_outputs().push_back(new ossia::texture_outlet);

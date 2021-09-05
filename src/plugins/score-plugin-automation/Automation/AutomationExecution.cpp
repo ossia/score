@@ -84,7 +84,7 @@ Component::Component(
         "Executor::AutomationComponent",
         parent}
 {
-  node = std::make_shared<ossia::nodes::automation>();
+  node = ossia::make_node<ossia::nodes::automation>(*ctx.execState.get());
   m_ossia_process = std::make_shared<ossia::nodes::automation_process>(node);
 
   con(element,

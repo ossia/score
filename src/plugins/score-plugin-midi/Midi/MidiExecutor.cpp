@@ -21,7 +21,7 @@ Component::Component(
         "MidiComponent",
         parent}
 {
-  auto midi = std::make_shared<midi_node>();
+  auto midi = ossia::make_node<midi_node>(*ctx.execState);
   this->node = midi;
   m_ossia_process = std::make_shared<midi_node_process>(midi);
 

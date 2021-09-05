@@ -266,7 +266,7 @@ public:
           "FaustComponent",
           parent}
   {
-    auto node = std::make_shared<exec_node>();
+    auto node = ossia::make_node<exec_node>(*ctx.execState);
     this->node = node;
     this->m_ossia_process = std::make_shared<ossia::node_process>(node);
     node->dsp.instanceInit(ctx.execState->sampleRate);

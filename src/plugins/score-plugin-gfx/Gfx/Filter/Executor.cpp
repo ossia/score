@@ -59,7 +59,7 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     const auto& shader = element.processedProgram();
     const auto& desc = shader.descriptor;
 
-    this->node = std::make_shared<filter_node>(
+    this->node = ossia::make_node<filter_node>(*ctx.execState,
         desc,
         shader.compiledVertex,
         shader.compiledFragment,

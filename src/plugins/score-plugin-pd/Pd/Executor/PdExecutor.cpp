@@ -581,7 +581,7 @@ Component::Component(
       out_mess.push_back(e.name().toStdString());
   }
 
-  auto pdnode = std::make_shared<PdGraphNode>(
+  auto pdnode = ossia::make_node<PdGraphNode>(*ctx.execState,
       element.m_instance,
       f.canonicalPath().toStdString(),
       f.fileName().toStdString(),

@@ -440,6 +440,8 @@ ScenarioComponentBase::make<IntervalComponent, Scenario::IntervalModel>(
       dur.minDuration,
       dur.maxDuration);
 
+  ossia_cst->node->prepare(*m_ctx.execState);
+
   elt->onSetup(elt, ossia_cst, dur);
 
   const bool prop = cst.graphal() ? false : cst.outlet->propagate();

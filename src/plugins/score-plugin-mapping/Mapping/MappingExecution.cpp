@@ -25,7 +25,7 @@ Component::Component(
         Mapping::ProcessModel,
         ossia::node_process>{element, ctx, "MappingElement", parent}
 {
-  node = std::make_shared<ossia::nodes::mapping>();
+  node = ossia::make_node<ossia::nodes::mapping>(*ctx.execState.get());
   m_ossia_process = std::make_shared<ossia::node_process>(node);
 
   con(element,

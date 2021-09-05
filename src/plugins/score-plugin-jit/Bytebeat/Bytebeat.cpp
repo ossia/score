@@ -238,8 +238,8 @@ BytebeatExecutor::BytebeatExecutor(
     QObject* parent)
     : ProcessComponent_T{proc, ctx, "JitComponent", parent}
 {
-  auto bb = new bytebeat_node;
-  this->node.reset(bb);
+  auto bb = ossia::make_node<bytebeat_node>(*ctx.execState);
+  this->node = bb;
 
   if (auto tgt = proc.factory.target<void (*)(double*, int, int)>())
     bb->set_function(*tgt);

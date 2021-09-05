@@ -59,7 +59,7 @@ public:
       {
         Execution::Transaction commands{component.system()};
 
-        auto node = std::make_shared<ossia::nodes::sound_ref>();
+        auto node = ossia::make_node<ossia::nodes::sound_ref>(*component.system().execState.get());
         component.node = node;
         component.m_ossia_process
             = std::make_shared<ossia::sound_process>(node);
@@ -72,7 +72,7 @@ public:
       {
         Execution::Transaction commands{component.system()};
 
-        auto node = std::make_shared<ossia::nodes::sound_ref>();
+        auto node = ossia::make_node<ossia::nodes::sound_ref>(*component.system().execState.get());
         component.node = node;
         component.m_ossia_process
             = std::make_shared<ossia::sound_process>(node);
@@ -84,7 +84,7 @@ public:
       {
         Execution::Transaction commands{component.system()};
 
-        auto node = std::make_shared<ossia::nodes::sound_mmap>();
+        auto node = ossia::make_node<ossia::nodes::sound_mmap>(*component.system().execState.get());
         component.node = node;
         component.m_ossia_process
             = std::make_shared<ossia::sound_process>(node);
@@ -119,7 +119,7 @@ public:
         }
         else
         {
-          n = std::make_shared<ossia::nodes::sound_ref>();
+          n = ossia::make_node<ossia::nodes::sound_ref>(*component.system().execState.get());
           update_ref(n, r, component, commands);
           component.system().setup.unregister_node(
               component.process(), old_node, commands);
@@ -145,7 +145,7 @@ public:
         }
         else
         {
-          n = std::make_shared<ossia::nodes::sound_ref>();
+          n = ossia::make_node<ossia::nodes::sound_ref>(*component.system().execState.get());
           update_sndfile(n, r, component, commands);
           component.system().setup.unregister_node(
               component.process(), old_node, commands);
@@ -173,7 +173,7 @@ public:
         }
         else
         {
-          n = std::make_shared<ossia::nodes::sound_mmap>();
+          n = ossia::make_node<ossia::nodes::sound_mmap>(*component.system().execState.get());
           update_mmap(n, r, component, commands);
           component.system().setup.unregister_node(
               component.process(), old_node, commands);

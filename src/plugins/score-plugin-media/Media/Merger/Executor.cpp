@@ -19,7 +19,7 @@ MergerComponent::MergerComponent(
         "Executor::MergerComponent",
         parent}
 {
-  auto node = std::make_shared<ossia::nodes::merger>(element.inCount());
+  auto node = ossia::make_node<ossia::nodes::merger>(*ctx.execState.get(), element.inCount());
   this->node = node;
   m_ossia_process = std::make_shared<ossia::node_process>(node);
 

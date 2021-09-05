@@ -23,7 +23,7 @@ Component::Component(
             "Executor::SplineComponent",
             parent}
 {
-  auto node = std::make_shared<spline>();
+  auto node = ossia::make_node<spline>(*ctx.execState);
   this->node = node;
   m_ossia_process = std::make_shared<ossia::node_process>(node);
 

@@ -23,7 +23,7 @@ Component::Component(
             "Executor::GradientComponent",
             parent}
 {
-  auto node = std::make_shared<gradient>();
+  auto node = ossia::make_node<ossia::nodes::gradient>(*ctx.execState.get())
   this->node = node;
   m_ossia_process = std::make_shared<ossia::nodes::gradient_process>(node);
 

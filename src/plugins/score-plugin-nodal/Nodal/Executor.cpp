@@ -130,6 +130,7 @@ NodalExecutorBase::NodalExecutorBase(
 {
   // TODO load node
   m_ossia_process = std::make_shared<ossia::node_graph_process>();
+  m_ossia_process->node->prepare(*ctx.execState);
   this->node = m_ossia_process->node;
 }
 

@@ -638,7 +638,7 @@ void FaustEffectComponent::reloadSynth(Execution::Transaction& transaction)
   auto& ctx = system();
 
   proc.faust_poly_object->init(ctx.execState->sampleRate);
-  auto node = std::make_shared<faust_type>(proc.faust_poly_object);
+  auto node = ossia::make_node<faust_type>(*ctx.execState, proc.faust_poly_object);
   this->node = node;
 
   if (!m_ossia_process)
@@ -656,7 +656,7 @@ void FaustEffectComponent::reloadFx(Execution::Transaction& transaction)
   auto& proc = process();
   auto& ctx = system();
   proc.faust_object->init(ctx.execState->sampleRate);
-  auto node = std::make_shared<faust_type>(proc.faust_object);
+  auto node = ossia::make_node<faust_type>(*ctx.execState, proc.faust_object);
   this->node = node;
 
   if (!m_ossia_process)

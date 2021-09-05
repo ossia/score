@@ -630,7 +630,8 @@ void LV2EffectComponent::lazy_init()
   os.self = std::dynamic_pointer_cast<LV2EffectComponent>(shared_from_this());
   of.self = os.self;
 
-  auto node = std::make_shared<LV2::lv2_node_t>(
+  auto node = ossia::make_node<LV2::lv2_node_t>(
+      *ctx.execState,
       LV2::LV2Data{host.lv2_host_context, proc.effectContext},
       ctx.execState->sampleRate,
       os,

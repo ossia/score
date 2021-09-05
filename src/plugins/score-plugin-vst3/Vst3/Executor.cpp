@@ -108,13 +108,13 @@ Executor::Executor(
 
   if (proc.fx.supportsDouble)
   {
-    auto n = vst3::make_vst_fx<true>(proc.fx, ctx.execState->sampleRate);
+    auto n = vst3::make_vst_fx<true>(*ctx.execState, proc.fx, ctx.execState->sampleRate);
     setupNode(n);
     node = std::move(n);
   }
   else
   {
-    auto n = vst3::make_vst_fx<false>(proc.fx, ctx.execState->sampleRate);
+    auto n = vst3::make_vst_fx<false>(*ctx.execState, proc.fx, ctx.execState->sampleRate);
     setupNode(n);
     node = std::move(n);
   }

@@ -62,7 +62,7 @@ Executor::Executor(
         Patternist::ProcessModel,
         ossia::node_process>{element, ctx, "PatternComponent", parent}
 {
-  auto node = std::make_shared<pattern_node>();
+  auto node = ossia::make_node<pattern_node>(*ctx.execState);
   node->channel = element.channel();
   node->pattern = element.patterns()[element.currentPattern()];
 

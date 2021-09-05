@@ -234,7 +234,7 @@ MetroComponent::MetroComponent(
     const auto& tock_sound{
         sounds.tock_handle.target<Media::AudioFile::RAMView>()->data};
 
-    auto node = std::make_shared<ossia::nodes::audio_metronome>(
+    auto node = ossia::make_node<ossia::nodes::audio_metronome>(*ctx.execState.get(),
         tick_sound,
         tock_sound,
         sounds.tick->decodedSamples(),

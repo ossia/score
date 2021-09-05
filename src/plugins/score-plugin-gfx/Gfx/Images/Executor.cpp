@@ -39,7 +39,7 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     QObject* parent)
     : ProcessComponent_T{element, ctx, "gfxExecutorComponent", parent}
 {
-  auto n = std::make_shared<image_node>(ctx.doc.plugin<DocumentPlugin>().exec);
+  auto n = ossia::make_node<image_node>(*ctx.execState,ctx.doc.plugin<DocumentPlugin>().exec);
 
   // Normal controls
   for (std::size_t i = 0; i < 6; i++)

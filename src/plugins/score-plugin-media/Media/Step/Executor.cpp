@@ -23,7 +23,7 @@ StepComponent::StepComponent(
         "Executor::StepComponent",
         parent}
 {
-  auto node = std::make_shared<ossia::nodes::step>();
+  auto node = ossia::make_node<ossia::nodes::step>(*ctx.execState);
   this->node = node;
   m_ossia_process = std::make_shared<ossia::node_process>(node);
   node->dur = ossia::time_value{int64_t(element.stepDuration())};

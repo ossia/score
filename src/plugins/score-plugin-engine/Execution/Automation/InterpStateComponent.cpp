@@ -62,7 +62,7 @@ ExecComponent::ExecComponent(
   // - When the curve changes
 
   /*
-  node = std::make_shared<ossia::nodes::automation>();
+  node = ossia::make_node<ossia::nodes::automation>(*ctx.execState.get())
   m_ossia_process = std::make_shared<ossia::nodes::automation_process>(node);
 
   con(element, &Automation::ProcessModel::minChanged, this,

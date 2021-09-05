@@ -274,7 +274,8 @@ public:
               "Executor::ControlProcess<Info>",
               parent}
   {
-    auto node = std::make_shared<ossia::safe_nodes::safe_node<Info>>();
+    auto node = ossia::make_node<ossia::safe_nodes::safe_node<Info>>(*ctx.execState.get());
+
     this->node = node;
     this->m_ossia_process = std::make_shared<ossia::node_process>(this->node);
 

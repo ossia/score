@@ -38,7 +38,7 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     QObject* parent)
     : ProcessComponent_T{element, ctx, "textComponent", parent}
 {
-  auto n = std::make_shared<text_node>(ctx.doc.plugin<DocumentPlugin>().exec);
+  auto n = ossia::make_node<text_node>(*ctx.execState, ctx.doc.plugin<DocumentPlugin>().exec);
 
   for (std::size_t i = 0; i < 8; i++)
   {

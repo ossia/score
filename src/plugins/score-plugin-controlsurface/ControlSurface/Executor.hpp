@@ -89,8 +89,7 @@ public:
           ControlSurface::Model,
           ossia::node_process>{element, ctx, "ControlSurface", parent}
   {
-    std::shared_ptr<ossia::control_surface_node> node
-        = std::make_shared<ossia::control_surface_node>();
+    auto node = ossia::make_node<ossia::control_surface_node>(*ctx.execState);
     this->node = node;
     this->m_ossia_process = std::make_shared<ossia::node_process>(this->node);
 

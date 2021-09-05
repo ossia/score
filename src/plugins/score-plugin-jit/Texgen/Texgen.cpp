@@ -190,8 +190,8 @@ TexgenExecutor::TexgenExecutor(
     QObject* parent)
     : ProcessComponent_T{proc, ctx, "JitComponent", parent}
 {
-  auto bb = new texgen_node{ctx.doc.plugin<Gfx::DocumentPlugin>().exec};
-  this->node.reset(bb);
+  auto bb = ossia::make_node<texgen_node>(*ctx.execState, ctx.doc.plugin<Gfx::DocumentPlugin>().exec);
+  this->node = bb;
 
   if (auto tgt = proc.factory.target<void (*)(
                      unsigned char* rgb, int width, int height, int t)>())

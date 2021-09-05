@@ -132,7 +132,7 @@ Component::Component(
         "JSComponent",
         parent}
 {
-  std::shared_ptr<js_node> node = std::make_shared<js_node>(*ctx.execState);
+  std::shared_ptr<js_node> node = ossia::make_node<js_node>(*ctx.execState, *ctx.execState);
   this->node = node;
   auto proc = std::make_shared<js_process>(node);
   m_ossia_process = proc;

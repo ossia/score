@@ -653,6 +653,6 @@ public:
 template <bool b1, typename... Args>
 auto make_vst_fx(Args&... args)
 {
-  return std::make_shared<vst_node<b1>>(args...);
+  return ossia::make_node<vst_node<b1>>(args...);
 }
 }
