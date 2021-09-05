@@ -152,11 +152,31 @@ void TransportActions::makeGUIElements(score::GUIElements& ref)
   {
     auto bar = new QToolBar{tr("Transport")};
     {
-      auto time_label = new QLabel;
-      time_label->setObjectName("TimeLabel");
-      QFont time_font("Ubuntu", 18, QFont::Weight::DemiBold);
-      time_label->setFont(time_font);
-      time_label->setText("00:00:00.000");
+      struct fixed_label : public QLabel{
+        QSize sz;
+        fixed_label() noexcept
+        {
+          setObjectName("TimeLabel");
+          QFont time_font("Ubuntu", 18, QFont::Weight::DemiBold);
+          setFont(time_font);
+          setText("00:00:00.000");
+
+          QFontMetrics mf{time_font};
+          sz = mf.boundingRect(text()).size();
+        }
+
+        QSize sizeHint() const override
+        {
+          return sz;
+        }
+        QSize minimumSizeHint() const override
+        {
+          return sz;
+        }
+      };
+
+      auto time_label = new fixed_label;
+
       bar->addWidget(time_label);
     }
 
