@@ -26,7 +26,10 @@
 #include <wobjectimpl.h>
 
 #if __has_include(<sndfile.h>)
-#define SAMPLERATE 1
+// Disabled because it breaks build on ArchLinux due to a bug in LibsndfileReader.h
+#if defined(SAMPLERATE)
+#undef SAMPLERATE
+#endif
 #define FAUST_HAS_SNDFILE 1
 #include <faust/gui/SoundUI.h>
 #endif
