@@ -79,6 +79,7 @@ public:
             m_scenar,
             m_createdState,
             Scenario::Point{m_currentDate, m_intervalY});
+        m_createdState = m_itv->endState();
         decltype(auto) proc = fun(m_macro, *m_itv);
         m_macro.showRack(*m_itv);
         return proc;
