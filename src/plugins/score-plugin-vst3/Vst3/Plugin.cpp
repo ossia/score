@@ -31,7 +31,7 @@ createComponent(VST3::Hosting::Module& mdl, const std::string& name)
       }
     }
 
-  throw vst_error("Couldn't create VST3 component ({})", mdl.getPath());
+  throw std::runtime_error(fmt::format("Couldn't create VST3 component ({})", mdl.getPath()));
 }
 
 static Steinberg::Vst::IComponent*
@@ -45,7 +45,7 @@ createComponent(VST3::Hosting::Module& mdl, const VST3::UID& cls)
       reinterpret_cast<void**>(&obj));
   return obj;
 
-  throw vst_error("Couldn't create VST3 component ({})", mdl.getPath());
+  throw std::runtime_error(fmt::format("Couldn't create VST3 component ({})", mdl.getPath()));
 }
 
 void Plugin::loadAudioProcessor(ApplicationPlugin& ctx)
@@ -54,7 +54,7 @@ void Plugin::loadAudioProcessor(ApplicationPlugin& ctx)
   auto audio_iface_res = component->queryInterface(
       Steinberg::Vst::IAudioProcessor::iid, (void**)&processor_ptr);
   if (audio_iface_res != Steinberg::kResultOk || !processor_ptr)
-    throw vst_error("Couldn't get VST3 AudioProcessor interface ({})", path);
+    throw std::runtime_error(fmt::format("Couldn't get VST3 AudioProcessor interface ({})", path));
 
   processor = processor_ptr;
 }
@@ -178,7 +178,7 @@ void Plugin::load(
     return;
 
   if (component->initialize(&ctx.m_host) != Steinberg::kResultOk)
-    throw vst_error("Couldn't initialize VST3 component ({})", path);
+    throw std::runtime_error(fmt::format("Couldn't initialize VST3 component ({})", path));
 
   loadAudioProcessor(ctx);
 
@@ -204,10 +204,10 @@ void Plugin::start(double_t sample_rate, int max_bs)
       Steinberg::Vst::kRealtime, sampleSize, max_bs, sample_rate};
 
   if (processor->setupProcessing(setup) != Steinberg::kResultOk)
-    throw vst_error("Couldn't setup VST3 processing ({})", path);
+    throw std::runtime_error(fmt::format("Couldn't setup VST3 processing ({})", path));
 
   if (component->setActive(true) != Steinberg::kResultOk)
-    throw vst_error("Couldn't set VST3 active ({})", path);
+    throw std::runtime_error(fmt::format("Couldn't set VST3 active ({})", path));
 }
 
 void Plugin::stop()

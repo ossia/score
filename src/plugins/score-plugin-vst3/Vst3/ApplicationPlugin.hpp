@@ -17,15 +17,6 @@
 
 namespace vst3
 {
-struct vst_error : public std::runtime_error
-{
-  template <typename... Args>
-  vst_error(Args&&... args) noexcept
-      : runtime_error{fmt::format(args...)}
-  {
-  }
-};
-
 struct AvailablePlugin
 {
   QString path;

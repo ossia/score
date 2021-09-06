@@ -339,7 +339,7 @@ ApplicationPlugin::getModule(const std::string& path)
     auto module = VST3::Hosting::Module::create(path, err);
 
     if (!module)
-      throw vst_error("Failed to load VST3 ({}) : {}", path, err);
+      throw std::runtime_error(fmt::format("Failed to load VST3 ({}) : {}", path, err));
 
     modules[path] = module;
     return module;
