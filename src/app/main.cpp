@@ -151,7 +151,7 @@ static void setup_faust_path()
   path += "/faust";
 #endif
 #else
-  path += "/src/plugins/score-plugin-media/faustlibs-prefix/src/faustlibs";
+  path += "/src/plugins/score-plugin-faust/faustlibs-prefix/src/faustlibs";
 #endif
 
   qputenv("FAUST_LIB_PATH", path.c_str());
