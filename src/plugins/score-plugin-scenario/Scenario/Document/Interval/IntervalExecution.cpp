@@ -373,6 +373,9 @@ void IntervalComponent::graph_slot_callback(
 
 void IntervalComponent::slot_callback(bool running, ossia::time_value date)
 {
+  if (!m_interval)
+    return;
+
   if (m_ossia_interval)
   {
     if (running)
