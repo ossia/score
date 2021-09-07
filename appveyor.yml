@@ -1,10 +1,10 @@
 environment:
   QTDIR: C:/Qt/5.15/msvc2019_64
-  BOOST_ROOT: C:/Libraries/boost_1_73_0
+  BOOST_ROOT: C:/Libraries/boost_1_77_0
 
 configuration: Release
 
-image: Visual Studio 2019 Preview
+image: Visual Studio 2019
 platform: x64
 
 install:
