@@ -324,7 +324,7 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
     label_y += 25;
   }
 
-  std::array<score::StartScreenLink, 4> menus = {{{qApp->tr("Tutorials"),"https://www.youtube.com/playlist?list=PLIHLSiZpIa6aRQT5v6RInuyCR3qWmMEgV", ":/icons/tutorials_off.png", ":/icons/tutorials_on.png"}, {qApp->tr("Contribute"),"https://opencollective.com/ossia/contribute", ":/icons/contribute_off.png", ":/icons/contribute_on.png"}, {qApp->tr("Forum"),"http://forum.ossia.io/", ":/icons/forum_off.png", ":/icons/forum_on.png"}, {qApp->tr("Chat"),"https://gitter.im/ossia/score", ":/icons/chat_off.png", ":/icons/chat_on.png"}}};
+  std::array<score::StartScreenLink, 4> menus = {{{qApp->tr("Tutorials"),"https://www.youtube.com/watch?v=R-3d8K6gQkw&list=PLIHLSiZpIa6YoY1_aW1yetDgZ7tZcxfEC&index=1", ":/icons/tutorials_off.png", ":/icons/tutorials_on.png"}, {qApp->tr("Contribute"),"https://opencollective.com/ossia/contribute", ":/icons/contribute_off.png", ":/icons/contribute_on.png"}, {qApp->tr("Forum"),"http://forum.ossia.io/", ":/icons/forum_off.png", ":/icons/forum_on.png"}, {qApp->tr("Chat"),"https://gitter.im/ossia/score", ":/icons/chat_off.png", ":/icons/chat_on.png"}}};
   label_y = 285;
   for(const auto& m: menus)
   {
