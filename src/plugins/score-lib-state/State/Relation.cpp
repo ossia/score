@@ -38,7 +38,7 @@ QString State::toString(const State::RelationMember& m)
       auto addr = acc.address.toString();
       for (auto val : acc.qualifiers.get().accessors)
       {
-        addr += QString("[%1]").arg(val);
+        addr += QString("@[%1]").arg(val);
       }
       return "%" + addr + "%";
     }
