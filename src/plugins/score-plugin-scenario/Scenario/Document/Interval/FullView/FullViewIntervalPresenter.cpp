@@ -240,7 +240,8 @@ void FullViewIntervalPresenter::createSlot(int slot_i, const FullSlot& s)
     p.footer = new AmovibleSlotFooter{*this, slot_i, m_view};
     auto it = m_slots.insert(m_slots.begin() + slot_i, std::move(p));
     auto& slt = *it->getLayerSlot();
-    setupSlot(slt, m_model.processes.at(s.process), slot_i);
+    if(auto p = m_model.processes.find(s.process); p != m_model.processes.end())
+      setupSlot(slt, *p, slot_i);
   }
   else
   {

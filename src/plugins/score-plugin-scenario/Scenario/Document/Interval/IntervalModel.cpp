@@ -584,9 +584,17 @@ double IntervalModel::getSlotHeight(const SlotId& slot) const
   {
     auto& slt = m_fullView.at(slot.index);
     if (slt.nodal)
+    {
       return m_nodalFullViewSlotHeight;
+    }
     else
-      return processes.at(slt.process).getSlotHeight();
+    {
+      auto it = processes.find(slt.process);
+      if(it != processes.end())
+        return it->getSlotHeight();
+      else
+        return 0.;
+    }
   }
   else
   {
@@ -616,9 +624,15 @@ void IntervalModel::setSlotHeight(const SlotId& slot, double height)
   {
     auto& slt = m_fullView.at(slot.index);
     if (slt.nodal)
+    {
       m_nodalFullViewSlotHeight = height;
+    }
     else
-      processes.at(slt.process).setSlotHeight(height);
+    {
+      auto it = processes.find(slt.process);
+      if(it != processes.end())
+        it->setSlotHeight(height);
+    }
   }
   else
   {
