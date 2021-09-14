@@ -972,9 +972,19 @@ void ScenarioDocumentPresenter::focusFrontProcess()
     auto& firstSlot = cst_pres->getSlots().front();
     if (auto slt = firstSlot.getLayerSlot())
     {
-      auto p = slt->layers.front().mainPresenter();
-      if (p)
-        focusManager().focus(p);
+      if(!slt->layers.empty())
+      {
+        if (auto p = slt->layers.front().mainPresenter())
+          focusManager().focus(p);
+      }
+      else
+      {
+        qDebug() << "Warning: trying to focus slot with no layers";
+      }
+    }
+    else
+    {
+      qDebug() << "Warning: trying to focus non-layer slot";
     }
   }
 }
