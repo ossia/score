@@ -10,6 +10,7 @@
 #include <faust/gui/MetaDataUI.h>
 
 #include <QDebug>
+#include <string_view>
 
 namespace Faust
 {
@@ -67,12 +68,15 @@ struct UI : ::UI, MetaDataUI
       FAUSTFLOAT max,
       FAUSTFLOAT step) override
   {
+    using namespace std::literals;
     if constexpr (Synth)
     {
-      using namespace std::literals;
       if (label == "gain"sv || label == "freq"sv || label == "sustain"sv)
         return;
     }
+
+    if (label == "0x00"sv)
+      label = "Control";
 
     if(isKnob(zone))
     {
