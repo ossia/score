@@ -768,13 +768,16 @@ static void loadVstChunkFromDatastream(DataStreamOutput& stream, vst::Model& eff
   }
 
   // Then reload our UI controls at the correct values.
-  const bool isSynth = eff.fx->fx->flags & effFlagsIsSynth;
-  for (std::size_t i = VST_FIRST_CONTROL_INDEX(isSynth);
-       i < eff.inlets().size();
-       i++)
+  if(eff.fx && eff.fx->fx)
   {
-    auto inlet = safe_cast<vst::ControlInlet*>(eff.inlets()[i]);
-    inlet->setValue(eff.fx->getParameter(inlet->fxNum));
+    const bool isSynth = eff.fx->fx->flags & effFlagsIsSynth;
+    for (std::size_t i = VST_FIRST_CONTROL_INDEX(isSynth);
+         i < eff.inlets().size();
+         i++)
+    {
+      auto inlet = safe_cast<vst::ControlInlet*>(eff.inlets()[i]);
+      inlet->setValue(eff.fx->getParameter(inlet->fxNum));
+    }
   }
 }
 
