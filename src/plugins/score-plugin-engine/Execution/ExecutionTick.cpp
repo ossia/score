@@ -171,13 +171,13 @@ Audio::tick_fun makeExecutionTick(
     Execution::DocumentPlugin& plug,
     Execution::BaseScenarioElement& scenar)
 {
-  return [helper = AudioTickHelper{opt, plug, scenar}](
+  return [helper = std::make_shared<AudioTickHelper>(opt, plug, scenar)](
              const ossia::audio_tick_state& t) {
     Audio::execution_status.store(ossia::transport_status::playing);
 
-    helper.clearBuffers(t);
-    helper.dequeueCommands();
-    helper.main(t);
+    helper->clearBuffers(t);
+    helper->dequeueCommands();
+    helper->main(t);
   };
 }
 
@@ -186,36 +186,28 @@ Audio::tick_fun makeBenchmarkTick(
     Execution::DocumentPlugin& plug,
     Execution::BaseScenarioElement& scenar)
 {
-  auto tick = ossia::make_tick(
-      opt,
-      *plug.execState,
-      *plug.execGraph,
-      *scenar.baseInterval().OSSIAInterval(),
-      scenar.baseScenario(),
-      plug.executionController().transport().transportUpdateFunction());
-
   int i = 0;
-  return [helper = AudioTickHelper{opt, plug, scenar},
+  return [helper = std::make_shared<AudioTickHelper>(opt, plug, scenar),
           i](const ossia::audio_tick_state& t) mutable {
     Audio::execution_status.store(ossia::transport_status::playing);
 
-    helper.clearBuffers(t);
-    helper.dequeueCommands();
+    helper->clearBuffers(t);
+    helper->dequeueCommands();
 
-    auto& bench = *helper.m_plug.bench;
+    auto& bench = *helper->m_plug.bench;
     if (i % 50 == 0)
     {
       bench.measure = true;
       auto t0 = std::chrono::steady_clock::now();
 
-      helper.main(t);
+      helper->main(t);
 
       auto t1 = std::chrono::steady_clock::now();
       auto total
           = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0)
                 .count();
 
-      helper.m_plug.sig_bench(bench, total);
+      helper->m_plug.sig_bench(bench, total);
       for (auto& p : bench)
       {
         p.second = {};
@@ -225,7 +217,7 @@ Audio::tick_fun makeBenchmarkTick(
     {
       bench.measure = false;
 
-      helper.main(t);
+      helper->main(t);
     }
 
     i++;

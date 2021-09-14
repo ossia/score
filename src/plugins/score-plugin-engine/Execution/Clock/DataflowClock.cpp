@@ -36,25 +36,6 @@ void Clock::play_impl(const TimeVal& t, Execution::BaseScenarioElement& bs)
   m_cur = &bs;
   m_default.play(t, bs);
 
-  resume_impl(bs);
-}
-
-void Clock::pause_impl(Execution::BaseScenarioElement& bs)
-{
-  m_paused = true;
-  if (auto e = m_audio.audio.get())
-    e->set_tick(Audio::makePauseTick(this->context.doc.app));
-  m_default.pause(bs);
-}
-
-void Clock::resume_impl(Execution::BaseScenarioElement& bs)
-{
-  auto e = m_audio.audio.get();
-  if (!e)
-    return;
-
-  m_paused = false;
-  m_default.resume(bs);
   auto tick = m_plug.settings.getTick();
   auto commit = m_plug.settings.getCommit();
 
@@ -77,12 +58,36 @@ void Clock::resume_impl(Execution::BaseScenarioElement& bs)
 
   if (m_plug.settings.getBench() && m_plug.bench)
   {
-    e->set_tick(Execution::makeBenchmarkTick(opt, m_plug, *m_cur));
+    m_play_tick = Execution::makeBenchmarkTick(opt, m_plug, *m_cur);
   }
   else
   {
-    e->set_tick(Execution::makeExecutionTick(opt, m_plug, *m_cur));
+    m_play_tick = Execution::makeExecutionTick(opt, m_plug, *m_cur);
   }
+
+  m_pause_tick = Audio::makePauseTick(this->context.doc.app);
+
+  resume_impl(bs);
+}
+
+void Clock::pause_impl(Execution::BaseScenarioElement& bs)
+{
+  m_paused = true;
+  if (auto e = m_audio.audio.get())
+    e->set_tick(ossia::audio_engine::fun_type{m_pause_tick});
+  m_default.pause(bs);
+}
+
+void Clock::resume_impl(Execution::BaseScenarioElement& bs)
+{
+  auto e = m_audio.audio.get();
+  if (!e)
+    return;
+
+  m_paused = false;
+  m_default.resume(bs);
+
+  e->set_tick(ossia::audio_engine::fun_type{m_play_tick});
 }
 
 void Clock::stop_impl(Execution::BaseScenarioElement& bs)
@@ -90,7 +95,7 @@ void Clock::stop_impl(Execution::BaseScenarioElement& bs)
   m_paused = false;
 
   if (auto e = m_audio.audio.get())
-    e->set_tick(Audio::makePauseTick(this->context.doc.app));
+    e->set_tick(ossia::audio_engine::fun_type{m_pause_tick});
 
   m_default.stop(bs);
   m_plug.finished();

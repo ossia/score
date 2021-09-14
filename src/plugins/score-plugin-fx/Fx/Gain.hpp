@@ -33,8 +33,8 @@ struct Node
   {
     const auto chans = p1.samples.size();
     p2.samples.resize(chans);
-    const int64_t N = t.physical_write_duration(st.modelToSamples());
-    const int64_t first_pos = t.physical_start(st.modelToSamples());
+
+    const auto [first_pos, N] = st.timings(t);
 
     const double gain = g;
     for (std::size_t i = 0; i < chans; i++)

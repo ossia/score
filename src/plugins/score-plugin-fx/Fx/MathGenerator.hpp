@@ -173,7 +173,8 @@ struct Node
     self.p3 = c;
 
     auto res = self.expr.value();
-    output.write_value(res, st.physical_start(tk));
+    const auto [tick_start, d] = st.timings(tk);
+    output.write_value(res, tick_start);
   }
 
   template <typename... Args>
@@ -292,8 +293,7 @@ struct Node
         return;
 
       const auto samplesRatio = st.modelToSamples();
-      const auto start = st.physical_start(tk);
-      const auto count = tk.physical_write_duration(samplesRatio);
+      const auto [tick_start, count] = st.timings(tk);
 
       const int chans = 2;
       self.reset_symbols(chans);
@@ -319,7 +319,7 @@ struct Node
         // Apply the output
         for (int j = 0; j < chans; j++)
         {
-          output.samples[j][start + i] = self.cur_out[j];
+          output.samples[j][tick_start + i] = self.cur_out[j];
         }
       }
     }

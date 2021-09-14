@@ -295,10 +295,7 @@ public:
   {
     if (!muted() && tk.date > tk.prev_date)
     {
-      const int64_t offset
-          = tk.physical_start(st.modelToSamples());
-      const int64_t samples
-          = tk.physical_write_duration(st.modelToSamples());
+      const auto timings = st.timings(tk);
       this->setControls();
       this->setupTimeInfo(tk, st);
 
@@ -306,22 +303,22 @@ public:
       {
         if constexpr (IsSynth)
         {
-          dispatchMidi(offset, [=] { processDouble(offset, samples); });
+          dispatchMidi(timings.start_sample, [=] { processDouble(timings.start_sample, timings.length); });
         }
         else
         {
-          processDouble(offset, samples);
+          processDouble(timings.start_sample, timings.length);
         }
       }
       else
       {
         if constexpr (IsSynth)
         {
-          dispatchMidi(offset, [=] { processFloat(offset, samples); });
+          dispatchMidi(timings.start_sample, [=] { processFloat(timings.start_sample, timings.length); });
         }
         else
         {
-          processFloat(offset, samples);
+          processFloat(timings.start_sample, timings.length);
         }
       }
 

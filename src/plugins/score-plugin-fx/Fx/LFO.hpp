@@ -180,7 +180,8 @@ struct Node
       using namespace Control::Widgets;
 
       const auto add_val = [&](auto new_val) {
-        out.write_value(ampl * new_val + offset, st.physical_start(tk));
+        const auto [tick_start, d] = st.timings(tk);
+        out.write_value(ampl * new_val + offset, tick_start);
       };
       switch (it->second)
       {

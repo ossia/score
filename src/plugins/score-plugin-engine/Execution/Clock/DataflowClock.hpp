@@ -2,6 +2,7 @@
 #include <Execution/Clock/ClockFactory.hpp>
 #include <Execution/Clock/DefaultClock.hpp>
 #include <Execution/DocumentPlugin.hpp>
+#include <Audio/AudioTick.hpp>
 namespace Audio
 {
 class ApplicationPlugin;
@@ -35,6 +36,9 @@ private:
   Execution::DocumentPlugin& m_plug;
   Execution::BaseScenarioElement* m_cur{};
   bool m_paused{};
+
+  ossia::audio_engine::fun_type m_play_tick{};
+  ossia::audio_engine::fun_type m_pause_tick{};
 };
 
 class ClockFactory final : public Execution::ClockFactory

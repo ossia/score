@@ -437,7 +437,7 @@ void PdGraphNode::run(
 
   // Compute number of samples to process
   const std::size_t input_channels = std::min(m_audioIns, m_audio_inlet ? m_audio_inlet->samples.size() : 0);
-  const uint64_t req_samples = t.physical_write_duration(e.modelToSamples());
+  const auto [start_sample, req_samples] = e.timings(t);
   if (m_audioOuts == 0)
   {
     libpd_process_raw(m_inbuf.data(), m_outbuf.data());

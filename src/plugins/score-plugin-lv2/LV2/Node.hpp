@@ -447,8 +447,7 @@ struct lv2_node final : public ossia::graph_node
 
       preProcess();
 
-      const std::size_t samples
-          = tk.physical_write_duration(st.modelToSamples());
+      const auto [tick_start, samples] = st.timings(tk);
       const auto audio_ins = data.audio_in_ports.size();
       const auto audio_outs = data.audio_out_ports.size();
       ossia::small_vector<ossia::float_vector, 2> in_vec;
@@ -466,7 +465,7 @@ struct lv2_node final : public ossia::graph_node
           if (audio_in.samples.size() > i)
           {
             for (std::size_t j = 0;
-                 j < std::min(samples, audio_in.samples[i].size());
+                 j < std::min(std::size_t(samples), audio_in.samples[i].size());
                  j++)
             {
               in_vec[i][j] = (float)audio_in.samples[i][j];

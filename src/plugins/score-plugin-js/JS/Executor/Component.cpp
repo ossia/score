@@ -489,12 +489,13 @@ void js_node::run(
              << res.toString();
   }
 
+  const auto [tick_start, d] = estate.timings(tk);
   for (std::size_t i = 0; i < m_valOutlets.size(); i++)
   {
     auto& dat = *m_valOutlets[i].second->target<ossia::value_port>();
     const auto& v = m_valOutlets[i].first->value();
     if (!v.isNull() && v.isValid())
-      dat.write_value(ossia::qt::qt_to_ossia{}(v), estate.physical_start(tk));
+      dat.write_value(ossia::qt::qt_to_ossia{}(v), tick_start);
     for (auto& v : m_valOutlets[i].first->values)
     {
       dat.write_value(
@@ -519,7 +520,6 @@ void js_node::run(
     m_midOutlets[i].first->clear();
   }
 
-  auto tick_start = estate.physical_start(tk);
   for (std::size_t out = 0; out < m_audOutlets.size(); out++)
   {
     auto& src = m_audOutlets[out].first->audio();

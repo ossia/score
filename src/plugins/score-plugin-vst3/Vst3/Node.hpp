@@ -465,8 +465,7 @@ public:
   {
     if (!muted() && tk.date > tk.prev_date)
     {
-      const std::size_t samples
-          = tk.physical_write_duration(st.modelToSamples());
+      const auto [tick_start, samples] = st.timings(tk);
       this->setControls();
       this->setupTimeInfo(tk, st);
 

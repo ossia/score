@@ -356,9 +356,9 @@ struct Node
 
     const auto new_scale_idx = get_scale(scale);
 
-    const auto tick_start = st.physical_start(tk);
 
     auto apply = [&](auto f) {
+      const auto [tick_start, d] = st.timings(tk);
       if (new_scale_idx != scale::custom)
       {
         f(midi_in,

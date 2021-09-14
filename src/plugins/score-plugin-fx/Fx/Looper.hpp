@@ -84,7 +84,6 @@ struct Node
       return;
 
     using namespace ossia;
-    const double modelRatio = st.modelToSamples();
 
     auto m = Control::Widgets::GetLoopMode(mode);
     if (m != state.quantizedPlayMode)
@@ -100,7 +99,7 @@ struct Node
               auto sub_tk = tk;
               sub_tk.set_end_time(*time - 1_tv);
 
-              preAction(p1, p2, sub_tk, state, postaction, postaction_bars, modelRatio, passthrough);
+              preAction(p1, p2, sub_tk, st, state, postaction, postaction_bars, passthrough);
             }
 
             // We can switch to the new mode
@@ -114,7 +113,7 @@ struct Node
               sub_tk.set_start_time(*time);
 
               changeAction(sub_tk, state);
-              preAction(p1, p2, sub_tk, state, postaction, postaction_bars, modelRatio, passthrough);
+              preAction(p1, p2, sub_tk, st, state, postaction, postaction_bars, passthrough);
             }
           }
           else
@@ -125,13 +124,13 @@ struct Node
             state.playbackPos = 0;
 
             changeAction(tk, state);
-            preAction(p1, p2, tk, state, postaction, postaction_bars, modelRatio, passthrough);
+            preAction(p1, p2, tk, st, state, postaction, postaction_bars, passthrough);
           }
         }
         else
         {
           // We cannot switch yet
-          preAction(p1, p2, tk, state, postaction, postaction_bars, modelRatio, passthrough);
+          preAction(p1, p2, tk, st, state, postaction, postaction_bars, passthrough);
         }
       }
       else
@@ -142,13 +141,13 @@ struct Node
         state.playbackPos = 0;
 
         changeAction(tk, state);
-        preAction(p1, p2, tk, state, postaction, postaction_bars, modelRatio, passthrough);
+        preAction(p1, p2, tk, st, state, postaction, postaction_bars, passthrough);
       }
     }
     else
     {
       // No change
-      preAction(p1, p2, tk, state, postaction, postaction_bars, modelRatio, passthrough);
+      preAction(p1, p2, tk, st, state, postaction, postaction_bars, passthrough);
     }
   }
 
@@ -156,16 +155,16 @@ struct Node
       const ossia::audio_port& p1,
       ossia::audio_port& p2,
       ossia::token_request tk,
+      ossia::exec_state_facade st,
       State& state,
       const std::string& postaction,
       int postaction_bars,
-      double modelRatio,
       bool passthrough)
   {
     using namespace ossia;
     if(state.recordStartBar == -1.)
     {
-      action(p1, p2, tk, state, modelRatio, passthrough);
+      action(p1, p2, tk, st, state, passthrough);
     }
     else
     {
@@ -183,7 +182,7 @@ struct Node
           state.recordStartBar = -1.;
           state.elapsedBars = -1;
         }
-        action(p1, p2, tk, state, modelRatio, passthrough);
+        action(p1, p2, tk, st, state, passthrough);
       }
 
       // Change of bar in the middle
@@ -201,7 +200,7 @@ struct Node
               {
                 auto sub_tk = tk;
                 sub_tk.set_end_time(t - 1_tv);
-                action(p1, p2, sub_tk, state, modelRatio, passthrough);
+                action(p1, p2, sub_tk, st, state, passthrough);
               }
 
               // We can switch to the new mode
@@ -213,7 +212,7 @@ struct Node
                 auto sub_tk = tk;
                 sub_tk.set_start_time(t);
 
-                action(p1, p2, sub_tk, state, modelRatio, passthrough);
+                action(p1, p2, sub_tk, st, state, passthrough);
               }
             }
             else
@@ -233,7 +232,7 @@ struct Node
       }
       else
       {
-        action(p1, p2, tk, state, modelRatio, passthrough);
+        action(p1, p2, tk, st, state, passthrough);
       }
     }
 
@@ -243,29 +242,41 @@ struct Node
   static void action(
       const ossia::audio_port& p1,
       ossia::audio_port& p2,
-      ossia::token_request tk,
+      const ossia::token_request& tk,
+      ossia::exec_state_facade st,
       State& state,
-      double modelRatio,
+      bool echoRecord)
+  {
+    auto timings = st.timings(tk);
+    action(p1, p2, state, timings.start_sample, timings.length, echoRecord);
+  }
+
+  static void action(
+      const ossia::audio_port& p1,
+      ossia::audio_port& p2,
+      State& state,
+      int64_t start,
+      int64_t length,
       bool echoRecord)
   {
     switch (state.actualMode)
     {
       case Control::Widgets::LoopMode::Play:
         if (state.audio.size() == 0 || state.audio[0].size() == 0)
-          stop(p1, p2, tk, state, modelRatio);
+          stop(p1, p2, state, start, length);
         else
-          play(p1, p2, tk, state, modelRatio);
+          play(p1, p2, state, start, length);
         break;
       case Control::Widgets::LoopMode::Stop:
-        stop(p1, p2, tk, state, modelRatio);
+        stop(p1, p2, state, start, length);
         break;
       case Control::Widgets::LoopMode::Record:
-        echoRecord ? record(p1, p2, tk, state, modelRatio)
-                   : record_noecho(p1, p2, tk, state, modelRatio);
+        echoRecord ? record(p1, p2, state, start, length)
+                   : record_noecho(p1, p2, state, start, length);
         break;
       case Control::Widgets::LoopMode::Overdub:
-        echoRecord ? overdub(p1, p2, tk, state, modelRatio)
-                   : overdub_noecho(p1, p2, tk, state, modelRatio);
+        echoRecord ? overdub(p1, p2, state, start, length)
+                   : overdub_noecho(p1, p2, state, start, length);
         break;
     }
   }
@@ -273,17 +284,14 @@ struct Node
   static void play(
       const ossia::audio_port& p1,
       ossia::audio_port& p2,
-      ossia::token_request tk,
       State& state,
-      double modelRatio)
+      int64_t first_pos,
+      int64_t N)
   {
     // Copy input to output, and append input to buffer
     const auto chans = p1.samples.size();
     p2.samples.resize(chans);
     state.audio.resize(chans);
-
-    const int64_t N = tk.physical_write_duration(modelRatio);
-    const int64_t first_pos = tk.physical_start(modelRatio);
 
     int64_t k = state.playbackPos;
     for (std::size_t i = 0; i < chans; i++)
@@ -327,14 +335,12 @@ struct Node
   static void stop(
       const ossia::audio_port& p1,
       ossia::audio_port& p2,
-      ossia::token_request tk,
       State& state,
-      double modelRatio)
+      int64_t first_pos,
+      int64_t N)
   {
     const auto chans = p1.samples.size();
     p2.samples.resize(chans);
-    const int64_t N = tk.physical_write_duration(modelRatio);
-    const int64_t first_pos = tk.physical_start(modelRatio);
 
     for (std::size_t i = 0; i < chans; i++)
     {
@@ -356,17 +362,14 @@ struct Node
   static void record(
       const ossia::audio_port& p1,
       ossia::audio_port& p2,
-      ossia::token_request tk,
       State& state,
-      double modelRatio)
+      int64_t first_pos,
+      int64_t N)
   {
     // Copy input to output, and append input to buffer
     const auto chans = p1.samples.size();
     p2.samples.resize(chans);
     state.audio.resize(chans);
-
-    const int64_t N = tk.physical_write_duration(modelRatio);
-    const int64_t first_pos = tk.physical_start(modelRatio);
 
     for (std::size_t i = 0; i < chans; i++)
     {
@@ -394,17 +397,14 @@ struct Node
   static void record_noecho(
       const ossia::audio_port& p1,
       ossia::audio_port& p2,
-      ossia::token_request tk,
       State& state,
-      double modelRatio)
+      int64_t first_pos,
+      int64_t N)
   {
     // Copy input to output, and append input to buffer
     const auto chans = p1.samples.size();
     p2.samples.resize(chans);
     state.audio.resize(chans);
-
-    const int64_t N = tk.physical_write_duration(modelRatio);
-    const int64_t first_pos = tk.physical_start(modelRatio);
 
     for (std::size_t i = 0; i < chans; i++)
     {
@@ -429,9 +429,9 @@ struct Node
   static void overdub(
       const ossia::audio_port& p1,
       ossia::audio_port& p2,
-      ossia::token_request tk,
       State& state,
-      double modelRatio)
+      int64_t first_pos,
+      int64_t N)
   {
     //! if we go past the end we have to start from the beginning ? or we keep
     //! extending ?
@@ -440,9 +440,6 @@ struct Node
     const auto chans = p1.samples.size();
     p2.samples.resize(chans);
     state.audio.resize(chans);
-
-    const int64_t N = tk.physical_write_duration(modelRatio);
-    const int64_t first_pos = tk.physical_start(modelRatio);
 
     for (std::size_t i = 0; i < chans; i++)
     {
@@ -471,9 +468,9 @@ struct Node
   static void overdub_noecho(
       const ossia::audio_port& p1,
       ossia::audio_port& p2,
-      ossia::token_request tk,
       State& state,
-      double modelRatio)
+      int64_t first_pos,
+      int64_t N)
   {
     //! if we go past the end we have to start from the beginning ? or we keep
     //! extending ?
@@ -482,9 +479,6 @@ struct Node
     const auto chans = p1.samples.size();
     p2.samples.resize(chans);
     state.audio.resize(chans);
-
-    const int64_t N = tk.physical_write_duration(modelRatio);
-    const int64_t first_pos = tk.physical_start(modelRatio);
 
     for (std::size_t i = 0; i < chans; i++)
     {

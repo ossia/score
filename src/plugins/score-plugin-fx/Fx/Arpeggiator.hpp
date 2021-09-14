@@ -167,10 +167,10 @@ struct Node
 
     if (self.arpeggio.empty())
     {
-      const auto start = st.physical_start(tk);
+      const auto [tick_start, d] = st.timings(tk);
       for(int k = 0; k < 128; k++)
         while(self.in_flight[k]-- > 0)
-          out.note_off(1, k, 0).timestamp = start;
+          out.note_off(1, k, 0).timestamp = tick_start;
       return;
     }
 

@@ -111,9 +111,11 @@ public:
 
           const float* const src = sound[0] + pos;
 
-          const auto tick_start = st.physical_start(tk);
+          const auto [tick_start, d] = st.timings(tk);
 
-          int64_t count = st.bufferSize() - tick_start - start_sample;
+          int64_t count = d - start_sample;
+          if(count < 0)
+            return true;
           if (pos + count < dur)
           {
             pos += count;

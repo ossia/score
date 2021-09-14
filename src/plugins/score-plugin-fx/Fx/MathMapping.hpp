@@ -231,14 +231,13 @@ struct Node
         return;
 
       const auto samplesRatio = st.modelToSamples();
-      const auto start = st.physical_start(tk);
-      const auto count = tk.physical_write_duration(samplesRatio);
+      const auto [tick_start, count] = st.timings(tk);
 
       if (input.samples.empty())
         return;
 
       const auto min_count
-          = std::min((int64_t)input.samples[0].size() - start, count);
+          = std::min((int64_t)input.samples[0].size() - tick_start, count);
 
       const int chans = input.samples.size();
       self.reset_symbols(chans);
@@ -259,7 +258,7 @@ struct Node
       {
         for (int j = 0; j < chans; j++)
         {
-          self.cur_in[j] = input.samples[j][start + i];
+          self.cur_in[j] = input.samples[j][tick_start + i];
         }
         self.cur_time = start_sample + i;
 
@@ -269,7 +268,7 @@ struct Node
         // Apply the output
         for (int j = 0; j < chans; j++)
         {
-          output.samples[j][start + i] = self.cur_out[j];
+          output.samples[j][tick_start + i] = self.cur_out[j];
         }
         std::swap(self.cur_in, self.prev_in);
       }
