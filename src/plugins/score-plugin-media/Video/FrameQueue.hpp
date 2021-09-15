@@ -22,7 +22,9 @@ public:
   void enqueue_decoding_error(AVFrame* f);
   void enqueue(AVFrame* f);
   AVFrame* dequeue() noexcept;
+  AVFrame* dequeue_one() noexcept;
   AVFrame* discard_and_dequeue() noexcept;
+  AVFrame* discard_and_dequeue_one() noexcept;
 
   void set_discard_frame(AVFrame*);
   void release(AVFrame* frame) noexcept;

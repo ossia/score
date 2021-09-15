@@ -88,7 +88,7 @@ void VideoDecoder::seek(int64_t flicks)
 
 AVFrame* VideoDecoder::dequeue_frame() noexcept
 {
-  auto f = m_frames.discard_and_dequeue();
+  auto f = m_frames.discard_and_dequeue_one();
   if(f)
   {
     m_last_dequeued_dts = f->pkt_dts;
@@ -190,14 +190,12 @@ ReadFrame VideoDecoder::read_one_frame(AVFramePointer frame, AVPacket& packet)
         frame->buf[0] = av_buffer_ref(packet.buf);
         frame->format = (cp->codec_tag);
         frame->best_effort_timestamp = packet.pts;
-        frame->data[0]
-            = packet.data; //(uint8_t*)malloc(sizeof(uint8_t) * packet.size);
+        frame->data[0] = packet.data;
         frame->linesize[0] = packet.size;
         frame->pts = packet.pts;
         frame->pkt_dts = packet.dts;
         frame->pkt_duration = packet.duration;
 
-        //std::copy_n(packet.data, packet.size, frame->data[0]);
         av_packet_unref(&packet);
 
         return {frame.release(), 0};
@@ -205,6 +203,11 @@ ReadFrame VideoDecoder::read_one_frame(AVFramePointer frame, AVPacket& packet)
       else
       {
         SCORE_ASSERT(m_codecContext);
+
+        av_packet_rescale_ts(&packet,
+                             this->m_avstream->time_base,
+                             this->m_codecContext->time_base);
+
         auto res = enqueue_frame(&packet, std::move(frame));
 
         av_packet_unref(&packet);
@@ -217,10 +220,14 @@ ReadFrame VideoDecoder::read_one_frame(AVFramePointer frame, AVPacket& packet)
 
     av_packet_unref(&packet);
   }
+
+
   if (res != 0 && res != AVERROR_EOF)
+  {
     qDebug() << "Error while reading a frame: "
              << av_make_error_string(
                     global_errbuf, sizeof(global_errbuf), res);
+  }
   av_packet_unref(&packet);
   return {nullptr, res};
 }
@@ -366,7 +373,8 @@ bool VideoDecoder::open_stream() noexcept
 
   if (m_stream != -1)
   {
-    const AVStream* stream = m_formatContext->streams[m_stream];
+    AVStream* stream = m_formatContext->streams[m_stream];
+    m_avstream = stream;
     const AVRational tb = stream->time_base;
     dts_per_flicks = (tb.den / (tb.num * ossia::flicks_per_second<double>));
     flicks_per_dts = (tb.num * ossia::flicks_per_second<double>) / tb.den;
@@ -399,8 +407,21 @@ bool VideoDecoder::open_stream() noexcept
           width = codecPar->width;
           height = codecPar->height;
           fps = av_q2d(stream->avg_frame_rate);
-          m_codecContext = stream->codec;
+
+          m_codecContext = avcodec_alloc_context3(nullptr);
+          avcodec_parameters_to_context(m_codecContext, stream->codecpar);
+
+          m_codecContext->framerate = av_guess_frame_rate(m_formatContext, stream, NULL);
+          m_codecContext->pkt_timebase = stream->time_base;
+          m_codecContext->codec_id = m_codec->id;
           res = !(avcodec_open2(m_codecContext, m_codec, nullptr) < 0);
+
+          if(m_codecContext)
+          {
+            auto tb = m_codecContext->time_base;
+            dts_per_flicks = (tb.den / (tb.num * ossia::flicks_per_second<double>));
+            flicks_per_dts = (tb.num * ossia::flicks_per_second<double>) / tb.den;
+          }
 
           switch (pixel_format)
           {
@@ -453,6 +474,7 @@ void VideoDecoder::close_video() noexcept
     m_rescale = nullptr;
   }
 
+  m_avstream = nullptr;
   m_stream = -1;
 }
 

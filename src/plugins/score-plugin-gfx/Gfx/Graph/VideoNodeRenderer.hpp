@@ -32,6 +32,10 @@ public:
 
 
 private:
+  void displayRealTimeFrame(AVFrame& frame, RenderList& renderer, QRhiResourceUpdateBatch& res);
+  void displayVideoFrame(AVFrame& frame, RenderList& renderer, QRhiResourceUpdateBatch& res);
+  bool mustReadVideoFrame();
+  AVFrame* nextFrame();
   const VideoNode& node;
 
   std::vector<std::pair<Edge*, Pipeline>> m_p;
@@ -47,6 +51,7 @@ private:
   int m_currentWidth = 0;
   int m_currentHeight = 0;
   QElapsedTimer m_timer;
+  AVFrame* m_nextFrame{};
 
   double m_lastFrameTime{};
   double m_lastPlaybackTime{-1.};

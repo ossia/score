@@ -62,6 +62,7 @@ private:
 
   AVFormatContext* m_formatContext{};
   AVCodecContext* m_codecContext{};
+  AVStream* m_avstream{};
   SwsContext* m_rescale{};
   AVCodec* m_codec{};
   int m_stream{-1};

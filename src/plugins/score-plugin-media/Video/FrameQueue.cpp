@@ -58,10 +58,18 @@ AVFrame* FrameQueue::dequeue() noexcept
   return f;
 }
 
+AVFrame* FrameQueue::dequeue_one() noexcept
+{
+  AVFrame* f{};
+  available.try_dequeue(f);
+  return f;
+}
+
 void FrameQueue::set_discard_frame(AVFrame* f)
 {
   m_discardUntil.exchange(f);
 }
+
 AVFrame* FrameQueue::discard_and_dequeue() noexcept
 {
   AVFrame* f{};
@@ -83,6 +91,24 @@ AVFrame* FrameQueue::discard_and_dequeue() noexcept
       release(prev_f);
     prev_f = f;
   }
+  return f;
+}
+
+AVFrame* FrameQueue::discard_and_dequeue_one() noexcept
+{
+  AVFrame* f{};
+
+  if (auto to_discard = m_discardUntil.exchange(nullptr))
+  {
+    while (available.try_dequeue(f) && f != to_discard)
+    {
+      release(f);
+    }
+
+    return to_discard;
+  }
+
+  available.try_dequeue(f);
   return f;
 }
 
