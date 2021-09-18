@@ -226,7 +226,7 @@ std::unique_ptr<ossia::audio_engine> JackFactory::make_engine(
 
   // ! Warning ! these functions are executed in the audio thread
   settings.sync_function
-      = [this](jack_transport_state_t st, jack_position_t*) -> int {
+      = [this](jack_transport_state_t st, jack_position_t* pos) -> int {
     if (m_prevState != st)
     {
       // warning! sending a queued signal may allocate
