@@ -28,6 +28,7 @@
 #include <Fx/MathGenerator.hpp>
 #include <Fx/MathMapping.hpp>
 #include <Fx/Metro.hpp>
+#include <Fx/MidiHiRes.hpp>
 #include <Fx/MidiUtil.hpp>
 #include <Fx/Quantifier.hpp>
 #include <Fx/TestNode.hpp>
@@ -57,6 +58,8 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_fx::factories(
       Nodes::ClassicalBeat::Node,
       Nodes::LFO::Node,
       Nodes::Chord::Node,
+      Nodes::MidiHiRes::Input,
+      Nodes::MidiHiRes::Output,
       Nodes::MidiUtil::Node,
       Nodes::Gain::Node,
       Nodes::Metro::Node,
