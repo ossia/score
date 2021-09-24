@@ -34,6 +34,7 @@ SlotHeader::SlotHeader(
     , m_width{slotView.view()->boundingRect().width()}
     , m_slotIndex{slotIndex}
 {
+  this->setToolTip(QObject::tr("Slot header\nDrag the \u2630 symbol to move the slot elsewhere."));
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setAcceptHoverEvents(true);
   this->setFlag(ItemClipsToShape);
@@ -312,6 +313,7 @@ AmovibleSlotFooter::AmovibleSlotFooter(
     , m_fullView{
           bool(qobject_cast<const FullViewIntervalPresenter*>(&m_presenter))}
 {
+  this->setToolTip(QObject::tr("Drag me to resize this slot."));
   auto& skin = score::Skin::instance();
   this->setCursor(skin.CursorScaleV);
 }

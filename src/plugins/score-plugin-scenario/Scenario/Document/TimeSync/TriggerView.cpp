@@ -57,6 +57,7 @@ TriggerView::TriggerView(QGraphicsItem* parent)
     , m_waiting{false}
 {
   auto& skin = score::Skin::instance();
+  this->setToolTip(QObject::tr("Trigger\nUsed to introduce temporal interactions."));
   this->setCursor(skin.CursorPointingHand);
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setAcceptHoverEvents(true);

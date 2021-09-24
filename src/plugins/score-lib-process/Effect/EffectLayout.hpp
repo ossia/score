@@ -142,6 +142,7 @@ auto createControl(
     QPointF pos = Process::currentWigetPos(i, setup.getControlSize);
     item->setPos(pos);
     item->setRect(itemRect);
+    item->setToolTip(QString("%1\n%2").arg(port.name(), port.description()));
 
     return Controls{item, portItem, widg, lab, itemRect};
   }
@@ -153,6 +154,7 @@ auto createControl(
     lab->setPos(20., 2);
     item->setPos(pos);
     item->setRect(itemRect);
+    item->setToolTip(QString("%1\n%2").arg(port.name(), port.description()));
 
     return Controls{item, portItem, nullptr, lab, itemRect};
   }

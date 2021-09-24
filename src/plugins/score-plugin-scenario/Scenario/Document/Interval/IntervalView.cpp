@@ -37,6 +37,7 @@ IntervalView::IntervalView(IntervalPresenter& presenter, QGraphicsItem* parent)
     , m_dropTarget{false}
     , m_state{}
 {
+  this->setToolTip(QObject::tr("Interval\nA span of time which can contain processes."));
   setAcceptHoverEvents(true);
   setAcceptDrops(true);
 

@@ -70,6 +70,7 @@ StateView::StateView(StatePresenter& pres, QGraphicsItem* parent)
   if (!is_hidpi())
     this->setCacheMode(QGraphicsItem::CacheMode::ItemCoordinateCache);
   this->setParentItem(parent);
+  this->setToolTip(QStringLiteral("State view"));
 
   auto& skin = score::Skin::instance();
   this->setCursor(skin.CursorMove);

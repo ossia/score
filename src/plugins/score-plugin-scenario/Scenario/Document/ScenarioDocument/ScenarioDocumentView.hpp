@@ -98,6 +98,12 @@ private:
   void dragMoveEvent(QDragMoveEvent* event) override;
   void dragLeaveEvent(QDragLeaveEvent* event) override;
   void dropEvent(QDropEvent* event) override;
+  bool event(QEvent*) override;
+
+  void hoverEnterEvent(QHoverEvent* event);
+  void hoverMoveEvent(QHoverEvent* event);
+  void hoverLeaveEvent(QHoverEvent* event);
+
   void checkAndRemoveCurrentDialog(QPoint pos);
   // void drawBackground(QPainter* painter, const QRectF& rect) override;
 

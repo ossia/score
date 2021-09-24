@@ -319,6 +319,17 @@ void NodeItem::createContentItem()
     m_contentSize = m_fx->boundingRect().size();
   }
 
+  if(m_fx->toolTip().isEmpty())
+  {
+    auto& p = this->m_context.app.interfaces<Process::ProcessFactoryList>();
+    const auto& desc = p.get(m_model.concreteKey())->descriptor({});
+    this->setToolTip(QString("%1\n%2").arg(desc.prettyName, desc.description));
+  }
+  else
+  {
+    this->setToolTip(m_fx->toolTip());
+  }
+
   // Positions / size
   m_fx->setPos({0, 0});
 

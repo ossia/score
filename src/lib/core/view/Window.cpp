@@ -468,6 +468,7 @@ void View::resizeEvent(QResizeEvent* e)
   QMainWindow::resizeEvent(e);
   sizeChanged(e->size());
 }
+
 bool score::View::event(QEvent* event)
 {
   if (event->type() == QEvent::StatusTip)
@@ -484,7 +485,7 @@ bool score::View::event(QEvent* event)
       tip.push_front("<b>");
       tip.push_back("</b>");
     }
-    tip.replace(QChar('\n'), "</br>");
+    tip.replace(QChar('\n'), "<br/>");
     m_status->setText(tip);
   }
   else if (event->type() == QEvent::ToolTip)

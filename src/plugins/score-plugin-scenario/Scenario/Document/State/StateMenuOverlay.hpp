@@ -15,7 +15,7 @@ namespace Scenario
 class CrossOverlay : public QGraphicsItem
 {
 public:
-  CrossOverlay(StateView* parent)
+  explicit CrossOverlay(StateView* parent)
       : QGraphicsItem{parent}
   {
     this->setFlag(ItemStacksBehindParent, true);
@@ -111,7 +111,11 @@ public:
 class StatePlusOverlay final : public CrossOverlay
 {
 public:
-  using CrossOverlay::CrossOverlay;
+  explicit StatePlusOverlay(StateView* parent)
+      : CrossOverlay{parent}
+  {
+    this->setToolTip(QObject::tr("Create an interval.\nDrag the plus to create an interval"));
+  }
 
 private:
   const score::Brush& brush() const noexcept override
@@ -140,7 +144,11 @@ private:
 class StateGraphPlusOverlay final : public CrossOverlay
 {
 public:
-  using CrossOverlay::CrossOverlay;
+  explicit StateGraphPlusOverlay(StateView* parent)
+      : CrossOverlay{parent}
+  {
+    this->setToolTip(QObject::tr("Create a graph link.\nDrag the plus to create a graph link"));
+  }
 
 private:
   const score::Brush& brush() const noexcept override
@@ -169,7 +177,11 @@ private:
 class StateSequencePlusOverlay final : public CrossOverlay
 {
 public:
-  using CrossOverlay::CrossOverlay;
+  explicit StateSequencePlusOverlay(StateView* parent)
+      : CrossOverlay{parent}
+  {
+    this->setToolTip(QObject::tr("Create a sequence.\nDrag the plus to create a sequence."));
+  }
 
 private:
   const score::Brush& brush() const noexcept override

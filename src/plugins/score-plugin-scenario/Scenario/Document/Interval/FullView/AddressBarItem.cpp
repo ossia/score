@@ -26,6 +26,7 @@ AddressBarItem::AddressBarItem(
     : QGraphicsItem{parent}
     , m_ctx{ctx}
 {
+  this->setToolTip(tr("Address bar\nClick here to travel to the specific hierarchy level"));
   this->setFlag(QGraphicsItem::ItemHasNoContents, true);
 }
 

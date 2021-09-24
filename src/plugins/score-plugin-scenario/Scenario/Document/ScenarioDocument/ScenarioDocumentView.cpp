@@ -424,6 +424,55 @@ void ProcessGraphicsView::dropEvent(QDropEvent* event)
   }
 }
 
+bool ProcessGraphicsView::event(QEvent* event)
+{
+  switch (event->type())
+  {
+    case QEvent::HoverEnter:
+      hoverEnterEvent(static_cast<QHoverEvent*>(event));
+      return true;
+    case QEvent::HoverLeave:
+      hoverLeaveEvent(static_cast<QHoverEvent*>(event));
+      return true;
+    case QEvent::HoverMove:
+      hoverMoveEvent(static_cast<QHoverEvent*>(event));
+      return true;
+    default:
+      return QGraphicsView::event(event);
+  }
+}
+
+void ProcessGraphicsView::hoverEnterEvent(QHoverEvent* event)
+{
+
+}
+
+void ProcessGraphicsView::hoverMoveEvent(QHoverEvent* event)
+{
+  const auto scenePos = this->mapToScene(event->pos());
+  auto items = this->scene()->items(scenePos);
+  auto set_tip = [&] (const QString& t) {
+    QStatusTipEvent ev{t};
+    auto obj = reinterpret_cast<QObject*>(this->m_app.mainWindow);
+    obj->event(&ev);
+  };
+  for (int i = 0; i < items.size(); ++i)
+  {
+    if(const auto& tooltip = items.at(i)->toolTip(); !tooltip.isEmpty())
+    {
+      set_tip(tooltip);
+      return;
+    }
+  }
+
+  set_tip(QString{});
+}
+
+void ProcessGraphicsView::hoverLeaveEvent(QHoverEvent* event)
+{
+
+}
+
 ScenarioDocumentView::ScenarioDocumentView(
     const score::DocumentContext& ctx,
     QObject* parent)

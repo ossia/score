@@ -41,6 +41,7 @@ CableItem::CableItem(
   auto& plug = ctx.dataflow;
   this->setCursor(Qt::CrossCursor);
   this->setFlag(QGraphicsItem::ItemClipsToShape);
+  this->setToolTip(tr("Cable\n"));
 
   SCORE_ASSERT(canCreateCable(c, plug));
 

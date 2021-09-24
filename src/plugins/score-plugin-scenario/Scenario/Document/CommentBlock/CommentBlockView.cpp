@@ -25,6 +25,7 @@ CommentBlockView::CommentBlockView(
   this->setParentItem(parent);
   this->setZValue(ZPos::Comment);
   this->setAcceptHoverEvents(true);
+  this->setToolTip(tr("Comment box\nPut the text you want in here by double-clicking !"));
 
   m_textItem = new score::TextItem{"", this};
 

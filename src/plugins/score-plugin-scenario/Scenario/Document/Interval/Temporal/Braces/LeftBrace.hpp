@@ -14,6 +14,7 @@ public:
   LeftBraceView(const IntervalView& parentCstr, QGraphicsItem* parent)
       : IntervalBrace{parentCstr, parent}
   {
+    this->setToolTip(QObject::tr("Interval left brace\nDrag to change the minimal duration of an interval."));
   }
   ~LeftBraceView() override;
 
@@ -28,6 +29,7 @@ public:
       : IntervalBrace{parentCstr, parent}
   {
     this->setRotation(180);
+    this->setToolTip(QObject::tr("Interval right brace\nDrag to change the maximal duration of an interval."));
   }
   ~RightBraceView() override;
 

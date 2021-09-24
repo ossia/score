@@ -37,6 +37,7 @@ ConditionView::ConditionView(const EventModel& model, QGraphicsItem* parent)
     , m_model{model}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
+  this->setToolTip(tr("Condition\nSet whether the following intervals will execute."));
   setFlag(ItemStacksBehindParent, true);
   setCursor(Qt::CursorShape::CrossCursor);
   setHeight(0.);

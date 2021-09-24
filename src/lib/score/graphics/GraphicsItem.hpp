@@ -31,15 +31,16 @@ QGraphicsView* getView(const QPainter& painter);
 
 SCORE_LIB_BASE_EXPORT
 QImage newImage(double logical_w, double logical_h);
+
 template <typename T>
 struct graphics_item_ptr
 {
   T* impl{};
   graphics_item_ptr() = default;
   graphics_item_ptr(const graphics_item_ptr&) = default;
-  graphics_item_ptr(graphics_item_ptr&&) = default;
+  graphics_item_ptr(graphics_item_ptr&&) noexcept = default;
   graphics_item_ptr& operator=(const graphics_item_ptr&) = default;
-  graphics_item_ptr& operator=(graphics_item_ptr&&) = default;
+  graphics_item_ptr& operator=(graphics_item_ptr&&) noexcept = default;
 
   graphics_item_ptr(T* p)
       : impl{p}

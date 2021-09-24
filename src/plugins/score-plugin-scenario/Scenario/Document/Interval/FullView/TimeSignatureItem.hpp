@@ -110,6 +110,7 @@ public:
   TimeSignatureHandle(const IntervalModel& itv, QGraphicsItem* parent)
       : QGraphicsItem{parent}
   {
+    this->setToolTip(QObject::tr("Time signature handle\nDrag to displace, double-click to change the signature."));
     setFlag(ItemIsSelectable, true);
   }
 

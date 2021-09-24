@@ -44,6 +44,12 @@ void LayerData::addView(
   container->setFlag(QGraphicsItem::ItemClipsChildrenToShape);
   container->setY(m_slotY);
   auto view = factory.makeLayerView(*m_model, context, container);
+  if(view->toolTip().isEmpty())
+  {
+    auto& p = context.app.interfaces<Process::ProcessFactoryList>();
+    const auto& desc = p.get(m_model->concreteKey())->descriptor({});
+    view->setToolTip(QString("%1\n%2").arg(desc.prettyName, desc.description));
+  }
 
   double startX = m_model->flags() & Process::ProcessFlags::HandlesLooping
                       ? 0.

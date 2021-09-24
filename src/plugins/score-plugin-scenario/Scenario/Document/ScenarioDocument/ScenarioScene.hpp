@@ -10,5 +10,7 @@ class ScenarioScene final : public QGraphicsScene
   W_OBJECT(ScenarioScene)
 public:
   ScenarioScene(QObject* parent);
+
+  void helpEvent(QGraphicsSceneHelpEvent* event) override;
 };
 }
