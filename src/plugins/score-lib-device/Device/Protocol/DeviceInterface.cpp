@@ -728,7 +728,10 @@ Device::Node DeviceInterface::refresh()
 
     disableCallbacks();
     m_callbacks.clear();
-    if (dev->get_protocol().update(root))
+
+    auto fut = dev->get_protocol().update_async(root);
+    auto res = fut.wait_for(std::chrono::seconds(1));
+    if (res == std::future_status::ready)
     {
       // Make a device explorer node from the current state of the device.
       // First make the node corresponding to the root node.
