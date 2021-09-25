@@ -10,11 +10,10 @@
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/tree/TreeNodeItemModel.hpp>
 #include <score/tools/FindStringInFile.hpp>
+#include <score/tools/ListNetworkAddresses.hpp>
+
 
 #include <ossia/detail/flat_map.hpp>
-
-#include <boost/asio/ip/udp.hpp>
-#include <boost/asio/ip/host_name.hpp>
 
 #include <QComboBox>
 #include <QDialogButtonBox>
@@ -657,25 +656,7 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
 
   m_host = new QComboBox{this};
   m_host->setEditable(true);
-  {
-    {
-      boost::asio::io_context context;
-      using resolv = boost::asio::ip::udp::resolver;
-
-      resolv resolver{context};
-      resolv::query query(boost::asio::ip::host_name(), "");
-
-      for(auto it = resolver.resolve(query);
-          it != resolv::iterator();
-          ++it)
-      {
-        if(auto addr = it->endpoint().address(); addr.is_v4())
-        {
-          m_host->addItem(QString::fromStdString(addr.to_string()));
-        }
-      }
-    }
-  }
+  m_host->addItems(score::list_ipv4());
 
   m_rate = new QSpinBox{this};
   m_rate->setRange(0, 44);

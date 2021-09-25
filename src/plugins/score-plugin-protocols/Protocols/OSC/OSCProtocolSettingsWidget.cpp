@@ -46,7 +46,7 @@ public:
     parent->checkForChanges(m_localPort);
 
     m_host = new QLineEdit(this);
-    m_host->setText("127.0.0.1");
+    m_host->setText("0.0.0.0");
 
     layout->addRow(tr("Device listening port"), m_remotePort);
     layout->addRow(tr("score listening port"), m_localPort);
