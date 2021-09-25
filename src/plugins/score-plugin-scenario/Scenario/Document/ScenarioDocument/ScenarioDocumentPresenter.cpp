@@ -457,8 +457,12 @@ void ScenarioDocumentPresenter::startTimeBar()
   bool visible = context().app.settings<Scenario::Settings::Model>().getTimeBar();
   auto itv_display = std::get_if<CentralIntervalDisplay>(&m_centralDisplay);
   visible &= bool(itv_display);
-  auto itv_pres = itv_display->presenter.intervalPresenter();
-  visible &= bool(itv_pres);
+  IntervalPresenter* itv_pres{};
+  if(itv_display)
+  {
+    itv_pres = itv_display->presenter.intervalPresenter();
+    visible &= bool(itv_pres);
+  }
 
   view().view().currentTimebar = &displayedInterval().duration;
   view().view().currentView = itv_pres ? itv_pres->view() : nullptr;
