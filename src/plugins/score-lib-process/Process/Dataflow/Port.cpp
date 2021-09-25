@@ -394,8 +394,8 @@ AudioOutlet::~AudioOutlet() { }
 
 AudioOutlet::AudioOutlet(Id<Process::Port> c, QObject* parent)
     : Outlet{std::move(c), parent}
-    , gainInlet{std::make_unique<ControlInlet>(Id<Process::Port>{0}, this)}
-    , panInlet{std::make_unique<ControlInlet>(Id<Process::Port>{1}, this)}
+    , gainInlet{std::make_unique<ControlInlet>(Id<Process::Port>{(1 + c.val()) * 10000 + 0}, this)}
+    , panInlet{std::make_unique<ControlInlet>(Id<Process::Port>{(1 + c.val()) * 10000 + 1}, this)}
     , m_gain{1.}
     , m_pan{1., 1.}
 {
