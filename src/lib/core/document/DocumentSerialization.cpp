@@ -22,6 +22,8 @@
 #include <core/document/DocumentView.hpp>
 #include <core/presenter/DocumentManager.hpp>
 
+#include <score_git_info.hpp>
+
 #include <QApplication>
 #include <QByteArray>
 #include <QCryptographicHash>
@@ -87,6 +89,12 @@ void Document::saveAsJson(JSONObject::Serializer& writer)
   writer.stream.Key("Version");
   writer.stream.Int(
       context().app.applicationSettings.saveFormatVersion.value());
+
+  writer.stream.Key("Commit");
+  writer.stream.String(GIT_COMMIT);
+
+  writer.stream.Key("Tag");
+  writer.stream.String(SCORE_TAG_NO_V);
 
   writer.stream.EndObject();
   // Indicate in the stack that the current position is saved
