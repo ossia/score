@@ -23,16 +23,16 @@ namespace Settings
 Presenter::Presenter(Model& m, View& v, QObject* parent)
     : score::GlobalSettingsPresenter{m, v, parent}
 {
-  SETTINGS_PRESENTER(Scheduling);
-  SETTINGS_PRESENTER(Ordering);
-  SETTINGS_PRESENTER(Merging);
-  SETTINGS_PRESENTER(Commit);
-  SETTINGS_PRESENTER(Tick);
+  //SETTINGS_PRESENTER(Scheduling);
+  //SETTINGS_PRESENTER(Ordering);
+  //SETTINGS_PRESENTER(Merging);
+  //SETTINGS_PRESENTER(Commit);
+  //SETTINGS_PRESENTER(Tick);
   SETTINGS_PRESENTER(Parallel);
   SETTINGS_PRESENTER(Logging);
   SETTINGS_PRESENTER(Bench);
   SETTINGS_PRESENTER(ExecutionListening);
-  SETTINGS_PRESENTER(ScoreOrder);
+  //SETTINGS_PRESENTER(ScoreOrder);
   SETTINGS_PRESENTER(ValueCompilation);
   SETTINGS_PRESENTER(TransportValueCompilation);
 
