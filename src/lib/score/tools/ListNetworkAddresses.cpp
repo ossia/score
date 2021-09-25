@@ -10,13 +10,16 @@ namespace score
 
 QStringList list_ipv4() noexcept
 {
+#ifndef QT_NO_NETWORKINTERFACE
   QStringList ret;
   for (const QNetworkInterface& iface : QNetworkInterface::allInterfaces())
     for (const QNetworkAddressEntry& entry : iface.addressEntries())
       if(const auto& ip = entry.ip(); ip.protocol() == QAbstractSocket::IPv4Protocol)
         ret.push_back(ip.toString());
   return ret;
-
+#else
+  return {"127.0.0.1"};
+#endif
   /*
   using namespace boost::asio;
   using resolv = ip::udp::resolver;
