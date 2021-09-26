@@ -92,8 +92,11 @@ static QDir getDialogDirectory(score::Document* current)
   {
     auto& doc = *current;
     QFileInfo file{doc.metadata().fileName()};
-    if (auto dir = file.absoluteDir(); dir.exists())
-      return dir;
+    if(file.exists())
+    {
+      if (auto dir = file.absoluteDir(); dir.exists())
+        return dir;
+    }
   }
 
 #if !defined(__EMSCRIPTEN__)
