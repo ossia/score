@@ -45,12 +45,6 @@ QMimeData* GfxInputDevice::mimeData() const
 void GfxInputDevice::addAddress(const Device::FullAddressSettings& settings) {
 }
 
-void GfxInputDevice::updateAddress(
-    const State::Address& currentAddr,
-    const Device::FullAddressSettings& settings)
-{
-}
-
 void GfxInputDevice::disconnect() { }
 
 void GfxInputDevice::recreate(const Device::Node& n) { }
@@ -139,15 +133,12 @@ void GfxOutputDevice::addAddress(const Device::FullAddressSettings& settings)
 {
 }
 
-void GfxOutputDevice::updateAddress(
-    const State::Address& currentAddr,
-    const Device::FullAddressSettings& settings)
-{
-}
-
 void GfxOutputDevice::disconnect() { }
 
-void GfxOutputDevice::recreate(const Device::Node& n) { }
+void GfxOutputDevice::recreate(const Device::Node& n)
+{
+
+}
 
 void GfxOutputDevice::setupNode(
     ossia::net::node_base& node,

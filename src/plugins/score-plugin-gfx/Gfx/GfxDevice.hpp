@@ -22,9 +22,6 @@ protected:
   const score::DocumentContext& m_ctx;
 
   void addAddress(const Device::FullAddressSettings& settings) override;
-  void updateAddress(
-      const State::Address& currentAddr,
-      const Device::FullAddressSettings& settings) override;
   void recreate(const Device::Node& n) override;
 
   using Device::DeviceInterface::refresh;
@@ -48,9 +45,6 @@ protected:
   const score::DocumentContext& m_ctx;
 
   void addAddress(const Device::FullAddressSettings& settings) override;
-  void updateAddress(
-      const State::Address& currentAddr,
-      const Device::FullAddressSettings& settings) override;
   void recreate(const Device::Node& n) override;
 
   using Device::DeviceInterface::refresh;

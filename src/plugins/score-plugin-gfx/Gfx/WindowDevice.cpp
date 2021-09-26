@@ -189,6 +189,14 @@ public:
 
 WindowDevice::~WindowDevice() { }
 
+void WindowDevice::addAddress(const Device::FullAddressSettings& settings)
+{
+  if(!m_dev)
+    return;
+
+  updateAddress(settings.address, settings);
+}
+
 void WindowDevice::setupContextMenu(QMenu& menu) const
 {
   if (m_dev)

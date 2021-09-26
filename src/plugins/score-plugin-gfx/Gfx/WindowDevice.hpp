@@ -49,6 +49,7 @@ public:
   ~WindowDevice();
 
 private:
+  void addAddress(const Device::FullAddressSettings& settings) override;
   void setupContextMenu(QMenu&) const override;
   ossia::net::device_base* getDevice() const override { return m_dev.get(); }
   bool reconnect() override;
