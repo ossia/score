@@ -168,6 +168,7 @@ QGraphicsItem* makeExternalUIButton(
   {
     auto ui_btn = new score::QGraphicsPixmapToggle{
         pixmaps.show_ui_on, pixmaps.show_ui_off, root};
+    ui_btn->setToolTip(QObject::tr("Show/hide UI\nShow the process's interface for instance for VSTs or script editor for JS, etc."));
     QObject::connect(
         ui_btn,
         &score::QGraphicsPixmapToggle::toggled,
@@ -198,6 +199,7 @@ score::QGraphicsDraggablePixmap* makePresetButton(
   {
     auto ui_btn = new score::QGraphicsDraggablePixmap{
         pixmaps.preset_on, pixmaps.preset_off, root};
+    ui_btn->setToolTip(QObject::tr("Presets\nDrag to the library to save the current preset. If there are existing presets, they will be shown in a menu."));
     ui_btn->createDrag = [&proc] (QMimeData& mime) {
 
       QByteArray data;
