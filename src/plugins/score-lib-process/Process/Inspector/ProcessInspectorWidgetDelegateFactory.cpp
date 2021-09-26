@@ -67,7 +67,7 @@ public:
   {
     auto lay = new QVBoxLayout{this};
 
-    auto label = new TextLabel{process.prettyShortName(), this};
+    auto label = new TextLabel{process.metadata().getName(), this};
     auto f = label->font();
     f.setBold(true);
     f.setPixelSize(18);
