@@ -160,13 +160,13 @@ void TimeSyncComponent::updateTriggerTime()
     if(auto parent = Scenario::closestParentInterval(m_score_node->parent()))
     {
       auto parent_metrics = Scenario::closestParentWithMusicalMetrics(parent);
-      if(parent_metrics.parent) {
-        quantRate = parent_metrics.parent->quantizationRate();
+      auto parent_quantif = Scenario::closestParentWithQuantification(parent);
+
+      // We only set a quantization if there is some parent that has some tempo information.
+      if(parent_quantif.parent && parent_metrics.lastFound && parent_metrics.lastFound->hasTimeSignature()) {
+        quantRate = parent_quantif.parent->quantizationRate();
       }
-      else if(parent_metrics.lastFound) {
-        // At worst we use the root interval's quantization rate
-        quantRate = parent_metrics.lastFound->quantizationRate();
-      }
+
       if(quantRate < 0) {
         quantRate = 0.;
       }

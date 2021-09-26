@@ -938,6 +938,45 @@ ParentTimeInfo closestParentWithMusicalMetrics(const IntervalModel* self)
   return {nullptr, lastFound, {}};
 }
 
+ParentTimeInfo closestParentWithQuantification(const IntervalModel* self)
+{
+  TimeVal delta = TimeVal::zero();
+  if (self->quantizationRate() >= 0.)
+    return {self, self, delta};
+
+  delta += self->date();
+  auto p = self->parent();
+  if (p)
+  {
+    p = p->parent();
+  }
+
+  const IntervalModel* lastFound = self;
+  while (p)
+  {
+    if (auto pi = qobject_cast<const IntervalModel*>(p))
+    {
+      lastFound = pi;
+      if (pi->quantizationRate() >= 0.)
+      {
+        return {pi, pi, delta};
+      }
+      else
+      {
+        delta += pi->date();
+        if ((p = p->parent()))
+          p = p->parent();
+      }
+    }
+    else
+    {
+      if ((p = p->parent()))
+        p = p->parent();
+    }
+  }
+  return {nullptr, lastFound, {}};
+}
+
 ParentTimeInfo closestParentWithTempo(const IntervalModel* self)
 {
   TimeVal delta = TimeVal::zero();
