@@ -332,7 +332,9 @@ bool DocumentManager::saveDocument(Document& doc)
     QSaveFile f{savename};
     f.open(QIODevice::WriteOnly);
     if (savename.indexOf(".scorebin") != -1)
+    {
       f.write(doc.saveAsByteArray());
+    }
     else
     {
       JSONReader w;
@@ -341,10 +343,17 @@ bool DocumentManager::saveDocument(Document& doc)
 
       f.write(w.buffer.GetString(), w.buffer.GetSize());
     }
-    f.commit();
 
-    m_recentFiles->addRecentFile(savename);
-    saveRecentFilesState();
+    if(f.commit())
+    {
+      m_recentFiles->addRecentFile(savename);
+      saveRecentFilesState();
+    }
+    else
+    {
+      score::warning(nullptr, tr("Error while saving"), tr("Score could not save the file %1. Check that you have correct permissions.").arg(savename));
+      return false;
+    }
   }
 
   return true;
@@ -399,10 +408,17 @@ bool DocumentManager::saveDocumentAs(Document& doc)
 
         f.write(w.buffer.GetString(), w.buffer.GetSize());
       }
-      f.commit();
 
-      m_recentFiles->addRecentFile(savename);
-      saveRecentFilesState();
+      if(f.commit())
+      {
+        m_recentFiles->addRecentFile(savename);
+        saveRecentFilesState();
+      }
+      else
+      {
+        score::warning(nullptr, tr("Error while saving"), tr("Score could not save the file %1. Check that you have correct permissions.").arg(savename));
+        return false;
+      }
     }
     return true;
   }
