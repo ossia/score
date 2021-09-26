@@ -111,8 +111,6 @@
         <file>icons/engine_on@2x.png</file>
         <file>icons/refresh_off@2x.png</file>
         <file>icons/refresh_on@2x.png</file>
-        <file>icons/search.png</file>
-        <file>icons/search@2x.png</file>
         <file>icons/play_glob_off@2x.png</file>
         <file>icons/play_glob_on@2x.png</file>
         <file>icons/trigger_disabled.png</file>
@@ -155,14 +153,6 @@
         <file>icons/pause_disabled@2x.png</file>
         <file>icons/snapshot_disabled.png</file>
         <file>icons/snapshot_disabled@2x.png</file>
-        <file>icons/undock_dock_off.png</file>
-        <file>icons/undock_dock_off@2x.png</file>
-        <file>icons/undock_dock_on.png</file>
-        <file>icons/undock_dock_on@2x.png</file>
-        <file>icons/close_dock_on.png</file>
-        <file>icons/close_dock_on@2x.png</file>
-        <file>icons/close_dock_off.png</file>
-        <file>icons/close_dock_off@2x.png</file>
         <file>icons/checkbox_unchecked_focus.png</file>
         <file>icons/checkbox_unchecked_disabled.png</file>
         <file>icons/checkbox_unchecked.png</file>
@@ -690,5 +680,7 @@
         <file>fonts/sourcecodepro/SourceCodePro-Regular.ttf</file>
         <file>fonts/sourcecodepro/SourceCodePro-Semibold.ttf</file>
         <file>fonts/sourcecodepro/SourceCodePro-SemiboldIt.ttf</file>
+        <file>icons/search.png</file>
+        <file>icons/search@2x.png</file>
     </qresource>
 </RCC>

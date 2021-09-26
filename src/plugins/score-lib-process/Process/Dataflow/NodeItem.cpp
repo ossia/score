@@ -32,14 +32,15 @@
 namespace Process
 {
 
-static const constexpr qreal TitleHeight = 17.;
+static const constexpr qreal TitleHeight = 20.;
 static const constexpr qreal TitleX0 = 15;
-static const constexpr qreal TitleY0 = -TitleHeight;
-static const constexpr qreal FoldX0 = 1;
+static const constexpr qreal TitleY0 = -TitleHeight + 2.;
+static const constexpr qreal FoldX0 = 2;
 static const constexpr qreal FoldY0 = TitleY0 + 1;
-static const constexpr qreal UiX0 = 15;
-static const constexpr qreal UiY0 = TitleY0 + 3;
+static const constexpr qreal UiX0 = 16;
+static const constexpr qreal UiY0 = TitleY0 + 1.;
 static const constexpr qreal TitleWithUiX0 = 27;
+static const constexpr qreal SpacingIcon = 3;
 
 static const constexpr qreal FooterHeight = 0.;
 static const constexpr qreal Corner = 2.;
@@ -211,16 +212,16 @@ void NodeItem::updateTitlePos()
     x0 += InletX0;
 
   m_fold->setPos({x0, FoldY0});
-  x0 += UiX0 - FoldX0 + 2;
+  x0 += UiX0 - FoldX0 + 2.;
 
   if (m_uiButton) {
     m_uiButton->setPos({x0, UiY0});
-    x0 += UiX0;
+    x0 += UiX0 + SpacingIcon;
   }
 
   if(m_presetButton) {
     m_presetButton->setPos({x0, UiY0});
-    x0 += UiX0;
+    x0 += UiX0 + SpacingIcon*2.;
   }
 
   m_label->setPos({x0, TitleY0});
