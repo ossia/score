@@ -29,6 +29,9 @@ public:
   void
   run(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept
   {
+    using namespace ossia;
+    if(tk.model_read_duration() == 0_tv)
+      return;
     if (auto date = tk.get_physical_quantification_date(
             pattern.division, st.modelToSamples()))
     {
