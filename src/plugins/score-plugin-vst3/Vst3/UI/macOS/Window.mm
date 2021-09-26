@@ -30,7 +30,8 @@ WindowContainer createVstWindowContainer(
 
   wc.qwindow = QWindow::fromWinId(reinterpret_cast<WId>(superview));
   wc.container = QWidget::createWindowContainer(wc.qwindow, &parentWindow);
-  view.setFrame(new PlugFrame{parentWindow, wc});
+  wc.frame = new PlugFrame{parentWindow, wc};
+  view.setFrame(wc.frame);
   view.attached((void*)superview, currentPlatform());
 
   wc.qwindow->show();

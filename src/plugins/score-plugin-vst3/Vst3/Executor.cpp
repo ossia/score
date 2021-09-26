@@ -45,11 +45,11 @@ void Executor::setupNode(Node_T& node)
       &proc,
       &vst3::Model::controlAdded,
       this,
-      [this, &proc, wp](const Id<Process::Port>& id) {
-        auto ctrl = proc.getControl(id);
+      [this, &proc, wp] (const Id<Process::Port>& id) {
+        QPointer<vst3::ControlInlet> ctrl = proc.getControl(id);
         if (!ctrl)
           return;
-        if (auto n = wp.lock())
+        if (const Node_T& n = wp.lock())
         {
           Execution::SetupContext& setup = system().context().setup;
           auto inlet = new ossia::value_inlet;
@@ -57,8 +57,19 @@ void Executor::setupNode(Node_T& node)
           Execution::Transaction commands{system()};
 
           commands.push_back(
-              [n, inlet, val = ctrl->value(), num = ctrl->fxNum] {
-                n->add_control(inlet, num, val);
+              [n, inlet, ctrl, val = ctrl->value(), num = ctrl->fxNum, self = this] {
+                auto queue_idx = n->add_control(inlet, num, val);
+                self->in_edit([self, queue_idx, n, ctrl] {
+
+                  connect(
+                      ctrl,
+                      &vst3::ControlInlet::valueChanged,
+                      self,
+                      [queue_idx, n](float v) {
+                        n->set_control(queue_idx, v);
+                      });
+
+                });
               });
 
           setup.register_inlet(*ctrl, inlet, n, commands);

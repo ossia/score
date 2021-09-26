@@ -6,6 +6,7 @@
 
 namespace vst3
 {
+class PlugFrame;
 
 inline const char* currentPlatform()
 {
@@ -24,6 +25,7 @@ struct WindowContainer
   WId nativeId;
   QWindow* qwindow{};
   QWidget* container{};
+  vst3::PlugFrame* frame{};
 
   auto setSizeFromQt(
       Steinberg::IPlugView& view,

@@ -102,8 +102,8 @@ struct SocketHandler {
 class GlobalSocketHandlers : public QObject
 {
   XcbConnection xcb;
-  std::unordered_map<int, std::vector<Linux::IEventHandler*>> handlers;
 public:
+  std::unordered_map<int, std::vector<Linux::IEventHandler*>> handlers;
   GlobalSocketHandlers()
   {
     if(xcb.notifiers)
@@ -137,7 +137,7 @@ public:
     return handlers;
   }
 };
-class PlugFrame
+class PlugFrame final
     : virtual public Steinberg::IPlugFrame
     , virtual public Steinberg::Linux::IRunLoop
 {

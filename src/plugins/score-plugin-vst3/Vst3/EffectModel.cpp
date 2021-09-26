@@ -233,7 +233,9 @@ void Model::initControl(ControlInlet* ctrl)
       [this, i = ctrl->fxNum](float newval) {
         auto& c = *fx.controller;
         if (std::abs(newval - c.getParamNormalized(i)) > 0.0001)
+        {
           c.setParamNormalized(i, newval);
+        }
       });
 
   SCORE_ASSERT(controls.find(ctrl->fxNum) == controls.end());

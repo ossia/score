@@ -108,8 +108,8 @@ public:
 
     ~PluginHandle()
     {
-      qDebug() << processor->release();
-      qDebug() << component->release();
+      // qDebug() << processor->release();
+      // qDebug() << component->release();
     }
 
     Steinberg::Vst::IComponent* component{};

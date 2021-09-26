@@ -63,6 +63,7 @@ set(SRCS
   Vst3/Executor.cpp
   Vst3/Plugin.cpp
   Vst3/Widgets.cpp
+  Vst3/UI/WindowCommon.cpp
 
   score_plugin_vst3.cpp
 )

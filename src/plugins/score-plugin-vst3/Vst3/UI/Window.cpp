@@ -20,7 +20,8 @@ WindowContainer createVstWindowContainer(
   wc.qwindow = parentWindow.windowHandle();
   wc.container = nullptr;
 
-  view.setFrame(new PlugFrame{parentWindow, wc});
+  wc.frame = new PlugFrame{parentWindow, wc};
+  view.setFrame(wc.frame);
   view.attached((void*)wc.qwindow->winId(), currentPlatform());
 
   QTimer::singleShot(16, &parentWindow, [&,wc] () mutable {
