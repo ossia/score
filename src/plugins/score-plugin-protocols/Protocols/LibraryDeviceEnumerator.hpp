@@ -2,11 +2,12 @@
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 
 #include <score/tools/RecursiveWatch.hpp>
+#include <score_plugin_protocols_export.h>
 
 namespace Protocols
 {
 
-class LibraryDeviceEnumerator : public Device::DeviceEnumerator
+class SCORE_PLUGIN_PROTOCOLS_EXPORT LibraryDeviceEnumerator : public Device::DeviceEnumerator
 {
 public:
   std::string m_pattern;
