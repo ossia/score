@@ -158,11 +158,6 @@ void TemporalIntervalHeader::updateButtons()
     m_mute->setPos(pos, 0.);
     pos += interval_header_button_spacing;
   }
-  if (m_add)
-  {
-    m_add->setPos(pos, 0.);
-    pos += interval_header_button_spacing;
-  }
   if (m_play)
   {
     m_play->setPos(pos, 0.);
@@ -188,7 +183,6 @@ void TemporalIntervalHeader::updateOverlay()
   bool overlayVisible = m_selected || m_hovered;
 
   bool hadRackButton = m_rackButton;
-  bool hadAdd = m_add;
   bool hadMute = m_mute;
   bool hadPlay = m_play;
   bool hadStop = m_stop;
@@ -201,7 +195,6 @@ void TemporalIntervalHeader::updateOverlay()
   bool needsMute = overlayVisible;
   bool needsPlay= overlayVisible && grand_parent_executing;
   bool needsStop= overlayVisible && grand_parent_executing;
-  bool needsAdd = overlayVisible;
   bool needsSpeed = overlayVisible && m_executing;
 
   prepareGeometryChange();
@@ -224,6 +217,7 @@ void TemporalIntervalHeader::updateOverlay()
         pixmaps.unroll,
         pixmaps.unroll_selected,
         this};
+    m_rackButton->setToolTip(tr("Rack folding\nUnroll or re-roll the processes in this interval."));
 
     connect(
         m_rackButton,
@@ -245,6 +239,8 @@ void TemporalIntervalHeader::updateOverlay()
   {
     m_mute = new score::QGraphicsPixmapToggle{
         pixmaps.muted, pixmaps.unmuted, this};
+    m_mute->setToolTip(tr("Mute\nMute the audio output of this interval. Processes will still execute but will not produce output."));
+
     if (itv.muted())
       m_mute->toggle();
     connect(
@@ -254,21 +250,6 @@ void TemporalIntervalHeader::updateOverlay()
         [&itv](bool b) { ((IntervalModel&)itv).setMuted(b); });
     con(itv, &IntervalModel::mutedChanged, m_mute, [=](bool b) {
       m_mute->setState(b);
-    });
-  }
-
-  /// Add process ///
-  if (hadAdd && !needsAdd)
-  {
-    delete m_add;
-    m_add = nullptr;
-  }
-  else if (!hadAdd && needsAdd)
-  {
-    // Add process
-    m_add = new score::QGraphicsPixmapButton{pixmaps.add, pixmaps.add, this};
-    connect(m_add, &score::QGraphicsPixmapButton::clicked, this, [this] {
-      m_view->requestOverlayMenu({});
     });
   }
 
@@ -282,6 +263,7 @@ void TemporalIntervalHeader::updateOverlay()
   {
     m_play = new score::QGraphicsPixmapButton{
         pixmaps.interval_play, pixmaps.interval_play, this};
+    m_play->setToolTip(tr("Play\nPlay this interval. Playback follows quantization rules."));
     connect(m_play, &score::QGraphicsPixmapButton::clicked, this, [this] { \
       auto& ctx = this->m_presenter.context().app.guiApplicationPlugin<ScenarioApplicationPlugin>();
       ctx.execution().playInterval(const_cast<IntervalModel*>(&this->m_presenter.model()));
@@ -296,6 +278,7 @@ void TemporalIntervalHeader::updateOverlay()
   {
     m_stop = new score::QGraphicsPixmapButton{
         pixmaps.interval_stop, pixmaps.interval_stop, this};
+    m_stop->setToolTip(tr("Stop\nStop this interval. Stopping follows quantization rules."));
     connect(m_stop, &score::QGraphicsPixmapButton::clicked, this, [this] { \
       auto& ctx = this->m_presenter.context().app.guiApplicationPlugin<ScenarioApplicationPlugin>();
               ctx.execution().stopInterval(const_cast<IntervalModel*>(&this->m_presenter.model()));
@@ -312,6 +295,7 @@ void TemporalIntervalHeader::updateOverlay()
   {
     auto& durations = const_cast<IntervalDurations&>(itv.duration);
     m_speed = new score::QGraphicsSlider{this};
+    m_speed->setToolTip(tr("Speed control\nChange the playback speed of this interval."));
     m_speed->min = -1.;
     m_speed->max = 5.;
     m_speed->setRect({0., 0., 60., headerHeight() * 0.8});
@@ -333,7 +317,7 @@ void TemporalIntervalHeader::updateOverlay()
         });
   }
 
-  if (m_speed || m_add || m_play || m_stop || m_mute || m_rackButton)
+  if (m_speed || m_play || m_stop || m_mute || m_rackButton)
   {
     updateButtons();
   }
@@ -380,8 +364,6 @@ void TemporalIntervalHeader::updateShape() noexcept
 
   if (m_mute)
     buttons_width += interval_header_button_spacing;
-  if (m_add)
-    buttons_width += interval_header_button_spacing;
   if (m_play)
     buttons_width += interval_header_button_spacing;
   if (m_stop)
@@ -416,7 +398,7 @@ void TemporalIntervalHeader::on_textChanged()
   const auto& label = model.getLabel();
   const auto& name = model.getName();
   const auto& text
-      = m_state != State::Hidden ? (label.isEmpty() ? name : label) : label;
+      = (m_state != State::Hidden || m_overlay) ? (label.isEmpty() ? name : label) : label;
   if (text.isEmpty())
   {
     m_textRectCache = {};
