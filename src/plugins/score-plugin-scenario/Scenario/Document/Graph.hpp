@@ -63,6 +63,9 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT TimenodeGraph : public Nano::Observer
   const auto& edges() const { return m_edges; }
   const auto& vertices() const { return m_vertices; }
 
+  //! Check if there are intervals going from t1 to t2
+  bool hasPath(const TimeSyncModel& t1, const TimeSyncModel& t2) const noexcept;
+
   bool hasCycles() const noexcept;
   //! Writes graphviz output on stdout
   void writeGraphviz();

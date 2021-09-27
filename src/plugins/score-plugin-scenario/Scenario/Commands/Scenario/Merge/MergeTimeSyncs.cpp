@@ -81,7 +81,6 @@ void MergeTimeSyncs::redo(const score::DocumentContext& ctx) const
 {
   auto& scenar = m_scenarioPath.find(ctx);
 
-  ScenarioValidityChecker::checkValidity(scenar);
   m_moveCommand->redo(ctx);
 
   auto& movingTn = scenar.timeSync(m_movingTnId);
@@ -97,8 +96,6 @@ void MergeTimeSyncs::redo(const score::DocumentContext& ctx) const
   destinationTn.setExpression(movingTn.expression());
 
   scenar.timeSyncs.remove(m_movingTnId);
-
-  ScenarioValidityChecker::checkValidity(scenar);
 }
 
 void MergeTimeSyncs::update(

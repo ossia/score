@@ -61,7 +61,7 @@ void Executor::setupNode(Node_T& node)
                 auto queue_idx = n->add_control(inlet, num, val);
                 self->in_edit([self, queue_idx, n, ctrl] {
 
-                  connect(
+                  QObject::connect(
                       ctrl,
                       &vst3::ControlInlet::valueChanged,
                       self,

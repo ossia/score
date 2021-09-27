@@ -25,6 +25,7 @@
 #include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactory.hpp>
 #include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/Graph.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
@@ -230,6 +231,34 @@ void mergeEvents(
   }
 
   ossia::remove_duplicates(sel);
+
+  // Check that we are not merging events that have a poth of intervals between them.
+  {
+    std::vector<const EventModel*> toRemove;
+
+    Scenario::TimenodeGraph tg{scenario};
+
+    auto pathBetweenEvents = [&] (const EventModel* ev1, const EventModel* ev2) {
+      auto& t1 = Scenario::parentTimeSync(*ev1, scenario);
+      auto& t2 = Scenario::parentTimeSync(*ev2, scenario);
+
+      return tg.hasPath(t1, t2);
+    };
+
+    for(auto* ev1 : sel) {
+      for(auto* ev2 : sel) {
+        if(ev1 != ev2 && (pathBetweenEvents(ev1, ev2) || pathBetweenEvents(ev2, ev1)))
+        {
+          toRemove.push_back(ev2);
+        }
+      }
+    }
+
+    for(auto* ev : toRemove) {
+      if(auto it = ossia::find(sel, ev); it != sel.end())
+        sel.erase(it);
+    }
+  }
 
   MacroCommandDispatcher<MergeEventMacro> merger{f};
 

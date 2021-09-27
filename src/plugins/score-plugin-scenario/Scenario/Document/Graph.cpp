@@ -8,6 +8,7 @@
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/breadth_first_search.hpp>
+#include <boost/graph/depth_first_search.hpp>
 #include <boost/graph/connected_components.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <boost/graph/labeled_graph.hpp>
@@ -23,6 +24,8 @@
 #include <Scenario/Process/Algorithms/ContainersAccessors.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+
+#include <tsl/hopscotch_set.h>
 namespace Scenario
 {
 /*
@@ -194,6 +197,26 @@ struct CycleDetector
   }
 };
 
+
+struct PathDetectorState
+{
+  tsl::hopscotch_set<Scenario::TimeSyncModel*> nodes;
+};
+
+struct PathDetector : public boost::default_dfs_visitor
+{
+  // because these geniuses of boost decided to pass the visitor by value...
+  std::shared_ptr<PathDetectorState> state{std::make_shared<PathDetectorState>()};
+
+  void discover_vertex(
+      Scenario::Graph::vertex_descriptor i,
+      const Scenario::Graph& g)
+  {
+    state->nodes.insert(g[i]);
+  }
+};
+
+
 TimenodeGraph::TimenodeGraph(const Scenario::ProcessModel& scenar)
     : m_scenario{scenar}
 {
@@ -216,6 +239,28 @@ TimenodeGraph::TimenodeGraph(const Scenario::ProcessModel& scenar)
   scenar.intervals.removed.connect<&TimenodeGraph::intervalsChanged>(this);
   scenar.timeSyncs.added.connect<&TimenodeGraph::timeSyncsChanged>(this);
   scenar.timeSyncs.removed.connect<&TimenodeGraph::timeSyncsChanged>(this);
+}
+
+bool TimenodeGraph::hasPath(const TimeSyncModel& t1, const TimeSyncModel& t2) const noexcept
+{
+  // First find the vertex matching the time sync after our interval
+  auto first_vertex = vertices().at(&t1);
+
+  // Do a depth-first search from where we're starting
+  PathDetector vis;
+  std::vector<boost::default_color_type> color_map(
+      boost::num_vertices(graph()));
+
+  boost::depth_first_visit(
+      graph(),
+      first_vertex,
+      vis,
+      boost::make_iterator_property_map(
+          color_map.begin(),
+          boost::get(boost::vertex_index, graph()),
+          color_map[0]));
+
+  return vis.state->nodes.contains((TimeSyncModel*)&t2);
 }
 
 bool TimenodeGraph::hasCycles() const noexcept
