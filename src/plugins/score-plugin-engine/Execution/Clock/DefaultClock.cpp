@@ -9,9 +9,8 @@
 
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
+#include <ossia/editor/scenario/scenario.hpp>
 #include <ossia/editor/scenario/execution_log.hpp>
-
-#include <QDebug>
 
 #include <Scenario/Document/Event/EventExecution.hpp>
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
@@ -30,7 +29,8 @@ void DefaultClock::prepareExecution(const TimeVal& t, BaseScenarioElement& bs)
   using namespace ossia;
   auto& settings = context.doc.app.settings<Execution::Settings::Model>();
   IntervalComponentBase& comp = bs.baseInterval();
-  const auto& oc = comp.OSSIAInterval();
+  ossia::scenario& scenar = bs.baseScenario();
+
   if (settings.getValueCompilation())
   {
     comp.interval().duration.setPlayPercentage(0);
@@ -39,20 +39,22 @@ void DefaultClock::prepareExecution(const TimeVal& t, BaseScenarioElement& bs)
     auto log = ossia::g_exec_log.init();
 #endif
     context.executionQueue.enqueue([time = context.time(t),
-                                    oc,
+                                    &scenar,
                                     g = context.execGraph,
                                     s = context.execState] {
       if (time != 0_tv)
-        oc->offset(time);
+      {
+        scenar.offset(time);
+      }
 
       s->commit();
     });
   }
   else
   {
-    context.executionQueue.enqueue([time = context.time(t), oc] {
+    context.executionQueue.enqueue([time = context.time(t), &scenar] {
       if (time != 0_tv)
-        oc->transport(time);
+        scenar.transport(time);
     });
   }
 }
