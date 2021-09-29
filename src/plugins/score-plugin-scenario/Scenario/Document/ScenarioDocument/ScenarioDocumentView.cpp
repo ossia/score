@@ -224,10 +224,11 @@ void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
 
   const auto hsb = this->horizontalScrollBar();
   const auto vsb = this->verticalScrollBar();
+
   if (pixDelta != QPoint{})
   {
     hsb->setValue(hsb->value() + event->pixelDelta().x() / 2.);
-    vsb->setValue(vsb->value() + event->pixelDelta().y() / 2.);
+    vsb->setValue(vsb->value() - event->pixelDelta().y() / 2.);
   }
   else if (angleDelta != QPoint{})
   {
