@@ -22,6 +22,7 @@
 #include <ossia/detail/math.hpp>
 #include <ossia/detail/pod_vector.hpp>
 
+#include <pluginterfaces/vst/ivstmidicontrollers.h>
 #include <pluginterfaces/vst/ivstaudioprocessor.h>
 #include <public.sdk/source/vst/hosting/module.h>
 
@@ -256,6 +257,51 @@ void Model::reloadControls()
   */
 }
 
+Steinberg::tresult Model::restartComponent(int32_t flags)
+{
+  if(fx.controller)
+  {
+    const bool values_changed = flags & Steinberg::Vst::kParamValuesChanged;
+    const bool titles_changed = flags & Steinberg::Vst::kParamTitlesChanged;
+    const bool something_else_changed = flags & ~(Steinberg::Vst::kParamTitlesChanged | Steinberg::Vst::kParamValuesChanged);
+    if(values_changed || titles_changed)
+    {
+      Steinberg::Vst::ParameterInfo p;
+      for (const auto& ctrl : controls)
+      {
+        if(titles_changed)
+        {
+          auto it = m_paramToIndex.find(ctrl.first);
+          if(it != m_paramToIndex.end())
+          {
+            if(fx.controller->getParameterInfo(it->second, p) == Steinberg::kResultOk)
+            {
+              ctrl.second->setName(fromString(p.title));
+            }
+          }
+        }
+
+        if(values_changed)
+        {
+          ctrl.second->setValue(fx.controller->getParamNormalized(ctrl.first));
+        }
+      }
+    }
+
+    if((values_changed || titles_changed) && !something_else_changed)
+    {
+      return Steinberg::kResultOk;
+    }
+    else
+    {
+      // FIXME here we should go into audio thread, and do a stop / restart cycle
+      return Steinberg::kResultFalse;
+    }
+
+  }
+  return Steinberg::kResultFalse;
+}
+
 void Model::closePlugin()
 {
   if (fx)
@@ -359,6 +405,7 @@ struct PortCreationVisitor
     port->setName(fromString(bus.name));
     model.m_inlets.push_back(port);
   }
+
   void eventIn(const Steinberg::Vst::BusInfo& bus, int idx)
   {
     BusActivationVisitor{fx}.eventIn(bus, idx);
@@ -366,6 +413,18 @@ struct PortCreationVisitor
     auto port = new Process::MidiInlet(Id<Process::Port>{inlet_i++}, &model);
     port->setName(fromString(bus.name));
     model.m_inlets.push_back(port);
+
+    // MIDI input: check controls
+    Steinberg::Vst::IMidiMapping* midi_map{};
+    if (this->fx.controller->queryInterface(Steinberg::Vst::IMidiMapping::iid, (void**)&midi_map) == Steinberg::kResultTrue)
+    {
+      Steinberg::Vst::ParamID p;
+      for(int i = 0; i <= 132; i++) // See ivstmidicontrollers.h
+      {
+        if(midi_map->getMidiControllerAssignment(idx, 0, i, p) == Steinberg::kResultOk)
+          fx.midiControls[{idx, i}] = p;
+      }
+    }
   }
 
   void audioOut(const Steinberg::Vst::BusInfo& bus, int idx)

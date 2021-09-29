@@ -88,6 +88,7 @@ public:
   void initControl(ControlInlet* inl);
 
   void reloadControls();
+  Steinberg::tresult restartComponent(int32_t flags);
 
 private:
   void loadPreset(const Process::Preset& preset) override;

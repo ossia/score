@@ -82,7 +82,7 @@ public:
 
   Steinberg::tresult restartComponent(Steinberg::int32 flags) override
   {
-    return Steinberg::kResultOk;
+    return m_model.restartComponent(flags);
   }
 
   Steinberg::tresult setDirty(Steinberg::TBool state) override
@@ -97,7 +97,10 @@ public:
     return Steinberg::kResultOk;
   }
 
-  Steinberg::tresult startGroupEdit() override { return Steinberg::kResultOk; }
+  Steinberg::tresult startGroupEdit() override
+  {
+    return Steinberg::kResultOk;
+  }
 
   Steinberg::tresult finishGroupEdit() override
   {

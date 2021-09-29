@@ -11,6 +11,8 @@
 
 #include <public.sdk/source/vst/hosting/eventlist.h>
 #include <public.sdk/source/vst/hosting/parameterchanges.h>
+
+#include <pluginterfaces/vst/ivstmidicontrollers.h>
 namespace vst3
 {
 
@@ -101,6 +103,7 @@ public:
     explicit PluginHandle(const Plugin& p)
         : component{p.component}
         , processor{p.processor}
+        , midi_controls{p.midiControls}
     {
       component->addRef();
       processor->addRef();
@@ -114,6 +117,7 @@ public:
 
     Steinberg::Vst::IComponent* component{};
     Steinberg::Vst::IAudioProcessor* processor{};
+    MIDIControls midi_controls;
   };
 
   PluginHandle fx;
@@ -206,16 +210,20 @@ protected:
     ossia::value_port* port{};
   };
 
+  ossia::fast_hash_map<Steinberg::Vst::ParamID, std::size_t> queue_map;
+
 public:
   ossia::small_vector<vst_control, 16> controls;
 
   std::size_t
   add_control(ossia::value_inlet* inlet, Steinberg::Vst::ParamID id, float v)
   {
+    // FIXME this allocates a lot :[
     auto queue_idx = this->m_inputChanges.queues.size();
     this->m_inputChanges.queues.emplace_back(id);
     this->m_inputChanges.queues.back().lastValue = v;
 
+    queue_map[id] = queue_idx;
     controls.push_back({id, queue_idx, inlet->target<ossia::value_port>()});
     root_inputs().push_back(std::move(inlet));
     return queue_idx;
@@ -274,22 +282,38 @@ public:
     VstEvent e;
     e.busIndex = index;
     e.sampleOffset = 0;
-    e.ppqPosition = 0;
-    e.flags = VstEvent::kIsLive;
-    for (libremidi::message& mess : ip)
+    e.ppqPosition = 0; // FIXME
+    for (const libremidi::message& mess : ip)
     {
+      e.sampleOffset = mess.timestamp;
       switch (mess.get_message_type())
       {
         case libremidi::message_type::NOTE_ON:
-          e.type = VstEvent::kNoteOnEvent;
-          e.noteOn.channel = mess.get_channel();
-          e.noteOn.pitch = mess.bytes[1];
-          e.noteOn.velocity = mess.bytes[2] / 127.f;
-          e.noteOn.noteId = -1;
-          e.noteOn.tuning = 0.f;
-          m_inputEvents.addEvent(e);
+        {
+          if(mess.bytes[2] > 0)
+          {
+            e.type = VstEvent::kNoteOnEvent;
+            e.noteOn.channel = mess.get_channel();
+            e.noteOn.pitch = mess.bytes[1];
+            e.noteOn.velocity = mess.bytes[2] / 127.f;
+            e.noteOn.noteId = -1;
+            e.noteOn.tuning = 0.f;
+            m_inputEvents.addEvent(e);
+          }
+          else
+          {
+            e.type = VstEvent::kNoteOffEvent;
+            e.noteOff.channel = mess.get_channel();
+            e.noteOff.pitch = mess.bytes[1];
+            e.noteOff.velocity = 0;
+            e.noteOff.noteId = -1;
+            e.noteOff.tuning = 0.f;
+            m_inputEvents.addEvent(e);
+          }
           break;
+        }
         case libremidi::message_type::NOTE_OFF:
+        {
           e.type = VstEvent::kNoteOffEvent;
           e.noteOff.channel = mess.get_channel();
           e.noteOff.pitch = mess.bytes[1];
@@ -298,7 +322,9 @@ public:
           e.noteOff.tuning = 0.f;
           m_inputEvents.addEvent(e);
           break;
+        }
         case libremidi::message_type::POLY_PRESSURE:
+        {
           e.type = VstEvent::kPolyPressureEvent;
           e.polyPressure.channel = mess.get_channel();
           e.polyPressure.pitch = mess.bytes[1];
@@ -306,6 +332,37 @@ public:
           e.polyPressure.noteId = -1;
           m_inputEvents.addEvent(e);
           break;
+        }
+
+        case libremidi::message_type::PITCH_BEND:
+        {
+          if(auto it = this->fx.midi_controls.find({index, Steinberg::Vst::kPitchBend}); it != this->fx.midi_controls.end())
+          {
+            double pitch = (mess.bytes[2] * 128 + mess.bytes[1]) / (128. * 128.);
+            Steinberg::Vst::ParamID pid = it->second;
+            if(auto queue_it = this->queue_map.find(pid); queue_it != this->queue_map.end())
+            {
+              auto& queue = this->m_inputChanges.queues[queue_it->second];
+              queue.data.push_back({e.sampleOffset, pitch});
+              queue.lastValue = pitch;
+            }
+          }
+        }
+
+        case libremidi::message_type::AFTERTOUCH:
+        {
+          if(auto it = this->fx.midi_controls.find({index, Steinberg::Vst::kAfterTouch}); it != this->fx.midi_controls.end())
+          {
+            double value = mess.bytes[1] / 128.;
+            Steinberg::Vst::ParamID pid = it->second;
+            if(auto queue_it = this->queue_map.find(pid); queue_it != this->queue_map.end())
+            {
+              auto& queue = this->m_inputChanges.queues[queue_it->second];
+              queue.data.push_back({e.sampleOffset, value});
+              queue.lastValue = value;
+            }
+          }
+        }
         default:
           break;
       }
@@ -377,84 +434,72 @@ public:
       m_vstData.symbolicSampleSize = Steinberg::Vst::kSample64;
     else
       m_vstData.symbolicSampleSize = Steinberg::Vst::kSample32;
-
-    /*
-
-    dispatch(effSetSampleRate, 0, sampleRate, nullptr, sampleRate);
-    dispatch(effSetBlockSize, 0, 4096, nullptr, 4096); // Generalize what's in pd
-    dispatch(
-        effSetProcessPrecision, 0, UseDouble ? kVstProcessPrecision64 : kVstProcessPrecision32);
-    dispatch(effMainsChanged, 0, 1);
-    dispatch(effStartProcess);
-
-    fx->fx->resvd2 = reinterpret_cast<intptr_t>(this);
-    */
   }
 
   ~vst_node()
   {
-    /*
-    fx->fx->resvd2 = 0;
-    dispatch(effStopProcess);
-    dispatch(effMainsChanged, 0, 0);
-    */
   }
 
   std::string label() const noexcept override { return "VST3"; }
 
+  void all_notes_off(int bus) noexcept
+  {
+    // TODO
+    /*
+    bool ok = false;
+    if(auto it = this->fx.midi_controls.find({bus, Steinberg::Vst::kCtrlAllNotesOff}); it != this->fx.midi_controls.end())
+    {
+      Steinberg::Vst::ParamID pid = it->second;
+      if(auto queue_it = this->queue_map.find(pid); queue_it != this->queue_map.end())
+      {
+        auto& queue = this->m_inputChanges.queues[queue_it->second];
+        queue.data.push_back({0, 1.});
+        queue.lastValue = 1.;
+        ok = true;
+      }
+    }
+
+    if(auto it = this->fx.midi_controls.find({bus, Steinberg::Vst::kCtrlAllSoundsOff}); it != this->fx.midi_controls.end())
+    {
+      Steinberg::Vst::ParamID pid = it->second;
+      if(auto queue_it = this->queue_map.find(pid); queue_it != this->queue_map.end())
+      {
+        auto& queue = this->m_inputChanges.queues[queue_it->second];
+        queue.data.push_back({0, 1.});
+        queue.lastValue = 1.;
+        ok = true;
+      }
+    }
+
+    if(!ok)
+    {
+      // Send manual note off events ??
+
+    }
+    */
+  }
+
   void all_notes_off() noexcept override
   {
     /*
-    if constexpr (IsSynth)
+    // Put messages into each MIDI in's event queues
     {
-      // copy midi data
-      // should be 16 but some VSTs read a bit out of bounds apparently !
-      constexpr auto sz = sizeof(VstEvents) + sizeof(void*) * 16 * 2;
-      VstEvents* events = (VstEvents*)alloca(sz);
-      events->numEvents = 16;
-
-      VstMidiEvent ev[16] = {};
-      std::memset(events, 0, sz);
-
-      for (int i = 0; i < 16; i++)
+      int k = 0;
+      int audioBusCount = m_audioInputChannels.size();
+      for (int i = audioBusCount; i < audioBusCount + m_totalEventIns; i++)
       {
-        auto& e = ev[i];
-        e.type = kVstMidiType;
-        e.byteSize = sizeof(VstMidiEvent);
-
-        e.midiData[0] = (char)(uint8_t)176;
-        e.midiData[1] = (char)(uint8_t)123;
-        e.midiData[2] = 0;
-        e.midiData[3] = 0;
-
-        events->events[i] = reinterpret_cast<VstEvent*>(&e);
+        all_notes_off(k++);
       }
+    }
 
-      dispatch(effProcessEvents, 0, 0, events, 0.f);
+    // Run a process cycle
+    {
+      auto dat = m_vstData;
+      dat.numSamples = 0;
+      dat.inputs = nullptr;
+      dat.outputs = nullptr;
 
-      if constexpr(!UseDouble)
-      {
-        constexpr int samples = 64;
-        float dummy[samples] = { 0.f };
-
-        float** output = (float**)alloca(sizeof(float*) * std::max(2, this->fx->fx->numOutputs));
-        for (int i = 0; i < this->fx->fx->numOutputs; i++)
-          output[i] = dummy;
-
-        fx->fx->processReplacing(fx->fx, output, output, samples);
-      }
-      else
-      {
-        constexpr int samples = 64;
-        double dummy[samples] = { 0.f };
-
-        double** output = (double**)alloca(sizeof(double*) * std::max(2, this->fx->fx->numOutputs));
-        for (int i = 0; i < this->fx->fx->numOutputs; i++)
-          output[i] = dummy;
-
-        fx->fx->processDoubleReplacing(fx->fx, output, output, samples);
-
-      }
+      fx.processor->process(dat);
     }
     */
   }
@@ -564,7 +609,6 @@ public:
       // Copy the float outputs to the audio outlet buffer
       if (m_totalAudioOuts > 0)
       {
-        int channel_k = 0;
         int float_k = 0;
         for (int i = 0; i < m_audioOutputChannels.size(); i++)
         {

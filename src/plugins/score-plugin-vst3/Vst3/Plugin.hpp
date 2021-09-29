@@ -1,6 +1,8 @@
 #pragma once
 
 #define RELEASE 1
+#include <ossia/detail/flat_map.hpp>
+
 #include <QString>
 
 #include <pluginterfaces/base/funknown.h>
@@ -11,6 +13,7 @@
 #include <public.sdk/source/vst/hosting/hostclasses.h>
 #include <public.sdk/source/vst/hosting/module.h>
 #include <public.sdk/source/vst/hosting/plugprovider.h>
+
 #include <string_view>
 
 namespace vst3
@@ -26,6 +29,10 @@ inline QString fromString(const Steinberg::Vst::String128& str)
   return QString::fromUtf16(str);
 #endif
 }
+
+using MIDIControls = ossia::flat_map<std::pair<int, int>, Steinberg::Vst::ParamID>;
+
+
 struct Plugin
 {
   Plugin() = default;
@@ -67,6 +74,8 @@ struct Plugin
   int event_ins = 0;
   int audio_outs = 0;
   int event_outs = 0;
+
+  MIDIControls midiControls{};
 };
 
 #if __cpp_concepts >= 201907
