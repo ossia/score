@@ -427,9 +427,14 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
           }
           case Rows::Access:
           {
-            return bool(m_settings.ioType)
-                       ? Device::AccessModeText()[*m_settings.ioType]
-                       : tr("None");
+            if (m_settings.ioType)
+            {
+              return Device::AccessModePrettyText()[*m_settings.ioType];
+            }
+            else
+            {
+              return tr("None");
+            }
           }
           case Rows::Bounding:
           {
@@ -961,7 +966,7 @@ void AddressItemDelegate::setEditorData(
       if (auto cb = qobject_cast<Explorer::AccessModeComboBox*>(editor))
       {
         auto cur = index.data(Qt::EditRole).toInt();
-        if (cur >= 0 && cur < Device::AccessModeText().size())
+        if (cur >= 0 && cur < Device::AccessModePrettyText().size())
           cb->set((ossia::access_mode)cur);
         return;
       }

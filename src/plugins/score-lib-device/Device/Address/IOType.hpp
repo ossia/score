@@ -2,17 +2,24 @@
 #include <score/tools/std/Optional.hpp>
 
 #include <ossia/network/common/parameter_properties.hpp>
+#include <ossia/detail/enum_map.hpp>
 
 #include <score_lib_device_export.h>
 
+
 class QString;
-template <class Key, class T>
-class QMap;
 
 namespace Device
 {
-SCORE_LIB_DEVICE_EXPORT const QMap<ossia::access_mode, QString>&
+//! To save / reload in JSON
+SCORE_LIB_DEVICE_EXPORT
+const ossia::enum_map<ossia::access_mode, QString, 3>&
 AccessModeText();
+
+//! To show to the user
+SCORE_LIB_DEVICE_EXPORT
+const ossia::enum_map<ossia::access_mode, QString, 3>&
+AccessModePrettyText();
 
 inline bool hasInput(const std::optional<ossia::access_mode>& t)
 {

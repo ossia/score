@@ -201,7 +201,7 @@ void AddressSettingsWidget::setCommonSettings(
     QStringList t;
     for (const auto& tag : *tags)
       t.push_back(QString::fromStdString(tag));
-    m_tagsEdit->addItems(std::move(t));
+    m_tagsEdit->addItems(t);
   }
   else
   {
@@ -213,10 +213,10 @@ AccessModeComboBox::AccessModeComboBox(QWidget* parent)
     : QComboBox{parent}
 {
   setToolTip(tr("Set in which direction the communication should happen."));
-  const auto& io_map = Device::AccessModeText();
-  for (auto it = io_map.cbegin(); it != io_map.cend(); ++it)
+  const auto& io_map = Device::AccessModePrettyText();
+  for (std::size_t i = 0; i < io_map.size(); i++)
   {
-    addItem(it.value(), (int)it.key());
+    addItem(io_map[i], (int)i);
   }
 
   connect(
@@ -235,8 +235,8 @@ ossia::access_mode AccessModeComboBox::get() const
 
 void AccessModeComboBox::set(ossia::access_mode t)
 {
-  const auto& clip_map = Device::AccessModeText();
-  for (int i = 0; i < clip_map.size(); i++)
+  const auto& io_map = Device::AccessModePrettyText();
+  for (std::size_t i = 0; i < io_map.size(); i++)
   {
     if (itemData(i).toInt() == (int)t)
     {
