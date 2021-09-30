@@ -592,9 +592,6 @@ auto debug_ffmpeg(int ret, QString ctx)
 double AudioDecoder::read_length(const QString& path)
 {
 #if SCORE_HAS_LIBAV
-  av_register_all();
-  avcodec_register_all();
-
   auto fmt_ctx = open_audio(path);
 
   auto ret = avformat_find_stream_info(fmt_ctx.get(), nullptr);
@@ -787,9 +784,6 @@ void AudioDecoder::on_startDecode(QString path, audio_handle hdl)
   try
   {
     const std::size_t channels = data.size();
-
-    av_register_all();
-    avcodec_register_all();
 
     auto fmt_ctx = open_audio(path);
 

@@ -42,8 +42,10 @@ extern "C"
 score_plugin_media::score_plugin_media()
 {
 #if SCORE_HAS_LIBAV
+#if LIBAVCODEC_VERSION_MAJOR < 59
   av_register_all();
   avcodec_register_all();
+#endif
   avdevice_register_all();
 #endif
 
