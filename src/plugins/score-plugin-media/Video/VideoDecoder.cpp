@@ -267,7 +267,11 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
   // TODO - maybe we should also store the "last dequeued dts" from the
   // decoder side - this way no need to seek if we are in the interval
   const bool seek_forward = dts >= this->m_last_dequeued_dts;
+#if LIBAVFORMAT_VERSION_MAJOR >= 59
+  const auto start = stream->internal->first_dts;
+#else
   const auto start = stream->first_dts;
+#endif
   if (av_seek_frame(
           m_formatContext, m_stream, start + dts, AVSEEK_FLAG_BACKWARD))
   {
@@ -362,7 +366,7 @@ bool VideoDecoder::open_stream() noexcept
 
   for (unsigned int i = 0; i < m_formatContext->nb_streams; i++)
   {
-    if (m_formatContext->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
+    if (m_formatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
     {
       if (m_stream == -1)
       {
@@ -386,7 +390,7 @@ bool VideoDecoder::open_stream() noexcept
     {
       if(codecPar->width <= 0 || codecPar->height <= 0)
       {
-        qDebug() << "VideoThumbnailer: invalid video: width or height is 0";
+        qDebug() << "VideoDecoder: invalid video: width or height is 0";
         res = false;
       }
       else

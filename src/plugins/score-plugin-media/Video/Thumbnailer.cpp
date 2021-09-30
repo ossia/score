@@ -58,7 +58,7 @@ VideoThumbnailer::VideoThumbnailer(QString path)
 
   for (unsigned int i = 0; i < m_formatContext->nb_streams; i++)
   {
-    if (m_formatContext->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
+    if (m_formatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
     {
       if (m_stream == -1)
       {
@@ -73,16 +73,24 @@ VideoThumbnailer::VideoThumbnailer(QString path)
   if (m_stream != -1)
   {
     const AVStream* stream = m_formatContext->streams[m_stream];
-    m_codecContext = stream->codec;
     const AVRational tb = m_formatContext->streams[m_stream]->time_base;
     dts_per_flicks = (tb.den / (tb.num * ossia::flicks_per_second<double>));
     flicks_per_dts = (tb.num * ossia::flicks_per_second<double>) / tb.den;
 
-    m_codec = avcodec_find_decoder(m_codecContext->codec_id);
+    m_codec = avcodec_find_decoder(stream->codecpar->codec_id);
 
     if (m_codec)
     {
-      pixel_format = m_codecContext->pix_fmt;
+      pixel_format = (AVPixelFormat)stream->codecpar->format;
+      width = stream->codecpar->width;
+      height = stream->codecpar->height;
+      fps = av_q2d(stream->avg_frame_rate);
+
+      m_codecContext = avcodec_alloc_context3(nullptr);
+      avcodec_parameters_to_context(m_codecContext, stream->codecpar);
+
+      m_codecContext->pkt_timebase = stream->time_base;
+      m_codecContext->codec_id = m_codec->id;
       int err = avcodec_open2(m_codecContext, m_codec, nullptr);
       res = !(err < 0);
       if (!res)
