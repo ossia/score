@@ -141,7 +141,10 @@ else()
 endif()
 
 if(Polly_FOUND)
-  set(POLLY_LIBS Polly PollyISL PollyPPCG)
+  set(POLLY_LIBS Polly PollyISL)
+  if(LLVM_VERSION VERSION_LESS "13.*")
+    set(POLLY_LIBS ${POLLY_LIBS} PollyPPCG)
+  endif()
 endif()
 
 llvm_map_components_to_libnames(LLVM_LIBS
