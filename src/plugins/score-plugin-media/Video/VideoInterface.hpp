@@ -4,7 +4,10 @@
 #include <score_plugin_media_export.h>
 extern "C"
 {
-#include <libavformat/avformat.h>
+#include <libavutil/pixfmt.h>
+struct AVFrame;
+struct AVCodecContext;
+struct AVPacket;
 }
 #include <memory>
 

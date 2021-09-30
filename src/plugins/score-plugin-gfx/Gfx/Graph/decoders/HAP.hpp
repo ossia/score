@@ -5,6 +5,11 @@
 #include <hap/source/hap.h>
 #include <snappy.h>
 
+extern "C"
+{
+#include <libavformat/avformat.h>
+}
+
 namespace score::gfx
 {
 /**
