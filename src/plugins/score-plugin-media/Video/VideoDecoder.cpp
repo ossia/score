@@ -268,9 +268,9 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
   // decoder side - this way no need to seek if we are in the interval
   const bool seek_forward = dts >= this->m_last_dequeued_dts;
 #if LIBAVFORMAT_VERSION_MAJOR >= 59
-  const auto start = stream->internal->first_dts;
+  const int64_t start = 0;
 #else
-  const auto start = stream->first_dts;
+  const int64_t start = stream->first_dts;
 #endif
   if (av_seek_frame(
           m_formatContext, m_stream, start + dts, AVSEEK_FLAG_BACKWARD))
