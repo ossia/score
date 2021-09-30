@@ -34,8 +34,9 @@ struct SCORE_PLUGIN_MEDIA_EXPORT ReadFrame
   int error{};
 };
 struct SCORE_PLUGIN_MEDIA_EXPORT FreeAVFrame {
-  void operator()(AVFrame* f) const noexcept { av_frame_free(&f); }
+  void operator()(AVFrame* f) const noexcept;
 };
+
 using AVFramePointer = std::unique_ptr<AVFrame, FreeAVFrame>;
 
 

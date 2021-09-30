@@ -22,6 +22,8 @@ namespace Video
 static char global_errbuf[512];
 VideoInterface::~VideoInterface() { }
 
+void FreeAVFrame::operator()(AVFrame* f) const noexcept { av_frame_free(&f); }
+
 VideoDecoder::VideoDecoder() noexcept { }
 
 VideoDecoder::~VideoDecoder() noexcept
