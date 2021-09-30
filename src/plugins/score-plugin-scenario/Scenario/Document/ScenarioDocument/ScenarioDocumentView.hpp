@@ -110,8 +110,6 @@ private:
   const score::GUIApplicationContext& m_app;
 
   std::chrono::steady_clock::time_point m_lastwheel;
-  bool m_hZoom{false};
-  bool m_vZoom{false};
   bool m_opengl{false};
 };
 

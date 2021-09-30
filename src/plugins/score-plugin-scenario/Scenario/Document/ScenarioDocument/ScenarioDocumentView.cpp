@@ -175,8 +175,8 @@ void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
 {
   setFocus(Qt::MouseFocusReason);
   auto pressedModifier = qApp->keyboardModifiers();
-  m_hZoom = pressedModifier == Qt::ControlModifier;
-  m_vZoom = pressedModifier == Qt::ShiftModifier;
+  auto m_hZoom = pressedModifier == Qt::ControlModifier;
+  auto m_vZoom = pressedModifier == Qt::ShiftModifier;
 
 #if !defined(__APPLE__)
   auto t = std::chrono::steady_clock::now();
@@ -438,6 +438,31 @@ bool ProcessGraphicsView::event(QEvent* event)
     case QEvent::HoverMove:
       hoverMoveEvent(static_cast<QHoverEvent*>(event));
       return true;
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0) && !defined(QT_NO_GESTURES)
+    case QEvent::NativeGesture:
+    {
+      auto gest = static_cast<QNativeGestureEvent*>(event);
+      switch(gest->gestureType())
+      {
+        case Qt::NativeGestureType::ZoomNativeGesture:
+        {
+          double zoom = gest->value() * 100.;
+          QPointF delta = {zoom, zoom};
+
+          QPoint pos = this->mapFromGlobal(gest->globalPos());
+          horizontalZoom(delta, mapToScene(pos));
+
+          return true;
+        }
+        default:
+          return QGraphicsView::event(event);
+      }
+
+      return true;
+    }
+#endif
+
     default:
       return QGraphicsView::event(event);
   }
