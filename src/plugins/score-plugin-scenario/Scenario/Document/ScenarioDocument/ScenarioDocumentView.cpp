@@ -227,7 +227,7 @@ void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
 
   if (pixDelta != QPoint{})
   {
-    hsb->setValue(hsb->value() + event->pixelDelta().x() / 2.);
+    hsb->setValue(hsb->value() - event->pixelDelta().x() / 2.);
     vsb->setValue(vsb->value() - event->pixelDelta().y() / 2.);
   }
   else if (angleDelta != QPoint{})
