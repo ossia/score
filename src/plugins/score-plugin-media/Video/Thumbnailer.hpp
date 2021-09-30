@@ -51,7 +51,7 @@ private:
   AVFormatContext* m_formatContext{};
   AVCodecContext* m_codecContext{};
   SwsContext* m_rescale{};
-  AVCodec* m_codec{};
+  const AVCodec* m_codec{};
   AVFrame* m_rgb{};
   int64_t m_last_dts = 0;
 

@@ -64,7 +64,7 @@ private:
   AVCodecContext* m_codecContext{};
   AVStream* m_avstream{};
   SwsContext* m_rescale{};
-  AVCodec* m_codec{};
+  const AVCodec* m_codec{};
   int m_stream{-1};
 
   int64_t m_duration{}; // in flicks

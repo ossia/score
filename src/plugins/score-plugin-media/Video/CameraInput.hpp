@@ -62,7 +62,7 @@ private:
   AVFormatContext* m_formatContext{};
   AVCodecContext* m_codecContext{};
   SwsContext* m_rescale{};
-  AVCodec* m_codec{};
+  const AVCodec* m_codec{};
   int m_stream{-1};
 
   std::atomic_bool m_running{};
