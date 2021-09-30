@@ -108,7 +108,9 @@ static void enumerateDevices(std::function<void(CameraSettings, QString)> func)
 #else
 static void enumerateDevices(std::function<void(CameraSettings, QString)> func)
 {
-  AVInputFormat* fmt = nullptr;
+  // weird type needed because things became const in ffmpeg 4.4...
+  decltype(av_input_video_device_next(nullptr)) fmt = nullptr;
+
   while ((fmt = av_input_video_device_next(fmt)))
   {
     AVDeviceInfoList* device_list = nullptr;
