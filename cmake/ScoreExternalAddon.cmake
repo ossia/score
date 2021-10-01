@@ -148,6 +148,8 @@ find_package(Qt5 5.9 REQUIRED COMPONENTS
   Qml
 )
 
+find_package(Qt5 5.9 OPTIONAL_COMPONENTS ShaderTools)
+
 find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVDEVICE AVUTIL SWRESAMPLE SWSCALE POSTPROC)
 
 # ossia-config.hpp
@@ -237,6 +239,12 @@ foreach(_lib ${SCORE_PLUGINS})
 endforeach()
 target_link_libraries(score_plugin_engine INTERFACE score_lib_device score_lib_inspector score_lib_localtree score_lib_process score_lib_state score_plugin_dataflow score_plugin_library score_plugin_deviceexplorer score_plugin_scenario score_plugin_audio)
 
+target_link_libraries(score_plugin_media INTERFACE score_plugin_engine)
+target_link_libraries(score_plugin_gfx INTERFACE score_plugin_engine)
+
+if(TARGET Qt5::ShaderTools)
+  target_link_libraries(score_plugin_gfx INTERFACE Qt5::ShaderTools)
+endif()
 
 include(CheckCXXCompilerFlag)
 

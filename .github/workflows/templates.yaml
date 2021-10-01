@@ -40,7 +40,7 @@ jobs:
           path: "**/score-addon-build.zip"
 
   check:
-    name: ${{ matrix.config.name }} template check
+    name: ${{ matrix.template }} (${{ matrix.config.name }})
     runs-on: ${{ matrix.config.os }}
     strategy:
       fail-fast: false
