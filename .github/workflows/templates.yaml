@@ -4,7 +4,7 @@ on: push
 
 jobs:
   init_template:
-    name: toto
+    name: Template generation
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -92,6 +92,7 @@ jobs:
         with:
           submodules: "recursive"
           path: score
+          fetch-depth: 0 # Needed for getting tags
 
       - uses: actions/download-artifact@v2
         with:
@@ -113,7 +114,7 @@ jobs:
         shell: bash
         run: |
           ls
-          ls ${{ matrix.template }}
+          find ${{ matrix.template }}
           mkdir build-debug
           cd build-debug
 

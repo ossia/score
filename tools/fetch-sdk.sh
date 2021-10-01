@@ -5,7 +5,8 @@ echo "Running on OSTYPE: '$OSTYPE'"
 export LATEST_TAG=$(git describe --tags --abbrev=0)
 export LATEST_TAG_NOV=$(echo "$LATEST_TAG" | sed "s/v//")
 export BASE_SDK=https://github.com/ossia/score-sdk/releases/download/sdk21
-export BOOST_SDK=https://github.com/ossia/score-sdk/releases/download/sdk17
+export BOOST_SDK=https://github.com/ossia/score-sdk/releases/download/sdk22
+export BOOST_VER=boost_1_77_0
 export LATEST_RELEASE=https://github.com/ossia/score/releases/download/$LATEST_TAG
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -25,7 +26,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 
   # Download boost
   (
-    BOOST=boost_1_76_0.tar.gz
+    BOOST="$BOOST_VER.tar.gz"
     wget -nv "$BOOST_SDK/$BOOST" -O "$BOOST"
     mkdir -p "$SDK_DIR/boost/include"
     tar -xzf "$BOOST" --strip-components=1 --directory "$SDK_DIR/boost/include"
@@ -56,7 +57,7 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
 
   # Download boost
   (
-    BOOST=boost_1_76_0.tar.gz
+    BOOST="$BOOST_VER.tar.gz"
     wget -nv "$BOOST_SDK/$BOOST" -O "$BOOST"
     mkdir -p "$SDK_DIR/boost/include"
     tar -xzf "$BOOST" --strip-components=1 --directory "$SDK_DIR/boost/include"
@@ -87,7 +88,7 @@ else
 
   # Download boost
   (
-    BOOST=boost_1_76_0.zip
+    BOOST="$BOOST_VER.zip"
     curl -L -O "$BOOST_SDK/$BOOST" -O "$BOOST"
     mkdir -p "$SDK_DIR/boost/include"
     7z x "$BOOST"
