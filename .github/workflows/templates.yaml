@@ -11,7 +11,6 @@ jobs:
         template:          
           - score-vfx-template 
           - score-process-template 
-          - score-audio-node-template
           - score-device-template 
           - score-audio-addon-template
           - score-offline-process-template
@@ -79,7 +78,6 @@ jobs:
         template:          
           - score-vfx-template 
           - score-process-template 
-          - score-audio-node-template
           - score-device-template 
           - score-audio-addon-template
           - score-offline-process-template
