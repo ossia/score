@@ -40,7 +40,7 @@ jobs:
       - uses: actions/upload-artifact@master
         with:
           name: ${{ matrix.template }}
-          path: **/*.zip
+          path: "**/*.zip"
 
   check:
     name: ${{ matrix.config.name }} template check
