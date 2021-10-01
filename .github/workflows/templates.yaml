@@ -3,6 +3,45 @@ name: Template check
 on: push
 
 jobs:
+  init_template:
+    name: toto
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        template:          
+          - score-vfx-template 
+          - score-process-template 
+          - score-audio-node-template
+          - score-device-template 
+          - score-audio-addon-template
+          - score-offline-process-template
+  
+    steps:
+      - name: Install git
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -qq --force-yes git rename perl
+
+      - name: Checkout template
+        uses: actions/checkout@v2
+        with:
+          repository: ossia-templates/${{ matrix.template }}
+          submodules: "recursive"
+          path: ${{ matrix.template }}
+
+      - name: Init template
+        run: |
+          cd ${{ matrix.template }}
+          ./init.sh $(echo ${PWD##*/} | sed 's/score//;s/template//;s/addon//;s/-//g')
+          ./release.sh
+          cd ..
+          find . -name '*.zip'
+
+      - uses: actions/upload-artifact@master
+        with:
+          name: ${{ matrix.template }}
+          path: **/*.zip
+
   check:
     name: ${{ matrix.config.name }} template check
     runs-on: ${{ matrix.config.os }}
@@ -38,6 +77,7 @@ jobs:
               release_flags: "-DCMAKE_BUILD_TYPE=Release",
               sdk: "/opt/ossia-sdk-x86_64",
             }
+
         template:          
           - score-vfx-template 
           - score-process-template 
@@ -53,13 +93,11 @@ jobs:
           submodules: "recursive"
           path: score
 
-      - name: Checkout template
-        uses: actions/checkout@v2
+      - uses: actions/download-artifact@v2
         with:
-          repository: ossia-templates/${{ matrix.template }}
-          submodules: "recursive"
+          name: ${{ matrix.template }}
           path: ${{ matrix.template }}
-
+    
       - name: Install dependencies
         shell: bash
         run: |
@@ -71,14 +109,11 @@ jobs:
           cd score
           tools/fetch-sdk.sh
 
-      - name: Init template
-        run: |
-          cd ${{ matrix.template }}
-          ./init.sh $(echo ${PWD##*/} | sed 's/score//;s/template//;s/addon//;s/-//g')
-
       - name: Build debug
         shell: bash
         run: |
+          ls
+          ls ${{ matrix.template }}
           mkdir build-debug
           cd build-debug
 
