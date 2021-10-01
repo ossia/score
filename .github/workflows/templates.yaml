@@ -32,15 +32,13 @@ jobs:
       - name: Init template
         run: |
           cd ${{ matrix.template }}
-          ./init.sh $(echo ${PWD##*/} | sed 's/score//;s/template//;s/addon//;s/-//g')
+          ./init.sh Build
           ./release.sh
-          cd ..
-          find . -name '*.zip'
 
       - uses: actions/upload-artifact@master
         with:
           name: ${{ matrix.template }}
-          path: "**/*.zip"
+          path: "**/score-addon-build.zip"
 
   check:
     name: ${{ matrix.config.name }} template check
@@ -114,12 +112,13 @@ jobs:
         shell: bash
         run: |
           find ${{ matrix.template }} -name '*.zip' -exec cmake -E tar xz {} \;
+          ls
+          find score-addon-build
+          ls score-addon-build
 
       - name: Build debug
         shell: bash
         run: |
-          ls
-          find ${{ matrix.template }}
           mkdir build-debug
           cd build-debug
 
@@ -127,7 +126,7 @@ jobs:
             export PATH=${{ matrix.config.path }}:$PATH
           fi
 
-          cmake ../${{ matrix.template }} \
+          cmake ../score-addon-build \
             -DSCORE_SOURCE_DIR=../score \
             -DOSSIA_SDK=${{ matrix.config.sdk }} \
             ${{ matrix.config.common_flags }} \
@@ -145,8 +144,9 @@ jobs:
             export PATH=${{ matrix.config.path }}:$PATH
           fi
 
-          cmake ../${{ matrix.template }} \
+          cmake ../score-addon-build \
             -DSCORE_SOURCE_DIR=../score \
+            -DOSSIA_SDK=${{ matrix.config.sdk }} \
             ${{ matrix.config.common_flags }} \
             ${{ matrix.config.release_flags }}
 
