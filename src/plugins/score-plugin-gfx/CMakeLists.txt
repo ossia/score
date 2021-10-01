@@ -151,6 +151,7 @@ set(SRCS
 
     Gfx/GfxApplicationPlugin.cpp
     Gfx/GfxExecNode.cpp
+    Gfx/GfxExecutionAction.cpp
     Gfx/GfxContext.cpp
     Gfx/GfxDevice.cpp
     Gfx/TexturePort.cpp
