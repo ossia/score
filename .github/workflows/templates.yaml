@@ -97,7 +97,7 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: ${{ matrix.template }}
-          path: ${{ matrix.template }}
+          path: .
     
       - name: Install dependencies
         shell: bash
@@ -109,6 +109,11 @@ jobs:
         run: |
           cd score
           tools/fetch-sdk.sh
+
+      - name: Extract artifact
+        shell: bash
+        run: |
+          find ${{ matrix.template }} -name '*.zip' -exec cmake -E tar xz {} \;
 
       - name: Build debug
         shell: bash
