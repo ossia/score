@@ -118,12 +118,6 @@ void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
   released(ev->pos());
 }
 
-void View::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
-{
-  askContextMenu(ev->screenPos(), ev->scenePos());
-  ev->accept();
-}
-
 Item::Item(const Model& m, const Process::Context& ctx, QGraphicsItem* parent)
     : score::EmptyRectItem{parent}
     , m_model{m}
@@ -193,14 +187,6 @@ void Item::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
 {
   ev->accept();
   m_disp.commit();
-}
-
-void Item::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
-{
-  /*
-  askContextMenu(ev->screenPos(), ev->scenePos());
-  ev->accept();
-  */
 }
 
 void updateSteps(

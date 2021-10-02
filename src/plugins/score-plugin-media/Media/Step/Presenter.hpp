@@ -29,18 +29,11 @@ public:
     putToFront();
     auto& m = static_cast<const Step::Model&>(model);
 
-    connect(view, &View::pressed, this, [&] {
-      m_context.context.focusDispatcher.focus(this);
-    });
-
     connect(view, &View::change, this, [&](std::size_t num, float v) {
       updateSteps(m, m_disp, num, v);
     });
 
     connect(view, &View::released, this, [&] { m_disp.commit(); });
-
-    connect(
-        m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
 
     con(m, &Step::Model::stepsChanged, this, [&] { m_view->update(); });
     con(m, &Step::Model::stepCountChanged, this, [&] { m_view->update(); });

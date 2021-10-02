@@ -358,7 +358,6 @@ void ObjectMenuActions::setupContextMenu(
           QMenu& menu, QPoint, QPointF scenePoint, const LayerContext& ctx) {
         auto& scenario = *safe_cast<const ScenarioPresenter*>(&ctx.presenter);
         auto sel = ctx.context.selectionStack.currentSelection();
-        if (Scenario::selectionHasScenarioElements(sel))
         {
           auto objectMenu = menu.addMenu(tr("Object"));
 
@@ -371,6 +370,9 @@ void ObjectMenuActions::setupContextMenu(
           objectMenu->addAction(m_encapsulate);
           objectMenu->addAction(m_decapsulate);
           objectMenu->addAction(m_duplicate);
+
+          if (!Scenario::selectionHasScenarioElements(sel))
+            objectMenu->setEnabled(false);
         }
 
         auto pasteElements = new QAction{tr("Paste element(s)"), this};

@@ -89,6 +89,8 @@ protected:
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 
+  void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
+
 private:
   qreal m_height{};
   qreal m_width{};

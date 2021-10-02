@@ -145,13 +145,6 @@ void LayerView::recompute(ZoomRatio ratio)
   recompute();
 }
 
-void LayerView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
-{
-  askContextMenu(event->screenPos(), event->scenePos());
-
-  event->accept();
-}
-
 void LayerView::paint_impl(QPainter* painter) const
 {
   if (m_zoom == 0.)

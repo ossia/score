@@ -33,7 +33,6 @@ public:
   void on_finishedDecoding();
 
 private:
-  void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
   void paint_impl(QPainter*) const override;
   void mousePressEvent(QGraphicsSceneMouseEvent*) override;
   void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;

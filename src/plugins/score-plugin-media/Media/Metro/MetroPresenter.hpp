@@ -21,13 +21,6 @@ public:
       , m_view{view}
   {
     putToFront();
-
-    connect(view, &View::pressed, this, [&] {
-      m_context.context.focusDispatcher.focus(this);
-    });
-
-    connect(
-        m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
   }
 
   void setWidth(qreal width, qreal defaultWidth) override

@@ -24,10 +24,6 @@ LayerPresenter::LayerPresenter(
     : Process::LayerPresenter{layer, view, ctx, parent}
     , m_view{view}
 {
-  connect(view, &LayerView::pressed, this, [&]() {
-    m_context.context.focusDispatcher.focus(this);
-  });
-
   con(layer, &ProcessModel::fileChanged, this, [&]() {
     m_view->setData(layer.file());
     updateTempo();
@@ -38,11 +34,6 @@ LayerPresenter::LayerPresenter(
   updateTempo();
   m_view->recompute(m_ratio);
 
-  connect(
-      m_view,
-      &LayerView::askContextMenu,
-      this,
-      &LayerPresenter::contextMenuRequested);
   connect(m_view, &LayerView::dropReceived, this, &LayerPresenter::onDrop);
   con(layer,
       &Sound::ProcessModel::nativeTempoChanged,

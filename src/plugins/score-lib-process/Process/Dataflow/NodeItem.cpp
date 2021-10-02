@@ -596,6 +596,12 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
+void NodeItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
+{
+  qDebug() << this->parentItem();
+  event->accept();
+}
+
 void NodeItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
   if (m_presenter && isInSelectionCorner(event->pos(), boundingRect()))

@@ -23,9 +23,6 @@ Presenter::Presenter(
 
   connect(m_view, &View::dropReceived, this, &Presenter::on_drop);
 
-  connect(m_view, &View::pressed, this, [&]() {
-    m_context.context.focusDispatcher.focus(this);
-  });
   connect(m_view, &View::toggled, this, [&](int lane, int index) {
     auto cur = layer.patterns()[layer.currentPattern()];
     bool b = cur.lanes[lane].pattern[index];
@@ -35,6 +32,7 @@ Presenter::Presenter(
     CommandDispatcher<> disp{m_context.context.commandStack};
     disp.submit<UpdatePattern>(layer, layer.currentPattern(), cur);
   });
+
   connect(m_view, &View::noteChanged, this, [&](int lane, int note) {
     auto cur = layer.patterns()[layer.currentPattern()];
     cur.lanes[lane].note = note;
@@ -42,6 +40,7 @@ Presenter::Presenter(
     auto& disp = m_context.context.dispatcher;
     disp.submit<UpdatePattern>(layer, layer.currentPattern(), cur);
   });
+
   connect(m_view, &View::noteChangeFinished, this, [&] {
     auto& disp = m_context.context.dispatcher;
     disp.commit();

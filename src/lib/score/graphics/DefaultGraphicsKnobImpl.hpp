@@ -155,32 +155,31 @@ struct DefaultGraphicsKnobImpl
   template <typename T>
   static void mouseReleaseEvent(T& self, QGraphicsSceneMouseEvent* event)
   {
-    if (event->button() == Qt::LeftButton)
+    if(self.m_grab)
     {
       score::setCursorPos(event->buttonDownScreenPos(Qt::LeftButton));
       self.unsetCursor();
-      if (self.m_grab)
-      {
-        auto delta = (event->screenPos().y() - event->lastScreenPos().y());
-        double ratio = qApp->keyboardModifiers() & Qt::CTRL ? .2 : 1.;
-        if (std::abs(delta) < 500)
-          currentDelta += ratio * delta;
+      auto delta = (event->screenPos().y() - event->lastScreenPos().y());
+      double ratio = qApp->keyboardModifiers() & Qt::CTRL ? .2 : 1.;
+      if (std::abs(delta) < 500)
+        currentDelta += ratio * delta;
 
-        double v = origValue - currentDelta / currentGeometry.height();
-        double curPos = ossia::clamp(v, 0., 1.);
-        if (curPos != self.m_value)
-        {
-          self.m_value = curPos;
-          self.update();
-        }
-        self.m_grab = false;
+      double v = origValue - currentDelta / currentGeometry.height();
+      double curPos = ossia::clamp(v, 0., 1.);
+      if (curPos != self.m_value)
+      {
+        self.m_value = curPos;
+        self.update();
       }
+      self.m_grab = false;
       self.sliderReleased();
     }
-    else if (event->button() == Qt::RightButton)
+
+    if (event->button() == Qt::RightButton)
     {
       contextMenuEvent(self, event->scenePos());
     }
+
     event->accept();
   }
 

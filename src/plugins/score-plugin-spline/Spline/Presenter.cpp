@@ -39,12 +39,6 @@ Presenter::Presenter(
     context().context.dispatcher.commit();
   });
 
-  connect(m_view, &View::pressed, this, [&] {
-    m_context.context.focusDispatcher.focus(this);
-  });
-  connect(
-      m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
-
   if (auto itv = Scenario::closestParentInterval(layer.parent()))
   {
     auto& dur = itv->duration;

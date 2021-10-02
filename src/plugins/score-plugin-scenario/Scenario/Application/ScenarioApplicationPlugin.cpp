@@ -255,6 +255,8 @@ void ScenarioApplicationPlugin::on_presenterDefocused(
   editionSettings().setDefault();
 
   disconnect(m_contextMenuConnection);
+  disconnect(m_keyPressConnection);
+  disconnect(m_keyReleaseConnection);
 }
 
 void ScenarioApplicationPlugin::on_presenterFocused(
@@ -264,7 +266,9 @@ void ScenarioApplicationPlugin::on_presenterFocused(
   disconnect(m_contextMenuConnection);
   disconnect(m_keyPressConnection);
   disconnect(m_keyReleaseConnection);
-  if (pres)
+  if (!pres)
+    return;
+
   {
     // If a layer is right-clicked,
     // this is called and will create a context menu with slot & process
@@ -279,10 +283,6 @@ void ScenarioApplicationPlugin::on_presenterFocused(
           menu.exec(pos);
           menu.close();
         });
-  }
-  else
-  {
-    return;
   }
 
   auto s_pres = dynamic_cast<ScenarioPresenter*>(pres);

@@ -28,11 +28,14 @@ LayerPresenter::LayerPresenter(
     , m_context{ctx, *this}
     , m_process{model}
 {
-  connect(
-      view,
-      &LayerView::presetDropReceived,
-      this,
-      &LayerPresenter::handlePresetDrop);
+  connect(view, &LayerView::presetDropReceived,
+          this, &LayerPresenter::handlePresetDrop);
+
+  connect(view, &Process::LayerView::pressed,
+          this, &Process::LayerPresenter::requestFocus);
+
+  connect(view, &Process::LayerView::askContextMenu,
+          this, &Process::LayerPresenter::contextMenuRequested);
 }
 
 void LayerPresenter::handlePresetDrop(const QPointF&, const QMimeData& mime)
@@ -50,6 +53,12 @@ void LayerPresenter::handlePresetDrop(const QPointF&, const QMimeData& mime)
     }
   }
 }
+
+void LayerPresenter::requestFocus()
+{
+  m_context.context.focusDispatcher.focus(this);
+}
+
 bool LayerPresenter::focused() const
 {
   return m_focus;

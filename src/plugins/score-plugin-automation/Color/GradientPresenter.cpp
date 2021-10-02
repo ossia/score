@@ -78,12 +78,6 @@ Presenter::Presenter(
     CommandDispatcher<>{context().context.commandStack}.submit<ChangeGradient>(
         layer, new_grad);
   });
-
-  connect(m_view, &View::pressed, this, [&] {
-    m_context.context.focusDispatcher.focus(this);
-  });
-  connect(
-      m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
 }
 
 void Presenter::setWidth(qreal val, qreal defaultWidth)

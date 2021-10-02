@@ -27,12 +27,6 @@ public:
       , m_view{view}
   {
     putToFront();
-    connect(view, &View::pressed, this, [&]() {
-      m_context.context.focusDispatcher.focus(this);
-    });
-
-    connect(
-        m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
 
     m_view->setWidget(
         new Widget_T{static_cast<const Process_T&>(model), ctx, nullptr});

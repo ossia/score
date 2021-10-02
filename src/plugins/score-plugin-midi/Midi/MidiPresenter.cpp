@@ -95,20 +95,17 @@ Presenter::Presenter(
         new AddNote{layer, m_view->noteAtPos(pos)});
   });
 
-  connect(m_view, &View::pressed, this, [&]() {
-    m_context.context.focusDispatcher.focus(this);
+  connect(m_view, &View::pressed, this, [&] {
     for (NoteView* n : m_notes)
       n->setSelected(false);
   });
+
   connect(m_view, &View::dropReceived, this, &Presenter::on_drop);
 
   connect(m_view, &View::deleteRequested, this, [&] {
     CommandDispatcher<>{context().context.commandStack}.submit(
         new RemoveNotes{this->model(), selectedNotes()});
   });
-
-  connect(
-      m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
 
   for (auto& note : model.notes)
   {

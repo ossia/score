@@ -78,9 +78,4 @@ void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
   ev->accept();
 }
 
-void View::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
-{
-  askContextMenu(ev->screenPos(), ev->scenePos());
-  ev->accept();
-}
 }

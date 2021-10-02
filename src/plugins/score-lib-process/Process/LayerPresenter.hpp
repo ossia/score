@@ -78,6 +78,7 @@ public:
 
 protected:
   void handlePresetDrop(const QPointF& pt, const QMimeData& mime);
+  void requestFocus();
 
   Process::LayerContext m_context;
   const Process::ProcessModel& m_process;

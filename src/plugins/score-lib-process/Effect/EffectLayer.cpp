@@ -55,12 +55,6 @@ void EffectLayerView::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
   ev->accept();
 }
 
-void EffectLayerView::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
-{
-  askContextMenu(ev->screenPos(), ev->scenePos());
-  ev->accept();
-}
-
 EffectLayerPresenter::EffectLayerPresenter(
     const ProcessModel& model,
     Process::LayerView* view,
@@ -70,15 +64,8 @@ EffectLayerPresenter::EffectLayerPresenter(
     , m_view{view}
 {
   putToFront();
-  connect(view, &Process::LayerView::pressed, this, [&] {
-    m_context.context.focusDispatcher.focus(this);
-  });
-  connect(
-      m_view,
-      &Process::LayerView::askContextMenu,
-      this,
-      &Process::LayerPresenter::contextMenuRequested);
 }
+
 EffectLayerPresenter::~EffectLayerPresenter() { }
 
 void EffectLayerPresenter::setWidth(qreal val, qreal defaultWidth)

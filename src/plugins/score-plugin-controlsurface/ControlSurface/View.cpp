@@ -41,12 +41,6 @@ void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
   released(ev->pos());
 }
 
-void View::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
-{
-  askContextMenu(ev->screenPos(), ev->scenePos());
-  ev->accept();
-}
-
 void View::dragEnterEvent(QGraphicsSceneDragDropEvent* event) { }
 
 void View::dragLeaveEvent(QGraphicsSceneDragDropEvent* event) { }

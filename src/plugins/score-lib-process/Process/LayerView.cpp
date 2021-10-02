@@ -232,3 +232,9 @@ void Process::LayerView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   released(event->pos());
   event->accept();
 }
+
+void Process::LayerView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
+{
+  askContextMenu(event->screenPos(), event->scenePos());
+  event->accept();
+}

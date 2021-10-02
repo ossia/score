@@ -50,6 +50,7 @@ private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
   const IntervalModel& m_model;
   const Process::Context& m_context;

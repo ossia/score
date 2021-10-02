@@ -295,15 +295,22 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager& ctxm)
 
     auto sel = ctx.context.selectionStack.currentSelection();
 
-    if (!Scenario::selectionHasScenarioElements(sel))
     {
-      menu.addAction(m_recordAutomations);
-      menu.addAction(m_recordMessages);
+      auto record = menu.addMenu(tr("Record"));
+      record->addAction(m_recordAutomations);
+      record->addAction(m_recordMessages);
+      if (Scenario::selectionHasScenarioElements(sel))
+      {
+        record->setEnabled(false);
+      }
+      else
+      {
+        auto data = QVariant::fromValue(
+            Scenario::ScenarioRecordInitData{&pres, scenept});
+        m_recordAutomations->setData(data);
+        m_recordMessages->setData(data);
+      }
 
-      auto data = QVariant::fromValue(
-          Scenario::ScenarioRecordInitData{&pres, scenept});
-      m_recordAutomations->setData(data);
-      m_recordMessages->setData(data);
     }
   });
 }

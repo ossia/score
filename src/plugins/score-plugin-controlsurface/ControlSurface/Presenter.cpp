@@ -35,12 +35,6 @@ Presenter::Presenter(
     : Process::LayerPresenter{layer, view, ctx, parent}
     , m_view{view}
 {
-  connect(view, &View::pressed, this, [&] {
-    m_context.context.focusDispatcher.focus(this);
-  });
-  connect(
-      m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
-
   connect(
       view,
       &View::addressesDropped,

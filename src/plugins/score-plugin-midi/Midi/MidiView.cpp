@@ -245,12 +245,6 @@ void View::paint_impl(QPainter* p) const
   }
 }
 
-void View::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
-{
-  askContextMenu(event->screenPos(), event->scenePos());
-  event->accept();
-}
-
 void View::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {
   if (canEdit())

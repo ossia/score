@@ -33,7 +33,6 @@ private:
   void paint_impl(QPainter*) const override;
   void heightChanged(qreal h) override;
   void widthChanged(qreal w) override;
-  void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
   void mousePressEvent(QGraphicsSceneMouseEvent*) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent*) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent*) override;

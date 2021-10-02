@@ -134,11 +134,6 @@ ScenarioPresenter::ScenarioPresenter(
 
   connect(
       m_view,
-      &ScenarioView::askContextMenu,
-      this,
-      &ScenarioPresenter::contextMenuRequested);
-  connect(
-      m_view,
       &ScenarioView::dragEnter,
       this,
       [=](const QPointF& pos, const QMimeData& mime) {

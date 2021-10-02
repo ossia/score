@@ -229,4 +229,9 @@ void NodalIntervalView::mouseReleaseEvent(QGraphicsSceneMouseEvent* e)
 {
   mouseMoveEvent(e);
 }
+
+void NodalIntervalView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
+{
+  event->accept();
+}
 }

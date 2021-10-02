@@ -43,10 +43,6 @@ public:
         this,
         &CurveProcessPresenter::parentGeometryChanged);
 
-    connect(m_view.impl, &Process::LayerView::pressed, this, [&]() {
-      m_context.context.focusDispatcher.focus(this);
-    });
-
     con(m_curve,
         &Presenter::contextMenuRequested,
         this,
