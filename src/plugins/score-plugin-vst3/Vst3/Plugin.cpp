@@ -219,25 +219,21 @@ void Plugin::stop()
 
   if (view)
   {
-    qDebug() << view->release();
     view = nullptr;
   }
 
   if (controller)
   {
     controller->terminate();
-    qDebug() << controller->release();
     controller = nullptr;
   }
 
   if (processor)
   {
-    qDebug() << processor->release();
     processor = nullptr;
   }
 
   component->terminate();
-  qDebug() << component->release();
   component = nullptr;
 }
 
