@@ -105,7 +105,7 @@ struct DefaultGraphicsKnobImpl
     if (event->button() == Qt::LeftButton)
     {
       self.m_grab = true;
-      self.setCursor(QCursor(Qt::BlankCursor));
+      score::hideCursor(true);
       origValue = self.m_value;
       currentDelta = 0.;
       currentGeometry = qApp->primaryScreen()->availableGeometry();
@@ -158,7 +158,7 @@ struct DefaultGraphicsKnobImpl
     if(self.m_grab)
     {
       score::setCursorPos(event->buttonDownScreenPos(Qt::LeftButton));
-      self.unsetCursor();
+      score::showCursor();
       auto delta = (event->screenPos().y() - event->lastScreenPos().y());
       double ratio = qApp->keyboardModifiers() & Qt::CTRL ? .2 : 1.;
       if (std::abs(delta) < 500)
@@ -171,9 +171,10 @@ struct DefaultGraphicsKnobImpl
         self.m_value = curPos;
         self.update();
       }
-      self.m_grab = false;
-      self.sliderReleased();
     }
+
+    self.m_grab = false;
+    self.sliderReleased();
 
     if (event->button() == Qt::RightButton)
     {

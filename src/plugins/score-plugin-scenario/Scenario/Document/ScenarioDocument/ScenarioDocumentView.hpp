@@ -98,6 +98,7 @@ private:
   void dragMoveEvent(QDragMoveEvent* event) override;
   void dragLeaveEvent(QDragLeaveEvent* event) override;
   void dropEvent(QDropEvent* event) override;
+  void contextMenuEvent(QContextMenuEvent* event) override;
   bool event(QEvent*) override;
 
   void hoverEnterEvent(QHoverEvent* event);

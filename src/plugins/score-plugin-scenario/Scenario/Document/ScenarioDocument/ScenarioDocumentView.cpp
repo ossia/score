@@ -425,6 +425,23 @@ void ProcessGraphicsView::dropEvent(QDropEvent* event)
   }
 }
 
+void ProcessGraphicsView::contextMenuEvent(QContextMenuEvent* event)
+{
+  // We check the cursor in order to prevent some amount of buggy cases of editing
+  // a slider / knob and falling into https://bugreports.qt.io/projects/QTBUG/issues/QTBUG-97044
+  auto cur = QGuiApplication::overrideCursor();
+  if(cur)
+  {
+    if(cur->shape() == Qt::BlankCursor)
+    {
+      event->accept();
+      return;
+    }
+  }
+
+  QGraphicsView::contextMenuEvent(event);
+}
+
 bool ProcessGraphicsView::event(QEvent* event)
 {
   switch (event->type())

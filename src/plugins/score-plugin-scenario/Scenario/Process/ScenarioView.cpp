@@ -167,13 +167,6 @@ void ScenarioView::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
-void ScenarioView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
-{
-  askContextMenu(event->screenPos(), event->scenePos());
-
-  event->accept();
-}
-
 void ScenarioView::keyPressEvent(QKeyEvent* event)
 {
   QGraphicsItem::keyPressEvent(event);

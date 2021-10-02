@@ -114,23 +114,22 @@ struct DefaultGraphicsSliderImpl
   template <typename T>
   static void mouseReleaseEvent(T& self, QGraphicsSceneMouseEvent* event)
   {
-    if (event->button() == Qt::LeftButton)
+    if (self.m_grab)
     {
-      if (self.m_grab)
+      const auto srect = self.sliderRect();
+      const auto posX = event->pos().x() - srect.x();
+      double curPos = ossia::clamp(posX, 0., srect.width()) / srect.width();
+      if (curPos != self.m_value)
       {
-        const auto srect = self.sliderRect();
-        const auto posX = event->pos().x() - srect.x();
-        double curPos = ossia::clamp(posX, 0., srect.width()) / srect.width();
-        if (curPos != self.m_value)
-        {
-          self.m_value = curPos;
-          self.update();
-        }
-        self.m_grab = false;
+        self.m_value = curPos;
+        self.update();
       }
-      self.sliderReleased();
     }
-    else if (event->button() == Qt::RightButton)
+
+    self.m_grab = false;
+    self.sliderReleased();
+
+    if (event->button() == Qt::RightButton)
     {
       contextMenuEvent(self, event->scenePos());
     }
