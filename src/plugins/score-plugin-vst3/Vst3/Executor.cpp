@@ -17,6 +17,28 @@ W_OBJECT_IMPL(vst3::Executor)
 namespace vst3
 {
 
+namespace {
+// This could be a lambda but fails on GCC 8 apparently because
+// it tries to reach QObject::connect through the this-> pointer ?
+template <typename Node_T>
+struct ConnectValueChanged {
+    Executor* self{};
+    std::size_t queue_idx{};
+    Node_T n;
+    QPointer<vst3::ControlInlet> ctrl;
+
+    void operator()() const noexcept
+    {
+        QObject::connect(
+            ctrl,
+            &vst3::ControlInlet::valueChanged,
+            self,
+            [queue_idx=this->queue_idx, n=this->n](float v) {
+              n->set_control(queue_idx, v);
+            });
+      }
+};
+}
 template <typename Node_T>
 void Executor::setupNode(Node_T& node)
 {
@@ -59,17 +81,7 @@ void Executor::setupNode(Node_T& node)
           commands.push_back(
               [n, inlet, ctrl, val = ctrl->value(), num = ctrl->fxNum, self = this] {
                 auto queue_idx = n->add_control(inlet, num, val);
-                self->in_edit([self, queue_idx, n, ctrl] {
-
-                  QObject::connect(
-                      ctrl,
-                      &vst3::ControlInlet::valueChanged,
-                      self,
-                      [queue_idx, n](float v) {
-                        n->set_control(queue_idx, v);
-                      });
-
-                });
+                self->in_edit(ConnectValueChanged<Node_T> {self, queue_idx, n, ctrl});
               });
 
           setup.register_inlet(*ctrl, inlet, n, commands);
