@@ -17,6 +17,7 @@
 #include <score/tools/std/Optional.hpp>
 
 #include <ossia/detail/pod_vector.hpp>
+#include <ossia/detail/ssize.hpp>
 
 #include <wobjectimpl.h>
 
@@ -104,7 +105,7 @@ void PointArraySegment::addPoint(double x, double y)
   // If x < start.x() or x > end.x(), we update start / end
   // The points must keep their apparent position.
   // If y < 0 or y > 1, we rescale everything (and update min / max)
-  int s = m_points.size();
+  int s = std::ssize(m_points);
 
   if (y < min_y)
     min_y = y;
@@ -223,7 +224,7 @@ std::vector<SegmentData> PointArraySegment::toLinearSegments() const
       Metadata<ConcreteKey_k, LinearSegment>::get(),
       QVariant::fromValue(LinearSegmentData{}));
 
-  int size = pts.size();
+  int size = std::ssize(pts);
   for (int i = 1; i < size - 1; i++)
   {
     const int k = i + N0;
@@ -260,7 +261,7 @@ std::vector<SegmentData> PointArraySegment::toPowerSegments() const
       Metadata<ConcreteKey_k, PowerSegment>::get(),
       QVariant::fromValue(PowerSegmentData{}));
 
-  int size = pts.size();
+  int size = std::ssize(pts);
   for (int i = 1; i < size - 1; i++)
   {
     const int k = i + N0;

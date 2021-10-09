@@ -8,6 +8,8 @@
 #include <score/model/Skin.hpp>
 #include <score/widgets/Pixmap.hpp>
 
+#include <ossia/detail/ssize.hpp>
+
 #include <QAbstractItemView>
 #include <QAbstractProxyModel>
 #include <QAction>
@@ -255,7 +257,7 @@ void DeviceExplorerView::rowsInserted(
 void DeviceExplorerView::headerMenuRequested(const QPoint& pos)
 {
   QMenu contextMenu(this);
-  const int n = m_actions.size();
+  const int n = std::ssize(m_actions);
 
   for (int i = 0; i < n; ++i)
   {

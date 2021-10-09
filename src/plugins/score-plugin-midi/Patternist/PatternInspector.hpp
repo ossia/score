@@ -8,6 +8,8 @@
 #include <score/widgets/DoubleSlider.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
+#include <ossia/detail/math.hpp>
+
 #include <QFormLayout>
 #include <QSpinBox>
 
@@ -39,7 +41,7 @@ public:
 
     m_channel.setValue(obj.channel());
 
-    if(obj.currentPattern() >= obj.patterns().size())
+    if(!ossia::valid_index(obj.currentPattern(), obj.patterns()))
       return;
     const Pattern& pat = obj.patterns()[obj.currentPattern()];
     m_lanes.setValue(pat.lanes.size());
@@ -72,7 +74,7 @@ public:
       m_rate.blockSignals(false);
     });
     con(process(), &ProcessModel::patternsChanged, this, [&] {
-      if(obj.currentPattern() >= obj.patterns().size())
+      if(!ossia::valid_index(obj.currentPattern(), obj.patterns()))
         return;
 
       const Pattern& pat = obj.patterns()[obj.currentPattern()];
@@ -97,19 +99,21 @@ public:
       m_dispatcher.commit();
     });
 
-    con(m_lanes, qOverload<int>(&QSpinBox::valueChanged), this, [&] (int n) {
-      if (n <= 0)
+    con(m_lanes, qOverload<int>(&QSpinBox::valueChanged), this, [&] (int nn) {
+      if (nn <= 0)
         return;
 
-      if(obj.currentPattern() >= int64_t(obj.patterns().size()))
+      if(!ossia::valid_index(obj.currentPattern(), obj.patterns()))
         return;
+
+      const std::size_t n = nn;
 
       auto p = obj.patterns()[obj.currentPattern()];
-      if (n == int64_t(p.lanes.size()))
+      if (n == p.lanes.size())
       {
         return;
       }
-      else if (n < int64_t(p.lanes.size()))
+      else if (n < p.lanes.size())
       {
         p.lanes.resize(n);
       }
@@ -149,7 +153,7 @@ public:
         return;
 
       p.length = n;
-      if (p.length > p.lanes[0].pattern.size())
+      if (p.length > int64_t(p.lanes[0].pattern.size()))
       {
         for (auto& lane : p.lanes)
         {

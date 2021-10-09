@@ -10,6 +10,8 @@
 #include <score/graphics/TextItem.hpp>
 #include <score/tools/Bind.hpp>
 
+#include <ossia/detail/ssize.hpp>
+
 #include <QGraphicsScene>
 namespace Process
 {
@@ -89,7 +91,7 @@ void DefaultEffectItem::setupPort(
     T& port,
     const Process::PortFactoryList& portFactory)
 {
-  int i = m_ports.size();
+  int i = std::ssize(m_ports);
 
   auto csetup = Process::controlSetup(
       [](auto& factory, auto& inlet, const auto& doc, auto item, auto parent) {

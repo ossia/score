@@ -16,6 +16,8 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
+#include <ossia/detail/ssize.hpp>
+
 #include <QTimer>
 
 namespace ControlSurface
@@ -47,7 +49,7 @@ Presenter::Presenter(
         MacroCommandDispatcher<AddControlMacro> disp{docctx.commandStack};
         auto ids = getStrongIdRangePtr<Process::Port>(
             lst.size(), m_process.inlets());
-        for (int i = 0; i < lst.size(); i++)
+        for (std::size_t i = 0; i < lst.size(); i++)
         {
           disp.submit(new AddControl{
               docctx, std::move(ids[i]), layer, std::move(lst[i])});
@@ -108,7 +110,7 @@ void Presenter::setupInlet(
     const Process::Context& doc)
 {
   // Main item creation
-  int i = m_ports.size();
+  int i = std::ssize(m_ports);
 
   auto csetup = Process::controlSetup(
       [](auto& factory, auto& inlet, const auto& doc, auto item, auto parent) {

@@ -9,6 +9,7 @@
 #include <Media/RMSData.hpp>
 
 #include <ossia/detail/math.hpp>
+#include <ossia/detail/ssize.hpp>
 
 #include <QCryptographicHash>
 #include <QDir>
@@ -275,7 +276,7 @@ void RMSData::computeLastRMS(
     return;
 /*
   // store the data in interleaved format, it's much easier...
-  const int channels = audio.size();
+  const int channels = std::ssize(audio);
   const int64_t max_frames = audio.front().size();
 
   const int64_t len = sizeof(rms_sample_t) * channels;

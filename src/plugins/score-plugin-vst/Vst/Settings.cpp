@@ -1,5 +1,7 @@
 #include <Vst/Settings.hpp>
 
+#include <ossia/detail/math.hpp>
+
 #include <QFileDialog>
 #include <QFormLayout>
 #include <QGridLayout>
@@ -85,7 +87,7 @@ QWidget* SettingsWidget::make(const score::ApplicationContext& ctx)
         connect(act, &QAction::triggered, this, [=] {
           auto idx = m_VstPaths->currentRow();
 
-          if (idx >= 0 && idx < m_curitems.size())
+          if (ossia::valid_index(idx, m_curitems))
           {
             m_VstPaths->takeItem(idx);
             m_curitems.removeAt(idx);

@@ -6,10 +6,12 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
+#include <ossia/detail/ssize.hpp>
+
 QModelIndex TreeModel::convertPathToIndex(const TreePath& path) const
 {
   QModelIndex iter;
-  const int pathSize = path.size();
+  const int pathSize = std::ssize(path);
 
   for (int i = 0; i < pathSize; ++i)
   {

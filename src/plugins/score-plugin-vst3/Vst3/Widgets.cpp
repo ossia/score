@@ -16,6 +16,8 @@
 #include <score/graphics/GraphicsSliderBaseImpl.hpp>
 #include <score/widgets/Pixmap.hpp>
 
+#include <ossia/detail/ssize.hpp>
+
 #include <QGraphicsScene>
 
 #include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
@@ -161,7 +163,7 @@ void VSTEffectItem::setupInlet(
   if (!fx.fx)
     return;
 
-  int i = controlItems.size();
+  int i = std::ssize(controlItems);
 
   auto csetup = Process::controlSetup(
       [](auto& factory, auto& inlet, const auto& doc, auto item, auto parent) {

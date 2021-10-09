@@ -1,3 +1,5 @@
+#include <Scenario/Document/Interval/LayerData.hpp>
+
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
 #include <Process/Process.hpp>
@@ -5,9 +7,9 @@
 #include <score/graphics/RectItem.hpp>
 #include <score/tools/Debug.hpp>
 
-#include <QPainter>
+#include <ossia/detail/ssize.hpp>
 
-#include <Scenario/Document/Interval/LayerData.hpp>
+#include <QPainter>
 
 namespace Scenario
 {
@@ -204,7 +206,7 @@ void LayerData::updateLoops(
               : std::max((int)1, (int)std::ceil(parent_width / view_width));
     num_views = qBound(1, num_views, 500);
 
-    if ((int)m_layers.size() < num_views)
+    if (std::ssize(m_layers) < num_views)
     {
       int missing = num_views - m_layers.size();
 
@@ -215,12 +217,12 @@ void LayerData::updateLoops(
     }
     else
     {
-      for (int i = int(m_layers.size()) - 1; i >= num_views; i--)
+      for (int i = std::ssize(m_layers) - 1; i >= num_views; i--)
         removeView(i);
     }
 
     // Update sizes for everyone
-    for (int i = 0; i < int(m_layers.size()); i++)
+    for (int i = 0; i < std::ssize(m_layers); i++)
     {
       setupView(
           m_layers[i],
@@ -245,7 +247,7 @@ void LayerData::updateLoops(
     }
     else
     {
-      for (int i = int(m_layers.size()) - 1; i > 0; i--)
+      for (int i = std::ssize(m_layers) - 1; i > 0; i--)
         removeView(i);
     }
 

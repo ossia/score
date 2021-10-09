@@ -12,6 +12,8 @@
 #include <score/widgets/MarginLess.hpp>
 #include <score/tools/File.hpp>
 
+#include <ossia/detail/math.hpp>
+
 #include <QLabel>
 #include <QScrollArea>
 #include <QVBoxLayout>
@@ -194,7 +196,7 @@ ProcessWidget::ProcessWidget(
   connect(preset_sel, &QItemSelectionModel::currentRowChanged, this, [&](const QModelIndex& idx, const QModelIndex&) {
             if(!idx.isValid())
               return;
-            if(idx.row() >= int32_t(m_presetModel->presets.size()) || idx.row() < 0)
+            if(!ossia::valid_index(idx.row(), m_presetModel->presets))
               return;
 
             m_preview.hide();

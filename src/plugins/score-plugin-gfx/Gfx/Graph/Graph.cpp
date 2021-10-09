@@ -8,6 +8,8 @@
 #include <score/gfx/Vulkan.hpp>
 #include <score/tools/Debug.hpp>
 
+#include <ossia/detail/ssize.hpp>
+
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/topological_sort.hpp>
 #include <boost/graph/graphviz.hpp>
@@ -136,7 +138,7 @@ void Graph::createAllRenderLists(GraphicsApi graphicsApi)
     if (auto out = dynamic_cast<OutputNode*>(node))
       m_outputs.push_back(out);
 
-  m_renderers.reserve(std::max((int)16, (int)m_outputs.size()));
+  m_renderers.reserve(ossia::max(16, std::ssize(m_outputs)));
 
   for (auto output : m_outputs)
   {

@@ -13,6 +13,8 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
+#include <ossia/detail/ssize.hpp>
+
 namespace Gfx::Video
 {
 struct Presenter::Port
@@ -75,7 +77,7 @@ void Presenter::setupInlet(
     const Process::Context& doc)
 {
   // Main item creation
-  int i = m_ports.size();
+  int i = std::ssize(m_ports);
 
   auto csetup = Process::controlSetup(
       [](auto& factory, auto& inlet, const auto& doc, auto item, auto parent) {

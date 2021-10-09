@@ -207,7 +207,6 @@ Execution::ProcessComponent* NodalExecutorBase::make(
     {
       // FIXME refactor with IntervalComponentBase to not duplicate
       auto& oproc = child_p;
-      auto& n = child_n;
 
       // Selection
       QObject::connect(

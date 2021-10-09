@@ -377,10 +377,12 @@ struct lv2_node final : public ossia::graph_node
     {
       ossia::midi_port& ossia_port = this->m_outlets[i + first_midi_idx]
                                          ->template cast<ossia::midi_port>();
-      AtomBuffer& lv2_port = m_atom_outs[i];LV2::HostContext& host = this->data.host;
+      AtomBuffer& lv2_port = m_atom_outs[i];
+
+      const LV2::HostContext& host = this->data.host;
       LV2_ATOM_SEQUENCE_FOREACH(&lv2_port.buf->atoms, ev)
       {
-        if(ev->body.type == data.host.midi_event_id)
+        if(ev->body.type == host.midi_event_id)
         {
           libremidi::message msg;
           msg.timestamp = ev->time.frames;
@@ -497,7 +499,7 @@ struct lv2_node final : public ossia::graph_node
         {
           audio_out.samples[i].clear();
           audio_out.samples[i].reserve(samples);
-          for (std::size_t j = 0; j < samples; j++)
+          for (int64_t j = 0; j < samples; j++)
           {
             audio_out.samples[i].push_back((double)out_vec[i][j]);
           }

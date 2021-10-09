@@ -51,6 +51,7 @@
 
 #include <ossia-qt/js_utilities.hpp>
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/ssize.hpp>
 
 #include <QAbstractProxyModel>
 #include <QAction>
@@ -1125,8 +1126,8 @@ void DeviceExplorerWidget::removeNodes()
     {
       // We iterate on the shorter.
       // The shorter is considered "smaller" : it comes before.
-      int l_size = lhs.size();
-      int r_size = rhs.size();
+      int l_size = std::ssize(lhs);
+      int r_size = std::ssize(rhs);
       if (l_size < r_size)
       {
         // lhs shorter

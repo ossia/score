@@ -6,6 +6,7 @@
 #include <score/tools/Debug.hpp>
 
 #include <ossia/network/domain/domain.hpp>
+#include <ossia/detail/ssize.hpp>
 
 #include <QJSValue>
 #include <QObject>
@@ -173,7 +174,7 @@ public:
 
   std::string current() const
   {
-    if (!m_choices.isEmpty() && m_index >= 0 && m_index < m_choices.size())
+    if (!m_choices.isEmpty() && ossia::valid_index(m_index, m_choices))
     {
       return m_choices[m_index].toStdString();
     }
@@ -306,7 +307,7 @@ public:
   void setChannel(int i, QVector<double> v)
   {
     i = std::abs(i);
-    m_audio.resize(std::max(i + 1, (int)m_audio.size()));
+    m_audio.resize(ossia::max(i + 1, std::ssize(m_audio)));
     m_audio[i] = v;
   }
   W_INVOKABLE(setChannel)

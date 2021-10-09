@@ -46,6 +46,9 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
+
+#include <ossia/detail/ssize.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::FullViewIntervalPresenter)
 W_OBJECT_IMPL(Scenario::TimeSignatureHandle)
@@ -478,7 +481,7 @@ void FullViewIntervalPresenter::on_slotRemoved(int pos)
 
 void FullViewIntervalPresenter::updateProcessesShape()
 {
-  for (int i = 0; i < (int)m_slots.size(); i++)
+  for (int i = 0; i < std::ssize(m_slots); i++)
   {
     updateProcessShape(i);
   }
@@ -493,7 +496,7 @@ void FullViewIntervalPresenter::updatePositions()
   // Set the slots position graphically in order.
   qreal currentSlotY = 2.;
 
-  for (int i = 0; i < (int)m_slots.size(); i++)
+  for (int i = 0; i < std::ssize(m_slots); i++)
   {
     m_slots[i].visit(
         [&](LayerSlotPresenter& slot) {
@@ -573,7 +576,7 @@ void FullViewIntervalPresenter::on_rackChanged()
   // Remove existing
   if (!m_slots.empty())
   {
-    for (int i = (int)m_slots.size(); i-- > 0;)
+    for (int i = std::ssize(m_slots); i-- > 0;)
     {
       on_slotRemoved(i);
     }

@@ -1,4 +1,5 @@
 #pragma once
+#include <ossia/detail/ssize.hpp>
 
 /**
  * Used since it seems that
@@ -9,7 +10,7 @@
 template <typename Array, typename F>
 void Foreach(Array&& arr, F fun)
 {
-  const int n = arr.size();
+  const int n = std::ssize(arr);
   for (int i = 0; i < n; ++i)
   {
     fun(arr.at(i));

@@ -10,6 +10,8 @@
 #include <score/tools/Bind.hpp>
 #include <score/widgets/MarginLess.hpp>
 
+#include <ossia/detail/math.hpp>
+
 #include <QLineEdit>
 #include <QSize>
 #include <QtColorWidgets/color_palette.hpp>
@@ -107,7 +109,7 @@ MetadataWidget::MetadataWidget(
             = Process::Style::instance().IntervalDefaultBackground();
         colorChanged(&defaultBrush);
       }
-      else if (idx >= 0 && idx < colors.size())
+      else if (ossia::valid_index(idx, colors))
       {
         auto col_1 = colors.at(idx).second;
         auto col = score::ColorRef::ColorFromString(col_1);

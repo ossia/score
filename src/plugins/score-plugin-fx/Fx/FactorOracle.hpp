@@ -3,6 +3,7 @@
 
 #include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/math.hpp>
+#include <ossia/detail/ssize.hpp>
 
 #include <QDebug>
 
@@ -97,7 +98,7 @@ public:
 
   void add_char(ossia::value c)
   {
-    if (n < (int)m_forwardLink.size() - 1)
+    if (n < std::ssize(m_forwardLink) - 1)
     {
       m_sequence.push_back(std::move(c));
       auto it = ossia::find_if(

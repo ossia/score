@@ -14,6 +14,8 @@
 
 #include <core/presenter/DocumentManager.hpp>
 
+#include <ossia/detail/ssize.hpp>
+
 #include <QFile>
 
 namespace Library
@@ -50,7 +52,7 @@ int PresetItemModel::columnCount(const QModelIndex& parent) const
 
 QVariant PresetItemModel::data(const QModelIndex& index, int role) const
 {
-  if (index.row() < (int32_t)presets.size())
+  if (index.row() < std::ssize(presets))
   {
     switch (role)
     {

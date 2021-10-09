@@ -30,12 +30,17 @@ if(WIN32)
   file(MAKE_DIRECTORY "${SMTG_PLUGIN_TARGET_PATH}")
 endif()
 set(VST3_SDK_ROOT "${3RDPARTY_FOLDER}/vst3")
+set(SMTG_ADD_VST3_HOSTING_SAMPLES 0)
+set(SMTG_ADD_VST3_HOSTING_SAMPLES 0 CACHE INTERNAL "")
 
 # VST3 uses COM APIs which require no virtual dtors in interfaces
 if(NOT MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-non-virtual-dtor")
 endif()
 add_subdirectory("${VST3_SDK_ROOT}" "${CMAKE_BINARY_DIR}/vst3")
+target_compile_options(sdk_common PRIVATE "${OSSIA_DISABLE_WARNINGS_FLAGS}")
+target_compile_options(sdk_hosting PRIVATE "${OSSIA_DISABLE_WARNINGS_FLAGS}")
+
 # Source files
 set(HDRS
   Vst3/ApplicationPlugin.hpp

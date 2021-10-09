@@ -13,6 +13,7 @@
 #include <score/selection/Selectable.hpp>
 
 #include <ossia/detail/math.hpp>
+#include <ossia/detail/ssize.hpp>
 
 #include <QPainter>
 #include <QPen>
@@ -22,6 +23,7 @@
 
 #include <cstddef>
 #include <vector>
+
 W_OBJECT_IMPL(Curve::SegmentView)
 namespace Curve
 {
@@ -190,7 +192,7 @@ void SegmentView::updatePoints()
           first.x() * scalex - startx, (1. - first.y()) * rect_height};
 
       m_unstrokedShape = QPainterPath{first_scaled};
-      int n = pts.size();
+      int n = std::ssize(pts);
       for (int i = 1; i < n; i++)
       {
         auto next = pts[i];

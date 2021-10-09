@@ -7,6 +7,8 @@
 #include <score/application/ApplicationContext.hpp>
 #include <score/tools/File.hpp>
 
+#include <ossia/detail/ssize.hpp>
+
 #include <QDir>
 #include <QDirIterator>
 #include <QFileInfo>
@@ -60,7 +62,7 @@ LocalPackagesModel::LocalPackagesModel(const score::ApplicationContext& ctx)
 QModelIndex
 LocalPackagesModel::index(int row, int column, const QModelIndex& parent) const
 {
-  if (row >= (int)m_vec.size() || row < 0)
+  if (row >= std::ssize(m_vec) || row < 0)
     return {};
 
   if (column >= ColumnCount || column < 0)
@@ -177,7 +179,7 @@ QModelIndex RemotePackagesModel::index(
     int column,
     const QModelIndex& parent) const
 {
-  if (row >= (int)m_vec.size() || row < 0)
+  if (row >= std::ssize(m_vec) || row < 0)
     return {};
 
   if (column >= ColumnCount || column < 0)

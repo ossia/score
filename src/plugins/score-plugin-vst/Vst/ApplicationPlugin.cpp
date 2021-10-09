@@ -262,7 +262,7 @@ void ApplicationPlugin::processIncomingMessage(const QString& txt)
     addVST(obj["Path"].toString(), obj);
     int id = obj["Request"].toInt();
 
-    if (id >= 0 && id < m_processes.size())
+    if (id >= 0 && id < std::ssize(m_processes))
     {
       if (m_processes[id].process)
       {

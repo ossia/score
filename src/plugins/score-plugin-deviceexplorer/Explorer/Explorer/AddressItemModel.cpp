@@ -197,7 +197,7 @@ bool AddressItemModel::setData(
     default:
     {
       int idx = index.row() - Rows::Count;
-      if (idx >= 0 && idx < (int)after.extendedAttributes.size())
+      if (ossia::valid_index(idx, after.extendedAttributes))
       {
         auto it = after.extendedAttributes.begin();
         std::advance(it, idx);
@@ -369,7 +369,7 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
           default:
           {
             int idx = index.row() - Rows::Count;
-            if (idx >= 0 && idx < (int)m_settings.extendedAttributes.size())
+            if (ossia::valid_index(idx, m_settings.extendedAttributes))
             {
               auto it = m_settings.extendedAttributes.begin();
               std::advance(it, idx);
@@ -449,7 +449,7 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
           default:
           {
             int idx = index.row() - Rows::Count;
-            if (idx >= 0 && idx < (int)m_settings.extendedAttributes.size())
+            if (ossia::valid_index(idx, m_settings.extendedAttributes))
             {
               auto it = m_settings.extendedAttributes.begin();
               std::advance(it, idx);
@@ -526,7 +526,7 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
         default:
         {
           int idx = index.row() - Rows::Count;
-          if (idx >= 0 && idx < (int)m_settings.extendedAttributes.size())
+          if (ossia::valid_index(idx, m_settings.extendedAttributes))
           {
             auto it = m_settings.extendedAttributes.begin();
             std::advance(it, idx);
@@ -978,7 +978,8 @@ void AddressItemDelegate::setEditorData(
       if (auto cb = qobject_cast<Explorer::BoundingModeComboBox*>(editor))
       {
         auto cur = index.data(Qt::EditRole).toInt();
-        if (cur >= 0 && cur < Device::ClipModePrettyStringMap().size())
+
+        if (ossia::valid_index(cur, Device::ClipModePrettyStringMap()))
           cb->set((ossia::bounding_mode)cur);
         return;
       }

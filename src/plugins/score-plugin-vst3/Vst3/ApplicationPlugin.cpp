@@ -3,6 +3,7 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/Bind.hpp>
 
+#include <ossia/detail/math.hpp>
 #include <ossia/detail/algorithms.hpp>
 
 #include <QApplication>
@@ -230,7 +231,7 @@ void ApplicationPlugin::processIncomingMessage(const QString& txt)
     addVST(obj["Path"].toString(), obj);
     int id = obj["Request"].toInt();
 
-    if (id >= 0 && id < m_processes.size())
+    if (ossia::valid_index(id, m_processes))
     {
       if (m_processes[id].process)
       {

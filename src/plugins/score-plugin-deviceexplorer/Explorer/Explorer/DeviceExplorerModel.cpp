@@ -38,6 +38,7 @@
 #include <ossia/network/base/node_attributes.hpp>
 #include <ossia/network/common/destination_qualifiers.hpp>
 #include <ossia/network/domain/domain.hpp>
+#include <ossia/detail/ssize.hpp>
 
 #include <QAbstractProxyModel>
 #include <QApplication>
@@ -950,7 +951,7 @@ void DeviceExplorerModel::checkAndLoadDevice(
 
 void DeviceExplorerModel::debug_printPath(const Device::NodePath& path)
 {
-  const int pathSize = path.size();
+  const int pathSize = std::ssize(path);
 
   for (int i = 0; i < pathSize; ++i)
   {

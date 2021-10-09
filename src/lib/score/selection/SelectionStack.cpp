@@ -9,6 +9,7 @@
 #include <score/tools/ForEach.hpp>
 
 #include <ossia/detail/flat_set.hpp>
+#include <ossia/detail/ssize.hpp>
 
 #include <QPointer>
 #include <qnamespace.h>
@@ -175,7 +176,7 @@ Selection SelectionStack::currentSelection() const
 void SelectionStack::prune(IdentifiedObjectAbstract* p)
 {
   {
-    int n = m_unselectable.size();
+    int n = std::ssize(m_unselectable);
     for (int i = 0; i < n; i++)
     {
       Selection& sel = m_unselectable[i];
@@ -201,7 +202,7 @@ void SelectionStack::prune(IdentifiedObjectAbstract* p)
   }
 
   {
-    int n = m_reselectable.size();
+    int n = std::ssize(m_reselectable);
     for (int i = 0; i < n; i++)
     {
       Selection& sel = m_reselectable[i];

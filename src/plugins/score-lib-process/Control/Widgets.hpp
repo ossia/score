@@ -594,7 +594,7 @@ struct EnumBase
 
   ossia::value toValue(int v) const
   {
-    if(v >= 0 && v < values.size())
+    if(ossia::valid_index(v, values))
       return ossia::value{std::string(values[v])};
     else
       return ossia::value{};
@@ -664,7 +664,7 @@ struct Enum final : EnumBase<N>
       case ossia::val_type::INT:
       {
         int t = *v.target<int>();
-        if(t >= 0 && t < this->values.size())
+        if(ossia::valid_index(t, this->values))
         {
           str = this->values[t];
           return true;
@@ -695,7 +695,7 @@ struct Enum final : EnumBase<N>
       case ossia::val_type::INT:
       {
         int t = *v.target<int>();
-        if(t >= 0 && t < this->values.size())
+        if(ossia::valid_index(t, this->values))
         {
           integer_like = t;
           return true;

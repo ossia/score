@@ -44,7 +44,7 @@ public:
 
   QLineF& operator[](int i)
   {
-    if (i >= int(positions.size()))
+    if (i >= std::ssize(positions))
     {
       positions.resize((i + 1) * 1.2);
     }
@@ -95,7 +95,7 @@ public:
 
   QLineF& operator[](int i)
   {
-    if (i >= int(positions.size()))
+    if (i >= std::ssize(positions))
     {
       positions.resize((i + 1) * 1.2);
     }

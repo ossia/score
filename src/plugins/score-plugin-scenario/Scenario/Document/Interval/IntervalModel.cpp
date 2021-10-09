@@ -27,6 +27,9 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/Tempo/TempoProcess.hpp>
+
+#include <ossia/detail/ssize.hpp>
+
 #include <wobjectimpl.h>
 
 #include <map>
@@ -481,7 +484,7 @@ void IntervalModel::putLayerToFront(int slot, std::nullopt_t)
 
 void IntervalModel::addSlot(Slot s, int pos)
 {
-  SCORE_ASSERT((int)m_smallView.size() >= pos);
+  SCORE_ASSERT(std::ssize(m_smallView) >= pos);
   m_smallView.insert(m_smallView.begin() + pos, std::move(s));
   slotAdded({pos, Slot::SmallView});
 
@@ -496,7 +499,7 @@ void IntervalModel::addSlot(Slot s)
 
 void IntervalModel::removeSlot(int pos)
 {
-  if ((int)m_smallView.size() > pos)
+  if (std::ssize(m_smallView) > pos)
   {
     m_smallView.erase(m_smallView.begin() + pos);
     slotRemoved({pos, Slot::SmallView});
@@ -508,7 +511,7 @@ void IntervalModel::removeSlot(int pos)
 
 const Slot* IntervalModel::findSmallViewSlot(int slot) const
 {
-  if (slot < (int)m_smallView.size())
+  if (slot < std::ssize(m_smallView))
     return &m_smallView[slot];
 
   return nullptr;
@@ -526,7 +529,7 @@ Slot& IntervalModel::getSmallViewSlot(int slot)
 
 const FullSlot* IntervalModel::findFullViewSlot(int slot) const
 {
-  if (slot < (int)m_fullView.size())
+  if (slot < std::ssize(m_fullView))
     return &m_fullView[slot];
 
   return nullptr;
@@ -667,7 +670,7 @@ void IntervalModel::swapSlots(int pos1, int pos2, Slot::RackView v)
   if (v == Slot::FullView)
   {
     auto& v = m_fullView;
-    int N = (int)v.size();
+    int N = std::ssize(v);
     if (pos1 < N && pos2 < N)
     {
       if (pos1 < pos2)
@@ -700,7 +703,7 @@ void IntervalModel::swapSlots(int pos1, int pos2, Slot::RackView v)
   else
   {
     auto& v = m_smallView;
-    int N = v.size();
+    int N = std::ssize(v);
     if (pos1 < N && pos2 < N)
     {
       if (pos1 < pos2)
@@ -784,7 +787,7 @@ void IntervalModel::on_removingProcess(const Process::ProcessModel& p)
   if (!(p.flags() & Process::ProcessFlags::TimeIndependent))
   {
     const auto& pid = p.id();
-    for (int i = 0; i < (int)m_smallView.size(); i++)
+    for (int i = 0; i < std::ssize(m_smallView); i++)
     {
       removeLayer(i, pid);
     }

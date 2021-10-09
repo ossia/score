@@ -3,6 +3,7 @@
 
 #include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/math.hpp>
+#include <ossia/detail/ssize.hpp>
 
 #include <random>
 #if !defined(NDEBUG) && !defined(_MSC_VER) && !defined(__clang__)
@@ -302,7 +303,7 @@ public:
     /*!
       \param word a template argument.
     */
-    int len = word.size();
+    int len = std::ssize(word);
     this->states_.resize(2);
     this->states_[0].state_ = 0;
     this->states_[0].lrs_ = 0;

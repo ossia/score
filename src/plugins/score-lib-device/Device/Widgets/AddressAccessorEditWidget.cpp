@@ -237,7 +237,7 @@ public:
   void on_accept()
   {
     auto selected = m_learn.currentRow();
-    if(selected >= 0 && selected < int(m_learn.messages.size()))
+    if(ossia::valid_index(selected, m_learn.messages))
     {
       selectedAddress = &m_learn.messages.container[selected].first;
       accept();

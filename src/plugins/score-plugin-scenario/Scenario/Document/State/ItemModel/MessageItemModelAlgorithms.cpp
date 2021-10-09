@@ -13,6 +13,7 @@
 #include <score/tools/std/Optional.hpp>
 
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/ssize.hpp>
 
 #include <QString>
 #include <QStringList>
@@ -115,7 +116,7 @@ static bool match(Process::MessageNode& node, const State::Message& mess)
   QStringList path = Process::toStringList(mess.address);
   std::reverse(path.begin(), path.end());
   int i = 0;
-  int imax = path.size();
+  int imax = std::ssize(path);
   while (n->parent() && i < imax)
   {
     if (n->name.name == path.at(i))
@@ -182,7 +183,7 @@ static bool nodePruneAction_impl(
     std::vector<Process::ProcessStateData>& vec,
     const std::vector<Process::ProcessStateData>& other_vec)
 {
-  int vec_size = vec.size();
+  int vec_size = std::ssize(vec);
   if (vec_size > 1)
   {
     // We just remove the element

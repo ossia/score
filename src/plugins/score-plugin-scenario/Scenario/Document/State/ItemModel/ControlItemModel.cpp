@@ -6,6 +6,7 @@
 #include <score/document/DocumentContext.hpp>
 
 #include <ossia/network/value/value_traits.hpp>
+#include <ossia/detail/ssize.hpp>
 
 #include <QMimeData>
 
@@ -121,7 +122,7 @@ int ControlItemModel::columnCount(const QModelIndex& parent) const
 
 QVariant ControlItemModel::data(const QModelIndex& index, int role) const
 {
-  if (index.row() < (int32_t)m_msgs.size())
+  if (index.row() < std::ssize(m_msgs))
   {
     switch (role)
     {

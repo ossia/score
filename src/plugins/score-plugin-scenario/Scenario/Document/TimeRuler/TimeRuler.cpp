@@ -9,8 +9,8 @@
 #include <score/model/Skin.hpp>
 
 #include <ossia/detail/config.hpp>
-
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/ssize.hpp>
 
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsView>
@@ -327,7 +327,7 @@ void TimeRuler::computeGraduationSpacing()
   m_intervalsBetweenMark = 5;
 
   int i = 0;
-  const constexpr int n = graduations.size();
+  const constexpr int n = std::ssize(graduations);
   for (i = 0; i < n - 1; i++)
   {
     if (pixPerSec > graduations[i].first

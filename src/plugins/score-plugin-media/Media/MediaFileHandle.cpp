@@ -12,6 +12,7 @@
 #include <core/document/Document.hpp>
 
 #include <ossia/detail/apply.hpp>
+#include <ossia/detail/ssize.hpp>
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
 #include <QRegularExpression>
@@ -250,7 +251,7 @@ struct FrameComputer
   void operator()(const AudioFile::RAMView& r) noexcept
   {
     const int channels = r.data.size();
-    assert((int)sum.size() == channels);
+    assert(std::ssize(sum) == channels);
     if (end_frame - start_frame > 0)
     {
       for (int c = 0; c < channels; c++)
@@ -275,7 +276,7 @@ struct FrameComputer
   {
     auto& wav = r.wav;
     const int channels = wav.channels();
-    assert((int)sum.size() == channels);
+    assert(std::ssize(sum) == channels);
 
     if (end_frame - start_frame > 0)
     {
@@ -342,7 +343,7 @@ struct SingleFrameComputer
   void operator()(const AudioFile::RAMView& r) noexcept
   {
     const int channels = r.data.size();
-    assert((int)sum.size() == channels);
+    assert(std::ssize(sum) == channels);
     for (int c = 0; c < channels; c++)
     {
       const auto& vals = r.data[c];
@@ -354,7 +355,7 @@ struct SingleFrameComputer
   {
     auto& wav = r.wav;
     const int channels = wav.channels();
-    assert((int)sum.size() == channels);
+    assert(std::ssize(sum) == channels);
 
     float* val = (float*)alloca(sizeof(float) * channels);
     if (Q_UNLIKELY(!wav.seek_to_pcm_frame(start_frame)))
@@ -736,7 +737,7 @@ void writeAudioArrayToFile(const QString& path, const ossia::audio_array& arr, i
     return;
   }
 
-  const int channels = arr.size();
+  const int channels = std::ssize(arr);
   const int64_t frames = arr[0].size();
   const int64_t samples = frames * channels;
   const int64_t data_bytes = samples * sizeof(float);

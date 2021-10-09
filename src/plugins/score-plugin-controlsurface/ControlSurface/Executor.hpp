@@ -6,6 +6,7 @@
 
 #include <ossia/dataflow/node_process.hpp>
 #include <ossia/dataflow/safe_nodes/executor.hpp>
+#include <ossia/detail/ssize.hpp>
 
 namespace ossia
 {
@@ -39,7 +40,7 @@ public:
   void run(const token_request&, exec_state_facade) noexcept override
   {
     // TODO take input port data into account.
-    const int n = controls.size();
+    const int n = std::ssize(controls);
     for (int i = 0; i < n; i++)
     {
       auto& ctl = controls[i];

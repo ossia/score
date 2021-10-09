@@ -442,10 +442,10 @@ void PdGraphNode::run(
   {
     libpd_process_raw(m_inbuf.data(), m_outbuf.data());
   }
-  else if (req_samples > m_prev_outbuf[0].size())
+  else if (int64_t prev_out_size = m_prev_outbuf[0].size(); req_samples > prev_out_size)
   {
     int64_t additional_samples
-        = std::max(int64_t(bs), int64_t(req_samples - m_prev_outbuf[0].size()));
+        = std::max(int64_t(bs), req_samples - prev_out_size);
     while (additional_samples > 0)
     {
       std::size_t offset = m_prev_outbuf[0].size();

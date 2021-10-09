@@ -7,6 +7,8 @@
 #include <score/tools/ThreadPool.hpp>
 #include <score/tools/std/Invoke.hpp>
 
+#include <ossia/detail/ssize.hpp>
+
 #include <QGraphicsView>
 #include <QScrollBar>
 
@@ -152,7 +154,7 @@ void LayerView::paint_impl(QPainter* painter) const
   if (!m_data)
     return;
 
-  int channels = m_images.size();
+  int channels = std::ssize(m_images);
   if (channels == 0.)
   {
     if (!m_recomputed)

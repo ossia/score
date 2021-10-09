@@ -48,14 +48,14 @@ class SimpleExpressionEditorWidget final : public QWidget
 public:
   SimpleExpressionEditorWidget(
       const score::DocumentContext&,
-      int index,
+      int64_t index,
       QWidget* parent = nullptr,
       QMenu* menu = nullptr);
 
   State::Expression relation();
   std::optional<State::BinaryOperator> binOperator();
 
-  int id = -1;
+  int64_t id = -1;
 
   void setRelation(const State::Relation& r);
   void setPulse(const State::Pulse& r);

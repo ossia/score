@@ -26,6 +26,8 @@
 #include <ossia/editor/state/message.hpp>
 #include <ossia/editor/state/state.hpp>
 
+#include <ossia/detail/ssize.hpp>
+
 #include <QEventLoop>
 #include <QQmlComponent>
 #include <QQmlContext>
@@ -412,7 +414,7 @@ void js_node::run(
   {
     auto& dat = m_audInlets[inl_i].second->target<ossia::audio_port>()->samples;
 
-    const int dat_size = (int)dat.size();
+    const int dat_size = std::ssize(dat);
     QVector<QVector<double>> audio(dat_size);
     for (int i = 0; i < dat_size; i++)
     {

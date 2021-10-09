@@ -12,8 +12,8 @@
 #include <score/tools/FindStringInFile.hpp>
 #include <score/tools/ListNetworkAddresses.hpp>
 
-
 #include <ossia/detail/flat_map.hpp>
+#include <ossia/detail/math.hpp>
 
 #include <QComboBox>
 #include <QDialogButtonBox>
@@ -602,7 +602,7 @@ public:
   {
     if (!m_currentFixture)
       return;
-    if (mode_index < 0 || mode_index >= int64_t(m_currentFixture->modes.size()))
+    if (!ossia::valid_index(mode_index, m_currentFixture->modes))
       return;
 
     const FixtureMode& mode = m_currentFixture->modes[mode_index];
@@ -621,7 +621,7 @@ public:
       return f;
 
     int mode_index = m_mode.currentIndex();
-    if (mode_index < 0 || mode_index >= int64_t(m_currentFixture->modes.size()))
+    if (!ossia::valid_index(mode_index, m_currentFixture->modes))
       return f;
 
     f.fixtureName = m_currentFixture->name;

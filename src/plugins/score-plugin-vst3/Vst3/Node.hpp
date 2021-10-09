@@ -7,6 +7,8 @@
 #include <ossia/dataflow/port.hpp>
 #include <ossia/detail/logger.hpp>
 #include <ossia/detail/pod_vector.hpp>
+#include <ossia/detail/ssize.hpp>
+#include <ossia/detail/math.hpp>
 #include <ossia/editor/scenario/time_signature.hpp>
 
 #include <public.sdk/source/vst/hosting/eventlist.h>
@@ -44,7 +46,7 @@ public:
       Steinberg::int32& sampleOffset,
       Steinberg::Vst::ParamValue& value) override
   {
-    if (index >= 0 && index < data.size())
+    if (ossia::valid_index(index, data))
       std::tie(sampleOffset, value) = data[index];
     else if (index == -1)
     {
@@ -176,11 +178,11 @@ protected:
     m_vstData.numOutputs = m_audioOutputChannels.size();
     m_vstInput.resize(m_audioInputChannels.size());
     m_vstOutput.resize(m_audioOutputChannels.size());
-    for (int i = 0; i < m_audioInputChannels.size(); i++)
+    for (std::size_t i = 0; i < m_audioInputChannels.size(); i++)
     {
       m_vstInput[i].numChannels = m_audioInputChannels[i];
     }
-    for (int i = 0; i < m_audioOutputChannels.size(); i++)
+    for (std::size_t i = 0; i < m_audioOutputChannels.size(); i++)
     {
       m_vstOutput[i].numChannels = m_audioOutputChannels[i];
     }
@@ -262,7 +264,7 @@ public:
     m_outputEvents.clear();
 
     int k = 0;
-    int audioBusCount = m_audioInputChannels.size();
+    int audioBusCount = std::ssize(m_audioInputChannels);
     for (int i = audioBusCount; i < audioBusCount + m_totalEventIns; i++)
     {
       dispatchMidi(*m_inlets[i]->template target<ossia::midi_port>(), k++);
@@ -485,7 +487,7 @@ public:
     // Put messages into each MIDI in's event queues
     {
       int k = 0;
-      int audioBusCount = m_audioInputChannels.size();
+      int audioBusCount = std::ssize(m_audioInputChannels);
       for (int i = audioBusCount; i < audioBusCount + m_totalEventIns; i++)
       {
         all_notes_off(k++);
@@ -549,7 +551,7 @@ public:
           int channel_k = 0;
           int float_k = 0;
 
-          for (int i = 0; i < m_audioInputChannels.size(); i++)
+          for (std::size_t i = 0; i < m_audioInputChannels.size(); i++)
           {
             const int numChannels = m_audioInputChannels[i];
             auto& port = *m_inlets[i]->template target<ossia::audio_port>();
@@ -580,11 +582,11 @@ public:
 
           int channel_k = 0;
           int float_k = 0;
-          for (int i = 0; i < m_audioOutputChannels.size(); i++)
+          for (std::size_t i = 0; i < m_audioOutputChannels.size(); i++)
           {
             const int numChannels = m_audioOutputChannels[i];
             auto& port = *m_outlets[i]->template target<ossia::audio_port>();
-            auto& op = preparePort(port, numChannels, samples);
+            preparePort(port, numChannels, samples);
 
             Steinberg::Vst::AudioBusBuffers& vst_out = m_vstOutput[i];
             vst_out.channelBuffers32 = output + channel_k;
@@ -610,7 +612,7 @@ public:
       if (m_totalAudioOuts > 0)
       {
         int float_k = 0;
-        for (int i = 0; i < m_audioOutputChannels.size(); i++)
+        for (std::size_t i = 0; i < m_audioOutputChannels.size(); i++)
         {
           const int numChannels = m_audioOutputChannels[i];
           ossia::audio_port& port
@@ -640,7 +642,7 @@ public:
         input = (double**)alloca(sizeof(double*) * m_totalAudioIns);
 
         int channel_k = 0;
-        for (int i = 0; i < m_audioInputChannels.size(); i++)
+        for (std::size_t i = 0; i < m_audioInputChannels.size(); i++)
         {
           const int numChannels = m_audioInputChannels[i];
           auto& port = *m_inlets[i]->template target<ossia::audio_port>();
@@ -661,7 +663,7 @@ public:
       {
         output = (double**)alloca(sizeof(double*) * m_totalAudioOuts);
         int channel_k = 0;
-        for (int i = 0; i < m_audioOutputChannels.size(); i++)
+        for (std::size_t i = 0; i < m_audioOutputChannels.size(); i++)
         {
           const int numChannels = m_audioOutputChannels[i];
           auto& port = *m_outlets[i]->template target<ossia::audio_port>();

@@ -2,6 +2,7 @@
 #include <score/tools/Debug.hpp>
 
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/ssize.hpp>
 
 #include <list>
 #include <vector>
@@ -16,7 +17,7 @@
 template <typename T>
 auto& child_at(const std::list<T>& list, int index)
 {
-  SCORE_ASSERT(index >= 0 && index < (int)list.size());
+  SCORE_ASSERT(index >= 0 && index < std::ssize(list));
   auto it = list.begin();
   std::advance(it, index);
   return *it;
@@ -25,7 +26,7 @@ auto& child_at(const std::list<T>& list, int index)
 template <typename T>
 auto& child_at(std::list<T>& list, int index)
 {
-  SCORE_ASSERT(index >= 0 && index < (int)list.size());
+  SCORE_ASSERT(index >= 0 && index < std::ssize(list));
   auto it = list.begin();
   std::advance(it, index);
   return *it;

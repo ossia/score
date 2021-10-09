@@ -1,4 +1,5 @@
 #include "depthnode.hpp"
+#include <ossia/detail/ssize.hpp>
 
 DepthNode::DepthNode(const QShader& compute)
 {
@@ -317,7 +318,7 @@ struct RenderedDepthNode : score::gfx::NodeRenderer
     auto& model_passes = n.m_descriptor.passes;
     if (!model_passes.empty())
     {
-      int first_pass_sampler_idx = m_samplers.size();
+      int first_pass_sampler_idx = std::ssize(m_samplers);
 
       // First create all the samplers / textures
       initPassSamplers(renderer, cur_pos);

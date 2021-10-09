@@ -8,6 +8,7 @@
 
 #include <ossia-qt/invoke.hpp>
 #include <ossia/detail/logger.hpp>
+#include <ossia/detail/ssize.hpp>
 
 #include <QDockWidget>
 #include <QFileInfo>
@@ -86,7 +87,7 @@ public:
 
   QVariant data(const QModelIndex& index, int role) const override
   {
-    if (index.row() < (int32_t)m_buffer.size())
+    if (index.row() < std::ssize(m_buffer))
     {
       switch (role)
       {

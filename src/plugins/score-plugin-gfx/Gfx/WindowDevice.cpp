@@ -74,7 +74,7 @@ public:
         {
           ossia::qt::run_async(&m_qtContext, [screen=this->m_screen, scr=*val] {
             const auto& cur_screens = qApp->screens();
-            if(scr >= 0 && scr < cur_screens.size())
+            if(ossia::valid_index(scr, cur_screens))
             {
               screen->setScreen(cur_screens[scr]);
             }

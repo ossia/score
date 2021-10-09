@@ -553,9 +553,9 @@ void on_start::operator()()
 
   LV2::Message msg;
   while(proc.try_dequeue(msg)) {
-    for(int k = 0; k < node.m_atom_ins.size(); ++k)
+    for(std::size_t k = 0; k < node.m_atom_ins.size(); ++k)
     {
-      if(node.data.midi_in_ports[k] == msg.index)
+      if(node.data.midi_in_ports[k] == int32_t(msg.index))
       {
         node.m_message_for_atom_ins[k].push_back(std::move(msg));
         break;
@@ -595,7 +595,7 @@ void on_finish::operator()()
     return;
   auto& node = *static_cast<lv2_node_t*>(nn.get());
 
-  for(int k = 0; k < node.data.midi_out_ports.size(); ++k)
+  for(std::size_t k = 0; k < node.data.midi_out_ports.size(); ++k)
   {
     int port_index = node.data.midi_out_ports[k];
     AtomBuffer& buf = node.m_atom_outs[k];

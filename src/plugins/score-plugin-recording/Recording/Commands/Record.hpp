@@ -3,6 +3,8 @@
 
 #include <score/command/AggregateCommand.hpp>
 
+#include <ossia/detail/ssize.hpp>
+
 namespace Recording
 {
 class Record final : public score::AggregateCommand
@@ -11,7 +13,7 @@ class Record final : public score::AggregateCommand
 public:
   void undo(const score::DocumentContext& ctx) const override
   {
-    const int N = m_cmds.size();
+    const int N = std::ssize(m_cmds);
     // Undo 1
     if (N >= 2)
     {

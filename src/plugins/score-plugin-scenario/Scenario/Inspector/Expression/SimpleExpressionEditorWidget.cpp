@@ -73,7 +73,7 @@ public:
 
 SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
     const score::DocumentContext& doc,
-    int index,
+    int64_t index,
     QWidget* parent,
     QMenu* menu)
     : QWidget(parent)

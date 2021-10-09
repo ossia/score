@@ -2,6 +2,7 @@
 #include <Engine/Node/SimpleApi.hpp>
 #undef slots
 #include <frozen/unordered_map.h>
+#include <ossia/detail/ssize.hpp>
 namespace Nodes::MidiUtil
 {
 using Note = Control::Note;
@@ -373,7 +374,7 @@ struct Node
         scale_array arr{{}};
         for (int oct = 0; oct < 10; oct++)
         {
-          for (int i = 0; i < std::min((int)scale.size(), 12); i++)
+          for (int i = 0; i < ossia::min(std::ssize(scale), 12); i++)
           {
             arr[oct * 12 + i] = (scale[i] == '1');
           }

@@ -41,6 +41,9 @@
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+
+#include <ossia/detail/ssize.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::TemporalIntervalPresenter)
 
@@ -249,7 +252,7 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
       &IntervalModel::frontLayerChanged,
       this,
       [=](int pos, OptionalId<Process::ProcessModel> proc) {
-        if (pos >= (int)m_slots.size())
+        if (pos >= std::ssize(m_slots))
           return;
 
         if (proc)
@@ -613,7 +616,7 @@ void TemporalIntervalPresenter::createLayer(
           if (!m_model.smallViewVisible())
             return;
 
-          SCORE_ASSERT(slot_i < int(m_slots.size()));
+          SCORE_ASSERT(slot_i < std::ssize(m_slots));
           auto lay_slt = this->m_slots[slot_i].getLayerSlot();
 
           SCORE_ASSERT(lay_slt);
@@ -647,7 +650,7 @@ void TemporalIntervalPresenter::createLayer(
           if (!m_model.smallViewVisible())
             return;
 
-          SCORE_ASSERT(slot_i < int(m_slots.size()));
+          SCORE_ASSERT(slot_i < std::ssize(m_slots));
           auto slot = this->m_slots[slot_i].getLayerSlot();
 
           if (slot && !slot->layers.empty())
@@ -672,7 +675,7 @@ void TemporalIntervalPresenter::createLayer(
           if (!m_model.smallViewVisible())
             return;
 
-          SCORE_ASSERT(slot_i < int(m_slots.size()));
+          SCORE_ASSERT(slot_i < std::ssize(m_slots));
           auto slot = this->m_slots[slot_i].getLayerSlot();
 
           if (slot && !slot->layers.empty())
@@ -729,7 +732,7 @@ void TemporalIntervalPresenter::createLayer(
     auto frontLayer = slot.frontProcess;
     if (frontLayer && (*frontLayer == proc.id()))
     {
-      if(slot_i < int(m_slots.size()))
+      if(slot_i < std::ssize(m_slots))
       {
         auto slt = m_slots[slot_i].getLayerSlot();
         if (slt)
@@ -790,7 +793,7 @@ void TemporalIntervalPresenter::removeLayer(const Process::ProcessModel& proc)
 
 void TemporalIntervalPresenter::on_slotRemoved(int pos)
 {
-  if (pos < (int)m_slots.size())
+  if (pos < std::ssize(m_slots))
   {
     SlotPresenter& slot = m_slots[pos];
     if (auto lay_slt = slot.getLayerSlot())
@@ -811,7 +814,7 @@ void TemporalIntervalPresenter::updateProcessesShape()
 {
   if (m_model.smallViewVisible())
   {
-    for (int i = 0; i < (int)m_slots.size(); i++)
+    for (int i = 0; i < std::ssize(m_slots); i++)
     {
       if (auto lay_slt = m_slots[i].getLayerSlot())
       {
@@ -835,7 +838,7 @@ void TemporalIntervalPresenter::updatePositions()
   qreal currentSlotY = 1.;
 
   const bool sv = m_model.smallViewVisible();
-  for (int i = 0; i < (int)m_slots.size(); i++)
+  for (int i = 0; i < std::ssize(m_slots); i++)
   {
     SlotPresenter& slot = m_slots[i];
     const Slot& model = m_model.smallView()[i];

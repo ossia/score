@@ -8,6 +8,8 @@
 
 #include <score/tools/File.hpp>
 
+#include <ossia/detail/ssize.hpp>
+
 #include <cmath>
 #include <wobjectimpl.h>
 
@@ -72,7 +74,7 @@ int ProcessModel::channel() const noexcept
 
 void ProcessModel::setCurrentPattern(int n)
 {
-  const int patterns = m_patterns.size();
+  const int patterns = std::ssize(m_patterns);
   if(n >= patterns)
   {
     auto pattern = m_patterns[m_currentPattern];

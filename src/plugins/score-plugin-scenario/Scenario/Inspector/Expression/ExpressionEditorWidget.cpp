@@ -6,6 +6,8 @@
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SetIcons.hpp>
 
+#include <ossia/detail/ssize.hpp>
+
 #include <QDebug>
 #include <QVBoxLayout>
 
@@ -227,7 +229,7 @@ QString ExpressionEditorWidget::currentExpr()
 void ExpressionEditorWidget::addNewTerm()
 {
   auto relationEditor = new SimpleExpressionEditorWidget{
-      m_context, (int)m_relations.size(), this, m_menu};
+      m_context, std::ssize(m_relations), this, m_menu};
   m_relations.push_back(relationEditor);
 
   m_mainLayout->addWidget(relationEditor);
@@ -282,7 +284,7 @@ void ExpressionEditorWidget::removeTerm(int index)
 {
   if (m_relations.size() > 1)
   {
-    const int n = m_relations.size();
+    const int n = std::ssize(m_relations);
     for (int i = index + 1; i < n; i++)
     {
       m_relations.at(i)->decreaseId();

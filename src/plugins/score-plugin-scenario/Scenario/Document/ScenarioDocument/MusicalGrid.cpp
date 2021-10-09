@@ -4,6 +4,9 @@
 
 #include <Scenario/Document/Interval/FullView/TimeSignatureItem.hpp>
 #include <Scenario/Document/Interval/FullView/Timebar.hpp>
+
+#include <ossia/detail/ssize.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::MusicalGrid)
 
@@ -407,9 +410,9 @@ void MusicalGrid::compute(
   /*
   {
     qDebug(" =================== ");
-    for(int i = 0; i < std::min((int)mainPositions.size(), 3); i++)
+    for(int i = 0; i < std::min(std::ssize(mainPositions), 3); i++)
       qDebug() << "Main " << i <<  mainPositions[i];
-    //for(int i = 0; i < std::min((int)subPositions.size(), 8); i++)
+    //for(int i = 0; i < std::min(std::ssize(subPositions), 8); i++)
     //  qDebug() << "Sub" << i <<  subPositions[i];
     for(int i = 0; i < std::min((int)timebars.magneticTimings.size(), 8); i++)
       qDebug() << "Magnetic" << i <<  timebars.magneticTimings[i].toQTime();

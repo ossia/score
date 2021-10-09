@@ -6,6 +6,7 @@
 #include <core/application/ApplicationSettings.hpp>
 
 #include <ossia/dataflow/port.hpp>
+#include <ossia/detail/ssize.hpp>
 
 namespace Gfx
 {
@@ -20,7 +21,7 @@ void gfx_exec_node::run(
 {
   {
     // Copy all the UI controls
-    const int n = controls.size();
+    const int n = std::ssize(controls);
     for (int i = 0; i < n; i++)
     {
       auto& ctl = controls[i];

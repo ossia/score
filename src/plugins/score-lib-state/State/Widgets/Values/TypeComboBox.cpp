@@ -6,6 +6,8 @@
 
 #include <score/widgets/SignalUtils.hpp>
 
+#include <ossia/detail/ssize.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(State::TypeComboBox)
 namespace State
@@ -28,7 +30,7 @@ TypeComboBox::TypeComboBox(QWidget* parent)
     : QComboBox{parent}
 {
   auto& arr = State::convert::ValuePrettyTypesArray();
-  const int n = arr.size();
+  const int n = std::ssize(arr);
   for (int i = 0; i < n - 1; i++)
   {
     auto t = static_cast<ossia::val_type>(i);
