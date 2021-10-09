@@ -70,7 +70,7 @@ public:
       case Qt::Key_Right:
       {
         auto c = textCursor();
-        c.setPosition(ossia::min(toPlainText().size(), c.position() + 1));
+        c.setPosition(ossia::min(int64_t(toPlainText().size()), c.position() + 1));
         setTextCursor(c);
         return;
       }
