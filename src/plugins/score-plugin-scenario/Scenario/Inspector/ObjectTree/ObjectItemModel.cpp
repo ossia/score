@@ -404,15 +404,14 @@ QModelIndex ObjectItemModel::parent(const QModelIndex& child) const
     auto idx = std::distance(tn.events().begin(), it);
     if (idx >= 0)
     {
-      auto& parent_event = Scenario::parentEvent(*st, scenar);
-
       if (ossia::contains(m_root, st))
       {
         return QModelIndex{};
       }
       else
       {
-        return createIndex(idx, 0, (void*)&Scenario::parentEvent(*st, scenar));
+        auto& parent_event = Scenario::parentEvent(*st, scenar);
+        return createIndex(idx, 0, (void*)&parent_event);
       }
     }
     else

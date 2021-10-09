@@ -70,7 +70,7 @@ void GoodOldDisplacementPolicy::computeDisplacement(
       val.newDate = val.oldDate + deltaTime;
     }
 
-  beforeComputingIntervals:
+    // beforeComputingIntervals:
     // Make a list of the intervals that need to be resized
     TimeVal maxNegativeDelta = TimeVal::zero();
     for (const auto& curTimeSyncId : timeSyncsToTranslate)

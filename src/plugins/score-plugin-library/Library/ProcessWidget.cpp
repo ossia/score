@@ -194,7 +194,7 @@ ProcessWidget::ProcessWidget(
   connect(preset_sel, &QItemSelectionModel::currentRowChanged, this, [&](const QModelIndex& idx, const QModelIndex&) {
             if(!idx.isValid())
               return;
-            if(idx.row() >= m_presetModel->presets.size() || idx.row() < 0)
+            if(idx.row() >= int32_t(m_presetModel->presets.size()) || idx.row() < 0)
               return;
 
             m_preview.hide();

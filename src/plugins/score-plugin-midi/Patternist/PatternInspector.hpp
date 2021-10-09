@@ -101,15 +101,15 @@ public:
       if (n <= 0)
         return;
 
-      if(obj.currentPattern() >= obj.patterns().size())
+      if(obj.currentPattern() >= int64_t(obj.patterns().size()))
         return;
 
       auto p = obj.patterns()[obj.currentPattern()];
-      if (n == p.lanes.size())
+      if (n == int64_t(p.lanes.size()))
       {
         return;
       }
-      else if (n < p.lanes.size())
+      else if (n < int64_t(p.lanes.size()))
       {
         p.lanes.resize(n);
       }

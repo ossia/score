@@ -189,26 +189,6 @@ static void ensureSufficientStack()
 static void ensureSufficientStack() { }
 #endif
 
-/// Print supported cpus of the given target.
-static int PrintSupportedCPUs(std::string TargetStr)
-{
-  std::string Error;
-  const llvm::Target* TheTarget
-      = llvm::TargetRegistry::lookupTarget(TargetStr, Error);
-  if (!TheTarget)
-  {
-    llvm::errs() << Error;
-    return 1;
-  }
-
-  // the target machine will handle the mcpu printing
-  llvm::TargetOptions Options;
-  std::unique_ptr<llvm::TargetMachine> TheTargetMachine(
-      TheTarget->createTargetMachine(
-          TargetStr, "", "+cpuhelp", Options, None));
-  return 0;
-}
-
 auto printErrors(TextDiagnosticBuffer& buf)
 {
   std::stringstream ss;

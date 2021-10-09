@@ -31,7 +31,7 @@ void QGraphicsEnum::updateRect()
 
   QFontMetricsF metrics{textFont};
   double maxW = 10.;
-  double maxH = this->array.size() > columns ? 44. : 30;
+  double maxH = this->array.size() > std::size_t(columns) ? 44. : 30;
 
   for(auto& value : this->array)
   {

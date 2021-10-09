@@ -266,7 +266,7 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
 
   // TODO - maybe we should also store the "last dequeued dts" from the
   // decoder side - this way no need to seek if we are in the interval
-  const bool seek_forward = dts >= this->m_last_dequeued_dts;
+  // const bool seek_forward = dts >= this->m_last_dequeued_dts;
 #if LIBAVFORMAT_VERSION_MAJOR >= 59
   const int64_t start = 0;
 #else

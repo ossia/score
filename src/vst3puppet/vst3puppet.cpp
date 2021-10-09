@@ -36,7 +36,6 @@ QString load_vst(const QString& path, int id)
       std::cerr << "Failed to load VST3 " << path.toStdString() <<  err << std::endl;
     }
 
-    const auto& info = module->getFactory().info();
     QJsonObject root;
 
     QJsonArray arr;

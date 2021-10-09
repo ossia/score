@@ -33,7 +33,7 @@ namespace Process
 {
 
 static const constexpr qreal TitleHeight = 20.;
-static const constexpr qreal TitleX0 = 15;
+//static const constexpr qreal TitleX0 = 15;
 static const constexpr qreal TitleY0 = -TitleHeight + 2.;
 static const constexpr qreal FoldX0 = 2;
 static const constexpr qreal FoldY0 = TitleY0 + 1;

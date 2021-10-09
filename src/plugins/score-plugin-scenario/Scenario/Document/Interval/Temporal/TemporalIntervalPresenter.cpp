@@ -729,7 +729,7 @@ void TemporalIntervalPresenter::createLayer(
     auto frontLayer = slot.frontProcess;
     if (frontLayer && (*frontLayer == proc.id()))
     {
-      if(slot_i < m_slots.size())
+      if(slot_i < int(m_slots.size()))
       {
         auto slt = m_slots[slot_i].getLayerSlot();
         if (slt)

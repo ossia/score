@@ -966,7 +966,8 @@ void AddressItemDelegate::setEditorData(
       if (auto cb = qobject_cast<Explorer::AccessModeComboBox*>(editor))
       {
         auto cur = index.data(Qt::EditRole).toInt();
-        if (cur >= 0 && cur < Device::AccessModePrettyText().size())
+        if (const int max = Device::AccessModePrettyText().size();
+            cur >= 0 && cur < max)
           cb->set((ossia::access_mode)cur);
         return;
       }

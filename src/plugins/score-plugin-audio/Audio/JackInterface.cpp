@@ -214,11 +214,11 @@ std::unique_ptr<ossia::audio_engine> JackFactory::make_engine(
   for (auto& name : set.getOutputNames())
     settings.outputs.push_back(name.toStdString());
 
-  while (settings.inputs.size() < set.getDefaultIn())
+  while (int64_t(settings.inputs.size()) < set.getDefaultIn())
   {
     settings.inputs.push_back("in_" + std::to_string(settings.inputs.size()));
   }
-  while (settings.outputs.size() < set.getDefaultOut())
+  while (int64_t(settings.outputs.size()) < set.getDefaultOut())
   {
     settings.outputs.push_back(
         "out_" + std::to_string(settings.outputs.size()));

@@ -58,11 +58,11 @@ struct FixtureMode
 class FixtureData
 {
 public:
-  QString name;
-  QStringList tags;
-  QIcon icon;
+  QString name{};
+  QStringList tags{};
+  QIcon icon{};
 
-  std::vector<FixtureMode> modes;
+  std::vector<FixtureMode> modes{};
 
   void loadModes(const rapidjson::Document& doc)
   {
@@ -421,7 +421,6 @@ public:
           unsigned char* data = f.map(0, f.size());
 
           const char* cbegin = reinterpret_cast<char*>(data);
-          const char* cend = cbegin + f.size();
 
           loadFixture(
               std::string_view(cbegin, f.size()),
@@ -603,7 +602,7 @@ public:
   {
     if (!m_currentFixture)
       return;
-    if (mode_index < 0 || mode_index >= m_currentFixture->modes.size())
+    if (mode_index < 0 || mode_index >= int64_t(m_currentFixture->modes.size()))
       return;
 
     const FixtureMode& mode = m_currentFixture->modes[mode_index];
@@ -622,7 +621,7 @@ public:
       return f;
 
     int mode_index = m_mode.currentIndex();
-    if (mode_index < 0 || mode_index >= m_currentFixture->modes.size())
+    if (mode_index < 0 || mode_index >= int64_t(m_currentFixture->modes.size()))
       return f;
 
     f.fixtureName = m_currentFixture->name;

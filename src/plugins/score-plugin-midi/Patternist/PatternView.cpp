@@ -40,7 +40,7 @@ View::~View() { }
 
 void View::updateLanes()
 {
-  if (m_model.currentPattern() >= m_model.patterns().size())
+  if (m_model.currentPattern() >= int64_t(m_model.patterns().size()))
     return;
   auto& cur_p = m_model.patterns()[m_model.currentPattern()];
   if (cur_p.lanes.size() != m_lanes.size())
@@ -84,7 +84,7 @@ static const constexpr double x0 = 42;
 static const constexpr double y0 = 2;
 void View::paint_impl(QPainter* painter) const
 {
-  if (m_model.currentPattern() > m_model.patterns().size())
+  if (m_model.currentPattern() > int64_t(m_model.patterns().size()))
     return;
 
   auto& style = score::Skin::instance();
