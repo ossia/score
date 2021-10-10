@@ -720,6 +720,8 @@ static void saveVstChunkToDatastream(DataStreamInput& stream, const vst::Model& 
         encoded.assign((const char*)ptr, res);
       }
       stream << encoded;
+
+      // FIXME the memory should be freed at the next effSuspend / effResume call.
     }
     else
     {

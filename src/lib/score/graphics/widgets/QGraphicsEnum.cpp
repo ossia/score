@@ -1,5 +1,6 @@
 #include <score/graphics/widgets/QGraphicsEnum.hpp>
 #include <score/model/Skin.hpp>
+#include <score/tools/Debug.hpp>
 
 #include <ossia/detail/math.hpp>
 #include <ossia/detail/ssize.hpp>
