@@ -306,8 +306,11 @@ public:
 
   void setChannel(int i, QVector<double> v)
   {
-    i = std::abs(i);
-    m_audio.resize(ossia::max(i + 1, std::ssize(m_audio)));
+    if(i < 0)
+      i = 0;
+    if(i + 1 > std::ssize(m_audio))
+      m_audio.resize(i + 1);
+
     m_audio[i] = v;
   }
   W_INVOKABLE(setChannel)

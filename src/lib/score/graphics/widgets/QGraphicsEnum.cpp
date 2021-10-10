@@ -54,9 +54,11 @@ void QGraphicsEnum::setRect(const QRectF& r)
   m_smallRect = r.adjusted(2, 2, -2, -2);
 }
 
-void QGraphicsEnum::setValue(int v)
+void QGraphicsEnum::setValue(int32_t v)
 {
-  m_value = ossia::clamp(v, 0, std::ssize(array) - 1);
+  const int32_t sz = std::ssize(array);
+  SCORE_ASSERT(sz > 0);
+  m_value = ossia::clamp(v, 0, sz - 1);
   update();
 }
 

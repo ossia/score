@@ -48,7 +48,7 @@ public:
 
   void updateRect();
   void setRect(const QRectF& r);
-  void setValue(int v);
+  void setValue(int32_t v);
   int value() const;
   QRectF boundingRect() const override;
 
