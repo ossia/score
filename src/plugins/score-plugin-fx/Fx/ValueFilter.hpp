@@ -2,6 +2,7 @@
 #include <Engine/Node/SimpleApi.hpp>
 
 #include <ossia/network/value/format_value.hpp>
+#include <ossia/detail/logger.hpp>
 
 #include <libossia/3rdparty/dno/DeNoiser.hpp>
 
@@ -74,11 +75,11 @@ struct Node
       }
       catch (std::exception& e)
       {
-        std::cerr << e.what() << std::endl;
+        ossia::logger().error("{}", e.what());
       }
       catch (...)
       {
-        std::cerr << "error" << std::endl;
+        ossia::logger().error("error");
       }
 
       return val;
