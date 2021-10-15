@@ -65,8 +65,7 @@ struct Node
 
         vis(NoiseFilter* parent)
             : nFilt{parent}
-        {
-        }
+        {}
       };
 
       try
@@ -88,35 +87,35 @@ struct Node
     void set_amount(float amt)
     {
       dno_i.set_amount(amt);
-      for (auto f : dno_v)
+      for (auto& f : dno_v)
         f.set_amount(amt);
     }
 
     void set_type(const type& t = OneEuro)
     {
       dno_i.set_type(t);
-      for (auto f : dno_v)
+      for (auto& f : dno_v)
         f.set_type(t);
     }
 
     void set_freq(double freq) // 1e & LP
     {
       dno_i.set_freq(freq);
-      for (auto f : dno_v)
+      for (auto& f : dno_v)
         f.set_freq(freq);
     }
 
     void set_cutoff(double cutoff) // 1e & LP
     {
       dno_i.set_cutoff(cutoff);
-      for (auto f : dno_v)
+      for (auto& f : dno_v)
         f.set_cutoff(cutoff);
     }
 
     void set_beta(double beta) // 1e only
     {
       dno_i.set_1e_beta(beta);
-      for (auto f : dno_v)
+      for (auto& f : dno_v)
         f.set_1e_beta(beta);
     }
   };
