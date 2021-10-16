@@ -3,6 +3,7 @@
 
 #include "score_plugin_audio.hpp"
 
+#include <Audio/ALSAInterface.hpp>
 #include <Audio/ALSAPortAudioInterface.hpp>
 #include <Audio/ASIOPortAudioInterface.hpp>
 #include <Audio/AudioApplicationPlugin.hpp>
@@ -146,6 +147,10 @@ score_plugin_audio::factories(
 //         Audio::MMEFactory
 //#endif
 #if __has_include(<pa_linux_alsa.h>)
+           ,
+           Audio::ALSAPortAudioFactory
+#endif
+#if __has_include(<alsa/asoundlib.h>)
            ,
            Audio::ALSAFactory
 #endif

@@ -9,7 +9,7 @@ class QComboBox;
 namespace Audio
 {
 #if defined(OSSIA_AUDIO_PORTAUDIO) && __has_include(<pa_linux_alsa.h>)
-class ALSAFactory final
+class ALSAPortAudioFactory final
     : public QObject
     , public AudioFactory
 {
@@ -17,8 +17,8 @@ class ALSAFactory final
 public:
   std::vector<PortAudioCard> devices;
 
-  ALSAFactory();
-  ~ALSAFactory() override;
+  ALSAPortAudioFactory();
+  ~ALSAPortAudioFactory() override;
 
   void initialize(
       Audio::Settings::Model& set,

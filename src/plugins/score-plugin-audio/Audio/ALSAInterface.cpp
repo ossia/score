@@ -1,4 +1,4 @@
-#include <Audio/ALSAPortAudioInterface.hpp>
+#include <Audio/ALSAInterface.hpp>
 #include <Audio/Settings/Model.hpp>
 #include <Audio/Settings/View.hpp>
 
@@ -14,18 +14,18 @@
 
 namespace Audio
 {
-#if defined(OSSIA_AUDIO_PORTAUDIO) && __has_include(<pa_linux_alsa.h>)
+#if defined(OSSIA_AUDIO_ALSA)
 
-class ALSAPortAudioWidget : public QWidget
+class ALSAWidget : public QWidget
 {
-  ALSAPortAudioFactory& m_factory;
+  ALSAFactory& m_factory;
   Audio::Settings::Model& m_model;
 
   score::SettingsCommandDispatcher& m_disp;
   QComboBox* card_list{};
   QLabel* informations{};
 
-  void setInfos(const PortAudioCard& dev)
+  void setInfos(const AlsaCard& dev)
   {
     informations->setText(tr("Inputs:\t%1\nOutputs:\t%2\nRate:\t%3")
                               .arg(dev.inputChan)
@@ -33,7 +33,7 @@ class ALSAPortAudioWidget : public QWidget
                               .arg(dev.rate));
   }
 
-  void updateDevice(const PortAudioCard& dev)
+  void updateDevice(const AlsaCard& dev)
   {
     auto& m = m_model;
     if (dev.raw_name != m.getCardOut())
@@ -59,7 +59,7 @@ class ALSAPortAudioWidget : public QWidget
         card_list,
         SignalUtils::QComboBox_currentIndexChanged_int(),
         this,
-        &ALSAPortAudioWidget::on_deviceIndexChanged);
+        &ALSAWidget::on_deviceIndexChanged);
 
     card_list->clear();
     m_factory.rescan();
@@ -93,7 +93,7 @@ class ALSAPortAudioWidget : public QWidget
         card_list,
         SignalUtils::QComboBox_currentIndexChanged_int(),
         this,
-        &ALSAPortAudioWidget::on_deviceIndexChanged);
+        &ALSAWidget::on_deviceIndexChanged);
   }
 
   void on_deviceIndexChanged(int i)
@@ -104,8 +104,8 @@ class ALSAPortAudioWidget : public QWidget
   }
 
 public:
-  ALSAPortAudioWidget(
-      ALSAPortAudioFactory& fact,
+  ALSAWidget(
+      ALSAFactory& fact,
       Audio::Settings::Model& m,
       Audio::Settings::View& v,
       score::SettingsCommandDispatcher& m_disp,
@@ -130,7 +130,7 @@ public:
     {
       QTimer::singleShot(1000, this, [this] { rescanUI(); });
     }
-    connect(rescan, &QPushButton::clicked, this, &ALSAPortAudioWidget::rescanUI);
+    connect(rescan, &QPushButton::clicked, this, &ALSAWidget::rescanUI);
 
     fact.addBufferSizeWidget(*this, m, v);
     fact.addSampleRateWidget(*this, m, v);
@@ -155,7 +155,7 @@ public:
   void setCard(QComboBox* combo, QString val)
   {
     auto dev_it
-        = ossia::find_if(m_factory.devices, [&](const PortAudioCard& d) {
+        = ossia::find_if(m_factory.devices, [&](const AlsaCard& d) {
             return d.raw_name == val;
           });
     if (dev_it != m_factory.devices.end())
@@ -165,29 +165,28 @@ public:
   }
 };
 
-ALSAPortAudioFactory::ALSAPortAudioFactory()
+ALSAFactory::ALSAFactory()
 {
   rescan();
 }
 
-ALSAPortAudioFactory::~ALSAPortAudioFactory() { }
+ALSAFactory::~ALSAFactory() { }
 
-void ALSAPortAudioFactory::initialize(
+void ALSAFactory::initialize(
     Audio::Settings::Model& set,
     const score::ApplicationContext& ctx)
 {
-  auto device = ossia::find_if(devices, [&](const PortAudioCard& dev) {
-    return dev.raw_name == set.getCardOut() && dev.hostapi != paInDevelopment;
+  auto device = ossia::find_if(devices, [&](const AlsaCard& dev) {
+    return dev.raw_name == set.getCardOut();
   });
 
   if (device == devices.end())
   {
-    // FIXME check if pipewire / pulse / jack / ... are running
     for (const QString& default_device :
-         {"default", "sysdefault", "pipewire", "pulse", "jack"})
+        {"default", "sysdefault", "pipewire", "pulse", "jack"})
     {
       auto default_dev
-          = ossia::find_if(devices, [&](const PortAudioCard& dev) {
+          = ossia::find_if(devices, [&](const AlsaCard& dev) {
               return dev.raw_name == default_device;
             });
       if (default_dev != devices.end())
@@ -207,93 +206,11 @@ void ALSAPortAudioFactory::initialize(
   }
 }
 
-void ALSAPortAudioFactory::rescan()
-{
-  devices.clear();
-  PortAudioScope portaudio;
-
-  devices.push_back(
-      PortAudioCard{{}, {}, QObject::tr("No device"), -1, 0, 0, {}});
-  for (int i = 0; i < Pa_GetHostApiCount(); i++)
-  {
-    auto hostapi = Pa_GetHostApiInfo(i);
-    if (hostapi->type == PaHostApiTypeId::paALSA)
-    {
-      for (int card = 0; card < hostapi->deviceCount; card++)
-      {
-        auto dev_idx = Pa_HostApiDeviceIndexToDeviceIndex(i, card);
-        auto dev = Pa_GetDeviceInfo(dev_idx);
-        auto raw_name = QString::fromUtf8(Pa_GetDeviceInfo(dev_idx)->name);
-        auto pretty_name = raw_name;
-        if (dev->maxInputChannels == 0)
-        {
-          pretty_name = tr("(Output) ") + pretty_name;
-        }
-        else if (dev->maxOutputChannels == 0)
-        {
-          pretty_name = tr("(Input) ") + pretty_name;
-        }
-
-        devices.push_back(PortAudioCard{
-            "ALSA",
-            raw_name,
-            pretty_name,
-            dev_idx,
-            dev->maxInputChannels,
-            dev->maxOutputChannels,
-            hostapi->type,
-            dev->defaultSampleRate});
-      }
-    }
-  }
-}
-
-QString ALSAPortAudioFactory::prettyName() const
-{
-  return QObject::tr("ALSA (through PortAudio)");
-}
-
-std::unique_ptr<ossia::audio_engine> ALSAPortAudioFactory::make_engine(
-    const Audio::Settings::Model& set,
-    const score::ApplicationContext& ctx)
-{
-  return std::make_unique<ossia::portaudio_engine>(
-      "ossia score",
-      set.getCardIn().toStdString(),
-      set.getCardOut().toStdString(),
-      set.getDefaultIn(),
-      set.getDefaultOut(),
-      set.getRate(),
-      set.getBufferSize(),
-      paALSA);
-}
-
-QWidget* ALSAPortAudioFactory::make_settings(
-    Audio::Settings::Model& m,
-    Audio::Settings::View& v,
-    score::SettingsCommandDispatcher& m_disp,
-    QWidget* parent)
-{
-  return new ALSAPortAudioWidget{*this, m, v, m_disp, parent};
-}
-
-#endif
-
-}
-
-namespace Audio
-{
-
-#if defined(OSSIA_AUDIO_PULSEAUDIO)
-PulseAudioFactory::PulseAudioFactory() { }
-
-PulseAudioFactory::~PulseAudioFactory() { }
-
-bool PulseAudioFactory::available() const noexcept
+bool ALSAFactory::available() const noexcept
 {
   try
   {
-    ossia::libpulse::instance();
+    ossia::libasound::instance();
     return true;
   }
   catch (...)
@@ -301,18 +218,70 @@ bool PulseAudioFactory::available() const noexcept
     return false;
   }
 }
-
-QString PulseAudioFactory::prettyName() const
+void ALSAFactory::rescan()
 {
-  return QObject::tr("PulseAudio");
+  devices.clear();
+
+  devices.push_back(
+      AlsaCard{ {}, QObject::tr("No device"), 0, 0, {}});
+
+  auto& snd = ossia::libasound::instance();
+
+  void** hints{};
+  auto err = snd.device_name_hint(-1, "pcm", &hints);
+  if (err != 0) {
+    return;
+  }
+
+  auto n = hints;
+  while (*n) {
+    if(auto name = snd_device_name_get_hint(*n, "NAME"); strcmp("null", name))
+    {
+      AlsaCard card;
+      card.raw_name = name;
+      card.pretty_name = name;
+
+      snd_pcm_t* pcm{};
+      if (int err = snd_pcm_open (&pcm, name, SND_PCM_STREAM_PLAYBACK, 0); err >= 0)
+      {
+        snd_pcm_hw_params_t* hw_params{};
+        snd_alloca(&hw_params, snd, pcm_hw_params);
+        snd.pcm_hw_params_any(pcm, hw_params);
+
+        // Get min and max number of channels
+        unsigned int min{}, max{};
+        snd.pcm_hw_params_get_channels_min(hw_params, &min);
+        snd.pcm_hw_params_get_channels_max(hw_params, &max);
+        card.inputChan = 0;
+        card.outputChan = max;
+
+        unsigned int rate{};
+        snd.pcm_hw_params_get_rate(hw_params, &rate, 0);
+        card.rate = rate;
+
+        snd_pcm_close(pcm);
+
+        devices.push_back(card);
+      }
+
+      free(name);
+    }
+    ++n;
+  }
+
+  snd.device_name_free_hint(hints);
 }
 
-std::unique_ptr<ossia::audio_engine> PulseAudioFactory::make_engine(
+QString ALSAFactory::prettyName() const
+{
+  return QObject::tr("ALSA (raw, output only)");
+}
+
+std::unique_ptr<ossia::audio_engine> ALSAFactory::make_engine(
     const Audio::Settings::Model& set,
     const score::ApplicationContext& ctx)
 {
-  return std::make_unique<ossia::pulseaudio_engine>(
-      "ossia score",
+  return std::make_unique<ossia::alsa_engine>(
       set.getCardIn().toStdString(),
       set.getCardOut().toStdString(),
       set.getDefaultIn(),
@@ -321,14 +290,15 @@ std::unique_ptr<ossia::audio_engine> PulseAudioFactory::make_engine(
       set.getBufferSize());
 }
 
-QWidget* PulseAudioFactory::make_settings(
+QWidget* ALSAFactory::make_settings(
     Audio::Settings::Model& m,
     Audio::Settings::View& v,
     score::SettingsCommandDispatcher& m_disp,
     QWidget* parent)
 {
-  return new QWidget;
+  return new ALSAWidget{*this, m, v, m_disp, parent};
 }
+
 #endif
 
 }

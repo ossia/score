@@ -24,7 +24,7 @@ SETTINGS_PARAMETER_IMPL(Driver)
       Audio::AudioFactory::ConcreteKey
   {
     score::uuids::string_generator::compute(
-        "3533ee88-9a8d-486c-b20b-6c966cf4eaa0")
+        "a390218a-a951-4cda-b4ee-c41d2df44236")
   } // ALSA
 #elif defined(__EMSCRIPTEN__)
       Audio::AudioFactory::ConcreteKey
