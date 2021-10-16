@@ -20,8 +20,27 @@ intptr_t vst_host_callback(
   switch (opcode)
   {
     case audioMasterGetTime:
-      result = 0;
+    {
+      static VstTimeInfo time;
+      time.samplePos = 0.;
+      time.sampleRate = 44100.;
+      time.nanoSeconds = 0.;
+      time.ppqPos = 0.;
+      time.tempo = 120.;
+      time.barStartPos = 0.;
+      time.cycleStartPos = 0.;
+      time.cycleEndPos = 0.;
+      time.timeSigNumerator = 4;
+      time.timeSigDenominator = 4;
+      time.smpteOffset = 0;
+      time.smpteFrameRate = 0;
+      time.samplesToNextClock = 512;
+      time.flags = kVstNanosValid | kVstPpqPosValid
+              | kVstTempoValid | kVstBarsValid | kVstTimeSigValid
+              | kVstClockValid;
+      result = reinterpret_cast<intptr_t>(&time);
       break;
+    }
     case audioMasterSizeWindow:
       result = 1;
       break;
