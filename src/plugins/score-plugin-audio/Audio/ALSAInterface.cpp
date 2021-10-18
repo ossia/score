@@ -235,14 +235,14 @@ void ALSAFactory::rescan()
 
   auto n = hints;
   while (*n) {
-    if(auto name = snd_device_name_get_hint(*n, "NAME"); strcmp("null", name))
+    if(auto name = snd.device_name_get_hint(*n, "NAME"); strcmp("null", name))
     {
       AlsaCard card;
       card.raw_name = name;
       card.pretty_name = name;
 
       snd_pcm_t* pcm{};
-      if (int err = snd_pcm_open (&pcm, name, SND_PCM_STREAM_PLAYBACK, 0); err >= 0)
+      if (int err = snd.pcm_open (&pcm, name, SND_PCM_STREAM_PLAYBACK, 0); err >= 0)
       {
         snd_pcm_hw_params_t* hw_params{};
         snd_alloca(&hw_params, snd, pcm_hw_params);
@@ -259,7 +259,7 @@ void ALSAFactory::rescan()
         snd.pcm_hw_params_get_rate(hw_params, &rate, 0);
         card.rate = rate;
 
-        snd_pcm_close(pcm);
+        snd.pcm_close(pcm);
 
         devices.push_back(card);
       }
