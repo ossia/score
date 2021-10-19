@@ -42,6 +42,8 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   });
 
   con(v, &View::BufferSizeChanged, this, [this, &m](auto val) {
+    if(val == 16)
+      DEBUG_BREAK;
     if (val != m.getBufferSize())
     {
       m_disp.submitDeferredCommand<SetModelBufferSize>(m, val);

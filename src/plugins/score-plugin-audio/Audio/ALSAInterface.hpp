@@ -9,20 +9,20 @@ namespace Audio
 {
 #if defined(OSSIA_AUDIO_ALSA)
 
+struct range {
+  int min;
+  int max;
+};
 struct AlsaCard
 {
   QString raw_name;
   QString pretty_name;
 
-  int inputChan{};
-  int outputChan{};
+  range inputRange{};
+  range outputRange{};
 
-  double rate{};
-
-  bool defaultDevice{};
-
-  int in_index{-1};
-  int out_index{-1};
+  std::vector<double> rates{};
+  std::vector<int> buffer_sizes{};
 };
 
 class ALSAFactory final
