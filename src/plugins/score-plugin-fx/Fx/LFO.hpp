@@ -190,10 +190,10 @@ struct Node
           add_val(std::sin(custom_phase + ph));
           break;
         case Triangle:
-          add_val(std::asin(std::sin(custom_phase + ph)));
+          add_val(std::asin(std::sin(custom_phase + ph)) / ossia::half_pi);
           break;
         case Saw:
-          add_val(std::atan(std::tan(custom_phase + ph)));
+          add_val(std::atan(std::tan(custom_phase + ph)) / ossia::half_pi);
           break;
         case Square:
           add_val((std::sin(custom_phase + ph) > 0.f) ? 1.f : -1.f);
