@@ -106,6 +106,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: opensuse/tumbleweed:latest
+      options: --privileged
 
     steps:
       - name: Install git
