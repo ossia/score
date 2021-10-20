@@ -17,9 +17,6 @@ namespace score
 ApplicationComponentsData::ApplicationComponentsData() = default;
 ApplicationComponentsData::~ApplicationComponentsData()
 {
-  for (auto& sub_map : commands)
-    for (auto& pr : sub_map.second)
-      delete pr.second;
   commands.clear();
   /*
    for(auto& elt : settings)
@@ -61,14 +58,10 @@ ApplicationComponentsData::~ApplicationComponentsData()
 Command*
 ApplicationComponents::instantiateUndoCommand(const CommandData& cmd) const
 {
-  auto it = m_data.commands.find(cmd.parentKey);
+  auto it = m_data.commands.find({cmd.parentKey, cmd.commandKey});
   if (it != m_data.commands.end())
   {
-    auto it2 = it->second.find(cmd.commandKey);
-    if (it2 != it->second.end())
-    {
-      return (*it2->second)(cmd.data);
-    }
+    return (*it->second)(cmd.data);
   }
 
 #if defined(SCORE_DEBUG)

@@ -73,7 +73,8 @@ void registerPluginsImpl(
         = dynamic_cast<CommandFactory_QtInterface*>(addon.plugin);
     if (commands_plugin)
     {
-      registrar.registerCommands(commands_plugin->make_commands());
+      auto [key, cmds] = commands_plugin->make_commands();
+      registrar.registerCommands(key, std::move(cmds));
     }
 
     auto factories_plugin

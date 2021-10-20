@@ -12,7 +12,6 @@
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/parameter.hpp>
 #include <ossia/network/base/protocol.hpp>
-#include <ossia/network/common/destination_qualifiers.hpp>
 #include <ossia/network/common/network_logger.hpp>
 
 #include <QMenu>

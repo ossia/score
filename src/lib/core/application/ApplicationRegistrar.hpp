@@ -40,10 +40,10 @@ public:
   void registerAddons(std::vector<score::Addon> vec);
   void registerApplicationPlugin(ApplicationPlugin*);
 
-  void registerCommands(
-      score::hash_map<CommandGroupKey, CommandGeneratorMap>&& cmds);
+  void registerCommands(CommandStore&& cmds);
   void
-  registerCommands(std::pair<CommandGroupKey, CommandGeneratorMap>&& cmds);
+  registerCommands(const CommandGroupKey& k, CommandGeneratorMap&& cmds);
+
   void registerFactories(score::hash_map<
                          score::InterfaceKey,
                          std::unique_ptr<InterfaceListBase>>&& cmds);

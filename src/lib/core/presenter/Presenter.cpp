@@ -195,12 +195,6 @@ void Presenter::setupGUI()
 void Presenter::optimize()
 {
   score::optimize_hash_map(m_components.commands);
-  auto& com = m_components.commands;
-  auto com_end = com.end();
-  for (auto it = com.begin(); it != com_end; ++it)
-  {
-    score::optimize_hash_map(it.value());
-  }
 
   score::optimize_hash_map(m_components.factories);
   for (auto& fact : m_components.factories)

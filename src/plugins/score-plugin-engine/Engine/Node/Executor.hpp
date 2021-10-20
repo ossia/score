@@ -41,10 +41,10 @@ struct setup_Impl0
 
       if (auto node = weak_node.lock())
       {
-        constexpr const auto ctrl = std::get<idx>(Info_T::Metadata::controls);
+        constexpr const auto ctrl = get<idx>(Info_T::Metadata::controls);
         if (auto v = ctrl.fromValue(val))
           ctx.executionQueue.enqueue(control_updater<control_value_type>{
-              std::get<idx>(node->controls), std::move(*v)});
+              get<idx>(node->controls), std::move(*v)});
       }
     }
   };
@@ -65,9 +65,9 @@ struct setup_Impl0
 
       if (auto node = weak_node.lock())
       {
-        constexpr const auto ctrl = std::get<idx>(Info_T::Metadata::controls);
+        constexpr const auto ctrl = get<idx>(Info_T::Metadata::controls);
         ctx.executionQueue.enqueue(control_updater<control_value_type>{
-            std::get<idx>(node->controls), ctrl.fromValue(val)});
+            get<idx>(node->controls), ctrl.fromValue(val)});
       }
     }
   };
@@ -79,7 +79,7 @@ struct setup_Impl0
     using Info = Info_T;
     constexpr int idx = T::value;
 
-    constexpr const auto ctrl = std::get<idx>(Info_T::Metadata::controls);
+    constexpr const auto ctrl = get<idx>(Info_T::Metadata::controls);
     constexpr const auto control_start = info_functions<Info>::control_start;
     using control_type = typename std::
         tuple_element<idx, decltype(Info_T::Metadata::controls)>::type;
@@ -92,7 +92,7 @@ struct setup_Impl0
     if constexpr (control_type::must_validate)
     {
       if (auto res = ctrl.fromValue(element.control(idx)))
-        std::get<idx>(node.controls) = *res;
+        get<idx>(node.controls) = *res;
 
       QObject::connect(
           inlet,
@@ -102,7 +102,7 @@ struct setup_Impl0
     }
     else
     {
-      std::get<idx>(node.controls) = ctrl.fromValue(element.control(idx));
+      get<idx>(node.controls) = ctrl.fromValue(element.control(idx));
 
       QObject::connect(
           inlet,
@@ -123,9 +123,11 @@ struct setup_Impl1
   void operator()(T)
   {
     using namespace ossia::safe_nodes;
-    constexpr const auto ctrl = std::get<T::value>(Info::Metadata::controls);
+    using namespace std;
+    using namespace tuplet;
+    constexpr const auto ctrl = get<T::value>(Info::Metadata::controls);
 
-    element.setControl(T::value, ctrl.toValue(std::get<T::value>(arr)));
+    element.setControl(T::value, ctrl.toValue(get<T::value>(arr)));
   }
 };
 
@@ -139,10 +141,12 @@ struct setup_Impl1_Out
   void operator()(T)
   {
     using namespace ossia::safe_nodes;
+    using namespace std;
+    using namespace tuplet;
     constexpr const auto ctrl
-        = std::get<T::value>(Info::Metadata::control_outs);
+        = get<T::value>(Info::Metadata::control_outs);
 
-    element.setControlOut(T::value, ctrl.toValue(std::get<T::value>(arr)));
+    element.setControlOut(T::value, ctrl.toValue(get<T::value>(arr)));
   }
 };
 

@@ -36,7 +36,6 @@
 
 #include <core/document/Document.hpp>
 
-#include <ossia/network/dataspace/dataspace.hpp>
 #include <ossia/network/value/value.hpp>
 #include <ossia/network/value/value_conversion.hpp>
 
@@ -164,7 +163,7 @@ void AutomationRecorder::stop()
 
   auto make_address = [](State::Address a,
                          uint8_t i,
-                         ossia::unit_t u) -> State::AddressAccessor {
+                         const ossia::unit_t& u) -> State::AddressAccessor {
     return State::AddressAccessor{std::move(a), {i}, u};
   };
 

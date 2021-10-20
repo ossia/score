@@ -34,6 +34,9 @@
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/small_vector.hpp>
 #include <ossia/detail/string_map.hpp>
+#include <ossia/network/dataspace/dataspace.hpp>
+#include <ossia/network/value/value.hpp>
+#include <ossia/network/domain/domain.hpp>
 
 #include <QGraphicsItem>
 #include <QWidget>

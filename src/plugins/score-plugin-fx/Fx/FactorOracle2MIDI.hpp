@@ -355,7 +355,7 @@ struct Node
         = make_uuid("C87B5326-56C2-4489-8E08-AA9E1EF27359");
 
     static const constexpr auto controls
-        = std::make_tuple(Control::IntSlider{"Sequence length", 1, 64, 8});
+        = tuplet::make_tuple(Control::IntSlider{"Sequence length", 1, 64, 8});
     static const constexpr midi_in midi_ins[]{"input_midi"};
     static const constexpr midi_out midi_outs[]{"output_midi"};
     static const constexpr value_in value_ins[]{"regen", "bang"};

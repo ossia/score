@@ -24,7 +24,7 @@ struct Node
 
     static const constexpr midi_in midi_ins[]{"in"};
     static const constexpr midi_out midi_outs[]{"out"};
-    static const constexpr auto controls = std::make_tuple(
+    static const constexpr auto controls = tuplet::make_tuple(
         Control::IntSlider{"Num. Notes", 1, 5, 3},
         Control::make_enum(
             "Chord",

@@ -7,6 +7,7 @@
 #include <score/tools/SafeCast.hpp>
 #include <score/tools/std/HashMap.hpp>
 #include <score/tools/std/IndirectContainer.hpp>
+#include <ossia/detail/hash.hpp>
 
 #include <score_lib_base_export.h>
 
@@ -22,6 +23,24 @@ class Plugin_QtInterface;
 class ApplicationPlugin;
 class GUIApplicationPlugin;
 class PanelDelegate;
+
+using FindCommandKey = std::pair<CommandGroupKey, CommandKey>;
+struct CommandKeyHash
+    : std::hash<std::string>
+{
+  std::size_t operator()(const FindCommandKey& val) const noexcept
+  {
+    std::size_t seed = 0;
+    ossia::hash_combine(seed, val.first.toString());
+    ossia::hash_combine(seed, val.second.toString());
+    return seed;
+  }
+};
+struct CommandStore: score::hash_map<FindCommandKey, CommandFactory, CommandKeyHash>
+{
+public:
+  using hopscotch_map::hopscotch_map;
+};
 
 struct SCORE_LIB_BASE_EXPORT ApplicationComponentsData
 {
@@ -39,7 +58,8 @@ struct SCORE_LIB_BASE_EXPORT ApplicationComponentsData
 
   score::hash_map<score::InterfaceKey, std::unique_ptr<InterfaceListBase>>
       factories;
-  score::hash_map<CommandGroupKey, CommandGeneratorMap> commands;
+
+  CommandStore commands;
   std::vector<std::unique_ptr<PanelDelegate>> panels;
 };
 

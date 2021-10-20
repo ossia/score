@@ -3,6 +3,7 @@
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionFunctions.hpp>
 
+#include <ossia/network/common/destination_qualifiers.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/detail/apply.hpp>
 #include <ossia/editor/expression/expression.hpp>

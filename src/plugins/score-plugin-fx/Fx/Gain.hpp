@@ -18,7 +18,7 @@ struct Node
         = make_uuid("6c158669-0f81-41c9-8cc6-45820dcda867");
 
     static const constexpr auto controls
-        = std::make_tuple(Control::FloatSlider{"Gain", 0., 2., 1.});
+        = tuplet::make_tuple(Control::FloatSlider{"Gain", 0., 2., 1.});
     static const constexpr audio_in audio_ins[]{"in"};
     static const constexpr audio_out audio_outs[]{"out"};
   };

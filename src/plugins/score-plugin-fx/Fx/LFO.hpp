@@ -12,6 +12,7 @@
 #include <random>
 #include <tuple>
 #include <utility>
+#include <tuplet/tuple.hpp>
 /*
 template<typename Node>
 struct Spec
@@ -106,7 +107,7 @@ struct Node
 
     static const constexpr value_out value_outs[]{"out"};
 
-    static const constexpr auto controls = std::make_tuple(
+    static const constexpr auto controls = tuplet::tuple{
         Control::Widgets::LFOFreqKnob(),
         Control::FloatKnob{"Ampl.", 0., 1000., 0.},
         Control::FloatKnob{"Fine", 0., 1., 0.5},
@@ -115,7 +116,7 @@ struct Node
         Control::FloatKnob{"Jitter", 0., 1., 0.},
         Control::FloatKnob{"Phase", -1., 1., 0.},
         Control::Widgets::WaveformChooser(),
-        Control::Widgets::QuantificationChooser());
+        Control::Widgets::QuantificationChooser()};
   };
 
   // Idea: save internal state for rewind... ? -> require Copyable
@@ -166,7 +167,7 @@ struct Node
 
     const auto ph_delta = elapsed * freq * sine_ratio;
 
-    if (const auto it = waveform_map.find(type); it != waveform_map.end())
+    if (const auto it = waveform_map.find_key(type))
     {
       auto ph = s.phase;
       if (jitter > 0)
@@ -183,7 +184,7 @@ struct Node
         const auto [tick_start, d] = st.timings(tk);
         out.write_value(ampl * new_val + offset, tick_start);
       };
-      switch (it->second)
+      switch (*it)
       {
         case Sin:
           add_val(std::sin(custom_phase + ph));
@@ -256,7 +257,7 @@ struct Node
     c2_bg->setRect({270., 0., 60., 130.});
 
     auto freq_item = makeControl(
-        std::get<0>(Metadata::controls),
+        get<0>(Metadata::controls),
         freq,
         parent,
         context,
@@ -265,7 +266,7 @@ struct Node
     freq_item.root.setPos(c0, 0);
 
     auto quant_item = makeControlNoText(
-        std::get<8>(Metadata::controls),
+        get<8>(Metadata::controls),
         quantif,
         parent,
         context,
@@ -275,7 +276,7 @@ struct Node
     quant_item.port.setPos(-10, 2);
 
     auto type_item = makeControlNoText(
-        std::get<7>(Metadata::controls),
+        get<7>(Metadata::controls),
         type,
         parent,
         context,
@@ -289,7 +290,7 @@ struct Node
     type_item.port.setPos(0, 17);
 
     auto ampl_item = makeControl(
-        std::get<1>(Metadata::controls),
+        get<1>(Metadata::controls),
         ampl,
         parent,
         context,
@@ -298,7 +299,7 @@ struct Node
     ampl_item.root.setPos(c1, 0);
 
     auto ampl_fine_item = makeControl(
-        std::get<2>(Metadata::controls),
+        get<2>(Metadata::controls),
         ampl_fine,
         parent,
         context,
@@ -307,7 +308,7 @@ struct Node
     ampl_fine_item.root.setPos(c1 + w, 0);
 
     auto offset_item = makeControl(
-        std::get<3>(Metadata::controls),
+        get<3>(Metadata::controls),
         offset,
         parent,
         context,
@@ -316,7 +317,7 @@ struct Node
     offset_item.root.setPos(c1, h);
 
     auto offset_fine_item = makeControl(
-        std::get<4>(Metadata::controls),
+        get<4>(Metadata::controls),
         offset_fine,
         parent,
         context,
@@ -325,7 +326,7 @@ struct Node
     offset_fine_item.root.setPos(c1 + w, h);
 
     auto jitter_item = makeControl(
-        std::get<5>(Metadata::controls),
+        get<5>(Metadata::controls),
         jitter,
         parent,
         context,
@@ -334,7 +335,7 @@ struct Node
     jitter_item.root.setPos(c2 + w, 0);
 
     auto phase_item = makeControl(
-        std::get<6>(Metadata::controls),
+        get<6>(Metadata::controls),
         phase,
         parent,
         context,

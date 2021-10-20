@@ -37,7 +37,7 @@ static void setMathExpressionTiming(State& self, const ossia::token_request& tk,
 }
 
 static void miniMathItem(
-    const std::tuple<Control::LineEdit>& controls,
+    const tuplet::tuple<Control::LineEdit>& controls,
     Process::LineEdit& edit,
     const Process::ProcessModel& process,
     QGraphicsItem& parent,
@@ -49,13 +49,13 @@ static void miniMathItem(
       = doc.app.interfaces<Process::PortFactoryList>();
 
   auto edit_item = makeControlNoText(
-      std::get<0>(controls), edit, parent, context, doc, portFactory);
+      get<0>(controls), edit, parent, context, doc, portFactory);
   edit_item.control.setTextWidth(100);
   edit_item.control.setPos(15, 0);
 }
 
 static void mathItem(
-    const std::tuple<
+    const tuplet::tuple<
         Control::LineEdit,
         Control::FloatSlider,
         Control::FloatSlider,
@@ -79,7 +79,7 @@ static void mathItem(
   c0_bg->setRect({0., 0., 300., 200.});
 
   auto edit_item = makeControl(
-      std::get<0>(controls), edit, parent, context, doc, portFactory);
+      get<0>(controls), edit, parent, context, doc, portFactory);
   edit_item.control.setTextWidth(280);
   edit_item.root.setPos(c0, 40);
   /*
@@ -90,13 +90,13 @@ static void mathItem(
   */
 
   auto a_item = makeControl(
-      std::get<1>(controls), a, parent, context, doc, portFactory);
+      get<1>(controls), a, parent, context, doc, portFactory);
   a_item.root.setPos(c0, 5);
   auto b_item = makeControl(
-      std::get<2>(controls), b, parent, context, doc, portFactory);
+      get<2>(controls), b, parent, context, doc, portFactory);
   b_item.root.setPos(c0 + 70, 5);
   auto c_item = makeControl(
-      std::get<3>(controls), c, parent, context, doc, portFactory);
+      get<3>(controls), c, parent, context, doc, portFactory);
   c_item.root.setPos(c0 + 140, 5);
 }
 
@@ -122,7 +122,7 @@ struct Node
 
     static const constexpr value_out value_outs[]{"out"};
 
-    static const constexpr auto controls = std::make_tuple(
+    static const constexpr auto controls = tuplet::make_tuple(
         Control::LineEdit("Expression (ExprTK)", "cos(t) + log(pos * 1 / dt)"),
         Control::FloatSlider("Param (a)", 0., 1., 0.5),
         Control::FloatSlider("Param (b)", 0., 1., 0.5),
@@ -206,7 +206,7 @@ struct Node
 
     static const constexpr audio_out audio_outs[]{"out"};
 
-    static const constexpr auto controls = std::make_tuple(
+    static const constexpr auto controls = tuplet::make_tuple(
         Control::LineEdit(
             "Expression (ExprTK)",
             "var phi := 2 * pi * (20 + a * 500) / fs;\n"

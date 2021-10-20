@@ -47,7 +47,7 @@ struct CustomUISetup
   {
     constexpr int i
         = ossia::safe_nodes::info_functions<Info>::control_start + N;
-    constexpr const auto& ctrl = std::get<N>(Info::Metadata::controls);
+    constexpr const auto& ctrl = get<N>(Info::Metadata::controls);
     using port_type = decltype(*ctrl.create_inlet(Id<Process::Port>{}, nullptr));
     return static_cast<port_type&>(*inlets[i]);
   }

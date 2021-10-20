@@ -25,7 +25,7 @@ struct Node
     static const constexpr value_in value_ins[]{value_in{"in", false}};
     static const constexpr value_out value_outs[]{"out"};
 
-    static const constexpr auto controls = std::make_tuple(
+    static const constexpr auto controls = tuplet::make_tuple(
         Control::LineEdit(
             "Expression (ExprTK)",
             "cos(t) + log(pos * (1+abs(x)) / dt)"),
@@ -128,7 +128,7 @@ struct Node
     static const constexpr audio_in audio_ins[]{"in"};
     static const constexpr audio_out audio_outs[]{"out"};
 
-    static const constexpr auto controls = std::make_tuple(
+    static const constexpr auto controls = tuplet::make_tuple(
         Control::LineEdit(
             "Expression (ExprTK)",
             "var n := x[];\n"
@@ -304,7 +304,7 @@ struct Node
     static const constexpr value_in value_ins[]{value_in{"in", false}};
     static const constexpr value_out value_outs[]{"out"};
 
-    static const constexpr auto controls = std::make_tuple(
+    static const constexpr auto controls = tuplet::make_tuple(
         Control::LineEdit("Expression", "x / 127"));
   };
   struct State

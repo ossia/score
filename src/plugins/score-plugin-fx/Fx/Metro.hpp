@@ -24,7 +24,7 @@ struct Node
 
     static const constexpr value_out value_outs[]{"out"};
 
-    static const constexpr auto controls = std::make_tuple(
+    static const constexpr auto controls = tuplet::make_tuple(
         Control::Widgets::MusicalDurationChooser(),
         Control::Widgets::LFOFreqSlider(),
         Control::ChooserToggle{"Quantify", {"Free", "Sync"}, false});

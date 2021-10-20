@@ -193,7 +193,8 @@ void GUIApplicationInterface::registerPlugin(Plugin_QtInterface& p)
   if (auto commands_plugin
       = dynamic_cast<score::CommandFactory_QtInterface*>(plugin))
   {
-    registrar.registerCommands(commands_plugin->make_commands());
+    auto [key, cmds] = commands_plugin->make_commands();
+    registrar.registerCommands(key, std::move(cmds));
   }
 
   ossia::small_vector<score::InterfaceBase*, 8> settings_ifaces;

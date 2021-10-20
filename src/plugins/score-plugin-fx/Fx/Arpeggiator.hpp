@@ -23,7 +23,7 @@ struct Node
 
     static const constexpr midi_in midi_ins[]{"in"};
     static const constexpr midi_out midi_outs[]{"out"};
-    static const constexpr auto controls = std::make_tuple(
+    static const constexpr auto controls = tuplet::make_tuple(
         Control::Widgets::ArpeggioChooser(),
         Control::IntSlider("Octave", 1, 7, 1),
         Control::IntSlider("Quantification", 1, 32, 8));

@@ -13,6 +13,7 @@
 #include <ossia/dataflow/safe_nodes/node.hpp>
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/for_each.hpp>
+#include <ossia/detail/for_each_in_tuple.hpp>
 
 ////////// METADATA ////////////
 namespace Control

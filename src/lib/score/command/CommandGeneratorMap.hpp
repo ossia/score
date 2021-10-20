@@ -4,12 +4,11 @@
 #include <score/tools/Debug.hpp>
 #include <score/tools/std/HashMap.hpp>
 
+#include <ossia/detail/algorithms.hpp>
+
 #include <QByteArray>
 
 #include <score_lib_base_export.h>
-
-#include <memory>
-#include <utility>
 
 namespace score
 {
@@ -43,36 +42,16 @@ class Command;
 /**
  * @brief Base factory for commands
  *
- * Base class for command instantiation. Allows a polymorphic use.
+ * Base typedef for command instantiation. Allows a polymorphic use.
  */
-class SCORE_LIB_BASE_EXPORT CommandFactory
-{
-public:
-  virtual ~CommandFactory();
-  virtual score::Command* operator()(const QByteArray& data) const = 0;
-};
-
-/**
- * @brief Standard implementation of the command factory.
- */
-template <typename T>
-class GenericCommandFactory : public CommandFactory
-{
-public:
-  score::Command* operator()(const QByteArray& data) const override
-  {
-    auto t = new T;
-    t->deserialize(data);
-    return t;
-  }
-};
+using CommandFactory = score::Command* (*)(const QByteArray&);
 
 /**
  * @brief The CommandGeneratorMap struct
  *
  * A map between command names and corresponding factories.
  */
-using CommandGeneratorMap = score::hash_map<CommandKey, CommandFactory*>;
+using CommandGeneratorMap = std::vector<std::pair<CommandKey, CommandFactory>>;
 
 namespace score
 {
@@ -89,10 +68,13 @@ struct FactoryInserter
   template <typename TheCommand>
   void operator()() const
   {
-    SCORE_ASSERT(bool(fact.find(TheCommand::static_key()) == fact.end()));
-    auto res = fact.insert(std::pair<const CommandKey, CommandFactory*>{
-        TheCommand::static_key(), new GenericCommandFactory<TheCommand>});
-    SCORE_ASSERT(res.second);
+    SCORE_ASSERT(bool(ossia::find_if(fact, [] (auto& e) { return e.first == TheCommand::static_key(); }) == fact.end()));
+    constexpr CommandFactory f = [] (const QByteArray& data) -> score::Command* {
+      auto t = new TheCommand;
+      t->deserialize(data);
+      return t;
+    };
+    fact.emplace_back(TheCommand::static_key(), f);
   }
 };
 }

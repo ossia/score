@@ -18,7 +18,7 @@ struct Node
         = make_uuid("a0ad4227-ac3d-448b-a19b-19581ed4e2c6");
     static const constexpr double recommended_height = 65;
 
-    static const constexpr auto controls = std::make_tuple(
+    static const constexpr auto controls = tuplet::make_tuple(
         Control::Widgets::LoopChooser(),
         Control::Widgets::QuantificationChooser(),
         Control::Toggle("Passthrough", true),
@@ -524,7 +524,7 @@ struct Node
     auto c0_bg = new score::BackgroundItem{&parent};
     c0_bg->setRect({0., 0., 340., 60});
     auto mode_item = makeControlNoText(
-        std::get<0>(Metadata::controls),
+        get<0>(Metadata::controls),
         mode,
         parent,
         context,
@@ -536,7 +536,7 @@ struct Node
     mode_item.port.setPos({-8, 10});
 
     auto quant_item = makeControlNoText(
-        std::get<1>(Metadata::controls),
+        get<1>(Metadata::controls),
         quantif,
         parent,
         context,
@@ -547,7 +547,7 @@ struct Node
     quant_item.port.setPos({-3, 4});
 
     auto echo_item = makeControl(
-        std::get<2>(Metadata::controls),
+        get<2>(Metadata::controls),
         echo,
         parent,
         context,

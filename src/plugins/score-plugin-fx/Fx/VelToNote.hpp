@@ -34,7 +34,7 @@ struct Node
 
     static const constexpr value_in value_ins[]{{"in", true}};
     static const constexpr midi_out midi_outs[]{"out"};
-    static const constexpr auto controls = std::make_tuple(
+    static const constexpr auto controls = tuplet::make_tuple(
         Control::ComboBox<float, std::size(Control::Widgets::notes)>(
             "Start quant.",
             2,

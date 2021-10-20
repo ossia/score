@@ -40,16 +40,17 @@ void ApplicationRegistrar::registerApplicationPlugin(ApplicationPlugin* ctrl)
 
 SCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerCommands(
-    score::hash_map<CommandGroupKey, CommandGeneratorMap>&& cmds)
+    CommandStore&& cmds)
 {
   m_components.commands = std::move(cmds);
 }
 
 SCORE_LIB_BASE_EXPORT
-void ApplicationRegistrar::registerCommands(
-    std::pair<CommandGroupKey, CommandGeneratorMap>&& cmds)
+void ApplicationRegistrar::registerCommands(const CommandGroupKey& group_k, CommandGeneratorMap&& cmds)
 {
-  m_components.commands.insert(std::move(cmds));
+  for(auto&& [k, v] : std::move(cmds)) {
+    m_components.commands.emplace(FindCommandKey{group_k, std::move(k)}, v);
+  }
 }
 
 SCORE_LIB_BASE_EXPORT

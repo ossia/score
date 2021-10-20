@@ -24,7 +24,7 @@ struct Node
     static const constexpr midi_in midi_ins[]{"min"};
     static const constexpr midi_out midi_outs[]{"mout"};
 
-    static const constexpr auto controls = std::make_tuple(
+    static const constexpr auto controls = tuplet::make_tuple(
         Control::FloatSlider{"FloatSlider", -10, 20, 5},
         Control::LogFloatSlider{"LogFloatSlider", -10, 20, 5},
         Control::FloatKnob{"FloatKnob", -10, 20, 5},
