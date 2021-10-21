@@ -142,67 +142,94 @@ void Graph::createAllRenderLists(GraphicsApi graphicsApi)
 
   for (auto output : m_outputs)
   {
-    output->updateGraphicsAPI(graphicsApi);
-    if (!output->canRender())
-    {
-      auto onReady = [=] {
-        if(output->canRender())
-        m_renderers.push_back(createRenderList(output, *output->renderState()));
-      };
-      auto onResize = [=] {
-        for (std::shared_ptr<RenderList>& renderer : this->m_renderers)
-        {
-          if (renderer.get() == output->renderer())
-          {
-            auto old_renderer = renderer;
-            auto new_renderer = createRenderList(output, *output->renderState());
-
-            old_renderer->release();
-
-            renderer = new_renderer;
-
-            old_renderer.reset();
-            break;
-          }
-        }
-      };
-
-      auto onUpdate = [this] {
-        switch (this->m_outputs.size())
-        {
-          case 1:
-            if (this->m_vsync_callback)
-              this->m_vsync_callback();
-            break;
-          default:
-            break;
-        }
-      };
-      // TODO only works for one output !!
-      output->createOutput(
-          graphicsApi,
-          onReady,
-          onUpdate,
-          onResize);
-    }
-    else
-    {
-      if (auto rs = output->renderState())
-      {
-        m_renderers.push_back(createRenderList(output, *rs));
-      }
-      // output->window->state.hasSwapChain = true;
-    }
-
+    initializeOutput(output, graphicsApi);
     output->startRendering();
+  }
+}
+
+void Graph::createOutputRenderList(OutputNode& output)
+{
+  if(output.renderState())
+  {
+    if(auto rl = createRenderList(&output, *output.renderState()))
+      m_renderers.push_back(std::move(rl));
+  }
+}
+
+void Graph::recreateOutputRenderList(OutputNode& output)
+{
+  auto it = ossia::find_if(m_renderers, [rend=output.renderer()] (const std::shared_ptr<RenderList>& r) {
+    return r.get() == rend;
+  });
+
+  if(it != m_renderers.end())
+  {
+    std::shared_ptr<RenderList>& renderer = *it;
+    if (renderer.get() == output.renderer())
+    {
+      auto old_renderer = renderer;
+      auto new_renderer = createRenderList(&output, *output.renderState());
+
+      old_renderer->release();
+
+      renderer = new_renderer;
+
+      old_renderer.reset();
+
+      if(!renderer)
+      {
+        output.setRenderer({});
+        it = m_renderers.erase(it);
+      }
+    }
+  }
+}
+
+void Graph::initializeOutput(OutputNode* output, GraphicsApi graphicsApi)
+{
+  output->updateGraphicsAPI(graphicsApi);
+  if (!output->canRender())
+  {
+    auto onReady = [=] {
+      if(output->canRender())
+        createOutputRenderList(*output);
+    };
+
+    auto onResize = [=] {
+      recreateOutputRenderList(*output);
+    };
+
+    auto onUpdate = [this] {
+      switch (this->m_outputs.size())
+      {
+        case 1:
+          if (this->m_vsync_callback)
+            this->m_vsync_callback();
+          break;
+        default:
+          break;
+      }
+    };
+
+    // TODO only works for one output !!
+    output->createOutput(
+        graphicsApi,
+        onReady,
+        onUpdate,
+        onResize);
+  }
+  else
+  {
+    createOutputRenderList(*output);
+    // output->window->state.hasSwapChain = true;
   }
 }
 
 void Graph::relinkGraph()
 {
-  for (auto& rptr : m_renderers)
+  for (auto r_it = m_renderers.begin(); r_it != m_renderers.end(); )
   {
-    auto& r = *rptr;
+    auto& r = **r_it;
     for (auto& node : m_nodes)
       node->addedToGraph = false;
 
@@ -221,17 +248,23 @@ void Graph::relinkGraph()
 
       if (model_nodes.size() > 1)
       {
+        bool invalid_renderlist = false;
         for (auto node : model_nodes)
         {
           score::gfx::NodeRenderer* rn{};
           auto it = node->renderedNodes.find(&r);
-          if(it == node->renderedNodes.end())
+          if (it == node->renderedNodes.end())
           {
-            rn = node->createRenderer(r);
-            SCORE_ASSERT(rn);
-
-            node->renderedNodes.emplace(&r, rn);
-            //rn->init(r);
+            if((rn = node->createRenderer(r)))
+            {
+              node->renderedNodes.emplace(&r, rn);
+              //rn->init(r);
+            }
+            else
+            {
+              invalid_renderlist = true;
+              break;
+            }
           }
           else
           {
@@ -242,6 +275,14 @@ void Graph::relinkGraph()
           }
           SCORE_ASSERT(rn);
           r.renderers.push_back(rn);
+        }
+
+        // If a node couldn't be recreated, we skip the whole thing
+        if(invalid_renderlist)
+        {
+          r.output.setRenderer({});
+          r_it = m_renderers.erase(r_it);
+          break;
         }
 
         for (auto node : r.renderers)
@@ -258,6 +299,20 @@ void Graph::relinkGraph()
       }
     }
     r.output.onRendererChange();
+
+     ++r_it;
+  }
+
+  if(m_outputs.size() > m_renderers.size())
+  {
+    // Try to recreate missing ones
+    for(auto& output : m_outputs)
+    {
+      if(!output->renderer() && output->canRender())
+      {
+        createOutputRenderList(*output);
+      }
+    }
   }
 }
 
@@ -269,16 +324,20 @@ void Graph::setVSyncCallback(std::function<void()> cb)
   m_vsync_callback = cb;
 }
 
-static void createNodeRenderer(score::gfx::Node& node, RenderList& r)
+static bool createNodeRenderer(score::gfx::Node& node, RenderList& r)
 {
-  auto rn = node.createRenderer(r);
-
   // Register the node with the renderer
-  r.renderers.push_back(rn);
+  if (auto rn = node.createRenderer(r))
+  {
+    r.renderers.push_back(rn);
 
-  // Register the rendered nodes with their parents
-  SCORE_ASSERT(node.renderedNodes.find(&r) == node.renderedNodes.end());
-  node.renderedNodes.emplace(&r, rn);
+    // Register the rendered nodes with their parents
+    SCORE_ASSERT(node.renderedNodes.find(&r) == node.renderedNodes.end());
+    node.renderedNodes.emplace(&r, rn);
+    return true;
+  }
+
+  return false;
 }
 
 std::shared_ptr<RenderList>
@@ -302,7 +361,11 @@ Graph::createRenderList(OutputNode* output, RenderState state)
     // We create renderers for each of them
     for (auto node : model_nodes)
     {
-      createNodeRenderer(*node, r);
+      if(!createNodeRenderer(*node, r))
+      {
+        output->setRenderer(nullptr);
+        return {};
+      }
     }
   }
 

@@ -65,6 +65,9 @@ struct SCORE_PLUGIN_GFX_EXPORT Graph
   bool canDoVSync() const noexcept { return m_outputs.size() == 1; }
 
 private:
+  void initializeOutput(OutputNode* output, GraphicsApi graphicsApi);
+  void createOutputRenderList(OutputNode& output);
+  void recreateOutputRenderList(OutputNode& output);
   std::shared_ptr<RenderList> createRenderList(OutputNode*, RenderState state);
 
   std::vector<std::shared_ptr<RenderList>> m_renderers;
