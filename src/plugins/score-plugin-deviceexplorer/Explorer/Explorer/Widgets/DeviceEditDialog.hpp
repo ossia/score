@@ -80,6 +80,7 @@ private:
   QFormLayout* m_layout{};
   QList<Device::DeviceSettings> m_previousSettings;
   QLabel* m_invalidLabel{};
+  QLabel* m_protocolNameLabel{};
 
   QString m_originalName{};
   int m_index{};

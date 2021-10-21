@@ -49,6 +49,15 @@ DeviceEditDialog::DeviceEditDialog(
     , m_protocolWidget{nullptr}
     , m_index{-1}
 {
+  const auto& skin = score::Skin::instance();
+  const QColor textHeaderColor = QColor("#D5D5D5");
+  auto setHeaderTextFormat = [&](QLabel* label) {
+    label->setFont(skin.TitleFont);
+    auto p = label->palette();
+    p.setColor(QPalette::WindowText, textHeaderColor);
+    label->setPalette(p);
+  };
+
   setWindowTitle(tr("Add device"));
   auto gridLayout = new QGridLayout{};
   setLayout(gridLayout);
@@ -67,36 +76,40 @@ DeviceEditDialog::DeviceEditDialog(
   connect(m_buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
   m_protocols = new QTreeWidget{this};
-  m_protocols->setFixedWidth(150);
   m_protocols->header()->hide();
   m_protocols->setSelectionMode(QAbstractItemView::SingleSelection);
-
-  const auto& skin = score::Skin::instance();
+  if(m_mode == Mode::Editing)
   {
-    m_protocolsLabel = new QLabel{tr("Protocols"), this};
-    m_protocolsLabel->setFont(skin.TitleFont);
-    auto p = m_protocolsLabel->palette();
-    p.setColor(QPalette::WindowText, QColor("#D5D5D5"));
-    m_protocolsLabel->setPalette(p);
-    gridLayout->addWidget(m_protocolsLabel, 0, 0, Qt::AlignHCenter);
+    m_protocols->setVisible(false);
   }
+  else
+  {
+    m_protocols->setFixedWidth(150);
 
-  gridLayout->addWidget(m_protocols, 1, 0);
+    {
+      m_protocolsLabel = new QLabel{tr("Protocols"), this};
+      setHeaderTextFormat(m_protocolsLabel);
+      gridLayout->addWidget(m_protocolsLabel, 0, 0, Qt::AlignHCenter);
+    }
+    gridLayout->addWidget(m_protocols, 1, 0);
+  }
 
   m_devices = new QListWidget{this};
   m_devices->setFixedWidth(140);
   gridLayout->addWidget(m_devices, 1, 1);
   {
     m_devicesLabel = new QLabel{tr("Devices"), this};
-    m_devicesLabel->setFont(skin.TitleFont);
-    auto p = m_devicesLabel->palette();
-    p.setColor(QPalette::WindowText, QColor("#D5D5D5"));
-    m_devicesLabel->setPalette(p);
+    setHeaderTextFormat(m_devicesLabel);
     gridLayout->addWidget(m_devicesLabel, 0, 1, Qt::AlignHCenter);
   }
 
+  {
+    m_protocolNameLabel = new QLabel{tr("Settings"), this};
+    setHeaderTextFormat(m_protocolNameLabel);
+    gridLayout->addWidget(m_protocolNameLabel, 0, 2, -1, -1, Qt::AlignLeft | Qt::AlignTop);
+  }
   m_main = new QWidget{this};
-  gridLayout->addWidget(m_main, 0, 2, -1, -1);
+  gridLayout->addWidget(m_main, 1, 2, -1, -1);
   m_layout = new QFormLayout;
   m_layout->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
   m_main->setLayout(m_layout);
@@ -271,7 +284,9 @@ void DeviceEditDialog::selectedProtocolChanged()
     m_devices->setVisible(false);
     m_devicesLabel->setVisible(false);
   }
+  m_protocolNameLabel->setText(tr("Settings (%1)").arg(protocol->prettyName()));
   m_protocolWidget = protocol->makeSettingsWidget();
+
 
   if (m_protocolWidget)
   {
