@@ -49,10 +49,6 @@ SpeedWidget::SpeedWidget(
       pb->setMaximumWidth(45);
       pb->setFlat(true);
       pb->setContentsMargins(0, 0, 0, 0);
-      pb->setStyleSheet(
-          "QPushButton { margin: 0px; padding: 0px; border:  1px solid #252930; "
-          + score::ValueStylesheet + "}"
-          + "QPushButton:hover { border: 1px solid #aaa;} ");
 
       connect(pb, &QPushButton::clicked, this, [=] { setSpeedFun(factor); });
       lay->addWidget(pb, 1, btn_col++, 1, 1);

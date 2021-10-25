@@ -470,20 +470,17 @@ QComboBox::drop-down {
   )_";
 
   m_ds = new QComboBox;
-  m_ds->setStyleSheet(combo_style);
   m_ds->setModel(&m);
   // m_ds->setMinimumWidth(75);
   // m_ds->setMaximumWidth(75);
   lay->addWidget(m_ds);
 
   m_unit = new QComboBox;
-  m_unit->setStyleSheet(combo_style);
   // m_unit->setMinimumWidth(75);
   // m_unit->setMaximumWidth(75);
   lay->addWidget(m_unit);
 
   m_ac = new QComboBox;
-  m_ac->setStyleSheet(combo_style);
   m_ac->setMinimumWidth(45);
   m_ac->setMaximumWidth(45);
   lay->addWidget(m_ac);

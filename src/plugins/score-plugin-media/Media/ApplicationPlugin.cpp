@@ -117,7 +117,7 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
 }
 #endif
 #if defined(HAS_VST2)
-, m_wsServer("vst-notification-server", QWebSocketServer::NonSecureMode)
+, m_wsServer("vst25-notification-server", QWebSocketServer::NonSecureMode)
 #endif
 {
 
@@ -127,7 +127,7 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
   qRegisterMetaType<std::vector<vst_info>>();
   qRegisterMetaTypeStreamOperators<std::vector<vst_info>>();
 
-  m_wsServer.listen({}, 37587);
+  m_wsServer.listen({}, 55646);
   con(m_wsServer, &QWebSocketServer::newConnection,
       this, [this] {
     QWebSocket* ws = m_wsServer.nextPendingConnection();
@@ -321,7 +321,7 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
     auto proc = std::make_unique<QProcess>();
     proc->setProgram(
             #if defined(__APPLE__)
-                    qApp->applicationDirPath() + "/ossia-score-vstpuppet"
+                    qApp->applicationDirPath() + "/ossia-score-vstpuppet.app"
             #else
                     "ossia-score-vstpuppet"
             #endif

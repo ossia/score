@@ -76,7 +76,7 @@ void setQApplicationMetadata()
 {
   QCoreApplication::setOrganizationName("OSSIA");
   QCoreApplication::setOrganizationDomain("ossia.io");
-  QCoreApplication::setApplicationName("score");
+  QCoreApplication::setApplicationName("score252");
   if (QString(SCORE_VERSION_EXTRA).isEmpty())
   {
     QCoreApplication::setApplicationVersion(QString("%1.%2.%3")

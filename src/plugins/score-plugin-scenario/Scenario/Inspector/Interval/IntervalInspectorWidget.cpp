@@ -58,7 +58,6 @@ IntervalInspectorWidget::IntervalInspectorWidget(
   fullview->setToolTip(tr("FullView"));
   fullview->setStatusTip(tr("FullView"));
 
- // fullview->setStyleSheet(score::ValueStylesheet);
   connect(fullview, &QPushButton::clicked, this, [this] {
     auto base = get<ScenarioDocumentPresenter>(*documentFromObject(m_model));
 

@@ -1,7 +1,7 @@
 #include "VSTLoader.hpp"
 #if defined(HAS_VST2)
 #include <stdexcept>
-
+#include <iostream>
 #if defined(_WIN32)
 #include <windows.h>
 #elif defined(__APPLE__)
@@ -37,6 +37,7 @@ struct AppleLoader
 {
   static void* load(const char* name)
   {
+    std::cerr << "VST: trying to load" << std::string(name) << std::endl;
     CFStringRef fileNameString
         = CFStringCreateWithCString(nullptr, name, kCFStringEncodingUTF8);
     if (fileNameString == 0)
@@ -50,6 +51,8 @@ struct AppleLoader
     CFRelease(url);
     if (module && CFBundleLoadExecutable((CFBundleRef)module) == false)
       throw std::runtime_error("Couldn't load plug-in" + std::string(name));
+
+    std::cerr << "VST: CFBundleLoadExecutable " << std::string(name) << std::endl;
     return module;
   }
 
@@ -61,11 +64,15 @@ struct AppleLoader
 
   static PluginEntryProc getMain(void* module)
   {
+    std::cerr << "VST: CFBundleLoadExecutable VSTPluginMain " << std::endl;
     auto mainProc = (PluginEntryProc)CFBundleGetFunctionPointerForName(
         (CFBundleRef)module, CFSTR("VSTPluginMain"));
     if (!mainProc)
+    {
+      std::cerr << "VST: CFBundleLoadExecutable main_macho " << std::endl;
       mainProc = (PluginEntryProc)CFBundleGetFunctionPointerForName(
           (CFBundleRef)module, CFSTR("main_macho"));
+    }
     return mainProc;
   }
 };

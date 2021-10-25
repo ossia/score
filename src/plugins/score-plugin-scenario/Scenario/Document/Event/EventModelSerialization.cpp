@@ -18,6 +18,10 @@
 
 #include <algorithm>
 
+template <typename T, std::size_t N>
+struct is_custom_serialized<boost::container::small_vector<T,N>> : std::true_type
+{
+};
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
 DataStreamReader::read(const Scenario::EventModel& ev)

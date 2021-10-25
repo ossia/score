@@ -81,6 +81,8 @@ score_plugin_js::score_plugin_js()
   qmlRegisterType<JS::LineEdit>("Score", 1, 0, "LineEdit");
 
   qRegisterMetaType<QVector<JS::MidiMessage>>();
+
+  qmlRegisterType<QObject>("QtQuick", 2, 0, "Item");
 }
 
 score_plugin_js::~score_plugin_js() = default;

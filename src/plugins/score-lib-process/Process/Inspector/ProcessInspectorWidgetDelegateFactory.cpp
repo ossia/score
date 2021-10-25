@@ -55,7 +55,6 @@ QWidget* InspectorWidgetDelegateFactory::wrap(
 
   auto label = new TextLabel{process.prettyShortName(), widg};
 
-  label->setStyleSheet("font-weight: bold; font-size: 18");
 
   auto ports = new PortListWidget{process, doc, widg};
   lay->addWidget(label);

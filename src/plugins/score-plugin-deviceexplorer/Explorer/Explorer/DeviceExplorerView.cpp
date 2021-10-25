@@ -60,10 +60,6 @@ DeviceExplorerView::DeviceExplorerView(QWidget* parent)
   setDefaultDropAction(Qt::MoveAction);
 
   setDragDropOverwriteMode(false);
-
-  QFile f(":/DeviceExplorer.qss");
-  if (f.open(QFile::ReadOnly))
-    setStyleSheet(f.readAll());
 }
 
 DeviceExplorerView::~DeviceExplorerView()

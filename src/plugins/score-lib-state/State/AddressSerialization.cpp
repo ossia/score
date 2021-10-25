@@ -11,6 +11,10 @@
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 
+template <typename T, std::size_t N>
+struct is_custom_serialized<boost::container::small_vector<T,N>> : std::true_type
+{
+};
 
 /// Address ///
 template <>

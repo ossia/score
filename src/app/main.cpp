@@ -40,17 +40,15 @@ void disableAppRestore()
 #if defined(QT_STATIC)
 #include <QtPlugin>
 Q_IMPORT_PLUGIN(QJpegPlugin)
-Q_IMPORT_PLUGIN(QSvgPlugin)
-Q_IMPORT_PLUGIN(QSvgIconPlugin)
 
 #if !defined(__EMSCRIPTEN__)
-Q_IMPORT_PLUGIN(QtQuick2Plugin)
 #endif
 
 #if defined(__linux__)
 Q_IMPORT_PLUGIN(QXcbIntegrationPlugin)
 Q_IMPORT_PLUGIN(QXcbGlxIntegrationPlugin)
 #endif
+Q_IMPORT_PLUGIN(QCocoaIntegrationPlugin)
 #endif
 
 static void setup_x11()
@@ -93,7 +91,7 @@ static void setup_faust_path()
 #if defined(__APPLE__)
   auto last_slash = path.find_last_of('/');
   path = path.substr(0, last_slash);
-  path += "/../Frameworks/Faust.framework";
+  path += "/../Resources/Faust";
 #elif defined(__linux__)
   auto last_slash = path.find_last_of('/');
   path = path.substr(0, last_slash);

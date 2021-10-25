@@ -423,12 +423,6 @@ public:
       fl.write(doc.toJson());
     });
 
-    QFile css_f(":/qsimpledarkstyle.qss");
-    css_f.open(QFile::ReadOnly);
-    css.document()->setPlainText(css_f.readAll());
-    connect(css.document(), &QTextDocument::contentsChanged, this, [=] {
-      qApp->setStyleSheet(css.document()->toPlainText());
-    });
   }
 };
 
@@ -510,11 +504,12 @@ View::View() : m_widg{new QWidget}
 
   // Default duration
   m_defaultDur = new score::TimeSpinBox;
-  connect(
+  /*connect(
       m_defaultDur,
       &score::TimeSpinBox::timeChanged,
       this,
       [=](const QTime& t) { DefaultDurationChanged(TimeVal{t}); });
+      */
   lay->addRow(tr("New score duration"), m_defaultDur);
 
   m_sequence = new QCheckBox{m_widg};
@@ -550,10 +545,10 @@ void View::setZoom(const int val)
 }
 
 void View::setDefaultDuration(const TimeVal& t)
-{
+{/*
   auto qtime = t.toQTime();
   if (qtime != m_defaultDur->time())
-    m_defaultDur->setTime(qtime);
+    m_defaultDur->setTime(qtime);*/
 }
 
 void View::setSlotHeight(const double val)

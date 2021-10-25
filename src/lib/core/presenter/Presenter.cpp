@@ -170,7 +170,6 @@ void Presenter::setupGUI()
         }
 
         tb.toolbar()->setIconSize({32, 32});
-        tb.toolbar()->setStyleSheet("QToolBar { border: none; }");
         bl->addWidget(tb.toolbar(), 0, i, Qt::AlignCenter);
         // bl->addWidget(new ToolbarLabel{tb}, 1, i, Qt::AlignCenter); //Label
         // below

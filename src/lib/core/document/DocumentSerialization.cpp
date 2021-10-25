@@ -159,7 +159,7 @@ Document::Document(
   m_model = allocator.allocate(1);
   try
   {
-    allocator.construct(m_model, m_context, data, factory, this);
+    new (m_model) DocumentModel(m_context, data, factory, this);
   }
   catch (...)
   {
@@ -191,7 +191,7 @@ Document::Document(
   m_model = allocator.allocate(1);
   try
   {
-    allocator.construct(m_model, m_context, data, factory, this);
+    new (m_model) DocumentModel(m_context, data, factory, this);
   }
   catch (...)
   {

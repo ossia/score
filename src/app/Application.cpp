@@ -137,8 +137,6 @@ struct StyleLoader : public QObject
     {
       ss += readFile(path);
     }
-
-    qApp->setStyleSheet(ss);
   }
 };
 
@@ -242,7 +240,7 @@ const score::ApplicationComponents& Application::components() const
 }
 
 #if !defined(SCORE_DEBUG) && !defined(__EMSCRIPTEN__)
-#define SCORE_SPLASH_SCREEN 1
+//#define SCORE_SPLASH_SCREEN 1
 #endif
 
 #if defined(SCORE_SPLASH_SCREEN)

@@ -1,5 +1,5 @@
 if(SCORE_STATIC_QT)
-  find_package(Qt5 5.3 REQUIRED COMPONENTS Core Network Svg Xml Qml Quick QuickControls2 Gui Widgets WebSockets)
+  find_package(Qt5 5.3 REQUIRED COMPONENTS Core Network Xml Qml Gui Widgets WebSockets)
 
   if(WIN32)
     set(QT_PRL_PREFIX "")
@@ -81,11 +81,8 @@ if(SCORE_STATIC_QT)
   endfunction()
 
   # First we generate _FOO_STATIC_RELEASE_LIB_DEPENDENCIES variables by parsing the .prl files
-  process_qt_plugin("plugins/imageformats/${QT_PRL_PREFIX}qsvg.prl" qsvg_plugin)
   process_qt_plugin("plugins/imageformats/${QT_PRL_PREFIX}qjpeg.prl" qjpeg_plugin)
-  process_qt_plugin("plugins/iconengines/${QT_PRL_PREFIX}qsvgicon.prl" qsvgicon_plugin)
-  process_qt_plugin("qml/QtQuick.2/${QT_PRL_PREFIX}qtquick2plugin.prl" qtquick2_plugin)
-
+  
   if(APPLE)
   elseif(WIN32)
   elseif(UNIX)
@@ -94,18 +91,13 @@ if(SCORE_STATIC_QT)
   endif()
 
   set(QT_LIBS_VARIABLES
-      Qt5QuickControls2
-      Qt5Quick
       Qt5Qml
       Qt5Widgets
       Qt5Gui
       Qt5WebSockets
-      Qt5Svg
       Qt5Xml
       Qt5Core
       qjpeg_plugin
-      qsvgicon_plugin
-      qtquick2_plugin
   )
 
   if(APPLE)
@@ -131,9 +123,6 @@ function(static_link_qt _target)
         ${_target} PRIVATE
 
         ${QT_ROOT_FOLDER}/plugins/imageformats/${CMAKE_STATIC_LIBRARY_PREFIX}qjpeg${CMAKE_STATIC_LIBRARY_SUFFIX}
-        ${QT_ROOT_FOLDER}/plugins/imageformats/${CMAKE_STATIC_LIBRARY_PREFIX}qsvg${CMAKE_STATIC_LIBRARY_SUFFIX}
-        ${QT_ROOT_FOLDER}/plugins/iconengines/${CMAKE_STATIC_LIBRARY_PREFIX}qsvgicon${CMAKE_STATIC_LIBRARY_SUFFIX}
-        ${QT_ROOT_FOLDER}/qml/QtQuick.2/${CMAKE_STATIC_LIBRARY_PREFIX}qtquick2plugin${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
 
     if(APPLE)

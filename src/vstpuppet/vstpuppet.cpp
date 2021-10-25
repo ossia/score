@@ -194,7 +194,7 @@ int main(int argc, char** argv)
 
     QTimer::singleShot(10000, [&] { qDebug() << "timeout"; qApp->exit(1); });
 
-    socket.open(QUrl("ws://127.0.0.1:37587"));
+    socket.open(QUrl("ws://127.0.0.1:55646"));
     app.exec();
   }
   return 1;

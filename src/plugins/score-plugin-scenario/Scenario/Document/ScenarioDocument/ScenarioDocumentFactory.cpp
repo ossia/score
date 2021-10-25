@@ -38,7 +38,7 @@ void ScenarioDocumentFactory::make(
   std::allocator<ScenarioDocumentModel> alloc;
   auto res = alloc.allocate(1);
   ptr = res;
-  alloc.construct(res, ctx, parent);
+  new (res) ScenarioDocumentModel(ctx, parent);
 }
 
 void ScenarioDocumentFactory::load(
@@ -51,7 +51,7 @@ void ScenarioDocumentFactory::load(
   auto res = alloc.allocate(1);
   ptr = res;
   score::deserialize_dyn(vis, [&](auto&& deserializer) {
-    alloc.construct(res, deserializer, ctx, parent);
+    new (res) ScenarioDocumentModel(deserializer, ctx, parent);
     return ptr;
   });
 }

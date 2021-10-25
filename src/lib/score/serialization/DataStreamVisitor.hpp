@@ -396,6 +396,7 @@ template <
     typename T,
     std::enable_if_t<
         !std::is_arithmetic<T>::value
+        && !std::is_enum_v<T>
         && !std::is_same<T, QStringList>::value>* = nullptr>
 QDataStream& operator<<(QDataStream& stream, const T& obj)
 {
@@ -408,6 +409,7 @@ template <
     typename T,
     std::enable_if_t<
         !std::is_arithmetic<T>::value
+        && !std::is_enum_v<T>
         && !std::is_same<T, QStringList>::value>* = nullptr>
 QDataStream& operator>>(QDataStream& stream, T& obj)
 {
@@ -533,12 +535,11 @@ struct TSerializer<DataStream, std::array<T, N>>
   }
 };
 
-#if defined(OSSIA_SMALL_VECTOR)
 template <typename T, std::size_t N>
-struct TSerializer<DataStream, ossia::small_vector<T, N>>
+struct TSerializer<DataStream, boost::container::small_vector<T, N>>
 {
   static void
-  readFrom(DataStream::Serializer& s, const ossia::small_vector<T, N>& arr)
+  readFrom(DataStream::Serializer& s, const boost::container::small_vector<T, N>& arr)
   {
     s.stream() << (int32_t)arr.size();
     for (std::size_t i = 0U; i < arr.size(); i++)
@@ -548,7 +549,7 @@ struct TSerializer<DataStream, ossia::small_vector<T, N>>
   }
 
   static void
-  writeTo(DataStream::Deserializer& s, ossia::small_vector<T, N>& arr)
+  writeTo(DataStream::Deserializer& s, boost::container::small_vector<T, N>& arr)
   {
     int32_t sz;
 
@@ -562,10 +563,10 @@ struct TSerializer<DataStream, ossia::small_vector<T, N>>
 };
 
 template <typename T, std::size_t N>
-struct TSerializer<DataStream, ossia::static_vector<T, N>>
+struct TSerializer<DataStream, boost::container::static_vector<T, N>>
 {
   static void
-  readFrom(DataStream::Serializer& s, const ossia::static_vector<T, N>& arr)
+  readFrom(DataStream::Serializer& s, const boost::container::static_vector<T, N>& arr)
   {
     s.stream() << (int32_t)arr.size();
     for (int32_t i = 0U; i < arr.size(); i++)
@@ -575,7 +576,7 @@ struct TSerializer<DataStream, ossia::static_vector<T, N>>
   }
 
   static void
-  writeTo(DataStream::Deserializer& s, ossia::static_vector<T, N>& arr)
+  writeTo(DataStream::Deserializer& s, boost::container::static_vector<T, N>& arr)
   {
     int32_t sz;
 
@@ -587,7 +588,6 @@ struct TSerializer<DataStream, ossia::static_vector<T, N>>
     SCORE_DEBUG_CHECK_DELIMITER2(s);
   }
 };
-#endif
 
 template <typename T, typename Alloc>
 struct TSerializer<

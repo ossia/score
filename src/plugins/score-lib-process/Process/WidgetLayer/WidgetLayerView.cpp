@@ -45,7 +45,6 @@ void View::setWidget(QWidget* w)
   w->setPalette(palette);
 
   w->setAutoFillBackground(false);
-  w->setStyleSheet("QWidget { background-color:transparent }");
 
   connect(w, SIGNAL(pressed()), this, SIGNAL(pressed()));
   // connect(w, SIGNAL(contextMenuRequested(QPoint)), this,
