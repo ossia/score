@@ -131,6 +131,7 @@ Model::Model(
     QObject* parent)
     : ProcessModel{t, id, "vst", parent}
     , m_effectId{path.toInt()}
+    , m_registration{*this}
 {
   init();
   create();
@@ -138,11 +139,7 @@ Model::Model(
 
 Model::~Model()
 {
-  auto& app
-      = score::GUIAppContext().applicationPlugin<vst::ApplicationPlugin>();
-  app.unregisterRunningVST(this);
 
-  closePlugin();
 }
 
 QString Model::prettyName() const noexcept
@@ -205,9 +202,6 @@ QString Model::effect() const noexcept
 
 void Model::init()
 {
-  auto& app
-      = score::GUIAppContext().applicationPlugin<vst::ApplicationPlugin>();
-  app.registerRunningVST(this);
   //  connect(this, &Model::addControl, this, &Model::on_addControl);
 
   connect(this, &Model::resetExecution, this, [this] {
@@ -833,6 +827,23 @@ AEffectWrapper::~AEffectWrapper()
       releasePluginInstance(uid);
     });
   }
+}
+
+Model::vst_context_handler::vst_context_handler(Model& self)
+  : self{self}
+{
+  auto& app
+      = score::GUIAppContext().applicationPlugin<vst::ApplicationPlugin>();
+  app.registerRunningVST(&self);
+
+}
+
+Model::vst_context_handler::~vst_context_handler()
+{
+  auto& app
+      = score::GUIAppContext().applicationPlugin<vst::ApplicationPlugin>();
+  app.unregisterRunningVST(&self);
+  self.closePlugin();
 }
 
 }

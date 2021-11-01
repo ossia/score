@@ -92,6 +92,7 @@ public:
   template <typename Impl>
   Model(Impl& vis, QObject* parent)
       : ProcessModel{vis, parent}
+      , m_registration{*this}
   {
     init();
     vis.writeTo(*this);
@@ -135,14 +136,18 @@ private:
   void init();
   void create();
   void load();
+  void closePlugin();
+  void initFx();
 
   std::string m_backup_chunk;
   ossia::float_vector m_backup_float_data;
   int32_t m_effectId{};
 
-
-  void closePlugin();
-  void initFx();
+  struct vst_context_handler {
+    Model& self;
+    explicit vst_context_handler(Model& self);
+    ~vst_context_handler();
+  } m_registration;
 };
 
 // VSTModule* getPlugin(QString path);
