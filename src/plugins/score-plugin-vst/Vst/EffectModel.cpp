@@ -626,10 +626,17 @@ void Model::initFx()
 
   auto& ctx = score::GUIAppContext();
   auto& media = ctx.settings<Audio::Settings::Model>();
-  dispatch(effSetSampleRate, 0, media.getRate(), nullptr, media.getRate());
   const int blockSize = media.getBufferSize();
+
+  // JUCE hosts do it before effOpen
+  dispatch(effSetSampleRate, 0, media.getRate(), nullptr, media.getRate());
   dispatch(effSetBlockSize, 0, blockSize, nullptr, blockSize);
+
   dispatch(effOpen);
+
+  // Others like Reaper do it after - this is also done in node.hpp
+  dispatch(effSetSampleRate, 0, media.getRate(), nullptr, media.getRate());
+  dispatch(effSetBlockSize, 0, blockSize, nullptr, blockSize);
 
   auto& app = ctx.applicationPlugin<vst::ApplicationPlugin>();
   auto it = ossia::find_if(
