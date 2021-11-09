@@ -122,30 +122,38 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
     */
   }
 
-  for (const StateModel& state : scenar.states)
+  std::vector st(scenar.states.map().m_order.begin(), scenar.states.map().m_order.end());
+  for (StateModel* sstate : st)
   {
-    auto ev = scenar.findEvent(state.eventId());
-    SCORE_ASSERT(ev);
-    SCORE_ASSERT(ossia::contains(ev->states(), state.id()));
-
-    if (state.previousInterval())
+    auto& state = *sstate;
+    if (auto ev = scenar.findEvent(state.eventId()))
     {
-      auto cst = scenar.findInterval(*state.previousInterval());
-      SCORE_ASSERT(cst);
-      SCORE_ASSERT(cst->endState() == state.id());
-    }
+      SCORE_ASSERT(ev);
+      SCORE_ASSERT(ossia::contains(ev->states(), state.id()));
 
-    if (state.nextInterval())
+      if (state.previousInterval())
+      {
+        auto cst = scenar.findInterval(*state.previousInterval());
+        SCORE_ASSERT(cst);
+        SCORE_ASSERT(cst->endState() == state.id());
+      }
+
+      if (state.nextInterval())
+      {
+        auto cst = scenar.findInterval(*state.nextInterval());
+        SCORE_ASSERT(cst);
+        SCORE_ASSERT(cst->startState() == state.id());
+      }
+
+      auto num = ossia::count_if(scenar.events, [&](auto& ev) {
+        return ossia::contains(ev.states(), state.id());
+      });
+      SCORE_ASSERT(num == 1);
+    }
+    else
     {
-      auto cst = scenar.findInterval(*state.nextInterval());
-      SCORE_ASSERT(cst);
-      SCORE_ASSERT(cst->startState() == state.id());
+      const_cast<Scenario::ProcessModel&>(scenar).states.remove(state);
     }
-
-    auto num = ossia::count_if(scenar.events, [&](auto& ev) {
-      return ossia::contains(ev.states(), state.id());
-    });
-    SCORE_ASSERT(num == 1);
   }
 
   for (const EventModel& event : scenar.events)
