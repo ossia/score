@@ -153,7 +153,7 @@ struct UpdateUI : ::UI, MetaDataUI
   void closeBox() override { }
   void declare(FAUSTFLOAT* zone, const char* key, const char* val) override
   {
-    qDebug() << "UpdateUI: " << key << val;
+    MetaDataUI::declare(zone, key, val);
   }
   void addSoundfile(
       const char* label,
@@ -255,10 +255,10 @@ struct UpdateUI : ::UI, MetaDataUI
       {
         if (isKnob(zone))
         {
-          slider->setName(label);
-          slider->setDomain(ossia::make_domain(min, max));
+          knob->setName(label);
+          knob->setDomain(ossia::make_domain(min, max));
           if constexpr (SetInit)
-              slider->setValue(init);
+              knob->setValue(init);
         }
         else
         {

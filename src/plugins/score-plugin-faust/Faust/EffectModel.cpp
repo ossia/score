@@ -199,115 +199,12 @@ static bool faustIsMidi(llvm_dsp& dsp)
   return ui.freq && ui.gain && ui.gate;
 }
 
-void FaustEffectModel::reloadFx(llvm_dsp_factory* fac, llvm_dsp* obj)
-{
-  static std::vector<std::shared_ptr<llvm_dsp_factory>> dsp_factories;
-  const bool had_dsp = bool(faust_object);
-  const bool had_poly_dsp = bool(faust_poly_object);
-  faust_poly_object.reset();
-  faust_poly_factory.reset();
-
-  faust_object.reset(obj);
-  faust_factory.reset(fac, deleteDSPFactory);
-
-  dsp_factories.push_back(faust_factory);
-  if (had_dsp)
-  {
-    // Try to reuse controls
-    Faust::UpdateUI<decltype(*this), true> ui{*this};
-    faust_object->buildUserInterface(&ui);
-
-    std::vector<Process::Inlet*> toRemove;
-    for (std::size_t i = ui.i; i < m_inlets.size(); i++)
-    {
-      toRemove.push_back(m_inlets[i]);
-    }
-    m_inlets.resize(ui.i);
-    for (auto inl : toRemove)
-      inl->deleteLater();
-  }
-  else if (
-      (!m_inlets.empty() || !m_outlets.empty()) && !had_dsp && !had_poly_dsp)
-  {
-    // loading - controls already exist but not linked to the dsp
-    Faust::UpdateUI<decltype(*this), false> ui{*this};
-    faust_object->buildUserInterface(&ui);
-  }
-  else
-  {
-    // creating a new dsp
-    auto inls = score::clearAndDeleteLater(m_inlets);
-    auto outls = score::clearAndDeleteLater(m_outlets);
-
-    m_inlets.push_back(new Process::AudioInlet{getStrongId(m_inlets), this});
-    auto out = new Process::AudioOutlet{getStrongId(m_outlets), this};
-    out->setPropagate(true);
-    m_outlets.push_back(out);
-
-    Faust::UI<decltype(*this), false> ui{*this};
-    faust_object->buildUserInterface(&ui);
-  }
-}
-
-void FaustEffectModel::reloadMidi(
-    ossia::nodes::custom_dsp_poly_factory* fac,
-    ossia::nodes::custom_dsp_poly_effect* obj)
-{
-  static std::vector<std::shared_ptr<ossia::nodes::custom_dsp_poly_factory>>
-      dsp_poly_factories;
-  const bool had_dsp = bool(faust_object);
-  const bool had_poly_dsp = bool(faust_poly_object);
-  faust_poly_object.reset(obj);
-  faust_poly_factory.reset(fac);
-
-  faust_object.reset();
-  faust_factory.reset();
-
-  dsp_poly_factories.push_back(faust_poly_factory);
-  if (had_poly_dsp)
-  {
-    // updating an existing DSP
-    // Try to reuse controls
-    Faust::UpdateUI<decltype(*this), true> ui{*this};
-    ui.i = 2;
-    faust_poly_object->buildUserInterface(&ui);
-
-    std::vector<Process::Inlet*> toRemove;
-    for (std::size_t i = ui.i; i < m_inlets.size(); i++)
-    {
-      toRemove.push_back(m_inlets[i]);
-    }
-    m_inlets.resize(ui.i);
-    for (auto inl : toRemove)
-      delete inl;
-  }
-  else if (
-      (!m_inlets.empty() || !m_outlets.empty()) && !had_poly_dsp && !had_dsp)
-  {
-    // Try to reuse controls
-    Faust::UpdateUI<decltype(*this), false> ui{*this};
-    ui.i = 2;
-    faust_poly_object->buildUserInterface(&ui);
-  }
-  else
-  {
-    auto inls = score::clearAndDeleteLater(m_inlets);
-    auto outls = score::clearAndDeleteLater(m_outlets);
-
-    m_inlets.push_back(new Process::AudioInlet{getStrongId(m_inlets), this});
-    m_inlets.push_back(new Process::MidiInlet{getStrongId(m_inlets), this});
-
-    auto out = new Process::AudioOutlet{getStrongId(m_outlets), this};
-    out->setPropagate(true);
-    m_outlets.push_back(out);
-
-    Faust::UI<decltype(*this), true> ui{*this};
-    faust_poly_object->buildUserInterface(&ui);
-  }
-}
 
 void FaustEffectModel::reload()
 {
+  score::delete_later<Process::Inlets> inlets_to_clear;
+  score::delete_later<Process::Outlets> outlets_to_clear;
+
   auto fx_text = m_text.toUtf8();
   if (fx_text.isEmpty())
   {
@@ -384,12 +281,112 @@ void FaustEffectModel::reload()
       auto midi_fac = ossia::nodes::createCustomPolyDSPFactoryFromString(
           "score", str, argc, argv, triple, err, -1);
       auto midi_obj = midi_fac->createPolyDSPInstance(4, true, true);
-      reloadMidi(midi_fac, midi_obj);
+      {
+        auto fac = midi_fac;
+        auto obj = midi_obj;
+
+        static std::vector<std::shared_ptr<ossia::nodes::custom_dsp_poly_factory>>
+            dsp_poly_factories;
+        const bool had_dsp = bool(faust_object);
+        const bool had_poly_dsp = bool(faust_poly_object);
+        faust_poly_object.reset(obj);
+        faust_poly_factory.reset(fac);
+
+        faust_object.reset();
+        faust_factory.reset();
+
+        dsp_poly_factories.push_back(faust_poly_factory);
+        if (had_poly_dsp)
+        {
+          // updating an existing DSP
+          // Try to reuse controls
+          Faust::UpdateUI<decltype(*this), true> ui{*this};
+          ui.i = 2;
+          faust_poly_object->buildUserInterface(&ui);
+
+          Process::Inlets toRemove;
+          for (std::size_t i = ui.i; i < m_inlets.size(); i++)
+          {
+            toRemove.push_back(m_inlets[i]);
+          }
+          m_inlets.resize(ui.i);
+
+          score::clearAndDeleteLater(toRemove, inlets_to_clear);
+        }
+        else if (
+            (!m_inlets.empty() || !m_outlets.empty()) && !had_poly_dsp && !had_dsp)
+        {
+          // Try to reuse controls
+          Faust::UpdateUI<decltype(*this), false> ui{*this};
+          ui.i = 2;
+          faust_poly_object->buildUserInterface(&ui);
+        }
+        else
+        {
+          score::clearAndDeleteLater(m_inlets, inlets_to_clear);
+          score::clearAndDeleteLater(m_outlets, outlets_to_clear);
+
+          m_inlets.push_back(new Process::AudioInlet{getStrongId(m_inlets), this});
+          m_inlets.push_back(new Process::MidiInlet{getStrongId(m_inlets), this});
+
+          auto out = new Process::AudioOutlet{getStrongId(m_outlets), this};
+          out->setPropagate(true);
+          m_outlets.push_back(out);
+
+          Faust::UI<decltype(*this), true> ui{*this};
+          faust_poly_object->buildUserInterface(&ui);
+        }
+      }
     }
   }
   else
   {
-    reloadFx(fac, obj);
+    static std::vector<std::shared_ptr<llvm_dsp_factory>> dsp_factories;
+    const bool had_dsp = bool(faust_object);
+    const bool had_poly_dsp = bool(faust_poly_object);
+    faust_poly_object.reset();
+    faust_poly_factory.reset();
+
+    faust_object.reset(obj);
+    faust_factory.reset(fac, deleteDSPFactory);
+
+    dsp_factories.push_back(faust_factory);
+    if (had_dsp)
+    {
+      // Try to reuse controls
+      Faust::UpdateUI<decltype(*this), true> ui{*this};
+      faust_object->buildUserInterface(&ui);
+
+      Process::Inlets toRemove;
+      for (std::size_t i = ui.i; i < m_inlets.size(); i++)
+      {
+        toRemove.push_back(m_inlets[i]);
+      }
+      m_inlets.resize(ui.i);
+
+      score::clearAndDeleteLater(toRemove, inlets_to_clear);
+    }
+    else if (
+        (!m_inlets.empty() || !m_outlets.empty()) && !had_dsp && !had_poly_dsp)
+    {
+      // loading - controls already exist but not linked to the dsp
+      Faust::UpdateUI<decltype(*this), false> ui{*this};
+      faust_object->buildUserInterface(&ui);
+    }
+    else
+    {
+      // creating a new dsp
+      score::clearAndDeleteLater(m_inlets, inlets_to_clear);
+      score::clearAndDeleteLater(m_outlets, outlets_to_clear);
+
+      m_inlets.push_back(new Process::AudioInlet{getStrongId(m_inlets), this});
+      auto out = new Process::AudioOutlet{getStrongId(m_outlets), this};
+      out->setPropagate(true);
+      m_outlets.push_back(out);
+
+      Faust::UI<decltype(*this), false> ui{*this};
+      faust_object->buildUserInterface(&ui);
+    }
   }
 
   auto lines = fx_text.split('\n');
