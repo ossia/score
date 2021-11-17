@@ -523,13 +523,6 @@ void PdGraphNode::run(
 
         channel.insert(channel.end(), circbuf.begin(), circbuf.begin() + req_samples);
         circbuf.erase_begin(req_samples);
-
-        ossia::snd::do_fade(
-              t.start_discontinuous,
-              t.end_discontinuous,
-              ap[i],
-              t.offset.impl,
-              t.offset.impl + req_samples);
       }
     }
   }
