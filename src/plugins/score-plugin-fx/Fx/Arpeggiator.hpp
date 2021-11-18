@@ -169,8 +169,13 @@ struct Node
     {
       const auto [tick_start, d] = st.timings(tk);
       for(int k = 0; k < 128; k++)
-        while(self.in_flight[k]-- > 0)
+      {
+        while(self.in_flight[k] > 0)
+        {
           out.note_off(1, k, 0).timestamp = tick_start;
+          self.in_flight[k]--;
+        }
+      }
       return;
     }
 
@@ -184,8 +189,13 @@ struct Node
       // Finish previous notes
 
       for(int k = 0; k < 128; k++)
-        while(self.in_flight[k]-- > 0)
+      {
+        while(self.in_flight[k] > 0)
+        {
           out.note_off(1, k, 0).timestamp = *date;
+          self.in_flight[k]--;
+        }
+      }
 
       // Start the next note in the chord
       auto& chord = self.arpeggio[self.index];
