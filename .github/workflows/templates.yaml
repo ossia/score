@@ -8,13 +8,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        template:          
-          - score-vfx-template 
-          - score-process-template 
-          - score-device-template 
+        template:
+          - score-vfx-template
+          - score-process-template
+          - score-device-template
           - score-audio-addon-template
           - score-offline-process-template
-  
+
     steps:
       - name: Install git
         run: |
@@ -42,6 +42,7 @@ jobs:
   check:
     name: ${{ matrix.template }} (${{ matrix.config.name }})
     runs-on: ${{ matrix.config.os }}
+    needs: init_template
     strategy:
       fail-fast: false
       matrix:
@@ -75,10 +76,10 @@ jobs:
               sdk: "/opt/ossia-sdk-x86_64",
             }
 
-        template:          
-          - score-vfx-template 
-          - score-process-template 
-          - score-device-template 
+        template:
+          - score-vfx-template
+          - score-process-template
+          - score-device-template
           - score-audio-addon-template
           - score-offline-process-template
 
@@ -94,7 +95,7 @@ jobs:
         with:
           name: ${{ matrix.template }}
           path: .
-    
+
       - name: Install dependencies
         shell: bash
         run: |
