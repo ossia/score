@@ -140,6 +140,7 @@ struct SCORE_LIB_PROCESS_EXPORT FloatSlider : public Process::ControlInlet
 
   auto getMin() const noexcept { return domain().get().convert_min<float>(); }
   auto getMax() const noexcept { return domain().get().convert_max<float>(); }
+  void setupExecution(ossia::inlet& inl) const noexcept override;
   using Process::ControlInlet::ControlInlet;
 };
 
@@ -158,6 +159,8 @@ struct SCORE_LIB_PROCESS_EXPORT FloatKnob : public Process::ControlInlet
 
   auto getMin() const noexcept { return domain().get().convert_min<float>(); }
   auto getMax() const noexcept { return domain().get().convert_max<float>(); }
+  void setupExecution(ossia::inlet& inl) const noexcept override;
+
   using Process::ControlInlet::ControlInlet;
 };
 
@@ -176,6 +179,8 @@ struct SCORE_LIB_PROCESS_EXPORT LogFloatSlider : public Process::ControlInlet
 
   auto getMin() const noexcept { return domain().get().convert_min<float>(); }
   auto getMax() const noexcept { return domain().get().convert_max<float>(); }
+  void setupExecution(ossia::inlet& inl) const noexcept override;
+
   using Process::ControlInlet::ControlInlet;
 };
 
@@ -194,6 +199,8 @@ struct SCORE_LIB_PROCESS_EXPORT IntSlider : public Process::ControlInlet
 
   auto getMin() const noexcept { return domain().get().convert_min<int>(); }
   auto getMax() const noexcept { return domain().get().convert_max<int>(); }
+  void setupExecution(ossia::inlet& inl) const noexcept override;
+
   using Process::ControlInlet::ControlInlet;
 };
 
@@ -212,6 +219,8 @@ struct SCORE_LIB_PROCESS_EXPORT IntSpinBox : public Process::ControlInlet
 
   auto getMin() const noexcept { return domain().get().convert_min<int>(); }
   auto getMax() const noexcept { return domain().get().convert_max<int>(); }
+  void setupExecution(ossia::inlet& inl) const noexcept override;
+
   using Process::ControlInlet::ControlInlet;
 };
 
@@ -225,6 +234,8 @@ struct SCORE_LIB_PROCESS_EXPORT Toggle : public Process::ControlInlet
       Id<Process::Port> id,
       QObject* parent);
   ~Toggle();
+
+  void setupExecution(ossia::inlet& inl) const noexcept override;
 
   using Process::ControlInlet::ControlInlet;
 };
@@ -242,6 +253,8 @@ struct SCORE_LIB_PROCESS_EXPORT ChooserToggle : public Process::ControlInlet
   ~ChooserToggle();
 
   QStringList alternatives() const noexcept;
+  void setupExecution(ossia::inlet& inl) const noexcept override;
+
   using Process::ControlInlet::ControlInlet;
 };
 
@@ -255,6 +268,8 @@ struct SCORE_LIB_PROCESS_EXPORT LineEdit : public Process::ControlInlet
       Id<Process::Port> id,
       QObject* parent);
   ~LineEdit();
+
+  void setupExecution(ossia::inlet& inl) const noexcept override;
 
   using Process::ControlInlet::ControlInlet;
 };
@@ -279,6 +294,8 @@ struct SCORE_LIB_PROCESS_EXPORT ComboBox : public Process::ControlInlet
   ComboBox(JSONObject::Deserializer& vis, QObject* parent);
   ComboBox(DataStream::Deserializer&& vis, QObject* parent);
   ComboBox(JSONObject::Deserializer&& vis, QObject* parent);
+
+  void setupExecution(ossia::inlet& inl) const noexcept override;
 };
 
 struct SCORE_LIB_PROCESS_EXPORT Enum : public Process::ControlInlet
@@ -310,6 +327,8 @@ struct SCORE_LIB_PROCESS_EXPORT Enum : public Process::ControlInlet
   Enum(JSONObject::Deserializer& vis, QObject* parent);
   Enum(DataStream::Deserializer&& vis, QObject* parent);
   Enum(JSONObject::Deserializer&& vis, QObject* parent);
+
+  void setupExecution(ossia::inlet& inl) const noexcept override;
 };
 
 struct SCORE_LIB_PROCESS_EXPORT Button : public Process::ControlInlet
@@ -318,6 +337,8 @@ struct SCORE_LIB_PROCESS_EXPORT Button : public Process::ControlInlet
   using control_type = WidgetFactory::Button;
   Button(const QString& name, Id<Process::Port> id, QObject* parent);
   ~Button();
+
+  void setupExecution(ossia::inlet& inl) const noexcept override;
 
   using Process::ControlInlet::ControlInlet;
 };
@@ -328,6 +349,8 @@ struct SCORE_LIB_PROCESS_EXPORT ImpulseButton : public Process::ControlInlet
   using control_type = WidgetFactory::ImpulseButton;
   ImpulseButton(const QString& name, Id<Process::Port> id, QObject* parent);
   ~ImpulseButton();
+
+  void setupExecution(ossia::inlet& inl) const noexcept override;
 
   using Process::ControlInlet::ControlInlet;
 };
@@ -369,6 +392,8 @@ struct SCORE_LIB_PROCESS_EXPORT XYSlider : public Process::ControlInlet
 
   auto getMin() const noexcept { return domain().get().convert_min<ossia::vec2f>(); }
   auto getMax() const noexcept { return domain().get().convert_max<ossia::vec2f>(); }
+  void setupExecution(ossia::inlet& inl) const noexcept override;
+
   using Process::ControlInlet::ControlInlet;
 };
 
@@ -392,6 +417,8 @@ struct SCORE_LIB_PROCESS_EXPORT XYZSlider : public Process::ControlInlet
 
   auto getMin() const noexcept { return domain().get().convert_min<ossia::vec3f>(); }
   auto getMax() const noexcept { return domain().get().convert_max<ossia::vec3f>(); }
+  void setupExecution(ossia::inlet& inl) const noexcept override;
+
   using Process::ControlInlet::ControlInlet;
 };
 
@@ -408,6 +435,8 @@ struct SCORE_LIB_PROCESS_EXPORT MultiSlider : public Process::ControlInlet
 
   ossia::value getMin() const noexcept;
   ossia::value getMax() const noexcept;
+  void setupExecution(ossia::inlet& inl) const noexcept override;
+
   using Process::ControlInlet::ControlInlet;
 };
 
@@ -428,6 +457,7 @@ struct SCORE_LIB_PROCESS_EXPORT Bargraph : public Process::ControlOutlet
 
   auto getMin() const noexcept { return domain().get().convert_min<float>(); }
   auto getMax() const noexcept { return domain().get().convert_max<float>(); }
+
   using Process::ControlOutlet::ControlOutlet;
 };
 

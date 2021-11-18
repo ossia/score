@@ -30,6 +30,8 @@ void Executor::setupNode(Node_T& node)
   {
     auto ctrl = safe_cast<vst::ControlInlet*>(inlets[i]);
     auto inlet = new ossia::value_inlet;
+    (**inlet).domain = ossia::domain_base<float>{0.f, 1.f};
+    (**inlet).type = ossia::val_type::FLOAT;
 
     node->controls.push_back(
         {ctrl->fxNum, ctrl->value(), inlet->target<ossia::value_port>()});
@@ -49,6 +51,8 @@ void Executor::setupNode(Node_T& node)
         {
           Execution::SetupContext& setup = system().context().setup;
           auto inlet = new ossia::value_inlet;
+          (**inlet).domain = ossia::domain_base<float>{0.f, 1.f};
+          (**inlet).type = ossia::val_type::FLOAT;
 
           Execution::Transaction commands{system()};
 

@@ -220,6 +220,9 @@ public:
   std::size_t
   add_control(ossia::value_inlet* inlet, Steinberg::Vst::ParamID id, float v)
   {
+    (**inlet).domain = ossia::domain_base<float>{0.f, 1.f};
+    (**inlet).type = ossia::val_type::FLOAT;
+
     // FIXME this allocates a lot :[
     auto queue_idx = this->m_inputChanges.queues.size();
     this->m_inputChanges.queues.emplace_back(id);

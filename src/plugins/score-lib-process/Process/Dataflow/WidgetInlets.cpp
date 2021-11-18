@@ -67,6 +67,13 @@ Enum::Enum(JSONObject::Deserializer&& vis, QObject* parent)
   vis.writeTo(*this);
 }
 
+void Enum::setupExecution(ossia::inlet& inl) const noexcept
+{
+  auto& port = **safe_cast<ossia::value_inlet*>(&inl);
+  port.type = ossia::val_type::STRING;
+  port.domain = domain().get();
+}
+
 ComboBox::ComboBox(DataStream::Deserializer& vis, QObject* parent)
     : ControlInlet{vis, parent}
 {
@@ -88,6 +95,12 @@ ComboBox::ComboBox(
     vals.push_back(v.second);
   setDomain(State::Domain{ossia::make_domain(vals)});
   setName(name);
+}
+
+void ComboBox::setupExecution(ossia::inlet& inl) const noexcept
+{
+  auto& port = **safe_cast<ossia::value_inlet*>(&inl);
+  port.domain = domain().get();
 }
 
 ComboBox::~ComboBox() { }
@@ -144,6 +157,13 @@ FloatSlider::FloatSlider(
 
 FloatSlider::~FloatSlider() { }
 
+void FloatSlider::setupExecution(ossia::inlet& inl) const noexcept
+{
+  auto& port = **safe_cast<ossia::value_inlet*>(&inl);
+  port.type = ossia::val_type::FLOAT;
+  port.domain = domain().get();
+}
+
 FloatKnob::FloatKnob(
     float min,
     float max,
@@ -160,6 +180,13 @@ FloatKnob::FloatKnob(
 }
 
 FloatKnob::~FloatKnob() { }
+
+void FloatKnob::setupExecution(ossia::inlet& inl) const noexcept
+{
+  auto& port = **safe_cast<ossia::value_inlet*>(&inl);
+  port.type = ossia::val_type::FLOAT;
+  port.domain = domain().get();
+}
 
 LogFloatSlider::LogFloatSlider(
     float min,
@@ -178,6 +205,13 @@ LogFloatSlider::LogFloatSlider(
 
 LogFloatSlider::~LogFloatSlider() { }
 
+void LogFloatSlider::setupExecution(ossia::inlet& inl) const noexcept
+{
+  auto& port = **safe_cast<ossia::value_inlet*>(&inl);
+  port.type = ossia::val_type::FLOAT;
+  port.domain = domain().get();
+}
+
 IntSlider::IntSlider(
     int min,
     int max,
@@ -195,6 +229,13 @@ IntSlider::IntSlider(
 
 IntSlider::~IntSlider() { }
 
+void IntSlider::setupExecution(ossia::inlet& inl) const noexcept
+{
+  auto& port = **safe_cast<ossia::value_inlet*>(&inl);
+  port.type = ossia::val_type::INT;
+  port.domain = domain().get();
+}
+
 IntSpinBox::IntSpinBox(
     int min,
     int max,
@@ -210,6 +251,13 @@ IntSpinBox::IntSpinBox(
   setName(name);
 }
 
+void IntSpinBox::setupExecution(ossia::inlet& inl) const noexcept
+{
+  auto& port = **safe_cast<ossia::value_inlet*>(&inl);
+  port.type = ossia::val_type::INT;
+  port.domain = domain().get();
+}
+
 IntSpinBox::~IntSpinBox() { }
 
 Toggle::Toggle(bool init, const QString& name, Id<Port> id, QObject* parent)
@@ -219,6 +267,13 @@ Toggle::Toggle(bool init, const QString& name, Id<Port> id, QObject* parent)
   setValue(init);
   setDomain(State::Domain{ossia::domain_base<bool>{}});
   setName(name);
+}
+
+void Toggle::setupExecution(ossia::inlet& inl) const noexcept
+{
+  auto& port = **safe_cast<ossia::value_inlet*>(&inl);
+  port.type = ossia::val_type::BOOL;
+  port.domain = domain().get();
 }
 
 Toggle::~Toggle() { }
@@ -237,6 +292,13 @@ ChooserToggle::ChooserToggle(
   setDomain(State::Domain{ossia::domain_base<std::string>{
       {alternatives[0].toStdString(), alternatives[1].toStdString()}}});
   setName(name);
+}
+
+void ChooserToggle::setupExecution(ossia::inlet& inl) const noexcept
+{
+  auto& port = **safe_cast<ossia::value_inlet*>(&inl);
+  port.type = ossia::val_type::STRING;
+  port.domain = domain().get();
 }
 
 ChooserToggle::~ChooserToggle() { }
@@ -263,6 +325,13 @@ LineEdit::LineEdit(
   setName(name);
 }
 
+void LineEdit::setupExecution(ossia::inlet& inl) const noexcept
+{
+  auto& port = **safe_cast<ossia::value_inlet*>(&inl);
+  port.type = ossia::val_type::STRING;
+  port.domain = domain().get();
+}
+
 LineEdit::~LineEdit() { }
 
 Button::Button(const QString& name, Id<Port> id, QObject* parent)
@@ -274,6 +343,13 @@ Button::Button(const QString& name, Id<Port> id, QObject* parent)
   setName(name);
 }
 
+void Button::setupExecution(ossia::inlet& inl) const noexcept
+{
+  auto& port = **safe_cast<ossia::value_inlet*>(&inl);
+  port.type = ossia::val_type::BOOL;
+  port.domain = domain().get();
+}
+
 Button::~Button() { }
 
 ImpulseButton::ImpulseButton(const QString& name, Id<Port> id, QObject* parent)
@@ -283,6 +359,13 @@ ImpulseButton::ImpulseButton(const QString& name, Id<Port> id, QObject* parent)
   setValue(ossia::impulse{});
   setDomain(State::Domain{ossia::domain_base<ossia::impulse>{}});
   setName(name);
+}
+
+void ImpulseButton::setupExecution(ossia::inlet& inl) const noexcept
+{
+  auto& port = **safe_cast<ossia::value_inlet*>(&inl);
+  port.type = ossia::val_type::IMPULSE;
+  port.domain = domain().get();
 }
 
 ImpulseButton::~ImpulseButton() { }
@@ -313,6 +396,13 @@ XYSlider::XYSlider(
   setValue(init);
   setName(name);
   setDomain(ossia::make_domain(min, max));
+}
+
+void XYSlider::setupExecution(ossia::inlet& inl) const noexcept
+{
+  auto& port = **safe_cast<ossia::value_inlet*>(&inl);
+  port.type = ossia::val_type::VEC2F;
+  port.domain = domain().get();
 }
 
 XYSlider::~XYSlider() { }
@@ -347,6 +437,13 @@ XYZSlider::XYZSlider(
 
 XYZSlider::~XYZSlider() { }
 
+void XYZSlider::setupExecution(ossia::inlet& inl) const noexcept
+{
+  auto& port = **safe_cast<ossia::value_inlet*>(&inl);
+  port.type = ossia::val_type::VEC3F;
+  port.domain = domain().get();
+}
+
 MultiSlider::MultiSlider(
     ossia::value init,
     const QString& name,
@@ -370,6 +467,13 @@ ossia::value MultiSlider::getMin() const noexcept
 ossia::value MultiSlider::getMax() const noexcept
 {
   return domain().get().get_max();
+}
+
+void MultiSlider::setupExecution(ossia::inlet& inl) const noexcept
+{
+  auto& port = **safe_cast<ossia::value_inlet*>(&inl);
+  port.type = ossia::val_type::LIST;
+  port.domain = domain().get();
 }
 
 Bargraph::Bargraph(

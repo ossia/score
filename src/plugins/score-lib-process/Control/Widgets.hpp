@@ -81,6 +81,7 @@ struct FloatControl final
 
   void setup_exec(ossia::value_inlet& v) const
   {
+    v->type = ossia::val_type::FLOAT;
     v->domain = ossia::domain_base<float>(this->min, this->max);
   }
 
@@ -138,6 +139,7 @@ struct LogFloatControl final
 
   void setup_exec(ossia::value_inlet& v) const
   {
+    v->type = ossia::val_type::FLOAT;
     v->domain = ossia::domain_base<float>(this->min, this->max);
   }
 
@@ -191,6 +193,7 @@ struct FloatDisplay final
 
   void setup_exec(ossia::value_outlet& v) const
   {
+    v->type = ossia::val_type::FLOAT;
     v->domain = ossia::domain_base<float>(this->min, this->max);
   }
 
@@ -254,6 +257,7 @@ struct IntSlider final
 
   void setup_exec(ossia::value_inlet& v) const
   {
+    v->type = ossia::val_type::INT;
     v->domain = ossia::domain_base<int>(this->min, this->max);
   }
 };
@@ -302,6 +306,7 @@ struct IntSpinBox final
   }
   void setup_exec(ossia::value_inlet& v) const
   {
+    v->type = ossia::val_type::INT;
     v->domain = ossia::domain_base<int>(this->min, this->max);
   }
 };
@@ -340,6 +345,7 @@ struct Button final
 
   void setup_exec(ossia::value_inlet& v) const
   {
+    v->type = ossia::val_type::BOOL;
     v->domain = ossia::domain_base<bool>();
   }
 };
@@ -377,6 +383,7 @@ struct ImpulseButton final
 
   void setup_exec(ossia::value_inlet& v) const
   {
+    v->type = ossia::val_type::BOOL;
     v->domain = ossia::domain_base<ossia::impulse>();
   }
 };
@@ -416,6 +423,7 @@ struct Toggle final
 
   void setup_exec(ossia::value_inlet& v) const
   {
+    v->type = ossia::val_type::BOOL;
     v->domain = ossia::domain_base<bool>();
   }
 };
@@ -464,6 +472,7 @@ struct ChooserToggle final
   }
   void setup_exec(ossia::value_inlet& v) const
   {
+    v->type = ossia::val_type::BOOL;
     v->domain = ossia::domain_base<bool>();
   }
 };
@@ -502,7 +511,10 @@ struct LineEdit final
   {
     return deserialize_known_interface<Process::LineEdit>(id, parent);
   }
-  void setup_exec(ossia::value_inlet& v) const { }
+  void setup_exec(ossia::value_inlet& v) const
+  {
+    v->type = ossia::val_type::STRING;
+  }
 };
 
 template <typename T, std::size_t N>
@@ -551,7 +563,10 @@ struct ComboBox final
   T fromValue(const ossia::value& v) const { return ossia::convert<T>(v); }
   ossia::value toValue(T v) const { return ossia::value{std::move(v)}; }
 
-  void setup_exec(ossia::value_inlet& v) const { }
+  void setup_exec(ossia::value_inlet& v) const
+  {
+    v->type = ossia::val_type::STRING;
+  }
 };
 
 template <std::size_t N>
@@ -621,7 +636,9 @@ struct EnumBase
     return deserialize_known_interface<Process::Enum>(id, parent);
   }
 
-  void setup_exec(ossia::value_inlet& v) const { }
+  void setup_exec(ossia::value_inlet& v) const
+  {
+  }
 };
 
 template <std::size_t N>
@@ -822,6 +839,7 @@ struct XYSlider final
   void setup_exec(ossia::value_inlet& v) const
   {
     v->domain = ossia::vecf_domain<2>(min, max);
+    v->type = ossia::val_type::VEC2F;
   }
 };
 struct HSVSlider final
@@ -871,6 +889,9 @@ struct RGBAEdit final
   static const constexpr bool must_validate = false;
   using type = std::array<float, 4>;
   std::array<float, 4> init{};
-  void setup_exec(ossia::value_inlet& v) const { }
+  void setup_exec(ossia::value_inlet& v) const
+  {
+    v->type = ossia::rgba_u{};
+  }
 };
 }
