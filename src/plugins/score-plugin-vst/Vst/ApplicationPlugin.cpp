@@ -305,6 +305,8 @@ void ApplicationPlugin::scanVSTsEvent()
       proc.process->start(QProcess::ReadOnly);
       proc.scanning = true;
       proc.timer.start();
+
+      in_flight++;
     }
     else
     {
@@ -317,8 +319,6 @@ void ApplicationPlugin::scanVSTsEvent()
         continue;
       }
     }
-
-    in_flight++;
 
     if (in_flight == max_in_flight)
     {
