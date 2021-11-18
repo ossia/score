@@ -45,20 +45,6 @@ stages:
               targetPath: "$(Build.ArtifactStagingDirectory)"
               artifactName: Windows
 
-      - job: Ubuntu
-        displayName: Ubuntu
-        pool:
-          vmImage: "ubuntu-20.04"
-
-        steps:
-          - checkout: self
-            submodules: recursive
-
-          - bash: |
-              source ci/ubuntu.deps.sh
-          - bash: |
-              source ci/ubuntu.build.sh
-
       - job: AppImage
         displayName: AppImage
         pool:
