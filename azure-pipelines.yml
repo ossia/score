@@ -134,6 +134,8 @@ stages:
   - stage: Upload
     jobs:
       - job:
+        pool:
+          vmImage: "ubuntu-20.04"
         steps:
           - checkout: none
 
