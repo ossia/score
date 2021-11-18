@@ -189,16 +189,19 @@ void Component::on_scriptChange(const QString& script)
         else if (auto val_in = qobject_cast<ValueInlet*>(n))
         {
           inls.push_back(new ossia::value_inlet);
+          auto& vp = *inls.back()->target<ossia::value_port>();
 
           if (!val_in->is_control())
           {
-            inls.back()->target<ossia::value_port>()->is_event = true;
+            vp.is_event = true;
           }
           else
           {
             auto ctrl = qobject_cast<Process::ControlInlet*>(
                 process().inlets()[idx]);
             SCORE_ASSERT(ctrl);
+            vp.type = ctrl->value().get_type();
+            vp.domain = ctrl->domain().get();
 
             disconnect(ctrl, nullptr, this, nullptr);
             connect(
