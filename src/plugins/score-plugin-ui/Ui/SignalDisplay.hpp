@@ -27,7 +27,7 @@ struct Node
 
     static const constexpr value_in value_ins[]{"in"};
     static const constexpr auto control_outs
-        = std::make_tuple(Control::OutControl{"value"});
+        = tuplet::make_tuple(Control::OutControl{"value"});
   };
 
   using control_policy = ossia::safe_nodes::precise_tick;

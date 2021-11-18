@@ -36,8 +36,6 @@ find_package(Polly PATHS ${LLVM_DIR}/../Polly)
 # Based on the code in
 # https://github.com/weliveindetail/JitFromScratch
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED 17)
 # General initialization
 score_common_setup()
 
@@ -103,8 +101,6 @@ target_compile_definitions(score_plugin_jit
     SCORE_ROOT_SOURCE_DIR="${SCORE_ROOT_SOURCE_DIR}"
     SCORE_ROOT_BINARY_DIR="${SCORE_ROOT_BINARY_DIR}"
 )
-
-target_compile_options(score_plugin_jit PRIVATE -std=c++17)
 
 # Clang dependencies
 find_library(CLANG_REWRITE_FRONTEND_LIB clangRewriteFrontend)
@@ -193,20 +189,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC score_lib_process score_plugin_libr
 
 # Target-specific options
 setup_score_plugin(${PROJECT_NAME})
-if(NOT WIN32)
-  get_target_property(CF ${PROJECT_NAME} COMPILE_FEATURES)
-  if(CF)
-    list(REMOVE_ITEM CF cxx_std_20)
-    list(APPEND CF cxx_std_17)
-    set_target_properties(${PROJECT_NAME}
-      PROPERTIES
-        COMPILE_FEATURES "${CF}"
-        INTERFACE_COMPILE_FEATURES "${CF}"
-        CXX_STANDARD 17
-        CXX_STANDARD_REQUIRED ON
-    )
-  endif()
-endif()
+
 # Things to install :
 # - lib/clang/${LLVM_PACKAGE_VERSION}
 # - libc++

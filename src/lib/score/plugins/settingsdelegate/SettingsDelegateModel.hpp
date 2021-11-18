@@ -1,7 +1,7 @@
 #pragma once
 #include <score/command/SettingsCommand.hpp>
 
-#include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/for_each_in_tuple.hpp>
 
 #include <QObject>
 #include <QSettings>

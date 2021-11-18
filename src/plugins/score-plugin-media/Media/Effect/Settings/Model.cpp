@@ -13,10 +13,19 @@ SETTINGS_PARAMETER_IMPL(VstPaths)
   }
 #elif defined(__linux__)
   {
-    "/usr/lib/vst"
+    "/usr/lib/vst",
+    "/usr/lib/lxvst"
+  }
+#elif defined(_WIN32)
+  {
+    "C:\\Program Files\\VSTPlugins",
+    "C:\\Program Files\\Steinberg\\VSTPlugins",
+    "C:\\Program Files\\Common Files\\VST2",
+    "C:\\Program Files\\Common Files\\Steinberg\\VST2"
   }
 #else
   {
+    "/usr/lib/vst"
   }
 #endif
 };

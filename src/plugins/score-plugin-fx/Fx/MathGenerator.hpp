@@ -45,6 +45,8 @@ static void miniMathItem(
     const Process::Context& doc)
 {
   using namespace Process;
+  using namespace std;
+  using namespace tuplet;
   const Process::PortFactoryList& portFactory
       = doc.app.interfaces<Process::PortFactoryList>();
 
@@ -70,6 +72,8 @@ static void mathItem(
     const Process::Context& doc)
 {
   using namespace Process;
+  using namespace std;
+  using namespace tuplet;
   const Process::PortFactoryList& portFactory
       = doc.app.interfaces<Process::PortFactoryList>();
 

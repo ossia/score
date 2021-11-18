@@ -5,6 +5,7 @@
 #include <score/selection/Selection.hpp>
 
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/for_each_in_tuple.hpp>
 
 #include <Scenario/Document/DisplayedElements/DisplayedElementsContainer.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>

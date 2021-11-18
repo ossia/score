@@ -14,6 +14,7 @@
 #include <score/tools/std/Optional.hpp>
 
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/for_each_in_tuple.hpp>
 
 #include <QGuiApplication>
 
