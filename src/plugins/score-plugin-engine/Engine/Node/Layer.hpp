@@ -13,6 +13,7 @@
 #include <score/graphics/TextItem.hpp>
 
 #include <type_traits>
+#include <tuplet/tuple.hpp>
 
 namespace Control
 {
@@ -45,6 +46,9 @@ struct CustomUISetup
   template <std::size_t N>
   auto& getControl() noexcept
   {
+    using namespace std;
+    using namespace tuplet;
+
     constexpr int i
         = ossia::safe_nodes::info_functions<Info>::control_start + N;
     constexpr const auto& ctrl = get<N>(Info::Metadata::controls);
