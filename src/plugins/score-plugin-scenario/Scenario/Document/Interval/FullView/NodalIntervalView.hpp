@@ -35,6 +35,7 @@ public:
   void on_playPercentageChanged(double t, TimeVal parent_dur);
 
   void recenter();
+  void rescale();
   QRectF enclosingRect() const noexcept;
 
 private:

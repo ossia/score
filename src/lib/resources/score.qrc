@@ -682,5 +682,9 @@
         <file>fonts/sourcecodepro/SourceCodePro-SemiboldIt.ttf</file>
         <file>icons/search.png</file>
         <file>icons/search@2x.png</file>
+        <file>icons/zoom/scale_off.png</file>
+        <file>icons/zoom/scale_off@2x.png</file>
+        <file>icons/zoom/scale_on.png</file>
+        <file>icons/zoom/scale_on@2x.png</file>
     </qresource>
 </RCC>

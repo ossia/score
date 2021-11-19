@@ -22,6 +22,10 @@ ZoomItem::ZoomItem(QGraphicsItem* parent)
       = score::get_pixmap(":/icons/zoom/center_on.png");
   static const auto center_pixmap_off
       = score::get_pixmap(":/icons/zoom/center_off.png");
+  static const auto scale_pixmap_on
+      = score::get_pixmap(":/icons/zoom/scale_on.png");
+  static const auto scale_pixmap_off
+      = score::get_pixmap(":/icons/zoom/scale_off.png");
   auto zplus = new score::QGraphicsPixmapButton{
       plus_pixmap_on, plus_pixmap_off, this};
   auto zminus = new score::QGraphicsPixmapButton{
@@ -29,7 +33,10 @@ ZoomItem::ZoomItem(QGraphicsItem* parent)
   zminus->setPos({0, 18});
   auto zcenter = new score::QGraphicsPixmapButton{
       center_pixmap_on, center_pixmap_off, this};
-  zcenter->setPos({0, 36});
+  zcenter->setPos({0, 18 * 2});
+  auto zscale = new score::QGraphicsPixmapButton{
+      scale_pixmap_on, scale_pixmap_off, this};
+  zscale->setPos({0, 18 * 3});
 
   setFlag(ItemHasNoContents, true);
 
@@ -42,6 +49,11 @@ ZoomItem::ZoomItem(QGraphicsItem* parent)
       &score::QGraphicsPixmapButton::clicked,
       this,
       &ZoomItem::recenter);
+  connect(
+        zscale,
+        &score::QGraphicsPixmapButton::clicked,
+        this,
+        &ZoomItem::rescale);
 }
 
 ZoomItem::~ZoomItem() { }

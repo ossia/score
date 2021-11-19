@@ -72,6 +72,8 @@ NodalIntervalView::NodalIntervalView(
     connect(
         item, &score::ZoomItem::recenter, this, &NodalIntervalView::recenter);
     connect(
+          item, &score::ZoomItem::rescale, this, &NodalIntervalView::rescale);
+    connect(
         this, &score::EmptyRectItem::sizeChanged, this, &NodalIntervalView::recenter);
   }
 }
@@ -85,6 +87,21 @@ void NodalIntervalView::recenter()
   double h_ratio = parentRect.height() / childRect.height();
   double z = std::clamp(std::min(w_ratio, h_ratio), 0.01, 1.0);
   m_container->setScale(z);
+
+  auto childCenter
+      = m_container->mapRectToParent(childRect).center() - m_container->pos();
+  auto ourCenter = parentRect.center();
+  auto delta = ourCenter - childCenter;
+
+  m_container->setPos(delta);
+}
+
+void NodalIntervalView::rescale()
+{
+  auto parentRect = boundingRect();
+  auto childRect = enclosingRect();
+
+  m_container->setScale(1.0);
 
   auto childCenter
       = m_container->mapRectToParent(childRect).center() - m_container->pos();

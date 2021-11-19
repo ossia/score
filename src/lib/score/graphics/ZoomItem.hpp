@@ -26,6 +26,7 @@ public:
   void zoom() E_SIGNAL(SCORE_LIB_BASE_EXPORT, zoom)
   void dezoom() E_SIGNAL(SCORE_LIB_BASE_EXPORT, dezoom)
   void recenter() E_SIGNAL(SCORE_LIB_BASE_EXPORT, recenter)
+  void rescale() E_SIGNAL(SCORE_LIB_BASE_EXPORT, rescale)
 };
 
 }
