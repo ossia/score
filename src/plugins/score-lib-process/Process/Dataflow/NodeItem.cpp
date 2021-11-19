@@ -67,6 +67,36 @@ NodeItem::NodeItem(
   setFlag(ItemIsFocusable, true);
   setFlag(ItemClipsChildrenToShape, true);
 
+  if(process.flags() & Process::ProcessFlags::FullyCustomItem)
+  {
+    createWithoutDecorations();
+  }
+  else
+  {
+    createWithDecorations();
+  }
+
+  ::bind(
+      process, Process::ProcessModel::p_position{}, this, [this](QPointF p) {
+        if (p != pos())
+          setPos(p);
+      });
+
+  // TODO review the resizing heuristic...
+  if (m_presenter)
+  {
+    ::bind(process, Process::ProcessModel::p_size{}, this, [this](QSizeF s) {
+      if (s != m_contentSize)
+        setSize(s);
+    });
+  }
+}
+
+void NodeItem::createWithDecorations()
+{
+  auto& process = m_model;
+  auto& ctx = m_context;
+
   // Title
   const auto& pixmaps = Process::Pixmaps::instance();
   m_fold = new score::QGraphicsPixmapToggle{
@@ -119,9 +149,9 @@ NodeItem::NodeItem(
 
   // Selection
   con(process.selection, &Selectable::changed, this, &NodeItem::setSelected);
+  m_selected = process.selection.get();
 
   createContentItem();
-  m_selected = process.selection.get();
 
   resetInlets();
   resetOutlets();
@@ -165,21 +195,16 @@ NodeItem::NodeItem(
   });
 
   updateSize();
+}
 
-  ::bind(
-      process, Process::ProcessModel::p_position{}, this, [this](QPointF p) {
-        if (p != pos())
-          setPos(p);
-      });
+void NodeItem::createWithoutDecorations()
+{
+  auto& process = m_model;
 
-  // TODO review the resizing heuristic...
-  if (m_presenter)
-  {
-    ::bind(process, Process::ProcessModel::p_size{}, this, [this](QSizeF s) {
-      if (s != m_contentSize)
-        setSize(s);
-    });
-  }
+  con(process.selection, &Selectable::changed, this, &NodeItem::setSelected);
+  m_selected = process.selection.get();
+
+  createContentItem();
 }
 
 void NodeItem::resetInlets()
@@ -187,7 +212,7 @@ void NodeItem::resetInlets()
   qDeleteAll(m_inlets);
   m_inlets.clear();
   const qreal x = InletX0;
-  qreal y = InletY0;
+  qreal y = m_label ? InletY0 : InletY0 - 10.;
   auto& portFactory
       = score::GUIAppContext().interfaces<Process::PortFactoryList>();
   for (Process::Inlet* port : m_model.inlets())
@@ -207,6 +232,9 @@ void NodeItem::resetInlets()
 
 void NodeItem::updateTitlePos()
 {
+  if(!m_label)
+    return;
+
   double x0 = FoldX0;
   if (!m_inlets.empty())
     x0 += InletX0;
@@ -232,7 +260,7 @@ void NodeItem::resetOutlets()
   qDeleteAll(m_outlets);
   m_outlets.clear();
   const qreal x = m_contentSize.width() + OutletX0;
-  qreal y = OutletY0;
+  qreal y = m_label ? OutletY0 : OutletY0 - 10.;
 
   auto& portFactory
       = score::AppContext().interfaces<Process::PortFactoryList>();
@@ -268,20 +296,27 @@ void NodeItem::setSelected(bool s)
 
 QRectF NodeItem::boundingRect() const
 {
-  double x = 0;
-  double y = -TitleHeight;
-  double w = m_contentSize.width();
-  const double h = m_contentSize.height() + TitleHeight + FooterHeight;
-  if (!m_inlets.empty())
+  if(!m_label)
   {
-    x -= LeftSideWidth;
-    w += LeftSideWidth;
+    return {0, 0, m_contentSize.width() + RightSideWidth, m_contentSize.height() + FooterHeight};
   }
-  //if(!m_outlets.empty())
+  else
   {
-    w += RightSideWidth;
+    double x = 0;
+    double y = -TitleHeight;
+    double w = m_contentSize.width();
+    const double h = m_contentSize.height() + TitleHeight + FooterHeight;
+    if (!m_inlets.empty())
+    {
+      x -= LeftSideWidth;
+      w += LeftSideWidth;
+    }
+    //if(!m_outlets.empty())
+    {
+      w += RightSideWidth;
+    }
+    return {x, y, w, h};
   }
-  return {x, y, w, h};
 }
 
 void NodeItem::createContentItem()
@@ -345,11 +380,14 @@ void NodeItem::createContentItem()
 
 double NodeItem::minimalContentWidth() const noexcept
 {
-  return std::max(100.0, TitleWithUiX0 + m_label->boundingRect().width() + 6.);
+  if(Q_UNLIKELY(!m_label))
+    return 30.;
+  else
+    return std::max(100.0, TitleWithUiX0 + m_label->boundingRect().width() + 6.);
 }
 double NodeItem::minimalContentHeight() const noexcept
 {
-  double h = 10.;
+  double h = 22.;
   if(!m_inlets.empty())
     h = std::max(h, m_inlets.back()->y() + 10.);
   if(!m_outlets.empty())
@@ -359,6 +397,9 @@ double NodeItem::minimalContentHeight() const noexcept
 
 void NodeItem::updateSize()
 {
+  if(!m_label)
+    return;
+
   auto sz = m_fx ? m_fx->boundingRect().size() : QSizeF{minimalContentWidth(), minimalContentHeight()};
 
   //if (sz != m_contentSize || !m_fx)

@@ -101,7 +101,7 @@ struct Metadata<Process::Descriptor_k, Control::ControlProcess<Info>>
   {
     static Process::Descriptor desc{
         Info::Metadata::prettyName,
-        Info::Metadata::kind,
+        (Process::ProcessCategory)Info::Metadata::kind,
         Info::Metadata::category,
         Info::Metadata::description,
         Info::Metadata::author,
@@ -114,7 +114,9 @@ struct Metadata<Process::Descriptor_k, Control::ControlProcess<Info>>
 template <typename Info>
 struct Metadata<Process::ProcessFlags_k, Control::ControlProcess<Info>>
 {
-  static Process::ProcessFlags get() noexcept { return Info::Metadata::flags; }
+  static Process::ProcessFlags get() noexcept {
+    return (Process::ProcessFlags) Info::Metadata::flags;
+  }
 };
 template <typename Info>
 struct Metadata<ObjectKey_k, Control::ControlProcess<Info>>

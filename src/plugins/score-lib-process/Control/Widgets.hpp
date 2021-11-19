@@ -38,6 +38,36 @@ struct OutControl final : ossia::safe_nodes::control_out
   const ossia::value& toValue(const ossia::value& v) const { return v; }
 };
 
+struct InControl final : ossia::safe_nodes::control_in
+{
+  static const constexpr bool must_validate = false;
+  using type = ossia::value;
+
+  constexpr InControl(const char* name)
+    : ossia::safe_nodes::control_in{name}
+  {
+  }
+
+  auto create_inlet(Id<Process::Port> id, QObject* parent) const
+  {
+    return new Process::ControlInlet{id, parent};
+  }
+  auto create_inlet(DataStream::Deserializer& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::ControlInlet>(id, parent);
+  }
+  auto create_inlet(JSONObject::Deserializer&& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::ControlInlet>(id, parent);
+  }
+
+  void setup_exec(ossia::value_inlet& v) const
+  {
+  }
+  const ossia::value& fromValue(const ossia::value& v) const { return v; }
+  const ossia::value& toValue(const ossia::value& v) const { return v; }
+};
+
 template <typename Model_T, typename T>
 struct FloatControl final
     : ossia::safe_nodes::control_in

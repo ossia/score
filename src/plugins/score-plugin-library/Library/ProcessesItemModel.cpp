@@ -40,7 +40,8 @@ void ProcessesItemModel::rescan()
   std::map<QString, std::vector<Process::ProcessModelFactory*>> sorted;
   for (Process::ProcessModelFactory& proc : procs)
   {
-    sorted[proc.category()].push_back(&proc);
+    if(!(proc.descriptor({}).category & Process::ProcessCategory::Deprecated))
+      sorted[proc.category()].push_back(&proc);
   }
 
   beginResetModel();

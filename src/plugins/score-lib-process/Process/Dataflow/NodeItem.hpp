@@ -50,8 +50,13 @@ public:
   const Process::ProcessModel& model() const noexcept;
 
 private:
-  void updateZoomRatio() const noexcept;
+  void createWithDecorations();
   void createContentItem();
+
+  void createWithoutDecorations();
+  void createCustomContentItem();
+
+  void updateZoomRatio() const noexcept;
   void updateSize();
   void setSize(QSizeF sz);
 

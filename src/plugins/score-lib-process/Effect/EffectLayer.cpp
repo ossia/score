@@ -32,29 +32,6 @@ EffectLayerView::~EffectLayerView() { }
 
 void EffectLayerView::paint_impl(QPainter*) const { }
 
-void EffectLayerView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
-{
-  if (ev->button() == Qt::RightButton)
-  {
-    askContextMenu(ev->screenPos(), ev->scenePos());
-  }
-  else
-  {
-    pressed(ev->scenePos());
-  }
-  ev->accept();
-}
-
-void EffectLayerView::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
-{
-  ev->accept();
-}
-
-void EffectLayerView::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
-{
-  ev->accept();
-}
-
 EffectLayerPresenter::EffectLayerPresenter(
     const ProcessModel& model,
     Process::LayerView* view,

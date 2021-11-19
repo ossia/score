@@ -36,6 +36,9 @@ enum ProcessFlags : int64_t
   //! The process supports being exposed to the ControlSurface
   ControlSurface =     SCORE_FLAG(6),
 
+  //! The process's item handles all the decoration (won't be title, etc)
+  FullyCustomItem =     SCORE_FLAG(7),
+
   SupportsLasting = SupportsTemporal | TimeIndependent,
   ExternalEffect = SupportsTemporal | TimeIndependent | RequiresCustomData | ControlSurface,
   SupportsAll = SupportsTemporal | TimeIndependent | SupportsState

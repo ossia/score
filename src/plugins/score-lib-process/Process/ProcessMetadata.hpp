@@ -29,6 +29,7 @@ enum ProcessCategory
   Script,      // JS, PD, etc
   Structure,   // scenario, loop, etc
   Visual,      // gfx processes
+  Deprecated = (1LL << 63),      // gfx processes
 };
 
 struct Descriptor

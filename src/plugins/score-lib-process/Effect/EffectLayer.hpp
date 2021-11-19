@@ -20,9 +20,6 @@ public:
 
 private:
   void paint_impl(QPainter*) const override;
-  void mousePressEvent(QGraphicsSceneMouseEvent* ev) override;
-  void mouseMoveEvent(QGraphicsSceneMouseEvent* ev) override;
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent* ev) override;
 };
 
 class SCORE_LIB_PROCESS_EXPORT EffectLayerPresenter final

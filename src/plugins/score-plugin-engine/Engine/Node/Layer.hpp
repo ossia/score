@@ -38,6 +38,7 @@ template <typename Info>
 struct CustomUISetup
 {
   const Process::Inlets& inlets;
+  const Process::Outlets& outlets;
   const Process::ProcessModel& process;
   QGraphicsItem& parent;
   QObject& context;
@@ -56,26 +57,43 @@ struct CustomUISetup
     return static_cast<port_type&>(*inlets[i]);
   }
 
-  template <std::size_t... C>
-  void make(const std::index_sequence<C...>&) noexcept
+  template <std::size_t N>
+  auto& getControlOut() noexcept
   {
-    Info::item(getControl<C>()..., process, parent, context, doc);
+    using namespace std;
+    using namespace tuplet;
+
+    constexpr int i
+        = ossia::safe_nodes::info_functions<Info>::control_out_start + N;
+    constexpr const auto& ctrl = get<N>(Info::Metadata::control_outs);
+    using port_type = decltype(*ctrl.create_outlet(Id<Process::Port>{}, nullptr));
+    return static_cast<port_type&>(*outlets[i]);
+  }
+
+  template <std::size_t... CI, std::size_t... CO>
+  void make(std::index_sequence<CI...>, std::index_sequence<CO...>) noexcept
+  {
+    Info::item(getControl<CI>()..., getControlOut<CO>()..., process, parent, context, doc);
   }
 
   CustomUISetup(
       const Process::Inlets& inlets,
+      const Process::Outlets& outlets,
       const Process::ProcessModel& process,
       QGraphicsItem& parent,
       QObject& context,
       const Process::Context& doc)
       : inlets{inlets}
+      , outlets{outlets}
       , process{process}
       , parent{parent}
       , context{context}
       , doc{doc}
   {
-    make(std::make_index_sequence<
-         ossia::safe_nodes::info_functions<Info>::control_count>{});
+    make(
+          std::make_index_sequence<ossia::safe_nodes::info_functions<Info>::control_count>{},
+          std::make_index_sequence<ossia::safe_nodes::info_functions<Info>::control_out_count>{}
+         );
   }
 };
 
@@ -191,7 +209,7 @@ private:
 
       if constexpr (HasCustomUI<Info>::value)
       {
-        Control::CustomUISetup<Info>{lm.inlets(), lm, *view, *view, context};
+        Control::CustomUISetup<Info>{lm.inlets(), lm.outlets(), lm, *view, *view, context};
       }
       else if constexpr (
           ossia::safe_nodes::info_functions<Info>::control_count > 0)
@@ -208,21 +226,28 @@ private:
       const Process::Context& ctx,
       QGraphicsItem* parent) const final override
   {
-    auto rootItem = new score::EmptyRectItem{parent};
-
-    if constexpr (HasCustomUI<Info>::value)
+    if constexpr (HasCustomLayer<Info>::value)
     {
-      Control::CustomUISetup<Info>{
-          proc.inlets(), proc, *rootItem, *rootItem, ctx};
+      // We want to go through the makeLayerPresenter case here
+      return nullptr;
     }
-    else if constexpr (
-        ossia::safe_nodes::info_functions<Info>::control_count > 0)
+    else
     {
-      Control::AutoUISetup{Info{}, proc.inlets(), *rootItem, *rootItem, ctx};
-    }
+      auto rootItem = new score::EmptyRectItem{parent};
+      if constexpr (HasCustomUI<Info>::value)
+      {
+        Control::CustomUISetup<Info>{
+            proc.inlets(), proc.outlets(), proc, *rootItem, *rootItem, ctx};
+      }
+      else if constexpr (
+          ossia::safe_nodes::info_functions<Info>::control_count > 0)
+      {
+        Control::AutoUISetup{Info{}, proc.inlets(), *rootItem, *rootItem, ctx};
+      }
 
-    rootItem->setRect(rootItem->childrenBoundingRect());
-    return rootItem;
+      rootItem->setRect(rootItem->childrenBoundingRect());
+      return rootItem;
+    }
   }
 };
 }
