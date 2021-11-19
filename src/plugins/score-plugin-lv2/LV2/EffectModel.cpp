@@ -643,6 +643,11 @@ void LV2EffectComponent::lazy_init()
     node->fInControls[i - proc.m_controlInStart]
         = ossia::convert<float>(inlet->value());
     auto inl = node->root_inputs()[i];
+
+    auto& vp = *inl->target<ossia::value_port>();
+    vp.type = inlet->value().get_type();
+    vp.domain = inlet->domain().get();
+
     connect(
         inlet,
         &Process::ControlInlet::valueChanged,

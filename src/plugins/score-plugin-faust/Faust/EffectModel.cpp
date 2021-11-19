@@ -551,6 +551,10 @@ void FaustEffectComponent::setupExecutionControls(
     *node->controls[i - firstControlIndex].second
         = ossia::convert<float>(inlet->value());
     auto inl = this->node->root_inputs()[i];
+    auto& vp = *inl->target<ossia::value_port>();
+    vp.type = inlet->value().get_type();
+    vp.domain = inlet->domain().get();
+
     auto c = connect(
         inlet,
         &Process::ControlInlet::valueChanged,
@@ -598,6 +602,10 @@ void FaustEffectComponent::setupExecutionControlOutlets(
     *node->displays[i - firstControlIndex].second
         = ossia::convert<float>(outlet->value());
     auto outl = this->node->root_outputs()[i];
+    auto& vp = *outl->target<ossia::value_port>();
+    vp.type = outlet->value().get_type();
+    vp.domain = outlet->domain().get();
+
     auto c = connect(
         outlet,
         &Process::ControlOutlet::valueChanged,
