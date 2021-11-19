@@ -214,7 +214,7 @@ public:
       ossia::exec_state_facade f) noexcept override
   {
     ossia::audio_port& o = *audio_out;
-    o.samples.resize(2);
+    o.set_channels(2);
     o.samples[0].resize(f.bufferSize());
     double* data = o.samples[0].data();
     int N = f.bufferSize();

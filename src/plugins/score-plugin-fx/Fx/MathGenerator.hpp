@@ -301,7 +301,7 @@ struct Node
 
       const int chans = 2;
       self.reset_symbols(chans);
-      output.samples.resize(chans);
+      output.set_channels(chans);
       for (int j = 0; j < chans; j++)
       {
         auto& out = output.samples[j];

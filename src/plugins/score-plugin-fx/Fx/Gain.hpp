@@ -32,7 +32,7 @@ struct Node
       ossia::exec_state_facade st)
   {
     const auto chans = p1.samples.size();
-    p2.samples.resize(chans);
+    p2.set_channels(chans);
 
     const auto [first_pos, N] = st.timings(t);
 

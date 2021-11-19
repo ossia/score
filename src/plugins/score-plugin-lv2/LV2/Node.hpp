@@ -494,7 +494,7 @@ struct lv2_node final : public ossia::graph_node
       {
         auto& audio_out
             = static_cast<ossia::audio_outlet*>(m_outlets[0])->data;
-        audio_out.samples.resize(audio_outs);
+        audio_out.set_channels(audio_outs);
         for (std::size_t i = 0; i < audio_outs; i++)
         {
           audio_out.samples[i].clear();
