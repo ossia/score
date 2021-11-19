@@ -1,9 +1,11 @@
 #pragma once
 #include <Engine/Node/SimpleApi.hpp>
+#include <Effect/EffectLayout.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 
+#include <ossia/network/value/format_value.hpp>
 #include <QPainter>
 
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 namespace Ui
 {
 
@@ -136,6 +138,92 @@ struct Node
           p0 = p1;
         }
       }
+
+      p->setRenderHint(QPainter::Antialiasing, false);
+    }
+  };
+};
+}
+
+
+namespace Display
+{
+struct Node
+{
+  struct Metadata : Control::Meta_base
+  {
+    static const constexpr auto prettyName = "Value display";
+    static const constexpr auto objectKey = "Display";
+    static const constexpr auto category = "Monitoring";
+    static const constexpr auto author = "ossia score";
+    static const constexpr auto tags = std::array<const char*, 0>{};
+    static const constexpr auto kind = Process::ProcessCategory::Analyzer;
+    static const constexpr auto description = "Visualize an input value";
+    static const constexpr auto flags = Process::ProcessFlags::TimeIndependent | Process::ProcessFlags::FullyCustomItem;
+    static const uuid_constexpr auto uuid
+        = make_uuid("3f4a41f2-fa39-420f-ab0f-0af6b8409edb");
+
+    static const constexpr auto controls
+        = tuplet::make_tuple(Control::InControl{"value"});
+  };
+
+  using control_policy = ossia::safe_nodes::default_tick;
+
+  static void
+  run(const ossia::timed_vec<ossia::value>& in,
+      ossia::token_request tk,
+      ossia::exec_state_facade st)
+  {
+  }
+
+  struct Layer : public Process::EffectLayerView
+  {
+  public:
+    ossia::value m_value;
+
+    Layer(
+        const Process::ProcessModel& process,
+        const Process::Context& doc,
+        QGraphicsItem* parent)
+        : Process::EffectLayerView{parent}
+    {
+      setAcceptedMouseButtons({});
+
+      const Process::PortFactoryList& portFactory
+          = doc.app.interfaces<Process::PortFactoryList>();
+
+      auto inl
+          = static_cast<Process::ControlInlet*>(process.inlets().front());
+
+      auto fact = portFactory.get(inl->concreteKey());
+      auto port = fact->makeItem(*inl, doc, this, this);
+      port->setPos(0, 5);
+
+      connect(
+            inl,
+            &Process::ControlInlet::executionValueChanged,
+            this,
+            [this](const ossia::value& v) {
+        m_value = v;
+        update();
+      });
+    }
+
+    void reset()
+    {
+      m_value = ossia::value{};
+      update();
+    }
+
+    void paint_impl(QPainter* p) const override
+    {
+      if (!m_value.valid())
+        return;
+
+      p->setRenderHint(QPainter::Antialiasing, true);
+      p->setPen(score::Skin::instance().Light.main.pen1_solid_flat_miter);
+
+      p->drawText(QPoint(15, 15), QString::fromStdString(fmt::format("{}", m_value)));
 
       p->setRenderHint(QPainter::Antialiasing, false);
     }

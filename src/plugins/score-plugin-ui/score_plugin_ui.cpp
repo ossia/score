@@ -16,7 +16,10 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_ui::factories(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& key) const
 {
-  return Control::instantiate_fx<Ui::SignalDisplay::Node>(ctx, key);
+  return Control::instantiate_fx<
+        Ui::SignalDisplay::Node
+      , Ui::Display::Node
+      >(ctx, key);
 }
 
 auto score_plugin_ui::required() const -> std::vector<score::PluginKey>
