@@ -233,19 +233,19 @@ struct Node
       const auto samplesRatio = st.modelToSamples();
       const auto [tick_start, count] = st.timings(tk);
 
-      if (input.samples.empty())
+      if (input.empty())
         return;
 
       const auto min_count
-          = std::min((int64_t)input.samples[0].size() - tick_start, count);
+          = std::min((int64_t)input.channel(0).size() - tick_start, count);
 
-      const int chans = input.samples.size();
+      const int chans = input.channels();
       self.reset_symbols(chans);
       output.set_channels(chans);
 
       for (int j = 0; j < chans; j++)
       {
-        auto& out = output.samples[j];
+        auto& out = output.channel(j);
         out.resize(st.bufferSize());
       }
 
@@ -258,7 +258,7 @@ struct Node
       {
         for (int j = 0; j < chans; j++)
         {
-          self.cur_in[j] = input.samples[j][tick_start + i];
+          self.cur_in[j] = input.channel(j)[tick_start + i];
         }
         self.cur_time = start_sample + i;
 
@@ -268,7 +268,7 @@ struct Node
         // Apply the output
         for (int j = 0; j < chans; j++)
         {
-          output.samples[j][tick_start + i] = self.cur_out[j];
+          output.channel(j)[tick_start + i] = self.cur_out[j];
         }
         std::swap(self.cur_in, self.prev_in);
       }

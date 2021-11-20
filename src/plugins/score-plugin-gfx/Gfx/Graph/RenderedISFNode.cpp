@@ -1008,9 +1008,12 @@ void SimpleRenderedISFNode::update(
   }
 
   // Update audio textures
+  if(!n.m_audio_textures.empty())
+    m_audioTex.emplace();
+
   for (auto& audio : n.m_audio_textures)
   {
-    if(std::optional<Sampler> sampl = m_audioTex.updateAudioTexture(audio, renderer, res))
+    if(std::optional<Sampler> sampl = m_audioTex->updateAudioTexture(audio, renderer, res))
     {
       auto &[rhiSampler, tex] = *sampl;
       for(auto& [e, pass] : m_passes)

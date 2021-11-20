@@ -176,6 +176,6 @@ private:
   int m_materialSize{};
   int64_t materialChangedIndex{-1};
 
-  AudioTextureUpload m_audioTex;
+  std::optional<AudioTextureUpload> m_audioTex;
 };
 }

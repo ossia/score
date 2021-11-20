@@ -88,7 +88,7 @@ void gfx_exec_node::run(
       case ossia::audio_port::which:
       {
         auto& p = inlet->cast<ossia::audio_port>();
-        msg.input[inlet_i] = std::move(p.samples);
+        msg.input[inlet_i] = std::move(p.get());
         break;
       }
     }

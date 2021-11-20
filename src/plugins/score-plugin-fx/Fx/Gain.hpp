@@ -31,7 +31,7 @@ struct Node
       ossia::token_request t,
       ossia::exec_state_facade st)
   {
-    const auto chans = p1.samples.size();
+    const auto chans = p1.channels();
     p2.set_channels(chans);
 
     const auto [first_pos, N] = st.timings(t);
@@ -39,8 +39,8 @@ struct Node
     const double gain = g;
     for (std::size_t i = 0; i < chans; i++)
     {
-      auto& in = p1.samples[i];
-      auto& out = p2.samples[i];
+      auto& in = p1.channel(i);
+      auto& out = p2.channel(i);
 
       const int64_t samples = in.size();
       int64_t max = std::min(N, samples);

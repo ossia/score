@@ -61,42 +61,42 @@ public:
   auto& prepareInput(int64_t offset, int64_t samples)
   {
     const auto bs = offset + samples;
-    auto& ip = m_inlets[0]->template target<ossia::audio_port>()->samples;
-    switch (ip.size())
+    auto& p = *m_inlets[0]->template target<ossia::audio_port>();
+    switch (p.channels())
     {
       case 0:
       {
-        ip.resize(2);
-        ip[0].resize(bs);
-        ip[1].resize(bs);
+        p.set_channels(2);
+        p.channel(0).resize(bs);
+        p.channel(1).resize(bs);
         break;
       }
       case 1:
       {
-        ip.resize(2);
-        ip[0].resize(bs);
-        ip[1].assign(ip[0].begin(), ip[0].end());
+        p.set_channels(2);
+        p.channel(0).resize(bs);
+        p.channel(1).assign(p.channel(0).begin(), p.channel(0).end());
         break;
       }
       default:
       {
-        for (auto& i : ip)
+        for (auto& i : p)
           i.resize(bs);
         break;
       }
     }
 
-    return ip;
+    return p.get();
   }
 
   auto& prepareOutput(int64_t offset, int64_t samples)
   {
     const auto bs = offset + samples;
-    auto& op = m_outlets[0]->template target<ossia::audio_port>()->samples;
-    op.resize(2);
-    for (auto& chan : op)
+    auto& p = *m_outlets[0]->template target<ossia::audio_port>();
+    p.set_channels(2);
+    for (auto& chan : p)
       chan.resize(bs);
-    return op;
+    return p.get();
   }
 
   void
@@ -325,7 +325,7 @@ public:
       // upmix mono VSTs to stereo
       if (this->fx->fx->numOutputs == 1)
       {
-        auto& op = m_outlets[0]->template target<ossia::audio_port>()->samples;
+        auto& op = m_outlets[0]->template target<ossia::audio_port>()->get();
         op[1].assign(op[0].begin(), op[0].end());
       }
     }

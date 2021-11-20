@@ -93,7 +93,8 @@ public:
           });
     }
 
-    auto& ap = audio_out.target<audio_port>()->samples;
+    audio_out.target<audio_port>()->set_channels(2);
+    auto& ap = audio_out.target<audio_port>()->get();
 
     auto render_sound =
         [&ap, &tk, &st](

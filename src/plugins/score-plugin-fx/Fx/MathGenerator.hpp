@@ -304,7 +304,7 @@ struct Node
       output.set_channels(chans);
       for (int j = 0; j < chans; j++)
       {
-        auto& out = output.samples[j];
+        auto& out = output.channel(j);
         out.resize(st.bufferSize());
       }
 
@@ -323,7 +323,7 @@ struct Node
         // Apply the output
         for (int j = 0; j < chans; j++)
         {
-          output.samples[j][tick_start + i] = self.cur_out[j];
+          output.channel(j)[tick_start + i] = self.cur_out[j];
         }
       }
     }

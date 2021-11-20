@@ -289,14 +289,14 @@ struct Node
       int64_t N)
   {
     // Copy input to output, and append input to buffer
-    const auto chans = p1.samples.size();
+    const auto chans = p1.channels();
     p2.set_channels(chans);
     state.audio.resize(chans);
 
     int64_t k = state.playbackPos;
     for (std::size_t i = 0; i < chans; i++)
     {
-      auto& out = p2.samples[i];
+      auto& out = p2.channel(i);
       auto& record = state.audio[i];
 
       out.resize(N);
@@ -339,13 +339,13 @@ struct Node
       int64_t first_pos,
       int64_t N)
   {
-    const auto chans = p1.samples.size();
+    const auto chans = p1.channels();
     p2.set_channels(chans);
 
     for (std::size_t i = 0; i < chans; i++)
     {
-      auto& in = p1.samples[i];
-      auto& out = p2.samples[i];
+      auto& in = p1.channel(i);
+      auto& out = p2.channel(i);
 
       const int64_t samples = in.size();
       int64_t max = std::min(N, samples);
@@ -367,14 +367,14 @@ struct Node
       int64_t N)
   {
     // Copy input to output, and append input to buffer
-    const auto chans = p1.samples.size();
+    const auto chans = p1.channels();
     p2.set_channels(chans);
     state.audio.resize(chans);
 
     for (std::size_t i = 0; i < chans; i++)
     {
-      auto& in = p1.samples[i];
-      auto& out = p2.samples[i];
+      auto& in = p1.channel(i);
+      auto& out = p2.channel(i);
       auto& record = state.audio[i];
 
       const int64_t samples = in.size();
@@ -402,13 +402,13 @@ struct Node
       int64_t N)
   {
     // Copy input to output, and append input to buffer
-    const auto chans = p1.samples.size();
+    const auto chans = p1.channels();
     p2.set_channels(chans);
     state.audio.resize(chans);
 
     for (std::size_t i = 0; i < chans; i++)
     {
-      auto& in = p1.samples[i];
+      auto& in = p1.channel(i);
       auto& record = state.audio[i];
 
       const int64_t samples = in.size();
@@ -437,14 +437,14 @@ struct Node
     //! extending ?
 
     // Copy input to output, and append input to buffer
-    const auto chans = p1.samples.size();
+    const auto chans = p1.channels();
     p2.set_channels(chans);
     state.audio.resize(chans);
 
     for (std::size_t i = 0; i < chans; i++)
     {
-      auto& in = p1.samples[i];
-      auto& out = p2.samples[i];
+      auto& in = p1.channel(i);
+      auto& out = p2.channel(i);
       auto& record = state.audio[i];
 
       const int64_t samples = in.size();
@@ -476,14 +476,14 @@ struct Node
     //! extending ?
 
     // Copy input to output, and append input to buffer
-    const auto chans = p1.samples.size();
+    const auto chans = p1.channels();
     p2.set_channels(chans);
     state.audio.resize(chans);
 
     for (std::size_t i = 0; i < chans; i++)
     {
-      auto& in = p1.samples[i];
-      auto& out = p2.samples[i];
+      auto& in = p1.channel(i);
+      auto& out = p2.channel(i);
       auto& record = state.audio[i];
 
       const int64_t samples = in.size();

@@ -215,8 +215,8 @@ public:
   {
     ossia::audio_port& o = *audio_out;
     o.set_channels(2);
-    o.samples[0].resize(f.bufferSize());
-    double* data = o.samples[0].data();
+    o.channel(0).resize(f.bufferSize());
+    double* data = o.channel(0).data();
     int N = f.bufferSize();
 
     if (func)
@@ -224,7 +224,7 @@ public:
       func(data, N, time);
     }
     time += N;
-    o.samples[1] = o.samples[0];
+    o.channel(1) = o.channel(0);
   }
 
   int time = 0;

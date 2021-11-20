@@ -96,7 +96,7 @@ struct Node
       ossia::token_request,
       ossia::exec_state_facade)
   {
-    p2.samples = p1.samples;
+    p2 = p1;
   }
 };
 }

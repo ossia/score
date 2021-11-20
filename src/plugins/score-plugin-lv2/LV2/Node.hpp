@@ -464,13 +464,13 @@ struct lv2_node final : public ossia::graph_node
         for (std::size_t i = 0; i < audio_ins; i++)
         {
           in_vec[i].resize(samples);
-          if (audio_in.samples.size() > i)
+          if (audio_in.channels() > i)
           {
             for (std::size_t j = 0;
-                 j < std::min(std::size_t(samples), audio_in.samples[i].size());
+                 j < std::min(std::size_t(samples), audio_in.channel(i).size());
                  j++)
             {
-              in_vec[i][j] = (float)audio_in.samples[i][j];
+              in_vec[i][j] = (float)audio_in.channel(i)[j];
             }
           }
           lilv_instance_connect_port(
@@ -497,11 +497,11 @@ struct lv2_node final : public ossia::graph_node
         audio_out.set_channels(audio_outs);
         for (std::size_t i = 0; i < audio_outs; i++)
         {
-          audio_out.samples[i].clear();
-          audio_out.samples[i].reserve(samples);
+          audio_out.channel(i).clear();
+          audio_out.channel(i).reserve(samples);
           for (int64_t j = 0; j < samples; j++)
           {
-            audio_out.samples[i].push_back((double)out_vec[i][j]);
+            audio_out.channel(i).push_back((double)out_vec[i][j]);
           }
         }
       }

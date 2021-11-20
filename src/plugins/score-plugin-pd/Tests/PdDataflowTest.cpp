@@ -138,9 +138,9 @@ private:
   //      samples.resize(samples.size() + 128);
   //      /* TODO reinstate me with channels
   //      for(int i = 0; i < 64; i++)
-  //        samples[pos + i * 2] += audio_l.samples[i];
+  //        samples[pos + i * 2] += audio_l.channel(i);
   //      for(int i = 0; i < 64; i++)
-  //        samples[pos + i * 2 + 1] += audio_r.samples[i];
+  //        samples[pos + i * 2 + 1] += audio_r.channel(i);
   //        */
   //    };
 

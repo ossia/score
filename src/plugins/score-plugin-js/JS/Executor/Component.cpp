@@ -415,7 +415,7 @@ void js_node::run(
   // Copy audio
   for (std::size_t inl_i = 0; inl_i < m_audInlets.size(); inl_i++)
   {
-    auto& dat = m_audInlets[inl_i].second->target<ossia::audio_port>()->samples;
+    auto& dat = m_audInlets[inl_i].second->target<ossia::audio_port>()->get();
 
     const int dat_size = std::ssize(dat);
     QVector<QVector<double>> audio(dat_size);
@@ -528,7 +528,7 @@ void js_node::run(
   for (std::size_t out = 0; out < m_audOutlets.size(); out++)
   {
     auto& src = m_audOutlets[out].first->audio();
-    auto& snk = m_audOutlets[out].second->target<ossia::audio_port>()->samples;
+    auto& snk = m_audOutlets[out].second->target<ossia::audio_port>()->get();
     snk.resize(src.size());
     for (int chan = 0; chan < src.size(); chan++)
     {

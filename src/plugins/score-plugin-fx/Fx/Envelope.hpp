@@ -57,13 +57,13 @@ struct Node
       ossia::exec_state_facade e)
   {
     const auto [tick_start, d] = e.timings(tk);
-    switch (audio.samples.size())
+    switch (audio.channels())
     {
       case 0:
         return;
       case 1:
       {
-        auto [rms, peak] = get(audio.samples[0]);
+        auto [rms, peak] = get(audio.channel(0));
 
         rms_port.write_value(rms, tick_start);
         peak_port.write_value(peak, tick_start);
@@ -72,10 +72,10 @@ struct Node
       default:
       {
         std::vector<ossia::value> peak_vec;
-        peak_vec.reserve(audio.samples.size());
+        peak_vec.reserve(audio.channels());
         std::vector<ossia::value> rms_vec;
-        rms_vec.reserve(audio.samples.size());
-        for (auto& c : audio.samples)
+        rms_vec.reserve(audio.channels());
+        for (auto& c : audio)
         {
           auto [rms, peak] = get(c);
           rms_vec.push_back(rms);

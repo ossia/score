@@ -377,11 +377,11 @@ public:
   auto&
   preparePort(ossia::audio_port& port, int numChannels, std::size_t samples)
   {
-    auto& ip = port.samples;
-    ip.resize(numChannels);
-    for (auto& i : ip)
+    port.set_channels(numChannels);
+
+    for (auto& i : port)
       i.resize(samples);
-    return ip;
+    return port.get();
   }
 
   void
@@ -622,7 +622,7 @@ public:
               = *m_outlets[i]->template target<ossia::audio_port>();
           for (int k = 0; k < numChannels; k++)
           {
-            auto& audio_out = port.samples[k];
+            auto& audio_out = port.channel(k);
             std::copy_n(float_v[float_k].data(), samples, audio_out.data());
           }
         }

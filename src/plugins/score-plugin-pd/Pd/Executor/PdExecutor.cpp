@@ -436,7 +436,7 @@ void PdGraphNode::run(
   }
 
   // Compute number of samples to process
-  const std::size_t input_channels = std::min(m_audioIns, m_audio_inlet ? m_audio_inlet->samples.size() : 0);
+  const std::size_t input_channels = std::min(m_audioIns, m_audio_inlet ? m_audio_inlet->channels() : 0);
   const auto [start_sample, req_samples] = e.timings(t);
   if (m_audioOuts == 0)
   {
@@ -456,7 +456,7 @@ void PdGraphNode::run(
              i < input_channels;
              i++)
         {
-          auto& channel = m_audio_inlet->samples[i];
+          auto& channel = m_audio_inlet->channel(i);
           int64_t available_input_samples = channel.size();
           available_input_samples -= offset;
 
@@ -508,13 +508,13 @@ void PdGraphNode::run(
     // read them if necessary, but then this causes problems if messages &
     // parameters changed in between.
 
-    auto& ap = m_audio_outlet->samples;
-    ap.resize(m_audioOuts);
+    m_audio_outlet->set_channels(m_audioOuts);
+
     if(req_samples > 0)
     {
       for (std::size_t i = 0U; i < m_audioOuts; ++i)
       {
-        auto& channel = ap[i];
+        auto& channel = m_audio_outlet->channel(i);
         auto& circbuf = m_prev_outbuf[i];
         const auto silence_samples = std::max(uint64_t(channel.size()), uint64_t(t.physical_start(e.modelToSamples())));
         const auto total_samples = silence_samples + req_samples;
