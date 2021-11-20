@@ -9,8 +9,9 @@ endif()
 
 find_package(Lilv)
 find_package(Suil)
+find_package(LV2)
 
-if(NOT TARGET Lilv OR NOT TARGET Suil)
+if(NOT TARGET Lilv OR NOT TARGET Suil OR NOT TARGET LV2)
   return()
 endif()
 
