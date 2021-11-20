@@ -1,7 +1,7 @@
 #!/bin/bash
 export BUILD_FOLDER=/tmp/build
 export SOURCE_FOLDER="$PWD"
-wget https://github.com/ossia/sdk/releases/download/sdk22/sdk-linux.tar.xz
+wget https://github.com/ossia/sdk/releases/download/sdk21/sdk-linux.tar.xz
 tar xaf sdk-linux.tar.xz
 rm -rf  sdk-linux.tar.xz
 
