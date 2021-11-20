@@ -9,9 +9,9 @@ endif()
 
 find_package(Lilv)
 find_package(Suil)
-find_package(LV2)
+find_path(LV2_PATH lv2/lv2plug.in/ns/ext/atom/atom.h)
 
-if(NOT TARGET Lilv OR NOT TARGET Suil OR NOT TARGET LV2)
+if(NOT TARGET Lilv OR NOT TARGET Suil OR NOT LV2_PATH)
   return()
 endif()
 
