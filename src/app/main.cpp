@@ -196,7 +196,12 @@ static void setup_opengl()
           if(maj < 3 || (maj == 3 && min < 2))
             qDebug() << "Warning ! This OpenGL version is too old for every feature to work correctly. Consider updating your graphics card.";
 
-          ok = true;
+          if(maj < 2)
+            // GL 1: we don't even try
+            ok = false;
+          else
+            // GL 2: we try
+            ok = true;
           break;
         }
       }
@@ -205,7 +210,10 @@ static void setup_opengl()
     {
       qDebug() << "OpenGL disabled, minimum version not supported";
     }
-    fmt.setDefaultFormat(fmt);
+    else
+    {
+      fmt.setDefaultFormat(fmt);
+    }
   }
 #endif
 #endif
@@ -304,7 +312,7 @@ int main(int argc, char** argv)
 #if defined(__APPLE__)
   disableAppNap();
 #endif
-  
+
   setup_opengl();
   QTimer::singleShot(1, &app, &Application::init);
 
