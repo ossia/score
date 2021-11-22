@@ -268,7 +268,7 @@ void Application::init()
     {
 #if !defined(__arm__)
       QOpenGLContext ctx;
-      m_applicationSettings.opengl = ctx.create();
+      m_applicationSettings.opengl = ctx.create() && ctx.format().majorVersion() > 1;
 #else
       m_applicationSettings.opengl = true;
 #endif
