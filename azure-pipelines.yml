@@ -69,7 +69,7 @@ stages:
       - job: macOS
         displayName: macOS
         pool:
-          vmImage: "macos-10.15"
+          vmImage: "macos-11"
         variables:
           - group: macos
 
