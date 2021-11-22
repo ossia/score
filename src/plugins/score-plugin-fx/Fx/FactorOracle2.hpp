@@ -6,12 +6,12 @@
 #include <ossia/detail/ssize.hpp>
 
 #include <random>
-#if !defined(NDEBUG) && !defined(_MSC_VER) && !defined(__clang__)
-#include <debug/vector>
-#define debug_vector_t __gnu_debug::vector
-#else
+//#if !defined(NDEBUG) && !defined(_MSC_VER) && !defined(__clang__)
+//#include <debug/vector>
+//#define debug_vector_t __gnu_debug::vector
+//#else
 #define debug_vector_t std::vector
-#endif
+//#endif
 
 /*! \file FactorOracle2.h
     \brief A file that contains the definitions of the classes needed for the creation of a Factor Oracle.
