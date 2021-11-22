@@ -596,6 +596,9 @@ Component::Component(
         = qobject_cast<Process::ControlInlet*>(element.inlets()[i]))
     {
       auto inl = pdnode->root_inputs()[i];
+      auto& vp = *inl->target<ossia::value_port>();
+      vp.type = inlet->value().get_type();
+      vp.domain = inlet->domain().get();
       inlet->value().apply(ossia_to_pd_value{
           pdnode->m_inmess[i - pdnode->m_firstInMessage].c_str()});
       auto c = connect(
