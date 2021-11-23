@@ -83,6 +83,22 @@ static void setup_x11()
 #endif
 }
 
+static void setup_suil()
+{
+#if defined(__linux__)
+  enum SuilArg { SUIL_ARG_NONE };
+  using suil_init_t = void (*)(int* argc, char*** argv, SuilArg key, ...);
+
+  if(auto lib = dlopen("libsuil-0.so.0", RTLD_LAZY | RTLD_LOCAL))
+  if(auto sym = reinterpret_cast<suil_init_t>(dlsym(lib, "suil_init")))
+  {
+    static int argc{0};
+    static char** argv{nullptr};
+    sym(&argc, &argv, SUIL_ARG_NONE);
+  }
+#endif
+}
+
 static void setup_gdk()
 {
 #if defined(__linux__)
@@ -311,6 +327,7 @@ int main(int argc, char** argv)
 #endif
 
   setup_limits();
+  setup_suil();
   setup_x11();
   setup_gdk();
   disable_denormals();

@@ -80,6 +80,8 @@ private:
   void reload();
   QString m_effectPath;
   void readPlugin();
+
+  ossia::float_vector fInControls, fOutControls;
 };
 
 class LV2EffectComponent final

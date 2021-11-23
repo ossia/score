@@ -73,10 +73,6 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
           lv2_context->features(),
           lilv}
 {
-  static int argc{0};
-  static char** argv{nullptr};
-  suil_init(&argc, &argv, SUIL_ARG_NONE);
-
   if (qEnvironmentVariableIsEmpty("SCORE_DISABLE_AUDIOPLUGINS"))
     if (qEnvironmentVariableIsEmpty("SCORE_DISABLE_LV2"))
       lv2_context->loadPlugins();

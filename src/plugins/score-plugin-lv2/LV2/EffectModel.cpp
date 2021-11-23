@@ -317,17 +317,16 @@ void Model::readPlugin()
   auto& app_plug
       = score::AppComponents().applicationPlugin<LV2::ApplicationPlugin>();
   auto& h = app_plug.lv2_host_context;
-  ossia::float_vector fInControls, fOutControls, fParamMin, fParamMax,
-      fParamInit, fOtherControls;
+  ossia::float_vector fParamMin, fParamMax, fParamInit, fOtherControls;
 
   LV2Data data{h, effectContext};
 
   const std::size_t audio_in_size = data.audio_in_ports.size();
   const std::size_t audio_out_size = data.audio_out_ports.size();
-  /*
+
   const std::size_t in_size = data.control_in_ports.size();
   const std::size_t out_size = data.control_out_ports.size();
-  const std::size_t midi_in_size = data.midi_in_ports.size();
+  /*const std::size_t midi_in_size = data.midi_in_ports.size();
   const std::size_t midi_out_size = data.midi_out_ports.size();
   */
   const std::size_t cv_size = data.cv_ports.size();
@@ -468,6 +467,21 @@ void Model::readPlugin()
 
   effectContext.data.data_access
       = lilv_instance_get_descriptor(effectContext.instance)->extension_data;
+
+  fInControls.resize(in_size);
+  fOutControls.resize(out_size);
+
+  auto fInstance = effectContext.instance;
+  for (std::size_t i = 0; i < in_size; i++)
+  {
+    lilv_instance_connect_port(fInstance, data.control_in_ports[i], &fInControls[i]);
+  }
+
+  for (std::size_t i = 0; i < out_size; i++)
+  {
+    lilv_instance_connect_port(
+        fInstance, data.control_out_ports[i], &fOutControls[i]);
+  }
 }
 
 void Model::reload()
