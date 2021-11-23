@@ -83,6 +83,18 @@ static void setup_x11()
 #endif
 }
 
+static void setup_gdk()
+{
+#if defined(__linux__)
+  // Fun fact: this code has for lineage
+  // WebKit (https://bugs.webkit.org/show_bug.cgi?id=44324) -> KDE -> maybe Netscape (?)
+  using gdk_init_check_ptr = void *(*)(int*, char***);
+  if (auto gdk = dlopen("libgdk-x11-2.0.so.0", RTLD_LAZY | RTLD_LOCAL))
+    if(auto gdk_init_check = (gdk_init_check_ptr)dlsym(gdk, "gdk_init_check"))
+      gdk_init_check(0, 0);
+#endif
+}
+
 struct increase_timer_precision
 {
   increase_timer_precision()
@@ -300,6 +312,7 @@ int main(int argc, char** argv)
 
   setup_limits();
   setup_x11();
+  setup_gdk();
   disable_denormals();
   setup_faust_path();
   setup_locale();
