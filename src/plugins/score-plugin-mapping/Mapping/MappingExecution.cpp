@@ -142,8 +142,6 @@ Component::on_curveChanged_impl(ossia::val_type target)
   switch (target)
   {
     case ossia::val_type::INT:
-      return on_curveChanged_impl2<X_T, int>();
-      break;
     case ossia::val_type::FLOAT:
     case ossia::val_type::LIST:
     case ossia::val_type::VEC2F:
@@ -165,7 +163,6 @@ Component::rebuildCurve(ossia::val_type source, ossia::val_type target)
   switch (source)
   {
     case ossia::val_type::INT:
-      return on_curveChanged_impl<int>(target);
     case ossia::val_type::FLOAT:
     case ossia::val_type::LIST:
     case ossia::val_type::VEC2F:
