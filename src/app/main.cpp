@@ -40,6 +40,10 @@ extern "C"  __declspec(dllimport) LONG __stdcall NtSetTimerResolution(ULONG Desi
 */
 #if defined(__linux__)
 #include <dlfcn.h>
+#if !_GNU_SOURCE
+#define _GNU_SOURCE 1
+#endif
+#include <link.h>
 #include <sys/resource.h>
 #define HAS_RLIMIT 1
 #endif
