@@ -91,7 +91,24 @@ OSCQueryDevice::OSCQueryDevice(const Device::DeviceSettings& settings,
         // TODO how to notify the GUI ?
         m_connected = false;
       },
-      Qt::QueuedConnection);
+  Qt::QueuedConnection);
+}
+
+OSCQueryDevice::~OSCQueryDevice()
+{
+  if(m_dev)
+  {
+    boost::asio::post(
+          m_ctx->context,
+          [dev = std::move(m_dev), ctx = &m_ctx->context] () mutable
+    {
+      dev->get_protocol().stop();
+      boost::asio::post(*ctx,
+            [d = std::move(dev)] () mutable {
+        d.reset();
+      });
+    });
+  }
 }
 
 bool OSCQueryDevice::connected() const
@@ -117,11 +134,15 @@ void OSCQueryDevice::disconnect()
 
     if(m_dev)
     {
-      m_dev->get_protocol().stop();
       boost::asio::post(
             m_ctx->context,
-            [dev = std::move(m_dev)] () mutable {
-        dev.reset();
+            [dev = std::move(m_dev), ctx = &m_ctx->context] () mutable
+      {
+        dev->get_protocol().stop();
+        boost::asio::post(*ctx,
+              [d = std::move(dev)] () mutable {
+          d.reset();
+        });
       });
     }
     m_dev.reset();

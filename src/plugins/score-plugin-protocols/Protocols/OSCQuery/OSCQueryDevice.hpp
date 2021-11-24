@@ -18,6 +18,8 @@ public:
   OSCQueryDevice(const Device::DeviceSettings& settings,
                  const ossia::net::network_context_ptr& ctx);
 
+  ~OSCQueryDevice();
+
   bool reconnect() override;
   void disconnect() override;
   void recreate(const Device::Node& n) override;
