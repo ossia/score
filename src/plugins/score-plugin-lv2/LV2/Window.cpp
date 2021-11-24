@@ -46,7 +46,7 @@ Window::Window(
       const LilvUI* this_ui = lilv_uis_get(the_uis, u);
       if (lilv_ui_is_supported(
               this_ui,
-              suil_ui_supported,
+              p.suil.ui_supported,
               native_ui_type,
               &fx.effectContext.ui_type))
       {
@@ -88,7 +88,8 @@ Window::Window(
   char* bundle_path = lilv_file_uri_parse(bundle_uri, nullptr);
   char* binary_path = lilv_file_uri_parse(binary_uri, nullptr);
 
-  fx.effectContext.ui_instance = suil_instance_new(
+  auto& suil = plug.suil;
+  fx.effectContext.ui_instance = suil.instance_new(
       plug.lv2_context->ui_host,
       (Model*)&fx,
       native_ui_type_uri,
@@ -107,7 +108,7 @@ Window::Window(
 
   // Setup the widget stuff
   auto widget
-      = (QWidget*)suil_instance_get_widget(fx.effectContext.ui_instance);
+      = (QWidget*)suil.instance_get_widget(fx.effectContext.ui_instance);
 
   const int default_w = widget->width();
   const int default_h = widget->height();
@@ -129,7 +130,7 @@ Window::Window(
       Message ev;
       while (fx.plugin_events.try_dequeue(ev))
       {
-        suil_instance_port_event(
+        suil.instance_port_event(
             fx.effectContext.ui_instance,
             ev.index,
             ev.body.size(),
@@ -180,7 +181,7 @@ Window::Window(
   for (auto& e : fx.control_map)
   {
     float f = ossia::convert<float>(e.second.first->value());
-    suil_instance_port_event(
+    suil.instance_port_event(
         fx.effectContext.ui_instance, e.first, sizeof(float), 0, &f);
   }
 
@@ -222,7 +223,11 @@ void Window::closeEvent(QCloseEvent* event)
 {
   if (m_widget)
     m_widget->setParent(nullptr);
-  suil_instance_free(m_model.effectContext.ui_instance);
+
+  auto& p =
+  score::GUIAppContext().applicationPlugin<LV2::ApplicationPlugin>();
+
+  p.suil.instance_free(m_model.effectContext.ui_instance);
   m_model.effectContext.ui_instance = nullptr;
   m_model.externalUIVisible(false);
   const_cast<QWidget*&>(m_model.externalUI) = nullptr;

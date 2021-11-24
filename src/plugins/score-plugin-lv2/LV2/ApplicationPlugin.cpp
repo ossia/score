@@ -78,14 +78,14 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
       lv2_context->loadPlugins();
 
   lv2_context->ui_host
-      = suil_host_new(LV2::on_uiMessage, LV2::port_index, nullptr, nullptr);
+      = suil.host_new(LV2::on_uiMessage, LV2::port_index, nullptr, nullptr);
 }
 
 void ApplicationPlugin::initialize() { }
 
 ApplicationPlugin::~ApplicationPlugin()
 {
-  suil_host_free(lv2_context->ui_host);
+  suil.host_free(lv2_context->ui_host);
 }
 
 }

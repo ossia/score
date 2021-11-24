@@ -102,6 +102,17 @@ static void setup_suil()
 static void setup_gdk()
 {
 #if defined(__linux__)
+  static bool gtk3_loaded{};
+  dl_iterate_phdr([] (struct dl_phdr_info *info,
+                  size_t size, void *data) -> int {
+    if(std::string_view(info->dlpi_name).find(std::string_view("qgtk3")) != std::string_view::npos)
+      gtk3_loaded = true;
+    return 0;
+  }, nullptr);
+
+  if(gtk3_loaded)
+    return;
+
   // Fun fact: this code has for lineage
   // WebKit (https://bugs.webkit.org/show_bug.cgi?id=44324) -> KDE -> maybe Netscape (?)
   using gdk_init_check_ptr = void *(*)(int*, char***);
@@ -329,7 +340,6 @@ int main(int argc, char** argv)
   setup_limits();
   setup_suil();
   setup_x11();
-  setup_gdk();
   disable_denormals();
   setup_faust_path();
   setup_locale();
@@ -338,6 +348,8 @@ int main(int argc, char** argv)
 
   QPixmapCache::setCacheLimit(819200);
   Application app(argc, argv);
+
+  setup_gdk();
 
 #if defined(__APPLE__)
   disableAppNap();

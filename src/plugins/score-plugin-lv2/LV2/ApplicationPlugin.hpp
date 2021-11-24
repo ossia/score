@@ -12,6 +12,8 @@
 #include <thread>
 #include <verdigris>
 
+#include <LV2/Suil.hpp>
+
 namespace LV2
 {
 struct HostContext;
@@ -31,6 +33,8 @@ public:
   Lilv::World lilv;
   std::unique_ptr<LV2::GlobalContext> lv2_context;
   LV2::HostContext lv2_host_context;
+
+  const libsuil& suil = libsuil::instance();
 };
 
 }

@@ -21,6 +21,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/LV2/EffectModel.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/LV2/lv2_atom_helpers.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/LV2/Context.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/LV2/Suil.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/LV2/Node.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/LV2/Window.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/LV2/Library.hpp"
@@ -49,7 +50,5 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 # Lilv is used in API header, it must stay public
 target_link_libraries(${PROJECT_NAME} PUBLIC Lilv)
 target_include_directories(${PROJECT_NAME} PRIVATE 3rdparty/readerwriterqueue)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE Suil)
 
 setup_score_plugin(${PROJECT_NAME})

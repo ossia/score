@@ -220,12 +220,19 @@ ProgramCache::get(const ShaderSource& program) noexcept
         isf::parser::ShaderType::ISF};
 
     auto isfVert = QByteArray::fromStdString(parser.vertex());
+    auto isfFrag = QByteArray::fromStdString(parser.fragment());
+
+    if(qEnvironmentVariableIsSet("SCORE_DUMP_SHADERS"))
+    {
+      qDebug().noquote() << "\n\n ======= VERTEX ======== \n\n" << isfVert;
+      qDebug().noquote() << "\n\n ======= FRAGMENT ======== \n\n" << isfFrag;
+    }
+
     if (isfVert.isEmpty())
     {
       return {std::nullopt, "Not a valid ISF vertex shader"};
     }
 
-    auto isfFrag = QByteArray::fromStdString(parser.fragment());
     if (isfFrag.isEmpty())
     {
       return {std::nullopt, "Not a valid ISF fragment shader"};

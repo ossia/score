@@ -301,7 +301,7 @@ bool Model::hasExternalUI() const noexcept
     const LilvUI* this_ui = lilv_uis_get(the_uis, u);
     if (lilv_ui_is_supported(
             this_ui,
-            suil_ui_supported,
+            p.suil.ui_supported,
             native_ui_type,
             &effectContext.ui_type))
     {
@@ -420,7 +420,9 @@ void Model::readPlugin()
               auto& writing = control_map[port_id].second;
               writing = true;
               float f = ossia::convert<float>(v);
-              suil_instance_port_event(
+
+              static auto& suil = libsuil::instance();
+              suil.instance_port_event(
                   effectContext.ui_instance, port_id, sizeof(float), 0, &f);
               writing = false;
             }
