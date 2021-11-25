@@ -132,7 +132,10 @@ ScreenNode::~ScreenNode()
 {
   if(m_swapChain)
   {
-    m_swapChain->release();
+#include <Gfx/Qt5CompatPush> // clang-format: keep
+    m_swapChain->deleteLater();
+#include <Gfx/Qt5CompatPop> // clang-format: keep
+
     delete m_swapChain;
     if(m_window)
     {

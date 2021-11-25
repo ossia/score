@@ -547,6 +547,8 @@ void RenderedISFNode::release(RenderList& r)
 {
   // customRelease
   {
+#include <Gfx/Qt5CompatPush> // clang-format: keep
+
     for (auto [edge, rt] : m_rts)
     {
       rt.release();
@@ -579,7 +581,7 @@ void RenderedISFNode::release(RenderList& r)
 
         if(pass.p.srb != altpass.p.srb)
         {
-          altpass.p.srb->release();
+          altpass.p.srb->deleteLater();
         }
 
         pass.p.release();
@@ -625,6 +627,8 @@ void RenderedISFNode::release(RenderList& r)
   m_materialUBO = nullptr;
 
   m_meshBuffer = nullptr;
+
+#include <Gfx/Qt5CompatPop> // clang-format: keep
 }
 
 void RenderedISFNode::runInitialPasses(
