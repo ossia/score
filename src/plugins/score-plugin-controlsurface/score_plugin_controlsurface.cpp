@@ -5,8 +5,6 @@
 #include <ControlSurface/Layer.hpp>
 #include <ControlSurface/LocalTree.hpp>
 #include <ControlSurface/Process.hpp>
-#include <ControlSurface/Remote.hpp>
-
 #include <score/plugins/FactorySetup.hpp>
 
 #include <score_plugin_controlsurface_commands_files.hpp>

@@ -12,7 +12,6 @@ set(HDRS
     ControlSurface/Process.hpp
     ControlSurface/View.hpp
     ControlSurface/Layer.hpp
-    ControlSurface/Remote.hpp
     ControlSurface/CommandFactory.hpp
     ControlSurface/Commands.hpp
 
@@ -24,7 +23,6 @@ set(SRCS
     ControlSurface/Presenter.cpp
     ControlSurface/Process.cpp
     ControlSurface/View.cpp
-    ControlSurface/Remote.cpp
 
     score_plugin_controlsurface.cpp
 )
@@ -37,7 +35,7 @@ add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 
 # Link
-target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_engine score_plugin_remotecontrol)
+target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_engine)
 
 # Target-specific options
 setup_score_plugin(${PROJECT_NAME})

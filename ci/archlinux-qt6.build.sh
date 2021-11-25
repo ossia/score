@@ -8,7 +8,6 @@ cd /build
 cmake $SCORE_DIR \
   -GNinja \
   -DQT_VERSION="Qt6;6.2" \
-  -DCMAKE_PREFIX_PATH=/opt/qt6 \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX=install \
   -DSCORE_DYNAMIC_PLUGINS=1 \

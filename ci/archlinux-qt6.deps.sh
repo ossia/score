@@ -12,11 +12,5 @@ pacman -S --noconfirm \
    mesa freetype2 harfbuzz fontconfig libglvnd \
    libdrm tslib udev zstd \
    xcb-proto xcb-util xcb-util-cursor xcb-util-image \
-   xcb-util-keysyms xcb-util-renderutil xcb-util-wm
-
-wget https://github.com/ossia/sdk/releases/download/sdk20/qt6-debug.tar.xz
-tar xaf qt6-debug.tar.xz
-ls
-mkdir -p /opt/
-mv qt6 /opt/
-
+   xcb-util-keysyms xcb-util-renderutil xcb-util-wm \
+   qt6-base qt6-shadertools qt6-tools qt6-5compat qt6-declarative qt6-scxml
