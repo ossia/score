@@ -194,6 +194,9 @@ void RemoveNode::redo(const score::DocumentContext& ctx) const
   Dataflow::removeCables(m_cables, ctx);
 
   auto& proc = m_path.find(ctx);
+
+  ctx.selectionStack.pruneRecursively(&proc);
+
   proc.nodes.remove(m_id);
 }
 

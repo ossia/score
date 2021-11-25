@@ -12,6 +12,10 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
+
+#include <score/document/DocumentContext.hpp>
+#include <score/selection/SelectionStack.hpp>
+
 namespace Scenario
 {
 static void AddProcessBeforeState(
@@ -147,6 +151,8 @@ void RemoveProcess(
   RemoveProcessAfterState(startState(interval, scenar), proc);
   RemoveProcessBeforeState(endState(interval, scenar), proc);
 
+  score::IDocument::documentContext(interval).selectionStack.pruneRecursively(&proc);
+
   interval.processes.remove(proc);
 }
 
@@ -159,6 +165,8 @@ void EraseProcess(
 
   RemoveProcessAfterState(startState(interval, scenar), proc);
   RemoveProcessBeforeState(endState(interval, scenar), proc);
+
+  score::IDocument::documentContext(interval).selectionStack.pruneRecursively(&proc);
 
   interval.processes.erase(proc);
 }

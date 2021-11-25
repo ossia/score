@@ -55,6 +55,9 @@ public:
   void prune(IdentifiedObjectAbstract* p);
   W_INVOKABLE(prune)
 
+  void pruneRecursively(IdentifiedObjectAbstract* p);
+  W_INVOKABLE(pruneRecursively)
+
 private:
   // Select new objects
   void push(const Selection& s);

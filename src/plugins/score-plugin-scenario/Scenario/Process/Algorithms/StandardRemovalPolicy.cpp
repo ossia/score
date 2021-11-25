@@ -18,6 +18,9 @@
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
+#include <score/document/DocumentContext.hpp>
+#include <score/selection/SelectionStack.hpp>
+
 namespace Scenario
 {
 static void removeEventFromTimeSync(
@@ -55,6 +58,9 @@ void StandardRemovalPolicy::removeInterval(
     SetNoNextInterval(startState(cstr, scenario));
     SetNoPreviousInterval(endState(cstr, scenario));
 
+    auto& ctx = score::IDocument::documentContext(scenario);
+    ctx.selectionStack.pruneRecursively(&cstr);
+
     scenario.intervals.remove(&cstr);
   }
   else
@@ -70,6 +76,10 @@ void StandardRemovalPolicy::removeState(
   if (!state.previousInterval() && !state.nextInterval())
   {
     auto& ev = scenario.events.at(state.eventId());
+
+    auto& ctx = score::IDocument::documentContext(scenario);
+    ctx.selectionStack.pruneRecursively(&state);
+
     ev.removeState(state.id());
 
     scenario.states.remove(&state);
@@ -81,6 +91,9 @@ void StandardRemovalPolicy::removeEventStatesAndIntervals(
     const Id<EventModel>& eventId)
 {
   auto& ev = scenario.event(eventId);
+
+  auto& ctx = score::IDocument::documentContext(scenario);
+  ctx.selectionStack.pruneRecursively(&ev);
 
   auto states = ev.states();
   for (const auto& state : states)

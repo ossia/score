@@ -242,6 +242,107 @@ void SelectionStack::prune(IdentifiedObjectAbstract* p)
   currentSelectionChanged(m_unselectable.top(), m_unselectable.top());
 }
 
+static std::vector<IdentifiedObjectAbstract*> recursiveChildrenList(IdentifiedObjectAbstract* obj)
+{
+  std::vector<IdentifiedObjectAbstract*> vec;
+  vec.reserve(4 * obj->children().size());
+  vec.push_back(obj);
+
+  std::function<void(IdentifiedObjectAbstract*)> rec;
+  rec = [&] (IdentifiedObjectAbstract* parent)
+  {
+     const auto& children = parent->children();
+     for(auto it = children.cbegin(), end = children.cend(); it != end; ++it)
+     {
+       if(auto p = qobject_cast<IdentifiedObjectAbstract*>(*it))
+       {
+         vec.push_back(p);
+         rec(p);
+       }
+     }
+  };
+  rec(obj);
+
+  return vec;
+}
+
+void SelectionStack::pruneRecursively(IdentifiedObjectAbstract* p)
+{
+  clearAllButLast();
+
+  auto children = recursiveChildrenList(p);
+  {
+    int n = std::ssize(m_unselectable);
+    for (int i = 0; i < n; i++)
+    {
+      Selection& sel = m_unselectable[i];
+      // OPTIMIZEME should be removeOne
+
+      for(IdentifiedObjectAbstract* obj : children)
+        sel.removeAll(obj);
+
+      for (auto it = sel.begin(); it != sel.end();)
+      {
+        // We prune the QPointer that might have been invalidated.
+        // This is because if we remove multiple elements at the same time
+        // some might still be in the list after the first destroyed() call;
+        // they will be refreshed and may lead to crashes.
+        if ((*it).isNull())
+        {
+          it = sel.erase(it);
+        }
+        else
+        {
+          ++it;
+        }
+      }
+    }
+  }
+
+  {
+    int n = std::ssize(m_reselectable);
+    for (int i = 0; i < n; i++)
+    {
+      Selection& sel = m_reselectable[i];
+
+      for(IdentifiedObjectAbstract* obj : children)
+        sel.removeAll(obj);
+
+      for (auto it = sel.begin(); it != sel.end();)
+      {
+        if ((*it).isNull())
+        {
+          it = sel.erase(it);
+        }
+        else
+        {
+          ++it;
+        }
+      }
+    }
+  }
+
+  m_unselectable.erase(
+      std::remove_if(
+          m_unselectable.begin(),
+          m_unselectable.end(),
+          [](const Selection& s) { return s.empty(); }),
+      m_unselectable.end());
+
+  m_reselectable.erase(
+      std::remove_if(
+          m_reselectable.begin(),
+          m_reselectable.end(),
+          [](const Selection& s) { return s.empty(); }),
+      m_reselectable.end());
+
+  if (m_unselectable.size() == 0)
+    m_unselectable.push(Selection{});
+
+  pruneConnections();
+  currentSelectionChanged(m_unselectable.top(), m_unselectable.top());
+}
+
 void SelectionStack::pruneConnections()
 {
   ossia::flat_set<const IdentifiedObjectAbstract*> present;

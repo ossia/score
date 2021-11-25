@@ -19,6 +19,9 @@
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
+#include <score/document/DocumentContext.hpp>
+#include <score/selection/SelectionStack.hpp>
+
 namespace Scenario
 {
 void ScenarioCreate<CommentBlockModel>::undo(
@@ -44,6 +47,9 @@ void ScenarioCreate<TimeSyncModel>::undo(
     const Id<TimeSyncModel>& id,
     Scenario::ProcessModel& s)
 {
+  auto& ctx = score::IDocument::documentContext(s);
+  ctx.selectionStack.pruneRecursively(&s.timeSyncs.at(id));
+
   s.timeSyncs.remove(id);
 }
 
@@ -63,6 +69,10 @@ void ScenarioCreate<EventModel>::undo(
     Scenario::ProcessModel& s)
 {
   auto& ev = s.event(id);
+
+  auto& ctx = score::IDocument::documentContext(s);
+  ctx.selectionStack.pruneRecursively(&s.events.at(id));
+
   s.timeSync(ev.timeSync()).removeEvent(id);
   s.events.remove(&ev);
 }
@@ -85,6 +95,10 @@ void ScenarioCreate<StateModel>::undo(
     Scenario::ProcessModel& s)
 {
   auto& state = s.state(id);
+
+  auto& ctx = score::IDocument::documentContext(s);
+  ctx.selectionStack.pruneRecursively(&state);
+
   auto& ev = s.event(state.eventId());
 
   ev.removeState(id);
@@ -111,6 +125,9 @@ void ScenarioCreate<IntervalModel>::undo(
     Scenario::ProcessModel& s)
 {
   auto& cst = s.intervals.at(id);
+
+  auto& ctx = score::IDocument::documentContext(s);
+  ctx.selectionStack.pruneRecursively(&cst);
 
   SetNoNextInterval(startState(cst, s));
   SetNoPreviousInterval(endState(cst, s));
