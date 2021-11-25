@@ -136,7 +136,6 @@ ScreenNode::~ScreenNode()
     m_swapChain->deleteLater();
 #include <Gfx/Qt5CompatPop> // clang-format: keep
 
-    delete m_swapChain;
     if(m_window)
     {
       m_window->m_swapChain = nullptr;
