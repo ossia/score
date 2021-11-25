@@ -829,6 +829,7 @@ std::optional<Sampler> AudioTextureUpload::updateAudioTexture(
     RenderList& renderer,
     QRhiResourceUpdateBatch& res)
 {
+#include <Gfx/Qt5CompatPush> // clang-format: keep
   QRhi& rhi = *renderer.state.rhi;
   bool textureChanged = false;
   auto it = audio.samplers.find(&renderer);
