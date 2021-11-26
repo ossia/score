@@ -11,6 +11,7 @@
 #include <score/tools/DeleteAll.hpp>
 #include <score/tools/File.hpp>
 
+#include <Audio/Settings/Model.hpp>
 #include <ossia/detail/small_flat_map.hpp>
 #include <ossia/network/base/parameter_data.hpp>
 #include <ossia/network/common/complex_type.hpp>
@@ -869,8 +870,7 @@ void ProcessModel::setScript(const QString& script)
     libpd_closefile(m_instance->file_handle);
 
   // Enable audio
-  // FIXME correct sample rate
-  libpd_init_audio(m_audioInputs, m_audioOutputs, 48000);
+  libpd_init_audio(m_audioInputs, m_audioOutputs, score::AppContext().settings<Audio::Settings::Model>().getRate());
 
   libpd_start_message(1);
   libpd_add_float(1.0f);
@@ -878,7 +878,10 @@ void ProcessModel::setScript(const QString& script)
 
   // Open
   QFileInfo fileinfo{f};
-  m_instance->file_handle = libpd_openfile(fileinfo.fileName().toUtf8().data(), fileinfo.canonicalPath().toUtf8().data());
+  auto folder = fileinfo.canonicalPath();
+  libpd_add_to_search_path(folder.toUtf8().data());
+
+  m_instance->file_handle = libpd_openfile(fileinfo.fileName().toUtf8().data(), folder.toUtf8().data());
   m_instance->dollarzero = libpd_getdollarzero(m_instance->file_handle);
 
   std::vector<float> temp_buff;
