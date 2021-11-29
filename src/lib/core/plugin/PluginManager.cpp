@@ -34,7 +34,7 @@ public:
 #ifdef _WIN32
     impl = (void*)LoadLibraryA(so);
 #else
-    impl = dlopen(so, RTLD_LAZY | RTLD_LOCAL | RTLD_NODELETE);
+    impl = dlopen(so, RTLD_GLOBAL | RTLD_NOW);
 #endif
   }
 
