@@ -20,6 +20,7 @@ public:
       QPointF pos,
       TimeVal maxdur)
       : m_sequence{bool(qApp->keyboardModifiers() & Qt::ShiftModifier)}
+      , m_magnetism{!bool(qApp->keyboardModifiers() & Qt::AltModifier)}
       , m_pres{pres}
       , m_pos{pos}
       , m_macro{new Command::AddProcessInNewBoxMacro, pres.context().context}
@@ -29,7 +30,7 @@ public:
     Scenario::Point pt = pres.toScenarioPoint(pos);
 
     auto [x_state, y_state, magnetic] = m_magnetic;
-    if (y_state)
+    if (m_magnetism && y_state)
     {
       m_intervalY = pt.y;
       if (magnetic || pt.date <= scenar.event(y_state->eventId()).date())
@@ -46,7 +47,7 @@ public:
         m_createdState = i.endState();
       }
     }
-    else if (x_state)
+    else if (m_magnetism && x_state)
     {
       if (x_state->nextInterval())
       {
@@ -70,6 +71,7 @@ public:
     {
       // We create in the emptiness
       const auto& [t, e, s] = m.createDot(scenar, pt);
+      m_intervalY = pt.y;
       m_createdState = s.id();
     }
 
@@ -132,6 +134,7 @@ public:
 
 private:
   const bool m_sequence{};
+  const bool m_magnetism{};
   double m_intervalY{};
   const Scenario::ScenarioPresenter& m_pres;
   QPointF m_pos;
