@@ -33,6 +33,7 @@
 #include <Fx/Quantifier.hpp>
 #include <Fx/TestNode.hpp>
 #include <Fx/VelToNote.hpp>
+#include <Fx/ValueFilter.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
 
@@ -78,6 +79,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_fx::factories(
       Nodes::FactorOracle2::Node,
       Nodes::FactorOracle2MIDI::Node,
       Nodes::PitchToValue::Node,
+      Nodes::ValueFilter::Node,
       Nodes::AudioLooper::Node>(ctx, key);
 }
 
