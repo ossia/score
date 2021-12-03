@@ -44,3 +44,6 @@
 [submodule "3rdparty/libsndfile"]
 	path = 3rdparty/libsndfile
 	url = https://github.com/jcelerier/libsndfile
+[submodule "3rdparty/libossia"]
+	path = 3rdparty/libossia
+	url = git@github.com:ossia/libossia.git
