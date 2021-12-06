@@ -256,20 +256,28 @@ struct Node
       State& self)
   {
     for (const ossia::timed_value& v : in.get_data())
+    {
+      auto filtered = self.filter(smooth, v.value, type, amount, freq, cutoff, beta);
       if (rate)
       {
-        if (auto time = t.get_physical_quantification_date(quantif, st.modelToSamples()))
+        if(quantif <= 0.)
         {
           if (self.should_output(quantif, ms, t, st))
-            out.write_value(
-                  self.filter(smooth, v.value, type, amount, freq, cutoff, beta),
-                  *time);
+            out.write_value(filtered, v.timestamp); // TODO fix accuracy of timestamp
+        }
+        else
+        {
+          if (auto time = t.get_physical_quantification_date(1./quantif, st.modelToSamples()))
+          {
+            out.write_value(filtered, *time);
+          }
         }
       }
       else
         out.write_value(
-              self.filter(smooth, v.value, type, amount, freq, cutoff, beta),
+              filtered,
               v.timestamp);
+    }
   }
 
   static void item(
