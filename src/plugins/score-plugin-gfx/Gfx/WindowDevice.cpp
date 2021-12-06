@@ -98,35 +98,22 @@ public:
       m_root.add_child(std::move(pos_node));
     }
 
-    {
-      auto size_node = std::make_unique<ossia::net::generic_node>("size", *this, m_root);
-      auto size_param = size_node->create_parameter(ossia::val_type::VEC2F);
-      size_param->push_value(ossia::vec2f{1280.f, 720.f});
-      size_param->add_callback([this] (const ossia::value& v) {
-        if(auto val = v.target<ossia::vec2f>())
-        {
-          ossia::qt::run_async(&m_qtContext, [screen=this->m_screen, v=*val] {
-            screen->setSize({(int)v[0], (int)v[1]});
-          });
-        }
-      });
-      m_root.add_child(std::move(size_node));
-    }
-
     // Mouse input
+    ossia::net::parameter_base* scaled_win{};
+    ossia::net::parameter_base* abs_win{};
     {
       auto node = std::make_unique<ossia::net::generic_node>("cursor", *this, m_root);
-      ossia::net::parameter_base* scaled_win{};
-      ossia::net::parameter_base* abs_win{};
       {
         auto scale_node = std::make_unique<ossia::net::generic_node>("scaled", *this, *node);
         scaled_win = scale_node->create_parameter(ossia::val_type::VEC2F);
+        scaled_win->set_domain(ossia::make_domain(0.f, 1.f));
         scaled_win->push_value(ossia::vec2f{0.f, 0.f});
         node->add_child(std::move(scale_node));
       }
       {
         auto abs_node = std::make_unique<ossia::net::generic_node>("absolute", *this, *node);
         abs_win = abs_node->create_parameter(ossia::val_type::VEC2F);
+        abs_win->set_domain(ossia::make_domain(ossia::vec2f{0.f, 0.f}, ossia::vec2f{1280, 270.f}));
         abs_win->push_value(ossia::vec2f{0.f, 0.f});
         node->add_child(std::move(abs_node));
       }
@@ -141,6 +128,26 @@ public:
       };
 
       m_root.add_child(std::move(node));
+    }
+
+    {
+      auto size_node = std::make_unique<ossia::net::generic_node>("size", *this, m_root);
+      auto size_param = size_node->create_parameter(ossia::val_type::VEC2F);
+      size_param->push_value(ossia::vec2f{1280.f, 720.f});
+      size_param->add_callback([this, abs_win] (const ossia::value& v) {
+        if(auto val = v.target<ossia::vec2f>())
+        {
+          ossia::qt::run_async(&m_qtContext, [screen=this->m_screen, v=*val] {
+            screen->setSize({(int)v[0], (int)v[1]});
+          });
+
+          auto dom = abs_win->get_domain();
+          ossia::set_max(dom, *val);
+          abs_win->set_domain(std::move(dom));
+        }
+      });
+
+      m_root.add_child(std::move(size_node));
     }
 
     // Keyboard input
