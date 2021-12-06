@@ -182,6 +182,11 @@ set(MAPPER_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Mapper/MapperDevice.cpp"
 )
 
+set(LIBMAPPER_CLIENT_SRCS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Libmapper/LibmapperClientDevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Libmapper/LibmapperClientDevice.cpp"
+)
+
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 
 if(OSSIA_PROTOCOL_OSC)
@@ -206,6 +211,11 @@ endif()
 
 if(OSSIA_PROTOCOL_WEBSOCKETS)
     target_sources(${PROJECT_NAME} PRIVATE ${WS_HDRS} ${WS_SRCS})
+endif()
+
+if(OSSIA_PROTOCOL_LIBMAPPER)
+  target_sources(${PROJECT_NAME} PRIVATE ${LIBMAPPER_CLIENT_SRCS})
+  target_link_libraries(${PROJECT_NAME} PRIVATE mapper)
 endif()
 
 if(OSSIA_PROTOCOL_SERIAL)

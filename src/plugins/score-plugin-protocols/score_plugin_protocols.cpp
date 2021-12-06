@@ -46,6 +46,9 @@
 #if defined(OSSIA_PROTOCOL_ARTNET)
 #include <Protocols/Artnet/ArtnetProtocolFactory.hpp>
 #endif
+#if defined(OSSIA_PROTOCOL_LIBMAPPER)
+#include <Protocols/Libmapper/LibmapperClientDevice.hpp>
+#endif
 
 #include <Protocols/Mapper/MapperDevice.hpp>
 
@@ -119,6 +122,10 @@ score_plugin_protocols::factories(
 #if defined(OSSIA_PROTOCOL_ARTNET)
          ,
          Protocols::ArtnetProtocolFactory
+#endif
+#if defined(OSSIA_PROTOCOL_LIBMAPPER)
+      ,
+      Protocols::LibmapperClientProtocolFactory
 #endif
          >,
       FW<score::SettingsDelegateFactory, Protocols::Settings::Factory>,
