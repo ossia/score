@@ -60,6 +60,9 @@ SpeedWidget::SpeedWidget(bool withButtons, bool showText, QWidget* parent)
   // Slider
   m_slider = new score::SpeedSlider{this};
   m_slider->showText = showText;
+  m_slider->setStatusTip(QObject::tr(
+                           "Change the execution speed \n"
+                           "Tempo"));
 
   if (withButtons)
   {

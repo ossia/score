@@ -201,6 +201,10 @@ public:
         "Score", m_engine.newQObject(new EditJsContext));
     auto lay = new QVBoxLayout;
     m_widget->setLayout(lay);
+    m_widget->setStatusTip(QObject::tr(
+                             "This panel prompts the scripting console \n"
+                             "still in early developement"));
+
     m_edit = new QPlainTextEdit{m_widget};
     m_edit->setTextInteractionFlags(Qt::TextEditorInteraction);
 

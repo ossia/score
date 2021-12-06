@@ -527,6 +527,11 @@ PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
     , m_widget{new QWidget}
 {
   m_widget->setLayout(new score::MarginLess<QHBoxLayout>);
+  m_widget->setStatusTip(QObject::tr(
+                           "This panel shows the audio mixer\n"
+                           "Parameters of audio busses and of the audio device \n "
+                           "can be accessed here \n"
+                           ));
 }
 
 QWidget* PanelDelegate::widget()

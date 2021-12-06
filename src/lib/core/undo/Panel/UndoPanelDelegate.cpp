@@ -17,6 +17,10 @@ UndoPanelDelegate::UndoPanelDelegate(const GUIApplicationContext& ctx)
 {
   m_widget->setLayout(new score::MarginLess<QVBoxLayout>);
   m_widget->setObjectName("HistoryExplorer");
+  m_widget->setStatusTip(QObject::tr(
+                           "This panel shows the history of edits to your scenario. \n"
+                           "This list of possible \"Undo\" and \"Redo\" \n"
+                           "allows you to navigate through your past actions"));
 }
 
 UndoPanelDelegate::~UndoPanelDelegate() { }
