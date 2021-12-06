@@ -488,15 +488,6 @@ bool score::View::event(QEvent* event)
     tip.replace(QChar('\n'), "<br/>");
     m_status->setText(tip);
   }
-  else if (event->type() == QEvent::ToolTip)
-  {
-    auto tip = ((QHelpEvent*)event)->globalPos();
-    auto pos = mapFromGlobal(tip);
-    if (auto w = childAt(pos))
-    {
-      m_status->setText(w->statusTip());
-    }
-  }
 
   return QMainWindow::event(event);
 }
