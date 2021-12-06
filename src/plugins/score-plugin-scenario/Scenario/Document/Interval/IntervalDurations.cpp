@@ -183,6 +183,7 @@ IntervalDurations::Algorithms::fixAllDurations(
     dur.m_defaultDuration = time;
     dur.m_minDuration = time;
     dur.m_maxDuration = time;
+    dur.m_guiDuration = time * 1.1;
 
     dur.defaultDurationChanged(time);
     dur.minDurationChanged(time);
@@ -212,6 +213,7 @@ IntervalDurations::Algorithms::changeAllDurations(
   {
     const auto delta = time - d.defaultDuration();
     d.m_defaultDuration = time;
+    d.m_guiDuration = time * 1.1;
 
     // FIXME ! why is there m_isMaxInfinite and m_maxDuration.isInfinite() ?!
     if (!d.m_isMinNull)
