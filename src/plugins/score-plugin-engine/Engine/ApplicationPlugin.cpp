@@ -131,6 +131,7 @@ void ApplicationPlugin::initialize()
 QWidget* ApplicationPlugin::setupTimingWidget(QLabel* time_label) const
 {
   auto timer = new QTimer{time_label};
+  time_label->setStatusTip(tr("Elapsed time since the beginning of playback"));
   connect(timer, &QTimer::timeout, this, [=] {
     auto t = m_execution.execution_time();
     if (t == TimeVal::zero())
