@@ -1,8 +1,8 @@
 #pragma once
 #include <Engine/Node/SimpleApi.hpp>
 
-#include <ossia/network/value/format_value.hpp>
 #include <ossia/detail/logger.hpp>
+#include <ossia/network/value/format_value.hpp>
 
 #include <libossia/3rdparty/dno/DeNoiser.hpp>
 
@@ -15,12 +15,12 @@ struct Node
   struct NoiseFilter
   {
     NoiseFilter()
-      : dno_i{DeNoiser<int>{}}
-      , dno_v{
-          DeNoiser<double>{},
-          DeNoiser<double>{},
-          DeNoiser<double>{},
-          DeNoiser<double>{}}
+        : dno_i{DeNoiser<int>{}}
+        , dno_v{
+              DeNoiser<double>{},
+              DeNoiser<double>{},
+              DeNoiser<double>{},
+              DeNoiser<double>{}}
     {
     }
 
@@ -44,14 +44,14 @@ struct Node
         ossia::value operator()(const ossia::vec3f& t) const
         {
           return ossia::make_vec(
-                nFilt->dno_v[0](t[0]),
+              nFilt->dno_v[0](t[0]),
               nFilt->dno_v[1](t[1]),
               nFilt->dno_v[2](t[2]));
         }
         ossia::value operator()(const ossia::vec4f& t) const
         {
           return ossia::make_vec(
-                nFilt->dno_v[0](t[0]),
+              nFilt->dno_v[0](t[0]),
               nFilt->dno_v[1](t[1]),
               nFilt->dno_v[2](t[2]),
               nFilt->dno_v[3](t[3]));
@@ -64,8 +64,9 @@ struct Node
         NoiseFilter* nFilt;
 
         vis(NoiseFilter* parent)
-          : nFilt{parent}
-        {}
+            : nFilt{parent}
+        {
+        }
       };
 
       try
@@ -128,24 +129,19 @@ struct Node
     static const constexpr auto author = "ossia score";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::Mapping;
-    static const constexpr auto description
-    = "Filter and limit noisy value stream";
+    static const constexpr auto description = "Filter noisy value stream";
     static const uuid_constexpr auto uuid
-    = make_uuid("809c014d-7d02-45dc-8849-de7a7db5fe67");
+        = make_uuid("809c014d-7d02-45dc-8849-de7a7db5fe67");
 
     static const constexpr auto controls = tuplet::make_tuple(
-          Control::Toggle{"smooth", true},
-          Control::make_enum(
+        Control::make_enum(
             "Type",
             0U,
             ossia::make_array("OneEuro", "LowPass", "Average", "Median")),
-          Control::FloatKnob{"amount", 0., 1., 0.1},
-          Control::FloatSlider{"freq (1e/LP)", 0., 300., 120.},
-          Control::FloatSlider{"cutoff (1e/LP)", 0., 10., 1.},
-          Control::FloatSlider{"beta (1e only)", 0., 10., 1.},
-          Control::Toggle{"rate", false},
-          Control::Widgets::QuantificationChooser(),
-          Control::IntSlider{"ms.", 0, 1000, 10});
+        Control::FloatKnob{"amount", 0., 1., 0.1},
+        Control::FloatSlider{"freq (1e/LP)", 0., 300., 120.},
+        Control::FloatSlider{"cutoff (1e/LP)", 0., 10., 1.},
+        Control::FloatSlider{"beta (1e only)", 0., 10., 1.});
 
     static const constexpr value_in value_ins[]{"in"};
     static const constexpr value_out value_outs[]{"out"};
@@ -155,7 +151,6 @@ struct Node
   {
   public:
     ossia::value filter(
-        const bool& smooth,
         const ossia::value& value,
         const std::string& type,
         float amount,
@@ -163,65 +158,39 @@ struct Node
         float cutoff,
         float beta)
     {
-      if (smooth)
+      if (type != prev_type)
       {
-        if (type != prev_type)
-        {
-          nf.set_type(GetFilterType(type));
-          prev_type = type;
-        }
-        if (amount != prev_amount)
-        {
-          nf.set_amount(amount);
-          prev_amount = amount;
-        }
-        if (freq != prev_freq)
-        {
-          nf.set_freq(freq);
-          prev_freq = freq;
-        }
-        if (cutoff != prev_cutoff)
-        {
-          nf.set_cutoff(cutoff);
-          prev_cutoff = cutoff;
-        }
-        if (beta != prev_beta)
-        {
-          nf.set_beta(beta);
-          prev_beta = beta;
-        }
-
-        return nf.filter(value);
+        nf.set_type(GetFilterType(type));
+        prev_type = type;
       }
-      else
-        return value;
-    }
+      if (amount != prev_amount)
+      {
+        nf.set_amount(amount);
+        prev_amount = amount;
+      }
+      if (freq != prev_freq)
+      {
+        nf.set_freq(freq);
+        prev_freq = freq;
+      }
+      if (cutoff != prev_cutoff)
+      {
+        nf.set_cutoff(cutoff);
+        prev_cutoff = cutoff;
+      }
+      if (beta != prev_beta)
+      {
+        nf.set_beta(beta);
+        prev_beta = beta;
+      }
 
-    bool should_output(
-        float quantif,
-        const uint64_t& ms,
-        const ossia::token_request& t,
-        const ossia::exec_state_facade& st)
-    {
-      if (quantif != 0.)
-        return true;
-      else
-        if (t.date.impl >= (last_time + ms * flicks_per_ms))
-        {
-          last_time = t.date.impl;
-          return true;
-        }
-      return false;
+      return nf.filter(value);
     }
 
   private:
-    static const constexpr int64_t flicks_per_ms = 705'600;
-    int64_t last_time{};
     std::string prev_type{"OneEuro"};
-    float prev_amount{1 / SCALED_AMOUNT},
-    prev_freq{INIT_FREQ},
-    prev_cutoff{INIT_CUTOFF},
-    prev_beta{INIT_BETA};
+    float prev_amount{1 / SCALED_AMOUNT}, prev_freq{INIT_FREQ},
+        prev_cutoff{INIT_CUTOFF}, prev_beta{INIT_BETA};
 
     NoiseFilter nf{};
 
@@ -241,15 +210,11 @@ struct Node
 
   static void
   run(const ossia::value_port& in,
-      bool smooth,
       const std::string& type,
       float amount,
       float freq,
       float cutoff,
       float beta,
-      bool rate,
-      float quantif,
-      uint64_t ms,
       ossia::value_port& out,
       ossia::token_request t,
       ossia::exec_state_facade st,
@@ -257,39 +222,17 @@ struct Node
   {
     for (const ossia::timed_value& v : in.get_data())
     {
-      auto filtered = self.filter(smooth, v.value, type, amount, freq, cutoff, beta);
-      if (rate)
-      {
-        if(quantif <= 0.)
-        {
-          if (self.should_output(quantif, ms, t, st))
-            out.write_value(filtered, v.timestamp); // TODO fix accuracy of timestamp
-        }
-        else
-        {
-          if (auto time = t.get_physical_quantification_date(1./quantif, st.modelToSamples()))
-          {
-            out.write_value(filtered, *time);
-          }
-        }
-      }
-      else
-        out.write_value(
-              filtered,
-              v.timestamp);
+      auto filtered = self.filter(v.value, type, amount, freq, cutoff, beta);
+      out.write_value(filtered, v.timestamp); // TODO fix accuracy of timestamp
     }
   }
 
   static void item(
-      Process::Toggle& smooth,
       Process::Enum& type,
       Process::FloatKnob& amount,
       Process::FloatSlider& freq,
       Process::FloatSlider& cutoff,
       Process::FloatSlider& beta,
-      Process::Toggle& rate,
-      Process::ComboBox& quantif,
-      Process::IntSlider& ms,
       const Process::ProcessModel& process,
       QGraphicsItem& parent,
       QObject& context,
@@ -305,100 +248,58 @@ struct Node
 
     auto c0_bg = new score::BackgroundItem{&parent};
     c0_bg->setRect({0., 0., w, h});
-    auto c1_bg = new score::BackgroundItem{&parent};
-    c1_bg->setRect({0., h, w, 45.});
-
-    auto smooth_item = makeControl(
-          tuplet::get<0>(Metadata::controls),
-          smooth,
-          parent,
-          context,
-          doc,
-          portFactory);
-    smooth_item.root.setPos(tMarg, 0);
-    smooth_item.control.setPos(0, tMarg);
 
     auto type_item = makeControl(
-          tuplet::get<1>(Metadata::controls),
-          type,
-          parent,
-          context,
-          doc,
-          portFactory);
+        tuplet::get<0>(Metadata::controls),
+        type,
+        parent,
+        context,
+        doc,
+        portFactory);
     type_item.root.setPos(70, 0);
     type_item.control.rows = 4;
     type_item.control.columns = 1;
     type_item.control.setRect(QRectF{0, 0, 60, 105});
 
     auto amount_item = makeControl(
-          tuplet::get<2>(Metadata::controls),
-          amount,
-          parent,
-          context,
-          doc,
-          portFactory);
+        tuplet::get<1>(Metadata::controls),
+        amount,
+        parent,
+        context,
+        doc,
+        portFactory);
     amount_item.root.setPos(tMarg, 40);
     amount_item.control.setPos(0, cMarg);
 
     auto freq_item = makeControl(
-          tuplet::get<3>(Metadata::controls),
-          freq,
-          parent,
-          context,
-          doc,
-          portFactory);
+        tuplet::get<2>(Metadata::controls),
+        freq,
+        parent,
+        context,
+        doc,
+        portFactory);
     freq_item.root.setPos(140, 0);
     freq_item.control.setPos(0, cMarg);
 
     auto cutoff_item = makeControl(
-          tuplet::get<4>(Metadata::controls),
-          cutoff,
-          parent,
-          context,
-          doc,
-          portFactory);
+        tuplet::get<3>(Metadata::controls),
+        cutoff,
+        parent,
+        context,
+        doc,
+        portFactory);
     cutoff_item.root.setPos(140, 40);
     cutoff_item.control.setPos(0, cMarg);
 
     auto beta_item = makeControl(
-          tuplet::get<5>(Metadata::controls),
-          beta,
-          parent,
-          context,
-          doc,
-          portFactory);
+        tuplet::get<4>(Metadata::controls),
+        beta,
+        parent,
+        context,
+        doc,
+        portFactory);
     beta_item.root.setPos(140, 80);
     beta_item.control.setPos(0, cMarg);
-
-    auto rate_item = makeControl(
-          tuplet::get<6>(Metadata::controls),
-          rate,
-          parent,
-          context,
-          doc,
-          portFactory);
-    rate_item.root.setPos(tMarg, h);
-    rate_item.control.setPos(0, tMarg);
-
-    auto quant_item = makeControl(
-          tuplet::get<7>(Metadata::controls),
-          quantif,
-          parent,
-          context,
-          doc,
-          portFactory);
-    quant_item.root.setPos(55, h);
-    quant_item.control.setPos(cMarg, cMarg);
-
-    auto ms_item = makeControl(
-          tuplet::get<8>(Metadata::controls),
-          ms,
-          parent,
-          context,
-          doc,
-          portFactory);
-    ms_item.root.setPos(150, h);
-    ms_item.control.setPos(0, cMarg);
   }
 };
 }
