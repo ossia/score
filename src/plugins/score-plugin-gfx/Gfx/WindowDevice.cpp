@@ -56,6 +56,17 @@ class window_device : public ossia::net::device_base
   QObject m_qtContext;
 
 public:
+  ~window_device()
+  {
+    m_protocol->stop();
+
+    {
+      m_root.clear_children();
+    }
+
+    m_protocol.reset();
+
+  }
   window_device(
       std::unique_ptr<ossia::net::protocol_base> proto,
       std::string name)
@@ -248,6 +259,8 @@ bool WindowDevice::reconnect()
       m_dev = std::make_unique<window_device>(
           std::unique_ptr<ossia::net::protocol_base>(m_protocol),
           m_settings.name.toStdString());
+
+      enableCallbacks();
     }
     // TODOengine->reload(&proto);
 
