@@ -138,10 +138,10 @@ struct Node
             "Type",
             0U,
             ossia::make_array("OneEuro", "LowPass", "Average", "Median")),
-        Control::FloatKnob{"amount", 0., 1., 0.1},
-        Control::FloatSlider{"freq (1e/LP)", 0., 300., 120.},
-        Control::FloatSlider{"cutoff (1e/LP)", 0., 10., 1.},
-        Control::FloatSlider{"beta (1e only)", 0., 10., 1.});
+        Control::FloatKnob{"Amount", 0., 1., 0.1},
+        Control::FloatSlider{"Freq (1e/LP)", 0., 300., 120.},
+        Control::FloatSlider{"Cutoff (1e/LP)", 0., 10., 1.},
+        Control::FloatSlider{"Beta (1e only)", 0., 10., 1.});
 
     static const constexpr value_in value_ins[]{"in"};
     static const constexpr value_out value_outs[]{"out"};
