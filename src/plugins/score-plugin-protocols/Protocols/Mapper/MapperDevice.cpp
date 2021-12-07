@@ -482,7 +482,23 @@ public:
       auto res = p->data().read.call(
           {QString::fromStdString(s->get_node().osc_address()),
            qt::value_to_js_value(v, *m_engine)});
-      p->set_value(qt::value_from_js(std::move(res)));
+
+      if(res.isArray())
+      {
+        if(res.property(0).isObject())
+        {
+          std::lock_guard l{m_rootLock};
+          apply_reply(m_device->get_root_node(), m_roots, res);
+        }
+        else
+        {
+          p->set_value(qt::value_from_js(std::move(res)));
+        }
+      }
+      else
+      {
+        p->set_value(qt::value_from_js(std::move(res)));
+      }
     }
   }
 
