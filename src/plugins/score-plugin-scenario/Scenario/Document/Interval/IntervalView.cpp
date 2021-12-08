@@ -337,27 +337,25 @@ void IntervalView::dropEvent(QGraphicsSceneDragDropEvent* event)
 QPainterPath Scenario::IntervalView::shape() const
 {
   qreal x = std::min(0., minWidth());
-  qreal rectW = infinite() ? defaultWidth() : maxWidth();
-  rectW -= x;
   QPainterPath p;
-  p.addRect({x, -1., rectW, intervalAndRackHeight()});
+  p.addRect({x, -1., defaultWidth() - x, intervalAndRackHeight()});
+  if(!infinite())
+    p.addRect({x, -1., maxWidth() - x, 5});
+
   return p;
 }
 
 QPainterPath Scenario::IntervalView::opaqueArea() const
 {
-  qreal x = std::min(0., minWidth());
-  qreal rectW = infinite() ? defaultWidth() : maxWidth();
-  rectW -= x;
-  QPainterPath p;
-  p.addRect({x, -1., rectW, intervalAndRackHeight()});
-  return p;
+  return shape();
 }
 
 bool Scenario::IntervalView::contains(const QPointF& pt) const
 {
   qreal x = std::min(0., minWidth());
-  qreal rectW = infinite() ? defaultWidth() : maxWidth();
-  rectW -= x;
-  return QRectF{x, -1., rectW, intervalAndRackHeight()}.contains(pt);
+  if(!QRectF{x, -1., defaultWidth() - x, intervalAndRackHeight()}.contains(pt))
+    if(!infinite())
+      if(!QRectF{x, -1., maxWidth() - x, 5}.contains(pt))
+        return false;
+  return true;
 }
