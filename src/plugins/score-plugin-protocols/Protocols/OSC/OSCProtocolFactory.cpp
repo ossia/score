@@ -40,9 +40,25 @@ static ossia::net::osc_protocol_configuration defaultOSCConfig() noexcept
   config.version = ossia::net::osc_protocol_configuration::OSC1_0;
   ossia::net::udp_configuration udp;
   udp.local = ossia::net::receive_socket_configuration{"0.0.0.0", 9996};
-  udp.remote = ossia::net::send_socket_configuration{"0.0.0.0", 9997};
+  udp.remote = ossia::net::send_socket_configuration{"127.0.0.1", 9997};
   config.transport = udp;
   return config;
+}
+
+ossia::net::osc_protocol_configuration readOSCConfig(const QByteArray& arr)
+{
+  ossia::net::osc_protocol_configuration conf = defaultOSCConfig();
+
+  rapidjson::Document doc;
+  doc.Parse(arr.data(), arr.length());
+  if(auto dev_it = doc.FindMember("Device"); dev_it != doc.MemberEnd())
+  {
+    auto dev = dev_it->value.GetObject();
+    if(dev.HasMember("Config"))
+      conf <<= JSONWriter{dev}.obj["Config"];
+  }
+
+  return conf;
 }
 
 struct OSCCompatibleCheck {
@@ -125,8 +141,9 @@ OSCProtocolFactory::getEnumerator(const score::DocumentContext& ctx) const
       [](const QByteArray& arr) {
         auto copy = arr;
         copy.detach();
+
         return QVariant::fromValue(OSCSpecificSettings{
-            defaultOSCConfig(), std::nullopt, std::move(copy)});
+            readOSCConfig(copy), std::nullopt, std::move(copy)});
       },
       ctx};
 }
