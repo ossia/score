@@ -20,10 +20,9 @@ struct ApplicationContext;
 }
 namespace PM
 {
-
-struct RemotePackage
+struct Package
 {
-  static std::optional<RemotePackage>
+  static std::optional<Package>
   fromJson(const QJsonObject& obj) noexcept;
 
   UuidKey<score::Addon> key; // Can be the same as plug-in's
@@ -43,24 +42,33 @@ struct RemotePackage
   QString largeImagePath;
   QImage smallImage;
   QImage largeImage;
+  QString size;
   bool enabled = true;
   bool corePlugin = false; // For plug-ins shipped with score
 };
 
-class LocalPackagesModel : public QAbstractItemModel
+class PackagesModel : public QAbstractItemModel
 {
-  std::vector<RemotePackage> m_vec;
-
 public:
-  LocalPackagesModel(const score::ApplicationContext& ctx);
+  std::vector<Package> m_vec;
+
+  void addAddon(Package e);
+  void removeAddon(Package e);
+
+  auto& addons() { return m_vec; }
+  auto& addons() const { return m_vec; }
+
+  void clear();
 
 private:
   enum class Column
   {
     Name,
+    Version,
+    Size,
     ShortDesc
   };
-  static constexpr const int ColumnCount = 3;
+  static constexpr const int ColumnCount = 4;
 
   QModelIndex
   index(int row, int column, const QModelIndex& parent) const override;
@@ -70,19 +78,19 @@ private:
   QVariant data(const QModelIndex& index, int role) const override;
   Qt::ItemFlags flags(const QModelIndex& index) const override;
 
+  QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+};
+
+struct LocalPackagesModel : public PackagesModel
+{
+  LocalPackagesModel(const score::ApplicationContext& ctx);
+  void registerAddon(const QString& p);
   QFileSystemWatcher m_addonsWatch;
 };
 
-class RemotePackagesModel : public QAbstractItemModel
+class RemotePackagesModel : public PackagesModel
 {
-  std::vector<RemotePackage> m_vec;
-
 public:
-  auto& addons() { return m_vec; }
-  auto& addons() const { return m_vec; }
-
-  void addAddon(RemotePackage e);
-
   template <typename Fun>
   void updateAddon(UuidKey<score::Addon> k, Fun f)
   {
@@ -94,16 +102,8 @@ public:
     }
   }
 
-  void clear();
-
 private:
-  enum class Column
-  {
-    Name,
-    ShortDesc
-  };
-
-  RemotePackage* addon(UuidKey<score::Addon> k)
+  Package* addon(UuidKey<score::Addon> k)
   {
     auto it = ossia::find_if(m_vec, [&](auto& add) { return add.key == k; });
 
@@ -112,17 +112,8 @@ private:
 
     return nullptr;
   }
-
-  static constexpr const int ColumnCount = 2;
-
-  QModelIndex
-  index(int row, int column, const QModelIndex& parent) const override;
-  QModelIndex parent(const QModelIndex& child) const override;
-  int rowCount(const QModelIndex& parent) const override;
-  int columnCount(const QModelIndex& parent) const override;
-  QVariant data(const QModelIndex& index, int role) const override;
 };
 }
 
-Q_DECLARE_METATYPE(PM::RemotePackage)
-W_REGISTER_ARGTYPE(PM::RemotePackage)
+Q_DECLARE_METATYPE(PM::Package)
+W_REGISTER_ARGTYPE(PM::Package)
