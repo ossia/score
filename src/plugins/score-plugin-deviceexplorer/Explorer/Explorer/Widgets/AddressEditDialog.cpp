@@ -17,6 +17,7 @@
 #include <score/widgets/WidgetWrapper.hpp>
 
 #include <ossia/network/domain/domain.hpp>
+#include <ossia/network/base/name_validation.hpp>
 
 #include <QDialogButtonBox>
 #include <QFormLayout>
@@ -28,10 +29,39 @@ W_OBJECT_IMPL(Explorer::AddressEditDialog)
 
 namespace Explorer
 {
+class AddressBraceExpressionValidator : public QValidator
+{
+public:
+  using QValidator::QValidator;
+  virtual ~AddressBraceExpressionValidator(){
+
+  }
+
+  QValidator::State validate(QString& s, int& pos) const override
+  {
+    if(::State::Address::validateFragment(s))
+      return QValidator::State::Acceptable;
+    QString str = s;
+    str.remove('/');
+
+    if(::State::Address::validateFragment(str))
+      return QValidator::State::Acceptable;
+
+    if(str.contains('[') || str.contains(']') || str.contains('{') || str.contains('}'))
+    {
+      if(ossia::net::is_brace_expansion(str.toStdString()))
+        return QValidator::State::Acceptable;
+      else
+        return QValidator::State::Intermediate;
+    }
+
+    return QValidator::State::Invalid;
+  }
+};
 AddressEditDialog::AddressEditDialog(QWidget* parent)
     : AddressEditDialog{makeDefaultSettings(), parent}
 {
-  m_nameEdit->setValidator(nullptr);
+  m_nameEdit->setValidator(new AddressBraceExpressionValidator);
 }
 
 AddressEditDialog::AddressEditDialog(
