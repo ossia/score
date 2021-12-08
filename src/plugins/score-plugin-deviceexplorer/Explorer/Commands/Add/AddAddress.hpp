@@ -68,5 +68,15 @@ private:
   Device::FullAddressSettings m_addressSettings;
   int m_existsUpTo{};
 };
+
+
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddAddresses final
+    : public score::AggregateCommand
+{
+  SCORE_COMMAND_DECL(
+      DeviceExplorerCommandFactoryName(),
+      AddAddresses,
+      "Add addresses")
+};
 }
 }

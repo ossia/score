@@ -91,6 +91,10 @@ public:
       Device::Node& parent,
       const Device::AddressSettings& data,
       int row);
+  void addLocalAddresses(
+      Device::Node& parent,
+      Device::AddressSettings data,
+      int row);
 
   void addLocalNode(Device::Node& parent, Device::Node&& node);
 

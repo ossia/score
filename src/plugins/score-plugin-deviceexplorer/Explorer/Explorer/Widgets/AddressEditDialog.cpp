@@ -31,6 +31,7 @@ namespace Explorer
 AddressEditDialog::AddressEditDialog(QWidget* parent)
     : AddressEditDialog{makeDefaultSettings(), parent}
 {
+  m_nameEdit->setValidator(nullptr);
 }
 
 AddressEditDialog::AddressEditDialog(

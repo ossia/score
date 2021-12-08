@@ -1278,6 +1278,27 @@ void DeviceExplorerWidget::findUsage()
   findAddresses(search_txt);
 }
 
+void DeviceExplorerWidget::do_addAddress(InsertMode insert, QModelIndex index, Device::Node* parent, Device::AddressSettings& stgs)
+{
+  // TODO checking for expansion should not be necessary anymore
+  const bool parent_is_expanded = m_ntView->isExpanded(
+      proxyIndex(m_ntView->model()->modelIndexFromNode(*parent, 0)));
+
+  m_cmdDispatcher->submit(new Explorer::Command::AddAddress{
+      model()->deviceModel(), Device::NodePath{index}, insert, stgs});
+
+  // If the node is going to be visible, we have to start listening to it.
+  if (parent_is_expanded && m_listeningManager)
+  {
+    auto child_it = ossia::find_if(*parent, [&](const Device::Node& child) {
+      return child.get<Device::AddressSettings>().name == stgs.name;
+    });
+    SCORE_ASSERT(child_it != parent->end());
+
+    m_listeningManager->enableListening(*child_it);
+  }
+}
+
 void DeviceExplorerWidget::addAddress(InsertMode insert)
 {
   if (!editable())
@@ -1313,6 +1334,7 @@ void DeviceExplorerWidget::addAddress(InsertMode insert)
   if (!dial)
     return;
 
+  dial->setParent(this);
   auto code = static_cast<QDialog::DialogCode>(dial->exec());
 
   if (code == QDialog::Accepted)
@@ -1321,26 +1343,57 @@ void DeviceExplorerWidget::addAddress(InsertMode insert)
         = (insert == InsertMode::AsChild) ? &node : node.parent();
 
     auto stgs = dial->getSettings();
-    if (!model()->checkAddressInstantiatable(*parent, stgs))
-      return;
-
-    // TODO checking for expansion should not be necessary anymore
-    bool parent_is_expanded = m_ntView->isExpanded(
-        proxyIndex(m_ntView->model()->modelIndexFromNode(*parent, 0)));
-
-    m_cmdDispatcher->submit(new Explorer::Command::AddAddress{
-        model()->deviceModel(), Device::NodePath{index}, insert, stgs});
-
-    // If the node is going to be visible, we have to start listening to it.
-    if (parent_is_expanded)
+    auto addr_request = stgs.name.toStdString();
+    auto [names, is_brace_exp] = ossia::net::expand_address(addr_request);
+    if(is_brace_exp || stgs.name.contains('/'))
     {
-      auto child_it = ossia::find_if(*parent, [&](const Device::Node& child) {
-        return child.get<Device::AddressSettings>().name == stgs.name;
-      });
-      SCORE_ASSERT(child_it != parent->end());
+      std::vector<QString> correct_names;
+      for(auto& name : names)
+      {
+        stgs.name = QString::fromStdString(name);
+        if(model()->checkAddressInstantiatable(*parent, stgs))
+        {
+          correct_names.push_back(std::move(stgs.name));
+        }
+      }
 
-      if (m_listeningManager)
-        m_listeningManager->enableListening(*child_it);
+      if(!correct_names.empty())
+      {
+        // bool parent_is_expanded = m_ntView->isExpanded(
+        //     proxyIndex(m_ntView->model()->modelIndexFromNode(*parent, 0)));
+
+        auto cmd = new Explorer::Command::AddAddresses{};
+        for(auto& name : correct_names)
+        {
+          stgs.name = name;
+          cmd->addCommand(
+            new Explorer::Command::AddAddress{
+                      model()->deviceModel(), Device::NodePath{index}, insert, stgs});
+        }
+        this->m_cmdDispatcher->submit(cmd);
+
+        // If the node is going to be visible, we have to start listening to it.
+        // FIXME
+        // if (parent_is_expanded && m_listeningManager)
+        // {
+        //   for(auto& name : correct_names)
+        //   {
+        //     auto child_it = ossia::find_if(*parent, [&](const Device::Node& child) {
+        //       return child.get<Device::AddressSettings>().name == stgs.name;
+        //     });
+        //     SCORE_ASSERT(child_it != parent->end());
+        //
+        //     m_listeningManager->enableListening(*child_it);
+        //   }
+        // }
+      }
+    }
+    else
+    {
+      if (!model()->checkAddressInstantiatable(*parent, stgs))
+        return;
+
+      do_addAddress(insert, index, parent, stgs);
     }
     updateActions();
   }

@@ -140,6 +140,9 @@ private:
 public:
   void findAddresses(QStringList strlst)
       E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, findAddresses, strlst)
+
+private:
+  void do_addAddress(InsertMode insert, QModelIndex index, Device::Node* parent, Device::AddressSettings& stgs);
 };
 
 SCORE_PLUGIN_DEVICEEXPLORER_EXPORT

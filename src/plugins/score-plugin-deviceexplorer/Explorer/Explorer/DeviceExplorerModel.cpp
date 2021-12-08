@@ -156,7 +156,7 @@ void DeviceExplorerModel::updateDevice(
   }
 }
 
-void DeviceExplorerModel::addAddress(
+Device::Node* DeviceExplorerModel::addAddress(
     Device::Node* parentNode,
     const Device::AddressSettings& addressSettings,
     int row)
@@ -174,9 +174,11 @@ void DeviceExplorerModel::addAddress(
   auto it = parentNode->begin();
   std::advance(it, row);
 
-  parentNode->emplace(it, addressSettings, parentNode);
+  auto& ret = parentNode->emplace(it, addressSettings, parentNode);
 
   endInsertRows();
+
+  return &ret;
 }
 
 void DeviceExplorerModel::addNode(

@@ -97,7 +97,14 @@ void NodeUpdateProxy::addAddress(
       .addAddress(full);
 
   // Add in the device explorer
-  addLocalAddress(*parentnode, settings, row);
+  if(settings.name.contains('/'))
+  {
+    addLocalAddresses(*parentnode, settings, row);
+  }
+  else
+  {
+    addLocalAddress(*parentnode, settings, row);
+  }
 }
 
 void NodeUpdateProxy::addAddress(const Device::FullAddressSettings& full)
@@ -194,6 +201,46 @@ void NodeUpdateProxy::addLocalAddress(
     int row)
 {
   devModel.explorer().addAddress(&parentnode, settings, row);
+}
+
+void NodeUpdateProxy::addLocalAddresses(
+    Device::Node& parentnode,
+    Device::AddressSettings settings,
+    int row)
+{
+  // Find the first node that does not exist
+  auto names = settings.name.split('/');
+
+  int k = 0;
+  const Device::Node* node = &parentnode;
+  while(k < names.size())
+  {
+    auto cld = ossia::find_if(node->children(), [&] (auto& node) {
+      return node.displayName() == names[k];
+    });
+
+    if(cld != node->children().end())
+    {
+      node = &*cld;
+      ++k;
+    }
+    else
+    {
+      break;
+    }
+  }
+
+  while(k < int(names.size()) - 1)
+  {
+    Device::AddressSettings set;
+    set.name = names[k];
+    node = devModel.explorer().addAddress(const_cast<Device::Node*>(node), set, row);
+    ++k;
+  }
+
+  settings.name = names.back();
+
+  devModel.explorer().addAddress(const_cast<Device::Node*>(node), settings, row);
 }
 
 void NodeUpdateProxy::updateLocalValue(

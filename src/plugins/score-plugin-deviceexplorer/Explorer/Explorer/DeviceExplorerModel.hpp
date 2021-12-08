@@ -92,7 +92,7 @@ public:
   int addDevice(const Device::Node& deviceNode);
   void updateDevice(const QString& name, const Device::DeviceSettings& dev);
 
-  void addAddress(
+  Device::Node* addAddress(
       Device::Node* parentNode,
       const Device::AddressSettings& addressSettings,
       int row);

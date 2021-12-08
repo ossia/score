@@ -150,7 +150,8 @@ FullAddressSettings::make<FullAddressSettings::as_parent>(
   static_cast<AddressSettingsCommon&>(as) = other;
 
   as.address = addr;
-  as.address.path.append(other.name);
+  auto sub = other.name.split('/');
+  as.address.path += sub;
 
   return as;
 }
