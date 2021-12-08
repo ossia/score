@@ -108,6 +108,7 @@ protected:
   friend class TemporalIntervalHeader;
   friend class FullViewIntervalHeader;
   void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
+  void dragMoveEvent(QGraphicsSceneDragDropEvent* event) override;
   void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override;
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 

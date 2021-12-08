@@ -189,7 +189,16 @@ void IntervalView::mousePressEvent(QGraphicsSceneMouseEvent* event)
     setGripCursor();
   else
     unsetCursor();
-  m_presenter.pressed(event->scenePos());
+
+  if(contains(event->pos()))
+  {
+    m_presenter.pressed(event->scenePos());
+    event->accept();
+  }
+  else
+  {
+    event->ignore();
+  }
 }
 
 void IntervalView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
@@ -312,8 +321,21 @@ void IntervalView::setExecutionState(IntervalExecutionState s)
 
 void IntervalView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
 {
-  QGraphicsItem::dragEnterEvent(event);
-  setDropTarget(true);
+  if(event->pos().x() <= this->m_defaultWidth && event->pos().y() <= 7.)
+  {
+    QGraphicsItem::dragEnterEvent(event);
+    setDropTarget(true);
+    event->accept();
+  }
+  else
+  {
+    event->ignore();
+  }
+}
+
+void IntervalView::dragMoveEvent(QGraphicsSceneDragDropEvent* event)
+{
+  setDropTarget((event->pos().x() <= this->m_defaultWidth && event->pos().y() <= 7.));
   event->accept();
 }
 
@@ -326,11 +348,18 @@ void IntervalView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 
 void IntervalView::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
-  dropReceived(event->pos(), *event->mimeData());
   setDropTarget(false);
-  update();
+  if(event->pos().x() <= this->m_defaultWidth && event->pos().y() <= 7.)
+  {
+    dropReceived(event->pos(), *event->mimeData());
+    update();
 
-  event->accept();
+    event->accept();
+  }
+  else
+  {
+    event->ignore();
+  }
 }
 }
 
