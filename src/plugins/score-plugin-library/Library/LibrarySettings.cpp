@@ -113,6 +113,9 @@ void Model::firstTimeLibraryDownload()
 
             rescanLibrary();
           },
+      [] (qint64 bytesRecieved, qint64 bytesTotal) {
+        qDebug() << (((bytesRecieved / 1024.) / (bytesTotal / 1024.)) * 100)
+                 << "% downloaded"; },
           [] {});
     }
   }

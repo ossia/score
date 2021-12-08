@@ -14,10 +14,12 @@
 #include <QListView>
 #include <QStandardItemModel>
 #include <QStyle>
+#include <QHeaderView>
 
 #include <PackageManager/FileDownloader.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(PM::PluginSettingsPresenter)
+
 namespace score
 {
 class SettingsDelegateModel;
@@ -36,13 +38,17 @@ PluginSettingsPresenter::PluginSettingsPresenter(
   auto& ps_view = static_cast<PluginSettingsView&>(view);
 
   ps_view.localView()->setModel(&ps_model.localPlugins);
-  ps_view.localView()->setColumnWidth(0, 150);
-  ps_view.localView()->setColumnWidth(1, 400);
-  ps_view.localView()->setColumnWidth(2, 400);
+  ps_view.localView()->setColumnWidth(0, 200);
+  ps_view.localView()->setColumnWidth(1, 40);
+  ps_view.localView()->setColumnWidth(2, 40);
+  ps_view.localView()->horizontalHeader()->setStretchLastSection(true);
 
   ps_view.remoteView()->setModel(&ps_model.remotePlugins);
-  ps_view.remoteView()->setColumnWidth(0, 150);
-  ps_view.remoteView()->setColumnWidth(1, 400);
+  ps_view.remoteView()->setColumnWidth(0, 200);
+  ps_view.remoteView()->setColumnWidth(1, 40);
+  ps_view.remoteView()->setColumnWidth(2, 40);
+  ps_view.remoteView()->horizontalHeader()->setStretchLastSection(true);
+
   ps_view.remoteView()->setSelectionModel(&ps_model.remoteSelection);
 
   connect(
@@ -50,7 +56,7 @@ PluginSettingsPresenter::PluginSettingsPresenter(
       &QItemSelectionModel::currentRowChanged,
       this,
       [&](const QModelIndex& current, const QModelIndex& previous) {
-        RemotePackage& addon
+        Package& addon
             = ps_model.remotePlugins.addons().at(current.row());
 
         ps_view.installButton().setEnabled(
