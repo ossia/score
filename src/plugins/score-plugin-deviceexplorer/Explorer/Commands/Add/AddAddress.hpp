@@ -42,6 +42,7 @@ protected:
 private:
   Device::NodePath m_parentNodePath;
   Device::AddressSettings m_addressSettings;
+  int m_createdLevels{};
 };
 
 class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddWholeAddress final

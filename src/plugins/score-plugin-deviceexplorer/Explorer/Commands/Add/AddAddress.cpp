@@ -40,12 +40,52 @@ AddAddress::AddAddress(
 
   SCORE_ASSERT(parentNode);
   m_parentNodePath = Device::NodePath{*parentNode};
+
+  int i = 0;
+  if(m_addressSettings.name.contains('/'))
+  {
+    auto split = m_addressSettings.name.split('/');
+
+    const Device::Node* lastExistingNode = parentNode;
+    for(; i < split.size(); i++)
+    {
+      auto cld = Device::findChildNode(*lastExistingNode, split[i]);
+      if(cld)
+      {
+        lastExistingNode = cld;
+        continue;
+      }
+      else
+      {
+        break;
+      }
+    }
+    m_createdLevels = split.size() - i;
+  }
+  else
+  {
+    m_createdLevels = 1;
+  }
 }
 
 void AddAddress::undo(const score::DocumentContext& ctx) const
 {
   auto& devplug = ctx.plugin<DeviceDocumentPlugin>();
+
   devplug.updateProxy.removeNode(m_parentNodePath, m_addressSettings);
+  if(m_createdLevels > 1)
+  {
+    auto split = m_addressSettings.name.split('/');
+    auto set = m_addressSettings;
+    int levels = m_createdLevels - 1;
+    while(levels > 0)
+    {
+      split.pop_back();
+      set.name = split.join('/');
+      devplug.updateProxy.removeNode(m_parentNodePath, set);
+      levels--;
+    }
+  }
 }
 
 void AddAddress::redo(const score::DocumentContext& ctx) const
@@ -56,12 +96,12 @@ void AddAddress::redo(const score::DocumentContext& ctx) const
 
 void AddAddress::serializeImpl(DataStreamInput& s) const
 {
-  s << m_parentNodePath << m_addressSettings;
+  s << m_parentNodePath << m_addressSettings << m_createdLevels;
 }
 
 void AddAddress::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_parentNodePath >> m_addressSettings;
+  s >> m_parentNodePath >> m_addressSettings >> m_createdLevels;
 }
 
 AddWholeAddress::AddWholeAddress(

@@ -113,6 +113,23 @@ merge(Device::Node base, const State::MessageList& other);
 SCORE_LIB_DEVICE_EXPORT void
 merge(Device::Node& base, const State::Message& message);
 
+inline auto findChildNode_it(const Device::Node& node, const QString& name)
+{
+  return std::find_if(
+        node.begin(), node.end(), [&] (const Device::Node& n) {
+    return n.get<Device::AddressSettings>().name == name;
+  });
+}
+
+inline const Device::Node* findChildNode(const Device::Node& node, const QString& name)
+{
+  const Device::Node* res{};
+  auto it = findChildNode_it(node, name);
+  if(it != node.end())
+    res = &*it;
+  return res;
+}
+
 // Generic algorithms for DeviceExplorerNode-like structures.
 template <typename Node_T, typename It>
 Node_T* try_getNodeFromString_impl(Node_T& n, It begin, It end)

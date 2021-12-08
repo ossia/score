@@ -176,23 +176,71 @@ void NodeUpdateProxy::removeNode(
   if (!parentnode)
     return;
 
-  auto addr = Device::address(*parentnode).address;
-  addr.path.append(settings.name);
+  if(settings.name.contains('/'))
+  {
+    auto names = settings.name.split('/');
+    const Device::Node* lastnode = parentnode;
+    for(auto& n : names) {
+      auto res = findChildNode(*lastnode, n);
+      if(!res)
+      {
+        qDebug() << "Did not find" << n << "in" << lastnode->displayName();
+        return;
+      }
+      else
+      {
+        lastnode = res;
+      }
+    }
 
-  // Remove from the device implementation
-  const auto& dev_node = devModel.rootNode().childAt(parentPath.at(0));
-  devModel.list()
-      .device(dev_node.template get<Device::DeviceSettings>().name)
-      .removeNode(addr);
+    int k = int(names.size()) - 1;
+    Device::Node* lastparentnode = lastnode->parent();
 
-  // Remove from the device explorer
-  auto it = std::find_if(
-      parentnode->begin(), parentnode->end(), [&](const Device::Node& n) {
-        return n.get<Device::AddressSettings>().name == settings.name;
-      });
-  SCORE_ASSERT(it != parentnode->end());
+    {
+      auto addr = Device::address(*lastnode);
 
-  devModel.explorer().removeNode(it);
+      // Remove from the device implementation
+      const auto& dev_node = devModel.rootNode().childAt(parentPath.at(0));
+      devModel.list()
+          .device(dev_node.template get<Device::DeviceSettings>().name)
+          .removeNode(addr.address);
+
+      // Remove from the device explorer
+      auto it = findChildNode_it(*lastparentnode, lastnode->displayName());
+      if(it == parentnode->end())
+        return;
+
+      devModel.explorer().removeNode(it);
+
+      lastnode = lastparentnode;
+      lastparentnode = lastparentnode->parent();
+      k--;
+
+    }
+  }
+  else
+  {
+    auto addr = Device::address(*parentnode).address;
+    addr.path.append(settings.name);
+
+    // Remove from the device implementation
+    const auto& dev_node = devModel.rootNode().childAt(parentPath.at(0));
+    devModel.list()
+        .device(dev_node.template get<Device::DeviceSettings>().name)
+        .removeNode(addr);
+
+    // Remove from the device explorer
+    auto it = std::find_if(
+        parentnode->begin(), parentnode->end(), [&](const Device::Node& n) {
+          return n.get<Device::AddressSettings>().name == settings.name;
+        });
+
+    // The node may have been removed by a previous command already
+    if(it != parentnode->end())
+    {
+      devModel.explorer().removeNode(it);
+    }
+  }
 }
 
 void NodeUpdateProxy::addLocalAddress(
