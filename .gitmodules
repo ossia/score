@@ -31,7 +31,9 @@
 [submodule "3rdparty/vst3/cmake"]
 	path = 3rdparty/vst3/cmake
 	url = https://github.com/jcelerier/vst3_cmake
-
+[submodule "3rdparty/libossia"]
+        path = 3rdparty/libossia
+        url = https://github.com/ossia/libossia
 [submodule "3rdparty/libpd"]
 	path = 3rdparty/libpd
 	url = https://github.com/jcelerier/libpd
