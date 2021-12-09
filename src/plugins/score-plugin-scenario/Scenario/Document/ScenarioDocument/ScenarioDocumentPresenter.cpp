@@ -601,6 +601,9 @@ ZoomRatio ScenarioDocumentPresenter::computeZoom(double l, double r)
 void ScenarioDocumentPresenter::on_addProcessFromLibrary(
     const Library::ProcessData& dat)
 {
+  if(&this->context().app.currentDocument()->document != &this->context().document)
+    return;
+
   const struct {
     const Library::ProcessData& dat;
     void operator()(CentralIntervalDisplay& disp) const noexcept {
