@@ -376,6 +376,9 @@ void NodeItem::createContentItem()
   updateSize();
   updateZoomRatio();
   updateTitlePos();
+
+  if(m_model.size() != m_contentSize)
+    const_cast<Process::ProcessModel&>(m_model).setSize(m_contentSize);
 }
 
 double NodeItem::minimalContentWidth() const noexcept

@@ -168,4 +168,10 @@ private:
   bool m_updatingView{false};
 };
 
+Process::ProcessModel* closestParentProcessBeforeInterval(const QObject* obj);
+void createProcessAfterPort(
+    Scenario::ScenarioDocumentPresenter& parent,
+    const Library::ProcessData& dat,
+    const Process::ProcessModel& parentProcess,
+    const Process::Port& p);
 }

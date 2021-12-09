@@ -209,7 +209,7 @@ public:
   template <typename Property, typename T, typename U>
   void setProperty(const T& object, U&& value)
   {
-    auto cmd = new score::PropertyCommand_T<Property>{
+    auto cmd = new typename score::PropertyCommand_T<Property>::template command<void>::type{
         object, std::forward<U>(value)};
     m.submit(cmd);
   }

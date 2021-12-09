@@ -8,6 +8,9 @@
 
 #include <Library/ProcessesItemModel.hpp>
 
+#include <score/document/DocumentContext.hpp>
+#include <score/selection/SelectionStack.hpp>
+
 #include <QMenu>
 #include <QTimer>
 
@@ -58,9 +61,47 @@ void CentralNodalDisplay::recenter()
 
 void CentralNodalDisplay::on_addProcessFromLibrary(const Library::ProcessData& dat)
 {
-  Command::Macro m{new Command::DropProcessInIntervalMacro, parent.context()};
-  m.createProcessInNewSlot(parent.displayedInterval(), dat.key, dat.customData);
-  m.commit();
+  auto createInParentInterval = [&]
+  {
+    Command::Macro m{new Command::DropProcessInIntervalMacro, parent.context()};
+    m.createProcessInNewSlot(parent.displayedInterval(), dat.key, dat.customData);
+    m.commit();
+  };
+
+  // Try to see if a process is selected.
+  {
+    auto sel = filterSelectionByType<Process::ProcessModel>(
+          parent.context().selectionStack.currentSelection());
+    if (sel.size() == 1)
+    {
+      const Process::ProcessModel& parentProcess = *sel.front();
+      if(!parentProcess.outlets().empty())
+      {
+        createProcessAfterPort(parent, dat, parentProcess, *parentProcess.outlets().front());
+      }
+      else
+      {
+        createInParentInterval();
+      }
+
+      return;
+    }
+  }
+  // Else try to see if a port is selected.
+  {
+    auto sel = filterSelectionByType<Process::Port>(
+        parent.context().selectionStack.currentSelection());
+    if (sel.size() == 1)
+    {
+      const Process::Port& p = *sel.front();
+      auto parentProcess = closestParentProcessBeforeInterval(&p);
+      if(parentProcess)
+        createProcessAfterPort(parent, dat, *parentProcess, p);
+      else
+        createInParentInterval();
+      return;
+    }
+  }
 }
 
 void CentralNodalDisplay::on_visibleRectChanged(const QRectF&)
