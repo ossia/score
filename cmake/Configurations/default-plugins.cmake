@@ -86,5 +86,6 @@ score-plugin-vst3
 score-plugin-lv2
 score-plugin-faust
 score-plugin-pd
+score-plugin-ysfx
 )
 endif()
