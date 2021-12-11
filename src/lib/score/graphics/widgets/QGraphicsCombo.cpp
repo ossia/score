@@ -123,9 +123,9 @@ struct DefaultComboImpl
 
       const double max = currentGeometry.height();
 
-      if (event->screenPos().y() <= 0)
+      if (event->screenPos().y() <= 100)
         score::setCursorPos(QPointF(event->screenPos().x(), max));
-      else if (event->screenPos().y() >= max)
+      else if (event->screenPos().y() >= (max - 100))
         score::setCursorPos(QPointF(event->screenPos().x(), 0));
 
       double v = origValue - currentDelta / max;
