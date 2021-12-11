@@ -100,17 +100,18 @@ void ProcessModel::setScript(const QString& script)
       const bool is_visible = ysfx_slider_is_initially_visible(fx.get(), i);
       if (ysfx_slider_is_enum(fx.get(), i))
       {
-        std::vector<std::string> values;
+        std::vector<std::pair<QString, ossia::value>> values;
         ossia::value init;
         QString name = ysfx_slider_get_name(fx.get(), i);
 
         uint32_t count = ysfx_slider_get_enum_size(fx.get(), i);
         std::vector<const char *> names(count);
         ysfx_slider_get_enum_names(fx.get(), i, names.data(), count);
+        int k = 0;
         for(const char* val : names)
-          values.push_back(val);
+          values.push_back({val, k++});
 
-        auto slider = new Process::Enum{values, {}, values[0], name, id, this};
+        auto slider = new Process::ComboBox{values, 0, name, id, this};
         slider->setName(ysfx_slider_get_name(fx.get(), i));
 
         this->m_inlets.push_back(slider);

@@ -59,13 +59,10 @@ class LibraryHandler final
     QFileInfo file{QString::fromUtf8(path.data(), path.length())};
     Library::ProcessData pdata;
     pdata.prettyName = file.baseName();
+
     pdata.key = Metadata<ConcreteKey_k, YSFX::ProcessModel>::get();
     pdata.customData = file.absoluteFilePath();
-    {
-      {
-        categories.add(file, std::move(pdata));
-      }
-    }
+    categories.add(file, std::move(pdata));
   }
 };
 

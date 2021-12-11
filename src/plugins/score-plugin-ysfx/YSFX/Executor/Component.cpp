@@ -187,9 +187,13 @@ void ysfx_node::run(
     if(!dat.empty())
     {
       auto& val = dat.back().value;
-      if(float* f = val.target<float>())
+      if(float* v = val.target<float>())
       {
-        ysfx_slider_set_value(fx.get(), i, *f);
+        ysfx_slider_set_value(fx.get(), i, *v);
+      }
+      else if(int* v = val.target<int>())
+      {
+        ysfx_slider_set_value(fx.get(), i, *v);
       }
     }
   }
