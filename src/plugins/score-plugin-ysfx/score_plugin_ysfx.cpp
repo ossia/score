@@ -72,7 +72,7 @@ class DropHandler final : public Process::ProcessDropHandler
 
   QSet<QString> fileExtensions() const noexcept override
   {
-    return {"ysfx"};
+    return {"jsfx"};
   }
 
   std::vector<Process::ProcessDropHandler::ProcessDrop> dropData(
