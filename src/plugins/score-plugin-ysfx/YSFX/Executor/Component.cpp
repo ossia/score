@@ -47,6 +47,8 @@ public:
   ossia::execution_state& m_st;
 
   ossia::audio_inlet* audio_in{};
+  ossia::midi_inlet* midi_in{};
+  ossia::midi_outlet* midi_out{};
   ossia::audio_outlet* audio_out{};
   std::vector<ossia::value_port*> sliders;
 };
@@ -65,7 +67,7 @@ Component::Component(
   this->node = node;
   m_ossia_process = std::make_shared<ossia::node_process>(node);
 
-  int firstControlIndex = ysfx_get_num_inputs(proc.fx.get()) > 0 ? 1 : 0;
+  int firstControlIndex = ysfx_get_num_inputs(proc.fx.get()) > 0 ? 2 : 1;
   for (std::size_t i = firstControlIndex, N = proc.inlets().size(); i < N; i++)
   {
     auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
@@ -94,15 +96,21 @@ ysfx_node::ysfx_node(std::shared_ptr<ysfx_t> ffx, ossia::execution_state& st)
 {
   ysfx_set_block_size(fx.get(), st.bufferSize);
   ysfx_set_sample_rate(fx.get(), st.sampleRate);
+  ysfx_init(fx.get());
+
   if(ysfx_get_num_inputs(fx.get()) > 0)
   {
     this->m_inlets.push_back(audio_in = new ossia::audio_inlet);
   }
 
+  this->m_inlets.push_back(midi_in = new ossia::midi_inlet);
+
   if(ysfx_get_num_outputs(fx.get()) > 0)
   {
     this->m_outlets.push_back(audio_out = new ossia::audio_outlet);
   }
+
+  this->m_outlets.push_back(midi_out = new ossia::midi_outlet);
 
   for (uint32_t i = 0; i < ysfx_max_sliders; ++i)
   {
@@ -135,6 +143,7 @@ void ysfx_node::run(
 
   const auto [tick_start, d] = estate.timings(tk);
 
+  // Setup audio input
   double** ins{};
   int in_count{};
   if(audio_in)
@@ -154,6 +163,7 @@ void ysfx_node::run(
     }
   }
 
+  // Setup audio output
   double** outs{};
   int out_count{};
   if(audio_out)
@@ -168,6 +178,7 @@ void ysfx_node::run(
     }
   }
 
+  // Setup controls
   for (std::size_t i = 0; i < sliders.size(); i++)
   {
     auto& vp = *sliders[i];
@@ -183,7 +194,26 @@ void ysfx_node::run(
     }
   }
 
+  // Setup midi
+  for(auto& msg : this->midi_in->data.messages)
+  {
+    ysfx_midi_event_t ev;
+    ev.bus = 0;
+    ev.data = msg.bytes.data();
+    ev.offset = msg.timestamp;
+    ev.size = msg.bytes.size();
+    ysfx_send_midi(fx.get(), &ev);
+  }
+
   ysfx_process_double(fx.get(), ins, outs, in_count, out_count, d);
+
+  ysfx_midi_event_t ev;
+  while(ysfx_receive_midi(fx.get(), &ev)) {
+    libremidi::message msg;
+    msg.bytes.assign(ev.data, ev.data + ev.size);
+    msg.timestamp = ev.offset;
+    this->midi_out->data.messages.push_back(msg);
+  }
 }
 }
 }

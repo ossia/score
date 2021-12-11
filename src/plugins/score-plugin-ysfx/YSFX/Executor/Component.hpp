@@ -30,8 +30,6 @@ public:
 
 private:
   void on_scriptChange(const QString& script);
-  Process::Inlets m_oldInlets;
-  Process::Outlets m_oldOutlets;
 };
 
 using ComponentFactory = ::Execution::ProcessComponentFactory_T<Component>;

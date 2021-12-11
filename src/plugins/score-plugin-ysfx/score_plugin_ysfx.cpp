@@ -114,7 +114,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_ysfx::factories(
   return instantiate_factories<
       score::ApplicationContext,
       FW<Process::ProcessModelFactory, YSFX::ProcessFactory>,
-//      FW<Process::LayerFactory, YSFX::LayerFactory>,
+      FW<Process::LayerFactory, YSFX::LayerFactory>,
       FW<Library::LibraryInterface, YSFX::LibraryHandler>,
       FW<Process::ProcessDropHandler, YSFX::DropHandler>,
       FW<Execution::ProcessComponentFactory, YSFX::Executor::ComponentFactory>>(
