@@ -270,7 +270,7 @@ void Application::init()
       QOpenGLContext ctx;
       appSettings.opengl = ctx.create() && ctx.format().majorVersion() > 1;
 #else
-      m_applicationSettings.opengl = true;
+      appSettings.opengl = true;
 #endif
     }
   }
@@ -336,19 +336,19 @@ void Application::init()
 
 #if defined(__APPLE__)
   {
-    if (m_applicationSettings.gui)
+    if (appSettings.gui)
     {
       auto sqa = safe_cast<SafeQApplication*>(m_app);
       if(auto file = sqa->fileToOpen; QFile::exists(file))
       {
-        m_applicationSettings.loadList.push_back(file);
+        appSettings.loadList.push_back(file);
       }
     }
   }
 #endif
 
 #if defined(SCORE_SPLASH_SCREEN)
-  if (m_applicationSettings.gui && m_applicationSettings.loadList.empty())
+  if (appSettings.gui && appSettings.loadList.empty())
   {
     m_startScreen = new score::StartScreen{this->context().docManager.recentFiles()};
     m_startScreen->show();
