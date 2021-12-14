@@ -25,6 +25,7 @@ extern "C"  __declspec(dllimport) LONG __stdcall NtSetTimerResolution(ULONG Desi
 #include <QPixmapCache>
 #include <QItemSelection>
 #include <QSurfaceFormat>
+#include <QApplication>
 #include <qnamespace.h>
 
 #ifndef QT_NO_OPENGL
@@ -202,6 +203,12 @@ static void setup_faust_path()
 
 static void setup_opengl()
 {
+  const auto& plat = qApp->platformName();
+  if(plat == "minimal" || plat == "offscreen" || plat == "vnc")
+  {
+    return;
+  }
+
 #ifndef QT_NO_OPENGL
 #if defined(__arm__)
   QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
