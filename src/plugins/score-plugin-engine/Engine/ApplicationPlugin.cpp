@@ -61,7 +61,7 @@ bool ApplicationPlugin::handleStartup()
     {
       // TODO what happens if we load multiple documents ?
       QTimer::singleShot(
-          context.applicationSettings.waitAfterLoad * 1000, &m_execution, [=] {
+          (1 + context.applicationSettings.waitAfterLoad) * 1000, &m_execution, [=] {
             m_execution.request_play_local(true);
           });
       return true;

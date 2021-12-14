@@ -53,6 +53,7 @@ public:
   const score::ApplicationComponents& components() const override;
   void init(); // m_applicationSettings has to be set.
 
+  score::ApplicationSettings appSettings;
 private:
   void initDocuments();
   void openNewDocument();
@@ -66,6 +67,4 @@ private:
   score::View* m_view{};
   score::Presenter* m_presenter{};
   score::StartScreen* m_startScreen{};
-
-  score::ApplicationSettings m_applicationSettings;
 };

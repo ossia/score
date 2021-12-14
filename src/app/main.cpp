@@ -366,7 +366,14 @@ int main(int argc, char** argv)
   disableAppNap();
 #endif
 
-  setup_opengl();
+#if defined(__linux__)
+  // On linux under offscreen, etc it crashes inside
+  // QOffscreenSurface::create
+  // so we check if we set --no-opengl explicitly
+  if(app.appSettings.opengl)
+#endif
+    setup_opengl();
+
   QTimer::singleShot(1, &app, &Application::init);
 
   increase_timer_precision timerRes;

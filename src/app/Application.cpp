@@ -183,7 +183,7 @@ Application::Application(int& argc, char** argv) : QObject{nullptr}
   QStringList l;
   for (int i = 0; i < argc; i++)
     l.append(QString::fromUtf8(argv[i]));
-  m_applicationSettings.parse(l, argc, argv);
+  appSettings.parse(l, argc, argv);
 
   QCoreApplication::setOrganizationName("ossia");
   QCoreApplication::setOrganizationDomain("ossia.io");
@@ -202,13 +202,13 @@ Application::Application(int& argc, char** argv) : QObject{nullptr}
   }
 #endif
 
-  m_app = createApplication(m_applicationSettings, argc, argv);
+  m_app = createApplication(appSettings, argc, argv);
 
 }
 
 Application::Application(
     const score::ApplicationSettings& appSettings, int& argc, char** argv)
-    : QObject{nullptr}, m_applicationSettings(appSettings)
+    : QObject{nullptr}, appSettings(appSettings)
 {
   m_instance = this;
 
@@ -229,7 +229,7 @@ Application::Application(
   }
 #endif
 
-  m_app = createApplication(m_applicationSettings, argc, argv);
+  m_app = createApplication(appSettings, argc, argv);
 }
 
 Application::~Application()
@@ -257,18 +257,18 @@ const score::ApplicationComponents& Application::components() const
 
 void Application::init()
 {
-  if(m_applicationSettings.gui && m_applicationSettings.opengl)
+  if(appSettings.gui && appSettings.opengl)
   {
     auto platform = QGuiApplication::platformName();
     if(platform.contains(QStringLiteral("wayland")))
     {
-      m_applicationSettings.opengl = false;
+      appSettings.opengl = false;
     }
     else
     {
 #if !defined(__arm__)
       QOpenGLContext ctx;
-      m_applicationSettings.opengl = ctx.create() && ctx.format().majorVersion() > 1;
+      appSettings.opengl = ctx.create() && ctx.format().majorVersion() > 1;
 #else
       m_applicationSettings.opengl = true;
 #endif
@@ -310,7 +310,7 @@ void Application::init()
 #endif
 
   // MVP
-  if (m_applicationSettings.gui)
+  if (appSettings.gui)
   {
     score::setQApplicationSettings(*qApp);
     m_settings.setupView();
@@ -318,13 +318,13 @@ void Application::init()
     m_view = new score::View{this};
   }
 
-  m_presenter = new score::Presenter{m_applicationSettings, m_settings,
+  m_presenter = new score::Presenter{appSettings, m_settings,
                                      m_projectSettings, m_view, this};
   // Plugins
   GUIApplicationInterface::loadPluginData(m_settings, *m_presenter);
 
   // View
-  if (m_applicationSettings.gui)
+  if (appSettings.gui)
   {
 #if !defined(__EMSCRIPTEN__)
     m_view->show();
@@ -372,7 +372,7 @@ void Application::init()
   }
 #endif
 
-  if (m_applicationSettings.gui)
+  if (appSettings.gui)
   {
     m_view->sizeChanged(m_view->size());
     m_view->ready();
@@ -384,9 +384,9 @@ void Application::init()
 void Application::initDocuments()
 {
   auto& ctx = m_presenter->applicationContext();
-  if (!m_applicationSettings.loadList.empty())
+  if (!appSettings.loadList.empty())
   {
-    for (const auto& doc : m_applicationSettings.loadList)
+    for (const auto& doc : appSettings.loadList)
       m_presenter->documentManager().loadFile(ctx, doc);
   }
 
@@ -399,7 +399,7 @@ void Application::initDocuments()
     }
   }
 
-  if (m_applicationSettings.gui)
+  if (appSettings.gui)
   {
     auto sqa = safe_cast<SafeQApplication*>(m_app);
     connect(
@@ -409,7 +409,7 @@ void Application::initDocuments()
   }
 
   // Try to reload if there was a crash
-  if (m_applicationSettings.tryToRestore)
+  if (appSettings.tryToRestore)
   {
     #if defined(SCORE_SPLASH_SCREEN)
     if(m_startScreen && score::OpenDocumentsFile::exists())
