@@ -27,18 +27,66 @@
 #include <QPlainTextEdit>
 #include <QScrollBar>
 #include <QVBoxLayout>
+#include <score/tools/File.hpp>
 
+#include <score/command/Dispatchers/MultiOngoingCommandDispatcher.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <wobjectimpl.h>
+#include <Process/ProcessList.hpp>
+#include <Curve/Segment/PointArray/PointArraySegment.hpp>
+#include <Curve/Commands/UpdateCurve.hpp>
+#include <Curve/CurveModel.hpp>
+
 namespace JS
 {
+class JsUtils : public QObject
+{
+  W_OBJECT(JsUtils)
+public:
+    QByteArray readFile(QString path)
+    {
+      QFile f(path);
+      if (f.open(QIODevice::ReadOnly))
+        return f.readAll();
+      return {};
+    }
+    W_SLOT(readFile)
+};
 
 class EditJsContext : public QObject
 {
   W_OBJECT(EditJsContext)
+  using Macro = Scenario::Command::Macro;
+
+  std::optional<Macro> m_macro;
+  auto macro(const score::DocumentContext& doc)
+  {
+    struct clear {
+      std::optional<Macro>& macro;
+      bool clearOnDelete{};
+      ~clear()
+      {
+        if(clearOnDelete)
+        {
+          macro->commit();
+          macro = std::nullopt;
+        }
+      }
+    };
+
+    if(m_macro)
+    {
+      return clear{m_macro, false};
+    }
+    else
+    {
+      m_macro.emplace(new ScriptMacro, doc);
+      return clear{m_macro, true};
+    }
+  }
 public:
   EditJsContext() { }
 
@@ -60,9 +108,8 @@ public:
         = QVariant::fromValue(Protocols::OSCSpecificSettings{in, out, host});
     set.protocol = Protocols::OSCProtocolFactory::static_concreteKey();
 
-    Scenario::Command::Macro m{new ScriptMacro, *doc};
-    m.submit(new Explorer::Command::LoadDevice{plug, std::move(set)});
-    m.commit();
+    auto [m, _] = macro();
+    m->submit(new Explorer::Command::LoadDevice{plug, std::move(set)});
   }
   W_SLOT(createOSCDevice)
 */
@@ -76,7 +123,7 @@ public:
       return;
 
     auto& plug = doc->plugin<Explorer::DeviceDocumentPlugin>();
-    Scenario::Command::Macro m{new ScriptMacro, *doc};
+    auto [m, _] = macro(*doc);
 
     Device::FullAddressSettings set;
     set.address = *a;
@@ -98,10 +145,77 @@ public:
         set.value = ossia::init_value(ossia::underlying_type(t->type));
       }
     }
-    m.submit(new Explorer::Command::AddWholeAddress{plug, std::move(set)});
-    m.commit();
+    m->submit(new Explorer::Command::AddWholeAddress{plug, std::move(set)});
   }
   W_SLOT(createAddress)
+
+  void createProcess(QObject* interval, QString name, QString data)
+  {
+    auto doc = ctx();
+    if (!doc)
+      return;
+    auto itv = qobject_cast<Scenario::IntervalModel*>(interval);
+    if (!itv)
+      return;
+
+    auto& factories = doc->app.interfaces<Process::ProcessFactoryList>();
+    auto [m, _] = macro(*doc);
+
+    for(auto& fact : factories)
+    {
+      if(fact.prettyName().compare(name, Qt::CaseInsensitive))
+      {
+        m->createProcess(*itv, fact.concreteKey(), data, {});
+        break;
+      }
+    }
+  }
+  W_SLOT(createProcess)
+
+  void setCurvePoints(QObject* process, QVector<QVariantList> points)
+  {
+    auto doc = ctx();
+    if (!doc)
+      return;
+    
+    auto proc = qobject_cast<Process::ProcessModel*>(process);
+    if(!proc)
+      return;
+    
+    auto curve = proc->findChild<Curve::Model*>();
+    if(!curve)
+      return;
+
+    Curve::SegmentData dat;
+    dat.id = Id<Curve::SegmentModel>(0);
+    dat.start = {0, 0};
+    dat.end = {1, 1};
+    dat.type = Curve::PointArraySegment::static_concreteKey();
+    Curve::PointArraySegmentData data;
+
+    data.min_x = INT_MAX;
+    data.min_y = INT_MAX;
+    data.max_x = INT_MIN;
+    data.max_y = INT_MIN;
+
+    for(auto& pt : points) {
+      if(pt.size() == 2) {
+        auto x = pt[0].toDouble();
+        auto y = pt[1].toDouble();
+        if(x < data.min_x) data.min_x = x;
+        if(x > data.max_x) data.max_x = x;
+        if(y < data.min_y) data.min_y = y;
+        if(y > data.max_y) data.max_y = y;
+        data.m_points.push_back({x, y});
+      }
+    }
+
+    dat.specificSegmentData = QVariant::fromValue(std::move(dat));
+
+    auto [m, _] = macro(*doc);
+    m->submit(new Curve::UpdateCurve{*curve, {std::move(dat)}});
+  }
+  W_SLOT(setCurvePoints)
 
   void automate(QObject* interval, QString addr)
   {
@@ -111,11 +225,29 @@ public:
     auto itv = qobject_cast<Scenario::IntervalModel*>(interval);
     if (!itv)
       return;
-    Scenario::Command::Macro m{new ScriptMacro, *doc};
-    m.automate(*itv, addr);
-    m.commit();
+
+    auto [m, _] = macro(*doc);
+    m->automate(*itv, addr);
   }
   W_SLOT(automate)
+
+  void startMacro()
+  {
+    auto doc = ctx();
+    if (!doc)
+      return;
+    this->m_macro.emplace(new ScriptMacro, *doc);
+  }
+  W_SLOT(startMacro)
+
+  void endMacro()
+  {
+    if(this->m_macro)
+      this->m_macro->commit();
+    this->m_macro = std::nullopt;
+  }
+  W_SLOT(endMacro)
+
 
   void undo()
   {
@@ -199,6 +331,8 @@ public:
   {
     m_engine.globalObject().setProperty(
         "Score", m_engine.newQObject(new EditJsContext));
+    m_engine.globalObject().setProperty(
+        "Util", m_engine.newQObject(new JsUtils));
     auto lay = new QVBoxLayout;
     m_widget->setLayout(lay);
     m_widget->setStatusTip(QObject::tr(
@@ -275,3 +409,6 @@ class PanelDelegateFactory final : public score::PanelDelegateFactory
   }
 };
 }
+
+
+W_REGISTER_ARGTYPE(QVector<QVariantList>)
