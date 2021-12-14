@@ -43,6 +43,7 @@ public:
   void on_noteScaled(const Note& note, double newScale);
   void on_requestVelocityChange(const Note& note, double velocityDelta);
   void on_velocityChangeFinished();
+  void on_noteSelectionChanged(NoteView*, bool ok);
 
 private:
   void updateNote(NoteView&);
@@ -54,6 +55,7 @@ private:
 
   View* m_view{};
   std::vector<NoteView*> m_notes;
+  std::vector<NoteView*> m_selectedNotes;
 
   SingleOngoingCommandDispatcher<MoveNotes> m_moveDispatcher;
   SingleOngoingCommandDispatcher<ChangeNotesVelocity> m_velocityDispatcher;

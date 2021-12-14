@@ -42,6 +42,7 @@ public:
   QRectF computeRect() const noexcept;
   QPointF closestPos(QPointF note) const noexcept;
 
+
 private:
   bool canEdit() const;
   QVariant

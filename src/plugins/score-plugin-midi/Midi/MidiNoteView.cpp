@@ -94,7 +94,9 @@ QVariant NoteView::itemChange(
   {
     case QGraphicsItem::ItemSelectedChange:
     {
-      this->setZValue(10 * (int)value.toBool());
+      const bool b = value.toBool();
+      this->m_presenter.on_noteSelectionChanged(this, b);
+      this->setZValue(10 * (int)b);
       break;
     }
     default:
