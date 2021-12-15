@@ -9,6 +9,8 @@
 #include <Process/ProcessMetadata.hpp>
 #include <Process/Script/ScriptEditor.hpp>
 
+#include <Scenario/Commands/ScriptEditCommand.hpp>
+
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/node_process.hpp>
@@ -72,9 +74,6 @@ public:
 
   QString prettyName() const noexcept override;
   void changed() W_SIGNAL(changed);
-
-  Process::Inlets& inlets() { return m_inlets; }
-  Process::Outlets& outlets() { return m_outlets; }
 
   TexgenFactory factory;
 
@@ -140,7 +139,28 @@ using TexgenExecutorFactory
     = Execution::ProcessComponentFactory_T<TexgenExecutor>;
 }
 
-PROPERTY_COMMAND_T(Jit, EditTexgen, TexgenModel::p_script, "Edit texgen")
-SCORE_COMMAND_DECL_T(Jit::EditTexgen)
+
+namespace Jit
+{
+class EditTexgen
+    : public Scenario::EditScript<TexgenModel, TexgenModel::p_script>
+{
+  SCORE_COMMAND_DECL(CommandFactoryName(), EditTexgen, "Edit a texture script")
+public:
+  using Scenario::EditScript<TexgenModel, TexgenModel::p_script>::
+      EditScript;
+};
+
+}
+
+namespace score
+{
+template <>
+struct StaticPropertyCommand<Jit::TexgenModel::p_script>
+    : Jit::EditTexgen
+{
+  using Jit::EditTexgen::EditTexgen;
+};
+}
 
 #endif

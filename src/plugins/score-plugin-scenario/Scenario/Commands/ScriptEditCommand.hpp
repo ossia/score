@@ -22,14 +22,14 @@ class EditScript : public score::Command
 public:
   using param_type = typename Property_T::param_type;
   using score::Command::Command;
-  EditScript(const Process_T& model, param_type newScript)
+  EditScript(const Process_T& model, param_type newScript, const score::DocumentContext& ctx)
       : m_path{model}
       , m_newScript{std::move(newScript)}
       , m_oldScript{(model.*Property_T::get)()}
   {
     m_oldCables = Dataflow::saveCables(
         {const_cast<Process_T*>(&model)},
-        score::IDocument::documentContext(model));
+        ctx);
 
     for (auto& port : model.inlets())
       m_oldInlets.emplace_back(

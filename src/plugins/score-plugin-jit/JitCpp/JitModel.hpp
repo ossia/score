@@ -6,6 +6,7 @@
 #include <Process/Process.hpp>
 #include <Process/ProcessMetadata.hpp>
 #include <Process/Script/ScriptEditor.hpp>
+#include <Scenario/Commands/ScriptEditCommand.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph_node.hpp>
@@ -71,9 +72,6 @@ public:
   QString prettyName() const noexcept override;
   void changed() W_SIGNAL(changed);
 
-  Process::Inlets& inlets() { return m_inlets; }
-  Process::Outlets& outlets() { return m_outlets; }
-
   NodeFactory factory;
 
   void errorMessage(int line, const QString& e)
@@ -133,9 +131,26 @@ using JitEffectComponentFactory
     = Execution::ProcessComponentFactory_T<JitEffectComponent>;
 }
 
-PROPERTY_COMMAND_T(
-    Jit,
-    EditScript,
-    JitEffectModel::p_script,
-    "Edit C++ script")
-SCORE_COMMAND_DECL_T(Jit::EditScript)
+namespace Jit
+{
+class EditScript
+    : public Scenario::EditScript<JitEffectModel, JitEffectModel::p_script>
+{
+  SCORE_COMMAND_DECL(CommandFactoryName(), EditScript, "Edit a C++ program")
+public:
+  using Scenario::EditScript<JitEffectModel, JitEffectModel::p_script>::
+      EditScript;
+};
+
+}
+
+namespace score
+{
+template <>
+struct StaticPropertyCommand<Jit::JitEffectModel::p_script>
+    : Jit::EditScript
+{
+  using Jit::EditScript::EditScript;
+};
+}
+

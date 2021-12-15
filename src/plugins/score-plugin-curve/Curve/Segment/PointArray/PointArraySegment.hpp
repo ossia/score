@@ -44,8 +44,9 @@ struct PointArraySegmentData
 class SCORE_PLUGIN_CURVE_EXPORT PointArraySegment final : public SegmentModel
 {
   W_OBJECT(PointArraySegment)
-  MODEL_METADATA_IMPL(PointArraySegment)
 public:
+  MODEL_METADATA_IMPL(PointArraySegment)
+
   using data_type = PointArraySegmentData;
   PointArraySegment(const Id<SegmentModel>& id, QObject* parent)
       : SegmentModel{id, parent}

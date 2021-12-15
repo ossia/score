@@ -74,7 +74,7 @@ public:
       {
         CommandDispatcher<>{m_context.commandStack}.submit(
             new score::StaticPropertyCommand<Property_T>{
-                m_process, this->text()});
+                m_process, this->text(), m_context});
       }
     }
   }

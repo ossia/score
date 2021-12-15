@@ -6,6 +6,7 @@
 #include <Process/Process.hpp>
 #include <Process/ProcessMetadata.hpp>
 #include <Process/Script/ScriptEditor.hpp>
+#include <Scenario/Commands/ScriptEditCommand.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph_node.hpp>
@@ -72,9 +73,6 @@ public:
   QString prettyName() const noexcept override;
   void changed() W_SIGNAL(changed);
 
-  Process::Inlets& inlets() { return m_inlets; }
-  Process::Outlets& outlets() { return m_outlets; }
-
   BytebeatFactory factory;
 
   void errorMessage(int line, const QString& e)
@@ -139,5 +137,26 @@ using BytebeatExecutorFactory
     = Execution::ProcessComponentFactory_T<BytebeatExecutor>;
 }
 
-PROPERTY_COMMAND_T(Jit, EditBytebeat, BytebeatModel::p_script, "Edit bytebeat")
-SCORE_COMMAND_DECL_T(Jit::EditBytebeat)
+namespace Jit
+{
+class EditBytebeat
+    : public Scenario::EditScript<BytebeatModel, BytebeatModel::p_script>
+{
+  SCORE_COMMAND_DECL(CommandFactoryName(), EditBytebeat, "Edit a bytebeat")
+public:
+  using Scenario::EditScript<BytebeatModel, BytebeatModel::p_script>::
+      EditScript;
+};
+
+}
+
+namespace score
+{
+template <>
+struct StaticPropertyCommand<Jit::BytebeatModel::p_script>
+    : Jit::EditBytebeat
+{
+  using Jit::EditBytebeat::EditBytebeat;
+};
+}
+

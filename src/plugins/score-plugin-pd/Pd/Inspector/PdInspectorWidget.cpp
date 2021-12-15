@@ -43,7 +43,7 @@ PdWidget::PdWidget(
 
   con(m_ledit, &QLineEdit::editingFinished, this, [&] {
     CommandDispatcher<> cmd{context.commandStack};
-    cmd.submit<EditPdPath>(proc, m_ledit.text());
+    cmd.submit<EditPdPath>(proc, m_ledit.text(), context);
   });
 
   m_audioIn.setValue(m_proc.audioInputs());
