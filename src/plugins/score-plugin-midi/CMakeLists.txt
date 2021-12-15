@@ -23,6 +23,8 @@ set(HEADER_FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiNoteView.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiExecutor.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiStyle.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiNoteRemover.hpp"
+
 
   Patternist/PatternModel.hpp
   Patternist/PatternView.hpp
@@ -54,6 +56,7 @@ set(SOURCE_FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiNoteView.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiNote.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiExecutor.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiNoteRemover.cpp"
 
   Patternist/PatternModel.cpp
   Patternist/PatternView.cpp

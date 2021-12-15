@@ -5,6 +5,9 @@
 #include <Midi/MidiPresenter.hpp>
 #include <Midi/MidiStyle.hpp>
 #include <Midi/MidiView.hpp>
+#include <Process/Focus/FocusDispatcher.hpp>
+
+#include <score/document/DocumentContext.hpp>
 
 #include <QCursor>
 #include <QGraphicsSceneMouseEvent>
@@ -162,6 +165,8 @@ void NoteView::mousePressEvent(QGraphicsSceneMouseEvent* event)
   const auto mods = QGuiApplication::keyboardModifiers();
   if (!(mods & Qt::ControlModifier) && !isSelected())
     m_presenter.on_deselectOtherNotes();
+
+  m_presenter.context().context.focusDispatcher.focus(&m_presenter);
 
   setSelected(true);
 
