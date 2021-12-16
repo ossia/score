@@ -21,7 +21,7 @@ function(score_generate_command_list_file TheTarget Headers)
     # First look for the SCORE_COMMAND_DECL(...) ones
     foreach(sourceFile ${Headers})
         file(READ "${sourceFile}" fileContent)
-        string(REGEX MATCHALL "SCORE_COMMAND_DECL\\([A-Za-z_0-9\,\:<>\r\n\t ]*\\(\\)[A-Za-z_0-9\,\"'\:<>\r\n\t ]*\\)"
+        string(REGEX MATCHALL "SCORE_COMMAND_DECL\\([A-Za-z_0-9\,\:<>\r\n\t ]*\\(\\)[A-Za-z_0-9\,\"'\:<>\+\r\n\t ]*\\)"
                defaultCommands "${fileContent}")
 
         foreach(fileLine ${defaultCommands})
@@ -43,7 +43,7 @@ function(score_generate_command_list_file TheTarget Headers)
 
 
         # Then look for the SCORE_COMMAND_DECL_T(...) ones
-        string(REGEX MATCHALL "SCORE_COMMAND_DECL_T\\([A-Za-z_0-9\,\:<>\r\n\t ]*\\)"
+        string(REGEX MATCHALL "SCORE_COMMAND_DECL_T\\([A-Za-z_0-9\,\:<>\+\r\n\t ]*\\)"
                templateCommands "${fileContent}")
         foreach(fileLine ${templateCommands})
             string(REPLACE "\n" "" fileLine "${fileLine}")

@@ -8,6 +8,7 @@
 
 #include <JitCpp/Compiler/Driver.hpp>
 #include <JitCpp/EditScript.hpp>
+#include <Process/Dataflow/WidgetInlets.hpp>
 //#include <JitCpp/Commands/EditJitEffect.hpp>
 
 #include <Process/Dataflow/PortFactory.hpp>
@@ -119,8 +120,102 @@ struct inlet_vis
     }
     else
     {
-      auto i = new Process::ControlInlet{getStrongId(self.inlets()), &self};
-      i->setDomain(State::Domain{p.domain});
+      Process::ControlInlet* i{};
+
+      const auto id = getStrongId(self.inlets());
+      QString name{"Control"};
+
+      if(auto u = p.type.target<ossia::unit_t>())
+      {
+        if(*u == ossia::frequency_u{})
+        {
+          auto min = ossia::convert<float>(ossia::get_min(p.domain));
+          auto max = ossia::convert<float>(ossia::get_max(p.domain));
+          auto init = min;
+
+          i = new Process::FloatKnob{min, max, init, "Frequency", id, &self};
+        }
+        else if(u->v.target<ossia::color_u>())
+        {
+          i = new Process::HSVSlider{ossia::vec4f{}, "Color", id, &self};
+        }
+        else if(u->v.target<ossia::position_u>())
+        {
+          if(*u == ossia::cartesian_2d_u{} || *u == ossia::ad_u{} || *u == ossia::polar_u{})
+            i = new Process::XYSlider{ossia::vec2f{}, "Position", id, &self};
+          else
+            i = new Process::XYZSlider{ossia::vec3f{}, "Position", id, &self};
+        }
+        else if(u->v.target<ossia::orientation_u>())
+        {
+          i = new Process::XYZSlider{ossia::vec3f{}, "Orientation", id, &self};
+        }
+        else
+        {
+          auto min = ossia::convert<float>(ossia::get_min(p.domain));
+          auto max = ossia::convert<float>(ossia::get_max(p.domain));
+          auto init = min;
+
+          i = new Process::FloatKnob{min, max, init, "Frequency", id, &self};
+        }
+      }
+      else if(auto tp = p.type.target<ossia::val_type>()) {
+        switch(*tp)
+        {
+          case ossia::val_type::INT:
+          {
+            auto min = ossia::convert<int>(ossia::get_min(p.domain));
+            auto max = ossia::convert<int>(ossia::get_max(p.domain));
+            auto init = min;
+
+            i = new Process::IntSlider{min, max, init, name, id, &self};
+            break;
+          }
+          case ossia::val_type::FLOAT:
+          {
+            auto min = ossia::convert<float>(ossia::get_min(p.domain));
+            auto max = ossia::convert<float>(ossia::get_max(p.domain));
+            auto init = min;
+
+            i = new Process::FloatSlider{min, max, init, name, id, &self};
+            break;
+          }
+          case ossia::val_type::STRING:
+          {
+            i = new Process::LineEdit{{}, "String input", id, &self};
+            break;
+          }
+          case ossia::val_type::BOOL:
+          {
+            i = new Process::Toggle{{}, name, id, &self};
+            break;
+          }
+          case ossia::val_type::IMPULSE:
+          {
+            i = new Process::ImpulseButton{name, id, &self};
+            break;
+          }
+          case ossia::val_type::VEC2F:
+          {
+            i = new Process::XYSlider{{}, name, id, &self};
+            break;
+          }
+          case ossia::val_type::VEC3F:
+          {
+            i = new Process::XYZSlider{{}, name, id, &self};
+            break;
+          }
+          default:
+            break;
+        }
+      }
+
+      if(!i)
+      {
+        i = new Process::ControlInlet{getStrongId(self.inlets()), &self};
+        i->setDomain(State::Domain{p.domain});
+      }
+
       return i;
     }
   }

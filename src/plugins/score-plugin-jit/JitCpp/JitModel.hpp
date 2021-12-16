@@ -23,7 +23,7 @@ PROCESS_METADATA(
     Jit::JitEffectModel,
     "0a3b49d6-4ce7-4668-aec3-9505b6ee1a60",
     "Jit",
-    "C++ Jit process",
+    "JIT",
     Process::ProcessCategory::Script,
     "Script",
     "JIT compilation process",

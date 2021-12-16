@@ -412,7 +412,7 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
 
   QDir resDir = QString(qsdk + "/lib/clang");
   auto entries = resDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
-  if (!entries.empty())
+  if (!entries.empty() && !entries.contains(SCORE_LLVM_VERSION))
     llvm_lib_version = entries.front().toStdString();
 
   args.push_back("-resource-dir");
