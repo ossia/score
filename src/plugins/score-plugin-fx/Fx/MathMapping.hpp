@@ -1,5 +1,6 @@
 #pragma once
 #include <Fx/MathGenerator.hpp>
+#include <gsl/span>
 namespace Nodes
 {
 namespace MathMapping
@@ -311,8 +312,14 @@ struct Node
   {
     State()
     {
+      cur_values.resize(1024);
+      prev_values.resize(1024);
+      expr.add_vector("xv", cur_values);
+      expr.add_vector("pxv", prev_values);
+
       expr.add_variable("x", cur_value);
       expr.add_variable("px", prev_value);
+
       expr.add_variable("t", cur_time);
       expr.add_variable("dt", cur_deltatime);
       expr.add_variable("pos", cur_pos);
@@ -320,11 +327,17 @@ struct Node
 
       expr.register_symbol_table();
     }
+
+    std::vector<double> cur_values;
+    std::vector<double> prev_values;
+
     double cur_value{};
     double prev_value{};
+
     double cur_time{};
     double cur_deltatime{};
     double cur_pos{};
+
     ossia::math_expression expr;
     int64_t last_value_time{};
 
@@ -332,6 +345,51 @@ struct Node
   };
 
   using control_policy = ossia::safe_nodes::last_tick;
+
+  static void exec_scalar(
+      int64_t timestamp,
+      State& self,
+      ossia::value_port& output)
+  {
+    auto res = self.expr.value();
+
+    self.prev_value = self.cur_value;
+
+    output.write_value(res, timestamp);
+  }
+
+  static void exec_array(
+      int64_t timestamp,
+      State& self,
+      ossia::value_port& output,
+      bool vector_size_did_change)
+  {
+    if(self.cur_values.empty())
+      return;
+
+    if(vector_size_did_change)
+    {
+      self.expr.remove_vector("xv");
+      self.expr.add_vector("xv", self.cur_values);
+      self.expr.recompile();
+    }
+
+    auto res = self.expr.result();
+
+    bool old_prev = self.prev_values.size();
+    self.prev_values.assign(self.cur_values.begin(), self.cur_values.end());
+    bool new_prev = self.prev_values.size();
+
+    if(old_prev != new_prev)
+    {
+      self.expr.remove_vector("pxv");
+      self.expr.add_vector("pxv", self.prev_values);
+      self.expr.recompile();
+    }
+
+    output.write_value(std::move(res), timestamp);
+  }
+
   static void
   run(const ossia::value_port& input,
       const std::string& expr,
@@ -351,13 +409,76 @@ struct Node
       setMathExpressionTiming(self, new_time, self.last_value_time, parent_dur);
       self.last_value_time = new_time;
 
-      self.cur_value = ossia::convert<double>(v.value);
-
-      auto res = self.expr.value();
-
-      self.prev_value = self.cur_value;
-
-      output.write_value(res, v.timestamp);
+      switch(v.value.get_type())
+      {
+        case ossia::val_type::NONE:
+          break;
+        case ossia::val_type::IMPULSE:
+          if(self.cur_values.size() > 0)
+            exec_array(v.timestamp, self, output, false);
+          else
+            exec_scalar(v.timestamp, self, output);
+          break;
+        case ossia::val_type::INT:
+          self.cur_value = *v.value.target<int>();
+          exec_scalar(v.timestamp, self, output);
+          break;
+        case ossia::val_type::FLOAT:
+          self.cur_value = *v.value.target<float>();
+          exec_scalar(v.timestamp, self, output);
+          break;
+        case ossia::val_type::CHAR:
+          self.cur_value = *v.value.target<char>();
+          exec_scalar(v.timestamp, self, output);
+          break;
+        case ossia::val_type::BOOL:
+          self.cur_value = *v.value.target<char>();
+          exec_scalar(v.timestamp, self, output);
+          break;
+        case ossia::val_type::STRING:
+          self.cur_value = ossia::convert<float>(v.value);
+          exec_scalar(v.timestamp, self, output);
+          break;
+        case ossia::val_type::VEC2F:
+        {
+          auto& arr = *v.value.target<ossia::vec2f>();
+          auto old_size = self.cur_values.size();
+          self.cur_values.assign(arr.begin(), arr.end());
+          auto new_size = 2U;
+          exec_array(v.timestamp, self, output, old_size != new_size);
+          break;
+        }
+        case ossia::val_type::VEC3F:
+        {
+          auto& arr = *v.value.target<ossia::vec3f>();
+          auto old_size = self.cur_values.size();
+          self.cur_values.assign(arr.begin(), arr.end());
+          auto new_size = 3U;
+          exec_array(v.timestamp, self, output, old_size != new_size);
+          break;
+        }
+        case ossia::val_type::VEC4F:
+        {
+          auto& arr = *v.value.target<ossia::vec4f>();
+          auto old_size = self.cur_values.size();
+          self.cur_values.assign(arr.begin(), arr.end());
+          auto new_size = 4U;
+          exec_array(v.timestamp, self, output, old_size != new_size);
+          break;
+        }
+        case ossia::val_type::LIST:
+        {
+          auto& arr = *v.value.target<std::vector<ossia::value>>();
+          auto old_size = self.cur_values.size();
+          self.cur_values.resize(arr.size());
+          auto new_size = arr.size();
+          for(std::size_t i = 0; i < arr.size(); i++) {
+            self.cur_values[i] = ossia::convert<float>(arr[i]);
+          }
+          exec_array(v.timestamp, self, output, old_size != new_size);
+          break;
+        }
+      }
     }
   }
 
