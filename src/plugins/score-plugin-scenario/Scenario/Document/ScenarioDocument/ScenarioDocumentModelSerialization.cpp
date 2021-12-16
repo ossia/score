@@ -10,6 +10,8 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 
+#include <core/document/Document.hpp>
+
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
 

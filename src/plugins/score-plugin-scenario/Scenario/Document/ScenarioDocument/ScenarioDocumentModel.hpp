@@ -6,17 +6,11 @@
 #include <score/selection/Selection.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 
-#include <core/document/Document.hpp>
-
 #include <Scenario/Instantiations.hpp>
 #include <score_plugin_scenario_export.h>
 
 #include <verdigris>
 
-#include <unordered_set>
-
-class JSONObject;
-class DataStream;
 namespace Process
 {
 class LayerPresenter;

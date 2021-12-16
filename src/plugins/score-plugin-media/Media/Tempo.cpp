@@ -6,6 +6,9 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/Tempo/TempoProcess.hpp>
+
+#include <score/document/DocumentContext.hpp>
+
 namespace Media
 {
 

@@ -1,6 +1,7 @@
 #include "CableHelpers.hpp"
 
 #include <score/model/IdentifierDebug.hpp>
+#include <score/document/DocumentContext.hpp>
 
 #include <ossia/detail/ptr_set.hpp>
 

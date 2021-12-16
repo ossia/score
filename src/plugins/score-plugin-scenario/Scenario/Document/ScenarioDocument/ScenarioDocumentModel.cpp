@@ -7,6 +7,8 @@
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
+#include <core/document/Document.hpp>
+
 #include <QDebug>
 #include <QFileInfo>
 

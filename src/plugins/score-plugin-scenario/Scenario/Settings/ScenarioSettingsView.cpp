@@ -289,12 +289,18 @@ View::View()
   connect(m_sequence, &QCheckBox::toggled, this, &View::AutoSequenceChanged);
   lay->addRow(m_sequence);
 
+  SETTINGS_UI_SPINBOX_SETUP("Update Rate", UpdateRate);
+  this->m_UpdateRate->setToolTip(tr("Rate at which various events are processed in the software: "
+                                    "UI updates from the execution engine, audio plug-in UIs..."));
   SETTINGS_UI_SPINBOX_SETUP("Execution Refresh Rate", ExecutionRefreshRate);
+  this->m_ExecutionRefreshRate->setToolTip(tr("Refresh rate of the main view when the score executes, in hertz. "
+                                              "Set a lower value to leave more CPU for the actual processing."));
   SETTINGS_UI_TOGGLE_SETUP("Time Bar", TimeBar);
   SETTINGS_UI_TOGGLE_SETUP("Show musical metrics", MeasureBars);
   SETTINGS_UI_TOGGLE_SETUP("Magnetism on musical metrics", MagneticMeasures);
 }
 
+SETTINGS_UI_SPINBOX_IMPL(UpdateRate)
 SETTINGS_UI_SPINBOX_IMPL(ExecutionRefreshRate)
 SETTINGS_UI_TOGGLE_IMPL(TimeBar)
 SETTINGS_UI_TOGGLE_IMPL(MeasureBars)

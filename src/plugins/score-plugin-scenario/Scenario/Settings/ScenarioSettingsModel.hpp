@@ -24,6 +24,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT Model final
   double m_GraphicZoom{};
   qreal m_SlotHeight{};
   TimeVal m_DefaultDuration{std::chrono::seconds{30}};
+  int m_UpdateRate{60};
   int m_ExecutionRefreshRate{60};
   bool m_SnapshotOnCreate{};
   bool m_AutoSequence{};
@@ -67,6 +68,10 @@ public:
   SCORE_SETTINGS_PARAMETER_HPP(
       SCORE_PLUGIN_SCENARIO_EXPORT,
       int,
+      UpdateRate)
+  SCORE_SETTINGS_PARAMETER_HPP(
+      SCORE_PLUGIN_SCENARIO_EXPORT,
+      int,
       ExecutionRefreshRate)
 
 public:
@@ -88,6 +93,7 @@ SCORE_SETTINGS_PARAMETER(Model, AutoSequence)
 SCORE_SETTINGS_PARAMETER(Model, TimeBar)
 SCORE_SETTINGS_PARAMETER(Model, MeasureBars)
 SCORE_SETTINGS_PARAMETER(Model, MagneticMeasures)
+SCORE_SETTINGS_PARAMETER(Model, UpdateRate)
 SCORE_SETTINGS_PARAMETER(Model, ExecutionRefreshRate)
 }
 

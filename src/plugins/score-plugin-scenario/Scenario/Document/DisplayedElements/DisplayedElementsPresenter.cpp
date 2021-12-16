@@ -17,6 +17,7 @@
 #include <ossia/detail/for_each_in_tuple.hpp>
 
 #include <QGuiApplication>
+#include <QTimer>
 
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp>

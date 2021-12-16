@@ -8,6 +8,7 @@
 #include <score/tools/Bind.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 
+#include <core/application/ApplicationSettings.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentBackupManager.hpp>
 #include <core/document/DocumentModel.hpp>
@@ -97,12 +98,19 @@ void Document::init()
         m_presenter->setNewSelection(oldfiltered, filtered);
       });
 
-  m_documentCoarseUpdateTimer.setInterval(64);
-  m_documentCoarseUpdateTimer.start();
+  updateTimers();
 
-  m_execTimer.setInterval(32);
+  m_documentCoarseUpdateTimer.start();
 }
 
+void Document::updateTimers()
+{
+  int rate = m_context.app.applicationSettings.uiEventRate;
+  rate = std::max(1, rate);
+
+  m_documentCoarseUpdateTimer.setInterval(rate * 2);
+  m_execTimer.setInterval(rate);
+}
 
 void Document::ready()
 {

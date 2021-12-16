@@ -39,6 +39,9 @@ struct SCORE_LIB_BASE_EXPORT ApplicationSettings
   //! Complete list of arguments passed to parse
   QStringList arguments;
 
+  //! UI event processing rate in ms (used for plug-in gui updates, etc)
+  int uiEventRate = 64;
+
   //! Parse the arguments.
   void parse(QStringList args, int& argc, char** argv);
 };

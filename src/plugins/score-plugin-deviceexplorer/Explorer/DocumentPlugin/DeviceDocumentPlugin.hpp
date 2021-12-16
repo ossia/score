@@ -8,8 +8,6 @@
 
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 
-#include <core/document/Document.hpp>
-
 #include <score_plugin_deviceexplorer_export.h>
 
 #include <thread>

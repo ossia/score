@@ -103,6 +103,9 @@ public:
   // Called once all the plug-ins, etc... of the document have been loaded
   void ready();
 
+  // Update the various internal timers rate after settings changes
+  void updateTimers();
+
 private:
   // These are to be constructed by DocumentBuilder.
   Document(

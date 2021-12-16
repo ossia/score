@@ -408,6 +408,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/statemachine/CommonSelectionState.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/std/String.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/tools/File.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/RandomNameProvider.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/RecursiveWatch.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/ThreadPool.cpp"

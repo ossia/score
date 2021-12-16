@@ -1,8 +1,6 @@
 #pragma once
 #include <score/document/DocumentContext.hpp>
 
-#include <core/document/Document.hpp>
-
 #include <QFileInfo>
 
 #include <string_view>
@@ -12,24 +10,10 @@ namespace score
 
 //! Will also look where the save file is located.
 //! TODO in the future also look in a "common" library folder.
-inline QString locateFilePath(
+SCORE_LIB_BASE_EXPORT
+QString locateFilePath(
     const QString& filename,
-    const score::DocumentContext& ctx) noexcept
-{
-  const QFileInfo info{filename};
-  QString path = filename;
-
-  if (!info.isAbsolute())
-  {
-    const QFileInfo docroot{ctx.document.metadata().fileName()};
-    path = docroot.canonicalPath();
-    if (!path.endsWith('/'))
-      path += '/';
-    path += filename;
-  }
-
-  return QFileInfo{path}.absoluteFilePath();
-}
+    const score::DocumentContext& ctx) noexcept;
 
 inline QByteArray mapAsByteArray(QFile& f) noexcept
 {

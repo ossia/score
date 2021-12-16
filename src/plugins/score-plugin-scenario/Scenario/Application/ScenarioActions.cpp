@@ -3,6 +3,7 @@
 #include "ScenarioActions.hpp"
 
 #include <core/document/DocumentModel.hpp>
+#include <core/document/Document.hpp>
 
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>

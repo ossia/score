@@ -4,6 +4,7 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/model/EntitySerialization.hpp>
 #include <score/model/path/PathSerialization.hpp>
+#include <score/selection/SelectionStack.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
 namespace Nodal

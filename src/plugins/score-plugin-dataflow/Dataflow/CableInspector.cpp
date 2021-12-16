@@ -5,6 +5,7 @@
 #include <score/tools/Bind.hpp>
 #include <score/widgets/SelectionButton.hpp>
 #include <score/widgets/SignalUtils.hpp>
+#include <score/document/DocumentContext.hpp>
 
 #include <QVBoxLayout>
 

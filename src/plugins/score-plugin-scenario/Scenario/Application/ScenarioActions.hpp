@@ -2,6 +2,7 @@
 #include <Process/Actions/ProcessActions.hpp>
 #include <Process/Layer/LayerContextMenu.hpp>
 
+#include <score/selection/SelectionStack.hpp>
 #include <score/actions/Action.hpp>
 
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>

@@ -31,6 +31,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   SETTINGS_PRESENTER(MeasureBars);
   SETTINGS_PRESENTER(MagneticMeasures);
   SETTINGS_PRESENTER(DefaultDuration);
+  SETTINGS_PRESENTER(UpdateRate);
   SETTINGS_PRESENTER(ExecutionRefreshRate);
 
   con(v, &View::zoomChanged, this, [&](auto val) {

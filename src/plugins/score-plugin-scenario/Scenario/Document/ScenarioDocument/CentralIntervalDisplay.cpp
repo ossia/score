@@ -93,7 +93,7 @@ void createProcessAfterPort(
     if(proc)
     {
       // TODO all of this should be made atomic...
-      if(!proc->inlets().empty() && !proc->outlets().empty())
+      if(!proc->inlets().empty())
       {
         auto new_inlet = proc->inlets()[0];
         // Create a cable from the output to the input
@@ -102,14 +102,17 @@ void createProcessAfterPort(
           m.createCable(parent.model(), p, *proc->inlets()[0]);
         }
 
-        auto new_outlet = proc->outlets()[0];
-        // Move the address in the selected output to the first outlet of the new process
-        if(new_outlet->type() == p.type())
+        if(!proc->outlets().empty())
         {
-          if(auto addr = p.address(); addr != State::AddressAccessor{})
+          auto new_outlet = proc->outlets()[0];
+          // Move the address in the selected output to the first outlet of the new process
+          if(new_outlet->type() == p.type())
           {
-            m.setProperty<Process::Port::p_address>(*new_outlet, addr);
-            m.setProperty<Process::Port::p_address>(p, State::AddressAccessor{});
+            if(auto addr = p.address(); addr != State::AddressAccessor{})
+            {
+              m.setProperty<Process::Port::p_address>(*new_outlet, addr);
+              m.setProperty<Process::Port::p_address>(p, State::AddressAccessor{});
+            }
           }
         }
         parent.context().selectionStack.pushNewSelection({proc});

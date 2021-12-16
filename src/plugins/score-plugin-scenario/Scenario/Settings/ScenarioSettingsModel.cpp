@@ -8,8 +8,10 @@
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/Skin.hpp>
 #include <score/plugins/InterfaceList.hpp>
+#include <score/tools/Bind.hpp>
 #include <score/tools/File.hpp>
 
+#include <core/presenter/DocumentManager.hpp>
 #include <core/application/ApplicationSettings.hpp>
 
 #include <QDebug>
@@ -45,6 +47,9 @@ SETTINGS_PARAMETER_IMPL(MeasureBars){
 SETTINGS_PARAMETER_IMPL(MagneticMeasures){
     QStringLiteral("Scenario/MagneticMeasures"),
     true};
+SETTINGS_PARAMETER_IMPL(UpdateRate){
+  QStringLiteral("Scenario/UpdateRate"),
+    60};
 SETTINGS_PARAMETER_IMPL(ExecutionRefreshRate){
     QStringLiteral("Scenario/ExecutionRefreshRate"),
     60};
@@ -62,6 +67,7 @@ static auto list()
       TimeBar,
       MeasureBars,
       MagneticMeasures,
+      UpdateRate,
       ExecutionRefreshRate
       );
 }
@@ -76,6 +82,16 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
   if (m_DefaultDuration > TimeVal::fromMsecs(10000000))
     setDefaultDuration(TimeVal::fromMsecs(100000));
   // setDefaultDuration(TimeVal::fromMsecs(100000));
+
+  bind(*this, Model::p_UpdateRate{},
+       this, [&ctx] (int r) {
+    auto& set = const_cast<score::ApplicationSettings&>(ctx.applicationSettings);
+    set.uiEventRate = r;
+    for(auto& doc : ctx.documents.documents())
+    {
+      doc->updateTimers();
+    }
+  });
 }
 
 QString Model::getSkin() const
@@ -173,6 +189,7 @@ SCORE_SETTINGS_PARAMETER_CPP(bool, Model, AutoSequence)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, TimeBar)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, MeasureBars)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, MagneticMeasures)
+SCORE_SETTINGS_PARAMETER_CPP(int, Model, UpdateRate)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, ExecutionRefreshRate)
 }
 
