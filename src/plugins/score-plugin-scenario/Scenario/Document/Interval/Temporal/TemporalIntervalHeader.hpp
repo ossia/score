@@ -1,5 +1,6 @@
 #pragma once
 #include <score/graphics/GraphicWidgets.hpp>
+#include <score/graphics/ItemBounder.hpp>
 #include <score/widgets/MimeData.hpp>
 
 #include <ossia/detail/optional.hpp>
@@ -61,7 +62,7 @@ private:
   bool contains(const QPointF& point) const override;
   QPainterPath shape() const override;
 
-  qreal m_previous_x{};
+  score::ItemBounder m_bounder{};
 
   QRectF m_textRectCache;
   QPixmap m_line;

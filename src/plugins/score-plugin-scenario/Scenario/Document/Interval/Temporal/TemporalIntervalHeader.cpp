@@ -8,6 +8,7 @@
 #include <Process/Style/Pixmaps.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 
+#include <score/graphics/ItemBounder.hpp>
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/graphics/GraphicsSliderBaseImpl.hpp>
 #include <score/model/Skin.hpp>
@@ -62,6 +63,7 @@ QRectF TemporalIntervalHeader::boundingRect() const
     return {5., 0., m_width - 10., qreal(IntervalHeader::headerHeight())};
 }
 
+
 void TemporalIntervalHeader::paint(
     QPainter* painter,
     const QStyleOptionGraphicsItem* option,
@@ -80,33 +82,8 @@ void TemporalIntervalHeader::paint(
   // If the centered text is hidden, we put it at the left so that it's on the
   // view.
   // We have to compute the visible part of the header
-  const auto text_width = m_textRectCache.width();
-  auto view = getView(*this);
-  int text_left = view->mapFromScene(mapToScene({5., 0.})).x();
-  int text_right = text_left + text_width;
-  double x = 5.;
-  const constexpr double min_x = 5.;
-  const double max_x = view->width() - 30.;
 
-  if (text_left <= min_x)
-  {
-    // Compute the pixels needed to add to have top-left at 0
-    x = x - text_left + min_x;
-  }
-  else if (text_right >= max_x)
-  {
-    // Compute the pixels needed to add to have top-right at max
-    x = x - text_right + max_x;
-  }
-
-  x = std::max(x, 10.);
-  bool moved = false;
-  if (std::abs(m_previous_x - x) > 0.1)
-  {
-    m_previous_x = x;
-    moved = true;
-  }
-
+  auto [x, moved] = m_bounder.bound(this, 5., m_textRectCache.width());
   double rack_button_offset = 0.;
 
   auto& itv = m_presenter.model();
@@ -114,7 +91,7 @@ void TemporalIntervalHeader::paint(
     rack_button_offset += interval_header_rack_button_spacing;
 
   const auto p = QPointF{
-      m_previous_x + rack_button_offset,
+      m_bounder.x() + rack_button_offset,
       std::round(
           -1.
           + (IntervalHeader::headerHeight() - m_textRectCache.height()) / 2.)};
@@ -143,7 +120,7 @@ void TemporalIntervalHeader::paint(
 
 void TemporalIntervalHeader::updateButtons()
 {
-  double pos = m_previous_x - 2;
+  double pos = m_bounder.x() - 2;
   auto& itv = m_presenter.model();
 
   if (m_rackButton && !itv.processes.empty())
@@ -373,9 +350,9 @@ void TemporalIntervalHeader::updateShape() noexcept
 
   m_poly << QPointF{0., qreal(IntervalHeader::headerHeight()) - 0.5}
          << QPointF{5., 0.}
-         << QPointF{m_previous_x + text_width + buttons_width, 0.}
+         << QPointF{m_bounder.x() + text_width + buttons_width, 0.}
          << QPointF{
-                m_previous_x + text_width + buttons_width + 5.,
+                m_bounder.x() + text_width + buttons_width + 5.,
                 qreal(IntervalHeader::headerHeight()) - 0.5};
 }
 

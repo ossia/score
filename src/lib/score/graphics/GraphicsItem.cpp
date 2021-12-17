@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "GraphicsItem.hpp"
 
+#include <score/graphics/ItemBounder.hpp>
 #include <score/plugins/UuidKey.hpp>
 #include <score/tools/Debug.hpp>
 
@@ -67,4 +68,41 @@ QImage newImage(double logical_w, double logical_h)
   img.setDevicePixelRatio(ratio);
   img.fill(Qt::transparent);
   return img;
+}
+
+
+namespace score
+{
+std::pair<double, bool> ItemBounder::bound(QGraphicsItem* parent, double x0, double w) noexcept
+{
+  auto view = getView(*parent);
+  int item_left = view->mapFromScene(parent->mapToScene({x0, 0.})).x();
+  int item_right = item_left + w;
+
+  double x = x0;
+  const double min_x = x0;
+  const double max_x = view->width() - 30.;
+
+  if (item_left <= min_x)
+  {
+    // Compute the pixels needed to add to have top-left at 0
+    x = x - item_left + min_x;
+  }
+  else if (item_right >= max_x)
+  {
+    // Compute the pixels needed to add to have top-right at max
+    x = x - item_right + max_x;
+  }
+  x = std::max(x, 2 * x0);
+
+  if (std::abs(m_x - x) > 0.1)
+  {
+    m_x = x;
+    return {x, true};
+  }
+  else
+  {
+    return {x, false};
+  }
+}
 }

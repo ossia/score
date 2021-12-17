@@ -245,6 +245,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/DefaultGraphicsSliderImpl.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/DefaultGraphicsKnobImpl.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/GraphicsProxyObject.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/ItemBounder.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/PainterPath.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/RectItem.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/TextItem.hpp"
