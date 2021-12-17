@@ -214,6 +214,7 @@ populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
 
     args.push_back("-fcxx-exceptions");
     args.push_back("-fexceptions");
+    args.push_back("-fexternc-nounwind");
 #if defined(_WIN32)
   #if LLVM_VERSION_MAJOR < 12
       args.push_back("-fseh-exceptions");
