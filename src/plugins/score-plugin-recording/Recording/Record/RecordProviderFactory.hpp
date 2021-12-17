@@ -4,6 +4,7 @@
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Recording/Record/RecordTools.hpp>
 
+#include <core/document/Document.hpp>
 #include <core/document/DocumentView.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 #include <score/plugins/Interface.hpp>
@@ -16,6 +17,7 @@
 
 #include <verdigris>
 #include <QWidget>
+#include <QTimer>
 #include <QApplication>
 
 namespace Scenario

@@ -1,7 +1,7 @@
 #pragma once
+#include <ossia/detail/json_fwd.hpp>
 #include <score/tools/Version.hpp>
 
-#include <core/document/Document.hpp>
 #include <core/document/DocumentBuilder.hpp>
 
 #include <QObject>
@@ -9,7 +9,6 @@
 
 #include <score_lib_base_export.h>
 
-#include <set>
 #include <vector>
 #include <verdigris>
 class QRecentFilesMenu;
@@ -74,10 +73,7 @@ public:
   Document*
   loadDocument(const score::GUIApplicationContext& ctx, Args&&... args)
   {
-    if (auto cur = currentDocument(); cur && cur->virgin())
-    {
-      forceCloseDocument(ctx, *cur);
-    }
+    closeVirginDocument(ctx);
     prepareNewDocument(ctx);
     return setupDocument(
         ctx, m_builder.loadDocument(ctx, std::forward<Args>(args)...));
@@ -130,6 +126,7 @@ public:
       E_SIGNAL(SCORE_LIB_BASE_EXPORT, documentChanged, arg_1)
 
 private:
+  void closeVirginDocument(const score::GUIApplicationContext& ctx);
   void prepareNewDocument(const score::GUIApplicationContext& ctx);
 
   static bool updateJson(

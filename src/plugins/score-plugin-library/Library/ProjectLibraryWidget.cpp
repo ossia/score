@@ -8,6 +8,7 @@
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/widgets/MarginLess.hpp>
+#include <core/document/Document.hpp>
 
 #include <core/presenter/DocumentManager.hpp>
 

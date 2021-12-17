@@ -565,6 +565,14 @@ Document* DocumentManager::loadFile(
   return doc;
 }
 
+void DocumentManager::closeVirginDocument(const score::GUIApplicationContext& ctx)
+{
+  if (auto cur = currentDocument(); cur && cur->virgin())
+  {
+    forceCloseDocument(ctx, *cur);
+  }
+}
+
 void DocumentManager::prepareNewDocument(
     const score::GUIApplicationContext& ctx)
 {

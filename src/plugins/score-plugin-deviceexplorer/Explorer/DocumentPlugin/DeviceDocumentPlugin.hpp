@@ -1,7 +1,6 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
 #include <Explorer/DeviceList.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPluginFactory.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/Listening/ListeningHandler.hpp>
@@ -9,6 +8,8 @@
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 
 #include <score_plugin_deviceexplorer_export.h>
+
+#include <ossia/detail/hash_map.hpp>
 
 #include <thread>
 #include <verdigris>
@@ -18,6 +19,13 @@ namespace ossia::net
 struct network_context;
 using network_context_ptr = std::shared_ptr<network_context>;
 }
+
+UUID_METADATA(
+    ,
+    score::DocumentPluginFactory,
+    Explorer::DeviceDocumentPlugin,
+    "6e610e1f-9de2-4c36-90dd-0ef570002a21")
+
 namespace Explorer
 {
 class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final

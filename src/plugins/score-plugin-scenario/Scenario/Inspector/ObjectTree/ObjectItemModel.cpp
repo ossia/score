@@ -43,6 +43,7 @@
 #include <score/widgets/SetIcons.hpp>
 
 #include <core/presenter/DocumentManager.hpp>
+#include <core/document/Document.hpp>
 
 #include <Process/OfflineAction/OfflineAction.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>

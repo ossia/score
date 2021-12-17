@@ -9,6 +9,7 @@
 #include <QAction>
 #include <QDebug>
 #include <QMenu>
+#include <QTimer>
 
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
 #include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>

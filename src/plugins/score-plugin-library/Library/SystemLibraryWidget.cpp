@@ -6,6 +6,7 @@
 #include <Library/LibraryWidget.hpp>
 #include <Library/RecursiveFilterProxy.hpp>
 
+#include <core/document/Document.hpp>
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/widgets/MarginLess.hpp>
 

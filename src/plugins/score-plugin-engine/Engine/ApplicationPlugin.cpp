@@ -13,6 +13,7 @@
 #include <score/tools/Bind.hpp>
 #include <score/widgets/SetIcons.hpp>
 #include <score/widgets/TimeSpinBox.hpp>
+#include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
 
 #include <core/application/ApplicationInterface.hpp>
 #include <core/application/ApplicationSettings.hpp>

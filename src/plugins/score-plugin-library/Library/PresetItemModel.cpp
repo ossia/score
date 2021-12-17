@@ -13,6 +13,7 @@
 #include <score/tools/File.hpp>
 
 #include <core/presenter/DocumentManager.hpp>
+#include <core/document/Document.hpp>
 
 #include <ossia/detail/ssize.hpp>
 

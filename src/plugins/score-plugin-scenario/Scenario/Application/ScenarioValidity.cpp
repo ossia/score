@@ -2,6 +2,10 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioValidity.hpp"
 
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <Process/TimeValueSerialization.hpp>
 
 #include <Scenario/Process/Algorithms/Accessors.hpp>

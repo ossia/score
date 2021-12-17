@@ -13,6 +13,7 @@
 #include <ossia/editor/state/state_element.hpp>
 
 #include <QMenu>
+#include <QTimer>
 
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>

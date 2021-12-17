@@ -18,6 +18,7 @@
 
 #include <core/application/ApplicationSettings.hpp>
 #include <core/presenter/DocumentManager.hpp>
+#include <core/document/Document.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
