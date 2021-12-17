@@ -163,6 +163,20 @@ set(WIIMOTE_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Wiimote/WiimoteSpecificSettingsSerialization.cpp"
 )
 
+set(LEAPMOTION_HDRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Leapmotion/LeapmotionDevice.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Leapmotion/LeapmotionProtocolFactory.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Leapmotion/LeapmotionProtocolSettingsWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Leapmotion/LeapmotionSpecificSettings.hpp"
+)
+
+set(LEAPMOTION_SRCS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Leapmotion/LeapmotionDevice.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Leapmotion/LeapmotionProtocolFactory.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Leapmotion/LeapmotionProtocolSettingsWidget.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Leapmotion/LeapmotionSpecificSettingsSerialization.cpp"
+)
+
 set(ARTNET_HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/ArtnetDevice.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/ArtnetProtocolFactory.hpp"
@@ -230,6 +244,10 @@ endif()
 
 if(OSSIA_PROTOCOL_JOYSTICK)
     target_sources(${PROJECT_NAME} PRIVATE ${JOYSTICK_HDRS} ${JOYSTICK_SRCS})
+endif()
+
+if(OSSIA_PROTOCOL_LEAPMOTION)
+  target_sources(${PROJECT_NAME} PRIVATE ${LEAPMOTION_HDRS} ${LEAPMOTION_SRCS})
 endif()
 
 if(OSSIA_PROTOCOL_WIIMOTE)

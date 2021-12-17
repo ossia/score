@@ -43,6 +43,9 @@
 #if defined(OSSIA_PROTOCOL_WIIMOTE)
 #include <Protocols/Wiimote/WiimoteProtocolFactory.hpp>
 #endif
+#if defined(OSSIA_PROTOCOL_LEAPMOTION)
+#include <Protocols/Leapmotion/LeapmotionProtocolFactory.hpp>
+#endif
 #if defined(OSSIA_PROTOCOL_ARTNET)
 #include <Protocols/Artnet/ArtnetProtocolFactory.hpp>
 #endif
@@ -115,9 +118,13 @@ score_plugin_protocols::factories(
          ,
          Protocols::JoystickProtocolFactory
 #endif
-#if defined(OSSIA_PROTOCOL_WIIMOTE)
+#if defined(OSSIA_PROTOCOL_LEAPMOTION)
          ,
-         Protocols::WiimoteProtocolFactory
+         Protocols::LeapmotionProtocolFactory
+#endif
+#if defined(OSSIA_PROTOCOL_WIIMOTE)
+  ,
+  Protocols::WiimoteProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_ARTNET)
          ,
