@@ -7,8 +7,8 @@ endif()
 score_common_setup()
 
 # Packages
-# find_library(YSFX_LIBRARY NAMES ysfx)
-# find_path(YSFX_HEADERS ysfx.h)
+find_library(YSFX_LIBRARY NAMES ysfx)
+find_path(YSFX_HEADERS ysfx.h)
 
 if(NOT YSFX_LIBRARY)
   return()
@@ -17,7 +17,6 @@ endif()
 if(NOT YSFX_HEADERS)
   return()
 endif()
-
 
 # Files & main target
 set(HDRS

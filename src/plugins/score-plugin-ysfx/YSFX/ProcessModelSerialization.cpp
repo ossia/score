@@ -17,21 +17,23 @@ QByteArray readYSFXState(ysfx_t& fx)
 {
   QByteArray dat;
   {
-    auto state = ysfx_save_state(&fx);
-    int64_t sz = state->data_size;
-    int64_t sliders = state->slider_count;
-
+    if(auto state = ysfx_save_state(&fx))
     {
-      QDataStream stream{&dat, QIODevice::WriteOnly};
-      stream << sz << sliders;
-      stream << QByteArray((const char*)state->data, sz);
-      for(int64_t i = 0; i < sliders; i++) {
-        stream << state->sliders[i].index;
-        stream << state->sliders[i].value;
-      }
-    }
+      int64_t sz = state->data_size;
+      int64_t sliders = state->slider_count;
 
-    ysfx_state_free(state);
+      {
+        QDataStream stream{&dat, QIODevice::WriteOnly};
+        stream << sz << sliders;
+        stream << QByteArray((const char*)state->data, sz);
+        for(int64_t i = 0; i < sliders; i++) {
+          stream << state->sliders[i].index;
+          stream << state->sliders[i].value;
+        }
+      }
+
+      ysfx_state_free(state);
+    }
   }
 
   return dat;
@@ -40,6 +42,9 @@ QByteArray readYSFXState(ysfx_t& fx)
 static
 void loadYSFXState(ysfx_t& fx, const QByteArray& state)
 {
+  if(state.isEmpty())
+    return;
+
   ysfx_state_t s;
   int64_t sz{};
   int64_t sliders{};

@@ -32,9 +32,16 @@
 W_OBJECT_IMPL(YSFX::ProcessModel)
 namespace YSFX
 {
+bool ProcessModel::hasExternalUI() const noexcept {
+  if(!this->fx)
+    return false;
+
+  return ysfx_has_section(this->fx.get(), ysfx_section_gfx);
+}
+
 ProcessModel::ProcessModel(
-    const TimeVal& duration,
-    const QString& data,
+      const TimeVal& duration,
+      const QString& data,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
     : Process::ProcessModel{
@@ -64,7 +71,12 @@ void ProcessModel::setScript(const QString& script)
 
   fx.reset(ysfx_new(config.get()), ysfx_u_deleter{});
   if (!ysfx_load_file(fx.get(), arr.c_str(), 0))
-      return ;
+  {
+    qDebug() << "ysfx: could not load " << script;
+    return ;
+  }
+
+  m_script = script;
 
   uint32_t compile_opts = 0;
   if (!ysfx_compile(fx.get(), compile_opts))

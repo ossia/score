@@ -21,7 +21,7 @@ class SCORE_PLUGIN_YSFX_EXPORT ProcessModel final : public Process::ProcessModel
   PROCESS_METADATA_IMPL(YSFX::ProcessModel)
   W_OBJECT(ProcessModel)
 public:
-  static constexpr bool hasExternalUI() noexcept { return true; }
+  bool hasExternalUI() const noexcept;
 
   explicit ProcessModel(
       const TimeVal& duration,
