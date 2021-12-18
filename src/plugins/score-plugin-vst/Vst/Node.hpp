@@ -131,7 +131,10 @@ class vst_node final : public vst_node_base
 {
 public:
   static constexpr bool synth = IsSynth;
+  VstSpeakerArrangement i_arr{};
+  VstSpeakerArrangement o_arr{};
   int m_bs{};
+
   vst_node(std::shared_ptr<AEffectWrapper> dat, int sampleRate, int bs)
       : vst_node_base{std::move(dat)}
       , m_bs{bs}
@@ -143,6 +146,21 @@ public:
 
     // audio output
     m_outlets.push_back(new ossia::audio_outlet);
+
+    {
+      memset(&i_arr, 0, sizeof(i_arr));
+      memset(&o_arr, 0, sizeof(o_arr));
+      i_arr.type = kSpeakerArrStereo;
+      i_arr.numChannels = 2;
+      i_arr.speakers[0].type = kSpeakerL;
+      i_arr.speakers[1].type = kSpeakerR;
+
+      o_arr.type = kSpeakerArrStereo;
+      o_arr.numChannels = 2;
+      o_arr.speakers[0].type = kSpeakerL;
+      o_arr.speakers[1].type = kSpeakerR;
+      dispatch(effSetSpeakerArrangement, 0, (intptr_t)&i_arr, (void*)&o_arr, 0);
+    }
 
     dispatch(effSetSampleRate, 0, sampleRate, nullptr, sampleRate);
     dispatch(effSetBlockSize, 0, bs, nullptr, bs); // Generalize what's in pd
@@ -341,6 +359,10 @@ public:
       const auto max_o = std::max(2, this->fx->fx->numOutputs);
       const auto max_io = std::max(max_i, max_o);
 
+      const auto max_samples = std::max(samples, (int64_t)m_bs);// * 16;
+
+      //qDebug() << samples << m_bs << max_samples << offset << " ::: " << max_i << max_o << max_io;
+
       // prepare ossia::graph_node buffers
       auto& ip = prepareInput(offset, samples);
       SCORE_ASSERT(ip.size() >= 2);
@@ -349,11 +371,11 @@ public:
       SCORE_ASSERT(op.size() >= 2);
 
       // copy io
-      float_v[0].resize(samples);
-      float_v[1].resize(samples);
+      float_v[0].resize(max_samples);
+      float_v[1].resize(max_samples);
 
-      std::copy(ip[0].begin() + offset, ip[0].end(), float_v[0].begin());
-      std::copy(ip[1].begin() + offset, ip[1].end(), float_v[1].begin());
+      std::copy_n(ip[0].data() + offset, samples, float_v[0].data());
+      std::copy_n(ip[1].data() + offset, samples, float_v[1].data());
 
       float** io = (float**)alloca(sizeof(float*) * max_io);
       io[0] = float_v[0].data();
@@ -363,17 +385,17 @@ public:
       {
         // Note that alloca has *function* scope, not block scope so it is
         // freed at the end
-        float* dummy = (float*)alloca(sizeof(float) * m_bs);
-        std::fill_n(dummy, m_bs, 0.f);
+        float* dummy = (float*)alloca(sizeof(float) * max_samples);
+        std::fill_n(dummy, max_samples, 0.f);
 
         for (int i = 2; i < max_io; i++)
           io[i] = dummy;
       }
 
-      fx->fx->processReplacing(fx->fx, io, io, samples);
+      fx->fx->processReplacing(fx->fx, io, io, m_bs);
 
-      std::copy(float_v[0].begin(), float_v[0].end(), op[0].begin() + offset);
-      std::copy(float_v[1].begin(), float_v[1].end(), op[1].begin() + offset);
+      std::copy_n(float_v[0].data(), samples, op[0].data() + offset);
+      std::copy_n(float_v[1].data(), samples, op[1].data() + offset);
 
       float_v[0].clear();
       float_v[1].clear();
