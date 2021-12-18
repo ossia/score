@@ -113,6 +113,7 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/ScoreFunctions.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/ScoreConfiguration.cmake")
 
 include(3rdparty/libossia.cmake)
+include(3rdparty/shmdata.cmake)
 include(3rdparty/sndfile.cmake)
 include(3rdparty/snappy.cmake)
 

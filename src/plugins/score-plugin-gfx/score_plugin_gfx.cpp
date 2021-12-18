@@ -26,6 +26,9 @@
 #include <Dataflow/WidgetInletFactory.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
+#if defined(SCORE_HAS_SHMDATA)
+#include <Gfx/ShmdataOutputDevice.hpp>
+#endif
 #if defined(HAS_SPOUT)
 #include <Gfx/SpoutDevice.hpp>
 #endif
@@ -38,16 +41,25 @@
 #include <score_plugin_gfx_commands_files.hpp>
 score_plugin_gfx::score_plugin_gfx()
 {
+#if defined(SCORE_HAS_SHMDATA)
+  qRegisterMetaType<Gfx::ShmSettings>();
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+  qRegisterMetaTypeStreamOperators<Gfx::ShmSettings>();
+#endif
+#endif
+
 #if defined(HAS_FREENECT2)
   qRegisterMetaType<Gfx::Kinect2Settings>();
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   qRegisterMetaTypeStreamOperators<Gfx::Kinect2Settings>();
 #endif
 #endif
+
   qRegisterMetaType<Gfx::CameraSettings>();
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   qRegisterMetaTypeStreamOperators<Gfx::CameraSettings>();
 #endif
+
 }
 
 score_plugin_gfx::~score_plugin_gfx() { }
@@ -61,6 +73,9 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_gfx::factories(
       FW<Device::ProtocolFactory,
          Gfx::WindowProtocolFactory,
          Gfx::CameraProtocolFactory
+#if defined(SCORE_HAS_SHMDATA)
+         , Gfx::ShmdataOutputProtocolFactory
+#endif
 #if defined(HAS_SPOUT)
          ,
          Gfx::SpoutProtocolFactory

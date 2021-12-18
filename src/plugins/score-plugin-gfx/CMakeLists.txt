@@ -17,6 +17,7 @@ endif()
 
 add_subdirectory(3rdparty/libisf)
 
+
 #if(WIN32)
 #set(SPOUT_SRCS
 #    Gfx/SpoutDevice.hpp
@@ -98,6 +99,7 @@ set(HDRS
     Gfx/GfxExecContext.hpp
     Gfx/GfxParameter.hpp
     Gfx/GfxDevice.hpp
+    Gfx/InvertYRenderer.hpp
     Gfx/TexturePort.hpp
     Gfx/ShaderProgram.hpp
 
@@ -157,6 +159,7 @@ set(SRCS
     Gfx/TexturePort.cpp
     Gfx/ShaderProgram.cpp
 
+    Gfx/InvertYRenderer.cpp
     Gfx/CameraDevice.cpp
     Gfx/WindowDevice.cpp
 
@@ -187,6 +190,22 @@ target_link_libraries(${PROJECT_NAME}
   PRIVATE
     avcodec avformat swresample avutil avdevice score_plugin_media
 )
+
+if(TARGET shmdata)
+  target_sources(${PROJECT_NAME}
+    PRIVATE
+      Gfx/ShmdataOutputDevice.hpp
+      Gfx/ShmdataOutputDevice.cpp
+  )
+  target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+      shmdata
+  )
+  target_compile_definitions(${PROJECT_NAME}
+    PRIVATE
+      SCORE_HAS_SHMDATA
+  )
+endif()
 
 if(APPLE)
     find_library(QuartzCore_FK QuartzCore)

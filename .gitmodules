@@ -46,3 +46,6 @@
 [submodule "3rdparty/libsndfile"]
 	path = 3rdparty/libsndfile
 	url = https://github.com/jcelerier/libsndfile
+[submodule "3rdparty/shmdata"]
+	path = 3rdparty/shmdata
+	url = https://gitlab.com/sat-metalab/shmdata
