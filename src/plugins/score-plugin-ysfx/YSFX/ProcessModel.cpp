@@ -189,9 +189,21 @@ Window::Window(const ProcessModel& e, const score::DocumentContext& ctx, QWidget
   conf.pixel_stride = 0;// conf.pixel_width * 4;
   conf.pixels = m_frame.bits();
   conf.scale_factor = 1.0;
-  conf.show_menu = [] (void *user_data, const char *menu_spec, int32_t xpos, int32_t ypos) -> int32_t  { return 0; };
-  conf.set_cursor = [ ] (void *user_data, int32_t cursor) {};
-  conf.get_drop_file = [ ] (void *user_data, int32_t index) -> const char* { return ""; };
+  conf.show_menu = [] (void *user_data, const char *menu_spec, int32_t xpos, int32_t ypos) -> int32_t
+  {
+    //qDebug() << "Show menu" << menu_spec << xpos << ypos;
+    return 0;
+  };
+  conf.set_cursor = [ ] (void *user_data, int32_t cursor)
+  {
+    //qDebug() << "set cursor:" << cursor;
+  };
+
+  conf.get_drop_file = [ ] (void *user_data, int32_t index) -> const char*
+  {
+    //qDebug() << "Get drop file" << index;
+    return "";
+  };
 
   ysfx_gfx_setup(fx.get(), &conf);
 
