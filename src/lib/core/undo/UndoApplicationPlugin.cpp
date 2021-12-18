@@ -36,7 +36,8 @@ score::UndoApplicationPlugin::UndoApplicationPlugin(
       QStringLiteral(":/icons/prev_disabled.png"));
 
   QObject::connect(m_undoAction, &QAction::triggered, [&]() {
-    currentDocument()->commandStack().undo();
+    if(auto doc = currentDocument())
+      doc->commandStack().undo();
   });
 
   m_redoAction->setShortcut(QKeySequence::Redo);
@@ -52,7 +53,8 @@ score::UndoApplicationPlugin::UndoApplicationPlugin(
       QStringLiteral(":/icons/next_disabled.png"));
 
   QObject::connect(m_redoAction, &QAction::triggered, [&]() {
-    currentDocument()->commandStack().redo();
+    if(auto doc = currentDocument())
+      doc->commandStack().redo();
   });
 }
 

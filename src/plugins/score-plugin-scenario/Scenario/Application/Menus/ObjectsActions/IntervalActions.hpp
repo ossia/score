@@ -39,8 +39,6 @@ private:
   void on_showRacks();
   void on_hideRacks();
 
-  CommandDispatcher<> dispatcher();
-
   ScenarioApplicationPlugin* m_parent{};
   QAction* m_addProcess{};
 

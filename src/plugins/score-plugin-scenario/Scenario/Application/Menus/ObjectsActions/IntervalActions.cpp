@@ -196,10 +196,4 @@ void IntervalActions::on_hideRacks()
   }
 }
 
-CommandDispatcher<> IntervalActions::dispatcher()
-{
-  CommandDispatcher<> disp{
-      m_parent->currentDocument()->context().commandStack};
-  return disp;
-}
 }

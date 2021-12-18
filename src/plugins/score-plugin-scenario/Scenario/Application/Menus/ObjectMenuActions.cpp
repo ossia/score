@@ -412,7 +412,11 @@ void ObjectMenuActions::setupContextMenu(
 
 void ObjectMenuActions::copySelectedElementsToJson(JSONReader& r)
 {
-  const auto& ctx = m_parent->currentDocument()->context();
+  auto doc = m_parent->currentDocument();
+  if(!doc)
+    return;
+
+  const auto& ctx = doc->context();
   if (auto si = focusedScenarioInterface(ctx))
   {
     return Scenario::copySelectedElementsToJson(
