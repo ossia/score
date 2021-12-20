@@ -1,5 +1,7 @@
 #include <Process/Drop/ProcessDropHandler.hpp>
 
+#include <ossia/detail/algorithms.hpp>
+
 #include <QFile>
 #include <QFileInfo>
 #include <QSet>
