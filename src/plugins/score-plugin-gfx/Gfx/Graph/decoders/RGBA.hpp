@@ -4,7 +4,7 @@
 namespace score::gfx
 {
 #include <Gfx/Qt5CompatPush> // clang-format: keep
-struct RGB0Decoder : GPUVideoDecoder
+struct PackedDecoder : GPUVideoDecoder
 {
   static const constexpr auto rgb_filter = R"_(#version 450
     layout(std140, binding = 0) uniform buf {
@@ -29,16 +29,19 @@ struct RGB0Decoder : GPUVideoDecoder
       fragColor = processTexture(texture(y_tex, texcoord));
     })_";
 
-  RGB0Decoder(
+  PackedDecoder(
       QRhiTexture::Format fmt,
+      int bytes_per_pixel,
       Video::VideoInterface& d,
       QString f = "")
       : format{fmt}
+      , bytes_per_pixel{bytes_per_pixel}
       , decoder{d}
       , filter{f}
   {
   }
   QRhiTexture::Format format;
+  int bytes_per_pixel{}; // bpp/8 !
   Video::VideoInterface& decoder;
   QString filter;
 
@@ -86,7 +89,7 @@ struct RGB0Decoder : GPUVideoDecoder
     auto y_tex = samplers[0].texture;
 
     QRhiTextureUploadEntry entry{
-        0, 0, createTextureUpload(pixels, w, h, 4, stride)};
+        0, 0, createTextureUpload(pixels, w, h, bytes_per_pixel, stride)};
 
     QRhiTextureUploadDescription desc{entry};
     res.uploadTexture(y_tex, desc);

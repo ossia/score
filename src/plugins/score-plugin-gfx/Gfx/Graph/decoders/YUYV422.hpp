@@ -30,12 +30,13 @@ const vec3 offset = vec3(-0.0625, -0.5, -0.5);
 
 void main() {
   vec2 texcoord = vec2(v_texcoord.x, tbuf.texcoordAdjust.y + tbuf.texcoordAdjust.x * v_texcoord.y);
-  vec3 tc = texture(u_tex, texcoord).rgb;
-  vec3 yuv = vec3(tc.g, tc.b, tc.r);
-  yuv += offset;
-  fragColor.r = dot(yuv, R_cf);
-  fragColor.g = dot(yuv, G_cf);
-  fragColor.b = dot(yuv, B_cf);
+  vec4 tex = texture(u_tex, texcoord);
+  float y = tex.r;
+  float u = tex.g - 0.5;
+  float v = tex.a - 0.5;
+  fragColor.r = y + 1.13983 * v;
+  fragColor.g = y - 0.39465 * u - 0.58060 * v;
+  fragColor.b = y + 2.03211 * u;
   fragColor.a = 1.0;
 }
 )_";

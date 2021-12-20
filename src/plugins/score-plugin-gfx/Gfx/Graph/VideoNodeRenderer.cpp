@@ -60,24 +60,40 @@ void VideoNodeRenderer::createGpuDecoder()
       break;
     case AV_PIX_FMT_RGB0:
     case AV_PIX_FMT_RGBA:
-      m_gpu = std::make_unique<RGB0Decoder>(
-          QRhiTexture::RGBA8, *m_decoder, filter);
+      m_gpu = std::make_unique<PackedDecoder>(
+          QRhiTexture::RGBA8, 4, *m_decoder, filter);
       break;
     case AV_PIX_FMT_BGR0:
     case AV_PIX_FMT_BGRA:
-      m_gpu = std::make_unique<RGB0Decoder>(
-          QRhiTexture::BGRA8, *m_decoder, filter);
+      m_gpu = std::make_unique<PackedDecoder>(
+          QRhiTexture::BGRA8, 4, *m_decoder, filter);
+      break;
+    case AV_PIX_FMT_ARGB:
+      // Go from ARGB  xyzw
+      //      to RGBA  yzwx
+      m_gpu = std::make_unique<PackedDecoder>(
+            QRhiTexture::RGBA8, 4, *m_decoder, "processed.bgra = tex.yzwx; " + filter);
+      break;
+    case AV_PIX_FMT_ABGR:
+      // Go from ABGR  xyzw
+      //      to BGRA  yzwx
+      m_gpu = std::make_unique<PackedDecoder>(
+            QRhiTexture::BGRA8, 4, *m_decoder, "processed.bgra = tex.yzwx; " + filter);
       break;
 #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(56, 19, 100)
     case AV_PIX_FMT_GRAYF32LE:
     case AV_PIX_FMT_GRAYF32BE:
-      m_gpu = std::make_unique<RGB0Decoder>(
-          QRhiTexture::R32F, *m_decoder, filter);
+      m_gpu = std::make_unique<PackedDecoder>(
+          QRhiTexture::R32F, 4, *m_decoder, filter);
       break;
 #endif
     case AV_PIX_FMT_GRAY8:
-      m_gpu = std::make_unique<RGB0Decoder>(
-          QRhiTexture::R8, *m_decoder, filter);
+      m_gpu = std::make_unique<PackedDecoder>(
+          QRhiTexture::R8, 1, *m_decoder,  "processed.rgba = vec4(tex.r, tex.r, tex.r, 1.0);" + filter);
+      break;
+    case AV_PIX_FMT_GRAY16:
+      m_gpu = std::make_unique<PackedDecoder>(
+            QRhiTexture::R16, 2, *m_decoder, filter);
       break;
     default:
     {

@@ -74,7 +74,7 @@ void main()
     // U
     {
       auto tex = rhi.newTexture(
-          QRhiTexture::R8, {w / 2, h / 2}, 1, QRhiTexture::Flag{});
+          QRhiTexture::R8, {w / 2, h}, 1, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(
@@ -90,7 +90,7 @@ void main()
     // V
     {
       auto tex = rhi.newTexture(
-          QRhiTexture::R8, {w / 2, h / 2}, 1, QRhiTexture::Flag{});
+          QRhiTexture::R8, {w / 2, h}, 1, QRhiTexture::Flag{});
       tex->create();
 
       auto sampler = rhi.newSampler(
@@ -137,7 +137,7 @@ void main()
       uint8_t* pixels,
       int stride) const noexcept
   {
-    const auto w = decoder.width / 2, h = decoder.height / 2;
+    const auto w = decoder.width / 2, h = decoder.height;
     auto u_tex = samplers[1].texture;
 
     QRhiTextureUploadEntry entry{
@@ -153,7 +153,7 @@ void main()
       uint8_t* pixels,
       int stride) const noexcept
   {
-    const auto w = decoder.width / 2, h = decoder.height / 2;
+    const auto w = decoder.width / 2, h = decoder.height;
     auto v_tex = samplers[2].texture;
 
     QRhiTextureUploadEntry entry{
