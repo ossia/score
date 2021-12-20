@@ -10,6 +10,8 @@
 #include <QByteArray>
 #include <QMimeData>
 
+#include <string>
+
 #include <score_lib_process_export.h>
 
 namespace Process
@@ -82,8 +84,8 @@ public:
 
 private:
   void initCaches() const;
-  mutable std::unordered_map<QString, ProcessDropHandler*> m_perMimeTypes{};
-  mutable std::unordered_map<QString, ProcessDropHandler*> m_perFileExtension{};
+  mutable std::unordered_map<std::string, ProcessDropHandler*> m_perMimeTypes{};
+  mutable std::unordered_map<std::string, ProcessDropHandler*> m_perFileExtension{};
   mutable std::size_t m_lastCacheSize{};
 };
 }

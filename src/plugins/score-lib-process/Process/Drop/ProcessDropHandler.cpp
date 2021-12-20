@@ -179,7 +179,7 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandlerList::getDrop(
   // Look for drop handlers with the available MIME types
   for(const auto& fmt : mime.formats())
   {
-    if(auto it = m_perMimeTypes.find(fmt); it != m_perMimeTypes.end())
+    if(auto it = m_perMimeTypes.find(fmt.toStdString()); it != m_perMimeTypes.end())
     {
       ossia::insert_at_end(res, it->second->getMimeDrops(mime, fmt, ctx));
     }
@@ -196,7 +196,7 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandlerList::getDrop(
     if (f.exists())
     {
       auto ext = f.suffix().toLower();
-      if(auto it = m_perFileExtension.find(ext); it != m_perFileExtension.end())
+      if(auto it = m_perFileExtension.find(ext.toStdString()); it != m_perFileExtension.end())
       {
         ossia::insert_at_end(res, it->second->getFileDrops(mime, path, ctx));
         qDebug() << res.size();
@@ -251,12 +251,12 @@ void ProcessDropHandlerList::initCaches() const
     {
       for(const auto& ext : handler.fileExtensions())
       {
-        m_perFileExtension[ext.toLower().toUtf8()] = &handler;
+        m_perFileExtension[ext.toLower().toStdString()] = &handler;
       }
 
       for(const auto& ext : handler.mimeTypes())
       {
-        m_perMimeTypes[ext.toLower().toUtf8()] = &handler;
+        m_perMimeTypes[ext.toLower().toStdString()] = &handler;
       }
     }
   }
