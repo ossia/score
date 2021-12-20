@@ -73,8 +73,11 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/VideoInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/VideoDecoder.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/CameraInput.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Video/GStreamerCompatibility.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Video/GpuFormats.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/Thumbnailer.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/FrameQueue.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Video/Rescale.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_media.hpp"
 )
@@ -119,6 +122,7 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/CameraInput.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/Thumbnailer.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/FrameQueue.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Video/Rescale.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_media.cpp"
 )

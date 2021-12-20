@@ -175,6 +175,11 @@ void ScreenNode::startRendering()
   }
 }
 
+void ScreenNode::render()
+{
+
+}
+
 void ScreenNode::onRendererChange()
 {
   if (m_window)
@@ -425,6 +430,11 @@ score::gfx::OutputNodeRenderer*
 ScreenNode::createRenderer(RenderList& r) const noexcept
 {
   return new Renderer{r.state, *this};
+}
+
+OutputNode::Configuration ScreenNode::configuration() const noexcept
+{
+  return {};
 }
 
 }

@@ -3,6 +3,7 @@
 #if SCORE_HAS_LIBAV
 #include <Video/VideoInterface.hpp>
 #include <Video/FrameQueue.hpp>
+#include <Video/Rescale.hpp>
 extern "C"
 {
 #include <libavformat/avformat.h>
@@ -63,8 +64,9 @@ private:
   AVFormatContext* m_formatContext{};
   AVCodecContext* m_codecContext{};
   AVStream* m_avstream{};
-  SwsContext* m_rescale{};
   const AVCodec* m_codec{};
+
+  Rescale m_rescale;
   int m_stream{-1};
 
   int64_t m_duration{}; // in flicks

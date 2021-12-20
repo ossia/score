@@ -194,8 +194,10 @@ target_link_libraries(${PROJECT_NAME}
 if(TARGET shmdata)
   target_sources(${PROJECT_NAME}
     PRIVATE
-      Gfx/ShmdataOutputDevice.hpp
-      Gfx/ShmdataOutputDevice.cpp
+      Gfx/Shmdata/ShmdataInputDevice.hpp
+      Gfx/Shmdata/ShmdataInputDevice.cpp
+      Gfx/Shmdata/ShmdataOutputDevice.hpp
+      Gfx/Shmdata/ShmdataOutputDevice.cpp
   )
   target_link_libraries(${PROJECT_NAME}
     PRIVATE

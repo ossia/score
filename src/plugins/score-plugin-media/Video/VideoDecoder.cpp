@@ -10,6 +10,7 @@ extern "C"
 #include "VideoDecoder.hpp"
 
 #include <score/tools/Debug.hpp>
+#include <Video/GpuFormats.hpp>
 
 #include <ossia/detail/flicks.hpp>
 
@@ -161,11 +162,6 @@ void VideoDecoder::close_file() noexcept
 
   // Remove frames that were in flight
   m_frames.drain();
-}
-
-void free_frame(AVFrame* frame)
-{
-  av_frame_free(&frame);
 }
 
 ReadFrame VideoDecoder::read_one_frame(AVFramePointer frame, AVPacket& packet)
@@ -338,20 +334,7 @@ AVFrame* VideoDecoder::read_frame_impl() noexcept
 
 void VideoDecoder::init_scaler() noexcept
 {
-  // Allocate a rescale context
-  qDebug() << "allocating a rescaler for format"
-           << av_get_pix_fmt_name(this->pixel_format);
-  m_rescale = sws_getContext(
-      this->width,
-      this->height,
-      this->pixel_format,
-      this->width,
-      this->height,
-      AV_PIX_FMT_RGBA,
-      SWS_FAST_BILINEAR,
-      NULL,
-      NULL,
-      NULL);
+  m_rescale.open(*this);
   pixel_format = AV_PIX_FMT_RGBA;
 }
 
@@ -429,29 +412,9 @@ bool VideoDecoder::open_stream() noexcept
             flicks_per_dts = (tb.num * ossia::flicks_per_second<double>) / tb.den;
           }
 
-          switch (pixel_format)
+          if(Video::formatNeedsDecoding(pixel_format))
           {
-            // Supported formats for gpu decoding
-            case AV_PIX_FMT_YUV420P:
-            case AV_PIX_FMT_YUVJ420P:
-            case AV_PIX_FMT_YUVJ422P:
-            case AV_PIX_FMT_YUV422P:
-            case AV_PIX_FMT_RGB0:
-            case AV_PIX_FMT_RGBA:
-            case AV_PIX_FMT_BGR0:
-            case AV_PIX_FMT_BGRA:
-#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(56, 19, 100)
-            case AV_PIX_FMT_GRAYF32LE:
-            case AV_PIX_FMT_GRAYF32BE:
-#endif
-            case AV_PIX_FMT_GRAY8:
-              break;
-            // Other formats get rgb'd
-            default:
-            {
-              init_scaler();
-              break;
-            }
+            init_scaler();
           }
         }
       }
@@ -474,11 +437,7 @@ void VideoDecoder::close_video() noexcept
     m_codec = nullptr;
   }
 
-  if (m_rescale)
-  {
-    sws_freeContext(m_rescale);
-    m_rescale = nullptr;
-  }
+  m_rescale.close();
 
   m_avstream = nullptr;
   m_stream = -1;
@@ -496,29 +455,7 @@ VideoDecoder::enqueue_frame(const AVPacket* pkt, AVFramePointer frame) noexcept
 
   if (m_rescale)
   {
-    // alloc an rgb frame
-    auto rgb = m_frames.newFrame().release();
-    av_frame_copy_props(rgb, read.frame);
-    rgb->width = this->width;
-    rgb->height = this->height;
-    rgb->format = AV_PIX_FMT_RGBA;
-    av_frame_get_buffer(rgb, 0);
-
-    // 2. Resize
-    sws_scale(
-        m_rescale,
-        read.frame->data,
-        read.frame->linesize,
-        0,
-        this->height,
-        rgb->data,
-        rgb->linesize);
-
-    // 3. Free the old frame data
-    frame.reset();
-
-    // 4. Return the new frame
-    read.frame = rgb;
+    m_rescale.rescale(*this, m_frames, frame, read);
   }
   else
   {

@@ -3,6 +3,7 @@
 #if SCORE_HAS_LIBAV
 
 #include <Video/FrameQueue.hpp>
+#include <Video/Rescale.hpp>
 #include <Video/VideoInterface.hpp>
 extern "C"
 {
@@ -23,7 +24,16 @@ extern "C"
 namespace Video
 {
 
-class SCORE_PLUGIN_MEDIA_EXPORT CameraInput final : public VideoInterface
+class SCORE_PLUGIN_MEDIA_EXPORT ExternalInput : public VideoInterface
+{
+public:
+  virtual ~ExternalInput();
+  virtual bool start() noexcept = 0;
+  virtual void stop() noexcept = 0;
+};
+
+class SCORE_PLUGIN_MEDIA_EXPORT CameraInput final
+    : public ExternalInput
 {
 public:
   CameraInput() noexcept;
@@ -36,8 +46,8 @@ public:
       int h,
       double fps) noexcept;
 
-  bool start() noexcept;
-  void stop() noexcept;
+  bool start() noexcept override;
+  void stop() noexcept override;
 
   AVFrame* dequeue_frame() noexcept override;
   void release_frame(AVFrame* frame) noexcept override;
@@ -61,7 +71,7 @@ private:
   std::string m_inputDevice;
   AVFormatContext* m_formatContext{};
   AVCodecContext* m_codecContext{};
-  SwsContext* m_rescale{};
+  Rescale m_rescale;
   const AVCodec* m_codec{};
   int m_stream{-1};
 

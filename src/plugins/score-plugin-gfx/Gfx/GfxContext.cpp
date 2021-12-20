@@ -1,5 +1,6 @@
 #include <Gfx/GfxContext.hpp>
 #include <Gfx/Graph/Graph.hpp>
+#include <Gfx/Graph/OutputNode.hpp>
 #include <Gfx/Settings/Model.hpp>
 
 #include <score/application/ApplicationContext.hpp>
@@ -98,6 +99,10 @@ void GfxContext::recompute_graph()
 {
   if (m_timer != -1)
     killTimer(m_timer);
+  for(auto [id, ptr] : m_manualTimers)
+    killTimer(id);
+  m_manualTimers.clear();
+
   m_timer = -1;
   m_graph->setVSyncCallback({});
 
@@ -114,6 +119,7 @@ void GfxContext::recompute_graph()
   double rate = m_context.app.settings<Gfx::Settings::Model>().getRate();
   rate = 1000. / qBound(1.0, rate, 1000.);
 
+  // Update and render
   if (vsync)
   {
 #if defined(SCORE_THREADED_GFX)
@@ -132,6 +138,14 @@ void GfxContext::recompute_graph()
         this,
         [this, rate] { m_timer = startTimer(rate); },
         Qt::QueuedConnection);
+  }
+
+  for(auto& outputs : m_graph->renderLists())
+  {
+    if(auto conf = outputs->output.configuration(); conf.manualRenderingRate) {
+      int id = startTimer(*conf.manualRenderingRate, Qt::PreciseTimer);
+      m_manualTimers[id] = &outputs->output;
+    }
   }
 }
 
@@ -179,6 +193,14 @@ void GfxContext::run_commands()
       }
       case Command::REMOVE_NODE:
       {
+        // Remove the node from the timers if it's in there
+        for(auto it = m_manualTimers.container.begin(); it != m_manualTimers.container.end(); ) {
+          if(it->second == cmd.node.get())
+            it = m_manualTimers.container.erase(it);
+          else
+            ++it;
+        }
+
         // Remove all edges involving that node
         for (auto it = this->edges.begin(); it != this->edges.end();)
         {
@@ -236,9 +258,18 @@ void GfxContext::updateGraph()
   }
 }
 
-void GfxContext::timerEvent(QTimerEvent*)
+void GfxContext::timerEvent(QTimerEvent* ev)
 {
-  updateGraph();
+  if(ev->timerId() == m_timer)
+  {
+    updateGraph();
+  }
+  else
+  {
+    if(auto ptr = m_manualTimers.find(ev->timerId()); ptr != m_manualTimers.end()) {
+      ptr->second->render();
+    }
+  }
 }
 
 

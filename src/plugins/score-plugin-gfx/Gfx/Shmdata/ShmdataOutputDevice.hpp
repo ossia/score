@@ -9,12 +9,12 @@
 
 namespace Gfx
 {
-  struct ShmSettings {
-    QString path;
-    int width{};
-    int height{};
-    double rate{};
-  };
+struct ShmSettings {
+  QString path;
+  int width{};
+  int height{};
+  double rate{};
+};
 
 class gfx_protocol_base;
 class ShmdataOutputProtocolFactory final : public Device::ProtocolFactory

@@ -27,7 +27,8 @@
 
 #include <score/plugins/FactorySetup.hpp>
 #if defined(SCORE_HAS_SHMDATA)
-#include <Gfx/ShmdataOutputDevice.hpp>
+#include <Gfx/Shmdata/ShmdataInputDevice.hpp>
+#include <Gfx/Shmdata/ShmdataOutputDevice.hpp>
 #endif
 #if defined(HAS_SPOUT)
 #include <Gfx/SpoutDevice.hpp>
@@ -74,6 +75,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_gfx::factories(
          Gfx::WindowProtocolFactory,
          Gfx::CameraProtocolFactory
 #if defined(SCORE_HAS_SHMDATA)
+         , Gfx::Shmdata::InputFactory
          , Gfx::ShmdataOutputProtocolFactory
 #endif
 #if defined(HAS_SPOUT)

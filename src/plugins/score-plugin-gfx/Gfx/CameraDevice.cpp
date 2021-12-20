@@ -146,18 +146,20 @@ bool CameraDevice::reconnect()
   try
   {
     auto set = this->settings().deviceSpecificSettings.value<CameraSettings>();
-    camera_settings ossia_stgs{
-        set.input.toStdString(),
-        set.device.toStdString(),
-        set.size.width(),
-        set.size.height(),
-        set.fps};
     auto plug = m_ctx.findPlugin<DocumentPlugin>();
     if (plug)
     {
-      m_protocol = new camera_protocol{plug->exec};
-      m_dev = std::make_unique<camera_device>(
-          ossia_stgs,
+      auto cam = std::make_shared<::Video::CameraInput>();
+
+      cam->load(
+          set.input.toStdString(),
+          set.device.toStdString(),
+          set.size.width(),
+          set.size.height(),
+          set.fps);
+
+      m_protocol = new video_texture_input_protocol{std::move(cam), plug->exec};
+      m_dev = std::make_unique<video_texture_input_device>(
           std::unique_ptr<ossia::net::protocol_base>(m_protocol),
           this->settings().name.toStdString());
     }

@@ -13,6 +13,7 @@
 namespace score::gfx
 {
 struct Graph;
+class OutputNode;
 }
 namespace score
 {
@@ -73,6 +74,8 @@ private:
   std::atomic_bool edges_changed{};
 
   int m_timer{-1};
+
+  ossia::flat_map<int, score::gfx::OutputNode*> m_manualTimers;
 };
 
 }

@@ -31,6 +31,7 @@ public:
   virtual OutputNodeRenderer* createRenderer(RenderList& r) const noexcept = 0;
 
   virtual void startRendering() = 0;
+  virtual void render() = 0;
   virtual void stopRendering() = 0;
   virtual bool canRender() const = 0;
   virtual void onRendererChange() = 0;
@@ -45,6 +46,14 @@ public:
   virtual void updateGraphicsAPI(GraphicsApi);
   virtual void destroyOutput() = 0;
   virtual RenderState* renderState() const = 0;
+
+  struct Configuration {
+    // If set, the host is responsible for calling render() at this
+    // rate (given in milliseconds)
+    std::optional<double> manualRenderingRate;
+  };
+
+  virtual Configuration configuration() const noexcept = 0;
 
 protected:
   explicit OutputNode();

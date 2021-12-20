@@ -14,6 +14,7 @@ struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
   virtual ~ScreenNode();
 
   void startRendering() override;
+  void render() override;
   void onRendererChange() override;
   bool canRender() const override;
   void stopRendering() override;
@@ -37,6 +38,7 @@ struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
   RenderState* renderState() const override;
   score::gfx::OutputNodeRenderer*
   createRenderer(RenderList& r) const noexcept override;
+  Configuration configuration() const noexcept override;
 
   const std::shared_ptr<Window>& window() const noexcept { return m_window; }
 
