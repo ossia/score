@@ -11,6 +11,7 @@
 #include <QMimeData>
 
 #include <string>
+#include <unordered_map>
 
 #include <score_lib_process_export.h>
 
