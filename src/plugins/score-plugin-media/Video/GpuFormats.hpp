@@ -34,6 +34,7 @@ bool formatNeedsDecoding(AVPixelFormat fmt)
     case AV_PIX_FMT_GRAYF32BE:
 #endif
     case AV_PIX_FMT_GRAY8:
+    case AV_PIX_FMT_GRAY16:
       return false;
 
     // Other formats get rgb'd

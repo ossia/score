@@ -638,11 +638,12 @@ inline void initFrameFromRawData(AVFrame* frame, uint8_t* p, std::size_t sz)
       frame->linesize[0] = frame->width * 24. / 8.;
       break;
 
-    case AV_PIX_FMT_X2RGB10LE: ///< packed RGB 10:10:10: 30bpp: (msb)2X 10R 10G 10B(lsb): little-endian: X=unused/undefined
-    case AV_PIX_FMT_X2RGB10BE: ///< packed RGB 10:10:10: 30bpp: (msb)2X 10R 10G 10B(lsb): big-endian: X=unused/undefined
-      frame->data[0] = p;
-      frame->linesize[0] = frame->width * 30. / 8.;
-      break;
+    // needs a too recent ffmpeg?
+    // case AV_PIX_FMT_X2RGB10LE: ///< packed RGB 10:10:10: 30bpp: (msb)2X 10R 10G 10B(lsb): little-endian: X=unused/undefined
+    // case AV_PIX_FMT_X2RGB10BE: ///< packed RGB 10:10:10: 30bpp: (msb)2X 10R 10G 10B(lsb): big-endian: X=unused/undefined
+    //   frame->data[0] = p;
+    //   frame->linesize[0] = frame->width * 30. / 8.;
+    //   break;
 
     case AV_PIX_FMT_ARGB:      ///< packed ARGB 8:8:8:8: 32bpp: ARGBARGB...
     case AV_PIX_FMT_RGBA:      ///< packed RGBA 8:8:8:8: 32bpp: RGBARGBA...

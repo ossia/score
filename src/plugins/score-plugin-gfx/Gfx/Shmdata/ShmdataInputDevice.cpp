@@ -46,7 +46,7 @@ SCORE_SERALIZE_DATASTREAM_DEFINE(Gfx::Shmdata::InputSettings);
 namespace Gfx::Shmdata
 {
 
-class InputStream final : public Video::ExternalInput
+class InputStream final : public ::Video::ExternalInput
 {
 public:
   explicit InputStream(const QString& path) noexcept
@@ -175,7 +175,7 @@ private:
       return;
     }
 
-    const auto& fmts = Video::gstreamerToLibav();
+    const auto& fmts = ::Video::gstreamerToLibav();
     if(auto it = fmts.find(format.toStdString()); it != fmts.end())
     {
       qDebug() << "ShmdataInput: supported format" << format;
@@ -210,11 +210,11 @@ private:
 
       // We are going to create a new frame in m_rescale
       // so we directly init with p.
-      Video::initFrameFromRawData(frame, (uint8_t*)p, sz);
+      ::Video::initFrameFromRawData(frame, (uint8_t*)p, sz);
 
-      Video::ReadFrame read{frame, 0};
+      ::Video::ReadFrame read{frame, 0};
 
-      Video::AVFramePointer dummy;
+      ::Video::AVFramePointer dummy;
       m_rescale.rescale(*this, m_frames, dummy, read);
 
       for(int i = 0; i < AV_NUM_DATA_POINTERS; ++i)
@@ -226,7 +226,7 @@ private:
     }
     else
     {
-      Video::AVFramePointer frame = m_frames.newFrame();
+      ::Video::AVFramePointer frame = m_frames.newFrame();
 
       frame->format = this->pixel_format;
       frame->width = this->width;
@@ -245,7 +245,7 @@ private:
         auto buf = av_buffer_alloc(sz); // FIXME when is that freed ?
         storage = buf->data;
         frame->buf[0] = buf;
-        Video::initFrameFromRawData(frame.get(), storage, sz);
+        ::Video::initFrameFromRawData(frame.get(), storage, sz);
       }
 
       // Copy the content as we're going on *adventures*
@@ -255,8 +255,8 @@ private:
     }
   }
 
-  Video::FrameQueue m_frames;
-  Video::Rescale m_rescale;
+  ::Video::FrameQueue m_frames;
+  ::Video::Rescale m_rescale;
 
   std::atomic_bool m_running{};
 
