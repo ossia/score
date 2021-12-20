@@ -86,18 +86,34 @@ QSet<QString> DropHandler::fileExtensions() const noexcept
   return {"mkv", "mov", "mp4", "h264", "avi", "hap", "mpg", "mpeg"};
 }
 
-std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::dropData(
-    const std::vector<DroppedFile>& data,
+TimeVal guessVideoDuration(const QString& path)
+{
+  AVFormatContext* ctx = avformat_alloc_context();
+  avformat_open_input(&ctx, path.toStdString().c_str(), nullptr, nullptr);
+  avformat_find_stream_info(ctx, nullptr);
+
+  int64_t duration = ctx->duration;
+
+  avformat_close_input(&ctx);
+  avformat_free_context(ctx);
+
+  auto flicks_per_av_time_base = ossia::flicks_per_second<double> / AV_TIME_BASE;
+  return TimeVal{(int64_t)(duration * flicks_per_av_time_base)};
+}
+
+std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::dropPaths(
+    const std::vector<QString>& data,
     const score::DocumentContext& ctx) const noexcept
 {
   std::vector<Process::ProcessDropHandler::ProcessDrop> vec;
   {
-    for (const auto& [filename, file] : data)
+    for (const auto& filename : data)
     {
       Process::ProcessDropHandler::ProcessDrop p;
       p.creation.key = Metadata<ConcreteKey_k, Gfx::Video::Model>::get();
       p.creation.prettyName = QFileInfo{filename}.baseName();
       p.creation.customData = filename;
+      p.duration = guessVideoDuration(filename);
       vec.push_back(std::move(p));
     }
   }

@@ -11,6 +11,57 @@ ProcessDropHandler::ProcessDropHandler() { }
 
 ProcessDropHandler::~ProcessDropHandler() { }
 
+std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandler::getMimeDrops(
+    const QMimeData& mime,
+    const QString& fmt,
+    const score::DocumentContext& ctx) const noexcept
+{
+  std::vector<ProcessDrop> res;
+
+  // First check for special mime handling code
+  res = drop(mime, ctx);
+  if (!res.empty())
+    return res;
+
+  // Fall back to manual handling
+  std::vector<DroppedFile> data;
+  data.push_back({{}, mime.data(fmt)});
+  res = dropData(data, ctx);
+
+  return res;
+}
+
+std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandler::getFileDrops(
+    const QMimeData& mime,
+    const QString& path,
+    const score::DocumentContext& ctx) const noexcept
+{
+  std::vector<ProcessDrop> res;
+
+  // First check for special mime handling code
+  res = drop(mime, ctx);
+  if (!res.empty())
+    return res;
+
+  // Then check for handling through paths
+  res = dropPaths({path}, ctx);
+  if(!res.empty())
+    return res;
+
+  // Fall back to manual handling
+  std::vector<DroppedFile> data;
+  {
+    QFile file{path};
+    if (file.open(QIODevice::ReadOnly))
+    {
+      data.push_back({QFileInfo{file}.absoluteFilePath(), file.readAll()});
+    }
+  }
+  res = dropData(data, ctx);
+
+  return res;
+}
+/*
 std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandler::getDrops(
     const QMimeData& mime,
     const score::DocumentContext& ctx) const noexcept
@@ -80,6 +131,7 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandler::getDrops(
   }
   return res;
 }
+*/
 
 QSet<QString> ProcessDropHandler::mimeTypes() const noexcept
 {
@@ -93,6 +145,13 @@ QSet<QString> ProcessDropHandler::fileExtensions() const noexcept
 
 std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandler::drop(
     const QMimeData& data,
+    const score::DocumentContext& ctx) const noexcept
+{
+  return {};
+}
+
+std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandler::dropPaths(
+    const std::vector<QString>& data,
     const score::DocumentContext& ctx) const noexcept
 {
   return {};
@@ -112,11 +171,56 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandlerList::getDrop(
     const score::DocumentContext& ctx) const noexcept
 {
   std::vector<ProcessDropHandler::ProcessDrop> res;
-  for (Process::ProcessDropHandler& h : *this)
+
+  initCaches();
+
+  // Look for drop handlers with the available MIME types
+  for(const auto& fmt : mime.formats())
   {
-    if (res = h.getDrops(mime, ctx); !res.empty())
-      break;
+    if(auto it = m_perMimeTypes.find(fmt); it != m_perMimeTypes.end())
+    {
+      ossia::insert_at_end(res, it->second->getMimeDrops(mime, fmt, ctx));
+    }
   }
+
+  if(!res.empty())
+    return res;
+
+  // Look for drop handlers with the available file extensions
+  for(const auto& url : mime.urls())
+  {
+    auto path = url.toLocalFile();
+    QFileInfo f{path};
+    if (f.exists())
+    {
+      auto ext = f.suffix().toLower();
+      if(auto it = m_perFileExtension.find(ext); it != m_perFileExtension.end())
+      {
+        ossia::insert_at_end(res, it->second->getFileDrops(mime, path, ctx));
+        qDebug() << res.size();
+      }
+    }
+  }
+
+  // TODO Fix Sound::DropHandler::drop so that we don't need to do that
+  {
+    std::sort(res.begin(), res.end(), [] (auto& lhs, auto& rhs) {
+      return lhs.creation.customData < rhs.creation.customData;
+    });
+    std::unique(res.begin(), res.end(), [] (auto& lhs, auto& rhs) {
+      return lhs.creation.customData < rhs.creation.customData;
+    });
+  }
+  //
+  //   if(!res.empty())
+  //     return res;
+  //
+  //   // Look up the old way
+  //   for (Process::ProcessDropHandler& h : *this)
+  //   {
+  //     if (res = h.getDrops(mime, ctx); !res.empty())
+  //       break;
+  //   }
   return res;
 }
 
@@ -132,5 +236,27 @@ std::optional<TimeVal> ProcessDropHandlerList::getMaxDuration(
       });
 
   return max_t->duration;
+}
+
+void ProcessDropHandlerList::initCaches() const
+{
+  if(m_lastCacheSize != this->size())
+  {
+    m_perMimeTypes.clear();
+    m_perFileExtension.clear();
+
+    for(auto& handler : *this)
+    {
+      for(const auto& ext : handler.fileExtensions())
+      {
+        m_perFileExtension[ext.toLower().toUtf8()] = &handler;
+      }
+
+      for(const auto& ext : handler.mimeTypes())
+      {
+        m_perMimeTypes[ext.toLower().toUtf8()] = &handler;
+      }
+    }
+  }
 }
 }

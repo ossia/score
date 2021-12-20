@@ -15,6 +15,9 @@
 
 #include <ossia/detail/ssize.hpp>
 
+#include <QUrl>
+#include <QFileInfo>
+
 namespace Gfx::Video
 {
 struct Presenter::Port
@@ -103,15 +106,16 @@ void Presenter::setupInlet(
 
 void Presenter::on_drop(const QPointF& pos, const QMimeData& md)
 {
-  auto drops = Video::DropHandler{}.getDrops(md, this->context().context);
-  if (drops.empty())
+  if(md.urls().empty())
     return;
-
-  auto& video = drops[0];
+  const auto& handler = Video::DropHandler{};
+  auto file = QFileInfo{md.urls().front().toLocalFile()};
+  if(!handler.fileExtensions().contains(file.suffix().toLower()))
+    return;
 
   CommandDispatcher<> disp{m_context.context.commandStack};
   disp.submit<ChangeVideo>(
-      static_cast<const Video::Model&>(model()), video.creation.customData);
+      static_cast<const Video::Model&>(model()), file.absoluteFilePath());
 }
 
 }

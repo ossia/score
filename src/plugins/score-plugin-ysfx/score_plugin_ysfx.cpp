@@ -75,13 +75,13 @@ class DropHandler final : public Process::ProcessDropHandler
     return {"jsfx"};
   }
 
-  std::vector<Process::ProcessDropHandler::ProcessDrop> dropData(
-      const std::vector<DroppedFile>& data,
+  std::vector<Process::ProcessDropHandler::ProcessDrop> dropPaths(
+      const std::vector<QString>& data,
       const score::DocumentContext& ctx) const noexcept override
   {
     std::vector<Process::ProcessDropHandler::ProcessDrop> vec;
 
-    for (auto&& [filename, file] : data)
+    for (const auto& filename : data)
     {
       QFileInfo finfo{filename};
       Process::ProcessDropHandler::ProcessDrop p;

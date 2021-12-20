@@ -41,7 +41,7 @@ class LibraryHandler final
 
   QSet<QString> acceptedFiles() const noexcept override
   {
-    return {"js", "qml"};
+    return {"qml"};
   }
 
   static inline const QRegularExpression scoreImport{
@@ -90,7 +90,7 @@ class DropHandler final : public Process::ProcessDropHandler
 
   QSet<QString> fileExtensions() const noexcept override
   {
-    return {"js", "qml"};
+    return {"qml"};
   }
 
   std::vector<Process::ProcessDropHandler::ProcessDrop> dropData(

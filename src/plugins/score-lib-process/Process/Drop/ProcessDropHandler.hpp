@@ -36,6 +36,16 @@ public:
   ProcessDropHandler();
   ~ProcessDropHandler() override;
 
+  std::vector<ProcessDrop> getMimeDrops(
+      const QMimeData& mime,
+      const QString& fmt,
+      const score::DocumentContext& ctx) const noexcept;
+
+  std::vector<ProcessDrop> getFileDrops(
+      const QMimeData& mime,
+      const QString& path,
+      const score::DocumentContext& ctx) const noexcept;
+
   std::vector<ProcessDrop> getDrops(
       const QMimeData& mime,
       const score::DocumentContext& ctx) const noexcept;
@@ -46,6 +56,10 @@ public:
 protected:
   virtual std::vector<ProcessDrop> drop(
       const QMimeData& mime,
+      const score::DocumentContext& ctx) const noexcept;
+
+  virtual std::vector<ProcessDrop> dropPaths(
+      const std::vector<QString>& data,
       const score::DocumentContext& ctx) const noexcept;
 
   virtual std::vector<ProcessDrop> dropData(
@@ -65,5 +79,11 @@ public:
 
   static std::optional<TimeVal>
   getMaxDuration(const std::vector<ProcessDropHandler::ProcessDrop>&);
+
+private:
+  void initCaches() const;
+  mutable std::unordered_map<QString, ProcessDropHandler*> m_perMimeTypes{};
+  mutable std::unordered_map<QString, ProcessDropHandler*> m_perFileExtension{};
+  mutable std::size_t m_lastCacheSize{};
 };
 }
