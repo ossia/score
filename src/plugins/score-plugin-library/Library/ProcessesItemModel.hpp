@@ -70,6 +70,7 @@ public:
   void on_newPlugin(const Process::ProcessModelFactory& fact);
 
 private:
+  ProcessNode& addCategory(const QString& cat);
   const score::GUIApplicationContext& context;
   ProcessNode m_root;
 };

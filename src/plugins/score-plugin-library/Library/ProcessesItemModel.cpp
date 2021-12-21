@@ -33,6 +33,40 @@ ProcessesItemModel::ProcessesItemModel(
   rescan();
 }
 
+ProcessNode& ProcessesItemModel::addCategory(const QString& c)
+{
+  auto split = c.split("/");
+  auto icon = Process::getCategoryIcon(split[0]);
+
+  auto* node = &m_root;
+  for(QString& cat : split)
+  {
+    // First try to find the existing node.
+    bool found = false;
+    for(auto& n : *node)
+    {
+      if(n.prettyName == cat)
+      {
+        node = &n;
+        found = true;
+        break;
+      }
+    }
+    if(found)
+      continue;
+
+    // Otherwise add it
+    auto new_node = &node->emplace_back(
+        ProcessData{
+            {{}, cat, {}}, icon, {}, {}},
+        node);
+    node = new_node;
+    icon = {}; // Icon only the first time
+  }
+
+  return *node;
+}
+
 void ProcessesItemModel::rescan()
 {
   auto& procs = context.interfaces<Process::ProcessFactoryList>();
@@ -50,10 +84,7 @@ void ProcessesItemModel::rescan()
   {
     ProcessData p;
 
-    auto& cat = m_root.emplace_back(
-        ProcessData{
-            {{}, e.first, {}}, Process::getCategoryIcon(e.first), {}, {}},
-        &m_root);
+    auto& cat = addCategory(e.first);
 
     for (auto p : e.second)
     {
