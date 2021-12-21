@@ -49,3 +49,6 @@
 [submodule "3rdparty/shmdata"]
 	path = 3rdparty/shmdata
 	url = https://gitlab.com/sat-metalab/shmdata
+[submodule "3rdparty/Gist"]
+	path = 3rdparty/Gist
+	url = https://github.com/jcelerier/Gist

@@ -87,5 +87,6 @@ score-plugin-lv2
 score-plugin-faust
 score-plugin-pd
 score-plugin-ysfx
+score-plugin-analysis
 )
 endif()
