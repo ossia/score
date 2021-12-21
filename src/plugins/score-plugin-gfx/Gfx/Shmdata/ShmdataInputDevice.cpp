@@ -189,7 +189,7 @@ private:
     this->width = w;
     this->height = h;
 
-    if(Video::formatNeedsDecoding(pixel_format))
+    if(::Video::formatNeedsDecoding(pixel_format))
     {
       m_rescale.open(*this);
       pixel_format = AV_PIX_FMT_RGBA;
