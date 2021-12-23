@@ -780,9 +780,14 @@ void ScenarioDocumentPresenter::on_minimapChanged(double l, double r)
 
 void ScenarioDocumentPresenter::on_executionTimer()
 {
+  if(auto n = std::get_if<CentralNodalDisplay>(&this->m_centralDisplay))
+  {
+    n->on_executionTimer();
+  }
 }
 
-void ScenarioDocumentPresenter::on_timelineModeSwitch(bool b) {
+void ScenarioDocumentPresenter::on_timelineModeSwitch(bool b)
+{
   const bool nodal = !b;
   const bool m_nodal = std::get_if<CentralNodalDisplay>(&this->m_centralDisplay);
   if (nodal && !m_nodal)
