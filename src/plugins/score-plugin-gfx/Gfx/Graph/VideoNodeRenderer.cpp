@@ -59,11 +59,17 @@ void VideoNodeRenderer::createGpuDecoder()
       m_gpu = std::make_unique<YUYV422Decoder>(*m_decoder);
       break;
     case AV_PIX_FMT_RGB0:
+      m_gpu = std::make_unique<PackedDecoder>(
+          QRhiTexture::RGBA8, 4, *m_decoder, "processed.a = 1.0; " + filter);
+      break;
     case AV_PIX_FMT_RGBA:
       m_gpu = std::make_unique<PackedDecoder>(
           QRhiTexture::RGBA8, 4, *m_decoder, filter);
       break;
     case AV_PIX_FMT_BGR0:
+      m_gpu = std::make_unique<PackedDecoder>(
+          QRhiTexture::BGRA8, 4, *m_decoder, "processed.a = 1.0; " + filter);
+      break;
     case AV_PIX_FMT_BGRA:
       m_gpu = std::make_unique<PackedDecoder>(
           QRhiTexture::BGRA8, 4, *m_decoder, filter);
@@ -72,7 +78,7 @@ void VideoNodeRenderer::createGpuDecoder()
       // Go from ARGB  xyzw
       //      to RGBA  yzwx
       m_gpu = std::make_unique<PackedDecoder>(
-            QRhiTexture::RGBA8, 4, *m_decoder, "processed.bgra = tex.yzwx; " + filter);
+            QRhiTexture::RGBA8, 4, *m_decoder, "processed.rgba = tex.yzwx; " + filter);
       break;
     case AV_PIX_FMT_ABGR:
       // Go from ABGR  xyzw
@@ -89,11 +95,11 @@ void VideoNodeRenderer::createGpuDecoder()
 #endif
     case AV_PIX_FMT_GRAY8:
       m_gpu = std::make_unique<PackedDecoder>(
-          QRhiTexture::R8, 1, *m_decoder,  "processed.rgba = vec4(tex.r, tex.r, tex.r, 1.0);" + filter);
+          QRhiTexture::R8, 1, *m_decoder, "processed.rgba = vec4(tex.r, tex.r, tex.r, 1.0);" + filter);
       break;
     case AV_PIX_FMT_GRAY16:
       m_gpu = std::make_unique<PackedDecoder>(
-            QRhiTexture::R16, 2, *m_decoder, filter);
+            QRhiTexture::R16, 2, *m_decoder, "processed.rgba = vec4(tex.r, tex.r, tex.r, 1.0);" + filter);
       break;
     default:
     {
