@@ -101,7 +101,7 @@ struct GistState
     auto git = gist.begin();
     for(auto& channel : audio.get())
     {
-      if(bufferSize == channel.size())
+      if(bufferSize == std::ssize(channel))
       {
         git->processAudioFrame(channel.data(), channel.size(), gain, 0.0);
         *it = float((git->*Func)());
