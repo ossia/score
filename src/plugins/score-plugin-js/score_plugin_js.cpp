@@ -93,23 +93,18 @@ class DropHandler final : public Process::ProcessDropHandler
     return {"qml"};
   }
 
-  std::vector<Process::ProcessDropHandler::ProcessDrop> dropData(
-      const std::vector<DroppedFile>& data,
+  void dropData(
+      std::vector<ProcessDrop>& vec,
+      const DroppedFile& data,
       const score::DocumentContext& ctx) const noexcept override
   {
-    std::vector<Process::ProcessDropHandler::ProcessDrop> vec;
+    const auto& [filename, file] = data;
+    Process::ProcessDropHandler::ProcessDrop p;
+    p.creation.key = Metadata<ConcreteKey_k, ProcessModel>::get();
+    p.creation.prettyName = QFileInfo{filename}.baseName();
+    p.creation.customData = std::move(file);
 
-    for (auto&& [filename, file] : data)
-    {
-      Process::ProcessDropHandler::ProcessDrop p;
-      p.creation.key = Metadata<ConcreteKey_k, ProcessModel>::get();
-      p.creation.prettyName = QFileInfo{filename}.baseName();
-      p.creation.customData = std::move(file);
-
-      vec.push_back(std::move(p));
-    }
-
-    return vec;
+    vec.push_back(std::move(p));
   }
 };
 

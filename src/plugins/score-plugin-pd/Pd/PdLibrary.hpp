@@ -53,23 +53,17 @@ class DropHandler final : public Process::ProcessDropHandler
 
   QSet<QString> fileExtensions() const noexcept override { return {"pd"}; }
 
-  std::vector<Process::ProcessDropHandler::ProcessDrop> dropPaths(
-      const std::vector<QString>& data,
-      const score::DocumentContext& ctx) const noexcept override
+  void dropPath(
+        std::vector<ProcessDrop>& vec,
+        const QString& filename,
+        const score::DocumentContext& ctx) const noexcept override
   {
-    std::vector<Process::ProcessDropHandler::ProcessDrop> vec;
+    Process::ProcessDropHandler::ProcessDrop p;
+    p.creation.key = Metadata<ConcreteKey_k, Pd::ProcessModel>::get();
+    p.creation.prettyName = QFileInfo{filename}.baseName();
+    p.creation.customData = std::move(filename);
 
-    for (const auto& filename: data)
-    {
-      Process::ProcessDropHandler::ProcessDrop p;
-      p.creation.key = Metadata<ConcreteKey_k, Pd::ProcessModel>::get();
-      p.creation.prettyName = QFileInfo{filename}.baseName();
-      p.creation.customData = std::move(filename);
-
-      vec.push_back(std::move(p));
-    }
-
-    return vec;
+    vec.push_back(std::move(p));
   }
 };
 

@@ -169,14 +169,13 @@ static std::optional<score::gfx::Image> readImage(const QString& filename)
   return score::gfx::Image{filename, std::move(frames)};
 }
 
-std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::drop(
+void DropHandler::dropCustom(
+    std::vector<ProcessDrop>& vec,
     const QMimeData& data,
     const score::DocumentContext& ctx) const noexcept
 {
-  std::vector<Process::ProcessDropHandler::ProcessDrop> vec;
-
   if (!data.hasUrls())
-    return vec;
+    return;
 
   Process::ProcessDropHandler::ProcessDrop p;
   p.creation.key = Metadata<ConcreteKey_k, Gfx::Images::Model>::get();
@@ -197,7 +196,7 @@ std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::drop(
       disp.submit(new Process::SetControlValue{safe_cast<Process::ControlInlet&>(*proc.inlets().back()), fromImageSet(images)});
   };
   vec.push_back(std::move(p));
-  return vec;
+  return;
 }
 }
 namespace Gfx

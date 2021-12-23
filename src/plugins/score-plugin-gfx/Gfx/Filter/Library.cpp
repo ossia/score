@@ -56,22 +56,16 @@ QSet<QString> DropHandler::fileExtensions() const noexcept
   return {"frag", "glsl", "fs"};
 }
 
-std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::dropPaths(
-    const std::vector<QString>& data,
+void DropHandler::dropPath(
+    std::vector<ProcessDrop>& vec,
+    const QString& filename,
     const score::DocumentContext& ctx) const noexcept
 {
-  std::vector<Process::ProcessDropHandler::ProcessDrop> vec;
-  {
-    for (const auto& filename: data)
-    {
-      Process::ProcessDropHandler::ProcessDrop p;
-      p.creation.key = Metadata<ConcreteKey_k, Gfx::Filter::Model>::get();
-      p.creation.prettyName = QFileInfo{filename}.baseName();
-      p.creation.customData = filename;
+  Process::ProcessDropHandler::ProcessDrop p;
+  p.creation.key = Metadata<ConcreteKey_k, Gfx::Filter::Model>::get();
+  p.creation.prettyName = QFileInfo{filename}.baseName();
+  p.creation.customData = filename;
 
-      vec.push_back(std::move(p));
-    }
-  }
-  return vec;
+  vec.push_back(std::move(p));
 }
 }

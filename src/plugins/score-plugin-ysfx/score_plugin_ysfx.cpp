@@ -75,24 +75,18 @@ class DropHandler final : public Process::ProcessDropHandler
     return {"jsfx"};
   }
 
-  std::vector<Process::ProcessDropHandler::ProcessDrop> dropPaths(
-      const std::vector<QString>& data,
-      const score::DocumentContext& ctx) const noexcept override
+  void dropPath(
+        std::vector<ProcessDrop>& vec,
+        const QString& filename,
+        const score::DocumentContext& ctx) const noexcept override
   {
-    std::vector<Process::ProcessDropHandler::ProcessDrop> vec;
+    QFileInfo finfo{filename};
+    Process::ProcessDropHandler::ProcessDrop p;
+    p.creation.key = Metadata<ConcreteKey_k, ProcessModel>::get();
+    p.creation.prettyName = finfo.baseName();
+    p.creation.customData = finfo.absoluteFilePath();
 
-    for (const auto& filename : data)
-    {
-      QFileInfo finfo{filename};
-      Process::ProcessDropHandler::ProcessDrop p;
-      p.creation.key = Metadata<ConcreteKey_k, ProcessModel>::get();
-      p.creation.prettyName = finfo.baseName();
-      p.creation.customData = finfo.absoluteFilePath();
-
-      vec.push_back(std::move(p));
-    }
-
-    return vec;
+    vec.push_back(std::move(p));
   }
 };
 

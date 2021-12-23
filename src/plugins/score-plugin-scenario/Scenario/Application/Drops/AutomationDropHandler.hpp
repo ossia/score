@@ -31,7 +31,8 @@ public:
     return {score::mime::processdata()};
   }
 
-  std::vector<ProcessDrop> drop(
+  void dropCustom(
+      std::vector<ProcessDrop>& vec,
       const QMimeData& mime,
       const score::DocumentContext& ctx) const noexcept override
   try
@@ -40,11 +41,10 @@ public:
 
     ProcessDrop p;
     p.creation = des.deserialize();
-    return {p};
+    vec.push_back(p);
   }
   catch (...)
   {
-    return {};
   }
 };
 

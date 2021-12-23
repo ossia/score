@@ -64,15 +64,14 @@ QSet<QString> DropHandler::fileExtensions() const noexcept
       "w64"};
 }
 
-std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::drop(
+void DropHandler::dropCustom(
+    std::vector<ProcessDrop>& vec,
     const QMimeData& mime,
     const score::DocumentContext& ctx) const noexcept
 {
-  std::vector<Process::ProcessDropHandler::ProcessDrop> vec;
-
   DroppedAudioFiles drop{ctx, mime};
   if (!drop.valid())
-    return {};
+    return;
 
   for (auto&& file : drop.files)
   {
@@ -88,7 +87,7 @@ std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::drop(
     vec.push_back(std::move(p));
   }
 
-  return vec;
+  return;
 }
 
 }

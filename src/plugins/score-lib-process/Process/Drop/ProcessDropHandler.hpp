@@ -39,34 +39,40 @@ public:
   ProcessDropHandler();
   ~ProcessDropHandler() override;
 
-  std::vector<ProcessDrop> getMimeDrops(
+  void getCustomDrops(
+      std::vector<ProcessDrop>& drops,
+      const QMimeData& mime,
+      const score::DocumentContext& ctx) const noexcept;
+
+  void getMimeDrops(
+      std::vector<ProcessDrop>& drops,
       const QMimeData& mime,
       const QString& fmt,
       const score::DocumentContext& ctx) const noexcept;
 
-  std::vector<ProcessDrop> getFileDrops(
+  void getFileDrops(
+      std::vector<ProcessDrop>& drops,
       const QMimeData& mime,
       const QString& path,
-      const score::DocumentContext& ctx) const noexcept;
-
-  std::vector<ProcessDrop> getDrops(
-      const QMimeData& mime,
       const score::DocumentContext& ctx) const noexcept;
 
   virtual QSet<QString> mimeTypes() const noexcept;
   virtual QSet<QString> fileExtensions() const noexcept;
 
 protected:
-  virtual std::vector<ProcessDrop> drop(
+  virtual void dropCustom(
+      std::vector<ProcessDrop>& drops,
       const QMimeData& mime,
       const score::DocumentContext& ctx) const noexcept;
 
-  virtual std::vector<ProcessDrop> dropPaths(
-      const std::vector<QString>& data,
+  virtual void dropPath(
+      std::vector<ProcessDrop>& drops,
+      const QString& data,
       const score::DocumentContext& ctx) const noexcept;
 
-  virtual std::vector<ProcessDrop> dropData(
-      const std::vector<DroppedFile>& data,
+  virtual void dropData(
+      std::vector<ProcessDrop>& drops,
+      const DroppedFile& data,
       const score::DocumentContext& ctx) const noexcept;
 };
 

@@ -13,127 +13,44 @@ ProcessDropHandler::ProcessDropHandler() { }
 
 ProcessDropHandler::~ProcessDropHandler() { }
 
-std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandler::getMimeDrops(
+void ProcessDropHandler::getCustomDrops(
+    std::vector<ProcessDropHandler::ProcessDrop>& drops,
+    const QMimeData& mime,
+    const score::DocumentContext& ctx) const noexcept
+{
+  // Check for special mime handling code
+  return dropCustom(drops, mime, ctx);
+}
+
+void ProcessDropHandler::getMimeDrops(
+    std::vector<ProcessDropHandler::ProcessDrop>& drops,
     const QMimeData& mime,
     const QString& fmt,
     const score::DocumentContext& ctx) const noexcept
 {
-  std::vector<ProcessDrop> res;
-
-  // First check for special mime handling code
-  res = drop(mime, ctx);
-  if (!res.empty())
-    return res;
-
-  // Fall back to manual handling
-  std::vector<DroppedFile> data;
-  data.push_back({{}, mime.data(fmt)});
-  res = dropData(data, ctx);
-
-  return res;
+  qDebug() << fmt << mime.data(fmt);
+  auto df = DroppedFile{{}, mime.data(fmt)};
+  dropData(drops, df, ctx);
 }
 
-std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandler::getFileDrops(
+void ProcessDropHandler::getFileDrops(
+    std::vector<ProcessDropHandler::ProcessDrop>& drops,
     const QMimeData& mime,
     const QString& path,
     const score::DocumentContext& ctx) const noexcept
 {
-  std::vector<ProcessDrop> res;
-
-  // First check for special mime handling code
-  res = drop(mime, ctx);
-  if (!res.empty())
-    return res;
-
-  // Then check for handling through paths
-  res = dropPaths({path}, ctx);
-  if(!res.empty())
-    return res;
+  // Check for handling through paths
+  auto old_sz = drops.size();
+  dropPath(drops, path, ctx);
+  if(drops.size() != old_sz)
+    return;
 
   // Fall back to manual handling
-  std::vector<DroppedFile> data;
+  if (QFile file{path}; file.open(QIODevice::ReadOnly))
   {
-    QFile file{path};
-    if (file.open(QIODevice::ReadOnly))
-    {
-      data.push_back({QFileInfo{file}.absoluteFilePath(), file.readAll()});
-    }
+    dropData(drops, {QFileInfo{file}.absoluteFilePath(), file.readAll()}, ctx);
   }
-  res = dropData(data, ctx);
-
-  return res;
 }
-/*
-std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandler::getDrops(
-    const QMimeData& mime,
-    const score::DocumentContext& ctx) const noexcept
-{
-  std::vector<ProcessDrop> res;
-  // Try to extract data from the mime formats
-  const auto& formats = mime.formats();
-  auto commonFormats = mimeTypes().intersect(
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-      formats.toSet()
-#else
-      QSet<QString>(formats.begin(), formats.end())
-#endif
-  );
-  if (!commonFormats.isEmpty())
-  {
-    // Try to check if the handler has special code for handling mime data
-
-    res = drop(mime, ctx);
-    if (!res.empty())
-      return res;
-
-    std::vector<DroppedFile> data;
-    for (auto& format : commonFormats)
-    {
-      data.push_back({{}, mime.data(format)});
-    }
-    res = dropData(data, ctx);
-    if (!res.empty())
-      return res;
-  }
-
-  // Else try to extract data from actual files
-  const auto& urls = mime.urls();
-  if (!urls.empty())
-  {
-    std::vector<QString> paths;
-    const auto& accepted_ext = fileExtensions();
-    for (const auto& url : urls)
-    {
-      auto path = url.toLocalFile();
-      QFileInfo f{path};
-      if (f.exists() && accepted_ext.contains(f.suffix().toLower()))
-      {
-        paths.push_back(std::move(path));
-      }
-    }
-    if (!paths.empty())
-    {
-      res = drop(mime, ctx);
-      if (!res.empty())
-        return res;
-    }
-
-    std::vector<DroppedFile> data;
-    for (const auto& path : paths)
-    {
-      QFile file{path};
-      if (file.open(QIODevice::ReadOnly))
-      {
-        data.push_back({QFileInfo{file}.absoluteFilePath(), file.readAll()});
-      }
-    }
-    res = dropData(data, ctx);
-    if (!res.empty())
-      return res;
-  }
-  return res;
-}
-*/
 
 QSet<QString> ProcessDropHandler::mimeTypes() const noexcept
 {
@@ -145,25 +62,25 @@ QSet<QString> ProcessDropHandler::fileExtensions() const noexcept
   return {};
 }
 
-std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandler::drop(
+void ProcessDropHandler::dropCustom(
+    std::vector<ProcessDropHandler::ProcessDrop>&,
     const QMimeData& data,
     const score::DocumentContext& ctx) const noexcept
 {
-  return {};
 }
 
-std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandler::dropPaths(
-    const std::vector<QString>& data,
+void ProcessDropHandler::dropPath(
+    std::vector<ProcessDropHandler::ProcessDrop>&,
+    const QString& data,
     const score::DocumentContext& ctx) const noexcept
 {
-  return {};
 }
 
-std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandler::dropData(
-    const std::vector<DroppedFile>& data,
+void ProcessDropHandler::dropData(
+    std::vector<ProcessDropHandler::ProcessDrop>&,
+    const DroppedFile& data,
     const score::DocumentContext& ctx) const noexcept
 {
-  return {};
 }
 
 ProcessDropHandlerList::~ProcessDropHandlerList() { }
@@ -176,17 +93,34 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandlerList::getDrop(
 
   initCaches();
 
+  auto handleCustomDrop = [&] (auto& handler) {
+    auto before = res.size();
+    handler.getCustomDrops(res, mime, ctx);
+    auto after = res.size();
+    return after != before;
+  };
+
   // Look for drop handlers with the available MIME types
   for(const auto& fmt : mime.formats())
   {
     if(auto it = m_perMimeTypes.find(fmt.toStdString()); it != m_perMimeTypes.end())
     {
-      ossia::insert_at_end(res, it->second->getMimeDrops(mime, fmt, ctx));
+      auto& handler = *it->second;
+
+      // First check if a custom drop is in order, which handles everything.
+      if(handleCustomDrop(handler))
+        return res;
+
+      // Then fall back to the normal mime data drop
+      handler.getMimeDrops(res, mime, fmt, ctx);
     }
   }
 
   if(!res.empty())
+  {
+    qDebug() << "handled through getMimeDrops";
     return res;
+  }
 
   // Look for drop handlers with the available file extensions
   for(const auto& url : mime.urls())
@@ -198,8 +132,14 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandlerList::getDrop(
       auto ext = f.suffix().toLower();
       if(auto it = m_perFileExtension.find(ext.toStdString()); it != m_perFileExtension.end())
       {
-        ossia::insert_at_end(res, it->second->getFileDrops(mime, path, ctx));
-        qDebug() << res.size();
+        auto& handler = *it->second;
+
+        // First check if a custom drop is in order, which handles everything.
+        if(handleCustomDrop(handler))
+          return res;
+
+        // Then fall back to the normal mime data drop
+        handler.getFileDrops(res, mime, path, ctx);
       }
     }
   }
@@ -212,6 +152,11 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandlerList::getDrop(
     std::unique(res.begin(), res.end(), [] (auto& lhs, auto& rhs) {
       return lhs.creation.customData < rhs.creation.customData;
     });
+  }
+  if(!res.empty())
+  {
+    qDebug() << "handled through getFileDrops";
+    return res;
   }
   //
   //   if(!res.empty())

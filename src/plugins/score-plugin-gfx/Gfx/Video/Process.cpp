@@ -101,23 +101,17 @@ TimeVal guessVideoDuration(const QString& path)
   return TimeVal{(int64_t)(duration * flicks_per_av_time_base)};
 }
 
-std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::dropPaths(
-    const std::vector<QString>& data,
+void DropHandler::dropPath(
+    std::vector<ProcessDrop>& vec,
+    const QString& filename,
     const score::DocumentContext& ctx) const noexcept
 {
-  std::vector<Process::ProcessDropHandler::ProcessDrop> vec;
-  {
-    for (const auto& filename : data)
-    {
-      Process::ProcessDropHandler::ProcessDrop p;
-      p.creation.key = Metadata<ConcreteKey_k, Gfx::Video::Model>::get();
-      p.creation.prettyName = QFileInfo{filename}.baseName();
-      p.creation.customData = filename;
-      p.duration = guessVideoDuration(filename);
-      vec.push_back(std::move(p));
-    }
-  }
-  return vec;
+  Process::ProcessDropHandler::ProcessDrop p;
+  p.creation.key = Metadata<ConcreteKey_k, Gfx::Video::Model>::get();
+  p.creation.prettyName = QFileInfo{filename}.baseName();
+  p.creation.customData = filename;
+  p.duration = guessVideoDuration(filename);
+  vec.push_back(std::move(p));
 }
 
 }

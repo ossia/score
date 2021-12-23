@@ -57,31 +57,27 @@ class DropHandler final : public Process::ProcessDropHandler
 
   QSet<QString> fileExtensions() const noexcept override { return {"pat"}; }
 
-  std::vector<Process::ProcessDropHandler::ProcessDrop> dropData(
-      const std::vector<DroppedFile>& data,
+  void dropData(
+      std::vector<ProcessDrop>& vec,
+      const DroppedFile& data,
       const score::DocumentContext& ctx) const noexcept override
   {
-    std::vector<Process::ProcessDropHandler::ProcessDrop> vec;
+    const auto& [filename, content] = data;
 
-    for (auto&& [filename, content] : data)
-    {
-      if(auto pat = parsePattern(content); pat.lanes.size() > 0) {
+    auto pat = parsePattern(content);
+    if(pat.lanes.size() > 0) {
 
-        Process::ProcessDropHandler::ProcessDrop p;
-        p.creation.key = Metadata<ConcreteKey_k, Patternist::ProcessModel>::get();
-        p.creation.prettyName = QFileInfo{filename}.baseName();
-        p.setup = [pat = std::move(pat)] (
-                      Process::ProcessModel& m,
-                      score::Dispatcher& disp) mutable {
-          auto& proc = static_cast<Patternist::ProcessModel&>(m);
-          disp.submit(new Patternist::UpdatePattern{proc, 0, std::move(pat)});
-        };
-        vec.push_back(std::move(p));
-      }
-
+      Process::ProcessDropHandler::ProcessDrop p;
+      p.creation.key = Metadata<ConcreteKey_k, Patternist::ProcessModel>::get();
+      p.creation.prettyName = QFileInfo{filename}.baseName();
+      p.setup = [pat = std::move(pat)] (
+          Process::ProcessModel& m,
+          score::Dispatcher& disp) mutable {
+        auto& proc = static_cast<Patternist::ProcessModel&>(m);
+        disp.submit(new Patternist::UpdatePattern{proc, 0, std::move(pat)});
+      };
+      vec.push_back(std::move(p));
     }
-
-    return vec;
   }
 };
 

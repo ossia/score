@@ -30,61 +30,58 @@ QSet<QString> DropHandler::fileExtensions() const noexcept
   return {"mid", "midi", "MID", "MIDI", "gm", "smf"};
 }
 
-std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::dropData(
-    const std::vector<DroppedFile>& data,
+void DropHandler::dropData(
+    std::vector<ProcessDrop>& vec,
+    const DroppedFile& data,
     const score::DocumentContext& ctx) const noexcept
 {
-  std::vector<Process::ProcessDropHandler::ProcessDrop> vec;
+  std::vector<MidiTrack::MidiSong> songs;
+  const auto& [filename, file] = data;
   {
-    std::vector<MidiTrack::MidiSong> songs;
-    for (const auto& [filename, file] : data)
+    try
     {
-      try
+      if (auto song = MidiTrack::parse(file, ctx); !song.tracks.empty())
       {
-        if (auto song = MidiTrack::parse(file, ctx); !song.tracks.empty())
+        for (MidiTrack& t : song.tracks)
         {
-          for (MidiTrack& t : song.tracks)
-          {
-            Process::ProcessDropHandler::ProcessDrop p;
-            p.creation.key
-                = Metadata<ConcreteKey_k, Midi::ProcessModel>::get();
+          Process::ProcessDropHandler::ProcessDrop p;
+          p.creation.key
+              = Metadata<ConcreteKey_k, Midi::ProcessModel>::get();
 
-            if(t.name.isEmpty())
-              p.creation.prettyName = QFileInfo{filename}.baseName();
-            else
-              p.creation.prettyName = t.name;
+          if(t.name.isEmpty())
+            p.creation.prettyName = QFileInfo{filename}.baseName();
+          else
+            p.creation.prettyName = t.name;
 
-            p.duration = TimeVal::fromMsecs(song.durationInMs);
-            p.setup = [track = std::move(t), song_t = song.durationInMs] (
-                          Process::ProcessModel& m,
-                          score::Dispatcher& disp) mutable {
-              auto& midi = static_cast<Midi::ProcessModel&>(m);
+          p.duration = TimeVal::fromMsecs(song.durationInMs);
+          p.setup = [track = std::move(t), song_t = song.durationInMs] (
+              Process::ProcessModel& m,
+              score::Dispatcher& disp) mutable {
+            auto& midi = static_cast<Midi::ProcessModel&>(m);
 
-              // If we drop in an existing interval, time must be rescaled
-              TimeVal actualDuration = m.duration();
-              const double ratio = song_t / actualDuration.msec();
-              if (ratio != 1.)
+            // If we drop in an existing interval, time must be rescaled
+            TimeVal actualDuration = m.duration();
+            const double ratio = song_t / actualDuration.msec();
+            if (ratio != 1.)
+            {
+              for (auto& note : track.notes)
               {
-                for (auto& note : track.notes)
-                {
-                  note.setStart(ratio * note.start());
-                  note.setDuration(ratio * note.duration());
-                }
+                note.setStart(ratio * note.start());
+                note.setDuration(ratio * note.duration());
               }
-              disp.submit(new Midi::ReplaceNotes{
-                  midi, track.notes, track.min, track.max, actualDuration});
-            };
-            vec.push_back(std::move(p));
-          }
+            }
+            disp.submit(new Midi::ReplaceNotes{
+                          midi, track.notes, track.min, track.max, actualDuration});
+          };
+          vec.push_back(std::move(p));
         }
       }
-      catch (std::exception& e)
-      {
-        qDebug() << e.what();
-      }
+    }
+    catch (std::exception& e)
+    {
+      qDebug() << e.what();
     }
   }
-  return vec;
 }
 
 std::vector<MidiTrack::MidiSong>
