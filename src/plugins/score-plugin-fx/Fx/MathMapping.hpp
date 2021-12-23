@@ -391,16 +391,12 @@ struct Node
   }
 
   static void
-  run(const ossia::value_port& input,
-      const std::string& expr,
+  run_scalar(const ossia::value_port& input,
       ossia::value_port& output,
       const ossia::token_request& tk,
       ossia::exec_state_facade st,
       State& self)
   {
-    if (!self.expr.set_expression(expr))
-      return;
-
     auto ratio = st.modelToSamples();
     auto parent_dur = tk.parent_duration.impl * ratio;
     for (const ossia::timed_value& v : input.get_data())
@@ -414,30 +410,88 @@ struct Node
         case ossia::val_type::NONE:
           break;
         case ossia::val_type::IMPULSE:
-          if(self.cur_values.size() > 0)
-            exec_array(v.timestamp, self, output, false);
-          else
-            exec_scalar(v.timestamp, self, output);
           break;
         case ossia::val_type::INT:
           self.cur_value = *v.value.target<int>();
-          exec_scalar(v.timestamp, self, output);
           break;
         case ossia::val_type::FLOAT:
           self.cur_value = *v.value.target<float>();
-          exec_scalar(v.timestamp, self, output);
           break;
         case ossia::val_type::CHAR:
           self.cur_value = *v.value.target<char>();
-          exec_scalar(v.timestamp, self, output);
           break;
         case ossia::val_type::BOOL:
-          self.cur_value = *v.value.target<char>();
-          exec_scalar(v.timestamp, self, output);
+          self.cur_value = *v.value.target<bool>() ? 1.f : 0.f;
           break;
         case ossia::val_type::STRING:
           self.cur_value = ossia::convert<float>(v.value);
-          exec_scalar(v.timestamp, self, output);
+          break;
+        case ossia::val_type::VEC2F:
+          self.cur_value = (*v.value.target<ossia::vec2f>())[0];
+          break;
+        case ossia::val_type::VEC3F:
+          self.cur_value = (*v.value.target<ossia::vec3f>())[0];
+          break;
+        case ossia::val_type::VEC4F:
+          self.cur_value = (*v.value.target<ossia::vec4f>())[0];
+          break;
+        case ossia::val_type::LIST:
+        {
+          auto& arr = *v.value.target<std::vector<ossia::value>>();
+          if(!arr.empty())
+            self.cur_value = ossia::convert<float>(arr[0]);
+          break;
+        }
+      }
+
+      exec_scalar(v.timestamp, self, output);
+    }
+  }
+
+  static void
+  run_array(const ossia::value_port& input,
+             ossia::value_port& output,
+             const ossia::token_request& tk,
+             ossia::exec_state_facade st,
+             State& self)
+  {
+    auto ratio = st.modelToSamples();
+    auto parent_dur = tk.parent_duration.impl * ratio;
+    for (const ossia::timed_value& v : input.get_data())
+    {
+      int64_t new_time = tk.prev_date.impl * ratio + v.timestamp;
+      setMathExpressionTiming(self, new_time, self.last_value_time, parent_dur);
+      self.last_value_time = new_time;
+
+      auto array_run_scalar = [&] (float in)
+      {
+        auto old_size = self.cur_values.size();
+        self.cur_values.assign(1, in);
+        auto new_size = 1U;
+        exec_array(v.timestamp, self, output, old_size != new_size);
+      };
+
+      switch(v.value.get_type())
+      {
+        case ossia::val_type::NONE:
+          break;
+        case ossia::val_type::IMPULSE:
+          exec_array(v.timestamp, self, output, false);
+          break;
+        case ossia::val_type::INT:
+          array_run_scalar(*v.value.target<int>());
+          break;
+        case ossia::val_type::FLOAT:
+          array_run_scalar(*v.value.target<float>());
+          break;
+        case ossia::val_type::CHAR:
+          array_run_scalar(*v.value.target<char>());
+          break;
+        case ossia::val_type::BOOL:
+          array_run_scalar(*v.value.target<bool>() ? 1.f : 0.f);
+          break;
+        case ossia::val_type::STRING:
+          array_run_scalar(ossia::convert<float>(v.value));
           break;
         case ossia::val_type::VEC2F:
         {
@@ -480,6 +534,23 @@ struct Node
         }
       }
     }
+  }
+
+  static void
+  run(const ossia::value_port& input,
+      const std::string& expr,
+      ossia::value_port& output,
+      const ossia::token_request& tk,
+      ossia::exec_state_facade st,
+      State& self)
+  {
+    if (!self.expr.set_expression(expr))
+      return;
+
+    if(self.expr.has_variable("xv"))
+      run_array(input, output, tk, st, self);
+    else
+      run_scalar(input, output, tk, st, self);
   }
 
   template <typename... Args>
