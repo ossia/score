@@ -104,10 +104,6 @@ public:
 
   void release_frame(AVFrame* frame) noexcept override
   {
-    // TODO do that elsewhere / reuse the frame memory ?
-    free(frame->data[0]);
-    frame->data[0] = nullptr;
-
     m_frames.release(frame);
   }
 
@@ -242,7 +238,7 @@ private:
       else
       {
         // We got a new frame, init it
-        auto buf = av_buffer_alloc(sz); // FIXME when is that freed ?
+        auto buf = av_buffer_alloc(sz);
         storage = buf->data;
         frame->buf[0] = buf;
         ::Video::initFrameFromRawData(frame.get(), storage, sz);
