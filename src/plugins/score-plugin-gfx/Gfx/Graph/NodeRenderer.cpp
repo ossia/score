@@ -36,19 +36,28 @@ void GenericNodeRenderer::processUBOInit(RenderList& renderer)
 
 void GenericNodeRenderer::defaultPassesInit(RenderList& renderer, const Mesh& mesh)
 {
+  defaultPassesInit(
+        renderer,
+        mesh,
+        node.m_vertexS,
+        node.m_fragmentS);
+}
+
+void GenericNodeRenderer::defaultPassesInit(RenderList& renderer, const Mesh& mesh, const QShader& v, const QShader& f)
+{
   for(Edge* edge : this->node.output[0]->edges)
   {
     auto rt = renderer.renderTargetForOutput(*edge);
     if(rt.renderTarget)
     {
       m_p.emplace_back(edge, score::gfx::buildPipeline(
-          renderer,
-          mesh,
-          node.m_vertexS,
-          node.m_fragmentS,
-          rt,
-          m_processUBO,
-          m_material.buffer, m_samplers));
+                         renderer,
+                         mesh,
+                         v,
+                         f,
+                         rt,
+                         m_processUBO,
+                         m_material.buffer, m_samplers));
     }
   }
 }
@@ -130,8 +139,18 @@ void GenericNodeRenderer::defaultRenderPass(
     QRhiCommandBuffer& cb,
     Edge& edge)
 {
-  auto it = ossia::find_if(m_p, [ptr=&edge] (const auto& p){ return p.first == ptr; });
-  SCORE_ASSERT(it != m_p.end());
+  defaultRenderPass(renderer,mesh,cb,edge,m_p);
+}
+
+void GenericNodeRenderer::defaultRenderPass(
+      RenderList& renderer,
+      const Mesh& mesh,
+      QRhiCommandBuffer& cb,
+      Edge& edge,
+      PassMap& passes)
+{
+  auto it = ossia::find_if(passes, [ptr=&edge] (const auto& p){ return p.first == ptr; });
+  SCORE_ASSERT(it != passes.end());
   {
     const auto sz = renderer.state.size;
     cb.setGraphicsPipeline(it->second.pipeline);

@@ -159,6 +159,15 @@ TextureRenderTarget createRenderTarget(
     QSize sz);
 
 /**
+ * @brief Replace a sampler.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+void replaceSampler(
+    QRhiShaderResourceBindings&,
+    QRhiSampler* oldSampler,
+    QRhiSampler* newSampler);
+
+/**
  * @brief Replace the texture currently bound to a sampler.
  */
 SCORE_PLUGIN_GFX_EXPORT

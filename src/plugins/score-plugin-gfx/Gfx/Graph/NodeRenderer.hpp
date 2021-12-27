@@ -36,6 +36,8 @@ public:
   virtual void release(RenderList&) = 0;
 };
 
+
+using PassMap = ossia::small_vector<std::pair<Edge*, Pipeline>, 2>;
 /**
  * @brief Generic renderer.
  *
@@ -59,7 +61,7 @@ public:
   std::vector<Sampler> m_samplers;
 
   // Pipeline
-  ossia::small_vector<std::pair<Edge*, Pipeline>, 2> m_p;
+  PassMap m_p;
 
   QRhiBuffer* m_meshBuffer{};
   QRhiBuffer* m_idxBuffer{};
@@ -73,6 +75,7 @@ public:
   void defaultMeshInit(RenderList& renderer, const Mesh& mesh);
   void processUBOInit(RenderList& renderer);
   void defaultPassesInit(RenderList& renderer, const Mesh& mesh);
+  void defaultPassesInit(RenderList& renderer, const Mesh& mesh, const QShader& v, const QShader& f);
   void init(RenderList& renderer) override;
 
   void defaultUBOUpdate(RenderList& renderer, QRhiResourceUpdateBatch& res);
@@ -86,6 +89,13 @@ public:
       const Mesh& mesh,
       QRhiCommandBuffer& commands,
       Edge& edge);
+
+  void defaultRenderPass(
+      RenderList&,
+      const Mesh& mesh,
+      QRhiCommandBuffer& commands,
+      Edge& edge,
+      PassMap& passes);
 
   void runRenderPass(
       RenderList&,

@@ -94,7 +94,13 @@ Model::Model(
   }
 
   {
-    auto tile = new Process::Toggle{false, tr("Tile"), Id<Process::Port>(6), this};
+    std::vector<std::pair<QString, ossia::value>> combo{
+      {"Single", (int) score::gfx::ImageMode::Single},
+      {"Clamp", (int) score::gfx::ImageMode::Clamped},
+      {"Tile", (int) score::gfx::ImageMode::Tiled},
+      {"Mirror", (int) score::gfx::ImageMode::Mirrored},
+    };
+    auto tile = new Process::ComboBox{combo, 0, tr("Tile"), Id<Process::Port>(6), this};
     m_inlets.push_back(tile);
   }
   m_outlets.push_back(new TextureOutlet{Id<Process::Port>(0), this});
@@ -196,7 +202,7 @@ void DropHandler::dropCustom(
     }
 
     if (!images.empty())
-      disp.submit(new Process::SetControlValue{safe_cast<Process::ControlInlet&>(*proc.inlets().back()), fromImageSet(images)});
+      disp.submit(new Process::SetControlValue{safe_cast<Process::ControlInlet&>(*proc.inlets()[5]), fromImageSet(images)});
   };
   vec.push_back(std::move(p));
   return;
@@ -308,6 +314,19 @@ void JSONWriter::write(Gfx::Images::Model& proc)
       proc.m_inlets,
       proc.m_outlets,
       &proc);
+
+  // Update to newer versions
+  if(proc.m_inlets.size() < 7)
+  {
+      std::vector<std::pair<QString, ossia::value>> combo{
+        {"Single", (int) score::gfx::ImageMode::Single},
+        {"Clamp", (int) score::gfx::ImageMode::Clamped},
+        {"Tile", (int) score::gfx::ImageMode::Tiled},
+        {"Mirror", (int) score::gfx::ImageMode::Mirrored},
+      };
+      auto tile = new Process::ComboBox{combo, 0, QObject::tr("Tile"), Id<Process::Port>(6), &proc};
+      proc.m_inlets.push_back(tile);
+  }
 }
 
 template <> void

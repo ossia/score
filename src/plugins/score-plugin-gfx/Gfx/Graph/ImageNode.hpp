@@ -5,6 +5,13 @@
 
 namespace score::gfx
 {
+enum ImageMode {
+  Single,
+  Clamped,
+  Tiled,
+  Mirrored
+};
+
 /**
  * @brief A node that renders an image to screen.
  */
@@ -28,7 +35,7 @@ public:
   } ubo;
 
   std::atomic_int imagesChanged{};
-  std::atomic_bool tile{};
+  std::atomic<ImageMode> tile{};
 
 private:
   void process(const Message& msg) override;

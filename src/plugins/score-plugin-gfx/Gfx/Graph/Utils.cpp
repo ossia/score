@@ -38,6 +38,37 @@ createRenderTarget(const RenderState& state, QRhiTexture::Format fmt, QSize sz)
   return createRenderTarget(state, texture);
 }
 
+void replaceSampler(
+    QRhiShaderResourceBindings& srb,
+    QRhiSampler* oldSampler,
+    QRhiSampler* newSampler)
+{
+  std::vector<QRhiShaderResourceBinding> tmp;
+  tmp.assign(srb.cbeginBindings(), srb.cendBindings());
+  for (QRhiShaderResourceBinding& b : tmp)
+  {
+    if (b.data()->type == QRhiShaderResourceBinding::Type::SampledTexture)
+    {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+      SCORE_ASSERT(b.data()->u.stex.count >= 1);
+      if (b.data()->u.stex.texSamplers[0].sampler == oldSampler)
+      {
+        b.data()->u.stex.texSamplers[0].sampler = newSampler;
+      }
+#else
+      if (b.data()->u.stex.sampler == oldSampler)
+      {
+        b.data()->u.stex.sampler = newSampler;
+      }
+#endif
+    }
+  }
+
+  srb.destroy();
+  srb.setBindings(tmp.begin(), tmp.end());
+  srb.create();
+}
+
 void replaceTexture(
     QRhiShaderResourceBindings& srb,
     QRhiSampler* sampler,
