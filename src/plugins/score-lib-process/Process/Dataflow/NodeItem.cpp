@@ -81,15 +81,6 @@ NodeItem::NodeItem(
         if (p != pos())
           setPos(p);
       });
-
-  // TODO review the resizing heuristic...
-  if (m_presenter)
-  {
-    ::bind(process, Process::ProcessModel::p_size{}, this, [this](QSizeF s) {
-      if (s != m_contentSize)
-        setSize(s);
-    });
-  }
 }
 
 void NodeItem::createWithDecorations()
@@ -97,11 +88,13 @@ void NodeItem::createWithDecorations()
   auto& process = m_model;
   auto& ctx = m_context;
 
+  const bool startFolded = (process.inlets().size() > 12);
+
   // Title
   const auto& pixmaps = Process::Pixmaps::instance();
   m_fold = new score::QGraphicsPixmapToggle{
       pixmaps.unroll_small, pixmaps.roll_small, this};
-  m_fold->setState(true);
+  m_fold->setState(!startFolded);
 
   m_uiButton = Process::makeExternalUIButton(process, ctx, this, this);
   m_presetButton = Process::makePresetButton(process, ctx, this, this);
@@ -151,7 +144,10 @@ void NodeItem::createWithDecorations()
   con(process.selection, &Selectable::changed, this, &NodeItem::setSelected);
   m_selected = process.selection.get();
 
-  createContentItem();
+  if(!startFolded)
+    createContentItem();
+  else
+    m_contentSize = QSizeF{minimalContentWidth(), minimalContentHeight()};
 
   resetInlets();
   resetOutlets();
@@ -182,6 +178,8 @@ void NodeItem::createWithDecorations()
         if (oldView)
           delete oldView;
         m_fx = nullptr;
+        QObject::disconnect(&m_model, &Process::ProcessModel::setSize,
+                            this, nullptr);
       }
       else
       {
@@ -346,6 +344,15 @@ void NodeItem::createContentItem()
       m_contentSize = m_model.size();
       m_presenter->setWidth(m_contentSize.width(), m_contentSize.width());
       m_presenter->setHeight(m_contentSize.height());
+
+      // TODO review the resizing heuristic...
+      if (m_presenter)
+      {
+        ::bind(model, Process::ProcessModel::p_size{}, this, [this](QSizeF s) {
+          if (s != m_contentSize)
+            setSize(s);
+        });
+      }
     }
   }
 
