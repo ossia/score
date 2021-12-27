@@ -33,6 +33,32 @@ W_OBJECT_IMPL(JS::EditJsContext)
 
 namespace JS
 {
+class ConsoleLibraryHandler final
+    : public QObject
+    , public Library::LibraryInterface
+{
+  SCORE_CONCRETE("21f405da-a249-4e39-b405-9173aff11b26")
+
+  QSet<QString> acceptedFiles() const noexcept override
+  {
+    return {"js"};
+  }
+
+  bool
+  onDoubleClick(const QString& path, const score::DocumentContext& ctx) override
+  {
+    QFile f{path};
+    if(!f.open(QIODevice::ReadOnly))
+      return false;
+
+    auto data = f.readAll();
+
+    auto& p = ctx.app.panel<JS::PanelDelegate>();
+    p.evaluate(data);
+    return true;
+  }
+};
+
 class LibraryHandler final
     : public QObject
     , public Library::LibraryInterface
@@ -145,7 +171,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_js::factories(
       FW<Process::ProcessModelFactory, JS::ProcessFactory>,
       FW<Process::LayerFactory, JS::LayerFactory>,
       FW<score::PanelDelegateFactory, JS::PanelDelegateFactory>,
-      FW<Library::LibraryInterface, JS::LibraryHandler>,
+      FW<Library::LibraryInterface, JS::LibraryHandler, JS::ConsoleLibraryHandler>,
       FW<Process::ProcessDropHandler, JS::DropHandler>,
       FW<Execution::ProcessComponentFactory, JS::Executor::ComponentFactory>>(
       ctx, key);

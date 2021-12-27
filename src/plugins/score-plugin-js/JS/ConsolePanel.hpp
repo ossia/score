@@ -57,6 +57,17 @@ public:
     W_SLOT(readFile)
 };
 
+static TimeVal parseDuration(QString dur)
+{
+  if(auto tm = QTime::fromString(dur); tm.isValid())
+  {
+    return TimeVal::fromMsecs(tm.msec() + 1e3 * tm.second() + 1e3 * 60 * tm.minute() + 1e3 * 60 * 60 * tm.hour());
+  }
+  else
+  {
+    return TimeVal{ossia::flicks_per_second<int64_t> * 2};
+  }
+}
 class EditJsContext : public QObject
 {
   W_OBJECT(EditJsContext)
@@ -173,6 +184,84 @@ public:
   }
   W_SLOT(createProcess)
 
+  void setName(QObject* sel, QString new_name)
+  {
+    using namespace Scenario;
+    using namespace Scenario::Command;
+    auto doc = ctx();
+    if (!doc)
+      return;
+
+    auto [m, _] = macro(*doc);
+
+    auto sanitize = [&](auto* ptr) {
+      if (new_name == ptr->metadata().getName())
+        return false;
+      using T = std::remove_reference_t<decltype(*ptr)>;
+      if (new_name.isEmpty())
+        new_name = QString("%1.0").arg(Metadata<PrettyName_k, T>::get());
+      return true;
+    };
+
+    if (auto cst = qobject_cast<Scenario::IntervalModel*>(sel))
+    {
+      if (!sanitize(cst))
+        return;
+
+      m->submit(new ChangeElementName<Scenario::IntervalModel>{*cst, new_name});
+    }
+    else if (auto ev = qobject_cast<Scenario::EventModel*>(sel))
+    {
+      if (!sanitize(ev))
+       return;
+
+      m->submit(new ChangeElementName<Scenario::EventModel>{*ev, new_name});
+    }
+    else if (auto tn = qobject_cast<Scenario::TimeSyncModel*>(sel))
+    {
+      if (!sanitize(tn))
+        return;
+
+      m->submit(new ChangeElementName<Scenario::TimeSyncModel>{*tn, new_name});
+    }
+    else if (auto st = qobject_cast<Scenario::StateModel*>(sel))
+    {
+      if (!sanitize(st))
+        return;
+
+      m->submit(new ChangeElementName<Scenario::StateModel>{*st, new_name});
+    }
+    else if (auto p = qobject_cast<Process::ProcessModel*>(sel))
+    {
+      if (new_name == p->metadata().getName())
+        return;
+
+      if (new_name.isEmpty())
+        new_name = QString("%1.0").arg(p->objectName());
+
+      m->submit(new ChangeElementName<Process::ProcessModel>{*p, new_name});
+    }
+  }
+  W_SLOT(setName)
+
+  QObject* createBox(QObject* obj, QString startTime, QString duration, double y)
+  {
+    auto doc = ctx();
+    if (!doc)
+      return nullptr;
+    auto scenar = qobject_cast<Scenario::ProcessModel*>(obj);
+    if (!scenar)
+      return nullptr;
+
+    auto t0 = parseDuration(startTime);
+    auto tdur = parseDuration(startTime);
+
+    auto [m, _] = macro(*doc);
+    auto& itv = m->createBox(*scenar, t0, t0 + tdur, y);
+    return &itv;
+  }
+  W_SLOT(createBox)
+
   void setCurvePoints(QObject* process, QVector<QVariantList> points)
   {
     auto doc = ctx();
@@ -187,34 +276,36 @@ public:
     if(!curve)
       return;
 
-    Curve::SegmentData dat;
-    dat.id = Id<Curve::SegmentModel>(0);
-    dat.start = {0, 0};
-    dat.end = {1, 1};
-    dat.type = Curve::PointArraySegment::static_concreteKey();
-    Curve::PointArraySegmentData data;
-
-    data.min_x = INT_MAX;
-    data.min_y = INT_MAX;
-    data.max_x = INT_MIN;
-    data.max_y = INT_MIN;
-
+    Curve::PointArraySegment seg{Id<Curve::SegmentModel>(0), nullptr};
+    // Curve::SegmentData dat;
+    // dat.id = Id<Curve::SegmentModel>(0);
+    // dat.start = {0, 0};
+    // dat.end = {1, 1};
+    // dat.type = Curve::PointArraySegment::static_concreteKey();
+    // Curve::PointArraySegmentData data;
+    //
+    // data.min_x = INT_MAX;
+    // data.min_y = INT_MAX;
+    // data.max_x = INT_MIN;
+    // data.max_y = INT_MIN;
+    //
     for(auto& pt : points) {
       if(pt.size() == 2) {
         auto x = pt[0].toDouble();
         auto y = pt[1].toDouble();
-        if(x < data.min_x) data.min_x = x;
-        if(x > data.max_x) data.max_x = x;
-        if(y < data.min_y) data.min_y = y;
-        if(y > data.max_y) data.max_y = y;
-        data.m_points.push_back({x, y});
+        seg.addPoint(x, y);
+        // if(x < data.min_x) data.min_x = x;
+        // if(y < data.min_y) data.min_y = y;
+        //
+        // if(x > data.max_x) data.max_x = x;
+        // if(y > data.max_y) data.max_y = y;
+        // data.m_points.push_back({x, y});
       }
     }
 
-    dat.specificSegmentData = QVariant::fromValue(std::move(dat));
 
     auto [m, _] = macro(*doc);
-    m->submit(new Curve::UpdateCurve{*curve, {std::move(dat)}});
+    m->submit(new Curve::UpdateCurve{*curve, {seg.toSegmentData()}});
   }
   W_SLOT(setCurvePoints)
 

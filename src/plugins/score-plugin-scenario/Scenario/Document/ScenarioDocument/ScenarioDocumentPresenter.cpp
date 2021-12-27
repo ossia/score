@@ -856,7 +856,7 @@ void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel* itv)
 {
   // Can't be a ref because of a qmetatype quirk
   auto& interval = *itv;
-  auto& ctx = score::IDocument::documentContext(model());
+  auto& ctx = model().context();
   if (displayedElements.initialized())
   {
     if (&interval == &displayedElements.interval())
