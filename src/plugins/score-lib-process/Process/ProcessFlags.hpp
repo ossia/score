@@ -37,12 +37,30 @@ enum ProcessFlags : int64_t
   ControlSurface =     SCORE_FLAG(6),
 
   //! The process's item handles all the decoration (won't be title, etc)
-  FullyCustomItem =     SCORE_FLAG(7),
+  FullyCustomItem =    SCORE_FLAG(7),
+
+  //! The process supports adding new controls (for audio plug-ins, LV2 etc):
+  //! this will show the UI in the inspector
+  CanCreateControls =  SCORE_FLAG(8),
+
+  //! The process is currently creating new controls (the runtime state changed by the user)
+  CreateControls =     SCORE_FLAG(9),
 
   SupportsLasting = SupportsTemporal | TimeIndependent,
   ExternalEffect = SupportsTemporal | TimeIndependent | RequiresCustomData | ControlSurface,
   SupportsAll = SupportsTemporal | TimeIndependent | SupportsState
 };
+
+
+constexpr ProcessFlags operator|(ProcessFlags a, ProcessFlags b) noexcept
+{
+  return ProcessFlags((int64_t) a | (int64_t) b);
+}
+
+constexpr ProcessFlags operator|=(ProcessFlags& a, ProcessFlags b) noexcept
+{
+  return a = a | b;
+}
 
 /**
  * \class ProcessFlags_k
