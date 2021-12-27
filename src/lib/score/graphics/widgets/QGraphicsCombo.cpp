@@ -1,4 +1,5 @@
 #include <score/graphics/widgets/QGraphicsCombo.hpp>
+#include <score/graphics/InfiniteScroller.hpp>
 #include <score/model/Skin.hpp>
 #include <score/tools/Cursor.hpp>
 
@@ -88,22 +89,17 @@ private:
   }
 };
 */
+
+
 struct DefaultComboImpl
 {
-  static inline double origValue{};
-  static inline double currentDelta{};
-  static inline QRectF currentGeometry{};
-
   static void
   mousePressEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
   {
-    currentDelta = 0.;
     if (event->button() == Qt::LeftButton)
     {
       self.m_grab = true;
-      self.setCursor(QCursor(Qt::BlankCursor));
-      origValue = double(self.m_value) / (self.array.size() - 1);
-      currentGeometry = qApp->primaryScreen()->availableGeometry();
+      InfiniteScroller::start(self, double(self.m_value) / (self.array.size() - 1));
     }
 
     event->accept();
@@ -114,32 +110,7 @@ struct DefaultComboImpl
   {
     if ((event->buttons() & Qt::LeftButton) && self.m_grab)
     {
-      auto delta = (event->screenPos().y() - event->lastScreenPos().y());
-      double ratio = qApp->keyboardModifiers() & Qt::CTRL ? 0.2 : 1.;
-      if (std::abs(delta) < 500)
-      {
-        currentDelta += ratio * delta;
-      }
-
-      const double max = currentGeometry.height();
-
-      if (event->screenPos().y() <= 100)
-        score::setCursorPos(QPointF(event->screenPos().x(), max));
-      else if (event->screenPos().y() >= (max - 100))
-        score::setCursorPos(QPointF(event->screenPos().x(), 0));
-
-      double v = origValue - currentDelta / max;
-      if (v <= 0.)
-      {
-        currentDelta = origValue * max;
-        v = 0.;
-      }
-      else if (v >= 1.)
-      {
-        currentDelta = ((origValue - 1.) * max);
-        v = 1.;
-      }
-
+      double v = InfiniteScroller::move(event);
       int curPos = v * (self.array.size() - 1);
       if (curPos != self.m_value)
       {
@@ -156,18 +127,12 @@ struct DefaultComboImpl
   {
     if (event->button() == Qt::LeftButton)
     {
-      score::setCursorPos(event->buttonDownScreenPos(Qt::LeftButton));
-      self.unsetCursor();
+      InfiniteScroller::stop(self, event);
 
       if (self.m_grab)
       {
-        auto delta = (event->screenPos().y() - event->lastScreenPos().y());
-        double ratio = qApp->keyboardModifiers() & Qt::CTRL ? 0.2 : 1.;
-        if (std::abs(delta) < 500)
-          currentDelta += ratio * delta;
-
-        double v = origValue - currentDelta / currentGeometry.height();
-        int curPos = ossia::clamp(v, 0., 1.) * (self.array.size() - 1);
+        double v = InfiniteScroller::move(event);
+        int curPos = v * (self.array.size() - 1);
         if (curPos != self.m_value)
         {
           self.m_value = curPos;
