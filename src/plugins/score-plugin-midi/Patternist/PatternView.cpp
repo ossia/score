@@ -34,6 +34,10 @@ View::View(const Patternist::ProcessModel& model, QGraphicsItem* parent)
   con(model, &Patternist::ProcessModel::currentPatternChanged, this, [=] {
     updateLanes();
   });
+  con(model, &Patternist::ProcessModel::execPosition, this, [=] (int x) {
+    m_execPosition = x;
+    update();
+  });
 
   updateLanes();
 }
@@ -99,7 +103,6 @@ void View::paint_impl(QPainter* painter) const
     auto& l = cur_p.lanes[lane];
 
     // Draw the filled patterns
-    painter->setBrush(style.Base4);
     for (int i = 0; i < cur_p.length; i++)
     {
       const QRectF rect{
@@ -110,12 +113,12 @@ void View::paint_impl(QPainter* painter) const
 
       if (l.pattern[i])
       {
+        painter->setBrush((i != m_execPosition) ? style.Base4 : style.Base4.lighter.brush);
         painter->drawRect(rect);
       }
     }
 
     // Draw the empty patterns
-    painter->setBrush(style.Emphasis2.main.brush);
     for (int i = 0; i < cur_p.length; i++)
     {
       const QRectF rect{
@@ -126,6 +129,7 @@ void View::paint_impl(QPainter* painter) const
 
       if (!l.pattern[i])
       {
+        painter->setBrush((i != m_execPosition) ? style.Emphasis2.main.brush : style.Emphasis2.lighter.brush);
         painter->drawRect(rect);
       }
     }

@@ -39,6 +39,7 @@ private:
   const Patternist::ProcessModel& m_model;
 
   std::vector<score::QGraphicsNoteChooser*> m_lanes;
+  int m_execPosition{-1};
 
 };
 }

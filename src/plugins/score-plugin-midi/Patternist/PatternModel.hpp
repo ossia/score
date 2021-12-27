@@ -22,7 +22,7 @@ struct Lane
 struct Pattern
 {
   int length{16};
-  int division{8};
+  int division{16};
   std::vector<Lane> lanes;
 
   bool operator==(const Pattern& other) const noexcept
@@ -77,6 +77,7 @@ public:
 public:
   void channelChanged(int arg_1) W_SIGNAL(channelChanged, arg_1);
   void currentPatternChanged(int arg_1) W_SIGNAL(currentPatternChanged, arg_1);
+  void execPosition(int arg_1) W_SIGNAL(execPosition, arg_1);
   void patternsChanged() W_SIGNAL(patternsChanged);
 
   PROPERTY(

@@ -21,6 +21,7 @@ public:
       const Execution::Context& ctx,
       QObject* parent);
   ~Executor() override;
+  void stop() override;
 
 private:
 };
