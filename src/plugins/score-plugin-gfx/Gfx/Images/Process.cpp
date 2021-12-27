@@ -160,6 +160,9 @@ static std::optional<score::gfx::Image> readImage(const QString& filename)
     if (img.isNull() || img.size() == QSize{})
       continue;
 
+    if (img.format() != QImage::Format_ARGB32)
+      img.convertTo(QImage::Format_ARGB32);
+
     frames.push_back(std::move(img));
   }
 
