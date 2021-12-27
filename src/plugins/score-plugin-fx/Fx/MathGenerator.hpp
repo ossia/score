@@ -176,7 +176,7 @@ struct Node
     self.p2 = b;
     self.p3 = c;
 
-    auto res = self.expr.value();
+    auto res = self.expr.result();
     const auto [tick_start, d] = st.timings(tk);
     output.write_value(res, tick_start);
   }
