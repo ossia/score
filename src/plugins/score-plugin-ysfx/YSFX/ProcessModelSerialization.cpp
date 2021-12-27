@@ -11,6 +11,7 @@
 #include <score/serialization/JSONVisitor.hpp>
 
 #include <QString>
+#include <QIODevice>
 
 static
 QByteArray readYSFXState(ysfx_t& fx)

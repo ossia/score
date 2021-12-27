@@ -348,8 +348,8 @@ void Window::wheelEvent(QWheelEvent* event)
   buttons |= event->buttons() & Qt::MiddleButton ? ysfx_button_middle : 0;
   buttons |= event->buttons() & Qt::RightButton ? ysfx_button_right : 0;
 
-  int32_t xpos = event->pos().x();
-  int32_t ypos = event->pos().y();
+  int32_t xpos = event->position().x();
+  int32_t ypos = event->position().y();
   ysfx_real wheel{event->angleDelta().y() / 120.};
   ysfx_real hwheel{event->angleDelta().x() / 120.};
 
