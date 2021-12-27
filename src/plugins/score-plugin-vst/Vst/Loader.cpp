@@ -89,15 +89,15 @@ struct LinuxLoader
   {
 #if defined(__clang__)
 #if __has_feature(address_sanitizer)
-    auto module = dlopen(name, RTLD_NOW | RTLD_LOCAL);
+    auto module = dlopen(name, RTLD_NOW | RTLD_LOCAL | RTLD_NODELETE);
 #else
-    auto module = dlopen(name, RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND);
+    auto module = dlopen(name, RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND | RTLD_NODELETE);
 #endif
 #else
 #if defined(__SANITIZE_ADDRESS__)
-    auto module = dlopen(name, RTLD_NOW | RTLD_LOCAL);
+    auto module = dlopen(name, RTLD_NOW | RTLD_LOCAL | RTLD_NODELETE);
 #else
-    auto module = dlopen(name, RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND);
+    auto module = dlopen(name, RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND | RTLD_NODELETE);
 #endif
 #endif
     if (!module)
