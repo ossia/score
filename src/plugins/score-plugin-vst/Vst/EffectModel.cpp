@@ -139,7 +139,33 @@ Model::Model(
 
 Model::~Model()
 {
+  if(fx && fx->fx)
+    fx->fx->resvd1 = 0;
+  fx.reset();
+}
 
+Process::ProcessFlags Model::flags() const noexcept
+{
+  auto flags = Metadata<Process::ProcessFlags_k, Model>::get();
+  if(fx && fx->fx)
+  {
+    if((fx->fx->numParams >= VST_DEFAULT_PARAM_NUMBER_CUTOFF) && (fx->fx->flags & VstAEffectFlags::effFlagsHasEditor))
+    {
+      flags |= Process::CanCreateControls;
+    }
+  }
+  if(m_createControls)
+    flags |= Process::CreateControls;
+  return flags;
+}
+
+void Model::setCreatingControls(bool ok)
+{
+  if(ok != m_createControls)
+  {
+    m_createControls = ok;
+    creatingControlsChanged(ok);
+  }
 }
 
 QString Model::prettyName() const noexcept
@@ -360,19 +386,22 @@ intptr_t vst_host_callback(
       {
         if (auto vst = reinterpret_cast<Model*>(effect->resvd1))
         {
-          ossia::qt::run_async(vst, [=] {
-            auto ctrl_it = vst->controls.find(index);
-            if (ctrl_it != vst->controls.end())
-            {
-              ctrl_it->second->setValue(opt);
-            }
-            else
-            {
-              auto& ctx = score::IDocument::documentContext(*vst);
-              CommandDispatcher<>{ctx.commandStack}.submit<CreateControl>(
-                  *vst, index, opt);
-            }
-          });
+          if(vst->flags() & Process::CreateControls)
+          {
+            ossia::qt::run_async(vst, [=] {
+              auto ctrl_it = vst->controls.find(index);
+              if (ctrl_it != vst->controls.end())
+              {
+                ctrl_it->second->setValue(opt);
+              }
+              else
+              {
+                auto& ctx = score::IDocument::documentContext(*vst);
+                CommandDispatcher<>{ctx.commandStack}.submit<CreateControl>(
+                    *vst, index, opt);
+              }
+            });
+          }
         }
 
         break;
@@ -607,6 +636,7 @@ void releasePluginInstance(int uid)
     }
   }
 }
+
 void Model::initFx()
 {
   fx = std::make_shared<AEffectWrapper>(getPluginInstance(m_effectId));

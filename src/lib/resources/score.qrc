@@ -686,5 +686,13 @@
         <file>icons/zoom/scale_off@2x.png</file>
         <file>icons/zoom/scale_on.png</file>
         <file>icons/zoom/scale_on@2x.png</file>
+        <file>icons/control_record_disabled.png</file>
+        <file>icons/control_record_disabled@2x.png</file>
+        <file>icons/control_record_hover.png</file>
+        <file>icons/control_record_hover@2x.png</file>
+        <file>icons/control_record_off.png</file>
+        <file>icons/control_record_off@2x.png</file>
+        <file>icons/control_record_on.png</file>
+        <file>icons/control_record_on@2x.png</file>
     </qresource>
 </RCC>

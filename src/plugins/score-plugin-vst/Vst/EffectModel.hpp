@@ -81,7 +81,7 @@ class Model final : public Process::ProcessModel
   friend class vst::CreateControl;
 
 public:
-  PROCESS_METADATA_IMPL(Model)
+      MODEL_METADATA_IMPL(Model)
   Model(
       TimeVal t,
       const QString& name,
@@ -97,6 +97,21 @@ public:
     init();
     vis.writeTo(*this);
   }
+
+  QString prettyShortName() const noexcept override
+  {
+    return Metadata<PrettyName_k, Model>::get();
+  }
+  QString category() const noexcept override
+  {
+    return Metadata<Category_k, Model>::get();
+  }
+  QStringList tags() const noexcept override
+  {
+    return Metadata<Tags_k, Model>::get();
+  }
+  Process::ProcessFlags flags() const noexcept override;
+  void setCreatingControls(bool ok) override;
 
   ControlInlet* getControl(const Id<Process::Port>& p) const;
   QString effect() const noexcept override;
@@ -142,6 +157,7 @@ private:
   std::string m_backup_chunk;
   ossia::float_vector m_backup_float_data;
   int32_t m_effectId{};
+  bool m_createControls{};
 
   struct vst_context_handler {
     Model& self;

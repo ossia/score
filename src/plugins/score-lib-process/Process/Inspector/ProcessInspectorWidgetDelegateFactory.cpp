@@ -57,6 +57,7 @@ bool InspectorWidgetDelegateFactory::matches(
 
 class InspectorWidget : public QWidget
 {
+  QPointer<ProcessModel> m_proc;
 public:
   InspectorWidget(
       const ProcessModel& process,
@@ -64,6 +65,7 @@ public:
       QWidget* w,
       QWidget* parent)
       : QWidget{parent}
+      , m_proc{&const_cast<Process::ProcessModel&>(process)}
   {
     auto lay = new QVBoxLayout{this};
 
@@ -75,6 +77,7 @@ public:
     lay->addWidget(label);
     QWidget* loop_w{};
     QFormLayout* loop_lay{};
+    QHBoxLayout* btn_lay{};
 
     auto initButtonsLayout = [&] {
       loop_w = new QWidget;
@@ -82,6 +85,9 @@ public:
       loop_lay->setContentsMargins(1, 1, 1, 1);
       loop_lay->setSpacing(2);
       lay->addWidget(loop_w);
+
+      btn_lay = new QHBoxLayout;
+      loop_lay->addRow(btn_lay);
     };
     if (!(process.flags() & ProcessFlags::TimeIndependent))
     {
@@ -96,6 +102,7 @@ public:
             QStringLiteral(":/icons/loop_off.png"),
             QStringLiteral(":/icons/loop_off.png")));
         loop_btn->setToolTip(tr("Loop"));
+        loop_btn->setStatusTip(tr("Enable looping for this process"));
 
         loop_btn->setAutoRaise(true);
         loop_btn->setIconSize(QSize{28, 28});
@@ -109,7 +116,7 @@ public:
           if (b != loop_btn->isChecked())
             loop_btn->setChecked(b);
         });
-        loop_lay->addRow(loop_btn);
+        btn_lay->addWidget(loop_btn);
       }
 
       // Start offset
@@ -172,6 +179,7 @@ public:
           QStringLiteral(":/icons/new_window_off.png"),
           QStringLiteral(":/icons/new_window_off.png")));
       uiToggle->setToolTip(tr("Edit process"));
+      uiToggle->setStatusTip(tr("Show the custom user interface of this plug-in"));
       uiToggle->setAutoRaise(true);
       uiToggle->setIconSize(QSize{28, 28});
       uiToggle->setCheckable(true);
@@ -187,7 +195,31 @@ public:
         uiToggle->setChecked(v);
       });
 
-      loop_lay->addWidget(uiToggle);
+      btn_lay->addWidget(uiToggle);
+    }
+
+    if (process.flags() & ProcessFlags::CanCreateControls)
+    {
+      if(!loop_lay)
+        initButtonsLayout();
+      auto controlsToggle = new QToolButton{};
+      controlsToggle->setIcon(makeIcons(
+          QStringLiteral(":/icons/control_record_on.png"),
+          QStringLiteral(":/icons/control_record_hover.png"),
+          QStringLiteral(":/icons/control_record_off.png"),
+          QStringLiteral(":/icons/control_record_off.png")));
+      controlsToggle->setToolTip(tr("Edit controls"));
+      controlsToggle->setStatusTip(tr("Enable the controls changed in the plug-in ui to appear in the main window"));
+      controlsToggle->setAutoRaise(true);
+      controlsToggle->setIconSize(QSize{28, 28});
+      controlsToggle->setCheckable(true);
+      controlsToggle->setChecked(false);
+      connect(controlsToggle, &QToolButton::toggled,
+              this, [&process] (bool state) {
+        auto& p = const_cast<Process::ProcessModel&>(process);
+        p.setCreatingControls(state);
+      });
+      btn_lay->addWidget(controlsToggle);
     }
 
     if (w)
@@ -207,6 +239,14 @@ public:
       lay->addWidget(scroll);
     }
     lay->addStretch(100);
+  }
+
+  ~InspectorWidget()
+  {
+    if(m_proc)
+    {
+      m_proc->setCreatingControls(false);
+    }
   }
 };
 

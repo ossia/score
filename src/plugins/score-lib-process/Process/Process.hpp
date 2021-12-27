@@ -161,6 +161,15 @@ public:
       loopDuration READ loopDuration WRITE setLoopDuration NOTIFY
           loopDurationChanged)
 
+  virtual void setCreatingControls(bool ok);
+  bool creatingControls() const noexcept;
+  void creatingControlsChanged(bool b)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, creatingControlsChanged, b)
+  PROPERTY(
+      bool,
+      creatingControls READ creatingControls WRITE setCreatingControls NOTIFY
+          creatingControlsChanged)
+
   // FIXME ugh
   QWidget* externalUI{};
 

@@ -240,6 +240,16 @@ void ProcessModel::forEachControl(
   }
 }
 
+void ProcessModel::setCreatingControls(bool ok)
+{
+
+}
+
+bool ProcessModel::creatingControls() const noexcept
+{
+  return this->flags() & ProcessFlags::CreateControls;
+}
+
 void ProcessModel::setLoops(bool b)
 {
   if (b != m_loops)
