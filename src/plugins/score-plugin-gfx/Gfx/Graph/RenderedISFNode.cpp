@@ -37,8 +37,8 @@ PassOutput RenderedISFNode::initPassSampler(
       QRhiSampler::Linear,
       QRhiSampler::Linear,
       QRhiSampler::None,
-      QRhiSampler::ClampToEdge,
-      QRhiSampler::ClampToEdge);
+      QRhiSampler::Mirror,
+      QRhiSampler::Mirror);
   sampler->setName("ISFNode::initPassSamplers::sampler");
   sampler->create();
 

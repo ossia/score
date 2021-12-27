@@ -28,6 +28,7 @@ public:
   } ubo;
 
   std::atomic_int imagesChanged{};
+  std::atomic_bool tile{};
 
 private:
   void process(const Message& msg) override;

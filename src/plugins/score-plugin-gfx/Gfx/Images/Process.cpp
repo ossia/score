@@ -6,6 +6,9 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 
+#include <ossia/detail/logger.hpp>
+#include <ossia/network/value/format_value.hpp>
+
 #include <QFileInfo>
 #include <QImageReader>
 #include <gsl/span>
@@ -58,38 +61,31 @@ Model::Model(
     : Process::ProcessModel{duration, id, "gfxProcess", parent}
 {
   metadata().setInstanceName(*this);
-  m_inlets.push_back(new Process::IntSpinBox{Id<Process::Port>(0), this});
-  m_inlets.back()->setName(tr("Index"));
+  m_inlets.push_back(
+        new Process::IntSpinBox{0, 0, 0, tr("Index"), Id<Process::Port>(0), this});
   {
-    auto opacity = new Process::FloatSlider{Id<Process::Port>(1), this};
-    opacity->setName(tr("Opacity"));
-    opacity->setValue(1.);
+    auto opacity =
+        new Process::FloatSlider{0., 1., 1., tr("Opacity"), Id<Process::Port>(1), this};
     m_inlets.push_back(opacity);
   }
   {
-    auto pos = new Process::XYSlider{Id<Process::Port>(2), this};
-    pos->setName(tr("Position"));
-    pos->setDomain(
-      ossia::make_domain(ossia::vec2f{-5.0, -5.0}, ossia::vec2f{5.0, 5.0}));
-
+    auto pos = new Process::XYSlider{
+        ossia::vec2f{-5.0, -5.0},
+        ossia::vec2f{5.0, 5.0},
+        ossia::vec2f{0.0, 0.0},
+        tr("Position"),
+        Id<Process::Port>(2), this};
     m_inlets.push_back(pos);
   }
 
   {
-    auto scaleX = new Process::FloatSlider{Id<Process::Port>(3), this};
-    scaleX->setName(tr("Scale X"));
-    scaleX->setValue(1.);
-    scaleX->setDomain(ossia::make_domain(-1.f, 10.f));
+    auto scaleX = new Process::FloatSlider{-1.f, 10.f, 1.f, tr("Scale X"), Id<Process::Port>(3), this};
     m_inlets.push_back(scaleX);
   }
   {
-    auto scaleY = new Process::FloatSlider{Id<Process::Port>(4), this};
-    scaleY->setName(tr("Scale Y"));
-    scaleY->setValue(1.);
-    scaleY->setDomain(ossia::make_domain(-1.f, 10.f));
+    auto scaleY = new Process::FloatSlider{-1.f, 10.f, 1.f, tr("Scale Y"), Id<Process::Port>(4), this};
     m_inlets.push_back(scaleY);
   }
-
 
   {
     auto images = new ImageListChooser{{}, tr("Images"), Id<Process::Port>(5), this};
@@ -97,6 +93,10 @@ Model::Model(
     connect(images, &ImageListChooser::valueChanged, this, &Model::on_imagesChanged);
   }
 
+  {
+    auto tile = new Process::Toggle{false, tr("Tile"), Id<Process::Port>(6), this};
+    m_inlets.push_back(tile);
+  }
   m_outlets.push_back(new TextureOutlet{Id<Process::Port>(0), this});
 }
 
@@ -104,7 +104,7 @@ Model::~Model() { }
 
 void Model::on_imagesChanged(const ossia::value& v)
 {
-  auto imgs = getImages(safe_cast<ImageListChooser*>(inlets().back())->value());
+  auto imgs = getImages(safe_cast<ImageListChooser*>(m_inlets[5])->value());
   int count = 0;
   for (const auto& img : imgs)
     count += img.frames.size();

@@ -42,7 +42,7 @@ ProcessExecutorComponent::ProcessExecutorComponent(
   auto n = ossia::make_node<image_node>(*ctx.execState,ctx.doc.plugin<DocumentPlugin>().exec);
 
   // Normal controls
-  for (std::size_t i = 0; i < 6; i++)
+  for (std::size_t i = 0; i < 7; i++)
   {
     auto ctrl = qobject_cast<Process::ControlInlet*>(element.inlets()[i]);
     auto& p = n->add_control();

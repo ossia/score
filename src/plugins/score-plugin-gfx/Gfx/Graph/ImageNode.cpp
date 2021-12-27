@@ -30,7 +30,7 @@ static int imageIndex(int idx, int size)
     return 0;
   }
 }
-static const constexpr auto images_vertex_shader = R"_(#version 450
+static const constexpr auto images_single_vertex_shader = R"_(#version 450
 layout(location = 0) in vec2 position;
 layout(location = 1) in vec2 texcoord;
 
@@ -75,7 +75,7 @@ void main()
 }
 )_";
 
-static const constexpr auto images_fragment_shader = R"_(#version 450
+static const constexpr auto images_single_fragment_shader = R"_(#version 450
 layout(std140, binding = 0) uniform renderer_t {
   mat4 clipSpaceCorrMatrix;
   vec2 texcoordAdjust;
@@ -101,10 +101,47 @@ void main ()
   fragColor = tex * mat.opacity;
 }
 )_";
+
+static const constexpr auto images_tiled_fragment_shader = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 texcoordAdjust;
+  vec2 renderSize;
+};
+
+layout(std140, binding = 2) uniform material_t {
+  int idx;
+  float opacity;
+  vec2 position;
+  vec2 scale;
+  vec2 imageSize;
+} mat;
+
+layout(binding=3) uniform sampler2D y_tex;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main ()
+{
+  float viewportAspect = renderSize.x / renderSize.y;
+  float imageAspect = mat.imageSize.x / mat.imageSize.y;
+
+  vec2 pos = v_texcoord;
+  // Aspect ratio
+  // Our mesh is: -1, -1;  1, -1;  -1, 1;  1, 1;
+
+  pos.x /= viewportAspect;
+  pos.y /= imageAspect;
+
+  vec4 tex = texture(y_tex, pos * mat.scale + mat.position);
+  fragColor = tex * mat.opacity;
+}
+)_";
 ImagesNode::ImagesNode()
 {
   std::tie(m_vertexS, m_fragmentS)
-      = score::gfx::makeShaders(images_vertex_shader, images_fragment_shader);
+      = score::gfx::makeShaders(images_single_vertex_shader, images_single_fragment_shader);
   input.push_back(new Port{this, &ubo.currentImageIndex, Types::Int, {}});
   input.push_back(new Port{this, &ubo.opacity, Types::Float, {}});
   input.push_back(new Port{this, &ubo.position[0], Types::Vec2, {}});
@@ -200,6 +237,15 @@ void ImagesNode::process(const Message& msg)
           }
           break;
         }
+
+        case 6: // Tile
+        {
+          {
+            this->tile = ossia::convert<bool>(*val);
+            ++this->materialChanged;
+          }
+          break;
+        }
       }
     }
 
@@ -224,6 +270,7 @@ private:
   ~Renderer() { }
 
   int imagesChanged = -1;
+  bool tile{};
 
   void recreateTextures(QRhi& rhi)
   {
@@ -283,6 +330,19 @@ private:
   update(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     auto& n = static_cast<const ImagesNode&>(this->node);
+
+    if(n.tile != tile)
+    {
+      release(renderer);
+      tile = n.tile;
+      auto& nn = const_cast<ImagesNode&>(n);
+      QShader& v = nn.m_vertexS, &f = nn.m_fragmentS;;
+      if(!tile)
+        std::tie(v, f) = score::gfx::makeShaders(images_single_vertex_shader, images_single_fragment_shader);
+      else
+        std::tie(v, f) = score::gfx::makeShaders(TexturedTriangle{}.defaultVertexShader(), images_tiled_fragment_shader);
+      init(renderer);
+    }
     bool updateCurrentTexture = false;
     if(n.imagesChanged > imagesChanged)
     {

@@ -39,6 +39,7 @@
 #include <Curve/Segment/PointArray/PointArraySegment.hpp>
 #include <Curve/Commands/UpdateCurve.hpp>
 #include <Curve/CurveModel.hpp>
+#include <Scenario/Commands/Metadata/ChangeElementName.hpp>
 
 namespace JS
 {
