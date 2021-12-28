@@ -110,11 +110,11 @@ void ProcessModel::setScript(const QString& script)
 
       auto id = Id<Process::Port>(4 + i);
       const bool is_visible = ysfx_slider_is_initially_visible(fx.get(), i);
+      QString name = ysfx_slider_get_name(fx.get(), i);
       if (ysfx_slider_is_enum(fx.get(), i))
       {
         std::vector<std::pair<QString, ossia::value>> values;
         ossia::value init;
-        QString name = ysfx_slider_get_name(fx.get(), i);
 
         uint32_t count = ysfx_slider_get_enum_size(fx.get(), i);
         std::vector<const char *> names(count);
@@ -124,26 +124,20 @@ void ProcessModel::setScript(const QString& script)
           values.push_back({val, k++});
 
         auto slider = new Process::ComboBox{values, 0, name, id, this};
-        slider->setName(ysfx_slider_get_name(fx.get(), i));
 
         this->m_inlets.push_back(slider);
       }
       else if(ysfx_slider_is_path(fx.get(), i))
       {
-        auto slider = new Process::LineEdit{id, this};
-        slider->setName(ysfx_slider_get_name(fx.get(), i));
+        auto slider = new Process::LineEdit{{}, name, id, this};
         this->m_inlets.push_back(slider);
       }
       else
       {
-        auto slider = new Process::FloatSlider{id, this};
-        slider->setName(ysfx_slider_get_name(fx.get(), i));
-
         ysfx_slider_range_t range{};
         ysfx_slider_get_range(fx.get(), i, &range);
 
-        slider->setDomain(ossia::make_domain(range.min, range.max));
-        slider->setValue(range.def);
+        auto slider = new Process::FloatSlider(range.min, range.max, range.def, name, id, this);
         // TODO increment
 
         this->m_inlets.push_back(slider);
