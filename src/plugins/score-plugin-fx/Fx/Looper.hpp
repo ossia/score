@@ -289,7 +289,7 @@ struct Node
       int64_t N)
   {
     // Copy input to output, and append input to buffer
-    const auto chans = p1.channels();
+    const auto chans = state.audio.size();
     p2.set_channels(chans);
     state.audio.resize(chans);
 
