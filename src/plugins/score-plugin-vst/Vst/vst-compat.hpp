@@ -942,6 +942,7 @@ extern "C"
     int32_t version;
     AEffectProcessProc processReplacing;
     AEffectProcessDoubleProc processDoubleReplacing;
+    char zeroes[56];
   };
 }
 #endif

@@ -392,7 +392,7 @@ public:
           io[i] = dummy;
       }
 
-      fx->fx->processReplacing(fx->fx, io, io, m_bs);
+      fx->fx->processReplacing(fx->fx, io, io, samples);
 
       std::copy_n(float_v[0].data(), samples, op[0].data() + offset);
       std::copy_n(float_v[1].data(), samples, op[1].data() + offset);
