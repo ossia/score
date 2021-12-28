@@ -64,7 +64,7 @@ void CentralNodalDisplay::on_addProcessFromLibrary(const Library::ProcessData& d
   auto createInParentInterval = [&]
   {
     Command::Macro m{new Command::DropProcessInIntervalMacro, parent.context()};
-    m.createProcessInNewSlot(parent.displayedInterval(), dat.key, dat.customData);
+    m.createProcessInNewSlot(parent.displayedInterval(), dat);
     m.commit();
   };
 

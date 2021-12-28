@@ -94,6 +94,24 @@ Process::ProcessModel* Macro::createProcess(
   return nullptr;
 }
 
+Process::ProcessModel* Macro::createProcess(
+    const IntervalModel& interval,
+    const Process::ProcessData& data,
+    const QPointF& pos)
+{
+  auto process_cmd = new AddOnlyProcessToInterval{interval, data.key, data.customData, pos};
+  m.submit(process_cmd);
+  auto it = interval.processes.find(process_cmd->processId());
+  if (it != interval.processes.end())
+  {
+    auto& p = *it;
+    if(!data.prettyName.isEmpty())
+      m.submit(new ChangeElementName<Process::ProcessModel>(p, data.prettyName));
+    return &p;
+  }
+  return nullptr;
+}
+
 Process::ProcessModel* Macro::createProcessInNewSlot(
     const IntervalModel& interval,
     const UuidKey<Process::ProcessModel>& key,
@@ -145,6 +163,33 @@ Process::ProcessModel* Macro::createProcessInNewSlot(
       showRack(interval);
     }
     return proc;
+  }
+  return nullptr;
+}
+
+Process::ProcessModel* Macro::createProcessInNewSlot(
+    const IntervalModel& interval,
+    const Process::ProcessData& data,
+    const QPointF& pos)
+{
+  if(auto p = createProcessInNewSlot(interval, data.key, data.customData, pos))
+  {
+    if(!data.prettyName.isEmpty())
+      m.submit(new ChangeElementName<Process::ProcessModel>(*p, data.prettyName));
+    return p;
+  }
+  return nullptr;
+}
+
+Process::ProcessModel* Macro::createProcessInNewSlot(
+    const IntervalModel& interval,
+    const Process::ProcessData& data)
+{
+  if(auto p = createProcessInNewSlot(interval, data.key, data.customData))
+  {
+    if(!data.prettyName.isEmpty())
+      m.submit(new ChangeElementName<Process::ProcessModel>(*p, data.prettyName));
+    return p;
   }
   return nullptr;
 }

@@ -138,12 +138,7 @@ bool DropProcessOnState::drop(
       Process::ProcessModel* p = dropper.addProcess(
           [&](Scenario::Command::Macro& m,
               const IntervalModel& itv) -> Process::ProcessModel* {
-            auto p = m.createProcessInNewSlot(
-                itv, proc.creation.key, proc.creation.customData, {});
-            if (auto& name = proc.creation.prettyName; !name.isEmpty())
-              dropper.macro().submit(
-                  new Scenario::Command::ChangeElementName{*p, name});
-            return p;
+            return m.createProcessInNewSlot(itv, proc.creation);
           },
           proc.duration ? *proc.duration : t);
       if (p && proc.setup)

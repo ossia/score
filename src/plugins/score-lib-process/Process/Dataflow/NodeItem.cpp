@@ -217,6 +217,7 @@ void NodeItem::resetInlets()
   {
     if (port->hidden)
       continue;
+
     Process::PortFactory* fact = portFactory.get(port->concreteKey());
     Dataflow::PortItem* item = fact->makeItem(*port, m_context, this, this);
     item->setPos(x, y);

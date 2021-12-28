@@ -89,7 +89,7 @@ void createProcessAfterPort(
 
     auto pos = parentProcess.position();
     pos.rx() += parentProcess.size().width() + 40;
-    auto proc = m.createProcessInNewSlot(*parent_itv, dat.key, dat.customData, pos);
+    auto proc = m.createProcessInNewSlot(*parent_itv, dat, pos);
     if(proc)
     {
       // TODO all of this should be made atomic...
@@ -133,7 +133,7 @@ void CentralIntervalDisplay::on_addProcessFromLibrary(const Library::ProcessData
       const Scenario::IntervalModel& itv = *sel.front();
 
       Command::Macro m{new Command::DropProcessInIntervalMacro, parent.context()};
-      m.createProcessInNewSlot(itv, dat.key, dat.customData);
+      m.createProcessInNewSlot(itv, dat);
       m.commit();
       return;
     }

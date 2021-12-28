@@ -1,5 +1,6 @@
 #pragma once
 #include <Dataflow/Commands/CableHelpers.hpp>
+#include <Process/ProcessMimeSerialization.hpp>
 
 #include <score/command/AggregateCommand.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
@@ -58,6 +59,11 @@ public:
       const QString& data,
       const QPointF& pos);
 
+  Process::ProcessModel* createProcess(
+      const Scenario::IntervalModel& interval,
+      const Process::ProcessData& data,
+      const QPointF& pos);
+
   template <typename T>
   T& createProcess(
       const Scenario::IntervalModel& interval,
@@ -77,6 +83,14 @@ public:
       const Scenario::IntervalModel& interval,
       const UuidKey<Process::ProcessModel>& key,
       const QString& data,
+      const QPointF& pos);
+
+  Process::ProcessModel* createProcessInNewSlot(
+      const Scenario::IntervalModel& interval,
+      const Process::ProcessData& data);
+  Process::ProcessModel* createProcessInNewSlot(
+      const Scenario::IntervalModel& interval,
+      const Process::ProcessData& data,
       const QPointF& pos);
 
   template <typename T>
