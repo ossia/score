@@ -46,6 +46,28 @@ struct Node
 
   static void changeAction(const ossia::token_request& tk, State& state)
   {
+    // Apply a small fade on the first and last samples
+    for(auto& chan : state.audio)
+    {
+      int samples = chan.size();
+      if(int min_n = std::min(samples, (int)128); min_n > 0)
+      {
+        float f = 1. / min_n;
+        float ff = 0.;
+        for(int i = 0; i < min_n; i++)
+        {
+          chan[i] *= ff;
+          ff += f;
+        }
+
+        for(int i = samples - min_n; i < samples; i++)
+        {
+          chan[i] *= ff;
+          ff -= f;
+        }
+      }
+    }
+
     if(state.quantizedPlayMode == Control::Widgets::LoopMode::Record)
     {
       state.recordStart = tk.prev_date;
