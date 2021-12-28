@@ -37,6 +37,8 @@ void DataStreamReader::read(const Scenario::ScenarioDocumentModel& model)
     buses.emplace_back(*bus);
   m_stream << buses;
 
+  m_stream << model.baseInterval().duration.speed();
+
   insertDelimiter();
 }
 
@@ -57,6 +59,10 @@ void DataStreamWriter::write(Scenario::ScenarioDocumentModel& model)
     model.busIntervals.push_back(&path.find(ctx));
   }
 
+  double speed{1.};
+  m_stream >> speed;
+  model.baseInterval().duration.setSpeed(speed);
+
   checkDelimiter();
 }
 
@@ -64,6 +70,7 @@ template <>
 void JSONReader::read(const Scenario::ScenarioDocumentModel& model)
 {
   obj["BaseScenario"] = *model.m_baseScenario;
+  obj["Speed"] = model.baseInterval().duration.speed();
   obj["Cables"] = model.cables;
 
   stream.Key("BusIntervals");
@@ -84,6 +91,9 @@ void JSONWriter::write(Scenario::ScenarioDocumentModel& model)
 
   model.m_savedCablesJson = clone(obj["Cables"].obj);
 
+  if(auto speed = obj.tryGet("Speed"); speed && speed->isDouble()) {
+    model.baseInterval().duration.setSpeed(speed->toDouble());
+  }
   auto& ctx = safe_cast<score::Document*>(model.parent()->parent())->context();
 
   if(auto b = obj.tryGet("BusIntervals"))
