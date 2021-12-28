@@ -106,22 +106,26 @@ Model::Model(
   m_outlets.push_back(new TextureOutlet{Id<Process::Port>(0), this});
 }
 
-Model::~Model() { }
+Model::~Model()
+{
+  releaseImages(m_currentImages);
+}
 
 void Model::on_imagesChanged(const ossia::value& v)
 {
-  auto imgs = getImages(safe_cast<ImageListChooser*>(m_inlets[5])->value());
+  releaseImages(m_currentImages);
+  m_currentImages = getImages(safe_cast<ImageListChooser*>(m_inlets[5])->value());
+
   int count = 0;
-  for (const auto& img : imgs)
+  for (const auto& img : m_currentImages)
     count += img.frames.size();
 
   auto spinbox = safe_cast<Process::IntSpinBox*>(m_inlets[0]);
-  if (!imgs.empty())
+  if (!m_currentImages.empty())
     spinbox->setDomain(ossia::make_domain(int(0), int(count) - 1));
   else
     spinbox->setDomain(ossia::make_domain(int(0), int(0)));
 
-  releaseImages(imgs);
 }
 
 QString Model::prettyName() const noexcept
@@ -296,6 +300,8 @@ void DataStreamWriter::write(Gfx::Images::Model& proc)
       proc.m_outlets,
       &proc);
 
+  proc.on_imagesChanged(((Process::ControlInlet*)(proc.m_inlets[5]))->value());
+
   checkDelimiter();
 }
 
@@ -327,6 +333,8 @@ void JSONWriter::write(Gfx::Images::Model& proc)
       auto tile = new Process::ComboBox{combo, 0, QObject::tr("Tile"), Id<Process::Port>(6), &proc};
       proc.m_inlets.push_back(tile);
   }
+
+  proc.on_imagesChanged(((Process::ControlInlet*)(proc.m_inlets[5]))->value());
 }
 
 template <> void
