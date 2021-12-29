@@ -172,7 +172,7 @@ private:
     }
 
     const auto& fmts = ::Video::gstreamerToLibav();
-    if(auto it = fmts.find(format.toStdString()); it != fmts.end())
+    if(auto it = fmts.find(format.toUpper().toStdString()); it != fmts.end())
     {
       qDebug() << "ShmdataInput: supported format" << format;
       this->pixel_format = it->second;
