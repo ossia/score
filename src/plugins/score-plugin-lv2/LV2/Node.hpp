@@ -19,7 +19,7 @@ struct lv2_node final : public ossia::graph_node
   std::vector<ossia::small_vector<Message, 2>> m_message_for_atom_ins;
 
   LilvInstance* fInstance{};
-  std::unique_ptr<uint8_t> timePositionBuffer{};
+  std::unique_ptr<uint8_t[]> timePositionBuffer{};
   struct MatchedPort {
     int port;
     AtomBuffer* buffer{};
@@ -157,7 +157,7 @@ struct lv2_node final : public ossia::graph_node
     if(!m_atom_timePosition_midi.empty() || !m_atom_timePosition_owned.empty())
     {
       // inspired from QTractor code, (c) RNCBC
-      timePositionBuffer.reset(new uint8_t[256]);
+      timePositionBuffer = std::make_unique<uint8_t[]>(256);
     }
 
     lilv_instance_activate(fInstance);
