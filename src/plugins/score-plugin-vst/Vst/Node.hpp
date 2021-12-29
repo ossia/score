@@ -353,6 +353,9 @@ public:
   {
     if constexpr (!UseDouble)
     {
+      if(samples <= 0)
+        return;
+
       SCORE_ASSERT(m_bs >= offset + samples);
 
       const auto max_i = std::max(2, this->fx->fx->numInputs);
@@ -406,6 +409,9 @@ public:
   {
     if constexpr (UseDouble)
     {
+      if(samples <= 0)
+        return;
+
       SCORE_ASSERT(m_bs >= offset + samples);
 
       const auto max_i = std::max(2, this->fx->fx->numInputs);
