@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "IntervalHeader.hpp"
 
+#include "IntervalPresenter.hpp"
 #include "IntervalView.hpp"
 
 #include <QCursor>
@@ -23,6 +24,7 @@ void IntervalHeader::mousePressEvent(QGraphicsSceneMouseEvent* event)
   auto& skin = score::Skin::instance();
   this->setCursor(skin.CursorClosedHand);
   m_view->mousePressEvent(event);
+  m_view->presenter().pressed(event->scenePos());
   event->accept();
 }
 
