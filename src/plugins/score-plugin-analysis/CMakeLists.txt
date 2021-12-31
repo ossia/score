@@ -41,7 +41,8 @@ add_library(
 
 target_compile_definitions(score_plugin_analysis PRIVATE USE_OSSIA_FFT=1)
 target_include_directories(score_plugin_analysis PRIVATE "${3RDPARTY_FOLDER}/Gist/src")
-target_link_libraries(score_plugin_analysis PUBLIC score_plugin_engine)
+target_link_libraries(score_plugin_analysis PUBLIC score_plugin_engine
+  "$<BUILD_INTERFACE:kfr>")
 
 setup_score_plugin(score_plugin_analysis)
 

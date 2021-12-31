@@ -1,6 +1,9 @@
 #pragma once
 #include <Engine/Node/SimpleApi.hpp>
 #include <Analysis/GistState.hpp>
+#include <kfr/base.hpp>
+#include <kfr/dsp.hpp>
+
 #include <numeric>
 namespace Analysis
 {
@@ -21,7 +24,24 @@ struct Pitch
     static const constexpr value_out value_outs[]{"out"};
   };
 
-  using State = GistState;
+  struct State : GistState
+  {
+    State():
+      hipass{kfr::to_sos(kfr::iir_highpass(kfr::butterworth<kfr::fbase>(12), 200, this->rate))}
+    {
+    }
+
+    void filter(ossia::audio_port& in)
+    {
+      for(ossia::audio_channel& chan : in)
+      {
+        hipass.apply(chan.data(), chan.size());
+      }
+    }
+
+    kfr::biquad_filter<kfr::fbase, 32> hipass;
+  };
+
   using control_policy = ossia::safe_nodes::last_tick;
 
   static void
@@ -31,6 +51,10 @@ struct Pitch
       ossia::exec_state_facade e,
       State& st)
   {
+    if(in.channels() == 0)
+      return;
+
+    st.filter(const_cast<ossia::audio_port&>(in));
     st.process<&Gist<double>::pitch>(in, out, tk, e);
   }
 };

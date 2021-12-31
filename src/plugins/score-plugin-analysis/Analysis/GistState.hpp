@@ -27,6 +27,7 @@ struct GistState
   , bufferSize{bufferSize}
   , rate{rate}
   {
+    output.reserve(2);
     gist.reserve(2);
     gist.emplace_back(bufferSize, rate);
     gist.emplace_back(bufferSize, rate);
@@ -71,9 +72,13 @@ struct GistState
     auto git = gist.begin();
     for(auto& channel : audio.get())
     {
-      if(bufferSize == std::ssize(channel))
+      const auto samples = std::ssize(channel);
+      if(samples > 0)
       {
-        git->processAudioFrame(channel.data(), channel.size());
+        if(git->getAudioFrameSize() != samples)
+          git->setAudioFrameSize(samples);
+
+        git->processAudioFrame(channel.data(), samples);
         *it = float(((*git).*Func)());
       }
       else
@@ -101,9 +106,13 @@ struct GistState
     auto git = gist.begin();
     for(auto& channel : audio.get())
     {
-      if(bufferSize == std::ssize(channel))
+      const auto samples = std::ssize(channel);
+      if(samples > 0)
       {
-        git->processAudioFrame(channel.data(), channel.size(), gain, 0.0);
+        if(git->getAudioFrameSize() != samples)
+          git->setAudioFrameSize(samples);
+
+        git->processAudioFrame(channel.data(), samples, gain, 0.0);
         *it = float((git->*Func)());
       }
       else
@@ -131,9 +140,13 @@ struct GistState
     auto git = gist.begin();
     for(auto& channel : audio.get())
     {
-      if(bufferSize == std::ssize(channel))
+      const auto samples = std::ssize(channel);
+      if(samples > 0)
       {
-        git->processAudioFrame(channel.data(), channel.size(), gain, gate);
+        if(git->getAudioFrameSize() != samples)
+          git->setAudioFrameSize(samples);
+
+        git->processAudioFrame(channel.data(), samples, gain, gate);
         float r{};
         *it = r = float(((*git).*Func)());
       }
@@ -165,9 +178,13 @@ struct GistState
       auto git = gist.begin();
       for(auto& channel : audio.get())
       {
-        if(bufferSize == std::ssize(channel))
+        const auto samples = std::ssize(channel);
+        if(samples > 0)
         {
-          git->processAudioFrame(channel.data(), channel.size(), gain, gate);
+          if(git->getAudioFrameSize() != samples)
+            git->setAudioFrameSize(samples);
+
+          git->processAudioFrame(channel.data(), samples, gain, gate);
           float r{};
           *it = r = float(((*git).*Func)());
           bang |= (r > 1.f);
@@ -202,9 +219,13 @@ struct GistState
     auto git = gist.begin();
     for(auto& channel : audio.get())
     {
-      if(bufferSize == std::ssize(channel))
+      const auto samples = std::ssize(channel);
+      if(samples > 0)
       {
-        git->processAudioFrame(channel.data(), channel.size());
+        if(git->getAudioFrameSize() != samples)
+          git->setAudioFrameSize(samples);
+
+        git->processAudioFrame(channel.data(), samples);
 
         auto& res = ((*git).*Func)();
         it->assign(res.begin(), res.end());
@@ -236,9 +257,13 @@ struct GistState
       auto git = gist.begin();
       for(auto& channel : audio.get())
       {
-        if(bufferSize == std::ssize(channel))
+        const auto samples = std::ssize(channel);
+        if(samples > 0)
         {
-          git->processAudioFrame(channel.data(), channel.size(), gain, gate);
+          if(git->getAudioFrameSize() != samples)
+            git->setAudioFrameSize(samples);
+
+          git->processAudioFrame(channel.data(), samples, gain, gate);
 
           auto& res = ((*git).*Func)();
           it->assign(res.begin(), res.end());
