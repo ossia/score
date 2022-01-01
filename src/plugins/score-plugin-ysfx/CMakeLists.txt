@@ -7,14 +7,13 @@ endif()
 score_common_setup()
 
 # Packages
-find_library(YSFX_LIBRARY NAMES ysfx)
-find_path(YSFX_HEADERS ysfx.h)
-
-if(NOT YSFX_LIBRARY)
+find_package(Freetype)
+if(NOT TARGET Freetype::Freetype)
   return()
 endif()
 
-if(NOT YSFX_HEADERS)
+find_package(Ysfx)
+if(NOT TARGET Ysfx::Ysfx)
   return()
 endif()
 
@@ -50,8 +49,10 @@ score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 target_include_directories(${PROJECT_NAME} PUBLIC
   ${YSFX_HEADERS}
 )
-target_link_libraries(${PROJECT_NAME} PUBLIC
-                     score_lib_base score_plugin_engine
-                     ${YSFX_LIBRARY} fontconfig freetype)
+target_link_libraries(
+  ${PROJECT_NAME} PUBLIC
+  score_lib_base score_plugin_engine
+  Ysfx::Ysfx Freetype::Freetype
+)
 
 setup_score_plugin(${PROJECT_NAME})
