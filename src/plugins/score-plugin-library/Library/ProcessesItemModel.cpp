@@ -49,6 +49,7 @@ ProcessNode& ProcessesItemModel::addCategory(const QString& c)
       {
         node = &n;
         found = true;
+        icon = {}; // Icon only the first time
         break;
       }
     }

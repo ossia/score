@@ -33,6 +33,7 @@ namespace Process
 const QIcon& getCategoryIcon(const QString& category) noexcept
 {
   static const std::map<QString, QIcon> categoryIcon{
+      {"Analysis", makeIcon(QStringLiteral(":/icons/analysis.png"))},
       {"Audio", makeIcon(QStringLiteral(":/icons/audio.png"))},
       {"Mappings", makeIcon(QStringLiteral(":/icons/filter.png"))},
       {"Midi", makeIcon(QStringLiteral(":/icons/midi.png"))},
