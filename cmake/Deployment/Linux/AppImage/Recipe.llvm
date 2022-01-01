@@ -5,19 +5,12 @@ export OSSIA_SDK=/opt/ossia-sdk
 export QT_DIR=$OSSIA_SDK/qt5-static
 export QTDIR=$OSSIA_SDK/qt5-static
 export NPROC=$(nproc)
-export PATH=$OSSIA_SDK/llvm/bin:/opt/rh/rh-git218/root/usr/bin/:$PATH
-export GIT=/opt/rh/rh-git218/root/usr/bin/git
-export LD_LIBRARY_PATH=$OSSIA_SDK/llvm/lib:/opt/rh/rh-git218/root/usr/lib:/opt/rh/httpd24/root/usr/lib64
+export PATH=$OSSIA_SDK/llvm/bin:$PATH
+export GIT=/usr/bin/git
+export LD_LIBRARY_PATH=$OSSIA_SDK/llvm/lib
 
 export CC=$OSSIA_SDK/llvm/bin/clang
 export CXX=$OSSIA_SDK/llvm/bin/clang++
-
-ln -s /opt/rh/rh-git218/root/usr/bin/git /usr/bin/git || true
-
-# Set-up paths
-export CMAKE_PATH=$(find $PWD/cmake-*/ -type d | head -n 1)bin
-export CMAKE="$CMAKE_PATH/cmake"
-export PATH="$CMAKE_PATH:$PATH"
 
 export BUILD_DIR=/build
 export APP=score
@@ -114,6 +107,7 @@ cp $APP_DIR/usr/share/pixmaps/ossia-score.png $APP_DIR/
     rm -f usr/lib/libwind.so.0 || true
     rm -f usr/lib/libz.so.1 || true
     rm -f usr/lib/libGL.so.1 || true
+    rm -f usr/lib/libEGL.so.1 || true
     rm -f usr/lib/libGLX.so.0 || true
     rm -f usr/lib/libX11.so.6 || true
     rm -f usr/lib/libX11-xcb.so.1 || true
@@ -139,7 +133,10 @@ cp $APP_DIR/usr/share/pixmaps/ossia-score.png $APP_DIR/
     rm -f usr/lib/libdbus-1.so.3 || true
     rm -f usr/lib/libdw.so.1 || true
     rm -f usr/lib/libelf.so.1 || true
-    rm -f usr/lib/libgcrypt.so.11 || true
+    rm -f usr/lib/libmount.so.1 || true
+    rm -f usr/lib/libgcrypt.so.* || true
+    rm -f usr/lib/libblkid.so.* || true
+    rm -f usr/lib/libdrm.so.* || true
     rm -f usr/lib/liblz4.so.1 || true
     rm -f usr/lib/liblzma.so.5 || true
     rm -f usr/lib/libpcre.so.1 || true

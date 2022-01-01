@@ -4,9 +4,9 @@ echo "Running on OSTYPE: '$OSTYPE'"
 
 export LATEST_TAG=$(git describe --tags --abbrev=0)
 export LATEST_TAG_NOV=$(echo "$LATEST_TAG" | sed "s/v//")
-export BASE_SDK=https://github.com/ossia/score-sdk/releases/download/sdk21
-export BOOST_SDK=https://github.com/ossia/score-sdk/releases/download/sdk22
-export BOOST_VER=boost_1_77_0
+export BASE_SDK=https://github.com/ossia/score-sdk/releases/download/sdk23
+export BOOST_SDK=https://github.com/ossia/score-sdk/releases/download/sdk23
+export BOOST_VER=boost_1_78_0
 export LATEST_RELEASE=https://github.com/ossia/score/releases/download/$LATEST_TAG
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
