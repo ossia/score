@@ -30,6 +30,8 @@ if(OSSIA_SDK)
       "${OSSIA_SDK}/zlib"
       "${OSSIA_SDK}/faust"
       "${OSSIA_SDK}/openssl"
+      "${OSSIA_SDK}/freetype"
+      "${OSSIA_SDK}/ysfx"
       "${OSSIA_SDK}/portaudio/lib/cmake"
       "${OSSIA_SDK}/portaudio/lib/cmake/portaudio"
       "${CMAKE_PREFIX_PATH}")
