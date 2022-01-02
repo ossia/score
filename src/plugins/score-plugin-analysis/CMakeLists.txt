@@ -44,8 +44,6 @@ target_include_directories(score_plugin_analysis PRIVATE "${3RDPARTY_FOLDER}/Gis
 target_link_libraries(score_plugin_analysis PUBLIC score_plugin_engine)
 if(TARGET kfr)
   target_link_libraries(score_plugin_analysis PUBLIC "$<BUILD_INTERFACE:kfr>")
-else()
-  target_include_directories(score_plugin_analysis PUBLIC "${OSSIA_3RDPARTY_FOLDER}/kfr/include")
 endif()
 setup_score_plugin(score_plugin_analysis)
 

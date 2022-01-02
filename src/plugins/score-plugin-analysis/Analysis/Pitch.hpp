@@ -1,8 +1,11 @@
 #pragma once
 #include <Engine/Node/SimpleApi.hpp>
 #include <Analysis/GistState.hpp>
+
+#if !defined(__ARM__)
 #include <kfr/base.hpp>
 #include <kfr/dsp.hpp>
+#endif
 
 #include <numeric>
 namespace Analysis
@@ -24,6 +27,9 @@ struct Pitch
     static const constexpr value_out value_outs[]{"out"};
   };
 
+#if defined(__ARM__)
+  using State = GistState;
+#else
   struct State : GistState
   {
     State():
@@ -41,7 +47,7 @@ struct Pitch
 
     kfr::biquad_filter<kfr::fbase, 32> hipass;
   };
-
+#endif
   using control_policy = ossia::safe_nodes::last_tick;
 
   static void
@@ -54,7 +60,9 @@ struct Pitch
     if(in.channels() == 0)
       return;
 
+#if !defined(__ARM__)
     st.filter(const_cast<ossia::audio_port&>(in));
+#endif
     st.process<&Gist<double>::pitch>(in, out, tk, e);
   }
 };
