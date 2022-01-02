@@ -85,7 +85,7 @@ endif()
 
 # Add hosting examples, it includes the validator (must be done before any plug-ins to support running the validator after building)
 set(SDK_IDE_HOSTING_EXAMPLES_FOLDER FOLDER "HostingExamples")
-add_subdirectory(public.sdk/samples/vst-hosting)
+# add_subdirectory(public.sdk/samples/vst-hosting)
 
 #-------------------------------------------------------------------------------
 # Here is added your own plug-ins folder location
