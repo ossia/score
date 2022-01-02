@@ -14,7 +14,8 @@ cmake $SCORE_DIR \
   -DSCORE_DYNAMIC_PLUGINS=1 \
   -DOSSIA_DISABLE_KFR=1 \
   -DOSSIA_FFT_FFTW=1 \
-  -DSCORE_PCH=1
+  -DSCORE_PCH=1 \
+  -DSCORE_DISABLED_PLUGINS=score-plugin-vst3
 
 cmake --build .
 cmake --build . --target install
