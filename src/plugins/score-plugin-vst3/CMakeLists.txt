@@ -93,6 +93,7 @@ elseif(APPLE)
       Vst3/UI/macOS/Window.mm
     PROPERTIES
       SKIP_UNITY_BUILD_INCLUSION 1
+      COMPILE_FLAGS -fobjc-arc
   )
 else()
   target_sources(${PROJECT_NAME} PRIVATE
