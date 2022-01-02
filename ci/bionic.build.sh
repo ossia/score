@@ -9,7 +9,7 @@ cmake .. \
   -DCMAKE_INSTALL_PREFIX=install \
   -DSCORE_DYNAMIC_PLUGINS=1 \
   -DCMAKE_UNITY_BUILD=1 \
-  -DCMAKE_EXE_LINKER_FLAGS="-lstdc++fs" # Needed for VST3
+  -DSCORE_DISABLED_PLUGINS=score-plugin-vst3 
 
 cmake --build .
 cmake --build . --target install
