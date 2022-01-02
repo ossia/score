@@ -93,6 +93,11 @@ elseif(APPLE)
       Vst3/UI/macOS/Window.mm
     PROPERTIES
       SKIP_UNITY_BUILD_INCLUSION 1
+  )
+
+  set_source_files_properties(
+      "${VST3_SDK_ROOT}/public.sdk/source/vst/hosting/module_mac.mm"
+    PROPERTIES
       COMPILE_OPTIONS -fobjc-arc
   )
 else()
