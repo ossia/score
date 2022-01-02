@@ -11,6 +11,7 @@
 #include <QWebSocketServer>
 
 #include <pluginterfaces/vst/ivstmessage.h>
+#include <base/source/fstring.h>
 
 #include <memory>
 #include <stdexcept>
@@ -54,7 +55,7 @@ struct HostApp final : public Steinberg::Vst::IHostApplication
         classID == Vst::IAttributeList::iid
         && interfaceID == Vst::IAttributeList::iid)
     {
-      *obj = new Vst::HostAttributeList;
+      *obj = Vst::HostAttributeList::make();
       return kResultTrue;
     }
     *obj = nullptr;
