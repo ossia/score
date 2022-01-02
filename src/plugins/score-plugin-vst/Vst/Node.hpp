@@ -195,7 +195,8 @@ public:
 
       events->numEvents = 32;
 
-      VstMidiEvent ev[32] = {};
+      VstMidiEvent ev[64] = {};
+      memset(&ev, 0, sizeof(ev));
 
       // All notes off
       for (int i = 0; i < 16; i++)
@@ -236,24 +237,34 @@ public:
         float* dummy = (float*)alloca(sizeof(float) * m_bs);
         std::fill_n(dummy, m_bs, 0.f);
 
+        float** input = (float**)alloca(
+              sizeof(float*) * std::max(2, this->fx->fx->numInputs));
+        for (int i = 0; i < this->fx->fx->numInputs; i++)
+          input[i] = dummy;
+
         float** output = (float**)alloca(
             sizeof(float*) * std::max(2, this->fx->fx->numOutputs));
         for (int i = 0; i < this->fx->fx->numOutputs; i++)
           output[i] = dummy;
 
-        fx->fx->processReplacing(fx->fx, output, output, m_bs);
+        fx->fx->processReplacing(fx->fx, input, output, m_bs);
       }
       else
       {
         double* dummy = (double*)alloca(sizeof(double) * m_bs);
         std::fill_n(dummy, m_bs, 0.);
 
+        double** input = (double**)alloca(
+              sizeof(double*) * std::max(2, this->fx->fx->numInputs));
+        for (int i = 0; i < this->fx->fx->numInputs; i++)
+          input[i] = dummy;
+
         double** output = (double**)alloca(
             sizeof(double*) * std::max(2, this->fx->fx->numOutputs));
         for (int i = 0; i < this->fx->fx->numOutputs; i++)
           output[i] = dummy;
 
-        fx->fx->processDoubleReplacing(fx->fx, output, output, m_bs);
+        fx->fx->processDoubleReplacing(fx->fx, input, output, m_bs);
       }
     }
   }
