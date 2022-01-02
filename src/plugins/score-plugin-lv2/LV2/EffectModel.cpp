@@ -513,10 +513,101 @@ void Model::reload()
 }
 }
 
+static const void*
+get_port_value(const char* port_symbol,
+               void*       user_data,
+               uint32_t*   size,
+               uint32_t*   type)
+{
+  return nullptr;
+  /*
+  TestContext* ctx = (TestContext*)user_data;
+
+  if (!strcmp(port_symbol, "input")) {
+    *size = sizeof(float);
+    *type = ctx->atom_Float;
+    return &ctx->in;
+  } else if (!strcmp(port_symbol, "output")) {
+    *size = sizeof(float);
+    *type = ctx->atom_Float;
+    return &ctx->out;
+  } else if (!strcmp(port_symbol, "control")) {
+    *size = sizeof(float);
+    *type = ctx->atom_Float;
+    return &ctx->control;
+  } else {
+    fprintf(
+      stderr, "error: get_port_value for nonexistent port `%s'\n", port_symbol);
+    *size = *type = 0;
+    return NULL;
+  }
+  */
+}
+
+#include <Process/Dataflow/PortFactory.hpp>
+
+static LilvState*
+state_from_instance(const LV2::Model& ctx)
+{
+  return lilv_state_new_from_instance(ctx.plugin,
+                                      ctx.effectContext.instance,
+                                      &ctx.hostContext->global->map,
+                                      nullptr,
+                                      nullptr,
+                                      nullptr,
+                                      nullptr,
+                                      nullptr,
+                                      nullptr,
+                                      LV2_STATE_IS_PORTABLE,
+                                      nullptr);
+}
+
+static
+QByteArray readLV2State(const LV2::Model& eff)
+{
+  auto& global = *eff.hostContext->global;
+  const auto state = state_from_instance(eff);
+  auto str = lilv_state_to_string(eff.hostContext->world.me, &global.map, &global.unmap, state, "urn:io.ossia:lv2state", nullptr);
+
+  QByteArray b(str);
+  lilv_state_free(state);
+  free(str);
+  return b;
+}
+
+static
+void restoreLV2State(LV2::Model& eff, const QByteArray& str)
+{
+  auto& global = *eff.hostContext->global;
+  const auto state = lilv_state_new_from_string(eff.hostContext->world.me, &global.map, str.constData());
+
+  lilv_state_restore(state, eff.effectContext.instance, nullptr, nullptr, LV2_STATE_IS_PORTABLE, nullptr);
+
+  lilv_state_free(state);
+}
+
+template<typename T>
+static void restore_ports(const T& src, const T& dst)
+{
+  for(std::size_t i = 0; i < std::min(src.size(), dst.size()); ++i)
+  {
+    if(src[i]->type() == dst[i]->type())
+    {
+      // FIXME not efficient at all...
+      dst[i]->loadData(src[i]->saveData());
+    }
+  }
+}
+
 template <>
 void DataStreamReader::read(const LV2::Model& eff)
 {
   m_stream << eff.effect();
+
+  readPorts(*this, eff.m_inlets, eff.m_outlets);
+
+  m_stream << readLV2State(eff);
+
   insertDelimiter();
 }
 
@@ -524,6 +615,32 @@ template <>
 void DataStreamWriter::write(LV2::Model& eff)
 {
   m_stream >> eff.m_effectPath;
+
+  eff.reload();
+
+  Process::Inlets inls;
+  Process::Outlets outls;
+
+  writePorts(
+      *this,
+      components.interfaces<Process::PortFactoryList>(),
+      inls,
+      outls,
+      &eff);
+
+  {
+    QByteArray str;
+    m_stream >> str;
+    restoreLV2State(eff, str);
+  }
+
+  {
+    restore_ports(inls, eff.inlets());
+    restore_ports(outls, eff.outlets());
+    (void)score::clearAndDeleteLater(inls);
+    (void)score::clearAndDeleteLater(outls);
+  }
+
   checkDelimiter();
 }
 
@@ -531,12 +648,35 @@ template <>
 void JSONReader::read(const LV2::Model& eff)
 {
   obj["Effect"] = eff.effect();
+  obj["State"] = readLV2State(eff);
+  readPorts(*this, eff.m_inlets, eff.m_outlets);
 }
 
 template <>
 void JSONWriter::write(LV2::Model& eff)
 {
   eff.m_effectPath = obj["Effect"].toString();
+
+  eff.reload();
+
+  Process::Inlets inls;
+  Process::Outlets outls;
+  writePorts(
+      *this,
+      components.interfaces<Process::PortFactoryList>(),
+      inls,
+      outls,
+      &eff);
+
+  if(auto st = obj.tryGet("State"))
+    restoreLV2State(eff, st->toByteArray());
+
+  {
+    restore_ports(inls, eff.inlets());
+    restore_ports(outls, eff.outlets());
+    (void)score::clearAndDeleteLater(inls);
+    (void)score::clearAndDeleteLater(outls);
+  }
 }
 
 namespace LV2

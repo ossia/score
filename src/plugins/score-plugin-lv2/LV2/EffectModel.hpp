@@ -51,7 +51,6 @@ public:
       : ProcessModel{vis, parent}
   {
     vis.writeTo(*this);
-    reload();
   }
 
   QString effect() const noexcept override { return m_effectPath; }
