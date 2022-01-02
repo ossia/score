@@ -17,6 +17,12 @@ elseif(APPLE)
   target_sources(ossia-score-vst3puppet PRIVATE
     "${VST3_SDK_ROOT}/public.sdk/source/vst/hosting/module_mac.mm"
   )
+  set_source_files_properties(
+      "${VST3_SDK_ROOT}/public.sdk/source/vst/hosting/module_mac.mm"
+    PROPERTIES
+      SKIP_UNITY_BUILD_INCLUSION 1
+      COMPILE_OPTIONS -fobjc-arc
+  )
 else()
   target_sources(ossia-score-vst3puppet PRIVATE
     "${VST3_SDK_ROOT}/public.sdk/source/vst/hosting/module_linux.cpp"
