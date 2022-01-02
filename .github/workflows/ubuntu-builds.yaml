@@ -4,7 +4,7 @@ on: push
 
 jobs:
   bionic_gcc:
-    name: Ubuntu (Bionic, GCC 10)
+    name: Ubuntu (Bionic, GCC 8)
     runs-on: ubuntu-latest
     container:
       image: ubuntu:bionic
