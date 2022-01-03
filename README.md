@@ -27,7 +27,6 @@ Releases are available for [Windows, Linux (via AppImage) and Mac OS X](https://
 * ArchLinux, OpenSUSE, Fedora, Debian, WASM, Raspberry Pi: [![Linux distro build](https://github.com/ossia/score/workflows/Linux%20distro%20build/badge.svg)](https://github.com/ossia/score/actions?query=workflow%3A%22Linux+distro+build%22)
 * Ubuntu Bionic, Focal on GCC, Clang: [![Ubuntu build](https://github.com/ossia/score/workflows/Ubuntu%20build/badge.svg)](https://github.com/ossia/score/actions?query=workflow%3A%22Ubuntu+build%22)
 * macOS (with Brew): [![macOS build](https://github.com/ossia/score/workflows/macOS%20build/badge.svg)](https://github.com/ossia/score/actions?query=workflow%3A%22macOS+build%22)
-* Windows (MSVC): [![Appveyor Status](https://ci.appveyor.com/api/projects/status/github/ossia/score?branch=master&svg=true)](https://ci.appveyor.com/project/JeanMichalCelerier/score) 
 * [![OpenHub](https://www.openhub.net/p/score/widgets/project_thin_badge?format=gif)](https://www.openhub.net/p/score)
 * ossia score uses [CppDepend](https://www.cppdepend.com/) to ensure consistent code quality improvements ; please check it out !
 
