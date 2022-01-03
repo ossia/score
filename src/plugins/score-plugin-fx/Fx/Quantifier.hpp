@@ -12,7 +12,7 @@ struct Node
 {
   struct Metadata : Control::Meta_base
   {
-    static const constexpr auto prettyName = "Quantifier";
+    static const constexpr auto prettyName = "Midi quantify";
     static const constexpr auto objectKey = "Quantifier";
     static const constexpr auto category = "Midi";
     static const constexpr auto author = "ossia score";

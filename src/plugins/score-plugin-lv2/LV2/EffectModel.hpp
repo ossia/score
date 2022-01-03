@@ -23,7 +23,7 @@ PROCESS_METADATA(
     "LV2",
     "LV2",
     Process::ProcessCategory::Other,
-    "Audio",
+    "Plugins",
     "LV2 plug-in",
     "ossia score",
     {},

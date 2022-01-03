@@ -27,7 +27,7 @@ PROCESS_METADATA(
     "Jit",
     "Bytebeat",
     Process::ProcessCategory::Script,
-    "Script",
+    "Audio",
     "Run bytebeat code",
     "ossia score",
     QStringList{},

@@ -125,7 +125,7 @@ struct Node
   {
     static const constexpr auto prettyName = "Value filter";
     static const constexpr auto objectKey = "ValueFilter";
-    static const constexpr auto category = "Mappings";
+    static const constexpr auto category = "Control/Mappings";
     static const constexpr auto author = "ossia score";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::Mapping;

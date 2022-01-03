@@ -15,7 +15,7 @@ PROCESS_METADATA(
     "PureData",
     "PureData",
     Process::ProcessCategory::Script,
-    "Script",
+    "Plugins",
     "Embed PureData in score",
     "ossia and the Pd team",
     {},

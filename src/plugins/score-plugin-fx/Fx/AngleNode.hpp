@@ -10,7 +10,7 @@ struct Node
   {
     static const constexpr auto prettyName = "Angle mapper";
     static const constexpr auto objectKey = "AngleMapper";
-    static const constexpr auto category = "Mappings";
+    static const constexpr auto category = "Control/Mappings";
     static const constexpr auto author = "ossia score";
     static const constexpr auto kind = Process::ProcessCategory::Mapping;
     static const constexpr auto description = "Map the variation of an angle";

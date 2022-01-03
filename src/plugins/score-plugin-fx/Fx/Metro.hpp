@@ -12,7 +12,7 @@ struct Node
   {
     static const constexpr auto prettyName = "Free metronome";
     static const constexpr auto objectKey = "Metro";
-    static const constexpr auto category = "Control";
+    static const constexpr auto category = "Control/Generators";
     static const constexpr auto author = "ossia score";
     static const constexpr auto kind = Process::ProcessCategory::Generator;
     static const constexpr auto description

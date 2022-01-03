@@ -13,7 +13,7 @@ PROCESS_METADATA(
     "video",                          // Internal name
     "Video",                          // Pretty name
     Process::ProcessCategory::Visual, // Category
-    "GFX",                            // Category
+    "Visuals",                            // Category
     "Display a video",                // Description
     "ossia team",                     // Author
     (QStringList{"gfx", "video"}),    // Tags

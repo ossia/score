@@ -98,7 +98,7 @@ struct Node
   {
     static const constexpr auto prettyName = "LFO (old)";
     static const constexpr auto objectKey = "LFO";
-    static const constexpr auto category = "Control";
+    static const constexpr auto category = "Control/Generators";
     static const constexpr auto author = "ossia score";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::Generator | Process::ProcessCategory::Deprecated;
@@ -362,7 +362,7 @@ struct Node
   {
     static const constexpr auto prettyName = "LFO";
     static const constexpr auto objectKey = "LFO";
-    static const constexpr auto category = "Control";
+    static const constexpr auto category = "Control/Generators";
     static const constexpr auto author = "ossia score";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::Generator;

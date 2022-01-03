@@ -406,7 +406,7 @@ struct Node
 {
   struct Metadata : Control::Meta_base
   {
-    static const constexpr auto prettyName = "MIDI Pitch";
+    static const constexpr auto prettyName = "Midi Pitch";
     static const constexpr auto objectKey = "PitchToValue";
     static const constexpr auto category = "Midi";
     static const constexpr auto author = "ossia score";

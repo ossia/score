@@ -9,9 +9,9 @@ struct Node
 {
   struct Metadata : Control::Meta_base
   {
-    static const constexpr auto prettyName = "Custom Mapping (Value)";
+    static const constexpr auto prettyName = "Expression Value Filter";
     static const constexpr auto objectKey = "MathMapping";
-    static const constexpr auto category = "Control";
+    static const constexpr auto category = "Control/Mappings";
     static const constexpr auto author = "ossia score, ExprTK (Arash Partow)";
     static const constexpr auto kind = Process::ProcessCategory::Mapping;
     static const constexpr auto description
@@ -111,7 +111,7 @@ struct Node
 {
   struct Metadata : Control::Meta_base
   {
-    static const constexpr auto prettyName = "Audio Filter";
+    static const constexpr auto prettyName = "Expression Audio Filter";
     static const constexpr auto objectKey = "MathAudioFilter";
     static const constexpr auto category = "Audio";
     static const constexpr auto author = "ossia score, ExprTK (Arash Partow)";
@@ -293,7 +293,7 @@ struct Node
   {
     static const constexpr auto prettyName = "Micromap";
     static const constexpr auto objectKey = "MicroMapping";
-    static const constexpr auto category = "Control";
+    static const constexpr auto category = "Control/Mappings";
     static const constexpr auto author = "ossia score, ExprTK (Arash Partow)";
     static const constexpr auto kind = Process::ProcessCategory::Mapping;
     static const constexpr auto description

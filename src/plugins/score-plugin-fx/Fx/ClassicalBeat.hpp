@@ -8,9 +8,9 @@ struct Node
 {
   struct Metadata : Control::Meta_base
   {
-    static const constexpr auto prettyName = "Impulse Metronome";
+    static const constexpr auto prettyName = "Beat Metronome";
     static const constexpr auto objectKey = "ImpulseMetronome";
-    static const constexpr auto category = "Control";
+    static const constexpr auto category = "Control/Generators";
     static const constexpr auto author = "ossia score";
     static const constexpr auto kind = Process::ProcessCategory::Generator;
     static const constexpr auto description

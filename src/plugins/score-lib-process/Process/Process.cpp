@@ -35,10 +35,10 @@ const QIcon& getCategoryIcon(const QString& category) noexcept
   static const std::map<QString, QIcon> categoryIcon{
       {"Analysis", makeIcon(QStringLiteral(":/icons/analysis.png"))},
       {"Audio", makeIcon(QStringLiteral(":/icons/audio.png"))},
-      {"Mappings", makeIcon(QStringLiteral(":/icons/filter.png"))},
+      {"Plugins", makeIcon(QStringLiteral(":/icons/filter.png"))},
       {"Midi", makeIcon(QStringLiteral(":/icons/midi.png"))},
       {"Control", makeIcon(QStringLiteral(":/icons/controls.png"))},
-      {"GFX", makeIcon(QStringLiteral(":/icons/gfx.png"))},
+      {"Visuals", makeIcon(QStringLiteral(":/icons/gfx.png"))},
       {"Automations", makeIcon(QStringLiteral(":/icons/automation.png"))},
       {"Impro", makeIcon(QStringLiteral(":/icons/controls.png"))},
       {"Script", makeIcon(QStringLiteral(":/icons/script.png"))},

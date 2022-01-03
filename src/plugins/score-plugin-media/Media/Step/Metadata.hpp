@@ -16,7 +16,7 @@ PROCESS_METADATA(
     "Step",
     "Step sequencer",
     Process::ProcessCategory::Generator,
-    "Control",
+    "Control/Generators",
     "Generates messages rhytmically on a given scale",
     "ossia score",
     {},

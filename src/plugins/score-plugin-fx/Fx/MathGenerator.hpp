@@ -110,9 +110,9 @@ struct Node
 {
   struct Metadata : Control::Meta_base
   {
-    static const constexpr auto prettyName = "Value Generator";
+    static const constexpr auto prettyName = "Expression Value Generator";
     static const constexpr auto objectKey = "MathGenerator";
-    static const constexpr auto category = "Control";
+    static const constexpr auto category = "Control/Generators";
     static const constexpr auto author = "ossia score, ExprTK (Arash Partow)";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::Generator;
@@ -195,7 +195,7 @@ struct Node
 {
   struct Metadata : Control::Meta_base
   {
-    static const constexpr auto prettyName = "Audio Generator";
+    static const constexpr auto prettyName = "Expression Audio Generator";
     static const constexpr auto objectKey = "MathAudioGenerator";
     static const constexpr auto category = "Audio";
     static const constexpr auto author = "ossia score, ExprTK (Arash Partow)";

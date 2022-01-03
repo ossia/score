@@ -14,7 +14,7 @@ struct Node
   using Note = Control::Note;
   struct Metadata : Control::Meta_base
   {
-    static const constexpr auto prettyName = "Pulse to Note";
+    static const constexpr auto prettyName = "Pulse to Midi";
     static const constexpr auto objectKey = "VelToNote";
     static const constexpr auto category = "Midi";
     static const constexpr auto author = "ossia score";

@@ -34,7 +34,7 @@ PROCESS_METADATA(
     "Faust",
     "Faust",
     Process::ProcessCategory::Script,
-    "Audio",
+    "Plugins",
     "Faust process. Refer to https://faust.grame.fr",
     "GRAME and the Faust team",
     {"Script"},

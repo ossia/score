@@ -23,7 +23,7 @@ PROCESS_METADATA(
     "VST",
     "VST",
     Process::ProcessCategory::Other,
-    "Audio",
+    "Plugins",
     "VST plug-in",
     "VST is a trademark of Steinberg Media Technologies GmbH",
     {},

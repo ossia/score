@@ -13,7 +13,7 @@ PROCESS_METADATA(
     "images",                          // Internal name
     "Images",                          // Pretty name
     Process::ProcessCategory::Visual,  // Category
-    "GFX",                             // Category
+    "Visuals",                             // Category
     "Display a set of images",         // Description
     "ossia team",                      // Author
     (QStringList{"gfx", "image"}),     // Tags
