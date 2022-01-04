@@ -27,6 +27,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/Tempo/TempoProcess.hpp>
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
 #include <ossia/detail/ssize.hpp>
 
@@ -751,6 +752,9 @@ void IntervalModel::on_addProcess(Process::ProcessModel& p)
     {
       Slot slt;
       slt.nodal = true;
+      slt.height = context()
+          .app.settings<Scenario::Settings::Model>()
+          .getSlotHeight();
       slt.processes.push_back(p.id());
       m_smallView.push_back(std::move(slt));
       slotAdded({m_smallView.size() - 1, Slot::SmallView});

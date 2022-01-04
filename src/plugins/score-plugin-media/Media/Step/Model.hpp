@@ -10,13 +10,15 @@
 
 #include <verdigris>
 
+#include <score_plugin_media_export.h>
 Q_DECLARE_METATYPE(std::size_t)
 W_REGISTER_ARGTYPE(std::size_t)
 namespace Media
 {
 namespace Step
 {
-class Model final : public Process::ProcessModel
+// FIXME export is only needed for the js api in dll build...
+class SCORE_PLUGIN_MEDIA_EXPORT Model final : public Process::ProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Media::Step::Model)

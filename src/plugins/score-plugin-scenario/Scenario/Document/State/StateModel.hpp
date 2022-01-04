@@ -141,6 +141,7 @@ public:
   eventChanged(Id<Scenario::EventModel> oldev, Id<Scenario::EventModel> newev)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, eventChanged, oldev, newev)
 
+  PROPERTY(double, heightPercentage READ heightPercentage WRITE setHeightPercentage NOTIFY heightPercentageChanged)
 private:
   void statesUpdated_slt();
   void init(); // TODO check if other model elements need an init method too.

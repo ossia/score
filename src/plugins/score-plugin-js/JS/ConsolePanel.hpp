@@ -4,10 +4,12 @@
 #include <Explorer/Commands/Add/AddAddress.hpp>
 #include <Explorer/Commands/Add/LoadDevice.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Process/Commands/EditPort.hpp>
 #include <JS/Commands/ScriptMacro.hpp>
 #include <Protocols/OSC/OSCProtocolFactory.hpp>
 #include <Protocols/OSC/OSCSpecificSettings.hpp>
 
+#include <State/OSSIASerializationImpl.hpp>
 #include <score/actions/ActionManager.hpp>
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/plugins/panel/PanelDelegate.hpp>
@@ -40,7 +42,13 @@
 #include <Curve/Commands/UpdateCurve.hpp>
 #include <Curve/CurveModel.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
+#include <Curve/Segment/Linear/LinearSegment.hpp>
 
+#include <Media/Step/Model.hpp>
+#include <Media/Step/Commands.hpp>
+
+W_REGISTER_ARGTYPE(QVector<QString>)
+W_REGISTER_ARGTYPE(QVector<double>)
 namespace JS
 {
 class JsUtils : public QObject
@@ -161,26 +169,27 @@ public:
   }
   W_SLOT(createAddress)
 
-  void createProcess(QObject* interval, QString name, QString data)
+  QObject* createProcess(QObject* interval, QString name, QString data)
   {
     auto doc = ctx();
     if (!doc)
-      return;
+      return nullptr;
     auto itv = qobject_cast<Scenario::IntervalModel*>(interval);
     if (!itv)
-      return;
+      return nullptr;
 
     auto& factories = doc->app.interfaces<Process::ProcessFactoryList>();
     auto [m, _] = macro(*doc);
 
     for(auto& fact : factories)
     {
-      if(fact.prettyName().compare(name, Qt::CaseInsensitive))
+      if(fact.prettyName().compare(name, Qt::CaseInsensitive) == 0)
       {
-        m->createProcess(*itv, fact.concreteKey(), data, {});
-        break;
+        auto p = m->createProcessInNewSlot(*itv, fact.concreteKey(), data, {});
+        return p;
       }
     }
+    return nullptr;
   }
   W_SLOT(createProcess)
 
@@ -254,7 +263,7 @@ public:
       return nullptr;
 
     auto t0 = parseDuration(startTime);
-    auto tdur = parseDuration(startTime);
+    auto tdur = parseDuration(duration);
 
     auto [m, _] = macro(*doc);
     auto& itv = m->createBox(*scenar, t0, t0 + tdur, y);
@@ -262,52 +271,410 @@ public:
   }
   W_SLOT(createBox)
 
-  void setCurvePoints(QObject* process, QVector<QVariantList> points)
+
+  QObject* createIntervalAfter(QObject* obj, QString duration, double y)
+  {
+    auto doc = ctx();
+    if (!doc)
+      return nullptr;
+
+    auto state = qobject_cast<Scenario::StateModel*>(obj);
+    if (!state)
+      return nullptr;
+
+    auto scenar = qobject_cast<Scenario::ProcessModel*>(state->parent());
+    if(!scenar)
+      return nullptr;
+
+
+    auto& ev = Scenario::parentEvent(*state, *scenar);
+    const auto t0 = ev.date();
+    const auto tdur = parseDuration(duration);
+    auto [m, _] = macro(*doc);
+
+    if(state->nextInterval())
+    {
+      auto& new_state = m->createState(*scenar, ev.id(), y);
+      auto& itv = m->createIntervalAfter(*scenar, new_state.id(), {t0 + tdur, y});
+      return &itv;
+    }
+    else
+    {
+      auto& itv = m->createIntervalAfter(*scenar, state->id(), {t0 + tdur, y});
+      return &itv;
+    }
+  }
+  W_SLOT(createIntervalAfter)
+
+  QObject* port(QObject* obj, QString name)
+  {
+    auto doc = ctx();
+    if (!doc)
+      return nullptr;
+    auto proc = qobject_cast<Process::ProcessModel*>(obj);
+    if(!proc)
+      return nullptr;
+
+    for(auto p : proc->inlets()) {
+      if(p->name() == name)
+        return p;
+    }
+    for(auto p : proc->outlets()) {
+      if(p->name() == name)
+        return p;
+    }
+    return nullptr;
+  }
+  W_SLOT(port)
+
+  QObject* inlet(QObject* obj, int index)
+  {
+    auto doc = ctx();
+    if (!doc)
+      return nullptr;
+    auto proc = qobject_cast<Process::ProcessModel*>(obj);
+    if(!proc)
+      return nullptr;
+    if(index < 0 || index >= std::ssize(proc->inlets()))
+      return nullptr;
+
+    return proc->inlets()[index];
+  }
+  W_SLOT(inlet)
+
+  int inlets(QObject* obj)
+  {
+    auto doc = ctx();
+    if (!doc)
+      return 0;
+    auto proc = qobject_cast<Process::ProcessModel*>(obj);
+    if(!proc)
+      return 0;
+    return std::ssize(proc->inlets());
+  }
+  W_SLOT(inlets)
+
+  QObject* outlet(QObject* obj, int index)
+  {
+    auto doc = ctx();
+    if (!doc)
+      return nullptr;
+    auto proc = qobject_cast<Process::ProcessModel*>(obj);
+    if(!proc)
+      return nullptr;
+    if(index < 0 || index >= std::ssize(proc->outlets()))
+      return nullptr;
+
+    return proc->outlets()[index];
+  }
+  W_SLOT(outlet)
+
+  int outlets(QObject* obj)
+  {
+    auto doc = ctx();
+    if (!doc)
+      return 0;
+    auto proc = qobject_cast<Process::ProcessModel*>(obj);
+    if(!proc)
+      return 0;
+    return std::ssize(proc->outlets());
+  }
+  W_SLOT(outlets)
+
+  void setAddress(QObject* obj, QString addr)
   {
     auto doc = ctx();
     if (!doc)
       return;
-    
+    auto proc = qobject_cast<Process::Port*>(obj);
+    if(!proc)
+      return;
+    auto a = State::parseAddressAccessor(addr);
+    if (!a)
+      return;
+
+    auto [m, _] = macro(*doc);
+    m->setProperty<Process::Port::p_address>(*proc, std::move(*a));
+  }
+  W_SLOT(setAddress)
+
+  void setValue(QObject* obj, double value)
+  {
+    auto doc = ctx();
+    if (!doc)
+      return;
+    auto port = qobject_cast<Process::ControlInlet*>(obj);
+    if(!port)
+      return;
+    auto [m, _] = macro(*doc);
+    m->setProperty<Process::ControlInlet::p_value>(*port, float(value));
+  }
+  W_SLOT(setValue, (QObject*, double))
+
+  void setValue(QObject* obj, QString value)
+  {
+    auto doc = ctx();
+    if (!doc)
+      return;
+    auto port = qobject_cast<Process::ControlInlet*>(obj);
+    if(!port)
+      return;
+    auto [m, _] = macro(*doc);
+    m->setProperty<Process::ControlInlet::p_value>(*port, value.toStdString());
+  }
+  W_SLOT(setValue, (QObject*, QString))
+
+  void setValue(QObject* obj, bool value)
+  {
+    auto doc = ctx();
+    if (!doc)
+      return;
+    auto port = qobject_cast<Process::ControlInlet*>(obj);
+    if(!port)
+      return;
+    auto [m, _] = macro(*doc);
+    m->setProperty<Process::ControlInlet::p_value>(*port, value);
+  }
+  W_SLOT(setValue, (QObject*, bool))
+
+  QString valueType(QObject* obj)
+  {
+    auto doc = ctx();
+    if (!doc)
+      return {};
+    auto port = qobject_cast<Process::ControlInlet*>(obj);
+    if(!port)
+      return {};
+
+    auto& v = port->value();
+    if(!v.valid())
+      return {};
+
+    QString ret;
+    ossia::apply_nonnull([&] (const auto& t) {
+      using type = std::remove_cvref_t<decltype(t)>;
+      ret = Metadata<Json_k, type>::get();
+    }, v);
+    return ret;
+  }
+  W_SLOT(valueType)
+
+  double min(QObject* obj)
+  {
+    auto doc = ctx();
+    if (!doc)
+      return {};
+    auto port = qobject_cast<Process::ControlInlet*>(obj);
+    if(!port)
+      return {};
+
+    return port->domain().get().convert_min<double>();
+  }
+  W_SLOT(min)
+
+  double max(QObject* obj)
+  {
+    auto doc = ctx();
+    if (!doc)
+      return {};
+    auto port = qobject_cast<Process::ControlInlet*>(obj);
+    if(!port)
+      return {};
+
+    return port->domain().get().convert_max<double>();
+  }
+  W_SLOT(max)
+
+  QVector<QString> enumValues(QObject* obj)
+  {
+    auto doc = ctx();
+    if (!doc)
+      return {};
+    auto port = qobject_cast<Process::ControlInlet*>(obj);
+    if(!port)
+      return {};
+
+    QVector<QString> ret;
+    auto vals = ossia::get_values(port->domain().get());
+    for(auto& v : vals) {
+      if(auto str = v.target<std::string>()) {
+        ret.push_back(QString::fromStdString(*str));
+      }
+    }
+    return ret;
+  }
+  W_SLOT(enumValues)
+
+  QObject* startState(QObject* obj)
+  {
+    auto doc = ctx();
+    if (!doc)
+      return nullptr;
+    auto itv = qobject_cast<Scenario::IntervalModel*>(obj);
+    if (!itv)
+      return nullptr;
+    auto scenar = qobject_cast<Scenario::ProcessModel*>(itv->parent());
+    if(!scenar)
+      return nullptr;
+
+    return &Scenario::startState(*itv, *scenar);
+  }
+  W_SLOT(startState)
+
+  QObject* startEvent(QObject* obj)
+  {
+    auto doc = ctx();
+    if (!doc)
+      return nullptr;
+    auto itv = qobject_cast<Scenario::IntervalModel*>(obj);
+    if (!itv)
+      return nullptr;
+    auto scenar = qobject_cast<Scenario::ProcessModel*>(itv->parent());
+    if(!scenar)
+      return nullptr;
+
+    return &Scenario::startEvent(*itv, *scenar);
+  }
+  W_SLOT(startEvent)
+
+  QObject* startSync(QObject* obj)
+  {
+    auto doc = ctx();
+    if (!doc)
+      return nullptr;
+    auto itv = qobject_cast<Scenario::IntervalModel*>(obj);
+    if (!itv)
+      return nullptr;
+    auto scenar = qobject_cast<Scenario::ProcessModel*>(itv->parent());
+    if(!scenar)
+      return nullptr;
+
+    return &Scenario::startTimeSync(*itv, *scenar);
+  }
+  W_SLOT(startSync)
+
+
+  QObject* endState(QObject* obj)
+  {
+    auto doc = ctx();
+    if (!doc)
+      return nullptr;
+    auto itv = qobject_cast<Scenario::IntervalModel*>(obj);
+    if (!itv)
+      return nullptr;
+    auto scenar = qobject_cast<Scenario::ProcessModel*>(itv->parent());
+    if(!scenar)
+      return nullptr;
+
+    return &Scenario::endState(*itv, *scenar);
+  }
+  W_SLOT(endState)
+
+  QObject* endEvent(QObject* obj)
+  {
+    auto doc = ctx();
+    if (!doc)
+      return nullptr;
+    auto itv = qobject_cast<Scenario::IntervalModel*>(obj);
+    if (!itv)
+      return nullptr;
+    auto scenar = qobject_cast<Scenario::ProcessModel*>(itv->parent());
+    if(!scenar)
+      return nullptr;
+
+    return &Scenario::endEvent(*itv, *scenar);
+  }
+  W_SLOT(endEvent)
+
+  QObject* endSync(QObject* obj)
+  {
+    auto doc = ctx();
+    if (!doc)
+      return nullptr;
+    auto itv = qobject_cast<Scenario::IntervalModel*>(obj);
+    if (!itv)
+      return nullptr;
+    auto scenar = qobject_cast<Scenario::ProcessModel*>(itv->parent());
+    if(!scenar)
+      return nullptr;
+
+    return &Scenario::endTimeSync(*itv, *scenar);
+  }
+  W_SLOT(endSync)
+
+  void setCurvePoints(QObject* process, QVector<QVariantList> points)
+  {
+    if(points.size() < 2)
+      return;
+
+    auto doc = ctx();
+    if (!doc)
+      return;
+
     auto proc = qobject_cast<Process::ProcessModel*>(process);
     if(!proc)
       return;
-    
+
     auto curve = proc->findChild<Curve::Model*>();
     if(!curve)
       return;
 
-    Curve::PointArraySegment seg{Id<Curve::SegmentModel>(0), nullptr};
-    // Curve::SegmentData dat;
-    // dat.id = Id<Curve::SegmentModel>(0);
-    // dat.start = {0, 0};
-    // dat.end = {1, 1};
-    // dat.type = Curve::PointArraySegment::static_concreteKey();
-    // Curve::PointArraySegmentData data;
-    //
-    // data.min_x = INT_MAX;
-    // data.min_y = INT_MAX;
-    // data.max_x = INT_MIN;
-    // data.max_y = INT_MIN;
-    //
     for(auto& pt : points) {
-      if(pt.size() == 2) {
-        auto x = pt[0].toDouble();
-        auto y = pt[1].toDouble();
-        seg.addPoint(x, y);
-        // if(x < data.min_x) data.min_x = x;
-        // if(y < data.min_y) data.min_y = y;
-        //
-        // if(x > data.max_x) data.max_x = x;
-        // if(y > data.max_y) data.max_y = y;
-        // data.m_points.push_back({x, y});
-      }
+      if(pt.size() < 2)
+        return;
     }
 
+    int current_id = 0;
+    std::vector<Curve::SegmentData> segt;
+
+    double cur_x = points[0][0].toDouble();
+    double cur_y = points[0][1].toDouble();
+
+    for(int i = 1, N = std::ssize(points); i < N; i++) {
+      const auto& pt = points[i];
+      auto x = pt[0].toDouble();
+      auto y = pt[1].toDouble();
+      Curve::SegmentData dat;
+      dat.id = Id<Curve::SegmentModel>{current_id};
+      dat.start.rx() = cur_x;
+      dat.start.ry() = cur_y;
+      dat.end.rx() = x;
+      dat.end.ry() = y;
+      cur_x = x;
+      cur_y = y;
+      dat.previous = Id<Curve::SegmentModel>{current_id - 1};
+      dat.following = Id<Curve::SegmentModel>{current_id + 1};
+      dat.type = Metadata<ConcreteKey_k, Curve::LinearSegment>::get();
+      dat.specificSegmentData = QVariant::fromValue(Curve::LinearSegmentData{});
+
+      segt.push_back(dat);
+      current_id++;
+    }
+    segt.front().previous = std::nullopt;
+    segt.back().following = std::nullopt;
 
     auto [m, _] = macro(*doc);
-    m->submit(new Curve::UpdateCurve{*curve, {seg.toSegmentData()}});
+    m->submit(new Curve::UpdateCurve{*curve, std::move(segt)});
   }
   W_SLOT(setCurvePoints)
+
+  void setSteps(QObject* process, QVector<double> points)
+  {
+    if(points.empty())
+      return;
+
+    auto doc = ctx();
+    if (!doc)
+      return;
+
+    auto proc = qobject_cast<Media::Step::Model*>(process);
+    if(!proc)
+      return;
+
+    auto [m, _] = macro(*doc);
+    m->submit(new Media::ChangeSteps{*proc, ossia::float_vector{points.begin(), points.end()}});
+  }
+  W_SLOT(setSteps)
 
   void automate(QObject* interval, QString addr)
   {
@@ -421,6 +788,7 @@ public:
       : score::PanelDelegate{ctx}
       , m_widget{new QWidget}
   {
+    m_engine.installExtensions(QJSEngine::ConsoleExtension);
     m_engine.globalObject().setProperty(
         "Score", m_engine.newQObject(new EditJsContext));
     m_engine.globalObject().setProperty(
