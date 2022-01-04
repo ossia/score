@@ -10,7 +10,7 @@ Free, open source and runs on desktop, mobile, web and embedded.
 
 Read more on [https://ossia.io](https://ossia.io), come ask questions on the [forum](https://forum.ossia.io/c/score) or hang out in our [chat](https://gitter.im/ossia/score), we will be happy to help you !
 
-### Download the [latest release here](https://github.com/ossia/score/releases/) !
+### Quick download links: [latest official release](https://github.com/ossia/score/releases/) / [bleeding edge](https://github.com/ossia/score/releases/tag/continuous)
 
 ![ossia score screenshot](/docs/score.png?raw=true)
 
