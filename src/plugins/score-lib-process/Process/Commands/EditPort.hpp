@@ -48,8 +48,12 @@ SCORE_COMMAND_DECL_T(Process::SetPropagate)
 PROPERTY_COMMAND_T(Process, ChangePortAddress, Port::p_address, "Set port address")
 SCORE_COMMAND_DECL_T(Process::ChangePortAddress)
 
+PROPERTY_COMMAND_T(Process, SetValue, ControlInlet::p_value, "Set port value")
+SCORE_COMMAND_DECL_T(Process::SetValue)
+
 PROPERTY_COMMAND_T(Process, SetGain, AudioOutlet::p_gain, "Set port gain")
 SCORE_COMMAND_DECL_T(Process::SetGain)
+
 
 PROPERTY_COMMAND_T(Process, SetPan, AudioOutlet::p_pan, "Set port pan")
 SCORE_COMMAND_DECL_T(Process::SetPan)
