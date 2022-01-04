@@ -452,7 +452,7 @@ public:
 
     QString ret;
     ossia::apply_nonnull([&] (const auto& t) {
-      using type = std::remove_cvref_t<decltype(t)>;
+      using type = std::decay_t<decltype(t)>;
       ret = Metadata<Json_k, type>::get();
     }, v);
     return ret;
