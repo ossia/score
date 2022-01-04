@@ -46,9 +46,8 @@
 
 #include <Media/Step/Model.hpp>
 #include <Media/Step/Commands.hpp>
+#include <JS/Qml/Metatypes.hpp>
 
-W_REGISTER_ARGTYPE(QVector<QString>)
-W_REGISTER_ARGTYPE(QVector<double>)
 namespace JS
 {
 class JsUtils : public QObject

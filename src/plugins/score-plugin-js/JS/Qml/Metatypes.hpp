@@ -20,3 +20,7 @@ inline QDataStream& operator>>(QDataStream& i, ossia::exec_state_facade& sel)
 }
 Q_DECLARE_METATYPE(ossia::exec_state_facade)
 W_REGISTER_ARGTYPE(ossia::exec_state_facade)
+
+W_REGISTER_ARGTYPE(QVector<int>)
+W_REGISTER_ARGTYPE(QVector<double>)
+W_REGISTER_ARGTYPE(QVector<QString>)

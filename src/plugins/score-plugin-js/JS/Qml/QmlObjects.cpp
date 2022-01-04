@@ -1,4 +1,5 @@
 #include "QmlObjects.hpp"
+#include <JS/Qml/Metatypes.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(JS::Inlet)
@@ -7,8 +8,6 @@ W_OBJECT_IMPL(JS::ValueInlet)
 W_OBJECT_IMPL(JS::ValueOutlet)
 W_OBJECT_IMPL(JS::ControlInlet)
 W_OBJECT_IMPL(JS::MidiInlet)
-W_REGISTER_ARGTYPE(QVector<int>)
-W_REGISTER_ARGTYPE(QVector<double>)
 W_OBJECT_IMPL(JS::MidiOutlet)
 W_OBJECT_IMPL(JS::AudioInlet)
 W_OBJECT_IMPL(JS::AudioOutlet)
