@@ -43,73 +43,61 @@ AboutDialog::AboutDialog(QWidget* parent)
     License(License&&) = default;
     License& operator=(const License&) = default;
     License& operator=(License&&) = default;
-    License(QString u, QString l)
-        : url{u}
-        , license{l}
+    License(QString u, QString v)
+      : url{u}
+      , header{v}
     {
     }
     License(QString u, const unsigned char* l)
         : url{u}
     {
-      license = QString::fromUtf8(reinterpret_cast<const char*>(l));
+      auto s = reinterpret_cast<const char*>(l);
+      license = QByteArray::fromRawData(s, strlen(s));
     }
     License(QString u, QString lstart, const unsigned char* l)
         : url{u}
-        , license{lstart}
+        , header{lstart}
     {
-      license += QString::fromUtf8(reinterpret_cast<const char*>(l));
+      auto s = reinterpret_cast<const char*>(l);
+      license = QByteArray::fromRawData(s, strlen(s));
     }
     QString url;
-    QString license;
+    QString header;
+    QByteArray license;
   };
 
 #if __has_include(<score_licenses.hpp>)
-  std::map<QString, License> map;
-  map["score"] = License{"https://ossia.io", score_LICENSE};
-
-  map["libossia"] = License{"https://ossia.io", ossia_LICENSE};
+  auto compare = [] (const QString& lhs, const QString& rhs) {
+    return lhs.compare(rhs, Qt::CaseInsensitive) < 0;
+  };
+  std::map<QString, License, decltype(compare)> map;
 
   map["Qt"] = License{"https://www.qt.io", "GNU General Public License v3"};
+  map["Boost"] = License{"https://www.boost.org", "Boost Software License 1.0"};
+  map["CMake"] = License{"https://www.cmake.org", "BSD 3-clause License"};
 
-  map["Boost"]
-      = License{"https://www.boost.org", "Boost Software License 1.0"};
+  map["libossia"] = License{"https://ossia.io", ossia_LICENSE};
+  map["score"] = License{"https://ossia.io", score_LICENSE};
+
 
   // In libossia
-  map["CMake"] = License{"https://www.cmake.org", "BSD 3-clause License"};
   map["TinySpline"]
       = License{"https://github.com/msteinbeck/tinyspline", "MIT License"};
-  map["GSL"] = License{"https://github.com/Microsoft/GSL", GSL_LICENSE};
-
-  map["libremidi"] = License{
-      "https://github.com/jcelerier/libremidi",
-      "Based on RtMidi (https://github.com/thestk/rtmidi) and "
-      "ModernMIDI (https://github.com/ddiakopoulos/ModernMIDI)"};
-  map["RtMidi"]
-      = License{"https://github.com/thestk/rtmidi", libremidi_LICENSE};
-  map["ModernMidi"] = License{
-      "(https://github.com/ddiakopoulos/ModernMIDI", modernmidi_LICENSE};
-  map["Servus"] = License{
-      "https://github.com/jcelerier/Servus",
-      "Based on https://github.com/HBPVIS/Servus\n",
-      servus_LICENSE};
-
-  map["SmallFunction"] = License{
-      "https://github.com/jcelerier/SmallFunction",
-      "Based on https://github.com/LoopPerfect/smallfunction\n",
-      smallfun_LICENSE};
 
   map["bitset2"]
       = License{"https://github.com/ClaasBontus/bitset2", bitset2_LICENSE};
   map["Brigand"]
       = License{"https://github.com/edouarda/brigand", Brigand_LICENSE};
+  map["Catch2"]
+      = License{"https://github.com/catchorg/Catch2", Catch2_LICENSE};
   map["Chobo"]
       = License{"https://github.com/Chobolabs/chobo-shl", chobo_LICENSE};
   map["ConcurrentQueue"] = License{
       "https://github.com/cameron314/concurrentqueue",
       concurrentqueue_LICENSE};
-  map["ReaderWriterQueue"] = License{
-      "https://github.com/cameron314/readerwriterqueue",
-      readerwriterqueue_LICENSE};
+  map["dno"] = License{"https://github.com/thibaudk/dno", dno_LICENSE};
+  map["DNS-SD"] = License{"", dnssd_LICENSE};
+  map["dr_libs"] = License{"https://github.com/mackron/dr_libs", dr_libs_LICENSE};
   map["flat"] = License{
       "https://github.com/jcelerier/flat",
       "Based on https://github.com/pubby/flat\n",
@@ -117,56 +105,106 @@ AboutDialog::AboutDialog(QWidget* parent)
   map["flat_hash_map"] = License{
       "https://github.com/jcelerier/flat_hash_map",
       "Based on https://github.com/skarupke/flat_hash_map\n"};
+  map["Flicks"] = License{"https://github.com/OculusVR/Flicks", Flicks_LICENSE};
   map["fmt"] = License{"https://github.com/fmtlib/fmt", fmt_LICENSE};
-  map["frozen"]
-      = License{"https://github.com/serge-sans-paille/frozen", frozen_LICENSE};
+  map["frozen"] = License{"https://github.com/serge-sans-paille/frozen", frozen_LICENSE};
+  map["Gist"] = License{"https://github.com/adamstark/Gist", Gist_LICENSE};
+  map["GSL"] = License{"https://github.com/Microsoft/GSL", GSL_LICENSE};
+  map["HAP Codec"] = License{"", hap_LICENSE};
+  map["hsluvc"] = License{"", hsluv_LICENSE};
   map["hopscotch-map"] = License{
       "https://github.com/tessil/hopscotch-map", hopscotchmap_LICENSE};
-  map["Pure Data"] = License{"http://msp.ucsd.edu/software.html", pd_LICENSE};
-  map["libpd"] = License{"https://github.com/libpd/libpd", libpd_LICENSE};
+  map["KFR"] = License{"https://github.com/kfrlib/kfr", kfr_LICENSE};
+  map["libartnet"] = License{"https://github.com/OpenLightingArchitecture/libartnet", libartnet_LICENSE};
   map["libe131"] = License{"https://github.com/libpd/libpd", libe131_LICENSE};
-
+  map["libremidi"] = License{
+      "https://github.com/jcelerier/libremidi",
+      "Based on RtMidi (https://github.com/thestk/rtmidi) and "
+      "ModernMIDI (https://github.com/ddiakopoulos/ModernMIDI)"};
+  map["RtMidi"]
+      = License{"https://github.com/thestk/rtmidi", libremidi_LICENSE};
+  map["libsamplerate"] = License{"https://github.com/mega-nerd/libsamplerate", libsamplerate_LICENSE};
+  map["libsndfile"] = License{"https://github.com/mega-nerd/libsndfile", libsndfile_LICENSE};
+  map["mdspan"] = License{"", mdspan_LICENSE};
+  map["miniz"] = License{"", miniz_LICENSE};
+  map["ModernMidi"] = License{
+      "https://github.com/ddiakopoulos/ModernMIDI", modernmidi_LICENSE};
   map["multi_index"] = License{
       "https://github.com/jcelerier/multi_index", multiindex_LICENSE};
   map["nano-signal-slot"] = License{
       "https://github.com/jcelerier/nano-signal-slot", nanosignal_LICENSE};
   map["OSCPack"]
       = License{"https://github.com/jcelerier/oscpack", "Boost License"};
-  map["pd"] = License{"http://msp.ucsd.edu/software.html", pd_LICENSE};
+  map["Pure Data"] = License{"http://msp.ucsd.edu/software.html", pd_LICENSE};
+  map["libpd"] = License{"https://github.com/libpd/libpd", libpd_LICENSE};
+  //! Note : if there is a build error around here, you need to
+  //! reset the _score_license_written CMake variable to zero
+  //! (it will then add the missing license which have been added in a more
+  //! recent commit - see score/src/lib/CMakeLists.txt at the end
+  map["phantomstyle"] = License{
+      "https://github.com/randrew/phantomstyle", phantomstyle_LICENSE};
+  map["PortAudio"] = License{"https://github.com/PortAudio/PortAudio", portaudio_LICENSE};
 
   map["pybind11"]
       = License{"https://github.com/pybind/pybind11", pybind11_LICENSE};
-  map["rapidjson"]
-      = License{"https://github.com/miloyip/rapidjson", rapidjson_LICENSE};
-  map["spdlog"] = License{"https://github.com/gabime/spdlog", spdlog_LICENSE};
-  map["variant"]
-      = License{"https://github.com/eggs-cpp/variant", variant_LICENSE};
-  map["verdigris"]
-      = License{"https://github.com/jcelerier/verdigris", verdigris_LICENSE};
-  map["weakjack"] = License{
-      "https://github.com/jcelerier/weakjack",
-      "Based on https://github.com/x42/weakjack\nGNU "
-      "General Public License version 2 (or later)"};
-  map["websocketpp"] = License{
-      "https://github.com/jcelerier/websocketpp", websocketpp_LICENSE};
-  map["whereami"]
-      = License{"https://github.com/gpakosz/whereami", whereami_LICENSE};
-
-  // In score
-  map["QMenuView"] = License{
-      "https://github.com/pvanek/qlipper/blob/master/qmenuview",
-      "CeCILL license. \nXINX\nCopyright Ulrich Van Den Hekke, "
-      "(2007-2011)\nxinx@shadoware.org"};
+  map["QCodeEditor"] = License{"", QCodeEditor_LICENSE};
   map["QProgressIndicator"] = License{
       "https://github.com/jcelerier/QProgressIndicator",
       qprogressindicator_LICENSE}; // TODO based on ...
   map["Qt-Color-Widgets"] = License{
       "https://github.com/jcelerier/Qt-Color-Widgets.git",
       qtcolorwidgets_LICENSE};
+
+  map["rapidjson"]
+      = License{"https://github.com/miloyip/rapidjson", rapidjson_LICENSE};
+  map["ReaderWriterQueue"] = License{
+      "https://github.com/cameron314/readerwriterqueue",
+      readerwriterqueue_LICENSE};
+  map["rnd"] = License{"https://github.com/jcelerier/rnd", rnd_LICENSE};
+  map["Rubberband"] = License{"https://github.com/breakfastquay/rubberband", rubberband_LICENSE};
+  map["Servus"] = License{
+      "https://github.com/jcelerier/Servus",
+      "Based on https://github.com/HBPVIS/Servus\n",
+      servus_LICENSE};
+
+  map["shmdata"] = License{"https://gitlab.com/sat-metalab/shmdata", shmdata_LICENSE};
+
+  map["SmallFunction"] = License{
+      "https://github.com/jcelerier/SmallFunction",
+      "Based on https://github.com/LoopPerfect/smallfunction\n",
+      smallfun_LICENSE};
+
+  map["snappy"] = License{"https://github.com/google/snappy", snappy_LICENSE};
+  map["spdlog"] = License{"https://github.com/gabime/spdlog", spdlog_LICENSE};
+  map["tuplet"] = License{"https://github.com/jcelerier/tuplet", tuplet_LICENSE};
+  map["variant"]
+      = License{"https://github.com/eggs-cpp/variant", variant_LICENSE};
+  map["verdigris"]
+      = License{"https://github.com/jcelerier/verdigris", verdigris_LICENSE};
+  map["VST3 SDK"]
+      = License{"https://steinberg.com", vst3_LICENSE};
+  map["whereami"]
+      = License{"https://github.com/gpakosz/whereami", whereami_LICENSE};
+  map["weakjack"] = License{
+      "https://github.com/jcelerier/weakjack",
+      "Based on https://github.com/x42/weakjack\nGNU "
+      "General Public License version 2 (or later)"};
+  map["websocketpp"] = License{
+      "https://github.com/jcelerier/websocketpp", websocketpp_LICENSE};
+  map["wiiuse"]
+      = License{"https://github.com/ossia/wiiuse", wiiuse_LICENSE};
+  map["zipdownloader"]
+      = License{"https://github.com/jcelerier/zipdownloader", zipdownloader_LICENSE};
+
+  // In score
+  map["QMenuView"] = License{
+      "https://github.com/pvanek/qlipper/blob/master/qmenuview",
+      "CeCILL license. \nXINX\nCopyright Ulrich Van Den Hekke, "
+      "(2007-2011)\nxinx@shadoware.org"};
   map["PSIMPL"] = License{"http://psimpl.sf.net", "MPL 1.1"};
 
   // TODO ifdefs
-  map["SDL"] = License{"", "Boost License"};
+  map["SDL"] = License{"https://libsdl.org", "Boost License"};
   map["Faust"]
       = License{"https://faust.grame.fr", "GNU General Public License"};
   map["libJACK"]
@@ -178,13 +216,6 @@ AboutDialog::AboutDialog(QWidget* parent)
       "https://libusb.info/",
       "GNU Lesser General Public License v2.1 or any later version"};
 
-  //! Note : if there is a build error around here, you need to
-  //! reset the _score_license_written CMake variable to zero
-  //! (it will then add the missing license which have been added in a more
-  //! recent commit - see score/src/lib/CMakeLists.txt at the end
-  map["phantomstyle"] = License{
-      "https://github.com/randrew/phantomstyle", phantomstyle_LICENSE};
-  map["hsluvc"] = License{"", hsluv_LICENSE};
   map["VST"] = License{
       "https://steinberg.net",
       "VST is a trademark of Steinberg Media Technologies GmbH, registered in "
@@ -220,7 +251,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
   for (const auto& item : map)
   {
-    if (!item.second.license.isEmpty())
+    if (!item.second.license.isEmpty() || !item.second.header.isEmpty())
       softwareList->addItem(item.first);
   }
   for (int i = 0; i < softwareList->count(); i++)
@@ -239,9 +270,9 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       softwareList,
       &QListWidget::currentTextChanged,
       this,
-      [=](const QString& currentText) {
-        auto& lic = map.at(currentText);
-        license->setPlainText(lic.url + "\n\n" + lic.license);
+      [=, m = std::move(map)](const QString& currentText) {
+        auto& lic = m.at(currentText);
+        license->setPlainText(lic.url + "\n\n" + lic.header + "\n" + lic.license);
       });
 #endif
 }
