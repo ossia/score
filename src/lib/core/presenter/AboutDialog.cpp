@@ -67,10 +67,12 @@ AboutDialog::AboutDialog(QWidget* parent)
   };
 
 #if __has_include(<score_licenses.hpp>)
-  auto compare = [] (const QString& lhs, const QString& rhs) {
-    return lhs.compare(rhs, Qt::CaseInsensitive) < 0;
+  struct CaseInsensitiveCompare {
+    bool operator()(const QString& lhs, const QString& rhs) const noexcept {
+      return lhs.compare(rhs, Qt::CaseInsensitive) < 0;
+    }
   };
-  std::map<QString, License, decltype(compare)> map;
+  std::map<QString, License, CaseInsensitiveCompare> map;
 
   map["Qt"] = License{"https://www.qt.io", "GNU General Public License v3"};
   map["Boost"] = License{"https://www.boost.org", "Boost Software License 1.0"};
