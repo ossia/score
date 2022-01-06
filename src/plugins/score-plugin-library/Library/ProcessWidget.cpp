@@ -191,20 +191,22 @@ ProcessWidget::ProcessWidget(
     }
   });
 
-
   auto preset_sel = m_lv.selectionModel();
-  connect(preset_sel, &QItemSelectionModel::currentRowChanged, this, [&](const QModelIndex& idx, const QModelIndex&) {
+  connect(preset_sel, &QItemSelectionModel::currentRowChanged, this, [=](const QModelIndex& idx, const QModelIndex&) {
             if(!idx.isValid())
               return;
-            if(!ossia::valid_index(idx.row(), m_presetModel->presets))
+            auto midx = presetFilterProxy->mapToSource(idx);
+            if(!midx.isValid())
+              return;
+
+            if(!ossia::valid_index(midx.row(), m_presetModel->presets))
               return;
 
             m_preview.hide();
             delete m_previewChild;
             m_previewChild = nullptr;
 
-
-            const auto& preset = m_presetModel->presets[idx.row()];
+            const auto& preset = m_presetModel->presets[midx.row()];
 
             for (auto& lib : score::GUIAppContext().interfaces<LibraryInterfaceList>())
             {
