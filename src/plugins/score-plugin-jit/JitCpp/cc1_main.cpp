@@ -189,11 +189,14 @@ static void ensureSufficientStack()
 static void ensureSufficientStack() { }
 #endif
 
-auto printErrors(TextDiagnosticBuffer& buf)
+auto printErrors(TextDiagnosticBuffer& buf, const SourceManager& mgr)
 {
   std::stringstream ss;
   for (auto it = buf.err_begin(); it != buf.err_end(); ++it)
-    ss << "error : " << it->second << "\n";
+  {
+    auto& loc = it->first;
+    ss << loc.printToString(mgr) << ":\n" << it->second << "\n\n";
+ }
 
   std::cerr << ss.str();
   return ss.str();
@@ -256,7 +259,7 @@ llvm::Error cc1_main(
 
   DiagsBuffer->FlushDiagnostics(Clang->getDiagnostics());
   if (!Success)
-    return llvm::make_error<llvm::StringError>(printErrors(*DiagsBuffer), std::error_code(1, std::system_category()));
+    return llvm::make_error<llvm::StringError>(printErrors(*DiagsBuffer, Clang->getSourceManager()), std::error_code(1, std::system_category()));
 
   // Execute the frontend actions.
   {
@@ -271,7 +274,7 @@ llvm::Error cc1_main(
 
   auto res = Success
                  ? llvm::Error::success()
-                 : llvm::make_error<llvm::StringError>(printErrors(*DiagsBuffer), std::error_code(1, std::system_category()));
+                 : llvm::make_error<llvm::StringError>(printErrors(*DiagsBuffer, Clang->getSourceManager()), std::error_code(1, std::system_category()));
 
 
   // Our error handler depends on the Diagnostics object, which we're
