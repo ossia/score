@@ -170,7 +170,7 @@ struct Node
       expr.add_vector("m1", m1);
       expr.add_vector("m2", m2);
       expr.add_vector("m3", m3);
-      expr.add_constant("fs", fs);
+      expr.add_variable("fs", fs);
       expr.add_constants();
 
       expr.register_symbol_table();
@@ -228,6 +228,7 @@ struct Node
   {
     if (tk.date > tk.prev_date)
     {
+      self.fs = st.sampleRate();
       if (!self.expr.set_expression(expr))
         return;
 
@@ -253,7 +254,6 @@ struct Node
       self.p1 = a;
       self.p2 = b;
       self.p3 = c;
-      self.fs = st.sampleRate();
       const auto start_sample = (tk.prev_date * samplesRatio).impl;
       for (int64_t i = 0; i < min_count; i++)
       {
