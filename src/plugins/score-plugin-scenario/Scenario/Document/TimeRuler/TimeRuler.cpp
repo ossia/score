@@ -21,7 +21,7 @@
 #include <Scenario/Document/ScenarioDocument/MusicalGrid.hpp>
 #include <Scenario/Document/TimeRuler/TimeRuler.hpp>
 #include <cmath>
-#include <fmt/format.h>
+#include <ossia/detail/fmt.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::TimeRulerBase)
 namespace Scenario

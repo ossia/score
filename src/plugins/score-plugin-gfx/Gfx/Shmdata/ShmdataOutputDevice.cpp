@@ -22,7 +22,7 @@
 #include <QMimeData>
 #include <QtGui/private/qrhigles2_p_p.h>
 
-#include <fmt/format.h>
+#include <ossia/detail/fmt.hpp>
 #include <shmdata/console-logger.hpp>
 #include <shmdata/writer.hpp>
 #include <QLabel>

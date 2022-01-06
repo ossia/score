@@ -5,7 +5,7 @@
 #include <QDebug>
 #include <QElapsedTimer>
 
-#include <fmt/format.h>
+#include <ossia/detail/fmt.hpp>
 
 #include <functional>
 
