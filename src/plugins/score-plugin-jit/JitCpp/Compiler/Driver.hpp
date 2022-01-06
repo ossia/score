@@ -30,12 +30,20 @@ struct Driver
     std::string cpp = *sourceFileName;
     auto filename = QFileInfo(QString::fromStdString(cpp)).fileName();
 
+    qDebug("Compiling...");
     jit.compile(cpp, flags, opts, ts_ctx);
     auto t1 = std::chrono::high_resolution_clock::now();
 
+    if(!jit.errors().isEmpty())
+    {
+      throw std::runtime_error{jit.errors().toStdString()};
+    }
+
     auto jitedFn = jit.getFunction<Fun_T>(factory_name);
     if (!jitedFn)
+    {
       throw Exception{jitedFn.takeError()};
+    }
 
     llvm::outs().flush();
     std::cerr << "\n\nADDON BUILD DURATION: "

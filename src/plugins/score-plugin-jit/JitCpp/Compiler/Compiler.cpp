@@ -62,6 +62,12 @@ JitCompiler::JitCompiler()
   sys::DynamicLibrary::LoadLibraryPermanently(nullptr);
 
   LLJIT& JIT = *m_jit;
+  m_jit->getExecutionSession().setErrorReporter([&] (llvm::Error Err) {
+    llvm::handleAllErrors(std::move(Err), [&](const llvm::ErrorInfoBase& EI) {
+      const auto& mess = EI.message();
+      this->m_errors += mess.c_str();
+    });
+  });
   auto& JD = JIT.getMainJITDylib();
 
   {
@@ -118,15 +124,23 @@ JitCompiler::compile(const std::string& cppCode, const std::vector<std::string>&
 {
   using namespace llvm;
   using namespace llvm::orc;
+  m_errors.clear();
+
   auto module = m_driver.compileTranslationUnit(
       cppCode, flags, opts, *context.getContext());
+
   if (!module)
+  {
     throw Exception{module.takeError()};
+  }
 
   if (auto Err
       = m_jit->addIRModule(ThreadSafeModule(std::move(*module), context));
       bool(Err))
+  {
     throw Err;
+  }
+
 
   globalAtExit.currentCompiler = globalAtExit.nextCompilerID++;
   m_atExitId = globalAtExit.currentCompiler;

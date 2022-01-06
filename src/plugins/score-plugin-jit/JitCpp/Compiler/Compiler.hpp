@@ -36,12 +36,16 @@ public:
     return std::function<Signature_t>(Entry);
   }
 
+  const QString& errors() const noexcept { return m_errors; }
+
 private:
   ClangCC1Driver m_driver;
   std::unique_ptr<llvm::orc::LLJIT> m_jit;
 
   llvm::orc::MangleAndInterner m_mangler;
   llvm::orc::LocalCXXRuntimeOverrides m_overrides;
+
+  QString m_errors;
 
   int m_atExitId{};
 };
