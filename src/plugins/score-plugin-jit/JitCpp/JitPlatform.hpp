@@ -557,6 +557,7 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
            "/3rdparty/libossia/3rdparty/rapidjson/include",
            "/3rdparty/libossia/3rdparty/libremidi/include",
            "/3rdparty/libossia/3rdparty/oscpack",
+           "/3rdparty/libossia/3rdparty/rnd/include",
            "/3rdparty/libossia/3rdparty/multi_index/include",
            "/3rdparty/libossia/3rdparty/verdigris/src",
            "/3rdparty/libossia/3rdparty/weakjack",
