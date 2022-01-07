@@ -38,7 +38,9 @@ struct Node
   {
     State()
     {
-      expr.add_variable("x", cur_value);
+      expr.add_variable("x", cur_input);
+      expr.add_variable("px", prev_input);
+      expr.add_variable("o", prev_output);
       expr.add_variable("t", cur_time);
       expr.add_variable("dt", cur_deltatime);
       expr.add_variable("pos", cur_pos);
@@ -52,7 +54,9 @@ struct Node
 
       expr.register_symbol_table();
     }
-    double cur_value{};
+    double cur_input{};
+    double prev_input{};
+    double prev_output{};
     double cur_time{};
     double cur_deltatime{};
     double cur_pos{};
@@ -87,13 +91,15 @@ struct Node
       setMathExpressionTiming(self, new_time, self.last_value_time, parent_dur);
       self.last_value_time = new_time;
 
-      self.cur_value = ossia::convert<double>(v.value);
+      self.cur_input = ossia::convert<double>(v.value);
       self.p1 = a;
       self.p2 = b;
       self.p3 = c;
 
       auto res = self.expr.value();
       output.write_value(res, v.timestamp);
+      self.prev_input = self.cur_input;
+      self.prev_output = res;
     }
   }
 
@@ -317,8 +323,9 @@ struct Node
       expr.add_vector("xv", cur_values);
       expr.add_vector("pxv", prev_values);
 
-      expr.add_variable("x", cur_value);
-      expr.add_variable("px", prev_value);
+      expr.add_variable("x", cur_input);
+      expr.add_variable("px", prev_input);
+      expr.add_variable("o", prev_output);
 
       expr.add_variable("t", cur_time);
       expr.add_variable("dt", cur_deltatime);
@@ -331,8 +338,9 @@ struct Node
     std::vector<double> cur_values;
     std::vector<double> prev_values;
 
-    double cur_value{};
-    double prev_value{};
+    double cur_input{};
+    double prev_input{};
+    double prev_output{};
 
     double cur_time{};
     double cur_deltatime{};
@@ -353,7 +361,8 @@ struct Node
   {
     auto res = self.expr.value();
 
-    self.prev_value = self.cur_value;
+    self.prev_input = self.cur_input;
+    self.prev_output = res;
 
     output.write_value(res, timestamp);
   }
@@ -412,34 +421,34 @@ struct Node
         case ossia::val_type::IMPULSE:
           break;
         case ossia::val_type::INT:
-          self.cur_value = *v.value.target<int>();
+          self.cur_input = *v.value.target<int>();
           break;
         case ossia::val_type::FLOAT:
-          self.cur_value = *v.value.target<float>();
+          self.cur_input = *v.value.target<float>();
           break;
         case ossia::val_type::CHAR:
-          self.cur_value = *v.value.target<char>();
+          self.cur_input = *v.value.target<char>();
           break;
         case ossia::val_type::BOOL:
-          self.cur_value = *v.value.target<bool>() ? 1.f : 0.f;
+          self.cur_input = *v.value.target<bool>() ? 1.f : 0.f;
           break;
         case ossia::val_type::STRING:
-          self.cur_value = ossia::convert<float>(v.value);
+          self.cur_input = ossia::convert<float>(v.value);
           break;
         case ossia::val_type::VEC2F:
-          self.cur_value = (*v.value.target<ossia::vec2f>())[0];
+          self.cur_input = (*v.value.target<ossia::vec2f>())[0];
           break;
         case ossia::val_type::VEC3F:
-          self.cur_value = (*v.value.target<ossia::vec3f>())[0];
+          self.cur_input = (*v.value.target<ossia::vec3f>())[0];
           break;
         case ossia::val_type::VEC4F:
-          self.cur_value = (*v.value.target<ossia::vec4f>())[0];
+          self.cur_input = (*v.value.target<ossia::vec4f>())[0];
           break;
         case ossia::val_type::LIST:
         {
           auto& arr = *v.value.target<std::vector<ossia::value>>();
           if(!arr.empty())
-            self.cur_value = ossia::convert<float>(arr[0]);
+            self.cur_input = ossia::convert<float>(arr[0]);
           break;
         }
       }
