@@ -23,4 +23,4 @@ PROCESS_METADATA(
     (QStringList{"Curve", "Automation", "2D"}),
     {},
     {std::vector<Process::PortType>{Process::PortType::Message}},
-    Process::ProcessFlags::SupportsTemporal)
+    Process::ProcessFlags::SupportsLasting)

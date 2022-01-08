@@ -285,15 +285,27 @@ public:
       auto& path = m_playShape;
       clearPainterPath(path);
 
-      std::size_t max = std::min(
-          std::size_t(qBound(0.f, m_play, 1.f) * N), m_points.size());
-      if (max == 0)
+      const double percentage = qBound(0.f, m_play, 1.f) * N;
+      const double start = std::floor(percentage);
+      const double end = std::ceil(percentage);
+      const std::size_t max_start = std::min(
+          std::size_t(start), m_points.size());
+      const std::size_t max_end = std::min(
+            std::size_t(end), m_points.size());
+      if (max_start == 0)
         return;
 
       path.moveTo(m_points[0]);
-      for (std::size_t i = 1U; i < max; i++)
+      for (std::size_t i = 1U; i < max_end; i++)
       {
         path.lineTo(m_points[i]);
+      }
+
+      if(max_end < m_points.size())
+      {
+        const double rem = (percentage - max_start);
+        const QPointF interp = ((1. - rem) * m_points[max_start] + rem * m_points[max_end]);
+        path.lineTo(interp);
       }
     }
     else
