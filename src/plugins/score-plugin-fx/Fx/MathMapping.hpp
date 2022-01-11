@@ -3,6 +3,252 @@
 #include <gsl/span>
 namespace Nodes
 {
+template<typename State>
+struct GenericMathMapping
+{
+  static void store_output(
+      State& self,
+      const ossia::value& v)
+  {
+    switch(v.get_type())
+    {
+      case ossia::val_type::NONE:
+        break;
+      case ossia::val_type::FLOAT:
+        self.po = *v.target<float>();
+        break;
+      case ossia::val_type::VEC2F:
+      {
+        auto& vec = *v.target<ossia::vec2f>();
+        self.pov.assign(vec.begin(), vec.end());
+        break;
+      }
+      case ossia::val_type::VEC3F:
+      {
+        auto& vec = *v.target<ossia::vec3f>();
+        self.pov.assign(vec.begin(), vec.end());
+        break;
+      }
+      case ossia::val_type::VEC4F:
+      {
+        auto& vec = *v.target<ossia::vec4f>();
+        self.pov.assign(vec.begin(), vec.end());
+        break;
+      }
+      case ossia::val_type::LIST:
+      {
+        auto& arr = *v.target<std::vector<ossia::value>>();
+        if(!arr.empty())
+        {
+          self.pov.clear();
+          for(auto& v : arr)
+            self.pov.push_back(ossia::convert<float>(v));
+        }
+        break;
+      }
+      // Only these types are used now as per ossia::math_expression::result()
+      default:
+        break;
+    }
+  }
+
+  static void exec_scalar(
+      int64_t timestamp,
+      State& self,
+      ossia::value_port& output)
+  {
+    auto res = self.expr.result();
+
+    self.px = self.x;
+    store_output(self, res);
+
+    output.write_value(res, timestamp);
+  }
+
+  static void exec_array(
+      int64_t timestamp,
+      State& self,
+      ossia::value_port& output,
+      bool vector_size_did_change)
+  {
+    if(self.xv.empty())
+      return;
+
+    if(vector_size_did_change)
+    {
+      self.expr.remove_vector("xv");
+      self.expr.add_vector("xv", self.xv);
+      self.expr.recompile();
+    }
+
+    auto res = self.expr.result();
+    store_output(self, res);
+
+    // Save the previous input
+    {
+      bool old_prev = self.pxv.size();
+      self.pxv.assign(self.xv.begin(), self.xv.end());
+      bool new_prev = self.pxv.size();
+
+      if(old_prev != new_prev)
+      {
+        self.expr.remove_vector("pxv");
+        self.expr.add_vector("pxv", self.pxv);
+        self.expr.recompile();
+      }
+    }
+
+    output.write_value(std::move(res), timestamp);
+  }
+
+
+  static void
+  run_scalar(const ossia::value_port& input,
+      ossia::value_port& output,
+      const ossia::token_request& tk,
+      ossia::exec_state_facade st,
+      State& self)
+  {
+    auto ratio = st.modelToSamples();
+    auto parent_dur = tk.parent_duration.impl * ratio;
+    for (const ossia::timed_value& v : input.get_data())
+    {
+      int64_t new_time = tk.prev_date.impl * ratio + v.timestamp;
+      setMathExpressionTiming(self, new_time, self.last_value_time, parent_dur);
+      self.last_value_time = new_time;
+
+      switch(v.value.get_type())
+      {
+        case ossia::val_type::NONE:
+          break;
+        case ossia::val_type::IMPULSE:
+          break;
+        case ossia::val_type::INT:
+          self.x = *v.value.target<int>();
+          break;
+        case ossia::val_type::FLOAT:
+          self.x = *v.value.target<float>();
+          break;
+        case ossia::val_type::CHAR:
+          self.x = *v.value.target<char>();
+          break;
+        case ossia::val_type::BOOL:
+          self.x = *v.value.target<bool>() ? 1.f : 0.f;
+          break;
+        case ossia::val_type::STRING:
+          self.x = ossia::convert<float>(v.value);
+          break;
+        case ossia::val_type::VEC2F:
+          self.x = (*v.value.target<ossia::vec2f>())[0];
+          break;
+        case ossia::val_type::VEC3F:
+          self.x = (*v.value.target<ossia::vec3f>())[0];
+          break;
+        case ossia::val_type::VEC4F:
+          self.x = (*v.value.target<ossia::vec4f>())[0];
+          break;
+        case ossia::val_type::LIST:
+        {
+          auto& arr = *v.value.target<std::vector<ossia::value>>();
+          if(!arr.empty())
+            self.x = ossia::convert<float>(arr[0]);
+          break;
+        }
+      }
+
+      GenericMathMapping::exec_scalar(v.timestamp, self, output);
+    }
+  }
+
+  static void
+  run_array(const ossia::value_port& input,
+             ossia::value_port& output,
+             const ossia::token_request& tk,
+             ossia::exec_state_facade st,
+             State& self)
+  {
+    auto ratio = st.modelToSamples();
+    auto parent_dur = tk.parent_duration.impl * ratio;
+    for (const ossia::timed_value& v : input.get_data())
+    {
+      int64_t new_time = tk.prev_date.impl * ratio + v.timestamp;
+      setMathExpressionTiming(self, new_time, self.last_value_time, parent_dur);
+      self.last_value_time = new_time;
+
+      auto array_run_scalar = [&] (float in)
+      {
+        auto old_size = self.xv.size();
+        self.xv.assign(1, in);
+        auto new_size = 1U;
+        GenericMathMapping::exec_array(v.timestamp, self, output, old_size != new_size);
+      };
+
+      switch(v.value.get_type())
+      {
+        case ossia::val_type::NONE:
+          break;
+        case ossia::val_type::IMPULSE:
+          GenericMathMapping::exec_array(v.timestamp, self, output, false);
+          break;
+        case ossia::val_type::INT:
+          array_run_scalar(*v.value.target<int>());
+          break;
+        case ossia::val_type::FLOAT:
+          array_run_scalar(*v.value.target<float>());
+          break;
+        case ossia::val_type::CHAR:
+          array_run_scalar(*v.value.target<char>());
+          break;
+        case ossia::val_type::BOOL:
+          array_run_scalar(*v.value.target<bool>() ? 1.f : 0.f);
+          break;
+        case ossia::val_type::STRING:
+          array_run_scalar(ossia::convert<float>(v.value));
+          break;
+        case ossia::val_type::VEC2F:
+        {
+          auto& arr = *v.value.target<ossia::vec2f>();
+          auto old_size = self.xv.size();
+          self.xv.assign(arr.begin(), arr.end());
+          auto new_size = 2U;
+          GenericMathMapping::exec_array(v.timestamp, self, output, old_size != new_size);
+          break;
+        }
+        case ossia::val_type::VEC3F:
+        {
+          auto& arr = *v.value.target<ossia::vec3f>();
+          auto old_size = self.xv.size();
+          self.xv.assign(arr.begin(), arr.end());
+          auto new_size = 3U;
+          GenericMathMapping::exec_array(v.timestamp, self, output, old_size != new_size);
+          break;
+        }
+        case ossia::val_type::VEC4F:
+        {
+          auto& arr = *v.value.target<ossia::vec4f>();
+          auto old_size = self.xv.size();
+          self.xv.assign(arr.begin(), arr.end());
+          auto new_size = 4U;
+          GenericMathMapping::exec_array(v.timestamp, self, output, old_size != new_size);
+          break;
+        }
+        case ossia::val_type::LIST:
+        {
+          auto& arr = *v.value.target<std::vector<ossia::value>>();
+          auto old_size = self.xv.size();
+          self.xv.resize(arr.size());
+          auto new_size = arr.size();
+          for(std::size_t i = 0; i < arr.size(); i++) {
+            self.xv[i] = ossia::convert<float>(arr[i]);
+          }
+          GenericMathMapping::exec_array(v.timestamp, self, output, old_size != new_size);
+          break;
+        }
+      }
+    }
+  }
+};
+
 namespace MathMapping
 {
 struct Node
@@ -38,15 +284,28 @@ struct Node
   {
     State()
     {
-      expr.add_variable("x", cur_input);
-      expr.add_variable("px", prev_input);
-      expr.add_variable("o", prev_output);
+      xv.resize(1024);
+      pxv.resize(1024);
+      pov.resize(1024);
+      expr.add_vector("xv", xv);
+      expr.add_vector("pxv", pxv);
+      expr.add_vector("pov", pov);
+
+      expr.add_variable("x", x);
+      expr.add_variable("px", px);
+      expr.add_variable("po", po);
+
       expr.add_variable("t", cur_time);
       expr.add_variable("dt", cur_deltatime);
       expr.add_variable("pos", cur_pos);
-      expr.add_variable("a", p1);
-      expr.add_variable("b", p2);
-      expr.add_variable("c", p3);
+
+      expr.add_variable("a", a);
+      expr.add_variable("b", b);
+      expr.add_variable("c", c);
+      expr.add_variable("pa", pa);
+      expr.add_variable("pb", pb);
+      expr.add_variable("pc", pc);
+
       expr.add_variable("m1", m1);
       expr.add_variable("m2", m2);
       expr.add_variable("m3", m3);
@@ -54,14 +313,23 @@ struct Node
 
       expr.register_symbol_table();
     }
-    double cur_input{};
-    double prev_input{};
-    double prev_output{};
+    std::vector<double> xv;
+    std::vector<double> pxv;
+    std::vector<double> pov;
+
+    double x{};
+    double px{};
+    double po{};
+
     double cur_time{};
     double cur_deltatime{};
     double cur_pos{};
-    double p1{}, p2{}, p3{};
+
+    double a{}, b{}, c{};
+    double pa{}, pb{}, pc{};
+
     double m1{}, m2{}, m3{};
+
     ossia::math_expression expr;
     int64_t last_value_time{};
 
@@ -83,24 +351,18 @@ struct Node
     if (!self.expr.set_expression(expr))
       return;
 
-    auto ratio = st.modelToSamples();
-    auto parent_dur = tk.parent_duration.impl * ratio;
-    for (const ossia::timed_value& v : input.get_data())
-    {
-      int64_t new_time = tk.prev_date.impl * ratio + v.timestamp;
-      setMathExpressionTiming(self, new_time, self.last_value_time, parent_dur);
-      self.last_value_time = new_time;
+    self.a = a;
+    self.b = b;
+    self.c = c;
 
-      self.cur_input = ossia::convert<double>(v.value);
-      self.p1 = a;
-      self.p2 = b;
-      self.p3 = c;
+    if(self.expr.has_variable("xv"))
+      GenericMathMapping<State>::run_array(input, output, tk, st, self);
+    else
+      GenericMathMapping<State>::run_scalar(input, output, tk, st, self);
 
-      auto res = self.expr.value();
-      output.write_value(res, v.timestamp);
-      self.prev_input = self.cur_input;
-      self.prev_output = res;
-    }
+    self.pa = a;
+    self.pb = b;
+    self.pc = c;
   }
 
   template <typename... Args>
@@ -318,14 +580,16 @@ struct Node
   {
     State()
     {
-      cur_values.resize(1024);
-      prev_values.resize(1024);
-      expr.add_vector("xv", cur_values);
-      expr.add_vector("pxv", prev_values);
+      xv.resize(1024);
+      pxv.resize(1024);
+      pov.resize(1024);
+      expr.add_vector("xv", xv);
+      expr.add_vector("pxv", pxv);
+      expr.add_vector("pov", pov);
 
-      expr.add_variable("x", cur_input);
-      expr.add_variable("px", prev_input);
-      expr.add_variable("o", prev_output);
+      expr.add_variable("x", x);
+      expr.add_variable("px", px);
+      expr.add_variable("po", po);
 
       expr.add_variable("t", cur_time);
       expr.add_variable("dt", cur_deltatime);
@@ -335,12 +599,13 @@ struct Node
       expr.register_symbol_table();
     }
 
-    std::vector<double> cur_values;
-    std::vector<double> prev_values;
+    std::vector<double> xv;
+    std::vector<double> pxv;
+    std::vector<double> pov;
 
-    double cur_input{};
-    double prev_input{};
-    double prev_output{};
+    double x{};
+    double px{};
+    double po{};
 
     double cur_time{};
     double cur_deltatime{};
@@ -349,201 +614,11 @@ struct Node
     ossia::math_expression expr;
     int64_t last_value_time{};
 
-    bool ok = false;
+    //bool ok = false;
   };
 
   using control_policy = ossia::safe_nodes::last_tick;
 
-  static void exec_scalar(
-      int64_t timestamp,
-      State& self,
-      ossia::value_port& output)
-  {
-    auto res = self.expr.value();
-
-    self.prev_input = self.cur_input;
-    self.prev_output = res;
-
-    output.write_value(res, timestamp);
-  }
-
-  static void exec_array(
-      int64_t timestamp,
-      State& self,
-      ossia::value_port& output,
-      bool vector_size_did_change)
-  {
-    if(self.cur_values.empty())
-      return;
-
-    if(vector_size_did_change)
-    {
-      self.expr.remove_vector("xv");
-      self.expr.add_vector("xv", self.cur_values);
-      self.expr.recompile();
-    }
-
-    auto res = self.expr.result();
-
-    bool old_prev = self.prev_values.size();
-    self.prev_values.assign(self.cur_values.begin(), self.cur_values.end());
-    bool new_prev = self.prev_values.size();
-
-    if(old_prev != new_prev)
-    {
-      self.expr.remove_vector("pxv");
-      self.expr.add_vector("pxv", self.prev_values);
-      self.expr.recompile();
-    }
-
-    output.write_value(std::move(res), timestamp);
-  }
-
-  static void
-  run_scalar(const ossia::value_port& input,
-      ossia::value_port& output,
-      const ossia::token_request& tk,
-      ossia::exec_state_facade st,
-      State& self)
-  {
-    auto ratio = st.modelToSamples();
-    auto parent_dur = tk.parent_duration.impl * ratio;
-    for (const ossia::timed_value& v : input.get_data())
-    {
-      int64_t new_time = tk.prev_date.impl * ratio + v.timestamp;
-      setMathExpressionTiming(self, new_time, self.last_value_time, parent_dur);
-      self.last_value_time = new_time;
-
-      switch(v.value.get_type())
-      {
-        case ossia::val_type::NONE:
-          break;
-        case ossia::val_type::IMPULSE:
-          break;
-        case ossia::val_type::INT:
-          self.cur_input = *v.value.target<int>();
-          break;
-        case ossia::val_type::FLOAT:
-          self.cur_input = *v.value.target<float>();
-          break;
-        case ossia::val_type::CHAR:
-          self.cur_input = *v.value.target<char>();
-          break;
-        case ossia::val_type::BOOL:
-          self.cur_input = *v.value.target<bool>() ? 1.f : 0.f;
-          break;
-        case ossia::val_type::STRING:
-          self.cur_input = ossia::convert<float>(v.value);
-          break;
-        case ossia::val_type::VEC2F:
-          self.cur_input = (*v.value.target<ossia::vec2f>())[0];
-          break;
-        case ossia::val_type::VEC3F:
-          self.cur_input = (*v.value.target<ossia::vec3f>())[0];
-          break;
-        case ossia::val_type::VEC4F:
-          self.cur_input = (*v.value.target<ossia::vec4f>())[0];
-          break;
-        case ossia::val_type::LIST:
-        {
-          auto& arr = *v.value.target<std::vector<ossia::value>>();
-          if(!arr.empty())
-            self.cur_input = ossia::convert<float>(arr[0]);
-          break;
-        }
-      }
-
-      exec_scalar(v.timestamp, self, output);
-    }
-  }
-
-  static void
-  run_array(const ossia::value_port& input,
-             ossia::value_port& output,
-             const ossia::token_request& tk,
-             ossia::exec_state_facade st,
-             State& self)
-  {
-    auto ratio = st.modelToSamples();
-    auto parent_dur = tk.parent_duration.impl * ratio;
-    for (const ossia::timed_value& v : input.get_data())
-    {
-      int64_t new_time = tk.prev_date.impl * ratio + v.timestamp;
-      setMathExpressionTiming(self, new_time, self.last_value_time, parent_dur);
-      self.last_value_time = new_time;
-
-      auto array_run_scalar = [&] (float in)
-      {
-        auto old_size = self.cur_values.size();
-        self.cur_values.assign(1, in);
-        auto new_size = 1U;
-        exec_array(v.timestamp, self, output, old_size != new_size);
-      };
-
-      switch(v.value.get_type())
-      {
-        case ossia::val_type::NONE:
-          break;
-        case ossia::val_type::IMPULSE:
-          exec_array(v.timestamp, self, output, false);
-          break;
-        case ossia::val_type::INT:
-          array_run_scalar(*v.value.target<int>());
-          break;
-        case ossia::val_type::FLOAT:
-          array_run_scalar(*v.value.target<float>());
-          break;
-        case ossia::val_type::CHAR:
-          array_run_scalar(*v.value.target<char>());
-          break;
-        case ossia::val_type::BOOL:
-          array_run_scalar(*v.value.target<bool>() ? 1.f : 0.f);
-          break;
-        case ossia::val_type::STRING:
-          array_run_scalar(ossia::convert<float>(v.value));
-          break;
-        case ossia::val_type::VEC2F:
-        {
-          auto& arr = *v.value.target<ossia::vec2f>();
-          auto old_size = self.cur_values.size();
-          self.cur_values.assign(arr.begin(), arr.end());
-          auto new_size = 2U;
-          exec_array(v.timestamp, self, output, old_size != new_size);
-          break;
-        }
-        case ossia::val_type::VEC3F:
-        {
-          auto& arr = *v.value.target<ossia::vec3f>();
-          auto old_size = self.cur_values.size();
-          self.cur_values.assign(arr.begin(), arr.end());
-          auto new_size = 3U;
-          exec_array(v.timestamp, self, output, old_size != new_size);
-          break;
-        }
-        case ossia::val_type::VEC4F:
-        {
-          auto& arr = *v.value.target<ossia::vec4f>();
-          auto old_size = self.cur_values.size();
-          self.cur_values.assign(arr.begin(), arr.end());
-          auto new_size = 4U;
-          exec_array(v.timestamp, self, output, old_size != new_size);
-          break;
-        }
-        case ossia::val_type::LIST:
-        {
-          auto& arr = *v.value.target<std::vector<ossia::value>>();
-          auto old_size = self.cur_values.size();
-          self.cur_values.resize(arr.size());
-          auto new_size = arr.size();
-          for(std::size_t i = 0; i < arr.size(); i++) {
-            self.cur_values[i] = ossia::convert<float>(arr[i]);
-          }
-          exec_array(v.timestamp, self, output, old_size != new_size);
-          break;
-        }
-      }
-    }
-  }
 
   static void
   run(const ossia::value_port& input,
@@ -557,9 +632,9 @@ struct Node
       return;
 
     if(self.expr.has_variable("xv"))
-      run_array(input, output, tk, st, self);
+      GenericMathMapping<State>::run_array(input, output, tk, st, self);
     else
-      run_scalar(input, output, tk, st, self);
+      GenericMathMapping<State>::run_scalar(input, output, tk, st, self);
   }
 
   template <typename... Args>

@@ -5,7 +5,27 @@
 
 #include <ossia/network/value/format_value.hpp>
 #include <QPainter>
+#include <ossia/detail/math.hpp>
+namespace ossia
+{
 
+OSSIA_INLINE bool safe_isinf(double val) noexcept
+{
+#if __FINITE_MATH_ONLY__
+#if defined(_MSC_VER)
+  return std::isinf(val);
+#elif defined(__APPLE__)
+  return __isinfd(val);
+#else
+  // On gcc / clang, with -ffast-math, std::isinf always returns 0
+  return __isinf(val);
+#endif
+#else
+  return std::isinf(val);
+#endif
+}
+
+}
 namespace Ui
 {
 
@@ -43,6 +63,9 @@ struct Node
     if (!in.get_data().empty())
     {
       const auto& v = in.get_data().back();
+      const float val = ossia::convert<float>(v.value);
+      if(ossia::safe_isnan(val) || ossia::safe_isinf(val))
+        return;
       out_value[0] = std::vector<ossia::value>{
           double(tk.prev_date.impl) / tk.parent_duration.impl,
           ossia::convert<float>(v.value)};
