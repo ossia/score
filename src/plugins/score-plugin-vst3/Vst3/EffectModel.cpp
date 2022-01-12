@@ -687,6 +687,8 @@ void syncVST3ControllerToProcessor(const vst3::Model& eff)
   // And in that case the processor's copy of the controls isn't updated, and we save old values.
   // Thus we have to sync the processor with the controller in that case.
 
+  // Disabled because it breaks vital?? (it reloads the default preset...)
+  return;
   if (auto comp = score::findComponent<vst3::Executor>(eff.components()))
     return;
 
