@@ -22,7 +22,7 @@ NoteView::NoteView(const Note& n, Presenter& p, View* parent)
     , m_presenter{p}
     , m_action{None}
 {
-  this->setToolTip(QObject::tr("A MIDI note."));
+  this->setToolTip(QStringLiteral("MIDI note."));
   this->setFlag(QGraphicsItem::ItemIsSelectable, true);
   this->setFlag(QGraphicsItem::ItemIsMovable, true);
   this->setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);

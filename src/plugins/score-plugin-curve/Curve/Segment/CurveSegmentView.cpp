@@ -34,7 +34,7 @@ SegmentView::SegmentView(
     : QGraphicsItem{parent}
     , m_style{style}
 {
-  this->setToolTip(QObject::tr("Curve segment\nRight-click to change options. If the type is power, shift can be used to change its curvature."));
+  this->setToolTip(QStringLiteral("Curve segment\nRight-click to change options. If the type is power, shift can be used to change its curvature."));
 
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setZValue(1);
