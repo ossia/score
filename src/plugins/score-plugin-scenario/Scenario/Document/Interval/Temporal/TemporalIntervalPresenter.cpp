@@ -619,7 +619,11 @@ void TemporalIntervalPresenter::createLayer(
           SCORE_ASSERT(slot_i < std::ssize(m_slots));
           auto lay_slt = this->m_slots[slot_i].getLayerSlot();
 
-          SCORE_ASSERT(lay_slt);
+          if(!lay_slt)
+          {
+            qDebug() << "Slot does not have a layer??" << slot_i;
+            return;
+          }
           SCORE_ASSERT(!lay_slt->layers.empty());
           LayerData& ld = lay_slt->layers.front();
 
