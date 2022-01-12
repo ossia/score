@@ -41,6 +41,21 @@ void PowerSegment::on_endChanged()
   dataChanged();
 }
 
+using pow_tables_t = std::array<std::array<double, 76>, 76>;
+static const pow_tables_t pow_tables = [] {
+  pow_tables_t tables;
+  for(int i = 1; i <= 75; i++)
+  {
+    auto& table = tables[i];
+    const double i_d = i;
+    for(int j = 0; j <= i; j++)
+    {
+      table[j] = std::pow(double(j) / i_d, 3.);
+    }
+  }
+  return tables;
+}();
+
 void PowerSegment::updateData(int numInterp) const
 {
   if (std::size_t(numInterp + 1) != m_data.size())
@@ -63,12 +78,14 @@ void PowerSegment::updateData(int numInterp) const
       double start_y = start().y();
       double end_x = end().x();
       double end_y = end().y();
+      SCORE_ASSERT(numInterp <= 75);
 
+      auto& pow_table = pow_tables[numInterp];
       if (gamma < 1.)
       {
         for (int j = 0; j <= numInterp; j++)
         {
-          double pos_x = std::pow(double(j) / numInterp, 3.);
+          const double pos_x = pow_table[j];
           m_data[numInterp - j]
               = {start_x + pos_x * (end_x - start_x),
                  start_y + std::pow(pos_x, gamma) * (end_y - start_y)};
@@ -78,7 +95,7 @@ void PowerSegment::updateData(int numInterp) const
       {
         for (int j = 0; j <= numInterp; j++)
         {
-          double pos_x = 1. - std::pow(double(j) / numInterp, 3.);
+          const double pos_x = 1. - pow_table[j];
           m_data[numInterp - j]
               = {start_x + pos_x * (end_x - start_x),
                  start_y + std::pow(pos_x, gamma) * (end_y - start_y)};
