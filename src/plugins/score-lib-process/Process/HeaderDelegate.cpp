@@ -10,16 +10,45 @@
 #include <score/graphics/YPos.hpp>
 #include <score/tools/Bind.hpp>
 
+#include <ossia/detail/hash_map.hpp>
+#include <score/tools/std/StringHash.hpp>
+
 #include <QCursor>
 #include <QDebug>
 #include <QGuiApplication>
 #include <QPainter>
 #include <QTextLayout>
 #include <QTextLine>
+namespace std
+{
+template <>
+struct hash<std::pair<QString, const QPen*>>
+{
+  std::size_t operator()(const std::pair<QString, const QPen*>& p) const noexcept
+  {
+    return qHash(p);
+  }
+};
+}
+
 namespace Process
 {
+
+static auto& glyphCache() noexcept
+{
+  // FIXME LRU
+  static ossia::fast_hash_map<std::pair<QString, const QPen*>, QPixmap> cache;
+  return cache;
+}
+
 QPixmap makeGlyphs(const QString& glyph, const QPen& pen)
 {
+  auto& cache = glyphCache();
+
+  auto k = std::make_pair(glyph, &pen);
+  if(auto it = cache.find(k); it != cache.end())
+    return it->second;
+
   QImage path;
 
   QTextLayout lay;
@@ -42,7 +71,8 @@ QPixmap makeGlyphs(const QString& glyph, const QPen& pen)
     p.drawGlyphRun(QPointF{0, 0}, r[0]);
   }
 
-  return QPixmap::fromImage(std::move(path), Qt::NoFormatConversion);
+  const auto& res = cache.emplace(std::move(k), QPixmap::fromImage(std::move(path), Qt::NoFormatConversion));
+  return res.first->second;
 }
 
 static double portY()
