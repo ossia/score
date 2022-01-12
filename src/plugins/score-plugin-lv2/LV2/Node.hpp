@@ -34,7 +34,6 @@ struct lv2_node final : public ossia::graph_node
       , on_start{os}
       , on_finished{of}
   {
-    data.host.global->sampleRate = sampleRate;
     const std::size_t audio_in_size = data.audio_in_ports.size();
     const std::size_t audio_out_size = data.audio_out_ports.size();
     const std::size_t control_in_size = data.control_in_ports.size();

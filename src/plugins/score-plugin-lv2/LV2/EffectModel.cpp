@@ -13,6 +13,7 @@
 #include <score/tools/DeleteAll.hpp>
 #include <score/tools/std/StringHash.hpp>
 
+#include <Audio/Settings/Model.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/detail/logger.hpp>
@@ -456,9 +457,10 @@ void Model::readPlugin()
     m_outlets.push_back(port);
   }
 
+  auto sr = app_plug.context.settings<Audio::Settings::Model>().getRate();
   effectContext.instance = lilv_plugin_instantiate(
       effectContext.plugin.me,
-      app_plug.lv2_context->sampleRate,
+      sr,
       app_plug.lv2_host_context.features);
 
   if (!effectContext.instance)

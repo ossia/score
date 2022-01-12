@@ -11,6 +11,8 @@
 
 #include <ossia/audio/audio_protocol.hpp>
 
+#include <Audio/Settings/Model.hpp>
+
 #include <QFileInfo>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -81,7 +83,10 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
       = suil.host_new(LV2::on_uiMessage, LV2::port_index, nullptr, nullptr);
 }
 
-void ApplicationPlugin::initialize() { }
+void ApplicationPlugin::initialize()
+{
+  lv2_context->sampleRate = context.settings<Audio::Settings::Model>().getRate();
+}
 
 ApplicationPlugin::~ApplicationPlugin()
 {
