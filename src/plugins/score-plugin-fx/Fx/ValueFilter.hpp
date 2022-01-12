@@ -123,7 +123,7 @@ struct Node
 
   struct Metadata : Control::Meta_base
   {
-    static const constexpr auto prettyName = "Value filter";
+    static const constexpr auto prettyName = "Smooth";
     static const constexpr auto objectKey = "ValueFilter";
     static const constexpr auto category = "Control/Mappings";
     static const constexpr auto author = "ossia score";
@@ -139,9 +139,9 @@ struct Node
             0U,
             ossia::make_array("OneEuro", "LowPass", "Average", "Median")),
         Control::FloatKnob{"Amount", 0., 1., 0.1},
-        Control::FloatSlider{"Freq (1e/LP)", 0., 300., 120.},
-        Control::FloatSlider{"Cutoff (1e/LP)", 0., 10., 1.},
-        Control::FloatSlider{"Beta (1e only)", 0., 10., 1.});
+        Control::LogFloatSlider{"Freq (1e/LP)", 0.001, 300., 120.},
+        Control::LogFloatSlider{"Cutoff (1e/LP)", 0.001, 10., 1.},
+        Control::FloatSlider{"Beta (1e only)", 0.001, 10., 1.});
 
     static const constexpr value_in value_ins[]{"in"};
     static const constexpr value_out value_outs[]{"out"};
@@ -230,8 +230,8 @@ struct Node
   static void item(
       Process::Enum& type,
       Process::FloatKnob& amount,
-      Process::FloatSlider& freq,
-      Process::FloatSlider& cutoff,
+      Process::LogFloatSlider& freq,
+      Process::LogFloatSlider& cutoff,
       Process::FloatSlider& beta,
       const Process::ProcessModel& process,
       QGraphicsItem& parent,
