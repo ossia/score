@@ -95,40 +95,58 @@ Durations computeDurations(ossia::time_signature sig, double zoom)
   const int64_t whole = quarter * (4. * double(sig.upper) / sig.lower);
 
   const double res = whole / (30. * zoom);
-  double pow2 = std::pow(2, std::floor(std::clamp(log2(res), -16., 16.)));
+  double pow2 = /*std::floor*/(std::pow(2, std::floor(std::clamp(log2(res), -16., 16.))));
+  double pow2_floor = std::floor(std::pow(2, std::clamp(log2(res), -16., 16.)));
 
   ossia::bar_time b{};
   int64_t main_div_source = whole;
 
-  if (pow2 >= 1. && pow2 <= 3.) // between bars and 8th notes
+  //if (pow2_floor >= 1. && pow2_floor <= 3.) // between bars and 8th notes
+  if(pow2 >= 1.)
   {
+    // Main unit is the bar.
     pow2 = 1.;
     b.bars = 1;
   }
-  else if (pow2 > 3 && pow2 <= 8) // between 16th and 32th notes
+  else
   {
-    pow2 = 4.;
-    b.quarters = 1;
+    b.bars = 1. / pow2; // pow2 is always > 0
   }
-  else if (pow2 > 8 && pow2 < 12) // between 16th and ..th notes
+
+  return {pow2, b, int64_t(main_div_source / pow2)};
+  /*
+  else if (pow2_floor > 3 && pow2_floor <= 8) // between 16th and 32th notes
   {
-    pow2 = 10.;
+    // Main unit is the quarter note.
+    pow2 = 4. * double(sig.upper) / sig.lower;
+    b.quarters = 1;
+
+    return {pow2, b, int64_t(quarter)};
+  }
+  else if (pow2_floor > 8 && pow2_floor < 12) // between 16th and ..th notes
+  {
+    pow2 = 4. * 4. * double(sig.upper) / sig.lower;
     b.semiquavers = 1;
+
+    // Main unit is the 16th note.
+    return {pow2, b, int64_t(quarter / 4)};
   }
   else if (pow2 < 1.)
   {
-    b.bars = 1. / pow2;
+    b.bars = (double(sig.upper) / sig.lower);
   }
   else
   {
-    if (pow2 > 14)
-      pow2 = 14;
+    pow2 = 8. * 4. * double(sig.upper) / sig.lower;
     b.cents = 1;
   }
+
+  qDebug() << pow2 << "[" << b.bars << b.quarters << b.semiquavers << b.cents << "]" << main_div_source;
 
   //pow2 /= (double(sig.upper) / sig.lower);
 
   return {pow2, b, int64_t(main_div_source / pow2)};
+  */
 }
 /*
 void addBars(ossia::bar_time& time, ossia::bar_time& increment)
@@ -171,6 +189,15 @@ void computeAll(
 
   ossia::time_signature prev_sig = last_sig_change_it->second;
 
+  TimeVal sub_increment_t{};
+  double sub_increment_px{};
+  sub_increment_t = TimeVal(ossia::quarter_duration<double>);
+  sub_increment_px = sub_increment_t.toPixels(zoom);
+
+  while(sub_increment_px > 40) {
+    sub_increment_t.impl /= 2.;
+    sub_increment_px = sub_increment_t.toPixels(zoom);
+  }
   // ossia::bar_time main_time = grid.start;
   auto isVisible = [&](double bar_x_pos) {
     return (bar_x_pos - last_delim_px) < rect.width();
@@ -185,25 +212,17 @@ void computeAll(
         {new_bar_x_pos, timeToMetrics(grid, cur_t), increment});
     magneticTimings.push_back(cur_t);
 
-    TimeVal sub_increment_t{};
-    double sub_increment_px{};
-    if (increment.bars == 1)
+    if (increment.bars != 1)
     {
-      // We display the quarter notes
-      sub_increment_t
-          = TimeVal(ossia::quarter_duration<double> * 4. / prev_sig.lower);
-      sub_increment_px = sub_increment_t.toPixels(zoom);
-    }
-    else
-    {
-      return;
       /*
       // Just cut things in half
       sub_increment_t = (cur_t.impl - prev_t.impl) / 2;//TimeVal(zoom * (bar_x_pos - prev_bar_x_pos) / 2.);
       sub_increment_px = (new_bar_x_pos - prev_bar_x_pos) / 2.;
       */
+      return;
     }
 
+    // We display the quarter notes
     // Only display sub bars if there is enough visual space.
     if (sub_increment_px >= 5.)
     {
@@ -241,7 +260,7 @@ void computeAll(
   };
 
   int k = 0;
-  while (isVisible(bar_x_pos))
+  while (isVisible(bar_x_pos - division_px))
   {
     bar_x_pos = last_delim_px + k * division_px;
     prev_time = current_time;
@@ -262,7 +281,7 @@ void computeAll(
         bar_x_pos = last_delim_px + k * division_px;
         prev_time = current_time;
         current_time = last_delim.impl + division.impl * k;
-      } while (isVisible(bar_x_pos));
+      } while (isVisible(bar_x_pos - division_px));
 
       return;
     }
