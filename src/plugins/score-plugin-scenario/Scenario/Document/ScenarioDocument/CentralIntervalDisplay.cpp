@@ -83,6 +83,9 @@ void createProcessAfterPort(
     const Process::ProcessModel& parentProcess,
     const Process::Port& p)
 {
+  if(!qobject_cast<const Process::Outlet*>(&p))
+    return;
+
   if(auto parent_itv = Scenario::closestParentInterval(const_cast<Process::Port*>(&p)))
   {
     Command::Macro m{new Command::DropProcessInIntervalMacro, parent.context()};
