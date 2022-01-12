@@ -56,7 +56,7 @@ protected:
   void contextMenuEvent(QGraphicsSceneContextMenuEvent*) override;
 
 private:
-  const PointModel* m_model;
+  const PointModel* m_model{};
   const Curve::Style& m_style;
   bool m_selected{};
 };
