@@ -210,7 +210,7 @@ void computeAll(
     bars.positions.push_back(QLineF(new_bar_x_pos, y0, new_bar_x_pos, y1));
     grid.mainPositions.push_back(
         {new_bar_x_pos, timeToMetrics(grid, cur_t), increment});
-    magneticTimings.push_back(cur_t);
+    magneticTimings.push_back(cur_t + timeDelta);
 
     if (increment.bars != 1)
     {
@@ -235,7 +235,7 @@ void computeAll(
       {
         double kp = sub_bar_t.toPixels(zoom);
         sub.positions.push_back(QLineF(kp, y0, kp, y1));
-        magneticTimings.push_back(sub_bar_t);
+        magneticTimings.push_back(sub_bar_t + timeDelta);
         sub_bar_t += sub_increment_t;
       }
       /*

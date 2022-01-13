@@ -726,21 +726,18 @@ Process::MagneticInfo FullViewIntervalPresenter::magneticPosition(
     return {scenarioT, snapToScenario};
 
   // Find leftmost signature
-  const TimeVal msecs = t + timeDelta;
+  const TimeVal event_time_in_parent_ref = t + timeDelta;
   const auto& sig = model->timeSignatureMap();
   if (sig.empty())
     return {scenarioT, snapToScenario};
-
-  auto leftmost_sig = sig.lower_bound(msecs);
-  if (leftmost_sig != sig.begin())
-    leftmost_sig--;
 
   // Snap to grid
   if (m_timebars->magneticTimings.empty())
     return {scenarioT, snapToScenario};
 
   const TimeVal& closestBar
-      = closest_element(m_timebars->magneticTimings, msecs);
+      = closest_element(m_timebars->magneticTimings, event_time_in_parent_ref);
+
   if (!snapToScenario)
   {
     return {closestBar - timeDelta, snapToScenario};
