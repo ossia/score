@@ -34,9 +34,7 @@ MagnetismAdjuster::getPosition(const QObject* obj, TimeVal original) noexcept
 
   // No handler -> no magnetism
   if (results.empty())
-  {
     return MagneticInfo{original, false};
-  }
 
   // Find the min of the distances and return the related Position
   auto it = results.begin();
@@ -54,6 +52,10 @@ MagnetismAdjuster::getPosition(const QObject* obj, TimeVal original) noexcept
       min_pos = *it;
     }
   }
+
+  // Buggy magnetism implementation somewhere
+  if(min_pos.time.impl < 0)
+    return MagneticInfo{original, false};
 
   return min_pos;
 }
