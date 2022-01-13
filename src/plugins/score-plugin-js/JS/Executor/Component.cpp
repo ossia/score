@@ -28,6 +28,7 @@
 
 #include <ossia/detail/ssize.hpp>
 
+#include <QApplication>
 #include <QEventLoop>
 #include <QQmlComponent>
 #include <QQmlContext>
@@ -348,6 +349,11 @@ void js_node::setScript(const QString& val)
     m_engine = new QQmlEngine;
     m_execFuncs = new ExecStateWrapper{m_st, m_engine};
     m_engine->rootContext()->setContextProperty("Device", m_execFuncs);
+
+    QObject::connect(m_execFuncs, &ExecStateWrapper::system,
+                     qApp, [=] (const QString& code) {
+      std::thread{[=] { ::system(code.toStdString().c_str()); }}.detach();
+    }, Qt::QueuedConnection);
   }
 
   m_jsInlets.clear();

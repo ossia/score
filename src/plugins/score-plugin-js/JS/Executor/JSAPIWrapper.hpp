@@ -31,6 +31,8 @@ public:
   W_SLOT(write);
   void exec(const QString& code) W_SIGNAL(exec, code);
 
+  void system(const QString& code) W_SIGNAL(system, code);
+
 private:
   ossia::execution_state& devices;
 
