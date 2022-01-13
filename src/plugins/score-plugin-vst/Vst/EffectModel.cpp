@@ -671,9 +671,16 @@ void Model::initFx()
   auto& app = ctx.applicationPlugin<vst::ApplicationPlugin>();
   auto it = ossia::find_if(
       app.vst_infos, [=](auto& i) { return i.uniqueID == fx->fx->uniqueID; });
-  SCORE_ASSERT(it != app.vst_infos.end());
-  metadata().setName(it->prettyName);
-  metadata().setLabel(metadata().getName());
+
+  if(it != app.vst_infos.end())
+  {
+    metadata().setName(it->prettyName);
+    metadata().setLabel(metadata().getName());
+  }
+  else
+  {
+    qDebug() << "warning! " << fx->fx->uniqueID << "not found but plug-in found by name.";
+  }
 }
 
 void Model::create()
