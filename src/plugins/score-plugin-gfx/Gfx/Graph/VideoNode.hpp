@@ -1,6 +1,12 @@
 #pragma once
 
 #include <Gfx/Graph/Node.hpp>
+extern "C"
+{
+#include <libavformat/avformat.h>
+}
+#include <atomic>
+
 namespace Video
 {
 struct VideoInterface;
@@ -8,6 +14,45 @@ struct VideoInterface;
 namespace score::gfx
 {
 class VideoNodeRenderer;
+class VideoNode;
+
+struct RefcountedFrame {
+  AVFrame* frame{};
+  std::atomic_int use_count{};
+};
+
+struct VideoFrameReader
+{
+  ~VideoFrameReader();
+
+  void releaseFramesToFree();
+  static AVFrame* nextFrame(const VideoNode& node, Video::VideoInterface& decoder, std::vector<AVFrame*>& framesToFree, AVFrame*& nextFrame);
+
+  std::shared_ptr<RefcountedFrame> currentFrame() const noexcept;
+  bool mustReadVideoFrame(const VideoNode& node);
+  void readNextFrame(VideoNode& node);
+  void updateCurrentFrame(VideoNode& node, AVFrame* frame);
+
+  std::shared_ptr<Video::VideoInterface> m_decoder;
+  int64_t m_currentFrameIdx{};
+
+private:
+  std::vector<AVFrame*> m_framesToFree;
+
+  mutable std::mutex m_frameLock{};
+
+  std::shared_ptr<RefcountedFrame> m_currentFrame{};
+
+
+  std::vector<std::shared_ptr<RefcountedFrame>> m_framesInFlight;
+
+  QElapsedTimer m_timer;
+  AVFrame* m_nextFrame{};
+  double m_lastFrameTime{};
+  double m_lastPlaybackTime{-1.};
+  bool m_readFrame{};
+};
+
 /**
  * @brief Model for rendering a video
  */
@@ -27,9 +72,13 @@ public:
   void seeked();
 
   void setScaleMode(score::gfx::ScaleMode s);
+  void process(const Message& msg) override;
+
+  VideoFrameReader reader;
 private:
+  friend VideoFrameReader;
   friend VideoNodeRenderer;
-  std::shared_ptr<Video::VideoInterface> m_decoder;
+
   QString m_filter;
   std::optional<double> m_nativeTempo;
   score::gfx::ScaleMode m_scaleMode{};

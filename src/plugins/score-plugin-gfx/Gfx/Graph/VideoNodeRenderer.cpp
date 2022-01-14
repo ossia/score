@@ -18,7 +18,7 @@ namespace score::gfx
 VideoNodeRenderer::VideoNodeRenderer(const VideoNode& node) noexcept
     : NodeRenderer{}
     , node{node}
-    , m_decoder{node.m_decoder} // TODO clone. But how to do for camera, etc. ?
+    , m_decoder{node.reader.m_decoder} // TODO clone. But how to do for camera, etc. ?
     , m_currentFormat{m_decoder->pixel_format}
     , m_currentWidth{m_decoder->width}
     , m_currentHeight{m_decoder->height}
@@ -27,11 +27,7 @@ VideoNodeRenderer::VideoNodeRenderer(const VideoNode& node) noexcept
 
 VideoNodeRenderer::~VideoNodeRenderer()
 {
-  auto& decoder = *m_decoder;
-  for (auto frame : m_framesToFree)
-    decoder.release_frame(frame);
 }
-
 
 TextureRenderTarget VideoNodeRenderer::renderTargetForInput(const Port& input)
 {
@@ -137,6 +133,7 @@ void VideoNodeRenderer::createGpuDecoder()
   }
 
   m_recomputeScale = true;
+  m_currentFrameIdx = -1;
 }
 
 void VideoNodeRenderer::setupGpuDecoder(RenderList& r)
@@ -226,9 +223,7 @@ void VideoNodeRenderer::init(RenderList& renderer)
   #include <Gfx/Qt5CompatPop> // clang-format: keep
 
   if (!m_gpu)
-  {
     createGpuDecoder();
-  }
 
   createPipelines(renderer);
   m_recomputeScale = true;
@@ -254,106 +249,6 @@ void VideoNodeRenderer::runRenderPass(RenderList& renderer, QRhiCommandBuffer& c
   }
 }
 
-AVFrame* VideoNodeRenderer::nextFrame()
-{
-  auto& nodem = const_cast<VideoNode&>(static_cast<const VideoNode&>(node));
-  auto& decoder = *m_decoder;
-
-  //double expected_frame = nodem.standardUBO.time / decoder.fps;
-  double current_flicks = nodem.standardUBO.time * ossia::flicks_per_second<double>;
-  double flicks_per_frame = ossia::flicks_per_second<double> / 25.;
-
-  ossia::small_vector<AVFrame*, 8> prev{};
-
-  if(auto frame = m_nextFrame)
-  {
-    auto drift_in_frames = (current_flicks - decoder.flicks_per_dts * frame->pts) / flicks_per_frame;
-
-    if (abs(drift_in_frames) <= 1.)
-    {
-      // we can finally show this frame
-      m_nextFrame = nullptr;
-      return frame;
-    }
-    else if(abs(drift_in_frames) > 5.)
-    {
-      // we likely seeked, move on to the dequeue
-      prev.push_back(frame);
-      m_nextFrame = nullptr;
-    }
-    else if(drift_in_frames < -1.)
-    {
-      // we early, keep showing the current frame (e.g. do nothing)
-      return nullptr;
-    }
-    else if(drift_in_frames > 1.)
-    {
-      // we late, move on to the dequeue
-      prev.push_back(frame);
-      m_nextFrame = nullptr;
-    }
-  }
-
-  while (auto frame = decoder.dequeue_frame())
-  {
-    auto drift_in_frames = (current_flicks - decoder.flicks_per_dts * frame->pts) / flicks_per_frame;
-
-    if (abs(drift_in_frames) <= 1.)
-    {
-      m_framesToFree.insert(m_framesToFree.end(), prev.begin(), prev.end());
-      return frame;
-    }
-    else if(abs(drift_in_frames) > 5.)
-    {
-      // we likely seeked, dequeue
-      prev.push_back(frame);
-      if(prev.size() >= 8)
-        break;
-
-      continue;
-    }
-    else if(drift_in_frames < -1.)
-    {
-      //current_time < frame_time: we are in advance by more than one frame, keep showing the current frame
-      m_nextFrame = frame;
-      m_framesToFree.insert(m_framesToFree.end(), prev.begin(), prev.end());
-      return nullptr;
-    }
-    else if(drift_in_frames > 1.)
-    {
-      //current_time > frame_time: we are late by more than one frame, fetch new frames
-      prev.push_back(frame);
-      if(prev.size() >= 8)
-        break;
-
-      continue;
-    }
-
-    m_framesToFree.insert(m_framesToFree.end(), prev.begin(), prev.end());
-    return frame;
-  }
-
-  switch(prev.size())
-  {
-    case 0:
-    {
-      return nullptr;
-    }
-    case 1:
-    {
-      return prev.back(); // display the closest frame we got
-    }
-    default:
-    {
-      for(std::size_t i = 0; i < prev.size() - 1; ++i) {
-        m_framesToFree.push_back(prev[i]);
-      }
-      return prev.back();
-    }
-  }
-  return nullptr;
-}
-
 // TODO if we have multiple renderers for the same video, we must always keep
 // a frame because rendered may have different rates, so we cannot know "when"
 // all renderers have rendered, thue the pattern in the following function
@@ -363,28 +258,17 @@ void VideoNodeRenderer::update(RenderList& renderer, QRhiResourceUpdateBatch& re
   res.updateDynamicBuffer(
       m_processUBO, 0, sizeof(ProcessUBO), &this->node.standardUBO);
 
-  auto& decoder = *m_decoder;
-
-  // Release frames from the previous update (which have necessarily been uploaded)
-  for (auto frame : m_framesToFree)
-    decoder.release_frame(frame);
-  m_framesToFree.clear();
-
-  // Camera and other sources where we always want the latest frame
-  if(decoder.realTime)
+  if(node.reader.m_currentFrameIdx > this->m_currentFrameIdx)
   {
-    if (auto frame = decoder.dequeue_frame())
-    {
-      displayRealTimeFrame(*frame, renderer, res);
-    }
-  }
-  else if (mustReadVideoFrame())
-  {
-    // Video files which require more precise timing handling
-    if (auto frame = nextFrame())
-    {
-      displayVideoFrame(*frame, renderer, res);
-    }
+    auto old_frame = m_currentFrame;
+
+    //std::lock_guard<std::mutex> lck{const_cast<VideoNode&>(node).reader.m_frameLock};
+    if((m_currentFrame = node.reader.currentFrame()))
+      displayFrame(*m_currentFrame->frame, renderer, res);
+
+    if(old_frame)
+      old_frame->use_count--;
+    // TODO else ? fill with zeroes ?... does not that give green with YUV?
   }
 
   if(m_recomputeScale || m_currentScaleMode != this->node.m_scaleMode)
@@ -400,7 +284,7 @@ void VideoNodeRenderer::update(RenderList& renderer, QRhiResourceUpdateBatch& re
   }
 }
 
-void VideoNodeRenderer::displayRealTimeFrame(AVFrame& frame, RenderList& renderer, QRhiResourceUpdateBatch& res)
+void VideoNodeRenderer::displayFrame(AVFrame& frame, RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
   checkFormat(
       renderer,
@@ -412,70 +296,8 @@ void VideoNodeRenderer::displayRealTimeFrame(AVFrame& frame, RenderList& rendere
   {
     m_gpu->exec(renderer, res, frame);
   }
-
-  m_framesToFree.push_back(&frame);
 }
 
-void VideoNodeRenderer::displayVideoFrame(AVFrame& frame, RenderList& renderer, QRhiResourceUpdateBatch& res)
-{
-  auto& decoder = *m_decoder;
-
-  checkFormat(
-      renderer,
-      static_cast<AVPixelFormat>(frame.format),
-      frame.width,
-      frame.height);
-  if (m_gpu)
-  {
-    m_gpu->exec(renderer, res, frame);
-  }
-
-  m_lastFrameTime
-      = (decoder.flicks_per_dts * frame.pts) / ossia::flicks_per_second<double>;
-
-  m_framesToFree.push_back(&frame);
-  m_timer.restart();
-}
-
-bool VideoNodeRenderer::mustReadVideoFrame()
-{
-  if(!std::exchange(m_readFrame, true))
-    return true;
-
-  auto& nodem = const_cast<VideoNode&>(static_cast<const VideoNode&>(node));
-  auto& decoder = *m_decoder;
-
-  double tempoRatio = 1.;
-  if (nodem.m_nativeTempo)
-    tempoRatio = (*nodem.m_nativeTempo) / 120.;
-
-  auto current_time = nodem.standardUBO.time * tempoRatio; // In seconds
-  auto next_frame_time = m_lastFrameTime;
-
-  // pause
-  if (nodem.standardUBO.time == m_lastPlaybackTime)
-  {
-    return false;
-  }
-  m_lastPlaybackTime = nodem.standardUBO.time;
-
-  // what more can we do ?
-  const double inv_fps
-      = decoder.fps > 0
-      ? (1. / (tempoRatio * decoder.fps))
-      : (1. / 24.);
-  next_frame_time += inv_fps;
-
-  // If we are late
-  if(current_time > next_frame_time)
-    return true;
-
-  // If we must display the next frame
-  if(abs(m_timer.elapsed() - (1000. * inv_fps)) > 0.)
-    return true;
-
-  return false;
-}
 
 void VideoNodeRenderer::release(RenderList& r)
 {

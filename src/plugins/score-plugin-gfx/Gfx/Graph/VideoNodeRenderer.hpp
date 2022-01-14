@@ -6,6 +6,7 @@
 namespace score::gfx
 {
 class GPUVideoDecoder;
+
 class VideoNodeRenderer
     : public NodeRenderer
 {
@@ -36,10 +37,7 @@ public:
 
 private:
   void createPipelines(RenderList& r);
-  void displayRealTimeFrame(AVFrame& frame, RenderList& renderer, QRhiResourceUpdateBatch& res);
-  void displayVideoFrame(AVFrame& frame, RenderList& renderer, QRhiResourceUpdateBatch& res);
-  bool mustReadVideoFrame();
-  AVFrame* nextFrame();
+  void displayFrame(AVFrame& frame, RenderList& renderer, QRhiResourceUpdateBatch& res);
   const VideoNode& node;
 
   std::vector<std::pair<Edge*, Pipeline>> m_p;
@@ -54,18 +52,14 @@ private:
 
   std::unique_ptr<GPUVideoDecoder> m_gpu;
   std::shared_ptr<Video::VideoInterface> m_decoder;
-  std::vector<AVFrame*> m_framesToFree;
 
   AVPixelFormat m_currentFormat = AVPixelFormat(-1);
   int m_currentWidth = 0;
   int m_currentHeight = 0;
   score::gfx::ScaleMode m_currentScaleMode{};
-  QElapsedTimer m_timer;
-  AVFrame* m_nextFrame{};
 
-  double m_lastFrameTime{};
-  double m_lastPlaybackTime{-1.};
-  bool m_readFrame{};
+  std::shared_ptr<RefcountedFrame> m_currentFrame{};
+  int64_t m_currentFrameIdx{-1};
   bool m_recomputeScale{};
 };
 
