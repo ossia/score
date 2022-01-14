@@ -43,6 +43,20 @@ void Model::setPath(const QString& f)
   pathChanged(f);
 }
 
+score::gfx::ScaleMode Model::scaleMode() const noexcept
+{
+  return m_scaleMode;
+}
+
+void Model::setScaleMode(score::gfx::ScaleMode t)
+{
+  if (t != m_scaleMode)
+  {
+    m_scaleMode = t;
+    scaleModeChanged(t);
+  }
+}
+
 double Model::nativeTempo() const noexcept
 {
   return m_nativeTempo;
@@ -78,12 +92,12 @@ QSet<QString> DropHandler::mimeTypes() const noexcept
 
 QSet<QString> LibraryHandler::acceptedFiles() const noexcept
 {
-  return {"mkv", "mov", "mp4", "h264", "avi", "hap", "mpg", "mpeg"};
+  return {"mkv", "mov", "mp4", "h264", "avi", "hap", "mpg", "mpeg", "imf", "mxf", "mts", "m2ts", "mj2"};
 }
 
 QSet<QString> DropHandler::fileExtensions() const noexcept
 {
-  return {"mkv", "mov", "mp4", "h264", "avi", "hap", "mpg", "mpeg"};
+  return {"mkv", "mov", "mp4", "h264", "avi", "hap", "mpg", "mpeg", "imf", "mxf", "mts", "m2ts", "mj2"};
 }
 
 TimeVal guessVideoDuration(const QString& path)
@@ -120,7 +134,7 @@ void DataStreamReader::read(const Gfx::Video::Model& proc)
 {
   readPorts(*this, proc.m_inlets, proc.m_outlets);
 
-  m_stream << proc.m_path << proc.m_nativeTempo << proc.m_ignoreTempo;
+  m_stream << proc.m_path << proc.m_scaleMode << proc.m_nativeTempo << proc.m_ignoreTempo;
   insertDelimiter();
 }
 
@@ -135,7 +149,7 @@ void DataStreamWriter::write(Gfx::Video::Model& proc)
       &proc);
 
   QString path;
-  m_stream >> path >> proc.m_nativeTempo >> proc.m_ignoreTempo;
+  m_stream >> path >> proc.m_scaleMode >> proc.m_nativeTempo >> proc.m_ignoreTempo;
   proc.setPath(path);
   checkDelimiter();
 }
@@ -145,6 +159,7 @@ void JSONReader::read(const Gfx::Video::Model& proc)
 {
   readPorts(*this, proc.m_inlets, proc.m_outlets);
   obj["FilePath"] = proc.m_path;
+  obj["Scale"] = (int)proc.m_scaleMode;
   obj["Tempo"] = proc.m_nativeTempo;
   obj["IgnoreTempo"] = proc.m_ignoreTempo;
 }
@@ -159,6 +174,10 @@ void JSONWriter::write(Gfx::Video::Model& proc)
       proc.m_outlets,
       &proc);
   proc.setPath(obj["FilePath"].toString());
+
+  if(auto sc = obj.tryGet("Scale"))
+    proc.m_scaleMode = static_cast<score::gfx::ScaleMode>(sc->toInt());
+
   proc.m_nativeTempo = obj["Tempo"].toDouble();
   proc.m_ignoreTempo = obj["IgnoreTempo"].toBool();
 }

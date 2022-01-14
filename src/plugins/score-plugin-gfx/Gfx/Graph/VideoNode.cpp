@@ -8,8 +8,8 @@ VideoNode::VideoNode(
     std::optional<double> nativeTempo,
     QString f)
     : m_decoder{std::move(dec)}
-    , m_nativeTempo{nativeTempo}
     , m_filter{f}
+    , m_nativeTempo{nativeTempo}
 {
   output.push_back(new Port{this, {}, Types::Image, {}});
 }
@@ -25,6 +25,11 @@ VideoNode::createRenderer(RenderList& r) const noexcept
 void VideoNode::seeked()
 {
   SCORE_TODO;
+}
+
+void VideoNode::setScaleMode(ScaleMode s)
+{
+  m_scaleMode = s;
 }
 }
 #include <hap/source/hap.c>

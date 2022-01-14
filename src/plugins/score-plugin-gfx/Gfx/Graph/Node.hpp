@@ -47,6 +47,11 @@ public:
   explicit Node();
   virtual ~Node();
 
+  Node(const Node&) = delete;
+  Node(Node&&) = delete;
+  Node& operator=(const Node&) = delete;
+  Node& operator=(Node&&) = delete;
+
   /**
    * @brief Create a renderer in a given context for this node.
    */

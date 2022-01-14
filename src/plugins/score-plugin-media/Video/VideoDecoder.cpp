@@ -186,6 +186,8 @@ ReadFrame VideoDecoder::read_one_frame(AVFramePointer frame, AVPacket& packet)
         memcpy(&frame->format, &cp->codec_tag, 4);
 
         frame->buf[0] = av_buffer_ref(packet.buf);
+        frame->width = cp->width;
+        frame->height = cp->height;
         frame->format = (cp->codec_tag);
         frame->best_effort_timestamp = packet.pts;
         frame->data[0] = packet.data;

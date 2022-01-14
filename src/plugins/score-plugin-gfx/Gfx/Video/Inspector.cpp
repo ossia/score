@@ -8,6 +8,7 @@
 #include <QFormLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QComboBox>
 #include <QSpinBox>
 
 namespace Gfx::Video
@@ -46,6 +47,10 @@ InspectorWidget::InspectorWidget(
     spin->setDecimals(1);
     spin->setValue(object.nativeTempo());
 
+    auto combo = new QComboBox;
+    combo->addItems({tr("Original size"), tr("Expand (Black bars)"), tr("Expand (Fill)"), tr("Stretch")});
+    combo->setCurrentIndex((int)object.scaleMode());
+
     con(object,
         &Gfx::Video::Model::ignoreTempoChanged,
         this,
@@ -61,6 +66,14 @@ InspectorWidget::InspectorWidget(
           if (spin->value() != tempo)
             spin->setValue(tempo);
         });
+    con(object,
+        &Gfx::Video::Model::scaleModeChanged,
+        this,
+        [=](score::gfx::ScaleMode sm) {
+      int idx = (int) sm;
+      if (combo->currentIndex() != idx)
+        combo->setCurrentIndex(idx);
+    });
 
     connect(cb, &QCheckBox::toggled, this, [=](bool t) {
       if ((!t) != this->process().ignoreTempo())
@@ -80,10 +93,23 @@ InspectorWidget::InspectorWidget(
           }
         });
 
+    connect(combo, qOverload<int>(&QComboBox::currentIndexChanged),
+            &object, [=] (int idx) {
+      auto new_mode = (score::gfx::ScaleMode) idx;
+      if (new_mode != this->process().scaleMode())
+      {
+        this->m_dispatcher.submit<ChangeVideoScaleMode>(this->process(), new_mode);
+      }
+    });
+
+    lay->addRow(tr("Scale"), combo);
     lay->addRow(tr("Enable tempo"), cb);
     lay->addRow(tr("Tempo"), spin);
   }
 }
 
-InspectorWidget::~InspectorWidget() { }
+InspectorWidget::~InspectorWidget()
+{
+
+}
 }

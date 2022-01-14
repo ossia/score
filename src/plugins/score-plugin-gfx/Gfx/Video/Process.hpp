@@ -1,6 +1,7 @@
 #pragma once
 #include <Gfx/CommandFactory.hpp>
 #include <Gfx/Video/Metadata.hpp>
+#include <Gfx/Graph/Scale.hpp>
 #include <Library/LibraryInterface.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/GenericProcessFactory.hpp>
@@ -46,9 +47,15 @@ public:
   void setNativeTempo(double);
   void nativeTempoChanged(double t) W_SIGNAL(nativeTempoChanged, t);
 
+  score::gfx::ScaleMode scaleMode() const noexcept;
+  void setScaleMode(score::gfx::ScaleMode);
+  void scaleModeChanged(score::gfx::ScaleMode t) W_SIGNAL(scaleModeChanged, t);
+
   bool ignoreTempo() const noexcept;
   void setIgnoreTempo(bool);
   void ignoreTempoChanged(bool t) W_SIGNAL(ignoreTempoChanged, t);
+
+  PROPERTY(score::gfx::ScaleMode, scaleMode READ scaleMode WRITE setScaleMode NOTIFY scaleModeChanged)
 
   PROPERTY(QString, path READ path WRITE setPath NOTIFY pathChanged)
   PROPERTY(
@@ -65,6 +72,7 @@ public:
 private:
   QString m_path;
   std::shared_ptr<video_decoder> m_decoder;
+  score::gfx::ScaleMode m_scaleMode{};
   double m_nativeTempo{};
   bool m_ignoreTempo{};
 };
@@ -107,3 +115,11 @@ PROPERTY_COMMAND_T(
     Video::Model::p_ignoreTempo,
     "Ignore video tempo")
 SCORE_COMMAND_DECL_T(Gfx::ChangeIgnoreTempo)
+PROPERTY_COMMAND_T(
+    Gfx,
+    ChangeVideoScaleMode,
+    Video::Model::p_scaleMode,
+    "Video scale mode")
+SCORE_COMMAND_DECL_T(Gfx::ChangeVideoScaleMode)
+
+W_REGISTER_ARGTYPE(score::gfx::ScaleMode)

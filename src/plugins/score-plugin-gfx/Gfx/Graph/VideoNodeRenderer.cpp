@@ -135,6 +135,8 @@ void VideoNodeRenderer::createGpuDecoder()
       break;
     }
   }
+
+  m_recomputeScale = true;
 }
 
 void VideoNodeRenderer::setupGpuDecoder(RenderList& r)
@@ -152,6 +154,11 @@ void VideoNodeRenderer::setupGpuDecoder(RenderList& r)
 
   createGpuDecoder();
 
+  createPipelines(r);
+}
+
+void VideoNodeRenderer::createPipelines(RenderList& r)
+{
   if (m_gpu)
   {
     auto shaders = m_gpu->init(r);
@@ -169,7 +176,7 @@ void VideoNodeRenderer::setupGpuDecoder(RenderList& r)
               shaders.second,
               rt,
               m_processUBO,
-              nullptr,
+              m_materialUBO,
               m_gpu->samplers));
       }
     }
@@ -187,13 +194,19 @@ void VideoNodeRenderer::checkFormat(RenderList& r, AVPixelFormat fmt, int w, int
     m_currentHeight = h;
     setupGpuDecoder(r);
   }
+  else
+  {
+    m_currentFormat = fmt;
+    m_currentWidth = w;
+    m_currentHeight = h;
+  }
 }
 
 void VideoNodeRenderer::init(RenderList& renderer)
 {
   auto& rhi = *renderer.state.rhi;
 
-  auto& mesh = TexturedTriangle::instance();
+  auto& mesh = TexturedQuad::instance();
   if (!m_meshBuffer)
   {
     auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh);
@@ -201,31 +214,24 @@ void VideoNodeRenderer::init(RenderList& renderer)
     m_idxBuffer = ibuffer;
   }
 
+  #include <Gfx/Qt5CompatPush> // clang-format: keep
   m_processUBO = rhi.newBuffer(
       QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(ProcessUBO));
-#include <Gfx/Qt5CompatPush> // clang-format: keep
   m_processUBO->create();
-#include <Gfx/Qt5CompatPop> // clang-format: keep
+
+  m_materialUBO = rhi.newBuffer(
+  QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(Material));
+  m_materialUBO->create();
+
+  #include <Gfx/Qt5CompatPop> // clang-format: keep
 
   if (!m_gpu)
   {
     createGpuDecoder();
   }
 
-  if (m_gpu)
-  {
-    auto shaders = m_gpu->init(renderer);
-
-    SCORE_ASSERT(m_p.empty());
-    for(Edge* edge : this->node.output[0]->edges)
-    {
-      auto rt = renderer.renderTargetForOutput(*edge);
-      if(rt.renderTarget)
-      {
-        m_p.emplace_back(edge, score::gfx::buildPipeline(renderer, mesh, shaders.first, shaders.second, rt, m_processUBO, nullptr, m_gpu->samplers));
-      }
-    }
-  }
+  createPipelines(renderer);
+  m_recomputeScale = true;
 }
 
 void VideoNodeRenderer::runRenderPass(RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge)
@@ -240,7 +246,7 @@ void VideoNodeRenderer::runRenderPass(RenderList& renderer, QRhiCommandBuffer& c
 
     assert(this->m_meshBuffer);
     assert(this->m_meshBuffer->usage().testFlag(QRhiBuffer::VertexBuffer));
-    auto& mesh = TexturedTriangle::instance();
+    auto& mesh = TexturedQuad::instance();
 
     mesh.setupBindings(*this->m_meshBuffer, this->m_idxBuffer, cb);
 
@@ -379,6 +385,18 @@ void VideoNodeRenderer::update(RenderList& renderer, QRhiResourceUpdateBatch& re
     {
       displayVideoFrame(*frame, renderer, res);
     }
+  }
+
+  if(m_recomputeScale || m_currentScaleMode != this->node.m_scaleMode)
+  {
+    m_currentScaleMode = this->node.m_scaleMode;
+    auto sz = computeScale(m_currentScaleMode, renderer.state.size, QSizeF(m_currentWidth, m_currentHeight));
+    Material mat;
+    mat.scale_w = sz.width();
+    mat.scale_h = sz.height();
+
+    res.updateDynamicBuffer(m_materialUBO, 0, sizeof(Material), &mat);
+    m_recomputeScale = false;
   }
 }
 

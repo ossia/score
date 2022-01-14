@@ -73,6 +73,8 @@ public:
       int bytesPerPixel,
       int stride);
 
+  static QString vertexShader() noexcept;
+
   std::vector<Sampler> samplers;
 };
 
@@ -93,7 +95,7 @@ struct EmptyDecoder : GPUVideoDecoder
 
   std::pair<QShader, QShader> init(RenderList& r) override
   {
-    return score::gfx::makeShaders(TexturedTriangle::instance().defaultVertexShader(), hashtag_no_filter);
+    return score::gfx::makeShaders(vertexShader(), hashtag_no_filter);
   }
 
   void exec(

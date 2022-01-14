@@ -8,6 +8,7 @@
 #include <Process/ExecutionContext.hpp>
 
 #include <score/document/DocumentContext.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <ossia/dataflow/port.hpp>
 
@@ -97,6 +98,13 @@ ProcessExecutorComponent::ProcessExecutorComponent(
 
     this->node = n;
     m_ossia_process = std::make_shared<video_process>(n);
+
+    ::bind(element, Gfx::Video::Model::p_scaleMode{},
+        this, [this] (score::gfx::ScaleMode m) {
+      if(auto vn = static_cast<video_node*>(this->node.get()); vn && vn->impl) {
+        vn->impl->setScaleMode(m);
+      }
+    });
   }
 }
 }

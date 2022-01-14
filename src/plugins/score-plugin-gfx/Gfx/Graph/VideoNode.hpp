@@ -26,11 +26,13 @@ public:
 
   void seeked();
 
+  void setScaleMode(score::gfx::ScaleMode s);
 private:
   friend VideoNodeRenderer;
   std::shared_ptr<Video::VideoInterface> m_decoder;
-  std::optional<double> m_nativeTempo;
   QString m_filter;
+  std::optional<double> m_nativeTempo;
+  score::gfx::ScaleMode m_scaleMode{};
 };
 
 }

@@ -1,5 +1,9 @@
 #pragma once
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
+extern "C"
+{
+#include <libavformat/avformat.h>
+}
 
 namespace score::gfx
 {
@@ -13,10 +17,12 @@ struct YUYV422Decoder : GPUVideoDecoder
 {
   static const constexpr auto filter = R"_(#version 450
 
-layout(std140, binding = 0) uniform buf {
+layout(std140, binding = 0) uniform renderer_t {
 mat4 clipSpaceCorrMatrix;
 vec2 texcoordAdjust;
-} tbuf;
+
+vec2 renderSize;
+} renderer;
 
 layout(binding=3) uniform sampler2D u_tex;
 
@@ -29,7 +35,7 @@ const vec3 B_cf = vec3(1.164383,  2.017232,  0.000000);
 const vec3 offset = vec3(-0.0625, -0.5, -0.5);
 
 void main() {
-  vec2 texcoord = vec2(v_texcoord.x, tbuf.texcoordAdjust.y + tbuf.texcoordAdjust.x * v_texcoord.y);
+  vec2 texcoord = vec2(v_texcoord.x, renderer.texcoordAdjust.y + renderer.texcoordAdjust.x * v_texcoord.y);
   vec4 tex = texture(u_tex, texcoord);
   float y = tex.r;
   float u = tex.g - 0.5;
@@ -68,7 +74,7 @@ void main() {
       samplers.push_back({sampler, tex});
     }
 
-    return score::gfx::makeShaders(TexturedTriangle::instance().defaultVertexShader(), filter);
+    return score::gfx::makeShaders(vertexShader(), filter);
   }
 
   void exec(
@@ -104,11 +110,12 @@ struct UYVY422Decoder : GPUVideoDecoder
 {
   static const constexpr auto filter = R"_(#version 450
 
-layout(std140, binding = 0) uniform buf {
+layout(std140, binding = 0) uniform renderer_t {
 mat4 clipSpaceCorrMatrix;
 vec2 texcoordAdjust;
-vec2 RENDERSIZE;
-} tbuf;
+
+vec2 renderSize;
+} renderer;
 
 layout(binding=3) uniform sampler2D u_tex;
 
@@ -127,13 +134,13 @@ const mat4 bt709 = mat4(
                     -0.5727f, 0.3007f, -1.1302, 1.0f);
 
 void main() {
-  vec2 texcoord = vec2(v_texcoord.x, tbuf.texcoordAdjust.y + tbuf.texcoordAdjust.x * v_texcoord.y);
+  vec2 texcoord = vec2(v_texcoord.x, renderer.texcoordAdjust.y + renderer.texcoordAdjust.x * v_texcoord.y);
 
    // For U0 Y0 V0 Y1 macropixel, lookup Y0 or Y1 based on whether
    // the original texture x coord is even or odd.
    vec4 uyvy = texture(u_tex, texcoord);
    float Y;
-   if (fract(floor(texcoord.x * tbuf.RENDERSIZE.x + 0.5) / 2.0) > 0.0)
+   if (fract(floor(texcoord.x * renderer.renderSize.x + 0.5) / 2.0) > 0.0)
        Y = uyvy.a;       // odd so choose Y1
    else
        Y = uyvy.g;       // even so choose Y0
@@ -171,7 +178,7 @@ void main() {
       samplers.push_back({sampler, tex});
     }
 
-    return score::gfx::makeShaders(TexturedTriangle::instance().defaultVertexShader(), filter);
+    return score::gfx::makeShaders(vertexShader(), filter);
   }
 
   void exec(

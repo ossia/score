@@ -149,10 +149,12 @@ struct HAPDecoder : GPUVideoDecoder
 struct HAPDefaultDecoder : HAPDecoder
 {
   static inline const QString fragment = QStringLiteral(R"_(#version 450
-layout(std140, binding = 0) uniform buf {
+layout(std140, binding = 0) uniform renderer_t {
 mat4 clipSpaceCorrMatrix;
 vec2 texcoordAdjust;
-} tbuf;
+
+vec2 renderSize;
+} renderer;
 
 layout(binding=3) uniform sampler2D y_tex;
 
@@ -180,7 +182,7 @@ vec4 processTexture(vec4 tex) {
 
 void main ()
 {
-  vec2 texcoord = vec2(v_texcoord.x, tbuf.texcoordAdjust.y + tbuf.texcoordAdjust.x * v_texcoord.y);
+  vec2 texcoord = vec2(v_texcoord.x, renderer.texcoordAdjust.y + renderer.texcoordAdjust.x * v_texcoord.y);
 
   fragColor = processTexture(texture(y_tex, texcoord));
 })_");
@@ -205,7 +207,7 @@ void main ()
   {
     auto& rhi = *r.state.rhi;
     auto shaders = score::gfx::makeShaders(
-        TexturedTriangle::instance().defaultVertexShader(), QString(fragment).arg(filter));
+        vertexShader(), QString(fragment).arg(filter));
 
     const auto w = decoder.width, h = decoder.height;
 
@@ -233,10 +235,12 @@ void main ()
 struct HAPMDecoder : HAPDecoder
 {
   static inline const QString fragment = QStringLiteral(R"_(#version 450
-layout(std140, binding = 0) uniform buf {
+layout(std140, binding = 0) uniform renderer_t {
 mat4 clipSpaceCorrMatrix;
 vec2 texcoordAdjust;
-} tbuf;
+
+vec2 renderSize;
+} renderer;
 
 layout(binding=3) uniform sampler2D y_tex;
 layout(binding=4) uniform sampler2D alpha_tex;
@@ -265,7 +269,7 @@ vec4 processTexture(vec4 tex) {
 
 void main ()
 {
-  vec2 texcoord = vec2(v_texcoord.x, tbuf.texcoordAdjust.y + tbuf.texcoordAdjust.x * v_texcoord.y);
+  vec2 texcoord = vec2(v_texcoord.x, renderer.texcoordAdjust.y + renderer.texcoordAdjust.x * v_texcoord.y);
 
   vec4 ycocg = texture(y_tex, texcoord);
   vec4 alpha = texture(alpha_tex, texcoord);
@@ -283,7 +287,7 @@ void main ()
   {
     auto& rhi = *r.state.rhi;
     auto shaders = score::gfx::makeShaders(
-        TexturedTriangle::instance().defaultVertexShader(), QString(fragment).arg(filter));
+        vertexShader(), QString(fragment).arg(filter));
 
     const auto w = decoder.width, h = decoder.height;
 

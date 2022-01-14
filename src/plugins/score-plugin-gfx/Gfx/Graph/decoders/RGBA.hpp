@@ -1,5 +1,9 @@
 #pragma once
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
+extern "C"
+{
+#include <libavformat/avformat.h>
+}
 
 namespace score::gfx
 {
@@ -7,10 +11,12 @@ namespace score::gfx
 struct PackedDecoder : GPUVideoDecoder
 {
   static const constexpr auto rgb_filter = R"_(#version 450
-    layout(std140, binding = 0) uniform buf {
+    layout(std140, binding = 0) uniform renderer_t {
     mat4 clipSpaceCorrMatrix;
     vec2 texcoordAdjust;
-    } tbuf;
+
+    vec2 renderSize;
+    } renderer;
 
     layout(binding=3) uniform sampler2D y_tex;
 
@@ -25,7 +31,7 @@ struct PackedDecoder : GPUVideoDecoder
 
     void main ()
     {
-      vec2 texcoord = vec2(v_texcoord.x, tbuf.texcoordAdjust.y + tbuf.texcoordAdjust.x * v_texcoord.y);
+      vec2 texcoord = vec2(v_texcoord.x, renderer.texcoordAdjust.y + renderer.texcoordAdjust.x * v_texcoord.y);
       fragColor = processTexture(texture(y_tex, texcoord));
     })_";
 
@@ -37,7 +43,7 @@ struct PackedDecoder : GPUVideoDecoder
       : format{fmt}
       , bytes_per_pixel{bytes_per_pixel}
       , decoder{d}
-      , filter{f}
+      , filter{std::move(f)}
   {
   }
   QRhiTexture::Format format;
@@ -68,7 +74,7 @@ struct PackedDecoder : GPUVideoDecoder
       samplers.push_back({sampler, tex});
     }
 
-    return score::gfx::makeShaders(TexturedTriangle::instance().defaultVertexShader(), QString(rgb_filter).arg(filter));
+    return score::gfx::makeShaders(vertexShader(), QString(rgb_filter).arg(filter));
   }
 
   void exec(

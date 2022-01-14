@@ -1,5 +1,9 @@
 #pragma once
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
+extern "C"
+{
+#include <libavformat/avformat.h>
+}
 
 namespace score::gfx
 {
@@ -15,10 +19,12 @@ struct YUV420Decoder : GPUVideoDecoder
 {
   static const constexpr auto yuv420_filter = R"_(#version 450
 
-  layout(std140, binding = 0) uniform buf {
+  layout(std140, binding = 0) uniform renderer_t {
   mat4 clipSpaceCorrMatrix;
   vec2 texcoordAdjust;
-  } tbuf;
+
+  vec2 renderSize;
+  } renderer;
 
   layout(binding=3) uniform sampler2D y_tex;
   layout(binding=4) uniform sampler2D u_tex;
@@ -34,7 +40,7 @@ struct YUV420Decoder : GPUVideoDecoder
 
   void main ()
   {
-    vec2 texcoord = vec2(v_texcoord.x, tbuf.texcoordAdjust.y + tbuf.texcoordAdjust.x * v_texcoord.y);
+    vec2 texcoord = vec2(v_texcoord.x, renderer.texcoordAdjust.y + renderer.texcoordAdjust.x * v_texcoord.y);
 
     float y = texture(y_tex, texcoord).r;
     float u = texture(u_tex, texcoord).r;
@@ -108,7 +114,7 @@ struct YUV420Decoder : GPUVideoDecoder
     }
 
     return score::gfx::makeShaders(
-               TexturedTriangle::instance().defaultVertexShader(), yuv420_filter);
+               vertexShader(), yuv420_filter);
   }
 
   void exec(

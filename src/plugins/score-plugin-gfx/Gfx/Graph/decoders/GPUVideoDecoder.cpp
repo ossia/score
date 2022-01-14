@@ -52,4 +52,35 @@ QRhiTextureSubresourceUploadDescription GPUVideoDecoder::createTextureUpload(
   return subdesc;
 }
 
+QString GPUVideoDecoder::vertexShader() noexcept
+{
+  static constexpr const char* shader = R"_(#version 450
+layout(location = 0) in vec2 position;
+layout(location = 1) in vec2 texcoord;
+
+layout(location = 0) out vec2 v_texcoord;
+
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 texcoordAdjust;
+
+  vec2 renderSize;
+} renderer;
+
+layout(std140, binding = 2) uniform material_t {
+  vec2 scale;
+} mat;
+
+out gl_PerVertex { vec4 gl_Position; };
+
+void main()
+{
+  v_texcoord = texcoord;
+  gl_Position = renderer.clipSpaceCorrMatrix * vec4(position.x * mat.scale.x, position.y * mat.scale.y, 0.0, 1.);
+}
+)_";
+
+  return shader;
+}
+
 }

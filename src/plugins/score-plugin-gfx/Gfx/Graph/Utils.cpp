@@ -433,4 +433,38 @@ QImage resizeTexture(const QImage& img, int min, int max) noexcept
   return img.scaled(rescaled, Qt::KeepAspectRatio);
 }
 
+QSizeF computeScale(ScaleMode mode, QSizeF viewport, QSizeF texture)
+{
+  switch(mode)
+  {
+    case score::gfx::ScaleMode::BlackBars:
+    {
+      const auto new_tex_size = viewport.scaled(texture, Qt::AspectRatioMode::KeepAspectRatioByExpanding);
+      return {texture.width() / new_tex_size.width(), texture.height() / new_tex_size.height()};
+    }
+    case score::gfx::ScaleMode::Fill:
+    {
+      double correct_ratio_w = 2. * texture.width() / viewport.width();
+      double correct_ratio_h = 2. * texture.height() / viewport.height();
+      if(texture.width() >= viewport.width() && texture.height() >= viewport.height())
+      {
+        double rw = viewport.width() / texture.width();
+        double rh = viewport.height() / texture.height();
+        double min = std::max(rw, rh)/2.;
+
+        return {correct_ratio_w * min, correct_ratio_h * min};
+      }
+      const auto new_tex_size1 = viewport.scaled(texture, Qt::AspectRatioMode::KeepAspectRatio);
+      return {texture.width() / new_tex_size1.width(), texture.height() / new_tex_size1.height()};
+    }
+    case score::gfx::ScaleMode::Original:
+    {
+      return {2. * texture.width() / viewport.width(), 2. * texture.height() / viewport.height()};
+    }
+    case score::gfx::ScaleMode::Stretch:
+    default:
+      return {1., 1.};
+  }
+}
+
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Gfx/Graph/Scale.hpp>
 #include <Gfx/Graph/Mesh.hpp>
 #include <Gfx/Graph/RenderState.hpp>
 #include <Gfx/Graph/Uniforms.hpp>
@@ -261,4 +262,10 @@ inline void copyMatrix(const QMatrix3x3& mat, float* ptr) noexcept
 {
   memcpy(ptr, mat.constData(), sizeof(float) * 9);
 }
+
+/**
+ * @brief Comput the scale to apply to a texture so that it fits in a GL viewport.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+QSizeF computeScale(score::gfx::ScaleMode mode, QSizeF viewport, QSizeF texture);
 }
