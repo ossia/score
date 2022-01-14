@@ -12,6 +12,7 @@
 //#include <JitCpp/Commands/EditJitEffect.hpp>
 
 #include <Process/Dataflow/PortFactory.hpp>
+#include <Process/PresetHelpers.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/tools/DeleteAll.hpp>
@@ -246,43 +247,61 @@ struct outlet_vis
   Process::Outlet* operator()() const noexcept { return nullptr; }
 };
 
-void JitEffectModel::reload()
+std::shared_ptr<NodeFactory> JitEffectModel::getJitFactory()
 {
+  static std::map<QByteArray, std::shared_ptr<NodeFactory>> facts;
+
+  auto fx_text = m_text.toUtf8();
+  if (fx_text.isEmpty())
+    return nullptr;
+
+  if(auto it = facts.find(fx_text); it != facts.end())
+  {
+    return it->second;
+  }
+
   // FIXME dispos of them once unused at execution
   static std::list<std::shared_ptr<NodeCompiler>> old_compilers;
   if (m_compiler)
   {
     old_compilers.push_front(std::move(m_compiler));
-    if (old_compilers.size() > 5)
-      old_compilers.pop_back();
+    // if (old_compilers.size() > 5)
+    //   old_compilers.pop_back();
   }
 
   m_compiler = std::make_unique<NodeCompiler>("score_graph_node_factory");
 
-  auto fx_text = m_text.toUtf8();
-  if (fx_text.isEmpty())
-    return;
 
-  NodeFactory jit_factory;
+  std::shared_ptr<NodeFactory> jit_factory;
   try
   {
-    jit_factory
-        = (*m_compiler)(fx_text.toStdString(), {}, CompilerOptions{false});
+    jit_factory = std::make_shared<NodeFactory>((*m_compiler)(fx_text.toStdString(), {}, CompilerOptions{false}));
 
-    if (!jit_factory)
-      return;
+    if (!(*jit_factory))
+      return nullptr;
   }
   catch (const std::exception& e)
   {
     qDebug() << e.what();
     errorMessage(0, e.what());
-    return;
+    return nullptr;
   }
   catch (...)
   {
     errorMessage(0, "JIT error");
-    return;
+    return nullptr;
   }
+
+  const auto& [it, b] = facts.emplace(std::move(fx_text), std::move(jit_factory));
+  return it->second;
+}
+
+void JitEffectModel::reload()
+{
+  auto jit_fac = getJitFactory();
+  if(!jit_fac)
+    return;
+  auto& jit_factory = *jit_fac;
 
   std::unique_ptr<ossia::graph_node> jit_object{jit_factory()};
   if (!jit_object)
@@ -292,7 +311,7 @@ void JitEffectModel::reload()
   }
   // creating a new dsp
 
-  factory = std::move(jit_factory);
+  factory = std::move(jit_fac);
 
   auto inls = score::clearAndDeleteLater(m_inlets);
   auto outls = score::clearAndDeleteLater(m_outlets);
@@ -321,13 +340,29 @@ void JitEffectModel::reload()
   changed();
 }
 
+QString JitEffectModel::effect() const noexcept
+{
+  return m_text;
+}
+
+void JitEffectModel::loadPreset(const Process::Preset& preset)
+{
+  Process::loadScriptProcessPreset<JitEffectModel::p_script>(*this, preset);
+}
+
+Process::Preset JitEffectModel::savePreset() const noexcept
+{
+  return Process::saveScriptProcessPreset(*this, this->m_text);
+}
+
 }
 
 template <>
 void DataStreamReader::read(const Jit::JitEffectModel& eff)
 {
-  readPorts(*this, eff.m_inlets, eff.m_outlets);
   m_stream << eff.m_text;
+
+  readPorts(*this, eff.m_inlets, eff.m_outlets);
 }
 
 template <>
@@ -427,9 +462,10 @@ Execution::JitEffectComponent::JitEffectComponent(
     : ProcessComponent_T{proc, ctx, "JitComponent", parent}
 {
   auto reset = [this, &proc] {
-    if (proc.factory)
+    if (proc.factory && *proc.factory)
     {
-      this->node.reset(proc.factory());
+      auto pf = (*proc.factory)();
+      this->node.reset(pf);
       if (this->node)
       {
         m_ossia_process = std::make_shared<ossia::node_process>(node);

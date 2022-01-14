@@ -72,12 +72,18 @@ public:
   QString prettyName() const noexcept override;
   void changed() W_SIGNAL(changed);
 
-  NodeFactory factory;
+  std::shared_ptr<NodeFactory> factory;
 
   void errorMessage(int line, const QString& e)
       W_SIGNAL(errorMessage, line, e);
   PROPERTY(QString, script READ script WRITE setScript NOTIFY scriptChanged)
 private:
+  std::shared_ptr<NodeFactory> getJitFactory();
+
+  QString effect() const noexcept override;
+  void loadPreset(const Process::Preset& preset) override;
+  Process::Preset savePreset() const noexcept override;
+
   void init();
   void reload();
   QString m_text;
