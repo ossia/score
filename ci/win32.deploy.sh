@@ -6,7 +6,7 @@ export SDK_DIR="$PWD/build/SDK"
 (
   cd build
   ls
-  mv "ossia score-3.0.0-win64.exe" "$BUILD_ARTIFACTSTAGINGDIRECTORY/ossia score-$GITTAGNOV-win64.exe"
+  mv ossia\ score-*-win64.exe "$BUILD_ARTIFACTSTAGINGDIRECTORY/ossia score-$GITTAGNOV-win64.exe"
 )
 
 # Create SDK files
