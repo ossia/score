@@ -199,7 +199,7 @@ void DropHandler::dropCustom(
 
     for (const auto& url : files)
     {
-      if (auto img = readImage(url.toLocalFile()))
+      if (auto img = Gfx::ImageCache::instance().acquire(url.toLocalFile().toStdString()))
       {
         images.push_back(*std::move(img));
       }
