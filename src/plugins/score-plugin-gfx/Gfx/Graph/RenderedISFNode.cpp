@@ -243,8 +243,7 @@ void main ()
 {
   vec2 factor = textureSize(y_tex, 0) / renderSize;
   vec2 ifactor = renderSize / textureSize(y_tex, 0);
-  vec2 texcoord = vec2(v_texcoord.x, texcoordAdjust.y + texcoordAdjust.x * v_texcoord.y);
-  fragColor = texture(y_tex, texcoord);
+  fragColor = texture(y_tex, v_texcoord);
 }
 )_";
 

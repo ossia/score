@@ -70,7 +70,7 @@ void main()
   // User displacement
   pos += mat.position;
 
-  v_texcoord = vec2(texcoord.x, texcoordAdjust.y + texcoordAdjust.x * texcoord.y);
+  v_texcoord = texcoord;
   gl_Position = clipSpaceCorrMatrix * vec4(pos, 0.0, 1.);
 }
 )_";
@@ -717,7 +717,7 @@ out gl_PerVertex { vec4 gl_Position; };
 
 void main()
 {
-  v_texcoord = vec2(texcoord.x, texcoordAdjust.y + texcoordAdjust.x * texcoord.y);
+  v_texcoord = texcoord;
   gl_Position = clipSpaceCorrMatrix * vec4(position.xy, 0.0, 1.);
 }
 )_";

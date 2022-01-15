@@ -48,8 +48,7 @@ struct TexgenNode : NodeModel
 
   void main ()
   {
-    vec2 texcoord = vec2(v_texcoord.x, texcoordAdjust.y + texcoordAdjust.x * v_texcoord.y);
-    fragColor = texture(y_tex, texcoord);
+    fragColor = texture(y_tex, v_texcoord);
   }
   )_";
 
