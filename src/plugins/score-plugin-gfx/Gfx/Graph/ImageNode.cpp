@@ -413,26 +413,24 @@ private:
       m_uploaded = false;
     }
 
-    // If images haven't been uploaded yet, upload them.
-    if (!m_uploaded)
-    {
-      const int limits_min = renderer.state.rhi->resourceLimit(QRhi::ResourceLimit::TextureSizeMin);
-      const int limits_max = renderer.state.rhi->resourceLimit(QRhi::ResourceLimit::TextureSizeMax);
-
-      std::size_t k = 0;
-      for (const QImage* frame : n.linearImages)
-      {
-        res.uploadTexture(m_textures[k], resizeTexture(*frame, limits_min, limits_max));
-        k++;
-      }
-      m_uploaded = true;
-      updateCurrentTexture = true;
-    }
+    // // If images haven't been uploaded yet, upload them.
+    // if (!m_uploaded)
+    // {
+//
+    //   std::size_t k = 0;
+    //   // for (const QImage* frame : n.linearImages)
+    //   // {
+    //   //   res.uploadTexture(m_textures[k], resizeTexture(*frame, limits_min, limits_max));
+    //   //   k++;
+    //   // }
+    //   m_uploaded = true;
+    //   updateCurrentTexture = true;
+    // }
 
 
     // If the current image being displayed by this renderer (in m_prev_ubo)
     // is out of date with the image in the data model, we switch the texture
-    if (updateCurrentTexture || m_prev_ubo.currentImageIndex != n.ubo.currentImageIndex)
+    if (!m_uploaded || m_prev_ubo.currentImageIndex != n.ubo.currentImageIndex)
     {
       auto replace_texture = [] (PassMap& passes, QRhiSampler* sampler, QRhiTexture* tex) {
         for(auto& pass : passes)
@@ -441,12 +439,27 @@ private:
 
       const int idx = imageIndex(n.ubo.currentImageIndex, m_textures.size());
       QRhiSampler* sampler = m_samplers[0].sampler;
-      QRhiTexture* new_tex = ossia::valid_index(idx, m_textures) ? m_textures[idx] : &renderer.emptyTexture();
+      QRhiTexture* new_tex{};
+      if(ossia::valid_index(idx, m_textures))
+      {
+        new_tex = m_textures[idx];
+        auto frame = n.linearImages[idx];
+
+        const int limits_min = renderer.state.rhi->resourceLimit(QRhi::ResourceLimit::TextureSizeMin);
+        const int limits_max = renderer.state.rhi->resourceLimit(QRhi::ResourceLimit::TextureSizeMax);
+        res.uploadTexture(new_tex, resizeTexture(*frame, limits_min, limits_max));
+      }
+      else
+      {
+        new_tex = &renderer.emptyTexture();
+      }
+
 
       replace_texture(m_p, sampler, new_tex);
       replace_texture(m_altPasses, sampler, new_tex);
 
       m_prev_ubo.currentImageIndex = n.ubo.currentImageIndex;
+      m_uploaded = true;
     }
 
     defaultUBOUpdate(renderer, res);
