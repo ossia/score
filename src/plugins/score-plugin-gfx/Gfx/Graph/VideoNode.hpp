@@ -56,7 +56,8 @@ private:
 /**
  * @brief Model for rendering a video
  */
-struct SCORE_PLUGIN_GFX_EXPORT VideoNode : ProcessNode
+class SCORE_PLUGIN_GFX_EXPORT VideoNode
+    : public ProcessNode
 {
 public:
   VideoNode(

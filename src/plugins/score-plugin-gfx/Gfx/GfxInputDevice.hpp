@@ -59,7 +59,7 @@ public:
     camera = proto.camera;
 
     node = new score::gfx::VideoNode(proto.camera, {});
-    node_id = context->ui->register_node(std::unique_ptr<score::gfx::VideoNode>(node));
+    node_id = context->ui->register_node(std::unique_ptr<score::gfx::VideoNode>{node});
   }
 
   void pull_texture(ossia::gfx::port_index idx) override

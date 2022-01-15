@@ -821,7 +821,7 @@ std::optional<AudioInfo> probe(const QString& path)
   if (it == AudioDecoder::database().end())
   {
     QFileInfo fi{path};
-    const auto& suffix = fi.completeSuffix().toLower();
+    const auto& suffix = fi.suffix().toLower();
     if (suffix == "wav" || suffix == "w64")
     {
       if(auto ret = probe_drwav(fi))

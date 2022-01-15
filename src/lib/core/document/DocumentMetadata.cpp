@@ -110,9 +110,8 @@ QString newProcessedFilePath(const QString& sourceFile, const QDir& destination)
   }
   else
   {
-
     // wav
-    auto ext = info.completeSuffix();
+    auto ext = info.suffix();
 
     // foo-0004
     auto name = info.baseName();

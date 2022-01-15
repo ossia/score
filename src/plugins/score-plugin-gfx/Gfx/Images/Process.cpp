@@ -151,7 +151,7 @@ QSet<QString> DropHandler::fileExtensions() const noexcept
 static bool isSupportedImage(const QFileInfo& filepath)
 {
   static const auto set = DropHandler{}.fileExtensions();
-  return set.contains(filepath.completeSuffix().toLower());
+  return set.contains(filepath.suffix().toLower());
 }
 
 static std::optional<score::gfx::Image> readImage(const QString& filename)
