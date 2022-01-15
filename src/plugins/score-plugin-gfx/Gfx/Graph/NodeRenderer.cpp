@@ -65,7 +65,7 @@ void GenericNodeRenderer::defaultPassesInit(RenderList& renderer, const Mesh& me
 
 void GenericNodeRenderer::init(RenderList& renderer)
 {
-  auto& mesh = TexturedTriangle::instance();
+  const auto& mesh = renderer.defaultTriangle();
   defaultMeshInit(renderer, mesh);
   processUBOInit(renderer);
 
@@ -173,7 +173,7 @@ void GenericNodeRenderer::runRenderPass(
     QRhiCommandBuffer& cb,
     Edge& edge)
 {
-  auto& mesh = TexturedTriangle::instance();
+  const auto& mesh = renderer.defaultTriangle();
   defaultRenderPass(renderer, mesh, cb, edge);
 }
 

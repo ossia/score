@@ -182,9 +182,7 @@ vec4 processTexture(vec4 tex) {
 
 void main ()
 {
-  vec2 texcoord = vec2(v_texcoord.x, renderer.texcoordAdjust.y + renderer.texcoordAdjust.x * v_texcoord.y);
-
-  fragColor = processTexture(texture(y_tex, texcoord));
+  fragColor = processTexture(texture(y_tex, v_texcoord));
 })_");
 
   static inline const QString ycocg_filter
@@ -269,10 +267,8 @@ vec4 processTexture(vec4 tex) {
 
 void main ()
 {
-  vec2 texcoord = vec2(v_texcoord.x, renderer.texcoordAdjust.y + renderer.texcoordAdjust.x * v_texcoord.y);
-
-  vec4 ycocg = texture(y_tex, texcoord);
-  vec4 alpha = texture(alpha_tex, texcoord);
+  vec4 ycocg = texture(y_tex, v_texcoord);
+  vec4 alpha = texture(alpha_tex, v_texcoord);
   fragColor = processTexture(processYCoCg(ycocg, alpha));
 })_");
 

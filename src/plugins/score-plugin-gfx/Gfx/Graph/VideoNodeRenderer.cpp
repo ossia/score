@@ -165,7 +165,7 @@ void VideoNodeRenderer::createPipelines(RenderList& r)
       auto rt = r.renderTargetForOutput(*edge);
       if(rt.renderTarget)
       {
-        auto& mesh = TexturedTriangle::instance();
+        const auto& mesh = r.defaultTriangle();
         m_p.emplace_back(edge, score::gfx::buildPipeline(
               r,
               mesh,
@@ -203,7 +203,7 @@ void VideoNodeRenderer::init(RenderList& renderer)
 {
   auto& rhi = *renderer.state.rhi;
 
-  auto& mesh = TexturedQuad::instance();
+  const auto& mesh = renderer.defaultQuad();
   if (!m_meshBuffer)
   {
     auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh);
@@ -241,7 +241,7 @@ void VideoNodeRenderer::runRenderPass(RenderList& renderer, QRhiCommandBuffer& c
 
     assert(this->m_meshBuffer);
     assert(this->m_meshBuffer->usage().testFlag(QRhiBuffer::VertexBuffer));
-    auto& mesh = TexturedQuad::instance();
+    const auto& mesh = renderer.defaultQuad();
 
     mesh.setupBindings(*this->m_meshBuffer, this->m_idxBuffer, cb);
 

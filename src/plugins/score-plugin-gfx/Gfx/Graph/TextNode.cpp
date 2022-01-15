@@ -114,7 +114,7 @@ private:
   void init(RenderList& renderer) override
   {
     rerender();
-    const TexturedQuad& mesh = TexturedQuad::instance();
+    const auto& mesh = renderer.defaultQuad();
     defaultMeshInit(renderer, mesh);
     processUBOInit(renderer);
     m_material.init(renderer, node.input, m_samplers);
@@ -177,7 +177,7 @@ private:
       QRhiCommandBuffer& cb,
       Edge& edge) override
   {
-    auto& mesh = TexturedQuad::instance();
+    const auto& mesh = renderer.defaultQuad();
     defaultRenderPass(renderer, mesh, cb, edge);
   }
 

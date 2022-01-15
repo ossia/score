@@ -41,10 +41,9 @@ const mat3 coeff = mat3(1.0   ,  1.0   , 1.0,
                         1.4075, -0.7169, 0.);
 void main()
 {
-    vec2 texcoord = vec2(v_texcoord.x, renderer.texcoordAdjust.y + renderer.texcoordAdjust.x * v_texcoord.y);
-    float y = texture(y_tex, texcoord).r;
-    float u = texture(u_tex, texcoord).r;
-    float v = texture(v_tex, texcoord).r;
+    float y = texture(y_tex, v_texcoord).r;
+    float u = texture(u_tex, v_texcoord).r;
+    float v = texture(v_tex, v_texcoord).r;
 
     fragColor = vec4(coeff * (vec3(y,u,v) + offset), 1);
 }

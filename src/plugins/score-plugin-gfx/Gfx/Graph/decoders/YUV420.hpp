@@ -40,11 +40,9 @@ struct YUV420Decoder : GPUVideoDecoder
 
   void main ()
   {
-    vec2 texcoord = vec2(v_texcoord.x, renderer.texcoordAdjust.y + renderer.texcoordAdjust.x * v_texcoord.y);
-
-    float y = texture(y_tex, texcoord).r;
-    float u = texture(u_tex, texcoord).r;
-    float v = texture(v_tex, texcoord).r;
+    float y = texture(y_tex, v_texcoord).r;
+    float u = texture(u_tex, v_texcoord).r;
+    float v = texture(v_tex, v_texcoord).r;
     vec3 yuv = vec3(y,u,v);
     yuv += offset;
     fragColor = vec4(0.0, 0.0, 0.0, 1.0);

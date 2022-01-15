@@ -173,17 +173,10 @@ const PlainTriangle& PlainTriangle::instance() noexcept
   return t;
 }
 
-TexturedTriangle::TexturedTriangle()
-    : TexturedMesh{data, 3}
+TexturedTriangle::TexturedTriangle(bool flipped)
+    : TexturedMesh{flipped ? flipped_y_data : data, 3}
 {
 }
-
-const TexturedTriangle& TexturedTriangle::instance() noexcept
-{
-  static const TexturedTriangle t;
-  return t;
-}
-
 
 void TexturedTriangle::setupBindings(
     QRhiBuffer& vtxData,
@@ -197,15 +190,9 @@ void TexturedTriangle::setupBindings(
   cb.setVertexInput(0, 2, bindings);
 }
 
-TexturedQuad::TexturedQuad()
-    : TexturedMesh{data, 4}
+TexturedQuad::TexturedQuad(bool flipped)
+    : TexturedMesh{flipped ? flipped_y_data : data, 4}
 {
-}
-
-const TexturedQuad& TexturedQuad::instance() noexcept
-{
-  static const TexturedQuad t;
-  return t;
 }
 
 void TexturedQuad::setupBindings(

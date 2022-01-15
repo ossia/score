@@ -191,17 +191,7 @@ ISFNode::ISFNode(
     const isf::descriptor& desc,
     const QShader& vert,
     const QShader& frag)
-    : ISFNode{desc, vert, frag, &TexturedTriangle::instance()}
-{
-}
-
-ISFNode::ISFNode(
-    const isf::descriptor& desc,
-    const QShader& vert,
-    const QShader& frag,
-    const Mesh* mesh)
     : m_descriptor{desc}
-    , m_mesh{mesh}
 {
   m_vertexS = vert;
   m_fragmentS = frag;
@@ -259,10 +249,6 @@ ISFNode::ISFNode(
 
 ISFNode::~ISFNode() { }
 
-const Mesh& ISFNode::mesh() const noexcept
-{
-  return *this->m_mesh;
-}
 
 QSize ISFNode::computeTextureSize(const isf::pass& pass, QSize origSize)
 {

@@ -15,7 +15,7 @@ void InvertYRenderer::init(score::gfx::RenderList& renderer)
 {
   m_renderTarget = score::gfx::createRenderTarget(renderer.state, QRhiTexture::Format::RGBA8, m_inputTarget.texture->pixelSize());
 
-  auto& mesh = score::gfx::TexturedTriangle::instance();
+  const auto& mesh = renderer.defaultTriangle();
   m_mesh = renderer.initMeshBuffer(mesh);
 
   // We need to have a pass to invert the Y coordinate to go
@@ -91,7 +91,7 @@ void InvertYRenderer::finishFrame(
     assert(this->m_mesh.mesh);
     assert(this->m_mesh.mesh->usage().testFlag(QRhiBuffer::VertexBuffer));
 
-    auto& mesh = score::gfx::TexturedTriangle::instance();
+    const auto& mesh = renderer.defaultTriangle();
     mesh.setupBindings(*this->m_mesh.mesh, this->m_mesh.index, cb);
 
     cb.draw(mesh.vertexCount);

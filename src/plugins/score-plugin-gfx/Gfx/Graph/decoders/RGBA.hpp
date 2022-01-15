@@ -31,8 +31,7 @@ struct PackedDecoder : GPUVideoDecoder
 
     void main ()
     {
-      vec2 texcoord = vec2(v_texcoord.x, renderer.texcoordAdjust.y + renderer.texcoordAdjust.x * v_texcoord.y);
-      fragColor = processTexture(texture(y_tex, texcoord));
+      fragColor = processTexture(texture(y_tex, v_texcoord));
     })_";
 
   PackedDecoder(

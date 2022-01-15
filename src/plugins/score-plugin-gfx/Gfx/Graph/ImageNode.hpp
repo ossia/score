@@ -24,7 +24,8 @@ public:
   score::gfx::NodeRenderer*
   createRenderer(RenderList& r) const noexcept override;
 
-  class Renderer;
+  class PreloadedRenderer;
+  class OnTheFlyRenderer;
   struct UBO
   {
     int currentImageIndex{};

@@ -23,14 +23,8 @@ public:
       const isf::descriptor& desc,
       const QShader& vert,
       const QShader& frag);
-  ISFNode(
-      const isf::descriptor& desc,
-      const QShader& vert,
-      const QShader& frag,
-      const Mesh* mesh);
 
   virtual ~ISFNode();
-  const Mesh& mesh() const noexcept;
   QSize computeTextureSize(const isf::pass& pass, QSize origSize);
 
   score::gfx::NodeRenderer* createRenderer(RenderList& r) const noexcept;
@@ -47,7 +41,6 @@ public:
   std::list<AudioTexture> m_audio_textures;
   std::unique_ptr<char[]> m_material_data;
 
-  const Mesh* m_mesh{};
   QShader m_vertexS;
   QShader m_fragmentS;
   int m_materialSize{};

@@ -35,8 +35,7 @@ const vec3 B_cf = vec3(1.164383,  2.017232,  0.000000);
 const vec3 offset = vec3(-0.0625, -0.5, -0.5);
 
 void main() {
-  vec2 texcoord = vec2(v_texcoord.x, renderer.texcoordAdjust.y + renderer.texcoordAdjust.x * v_texcoord.y);
-  vec4 tex = texture(u_tex, texcoord);
+  vec4 tex = texture(u_tex, v_texcoord);
   float y = tex.r;
   float u = tex.g - 0.5;
   float v = tex.a - 0.5;
@@ -134,11 +133,9 @@ const mat4 bt709 = mat4(
                     -0.5727f, 0.3007f, -1.1302, 1.0f);
 
 void main() {
-  vec2 texcoord = vec2(v_texcoord.x, renderer.texcoordAdjust.y + renderer.texcoordAdjust.x * v_texcoord.y);
-
    // For U0 Y0 V0 Y1 macropixel, lookup Y0 or Y1 based on whether
    // the original texture x coord is even or odd.
-   vec4 uyvy = texture(u_tex, texcoord);
+   vec4 uyvy = texture(u_tex, v_texcoord);
    float Y;
    if (fract(floor(texcoord.x * renderer.renderSize.x + 0.5) / 2.0) > 0.0)
        Y = uyvy.a;       // odd so choose Y1

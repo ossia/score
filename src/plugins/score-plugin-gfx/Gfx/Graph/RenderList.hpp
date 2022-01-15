@@ -62,6 +62,13 @@ public:
   TextureRenderTarget renderTargetForOutput(const Edge& edge) noexcept;
 
   /**
+   * @brief Adapts an image to the GPU limits / format
+   *
+   * e.g. Y direction, texture size limits...
+   */
+  QImage adaptImage(const QImage& in);
+
+  /**
    * @brief Output node to which this RenderList is rendering to
    */
   OutputNode& output;
@@ -100,6 +107,16 @@ public:
    */
   QRhiBuffer& outputUBO() const noexcept { return *m_outputUBO; }
 
+  /**
+   * @brief A quad mesh correct for this API
+   */
+  const score::gfx::Mesh& defaultQuad() const noexcept;
+
+  /**
+   * @brief A triangle mesh correct for this API
+   */
+  const score::gfx::Mesh& defaultTriangle() const noexcept;
+
 private:
   OutputUBO m_outputUBOData;
 
@@ -116,6 +133,11 @@ private:
    * @brief Last size used by this renderer.
    */
   QSize m_lastSize{};
+
+  int m_minTexSize{};
+  int m_maxTexSize{};
+
+  bool m_flip{};
 
   bool m_ready{};
 };

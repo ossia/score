@@ -63,6 +63,10 @@ void RenderList::init()
     return;
   auto& rhi = *state.rhi;
 
+  m_minTexSize = state.rhi->resourceLimit(QRhi::ResourceLimit::TextureSizeMin);
+  m_maxTexSize = state.rhi->resourceLimit(QRhi::ResourceLimit::TextureSizeMax);
+  m_flip = state.rhi->isYUpInFramebuffer();
+
   m_outputUBO = rhi.newBuffer(
       QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(OutputUBO));
   m_outputUBO->setName("RenderList::m_outputUBO");
@@ -136,6 +140,51 @@ TextureRenderTarget RenderList::renderTargetForOutput(const Edge& edge) noexcept
       }
 
   return {};
+}
+
+QImage RenderList::adaptImage(const QImage& frame)
+{
+  auto res = resizeTexture(frame, m_minTexSize, m_maxTexSize);
+  return res;
+  //if(m_flip)
+  //  res = std::move(res).mirrored();
+  //return res;
+}
+
+const Mesh& RenderList::defaultQuad() const noexcept
+{
+  static const TexturedQuad m{true};
+  return m;
+  /*
+  if(!m_flip)
+  {
+    static const TexturedQuad m{true};
+    return m;
+  }
+  else
+  {
+    static const TexturedQuad m{true};
+    return m;
+  }
+  */
+}
+
+const Mesh& RenderList::defaultTriangle() const noexcept
+{
+  static const TexturedTriangle m{true};
+  return m;
+  /*
+  if(!m_flip)
+  {
+    static const TexturedTriangle m{true};
+    return m;
+  }
+  else
+  {
+    static const TexturedTriangle m{true};
+    return m;
+  }
+  */
 }
 
 
@@ -252,7 +301,10 @@ void RenderList::update(QRhiResourceUpdateBatch& res)
 
     const auto proj = state.rhi->clipSpaceCorrMatrix();
 
-    if (!state.rhi->isYUpInFramebuffer())
+    m_outputUBOData.texcoordAdjust[0] = 1.f;
+    m_outputUBOData.texcoordAdjust[1] = 0.f;
+    /*
+    if (state.rhi->isYUpInFramebuffer())
     {
       // Vulkan, D3D, Metal
       m_outputUBOData.texcoordAdjust[0] = 1.f;
@@ -264,6 +316,7 @@ void RenderList::update(QRhiResourceUpdateBatch& res)
       m_outputUBOData.texcoordAdjust[0] = -1.f;
       m_outputUBOData.texcoordAdjust[1] = 1.f;
     }
+    */
 
     memcpy(&m_outputUBOData.clipSpaceCorrMatrix[0], proj.data(), sizeof(float) * 16);
 

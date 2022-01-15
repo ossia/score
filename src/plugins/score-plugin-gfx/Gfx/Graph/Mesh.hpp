@@ -110,9 +110,18 @@ struct SCORE_PLUGIN_GFX_EXPORT TexturedTriangle final : TexturedMesh
       2, 0,
       0, 2
   };
+  static const constexpr float flipped_y_data[] = {
+      // positions
+      -1, -1,
+      3,  -1,
+      -1, 3,
+      // tex coords
+      0, 2,
+      2, 2,
+      0, 0
+  };
 
-  explicit TexturedTriangle();
-  static const TexturedTriangle& instance() noexcept;
+  explicit TexturedTriangle(bool flipped = false);
 
   void setupBindings(
       QRhiBuffer& vtxData,
@@ -136,10 +145,23 @@ struct SCORE_PLUGIN_GFX_EXPORT TexturedQuad final : TexturedMesh
       0, 0,
       1, 0,
       0, 1,
-      1, 1};
+      1, 1
+  };
 
-  explicit TexturedQuad();
-  static const TexturedQuad& instance() noexcept;
+  static const constexpr float flipped_y_data[] = {
+      // positions
+      -1, -1,
+      +1, -1,
+      -1, +1,
+      +1, +1,
+      // tex coords
+      0, 1,
+      1, 1,
+      0, 0,
+      1, 0
+  };
+
+  explicit TexturedQuad(bool flipped = false);
 
   void setupBindings(
       QRhiBuffer& vtxData,

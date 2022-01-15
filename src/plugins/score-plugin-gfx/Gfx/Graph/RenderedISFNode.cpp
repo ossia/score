@@ -266,7 +266,7 @@ void main ()
 
     auto pip = score::gfx::buildPipeline(
         renderer,
-        n.mesh(),
+        renderer.defaultTriangle(),
         vertexS,
         fragmentS,
         renderTarget,
@@ -322,7 +322,7 @@ RenderedISFNode::createPass(RenderList& renderer, ossia::small_vector<PassOutput
 
     auto pip = score::gfx::buildPipeline(
         renderer,
-        n.mesh(),
+        renderer.defaultTriangle(),
         n.m_vertexS,
         n.m_fragmentS,
         renderTarget,
@@ -435,7 +435,7 @@ void RenderedISFNode::init(RenderList& renderer)
 
   // Create the mesh
   {
-    const auto& mesh = n.mesh();
+    const auto& mesh = renderer.defaultTriangle();
     if (!m_meshBuffer)
     {
       auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh);
@@ -691,9 +691,9 @@ void RenderedISFNode::runInitialPasses(
 
       assert(this->m_meshBuffer);
       assert(this->m_meshBuffer->usage().testFlag(QRhiBuffer::VertexBuffer));
-      n.mesh().setupBindings(*this->m_meshBuffer, this->m_idxBuffer, cb);
+      renderer.defaultTriangle().setupBindings(*this->m_meshBuffer, this->m_idxBuffer, cb);
 
-      cb.draw(n.mesh().vertexCount);
+      cb.draw(renderer.defaultTriangle().vertexCount);
     }
     cb.endPass();
 
@@ -744,9 +744,9 @@ void RenderedISFNode::runRenderPass(
 
       assert(this->m_meshBuffer);
       assert(this->m_meshBuffer->usage().testFlag(QRhiBuffer::VertexBuffer));
-      n.mesh().setupBindings(*this->m_meshBuffer, this->m_idxBuffer, cb);
+      renderer.defaultTriangle().setupBindings(*this->m_meshBuffer, this->m_idxBuffer, cb);
 
-      cb.draw(n.mesh().vertexCount);
+      cb.draw(renderer.defaultTriangle().vertexCount);
     }
   }
 
@@ -937,7 +937,7 @@ void SimpleRenderedISFNode::initPass(const TextureRenderTarget& renderTarget, Re
   // Create the main pass
   auto pip = score::gfx::buildPipeline(
       renderer,
-      n.mesh(),
+      renderer.defaultTriangle(),
       n.m_vertexS,
       n.m_fragmentS,
       renderTarget,
@@ -953,7 +953,7 @@ void SimpleRenderedISFNode::init(RenderList& renderer)
 
   // Create the mesh
   {
-    const auto& mesh = n.mesh();
+    const auto& mesh = renderer.defaultTriangle();
     if (!m_meshBuffer)
     {
       auto [mbuffer, ibuffer] = renderer.initMeshBuffer(mesh);
@@ -1142,9 +1142,9 @@ void SimpleRenderedISFNode::runRenderPass(
 
       assert(this->m_meshBuffer);
       assert(this->m_meshBuffer->usage().testFlag(QRhiBuffer::VertexBuffer));
-      n.mesh().setupBindings(*this->m_meshBuffer, this->m_idxBuffer, cb);
+      renderer.defaultTriangle().setupBindings(*this->m_meshBuffer, this->m_idxBuffer, cb);
 
-      cb.draw(n.mesh().vertexCount);
+      cb.draw(renderer.defaultTriangle().vertexCount);
     }
   }
 }
