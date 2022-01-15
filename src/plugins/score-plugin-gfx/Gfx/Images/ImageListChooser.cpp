@@ -68,13 +68,18 @@ public:
     lay->addLayout(btn_lay);
   }
 
+  void addCheckedItem(QString f)
+  {
+    auto path = new QStandardItem{f};
+    model->insertRow(model->rowCount(), QList<QStandardItem*>{path});
+  }
+
   void addItem(QString f)
   {
     auto file = QImage(f);
     if(file.width() > 0 && file.height() > 0)
     {
-      auto path = new QStandardItem{f};
-      model->insertRow(model->rowCount(), QList<QStandardItem*>{path});
+      addCheckedItem(f);
     }
   }
 
@@ -91,11 +96,10 @@ public:
     for(auto& val : v)
     {
       const std::string& str = ossia::convert<std::string>(val);
-
-      auto path = new QStandardItem{QString::fromStdString(str)};
-      model->insertRow(model->rowCount(), QList<QStandardItem*>{path});
+      addCheckedItem(QString::fromStdString(str));
     }
   }
+
   ossia::value value() const noexcept
   {
     std::vector<ossia::value> vec;
@@ -146,7 +150,7 @@ QWidget* WidgetFactory::ImageListChooserItems::make_widget(
   {
     if(const std::string* str = val.target<std::string>())
     {
-      widg->addItem(QString::fromStdString(*str));
+      widg->addCheckedItem(QString::fromStdString(*str));
     }
   }
 
