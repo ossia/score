@@ -18,16 +18,25 @@ namespace Command
 AddStateProcessToState::AddStateProcessToState(
     const Scenario::StateModel& state,
     UuidKey<Process::ProcessModel> process)
-    : AddStateProcessToState{state, getStrongId(state.stateProcesses), process}
+  : AddStateProcessToState{state, process, QString{}}
+{
+}
+AddStateProcessToState::AddStateProcessToState(
+    const Scenario::StateModel& state,
+    UuidKey<Process::ProcessModel> process,
+    const QString& data)
+  : AddStateProcessToState{state, getStrongId(state.stateProcesses), process, data}
 {
 }
 
 AddStateProcessToState::AddStateProcessToState(
     const Scenario::StateModel& state,
     Id<Process::ProcessModel> processId,
-    UuidKey<Process::ProcessModel> process)
+    UuidKey<Process::ProcessModel> process,
+    const QString& data)
     : m_path{state}
     , m_processName{process}
+    , m_data{data}
     , m_createdProcessId{std::move(processId)}
 {
 }

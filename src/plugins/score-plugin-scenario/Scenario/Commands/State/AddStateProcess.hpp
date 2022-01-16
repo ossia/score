@@ -31,11 +31,19 @@ public:
       UuidKey<Process::ProcessModel> process);
   AddStateProcessToState(
       const Scenario::StateModel& state,
+      UuidKey<Process::ProcessModel> process,
+      const QString& data);
+  AddStateProcessToState(
+      const Scenario::StateModel& state,
       Id<Process::ProcessModel> idToUse,
-      UuidKey<Process::ProcessModel> process);
+      UuidKey<Process::ProcessModel> process,
+      const QString& data);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
+
+  const Id<Process::ProcessModel>& processId() const noexcept
+  { return m_createdProcessId; }
 
 protected:
   void serializeImpl(DataStreamInput& s) const override;

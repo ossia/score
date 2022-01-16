@@ -54,6 +54,11 @@ public:
       const Id<Scenario::StateModel>& end);
 
   Process::ProcessModel* createProcess(
+      const Scenario::StateModel& st,
+      const UuidKey<Process::ProcessModel>& key,
+      const QString& data);
+
+  Process::ProcessModel* createProcess(
       const Scenario::IntervalModel& interval,
       const UuidKey<Process::ProcessModel>& key,
       const QString& data,
@@ -211,6 +216,9 @@ public:
 
   std::vector<Process::ProcessModel*>
   automate(const Scenario::IntervalModel& scenar, const QString& addr);
+
+  Process::ProcessModel*
+  automate(const Scenario::IntervalModel& parent, const Process::Inlet& port);
 
   Process::ProcessModel& automate(
       const IntervalModel& interval,

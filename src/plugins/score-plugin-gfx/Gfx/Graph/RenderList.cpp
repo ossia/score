@@ -171,7 +171,7 @@ const Mesh& RenderList::defaultQuad() const noexcept
 
 const Mesh& RenderList::defaultTriangle() const noexcept
 {
-  static const TexturedTriangle m{true};
+  static const TexturedTriangle m{false};
   return m;
   /*
   if(!m_flip)

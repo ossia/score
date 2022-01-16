@@ -23,6 +23,8 @@
 
 #include <ossia/network/base/parameter_data.hpp>
 #include <ossia/network/common/complex_type.hpp>
+#include <ossia/detail/logger.hpp>
+#include <ossia/network/value/format_value.hpp>
 
 #include <QJSEngine>
 #include <QLineEdit>
@@ -173,20 +175,28 @@ public:
     auto doc = ctx();
     if (!doc)
       return nullptr;
-    auto itv = qobject_cast<Scenario::IntervalModel*>(interval);
-    if (!itv)
-      return nullptr;
-
     auto& factories = doc->app.interfaces<Process::ProcessFactoryList>();
-    auto [m, _] = macro(*doc);
-
+    Process::ProcessModelFactory* f{};
     for(auto& fact : factories)
     {
       if(fact.prettyName().compare(name, Qt::CaseInsensitive) == 0)
       {
-        auto p = m->createProcessInNewSlot(*itv, fact.concreteKey(), data, {});
-        return p;
+        f = &fact;
+        break;
       }
+    }
+    if(!f)
+      return nullptr;
+
+    if(auto itv = qobject_cast<Scenario::IntervalModel*>(interval))
+    {
+      auto [m, _] = macro(*doc);
+      return m->createProcessInNewSlot(*itv, f->concreteKey(), data, {});
+    }
+    else if(auto st = qobject_cast<Scenario::StateModel*>(interval))
+    {
+      auto [m, _] = macro(*doc);
+      return m->createProcess(*st, f->concreteKey(), data);
     }
     return nullptr;
   }
@@ -436,6 +446,24 @@ public:
   }
   W_SLOT(setValue, (QObject*, bool))
 
+  void setValue(QObject* obj, QList<QString> value)
+  {
+    auto doc = ctx();
+    if (!doc)
+      return;
+    auto port = qobject_cast<Process::ControlInlet*>(obj);
+    if(!port)
+      return;
+
+    std::vector<ossia::value> vals;
+    for(auto& v : value) {
+      vals.push_back(v.toStdString());
+    }
+    auto [m, _] = macro(*doc);
+    m->setProperty<Process::ControlInlet::p_value>(*port, std::move(vals));
+  }
+  W_SLOT(setValue, (QObject*, QList<QString>))
+
   QString valueType(QObject* obj)
   {
     auto doc = ctx();
@@ -503,6 +531,14 @@ public:
     return ret;
   }
   W_SLOT(enumValues)
+
+  QObject* metadata(QObject* obj) const noexcept
+  {
+    if(!obj)
+      return nullptr;
+    return obj->findChild<score::ModelMetadata*>({}, Qt::FindDirectChildrenOnly);
+  }
+  W_SLOT(metadata)
 
   QObject* startState(QObject* obj)
   {
@@ -601,6 +637,31 @@ public:
   }
   W_SLOT(endSync)
 
+
+  void remove(QObject* obj)
+  {
+    if(!obj)
+      return;
+
+    auto doc = ctx();
+    if (!doc)
+      return;
+
+    if(auto proc = qobject_cast<Process::ProcessModel*>(obj))
+    {
+      SCORE_TODO_("Delete processes from console");
+    }
+    else if(auto p = obj->parent())
+    {
+      if(auto scenar = qobject_cast<Scenario::ProcessModel*>(p))
+      {
+        auto [m, _] = macro(*doc);
+        m->removeElements(*scenar, {static_cast<IdentifiedObjectAbstract*>(obj)});
+      }
+    }
+  }
+  W_SLOT(remove)
+
   void setCurvePoints(QObject* process, QVector<QVariantList> points)
   {
     if(points.size() < 2)
@@ -687,7 +748,26 @@ public:
     auto [m, _] = macro(*doc);
     m->automate(*itv, addr);
   }
-  W_SLOT(automate)
+  W_SLOT(automate, (QObject*, QString))
+
+  void automate(QObject* interval, QObject* port)
+  {
+    auto doc = ctx();
+    if (!doc)
+      return;
+    auto itv = qobject_cast<Scenario::IntervalModel*>(interval);
+    if (!itv)
+      return;
+    auto ctl = qobject_cast<Process::Inlet*>(port);
+    if (!ctl)
+      return;
+    if(ctl->type() != Process::PortType::Message)
+      return;
+
+    auto [m, _] = macro(*doc);
+    m->automate(*itv, *ctl);
+  }
+  W_SLOT(automate, (QObject*, QObject*))
 
   void startMacro()
   {

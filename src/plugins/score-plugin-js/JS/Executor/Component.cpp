@@ -145,17 +145,6 @@ Component::Component(
       &JS::ProcessModel::qmlDataChanged,
       this,
       &Component::on_scriptChange, Qt::QueuedConnection);
-  SCORE_TODO_("Reinstate JS panel live scripting");
-  /*
-  if (!node->m_object)
-    throw std::runtime_error{"Invalid JS"};
-
-  connect(node->m_execFuncs, &ExecStateWrapper::exec,
-      this, [=] (const QString& code) {
-    auto& console = system().doc.app.panel<JS::PanelDelegate>();
-    console.evaluate(code);
-  }, Qt::QueuedConnection);
-*/
 }
 
 Component::~Component() { }
@@ -354,6 +343,13 @@ void js_node::setScript(const QString& val)
                      qApp, [=] (const QString& code) {
       std::thread{[=] { ::system(code.toStdString().c_str()); }}.detach();
     }, Qt::QueuedConnection);
+
+
+    if(auto* js_panel = score::GUIAppContext().findPanel<JS::PanelDelegate>())
+    {
+      QObject::connect(m_execFuncs, &ExecStateWrapper::exec,
+                       js_panel, &JS::PanelDelegate::evaluate, Qt::QueuedConnection);
+    }
   }
 
   m_jsInlets.clear();

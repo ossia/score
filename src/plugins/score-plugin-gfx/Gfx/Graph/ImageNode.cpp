@@ -768,7 +768,7 @@ private:
   TextureRenderTarget renderTargetForInput(const Port& p) override { return { }; }
   void init(RenderList& renderer) override
   {
-    const auto& mesh = renderer.defaultQuad();
+    const auto& mesh = renderer.defaultTriangle();
     defaultMeshInit(renderer, mesh);
     processUBOInit(renderer);
     m_material.init(renderer, node.input, m_samplers);
@@ -823,7 +823,7 @@ private:
       QRhiCommandBuffer& cb,
       Edge& edge) override
   {
-    const auto& mesh = renderer.defaultQuad();
+    const auto& mesh = renderer.defaultTriangle();
     defaultRenderPass(renderer, mesh, cb, edge);
   }
 

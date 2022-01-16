@@ -4,7 +4,9 @@
 #include <Process/Commands/LoadPreset.hpp>
 #include <Scenario/Commands/Cohesion/CreateCurves.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
+#include <Scenario/Commands/State/AddStateProcess.hpp>
 #include <Scenario/Commands/Interval/ResizeInterval.hpp>
+#include <Automation/AutomationModel.hpp>
 #include <score_plugin_scenario_commands_files.hpp>
 
 namespace Scenario
@@ -78,6 +80,19 @@ IntervalModel& Macro::createInterval(
   auto cmd = new CreateInterval{scenar, start, end};
   m.submit(cmd);
   return scenar.intervals.at(cmd->createdInterval());
+}
+
+Process::ProcessModel* Macro::createProcess(
+    const StateModel& st,
+    const UuidKey<Process::ProcessModel>& key,
+    const QString& data)
+{
+  auto process_cmd = new AddStateProcessToState{st, key, data};
+  m.submit(process_cmd);
+  auto it = st.stateProcesses.find(process_cmd->processId());
+  if (it != st.stateProcesses.end())
+    return &(*it);
+  return nullptr;
 }
 
 Process::ProcessModel* Macro::createProcess(
@@ -421,6 +436,24 @@ Macro::automate(const IntervalModel& cst, const QString& str)
 
     return CreateCurvesFromAddress(cst, std::move(fa), *this);
   }
+
+  return {};
+}
+
+Process::ProcessModel*
+Macro::automate(const IntervalModel& parent, const Process::Inlet& inl)
+{
+  if (inl.type() != Process::PortType::Message)
+    return nullptr;
+
+  auto autom = this->createProcessInNewSlot(parent, Metadata<ConcreteKey_k, Automation::ProcessModel>::get(), {});
+  if(!autom)
+    return nullptr;
+
+  auto& ctx = this->m.stack().context();
+  auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
+  auto outl = static_cast<Automation::ProcessModel*>(autom)->outlet.get();
+  createCable(plug, *outl, inl);
 
   return {};
 }
