@@ -645,12 +645,15 @@ private:
     if (!m_uploaded || m_prev_ubo.currentImageIndex != n.ubo.currentImageIndex)
     {
       const int idx = imageIndex(n.ubo.currentImageIndex, n.linearImages.size());
-      auto frame = n.linearImages[idx];
+      if(ossia::valid_index(idx, n.linearImages))
+      {
+        auto frame = n.linearImages[idx];
 
-      res.uploadTexture(m_texture, renderer.adaptImage(*frame));
+        res.uploadTexture(m_texture, renderer.adaptImage(*frame));
 
-      m_prev_ubo.currentImageIndex = n.ubo.currentImageIndex;
-      m_uploaded = true;
+        m_prev_ubo.currentImageIndex = n.ubo.currentImageIndex;
+        m_uploaded = true;
+      }
     }
 
     defaultUBOUpdate(renderer, res);
@@ -691,7 +694,7 @@ private:
 
 NodeRenderer* ImagesNode::createRenderer(RenderList& r) const noexcept
 {
-  return new OnTheFlyRenderer{*this};
+  return new PreloadedRenderer{*this};
 }
 
 }
