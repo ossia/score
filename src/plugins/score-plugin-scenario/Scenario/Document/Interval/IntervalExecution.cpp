@@ -38,6 +38,32 @@ W_OBJECT_IMPL(Execution::IntervalComponent)
 
 namespace Execution
 {
+namespace
+{
+static
+std::pair<Process::Inlets, Process::Outlets> portsToRegister(const Scenario::IntervalModel& itv)
+{
+  Scenario::TempoProcess* tempo_proc = itv.tempoCurve();
+
+  Process::Inlets inputs;
+  inputs.push_back(itv.inlet.get());
+  if (tempo_proc)
+  {
+    inputs.push_back(tempo_proc->tempo_inlet.get());
+    inputs.push_back(tempo_proc->speed_inlet.get());
+    inputs.push_back(tempo_proc->position_inlet.get());
+  }
+
+  Process::Outlets outputs;
+  if (itv.outlet)
+  {
+    outputs.push_back(itv.outlet.get());
+  }
+
+  return {std::move(inputs), std::move(outputs)};
+}
+}
+
 IntervalComponentBase::IntervalComponentBase(
     Scenario::IntervalModel& score_cst,
     const std::shared_ptr<ossia::scenario>& scenar,
@@ -237,9 +263,11 @@ void IntervalComponent::cleanup(const std::shared_ptr<IntervalComponent>& self)
       itv->set_callback(ossia::time_interval::exec_callback{});
       itv->cleanup();
     });
+
+    auto [inputsToRegister, outputsToRegister] = portsToRegister(interval());
     system().setup.unregister_node(
-        {interval().inlet.get()},
-        {interval().outlet.get()},
+        inputsToRegister,
+        outputsToRegister,
         m_ossia_interval->node);
   }
   for (auto& proc : m_processes)
@@ -277,8 +305,6 @@ void IntervalComponent::onSetup(
   m_ossia_interval->name = this->interval().metadata().getName().toStdString();
 #endif
 
-  Scenario::TempoProcess* tempo_proc{};
-
   if (!interval().graphal())
   {
     auto& audio_out
@@ -292,7 +318,6 @@ void IntervalComponent::onSetup(
     m_ossia_interval->set_max_duration(dur.maxDuration);
     m_ossia_interval->set_speed(dur.speed);
     auto tdata = tempoCurve(interval(), context());
-    tempo_proc = tdata.second;
     m_ossia_interval->set_tempo_curve(std::move(tdata).first);
 
     // We always set the time signature at the topmost interval in order to not have things explode
@@ -348,21 +373,18 @@ void IntervalComponent::onSetup(
   }
 
   // set-up the interval ports
-  Process::Inlets toRegister;
-  toRegister.push_back(interval().inlet.get());
-  if (tempo_proc)
   {
-    toRegister.push_back(tempo_proc->inlet.get());
-  }
-
-  if (interval().outlet)
-  {
-    system().setup.register_node(
-        toRegister, {interval().outlet.get()}, m_ossia_interval->node);
+    auto [inputsToRegister, outputsToRegister] = portsToRegister(interval());
+    if(!inputsToRegister.empty() || !outputsToRegister.empty())
+    {
+      system().setup.register_node(
+            inputsToRegister, outputsToRegister, m_ossia_interval->node);
+    }
   }
 
   init();
 }
+
 
 void IntervalComponent::graph_slot_callback(
     bool running,

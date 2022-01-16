@@ -15,7 +15,9 @@ TempoProcess::TempoProcess(
     const Id<Process::ProcessModel>& id,
     QObject* parent)
     : CurveProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
-    , inlet{Process::make_value_inlet(Id<Process::Port>(0), this)}
+    , tempo_inlet{Process::make_value_inlet(Id<Process::Port>(0), this)}
+    , speed_inlet{Process::make_value_inlet(Id<Process::Port>(1), this)}
+    , position_inlet{Process::make_value_inlet(Id<Process::Port>(2), this)}
 {
   setCurve(new Curve::Model{Id<Curve::Model>(45345), this});
 
@@ -34,7 +36,9 @@ TempoProcess::~TempoProcess() { }
 
 void TempoProcess::init()
 {
-  m_inlets.push_back(inlet.get());
+  m_inlets.push_back(tempo_inlet.get());
+  m_inlets.push_back(speed_inlet.get());
+  m_inlets.push_back(position_inlet.get());
 }
 
 QString TempoProcess::prettyName() const noexcept
@@ -113,7 +117,7 @@ void TempoProcess::setCurve_impl() { }
 template <>
 void DataStreamReader::read(const Scenario::TempoProcess& autom)
 {
-  m_stream << *autom.inlet;
+  m_stream << *autom.tempo_inlet << *autom.speed_inlet << *autom.position_inlet;
   readFrom(autom.curve());
 
   insertDelimiter();
@@ -122,7 +126,9 @@ void DataStreamReader::read(const Scenario::TempoProcess& autom)
 template <>
 void DataStreamWriter::write(Scenario::TempoProcess& autom)
 {
-  autom.inlet = Process::load_value_inlet(*this, &autom);
+  autom.tempo_inlet = Process::load_value_inlet(*this, &autom);
+  autom.speed_inlet = Process::load_value_inlet(*this, &autom);
+  autom.position_inlet = Process::load_value_inlet(*this, &autom);
   autom.setCurve(new Curve::Model{*this, &autom});
 
   checkDelimiter();
@@ -131,7 +137,9 @@ void DataStreamWriter::write(Scenario::TempoProcess& autom)
 template <>
 void JSONReader::read(const Scenario::TempoProcess& autom)
 {
-  obj["Inlet"] = *autom.inlet;
+  obj["Inlet"] = *autom.tempo_inlet;
+  obj["SpeedInlet"] = *autom.speed_inlet;
+  obj["PosInlet"] = *autom.position_inlet;
   obj["Curve"] = autom.curve();
 }
 
@@ -140,8 +148,30 @@ void JSONWriter::write(Scenario::TempoProcess& autom)
 {
   {
     JSONWriter writer{obj["Inlet"]};
-    autom.inlet = Process::load_value_inlet(writer, &autom);
+    autom.tempo_inlet = Process::load_value_inlet(writer, &autom);
   }
+
+  using namespace std::literals;
+  if(auto v = obj.constFind("SpeedInlet"s))
+  {
+    JSONWriter writer{*v};
+    autom.speed_inlet = Process::load_value_inlet(writer, &autom);
+  }
+  else
+  {
+    autom.speed_inlet = Process::make_value_inlet(Id<Process::Port>(1), &autom);
+  }
+
+  if(auto v = obj.constFind("PosInlet"s))
+  {
+    JSONWriter writer{*v};
+    autom.position_inlet = Process::load_value_inlet(writer, &autom);
+  }
+  else
+  {
+    autom.position_inlet = Process::make_value_inlet(Id<Process::Port>(1), &autom);
+  }
+
   JSONObject::Deserializer curve_deser{obj["Curve"]};
   autom.setCurve(new Curve::Model{curve_deser, &autom});
 }

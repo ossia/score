@@ -35,7 +35,9 @@ public:
   static constexpr double min = 20.;
   static constexpr double max = 500.;
 
-  std::unique_ptr<Process::Inlet> inlet;
+  std::unique_ptr<Process::Inlet> tempo_inlet;
+  std::unique_ptr<Process::Inlet> speed_inlet;
+  std::unique_ptr<Process::Inlet> position_inlet;
 
   TempoProcess(
       const TimeVal& duration,
