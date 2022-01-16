@@ -786,7 +786,11 @@ std::unique_ptr<Execution::Clock>
 ExecutionController::makeClock(const Execution::Context& ctx)
 {
   auto& s = context.settings<Execution::Settings::Model>();
-  return s.makeClock(ctx);
+  auto clk = s.makeClock(ctx);
+  auto& itv = clk->scenario.baseInterval().interval();
+  con(itv, &IdentifiedObjectAbstract::identified_object_destroying,
+      this, [this] { trigger_stop(); });
+  return clk;
 }
 
 }
