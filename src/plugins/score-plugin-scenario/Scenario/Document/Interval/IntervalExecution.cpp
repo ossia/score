@@ -46,7 +46,11 @@ std::pair<Process::Inlets, Process::Outlets> portsToRegister(const Scenario::Int
   Scenario::TempoProcess* tempo_proc = itv.tempoCurve();
 
   Process::Inlets inputs;
-  inputs.push_back(itv.inlet.get());
+  if (itv.inlet)
+  {
+    inputs.push_back(itv.inlet.get());
+  }
+
   if (tempo_proc)
   {
     inputs.push_back(tempo_proc->tempo_inlet.get());
