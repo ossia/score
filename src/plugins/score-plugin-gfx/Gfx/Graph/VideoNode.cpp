@@ -118,6 +118,8 @@ void VideoFrameReader::readNextFrame(VideoNode& node)
       ++it;
     }
   }
+
+  releaseFramesToFree();
 }
 
 bool VideoFrameReader::mustReadVideoFrame(const VideoNode& node)
