@@ -7,6 +7,7 @@
 #include <QCommandLineParser>
 #include <QCoreApplication>
 #include <QFile>
+#include <QFileInfo>
 #include <QObject>
 #include <QString>
 
@@ -86,7 +87,22 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
     parser.parse(cargs);
   }
 
-  const QStringList args = parser.positionalArguments();
+  // Remove all the positional arguments that aren't files
+  // otherwise we get ./ossia-score foo.score -platform vnc
+  // => {"foo.score", "vnc"}...
+  QStringList args = parser.positionalArguments();
+  for(auto it = args.begin(); it != args.end(); )
+  {
+    if(QFile::exists(*it))
+    {
+      *it = QFileInfo{*it}.canonicalFilePath();
+      ++it;
+    }
+    else
+    {
+      it = args.erase(it);
+    }
+  }
 
   tryToRestore = !parser.isSet(noRestore);
   gui = !parser.isSet(noGUI);
