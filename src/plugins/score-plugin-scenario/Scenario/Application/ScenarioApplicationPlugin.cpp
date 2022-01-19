@@ -154,6 +154,38 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
   }
 
   {
+    // Dataflow
+    m_autoScroll = new QAction{this};
+    m_autoScroll->setObjectName("AutoScroll");
+    m_autoScroll->setCheckable(true);
+    m_autoScroll->setChecked(false);
+    /*
+    setIcons(
+          m_autoScroll,
+          QStringLiteral(":/icons/show_cables_on.png"),
+          QStringLiteral(":/icons/show_cables_hover.png"),
+          QStringLiteral(":/icons/show_cables_off.png"),
+          QStringLiteral(":/icons/show_cables_disabled.png"));
+    */
+    // TODO initialize new document correctly
+    connect(m_autoScroll, &QAction::toggled, this, [this](bool c)
+    {
+      for(auto doc : this->context.documents.documents())
+      {
+        if (doc)
+        {
+          ScenarioDocumentPresenter* plug
+              = score::IDocument::try_get<ScenarioDocumentPresenter>(*doc);
+          if (plug)
+          {
+            plug->setAutoScroll(c);
+          }
+        }
+      }
+    });
+  }
+
+  {
     // Fold / unfold intervals
     m_foldIntervals = new QAction{this};
     connect(m_foldIntervals, &QAction::triggered, this, [this] {
@@ -232,12 +264,14 @@ auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements
   // Dataflow
   auto& actions = e.actions;
   actions.add<Actions::ShowCables>(m_showCables);
+  actions.add<Actions::AutoScroll>(m_autoScroll);
   actions.add<Actions::FoldIntervals>(m_foldIntervals);
   actions.add<Actions::UnfoldIntervals>(m_unfoldIntervals);
   actions.add<Actions::LevelUp>(m_levelUp);
 
   score::Menu& menu = context.menus.get().at(score::Menus::View());
   menu.menu()->addAction(m_showCables);
+  menu.menu()->addAction(m_autoScroll);
   menu.menu()->addAction(m_foldIntervals);
   menu.menu()->addAction(m_unfoldIntervals);
   menu.menu()->addAction(m_levelUp);

@@ -99,6 +99,7 @@ private:
   ToolMenuActions m_toolActions{this};
   TransportActions m_transportActions{context};
   QAction* m_showCables{};
+  QAction* m_autoScroll{};
   QAction* m_foldIntervals{};
   QAction* m_unfoldIntervals{};
   QAction* m_levelUp{};

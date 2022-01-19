@@ -295,6 +295,7 @@ View::View()
   SETTINGS_UI_SPINBOX_SETUP("Execution Refresh Rate", ExecutionRefreshRate);
   this->m_ExecutionRefreshRate->setToolTip(tr("Refresh rate of the main view when the score executes, in hertz. "
                                               "Set a lower value to leave more CPU for the actual processing."));
+  m_ExecutionRefreshRate->setRange(20, 500);
   SETTINGS_UI_TOGGLE_SETUP("Time Bar", TimeBar);
   SETTINGS_UI_TOGGLE_SETUP("Show musical metrics", MeasureBars);
   SETTINGS_UI_TOGGLE_SETUP("Magnetism on musical metrics", MagneticMeasures);

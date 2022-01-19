@@ -30,6 +30,7 @@
 #include <score/tools/Bind.hpp>
 #include <score/tools/Clamp.hpp>
 #include <score/widgets/DoubleSlider.hpp>
+#include <score/actions/ActionManager.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
 #include <core/view/Window.hpp>
@@ -37,12 +38,14 @@
 #include <ossia-qt/invoke.hpp>
 #include <ossia/detail/math.hpp>
 
+#include <QApplication>
 #include <QDebug>
 #include <QMenu>
 #include <QScrollBar>
 #include <QSize>
 #include <QToolBar>
 
+#include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
@@ -92,7 +95,6 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
     , m_selectionDispatcher{ctx.selectionStack}
     , m_focusManager{ctx.document.focusManager()}
     , m_context{ctx, m_dataflow, m_focusDispatcher}
-
 {
   using namespace score;
 
@@ -111,6 +113,12 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
         this,
         &ScenarioDocumentPresenter::on_viewReady,
         Qt::QueuedConnection);
+
+    if(auto scroll_act = ctx.app.actions.action<Actions::AutoScroll>(); scroll_act.action())
+    {
+      m_autoScroll = scroll_act.action()->isChecked();
+    }
+
   }
 
   con(view().view(),
@@ -200,7 +208,7 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
       Qt::QueuedConnection);
 
   // Execution timers
-  con(m_context.coarseUpdateTimer, &QTimer::timeout,
+  con(m_context.execTimer, &QTimer::timeout,
       this, &ScenarioDocumentPresenter::on_executionTimer);
 
   // Nodal mode control
@@ -491,6 +499,11 @@ bool ScenarioDocumentPresenter::isNodal() const noexcept
   return !m_timelineAction->isChecked();
 }
 
+void ScenarioDocumentPresenter::setAutoScroll(bool c)
+{
+  m_autoScroll = c;
+}
+
 static bool window_size_set = false;
 void ScenarioDocumentPresenter::on_windowSizeChanged(QSize sz)
 {
@@ -770,8 +783,6 @@ void ScenarioDocumentPresenter::on_minimapChanged(double l, double r)
         dur.impl
         * (view().visibleSceneRect().center().x() / dur.toPixels(newZoom))));
   }
-  // Update the time bar if it's visible
-  on_executionTimer();
 
   m_zooming = false;
 
@@ -784,6 +795,36 @@ void ScenarioDocumentPresenter::on_executionTimer()
   {
     n->on_executionTimer();
   }
+  else if(auto i = std::get_if<CentralIntervalDisplay>(&this->m_centralDisplay))
+  {
+    if(m_autoScroll)
+    autoScroll();
+  }
+}
+
+void ScenarioDocumentPresenter::autoScroll()
+{
+  const auto& sel = this->context().selectionStack.currentSelection();
+  auto& root = this->model().baseInterval();
+
+  const Scenario::IntervalModel* sel_itv = &root;
+  if(sel.size() == 1)
+  {
+    if(auto i = qobject_cast<const Scenario::IntervalModel*>(sel.at(0)))
+    {
+      if(i->executing())
+        sel_itv = i;
+    }
+  }
+
+  if(!sel_itv)
+    return;
+
+  auto& dur = sel_itv->duration;
+  auto delta = Scenario::timeDelta(sel_itv, &root);
+  double exec_d = dur.playPercentage() * (delta + dur.defaultDuration()).toPixels(this->m_zoomRatio);
+  auto center = view().view().visibleRect().center();
+  view().view().ensureVisible({exec_d - 100, center.y() - 10, view().viewWidth() / 2., 20});
 }
 
 void ScenarioDocumentPresenter::on_timelineModeSwitch(bool b)

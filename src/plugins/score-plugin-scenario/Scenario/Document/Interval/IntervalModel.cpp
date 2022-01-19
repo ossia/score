@@ -1071,4 +1071,42 @@ IntervalModel* closestParentInterval(QObject* parentObj) noexcept
   return static_cast<IntervalModel*>(parentObj);
 }
 
+TimeVal timeDelta(const IntervalModel* self, const IntervalModel* parent)
+{
+  TimeVal delta = TimeVal::zero();
+  if(self == parent)
+    return delta;
+
+  delta += self->date();
+  auto p = self->parent();
+  if (p)
+  {
+    p = p->parent();
+  }
+
+  while (p)
+  {
+    if (auto pi = qobject_cast<const IntervalModel*>(p))
+    {
+      if (pi == parent)
+      {
+        return delta;
+      }
+      else
+      {
+        delta += pi->date();
+        if ((p = p->parent()))
+          p = p->parent();
+      }
+    }
+    else
+    {
+      if ((p = p->parent()))
+        p = p->parent();
+    }
+  }
+
+  return TimeVal{};
+}
+
 }

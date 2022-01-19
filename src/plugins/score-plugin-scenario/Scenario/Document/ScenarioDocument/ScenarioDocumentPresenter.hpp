@@ -103,6 +103,8 @@ public:
 
   bool isNodal() const noexcept;
 
+  void setAutoScroll(bool);
+
 public:
   void pressed(QPointF arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1)
@@ -128,6 +130,7 @@ private:
   void switchMode(bool nodal);
   void recenterNodal();
   void restoreZoom();
+  void autoScroll();
 
   void on_cableAdded(Process::Cable& c);
 
@@ -166,6 +169,7 @@ private:
   bool m_updatingMinimap{false};
   bool m_reloadingMinimap{false};
   bool m_updatingView{false};
+  bool m_autoScroll{false};
 };
 
 Process::ProcessModel* closestParentProcessBeforeInterval(const QObject* obj);

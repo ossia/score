@@ -230,6 +230,12 @@ SCORE_DECLARE_ACTION(
     Dataflow,
     QKeySequence(QObject::tr("Alt+Shift+G")))
 
+SCORE_DECLARE_ACTION(
+    AutoScroll,
+    "&Auto-scroll",
+    Dataflow,
+    QKeySequence(QObject::tr("Alt+Shift+A")))
+
 // Navigation
 SCORE_DECLARE_ACTION(MoveUp, "&Move up", Scenario, Qt::UpArrow)
 SCORE_DECLARE_ACTION(MoveDown, "&Move down", Scenario, Qt::DownArrow)
