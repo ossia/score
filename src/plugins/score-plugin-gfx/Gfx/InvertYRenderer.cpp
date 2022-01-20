@@ -99,7 +99,7 @@ void InvertYRenderer::finishFrame(
 
   auto next = renderer.state.rhi->nextResourceUpdateBatch();
 
-  QRhiReadbackDescription rb(m_inputTarget.texture);
+  QRhiReadbackDescription rb(m_renderTarget.texture);
   next->readBackTexture(rb, &m_readback);
   cb.endPass(next);
 }
