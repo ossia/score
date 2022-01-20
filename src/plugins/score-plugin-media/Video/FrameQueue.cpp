@@ -11,6 +11,15 @@ extern "C"
 
 namespace Video
 {
+FrameQueue::FrameQueue()
+{
+
+}
+
+FrameQueue::~FrameQueue()
+{
+
+}
 
 AVFramePointer FrameQueue::newFrame() noexcept
 {
@@ -24,9 +33,11 @@ AVFramePointer FrameQueue::newFrame() noexcept
 
   // Frames freed from the rendering thread
   {
-  AVFrame* f{};
-  if (released.try_dequeue(f))
-    return AVFramePointer{f};
+    AVFrame* f{};
+    if (released.try_dequeue(f))
+    {
+      return AVFramePointer{f};
+    }
   }
 
   // We actually need to allocate :throw_up_emoji:
@@ -51,10 +62,10 @@ AVFrame* FrameQueue::dequeue() noexcept
   // We only want the latest frame
   while (available.try_dequeue(f))
   {
-    if (prev_f)
-      release(prev_f);
+    release(prev_f);
     prev_f = f;
   }
+
   return f;
 }
 
@@ -114,7 +125,10 @@ AVFrame* FrameQueue::discard_and_dequeue_one() noexcept
 
 void FrameQueue::release(AVFrame* frame) noexcept
 {
-  released.enqueue(frame);
+  if(frame)
+  {
+    released.enqueue(frame);
+  }
 }
 
 void FrameQueue::drain()

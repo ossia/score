@@ -47,7 +47,7 @@ class video_texture_input_parameter : public ossia::gfx::texture_input_parameter
 public:
   std::shared_ptr<::Video::ExternalInput> camera;
   int32_t node_id{};
-  score::gfx::VideoNode* node{};
+  score::gfx::CameraNode* node{};
 
   video_texture_input_parameter(
       ossia::net::node_base& n,
@@ -58,8 +58,8 @@ public:
     auto& proto = static_cast<video_texture_input_protocol&>(n.get_device().get_protocol());
     camera = proto.camera;
 
-    node = new score::gfx::VideoNode(proto.camera, {});
-    node_id = context->ui->register_node(std::unique_ptr<score::gfx::VideoNode>{node});
+    node = new score::gfx::CameraNode(proto.camera, {});
+    node_id = context->ui->register_node(std::unique_ptr<score::gfx::CameraNode>{node});
   }
 
   void pull_texture(ossia::gfx::port_index idx) override

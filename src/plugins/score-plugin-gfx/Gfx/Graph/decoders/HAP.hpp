@@ -190,7 +190,7 @@ void main ()
 
   HAPDefaultDecoder(
       QRhiTexture::Format fmt,
-      Video::VideoInterface& d,
+      Video::VideoMetadata& d,
       QString f = "")
       : format{fmt}
       , decoder{d}
@@ -198,7 +198,7 @@ void main ()
   {
   }
   QRhiTexture::Format format;
-  Video::VideoInterface& decoder;
+  Video::VideoMetadata& decoder;
   QString filter;
 
   std::pair<QShader, QShader> init(RenderList& r) override
@@ -272,12 +272,12 @@ void main ()
   fragColor = processTexture(processYCoCg(ycocg, alpha));
 })_");
 
-  HAPMDecoder(Video::VideoInterface& d, QString f = "")
+  HAPMDecoder(Video::VideoMetadata& d, QString f = "")
       : decoder{d}
       , filter{f}
   {
   }
-  Video::VideoInterface& decoder;
+  Video::VideoMetadata& decoder;
   QString filter;
   std::pair<QShader, QShader> init(RenderList& r) override
   {

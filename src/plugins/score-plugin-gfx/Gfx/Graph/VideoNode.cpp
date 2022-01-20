@@ -3,13 +3,18 @@
 
 namespace score::gfx
 {
+void VideoNodeBase::setScaleMode(ScaleMode s)
+{
+  m_scaleMode = s;
+}
+
 VideoNode::VideoNode(
     std::shared_ptr<Video::VideoInterface> dec,
     std::optional<double> nativeTempo,
     QString f)
-    : m_filter{f}
-    , m_nativeTempo{nativeTempo}
+    : m_nativeTempo{nativeTempo}
 {
+  this->m_filter = std::move(f);
   this->reader.m_decoder = std::move(dec);
   output.push_back(new Port{this, {}, Types::Image, {}});
 }
@@ -19,7 +24,7 @@ VideoNode::~VideoNode() { }
 score::gfx::NodeRenderer*
 VideoNode::createRenderer(RenderList& r) const noexcept
 {
-  return new VideoNodeRenderer{*this};
+  return new VideoNodeRenderer{*this, const_cast<VideoFrameShare&>(static_cast<const VideoFrameShare&>(reader))};
 }
 
 void VideoNode::seeked()
@@ -27,36 +32,55 @@ void VideoNode::seeked()
   SCORE_TODO;
 }
 
-void VideoNode::setScaleMode(ScaleMode s)
-{
-  m_scaleMode = s;
-}
 
 void VideoNode::process(const Message& msg)
 {
   ProcessNode::process(msg.token);
+
   reader.readNextFrame(*this);
 }
 
 
-VideoFrameReader::~VideoFrameReader()
+CameraNode::CameraNode(
+    std::shared_ptr<Video::VideoInterface> dec,
+    QString f)
 {
-  auto& decoder = *m_decoder;
-  for (auto frame : m_framesToFree)
-    decoder.release_frame(frame);
+  this->m_filter = std::move(f);
+  this->reader.m_decoder = std::move(dec);
+  output.push_back(new Port{this, {}, Types::Image, {}});
 }
 
-void VideoFrameReader::releaseFramesToFree()
-{
-  auto& decoder = *m_decoder;
+CameraNode::~CameraNode() { }
 
-  // Release frames from the previous update (which have necessarily been uploaded)
-  for (auto frame : m_framesToFree)
-    decoder.release_frame(frame);
-  m_framesToFree.clear();
+score::gfx::NodeRenderer*
+CameraNode::createRenderer(RenderList& r) const noexcept
+{
+  return new VideoNodeRenderer{*this, const_cast<VideoFrameShare&>(reader)};
 }
 
-void VideoFrameReader::updateCurrentFrame(VideoNode& node, AVFrame* frame)
+void CameraNode::process(const Message& msg)
+{
+  if (auto frame = reader.m_decoder->dequeue_frame())
+  {
+    reader.updateCurrentFrame(frame);
+  }
+
+  reader.releaseFramesToFree();
+}
+
+
+
+std::shared_ptr<RefcountedFrame> VideoFrameShare::currentFrame() const noexcept
+{
+  std::lock_guard<std::mutex> lock{m_frameLock};
+  if(m_currentFrame)
+  {
+    m_currentFrame->use_count++;
+  }
+  return m_currentFrame;
+}
+
+void VideoFrameShare::updateCurrentFrame(AVFrame* frame)
 {
   auto old_frame = this->m_currentFrame;
 
@@ -75,35 +99,24 @@ void VideoFrameReader::updateCurrentFrame(VideoNode& node, AVFrame* frame)
     else
       m_framesInFlight.push_back(std::move(old_frame));
   }
-}
-
-void VideoFrameReader::readNextFrame(VideoNode& node)
-{
-  auto& decoder = *m_decoder;
-
-  // Camera and other sources where we always want the latest frame
-  if(decoder.realTime)
-  {
-    if (auto frame = decoder.dequeue_frame())
-    {
-      updateCurrentFrame(node, frame);
-    }
-  }
-  else if (mustReadVideoFrame(node))
-  {
-    // Video files which require more precise timing handling
-    if (auto frame = VideoFrameReader::nextFrame(node, decoder, m_framesToFree, m_nextFrame))
-    {
-      updateCurrentFrame(node, frame);
-
-      m_lastFrameTime
-          = (decoder.flicks_per_dts * frame->pts) / ossia::flicks_per_second<double>;
-      m_timer.restart();
-    }
-  }
 
   m_currentFrameIdx++;
+}
 
+VideoFrameShare::VideoFrameShare()
+{
+
+}
+
+VideoFrameShare::~VideoFrameShare()
+{
+  auto& decoder = *m_decoder;
+  for (auto frame : m_framesToFree)
+    decoder.release_frame(frame);
+}
+
+void VideoFrameShare::releaseFramesToFree()
+{
   // Give back the frames that aren't used by any thread anymore
   for(auto it = m_framesInFlight.begin(); it != m_framesInFlight.end(); )
   {
@@ -116,6 +129,43 @@ void VideoFrameReader::readNextFrame(VideoNode& node)
     else
     {
       ++it;
+    }
+  }
+
+  auto& decoder = *m_decoder;
+
+  // Release frames from the previous update (which have necessarily been uploaded)
+  for (auto frame : m_framesToFree)
+    decoder.release_frame(frame);
+  m_framesToFree.clear();
+}
+
+
+
+VideoFrameReader::VideoFrameReader()
+{
+
+}
+
+VideoFrameReader::~VideoFrameReader()
+{
+
+}
+
+void VideoFrameReader::readNextFrame(VideoNode& node)
+{
+  auto& decoder = *m_decoder;
+
+  if (mustReadVideoFrame(node))
+  {
+    // Video files which require more precise timing handling
+    if (auto frame = VideoFrameReader::nextFrame(node, decoder, m_framesToFree, m_nextFrame))
+    {
+      updateCurrentFrame(frame);
+
+      m_lastFrameTime
+          = (decoder.flicks_per_dts * frame->pts) / ossia::flicks_per_second<double>;
+      m_timer.restart();
     }
   }
 
@@ -262,15 +312,6 @@ AVFrame* VideoFrameReader::nextFrame(const VideoNode& node, Video::VideoInterfac
   return nullptr;
 }
 
-std::shared_ptr<RefcountedFrame> VideoFrameReader::currentFrame() const noexcept
-{
-  std::lock_guard<std::mutex> lock{m_frameLock};
-  if(m_currentFrame)
-  {
-    m_currentFrame->use_count++;
-  }
-  return m_currentFrame;
-}
 }
 
 #include <hap/source/hap.c>

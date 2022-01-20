@@ -11,7 +11,7 @@ class VideoNodeRenderer
     : public NodeRenderer
 {
 public:
-  explicit VideoNodeRenderer(const VideoNode& node) noexcept;
+  explicit VideoNodeRenderer(const VideoNodeBase& node, VideoFrameShare& frames) noexcept;
   ~VideoNodeRenderer();
 
   VideoNodeRenderer() = delete;
@@ -38,7 +38,10 @@ public:
 private:
   void createPipelines(RenderList& r);
   void displayFrame(AVFrame& frame, RenderList& renderer, QRhiResourceUpdateBatch& res);
-  const VideoNode& node;
+  Video::VideoMetadata& decoder() const noexcept;
+
+  const VideoNodeBase& node;
+  VideoFrameShare& reader;
 
   std::vector<std::pair<Edge*, Pipeline>> m_p;
   QRhiBuffer* m_meshBuffer{};
@@ -51,7 +54,6 @@ private:
   };
 
   std::unique_ptr<GPUVideoDecoder> m_gpu;
-  std::shared_ptr<Video::VideoInterface> m_decoder;
 
   AVPixelFormat m_currentFormat = AVPixelFormat(-1);
   int m_currentWidth = 0;

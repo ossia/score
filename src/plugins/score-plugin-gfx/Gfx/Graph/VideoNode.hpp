@@ -21,31 +21,37 @@ struct RefcountedFrame {
   std::atomic_int use_count{};
 };
 
-struct VideoFrameReader
+struct VideoFrameShare
 {
-  ~VideoFrameReader();
-
-  void releaseFramesToFree();
-  static AVFrame* nextFrame(const VideoNode& node, Video::VideoInterface& decoder, std::vector<AVFrame*>& framesToFree, AVFrame*& nextFrame);
+  VideoFrameShare();
+  ~VideoFrameShare();
 
   std::shared_ptr<RefcountedFrame> currentFrame() const noexcept;
-  bool mustReadVideoFrame(const VideoNode& node);
-  void readNextFrame(VideoNode& node);
-  void updateCurrentFrame(VideoNode& node, AVFrame* frame);
+  void updateCurrentFrame(AVFrame* frame);
+  void releaseFramesToFree();
 
   std::shared_ptr<Video::VideoInterface> m_decoder;
-  int64_t m_currentFrameIdx{};
-
-private:
-  std::vector<AVFrame*> m_framesToFree;
 
   mutable std::mutex m_frameLock{};
-
   std::shared_ptr<RefcountedFrame> m_currentFrame{};
 
+  int64_t m_currentFrameIdx{};
 
+  std::vector<AVFrame*> m_framesToFree;
   std::vector<std::shared_ptr<RefcountedFrame>> m_framesInFlight;
+};
 
+struct VideoFrameReader : VideoFrameShare
+{
+  VideoFrameReader();
+  ~VideoFrameReader();
+
+  static AVFrame* nextFrame(const VideoNode& node, Video::VideoInterface& decoder, std::vector<AVFrame*>& framesToFree, AVFrame*& nextFrame);
+
+  bool mustReadVideoFrame(const VideoNode& node);
+  void readNextFrame(VideoNode& node);
+
+private:
   QElapsedTimer m_timer;
   AVFrame* m_nextFrame{};
   double m_lastFrameTime{};
@@ -53,11 +59,23 @@ private:
   bool m_readFrame{};
 };
 
+class SCORE_PLUGIN_GFX_EXPORT VideoNodeBase
+    : public ProcessNode
+{
+public:
+  void setScaleMode(score::gfx::ScaleMode s);
+
+  friend VideoNodeRenderer;
+protected:
+  QString m_filter;
+  score::gfx::ScaleMode m_scaleMode{};
+};
+
 /**
  * @brief Model for rendering a video
  */
 class SCORE_PLUGIN_GFX_EXPORT VideoNode
-    : public ProcessNode
+    : public VideoNodeBase
 {
 public:
   VideoNode(
@@ -72,7 +90,6 @@ public:
 
   void seeked();
 
-  void setScaleMode(score::gfx::ScaleMode s);
   void process(const Message& msg) override;
 
   VideoFrameReader reader;
@@ -80,9 +97,32 @@ private:
   friend VideoFrameReader;
   friend VideoNodeRenderer;
 
-  QString m_filter;
   std::optional<double> m_nativeTempo;
-  score::gfx::ScaleMode m_scaleMode{};
+};
+
+/**
+ * @brief Model for rendering a camera feed
+ */
+class SCORE_PLUGIN_GFX_EXPORT CameraNode
+    : public VideoNodeBase
+{
+public:
+  CameraNode(
+      std::shared_ptr<Video::VideoInterface> dec,
+      QString f = {});
+
+  virtual ~CameraNode();
+
+  score::gfx::NodeRenderer*
+  createRenderer(RenderList& r) const noexcept override;
+
+  void process(const Message& msg) override;
+
+  VideoFrameShare reader;
+private:
+  friend VideoNodeRenderer;
+
+  std::shared_ptr<RefcountedFrame> m_currentFrame{};
 };
 
 }

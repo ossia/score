@@ -37,7 +37,7 @@ struct PackedDecoder : GPUVideoDecoder
   PackedDecoder(
       QRhiTexture::Format fmt,
       int bytes_per_pixel,
-      Video::VideoInterface& d,
+      Video::VideoMetadata& d,
       QString f = "")
       : format{fmt}
       , bytes_per_pixel{bytes_per_pixel}
@@ -47,7 +47,7 @@ struct PackedDecoder : GPUVideoDecoder
   }
   QRhiTexture::Format format;
   int bytes_per_pixel{}; // bpp/8 !
-  Video::VideoInterface& decoder;
+  Video::VideoMetadata& decoder;
   QString filter;
 
   std::pair<QShader, QShader> init(RenderList& r) override

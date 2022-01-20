@@ -117,10 +117,15 @@ void CameraInput::buffer_thread() noexcept
 {
   while (m_running.load(std::memory_order_acquire))
   {
-    if (auto f = read_frame_impl())
+    if(m_frames.size() < 4)
     {
-      m_frames.enqueue(f);
+      if (auto f = read_frame_impl())
+      {
+
+        m_frames.enqueue(f);
+      }
     }
+    std::this_thread::sleep_for(std::chrono::milliseconds(4));
   }
 }
 

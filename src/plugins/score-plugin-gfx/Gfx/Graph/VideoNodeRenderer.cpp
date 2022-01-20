@@ -15,18 +15,24 @@
 namespace score::gfx
 {
 
-VideoNodeRenderer::VideoNodeRenderer(const VideoNode& node) noexcept
+VideoNodeRenderer::VideoNodeRenderer(const VideoNodeBase& node, VideoFrameShare& frames) noexcept
     : NodeRenderer{}
     , node{node}
-    , m_decoder{node.reader.m_decoder} // TODO clone. But how to do for camera, etc. ?
-    , m_currentFormat{m_decoder->pixel_format}
-    , m_currentWidth{m_decoder->width}
-    , m_currentHeight{m_decoder->height}
+    , reader{frames}
+    , m_currentFormat{decoder().pixel_format}
+    , m_currentWidth{decoder().width}
+    , m_currentHeight{decoder().height}
 {
 }
 
 VideoNodeRenderer::~VideoNodeRenderer()
 {
+}
+
+
+Video::VideoMetadata& VideoNodeRenderer::decoder() const noexcept
+{
+  return *reader.m_decoder;
 }
 
 TextureRenderTarget VideoNodeRenderer::renderTargetForInput(const Port& input)
@@ -42,60 +48,60 @@ void VideoNodeRenderer::createGpuDecoder()
   {
     case AV_PIX_FMT_YUV420P:
     case AV_PIX_FMT_YUVJ420P:
-      m_gpu = std::make_unique<YUV420Decoder>(*m_decoder);
+      m_gpu = std::make_unique<YUV420Decoder>(this->decoder());
       break;
     case AV_PIX_FMT_YUVJ422P:
     case AV_PIX_FMT_YUV422P:
-      m_gpu = std::make_unique<YUV422Decoder>(*m_decoder);
+      m_gpu = std::make_unique<YUV422Decoder>(this->decoder());
       break;
     case AV_PIX_FMT_UYVY422:
-      m_gpu = std::make_unique<UYVY422Decoder>(*m_decoder);
+      m_gpu = std::make_unique<UYVY422Decoder>(this->decoder());
       break;
     case AV_PIX_FMT_YUYV422:
-      m_gpu = std::make_unique<YUYV422Decoder>(*m_decoder);
+      m_gpu = std::make_unique<YUYV422Decoder>(this->decoder());
       break;
     case AV_PIX_FMT_RGB0:
       m_gpu = std::make_unique<PackedDecoder>(
-          QRhiTexture::RGBA8, 4, *m_decoder, "processed.a = 1.0; " + filter);
+          QRhiTexture::RGBA8, 4, this->decoder(), "processed.a = 1.0; " + filter);
       break;
     case AV_PIX_FMT_RGBA:
       m_gpu = std::make_unique<PackedDecoder>(
-          QRhiTexture::RGBA8, 4, *m_decoder, filter);
+          QRhiTexture::RGBA8, 4, this->decoder(), filter);
       break;
     case AV_PIX_FMT_BGR0:
       m_gpu = std::make_unique<PackedDecoder>(
-          QRhiTexture::BGRA8, 4, *m_decoder, "processed.a = 1.0; " + filter);
+          QRhiTexture::BGRA8, 4, this->decoder(), "processed.a = 1.0; " + filter);
       break;
     case AV_PIX_FMT_BGRA:
       m_gpu = std::make_unique<PackedDecoder>(
-          QRhiTexture::BGRA8, 4, *m_decoder, filter);
+          QRhiTexture::BGRA8, 4, this->decoder(), filter);
       break;
     case AV_PIX_FMT_ARGB:
       // Go from ARGB  xyzw
       //      to RGBA  yzwx
       m_gpu = std::make_unique<PackedDecoder>(
-            QRhiTexture::RGBA8, 4, *m_decoder, "processed.rgba = tex.yzwx; " + filter);
+            QRhiTexture::RGBA8, 4, this->decoder(), "processed.rgba = tex.yzwx; " + filter);
       break;
     case AV_PIX_FMT_ABGR:
       // Go from ABGR  xyzw
       //      to BGRA  yzwx
       m_gpu = std::make_unique<PackedDecoder>(
-            QRhiTexture::BGRA8, 4, *m_decoder, "processed.bgra = tex.yzwx; " + filter);
+            QRhiTexture::BGRA8, 4, this->decoder(), "processed.bgra = tex.yzwx; " + filter);
       break;
 #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(56, 19, 100)
     case AV_PIX_FMT_GRAYF32LE:
     case AV_PIX_FMT_GRAYF32BE:
       m_gpu = std::make_unique<PackedDecoder>(
-          QRhiTexture::R32F, 4, *m_decoder, filter);
+          QRhiTexture::R32F, 4, this->decoder(), filter);
       break;
 #endif
     case AV_PIX_FMT_GRAY8:
       m_gpu = std::make_unique<PackedDecoder>(
-          QRhiTexture::R8, 1, *m_decoder, "processed.rgba = vec4(tex.r, tex.r, tex.r, 1.0);" + filter);
+          QRhiTexture::R8, 1, this->decoder(), "processed.rgba = vec4(tex.r, tex.r, tex.r, 1.0);" + filter);
       break;
     case AV_PIX_FMT_GRAY16:
       m_gpu = std::make_unique<PackedDecoder>(
-            QRhiTexture::R16, 2, *m_decoder, "processed.rgba = vec4(tex.r, tex.r, tex.r, 1.0);" + filter);
+            QRhiTexture::R16, 2, this->decoder(), "processed.rgba = vec4(tex.r, tex.r, tex.r, 1.0);" + filter);
       break;
     default:
     {
@@ -104,23 +110,23 @@ void VideoNodeRenderer::createGpuDecoder()
 
       if (fourcc == "Hap1")
         m_gpu = std::make_unique<HAPDefaultDecoder>(
-            QRhiTexture::BC1, *m_decoder, filter);
+            QRhiTexture::BC1, this->decoder(), filter);
       else if (fourcc == "Hap5")
         m_gpu = std::make_unique<HAPDefaultDecoder>(
-            QRhiTexture::BC3, *m_decoder, filter);
+            QRhiTexture::BC3, this->decoder(), filter);
       else if (fourcc == "HapY")
         m_gpu = std::make_unique<HAPDefaultDecoder>(
             QRhiTexture::BC3,
-            *m_decoder,
+            this->decoder(),
             HAPDefaultDecoder::ycocg_filter + filter);
       else if (fourcc == "HapM")
-        m_gpu = std::make_unique<HAPMDecoder>(*m_decoder, filter);
+        m_gpu = std::make_unique<HAPMDecoder>(this->decoder(), filter);
       else if (fourcc == "HapA")
         m_gpu = std::make_unique<HAPDefaultDecoder>(
-            QRhiTexture::BC4, *m_decoder, filter);
+            QRhiTexture::BC4, this->decoder(), filter);
       else if (fourcc == "Hap7")
         m_gpu = std::make_unique<HAPDefaultDecoder>(
-            QRhiTexture::BC7, *m_decoder, filter);
+            QRhiTexture::BC7, this->decoder(), filter);
 
       if (!m_gpu)
       {
@@ -258,17 +264,20 @@ void VideoNodeRenderer::update(RenderList& renderer, QRhiResourceUpdateBatch& re
   res.updateDynamicBuffer(
       m_processUBO, 0, sizeof(ProcessUBO), &this->node.standardUBO);
 
-  if(node.reader.m_currentFrameIdx > this->m_currentFrameIdx)
+  auto reader_frame = reader.m_currentFrameIdx;
+  if(reader_frame > this->m_currentFrameIdx)
   {
     auto old_frame = m_currentFrame;
 
     //std::lock_guard<std::mutex> lck{const_cast<VideoNode&>(node).reader.m_frameLock};
-    if((m_currentFrame = node.reader.currentFrame()))
+    if((m_currentFrame = reader.currentFrame()))
       displayFrame(*m_currentFrame->frame, renderer, res);
 
     if(old_frame)
       old_frame->use_count--;
     // TODO else ? fill with zeroes ?... does not that give green with YUV?
+
+    this->m_currentFrameIdx = reader_frame;
   }
 
   if(m_recomputeScale || m_currentScaleMode != this->node.m_scaleMode)

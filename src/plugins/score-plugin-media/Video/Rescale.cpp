@@ -46,7 +46,8 @@ void Rescale::rescale(const VideoMetadata& src, FrameQueue& m_frames, AVFramePoi
   // FIXME check if there isn't already a buffer allocated
   if(rgb->data[0] != nullptr)
   {
-    qDebug() << "Warning ! frame buffer already allocated";
+    // FIXME this happens with e.g. gstreamer white noise over shmdata
+    // qDebug() << "Warning ! frame buffer already allocated";
     av_frame_free(&rgb);
     rgb = av_frame_alloc();
   }
