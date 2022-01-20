@@ -3,7 +3,7 @@
 #include <Engine/Node/SimpleApi.hpp>
 #include <Analysis/GistState.hpp>
 
-#if defined(OSSIA_FFT_KFR)
+#if defined(OSSIA_ENABLE_KFR)
 #include <kfr/base.hpp>
 #include <kfr/dsp.hpp>
 #endif
@@ -28,7 +28,7 @@ struct Pitch
     static const constexpr value_out value_outs[]{"out"};
   };
 
-#if defined(OSSIA_FFT_KFR)
+#if defined(OSSIA_ENABLE_KFR)
   struct State : GistState
   {
     State():
@@ -61,7 +61,7 @@ struct Pitch
     if(in.channels() == 0)
       return;
 
-#if defined(OSSIA_FFT_KFR)
+#if defined(OSSIA_ENABLE_KFR)
     st.filter(const_cast<ossia::audio_port&>(in));
 #endif
     st.process<&Gist<double>::pitch>(in, out, tk, e);

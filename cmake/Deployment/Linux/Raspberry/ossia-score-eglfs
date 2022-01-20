@@ -8,4 +8,4 @@ export MESA_GLSL_VERSION_OVERRIDE=320
 export LD_LIBRARY_PATH="$DIR/lib"
 export QT_QPA_PLATFORM=eglfs
 
-"$DIR/bin/ossia-score" $@ --no-opengl
+"$DIR/bin/ossia-score" $@ --no-opengl --no-gui

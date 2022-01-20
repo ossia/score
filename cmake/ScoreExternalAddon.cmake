@@ -25,7 +25,12 @@ set(SCORE_VERSION_PATCH 0)
 set(SCORE_VERSION "${SCORE_VERSION_MAJOR}.${SCORE_VERSION_MINOR}.${SCORE_VERSION_PATCH}")
 
 set(SCORE_DYNAMIC_PLUGINS 1)
-set(OSSIA_FFT "DOUBLE")
+
+# Official Mac / Win / Linux releases are built against KFR
+set(OSSIA_ENABLE_FFT 1)
+set(OSSIA_ENABLE_KFR 1)
+set(OSSIA_FFT KFR_DOUBLE)
+set(OSSIA_FFT_KFR 1)
 
 if(WIN32)
   set(BUILD_SHARED_LIBS OFF)
@@ -104,7 +109,6 @@ function(setup_score_plugin)
     RAPIDJSON_HAS_STDSTRING=1
     # SCORE_DEBUG
     TINYSPLINE_DOUBLE_PRECISION
-    FFTW_DOUBLE_ONLY
   )
 endfunction()
 else()
