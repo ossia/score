@@ -65,6 +65,10 @@ public:
   void pull_texture(ossia::gfx::port_index idx) override
   {
     context->setEdge(port_index{this->node_id, 0}, idx);
+
+    score::gfx::Message m;
+    m.node_id = node_id;
+    context->ui->send_message(std::move(m));
   }
 
   virtual ~video_texture_input_parameter()
