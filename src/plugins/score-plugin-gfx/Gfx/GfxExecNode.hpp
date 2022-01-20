@@ -37,7 +37,9 @@ public:
     ossia::value_port* port{};
     bool changed{};
   };
+
   std::vector<std::shared_ptr<control>> controls;
+
   GfxExecutionAction* exec_context{};
   gfx_exec_node(GfxExecutionAction& e_ctx)
       : exec_context{&e_ctx}
@@ -47,10 +49,14 @@ public:
   const std::shared_ptr<control>& add_control()
   {
     auto inletport = new ossia::value_inlet;
-    controls.push_back(std::make_shared<control>());
-    controls.back()->port = &**inletport;
     m_inlets.push_back(inletport);
-    return controls.back();
+
+    controls.push_back(std::make_shared<control>());
+    auto& c = controls.back();
+    c->port = &**inletport;
+    c->changed = true;
+
+    return c;
   }
 
   void add_texture()

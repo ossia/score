@@ -45,7 +45,6 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     auto ctrl = qobject_cast<Process::ControlInlet*>(element.inlets()[i]);
     auto& p = n->add_control();
     p->value = ctrl->value();
-    p->changed = true;
 
     QObject::connect(
         ctrl,

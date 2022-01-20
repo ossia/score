@@ -59,11 +59,12 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     const auto& shader = element.processedProgram();
     const auto& desc = shader.descriptor;
 
-    this->node = ossia::make_node<filter_node>(*ctx.execState,
+    auto n = ossia::make_node<filter_node>(*ctx.execState,
         desc,
         shader.compiledVertex,
         shader.compiledFragment,
         ctx.doc.plugin<DocumentPlugin>().exec);
+    this->node = n;
 
     Execution::Transaction commands{system()};
     setup_node(commands);
@@ -74,7 +75,8 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     m_oldInlets = process().inlets();
     m_oldOutlets = process().outlets();
 
-    connect(&element, &Filter::Model::programChanged, this, &ProcessExecutorComponent::on_shaderChanged, Qt::QueuedConnection);
+    connect(&element, &Filter::Model::programChanged,
+            this, &ProcessExecutorComponent::on_shaderChanged, Qt::DirectConnection);
   }
   catch (...)
   {
@@ -97,7 +99,9 @@ void ProcessExecutorComponent::on_shaderChanged()
   // 2. Change the script
   const auto& shader = element.processedProgram();
   commands.push_back([n,
-                      shader = std::make_unique<ProcessedProgram>(shader)] { n->set_script(shader->descriptor, shader->compiledVertex, shader->compiledFragment); });
+                      shader = std::make_unique<ProcessedProgram>(shader)] {
+    n->set_script(shader->descriptor, shader->compiledVertex, shader->compiledFragment);
+  });
 
   // 3. Register the inlets / outlets
   for (std::size_t i = 0; i < inls.size(); i++)
@@ -137,11 +141,14 @@ std::pair<ossia::inlets, ossia::outlets> ProcessExecutorComponent::setup_node(Ex
   {
     if (auto ctrl = qobject_cast<Process::ControlInlet*>(ctl))
     {
+      // NOTE! we do not use add_control() here as it changes the internal arrays,
+      // while we will replace them after in ossia::recabler
+
       auto inletport = new ossia::value_inlet;
       auto control = std::make_shared<gfx_exec_node::control>();
-      control->value = ctrl->value();
       control->port = &**inletport;
       control->changed = true;
+      control->value = ctrl->value();
       controls.push_back(control);
 
       inls.push_back(inletport);
@@ -154,6 +161,7 @@ std::pair<ossia::inlets, ossia::outlets> ProcessExecutorComponent::setup_node(Ex
           &Process::ControlInlet::valueChanged,
           this,
           con_unvalidated{ctx, control_index, script_index, weak_node});
+
       control_index++;
     }
     else if (auto ctrl = qobject_cast<Process::AudioInlet*>(ctl))
@@ -173,10 +181,11 @@ std::pair<ossia::inlets, ossia::outlets> ProcessExecutorComponent::setup_node(Ex
   //! it will cut the sound
   auto recable = std::shared_ptr<ossia::recabler>(new ossia::recabler{n, system().execGraph, inls, outls});
   commands.push_back([n, controls, recable] () mutable {
-                       (*recable)();
+    using namespace std;
+    (*recable)();
 
-                       swap(n->controls, controls);
-                     });
+    swap(n->controls, controls);
+  });
 
   return {std::move(inls), std::move(outls)};
 }

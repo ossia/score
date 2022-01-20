@@ -48,8 +48,6 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     auto& p = n->add_control();
     p->value = ctrl->value();
 
-    p->changed = true;
-
     QObject::connect(
         ctrl,
         &Process::ControlInlet::valueChanged,

@@ -65,6 +65,7 @@ void gfx_exec_node::run(
         if(!p.get_data().empty())
         {
           msg.input[inlet_i] = std::move(p.get_data().back().value);
+
           p.get_data().clear();
         }
 
