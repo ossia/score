@@ -310,13 +310,14 @@ Device::ProtocolSettingsWidget* ShmdataOutputProtocolFactory::makeSettingsWidget
 QVariant ShmdataOutputProtocolFactory::makeProtocolSpecificSettings(
     const VisitorVariant& visitor) const
 {
-  return {};
+  return makeProtocolSpecificSettings_T<ShmSettings>(visitor);
 }
 
 void ShmdataOutputProtocolFactory::serializeProtocolSpecificSettings(
     const QVariant& data,
     const VisitorVariant& visitor) const
 {
+  serializeProtocolSpecificSettings_T<ShmSettings>(data, visitor);
 }
 
 bool ShmdataOutputProtocolFactory::checkCompatibility(
