@@ -187,8 +187,8 @@ void CableItem::resize()
   clearPainterPath(m_path);
   if (m_p1 && m_p2)
   {
-    auto p1 = m_p1->scenePos() + QPointF(6., 6.);
-    auto p2 = m_p2->scenePos() + QPointF(6., 6.);
+    auto p1 = m_p1->scenePos() + QPointF(6., 6.) * m_p1->sceneTransform().m11();
+    auto p2 = m_p2->scenePos() + QPointF(6., 6.) * m_p2->sceneTransform().m11();
 
     auto rect = QRectF{p1, p2};
     auto nrect = rect.normalized();
