@@ -1,6 +1,7 @@
 #pragma once
 #include <Curve/CurveView.hpp>
 #include <Curve/Process/CurveProcessPresenter.hpp>
+#include <Process/Dataflow/Port.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/LayerPresenter.hpp>
 
@@ -56,8 +57,44 @@ public:
       QObject* parent)
       : CurveProcessPresenter{style, layer, view, context, parent}
   {
+    // only disable the curve when using the first 2 inlets
+    for (int i = 0; i < 2; i++)
+    {
+      QObject::connect(
+          layer.inlets()[i],
+          &Process::Inlet::addressChanged,
+          this,
+          [this] { disableIfNeeded(); });
+
+      QObject::connect(
+          layer.inlets()[i],
+          &Process::Inlet::cablesChanged,
+          this,
+          [this] { disableIfNeeded(); });
+    }
   }
 
   void setFullView() override { m_curve.setBoundedMove(false); }
+
+private:
+  void disableIfNeeded()
+  {
+    bool should_disable{false};
+
+    // only disable the curve when using the first 2 inlets
+    for (int i = 0; i < 2; i++)
+    {
+      const auto inlet{m_process.inlets()[i]};
+
+      if (inlet->address().isSet()
+          || !inlet->cables().empty())
+        should_disable = true;
+    }
+
+    if (should_disable)
+      m_curve.disable();
+    else
+      m_curve.enable();
+  }
 };
 }

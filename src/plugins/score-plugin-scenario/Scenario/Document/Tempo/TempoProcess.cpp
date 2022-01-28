@@ -36,6 +36,10 @@ TempoProcess::~TempoProcess() { }
 
 void TempoProcess::init()
 {
+  tempo_inlet->setName(tr("BPM in"));
+  speed_inlet->setName(tr("Speed in"));
+  position_inlet->setName(tr("Position in"));
+
   m_inlets.push_back(tempo_inlet.get());
   m_inlets.push_back(speed_inlet.get());
   m_inlets.push_back(position_inlet.get());
