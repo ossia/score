@@ -198,6 +198,11 @@ QString Address::toShortString() const
   return str.size() < 15 ? str : "..." % str.right(12);
 }
 
+bool Address::isSet() const noexcept
+{
+  return !device.isEmpty();
+}
+
 bool Address::operator==(const Address& a) const
 {
   return device == a.device && path == a.path;
@@ -284,6 +289,11 @@ QString AddressAccessor::toString_unsafe() const
 QString AddressAccessor::toShortString() const
 {
   return address.toShortString() + State::toString(qualifiers);
+}
+
+bool AddressAccessor::isSet() const noexcept
+{
+  return address.isSet();
 }
 
 bool AddressAccessor::operator==(const AddressAccessor& other) const

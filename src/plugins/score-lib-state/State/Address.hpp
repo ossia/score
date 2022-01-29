@@ -91,6 +91,11 @@ struct SCORE_LIB_STATE_EXPORT Address
    */
   QString toShortString() const;
 
+  /**
+   * Returns true if the address is set to a meaningful thing, e.g. not ":/"
+   */
+  bool isSet() const noexcept;
+
   bool operator==(const Address& a) const;
   bool operator!=(const Address& a) const;
 };
@@ -124,6 +129,11 @@ struct SCORE_LIB_STATE_EXPORT AddressAccessor
   QString toString_unsafe() const;
   QString toString() const;
   QString toShortString() const;
+
+  /**
+   * Returns true if the address is set to a meaningful thing, e.g. not ":/"
+   */
+  bool isSet() const noexcept;
 
   bool operator==(const AddressAccessor& other) const;
   bool operator!=(const AddressAccessor& a) const;
