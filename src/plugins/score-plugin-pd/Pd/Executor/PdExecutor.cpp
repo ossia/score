@@ -11,7 +11,6 @@
 #include <ossia/audio/audio_parameter.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/node_process.hpp>
-#include <ossia/dataflow/nodes/sound.hpp>
 #include <ossia/dataflow/port.hpp>
 #include <ossia/detail/math.hpp>
 #include <ossia/editor/state/message.hpp>
