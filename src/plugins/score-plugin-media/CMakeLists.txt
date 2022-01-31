@@ -193,7 +193,10 @@ target_link_libraries(${PROJECT_NAME}
   PRIVATE
     rubberband
     samplerate
-    sndfile
 )
+
+if(TARGET SndFile::sndfile)
+  target_link_libraries(${PROJECT_NAME} PRIVATE SndFile::sndfile)
+endif()
 
 setup_score_plugin(${PROJECT_NAME})
