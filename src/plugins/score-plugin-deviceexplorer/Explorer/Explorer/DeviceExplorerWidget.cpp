@@ -33,7 +33,6 @@
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
-
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/tree/InvisibleRootNode.hpp>
@@ -217,7 +216,8 @@ DeviceExplorerWidget::DeviceExplorerWidget(
       m_ntView,
       &DeviceExplorerView::created,
       this,
-      [&](const QModelIndex& parent, int start, int end) {
+      [&](const QModelIndex& parent, int start, int end)
+      {
         if (m_listeningManager)
         {
           for (int i = start; i <= end; i++)
@@ -240,14 +240,24 @@ DeviceExplorerWidget::DeviceExplorerWidget(
           }
         }
       });
-  connect(m_ntView, &QTreeView::expanded, this, [&](const QModelIndex& idx) {
-    if (m_listeningManager)
-      m_listeningManager->setListening(idx, true);
-  });
-  connect(m_ntView, &QTreeView::collapsed, this, [&](const QModelIndex& idx) {
-    if (m_listeningManager)
-      m_listeningManager->setListening(idx, false);
-  });
+  connect(
+      m_ntView,
+      &QTreeView::expanded,
+      this,
+      [&](const QModelIndex& idx)
+      {
+        if (m_listeningManager)
+          m_listeningManager->setListening(idx, true);
+      });
+  connect(
+      m_ntView,
+      &QTreeView::collapsed,
+      this,
+      [&](const QModelIndex& idx)
+      {
+        if (m_listeningManager)
+          m_listeningManager->setListening(idx, false);
+      });
 }
 
 void DeviceExplorerWidget::buildGUI()
@@ -281,7 +291,8 @@ void DeviceExplorerWidget::buildGUI()
       static_cast<void (DeviceExplorerView::*)()>(
           &DeviceExplorerView::selectionChanged),
       this,
-      [=] {
+      [=]
+      {
         updateAddressView();
         updateActions();
       },
@@ -426,9 +437,11 @@ void DeviceExplorerWidget::buildGUI()
   addMenu->addSeparator();
   addMenu->addAction(m_removeNodeAction);
 
-  connect(m_openMenu, &QToolButton::clicked, addMenu, [addMenu]() {
-    addMenu->popup(QCursor::pos());
-  });
+  connect(
+      m_openMenu,
+      &QToolButton::clicked,
+      addMenu,
+      [addMenu]() { addMenu->popup(QCursor::pos()); });
 
   // Add actions to the current widget so that shortcuts work
   {
@@ -452,7 +465,8 @@ void DeviceExplorerWidget::buildGUI()
       m_columnCBox,
       SignalUtils::QComboBox_currentIndexChanged_int(),
       m_nameLEdit,
-      [this] {
+      [this]
+      {
         m_proxyModel->setColumn(
             (Explorer::Column)m_columnCBox->currentIndex());
         m_nameLEdit->search();
@@ -610,7 +624,8 @@ void DeviceExplorerWidget::setModel(DeviceExplorerModel* model)
         model,
         &DeviceExplorerModel::nodeChanged,
         this,
-        [this](Device::Node* n) {
+        [this](Device::Node* n)
+        {
           bool parent_is_expanded = m_ntView->isExpanded(proxyIndex(
               m_ntView->model()->modelIndexFromNode(*n->parent(), 0)));
           if (parent_is_expanded)
@@ -627,7 +642,8 @@ void DeviceExplorerWidget::setModel(DeviceExplorerModel* model)
         [this](
             const QModelIndex& topLeft,
             const QModelIndex& bottomRight,
-            const QVector<int>& roles) {
+            const QVector<int>& roles)
+        {
           auto indexes = m_ntView->selectedIndexes();
 
           if (indexes.size() == 1)
@@ -737,6 +753,24 @@ void DeviceExplorerWidget::updateActions()
       }
       m_editAction->setEnabled(editable);
     }
+    else if (selection.size() > 1)
+    {
+      int selectionSize = m_ntView->selectedIndexes().size();
+      bool validSelection = true;
+      for (int i = 0; i < selectionSize; i++)
+      {
+        QModelIndex ind
+            = proxyModel()->mapToSource(m_ntView->selectedIndexes().at(i));
+        const auto [capas, aDeviceIsSelected]
+            = getCapas(&m->nodeFromModelIndex(ind), m->deviceModel().list());
+        if (!aDeviceIsSelected || !capas.canDisconnect)
+        {
+          validSelection = false;
+          break;
+        }
+      }
+      m_reconnect->setEnabled(validSelection && editable);
+    }
   }
   else
   {
@@ -828,12 +862,14 @@ void DeviceExplorerWidget::edit()
       if (!proto)
         return;
       auto flags = proto->flags();
-      if(flags & Device::ProtocolFactory::EditingReloadsEverything)
+      if (flags & Device::ProtocolFactory::EditingReloadsEverything)
       {
         using namespace Command;
-        MacroCommandDispatcher<UpdateAndReloadMacro> disp{m_cmdDispatcher->stack()};
+        MacroCommandDispatcher<UpdateAndReloadMacro> disp{
+            m_cmdDispatcher->stack()};
         disp.submit(new Remove(model()->deviceModel(), select));
-        disp.submit(new LoadDevice(model()->deviceModel(), m_deviceDialog->getSettings()));
+        disp.submit(new LoadDevice(
+            model()->deviceModel(), m_deviceDialog->getSettings()));
         disp.commit();
       }
       else
@@ -873,24 +909,38 @@ void DeviceExplorerWidget::edit()
     if (!dial)
       return;
 
-    connect(dial, &QDialog::accepted, this, [this, dial, parent=select.parent(), path=Device::NodePath{select}, before] {
-      auto stgs = dial->getSettings();
-      // TODO do like for DeviceSettings
-      if (!model()->checkAddressEditable(*parent, before, stgs))
-        return;
+    connect(
+        dial,
+        &QDialog::accepted,
+        this,
+        [this,
+         dial,
+         parent = select.parent(),
+         path = Device::NodePath{select},
+         before]
+        {
+          auto stgs = dial->getSettings();
+          // TODO do like for DeviceSettings
+          if (!model()->checkAddressEditable(*parent, before, stgs))
+            return;
 
-      auto cmd = new Explorer::Command::UpdateAddressSettings{
-          model()->deviceModel(), path, stgs};
+          auto cmd = new Explorer::Command::UpdateAddressSettings{
+              model()->deviceModel(), path, stgs};
 
-      m_cmdDispatcher->submit(cmd);
-      updateActions();
-      dial->deleteLater();
-    });
+          m_cmdDispatcher->submit(cmd);
+          updateActions();
+          dial->deleteLater();
+        });
 
-    connect(dial, &QDialog::rejected, this, [this, dial] {
-      updateActions();
-      dial->deleteLater();
-    });
+    connect(
+        dial,
+        &QDialog::rejected,
+        this,
+        [this, dial]
+        {
+          updateActions();
+          dial->deleteLater();
+        });
 
     dial->show();
   }
@@ -918,7 +968,8 @@ void DeviceExplorerWidget::refresh()
     if (!dev.connected())
       return;
     auto wrkr = make_worker(
-        [=](Device::Node&& node) {
+        [=](Device::Node&& node)
+        {
           auto cmd = new Explorer::Command::ReplaceDevice{
               m->deviceModel(),
               m_ntView->selectedIndex().row(),
@@ -998,26 +1049,31 @@ void DeviceExplorerWidget::reconnect()
   auto m = model();
   if (!m)
     return;
-
-  const Device::Node& select
-      = m->nodeFromModelIndex(m_ntView->selectedIndex());
-  if (select.is<Device::DeviceSettings>())
+  int selectionSize = m_ntView->selectedIndexes().size();
+  for (int i = 0; i < selectionSize; i++)
   {
-    auto& dev = m->deviceModel().list().device(
-        select.get<Device::DeviceSettings>().name);
-    auto con_handle = std::make_shared<QMetaObject::Connection>();
-    *con_handle = con(
-        dev,
-        &Device::DeviceInterface::deviceChanged,
-        this,
-        [&dev, con_handle, select](auto oldd, auto newd) {
-          if (newd)
+
+    const Device::Node& select = m->nodeFromModelIndex(
+        proxyModel()->mapToSource(m_ntView->selectedIndexes().at(i)));
+    if (select.is<Device::DeviceSettings>())
+    {
+      auto& dev = m->deviceModel().list().device(
+          select.get<Device::DeviceSettings>().name);
+      auto con_handle = std::make_shared<QMetaObject::Connection>();
+      *con_handle = con(
+          dev,
+          &Device::DeviceInterface::deviceChanged,
+          this,
+          [&dev, con_handle, select](auto oldd, auto newd)
           {
-            dev.recreate(select);
-            QObject::disconnect(*con_handle);
-          }
-        });
-    dev.reconnect();
+            if (newd)
+            {
+              dev.recreate(select);
+              QObject::disconnect(*con_handle);
+            }
+          });
+      dev.reconnect();
+    }
   }
 }
 
@@ -1032,37 +1088,48 @@ void DeviceExplorerWidget::addDevice()
         *model(), m_protocolList, DeviceEditDialog::Creating, this};
   }
 
-  connect(m_deviceDialog, &QDialog::accepted, this, [this] {
-    if(!m_deviceDialog)
-      return;
-    SCORE_ASSERT(model());
-    auto node = m_deviceDialog->getDevice();
-    auto& deviceSettings = *node.target<Device::DeviceSettings>();
-    if (!model()->checkDeviceInstantiatable(deviceSettings))
-    {
-      m_deviceDialog->deleteLater();
-      m_deviceDialog = nullptr;
-      return;
-    }
-    ossia::net::sanitize_device_name(deviceSettings.name);
+  connect(
+      m_deviceDialog,
+      &QDialog::accepted,
+      this,
+      [this]
+      {
+        if (!m_deviceDialog)
+          return;
+        SCORE_ASSERT(model());
+        auto node = m_deviceDialog->getDevice();
+        auto& deviceSettings = *node.target<Device::DeviceSettings>();
+        if (!model()->checkDeviceInstantiatable(deviceSettings))
+        {
+          m_deviceDialog->deleteLater();
+          m_deviceDialog = nullptr;
+          return;
+        }
+        ossia::net::sanitize_device_name(deviceSettings.name);
 
-    blockGUI(true);
+        blockGUI(true);
 
-    auto& devplug = model()->deviceModel();
-    m_cmdDispatcher->submit(new Command::LoadDevice{devplug, std::move(node)});
+        auto& devplug = model()->deviceModel();
+        m_cmdDispatcher->submit(
+            new Command::LoadDevice{devplug, std::move(node)});
 
-    blockGUI(false);
+        blockGUI(false);
 
-    updateActions();
-    m_deviceDialog->deleteLater();
-    m_deviceDialog = nullptr;
-  });
+        updateActions();
+        m_deviceDialog->deleteLater();
+        m_deviceDialog = nullptr;
+      });
 
-  connect(m_deviceDialog, &QDialog::rejected, this, [this] {
-    updateActions();
-    m_deviceDialog->deleteLater();
-    m_deviceDialog = nullptr;
-  });
+  connect(
+      m_deviceDialog,
+      &QDialog::rejected,
+      this,
+      [this]
+      {
+        updateActions();
+        m_deviceDialog->deleteLater();
+        m_deviceDialog = nullptr;
+      });
 
   m_deviceDialog->show();
 }
@@ -1281,7 +1348,11 @@ void DeviceExplorerWidget::findUsage()
   findAddresses(search_txt);
 }
 
-void DeviceExplorerWidget::do_addAddress(InsertMode insert, QModelIndex index, Device::Node* parent, Device::AddressSettings& stgs)
+void DeviceExplorerWidget::do_addAddress(
+    InsertMode insert,
+    QModelIndex index,
+    Device::Node* parent,
+    Device::AddressSettings& stgs)
 {
   // TODO checking for expansion should not be necessary anymore
   const bool parent_is_expanded = m_ntView->isExpanded(
@@ -1293,9 +1364,10 @@ void DeviceExplorerWidget::do_addAddress(InsertMode insert, QModelIndex index, D
   // If the node is going to be visible, we have to start listening to it.
   if (parent_is_expanded && m_listeningManager)
   {
-    auto child_it = ossia::find_if(*parent, [&](const Device::Node& child) {
-      return child.get<Device::AddressSettings>().name == stgs.name;
-    });
+    auto child_it = ossia::find_if(
+        *parent,
+        [&](const Device::Node& child)
+        { return child.get<Device::AddressSettings>().name == stgs.name; });
     SCORE_ASSERT(child_it != parent->end());
 
     m_listeningManager->enableListening(*child_it);
@@ -1348,30 +1420,29 @@ void DeviceExplorerWidget::addAddress(InsertMode insert)
     auto stgs = dial->getSettings();
     auto addr_request = stgs.name.toStdString();
     auto [names, is_brace_exp] = ossia::net::expand_address(addr_request);
-    if(is_brace_exp || stgs.name.contains('/'))
+    if (is_brace_exp || stgs.name.contains('/'))
     {
       std::vector<QString> correct_names;
-      for(auto& name : names)
+      for (auto& name : names)
       {
         stgs.name = QString::fromStdString(name);
-        if(model()->checkAddressInstantiatable(*parent, stgs))
+        if (model()->checkAddressInstantiatable(*parent, stgs))
         {
           correct_names.push_back(std::move(stgs.name));
         }
       }
 
-      if(!correct_names.empty())
+      if (!correct_names.empty())
       {
         // bool parent_is_expanded = m_ntView->isExpanded(
         //     proxyIndex(m_ntView->model()->modelIndexFromNode(*parent, 0)));
 
         auto cmd = new Explorer::Command::AddAddresses{};
-        for(auto& name : correct_names)
+        for (auto& name : correct_names)
         {
           stgs.name = name;
-          cmd->addCommand(
-            new Explorer::Command::AddAddress{
-                      model()->deviceModel(), Device::NodePath{index}, insert, stgs});
+          cmd->addCommand(new Explorer::Command::AddAddress{
+              model()->deviceModel(), Device::NodePath{index}, insert, stgs});
         }
         this->m_cmdDispatcher->submit(cmd);
 
