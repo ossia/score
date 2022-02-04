@@ -411,7 +411,7 @@ void JSONReader::read(const Gfx::ShmSettings& n)
 template <>
 void JSONWriter::write(Gfx::ShmSettings& n)
 {
-  n.path = obj["Input"].toString();
+  n.path = obj["Path"].toString();
   n.width = obj["Width"].toDouble();
   n.height = obj["Height"].toDouble();
   n.rate = obj["Rate"].toDouble();
