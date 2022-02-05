@@ -7,6 +7,7 @@
 #include <score/application/ApplicationContext.hpp>
 #include <score/tools/File.hpp>
 
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/ssize.hpp>
 
 #include <QDir>
@@ -223,7 +224,7 @@ void PackagesModel::addAddon(Package e)
 void PackagesModel::removeAddon(Package e)
 {
   beginResetModel();
-  std::erase_if(m_vec, [&e](auto p){ return e.name == p.name; });
+  ossia::remove_erase_if(m_vec, [&e](auto p){ return e.name == p.name; });
   endResetModel();
 }
 
