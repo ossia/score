@@ -359,7 +359,7 @@ void ScenarioApplicationPlugin::on_documentChanged(
       = score::IDocument::modelDelegate<Scenario::ScenarioDocumentModel>(
           *newdoc);
   model.finishLoading();
-  // TODO do htis on restore
+  // TODO do this on restore
 
   // Setup ui
   if (!newdoc->context().app.mainWindow)

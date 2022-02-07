@@ -9,7 +9,7 @@ class DeviceInterface;
 }
 /**
  * These functions allow to display
- * the informations in Device::Node's
+ * the information in Device::Node's
  * friendly in QAbstractItemModel derivatives.
  */
 namespace Device

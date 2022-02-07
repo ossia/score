@@ -76,7 +76,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
         QStringLiteral(":/icons/fullview_off.png"),
         QStringLiteral(":/icons/fullview_off.png")));
     fullview->setToolTip(tr("FullView"));
-    fullview->setStatusTip(tr("Display the content of the selcted interval in full view\n"
+    fullview->setStatusTip(tr("Display the content of the selected interval in full view\n"
                               "Same effect as double clicking on its name"));
     fullview->setAutoRaise(true);
     fullview->setIconSize(QSize{28, 28});
@@ -130,7 +130,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
         QStringLiteral(":/icons/time_signature_off.png"),
         QStringLiteral(":/icons/time_signature_off.png")));
     sigWidg->setToolTip(tr("Time signature"));
-    sigWidg->setStatusTip(tr("Specifiy a different time signature from the parent interval"));
+    sigWidg->setStatusTip(tr("Specify a different time signature from the parent interval"));
     sigWidg->setCheckable(true);
     sigWidg->setAutoRaise(true);
     sigWidg->setChecked(this->m_model.hasTimeSignature());

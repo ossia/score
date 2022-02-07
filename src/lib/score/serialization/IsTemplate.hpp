@@ -5,7 +5,7 @@
 
 // Check
 // https://stackoverflow.com/questions/39812789/is-there-any-way-of-detecting-arbitrary-template-classes-that-mix-types-and-non
-// again wiht c++20
+// again with c++20
 template <class T>
 struct is_template : std::false_type
 {

@@ -373,7 +373,7 @@ void PluginSettingsView::installAddon(const Package& addon)
     QMessageBox::information(
           m_widget,
           tr("Addon downloaded"),
-          tr("The addon %1 has been succesfully installed in :\n"
+          tr("The addon %1 has been successfully installed in :\n"
              "%2\n\n"
              "It will be built and enabled shortly.\nCheck the message "
              "console for errors if nothing happens.")
@@ -423,7 +423,7 @@ void PluginSettingsView::installSDK(const Package& addon)
     QMessageBox::information(
           m_widget,
           tr("SDK downloaded"),
-          tr("The SDK has been succesfully installed in the user library."));
+          tr("The SDK has been successfully installed in the user library."));
 
     set_info();
   },
@@ -506,7 +506,7 @@ void PluginSettingsView::on_packageInstallSuccess(
   QMessageBox::information(
         m_widget,
         tr("Package downloaded"),
-        tr("The package %1 has been succesfully installed in the user library.")
+        tr("The package %1 has been successfully installed in the user library.")
         .arg(addon.name));
 
   auto& localPlugins

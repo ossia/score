@@ -449,7 +449,7 @@ void ScenarioPresenter::on_askUpdate()
 void ScenarioPresenter::on_intervalExecutionTimer()
 {
   // TODO optimize me by storing a list of the currently running intervals
-  // TOOD loop
+  // TODO loop
 
   for (TemporalIntervalPresenter& cst : m_intervals)
   {

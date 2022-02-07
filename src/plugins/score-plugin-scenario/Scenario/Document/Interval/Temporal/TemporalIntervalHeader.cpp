@@ -472,7 +472,7 @@ bool Scenario::TemporalIntervalHeader::contains(const QPointF& point) const
 QPainterPath Scenario::TemporalIntervalHeader::shape() const
 {
   return QGraphicsItem::shape();
-  /* TOOD improve it
+  /* TODO improve it
   if(m_selected || m_hovered)
   {
     return QGraphicsItem::shape();

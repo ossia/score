@@ -876,7 +876,7 @@ public:
     m_widget->setLayout(lay);
     m_widget->setStatusTip(QObject::tr(
                              "This panel prompts the scripting console \n"
-                             "still in early developement"));
+                             "still in early development"));
 
     m_edit = new QPlainTextEdit{m_widget};
     m_edit->setTextInteractionFlags(Qt::TextEditorInteraction);

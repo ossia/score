@@ -158,7 +158,7 @@ MessagesPanelDelegate::MessagesPanelDelegate(
   m_widget->setModel(m_itemModel);
   m_widget->setStatusTip(QObject::tr(
                            "This panel displays all warnings, errors and logs. \n"
-                           "It is generaly a good place to look first if something \n"
+                           "It is generally a good place to look first if something \n"
                            "is not behaving as it should"));
   m_widget->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
   connect(

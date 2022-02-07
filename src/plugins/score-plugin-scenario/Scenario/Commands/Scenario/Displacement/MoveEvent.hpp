@@ -103,7 +103,7 @@ public:
     // to this method
     TimeVal deltaDate = newDate - m_initialDate;
 
-    // NOTICE: multiple event displacement functionnality already available,
+    // NOTICE: multiple event displacement functionality already available,
     // this is "retro" compatibility
     QVector<Id<TimeSyncModel>> draggedElements;
     draggedElements.push_back(

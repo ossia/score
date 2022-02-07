@@ -113,7 +113,7 @@ public:
       }
     }
 
-    // update affected intervals with old values and restor processes
+    // update affected intervals with old values and restore processes
     for (auto& e : propsToUpdate.intervals)
     {
       auto curIntervalPropertiesToUpdate_id = e.first;

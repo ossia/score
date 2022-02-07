@@ -48,7 +48,7 @@ public:
    * \brief newItemInspected load the view for the selected object
    *
    *  It's called when the user selects a new item
-   * \param object The selected objet.
+   * \param object The selected object.
    */
   void newItemsInspected(const Selection&);
   W_SLOT(newItemsInspected);

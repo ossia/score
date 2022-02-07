@@ -267,7 +267,7 @@ int main(int argc, char** argv)
           p.waitForFinished();
 
           fxmodel.loadCode(QJsonDocument::fromJson(p.readAllStandardOutput()));
-          //qDebug() << "ouptut : < " << QJsonDocument::fromJson(p.readAllStandardOutput());
+          //qDebug() << "output : < " << QJsonDocument::fromJson(p.readAllStandardOutput());
           //qDebug() << "err : < " << p.readAllStandardError();
         }
 

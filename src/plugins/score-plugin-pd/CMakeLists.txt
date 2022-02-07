@@ -13,7 +13,7 @@ set_target_properties(libpd PROPERTIES UNITY_BUILD 0)
 set_target_properties(libpd_static PROPERTIES UNITY_BUILD 0)
 
 if(NOT TARGET libpd)
-  message("Problem occuring when building libpd")
+  message("Problem occurring when building libpd")
   return()
 endif()
 score_common_setup()

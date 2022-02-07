@@ -18,7 +18,7 @@ public:
   make(const score::GUIApplicationContext& ctx) = 0;
 };
 
-//! All the panels are registerd in this interface list.
+//! All the panels are registered in this interface list.
 class SCORE_LIB_BASE_EXPORT PanelDelegateFactoryList final
     : public InterfaceList<score::PanelDelegateFactory>
 {

@@ -79,7 +79,7 @@ static void loadRestorableDocumentData(
       }
     }
 #else
-    // 5.9 did not suppoort fileTime
+    // 5.9 did not support fileTime
     arr.push_back(
         {save_filename, data_filename, command_filename, data_file.readAll(), command_file.readAll()});
 #endif
