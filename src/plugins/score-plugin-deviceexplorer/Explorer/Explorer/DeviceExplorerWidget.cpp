@@ -846,6 +846,9 @@ void DeviceExplorerWidget::edit()
     }
 
     updateActions();
+
+    m_deviceDialog->deleteLater();
+    m_deviceDialog = nullptr;
   }
   else
   {
