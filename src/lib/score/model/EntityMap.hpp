@@ -26,7 +26,7 @@ public:
  *  - Deletes objects when they are removed ("ownership")
  *  - Sends signals after adding and before deleting.
  *
- * Tthe parent of the childs are the parents of the map.
+ * The parent of the childs are the parents of the map.
  * Hence the objects shall not be deleted upon deletion of the map
  * itself, to prevent a double-free.
  *

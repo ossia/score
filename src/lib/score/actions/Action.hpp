@@ -60,7 +60,7 @@ using ActionKey = StringKey<Action>;
  * @brief The Action class
  *
  * An action is a wrapper class for QAction, which
- * adds informations that will be useful to allow to change
+ * adds information that will be useful to allow to change
  * the keyboard shortcuts :
  * - Default shortcuts
  * - Group

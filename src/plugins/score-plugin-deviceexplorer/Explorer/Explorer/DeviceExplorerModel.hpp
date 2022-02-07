@@ -44,7 +44,7 @@ class DeviceExplorerWidget;
  *  - we want to select recursively all the PARAMETERS of what
  *    was selected by the user.
  *  - we want to select non-recursively all the MESSAGES that were
- *    explicitely selected by the user.
+ *    explicitly selected by the user.
  * This struct allows this separation.
  */
 struct SCORE_PLUGIN_DEVICEEXPLORER_EXPORT SelectedNodes

@@ -18,7 +18,7 @@ class DocumentPluginFactory;
  *   Uses the default mechanism.
  *
  * * The post-document point.
- *   If there are informations that need to be reloaded **after**
+ *   If there is information that needs to be reloaded **after**
  *   the DocumentModel was loaded. For instance components.
  *   This happens after the object has been constructed.
  */

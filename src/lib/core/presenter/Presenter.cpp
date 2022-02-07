@@ -152,7 +152,7 @@ void Presenter::setupGUI()
       for (const Toolbar& tb : toolbars[Qt::BottomToolBarArea])
       {
         if (i == 2 || i == ((int)toolbars[Qt::BottomToolBarArea].size()) * 2)
-        { // for 3nd and penultimate
+        { // for 3rd and penultimate
           auto dummy = new QWidget;
           dummy->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
           bl->addWidget(dummy, 0, i, 1, 1);

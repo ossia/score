@@ -23,7 +23,7 @@ View::View()
   //{ // general settings
     auto lay = m_widg->layout();
 
-    SETTINGS_UI_TOGGLE_SETUP("Enable listening during execution\nIf this is disabled, the device explorer UI will not update the received values when the score is executing to save ressources.", ExecutionListening);
+    SETTINGS_UI_TOGGLE_SETUP("Enable listening during execution\nIf this is disabled, the device explorer UI will not update the received values when the score is executing to save resources.", ExecutionListening);
     SETTINGS_UI_TOGGLE_SETUP("Logging\nIf this is enabled, the inputs and outputs of the selected process will be logged in the message log.", Logging);
     SETTINGS_UI_TOGGLE_SETUP("Benchmark\nIf this is enabled, processes will show their relative resource usage at the top right.", Bench);
     //lay->addRow(group);

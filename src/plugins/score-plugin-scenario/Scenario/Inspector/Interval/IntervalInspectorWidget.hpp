@@ -28,7 +28,7 @@ class ScenarioInterface;
 /*!
  * \brief The IntervalInspectorWidget class
  *
- * Inherits from InspectorWidgetInterface. Manages an inteface for an
+ * Inherits from InspectorWidgetInterface. Manages an interface for an
  * Interval (Timerack) element.
  */
 class SCORE_PLUGIN_SCENARIO_EXPORT IntervalInspectorWidget final

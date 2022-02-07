@@ -22,7 +22,7 @@ namespace PluginLoader
 /**
  * @brief Allows to load plug-ins in the order they all require each other.
  *
- * \todo generalize this to make it usable for all kinf of plug-ins,
+ * \todo generalize this to make it usable for all kind of plug-ins,
  * and if possible DocumentPlugin.
  */
 struct PluginDependencyGraph

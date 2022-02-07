@@ -12427,7 +12427,7 @@ Its instance is found in the Explorer::DeviceDocumentPlugin.</text>
                                     <uid>{bceaf7f6-cf37-4b92-84f2-92aecbbff6c1}</uid>
                                    </DElement>
                                   </base-DElement>
-                                  <text>Lsit of available protocols for creating / loading devices.
+                                  <text>List of available protocols for creating / loading devices.
 Accessible through the Application context.</text>
                                   <pos>x:625;y:280</pos>
                                   <rect>x:0;y:0;w:310;h:48</rect>

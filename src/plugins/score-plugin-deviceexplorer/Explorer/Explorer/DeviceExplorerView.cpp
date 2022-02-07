@@ -297,7 +297,7 @@ QModelIndexList DeviceExplorerView::selectedIndexes() const
 
       l0.append(index);
       // REM: we append index in ProxyModel if m_hasProxy
-      // it is necesary because drag'n drop will automatically call
+      // it is necessary because drag'n drop will automatically call
       // selectedIndexes() & mapToSource().
     }
   }

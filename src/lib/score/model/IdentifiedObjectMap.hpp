@@ -24,7 +24,7 @@ class IdContainer
  * IdentifiedObject<T> and don't have an id() method by themselves, e.g. all
  * the model objects.
  *
- * Additionnally, items are ordered; iteration occurs on the ordered iterators.
+ * Additionally, items are ordered; iteration occurs on the ordered iterators.
  *
  * In the implementation :
  * * `get<0>()` gets the hashed (like std::unordered_map) iterator.

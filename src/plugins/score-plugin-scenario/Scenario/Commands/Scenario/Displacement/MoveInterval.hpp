@@ -13,7 +13,7 @@ struct DataStreamInput;
 struct DataStreamOutput;
 
 /*
- * Command for vertical move so it does'nt have to resize anything on time axis
+ * Command for vertical move so it doesn't have to resize anything on time axis
  * */
 namespace Scenario
 {

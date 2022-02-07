@@ -63,7 +63,7 @@ static QString getPrettyText(QPointF pt, Curve::Presenter& p) noexcept
 void MovePointCommandObject::on_press()
 {
   // Save the start data.
-  // Firts we take the exact position of the point we clicked.
+  // First we take the exact position of the point we clicked.
   auto clickedCurvePoint_it = std::find_if(
       m_presenter->model().points().begin(),
       m_presenter->model().points().end(),
@@ -130,7 +130,7 @@ void MovePointCommandObject::move()
     return;
   }
 
-  // Rewirte and make a command
+  // Rewrite and make a command
   submit(std::vector<SegmentData>(segments.begin(), segments.end()));
   m_presenter->view().setValueTooltip(
       m_state->currentPoint,

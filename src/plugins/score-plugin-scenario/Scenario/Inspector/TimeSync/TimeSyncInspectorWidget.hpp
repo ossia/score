@@ -24,7 +24,7 @@ class EventModel;
 class TimeSyncModel;
 /*!
  * \brief The TimeSyncInspectorWidget class
- *      Inherits from InspectorWidgetInterface. Manages an inteface for an
+ *      Inherits from InspectorWidgetInterface. Manages an interface for an
  * TimeSync (Timebox) element.
  */
 class TimeSyncInspectorWidget final : public Inspector::InspectorWidgetBase

@@ -84,7 +84,7 @@ public:
     m_lrs[0] = 0;
   }
 
-  /// Fonction LCS (longest commun suffix)
+  /// Function LCS (longest common suffix)
   int LCS(int p1, int p2)
   {
     if (p2 == m_sp[p1])

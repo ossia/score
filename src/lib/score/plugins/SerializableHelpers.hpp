@@ -51,7 +51,7 @@ auto deserialize_interface(
   {
   }
 
-  // If the object could not be loaded, we try to load a "missing" verson of
+  // If the object could not be loaded, we try to load a "missing" version of
   // it.
   return factories.loadMissing(sub.toVariant(), std::forward<Args>(args)...);
 }
@@ -92,7 +92,7 @@ auto deserialize_interface(
   {
   }
 
-  // If the object could not be loaded, we try to load a "missing" verson of
+  // If the object could not be loaded, we try to load a "missing" version of
   // it.
   return factories.loadMissing(sub.toVariant(), std::forward<Args>(args)...);
 }
@@ -124,7 +124,7 @@ auto deserialize_interface(
   {
   }
 
-  // If the object could not be loaded, we try to load a "missing" verson of
+  // If the object could not be loaded, we try to load a "missing" version of
   // it.
   return factories.loadMissing(des.toVariant(), std::forward<Args>(args)...);
 }
@@ -156,7 +156,7 @@ auto deserialize_interface(
   {
   }
 
-  // If the object could not be loaded, we try to load a "missing" verson of
+  // If the object could not be loaded, we try to load a "missing" version of
   // it.
   return factories.loadMissing(des.toVariant(), std::forward<Args>(args)...);
 }

@@ -125,7 +125,7 @@ class NeighbourSelector
 {
 public:
   NeighbourSelector(score::SelectionStack& s, ObjectWidget* objects);
-  // does the current selection have a neightbor in that direction ?
+  // does the current selection have a neighbor in that direction ?
   bool hasRight() const;
   bool hasLeft() const;
   bool hasUp() const;

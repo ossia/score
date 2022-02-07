@@ -62,7 +62,7 @@ Document::Document(
 
   // Note : we have to separate allocation
   // because the model delegates init might call IDocument::path()
-  // which requires the pointer to m_model to be intialized.
+  // which requires the pointer to m_model to be initialized.
   std::allocator<DocumentModel> allocator;
   m_model = allocator.allocate(1);
   new (m_model) DocumentModel(id, m_context, factory, this);

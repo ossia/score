@@ -56,7 +56,7 @@ class TestStatesMinMax: public TestBase
 
             SCORE_TODO;
             /*
-            // We add start and end states [-30, 50] while the address is bewteen [-10; 10]
+            // We add start and end states [-30, 50] while the address is between [-10; 10]
             auto addStartState = new AddMessagesToModel(
                                      scenar.states.at(newStateCmd->createdState()).messages(),
                                      score::MessageList{score::Message{addr, -30.}});
@@ -114,7 +114,7 @@ class TestStatesMinMax: public TestBase
 
             SCORE_TODO;
             /*
-            // We add start and end states [-5, 5] while the address is bewteen [-10; 10]
+            // We add start and end states [-5, 5] while the address is between [-10; 10]
             auto addStartState = new AddMessagesToModel(
                                      scenar.states.at(newStateCmd->createdState()).messages(),
                                      score::MessageList{score::Message{addr, -5.}});

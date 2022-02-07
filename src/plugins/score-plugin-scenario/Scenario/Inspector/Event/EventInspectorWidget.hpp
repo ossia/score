@@ -22,7 +22,7 @@ class MetadataWidget;
 class TriggerInspectorWidget;
 /*!
  * \brief The EventInspectorWidget class
- *      Inherits from InspectorWidgetInterface. Manages an inteface for an
+ *      Inherits from InspectorWidgetInterface. Manages an interface for an
  * Event (Timebox) element.
  */
 class EventInspectorWidget final : public Inspector::InspectorWidgetBase

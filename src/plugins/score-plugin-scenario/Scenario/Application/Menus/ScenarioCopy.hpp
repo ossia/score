@@ -60,7 +60,7 @@ void copySelectedScenarioElements(
 
 /**
  * The parent should be in the object tree of the scenario.
- * This is because the StateModel needs acces to the command stack
+ * This is because the StateModel needs access to the command stack
  * of the document upon creation.
  *
  * TODO instead we should follow the second

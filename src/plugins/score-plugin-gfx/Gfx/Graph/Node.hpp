@@ -97,7 +97,7 @@ public:
   /**
    * @brief Every node matching with a score process will have such an UBO.
    *
-   * It has useful informations, such as timing, sample rate, mouse position etc.
+   * It has useful information, such as timing, sample rate, mouse position etc.
    */
   ProcessUBO standardUBO{};
 

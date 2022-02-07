@@ -4,7 +4,7 @@
 
 #define NOGDI
 #include <windows.h>
-// Map an "ImageBase" to a range of adresses that can throw.
+// Map an "ImageBase" to a range of addresses that can throw.
 //
 class SEHFrameHandler {
   typedef SingleSectionMemoryManager::EHFrameInfos EHFrameInfos;
@@ -30,7 +30,7 @@ public:
 //
 static SEHFrameHandler sFrameHandler;
 
-// Merge overlaping ranges for faster searching with throwing PC
+// Merge overlapping ranges for faster searching with throwing PC
 void SEHFrameHandler::MergeRanges(ImageRanges &Ranges) {
   std::sort(Ranges.begin(), Ranges.end());
 
@@ -61,7 +61,7 @@ uintptr_t SEHFrameHandler::FindEHFrame(uintptr_t Caller) {
   return 0;
 }
 
-// Register a range of adresses for a single section that
+// Register a range of addresses for a single section that
 void SEHFrameHandler::RegisterEHFrames(uintptr_t ImageBase, const EHFrameInfos &Frames, bool Block) {
   if (Frames.empty())
     return;
@@ -70,7 +70,7 @@ void SEHFrameHandler::RegisterEHFrames(uintptr_t ImageBase, const EHFrameInfos &
   ImageBaseMap::mapped_type &Ranges = m_Map[ImageBase];
   ImageRanges::value_type *BlockRange = nullptr;
   if (Block) {
-    // Merge all unwind adresses into a single contiguous block for faster
+    // Merge all unwind addresses into a single contiguous block for faster
     // searching later.
     Ranges.emplace_back(std::numeric_limits<DWORD>::max(), std::numeric_limits<DWORD>::min());
     BlockRange = &Ranges.back();
@@ -235,7 +235,7 @@ uint8_t *SingleSectionMemoryManager::Block::Next(uintptr_t Size, unsigned Alignm
   Out = (Out + Alignment - 1) & ~(uintptr_t)(Alignment - 1);
 
   // RuntimeDyld should have called reserveAllocationSpace with an amount that
-  // will fit all required alignemnts...but assert on this to make sure.
+  // will fit all required alignments...but assert on this to make sure.
   assert((Out + Size) <= (uintptr_t)End && "Out of bounds");
 
   // Set the next Addr to deliver at the end of this one.

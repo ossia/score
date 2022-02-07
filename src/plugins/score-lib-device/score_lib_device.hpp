@@ -15,7 +15,7 @@
  * explains how to build such a model.
  * The idea is that the model requires a data structure that it will control
  * entirely :
- * one cannot change the data structure from the outisde, edition has to go
+ * one cannot change the data structure from the outside, edition has to go
  * through the QAbstractItemModel class to notify the view of changes of the
  * model.
  *

@@ -732,7 +732,7 @@ QMimeData* DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
     s.serialize(messages);
   }
 
-  // The "Nodes" part. Deserialize with FreeNodeList to get the adresses.
+  // The "Nodes" part. Deserialize with FreeNodeList to get the addresses.
   {
     Mime<Device::NodeList>::Serializer s{*mimeData};
     Device::NodeList vec;

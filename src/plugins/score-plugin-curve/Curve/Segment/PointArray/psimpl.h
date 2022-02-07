@@ -366,7 +366,7 @@ namespace psimpl
             // avoid problems with divisions when value_type is an integer type
             float fraction = cv == 0 ? 0 : static_cast <float> (cw) / static_cast <float> (cv);
 
-            value_type proj [DIM];    // p projected onto segement (s1, s2)
+            value_type proj [DIM];    // p projected onto segment (s1, s2)
             interpolate <DIM> (s1, s2, fraction, proj);
 
             return point_distance2 <DIM> (p, proj);
@@ -940,7 +940,7 @@ namespace psimpl
             search region form a segment. This segment is used to calculate the perpendicular
             distance to each intermediate point. If any calculated distance is larger than the
             specified tolerance, the search region will be shrunk by excluding its last point. This
-            process will continue untill all calculated distances fall below the specified tolerance
+            process will continue until all calculated distances fall below the specified tolerance
             , or there are no more intermediate points. At this point all intermediate points are
             removed and a new search region is defined starting at the last point from old search
             region.
@@ -1037,7 +1037,7 @@ namespace psimpl
             are computed. The vertex that is furthest away from theedge (called a key), and has a
             computed distance that is larger than a specified tolerance, will be added to the
             simplification. This process will recurse for each edge in the current simplification,
-            untill all vertices of the original polyline are within tolerance.
+            until all vertices of the original polyline are within tolerance.
 
             \image html psimpl_dp.png
 
@@ -1111,7 +1111,7 @@ namespace psimpl
             This algorithm is a variation of the original implementation. Instead of considering
             one polyline segment at a time, all segments of the current simplified polyline are
             evaluated at each step. Only the vertex with the maximum distance from its edge is
-            added to the simplification. This process will recurse untill the the simplification
+            added to the simplification. This process will recurse until the the simplification
             contains the desired amount of vertices.
 
             The algorithm, which does not use the (radial) distance between points routine as a
@@ -1449,7 +1449,7 @@ namespace psimpl
         /*!
             \brief Douglas-Peucker approximation helper class.
 
-            Contains helper implentations for Douglas-Peucker approximation that operate solely on
+            Contains helper implementations for Douglas-Peucker approximation that operate solely on
             value_type arrays and value_type pointers. Note that the PolylineSimplification
             class only operates on iterators.
         */

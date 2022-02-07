@@ -56,7 +56,7 @@ public:
   /**
    * @brief addAddress Adds a single address in the tree
    * @param parentPath Path to the parent
-   * @param settings Informations of the address
+   * @param settings Information of the address
    *
    * Used to add a new address (after input from user for instance)
    */

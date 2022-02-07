@@ -84,7 +84,7 @@
  *
  * \section NewClass Adding a new component
  *
- * Adding a new class that matches an exisiting interface, for instance for
+ * Adding a new class that matches an existing interface, for instance for
  providing a new settings panel, is straightforward:
  *
  * * Inherit from the base classes required for this component.
