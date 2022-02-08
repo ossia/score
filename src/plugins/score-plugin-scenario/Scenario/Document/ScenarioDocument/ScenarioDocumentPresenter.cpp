@@ -1044,22 +1044,17 @@ void ScenarioDocumentPresenter::focusFrontProcess()
 
 void ScenarioDocumentPresenter::goUpALevel()
 {
-  auto itv_disp = std::get_if<CentralIntervalDisplay>(&m_centralDisplay);
-  if(!itv_disp)
+  if (!this->displayedElements.initialized())
     return;
 
-  const auto cst_pres = itv_disp->presenter.intervalPresenter();
-  if (cst_pres)
+  QObject* itv = &this->displayedElements.interval();
+  while (itv)
   {
-    const QObject* itv = &cst_pres->model();
-    while (itv)
+    itv = itv->parent();
+    if (auto itv_ = qobject_cast<const IntervalModel*>(itv))
     {
-      itv = itv->parent();
-      if (auto itv_ = qobject_cast<const IntervalModel*>(itv))
-      {
-        setDisplayedInterval(const_cast<IntervalModel*>(itv_));
-        return;
-      }
+      setDisplayedInterval(const_cast<IntervalModel*>(itv_));
+      return;
     }
   }
 }
