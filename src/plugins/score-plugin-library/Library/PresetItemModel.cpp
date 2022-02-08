@@ -172,7 +172,13 @@ bool PresetItemModel::dropMimeData(
   if (!proc)
     return false;
 
-  auto preset = proc->savePreset();
+  return savePreset(*proc);
+}
+
+bool PresetItemModel::savePreset(
+    const Process::ProcessModel& proc)
+{
+  auto preset = proc.savePreset();
   if (!updatePresetFilename(preset))
     return false;
 

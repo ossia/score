@@ -20,6 +20,8 @@ public:
   PresetItemModel(const score::GUIApplicationContext& ctx, QObject* parent);
 
   std::vector<Process::Preset>& presets;
+
+  bool savePreset(const Process::ProcessModel& proc);
 private:
   QModelIndex
   index(int row, int column, const QModelIndex& parent) const override;

@@ -181,9 +181,16 @@ score::QGraphicsDraggablePixmap* makePresetButton(
     };
 
     ui_btn->click = [&proc, &context] (QPointF screenPos) {
-      auto& presets = context.app.applicationPlugin<Process::ApplicationPlugin>().presets;
+      auto& pplug = context.app.applicationPlugin<Process::ApplicationPlugin>();
+      const auto& presets = pplug.presets;
 
-      std::vector<Process::Preset*> goodPresets;
+      auto menu = new QMenu;
+      menu->addAction("Save current preset", menu, [&proc, &pplug] {
+        pplug.savePreset(&proc);
+      });
+
+
+      std::vector<const Process::Preset*> goodPresets;
       const auto& k = proc.concreteKey();
       const auto& e = proc.effect();
       for(auto& preset : presets)
@@ -192,7 +199,8 @@ score::QGraphicsDraggablePixmap* makePresetButton(
           goodPresets.push_back(&preset);
       }
 
-      auto menu = new QMenu;
+      menu->addSeparator();
+
       for(auto p : goodPresets)
       {
         menu->addAction(p->name, menu, [p, &proc, &context] {

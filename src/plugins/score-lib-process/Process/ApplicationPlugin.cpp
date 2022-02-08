@@ -1,5 +1,7 @@
 #include <Process/ApplicationPlugin.hpp>
+#include <wobjectimpl.h>
 
+W_OBJECT_IMPL(Process::ApplicationPlugin)
 
 namespace Process
 {

@@ -219,6 +219,14 @@ ProcessWidget::ProcessWidget(
             }
           });
   m_lv.setMinimumHeight(100);
+
+
+  auto& presetLib = ctx.applicationPlugin<Process::ApplicationPlugin>();
+  con(presetLib, &Process::ApplicationPlugin::savePreset,
+      this, [&] (const Process::ProcessModel* proc) {
+    SCORE_ASSERT(proc);
+    this->m_presetModel->savePreset(*proc);
+  });
 }
 
 ProcessWidget::~ProcessWidget() { }
