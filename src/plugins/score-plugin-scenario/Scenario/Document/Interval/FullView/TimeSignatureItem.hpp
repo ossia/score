@@ -381,6 +381,8 @@ public:
           m_itv.context()
               .dispatcher.submit<Scenario::Command::SetTimeSignatures>(
                   *m_model, signatures);
+
+          m_itv.context().dispatcher.commit();
         },
         Qt::QueuedConnection);
 
