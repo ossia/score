@@ -270,8 +270,8 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
 #else
   const int64_t start = stream->first_dts;
 #endif
-  if (av_seek_frame(
-          m_formatContext, m_stream, start + dts, AVSEEK_FLAG_BACKWARD))
+
+  if(avformat_seek_file(m_formatContext, -1, INT64_MIN, start + dts, INT64_MAX, 0))
   {
     qDebug() << "Failed to seek for time " << dts;
     return false;
