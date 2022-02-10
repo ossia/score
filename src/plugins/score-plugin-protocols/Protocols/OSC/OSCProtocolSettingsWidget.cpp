@@ -448,6 +448,8 @@ Device::DeviceSettings OSCProtocolSettingsWidget::getSettings() const
       break;
   }
 
+  using osc_version_t = decltype(ossia::net::osc_protocol_configuration::version);
+  osc.configuration.version = static_cast<osc_version_t>(m_oscVersion->currentIndex());
   osc.rate = m_rate->rate();
   osc.jsonToLoad.clear();
 
