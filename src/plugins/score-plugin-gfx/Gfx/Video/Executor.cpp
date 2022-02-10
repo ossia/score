@@ -27,12 +27,12 @@ public:
     auto n = std::make_unique<score::gfx::VideoNode>(m_decoder, tempo);
     impl = n.get();
     id = exec_context->ui->register_node(std::move(n));
-    m_decoder->seek(0);
+//    m_decoder->seek(0);
   }
 
   ~video_node()
   {
-    m_decoder->seek(0);
+//    m_decoder->seek(0);
     if (id >= 0)
       exec_context->ui->unregister_node(id);
   }
@@ -74,8 +74,8 @@ public:
 
   void transport_impl(ossia::time_value date) override { offset_impl(date); }
 
-  void start() override { static_cast<video_node&>(*node).decoder().seek(0); }
-  void stop() override { static_cast<video_node&>(*node).decoder().seek(0); }
+  void start() override { static_cast<video_node&>(*node).decoder().seek(this->m_start_offset.impl); }
+  void stop() override { static_cast<video_node&>(*node).decoder().seek(this->m_start_offset.impl); }
   void pause() override { }
   void resume() override { }
 };
