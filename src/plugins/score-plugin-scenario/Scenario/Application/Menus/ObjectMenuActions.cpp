@@ -5,8 +5,10 @@
 #include "ScenarioCopy.hpp"
 #include "TextDialog.hpp"
 
+#include <Process/Dataflow/CableCopy.hpp>
 #include <Process/ProcessList.hpp>
 
+#include <score/model/EntitySerialization.hpp>
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/Menu.hpp>
 #include <score/actions/MenuManager.hpp>
@@ -69,23 +71,13 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
   m_removeElements = new QAction{tr("Remove selected elements"), this};
   // NOTE : the shortcut is defined in ScenarioActions.hpp
   m_removeElements->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-  connect(m_removeElements, &QAction::triggered, [this]() {
-    auto& ctx = m_parent->currentDocument()->context();
-    const auto& cur_sel = ctx.selectionStack.currentSelection();
-
-    auto& rm = ctx.app.interfaces<score::ObjectRemoverList>();
-    for (auto& iface : rm)
-    {
-      if (iface.remove(cur_sel, ctx))
-        break;
-    }
-  });
+  connect(m_removeElements, &QAction::triggered, this, &ObjectMenuActions::removeSelectedElements);
 
   // COPY/CUT
   m_copyContent = new QAction{tr("Copy"), this};
   m_copyContent->setShortcut(QKeySequence::Copy);
   m_copyContent->setShortcutContext(Qt::ApplicationShortcut);
-  connect(m_copyContent, &QAction::triggered, [this]() {
+  connect(m_copyContent, &QAction::triggered, this, [this]() {
     JSONReader r;
     copySelectedElementsToJson(r);
     if (r.empty())
@@ -98,7 +90,7 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
   m_cutContent = new QAction{tr("Cut"), this};
   m_cutContent->setShortcut(QKeySequence::Cut);
   m_cutContent->setShortcutContext(Qt::ApplicationShortcut);
-  connect(m_cutContent, &QAction::triggered, [this] {
+  connect(m_cutContent, &QAction::triggered, this, [this] {
     JSONReader r;
     cutSelectedElementsToJson(r);
     if (r.empty())
@@ -110,28 +102,8 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
   m_pasteElements = new QAction{tr("Paste elements"), this};
   m_pasteElements->setShortcut(QKeySequence::Paste);
   m_pasteElements->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-  connect(m_pasteElements, &QAction::triggered, [this] {
-    auto pres = m_parent->focusedPresenter();
-    if (!pres)
-      return;
-    auto views = pres->view().scene()->views();
-    if (views.empty())
-      return;
-
-    auto view = views.front();
-
-    QPoint pos = QCursor::pos();
-
-    auto scene_pt = view->mapToScene(view->mapFromGlobal(pos));
-    ScenarioView& sv = pres->view();
-    auto sv_pt = sv.mapFromScene(scene_pt);
-    if (!sv.contains(sv_pt))
-    {
-      sv_pt = sv.mapToScene(sv.boundingRect().center());
-    }
-    auto pt = pres->toScenarioPoint(sv_pt);
-    pasteElements(readJson(QApplication::clipboard()->text().toUtf8()), pt);
-  });
+  connect(m_pasteElements, &QAction::triggered,
+          this, qOverload<>(&ObjectMenuActions::pasteElements));
 
   m_pasteElementsAfter = new QAction{tr("Paste (after)"), this};
   connect(m_pasteElementsAfter, &QAction::triggered, [this] {
@@ -303,10 +275,10 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
   scenariomodel_cond.add<Actions::MergeTimeSyncs>();
   scenariomodel_cond.add<Actions::Encapsulate>();
   scenariomodel_cond.add<Actions::Decapsulate>();
-  scenariofocus_cond.add<Actions::PasteElements>();
+  //scenariofocus_cond.add<Actions::PasteElements>();
 
-  scenarioiface_cond.add<Actions::CopyContent>();
-  scenarioiface_cond.add<Actions::CutContent>();
+  //scenarioiface_cond.add<Actions::CopyContent>();
+  //scenarioiface_cond.add<Actions::CutContent>();
   scenarioiface_cond.add<Actions::ElementsToJson>();
 
   Menu& object = base_menus.at(Menus::Object());
@@ -422,6 +394,23 @@ void ObjectMenuActions::copySelectedElementsToJson(JSONReader& r)
     return Scenario::copySelectedElementsToJson(
         r, *const_cast<ScenarioInterface*>(si), ctx);
   }
+  else
+  {
+    Scenario::copySelectedProcesses(r, ctx);
+  }
+}
+
+void ObjectMenuActions::removeSelectedElements()
+{
+  auto& ctx = m_parent->currentDocument()->context();
+  const auto& cur_sel = ctx.selectionStack.currentSelection();
+
+  auto& rm = ctx.app.interfaces<score::ObjectRemoverList>();
+  for (auto& iface : rm)
+  {
+    if (iface.remove(cur_sel, ctx))
+      break;
+  }
 }
 
 void ObjectMenuActions::cutSelectedElementsToJson(JSONReader& r)
@@ -429,17 +418,32 @@ void ObjectMenuActions::cutSelectedElementsToJson(JSONReader& r)
   copySelectedElementsToJson(r);
   if (r.empty())
     return;
+  removeSelectedElements();
+}
 
-  auto& ctx = m_parent->currentDocument()->context();
+void ObjectMenuActions::pasteElements()
+{
+  auto pres = m_parent->focusedPresenter();
 
-  if (auto sm = focusedScenarioModel(ctx))
+  if (!pres)
+    return;
+  auto views = pres->view().scene()->views();
+  if (views.empty())
+    return;
+
+  auto view = views.front();
+
+  QPoint pos = QCursor::pos();
+
+  auto scene_pt = view->mapToScene(view->mapFromGlobal(pos));
+  ScenarioView& sv = pres->view();
+  auto sv_pt = sv.mapFromScene(scene_pt);
+  if (!sv.contains(sv_pt))
   {
-    Scenario::removeSelection(*sm, ctx);
+    sv_pt = sv.mapToScene(sv.boundingRect().center());
   }
-  else if (auto si = focusedScenarioInterface(ctx))
-  {
-    Scenario::clearContentFromSelection(*si, ctx);
-  }
+  auto pt = pres->toScenarioPoint(sv_pt);
+  pasteElements(readJson(QApplication::clipboard()->text().toUtf8()), pt);
 }
 
 void ObjectMenuActions::pasteElements(

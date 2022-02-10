@@ -28,7 +28,11 @@ public:
 
 private:
   void copySelectedElementsToJson(JSONReader& r);
+  void removeSelectedElements();
   void cutSelectedElementsToJson(JSONReader& r);
+
+  void pasteElements();
+
   void
   pasteElements(const rapidjson::Value& obj, const Scenario::Point& origin);
   void pasteElementsAfter(
@@ -36,6 +40,7 @@ private:
       const Scenario::Point& origin,
       const Selection& sel);
   void writeJsonToSelectedElements(const rapidjson::Value& obj);
+
 
   ScenarioDocumentModel* getScenarioDocModel() const;
   ScenarioDocumentPresenter* getScenarioDocPresenter() const;

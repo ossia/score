@@ -41,7 +41,6 @@ void copySelected(
     CategorisedScenario& cs,
     QObject* parent)
 {
-  std::vector<Path<Scenario::IntervalModel>> itv_paths;
   for (const IntervalModel* interval : cs.selectedIntervals)
   {
     auto start_it
@@ -61,8 +60,6 @@ void copySelected(
     {
       cs.selectedStates.push_back(&sm.state(interval->endState()));
     }
-
-    itv_paths.push_back(*interval);
   }
 
   for (const StateModel* state : cs.selectedStates)
@@ -157,7 +154,7 @@ void copySelected(
   r.obj["Events"] = copiedEvents;
   r.obj["TimeNodes"] = copiedTimeSyncs;
   r.obj["States"] = copiedStates;
-  r.obj["Cables"] = Process::cablesToCopy(cs.selectedIntervals, itv_paths, ctx);
+  r.obj["Cables"] = Process::cablesToCopy(cs.selectedIntervals, ctx);
 
   for (auto elt : copiedTimeSyncs)
     delete elt;
@@ -185,19 +182,13 @@ void copyWholeScenario(JSONReader& r, const Scenario::ProcessModel& sm)
   const auto& ctx = score::IDocument::documentContext(sm);
 
   auto itvs = sm.intervals.map().as_vec();
-  std::vector<Path<Scenario::IntervalModel>> itv_paths;
-  itv_paths.reserve(sm.intervals.size());
-  for (Scenario::IntervalModel& itv : sm.intervals)
-  {
-    itv_paths.push_back(itv);
-  }
 
   r.stream.StartObject();
   r.obj["Intervals"] = sm.intervals;
   r.obj["Events"] = sm.events;
   r.obj["TimeNodes"] = sm.timeSyncs;
   r.obj["States"] = sm.states;
-  r.obj["Cables"] = Process::cablesToCopy(itvs, itv_paths, ctx);
+  r.obj["Cables"] = Process::cablesToCopy(itvs, ctx);
   r.obj["Comments"] = sm.comments;
   r.stream.EndObject();
 }
@@ -293,6 +284,9 @@ void copySelectedElementsToJson(
     const score::DocumentContext& ctx)
 {
   auto si_obj = dynamic_cast<QObject*>(&si);
+  if (copySelectedProcesses(r, ctx))
+    return;
+
   if (auto sm = dynamic_cast<const Scenario::ProcessModel*>(&si))
   {
     return copySelectedScenarioElements(r, *sm);
@@ -315,4 +309,28 @@ void copySelectedElementsToJson(
     }
   }
 }
+
+bool copySelectedProcesses(JSONReader& r, const score::DocumentContext& ctx)
+{
+  const auto& sel = ctx.selectionStack.currentSelection();
+  using ptr_t = QPointer<IdentifiedObjectAbstract>;
+
+  if(ossia::all_of(sel, [] (const ptr_t& item) { return qobject_cast<Process::ProcessModel*>(item.data()); }))
+  {
+    std::vector<const Process::ProcessModel*> processes;
+    processes.reserve(sel.size());
+    for(const ptr_t& item : sel) {
+      processes.push_back(static_cast<Process::ProcessModel*>(item.data()));
+    }
+
+    r.stream.StartObject();
+    r.obj["Processes"] = processes;
+    r.obj["Cables"] = Process::cablesToCopy(processes, ctx);
+    r.stream.EndObject();
+    return true;
+  }
+
+  return false;
+}
+
 }

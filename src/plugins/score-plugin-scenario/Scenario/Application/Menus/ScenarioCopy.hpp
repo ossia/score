@@ -79,6 +79,10 @@ void copySelectedScenarioElements(
     const BaseScenarioContainer& sm,
     QObject* parent);
 
+bool copySelectedProcesses(
+    JSONReader&,
+    const score::DocumentContext& ctx);
+
 void copySelectedElementsToJson(
     JSONReader&,
     ScenarioInterface& s,

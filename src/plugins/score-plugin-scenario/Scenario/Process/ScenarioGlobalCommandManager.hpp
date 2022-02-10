@@ -26,6 +26,8 @@ void removeSelection(
     const score::DocumentContext& ctx);
 void removeSelection(const BaseScenario&, const score::DocumentContext& ctx);
 
+void removeSelection(
+    const score::DocumentContext& ctx);
 // Clearing content should be available for other plug-ins, e.g. loop
 SCORE_PLUGIN_SCENARIO_EXPORT void clearContentFromSelection(
     const Scenario::ScenarioInterface& iface,

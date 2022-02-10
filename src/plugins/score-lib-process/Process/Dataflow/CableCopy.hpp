@@ -94,4 +94,16 @@ Dataflow::SerializedCables cablesToCopy(
   return copiedCables;
 }
 
+template <typename T>
+Dataflow::SerializedCables cablesToCopy(
+    const std::vector<T*>& array,
+    const score::DocumentContext& ctx)
+{
+  std::vector<Path<std::remove_const_t<T>>> siblings;
+  siblings.reserve(array.size());
+  for(auto ptr : array) {
+    siblings.emplace_back(*ptr);
+  }
+  return cablesToCopy(array, siblings, ctx);
+}
 }
