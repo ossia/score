@@ -184,6 +184,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
       auto timeline_act = new QAction{tr("Timeline interval"), ui_toolbar};
       timeline_act->setCheckable(true);
       timeline_act->setChecked(false);
+      timeline_act->setShortcut(QKeySequence("Ctrl+Alt+N"));
       timeline_act->setStatusTip(tr("Change between nodal and timeline mode"));
       setIcons(
           timeline_act,
