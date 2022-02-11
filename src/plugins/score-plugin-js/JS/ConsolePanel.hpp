@@ -856,6 +856,25 @@ public:
       plug->execution().request_stop();
   }
   W_SLOT(stop)
+
+  // File API
+  QString readFile(QString path)
+  {
+    auto doc = ctx();
+    if (!doc)
+      return {};
+
+    auto actual = score::locateFilePath(path, *doc);
+    if(QFile f{actual}; f.exists() && f.open(QIODevice::ReadOnly))
+    {
+      return score::readFileAsQString(f);
+    }
+    else
+    {
+      return {};
+    }
+  }
+  W_SLOT(readFile)
 };
 
 class PanelDelegate final
