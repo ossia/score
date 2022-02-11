@@ -310,7 +310,7 @@ static void setup_app_flags()
   // Consistency in looks across macOS, Windows (which prevents the horrible 125% scaling) and Linux
   qputenv("QT_FONT_DPI", "96");
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0) && QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   qputenv("QT_STYLE_OVERRIDE", "phantom");
 #endif
 

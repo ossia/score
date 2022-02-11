@@ -62,7 +62,7 @@ int qInitResources_score();
 #endif
 #include <phantom/phantomstyle.h>
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0) && QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <QCborStreamWriter>
 #include <QtCore/private/qplugin_p.h>
 #include <QStyleFactory>
@@ -182,7 +182,7 @@ static void setQApplicationSettings(QApplication& m_app)
   // Sadly Qt asserts so wh have to simulate the loading of a plugin (see above).
   // For older Qts we won't be debugging anyways and will be linking against distro Qt versions so we just set the style
   // manually
-#if QT_VERSION < QT_VERSION_CHECK(5, 12, 0)
+#if QT_VERSION < QT_VERSION_CHECK(5, 12, 0) || QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
   m_app.setStyle(new PhantomStyle);
 #endif
 
