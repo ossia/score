@@ -5,6 +5,7 @@
 #include "CurvePointInspectorWidget.hpp"
 
 #include <Curve/Point/CurvePointModel.hpp>
+#include <Automation/AutomationModel.hpp>
 
 namespace Automation
 {
@@ -21,6 +22,10 @@ QWidget* PointInspectorFactory::make(
 
 bool PointInspectorFactory::matches(const InspectedObjects& objects) const
 {
-  return dynamic_cast<const Curve::PointModel*>(objects.first());
+  auto pt = qobject_cast<const Curve::PointModel*>(objects.first());
+  if(pt)
+    return qobject_cast<const Automation::ProcessModel*>(pt->parent()->parent());
+  else
+    return false;
 }
 }

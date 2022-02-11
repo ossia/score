@@ -31,6 +31,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentFactory.hpp>
 #include <Scenario/Document/ScenarioRemover.hpp>
 #include <Scenario/Document/Tempo/TempoFactory.hpp>
+#include <Scenario/Document/Tempo/TempoInspector.hpp>
 #include <Scenario/ExecutionChecker/CSPCoherencyCheckerList.hpp>
 // #include <Scenario/Inspector/Interpolation/InterpolationInspectorWidget.hpp>
 #include <State/Message.hpp>
@@ -254,6 +255,7 @@ score_plugin_scenario::factories(
       >,
       FW<Inspector::InspectorWidgetFactory,
          ScenarioInspectorWidgetFactoryWrapper
+       , Scenario::TempoPointInspectorFactory
          //          , Interpolation::StateInspectorFactory
          //          , Interpolation::InspectorFactory
          >,
