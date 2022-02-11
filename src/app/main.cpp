@@ -281,6 +281,10 @@ static void setup_app_flags()
   // Consistency in looks across macOS, Windows (which prevents the horrible 125% scaling) and Linux
   qputenv("QT_FONT_DPI", "96");
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
+  qputenv("QT_STYLE_OVERRIDE", "phantom");
+#endif
+
 #if defined(__EMSCRIPTEN__)
   qRegisterMetaType<Qt::ApplicationState>();
   qRegisterMetaType<QItemSelection>();

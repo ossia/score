@@ -62,6 +62,75 @@ int qInitResources_score();
 #endif
 #include <phantom/phantomstyle.h>
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
+#include <QCborStreamWriter>
+#include <QtCore/private/qplugin_p.h>
+#include <QStyleFactory>
+#include <QStylePlugin>
+
+class PhantomStylePlugin : public QStylePlugin {
+  W_OBJECT(PhantomStylePlugin)
+public:
+   PhantomStylePlugin() { }
+  ~PhantomStylePlugin() { }
+  QStyle* create(const QString& key) override  {
+    if (QString::compare(key, QLatin1String("phantom"), Qt::CaseInsensitive) != 0)
+      return nullptr;
+    return new PhantomStyle();
+  }
+
+};
+W_OBJECT_IMPL(PhantomStylePlugin)
+
+const QStaticPlugin qt_static_plugin_PhantomStylePlugin()
+{
+  QStaticPlugin plug;
+  plug.instance = [] () -> QObject* {
+    return new PhantomStylePlugin;
+  };
+  plug.rawMetaData = [] () -> const char* {
+      static const QByteArray meta = [] () -> QByteArray {
+    constexpr const char start[] = { 'Q', 'T', 'M', 'E', 'T', 'A', 'D', 'A', 'T', 'A', ' ', '!', 0, QT_VERSION_MAJOR, QT_VERSION_MINOR, qPluginArchRequirements() };
+    QByteArray prefix{start, 16};
+
+      QByteArray arr;
+      {
+      QCborStreamWriter writer{&arr};
+      writer.startMap(3);
+
+      writer.append((int) QtPluginMetaDataKeys::IID);
+      writer.append(QLatin1String(QStyleFactoryInterface_iid));
+
+      writer.append(int(QtPluginMetaDataKeys::ClassName));
+      writer.append(QLatin1String("PhantomStylePlugin"));
+
+      writer.append(int(QtPluginMetaDataKeys::MetaData));
+      {
+        writer.startMap(1);
+        writer.append("Keys");
+        {
+          writer.startArray(1);
+          writer.append(QLatin1String("phantom"));
+          writer.endArray();
+        }
+        writer.endMap();
+      }
+      writer.endMap();
+      }
+
+      prefix += arr;
+      return prefix;
+
+    }();
+
+    return meta.data();
+  };
+  return plug;
+}
+Q_IMPORT_PLUGIN(PhantomStylePlugin)
+#endif
+
+
 #if defined(SCORE_SPLASH_SCREEN)
 #include "StartScreen.hpp"
 #else
@@ -109,7 +178,13 @@ static void setQApplicationSettings(QApplication& m_app)
   QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-Semibold.ttf");
   QFontDatabase::addApplicationFont(":/fonts/sourcecodepro/SourceCodePro-SemiboldIt.ttf");
 
+  // For release builds against a debug Qt, we build qt without any style plug-in.
+  // Sadly Qt asserts so wh have to simulate the loading of a plugin (see above).
+  // For older Qts we won't be debugging anyways and will be linking against distro Qt versions so we just set the style
+  // manually
+#if QT_VERSION < QT_VERSION_CHECK(5, 12, 0)
   m_app.setStyle(new PhantomStyle);
+#endif
 
   auto pal = qApp->palette();
   pal.setBrush(QPalette::Window, QColor("#222222"));//#1A2024"));
