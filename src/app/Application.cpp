@@ -369,6 +369,10 @@ void Application::init()
       m_startScreen->close();
       m_presenter->documentManager().loadFile(ctx);
     });
+    connect(
+        m_startScreen, &score::StartScreen::exitApp, this, [&](){
+        qApp->quit();
+    });
   }
 #endif
 

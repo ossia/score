@@ -210,6 +210,7 @@ public:
   void openFile(const QString& file) W_SIGNAL( openFile, file)
   void openFileDialog() W_SIGNAL( openFileDialog )
   void loadCrashedSession() W_SIGNAL( loadCrashedSession )
+  void exitApp() W_SIGNAL(exitApp)
 
   void addLoadCrashedSession();
 
@@ -283,7 +284,14 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
     label->setPixmaps(score::get_pixmap(":/icons/load_examples_off.png"),score::get_pixmap(":/icons/load_examples_on.png"));
     label->setOpenExternalLink(true);
     label->move(100,label_y);
-    label_y += 50;
+    label_y += 35;
+  }
+  { // Exit App
+      InteractiveLabel* label = new InteractiveLabel{titleFont,qApp->tr("Exit"), "", this};
+      label->setPixmaps(score::get_pixmap(":/icons/exit_off.png"),score::get_pixmap(":/icons/exit_on.png"));
+      connect(label, &score::InteractiveLabel::labelPressed, this, &score::StartScreen::exitApp);
+      label->move(100,label_y);
+      label_y += 50;
   }
   label_y = 285;
   { // recent files
