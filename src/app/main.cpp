@@ -244,10 +244,10 @@ static void setup_opengl(bool& enable_opengl_ui)
       }
 
       ctx.functions()->initializeOpenGLFunctions();
-      auto gl_version = (const char*)ctx.functions()->glGetString(GL_VERSION);
-      if(gl_version)
+
+      if(auto gl_renderer = (const char*)ctx.functions()->glGetString(GL_RENDERER))
       {
-        if(auto ver = QString::fromUtf8(gl_version); ver.contains("llvmpipe", Qt::CaseInsensitive))
+        if(auto ver = QString::fromUtf8(gl_renderer); ver.contains("llvmpipe", Qt::CaseInsensitive))
         {
           qDebug() << "LLVMPIPE detected, not changing the default format as it crashes";
           enable_opengl_ui = false;
