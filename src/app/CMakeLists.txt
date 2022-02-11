@@ -48,7 +48,7 @@ ossia_set_visibility(${APPNAME})
 
 target_include_directories(${APPNAME} PRIVATE "${3RDPARTY_FOLDER}/phantomstyle/src")
 
-target_link_libraries(${APPNAME} PUBLIC score_lib_base Qt5::CorePrivate)
+target_link_libraries(${APPNAME} PUBLIC score_lib_base ${QT_PREFIX}::CorePrivate)
 if(SCORE_STATIC_PLUGINS)
   target_link_libraries(${APPNAME} PUBLIC ${SCORE_PLUGINS_LIST})
 endif()
