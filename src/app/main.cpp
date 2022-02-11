@@ -30,6 +30,7 @@ extern "C"  __declspec(dllimport) LONG __stdcall NtSetTimerResolution(ULONG Desi
 
 #ifndef QT_NO_OPENGL
 #include <QOpenGLContext>
+#include <QOpenGLFunctions>
 #include <QOffscreenSurface>
 #endif
 /*
@@ -201,7 +202,7 @@ static void setup_faust_path()
   qputenv("FAUST_LIB_PATH", path.c_str());
 }
 
-static void setup_opengl()
+static void setup_opengl(bool& enable_opengl_ui)
 {
   const auto& plat = qApp->platformName();
   if(plat == "minimal" || plat == "offscreen" || plat == "vnc")
@@ -227,6 +228,33 @@ static void setup_opengl()
 
     QOffscreenSurface surf;
     surf.create();
+    {
+      QOpenGLContext ctx;
+      if(!ctx.create())
+      {
+        qDebug() << "OpenGL detection skipped, cannot create any OpenGL context";
+        enable_opengl_ui = false;
+        return;
+      }
+      if(!ctx.makeCurrent(&surf))
+      {
+        qDebug() << "OpenGL detection skipped, cannot create make an offscreen surface current";
+        enable_opengl_ui = false;
+        return;
+      }
+
+      ctx.functions()->initializeOpenGLFunctions();
+      auto gl_version = (const char*)ctx.functions()->glGetString(GL_VERSION);
+      if(gl_version)
+      {
+        if(auto ver = QString::fromUtf8(gl_version); ver.contains("llvmpipe", Qt::CaseInsensitive))
+        {
+          qDebug() << "LLVMPIPE detected, not changing the default format as it crashes";
+          enable_opengl_ui = false;
+          return;
+        }
+      }
+    }
 
     QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
     fmt.setProfile(QSurfaceFormat::CoreProfile);
@@ -258,7 +286,8 @@ static void setup_opengl()
     }
     if(!ok)
     {
-      qDebug() << "OpenGL disabled, minimum version not supported";
+      qDebug() << "OpenGL minimum version not supported";
+      enable_opengl_ui = false;
     }
     else
     {
@@ -376,7 +405,7 @@ int main(int argc, char** argv)
   // so we check if we set --no-opengl explicitly
   if(app.appSettings.opengl)
 #endif
-    setup_opengl();
+    setup_opengl(app.appSettings.opengl);
 
   QTimer::singleShot(1, &app, &Application::init);
 
