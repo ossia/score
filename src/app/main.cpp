@@ -314,6 +314,9 @@ static void setup_app_flags()
   qputenv("QT_STYLE_OVERRIDE", "phantom");
 #endif
 
+  if(!qEnvironmentVariableIsSet("QT_SUBPIXEL_AA_TYPE"))
+    qputenv("QT_SUBPIXEL_AA_TYPE", "RGB");
+
 #if defined(__EMSCRIPTEN__)
   qRegisterMetaType<Qt::ApplicationState>();
   qRegisterMetaType<QItemSelection>();
