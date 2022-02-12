@@ -311,6 +311,7 @@ void ControlInlet::loadData(const QByteArray& arr) noexcept
   DataStreamOutput op{p};
   op >> pdata >> m_value;
   Port::loadData(pdata);
+  valueChanged(m_value);
 }
 
 void ControlInlet::setValue(const ossia::value& value)

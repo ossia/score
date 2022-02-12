@@ -144,7 +144,7 @@ Component::Component(
   con(element,
       &JS::ProcessModel::qmlDataChanged,
       this,
-      &Component::on_scriptChange, Qt::QueuedConnection);
+      &Component::on_scriptChange, Qt::DirectConnection);
 }
 
 Component::~Component() { }

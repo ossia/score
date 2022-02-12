@@ -174,7 +174,8 @@ bool ProcessModel::setQmlData(const QByteArray& data, bool isFile)
     for (auto n : cld_inlet)
     {
       auto port = n->make(Id<Process::Port>(i++), this);
-      port->setName(n->objectName());
+      if(const auto& name = n->objectName(); !name.isEmpty())
+        port->setName(name);
       if (auto addr = State::parseAddressAccessor(n->address()))
         port->setAddress(std::move(*addr));
       m_inlets.push_back(port);
@@ -187,7 +188,8 @@ bool ProcessModel::setQmlData(const QByteArray& data, bool isFile)
     for (auto n : cld_outlet)
     {
       auto port = n->make(Id<Process::Port>(i++), this);
-      port->setName(n->objectName());
+      if(const auto& name = n->objectName(); !name.isEmpty())
+        port->setName(name);
       if (auto addr = State::parseAddressAccessor(n->address()))
         port->setAddress(std::move(*addr));
       m_outlets.push_back(port);
