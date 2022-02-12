@@ -108,10 +108,12 @@ void IntervalDurations::setPlayPercentage(double arg)
 
   auto old = m_playPercentage;
 
+  m_playPercentage = arg;
+
+  // Only used for DurationSectionWidget
   if (m_defaultDuration * std::abs(arg - old)
-      > TimeVal{std::chrono::milliseconds(16)})
+      > TimeVal{std::chrono::milliseconds(32)})
   {
-    m_playPercentage = arg;
     playPercentageChanged(arg);
   }
 }

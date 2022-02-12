@@ -182,7 +182,7 @@ void PluginSettingsView::handleAddon(const QJsonObject& obj)
   RemotePackagesModel* model
       = static_cast<RemotePackagesModel*>(m_remoteAddons->model());
 
-  if (m_addonsToRetrieve == model->m_vec.size())
+  if (m_addonsToRetrieve == std::ssize(model->m_vec))
   {
     reset_progress();
   }

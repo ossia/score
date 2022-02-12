@@ -798,7 +798,7 @@ void ScenarioDocumentPresenter::on_executionTimer()
   else if(auto i = std::get_if<CentralIntervalDisplay>(&this->m_centralDisplay))
   {
     if(m_autoScroll)
-    autoScroll();
+      autoScroll();
   }
 }
 
@@ -822,7 +822,18 @@ void ScenarioDocumentPresenter::autoScroll()
 
   auto& dur = sel_itv->duration;
   auto delta = Scenario::timeDelta(sel_itv, &root);
-  double exec_d = dur.playPercentage() * (delta + dur.defaultDuration()).toPixels(this->m_zoomRatio);
+  auto visible_play_percentage = [&] {
+    if(dur.isMaxInfinite())
+    {
+      return std::min(dur.playPercentage(), 1.);
+    }
+    else
+    {
+      return dur.playPercentage();
+    }
+  };
+
+  double exec_d = visible_play_percentage() * (delta + dur.defaultDuration()).toPixels(this->m_zoomRatio);
   auto center = view().view().visibleRect().center();
   view().view().ensureVisible({exec_d - 100, center.y() - 10, view().viewWidth() / 2., 20});
 }
