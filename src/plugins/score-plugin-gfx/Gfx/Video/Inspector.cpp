@@ -1,5 +1,6 @@
 #include "Inspector.hpp"
 
+#include <Inspector/InspectorLayout.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/widgets/SignalUtils.hpp>
@@ -20,7 +21,7 @@ InspectorWidget::InspectorWidget(
     : InspectorWidgetDelegate_T{object, parent}
     , m_dispatcher{context.commandStack}
 {
-  auto lay = new QFormLayout{this};
+  auto lay = new Inspector::Layout{this};
   {
     auto edit = new QLineEdit{object.path(), this};
     lay->addRow(tr("Path"), edit);
