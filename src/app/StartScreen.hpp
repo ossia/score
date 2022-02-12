@@ -370,6 +370,7 @@ void StartScreen::keyPressEvent(QKeyEvent* event)
 {
   if (event->key() == Qt::Key_Escape)
   {
+    this->openNewDocument();
     this->close();
     return QWidget::keyPressEvent(event);
   }
