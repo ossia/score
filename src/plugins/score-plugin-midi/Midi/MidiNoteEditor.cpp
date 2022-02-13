@@ -1,4 +1,4 @@
-#include "MidiNoteRemover.hpp"
+#include "MidiNoteEditor.hpp"
 
 #include <Midi/Commands/RemoveNotes.hpp>
 #include <Midi/MidiNote.hpp>
@@ -8,7 +8,19 @@
 #include <score/document/DocumentContext.hpp>
 namespace Midi
 {
-bool NoteRemover::remove(const Selection& s, const score::DocumentContext& ctx)
+bool NoteEditor::copy(JSONReader& r, const Selection& s, const score::DocumentContext& ctx)
+{
+  SCORE_TODO;
+  return true;
+}
+
+bool NoteEditor::paste(QPoint pos, const QMimeData& mime, const score::DocumentContext& ctx)
+{
+  SCORE_TODO;
+  return true;
+}
+
+bool NoteEditor::remove(const Selection& s, const score::DocumentContext& ctx)
 {
   if (!s.empty())
   {

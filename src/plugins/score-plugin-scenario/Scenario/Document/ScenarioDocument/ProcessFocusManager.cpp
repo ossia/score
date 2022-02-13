@@ -5,12 +5,29 @@
 #include <Process/LayerPresenter.hpp>
 #include <Process/Process.hpp>
 
+#include <core/document/Document.hpp>
+#include <core/document/DocumentPresenter.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Process::ProcessFocusManager)
 namespace Process
 {
+ProcessFocusManager* ProcessFocusManager::get(const score::DocumentContext& ctx)
+{
+  if (auto pres = ctx.document.presenter())
+  {
+    auto bem = qobject_cast<Scenario::ScenarioDocumentPresenter*>(pres->presenterDelegate());
+    if (bem)
+    {
+      return &bem->focusManager();
+    }
+  }
+  return nullptr;
+}
+
 ProcessFocusManager::ProcessFocusManager(score::FocusManager& fmgr)
-    : m_mgr{fmgr}
+  : m_mgr{fmgr}
 {
 }
 ProcessFocusManager::~ProcessFocusManager() { }

@@ -34,7 +34,9 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ProcessFocusManager final : public QObject
   W_OBJECT(ProcessFocusManager)
 
 public:
-  ProcessFocusManager(score::FocusManager& fmgr);
+  static ProcessFocusManager* get(const score::DocumentContext& ctx);
+
+  explicit ProcessFocusManager(score::FocusManager& fmgr);
   ~ProcessFocusManager();
 
   ProcessModel* focusedModel() const;

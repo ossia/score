@@ -79,11 +79,6 @@ const ProcessModel& LayerPresenter::model() const noexcept
   return m_process;
 }
 
-const Id<Process::ProcessModel>& LayerPresenter::modelId() const noexcept
-{
-  return m_process.id();
-}
-
 void LayerPresenter::fillContextMenu(
     QMenu&,
     QPoint pos,

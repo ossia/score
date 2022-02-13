@@ -3,7 +3,7 @@
 #include "ApplicationInterface.hpp"
 
 #include <score/model/ComponentSerialization.hpp>
-#include <score/model/ObjectRemover.hpp>
+#include <score/model/ObjectEditor.hpp>
 #include <score/plugins/ProjectSettings/ProjectSettingsFactory.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <score/plugins/panel/PanelDelegateFactory.hpp>
@@ -67,7 +67,7 @@ static void loadDefaultPlugins(
 #if defined(SCORE_SERIALIZABLE_COMPONENTS)
   r.registerFactory(std::make_unique<SerializableComponentFactoryList>());
 #endif
-  r.registerFactory(std::make_unique<ObjectRemoverList>());
+  r.registerFactory(std::make_unique<ObjectEditorList>());
   auto panels = std::make_unique<PanelDelegateFactoryList>();
   panels->insert(std::make_unique<UndoPanelDelegateFactory>());
   panels->insert(std::make_unique<MessagesPanelDelegateFactory>());

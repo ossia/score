@@ -60,7 +60,6 @@ public:
   virtual void parentGeometryChanged() = 0;
 
   const ProcessModel& model() const noexcept;
-  const Id<ProcessModel>& modelId() const noexcept;
 
   virtual void fillContextMenu(
       QMenu&,

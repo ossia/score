@@ -31,14 +31,13 @@ private:
   void removeSelectedElements();
   void cutSelectedElementsToJson(JSONReader& r);
 
+  void pasteElements(QPoint);
   void pasteElements();
 
   void
   pasteElements(const rapidjson::Value& obj, const Scenario::Point& origin);
   void pasteElementsAfter(
-      const rapidjson::Value& obj,
-      const Scenario::Point& origin,
-      const Selection& sel);
+      const rapidjson::Value& obj);
   void writeJsonToSelectedElements(const rapidjson::Value& obj);
 
 

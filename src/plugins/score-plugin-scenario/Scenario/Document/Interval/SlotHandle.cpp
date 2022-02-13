@@ -64,7 +64,7 @@ void LayerSlotPresenter::cleanup(QGraphicsScene* sc)
 
 void LayerSlotPresenter::putToFront(const Id<Process::ProcessModel>& id)
 {
-  auto it = ossia::find_if(this->layers, [&] (const LayerData& l) { return l.mainPresenter()->modelId() == id; });
+  auto it = ossia::find_if(this->layers, [&] (const LayerData& l) { return l.mainPresenter()->model().id() == id; });
   if(it != this->layers.end())
   {
     std::iter_swap(it, this->layers.begin());

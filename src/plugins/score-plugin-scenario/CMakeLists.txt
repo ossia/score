@@ -133,7 +133,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactoryList.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/DialogWidget/AddProcessDialog.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/DialogWidget/MessageTreeView.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioRemover.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioEditor.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseScenario/BaseElementContext.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseScenario/BaseScenarioContainer.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseScenario/BaseScenario.hpp"
@@ -485,6 +485,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Graph.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseScenario/BaseScenario.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioEditor.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/CentralNodalDisplay.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/CentralIntervalDisplay.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ProcessFocusManager.cpp"

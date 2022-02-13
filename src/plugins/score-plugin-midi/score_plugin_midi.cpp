@@ -6,7 +6,7 @@
 #include <Midi/MidiDrop.hpp>
 #include <Midi/MidiExecutor.hpp>
 #include <Midi/MidiFactory.hpp>
-#include <Midi/MidiNoteRemover.hpp>
+#include <Midi/MidiNoteEditor.hpp>
 #include <Process/Dataflow/Port.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
@@ -41,7 +41,7 @@ score_plugin_midi::factories(
       FW<Inspector::InspectorWidgetFactory,
          Midi::InspectorFactory,
          Patternist::InspectorFactory>,
-      FW<score::ObjectRemover, Midi::NoteRemover>>(ctx, key);
+      FW<score::ObjectEditor, Midi::NoteEditor>>(ctx, key);
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>

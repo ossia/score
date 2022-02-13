@@ -29,7 +29,7 @@
 #include <Scenario/Document/Event/EventExecution.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentFactory.hpp>
-#include <Scenario/Document/ScenarioRemover.hpp>
+#include <Scenario/Document/ScenarioEditor.hpp>
 #include <Scenario/Document/Tempo/TempoFactory.hpp>
 #include <Scenario/Document/Tempo/TempoInspector.hpp>
 #include <Scenario/ExecutionChecker/CSPCoherencyCheckerList.hpp>
@@ -271,7 +271,7 @@ score_plugin_scenario::factories(
       FW<Scenario::IntervalResizer,
          Scenario::ScenarioIntervalResizer,
          Scenario::BaseScenarioIntervalResizer>,
-      FW<score::ObjectRemover, Scenario::ScenarioRemover>>(ctx, key);
+      FW<score::ObjectEditor, Scenario::ScenarioEditor>>(ctx, key);
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>

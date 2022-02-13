@@ -131,7 +131,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/model/Skin.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/model/path/ObjectIdentifier.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/model/path/ObjectPath.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/score/model/ObjectRemover.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/model/ObjectEditor.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/model/path/Path.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/model/path/PathDebug.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/model/path/PathSerialization.hpp"
@@ -402,7 +402,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/model/IdentifiedObjectAbstract.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/model/path/ObjectPath.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/score/model/ObjectRemover.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/model/ObjectEditor.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/model/ModelMetadata.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/model/Skin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/model/ColorReference.cpp"
