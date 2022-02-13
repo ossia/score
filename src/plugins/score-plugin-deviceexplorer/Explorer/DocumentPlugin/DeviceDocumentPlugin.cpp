@@ -107,7 +107,7 @@ void DeviceDocumentPlugin::asyncConnect(Device::DeviceInterface& newdev)
         QString{"Waiting"},
         QString{"Waiting for a device: " + newdev.settings().name},
         QMessageBox::StandardButton::NoButton,
-        nullptr,
+        w,
         Qt::CustomizeWindowHint | Qt::WindowTitleHint);
     b.setStandardButtons(QMessageBox::StandardButton::Cancel);
     b.setIconPixmap(
@@ -118,10 +118,11 @@ void DeviceDocumentPlugin::asyncConnect(Device::DeviceInterface& newdev)
         &QPushButton::clicked,
         &b,
         [&b] { b.reject(); });
+
     connect(&newdev, &Device::DeviceInterface::connectionChanged, &b, [&b] {
       b.accept();
     });
-    newdev.reconnect();
+    QTimer::singleShot(1, [&] { newdev.reconnect(); });
     b.exec();
 
     w->setEnabled(true);

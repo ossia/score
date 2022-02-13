@@ -1096,6 +1096,7 @@ void DeviceExplorerWidget::addDevice()
       {
         if (!m_deviceDialog)
           return;
+
         SCORE_ASSERT(model());
         auto node = m_deviceDialog->getDevice();
         auto& deviceSettings = *node.target<Device::DeviceSettings>();
@@ -1107,13 +1108,13 @@ void DeviceExplorerWidget::addDevice()
         }
         ossia::net::sanitize_device_name(deviceSettings.name);
 
-        blockGUI(true);
-
         auto& devplug = model()->deviceModel();
-        m_cmdDispatcher->submit(
-            new Command::LoadDevice{devplug, std::move(node)});
-
-        blockGUI(false);
+        QTimer::singleShot(1, this, [this, n=std::move(node), &devplug] () mutable {
+          blockGUI(true);
+          m_cmdDispatcher->submit(
+           new Command::LoadDevice{devplug, std::move(n)});
+          blockGUI(false);
+        });
 
         updateActions();
         m_deviceDialog->deleteLater();
