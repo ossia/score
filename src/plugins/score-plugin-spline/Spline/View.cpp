@@ -502,9 +502,10 @@ public:
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override
   {
     const auto newPos = mapFromCanvas(event->pos());
-    std::size_t splitIndex = 0;
+    std::optional<std::size_t> splitIndex;
+    std::optional<std::size_t> eraseIndex;
     const std::size_t N = m_spline.points.size();
-    if (N < 2)
+    if (N <= 3)
     {
       m_spline.points.push_back(newPos);
       updateSpline();
@@ -513,14 +514,35 @@ public:
       return;
     }
 
+    constexpr auto epsilon = 0.000001;
+
+    // A spline has a minimum of 4 control points
+    const bool can_erase = N > 4;
+
     double dist_min = std::numeric_limits<double>::max();
+    const QPointF p0{newPos.x, newPos.y};
     for (std::size_t i = 0; i < N - 1; ++i)
     {
-      QPointF p0{newPos.x, newPos.y};
-      QPointF p1{m_spline.points[i].x, m_spline.points[i].y};
-      QPointF p2{m_spline.points[i + 1].x, m_spline.points[i + 1].y};
-      QLineF l1{p0, p1};
-      QLineF l2{p0, p2};
+      const QPointF p1{m_spline.points[i].x, m_spline.points[i].y};
+      const QPointF p2{m_spline.points[i + 1].x, m_spline.points[i + 1].y};
+      const QLineF l1{p0, p1};
+      const auto l1l = l1.length();
+
+      const QLineF l2{p0, p2};
+      const auto l2l = l1.length();
+
+      if(can_erase)
+      {
+        if(l1l < epsilon || l2l < epsilon)
+        {
+          if(l1l <= l2l) {
+            eraseIndex = i;
+          } else {
+            eraseIndex = i+1;
+          }
+          break;
+        }
+      }
 
       const double num = std::abs(
           (p2.x() - p1.x()) * (p1.y() - p0.y())
@@ -528,14 +550,34 @@ public:
       const double denom = std::sqrt(
           std::pow(p2.x() - p1.x(), 2) + std::pow(p2.y() - p1.y(), 2));
       const double point_to_line_distance = num / denom;
-      if (point_to_line_distance + l1.length() + l2.length() < dist_min)
+      const double dist = point_to_line_distance + l1l + l2l;
+
+      if (dist < dist_min)
       {
-        dist_min = point_to_line_distance + l1.length() + l2.length();
+        dist_min = dist;
         splitIndex = i;
       }
     }
 
-    m_spline.points.insert(m_spline.points.begin() + splitIndex + 1, newPos);
+    // Check if we must erase the last one
+    if(can_erase)
+    {
+      if(QLineF{p0, QPointF{m_spline.points[N-1].x, m_spline.points[N-1].y}}.length() < epsilon)
+      {
+        eraseIndex = N-1;
+        splitIndex = std::nullopt;
+      }
+    }
+
+    // Action
+    if(eraseIndex)
+    {
+      m_spline.points.erase(m_spline.points.begin() + *eraseIndex);
+    }
+    else if(splitIndex)
+    {
+      m_spline.points.insert(m_spline.points.begin() + *splitIndex + 1, newPos);
+    }
 
     updateSpline();
     update();
