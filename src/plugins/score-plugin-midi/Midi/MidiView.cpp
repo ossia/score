@@ -289,11 +289,6 @@ void View::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* ev)
 
 void View::keyPressEvent(QKeyEvent* ev)
 {
-  if (ev->key() == Qt::Key_Backspace || ev->key() == Qt::Key_Delete)
-  {
-    deleteRequested();
-  }
-
   ev->accept();
 }
 

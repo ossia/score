@@ -10,6 +10,7 @@
 #include <Curve/Segment/Linear/LinearSegment.hpp>
 #include <Curve/Segment/PointArray/PointArraySegment.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
+#include <Curve/CurveEditor.hpp>
 #include <Curve/Settings/CurveSettingsFactory.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
@@ -71,8 +72,10 @@ score_plugin_curve::factories(
          SegmentFactory_T<Segment_elasticIn>,
          SegmentFactory_T<Segment_elasticOut>,
          SegmentFactory_T<Segment_elasticInOut>,
-         SegmentFactory_T<Segment_perlinInOut>>,
-      FW<score::SettingsDelegateFactory, Settings::Factory>>(ctx, factoryName);
+         SegmentFactory_T<Segment_perlinInOut>>
+      , FW<score::SettingsDelegateFactory, Settings::Factory>
+      , FW<score::ObjectEditor, Curve::CurveEditor>
+      >(ctx, factoryName);
 }
 
 std::vector<std::unique_ptr<score::InterfaceListBase>>

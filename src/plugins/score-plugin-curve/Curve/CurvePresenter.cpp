@@ -155,17 +155,6 @@ void Presenter::setupView()
   {
     addPoint(new PointView{pt, m_style, m_view});
   }
-
-  connect(m_view, &View::keyPressed, this, [=](int key) {
-    if (key == Qt::Key_Backspace)
-    {
-      removeSelection();
-    }
-  });
-
-  connect(m_view, &View::keyReleased, this, [=](int key) {
-
-  });
 }
 
 void Presenter::fillContextMenu(

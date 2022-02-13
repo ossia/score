@@ -198,7 +198,7 @@ score_plugin_nodal::factories(
       FW<Process::LayerFactory, Nodal::LayerFactory>,
       FW<Execution::ProcessComponentFactory,
          Nodal::ProcessExecutorComponentFactory>,
-      FW<score::ObjectEditor, Nodal::NodeRemover>
+      FW<score::ObjectEditor, Nodal::NodeEditor>
       //, FW<score::PanelDelegateFactory, Nodal::PanelDelegateFactory>
       //, FW<LocalTree::ProcessComponentFactory,
       //   Nodal::LocalTreeProcessComponentFactory>

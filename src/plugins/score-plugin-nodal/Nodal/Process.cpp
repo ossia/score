@@ -70,19 +70,19 @@ void Model::ancestorTempoChanged()
     n.ancestorTempoChanged();
 }
 
-bool NodeRemover::copy(JSONReader& r, const Selection& s, const score::DocumentContext& ctx)
+bool NodeEditor::copy(JSONReader& r, const Selection& s, const score::DocumentContext& ctx)
 {
   SCORE_TODO;
   return true;
 }
 
-bool NodeRemover::paste(QPoint pos, const QMimeData& mime, const score::DocumentContext& ctx)
+bool NodeEditor::paste(QPoint pos, const QMimeData& mime, const score::DocumentContext& ctx)
 {
   SCORE_TODO;
   return true;
 }
 
-bool NodeRemover::remove(const Selection& s, const score::DocumentContext& ctx)
+bool NodeEditor::remove(const Selection& s, const score::DocumentContext& ctx)
 {
   if (s.size() == 1)
   {

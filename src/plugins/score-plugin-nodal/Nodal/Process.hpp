@@ -62,7 +62,7 @@ private:
 
 using ProcessFactory = Process::ProcessFactory_T<Nodal::Model>;
 
-class NodeRemover : public score::ObjectEditor
+class NodeEditor : public score::ObjectEditor
 {
   SCORE_CONCRETE("5e1c7e92-5beb-4313-92c8-f690089ff340")
 

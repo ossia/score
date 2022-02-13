@@ -14,6 +14,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveModel.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurvePresenter.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveStyle.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveEditor.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveView.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveConversion.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Palette/CommandObjects/CreatePointCommandObject.hpp"
@@ -97,6 +98,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Settings/CurveSettingsView.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveEditor.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurvePresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveView.cpp"
 
