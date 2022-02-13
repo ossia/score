@@ -232,17 +232,29 @@ void NoteView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     switch (m_action)
     {
       case Move:
-        this->setPos(closestPos(
-            noteview_origpoint + event->scenePos()
-            - event->buttonDownScenePos(Qt::LeftButton)));
-        m_presenter.on_noteChanged(*this);
-        m_presenter.on_noteChangeFinished(*this);
+      {
+        auto delta = event->scenePos() - event->buttonDownScenePos(Qt::LeftButton);
+        auto p = closestPos(noteview_origpoint + delta);
+        this->setPos(p);
+        if(delta != QPointF{})
+        {
+          m_presenter.on_noteChanged(*this);
+          m_presenter.on_noteChangeFinished(*this);
+        }
         break;
+      }
       case Scale:
+      {
         this->setWidth(std::max(2., event->pos().x()));
-        m_presenter.on_noteScaled(
-            note, m_width / ((View*)parentItem())->defaultWidth());
+
+        auto delta = event->scenePos() - event->buttonDownScenePos(Qt::LeftButton);
+        if(delta != QPointF{})
+        {
+          m_presenter.on_noteScaled(
+              note, m_width / ((View*)parentItem())->defaultWidth());
+        }
         break;
+      }
       case Duplicate:
         m_presenter.on_duplicate();
         break;
