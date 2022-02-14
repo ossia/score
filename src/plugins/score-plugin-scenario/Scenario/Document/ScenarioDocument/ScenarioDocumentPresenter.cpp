@@ -1,4 +1,4 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check
+﻿// This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioDocumentPresenter.hpp"
 
@@ -408,6 +408,17 @@ void ScenarioDocumentPresenter::on_horizontalZoom(
   lh += 0.01 * (rh - lh) * x_view_percent * zoom.y() / 2.;
   rh -= 0.01 * (rh - lh) * (1. - x_view_percent) * zoom.y() / 2.;
 
+  if(lh < 0 && rh > 0)
+  {
+    // 0.3 to make sure that we don't "dezoom" too fast.
+    lh *= -1. * 0.3;
+    double ratio = 1. + lh / rh;
+    auto& c = displayedInterval();
+
+    c.duration.setGuiDuration(c.duration.guiDuration() * ratio);
+    lh = 0;
+    rh += lh;
+  }
   view().minimap().modifyHandles(lh, rh);
 }
 
