@@ -79,6 +79,7 @@
 #include <QString>
 #include <QStringList>
 #include <QTableView>
+#include <QTimer>
 #include <QToolButton>
 #include <QTreeView>
 #include <qnamespace.h>
