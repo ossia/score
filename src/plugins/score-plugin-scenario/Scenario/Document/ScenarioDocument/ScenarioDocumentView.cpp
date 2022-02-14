@@ -131,6 +131,7 @@ void ProcessGraphicsView::drawForeground(QPainter* painter, const QRectF& rect)
     if (currentView)
     {
       auto pctg = currentTimebar->playPercentage();
+
       auto x = pctg * currentView->defaultWidth();
       double view_x = currentView->mapToScene(x, 0.).x();
 
@@ -142,7 +143,6 @@ void ProcessGraphicsView::drawForeground(QPainter* painter, const QRectF& rect)
       painter->setPen(pen);
       painter->drawLine(QPointF{view_x, top}, QPointF{view_x, bottom});
     }
-
   }
 }
 

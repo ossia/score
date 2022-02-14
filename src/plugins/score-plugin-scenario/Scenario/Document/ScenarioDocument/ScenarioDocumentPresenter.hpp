@@ -165,6 +165,8 @@ private:
   QAction* m_timelineAction{};
   QAction* m_musicalAction{};
 
+  int m_nonGLTimebarTimer{-1};
+
   bool m_zooming{false};
   bool m_updatingMinimap{false};
   bool m_reloadingMinimap{false};
