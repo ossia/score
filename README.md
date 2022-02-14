@@ -1,6 +1,6 @@
 <img src="https://i.imgur.com/BL6J8Jh.png" width="500">
 
-[![Financial Contributors on Open Collective](https://opencollective.com/ossia/all/badge.svg?label=financial+contributors)](https://opencollective.com/ossia) [![join the chat at https://gitter.im/ossia/score](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ossia/score?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Downloads](https://img.shields.io/github/downloads/ossia/score/total.svg)](https://github.com/ossia/score/releases) [![Version](https://img.shields.io/github/release/ossia/score.svg)](https://github.com/ossia/score/releases)
+[![Financial Contributors on Open Collective](https://opencollective.com/ossia/all/badge.svg?label=financial+contributors)](https://opencollective.com/ossia) [![join the chat at https://gitter.im/ossia/score](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ossia/score?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Downloads](https://img.shields.io/badge/dynamic/json?color=success&label=downloads&query=%24.downloads&url=https%3A%2F%2Fossia.io%2Fdownload-stats.json)](https://github.com/ossia/score/releases) [![Version](https://img.shields.io/github/release/ossia/score.svg)](https://github.com/ossia/score/releases)
 
 [**ossia score**](https://ossia.io) is a ***sequencer*** for audio-visual artists, designed to create ***interactive*** shows.
 
