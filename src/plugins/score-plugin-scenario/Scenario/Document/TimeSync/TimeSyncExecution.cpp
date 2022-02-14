@@ -91,8 +91,11 @@ void TimeSyncComponent::onSetup(
   if (m_score_node)
   {
     updateTriggerTime();
-    m_ossia_node->set_autotrigger(m_score_node->autotrigger());
-    m_ossia_node->set_start(m_score_node->isStartPoint());
+    if(m_score_node->active())
+    {
+      m_ossia_node->set_autotrigger(m_score_node->autotrigger());
+      m_ossia_node->set_start(m_score_node->isStartPoint());
+    }
 
     using namespace ossia;
     auto startWait = [&edit = system().editionQueue,
@@ -140,12 +143,22 @@ const Scenario::TimeSyncModel& TimeSyncComponent::scoreTimeSync() const
 void TimeSyncComponent::updateTrigger()
 {
   auto exp_ptr = std::make_shared<ossia::expression_ptr>(this->makeTrigger());
-  this->in_exec([e = m_ossia_node, exp_ptr] {
+
+  bool autotrigger = false, start = false;
+  if(m_score_node && m_score_node->active())
+  {
+    autotrigger = m_score_node->autotrigger();
+    start = m_score_node->isStartPoint();
+  }
+
+  this->in_exec([e = m_ossia_node, exp_ptr, autotrigger, start] {
     bool was_observing = e->is_observing_expression();
     if (was_observing)
       e->observe_expression(false);
 
     e->set_expression(std::move(*exp_ptr));
+    e->set_autotrigger(autotrigger);
+    e->set_start(start);
 
     if (was_observing)
       e->observe_expression(true);
