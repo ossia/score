@@ -215,7 +215,8 @@ IntervalDurations::Algorithms::changeAllDurations(
   {
     const auto delta = time - d.defaultDuration();
     d.m_defaultDuration = time;
-    d.m_guiDuration = time * 1.1;
+    if(auto new_gui_dur = time * 1.1; new_gui_dur > d.m_guiDuration)
+      d.m_guiDuration = new_gui_dur;
 
     // FIXME ! why is there m_isMaxInfinite and m_maxDuration.isInfinite() ?!
     if (!d.m_isMinNull)
