@@ -44,6 +44,15 @@ void DefaultClock::prepareExecution(const TimeVal& t, BaseScenarioElement& bs)
                                     s = context.execState] {
       if (time != 0_tv)
       {
+        using namespace ossia;
+
+        // Because the offset algorithm of the scenario will assume that the interval is finished
+        // if we play-from-here after the end of its trigger, we adjust it beforehand.
+        const auto& root_itv = scenar.get_time_intervals()[0];
+        if(root_itv->get_nominal_duration() < time)
+        {
+          root_itv->set_nominal_duration(time + 1_tv);
+        }
         scenar.offset(time);
       }
 

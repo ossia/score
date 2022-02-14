@@ -413,6 +413,8 @@ void ExecutionController::request_play_from_here(TimeVal t)
   else
   {
     on_play_local(true, t);
+
+    // FIXME this ends up calling play_interval again...
     auto act = this->context.actions.action<Actions::Play>().action();
     act->trigger();
   }
