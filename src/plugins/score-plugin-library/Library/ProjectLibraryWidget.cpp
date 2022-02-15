@@ -36,6 +36,7 @@ ProjectLibraryWidget::ProjectLibraryWidget(
   lay->addWidget(new ItemModelFilterLineEdit{*m_proxy, m_tv, this});
   lay->addWidget(&m_tv);
   m_tv.setModel(m_proxy);
+  m_tv.setUniformRowHeights(true);
   setup_treeview(m_tv);
   connect(&m_tv, &QTreeView::doubleClicked, this, [&](const QModelIndex& idx) {
     auto doc = ctx.docManager.currentDocument();

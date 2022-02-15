@@ -3,9 +3,12 @@
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/tools/std/StringHash.hpp>
+#include <score/widgets/IconProvider.hpp>
 
+#include <QFileIconProvider>
 #include <QFileSystemModel>
 #include <QMimeData>
+#include <QGuiApplication>
 #include <QSet>
 
 #include <tsl/hopscotch_map.h>
@@ -17,9 +20,12 @@ namespace Library
 class FileSystemModel : public QFileSystemModel
 {
 public:
+
   FileSystemModel(const score::GUIApplicationContext& ctx, QObject* parent)
       : QFileSystemModel{parent}
   {
+    setIconProvider(&score::IconProvider::instance());
+
     auto& lib_setup = ctx.interfaces<Library::LibraryInterfaceList>();
     // TODO refactor
     QSet<QString> types{// score-specific
@@ -111,7 +117,20 @@ public:
     return handler->onDrop(*this, *data, row, column, parent);
   }
 
+  QVariant data(const QModelIndex& index, int role) const override
+  {
+    if(role == Qt::DecorationRole)
+    {
+      if(isDir(index))
+        return score::IconProvider::folderIcon();
+      else
+        return {};
+    }
+    return QFileSystemModel::data(index, role);
+  }
+
   QStringList m_mimeTypes;
   tsl::hopscotch_map<QString, LibraryInterface*> m_mimeActions;
+
 };
 }

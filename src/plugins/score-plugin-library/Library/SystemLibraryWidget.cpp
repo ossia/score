@@ -50,6 +50,7 @@ SystemLibraryWidget::SystemLibraryWidget(
   lay->addWidget(&m_tv);
   lay->addWidget(&m_preview);
   m_tv.setModel(m_proxy);
+  m_tv.setUniformRowHeights(true);
   setup_treeview(m_tv);
 
   {

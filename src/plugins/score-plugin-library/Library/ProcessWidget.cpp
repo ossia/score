@@ -131,6 +131,7 @@ ProcessWidget::ProcessWidget(
     slay->addWidget(&m_tv, 3);
     m_tv.setModel(processFilterProxy);
     m_tv.setStatusTip(statusTip());
+    m_tv.setUniformRowHeights(true);
     setup_treeview(m_tv);
   }
 
