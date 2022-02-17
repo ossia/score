@@ -771,6 +771,7 @@ void DeviceExplorerWidget::updateActions()
         }
       }
       m_reconnect->setEnabled(validSelection && editable);
+      m_disconnect->setEnabled(validSelection && editable);
     }
   }
   else
@@ -1032,13 +1033,18 @@ void DeviceExplorerWidget::disconnect()
   auto m = model();
   if (!m)
     return;
-
-  const auto& select = m->nodeFromModelIndex(m_ntView->selectedIndex());
-  if (select.is<Device::DeviceSettings>())
+  int selectionSize = m_ntView->selectedIndexes().size();
+  for (int i = 0; i < selectionSize; i++)
   {
-    auto& dev = m->deviceModel().list().device(
-        select.get<Device::DeviceSettings>().name);
-    dev.disconnect();
+    const Device::Node& select = m->nodeFromModelIndex(
+        proxyModel()->mapToSource(m_ntView->selectedIndexes().at(i)));
+
+    if (select.is<Device::DeviceSettings>())
+    {
+      auto& dev = m->deviceModel().list().device(
+          select.get<Device::DeviceSettings>().name);
+      dev.disconnect();
+    }
   }
 }
 
