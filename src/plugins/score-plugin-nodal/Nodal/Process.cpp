@@ -73,13 +73,13 @@ void Model::ancestorTempoChanged()
 bool NodeEditor::copy(JSONReader& r, const Selection& s, const score::DocumentContext& ctx)
 {
   SCORE_TODO;
-  return true;
+  return false;
 }
 
 bool NodeEditor::paste(QPoint pos, const QMimeData& mime, const score::DocumentContext& ctx)
 {
   SCORE_TODO;
-  return true;
+  return false;
 }
 
 bool NodeEditor::remove(const Selection& s, const score::DocumentContext& ctx)

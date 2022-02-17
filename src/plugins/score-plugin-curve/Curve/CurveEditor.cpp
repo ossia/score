@@ -22,13 +22,13 @@ namespace Curve
 bool CurveEditor::copy(JSONReader& r, const Selection& s, const score::DocumentContext& ctx)
 {
   SCORE_TODO;
-  return true;
+  return false;
 }
 
 bool CurveEditor::paste(QPoint pos, const QMimeData& mime, const score::DocumentContext& ctx)
 {
   SCORE_TODO;
-  return true;
+  return false;
 }
 
 bool CurveEditor::remove(const Selection& s, const score::DocumentContext& ctx)
