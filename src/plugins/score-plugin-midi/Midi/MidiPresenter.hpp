@@ -16,6 +16,7 @@ class Presenter final
     : public Process::LayerPresenter
     , public Nano::Observer
 {
+    W_OBJECT(Presenter)
 public:
   explicit Presenter(
       const Midi::ProcessModel& model,
@@ -35,6 +36,7 @@ public:
   void parentGeometryChanged() override;
 
   const Midi::ProcessModel& model() const noexcept;
+  const Midi::View& view() const noexcept;
 
   void on_deselectOtherNotes();
   void on_duplicate();

@@ -29,6 +29,23 @@ private:
   NoteData m_note;
 };
 
+class AddNotes final : public score::Command
+{
+    SCORE_COMMAND_DECL(Midi::CommandFactoryName(),AddNotes,"Add multiple notes")
+    public:
+        AddNotes(const ProcessModel& model, const std::vector<NoteData>& notes);
+
+        void undo(const score::DocumentContext& ctx) const override;
+        void redo(const score::DocumentContext& ctx) const override;
+    protected:
+        void serializeImpl(DataStreamInput& s) const override;
+        void deserializeImpl(DataStreamOutput& s) override;
+    private:
+        Path<ProcessModel> m_model;
+        std::vector<Id<Note>> m_ids;
+        std::vector<NoteData> m_notes;
+};
+
 class SCORE_PLUGIN_MIDI_EXPORT ReplaceNotes final : public score::Command
 {
   SCORE_COMMAND_DECL(Midi::CommandFactoryName(), ReplaceNotes, "Set notes")
