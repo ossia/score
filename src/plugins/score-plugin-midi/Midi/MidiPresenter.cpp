@@ -32,7 +32,7 @@
 #include <QApplication>
 #include <QInputDialog>
 #include <QMenu>
-
+W_OBJECT_IMPL(Midi::Presenter)
 #if __has_include(<valgrind/callgrind.h>)
 #include <valgrind/callgrind.h>
 #endif
@@ -213,6 +213,11 @@ void Presenter::parentGeometryChanged() { }
 const Midi::ProcessModel& Presenter::model() const noexcept
 {
   return static_cast<const Midi::ProcessModel&>(m_process);
+}
+
+const Midi::View& Presenter::view() const noexcept
+{
+  return *m_view;
 }
 
 void Presenter::on_deselectOtherNotes()
